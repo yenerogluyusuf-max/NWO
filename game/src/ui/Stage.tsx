@@ -161,7 +161,7 @@ export function Stage({ world: initial }: { world: World }) {
       <AtlasMap
         className="stage-map"
         fill={fill}
-        fillAlpha={mapMode === "wahl" ? 0.68 : 0.7}
+        fillAlpha={mapMode === "wahl" ? 0.56 : 0.62}
         selected={selected}
         labels={METROS}
         geoLabels={GEO_LABELS}
@@ -197,7 +197,7 @@ export function Stage({ world: initial }: { world: World }) {
           <Stat
             icon="preis"
             label="Inflation"
-            value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`}
+            value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`}
             trend={trend(w, "inflation")}
             tip="Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung."
           />
@@ -208,7 +208,7 @@ export function Stage({ world: initial }: { world: World }) {
             trend={trend(w, "usdTry")}
             tip="Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer."
           />
-          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
+          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
           <Stat
             icon="parlament"
             label="Sitze"
@@ -232,7 +232,7 @@ export function Stage({ world: initial }: { world: World }) {
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" || dossier === "wirtschaft" ? " wide" : ""}`} aria-label={dossiers.find((d) => d.id === dossier)?.label}>
+        <section className={`dossier frame${dossier === "netz" || dossier === "wirtschaft" || dossier === "entscheidungen" ? " wide" : ""}`} aria-label={dossiers.find((d) => d.id === dossier)?.label}>
           <Corners />
           <header className="dossier-head">
             <h2>{dossiers.find((d) => d.id === dossier)?.label}</h2>
@@ -301,7 +301,7 @@ export function Stage({ world: initial }: { world: World }) {
         </aside>
       ) : (
         <div className="cartouche" aria-hidden>
-          <div className="cartouche-title">Türkiye</div>
+          <div className="cartouche-title" lang="tr">Türkiye</div>
           <div className="cartouche-sub">81 Provinzen · Stand {w.date.slice(0, 4)}</div>
         </div>
       )}
@@ -335,7 +335,11 @@ function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; lab
       <div>
         <div className="stat-value">
           {value}
-          {t !== undefined && Math.abs(t) > 0.05 && <span className={`trend ${t > 0 ? "up" : "down"}`} aria-hidden>{t > 0 ? "▲" : "▼"}</span>}
+          {t !== undefined && Math.abs(t) > 0.05 && (
+            <span className={`trend ${t > 0 ? "up" : "down"}`} aria-hidden>
+              {t > 0 ? "▲" : "▼"} {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
+            </span>
+          )}
         </div>
         <div className="stat-label">{label}</div>
       </div>
@@ -420,7 +424,7 @@ function Alerts({ world, bloc, onProblems, onDesk }: { world: World; bloc: numbe
   return (
     <div className="alerts" aria-label="Hinweise">
       {items.map((a) => (
-        <button key={a.id} className={`alert tone-${a.tone}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
+        <button key={`${a.id}-${a.count ?? 0}`} className={`alert tone-${a.tone}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
           <Icon name={a.icon} size={20} />
           {a.count !== undefined && <span className="alert-count">{a.count}</span>}
           <span className="tip" role="tooltip">
@@ -469,12 +473,16 @@ function ProvinceCard({ world, plaka, onClose }: { world: World; plaka: number; 
     .map((n) => n.name);
   const own = world.player?.partei;
   return (
-    <aside className="province-card-float">
-      <button className="close" onClick={onClose} aria-label="Schließen">
-        ✕
-      </button>
+    <aside className="province-card-float frame">
+      <Corners />
+      <header className="dossier-head">
+        <h2>{d.name}</h2>
+        <button className="close" onClick={onClose} aria-label="Schließen">
+          ✕
+        </button>
+      </header>
+      <div className="province-body">
       <p className="kicker">Provinz Nr. {plaka} · {d.region}</p>
-      <h2>{d.name}</h2>
       <dl>
         <dt>Einwohner</dt>
         <dd>{d.bevoelkerung.toLocaleString("de-DE")}</dd>
@@ -513,6 +521,7 @@ function ProvinceCard({ world, plaka, onClose }: { world: World; plaka: number; 
         </div>
       )}
       <p className="footnote">Der Gouverneur wird vom Präsidenten ernannt.</p>
+      </div>
     </aside>
   );
 }

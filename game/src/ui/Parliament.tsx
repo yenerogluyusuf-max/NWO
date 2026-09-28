@@ -34,7 +34,7 @@ export function Parliament({ world }: { world: World }) {
         <Hemicycle order={order.map(([p, n]) => ({ color: color(p), seats: n }))} />
         <div className="hemicycle-center">
           <strong>{bloc}</strong>
-          <span>{bloc >= 301 ? "eigene Mehrheit" : `es fehlen ${301 - bloc}`}</span>
+          <span>{bloc < 301 ? `es fehlen ${301 - bloc}` : player.buendnis && (parl.seats[player.buendnis] ?? 0) > 0 ? "Regierungsmehrheit" : "eigene Mehrheit"}</span>
         </div>
       </div>
       <ul className="seatlist">

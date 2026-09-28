@@ -29,7 +29,7 @@ export function EconomyFile({ world }: { world: World }) {
     {
       id: "inflation",
       label: "Inflation",
-      value: `${nf(p.inflation.value)} %`,
+      value: `${nf(p.inflation.value)} %`,
       measured: `${formatMonthDe(p.inflation.period)}, veröffentlicht am ${formatDateDe(p.inflation.publishedOn)}`,
       explain:
         "Wie stark die Preise im Vergleich zum Vorjahresmonat gestiegen sind. Das Statistikamt meldet den Wert Anfang des Folgemonats; du steuerst also immer mit Blick in den Rückspiegel.",
@@ -38,7 +38,7 @@ export function EconomyFile({ world }: { world: World }) {
     {
       id: "leitzins",
       label: "Leitzins",
-      value: `${nf(e.policyRate)} %`,
+      value: `${nf(e.policyRate)} %`,
       measured: "tagesaktuell",
       explain:
         "Der Zins, zu dem sich Banken bei der Zentralbank Geld leihen. Ihn legt der Geldpolitische Ausschuss der Zentralbank fest, nicht der Präsident.",
@@ -64,7 +64,7 @@ export function EconomyFile({ world }: { world: World }) {
     {
       id: "wachstum",
       label: "Wachstum",
-      value: `${nf(p.growth.value)} %`,
+      value: `${nf(p.growth.value)} %`,
       measured: `${p.growth.period}, veröffentlicht am ${formatDateDe(p.growth.publishedOn)}`,
       explain: "Wie stark die Wirtschaftsleistung gegenüber dem Vorjahresquartal gewachsen ist. Erscheint etwa zwei Monate nach Quartalsende.",
       series: publishedHistory.slice(-24).map((s) => s.growth),
@@ -72,7 +72,7 @@ export function EconomyFile({ world }: { world: World }) {
     {
       id: "arbeitslosigkeit",
       label: "Arbeitslosenquote",
-      value: `${nf(p.unemployment.value)} %`,
+      value: `${nf(p.unemployment.value)} %`,
       measured: `${formatMonthDe(p.unemployment.period)}, veröffentlicht am ${formatDateDe(p.unemployment.publishedOn)}`,
       explain: "Anteil der Arbeitsuchenden an den Erwerbspersonen. Folgt dem Wachstum mit Verzögerung.",
       series: publishedHistory.slice(-24).map((s) => s.unemployment),
@@ -89,7 +89,7 @@ export function EconomyFile({ world }: { world: World }) {
     {
       id: "schulden",
       label: "Staatsschulden",
-      value: `${nf(e.debtRatio)} % des BIP`,
+      value: `${nf(e.debtRatio)} % des BIP`,
       measured: "Schätzung des Finanzministeriums",
       explain: "Alle Schulden des Staates im Verhältnis zur Wirtschaftsleistung. Hohe Inflation lässt die Quote sinken, weil die Wirtschaftsleistung nominal schneller wächst als die Schulden.",
       series: series("debtRatio", e.debtRatio),
@@ -135,21 +135,27 @@ export function EconomyFile({ world }: { world: World }) {
 }
 
 function Sparkline({ values }: { values: number[] }) {
-  const w = 120;
-  const h = 28;
+  const w = 150;
+  const h = 34;
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
-  const pts = values
-    .map((v, i) => `${(i / (values.length - 1)) * w},${h - ((v - min) / span) * (h - 4) - 2}`)
-    .join(" ");
+  const y = (v: number) => h - ((v - min) / span) * (h - 6) - 3;
+  const pts = values.map((v, i) => [(i / (values.length - 1)) * w, y(v)] as const);
+  const line = pts.map(([x, yy]) => `${x.toFixed(1)},${yy.toFixed(1)}`).join(" ");
+  const area = `M0 ${h} L${line.replace(/ /g, " L")} L${w} ${h} Z`;
   const last = values[values.length - 1]!;
-  const ly = h - ((last - min) / span) * (h - 4) - 2;
   return (
     <svg className="spark" overflow="visible" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden>
-      <line x1="0" y1={h - 0.5} x2={w} y2={h - 0.5} stroke="currentColor" strokeOpacity="0.2" />
-      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-      <circle cx={w} cy={ly} r="2.4" fill="currentColor" />
+      <path d={area} fill="currentColor" fillOpacity="0.12" />
+      <polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <circle cx={w} cy={y(last)} r="2.6" fill="currentColor" />
+      <text x="-4" y={y(max) + 3} textAnchor="end" className="spark-mark">{fmtShort(max)}</text>
+      {max !== min && <text x="-4" y={y(min) + 3} textAnchor="end" className="spark-mark">{fmtShort(min)}</text>}
     </svg>
   );
+}
+
+function fmtShort(x: number): string {
+  return x.toLocaleString("de-DE", { maximumFractionDigits: Math.abs(x) >= 100 ? 0 : 1 });
 }

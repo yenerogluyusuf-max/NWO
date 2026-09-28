@@ -3,6 +3,8 @@ import type { World } from "../sim/types";
 import { outlook, type Metric, type Outlook } from "../sim/forecast";
 import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "../sim/world";
 import { Icon, type IconName } from "./icons";
+import { Vignette } from "./art/Vignette";
+import { formatDateDe } from "../sim/dates";
 
 interface Option {
   id: string;
@@ -74,24 +76,30 @@ export function Decisions({ world, onDecided }: { world: World; onDecided: () =>
 
   return (
     <div className="decisions">
-      <p className="subtitle">Wähle eine Maßnahme. Vor der Unterschrift siehst du, wohin sie in einem Jahr ungefähr führt.</p>
-      <div className="decision-cards">
+      <div className="decision-list">
         {OPTIONS.map((o) => (
           <button key={o.id} className={"decision-card" + (chosen?.id === o.id ? " active" : "")} onClick={() => setChosen(o)} aria-pressed={chosen?.id === o.id}>
             <span className="decision-icon">
-              <Icon name={o.icon} size={24} />
+              <Icon name={o.icon} size={22} />
             </span>
             <strong>{o.title}</strong>
-            <span className="decision-text">{o.text}</span>
             <span className="decision-lever">{o.lever}</span>
           </button>
         ))}
       </div>
+      {!chosen && (
+        <section className="decree empty">
+          <Vignette scene="parlament" />
+          <p className="decree-hint">Wähle links eine Maßnahme. Hier liegt dann der Erlass zur Unterschrift, mit einer Vorschau auf das nächste Jahr.</p>
+        </section>
+      )}
       {chosen && (
-        <section className="outlook">
+        <section className="decree">
+          <p className="kicker">Erlass · {formatDateDe(world.date)}</p>
           <h3>{chosen.title}</h3>
-          <p className="subtitle">In zwölf Monaten, verglichen mit „nichts tun“. Richtung und Bandbreite, keine genauen Zahlen.</p>
-          <table>
+          <p className="decree-text">{chosen.text}</p>
+          <table className="decree-outlook">
+            <caption>In zwölf Monaten, verglichen mit „nichts tun“</caption>
             <tbody>
               {outlooks.map(({ id, label, o }) => (
                 <tr key={id}>
@@ -106,12 +114,14 @@ export function Decisions({ world, onDecided }: { world: World; onDecided: () =>
               ))}
             </tbody>
           </table>
-          <p className="mentor-inline">
-            Die Bandbreite zeigt, wie unsicher das ist. Das Modell rechnet die Zukunft mehrfach durch; die Wirklichkeit hält sich nicht an Modelle.
-          </p>
-          <div className="confirm">
+          <p className="mentor-inline">Die Bandbreite zeigt, wie unsicher das ist. Die Wirklichkeit hält sich nicht an Modelle.</p>
+          <div className="signature">
+            <div className="signature-line">
+              <span className="signature-name">{world.player?.name ?? ""}</span>
+              <span className="signature-caption">Unterschrift</span>
+            </div>
             <button
-              className="primary"
+              className="wax-seal"
               onClick={() => {
                 chosen.act(world);
                 setChosen(null);
@@ -120,10 +130,10 @@ export function Decisions({ world, onDecided }: { world: World; onDecided: () =>
             >
               Unterzeichnen
             </button>
-            <button className="link" onClick={() => setChosen(null)}>
-              Verwerfen
-            </button>
           </div>
+          <button className="link" onClick={() => setChosen(null)}>
+            Verwerfen
+          </button>
         </section>
       )}
     </div>

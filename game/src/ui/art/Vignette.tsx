@@ -296,7 +296,7 @@ function Anatolien({ id }: { id: string }) {
   );
 }
 
-function Wahlnacht({ id }: { id: string }) {
+function Wahlnacht({ id, banner }: { id: string; banner?: string }) {
   const base = 196;
   return (
     <>
@@ -313,7 +313,9 @@ function Wahlnacht({ id }: { id: string }) {
       <line x1="408" y1={base - 40} x2="408" y2={base - 138} stroke="#120c08" strokeWidth="2" />
       <rect x="226" y={base - 138} width="188" height="32" fill="#e7d7b0" stroke="#120c08" />
       <path d={`M226 ${base - 138} h188 v32 h-188 Z`} fill="none" stroke="#b3352b" strokeWidth="3" />
-      <path d={`M250 ${base - 122} h140`} stroke="#3a2a1e" strokeWidth="5" strokeDasharray="14 6 22 6 30 6 18" />
+      <text x="320" y={base - 117} textAnchor="middle" fontFamily="Fraunces Variable, serif" fontWeight="700" fontSize="15" fill="#3a2a1e" {...((banner ?? "").length > 14 ? { textLength: 172, lengthAdjust: "spacingAndGlyphs" } : { letterSpacing: "0.04em" })}>
+        {(banner ?? "Wahlnacht").toUpperCase()}
+      </text>
       <rect x="236" y={base - 40} width="168" height="40" fill="#3a2a1e" stroke="#120c08" />
       <rect x="236" y={base - 40} width="168" height="6" fill="#b3352b" />
       <path d={`M311 ${base - 40} l2 -30 c1 -7 13 -7 14 0 l2 30 Z`} fill="#120c08" />
@@ -344,7 +346,7 @@ const SKY: Record<Scene, [string, string]> = {
   wahlnacht: ["#1d2330", "#3b3a3f"],
 };
 
-export function Vignette({ scene, className }: { scene: Scene; className?: string }) {
+export function Vignette({ scene, className, banner }: { scene: Scene; className?: string; banner?: string }) {
   const id = useId().replace(/:/g, "");
   return (
     <svg className={`vignette ${className ?? ""}`} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden>
@@ -355,7 +357,7 @@ export function Vignette({ scene, className }: { scene: Scene; className?: strin
         {scene === "parlament" && <Parlament id={id} />}
         {scene === "bank" && <Bank id={id} />}
         {scene === "anatolien" && <Anatolien id={id} />}
-        {scene === "wahlnacht" && <Wahlnacht id={id} />}
+        {scene === "wahlnacht" && <Wahlnacht id={id} banner={banner} />}
       </g>
       <rect width={W} height={H} fill={`url(#vig${id})`} />
     </svg>

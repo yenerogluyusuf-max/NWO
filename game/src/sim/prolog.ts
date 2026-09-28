@@ -121,7 +121,7 @@ export const STATIONS: Station[] = [
     question: "Wofür steht deine Partei?",
     answers: [
       { label: "Aufbruch der Mitte", text: "Wirtschaft, Rechtsstaat, weniger Streit. Für alle, die müde sind vom Kulturkampf.", apply: (p) => { p.partei = { name: "Aufbruchspartei", kurz: "AP", farbe: "#2f5d62" }; near(p, "unternehmer", 3); near(p, "staedtische_saekulare", 3); near(p, "junge", 2); } },
-      { label: "Soziale Gerechtigkeit", text: "Löhne, Renten, Wohnungen. Für alle, denen am Monatsende das Geld fehlt.", apply: (p) => { p.partei = { name: "Partei der Gerechtigkeit", kurz: "PG", farbe: "#a23b2a" }; near(p, "arbeitnehmer", 4); near(p, "rentner", 3); near(p, "unternehmer", -2); } },
+      { label: "Soziale Gerechtigkeit", text: "Löhne, Renten, Wohnungen. Für alle, denen am Monatsende das Geld fehlt.", apply: (p) => { p.partei = { name: "Partei der Gerechtigkeit", kurz: "PG", farbe: "#a8325e" }; near(p, "arbeitnehmer", 4); near(p, "rentner", 3); near(p, "unternehmer", -2); } },
       { label: "Werte und Wohlstand", text: "Familie, Glaube, ehrliche Arbeit. Konservativ, aber sauber.", apply: (p) => { p.partei = { name: "Partei der Werte", kurz: "PW", farbe: "#2e6b3f" }; near(p, "konservative", 4); near(p, "landwirte", 2); near(p, "staedtische_saekulare", -2); } },
       { label: "Die Regionen", text: "Mehr Geld und mehr Rechte für die Provinzen, weniger Ankara.", apply: (p) => { p.partei = { name: "Partei der Regionen", kurz: "PR", farbe: "#556b2f" }; near(p, "landwirte", 4); near(p, "junge", 1); } },
     ],

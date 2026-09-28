@@ -134,7 +134,7 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
             </label>
             <p className="subtitle">
               Umsetzung in etwa {node.months} Monat{node.months === 1 ? "" : "en"} ·{" "}
-              {node.cost ? `${node.cost > 0 ? "Kosten" : "Einnahmen"} bei voller Stufe: ${nf(Math.abs(node.cost))} % des BIP pro Jahr` : "kaum Kosten"}
+              {node.cost ? `${node.cost > 0 ? "Kosten" : "Einnahmen"} bei voller Stufe: ${nf(Math.abs(node.cost))} % des BIP pro Jahr` : "kaum Kosten"}
             </p>
             <div className="confirm">
               <button onClick={runPreview} disabled={sliderValue === currentTarget}>

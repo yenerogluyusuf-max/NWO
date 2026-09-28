@@ -23,11 +23,11 @@ function hash(s: string): number {
 
 // Kopf im Profil nach rechts, Schultern im Anzug. Koordinaten 0–100 × 0–120.
 const HEAD =
-  "M6 124 C8 106 22 98 38 95 C40 89 39 83 36 78 C28 70 26 54 31 41 C37 27 52 20 64 23 " +
+  "M2 134 L6 124 C8 106 22 98 38 95 C40 89 39 83 36 78 C28 70 26 54 31 41 C37 27 52 20 64 23 " +
   "C72 26 77 33 77.5 42 C77.8 45 78.5 47 78.5 49.5 C77.5 51 77 52.5 78 54 L86.5 60.5 " +
   "C87 62 85 62.8 82.5 62.8 C82 64 82.5 65.5 82 66.5 C82.5 67.5 81.5 68.5 80.5 69 " +
   "C81.5 70.2 81 71.8 80 72.5 C81 74.5 81 78 77.5 79.5 C72 81 67.5 81.5 65.5 85 " +
-  "C64.5 88.5 65.5 92 67.5 94 C78 97 91 104 95 124 Z";
+  "C64.5 88.5 65.5 92 67.5 94 C78 97 91 104 95 124 L99 134 Z";
 
 const HAIR_M = [
   // kurz, gescheitelt
@@ -101,6 +101,13 @@ export function Cameo({ seed, size = 64, tint = "#8e2a22", figure, glasses, ring
         ) : (
           <path d="M65.5 90 C66 97 71 101 78 99" fill="none" stroke="#e9d6ac" strokeWidth="1.4" strokeDasharray="0.1 2.4" strokeLinecap="round" />
         )}
+        {/* feine Lichtlinien: Ohr, Braue, Strähnen */}
+        <g fill="none" stroke="#e9d6ac" strokeLinecap="round" strokeOpacity="0.4" strokeWidth="0.8">
+          <path d="M50 52 C46 51 45 57 47 61 C48.5 64 51 64 52 62" />
+          <path d="M70 46.5 C72.5 45 75 45.2 77 46.4" strokeOpacity="0.55" />
+          <path d="M40 34 C47 27 57 25 66 27" strokeOpacity="0.28" />
+          <path d="M36 42 C41 35 49 31 57 31" strokeOpacity="0.22" />
+        </g>
         {withGlasses && <path d={GLASSES} fill="none" stroke="#e9d6ac" strokeWidth="1.1" strokeOpacity="0.85" />}
       </g>
     </svg>

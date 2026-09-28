@@ -7,7 +7,7 @@ import { Stage } from "./Stage";
 import { startAfterElection, type PlayerProfile } from "../sim/prolog";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { provinceLonLat } from "./atlas/overlay";
-import { Flourish, StateSeal } from "./art/Ornament";
+import { Corners, Flourish, StateSeal } from "./art/Ornament";
 
 type Phase = "titel" | "prolog" | "spiel";
 
@@ -31,18 +31,21 @@ export function App() {
       <div className="front-shade" />
       {phase === "titel" && (
         <main className="title-screen">
-          <StateSeal size={92} />
-          <h1 className="logo">Staatsräson</h1>
-          <Flourish width={260} />
-          <p className="tagline">Die Türkei nach der Wahl 2028. Ein Land, ein Amt, fünf Jahre.</p>
-          <nav className="title-menu">
-            <button className="brass-button" onClick={() => setPhase("prolog")}>
-              Neues Spiel
-            </button>
-            <button className="leather-button" disabled title="Noch kein Spielstand vorhanden">
-              Fortsetzen
-            </button>
-          </nav>
+          <div className="title-plaque frame">
+            <Corners />
+            <StateSeal size={120} />
+            <h1 className="logo">Staatsräson</h1>
+            <Flourish width={300} />
+            <p className="tagline">Die Türkei nach der Wahl 2028. Ein Land, ein Amt, fünf Jahre.</p>
+            <nav className="title-menu">
+              <button className="brass-button" onClick={() => setPhase("prolog")}>
+                Neues Spiel
+              </button>
+              <button className="leather-button" disabled title="Noch kein Spielstand vorhanden">
+                Fortsetzen
+              </button>
+            </nav>
+          </div>
           <p className="title-note">Wirtschaftsdaten vom 25. September 2026 · Karte nach Natural Earth und AWS Terrain</p>
         </main>
       )}

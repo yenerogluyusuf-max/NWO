@@ -86,6 +86,9 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
         <marker id="ng-minus" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10 Z" fill="#8e2a22" />
         </marker>
+        <marker id="ng-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 Z" fill="#2a1f18" />
+        </marker>
       </defs>
       <text x={COL_L} y="14" textAnchor="middle" className="ng-head">Ursachen</text>
       <text x={COL_R} y="14" textAnchor="middle" className="ng-head">Wirkungen</text>
@@ -98,7 +101,13 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
         <NodeBox key={e.to} node={get(e.to)} x={COL_R} y={yAt(i, effects.length)} onClick={() => onSelect(e.to)} />
       ))}
       {causes.length === 0 && (
-        <text x={COL_L} y={cy + 4} textAnchor="middle" className="ng-empty">{node.input ? "aus dem Wirtschaftsmodell" : "wird entschieden"}</text>
+        <g>
+          <path d={`M${COL_L + 30} ${cy} C${W / 4} ${cy} ${W / 4} ${cy} ${W / 2 - 90} ${cy}`} fill="none" stroke="#2a1f18" strokeWidth="1.4" strokeDasharray={node.input ? "5 3" : undefined} markerEnd="url(#ng-ink)" />
+          <circle cx={COL_L} cy={cy} r="26" fill={node.input ? "#265a62" : "#8e2a22"} stroke="#2a1f18" />
+          <circle cx={COL_L} cy={cy} r="21" fill="none" stroke="#f6dcc2" strokeOpacity="0.5" strokeDasharray="1 2" />
+          <text x={COL_L} y={cy + 5} textAnchor="middle" className="ng-seal">{node.input ? "₺" : "§"}</text>
+          <text x={COL_L} y={cy + 44} textAnchor="middle" className="ng-empty">{node.input ? "aus dem Wirtschaftsmodell" : "Beschluss der Regierung"}</text>
+        </g>
       )}
       <NodeBox node={node} x={W / 2} y={cy} main />
     </svg>

@@ -3,7 +3,7 @@
 
 import type { EconomyState, GovernorStance, LogEntry, LogKind, MonthlySnapshot, Scenario, World } from "./types";
 import { Rng, seedToState } from "./rng";
-import { addDays, dayOfMonth, formatMonthDe, monthNumber, monthOf, previousMonth } from "./dates";
+import { addDays, dayOfMonth, formatDateDe, formatMonthDe, monthNumber, monthOf, previousMonth } from "./dates";
 import { clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, ppkDecision, realRate } from "./economy";
 import { buildModel, createNet, nationalAverage, policyCost, startAverage, stepNet, type NetModel } from "./netz";
 import { EDGES, NODES } from "../data/politiknetz";
@@ -50,7 +50,7 @@ export function createWorld(scenario: Scenario, seed: number): World {
     log: [],
     net: createNet(NET, economy, REGIONAL, WEIGHTS),
   };
-  addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + scenario.dataDate + ".");
+  addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + formatDateDe(scenario.dataDate) + ".");
   return world;
 }
 

@@ -1,7 +1,6 @@
 // Kunstbogen: alle Zeichnungen auf einer Seite, zum Prüfen während der Entwicklung.
 import { createRoot } from "react-dom/client";
 import "@fontsource-variable/fraunces";
-import "@fontsource-variable/inter";
 import "@fontsource/caveat/500.css";
 import "./ui/styles.css";
 import { Cameo } from "./ui/art/Cameo";

@@ -49,11 +49,11 @@ export function Prologue({ onDone, onFocus }: { onDone: (p: PlayerProfile) => vo
 
   const total = STATIONS.length;
 
-  const card = (scene: Scene, kicker: string, body: React.ReactNode) => (
+  const card = (scene: Scene, kicker: string, body: React.ReactNode, banner?: string) => (
     <div className="prologue">
       <section className="frame prologue-card">
         <Corners />
-        <Vignette scene={scene} />
+        <Vignette scene={scene} banner={banner} />
         <div className="prologue-body">
           <div className="prologue-progress" aria-label={kicker}>
             {Array.from({ length: total }, (_, i) => (
@@ -139,7 +139,7 @@ export function Prologue({ onDone, onFocus }: { onDone: (p: PlayerProfile) => vo
           <h2>{profile.name}</h2>
           <p className="subtitle">
             {profile.partei.name} · gewählt {profile.wahl.runde === 1 ? "im ersten Wahlgang" : "in der Stichwahl"} mit{" "}
-            {profile.wahl.anteil.toLocaleString("de-DE")} %
+            {profile.wahl.anteil.toLocaleString("de-DE")} %
           </p>
         </div>
       </div>
@@ -161,5 +161,6 @@ export function Prologue({ onDone, onFocus }: { onDone: (p: PlayerProfile) => vo
         </button>
       </div>
     </>,
+    profile.partei.name,
   );
 }
