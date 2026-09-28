@@ -39,6 +39,11 @@ export const PARAMS = {
   targetGlide: 0.04,
 } as const;
 
+/** Potenzialwachstum einschließlich der Wirkung des Politiknetzes. */
+export function potential(e: EconomyState): number {
+  return e.potentialGrowth + e.potentialShift;
+}
+
 /** Realzins in Prozentpunkten. */
 export function realRate(e: EconomyState): number {
   return e.policyRate - e.expectedInflation;
@@ -73,19 +78,20 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   e.outputGap =
     PARAMS.gapPersistence * e.outputGap -
     PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) +
-    PARAMS.fiscalOnGap * e.fiscalImpulse +
+    PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) +
     rng.normal(0.25);
 
   // Z5: übermäßige Abwertung der letzten 12 Monate
   const yearAgo = history[history.length - 12];
-  const fxChange12 = yearAgo ? (e.usdTry / yearAgo.usdTry - 1) * 100 : e.inflation - PARAMS.foreignInflation;
-  const excessDepreciation = fxChange12 - (e.inflation - PARAMS.foreignInflation);
+  e.fxChange12 = yearAgo ? (e.usdTry / yearAgo.usdTry - 1) * 100 : e.inflation - PARAMS.foreignInflation;
+  const excessDepreciation = e.fxChange12 - (e.inflation - PARAMS.foreignInflation);
 
   // Z2 und Z3: Inflation zieht zu Erwartung, Auslastung und Importpreisen
   const anchor =
     e.expectedInflation +
     PARAMS.gapOnInflation * e.outputGap +
-    PARAMS.fxPassThrough * excessDepreciation;
+    PARAMS.fxPassThrough * excessDepreciation +
+    e.costPush;
   const previousInflation = e.inflation;
   e.inflation += PARAMS.inflationSpeed * (anchor - e.inflation) + rng.normal(0.3);
   e.inflation = Math.max(-2, e.inflation);
@@ -105,17 +111,17 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
 
   // Wachstum zum Vorjahr aus der Veränderung der Auslastung
   const gapYearAgo = yearAgo ? yearAgo.outputGap : e.outputGap;
-  e.growth = e.potentialGrowth + (e.outputGap - gapYearAgo);
+  e.growth = potential(e) + (e.outputGap - gapYearAgo);
 
   // Z9: Arbeitslosigkeit folgt dem Wachstum
   e.unemployment +=
     0.03 * (PARAMS.naturalUnemployment - e.unemployment) -
-    PARAMS.okun * (e.growth - e.potentialGrowth);
+    PARAMS.okun * (e.growth - potential(e));
   e.unemployment = clamp(e.unemployment, 3, 30);
 
   // Z7: Defizite werden zu Schulden, nominales Wachstum senkt die Quote
   const nominalGrowth = (e.growth + e.inflation) / 100;
-  e.debtRatio += (e.deficit + e.fiscalImpulse) / 12 - (e.debtRatio * nominalGrowth) / 12;
+  e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost) / 12 - (e.debtRatio * nominalGrowth) / 12;
   e.debtRatio = Math.max(0, e.debtRatio);
 }
 

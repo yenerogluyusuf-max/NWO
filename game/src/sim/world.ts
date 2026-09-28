@@ -5,13 +5,32 @@ import type { EconomyState, GovernorStance, LogEntry, LogKind, MonthlySnapshot, 
 import { Rng, seedToState } from "./rng";
 import { addDays, dayOfMonth, formatMonthDe, monthNumber, monthOf, previousMonth } from "./dates";
 import { clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, ppkDecision, realRate } from "./economy";
+import { buildModel, createNet, nationalAverage, policyCost, startAverage, stepNet, type NetModel } from "./netz";
+import { EDGES, NODES } from "../data/politiknetz";
+
+/** Das Politiknetz ist statisch; nur sein Zustand gehört zum Spielstand. */
+export const NET: NetModel = buildModel(NODES, EDGES);
+
+/** Kopplung des Politiknetzes an das Wirtschaftsmodell (Platzhalter für die Kalibrierung). */
+const COUPLING = {
+  /** Prozentpunkte Inflation je Indexpunkt Kostendruck über dem Start */
+  costPush: 0.08,
+  /** Prozentpunkte Potenzialwachstum je Indexpunkt Produktivität über dem Start */
+  productivity: 0.04,
+};
 
 const PPK_INTERVAL_DAYS = 45;
 
 export function createWorld(scenario: Scenario, seed: number): World {
-  const economy = Object.fromEntries(
-    Object.entries(scenario.economy).map(([k, v]) => [k, v.value]),
-  ) as unknown as EconomyState;
+  const economy = {
+    ...Object.fromEntries(Object.entries(scenario.economy).map(([k, v]) => [k, v.value])),
+    fxChange12: 0,
+    policyCost: 0,
+    costPush: 0,
+    potentialShift: 0,
+  } as unknown as EconomyState;
+  const history = syntheticHistory(economy, scenario.startDate);
+  economy.fxChange12 = (economy.usdTry / history[0]!.usdTry - 1) * 100;
 
   const ppkDays: number[] = [];
   for (let d = 20; d < 365 * 30; d += PPK_INTERVAL_DAYS) ppkDays.push(d);
@@ -25,9 +44,10 @@ export function createWorld(scenario: Scenario, seed: number): World {
     economy,
     governor: { ...scenario.governor },
     ppkDays,
-    history: syntheticHistory(economy, scenario.startDate),
+    history,
     published: structuredClone(scenario.published),
     log: [],
+    net: createNet(NET, economy),
   };
   addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + scenario.dataDate + ".");
   return world;
@@ -101,6 +121,7 @@ export function tick(world: World): void {
       usdTry: e.usdTry,
     });
     publishQuarterlyGrowth(world);
+    monthlyNet(world);
   }
 
   // Statistiken erscheinen mit Verzögerung (Wirtschaftsmodell, Abschnitt 2)
@@ -108,6 +129,17 @@ export function tick(world: World): void {
   if (dayOfMonth(world.date) === 10) publishUnemployment(world);
 
   world.rngState = rng.state;
+}
+
+/** Politiknetz einen Monat fortschreiben und an das Wirtschaftsmodell zurückkoppeln. */
+function monthlyNet(world: World): void {
+  const e = world.economy;
+  stepNet(NET, world.net, e);
+  e.policyCost = policyCost(NET, world.net);
+  const cost = nationalAverage(NET, world.net, "kostendruck") - startAverage(NET, world.net, "kostendruck");
+  e.costPush = clamp(COUPLING.costPush * cost, -5, 5);
+  const prod = nationalAverage(NET, world.net, "produktivitaet") - startAverage(NET, world.net, "produktivitaet");
+  e.potentialShift = clamp(COUPLING.productivity * prod, -2, 2);
 }
 
 export function advance(world: World, days: number): void {
@@ -199,6 +231,28 @@ export function setFiscalImpulse(world: World, percentOfGdp: number): void {
     percentOfGdp > before
       ? "Mehr Ausgaben stützen die Nachfrage, erhöhen aber Defizit und Schulden."
       : "Weniger Ausgaben dämpfen die Nachfrage und entlasten den Haushalt.",
+  );
+}
+
+/** Eine Maßnahme des Politiknetzes auf eine neue Stufe setzen (0–100). */
+export function setPolicy(world: World, id: string, level: number): void {
+  const i = NET.index.get(id);
+  const node = i === undefined ? undefined : NET.nodes[i];
+  if (!node || node.kind !== "massnahme") throw new Error(`Keine Maßnahme: ${id}`);
+  const target = clamp(Math.round(level), 0, 100);
+  const current = nationalAverage(NET, world.net, id);
+  world.net.targets[id] = target;
+  world.net.steps[id] = Math.max(Math.abs(target - current) / (node.months ?? 1), 0.01);
+  const costChange = ((target - current) / 100) * (node.cost ?? 0);
+  const months = node.months ?? 1;
+  addLog(
+    world,
+    "entscheidung",
+    `${node.name}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`,
+    `${node.text} Umsetzung in etwa ${months} ${months === 1 ? "Monat" : "Monaten"}` +
+      (costChange !== 0
+        ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.`
+        : "."),
   );
 }
 

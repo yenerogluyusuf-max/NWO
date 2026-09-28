@@ -22,9 +22,43 @@ const DISTRICTS: Record<string, number> = { İstanbul: 39, Ankara: 25, İzmir: 3
 const W = 960;
 const H = 440;
 
-export function ProvinceMap() {
+interface MapProps {
+  /** Wert je Kfz-Kennziffer; färbt die Provinzen ein */
+  values?: Record<number, number>;
+  valueLabel?: string;
+  /** Schwelle, ab der ein Problem akut ist (färbt rot) */
+  problem?: number;
+  compact?: boolean;
+}
+
+function mix(a: [number, number, number], b: [number, number, number], t: number): string {
+  const c = a.map((x, i) => Math.round(x + (b[i]! - x) * t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+const LOW: [number, number, number] = [236, 229, 212];
+const HIGH: [number, number, number] = [47, 93, 98];
+const ACUTE: [number, number, number] = [158, 52, 46];
+
+export function ProvinceMap({ values, valueLabel, problem, compact }: MapProps = {}) {
   const [hover, setHover] = useState<ProvinceProps | null>(null);
   const [selected, setSelected] = useState<ProvinceProps | null>(null);
+
+  const scale = useMemo(() => {
+    if (!values) return null;
+    const xs = Object.values(values);
+    const min = Math.min(...xs);
+    const max = Math.max(...xs);
+    return { min, max, flat: max - min < 0.5 };
+  }, [values]);
+
+  function fillFor(plaka: number): string | undefined {
+    if (!values || !scale) return undefined;
+    const v = values[plaka] ?? 0;
+    if (problem !== undefined) return v >= problem ? mix(LOW, ACUTE, 0.35 + 0.65 * Math.min(1, (v - problem) / 20)) : mix(LOW, HIGH, 0.15);
+    if (scale.flat) return mix(LOW, HIGH, 0.35);
+    return mix(LOW, HIGH, (v - scale.min) / (scale.max - scale.min));
+  }
 
   const paths = useMemo(() => {
     const projection = geoMercator().fitSize([W, H], provinces);
@@ -37,6 +71,37 @@ export function ProvinceMap() {
   }, []);
 
   const info = hover ?? selected;
+
+  if (compact) {
+    return (
+      <section className="paper compact-map">
+        <h3>{valueLabel} je Provinz</h3>
+        <svg className="map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${valueLabel} je Provinz`}>
+          {paths.map(({ props, d }) => (
+            <path
+              key={props.id}
+              d={d}
+              className="province"
+              style={{ fill: fillFor(props.plaka) }}
+              onMouseEnter={() => setHover(props)}
+              onMouseLeave={() => setHover(null)}
+            >
+              <title>
+                {props.name}: {values?.[props.plaka]?.toLocaleString("de-DE", { maximumFractionDigits: 1 })}
+              </title>
+            </path>
+          ))}
+        </svg>
+        <p className="subtitle">
+          {hover
+            ? `${hover.name}: ${values?.[hover.plaka]?.toLocaleString("de-DE", { maximumFractionDigits: 1 })}`
+            : scale?.flat
+              ? "Noch keine regionalen Unterschiede; die Provinzdaten werden gerade erhoben."
+              : "Dunkler heißt mehr. Fahre über eine Provinz."}
+        </p>
+      </section>
+    );
+  }
 
   return (
     <div className="mapview">

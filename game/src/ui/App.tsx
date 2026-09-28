@@ -7,8 +7,9 @@ import { Desk } from "./Desk";
 import { EconomyFile } from "./EconomyFile";
 import { ProvinceMap } from "./ProvinceMap";
 import { Decisions } from "./Decisions";
+import { NetView } from "./NetView";
 
-type View = "schreibtisch" | "wirtschaft" | "karte" | "entscheidungen";
+type View = "schreibtisch" | "wirtschaft" | "netz" | "karte" | "entscheidungen";
 
 const SPEEDS = [
   { label: "Pause", msPerDay: 0 },
@@ -58,6 +59,7 @@ export function App() {
             [
               ["schreibtisch", "Schreibtisch"],
               ["wirtschaft", "Wirtschaftsakte"],
+              ["netz", "Politiknetz"],
               ["karte", "Karte"],
               ["entscheidungen", "Entscheidungen"],
             ] as const
@@ -71,6 +73,7 @@ export function App() {
       <main className="main">
         {view === "schreibtisch" && <Desk world={w} onOpen={setView} />}
         {view === "wirtschaft" && <EconomyFile world={w} />}
+        {view === "netz" && <NetView world={w} onDecided={refresh} />}
         {view === "karte" && <ProvinceMap />}
         {view === "entscheidungen" && (
           <Decisions

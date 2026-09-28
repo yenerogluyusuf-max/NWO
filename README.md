@@ -21,6 +21,7 @@ Der Titel des Spiels ist **Staatsräson** (englisch *Raison d'État*), vorbehalt
 | [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md) | Spielerrolle, Rechercheplan mit Primärquellen, echte Personen, heikle Themen |
 | [Türkei: Institutionen](tuerkei/INSTITUTIONEN.md) | Kernregeln aus Verfassung, Zentralbank- und Wahlgesetz mit Belegen |
 | [Türkei: Startdaten](tuerkei/STARTDATEN.md) | Stichtag und Kernwerte zu Wirtschaft, Politik und Bevölkerung |
+| [Politiknetz](POLITIKNETZ.md) | 186 Knoten und 363 Verbindungen, wie das Netz rechnet, Stand der Kalibrierung |
 | [Technik](TECHNIK.md) | Technikwahl, Ergebnisse der Versuche, Stand des Prototyps |
 | [Referenzanalyse](REFERENZANALYSE.md) | Vorbilder (Civilization, Hearts of Iron, Suzerain, Democracy 4) und abgeleitete Entscheidungen |
 | [Namensvorschläge](NAMENSVORSCHLAEGE.md) | Ideen für den endgültigen Namen mit Empfehlung |

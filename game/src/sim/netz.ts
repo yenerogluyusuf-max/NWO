@@ -1,62 +1,200 @@
-// Rechenkern des Politiknetzes (Spieldesign, Abschnitt 5): Knoten mit einem
-// Wert je Provinz, Verbindungen mit Stärke und Verzögerung in Monaten.
-// Noch ohne Inhalt; dient dem Simulationsversuch (Entwicklungsplan, Abschnitt 6).
+// Rechenkern des Politiknetzes (Spieldesign, Abschnitt 5).
+//
+// Jeder Knoten hat einen Wert je Provinz. Eine Verbindung gibt pro Monat einen
+// Anteil der Abweichung ihres Ausgangsknotens vom Startwert weiter, mit
+// Verzögerung. Der Zustand besteht nur aus flachen Zahlenlisten, damit er als
+// JSON gespeichert und für die Vorschau schnell kopiert werden kann.
+
+import type { EdgeSpec, NodeSpec } from "../data/politiknetz";
+import type { EconomyState } from "./types";
+import { potential } from "./economy";
 
 export const PROVINCES = 81;
-
-export interface NetNode {
-  id: string;
-  /** Wert je Provinz, Index = Kfz-Kennziffer − 1 */
-  values: Float64Array;
-  /** Ruhewert, zu dem der Knoten ohne Einflüsse zurückkehrt */
-  rest: number;
-  /** Anteil der Rückkehr zum Ruhewert pro Monat */
-  decay: number;
-}
-
-export interface NetEdge {
-  from: number;
-  to: number;
-  weight: number;
-  /** Verzögerung in Monaten, 0 bis MAX_LAG */
-  lag: number;
-}
-
 export const MAX_LAG = 12;
+const SLOTS = MAX_LAG + 1;
 
-export class PolicyNet {
-  /** Ringpuffer der Knotenwerte für Verzögerungen: history[t % (MAX_LAG+1)][node] */
-  private history: Float64Array[][];
-  private month = 0;
+export interface NetState {
+  /** Werte, Index = Knoten × 81 + (Kfz-Kennziffer − 1) */
+  values: number[];
+  /** Startwerte (Ruhelage) je Knoten und Provinz */
+  start: number[];
+  /** Ringpuffer der Werte der letzten 13 Monate */
+  history: number[][];
+  month: number;
+  /** Zielstufe je Maßnahme, die der Spieler beschlossen hat */
+  targets: Record<string, number>;
+  /** Umsetzungsschritt je Monat für laufende Änderungen */
+  steps: Record<string, number>;
+}
 
-  constructor(
-    public nodes: NetNode[],
-    public edges: NetEdge[],
-  ) {
-    this.history = Array.from({ length: MAX_LAG + 1 }, () =>
-      nodes.map((n) => Float64Array.from(n.values)),
-    );
+export interface NetModel {
+  nodes: NodeSpec[];
+  edges: EdgeSpec[];
+  index: Map<string, number>;
+  edgeFrom: Int32Array;
+  edgeTo: Int32Array;
+  edgeWeight: Float64Array;
+  edgeLag: Int32Array;
+}
+
+export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[]): NetModel {
+  const index = new Map(nodes.map((n, i) => [n.id, i]));
+  for (const e of edges) {
+    if (!index.has(e.from)) throw new Error(`Politiknetz: unbekannter Knoten „${e.from}“`);
+    if (!index.has(e.to)) throw new Error(`Politiknetz: unbekannter Knoten „${e.to}“`);
+    if (e.lag < 0 || e.lag > MAX_LAG) throw new Error(`Politiknetz: Verzögerung außerhalb 0–12 bei ${e.from} → ${e.to}`);
+  }
+  return {
+    nodes,
+    edges,
+    index,
+    edgeFrom: Int32Array.from(edges.map((e) => index.get(e.from)!)),
+    edgeTo: Int32Array.from(edges.map((e) => index.get(e.to)!)),
+    edgeWeight: Float64Array.from(edges.map((e) => e.weight)),
+    edgeLag: Int32Array.from(edges.map((e) => e.lag)),
+  };
+}
+
+/** Regionale Startwerte: Faktor je Knoten und Provinz (1 = Landesdurchschnitt). */
+export type RegionalStart = Record<string, number[]>;
+
+export function createNet(model: NetModel, economy: EconomyState, regional: RegionalStart = {}): NetState {
+  const n = model.nodes.length;
+  const start = new Array<number>(n * PROVINCES);
+  model.nodes.forEach((node, i) => {
+    const base = node.input ? inputValue(node.input, economy, 1) : node.start;
+    const factors = regional[node.id];
+    for (let p = 0; p < PROVINCES; p++) {
+      const f = factors?.[p] ?? 1;
+      start[i * PROVINCES + p] = node.input ? inputValue(node.input, economy, f) : clampIndex(base * f);
+    }
+  });
+  const values = start.slice();
+  return {
+    values,
+    start,
+    history: Array.from({ length: SLOTS }, () => values.slice()),
+    month: 0,
+    targets: {},
+    steps: {},
+  };
+}
+
+/** Wert einer Eingangsgröße aus dem Wirtschaftsmodell, je Provinz mit Faktor. */
+function inputValue(input: NonNullable<NodeSpec["input"]>, e: EconomyState, factor: number): number {
+  switch (input) {
+    case "inflation":
+      return e.inflation;
+    case "arbeitslosigkeit":
+      return e.unemployment * factor;
+    case "wachstum":
+      return 50 + (e.growth - potential(e)) * 5;
+    case "leitzins":
+      return e.policyRate;
+    case "abwertung":
+      return e.fxChange12;
+    case "defizit":
+      return 50 + (e.deficit + e.fiscalImpulse + e.policyCost) * 5;
+    case "schulden":
+      return e.debtRatio;
+  }
+}
+
+/** Ein Monat: Eingänge übernehmen, Maßnahmen umsetzen, Wirkungen weitergeben. */
+export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional: RegionalStart = {}): void {
+  const n = model.nodes.length;
+  const v = s.values;
+
+  // Eingänge aus dem Wirtschaftsmodell
+  model.nodes.forEach((node, i) => {
+    if (!node.input) return;
+    const factors = regional[node.id];
+    for (let p = 0; p < PROVINCES; p++) v[i * PROVINCES + p] = inputValue(node.input, e, factors?.[p] ?? 1);
+  });
+
+  // Maßnahmen bewegen sich schrittweise auf ihr Ziel zu (Umsetzungsgrad)
+  for (const [id, target] of Object.entries(s.targets)) {
+    const i = model.index.get(id);
+    if (i === undefined) continue;
+    const step = s.steps[id] ?? 100;
+    for (let p = 0; p < PROVINCES; p++) {
+      const k = i * PROVINCES + p;
+      const diff = target - v[k]!;
+      v[k] = v[k]! + Math.sign(diff) * Math.min(Math.abs(diff), step);
+    }
   }
 
-  /** Einen Monat fortschreiben. */
-  step(): void {
-    const n = this.nodes.length;
-    const delta = Array.from({ length: n }, () => new Float64Array(PROVINCES));
-    for (const e of this.edges) {
-      const past = this.history[(this.month - e.lag + (MAX_LAG + 1) * 1000) % (MAX_LAG + 1)]![e.from]!;
-      const d = delta[e.to]!;
-      for (let p = 0; p < PROVINCES; p++) d[p]! += e.weight * (past[p]! - this.nodes[e.from]!.rest);
+  // Wirkungen über die Verbindungen
+  const delta = new Float64Array(n * PROVINCES);
+  for (let j = 0; j < model.edgeFrom.length; j++) {
+    const from = model.edgeFrom[j]!;
+    const to = model.edgeTo[j]!;
+    const w = model.edgeWeight[j]!;
+    const past = s.history[(s.month - model.edgeLag[j]! + SLOTS * 1000) % SLOTS]!;
+    const fo = from * PROVINCES;
+    const to0 = to * PROVINCES;
+    for (let p = 0; p < PROVINCES; p++) {
+      delta[to0 + p] = delta[to0 + p]! + w * (past[fo + p]! - s.start[fo + p]!);
     }
-    for (let i = 0; i < n; i++) {
-      const node = this.nodes[i]!;
-      const v = node.values;
-      const d = delta[i]!;
-      for (let p = 0; p < PROVINCES; p++) {
-        v[p] = v[p]! + d[p]! - node.decay * (v[p]! - node.rest);
-      }
-    }
-    this.month += 1;
-    const slot = this.history[this.month % (MAX_LAG + 1)]!;
-    for (let i = 0; i < n; i++) slot[i]!.set(this.nodes[i]!.values);
   }
+
+  model.nodes.forEach((node, i) => {
+    if (node.input || node.kind === "massnahme") return;
+    const o = i * PROVINCES;
+    for (let p = 0; p < PROVINCES; p++) {
+      const k = o + p;
+      const next = v[k]! + delta[k]! - node.decay * (v[k]! - s.start[k]!);
+      v[k] = clampIndex(next);
+    }
+  });
+
+  s.month += 1;
+  s.history[s.month % SLOTS] = v.slice();
+}
+
+/** Landesdurchschnitt eines Knotens (ungewichtet; Gewichtung nach Bevölkerung folgt mit den Provinzdaten). */
+export function nationalAverage(model: NetModel, s: NetState, id: string): number {
+  const i = model.index.get(id);
+  if (i === undefined) return NaN;
+  let sum = 0;
+  for (let p = 0; p < PROVINCES; p++) sum += s.values[i * PROVINCES + p]!;
+  return sum / PROVINCES;
+}
+
+export function provinceValue(model: NetModel, s: NetState, id: string, plaka: number): number {
+  const i = model.index.get(id);
+  if (i === undefined) return NaN;
+  return s.values[i * PROVINCES + plaka - 1]!;
+}
+
+export function startAverage(model: NetModel, s: NetState, id: string): number {
+  const i = model.index.get(id);
+  if (i === undefined) return NaN;
+  let sum = 0;
+  for (let p = 0; p < PROVINCES; p++) sum += s.start[i * PROVINCES + p]!;
+  return sum / PROVINCES;
+}
+
+/** Laufende Kosten aller Maßnahmen gegenüber dem Start in % des BIP pro Jahr. */
+export function policyCost(model: NetModel, s: NetState): number {
+  let total = 0;
+  model.nodes.forEach((node) => {
+    if (node.kind !== "massnahme" || !node.cost) return;
+    total += ((nationalAverage(model, s, node.id) - startAverage(model, s, node.id)) / 100) * node.cost;
+  });
+  return total;
+}
+
+/** Provinzen, in denen ein Problem akut ist. */
+export function activeProvinces(model: NetModel, s: NetState, id: string): number[] {
+  const i = model.index.get(id);
+  const node = i === undefined ? undefined : model.nodes[i];
+  if (i === undefined || !node?.threshold) return [];
+  const out: number[] = [];
+  for (let p = 0; p < PROVINCES; p++) if (s.values[i * PROVINCES + p]! >= node.threshold) out.push(p + 1);
+  return out;
+}
+
+function clampIndex(x: number): number {
+  return Math.min(100, Math.max(0, x));
 }

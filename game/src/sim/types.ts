@@ -40,7 +40,18 @@ export interface EconomyState {
   deficit: number;
   /** Zusätzliche Ausgaben (+) oder Kürzungen (−) des Spielers in % des BIP */
   fiscalImpulse: number;
+  /** Abgeleitet: Abwertung der Lira gegenüber dem Dollar in den letzten 12 Monaten, % */
+  fxChange12: number;
+  /** Aus dem Politiknetz: Kosten der Maßnahmen gegenüber dem Start in % des BIP pro Jahr */
+  policyCost: number;
+  /** Aus dem Politiknetz: Kostendruck der Betriebe auf die Inflation, Prozentpunkte */
+  costPush: number;
+  /** Aus dem Politiknetz: Verschiebung des Potenzialwachstums durch Produktivität, Prozentpunkte */
+  potentialShift: number;
 }
+
+/** Größen, die nicht im Szenario stehen, sondern abgeleitet werden. */
+export type DerivedEconomyKey = "fxChange12" | "policyCost" | "costPush" | "potentialShift";
 
 /** Monatsschnappschuss für Verzögerungen und Statistiken. */
 export interface MonthlySnapshot {
@@ -95,6 +106,7 @@ export interface World {
   history: MonthlySnapshot[];
   published: Published;
   log: LogEntry[];
+  net: import("./netz").NetState;
 }
 
 /** Herkunft eines Startwerts (Entwicklungsplan, Abschnitt 5). */
@@ -113,7 +125,7 @@ export interface Scenario {
   /** Datum im Spiel beim Start */
   startDate: string;
   description: string;
-  economy: Record<keyof EconomyState, StartValue>;
+  economy: Record<Exclude<keyof EconomyState, DerivedEconomyKey>, StartValue>;
   governor: Governor;
   published: Published;
 }
