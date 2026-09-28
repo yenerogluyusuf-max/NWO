@@ -95,6 +95,8 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 
 ## G. Nächste Schritte
 
-- **Recherche Türkei beginnen** (Länderpaket, Abschnitt 7): Stichtag bestimmen, Institutionen und Verfahren mit Primärquellen belegen, Quellenregister anlegen.
+- **Recherche Türkei fortsetzen.** Begonnen am 28.09.2026: [Institutionen](tuerkei/INSTITUTIONEN.md) und [Startdaten](tuerkei/STARTDATEN.md). Offen sind die Lücken in Abschnitt 8 der Institutionen und die Prüfung aller Zahlen an den Primärquellen (dafür braucht die Entwicklungsumgebung Netzzugang zu den türkischen Amtsseiten).
+- **Stichtag bestätigen:** Vorschlag 25.09.2026 ([Startdaten](tuerkei/STARTDATEN.md)).
+- **Neue Designfrage aus der Recherche:** Die Verfassung erlaubt höchstens zwei Amtszeiten. In welcher Amtszeit startet die Spielerfigur? Das entscheidet, ob sie ohne Weiteres wiedergewählt werden kann (Art. 101, 116).
 - Danach die Technologieversuche (Entwicklungsplan, Abschnitt 6), weil S1 Karte und Politiknetz braucht.
 - Offen für später: Namen und Hintergrund der zweiten und dritten Mentorenfigur; Markenprüfung für „Staatsräson“.

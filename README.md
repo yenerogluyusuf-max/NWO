@@ -15,6 +15,8 @@ Der Titel des Spiels ist **Staatsräson** (englisch *Raison d'État*), vorbehalt
 | [Lernkonzept](LERNKONZEPT.md) | Lernen im Spiel, die Mentorin, das Lern-Tor |
 | [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md) | Kerngrößen, elf Zusammenhänge, die Zentralbank |
 | [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md) | Spielerrolle, Rechercheplan mit Primärquellen, echte Personen, heikle Themen |
+| [Türkei: Institutionen](tuerkei/INSTITUTIONEN.md) | Kernregeln aus Verfassung, Zentralbank- und Wahlgesetz mit Belegen |
+| [Türkei: Startdaten](tuerkei/STARTDATEN.md) | Stichtag und Kernwerte zu Wirtschaft, Politik und Bevölkerung |
 | [Referenzanalyse](REFERENZANALYSE.md) | Vorbilder (Civilization, Hearts of Iron, Suzerain, Democracy 4) und abgeleitete Entscheidungen |
 | [Namensvorschläge](NAMENSVORSCHLAEGE.md) | Ideen für den endgültigen Namen mit Empfehlung |
 | [S0 Papiertest](S0_PAPIERTEST/00_ANLEITUNG.md) | Optionaler Papiertest „Die Klinikum-Affäre“ in der fiktiven Republik Estravia |

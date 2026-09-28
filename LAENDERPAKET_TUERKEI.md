@@ -120,6 +120,8 @@ Türkische Begriffe erscheinen dort, wo sie zum Verständnis gehören (Cumhurba�
 
 ## 7. Nächste Schritte
 
+**Stand 28.09.2026:** Erste Ergebnisse stehen in [tuerkei/INSTITUTIONEN.md](tuerkei/INSTITUTIONEN.md) (Kernregeln aus Verfassung, Zentralbankgesetz und Wahlgesetz, belegt aus den amtlichen Texten) und [tuerkei/STARTDATEN.md](tuerkei/STARTDATEN.md) (Stichtagsvorschlag 25.09.2026 und Kernwerte, bisher nur aus Sekundärquellen). Die Einstufung der Zentralbank als Stufe B ist bestätigt. Offen sind Gouverneure, Großstadtkommunen, Parteiverbot, Vergaberecht, AFAD, Rundfunk- und Geheimdienstgesetz sowie die Prüfung aller Zahlen an den Primärquellen.
+
 1. **Stichtag festlegen.** Entschieden ist „heute“: der jüngste Tag, für den alle Kerndaten veröffentlicht sind. Jede Datenaktualisierung erzeugt ein neues Szenario.
 2. **Institutionen belegen** (Abschnitt 3.1) und daraus die Spielregeln für Befugnisse und Verfahren ableiten, einschließlich Vergabe, Bau und Sicherheit.
 3. **Startdaten erheben** (Abschnitt 3.2) und ins Quellenregister eintragen, auch je Provinz und für die Bezirke von Istanbul, Ankara und Izmir.
