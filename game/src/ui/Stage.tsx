@@ -172,7 +172,8 @@ export function Stage({ world: initial }: { world: World }) {
         <div className="hud-bar" />
         <div className="hud-left">
           <div className="leader">
-            <Cameo seed={w.player?.name ?? "Staatspräsident"} size={66} tint={w.player?.partei.farbe} />
+            <Cameo seed={w.player?.name ?? "Staatspräsident"} size={60} tint={w.player?.partei.farbe} ring="keiner" />
+            <img className="leader-frame" src="/ui/rahmen-portraet.png" alt="" />
           </div>
           <div className="leader-text">
             <div className="hud-name">{w.player?.name ?? "Staatspräsident"}</div>
@@ -305,15 +306,7 @@ export function Stage({ world: initial }: { world: World }) {
           <div className="cartouche-sub">81 Provinzen · Stand {w.date.slice(0, 4)}</div>
         </div>
       )}
-      <svg className="compass" viewBox="0 0 100 100" aria-hidden>
-        <circle cx="50" cy="50" r="30" fill="none" stroke="#2a1f18" strokeWidth="1" />
-        <circle cx="50" cy="50" r="26" fill="none" stroke="#2a1f18" strokeWidth="0.5" strokeDasharray="1.5 2" />
-        <path d="M50 8 L56 50 L50 92 L44 50 Z" fill="#f1e6cc" stroke="#2a1f18" strokeWidth="1.2" />
-        <path d="M50 8 L56 50 L50 50 Z M50 92 L44 50 L50 50 Z" fill="#2a1f18" />
-        <path d="M8 50 L50 45 L92 50 L50 55 Z" fill="#f1e6cc" stroke="#2a1f18" strokeWidth="1" />
-        <path d="M92 50 L50 45 L50 50 Z M8 50 L50 55 L50 50 Z" fill="#8e2a22" />
-        <text x="50" y="6" textAnchor="middle" fontFamily="Fraunces Variable, serif" fontSize="9" fontWeight="700" fill="#2a1f18">N</text>
-      </svg>
+      <img className="compass" src="/ui/kompass.png" alt="" />
 
       {selected && <ProvinceCard world={w} plaka={selected} onClose={() => setSelected(undefined)} />}
 

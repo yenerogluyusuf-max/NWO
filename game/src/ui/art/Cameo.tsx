@@ -12,7 +12,7 @@ export interface CameoProps {
   /** Frau oder Mann; fehlt es, entscheidet der Samen */
   figure?: "f" | "m";
   glasses?: boolean;
-  ring?: "messing" | "tinte";
+  ring?: "messing" | "tinte" | "keiner";
 }
 
 function hash(s: string): number {
@@ -82,9 +82,9 @@ export function Cameo({ seed, size = 64, tint = "#8e2a22", figure, glasses, ring
           <ellipse cx="50" cy="64" rx="53.5" ry="67.5" fill="none" stroke="#3a2812" strokeWidth="1.2" />
           <ellipse cx="50" cy="64" rx="55.5" ry="69.5" fill="none" stroke="#fff3c8" strokeWidth="0.8" strokeDasharray="0.1 3.4" strokeLinecap="round" />
         </>
-      ) : (
+      ) : ring === "tinte" ? (
         <ellipse cx="50" cy="64" rx="54" ry="68" fill="none" stroke="#2a1f18" strokeWidth="2" />
-      )}
+      ) : null}
       <g clipPath={`url(#c${id})`}>
         <rect x="-10" y="-10" width="120" height="150" fill={`url(#g${id})`} />
         <rect x="-10" y="-10" width="120" height="150" fill={`url(#h${id})`} />

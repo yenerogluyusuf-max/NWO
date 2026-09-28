@@ -58,7 +58,10 @@ def reset():
 
     softbox("Haupt", (-4, 4, 6), 4, 520, (1.0, 0.92, 0.78))
     softbox("Gegen", (5, -3, 3), 3, 110, (0.8, 0.88, 1.0))
-    softbox("Oben", (0, 0, 8), 3, 60, (1, 1, 1))
+    # rundes Spitzlicht oben links statt einer Fläche direkt über dem Teil
+    bpy.ops.object.light_add(type="POINT", location=(-2.5, 2.5, 5))
+    bpy.context.object.data.energy = 180
+    bpy.context.object.data.shadow_soft_size = 0.6
     return scene
 
 
@@ -221,21 +224,37 @@ def star_mesh(name, points, r_out, r_in, depth, z, mat, rotation=0.0):
 
 
 def crescent_star(z, depth, mat, scale=1.0):
-    """Halbmond und Stern als erhabenes Relief."""
-    bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=0.42 * scale, depth=depth, location=(-0.1 * scale, 0, z))
-    outer = bpy.context.object
-    bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=0.34 * scale, depth=depth * 3, location=(-0.01 * scale, 0, z))
-    inner = bpy.context.object
-    mod = outer.modifiers.new("Aus", "BOOLEAN")
-    mod.operation = "DIFFERENCE"
-    mod.object = inner
-    bpy.context.view_layer.objects.active = outer
-    bpy.ops.object.modifier_apply(modifier="Aus")
-    bpy.data.objects.remove(inner)
-    smooth(outer, 0.006, 2)
-    assign(outer, mat)
-    star_mesh("Stern", 5, 0.17 * scale, 0.07 * scale, depth, z - depth / 2, mat, rotation=math.pi / 10 + math.pi / 2)
-    bpy.data.objects["Stern"].location.x = 0.3 * scale
+    """Halbmond und Stern als erhabenes Relief, der Halbmond als echte Umrissform."""
+    import bmesh
+
+    R, r, d = 0.42 * scale, 0.34 * scale, 0.13 * scale
+    cx = -0.1 * scale
+    theta = math.acos((R * R + d * d - r * r) / (2 * R * d))
+    phi0 = math.atan2(R * math.sin(theta), R * math.cos(theta) - d)
+    pts = []
+    n = 64
+    for k in range(n + 1):
+        t = theta + (2 * math.pi - 2 * theta) * k / n
+        pts.append((cx + R * math.cos(t), R * math.sin(t)))
+    for k in range(1, n):
+        f = (2 * math.pi - phi0) - (2 * math.pi - 2 * phi0) * k / n
+        pts.append((cx + d + r * math.cos(f), r * math.sin(f)))
+    mesh = bpy.data.meshes.new("Halbmond")
+    obj = bpy.data.objects.new("Halbmond", mesh)
+    bpy.context.collection.objects.link(obj)
+    bm = bmesh.new()
+    face = bm.faces.new([bm.verts.new((x, y, 0)) for x, y in pts])
+    ext = bmesh.ops.extrude_face_region(bm, geom=[face])
+    moved = [v for v in ext["geom"] if isinstance(v, bmesh.types.BMVert)]
+    bmesh.ops.translate(bm, verts=moved, vec=(0, 0, depth))
+    bm.to_mesh(mesh)
+    bm.free()
+    obj.location.z = z - depth / 2
+    bpy.context.view_layer.objects.active = obj
+    smooth(obj, 0.006, 2)
+    assign(obj, mat)
+    star = star_mesh("Stern", 5, 0.15 * scale, 0.06 * scale, depth, z - depth / 2, mat, rotation=math.pi / 10 + math.pi / 2)
+    star.location.x = 0.3 * scale
 
 
 # --------------------------------------------------------------------------

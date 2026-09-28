@@ -128,7 +128,8 @@ export function Decisions({ world, onDecided }: { world: World; onDecided: () =>
                 onDecided();
               }}
             >
-              Unterzeichnen
+              <img src="/ui/siegel.png" alt="" />
+              <span>Unterzeichnen</span>
             </button>
           </div>
           <button className="link" onClick={() => setChosen(null)}>

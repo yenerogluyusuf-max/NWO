@@ -64,3 +64,17 @@ npm test         # automatische Tests
 3. Parlament als Engpass: Gesetze brauchen 301 Stimmen, Absprachen mit anderen Fraktionen.
 4. Figuren und Gespräche (CHAR-01, CHAT-01); dafür wird ein KI-Schlüssel für den Sprachversuch gebraucht.
 5. Bildversuch mit einem Bildgenerator (ART-00).
+
+## Gerenderte Oberflächenteile (Blender)
+
+Messing, Emaille und Wachs der Oberfläche (Warnmedaillons, Kartenebenen-Knöpfe,
+Porträtrahmen, Kompass, Datumsplakette, Siegel) sind keine CSS-Verläufe, sondern
+mit Blender (Cycles) gerendert. Das Skript `game/tools/blender/ui_assets.py` baut
+jedes Teil aus Grundformen, beleuchtet von oben links wie der Rest der Oberfläche,
+und schreibt transparente PNGs nach `game/public/ui/`.
+
+    pip install bpy            # Blender als Python-Modul, etwa 375 MB
+    python game/tools/blender/ui_assets.py game/public/ui [teil ...]
+
+Teile: `medaillon`, `rahmen`, `siegel`, `kompass`, `plakette`. Ein Durchlauf
+dauert auf der CPU unter einer Minute.
