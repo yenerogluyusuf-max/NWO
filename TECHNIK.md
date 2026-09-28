@@ -50,9 +50,17 @@ npm run dev      # Spiel im Browser unter http://localhost:5173
 npm test         # automatische Tests
 ```
 
+### Seitdem hinzugekommen
+
+- **Politiknetz** mit 186 Knoten und 363 Verbindungen, je Provinz gerechnet, mit eigener Ansicht (siehe [Politiknetz](POLITIKNETZ.md)).
+- **Prolog** mit acht Stationen: Herkunft, Jugend, Beruf, Partnerschaft, Weg in die Politik, eigene Partei, Wahlkampf, Wahlnacht. Jede Antwort verändert Nähe zu Wählergruppen, Heimatprovinz, Familie, Versprechen oder Bündnis. Mit „Zufällig und schnell“ lässt er sich überspringen; `?schnellstart` in der Adresse startet ohne Prolog.
+- **Parlament 2028** aus dem Umfragedurchschnitt: Die neue Partei zieht 15 bis 30 % an sich, jeder Anteil schwankt um bis zu 5 Punkte, dann Sperrklausel mit Bündnissen und D'Hondt. Vorerst landesweit; die Verteilung je Provinz folgt mit den Provinzdaten.
+- **23 Tests**, darunter Prolog und Parlament (immer 600 Sitze, nur Parteien über der Hürde).
+
 ## Nächste Schritte
 
-1. Politiknetz mit echten Knoten füllen (NET-01), zuerst die Themenfelder Wirtschaft und Haushalt, regional je Provinz.
-2. Prolog und Start nach der Wahl 2028 (PRO-01): Partei gründen, Parlament aus den Umfragen erzeugen.
-3. Figuren und Gespräche (CHAR-01, CHAT-01); dafür wird ein KI-Schlüssel für den Sprachversuch gebraucht.
-4. Bildversuch mit einem Bildgenerator (ART-00).
+1. Provinzdaten einarbeiten: regionale Startwerte im Politiknetz und Sitzverteilung je Provinz.
+2. Umfragen im Spiel: Wählergruppen und Parteien verbinden, monatliche Umfrage.
+3. Parlament als Engpass: Gesetze brauchen 301 Stimmen, Absprachen mit anderen Fraktionen.
+4. Figuren und Gespräche (CHAR-01, CHAT-01); dafür wird ein KI-Schlüssel für den Sprachversuch gebraucht.
+5. Bildversuch mit einem Bildgenerator (ART-00).

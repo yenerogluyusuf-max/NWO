@@ -107,6 +107,9 @@ export interface World {
   published: Published;
   log: LogEntry[];
   net: import("./netz").NetState;
+  /** Aus dem Prolog; fehlt nur in Tests ohne Prolog */
+  player?: import("./prolog").PlayerProfile;
+  parliament?: import("./prolog").Parliament;
 }
 
 /** Herkunft eines Startwerts (Entwicklungsplan, Abschnitt 5). */

@@ -8,6 +8,8 @@ import { EconomyFile } from "./EconomyFile";
 import { ProvinceMap } from "./ProvinceMap";
 import { Decisions } from "./Decisions";
 import { NetView } from "./NetView";
+import { Prologue } from "./Prologue";
+import { startAfterElection, type PlayerProfile } from "../sim/prolog";
 
 type View = "schreibtisch" | "wirtschaft" | "netz" | "karte" | "entscheidungen";
 
@@ -19,7 +21,31 @@ const SPEEDS = [
 ];
 
 export function App() {
+  const [started, setStarted] = useState(() => new URLSearchParams(location.search).has("schnellstart"));
   const world = useRef<World>(createWorld(turkey2026, Date.now() % 1_000_000));
+
+  if (!started) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <div className="brand">Staatsräson</div>
+        </header>
+        <main className="main">
+          <Prologue
+            onDone={(profile: PlayerProfile) => {
+              startAfterElection(world.current, profile);
+              setStarted(true);
+            }}
+          />
+        </main>
+      </div>
+    );
+  }
+  return <Game world={world.current} />;
+}
+
+function Game({ world: initial }: { world: World }) {
+  const world = useRef<World>(initial);
   const [, setVersion] = useState(0);
   const [speed, setSpeed] = useState(0);
   const [view, setView] = useState<View>("schreibtisch");

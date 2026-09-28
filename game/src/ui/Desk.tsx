@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { LogEntry, World } from "../sim/types";
 import { formatDateDe } from "../sim/dates";
 import { mentorNotes } from "./mentor";
+import { Parliament } from "./Parliament";
 
 type View = "schreibtisch" | "wirtschaft" | "karte" | "entscheidungen";
 
@@ -39,6 +40,8 @@ export function Desk({ world, onOpen }: { world: World; onOpen: (v: View) => voi
         </div>
       </section>
 
+      <div className="desk-side">
+      <Parliament world={world} />
       <aside className="mentor">
         <div className="mentor-head">
           <div className="portrait" aria-hidden>DA</div>
@@ -60,6 +63,7 @@ export function Desk({ world, onOpen }: { world: World; onOpen: (v: View) => voi
           </div>
         ))}
       </aside>
+      </div>
     </div>
   );
 }

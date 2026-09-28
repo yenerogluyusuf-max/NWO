@@ -188,3 +188,26 @@ button.link { border: none; background: none; padding: 0; color: var(--measure);
 @media (max-width: 800px) {
   .netview, .links { grid-template-columns: 1fr; }
 }
+
+/* Prolog */
+.prologue { max-width: 760px; margin: 20px auto; }
+.prologue-card { padding: 32px 36px; }
+.story { font-family: var(--serif); font-size: 18px; line-height: 1.5; color: var(--ink); }
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
+.paper .answer { text-align: left; display: grid; gap: 6px; padding: 14px 16px; background: #fff; font-family: var(--serif); }
+.paper .answer:hover { border-color: var(--accent); background: #fbf3ee; }
+.answer strong { font-family: var(--sans); font-size: 15px; }
+.answer span { color: var(--ink-soft); font-size: 15px; }
+.name-input { display: grid; gap: 6px; margin: 16px 0; font-size: 14px; color: var(--ink-soft); }
+.name-input input { font: inherit; font-size: 18px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink); }
+.summary { list-style: none; padding: 0; font-family: var(--serif); display: grid; gap: 4px; }
+@media (max-width: 700px) { .answers { grid-template-columns: 1fr; } }
+
+/* Parlament */
+.desk-side { display: grid; gap: 20px; align-content: start; }
+.parliament { padding: 16px 18px; }
+.seatbar { position: relative; display: flex; height: 18px; border-radius: 3px; overflow: hidden; margin: 6px 0 10px; }
+.seatbar .seg { height: 100%; }
+.seatbar .majority { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); }
+.seatlist { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; font-size: 14px; }
+.seatlist .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
