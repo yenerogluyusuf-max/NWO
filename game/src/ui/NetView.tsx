@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
 import type { World } from "../sim/types";
 import { NET, setPolicy } from "../sim/world";
-import { activeProvinces, nationalAverage, PROVINCES, startAverage } from "../sim/netz";
+import { activeProvinces, nationalAverage, startAverage } from "../sim/netz";
 import { outlookMany, type Metric, type Outlook } from "../sim/forecast";
 import { THEME_NAMES, type NodeSpec, type Theme } from "../data/politiknetz";
-import { ProvinceMap } from "./ProvinceMap";
 
 const KIND_LABEL: Record<NodeSpec["kind"], string> = {
   massnahme: "Maßnahme",
@@ -21,7 +20,7 @@ const DIRECTION: Record<Outlook["direction"], string> = {
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 
-export function NetView({ world, onDecided }: { world: World; onDecided: () => void }) {
+export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDecided: () => void; onShowOnMap?: (id: string) => void }) {
   const [openTheme, setOpenTheme] = useState<Theme | null>("wirtschaft");
   const [selectedId, setSelectedId] = useState<string>("m_mindestlohn");
   const [level, setLevel] = useState<number | null>(null);
@@ -45,16 +44,9 @@ export function NetView({ world, onDecided }: { world: World; onDecided: () => v
   const currentTarget = world.net.targets[node.id] ?? Math.round(now);
   const sliderValue = level ?? currentTarget;
 
-  const provinceValues = useMemo(() => {
-    const i = NET.index.get(node.id)!;
-    const out: Record<number, number> = {};
-    for (let p = 0; p < PROVINCES; p++) out[p + 1] = world.net.values[i * PROVINCES + p]!;
-    return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [node.id, world.net.month]);
-
   function select(id: string) {
     setSelectedId(id);
+    if (!NET.nodes[NET.index.get(id)!]!.input && NET.nodes[NET.index.get(id)!]!.kind !== "massnahme") onShowOnMap?.(id);
     setLevel(null);
     setPreview(null);
   }
@@ -209,9 +201,7 @@ export function NetView({ world, onDecided }: { world: World; onDecided: () => v
         </div>
       </section>
 
-      <aside className="net-map">
-        <ProvinceMap values={provinceValues} valueLabel={node.name} problem={node.kind === "problem" ? node.threshold : undefined} compact />
-      </aside>
+
     </div>
   );
 }

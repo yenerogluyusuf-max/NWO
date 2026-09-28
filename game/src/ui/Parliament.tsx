@@ -2,14 +2,14 @@ import type { World } from "../sim/types";
 
 /** Neutrale Farben für die Parteien; keine Parteilogos (Länderpaket, Abschnitt 4). */
 export const PARTY_COLORS: Record<string, string> = {
-  AKP: "#c98a2b",
-  YENİ: "#6b7fa8",
-  DEM: "#7d5a8c",
-  MHP: "#9b3b3b",
-  İYİ: "#5a9aa8",
-  CHP: "#b5655a",
-  Zafer: "#7a7a55",
-  YRP: "#4f7a4f",
+  AKP: "#c9964a",
+  YENİ: "#6f82a3",
+  DEM: "#8a6a93",
+  MHP: "#a4524a",
+  İYİ: "#6aa0a6",
+  CHP: "#bb7462",
+  Zafer: "#86845e",
+  YRP: "#5f845a",
 };
 
 export function Parliament({ world }: { world: World }) {
