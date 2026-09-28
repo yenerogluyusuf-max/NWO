@@ -5,7 +5,7 @@ import { formatDateDe } from "../sim/dates";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN } from "../sim/regional";
 import { AtlasMap } from "./atlas/AtlasMap";
-import { PROVINCE_FC } from "./atlas/overlay";
+import { PROVINCE_FC, REGION_COLORS } from "./atlas/overlay";
 import { Desk } from "./Desk";
 import { EconomyFile } from "./EconomyFile";
 import { NetView } from "./NetView";
@@ -17,7 +17,7 @@ import { Corners } from "./art/Ornament";
 import { EventWindow, type GameEvent } from "./EventWindow";
 
 type Dossier = "schreibtisch" | "wirtschaft" | "netz" | "entscheidungen" | null;
-type MapMode = "gelaende" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "netz";
+type MapMode = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "netz";
 
 const SPEEDS = [0, 700, 200, 40];
 
@@ -26,14 +26,6 @@ const GEO_LABELS: { text: string; lon: number; lat: number; kind: "meer" | "land
   { text: "Schwarzes Meer", lon: 34.6, lat: 43.1, kind: "meer" },
   { text: "Mittelmeer", lon: 31.0, lat: 34.6, kind: "meer" },
   { text: "Ägäis", lon: 25.0, lat: 38.4, kind: "meer" },
-  { text: "Griechenland", lon: 22.3, lat: 39.6, kind: "land" },
-  { text: "Bulgarien", lon: 25.2, lat: 42.8, kind: "land" },
-  { text: "Georgien", lon: 43.6, lat: 42.1, kind: "land" },
-  { text: "Armenien", lon: 44.9, lat: 40.2, kind: "land" },
-  { text: "Iran", lon: 47.0, lat: 37.6, kind: "land" },
-  { text: "Irak", lon: 43.8, lat: 35.4, kind: "land" },
-  { text: "Syrien", lon: 38.6, lat: 35.2, kind: "land" },
-  { text: "Zypern", lon: 33.1, lat: 35.05, kind: "land" },
 ];
 
 const METROS = PROVINCE_FC.features
@@ -98,6 +90,10 @@ export function Stage({ world: initial }: { world: World }) {
       return Array.from({ length: PROVINCES }, (_, p) => w.net.values[i * PROVINCES + p]!);
     };
     if (mapMode === "gelaende") return undefined;
+    if (mapMode === "regionen") {
+      PROVINZEN.forEach((p) => (out[p.plaka] = REGION_COLORS[p.region] ?? "#999"));
+      return out;
+    }
     if (mapMode === "wahl") {
       for (const [plaka, seats] of Object.entries(w.parliament?.byProvince ?? {})) {
         const top = Object.entries(seats).sort((a, b) => b[1] - a[1])[0]?.[0];
@@ -142,7 +138,8 @@ export function Stage({ world: initial }: { world: World }) {
   const trust = nationalAverage(NET, w.net, "vertrauen_regierung");
 
   const modes: { id: MapMode; label: string; icon: IconName }[] = [
-    { id: "gelaende", label: "Gelände", icon: "berg" },
+    { id: "gelaende", label: "Politisch", icon: "berg" },
+    { id: "regionen", label: "Regionen", icon: "netz" },
     { id: "wahl", label: "Wahl 2028", icon: "urne" },
     { id: "wirtschaft", label: "Wirtschaftskraft", icon: "fabrik" },
     { id: "arbeitslosigkeit", label: "Arbeitslosigkeit", icon: "koffer" },

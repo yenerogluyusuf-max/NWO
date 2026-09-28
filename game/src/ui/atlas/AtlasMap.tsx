@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { createAtlas, loadRelief, lonLatToUv, type AtlasScene, type Relief } from "./scene";
+import { PROVINZEN } from "../../sim/regional";
+import { PARTY_COLORS } from "../Parliament";
 import { drawOverlay, drawPickCanvas, makeCanvas, provinceCenters, PROVINCE_FC, type OverlayStyle } from "./overlay";
 
 export interface AtlasMapProps {
@@ -24,10 +26,17 @@ export interface AtlasMapProps {
 
 const NAMES: Record<number, string> = Object.fromEntries(PROVINCE_FC.features.map((f) => [f.properties.plaka, f.properties.name]));
 
+/** Stadtfigur je Provinz: Hauptstadt, Metropole ab 2,5 Mio. Einwohnern, sonst Stadt. */
+function cityKind(plaka: number): "hauptstadt" | "metropole" | "stadt" {
+  if (plaka === 6) return "hauptstadt";
+  return (PROVINZEN[plaka - 1]?.bevoelkerung ?? 0) >= 2_500_000 ? "metropole" : "stadt";
+}
+
 interface Ctx {
   atlas: AtlasScene;
   relief: Relief;
   overlayCanvas: HTMLCanvasElement;
+  fillCanvas: HTMLCanvasElement;
   pickCanvas: HTMLCanvasElement;
   centers: Record<number, [number, number]>;
 }
@@ -64,15 +73,19 @@ export function AtlasMap({
     let disposed = false;
     let frame = 0;
     let ro: ResizeObserver | undefined;
-    loadRelief().then((relief) => {
+    // Regionsnamen werden auf die Zeichenfläche geschrieben: Schrift vorher laden
+    const font = document.fonts?.load("600 44px 'Fraunces Variable'").catch(() => undefined);
+    Promise.all([loadRelief(), font]).then(([relief]) => {
       if (disposed || !canvas.current || !wrap.current) return;
       const overlayCanvas = makeCanvas(relief);
+      const fillCanvas = makeCanvas(relief);
       const pickCanvas = makeCanvas(relief);
       drawPickCanvas(pickCanvas, relief);
-      drawOverlay(overlayCanvas, relief, styleRef.current);
-      const atlas = createAtlas(canvas.current, relief, overlayCanvas);
+      drawOverlay(overlayCanvas, fillCanvas, relief, styleRef.current);
+      const atlas = createAtlas(canvas.current, relief, overlayCanvas, fillCanvas);
       atlas.overlay.needsUpdate = true;
-      ctx.current = { atlas, relief, overlayCanvas, pickCanvas, centers: provinceCenters(relief) };
+      atlas.fills.needsUpdate = true;
+      ctx.current = { atlas, relief, overlayCanvas, fillCanvas, pickCanvas, centers: provinceCenters(relief) };
       const size = () => {
         const r = wrap.current!.getBoundingClientRect();
         atlas.resize(Math.max(1, r.width), Math.max(1, r.height));
@@ -96,6 +109,10 @@ export function AtlasMap({
           const sway = driftRef.current ? [Math.sin(t * 0.05) * 0.035, Math.cos(t * 0.037) * 0.02] : [0, 0];
           atlas.setView(view.current.u + sway[0]!, view.current.v + sway[1]!, view.current.d);
         }
+        // Wie in Hearts of Iron: von weitem politische Farben, aus der Nähe das Gelände
+        const st = styleRef.current;
+        const z = Math.min(1, Math.max(0, (view.current.d - 6.5) / 7));
+        atlas.setPolitical(st.fill ? (st.fillAlpha ?? 0.6) : 0.15 + 0.5 * z * z * (3 - 2 * z));
         atlas.render(t);
         placeLabels();
         frame = requestAnimationFrame(loop);
@@ -117,8 +134,9 @@ export function AtlasMap({
     styleRef.current = { fill, fillAlpha, hover, selected };
     const c = ctx.current;
     if (!c) return;
-    drawOverlay(c.overlayCanvas, c.relief, styleRef.current);
+    drawOverlay(c.overlayCanvas, c.fillCanvas, c.relief, styleRef.current);
     c.atlas.overlay.needsUpdate = true;
+    c.atlas.fills.needsUpdate = true;
   }, [fill, fillAlpha, hover, selected, ready]);
 
   function placeLabels() {
@@ -126,6 +144,8 @@ export function AtlasMap({
     const layer = labelLayer.current;
     if (!c || !layer) return;
     const rect = layer.getBoundingClientRect();
+    // Stadtfiguren erst aus der Nähe, von weitem nur Banner wie Siegpunkte
+    layer.classList.toggle("far", view.current.d > 11);
     for (const el of Array.from(layer.children) as HTMLElement[]) {
       let center: [number, number] | undefined;
       if (el.dataset.lon) center = lonLatToUv(c.relief, Number(el.dataset.lon), Number(el.dataset.lat));
@@ -134,7 +154,8 @@ export function AtlasMap({
       const p = c.atlas.uvToWorld(center[0], center[1]).project(c.atlas.camera);
       const x = ((p.x + 1) / 2) * rect.width;
       const y = ((1 - p.y) / 2) * rect.height;
-      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      const scale = el.dataset.plaka ? Math.min(1.5, Math.max(0.62, 11 / view.current.d)) : 1;
+      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, ${el.dataset.plaka ? "-62%" : "-50%"}) scale(${scale.toFixed(3)})`;
       // am Rand ausblenden, damit Namen nicht abgeschnitten werden
       const half = el.offsetWidth / 2 + 12;
       const edge = Math.min(x - half, rect.width - x - half, y - 70, rect.height - y - 20);
@@ -230,11 +251,20 @@ export function AtlasMap({
             {g.text}
           </span>
         ))}
-        {labels.map((p) => (
-          <span key={p} data-plaka={p} className={`atlas-label${p === selected ? " selected" : ""}`}>
-            {NAMES[p]}
-          </span>
-        ))}
+        {labels.map((p) => {
+          const mayor = PROVINZEN[p - 1]?.buergermeister2024 ?? "";
+          const kind = cityKind(p);
+          return (
+            <span key={p} data-plaka={p} className={`city city-${kind}${p === selected ? " selected" : ""}`}>
+              <img className="city-mini" src={`/ui/stadt-${kind}.png`} alt="" draggable={false} />
+              <span className="city-banner">
+                <i style={{ background: PARTY_COLORS[mayor] ?? "#8a7a64" }} />
+                {kind === "hauptstadt" && <b aria-hidden>★</b>}
+                {NAMES[p]}
+              </span>
+            </span>
+          );
+        })}
       </div>
       {!ready && <div className="atlas-loading">Die Karte wird gezeichnet …</div>}
       {hover && <div className="atlas-hover">{NAMES[hover]}</div>}

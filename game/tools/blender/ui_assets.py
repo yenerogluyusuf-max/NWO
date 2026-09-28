@@ -379,6 +379,141 @@ def plaque():
     render(scene, "plakette")
 
 
+# --------------------------------------------------------------------------
+# Städte als bemalte Spielfiguren, im Blickwinkel der Kartenkamera (etwa 62°)
+
+
+def paint(name, color, rough=0.6):
+    mat, bsdf, tree = principled(name)
+    bsdf.inputs["Base Color"].default_value = (*color, 1)
+    bsdf.inputs["Roughness"].default_value = rough
+    bump(tree, bsdf, 40, 0.05, 3)
+    return mat
+
+
+def tilted_camera(scene, size, ortho):
+    elev = math.radians(62)
+    dist = 12
+    bpy.ops.object.camera_add(location=(0, -dist * math.cos(elev), dist * math.sin(elev)), rotation=(math.pi / 2 - elev, 0, 0))
+    cam = bpy.context.object
+    cam.data.type = "ORTHO"
+    cam.data.ortho_scale = ortho
+    scene.camera = cam
+    scene.render.resolution_x = size
+    scene.render.resolution_y = size
+
+
+def shadow_ground():
+    bpy.ops.mesh.primitive_plane_add(size=8, location=(0, 0, 0))
+    bpy.context.object.is_shadow_catcher = True
+
+
+def box(loc, size, mat, rot=0.0):
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(loc[0], loc[1], loc[2] + size[2] / 2))
+    obj = bpy.context.object
+    obj.scale = size
+    obj.rotation_euler.z = rot
+    bpy.ops.object.transform_apply(scale=True)
+    smooth(obj, 0.012, 2)
+    assign(obj, mat)
+    return obj
+
+
+def gable(loc, size, mat, rot=0.0):
+    """Satteldach als Prisma über einem Haus der Größe size."""
+    import bmesh
+
+    w, dpt, h = size
+    mesh = bpy.data.meshes.new("Dach")
+    obj = bpy.data.objects.new("Dach", mesh)
+    bpy.context.collection.objects.link(obj)
+    bm = bmesh.new()
+    o = 0.03
+    v = [
+        bm.verts.new((-w / 2 - o, -dpt / 2 - o, 0)), bm.verts.new((w / 2 + o, -dpt / 2 - o, 0)),
+        bm.verts.new((w / 2 + o, dpt / 2 + o, 0)), bm.verts.new((-w / 2 - o, dpt / 2 + o, 0)),
+        bm.verts.new((-w / 2 - o, 0, h)), bm.verts.new((w / 2 + o, 0, h)),
+    ]
+    for f in ((0, 1, 5, 4), (3, 2, 5, 4), (0, 4, 3), (1, 2, 5), (0, 1, 2, 3)):
+        bm.faces.new([v[i] for i in f])
+    bm.normal_update()
+    bm.to_mesh(mesh)
+    bm.free()
+    obj.location = loc
+    obj.rotation_euler.z = rot
+    assign(obj, mat)
+    return obj
+
+
+def house(x, y, w, d, h, rot, wall, roof):
+    box((x, y, 0), (w, d, h), wall, rot)
+    gable((x, y, h), (w, d, h * 0.45), roof, rot)
+
+
+def minaret(x, y, h, mat, cap):
+    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.05, depth=h, location=(x, y, h / 2))
+    smooth(bpy.context.object)
+    assign(bpy.context.object, mat)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.075, depth=0.03, location=(x, y, h * 0.72))
+    assign(bpy.context.object, mat)
+    bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=0.055, depth=0.2, location=(x, y, h + 0.1))
+    smooth(bpy.context.object)
+    assign(bpy.context.object, cap)
+
+
+def dome(x, y, r, z, mat):
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=r, segments=32, ring_count=16, location=(x, y, z))
+    obj = bpy.context.object
+    obj.scale.z = 0.85
+    smooth(obj)
+    assign(obj, mat)
+
+
+def town_houses(seed, count, spread, wall, roof):
+    import random
+
+    rnd = random.Random(seed)
+    for _ in range(count):
+        a = rnd.uniform(0, 2 * math.pi)
+        rr = spread * math.sqrt(rnd.uniform(0.15, 1))
+        house(rr * math.cos(a), rr * math.sin(a) * 0.8, rnd.uniform(0.18, 0.3), rnd.uniform(0.16, 0.24), rnd.uniform(0.14, 0.26), rnd.uniform(-0.3, 0.3), wall, roof)
+
+
+def city(kind):
+    scene = reset()
+    tilted_camera(scene, 192, 2.1)
+    shadow_ground()
+    wall = paint("Putz", (0.86, 0.79, 0.64))
+    wall2 = paint("Stein", (0.74, 0.66, 0.52))
+    roof = paint("Ziegel", (0.55, 0.19, 0.09))
+    lead = paint("Blei", (0.42, 0.47, 0.5), 0.45)
+    if kind == "stadt":
+        town_houses(3, 11, 0.5, wall, roof)
+        minaret(0.1, 0.25, 0.75, wall, lead)
+    elif kind == "metropole":
+        town_houses(7, 16, 0.78, wall, roof)
+        for x, y, h in ((-0.55, 0.35, 0.7), (0.6, 0.4, 0.55), (0.45, -0.45, 0.62)):
+            box((x, y, 0), (0.22, 0.22, h), wall2)
+        box((0, 0.05, 0), (0.62, 0.5, 0.22), wall)
+        dome(0, 0.05, 0.26, 0.26, lead)
+        for dx in (-0.2, 0.2):
+            dome(dx, -0.2, 0.1, 0.22, lead)
+        for x, y in ((-0.38, -0.25), (0.38, -0.25), (-0.38, 0.35), (0.38, 0.35)):
+            minaret(x, y, 0.95, wall, lead)
+    else:  # hauptstadt
+        town_houses(11, 12, 0.75, wall, roof)
+        box((0, 0.1, 0), (1.0, 0.42, 0.06), wall2)
+        box((0, 0.1, 0.06), (0.9, 0.34, 0.36), wall)
+        for k in range(9):
+            bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=0.028, depth=0.34, location=(-0.4 + k * 0.1, -0.1, 0.23))
+            assign(bpy.context.object, wall2)
+        box((0, 0.1, 0.42), (0.98, 0.44, 0.06), wall2)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=8, radius=0.012, depth=0.75, location=(0, 0.1, 0.85))
+        assign(bpy.context.object, lead)
+        flag = box((0.13, 0.1, 1.02), (0.24, 0.01, 0.16), paint("Fahne", (0.62, 0.05, 0.04), 0.5))
+    render(scene, f"stadt-{kind}")
+
+
 PARTS = {
     "medaillon": lambda: [
         medallion("rot", (0.42, 0.05, 0.035)),
@@ -390,6 +525,7 @@ PARTS = {
     "siegel": wax_seal,
     "kompass": compass,
     "plakette": plaque,
+    "staedte": lambda: [city("stadt"), city("metropole"), city("hauptstadt")],
 }
 
 for key, fn in PARTS.items():

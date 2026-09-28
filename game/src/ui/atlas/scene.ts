@@ -39,6 +39,9 @@ export interface AtlasScene {
   camera: THREE.PerspectiveCamera;
   terrain: THREE.Mesh;
   overlay: THREE.CanvasTexture;
+  fills: THREE.CanvasTexture;
+  /** Stärke der politischen Flächen, 0 bis 1 */
+  setPolitical: (x: number) => void;
   worldH: number;
   heightAt: (u: number, v: number) => number;
   uvToWorld: (u: number, v: number) => THREE.Vector3;
@@ -80,6 +83,8 @@ const terrainVertex = /* glsl */ `
 
 const terrainFragment = /* glsl */ `
   uniform sampler2D overlay;
+  uniform sampler2D fills;
+  uniform float political;
   uniform vec3 sunDir;
   varying float vElev;
   varying vec3 vNormal;
@@ -87,85 +92,61 @@ const terrainFragment = /* glsl */ `
   varying vec3 vWorld;
   ${paperNoise}
 
-  // Aquarellpalette nach Höhe
-  vec3 palette(float e) {
-    vec3 c0 = vec3(0.62, 0.72, 0.46); // Küstenebene, sattes Grün
-    vec3 c1 = vec3(0.78, 0.76, 0.50); // Hügel, Olive
-    vec3 c2 = vec3(0.84, 0.70, 0.46); // Hochland, Ocker
-    vec3 c3 = vec3(0.62, 0.46, 0.34); // Gebirge, Siena
-    vec3 c4 = vec3(0.96, 0.95, 0.92); // Gipfel, Papierweiß
-    float n = (fbm(vUv * 64.0) - 0.5) * 260.0; // ausfransende Ränder
+  // Gemalte Geländefarben wie auf einer Strategiekarte: Feuchte von Norden und Westen,
+  // Trockenheit nach Südosten, Fels und Schnee in der Höhe
+  vec3 palette(float e, float moist) {
+    vec3 green = vec3(0.30, 0.44, 0.22);
+    vec3 plains = vec3(0.53, 0.54, 0.31);
+    vec3 steppe = vec3(0.70, 0.63, 0.42);
+    vec3 dry = vec3(0.74, 0.62, 0.44);
+    vec3 high = vec3(0.56, 0.47, 0.35);
+    vec3 rock = vec3(0.47, 0.43, 0.40);
+    vec3 snow = vec3(0.93, 0.94, 0.96);
+    float n = (fbm(vUv * 40.0) - 0.5) * 160.0;
     float h = e + n;
-    vec3 c = mix(c0, c1, smoothstep(150.0, 600.0, h));
-    c = mix(c, c2, smoothstep(700.0, 1300.0, h));
-    c = mix(c, c3, smoothstep(1700.0, 2500.0, h));
-    c = mix(c, c4, smoothstep(3000.0, 3600.0, h));
+    vec3 low = mix(mix(dry, steppe, smoothstep(0.1, 0.45, moist)), mix(plains, green, smoothstep(0.55, 0.85, moist)), smoothstep(0.35, 0.6, moist));
+    vec3 c = low;
+    c = mix(c, mix(steppe, plains, moist * 0.6), smoothstep(700.0, 1200.0, h) * (1.0 - moist * 0.5));
+    c = mix(c, high, smoothstep(1500.0, 2200.0, h));
+    c = mix(c, rock, smoothstep(2300.0, 2900.0, h));
+    c = mix(c, snow, smoothstep(3000.0, 3500.0, h));
     return c;
   }
 
   void main() {
     vec3 n = normalize(vNormal);
     float light = dot(n, normalize(sunDir));
-    vec3 base = palette(vElev);
 
-    // Aquarell: Pigment sammelt sich ungleichmäßig
-    float wash = fbm(vUv * 29.0 + 3.1);
-    base *= 0.9 + 0.18 * wash;
+    // Feuchte: Schwarzmeerküste und Ägäis grün, Südosten trocken
+    float moist = smoothstep(0.52, 0.2, vUv.y) * 0.75 + smoothstep(0.34, 0.12, vUv.x) * 0.35 + (fbm(vUv * 9.0) - 0.5) * 0.35;
+    moist = clamp(moist, 0.0, 1.0);
+    vec3 base = palette(vElev, moist);
 
-    // Schattierung in wenigen weichen Stufen
-    float shade = smoothstep(-0.1, 0.9, light);
-    shade = floor(shade * 4.0 + 0.5 * fbm(vUv * 96.0)) / 4.0;
-    base *= 0.72 + 0.34 * shade;
+    // Gemalte Unregelmäßigkeit in der Fläche
+    float wash = fbm(vUv * 22.0 + 3.1);
+    base *= 0.92 + 0.14 * wash;
 
-    // Schraffur an Schattenhängen
-    vec2 hp = vUv * vec2(2240.0, 1390.0);
-    float line = abs(fract((hp.x + hp.y) * 0.5) - 0.5);
-    float hatch = (1.0 - smoothstep(0.0, 0.18, line)) * (1.0 - smoothstep(0.15, 0.55, light));
-    base = mix(base, vec3(0.30, 0.24, 0.20), hatch * 0.35);
+    // Wälder als dunkle, weiche Flecken in feuchten Lagen
+    float forest = smoothstep(0.55, 0.68, fbm(vUv * 30.0 + 7.0)) * smoothstep(0.35, 0.7, moist) * step(40.0, vElev) * (1.0 - smoothstep(1700.0, 2100.0, vElev));
+    base = mix(base, vec3(0.17, 0.29, 0.15), forest * 0.7);
 
-    // Gezeichnete Wälder und Felder: Tupfen im Tiefland, dichter im feuchten Norden
-    vec2 fp = vUv * vec2(830.0, 520.0);
-    vec2 fc = floor(fp);
-    vec2 ff = fract(fp) - 0.5;
-    float fr = hash(fc);
-    float forestZone = smoothstep(0.52, 0.62, fbm(vUv * 14.0 + 7.0)) + smoothstep(0.42, 0.28, vUv.y) * 0.5;
-    float dotShape = 1.0 - smoothstep(0.18, 0.28, length(ff + (vec2(hash(fc + 3.1), hash(fc + 5.7)) - 0.5) * 0.4));
-    float forest = dotShape * step(0.35, fr) * step(0.5, forestZone) * step(20.0, vElev) * (1.0 - smoothstep(1400.0, 1800.0, vElev));
-    base = mix(base, vec3(0.26, 0.40, 0.22), forest * 0.75);
+    // Relief kräftig schattiert
+    float shade = smoothstep(-0.3, 1.0, light);
+    base *= 0.6 + 0.52 * shade;
 
-    // Bergsymbole: kleine gezeichnete Gipfel im Hochgebirge
-    vec2 mp = vUv * vec2(270.0, 170.0);
-    vec2 mc = floor(mp);
-    vec2 mf = fract(mp) - vec2(0.5, 0.62);
-    float mr = hash(mc + 11.0);
-    float ridge = mf.y + abs(mf.x) * 1.45;
-    float outline = (1.0 - smoothstep(0.0, 0.05, abs(ridge + 0.02))) * step(-0.36, mf.y) * step(mf.y, 0.2);
-    float shadowSide = step(0.0, mf.x) * step(-0.02, ridge) * step(mf.y, 0.2) * step(abs(mf.x), 0.35);
-    float mountainZone = smoothstep(1700.0, 2200.0, vElev) * step(0.4, mr);
-    base = mix(base, vec3(0.45, 0.34, 0.27), shadowSide * mountainZone * 0.45);
-    base = mix(base, vec3(0.20, 0.15, 0.12), outline * mountainZone * 0.9);
+    // heller Sandsaum an der Küste
+    float shore = 1.0 - smoothstep(0.0, 18.0, vElev);
+    base = mix(base, vec3(0.80, 0.74, 0.56), shore * 0.55 * step(-0.5, vElev));
 
-    // Höhenlinien in Tinte, alle 500 m, jede vierte kräftiger
-    float c = vElev / 500.0;
-    float w = fwidth(c);
-    float contour = 1.0 - smoothstep(0.0, w * 1.2, abs(fract(c) - 0.5) - 0.5 + w);
-    float major = step(3.5, mod(floor(c + 0.5), 4.0));
-    base = mix(base, vec3(0.35, 0.27, 0.22), contour * (0.18 + 0.2 * major) * step(80.0, vElev));
-
-    // Küstenlinie in Tinte, auf der Landseite
-    float shore = 1.0 - smoothstep(0.0, 25.0, vElev);
-    base = mix(base, vec3(0.24, 0.19, 0.16), shore * 0.8 * step(-0.5, vElev));
-
-    // Provinzen, Wahl, Probleme: eingefärbte Lasur und Grenzlinien
-    // wie eine Lasur: die Schattierung des Reliefs scheint durch die Farbe
-    vec4 ov = texture2D(overlay, vUv);
+    // Politische Flächen als Lasur, je nach Zoom kräftiger oder schwächer
+    vec4 fl = texture2D(fills, vUv);
     float lum = dot(base, vec3(0.299, 0.587, 0.114));
-    vec3 glazed = ov.rgb * (0.5 + 0.75 * lum);
-    base = mix(base, glazed, ov.a);
+    vec3 glazed = fl.rgb * (0.55 + 0.8 * lum);
+    base = mix(base, glazed, fl.a * political);
 
-    // Papierkorn
-    float grain = fbm(gl_FragCoord.xy * 0.35);
-    base *= 0.93 + 0.1 * grain;
+    // Linien, Flüsse, Grenzen und Auswahl immer voll
+    vec4 ov = texture2D(overlay, vUv);
+    base = mix(base, ov.rgb, ov.a);
 
     gl_FragColor = vec4(base, 1.0);
   }
@@ -185,37 +166,64 @@ const waterFragment = /* glsl */ `
   varying vec2 vUv;
   ${paperNoise}
   void main() {
-    float d = texture2D(depthMap, vUv).r; // 0 = Küste, 1 = tief
-    vec3 shallow = vec3(0.70, 0.83, 0.82);
-    vec3 deep = vec3(0.34, 0.52, 0.60);
-    float wash = fbm(vUv * 19.0 + time * 0.01);
-    vec3 col = mix(shallow, deep, smoothstep(0.0, 0.6, d + (wash - 0.5) * 0.15));
+    float d = texture2D(depthMap, vUv).r; // 0 = Land, sonst Tiefe
+    if (d < 0.001) discard; // tief liegendes Land nicht mit Wasser überdecken
+    vec3 shallow = vec3(0.24, 0.42, 0.47);
+    vec3 deep = vec3(0.09, 0.19, 0.27);
+    float wash = fbm(vUv * 16.0 + time * 0.008);
+    vec3 col = mix(shallow, deep, smoothstep(0.0, 0.5, d + (wash - 0.5) * 0.12));
 
-    // Küstenlinien wie auf alten Karten: parallele Linien entlang der Küste
-    float rings = abs(fract(d * 38.0 - time * 0.05) - 0.5);
-    float ringMask = (1.0 - smoothstep(0.0, 0.06, rings)) * (1.0 - smoothstep(0.02, 0.16, d)) * step(0.004, d);
-    col = mix(col, vec3(0.25, 0.38, 0.45), ringMask * 0.5);
+    // feine, langsam ziehende Wellen
+    float ripple = fbm(vec2(vUv.x * 260.0 + time * 0.25, vUv.y * 420.0 - time * 0.15));
+    col += vec3(0.05, 0.07, 0.08) * smoothstep(0.62, 0.8, ripple);
 
-    // Kleine gezeichnete Wellenstriche im offenen Meer
-    vec2 p = vUv * vec2(420.0, 260.0);
-    vec2 cell = floor(p);
-    vec2 f = fract(p) - 0.5;
-    float r = hash(cell);
-    float stroke = abs(f.y - 0.12 * sin(f.x * 9.0 + time * 0.6 + r * 6.0));
-    float waveMask = (1.0 - smoothstep(0.02, 0.07, stroke)) * step(abs(f.x), 0.3) * step(0.86, r) * step(0.2, d);
-    col = mix(col, vec3(0.90, 0.94, 0.93), waveMask * 0.7);
+    // Brandung: heller Saum direkt an der Küste
+    float surf = (1.0 - smoothstep(0.0, 0.035, d)) * step(0.002, d);
+    col = mix(col, vec3(0.55, 0.68, 0.70), surf * (0.55 + 0.25 * sin(time * 0.8 + vUv.x * 300.0)));
 
-    col *= 0.93 + 0.1 * fbm(gl_FragCoord.xy * 0.35);
     gl_FragColor = vec4(col, 1.0);
   }
 `;
 
-export function createAtlas(canvas: HTMLCanvasElement, relief: Relief, overlayCanvas: HTMLCanvasElement): AtlasScene {
+/** Kastenfilter in zwei Durchgängen, Meer bleibt Meer. */
+function blur(src: Int16Array, w: number, h: number, r: number): Float32Array {
+  const tmp = new Float32Array(src.length);
+  const out = new Float32Array(src.length);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let s = 0;
+      let n = 0;
+      for (let k = -r; k <= r; k++) {
+        const xx = Math.min(w - 1, Math.max(0, x + k));
+        s += src[y * w + xx]!;
+        n++;
+      }
+      tmp[y * w + x] = s / n;
+    }
+  }
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let s = 0;
+      let n = 0;
+      for (let k = -r; k <= r; k++) {
+        const yy = Math.min(h - 1, Math.max(0, y + k));
+        s += tmp[yy * w + x]!;
+        n++;
+      }
+      const orig = src[y * w + x]!;
+      // Küste nicht verschieben: Vorzeichen des Originals behalten
+      out[y * w + x] = orig > 0 ? Math.max(1, s / n) : Math.min(orig, s / n);
+    }
+  }
+  return out;
+}
+
+export function createAtlas(canvas: HTMLCanvasElement, relief: Relief, overlayCanvas: HTMLCanvasElement, fillCanvas: HTMLCanvasElement): AtlasScene {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xe9e0cc);
-  scene.fog = new THREE.Fog(0xe9e0cc, 26, 48);
+  scene.background = new THREE.Color(0x14222c);
+  scene.fog = new THREE.Fog(0x14222c, 26, 48);
 
   const worldH = (WORLD_W * relief.height) / relief.width;
   const segX = Math.floor(relief.width / 3);
@@ -223,10 +231,12 @@ export function createAtlas(canvas: HTMLCanvasElement, relief: Relief, overlayCa
   const geo = new THREE.PlaneGeometry(WORLD_W, worldH, segX, segY);
   geo.rotateX(-Math.PI / 2);
 
+  // Relief leicht glätten: ein ruhiges Brett statt zerknittertem Papier
+  const smoothData = blur(relief.data, relief.width, relief.height, 2);
   const sample = (u: number, v: number) => {
     const x = Math.min(relief.width - 1, Math.max(0, Math.round(u * (relief.width - 1))));
     const y = Math.min(relief.height - 1, Math.max(0, Math.round(v * (relief.height - 1))));
-    return relief.data[y * relief.width + x]!;
+    return smoothData[y * relief.width + x]!;
   };
 
   const pos = geo.attributes.position as THREE.BufferAttribute;
@@ -249,11 +259,17 @@ export function createAtlas(canvas: HTMLCanvasElement, relief: Relief, overlayCa
   overlay.colorSpace = THREE.NoColorSpace;
   overlay.anisotropy = 4;
 
+  const fills = new THREE.CanvasTexture(fillCanvas);
+  fills.flipY = false;
+  fills.colorSpace = THREE.NoColorSpace;
+  fills.anisotropy = 4;
+  const political = { value: 1 };
+
   const sunDir = new THREE.Vector3(-0.6, 0.8, 0.35);
   const terrainMat = new THREE.ShaderMaterial({
     vertexShader: terrainVertex,
     fragmentShader: terrainFragment,
-    uniforms: { overlay: { value: overlay }, sunDir: { value: sunDir } },
+    uniforms: { overlay: { value: overlay }, fills: { value: fills }, political, sunDir: { value: sunDir } },
   });
   const terrain = new THREE.Mesh(geo, terrainMat);
   scene.add(terrain);
@@ -303,6 +319,10 @@ export function createAtlas(canvas: HTMLCanvasElement, relief: Relief, overlayCa
     camera,
     terrain,
     overlay,
+    fills,
+    setPolitical(x) {
+      political.value = x;
+    },
     worldH,
     heightAt,
     uvToWorld,
@@ -327,6 +347,7 @@ export function createAtlas(canvas: HTMLCanvasElement, relief: Relief, overlayCa
       terrainMat.dispose();
       waterMat.dispose();
       overlay.dispose();
+      fills.dispose();
       depthTex.dispose();
       renderer.dispose();
     },

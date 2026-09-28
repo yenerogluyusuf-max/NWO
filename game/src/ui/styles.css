@@ -536,7 +536,7 @@ button.link { border: none !important; background: none !important; box-shadow: 
 
 /* Atlas-Beschriftung, Kompass, Kartusche */
 .atlas-geo { position: absolute; left: 0; top: 0; white-space: nowrap; font-family: var(--serif); pointer-events: none; }
-.atlas-geo.meer { font-style: italic; font-size: 22px; letter-spacing: 0.45em; color: rgba(30, 62, 76, 0.75); text-shadow: 0 0 6px rgba(220, 235, 235, 0.6); }
+.atlas-geo.meer { font-style: italic; font-size: 22px; letter-spacing: 0.45em; color: rgba(196, 220, 226, 0.72); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
 .atlas-geo.land { font-size: 13px; text-transform: uppercase; letter-spacing: 0.35em; color: rgba(90, 70, 50, 0.7); font-weight: 600; }
 .compass { position: absolute; z-index: 3; right: 290px; bottom: 22px; width: 96px; height: 96px; pointer-events: none; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5)); }
 .cartouche {
@@ -626,3 +626,21 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .indicators td:nth-child(3) { padding-left: 30px; }
 .indicators tr { background-image: linear-gradient(transparent calc(100% - 1px), rgba(120, 90, 50, 0.2) 0); }
 .ng-seal { font-family: var(--serif); font-size: 20px; font-weight: 700; fill: #f6dcc2; }
+
+/* Städte als Spielfiguren mit Banner, wie in Civilization */
+.city { position: absolute; left: 0; top: 0; display: grid; justify-items: center; transform-origin: 50% 62%; will-change: transform; }
+.city-mini { width: 80px; height: 80px; margin-bottom: -22px; filter: drop-shadow(0 2px 2px rgba(40, 24, 10, 0.25)); }
+.city-stadt .city-mini { width: 66px; height: 66px; margin-bottom: -18px; }
+.city-hauptstadt .city-mini, .city-metropole .city-mini { width: 92px; height: 92px; }
+.city-banner {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; padding: 2px 9px 2px 3px; border-radius: 2px;
+  font: 600 12.5px var(--serif); color: #f3e6c6; letter-spacing: 0.02em; text-shadow: 0 1px 0 #000;
+  background: linear-gradient(180deg, #3e3024, #231a13); box-shadow: 0 0 0 1px #c69a4a, 0 0 0 2px #120d0a, 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+.city-banner i { width: 5px; align-self: stretch; margin: -2px 2px -2px 0; border-radius: 1px 0 0 1px; }
+.city-banner b { color: var(--gold-1); font-size: 11px; }
+.city-stadt .city-banner { font-size: 11.5px; }
+.city.selected .city-banner { background: linear-gradient(180deg, #f7e2a4, #c89a4a); color: #2b1e12; text-shadow: none; }
+.atlas-labels.far .city-mini { display: none; }
+.atlas-labels.far .city-banner::before { content: ""; width: 7px; height: 7px; margin-right: 1px; background: #f3e6c6; box-shadow: 0 0 0 1.5px #120d0a; }
+.stage { background: #14222c; }
