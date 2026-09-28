@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { EDGES, NODES } from "../src/data/politiknetz";
 import { createNet, nationalAverage, PROVINCES, startAverage, stepNet } from "../src/sim/netz";
+import { REGIONAL, WEIGHTS } from "../src/sim/regional";
 import { advance, createWorld, NET, setPolicy } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import type { World } from "../src/sim/types";
@@ -35,8 +36,8 @@ describe("Katalog", () => {
 describe("Dynamik", () => {
   test("ohne Anstoß bleibt das Netz in Ruhe", () => {
     const w = createWorld(turkey2026, 1);
-    const net = createNet(NET, w.economy);
-    for (let m = 0; m < 60; m++) stepNet(NET, net, w.economy);
+    const net = createNet(NET, w.economy, REGIONAL, WEIGHTS);
+    for (let m = 0; m < 60; m++) stepNet(NET, net, w.economy, REGIONAL);
     let maxDev = 0;
     for (let k = 0; k < net.values.length; k++) maxDev = Math.max(maxDev, Math.abs(net.values[k]! - net.start[k]!));
     expect(maxDev).toBeLessThan(1e-9);
@@ -44,13 +45,13 @@ describe("Dynamik", () => {
 
   test("Störungen klingen ab statt sich aufzuschaukeln", () => {
     const w = createWorld(turkey2026, 1);
-    const net = createNet(NET, w.economy);
+    const net = createNet(NET, w.economy, REGIONAL, WEIGHTS);
     NET.nodes.forEach((n, i) => {
       if (n.kind === "massnahme" || n.input) return;
       for (let p = 0; p < PROVINCES; p++) net.values[i * PROVINCES + p] = Math.min(100, net.values[i * PROVINCES + p]! + 20);
     });
     net.history = net.history.map(() => net.values.slice());
-    for (let m = 0; m < 120; m++) stepNet(NET, net, w.economy);
+    for (let m = 0; m < 120; m++) stepNet(NET, net, w.economy, REGIONAL);
     let sum = 0;
     let count = 0;
     NET.nodes.forEach((n, i) => {

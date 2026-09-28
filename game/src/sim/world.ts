@@ -7,6 +7,7 @@ import { addDays, dayOfMonth, formatMonthDe, monthNumber, monthOf, previousMonth
 import { clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, ppkDecision, realRate } from "./economy";
 import { buildModel, createNet, nationalAverage, policyCost, startAverage, stepNet, type NetModel } from "./netz";
 import { EDGES, NODES } from "../data/politiknetz";
+import { REGIONAL, WEIGHTS } from "./regional";
 
 /** Das Politiknetz ist statisch; nur sein Zustand gehört zum Spielstand. */
 export const NET: NetModel = buildModel(NODES, EDGES);
@@ -47,7 +48,7 @@ export function createWorld(scenario: Scenario, seed: number): World {
     history,
     published: structuredClone(scenario.published),
     log: [],
-    net: createNet(NET, economy),
+    net: createNet(NET, economy, REGIONAL, WEIGHTS),
   };
   addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + scenario.dataDate + ".");
   return world;
@@ -134,7 +135,7 @@ export function tick(world: World): void {
 /** Politiknetz einen Monat fortschreiben und an das Wirtschaftsmodell zurückkoppeln. */
 function monthlyNet(world: World): void {
   const e = world.economy;
-  stepNet(NET, world.net, e);
+  stepNet(NET, world.net, e, REGIONAL);
   e.policyCost = policyCost(NET, world.net);
   const cost = nationalAverage(NET, world.net, "kostendruck") - startAverage(NET, world.net, "kostendruck");
   e.costPush = clamp(COUPLING.costPush * cost, -5, 5);

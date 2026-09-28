@@ -25,6 +25,8 @@ export interface NetState {
   targets: Record<string, number>;
   /** Umsetzungsschritt je Monat für laufende Änderungen */
   steps: Record<string, number>;
+  /** Bevölkerungsanteil je Provinz für Landesdurchschnitte */
+  weights: number[];
 }
 
 export interface NetModel {
@@ -58,7 +60,12 @@ export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[]): NetModel {
 /** Regionale Startwerte: Faktor je Knoten und Provinz (1 = Landesdurchschnitt). */
 export type RegionalStart = Record<string, number[]>;
 
-export function createNet(model: NetModel, economy: EconomyState, regional: RegionalStart = {}): NetState {
+export function createNet(
+  model: NetModel,
+  economy: EconomyState,
+  regional: RegionalStart = {},
+  weights: number[] = new Array(PROVINCES).fill(1 / PROVINCES),
+): NetState {
   const n = model.nodes.length;
   const start = new Array<number>(n * PROVINCES);
   model.nodes.forEach((node, i) => {
@@ -77,6 +84,7 @@ export function createNet(model: NetModel, economy: EconomyState, regional: Regi
     month: 0,
     targets: {},
     steps: {},
+    weights: weights.slice(),
   };
 }
 
@@ -152,13 +160,13 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
   s.history[s.month % SLOTS] = v.slice();
 }
 
-/** Landesdurchschnitt eines Knotens (ungewichtet; Gewichtung nach Bevölkerung folgt mit den Provinzdaten). */
+/** Landesdurchschnitt eines Knotens, gewichtet nach Bevölkerung. */
 export function nationalAverage(model: NetModel, s: NetState, id: string): number {
   const i = model.index.get(id);
   if (i === undefined) return NaN;
   let sum = 0;
-  for (let p = 0; p < PROVINCES; p++) sum += s.values[i * PROVINCES + p]!;
-  return sum / PROVINCES;
+  for (let p = 0; p < PROVINCES; p++) sum += s.values[i * PROVINCES + p]! * s.weights[p]!;
+  return sum;
 }
 
 export function provinceValue(model: NetModel, s: NetState, id: string, plaka: number): number {
@@ -171,8 +179,8 @@ export function startAverage(model: NetModel, s: NetState, id: string): number {
   const i = model.index.get(id);
   if (i === undefined) return NaN;
   let sum = 0;
-  for (let p = 0; p < PROVINCES; p++) sum += s.start[i * PROVINCES + p]!;
-  return sum / PROVINCES;
+  for (let p = 0; p < PROVINCES; p++) sum += s.start[i * PROVINCES + p]! * s.weights[p]!;
+  return sum;
 }
 
 /** Laufende Kosten aller Maßnahmen gegenüber dem Start in % des BIP pro Jahr. */

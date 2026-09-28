@@ -100,7 +100,7 @@ function Game({ world: initial }: { world: World }) {
         {view === "schreibtisch" && <Desk world={w} onOpen={setView} />}
         {view === "wirtschaft" && <EconomyFile world={w} />}
         {view === "netz" && <NetView world={w} onDecided={refresh} />}
-        {view === "karte" && <ProvinceMap />}
+        {view === "karte" && <ProvinceMap world={w} />}
         {view === "entscheidungen" && (
           <Decisions
             world={w}

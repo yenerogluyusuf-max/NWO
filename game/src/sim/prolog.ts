@@ -5,6 +5,7 @@ import type { World } from "./types";
 import { Rng } from "./rng";
 import { NET } from "./world";
 import { PROVINCES } from "./netz";
+import { PROVINZEN, WEIGHTS, type ProvinceData } from "./regional";
 
 export type GroupId =
   | "rentner"
@@ -191,50 +192,112 @@ const SOURCES: Record<string, Record<string, number>> = {
 };
 
 export interface Parliament {
+  /** Landesweite Stimmenanteile in % */
   shares: Record<string, number>;
   seats: Record<string, number>;
+  /** Sitze je Provinz (Kfz-Kennziffer) */
+  byProvince?: Record<number, Record<string, number>>;
 }
 
+/** Welche Partei von 2023 als regionales Muster für eine Partei von 2026 dient. */
+const PATTERN: Record<string, "AKP" | "CHP" | "MHP" | "İYİ" | "YSP" | null> = {
+  AKP: "AKP",
+  YENİ: "CHP",
+  CHP: "CHP",
+  MHP: "MHP",
+  İYİ: "İYİ",
+  DEM: "YSP",
+  Zafer: null,
+  YRP: null,
+  Andere: null,
+};
+
+/** Regionale Stärke einer Partei: Anteil 2023 in der Provinz im Verhältnis zum Landeswert (1 = Durchschnitt). */
+function regionalRatio(party: string, p: ProvinceData): number {
+  const pattern = PATTERN[party];
+  if (!pattern) return 1;
+  const nat = NAT_2023[pattern];
+  let local = p.stimmen2023[pattern];
+  if (pattern === "CHP" && local === 0) {
+    // 2023 trat die CHP in einigen Provinzen nicht mit eigener Liste an; dann das Oppositionslager insgesamt
+    local = ((p.stimmen2023.CHP + p.stimmen2023.İYİ) / (NAT_2023.CHP + NAT_2023.İYİ)) * nat;
+  }
+  return nat > 0 ? local / nat : 1;
+}
+
+const NAT_2023 = (["AKP", "CHP", "MHP", "İYİ", "YSP"] as const).reduce(
+  (acc, k) => {
+    acc[k] = PROVINZEN.reduce((s, p, i) => s + p.stimmen2023[k] * WEIGHTS[i]!, 0);
+    return acc;
+  },
+  {} as Record<"AKP" | "CHP" | "MHP" | "İYİ" | "YSP", number>,
+);
+
 /**
- * Parlament 2028: Umfragen, die neue Partei zieht 15 bis 30 % an sich,
- * jeder Anteil schwankt um bis zu ±5 Prozentpunkte. Sitzverteilung vorerst
- * landesweit nach D'Hondt mit 7-%-Hürde (Bündnisse zählen gemeinsam);
- * die Verteilung je Provinz folgt mit den Provinzdaten.
+ * Parlament 2028 je Provinz: Umfragedurchschnitt, regional verteilt nach den
+ * Ergebnissen von 2023. Die neue Partei zieht 15 bis 30 % an sich, dort, wo
+ * ihre Quellparteien stark sind, und in der Heimatprovinz. Jeder landesweite
+ * Anteil schwankt um bis zu ±5 Punkte. Hürde 7 % landesweit (Bündnisse
+ * gemeinsam), dann D'Hondt je Provinz (Wahlgesetz Art. 33, 34).
  */
 export function electParliament(profile: PlayerProfile, rng: Rng): Parliament {
-  const shares: Record<string, number> = { ...POLLS };
   const own = profile.partei.kurz || "EIGENE";
+  const parties = [...Object.keys(POLLS), own];
   const gain = rng.between(15, 30);
   const sources = SOURCES[own] ?? { Andere: 1 };
-  for (const [party, weight] of Object.entries(sources)) {
-    shares[party] = Math.max(0.5, (shares[party] ?? 0) - gain * weight);
-  }
-  shares[own] = gain;
-  for (const k of Object.keys(shares)) shares[k] = Math.max(0.3, shares[k]! + rng.between(-5, 5) * (shares[k]! > 5 ? 1 : 0.2));
-  const total = Object.values(shares).reduce((a, b) => a + b, 0);
-  for (const k of Object.keys(shares)) shares[k] = (shares[k]! / total) * 100;
+  const swing: Record<string, number> = {};
+  for (const party of Object.keys(POLLS)) swing[party] = POLLS[party]! > 5 ? rng.between(-5, 5) : rng.between(-1, 1);
+  swing[own] = rng.between(-3, 3);
 
-  // Sperrklausel: Bündnispartner zählen gemeinsam
+  const local: Record<string, number>[] = PROVINZEN.map((p) => {
+    const sh: Record<string, number> = {};
+    for (const party of Object.keys(POLLS)) sh[party] = Math.max(0.2, (POLLS[party]! + swing[party]!) * regionalRatio(party, p));
+    let ownShare = 0;
+    for (const [src, w] of Object.entries(sources)) {
+      const take = Math.min(sh[src]! * 0.8, (gain + swing[own]!) * w * regionalRatio(src, p));
+      sh[src] = sh[src]! - take;
+      ownShare += take;
+    }
+    if (p.plaka === profile.heimatPlaka) ownShare += 8;
+    sh[own] = ownShare;
+    for (const party of parties) sh[party] = Math.max(0.1, sh[party]! + rng.between(-1, 1));
+    const total = parties.reduce((s, k) => s + sh[k]!, 0);
+    for (const party of parties) sh[party] = (sh[party]! / total) * 100;
+    return sh;
+  });
+
+  const shares: Record<string, number> = {};
+  for (const party of parties) shares[party] = local.reduce((s, sh, i) => s + sh[party]! * WEIGHTS[i]!, 0);
+
   const allianceShare = profile.buendnis ? shares[own]! + (shares[profile.buendnis] ?? 0) : 0;
-  const passes = (party: string) =>
-    party !== "Andere" &&
-    (shares[party]! >= 7 || (profile.buendnis && (party === own || party === profile.buendnis) && allianceShare >= 7));
-  const eligible = Object.keys(shares).filter((p) => passes(p));
+  const eligible = parties.filter(
+    (party) =>
+      party !== "Andere" &&
+      (shares[party]! >= 7 ||
+        (!!profile.buendnis && (party === own || party === profile.buendnis) && allianceShare >= 7)),
+  );
 
   const seats: Record<string, number> = Object.fromEntries(eligible.map((p) => [p, 0]));
-  for (let s = 0; s < 600; s++) {
-    let best = eligible[0]!;
-    let bestQ = -1;
-    for (const p of eligible) {
-      const q = shares[p]! / (seats[p]! + 1);
-      if (q > bestQ) {
-        bestQ = q;
-        best = p;
+  const byProvince: Record<number, Record<string, number>> = {};
+  PROVINZEN.forEach((p, i) => {
+    const sh = local[i]!;
+    const got: Record<string, number> = Object.fromEntries(eligible.map((x) => [x, 0]));
+    for (let s = 0; s < p.sitze; s++) {
+      let best = eligible[0]!;
+      let bestQ = -1;
+      for (const party of eligible) {
+        const q = sh[party]! / (got[party]! + 1);
+        if (q > bestQ) {
+          bestQ = q;
+          best = party;
+        }
       }
+      got[best]! += 1;
+      seats[best]! += 1;
     }
-    seats[best]! += 1;
-  }
-  return { shares, seats };
+    byProvince[p.plaka] = got;
+  });
+  return { shares, seats, byProvince };
 }
 
 /** Wirkung des Prologs auf den Weltzustand. */

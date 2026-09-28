@@ -2,6 +2,11 @@ import { useMemo, useState } from "react";
 import { geoMercator, geoPath } from "d3-geo";
 import type { FeatureCollection, Geometry } from "geojson";
 import raw from "../data/provinzen.json";
+import type { World } from "../sim/types";
+import { PROVINZEN } from "../sim/regional";
+import { NET } from "../sim/world";
+import { PROVINCES } from "../sim/netz";
+import { PARTY_COLORS } from "./Parliament";
 
 interface ProvinceProps {
   id: string;
@@ -29,6 +34,29 @@ interface MapProps {
   /** Schwelle, ab der ein Problem akut ist (färbt rot) */
   problem?: number;
   compact?: boolean;
+  world?: World;
+}
+
+type Mode = "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme";
+
+const MODES: { id: Mode; label: string }[] = [
+  { id: "wahl", label: "Wahl 2028" },
+  { id: "wirtschaft", label: "Wirtschaftskraft" },
+  { id: "arbeitslosigkeit", label: "Arbeitslosigkeit" },
+  { id: "probleme", label: "Akute Probleme" },
+];
+
+function acuteProblems(world: World, plaka: number): string[] {
+  return NET.nodes
+    .filter((n) => n.kind === "problem" && n.threshold !== undefined)
+    .filter((n) => world.net.values[NET.index.get(n.id)! * PROVINCES + plaka - 1]! >= n.threshold!)
+    .map((n) => n.name);
+}
+
+function winner(world: World, plaka: number): string | undefined {
+  const seats = world.parliament?.byProvince?.[plaka];
+  if (!seats) return undefined;
+  return Object.entries(seats).sort((a, b) => b[1] - a[1])[0]?.[0];
 }
 
 function mix(a: [number, number, number], b: [number, number, number], t: number): string {
@@ -40,9 +68,32 @@ const LOW: [number, number, number] = [236, 229, 212];
 const HIGH: [number, number, number] = [47, 93, 98];
 const ACUTE: [number, number, number] = [158, 52, 46];
 
-export function ProvinceMap({ values, valueLabel, problem, compact }: MapProps = {}) {
+export function ProvinceMap({ values, valueLabel, problem, compact, world }: MapProps = {}) {
   const [hover, setHover] = useState<ProvinceProps | null>(null);
   const [selected, setSelected] = useState<ProvinceProps | null>(null);
+  const [mode, setMode] = useState<Mode>("wahl");
+
+  const gdpRange = useMemo(() => {
+    const xs = PROVINZEN.map((p) => p.bipProKopf);
+    return { min: Math.min(...xs), max: Math.max(...xs) };
+  }, []);
+
+  function modeFill(plaka: number): string | undefined {
+    const data = PROVINZEN[plaka - 1];
+    if (!data) return undefined;
+    if (mode === "wahl" && world) {
+      const w = winner(world, plaka);
+      if (!w) return undefined;
+      return w === world.player?.partei.kurz ? world.player.partei.farbe : (PARTY_COLORS[w] ?? "#999");
+    }
+    if (mode === "wirtschaft") return mix(LOW, HIGH, Math.sqrt((data.bipProKopf - gdpRange.min) / (gdpRange.max - gdpRange.min)));
+    if (mode === "arbeitslosigkeit") return mix(LOW, ACUTE, Math.min(1, Math.max(0, (data.arbeitslosigkeit - 4) / 10)));
+    if (mode === "probleme" && world) {
+      const n = acuteProblems(world, plaka).length;
+      return n === 0 ? mix(LOW, HIGH, 0.1) : mix(LOW, ACUTE, Math.min(1, 0.3 + n * 0.25));
+    }
+    return undefined;
+  }
 
   const scale = useMemo(() => {
     if (!values) return null;
@@ -108,6 +159,13 @@ export function ProvinceMap({ values, valueLabel, problem, compact }: MapProps =
       <section className="paper">
         <h2>Karte</h2>
         <p className="subtitle">81 Provinzen · Punkte markieren die 30 Großstadtkommunen</p>
+        <div className="modes" role="group" aria-label="Kartenebene">
+          {MODES.filter((m) => world || (m.id !== "wahl" && m.id !== "probleme")).map((m) => (
+            <button key={m.id} className={mode === m.id ? "active" : ""} onClick={() => setMode(m.id)}>
+              {m.label}
+            </button>
+          ))}
+        </div>
         <svg className="map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Karte der Türkei mit 81 Provinzen">
           {paths.map(({ props, d }) => (
             <path
@@ -118,6 +176,7 @@ export function ProvinceMap({ values, valueLabel, problem, compact }: MapProps =
                 (selected?.id === props.id ? " selected" : "") +
                 (METROPOLITAN.has(props.name) ? " metro" : "")
               }
+              style={{ fill: modeFill(props.plaka) }}
               onMouseEnter={() => setHover(props)}
               onMouseLeave={() => setHover(null)}
               onClick={() => setSelected(props)}
@@ -136,15 +195,31 @@ export function ProvinceMap({ values, valueLabel, problem, compact }: MapProps =
         {info ? (
           <>
             <h3>{info.name}</h3>
-            <p className="subtitle">Provinz Nr. {info.plaka}</p>
-            <p>{METROPOLITAN.has(info.name) ? "Großstadtkommune mit gewähltem Oberbürgermeister." : "Provinz mit Provinzverwaltung und gewählten Bürgermeistern."}</p>
+            <p className="subtitle">Provinz Nr. {info.plaka} · {PROVINZEN[info.plaka - 1]?.region}</p>
+            {(() => {
+              const d = PROVINZEN[info.plaka - 1];
+              if (!d) return null;
+              const seats = world?.parliament?.byProvince?.[info.plaka];
+              const acute = world ? acuteProblems(world, info.plaka) : [];
+              return (
+                <table className="facts">
+                  <tbody>
+                    <tr><th>Einwohner</th><td>{d.bevoelkerung.toLocaleString("de-DE")}</td></tr>
+                    <tr><th>Wirtschaftskraft</th><td>{d.bipProKopf.toLocaleString("de-DE")} Lira pro Kopf (2024)</td></tr>
+                    <tr><th>Arbeitslosigkeit</th><td>{d.arbeitslosigkeit.toLocaleString("de-DE")} %{d.arbeitslosigkeitHerkunft === "geschaetzt" ? " (geschätzt)" : ""}</td></tr>
+                    <tr><th>Bürgermeister 2024</th><td>{d.buergermeister2024}{d.grossstadt ? " · Großstadtkommune" : ""}</td></tr>
+                    <tr><th>Abgeordnete</th><td>{d.sitze}{seats ? ": " + Object.entries(seats).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k === world?.player?.partei.kurz ? world.player.partei.name : k} ${n}`).join(", ") : ""}</td></tr>
+                    {world && <tr><th>Akute Probleme</th><td>{acute.length ? acute.join(", ") : "keine"}</td></tr>}
+                  </tbody>
+                </table>
+              );
+            })()}
             <p>Der Gouverneur wird vom Präsidenten ernannt.</p>
             {DISTRICTS[info.name] && (
               <p>
                 <strong>{DISTRICTS[info.name]} Bezirke</strong>, aufklappbar (folgt).
               </p>
             )}
-            <p className="hint">Regionale Daten (Bevölkerung, Probleme, Stimmung) folgen mit dem Politiknetz.</p>
           </>
         ) : (
           <p className="subtitle">Fahre über eine Provinz oder klicke sie an.</p>

@@ -211,3 +211,10 @@ button.link { border: none; background: none; padding: 0; color: var(--measure);
 .seatbar .majority { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); }
 .seatlist { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; font-size: 14px; }
 .seatlist .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+
+.modes { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.paper .modes button { font-size: 13px; padding: 4px 10px; }
+.paper .modes button.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.facts { border-collapse: collapse; font-size: 14px; margin: 8px 0; }
+.facts th { text-align: left; font-weight: normal; color: var(--ink-soft); padding: 3px 12px 3px 0; vertical-align: top; }
+.facts td { padding: 3px 0; }

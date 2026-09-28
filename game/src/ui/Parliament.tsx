@@ -1,7 +1,7 @@
 import type { World } from "../sim/types";
 
 /** Neutrale Farben für die Parteien; keine Parteilogos (Länderpaket, Abschnitt 4). */
-const COLORS: Record<string, string> = {
+export const PARTY_COLORS: Record<string, string> = {
   AKP: "#c98a2b",
   YENİ: "#6b7fa8",
   DEM: "#7d5a8c",
@@ -36,7 +36,7 @@ export function Parliament({ world }: { world: World }) {
           <div
             key={party}
             className="seg"
-            style={{ width: `${(seats / 600) * 100}%`, background: party === own ? player.partei.farbe : (COLORS[party] ?? "#999") }}
+            style={{ width: `${(seats / 600) * 100}%`, background: party === own ? player.partei.farbe : (PARTY_COLORS[party] ?? "#999") }}
             title={`${party}: ${seats}`}
           />
         ))}
@@ -45,7 +45,7 @@ export function Parliament({ world }: { world: World }) {
       <ul className="seatlist">
         {order.map(([party, seats]) => (
           <li key={party}>
-            <span className="dot" style={{ background: party === own ? player.partei.farbe : (COLORS[party] ?? "#999") }} />
+            <span className="dot" style={{ background: party === own ? player.partei.farbe : (PARTY_COLORS[party] ?? "#999") }} />
             {party === own ? player.partei.name : party}
             {party === player.buendnis && " (Bündnis)"} <strong>{seats}</strong>
             <span className="subtitle"> · {parl.shares[party]!.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %</span>

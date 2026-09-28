@@ -1,0 +1,1625 @@
+{
+ "quelle": "tuerkei/daten/provinzen.csv (siehe tuerkei/daten/QUELLEN.md); Arbeitslosigkeit 2025 für 17 Provinzen belegt, übrige aus BIP pro Kopf geschätzt",
+ "provinzen": [
+  {
+   "plaka": 1,
+   "name": "Adana",
+   "bevoelkerung": 2283609,
+   "region": "Akdeniz",
+   "nuts2": "TR62",
+   "bipProKopf": 350981,
+   "arbeitslosigkeit": 11.6,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 15,
+   "stimmen2023": {
+    "AKP": 29.96,
+    "CHP": 28.5,
+    "MHP": 10.87,
+    "İYİ": 10.88,
+    "YSP": 9.71
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 2,
+   "name": "Adıyaman",
+   "bevoelkerung": 617821,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC1",
+   "bipProKopf": 327509,
+   "arbeitslosigkeit": 9.7,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 5,
+   "stimmen2023": {
+    "AKP": 52.09,
+    "CHP": 18.54,
+    "MHP": 4.05,
+    "İYİ": 0.0,
+    "YSP": 12.08
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 3,
+   "name": "Afyonkarahisar",
+   "bevoelkerung": 751808,
+   "region": "Ege",
+   "nuts2": "TR33",
+   "bipProKopf": 336256,
+   "arbeitslosigkeit": 9.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 6,
+   "stimmen2023": {
+    "AKP": 43.68,
+    "CHP": 18.43,
+    "MHP": 16.05,
+    "İYİ": 12.52,
+    "YSP": 0.32
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 4,
+   "name": "Ağrı",
+   "bevoelkerung": 491489,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRA2",
+   "bipProKopf": 194660,
+   "arbeitslosigkeit": 11.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 24.45,
+    "CHP": 10.67,
+    "MHP": 2.26,
+    "İYİ": 1.63,
+    "YSP": 55.92
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": false
+  },
+  {
+   "plaka": 5,
+   "name": "Amasya",
+   "bevoelkerung": 342242,
+   "region": "Karadeniz",
+   "nuts2": "TR83",
+   "bipProKopf": 346376,
+   "arbeitslosigkeit": 9.5,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 38.98,
+    "CHP": 29.59,
+    "MHP": 16.75,
+    "İYİ": 7.18,
+    "YSP": 0.34
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 6,
+   "name": "Ankara",
+   "bevoelkerung": 5910320,
+   "region": "İç Anadolu",
+   "nuts2": "TR51",
+   "bipProKopf": 788859,
+   "arbeitslosigkeit": 7.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 36,
+   "stimmen2023": {
+    "AKP": 31.75,
+    "CHP": 30.55,
+    "MHP": 10.1,
+    "İYİ": 13.01,
+    "YSP": 2.91
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 7,
+   "name": "Antalya",
+   "bevoelkerung": 2777677,
+   "region": "Akdeniz",
+   "nuts2": "TR61",
+   "bipProKopf": 561429,
+   "arbeitslosigkeit": 5.8,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 17,
+   "stimmen2023": {
+    "AKP": 28.19,
+    "CHP": 32.26,
+    "MHP": 9.87,
+    "İYİ": 11.45,
+    "YSP": 4.72
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 8,
+   "name": "Artvin",
+   "bevoelkerung": 167531,
+   "region": "Karadeniz",
+   "nuts2": "TR90",
+   "bipProKopf": 390108,
+   "arbeitslosigkeit": 9.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 36.57,
+    "CHP": 29.75,
+    "MHP": 9.52,
+    "İYİ": 13.21,
+    "YSP": 0.86
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 9,
+   "name": "Aydın",
+   "bevoelkerung": 1172107,
+   "region": "Ege",
+   "nuts2": "TR32",
+   "bipProKopf": 387277,
+   "arbeitslosigkeit": 9.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 8,
+   "stimmen2023": {
+    "AKP": 27.83,
+    "CHP": 35.51,
+    "MHP": 8.46,
+    "İYİ": 13.09,
+    "YSP": 7.22
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 10,
+   "name": "Balıkesir",
+   "bevoelkerung": 1284517,
+   "region": "Marmara",
+   "nuts2": "TR22",
+   "bipProKopf": 459714,
+   "arbeitslosigkeit": 8.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 9,
+   "stimmen2023": {
+    "AKP": 33.99,
+    "CHP": 31.33,
+    "MHP": 8.01,
+    "İYİ": 14.78,
+    "YSP": 2.0
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 11,
+   "name": "Bilecik",
+   "bevoelkerung": 228995,
+   "region": "Marmara",
+   "nuts2": "TR41",
+   "bipProKopf": 527473,
+   "arbeitslosigkeit": 8.2,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 36.72,
+    "CHP": 26.55,
+    "MHP": 10.18,
+    "İYİ": 12.32,
+    "YSP": 2.64
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 12,
+   "name": "Bingöl",
+   "bevoelkerung": 282299,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB1",
+   "bipProKopf": 276713,
+   "arbeitslosigkeit": 9.6,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 38.26,
+    "CHP": 5.16,
+    "MHP": 13.41,
+    "İYİ": 1.95,
+    "YSP": 24.4
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 13,
+   "name": "Bitlis",
+   "bevoelkerung": 360423,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB2",
+   "bipProKopf": 231869,
+   "arbeitslosigkeit": 10.9,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 36.81,
+    "CHP": 0.0,
+    "MHP": 3.55,
+    "İYİ": 13.21,
+    "YSP": 40.84
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 14,
+   "name": "Bolu",
+   "bevoelkerung": 327173,
+   "region": "Karadeniz",
+   "nuts2": "TR42",
+   "bipProKopf": 548317,
+   "arbeitslosigkeit": 8.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 36.28,
+    "CHP": 21.62,
+    "MHP": 23.37,
+    "İYİ": 7.49,
+    "YSP": 0.81
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 15,
+   "name": "Burdur",
+   "bevoelkerung": 277226,
+   "region": "Akdeniz",
+   "nuts2": "TR61",
+   "bipProKopf": 392276,
+   "arbeitslosigkeit": 9.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 35.96,
+    "CHP": 31.02,
+    "MHP": 13.95,
+    "İYİ": 11.54,
+    "YSP": 0.62
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 16,
+   "name": "Bursa",
+   "bevoelkerung": 3263011,
+   "region": "Marmara",
+   "nuts2": "TR41",
+   "bipProKopf": 492876,
+   "arbeitslosigkeit": 8.4,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 20,
+   "stimmen2023": {
+    "AKP": 38.47,
+    "CHP": 24.12,
+    "MHP": 8.45,
+    "İYİ": 12.04,
+    "YSP": 4.28
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 17,
+   "name": "Çanakkale",
+   "bevoelkerung": 573976,
+   "region": "Marmara",
+   "nuts2": "TR22",
+   "bipProKopf": 482680,
+   "arbeitslosigkeit": 8.4,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 31.42,
+    "CHP": 35.28,
+    "MHP": 6.42,
+    "İYİ": 16.57,
+    "YSP": 1.91
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 18,
+   "name": "Çankırı",
+   "bevoelkerung": 200549,
+   "region": "İç Anadolu",
+   "nuts2": "TR82",
+   "bipProKopf": 430386,
+   "arbeitslosigkeit": 8.8,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 41.69,
+    "CHP": 0.0,
+    "MHP": 31.11,
+    "İYİ": 18.05,
+    "YSP": 0.3
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 19,
+   "name": "Çorum",
+   "bevoelkerung": 519590,
+   "region": "Karadeniz",
+   "nuts2": "TR83",
+   "bipProKopf": 328605,
+   "arbeitslosigkeit": 9.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 39.59,
+    "CHP": 30.99,
+    "MHP": 20.15,
+    "İYİ": 0.0,
+    "YSP": 0.4
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 20,
+   "name": "Denizli",
+   "bevoelkerung": 1060975,
+   "region": "Ege",
+   "nuts2": "TR32",
+   "bipProKopf": 411046,
+   "arbeitslosigkeit": 8.9,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 7,
+   "stimmen2023": {
+    "AKP": 33.29,
+    "CHP": 31.82,
+    "MHP": 8.28,
+    "İYİ": 14.26,
+    "YSP": 2.36
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 21,
+   "name": "Diyarbakır",
+   "bevoelkerung": 1852356,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC2",
+   "bipProKopf": 245024,
+   "arbeitslosigkeit": 10.7,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 12,
+   "stimmen2023": {
+    "AKP": 22.25,
+    "CHP": 7.64,
+    "MHP": 1.14,
+    "İYİ": 2.22,
+    "YSP": 62.6
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": true
+  },
+  {
+   "plaka": 22,
+   "name": "Edirne",
+   "bevoelkerung": 422438,
+   "region": "Marmara",
+   "nuts2": "TR21",
+   "bipProKopf": 417266,
+   "arbeitslosigkeit": 8.9,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 22.83,
+    "CHP": 39.36,
+    "MHP": 7.49,
+    "İYİ": 20.74,
+    "YSP": 1.78
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 23,
+   "name": "Elazığ",
+   "bevoelkerung": 605678,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB1",
+   "bipProKopf": 349939,
+   "arbeitslosigkeit": 9.4,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 5,
+   "stimmen2023": {
+    "AKP": 39.79,
+    "CHP": 20.52,
+    "MHP": 11.35,
+    "İYİ": 2.35,
+    "YSP": 7.03
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 24,
+   "name": "Erzincan",
+   "bevoelkerung": 239625,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRA1",
+   "bipProKopf": 394311,
+   "arbeitslosigkeit": 9.9,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 38.04,
+    "CHP": 36.31,
+    "MHP": 19.71,
+    "İYİ": 0.0,
+    "YSP": 1.03
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 25,
+   "name": "Erzurum",
+   "bevoelkerung": 736877,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRA1",
+   "bipProKopf": 321146,
+   "arbeitslosigkeit": 9.7,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 6,
+   "stimmen2023": {
+    "AKP": 42.77,
+    "CHP": 6.4,
+    "MHP": 16.65,
+    "İYİ": 9.6,
+    "YSP": 9.89
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 26,
+   "name": "Eskişehir",
+   "bevoelkerung": 927956,
+   "region": "İç Anadolu",
+   "nuts2": "TR41",
+   "bipProKopf": 530834,
+   "arbeitslosigkeit": 8.2,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 6,
+   "stimmen2023": {
+    "AKP": 32.45,
+    "CHP": 34.06,
+    "MHP": 7.11,
+    "İYİ": 14.02,
+    "YSP": 1.96
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 27,
+   "name": "Gaziantep",
+   "bevoelkerung": 2222415,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC1",
+   "bipProKopf": 318204,
+   "arbeitslosigkeit": 9.8,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 14,
+   "stimmen2023": {
+    "AKP": 44.4,
+    "CHP": 20.07,
+    "MHP": 9.55,
+    "İYİ": 5.43,
+    "YSP": 9.09
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 28,
+   "name": "Giresun",
+   "bevoelkerung": 455074,
+   "region": "Karadeniz",
+   "nuts2": "TR90",
+   "bipProKopf": 307828,
+   "arbeitslosigkeit": 9.9,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 42.57,
+    "CHP": 20.33,
+    "MHP": 15.59,
+    "İYİ": 12.87,
+    "YSP": 0.24
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 29,
+   "name": "Gümüşhane",
+   "bevoelkerung": 138807,
+   "region": "Karadeniz",
+   "nuts2": "TR90",
+   "bipProKopf": 287458,
+   "arbeitslosigkeit": 10.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 46.92,
+    "CHP": 0.0,
+    "MHP": 26.4,
+    "İYİ": 18.67,
+    "YSP": 0.3
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 30,
+   "name": "Hakkari",
+   "bevoelkerung": 279681,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB2",
+   "bipProKopf": 304752,
+   "arbeitslosigkeit": 13.8,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 19.57,
+    "CHP": 6.67,
+    "MHP": 2.68,
+    "İYİ": 0.0,
+    "YSP": 64.1
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": false
+  },
+  {
+   "plaka": 31,
+   "name": "Hatay",
+   "bevoelkerung": 1577531,
+   "region": "Akdeniz",
+   "nuts2": "TR63",
+   "bipProKopf": 346978,
+   "arbeitslosigkeit": 9.7,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 11,
+   "stimmen2023": {
+    "AKP": 33.14,
+    "CHP": 28.33,
+    "MHP": 12.09,
+    "İYİ": 8.11,
+    "YSP": 3.02
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 32,
+   "name": "Isparta",
+   "bevoelkerung": 445303,
+   "region": "Akdeniz",
+   "nuts2": "TR61",
+   "bipProKopf": 388226,
+   "arbeitslosigkeit": 9.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 31.89,
+    "CHP": 21.98,
+    "MHP": 20.45,
+    "İYİ": 16.59,
+    "YSP": 0.69
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 33,
+   "name": "Mersin",
+   "bevoelkerung": 1956428,
+   "region": "Akdeniz",
+   "nuts2": "TR62",
+   "bipProKopf": 444761,
+   "arbeitslosigkeit": 8.7,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 13,
+   "stimmen2023": {
+    "AKP": 23.96,
+    "CHP": 30.83,
+    "MHP": 11.86,
+    "İYİ": 11.99,
+    "YSP": 13.32
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 34,
+   "name": "İstanbul",
+   "bevoelkerung": 15754053,
+   "region": "Marmara",
+   "nuts2": "TR10",
+   "bipProKopf": 802669,
+   "arbeitslosigkeit": 7.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 98,
+   "stimmen2023": {
+    "AKP": 35.43,
+    "CHP": 28.27,
+    "MHP": 6.02,
+    "İYİ": 8.15,
+    "YSP": 8.11
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 35,
+   "name": "İzmir",
+   "bevoelkerung": 4504185,
+   "region": "Ege",
+   "nuts2": "TR31",
+   "bipProKopf": 556376,
+   "arbeitslosigkeit": 8.0,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 28,
+   "stimmen2023": {
+    "AKP": 24.34,
+    "CHP": 41.06,
+    "MHP": 5.11,
+    "İYİ": 11.53,
+    "YSP": 7.45
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 36,
+   "name": "Kars",
+   "bevoelkerung": 268991,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRA2",
+   "bipProKopf": 302089,
+   "arbeitslosigkeit": 9.9,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 24.81,
+    "CHP": 16.07,
+    "MHP": 9.56,
+    "İYİ": 15.1,
+    "YSP": 28.49
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 37,
+   "name": "Kastamonu",
+   "bevoelkerung": 379934,
+   "region": "Karadeniz",
+   "nuts2": "TR82",
+   "bipProKopf": 395056,
+   "arbeitslosigkeit": 9.0,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 44.9,
+    "CHP": 21.49,
+    "MHP": 14.96,
+    "İYİ": 7.67,
+    "YSP": 0.22
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 38,
+   "name": "Kayseri",
+   "bevoelkerung": 1458991,
+   "region": "İç Anadolu",
+   "nuts2": "TR72",
+   "bipProKopf": 403635,
+   "arbeitslosigkeit": 9.0,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 10,
+   "stimmen2023": {
+    "AKP": 40.1,
+    "CHP": 16.88,
+    "MHP": 19.04,
+    "İYİ": 10.11,
+    "YSP": 0.83
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 39,
+   "name": "Kırklareli",
+   "bevoelkerung": 379595,
+   "region": "Marmara",
+   "nuts2": "TR21",
+   "bipProKopf": 531388,
+   "arbeitslosigkeit": 8.2,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 24.42,
+    "CHP": 45.6,
+    "MHP": 4.62,
+    "İYİ": 15.42,
+    "YSP": 1.7
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 40,
+   "name": "Kırşehir",
+   "bevoelkerung": 242777,
+   "region": "İç Anadolu",
+   "nuts2": "TR71",
+   "bipProKopf": 347041,
+   "arbeitslosigkeit": 9.5,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 38.23,
+    "CHP": 29.13,
+    "MHP": 14.8,
+    "İYİ": 7.27,
+    "YSP": 2.47
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 41,
+   "name": "Kocaeli",
+   "bevoelkerung": 2161171,
+   "region": "Marmara",
+   "nuts2": "TR42",
+   "bipProKopf": 788873,
+   "arbeitslosigkeit": 7.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 14,
+   "stimmen2023": {
+    "AKP": 39.11,
+    "CHP": 23.72,
+    "MHP": 8.25,
+    "İYİ": 9.6,
+    "YSP": 5.67
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 42,
+   "name": "Konya",
+   "bevoelkerung": 2343409,
+   "region": "İç Anadolu",
+   "nuts2": "TR52",
+   "bipProKopf": 388841,
+   "arbeitslosigkeit": 9.1,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 15,
+   "stimmen2023": {
+    "AKP": 47.6,
+    "CHP": 13.22,
+    "MHP": 14.27,
+    "İYİ": 8.76,
+    "YSP": 2.55
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 43,
+   "name": "Kütahya",
+   "bevoelkerung": 570478,
+   "region": "Ege",
+   "nuts2": "TR33",
+   "bipProKopf": 406533,
+   "arbeitslosigkeit": 9.0,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 5,
+   "stimmen2023": {
+    "AKP": 46.24,
+    "CHP": 16.42,
+    "MHP": 12.95,
+    "İYİ": 10.61,
+    "YSP": 0.27
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 44,
+   "name": "Malatya",
+   "bevoelkerung": 755854,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB1",
+   "bipProKopf": 365880,
+   "arbeitslosigkeit": 9.3,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 6,
+   "stimmen2023": {
+    "AKP": 44.75,
+    "CHP": 21.39,
+    "MHP": 12.84,
+    "İYİ": 3.92,
+    "YSP": 2.98
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 45,
+   "name": "Manisa",
+   "bevoelkerung": 1477756,
+   "region": "Ege",
+   "nuts2": "TR33",
+   "bipProKopf": 454705,
+   "arbeitslosigkeit": 8.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 10,
+   "stimmen2023": {
+    "AKP": 30.86,
+    "CHP": 29.26,
+    "MHP": 13.97,
+    "İYİ": 11.17,
+    "YSP": 5.64
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 46,
+   "name": "Kahramanmaraş",
+   "bevoelkerung": 1146278,
+   "region": "Akdeniz",
+   "nuts2": "TR63",
+   "bipProKopf": 342387,
+   "arbeitslosigkeit": 9.9,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 8,
+   "stimmen2023": {
+    "AKP": 47.21,
+    "CHP": 15.92,
+    "MHP": 16.12,
+    "İYİ": 7.11,
+    "YSP": 1.16
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 47,
+   "name": "Mardin",
+   "bevoelkerung": 903576,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC3",
+   "bipProKopf": 247416,
+   "arbeitslosigkeit": 10.7,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 6,
+   "stimmen2023": {
+    "AKP": 24.3,
+    "CHP": 6.55,
+    "MHP": 3.19,
+    "İYİ": 1.11,
+    "YSP": 56.11
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": true
+  },
+  {
+   "plaka": 48,
+   "name": "Muğla",
+   "bevoelkerung": 1099547,
+   "region": "Ege",
+   "nuts2": "TR32",
+   "bipProKopf": 526553,
+   "arbeitslosigkeit": 8.2,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 7,
+   "stimmen2023": {
+    "AKP": 23.6,
+    "CHP": 37.62,
+    "MHP": 6.03,
+    "İYİ": 17.29,
+    "YSP": 3.32
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 49,
+   "name": "Muş",
+   "bevoelkerung": 389127,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB2",
+   "bipProKopf": 230300,
+   "arbeitslosigkeit": 11.7,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 20.23,
+    "CHP": 0.0,
+    "MHP": 16.43,
+    "İYİ": 5.59,
+    "YSP": 51.53
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": false
+  },
+  {
+   "plaka": 50,
+   "name": "Nevşehir",
+   "bevoelkerung": 320150,
+   "region": "İç Anadolu",
+   "nuts2": "TR71",
+   "bipProKopf": 365241,
+   "arbeitslosigkeit": 9.3,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 38.88,
+    "CHP": 17.13,
+    "MHP": 20.37,
+    "İYİ": 16.02,
+    "YSP": 0.49
+   },
+   "buergermeister2024": "İYİ",
+   "grossstadt": false
+  },
+  {
+   "plaka": 51,
+   "name": "Niğde",
+   "bevoelkerung": 374492,
+   "region": "İç Anadolu",
+   "nuts2": "TR71",
+   "bipProKopf": 362804,
+   "arbeitslosigkeit": 9.3,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 33.05,
+    "CHP": 23.95,
+    "MHP": 22.43,
+    "İYİ": 12.35,
+    "YSP": 0.45
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 52,
+   "name": "Ordu",
+   "bevoelkerung": 768087,
+   "region": "Karadeniz",
+   "nuts2": "TR90",
+   "bipProKopf": 293783,
+   "arbeitslosigkeit": 10.0,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 6,
+   "stimmen2023": {
+    "AKP": 44.64,
+    "CHP": 24.01,
+    "MHP": 12.6,
+    "İYİ": 9.89,
+    "YSP": 0.2
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 53,
+   "name": "Rize",
+   "bevoelkerung": 346947,
+   "region": "Karadeniz",
+   "nuts2": "TR90",
+   "bipProKopf": 355740,
+   "arbeitslosigkeit": 9.4,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 53.27,
+    "CHP": 21.36,
+    "MHP": 12.93,
+    "İYİ": 0.0,
+    "YSP": 0.3
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 54,
+   "name": "Sakarya",
+   "bevoelkerung": 1123693,
+   "region": "Marmara",
+   "nuts2": "TR42",
+   "bipProKopf": 479426,
+   "arbeitslosigkeit": 8.5,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 8,
+   "stimmen2023": {
+    "AKP": 46.97,
+    "CHP": 15.96,
+    "MHP": 11.93,
+    "İYİ": 11.04,
+    "YSP": 1.46
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 55,
+   "name": "Samsun",
+   "bevoelkerung": 1392403,
+   "region": "Karadeniz",
+   "nuts2": "TR83",
+   "bipProKopf": 369415,
+   "arbeitslosigkeit": 9.3,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 9,
+   "stimmen2023": {
+    "AKP": 41.82,
+    "CHP": 19.41,
+    "MHP": 14.15,
+    "İYİ": 12.21,
+    "YSP": 0.28
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 56,
+   "name": "Siirt",
+   "bevoelkerung": 332369,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC3",
+   "bipProKopf": 261810,
+   "arbeitslosigkeit": 10.4,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 35.39,
+    "CHP": 7.16,
+    "MHP": 3.62,
+    "İYİ": 1.42,
+    "YSP": 47.89
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": false
+  },
+  {
+   "plaka": 57,
+   "name": "Sinop",
+   "bevoelkerung": 225848,
+   "region": "Karadeniz",
+   "nuts2": "TR82",
+   "bipProKopf": 321023,
+   "arbeitslosigkeit": 9.7,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 42.07,
+    "CHP": 25.44,
+    "MHP": 8.94,
+    "İYİ": 9.49,
+    "YSP": 0.34
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 58,
+   "name": "Sivas",
+   "bevoelkerung": 631401,
+   "region": "İç Anadolu",
+   "nuts2": "TR72",
+   "bipProKopf": 351134,
+   "arbeitslosigkeit": 9.4,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 5,
+   "stimmen2023": {
+    "AKP": 39.96,
+    "CHP": 15.98,
+    "MHP": 18.02,
+    "İYİ": 7.32,
+    "YSP": 0.43
+   },
+   "buergermeister2024": "BBP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 59,
+   "name": "Tekirdağ",
+   "bevoelkerung": 1208441,
+   "region": "Marmara",
+   "nuts2": "TR21",
+   "bipProKopf": 604226,
+   "arbeitslosigkeit": 7.8,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 8,
+   "stimmen2023": {
+    "AKP": 29.99,
+    "CHP": 36.26,
+    "MHP": 6.24,
+    "İYİ": 11.3,
+    "YSP": 6.06
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 60,
+   "name": "Tokat",
+   "bevoelkerung": 614141,
+   "region": "Karadeniz",
+   "nuts2": "TR83",
+   "bipProKopf": 264527,
+   "arbeitslosigkeit": 10.4,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 5,
+   "stimmen2023": {
+    "AKP": 36.65,
+    "CHP": 20.37,
+    "MHP": 22.14,
+    "İYİ": 11.18,
+    "YSP": 0.31
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 61,
+   "name": "Trabzon",
+   "bevoelkerung": 823323,
+   "region": "Karadeniz",
+   "nuts2": "TR90",
+   "bipProKopf": 345969,
+   "arbeitslosigkeit": 9.5,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 6,
+   "stimmen2023": {
+    "AKP": 47.44,
+    "CHP": 17.68,
+    "MHP": 10.73,
+    "İYİ": 12.27,
+    "YSP": 0.3
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 62,
+   "name": "Tunceli",
+   "bevoelkerung": 85083,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB1",
+   "bipProKopf": 478675,
+   "arbeitslosigkeit": 8.5,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 1,
+   "stimmen2023": {
+    "AKP": 12.07,
+    "CHP": 32.13,
+    "MHP": 5.37,
+    "İYİ": 2.2,
+    "YSP": 43.87
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": false
+  },
+  {
+   "plaka": 63,
+   "name": "Şanlıurfa",
+   "bevoelkerung": 2265800,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC2",
+   "bipProKopf": 188144,
+   "arbeitslosigkeit": 9.8,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 14,
+   "stimmen2023": {
+    "AKP": 42.49,
+    "CHP": 7.46,
+    "MHP": 9.27,
+    "İYİ": 4.56,
+    "YSP": 25.33
+   },
+   "buergermeister2024": "YRP",
+   "grossstadt": true
+  },
+  {
+   "plaka": 64,
+   "name": "Uşak",
+   "bevoelkerung": 374405,
+   "region": "Ege",
+   "nuts2": "TR33",
+   "bipProKopf": 397680,
+   "arbeitslosigkeit": 9.0,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 35.41,
+    "CHP": 28.93,
+    "MHP": 9.21,
+    "İYİ": 17.71,
+    "YSP": 1.3
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 65,
+   "name": "Van",
+   "bevoelkerung": 1112013,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRB2",
+   "bipProKopf": 203049,
+   "arbeitslosigkeit": 12.7,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 8,
+   "stimmen2023": {
+    "AKP": 25.04,
+    "CHP": 8.21,
+    "MHP": 4.82,
+    "İYİ": 0.0,
+    "YSP": 54.27
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": true
+  },
+  {
+   "plaka": 66,
+   "name": "Yozgat",
+   "bevoelkerung": 413208,
+   "region": "İç Anadolu",
+   "nuts2": "TR72",
+   "bipProKopf": 303087,
+   "arbeitslosigkeit": 9.9,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 42.91,
+    "CHP": 0.0,
+    "MHP": 23.1,
+    "İYİ": 23.39,
+    "YSP": 0.35
+   },
+   "buergermeister2024": "YRP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 67,
+   "name": "Zonguldak",
+   "bevoelkerung": 585203,
+   "region": "Karadeniz",
+   "nuts2": "TR81",
+   "bipProKopf": 364851,
+   "arbeitslosigkeit": 9.3,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 5,
+   "stimmen2023": {
+    "AKP": 39.57,
+    "CHP": 32.03,
+    "MHP": 8.27,
+    "İYİ": 10.07,
+    "YSP": 0.33
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 68,
+   "name": "Aksaray",
+   "bevoelkerung": 441136,
+   "region": "İç Anadolu",
+   "nuts2": "TR71",
+   "bipProKopf": 404383,
+   "arbeitslosigkeit": 9.0,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 43.21,
+    "CHP": 0.0,
+    "MHP": 20.91,
+    "İYİ": 25.22,
+    "YSP": 0.59
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 69,
+   "name": "Bayburt",
+   "bevoelkerung": 82836,
+   "region": "Karadeniz",
+   "nuts2": "TRA1",
+   "bipProKopf": 331432,
+   "arbeitslosigkeit": 9.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 1,
+   "stimmen2023": {
+    "AKP": 59.62,
+    "CHP": 0.0,
+    "MHP": 16.56,
+    "İYİ": 16.27,
+    "YSP": 0.42
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 70,
+   "name": "Karaman",
+   "bevoelkerung": 262355,
+   "region": "İç Anadolu",
+   "nuts2": "TR52",
+   "bipProKopf": 471850,
+   "arbeitslosigkeit": 8.5,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 40.45,
+    "CHP": 18.98,
+    "MHP": 18.09,
+    "İYİ": 11.0,
+    "YSP": 0.49
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 71,
+   "name": "Kırıkkale",
+   "bevoelkerung": 282830,
+   "region": "İç Anadolu",
+   "nuts2": "TR71",
+   "bipProKopf": 436061,
+   "arbeitslosigkeit": 10.0,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 34.73,
+    "CHP": 26.46,
+    "MHP": 21.19,
+    "İYİ": 10.23,
+    "YSP": 0.3
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 72,
+   "name": "Batman",
+   "bevoelkerung": 662626,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC3",
+   "bipProKopf": 236422,
+   "arbeitslosigkeit": 9.9,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 5,
+   "stimmen2023": {
+    "AKP": 28.38,
+    "CHP": 7.91,
+    "MHP": 1.13,
+    "İYİ": 0.0,
+    "YSP": 59.29
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": false
+  },
+  {
+   "plaka": 73,
+   "name": "Şırnak",
+   "bevoelkerung": 573666,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC3",
+   "bipProKopf": 306150,
+   "arbeitslosigkeit": 9.9,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 20.49,
+    "CHP": 8.15,
+    "MHP": 2.14,
+    "İYİ": 1.07,
+    "YSP": 64.43
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 74,
+   "name": "Bartın",
+   "bevoelkerung": 206663,
+   "region": "Karadeniz",
+   "nuts2": "TR81",
+   "bipProKopf": 318484,
+   "arbeitslosigkeit": 9.8,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 36.04,
+    "CHP": 31.65,
+    "MHP": 23.49,
+    "İYİ": 0.0,
+    "YSP": 0.32
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 75,
+   "name": "Ardahan",
+   "bevoelkerung": 90392,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRA2",
+   "bipProKopf": 385104,
+   "arbeitslosigkeit": 4.0,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 34.38,
+    "CHP": 29.62,
+    "MHP": 2.96,
+    "İYİ": 4.86,
+    "YSP": 21.75
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 76,
+   "name": "Iğdır",
+   "bevoelkerung": 205071,
+   "region": "Doğu Anadolu",
+   "nuts2": "TRA2",
+   "bipProKopf": 264690,
+   "arbeitslosigkeit": 9.8,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 34.68,
+    "CHP": 5.91,
+    "MHP": 4.51,
+    "İYİ": 6.6,
+    "YSP": 44.66
+   },
+   "buergermeister2024": "DEM",
+   "grossstadt": false
+  },
+  {
+   "plaka": 77,
+   "name": "Yalova",
+   "bevoelkerung": 311635,
+   "region": "Marmara",
+   "nuts2": "TR42",
+   "bipProKopf": 501231,
+   "arbeitslosigkeit": 11.8,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 33.54,
+    "CHP": 28.62,
+    "MHP": 11.26,
+    "İYİ": 9.63,
+    "YSP": 5.62
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 78,
+   "name": "Karabük",
+   "bevoelkerung": 249614,
+   "region": "Karadeniz",
+   "nuts2": "TR81",
+   "bipProKopf": 369785,
+   "arbeitslosigkeit": 11.3,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 37.0,
+    "CHP": 21.69,
+    "MHP": 15.91,
+    "İYİ": 9.76,
+    "YSP": 0.4
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 79,
+   "name": "Kilis",
+   "bevoelkerung": 157363,
+   "region": "Güneydoğu Anadolu",
+   "nuts2": "TRC1",
+   "bipProKopf": 253567,
+   "arbeitslosigkeit": 10.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 2,
+   "stimmen2023": {
+    "AKP": 38.92,
+    "CHP": 19.93,
+    "MHP": 26.89,
+    "İYİ": 5.78,
+    "YSP": 0.86
+   },
+   "buergermeister2024": "CHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 80,
+   "name": "Osmaniye",
+   "bevoelkerung": 564123,
+   "region": "Akdeniz",
+   "nuts2": "TR63",
+   "bipProKopf": 316158,
+   "arbeitslosigkeit": 11.6,
+   "arbeitslosigkeitHerkunft": "belegt",
+   "sitze": 4,
+   "stimmen2023": {
+    "AKP": 32.31,
+    "CHP": 16.96,
+    "MHP": 28.6,
+    "İYİ": 12.75,
+    "YSP": 2.0
+   },
+   "buergermeister2024": "MHP",
+   "grossstadt": false
+  },
+  {
+   "plaka": 81,
+   "name": "Düzce",
+   "bevoelkerung": 415622,
+   "region": "Karadeniz",
+   "nuts2": "TR42",
+   "bipProKopf": 450404,
+   "arbeitslosigkeit": 8.6,
+   "arbeitslosigkeitHerkunft": "geschaetzt",
+   "sitze": 3,
+   "stimmen2023": {
+    "AKP": 49.26,
+    "CHP": 22.58,
+    "MHP": 16.14,
+    "İYİ": 0.0,
+    "YSP": 0.96
+   },
+   "buergermeister2024": "AKP",
+   "grossstadt": false
+  }
+ ]
+}
