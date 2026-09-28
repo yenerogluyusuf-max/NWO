@@ -39,6 +39,10 @@ Die Opposition als Einstieg (etwa Vorsitz einer Oppositionspartei) folgt später
 | Verwaltung | 81 Provinzen, Landkreise und Großstadtkommunen mit ihren Bezirken (Istanbul, Ankara, Izmir zuerst), Gouverneure (ernannt) und Bürgermeister (gewählt), Zuständigkeiten | Innenministerium, Kommunalgesetze |
 | Vergabe und Bau | Vergaberecht und Ausschreibungsverfahren, Aufsicht über Vergaben, zuständige Ministerien und staatliche Bauträger, Prüfung durch den Rechnungshof, typische Kosten und Bauzeiten | Vergabegesetz (mevzuat.gov.tr), Vergabebehörde, Rechnungshof (Sayıştay), Berichte der Ministerien |
 | Sicherheit | Streitkräfte, Oberbefehl, Entscheidungsweg für Einsätze im Ausland, Notstand | Verfassung, einschlägige Gesetze, Parlamentsbeschlüsse |
+| Geheimdienst | Aufgaben, Unterstellung, Kontrolle durch Parlament und Gerichte | Gesetz über den Nachrichtendienst, Verfassung |
+| Medien | Medienaufsicht, Lizenzen, Eigentumsverhältnisse großer Medien, Regeln für Internetinhalte | Rundfunkaufsicht RTÜK, einschlägige Gesetze, Medienforschung mit Quellenangabe |
+| Katastrophenschutz | Zuständigkeiten, Erdbebengefährdung je Provinz, Bauvorschriften, Hochwasser- und Waldbrandrisiko | Katastrophenschutzbehörde AFAD, Erdbebengefährdungskarte, Bauvorschriften |
+| Branchen | Anteil der Branchen an Wirtschaftsleistung, Beschäftigung und Export, regionale Schwerpunkte | TÜİK, Handelsministerium, Tourismusstatistik |
 | Außenpartner | EU und Deutschland, USA und NATO, Russland, Nachbarn im Nahen Osten (Syrien, Irak, Iran, Israel, Golfstaaten): Verträge, Handel, Energie, Migration, Rüstung | Außenministerium, Handelsstatistik (TÜİK), Vertragstexte, Veröffentlichungen der Partner |
 
 ### 3.2 Startdaten zum Stichtag

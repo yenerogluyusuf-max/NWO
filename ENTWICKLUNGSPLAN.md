@@ -2,7 +2,7 @@
 
 Version 0.5, 28. September 2026. Zusammen mit [Entscheidungen](ENTSCHEIDUNGEN.md), [Spieldesign](SPIELDESIGN.md), [Lernkonzept](LERNKONZEPT.md), [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md) und [Referenzanalyse](REFERENZANALYSE.md) lesen.
 
-**Neu in Version 0.5:** S1 enthält nach Entscheidung des Projektinhabers bereits das volle Politiknetz mit mehr als 150 Knoten und die gezeichnete Karte der 81 Provinzen. Deshalb wird S1 in drei Ausbaustufen gebaut, und die Technologieentscheidung fällt vor S1. Neue Arbeitspakete gibt es für Politiknetz, Bauprojekte, KI-Schlüssel, Bildstil, Wahlen und Karriereende. Plattform, Team, Priorität und KI-Kosten sind entschieden (Abschnitte 6, 8 und 9).
+**Neu in Version 0.5:** S1 enthält nach Entscheidung des Projektinhabers bereits das volle Politiknetz mit mehr als 150 Knoten und die gezeichnete Karte der 81 Provinzen. S1 wird vollständig gebaut und dann getestet, und die Technologieentscheidung fällt vor S1. Neue Arbeitspakete gibt es für Politiknetz, Bauprojekte, KI-Schlüssel, Bildstil, Wahlen und Karriereende. Plattform, Team, Priorität und KI-Kosten sind entschieden (Abschnitte 6, 8 und 9).
 
 **Neu in Version 0.4:** S1 ist kein festes Szenario mehr, sondern eine kleine lebendige Welt, in der Wirtschaft, Zentralbank, Politik und Medien gekoppelt sind. Neben dem Spaß-Tor gilt ein Lern-Tor. Der Papiertest S0 bleibt ein optionales, günstiges Werkzeug.
 
@@ -16,7 +16,7 @@ Die Reihenfolge lautet jetzt:
 
 Kein Ausbau über S1 hinaus, bevor S1 das Spaß-Tor bestanden hat. Wenn S0 oder S1 scheitern, wird das Konzept geändert, nicht der Umfang vergrößert.
 
-**Änderung in Version 0.5:** Weil S1 bereits Karte und volles Politiknetz enthält, fällt die Technologieentscheidung (Abschnitt 6) vor S1, und für S1 wird ein Teil der Daten schon aufgebaut: die 81 Provinzen und die Startwerte für das Netz. Das widerspricht dem bisherigen Grundsatz „erst Spaß beweisen, dann Umfang“ teilweise. Um das Risiko zu begrenzen, wird S1 in Ausbaustufen gebaut, und nach der ersten Stufe gibt es eine frühe Spaßprüfung (siehe unten).
+**Änderung in Version 0.5:** Weil S1 bereits Karte und volles Politiknetz enthält, fällt die Technologieentscheidung (Abschnitt 6) vor S1, und für S1 wird ein Teil der Daten schon aufgebaut: die 81 Provinzen und die Startwerte für das Netz. Das widerspricht dem bisherigen Grundsatz „erst Spaß beweisen, dann Umfang“ teilweise. Der Projektinhaber hat entschieden, S1 vollständig zu bauen und erst dann zu testen (siehe unten).
 
 ### S0 — Papiertest mit einem Menschen als Simulation
 
@@ -46,13 +46,9 @@ Kein Ausbau über S1 hinaus, bevor S1 das Spaß-Tor bestanden hat. Wenn S0 oder 
 
 Keine Außenpolitik und kein Militär. Echte Oberfläche mit Schreibtisch, Vorgangsakte, Wirtschaftsakte, Politiknetz, Karte, Gespräch, Auftragskarten, Notizbuch und Mentorin (Randnotizen und Gespräch). Echter Simulationskern; das Sprachmodell spricht Figuren und schlägt Handlungen vor, entscheidet aber nichts.
 
-**Ausbaustufen von S1:**
+**S1 wird vollständig gebaut und dann getestet** (Entscheidung des Projektinhabers). Es gibt keine Zwischenstufen mit eigener Spaßprüfung. Während des Baus laufen nur interne Qualitätsprüfungen: automatisierte Testläufe (keine sichere Strategie, keine absurden Kettenreaktionen) und das Prüfkriterium der Oberfläche. Spaß-Tor und Lern-Tor werden mit Testpersonen am fertigen S1 geprüft.
 
-| Stufe | Inhalt | Prüfung danach |
-|---|---|---|
-| S1-a Kern | Wirtschaftsmodell und Zentralbank, Figuren, Schreibtisch, Schreibfläche, Mentorin; Politiknetz mit den Themenfeldern Wirtschaft und Haushalt; Provinzen auf einer schlichten Platzhalterkarte | Frühe Spaßprüfung: Der Projektinhaber und zwei bis drei Testpersonen spielen eine Stunde. Will man weiterspielen? Wenn nicht, wird das Konzept geändert, bevor S1-b beginnt. |
-| S1-b Netz und Regionen | Politiknetz auf mehr als 150 Knoten, regionale Ausprägung je Provinz, ein Bauprojekt, fünf Wählergruppen je Region | Automatisierte Testläufe: keine sichere Strategie, keine absurden Kettenreaktionen |
-| S1-c Bild | Gezeichnete Detailkarte, Porträts, Stilleitfaden umgesetzt | Prüfkriterium der Oberfläche |
+**Risiko:** Stellt sich erst am fertigen S1 heraus, dass das Kernerlebnis nicht trägt, war viel Arbeit umsonst. Der Projektinhaber kennt das Risiko. Der optionale Papiertest S0 bleibt ein günstiger Weg, Figuren und Dilemmas vorher zu prüfen.
 
 Die Bezirksansicht von Istanbul, Ankara und Izmir folgt in M3, sofern sie nicht schon vorher fertig ist.
 
@@ -160,7 +156,7 @@ P0 bedeutet Voraussetzung für den durchgängigen Prototyp. P1 folgt für die er
 | TECH-00 | P0 | Technologieentscheidung nach Karten-, Simulations-, Sprach- und Bildversuch | keine | Engine, Sprache und Datenhaltung begründet gewählt |
 | ART-00 | P0 | Stilleitfaden und Bildversuch mit KI-Bildgenerierung | keine | Drei Porträts und ein Kartenausschnitt im Zielstil, einheitlich und nutzungsrechtlich geklärt |
 | NET-01 | P0 | Politiknetz: Knotenkatalog (mehr als 150), Verbindungen mit Quelle, Verzögerung und regionaler Ausprägung, Übersicht nach Themenfeldern | ECO-00, TR-00 | Jede Verbindung ist erklärbar; national und je Provinz anzeigbar |
-| FUN-01 | P0 | Lebendige Welt (S1) in den Stufen S1-a bis S1-c | ECO-00, CB-01, MENTOR-01, EVT-00, NET-01, TECH-00, ART-00 | Frühe Spaßprüfung nach S1-a; Spaß-Tor und Lern-Tor nach S1-c bestanden |
+| FUN-01 | P0 | Lebendige Welt (S1), vollständig gebaut | ECO-00, CB-01, MENTOR-01, EVT-00, NET-01, TECH-00, ART-00 | Spaß-Tor und Lern-Tor am fertigen S1 bestanden |
 | CHAR-01 | P0 | Figuren mit Ziel, Schwäche, Stimme, Gedächtnis; Regel für Figuren mit echtem Vorbild | keine | Testpersonen kennen Figuren beim Namen; keine Figur mit Vorbild startet mit erfundenem Skandal |
 | UI-00 | P0 | Schreibtisch, Vorgangsakte, Auftragskarten, Politiknetz | keine | Prüfkriterium der Oberfläche erfüllt |
 | KEY-01 | P0 | Eigener KI-Schlüssel: mehrere Anbieter, lokale Speicherung, Kostenanzeige, Spielbarkeit ohne Schlüssel mit Antwortvorlagen | CHAT-01 | Jede Figurenstimme ist mit jedem unterstützten Anbieter getestet; ohne Schlüssel läuft eine Partie durch |
@@ -186,6 +182,10 @@ P0 bedeutet Voraussetzung für den durchgängigen Prototyp. P1 folgt für die er
 | ELE-02 | P1 | Wahlmanipulation als Stufenleiter mit steigendem Risiko | ELE-01, EVT-01 | Jede Stufe erzeugt Spuren und Reaktionen nach Regeln; keine Stufe ist folgenlos |
 | OPP-01 | P1 | Opposition als eigenständiger Akteur, Schwierigkeitsgrad, politische Karriere | ELE-01 | Machtverlust führt in einen spielbaren Zustand; höherer Schwierigkeitsgrad ändert Verhalten, nicht Regeln |
 | LONG-01 | P1 | Mehrjährige Entwicklung | M4, ELE-01 | Langfristige Verpflichtungen bestehen korrekt fort |
+| SECT-01 | P0 | Branchen wie im echten Leben mit regionalen Schwerpunkten | ECO-00, TR-00 | Ein Branchenschock trifft die richtigen Provinzen und Gruppen |
+| DIS-01 | P0 | Katastrophen nach realer Gefährdung, Vorsorge, Wiederaufbau | GEO-01, BUILD-01 | Gleiche Katastrophe hat je nach Vorsorge und Bauqualität unterschiedliche Folgen |
+| POW-01 | P1 | Medien, Justiz, Verfassung und Geheimdienst als Stufenleitern mit Spuren | RULE-01, EVT-01, PER-01 | Jede Stufe läuft über echte Verfahren oder erzeugt Spuren; keine Stufe ist folgenlos |
+| SAVE-01 | P0 | Speichern: normaler und eiserner Modus | SIM-01 | Eiserner Modus lässt sich nicht umgehen; normaler Modus lädt reproduzierbar |
 | LEGACY-01 | P1 | Karriereende: Bilanz, Geschichtsbuchkapitel, Weiterspielen mit neuer Figur | LONG-01 | Das Kapitel enthält nur protokollierte Ereignisse; das Land läuft mit neuer Figur konsistent weiter |
 | COUNTRY-02 | P1 | Zweites Länderregelwerk | M5 | Institutionelle Unterschiede erzeugen andere Spielabläufe |
 | MOD-01 | P2 | Dokumentierte Erweiterungspakete | Stabile Datenformate | Neue Inhalte lassen sich prüfen und laden |

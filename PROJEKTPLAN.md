@@ -319,7 +319,7 @@ Alle Bilder, also Porträts, Karten und Akten, entstehen per KI-Bildgenerierung 
 
 ### Phase 0: Spielspaß beweisen
 
-Optional zuerst ein Papiertest mit einem Menschen als Simulation. Danach folgt eine lebendige Welt (S1): die Türkei zum Stichtag, der Spieler als Staatspräsident, ein Jahr Spielzeit, kein vorgegebenes Szenario. S1 enthält bereits das volle Politiknetz und die gezeichnete Karte und wird deshalb in Ausbaustufen gebaut. Erst wenn das Spaß-Tor und das Lern-Tor bestanden sind, beginnen der große Datenaufbau und die folgenden Phasen. Einzelheiten im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 0.
+Optional zuerst ein Papiertest mit einem Menschen als Simulation. Danach folgt eine lebendige Welt (S1): die Türkei zum Stichtag, der Spieler als Staatspräsident, ein Jahr Spielzeit, kein vorgegebenes Szenario. S1 enthält bereits das volle Politiknetz und die gezeichnete Karte; es wird vollständig gebaut und dann getestet. Erst wenn das Spaß-Tor und das Lern-Tor bestanden sind, beginnen der große Datenaufbau und die folgenden Phasen. Einzelheiten im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 0.
 
 ### Phase 1: Spielregeln und Ländergrundlage
 

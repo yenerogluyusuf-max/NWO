@@ -10,7 +10,9 @@ Alle Mengen, Zeitziele und Beispielwerte dieses Dokuments sind Vorschläge für 
 - einstellbares Tempo (Abschnitt 2),
 - Einstieg direkt als Staatspräsident zum heutigen Stichtag (Abschnitt 3),
 - das Politiknetz mit mehr als 150 Knoten neben der Schreibfläche und Folgen als Richtung und Bandbreite (Abschnitte 4 und 5),
-- das Privatleben der eigenen Figur und die Regel für Figuren mit echtem Vorbild (Abschnitt 7),
+- das Privatleben der eigenen Figur, die Regel für Figuren mit echtem Vorbild sowie Medien, Justiz, Verfassung und Geheimdienst (Abschnitt 7),
+- Branchen wie im echten Leben (Abschnitt 9) und Katastrophen als echtes Risiko (Abschnitt 10),
+- normaler und eiserner Speichermodus (Abschnitt 16),
 - Wahlkampf, TV-Duell, Wahlabend, kompakte Kommunalwahlen, Manipulation mit steigendem Risiko und die Opposition mit Schwierigkeitsgrad (Abschnitt 8),
 - 81 Provinzen, drei Großstädte bis in die Bezirke und staatliche Bauprojekte (Abschnitt 10),
 - die tiefsten Außenpartner (Abschnitt 11) und Krieg als strategische Möglichkeit (Abschnitt 13),
@@ -284,6 +286,16 @@ Institutionen besitzen ein Mandat, Zuständigkeiten, Ressourcen, Führung, Verfa
 
 Auch autoritäre Entwicklungen werden als Veränderungen konkreter Institutionen, Abhängigkeiten und Informationswege modelliert. Das Spiel darf weder automatische totale Kontrolle noch eine universelle, sofortige Gegenreaktion der Gesellschaft annehmen.
 
+### Medien, Justiz, Verfassung und Geheimdienst
+
+Für alle drei Bereiche hat der Projektinhaber entschieden: Alles ist möglich, mit Folgen. Wie bei der Wahlmanipulation gilt eine Stufenleiter: Je weiter der Spieler geht, desto mehr Beteiligte, Spuren und Gegenreaktionen entstehen.
+
+**Medien.** Die Stufen reichen vom Interview über staatliche Werbeaufträge und Druck auf Eigentümer bis zum Kauf durch nahestehende Unternehmer und zur Schließung. Die Folgen sind Spuren, Glaubwürdigkeitsverlust, Abwanderung des Publikums zu anderen Quellen und internationale Reaktionen. Kontrollierte Medien berichten freundlicher, aber ihnen wird weniger geglaubt, und Informationen, die der Spieler braucht, erreichen ihn schlechter.
+
+**Justiz und Verfassung.** Richterernennungen, Justizreformen, Verfassungsänderungen und der Notstand laufen immer über die echten Verfahren: Mehrheiten im Parlament, gegebenenfalls ein Referendum, Prüfung durch Gerichte *(Verfahren zu belegen, siehe Länderpaket Türkei)*. Auch Wege am Rand der Legalität sind möglich, etwa Druck auf Richter oder das Ausreizen von Fristen, aber sie haben ihren Preis. Institutionelle Änderungen wirken lange nach, auch über die eigene Amtszeit hinaus.
+
+**Geheimdienst.** Er ist ein Werkzeug mit Risiko. Er liefert Berichte mit Unsicherheit und kann auf Anweisung Gegner, Journalisten oder eigene Minister überwachen sowie verdeckt im Ausland handeln. Jede Aktion hinterlässt Spuren und kann herauskommen, durch Überläufer, Journalisten, Gerichte oder ausländische Dienste. Berichte sind nie allwissend (Projektplan, Abschnitt 14).
+
 ## 8. Gesellschaft, Geschichte und Wahlen
 
 Die grundlegende Bevölkerungseinheit ist eine gewichtete Gruppe in einer Region. Das Modell verfolgt wirtschaftliche Lage, Prioritäten, Bindungen, Vertrauen und politische Teilnahme. Überschneidende Eigenschaften dürfen nicht zu mehrfach gezählter Bevölkerung führen.
@@ -316,7 +328,17 @@ Oppositionsparteien sind eigenständige Akteure mit Figuren, Zielen, Kandidaten 
 
 ## 9. Wirtschaft und Politikfolgen
 
-Für den ersten Prototyp werden wenige nachvollziehbare Wirtschaftsbereiche gewählt: öffentlicher Haushalt, Einkommen und Beschäftigung, Energie, eine wichtige Produktionsbranche sowie Investitionen. Später kommen weitere Branchen und detailliertere Finanzbeziehungen hinzu.
+**Branchen wie im echten Leben** (Entscheidung des Projektinhabers). Die Wirtschaft wird nach den wichtigen realen Branchen der Türkei gegliedert, mindestens:
+
+| Branche | Warum sie wichtig ist |
+|---|---|
+| Tourismus | Devisen, Saison, Sicherheitslage, Wechselkurs |
+| Industrie und Export (Textil, Autoindustrie, Maschinen und weitere) | Wechselkurs, Nachfrage aus der EU, Beschäftigung in Industrieregionen |
+| Landwirtschaft | Nahrungsmittelpreise, Wasser, Dürre, Landbevölkerung |
+| Bau | Konjunkturmotor, Wohnungsmarkt, Verbindung zu staatlichen Bauprojekten |
+| Energie | Importe, Strom- und Gaspreise, Versorgungssicherheit |
+
+Welche weiteren Branchen dazukommen (etwa Handel, Finanzsektor, Logistik, Rüstungsindustrie), ergibt sich aus der Wirtschaftsstruktur laut TÜİK *(zu belegen)*. Jede Branche hat einen regionalen Schwerpunkt, damit ein Schock etwa im Tourismus die Küstenprovinzen anders trifft als Zentralanatolien. Die Kerngrößen des [Wirtschaftsmodells](WIRTSCHAFTSMODELL.md) bleiben der Rahmen; die Branchen verteilen ihre Wirkung auf Regionen und Gruppen.
 
 Bestände und Ströme bleiben getrennt: Vermögen und Schulden sind Bestände; Einnahmen, Ausgaben und Finanzierung sind Vorgänge über einen Zeitraum. Nominale und reale Werte erhalten eindeutige Einheiten. Ein fehlender Datenwert wird nicht zu null.
 
@@ -337,6 +359,8 @@ Verwaltungsgebiete bilden die politische Karte, Infrastruktur bildet ein verbund
 Regionale Spezialisierung entsteht aus bestehenden Voraussetzungen und Entscheidungen. Ein Förderprogramm garantiert keine erfolgreiche Ansiedlung. Fachkräfte, Nachfrage, Versorgung und Erreichbarkeit können fehlen.
 
 Katastrophenrisiken bestehen aus Gefahr, Exposition und Verwundbarkeit. Vorsorge verändert die Folgen. Der Wiederaufbau konkurriert mit anderen Vorhaben um Haushalt, Personal und Material.
+
+**Katastrophen als echtes Risiko** (Entscheidung des Projektinhabers). Erdbeben, Überschwemmungen und Waldbrände treten nach der realen Gefährdung der Provinzen auf *(Gefährdungskarten zu belegen, etwa beim Katastrophenschutz AFAD)*. Vorsorge ist eine echte Wahl mit Kosten ohne sichtbaren Nutzen, bis es zu spät ist: Bauaufsicht, Nachrüstung alter Gebäude, Katastrophenschutz, Rücklagen. Korruption bei Bauprojekten erhöht die Verwundbarkeit. Die Darstellung ist behutsam und ohne Sensationslust: keine Bilder von Opfern, keine Punkte für Rettungsaktionen, dafür ehrliche Folgen für Menschen, Haushalt und Vertrauen.
 
 Auf Stadtbezirksebene zeigt die Karte vorhandene Daten und ihre Unsicherheit. Wenn nur Daten für eine größere Region vorliegen, wird diese räumliche Grenze kenntlich gemacht. Eine feinere Karte bedeutet nicht automatisch feinere Statistik.
 
@@ -489,6 +513,8 @@ Diese Fälle sind fiktiv und keine Aussagen über gegenwärtige Vorgänge in der
 **Weiterspielen mit neuer Figur.** Danach kann der Spieler dasselbe Land mit einer neuen Figur weiterführen, etwa als Nachfolger, als Rivale oder als jemand aus der Opposition. Schulden, Verträge, Bauwerke, Institutionen und Erinnerungen bleiben, und das Kapitel der Vorgängerfigur ist Teil der Vorgeschichte.
 
 Wiederspielbarkeit entsteht durch unterschiedliche Ziele, Personenbeziehungen, Unsicherheit und eigenständige Akteure. Für Vergleichbarkeit kann dieselbe Zufallsgrundlage erneut verwendet werden. Die Rekonstruktion eines gespeicherten Verlaufs verwendet protokollierte Ereignisse und Sprachentscheidungen; ein identischer Zufallswert allein garantiert keine identischen neuen Modellantworten.
+
+**Speichern** (Entscheidung des Projektinhabers): Es gibt zwei Modi. Im normalen Modus kann man jederzeit speichern und laden und damit Entscheidungen zurücknehmen. Im **eisernen Modus** gibt es nur einen Spielstand, und jede Entscheidung ist endgültig. Der Modus wird beim Start gewählt; im Geschichtsbuchkapitel ist vermerkt, in welchem Modus die Laufbahn gespielt wurde.
 
 Schwierigkeitsoptionen betreffen Informationshilfen, Delegation, die Ausgangslage und die Stärke der Opposition (Abschnitt 8). Verdeckte Ressourcenboni der Gegenseite sind nicht vorgesehen: Ein höherer Schwierigkeitsgrad macht Gegner klüger, nicht reicher.
 

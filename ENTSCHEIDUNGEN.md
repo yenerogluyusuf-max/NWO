@@ -1,6 +1,6 @@
 # NWO — Entscheidungen des Projektinhabers
 
-Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den übrigen Dokumenten vor. Die Blöcke A bis C sind in die Dokumente eingearbeitet (Version 0.5); die Spalte „Wo“ nennt die wichtigste Stelle.
+Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den übrigen Dokumenten vor. Die Blöcke A bis D sind in die Dokumente eingearbeitet (Version 0.5); die Spalte „Wo“ nennt die wichtigste Stelle.
 
 ## A. Grundsätze
 
@@ -60,16 +60,28 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 | Sprachen | Deutsch, dann Englisch, Türkisch später | Länderpaket 6 |
 | Name | Claude erarbeitet Vorschläge | [Namensvorschläge](NAMENSVORSCHLAEGE.md) |
 
-## D. Hinweise aus der Einarbeitung
+## D. Dritte Fragerunde
 
-- **S1 wird deutlich größer.** Mit vollem Politiknetz und gezeichneter Karte ist S1 kein kleiner Test mehr. Das verträgt sich nur teilweise mit dem Grundsatz „erst Spaß beweisen, dann Umfang“. Vorschlag im Entwicklungsplan, Abschnitt 0: S1 in drei Ausbaustufen bauen, mit einer frühen Spaßprüfung nach der ersten Stufe. **Bitte bestätigen.**
+| Thema | Entscheidung | Wo |
+|---|---|---|
+| Bau von S1 | Alles auf einmal: S1 wird vollständig gebaut und dann getestet, ohne Zwischenstufen | Entwicklungsplan 0 |
+| Medien | Alles möglich, mit Folgen: von Interviews über Druck auf Eigentümer bis zu Kauf oder Schließung | Spieldesign 7 |
+| Justiz und Verfassung | Alles, aber über die echten Verfahren (Mehrheiten, Referendum, Gerichte); Wege am Rand der Legalität mit Preis | Spieldesign 7 |
+| Geheimdienst | Werkzeug mit Risiko: Berichte, Überwachung, verdeckte Aktionen, alles mit Spuren | Spieldesign 7 |
+| Katastrophen | Echtes Risiko nach realer Gefährdung; Vorsorge verändert die Folgen; behutsame Darstellung | Spieldesign 10 |
+| Branchen | Alle wichtigen Branchen wie im echten Leben, mindestens Tourismus, Industrie und Export, Landwirtschaft, Bau und Energie | Spieldesign 9 |
+| Speichern | Beides wählbar: normaler Modus mit freiem Laden und eiserner Modus mit einem Spielstand | Spieldesign 16 |
+| Name | Keiner der ersten Vorschläge; neue Vorschläge erarbeiten | [Namensvorschläge](NAMENSVORSCHLAEGE.md) |
+
+## E. Hinweise aus der Einarbeitung
+
+- **S1 wird deutlich größer.** Mit vollem Politiknetz und gezeichneter Karte ist S1 kein kleiner Test mehr. Das verträgt sich nur teilweise mit dem Grundsatz „erst Spaß beweisen, dann Umfang“. Der Projektinhaber hat entschieden, S1 trotzdem vollständig zu bauen und erst dann zu testen. Das Risiko: Trägt das Kernerlebnis nicht, zeigt sich das erst spät. Der optionale Papiertest S0 bleibt ein günstiger Weg, Figuren und Dilemmas vorher zu prüfen.
 - **Porträts nach echten Vorbildern** bleiben rechtlich heikel, auch ohne erfundene Skandale, weil Handlungen im Spiel einer erkennbaren Person zugeschrieben werden könnten. Vor einer Veröffentlichung ist eine anwaltliche Prüfung nötig.
 - **KI-Bilder:** Einheitlichkeit über Hunderte Bilder und die Nutzungsrechte für einen Verkauf werden im Bildversuch geprüft (Entwicklungsplan, Abschnitt 6).
 - **Korrigiert:** Im Wirtschaftsmodell und im Lernkonzept stand noch die Währung „Estra“ aus dem fiktiven Papiertest-Land; jetzt steht dort die Lira. Der Projektplan beschrieb S1 noch als „Szenario A mit zwei Wochen“; jetzt passt er zum Entwicklungsplan.
 
-## E. Offene Punkte für die nächste Sitzung
+## F. Offene Punkte für die nächste Sitzung
 
-- Bestätigung der Ausbaustufen von S1 (Block D).
-- Namen auswählen oder weitere Vorschläge anfordern ([Namensvorschläge](NAMENSVORSCHLAEGE.md)).
-- Mögliche weitere Fragerunden: Medien (kann der Spieler Medien kontrollieren oder kaufen?), Justiz und Verfassungsänderung, Notstand, Geheimdienst, Wirtschaftsbranchen im Detail, Erdbeben und Katastrophen, Speichern und Neuladen (darf man Entscheidungen zurücknehmen?).
+- Namen aus der zweiten Vorschlagsliste auswählen ([Namensvorschläge](NAMENSVORSCHLAEGE.md)).
+- Mögliche weitere Fragen: Wie sieht der erste Spieltag aus? Wie viele Hauptfiguren gibt es in S1? Welche Ämter bekommen eine Figur mit echtem Vorbild?
 - Erster Arbeitsschritt danach: Technologieversuche (Entwicklungsplan, Abschnitt 6) oder Beginn der Recherche für das Länderpaket (TR-00).
