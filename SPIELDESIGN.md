@@ -10,7 +10,7 @@ Alle Mengen, Zeitziele und Beispielwerte dieses Dokuments sind Vorschläge für 
 - einstellbares Tempo (Abschnitt 2),
 - Einstieg direkt als Staatspräsident zum heutigen Stichtag (Abschnitt 3),
 - das Politiknetz mit mehr als 150 Knoten neben der Schreibfläche und Folgen als Richtung und Bandbreite (Abschnitte 4 und 5),
-- der erste Spieltag, die Kabinettsbildung und die Wahl der Mentorin (Abschnitte 3 und 7),
+- der Prolog, der Start direkt nach der Wahl 2028 mit den Daten vom 25.09.2026, der erste Spieltag, die Kabinettsbildung und die Wahl der Mentorin (Abschnitte 3 und 7),
 - mehr als 20 Hauptfiguren, das Privatleben der eigenen Figur, die Regel für Figuren mit echtem Vorbild sowie Medien, Justiz, Verfassung und Geheimdienst (Abschnitt 7),
 - Branchen wie im echten Leben (Abschnitt 9) und Katastrophen als echtes Risiko (Abschnitt 10),
 - normaler und eiserner Speichermodus (Abschnitt 16),
@@ -98,9 +98,9 @@ Ein erstes Ziel für Nutzertests: Innerhalb einer Sitzung von ungefähr 30 bis 6
 
 ### Startkonfiguration
 
-1. **Land:** die Türkei. Weitere spielbare Länder folgen später. Der Start ist **heute**, also am jüngsten Stichtag, für den alle Kerndaten veröffentlicht sind. Historische Startpunkte folgen später. Es gibt kein Szenario auszuwählen: Die Welt startet in einem leicht variierten Zustand ohne eingebautes Problem.
+1. **Land:** die Türkei. Weitere spielbare Länder folgen später. Die Daten stammen vom **Stichtag 25.09.2026**; das Spiel beginnt aber **direkt nach der Wahl 2028** (siehe unten, „Der Start nach der Wahl 2028“). Historische Startpunkte folgen später. Es gibt kein Szenario auszuwählen: Die Welt startet in einem leicht variierten Zustand ohne eingebautes Problem.
 2. **Rolle:** direkt als Staatspräsident. Weitere Einstiege wie die Opposition folgen später.
-3. **Die eigene Figur:** Name, Herkunft, politischer Werdegang und Familie in wenigen Schritten. Der Spieler spielt eine eigene Figur, nicht den amtierenden Präsidenten.
+3. **Der Prolog:** eine kurze, erzählte Vorgeschichte mit einfachen, schnellen Entscheidungen. Sie legt Figur, Familie, Partei und den Weg zum Wahlsieg 2028 fest (siehe unten, „Der Prolog“). Der Spieler spielt eine eigene Figur, nicht den amtierenden Präsidenten.
 4. **Das eigene Team:** Der Spieler wählt seine Berater und Minister aus erfundenen Kandidaten (siehe unten, „Das eigene Team“).
 5. **Die Mentorin oder der Mentor:** Auswahl aus zwei bis drei neutralen Figuren mit unterschiedlichem Hintergrund ([Lernkonzept](LERNKONZEPT.md), Abschnitt 4).
 6. **Ausgangslage:** Öffentliche Lage, Datenlücken und wichtige institutionelle Grenzen ansehen.
@@ -108,6 +108,44 @@ Ein erstes Ziel für Nutzertests: Innerhalb einer Sitzung von ungefähr 30 bis 6
 8. **Einstellungen:** Informationshilfen, Lernstufe der Mentorin (begleitet, Standard, allein), Delegation und Pausen. Dazu kommt der eigene KI-Schlüssel; mehrere große Anbieter werden unterstützt. Ohne Schlüssel ist das Spiel eingeschränkt spielbar: Politiknetz, Karte, Bauen und Wirtschaft laufen voll, Gespräche laufen über vorbereitete Antwortvorlagen statt freier Sprache.
 
 Der Spieler übernimmt ein echtes Amt innerhalb eines realen Ausgangsszenarios. Der Übergang zur gespielten alternativen Geschichte wird ausdrücklich benannt. Reale öffentliche Biografien und simulierte persönliche Eigenschaften bleiben unterscheidbar.
+
+### Der Prolog
+
+**Entscheidung des Projektinhabers:** Wie bei Suzerain wird vor dem Spiel eine kurze Geschichte erzählt. Der Spieler wählt, was seine Figur in ihrer Jugend gemacht hat, wie sie zur Politik gekommen ist, wie sie ihre Partnerin oder ihren Partner kennengelernt hat und so weiter. Die Entscheidungen sind einfach und schnell.
+
+**Form.** Gezeichnete Bilder mit wenigen Sätzen Erzähltext, pro Station eine Frage mit zwei bis vier Antworten. Keine Zahlen, keine Werte auf dem Bildschirm; die Folgen zeigen sich erst im Spiel. Der ganze Prolog dauert etwa 10 bis 15 Minuten und lässt sich bei späteren Partien überspringen oder zufällig füllen.
+
+**Stationen (Vorschlag):**
+
+| Station | Beispielfrage | Was sie im Spiel festlegt |
+|---|---|---|
+| Kindheit | Wo bist du aufgewachsen? (Großstadt im Westen, Kleinstadt in Anatolien, Dorf im Südosten, Ausland in der Diaspora) | Heimatprovinz, Rückhalt in Regionen und Gruppen, Sprachen |
+| Jugend | Was hat dich geprägt? (Studentenbewegung, Familienbetrieb, Sport, Religion, Militärdienst) | Erste Eigenschaften, alte Freunde und Weggefährten |
+| Beruf | Womit hast du dein Geld verdient? (Anwalt, Ärztin, Unternehmer, Ingenieurin, Journalist, Ökonomin) | Fachwissen, Netzwerke, mögliche Leichen im Keller |
+| Liebe | Wie hast du deine Partnerin oder deinen Partner kennengelernt? | Familie, Charakter und Ziele des Partners, Kinder |
+| Weg in die Politik | Was hat dich in die Politik gebracht? (ein Unglück in der Heimatstadt, Wut über Korruption, ein Mentor, Ehrgeiz) | Grundmotiv, erste Verbündete und Gegner |
+| Die eigene Partei | Warum eine neue Partei, und mit wem? | Name, Farbe, Kernpositionen, Gründungsmitglieder (werden zu Kandidaten fürs Kabinett) |
+| Der Wahlkampf 2028 | Zwei, drei Momente: ein Bündnis eingehen oder allein bleiben, ein Versprechen geben, auf einen Angriff reagieren | Offene Fäden, die ab dem ersten Tag zurückkommen können; Bündnispartner im Parlament |
+| Die Wahlnacht | Erster Wahlgang oder Stichwahl, knapp oder deutlich | Rückhalt und Legitimität zu Beginn |
+
+**Regeln für den Prolog:**
+
+- Jede Antwort verändert etwas Konkretes: eine Eigenschaft, eine Beziehung, einen offenen Faden oder eine Ausgangslage. Keine Antwort ist nur Dekoration.
+- Keine Antwort ist die beste. Wie im Spiel hat jede Herkunft Stärken und Schwächen.
+- Der Prolog erzählt auch, was bis 2028 im Land passiert ist, aber nur als Hintergrund und nüchtern. Die Wirtschaftsdaten bleiben die vom Stichtag.
+- Versprechen und Bündnisse aus dem Wahlkampf sind der erste Stoff für „Die Vergangenheit kommt zurück“ (Säule 3).
+- Der Ton ist derselbe wie im Spiel: ernst mit trockenem Humor.
+
+### Der Start nach der Wahl 2028
+
+**Entscheidung des Projektinhabers:** Das Spiel beginnt direkt nach der Wahl 2028 mit den Daten von heute. Die Spielerfigur hat mit einer eigenen neuen Partei die Präsidentschaft gewonnen.
+
+- **Die Daten** (Wirtschaft, Institutionen, Bevölkerung, offene Konflikte) stammen vom Stichtag 25.09.2026 und werden unverändert übernommen. Das Spiel sagt offen, dass es die Zeit bis zur Wahl überspringt, und behauptet nicht, die Welt von 2028 vorherzusagen.
+- **Die Präsidentschaftswahl** hat die Figur gewonnen, im ersten Wahlgang oder in der Stichwahl, wie es der Prolog erzählt. Das knappe oder deutliche Ergebnis prägt ihren Rückhalt.
+- **Das Parlament** wird beim Start aus den heutigen Umfragen erzeugt ([Umfragen](tuerkei/recherche/umfragen.md)). Die neue Partei der Figur zieht Stimmen vor allem von den Parteien ab, deren Wähler zu ihrem Profil passen. Danach werden die Regeln des Wahlgesetzes angewandt: Sperrklausel 7 %, Bündnisse, D'Hondt je Provinz ([Institutionen](tuerkei/INSTITUTIONEN.md), Abschnitt 6).
+- **Vorschlag (zu bestätigen):** Die eigene Partei landet meist zwischen 15 und 30 Prozent und hat damit **keine eigene Mehrheit**. Der Spieler muss sich Mehrheiten suchen, über Bündnisse, Absprachen oder Überläufer. Das ist das erste große Dilemma und passt dazu, dass das Parlament der Engpass des Präsidialsystems ist.
+- **Die anderen Parteien** sind die echten Parteien vom Stichtag. Ihre Führungen haben echte Vorbilder und erfundene Namen ([Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4). Die eigene Partei und ihr Personal sind frei erfunden.
+- **Die erste Amtszeit** läuft fünf Jahre bis 2033. Nach der Verfassung ist genau eine Wiederwahl möglich.
 
 ### Erster Spielkontakt
 

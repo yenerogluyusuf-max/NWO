@@ -1,6 +1,6 @@
 # NWO — Entscheidungen des Projektinhabers
 
-Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den übrigen Dokumenten vor. Die Blöcke A bis E sind in die Dokumente eingearbeitet (Version 0.5); die Spalte „Wo“ nennt die wichtigste Stelle.
+Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den übrigen Dokumenten vor. Die Blöcke A bis F sind in die Dokumente eingearbeitet (Version 0.5); die Spalte „Wo“ nennt die wichtigste Stelle.
 
 ## A. Grundsätze
 
@@ -85,7 +85,18 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 | Erster Arbeitsschritt | Recherche Türkei (Länderpaket, Arbeitspaket TR-00) | Länderpaket 7 |
 | Detailtiefe von Recht und Institutionen | Es bleibt ein Spiel: Gesetze nur so tief wie bei Suzerain und Democracy 4, also die Kernregeln, die Entscheidungen verändern (wer darf was, welche Mehrheit, welche Grenze), keine Verfahrensfeinheiten | Länderpaket 3 |
 
-## F. Hinweise aus der Einarbeitung
+## F. Fünfte Fragerunde
+
+| Thema | Entscheidung | Wo |
+|---|---|---|
+| Stichtag der Daten | 25.09.2026 | [Startdaten](tuerkei/STARTDATEN.md) |
+| Spielbeginn | Direkt nach der Wahl 2028, mit den Daten vom Stichtag; die Zeit dazwischen wird übersprungen | Spieldesign 3, Projektplan 3 |
+| Amtszeit der Spielerfigur | Erste Amtszeit (2028 gewählt, eine Wiederwahl möglich) | Spieldesign 3 |
+| Parlament beim Start | Wird aus den heutigen Umfragen erzeugt, bei jedem Start etwas anders | Spieldesign 3 |
+| Partei der Spielerfigur | Eigene, neu gegründete Partei (frei erfunden) | Spieldesign 3 |
+| Prolog | Wie bei Suzerain: kurze erzählte Vorgeschichte, der Spieler wählt Jugend, Beruf, Weg in die Politik, wie er seine Partnerin oder seinen Partner kennengelernt hat usw.; einfache, schnelle Entscheidungen | Spieldesign 3 |
+
+## G. Hinweise aus der Einarbeitung
 
 - **S1 wird deutlich größer.** Mit vollem Politiknetz und gezeichneter Karte ist S1 kein kleiner Test mehr. Das verträgt sich nur teilweise mit dem Grundsatz „erst Spaß beweisen, dann Umfang“. Der Projektinhaber hat entschieden, S1 trotzdem vollständig zu bauen und erst dann zu testen. Das Risiko: Trägt das Kernerlebnis nicht, zeigt sich das erst spät. Der optionale Papiertest S0 bleibt ein günstiger Weg, Figuren und Dilemmas vorher zu prüfen.
 - **Mehr als 20 Hauptfiguren** widersprechen dem bisherigen Grundsatz „lieber sechs, die man kennt, als zwanzig, die man verwechselt“. Das Spieldesign setzt deshalb auf schrittweise Einführung, unverwechselbare Porträts und ein Personenverzeichnis. Der Maßstab des Spaß-Tors bleibt.
@@ -93,10 +104,9 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 - **KI-Bilder:** Einheitlichkeit über Hunderte Bilder und die Nutzungsrechte für einen Verkauf werden im Bildversuch geprüft (Entwicklungsplan, Abschnitt 6).
 - **Korrigiert:** Im Wirtschaftsmodell und im Lernkonzept stand noch die Währung „Estra“ aus dem fiktiven Papiertest-Land; jetzt steht dort die Lira. Der Projektplan beschrieb S1 noch als „Szenario A mit zwei Wochen“; jetzt passt er zum Entwicklungsplan.
 
-## G. Nächste Schritte
+## H. Nächste Schritte
 
 - **Recherche Türkei fortsetzen.** Begonnen am 28.09.2026: [Institutionen](tuerkei/INSTITUTIONEN.md) und [Startdaten](tuerkei/STARTDATEN.md). Offen sind die Lücken in Abschnitt 8 der Institutionen und die Prüfung aller Zahlen an den Primärquellen (dafür braucht die Entwicklungsumgebung Netzzugang zu den türkischen Amtsseiten).
-- **Stichtag bestätigen:** Vorschlag 25.09.2026 ([Startdaten](tuerkei/STARTDATEN.md)).
-- **Neue Designfrage aus der Recherche:** Die Verfassung erlaubt höchstens zwei Amtszeiten. In welcher Amtszeit startet die Spielerfigur? Das entscheidet, ob sie ohne Weiteres wiedergewählt werden kann (Art. 101, 116).
+- **Zu bestätigen:** Die eigene Partei landet beim Start meist zwischen 15 und 30 Prozent und hat keine eigene Mehrheit im Parlament (Vorschlag im Spieldesign, Abschnitt 3).
 - Danach die Technologieversuche (Entwicklungsplan, Abschnitt 6), weil S1 Karte und Politiknetz braucht.
 - Offen für später: Namen und Hintergrund der zweiten und dritten Mentorenfigur; Markenprüfung für „Staatsräson“.

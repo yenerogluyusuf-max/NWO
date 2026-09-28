@@ -4,7 +4,7 @@ Stand: 28. September 2026. Teil des [Länderpakets Türkei](../LAENDERPAKET_TUER
 
 ## Stichtag
 
-**Vorschlag: Freitag, 25. September 2026.** Die Entscheidung lautet „heute, also der jüngste Tag, an dem alle Kerndaten veröffentlicht sind“. Bis zu diesem Tag liegen vor:
+**Entschieden: Freitag, 25. September 2026** (bestätigt vom Projektinhaber am 28.09.2026). Das ist der jüngste Tag, an dem alle Kerndaten veröffentlicht sind. **Das Spiel selbst beginnt direkt nach der Wahl 2028**, übernimmt aber diese Daten unverändert ([Spieldesign](../SPIELDESIGN.md), Abschnitt 3). Bis zum Stichtag liegen vor:
 
 - BIP und Arbeitslosenquote seit dem 31.8.
 - Inflation August seit dem 3.9.
@@ -79,7 +79,7 @@ Nüchterne Zusammenfassung der Ereignisse, die den Startzustand prägen. Persone
 - **Energiepreisschock** infolge eines Konflikts im Nahen Osten (Öl nahe 100 US-Dollar). Laut Fitch verkaufte die Zentralbank über 50 Mrd. US-Dollar an Devisen.
 - **Fondskrise seit dem 17.9.2026:** Die Kapitalmarktaufsicht setzte den Handel mit Fonds aus und ordnete die Liquidation von 131 Fonds an; betroffen sind rund 456.000 Anleger. Es laufen Ermittlungen.
 
-Fürs Spiel heißt das: Die Welt startet nicht mit einem eingebauten Problem, aber mit echten offenen Konflikten. Eine gespaltene Opposition, ein Friedensprozess, ein Energiepreisschock, eine Finanzmarktkrise und eine Wahl, die näher rückt.
+Fürs Spiel heißt das: Die Welt startet nicht mit einem eingebauten Problem, aber mit echten offenen Konflikten: eine gespaltene Opposition, ein Friedensprozess, ein Energiepreisschock und eine Finanzmarktkrise. Weil das Spiel erst nach der Wahl 2028 beginnt, sind diese Konflikte der Hintergrund, den die neue Präsidentin oder der neue Präsident erbt. Die Sitzverteilung oben gilt nur als Stand vom Stichtag; das Parlament im Spiel wird aus den Umfragen neu erzeugt.
 
 ## 3. Bevölkerung
 

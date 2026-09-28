@@ -67,7 +67,9 @@ Die eigenständige Identität von NWO entsteht durch die Verbindung dieser Ansä
 
 ## 3. Rollen, Spielstart und politische Karriere
 
-Die erste Version startet **heute**, also am jüngsten Stichtag, für den alle Kerndaten veröffentlicht sind. Der Spieler steigt **direkt als Staatspräsident der Türkei** ein. Er spielt dabei eine eigene Figur, nicht den amtierenden Präsidenten. Später kommen hinzu:
+**Spielbeginn (Entscheidung des Projektinhabers):** Das Spiel beginnt **direkt nach der Wahl 2028**, aber **mit den Daten von heute** (Stichtag 25.09.2026). Die Spielerfigur hat mit einer **eigenen, neu gegründeten Partei** die Präsidentschaftswahl gewonnen und beginnt ihre **erste Amtszeit**. Wirtschaft, Institutionen, Gesellschaft und offene Konflikte stammen vom Stichtag; die Zeit dazwischen überspringt das Spiel bewusst. Das Parlament wird beim Start aus den heutigen Umfragen erzeugt und fällt bei jedem Start etwas anders aus ([Spieldesign](SPIELDESIGN.md), Abschnitt 3).
+
+Der Spieler steigt also **direkt als Staatspräsident der Türkei** ein. Er spielt eine eigene Figur, nicht den amtierenden Präsidenten. Später kommen hinzu:
 
 - historische Startpunkte,
 - der Vorsitz einer Oppositionspartei,

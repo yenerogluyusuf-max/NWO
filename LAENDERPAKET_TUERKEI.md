@@ -14,7 +14,7 @@ Version 0.5, 28. September 2026. Ergänzung zu [Entwicklungsplan](ENTWICKLUNGSPL
 
 ## 2. Die Rolle des Spielers
 
-Die Türkei ist nach der Verfassungsänderung von 2017 (in Kraft seit 2018) ein Präsidialsystem *(zu belegen)*. Der Spieler steigt deshalb **direkt als Staatspräsident** (Cumhurbaşkanı) ein, der zugleich die Regierung führt. Er spielt eine eigene Figur mit erfundenem Namen, nicht den amtierenden Präsidenten. Die Partie beginnt am heutigen Stichtag.
+Die Türkei ist nach der Verfassungsänderung von 2017 (in Kraft seit 2018) ein Präsidialsystem *(zu belegen)*. Der Spieler steigt deshalb **direkt als Staatspräsident** (Cumhurbaşkanı) ein, der zugleich die Regierung führt. Er spielt eine eigene Figur mit erfundenem Namen, nicht den amtierenden Präsidenten. **Die Partie beginnt direkt nach der Wahl 2028 mit den Daten vom Stichtag 25.09.2026:** Die Figur hat mit einer eigenen, neu gegründeten Partei die Präsidentschaft gewonnen und beginnt ihre erste Amtszeit; das Parlament wird aus den heutigen Umfragen erzeugt ([Spieldesign](SPIELDESIGN.md), Abschnitt 3).
 
 Die Rolle verändert wichtige Spielregeln gegenüber dem bisherigen Entwurf eines parlamentarischen Regierungschefs:
 

@@ -185,6 +185,7 @@ P0 bedeutet Voraussetzung für den durchgängigen Prototyp. P1 folgt für die er
 | SECT-01 | P0 | Branchen wie im echten Leben mit regionalen Schwerpunkten | ECO-00, TR-00 | Ein Branchenschock trifft die richtigen Provinzen und Gruppen |
 | DIS-01 | P0 | Katastrophen nach realer Gefährdung, Vorsorge, Wiederaufbau | GEO-01, BUILD-01 | Gleiche Katastrophe hat je nach Vorsorge und Bauqualität unterschiedliche Folgen |
 | POW-01 | P1 | Medien, Justiz, Verfassung und Geheimdienst als Stufenleitern mit Spuren | RULE-01, EVT-01, PER-01 | Jede Stufe läuft über echte Verfahren oder erzeugt Spuren; keine Stufe ist folgenlos |
+| PRO-01 | P0 | Prolog mit etwa acht Stationen und Start nach der Wahl 2028: Figur, Familie, Partei, Wahlkampf, Wahlnacht; Parlament aus den Umfragen erzeugen | CHAR-01, ELE-01, TR-00 | Jede Antwort verändert einen Zustand im Spiel; das erzeugte Parlament folgt den Regeln des Wahlgesetzes |
 | SAVE-01 | P0 | Speichern: normaler und eiserner Modus | SIM-01 | Eiserner Modus lässt sich nicht umgehen; normaler Modus lädt reproduzierbar |
 | LEGACY-01 | P1 | Karriereende: Bilanz, Geschichtsbuchkapitel, Weiterspielen mit neuer Figur | LONG-01 | Das Kapitel enthält nur protokollierte Ereignisse; das Land läuft mit neuer Figur konsistent weiter |
 | COUNTRY-02 | P1 | Zweites Länderregelwerk | M5 | Institutionelle Unterschiede erzeugen andere Spielabläufe |
