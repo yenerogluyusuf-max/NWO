@@ -1,8 +1,10 @@
 # NWO — Länderpaket Türkei
 
-Version 0.4, 28. September 2026. Ergänzung zu [Entwicklungsplan](ENTWICKLUNGSPLAN.md) (Arbeitspaket TR-00), [Lernkonzept](LERNKONZEPT.md) und [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md).
+Version 0.5, 28. September 2026. Ergänzung zu [Entwicklungsplan](ENTWICKLUNGSPLAN.md) (Arbeitspaket TR-00), [Lernkonzept](LERNKONZEPT.md) und [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md).
 
 **Status:** Rechercheplan. **Alle Sachangaben in diesem Dokument sind Arbeitsstand und werden vor der Übernahme ins Spiel mit Primärquellen belegt** (Gesetzestext, Amtsblatt, Statistikamt, Zentralbank, Wahlbehörde). Was nicht belegt ist, kommt nicht ins Spiel.
+
+**Neu in Version 0.5:** Die Entscheidung zu echten Personen steht fest (Abschnitt 4), ebenso die Entscheidungen zu heiklen Themen (Abschnitt 5) und zur Sprache (Abschnitt 6). Hinzu kommen der Rechercheplan für Provinzen, Bezirke, Vergabe und Bau sowie die tiefsten Außenpartner (Abschnitt 3).
 
 ## 1. Warum die Türkei als erstes Land
 
@@ -12,7 +14,7 @@ Version 0.4, 28. September 2026. Ergänzung zu [Entwicklungsplan](ENTWICKLUNGSPL
 
 ## 2. Die Rolle des Spielers
 
-Die Türkei ist nach der Verfassungsänderung von 2017 (in Kraft seit 2018) ein Präsidialsystem *(zu belegen)*. Der Spieler übernimmt deshalb das Amt des **Staatspräsidenten** (Cumhurbaşkanı), der zugleich die Regierung führt.
+Die Türkei ist nach der Verfassungsänderung von 2017 (in Kraft seit 2018) ein Präsidialsystem *(zu belegen)*. Der Spieler steigt deshalb **direkt als Staatspräsident** (Cumhurbaşkanı) ein, der zugleich die Regierung führt. Er spielt eine eigene Figur mit erfundenem Namen, nicht den amtierenden Präsidenten. Die Partie beginnt am heutigen Stichtag.
 
 Die Rolle verändert wichtige Spielregeln gegenüber dem bisherigen Entwurf eines parlamentarischen Regierungschefs:
 
@@ -34,7 +36,10 @@ Die Opposition als Einstieg (etwa Vorsitz einer Oppositionspartei) folgt später
 | Justiz | Verfassungsgericht, Richter- und Staatsanwälterat, Staatsanwaltschaft, Rechnungshof | jeweilige Gesetze, Institutionsseiten |
 | Zentralbank | Gesetz über die Zentralbank, Mandat, Ernennung, Entlassung, geldpolitischer Ausschuss | Zentralbankgesetz, TCMB (tcmb.gov.tr) |
 | Wahlen | Wahlsystem, Sperrklausel, Bündnisregeln, Wahltermine, Kommunalwahlen | Wahlbehörde YSK (ysk.gov.tr), Wahlgesetze |
-| Verwaltung | 81 Provinzen, Gouverneure (ernannt) und Bürgermeister (gewählt), Zuständigkeiten | Innenministerium, Kommunalgesetze |
+| Verwaltung | 81 Provinzen, Landkreise und Großstadtkommunen mit ihren Bezirken (Istanbul, Ankara, Izmir zuerst), Gouverneure (ernannt) und Bürgermeister (gewählt), Zuständigkeiten | Innenministerium, Kommunalgesetze |
+| Vergabe und Bau | Vergaberecht und Ausschreibungsverfahren, Aufsicht über Vergaben, zuständige Ministerien und staatliche Bauträger, Prüfung durch den Rechnungshof, typische Kosten und Bauzeiten | Vergabegesetz (mevzuat.gov.tr), Vergabebehörde, Rechnungshof (Sayıştay), Berichte der Ministerien |
+| Sicherheit | Streitkräfte, Oberbefehl, Entscheidungsweg für Einsätze im Ausland, Notstand | Verfassung, einschlägige Gesetze, Parlamentsbeschlüsse |
+| Außenpartner | EU und Deutschland, USA und NATO, Russland, Nachbarn im Nahen Osten (Syrien, Irak, Iran, Israel, Golfstaaten): Verträge, Handel, Energie, Migration, Rüstung | Außenministerium, Handelsstatistik (TÜİK), Vertragstexte, Veröffentlichungen der Partner |
 
 ### 3.2 Startdaten zum Stichtag
 
@@ -46,6 +51,8 @@ Die Opposition als Einstieg (etwa Vorsitz einer Oppositionspartei) folgt später
 | Staatsfinanzen | Haushalt, Defizit, Schuldenstand, Zinslast, Anleiherenditen, Ratings | Finanzministerium, Schatzamt, Ratingagenturen |
 | Politik | Sitzverteilung, Bündnisse, letzte Wahlergebnisse national und kommunal, Umfragen | YSK, TBMM; Umfragen mit Institut und Methode |
 | Gesellschaft | Bevölkerung nach Provinzen, Alter, Einkommen, Bildung | TÜİK |
+| Regionen | Je Provinz und, wo vorhanden, je Bezirk: Arbeitslosigkeit, Einkommen, Wanderung, Wasser- und Stromversorgung, Gesundheitsversorgung, Wahlergebnisse | TÜİK (regionale Statistiken), YSK, Ministerien, Großstadtkommunen |
+| Karten | Grenzen der Provinzen und Bezirke, Relief, Gewässer, Verkehrsnetz | amtliche Geodaten, OpenStreetMap (Lizenz prüfen) |
 | Einordnung | Länderberichte als Gegenprobe | IWF (Artikel-IV-Berichte, World Economic Outlook), OECD-Wirtschaftsbericht Türkei, Weltbank |
 
 Jeder Wert erhält im Quellenregister Herausgeber, Adresse, Bezugszeitraum, Veröffentlichungs- und Abrufdatum, Einheit und Lizenz (siehe Entwicklungsplan, Abschnitt 5).
@@ -62,24 +69,33 @@ Diese Fälle eignen sich als Beispiele der Mentorin und als Prüfsteine für das
 
 Das Modell muss den Verlauf dieser Fälle nicht exakt nachrechnen. Es muss aber die Richtung und die Reihenfolge der Folgen plausibel wiedergeben können (zum Beispiel: Zinssenkung bei hoher Inflation → Abwertung → höhere Importpreise → höhere Inflation).
 
-## 4. Echte Personen: Empfehlung
+## 4. Echte Personen: Entscheidung
 
-Das ist die heikelste Frage des Länderpakets. **Sie ist noch offen und wird vom Projektinhaber entschieden.**
+Das ist die heikelste Frage des Länderpakets.
 
-**Empfehlung:**
+**Entscheidung des Projektinhabers (28.09.2026):** Die Namen sind erfunden. Die Bilder sind immer gezeichnet, orientieren sich aber an den echten Vorbildern. Figuren mit erkennbarem Vorbild haben im Startzustand keine erfundenen Geheimnisse oder Skandale.
+
+**Was daraus folgt:**
 
 - **Echt:** Institutionen, Ämter, Parteien, Bündnisse, Sitzverteilungen, Wahlergebnisse, Statistiken, Gesetze.
-- **Der Spieler** ist eine eigene Figur, die das Präsidentenamt übernimmt. Er spielt nicht eine real lebende Person.
-- **Amtsträger um den Spieler** (Minister, Zentralbankführung, Berater) sind **fiktive Figuren in echten Ämtern**. Sie haben Persönlichkeit, Geheimnisse und Schwächen, ohne dass einer echten Person etwas angedichtet wird.
-- **Echte Personen** kommen höchstens mit belegten öffentlichen Fakten vor (zum Beispiel in der historischen Einführung) und nie mit erfundenen Motiven, Geheimnissen oder Skandalen.
+- **Der Spieler** ist eine eigene Figur, die das Präsidentenamt übernimmt. Er spielt nicht eine real lebende Person. Auch seine Familie ist frei erfunden.
+- **Politiker und Amtsträger** erscheinen unter **erfundenen Namen**. Ihre **gezeichneten Porträts** orientieren sich an den echten Vorbildern, damit das Land wiedererkennbar bleibt.
+- **Figuren mit erkennbarem Vorbild** starten nur mit belegten öffentlichen Eigenschaften (Amt, Partei, öffentliche Positionen). Sie haben im Startzustand **keine erfundenen Geheimnisse, Affären oder Straftaten**.
+- **Figuren ohne Vorbild** (etwa Stabschefin, Berater, Journalistin, Unternehmer, die Mentorin) dürfen Geheimnisse und Schwächen haben. Aus ihnen entstehen die meisten persönlichen Geschichten.
+- **Im Laufe der Partie** entsteht alles aus den Spielregeln und ist ausdrücklich alternative Geschichte. Das Spiel sagt das beim Start und im Geschichtsbuchkapitel.
+- **Echte Personen mit echtem Namen** kommen höchstens mit belegten öffentlichen Fakten vor, zum Beispiel in der historischen Einführung, und nie mit erfundenen Motiven.
 
-**Warum:** Das Spiel lebt von Figuren mit Schwächen und Geheimnissen, von Affären und Verrat. Solche Eigenschaften echten, lebenden Politikern zuzuschreiben, wäre rechtlich riskant (Persönlichkeitsrecht, in der Türkei zusätzlich strafrechtliche Risiken bei Beleidigung von Amtsträgern) und würde das Spiel in einen politischen Streit ziehen, der vom Lernen ablenkt. Mit fiktiven Figuren in echten Ämtern bleibt das Land echt, und die Geschichten dürfen frei entstehen.
+**Rechtlicher Vorbehalt:** Eine gezeichnete Figur, die erkennbar einer echten Person nachgebildet ist, kann trotz erfundenem Namen rechtlich als diese Person gelten. Deshalb die Regel zu Geheimnissen. Auch Handlungen, die eine solche Figur im Spiel begeht, könnten ihr zugeschrieben werden. Vor einer Veröffentlichung klärt eine anwaltliche Prüfung, wie nah die Porträts den Vorbildern sein dürfen.
 
-**Vor einer Veröffentlichung:** anwaltliche Prüfung zu Persönlichkeitsrechten in Deutschland und der Türkei, zu Markenrechten (Partei- und Institutionslogos) und zum Vertrieb in der Türkei.
+**Warum keine erfundenen Skandale für echte Vorbilder:** Das Spiel lebt von Figuren mit Schwächen und Geheimnissen, von Affären und Verrat. Solche Eigenschaften echten, lebenden Politikern zuzuschreiben, wäre rechtlich riskant (Persönlichkeitsrecht, in der Türkei zusätzlich strafrechtliche Risiken bei Beleidigung von Amtsträgern) und würde das Spiel in einen politischen Streit ziehen, der vom Lernen ablenkt. Mit fiktiven Figuren in echten Ämtern bleibt das Land echt, und die Geschichten dürfen frei entstehen.
+
+**Vor einer Veröffentlichung:** anwaltliche Prüfung zu Persönlichkeitsrechten in Deutschland und der Türkei (einschließlich der Porträts nach echten Vorbildern), zu Markenrechten (Partei- und Institutionslogos), zu den Nutzungsrechten KI-generierter Bilder und zum Vertrieb in der Türkei.
 
 ## 5. Heikle Themen
 
 Die Türkei hat Themen, bei denen eine einseitige Darstellung dem Lernziel schaden und Spieler verletzen würde, zum Beispiel die Kurdenfrage, der Putschversuch von 2016 und seine Folgen, Presse- und Meinungsfreiheit, Verfahren gegen Oppositionspolitiker, Migration und die Beziehungen zu Nachbarstaaten.
+
+**Entscheidung des Projektinhabers (28.09.2026):** Diese Themen sind voll im Spiel, und zwar ausgewogen: als echte Themen im Politiknetz und in Ereignissen, mit belegten Fakten, mehreren Sichtweisen durch Figuren und ohne Wertung durch die Mentorin. Auch Krieg, Putsch und Attentat sind als fiktive Entwicklungen möglich, wenn die Bedingungen im Weltzustand vorliegen ([Spieldesign](SPIELDESIGN.md), Abschnitte 13 und 16).
 
 Für diese Themen gilt:
 
@@ -91,12 +107,15 @@ Für diese Themen gilt:
 
 ## 6. Sprache
 
-Das Spiel erscheint zuerst auf Deutsch. Türkische Begriffe erscheinen dort, wo sie zum Verständnis gehören (Cumhurbaşkanı, TBMM, Lira), mit Erklärung im Notizbuch. Eine türkische Sprachfassung wird nach dem ersten Prototyp geprüft; die Primärquellen sind überwiegend türkischsprachig.
+**Entscheidung des Projektinhabers (28.09.2026):** zuerst Deutsch, dann Englisch, Türkisch später.
+
+Türkische Begriffe erscheinen dort, wo sie zum Verständnis gehören (Cumhurbaşkanı, TBMM, Lira), mit Erklärung im Notizbuch. Alle Texte werden von Anfang an so angelegt, dass sie sich übersetzen lassen. Die Primärquellen sind überwiegend türkischsprachig; das betrifft die Recherche, nicht die Spielsprache.
 
 ## 7. Nächste Schritte
 
-1. **Stichtag festlegen.** Vorschlag: ein Tag, für den alle Kerndaten bereits veröffentlicht sind.
-2. **Institutionen belegen** (Abschnitt 3.1) und daraus die Spielregeln für Befugnisse und Verfahren ableiten.
-3. **Startdaten erheben** (Abschnitt 3.2) und ins Quellenregister eintragen.
+1. **Stichtag festlegen.** Entschieden ist „heute“: der jüngste Tag, für den alle Kerndaten veröffentlicht sind. Jede Datenaktualisierung erzeugt ein neues Szenario.
+2. **Institutionen belegen** (Abschnitt 3.1) und daraus die Spielregeln für Befugnisse und Verfahren ableiten, einschließlich Vergabe, Bau und Sicherheit.
+3. **Startdaten erheben** (Abschnitt 3.2) und ins Quellenregister eintragen, auch je Provinz und für die Bezirke von Istanbul, Ankara und Izmir.
 4. **Lernfälle belegen** (Abschnitt 3.3) als Prüfsteine für das Wirtschaftsmodell.
-5. **Entscheidung zu echten Personen** (Abschnitt 4) durch den Projektinhaber.
+5. **Figurenliste anlegen:** Welche Ämter bekommen eine Figur mit Vorbild, welche eine frei erfundene (Abschnitt 4)?
+6. **Heikle Themen festlegen:** für jedes Thema schriftlich, wie es vorkommt, gegengelesen von einer Person mit Landeskenntnis (Abschnitt 5).

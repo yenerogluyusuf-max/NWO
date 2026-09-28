@@ -84,7 +84,7 @@ Ein wirtschaftlich erfolgreiches, friedliches Land muss ein vollständiges Spiel
 
 **Beobachtung:** Die offizielle Darstellung verbindet die Führung Sordlands mit Kabinettsmitgliedern eigener Überzeugungen und Interessen, wirtschaftlichen Problemen, außenpolitischen Konflikten und persönlichen Beziehungen. Die Entscheidungen prägen das Ende der Amtszeit. [Torpor Games: Suzerain](https://www.suzeraingame.com/).
 
-**NWO-Entscheidung:** Große Konflikte bekommen Gesichter und Gesprächssituationen. Ein Minister erklärt, weshalb er eine Reform ablehnt; ein Bürgermeister beschreibt ihre Umsetzung vor Ort. Geschriebene Szenenvorlagen sichern Ton, Aufbau und Relevanz. Die konkreten Teilnehmer, Anliegen und Konsequenzen stammen aus dem Spielzustand.
+**NWO-Entscheidung:** Suzerain ist zusammen mit der dänischen Politserie Borgen das Vorbild für den Ton: ernst mit trockenem Humor. Wie in Suzerain hat die eigene Figur ein Privatleben mit Auswirkungen. Große Konflikte bekommen Gesichter und Gesprächssituationen. Ein Minister erklärt, weshalb er eine Reform ablehnt; ein Bürgermeister beschreibt ihre Umsetzung vor Ort. Geschriebene Szenenvorlagen sichern Ton, Aufbau und Relevanz. Die konkreten Teilnehmer, Anliegen und Konsequenzen stammen aus dem Spielzustand.
 
 Der Spieler kann selbst Themen ansprechen und Gespräche einberufen. Figuren sollen sich an Zusagen und Erfahrungen erinnern. Persönliche Szenen müssen eine Beziehung vertiefen oder einen politischen Konflikt verständlicher machen; belanglose Pflichtdialoge werden vermieden.
 
@@ -94,7 +94,7 @@ Der Spieler kann selbst Themen ansprechen und Gespräche einberufen. Figuren sol
 
 **Beobachtung:** Die offizielle Spielseite beschreibt Wähler, politische Maßnahmen, Koalitionen, Medienrückmeldungen sowie Forderungen von Ministern und Unterstützern. [Positech: Democracy 4](https://www.positech.co.uk/democracy4/).
 
-**NWO-Entscheidung:** Jeder Politikbereich erhält eine untersuchbare Wirkungsansicht. Eine Reform zeigt finanzielle Folgen, betroffene Gruppen, Umsetzungsdauer und relevante Unsicherheiten. Nationale Durchschnittswerte werden mit regionalen und sozialen Unterschieden verbunden.
+**NWO-Entscheidung:** Der Projektinhaber hat entschieden, die Eingabe wie bei Democracy 4 zu gestalten, also als sichtbares Netz aus Maßnahmen, Gesetzen, Problemen und Folgen mit mehr als 150 Knoten, ergänzt um die Schreibfläche. Anders als im Vorbild ist das Netz regional: Jeder Knoten hat eine Ausprägung je Provinz, und viele Probleme lassen sich nur durch Bauprojekte vor Ort lösen ([Spieldesign](SPIELDESIGN.md), Abschnitt 5). Jeder Politikbereich erhält eine untersuchbare Wirkungsansicht. Eine Reform zeigt finanzielle Folgen, betroffene Gruppen, Umsetzungsdauer und relevante Unsicherheiten. Nationale Durchschnittswerte werden mit regionalen und sozialen Unterschieden verbunden.
 
 ### Datengetriebene Wirkungen
 

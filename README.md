@@ -16,6 +16,7 @@ Politische Simulation, in der man ein echtes Land regiert, zuerst die Türkei, u
 | [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md) | Kerngrößen, elf Zusammenhänge, die Zentralbank |
 | [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md) | Spielerrolle, Rechercheplan mit Primärquellen, echte Personen, heikle Themen |
 | [Referenzanalyse](REFERENZANALYSE.md) | Vorbilder (Civilization, Hearts of Iron, Suzerain, Democracy 4) und abgeleitete Entscheidungen |
+| [Namensvorschläge](NAMENSVORSCHLAEGE.md) | Ideen für den endgültigen Namen mit Empfehlung |
 | [S0 Papiertest](S0_PAPIERTEST/00_ANLEITUNG.md) | Optionaler Papiertest „Die Klinikum-Affäre“ in der fiktiven Republik Estravia |
 
 Wer neu einsteigt, liest zuerst die Entscheidungen und danach den Projektplan.

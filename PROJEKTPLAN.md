@@ -2,16 +2,17 @@
 
 ## Projektplan und Spielkonzept
 
-Stand: 28. September 2026 — Version 0.4  
-Status: Konzept und Entwicklungsplan, noch keine implementierte Simulation.  
+Stand: 28. September 2026 — Version 0.5  
+Status: Konzept und Entwicklungsplan, noch keine implementierte Simulation. Ziel ist zuerst ein Prototyp; über einen Verkauf wird danach entschieden.  
 Arbeitsname: NWO — New World Order. Nur intern; vor jeder Veröffentlichung wird ein neuer Name gewählt (Begründung im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 9).
 
 Dieser Plan bündelt die bisher besprochene Spielidee. Beschriebene Mechaniken sind Entwicklungsziele. Länderbeispiele sind keine verifizierten Aussagen über die gegenwärtige politische Lage. Reale Ausgangsdaten werden bei der späteren Erstellung eines Startszenarios erhoben, geprüft und dokumentiert.
 
 ## Dokumente und aktuelle Vertiefung
 
-Der Projektplan beschreibt die Gesamtvision. Die weitere Planung ist in drei zusammengehörigen Dokumenten ausgearbeitet:
+Der Projektplan beschreibt die Gesamtvision. Die weitere Planung ist in mehreren zusammengehörigen Dokumenten ausgearbeitet:
 
+- [Entscheidungen](ENTSCHEIDUNGEN.md): Entscheidungen des Projektinhabers aus den Fragerunden. Sie gehen allen anderen Dokumenten vor.
 - [Referenzanalyse](REFERENZANALYSE.md): belegte Mechaniken aus Civilization VI und VII, Hearts of Iron IV, Suzerain und Democracy 4; daraus abgeleitete eigene Designentscheidungen mit Quellen.
 - [Spieldesign](SPIELDESIGN.md): Spielstart, Zeitablauf, Bedienung, freie Anweisungen, institutionelle Prozesse und drei durchgängige Beispielszenarien.
 - [Entwicklungsplan](ENTWICKLUNGSPLAN.md): begrenzter erster Prototyp, Abhängigkeiten, Arbeitspakete, Datenmodell und überprüfbare Meilensteine.
@@ -19,7 +20,9 @@ Der Projektplan beschreibt die Gesamtvision. Die weitere Planung ist in drei zus
 - [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md): die Türkei als erstes Land, Spielerrolle als Staatspräsident, Rechercheplan mit Primärquellen, Umgang mit echten Personen und heiklen Themen.
 - [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md): Kerngrößen, elf Zusammenhänge, die Zentralbank mit drei Stufen der Unabhängigkeit und die Quellenkandidaten.
 
-**Version 0.4 macht NWO zu einem Spiel, aus dem man lernt, und verzichtet auf vorgegebene Szenarien.** Man soll verstehen, wie Wirtschaft, Zentralbank, Gewaltenteilung, Koalitionen und Medien funktionieren, durch eigene Entscheidungen und mit einer neutralen Mentorin, die alles erklärt. Die Welt beginnt ohne eingebautes Problem; Krisen und Affären entstehen aus den Systemen. Zielgruppe sind interessierte Spieler ohne Vorwissen. Das erste Land ist die Türkei, mit echten Daten und Institutionen; der Spieler ist Staatspräsident. Einzelheiten im [Lernkonzept](LERNKONZEPT.md) und im [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md).
+**Version 0.5 arbeitet die Entscheidungen aus der Fragerunde ein** ([Entscheidungen](ENTSCHEIDUNGEN.md), Block B). Der Spieler steigt direkt als Staatspräsident zum heutigen Stichtag ein und spielt eine offene Karriere. Am Ende stehen eine Bilanz und ein Geschichtsbuchkapitel, danach geht es mit einer neuen Figur im selben Land weiter. Neben der Schreibfläche gibt es ein sichtbares Politiknetz nach dem Vorbild von Democracy 4, das regional wirkt. Die Karte zeigt 81 Provinzen, Großstädte lassen sich bis in die Bezirke aufklappen. Bauprojekte laufen realistisch über den Staat. Der Ton ist ernst mit trockenem Humor, der Bildstil gezeichnet und realistisch. Das Spiel läuft auf dem Computer, und die Spieler bringen ihren eigenen KI-Schlüssel mit.
+
+**Version 0.4 machte NWO zu einem Spiel, aus dem man lernt, und verzichtet auf vorgegebene Szenarien.** Man soll verstehen, wie Wirtschaft, Zentralbank, Gewaltenteilung, Koalitionen und Medien funktionieren, durch eigene Entscheidungen und mit einer neutralen Mentorin, die alles erklärt. Die Welt beginnt ohne eingebautes Problem; Krisen und Affären entstehen aus den Systemen. Zielgruppe sind interessierte Spieler ohne Vorwissen. Das erste Land ist die Türkei, mit echten Daten und Institutionen; der Spieler ist Staatspräsident. Einzelheiten im [Lernkonzept](LERNKONZEPT.md) und im [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md).
 
 **Version 0.3 stellte den Spielspaß an die Spitze.** Neu sind die sechs Säulen des Spielspaßes und die Oberflächenprinzipien im [Spieldesign](SPIELDESIGN.md), Abschnitte 0 und 4, sowie zwei vorgeschaltete Teststufen mit einem Spaß-Tor im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 0. Kein großer Ausbau, bevor bewiesen ist, dass Menschen weiterspielen wollen.
 
@@ -44,6 +47,8 @@ Die wichtigsten Einflüsse sind:
 
 Die eigenständige Identität von NWO entsteht durch die Verbindung dieser Ansätze mit echten Mechanismen, frei formulierten politischen Anweisungen und einer Mentorin, die erklärt, was passiert. Man spielt nicht nur einen Staat, man versteht ihn danach besser.
 
+**Ton und Bild.** Der Ton ist ernst mit trockenem Humor, wie in Suzerain oder der Serie Borgen. Alles ist gezeichnet, aber sehr schön und sehr realistisch, und die Karten sind sehr detailliert. Einzelheiten stehen im [Spieldesign](SPIELDESIGN.md), Abschnitt 1.
+
 ## 2. Leitprinzipien
 
 1. **Spielspaß vor Vollständigkeit.** Realismus ist das Mittel, nicht der Zweck. Jede Mechanik muss glaubwürdig sein und das Spiel spannender machen; sonst wird sie vereinfacht, delegiert oder gestrichen.
@@ -51,7 +56,7 @@ Die eigenständige Identität von NWO entsteht durch die Verbindung dieser Ansä
 3. **Kein vorgegebenes Szenario.** Die Welt beginnt in einem Zustand wie das echte Leben an einem beliebigen Tag. Probleme, Krisen und Affären entstehen aus den Systemen, nicht aus einem Drehbuch.
 4. **Echte Ausgangslage, offene Zukunft.** Neue reale Nachrichten überschreiben keinen laufenden Spielstand.
 5. **Absichten sind noch keine Ergebnisse.** Eine Anweisung muss durch Menschen, Verfahren und Institutionen umgesetzt werden.
-6. **Macht mit Preis statt Verbot.** Der Spieler darf fast alles versuchen. Das Spiel zeigt Wege und ihre Kosten statt bloßer Ablehnungen; Realismus zeigt sich vor allem als Konsequenz.
+6. **Macht mit Preis statt Verbot.** Der Spieler darf fast alles versuchen. Das Spiel zeigt Wege und ihre Kosten statt bloßer Ablehnungen; Realismus zeigt sich vor allem als Konsequenz. Das gilt auch moralisch: Alles ist möglich, auch das Hässliche, mit ehrlichen Folgen. Das Spiel belohnt keine Richtung und moralisiert nicht.
 7. **Akteure haben eigene Interessen.** Minister, Behörden, Parteien, Unternehmen und andere Staaten handeln auch ohne den Spieler.
 8. **Wirkungen brauchen Zeit.** Ankündigung, Beschluss, Finanzierung, Umsetzung und Ergebnis sind unterschiedliche Zustände.
 9. **Information ist unvollständig.** Der Spieler kennt die Welt durch Berichte, Beobachtungen und Einschätzungen.
@@ -62,19 +67,19 @@ Die eigenständige Identität von NWO entsteht durch die Verbindung dieser Ansä
 
 ## 3. Rollen, Spielstart und politische Karriere
 
-Zum Start wählt der Spieler ein unterstütztes Land, einen Datenstichtag und eine Rolle:
+Die erste Version startet **heute**, also am jüngsten Stichtag, für den alle Kerndaten veröffentlicht sind. Der Spieler steigt **direkt als Staatspräsident der Türkei** ein. Er spielt dabei eine eigene Figur, nicht den amtierenden Präsidenten. Später kommen hinzu:
 
-- Regierungschef einer bestehenden Regierung.
-- Vorsitzender einer Oppositionspartei.
-- Führung einer eigenen politischen Bewegung, sofern das Szenario diesen Einstieg unterstützt.
-
-Ministerämter und regionale Regierungsämter sind spätere Erweiterungen. Die Türkei ist aufgrund der bisherigen Beispiele der vorgeschlagene erste Kandidat für einen Länderprototyp; Deutschland ist ein möglicher zweiter institutioneller Vergleichsfall. Die endgültige Reihenfolge hängt auch von Datenverfügbarkeit und Umsetzungsaufwand ab.
+- historische Startpunkte,
+- der Vorsitz einer Oppositionspartei,
+- die Führung einer eigenen politischen Bewegung, sofern das Szenario diesen Einstieg unterstützt,
+- Ministerämter und regionale Regierungsämter,
+- weitere spielbare Länder. Deutschland ist ein möglicher zweiter institutioneller Vergleichsfall; die Reihenfolge hängt von Datenverfügbarkeit und Umsetzungsaufwand ab.
 
 Vor dem Einstieg erhält der Spieler ein Länderbriefing: Befugnisse seines Amts, institutionelle Regeln, politische Mehrheiten, wirtschaftliche Lage, regionale Unterschiede, internationale Beziehungen und bekannte Krisen. Eine historische Übersicht erklärt langfristige Konflikte und Bindungen, ohne die Zukunft festzuschreiben.
 
-Ein Machtverlust beendet das Spiel nicht automatisch. Der Spieler kann in die Opposition wechseln, den Parteivorsitz verlieren, zurückkehren oder seine politische Karriere fortsetzen. Eine spätere Langzeitkampagne kann mehrere Wahlperioden umfassen.
+Eine Partie ist eine **offene Karriere** ohne festes Ende. Ein Machtverlust beendet das Spiel nicht automatisch: Der Spieler kann in die Opposition wechseln, den Parteivorsitz verlieren, zurückkehren oder seine politische Karriere fortsetzen. Endet die Laufbahn der Figur, zieht das Spiel Bilanz und schreibt ein **Kapitel im Geschichtsbuch**. Danach kann der Spieler dasselbe Land mit einer neuen Figur weiterspielen; Schulden, Verträge, Bauwerke und Erinnerungen bleiben bestehen.
 
-Erfolg wird anhand selbst gewählter Ziele und mehrerer Ergebnisse bewertet: Lebensbedingungen, staatliche Leistungsfähigkeit, wirtschaftliche Entwicklung, gesellschaftliches Vertrauen, politische Rechte, Sicherheit, internationale Stellung und die eigene politische Karriere.
+Erfolg misst der Spieler an **selbst gewählten Zielen und an seinem Vermächtnis**. Es gibt keinen Sieg und keinen Punktestand. Das Spiel zeigt dazu mehrere Ergebnisse: Lebensbedingungen, staatliche Leistungsfähigkeit, wirtschaftliche Entwicklung, gesellschaftliches Vertrauen, politische Rechte, Sicherheit, internationale Stellung und die eigene politische Karriere.
 
 ## 4. Der zentrale Spielablauf
 
@@ -89,6 +94,11 @@ Ein typischer Spieltag beginnt mit einem priorisierten Briefing. Danach führt d
 Die persönliche Aufmerksamkeit ist begrenzt. Der Spieler bestimmt, welche Vorgänge ihn erreichen, wer selbstständig entscheiden darf und welche Themen besonders beobachtet werden sollen.
 
 ## 5. Freie Anweisungen und politische Gespräche
+
+Der Spieler hat zwei gleichwertige Zugänge zum Staat:
+
+- **Das Politiknetz** nach dem Vorbild von Democracy 4. Maßnahmen, Gesetze, Probleme und ihre Folgen sind als sichtbares Netz verbunden. Probleme sind zum Beispiel die Abwanderung von Fachkräften oder eine schlechter werdende Wasserversorgung. Das Netz ist regional: Ein Problem kann im Westen bestehen und im Osten nicht. Dort muss Versorgung geschaffen und gebaut werden, ein Regler allein genügt nicht.
+- **Die Schreibfläche** für freie Anweisungen und Gespräche. Beide Zugänge verändern denselben Zustand. Einzelheiten stehen im [Spieldesign](SPIELDESIGN.md), Abschnitt 5.
 
 Der Chat ist ein tatsächlicher Zugang zum Staatsapparat. Es gibt Kabinettsgespräche, vertrauliche Einzelgespräche, Krisenrunden, Parteisitzungen und diplomatische Gespräche.
 
@@ -150,6 +160,8 @@ Wahlen berücksichtigen das jeweilige Wahlsystem, regionale Kandidaten, Wahlbete
 
 Oppositionsspiel umfasst Organisationsaufbau, Programmarbeit, Kandidatenauswahl, parlamentarische Kontrolle, Öffentlichkeitsarbeit und Koalitionsverhandlungen.
 
+Landesweite Wahlen haben einen Wahlkampf als eigene Phase, TV-Duelle und Interviews sowie einen Wahlabend, an dem die Ergebnisse Provinz für Provinz einlaufen. Kommunalwahlen sind viel kompakter; ihre Ergebnisse spiegeln auch die Arbeit der Regierung vor Ort. Manipulation ist in jeder Stufe möglich: Je mehr man tut, desto höher sind Risiko und Folgen. Wie stark die Opposition spielt, stellt der Spieler als Schwierigkeitsgrad ein. Einzelheiten stehen im [Spieldesign](SPIELDESIGN.md), Abschnitt 8.
+
 ## 9. Medien, Öffentlichkeit und politische Krisen
 
 Medien unterscheiden sich in Reichweite, Zielgruppen, Glaubwürdigkeit, Eigentumsverhältnissen und redaktioneller Ausrichtung. Öffentliche Aufmerksamkeit verteilt sich auf konkurrierende Themen.
@@ -168,7 +180,7 @@ Falls Maßnahmen erfolgen, können daraus rechtliche Verfahren, öffentliche Rea
 
 Der gesamte Vorgang bleibt in der politischen Erinnerung. Spätere Beweise, Untersuchungen und Entscheidungen können frühere Aussagen des Spielers wieder relevant machen.
 
-Fiktive Nebenfiguren ermöglichen dynamische persönliche Geschichten. Erfundenes Fehlverhalten realer Personen wird nicht als belegte Ausgangstatsache behandelt.
+Fiktive Nebenfiguren ermöglichen dynamische persönliche Geschichten. Erfundenes Fehlverhalten realer Personen wird nicht als belegte Ausgangstatsache behandelt. Politiker und Amtsträger tragen erfundene Namen. Ihre gezeichneten Porträts orientieren sich an den echten Vorbildern. Die Folgen dieser Entscheidung und den rechtlichen Vorbehalt beschreibt das [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4.
 
 ## 10. Wirtschaft, Haushalt und Infrastruktur
 
@@ -177,6 +189,10 @@ Das Wirtschaftsmodell verbindet Staatshaushalt, Haushalte, Unternehmen, Arbeitsm
 Der Spieler gestaltet Steuern, Ausgaben, Investitionen, Sozialleistungen, Subventionen und Regulierung innerhalb seiner tatsächlichen Befugnisse. Institutionen wie eine unabhängige Zentralbank handeln entsprechend dem jeweiligen Länderregelwerk eigenständig.
 
 Maßnahmen wirken zeitverzögert. Ein finanziertes Infrastrukturprogramm benötigt Planung, Material, Personal und Umsetzungskapazität. Ankündigungen können Erwartungen verändern, bevor reale Verbesserungen eintreten.
+
+**Bauen läuft realistisch über den Staat:** Auftrag, zuständiges Ministerium, Ausschreibung, Baufirmen, Kosten, Verzögerungen und manchmal Korruption. Den Fortschritt sieht man auf der Karte. Einzelheiten stehen im [Spieldesign](SPIELDESIGN.md), Abschnitt 10.
+
+**Folgen im Voraus:** Vor einer Entscheidung zeigt das Spiel Richtung und Bandbreite der erwarteten Folgen mitsamt ihrer Unsicherheit, und die Mentorin erklärt sie. Genaue Zahlen gibt es erst, wenn die Folgen eingetreten und gemessen sind.
 
 Branchen und Regionen reagieren unterschiedlich auf Energiepreise, Nachfrage, Handel, Finanzierung und politische Unsicherheit. Investitionen erzeugen sowohl kurzfristige Kosten als auch mögliche langfristige Erträge.
 
@@ -194,7 +210,7 @@ Internationale Organisationen und Gerichte werden anhand ihrer jeweiligen Zustä
 
 Verhandlungen betreffen unter anderem Handel, Energie, Migration, Investitionen, Sanktionen, Technologie, Infrastruktur und Verteidigung. Ein ausländischer Regierungswechsel kann Prioritäten und Verhandlungsspielräume verändern.
 
-Besonders relevante Partner werden tief simuliert. Weitere Staaten können zunächst mit geringerer Detailtiefe laufen, müssen aber einen konsistenten Zustand und eine nachvollziehbare Vorgeschichte behalten.
+Die Türkei wird tief simuliert. Die übrige Welt ist vereinfacht, handelt aber eigenständig. Besonders relevante Partner erhalten mehr Tiefe als der Rest; alle Staaten behalten einen konsistenten Zustand und eine nachvollziehbare Vorgeschichte. Weitere spielbare Länder folgen später.
 
 ## 12. Verträge, Bündnisse und geheime Absprachen
 
@@ -242,12 +258,13 @@ Krisenvorsorge umfasst auch zivile Infrastruktur, Katastrophenschutz, Energiever
 
 Die Oberfläche ist bei NWO das eigentliche Spiel, denn der Spieler erlebt die Simulation nur durch sie. Zentrales Objekt ist der Vorgang; der Schreibtisch ist die Heimat, von der aus alle anderen Bereiche geöffnet werden. Absicht, Beschluss und Wirkung haben eine feste, überall gleiche Bildsprache, und jede Zahl beantwortet auf Klick die Frage „Warum?“. Die Einzelheiten stehen im [Spieldesign](SPIELDESIGN.md), Abschnitt 4.
 
-Die Oberfläche verbindet vier Arbeitsbereiche:
+Die Oberfläche verbindet fünf Arbeitsbereiche:
 
-1. **Karte:** Welt, Land, Region, Stadt und bei belastbarer Datenlage Stadtbezirke. Ebenen zeigen Wahlergebnisse, Bevölkerung, Wirtschaft, Infrastruktur, Energie und aktuelle Ereignisse.
+1. **Karte:** Welt, Land und die 81 Provinzen. Großstädte lassen sich bis in die Bezirke aufklappen, soweit die Datenlage das trägt. Ebenen zeigen Wahlergebnisse, Bevölkerung, Wirtschaft, Infrastruktur, Energie, regionale Probleme und aktuelle Ereignisse. Bauprojekte zeigen ihren Fortschritt. Die Karte ist gezeichnet und sehr detailliert.
 2. **Schreibtisch:** Briefings, Akten, Gesetzesvorlagen, Berichte, Fristen und laufende Aufträge.
-3. **Gespräche:** Kabinett, Einzelgespräche, Partei, Krisenrunden und Diplomatie.
-4. **Personen und Beziehungen:** Biografien, Zuständigkeiten, bekannte Netzwerke und politische Konflikte.
+3. **Gespräche und Schreibfläche:** Kabinett, Einzelgespräche, Partei, Krisenrunden, Diplomatie und freie Anweisungen.
+4. **Politiknetz:** Maßnahmen, Gesetze, Probleme und Folgen, national oder für eine Provinz.
+5. **Personen und Beziehungen:** Biografien mit gezeichneten Porträts, Zuständigkeiten, bekannte Netzwerke und politische Konflikte.
 
 Alle Bereiche sind verknüpft. Ein Bericht führt zur betroffenen Region, eine Region zu ihren Projekten und Verantwortlichen, eine Entscheidung zu ihrer Vorgangsakte.
 
@@ -276,7 +293,7 @@ Nach Spielbeginn entwickeln sich Werte durch Simulationsregeln, Akteursentscheid
 
 ## 17. Technisches Grundmodell
 
-Die konkrete Technologieauswahl bleibt bis zu den ersten technischen Versuchen offen. Fachlich werden folgende Komponenten benötigt:
+Das Spiel läuft auf dem Computer. Die konkrete Technologieauswahl bleibt bis zu den ersten technischen Versuchen offen. Fachlich werden folgende Komponenten benötigt:
 
 - **Weltzustand:** Länder, Regionen, Personen, Institutionen, Bevölkerungsgruppen, Wirtschaft, Streitkräfte und Beziehungen.
 - **Simulationskern:** Zeitfortschritt, Ressourcen, Abhängigkeiten und Zustandsänderungen.
@@ -294,11 +311,15 @@ Berater erhalten nur Informationen, die ihnen im Spiel zugänglich sind. Rollenw
 
 Zufallszustände und Spielereignisse sollen reproduzierbar gespeichert werden, damit Fehler und unerwartete Entwicklungen untersucht werden können. Sprachmodelle werden gezielt für relevante Gespräche und Berichte verwendet; die laufende Grundsimulation muss ohne einen Modellaufruf pro Person oder Zeitschritt auskommen.
 
+Die Spieler bringen ihren **eigenen KI-Schlüssel** mit und tragen damit die Kosten der Sprachmodelle selbst. Mehrere große Anbieter werden unterstützt. Der Schlüssel bleibt auf dem eigenen Rechner und wird nie im Spielstand gespeichert. Das Spiel zeigt, was eine Sitzung ungefähr kostet. Ohne Schlüssel oder bei einem Ausfall ist das Spiel eingeschränkt spielbar: Die Simulation läuft weiter, und Gespräche nutzen vorbereitete Antwortvorlagen.
+
+Alle Bilder, also Porträts, Karten und Akten, entstehen per KI-Bildgenerierung mit einem festen Stilleitfaden.
+
 ## 18. Entwicklungsfahrplan
 
 ### Phase 0: Spielspaß beweisen
 
-Zuerst ein Papiertest mit einem Menschen als Simulation, danach ein kleines spielbares Kernstück mit Szenario A, sechs Figuren und zwei Wochen Spielzeit. Erst wenn das Spaß-Tor bestanden ist, beginnen Datenaufbau und die folgenden Phasen. Einzelheiten im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 0.
+Optional zuerst ein Papiertest mit einem Menschen als Simulation. Danach folgt eine lebendige Welt (S1): die Türkei zum Stichtag, der Spieler als Staatspräsident, ein Jahr Spielzeit, kein vorgegebenes Szenario. S1 enthält bereits das volle Politiknetz und die gezeichnete Karte und wird deshalb in Ausbaustufen gebaut. Erst wenn das Spaß-Tor und das Lern-Tor bestanden sind, beginnen der große Datenaufbau und die folgenden Phasen. Einzelheiten im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 0.
 
 ### Phase 1: Spielregeln und Ländergrundlage
 
@@ -306,7 +327,7 @@ Ergebnis: ein klar abgegrenztes erstes Land, ein Datenstichtag, ein institutione
 
 ### Phase 2: Durchgängiger Prototyp
 
-Umfang: ein Regierungsquartal, ein Kabinett, Opposition, einige Medien und wirtschaftliche Akteure, eine detaillierte Region und wenige wichtige internationale Partner.
+Umfang: ein Regierungsquartal, ein Kabinett, Opposition, einige Medien und wirtschaftliche Akteure, die 81 Provinzen mit einer bis in die Bezirke aufklappbaren Großstadt, ein staatliches Bauprojekt und wenige wichtige internationale Partner.
 
 Der Prototyp verbindet ein wirtschaftliches Problem, einen politischen Skandal und eine diplomatische Verhandlung. Der Spieler bearbeitet sie über Briefings, freie Anweisungen und Entscheidungen. Folgen müssen in Regierung, Gesellschaft und Wirtschaft sichtbar werden.
 
@@ -327,6 +348,8 @@ Vertiefung der bereits prototypisch vorhandenen Verträge, Bündnisse, geheimen 
 Ein zweites Land überprüft, ob institutionelle Unterschiede tatsächlich unterschiedliche Spielerlebnisse erzeugen. Anschließend folgen weitere Länder, längere Karrieren und zusätzliche geografische Tiefe.
 
 Konkrete Zeit- und Budgetschätzungen werden erst nach dem durchgängigen Prototyp festgelegt. Die weltweite Vollsimulation ist die langfristige Vision und kein sinnvoller Umfang für die erste Veröffentlichung.
+
+Das Projekt läuft nebenbei; ExamLab hat Vorrang. Das Team besteht aus dem Projektinhaber und Claude. Ob und wie das Spiel verkauft wird, entscheidet sich nach dem Prototyp.
 
 ## 19. Qualitätskriterien und zentrale Risiken
 

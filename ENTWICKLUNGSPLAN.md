@@ -1,6 +1,8 @@
 # NWO — Entwicklungsplan und überprüfbare Meilensteine
 
-Version 0.4, 28. September 2026. Zusammen mit [Spieldesign](SPIELDESIGN.md), [Lernkonzept](LERNKONZEPT.md), [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md) und [Referenzanalyse](REFERENZANALYSE.md) lesen.
+Version 0.5, 28. September 2026. Zusammen mit [Entscheidungen](ENTSCHEIDUNGEN.md), [Spieldesign](SPIELDESIGN.md), [Lernkonzept](LERNKONZEPT.md), [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md) und [Referenzanalyse](REFERENZANALYSE.md) lesen.
+
+**Neu in Version 0.5:** S1 enthält nach Entscheidung des Projektinhabers bereits das volle Politiknetz mit mehr als 150 Knoten und die gezeichnete Karte der 81 Provinzen. Deshalb wird S1 in drei Ausbaustufen gebaut, und die Technologieentscheidung fällt vor S1. Neue Arbeitspakete gibt es für Politiknetz, Bauprojekte, KI-Schlüssel, Bildstil, Wahlen und Karriereende. Plattform, Team, Priorität und KI-Kosten sind entschieden (Abschnitte 6, 8 und 9).
 
 **Neu in Version 0.4:** S1 ist kein festes Szenario mehr, sondern eine kleine lebendige Welt, in der Wirtschaft, Zentralbank, Politik und Medien gekoppelt sind. Neben dem Spaß-Tor gilt ein Lern-Tor. Der Papiertest S0 bleibt ein optionales, günstiges Werkzeug.
 
@@ -12,7 +14,9 @@ Die Reihenfolge lautet jetzt:
 
 **(optional S0 Papiertest) → S1 kleine lebendige Welt → Spaß-Tor und Lern-Tor → M0 bis M6.**
 
-Kein großer Datenaufbau und keine Engine-Entscheidung, bevor S1 das Spaß-Tor bestanden hat. Wenn S0 oder S1 scheitern, wird das Konzept geändert, nicht der Umfang vergrößert.
+Kein Ausbau über S1 hinaus, bevor S1 das Spaß-Tor bestanden hat. Wenn S0 oder S1 scheitern, wird das Konzept geändert, nicht der Umfang vergrößert.
+
+**Änderung in Version 0.5:** Weil S1 bereits Karte und volles Politiknetz enthält, fällt die Technologieentscheidung (Abschnitt 6) vor S1, und für S1 wird ein Teil der Daten schon aufgebaut: die 81 Provinzen und die Startwerte für das Netz. Das widerspricht dem bisherigen Grundsatz „erst Spaß beweisen, dann Umfang“ teilweise. Um das Risiko zu begrenzen, wird S1 in Ausbaustufen gebaut, und nach der ersten Stufe gibt es eine frühe Spaßprüfung (siehe unten).
 
 ### S0 — Papiertest mit einem Menschen als Simulation
 
@@ -28,7 +32,7 @@ Kein großer Datenaufbau und keine Engine-Entscheidung, bevor S1 das Spaß-Tor b
 
 **Material:** vollständig vorbereitet im Ordner [S0_PAPIERTEST](S0_PAPIERTEST/00_ANLEITUNG.md) („Die Klinikum-Affäre“, fiktive Republik Estravia; nur als Werkzeug, das Spiel selbst beginnt mit der Türkei).
 
-### S1 — Eine kleine lebendige Welt
+### S1 — Eine lebendige Welt
 
 **Umfang:** die **Türkei** zu einem belegten Stichtag, der Spieler als Staatspräsident, ein Jahr Spielzeit, kein vorgegebenes Szenario. Voraussetzung ist das geprüfte Startpaket aus dem [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md). Gekoppelte Systeme im Kleinen:
 
@@ -37,8 +41,20 @@ Kein großer Datenaufbau und keine Engine-Entscheidung, bevor S1 das Spaß-Tor b
 - **Medien und Justiz:** eine Zeitung mit recherchierender Journalistin, eine unabhängige Staatsanwaltschaft.
 - **Figuren:** etwa acht, darunter Stabschefin, Finanzminister des Koalitionspartners, Innenminister, Gouverneurin der Zentralbank, Journalistin, Unternehmer, Generalstaatsanwältin und die Mentorin.
 - **Ereignisvorlagen:** etwa zehn, die aus dem Weltzustand entstehen können (zum Beispiel Vergabeaffäre, Energiepreisschock, Streik, Streit mit der Zentralbank, Koalitionskrise, Rating-Herabstufung). Welche davon entstehen, hängt von Zufall und Entscheidungen ab.
+- **Politiknetz** in vollem Umfang (mehr als 150 Knoten, nach Themenfeldern gegliedert), regional je Provinz, zusammen mit der Schreibfläche ([Spieldesign](SPIELDESIGN.md), Abschnitt 5).
+- **Gezeichnete Karte** der 81 Provinzen mit regionalen Problemen und mindestens einem staatlichen Bauprojekt von Auftrag bis Betrieb.
 
-Keine Karte, keine Außenpolitik, kein Militär. Echte Oberfläche mit Schreibtisch, Vorgangsakte, Wirtschaftsakte, Gespräch, Auftragskarten, Notizbuch und Mentorin. Echter Simulationskern im Kleinen; das Sprachmodell spricht Figuren und schlägt Handlungen vor, entscheidet aber nichts.
+Keine Außenpolitik und kein Militär. Echte Oberfläche mit Schreibtisch, Vorgangsakte, Wirtschaftsakte, Politiknetz, Karte, Gespräch, Auftragskarten, Notizbuch und Mentorin (Randnotizen und Gespräch). Echter Simulationskern; das Sprachmodell spricht Figuren und schlägt Handlungen vor, entscheidet aber nichts.
+
+**Ausbaustufen von S1:**
+
+| Stufe | Inhalt | Prüfung danach |
+|---|---|---|
+| S1-a Kern | Wirtschaftsmodell und Zentralbank, Figuren, Schreibtisch, Schreibfläche, Mentorin; Politiknetz mit den Themenfeldern Wirtschaft und Haushalt; Provinzen auf einer schlichten Platzhalterkarte | Frühe Spaßprüfung: Der Projektinhaber und zwei bis drei Testpersonen spielen eine Stunde. Will man weiterspielen? Wenn nicht, wird das Konzept geändert, bevor S1-b beginnt. |
+| S1-b Netz und Regionen | Politiknetz auf mehr als 150 Knoten, regionale Ausprägung je Provinz, ein Bauprojekt, fünf Wählergruppen je Region | Automatisierte Testläufe: keine sichere Strategie, keine absurden Kettenreaktionen |
+| S1-c Bild | Gezeichnete Detailkarte, Porträts, Stilleitfaden umgesetzt | Prüfkriterium der Oberfläche |
+
+Die Bezirksansicht von Istanbul, Ankara und Izmir folgt in M3, sofern sie nicht schon vorher fertig ist.
 
 **Ziel:** beweisen, dass das Kernerlebnis ohne menschliche Spielleitung trägt: frei formulieren, auf Widerstand stoßen, einen Preis wählen, die Folge später wiedersehen und verstehen, warum sie eingetreten ist.
 
@@ -65,10 +81,13 @@ Der erste technische Nachweis nach dem Spaß-Tor ist eine 90 Spieltage umfassend
 Vorgeschlagene Größenordnung für diesen Prototyp:
 
 - Ein spielbares Land und ein festgeschriebener Datenstichtag.
-- Eine besonders detaillierte Region, weitere Gebiete aggregiert.
+- Die 81 Provinzen; Istanbul, Ankara und Izmir bis in die Bezirke aufklappbar, soweit die Daten es tragen.
+- Ein vollständiges Politiknetz aus S1 mit mehr als 150 Knoten.
+- Mehrere staatliche Bauprojekte, davon eines mit Korruptionsrisiko und Aufdeckung.
+- Eine Kommunalwahl in kompakter Form als Test der Wahlmechanik.
 - Ungefähr zwölf wichtige Personen mit ausgearbeiteter Persönlichkeit und drei vertieft behandelte ausländische Partner; weitere Figuren nur, wenn Spieltests sie verlangen.
 - Acht funktionale Zuständigkeitsbereiche; dies ist eine Entwicklungsabstraktion, keine Behauptung über die tatsächliche Ressortzahl des gewählten Landes.
-- Acht sorgfältig modellierte politische Maßnahmen, jede mit einem echten Zielkonflikt, statt eines großen oberflächlichen Katalogs.
+- Acht besonders sorgfältig modellierte und kalibrierte politische Maßnahmen, jede mit einem echten Zielkonflikt. Die übrigen Knoten des Politiknetzes erhalten dieselbe Form (Quelle, Verzögerung, Vereinfachung), werden aber zunächst gröber kalibriert und im Netz entsprechend gekennzeichnet.
 - Drei zusammenhängende Testkonflikte aus dem Spieldesign.
 - Ein durchgängiges Beschaffungsgeschäft, ein verhandelbarer Vertrag und ein abstrakter sicherheitspolitischer Konflikt.
 
@@ -138,15 +157,20 @@ P0 bedeutet Voraussetzung für den durchgängigen Prototyp. P1 folgt für die er
 | CB-01 | P0 | Zentralbank mit Gouverneurin und Unabhängigkeitsstufen | ECO-00 | Eingriff und Verzicht haben nachvollziehbare Folgen |
 | MENTOR-01 | P0 | Mentorin, „Was heißt das?“, Nachbesprechung, Notizbuch | ECO-00 | Lern-Tor bestanden |
 | EVT-00 | P0 | Ereignisvorlagen mit Voraussetzungen statt Drehbuch | ECO-00 | Verschiedene Partien erzeugen verschiedene Krisen |
-| FUN-01 | P0 | Kleine lebendige Welt (S1) | ECO-00, CB-01, MENTOR-01, EVT-00 | Spaß-Tor und Lern-Tor bestanden |
-| CHAR-01 | P0 | Figuren mit Ziel, Schwäche, Stimme, Gedächtnis | keine | Testpersonen kennen Figuren beim Namen |
-| UI-00 | P0 | Schreibtisch, Vorgangsakte, Auftragskarten | keine | Prüfkriterium der Oberfläche erfüllt |
+| TECH-00 | P0 | Technologieentscheidung nach Karten-, Simulations-, Sprach- und Bildversuch | keine | Engine, Sprache und Datenhaltung begründet gewählt |
+| ART-00 | P0 | Stilleitfaden und Bildversuch mit KI-Bildgenerierung | keine | Drei Porträts und ein Kartenausschnitt im Zielstil, einheitlich und nutzungsrechtlich geklärt |
+| NET-01 | P0 | Politiknetz: Knotenkatalog (mehr als 150), Verbindungen mit Quelle, Verzögerung und regionaler Ausprägung, Übersicht nach Themenfeldern | ECO-00, TR-00 | Jede Verbindung ist erklärbar; national und je Provinz anzeigbar |
+| FUN-01 | P0 | Lebendige Welt (S1) in den Stufen S1-a bis S1-c | ECO-00, CB-01, MENTOR-01, EVT-00, NET-01, TECH-00, ART-00 | Frühe Spaßprüfung nach S1-a; Spaß-Tor und Lern-Tor nach S1-c bestanden |
+| CHAR-01 | P0 | Figuren mit Ziel, Schwäche, Stimme, Gedächtnis; Regel für Figuren mit echtem Vorbild | keine | Testpersonen kennen Figuren beim Namen; keine Figur mit Vorbild startet mit erfundenem Skandal |
+| UI-00 | P0 | Schreibtisch, Vorgangsakte, Auftragskarten, Politiknetz | keine | Prüfkriterium der Oberfläche erfüllt |
+| KEY-01 | P0 | Eigener KI-Schlüssel: mehrere Anbieter, lokale Speicherung, Kostenanzeige, Spielbarkeit ohne Schlüssel mit Antwortvorlagen | CHAT-01 | Jede Figurenstimme ist mit jedem unterstützten Anbieter getestet; ohne Schlüssel läuft eine Partie durch |
 | DATA-01 | P0 | Quellen- und Schätzungsregister | Spaß-Tor, Szenarioauswahl | Jeder Startwert hat Herkunft und Bezugszeit |
 | RULE-01 | P0 | Ämter, Verfahren, Zuständigkeiten | DATA-01 | Identische Anweisung wird je nach Rolle korrekt verarbeitet |
 | SIM-01 | P0 | Weltzustand, Zeit, Protokoll | DATA-01 | Spielstand lässt sich reproduzierbar laden |
 | ECO-01 | P0 | Haushalt und Verpflichtungen | SIM-01 | Beschlüsse, Zahlungen und Bestand passen zusammen |
 | ACT-01 | P0 | Aufträge und Zustandswechsel | RULE-01, SIM-01 | Blockade, Abbruch und Abschluss funktionieren |
-| GEO-01 | P0 | Regionale Karte und Zuordnung | DATA-01, SIM-01 | Karte und Akte verweisen auf dieselben Objekte |
+| GEO-01 | P0 | Karte der 81 Provinzen; Bezirke von Istanbul, Ankara und Izmir | DATA-01, SIM-01 | Karte, Netz und Akte verweisen auf dieselben Objekte |
+| BUILD-01 | P0 | Staatliche Bauprojekte: Ministerium, Ausschreibung, Baufirmen, Kosten, Verzögerungen, Korruption, Fortschritt auf der Karte, Eingriffe mit Preis | ACT-01, ECO-01, GEO-01 | Ein Projekt läuft vom Auftrag bis zum Betrieb; Verzögerung und Korruption haben nachvollziehbare Ursachen |
 | POP-01 | P0 | Gewichtete Bevölkerungsgruppen | DATA-01, SIM-01 | Summen stimmen, Gruppen überschneiden sich kontrolliert |
 | PER-01 | P0 | Personen, Beziehungen, Wissen | SIM-01 | Aussagen entsprechen dem bekannten Informationsstand |
 | EFF-01 | P0 | Wirkungen und Verzögerungen | ECO-01, POP-01, ACT-01 | Maßnahmen wirken entsprechend ihrem Umsetzungsgrad |
@@ -158,9 +182,11 @@ P0 bedeutet Voraussetzung für den durchgängigen Prototyp. P1 folgt für die er
 | DEF-01 | P0 | Beschaffung und Einsatzbereitschaft | TR-01, EFF-01 | Bestellung wird nicht als einsatzbereite Fähigkeit verbucht |
 | WAR-01 | P0 | Abstrakter Konflikt und Friedensweg | DEF-01, DIP-01, POP-01 | Konfliktverlauf erzeugt materielle und politische Folgen |
 | QA-01 | P0 | Reproduzierbare Beispielszenarien | M1 bis M4 | Drei Fälle bestehen fachliche und spielerische Prüfung |
-| ELE-01 | P1 | Wahlen und Regierungsbildung | RULE-01, POP-01, PER-01 | Stimmen, Sitze und Ämter bleiben unterscheidbar |
-| OPP-01 | P1 | Opposition und politische Karriere | ELE-01 | Machtverlust führt in einen spielbaren Zustand |
+| ELE-01 | P1 | Wahlen und Regierungsbildung: Wahlkampf, TV-Duell, Wahlabend, kompakte Kommunalwahlen | RULE-01, POP-01, PER-01 | Stimmen, Sitze und Ämter bleiben unterscheidbar; Kommunalwahlen spiegeln die regionale Lage |
+| ELE-02 | P1 | Wahlmanipulation als Stufenleiter mit steigendem Risiko | ELE-01, EVT-01 | Jede Stufe erzeugt Spuren und Reaktionen nach Regeln; keine Stufe ist folgenlos |
+| OPP-01 | P1 | Opposition als eigenständiger Akteur, Schwierigkeitsgrad, politische Karriere | ELE-01 | Machtverlust führt in einen spielbaren Zustand; höherer Schwierigkeitsgrad ändert Verhalten, nicht Regeln |
 | LONG-01 | P1 | Mehrjährige Entwicklung | M4, ELE-01 | Langfristige Verpflichtungen bestehen korrekt fort |
+| LEGACY-01 | P1 | Karriereende: Bilanz, Geschichtsbuchkapitel, Weiterspielen mit neuer Figur | LONG-01 | Das Kapitel enthält nur protokollierte Ereignisse; das Land läuft mit neuer Figur konsistent weiter |
 | COUNTRY-02 | P1 | Zweites Länderregelwerk | M5 | Institutionelle Unterschiede erzeugen andere Spielabläufe |
 | MOD-01 | P2 | Dokumentierte Erweiterungspakete | Stabile Datenformate | Neue Inhalte lassen sich prüfen und laden |
 
@@ -180,6 +206,10 @@ P0 bedeutet Voraussetzung für den durchgängigen Prototyp. P1 folgt für die er
 | Beschaffung | Bedarf, Angebote, Zahlungen, Lieferungen, Integration, Folgekosten |
 | Fähigkeit | Material, Personal, Ausbildung, Versorgung, Zustand |
 | Ereignis | Auslöser, Zeitpunkt, beteiligte Objekte, tatsächliche Zustandsänderung |
+| Politikknoten | Art (Maßnahme, Größe, Problem, Gruppe), Themenfeld, Wert je Provinz, Schwellen, Quelle, Kalibrierungsstand |
+| Wirkungsverbindung | Von, nach, Richtung, Stärke, Verzögerung, Unsicherheit, Begründung, Quelle |
+| Bauprojekt | Auftrag, Ort, Ministerium, Ausschreibung, Auftragnehmer, geplante und tatsächliche Kosten, Zeitplan, Fortschritt, Mängel, Unregelmäßigkeiten, laufende Kosten |
+| Figur des Spielers | Laufbahn, Ziele, Vermächtnis, Bilanzen, Geschichtsbuchkapitel, Nachfolgerfigur |
 
 Objekte besitzen stabile Kennungen. Eine Umbenennung einer Person oder eines Gebiets darf historische Verweise nicht zerstören. Berichte werden mit ihrem damaligen Wissensstand gespeichert; ein später korrigierter Wert überschreibt keine alte Aussage unbemerkt.
 
@@ -197,13 +227,16 @@ Ein Szenario erhält einen unveränderlichen Versionsstand. Aktualisierte Daten 
 
 Bereits festgelegt sind die Trennung zwischen Weltmodell und Darstellung, ein festes Zeitmodell, strukturierte Aktionen, versionierte Daten sowie das Protokollieren aller verbindlichen Zustandsänderungen.
 
-Die konkrete Engine, Programmiersprache und Datenbank werden nach drei kleinen Versuchen gewählt:
+**Entschieden:** Das Spiel läuft auf dem Computer. Die Spieler bringen ihren eigenen KI-Schlüssel mit; mehrere große Anbieter werden unterstützt. Ohne Schlüssel ist das Spiel eingeschränkt spielbar, weil Gespräche dann über Antwortvorlagen laufen. Alle Bilder entstehen per KI-Bildgenerierung.
 
-1. **Kartenversuch:** Eine nationale Karte und eine detaillierte Region flüssig öffnen, auswählen und mit Akten verbinden.
-2. **Simulationsversuch:** 90 Spieltage reproduzierbar berechnen, speichern und laden; Last und Wartezeit messen.
-3. **Sprachversuch:** Typische Anweisungen einschließlich Mehrdeutigkeit korrekt auf einen begrenzten Handlungskatalog abbilden.
+Die konkrete Engine, Programmiersprache und Datenbank werden nach vier kleinen Versuchen gewählt, und zwar **vor S1**, weil S1 bereits Karte und Politiknetz enthält:
 
-Bewertet werden Entwicklungsaufwand, Desktop-Unterstützung, Darstellung realer Geografie, Testbarkeit, Speicherverhalten und laufende Sprachmodellkosten. Ein webbasiertes Desktop-Interface und eine Spiele-Engine bleiben bis dahin Kandidaten; keine Technologie wird allein wegen ihrer Popularität ausgewählt.
+1. **Kartenversuch:** Die 81 Provinzen und die Bezirke einer Großstadt flüssig öffnen, auswählen und mit Akten und Netz verbinden; eine gezeichnete Kartenebene darüberlegen.
+2. **Simulationsversuch:** 90 Spieltage mit einem Politiknetz von mehr als 150 Knoten je Provinz reproduzierbar berechnen, speichern und laden; Last und Wartezeit messen.
+3. **Sprachversuch:** Typische Anweisungen einschließlich Mehrdeutigkeit korrekt auf einen begrenzten Handlungskatalog abbilden, mit mindestens zwei Anbietern.
+4. **Bildversuch:** Drei Porträts und ein Kartenausschnitt per KI-Bildgenerierung nach dem Stilleitfaden. Wirken sie sehr schön, realistisch und einheitlich? Sind die Nutzungsrechte für einen möglichen Verkauf geklärt?
+
+Bewertet werden Entwicklungsaufwand, Unterstützung auf dem Computer, Darstellung realer Geografie, Testbarkeit, Speicherverhalten und laufende Sprachmodellkosten für die Spieler. Ein webbasiertes Desktop-Interface und eine Spiele-Engine bleiben bis dahin Kandidaten; keine Technologie wird allein wegen ihrer Popularität ausgewählt.
 
 Die Grundsimulation soll ohne ständigen Sprachdienst fortlaufen können. Ein Dienstausfall hält neue modellgestützte Gespräche an oder nutzt dokumentierte Vorlagen; er erzeugt keine ersatzweise erfundenen Entscheidungen.
 
@@ -238,25 +271,34 @@ Gleichrangig wird der Spielspaß beobachtet: Wo lehnen sich Testpersonen vor, wo
 
 ## 8. Personal, Aufwand und Budgetplanung
 
-Benötigte Fähigkeiten sind Spieldesign, Simulationsprogrammierung, Datenaufbereitung, UI/Kartendarstellung, narrative Gestaltung und Qualitätssicherung. Eine Person kann mehrere Rollen übernehmen; fachliche Prüfung der Länderregeln und ökonomischen Annahmen muss trotzdem stattfinden.
+**Entschieden:** Das Team besteht aus dem Projektinhaber und Claude. Das Projekt läuft nebenbei; ExamLab hat Vorrang. Ziel ist zuerst ein Prototyp, über einen Verkauf wird danach entschieden.
+
+Daraus folgt für die Arbeitsweise:
+
+- **Kleine, abgeschlossene Arbeitspakete**, die sich in einzelnen Sitzungen erledigen lassen und einen sichtbaren Abschluss haben.
+- **Keine Termine**, sondern eine feste Reihenfolge. Jede Sitzung beginnt mit dem Stand in den Entscheidungen und endet mit einem Commit.
+- **Gezielte externe Prüfungen**, weil fachliche Prüfung auch ohne großes Team stattfinden muss: ein Volkswirt für Modell und Erklärungen, eine Person mit Landeskenntnis für heikle Themen, eine Anwältin oder ein Anwalt vor einer Veröffentlichung.
+
+Benötigte Fähigkeiten sind Spieldesign, Simulationsprogrammierung, Datenaufbereitung, UI/Kartendarstellung, Bildgestaltung, narrative Gestaltung und Qualitätssicherung.
 
 Verlässliche Kalender- und Budgetzahlen folgen nach M2, wenn Kartenleistung, Simulationsaufwand und Gesprächskosten messbar sind. Vorher würden konkrete Produktionsversprechen eine Genauigkeit vortäuschen, die noch nicht vorhanden ist.
 
-Die Kostenschätzung trennt einmalige Entwicklung, laufende Szenariopflege, Sprachdienstkosten pro Spielsitzung und Inhaltserstellung. Ein möglicher Onlinedienst wird nicht vorausgesetzt, bevor sein Nutzen und seine Kosten gemessen wurden.
+Die Kostenschätzung trennt einmalige Entwicklung, laufende Szenariopflege, Sprachdienstkosten pro Spielsitzung (von den Spielern über ihren eigenen Schlüssel getragen; für die Entwicklung fallen eigene Testkosten an), Bildgenerierung und Inhaltserstellung. Ein möglicher Onlinedienst wird nicht vorausgesetzt, bevor sein Nutzen und seine Kosten gemessen wurden.
 
 ## 9. Abgeschlossene und noch offene Planungsentscheidungen
 
-**Als Arbeitshypothese festgelegt:** Spielspaß als oberstes Ziel mit Spaß-Tor vor dem Ausbau, Gegenwartsstart mit Stichtag, Einzelspieler, pausierbare Tageszeit, persönliche Rolle, Türkei als erster Kandidat für ein echtes Länderpaket (nach Spaß-Tor und rechtlicher Prüfung), Schreibtisch als Heimat einer verbundenen Oberfläche aus Akte, Gespräch, Beziehungen und Karte, frühe Integration von Diplomatie und Verteidigung.
+**Festgelegt:** Spielspaß als oberstes Ziel mit Spaß-Tor vor dem Ausbau über S1 hinaus, Start am heutigen Stichtag, Einzelspieler auf dem Computer, pausierbare Tage, direkter Einstieg als Staatspräsident, offene Karriere, Türkei als erstes Land, Schreibtisch als Heimat einer verbundenen Oberfläche aus Akte, Gespräch, Politiknetz, Beziehungen und Karte, frühe Integration von Diplomatie und Verteidigung. Die vollständige Liste steht in den [Entscheidungen](ENTSCHEIDUNGEN.md).
 
 **Vor jeder öffentlichen Nennung zu entscheiden:**
 
 - **Name.** „New World Order“ ist ein verbreiteter Begriff aus Verschwörungserzählungen, teils mit antisemitischem Unterton. Das belastet Shop-Freigaben, Presse, Werbung und Auffindbarkeit und hat mit dem Spiel nichts zu tun. „NWO“ bleibt interner Arbeitsname; ein endgültiger Name wird vor der ersten Veröffentlichung gewählt.
-- **Echtes Land: entschieden (28.09.2026).** Das erste Land ist die Türkei, von Anfang an. Offen ist noch, wie echte Personen behandelt werden (Empfehlung und Begründung im [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4), und vor einer Veröffentlichung braucht es eine rechtliche Prüfung zu Persönlichkeitsrechten und Marktzugang.
+- **Echtes Land: entschieden (28.09.2026).** Das erste Land ist die Türkei, von Anfang an.
+- **Echte Personen: entschieden (28.09.2026).** Die Namen sind erfunden, die Porträts gezeichnet und an den echten Vorbildern orientiert. Figuren mit erkennbarem Vorbild starten ohne erfundene Skandale ([Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4). Vor einer Veröffentlichung braucht es trotzdem eine rechtliche Prüfung zu Persönlichkeitsrechten, Bildrechten und Marktzugang.
 
-**Vor M0 zu konkretisieren:** Erster tatsächlicher Datenstichtag, verfügbare räumliche Auflösung und die kleinste belastbare institutionelle Abbildung.
+**Vor M0 zu konkretisieren:** Erster tatsächlicher Datenstichtag (der jüngste Tag, für den alle Kerndaten veröffentlicht sind), verfügbare räumliche Auflösung je Provinz und Bezirk und die kleinste belastbare institutionelle Abbildung.
 
-**Durch Versuche zu entscheiden:** Engine und Technologie, Anzahl der Bevölkerungsgruppen, Detailtiefe militärischer Berechnung, benötigtes Sprachmodell und Kostenrahmen.
+**Durch Versuche zu entscheiden:** Engine und Technologie, Anzahl der Bevölkerungsgruppen, Detailtiefe militärischer Berechnung, unterstützte KI-Anbieter und Kosten pro Spielsitzung, Tauglichkeit der KI-Bildgenerierung.
 
-**Vor einer Veröffentlichung zu entscheiden:** Plattformumfang, Vertrieb, Datenaktualisierungen, Support und Freigabe von Erweiterungswerkzeugen.
+**Nach dem Prototyp zu entscheiden:** ob und wie das Spiel verkauft wird, Vertriebsweg, Datenaktualisierungen, Support und Freigabe von Erweiterungswerkzeugen.
 
 Diese offenen Punkte verhindern die aktuelle Konzeptarbeit nicht. Sie besitzen jeweils einen klaren Zeitpunkt, an dem die entsprechende Entscheidung belastbar getroffen werden kann.

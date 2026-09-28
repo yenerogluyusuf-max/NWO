@@ -1,8 +1,20 @@
 # NWO — Ausgearbeitetes Spieldesign
 
-Version 0.4, 28. September 2026. Aufbauend auf [Projektplan](PROJEKTPLAN.md) und [Referenzanalyse](REFERENZANALYSE.md).
+Version 0.5, 28. September 2026. Aufbauend auf [Projektplan](PROJEKTPLAN.md), [Referenzanalyse](REFERENZANALYSE.md) und den [Entscheidungen](ENTSCHEIDUNGEN.md) des Projektinhabers.
 
 Alle Mengen, Zeitziele und Beispielwerte dieses Dokuments sind Vorschläge für die Entwicklung. Sie sind keine recherchierten Kennzahlen zur heutigen Türkei oder zu einem anderen Land.
+
+**Neu in Version 0.5:** Die Entscheidungen aus der Fragerunde sind eingearbeitet:
+
+- Ton und Bildstil mit KI-generierten Bildern (Abschnitt 1),
+- einstellbares Tempo (Abschnitt 2),
+- Einstieg direkt als Staatspräsident zum heutigen Stichtag (Abschnitt 3),
+- das Politiknetz mit mehr als 150 Knoten neben der Schreibfläche und Folgen als Richtung und Bandbreite (Abschnitte 4 und 5),
+- das Privatleben der eigenen Figur und die Regel für Figuren mit echtem Vorbild (Abschnitt 7),
+- Wahlkampf, TV-Duell, Wahlabend, kompakte Kommunalwahlen, Manipulation mit steigendem Risiko und die Opposition mit Schwierigkeitsgrad (Abschnitt 8),
+- 81 Provinzen, drei Großstädte bis in die Bezirke und staatliche Bauprojekte (Abschnitt 10),
+- die tiefsten Außenpartner (Abschnitt 11) und Krieg als strategische Möglichkeit (Abschnitt 13),
+- offene Karriere mit Vermächtnis, Geschichtsbuchkapitel und möglichem gewaltsamem Sturz (Abschnitt 16).
 
 **Neu in Version 0.4:** Man soll aus NWO lernen, wie ein Staat funktioniert (siebte Säule, [Lernkonzept](LERNKONZEPT.md)), und es gibt kein vorgegebenes Szenario: Die Welt beginnt ohne eingebautes Problem, Krisen entstehen aus den Systemen.
 
@@ -24,7 +36,7 @@ Du regierst ein Land mit deinen eigenen Worten, und jede Entscheidung hat einen 
 
 **4. Druck und Rhythmus.** Es gibt immer etwas, das näher rückt: eine Wahl, eine Haushaltsabstimmung, ein Ultimatum, eine eskalierende Krise. Ruhige Phasen sind erlaubt, aber sie sind Atempausen zwischen Stürmen. Jede Spielsitzung von 30 bis 60 Minuten hat einen spürbaren Spannungsbogen: Problem, Zuspitzung, Entscheidung, erste Folge.
 
-**5. Macht mit Preis statt Verbot.** Der Spieler darf fast alles versuchen, auch das Hässliche. Das Spiel sagt selten einfach „das geht nicht“, sondern zeigt, welche Wege es gibt und was sie kosten: wen man überzeugen, unter Druck setzen oder umgehen müsste, welches Risiko entsteht und wer davon erfahren könnte. Realismus zeigt sich vor allem als Konsequenz, nicht als Blockade. Jede Ablehnung enthält mindestens einen möglichen anderen Weg.
+**5. Macht mit Preis statt Verbot.** Der Spieler darf fast alles versuchen, auch das Hässliche. Das Spiel sagt selten einfach „das geht nicht“, sondern zeigt, welche Wege es gibt und was sie kosten: wen man überzeugen, unter Druck setzen oder umgehen müsste, welches Risiko entsteht und wer davon erfahren könnte. Realismus zeigt sich vor allem als Konsequenz, nicht als Blockade. Jede Ablehnung enthält mindestens einen möglichen anderen Weg. Moralisch ist alles möglich, mit ehrlichen Folgen. Das Spiel belohnt keine Richtung: Weder Anstand noch Härte bekommen einen eingebauten Bonus, und niemand hält dem Spieler eine Predigt. Die Folgen entstehen aus den Regeln der Welt, nicht aus einem Urteil der Entwickler.
 
 **6. Geschichten, die man weitererzählt.** Der Maßstab für eine gelungene Partie ist, dass der Spieler am nächsten Tag jemandem davon erzählen will: „Ich habe meinen Finanzminister entlassen, er ist zur Opposition gewechselt und hat mich bei der Wahl geschlagen.“ Das System wird darauf geprüft, ob es solche Geschichten aus seinen Regeln erzeugt.
 
@@ -44,11 +56,24 @@ Die sieben Säulen sind Prüfkriterien für jeden Spieltest (siehe [Entwicklungs
 
 ## 1. Das konkrete Produkt
 
-Ein Einzelspieler-Strategiespiel für den Desktop mit pausierbarer Zeit, realer Geografie und einer persönlichen politischen Rolle. Der Spieler beginnt mit einem belegten Länderzustand. Ab diesem Zeitpunkt läuft eine eigenständige Simulation.
+Ein Einzelspieler-Strategiespiel für den Computer mit pausierbaren Tagen, realer Geografie und einer persönlichen politischen Rolle. Der Spieler beginnt mit einem belegten Länderzustand. Ab diesem Zeitpunkt läuft eine eigenständige Simulation.
 
 Der wichtigste Unterschied zu einem reinen Gesprächsspiel: Ein Dialog kann nur Handlungen anstoßen, die in einem gemeinsamen Weltmodell existieren. Der wichtigste Unterschied zu einem abstrakten Länderstrategiespiel: Der Spieler muss innerhalb seines Amts und durch andere Personen handeln.
 
-Die Kamera ist frei zwischen Welt und lokalen Gebieten beweglich. Die Bedienelemente bleiben über alle Maßstäbe hinweg konsistent. Ein Regierungschef darf einen Stadtbezirk untersuchen, ohne dadurch automatisch kommunale Entscheidungsrechte zu erhalten.
+Die Kamera ist frei zwischen Welt und lokalen Gebieten beweglich. Die Bedienelemente bleiben über alle Maßstäbe hinweg konsistent. Der Präsident darf einen Stadtbezirk untersuchen, ohne dadurch automatisch kommunale Entscheidungsrechte zu erhalten.
+
+### Ton
+
+Ernst mit trockenem Humor, wie in Suzerain oder der Serie Borgen. Das Spiel nimmt Politik und ihre Folgen ernst. Der Humor entsteht aus Figuren, Situationen und dem Abstand zwischen Absicht und Wirklichkeit: ein Minister, der eine Katastrophe als „Herausforderung mit Entwicklungspotenzial“ beschreibt, oder eine Pressemitteilung, die niemand lesen soll. Er geht nie auf Kosten von Opfern und macht keine echte Partei und keine Bevölkerungsgruppe lächerlich (siehe [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 5).
+
+### Bildstil
+
+Gezeichnet, aber sehr schön und sehr realistisch.
+
+- **Figuren** sind gezeichnete Porträts, die sich an den echten Vorbildern orientieren. Die Namen sind erfunden (siehe [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4). Porträts können Stimmung zeigen, etwa müde, verärgert oder erleichtert, damit Beziehungen sichtbar werden.
+- **Karten** sind sehr detailliert: Relief, Küsten, Flüsse, Städte, Straßen, Bahnlinien, Häfen und Bauprojekte. Die Karte soll man gern ansehen, nicht nur benutzen.
+- **Akten und Schreibtisch** folgen demselben Stil.
+- **Herstellung:** Alle Bilder entstehen per KI-Bildgenerierung und werden sorgfältig nachbearbeitet (Entscheidung des Projektinhabers). Damit der Stil über Hunderte Bilder einheitlich bleibt, gibt es einen festen Stilleitfaden mit Farbpalette, Strich, Licht und Beispielbildern. Nutzungsrechte der Bilder werden vor einer Veröffentlichung geprüft. Ein früher Bildversuch prüft, ob Qualität und Einheitlichkeit reichen ([Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 6).
 
 ## 2. Drei Zeithorizonte schaffen Spielspannung
 
@@ -62,17 +87,20 @@ Der Spieler kann bis zum nächsten wichtigen Vorgang vorspulen. Pausengründe si
 
 Die Simulation nutzt zunächst einen festen Tagesschritt. Ein Krieg oder eine Krise kann pro Tag mehr relevante Vorgänge erzeugen, ohne die Wirtschaft auf ein völlig anderes Zeitmodell umzustellen. Ob später feinere militärische Zeitschritte nötig sind, wird anhand des Prototyps entschieden.
 
+**Tempo ist einstellbar** (Entscheidung des Projektinhabers). Der Spieler wählt, wie viel er selbst entscheidet und wie viel delegiert wird, und damit, wie lange ein Spieljahr dauert. Die Spanne reicht von einem schnellen Stil (etwa ein bis zwei Stunden pro Jahr, vieles läuft über Berater) bis zu einem tiefen Stil (zehn Stunden und mehr, fast jeder Tag zählt). Die Einstellung lässt sich jederzeit ändern. Sie verändert die Aufmerksamkeit des Spielers, nicht die Regeln der Welt: Was er nicht selbst ansieht, erledigen andere nach ihren eigenen Vorstellungen.
+
 Ein erstes Ziel für Nutzertests: Innerhalb einer Sitzung von ungefähr 30 bis 60 Minuten einen Konflikt verstehen, mehrere zusammenhängende Entscheidungen treffen und eine erste Rückmeldung erleben. Das ist ein Prüfziel, kein bereits gemessener Wert.
 
 ## 3. Einstieg und erste 30 Minuten
 
 ### Startkonfiguration
 
-1. Land wählen (zuerst die Türkei, mit belegtem Datenstichtag; weitere Länder folgen). Es gibt kein Szenario auszuwählen: Die Welt startet in einem leicht variierten Zustand ohne eingebautes Problem.
-2. Rolle wählen: im ersten Prototyp Regierung; Opposition folgt vor der ersten vollständigen Veröffentlichung.
-3. Öffentliche Ausgangslage, Datenlücken und wichtige institutionelle Grenzen ansehen.
-4. Persönliche politische Ziele formulieren oder Vorschläge auswählen.
-5. Informationshilfen, Lernstufe der Mentorin (begleitet, Standard, allein), Delegation und Pausen einstellen.
+1. **Land:** die Türkei. Weitere spielbare Länder folgen später. Der Start ist **heute**, also am jüngsten Stichtag, für den alle Kerndaten veröffentlicht sind. Historische Startpunkte folgen später. Es gibt kein Szenario auszuwählen: Die Welt startet in einem leicht variierten Zustand ohne eingebautes Problem.
+2. **Rolle:** direkt als Staatspräsident. Weitere Einstiege wie die Opposition folgen später.
+3. **Die eigene Figur:** Name, Herkunft und politischer Werdegang in wenigen Schritten. Der Spieler spielt eine eigene Figur, nicht den amtierenden Präsidenten.
+4. **Ausgangslage:** Öffentliche Lage, Datenlücken und wichtige institutionelle Grenzen ansehen.
+5. **Ziele und Vermächtnis:** Der Spieler formuliert, was er erreichen und hinterlassen will, oder wählt Vorschläge. Daran misst er sich am Ende (Abschnitt 16).
+6. **Einstellungen:** Informationshilfen, Lernstufe der Mentorin (begleitet, Standard, allein), Delegation und Pausen. Dazu kommt der eigene KI-Schlüssel; mehrere große Anbieter werden unterstützt. Ohne Schlüssel ist das Spiel eingeschränkt spielbar: Politiknetz, Karte, Bauen und Wirtschaft laufen voll, Gespräche laufen über vorbereitete Antwortvorlagen statt freier Sprache.
 
 Der Spieler übernimmt ein echtes Amt innerhalb eines realen Ausgangsszenarios. Der Übergang zur gespielten alternativen Geschichte wird ausdrücklich benannt. Reale öffentliche Biografien und simulierte persönliche Eigenschaften bleiben unterscheidbar.
 
@@ -100,10 +128,11 @@ Alles, was im Spiel geschieht, ist ein Vorgang: ein Bericht, ein Angebot, ein Pr
 |---|---|---|
 | Schreibtisch | Heimat, hier beginnt und endet jeder Spieltag | Was verlangt heute meine Aufmerksamkeit? |
 | Gespräch | Wird aus einem Vorgang oder einer Person heraus geöffnet | Was will ich erfahren, verhandeln oder anordnen? |
+| Politiknetz | Werkzeug, wenn die Frage lautet, was womit zusammenhängt | Was verursacht dieses Problem, und was würde eine Maßnahme bewirken? |
 | Beziehungen | Werkzeug, bei Bedarf aufgerufen | Mit wem kann ich etwas erreichen, wer ist gegen mich? |
-| Karte | Werkzeug, wenn die Frage räumlich ist | Wo wirkt sich etwas aus? |
+| Karte | Werkzeug, wenn die Frage räumlich ist | Wo wirkt sich etwas aus, und wie weit ist der Bau? |
 
-Die vier Ansichten sind nicht gleichrangig. Es gibt keinen Zustand mit vielen gleichzeitig geöffneten Fenstern. Der Spieler kehrt immer zum Schreibtisch zurück.
+Die fünf Ansichten sind nicht gleichrangig. Es gibt keinen Zustand mit vielen gleichzeitig geöffneten Fenstern. Der Spieler kehrt immer zum Schreibtisch zurück.
 
 ### Absicht, Beschluss, Wirkung auf einen Blick
 
@@ -165,6 +194,33 @@ Fehlt eine Voraussetzung, zeigt das Spiel keine bloße Ablehnung, sondern die m�
 
 Der Spieler wählt, das System rechnet die Folgen. Spannend ist nicht, ob etwas möglich ist, sondern was es ihn kostet.
 
+### Das Politiknetz
+
+**Entscheidung des Projektinhabers:** Eingabe wie bei Democracy 4, also ein sichtbares Netz aus Maßnahmen, Gesetzen, Problemen und ihren Folgen, dazu die Schreibfläche. Das Ganze soll realistisch und regional sein. Der Umfang ist groß: mehr als 150 Knoten wie bei Democracy 4, schon im ersten spielbaren Prototyp.
+
+**Knoten.** Das Netz kennt vier Arten von Knoten:
+
+- **Maßnahmen und Gesetze:** Steuern, Programme, Subventionen, Vorschriften, Bauprogramme. Man kann sie einführen, ändern oder abschaffen, soweit das Amt es erlaubt.
+- **Größen:** die Kerngrößen aus dem [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md) und weitere Zustände wie Bildungsstand, Gesundheitsversorgung, Kriminalität oder Luftqualität.
+- **Probleme:** Zustände, die ab einer Schwelle entstehen und wieder verschwinden können, zum Beispiel die Abwanderung von Fachkräften, eine schlechter werdende Wasserversorgung, Wohnungsnot oder eine Energielücke.
+- **Gruppen:** Wählergruppen, die auf Größen und Maßnahmen reagieren.
+
+**Verbindungen** haben eine Richtung, eine Stärke, eine Verzögerung und eine Begründung mit Quelle. Beim Anklicken zeigt eine Verbindung, was sie bedeutet und wie sicher sie ist. Das Netz zeigt nur, was das Modell tatsächlich rechnet (Leitsatz im Wirtschaftsmodell). Eine Korrelation wird nicht als sichere Ursache dargestellt ([Referenzanalyse](REFERENZANALYSE.md), Abschnitt 5).
+
+**Regional.** Jeder Problem- und Größenknoten hat eine Ausprägung je Provinz. Ein Problem kann im Westen akut sein und im Osten nicht, oder umgekehrt. Das Netz lässt sich national, für eine Provinz oder für einen Großstadtbezirk anzeigen. Ein Klick auf ein Problem führt zur Karte, die zeigt, wo es brennt. Viele Probleme lassen sich nicht mit einem Regler lösen: Wo Wasser fehlt, muss eine Leitung, ein Speicher oder eine Aufbereitungsanlage gebaut werden (Abschnitt 10).
+
+**Netz und Schreibfläche sind dasselbe Spiel.** Alles, was man im Netz einstellen kann, kann man auch in eigenen Worten anordnen. Jede freie Anweisung, die eine Maßnahme betrifft, erscheint als Vorgang am passenden Knoten. Das Netz ist schnell und übersichtlich, die Schreibfläche kann verhandeln, drohen, Personen einbinden und Dinge versuchen, die kein Knoten vorsieht.
+
+**Übersicht trotz Größe.** 150 Knoten auf einmal überfordern. Deshalb zeigt das Netz zunächst nur Themenfelder (Wirtschaft, Soziales, Infrastruktur, Sicherheit und weitere). Man klappt sie bei Bedarf auf. Knoten mit akuten Problemen oder mit gerade wirkenden Maßnahmen sind hervorgehoben, und Verbindungen erscheinen erst beim Auswählen eines Knotens. Das Prüfkriterium der Oberfläche (Abschnitt 4) gilt auch für das Netz.
+
+### Folgen im Voraus: Richtung und Bandbreite
+
+**Entscheidung des Projektinhabers:** Vor einer Entscheidung zeigt das Spiel Richtung und Bandbreite der Folgen mitsamt Unsicherheit, und die Mentorin erklärt sie. Genaue Zahlen gibt es erst nachher.
+
+- **Vorher:** eine Richtung (steigt, sinkt, unklar), eine Bandbreite und ein Zeitraum. Zum Beispiel: „Inflation in zwölf Monaten: eher höher, etwa ein bis vier Punkte, recht unsicher.“ Die Bandbreite stammt aus dem Modell, das mit der Unsicherheit seiner eigenen Annahmen rechnet, und ist nicht erfunden.
+- **Nachher:** die tatsächlichen Werte, sobald sie gemessen und veröffentlicht sind (mit den Verzögerungen der Statistik, siehe Wirtschaftsmodell, Abschnitt 2), und der Vergleich mit der Erwartung.
+- **Berater** nennen eigene Einschätzungen, die gefärbt oder falsch sein können. Die Mentorin ordnet sie neutral ein.
+
 ## 6. Vom Satz zum Staatsvorgang
 
 ### Unterstützte Handlungstypen
@@ -202,13 +258,27 @@ Die Persönlichkeit beeinflusst, welche Informationen jemand hervorhebt, wie er 
 
 ### Die Mentorin
 
-Neben den parteiischen Beratern gibt es eine neutrale Mentorin (Arbeitstitel Prof. Dr. Defne Arslan, fiktive Figur, frühere Ökonomin der Zentralbank). Sie erklärt Begriffe, Zusammenhänge und Folgen, sagt aber nie, was richtig ist. Der Kontrast ist gewollt: Der Spieler lernt nebenbei, dass politische Berater selten neutral sind. Einzelheiten im [Lernkonzept](LERNKONZEPT.md), Abschnitt 4.
+Neben den parteiischen Beratern gibt es eine neutrale Mentorin (Arbeitstitel Prof. Dr. Defne Arslan, fiktive Figur, frühere Ökonomin der Zentralbank). Sie erklärt Begriffe, Zusammenhänge und Folgen, sagt aber nie, was richtig ist. Der Kontrast ist gewollt: Der Spieler lernt nebenbei, dass politische Berater selten neutral sind.
+
+Im Alltag erscheint sie auf zwei Arten: als **Randnotiz**, also als kurzer Hinweis direkt an einer Zahl, einem Knoten im Politiknetz oder einer Meldung, und als **Gespräch**, wenn der Spieler sie anklickt. Einzelheiten im [Lernkonzept](LERNKONZEPT.md), Abschnitt 4.
 
 ### Hauptfiguren brauchen eine Seele
 
 Jede Hauptfigur erhält neben den Fachwerten ein erkennbares persönliches Ziel, eine Schwäche, eine eigene Sprechweise und eine sich verändernde Beziehung zum Spieler. Figuren erinnern sich an Kränkungen, Gefallen und gebrochene Zusagen und handeln auch aus Stolz, Angst, Ehrgeiz oder Dankbarkeit. Sie können dem Spieler gefallen, ihn enttäuschen, verraten oder überraschend retten. Ein Rivale gewinnt manchmal, ein unbequemer Berater hat manchmal recht.
 
 Im ersten Prototyp sind wenige Figuren wichtiger als viele: Lieber sechs Personen, die man kennt, als zwanzig, die man verwechselt.
+
+**Figuren mit echtem Vorbild.** Alle Figuren tragen erfundene Namen. Wer erkennbar nach einer echten Person gezeichnet ist, startet ohne erfundene Geheimnisse, Affären oder Straftaten. Solche Geheimnisse im Startzustand haben nur Figuren ohne erkennbares Vorbild. Was Figuren im Laufe der Partie tun, entsteht aus den Spielregeln und ist ausdrücklich alternative Geschichte. Begründung im [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4.
+
+### Das Privatleben der eigenen Figur
+
+**Entscheidung des Projektinhabers:** Die eigene Figur hat ein Privatleben mit Auswirkungen, wie in Suzerain.
+
+- **Familie:** Partnerin oder Partner, Kinder, Eltern und Geschwister mit eigenen Zielen. Ein Kind mit Geschäften, die Fragen aufwerfen, eine Partnerin mit eigener Karriere oder ein Bruder, der um einen Gefallen bittet: Solche Szenen erzeugen Dilemmas zwischen Loyalität und Amt.
+- **Gesundheit:** Belastung, Schlaf, Alter und Krankheit. Dauerhafter Druck hat Folgen, etwa schlechtere Entscheidungen unter Erschöpfung, erzwungene Pausen oder Spekulationen der Presse. Gesundheit kann das Ende der Laufbahn bestimmen.
+- **Freundschaften:** alte Weggefährten, die Nähe erwarten, und Vertraute, die ehrlicher sind als Berater.
+
+Das Privatleben folgt denselben Regeln wie alles andere: Es verändert Beziehungen, Wissen, Spuren und Zustände und hat keine Sonderlogik. Die Familie der Spielerfigur ist frei erfunden und hat kein echtes Vorbild.
 
 Institutionen besitzen ein Mandat, Zuständigkeiten, Ressourcen, Führung, Verfahren und interne Interessen. Persönliche Einflussnahme kann Verhalten verändern, ersetzt aber keine vollständige Simulation durch einen Loyalitätsregler.
 
@@ -224,6 +294,26 @@ Politische Vorgeschichte wird in Ereignissen und veränderten Erwartungen gespei
 
 Opposition erhält eigene Handlungen: Anfragen, parlamentarische Initiativen, Bündnisgespräche, Kandidatenaufbau, Wahlkampf und gegebenenfalls Verantwortung auf regionaler Ebene. Die Regierung anderer Parteien folgt denselben institutionellen Regeln.
 
+### Wahlen erleben
+
+Eine landesweite Wahl hat drei Teile:
+
+1. **Wahlkampf als eigene Phase.** Der Spieler reist durch die Provinzen, hält Kundgebungen, macht Versprechen und schmiedet Bündnisse. Versprechen werden als offene Fäden gespeichert und kommen nach der Wahl zurück.
+2. **TV-Duell und Interviews** als Gesprächsszenen. Moderatoren und Gegenkandidaten zitieren frühere Aussagen, gebrochene Zusagen und Zahlen aus der Amtszeit.
+3. **Wahlabend live.** Die Ergebnisse laufen Provinz für Provinz auf der Karte ein, mit Hochrechnungen, Reaktionen der Figuren und ersten Schlagzeilen.
+
+**Kommunalwahlen** sind ebenfalls spielbar, aber viel kompakter: kein eigener langer Wahlkampf, sondern wenige Entscheidungen (etwa wo der Präsident auftritt und wen seine Partei aufstellt) und ein kurzer Wahlabend. Die Ergebnisse spiegeln auch die Arbeit der Regierung vor Ort. Wo Wasser fehlt, Bauprojekte stocken oder die Teuerung besonders drückt, verliert die Regierungspartei eher. Neue Bürgermeister verändern, wer vor Ort mitarbeitet oder blockiert.
+
+### Wahlen manipulieren
+
+**Entscheidung des Projektinhabers:** Alles ist möglich, aber je mehr man macht, desto höher sind das Risiko und die Folgen.
+
+Die Mittel bilden eine Stufenleiter von legal bis kriminell: Wahlgeschenke, Einfluss auf die Berichterstattung, Änderungen am Wahlrecht, Druck auf Kandidaten und Parteien, Behinderung von Wahlbeobachtern bis hin zu Fälschungen bei der Auszählung. Jede Stufe erzeugt mehr Beteiligte, mehr Spuren und eine höhere Gefahr, dass es herauskommt. Wahlbehörde, Gerichte, Opposition, Wahlbeobachter, Journalisten und das Ausland reagieren nach ihren eigenen Regeln. Die Folgen reichen von einem Skandal über Proteste und Klagen bis zum Vertrauensverlust der Märkte und internationaler Isolation. Das Spiel moralisiert nicht; es zeigt, was passiert.
+
+### Opposition und Schwierigkeitsgrad
+
+Oppositionsparteien sind eigenständige Akteure mit Figuren, Zielen, Kandidaten und Bündnissen. Wie stark sie spielen, stellt der Spieler als **Schwierigkeitsgrad** ein, zum Beispiel wie geschickt sie Fehler der Regierung ausnutzen, wie gut sie sich verbünden und wie schnell sie auf Chancen reagieren. Der Schwierigkeitsgrad verändert das Verhalten, nicht die Regeln: Die Opposition bekommt keine versteckten Stimmen oder Mittel (Abschnitt 16).
+
 ## 9. Wirtschaft und Politikfolgen
 
 Für den ersten Prototyp werden wenige nachvollziehbare Wirtschaftsbereiche gewählt: öffentlicher Haushalt, Einkommen und Beschäftigung, Energie, eine wichtige Produktionsbranche sowie Investitionen. Später kommen weitere Branchen und detailliertere Finanzbeziehungen hinzu.
@@ -236,6 +326,12 @@ Eine wirtschaftliche Veränderung wird nicht pauschal einer einzigen politischen
 
 ## 10. Regionen, Infrastruktur und Umwelt
 
+### 81 Provinzen, drei Großstädte bis in die Bezirke
+
+Die politische Karte besteht aus den 81 Provinzen der Türkei. Istanbul, Ankara und Izmir lassen sich bis in ihre Bezirke aufklappen. Weitere Großstädte können folgen, wenn die Daten es tragen. Jede Provinz hat Bevölkerung, Wirtschaft, Versorgung, Probleme und eine politische Stimmung. Ein Gouverneur (vom Staat ernannt) und ein Bürgermeister (gewählt) vertreten unterschiedliche Interessen *(Zuständigkeiten zu belegen, siehe Länderpaket Türkei)*.
+
+### Allgemeines
+
 Verwaltungsgebiete bilden die politische Karte, Infrastruktur bildet ein verbundenes Netz. Häfen, Straßen, Bahnverbindungen, Stromversorgung und andere Einrichtungen werden in der ersten Version nur so detailliert simuliert, wie es für die Kernentscheidungen notwendig ist.
 
 Regionale Spezialisierung entsteht aus bestehenden Voraussetzungen und Entscheidungen. Ein Förderprogramm garantiert keine erfolgreiche Ansiedlung. Fachkräfte, Nachfrage, Versorgung und Erreichbarkeit können fehlen.
@@ -243,6 +339,31 @@ Regionale Spezialisierung entsteht aus bestehenden Voraussetzungen und Entscheid
 Katastrophenrisiken bestehen aus Gefahr, Exposition und Verwundbarkeit. Vorsorge verändert die Folgen. Der Wiederaufbau konkurriert mit anderen Vorhaben um Haushalt, Personal und Material.
 
 Auf Stadtbezirksebene zeigt die Karte vorhandene Daten und ihre Unsicherheit. Wenn nur Daten für eine größere Region vorliegen, wird diese räumliche Grenze kenntlich gemacht. Eine feinere Karte bedeutet nicht automatisch feinere Statistik.
+
+### Bauprojekte über den Staat
+
+**Entscheidung des Projektinhabers:** Gebaut wird realistisch über den Staat, mit Auftrag, Ministerium, Ausschreibung, Baufirmen, Kosten, Verzögerungen und manchmal Korruption. Der Fortschritt ist auf der Karte zu sehen. Der Spieler gibt Auftrag, Ort und Budget vor und kann eingreifen, jeweils mit einem Preis.
+
+**Ablauf:** **Auftrag → zuständiges Ministerium → Planung und Genehmigungen → Ausschreibung → Vergabe an eine Baufirma → Bau → Abnahme → Betrieb.**
+
+- **Auftrag:** Der Spieler sagt, was wo entstehen soll, und gibt ein Budget vor, im Politiknetz, auf der Karte oder in eigenen Worten („Baut in Şanlıurfa eine Wasseraufbereitung, die bis zum Sommer in zwei Jahren läuft“). Der Auftrag ist eine Absicht (gestrichelt), bis Geld und Beschluss da sind.
+- **Ministerium und Ausschreibung** laufen selbstständig nach den Regeln des Vergaberechts *(zu belegen)*. Die Leistungsfähigkeit des Ministeriums und seiner Führung bestimmt Tempo und Qualität.
+- **Baufirmen** sind Akteure mit Kapazität, Ruf, Beziehungen und eigener Integrität. Eine günstige Firma ist nicht immer eine gute.
+- **Kosten und Verzögerungen** entstehen aus nachvollziehbaren Ursachen: Genehmigungen, Material- und Wechselkurspreise, Wetter, Gelände, Klagen, ausgelastete oder insolvente Firmen.
+- **Korruption** entsteht aus Regeln statt aus reinem Zufall. Sie wird wahrscheinlicher bei schwacher Kontrolle, bei Druck auf Tempo, bei Firmen mit Nähe zur Politik und bei beteiligten Figuren mit geringer Integrität. Sie zeigt sich als überhöhte Preise, Pfusch oder Vergabe an Nahestehende. Rechnungshof, Journalisten, Opposition oder ein eingestürztes Bauteil können sie aufdecken. Daraus kann die Ereignisvorlage einer Vergabeaffäre werden.
+- **Auf der Karte** erscheint das Projekt mit Baustelle, Fortschritt, Terminplan und Verzögerung. Nach der Fertigstellung verändert es die Versorgung und damit die Knoten im Politiknetz, und es verursacht laufende Kosten.
+
+**Eingriffe mit Preis:**
+
+| Eingriff | Nutzen | Preis |
+|---|---|---|
+| Beschleunigen | früher fertig, etwa vor einer Wahl | höhere Kosten, mehr Pfusch- und Korruptionsrisiko |
+| Eine Firma begünstigen | Gefallen für einen Unterstützer, schnellere Einigung | Spur, Vergaberisiko, Kränkung anderer Firmen |
+| Kontrollen verstärken | weniger Korruption, bessere Qualität | langsamer, Ärger mit Ministerium und Firmen |
+| Mehr Geld nachschießen | Projekt läuft weiter | Haushalt, Kritik wegen Kostensteigerung |
+| Stoppen oder umplanen | Geld frei für anderes | verlorene Kosten, enttäuschte Region, Klagen |
+
+Der Spieler baut nicht jedes Gebäude selbst. Kommunen, Unternehmen und andere Akteure bauen ebenfalls, nach eigenen Interessen.
 
 ## 11. Diplomatie und Vertragsverhandlungen
 
@@ -255,6 +376,17 @@ Ein Vertragsdatensatz enthält Parteien, Vertretungsbefugnis, Verpflichtungen, F
 Bei einem Regierungswechsel wird geprüft, ob sich politischer Wille, Rechtslage oder eine vertragliche Bedingung verändert haben. Verträge verschwinden nicht automatisch mit ihren Unterzeichnern.
 
 Internationale Organisationen erhalten spezialisierte Verfahren. Ein Verteidigungsbündnis, ein Gericht und eine Handelsorganisation verwenden keine gemeinsame universelle Zustimmungsmechanik.
+
+**Die tiefsten Partner** (Entscheidung des Projektinhabers):
+
+| Partner | Wichtige Themen |
+|---|---|
+| EU und Deutschland | Handel, Beitrittsfrage, Migration, türkische Diaspora |
+| USA und NATO | Bündnis, Rüstung, Sanktionen |
+| Russland | Energie, Tourismus, Rüstung, Schwarzes Meer |
+| Nachbarn im Nahen Osten (Syrien, Irak, Iran, Israel, Golfstaaten) | Sicherheit, Wasser, Flüchtlinge, Handel |
+
+Alle übrigen Staaten sind vereinfacht, handeln aber eigenständig. Alle Themen sind vor der Umsetzung aus Primärquellen zu belegen.
 
 ## 12. Beschaffung und militärische Fähigkeiten
 
@@ -269,6 +401,8 @@ Ein Liefervertrag reserviert Kapazitäten beim Anbieter und bindet Ressourcen be
 Militärische Fähigkeiten werden zunächst als Verbände und Unterstützungsstrukturen modelliert. Personal, einsatzfähiges Material, Ausbildung, Versorgung und Führung begrenzen ihre Nutzbarkeit. Eine exakte Echtzeitabbildung jedes Waffensystems ist kein Anspruch des ersten Modells.
 
 ## 13. Krieg und Frieden als zusammenhängende Politik
+
+**Entscheidung des Projektinhabers:** strategisch, und alles ist möglich. Der Spieler kann Einsätze und Kriege beginnen und beenden. Der Verlauf wird abstrakt berechnet; die Folgen für Wirtschaft, Politik und Bündnisse sind voll da.
 
 Der Spieler setzt politische Ziele, priorisiert Ressourcen und wählt zwischen strategischen Vorschlägen. Militärische Lagebilder zeigen bekannte Informationen, vermutete Entwicklungen und Unsicherheiten getrennt.
 
@@ -342,17 +476,25 @@ Diese Fälle sind fiktiv und keine Aussagen über gegenwärtige Vorgänge in der
 
 ## 16. Kampagnenende, Niederlagen und Wiederspielbarkeit
 
-Eine Amtszeit endet mit einer politischen Bilanz: Ziele, tatsächliche Maßnahmen, Verteilung der Ergebnisse, gebrochene und erfüllte Zusagen sowie Entwicklungen außerhalb der eigenen Kontrolle.
+**Entscheidung des Projektinhabers:** Eine Partie ist eine offene Karriere. Erfolg bemisst sich an eigenen Zielen und am Vermächtnis. Am Ende der Laufbahn stehen eine Bilanz und ein Kapitel im Geschichtsbuch; danach kann man das Land mit einer neuen Figur weiterspielen.
 
-Im Karrieremodus kann eine Wahlniederlage in die Opposition führen. Der Tod oder dauerhafte politische Rückzug der gespielten Figur beendet ihre persönliche Laufbahn; eine spätere Organisationskampagne könnte die Fortsetzung mit einer anderen Figur ermöglichen.
+**Offene Karriere.** Es gibt kein festes Ende und keinen Sieg. Eine Wahlniederlage kann in die Opposition führen, ein Rücktritt in eine Pause mit späterer Rückkehr. Die Laufbahn der Figur endet erst mit dem endgültigen Rückzug, dem Tod, einer Verurteilung oder einer Niederlage, von der sie sich nicht mehr erholt.
+
+**Gewaltsamer Sturz.** Auch ein Putsch, ein Attentat oder Massenproteste, die zum Rücktritt zwingen, sind möglich (Entscheidung des Projektinhabers). Sie entstehen aber nur, wenn die Bedingungen im Weltzustand vorliegen, etwa Unzufriedenheit im Militär, Verlust der Legitimität, wirtschaftlicher Zusammenbruch oder internationale Isolation. Vorher gibt es Warnzeichen, die man erkennen und ernst nehmen kann. Reiner Zufall stürzt niemanden. Solche Ereignisse sind fiktiv und keine Aussage über reale Personen oder Gruppen.
+
+**Bilanz.** Jede Amtszeit und das Ende der Laufbahn werden bilanziert: die eigenen Ziele, tatsächliche Maßnahmen, die Verteilung der Ergebnisse, gebrochene und erfüllte Zusagen sowie Entwicklungen außerhalb der eigenen Kontrolle.
+
+**Das Geschichtsbuchkapitel.** Am Ende der Laufbahn entsteht ein Kapitel, wie es ein Geschichtsbuch einige Jahrzehnte später schreiben würde: nüchtern, mit Zahlen, mit den Wendepunkten, mit dem, was verschiedene Gruppen erinnern, und mit dem, was von der Figur geblieben ist. Es wird aus dem Ereignisprotokoll erzeugt. Das Sprachmodell formuliert, erfindet aber keine Ereignisse. Das Kapitel ist die Geschichte, die man weitererzählt (Säule 6).
+
+**Weiterspielen mit neuer Figur.** Danach kann der Spieler dasselbe Land mit einer neuen Figur weiterführen, etwa als Nachfolger, als Rivale oder als jemand aus der Opposition. Schulden, Verträge, Bauwerke, Institutionen und Erinnerungen bleiben, und das Kapitel der Vorgängerfigur ist Teil der Vorgeschichte.
 
 Wiederspielbarkeit entsteht durch unterschiedliche Ziele, Personenbeziehungen, Unsicherheit und eigenständige Akteure. Für Vergleichbarkeit kann dieselbe Zufallsgrundlage erneut verwendet werden. Die Rekonstruktion eines gespeicherten Verlaufs verwendet protokollierte Ereignisse und Sprachentscheidungen; ein identischer Zufallswert allein garantiert keine identischen neuen Modellantworten.
 
-Schwierigkeitsoptionen betreffen Informationshilfen, Delegation und die Ausgangslage. Verdeckte Ressourcenboni der Gegenseite sind nicht als Standard geplant.
+Schwierigkeitsoptionen betreffen Informationshilfen, Delegation, die Ausgangslage und die Stärke der Opposition (Abschnitt 8). Verdeckte Ressourcenboni der Gegenseite sind nicht vorgesehen: Ein höherer Schwierigkeitsgrad macht Gegner klüger, nicht reicher.
 
 ## 17. Grenzen des ersten Produkts
 
-Das vollständige Ziel bleibt eine breite geopolitische Simulation. Die erste Version konzentriert sich auf ein gründlich modelliertes spielbares Land mit einer eigenständig handelnden Außenwelt.
+Das vollständige Ziel bleibt eine breite geopolitische Simulation. Die erste Version konzentriert sich auf die Türkei als gründlich modelliertes spielbares Land. Die übrige Welt ist vereinfacht, handelt aber eigenständig. Weitere spielbare Länder folgen später.
 
 Nicht für den ersten Umfang vorgesehen sind jede Straße, individuell simulierte Millionenbürger, weltweite Detailgleichheit, Echtzeitsynchronisierung mit Nachrichten, taktische Einzelgefechte und Mehrspieler.
 

@@ -1,6 +1,8 @@
 # NWO — Wirtschaftsmodell und Zentralbank
 
-Version 0.4, 28. September 2026. Ergänzung zu [Lernkonzept](LERNKONZEPT.md) und [Spieldesign](SPIELDESIGN.md).
+Version 0.5, 28. September 2026. Ergänzung zu [Lernkonzept](LERNKONZEPT.md) und [Spieldesign](SPIELDESIGN.md).
+
+**Neu in Version 0.5:** Die Währung ist die Lira. Mehrere Größen erhalten eine regionale Ausprägung je Provinz. Die Kerngrößen und die elf Zusammenhänge sind Teil des Politiknetzes, und Folgen werden vorab nur als Richtung und Bandbreite gezeigt.
 
 **Status:** Entwurf. Alle Mechanismen sind aus anerkanntem Lehrbuchwissen abgeleitet; die Quellen in Abschnitt 8 sind Kandidaten und werden vor der Umsetzung einzeln geprüft. Zahlenwerte (Verzögerungen, Stärken) sind Platzhalter für die Kalibrierung, keine Messwerte.
 
@@ -32,11 +34,15 @@ Das Modell soll nicht die Zukunft eines echten Landes vorhersagen. Es soll die *
 | Auslastung | intern | Läuft die Wirtschaft über oder unter ihren Möglichkeiten? | als Einschätzung der Mentorin |
 | Arbeitslosenquote | % | Anteil der Arbeitsuchenden | ja, verzögert |
 | Löhne und Reallöhne | % | Lohnanstieg, und ob er die Preise übertrifft | ja |
-| Wechselkurs | Estra je Euro | Außenwert der eigenen Währung | ja, täglich |
+| Wechselkurs | Lira je US-Dollar und je Euro | Außenwert der eigenen Währung | ja, täglich |
 | Staatsdefizit und Schuldenstand | % der Wirtschaftsleistung | Neue Schulden pro Jahr und Gesamtschulden | ja |
 | Zinslast des Staates | % der Ausgaben | Wie viel des Haushalts an Zinsen geht | ja |
 | Risikoaufschlag | Prozentpunkte | Aufpreis, den Anleger für Staatsanleihen verlangen | ja, täglich |
 | Wahrgenommene Teuerung | intern je Wählergruppe | Wie teuer sich der Alltag anfühlt (Lebensmittel, Energie, Miete) | über Umfragen und Stimmen |
+
+### Regionale Ausprägung
+
+Geldpolitik, Wechselkurs, Staatsfinanzen und Risikoaufschlag sind nationale Größen. Arbeitslosigkeit, Einkommen, wahrgenommene Teuerung (vor allem Mieten) und die Stimmung der Wählergruppen erhalten eine Ausprägung je Provinz, soweit belastbare Daten vorliegen *(Verfügbarkeit bei TÜİK zu belegen)*. Die regionalen Werte ergeben gewichtet die nationalen Werte. Wo Daten fehlen, wird das gekennzeichnet (Entwicklungsplan, Abschnitt 5). So kann eine Maßnahme im Westen anders wirken als im Osten, ohne dass das Modell zwei Volkswirtschaften rechnet.
 
 ## 4. Die Zusammenhänge
 
@@ -48,7 +54,7 @@ Jeder Zusammenhang hat: Wirkung, typische Verzögerung, Spielregel, Vereinfachun
 
 **Z3 — Erwartungen und Glaubwürdigkeit.** Wenn Haushalte und Firmen der Zentralbank zutrauen, die Inflation zu senken, bleiben die Erwartungen verankert, und die Inflation lässt sich leichter senken. Verliert die Zentralbank Glaubwürdigkeit, steigen die Erwartungen, Löhne und Preise werden vorsorglich erhöht, und die Inflation verfestigt sich. *Das ist der zentrale Lernmechanismus der Zentralbankfrage.* Glaubwürdigkeit baut sich langsam auf und kann schnell verloren gehen.
 
-**Z4 — Zinsen und Vertrauen wirken auf den Wechselkurs.** Sinken die Zinsen im Vergleich zum Ausland oder sinkt das Vertrauen (politischer Eingriff, Schuldenangst), fließt Kapital ab und die Währung verliert. *Verzögerung:* Tage. *Vereinfachung:* ein Leitwechselkurs gegenüber dem wichtigsten Handelsraum.
+**Z4 — Zinsen und Vertrauen wirken auf den Wechselkurs.** Sinken die Zinsen im Vergleich zum Ausland oder sinkt das Vertrauen (politischer Eingriff, Schuldenangst), fließt Kapital ab und die Währung verliert. *Verzögerung:* Tage. *Vereinfachung:* ein Leitwechselkurs gegenüber einem Korb aus US-Dollar und Euro *(Zusammensetzung zu belegen)*; angezeigt werden beide Kurse.
 
 **Z5 — Der Wechselkurs wirkt auf die Preise.** Eine schwächere Währung verteuert Importe, vor allem Energie, und treibt die Inflation. Exporteure profitieren. *Verzögerung:* Wochen bis Monate. *Das verbindet Zentralbank, Außenwirtschaft und den Alltag der Wähler.*
 
@@ -124,6 +130,8 @@ Die Mentorin stellt diese Punkte als offene Fragen dar:
 
 ## 6. Was der Spieler sieht
 
+- **Im Politiknetz:** Die Kerngrößen sind Knoten, die Zusammenhänge Z1 bis Z11 sind Verbindungen mit Richtung, Stärke und Verzögerung ([Spieldesign](SPIELDESIGN.md), Abschnitt 5). Größen ohne Anzeige für den Spieler (etwa Glaubwürdigkeit) erscheinen dort nur indirekt.
+- **Vor Entscheidungen:** Richtung und Bandbreite mit Unsicherheit, erklärt von der Mentorin. Genaue Zahlen gibt es erst, wenn sie gemessen sind. Die Bandbreite entsteht, indem das Modell die Unsicherheit seiner eigenen Parameter durchrechnet.
 - **Wirtschaftsakte auf dem Schreibtisch:** wenige Kennzahlen mit Verlauf. Jede Zahl ist anklickbar („Was heißt das?“, „Warum hat sie sich verändert?“, „Wann wurde sie gemessen?“).
 - **Stimmen der Wirtschaft:** Unternehmer, Gewerkschaft und Verbraucher als kurze Zitate, damit Zahlen Gesichter bekommen.
 - **Prognosen mit Bandbreite:** Die Zentralbank und das Finanzministerium veröffentlichen Prognosen. Sie sind unsicher und können sich widersprechen.
