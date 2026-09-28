@@ -92,13 +92,23 @@ Mehrheiten bei 600 Sitzen: 151 (Mindestzahl für Beschlüsse), 200 (ein Drittel)
 - **Neuwahlen sind ein zweischneidiges Schwert:** Sie gelten immer für Präsident und Parlament zugleich.
 - **Die Zentralbank ist Stufe B.** Der Spieler kann die Führung austauschen, aber nicht direkt den Zins festlegen und nicht direkt Geld für den Haushalt drucken lassen.
 
-## 8. Noch nicht belegt
+## 8. Ergänzungen aus der Websuche
 
-Die folgenden Punkte konnten wegen des Abrufkontingents der Rechtsdatenbank nicht geprüft werden. Sie kommen erst ins Spiel, wenn sie belegt sind:
+Diese Regeln stammen aus Suchtreffern (Presse, Kanzleien, amtliche Seiten als Treffer), nicht aus dem geprüften Gesetzestext. Nach der Belegregel genügen zwei übereinstimmende Quellen. Einzelheiten und Links in [recherche/luecken_web.md](recherche/luecken_web.md).
 
-- Ernennung der Gouverneure (Gesetz 5442, Präsidialdekret Nr. 3)
-- Großstadtkommunen: Anzahl und Liste (Gesetze 5216, 6360), Bezirkszahlen von Istanbul, Ankara, Izmir, Zahl der Provinzen (81)
-- Parteiverbot (AY 69, Gesetz 2820)
-- Vergaberecht (Gesetz 4734) und Vergabebehörde
-- Katastrophenschutz AFAD, Rundfunkgesetz 6112 (Sanktionen), Nachrichtendienstgesetz 2937
-- Änderungen im Amtsblatt nach Juli 2026
+| Regel | Fundstelle | Im Spiel |
+|---|---|---|
+| Gouverneure (vali) und Landräte (kaymakam) ernennt der Präsident | Präsidialdekret Nr. 3 | Der Staat vor Ort gehört dem Präsidenten, die Rathäuser nicht |
+| 81 Provinzen, 973 Landkreise, 30 Großstadtkommunen; Istanbul hat 39 Bezirke, Ankara 25, Izmir 30 | Gesetze 5216, 6360 | Kartenaufbau und aufklappbare Großstädte |
+| Parteiverbot: Der Generalstaatsanwalt am Kassationshof klagt, das Verfassungsgericht entscheidet mit zwei Dritteln; alternativ kann es die Staatsfinanzierung ganz oder teilweise entziehen | AY 69, 149 | Harter Weg gegen eine Partei, langsam und teuer |
+| Staatliche Parteienfinanzierung ab 3 % der Stimmen, voll ab der 7-%-Hürde | Parteiengesetz 2820 | Kleine Parteien kämpfen ums Geld |
+| Die Leitung der Vergabebehörde ernennt der Präsident; Direktvergaben nur bis zu einer Wertgrenze; Manipulation von Vergaben wird mit 3 bis 7 Jahren Haft bestraft | Gesetz 4734, Strafgesetzbuch Art. 235 | Grundlage für Bauprojekte, Vergabeaffären und Spuren |
+| Katastrophenschutz AFAD untersteht dem Innenministerium | Präsidialdekret Nr. 4 | Zuständigkeit bei Erdbeben |
+| Rundfunkaufsicht: Amtszeit 6 Jahre, bei wiederholten Verstößen bis zum Lizenzentzug; Internetsperren ordnet die Telekombehörde an, ein Richter muss binnen 48 Stunden bestätigen | Gesetze 6112, 5651 | Stufenleiter „Medien“ |
+| Der Nachrichtendienst MİT untersteht dem Präsidenten; Ermittlungen gegen seine Mitarbeiter brauchen dessen Genehmigung | Gesetz 2937 | Werkzeug mit Risiko, schwer zu kontrollieren |
+| Bürgermeister werden mit relativer Mehrheit gewählt; nächste Kommunalwahl am 25.03.2029 | Gesetz 2972 | Fällt in die erste Amtszeit der Spielerfigur |
+| Gegen Entscheidungen des Hohen Wahlrats YSK gibt es kein Rechtsmittel | AY 79 | Wer den Wahlrat hat, hat das letzte Wort bei Wahlstreit |
+
+**Korrektur zur Zentralbank:** Das Urteil des Verfassungsgerichts zu den Artikeln 25 und 29 des Zentralbankgesetzes wurde am 04.06.2024 veröffentlicht und wirkt erst zwölf Monate später. Eine Neuregelung wurde nicht gefunden. Ob das Präsidialdekret Nr. 3 die Zentralbankspitze von der vorzeitigen Abberufung ausnimmt, ist in den Quellen widersprüchlich. Für das Spiel bleibt es bei Stufe B: Der Präsident kann die Führung austauschen, mit den Folgen aus dem Wirtschaftsmodell.
+
+**Noch offen, aber für den Prototyp nicht nötig:** die genauen Folgen der aufgehobenen Regeln für Gouverneure und Zentralbank, das anhängige Verfahren zu den Zwangsverwaltern in Kommunen, der aktuelle Stand des Internetgesetzes 5651.
