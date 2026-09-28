@@ -27,6 +27,8 @@ Die Opposition als Einstieg (etwa Vorsitz einer Oppositionspartei) folgt später
 
 ## 3. Was recherchiert werden muss
 
+**Detailtiefe (Entscheidung des Projektinhabers):** Es bleibt ein Spiel. Recht und Institutionen werden so tief abgebildet wie bei Suzerain und Democracy 4, also nur die Kernregeln, die eine Entscheidung im Spiel verändern: wer darf was, welche Mehrheit ist nötig, welche Frist und welche Grenze gilt. Verfahrensfeinheiten, Schwellenwerttabellen und Nebenvorschriften bleiben draußen. Jede Kernregel braucht trotzdem einen Beleg; die Belegpflicht betrifft die Richtigkeit, nicht die Menge.
+
 ### 3.1 Institutionen und Verfahren
 
 | Bereich | Inhalt | Primärquellen |

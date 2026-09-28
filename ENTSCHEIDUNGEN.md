@@ -83,6 +83,7 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 | Eigenes Team | Beim Amtsantritt Berater und Minister aus erfundenen Kandidaten wählen, später jederzeit ändern. Echte Vorbilder nur außerhalb des eigenen Teams (Opposition, andere Parteien, Parlament, Ausland) | Spieldesign 7, Länderpaket 4 |
 | Mentorin | Wählbar aus zwei bis drei neutralen Figuren | Lernkonzept 4 |
 | Erster Arbeitsschritt | Recherche Türkei (Länderpaket, Arbeitspaket TR-00) | Länderpaket 7 |
+| Detailtiefe von Recht und Institutionen | Es bleibt ein Spiel: Gesetze nur so tief wie bei Suzerain und Democracy 4, also die Kernregeln, die Entscheidungen verändern (wer darf was, welche Mehrheit, welche Grenze), keine Verfahrensfeinheiten | Länderpaket 3 |
 
 ## F. Hinweise aus der Einarbeitung
 
