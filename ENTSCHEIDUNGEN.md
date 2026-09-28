@@ -109,5 +109,6 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 
 - **Recherche Türkei fortsetzen.** Begonnen am 28.09.2026: [Institutionen](tuerkei/INSTITUTIONEN.md) und [Startdaten](tuerkei/STARTDATEN.md). Offen sind die Lücken in Abschnitt 8 der Institutionen und die Prüfung aller Zahlen an den Primärquellen (dafür braucht die Entwicklungsumgebung Netzzugang zu den türkischen Amtsseiten).
 - **Zu bestätigen:** Die eigene Partei landet beim Start meist zwischen 15 und 30 Prozent und hat keine eigene Mehrheit im Parlament (Vorschlag im Spieldesign, Abschnitt 3).
-- Danach die Technologieversuche (Entwicklungsplan, Abschnitt 6), weil S1 Karte und Politiknetz braucht.
+- **Erster spielbarer Kern steht** ([Technik](TECHNIK.md)): Wirtschaftsmodell, Zentralbank, Statistiken mit Verzögerung, Vorschau mit Bandbreite, Schreibtisch, Karte. Als Nächstes: Politiknetz füllen, Prolog und Start nach der Wahl 2028, Figuren und Gespräche.
+- **Für Sprach- und Bildversuch** wird ein KI-Schlüssel beziehungsweise ein Bildgenerator gebraucht.
 - Offen für später: Namen und Hintergrund der zweiten und dritten Mentorenfigur; Markenprüfung für „Staatsräson“.

@@ -1,0 +1,150 @@
+/* Wenige Farben mit fester Bedeutung (Spieldesign, Abschnitt 4, Designsystem).
+   Platzhalter bis zum Stilleitfaden; die gezeichneten Bilder kommen später. */
+
+:root {
+  --desk: #2f2a24;
+  --desk-edge: #1f1b17;
+  --paper: #f6f1e7;
+  --paper-shade: #ebe3d3;
+  --ink: #2a2622;
+  --ink-soft: #6b6258;
+  --accent: #8c2f2b; /* Siegelrot: Beschlüsse */
+  --measure: #2f5d62; /* Petrol: Gemessenes */
+  --land: #e4dac6;
+  --land-hover: #d5c7ab;
+  --line: #b9ab92;
+  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top, #3a332b, var(--desk) 60%, var(--desk-edge));
+  color: var(--ink);
+  font-family: var(--sans);
+  min-height: 100vh;
+}
+
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 24px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #efe6d6;
+}
+.brand { font-family: var(--serif); font-size: 20px; letter-spacing: 0.04em; }
+.date { font-family: var(--serif); font-size: 17px; min-width: 190px; }
+.speeds, .tabs { display: flex; gap: 4px; }
+.tabs { margin-left: auto; }
+.topbar button {
+  background: transparent;
+  color: #efe6d6;
+  border: 1px solid rgba(239, 230, 214, 0.3);
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+}
+.topbar button.active { background: #efe6d6; color: var(--ink); }
+
+.main { flex: 1; padding: 24px; }
+.footer { padding: 8px 24px; color: #a89c89; font-size: 12px; }
+
+.paper {
+  background: var(--paper);
+  border-radius: 3px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 0 var(--paper-shade), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.paper h2, .paper h3 { font-family: var(--serif); margin: 0 0 4px; font-weight: normal; }
+.paper h2 { font-size: 26px; }
+.subtitle { color: var(--ink-soft); margin: 0 0 14px; font-size: 14px; }
+
+button { font: inherit; }
+.paper button {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 4px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.paper button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.link { border: none; background: none; padding: 0; color: var(--measure); cursor: pointer; text-decoration: underline; }
+
+/* Schreibtisch */
+.desk { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 24px; max-width: 1200px; margin: 0 auto; }
+.briefing ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.entry { padding: 10px 12px; border-radius: 3px; border: 1px dashed var(--line); font-family: var(--serif); }
+/* Absicht gestrichelt, Beschluss durchgezogen, Wirkung gefüllt */
+.entry.kind-entscheidung { border: 1.5px solid var(--accent); }
+.entry.kind-statistik { border: 1px solid transparent; background: rgba(47, 93, 98, 0.1); }
+.entry .tag { font-family: var(--sans); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-right: 8px; color: var(--ink-soft); }
+.entry.kind-entscheidung .tag { color: var(--accent); }
+.entry.kind-statistik .tag { color: var(--measure); }
+.entry .when, .when { font-family: var(--sans); font-size: 12px; color: var(--ink-soft); }
+.entry .why { margin-top: 4px; color: var(--ink-soft); font-size: 14px; }
+.desk-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+.mentor {
+  background: #fbf8f1;
+  border-left: 4px solid var(--measure);
+  padding: 16px 18px;
+  border-radius: 3px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  align-self: start;
+}
+.mentor-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.portrait {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--measure); color: #fff;
+  display: grid; place-items: center; font-family: var(--serif);
+}
+.note { font-family: var(--serif); border-top: 1px solid var(--paper-shade); padding-top: 10px; margin-top: 10px; }
+.note p { margin: 0 0 6px; }
+.note .more { color: var(--ink-soft); font-size: 14px; }
+
+/* Wirtschaftsakte */
+.file, .decisions, .mapview { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 24px; max-width: 1200px; margin: 0 auto; align-items: start; }
+.indicators { width: 100%; border-collapse: collapse; font-family: var(--serif); }
+.indicators tr { cursor: pointer; border-bottom: 1px solid var(--paper-shade); }
+.indicators tr:hover, .indicators tr.selected { background: rgba(47, 93, 98, 0.08); }
+.indicators th { text-align: left; font-weight: normal; padding: 10px 8px; }
+.indicators td { padding: 10px 8px; }
+.indicators .value { font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.indicators .measured { font-family: var(--sans); font-size: 12px; color: var(--ink-soft); }
+.spark { color: var(--measure); }
+.why-panel ul { padding-left: 18px; font-size: 14px; }
+.why-panel h4 { margin: 16px 0 6px; font-weight: normal; font-family: var(--serif); }
+
+/* Karte */
+.map { width: 100%; height: auto; background: #cfdcdc; border-radius: 3px; }
+.province { fill: var(--land); stroke: var(--line); stroke-width: 0.6; cursor: pointer; transition: fill 120ms; }
+.province:hover { fill: var(--land-hover); }
+.province.selected { fill: #c9b48d; stroke: var(--ink); stroke-width: 1.2; }
+.metro-dot { fill: var(--accent); pointer-events: none; }
+.province-card .hint { color: var(--ink-soft); font-size: 13px; }
+
+/* Entscheidungen */
+.options { display: grid; gap: 10px; }
+.option { text-align: left; display: grid; gap: 4px; padding: 12px 14px; }
+.option.intent { border: 1.5px dashed var(--line); }
+.option.active { border-color: var(--accent); background: #fbf3ee; }
+.option span { color: var(--ink-soft); font-size: 14px; }
+.outlook table { width: 100%; border-collapse: collapse; font-family: var(--serif); }
+.outlook th { text-align: left; font-weight: normal; padding: 6px 4px; }
+.outlook td { padding: 6px 4px; }
+.outlook .range { color: var(--ink-soft); font-size: 14px; }
+.mentor-inline { border-left: 3px solid var(--measure); padding-left: 10px; font-size: 14px; color: var(--ink-soft); }
+.confirm { display: flex; gap: 8px; margin-top: 12px; }
+
+@media (max-width: 800px) {
+  .desk, .file, .decisions, .mapview { grid-template-columns: 1fr; }
+  .topbar { flex-wrap: wrap; gap: 10px; }
+  .tabs { margin-left: 0; }
+}

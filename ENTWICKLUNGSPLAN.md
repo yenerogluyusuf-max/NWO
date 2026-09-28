@@ -228,6 +228,8 @@ Ein Szenario erhält einen unveränderlichen Versionsstand. Aktualisierte Daten 
 
 Bereits festgelegt sind die Trennung zwischen Weltmodell und Darstellung, ein festes Zeitmodell, strukturierte Aktionen, versionierte Daten sowie das Protokollieren aller verbindlichen Zustandsänderungen.
 
+**Stand 28.09.2026:** Simulations- und Kartenversuch sind bestanden; die vorläufige Technikwahl (TypeScript, React, Vite, SVG-Karte) und die Ergebnisse stehen in [TECHNIK.md](TECHNIK.md). Sprach- und Bildversuch sind offen, weil dafür ein KI-Schlüssel und ein Bildgenerator gebraucht werden.
+
 **Entschieden:** Das Spiel läuft auf dem Computer. Die Spieler bringen ihren eigenen KI-Schlüssel mit; mehrere große Anbieter werden unterstützt. Ohne Schlüssel ist das Spiel eingeschränkt spielbar, weil Gespräche dann über Antwortvorlagen laufen. Alle Bilder entstehen per KI-Bildgenerierung.
 
 Die konkrete Engine, Programmiersprache und Datenbank werden nach vier kleinen Versuchen gewählt, und zwar **vor S1**, weil S1 bereits Karte und Politiknetz enthält:

@@ -1,6 +1,10 @@
 # Staatsräson (Projektkürzel NWO)
 
-Politische Simulation, in der man ein echtes Land regiert, zuerst die Türkei, und dabei versteht, wie ein Staat funktioniert. Der Stand ist Konzept und Entwicklungsplan; es gibt noch keinen Code.
+Politische Simulation, in der man ein echtes Land regiert, zuerst die Türkei, und dabei versteht, wie ein Staat funktioniert. Neben Konzept und Entwicklungsplan gibt es einen ersten spielbaren Kern im Ordner [`game/`](game/) (siehe [Technik](TECHNIK.md)).
+
+```
+cd game && npm install && npm run dev
+```
 
 Der Titel des Spiels ist **Staatsräson** (englisch *Raison d'État*), vorbehaltlich einer Markenprüfung. „NWO“ bleibt nur das interne Projektkürzel in den Dokumenten und im Repository ([Namensvorschläge](NAMENSVORSCHLAEGE.md)).
 
@@ -17,6 +21,7 @@ Der Titel des Spiels ist **Staatsräson** (englisch *Raison d'État*), vorbehalt
 | [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md) | Spielerrolle, Rechercheplan mit Primärquellen, echte Personen, heikle Themen |
 | [Türkei: Institutionen](tuerkei/INSTITUTIONEN.md) | Kernregeln aus Verfassung, Zentralbank- und Wahlgesetz mit Belegen |
 | [Türkei: Startdaten](tuerkei/STARTDATEN.md) | Stichtag und Kernwerte zu Wirtschaft, Politik und Bevölkerung |
+| [Technik](TECHNIK.md) | Technikwahl, Ergebnisse der Versuche, Stand des Prototyps |
 | [Referenzanalyse](REFERENZANALYSE.md) | Vorbilder (Civilization, Hearts of Iron, Suzerain, Democracy 4) und abgeleitete Entscheidungen |
 | [Namensvorschläge](NAMENSVORSCHLAEGE.md) | Ideen für den endgültigen Namen mit Empfehlung |
 | [S0 Papiertest](S0_PAPIERTEST/00_ANLEITUNG.md) | Optionaler Papiertest „Die Klinikum-Affäre“ in der fiktiven Republik Estravia |

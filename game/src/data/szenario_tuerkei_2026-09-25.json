@@ -1,0 +1,29 @@
+{
+  "id": "tuerkei-2026-09-25",
+  "dataDate": "2026-09-25",
+  "startDate": "2028-06-05",
+  "description": "Türkei mit den Daten vom Stichtag 25.09.2026. Das Spiel beginnt direkt nach der Wahl 2028 (Startdatum im Spiel ist eine Annahme: Amtsantritt Anfang Juni 2028). Quellen: tuerkei/STARTDATEN.md.",
+  "economy": {
+    "policyRate": { "value": 37, "provenance": "belegt", "note": "Zinsentscheid 10.09.2026" },
+    "inflation": { "value": 31.51, "provenance": "belegt", "note": "August 2026, TÜİK" },
+    "expectedInflation": { "value": 28, "provenance": "geschaetzt", "note": "Platzhalter nahe der Jahresendprognose der Zentralbank; Erwartungsumfrage noch nicht erhoben" },
+    "inflationTarget": { "value": 24, "provenance": "belegt", "note": "Zwischenziel 2026" },
+    "credibility": { "value": 0.45, "provenance": "geschaetzt", "note": "Interne Größe des Modells, keine Messung" },
+    "outputGap": { "value": -1, "provenance": "geschaetzt", "note": "Wachstum unter Potenzial" },
+    "potentialGrowth": { "value": 4, "provenance": "geschaetzt", "note": "Platzhalter für die Kalibrierung" },
+    "growth": { "value": 2.3, "provenance": "belegt", "note": "2. Quartal 2026" },
+    "unemployment": { "value": 8.1, "provenance": "belegt", "note": "Juli 2026" },
+    "usdTry": { "value": 48.95, "provenance": "belegt", "note": "Marktkurs 25.09.2026" },
+    "eurTry": { "value": 55.75, "provenance": "belegt", "note": "Marktkurs 25.09.2026" },
+    "riskPremium": { "value": 250, "provenance": "belegt", "note": "CDS 5 Jahre, Ende September 2026" },
+    "debtRatio": { "value": 23.8, "provenance": "belegt", "note": "Ende 2025, EU-Definition" },
+    "deficit": { "value": 3.1, "provenance": "belegt", "note": "Ziel 2026" },
+    "fiscalImpulse": { "value": 0, "provenance": "abgeleitet", "note": "Kein zusätzlicher Impuls zu Spielbeginn" }
+  },
+  "governor": { "name": "Gouverneur der Zentralbank", "stance": "vorsichtig" },
+  "published": {
+    "inflation": { "value": 31.51, "period": "2028-05", "publishedOn": "2028-06-03" },
+    "growth": { "value": 2.3, "period": "2028-Q1", "publishedOn": "2028-06-01" },
+    "unemployment": { "value": 8.1, "period": "2028-04", "publishedOn": "2028-05-31" }
+  }
+}
