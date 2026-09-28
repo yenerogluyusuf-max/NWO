@@ -1,7 +1,22 @@
 import { useState } from "react";
 import { emptyProfile, STATIONS, type PlayerProfile } from "../sim/prolog";
+import { Vignette, type Scene } from "./art/Vignette";
+import { Corners } from "./art/Ornament";
+import { Cameo } from "./art/Cameo";
+import { plakaByName } from "./atlas/overlay";
 
-export function Prologue({ onDone }: { onDone: (p: PlayerProfile) => void }) {
+const SCENE: Record<string, Scene> = {
+  kindheit: "anatolien",
+  jugend: "istanbul",
+  beruf: "bank",
+  liebe: "istanbul",
+  politik: "parlament",
+  partei: "parlament",
+  wahlkampf: "wahlnacht",
+  wahlnacht: "wahlnacht",
+};
+
+export function Prologue({ onDone, onFocus }: { onDone: (p: PlayerProfile) => void; onFocus?: (plaka: number | undefined) => void }) {
   const [profile] = useState<PlayerProfile>(emptyProfile);
   const [name, setName] = useState("");
   const [step, setStep] = useState(-1);
@@ -11,6 +26,7 @@ export function Prologue({ onDone }: { onDone: (p: PlayerProfile) => void }) {
     apply(profile);
     setChosen([...chosen, label]);
     setStep(step + 1);
+    onFocus?.(profile.heimatPlaka || undefined);
   }
 
   function randomRest() {
@@ -28,91 +44,122 @@ export function Prologue({ onDone }: { onDone: (p: PlayerProfile) => void }) {
     }
     setChosen(labels);
     setStep(STATIONS.length);
+    onFocus?.(profile.heimatPlaka || undefined);
   }
 
-  if (step === -1) {
-    return (
-      <div className="prologue">
-        <section className="paper prologue-card">
-          <p className="kind-label">Prolog</p>
-          <h2>Wer bist du?</h2>
-          <p className="story">
-            Es ist Frühjahr 2028. In wenigen Wochen wählt die Türkei ein neues Parlament und einen neuen Präsidenten.
-            Bevor wir dorthin kommen, erzähl uns, wer du bist und wie du hierhergekommen bist.
-          </p>
-          <label className="name-input">
-            Dein Name
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="zum Beispiel Deniz Aydın" autoFocus />
-          </label>
-          <div className="confirm">
-            <button
-              className="primary"
-              disabled={name.trim().length < 2}
-              onClick={() => {
-                profile.name = name.trim();
-                setStep(0);
-              }}
-            >
-              Weiter
-            </button>
-            <button onClick={randomRest}>Zufällig und schnell</button>
-          </div>
-        </section>
-      </div>
-    );
-  }
+  const total = STATIONS.length;
 
-  if (step < STATIONS.length) {
-    const st = STATIONS[step]!;
-    return (
-      <div className="prologue">
-        <section className="paper prologue-card">
-          <p className="kind-label">
-            Prolog · {step + 1} von {STATIONS.length} · {st.title}
-          </p>
-          <p className="story">{st.story}</p>
-          <h2>{st.question}</h2>
-          <div className="answers">
-            {st.answers.map((a) => (
-              <button key={a.label} className="answer" onClick={() => choose(a.label, a.apply)}>
-                <strong>{a.label}</strong>
-                <span>{a.text}</span>
-              </button>
+  const card = (scene: Scene, kicker: string, body: React.ReactNode) => (
+    <div className="prologue">
+      <section className="frame prologue-card">
+        <Corners />
+        <Vignette scene={scene} />
+        <div className="prologue-body">
+          <div className="prologue-progress" aria-label={kicker}>
+            {Array.from({ length: total }, (_, i) => (
+              <span key={i} className={i < step ? "done" : i === step ? "now" : ""} />
             ))}
           </div>
-          <div className="confirm">
-            <button className="link" onClick={randomRest}>
-              Rest zufällig wählen
-            </button>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  return (
-    <div className="prologue">
-      <section className="paper prologue-card">
-        <p className="kind-label">Prolog · Ende</p>
-        <h2>{profile.name}</h2>
-        <p className="story">
-          Aufgewachsen in {profile.heimat}, von Beruf {profile.beruf}, Gründung der {profile.partei.name}.{" "}
-          {profile.versprechen[0] ?? ""}
-        </p>
-        <ul className="summary">
-          {STATIONS.map((s, i) => (
-            <li key={s.id}>
-              <span className="subtitle">{s.title}:</span> {chosen[i]}
-            </li>
-          ))}
-        </ul>
-        <p className="story">Die Wahlnacht ist vorbei. Morgen früh wartet der Schreibtisch.</p>
-        <div className="confirm">
-          <button className="primary" onClick={() => onDone(profile)}>
-            Amtsantritt
-          </button>
+          <p className="kicker">{kicker}</p>
+          {body}
         </div>
       </section>
     </div>
+  );
+
+  if (step === -1) {
+    return card(
+      "anatolien",
+      "Prolog",
+      <>
+        <h2>Wer bist du?</h2>
+        <p className="story">
+          Es ist Frühjahr 2028. In wenigen Wochen wählt die Türkei ein neues Parlament und einen neuen Präsidenten. Bevor wir dorthin
+          kommen, erzähl uns, wer du bist und wie du hierhergekommen bist.
+        </p>
+        <label className="name-input">
+          Dein Name
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="zum Beispiel Deniz Aydın" autoFocus />
+        </label>
+        <div className="confirm">
+          <button
+            className="primary"
+            disabled={name.trim().length < 2}
+            onClick={() => {
+              profile.name = name.trim();
+              setStep(0);
+            }}
+          >
+            Weiter
+          </button>
+          <button onClick={randomRest}>Zufällig und schnell</button>
+        </div>
+      </>,
+    );
+  }
+
+  if (step < total) {
+    const st = STATIONS[step]!;
+    const isHome = st.id === "kindheit";
+    return card(
+      SCENE[st.id] ?? "anatolien",
+      `${st.title} · ${step + 1} von ${total}`,
+      <>
+        <p className="story">{st.story}</p>
+        <h2>{st.question}</h2>
+        <div className="answers">
+          {st.answers.map((a) => (
+            <button
+              key={a.label}
+              className="answer"
+              onClick={() => choose(a.label, a.apply)}
+              onPointerEnter={() => isHome && onFocus?.(plakaByName(a.label))}
+            >
+              <strong>{a.label}</strong>
+              <span>{a.text}</span>
+            </button>
+          ))}
+        </div>
+        <div className="confirm">
+          <button className="link" onClick={randomRest}>
+            Rest zufällig wählen
+          </button>
+        </div>
+      </>,
+    );
+  }
+
+  return card(
+    "wahlnacht",
+    "Wahlnacht",
+    <>
+      <div className="prologue-hero">
+        <Cameo seed={profile.name} size={78} tint={profile.partei.farbe} />
+        <div>
+          <h2>{profile.name}</h2>
+          <p className="subtitle">
+            {profile.partei.name} · gewählt {profile.wahl.runde === 1 ? "im ersten Wahlgang" : "in der Stichwahl"} mit{" "}
+            {profile.wahl.anteil.toLocaleString("de-DE")} %
+          </p>
+        </div>
+      </div>
+      <p className="story">
+        Aufgewachsen in {profile.heimat}, von Beruf {profile.beruf}. {profile.versprechen[0] ?? ""}
+      </p>
+      <dl className="summary">
+        {STATIONS.map((s, i) => (
+          <div key={s.id}>
+            <dt>{s.title}</dt>
+            <dd>{chosen[i]}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="story">Die Wahlnacht ist vorbei. Morgen früh wartet der Schreibtisch in Ankara.</p>
+      <div className="confirm">
+        <button className="primary" onClick={() => onDone(profile)}>
+          Amtsantritt
+        </button>
+      </div>
+    </>,
   );
 }

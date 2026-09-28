@@ -63,7 +63,6 @@ export function Decisions({ world, onDecided }: { world: World; onDecided: () =>
   return (
     <div className="decisions">
       <section className="paper">
-        <h2>Entscheidungen</h2>
         <p className="subtitle">Entwickleransicht: Die Handlungen kommen später über das Politiknetz und die Schreibfläche.</p>
         <div className="options">
           {OPTIONS.map((o) => (

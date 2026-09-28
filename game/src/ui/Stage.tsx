@@ -12,6 +12,9 @@ import { NetView } from "./NetView";
 import { Decisions } from "./Decisions";
 import { PARTY_COLORS } from "./Parliament";
 import { Icon, type IconName } from "./icons";
+import { Cameo } from "./art/Cameo";
+import { Corners } from "./art/Ornament";
+import { EventWindow, type GameEvent } from "./EventWindow";
 
 type Dossier = "schreibtisch" | "wirtschaft" | "netz" | "entscheidungen" | null;
 type MapMode = "gelaende" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "netz";
@@ -50,7 +53,8 @@ export function Stage({ world: initial }: { world: World }) {
   const world = useRef<World>(initial);
   const [, setVersion] = useState(0);
   const [speed, setSpeed] = useState(0);
-  const [dossier, setDossier] = useState<Dossier>("schreibtisch");
+  const [dossier, setDossier] = useState<Dossier>(null);
+  const [events, setEvents] = useState<GameEvent[]>(() => [startEvent(initial)]);
   const [mapMode, setMapMode] = useState<MapMode>("gelaende");
   const [netNode, setNetNode] = useState<string>("p_wassermangel");
   const [selected, setSelected] = useState<number | undefined>(undefined);
@@ -63,7 +67,25 @@ export function Stage({ world: initial }: { world: World }) {
     const id = setInterval(() => {
       const before = world.current.log.length;
       advance(world.current, 1);
-      if (world.current.log.slice(before).some((l) => l.kind === "entscheidung")) setSpeed(0);
+      const fresh = world.current.log.slice(before).filter((l) => l.kind === "entscheidung");
+      if (fresh.length) {
+        setSpeed(0);
+        setEvents((q) => [
+          ...q,
+          ...fresh.map((l, i) => ({
+            id: `ppk-${l.day}-${i}`,
+            scene: "bank" as const,
+            date: formatDateDe(l.date),
+            title: "Geldpolitischer Ausschuss",
+            text: <p>{l.text}</p>,
+            why: l.why,
+            actions: [
+              { label: "Zur Kenntnis genommen", primary: true },
+              { label: "Wirtschaftsakte öffnen", run: () => setDossier("wirtschaft") },
+            ],
+          })),
+        ]);
+      }
       refresh();
     }, ms);
     return () => clearInterval(id);
@@ -127,11 +149,11 @@ export function Stage({ world: initial }: { world: World }) {
     { id: "probleme", label: "Akute Probleme", icon: "warnung" },
   ];
 
-  const dossiers: { id: Exclude<Dossier, null>; label: string }[] = [
-    { id: "schreibtisch", label: "Schreibtisch" },
-    { id: "wirtschaft", label: "Wirtschaftsakte" },
-    { id: "netz", label: "Politiknetz" },
-    { id: "entscheidungen", label: "Entscheidungen" },
+  const dossiers: { id: Exclude<Dossier, null>; label: string; icon: IconName }[] = [
+    { id: "schreibtisch", label: "Schreibtisch", icon: "feder" },
+    { id: "wirtschaft", label: "Wirtschaftsakte", icon: "akte" },
+    { id: "netz", label: "Politiknetz", icon: "netz" },
+    { id: "entscheidungen", label: "Entscheidungen", icon: "siegel" },
   ];
 
   return (
@@ -147,48 +169,77 @@ export function Stage({ world: initial }: { world: World }) {
       />
 
       <header className="hud">
+        <div className="hud-bar" />
         <div className="hud-left">
-          <div className="seal" aria-hidden>
-            <span>{w.player?.name.split(" ").map((x) => x[0]).join("").slice(0, 2) ?? "P"}</span>
+          <div className="leader">
+            <Cameo seed={w.player?.name ?? "Staatspräsident"} size={66} tint={w.player?.partei.farbe} />
           </div>
-          <div>
+          <div className="leader-text">
             <div className="hud-name">{w.player?.name ?? "Staatspräsident"}</div>
             <div className="hud-sub">
-              <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> {w.player?.partei.name ?? "Staatsräson"}
+              <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> {w.player?.partei.name ?? "Staatsräson"} · Staatsoberhaupt
             </div>
           </div>
         </div>
         <div className="hud-center">
-          <div className="date-plate">{formatDateDe(w.date)}</div>
-          <div className="speeds">
-            {["❚❚", "▶", "▶▶", "▶▶▶"].map((l, i) => (
-              <button key={l} className={i === speed ? "on" : ""} onClick={() => setSpeed(i)} aria-label={i === 0 ? "Pause" : `Tempo ${i}`}>
-                {l}
-              </button>
-            ))}
+          <div className="date-plate">
+            <span className="date-day">{formatDateDe(w.date)}</span>
+            <div className="speeds" role="group" aria-label="Spieltempo">
+              {[0, 1, 2, 3].map((i) => (
+                <button key={i} className={i === speed ? "on" : ""} onClick={() => setSpeed(i)} aria-label={i === 0 ? "Pause" : `Tempo ${i}`}>
+                  {i === 0 ? <span className="pause-glyph" /> : Array.from({ length: i }, (_, k) => <span key={k} className="play-glyph" />)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <div className="hud-right">
-          <Stat icon="preis" label="Inflation" value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} />
-          <Stat icon="lira" label="Lira je $" value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} />
-          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} />
-          <Stat icon="parlament" label="Sitze" value={`${bloc} / 301`} warn={bloc < 301} />
-          <Stat icon="haende" label="Vertrauen" value={`${Math.round(trust)}`} />
+          <Stat
+            icon="preis"
+            label="Inflation"
+            value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`}
+            trend={trend(w, "inflation")}
+            tip="Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung."
+          />
+          <Stat
+            icon="lira"
+            label="Lira je $"
+            value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })}
+            trend={trend(w, "usdTry")}
+            tip="Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer."
+          />
+          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
+          <Stat
+            icon="parlament"
+            label="Sitze"
+            value={`${bloc} / 600`}
+            warn={bloc < 301}
+            tip={`Dein Lager im Parlament. Gesetze brauchen 301 Stimmen, eine Verfassungsänderung ohne Volksabstimmung 400, mit Volksabstimmung 360.`}
+          />
+          <Stat icon="haende" label="Vertrauen" value={`${Math.round(trust)}`} tip="Vertrauen in die Regierung, Mittel über alle Provinzen (0 bis 100)." />
         </div>
       </header>
 
+      <Alerts world={w} bloc={bloc} onProblems={() => setMapMode("probleme")} onDesk={() => setDossier("schreibtisch")} />
+
+      <nav className="dossier-menu" aria-label="Akten">
+        {dossiers.map((d) => (
+          <button key={d.id} className={dossier === d.id ? "on" : ""} onClick={() => setDossier(dossier === d.id ? null : d.id)} aria-label={d.label}>
+            <Icon name={d.icon} />
+            <span className="menu-label">{d.label}</span>
+          </button>
+        ))}
+      </nav>
+
       {dossier && (
-        <section className="dossier">
-          <div className="dossier-tabs">
-            {dossiers.map((d) => (
-              <button key={d.id} className={dossier === d.id ? "on" : ""} onClick={() => setDossier(d.id)}>
-                {d.label}
-              </button>
-            ))}
-            <button className="close" onClick={() => setDossier(null)} aria-label="Mappe schließen">
+        <section className={`dossier frame${dossier === "netz" || dossier === "wirtschaft" ? " wide" : ""}`} aria-label={dossiers.find((d) => d.id === dossier)?.label}>
+          <Corners />
+          <header className="dossier-head">
+            <h2>{dossiers.find((d) => d.id === dossier)?.label}</h2>
+            <button className="close" onClick={() => setDossier(null)} aria-label="Schließen">
               ✕
             </button>
-          </div>
+          </header>
           <div className="dossier-body">
             {dossier === "schreibtisch" && <Desk world={w} onOpen={(v) => setDossier(v === "karte" ? null : (v as Dossier))} />}
             {dossier === "wirtschaft" && <EconomyFile world={w} />}
@@ -213,11 +264,6 @@ export function Stage({ world: initial }: { world: World }) {
             )}
           </div>
         </section>
-      )}
-      {!dossier && (
-        <button className="dossier-open" onClick={() => setDossier("schreibtisch")}>
-          Aktenmappe
-        </button>
       )}
 
       <nav className="mapmodes" aria-label="Kartenebenen">
@@ -247,20 +293,146 @@ export function Stage({ world: initial }: { world: World }) {
       </svg>
 
       {selected && <ProvinceCard world={w} plaka={selected} onClose={() => setSelected(undefined)} />}
+
+      {events[0] && (
+        <EventWindow
+          key={events[0].id}
+          event={events[0]}
+          onClose={() => setEvents((q) => q.slice(1))}
+        />
+      )}
     </div>
   );
 }
 
-function Stat({ icon, label, value, warn }: { icon: IconName; label: string; value: string; warn?: boolean }) {
+function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; label: string; value: string; warn?: boolean; trend?: number; tip: string }) {
   return (
-    <div className={`stat${warn ? " warn" : ""}`} title={label}>
+    <div className={`stat${warn ? " warn" : ""}`} tabIndex={0}>
       <Icon name={icon} />
       <div>
-        <div className="stat-value">{value}</div>
+        <div className="stat-value">
+          {value}
+          {t !== undefined && Math.abs(t) > 0.05 && <span className={`trend ${t > 0 ? "up" : "down"}`} aria-hidden>{t > 0 ? "▲" : "▼"}</span>}
+        </div>
         <div className="stat-label">{label}</div>
+      </div>
+      <div className="tip" role="tooltip">
+        <strong>{label}</strong>
+        <p>{tip}</p>
+        {t !== undefined && Math.abs(t) > 0.05 && (
+          <p className="tip-trend">
+            {t > 0 ? "Gestiegen" : "Gesunken"} seit dem Vormonat um {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
+          </p>
+        )}
       </div>
     </div>
   );
+}
+
+/** Veränderung zum Vormonat aus der Monatsgeschichte. */
+function trend(w: World, key: "inflation" | "usdTry"): number | undefined {
+  const h = w.history;
+  if (h.length < 2) return undefined;
+  const now = key === "usdTry" ? w.economy.usdTry : h[h.length - 1]![key];
+  return now - h[h.length - 2]![key];
+}
+
+/** Hinweise unter der Kopfleiste, wie die Warnsymbole in Hearts of Iron. */
+function Alerts({ world, bloc, onProblems, onDesk }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void }) {
+  const items: { id: string; tone: "rot" | "gelb" | "blau"; icon: IconName; label: string; text: string; count?: number; onClick?: () => void }[] = [];
+
+  const problems = NET.nodes.filter((n) => n.kind === "problem");
+  const perProblem = problems
+    .map((n) => {
+      let c = 0;
+      for (let p = 0; p < PROVINCES; p++) if (world.net.values[NET.index.get(n.id)! * PROVINCES + p]! >= n.threshold!) c++;
+      return { name: n.name, c };
+    })
+    .filter((x) => x.c > 0)
+    .sort((a, b) => b.c - a.c);
+  if (perProblem.length) {
+    items.push({
+      id: "probleme",
+      tone: "rot",
+      icon: "warnung",
+      label: "Akute Probleme",
+      count: perProblem.length,
+      text: perProblem.slice(0, 4).map((x) => `${x.name} in ${x.c} ${x.c === 1 ? "Provinz" : "Provinzen"}`).join(" · "),
+      onClick: onProblems,
+    });
+  }
+
+  const promises = world.log.filter((l) => l.text.startsWith("Offene Zusage"));
+  if (promises.length) {
+    items.push({
+      id: "zusagen",
+      tone: "gelb",
+      icon: "haende",
+      label: "Offene Zusagen",
+      count: promises.length,
+      text: promises.map((l) => l.text.replace("Offene Zusage aus dem Wahlkampf: ", "")).join(" · "),
+      onClick: onDesk,
+    });
+  }
+
+  if (bloc < 301) {
+    items.push({ id: "mehrheit", tone: "rot", icon: "parlament", label: "Keine Mehrheit", text: `Für Gesetze fehlen ${301 - bloc} Stimmen.` });
+  }
+
+  const next = world.ppkDays.find((d) => d >= world.day);
+  if (next !== undefined && next - world.day <= 10) {
+    const days = next - world.day;
+    items.push({
+      id: "ppk",
+      tone: "blau",
+      icon: "bank",
+      label: "Zinssitzung",
+      text: days === 0 ? "Der Geldpolitische Ausschuss tagt heute." : `Der Geldpolitische Ausschuss tagt in ${days} ${days === 1 ? "Tag" : "Tagen"}.`,
+    });
+  }
+
+  if (!items.length) return null;
+  return (
+    <div className="alerts" aria-label="Hinweise">
+      {items.map((a) => (
+        <button key={a.id} className={`alert tone-${a.tone}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
+          <Icon name={a.icon} size={20} />
+          {a.count !== undefined && <span className="alert-count">{a.count}</span>}
+          <span className="tip" role="tooltip">
+            <strong>{a.label}</strong>
+            <p>{a.text}</p>
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function startEvent(w: World): GameEvent {
+  const p = w.player;
+  const own = p?.partei.kurz;
+  const seats = own ? (w.parliament?.seats[own] ?? 0) : 0;
+  const ally = p?.buendnis ? (w.parliament?.seats[p.buendnis] ?? 0) : 0;
+  return {
+    id: "amtsuebergabe",
+    scene: "parlament",
+    date: formatDateDe(w.date),
+    title: "Amtsübergabe in Ankara",
+    text: (
+      <>
+        <p>
+          Um neun Uhr legt {p?.name ?? "das neue Staatsoberhaupt"} im Parlament den Amtseid ab. Die {p?.partei.name ?? "eigene Partei"} stellt{" "}
+          {seats} der 600 Abgeordneten{p?.buendnis ? `, zusammen mit ${p.buendnis} sind es ${seats + ally}` : ""}.
+        </p>
+        <p>
+          Auf dem Schreibtisch liegen das Morgenbriefing, die Wirtschaftsakte und die Zusagen aus dem Wahlkampf. Die Inflation liegt bei{" "}
+          {w.published.inflation.value.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %.
+        </p>
+      </>
+    ),
+    why: "Die Wirtschaftsdaten stammen vom 25. September 2026. Die Wahl 2028 ist erfunden, das Land und seine Regeln sind echt.",
+    actions: [{ label: "An die Arbeit", primary: true }],
+  };
 }
 
 function ProvinceCard({ world, plaka, onClose }: { world: World; plaka: number; onClose: () => void }) {
@@ -290,16 +462,22 @@ function ProvinceCard({ world, plaka, onClose }: { world: World; plaka: number; 
         <dt>Rathaus seit 2024</dt>
         <dd>{d.buergermeister2024}{d.grossstadt ? " · Großstadt" : ""}</dd>
         <dt>Abgeordnete</dt>
-        <dd>
-          {seats
-            ? Object.entries(seats)
-                .filter(([, n]) => n > 0)
-                .sort((a, b) => b[1] - a[1])
-                .map(([k, n]) => `${k === own?.kurz ? own.name : k} ${n}`)
-                .join(" · ")
-            : d.sitze}
-        </dd>
+        <dd>{d.sitze}</dd>
       </dl>
+      {seats && (
+        <ul className="province-seats">
+          {Object.entries(seats)
+            .filter(([, n]) => n > 0)
+            .sort((a, b) => b[1] - a[1])
+            .map(([k, n]) => (
+              <li key={k}>
+                <span className="dot" style={{ background: k === own?.kurz ? own.farbe : (PARTY_COLORS[k] ?? "#999") }} />
+                <span className="party">{k === own?.kurz ? own.name : k}</span>
+                <span className="n">{n}</span>
+              </li>
+            ))}
+        </ul>
+      )}
       {problems.length > 0 && (
         <div className="stamps">
           {problems.map((p) => (

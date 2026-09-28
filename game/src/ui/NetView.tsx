@@ -65,7 +65,7 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
   return (
     <div className="netview">
       <nav className="paper net-themes" aria-label="Themenfelder">
-        <h2>Politiknetz</h2>
+        <h2>Themen</h2>
         <p className="subtitle">{NET.nodes.length} Knoten · {NET.edges.length} Verbindungen</p>
         {themes.map(([theme, nodes]) => {
           const problems = nodes.filter((n) => n.kind === "problem" && activeProvinces(NET, world.net, n.id).length > 0);

@@ -14,6 +14,12 @@ export interface AtlasMapProps {
   /** Freie Beschriftungen wie Meere und Nachbarländer */
   geoLabels?: { text: string; lon: number; lat: number; kind: "meer" | "land" }[];
   className?: string;
+  /** Ohne Bedienung, etwa als Hintergrund des Titelbilds */
+  interactive?: boolean;
+  /** Kamera fährt weich an diese Stelle */
+  camera?: { lon: number; lat: number; d: number };
+  /** Langsames Schweben der Kamera */
+  drift?: boolean;
 }
 
 const NAMES: Record<number, string> = Object.fromEntries(PROVINCE_FC.features.map((f) => [f.properties.plaka, f.properties.name]));
@@ -26,7 +32,19 @@ interface Ctx {
   centers: Record<number, [number, number]>;
 }
 
-export function AtlasMap({ fill, fillAlpha, selected, onSelect, onHover, labels = [], geoLabels = [], className }: AtlasMapProps) {
+export function AtlasMap({
+  fill,
+  fillAlpha,
+  selected,
+  onSelect,
+  onHover,
+  labels = [],
+  geoLabels = [],
+  className,
+  interactive = true,
+  camera,
+  drift = false,
+}: AtlasMapProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const labelLayer = useRef<HTMLDivElement>(null);
@@ -36,6 +54,10 @@ export function AtlasMap({ fill, fillAlpha, selected, onSelect, onHover, labels 
   const styleRef = useRef<OverlayStyle>({});
   const labelsRef = useRef(labels);
   labelsRef.current = labels;
+  // Kamerafahrt: Ziel und Schweben werden in der Zeichenschleife nachgeführt
+  const flight = useRef<{ u: number; v: number; d: number } | null>(null);
+  const driftRef = useRef(drift);
+  driftRef.current = drift;
 
   // Szene einmalig aufbauen
   useEffect(() => {
@@ -60,7 +82,21 @@ export function AtlasMap({ fill, fillAlpha, selected, onSelect, onHover, labels 
       ro.observe(wrap.current);
       const t0 = performance.now();
       const loop = () => {
-        atlas.render((performance.now() - t0) / 1000);
+        const t = (performance.now() - t0) / 1000;
+        const f = flight.current;
+        if (f) {
+          const cur = view.current;
+          const k = 0.035;
+          cur.u += (f.u - cur.u) * k;
+          cur.v += (f.v - cur.v) * k;
+          cur.d += (f.d - cur.d) * k;
+          if (Math.abs(f.u - cur.u) + Math.abs(f.v - cur.v) + Math.abs(f.d - cur.d) / 20 < 0.0004) flight.current = null;
+        }
+        if (f || driftRef.current) {
+          const sway = driftRef.current ? [Math.sin(t * 0.05) * 0.035, Math.cos(t * 0.037) * 0.02] : [0, 0];
+          atlas.setView(view.current.u + sway[0]!, view.current.v + sway[1]!, view.current.d);
+        }
+        atlas.render(t);
         placeLabels();
         frame = requestAnimationFrame(loop);
       };
@@ -127,14 +163,24 @@ export function AtlasMap({ fill, fillAlpha, selected, onSelect, onHover, labels 
     c.atlas.setView(u, v, 13);
   }, [ready]);
 
+  useEffect(() => {
+    const c = ctx.current;
+    if (!ready || !c || !camera) return;
+    const [u, v] = lonLatToUv(c.relief, camera.lon, camera.lat);
+    flight.current = { u, v, d: camera.d };
+  }, [ready, camera?.lon, camera?.lat, camera?.d]);
+
   return (
     <div
       ref={wrap}
-      className={`atlas ${className ?? ""}`}
+      className={`atlas ${interactive ? "" : "passive"} ${className ?? ""}`}
       onPointerDown={(e) => {
+        if (!interactive) return;
+        flight.current = null;
         drag.current = { x: e.clientX, y: e.clientY, u: view.current.u, v: view.current.v, moved: false };
       }}
       onPointerMove={(e) => {
+        if (!interactive) return;
         const d = drag.current;
         if (d && e.buttons === 1) {
           const dx = (e.clientX - d.x) / (wrap.current?.clientWidth ?? 1);
@@ -165,6 +211,8 @@ export function AtlasMap({ fill, fillAlpha, selected, onSelect, onHover, labels 
         onHover?.(undefined);
       }}
       onWheel={(e) => {
+        if (!interactive) return;
+        flight.current = null;
         view.current.d = Math.min(20, Math.max(3.5, view.current.d * (e.deltaY > 0 ? 1.08 : 0.92)));
         ctx.current?.atlas.setView(view.current.u, view.current.v, view.current.d);
       }}

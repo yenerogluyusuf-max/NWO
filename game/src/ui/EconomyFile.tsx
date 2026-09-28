@@ -91,7 +91,6 @@ export function EconomyFile({ world }: { world: World }) {
   return (
     <div className="file">
       <section className="paper">
-        <h2>Wirtschaftsakte</h2>
         <p className="subtitle">Klicke eine Zahl an: Was heißt das, wann wurde sie gemessen, was hat sie verändert?</p>
         <table className="indicators">
           <tbody>
