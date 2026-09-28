@@ -48,7 +48,13 @@ Die belegten Startdaten (amtliche Statistiken, Wahlergebnisse, Institutionen) si
 
 ### Rolle
 
-Eine eigene Figur neben den politischen Beratern. Arbeitstitel: **Prof. Dr. Defne Arslan** (fiktive Figur), frühere Ökonomin der türkischen Zentralbank, heute Professorin in Istanbul. Sie gehört keiner Partei an und will nichts vom Spieler.
+Eine eigene Figur neben den politischen Beratern. **Der Spieler wählt sie zu Beginn aus zwei bis drei fiktiven Figuren** (Entscheidung des Projektinhabers). Alle sind gleich neutral, gehören keiner Partei an und wollen nichts vom Spieler. Sie unterscheiden sich in Stimme, Herkunft und Blickwinkel, aber nicht im Inhalt: Das Modell, das sie erklären, ist dasselbe. Vorschläge:
+
+- **Prof. Dr. Defne Arslan**, frühere Ökonomin der türkischen Zentralbank, heute Professorin in Istanbul. Erklärt gern über Zahlen und Märkte.
+- **Ein früherer Verfassungsrichter** im Ruhestand, der über Institutionen, Verfahren und Grenzen der Macht erklärt. Name und Herkunft noch offen.
+- **Eine erfahrene Journalistin und Politikwissenschaftlerin**, die über Menschen, Gruppen und Öffentlichkeit erklärt. Name und Herkunft noch offen.
+
+Im Folgenden steht „die Mentorin“ für die jeweils gewählte Figur.
 
 Das unterscheidet sie bewusst von den anderen Figuren: Mara, Aster, Hale und die übrigen beraten parteiisch und aus eigenen Interessen. Der Spieler lernt dadurch zwei Dinge gleichzeitig: wie die Welt funktioniert, und dass politische Berater selten neutral sind.
 

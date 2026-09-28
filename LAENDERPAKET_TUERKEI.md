@@ -83,9 +83,10 @@ Das ist die heikelste Frage des Länderpakets.
 
 - **Echt:** Institutionen, Ämter, Parteien, Bündnisse, Sitzverteilungen, Wahlergebnisse, Statistiken, Gesetze.
 - **Der Spieler** ist eine eigene Figur, die das Präsidentenamt übernimmt. Er spielt nicht eine real lebende Person. Auch seine Familie ist frei erfunden.
-- **Politiker und Amtsträger** erscheinen unter **erfundenen Namen**. Ihre **gezeichneten Porträts** orientieren sich an den echten Vorbildern, damit das Land wiedererkennbar bleibt.
+- **Politiker und Amtsträger** erscheinen unter **erfundenen Namen**. Ihre **gezeichneten Porträts** orientieren sich an den echten Vorbildern, damit das Land wiedererkennbar bleibt. Das betrifft nur Figuren außerhalb des eigenen Teams: Führung der Opposition und anderer Parteien, Parlamentspräsidium und ausländische Staats- und Regierungschefs.
+- **Das eigene Team** (Stab, Berater, Minister) stellt der Spieler beim Amtsantritt aus **erfundenen Kandidaten ohne Vorbild** zusammen, wie nach einem Regierungswechsel. Auch die Leitungen von Institutionen, die der Präsident ernennt (etwa die Zentralbank), sind erfundene Figuren ohne Vorbild.
 - **Figuren mit erkennbarem Vorbild** starten nur mit belegten öffentlichen Eigenschaften (Amt, Partei, öffentliche Positionen). Sie haben im Startzustand **keine erfundenen Geheimnisse, Affären oder Straftaten**.
-- **Figuren ohne Vorbild** (etwa Stabschefin, Berater, Journalistin, Unternehmer, die Mentorin) dürfen Geheimnisse und Schwächen haben. Aus ihnen entstehen die meisten persönlichen Geschichten.
+- **Figuren ohne Vorbild** (das eigene Team, Leitungen ernannter Institutionen, Journalisten, Unternehmer, Beamte, die Mentorin) dürfen Geheimnisse und Schwächen haben. Aus ihnen entstehen die meisten persönlichen Geschichten.
 - **Im Laufe der Partie** entsteht alles aus den Spielregeln und ist ausdrücklich alternative Geschichte. Das Spiel sagt das beim Start und im Geschichtsbuchkapitel.
 - **Echte Personen mit echtem Namen** kommen höchstens mit belegten öffentlichen Fakten vor, zum Beispiel in der historischen Einführung, und nie mit erfundenen Motiven.
 
@@ -121,5 +122,5 @@ Türkische Begriffe erscheinen dort, wo sie zum Verständnis gehören (Cumhurba�
 2. **Institutionen belegen** (Abschnitt 3.1) und daraus die Spielregeln für Befugnisse und Verfahren ableiten, einschließlich Vergabe, Bau und Sicherheit.
 3. **Startdaten erheben** (Abschnitt 3.2) und ins Quellenregister eintragen, auch je Provinz und für die Bezirke von Istanbul, Ankara und Izmir.
 4. **Lernfälle belegen** (Abschnitt 3.3) als Prüfsteine für das Wirtschaftsmodell.
-5. **Figurenliste anlegen:** Welche Ämter bekommen eine Figur mit Vorbild, welche eine frei erfundene (Abschnitt 4)?
+5. **Figurenliste anlegen:** Welche Figuren außerhalb des eigenen Teams bekommen ein Vorbild (Abschnitt 4), und welche Kandidaten stehen für jedes Amt im eigenen Team zur Wahl?
 6. **Heikle Themen festlegen:** für jedes Thema schriftlich, wie es vorkommt, gegengelesen von einer Person mit Landeskenntnis (Abschnitt 5).

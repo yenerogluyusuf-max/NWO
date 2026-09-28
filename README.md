@@ -1,8 +1,8 @@
-# NWO (Arbeitsname)
+# Staatsräson (Projektkürzel NWO)
 
 Politische Simulation, in der man ein echtes Land regiert, zuerst die Türkei, und dabei versteht, wie ein Staat funktioniert. Der Stand ist Konzept und Entwicklungsplan; es gibt noch keinen Code.
 
-„NWO“ ist nur ein interner Arbeitsname. Vor jeder Veröffentlichung wird ein neuer Name gewählt (Begründung im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 9).
+Der Titel des Spiels ist **Staatsräson** (englisch *Raison d'État*), vorbehaltlich einer Markenprüfung. „NWO“ bleibt nur das interne Projektkürzel in den Dokumenten und im Repository ([Namensvorschläge](NAMENSVORSCHLAEGE.md)).
 
 ## Dokumente
 

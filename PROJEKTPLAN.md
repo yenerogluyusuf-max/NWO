@@ -1,10 +1,10 @@
-# NWO — NEW WORLD ORDER
+# Staatsräson (Projektkürzel NWO)
 
 ## Projektplan und Spielkonzept
 
 Stand: 28. September 2026 — Version 0.5  
 Status: Konzept und Entwicklungsplan, noch keine implementierte Simulation. Ziel ist zuerst ein Prototyp; über einen Verkauf wird danach entschieden.  
-Arbeitsname: NWO — New World Order. Nur intern; vor jeder Veröffentlichung wird ein neuer Name gewählt (Begründung im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 9).
+Titel: **Staatsräson** (englisch *Raison d'État*), vom Projektinhaber gewählt, vorbehaltlich einer Markenprüfung. „NWO“ bleibt nur das interne Projektkürzel in Dokumenten und Repository (Begründung im [Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 9).
 
 Dieser Plan bündelt die bisher besprochene Spielidee. Beschriebene Mechaniken sind Entwicklungsziele. Länderbeispiele sind keine verifizierten Aussagen über die gegenwärtige politische Lage. Reale Ausgangsdaten werden bei der späteren Erstellung eines Startszenarios erhoben, geprüft und dokumentiert.
 

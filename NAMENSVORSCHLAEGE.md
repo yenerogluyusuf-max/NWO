@@ -2,6 +2,8 @@
 
 Stand: 28. September 2026. „NWO“ ist nur ein Arbeitsname, weil „New World Order“ ein verbreiteter Begriff aus Verschwörungserzählungen ist ([Entwicklungsplan](ENTWICKLUNGSPLAN.md), Abschnitt 9).
 
+**Entschieden (28.09.2026):** Der Titel ist **Staatsräson** (englisch *Raison d'État*). Vor einer Veröffentlichung sind Markenrecht, bestehende Spieltitel und Domains zu prüfen. Fällt die Prüfung negativ aus, sind „Fußnote“ und „Nachspiel“ die nächsten Kandidaten.
+
 ## Anforderungen
 
 - Keine belastete Bedeutung, auch nicht im Türkischen oder Englischen.

@@ -10,7 +10,8 @@ Alle Mengen, Zeitziele und Beispielwerte dieses Dokuments sind Vorschläge für 
 - einstellbares Tempo (Abschnitt 2),
 - Einstieg direkt als Staatspräsident zum heutigen Stichtag (Abschnitt 3),
 - das Politiknetz mit mehr als 150 Knoten neben der Schreibfläche und Folgen als Richtung und Bandbreite (Abschnitte 4 und 5),
-- das Privatleben der eigenen Figur, die Regel für Figuren mit echtem Vorbild sowie Medien, Justiz, Verfassung und Geheimdienst (Abschnitt 7),
+- der erste Spieltag, die Kabinettsbildung und die Wahl der Mentorin (Abschnitte 3 und 7),
+- mehr als 20 Hauptfiguren, das Privatleben der eigenen Figur, die Regel für Figuren mit echtem Vorbild sowie Medien, Justiz, Verfassung und Geheimdienst (Abschnitt 7),
 - Branchen wie im echten Leben (Abschnitt 9) und Katastrophen als echtes Risiko (Abschnitt 10),
 - normaler und eiserner Speichermodus (Abschnitt 16),
 - Wahlkampf, TV-Duell, Wahlabend, kompakte Kommunalwahlen, Manipulation mit steigendem Risiko und die Opposition mit Schwierigkeitsgrad (Abschnitt 8),
@@ -99,20 +100,25 @@ Ein erstes Ziel für Nutzertests: Innerhalb einer Sitzung von ungefähr 30 bis 6
 
 1. **Land:** die Türkei. Weitere spielbare Länder folgen später. Der Start ist **heute**, also am jüngsten Stichtag, für den alle Kerndaten veröffentlicht sind. Historische Startpunkte folgen später. Es gibt kein Szenario auszuwählen: Die Welt startet in einem leicht variierten Zustand ohne eingebautes Problem.
 2. **Rolle:** direkt als Staatspräsident. Weitere Einstiege wie die Opposition folgen später.
-3. **Die eigene Figur:** Name, Herkunft und politischer Werdegang in wenigen Schritten. Der Spieler spielt eine eigene Figur, nicht den amtierenden Präsidenten.
-4. **Ausgangslage:** Öffentliche Lage, Datenlücken und wichtige institutionelle Grenzen ansehen.
-5. **Ziele und Vermächtnis:** Der Spieler formuliert, was er erreichen und hinterlassen will, oder wählt Vorschläge. Daran misst er sich am Ende (Abschnitt 16).
-6. **Einstellungen:** Informationshilfen, Lernstufe der Mentorin (begleitet, Standard, allein), Delegation und Pausen. Dazu kommt der eigene KI-Schlüssel; mehrere große Anbieter werden unterstützt. Ohne Schlüssel ist das Spiel eingeschränkt spielbar: Politiknetz, Karte, Bauen und Wirtschaft laufen voll, Gespräche laufen über vorbereitete Antwortvorlagen statt freier Sprache.
+3. **Die eigene Figur:** Name, Herkunft, politischer Werdegang und Familie in wenigen Schritten. Der Spieler spielt eine eigene Figur, nicht den amtierenden Präsidenten.
+4. **Das eigene Team:** Der Spieler wählt seine Berater und Minister aus erfundenen Kandidaten (siehe unten, „Das eigene Team“).
+5. **Die Mentorin oder der Mentor:** Auswahl aus zwei bis drei neutralen Figuren mit unterschiedlichem Hintergrund ([Lernkonzept](LERNKONZEPT.md), Abschnitt 4).
+6. **Ausgangslage:** Öffentliche Lage, Datenlücken und wichtige institutionelle Grenzen ansehen.
+7. **Ziele und Vermächtnis:** Der Spieler formuliert, was er erreichen und hinterlassen will, oder wählt Vorschläge. Daran misst er sich am Ende (Abschnitt 16).
+8. **Einstellungen:** Informationshilfen, Lernstufe der Mentorin (begleitet, Standard, allein), Delegation und Pausen. Dazu kommt der eigene KI-Schlüssel; mehrere große Anbieter werden unterstützt. Ohne Schlüssel ist das Spiel eingeschränkt spielbar: Politiknetz, Karte, Bauen und Wirtschaft laufen voll, Gespräche laufen über vorbereitete Antwortvorlagen statt freier Sprache.
 
 Der Spieler übernimmt ein echtes Amt innerhalb eines realen Ausgangsszenarios. Der Übergang zur gespielten alternativen Geschichte wird ausdrücklich benannt. Reale öffentliche Biografien und simulierte persönliche Eigenschaften bleiben unterscheidbar.
 
 ### Erster Spielkontakt
 
-- **Ankunft:** Eine kurze Amtsübergabe nennt Befugnisse und drei wichtige Probleme.
-- **Orientierung:** Der Spieler öffnet eine Region und eine dazugehörige Akte.
+**Entscheidung des Projektinhabers:** Der erste Tag beginnt mit einer Amtsübergabe und endet mit einer ersten echten Entscheidung.
+
+- **Amtsübergabe im Palast:** eine kurze Szene. Die Stabschefin stellt drei drängende Vorgänge vor. Sie stammen aus dem echten Startzustand, nicht aus einem Drehbuch.
+- **Die Mentorin stellt sich vor**, als Randnotiz an der ersten Zahl, die der Spieler öffnet, mit dem Hinweis, dass man sie jederzeit anklicken kann.
+- **Orientierung:** Der Spieler öffnet eine Provinz auf der Karte, einen Knoten im Politiknetz und eine dazugehörige Akte.
 - **Erster Auftrag:** Er fragt einen Berater nach Alternativen. Daraus entsteht eine sichtbare Prüfaufgabe.
-- **Erste Entscheidung:** Eine kleine, überschaubare Vorlage verlangt einen echten Zielkonflikt.
-- **Erste Folge:** Nach Zeitfortschritt trifft eine Rückmeldung ein; der Spieler kann ihre Verbindung zum Auftrag untersuchen.
+- **Erste Entscheidung am Abend:** eine überschaubare Vorlage mit echtem Zielkonflikt. Vorher zeigt das Spiel Richtung und Bandbreite der Folgen.
+- **Erste Folge:** Nach Zeitfortschritt trifft eine Rückmeldung ein; der Spieler kann ihre Verbindung zur Entscheidung untersuchen.
 
 Das Tutorial erklärt Begriffe im konkreten Vorgang. Fachbegriffe bleiben nachschlagbar. Fortgeschrittene Spieler können die Einführung überspringen.
 
@@ -260,7 +266,7 @@ Die Persönlichkeit beeinflusst, welche Informationen jemand hervorhebt, wie er 
 
 ### Die Mentorin
 
-Neben den parteiischen Beratern gibt es eine neutrale Mentorin (Arbeitstitel Prof. Dr. Defne Arslan, fiktive Figur, frühere Ökonomin der Zentralbank). Sie erklärt Begriffe, Zusammenhänge und Folgen, sagt aber nie, was richtig ist. Der Kontrast ist gewollt: Der Spieler lernt nebenbei, dass politische Berater selten neutral sind.
+Neben den parteiischen Beratern gibt es eine neutrale Mentorin oder einen neutralen Mentor. Der Spieler wählt zu Beginn aus zwei bis drei fiktiven Figuren mit unterschiedlichem Hintergrund, zum Beispiel Prof. Dr. Defne Arslan, frühere Ökonomin der Zentralbank. Alle sind gleich neutral und unterscheiden sich nur in Stimme und Blickwinkel, nicht im Inhalt ([Lernkonzept](LERNKONZEPT.md), Abschnitt 4). Die Mentorin erklärt Begriffe, Zusammenhänge und Folgen, sagt aber nie, was richtig ist. Der Kontrast ist gewollt: Der Spieler lernt nebenbei, dass politische Berater selten neutral sind.
 
 Im Alltag erscheint sie auf zwei Arten: als **Randnotiz**, also als kurzer Hinweis direkt an einer Zahl, einem Knoten im Politiknetz oder einer Meldung, und als **Gespräch**, wenn der Spieler sie anklickt. Einzelheiten im [Lernkonzept](LERNKONZEPT.md), Abschnitt 4.
 
@@ -268,9 +274,22 @@ Im Alltag erscheint sie auf zwei Arten: als **Randnotiz**, also als kurzer Hinwe
 
 Jede Hauptfigur erhält neben den Fachwerten ein erkennbares persönliches Ziel, eine Schwäche, eine eigene Sprechweise und eine sich verändernde Beziehung zum Spieler. Figuren erinnern sich an Kränkungen, Gefallen und gebrochene Zusagen und handeln auch aus Stolz, Angst, Ehrgeiz oder Dankbarkeit. Sie können dem Spieler gefallen, ihn enttäuschen, verraten oder überraschend retten. Ein Rivale gewinnt manchmal, ein unbequemer Berater hat manchmal recht.
 
-Im ersten Prototyp sind wenige Figuren wichtiger als viele: Lieber sechs Personen, die man kennt, als zwanzig, die man verwechselt.
+**Viele Figuren, schrittweise eingeführt.** Der Projektinhaber hat für S1 mehr als 20 Hauptfiguren festgelegt: ein ganzes Kabinett mit Tiefe, dazu Opposition, Institutionen, Medien, Wirtschaft und Familie. Damit man sie nicht verwechselt:
 
-**Figuren mit echtem Vorbild.** Alle Figuren tragen erfundene Namen. Wer erkennbar nach einer echten Person gezeichnet ist, startet ohne erfundene Geheimnisse, Affären oder Straftaten. Solche Geheimnisse im Startzustand haben nur Figuren ohne erkennbares Vorbild. Was Figuren im Laufe der Partie tun, entsteht aus den Spielregeln und ist ausdrücklich alternative Geschichte. Begründung im [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4.
+- Am ersten Tag begegnet der Spieler nur wenigen Figuren. Die übrigen treten auf, wenn ein Vorgang sie braucht.
+- Jede Figur hat ein unverwechselbares Porträt, eine eigene Sprechweise und eine Rolle, die in einem Satz erklärt ist.
+- Ein Personenverzeichnis zeigt, wen man schon kennt, was man über ihn weiß und wie die Beziehung steht.
+- Das Spaß-Tor verlangt weiterhin, dass Testpersonen mindestens drei Figuren beim Namen nennen und eine Meinung über sie haben. Verwechseln sie Figuren, wird die Einführung verlangsamt, nicht der Maßstab gesenkt.
+
+### Das eigene Team
+
+**Entscheidung des Projektinhabers:** Beim Amtsantritt stellt der Spieler sein Team selbst zusammen, und er kann es später jederzeit ändern.
+
+- **Kabinettsbildung am Anfang:** Für Stab, Beraterposten und Ministerien stehen jeweils mehrere erfundene Kandidaten zur Wahl. Jeder hat Stärken, Schwächen, einen Parteiflügel, Beziehungen und manchmal ein Geheimnis, das der Spieler nicht sofort kennt. Die Auswahl ist selbst ein Dilemma, etwa zwischen Loyalität und Fachwissen oder zwischen Parteiflügeln und Bündnispartnern.
+- **Leitungen von Institutionen**, die der Präsident ernennt (etwa die Zentralbank), sind ebenfalls erfundene Figuren. Der Spieler findet sie im Amt vor und kann sie nach den geltenden Regeln ersetzen, mit den Folgen, die das Wirtschaftsmodell beschreibt.
+- **Umbildungen** sind jederzeit möglich. Entlassene Figuren verschwinden nicht; sie erinnern sich, wechseln vielleicht die Seite oder schreiben ein Buch.
+
+**Figuren mit echtem Vorbild.** Alle Figuren tragen erfundene Namen. Erkennbare echte Vorbilder haben nur Figuren außerhalb des eigenen Teams: die Führung der Opposition und anderer Parteien, Parlamentspräsidium und ausländische Staats- und Regierungschefs. Sie starten ohne erfundene Geheimnisse, Affären oder Straftaten. Geheimnisse im Startzustand haben nur Figuren ohne erkennbares Vorbild, also vor allem das eigene Team, Journalisten, Unternehmer und Beamte. Was Figuren im Laufe der Partie tun, entsteht aus den Spielregeln und ist ausdrücklich alternative Geschichte. Begründung im [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4.
 
 ### Das Privatleben der eigenen Figur
 

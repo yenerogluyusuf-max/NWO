@@ -39,7 +39,7 @@ Kein Ausbau über S1 hinaus, bevor S1 das Spaß-Tor bestanden hat. Wenn S0 oder 
 - **Wirtschaft und Zentralbank** nach dem [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md): Leitzins, Inflation, Erwartungen, Wechselkurs, Wachstum, Arbeitslosigkeit, Haushalt, Schulden, Risikoaufschlag; Zentralbank auf Stufe B (formell unabhängig), damit Eingriff und Verzicht beide möglich sind.
 - **Politik:** Koalition, eigene Partei, Opposition, fünf Wählergruppen mit unterschiedlichen Interessen, Umfragen, die Wahl am Ende.
 - **Medien und Justiz:** eine Zeitung mit recherchierender Journalistin, eine unabhängige Staatsanwaltschaft.
-- **Figuren:** etwa acht, darunter Stabschefin, Finanzminister des Koalitionspartners, Innenminister, Gouverneurin der Zentralbank, Journalistin, Unternehmer, Generalstaatsanwältin und die Mentorin.
+- **Figuren:** mehr als 20 Hauptfiguren (Entscheidung des Projektinhabers). Das eigene Team aus erfundenen Kandidaten, die der Spieler beim Amtsantritt wählt (Stab, Berater, ein ganzes Kabinett), dazu Zentralbankführung, Generalstaatsanwaltschaft, Opposition und Parteien, Journalistin, Unternehmer, Familie der Spielerfigur und die gewählte Mentorin. Die Figuren werden schrittweise eingeführt ([Spieldesign](SPIELDESIGN.md), Abschnitt 7).
 - **Ereignisvorlagen:** etwa zehn, die aus dem Weltzustand entstehen können (zum Beispiel Vergabeaffäre, Energiepreisschock, Streik, Streit mit der Zentralbank, Koalitionskrise, Rating-Herabstufung). Welche davon entstehen, hängt von Zufall und Entscheidungen ab.
 - **Politiknetz** in vollem Umfang (mehr als 150 Knoten, nach Themenfeldern gegliedert), regional je Provinz, zusammen mit der Schreibfläche ([Spieldesign](SPIELDESIGN.md), Abschnitt 5).
 - **Gezeichnete Karte** der 81 Provinzen mit regionalen Problemen und mindestens einem staatlichen Bauprojekt von Auftrag bis Betrieb.
@@ -81,7 +81,7 @@ Vorgeschlagene Größenordnung für diesen Prototyp:
 - Ein vollständiges Politiknetz aus S1 mit mehr als 150 Knoten.
 - Mehrere staatliche Bauprojekte, davon eines mit Korruptionsrisiko und Aufdeckung.
 - Eine Kommunalwahl in kompakter Form als Test der Wahlmechanik.
-- Ungefähr zwölf wichtige Personen mit ausgearbeiteter Persönlichkeit und drei vertieft behandelte ausländische Partner; weitere Figuren nur, wenn Spieltests sie verlangen.
+- Die mehr als 20 Hauptfiguren aus S1, ergänzt um Figuren der vier tiefsten Außenpartner (EU und Deutschland, USA und NATO, Russland, Nachbarn im Nahen Osten).
 - Acht funktionale Zuständigkeitsbereiche; dies ist eine Entwicklungsabstraktion, keine Behauptung über die tatsächliche Ressortzahl des gewählten Landes.
 - Acht besonders sorgfältig modellierte und kalibrierte politische Maßnahmen, jede mit einem echten Zielkonflikt. Die übrigen Knoten des Politiknetzes erhalten dieselbe Form (Quelle, Verzögerung, Vereinfachung), werden aber zunächst gröber kalibriert und im Netz entsprechend gekennzeichnet.
 - Drei zusammenhängende Testkonflikte aus dem Spieldesign.
@@ -291,7 +291,7 @@ Die Kostenschätzung trennt einmalige Entwicklung, laufende Szenariopflege, Spra
 
 **Vor jeder öffentlichen Nennung zu entscheiden:**
 
-- **Name.** „New World Order“ ist ein verbreiteter Begriff aus Verschwörungserzählungen, teils mit antisemitischem Unterton. Das belastet Shop-Freigaben, Presse, Werbung und Auffindbarkeit und hat mit dem Spiel nichts zu tun. „NWO“ bleibt interner Arbeitsname; ein endgültiger Name wird vor der ersten Veröffentlichung gewählt.
+- **Name.** „New World Order“ ist ein verbreiteter Begriff aus Verschwörungserzählungen, teils mit antisemitischem Unterton. Das belastet Shop-Freigaben, Presse, Werbung und Auffindbarkeit und hat mit dem Spiel nichts zu tun. „NWO“ bleibt nur internes Projektkürzel. **Entschieden (28.09.2026):** Der Titel ist „Staatsräson“ (englisch *Raison d'État*). Vor einer Veröffentlichung sind Markenrecht, bestehende Spieltitel und Domains zu prüfen.
 - **Echtes Land: entschieden (28.09.2026).** Das erste Land ist die Türkei, von Anfang an.
 - **Echte Personen: entschieden (28.09.2026).** Die Namen sind erfunden, die Porträts gezeichnet und an den echten Vorbildern orientiert. Figuren mit erkennbarem Vorbild starten ohne erfundene Skandale ([Länderpaket Türkei](LAENDERPAKET_TUERKEI.md), Abschnitt 4). Vor einer Veröffentlichung braucht es trotzdem eine rechtliche Prüfung zu Persönlichkeitsrechten, Bildrechten und Marktzugang.
 

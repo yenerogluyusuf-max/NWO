@@ -1,6 +1,6 @@
 # NWO — Entscheidungen des Projektinhabers
 
-Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den übrigen Dokumenten vor. Die Blöcke A bis D sind in die Dokumente eingearbeitet (Version 0.5); die Spalte „Wo“ nennt die wichtigste Stelle.
+Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den übrigen Dokumenten vor. Die Blöcke A bis E sind in die Dokumente eingearbeitet (Version 0.5); die Spalte „Wo“ nennt die wichtigste Stelle.
 
 ## A. Grundsätze
 
@@ -73,15 +73,27 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 | Speichern | Beides wählbar: normaler Modus mit freiem Laden und eiserner Modus mit einem Spielstand | Spieldesign 16 |
 | Name | Keiner der ersten Vorschläge; neue Vorschläge erarbeiten | [Namensvorschläge](NAMENSVORSCHLAEGE.md) |
 
-## E. Hinweise aus der Einarbeitung
+## E. Vierte Fragerunde
+
+| Thema | Entscheidung | Wo |
+|---|---|---|
+| Name | **Staatsräson** (englisch *Raison d'État*), vorbehaltlich Markenprüfung; „NWO“ bleibt internes Projektkürzel | Projektplan, Entwicklungsplan 9 |
+| Erster Spieltag | Amtsübergabe im Palast, drei drängende Vorgänge, Mentorin per Randnotiz, am Abend eine erste echte Entscheidung | Spieldesign 3 |
+| Hauptfiguren in S1 | Mehr als 20, schrittweise eingeführt | Spieldesign 7, Entwicklungsplan 0 |
+| Eigenes Team | Beim Amtsantritt Berater und Minister aus erfundenen Kandidaten wählen, später jederzeit ändern. Echte Vorbilder nur außerhalb des eigenen Teams (Opposition, andere Parteien, Parlament, Ausland) | Spieldesign 7, Länderpaket 4 |
+| Mentorin | Wählbar aus zwei bis drei neutralen Figuren | Lernkonzept 4 |
+| Erster Arbeitsschritt | Recherche Türkei (Länderpaket, Arbeitspaket TR-00) | Länderpaket 7 |
+
+## F. Hinweise aus der Einarbeitung
 
 - **S1 wird deutlich größer.** Mit vollem Politiknetz und gezeichneter Karte ist S1 kein kleiner Test mehr. Das verträgt sich nur teilweise mit dem Grundsatz „erst Spaß beweisen, dann Umfang“. Der Projektinhaber hat entschieden, S1 trotzdem vollständig zu bauen und erst dann zu testen. Das Risiko: Trägt das Kernerlebnis nicht, zeigt sich das erst spät. Der optionale Papiertest S0 bleibt ein günstiger Weg, Figuren und Dilemmas vorher zu prüfen.
+- **Mehr als 20 Hauptfiguren** widersprechen dem bisherigen Grundsatz „lieber sechs, die man kennt, als zwanzig, die man verwechselt“. Das Spieldesign setzt deshalb auf schrittweise Einführung, unverwechselbare Porträts und ein Personenverzeichnis. Der Maßstab des Spaß-Tors bleibt.
 - **Porträts nach echten Vorbildern** bleiben rechtlich heikel, auch ohne erfundene Skandale, weil Handlungen im Spiel einer erkennbaren Person zugeschrieben werden könnten. Vor einer Veröffentlichung ist eine anwaltliche Prüfung nötig.
 - **KI-Bilder:** Einheitlichkeit über Hunderte Bilder und die Nutzungsrechte für einen Verkauf werden im Bildversuch geprüft (Entwicklungsplan, Abschnitt 6).
 - **Korrigiert:** Im Wirtschaftsmodell und im Lernkonzept stand noch die Währung „Estra“ aus dem fiktiven Papiertest-Land; jetzt steht dort die Lira. Der Projektplan beschrieb S1 noch als „Szenario A mit zwei Wochen“; jetzt passt er zum Entwicklungsplan.
 
-## F. Offene Punkte für die nächste Sitzung
+## G. Nächste Schritte
 
-- Namen aus der zweiten Vorschlagsliste auswählen ([Namensvorschläge](NAMENSVORSCHLAEGE.md)).
-- Mögliche weitere Fragen: Wie sieht der erste Spieltag aus? Wie viele Hauptfiguren gibt es in S1? Welche Ämter bekommen eine Figur mit echtem Vorbild?
-- Erster Arbeitsschritt danach: Technologieversuche (Entwicklungsplan, Abschnitt 6) oder Beginn der Recherche für das Länderpaket (TR-00).
+- **Recherche Türkei beginnen** (Länderpaket, Abschnitt 7): Stichtag bestimmen, Institutionen und Verfahren mit Primärquellen belegen, Quellenregister anlegen.
+- Danach die Technologieversuche (Entwicklungsplan, Abschnitt 6), weil S1 Karte und Politiknetz braucht.
+- Offen für später: Namen und Hintergrund der zweiten und dritten Mentorenfigur; Markenprüfung für „Staatsräson“.
