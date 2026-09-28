@@ -3,6 +3,7 @@ import type { World } from "../sim/types";
 import { NET, setPolicy } from "../sim/world";
 import { activeProvinces, nationalAverage, startAverage } from "../sim/netz";
 import { outlookMany, type Metric, type Outlook } from "../sim/forecast";
+import { NetGraph } from "./NetGraph";
 import { THEME_NAMES, type NodeSpec, type Theme } from "../data/politiknetz";
 
 const KIND_LABEL: Record<NodeSpec["kind"], string> = {
@@ -168,6 +169,8 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
             )}
           </div>
         )}
+
+        <NetGraph nodeId={node.id} onSelect={select} />
 
         <div className="links">
           <div>

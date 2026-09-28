@@ -73,6 +73,10 @@ function syntheticHistory(e: EconomyState, startDate: string): MonthlySnapshot[]
       outputGap: gapYearAgo + share * (e.outputGap - gapYearAgo),
       realRate: realRate(e),
       usdTry: e.usdTry / Math.pow(monthlyDepreciation, k - 1),
+      eurTry: e.eurTry / Math.pow(monthlyDepreciation, k - 1),
+      policyRate: e.policyRate,
+      riskPremium: e.riskPremium,
+      debtRatio: e.debtRatio,
     });
   }
   return history;
@@ -120,6 +124,10 @@ export function tick(world: World): void {
       outputGap: e.outputGap,
       realRate: realRate(e),
       usdTry: e.usdTry,
+      eurTry: e.eurTry,
+      policyRate: e.policyRate,
+      riskPremium: e.riskPremium,
+      debtRatio: e.debtRatio,
     });
     publishQuarterlyGrowth(world);
     monthlyNet(world);

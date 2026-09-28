@@ -132,7 +132,13 @@ export function AtlasMap({
       else center = c.centers[Number(el.dataset.plaka)];
       if (!center) continue;
       const p = c.atlas.uvToWorld(center[0], center[1]).project(c.atlas.camera);
-      el.style.transform = `translate(${((p.x + 1) / 2) * rect.width}px, ${((1 - p.y) / 2) * rect.height}px) translate(-50%, -50%)`;
+      const x = ((p.x + 1) / 2) * rect.width;
+      const y = ((1 - p.y) / 2) * rect.height;
+      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      // am Rand ausblenden, damit Namen nicht abgeschnitten werden
+      const half = el.offsetWidth / 2 + 12;
+      const edge = Math.min(x - half, rect.width - x - half, y - 70, rect.height - y - 20);
+      el.style.opacity = String(Math.max(0, Math.min(1, edge / 40)));
     }
   }
 

@@ -309,15 +309,17 @@ function Wahlnacht({ id }: { id: string }) {
       {/* Scheinwerfer */}
       <path d={`M300 0 L230 ${base} L290 ${base} Z M350 0 L360 ${base} L420 ${base} Z`} fill="#f6ecd2" opacity="0.08" />
       {/* Bühne mit Transparent und Rednerin am Pult */}
-      <rect x="226" y={base - 96} width="188" height="34" fill="#e7d7b0" stroke="#120c08" />
-      <path d={`M226 ${base - 96} h188 v34 h-188 Z`} fill="none" stroke="#b3352b" strokeWidth="3" />
-      <path d={`M246 ${base - 79} h148`} stroke="#3a2a1e" strokeWidth="5" strokeDasharray="14 6 22 6 30 6 18" />
+      <line x1="232" y1={base - 40} x2="232" y2={base - 138} stroke="#120c08" strokeWidth="2" />
+      <line x1="408" y1={base - 40} x2="408" y2={base - 138} stroke="#120c08" strokeWidth="2" />
+      <rect x="226" y={base - 138} width="188" height="32" fill="#e7d7b0" stroke="#120c08" />
+      <path d={`M226 ${base - 138} h188 v32 h-188 Z`} fill="none" stroke="#b3352b" strokeWidth="3" />
+      <path d={`M250 ${base - 122} h140`} stroke="#3a2a1e" strokeWidth="5" strokeDasharray="14 6 22 6 30 6 18" />
       <rect x="236" y={base - 40} width="168" height="40" fill="#3a2a1e" stroke="#120c08" />
       <rect x="236" y={base - 40} width="168" height="6" fill="#b3352b" />
-      <path d={`M320 ${base - 40} v-22 a9 11 0 0 1 0 -1 M312 ${base - 40} l2 -24 c1 -6 11 -6 12 0 l2 24 Z`} fill="#120c08" />
-      <circle cx="320" cy={base - 71} r="6.5" fill="#120c08" />
-      <path d={`M320 ${base - 60} l-12 -14 M320 ${base - 60} l12 -14`} stroke="#120c08" strokeWidth="3.5" strokeLinecap="round" />
-      <rect x="308" y={base - 50} width="24" height="10" fill="#5a4330" stroke="#120c08" />
+      <path d={`M311 ${base - 40} l2 -30 c1 -7 13 -7 14 0 l2 30 Z`} fill="#120c08" />
+      <circle cx="320" cy={base - 80} r="7" fill="#120c08" />
+      <path d={`M314 ${base - 66} l-12 -22 M326 ${base - 66} l12 -22`} stroke="#120c08" strokeWidth="4" strokeLinecap="round" />
+      <path d={`M306 ${base - 40} l3 -18 h22 l3 18 Z`} fill="#5a4330" stroke="#120c08" />
       {Array.from({ length: 70 }, (_, i) => {
         const x = (i * 9.3) % W;
         const y = base + 8 + ((i * 7) % 26);

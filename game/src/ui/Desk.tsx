@@ -4,8 +4,16 @@ import { formatDateDe } from "../sim/dates";
 import { mentorNotes } from "./mentor";
 import { Parliament } from "./Parliament";
 import { Cameo } from "./art/Cameo";
+import { Icon, type IconName } from "./icons";
 
 type View = "schreibtisch" | "wirtschaft" | "karte" | "entscheidungen";
+
+const KIND_ICON: Record<LogEntry["kind"], IconName> = {
+  entscheidung: "siegel",
+  ereignis: "feder",
+  statistik: "akte",
+  markt: "lira",
+};
 
 const KIND_LABEL: Record<LogEntry["kind"], string> = {
   entscheidung: "Beschluss",
@@ -24,14 +32,19 @@ export function Desk({ world, onOpen }: { world: World; onOpen: (v: View) => voi
     <div className="desk">
       <section className="paper briefing">
         <h2>Morgenbriefing</h2>
-        <p className="subtitle">{formatDateDe(world.date)}</p>
         <ul>
           {briefing.map((entry, i) => (
             <li key={`${entry.day}-${i}`} className={`entry kind-${entry.kind}`}>
-              <span className="tag">{KIND_LABEL[entry.kind]}</span>
-              <span className="when">{formatDateDe(entry.date)}</span>
-              <div>{entry.text}</div>
-              {entry.why && <div className="why">Warum: {entry.why}</div>}
+              {(i === 0 || briefing[i - 1]!.date !== entry.date) && <div className="brief-date">{formatDateDe(entry.date)}</div>}
+              <div className="entry-row">
+                <span className="entry-icon" title={KIND_LABEL[entry.kind]}>
+                  <Icon name={KIND_ICON[entry.kind]} size={18} />
+                </span>
+                <div>
+                  <div>{entry.text}</div>
+                  {entry.why && <div className="why">{entry.why}</div>}
+                </div>
+              </div>
             </li>
           ))}
         </ul>

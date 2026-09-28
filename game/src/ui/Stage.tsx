@@ -161,7 +161,7 @@ export function Stage({ world: initial }: { world: World }) {
       <AtlasMap
         className="stage-map"
         fill={fill}
-        fillAlpha={mapMode === "wahl" ? 0.45 : 0.62}
+        fillAlpha={mapMode === "wahl" ? 0.68 : 0.7}
         selected={selected}
         labels={METROS}
         geoLabels={GEO_LABELS}
@@ -208,7 +208,7 @@ export function Stage({ world: initial }: { world: World }) {
             trend={trend(w, "usdTry")}
             tip="Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer."
           />
-          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
+          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
           <Stat
             icon="parlament"
             label="Sitze"
@@ -267,21 +267,44 @@ export function Stage({ world: initial }: { world: World }) {
       )}
 
       <nav className="mapmodes" aria-label="Kartenebenen">
-        {modes.map((m) => (
-          <button key={m.id} className={mapMode === m.id ? "on" : ""} onClick={() => setMapMode(m.id)} title={m.label}>
-            <Icon name={m.icon} />
-            <span>{m.label}</span>
-          </button>
-        ))}
-        {mapMode === "netz" && (
-          <span className="mapmode-note">Politiknetz: {NET.nodes[NET.index.get(netNode)!]!.name}</span>
-        )}
+        <div className="mapmode-buttons">
+          {modes.map((m) => (
+            <button key={m.id} className={mapMode === m.id ? "on" : ""} onClick={() => setMapMode(m.id)} title={m.label} aria-pressed={mapMode === m.id}>
+              <Icon name={m.icon} />
+            </button>
+          ))}
+        </div>
+        <div className="mapmode-caption">
+          <span className="mapmode-kicker">Kartenebene</span>
+          <span className="mapmode-name">
+            {mapMode === "netz" ? NET.nodes[NET.index.get(netNode)!]!.name : modes.find((m) => m.id === mapMode)?.label}
+          </span>
+        </div>
       </nav>
 
-      <div className="cartouche" aria-hidden>
-        <div className="cartouche-title">Türkiye</div>
-        <div className="cartouche-sub">81 Provinzen · Stand {w.date.slice(0, 4)}</div>
-      </div>
+      {mapMode === "wahl" && w.parliament && w.player ? (
+        <aside className="cartouche legend" aria-label="Legende Wahl 2028">
+          <div className="cartouche-title small">Wahl 2028</div>
+          <div className="cartouche-sub">stärkste Partei je Provinz</div>
+          <ul>
+            {Object.entries(w.parliament.seats)
+              .filter(([, n]) => n > 0)
+              .sort((a, b) => b[1] - a[1])
+              .map(([k, n]) => (
+                <li key={k}>
+                  <span className="swatch" style={{ background: k === w.player!.partei.kurz ? w.player!.partei.farbe : (PARTY_COLORS[k] ?? "#999") }} />
+                  <span>{k === w.player!.partei.kurz ? w.player!.partei.name : k}</span>
+                  <strong>{n}</strong>
+                </li>
+              ))}
+          </ul>
+        </aside>
+      ) : (
+        <div className="cartouche" aria-hidden>
+          <div className="cartouche-title">Türkiye</div>
+          <div className="cartouche-sub">81 Provinzen · Stand {w.date.slice(0, 4)}</div>
+        </div>
+      )}
       <svg className="compass" viewBox="0 0 100 100" aria-hidden>
         <circle cx="50" cy="50" r="30" fill="none" stroke="#2a1f18" strokeWidth="1" />
         <circle cx="50" cy="50" r="26" fill="none" stroke="#2a1f18" strokeWidth="0.5" strokeDasharray="1.5 2" />
@@ -330,11 +353,13 @@ function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; lab
 }
 
 /** Veränderung zum Vormonat aus der Monatsgeschichte. */
-function trend(w: World, key: "inflation" | "usdTry"): number | undefined {
+function trend(w: World, key: "inflation" | "usdTry" | "policyRate"): number | undefined {
   const h = w.history;
   if (h.length < 2) return undefined;
-  const now = key === "usdTry" ? w.economy.usdTry : h[h.length - 1]![key];
-  return now - h[h.length - 2]![key];
+  if (key === "inflation") return h[h.length - 1]!.inflation - h[h.length - 2]!.inflation;
+  const before = h[h.length - 1]![key];
+  if (before === undefined) return undefined;
+  return (key === "usdTry" ? w.economy.usdTry : w.economy.policyRate) - before;
 }
 
 /** Hinweise unter der Kopfleiste, wie die Warnsymbole in Hearts of Iron. */
@@ -422,7 +447,7 @@ function startEvent(w: World): GameEvent {
       <>
         <p>
           Um neun Uhr legt {p?.name ?? "das neue Staatsoberhaupt"} im Parlament den Amtseid ab. Die {p?.partei.name ?? "eigene Partei"} stellt{" "}
-          {seats} der 600 Abgeordneten{p?.buendnis ? `, zusammen mit ${p.buendnis} sind es ${seats + ally}` : ""}.
+          {seats} der 600 Abgeordneten{p?.buendnis && ally > 0 ? `, zusammen mit ${p.buendnis} sind es ${seats + ally}` : ""}.
         </p>
         <p>
           Auf dem Schreibtisch liegen das Morgenbriefing, die Wirtschaftsakte und die Zusagen aus dem Wahlkampf. Die Inflation liegt bei{" "}

@@ -157,8 +157,11 @@ const terrainFragment = /* glsl */ `
     base = mix(base, vec3(0.24, 0.19, 0.16), shore * 0.8 * step(-0.5, vElev));
 
     // Provinzen, Wahl, Probleme: eingefärbte Lasur und Grenzlinien
+    // wie eine Lasur: die Schattierung des Reliefs scheint durch die Farbe
     vec4 ov = texture2D(overlay, vUv);
-    base = mix(base, ov.rgb, ov.a);
+    float lum = dot(base, vec3(0.299, 0.587, 0.114));
+    vec3 glazed = ov.rgb * (0.5 + 0.75 * lum);
+    base = mix(base, glazed, ov.a);
 
     // Papierkorn
     float grain = fbm(gl_FragCoord.xy * 0.35);

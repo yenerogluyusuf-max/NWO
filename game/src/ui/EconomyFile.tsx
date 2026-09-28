@@ -15,10 +15,15 @@ const nf = (x: number, digits = 1) =>
   x.toLocaleString("de-DE", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 
 export function EconomyFile({ world }: { world: World }) {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>("inflation");
   const e = world.economy;
   const p = world.published;
   const publishedHistory = world.history.filter((s) => s.month <= p.inflation.period);
+  const recentHistory = world.history.slice(-24);
+  const series = (key: "policyRate" | "eurTry" | "riskPremium" | "debtRatio", now: number) => {
+    const xs = recentHistory.map((s) => s[key]).filter((x): x is number => x !== undefined);
+    return [...xs, now];
+  };
 
   const rows: Row[] = [
     {
@@ -37,6 +42,7 @@ export function EconomyFile({ world }: { world: World }) {
       measured: "tagesaktuell",
       explain:
         "Der Zins, zu dem sich Banken bei der Zentralbank Geld leihen. Ihn legt der Geldpolitische Ausschuss der Zentralbank fest, nicht der Präsident.",
+      series: series("policyRate", e.policyRate),
     },
     {
       id: "usd",
@@ -53,6 +59,7 @@ export function EconomyFile({ world }: { world: World }) {
       value: nf(e.eurTry, 2),
       measured: "tagesaktuell",
       explain: "Wie beim Dollar. Die EU ist der wichtigste Handelspartner.",
+      series: series("eurTry", e.eurTry),
     },
     {
       id: "wachstum",
@@ -60,6 +67,7 @@ export function EconomyFile({ world }: { world: World }) {
       value: `${nf(p.growth.value)} %`,
       measured: `${p.growth.period}, veröffentlicht am ${formatDateDe(p.growth.publishedOn)}`,
       explain: "Wie stark die Wirtschaftsleistung gegenüber dem Vorjahresquartal gewachsen ist. Erscheint etwa zwei Monate nach Quartalsende.",
+      series: publishedHistory.slice(-24).map((s) => s.growth),
     },
     {
       id: "arbeitslosigkeit",
@@ -67,6 +75,7 @@ export function EconomyFile({ world }: { world: World }) {
       value: `${nf(p.unemployment.value)} %`,
       measured: `${formatMonthDe(p.unemployment.period)}, veröffentlicht am ${formatDateDe(p.unemployment.publishedOn)}`,
       explain: "Anteil der Arbeitsuchenden an den Erwerbspersonen. Folgt dem Wachstum mit Verzögerung.",
+      series: publishedHistory.slice(-24).map((s) => s.unemployment),
     },
     {
       id: "cds",
@@ -75,6 +84,7 @@ export function EconomyFile({ world }: { world: World }) {
       measured: "tagesaktuell",
       explain:
         "Was Anleger als Aufpreis für das Risiko verlangen, dass der Staat nicht zahlt. Er steigt bei hoher Inflation, hohen Schulden und politischer Unsicherheit.",
+      series: series("riskPremium", e.riskPremium),
     },
     {
       id: "schulden",
@@ -82,6 +92,7 @@ export function EconomyFile({ world }: { world: World }) {
       value: `${nf(e.debtRatio)} % des BIP`,
       measured: "Schätzung des Finanzministeriums",
       explain: "Alle Schulden des Staates im Verhältnis zur Wirtschaftsleistung. Hohe Inflation lässt die Quote sinken, weil die Wirtschaftsleistung nominal schneller wächst als die Schulden.",
+      series: series("debtRatio", e.debtRatio),
     },
   ];
 
@@ -132,9 +143,13 @@ function Sparkline({ values }: { values: number[] }) {
   const pts = values
     .map((v, i) => `${(i / (values.length - 1)) * w},${h - ((v - min) / span) * (h - 4) - 2}`)
     .join(" ");
+  const last = values[values.length - 1]!;
+  const ly = h - ((last - min) / span) * (h - 4) - 2;
   return (
-    <svg className="spark" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden>
-      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" />
+    <svg className="spark" overflow="visible" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden>
+      <line x1="0" y1={h - 0.5} x2={w} y2={h - 0.5} stroke="currentColor" strokeOpacity="0.2" />
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx={w} cy={ly} r="2.4" fill="currentColor" />
     </svg>
   );
 }

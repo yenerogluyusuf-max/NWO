@@ -122,7 +122,7 @@ export const STATIONS: Station[] = [
     answers: [
       { label: "Aufbruch der Mitte", text: "Wirtschaft, Rechtsstaat, weniger Streit. Für alle, die müde sind vom Kulturkampf.", apply: (p) => { p.partei = { name: "Aufbruchspartei", kurz: "AP", farbe: "#2f5d62" }; near(p, "unternehmer", 3); near(p, "staedtische_saekulare", 3); near(p, "junge", 2); } },
       { label: "Soziale Gerechtigkeit", text: "Löhne, Renten, Wohnungen. Für alle, denen am Monatsende das Geld fehlt.", apply: (p) => { p.partei = { name: "Partei der Gerechtigkeit", kurz: "PG", farbe: "#a23b2a" }; near(p, "arbeitnehmer", 4); near(p, "rentner", 3); near(p, "unternehmer", -2); } },
-      { label: "Werte und Wohlstand", text: "Familie, Glaube, ehrliche Arbeit. Konservativ, aber sauber.", apply: (p) => { p.partei = { name: "Partei der Werte", kurz: "PW", farbe: "#b8860b" }; near(p, "konservative", 4); near(p, "landwirte", 2); near(p, "staedtische_saekulare", -2); } },
+      { label: "Werte und Wohlstand", text: "Familie, Glaube, ehrliche Arbeit. Konservativ, aber sauber.", apply: (p) => { p.partei = { name: "Partei der Werte", kurz: "PW", farbe: "#2e6b3f" }; near(p, "konservative", 4); near(p, "landwirte", 2); near(p, "staedtische_saekulare", -2); } },
       { label: "Die Regionen", text: "Mehr Geld und mehr Rechte für die Provinzen, weniger Ankara.", apply: (p) => { p.partei = { name: "Partei der Regionen", kurz: "PR", farbe: "#556b2f" }; near(p, "landwirte", 4); near(p, "junge", 1); } },
     ],
   },
@@ -339,7 +339,11 @@ export function startAfterElection(world: World, profile: PlayerProfile): void {
     text:
       `${profile.name} gewinnt die Präsidentschaftswahl ${profile.wahl.runde === 1 ? "im ersten Wahlgang" : "in der Stichwahl"} ` +
       `mit ${profile.wahl.anteil.toLocaleString("de-DE")} %. Die ${profile.partei.name} erhält ${ownSeats} von 600 Sitzen` +
-      (profile.buendnis ? `, mit dem Bündnispartner ${profile.buendnis} ${bloc}.` : "."),
+      (profile.buendnis
+        ? allySeats > 0
+          ? `, zusammen mit dem Bündnispartner ${profile.buendnis} ${bloc}.`
+          : `. Der Bündnispartner ${profile.buendnis} gewinnt keinen Sitz.`
+        : "."),
     why:
       bloc >= 301
         ? "Eine eigene Mehrheit im Parlament: Gesetze und Haushalt sind möglich, Verfassungsänderungen brauchen trotzdem 360 Stimmen."

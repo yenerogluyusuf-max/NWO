@@ -63,6 +63,11 @@ export interface MonthlySnapshot {
   outputGap: number;
   realRate: number;
   usdTry: number;
+  /** Seit Version 0.6; ältere Spielstände haben diese Felder nicht */
+  eurTry?: number;
+  policyRate?: number;
+  riskPremium?: number;
+  debtRatio?: number;
 }
 
 /** Ein veröffentlichter Wert: Der Spieler sieht nur diesen. */
