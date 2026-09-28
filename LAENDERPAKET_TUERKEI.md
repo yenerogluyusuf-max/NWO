@@ -2,7 +2,9 @@
 
 Version 0.5, 28. September 2026. Ergänzung zu [Entwicklungsplan](ENTWICKLUNGSPLAN.md) (Arbeitspaket TR-00), [Lernkonzept](LERNKONZEPT.md) und [Wirtschaftsmodell](WIRTSCHAFTSMODELL.md).
 
-**Status:** Rechercheplan. **Alle Sachangaben in diesem Dokument sind Arbeitsstand und werden vor der Übernahme ins Spiel mit Primärquellen belegt** (Gesetzestext, Amtsblatt, Statistikamt, Zentralbank, Wahlbehörde). Was nicht belegt ist, kommt nicht ins Spiel.
+**Status:** Rechercheplan. **Alle Sachangaben in diesem Dokument sind Arbeitsstand und werden vor der Übernahme ins Spiel belegt.** Was nicht belegt ist, kommt nicht ins Spiel.
+
+**Belegregel (angepasst am 28.09.2026 nach Vorgabe des Projektinhabers):** Es ist ein Spiel. Seriöse Internetquellen genügen, wenn mindestens zwei unabhängige Quellen übereinstimmen. Primärquellen (Gesetzestext, Amtsblatt, Statistikamt, Zentralbank, Wahlbehörde) werden bevorzugt, sind aber keine Voraussetzung. Widersprüche werden vermerkt.
 
 **Neu in Version 0.5:** Die Entscheidung zu echten Personen steht fest (Abschnitt 4), ebenso die Entscheidungen zu heiklen Themen (Abschnitt 5) und zur Sprache (Abschnitt 6). Hinzu kommen der Rechercheplan für Provinzen, Bezirke, Vergabe und Bau sowie die tiefsten Außenpartner (Abschnitt 3).
 

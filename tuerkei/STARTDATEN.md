@@ -67,6 +67,10 @@ Stand nach dem 14.8.2026. Primärquelle ist die Sitzverteilung auf den Seiten de
 | Präsident, Stichwahl 28.5.2023 | Amtsinhaber 52,18 %, Herausforderer 47,82 %; Beteiligung 84,15 % | YSK | übereinstimmend |
 | Kommunalwahl 31.3.2024 | CHP etwa 37,7 %, AKP etwa 35,5 %; gewonnene Provinzen: CHP 35 (davon 14 Großstädte), AKP 24 (12), DEM 10 (3), MHP 8, YRP 2 (1), BBP 1, İYİ 1 | YSK | CHP und AKP übereinstimmend; der genaue AKP-Wert und die kleinen Parteien sind nicht verifiziert |
 
+### Umfragen (Grundlage für das Parlament beim Spielstart)
+
+Durchschnitt aus 8 Umfragen vom 22.8. bis 18.9.2026, Unentschlossene herausgerechnet: AKP 33,7 %, YENİ 23,1 %, DEM 9,0 %, MHP 7,5 %, İYİ 6,9 %, CHP 6,8 %, Zafer 3,5 %, YRP 2,8 %. Die Institute widersprechen sich stark (YENİ zwischen 17 und 32 %), und 20 bis 30 % der Befragten sind unentschlossen. Genau diese Unsicherheit nutzt das Spiel: Das Parlament fällt bei jedem Start etwas anders aus. Einzelheiten und Quellen in [recherche/umfragen.md](recherche/umfragen.md).
+
 **Nächste reguläre Wahl:** spätestens im Mai 2028, Parlament und Präsident gemeinsam. Diskutiert wird eine vorgezogene Wahl, die das Parlament mit 360 Stimmen beschließen müsste. Nur dann darf der amtierende Präsident, der in seiner zweiten Amtszeit ist, erneut antreten ([Institutionen](INSTITUTIONEN.md), Abschnitt 1).
 
 ### Lage zum Stichtag
