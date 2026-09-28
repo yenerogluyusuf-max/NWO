@@ -92,7 +92,8 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 | Stichtag der Daten | 25.09.2026 | [Startdaten](tuerkei/STARTDATEN.md) |
 | Spielbeginn | Direkt nach der Wahl 2028, mit den Daten vom Stichtag; die Zeit dazwischen wird übersprungen | Spieldesign 3, Projektplan 3 |
 | Amtszeit der Spielerfigur | Erste Amtszeit (2028 gewählt, eine Wiederwahl möglich) | Spieldesign 3 |
-| Parlament beim Start | Wird aus den heutigen Umfragen erzeugt, bei jedem Start etwas anders | Spieldesign 3 |
+| Parlament beim Start | Wird aus den heutigen Umfragen erzeugt, bei jedem Start etwas anders; jeder Parteianteil schwankt zufällig um bis zu ±5 Prozentpunkte | Spieldesign 3 |
+| Genauigkeit der Daten | Nicht alles so streng nehmen: Zufall gehört zum Spiel, Umstände ändern sich; Abweichungen im Bereich weniger Prozentpunkte sind in Ordnung | Länderpaket, Belegregel |
 | Partei der Spielerfigur | Eigene, neu gegründete Partei (frei erfunden) | Spieldesign 3 |
 | Prolog | Wie bei Suzerain: kurze erzählte Vorgeschichte, der Spieler wählt Jugend, Beruf, Weg in die Politik, wie er seine Partnerin oder seinen Partner kennengelernt hat usw.; einfache, schnelle Entscheidungen | Spieldesign 3 |
 
