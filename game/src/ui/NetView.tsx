@@ -21,8 +21,8 @@ const DIRECTION: Record<Outlook["direction"], string> = {
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 
-export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDecided: () => void; onShowOnMap?: (id: string) => void }) {
-  const [openTheme, setOpenTheme] = useState<Theme | null>("wirtschaft");
+export function NetView({ world, onDecided, onShowOnMap, initialTheme }: { world: World; onDecided: () => void; onShowOnMap?: (id: string) => void; initialTheme?: Theme }) {
+  const [openTheme, setOpenTheme] = useState<Theme | null>(initialTheme ?? "wirtschaft");
   const [selectedId, setSelectedId] = useState<string>("m_mindestlohn");
   const [level, setLevel] = useState<number | null>(null);
   const [preview, setPreview] = useState<{ level: number; rows: { label: string; o: Outlook }[] } | null>(null);
@@ -140,10 +140,30 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
               <div className="impl-now" style={{ width: `${Math.max(0, Math.min(100, now))}%` }} />
               <div className="impl-target" style={{ left: `${Math.max(0, Math.min(100, sliderValue))}%` }} />
             </div>
-            <p className="subtitle">
-              Umsetzung in etwa {node.months} Monat{node.months === 1 ? "" : "en"} ·{" "}
-              {node.cost ? `${node.cost > 0 ? "Kosten" : "Einnahmen"} bei voller Stufe: ${nf(Math.abs(node.cost))} % des BIP pro Jahr` : "kaum Kosten"}
-            </p>
+            <div className="costbox">
+              <div>
+                <span>Kosten heute</span>
+                <strong>
+                  {nf(((node.cost ?? 0) * now) / 100)} % BIP/Jahr
+                </strong>
+              </div>
+              <div>
+                <span>Bei Stufe {sliderValue}</span>
+                <strong>
+                  {nf(((node.cost ?? 0) * sliderValue) / 100)} % BIP/Jahr
+                </strong>
+              </div>
+              <div>
+                <span>Änderung</span>
+                <strong className={sliderValue * (node.cost ?? 0) > now * (node.cost ?? 0) ? "minus" : "plus"}>
+                  {nf((((node.cost ?? 0) * (sliderValue - now)) / 100))} % BIP/Jahr
+                </strong>
+              </div>
+              <div>
+                <span>Umsetzung</span>
+                <strong>~{node.months} Monat{node.months === 1 ? "" : "e"}</strong>
+              </div>
+            </div>
             <div className="confirm">
               <button onClick={runPreview} disabled={sliderValue === currentTarget}>
                 Vorschau

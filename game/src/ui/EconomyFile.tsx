@@ -89,10 +89,18 @@ export function EconomyFile({ world }: { world: World }) {
     {
       id: "schulden",
       label: "Staatsschulden",
-      value: `${nf(e.debtRatio)} % des BIP`,
+      value: `${nf(e.debtRatio)} % des BIP`,
       measured: "Schätzung des Finanzministeriums",
       explain: "Alle Schulden des Staates im Verhältnis zur Wirtschaftsleistung. Hohe Inflation lässt die Quote sinken, weil die Wirtschaftsleistung nominal schneller wächst als die Schulden.",
       series: series("debtRatio", e.debtRatio),
+    },
+    {
+      id: "politikosten",
+      label: "Politikosten",
+      value: `${nf(e.policyCost, 2)} % des BIP pro Jahr`,
+      measured: "aus dem Politiknetz berechnet",
+      explain:
+        "Laufende Kosten aller beschlossenen Maßnahmen gegenüber dem Amtsantritt, in Prozent der Wirtschaftsleistung pro Jahr. Jede Erhöhung einer teuren Maßnahme treibt diesen Wert; Kürzungen senken ihn. Der Beschluss ist noch keine Wirkung — die Umsetzung läuft über Monate.",
     },
   ];
 

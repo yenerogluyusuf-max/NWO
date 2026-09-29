@@ -8,16 +8,19 @@ import { AtlasMap } from "./atlas/AtlasMap";
 import { PROVINCE_FC, REGION_COLORS } from "./atlas/overlay";
 import { Desk } from "./Desk";
 import { Chat } from "./Chat";
+import { Bereiche } from "./Bereiche";
+import { Beschlussbuch } from "./Beschlussbuch";
 import { EconomyFile } from "./EconomyFile";
 import { NetView } from "./NetView";
 import { Decisions } from "./Decisions";
 import { PARTY_COLORS } from "./Parliament";
 import { Icon, type IconName } from "./icons";
 import { Cameo } from "./art/Cameo";
+import type { Theme } from "../data/politiknetz";
 import { Corners } from "./art/Ornament";
 import { EventWindow, type GameEvent } from "./EventWindow";
 
-type Dossier = "schreibtisch" | "wirtschaft" | "netz" | "entscheidungen" | "gespraech" | null;
+type Dossier = "schreibtisch" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "beschlussbuch" | null;
 type MapMode = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "netz";
 
 const SPEEDS = [0, 700, 200, 40];
@@ -50,6 +53,7 @@ export function Stage({ world: initial }: { world: World }) {
   const [events, setEvents] = useState<GameEvent[]>(() => [startEvent(initial)]);
   const [mapMode, setMapMode] = useState<MapMode>("gelaende");
   const [netNode, setNetNode] = useState<string>("p_wassermangel");
+  const [netTheme, setNetTheme] = useState<Theme | null>(null);
   const [selected, setSelected] = useState<number | undefined>(undefined);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
   const w = world.current;
@@ -150,9 +154,11 @@ export function Stage({ world: initial }: { world: World }) {
   const dossiers: { id: Exclude<Dossier, null>; label: string; icon: IconName }[] = [
     { id: "schreibtisch", label: "Schreibtisch", icon: "feder" },
     { id: "gespraech", label: "Gespräch", icon: "feder" },
+    { id: "bereiche", label: "Bereiche", icon: "koffer" },
     { id: "wirtschaft", label: "Wirtschaftsakte", icon: "akte" },
     { id: "netz", label: "Politiknetz", icon: "netz" },
     { id: "entscheidungen", label: "Entscheidungen", icon: "siegel" },
+    { id: "beschlussbuch", label: "Beschlussbuch", icon: "siegel" },
   ];
 
   return (
@@ -243,9 +249,21 @@ export function Stage({ world: initial }: { world: World }) {
           <div className="dossier-body">
             {dossier === "schreibtisch" && <Desk world={w} onOpen={(v) => setDossier(v === "karte" ? null : (v as Dossier))} />}
             {dossier === "gespraech" && <Chat world={w} refresh={refresh} />}
+            {dossier === "bereiche" && (
+              <Bereiche
+                world={w}
+                onOpenTheme={(t) => {
+                  setNetTheme(t);
+                  setDossier("netz");
+                }}
+              />
+            )}
             {dossier === "wirtschaft" && <EconomyFile world={w} />}
+            {dossier === "beschlussbuch" && <Beschlussbuch world={w} refresh={refresh} />}
             {dossier === "netz" && (
               <NetView
+                key={netTheme ?? "netz"}
+                initialTheme={netTheme ?? undefined}
                 world={w}
                 onDecided={refresh}
                 onShowOnMap={(id) => {
