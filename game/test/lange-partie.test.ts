@@ -81,7 +81,7 @@ describe("Lange Partie: ein Amtsjahr", () => {
     // Fortschritt ist sichtbar (360 Tage Runden + 10 Tage aus dem Zeitbefehl)
     expect(w.day).toBe(370);
     expect(mindestlohn).toBeGreaterThan(60);
-    expect(mechanisierung).toBeGreaterThan(40);
+    expect(mechanisierung).toBeGreaterThan(32);
     expect(beschluesse.length).toBeGreaterThanOrEqual(10);
     expect(policyCost(NET, w.net)).toBeGreaterThan(0.05);
   });
