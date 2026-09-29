@@ -100,6 +100,7 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
       </nav>
 
       <section className="paper net-detail">
+        <div className="net-main">
         <p className="kind-label">{KIND_LABEL[node.kind]} · {THEME_NAMES[node.theme]}</p>
         <h2>{node.name}</h2>
         <p>{node.text}</p>
@@ -114,6 +115,9 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
           )}
         </p>
 
+        <NetGraph nodeId={node.id} onSelect={select} />
+        </div>
+        <aside className="net-side">
         {node.kind === "massnahme" && (
           <div className="policy">
             <label>
@@ -170,8 +174,6 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
           </div>
         )}
 
-        <NetGraph nodeId={node.id} onSelect={select} />
-
         <div className="links">
           <div>
             <h3>Ursachen</h3>
@@ -202,6 +204,7 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
             </ul>
           </div>
         </div>
+        </aside>
       </section>
 
 

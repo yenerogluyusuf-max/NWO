@@ -4,28 +4,28 @@
 import { NET } from "../sim/world";
 import type { NodeSpec } from "../data/politiknetz";
 
-const W = 640;
-const COL_L = 96;
-const COL_R = W - 96;
-const BOX_W = 150;
-const ROW = 46;
-const MAX = 7;
+const W = 1020;
+const COL_L = 132;
+const COL_R = W - 132;
+const BOX_W = 208;
+const ROW = 62;
+const MAX = 8;
 
 function lines(name: string): string[] {
-  if (name.length <= 19) return [name];
+  if (name.length <= 17) return [name];
   const words = name.split(" ");
   const out = [""];
   for (const w of words) {
     const cur = out[out.length - 1]!;
-    if ((cur + " " + w).trim().length > 19 && cur) out.push(w);
+    if ((cur + " " + w).trim().length > 17 && cur) out.push(w);
     else out[out.length - 1] = (cur + " " + w).trim();
   }
   return out.slice(0, 2);
 }
 
 function NodeBox({ node, x, y, main, onClick }: { node: NodeSpec; x: number; y: number; main?: boolean; onClick?: () => void }) {
-  const w = main ? 176 : BOX_W;
-  const h = main ? 56 : 36;
+  const w = main ? 264 : BOX_W;
+  const h = main ? 74 : 48;
   const ls = lines(node.name);
   const stroke = node.kind === "problem" ? "#8e2a22" : "#2a1f18";
   return (
@@ -34,12 +34,12 @@ function NodeBox({ node, x, y, main, onClick }: { node: NodeSpec; x: number; y: 
       {node.kind === "gruppe" ? (
         <rect width={w} height={h} rx={h / 2} fill="#e9efe9" stroke={stroke} />
       ) : (
-        <rect width={w} height={h} rx="2" fill={main ? "#fbf3dc" : node.kind === "massnahme" ? "#f6ebcf" : "#fbf7ea"} stroke={stroke} strokeWidth={main ? 1.6 : 1} />
+        <rect width={w} height={h} rx="2" fill={main ? "#fbf3dc" : node.kind === "massnahme" ? "#f6ebcf" : "#fbf7ea"} stroke={stroke} strokeWidth={main ? 1.8 : 1.1} />
       )}
-      {node.kind === "massnahme" && <rect x="3" y="3" width={w - 6} height={h - 6} rx="1" fill="none" stroke={stroke} strokeOpacity="0.45" />}
-      {node.kind === "problem" && <path d={`M${w - 14} 4 l6 10 h-12 Z`} fill="#8e2a22" />}
+      {node.kind === "massnahme" && <rect x="4" y="4" width={w - 8} height={h - 8} rx="1" fill="none" stroke={stroke} strokeOpacity="0.45" />}
+      {node.kind === "problem" && <path d={`M${w - 18} 5 l8 13 h-16 Z`} fill="#8e2a22" />}
       {ls.map((l, i) => (
-        <text key={i} x={w / 2} y={h / 2 + (i - (ls.length - 1) / 2) * (main ? 17 : 13) + (main ? 6 : 4.5)} textAnchor="middle" className="ng-label">
+        <text key={i} x={w / 2} y={h / 2 + (i - (ls.length - 1) / 2) * (main ? 21 : 17) + (main ? 7 : 6)} textAnchor="middle" className="ng-label">
           {l}
         </text>
       ))}
@@ -92,8 +92,8 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       </defs>
       <text x={COL_L} y="14" textAnchor="middle" className="ng-head">Ursachen</text>
       <text x={COL_R} y="14" textAnchor="middle" className="ng-head">Wirkungen</text>
-      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - 90, cy, e.weight, e.lag, `c${e.from}`, 0.3))}
-      {effects.map((e, i) => arrow(W / 2 + 90, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e.weight, e.lag, `e${e.to}`, 0.72))}
+      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - 132, cy, e.weight, e.lag, `c${e.from}`, 0.3))}
+      {effects.map((e, i) => arrow(W / 2 + 132, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e.weight, e.lag, `e${e.to}`, 0.72))}
       {causes.map((e, i) => (
         <NodeBox key={e.from} node={get(e.from)} x={COL_L} y={yAt(i, causes.length)} onClick={() => onSelect(e.from)} />
       ))}
@@ -102,11 +102,11 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       ))}
       {causes.length === 0 && (
         <g>
-          <path d={`M${COL_L + 30} ${cy} C${W / 4} ${cy} ${W / 4} ${cy} ${W / 2 - 90} ${cy}`} fill="none" stroke="#2a1f18" strokeWidth="1.4" strokeDasharray={node.input ? "5 3" : undefined} markerEnd="url(#ng-ink)" />
-          <circle cx={COL_L} cy={cy} r="26" fill={node.input ? "#265a62" : "#8e2a22"} stroke="#2a1f18" />
-          <circle cx={COL_L} cy={cy} r="21" fill="none" stroke="#f6dcc2" strokeOpacity="0.5" strokeDasharray="1 2" />
-          <text x={COL_L} y={cy + 5} textAnchor="middle" className="ng-seal">{node.input ? "₺" : "§"}</text>
-          <text x={COL_L} y={cy + 44} textAnchor="middle" className="ng-empty">{node.input ? "aus dem Wirtschaftsmodell" : "Beschluss der Regierung"}</text>
+          <path d={`M${COL_L + 40} ${cy} C${W / 4} ${cy} ${W / 4} ${cy} ${W / 2 - 132} ${cy}`} fill="none" stroke="#2a1f18" strokeWidth="1.5" strokeDasharray={node.input ? "5 3" : undefined} markerEnd="url(#ng-ink)" />
+          <circle cx={COL_L} cy={cy} r="34" fill={node.input ? "#265a62" : "#8e2a22"} stroke="#2a1f18" />
+          <circle cx={COL_L} cy={cy} r="27" fill="none" stroke="#f6dcc2" strokeOpacity="0.5" strokeDasharray="1 2" />
+          <text x={COL_L} y={cy + 7} textAnchor="middle" className="ng-seal">{node.input ? "₺" : "§"}</text>
+          <text x={COL_L} y={cy + 56} textAnchor="middle" className="ng-empty">{node.input ? "aus dem Wirtschaftsmodell" : "Beschluss der Regierung"}</text>
         </g>
       )}
       <NodeBox node={node} x={W / 2} y={cy} main />

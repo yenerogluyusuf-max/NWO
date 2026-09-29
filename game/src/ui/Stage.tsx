@@ -232,7 +232,7 @@ export function Stage({ world: initial }: { world: World }) {
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" || dossier === "wirtschaft" || dossier === "entscheidungen" ? " wide" : ""}`} aria-label={dossiers.find((d) => d.id === dossier)?.label}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "wirtschaft" || dossier === "entscheidungen" ? " wide" : ""}`} aria-label={dossiers.find((d) => d.id === dossier)?.label}>
           <Corners />
           <header className="dossier-head">
             <h2>{dossiers.find((d) => d.id === dossier)?.label}</h2>
