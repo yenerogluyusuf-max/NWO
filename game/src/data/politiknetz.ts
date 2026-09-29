@@ -467,6 +467,59 @@ e("m_industrie_modernisierung", "produktivitaet", 0.05, 12, "Neue Maschinengener
 e("m_industrie_modernisierung", "investitionen", 0.03, 6, "Modernisierung bindet und lockt Kapital.");
 e("m_industrie_modernisierung", "arbeitsplaetze_industrie", -0.02, 12, "Automation ersetzt einen Teil der Arbeitsplätze, schafft aber produktivere.");
 
+// Modernisierungsleiter für alle übrigen Themenfelder (dieselbe Logik: Stufen von
+// Handarbeit über Maschinen zu High-Tech, Umsetzung braucht Zeit, jede Stufe hat
+// ihren Preis — Material aus Victoria 3, Anno 1800 und Workers & Resources).
+m("haushalt", "m_verwaltungsdigital", "Digitale Verwaltung und Steuertechnik", 30, 0.2, 24, "E-Rechnung, Datenabgleich, digitale Behördenwege: von Papierakten zu vernetzten Verfahren.");
+m("arbeit", "m_fachkraefteprogramm", "Fachkräfte und Weiterbildung", 35, 0.3, 24, "Technikerschulen, Meisterbetriebe, Umschulung: die Stufenleiter braucht Menschen, die sie bedienen.");
+m("bildung", "m_bildungstechnik", "Bildungstechnik und digitales Lernen", 30, 0.2, 24, "Geräte, Lernplattformen und Fortbildung der Lehrkräfte.");
+m("gesundheit", "m_medizintechnik", "Medizintechnik und Krankenhausmodernisierung", 30, 0.4, 24, "Digitale Diagnostik, moderne Geräte, vernetzte Patientenakten.");
+m("infrastruktur", "m_smart_infrastruktur", "Intelligente Infrastruktur", 25, 0.3, 24, "Verkehrsleitsysteme, Sensoren, digitale Netze: mehr Kapazität ohne neue Straßen.");
+m("energie", "m_speicher_smartgrid", "Netzmodernisierung und Speicher", 28, 0.35, 24, "Smart Grid, Batteriespeicher, digitale Laststeuerung.");
+m("wohnen", "m_bauindustrie", "Industrieller Wohnungsbau", 25, 0.3, 24, "Modulbau und Vorfertigung: Wohnungen in Fabrikqualität, schneller und günstiger.");
+m("sicherheit", "m_polizeitechnik", "Moderne Sicherheitsverwaltung", 30, 0.25, 24, "Forensik, digitale Aktenführung, bessere Koordinierung der Behörden.");
+m("gesellschaft", "m_digitale_oeffentlichkeit", "Digitale Öffentlichkeit und Beteiligung", 35, 0.15, 12, "Online-Beteiligung, offene Daten, digitale Behördengänge.");
+m("aussen", "m_handelssysteme", "Moderne Zoll- und Handelssysteme", 30, 0.2, 24, "Digitale Zollabfertigung, nachvollziehbare Lieferketten, Umsetzung von Handelsabkommen.");
+
+e("m_verwaltungsdigital", "steuereinnahmen", 0.04, 6, "Bessere Erfassung hebt die realen Einnahmen.");
+e("m_verwaltungsdigital", "steuermoral", 0.03, 6, "Digitale Verfahren machen Hinterziehen schwieriger.");
+e("m_verwaltungsdigital", "schattenwirtschaft", -0.03, 12, "Digitale Zahlungen verkleinern den grauen Markt.");
+e("m_fachkraefteprogramm", "fachkraefte", 0.04, 12, "Weiterbildung und Technikerschulen erhöhen den Fachkräftebestand.");
+e("m_fachkraefteprogramm", "produktivitaet", 0.04, 12, "Gut ausgebildete Fachkräfte machen Betriebe produktiver.");
+e("m_fachkraefteprogramm", "arbeitsplaetze_industrie", 0.03, 12, "Qualifizierte Arbeitskräfte ziehen bessere Industrie an.");
+e("m_fachkraefteprogramm", "jugendarbeitslosigkeit", -0.03, 6, "Ausbildungsplätze halten Jugendliche im Erwerbsleben.");
+e("m_fachkraefteprogramm", "abwanderung", -0.03, 12, "Perspektiven im Land halten Fachkräfte vom Auswandern ab.");
+e("m_bildungstechnik", "bildungsqualitaet", 0.04, 12, "Gute Werkzeuge und geschulte Lehrkräfte heben den Unterricht.");
+e("m_bildungstechnik", "hochschule", 0.03, 12, "Digitale Ausstattung stärkt Forschung und Lehre.");
+e("m_bildungstechnik", "schulabbruch", -0.02, 6, "Individuelle Förderung fängt schwache Schüler auf.");
+e("m_bildungstechnik", "fachkraefte", 0.02, 12, "Bessere Bildung liefert den Nachwuchs für die Modernisierung.");
+e("m_medizintechnik", "gesundheitsversorgung", 0.05, 6, "Moderne Geräte verbessern die Versorgung spürbar.");
+e("m_medizintechnik", "wartezeiten", -0.04, 6, "Digitale Abläufe verkürzen die Wartezeiten.");
+e("m_medizintechnik", "medikamente", 0.02, 6, "Vernetzte Lieferketten sichern die Arzneimittelversorgung.");
+e("m_medizintechnik", "lebenserwartung", 0.01, 24, "Bessere Diagnostik rettet Leben — langsam und wenig sichtbar.");
+e("m_smart_infrastruktur", "stau", -0.04, 6, "Leitsysteme verteilen den Verkehr besser.");
+e("m_smart_infrastruktur", "logistik", 0.04, 6, "Vernetzte Häfen und Terminals beschleunigen den Warenfluss.");
+e("m_smart_infrastruktur", "internet", 0.03, 6, "Der Ausbau der Netze geht Hand in Hand.");
+e("m_smart_infrastruktur", "verkehrsnetz", 0.02, 12, "Kapazitätsreserven heben die Auslastung der Straßen.");
+e("m_speicher_smartgrid", "stromversorgung", 0.05, 6, "Speicher und Laststeuerung stabilisieren das Netz.");
+e("m_speicher_smartgrid", "erneuerbare", 0.04, 6, "Ohne Speicher bleibt Wind und Sonne ungenutzt.");
+e("m_speicher_smartgrid", "energiepreise", -0.03, 12, "Effiziente Netze senken die Erzeugungskosten.");
+e("m_speicher_smartgrid", "energieimporte", -0.02, 12, "Mehr eigene Erneuerbare ersetzen importiertes Gas und Öl.");
+e("m_bauindustrie", "wohnungsbau", 0.05, 6, "Vorfertigung beschleunigt den Bau spürbar.");
+e("m_bauindustrie", "mieten", -0.04, 12, "Mehr Wohnungen zu günstigeren Kosten dämpfen die Mieten.");
+e("m_bauindustrie", "bauwirtschaft", 0.03, 6, "Die Bauwirtschaft wächst mit der Serie.");
+e("m_bauindustrie", "bauqualitaet", 0.02, 6, "Werkshallen und Standards sichern die Qualität.");
+e("m_polizeitechnik", "kriminalitaet", -0.04, 6, "Bessere Aufklärung wirkt abschreckend.");
+e("m_polizeitechnik", "justizvertrauen", 0.03, 12, "Schnelle, nachvollziehbare Verfahren stärken das Vertrauen.");
+e("m_polizeitechnik", "rechtssicherheit", 0.02, 12, "Digitale Akten und klare Zuständigkeiten erhöhen die Rechtssicherheit.");
+e("m_digitale_oeffentlichkeit", "zivilgesellschaft", 0.03, 6, "Digitale Beteiligung erleichtert Vereins- und Bürgerarbeit.");
+e("m_digitale_oeffentlichkeit", "vertrauen_regierung", 0.02, 6, "Transparente Verfahren wirken dem Misstrauen entgegen.");
+e("m_digitale_oeffentlichkeit", "polarisierung", 0.02, 12, "Digitale Räume spalten auch: mehr Öffentlichkeit bedeutet mehr Streit.");
+e("m_handelssysteme", "export", 0.04, 12, "Schnelle Zölle und nachvollziehbare Lieferketten stärken die Ausfuhr.");
+e("m_handelssysteme", "logistik", 0.03, 6, "Digitale Abfertigung beschleunigt die Häfen.");
+e("m_handelssysteme", "tourismus", 0.02, 6, "Reibungslose Einreise und Abfertigung erleichtern den Tourismus.");
+e("m_handelssysteme", "ansehen", 0.02, 12, "Ein verlässlicher Handelspartner genießt Ansehen.");
+
 p("landwirtschaft", "p_wassermangel", "Wassermangel", 40, 60, "Die Wasserversorgung wird schlechter; in manchen Städten wird Wasser rationiert.");
 p("landwirtschaft", "p_landflucht", "Verödung ländlicher Regionen", 45, 60, "Dörfer leeren sich, Schulen und Praxen schließen.");
 
