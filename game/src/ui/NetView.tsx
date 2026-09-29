@@ -74,7 +74,7 @@ export function NetView({ world, onDecided, onShowOnMap, initialTheme }: { world
             <div key={theme} className="theme">
               <button className="theme-head" onClick={() => setOpenTheme(openTheme === theme ? null : theme)}>
                 <span>{THEME_NAMES[theme]}</span>
-                {problems.length > 0 && <span className="badge">{problems.length} Problem{problems.length > 1 ? "e" : ""}</span>}
+                {problems.length > 0 && <span className="badge">{problems.length} akut</span>}
               </button>
               {openTheme === theme && (
                 <ul className="chips">
@@ -183,8 +183,12 @@ export function NetView({ world, onDecided, onShowOnMap, initialTheme }: { world
               )}
             </div>
             {preview && (
-              <table className="preview">
-                <caption>In zwölf Monaten, verglichen mit „nichts ändern“</caption>
+              <>
+                <p className="preview-kosten">
+                  Kosten der Änderung: <strong>{nf(((node.cost ?? 0) * (sliderValue - currentTarget)) / 100)} % des BIP pro Jahr</strong> — sofort im Haushalt, Wirkung dauert {node.months} Monat{node.months === 1 ? "" : "e"}.
+                </p>
+                <table className="preview">
+                  <caption>In zwölf Monaten, verglichen mit „nichts ändern“</caption>
                 <tbody>
                   {preview.rows.map(({ label, o }) => (
                     <tr key={label}>
@@ -194,6 +198,7 @@ export function NetView({ world, onDecided, onShowOnMap, initialTheme }: { world
                   ))}
                 </tbody>
               </table>
+              </>
             )}
           </div>
         )}

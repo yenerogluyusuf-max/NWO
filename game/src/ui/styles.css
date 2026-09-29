@@ -411,8 +411,12 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .net-themes { padding: 0 !important; }
 .net-themes h2 { font-size: 20px !important; }
 .theme { border-top: 1px solid rgba(120, 90, 50, 0.25); }
-.dossier .theme-head { width: 100%; display: flex; justify-content: space-between; align-items: center; border: none; background: none; box-shadow: none; padding: 8px 0; font-family: var(--serif); font-size: 14.5px; text-align: left; }
-.badge { background: var(--seal); color: #fff; border-radius: 10px; padding: 1px 7px; font-family: var(--sans); font-size: 10.5px; }
+.dossier .theme-head { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: none; background: none; box-shadow: none; padding: 8px 0; font-family: var(--serif); font-size: 14.5px; text-align: left; }
+.badge {
+  flex: none; border: 1px solid var(--seal); color: var(--seal); background: rgba(142, 42, 34, 0.07);
+  border-radius: 2px; padding: 1px 8px 2px; font-family: var(--sans); font-size: 9.5px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap;
+}
 .chips { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
 .dossier .chip { font-size: 12px; padding: 3px 8px; border-radius: 12px; background: rgba(255, 252, 240, 0.7); box-shadow: none; }
 .dossier .chip.kind-massnahme { border-style: dashed; }
@@ -444,6 +448,11 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .costbox strong.minus { color: var(--seal); }
 .costbox em { font-size: 11.5px; font-style: italic; color: var(--ink-soft); }
 .costbox.big { grid-template-columns: repeat(3, 1fr); gap: 10px 20px; padding: 12px 16px; }
+.preview-kosten {
+  margin: 6px 0 10px; padding: 8px 12px; border-left: 4px solid var(--seal); background: rgba(142, 42, 34, 0.07);
+  font-size: 13.5px; border-radius: 2px;
+}
+.preview-kosten strong { font-family: var(--display); font-variant-numeric: tabular-nums; }
 
 /* Beschlussbuch */
 .beschlussbuch { display: grid; gap: 14px; }
