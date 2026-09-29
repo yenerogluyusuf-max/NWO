@@ -644,3 +644,15 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .atlas-labels.far .city-mini { display: none; }
 .atlas-labels.far .city-banner::before { content: ""; width: 7px; height: 7px; margin-right: 1px; background: #f3e6c6; box-shadow: 0 0 0 1.5px #120d0a; }
 .stage { background: #14222c; }
+
+/* Gespräch (Freie Sprache) */
+.chat { display: flex; flex-direction: column; gap: 0.6em; height: 100%; min-height: 22em; }
+.chat-verlauf { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.7em; padding-right: 0.2em; }
+.chat-zeile { display: flex; gap: 0.6em; align-items: baseline; }
+.chat-rolle { font-size: 0.72em; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.65; min-width: 4.2em; }
+.chat-zeile.spieler .chat-text { border-left: 3px solid rgba(38, 90, 98, 0.55); padding-left: 0.6em; }
+.chat-zeile.spiel .chat-text { border-left: 3px solid rgba(150, 44, 36, 0.45); padding-left: 0.6em; }
+.chat-text p { margin: 0.15em 0; }
+.chat-why { font-size: 0.82em; opacity: 0.75; font-style: italic; }
+.chat-eingabe { display: flex; gap: 0.5em; }
+.chat-eingabe input { flex: 1; padding: 0.55em 0.7em; }

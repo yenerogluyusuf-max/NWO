@@ -125,3 +125,11 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 | Agenda-System | Freie Zielvorgaben („Agenda 1: kein Riesenprojekt, Fokus Wiederaufbau“); das Spiel priorisiert Briefings und empfiehlt passende Maßnahmen aus dem Katalog — immer mit Zielkonflikt; Abweichungen werden vermerkt | AGENDA |
 | Alles entsteht live | Faktoren und Regeln sind vorgegeben, jeder Verlauf wird während des Spiels berechnet; Ereignisvorlagen sind Muster, keine Drehbücher | WELTMODELL 7 |
 | Recherche-Basis | Drei quellenbelegte Berichte mit Daten und Lückenlisten: Gesamtbedarf, Weltdaten (Rohstoffe, Öl, Wasser, Rechtsstaat), Innenpolitik (alle Felder, Außenpolitik, Großprojekt-Modelle, Mediation) | RECHERCHE_*.md |
+
+## J. Nachtrag 29.09.2026 (Priorität: Spielbarkeit)
+
+| Thema | Entscheidung | Wo |
+|---|---|---|
+| Vertrieb | **Es bleibt lokal.** Kein Vertrieb, kein Steam, keine Veröffentlichung — das Spiel ist für den eigenen Gebrauch | Projektplan, Entwicklungsplan 8 |
+| Recht | **Kein Anwalt als Voraussetzung.** Anwaltliche Prüfung erst, falls je veröffentlicht wird; sie blockiert die Entwicklung nicht | Länderpaket 4 |
+| Priorität | **Spielbarkeit zuerst:** Gesprächsmodul, S1-Inhalte, Kalibrierung. Marketing, Markenprüfung, Steam-Klärung und Anwalt sind nachrangig | Entwicklungsplan 0 |

@@ -7,6 +7,7 @@ import { PROVINZEN } from "../sim/regional";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { PROVINCE_FC, REGION_COLORS } from "./atlas/overlay";
 import { Desk } from "./Desk";
+import { Chat } from "./Chat";
 import { EconomyFile } from "./EconomyFile";
 import { NetView } from "./NetView";
 import { Decisions } from "./Decisions";
@@ -16,7 +17,7 @@ import { Cameo } from "./art/Cameo";
 import { Corners } from "./art/Ornament";
 import { EventWindow, type GameEvent } from "./EventWindow";
 
-type Dossier = "schreibtisch" | "wirtschaft" | "netz" | "entscheidungen" | null;
+type Dossier = "schreibtisch" | "wirtschaft" | "netz" | "entscheidungen" | "gespraech" | null;
 type MapMode = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "netz";
 
 const SPEEDS = [0, 700, 200, 40];
@@ -148,6 +149,7 @@ export function Stage({ world: initial }: { world: World }) {
 
   const dossiers: { id: Exclude<Dossier, null>; label: string; icon: IconName }[] = [
     { id: "schreibtisch", label: "Schreibtisch", icon: "feder" },
+    { id: "gespraech", label: "Gespräch", icon: "feder" },
     { id: "wirtschaft", label: "Wirtschaftsakte", icon: "akte" },
     { id: "netz", label: "Politiknetz", icon: "netz" },
     { id: "entscheidungen", label: "Entscheidungen", icon: "siegel" },
@@ -240,6 +242,7 @@ export function Stage({ world: initial }: { world: World }) {
           </header>
           <div className="dossier-body">
             {dossier === "schreibtisch" && <Desk world={w} onOpen={(v) => setDossier(v === "karte" ? null : (v as Dossier))} />}
+            {dossier === "gespraech" && <Chat world={w} refresh={refresh} />}
             {dossier === "wirtschaft" && <EconomyFile world={w} />}
             {dossier === "netz" && (
               <NetView
