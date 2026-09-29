@@ -133,3 +133,16 @@ Die zweite und dritte Rechercherunde ([RECHERCHE_WELTDATEN.md](RECHERCHE_WELTDAT
 | AGENDA-01 | Agenda-System: freie Zielvorgaben → Priorisierung + Maßnahmen-Empfehlungen (siehe [AGENDA.md](AGENDA.md)) | ACT-01, POL-01, CHAT-01 | Agenda-Eingabe strukturiert, Empfehlungen agenda-konform, Abweichungen vermerkt |
 
 **Datenbasis:** Die Startwerte der Politikfelder, Beziehungs-Matrix, Großprojekt-Parameter (Gravitationselastizität ≈ −0,8…−1,1, Agglomeration +3–8 %/Verdopplung, Kostenüberschreitung Schiene ~45 %/Straße ~20 %, Verkehrsprognosen 25–60 %) und Mediations-Kalibrierung (Getreideabkommen 33 Mio. t) stammen aus den beiden Rechercheberichten und gehen vor M0 ins Quellenregister.
+
+
+## 9. Nachtrag 29.09.2026: Stand der Implementierung
+
+Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt, Abschnitt „Aktueller Stand“). Umgesetzt sind Teile von ECO-01 (Wirtschaftsmodell mit Zentralbank), NET-01/POL-01 (Politiknetz, je Provinz), PRO-01 (Prolog), ELE-01 (Parlamentswahl 2028) und GEO-01 (Karte). Die Oberfläche folgt Hearts of Iron (Karte) sowie Suzerain und Civilization (Akten, Ereignisse).
+
+**Nächste Schritte (Implementierung), in dieser Reihenfolge:**
+
+1. Spielschleife: Parlament als Engpass (Gesetze einbringen, Abstimmung, Bündnispartner, Überläufer), Umfragen laufend im Spiel.
+2. Ereignisbibliothek nach [SZENARIEN.md](SZENARIEN.md) (SCEN-01): erste 20 bis 30 Ereignisse mit Voraussetzungen und Preis.
+3. Speichern und Laden (SAVE-01).
+4. Figuren und Kabinett, danach freie Sprachbefehle (ACT-01, CHAT-01) und Agenda (AGENDA-01).
+5. Karte: Tag-und-Nacht-Grenze, Wetter, Markierungen für Probleme und Projekte.

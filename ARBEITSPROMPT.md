@@ -32,6 +32,9 @@ Projektordner: `/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/`
 | `LERNKONZEPT.md` | Mentorin, Lern-Tor |
 | `LAENDERPAKET_TUERKEI.md` | Institutionen, Rechercheplan, heikle Themen |
 | `RECHERCHE_*.md` + `RECHERCHE_NOTIZEN*` | Drei Rechercheberichte, quellenbelegt, mit Gap-Listen |
+| `tuerkei/` | Länderpaket Türkei: Institutionen, Startdaten (Stichtag 25.09.2026), Umfragen, Provinzdaten mit Quellen |
+| `TECHNIK.md` | Technikwahl, Versuchsergebnisse, gerenderte Oberflächenteile (Blender) |
+| `game/` | **Spielcode** (TypeScript, React, Vite, Three.js): `src/sim/` Simulation, `src/ui/` Oberfläche, `src/data/` Spieldaten, `test/` Tests, `tools/blender/` Render-Skript |
 
 ## Verbindliche Arbeitsregeln
 
@@ -58,7 +61,14 @@ Projektordner: `/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/`
 - Recherche: 3 Berichte abgeschlossen (Gesamtbedarf, Weltdaten, Innenpolitik) — Gaps in deren Abschnitten „Offene Punkte".
 - Design: alle Kern-Dokumente stehen (WELTMODELL, INNENPOLITIK, AUSSENPOLITIK, GROSSPROJEKTE, SZENARIEN, AGENDA).
 - **Offene Fäden:** Block-B-Einarbeitung abschließen · Fragerunden (Block C in ENTSCHEIDUNGEN) · Recherche-Gaps (TÜİK-API-Inventar, TCMB-Freigabe, YSK-Lizenz, Markenrecherche Name, Steam-BYO-Key, Anwaltspaket) · Quellenregister füllen · Wirtschaftsmodell kalibrieren · Figuren/Character-Sheets · Art-Bible · Stichtag festlegen · Technikversuche (Engine-Entscheidung) · S0 Papiertest · S1 kleine lebendige Welt · später Implementierung.
-- Implementierung: bisher nur früher Prototyp im GitHub-Repo (nicht lokal).
+- **Implementierung (Stand 29.09.2026, Zweig `claude/weiter-b91y4u`):** spielbarer Kern im Browser, nicht nur Prototyp.
+  - Simulation: Wirtschaftsmodell (monatlich, Wechselkurs täglich), Zentralbank Stufe B mit Zinssitzungen, Veröffentlichung mit Verzögerung, Vorschau mit Bandbreite; deterministisch, speicherbar.
+  - Politiknetz: 186 Knoten, 363 Verbindungen, je Provinz (81) gerechnet, rückgekoppelt an die Wirtschaft.
+  - Prolog wie Suzerain (8 Stationen) und Parlamentswahl 2028 je Provinz (D'Hondt, 7-%-Hürde, Bündnisse).
+  - Oberfläche: Titelbild, Kopfleiste mit Kennzahlen, Warnsymbole, Akten (Schreibtisch, Wirtschaftsakte, Politiknetz, Entscheidungen mit Erlass), Ereignisfenster, Mentorin mit Randnotizen.
+  - Karte im Stil von Hearts of Iron: echtes Relief, politisch von weitem, Gelände aus der Nähe, Nachbarländer, Städte als 3D-Figuren.
+  - 23 Tests der Simulation. Starten: `cd game && npm install && npm run dev`.
+  - **Fehlt noch:** Spielschleife (Parlament als Engpass, Gesetze, Umfragen im Spiel), Ereignisbibliothek (SZENARIEN), Figuren und Kabinett, freie Sprachbefehle, Großprojekte, Außenpolitik, Speichern/Laden, Ton.
 
 ## Was „immer weiter" konkret bedeutet
 
