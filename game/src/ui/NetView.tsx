@@ -20,6 +20,8 @@ const DIRECTION: Record<Outlook["direction"], string> = {
 };
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+/** Kosten brauchen mehr Nachkommastellen: 0,03 % des BIP ist kein Rundungsfehler. */
+const nfc = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 3, minimumFractionDigits: 2 });
 
 export function NetView({ world, onDecided, onShowOnMap, initialTheme }: { world: World; onDecided: () => void; onShowOnMap?: (id: string) => void; initialTheme?: Theme }) {
   const [openTheme, setOpenTheme] = useState<Theme | null>(initialTheme ?? "wirtschaft");
@@ -144,19 +146,19 @@ export function NetView({ world, onDecided, onShowOnMap, initialTheme }: { world
               <div>
                 <span>Kosten heute</span>
                 <strong>
-                  {nf(((node.cost ?? 0) * now) / 100)} % BIP/Jahr
+                  {nfc(((node.cost ?? 0) * now) / 100)} % BIP/Jahr
                 </strong>
               </div>
               <div>
                 <span>Bei Stufe {sliderValue}</span>
                 <strong>
-                  {nf(((node.cost ?? 0) * sliderValue) / 100)} % BIP/Jahr
+                  {nfc(((node.cost ?? 0) * sliderValue) / 100)} % BIP/Jahr
                 </strong>
               </div>
               <div>
                 <span>Änderung</span>
                 <strong className={sliderValue * (node.cost ?? 0) > now * (node.cost ?? 0) ? "minus" : "plus"}>
-                  {nf((((node.cost ?? 0) * (sliderValue - now)) / 100))} % BIP/Jahr
+                  {nfc((((node.cost ?? 0) * (sliderValue - now)) / 100))} % BIP/Jahr
                 </strong>
               </div>
               <div>
@@ -185,7 +187,7 @@ export function NetView({ world, onDecided, onShowOnMap, initialTheme }: { world
             {preview && (
               <>
                 <p className="preview-kosten">
-                  Kosten der Änderung: <strong>{nf(((node.cost ?? 0) * (sliderValue - currentTarget)) / 100)} % des BIP pro Jahr</strong> — sofort im Haushalt, Wirkung dauert {node.months} Monat{node.months === 1 ? "" : "e"}.
+                  Kosten der Änderung gegenüber heute: <strong>{nfc(((node.cost ?? 0) * (sliderValue - now)) / 100)} % des BIP pro Jahr</strong> — sofort im Haushalt, Wirkung dauert {node.months} Monat{node.months === 1 ? "" : "e"}.
                 </p>
                 <table className="preview">
                   <caption>In zwölf Monaten, verglichen mit „nichts ändern“</caption>

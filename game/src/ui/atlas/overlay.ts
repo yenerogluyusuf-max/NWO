@@ -16,7 +16,9 @@ export interface ProvinceProps {
 
 export const PROVINCE_FC = raw as unknown as FeatureCollection<Geometry, ProvinceProps>;
 
-export const OVERLAY_W = 3200;
+export const OVERLAY_W = 4800;
+/** Zeichenkonstanten sind für Breite 3200 kalibriert und werden damit skaliert. */
+const K = OVERLAY_W / 3200;
 
 function rings(f: Feature<Geometry, ProvinceProps>): Position[][] {
   const g = f.geometry;
@@ -144,7 +146,7 @@ export function drawOverlay(c: HTMLCanvasElement, fillCanvas: HTMLCanvasElement,
     ctx.fillStyle = "rgba(255, 246, 220, 0.22)";
     ctx.fill();
     ctx.strokeStyle = "rgba(255, 244, 214, 0.95)";
-    ctx.lineWidth = 3.5;
+    ctx.lineWidth = 3.5 * K;
     ctx.stroke();
   }
   const sel = find(style.selected);
@@ -155,10 +157,10 @@ export function drawOverlay(c: HTMLCanvasElement, fillCanvas: HTMLCanvasElement,
     ctx.fill();
     ctx.lineJoin = "round";
     ctx.strokeStyle = "rgba(30, 20, 12, 0.9)";
-    ctx.lineWidth = 7;
+    ctx.lineWidth = 7 * K;
     ctx.stroke();
     ctx.strokeStyle = "rgba(241, 213, 143, 1)";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3 * K;
     ctx.stroke();
   }
 }
@@ -198,7 +200,7 @@ function drawBoard(c: HTMLCanvasElement, fc: HTMLCanvasElement, r: Relief, style
   for (const country of nb.countries) {
     ringPath(country.rings);
     ctx.strokeStyle = "rgba(28, 20, 16, 0.75)";
-    ctx.lineWidth = 2.6;
+    ctx.lineWidth = 2.6 * K;
     ctx.stroke();
   }
 
@@ -221,12 +223,12 @@ function drawBoard(c: HTMLCanvasElement, fc: HTMLCanvasElement, r: Relief, style
     ctx.fillStyle = "rgba(40, 78, 96, 1)";
     ctx.fill();
     ctx.strokeStyle = "rgba(170, 200, 205, 0.7)";
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.6 * K;
     ctx.stroke();
   }
   for (const river of w.rivers) {
     ctx.strokeStyle = "rgba(38, 86, 118, 0.95)";
-    ctx.lineWidth = Math.max(1.6, 4.6 - river.rank * 0.45);
+    ctx.lineWidth = Math.max(1.6, 4.6 - river.rank * 0.45) * K;
     for (const line of river.lines) {
       ctx.beginPath();
       line.forEach((pt, i) => {
@@ -240,8 +242,8 @@ function drawBoard(c: HTMLCanvasElement, fc: HTMLCanvasElement, r: Relief, style
 
   // Provinzgrenzen: fein und gestrichelt, wie Staatsgrenzen in Hearts of Iron
   ctx.strokeStyle = "rgba(30, 18, 12, 0.5)";
-  ctx.lineWidth = 1.4;
-  ctx.setLineDash([6, 4]);
+  ctx.lineWidth = 1.4 * K;
+  ctx.setLineDash([6 * K, 4 * K]);
   for (const f of feats) {
     tracePath(ctx, r, f, W, H);
     ctx.stroke();
@@ -260,7 +262,7 @@ function drawBoard(c: HTMLCanvasElement, fc: HTMLCanvasElement, r: Relief, style
     rctx.globalCompositeOperation = "source-over";
     rctx.clearRect(0, 0, W, H);
     rctx.strokeStyle = "rgba(30, 18, 12, 0.6)";
-    rctx.lineWidth = 3.4;
+    rctx.lineWidth = 3.4 * K;
     for (const f of members) {
       tracePath(rctx, r, f, W, H);
       rctx.stroke();
@@ -288,7 +290,7 @@ function drawBoard(c: HTMLCanvasElement, fc: HTMLCanvasElement, r: Relief, style
     fctx.fill();
   }
   const [near, nctx] = layer(); // Ausland, um einige Pixel ausgedehnt
-  for (const [dx, dy] of [[0, 0], [-8, 0], [8, 0], [0, -8], [0, 8], [-6, -6], [6, 6], [-6, 6], [6, -6]]) nctx.drawImage(foreign, dx!, dy!);
+  for (const [dx, dy] of [[0, 0], [-8, 0], [8, 0], [0, -8], [0, 8], [-6, -6], [6, 6], [-6, 6], [6, -6]]) nctx.drawImage(foreign, dx! * K, dy! * K);
   const [band, bctx] = layer();
   bctx.fillStyle = "rgba(160, 52, 36, 0.8)";
   for (const f of feats) {
@@ -300,7 +302,7 @@ function drawBoard(c: HTMLCanvasElement, fc: HTMLCanvasElement, r: Relief, style
   ctx.drawImage(band, 0, 0);
   const [line, lctx] = layer();
   lctx.strokeStyle = "rgba(22, 12, 8, 0.95)";
-  lctx.lineWidth = 7;
+  lctx.lineWidth = 7 * K;
   lctx.lineJoin = "round";
   for (const f of feats) {
     tracePath(lctx, r, f, W, H);
@@ -314,14 +316,15 @@ function drawBoard(c: HTMLCanvasElement, fc: HTMLCanvasElement, r: Relief, style
   for (const n of COUNTRY_NAMES) {
     const [u, v] = lonLatToUv(r, n.lon, n.lat);
     const text = n.text.toLocaleUpperCase("tr");
+    const s = n.size * K;
     fill.save();
     fill.translate(u * W, v * H);
     fill.rotate(n.rot ?? 0);
-    fill.font = `700 ${n.size}px 'Fraunces Variable', Georgia, serif`;
-    (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${Math.round(n.size * 0.32)}px`;
+    fill.font = `700 ${s}px 'Fraunces Variable', Georgia, serif`;
+    (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${Math.round(s * 0.32)}px`;
     fill.textAlign = "center";
     fill.textBaseline = "middle";
-    fill.lineWidth = Math.max(3, n.size * 0.06);
+    fill.lineWidth = Math.max(3, s * 0.06);
     fill.strokeStyle = "rgba(20, 12, 8, 0.35)";
     fill.strokeText(text, 0, 0);
     fill.fillStyle = n.text === "Türkiye" ? "rgba(255, 238, 214, 0.5)" : "rgba(250, 240, 222, 0.42)";

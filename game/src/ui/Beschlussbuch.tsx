@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import type { World } from "../sim/types";
 import { NET, setPolicy } from "../sim/world";
-import { nationalAverage, policyCost } from "../sim/netz";
+import { nationalAverage, policyCost, startAverage } from "../sim/netz";
 import { formatDateDe } from "../sim/dates";
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
@@ -28,7 +28,14 @@ export function Beschlussbuch({ world, refresh }: { world: World; refresh: () =>
     return out;
   }, [world.net.targets, world.net.values]);
 
-  const kosten = policyCost(NET, world.net);
+  // Beschlossene Kosten: was die Beschlüsse kosten, sobald sie durchgelaufen sind
+  const beschlossen = NET.nodes.reduce((sum, n) => {
+    if (n.kind !== "massnahme" || !n.cost) return sum;
+    const ziel = world.net.targets[n.id] ?? nationalAverage(NET, world.net, n.id);
+    return sum + ((ziel - startAverage(NET, world.net, n.id)) / 100) * n.cost;
+  }, 0);
+  const wirksam = policyCost(NET, world.net);
+  const kosten = beschlossen;
 
   return (
     <div className="beschlussbuch">
@@ -41,7 +48,9 @@ export function Beschlussbuch({ world, refresh }: { world: World; refresh: () =>
               {kosten >= 0 ? "" : "+"}
               {nf(Math.abs(kosten))} % des BIP pro Jahr
             </strong>
-            <em>{kosten > 0 ? "mehr Ausgaben als beim Amtsantritt" : kosten < 0 ? "netto Einnahmen gegenüber dem Amtsantritt" : "wie beim Amtsantritt"}</em>
+            <em>
+              {wirksam === 0 ? "beschlossen, wird noch umgesetzt" : `davon ${nf(Math.abs(wirksam))} % bereits wirksam`}
+            </em>
           </div>
           <div>
             <span>Beschlüsse im Buch</span>

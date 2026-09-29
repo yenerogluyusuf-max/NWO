@@ -257,12 +257,16 @@ export function createAtlas(canvas: HTMLCanvasElement, relief: Relief, overlayCa
   // Zeile 0 der Zeichenfläche ist Norden, wie beim Relief: nicht umdrehen
   overlay.flipY = false;
   overlay.colorSpace = THREE.NoColorSpace;
-  overlay.anisotropy = 4;
+  overlay.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  overlay.minFilter = THREE.LinearMipmapLinearFilter;
+  overlay.magFilter = THREE.LinearFilter;
 
   const fills = new THREE.CanvasTexture(fillCanvas);
   fills.flipY = false;
   fills.colorSpace = THREE.NoColorSpace;
-  fills.anisotropy = 4;
+  fills.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  fills.minFilter = THREE.LinearMipmapLinearFilter;
+  fills.magFilter = THREE.LinearFilter;
   const political = { value: 1 };
 
   const sunDir = new THREE.Vector3(-0.6, 0.8, 0.35);

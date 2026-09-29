@@ -230,7 +230,15 @@ export function Stage({ world: initial }: { world: World }) {
 
       <nav className="dossier-menu" aria-label="Akten">
         {dossiers.map((d) => (
-          <button key={d.id} className={dossier === d.id ? "on" : ""} onClick={() => setDossier(dossier === d.id ? null : d.id)} aria-label={d.label}>
+          <button
+            key={d.id}
+            className={dossier === d.id ? "on" : ""}
+            onClick={() => {
+              setEvents([]);
+              setDossier(dossier === d.id ? null : d.id);
+            }}
+            aria-label={d.label}
+          >
             <Icon name={d.icon} />
             <span className="menu-label">{d.label}</span>
           </button>

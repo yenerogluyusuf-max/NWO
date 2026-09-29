@@ -25,7 +25,7 @@ const BEISPIELE = [
   "Wie hoch ist die Inflation?",
   "Erhoehe den Mindestlohn.",
   "Ich will mehr ausgeben.",
-  "Kritisiere die Zentralbank oeffentlich.",
+  "Kritisiere die Zentralbank öffentlich.",
   "10 Tage weiter.",
 ];
 
@@ -55,14 +55,14 @@ export function befehl(text: string, w: World): ChatAntwort {
     return {
       ok: true,
       text: "Beispiele: " + BEISPIELE.join(" · "),
-      why: "Alles, was Sie schreiben, wird geprueft und nur ausgefuehrt, wenn der Kern es hergibt.",
+      why: "Alles, was Sie schreiben, wird geprüft und nur ausgeführt, wenn der Kern es hergibt.",
     };
   }
 
   // Zeit
   const tage = zeitBefehl(t);
   if (tage !== null) {
-    if (tage <= 0) return { ok: true, text: "Die Zeit laeuft nicht (Tag " + (w.day + 1) + ", " + formatDateDe(w.date) + ")." };
+    if (tage <= 0) return { ok: true, text: "Die Zeit läuft nicht (Tag " + (w.day + 1) + ", " + formatDateDe(w.date) + ")." };
     const before = w.log.length;
     const start = w.date;
     advance(w, tage);
@@ -71,8 +71,8 @@ export function befehl(text: string, w: World): ChatAntwort {
     return {
       ok: true,
       text:
-        tage + (tage === 1 ? " Tag" : " Tage") + " spaeter: " + formatDateDe(w.date) + " (vorher " + start + ")." +
-        (zusammenfassung ? " " + zusammenfassung : " Nichts Aussergewoehnliches ist passiert."),
+        tage + (tage === 1 ? " Tag" : " Tage") + " später: " + formatDateDe(w.date) + " (vorher " + start + ")." +
+        (zusammenfassung ? " " + zusammenfassung : " Nichts Außergewöhnliches ist passiert."),
       why: frisch[0]?.why,
     };
   }
@@ -80,7 +80,7 @@ export function befehl(text: string, w: World): ChatAntwort {
   // Zentralbank: Der Spieler setzt den Leitzins nicht selbst (Wirtschaftsmodell, Abschnitt 5)
   if (/(gouverneurin|gouverneur|bankchef)/.test(t) && /(entlass|ersetzen|neu|gefuegig|gefaellig)/.test(t)) {
     const before = w.log.length;
-    replaceGovernor(w, "gefuegig", "eine neue, regierungsnahe Fuehrung");
+    replaceGovernor(w, "gefuegig", "eine neue, regierungsnahe Führung");
     const l = w.log[before];
     return { ok: true, text: l?.text ?? "Die Zentralbankfuehrung wurde ersetzt.", why: l?.why };
   }
@@ -88,14 +88,14 @@ export function befehl(text: string, w: World): ChatAntwort {
     const before = w.log.length;
     criticizeCentralBank(w);
     const l = w.log[before];
-    return { ok: true, text: l?.text ?? "Sie haben die Zentralbank oeffentlich kritisiert.", why: l?.why };
+    return { ok: true, text: l?.text ?? "Sie haben die Zentralbank öffentlich kritisiert.", why: l?.why };
   }
   if (/(leitzins|zinsen|zinspolitik|geldpolitik)/.test(t) && /(senk|erhoeh|erhoehe|anheb|erhoe|bestimm|festleg|mach)/.test(t)) {
     return {
       ok: false,
       text:
-        "Den Leitzins bestimmt die Zentralbank, nicht die Regierung. Wege, die es gibt: oeffentliche Kritik (Kritisiere die Zentralbank), ein Gespraech mit der Gouverneurin oder ihre Ersetzung. Jeder Weg hat seinen Preis.",
-      why: "Formell ist die Zentralbank unabhaengig; Eingriffe kosten Glaubwuerdigkeit und wirken ueber die Waehrung und die Erwartungen.",
+        "Den Leitzins bestimmt die Zentralbank, nicht die Regierung. Wege, die es gibt: öffentliche Kritik („Kritisiere die Zentralbank“), ein Gespräch mit der Gouverneurin oder ihre Ersetzung. Jeder Weg hat seinen Preis.",
+      why: "Formell ist die Zentralbank unabhängig; Eingriffe kosten Glaubwürdigkeit und wirken über die Währung und die Erwartungen.",
     };
   }
 
@@ -104,7 +104,7 @@ export function befehl(text: string, w: World): ChatAntwort {
     const before = w.economy.fiscalImpulse;
     setFiscalImpulse(w, before + 2);
     const l = w.log[w.log.length - 1];
-    return { ok: true, text: l?.text ?? "Die Ausgaben werden erhoeht.", why: l?.why };
+    return { ok: true, text: l?.text ?? "Die Ausgaben werden erhöht.", why: l?.why };
   }
   if (/(sparen|kuerzen|kuerz|ausgaben senk|haushalt konsolid|einsparen)/.test(t)) {
     const before = w.economy.fiscalImpulse;
@@ -127,7 +127,7 @@ export function befehl(text: string, w: World): ChatAntwort {
       "Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: " +
       BEISPIELE.slice(0, 3).join(" · ") +
       " Wenn Sie etwas anderes wollen, beschreiben Sie das Ziel, ich zeige die Wege.",
-    why: "Unklare Anweisungen fuehren zu einer Rueckfrage, nie zu einer ungewollten Ausfuehrung (Entwicklungsplan, Abschnitt 7).",
+      why: "Unklare Anweisungen führen zu einer Rückfrage, nie zu einer ungewollten Ausführung (Entwicklungsplan, Abschnitt 7).",
   };
 }
 
@@ -150,38 +150,38 @@ function kennzahl(t: string, w: World): ChatAntwort | null {
   if (/inflation|preise|teuerung/.test(t)) {
     return {
       ok: true,
-      text: "Die Inflation liegt bei " + f(p.inflation.value) + " % (gemessen fuer " + p.inflation.period + ", veroeffentlicht am " + p.inflation.publishedOn + ").",
+      text: "Die Inflation liegt bei " + f(p.inflation.value) + " % (gemessen für " + p.inflation.period + ", veröffentlicht am " + p.inflation.publishedOn + ").",
       why:
-        "Statistiken erscheinen mit Verzoegerung, Sie steuern mit Blick in den Rueckspiegel. Die Inflationserwartung liegt bei " +
+        "Statistiken erscheinen mit Verzögerung, Sie steuern mit Blick in den Rückspiegel. Die Inflationserwartung liegt bei " +
         f(e.expectedInflation) + " % (Umfrage, ungenau).",
     };
   }
   if (/arbeitslos|beschaeftig|beschaftig|jobs/.test(t)) {
     return {
       ok: true,
-      text: "Die Arbeitslosenquote liegt bei " + f(p.unemployment.value) + " % (gemessen fuer " + p.unemployment.period + ").",
-      why: "Wachstum wirkt auf die Beschaeftigung mit Verzoegerung von Quartalen (Wirtschaftsmodell, Z9).",
+      text: "Die Arbeitslosenquote liegt bei " + f(p.unemployment.value) + " % (gemessen für " + p.unemployment.period + ").",
+      why: "Wachstum wirkt auf die Beschäftigung mit Verzögerung von Quartalen (Wirtschaftsmodell, Z9).",
     };
   }
   if (/lira|waehrung|wechselkurs|dollar|euro/.test(t)) {
     return {
       ok: true,
       text: "Ein Dollar kostet " + f(e.usdTry) + " Lira, ein Euro " + f(e.eurTry) + " Lira. Die Lira hat in zwoelf Monaten " + f(e.fxChange12) + " % verloren.",
-      why: "Zinsen und Vertrauen wirken auf die Waehrung mit Tagesverzoegerung; eine schwaechere Lira verteuert Importe, vor allem Energie (Z4/Z5).",
+      why: "Zinsen und Vertrauen wirken auf die Währung mit Tagesverzögerung; eine schwächere Lira verteuert Importe, vor allem Energie (Z4/Z5).",
     };
   }
   if (/wachstum|konjunktur|wirtschaftsleistung|bip/.test(t)) {
     return {
       ok: true,
-      text: "Das Wachstum liegt bei " + f(p.growth.value) + " % (gemessen fuer " + p.growth.period + ").",
-      why: "Das ist der zuletzt veroeffentlichte Wert; die aktuelle Lage haengt auch an Ihren Massnahmen und am Weltmarkt.",
+      text: "Das Wachstum liegt bei " + f(p.growth.value) + " % (gemessen für " + p.growth.period + ").",
+      why: "Das ist der zuletzt veröffentlichte Wert; die aktuelle Lage hängt auch an Ihren Maßnahmen und am Weltmarkt.",
     };
   }
   if (/zins|leitzins/.test(t)) {
     return {
       ok: true,
       text: "Der Leitzins liegt bei " + f(e.policyRate) + " %. Der Realzins liegt damit bei " + f(e.policyRate - e.expectedInflation) + " %.",
-      why: "Der Realzins ist der Leitzins abzueglich der erwarteten Inflation; er entscheidet ueber Kredite und Sparen (Z1).",
+      why: "Der Realzins ist der Leitzins abzüglich der erwarteten Inflation; er entscheidet über Kredite und Sparen (Z1).",
     };
   }
   if (/schulden|defizit|haushalt/.test(t)) {
@@ -189,8 +189,8 @@ function kennzahl(t: string, w: World): ChatAntwort | null {
       ok: true,
       text:
         "Die Staatsschulden liegen bei " + f(e.debtRatio) + " % der Wirtschaftsleistung, das geplante Defizit bei " + f(e.deficit) +
-        " %. Ihr zusaetzliches Ausgabenprogramm: " + f(e.fiscalImpulse) + " % der Wirtschaftsleistung.",
-      why: "Defizite werden zu Schulden, Schulden zu Zinslast. Tragfaehig ist das Verhaeltnis von Zins und Wachstum (Z7).",
+        " %. Ihr zusätzliches Ausgabenprogramm: " + f(e.fiscalImpulse) + " % der Wirtschaftsleistung.",
+      why: "Defizite werden zu Schulden, Schulden zu Zinslast. Tragfähig ist das Verhältnis von Zins und Wachstum (Z7).",
     };
   }
   return null;
@@ -217,7 +217,7 @@ function massnahme(t: string, w: World): ChatAntwort | null {
   else
     return {
       ok: false,
-      text: "„" + treffer.n.name + "“ verstanden, aber in welche Richtung? Sagen Sie etwa „erhoehe " + treffer.n.name + "“ oder „" + treffer.n.name + " auf 70“.",
+      text: "„" + treffer.n.name + "“ verstanden, aber in welche Richtung? Sagen Sie etwa „erhöhe " + treffer.n.name + "“ oder „" + treffer.n.name + " auf 70“.",
       why: treffer.n.text,
     };
 
