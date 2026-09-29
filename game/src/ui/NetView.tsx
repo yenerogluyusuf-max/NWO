@@ -136,6 +136,10 @@ export function NetView({ world, onDecided, onShowOnMap }: { world: World; onDec
                 }}
               />
             </label>
+            <div className="impl-bar" aria-hidden="true">
+              <div className="impl-now" style={{ width: `${Math.max(0, Math.min(100, now))}%` }} />
+              <div className="impl-target" style={{ left: `${Math.max(0, Math.min(100, sliderValue))}%` }} />
+            </div>
             <p className="subtitle">
               Umsetzung in etwa {node.months} Monat{node.months === 1 ? "" : "en"} ·{" "}
               {node.cost ? `${node.cost > 0 ? "Kosten" : "Einnahmen"} bei voller Stufe: ${nf(Math.abs(node.cost))} % des BIP pro Jahr` : "kaum Kosten"}

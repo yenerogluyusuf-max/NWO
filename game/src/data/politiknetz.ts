@@ -448,6 +448,25 @@ m("landwirtschaft", "m_staudaemme", "Staudämme und Speicher", 50, 0.3, 48, "Tal
 m("landwirtschaft", "m_wasserleitungen", "Wasserleitungen und Kläranlagen", 40, 0.3, 24, "Trinkwassernetz, weniger Leitungsverluste, Abwasserreinigung.");
 m("landwirtschaft", "m_saatgut", "Saatgut- und Erzeugerprogramme", 35, 0.1, 12, "Beratung, Genossenschaften und bessere Sorten.");
 
+// Modernisierungsleiter nach Victoria 3 (Production Methods), Anno 1800 (Traktor)
+// und Workers & Resources (Maschinen als Investitionsgut): Stufen von Handarbeit
+// über Maschinen zu High-Tech; die Umstellung braucht Zeit und bindet Kapital.
+m("landwirtschaft", "m_mechanisierung", "Landwirtschaftliche Mechanisierung", 30, 0.5, 36, "Traktoren, Mähdrescher und Erntemaschinen: von Handarbeit über Maschinen zu High-Tech mit GPS und Drohnen. Höhere Erträge, weniger Arbeitskräfte, Dieselverbrauch und Wartungskosten.");
+m("landwirtschaft", "m_agrarforschung", "Agrarforschung und Hochtechnologie", 28, 0.3, 24, "Hochleistungssaat, Präzisionslandwirtschaft, Bodensensorik und Digitalisierung der Betriebe.");
+m("wirtschaft", "m_industrie_modernisierung", "Industrielle Modernisierung", 35, 0.6, 36, "Neue Maschinengenerationen und Automation. Die Umstellung dauert; alte Anlagen laufen weiter, Fachkräfte werden gebraucht.");
+
+e("m_mechanisierung", "ernte", 0.05, 6, "Maschinen erhöhen den Ertrag pro Fläche und verkürzen die Erntezeit.");
+e("m_mechanisierung", "landwirtschaft_einkommen", 0.04, 12, "Höhere Erträge und weniger Verluste erhöhen das Einkommen der Landwirte.");
+e("m_mechanisierung", "lebensmittelpreise", -0.03, 6, "Günstigere Produktion dämpft die Nahrungsmittelpreise.");
+e("m_mechanisierung", "landflucht", -0.02, 12, "Rentable Betriebe halten Menschen auf dem Land, doch Maschinen ersetzen auch Arbeitskräfte.");
+e("m_mechanisierung", "energieimporte", 0.02, 3, "Diesel und Strom für Maschinen erhöhen den Energiebedarf.");
+e("m_agrarforschung", "ernte", 0.04, 12, "Bessere Sorten und Präzisionslandwirtschaft steigern die Erträge.");
+e("m_agrarforschung", "wasserversorgung", 0.02, 6, "Tropfbewässerung und Sensorik sparen Wasser.");
+e("m_agrarforschung", "landwirtschaft_einkommen", 0.03, 12, "Wissen macht die Betriebe wettbewerbsfähiger.");
+e("m_industrie_modernisierung", "produktivitaet", 0.05, 12, "Neue Maschinengenerationen erhöhen die Produktivität der Industrie.");
+e("m_industrie_modernisierung", "investitionen", 0.03, 6, "Modernisierung bindet und lockt Kapital.");
+e("m_industrie_modernisierung", "arbeitsplaetze_industrie", -0.02, 12, "Automation ersetzt einen Teil der Arbeitsplätze, schafft aber produktivere.");
+
 p("landwirtschaft", "p_wassermangel", "Wassermangel", 40, 60, "Die Wasserversorgung wird schlechter; in manchen Städten wird Wasser rationiert.");
 p("landwirtschaft", "p_landflucht", "Verödung ländlicher Regionen", 45, 60, "Dörfer leeren sich, Schulen und Praxen schließen.");
 

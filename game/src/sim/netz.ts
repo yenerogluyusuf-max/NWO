@@ -27,6 +27,8 @@ export interface NetState {
   steps: Record<string, number>;
   /** Bevölkerungsanteil je Provinz für Landesdurchschnitte */
   weights: number[];
+  /** Akut-Flag je Knoten und Provinz (Problem-Hysterese nach Democracy 4) */
+  acute?: number[];
 }
 
 export interface NetModel {
@@ -158,6 +160,20 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
 
   s.month += 1;
   s.history[s.month % SLOTS] = v.slice();
+
+  // Problem-Hysterese (nach Democracy 4): Ein Problem bleibt akut, bis es deutlich
+  // unter die Start-Schwelle fällt. Start- und Stoppschwelle sind getrennt.
+  if (!s.acute) s.acute = new Array(n * PROVINCES).fill(0);
+  const ac = s.acute;
+  model.nodes.forEach((node, i) => {
+    if (node.kind !== "problem" || !node.threshold) return;
+    const stop = node.threshold - 8;
+    for (let p = 0; p < PROVINCES; p++) {
+      const k = i * PROVINCES + p;
+      if (v[k]! >= node.threshold) ac[k] = 1;
+      else if (v[k]! < stop) ac[k] = 0;
+    }
+  });
 }
 
 /** Landesdurchschnitt eines Knotens, gewichtet nach Bevölkerung. */
@@ -193,13 +209,18 @@ export function policyCost(model: NetModel, s: NetState): number {
   return total;
 }
 
-/** Provinzen, in denen ein Problem akut ist. */
+/** Provinzen, in denen ein Problem akut ist (mit Hysterese, sobald der Kern gelaufen ist). */
 export function activeProvinces(model: NetModel, s: NetState, id: string): number[] {
   const i = model.index.get(id);
   const node = i === undefined ? undefined : model.nodes[i];
   if (i === undefined || !node?.threshold) return [];
   const out: number[] = [];
-  for (let p = 0; p < PROVINCES; p++) if (s.values[i * PROVINCES + p]! >= node.threshold) out.push(p + 1);
+  const ac = s.acute;
+  for (let p = 0; p < PROVINCES; p++) {
+    const k = i * PROVINCES + p;
+    const on = ac ? ac[k] === 1 : s.values[k]! >= node.threshold;
+    if (on) out.push(p + 1);
+  }
   return out;
 }
 

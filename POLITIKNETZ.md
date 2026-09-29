@@ -11,8 +11,8 @@ Stand: 28. September 2026. Umsetzung der Entscheidung „Eingabe wie Democracy 4
 | Eingänge aus dem Wirtschaftsmodell | 7 | Inflation, Arbeitslosigkeit, Wachstum, Leitzins, Abwertung, Defizit, Schulden |
 | Probleme | 15 | Wassermangel, Wohnungsnot, Ärztemangel, Abwanderung von Fachkräften, Korruptionsskandale |
 | Wählergruppen | 8 | Rentner, Beschäftigte, Unternehmer, Landwirte, Junge, Staatsbedienstete, Religiös-Konservative, Säkulare Städter |
-| **Knoten gesamt** | **186** | in 12 Themenfeldern plus Wählergruppen |
-| **Verbindungen** | **363** | jede mit Stärke, Verzögerung und einem Satz Begründung |
+| **Knoten gesamt** | **189** | in 12 Themenfeldern plus Wählergruppen; darunter die Modernisierungsleiter (Mechanisierung, Agrarforschung, Industrielle Modernisierung) nach Victoria 3/Anno |
+| **Verbindungen** | **374** | jede mit Stärke, Verzögerung und einem Satz Begründung |
 
 ## Wie es rechnet
 
