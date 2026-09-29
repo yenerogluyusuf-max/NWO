@@ -112,3 +112,16 @@ Stand: 28. September 2026. Aus den Fragerunden. Diese Entscheidungen gehen den �
 - **Erster spielbarer Kern steht** ([Technik](TECHNIK.md)): Wirtschaftsmodell, Zentralbank, Statistiken mit Verzögerung, Vorschau mit Bandbreite, Schreibtisch, Karte. Als Nächstes: Politiknetz füllen, Prolog und Start nach der Wahl 2028, Figuren und Gespräche.
 - **Für Sprach- und Bildversuch** wird ein KI-Schlüssel beziehungsweise ein Bildgenerator gebraucht.
 - Offen für später: Namen und Hintergrund der zweiten und dritten Mentorenfigur; Markenprüfung für „Staatsräson“.
+
+## I. Nachtrag 29.09.2026 (Recherche- und Design-Sitzung)
+
+| Thema | Entscheidung | Wo |
+|---|---|---|
+| Institutionen im Spiel | Deutsche Namen statt türkischer Amtskürzel: die Zentralbank heißt „MB“, nicht „TCMB“ (entsprechend für andere Behörden); türkische Originale nur im Notizbuch; das Quellen-Menü nennt die echten Quellen (Lizenzpflicht) | Länderpaket 4, WELTMODELL 3 |
+| Härte des echten Lebens | Durchgängiges Designgebot (erweitert „Moralische Freiheit“): Wirtschaft, Diplomatie, Recht, innere Sicherheit, Katastrophen — alles mit echten Preisen, Verlierern, Verzögerungen; nichts wird gesüßt | Projektplan 2, SPIELDESIGN 0 |
+| Freie Großprojekte | Der Spieler kann alles eingeben („größter Hafen der Welt“, „Autobahn bis China“); das Spiel rechnet die Folgen sofort mit Zweitrundeneffekten (Nachbarstädte und -länder nehmen ab) | GROSSPROJEKTE, WELTMODELL 4 |
+| Grenzüberschreitend und stur | Projekte über die Grenzen hinaus werden zur Verhandlungsserie mit jedem Land auf der Strecke (Bagdadbahn-Fall); sture Regierungen sind Akteursmerkmale — verhandeln, drücken, warten (Regimewechsel wird berechnet), umgehen | AUSSENPOLITIK 6–7, SZENARIEN S19 |
+| Mediation | Friedensverhandlungen zwischen Drittstaaten sind möglich (Beispiel Ukraine/Russland, Kalibrierung Getreideabkommen/Istanbul 2022) | AUSSENPOLITIK 6, SZENARIEN S14 |
+| Agenda-System | Freie Zielvorgaben („Agenda 1: kein Riesenprojekt, Fokus Wiederaufbau“); das Spiel priorisiert Briefings und empfiehlt passende Maßnahmen aus dem Katalog — immer mit Zielkonflikt; Abweichungen werden vermerkt | AGENDA |
+| Alles entsteht live | Faktoren und Regeln sind vorgegeben, jeder Verlauf wird während des Spiels berechnet; Ereignisvorlagen sind Muster, keine Drehbücher | WELTMODELL 7 |
+| Recherche-Basis | Drei quellenbelegte Berichte mit Daten und Lückenlisten: Gesamtbedarf, Weltdaten (Rohstoffe, Öl, Wasser, Rechtsstaat), Innenpolitik (alle Felder, Außenpolitik, Großprojekt-Modelle, Mediation) | RECHERCHE_*.md |
