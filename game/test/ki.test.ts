@@ -333,3 +333,58 @@ describe("Mehrere Anbieter", () => {
     expect(konfigAusRoh({ art: "mimo", schluessel: { mimo: "x" }, modell: { mimo: "mimo-v2.6-pro" } })).toMatchObject({ art: "mimo", schluessel: { mimo: "x" }, modell: { mimo: "mimo-v2.6-pro" } });
   });
 });
+
+describe("Reich und Verträge im Gespräch", () => {
+  test("Der Zustand nennt Reich und Verträge, der feste Text die Kataloge", () => {
+    const w = welt();
+    const z = zustandsText(w);
+    expect(z).toMatch(/Reich: Verwaltungskraft \d+/);
+    expect(z).toMatch(/Verträge: keine/);
+    const s = systemText();
+    expect(s).toContain("VORHABEN DES REICHES");
+    expect(s).toContain("KLAUSELN JE LAND");
+    expect(s).toMatch(/SYR: bieten bauauftraege/);
+    expect(s).toContain('"art":"abkommen"');
+  });
+
+  test("Ein Vertragsvorschlag wird gelesen, geprüft und über den Verhandlungstisch ausgeführt", () => {
+    const w = welt();
+    const r = leseAntwort('{"antwort":"Ein Wiederaufbaupaket.","aktionen":[{"art":"abkommen","land":"SYR","bieten":["bauauftraege","energie_lieferung"],"verlangen":["w_rueckkehr"],"jahre":5,"grund":"Rückkehr fördern"}]}');
+    expect(r.aktionen[0]).toMatchObject({ art: "abkommen", land: "SYR", bieten: ["bauauftraege", "energie_lieferung"], verlangen: ["w_rueckkehr"], jahre: 5 });
+    const v = vorschau(w, r.aktionen[0]!);
+    expect(v.problem).toBeUndefined();
+    expect(v.kosten).toBeGreaterThan(0);
+    expect(v.hinweis).toMatch(/zustimmen/);
+    const kapital = w.spiel!.kapital;
+    const e = fuehreAus(w, r.aktionen[0]!);
+    expect(e.ok, e.text).toBe(true);
+    expect(w.spiel!.kapital).toBeLessThan(kapital);
+    expect(zustandsText(w)).toMatch(/Verträge: SYR bietet/);
+  });
+
+  test("Erfundene Klauseln, Rote Linien und fehlendes Kapital sind Probleme, keine Ausführung", () => {
+    const w = welt();
+    const erfunden: KiAktion = { art: "abkommen", land: "SYR", bieten: ["atomwaffen"], verlangen: [] };
+    expect(vorschau(w, erfunden).problem).toMatch(/gibt es nicht/);
+    const rot: KiAktion = { art: "abkommen", land: "GRC", bieten: ["v_casus"], verlangen: ["w_inseln"] };
+    expect(vorschau(w, rot).problem).toMatch(/Athen/);
+    expect(fuehreAus(w, rot).ok).toBe(false);
+    w.spiel!.kapital = -19;
+    const teuer: KiAktion = { art: "abkommen", land: "SYR", bieten: ["bauauftraege", "energie_lieferung"], verlangen: ["w_rueckkehr"] };
+    expect(vorschau(w, teuer).problem).toMatch(/Kapital/);
+    expect(vorschau(w, { art: "abkommen", land: "MARS", bieten: [], verlangen: [] }).problem).toMatch(/kein Land/);
+  });
+
+  test("Vorhaben des Reiches und Vermittlung: Vorschau prüft, Ausführung geht über den Kern", () => {
+    const w = welt();
+    expect(vorschau(w, { art: "vorhaben", id: "gibt_es_nicht" }).problem).toMatch(/kein Vorhaben/);
+    const beginnbar = leseAntwort('{"antwort":"x","aktionen":[{"art":"vorhaben","id":"erbe_restaurierung_ephesos"}]}').aktionen[0]!;
+    // egal ob dieses Vorhaben existiert: die Vorschau meldet entweder ein Problem oder Kosten, ohne etwas auszuführen
+    const v = vorschau(w, beginnbar);
+    expect(v.problem !== undefined || v.kosten !== undefined).toBe(true);
+    expect(vorschau(w, { art: "vermittlung", id: "unbekannt" }).problem).toMatch(/gibt es nicht/);
+    const vm = vorschau(w, { art: "vermittlung", id: "ukr_rus" });
+    expect(vm.titel).toMatch(/Ukraine/);
+    expect(vm.hinweis).toMatch(/Aussicht/);
+  });
+});

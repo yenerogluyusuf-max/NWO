@@ -32,6 +32,8 @@ export interface Handlung {
   ziel: "zentralbank" | "haushalt";
   /** Haushaltsposten, der vorgewählt wird */
   posten?: string;
+  /** Um wie viele Stufen der Posten für die Vorschau „Was wäre, wenn?“ bewegt wird */
+  stufe?: number;
   /** Zentralbank: welcher Abschnitt */
   abschnitt?: "sitzung" | "gouverneur" | "stufe";
 }
@@ -127,7 +129,7 @@ export const KENNZAHLEN: Kennzahl[] = [
     handlungen: [
       { label: "Die nächste Zinssitzung vorbereiten", ziel: "zentralbank", abschnitt: "sitzung" },
       { label: "Ausgaben zügeln: den Haushalt ansehen", ziel: "haushalt" },
-      { label: "Preise drücken: Subventionen", ziel: "haushalt", posten: "subventionen" },
+      { label: "Preise drücken: Subventionen", ziel: "haushalt", posten: "subventionen", stufe: 1 },
     ],
   },
   {
@@ -241,7 +243,7 @@ export const KENNZAHLEN: Kennzahl[] = [
       };
     },
     handlungen: [
-      { label: "Investieren: Haushalt öffnen", ziel: "haushalt", posten: "investitionen" },
+      { label: "Investieren: Haushalt öffnen", ziel: "haushalt", posten: "investitionen", stufe: 1 },
       { label: "Zinssenkung anstreben", ziel: "zentralbank", abschnitt: "sitzung" },
     ],
   },
@@ -261,17 +263,17 @@ export const KENNZAHLEN: Kennzahl[] = [
       };
     },
     handlungen: [
-      { label: "Investieren: Haushalt öffnen", ziel: "haushalt", posten: "investitionen" },
+      { label: "Investieren: Haushalt öffnen", ziel: "haushalt", posten: "investitionen", stufe: 1 },
       { label: "Zinssenkung anstreben", ziel: "zentralbank", abschnitt: "sitzung" },
     ],
   },
   netzKennzahl("realeinkommen", "Wirtschaft und Arbeit", "hoch", [
-    { label: "Steuern auf Löhne senken", ziel: "haushalt", posten: "einkommensteuer" },
+    { label: "Steuern auf Löhne senken", ziel: "haushalt", posten: "einkommensteuer", stufe: -1 },
     { label: "Inflation bekämpfen: die Zinssitzung", ziel: "zentralbank", abschnitt: "sitzung" },
   ], "Wenn Preise schneller steigen als Löhne, sinkt sie."),
   netzKennzahl("investitionen", "Wirtschaft und Arbeit", "hoch", [
-    { label: "Öffentlich investieren", ziel: "haushalt", posten: "investitionen" },
-    { label: "Gewinnsteuern ansehen", ziel: "haushalt", posten: "unternehmensteuer" },
+    { label: "Öffentlich investieren", ziel: "haushalt", posten: "investitionen", stufe: 1 },
+    { label: "Gewinnsteuern senken", ziel: "haushalt", posten: "unternehmensteuer", stufe: -1 },
   ]),
   netzKennzahl("kredite", "Wirtschaft und Arbeit", "hoch", [{ label: "Zinssitzung: Kredit hängt am Leitzins", ziel: "zentralbank", abschnitt: "sitzung" }]),
   netzKennzahl("export", "Wirtschaft und Arbeit", "hoch", [{ label: "Lira und Zinsen: die Zentralbank", ziel: "zentralbank", abschnitt: "sitzung" }]),
@@ -295,8 +297,8 @@ export const KENNZAHLEN: Kennzahl[] = [
     },
     handlungen: [
       { label: "Den Haushalt ansehen", ziel: "haushalt" },
-      { label: "Ausgaben kürzen: Personal", ziel: "haushalt", posten: "personal" },
-      { label: "Einnahmen erhöhen: Verbrauchsteuern", ziel: "haushalt", posten: "verbrauchsteuern" },
+      { label: "Ausgaben kürzen: Personal", ziel: "haushalt", posten: "personal", stufe: -1 },
+      { label: "Einnahmen erhöhen: Verbrauchsteuern", ziel: "haushalt", posten: "verbrauchsteuern", stufe: 1 },
     ],
   },
   {
@@ -369,13 +371,13 @@ export const KENNZAHLEN: Kennzahl[] = [
     { label: "Glaubwürdigkeit der Bank pflegen", ziel: "zentralbank", abschnitt: "stufe" },
   ]),
   netzKennzahl("lebenshaltung", "Alltag der Menschen", "niedrig", [
-    { label: "Preise drücken: Subventionen", ziel: "haushalt", posten: "subventionen" },
-    { label: "Verbrauchsteuern senken", ziel: "haushalt", posten: "verbrauchsteuern" },
+    { label: "Preise drücken: Subventionen", ziel: "haushalt", posten: "subventionen", stufe: 1 },
+    { label: "Verbrauchsteuern senken", ziel: "haushalt", posten: "verbrauchsteuern", stufe: -1 },
     { label: "Inflation bekämpfen: die Zinssitzung", ziel: "zentralbank", abschnitt: "sitzung" },
   ], "Wähler beurteilen die Lage nach den Preisen, die sie täglich sehen."),
   netzKennzahl("armut", "Alltag der Menschen", "niedrig", [
-    { label: "Sozialleistungen ansehen", ziel: "haushalt", posten: "soziales" },
-    { label: "Preise drücken: Subventionen", ziel: "haushalt", posten: "subventionen" },
+    { label: "Sozialleistungen ausbauen", ziel: "haushalt", posten: "soziales", stufe: 1 },
+    { label: "Preise drücken: Subventionen", ziel: "haushalt", posten: "subventionen", stufe: 1 },
   ]),
 ];
 

@@ -2,7 +2,7 @@
 // darunter, eingerückt, was wiederum diesen Auslöser bewegt hat. Endet bei Maßnahmen (Ihre Entscheidung) und Eingangsgrößen (die Wirtschaft).
 
 import type { KettenGlied } from "../../sim/waehler-detail";
-import { nf, vz } from "./format";
+import { anzeigeName, nf, vz } from "./format";
 
 function zustand(g: KettenGlied): string {
   const a = Math.abs(g.abweichung);
@@ -38,7 +38,7 @@ export function Kette({
                 {ruhig ? "·" : g.abweichung > 0 ? "▲" : "▼"}
               </span>
               <span className="wa-kette-name">
-                <strong>{g.name}</strong>
+                <strong>{anzeigeName(g.name, g.art)}</strong>
                 <span className="wa-kette-zustand">
                   {zustand(g)} · {g.beitrag >= 0 ? "hebt" : "drückt"} {eltern}
                 </span>

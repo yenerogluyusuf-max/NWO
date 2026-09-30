@@ -31,6 +31,8 @@ export interface AtlasMapProps {
   onLand?: (iso: string, pos?: { x: number; y: number }) => void;
   /** Land unter dem Zeiger (ISO-Kürzel), `undefined` beim Verlassen */
   hoverLand?: (iso: string | undefined) => void;
+  /** Land, das dauerhaft hervorgehoben wird (ISO-Kürzel), etwa das angetippte */
+  landAuswahl?: string;
   /** Stätten, Wunder und Bauvorhaben mit Länge und Breite */
   orte?: KartenOrt[];
   onOrt?: (id: string) => void;
@@ -79,6 +81,7 @@ export function AtlasMap({
   laenderFarben,
   onLand,
   hoverLand,
+  landAuswahl,
   marken = [],
   onMarke,
   orte = [],
@@ -98,6 +101,7 @@ export function AtlasMap({
   const labelLayer = useRef<HTMLDivElement>(null);
   const ctx = useRef<Ctx | null>(null);
   const [ready, setReady] = useState(false);
+  const [namenDa, setNamenDa] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [hover, setHover] = useState<number | undefined>(undefined);
   const [landHover, setLandHover] = useState<{ iso: string; name: string } | undefined>(undefined);
@@ -123,7 +127,10 @@ export function AtlasMap({
         if (disposed || !canvas.current || !wrap.current || !vec.current) return;
         const atlas = createAtlas(canvas.current, relief, kueste);
         const vector = new VectorLayer(vec.current, atlas, relief);
-        vector.onDaten = () => vector.markDirty();
+        vector.onDaten = () => {
+          vector.markDirty();
+          setNamenDa(vector.namenBereit());
+        };
         ctx.current = { atlas, relief, vector, centers: provinceCenters(relief) };
         const dpr = Math.min(window.devicePixelRatio, 2);
         const size = () => {
@@ -148,6 +155,18 @@ export function AtlasMap({
               flight.current = null;
               const n = atlas.setView(u, v, d);
               view.current = { u: n.u, v: n.v, d };
+            },
+            /** Zeit für das letzte gezeichnete Bild (Flächen, Namen) in Millisekunden */
+            zeiten: () => ({ ...vector.zeiten }),
+            /** Zuletzt gesetzte Namen mit Rechtecken und die von der Oberfläche belegten Rechtecke */
+            namen: () => ({ gesetzt: vector.gesetzteNamen(), reserviert: vector.reservierteRechtecke() }),
+            /** Land und Provinz an einer Bildschirmposition (Fensterkoordinaten), wie beim Tippen */
+            trefferBei: (cx: number, cy: number) => {
+              const r = wrap.current!.getBoundingClientRect();
+              const uv = atlas.pickUv(cx - r.left, cy - r.top);
+              if (!uv) return { provinz: undefined, land: undefined };
+              const provinz = vector.pickProvince(uv[0], uv[1]);
+              return { provinz, land: provinz ? undefined : vector.pickLand(uv[0], uv[1]) };
             },
             bildschirm: (lon: number, lat: number) => {
               const [u, v] = lonLatToUv(relief, lon, lat);
@@ -204,6 +223,16 @@ export function AtlasMap({
     ctx.current?.vector.setStyle({ ...(fill ? { fill } : {}), ...(fill === undefined ? { fill: undefined } : {}), ...(laenderFarben ? { laender: laenderFarben } : { laender: undefined as never }), fillAlpha, hover, selected, ebene });
   }, [fill, fillAlpha, hover, selected, ebene, ready, laenderFarben]);
 
+  // Was die Oberfläche schon selbst beschriftet (Stadtschilder), zeichnet die Karte nicht noch einmal;
+  // die übergebenen Meeresnamen ersetzt die Karte durch eigene, sobald ihre Namensdaten da sind.
+  useEffect(() => {
+    ctx.current?.vector.setAusgeblendet(labels.map((p) => NAMES[p] ?? "").filter(Boolean));
+  }, [labels, ready]);
+
+  useEffect(() => {
+    ctx.current?.vector.setStyle({ landAuswahl });
+  }, [landAuswahl, ready]);
+
   // Kamerafahrt zu einer Stelle
   useEffect(() => {
     const c = ctx.current;
@@ -219,6 +248,7 @@ export function AtlasMap({
     const rect = layer.getBoundingClientRect();
     // Stadtfiguren erst aus der Nähe, von weitem nur Banner wie Siegpunkte
     layer.classList.toggle("far", view.current.d > 11);
+    const belegt: { x: number; y: number; w: number; h: number }[] = [];
     for (const el of Array.from(layer.children) as HTMLElement[]) {
       let center: [number, number] | undefined;
       if (el.dataset.lon) center = lonLatToUv(c.relief, Number(el.dataset.lon), Number(el.dataset.lat));
@@ -232,6 +262,7 @@ export function AtlasMap({
         const dmax = Number(el.dataset.dmax ?? 99);
         el.style.opacity = p.sichtbar && view.current.d <= dmax && p.x > 0 && p.x < rect.width && p.y > 60 && p.y < rect.height ? "1" : "0";
         el.style.pointerEvents = el.style.opacity === "1" ? "auto" : "none";
+        if (el.style.opacity === "1") belegt.push({ x: p.x - 15, y: p.y - 15, w: 30, h: 30 });
         continue;
       }
       const marke = el.classList.contains("marke");
@@ -244,7 +275,10 @@ export function AtlasMap({
       const half = el.offsetWidth / 2 + 12;
       const edge = Math.min(p.x - half, rect.width - p.x - half, p.y - 70, rect.height - p.y - 20);
       el.style.opacity = p.sichtbar ? String(Math.max(0, Math.min(1, edge / 40))) : "0";
+      if (p.sichtbar && el.classList.contains("city")) belegt.push({ x: p.x - (el.offsetWidth / 2) * scale - 4, y: p.y - 8 * scale - 4, w: el.offsetWidth * scale + 8, h: el.offsetHeight * scale + 8 });
+      else if (p.sichtbar && marke) belegt.push({ x: p.x - 16, y: p.y - 58, w: 32, h: 34 });
     }
+    c.vector.setReserviert(belegt);
   }
 
   function local(e: React.PointerEvent | React.WheelEvent): { x: number; y: number } {
@@ -365,7 +399,7 @@ export function AtlasMap({
       <canvas ref={canvas} className="atlas-canvas" />
       <canvas ref={vec} className="atlas-vector" />
       <div ref={labelLayer} className="atlas-labels" aria-hidden>
-        {geoLabels.map((g) => (
+        {(namenDa ? [] : geoLabels).map((g) => (
           <span key={g.text} data-lon={g.lon} data-lat={g.lat} className={`atlas-geo ${g.kind}`}>
             {g.text}
           </span>

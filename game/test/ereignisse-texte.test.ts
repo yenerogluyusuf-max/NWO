@@ -1,5 +1,6 @@
 // Jedes Ereignis lässt sich öffnen, hat lesbare Texte, benennt seine Akteure und rechnet seine Antworten fehlerfrei durch.
 
+import { laufende as laufendeVertraege, verhandle as verhandleVertrag } from "../src/sim/abkommen";
 import { describe, expect, test } from "vitest";
 import { createWorld } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
@@ -10,6 +11,13 @@ import { advance } from "../src/sim/world";
 import { weltZustand } from "../src/sim/laender";
 
 const KAPUTT = /undefined|NaN|\[object|\bnull\b|\$\{|Infinity/;
+
+/** Für „Vertrag läuft aus“ braucht es einen Vertrag kurz vor dem Ende. */
+function mitAblaufendemVertrag(w: ReturnType<typeof welt>) {
+  verhandleVertrag(w, { land: "SYR", gibt: ["bauauftraege", "energie_lieferung"], will: ["w_rueckkehr"], jahre: 2 });
+  const v = laufendeVertraege(w, "SYR")[0];
+  if (v) v.ablauf = w.day + 100;
+}
 
 function welt(seed: number) {
   const w = createWorld(turkey2026, seed);
@@ -30,6 +38,7 @@ describe("Ereignistexte", () => {
     let geoeffnet = 0;
     for (let seed = 1; seed <= 12; seed++) {
       const w = welt(seed);
+      if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w);
       if (id === "zusage") w.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
       const ev = oeffne(w, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined);
       if (!ev) continue;
@@ -45,6 +54,7 @@ describe("Ereignistexte", () => {
       // Jede Antwort lässt sich ausführen, ohne dass etwas abstürzt
       for (const o of a.optionen) {
         const w2 = welt(seed);
+        if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w2);
         if (id === "zusage") w2.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w2.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
         const e2 = oeffne(w2, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined)!;
         const r = entscheide(w2, e2.id, o.id, new Rng(5));

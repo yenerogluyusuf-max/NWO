@@ -1279,6 +1279,100 @@ ee("m_autobahnen", "wartungszustand", -0.01, 12, "Mehr Anlagen brauchen mehr Pfl
 ee("m_bahn", "wartungszustand", -0.01, 12, "Mehr Gleise brauchen mehr Pflege.");
 ee("m_breitband", "wartungszustand", -0.005, 12, "Mehr Netz braucht mehr Pflege.");
 
+// ---------------------------------------------------------------------------
+// Weitere Wählergruppen (Block T1): Minderheiten, Nationalisten und Sicherheitsorientierte, Menschen in Armut.
+// Wie alle Wählergruppen starten sie in der Ruhelage; ihre Stimmung folgt den Verbindungen unten. Stärken und Verzögerungen sind
+// Spielparameter, keine Messwerte; jede Verbindung trägt ihre Begründung. Bewusst am Ende der Knotenliste, damit ältere Spielstände
+// ihre Werte beim Laden bekommen (Migration hängt neue Knoten hinten an).
+
+grp("minderheiten", "Minderheiten", "Kurdinnen und Kurden, Aleviten, Christen und andere: achten auf Rechte, Sprache, Sicherheit und die Lage ihrer Regionen.");
+grp("nationalisten", "Nationalisten und Sicherheitsorientierte", "Achten auf die Stärke des Staates, auf Grenzen, Sicherheit und den Zusammenhalt des Landes.");
+grp("arme", "Menschen in Armut", "Kommen kaum über die Runden: achten auf Preise, Sozialleistungen, Wohnen und Arbeit.");
+
+// Minderheiten
+ee("m_minderheitenrechte", "minderheiten", 0.05, 1, "Sprache, Schulen und Glaubensorte sind ihnen ein Kernanliegen.");
+ee("m_friedensprozess", "minderheiten", 0.04, 1, "Ein Ende der Gewalt und eine politische Lösung sind ihnen wichtig.");
+ee("m_versammlungsfreiheit", "minderheiten", 0.03, 1, "Wer demonstrieren darf, wird gehört.");
+ee("m_regionalfoerderung", "minderheiten", 0.03, 3, "Ihre Regionen liegen bei Einkommen und Infrastruktur oft zurück.");
+ee("m_notstand", "minderheiten", -0.03, 1, "Notstandsbefugnisse trafen im Südosten über Jahre den Alltag.");
+ee("m_urteilsumsetzung", "minderheiten", 0.02, 3, "Wer sich auf Urteile verlassen kann, fühlt sich sicherer.");
+ee("m_internetsperren", "minderheiten", -0.02, 1, "Gesperrte Plattformen treffen auch die Medien in ihren Sprachen.");
+ee("ausnahmerecht", "minderheiten", -0.03, 0, "Sonderregeln verschieben das Gleichgewicht zu ihren Lasten.");
+ee("justiz_unabhaengigkeit", "minderheiten", 0.02, 3, "Faire Verfahren sind für alle wichtig, die sich sonst schutzlos fühlen.");
+ee("rechtssicherheit", "minderheiten", 0.02, 3, "Verlässliche Regeln schützen die, die sonst zuerst verlieren.");
+ee("pressefreiheit", "minderheiten", 0.02, 3, "Eigene Medien und freie Berichte machen sie sichtbar.");
+ee("vielfalt", "minderheiten", 0.04, 3, "Ob Vielfalt anerkannt wird, spüren sie im Alltag.");
+ee("polarisierung", "minderheiten", -0.02, 1, "Tiefe Spaltung trifft Minderheiten zuerst.");
+ee("p_polarisierung", "minderheiten", -0.03, 0, "Wo die Gesellschaft gespalten ist, sind sie die Zielscheibe.");
+ee("wachstum_regional", "minderheiten", 0.03, 3, "Arbeit und Einkommen in ihren Regionen.");
+ee("arbeitslosigkeit", "minderheiten", -0.03, 0, "Im Südosten liegt die Arbeitslosigkeit über dem Durchschnitt.");
+ee("lebenshaltung", "minderheiten", -0.03, 0, "Auch sie zahlen die Preise.");
+
+// Nationalisten und Sicherheitsorientierte
+ee("m_verteidigung", "nationalisten", 0.03, 1, "Starke Streitkräfte sind ihnen ein Kern des Staates.");
+ee("m_grenzschutz", "nationalisten", 0.04, 1, "Kontrolle an den Grenzen ist ihre erste Forderung.");
+ee("m_polizei", "nationalisten", 0.03, 1, "Mehr Polizei ist für sie ein Zeichen von Ordnung.");
+ee("m_ruestungsindustrie", "nationalisten", 0.03, 3, "Eigene Waffen machen unabhängig.");
+ee("m_wehrdienst", "nationalisten", 0.03, 1, "Der Wehrdienst gilt als nationale Pflicht.");
+ee("m_rueckkehr", "nationalisten", 0.03, 1, "Für sie ein Zeichen, dass die Regierung handelt.");
+ee("m_integration", "nationalisten", -0.03, 1, "Sie sehen darin eine Dauerlösung, die sie nicht wollen.");
+ee("m_friedensprozess", "nationalisten", -0.03, 1, "Manche sehen darin ein Zugeständnis an Gewalt.");
+ee("m_minderheitenrechte", "nationalisten", -0.04, 1, "Für sie berührt es die Einheit des Landes.");
+ee("m_eu_annaeherung", "nationalisten", -0.02, 1, "Sie misstrauen Brüsseler Bedingungen.");
+ee("m_notstand", "nationalisten", 0.02, 1, "Ein starker Staat in der Krise ist ihnen recht.");
+ee("m_haftvermeidung", "nationalisten", -0.02, 1, "Wird als Nachgiebigkeit gegenüber Straftätern gelesen.");
+ee("terrorgefahr", "nationalisten", -0.04, 0, "Sicherheit vor Terror steht für sie an erster Stelle.");
+ee("kriminalitaet", "nationalisten", -0.03, 0, "Unsicherheit und Kriminalität empören sie.");
+ee("p_kriminalitaet", "nationalisten", -0.03, 0, "Unsicherheit auf den Straßen ärgert die, die Ordnung wollen.");
+ee("gefluechtete", "nationalisten", -0.03, 0, "Die Zahl der Geflüchteten im Land ist ihnen zu hoch.");
+ee("p_migrationsdruck", "nationalisten", -0.04, 0, "Spannungen um Migration nähren ihre Unzufriedenheit.");
+ee("abschreckung", "nationalisten", 0.03, 1, "Ein Land, dem die Nachbarn Respekt zollen.");
+ee("ansehen", "nationalisten", 0.02, 3, "Sie wollen, dass das Land in der Welt gehört wird.");
+ee("identitaet", "nationalisten", 0.03, 3, "Symbole, Sprache und gemeinsame Geschichte.");
+ee("lebenshaltung", "nationalisten", -0.03, 0, "Auch sie zahlen die Preise.");
+ee("arbeitslosigkeit", "nationalisten", -0.02, 0, "Ohne Arbeit schwindet das Vertrauen in den Staat.");
+
+// Menschen in Armut
+ee("m_sozialhilfe", "arme", 0.05, 1, "Für viele der Unterschied zwischen Auskommen und Not.");
+ee("m_arbeitslosengeld", "arme", 0.04, 1, "Ein Netz, wenn die Arbeit wegfällt.");
+ee("m_kindergeld", "arme", 0.03, 1, "Familien mit wenig Geld spüren jeden Zuschuss.");
+ee("m_mindestlohn", "arme", 0.03, 1, "Ein höherer Lohn am unteren Ende, sofern die Arbeit bleibt.");
+ee("m_sozialwohnungen", "arme", 0.04, 3, "Wer sich keine Miete leisten kann, wartet auf sie.");
+ee("m_mietdeckel", "arme", 0.03, 1, "Die Miete frisst den Lohn.");
+ee("m_energiesubventionen", "arme", 0.04, 1, "Strom und Heizung sind ein großer Teil der Ausgaben.");
+ee("m_preiskontrollen", "arme", 0.03, 1, "Niedrigere Preise im Regal, solange sie halten.");
+ee("m_zuzahlungen", "arme", -0.04, 1, "Wer wenig hat, geht später zum Arzt.");
+ee("m_mwst", "arme", -0.04, 1, "Verbrauchsteuern treffen die, die alles ausgeben müssen.");
+ee("m_kraftstoffsteuer", "arme", -0.02, 1, "Teurer Sprit verteuert Wege und Waren.");
+ee("m_hausarzt", "arme", 0.02, 3, "Eine Praxis in der Nähe spart Wege und Geld.");
+ee("lebenshaltung", "arme", -0.05, 0, "Sie spüren die Teuerung zuerst.");
+ee("lebensmittelpreise", "arme", -0.04, 0, "Ein großer Teil des Einkommens geht in Lebensmittel.");
+ee("energiepreise", "arme", -0.03, 0, "Strom und Heizung werden zum Luxus.");
+ee("mieten", "arme", -0.04, 0, "Die Miete ist der größte Posten.");
+ee("armut", "arme", -0.05, 0, "Wer arm ist, misst die Regierung an dem, was im Portemonnaie bleibt.");
+ee("p_armut", "arme", -0.05, 0, "Wo Armut zum Problem wird, kippt die Stimmung.");
+ee("arbeitslosigkeit", "arme", -0.04, 0, "Ohne Arbeit gibt es kaum Auskommen.");
+ee("realeinkommen", "arme", 0.04, 1, "Was der Lohn wert ist, entscheidet über den Monat.");
+ee("informelle_arbeit", "arme", -0.02, 3, "Arbeit ohne Vertrag heißt: ohne Schutz.");
+ee("gesundheitsversorgung", "arme", 0.02, 3, "Wer wenig hat, ist auf öffentliche Gesundheit angewiesen.");
+ee("ungleichheit", "arme", -0.02, 3, "Der Abstand nach oben wird wahrgenommen.");
+ee("p_wohnungsnot", "arme", -0.03, 0, "Kein Dach über dem Kopf ist keine Statistik.");
+ee("sozialkassen", "arme", 0.02, 3, "Solide Kassen halten die Leistungen.");
+
+// ---------------------------------------------------------------------------
+// Wirtschaftsakte: Wer von Zinsen und Währung gewinnt oder verliert (WIRTSCHAFTSMODELL.md, Z10). Kleine Stärken, damit die Zinspolitik
+// spürbar in die Stimmung der Gruppen läuft, ohne den Ausgangsverlauf zu verschieben.
+
+ee("leitzins", "unternehmer", -0.012, 2, "Teure Kredite verkleinern den Spielraum von Betrieben und Selbständigen.");
+ee("leitzins", "mittelstand", -0.015, 3, "Der Mittelstand lebt von Bankkrediten.");
+ee("leitzins", "bauwirtschaft", -0.02, 3, "Wer nicht finanzieren kann, baut nicht.");
+ee("leitzins", "gruendungen", -0.012, 4, "Gründer bekommen kaum Kredit, wenn die Zinsen hoch sind.");
+ee("leitzins", "rentner", 0.01, 1, "Sparer und Rentner profitieren von hohen Zinsen.");
+ee("leitzins", "junge", -0.008, 3, "Wohnung und Ausbildung auf Kredit werden teurer.");
+ee("leitzins", "arbeitnehmer", -0.005, 6, "Wenn Betriebe weniger investieren, sind Jobs gefährdet.");
+ee("abwertung", "mittelstand", -0.012, 2, "Importabhängige Betriebe zahlen mehr für Vorprodukte.");
+ee("zinslast", "vertrauen_maerkte", -0.015, 3, "Wer viel für Zinsen ausgibt, hat weniger Spielraum: Anleger werden nervös.");
+
 export const NODES: NodeSpec[] = N;
 export const EDGES: EdgeSpec[] = E;
 

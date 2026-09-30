@@ -8,8 +8,9 @@
 import water from "../../data/gewaesser.json";
 import { lonLatToUv, WORLD_W, type AtlasScene, type Relief } from "./scene";
 import { NATION_COLOR, REGION_COLORS } from "./overlay";
-import { imPunkt, ladeMeta, ladeStufe, type KBesitzer, type KFlaeche, type KRing, type KStufe } from "./daten";
+import { imPunkt, ladeMeta, ladeStufe, type KBesitzer, type KFlaeche, type KStufe } from "./daten";
 import { PROVINZEN } from "../../sim/regional";
+import { Beschriftung } from "./beschriftung";
 import type { Kartenebene } from "../ebenen";
 
 export interface BezirkInfo {
@@ -31,6 +32,8 @@ export interface VectorStyle {
   hoverBezirk?: number;
   /** ISO-Kürzel des Landes unter dem Zeiger */
   hoverLand?: string;
+  /** ISO-Kürzel des angetippten Landes: bleibt hervorgehoben */
+  landAuswahl?: string;
   ebene: Kartenebene;
   /** Farben der Länder nach ISO-Kürzel (Ebene „Beziehungen“) */
   laender?: Record<string, string>;
@@ -49,11 +52,6 @@ interface Lines {
   len: Uint32Array;
   bb: Float32Array;
   xyz: Float32Array;
-}
-
-interface BezirkShape extends BezirkInfo {
-  shapes: Shape[];
-  bb: [number, number, number, number];
 }
 
 interface Punkte {
@@ -97,18 +95,6 @@ function shapeOf(r: Relief, atlas: AtlasScene, pts: number[][]): Shape {
     if (v > v1) v1 = v;
   }
   return { uv, xyz, n, bb: [u0, v0, u1, v1] };
-}
-
-function pointInShape(s: Shape, u: number, v: number): boolean {
-  let inside = false;
-  for (let i = 0, j = s.n - 1; i < s.n; j = i++) {
-    const ui = s.uv[2 * i]!;
-    const vi = s.uv[2 * i + 1]!;
-    const uj = s.uv[2 * j]!;
-    const vj = s.uv[2 * j + 1]!;
-    if (vi > v !== vj > v && u < ((uj - ui) * (v - vi)) / (vj - vi) + ui) inside = !inside;
-  }
-  return inside;
 }
 
 function linesFrom(r: Relief, atlas: AtlasScene, buf: ArrayBuffer): Lines {
@@ -165,22 +151,31 @@ export class VectorLayer {
   private cssH = 1;
 
   private lakes: Shape[] = [];
-  private rivers: { rank: number; shape: Shape }[] = [];
+  private rivers: { rank: number; unstet: boolean; shape: Shape }[] = [];
 
   /** Landzerlegung in drei Detailstufen; geladen wird von grob nach fein */
   private stufen: (KStufe | null)[] = [null, null, null];
   private besitzer: KBesitzer[] = [];
   private landIndex = new Map<string, number>();
   private fremd: number[] = [];
+  private turIndex = -1;
   private stufeNr = 0;
   private bisGrenzen = [60, 200];
   private geladen = false;
+  private beschriftung: Beschriftung;
+  /** Zeit für das letzte Bild in Millisekunden: Flächen und Linien, Namen (für Messungen) */
+  zeiten = { flaechen: 0, namen: 0, bilder: 0 };
+  private reserviert: { x: number; y: number; w: number; h: number }[] = [];
+  private ausgeblendet = new Set<string>();
 
   private tiers: (Lines | null)[] = [null, null, null, null];
   private tierLoading = [false, false, false, false];
   private rail: Lines | null = null;
   private punkte: Punkte | null = null;
-  private bezirke: BezirkShape[] | null = null;
+  private bezirke: BezirkInfo[] | null = null;
+  /** Bezirksflächen (Stufe 1 und 2), Besitzer = Index in `bezirke` */
+  private bStufen: (KStufe | null)[] = [null, null, null];
+  private bezirkLaedt = false;
   private infraLoading = false;
   onDaten: (() => void) | null = null;
 
@@ -190,16 +185,40 @@ export class VectorLayer {
     private relief: Relief,
   ) {
     this.ctx = canvas.getContext("2d")!;
+    this.beschriftung = new Beschriftung(atlas, relief);
+    void this.beschriftung.lade().then(() => {
+      this.dirty = true;
+      this.onDaten?.();
+    });
     this.bauen();
     void this.ladeKarte();
   }
 
   private bauen() {
+    void this.ladeWasser();
+  }
+
+  /** Flüsse und Seen (Natural Earth 10m); ohne die Datei dient der kleine Auszug im Quelltext. */
+  private async ladeWasser() {
     const { relief, atlas } = this;
-    // Gewässer
-    const w = water as { rivers: { rank: number; lines: number[][][] }[]; lakes: { rings: number[][][] }[] };
-    for (const l of w.lakes) for (const ring of l.rings) this.lakes.push(shapeOf(relief, atlas, ring));
-    for (const r of w.rivers) for (const line of r.lines) this.rivers.push({ rank: r.rank, shape: shapeOf(relief, atlas, line) });
+    try {
+      const r = await fetch("/data/karte/wasser.json");
+      if (!r.ok) throw new Error("kein Wasser");
+      const w = (await r.json()) as { fluesse: { r: number; i: number; p: number[] }[]; seen: { p: number[] }[] };
+      const paare = (p: number[]) => {
+        const out: number[][] = [];
+        for (let i = 0; i < p.length; i += 2) out.push([p[i]!, p[i + 1]!]);
+        return out;
+      };
+      performance.mark("karte-wasser-geladen");
+      for (const l of w.seen) this.lakes.push(shapeOf(relief, atlas, paare(l.p)));
+      for (const f of w.fluesse) this.rivers.push({ rank: f.r, unstet: f.i === 1, shape: shapeOf(relief, atlas, paare(f.p)) });
+    } catch {
+      const w = water as { rivers: { rank: number; lines: number[][][] }[]; lakes: { rings: number[][][] }[] };
+      for (const l of w.lakes) for (const ring of l.rings) this.lakes.push(shapeOf(relief, atlas, ring));
+      for (const rv of w.rivers) for (const line of rv.lines) this.rivers.push({ rank: rv.rank, unstet: false, shape: shapeOf(relief, atlas, line) });
+    }
+    this.dirty = true;
   }
 
   /** Landzerlegung laden: zuerst die grobe Stufe, damit die Karte sofort steht, dann die feineren. */
@@ -211,13 +230,15 @@ export class VectorLayer {
       if (b.k === "l" && b.iso) {
         this.landIndex.set(b.iso, i);
         this.fremd.push(i);
-      }
+      } else if (b.k === "t") this.turIndex = i;
     });
     this.bisGrenzen = meta.stufen.slice(0, 2).map((x) => x.bis);
+    this.beschriftung.setLaender(this.laender(), meta.anker ?? {});
     for (let i = 0; i < meta.stufen.length; i++) {
       const st = await ladeStufe(meta.stufen[i]!.datei, this.relief, this.atlas, meta.besitzer.length);
       if (!st) continue;
       this.stufen[i] = st;
+      performance.mark(`karte-L${i}-geladen`);
       this.geladen = true;
       this.dirty = true;
       this.onDaten?.();
@@ -231,6 +252,43 @@ export class VectorLayer {
 
   kartenGeladen(): boolean {
     return this.geladen;
+  }
+
+  reservierteRechtecke() {
+    return this.reserviert;
+  }
+
+  /** Die im letzten Bild gesetzten Namen (für Prüfungen der Überschneidung) */
+  gesetzteNamen() {
+    return this.beschriftung.platziert;
+  }
+
+  /** Beschriftung bereit (dann ersetzt sie die vom Rahmen übergebenen Meeresnamen) */
+  namenBereit(): boolean {
+    return this.beschriftung.bereit();
+  }
+
+  /** Rechtecke der Stadtschilder und Marken der Oberfläche: Namen der Karte weichen ihnen aus */
+  setReserviert(r: { x: number; y: number; w: number; h: number }[]): void {
+    const alt = this.reserviert;
+    let gleich = alt.length === r.length;
+    if (gleich) {
+      for (let i = 0; i < r.length; i++) {
+        if (Math.abs(alt[i]!.x - r[i]!.x) + Math.abs(alt[i]!.y - r[i]!.y) > 1.5) {
+          gleich = false;
+          break;
+        }
+      }
+    }
+    if (gleich) return;
+    this.reserviert = r;
+    this.dirty = true;
+  }
+
+  /** Namen (kleingeschrieben), die die Karte nicht selbst zeichnen soll */
+  setAusgeblendet(namen: string[]): void {
+    this.ausgeblendet = new Set(namen.map((n) => n.toLowerCase()));
+    this.dirty = true;
   }
 
   /** Straßen, Bahn, Bezirke und Einrichtungen laden (nur wenn sie vorhanden sind). */
@@ -264,20 +322,30 @@ export class VectorLayer {
           this.onDaten?.();
         })
         .catch(() => undefined);
-      fetch("/data/osm/bezirke.json")
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((d: { bezirke: (Omit<BezirkShape, "shapes" | "bb" | "dichte" | "strasseKm" | "krankenhaeuser" | "flughaefen" | "kraftwerke" | "flaeche"> & { rings: number[][][]; flaeche_km2: number; strasse_km: number; strasse_dichte: number; krankenhaeuser: number; flughaefen: number; kraftwerke: number })[] }) => {
-          this.bezirke = d.bezirke.map((b) => {
-            const shapes = b.rings.map((ring) => shapeOf(relief, atlas, ring));
-            let bb: [number, number, number, number] = [9, 9, -9, -9];
-            for (const s of shapes) bb = [Math.min(bb[0], s.bb[0]), Math.min(bb[1], s.bb[1]), Math.max(bb[2], s.bb[2]), Math.max(bb[3], s.bb[3])];
-            return { name: b.name, plaka: b.plaka, flaeche: b.flaeche_km2, strasseKm: b.strasse_km, dichte: b.strasse_dichte, krankenhaeuser: b.krankenhaeuser, flughaefen: b.flughaefen, kraftwerke: b.kraftwerke, shapes, bb };
-          });
+    }
+    this.ladeBezirke();
+  }
+
+  /** Bezirke: Kennzahlen und Flächen, dieselben Grenzbögen wie die Provinzen (karte-B1.bin, karte-B2.bin). */
+  private ladeBezirke(): void {
+    if (this.bezirkLaedt) return;
+    this.bezirkLaedt = true;
+    const { relief, atlas } = this;
+    fetch("/data/karte/bezirke.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(async (d: { name: string; plaka: number; flaeche_km2: number; strasse_km: number; strasse_dichte: number; krankenhaeuser: number; flughaefen: number; kraftwerke: number }[]) => {
+        const info = d.map((b) => ({ name: b.name, plaka: b.plaka, flaeche: b.flaeche_km2, strasseKm: b.strasse_km, dichte: b.strasse_dichte, krankenhaeuser: b.krankenhaeuser, flughaefen: b.flughaefen, kraftwerke: b.kraftwerke }));
+        for (const nr of [1, 2]) {
+          const st = await ladeStufe(`karte-B${nr}.bin`, relief, atlas, info.length);
+          if (st) this.bStufen[nr] = st;
+          if (st && !this.bezirke) this.bezirke = info;
           this.dirty = true;
           this.onDaten?.();
-        })
-        .catch(() => undefined);
-    }
+        }
+      })
+      .catch(() => {
+        this.bezirkLaedt = false;
+      });
   }
 
   hatBezirke(): boolean {
@@ -305,9 +373,12 @@ export class VectorLayer {
   // -------------------------------------------------------------------------
   // Picking
 
-  /** Stufe für Treffer: die zuletzt gezeichnete, sonst die feinste vorhandene */
+  /** Detailstufe für die aktuelle Kamera: fein genug, dass Tippen an der Küste stimmt, aber mindestens die mittlere */
   private pickStufe(): KStufe | null {
-    return this.stufen[this.stufeNr] ?? this.stufen[1] ?? this.stufen[0] ?? this.stufen[2] ?? null;
+    const b = this.atlas.viewBounds();
+    const pxGrad = this.cssW / Math.max(0.02, b.u1 - b.u0 - 0.08) / (this.relief.lon1 - this.relief.lon0);
+    const wunsch = pxGrad < this.bisGrenzen[1]! ? 1 : 2;
+    return this.stufen[wunsch] ?? this.stufen[1] ?? this.stufen[2] ?? this.stufen[0] ?? null;
   }
 
   pickProvince(u: number, v: number): number | undefined {
@@ -329,12 +400,20 @@ export class VectorLayer {
     return undefined;
   }
 
+  /** Bezirksstufe für die aktuelle Kamera */
+  private bStufe(pxGrad?: number): KStufe | null {
+    if (pxGrad === undefined) {
+      const b = this.atlas.viewBounds();
+      pxGrad = this.cssW / Math.max(0.02, b.u1 - b.u0 - 0.08) / (this.relief.lon1 - this.relief.lon0);
+    }
+    return pxGrad < this.bisGrenzen[1]! ? (this.bStufen[1] ?? this.bStufen[2] ?? null) : (this.bStufen[2] ?? this.bStufen[1] ?? null);
+  }
+
   pickBezirk(u: number, v: number): { index: number; info: BezirkInfo } | undefined {
-    if (!this.bezirke) return undefined;
-    for (let i = 0; i < this.bezirke.length; i++) {
-      const b = this.bezirke[i]!;
-      if (u < b.bb[0] || u > b.bb[2] || v < b.bb[1] || v > b.bb[3]) continue;
-      for (const s of b.shapes) if (pointInShape(s, u, v)) return { index: i, info: b };
+    const st = this.bStufe();
+    if (!st || !this.bezirke) return undefined;
+    for (const f of st.flaechen) {
+      if (imPunkt(f, u, v)) return { index: f.besitzer, info: this.bezirke[f.besitzer]! };
     }
     return undefined;
   }
@@ -416,6 +495,7 @@ export class VectorLayer {
     const m = atlas.matrix();
     const hash = `${m[0]!.toFixed(4)}${m[5]!.toFixed(4)}${m[10]!.toFixed(4)}${m[12]!.toFixed(4)}${m[13]!.toFixed(4)}${m[14]!.toFixed(4)}${this.cssW}x${this.cssH}`;
     if (!this.dirty && hash === this.lastHash) return;
+    const tStart = performance.now();
     this.dirty = false;
     this.lastHash = hash;
     this.m = m;
@@ -456,7 +536,7 @@ export class VectorLayer {
         if (!col) continue;
         ctx.beginPath();
         this.flaechenPfad(karte.porBesitzer[i]!, b);
-        ctx.globalAlpha = st.laender ? 0.55 : 0.26;
+        ctx.globalAlpha = st.laender ? 0.62 : 0.26;
         ctx.fillStyle = col;
         ctx.fill("evenodd");
       }
@@ -470,7 +550,8 @@ export class VectorLayer {
 
     // Die Türkei: Landesfarbe mit Regionstönung, oder die Farben der Kartenebene
     const political = st.fill === undefined;
-    const bezirkFill = infra && this.bezirke !== null && ppu > 3200;
+    const bst = this.bStufe(pxGrad);
+    const bezirkFill = infra && this.bezirke !== null && bst !== null && ppu > 3200;
     if (karte) {
       for (let plaka = 1; plaka <= 81; plaka++) {
         const fl = karte.porBesitzer[plaka - 1]!;
@@ -479,7 +560,8 @@ export class VectorLayer {
         let alpha: number;
         if (political) {
           col = NATION_COLOR;
-          alpha = 0.5;
+          // in der Ebene „Beziehungen“ tritt die Türkei zurück, damit die Farben der Länder ringsum lesbar bleiben
+          alpha = st.laender ? 0.3 : 0.5;
         } else {
           col = st.fill![plaka];
           alpha = st.fillAlpha ?? 0.62;
@@ -492,7 +574,7 @@ export class VectorLayer {
         ctx.fillStyle = col;
         ctx.fill("evenodd");
         if (political) {
-          ctx.globalAlpha = 0.2;
+          ctx.globalAlpha = st.laender ? 0.08 : 0.2;
           ctx.fillStyle = REGION_COLORS[REGION_OF.get(plaka) ?? ""] ?? col;
           ctx.fill("evenodd");
         }
@@ -501,23 +583,21 @@ export class VectorLayer {
     ctx.globalAlpha = 1;
 
     // Bezirke: Färbung nach Straßendichte (Infrastruktur) und feine Grenzen beim Hineinzoomen
-    if (this.bezirke && (infra || ppu > 3800)) {
+    if (bst && this.bezirke && (infra || ppu > 3800)) {
       if (bezirkFill) {
-        for (const bz of this.bezirke) {
-          if (bz.bb[2] < b.u0 || bz.bb[0] > b.u1 || bz.bb[3] < b.v0 || bz.bb[1] > b.v1) continue;
+        for (let i = 0; i < this.bezirke.length; i++) {
+          const fl = bst.porBesitzer[i];
+          if (!fl?.length) continue;
           ctx.beginPath();
-          for (const s of bz.shapes) this.pathXyz(s.xyz, 0, s.n, true);
-          ctx.fillStyle = dichteFarbe(bz.dichte);
+          this.flaechenPfad(fl, b);
+          ctx.fillStyle = dichteFarbe(this.bezirke[i]!.dichte);
           ctx.globalAlpha = 0.72;
-          ctx.fill();
+          ctx.fill("evenodd");
         }
         ctx.globalAlpha = 1;
       }
       ctx.beginPath();
-      for (const bz of this.bezirke) {
-        if (bz.bb[2] < b.u0 || bz.bb[0] > b.u1 || bz.bb[3] < b.v0 || bz.bb[1] > b.v1) continue;
-        for (const s of bz.shapes) this.pathXyz(s.xyz, 0, s.n, true);
-      }
+      this.bogenPfad(bst, [6], b);
       ctx.strokeStyle = "rgba(38, 24, 14, 0.42)";
       ctx.lineWidth = 0.7 * z;
       ctx.stroke();
@@ -531,18 +611,24 @@ export class VectorLayer {
     ctx.strokeStyle = "rgba(170, 200, 205, 0.7)";
     ctx.lineWidth = 0.9 * z;
     ctx.stroke();
-    for (let rank = 1; rank <= 8; rank++) {
-      ctx.beginPath();
-      let any = false;
-      for (const r of this.rivers) {
-        if (r.rank !== rank || !this.inView(r.shape.bb, 0, b, ppu, 3)) continue;
-        this.pathXyz(r.shape.xyz, 0, r.shape.n, false);
-        any = true;
+    for (let rank = 1; rank <= 10; rank++) {
+      // große Flüsse immer, kleine erst beim Hineinzoomen
+      if (rank >= 7 && pxGrad < (rank === 7 || rank === 8 ? 62 : rank === 9 ? 105 : 165)) continue;
+      for (const gestrichelt of [false, true]) {
+        ctx.beginPath();
+        let any = false;
+        for (const r of this.rivers) {
+          if (r.rank !== rank || r.unstet !== gestrichelt || !this.inView(r.shape.bb, 0, b, ppu, 3)) continue;
+          this.pathXyz(r.shape.xyz, 0, r.shape.n, false);
+          any = true;
+        }
+        if (!any) continue;
+        ctx.strokeStyle = gestrichelt ? "rgba(52, 100, 134, 0.75)" : "rgba(38, 86, 118, 0.95)";
+        ctx.lineWidth = Math.max(0.85, 3.1 - rank * 0.25) * z;
+        if (gestrichelt) ctx.setLineDash([4 * z, 3 * z]);
+        ctx.stroke();
+        if (gestrichelt) ctx.setLineDash([]);
       }
-      if (!any) continue;
-      ctx.strokeStyle = "rgba(38, 86, 118, 0.95)";
-      ctx.lineWidth = Math.max(0.9, 3.0 - rank * 0.28) * z;
-      ctx.stroke();
     }
 
     // Provinzgrenzen fein, Regionsgrenzen kräftiger
@@ -568,7 +654,9 @@ export class VectorLayer {
     if (karte) {
       ctx.save();
       ctx.beginPath();
-      for (let i = 0; i < 81; i++) this.flaechenPfad(karte.porBesitzer[i]!, b);
+      // Nur der Außenring der Türkei als Ausschnitt (billiger als alle Provinzen)
+      if (this.turIndex >= 0 && karte.porBesitzer[this.turIndex]?.length) this.flaechenPfad(karte.porBesitzer[this.turIndex]!, b);
+      else for (let i = 0; i < 81; i++) this.flaechenPfad(karte.porBesitzer[i]!, b);
       ctx.clip("evenodd");
       ctx.beginPath();
       this.bogenPfad(karte, [0, 4], b);
@@ -603,7 +691,22 @@ export class VectorLayer {
     };
     if (st.hover && st.hover !== st.selected) markiere(st.hover, "rgba(255, 246, 220, 0.2)", 0, 1.8);
     markiere(st.selected, "rgba(255, 240, 200, 0.16)", 4.2, 2.0);
-    if (st.hoverLand && karte) {
+    if (st.landAuswahl && karte) {
+      const i = this.landIndex.get(st.landAuswahl);
+      if (i !== undefined) {
+        ctx.beginPath();
+        this.flaechenPfad(karte.porBesitzer[i]!, b);
+        ctx.fillStyle = "rgba(255, 240, 200, 0.16)";
+        ctx.fill("evenodd");
+        ctx.strokeStyle = "rgba(30, 20, 12, 0.9)";
+        ctx.lineWidth = 4.2 * z;
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(241, 213, 143, 1)";
+        ctx.lineWidth = 2.0 * z;
+        ctx.stroke();
+      }
+    }
+    if (st.hoverLand && karte && st.hoverLand !== st.landAuswahl) {
       const i = this.landIndex.get(st.hoverLand);
       if (i !== undefined) {
         ctx.beginPath();
@@ -615,18 +718,24 @@ export class VectorLayer {
         ctx.stroke();
       }
     }
-    if (st.hoverBezirk !== undefined && this.bezirke) {
-      const bz = this.bezirke[st.hoverBezirk];
-      if (bz) {
+    if (st.hoverBezirk !== undefined && bst) {
+      const fl = bst.porBesitzer[st.hoverBezirk];
+      if (fl?.length) {
         ctx.beginPath();
-        for (const s of bz.shapes) this.pathXyz(s.xyz, 0, s.n, true);
+        this.flaechenPfad(fl, b);
         ctx.fillStyle = "rgba(255, 246, 220, 0.24)";
-        ctx.fill();
+        ctx.fill("evenodd");
         ctx.strokeStyle = "rgba(255, 246, 220, 0.95)";
         ctx.lineWidth = 1.6 * z;
         ctx.stroke();
       }
     }
+
+    // Namen, Gradnetz und Maßstab
+    const tNamen = performance.now();
+    this.beschriftung.draw(ctx, { cssW: W, cssH: H, pxGrad, welt: !!st.laender, reserviert: this.reserviert, ausgeblendet: this.ausgeblendet });
+    const tEnde = performance.now();
+    this.zeiten = { flaechen: tNamen - tStart, namen: tEnde - tNamen, bilder: this.zeiten.bilder + 1 };
   }
 
   private drawVerkehr(b: { u0: number; u1: number; v0: number; v1: number }, ppu: number, z: number, infra: boolean): void {
@@ -634,7 +743,8 @@ export class VectorLayer {
     // Ab welcher Vergrößerung welche Klasse sichtbar wird; in der Infrastruktur-Ebene früher und dichter.
     const ab = infra ? [1400, 2800, 5200, 9000] : [4800, 7500, 12000, Infinity];
     if (ppu < ab[0]!) return;
-    const alpha = infra ? 1 : Math.min(0.92, (ppu - ab[0]!) / 2200);
+    const alpha = infra ? 1 : Math.min(0.7, (ppu - ab[0]!) / 2200);
+    const wsk = infra ? 1 : 0.82;
     ctx.globalAlpha = alpha;
     // Klasse 0 Autobahn und Schnellstraße, 1 Hauptstraße, 2 Landstraße, 3 Nebenstraße
     const stile = [
@@ -652,11 +762,11 @@ export class VectorLayer {
       this.drawLines(this.tiers[t]!, b, ppu, s.minPx);
       if (ppu > 3500) {
         ctx.strokeStyle = s.casing;
-        ctx.lineWidth = (s.w + 1.4) * zz;
+        ctx.lineWidth = (s.w + 1.4) * zz * wsk;
         ctx.stroke();
       }
       ctx.strokeStyle = s.core;
-      ctx.lineWidth = s.w * zz;
+      ctx.lineWidth = s.w * zz * wsk;
       ctx.stroke();
     }
     if (this.rail && ppu > (infra ? 1800 : 6500)) {

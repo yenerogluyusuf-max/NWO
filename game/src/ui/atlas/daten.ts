@@ -30,7 +30,8 @@ export interface KStufe {
 }
 
 export interface KBesitzer {
-  k: "p" | "l";
+  /** p Provinz, l Land außerhalb der Türkei, t Sammelbesitzer Türkei (Vereinigung der Provinzen) */
+  k: "p" | "l" | "t";
   plaka?: number;
   iso?: string;
   name?: string;
@@ -43,6 +44,8 @@ export interface KBesitzer {
 
 export interface KarteMeta {
   quelle: string;
+  /** Beschriftungsanker je Land: Länge, Breite, Abstand zur Grenze (Grad), dreifach hintereinander */
+  anker?: Record<string, number[]>;
   besitzer: KBesitzer[];
   stufen: { datei: string; bis: number; tol: number }[];
 }

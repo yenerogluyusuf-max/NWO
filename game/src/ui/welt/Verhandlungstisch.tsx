@@ -2,7 +2,7 @@
 // Gründen in Grün und Rot. Jede Klausel zeigt, was sie im eigenen Land bewirkt (Wirkung und Kehrseite) und was sie dem Partner wert ist.
 // Prüfen kostet nichts; ein Angebot zu unterbreiten kostet Kapital und hat Folgen (Zustimmung, Gegenangebot, Zurückweisung).
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { World } from "../../sim/types";
 import { land, weltZustand } from "../../sim/laender";
 import { VERTRAGSLAUFZEITEN, type Laufzeit } from "../../data/abkommen";
@@ -86,7 +86,9 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
   const [will, setWill] = useState<string[]>([]);
   const [jahre, setJahre] = useState<Laufzeit>(5);
   const [antwort, setAntwort] = useState<Ergebnis | null>(null);
+  const kopf = useRef<HTMLDivElement>(null);
   if (!world.spiel) return null;
+  const zeige = () => requestAnimationFrame(() => kopf.current?.scrollIntoView({ block: "start", behavior: "smooth" }));
   const kapital = world.spiel.kapital;
   const klauseln = klauselnFuer(world, landId);
   const angebot: Angebot = { land: landId, gibt, will, jahre };
@@ -113,6 +115,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
       setWill([]);
     }
     refresh();
+    zeige();
   }
 
   function nimmAn(a: Angebot) {
@@ -123,34 +126,68 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
       setWill([]);
     }
     refresh();
+    zeige();
   }
+
+  const stimmungText = nichts ? "Noch kein Angebot" : b.urteil === "veto" ? "Rote Linie" : STIMMUNG_WORT[b.stimmung];
+  const urteilText = nichts
+    ? "Wählen Sie Klauseln links und rechts."
+    : b.urteil === "zustimmung"
+      ? `${l.name} würde zustimmen.`
+      : b.urteil === "veto"
+        ? b.veto
+        : b.urteil === "gegenangebot"
+          ? `${l.name} würde ein Gegenangebot machen.`
+          : `${l.name} würde ablehnen.`;
 
   return (
     <section className="we-tisch" aria-label={`Verhandlungstisch mit ${l.name}`}>
-      <p className="we-tisch-kopf">
-        Stellen Sie ein Paket zusammen. Was {l.name} davon hält, sehen Sie sofort; erst das Angebot selbst kostet Kapital. Rechts steht, was Sie im eigenen Land bekommen, und was es kostet.
-      </p>
+      <div ref={kopf} className="we-tisch-oben">
+        <p className="we-tisch-kopf">
+          Stellen Sie ein Paket zusammen. Was {l.name} davon hält, sehen Sie sofort; erst das Angebot selbst kostet Kapital. In jeder Klausel steht, was sie im eigenen Land bewirkt und was sie kostet.
+        </p>
 
-      <div className="we-spalten">
-        <div className="we-spalte">
-          <h4>
-            <Flagge id="TUR" breite={22} /> Wir bieten
-          </h4>
-          <ul className="we-klauseln">
-            {bietet.map((k) => (
-              <KlauselKarte key={k.def.id} k={k} partner={l.name} gewaehlt={gibt.includes(k.def.id)} veto={veto(k.def.id)} onToggle={() => { setGibt(auf(gibt, k.def.id)); setAntwort(null); }} />
-            ))}
-          </ul>
-        </div>
+        {antwort && (
+          <div className={`we-antwort u-${antwort.urteil}`} role="status">
+            <span className="we-stempel" aria-hidden>
+              {antwort.urteil === "zustimmung" ? "Einigung" : antwort.urteil === "gegenangebot" ? "Gegenangebot" : antwort.urteil === "veto" ? "Rote Linie" : antwort.urteil === "ablehnung" ? "Abgelehnt" : "Nicht möglich"}
+            </span>
+            <p>
+              <strong>{antwort.text}</strong> {antwort.why && <em>{antwort.why}</em>}
+            </p>
+            {antwort.urteil === "gegenangebot" && antwort.bewertung && (
+              <ul className="we-gegen">
+                {antwort.bewertung.gegenangebote.map((g, i) => (
+                  <li key={i}>
+                    <span>{g.text}</span>
+                    <span className="we-gegen-knoepfe">
+                      <button type="button" className="aktion-knopf" onClick={() => nimmAn(g.angebot)}>
+                        Annehmen
+                      </button>
+                      <button type="button" className="link" onClick={() => { laden(g.angebot); setAntwort(null); }}>
+                        In den Tisch übernehmen
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {antwort.urteil === "zustimmung" && vertraegeLaufen > 0 && onVertraege && (
+              <button type="button" className="link" onClick={onVertraege}>
+                Zu den laufenden Verträgen
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="we-mitte">
           <div className="we-stimmung">
             <Flagge id={landId} breite={44} rund titel={l.name} />
-            <strong>{nichts ? "Noch kein Angebot" : b.urteil === "veto" ? "Rote Linie" : STIMMUNG_WORT[b.stimmung]}</strong>
-            <Waage stimmung={nichts ? 0 : b.stimmung} urteil={nichts ? "leer" : b.urteil} />
-            <span className="we-urteil">
-              {nichts ? "Wählen Sie Klauseln links und rechts." : b.urteil === "zustimmung" ? `${l.name} würde zustimmen.` : b.urteil === "veto" ? b.veto : b.urteil === "gegenangebot" ? `${l.name} würde ein Gegenangebot machen.` : `${l.name} würde ablehnen.`}
-            </span>
+            <div className="we-stimmung-text">
+              <strong>{stimmungText}</strong>
+              <Waage stimmung={nichts ? -1 : b.stimmung} urteil={nichts ? "leer" : b.urteil} />
+              <span className="we-urteil">{urteilText}</span>
+            </div>
           </div>
           {!nichts && (
             <ul className="we-gruende" aria-label="Gründe der Gegenseite">
@@ -164,7 +201,19 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
             </ul>
           )}
         </div>
+      </div>
 
+      <div className="we-spalten">
+        <div className="we-spalte">
+          <h4>
+            <Flagge id="TUR" breite={22} /> Wir bieten
+          </h4>
+          <ul className="we-klauseln">
+            {bietet.map((k) => (
+              <KlauselKarte key={k.def.id} k={k} partner={l.name} gewaehlt={gibt.includes(k.def.id)} veto={veto(k.def.id)} onToggle={() => { setGibt(auf(gibt, k.def.id)); setAntwort(null); }} />
+            ))}
+          </ul>
+        </div>
         <div className="we-spalte">
           <h4>
             <Flagge id={landId} breite={22} titel={l.name} /> Wir verlangen
@@ -178,6 +227,10 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
       </div>
 
       <div className="we-leiste">
+        <div className="we-leiste-stimmung" aria-live="polite">
+          <Waage stimmung={nichts ? -1 : b.stimmung} urteil={nichts ? "leer" : b.urteil} />
+          <span>{stimmungText}</span>
+        </div>
         <div className="we-laufzeit" role="radiogroup" aria-label="Laufzeit">
           <span>Laufzeit</span>
           {VERTRAGSLAUFZEITEN.map((j) => (
@@ -201,39 +254,6 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
           )}
         </div>
       </div>
-
-      {antwort && (
-        <div className={`we-antwort u-${antwort.urteil}`} role="status">
-          <span className="we-stempel" aria-hidden>
-            {antwort.urteil === "zustimmung" ? "Einigung" : antwort.urteil === "gegenangebot" ? "Gegenangebot" : antwort.urteil === "veto" ? "Rote Linie" : antwort.urteil === "ablehnung" ? "Abgelehnt" : "Nicht möglich"}
-          </span>
-          <p>
-            <strong>{antwort.text}</strong> {antwort.why && <em>{antwort.why}</em>}
-          </p>
-          {antwort.urteil === "gegenangebot" && antwort.bewertung && (
-            <ul className="we-gegen">
-              {antwort.bewertung.gegenangebote.map((g, i) => (
-                <li key={i}>
-                  <span>{g.text}</span>
-                  <span className="we-gegen-knoepfe">
-                    <button type="button" className="aktion-knopf" onClick={() => nimmAn(g.angebot)}>
-                      Annehmen
-                    </button>
-                    <button type="button" className="link" onClick={() => { laden(g.angebot); setAntwort(null); }}>
-                      In den Tisch übernehmen
-                    </button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {antwort.urteil === "zustimmung" && vertraegeLaufen > 0 && onVertraege && (
-            <button type="button" className="link" onClick={onVertraege}>
-              Zu den laufenden Verträgen
-            </button>
-          )}
-        </div>
-      )}
     </section>
   );
 }

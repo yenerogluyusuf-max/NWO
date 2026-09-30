@@ -23,3 +23,6 @@ export function gewichtWort(anteil: number): string {
   if (anteil >= 0.09) return "mittleres Gewicht";
   return "kleines Gewicht";
 }
+
+/** Manche Größen tragen denselben Namen wie das Problem daraus („Armut“): Probleme bekommen einen Zusatz. */
+export const anzeigeName = (name: string, art: string) => (art === "problem" ? `${name} als Problem` : name);

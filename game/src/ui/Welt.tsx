@@ -56,7 +56,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
   };
 
   return (
-    <div className="we">
+    <div className={`we${tab === "verhandeln" && !vermittlung ? " schmal" : ""}`}>
       <nav className="we-liste" aria-label="Länder">
         {GRUPPEN.map((g) => (
           <div key={g} className="we-gruppe">
@@ -68,7 +68,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                 const n = laufende(world, x.id).length;
                 return (
                   <li key={x.id}>
-                    <button type="button" className={`we-eintrag${gewaehlt === x.id ? " on" : ""}`} onClick={() => waehle(x.id)} aria-pressed={gewaehlt === x.id}>
+                    <button type="button" className={`we-eintrag${gewaehlt === x.id ? " on" : ""}`} onClick={() => waehle(x.id)} aria-pressed={gewaehlt === x.id} title={x.name}>
                       <Flagge id={x.id} breite={34} />
                       <span className="we-name">{x.name}</span>
                       <span className={`we-haltung ton-${v >= 55 ? "gut" : v >= 35 ? "mittel" : "schlecht"}`}>

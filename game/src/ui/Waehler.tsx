@@ -3,11 +3,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { World } from "../sim/types";
-import { koalition, type GruppeKurz } from "../sim/waehler-detail";
+import { abwanderung, koalition, schritteFuerZustimmung, type GruppeKurz } from "../sim/waehler-detail";
 import { zustimmungsBilanz } from "../sim/waehler";
 import { entscheidungsMarken, zustimmungsVerlauf } from "../sim/waehler-verlauf";
 import { formatDateDe } from "../sim/dates";
 import { GruppenDetail, type DossierZiel } from "./waehler/GruppenDetail";
+import { HilfeKarte } from "./waehler/HilfeKarte";
 import { Sparkline } from "./waehler/Sparkline";
 import { gewichtWort, nf, prozent, vz } from "./waehler/format";
 import "./waehler/waehler.css";
@@ -53,7 +54,11 @@ function Barometer({ world }: { world: World }) {
   );
 }
 
-function KoalitionsBalken({ k, waehle }: { k: ReturnType<typeof koalition>; waehle: (id: string) => void }) {
+function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typeof koalition>; waehle: (id: string) => void; world: World; onMassnahme?: (id: string, richtung: 1 | -1) => void }) {
+  const spiel = world.spiel!;
+  const signatur = `${world.date.slice(0, 7)}|${Math.floor(spiel.kapital)}|${Object.keys(world.net.targets).length}|${spiel.gesetze.length}`;
+  const schritte = useMemo(() => schritteFuerZustimmung(world, 3), [signatur]); // eslint-disable-line react-hooks/exhaustive-deps
+  const wanderung = useMemo(() => abwanderung(world), [signatur]); // eslint-disable-line react-hooks/exhaustive-deps
   const anzahl = (r: GruppeKurz["rolle"]) => {
     const n = k.gruppen.filter((g) => g.rolle === r).length;
     return `${n} ${n === 1 ? "Gruppe" : "Gruppen"}`;
@@ -91,6 +96,40 @@ function KoalitionsBalken({ k, waehle }: { k: ReturnType<typeof koalition>; waeh
         {gruppe(k.gewinnbar, "Am ehesten zu gewinnen:", (g) => `${g.name}. Läge sie bei 58, brächte das ${nf(g.potenzial, 1)} Punkte Zustimmung.`)}
         {gruppe(k.gefaehrdet, "Am stärksten gefährdet:", (g) => `${g.name} strebt bei den heutigen Verhältnissen nach ${nf(g.ziel, 0)}, jetzt ${nf(g.laune, 0)}.`)}
       </ul>
+      {wanderung.anteil >= 0.03 && wanderung.ziele.length > 0 && (
+        <div className="wa-wanderung">
+          <h4>Wohin Wähler abwandern</h4>
+          <p className="wa-unter">
+            Bei den heutigen Stimmungen wechselten etwa {prozent(wanderung.anteil)} aller Wähler eher die Seite (Spielparameter, keine Messung). Sie gingen zu den Parteien, deren Forderungen ihnen am meisten nützten:
+          </p>
+          <ul className="wa-ziele">
+            {wanderung.ziele.map((z) => (
+              <li key={z.partei}>
+                <div className="wa-ziel-kopf">
+                  <strong>{z.name}</strong>
+                  {z.imLager && <em>in Ihrem Lager</em>}
+                  <span>{prozent(z.anteil)} der Abwanderer</span>
+                </div>
+                <span className="wa-ziel-balken" aria-hidden>
+                  <i style={{ width: `${Math.round(z.anteil * 100)}%` }} />
+                </span>
+                {z.herkunft.length > 0 && <em className="wa-ziel-passt">vor allem aus: {z.herkunft.join(", ")}</em>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {schritte.length > 0 && (
+        <details className="wa-schritte">
+          <summary>Die wirksamsten Schritte für Ihre Zustimmung bis zur Wahl</summary>
+          <p className="wa-unter">Jede Maßnahme, rauf oder runter, um 20 Stufen durchgerechnet, ohne Rückwirkungen über die Wirtschaft (Preise, Schulden); wer dabei gewinnt und wer sich ärgert, steht dabei. Die Vorschau rechnet alles.</p>
+          <ul className="wa-hilfen">
+            {schritte.map((h) => (
+              <HilfeKarte key={`${h.massnahme}${h.richtung}`} h={h} world={world} ziel={null} {...(onMassnahme ? { onMassnahme } : {})} />
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }
@@ -141,7 +180,7 @@ export function Waehler({ world, onMassnahme, onDossier }: { world: World; onMas
   return (
     <div className="waehler wa-root">
       <Barometer world={world} />
-      <KoalitionsBalken k={k} waehle={setGewaehlt} />
+      <KoalitionsBalken k={k} waehle={setGewaehlt} world={world} {...(onMassnahme ? { onMassnahme } : {})} />
       <div className="wa-haupt">
         <nav className="wa-liste" aria-label="Wählergruppen">
           <h3>Ihre Wähler</h3>

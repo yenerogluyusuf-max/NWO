@@ -6,6 +6,10 @@ import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN } from "../sim/regional";
 import { formatDateDe } from "../sim/dates";
 import { LAENDER, dimensionZu, haltungWort, weltZustand } from "../sim/laender";
+import { VORHABEN } from "../data/reich";
+import { KLAUSELN, PROFILE } from "../data/abkommen";
+import { alleLaufenden, klauselSicht } from "../sim/abkommen";
+import { bauKapazitaet, vorhabenSicht, verwaltungBilanz, reichZustand } from "../sim/reich";
 import { waehlerLage } from "../sim/waehler";
 import { zielStand } from "../sim/ziele";
 import { fraktionsUebersicht } from "../sim/verhandeln";
@@ -14,6 +18,7 @@ import { kapitalEinkommen } from "../sim/spiel";
 import { stimmenSicht } from "../sim/handeln";
 import { ansicht } from "../sim/ereignisse";
 import { haltung } from "../sim/figuren";
+import { umfeldKontext } from "../sim/personen-api";
 import type { World } from "../sim/types";
 
 const MASSNAHMEN = NET.nodes.filter((n) => n.kind === "massnahme");
@@ -22,6 +27,13 @@ const MASSNAHMEN = NET.nodes.filter((n) => n.kind === "massnahme");
 export function systemText(): string {
   const massnahmen = MASSNAHMEN.map((n) => `${n.id}: ${n.name}`).join("\n");
   const laender = LAENDER.map((l) => `${l.id}: ${l.name}`).join("; ");
+  const vorhaben = VORHABEN.map((v) => `${v.id}: ${v.name}`).join("\n");
+  const klauselnJeLand = LAENDER.map((l) => {
+    const werte = PROFILE[l.id]?.werte ?? {};
+    const gibt = Object.keys(werte).filter((id) => KLAUSELN.find((k) => k.id === id)?.seite === "gibt");
+    const will = Object.keys(werte).filter((id) => KLAUSELN.find((k) => k.id === id)?.seite === "will");
+    return `${l.id}: bieten ${gibt.join(", ")}; verlangen ${will.join(", ")}`;
+  }).join("\n");
   return `Du bist das Präsidialamt im Strategiespiel „Staatsräson“. Der Spieler ist Staatspräsident der Türkei. Du bist eine neutrale, sachkundige Mentorin: Du erklärst die Lage ehrlich, benennst Zielkonflikte und Preise, nimmst keine Partei und sprichst Deutsch in der Anrede „Sie“, sachlich und knapp (meist höchstens 120 Wörter).
 
 DAS SPIEL IN KÜRZE
@@ -33,6 +45,9 @@ DAS SPIEL IN KÜRZE
 - Acht Wählergruppen; ihre Laune bestimmt zusammen mit Vertrauen, Wirtschaft, akuten Problemen und Regierungsmüdigkeit die Zustimmung. Ziel ist die Wiederwahl und die gewählten Ziele.
 - Andere Länder haben Vertrauen, Handel, Sicherheit und Konflikt; Handlungen ihnen gegenüber kosten Kapital und haben Abkühlzeiten.
 - Regierungsprogramme bestehen aus Schritten mit Bedingungen und belohnen mit Rabatt, Schutz oder Wirkung.
+- Das Reich: Vorhaben (Wunder, Großprojekte, Restaurierungen, Reformen, Beschaffungen, Institutionen) kosten Kapital beim Beginn, dazu Baukapazität und Verwaltungskraft über Monate; fertige Vorhaben wirken dauerhaft und verfallen ohne Pflege. Nicht alles ist Geld: Justizsitze, Kulturerbe, Truppenbereitschaft, Legitimität sind eigene Größen.
+- Verträge mit anderen Ländern bestehen aus Klauseln: Die Türkei „bietet“ (gibt) etwas und „verlangt“ (will) etwas. Die Gegenseite bewertet das ganze Paket (Wert der Klauseln, Vertrauen, Streit, Abhängigkeit, frühere Brüche) und stimmt zu, macht ein Gegenangebot oder lehnt ab; eine Rote Linie ist ein Veto. Verträge wirken monatlich, werden jährlich geprüft und können gebrochen werden.
+- Kapital darf bis 20 Punkte ins Minus gehen („auf Pump“); das kostet Legitimität und Vertrauen in jedem Monat, in dem es negativ bleibt.
 - Die Zentralbank ist unabhängig. Der Leitzins ist nicht einstellbar; möglich sind öffentliche Kritik, Austausch der Führung und die Haushaltspolitik.
 
 REGELN FÜR DICH
@@ -55,12 +70,21 @@ Ohne Aktion: "aktionen":[]. Mögliche Aktionen (Feld "art"):
 {"art":"haushalt","handlung":"mehr_ausgeben|sparen|zentralbank_kritisieren|zentralbank_fuehrung_tauschen","grund":"…"}
 {"art":"ereignis","id":"<Ereignis-ID>","option":"<Options-ID>","grund":"…"}
 {"art":"zeit","tage":<1-90>,"grund":"…"}
+{"art":"vorhaben","id":"<Vorhaben-ID>","grund":"…"}  (ein Vorhaben des Reiches beginnen)
+{"art":"abkommen","land":"<Länder-ID>","bieten":["<Klausel-ID>",…],"verlangen":["<Klausel-ID>",…],"jahre":2|5|10,"grund":"…"}  (Vertrag anbieten; nur Klauseln, die es bei dem Land gibt)
+{"art":"vermittlung","id":"ukr_rus|arm_aze","grund":"…"}
 
 MASSNAHMEN (ID: Name)
 ${massnahmen}
 
 LÄNDER (ID: Name)
-${laender}`;
+${laender}
+
+VORHABEN DES REICHES (ID: Name)
+${vorhaben}
+
+KLAUSELN JE LAND (bieten = die Türkei gibt, verlangen = die Türkei erhält)
+${klauselnJeLand}`;
 }
 
 const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -132,10 +156,30 @@ export function zustandsText(w: World): string {
       LAENDER.map((l) => `${l.id} ${haltungWort(w, l.id)} ${rund(dimensionZu(w, l.id, "vertrauen"))}/${rund(wz[l.id]!.konflikt)}`).join("; "),
   );
 
+  const rz = reichZustand(w);
+  const vb = verwaltungBilanz(w);
+  const laufendReich = rz.laufend.map((l) => {
+    const sicht = vorhabenSicht(w, l.id);
+    return `${l.id} (${Math.round((sicht?.fortschritt ?? 0) * 100)} %${l.pausiert ? ", ruht" : ""})`;
+  });
+  const beginnbar = VORHABEN.map((v) => vorhabenSicht(w, v.id)).filter((x) => x && x.status === "verfuegbar" && x.bereit && x.bezahlbar && x.verwaltungOk).slice(0, 14).map((x) => x!.v.id);
+  z.push(
+    `Reich: Verwaltungskraft ${rund(vb.vorrat)} (${vb.netto >= 0 ? "+" : "−"}${nf(Math.abs(vb.netto))} je Monat), Baukapazität ${rund(bauKapazitaet(w))}. Fertig ${Object.keys(rz.bestand).length}. Laufend: ${laufendReich.length ? laufendReich.join(", ") : "keine"}. Sofort beginnbar: ${beginnbar.length ? beginnbar.join(", ") : "keine"}.`,
+  );
+  const vertraege = alleLaufenden(w);
+  z.push(
+    vertraege.length
+      ? "Verträge: " +
+          vertraege
+            .map((v) => `${v.land} bietet ${v.gibt.map((id) => klauselSicht(w, v.land, id)?.def.id ?? id).join("+") || "nichts"} / erhält ${v.will.join("+") || "nichts"} (${v.jahre} J., ${v.verstoesse} Verstöße)`)
+            .join("; ")
+      : "Verträge: keine.",
+  );
+
   const schritt = naechsterSchritt(w);
   if (schritt) z.push(`Nächster Programmschritt: ${schritt.schritt.titel} (${schritt.status === "bereit" ? "bereit" : "noch nicht bereit"}, ${schritt.schritt.kapital} Kapital)`);
 
-  z.push("Minister: " + spiel.figuren.filter((f) => f.imAmt && f.amt !== "opposition").map((f) => `${f.rolle} ${f.name} (${haltung(f)})`).join("; "));
+  z.push(umfeldKontext(w) || "Minister: " + spiel.figuren.filter((f) => f.imAmt && f.amt !== "opposition").map((f) => `${f.rolle} ${f.name} (${haltung(f)})`).join("; "));
 
   const offen = spiel.ereignisse.filter((ev) => !ev.vorlage.startsWith("start_")).slice(0, 3);
   if (offen.length)

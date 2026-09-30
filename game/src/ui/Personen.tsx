@@ -1,110 +1,79 @@
-// Personen und Zusagen: Wer um den Präsidenten steht, was er will und wie er zu Ihnen steht.
+// Personen und Zusagen: Wer um den Präsidenten steht (Profil, Sorgen, Ressort, Gespräche, Wechsel im Amt) und was versprochen wurde.
+// Die Regeln stehen in sim/personen.ts, gespraeche.ts, nachfolge.ts und zusagen.ts; hier nur die Ansicht.
 
 import { useState } from "react";
 import type { World } from "../sim/types";
-import { haltung } from "../sim/figuren";
-import { entlasseFigur, sprichMitFigur, GESPRAECH_ABKUEHLUNG } from "../sim/eingriffe";
-import { Rng } from "../sim/rng";
-import { formatDateDe, addDays } from "../sim/dates";
-import { Cameo } from "./art/Cameo";
-import { kannZahlen } from "../sim/kapital";
+import { zusagenBilanz, zusagenSicht } from "../sim/zusagen";
+import { termineInfo } from "../sim/gespraeche";
+import { AEMTER, eigenVon } from "../sim/personen";
+import { Umfeld } from "./personen/Umfeld";
+import { ZusagenAnsicht } from "./personen/ZusagenAnsicht";
+import "./personen/personen.css";
 
-const ENTLASSBAR = new Set(["finanzen", "inneres", "aussen", "stab"]);
-
-export function Personen({ world, refresh }: { world: World; refresh?: () => void }) {
+export function Personen({ world, refresh, onMassnahme }: { world: World; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void }) {
   const spiel = world.spiel;
-  const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
-  const [wirklich, setWirklich] = useState<string | null>(null);
+  const [tab, setTab] = useState<"umfeld" | "zusagen">("umfeld");
   if (!spiel) return <p>In dieser Partie gibt es kein Umfeld.</p>;
-
-  function gespraech(id: string) {
-    setAntwort(sprichMitFigur(world, id));
-    refresh?.();
-  }
-  function entlassen(id: string, amt: "finanzen" | "inneres" | "aussen" | "stab") {
-    if (wirklich !== id) {
-      setWirklich(id);
-      return;
-    }
-    const r = entlasseFigur(world, amt, new Rng(world.rngState ^ world.day));
-    world.rngState = (world.rngState + 1) | 0;
-    setAntwort(r);
-    setWirklich(null);
-    refresh?.();
-  }
-  const offen = spiel.zusagen.filter((z) => !z.erfuellt && !z.gebrochen);
-  const erledigt = spiel.zusagen.filter((z) => z.erfuellt || z.gebrochen);
+  const neu = () => refresh?.();
+  const bilanz = zusagenBilanz(world);
+  const offen = zusagenSicht(world);
+  const dringend = offen.filter((z) => z.dringlichkeit === "dringend" || z.dringlichkeit === "ueberfaellig").length;
+  const termine = termineInfo(world);
+  const regierung = spiel.figuren.filter((f) => f.imAmt && AEMTER[f.amt].regierungsamt);
+  const auftraege = regierung.filter((f) => eigenVon(world, f).auftrag?.status === "laeuft").length;
+  const gefahr = spiel.figuren.filter((f) => f.imAmt && f.amt !== "opposition" && f.loyalitaet < 25).length;
   return (
-    <div className="personen">
-      <section className="paper">
-        <h3>Ihr Umfeld</h3>
-        <p className="subtitle">Wer Ihnen folgt, hängt an Ihren Entscheidungen. Loyalität wächst mit gehaltenen Zusagen und sinkt mit Angriffen auf ihr Feld.</p>
-        {antwort && (
-          <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
-            {antwort.text}
-            {antwort.why && <em> {antwort.why}</em>}
-          </p>
-        )}
-        <ul className="figuren">
-          {spiel.figuren.map((f) => (
-            <li key={f.id} className={f.amt === "opposition" ? "gegner" : ""}>
-              <Cameo seed={f.name} size={44} figure={f.weiblich ? "f" : "m"} tint={f.amt === "opposition" ? "#7a3b30" : "#265a62"} />
-              <div>
-                <strong>{f.name}</strong>
-                <div className="rolle">{f.rolle}</div>
-                <p className="figur-will"><b>Will</b>{f.ziel}</p>
-                <div className={`loyal l-${f.loyalitaet >= 55 ? "gut" : f.loyalitaet >= 30 ? "mittel" : "schlecht"}`} title={`Loyalität ${Math.round(f.loyalitaet)} von 100`}>
-                  <span className="bar">
-                    <i style={{ width: `${f.loyalitaet}%` }} />
-                  </span>
-                  <em>{haltung(f)}</em>
-                </div>
-                {f.amt !== "opposition" && (
-                  <div className="fraktion-aktionen">
-                    <button
-                      className="aktion-knopf"
-                      disabled={!kannZahlen(spiel.kapital, 1) || (f.gespraech !== undefined && f.gespraech + GESPRAECH_ABKUEHLUNG > world.day)}
-                      onClick={() => gespraech(f.id)}
-                      title={f.gespraech !== undefined && f.gespraech + GESPRAECH_ABKUEHLUNG > world.day ? `Wieder sinnvoll in ${f.gespraech + GESPRAECH_ABKUEHLUNG - world.day} Tagen.` : "Ein Gespräch stärkt die Loyalität (+8)."}
-                    >
-                      Gespräch führen <b>1</b>
-                    </button>
-                    {ENTLASSBAR.has(f.amt) && (
-                      <button className="aktion-knopf leise" disabled={!kannZahlen(spiel.kapital, 4)} onClick={() => entlassen(f.id, f.amt as "finanzen" | "inneres" | "aussen" | "stab")} title="Ein neuer Mensch mit eigener Haltung; die Märkte reagieren auf Wechsel im Finanzministerium.">
-                        {wirklich === f.id ? "Wirklich entlassen?" : "Entlassen"} <b>4</b>
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className="paper">
-        <h3>Zusagen</h3>
-        {offen.length === 0 && <p className="subtitle">Keine offenen Zusagen.</p>}
-        <ul className="zusagen">
-          {offen.map((z) => (
-            <li key={z.id}>
-              <strong>{z.von}</strong> {z.text}
-              <div className="subtitle">fällig am {formatDateDe(addDays(world.spiel!.start.datum, z.faellig))}</div>
-            </li>
-          ))}
-        </ul>
-        {erledigt.length > 0 && (
-          <>
-            <h3>Erledigt</h3>
-            <ul className="zusagen erledigt">
-              {erledigt.map((z) => (
-                <li key={z.id} className={z.erfuellt ? "erfuellt" : "gebrochen"}>
-                  {z.erfuellt ? "gehalten" : "gebrochen"}: {z.text}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
+    <div className="pe">
+      <div className="pe-kopf">
+        <div className={`pe-chip${termine.belegt >= termine.max ? " warn" : ""}`}>
+          <b>Termine (30 Tage)</b>
+          <span>
+            {termine.belegt} von {termine.max}
+          </span>
+          <em>Ihre Zeit ist knapp</em>
+        </div>
+        <div className={`pe-chip${bilanz.glaubwuerdigkeit >= 75 ? " gut" : bilanz.glaubwuerdigkeit < 40 ? " warn" : ""}`}>
+          <b>Glaubwürdigkeit</b>
+          <span>{Math.round(bilanz.glaubwuerdigkeit)}</span>
+          <em>{bilanz.wort}</em>
+        </div>
+        <div className="pe-chip">
+          <b>Aufträge</b>
+          <span>{auftraege}</span>
+          <em>laufen im Kabinett</em>
+        </div>
+        <div className={`pe-chip${gefahr ? " warn" : ""}`}>
+          <b>Rücktrittsgefahr</b>
+          <span>{gefahr}</span>
+          <em>{gefahr ? "Loyalität unter 25" : "niemand"}</em>
+        </div>
+      </div>
+
+      <div className="pe-tabs" role="tablist" aria-label="Personen und Zusagen">
+        <button role="tab" aria-selected={tab === "umfeld"} className={tab === "umfeld" ? "on" : ""} onClick={() => setTab("umfeld")}>
+          Umfeld
+        </button>
+        <button role="tab" aria-selected={tab === "zusagen"} className={tab === "zusagen" ? "on" : ""} onClick={() => setTab("zusagen")}>
+          Zusagen{offen.length > 0 && <span className="pe-zahl">{offen.length}</span>}
+        </button>
+      </div>
+      {dringend > 0 && tab !== "zusagen" && (
+        <p className="pe-rueck nein" role="status">
+          {dringend === 1 ? "Eine Zusage ist" : `${dringend} Zusagen sind`} bald fällig oder überfällig.{" "}
+          <button className="link" onClick={() => setTab("zusagen")}>
+            Zu den Zusagen
+          </button>
+        </p>
+      )}
+
+      {tab === "umfeld" && (
+        <section className="paper">
+          <h3>Ihr Umfeld</h3>
+          <p className="subtitle">Wer Ihnen folgt, hängt an Ihren Entscheidungen. Jede Person hat ein Ressort, einen Stil und einen Ehrgeiz; Gespräche haben Folgen, die später wiederkehren.</p>
+          <Umfeld world={world} refresh={neu} />
+        </section>
+      )}
+      {tab === "zusagen" && <ZusagenAnsicht world={world} refresh={neu} {...(onMassnahme ? { onMassnahme } : {})} />}
     </div>
   );
 }

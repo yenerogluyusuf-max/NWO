@@ -8,7 +8,7 @@ import { setPolicy } from "../src/sim/handeln";
 import { NET } from "../src/sim/modell";
 import { nationalAverage, startAverage } from "../src/sim/netz";
 import { GRUPPEN } from "../src/sim/gruppen";
-import { absichtWort, gleichgewicht, hilfen, wirkungNach, koalition, kette, praeferenzen, regionen, rolleVon, sorgen, tendenz, treiber, wanderung, gruppenDetail } from "../src/sim/waehler-detail";
+import { abwanderung, absichtWort, gleichgewicht, hilfen, schritteFuerZustimmung, wirkungNach, koalition, kette, praeferenzen, regionen, rolleVon, sorgen, tendenz, treiber, wanderung, gruppenDetail } from "../src/sim/waehler-detail";
 import { entscheidungsMarken, verlaufSichern, verlaufVon, zustimmungsVerlauf } from "../src/sim/waehler-verlauf";
 
 function neu(seed = 6) {
@@ -204,5 +204,78 @@ describe("Koalition und Verlauf", () => {
       expect(zahlen.every(Number.isFinite)).toBe(true);
       expect(startAverage(NET, w.net, g.id)).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("Weitere Gruppen: Minderheiten, Nationalisten, Menschen in Armut", () => {
+  test("Sozialhilfe hebt die Stimmung der Armen, Minderheitenrechte hebt Minderheiten und verärgert Nationalisten", () => {
+    const a = neu();
+    const b = neu();
+    setPolicy(b, "m_sozialhilfe", 80);
+    setPolicy(b, "m_minderheitenrechte", 80);
+    advance(a, 30 * 24);
+    advance(b, 30 * 24);
+    const d = (id: string) => nationalAverage(NET, b.net, id) - nationalAverage(NET, a.net, id);
+    expect(d("arme")).toBeGreaterThan(1.5);
+    expect(d("minderheiten")).toBeGreaterThan(1.5);
+    expect(d("nationalisten")).toBeLessThan(-1);
+  });
+
+  test("Grenzschutz gefällt Nationalisten und ist den Minderheiten nicht wichtig", () => {
+    const a = neu();
+    const b = neu();
+    setPolicy(b, "m_grenzschutz", 90);
+    advance(a, 30 * 24);
+    advance(b, 30 * 24);
+    expect(nationalAverage(NET, b.net, "nationalisten")).toBeGreaterThan(nationalAverage(NET, a.net, "nationalisten") + 1);
+    expect(Math.abs(nationalAverage(NET, b.net, "minderheiten") - nationalAverage(NET, a.net, "minderheiten"))).toBeLessThan(0.6);
+  });
+
+  test("Ein Spielstand vor den neuen Gruppen bekommt sie beim Laden mit Startwert und rechnet ohne NaN weiter", () => {
+    const w = neu();
+    advance(w, 30 * 6);
+    const alt = 199 * 81;
+    w.net.values.length = alt;
+    w.net.start.length = alt;
+    for (const s of w.net.history) s.length = alt;
+    if (w.net.acute) w.net.acute.length = alt;
+    delete w.spiel!.waehler;
+    delete w.spiel!.reich;
+    const geladen = load(JSON.stringify(w));
+    for (const id of ["arme", "nationalisten", "minderheiten"]) expect(nationalAverage(NET, geladen.net, id)).toBeCloseTo(50, 5);
+    advance(geladen, 30 * 12);
+    for (const g of GRUPPEN) expect(Number.isFinite(nationalAverage(NET, geladen.net, g.id)), g.id).toBe(true);
+    const k = koalition(geladen);
+    expect(k.gruppen).toHaveLength(GRUPPEN.length);
+    expect(Number.isFinite(k.zustimmung)).toBe(true);
+  });
+});
+
+describe("Schritte für die Zustimmung insgesamt", () => {
+  test("Die Liste ist nach Gewinn sortiert, nennt Kosten und ist ohne NaN", () => {
+    const w = neu();
+    advance(w, 30 * 6);
+    const s = schritteFuerZustimmung(w, 3);
+    expect(s.length).toBeGreaterThan(0);
+    for (let i = 0; i < s.length; i++) {
+      const x = s[i]!;
+      expect(x.gewinn).toBeGreaterThan(0);
+      expect(x.pk).toBeGreaterThan(0);
+      expect(Number.isFinite(x.nach12) && Number.isFinite(x.langfristig) && Number.isFinite(x.kostenBip)).toBe(true);
+      if (i > 0) expect(s[i - 1]!.gewinn).toBeGreaterThanOrEqual(x.gewinn - 1e-9);
+    }
+  });
+});
+
+describe("Wanderung insgesamt", () => {
+  test("Bei schlechter Stimmung wandern mehr Wähler ab; die Anteile der Ziele ergeben höchstens 1", () => {
+    const w = neu();
+    const ruhig = abwanderung(w);
+    for (const g of GRUPPEN) for (let p = 0; p < 81; p++) w.net.values[NET.index.get(g.id)! * 81 + p] = 25;
+    const wuetend = abwanderung(w);
+    expect(wuetend.anteil).toBeGreaterThan(ruhig.anteil);
+    expect(wuetend.ziele.length).toBeGreaterThan(0);
+    expect(wuetend.ziele.reduce((s, z) => s + z.anteil, 0)).toBeLessThanOrEqual(1.0001);
+    for (const z of wuetend.ziele) expect(Number.isFinite(z.anteil)).toBe(true);
   });
 });

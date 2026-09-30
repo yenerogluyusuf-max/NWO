@@ -254,7 +254,7 @@ export function sperreRest(w: World, landId: string): number {
 }
 
 /** Legt einen Vertrag an und wendet Abschlusswirkungen an; das Kapital wird vom Aufrufer abgezogen. */
-function schliesse(w: World, a: Angebot): Vertrag {
+export function schliesse(w: World, a: Angebot): Vertrag {
   const l = land(a.land);
   const z = weltZustand(w)[a.land]!;
   const v: Vertrag = {
@@ -283,12 +283,14 @@ function schliesse(w: World, a: Angebot): Vertrag {
   return v;
 }
 
-function pruefeAngebot(w: World, a: Angebot): string | null {
+/** Ob das Angebot formal in Ordnung ist: ein Satz mit dem Mangel, sonst `null`. */
+export function pruefeAngebot(w: World, a: Angebot): string | null {
   if (!PROFILE[a.land]) return "Mit diesem Land gibt es keine Verhandlungen.";
   if (!VERTRAGSLAUFZEITEN.includes(a.jahre)) return "Diese Laufzeit gibt es nicht.";
   const ids = [...a.gibt, ...a.will];
   if (ids.length === 0) return "Ein Vertrag braucht mindestens eine Klausel.";
   if (new Set(ids).size !== ids.length) return "Eine Klausel kann nur einmal im Vertrag stehen.";
+  for (const id of ids) if (!KLAUSEL_NACH_ID[id]) return `Die Klausel „${id}“ gibt es nicht.`;
   for (const id of a.gibt) if (KLAUSEL_NACH_ID[id]?.seite !== "gibt") return "Unter „Wir bieten“ steht etwas, das wir verlangen.";
   for (const id of a.will) if (KLAUSEL_NACH_ID[id]?.seite !== "will") return "Unter „Wir verlangen“ steht etwas, das wir bieten.";
   for (const id of ids) {
@@ -435,6 +437,41 @@ export function kuendige(w: World, landId: string, vertragId: string): { ok: boo
   z.bruch = (z.bruch ?? 0) + BRUCH_STRAFE;
   addLog(w, "entscheidung", `Ausstieg aus dem Vertrag mit ${l.dat}.`, "Vor einem Drittel der Laufzeit gilt das als Bruch: Vertrauen und Ansehen sinken, und das Land wird künftig härter verhandeln.");
   return { ok: true, text: `Der Vertrag mit ${l.dat} ist vorzeitig beendet: Das gilt als Bruch.`, why: "Vertrauen und Ansehen sinken; das Land erinnert sich." };
+}
+
+/** Ein laufender Vertrag ohne Verstoß lässt sich vor dem Ablauf um weitere Jahre verlängern; der Partner muss ihm noch trauen. */
+export const VERLAENGERUNG_PK: Record<Laufzeit, number> = { 2: 1, 5: 3, 10: 6 };
+
+export function verlaengere(w: World, landId: string, vertragId: string, jahre: Laufzeit, bezahlen = true): { ok: boolean; text: string; why?: string } {
+  const spiel = w.spiel;
+  const v = vertraegeVon(w, landId).find((x) => x.id === vertragId);
+  if (!spiel || !v || v.status !== "laeuft") return { ok: false, text: "Diesen Vertrag gibt es nicht mehr." };
+  const l = land(landId);
+  if (v.verstoesse > 0) return { ok: false, text: `${l.name} verlängert keinen Vertrag mit Verstößen.` };
+  if (!partnerVerlaesslich(w, landId) || vertrauenZu(w, landId) < 35) return { ok: false, text: `${l.name} vertraut der Türkei nicht genug für eine Verlängerung.` };
+  const pk = VERLAENGERUNG_PK[jahre];
+  if (bezahlen) {
+    if (!kannZahlen(spiel.kapital, pk)) return { ok: false, text: "Dafür fehlt das Kapital." };
+    spiel.kapital -= pk;
+  }
+  v.ablauf += jahre * TAGE_JAHR;
+  v.jahre = (v.jahre >= jahre ? v.jahre : jahre) as Laufzeit;
+  landAendern(w, landId, { vertrauen: 3 }, "Vertrag verlängert");
+  addLog(w, "entscheidung", `Vertrag mit ${l.dat} um ${jahre} Jahre verlängert.`, `Das Vertrauen wächst.`);
+  return { ok: true, text: `Der Vertrag mit ${l.dat} läuft ${jahre} Jahre länger.`, why: bezahlen ? `Kostet ${pk} Kapital.` : "Das Vertrauen wächst." };
+}
+
+/**
+ * Ein Paket, das der Partner von sich aus vorschlagen würde: das Angebot, das ihm am meisten wert ist, gegen die Forderung, die ihn am
+ * wenigsten kostet. `null`, wenn er dem Paket selbst nicht zustimmen würde.
+ */
+export function vorschlagVomPartner(w: World, landId: string): Angebot | null {
+  const ks = klauselnFuer(w, landId).filter((k) => !k.gesperrt && !k.rot);
+  const gibt = ks.filter((k) => k.def.seite === "gibt" && k.wert > 0).sort((a, b) => b.wert - a.wert)[0];
+  const will = ks.filter((k) => k.def.seite === "will").sort((a, b) => b.wert - a.wert)[0];
+  if (!gibt && !will) return null;
+  const a: Angebot = { land: landId, gibt: gibt ? [gibt.def.id] : [], will: will ? [will.def.id] : [], jahre: 5 };
+  return bewerte(w, a).urteil === "zustimmung" ? a : null;
 }
 
 /** Wann der früheste ordentliche Ausstieg möglich ist. */

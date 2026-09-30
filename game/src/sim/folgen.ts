@@ -74,7 +74,7 @@ export function netzKette(startId: string, richtung: 1 | -1, breite: [number, nu
     const naechste: { i: number; dir: 1 | -1; nach: number; g: number }[] = [];
     for (const f of front) {
       const kanten = (aus.get(f.i) ?? [])
-        .filter((k) => Math.abs(k.gewicht) >= (ebene === 1 ? 0.02 : 0.025) && NET.nodes[k.nach]!.kind !== "massnahme" && !NET.nodes[k.nach]!.input && !gesehen.has(k.nach))
+        .filter((k) => Math.abs(k.gewicht) >= (ebene === 1 ? 0.01 : 0.015) && NET.nodes[k.nach]!.kind !== "massnahme" && !NET.nodes[k.nach]!.input && !gesehen.has(k.nach))
         .sort((a, b) => Math.abs(b.gewicht) - Math.abs(a.gewicht))
         .slice(0, ebene === 1 ? breite[0] : breite[ebene - 1]);
       for (const k of kanten) {
@@ -117,7 +117,7 @@ export function impulsKette(delta: number): Glied[] {
     { text: s > 0 ? "Das Defizit wächst, die Schulden steigen" : "Das Defizit schrumpft, die Schulden wachsen langsamer", richtung: s, gut: s < 0, nach: 1, ebene: 1, warum: "Z7: Defizite werden zu Schulden." },
     { text: s > 0 ? "Wachstum und Beschäftigung steigen" : "Wachstum und Beschäftigung sinken", richtung: s, gut: s > 0, nach: 3, ebene: 2, warum: "Z1 und Z9: Höhere Auslastung heißt mehr Produktion und Arbeit." },
     { text: s > 0 ? "Die Inflation steigt" : "Die Inflation sinkt", richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: "Z2: Läuft die Wirtschaft heißer, steigen Preise und Löhne schneller." },
-    { text: s > 0 ? "Das Vertrauen der Märkte sinkt, der Risikoaufschlag steigt" : "Das Vertrauen der Märkte wächst, der Risikoaufschlag sinkt", richtung: (-s) as 1 | -1, gut: s < 0, nach: 1, ebene: 2, warum: "Z8: Hohe Defizite machen Anleger nervös." },
+    { text: s > 0 ? "Der Risikoaufschlag steigt: Anleger verlangen mehr für Staatsanleihen" : "Der Risikoaufschlag sinkt: Anleger verlangen weniger für Staatsanleihen", richtung: s, gut: s < 0, nach: 1, ebene: 2, warum: "Z8: Hohe Defizite machen Anleger nervös." },
     ...netzKette("defizit", s, [2, 1, 1]).filter((g) => g.ebene <= 2),
   ];
 }

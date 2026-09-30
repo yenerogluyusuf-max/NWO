@@ -1,7 +1,8 @@
 /* Politik nach Bereichen (politik/Politik.tsx) und „Heute“ (Bereiche.tsx). Klassen mit Präfix .po-. */
 
-.dossier.frame.po-breit { width: min(1180px, calc(100vw - 420px)); }
-@media (max-width: 1000px) { .dossier.frame.po-breit { width: calc(100vw - 36px); } }
+/* Breiter als die anderen Akten, aber mit demselben Abstand zu Menü und Meldungen */
+.dossier.frame.po-breit { width: min(1180px, calc(100vw - 100px - 22px - 396px)); }
+@media (max-width: 1240px) { .dossier.frame.po-breit { width: min(1180px, calc(100vw - 122px)); } }
 
 .po { display: grid; grid-template-columns: 216px minmax(0, 1fr); gap: 22px; align-items: start; min-width: 0; }
 .po.po-nur { grid-template-columns: minmax(0, 1fr); }
@@ -127,7 +128,7 @@
 
 /* Handy: Akten füllen die Breite, die Reiter laufen seitwärts, nichts ragt über den Rand */
 @media (max-width: 700px) {
-  .stage .dossier.frame, .stage .dossier.frame.po-breit, .stage .dossier.frame.wide { left: 8px; right: 8px; width: auto; top: 92px; max-height: calc(100vh - 168px); }
+  .stage .dossier.frame, .stage .dossier.frame.po-breit, .stage .dossier.frame.wide { left: 8px; right: 8px; width: auto; top: 92px; max-height: calc(100vh - 196px); }
   .stage .dossier-body { padding: 14px 14px 36px; overflow-x: hidden; }
   .stage .dossier-head { padding-left: 14px; gap: 6px; }
   .stage .dossier-tabs { min-width: 0; margin: 0 6px 0 10px; overflow-x: auto; scrollbar-width: none; }
@@ -136,3 +137,6 @@
 
 /* Wozu diese Akte dient */
 .dossier-zweck { margin: -4px 0 14px; padding-left: 10px; border-left: 2px solid var(--gold-3); font: italic 14.5px/1.4 var(--serif); color: var(--ink-soft); }
+
+/* Rückmeldungen nach einer Handlung bleiben sichtbar, auch wenn man weiter unten geklickt hat */
+.po-seite > .rueckmeldung, .sk > .rueckmeldung { position: sticky; top: -8px; z-index: 3; background: #f8f1dc; box-shadow: 0 5px 12px rgba(60, 40, 16, 0.2); }

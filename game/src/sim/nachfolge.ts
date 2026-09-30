@@ -26,7 +26,7 @@ interface Archetyp {
   echo: number;
   pk: number;
   staerke: (ressort: string) => string;
-  schwaeche: string;
+  schwaeche: (weiblich: boolean) => string;
 }
 
 const ARCHETYPEN: Archetyp[] = [
@@ -34,30 +34,31 @@ const ARCHETYPEN: Archetyp[] = [
     key: "fach", stile: ["nuechtern", "vorsichtig", "streng"], fae: [74, 88], ehr: [25, 50], loy: [42, 54], lager: (own) => own,
     markt: { finanzen: -25, wirtschaft: -10 }, echo: 2, pk: 4,
     staerke: (r) => `Kennt das Ressort ${r} von innen und wird von der Fachwelt ernst genommen.`,
-    schwaeche: "Wenig Rückhalt in Ihrer Partei; sagt öfter Nein.",
+    schwaeche: () => "Wenig Rückhalt in Ihrer Partei; sagt öfter Nein.",
   },
   {
     key: "vertrauter", stile: ["loyal"], fae: [52, 66], ehr: [35, 55], loy: [66, 78], lager: () => "praesident",
     markt: { finanzen: 30, wirtschaft: 12 }, echo: 0, pk: 3,
     staerke: () => "Folgt Ihnen, und man weiß es.",
-    schwaeche: "Fachlich dünn: Das Ressort leidet, und die Märkte lesen es als Signal.",
+    schwaeche: () => "Fachlich dünn: Das Ressort leidet, und die Märkte lesen es als Signal.",
   },
   {
     key: "ehrgeizig", stile: ["machtbewusst", "eitel"], fae: [62, 76], ehr: [76, 92], loy: [48, 60], lager: () => "partei",
     markt: { finanzen: 10, wirtschaft: 5 }, echo: 2, pk: 5,
     staerke: () => "Bringt Tatkraft und eine eigene Hausmacht in der Partei.",
-    schwaeche: "Denkt an die eigene Karriere und wird gefährlich, wenn er übergangen wird.",
+    schwaeche: (w) => `Denkt an die eigene Karriere und wird gefährlich, wenn ${w ? "sie" : "er"} übergangen wird.`,
   },
 ];
 
-const HERKUNFT: Record<string, [string, string, string]> = {
-  finanzen: ["Langjährige Haushaltsdirektorin der Zentralbank", "Bauunternehmer und Weggefährte aus dem Wahlkampf", "Fraktionsvize und Haushaltssprecher"],
-  inneres: ["Ehemaliger Generalstaatsanwalt", "Provinzgouverneur aus Ihrer Heimatregion", "Vorsitzender des Innenausschusses"],
-  aussen: ["Karrierediplomat, zuletzt Botschafter", "Berater für Außenpolitik im Präsidialamt", "Ehrgeiziger Abgeordneter mit Draht nach Brüssel"],
-  stab: ["Erfahrener Staatssekretär im Präsidialamt", "Langjährige Weggefährtin und Wahlkampfleiterin", "Fraktionsgeschäftsführer mit eigener Hausmacht"],
-  justiz: ["Richter am Kassationshof im Ruhestand", "Anwalt und Vertrauter aus Ihrer Kanzlei", "Abgeordnete und frühere Staatsanwältin"],
-  generalstab: ["General mit Erfahrung in Nato-Stäben", "Ihr früherer Adjutant im Rang eines Generals", "Ehrgeiziger Admiral mit Rückhalt im Offizierskorps"],
-  wirtschaft: ["Unternehmensberater mit Industrieerfahrung", "Unternehmer aus Ihrem Umfeld", "Ehrgeiziger Parteikopf mit Verbindung zu den Verbänden"],
+/** Herkunft der drei Kandidaten je Amt, in männlicher und weiblicher Form (der Amtsinhaber-Typ bleibt bei einem Wechsel gleich). */
+const HERKUNFT: Record<string, [[string, string], [string, string], [string, string]]> = {
+  finanzen: [["Langjähriger Haushaltsdirektor der Zentralbank", "Langjährige Haushaltsdirektorin der Zentralbank"], ["Bauunternehmer und Weggefährte aus dem Wahlkampf", "Bauunternehmerin und Weggefährtin aus dem Wahlkampf"], ["Fraktionsvize und Haushaltssprecher", "Fraktionsvize und Haushaltssprecherin"]],
+  inneres: [["Ehemaliger Generalstaatsanwalt", "Ehemalige Generalstaatsanwältin"], ["Provinzgouverneur aus Ihrer Heimatregion", "Provinzgouverneurin aus Ihrer Heimatregion"], ["Vorsitzender des Innenausschusses", "Vorsitzende des Innenausschusses"]],
+  aussen: [["Karrierediplomat, zuletzt Botschafter", "Karrierediplomatin, zuletzt Botschafterin"], ["Berater für Außenpolitik im Präsidialamt", "Beraterin für Außenpolitik im Präsidialamt"], ["Ehrgeiziger Abgeordneter mit Draht nach Brüssel", "Ehrgeizige Abgeordnete mit Draht nach Brüssel"]],
+  stab: [["Erfahrener Staatssekretär im Präsidialamt", "Erfahrene Staatssekretärin im Präsidialamt"], ["Langjähriger Weggefährte und Wahlkampfleiter", "Langjährige Weggefährtin und Wahlkampfleiterin"], ["Fraktionsgeschäftsführer mit eigener Hausmacht", "Fraktionsgeschäftsführerin mit eigener Hausmacht"]],
+  justiz: [["Richter am Kassationshof im Ruhestand", "Richterin am Kassationshof im Ruhestand"], ["Anwalt und Vertrauter aus Ihrer Kanzlei", "Anwältin und Vertraute aus Ihrer Kanzlei"], ["Abgeordneter und früherer Staatsanwalt", "Abgeordnete und frühere Staatsanwältin"]],
+  generalstab: [["General mit Erfahrung in Nato-Stäben", "Generalin mit Erfahrung in Nato-Stäben"], ["Ihr früherer Adjutant im Rang eines Generals", "Ihre frühere Adjutantin im Rang einer Generalin"], ["Ehrgeiziger Admiral mit Rückhalt im Offizierskorps", "Ehrgeizige Admiralin mit Rückhalt im Offizierskorps"]],
+  wirtschaft: [["Unternehmensberater mit Industrieerfahrung", "Unternehmensberaterin mit Industrieerfahrung"], ["Unternehmer aus Ihrem Umfeld", "Unternehmerin aus Ihrem Umfeld"], ["Ehrgeiziger Parteikopf mit Verbindung zu den Verbänden", "Ehrgeizige Parteigröße mit Verbindung zu den Verbänden"]],
 };
 
 const zufall = (w: World, f: Figur, extra: string): number => hashZahl(`${w.seed}|${f.id}|${eigenVon(w, f).seit}|${f.name}|${extra}`);
@@ -69,7 +70,8 @@ export function kandidatenFuer(w: World, amt: Figur["amt"]): Kandidat[] {
   const f = figur(w, amt);
   if (!f) return [];
   const d = AEMTER[amt];
-  const herkunft = HERKUNFT[amt] ?? ["Fachmann aus dem Ressort", "Vertrauter des Präsidenten", "Ehrgeiziger Parteipolitiker"];
+  const herkunft = HERKUNFT[amt] ?? [["Fachmann aus dem Ressort", "Fachfrau aus dem Ressort"], ["Vertrauter des Präsidenten", "Vertraute des Präsidenten"], ["Ehrgeiziger Parteipolitiker", "Ehrgeizige Parteipolitikerin"]];
+  const g = f.weiblich ? 1 : 0;
   const rng = new Rng(Math.floor(zufall(w, f, "kand") * 2147483647));
   const benutzt = new Set((w.spiel?.figuren ?? []).map((x) => x.name));
   return ARCHETYPEN.map((a, i): Kandidat => {
@@ -85,9 +87,9 @@ export function kandidatenFuer(w: World, amt: Figur["amt"]): Kandidat[] {
       ehrgeiz: between(a.ehr[0], a.ehr[1], u("ehr")),
       lager: a.lager(d.lager),
       loyalitaet: between(a.loy[0], a.loy[1], u("loy")),
-      herkunft: herkunft[i]!,
+      herkunft: herkunft[i]![g]!,
       staerke: a.staerke(d.ressort),
-      schwaeche: a.schwaeche,
+      schwaeche: a.schwaeche(!!f.weiblich),
       markt,
       lagerEcho: a.echo,
       pk: a.pk,

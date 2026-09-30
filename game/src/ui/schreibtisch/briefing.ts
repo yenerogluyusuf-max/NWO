@@ -483,7 +483,28 @@ export function empfehlungen(world: World, vorschlaege?: Vorschlag[]): Empfehlun
     }
   }
 
-  // 7. Mit Kapital im Überfluss: nicht horten
+  // 7. Programmstab: Was dem nächsten Programmschritt noch fehlt, wenn es eine Maßnahme ist, die man einstellen kann
+  const schritt = naechsterSchritt(world);
+  const sp = schritt ? schrittMitProgramm(schritt.schritt.id) : undefined;
+  if (schritt && sp && schritt.status === "offen") {
+    const fehlt = schritt.bedingungen.find((b) => !b.erfuellt);
+    const b = fehlt?.bedingung;
+    if (fehlt && b && (b.art === "massnahme" || b.art === "massnahme-max")) {
+      out.push({
+        id: `p-${schritt.schritt.id}`,
+        rat: "Programmstab",
+        titel: `Programmschritt „${schritt.schritt.titel}“ vorbereiten`,
+        text: `${sp.programm.titel}: ${fehlt.text}. Sobald das erreicht ist, kann der Schritt beginnen (${schritt.schritt.kapital} Kapital).`,
+        knoepfe: [
+          { art: "gehe", label: "Maßnahme einstellen", ziel: { art: "politik", massnahme: { id: b.id, level: b.art === "massnahme" ? Math.min(100, b.min + 5) : Math.max(0, b.max - 5) } } },
+          { art: "gehe", label: "Zum Programm", ziel: { art: "akte", akte: "programme" } },
+        ],
+        gewicht: 48,
+      });
+    }
+  }
+
+  // 8. Mit Kapital im Überfluss: nicht horten
   if (spiel.kapital >= 45 && out.every((o) => !o.id.startsWith("v-"))) {
     const h = handlungsHebel((id) => nationalAverage(NET, world.net, id), "vertrauen_regierung", 1, 1)[0];
     if (h) {

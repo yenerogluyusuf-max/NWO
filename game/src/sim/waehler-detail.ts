@@ -362,6 +362,46 @@ export function wanderung(world: World, id: string): Wanderung {
   return { neigung: wechselNeigung(laune), ziele: ziele.slice(0, 4) };
 }
 
+export interface Abwanderung {
+  /** Anteil aller Wähler, die bei den heutigen Stimmungen eher die Seite wechselten (Spielparameter, gewichtet nach Gruppengröße) */
+  anteil: number;
+  ziele: { partei: string; name: string; imLager: boolean; /** Anteil der Abwanderer, 0 bis 1 */ anteil: number; herkunft: string[] }[];
+}
+
+/** Wohin die Wähler insgesamt abwandern würden: alle Gruppen zusammen, nach Wechselneigung und Nähe der Parteien. */
+export function abwanderung(world: World): Abwanderung {
+  let gesamt = 0;
+  const partei = new Map<string, { name: string; imLager: boolean; punkte: number; herkunft: Map<string, number> }>();
+  for (const g of GRUPPEN) {
+    const anteil = g.gewicht / GRUPPEN_SUMME;
+    const w = wanderung(world, g.id);
+    const abw = anteil * w.neigung;
+    gesamt += abw;
+    const positiv = w.ziele.filter((z) => z.naehe > 0.1);
+    const summe = positiv.reduce((s, z) => s + z.naehe, 0);
+    if (summe <= 0 || abw <= 0) continue;
+    for (const z of positiv) {
+      const e = partei.get(z.partei) ?? { name: z.name, imLager: z.imLager, punkte: 0, herkunft: new Map() };
+      const teil = (abw * z.naehe) / summe;
+      e.punkte += teil;
+      e.herkunft.set(knoten(g.id).name, (e.herkunft.get(knoten(g.id).name) ?? 0) + teil);
+      partei.set(z.partei, e);
+    }
+  }
+  const verteilt = [...partei.values()].reduce((s, e) => s + e.punkte, 0) || 1;
+  const ziele = [...partei.entries()]
+    .map(([p, e]) => ({
+      partei: p,
+      name: e.name,
+      imLager: e.imLager,
+      anteil: e.punkte / verteilt,
+      herkunft: [...e.herkunft.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([n]) => n),
+    }))
+    .sort((a, b) => b.anteil - a.anteil)
+    .slice(0, 4);
+  return { anteil: gesamt, ziele };
+}
+
 // ---------------------------------------------------------------------------
 // Regionen
 
@@ -499,6 +539,8 @@ export interface Hilfe {
   zustimmung: number;
   gewinner: Nebenwirkung[];
   verlierer: Nebenwirkung[];
+  /** Bei Schritten für die Zustimmung insgesamt: die Gruppe, die am meisten gewinnt */
+  hauptgruppe?: Nebenwirkung;
   /** Kosten als Gesetz in Politischem Kapital */
   pk: number;
   kostenBip: number;
@@ -534,9 +576,7 @@ export function hilfen(world: World, id: string, n = 4, sprung = 20): Hilfe[] {
     if (gewinn < 0.3) continue;
     const lang = gleichgewicht(h.node.id, auf - von);
     const alle: Nebenwirkung[] = GRUPPEN.map((g) => ({ id: g.id, name: knoten(g.id).name, punkte: bisWahl.get(g.id) ?? 0 }));
-    const zustimmung =
-      ZUSTIMMUNG_JE_GRUPPEN_PUNKT * GRUPPEN.reduce((sum, g) => sum + (g.gewicht / GRUPPEN_SUMME) * (bisWahl.get(g.id) ?? 0), 0) +
-      ZUSTIMMUNG_JE_VERTRAUENS_PUNKT * (bisWahl.get("vertrauen_regierung") ?? 0);
+    const zustimmung = zustimmungAus(bisWahl);
     out.push({
       massnahme: h.node.id,
       name: h.node.name,
@@ -559,6 +599,67 @@ export function hilfen(world: World, id: string, n = 4, sprung = 20): Hilfe[] {
     });
   }
   return out.sort((a, b) => b.gewinn - a.gewinn).slice(0, n);
+}
+
+/** Die Zustimmung in Punkten aus den Verschiebungen der Gruppen und des Vertrauens (Näherung nach `zustimmungsTeile`). */
+export function zustimmungAus(verschiebung: Map<string, number>): number {
+  return (
+    ZUSTIMMUNG_JE_GRUPPEN_PUNKT * GRUPPEN.reduce((sum, g) => sum + (g.gewicht / GRUPPEN_SUMME) * (verschiebung.get(g.id) ?? 0), 0) +
+    ZUSTIMMUNG_JE_VERTRAUENS_PUNKT * (verschiebung.get("vertrauen_regierung") ?? 0)
+  );
+}
+
+/**
+ * Die wirksamsten einzelnen Schritte für die Zustimmung insgesamt bis zur Wahl: Jede Maßnahme, rauf oder runter, wird durchgerechnet.
+ * Wie bei `hilfen` ohne Rückwirkungen über die Wirtschaft; Nebenwirkungen auf die Gruppen stehen dabei.
+ */
+export function schritteFuerZustimmung(world: World, n = 3, sprung = 20): Hilfe[] {
+  const horizont = horizontBisWahl(world);
+  const kandidaten: { id: string; auf: number; von: number; z: number }[] = [];
+  for (const node of NET.nodes) {
+    if (node.kind !== "massnahme") continue;
+    const von = nationalAverage(NET, world.net, node.id);
+    for (const r of [1, -1] as const) {
+      const auf = Math.max(0, Math.min(100, Math.round(von + r * sprung)));
+      if (Math.abs(auf - von) < 5) continue;
+      const bisWahl = wirkungNach(node.id, auf - von, [horizont], node.months ?? 1).get(horizont)!;
+      const z = zustimmungAus(bisWahl);
+      if (z >= 0.15) kandidaten.push({ id: node.id, auf, von, z });
+    }
+  }
+  kandidaten.sort((a, b) => b.z - a.z);
+  const out: Hilfe[] = [];
+  for (const k of kandidaten.slice(0, n * 4)) {
+    const pr = pruefeVorhaben(world, k.id, k.auf);
+    if (!pr.ok) continue;
+    const spaet = wirkungNach(k.id, k.auf - k.von, [12, horizont], pr.monate);
+    const bisWahl = spaet.get(horizont)!;
+    const lang = gleichgewicht(k.id, k.auf - k.von);
+    const alle: Nebenwirkung[] = GRUPPEN.map((g) => ({ id: g.id, name: knoten(g.id).name, punkte: bisWahl.get(g.id) ?? 0 }));
+    const haupt = [...alle].sort((a, b) => b.punkte - a.punkte)[0];
+    out.push({
+      massnahme: k.id,
+      name: knoten(k.id).name,
+      richtung: k.auf > k.von ? 1 : -1,
+      von: k.von,
+      auf: k.auf,
+      horizont,
+      nach12: zustimmungAus(spaet.get(12)!),
+      gewinn: zustimmungAus(bisWahl),
+      langfristig: zustimmungAus(lang),
+      zustimmung: zustimmungAus(bisWahl),
+      gewinner: alle.filter((x) => x.punkte >= 0.4).sort((a, b) => b.punkte - a.punkte).slice(0, 3),
+      verlierer: alle.filter((x) => x.punkte <= -0.4).sort((a, b) => a.punkte - b.punkte).slice(0, 3),
+      ...(haupt && haupt.punkte >= 0.4 ? { hauptgruppe: haupt } : {}),
+      pk: pr.gesetz.pk,
+      kostenBip: pr.kostenBip,
+      monate: pr.monate,
+      moeglich: pr.ok,
+      mehrheitFehlt: pr.gesetz.stimmen.luecke > 0,
+    });
+    if (out.length >= n) break;
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------

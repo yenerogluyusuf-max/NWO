@@ -16,10 +16,11 @@ function neu() {
 }
 
 describe("Wählerkoalition", () => {
-  test("Acht Gruppen mit Laune, Gewicht, Gründen und Forderungen", () => {
+  test("Alle Gruppen haben Laune, Gewicht, Gründe und Forderungen", () => {
     const w = neu();
     const lage = waehlerLage(w);
-    expect(lage).toHaveLength(8);
+    expect(lage).toHaveLength(GRUPPEN.length);
+    expect(GRUPPEN.length).toBeGreaterThanOrEqual(11);
     expect(lage.reduce((s, g) => s + g.anteil, 0)).toBeCloseTo(1, 6);
     for (const g of lage) {
       expect(g.laune).toBeGreaterThan(0);

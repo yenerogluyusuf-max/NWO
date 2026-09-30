@@ -15,6 +15,9 @@ import { Rng } from "../sim/rng";
 import type { World } from "../sim/types";
 import type { KiAktion, KiErgebnis, KiVorschau } from "./typen";
 import { kannZahlen } from "../sim/kapital";
+import { beginne, vorhabenSicht } from "../sim/reich";
+import { STIMMUNG_WORT, bewerte, pruefeAngebot, verhandle as verhandleVertrag, vermittle, vermittlungen, type Angebot } from "../sim/abkommen";
+import type { Laufzeit } from "../data/abkommen";
 
 const MAX_AKTIONEN = 3;
 const LAND_HANDLUNGEN = new Set<string>(Object.keys(AKTIONEN));
@@ -75,6 +78,16 @@ function pruefeForm(x: unknown): KiAktion | null {
       return istText(o.handlung) ? { art: "haushalt", handlung: o.handlung.trim(), ...g } : null;
     case "ereignis":
       return istText(o.id) && istText(o.option) ? { art: "ereignis", id: o.id.trim(), option: o.option.trim(), ...g } : null;
+    case "vorhaben":
+      return istText(o.id) ? { art: "vorhaben", id: o.id.trim(), ...g } : null;
+    case "abkommen": {
+      if (!istText(o.land)) return null;
+      const liste = (x: unknown) => (Array.isArray(x) ? x.filter(istText).map((t) => t.trim()).slice(0, 8) : []);
+      const jahre = typeof o.jahre === "number" ? Math.round(o.jahre) : undefined;
+      return { art: "abkommen", land: o.land.trim(), bieten: liste(o.bieten), verlangen: liste(o.verlangen), ...(jahre !== undefined ? { jahre } : {}), ...g };
+    }
+    case "vermittlung":
+      return istText(o.id) ? { art: "vermittlung", id: o.id.trim(), ...g } : null;
     case "zeit": {
       const tage = typeof o.tage === "number" && Number.isFinite(o.tage) ? Math.min(90, Math.max(1, Math.round(o.tage))) : 0;
       return tage ? { art: "zeit", tage, ...g } : null;
@@ -164,6 +177,40 @@ export function vorschau(w: World, a: KiAktion): KiVorschau {
       const pk = o.anzeigePk ?? o.pk;
       return { aktion: a, titel: o.label, kosten: pk, ...(kannZahlen(spiel.kapital, pk) ? {} : { problem: "Dafür fehlt Kapital." }) };
     }
+    case "vorhaben": {
+      const sicht = vorhabenSicht(w, a.id);
+      if (!sicht) return { aktion: a, titel: a.id, problem: `„${a.id}“ ist kein Vorhaben dieses Spiels.` };
+      const v = sicht.v;
+      const titel = `Beginn: ${v.name}`;
+      if (sicht.status === "fertig") return { aktion: a, titel, problem: "Es ist schon fertig." };
+      if (sicht.status === "im_bau" || sicht.status === "pausiert") return { aktion: a, titel, problem: "Es läuft bereits." };
+      if (sicht.status === "gesperrt" || sicht.status === "ausgeschlossen") return { aktion: a, titel, problem: sicht.grund ?? "Es ist gesperrt." };
+      const fehlt = sicht.voraus.filter((x) => !x.erfuellt).map((x) => x.text);
+      if (fehlt.length) return { aktion: a, titel, problem: `Voraussetzungen fehlen: ${fehlt.join("; ")}.` };
+      if (!sicht.bezahlbar) return { aktion: a, titel, kosten: v.kosten.pk, problem: "Dafür fehlt Kapital." };
+      if (!sicht.verwaltungOk) return { aktion: a, titel, kosten: v.kosten.pk, problem: "Die Verwaltungskraft reicht dafür nicht." };
+      return { aktion: a, titel, kosten: v.kosten.pk, hinweis: `Etwa ${v.kosten.monate} Monate Bauzeit. ${v.kehrseite}` };
+    }
+    case "abkommen": {
+      const def = LAENDER.find((l) => l.id === a.land);
+      if (!def) return { aktion: a, titel: a.land, problem: `„${a.land}“ ist kein Land dieses Spiels.` };
+      const jahre = (a.jahre ?? 5) as Laufzeit;
+      const angebot: Angebot = { land: def.id, gibt: a.bieten, will: a.verlangen, jahre };
+      const titel = `Vertrag mit ${def.dat}: ${a.bieten.length + a.verlangen.length} Klauseln, ${jahre} Jahre`;
+      const mangel = pruefeAngebot(w, angebot);
+      if (mangel) return { aktion: a, titel, problem: mangel };
+      const b = bewerte(w, angebot);
+      if (!kannZahlen(spiel.kapital, b.pk)) return { aktion: a, titel, kosten: b.pk, problem: "Dafür fehlt Kapital." };
+      if (b.urteil === "veto") return { aktion: a, titel, kosten: b.pk, problem: b.veto ?? "Eine Rote Linie der Gegenseite." };
+      const erwartet = b.urteil === "zustimmung" ? "Die Gegenseite würde zustimmen." : b.urteil === "gegenangebot" ? "Die Gegenseite würde ein Gegenangebot machen." : `Die Gegenseite ist ${STIMMUNG_WORT[b.stimmung].toLowerCase()} und würde ablehnen.`;
+      return { aktion: a, titel, kosten: b.pk, hinweis: erwartet };
+    }
+    case "vermittlung": {
+      const v = vermittlungen(w).find((x) => x.def.id === a.id);
+      if (!v) return { aktion: a, titel: a.id, problem: "Diese Vermittlung gibt es nicht." };
+      const titel = `Vermittlung: ${v.def.titel}`;
+      return { aktion: a, titel, kosten: v.def.pk, hinweis: `Aussicht etwa ${v.aussicht} Prozent.`, ...(v.moeglich ? {} : { problem: v.grund ?? "Geht gerade nicht." }) };
+    }
     case "zeit":
       return { aktion: a, titel: `${a.tage} ${a.tage === 1 ? "Tag" : "Tage"} weiter`, hinweis: "Die Zeit hält an, sobald ein Ereignis auf eine Entscheidung wartet." };
   }
@@ -213,6 +260,20 @@ export function fuehreAus(w: World, a: KiAktion): { ok: boolean; text: string; w
     case "ereignis": {
       const r = entscheide(w, a.id, a.option, rng);
       return { ok: r.ok, text: r.text };
+    }
+    case "vorhaben": {
+      const r = beginne(w, a.id);
+      return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+    }
+    case "abkommen": {
+      const r = verhandleVertrag(w, { land: a.land, gibt: a.bieten, will: a.verlangen, jahre: (a.jahre ?? 5) as Laufzeit });
+      const gegen = r.bewertung?.gegenangebote[0]?.text;
+      const why = [r.why, gegen ? `${gegen} Zum Annehmen den Verhandlungstisch in der Welt öffnen.` : ""].filter(Boolean).join(" ");
+      return { ok: r.ok, text: r.text, ...(why ? { why } : {}) };
+    }
+    case "vermittlung": {
+      const r = vermittle(w, a.id, rng);
+      return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
     }
     case "zeit": {
       const r = laufeZeit(w, a.tage, false);

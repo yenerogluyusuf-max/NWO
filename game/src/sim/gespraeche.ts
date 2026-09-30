@@ -74,7 +74,7 @@ const datumAn = (w: World, tag: number): string => formatDateDe(addDays(w.spiel!
 // ---------------------------------------------------------------------------
 // Ereignisse, die ein Ressort betreffen
 
-const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string }> = {
+export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string }> = {
   grenzzwischenfall: { amt: ["inneres", "aussen", "generalstab"], titel: "Der Grenzzwischenfall" },
   eu_angebot: { amt: ["aussen", "wirtschaft", "justiz"], titel: "Das Angebot der EU" },
   iwf_angebot: { amt: ["finanzen"], titel: "Das Angebot des IWF" },
@@ -217,7 +217,8 @@ function schritteFuer(w: World, f: Figur, groesse: string, richtung: 1 | -1, n =
 }
 
 function schrittText(s: Schritt): string {
-  const kosten = `${s.pk} Kapital${Math.abs(s.kostenBip) >= 0.05 ? ` und ${nf(Math.abs(s.kostenBip), 2)} % des BIP im Jahr${s.kostenBip < 0 ? " an Einnahmen" : ""}` : ""}`;
+  const bip = Math.abs(s.kostenBip) >= 0.05 ? `${nf(Math.abs(s.kostenBip), 2)} % des BIP im Jahr` : "";
+  const kosten = s.kostenBip <= -0.05 ? `${s.pk} Kapital und bringt ${bip} ein` : `${s.pk} Kapital${bip ? ` und ${bip}` : ""}`;
   const mehrheit = s.luecke > 0 ? `im Parlament fehlen etwa ${s.luecke} Stimmen` : "die Mehrheit im Parlament steht";
   return `„${s.name}“ von Stufe ${s.von} auf ${s.nach}: wirkt auf ${s.wirkt}; das kostet ${kosten}, ${mehrheit}.`;
 }
@@ -260,7 +261,7 @@ function insiderFakt(w: World, f: Figur): string | undefined {
   }
 }
 
-function ratHinweise(w: World, f: Figur, thema: Thema): string[] {
+export function ratHinweise(w: World, f: Figur, thema: Thema): string[] {
   const e = eigenVon(w, f);
   const out: string[] = [];
   let groesse = thema.art === "lage" || thema.art === "sorge" ? thema.bezug : undefined;

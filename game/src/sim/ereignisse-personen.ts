@@ -44,7 +44,7 @@ const RUECKTRITT: Vorlage = {
     if (!f) return ["Ein Mitglied der Regierung droht mit Rücktritt."];
     const e = eigenVon(w, f);
     return [
-      `${wer(f)} hat Ihnen ausrichten lassen, dass ${er(f)} unter diesen Bedingungen nicht weiterarbeiten will. Die Loyalität liegt bei ${Math.round(f.loyalitaet)} von 100, ${er(f)} ist ${grollWort(e.groll)}.`,
+      `${wer(f)} hat Ihnen ausrichten lassen, dass ${er(f)} unter diesen Bedingungen nicht weiterarbeiten will. Die Loyalität liegt bei ${Math.round(f.loyalitaet)} von 100, ${er(f)} wirkt ${grollWort(e.groll)}.`,
       sorgeText(w, f),
     ];
   },

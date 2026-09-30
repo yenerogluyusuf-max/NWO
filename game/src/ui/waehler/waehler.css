@@ -1,11 +1,13 @@
 /* Wähleransicht (Block T1). Klassen-Präfix .wa-; Farben und Schriften kommen aus den Variablen des Spiels. */
 
-/* Das Fenster darf breiter sein, wenn Platz ist: links die Gruppen, rechts das Einzelbild */
-.dossier.wide:has(.wa-root) { width: min(1120px, calc(100vw - 100px - 22px - 396px)); }
-.stage:not(:has(.province-card-float)) .dossier.wide:has(.wa-root) { width: min(1120px, calc(100vw - 146px)); }
-@media (max-width: 1240px) { .dossier.wide:has(.wa-root), .stage:not(:has(.province-card-float)) .dossier.wide:has(.wa-root) { width: min(1120px, calc(100vw - 122px)); } }
-@media (max-width: 1000px) { .dossier.wide:has(.wa-root), .stage:not(:has(.province-card-float)) .dossier.wide:has(.wa-root) { width: calc(100vw - 36px); } }
-
+/* Das Fenster darf breiter sein, wenn Platz ist: links die Gruppen, rechts das Einzelbild. Auf dem Handy gelten die Regeln der Akten. */
+@media (min-width: 701px) {
+  .dossier.wide:has(.wa-root) { width: min(1120px, calc(100vw - 100px - 22px - 396px)); }
+  .stage:not(:has(.province-card-float)) .dossier.wide:has(.wa-root) { width: min(1120px, calc(100vw - 146px)); }
+}
+@media (min-width: 701px) and (max-width: 1240px) {
+  .dossier.wide:has(.wa-root), .stage:not(:has(.province-card-float)) .dossier.wide:has(.wa-root) { width: min(1120px, calc(100vw - 122px)); }
+}
 .stage:has(.wa-root) .meldungen { display: none; }
 .wa-root { display: grid; gap: 22px; min-width: 0; }
 .wa-root * { min-width: 0; }
@@ -63,6 +65,13 @@
 .wa-legende em { color: var(--ink-soft); font-size: 13.5px; }
 .wa-hinweise { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font: 15px/1.4 var(--serif); }
 .wa-hinweise b { font-variant: small-caps; letter-spacing: 0.04em; color: var(--seal); }
+
+.wa-wanderung { margin-top: 12px; }
+.wa-wanderung h4 { font-size: 16px; }
+.wa-ziel-balken { display: block; height: 7px; margin: 3px 0 1px; border-radius: 4px; background: rgba(90, 64, 40, 0.12); overflow: hidden; }
+.wa-ziel-balken i { display: block; height: 100%; background: linear-gradient(90deg, #c9a257, var(--gold-3)); }
+.wa-schritte { margin-top: 10px; }
+.wa-schritte summary { cursor: pointer; font: 600 14.5px var(--display); color: var(--teal); padding: 4px 0; }
 
 /* Liste und Einzelbild */
 .wa-haupt { display: grid; grid-template-columns: minmax(230px, 290px) minmax(0, 1fr); gap: 26px; align-items: start; }

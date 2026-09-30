@@ -165,6 +165,34 @@ export function leistung(w: World, f: Figur): number {
   return klemme(basis * mittel * druck * neu, 0, 1.3);
 }
 
+/** Was das Ressort dieser Person dauerhaft bewirkt: um wie viele Punkte sich die Größen im Gleichgewicht verschieben (negativ: sie bremsen). */
+export function ressortWirkungSicht(w: World, f: Figur): { id: string; name: string; punkte: number }[] {
+  const q = leistung(w, f);
+  const faktor = 2 * (q - 0.5);
+  return AEMTER[f.amt].wirkung
+    .filter((x) => NET.index.has(x.id))
+    .map((x) => {
+      const decay = NET.nodes[NET.index.get(x.id)!]!.decay || 0.08;
+      const schlecht = HOCH_SCHLECHT.has(x.id);
+      // Bei Größen, bei denen hoch schlecht ist, zeigt die Zahl die Verbesserung (positiv = besser für das Land)
+      const punkte = Math.round(((x.d * faktor) / decay) * (schlecht ? -1 : 1) * 10) / 10;
+      return { id: x.id, name: nodeName(x.id), punkte };
+    });
+}
+
+/** Ein Hinweis, womit man diese Person gerade am besten erreicht (aus Loyalität, Groll, Ehrgeiz, Auftrag). */
+export function empfehlung(w: World, f: Figur): string | undefined {
+  const e = eigenVon(w, f);
+  if (f.amt === "opposition") return undefined;
+  if (e.kommissarisch) return "Eine kommissarische Leitung leistet weniger; ein Nachfolger bringt Rückhalt.";
+  if (f.loyalitaet < 25) return "Die Loyalität ist am Boden: Aussprache, Rückendeckung oder Anerkennung, sonst droht der Rücktritt. Kritik würde den Bruch beschleunigen.";
+  if (e.groll >= 40) return "Der Groll ist hoch: Rückendeckung oder ein Vertrauensgespräch beruhigen. Kritik oder Übergehen würde ihn steigern.";
+  if (e.ehrgeiz >= 75 && f.loyalitaet < 60) return "Ein ehrgeiziger Mensch, der nicht fest zu Ihnen steht: Verantwortung und Anerkennung binden ihn, Übergehen macht ihn zum Gegner.";
+  if (e.auftrag?.status === "laeuft") return "Ein Auftrag läuft: Anerkennung und Mittel verstärken die Wirkung, Kritik verschafft nur kurz mehr Einsatz.";
+  if (f.loyalitaet >= 60 && !e.auftrag) return `${f.weiblich ? "Sie folgt" : "Er folgt"} Ihnen: Ein Auftrag mit Frist bringt jetzt am meisten.`;
+  return undefined;
+}
+
 export function leistungWort(q: number): string {
   if (q >= 0.85) return "hervorragend";
   if (q >= 0.7) return "gut";
@@ -244,7 +272,7 @@ export function sorgeText(w: World, f: Figur): string {
     }
     case "aussen": {
       const rang = LAENDER.map((l) => ({ l, v: vertrauenZu(w, l.id) })).sort((a, b) => a.v - b.v)[0];
-      return rang ? `Am schwierigsten ist das Verhältnis zu ${rang.l.dat.replace(/^(dem|der|den) /, "")} (Vertrauen ${Math.round(rang.v)} von 100); dort verliert er gerade Boden.` : "Er sorgt sich um die Bündnisse des Landes.";
+      return rang ? `Am schwierigsten ist das Verhältnis zu ${rang.l.dat} (Vertrauen ${Math.round(rang.v)} von 100); dort verliert er gerade Boden.` : "Er sorgt sich um die Bündnisse des Landes.";
     }
     case "zentralbank":
       return `Die Inflation liegt bei ${nf(e.inflation)} % (Ziel ${nf(e.inflationTarget)} %), der Leitzins bei ${nf(e.policyRate)} %; sie wacht darüber, dass ihre Unabhängigkeit nicht angetastet wird.`;

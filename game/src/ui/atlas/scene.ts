@@ -57,6 +57,7 @@ export async function loadKuestenFeld(): Promise<KuestenFeld | null> {
     // Manche Server liefern die Datei schon entpackt aus (Content-Encoding); dann fehlt die gzip-Kennung
     if (b[0] === 0x1f && b[1] === 0x8b) buf = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
     if (buf.byteLength < m.width * m.height) return null;
+    performance.mark("karte-sdf-geladen");
     return { width: m.width, height: m.height, data: new Uint8Array(buf, 0, m.width * m.height) };
   } catch {
     return null;

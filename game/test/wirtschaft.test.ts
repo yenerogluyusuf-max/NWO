@@ -348,3 +348,16 @@ describe("Folgeketten und Prognose", () => {
     expect(kennzahl("gibtsnicht")).toBeUndefined();
   });
 });
+
+describe("Schutz der Bank gilt auf allen Wegen", () => {
+  test("Auch der direkte Befehl entlässt die Führung nicht, solange die Bank gesetzlich geschützt ist", async () => {
+    const { replaceGovernor } = await import("../src/sim/world");
+    const w = welt(3, "vorsichtig");
+    expect(aendereStufe(w, "A").ok).toBe(true);
+    const c0 = w.economy.credibility;
+    replaceGovernor(w, "gefuegig", "eine neue, regierungsnahe Führung");
+    expect(w.governor.stance).toBe("vorsichtig");
+    expect(w.economy.credibility).toBe(c0);
+    expect(w.log.at(-1)!.text).toMatch(/gesetzlich geschützt/);
+  });
+});

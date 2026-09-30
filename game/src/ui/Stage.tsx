@@ -16,6 +16,7 @@ import { Beschlussbuch } from "./Beschlussbuch";
 import { Waehler } from "./Waehler";
 import { Programme } from "./Programme";
 import { Welt } from "./Welt";
+import { LandPopover, type LandAuswahl, type WeltTab } from "./welt/LandPopover";
 import { EconomyFile } from "./EconomyFile";
 import { NetView } from "./NetView";
 import { Decisions } from "./Decisions";
@@ -48,7 +49,7 @@ import { naechsterSchritt } from "../sim/programme";
 import { Rng } from "../sim/rng";
 import { speichere } from "./speicher";
 import { PARTEI_NAME } from "../sim/fraktionen";
-import { ISO_ZU_LAND, KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
+import { KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
 import { kurzVergleich } from "./vergleich";
 
 type Dossier = "schreibtisch" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | null;
@@ -181,6 +182,8 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
     [ebene, w.day - (w.day % 10), spiel?.welt],
   );
   const [weltStart, setWeltStart] = useState<string | undefined>(undefined);
+  const [weltTab, setWeltTab] = useState<WeltTab | undefined>(undefined);
+  const [landAuswahl, setLandAuswahl] = useState<LandAuswahl | null>(null);
 
   // Marken für Wunder und Bauvorhaben immer, für Stätten in der Kartenebene „Kulturerbe“
   const orte = useMemo<KartenOrt[]>(() => {
@@ -330,7 +333,8 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
             if (plaka) { setSelected(plaka); setEbene("probleme"); }
           }
         }}
-        {...(ebene === "welt" ? { laenderFarben: laenderKarte, onLand: (iso: string) => { const id = ISO_ZU_LAND[iso]; if (id) { setWeltStart(id); setDossier("welt"); beendeZeit(); } } } : {})}
+        onLand={(iso, pos) => setLandAuswahl({ iso, x: pos?.x ?? window.innerWidth / 2, y: pos?.y ?? window.innerHeight / 2 })}
+        {...(ebene === "welt" ? { laenderFarben: laenderKarte } : {})}
         ebene={ebene}
         {...(kamera ? { camera: kamera } : {})}
       />
@@ -449,7 +453,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
                 }}
               />
             )}
-            {dossier === "wirtschaft" && <EconomyFile world={w} />}
+            {dossier === "wirtschaft" && <EconomyFile world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
             {(dossier === "parlament" || dossier === "beschluesse") && <Beschlussbuch teil={dossier === "parlament" ? "parlament" : "beschluesse"} world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "programme" && (
               <Programme
@@ -465,8 +469,9 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
             )}
             {dossier === "welt" && (
               <Welt
-                key={weltStart ?? "start"}
+                key={`${weltStart ?? "start"}-${weltTab ?? "ueberblick"}`}
                 {...(weltStart ? { start: weltStart } : {})}
+                {...(weltTab ? { startTab: weltTab } : {})}
                 world={w}
                 refresh={() => { refresh(); sichere(true); }}
                 onMassnahme={(id, richtung) => {
@@ -480,6 +485,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
             {dossier === "waehler" && (
               <Waehler
                 world={w}
+                onDossier={(d) => setDossier(d)}
                 onMassnahme={(id, richtung) => {
                   setNetTheme(null);
                   setNetOrt(null);
@@ -488,7 +494,18 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
                 }}
               />
             )}
-            {dossier === "personen" && <Personen world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "personen" && (
+              <Personen
+                world={w}
+                refresh={() => { refresh(); sichere(true); }}
+                onMassnahme={(id, richtung) => {
+                  setNetTheme(null);
+                  setNetOrt(null);
+                  setNetVorhaben({ id, level: Math.max(0, Math.min(100, Math.round(stufeIn(w, id, null)) + 20 * richtung)) });
+                  setDossier("netz");
+                }}
+              />
+            )}
             {dossier === "chronik" && <Chronik world={w} />}
             {dossier?.startsWith("reich_") && (
               <Reich
@@ -518,10 +535,9 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
                 key={erlassStart ?? "erlass"}
                 {...(erlassStart ? { start: erlassStart } : {})}
                 world={w}
-                onDecided={() => {
+                onGeaendert={() => {
                   refresh();
                   sichere(true);
-                  setDossier("schreibtisch");
                 }}
               />
             )}
@@ -607,6 +623,21 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
           onClose={() => {
             spiel!.hinweise.shift();
             refresh();
+          }}
+        />
+      )}
+
+      {landAuswahl && (
+        <LandPopover
+          auswahl={landAuswahl}
+          world={w}
+          onClose={() => setLandAuswahl(null)}
+          onOeffne={(id, tab) => {
+            setLandAuswahl(null);
+            setWeltStart(id);
+            setWeltTab(tab);
+            setDossier("welt");
+            beendeZeit();
           }}
         />
       )}

@@ -15,6 +15,11 @@ import type { World } from "./types";
 
 /** Die Zentralbankführung austauschen (Stufe B). */
 export function replaceGovernor(world: World, stance: GovernorStance, name: string): void {
+  // Ist die Bank gesetzlich geschützt, lässt sich die Führung nicht entlassen (auch nicht über Gespräch oder Befehl)
+  if (world.spiel && wirtschaftZustand(world).zb.stufe === "A") {
+    addLog(world, "entscheidung", "Die Führung der Zentralbank lässt sich nicht entlassen: Sie ist gesetzlich geschützt.", "Zuerst müsste das Zentralbankgesetz geändert werden.");
+    return;
+  }
   if (world.spiel) programmZustand(world).zentralbankAngriff = world.day;
   const e = world.economy;
   const loss = stance === "gefuegig" ? 0.25 : 0.1;

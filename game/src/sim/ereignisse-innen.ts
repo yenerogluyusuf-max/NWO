@@ -4,7 +4,7 @@
 // Platzhalter der Kalibrierung; Zahlen im Text kommen aus dem Weltzustand, nie aus dem Kopf.
 
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
-import { setFiscalImpulse } from "./eingriffe";
+import { wendePaketAn } from "./haushalt";
 import { setPolicy } from "./handeln";
 import { anrede, figur, loyalitaetAendern, zufallsName } from "./figuren";
 import { BANKEN, KOHLEFIRMEN, TEXTILFIRMEN, ZEITUNGEN, waehle } from "./akteure";
@@ -69,16 +69,16 @@ const HAUSHALTSJAHR: Vorlage = {
   ],
   warum: () => "Der Haushalt ist die größte einzelne Entscheidung des Jahres: Er legt fest, wie viel der Staat der Wirtschaft zuführt oder entzieht.",
   optionen: () => [
-    opt("konsolidieren", "Konsolidieren", beschr(3, 0, "die Märkte und der Finanzminister sind zufrieden, die Nachfrage lahmt."), 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse - 0.8);
+    opt("konsolidieren", "Konsolidieren", beschr(3, 0, "Personal, Subventionen und Einkommensteuer wirken zusammen: Märkte und Finanzminister sind zufrieden, die Nachfrage lahmt."), 3, (w) => {
+      wendePaketAn(w, "konsolidieren");
       wirke(w, "vertrauen_maerkte", 3);
       loyalitaetAendern(w, "finanzen", 6);
       vertrauenAendern(w, -0.8);
       return "Der Haushalt setzt auf Konsolidierung.";
     }),
     opt("fortschreiben", "Fortschreiben", beschr(0, 0, "kein Signal in irgendeine Richtung."), 0, () => "Der Haushalt wird fortgeschrieben."),
-    opt("investieren", "Investieren", beschr(3, 0, "mehr Wachstum, mehr Schulden."), 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse + 1.2);
+    opt("investieren", "Investieren", beschr(3, 0, "der Haushalt investiert in Straßen, Wasser und Schulen: mehr Wachstum, mehr Schulden."), 3, (w) => {
+      wendePaketAn(w, "investieren");
       vertrauenAendern(w, 1);
       loyalitaetAendern(w, "finanzen", -6);
       return "Der Haushalt setzt auf Investitionen.";

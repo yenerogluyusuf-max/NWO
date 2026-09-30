@@ -189,3 +189,50 @@ Auftrag des Projektinhabers: Logik und Spielfluss prüfen, sich in Spieler hinei
 | Abwechslung bei Wiederholern | Im langen Testlauf (79 Monate) kam die „Vergabeaffäre“ fünfmal und „Damaskus verliert die Geduld“ viermal. Jetzt: Affären in vier Geschichten (Bauauftrag, Rüstungsbeschaffung, Klinikeinkauf, Energieverträge; es kommt die am längsten nicht erzählte), Sperrzeit 420 statt 300 Tage; ein Land, das eben gefordert hat, lässt neun Monate anderen den Vortritt | `sim/ereignisse.ts` (`AFFAEREN`), `sim/ereignisse-laender.ts`, `test/ereignis-varianten.test.ts` |
 
 **Was noch fehlt (ehrlich):** Ein Sprachmodell ist nicht eingebaut (Gespräch und Mentorin sind regelbasiert); die Länder handeln noch nicht von sich aus (nur Anliegen und Stimmung); kein Krieg, keine Verträge mit Klauseln, keine Mediation (AUSSENPOLITIK.md, Abschnitte 4 und 6); die Startwerte der Länder sind Spielparameter aus der qualitativen Matrix, keine gemessenen Zahlen; die Kalibrierung braucht echte Spieler.
+
+## T2. Aufbau der Ansichten (30.09.2026)
+
+Anlass: Der Projektinhaber verstand den Unterschied zwischen den Ansichten nicht mehr und wünschte „Bei Politik die Bereiche direkt“ und einen besseren Schreibtisch. Grundsatz: **Jede Ansicht beantwortet eine Frage und führt zu einer Entscheidung; jede Entscheidung zeigt ihre Folgen an derselben Stelle.** Eine Ansicht, die nur anzeigt, ist entweder zu verschmelzen oder zu verlinken.
+
+| Ansicht | Die Frage, die sie beantwortet | Was man dort entscheidet | Wo die Folgen sichtbar werden |
+|---|---|---|---|
+| **Schreibtisch** | Was ist heute zu tun? | Fälliges beantworten, dem Rat des Stabs folgen (Gespräch führen, Vorhaben einbringen), zur passenden Akte gehen | Rückmeldung oben (bleibt beim Scrollen sichtbar), Liste „Fällig“ und Rat ändern sich, Kennzahlen laufen mit |
+| **Politik › Bereiche** | Wo steht das Land in einem Themenfeld, und was kann ich dort ändern? | Jede Maßnahme des Bereichs einstellen (Stufe, Ort, Gesetz oder Erlass) | Zeile der Maßnahme („im Parlament“, „Umsetzung läuft“), Kennzeile des Bereichs, Kachel im Überblick |
+| **Politik › Heute** | Welche Vorhaben haben jetzt den größten Hebel? | Vorschlag einstellen oder sofort einbringen | wie oben |
+| **Politik › Programme** | Welche Ziele über mehrere Schritte verfolge ich? | Schritte beginnen | Fortschritt je Schritt |
+| **Politik › Umsetzung** | Was ist beschlossen und läuft gerade? | Beschlüsse verfolgen, Stimmen kaufen, zurückziehen | Rechnung, Zeitplan, Beschlussbuch |
+| **Politik › Netz und Suche** | Wie hängt alles zusammen? (Expertenansicht) | wie in den Bereichen, von jeder Größe aus | Graph, Ursachen und Wirkungen |
+| **Wähler** | Wer trägt mich, wer nicht? | Forderungen einer Gruppe erfüllen | Laune, Trend, Gründe |
+| **Parlament** | Wo brauche ich Mehrheiten? | Gespräche, Duldungen, Bündnisse, Abstimmungen | Sitzverteilung, Stimmenrechnung |
+| **Wirtschaft** | Wie stehen Zahlen, Zentralbank und Haushalt? | Erlasse zu Haushalt und Zentralbank | Kennzahlen, Vorschau auf das nächste Jahr |
+| **Welt** | Wie stehen die übrigen Länder zu mir? | Gipfel, Abkommen, Verhandlungen | Vertrauen, Konflikt, Verträge |
+| **Reich** | Was baue ich und halte ich im Bestand? | Wunder, Großprojekte, Erhalt, Justiz, Streitkräfte | Bestand, Baufortschritt, Vorteile |
+| **Personen** | Wer regiert mit mir, was habe ich zugesagt? | Gespräche, Entlassung, Zusagen einlösen | Loyalität, Fristen |
+| **Chronik** | Was ist geschehen? | nichts (Gedächtnis) | Beschlüsse, Ereignisse, Umfragen, Wirkungsberichte |
+
+Jede Akte nennt ihren Zweck in einem Satz unter dem Titel (`ui/politik/zweck.ts`), damit der Unterschied nie wieder erraten werden muss.
+
+**Doppelungen, die aufgelöst wurden**
+
+- Der Schreibtisch zeigte vorher Lage, Ereignisse, Ziele, Mentorin und eine Zusammenfassung der Beschlüsse; ein Teil davon stand auch in Politik › Übersicht und in der Wirtschaftsakte. Jetzt gilt: Der Schreibtisch ist die **Tagesübersicht** (Kennzahlen, Fälliges, Warnungen, Rat, Termine) und verlinkt in die Fachansichten; das Parlament und die 13-Zeilen-Chronik sind dort nicht mehr nachgebaut. Die Vorschläge des Problemlösers stehen am Schreibtisch nur als die zwei besten Ratschläge, die volle Liste bleibt unter „Heute“.
+- Die Bereichskacheln standen früher unter den Vorschlägen und führten in eine allgemeine Maßnahmenliste. Jetzt sind sie der **Einstieg der Politik** (Überblick), und jeder Bereich hat eine eigene Seite.
+- „Maßnahmen“ hieß der Reiter mit der Liste aller 233 Knoten. Er heißt jetzt **„Netz und Suche“**, weil er die Expertenansicht ist (Suche, Graph, Ursachen und Wirkungen); der normale Weg zu einer Maßnahme führt über den Bereich.
+
+**Politik nach Bereichen** (`ui/politik/Politik.tsx`, Rechnung in `ui/politik/bereiche.ts`)
+
+- Links die 15 Bereiche mit Ampel und Zahl der akuten Probleme (auf dem Handy eine Reihe zum Wischen), rechts die Seite des Bereichs. Ohne Auswahl der **Überblick**: alle Bereiche als Kacheln, dazu die Zeile „Angespannt: …“.
+- Die Seite eines Bereichs: Kopf (Ampel mit Begründung, laufende Vorhaben, Kapital), **akute Probleme** mit den zwei besten Hebeln als Knopf, **Lage** (Größen als Balken mit Strich für den Stand beim Amtsantritt, ▲▼ grün oder rot je nachdem, ob die Veränderung gut ist), **Was hier jetzt hilft** (Vorschläge des Problemlösers aus diesem Bereich), **Maßnahmen** (alle, was läuft zuerst). Ein Klick öffnet dieselbe Entscheidungsansicht wie im Netz (Ort, Stufen, Folgen, Kosten, Weg, Vorschau), eingebettet mit dem Weg zurück zum Bereich.
+- **Ampel** (Anzeigeregel, kein Messwert): *rot* bei drei oder mehr akuten Problemen, einem Problem, das mindestens 30 % der Menschen trifft, oder zwei Größen im schlechten Bereich; *gelb* bei einem akuten Problem oder einer Größe im schlechten Bereich; sonst *grün*. „Schlecht“ heißt bei Größen, bei denen hoch gut ist, Wert höchstens 35, und bei Größen, bei denen hoch schlecht ist (Mieten, Kriminalität, …), Wert mindestens 65. Die Ampel steht nie allein: Wort („ruhig“, „Achtung“, „angespannt“) und Begründung stehen daneben.
+
+**Schreibtisch als Tagesbriefing** (`ui/schreibtisch/`, Rechnung in `briefing.ts`, getestet in `test/schreibtisch-briefing.test.ts`)
+
+- **Lage in sechs Zahlen**, jede führt in ihre Akte: Zustimmung (mit Wert vor drei Monaten), Kapital (mit Einkommen je Monat), Mehrheit (Sitze, Lücke), Inflation, Arbeitslosigkeit, akute Probleme (jeweils gegen den Stand beim Amtsantritt).
+- **Fällig**, nach Tagen geordnet: offene Ereignisse mit Frist, Abstimmungen (mit erwarteten Ja-Stimmen), Zusagen (mit dem Vorhaben, das sie erfüllt), auslaufende Duldungen, bereite Programmschritte. Jede Zeile hat einen Knopf, der zur Entscheidung führt.
+- **Warnungen**, aus dem Zustand berechnet: Sturzgefahr, sinkende Zustimmung, Pump und knappes Kapital, fehlende Mehrheit, Inflation und Schulden über dem Stand beim Amtsantritt, mehr akute Probleme als beim Start, verärgerte Wählergruppe, wackelnder Partner, ablaufende Fristen, verfallende Stätte, überlastete Verwaltung, Wahl in Sicht bei schwacher Zustimmung. Rot vor Gelb, jede mit Begründung und Ziel.
+- **Der Beraterstab rät**, höchstens fünf Vorschläge, alle aus der Simulation: Fachstab (die zwei wirksamsten Vorhaben mit Kosten, Dauer, Mehrheit; *sofort einbringen* geht direkt), Fraktionsbüro (fehlt die Mehrheit: das günstigste Gespräch mit der offensten Fraktion; *Gespräch führen* geht direkt), Wahlkampfstab (die verärgerte Gruppe und was sie will), Außenamt (das Land mit dem größten Gesprächsbedarf), Finanzministerium (Inflation, brachliegendes Kapital), Kulturbehörde (verfallendes Erbe). Wer die Rolle im Spiel besetzt, steht mit Namen dabei.
+- **Termine**: Wahl, Abstimmungen, Zusagen und der feste Kalender des Staatsjahres (Haushaltsentwurf im Oktober ab 2028, Mindestlohn im Dezember, Kommunalwahlen im März 2029); ein Test hält den Kalender mit den Ereignisvorlagen zusammen.
+- Die Rückmeldung nach jeder Handlung bleibt oben am Fenster haften, damit sie sichtbar ist, auch wenn man weiter unten geklickt hat.
+
+**Prüfung:** 17 neue Tests (Bereichslogik, Briefing, Kalender, Ratgeber, Über-Jahre-Stabilität); Browserlauf mit 16 Prüfungen der Entscheidungswege (Gespräch führen senkt das Kapital, Einbringen erscheint unter „Fällig“, Zusage öffnet die Maßnahme, Bereichszeile zeigt „im Parlament“, Kachel nennt das laufende Vorhaben, Ereignis kehrt vom Schreibtisch ins Fenster zurück); Überschneidungsprüfung bei 1000×570, 1280×720 und 1512×982 ohne Befund für acht Ansichten; bei 390 px Breite kein seitliches Überlaufen (die Akte füllt die Breite und bedeckt dabei bewusst das Menü, Schließen führt zurück).
+
+**Offen:** Die Ansichten Wirtschaft, Personen und Zusagen, Wähler, Welt und Parlament werden von anderen Arbeitssträngen überarbeitet und sollen denselben Grundsatz erfüllen (Zweckzeile ist schon da). Das Kopfband (Zahlen oben) wird auf 390 px Breite von den Statistiken überlagert; das ist nicht Teil dieser Arbeit.

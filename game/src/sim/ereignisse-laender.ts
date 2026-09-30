@@ -6,13 +6,15 @@ import { anliegenStand, land, landAendern, LAENDER, vertrauenZu, weltZustand } f
 import { loyalitaetAendern } from "./figuren";
 import { beschr, kosten, opt, zusageAnlegen } from "./ereignis-hilfen";
 import type { Vorlage } from "./ereignis-hilfen";
+import { KLAUSEL_NACH_ID, type Laufzeit } from "../data/abkommen";
+import { heimWirkung, klauselSicht, laufende, pruefeAngebot, schliesse, sperreRest, verlaengere, VERLAENGERUNG_PK, vertragsName, vorschlagVomPartner, type Angebot } from "./abkommen";
 import type { World } from "./types";
 
 const AB_TAG = 200;
 
 const ANREDE: Record<string, string> = {
   USA: "Die US-Regierung", EU: "Die EU-Kommission", RUS: "Moskau", CHN: "Peking", AZE: "Baku", SAU: "Riad und die Golfstaaten", GRC: "Athen",
-  IRN: "Teheran", SYR: "Damaskus", IRQ: "Bagdad", ARM: "Eriwan", ISR: "Jerusalem",
+  IRN: "Teheran", SYR: "Damaskus", IRQ: "Bagdad", ARM: "Eriwan", ISR: "Jerusalem", UKR: "Kiew", GEO: "Tiflis", EGY: "Kairo", LBY: "Tripolis", KAZ: "Astana", CYP: "Nikosia",
 };
 
 /** Länder mit einem unerfüllten Anliegen, das sich ändern ließe, und mit wenig Geduld. */
@@ -86,11 +88,22 @@ const LAND_FORDERT: Vorlage = {
   },
 };
 
-/** Länder mit viel Vertrauen bieten etwas an. */
-function angebot(w: World): { id: string } | null {
-  const kandidaten = LAENDER.filter((l) => vertrauenZu(w, l.id) >= 62 && weltZustand(w)[l.id]!.konflikt < 55 && (weltZustand(w)[l.id]!.zuletzt.handel ?? -1e9) < w.day - 200);
-  return kandidaten.length ? { id: kandidaten[Math.floor((w.day / 30) % kandidaten.length)]!.id } : null;
+/** Länder mit viel Vertrauen schlagen von sich aus ein Paket vor: etwas für die Türkei gegen etwas von der Türkei. */
+function angebot(w: World): { id: string; paket: Angebot } | null {
+  const kandidaten = LAENDER.filter((l) => vertrauenZu(w, l.id) >= 55 && weltZustand(w)[l.id]!.konflikt < 60 && sperreRest(w, l.id) === 0 && (w.spiel?.zuletzt[`land_angebot#${l.id}`] ?? -1e9) < w.day - 300)
+    .map((l) => ({ id: l.id, paket: vorschlagVomPartner(w, l.id) }))
+    .filter((x): x is { id: string; paket: Angebot } => x.paket !== null);
+  return kandidaten.length ? kandidaten[Math.floor((w.day / 30) % kandidaten.length)]! : null;
 }
+
+const labelVon = (w: World, landId: string, id: string) => klauselSicht(w, landId, id)?.label ?? id;
+const paketText = (w: World, a: Angebot) => {
+  const teile: string[] = [];
+  if (a.gibt.length) teile.push(`Die Türkei bietet: ${a.gibt.map((id) => `„${labelVon(w, a.land, id)}“`).join(", ")}`);
+  if (a.will.length) teile.push(`Die Türkei erhält: ${a.will.map((id) => `„${labelVon(w, a.land, id)}“`).join(", ")}`);
+  return `${teile.join(". ")}. Laufzeit ${a.jahre} Jahre.`;
+};
+const paketPreis = (a: Angebot) => [...a.gibt, ...a.will].reduce((s, id) => s + (KLAUSEL_NACH_ID[id]?.pk ?? 0), 0);
 
 const LAND_ANGEBOT: Vorlage = {
   id: "land_angebot",
@@ -98,45 +111,104 @@ const LAND_ANGEBOT: Vorlage = {
   frist: 30,
   abkuehlung: 300,
   chance: (w) => (w.day > AB_TAG && angebot(w) ? 0.04 : 0),
+  eroeffne: (w, ev) => {
+    if (w.spiel) w.spiel.zuletzt[`land_angebot#${String(ev.daten?.land)}`] = w.day;
+  },
   erzeuge: (w) => {
     const a = angebot(w);
-    return a ? { provinzen: [], staerke: 1, daten: { land: a.id } } : null;
+    return a ? { provinzen: [], staerke: 1, daten: { land: a.id, gibt: a.paket.gibt.join(","), will: a.paket.will.join(",") } } : null;
   },
-  titel: (_, ev) => `${ANREDE[String(ev.daten?.land)] ?? land(String(ev.daten?.land)).name} macht ein Angebot`,
+  titel: (_, ev) => `${ANREDE[String(ev.daten?.land)] ?? land(String(ev.daten?.land)).name} schlägt einen Vertrag vor`,
   text: (w, ev) => {
     const l = land(String(ev.daten?.land));
+    const a = paketAus(ev);
     return [
-      `${ANREDE[l.id] ?? l.name} schlägt vor, die wirtschaftliche Zusammenarbeit auszubauen: bessere Zollbedingungen, gemeinsame Vorhaben und verlässlichere Lieferketten. Das Verhältnis ist gut (Vertrauen ${Math.round(vertrauenZu(w, l.id))}); es ist die Zeit, daraus etwas zu machen.`,
+      `${ANREDE[l.id] ?? l.name} legt ein Paket auf den Tisch. ${paketText(w, a)}`,
+      `Das Verhältnis ist gut (Vertrauen ${Math.round(vertrauenZu(w, l.id))}); es ist die Zeit, daraus etwas zu machen. Was das Paket bei uns bewirkt, zeigen die Antworten.`,
     ];
   },
-  warum: () => "Vertrauen ist Kapital, das man nur einlösen kann, wenn ein Angebot kommt. Wer es nie einlöst, hat es umsonst aufgebaut.",
+  warum: () => "Vertrauen ist Kapital, das man nur einlösen kann, wenn ein Angebot kommt. Wer es nie einlöst, hat es umsonst aufgebaut. Ein Vertrag bindet aber beide Seiten und wird jedes Jahr geprüft.",
   massnahmen: [],
-  optionen: (_, ev) => {
+  optionen: (w, ev) => {
     const l = land(String(ev.daten?.land));
+    const a = paketAus(ev);
+    const kurz = { ...a, jahre: 2 as Laufzeit };
+    const zeilen = [...a.gibt, ...a.will].flatMap((id) => KLAUSEL_NACH_ID[id] ? heimWirkung(KLAUSEL_NACH_ID[id]!).dauer.slice(0, 2).map((z) => z.text) : []).slice(0, 4).join("; ");
+    const preis = paketPreis(a);
     return [
-      opt("annehmen", "Annehmen", beschr(3, 0, "der Handel wächst, die Gegenseite erwartet Verlässlichkeit."), 3, (ww) => {
-        landAendern(ww, l.id, { handel: 12, vertrauen: 3 }, "Angebot angenommen");
-        wirke(ww, "export", 2);
-        wirke(ww, "auslandskapital", 1);
-        weltZustand(ww)[l.id]!.zuletzt.handel = ww.day;
-        weltZustand(ww)[l.id]!.abkommen.push(`Zusammenarbeit ${ww.date.slice(0, 4)}`);
-        return `Die Türkei nimmt das Angebot von ${ANREDE[l.id] ?? l.name} an; der Handel wächst.`;
+      opt("annehmen", "Annehmen: fünf Jahre", beschr(preis, 0, zeilen ? `bei uns: ${zeilen}; ein Vertrag bindet und wird jedes Jahr geprüft.` : "ein Vertrag bindet und wird jedes Jahr geprüft."), preis, (ww) => {
+        const pruef = pruefeAngebot(ww, a);
+        if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
+        schliesse(ww, a);
+        return `Die Türkei und ${l.name} schließen den Vertrag: ${paketText(ww, a)}`;
       }),
-      opt("verhandeln", "Nachverhandeln", beschr(2, 0, "bessere Bedingungen, aber langsamer."), 2, (ww) => {
-        landAendern(ww, l.id, { handel: 7, vertrauen: 1 }, "Angebot nachverhandelt");
-        weltZustand(ww)[l.id]!.zuletzt.handel = ww.day;
-        return `Nach Nachverhandlungen kommt ein kleineres Abkommen mit ${ANREDE[l.id] ?? l.name} zustande.`;
+      opt("kurz", "Kürzer binden: zwei Jahre", beschr(Math.ceil(preis * 0.6), 0, "schwächere Dauerwirkung, dafür weniger Bindung."), Math.ceil(preis * 0.6), (ww) => {
+        const pruef = pruefeAngebot(ww, kurz);
+        if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
+        schliesse(ww, kurz);
+        return `Die Türkei und ${l.name} schließen einen Vertrag auf zwei Jahre.`;
       }),
       opt("ablehnen", "Ablehnen", beschr(0, 0, "wahrt die Unabhängigkeit, kostet Wärme."), 0, (ww) => {
-        landAendern(ww, l.id, { vertrauen: -3 }, "Angebot abgelehnt");
-        return `Die Türkei lehnt das Angebot von ${ANREDE[l.id] ?? l.name} höflich ab.`;
+        landAendern(ww, l.id, { vertrauen: -3 }, "Vertragsvorschlag abgelehnt");
+        return `Die Türkei lehnt den Vorschlag von ${ANREDE[l.id] ?? l.name} höflich ab.`;
       }),
     ];
   },
   standard: (w, ev) => {
-    landAendern(w, String(ev.daten?.land), { vertrauen: -2 }, "Angebot verfallen");
-    return "Das Angebot verfällt ungenutzt.";
+    landAendern(w, String(ev.daten?.land), { vertrauen: -2 }, "Vertragsvorschlag verfallen");
+    return "Der Vorschlag verfällt ungenutzt.";
   },
+};
+
+function paketAus(ev: { daten?: Record<string, number | string> }): Angebot {
+  const liste = (x: unknown) => String(x ?? "").split(",").filter(Boolean);
+  return { land: String(ev.daten?.land), gibt: liste(ev.daten?.gibt), will: liste(ev.daten?.will), jahre: 5 };
+}
+
+/** Ein Vertrag, der bald ausläuft und noch nichts angesprochen hat. */
+function ablaufend(w: World): { id: string; land: string } | null {
+  for (const l of LAENDER) {
+    for (const v of laufende(w, l.id)) {
+      if (v.ablauf - w.day <= 150 && v.ablauf - w.day > 20 && (w.spiel?.zuletzt[`vertrag_verlaengerung#${v.id}`] ?? -1e9) < 0) return { id: v.id, land: l.id };
+    }
+  }
+  return null;
+}
+
+const VERTRAG_VERLAENGERUNG: Vorlage = {
+  id: "vertrag_verlaengerung",
+  szene: "bank",
+  frist: 40,
+  abkuehlung: 60,
+  chance: (w) => (ablaufend(w) ? 0.6 : 0),
+  eroeffne: (w, ev) => {
+    if (w.spiel) w.spiel.zuletzt[`vertrag_verlaengerung#${String(ev.daten?.vertrag)}`] = w.day;
+  },
+  erzeuge: (w) => {
+    const a = ablaufend(w);
+    return a ? { provinzen: [], staerke: 1, daten: { land: a.land, vertrag: a.id } } : null;
+  },
+  titel: (_, ev) => `Der Vertrag mit ${land(String(ev.daten?.land)).dat} läuft aus`,
+  text: (w, ev) => {
+    const l = land(String(ev.daten?.land));
+    const v = laufende(w, l.id).find((x) => x.id === String(ev.daten?.vertrag));
+    return [
+      `Der Vertrag mit ${l.dat} (${v ? vertragsName(w, v) : "Vertrag"}) endet in etwa fünf Monaten. ${v && v.verstoesse === 0 ? "Er wurde bisher gehalten; das zählt für eine Verlängerung." : "Es gab Verstöße, eine Verlängerung ist unwahrscheinlich."}`,
+      `Das Vertrauen zu ${l.dat} liegt bei ${Math.round(vertrauenZu(w, l.id))}.`,
+    ];
+  },
+  warum: () => "Verträge, die auslaufen, hören nicht auf zu wirken, weil man sie vergisst: Die Dauerwirkungen enden, und das Land fragt sich, ob man es ernst gemeint hat.",
+  massnahmen: [],
+  optionen: (w, ev) => {
+    const l = land(String(ev.daten?.land));
+    const id = String(ev.daten?.vertrag);
+    return [
+      opt("verlaengern5", "Um fünf Jahre verlängern", beschr(VERLAENGERUNG_PK[5], 0, "die Dauerwirkungen laufen weiter, die Bindung auch."), VERLAENGERUNG_PK[5], (ww) => verlaengere(ww, l.id, id, 5, false).text),
+      opt("verlaengern2", "Um zwei Jahre verlängern", beschr(VERLAENGERUNG_PK[2], 0, "kürzere Bindung, die Wirkungen laufen weiter."), VERLAENGERUNG_PK[2], (ww) => verlaengere(ww, l.id, id, 2, false).text),
+      opt("auslaufen", "Auslaufen lassen", beschr(0, 0, "die Wirkungen enden mit dem Vertrag."), 0, () => `Der Vertrag mit ${l.dat} läuft aus.`),
+    ];
+  },
+  standard: (w, ev) => `Der Vertrag mit ${land(String(ev.daten?.land)).dat} läuft ohne Verlängerung aus.`,
 };
 
 /** Streit sucht den Präsidenten: Länder mit hohem Konflikt provozieren. */
@@ -191,4 +263,4 @@ const LAND_PROVOKATION: Vorlage = {
   },
 };
 
-export const LAENDER_VORLAGEN: Vorlage[] = [LAND_FORDERT, LAND_ANGEBOT, LAND_PROVOKATION];
+export const LAENDER_VORLAGEN: Vorlage[] = [LAND_FORDERT, LAND_ANGEBOT, LAND_PROVOKATION, VERTRAG_VERLAENGERUNG];
