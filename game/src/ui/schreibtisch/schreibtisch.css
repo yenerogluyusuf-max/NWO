@@ -1,0 +1,97 @@
+/* Der Schreibtisch (schreibtisch/Schreibtisch.tsx). Klassen mit Präfix .sk-. */
+
+.sk { display: grid; gap: 18px; min-width: 0; }
+.sk-kopf h3 { margin: 0; font: 600 26px var(--display); }
+.sk-kopf .subtitle { margin: 2px 0 0; }
+.sk-kopf .kicker { margin: 0; }
+
+/* Lage in einem Blick */
+.sk-kennzahlen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: 10px; }
+.dossier button.sk-kz {
+  display: grid; gap: 1px; align-content: start; width: 100%; height: 100%; text-align: left; padding: 9px 11px 10px; border-radius: 3px; cursor: pointer;
+  border: 1px solid rgba(120, 90, 50, 0.35); border-top: 4px solid var(--gold-3); background: rgba(255, 250, 235, 0.62); box-shadow: none;
+}
+.dossier button.sk-kz.ton-gut { border-top-color: #3c8a63; }
+.dossier button.sk-kz.ton-schlecht { border-top-color: #a83a32; }
+.dossier button.sk-kz:hover { border-color: var(--seal); background: rgba(255, 250, 235, 0.95); }
+.sk-kz-label { font: 700 11.5px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.sk-kz-wert { font: 650 24px/1.15 var(--display); font-variant-numeric: lining-nums; }
+.sk-trend { margin-left: 5px; font-style: normal; font-size: 12px; vertical-align: 3px; }
+.sk-trend.ton-gut { color: #2f7a55; }
+.sk-trend.ton-schlecht { color: var(--seal); }
+.sk-trend.ton-neutral { color: var(--ink-soft); }
+.sk-kz-zusatz { font: 13px/1.3 var(--serif); color: var(--ink-soft); }
+
+/* Zwei Spalten */
+.sk-spalten { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.sk-haupt, .sk-seite { display: grid; gap: 18px; min-width: 0; align-content: start; }
+.sk-block h4 { margin: 0 0 6px; padding-bottom: 3px; border-bottom: 1px solid rgba(120, 90, 50, 0.4); font: 650 17px var(--display); }
+.sk-leer { margin: 4px 0 0; font: italic 14.5px var(--serif); color: var(--ink-soft); }
+
+/* Fällig */
+.sk-faellig { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.sk-faellig li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid rgba(120, 90, 50, 0.3); border-left: 4px solid var(--gold-3); border-radius: 2px; background: rgba(255, 250, 235, 0.6); }
+.sk-faellig li.dringend { border-left-color: var(--seal); background: rgba(142, 42, 34, 0.06); }
+.sk-icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--ink-soft); box-shadow: inset 0 0 0 1px rgba(90, 64, 40, 0.35); background: rgba(255, 252, 240, 0.7); }
+.sk-faellig li.dringend .sk-icon { color: var(--seal); box-shadow: inset 0 0 0 1.5px var(--seal); }
+.sk-faellig-text { display: grid; gap: 1px; min-width: 0; }
+.sk-faellig-text strong { font: 650 15.5px/1.25 var(--display); overflow-wrap: anywhere; }
+.sk-faellig-text em { font: italic 13.5px/1.3 var(--serif); color: var(--ink-soft); }
+.sk-frist { padding: 1px 8px; border-radius: 999px; font: 700 12px var(--sans); color: var(--ink); background: rgba(198, 154, 74, 0.3); white-space: nowrap; }
+.sk-frist.rot { color: #fdf3e2; background: var(--seal); }
+
+/* Rat des Stabs */
+.sk-rat { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.sk-rat li { display: grid; gap: 4px; padding: 10px 14px 12px; border: 1px solid rgba(120, 90, 50, 0.32); border-left: 4px solid var(--teal); border-radius: 2px; background: rgba(255, 250, 235, 0.6); }
+.sk-rat-kopf { margin: 0; font: 700 11.5px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--teal); }
+.sk-rat-kopf em { font: italic 13.5px var(--serif); letter-spacing: 0; text-transform: none; color: var(--ink-soft); font-weight: 400; }
+.sk-rat-titel { font: 650 17px/1.25 var(--display); }
+.sk-rat-text { margin: 0; font: 14.5px/1.42 var(--serif); }
+.sk-rat-kosten { margin: 0; font: 600 13.5px var(--serif); color: var(--ink-soft); }
+
+/* Warnungen */
+.sk-warnungen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.dossier button.sk-warnung { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 9px; align-items: start; width: 100%; text-align: left; padding: 7px 9px; border: 1px solid rgba(120, 90, 50, 0.28); border-radius: 2px; background: rgba(255, 250, 235, 0.55); box-shadow: none; }
+.dossier button.sk-warnung:hover { border-color: var(--seal); background: rgba(255, 250, 235, 0.92); }
+.sk-warnung strong { display: block; font: 650 14.5px/1.3 var(--display); }
+.sk-warnung em { display: block; margin-top: 1px; font: italic 13px/1.3 var(--serif); color: var(--ink-soft); }
+.sk-punkt { width: 11px; height: 11px; margin-top: 4px; border-radius: 50%; border: 1px solid rgba(42, 31, 24, 0.55); }
+.sk-punkt.rot { background: #a83a32; }
+.sk-punkt.gelb { background: #d4a933; }
+
+/* Termine, Ziele, Log */
+.sk-termine, .sk-log, .sk-ziele { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.dossier button.sk-termin { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; width: 100%; text-align: left; padding: 4px 6px; border: 1px solid transparent; border-radius: 2px; background: none; box-shadow: none; font: 14.5px/1.3 var(--serif); }
+.dossier button.sk-termin:hover:not(:disabled) { background: rgba(255, 250, 235, 0.8); border-color: rgba(120, 90, 50, 0.35); }
+.dossier button.sk-termin:disabled { opacity: 1; cursor: default; }
+.sk-datum { font: 600 13px var(--sans); color: var(--ink-soft); }
+.sk-log li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 3px 6px; font: 14px/1.3 var(--serif); }
+.sk-ziele li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; font: 14.5px/1.3 var(--serif); }
+.sk-ziele li.ja { color: #2f7a55; }
+.sk-ziele em { display: block; font-size: 13px; color: var(--ink-soft); }
+
+/* Mentorin */
+.sk-mentor { padding: 12px 14px 10px; border-radius: 2px; background: linear-gradient(180deg, #fbf6d8, #f3e9b8); box-shadow: 0 4px 10px rgba(60, 40, 16, 0.18); }
+.sk-mentor-kopf { display: flex; gap: 10px; align-items: center; }
+.sk-mentor-kopf strong { display: block; font: 650 15px var(--display); }
+.sk-mentor-kopf span { font: italic 13px var(--serif); color: var(--ink-soft); }
+.sk-note { margin-top: 8px; padding-top: 7px; border-top: 1px dashed rgba(35, 48, 79, 0.25); font: italic 15.5px/1.4 var(--serif); color: #2b3552; }
+.sk-note p { margin: 0 0 4px; }
+.sk-note .mehr { font-size: 16.5px; color: #3a466a; }
+.sk-note button.link, .sk-mentor > button.link { font: 13px var(--sans); }
+
+/* Schnellzugriff */
+.sk-tueren { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(120, 90, 50, 0.35); }
+.dossier .sk-tueren button { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; font: 14px var(--serif); }
+
+@media (max-width: 860px) {
+  .sk-spalten { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .sk-faellig li { grid-template-columns: 28px minmax(0, 1fr); }
+  .sk-faellig li .sk-frist { grid-column: 2; justify-self: start; }
+  .sk-faellig li .aktion-knopf { grid-column: 2; justify-self: start; }
+  .sk-kennzahlen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sk-kopf h3 { font-size: 22px; }
+  .dossier button.sk-termin, .sk-log li { grid-template-columns: 78px minmax(0, 1fr); }
+}

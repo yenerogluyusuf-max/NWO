@@ -1,15 +1,42 @@
 import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { createAtlas, loadRelief, lonLatToUv, type AtlasScene, type Relief } from "./scene";
+import { createAtlas, loadKuestenFeld, loadRelief, lonLatToUv, type AtlasScene, type Relief } from "./scene";
+import { VectorLayer, type BezirkInfo } from "./vector";
 import { PROVINZEN } from "../../sim/regional";
 import { PARTY_COLORS } from "../Parliament";
-import { drawOverlay, drawPickCanvas, makeCanvas, provinceCenters, PROVINCE_FC, type OverlayStyle } from "./overlay";
+import { PROVINCE_FC, provinceCenters } from "./overlay";
+import { Icon } from "../icons";
+import "./karte.css";
+import type { Kartenebene } from "../ebenen";
+
+export interface KartenOrt {
+  id: string;
+  lon: number;
+  lat: number;
+  art: "erbe" | "wunder" | "bau";
+  text: string;
+  /** Zustand 0 bis 100 (Stätten) */
+  zustand?: number;
+  /** Ab dieser Kamerahöhe (größere Zahl = weiter weg) wird die Marke ausgeblendet */
+  dmax?: number;
+}
 
 export interface AtlasMapProps {
   fill?: Record<number, string>;
   fillAlpha?: number;
   selected?: number;
   onSelect?: (plaka: number) => void;
+  /** Farben der Länder nach ISO-Kürzel (Ebene „Beziehungen“) */
+  laenderFarben?: Record<string, string>;
+  /** Tippen auf ein Land außerhalb der Türkei, in jeder Ebene; `pos` ist die Bildschirmposition (Fensterkoordinaten) des Tippens */
+  onLand?: (iso: string, pos?: { x: number; y: number }) => void;
+  /** Land unter dem Zeiger (ISO-Kürzel), `undefined` beim Verlassen */
+  hoverLand?: (iso: string | undefined) => void;
+  /** Stätten, Wunder und Bauvorhaben mit Länge und Breite */
+  orte?: KartenOrt[];
+  onOrt?: (id: string) => void;
+  /** Ereignis- und Krisenmarken an Provinzen */
+  marken?: { id: string; plaka: number; art: "ereignis" | "frist" | "krise"; text: string }[];
+  onMarke?: (id: string) => void;
   onHover?: (plaka: number | undefined) => void;
   /** Welche Provinzen beschriftet werden (Kfz-Kennziffern) */
   labels?: number[];
@@ -22,6 +49,8 @@ export interface AtlasMapProps {
   camera?: { lon: number; lat: number; d: number };
   /** Langsames Schweben der Kamera */
   drift?: boolean;
+  /** Welche Kartenebene gezeigt wird (bestimmt Straßen, Bezirke, Einrichtungen) */
+  ebene?: Kartenebene;
 }
 
 const NAMES: Record<number, string> = Object.fromEntries(PROVINCE_FC.features.map((f) => [f.properties.plaka, f.properties.name]));
@@ -35,17 +64,25 @@ function cityKind(plaka: number): "hauptstadt" | "metropole" | "stadt" {
 interface Ctx {
   atlas: AtlasScene;
   relief: Relief;
-  overlayCanvas: HTMLCanvasElement;
-  fillCanvas: HTMLCanvasElement;
-  pickCanvas: HTMLCanvasElement;
+  vector: VectorLayer;
   centers: Record<number, [number, number]>;
 }
+
+const MIN_D = 2.4;
+const MAX_D = 20;
 
 export function AtlasMap({
   fill,
   fillAlpha,
   selected,
   onSelect,
+  laenderFarben,
+  onLand,
+  hoverLand,
+  marken = [],
+  onMarke,
+  orte = [],
+  onOrt,
   onHover,
   labels = [],
   geoLabels = [],
@@ -53,73 +90,104 @@ export function AtlasMap({
   interactive = true,
   camera,
   drift = false,
+  ebene = "gelaende",
 }: AtlasMapProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  const vec = useRef<HTMLCanvasElement>(null);
   const labelLayer = useRef<HTMLDivElement>(null);
   const ctx = useRef<Ctx | null>(null);
   const [ready, setReady] = useState(false);
+  const [fehler, setFehler] = useState<string | null>(null);
   const [hover, setHover] = useState<number | undefined>(undefined);
-  const styleRef = useRef<OverlayStyle>({});
+  const [landHover, setLandHover] = useState<{ iso: string; name: string } | undefined>(undefined);
+  const landHoverRef = useRef<string | undefined>(undefined);
+  const [bezirk, setBezirk] = useState<{ info: BezirkInfo; x: number; y: number } | undefined>(undefined);
+  const styleRef = useRef({ fill, fillAlpha, hover, selected, ebene });
   const labelsRef = useRef(labels);
   labelsRef.current = labels;
-  // Kamerafahrt: Ziel und Schweben werden in der Zeichenschleife nachgeführt
+  const view = useRef({ u: 0.5, v: 0.5, d: 13 });
   const flight = useRef<{ u: number; v: number; d: number } | null>(null);
   const driftRef = useRef(drift);
   driftRef.current = drift;
+  const drag = useRef<{ x: number; y: number; ground: [number, number]; moved: boolean } | null>(null);
+  const hoverRaf = useRef(0);
 
   // Szene einmalig aufbauen
   useEffect(() => {
     let disposed = false;
     let frame = 0;
     let ro: ResizeObserver | undefined;
-    // Regionsnamen werden auf die Zeichenfläche geschrieben: Schrift vorher laden
-    const font = document.fonts?.load("600 44px 'Fraunces Variable'").catch(() => undefined);
-    Promise.all([loadRelief(), font]).then(([relief]) => {
-      if (disposed || !canvas.current || !wrap.current) return;
-      const overlayCanvas = makeCanvas(relief);
-      const fillCanvas = makeCanvas(relief);
-      const pickCanvas = makeCanvas(relief);
-      drawPickCanvas(pickCanvas, relief);
-      drawOverlay(overlayCanvas, fillCanvas, relief, styleRef.current);
-      const atlas = createAtlas(canvas.current, relief, overlayCanvas, fillCanvas);
-      atlas.overlay.needsUpdate = true;
-      atlas.fills.needsUpdate = true;
-      ctx.current = { atlas, relief, overlayCanvas, fillCanvas, pickCanvas, centers: provinceCenters(relief) };
-      const size = () => {
-        const r = wrap.current!.getBoundingClientRect();
-        atlas.resize(Math.max(1, r.width), Math.max(1, r.height));
-      };
-      size();
-      ro = new ResizeObserver(size);
-      ro.observe(wrap.current);
-      const t0 = performance.now();
-      const loop = () => {
-        const t = (performance.now() - t0) / 1000;
-        const f = flight.current;
-        if (f) {
+    Promise.all([loadRelief(), loadKuestenFeld()])
+      .then(([relief, kueste]) => {
+        if (disposed || !canvas.current || !wrap.current || !vec.current) return;
+        const atlas = createAtlas(canvas.current, relief, kueste);
+        const vector = new VectorLayer(vec.current, atlas, relief);
+        vector.onDaten = () => vector.markDirty();
+        ctx.current = { atlas, relief, vector, centers: provinceCenters(relief) };
+        const dpr = Math.min(window.devicePixelRatio, 2);
+        const size = () => {
+          const r = wrap.current!.getBoundingClientRect();
+          atlas.resize(r.width, r.height);
+          vector.resize(Math.max(1, r.width), Math.max(1, r.height), dpr);
+          const c = view.current;
+          const v = atlas.setView(c.u, c.v, c.d);
+          view.current = { ...c, u: v.u, v: v.v };
+        };
+        const [u0, v0] = lonLatToUv(relief, 35.3, 38.6);
+        view.current = { u: u0, v: v0, d: 13 };
+        size();
+        ro = new ResizeObserver(size);
+        ro.observe(wrap.current);
+        vector.setStyle(styleRef.current);
+        // Nur für Prüfskripte in der Entwicklung: Kamera setzen und Bildschirmposition eines Ortes abfragen
+        if (import.meta.env.DEV) {
+          (window as unknown as { __karte?: unknown }).__karte = {
+            setze: (lon: number, lat: number, d: number) => {
+              const [u, v] = lonLatToUv(relief, lon, lat);
+              flight.current = null;
+              const n = atlas.setView(u, v, d);
+              view.current = { u: n.u, v: n.v, d };
+            },
+            bildschirm: (lon: number, lat: number) => {
+              const [u, v] = lonLatToUv(relief, lon, lat);
+              const p = atlas.project(u, v);
+              const r = wrap.current!.getBoundingClientRect();
+              return { x: p.x + r.left, y: p.y + r.top, sichtbar: p.sichtbar };
+            },
+          };
+        }
+        const t0 = performance.now();
+        const loop = () => {
+          const t = (performance.now() - t0) / 1000;
+          const f = flight.current;
           const cur = view.current;
-          const k = 0.035;
-          cur.u += (f.u - cur.u) * k;
-          cur.v += (f.v - cur.v) * k;
-          cur.d += (f.d - cur.d) * k;
-          if (Math.abs(f.u - cur.u) + Math.abs(f.v - cur.v) + Math.abs(f.d - cur.d) / 20 < 0.0004) flight.current = null;
-        }
-        if (f || driftRef.current) {
-          const sway = driftRef.current ? [Math.sin(t * 0.05) * 0.035, Math.cos(t * 0.037) * 0.02] : [0, 0];
-          atlas.setView(view.current.u + sway[0]!, view.current.v + sway[1]!, view.current.d);
-        }
-        // Wie in Hearts of Iron: von weitem politische Farben, aus der Nähe das Gelände
-        const st = styleRef.current;
-        const z = Math.min(1, Math.max(0, (view.current.d - 6.5) / 7));
-        atlas.setPolitical(st.fill ? (st.fillAlpha ?? 0.6) : 0.15 + 0.5 * z * z * (3 - 2 * z));
-        atlas.render(t);
-        placeLabels();
-        frame = requestAnimationFrame(loop);
-      };
-      loop();
-      setReady(true);
-    });
+          let changed = false;
+          if (f) {
+            const k = 0.05;
+            cur.u += (f.u - cur.u) * k;
+            cur.v += (f.v - cur.v) * k;
+            cur.d += (f.d - cur.d) * k;
+            if (Math.abs(f.u - cur.u) + Math.abs(f.v - cur.v) + Math.abs(f.d - cur.d) / 20 < 0.0004) flight.current = null;
+            changed = true;
+          }
+          if (changed || driftRef.current) {
+            const sway = driftRef.current ? [Math.sin(t * 0.05) * 0.035, Math.cos(t * 0.037) * 0.02] : [0, 0];
+            const v = atlas.setView(cur.u + sway[0]!, cur.v + sway[1]!, cur.d);
+            if (!driftRef.current) {
+              cur.u = v.u;
+              cur.v = v.v;
+            }
+          }
+          atlas.render(t);
+          vector.draw();
+          placeLabels();
+          frame = requestAnimationFrame(loop);
+        };
+        loop();
+        setReady(true);
+      })
+      .catch((e) => setFehler(String(e)));
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
@@ -127,17 +195,22 @@ export function AtlasMap({
       ctx.current?.atlas.dispose();
       ctx.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Überlagerung neu zeichnen, wenn sich Farben, Auswahl oder Hover ändern
+  // Farben, Auswahl und Ebene an die Vektorebene weitergeben
   useEffect(() => {
-    styleRef.current = { fill, fillAlpha, hover, selected };
+    styleRef.current = { fill, fillAlpha, hover, selected, ebene };
+    ctx.current?.vector.setStyle({ ...(fill ? { fill } : {}), ...(fill === undefined ? { fill: undefined } : {}), ...(laenderFarben ? { laender: laenderFarben } : { laender: undefined as never }), fillAlpha, hover, selected, ebene });
+  }, [fill, fillAlpha, hover, selected, ebene, ready, laenderFarben]);
+
+  // Kamerafahrt zu einer Stelle
+  useEffect(() => {
     const c = ctx.current;
-    if (!c) return;
-    drawOverlay(c.overlayCanvas, c.fillCanvas, c.relief, styleRef.current);
-    c.atlas.overlay.needsUpdate = true;
-    c.atlas.fills.needsUpdate = true;
-  }, [fill, fillAlpha, hover, selected, ready]);
+    if (!ready || !c || !camera) return;
+    const [u, v] = lonLatToUv(c.relief, camera.lon, camera.lat);
+    flight.current = { u, v, d: camera.d };
+  }, [ready, camera?.lon, camera?.lat, camera?.d]);
 
   function placeLabels() {
     const c = ctx.current;
@@ -151,112 +224,182 @@ export function AtlasMap({
       if (el.dataset.lon) center = lonLatToUv(c.relief, Number(el.dataset.lon), Number(el.dataset.lat));
       else center = c.centers[Number(el.dataset.plaka)];
       if (!center) continue;
-      const p = c.atlas.uvToWorld(center[0], center[1]).project(c.atlas.camera);
-      const x = ((p.x + 1) / 2) * rect.width;
-      const y = ((1 - p.y) / 2) * rect.height;
+      const p = c.atlas.project(center[0], center[1]);
       const scale = el.dataset.plaka ? Math.min(1.5, Math.max(0.62, 11 / view.current.d)) : 1;
-      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, ${el.dataset.plaka ? "-62%" : "-50%"}) scale(${scale.toFixed(3)})`;
+      const ort = el.classList.contains("ort");
+      if (ort) {
+        el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
+        const dmax = Number(el.dataset.dmax ?? 99);
+        el.style.opacity = p.sichtbar && view.current.d <= dmax && p.x > 0 && p.x < rect.width && p.y > 60 && p.y < rect.height ? "1" : "0";
+        el.style.pointerEvents = el.style.opacity === "1" ? "auto" : "none";
+        continue;
+      }
+      const marke = el.classList.contains("marke");
+      el.style.transform = marke
+        ? `translate(${p.x + Number(el.dataset.dx ?? 0)}px, ${p.y - 26 + Number(el.dataset.dy ?? 0)}px) translate(-50%, -100%)`
+        : el.dataset.plaka
+          ? `translate(${p.x}px, ${p.y}px) translate(-50%, -8px) scale(${scale.toFixed(3)})`
+          : `translate(${p.x}px, ${p.y}px) translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       // am Rand ausblenden, damit Namen nicht abgeschnitten werden
       const half = el.offsetWidth / 2 + 12;
-      const edge = Math.min(x - half, rect.width - x - half, y - 70, rect.height - y - 20);
-      el.style.opacity = String(Math.max(0, Math.min(1, edge / 40)));
+      const edge = Math.min(p.x - half, rect.width - p.x - half, p.y - 70, rect.height - p.y - 20);
+      el.style.opacity = p.sichtbar ? String(Math.max(0, Math.min(1, edge / 40))) : "0";
     }
   }
 
-  function pick(ev: React.PointerEvent): number | undefined {
-    const c = ctx.current;
-    if (!c || !canvas.current) return undefined;
-    const rect = canvas.current.getBoundingClientRect();
-    const ndc = new THREE.Vector2(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
-    const ray = new THREE.Raycaster();
-    ray.setFromCamera(ndc, c.atlas.camera);
-    const hit = ray.intersectObject(c.atlas.terrain)[0];
-    if (!hit?.uv) return undefined;
-    const x = Math.floor(hit.uv.x * c.pickCanvas.width);
-    const y = Math.floor(hit.uv.y * c.pickCanvas.height);
-    const px = c.pickCanvas.getContext("2d")!.getImageData(x, y, 1, 1).data;
-    return px[3]! > 200 && px[0]! > 0 ? px[0] : undefined;
+  function local(e: React.PointerEvent | React.WheelEvent): { x: number; y: number } {
+    const r = wrap.current!.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
-  // Kamera: ziehen verschiebt, Mausrad zoomt
-  const drag = useRef<{ x: number; y: number; u: number; v: number; moved: boolean } | null>(null);
-  const view = useRef({ u: 0.5, v: 0.5, d: 13 });
-
-  useEffect(() => {
+  /** Land unter dem Zeiger: hebt es hervor und meldet es nach außen */
+  function setLandzeiger(iso: string | undefined) {
     const c = ctx.current;
-    if (!ready || !c) return;
-    const [u, v] = lonLatToUv(c.relief, 35.3, 38.6);
-    view.current = { u, v, d: 13 };
-    c.atlas.setView(u, v, 13);
-  }, [ready]);
+    if (!c || landHoverRef.current === iso) return;
+    landHoverRef.current = iso;
+    c.vector.setStyle({ hoverLand: iso });
+    setLandHover(iso ? { iso, name: c.vector.laender().find((l) => l.iso === iso)?.name ?? iso } : undefined);
+    hoverLand?.(iso);
+  }
 
-  useEffect(() => {
+  function updateHover(e: React.PointerEvent) {
     const c = ctx.current;
-    if (!ready || !c || !camera) return;
-    const [u, v] = lonLatToUv(c.relief, camera.lon, camera.lat);
-    flight.current = { u, v, d: camera.d };
-  }, [ready, camera?.lon, camera?.lat, camera?.d]);
+    if (!c) return;
+    const { x, y } = local(e);
+    const uv = c.atlas.pickUv(x, y);
+    if (!uv) {
+      setHover(undefined);
+      setBezirk(undefined);
+      setLandzeiger(undefined);
+      c.vector.setStyle({ hoverBezirk: undefined, hoverLand: undefined });
+      return;
+    }
+    const p = c.vector.pickProvince(uv[0], uv[1]);
+    if (p !== hover) {
+      setHover(p);
+      onHover?.(p);
+    }
+    setLandzeiger(p ? undefined : c.vector.pickLand(uv[0], uv[1]));
+    const b = c.vector.pickBezirk(uv[0], uv[1]);
+    if (b && (ebene === "infrastruktur" || view.current.d < 7)) {
+      c.vector.setStyle({ hoverBezirk: b.index });
+      setBezirk({ info: b.info, x, y });
+    } else {
+      c.vector.setStyle({ hoverBezirk: undefined });
+      setBezirk(undefined);
+    }
+  }
 
   return (
     <div
       ref={wrap}
-      className={`atlas ${interactive ? "" : "passive"} ${className ?? ""}`}
+      className={`atlas ${interactive ? "" : "passive"} ${hover || landHover ? "karte-zeiger" : ""} ${className ?? ""}`}
       onPointerDown={(e) => {
-        if (!interactive) return;
+        const c = ctx.current;
+        if (!interactive || !c) return;
         flight.current = null;
-        drag.current = { x: e.clientX, y: e.clientY, u: view.current.u, v: view.current.v, moved: false };
+        const { x, y } = local(e);
+        const g = c.atlas.groundUv(x, y);
+        drag.current = g ? { x: e.clientX, y: e.clientY, ground: g, moved: false } : null;
       }}
       onPointerMove={(e) => {
         if (!interactive) return;
+        const c = ctx.current;
         const d = drag.current;
-        if (d && e.buttons === 1) {
-          const dx = (e.clientX - d.x) / (wrap.current?.clientWidth ?? 1);
-          const dy = (e.clientY - d.y) / (wrap.current?.clientHeight ?? 1);
-          if (Math.abs(dx) + Math.abs(dy) > 0.004) d.moved = true;
-          const k = view.current.d / 20;
-          view.current.u = Math.min(0.95, Math.max(0.05, d.u - dx * 1.1 * k));
-          view.current.v = Math.min(0.95, Math.max(0.05, d.v - dy * 1.6 * k));
-          ctx.current?.atlas.setView(view.current.u, view.current.v, view.current.d);
+        if (c && d && e.buttons === 1) {
+          if (Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) > 4) d.moved = true;
+          if (!d.moved) return;
+          const { x, y } = local(e);
+          const g = c.atlas.groundUv(x, y);
+          if (!g) return;
+          // Die Stelle unter dem Zeiger bleibt unter dem Zeiger: Die Karte wird gegriffen
+          const v = view.current;
+          const n = c.atlas.setView(v.u + (d.ground[0] - g[0]), v.v + (d.ground[1] - g[1]), v.d);
+          view.current = { ...v, u: n.u, v: n.v };
           return;
         }
-        const p = pick(e);
-        if (p !== hover) {
-          setHover(p);
-          onHover?.(p);
-        }
+        if (hoverRaf.current) return;
+        const ev = e;
+        hoverRaf.current = requestAnimationFrame(() => {
+          hoverRaf.current = 0;
+          updateHover(ev);
+        });
       }}
       onPointerUp={(e) => {
+        const c = ctx.current;
         const d = drag.current;
         drag.current = null;
-        if (d && !d.moved) {
-          const p = pick(e);
+        if (c && d && !d.moved) {
+          const { x, y } = local(e);
+          const uv = c.atlas.pickUv(x, y);
+          const p = uv ? c.vector.pickProvince(uv[0], uv[1]) : undefined;
           if (p) onSelect?.(p);
+          else if (uv && onLand) {
+            const iso = c.vector.pickLand(uv[0], uv[1]);
+            if (iso) onLand(iso, { x: e.clientX, y: e.clientY });
+          }
         }
       }}
       onPointerLeave={() => {
         setHover(undefined);
+        setBezirk(undefined);
+        setLandzeiger(undefined);
+        ctx.current?.vector.setStyle({ hoverBezirk: undefined });
         onHover?.(undefined);
       }}
       onWheel={(e) => {
-        if (!interactive) return;
+        const c = ctx.current;
+        if (!interactive || !c) return;
         flight.current = null;
-        view.current.d = Math.min(20, Math.max(3.5, view.current.d * (e.deltaY > 0 ? 1.08 : 0.92)));
-        ctx.current?.atlas.setView(view.current.u, view.current.v, view.current.d);
+        const { x, y } = local(e);
+        const vor = c.atlas.groundUv(x, y);
+        const v = view.current;
+        const d = Math.min(MAX_D, Math.max(MIN_D, v.d * Math.exp(Math.max(-0.35, Math.min(0.35, e.deltaY * 0.0022)))));
+        let n = c.atlas.setView(v.u, v.v, d);
+        // Auf die Stelle unter dem Zeiger zoomen
+        const nach = c.atlas.groundUv(x, y);
+        if (vor && nach) n = c.atlas.setView(n.u + (vor[0] - nach[0]), n.v + (vor[1] - nach[1]), d);
+        view.current = { u: n.u, v: n.v, d };
       }}
     >
       <canvas ref={canvas} className="atlas-canvas" />
+      <canvas ref={vec} className="atlas-vector" />
       <div ref={labelLayer} className="atlas-labels" aria-hidden>
         {geoLabels.map((g) => (
           <span key={g.text} data-lon={g.lon} data-lat={g.lat} className={`atlas-geo ${g.kind}`}>
             {g.text}
           </span>
         ))}
+        {orte.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            data-lon={o.lon}
+            data-lat={o.lat}
+            data-dmax={o.dmax ?? 99}
+            className={`ort ort-${o.art}${o.art === "erbe" && o.zustand !== undefined && o.zustand < 40 ? " gefaehrdet" : ""}`}
+            title={o.text}
+            aria-label={o.text}
+            style={o.zustand !== undefined ? ({ "--z": String(Math.round(o.zustand)) } as React.CSSProperties) : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOrt?.(o.id);
+            }}
+          >
+            <Icon name={o.art === "erbe" ? "kuppel" : o.art === "wunder" ? "tempel" : "kran"} size={o.art === "erbe" ? 12 : 15} />
+          </button>
+        ))}
+        {marken.map((m, i) => (
+          <button key={m.id} data-plaka={m.plaka} data-dx={(i % 3) * 22 - 22} data-dy={-Math.floor(i / 3) * 26} className={`marke marke-${m.art}`} title={m.text} onClick={(e) => { e.stopPropagation(); onMarke?.(m.id); }} onPointerUp={(e) => e.stopPropagation()}>
+            <span aria-hidden>{m.art === "krise" ? "!" : m.art === "frist" ? "!" : "●"}</span>
+          </button>
+        ))}
         {labels.map((p) => {
           const mayor = PROVINZEN[p - 1]?.buergermeister2024 ?? "";
           const kind = cityKind(p);
           return (
             <span key={p} data-plaka={p} className={`city city-${kind}${p === selected ? " selected" : ""}`}>
-              <img className="city-mini" src={`/ui/stadt-${kind}.png`} alt="" draggable={false} />
+              <i className="karte-stadtpunkt" aria-hidden />
               <span className="city-banner">
                 <i style={{ background: PARTY_COLORS[mayor] ?? "#8a7a64" }} />
                 {kind === "hauptstadt" && <b aria-hidden>★</b>}
@@ -266,8 +409,18 @@ export function AtlasMap({
           );
         })}
       </div>
-      {!ready && <div className="atlas-loading">Die Karte wird gezeichnet …</div>}
-      {hover && <div className="atlas-hover">{NAMES[hover]}</div>}
+      {!ready && !fehler && <div className="atlas-loading">Die Karte wird gezeichnet …</div>}
+      {fehler && <div className="atlas-loading">Die Karte konnte nicht geladen werden.</div>}
+      {bezirk ? (
+        <div className="atlas-hover bezirk" style={{ left: bezirk.x + 16, top: bezirk.y + 16 }}>
+          <strong>{bezirk.info.name}</strong>
+          <span>{NAMES[bezirk.info.plaka]} · {Math.round(bezirk.info.flaeche).toLocaleString("de-DE")} km²</span>
+          <span>Straßen: {bezirk.info.dichte.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 })} km je km²</span>
+          <span>{bezirk.info.krankenhaeuser} Krankenhäuser · {bezirk.info.flughaefen} Flughäfen</span>
+        </div>
+      ) : (
+        (hover || landHover) && <div className="atlas-hover">{hover ? NAMES[hover] : landHover!.name}</div>
+      )}
     </div>
   );
 }

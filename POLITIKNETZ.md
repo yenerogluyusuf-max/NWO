@@ -6,13 +6,13 @@ Stand: 28. September 2026. Umsetzung der Entscheidung „Eingabe wie Democracy 4
 
 | Art | Anzahl | Beispiel |
 |---|---|---|
-| Maßnahmen | 77 | Mindestlohn, Mehrwertsteuer, Wasserleitungen, Friedensprozess, Internetsperren |
+| Maßnahmen | 90 | Mindestlohn, Mehrwertsteuer, Wasserleitungen, Friedensprozess, Internetsperren |
 | Größen | 79 | Gefühlte Teuerung, Wasserversorgung, Abwanderung von Fachkräften, Pressefreiheit |
 | Eingänge aus dem Wirtschaftsmodell | 7 | Inflation, Arbeitslosigkeit, Wachstum, Leitzins, Abwertung, Defizit, Schulden |
 | Probleme | 15 | Wassermangel, Wohnungsnot, Ärztemangel, Abwanderung von Fachkräften, Korruptionsskandale |
 | Wählergruppen | 8 | Rentner, Beschäftigte, Unternehmer, Landwirte, Junge, Staatsbedienstete, Religiös-Konservative, Säkulare Städter |
 | **Knoten gesamt** | **199** | in 12 Themenfeldern plus Wählergruppen; je Feld eine Modernisierungsleiter (Mechanisierung, Agrarforschung, Industrie, Verwaltung, Fachkräfte, Bildungstechnik, Medizintechnik, Smarte Infrastruktur, Speicher/Smart Grid, Industrieller Wohnungsbau, Sicherheitsverwaltung, Digitale Öffentlichkeit, Handelssysteme) nach Victoria 3/Anno |
-| **Verbindungen** | **412** | jede mit Stärke, Verzögerung und einem Satz Begründung |
+| **Verbindungen** | **643** | jede mit Stärke, Verzögerung und einem Satz Begründung (Stand 30. September: 412 plus 231 politische Folgen, siehe unten) |
 
 ## Wie es rechnet
 
@@ -25,6 +25,17 @@ Stand: 28. September 2026. Umsetzung der Entscheidung „Eingabe wie Democracy 4
   - Die Kosten aller Maßnahmen gegenüber dem Start (Steuern als negative Kosten) fließen in Nachfrage und Schulden.
   - Der Kostendruck der Betriebe wirkt auf die Inflation.
   - Die Produktivität verschiebt das Potenzialwachstum.
+
+## Politische Folgen (30. September)
+
+Vorher hingen viele Maßnahmen nur an ihrem Hauptziel (53 von 90 hatten höchstens zwei ausgehende Verbindungen), und in der Vorschau blieb deshalb fast nur der Haushalt als Folge. Jetzt trägt jede Maßnahme zusätzlich die Folgen, die ein Land tatsächlich spürt: Wählergruppen (wer profitiert, wer verliert), Ansehen im Ausland und Beziehung zur EU, Nebenwirkungen auf Größen wie Pressefreiheit, Polarisierung, Rechtssicherheit oder Landflucht. Beispiele: Medienaufsicht senkt Pressefreiheit, Ansehen und die Beziehung zur EU und verärgert Städter und Junge; die Rentenerhöhung freut Rentner und belastet Junge und Beschäftigte, die die Beiträge zahlen; Bauamnestie stützt Hausbesitzer, schwächt aber Erdbebenvorsorge und Rechtssicherheit.
+
+- Die Verbindungen stehen am Ende von `politiknetz.ts` in zwei Blöcken („Politische Folgen“, „Politische Folgen II“) und laufen über `ee(...)`: Was schon eine Verbindung zwischen denselben Knoten hat, bleibt unverändert.
+- Stärken 0,01 bis 0,05, damit sie im Größenbereich der übrigen Kanten liegen; Wählergruppen reagieren schnell (Verzögerung 0 bis 3 Monate), Größen langsam (6 bis 12).
+- Auch diese Werte sind Spielparameter, keine Messwerte. Jede Verbindung hat einen Begründungssatz.
+- Wirkung auf die Balance: Der kluge Bot im Spielbarkeitstest gewann danach leichter. Zur Nachjustierung stieg die Regierungsmüdigkeit von 0,25 auf 0,28 je Monat, „Hart“ hat jetzt den Faktor 1,25 (vorher 1,4). Messung mit dem klugen Bot (8 Seeds): Entspannt 8, Normal 7, Hart 2 Siege von 8.
+
+Danach hat jede der 90 Maßnahmen mindestens drei Folgen (vorher: 53 mit höchstens zwei). Am dünnsten bleibt die Gruppe der Staatsbediensteten mit fünf eingehenden Verbindungen; dort fehlen noch Folgen etwa für Verwaltungsdigitalisierung und Sicherheitsverwaltung.
 
 ## Prüfungen (automatisch)
 

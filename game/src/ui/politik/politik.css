@@ -1,0 +1,138 @@
+/* Politik nach Bereichen (politik/Politik.tsx) und „Heute“ (Bereiche.tsx). Klassen mit Präfix .po-. */
+
+.dossier.frame.po-breit { width: min(1180px, calc(100vw - 420px)); }
+@media (max-width: 1000px) { .dossier.frame.po-breit { width: calc(100vw - 36px); } }
+
+.po { display: grid; grid-template-columns: 216px minmax(0, 1fr); gap: 22px; align-items: start; min-width: 0; }
+.po.po-nur { grid-template-columns: minmax(0, 1fr); }
+.po-seite { min-width: 0; display: grid; gap: 18px; align-content: start; }
+
+/* Ampel */
+.po-ampel { display: inline-block; flex: none; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(42, 31, 24, 0.55); box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5); }
+.po-ampel.klein { width: 11px; height: 11px; border-width: 1px; }
+.po-ampel.po-gruen { background: #3c8a63; }
+.po-ampel.po-gelb { background: #d4a933; }
+.po-ampel.po-rot { background: #a83a32; }
+
+/* Leiste der Bereiche */
+.po-rail { display: grid; gap: 3px; position: sticky; top: 0; align-self: start; max-height: calc(100vh - 330px); overflow: auto; padding-right: 4px; scrollbar-width: thin; }
+.dossier button.po-rail-eintrag {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 9px; text-align: left; width: 100%;
+  padding: 7px 9px; border-radius: 3px; border: 1px solid transparent; background: none; box-shadow: none; font: 15px/1.25 var(--serif); color: var(--ink);
+}
+.dossier button.po-rail-eintrag:first-child { grid-template-columns: 1fr; font-weight: 650; font-family: var(--display); }
+.dossier button.po-rail-eintrag:hover { background: rgba(255, 250, 235, 0.7); border-color: rgba(120, 90, 50, 0.4); }
+.dossier button.po-rail-eintrag.on { background: linear-gradient(180deg, #f7e2a4, #e2c273); border-color: rgba(124, 88, 35, 0.8); font-weight: 600; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+.po-rail-name { min-width: 0; }
+.po-rail-akut { min-width: 20px; padding: 0 6px; border-radius: 999px; text-align: center; font: 700 12px/18px var(--sans); color: #fdf3e2; background: var(--seal); }
+
+/* Kopf eines Bereichs */
+.po-kopf h3 { margin: 0; font: 600 26px var(--display); }
+.po-kopf .subtitle { margin: 4px 0 8px; }
+.po-titelzeile { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.po-lagewort { padding: 1px 9px; border-radius: 999px; font: 700 12px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: #fdf9ee; }
+.po-l-gruen { background: #3c8a63; }
+.po-l-gelb { background: #b98a1e; }
+.po-l-rot { background: #a83a32; }
+.po-kennzeile { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; font: 600 14px var(--serif); color: var(--ink-soft); }
+.po-kennzeile .schlecht { color: var(--seal); }
+.po-kennzeile b { color: var(--ink); }
+.po-grund { margin: 6px 0 0; font: italic 14.5px var(--serif); color: var(--ink-soft); }
+.po-hinweis { margin: 0; font: 15px/1.5 var(--serif); }
+.po-fuss { margin: 14px 0 0; font: 14.5px var(--serif); color: var(--ink-soft); }
+
+/* Blöcke */
+.po-block h4 { margin: 0 0 6px; padding-bottom: 3px; border-bottom: 1px solid rgba(120, 90, 50, 0.4); font: 650 17px var(--display); }
+.po-block .subtitle { margin: 0 0 8px; }
+.po-legende { margin: 8px 0 0; font: italic 13.5px var(--serif); color: var(--ink-soft); }
+
+/* Lage */
+.po-lageliste { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; }
+.dossier button.po-lage {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(50px, 1fr) 46px; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 4px 6px; border: 1px solid transparent; border-radius: 2px; background: none; box-shadow: none; font: 14.5px var(--serif);
+}
+.dossier button.po-lage:hover { background: rgba(255, 250, 235, 0.75); border-color: rgba(120, 90, 50, 0.35); }
+.po-lage-name { min-width: 0; overflow-wrap: anywhere; }
+.po-balken { position: relative; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); }
+.po-balken i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--teal); }
+.po-lage.b-gut .po-balken i { background: #3c8a63; }
+.po-lage.b-mittel .po-balken i { background: #b98a1e; }
+.po-lage.b-schlecht .po-balken i { background: #a83a32; }
+.po-balken b { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); opacity: 0.7; }
+.po-lage-wert { text-align: right; font: 650 14.5px var(--sans); white-space: nowrap; }
+.po-lage-wert small { font: 12px var(--serif); color: var(--ink-soft); }
+.po-trend { font-style: normal; font-size: 11px; }
+.po-trend.gut { color: #2f7a55; }
+.po-trend.schlecht { color: var(--seal); }
+
+/* Akute Probleme */
+.po-probleme { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.po-probleme li { display: grid; gap: 6px; padding: 9px 12px; border: 1px solid rgba(120, 90, 50, 0.32); border-left: 4px solid var(--seal); border-radius: 2px; background: rgba(255, 250, 235, 0.6); }
+.po-problem-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.po-problem-kopf strong { font: 650 16.5px var(--display); }
+.po-problem-kopf span { font: italic 14px var(--serif); color: var(--ink-soft); }
+.po-hebel { display: flex; flex-wrap: wrap; gap: 7px; }
+
+/* Maßnahmen */
+.po-massnahmen { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.po-massnahmen li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 12px; border: 1px solid rgba(120, 90, 50, 0.28); border-left: 4px solid rgba(120, 90, 50, 0.4); border-radius: 2px; background: rgba(255, 250, 235, 0.55); }
+.po-massnahmen li.laeuft { border-left-color: var(--teal); background: rgba(38, 90, 98, 0.07); }
+.po-m-text { display: grid; gap: 1px; min-width: 0; }
+.po-m-text strong { font: 650 16px var(--display); }
+.po-m-stand { font: 600 14px var(--serif); color: var(--ink); }
+.po-m-stand em { font-style: italic; font-weight: 400; color: var(--teal); }
+.po-m-beschr { font: 14px/1.35 var(--serif); color: var(--ink-soft); }
+.po-m-kosten { font: italic 13.5px var(--serif); color: var(--ink-soft); }
+
+/* Überblick: Kacheln */
+.po-kacheln { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 12px; }
+.dossier button.po-kachel {
+  display: grid; align-content: start; gap: 5px; text-align: left; padding: 12px 14px 12px; border-radius: 3px; cursor: pointer;
+  border: 1px solid rgba(120, 90, 50, 0.35); border-top-width: 4px; background: rgba(255, 250, 235, 0.6); box-shadow: none;
+}
+.dossier button.po-kachel.po-r-gruen { border-top-color: #3c8a63; }
+.dossier button.po-kachel.po-r-gelb { border-top-color: #d4a933; }
+.dossier button.po-kachel.po-r-rot { border-top-color: #a83a32; }
+.dossier button.po-kachel:hover { border-color: var(--seal); background: rgba(255, 250, 235, 0.92); }
+.po-kachel-kopf { display: flex; align-items: center; gap: 8px; }
+.po-kachel-kopf strong { font: 650 17px/1.2 var(--display); }
+.po-kachel-text { font: 14px/1.35 var(--serif); color: var(--ink-soft); }
+.po-kachel-stand { font: 700 12.5px var(--sans); letter-spacing: 0.02em; color: var(--ink); }
+.po-r-rot .po-kachel-stand { color: var(--seal); }
+.po-signale { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 2px; font: 14px var(--serif); }
+.po-signale li { display: flex; justify-content: space-between; gap: 8px; }
+
+/* Vorschlagskarte innerhalb der Bereiche */
+.po-block .vorschlag-liste { margin-top: 4px; }
+
+/* Ein Knoten des Netzes im Bereich geöffnet */
+.netview.po-eingebettet { grid-template-columns: minmax(0, 1fr); }
+.po-zurueck { display: flex; }
+.po-zurueck button.link { font: 600 15.5px var(--serif); }
+
+/* Enge Fenster: Leiste wird zur Reihe */
+@media (max-width: 860px) {
+  .po { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .po-rail { position: static; display: flex; gap: 6px; max-height: none; overflow-x: auto; overflow-y: hidden; padding: 0 0 6px; scroll-snap-type: x proximity; }
+  .dossier button.po-rail-eintrag { width: auto; flex: none; grid-template-columns: auto auto auto; white-space: nowrap; border-color: rgba(120, 90, 50, 0.4); background: rgba(255, 250, 235, 0.7); scroll-snap-align: start; }
+  .dossier button.po-rail-eintrag:first-child { grid-template-columns: auto; }
+  .po-lageliste { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .po-massnahmen li { grid-template-columns: minmax(0, 1fr); }
+  .dossier button.po-lage { grid-template-columns: minmax(0, 1fr) minmax(40px, 0.7fr) 44px; }
+  .po-kopf h3 { font-size: 22px; }
+}
+
+/* Handy: Akten füllen die Breite, die Reiter laufen seitwärts, nichts ragt über den Rand */
+@media (max-width: 700px) {
+  .stage .dossier.frame, .stage .dossier.frame.po-breit, .stage .dossier.frame.wide { left: 8px; right: 8px; width: auto; top: 92px; max-height: calc(100vh - 168px); }
+  .stage .dossier-body { padding: 14px 14px 36px; overflow-x: hidden; }
+  .stage .dossier-head { padding-left: 14px; gap: 6px; }
+  .stage .dossier-tabs { min-width: 0; margin: 0 6px 0 10px; overflow-x: auto; scrollbar-width: none; }
+  .stage .dossier-tabs button { flex: none; white-space: nowrap; padding: 6px 10px; }
+}
+
+/* Wozu diese Akte dient */
+.dossier-zweck { margin: -4px 0 14px; padding-left: 10px; border-left: 2px solid var(--gold-3); font: italic 14.5px/1.4 var(--serif); color: var(--ink-soft); }

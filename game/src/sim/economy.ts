@@ -39,6 +39,18 @@ export const PARAMS = {
   targetGlide: 0.04,
 } as const;
 
+/** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
+export const AUSSEN = {
+  /** Prozentpunkte Inflation je Indexpunkt Energiepreis über 100 (Energieimporte) */
+  oelAufInflation: 0.02,
+  /** Auslastung (Prozentpunkte je Monat) je Indexpunkt Energiepreis */
+  oelAufAuslastung: 0.004,
+  /** Auslastung (Prozentpunkte je Monat) je Indexpunkt EU-Nachfrage */
+  euAufAuslastung: 0.012,
+  /** Basispunkte Risikoaufschlag je Indexpunkt Weltzins über 100 */
+  weltzinsAufRisiko: 3,
+} as const;
+
 /** Potenzialwachstum einschließlich der Wirkung des Politiknetzes. */
 export function potential(e: EconomyState): number {
   return e.potentialGrowth + e.potentialShift;
@@ -65,7 +77,8 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
     150 +
     3 * Math.max(0, e.inflation - 10) +
     2 * Math.max(0, e.debtRatio - 40) +
-    200 * (1 - e.credibility);
+    200 * (1 - e.credibility) +
+    AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
   return e.riskPremium + 0.02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
 
@@ -79,6 +92,8 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.gapPersistence * e.outputGap -
     PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) +
     PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) +
+    AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100) -
+    AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) +
     rng.normal(0.25);
 
   // Z5: übermäßige Abwertung der letzten 12 Monate
@@ -91,7 +106,8 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     e.expectedInflation +
     PARAMS.gapOnInflation * e.outputGap +
     PARAMS.fxPassThrough * excessDepreciation +
-    e.costPush;
+    e.costPush +
+    AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100);
   const previousInflation = e.inflation;
   e.inflation += PARAMS.inflationSpeed * (anchor - e.inflation) + rng.normal(0.3);
   e.inflation = Math.max(-2, e.inflation);
@@ -121,25 +137,31 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
 
   // Z7: Defizite werden zu Schulden, nominales Wachstum senkt die Quote
   const nominalGrowth = (e.growth + e.inflation) / 100;
-  e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost) / 12 - (e.debtRatio * nominalGrowth) / 12;
+  e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0)) / 12 - (e.debtRatio * nominalGrowth) / 12;
   e.debtRatio = Math.max(0, e.debtRatio);
 }
 
-/** Reaktionsregel des Geldpolitischen Ausschusses (angelehnt an Taylor 1993). */
-export function ppkDecision(e: EconomyState, stance: GovernorStance): { newRate: number; why: string } {
-  const weights: Record<GovernorStance, { infl: number; gap: number; bias: number }> = {
-    vorsichtig: { infl: 0.8, gap: 0.2, bias: 0 },
-    ausgewogen: { infl: 0.5, gap: 0.5, bias: 0 },
-    gefuegig: { infl: 0.2, gap: 0.8, bias: -8 },
-  };
-  const w = weights[stance];
-  const target =
-    PARAMS.neutralRealRate +
-    e.expectedInflation +
-    w.infl * (e.inflation - e.inflationTarget) +
-    w.gap * e.outputGap +
-    w.bias;
-  const step = clamp((target - e.policyRate) * 0.5, -5, 5);
+/** Gewichte der Reaktionsregel je Haltung der Führung. */
+export const PPK_GEWICHTE: Record<GovernorStance, { infl: number; gap: number; bias: number }> = {
+  vorsichtig: { infl: 0.8, gap: 0.2, bias: 0 },
+  ausgewogen: { infl: 0.5, gap: 0.5, bias: 0 },
+  gefuegig: { infl: 0.2, gap: 0.8, bias: -8 },
+};
+
+/** Der Zins, auf den die Regel der Bank zielt (vor der Glättung), in %. */
+export function ppkZiel(e: EconomyState, stance: GovernorStance): number {
+  const w = PPK_GEWICHTE[stance];
+  return PARAMS.neutralRealRate + e.expectedInflation + w.infl * (e.inflation - e.inflationTarget) + w.gap * e.outputGap + w.bias;
+}
+
+/**
+ * Reaktionsregel des Geldpolitischen Ausschusses (angelehnt an Taylor 1993): Die Bank geht die halbe Strecke zum Zielzins, höchstens
+ * fünf Punkte je Sitzung. `druck` ist die Verschiebung des Beschlusses in Prozentpunkten durch politischen Einfluss (Zentralbank-Modul);
+ * er kommt zur Regel hinzu und darf über die Höchstschrittweite hinausgehen. Ohne Einfluss bleibt es die reine Regel.
+ */
+export function ppkDecision(e: EconomyState, stance: GovernorStance, druck = 0): { newRate: number; why: string; target: number } {
+  const target = ppkZiel(e, stance);
+  const step = clamp((target - e.policyRate) * 0.5, -5, 5) + druck;
   const newRate = Math.max(0, Math.round((e.policyRate + step) * 2) / 2);
 
   let why: string;
@@ -147,7 +169,7 @@ export function ppkDecision(e: EconomyState, stance: GovernorStance): { newRate:
   else if (newRate < e.policyRate && stance === "gefuegig") why = "Der Ausschuss senkt und verweist auf Wachstum und Beschäftigung.";
   else if (newRate < e.policyRate) why = "Die Inflation sinkt; der Ausschuss lockert vorsichtig.";
   else why = "Der Ausschuss hält den Zins und will die Wirkung früherer Entscheidungen abwarten.";
-  return { newRate, why };
+  return { newRate, why, target };
 }
 
 export function clamp(x: number, min: number, max: number): number {

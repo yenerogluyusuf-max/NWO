@@ -1,0 +1,187 @@
+/* Die Welt: Länderliste, Länderakte, Verhandlungstisch, Verträge, Vermittlung, Karten-Popover. Präfix .we- */
+
+.we { container-type: inline-size; display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@container (min-width: 700px) { .we { grid-template-columns: minmax(200px, 250px) minmax(0, 1fr); } .we-liste { position: sticky; top: 0; max-height: 100%; } }
+
+/* Liste */
+.we-liste { display: flex; flex-direction: column; gap: 12px; }
+.we-gruppe > b { display: block; margin-bottom: 5px; font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+@container (min-width: 700px) { .we-gruppe ul { grid-template-columns: 1fr; } }
+.dossier .we-eintrag { position: relative; display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 9px; align-items: center; width: 100%; padding: 6px 9px; text-align: left; cursor: pointer; color: var(--ink); text-shadow: none; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.32); box-shadow: none; border-radius: 3px; }
+.dossier .we-eintrag:hover { background: #f4e8c6; }
+.dossier .we-eintrag.on { background: #f5dc92; border: 2px solid var(--seal); padding: 5px 8px; }
+.we-eintrag .flagge { grid-row: 1 / 3; }
+.we-name { font: 650 14.5px/1.2 var(--display); }
+.we-haltung { font: italic 13px var(--serif); color: var(--ink-soft); }
+.we-haltung.ton-gut, .we-ton.ton-gut { color: #1f5a44; }
+.we-haltung.ton-schlecht, .we-ton.ton-schlecht { color: #8e2a22; }
+.we-vertragszahl { position: absolute; right: 8px; top: 7px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--teal); color: #f6eedb; font: 700 11.5px/18px var(--sans); text-align: center; }
+.we-vermittlung-zeichen { grid-row: 1 / 3; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--leather-1); color: var(--gold-1); font-size: 17px; box-shadow: 0 0 0 1.5px var(--gold-2); }
+
+/* Akte */
+.we-akte { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.we-kopf { display: flex; gap: 16px; align-items: center; padding: 12px 16px 12px 18px; border-radius: 3px; background: linear-gradient(180deg, rgba(255, 250, 235, 0.85), rgba(240, 226, 190, 0.7)); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 8px solid var(--flagge-1, #8c7d69); box-shadow: inset -8px 0 0 -4px var(--flagge-2, transparent); position: relative; }
+.we-kopf .flagge { flex: none; box-shadow: 0 2px 6px rgba(40, 24, 8, 0.3); }
+.we-kopf-text { min-width: 0; }
+.we-kopf h3 { margin: 0 0 3px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font: 600 24px var(--display); }
+.we-haltung-gross { font: italic 15.5px var(--serif); color: var(--ink-soft); font-weight: 400; }
+.we-kopf p { margin: 0; font: 15px/1.45 var(--serif); }
+@container (max-width: 520px) { .we-kopf { flex-direction: column; align-items: flex-start; } }
+
+.we-dimensionen { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px 22px; }
+.we-dim { display: grid; grid-template-columns: 78px 1fr 30px; align-items: center; gap: 10px; font: 600 14.5px var(--serif); }
+.we-dim strong { text-align: right; font-variant-numeric: tabular-nums lining-nums; }
+.we-balken { height: 9px; border-radius: 5px; background: rgba(90, 64, 40, 0.16); overflow: hidden; display: block; }
+.we-balken i { display: block; height: 100%; background: linear-gradient(90deg, #a8552f, #c9a257 50%, #265a62); background-size: 300px 100%; }
+.dim-konflikt .we-balken i { background: linear-gradient(90deg, #265a62, #c9a257 50%, #8e2a22); background-size: 300px 100%; }
+
+.we-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1.5px solid rgba(90, 64, 40, 0.4); }
+.dossier .we-tabs button { padding: 7px 16px 6px; border: 1px solid rgba(90, 64, 40, 0.35); border-bottom: none; border-radius: 4px 4px 0 0; background: rgba(90, 64, 40, 0.08); font: 600 14px var(--display); cursor: pointer; margin-bottom: -1.5px; box-shadow: none; }
+.dossier .we-tabs button.on { background: var(--paper-light); border-color: rgba(90, 64, 40, 0.55); border-bottom: 2px solid var(--paper-light); }
+.we-tabs button b { margin-left: 6px; padding: 0 6px; border-radius: 8px; background: var(--teal); color: #f6eedb; font: 700 11px/16px var(--sans); }
+
+/* Überblick */
+.we-ueberblick { display: flex; flex-direction: column; gap: 14px; }
+.we-anliegen > b, .we-zahlen > b, .we-erinnerung > b { display: block; margin-bottom: 6px; font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-anliegen ul, .we-erinnerung ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 14.5px/1.4 var(--serif); }
+.we-anliegen li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; }
+.we-anliegen li.ok { color: #265a62; }
+.we-anliegen em { display: block; font-size: 13px; color: var(--ink-soft); }
+.we-zum-tisch { margin-top: 10px; }
+.we-zahlen table { border-collapse: collapse; width: 100%; font: 14.5px var(--serif); }
+.we-zahlen th { text-align: left; font-weight: 600; padding: 3px 12px 3px 0; }
+.we-zahlen td { padding: 3px 12px 3px 0; }
+.we-zahlen em { font-size: 12.5px; color: var(--ink-soft); }
+.we-tur { color: var(--ink-soft); }
+
+/* Verhandlungstisch */
+.we-tisch { display: flex; flex-direction: column; gap: 14px; }
+.we-tisch-kopf { margin: 0; font: italic 14.5px/1.45 var(--serif); color: var(--ink-soft); }
+.we-spalten { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@container (min-width: 900px) { .we-spalten { grid-template-columns: minmax(0, 1fr) minmax(200px, 250px) minmax(0, 1fr); } .we-spalten .we-mitte { order: 0; } }
+.we-spalte h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font: 600 15px var(--display); letter-spacing: 0.02em; }
+.we-klauseln { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.dossier .we-klausel { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 9px 11px 10px; text-align: left; cursor: pointer; color: var(--ink); text-shadow: none; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 3px; box-shadow: none; }
+.dossier .we-klausel:hover:not(:disabled) { background: #f6ebca; }
+.dossier .we-klausel.an { background: linear-gradient(180deg, #fbf0c8, #f1d98e); border: 2px solid var(--gold-3); padding: 8px 10px 9px; box-shadow: 0 2px 6px rgba(80, 56, 20, 0.2); }
+.dossier .we-klausel.veto { border-color: var(--seal); background: #f6dcd2; }
+.dossier .we-klausel.gesperrt { opacity: 0.6; cursor: default; }
+.we-klausel-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.we-klausel-kopf strong { font: 600 14.5px/1.25 var(--display); }
+.we-pk { padding: 0 8px; border-radius: 999px; background: #e6c56c; color: #3a2812; font: 700 12px/18px var(--sans); flex: none; }
+.we-klausel-text { font: 13.5px/1.4 var(--serif); color: var(--ink-soft); }
+.we-klausel-wert { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-soft); }
+.we-klausel-wert em { font-style: normal; }
+.we-klausel-grund { font: italic 13px var(--serif); color: var(--seal); }
+.we-rot { font: 700 11px var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--seal); padding: 0 6px; border: 1px solid var(--seal); border-radius: 2px; }
+.we-punkte { display: inline-flex; gap: 3px; }
+.we-punkte i { width: 8px; height: 8px; border-radius: 50%; background: rgba(90, 64, 40, 0.2); }
+.we-punkte.we-gut i.an { background: #2f7f62; }
+.we-punkte.we-schlecht i.an { background: #a8382c; }
+.we-wirkung { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 1px; font: 13px/1.35 var(--serif); }
+.we-wirkung li.we-gut, .we-gruende li.we-gut, .we-pflichten li.we-gut, .we-pop-anliegen li.we-gut { color: #1f5a44; }
+.we-wirkung li.we-schlecht, .we-gruende li.we-schlecht, .we-pflichten li.we-schlecht { color: #8a2a20; }
+.we-kehrseite { font: italic 13px/1.4 var(--serif); color: #6f4a20; padding-top: 3px; border-top: 1px dotted rgba(90, 64, 40, 0.4); }
+.we-gut { color: #1f5a44; }
+.we-schlecht { color: #8a2a20; }
+
+.we-mitte { display: flex; flex-direction: column; gap: 10px; }
+.we-stimmung { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 10px; text-align: center; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; background: linear-gradient(180deg, rgba(255, 250, 235, 0.9), rgba(238, 224, 188, 0.7)); }
+.we-stimmung strong { font: 600 16px var(--display); }
+.we-urteil { font: 13.5px/1.35 var(--serif); color: var(--ink-soft); }
+.we-waage { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; width: 100%; max-width: 190px; }
+.we-waage i { height: 10px; border-radius: 3px; background: rgba(90, 64, 40, 0.18); transition: background 0.25s; }
+.we-waage i.an[data-i="0"], .we-waage i.an[data-i="1"] { background: #a8382c; }
+.we-waage i.an[data-i="2"] { background: #c9863a; }
+.we-waage i.an[data-i="3"] { background: #b8a94a; }
+.we-waage i.an[data-i="4"] { background: #2f8a6c; }
+.we-waage.u-veto i.an { background: var(--seal); }
+.we-gruende { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font: 13.5px/1.35 var(--serif); }
+.we-gruende li { display: grid; grid-template-columns: 14px 1fr auto; gap: 6px; align-items: baseline; }
+
+.we-leiste { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(90, 64, 40, 0.3); }
+.we-laufzeit { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.we-laufzeit > span { font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin-right: 4px; }
+.dossier .we-laufzeit button { padding: 4px 12px; font: 600 13.5px var(--serif); cursor: pointer; }
+.dossier .we-laufzeit button.an { background: linear-gradient(180deg, #f7e2a4, #d8b262); border-color: var(--gold-3); }
+.we-abgabe { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.we-kosten { font: 14.5px var(--serif); }
+.we-kosten.pump b, .we-kosten.pump { color: #8a2a20; }
+.we-sperre { font: italic 14px var(--serif); color: var(--seal); }
+
+.we-antwort { position: relative; display: grid; gap: 6px; padding: 14px 16px 14px 18px; border: 1px solid rgba(90, 64, 40, 0.4); border-left: 6px solid var(--gold-3); background: #fffaf0; border-radius: 3px; animation: weEin 0.35s ease-out; }
+.we-antwort.u-zustimmung { border-left-color: #2f8a6c; background: #eef8f0; }
+.we-antwort.u-veto, .we-antwort.u-ablehnung { border-left-color: var(--seal); background: #fbeee8; }
+.we-antwort p { margin: 0; font: 15px/1.45 var(--serif); padding-right: 7em; }
+.we-stempel { position: absolute; right: 14px; top: 12px; padding: 2px 10px; font: 700 12.5px var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--seal); border: 2px solid var(--seal); border-radius: 3px; transform: rotate(-5deg); opacity: 0.85; animation: weStempel 0.4s cubic-bezier(0.2, 1.6, 0.4, 1); }
+.we-antwort.u-zustimmung .we-stempel { color: #1f5a44; border-color: #1f5a44; }
+.we-gegen { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.we-gegen li { display: grid; gap: 4px; padding: 8px 10px; background: rgba(255, 255, 255, 0.6); border: 1px dashed rgba(90, 64, 40, 0.5); border-radius: 3px; font: 14.5px/1.4 var(--serif); }
+.we-gegen-knoepfe { display: flex; gap: 12px; align-items: center; }
+@keyframes weEin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes weStempel { from { opacity: 0; transform: rotate(-5deg) scale(1.7); } to { opacity: 0.85; transform: rotate(-5deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .we-antwort, .we-stempel { animation: none; } .we-waage i { transition: none; } }
+
+/* Verträge */
+.we-vertraege h4 { margin: 4px 0 8px; font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-vertraege ul { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; }
+.we-vertrag { padding: 11px 14px 12px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.35); border-left: 5px solid var(--teal); border-radius: 3px; display: grid; gap: 6px; }
+.we-vertrag.st-gebrochen { border-left-color: var(--seal); }
+.we-vertrag.st-ausgelaufen, .we-vertrag.st-gekuendigt { border-left-color: #9a8a72; opacity: 0.9; }
+.we-vertrag-kopf { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.we-vertrag-kopf strong { font: 600 15.5px var(--display); }
+.we-status { font: 700 11px var(--display); letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 9px; border-radius: 999px; background: rgba(38, 90, 98, 0.15); color: #1f4a52; }
+.we-status.st-gebrochen { background: rgba(142, 42, 34, 0.15); color: var(--seal); }
+.we-status.st-ausgelaufen, .we-status.st-gekuendigt { background: rgba(90, 64, 40, 0.14); color: var(--ink-soft); }
+.we-vertrag-klauseln { margin: 0; font: 14px/1.4 var(--serif); }
+.we-vertrag-klauseln em { font-style: normal; font-weight: 600; color: var(--ink-soft); }
+.we-fortschritt { height: 6px; border-radius: 3px; background: rgba(90, 64, 40, 0.16); overflow: hidden; }
+.we-fortschritt i { display: block; height: 100%; background: var(--teal); }
+.we-vertrag-daten { margin: 0; font: 13px var(--serif); color: var(--ink-soft); }
+.we-pflichten { display: grid; gap: 2px; font: 13.5px/1.35 var(--serif); }
+.we-pflichten em { font-style: italic; color: var(--ink-soft); }
+.we-vertrag-ende { margin: 0; font: italic 14px/1.4 var(--serif); color: var(--ink-soft); }
+.we-vertrag-aktion { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font: 13.5px/1.4 var(--serif); }
+.we-leer { font: italic 15px var(--serif); color: var(--ink-soft); }
+
+/* Gesten */
+.we-aktionen { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.we-aktionen li { display: grid; grid-template-columns: minmax(12em, auto) 1fr; gap: 12px; align-items: center; font: 14px/1.4 var(--serif); color: var(--ink-soft); }
+@container (max-width: 560px) { .we-aktionen li { grid-template-columns: 1fr; gap: 3px; } }
+.we-rueck { margin: 0 0 8px; padding: 8px 12px; font: 14.5px/1.4 var(--serif); border-left: 4px solid var(--gold-3); background: rgba(255, 250, 235, 0.8); }
+.we-rueck.ok { border-left-color: #2f8a6c; }
+.we-rueck.nein { border-left-color: var(--seal); }
+.we-rueck em { display: block; font-size: 13px; color: var(--ink-soft); }
+
+/* Vermittlung */
+.we-vermittlungen { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 12px; }
+.we-vermittlung-karte { padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 3px; display: grid; gap: 8px; }
+.we-vermittlung-kopf { display: flex; align-items: center; gap: 10px; }
+.we-vermittlung-kopf strong { font: 600 17px var(--display); margin-left: 6px; }
+.we-vermittlung-karte p { margin: 0; font: 14.5px/1.45 var(--serif); }
+.we-paket { margin: 0; padding-left: 1.2em; font: 14px/1.4 var(--serif); color: var(--ink-soft); }
+.we-aussicht { display: grid; grid-template-columns: 5em 1fr 3em; gap: 10px; align-items: center; font: 13.5px var(--serif); }
+.we-vermittlung-fuss { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.we-grund { font: italic 13.5px var(--serif); color: var(--seal); }
+
+/* Popover auf der Karte */
+.we-pop { position: fixed; z-index: 60; padding: 12px 14px 14px; background: var(--paper-light); background-image: radial-gradient(ellipse at 20% 0%, rgba(255, 250, 235, 0.8), transparent 60%); color: var(--ink); border: 1px solid var(--gold-3); border-radius: 4px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(40, 28, 14, 0.75); outline: none; animation: wePop 0.16s ease-out; }
+@keyframes wePop { from { opacity: 0; transform: translateY(6px) scale(0.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .we-pop { animation: none; } }
+.we-pop .we-pop-zu { position: absolute; right: 6px; top: 4px; width: 26px; height: 26px; padding: 0; border: none; background: none; font-size: 22px; line-height: 1; color: var(--ink-soft); cursor: pointer; }
+.we-pop-kopf { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; padding-right: 22px; }
+.we-pop-kopf strong { display: block; font: 600 17px/1.2 var(--display); }
+.we-pop-kopf span { font: italic 14px var(--serif); color: var(--ink-soft); }
+.we-pop-kopf .we-ton.ton-gut { color: #1f5a44; }
+.we-pop-kopf .we-ton.ton-schlecht { color: #8e2a22; }
+.we-pop-text { margin: 4px 0 8px; font: 13.5px/1.4 var(--serif); color: var(--ink-soft); }
+.we-pop-werte { display: grid; gap: 4px; margin-bottom: 8px; }
+.we-pop-wert { display: grid; grid-template-columns: 5.6em 1fr 1.8em; gap: 8px; align-items: center; font: 13px var(--serif); }
+.we-pop-wert b { text-align: right; font-variant-numeric: tabular-nums; }
+.we-pop-anliegen { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 2px; font: 13.5px/1.35 var(--serif); }
+.we-pop-knoepfe { display: flex; gap: 8px; }
+.we-pop-knoepfe button { padding: 6px 14px; font-size: 14px; cursor: pointer; }
+.we-pop .brass-button { padding: 6px 16px; }
+
+.flagge { display: block; flex: none; }

@@ -1,0 +1,125 @@
+/* Parlament: Halbrund, Fraktionsliste, Abstimmungskarte (Klassen mit Präfix .par-) */
+
+.par-sitzplan { position: relative; width: 100%; max-width: 600px; margin: 6px auto 0; container-type: inline-size; }
+.par-svg { display: block; width: 100%; height: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.par-sitz { transition: fill 0.28s ease, stroke 0.28s ease, opacity 0.2s ease; }
+.par-sitz.gedimmt { opacity: 0.2; }
+.par-mehrheit line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; opacity: 0.75; }
+.par-mehrheit text { font: 700 13px var(--display); fill: var(--ink); letter-spacing: 0.04em; }
+.par-dunkel .par-mehrheit line { stroke: #f0e4c6; opacity: 0.8; }
+.par-dunkel .par-mehrheit text { fill: #f0e4c6; }
+
+.par-mitte { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); width: 38%; display: grid; justify-items: center; text-align: center; pointer-events: none; }
+.par-mitte-inhalt { display: grid; justify-items: center; line-height: 1.05; gap: 2px; }
+.par-mitte-inhalt strong { font: 650 clamp(18px, 9.4cqw, 60px)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
+.par-mitte-inhalt strong.gut { color: #1e6a4f; }
+.par-mitte-inhalt strong.schlecht { color: var(--seal); }
+.par-mitte-inhalt span { display: grid; font: italic clamp(12px, 2.6cqw, 15px)/1.25 var(--serif); color: var(--ink-soft); }
+.par-mitte-inhalt span em { font-size: 0.92em; }
+
+.par-tipp { position: absolute; z-index: 3; transform: translate(-50%, calc(-100% - 14px)); display: grid; gap: 1px; padding: 6px 11px 7px; pointer-events: none; white-space: nowrap; font: 13px/1.3 var(--serif); color: #f0e4c6; background: #2b221b; border: 1px solid #b8893a; border-radius: 3px; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35); }
+.par-tipp-kopf { font-weight: 600; color: #f8e9c2; }
+
+@container (max-width: 330px) { .par-mitte-inhalt span { display: none; } }
+
+/* Ansicht wählen */
+.par-ansicht { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+.par-ansicht .aktion-knopf { border-radius: 14px; padding: 3px 13px 4px; font: 500 14px var(--serif); }
+.par-ansicht .aktion-knopf.on { color: var(--paper-light); background: var(--ink); border-color: var(--ink); }
+
+/* Erwartetes Verhalten */
+.par-zustaende { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font: 14px var(--serif); }
+.par-zustaende li { display: inline-flex; align-items: center; gap: 6px; }
+.par-zustaende i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(40, 30, 20, 0.35); }
+.par-zustaende b { font-variant-numeric: lining-nums tabular-nums; }
+.par-lesart { margin: 6px auto 0; max-width: 40em; text-align: center; font: italic 14.5px/1.4 var(--serif); color: var(--ink-soft); }
+
+/* Lager, Duldung, Opposition */
+.par-bilanz { margin: 12px auto 4px; max-width: 640px; }
+.par-lager-balken { position: relative; display: flex; height: 11px; border-radius: 6px; overflow: visible; background: rgba(60, 40, 20, 0.12); }
+.par-lager-balken i { display: block; height: 100%; }
+.par-lager-balken i:first-child { border-radius: 6px 0 0 6px; }
+.par-lager-balken i:nth-child(3) { border-radius: 0 6px 6px 0; }
+.par-lager-balken .lager, .par-lager-zeile .lager { background: var(--teal); }
+.par-lager-balken .duldung, .par-lager-zeile .duldung { background: #c69a4a; }
+.par-lager-balken .opposition, .par-lager-zeile .opposition { background: #b6a482; }
+.par-lager-balken s { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); text-decoration: none; }
+.par-lager-zeile { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-top: 6px; font: 14.5px var(--serif); }
+.par-lager-zeile span { display: inline-flex; align-items: center; gap: 6px; }
+.par-lager-zeile i { width: 10px; height: 10px; border-radius: 2px; }
+.par-lager-zeile b { font-variant-numeric: lining-nums tabular-nums; }
+.par-lager-zeile .par-marke { margin-left: auto; font-style: italic; color: var(--ink-soft); }
+
+/* Fraktionsliste */
+.par-fraktionen { list-style: none; margin: 10px 0 0; padding: 0; display: grid; }
+.par-fraktionen li { display: grid; grid-template-columns: 14px minmax(0, 1.4fr) minmax(40px, 1fr) 44px 58px; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px solid rgba(60, 40, 20, 0.16); font: 15px var(--serif); transition: opacity 0.18s, background 0.18s; }
+.par-fraktionen li.on { background: rgba(255, 250, 235, 0.6); }
+.par-fraktionen li.leise { opacity: 0.55; }
+.par-punkt { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(40, 30, 20, 0.35); }
+.par-name { display: grid; line-height: 1.2; }
+.par-name em { font-size: 12.5px; color: var(--ink-soft); }
+.rolle-eigene .par-name, .rolle-lager .par-name { font-weight: 600; }
+.rolle-lager .par-name em, .rolle-eigene .par-name em { color: var(--teal); }
+.par-stark { height: 7px; border-radius: 4px; background: rgba(60, 40, 20, 0.1); overflow: hidden; }
+.par-stark i { display: block; height: 100%; border-radius: 4px; max-width: 100%; }
+.par-fraktionen b { text-align: right; font-variant-numeric: lining-nums tabular-nums; }
+.par-anteil { text-align: right; color: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; font-size: 14px; }
+
+/* Letzte Abstimmungen */
+.par-letzte { margin-top: 14px; }
+.par-letzte h4 { margin: 0 0 4px; font: 600 13px var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+.par-letzte ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.par-letzte li { display: grid; grid-template-columns: 86px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(60, 40, 20, 0.14); }
+.par-l-stempel { justify-self: start; padding: 1px 8px; font: 700 10.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 3px; transform: rotate(-2deg); }
+.par-letzte li.ja .par-l-stempel { color: #1e6a4f; }
+.par-letzte li.nein .par-l-stempel { color: var(--seal); }
+.par-l-name { display: grid; line-height: 1.25; font: 15px var(--serif); }
+.par-l-name em { font-size: 13px; color: var(--ink-soft); }
+
+/* Abstimmungskarte */
+.par-karte-huelle { position: fixed; z-index: 9; left: 50%; top: 96px; transform: translateX(-50%); width: min(480px, calc(100vw - 24px)); pointer-events: none; }
+.par-karte {
+  pointer-events: auto; display: grid; gap: 3px; justify-items: center; width: 100%; padding: 13px 18px 12px; text-align: center; cursor: pointer; color: #f0e4c6;
+  border: 1px solid transparent; border-radius: 4px; animation: parKarteEin 420ms cubic-bezier(0.2, 0.85, 0.2, 1) both;
+  background: linear-gradient(180deg, #3a2d22, #1f1813) padding-box, linear-gradient(180deg, #d9b46a, #6e4b1c) border-box;
+  box-shadow: 0 0 0 1px #0b0806, 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+.par-karte-huelle.fertig .par-karte { animation: none; }
+.par-karte-kopf { font: 600 11px var(--display); letter-spacing: 0.2em; text-transform: uppercase; color: #d9b46a; }
+.par-karte-titel { font: 600 21px/1.2 var(--display); color: #f8e9c2; }
+.par-karte-unter { font: italic 13.5px/1.3 var(--serif); color: #cdb98f; }
+.par-karte .par-sitzplan { margin-top: 8px; max-width: 420px; }
+.par-zaehler { display: flex; gap: 12px; justify-content: center; }
+.par-zaehler span { display: grid; justify-items: center; line-height: 1; }
+.par-zaehler b { font: 650 clamp(18px, 6.2cqw, 32px)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
+.par-zaehler i { margin-top: 3px; font: 600 clamp(9px, 2.4cqw, 11px) var(--display); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.85; }
+.par-zaehler .ja { color: #7fd1a6; }
+.par-zaehler .nein { color: #e0705f; }
+.par-balken { position: relative; display: flex; width: 100%; max-width: 420px; height: 8px; margin-top: 8px; border-radius: 4px; background: rgba(240, 228, 198, 0.13); }
+.par-balken i { display: block; height: 100%; }
+.par-balken i.ja { background: #7fd1a6; border-radius: 4px 0 0 4px; }
+.par-balken i.nein { background: #e0705f; margin-left: auto; border-radius: 0 4px 4px 0; }
+.par-balken s { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: #f0e4c6; }
+.par-urteil-zeile { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 14px; min-height: 40px; margin-top: 8px; }
+.par-urteil-text { font: italic 14px/1.3 var(--serif); color: #cdb98f; }
+.par-stempel { padding: 3px 14px 4px; font: 700 15px var(--display); letter-spacing: 0.16em; text-transform: uppercase; border: 3px double currentColor; border-radius: 4px; transform: rotate(-4deg); animation: parStempel 520ms cubic-bezier(0.2, 1.5, 0.35, 1) both; }
+.par-stempel.angenommen { color: #7fd1a6; box-shadow: 0 0 22px rgba(127, 209, 166, 0.28); }
+.par-stempel.abgelehnt { color: #e0705f; box-shadow: 0 0 22px rgba(224, 112, 95, 0.28); }
+.par-weitere { margin-top: 2px; font: italic 12.5px var(--serif); color: #a99870; }
+
+@keyframes parKarteEin { from { opacity: 0; transform: translateY(-16px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes parStempel { 0% { opacity: 0; transform: rotate(-4deg) scale(2.4); } 55% { opacity: 1; transform: rotate(-4deg) scale(0.92); } 100% { opacity: 1; transform: rotate(-4deg) scale(1); } }
+
+@media (max-width: 560px) {
+  .par-fraktionen li { grid-template-columns: 14px minmax(0, 1fr) 40px 52px; gap: 8px; }
+  .par-stark { display: none; }
+  .par-lager-zeile .par-marke { margin-left: 0; flex-basis: 100%; }
+  .par-letzte li { grid-template-columns: 78px minmax(0, 1fr) auto; }
+  .par-karte-huelle { top: 72px; }
+  .par-karte-titel { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .par-karte, .par-stempel { animation: none; }
+  .par-sitz { transition: none; }
+}

@@ -20,6 +20,17 @@ export interface ProvinceData {
   grossstadt: boolean;
 }
 
+/** Deutsche Namen der sieben Regionen (in Klammern der türkische Name). */
+export const REGION_DE: Record<string, string> = {
+  Marmara: "Marmara",
+  Ege: "Ägäis (Ege)",
+  Akdeniz: "Mittelmeer (Akdeniz)",
+  "İç Anadolu": "Zentralanatolien (İç Anadolu)",
+  Karadeniz: "Schwarzmeer (Karadeniz)",
+  "Doğu Anadolu": "Ostanatolien (Doğu Anadolu)",
+  "Güneydoğu Anadolu": "Südostanatolien (Güneydoğu Anadolu)",
+};
+
 export const PROVINZEN: ProvinceData[] = (raw as { provinzen: ProvinceData[] }).provinzen.sort((a, b) => a.plaka - b.plaka);
 
 const totalPop = PROVINZEN.reduce((s, p) => s + p.bevoelkerung, 0);
@@ -31,10 +42,10 @@ const avgGdp = PROVINZEN.reduce((s, p) => s + p.bevoelkerung * p.bipProKopf, 0) 
 const avgUnemployment = PROVINZEN.reduce((s, p) => s + p.bevoelkerung * p.arbeitslosigkeit, 0) / totalPop;
 
 /** Grobe Einordnung der Provinzen an großen Bruchzonen (Nordanatolische, Ostanatolische Verwerfung, Ägäis). */
-const SEISMIC = new Set([2, 9, 10, 12, 14, 16, 20, 23, 24, 31, 34, 35, 41, 44, 45, 46, 48, 54, 65, 77, 81]);
+export const SEISMIC = new Set([2, 9, 10, 12, 14, 16, 20, 23, 24, 31, 34, 35, 41, 44, 45, 46, 48, 54, 65, 77, 81]);
 
 /** Grenzprovinzen zu Syrien mit vielen Geflüchteten. */
-const BORDER = new Set([27, 31, 47, 63, 79]);
+export const BORDER = new Set([27, 31, 47, 63, 79]);
 
 const WATER: Record<string, number> = {
   "Güneydoğu Anadolu": 0.8,

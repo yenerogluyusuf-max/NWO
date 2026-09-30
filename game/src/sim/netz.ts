@@ -25,6 +25,10 @@ export interface NetState {
   targets: Record<string, number>;
   /** Umsetzungsschritt je Monat für laufende Änderungen */
   steps: Record<string, number>;
+  /** Regionale Zielstufe je Maßnahme, Index = Kfz-Kennziffer − 1, −1 = kein regionales Ziel (Bau vor Ort) */
+  ziele?: Record<string, number[]>;
+  /** Umsetzungsschritt je Monat und Provinz für regionale Ziele */
+  schritte?: Record<string, number[]>;
   /** Bevölkerungsanteil je Provinz für Landesdurchschnitte */
   weights: number[];
   /** Akut-Flag je Knoten und Provinz (Problem-Hysterese nach Democracy 4) */
@@ -104,7 +108,7 @@ function inputValue(input: NonNullable<NodeSpec["input"]>, e: EconomyState, fact
     case "abwertung":
       return e.fxChange12;
     case "defizit":
-      return 50 + (e.deficit + e.fiscalImpulse + e.policyCost) * 5;
+      return 50 + (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0)) * 5;
     case "schulden":
       return e.debtRatio;
   }
@@ -131,6 +135,34 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
       const k = i * PROVINCES + p;
       const diff = target - v[k]!;
       v[k] = v[k]! + Math.sign(diff) * Math.min(Math.abs(diff), step);
+    }
+  }
+
+  // Regionale Ziele: Nur die genannten Provinzen bewegen sich (Bau vor Ort)
+  if (s.ziele) {
+    for (const [id, arr] of Object.entries(s.ziele)) {
+      const i = model.index.get(id);
+      if (i === undefined) continue;
+      const st = s.schritte?.[id];
+      let offen = false;
+      for (let p = 0; p < PROVINCES; p++) {
+        const t = arr[p]!;
+        if (t < 0) continue;
+        const k = i * PROVINCES + p;
+        const diff = t - v[k]!;
+        const step = st?.[p] ?? 100;
+        if (Math.abs(diff) <= step) {
+          v[k] = t;
+          arr[p] = -1; // erreicht
+        } else {
+          v[k] = v[k]! + Math.sign(diff) * step;
+          offen = true;
+        }
+      }
+      if (!offen) {
+        delete s.ziele[id];
+        if (s.schritte) delete s.schritte[id];
+      }
     }
   }
 

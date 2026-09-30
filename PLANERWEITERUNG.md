@@ -1,6 +1,6 @@
 # NWO — Planerweiterung aus der Gesamtrecherche
 
-Stand: 28. September 2026. Ergänzung zu [Projektplan](PROJEKTPLAN.md), [Entwicklungsplan](ENTWICKLUNGSPLAN.md) und [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md). Grundlage: die umfassende Recherche [RECHERCHE_GESAMTBEDARF.md](RECHERCHE_GESAMTBEDARF.md) (Datenquellen, Technik, KI, Recht, Markt; Einzelnotizen in [RECHERCHE_NOTIZEN/](RECHERCHE_NOTIZEN/)). Dieses Dokument weitet den Plan aus; es ersetzt keine Entscheidung des Projektinhabers und keine anwaltliche Prüfung.
+Stand: 28. September 2026 (Hinweis 30.09.: Nach Entscheidung J, Priorität Spielbarkeit und lokal, sind die Abschnitte zu Steam, Anwalt und Marketing nachrangig; maßgeblich ist [ENTSCHEIDUNGEN.md](ENTSCHEIDUNGEN.md), Blöcke J bis L). Ergänzung zu [Projektplan](PROJEKTPLAN.md), [Entwicklungsplan](ENTWICKLUNGSPLAN.md) und [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md). Grundlage: die umfassende Recherche [RECHERCHE_GESAMTBEDARF.md](RECHERCHE_GESAMTBEDARF.md) (Datenquellen, Technik, KI, Recht, Markt; Einzelnotizen in [RECHERCHE_NOTIZEN/](RECHERCHE_NOTIZEN/)). Dieses Dokument weitet den Plan aus; es ersetzt keine Entscheidung des Projektinhabers und keine anwaltliche Prüfung.
 
 ## 1. Was die Recherche am Plan ändert
 

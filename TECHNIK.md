@@ -11,8 +11,9 @@ Stand: 28. September 2026. Ergänzung zum [Entwicklungsplan](ENTWICKLUNGSPLAN.md
 | Zufall | Eigener deterministischer Zufallsgenerator, Zustand im Spielstand | Gleicher Seed, gleicher Verlauf; Speichern und Laden setzen exakt fort |
 | Speichern | Der ganze Weltzustand ist reines JSON | Einfach, prüfbar, versionierbar; eiserner Modus später über einen einzigen Speicherplatz |
 | Oberfläche | **React** mit **Vite** | Schnelle Entwicklung, gute Werkzeuge; Akten, Tabellen und Gespräche sind Text- und Formularoberflächen, dafür ist Web-Technik stark |
-| Karte | **SVG** aus GeoJSON mit **d3-geo** | 81 Provinzen und später Bezirke sind wenige Tausend Linien; SVG lässt sich frei gestalten und später mit gezeichneten Ebenen überlagern. Eine Kachelkarten-Bibliothek ist dafür nicht nötig |
-| Kartendaten | **Natural Earth** 1:10m, Verwaltungsebene 1 | Gemeinfrei, alle 81 Provinzen mit türkischen Namen und Kfz-Kennziffern |
+| Karte | **Three.js** für das Gelände (Half-Float-Höhentextur, Pixel-Shading) und ein **Screen-Space-Vektor-Overlay** auf Canvas (Grenzen, Straßen, Bahn, Orte, Beschriftung; scharf bei jedem Zoom, Detailstufe nach Pixeln je Texturkoordinate) | Die erste SVG-Wahl (Entwicklungsstand 28.09.) war zu unscharf und zu langsam für 81 Provinzen mit 973 Bezirken und Straßen; das Overlay wird pro Bild aus den Geodaten gezeichnet |
+| Kartendaten | **Natural Earth** 1:10m (Provinzen, Nachbarländer), **AWS Terrarium** (Höhen, Zoom 8), **OpenStreetMap** (Straßen in vier Rängen, Bahn, Krankenhäuser, Kraftwerke, Staudämme; 973 Bezirke mit Straßendichte) | Gemeinfrei bzw. ODbL mit Quellenangabe; werden mit `game/tools/geodaten/` erzeugt, die großen Binärdateien stehen nicht im Repository |
+| Vergleichsdaten | **Weltbank** (WDI und WGI, CC BY 4.0), 40 Indikatoren, 30 Länder | `game/tools/vergleich/weltbank.py`; jeder Wert trägt sein Jahr (Quelle oder Lücke) |
 | Desktop | Zunächst im Browser; später in einer Desktop-Hülle (**Tauri** oder Electron) | Die Wahl der Hülle ändert nichts am Spiel und fällt, wenn ein Installationspaket gebraucht wird |
 | Tests | **Vitest** | Reproduzierbarkeit, stilisierte Fakten und Leistung werden automatisch geprüft |
 
@@ -52,10 +53,10 @@ npm test         # automatische Tests
 
 ### Seitdem hinzugekommen
 
-- **Politiknetz** mit 186 Knoten und 363 Verbindungen, je Provinz gerechnet, mit eigener Ansicht (siehe [Politiknetz](POLITIKNETZ.md)).
+- **Politiknetz** mit 199 Knoten und 643 Verbindungen, je Provinz gerechnet, mit eigener Ansicht (siehe [Politiknetz](POLITIKNETZ.md)).
 - **Prolog** mit acht Stationen: Herkunft, Jugend, Beruf, Partnerschaft, Weg in die Politik, eigene Partei, Wahlkampf, Wahlnacht. Jede Antwort verändert Nähe zu Wählergruppen, Heimatprovinz, Familie, Versprechen oder Bündnis. Mit „Zufällig und schnell“ lässt er sich überspringen; `?schnellstart` in der Adresse startet ohne Prolog.
 - **Parlament 2028** aus dem Umfragedurchschnitt: Die neue Partei zieht 15 bis 30 % an sich, jeder Anteil schwankt um bis zu 5 Punkte, dann Sperrklausel mit Bündnissen und D'Hondt. Vorerst landesweit; die Verteilung je Provinz folgt mit den Provinzdaten.
-- **23 Tests**, darunter Prolog und Parlament (immer 600 Sitze, nur Parteien über der Hürde).
+- **221 Tests**, darunter Prolog und Parlament, Spielschleife, Verhandlung, Programme, Länder, Wähler, Wirkungsberichte, Chat, Speichern und Laden, eine Bot-Messung der Schwierigkeit (`test/spielbarkeit.test.ts`) und die Prüfung aller 44 Ereignisvorlagen auf lesbare Texte.
 
 ## Nächste Schritte
 
@@ -78,3 +79,7 @@ und schreibt transparente PNGs nach `game/public/ui/`.
 
 Teile: `medaillon`, `rahmen`, `siegel`, `kompass`, `plakette`. Ein Durchlauf
 dauert auf der CPU unter einer Minute.
+
+## Stand 30.09.2026 (Nachtarbeit)
+
+Simulationskern (`game/src/sim`): Spielschleife mit Kapital, Gesetz und Erlass, Fraktionen und Verhandlungen, Ereignismotor (44 Vorlagen mit Akteuren und Wirkungsvorschau), Figuren, Wählerkoalition, Regierungsprogramme (8 mit 37 Schritten), Wirkungsberichte, zwölf bis fünfzehn Länder als Akteure (`laender.ts`), Problemlöser (`vorschlaege.ts`), Bilanz. Oberfläche (`game/src/ui`): sieben Menüpunkte mit Reitern, Karte mit Ebenen, Ereignismarken und Beziehungsebene, Fenster für Wähler, Welt, Programme, Parlament. Ein Browser-Skript, das das Spiel wie ein Nutzer spielt, und eine Überschneidungsprüfung liegen im Scratchpad der Sitzung (Verfahren: [Nachtarbeit](NACHTARBEIT_2026-09-29.md)). **Kein Sprachmodell eingebaut** (Gespräch und Mentorin regelbasiert).

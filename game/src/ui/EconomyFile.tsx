@@ -1,9 +1,13 @@
 import { useState } from "react";
 import type { World } from "../sim/types";
 import { formatDateDe, formatMonthDe } from "../sim/dates";
+import { VergleichBalken } from "./VergleichBalken";
+import { ZUORDNUNG, spielWert } from "./vergleich";
 
 interface Row {
   id: string;
+  /** Größe des Politiknetzes bzw. Weltbank-Zuordnung für den Weltvergleich */
+  vergleichId?: string;
   label: string;
   value: string;
   measured: string;
@@ -28,6 +32,7 @@ export function EconomyFile({ world }: { world: World }) {
   const rows: Row[] = [
     {
       id: "inflation",
+      vergleichId: "inflation",
       label: "Inflation",
       value: `${nf(p.inflation.value)} %`,
       measured: `${formatMonthDe(p.inflation.period)}, veröffentlicht am ${formatDateDe(p.inflation.publishedOn)}`,
@@ -46,6 +51,7 @@ export function EconomyFile({ world }: { world: World }) {
     },
     {
       id: "usd",
+      vergleichId: "abwertung",
       label: "Lira je US-Dollar",
       value: nf(e.usdTry, 2),
       measured: "tagesaktuell",
@@ -63,6 +69,7 @@ export function EconomyFile({ world }: { world: World }) {
     },
     {
       id: "wachstum",
+      vergleichId: "wachstum",
       label: "Wachstum",
       value: `${nf(p.growth.value)} %`,
       measured: `${p.growth.period}, veröffentlicht am ${formatDateDe(p.growth.publishedOn)}`,
@@ -71,6 +78,7 @@ export function EconomyFile({ world }: { world: World }) {
     },
     {
       id: "arbeitslosigkeit",
+      vergleichId: "arbeitslosigkeit",
       label: "Arbeitslosenquote",
       value: `${nf(p.unemployment.value)} %`,
       measured: `${formatMonthDe(p.unemployment.period)}, veröffentlicht am ${formatDateDe(p.unemployment.publishedOn)}`,
@@ -88,6 +96,7 @@ export function EconomyFile({ world }: { world: World }) {
     },
     {
       id: "schulden",
+      vergleichId: "schulden",
       label: "Staatsschulden",
       value: `${nf(e.debtRatio)} % des BIP`,
       measured: "Schätzung des Finanzministeriums",
@@ -128,6 +137,13 @@ export function EconomyFile({ world }: { world: World }) {
         <aside className="paper why-panel">
           <h3>{current.label}</h3>
           <p>{current.explain}</p>
+          {current.vergleichId && ZUORDNUNG[current.vergleichId] && (
+            <>
+              <h4>Im Vergleich mit anderen Ländern</h4>
+              <VergleichBalken code={ZUORDNUNG[current.vergleichId]![0]!} spiel={spielWert(world, current.vergleichId)} />
+            </>
+          )}
+          {!current.vergleichId && current.id === "leitzins" && <p className="subtitle">Leitzinsen anderer Länder liegen nicht in der Weltbank-Datenbank (Lücke); die Bank für Internationalen Zahlungsausgleich veröffentlicht sie.</p>}
           <h4>Was zuletzt passiert ist</h4>
           <ul>
             {recent.map((l, i) => (

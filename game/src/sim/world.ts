@@ -1,16 +1,25 @@
 // Weltzustand, Zeit und Handlungen. Jede verbindliche Zustandsänderung wird
 // protokolliert (Entwicklungsplan, Abschnitt 6).
 
-import type { EconomyState, GovernorStance, LogEntry, LogKind, MonthlySnapshot, Scenario, World } from "./types";
+import type { EconomyState, MonthlySnapshot, Scenario, World } from "./types";
 import { Rng, seedToState } from "./rng";
 import { addDays, dayOfMonth, formatDateDe, formatMonthDe, monthNumber, monthOf, previousMonth } from "./dates";
-import { clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, ppkDecision, realRate } from "./economy";
-import { buildModel, createNet, nationalAverage, policyCost, startAverage, stepNet, type NetModel } from "./netz";
-import { EDGES, NODES } from "../data/politiknetz";
+import { clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, realRate } from "./economy";
+import { createNet, nationalAverage, policyCost, startAverage, stepNet } from "./netz";
 import { REGIONAL, WEIGHTS } from "./regional";
+import { NET } from "./modell";
+import { addLog, fmt } from "./log";
+import { spielTick } from "./spiel";
+import { ergaenzeFiguren } from "./figuren";
+import { zinssitzung } from "./zentralbank";
+import { wirtschaftMonat } from "./wirtschaft-tick";
+import { turkey2026 } from "./scenario";
 
-/** Das Politiknetz ist statisch; nur sein Zustand gehört zum Spielstand. */
-export const NET: NetModel = buildModel(NODES, EDGES);
+// Das Netz, das Protokoll und die Eingriffe liegen in eigenen Dateien; hier bleiben die Namen erreichbar.
+export { NET } from "./modell";
+export { addLog } from "./log";
+export { replaceGovernor, criticizeCentralBank, setFiscalImpulse } from "./eingriffe";
+export { setPolicy } from "./handeln";
 
 /** Kopplung des Politiknetzes an das Wirtschaftsmodell (Platzhalter für die Kalibrierung). */
 const COUPLING = {
@@ -82,12 +91,6 @@ function syntheticHistory(e: EconomyState, startDate: string): MonthlySnapshot[]
   return history;
 }
 
-export function addLog(world: World, kind: LogKind, text: string, why?: string): void {
-  const entry: LogEntry = { day: world.day, date: world.date, kind, text };
-  if (why) entry.why = why;
-  world.log.push(entry);
-}
-
 /** Einen Tag fortschreiben. */
 export function tick(world: World): void {
   const rng = new Rng(world.rngState);
@@ -101,17 +104,8 @@ export function tick(world: World): void {
   e.eurTry *= 1 + dep + rng.normal(0.002);
   e.riskPremium = clamp(dailyRiskPremium(e, rng), 50, 2000);
 
-  // Geldpolitischer Ausschuss
-  if (world.ppkDays.includes(world.day)) {
-    const { newRate, why } = ppkDecision(e, world.governor.stance);
-    const old = e.policyRate;
-    e.policyRate = newRate;
-    const text =
-      newRate === old
-        ? `Die Zentralbank hält den Leitzins bei ${fmt(newRate)} %.`
-        : `Die Zentralbank ${newRate > old ? "erhöht" : "senkt"} den Leitzins von ${fmt(old)} auf ${fmt(newRate)} %.`;
-    addLog(world, "entscheidung", text, why);
-  }
+  // Geldpolitischer Ausschuss: die Regel der Bank, mit Druck oder Weisung der Regierung (Zentralbank-Modul)
+  if (world.ppkDays.includes(world.day)) zinssitzung(world);
 
   // Realwirtschaft monatlich, jeweils am Monatsersten für den abgelaufenen Monat
   if (dayOfMonth(world.date) === 1) {
@@ -131,11 +125,15 @@ export function tick(world: World): void {
     });
     publishQuarterlyGrowth(world);
     monthlyNet(world);
+    wirtschaftMonat(world);
   }
 
   // Statistiken erscheinen mit Verzögerung (Wirtschaftsmodell, Abschnitt 2)
   if (dayOfMonth(world.date) === 3) publishInflation(world);
   if (dayOfMonth(world.date) === 10) publishUnemployment(world);
+
+  // Spielschleife: Parlament, Ereignisse, Umfragen, Wahl (nur mit Amtsantritt)
+  spielTick(world, rng);
 
   world.rngState = rng.state;
 }
@@ -194,88 +192,66 @@ function publishQuarterlyGrowth(world: World): void {
 }
 
 // ---------------------------------------------------------------------------
-// Handlungen des Spielers (vorerst als Entwickleransicht mit Knöpfen, M1)
-
-/** Die Zentralbankführung austauschen (Stufe B). */
-export function replaceGovernor(world: World, stance: GovernorStance, name: string): void {
-  const e = world.economy;
-  const loss = stance === "gefuegig" ? 0.25 : 0.1;
-  e.credibility = clamp(e.credibility - loss, 0.05, 0.95);
-  const jump = (stance === "gefuegig" ? 0.08 : 0.03) * (1 - e.credibility);
-  e.usdTry *= 1 + jump;
-  e.eurTry *= 1 + jump;
-  e.riskPremium += stance === "gefuegig" ? 90 : 40;
-  world.governor = { name, stance };
-  addLog(
-    world,
-    "entscheidung",
-    `Der Präsident entlässt die Zentralbankführung und ernennt ${name}.`,
-    `Märkte werten das als Eingriff in die Unabhängigkeit: Die Lira fällt um ${fmt(jump * 100)} %, der Risikoaufschlag steigt.`,
-  );
-}
-
-/** Die Zentralbank öffentlich kritisieren. */
-export function criticizeCentralBank(world: World): void {
-  const e = world.economy;
-  e.credibility = clamp(e.credibility - 0.03, 0.05, 0.95);
-  e.usdTry *= 1.008;
-  e.eurTry *= 1.008;
-  e.riskPremium += 10;
-  addLog(
-    world,
-    "entscheidung",
-    "Der Präsident kritisiert die Zinspolitik öffentlich.",
-    "Anleger fürchten politischen Druck; die Lira gibt leicht nach.",
-  );
-}
-
-/** Zusätzliche Staatsausgaben (+) oder Kürzungen (−) in % des BIP festlegen. */
-export function setFiscalImpulse(world: World, percentOfGdp: number): void {
-  const before = world.economy.fiscalImpulse;
-  world.economy.fiscalImpulse = percentOfGdp;
-  addLog(
-    world,
-    "entscheidung",
-    `Haushalt: zusätzlicher Impuls von ${fmt(before)} auf ${fmt(percentOfGdp)} % des BIP geändert.`,
-    percentOfGdp > before
-      ? "Mehr Ausgaben stützen die Nachfrage, erhöhen aber Defizit und Schulden."
-      : "Weniger Ausgaben dämpfen die Nachfrage und entlasten den Haushalt.",
-  );
-}
-
-/** Eine Maßnahme des Politiknetzes auf eine neue Stufe setzen (0–100). */
-export function setPolicy(world: World, id: string, level: number): void {
-  const i = NET.index.get(id);
-  const node = i === undefined ? undefined : NET.nodes[i];
-  if (!node || node.kind !== "massnahme") throw new Error(`Keine Maßnahme: ${id}`);
-  const target = clamp(Math.round(level), 0, 100);
-  const current = nationalAverage(NET, world.net, id);
-  world.net.targets[id] = target;
-  world.net.steps[id] = Math.max(Math.abs(target - current) / (node.months ?? 1), 0.01);
-  const costChange = ((target - current) / 100) * (node.cost ?? 0);
-  const months = node.months ?? 1;
-  addLog(
-    world,
-    "entscheidung",
-    `${node.name}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`,
-    `${node.text} Umsetzung in etwa ${months} ${months === 1 ? "Monat" : "Monaten"}` +
-      (costChange !== 0
-        ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.`
-        : "."),
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Speichern und Laden: Der ganze Zustand ist reines JSON.
 
 export function save(world: World): string {
   return JSON.stringify(world);
 }
 
-export function load(json: string): World {
-  return JSON.parse(json) as World;
+/**
+ * Ältere Spielstände haben weniger Knoten im Politiknetz (neue Größen und Maßnahmen wurden hinten angehängt). Ohne Anpassung
+ * rechnen die neuen Größen mit fehlenden Werten, und alles wird zu „NaN“. Hier bekommen die neuen Knoten ihre Startwerte.
+ */
+export function migriereNetz(world: World): void {
+  const n = NET.nodes.length;
+  const soll = n * 81;
+  const ist = world.net.values.length;
+  if (ist >= soll) return;
+  const frisch = createNet(NET, world.economy, REGIONAL, WEIGHTS);
+  const neu = frisch.start.slice(ist, soll);
+  world.net.values.push(...neu);
+  world.net.start.push(...neu);
+  for (const slot of world.net.history) slot.push(...neu);
+  if (world.net.acute) world.net.acute.push(...new Array<number>(soll - ist).fill(0));
 }
 
-function fmt(x: number): string {
-  return x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const zahl = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
+
+/**
+ * Ein Spielstand, der mit „NaN“ gespeichert wurde, enthält `null` statt Zahlen (JSON kennt kein NaN). Damit er weiterspielbar ist,
+ * bekommen fehlende Werte den Startwert des Szenarios oder einen ruhigen Vorgabewert.
+ */
+export function bereinigeZahlen(world: World): void {
+  const n = world.net.values.length;
+  for (let i = 0; i < n; i++) {
+    if (!zahl(world.net.start[i])) world.net.start[i] = 50;
+    if (!zahl(world.net.values[i])) world.net.values[i] = world.net.start[i]!;
+  }
+  for (const slot of world.net.history) for (let i = 0; i < slot.length; i++) if (!zahl(slot[i])) slot[i] = world.net.values[i] ?? 50;
+  const start = Object.fromEntries(Object.entries(turkey2026.economy).map(([k, v]) => [k, v.value])) as Record<string, number>;
+  const eco = world.economy as unknown as Record<string, unknown>;
+  for (const [k, v] of Object.entries(eco)) if ((v === null || typeof v !== "object") && !zahl(v) && start[k] !== undefined) eco[k] = start[k];
+  for (const k of ["fxChange12", "policyCost", "costPush", "potentialShift"]) if (!zahl(eco[k])) eco[k] = 0;
+  const s = world.spiel;
+  if (s) {
+    if (!zahl(s.kapital)) s.kapital = 30;
+    if (!zahl(s.umfrage.zustimmung)) s.umfrage.zustimmung = 45;
+    s.umfrage.verlauf = s.umfrage.verlauf.filter((v) => zahl(v.wert));
+    if (s.reich) {
+      if (!zahl(s.reich.verwaltung)) s.reich.verwaltung = 50;
+      for (const b of Object.values(s.reich.bestand)) if (!zahl(b.zustand)) b.zustand = 60;
+      for (const st of Object.values(s.reich.staetten)) if (!zahl(st.zustand)) st.zustand = 50;
+      for (const l of s.reich.laufend) if (!zahl(l.fortschritt)) l.fortschritt = 0;
+    }
+  }
 }
+
+export function load(json: string): World {
+  const w = JSON.parse(json) as World;
+  migriereNetz(w);
+  bereinigeZahlen(w);
+  // Ältere Spielstände: die neuen Ämter des Umfelds (Justiz, Streitkräfte, Wirtschaft) werden einmal ergänzt
+  ergaenzeFiguren(w);
+  return w;
+}
+

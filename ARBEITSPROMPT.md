@@ -14,7 +14,7 @@ Ein Einzelspieler-Strategiespiel: Der Spieler ist Staatspräsident der **Türkei
 
 ## Wo alles liegt
 
-Projektordner: `/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/`
+Projektordner: `/Users/yusufyeneroglu/Desktop/Staatsraeson/` (Code in `game/`). Der ältere Ordner `~/Desktop/NWO NEW WORLD ORDER/` ist überholt: Er hat keinen Code und eine alte `ENTSCHEIDUNGEN.md`.
 
 | Dokument | Inhalt |
 |---|---|

@@ -1,0 +1,13 @@
+/* Karte 2: Stadtpunkte statt Häuserbilder, Größenklassen wie in einem Atlas. */
+.atlas-labels .city { transform-origin: 50% 8px; gap: 3px; }
+.atlas-labels .city .karte-stadtpunkt {
+  display: block; width: 12px; height: 12px; border-radius: 50%; background: #f6ecd6; border: 2.4px solid #24180f;
+  box-shadow: 0 0 0 1.6px rgba(246, 236, 214, 0.9), 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+.atlas-labels .city-metropole .karte-stadtpunkt { width: 16px; height: 16px; background: #e6b9a6; }
+.atlas-labels .city-hauptstadt .karte-stadtpunkt { width: 18px; height: 18px; background: #f1d58f; border-radius: 3px; transform: rotate(45deg); }
+.atlas-labels.far .city .karte-stadtpunkt { width: 9px; height: 9px; border-width: 2px; }
+.atlas-labels.far .city-metropole .karte-stadtpunkt { width: 12px; height: 12px; }
+.atlas-labels.far .city-hauptstadt .karte-stadtpunkt { width: 13px; height: 13px; }
+.atlas-labels.far .city .city-banner::before { display: none; }
+.atlas.karte-zeiger { cursor: pointer; }

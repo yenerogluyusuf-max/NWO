@@ -1,0 +1,112 @@
+/* Wunder-Bilder: Zeitraffer der Fertigstellung, Baustelle mit Gerüst und Kran, Bauplan (Klassen .wunder-a-*).
+   Zeitplan der Fertigstellung (Sekunden): 0 bis 2,6 Dämmerung; 0,4 bis 4,0 Gerüst und Stein wachsen; 3,7 bis 4,9 Gerüst und Kran verschwinden;
+   4,0 Lichtstreif; ab 2,4 Strahlen; ab 3,2 Funken; ab 3,6 Vögel. Das Fenster zeigt seinen Text dazwischen (styles.css, .wunder-titel usw.). */
+
+.wunder-bild .wunder-a-kamera { transform-origin: 50% 62%; }
+.wunder-bild.animiert .wunder-a-kamera { animation: wunder-a-kamera 18s ease-out both; }
+@keyframes wunder-a-kamera { from { transform: scale(1); } to { transform: scale(1.055); } }
+
+/* Dämmerung: Nacht liegt über dem Bild und weicht dem Morgen, die Sterne verlöschen */
+.wunder-bild .wunder-a-nacht { opacity: 0; pointer-events: none; }
+.wunder-bild.animiert .wunder-a-nacht { animation: wunder-a-nacht 2.8s ease-out both; }
+@keyframes wunder-a-nacht { from { opacity: 0.84; } to { opacity: 0; } }
+.wunder-bild .wunder-a-sterne { opacity: 0; }
+.wunder-bild.animiert .wunder-a-sterne { animation: wunder-a-sterne 2.4s ease-in both; }
+@keyframes wunder-a-sterne { from { opacity: 1; } to { opacity: 0; } }
+
+.wunder-bild.animiert .wunder-a-sonne { animation: wunder-a-sonne 4.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes wunder-a-sonne { from { transform: translateY(40px); opacity: 0.3; } to { transform: translateY(0); opacity: 1; } }
+
+/* Strahlen der Sonne */
+.wunder-bild .wunder-a-strahlen { transform-origin: 236px 82px; opacity: 0.55; }
+.wunder-bild.animiert .wunder-a-strahlen { opacity: 0; animation: wunder-a-strahl-ein 2.4s ease 2.4s both, wunder-a-drehen 120s linear 2.4s infinite; }
+@keyframes wunder-a-strahl-ein { from { opacity: 0; } to { opacity: 0.85; } }
+@keyframes wunder-a-drehen { to { transform: rotate(360deg); } }
+
+/* Bau: Stein und Gerüst wachsen von unten nach oben, in kleinen Stufen wie Bauabschnitte */
+.wunder-bild.animiert .wunder-a-hoch { animation: wunder-a-hoch 3.6s steps(28, end) 0.55s both; }
+.wunder-bild.animiert .wunder-a-hoch-geruest { animation: wunder-a-hoch-geruest 3.6s steps(28, end) 0.4s both; }
+@keyframes wunder-a-hoch { from { transform: translateY(142px); } to { transform: translateY(0); } }
+@keyframes wunder-a-hoch-geruest { from { transform: translateY(160px); } to { transform: translateY(-4px); } }
+.wunder-bild.bau .wunder-a-hoch, .wunder-bild.bau .wunder-a-hoch-geruest { transition: transform 1.4s ease; }
+.wunder-bild .wunder-a-geruest { opacity: 0.8; }
+.wunder-bild.animiert .wunder-a-geruest { animation: wunder-a-weg 1.2s ease 3.7s both; }
+.wunder-bild.animiert .wunder-a-kran { animation: wunder-a-weg 1.1s ease 3.9s both; }
+@keyframes wunder-a-weg { from { opacity: 0.85; } to { opacity: 0; } }
+.wunder-bild .wunder-a-kran .wunder-a-ausleger { transform-origin: 298px 38px; animation: wunder-a-schwenk 7s ease-in-out infinite alternate; }
+.wunder-bild .wunder-a-kran .wunder-a-haken { transform-origin: 220px 38px; animation: wunder-a-haken 3.4s ease-in-out infinite alternate; }
+@keyframes wunder-a-schwenk { from { transform: rotate(-1.1deg); } to { transform: rotate(1.3deg); } }
+@keyframes wunder-a-haken { from { transform: scaleY(0.72); } to { transform: scaleY(1.32); } }
+.wunder-bild.ruht .wunder-a-kran * { animation-play-state: paused; }
+
+/* Lichtstreif über dem fertigen Stein: einmal beim Auftritt, sonst beim Darüberfahren mit der Maus */
+.wunder-bild .wunder-a-glanz { opacity: 0; transform: skewX(-18deg) translateX(-140px); }
+.wunder-bild.animiert .wunder-a-glanz { animation: wunder-a-glanz 1.7s ease-in-out 4s both; }
+.rr-karte:hover .wunder-a-glanz { animation: wunder-a-glanz 1.7s ease-in-out both; }
+@keyframes wunder-a-glanz {
+  0% { opacity: 0; transform: skewX(-18deg) translateX(-140px); }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: skewX(-18deg) translateX(520px); }
+}
+
+/* Funken und Vögel */
+.wunder-bild .wunder-a-funken circle { opacity: 0; animation: wunder-a-funke 3.8s ease-in-out infinite; }
+@keyframes wunder-a-funke {
+  0% { opacity: 0; transform: translate(0, 6px); }
+  30% { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(var(--dx, 0px), -36px); }
+}
+.wunder-bild .wunder-a-voegel path { opacity: 0; animation: wunder-a-flug 16s linear infinite both; }
+@keyframes wunder-a-flug {
+  0% { opacity: 0; translate: -20px 0; }
+  6% { opacity: 0.8; }
+  50% { translate: 170px -9px; }
+  94% { opacity: 0.8; }
+  100% { opacity: 0; translate: 350px 2px; }
+}
+
+/* Entwurf: Bauplan auf blauem Grund */
+.wunder-bild.entwurf .wunder-a-motiv * { fill: rgba(233, 196, 106, 0.1); stroke: #e9c46a; stroke-opacity: 0.95; stroke-width: 1; stroke-dasharray: 3 2.2; }
+.wunder-bild.entwurf .wunder-a-motiv [fill="none"] { fill: none; }
+
+/* Fenster der Fertigstellung */
+.wunder-fenster .wunder-wirkung li { animation: wunderChip 500ms ease both, wunder-a-glimmen 1.7s ease-out both; }
+@keyframes wunder-a-glimmen {
+  0% { box-shadow: 0 0 0 0 rgba(233, 196, 106, 0.9); }
+  55% { box-shadow: 0 0 14px 2px rgba(233, 196, 106, 0.45); }
+  100% { box-shadow: 0 0 0 0 rgba(233, 196, 106, 0); }
+}
+.wunder-bildrahmen { cursor: pointer; }
+.wunder-fenster .wunder-gruppe-kopf { animation: wunderText 700ms ease 1.6s both; }
+.wunder-a-hinweis { position: absolute; right: 12px; bottom: 9px; padding: 2px 9px; font: italic 12.5px var(--serif); color: #f0e4c6; background: rgba(20, 12, 6, 0.6); border-radius: 3px; pointer-events: none; opacity: 0; animation: wunder-a-hinweis 5.4s ease 0.6s both; }
+@keyframes wunder-a-hinweis { 0% { opacity: 0; } 10% { opacity: 0.9; } 80% { opacity: 0.9; } 100% { opacity: 0; } }
+/* Übersprungen: alles springt an den Endzustand */
+.wunder-fenster.uebersprungen *, .wunder-fenster.uebersprungen *::before, .wunder-fenster.uebersprungen *::after { animation-duration: 0.001s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+.wunder-fenster.uebersprungen .wunder-a-hinweis { display: none; }
+
+/* Fortschritt der Baustelle in den Karten: laufende Streifen */
+.wunder-a-bau .rr-balken i { position: relative; overflow: hidden; transition: width 1s ease; }
+.wunder-a-bau .rr-balken i::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.3) 0 6px, transparent 6px 12px); background-size: 17px 17px; animation: wunder-a-streifen 1.1s linear infinite; }
+@keyframes wunder-a-streifen { to { background-position: 17px 0; } }
+.wunder-a-bau.ruht .rr-balken i::after { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wunder-bild *, .wunder-bild.animiert *, .wunder-a-bau .rr-balken i::after, .wunder-fenster .wunder-wirkung li { animation: none !important; }
+  .wunder-bild.animiert .wunder-a-geruest, .wunder-bild.animiert .wunder-a-kran, .wunder-bild .wunder-a-voegel, .wunder-bild .wunder-a-funken, .wunder-bild .wunder-a-sterne, .wunder-a-hinweis { display: none; }
+  .wunder-bild.animiert .wunder-a-strahlen { opacity: 0.6; }
+  .wunder-fenster .wunder-wirkung li { opacity: 1; }
+}
+
+/* Laufende Bauten mit kleiner Baustelle: Bild links, Text und Knöpfe daneben */
+.rr-bauliste li.wunder-a-mitbild { grid-template-columns: 124px minmax(0, 1fr) auto; }
+.rr-bauliste li.wunder-a-mitbild .wunder-a-mini { grid-column: 1; grid-row: 1 / 3; width: 124px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 2px; box-shadow: 0 0 0 1px rgba(60, 40, 20, 0.45); background: #2a1d14; }
+.rr-bauliste li.wunder-a-mitbild .wunder-a-mini .wunder-bild { width: 100%; height: 100%; }
+.rr-bauliste li.wunder-a-mitbild .rr-bau-kopf, .rr-bauliste li.wunder-a-mitbild .rr-balken { grid-column: 2; }
+.rr-bauliste li.wunder-a-mitbild .rr-bau-knoepfe { grid-column: 3; }
+.rr-bauliste li.wunder-a-mitbild.wartet .wunder-a-kran *, .rr-bauliste li.wunder-a-mitbild.ruht .wunder-a-kran * { animation-play-state: paused; }
+@media (max-width: 560px) {
+  .rr-bauliste li.wunder-a-mitbild { grid-template-columns: 88px minmax(0, 1fr); }
+  .rr-bauliste li.wunder-a-mitbild .wunder-a-mini { width: 88px; }
+  .rr-bauliste li.wunder-a-mitbild .rr-bau-knoepfe { grid-column: 1 / -1; grid-row: auto; }
+}

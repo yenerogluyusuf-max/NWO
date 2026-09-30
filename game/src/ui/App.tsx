@@ -1,29 +1,58 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { createWorld } from "../sim/world";
 import { turkey2026 } from "../sim/scenario";
 import type { World } from "../sim/types";
 import { Prologue } from "./Prologue";
 import { Stage } from "./Stage";
-import { startAfterElection, type PlayerProfile } from "../sim/prolog";
+import { schnellProfil, startAfterElection, type PlayerProfile } from "../sim/prolog";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { provinceLonLat } from "./atlas/overlay";
 import { Corners, Flourish, StateSeal } from "./art/Ornament";
+import { ladeSpielstand, loescheSpielstand, spielstandInfo, speichere } from "./speicher";
+import { formatDateDe } from "../sim/dates";
 
 type Phase = "titel" | "prolog" | "spiel";
 
 const OVERVIEW = { lon: 35.2, lat: 38.9, d: 15.5 };
 
+function neueWelt(): World {
+  return createWorld(turkey2026, Date.now() % 1_000_000);
+}
+
+/** Schnellstart (`?schnellstart`): sofort im Amt, ohne Prolog. */
+function schnellstartWelt(): World {
+  const w = neueWelt();
+  startAfterElection(w, schnellProfil());
+  return w;
+}
+
 export function App() {
-  const [phase, setPhase] = useState<Phase>(() => (new URLSearchParams(location.search).has("schnellstart") ? "spiel" : "titel"));
+  const schnell = useMemo(() => new URLSearchParams(location.search).has("schnellstart"), []);
+  const [phase, setPhase] = useState<Phase>(() => (schnell ? "spiel" : "titel"));
   const [focus, setFocus] = useState<number | undefined>(undefined);
-  const world = useRef<World>(createWorld(turkey2026, Date.now() % 1_000_000));
+  const [world, setWorld] = useState<World>(() => (schnell ? schnellstartWelt() : neueWelt()));
+  const [spielId, setSpielId] = useState(0);
+  const stand = useMemo(() => spielstandInfo(), [phase]);
 
   const camera = useMemo(() => {
     const ll = focus ? provinceLonLat(focus) : undefined;
     return ll ? { lon: ll[0], lat: ll[1] - 0.6, d: 7.5 } : OVERVIEW;
   }, [focus]);
 
-  if (phase === "spiel") return <Stage world={world.current} />;
+  if (phase === "spiel") {
+    return (
+      <Stage
+        key={spielId}
+        world={world}
+        onNeu={() => {
+          loescheSpielstand();
+          setWorld(neueWelt());
+          setFocus(undefined);
+          setPhase("titel");
+        }}
+      />
+    );
+  }
 
   return (
     <div className={`front phase-${phase}`}>
@@ -41,19 +70,34 @@ export function App() {
               <button className="brass-button" onClick={() => setPhase("prolog")}>
                 Neues Spiel
               </button>
-              <button className="leather-button" disabled title="Noch kein Spielstand vorhanden">
-                Fortsetzen
+              <button
+                className="leather-button"
+                disabled={!stand}
+                title={stand ? `${stand.name}, ${formatDateDe(stand.datum)}` : "Noch kein Spielstand vorhanden"}
+                onClick={() => {
+                  const w = ladeSpielstand();
+                  if (!w) return;
+                  setWorld(w);
+                  setSpielId((i) => i + 1);
+                  setPhase("spiel");
+                }}
+              >
+                {stand ? `Fortsetzen · ${formatDateDe(stand.datum)}` : "Fortsetzen"}
               </button>
             </nav>
           </div>
-          <p className="title-note">Wirtschaftsdaten vom 25. September 2026 · Karte nach Natural Earth und AWS Terrain</p>
+          <p className="title-note">Wirtschaftsdaten vom 25. September 2026 · Karte nach Natural Earth, AWS Terrain und OpenStreetMap</p>
         </main>
       )}
       {phase === "prolog" && (
         <Prologue
           onFocus={setFocus}
           onDone={(profile: PlayerProfile) => {
-            startAfterElection(world.current, profile);
+            const w = neueWelt();
+            startAfterElection(w, profile);
+            speichere(w);
+            setWorld(w);
+            setSpielId((i) => i + 1);
             setPhase("spiel");
           }}
         />

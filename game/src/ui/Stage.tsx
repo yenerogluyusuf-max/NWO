@@ -6,24 +6,56 @@ import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN } from "../sim/regional";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { PROVINCE_FC, REGION_COLORS } from "./atlas/overlay";
-import { Desk } from "./Desk";
+import { Schreibtisch } from "./schreibtisch/Schreibtisch";
+import type { Ziel } from "./schreibtisch/briefing";
+import { zweckVon } from "./politik/zweck";
 import { Chat } from "./Chat";
 import { Bereiche } from "./Bereiche";
+import { Politik } from "./politik/Politik";
 import { Beschlussbuch } from "./Beschlussbuch";
+import { Waehler } from "./Waehler";
+import { Programme } from "./Programme";
+import { Welt } from "./Welt";
 import { EconomyFile } from "./EconomyFile";
 import { NetView } from "./NetView";
 import { Decisions } from "./Decisions";
+import { Personen } from "./Personen";
+import { Chronik } from "./Chronik";
 import { PARTY_COLORS } from "./Parliament";
 import { Icon, type IconName } from "./icons";
 import { Cameo } from "./art/Cameo";
 import type { Theme } from "../data/politiknetz";
 import { Corners } from "./art/Ornament";
 import { EventWindow, type GameEvent } from "./EventWindow";
+import { EreignisFenster } from "./EreignisFenster";
+import { Reich } from "./Reich";
+import { WunderFenster } from "./reich/WunderFenster";
+import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
+import { istAbstimmung } from "./parlament/abstimmung";
+import { quittiereFeier, vorhabenDef } from "../sim/reich";
+import { ERBE } from "../data/erbe";
+import { VORHABEN } from "../data/reich";
+import type { KartenOrt } from "./atlas/AtlasMap";
+import { Meldungen, type Meldung } from "./Meldungen";
+import { ZielWahl } from "./ZielWahl";
+import { BilanzFenster } from "./BilanzFenster";
+import { Kartenlegende } from "./Kartenlegende";
+import { ProvinceCard } from "./ProvinceCard";
+import { ansicht, entscheide, vorlage } from "../sim/ereignisse";
+import { stimmenSicht, stufeIn } from "../sim/handeln";
+import { kapitalEinkommen, waehleZiele } from "../sim/spiel";
+import { naechsterSchritt } from "../sim/programme";
+import { Rng } from "../sim/rng";
+import { speichere } from "./speicher";
+import { PARTEI_NAME } from "../sim/fraktionen";
+import { ISO_ZU_LAND, KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
+import { kurzVergleich } from "./vergleich";
 
-type Dossier = "schreibtisch" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "beschlussbuch" | null;
-type MapMode = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "netz";
+type Dossier = "schreibtisch" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | null;
 
-const SPEEDS = [0, 700, 200, 40];
+/** Millisekunden je Tick und Tage je Tick: Pause, ruhig, zügig, schnell, bis zum nächsten Ereignis. */
+const SPEEDS = [0, 700, 200, 40, 14];
+const TAGE_JE_TICK = [0, 1, 1, 1, 4];
 
 /** Beschriftungen wie in einem Atlas: Meere und Nachbarländer. */
 const GEO_LABELS: { text: string; lon: number; lat: number; kind: "meer" | "land" }[] = [
@@ -32,153 +64,282 @@ const GEO_LABELS: { text: string; lon: number; lat: number; kind: "meer" | "land
   { text: "Ägäis", lon: 25.0, lat: 38.4, kind: "meer" },
 ];
 
-const METROS = PROVINCE_FC.features
-  .filter((f) => PROVINZEN[f.properties.plaka - 1]?.grossstadt)
-  .map((f) => f.properties.plaka);
+const METROS = PROVINCE_FC.features.filter((f) => PROVINZEN[f.properties.plaka - 1]?.grossstadt).map((f) => f.properties.plaka);
 
-function mix(a: number[], b: number[], t: number): string {
-  const c = a.map((x, i) => Math.round(x + (b[i]! - x) * Math.min(1, Math.max(0, t))));
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
-
-const PAPER = [236, 226, 200];
-const TEAL = [38, 90, 98];
-const RED = [150, 44, 36];
-
-export function Stage({ world: initial }: { world: World }) {
+export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => void }) {
   const world = useRef<World>(initial);
   const [, setVersion] = useState(0);
   const [speed, setSpeed] = useState(0);
   const [dossier, setDossier] = useState<Dossier>(null);
-  const [events, setEvents] = useState<GameEvent[]>(() => [startEvent(initial)]);
-  const [mapMode, setMapMode] = useState<MapMode>("gelaende");
+  const [intro, setIntro] = useState<GameEvent | null>(() => startEvent(initial));
+  const [spaeter, setSpaeter] = useState<Set<string>>(() => new Set());
+  const [meldungen, setMeldungen] = useState<Meldung[]>([]);
+  const [ebene, setEbene] = useState<Kartenebene>("gelaende");
+  const [problemId, setProblemId] = useState<string | null>(null);
+  const [netVorhaben, setNetVorhaben] = useState<{ id: string; level: number } | null>(null);
+  const [erlassStart, setErlassStart] = useState<string | undefined>(undefined);
   const [netNode, setNetNode] = useState<string>("p_wassermangel");
   const [netTheme, setNetTheme] = useState<Theme | null>(null);
+  /** Maßnahme, die „Politik“ gleich geöffnet zeigt (aus „Heute“ oder vom Schreibtisch) */
+  const [politikStart, setPolitikStart] = useState<{ theme?: Theme; offen?: { id: string; level?: number; ort?: number[] | null } } | null>(null);
+  const [netOrt, setNetOrt] = useState<number[] | null>(null);
   const [selected, setSelected] = useState<number | undefined>(undefined);
+  /** Kamerafahrt der Karte, etwa zu einem fertigen Wunder */
+  const [kamera, setKamera] = useState<{ lon: number; lat: number; d: number } | undefined>(undefined);
+  const [bilanzZu, setBilanzZu] = useState(false);
+  const gesehen = useRef(new Set<string>());
+  const letzteSicherung = useRef(0);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
   const w = world.current;
+  const spiel = w.spiel;
 
+  const sichere = useCallback((sofort = false) => {
+    const jetzt = Date.now();
+    if (!sofort && jetzt - letzteSicherung.current < 3000) return;
+    letzteSicherung.current = jetzt;
+    speichere(world.current);
+  }, []);
+
+  const melde = useCallback((m: Omit<Meldung, "id">) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    setMeldungen((l) => [...l.slice(-2), { ...m, id }]);
+    window.setTimeout(() => setMeldungen((l) => l.filter((x) => x.id !== id)), 8000);
+  }, []);
+
+  // Zeit läuft: Ein Tick rechnet einen oder mehrere Tage. Bei einer Entscheidung, einem Hinweis oder dem Ende hält das Spiel an.
   useEffect(() => {
     const ms = SPEEDS[speed]!;
     if (!ms) return;
+    const schritt = TAGE_JE_TICK[speed]!;
+    const startTag = world.current.day;
     const id = setInterval(() => {
-      const before = world.current.log.length;
-      advance(world.current, 1);
-      const fresh = world.current.log.slice(before).filter((l) => l.kind === "entscheidung");
-      if (fresh.length) {
-        setSpeed(0);
-        setEvents((q) => [
-          ...q,
-          ...fresh.map((l, i) => ({
-            id: `ppk-${l.day}-${i}`,
-            scene: "bank" as const,
-            date: formatDateDe(l.date),
-            title: "Geldpolitischer Ausschuss",
-            text: <p>{l.text}</p>,
-            why: l.why,
-            actions: [
-              { label: "Zur Kenntnis genommen", primary: true },
-              { label: "Wirtschaftsakte öffnen", run: () => setDossier("wirtschaft") },
-            ],
-          })),
-        ]);
+      const wd = world.current;
+      const before = wd.log.length;
+      let halt = false;
+      for (let i = 0; i < schritt && !halt; i++) {
+        advance(wd, 1);
+        const s = wd.spiel;
+        if (s && (s.ende || s.hinweise.length > 0 || (s.reich?.feier.length ?? 0) > 0 || s.ereignisse.some((e) => !gesehen.current.has(e.id)))) halt = true;
       }
+      const s = wd.spiel;
+      if (s) for (const e of s.ereignisse) gesehen.current.add(e.id);
+      // Meldungen für das, was ohne Zutun des Spielers geschah
+      const titel = new Set((s?.ereignisse ?? []).map((e) => vorlage(e.vorlage).titel(wd, e)));
+      for (const l of wd.log.slice(before)) {
+        // Abstimmungen zeigt die Abstimmungskarte, nicht der Meldungsstapel
+        if (l.kind === "statistik" || titel.has(l.text) || istAbstimmung(l.text)) continue;
+        const ton: Meldung["ton"] = l.kind === "markt" ? "markt" : l.text.includes("Zentralbank") ? "bank" : l.text.includes("Parlament") ? "parlament" : "ereignis";
+        melde({ titel: l.text, ...(l.why ? { text: l.why } : {}), ton });
+      }
+      if (halt) {
+        setSpeed(0);
+        sichere(true);
+      } else if (speed === 4 && wd.day - startTag > 150) {
+        setSpeed(0);
+        melde({ titel: "Ein halbes Jahr ohne Zwischenfall.", text: "Das Vorspulen hält an; die Lage bleibt Ihre Sache.", ton: "ereignis" });
+      } else if (wd.day % 30 === 0) sichere();
       refresh();
     }, ms);
     return () => clearInterval(id);
-  }, [speed, refresh]);
+  }, [speed, refresh, melde, sichere]);
 
-  const fill = useMemo(() => {
-    const out: Record<number, string> = {};
-    const nodeValues = (id: string) => {
-      const i = NET.index.get(id)!;
-      return Array.from({ length: PROVINCES }, (_, p) => w.net.values[i * PROVINCES + p]!);
+  // Nur im Entwicklungsmodus: Weltzustand für Browsertests erreichbar machen
+  useEffect(() => {
+    if (import.meta.env.DEV) (window as unknown as { __welt?: World; __neu?: () => void }).__welt = world.current;
+  }, []);
+
+  // Leertaste: Pause und Weiter
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const ziel = e.target as HTMLElement;
+      if (e.code !== "Space" || ["INPUT", "TEXTAREA", "BUTTON"].includes(ziel.tagName)) return;
+      e.preventDefault();
+      setSpeed((s) => (s === 0 ? 1 : 0));
     };
-    if (mapMode === "gelaende") return undefined;
-    if (mapMode === "regionen") {
-      PROVINZEN.forEach((p) => (out[p.plaka] = REGION_COLORS[p.region] ?? "#999"));
-      return out;
-    }
-    if (mapMode === "wahl") {
-      for (const [plaka, seats] of Object.entries(w.parliament?.byProvince ?? {})) {
-        const top = Object.entries(seats).sort((a, b) => b[1] - a[1])[0]?.[0];
-        if (!top) continue;
-        out[Number(plaka)] = top === w.player?.partei.kurz ? w.player.partei.farbe : (PARTY_COLORS[top] ?? "#999");
-      }
-    }
-    if (mapMode === "wirtschaft") {
-      const xs = PROVINZEN.map((p) => p.bipProKopf);
-      const min = Math.min(...xs);
-      const max = Math.max(...xs);
-      PROVINZEN.forEach((p) => (out[p.plaka] = mix(PAPER, TEAL, Math.sqrt((p.bipProKopf - min) / (max - min)))));
-    }
-    if (mapMode === "arbeitslosigkeit") {
-      const vals = nodeValues("arbeitslosigkeit");
-      vals.forEach((v, i) => (out[i + 1] = mix(PAPER, RED, (v - 4) / 10)));
-    }
-    if (mapMode === "probleme") {
-      const problems = NET.nodes.filter((n) => n.kind === "problem");
-      for (let p = 0; p < PROVINCES; p++) {
-        const n = problems.filter((node) => w.net.values[NET.index.get(node.id)! * PROVINCES + p]! >= node.threshold!).length;
-        out[p + 1] = n === 0 ? "rgba(0,0,0,0)" : mix(PAPER, RED, 0.35 + n * 0.22);
-      }
-    }
-    if (mapMode === "netz") {
-      const node = NET.nodes[NET.index.get(netNode)!]!;
-      const vals = nodeValues(netNode);
-      const min = Math.min(...vals);
-      const max = Math.max(...vals);
-      vals.forEach((v, i) => {
-        if (node.kind === "problem") out[i + 1] = v >= node.threshold! ? mix(PAPER, RED, 0.45 + (v - node.threshold!) / 30) : "rgba(0,0,0,0)";
-        else out[i + 1] = mix(PAPER, TEAL, max - min < 0.5 ? 0.4 : (v - min) / (max - min));
-      });
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Marken: offene Ereignisse mit Ort und die drei schwersten akuten Probleme
+  const marken = useMemo(() => {
+    const out: { id: string; plaka: number; art: "ereignis" | "frist" | "krise"; text: string }[] = [];
+    if (!spiel) return out;
+    for (const e of spiel.ereignisse) {
+      const plaka = e.provinzen[0];
+      if (!plaka) continue;
+      const v = vorlage(e.vorlage);
+      const tage = Math.max(0, e.frist - w.day);
+      out.push({ id: e.id, plaka, art: tage <= 5 ? "frist" : "ereignis", text: `${v.titel(w, e)}: Frist in ${tage} Tagen` });
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapMode, netNode, w.net.month, w.parliament]);
+  }, [spiel?.ereignisse.length, w.day]);
+
+  const laenderKarte = useMemo(
+    () => (ebene === "welt" ? laenderFarben(w) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ebene, w.day - (w.day % 10), spiel?.welt],
+  );
+  const [weltStart, setWeltStart] = useState<string | undefined>(undefined);
+
+  // Marken für Wunder und Bauvorhaben immer, für Stätten in der Kartenebene „Kulturerbe“
+  const orte = useMemo<KartenOrt[]>(() => {
+    const z = spiel?.reich;
+    if (!z) return [];
+    const out: KartenOrt[] = [];
+    if (ebene === "erbe") {
+      for (const e of ERBE) {
+        const zustand = z.staetten[e.id]?.zustand ?? 0;
+        out.push({ id: `erbe:${e.id}`, lon: e.lon, lat: e.lat, art: "erbe", text: `${e.name}, ${e.ort} (Zustand ${Math.round(zustand)})`, zustand, dmax: 15 });
+      }
+    }
+    for (const v of VORHABEN) {
+      if (!v.ort || !["wunder", "grossprojekt", "serie"].includes(v.klasse)) continue;
+      if (z.bestand[v.id]) out.push({ id: `v:${v.id}`, lon: v.ort.lon, lat: v.ort.lat, art: "wunder", text: `${v.name} (fertig)` });
+      else if (z.laufend.some((l) => l.id === v.id)) out.push({ id: `v:${v.id}`, lon: v.ort.lon, lat: v.ort.lat, art: "bau", text: `${v.name} (im Bau)` });
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ebene, spiel?.reich, spiel?.reich?.laufend.length, w.day - (w.day % 30)]);
+
+  const { fill, legende } = useMemo(
+    () => farbenFuerEbene(w, ebene, problemId, netNode),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ebene, problemId, netNode, w.net.month, w.parliament, w.day - (w.day % 30)],
+  );
 
   const inflation = w.published.inflation.value;
   const own = w.player?.partei.kurz;
-  const bloc = (own ? (w.parliament?.seats[own] ?? 0) : 0) + (w.player?.buendnis ? (w.parliament?.seats[w.player.buendnis] ?? 0) : 0);
+  const stimmen = spiel ? stimmenSicht(w) : null;
+  // Die Mehrheit zählt das Lager und die Fraktionen, die es gerade dulden
+  const bloc = stimmen ? stimmen.lager + stimmen.duldungSitze : (own ? (w.parliament?.seats[own] ?? 0) : 0);
   const trust = nationalAverage(NET, w.net, "vertrauen_regierung");
+  const zustimmung = spiel?.umfrage.zustimmung ?? trust;
+  const zVor = spiel && spiel.umfrage.verlauf.length > 3 ? spiel.umfrage.verlauf[spiel.umfrage.verlauf.length - 4]!.wert : undefined;
 
-  const modes: { id: MapMode; label: string; icon: IconName }[] = [
-    { id: "gelaende", label: "Politisch", icon: "berg" },
-    { id: "regionen", label: "Regionen", icon: "netz" },
-    { id: "wahl", label: "Wahl 2028", icon: "urne" },
-    { id: "wirtschaft", label: "Wirtschaftskraft", icon: "fabrik" },
-    { id: "arbeitslosigkeit", label: "Arbeitslosigkeit", icon: "koffer" },
-    { id: "probleme", label: "Akute Probleme", icon: "warnung" },
+  // Das Menü ordnet nach dem, was man tut. Mehrere Ansichten derselben Sache liegen als Reiter in einem Fenster.
+  const menue: { kurz: string; titel: string; icon: IconName; badge?: number; tabs: { id: Exclude<Dossier, null>; label: string }[] }[] = [
+    { kurz: "Schreibtisch", titel: "Schreibtisch", icon: "feder", badge: (spiel?.ereignisse.length ?? 0) || undefined, tabs: [{ id: "schreibtisch", label: "Schreibtisch" }] },
+    { kurz: "Gespräch", titel: "Gespräch", icon: "sprechblase", tabs: [{ id: "gespraech", label: "Gespräch" }] },
+    {
+      kurz: "Politik",
+      titel: "Politik",
+      icon: "netz",
+      tabs: [
+        { id: "politik", label: "Bereiche" },
+        { id: "bereiche", label: "Heute" },
+        { id: "programme", label: "Programme" },
+        { id: "beschluesse", label: "Umsetzung" },
+        { id: "netz", label: "Netz und Suche" },
+      ],
+    },
+    { kurz: "Wähler", titel: "Wähler", icon: "menge", tabs: [{ id: "waehler", label: "Wählerkoalition" }] },
+    { kurz: "Welt", titel: "Die Welt", icon: "berg", tabs: [{ id: "welt", label: "Länder" }] },
+    {
+      kurz: "Reich",
+      titel: "Das Reich",
+      icon: "tempel",
+      badge: (spiel?.reich?.laufend.length ?? 0) || undefined,
+      tabs: [
+        { id: "reich_kultur", label: "Kultur und Erbe" },
+        { id: "reich_recht", label: "Recht" },
+        { id: "reich_militaer", label: "Streitkräfte" },
+        { id: "reich_infra", label: "Infrastruktur" },
+        { id: "reich_haushalt", label: "Verwaltung" },
+      ],
+    },
+    { kurz: "Parlament", titel: "Parlament", icon: "waage", badge: spiel?.gesetze.length || undefined, tabs: [{ id: "parlament", label: "Fraktionen und Abstimmung" }] },
+    {
+      kurz: "Wirtschaft",
+      titel: "Wirtschaft",
+      icon: "akte",
+      tabs: [
+        { id: "wirtschaft", label: "Kennzahlen" },
+        { id: "entscheidungen", label: "Zentralbank und Haushalt" },
+      ],
+    },
+    { kurz: "Personen", titel: "Personen und Zusagen", icon: "person", tabs: [{ id: "personen", label: "Personen und Zusagen" }] },
+    { kurz: "Chronik", titel: "Chronik und Umfragen", icon: "buch", tabs: [{ id: "chronik", label: "Chronik und Umfragen" }] },
   ];
+  const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier));
 
-  const dossiers: { id: Exclude<Dossier, null>; label: string; icon: IconName }[] = [
-    { id: "schreibtisch", label: "Schreibtisch", icon: "feder" },
-    { id: "gespraech", label: "Gespräch", icon: "feder" },
-    { id: "bereiche", label: "Bereiche", icon: "koffer" },
-    { id: "wirtschaft", label: "Wirtschaftsakte", icon: "akte" },
-    { id: "netz", label: "Politiknetz", icon: "netz" },
-    { id: "entscheidungen", label: "Entscheidungen", icon: "siegel" },
-    { id: "beschlussbuch", label: "Beschlussbuch", icon: "siegel" },
-  ];
+  const offen = spiel?.ereignisse.find((e) => !spaeter.has(e.id));
+  const hinweis = spiel?.hinweise[0];
+  const bilanz = spiel?.ende && !bilanzZu;
+  const zielWahlOffen = !!spiel && !spiel.ersterTagErledigt && !intro;
+
+  const beendeZeit = () => setSpeed(0);
+  const oeffneDossier = (d: Dossier) => {
+    if (d === "politik") setPolitikStart(null);
+    setDossier(d);
+    if (d) beendeZeit();
+  };
+  /** Wohin ein Eintrag des Schreibtischs führt: eine Akte, ein Bereich oder eine Maßnahme der Politik, ein Ereignis oder ein Land. */
+  const gehe = (z: Ziel) => {
+    switch (z.art) {
+      case "akte":
+        oeffneDossier(z.akte);
+        break;
+      case "politik":
+        setPolitikStart(z.massnahme ? { offen: z.massnahme, ...(z.theme ? { theme: z.theme } : {}) } : z.theme ? { theme: z.theme } : null);
+        setDossier("politik");
+        beendeZeit();
+        break;
+      case "ereignis":
+        setDossier(null);
+        setSpaeter((sp) => {
+          const n = new Set(sp);
+          n.delete(z.id);
+          return n;
+        });
+        break;
+      case "land":
+        setWeltStart(z.id);
+        oeffneDossier("welt");
+        break;
+    }
+  };
 
   return (
     <div className="stage">
       <AtlasMap
         className="stage-map"
         fill={fill}
-        fillAlpha={mapMode === "wahl" ? 0.56 : 0.62}
+        fillAlpha={ebene === "wahl" ? 0.56 : 0.62}
         selected={selected}
         labels={METROS}
         geoLabels={GEO_LABELS}
         onSelect={(p) => setSelected(p)}
+        orte={orte}
+        onOrt={(id) => {
+          if (id.startsWith("erbe:")) setDossier("reich_kultur");
+          else {
+            const b = vorhabenDef(id.slice(2))?.bereich;
+            setDossier(b === "kultur" ? "reich_kultur" : b === "recht" ? "reich_recht" : b === "militaer" ? "reich_militaer" : b === "haushalt" ? "reich_haushalt" : "reich_infra");
+          }
+          beendeZeit();
+        }}
+        marken={marken}
+        onMarke={(id) => {
+          const ev = spiel?.ereignisse.find((e) => e.id === id);
+          if (ev) {
+            setSpaeter((sp) => { const n = new Set(sp); n.delete(id); return n; });
+            setDossier(null);
+          } else {
+            const plaka = Number(id.split(":")[1]);
+            if (plaka) { setSelected(plaka); setEbene("probleme"); }
+          }
+        }}
+        {...(ebene === "welt" ? { laenderFarben: laenderKarte, onLand: (iso: string) => { const id = ISO_ZU_LAND[iso]; if (id) { setWeltStart(id); setDossier("welt"); beendeZeit(); } } } : {})}
+        ebene={ebene}
+        {...(kamera ? { camera: kamera } : {})}
       />
 
       <header className="hud">
         <div className="hud-bar" />
         <div className="hud-left">
           <div className="leader">
-            <Cameo seed={w.player?.name ?? "Staatspräsident"} size={60} tint={w.player?.partei.farbe} ring="keiner" />
-            <img className="leader-frame" src="/ui/rahmen-portraet.png" alt="" />
+            <Cameo seed={w.player?.name ?? "Staatspräsident"} size={46} tint={w.player?.partei.farbe} ring="keiner" />
           </div>
           <div className="leader-text">
             <div className="hud-name">{w.player?.name ?? "Staatspräsident"}</div>
@@ -188,103 +349,178 @@ export function Stage({ world: initial }: { world: World }) {
           </div>
         </div>
         <div className="hud-center">
-          <div className="date-plate">
+          <div className="datum">
             <span className="date-day">{formatDateDe(w.date)}</span>
             <div className="speeds" role="group" aria-label="Spieltempo">
-              {[0, 1, 2, 3].map((i) => (
-                <button key={i} className={i === speed ? "on" : ""} onClick={() => setSpeed(i)} aria-label={i === 0 ? "Pause" : `Tempo ${i}`}>
-                  {i === 0 ? <span className="pause-glyph" /> : Array.from({ length: i }, (_, k) => <span key={k} className="play-glyph" />)}
+              {[0, 1, 2, 3, 4].map((i) => (
+                <button
+                  key={i}
+                  className={i === speed ? "on" : ""}
+                  onClick={() => setSpeed(i)}
+                  aria-label={i === 0 ? "Pause" : i === 4 ? "Bis zum nächsten Ereignis" : `Tempo ${i}`}
+                  title={i === 0 ? "Pause (Leertaste)" : i === 4 ? "Bis zum nächsten Ereignis" : `Tempo ${i}`}
+                >
+                  {i === 0 ? <span className="pause-glyph" /> : i === 4 ? <span className="skip-glyph" /> : Array.from({ length: i }, (_, k) => <span key={k} className="play-glyph" />)}
                 </button>
               ))}
             </div>
           </div>
         </div>
         <div className="hud-right">
-          <Stat
-            icon="preis"
-            label="Inflation"
-            value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`}
-            trend={trend(w, "inflation")}
-            tip="Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung."
-          />
-          <Stat
-            icon="lira"
-            label="Lira je $"
-            value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })}
-            trend={trend(w, "usdTry")}
-            tip="Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer."
-          />
-          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
-          <Stat
-            icon="parlament"
-            label="Sitze"
-            value={`${bloc} / 600`}
-            warn={bloc < 301}
-            tip={`Dein Lager im Parlament. Gesetze brauchen 301 Stimmen, eine Verfassungsänderung ohne Volksabstimmung 400, mit Volksabstimmung 360.`}
-          />
-          <Stat icon="haende" label="Vertrauen" value={`${Math.round(trust)}`} tip="Vertrauen in die Regierung, Mittel über alle Provinzen (0 bis 100)." />
+          {spiel && (
+            <Stat
+              icon="haende"
+              label="Zustimmung"
+              value={`${Math.round(zustimmung)} %`}
+              trend={zVor !== undefined ? zustimmung - zVor : undefined}
+              warn={zustimmung < 40}
+              tip={`Wie viele Wähler Sie heute wieder wählen würden. Die nächste Wahl ist in ${Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4))} Monaten; ab 50 Prozent gewinnen Sie.`}
+            />
+          )}
+          {spiel && <Stat icon="siegel" label="Kapital" value={`${Math.floor(spiel.kapital)}`} warn={spiel.kapital < 5} tip={kapitalTip(w)} />}
+          <Stat icon="preis" label="Inflation" value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} trend={trend(w, "inflation")} tip={`Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung. ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
+          <Stat icon="lira" label="Lira je $" value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} trend={trend(w, "usdTry")} tip={`Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer. ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
+          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
+          <Stat icon="parlament" label="Sitze" value={`${bloc}/600`} warn={bloc < 301} tip={`Ihr Lager${stimmen && stimmen.duldungSitze > 0 ? ` (${stimmen.lager}) und die Fraktionen, die es zurzeit dulden (${stimmen.duldungSitze})` : ""} im Parlament. Gesetze brauchen 301 Stimmen, eine Verfassungsänderung ohne Volksabstimmung 400, mit Volksabstimmung 360.`} />
         </div>
       </header>
 
-      <Alerts world={w} bloc={bloc} onProblems={() => setMapMode("probleme")} onDesk={() => setDossier("schreibtisch")} />
+      <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} />
+
+      <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} />
+      <AbstimmungsKarte world={w} />
 
       <nav className="dossier-menu" aria-label="Akten">
-        {dossiers.map((d) => (
-          <button
-            key={d.id}
-            className={dossier === d.id ? "on" : ""}
-            onClick={() => {
-              setEvents([]);
-              setDossier(dossier === d.id ? null : d.id);
-            }}
-            aria-label={d.label}
-          >
-            <Icon name={d.icon} />
-            <span className="menu-label">{d.label}</span>
+        {menue.map((m) => (
+          <button key={m.kurz} className={gruppe === m ? "on" : ""} onClick={() => oeffneDossier(gruppe === m ? null : m.tabs[0]!.id)} aria-label={m.titel} title={m.titel}>
+            <Icon name={m.icon} />
+            {m.badge !== undefined && <span className="menu-badge">{m.badge}</span>}
+            <span className="menu-kurz">{m.kurz}</span>
           </button>
         ))}
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "wirtschaft" || dossier === "entscheidungen" ? " wide" : ""}`} aria-label={dossiers.find((d) => d.id === dossier)?.label}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           <Corners />
           <header className="dossier-head">
-            <h2>{dossiers.find((d) => d.id === dossier)?.label}</h2>
+            <h2>{gruppe?.titel}</h2>
+            {gruppe && gruppe.tabs.length > 1 && (
+              <div className="dossier-tabs" role="tablist" aria-label={`${gruppe.titel}: Ansicht`}>
+                {gruppe.tabs.map((t) => (
+                  <button key={t.id} role="tab" aria-selected={dossier === t.id} className={dossier === t.id ? "on" : ""} onClick={() => { if (t.id === "politik") setPolitikStart(null); setDossier(t.id); }}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <button className="close" onClick={() => setDossier(null)} aria-label="Schließen">
               ✕
             </button>
           </header>
           <div className="dossier-body">
-            {dossier === "schreibtisch" && <Desk world={w} onOpen={(v) => setDossier(v === "karte" ? null : (v as Dossier))} />}
-            {dossier === "gespraech" && <Chat world={w} refresh={refresh} />}
+            {zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
+            {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
+            {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "politik" && (
+              <Politik
+                key={politikStart ? `${politikStart.theme ?? ""}|${politikStart.offen?.id ?? ""}|${politikStart.offen?.level ?? ""}|${politikStart.offen?.ort?.join(",") ?? ""}` : "politik"}
+                {...(politikStart?.offen ? { startOffen: politikStart.offen } : {})}
+                {...(politikStart?.theme ? { start: politikStart.theme } : {})}
+                world={w}
+                refresh={() => { refresh(); sichere(true); }}
+                onDecided={() => { refresh(); sichere(true); }}
+                onShowOnMap={(id) => {
+                  setNetNode(id);
+                  setEbene("netz");
+                }}
+                onEingriff={(option) => { setErlassStart(option); setDossier("entscheidungen"); }}
+                onOpen={(ziel) => setDossier(ziel)}
+              />
+            )}
             {dossier === "bereiche" && (
               <Bereiche
                 world={w}
-                onOpenTheme={(t) => {
-                  setNetTheme(t);
-                  setDossier("netz");
+                refresh={() => { refresh(); sichere(true); }}
+                onBereiche={() => { setPolitikStart(null); setDossier("politik"); }}
+                onVorhaben={(v) => {
+                  setPolitikStart({ offen: { id: v.massnahme, level: v.ziel, ort: v.ort } });
+                  setDossier("politik");
                 }}
               />
             )}
             {dossier === "wirtschaft" && <EconomyFile world={w} />}
-            {dossier === "beschlussbuch" && <Beschlussbuch world={w} refresh={refresh} />}
+            {(dossier === "parlament" || dossier === "beschluesse") && <Beschlussbuch teil={dossier === "parlament" ? "parlament" : "beschluesse"} world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "programme" && (
+              <Programme
+                world={w}
+                refresh={() => { refresh(); sichere(true); }}
+                onMassnahme={(id, richtung) => {
+                  setNetTheme(null);
+                  setNetOrt(null);
+                  setNetVorhaben({ id, level: Math.max(0, Math.min(100, Math.round(stufeIn(w, id, null)) + 20 * richtung)) });
+                  setDossier("netz");
+                }}
+              />
+            )}
+            {dossier === "welt" && (
+              <Welt
+                key={weltStart ?? "start"}
+                {...(weltStart ? { start: weltStart } : {})}
+                world={w}
+                refresh={() => { refresh(); sichere(true); }}
+                onMassnahme={(id, richtung) => {
+                  setNetTheme(null);
+                  setNetOrt(null);
+                  setNetVorhaben({ id, level: Math.max(0, Math.min(100, Math.round(stufeIn(w, id, null)) + 20 * richtung)) });
+                  setDossier("netz");
+                }}
+              />
+            )}
+            {dossier === "waehler" && (
+              <Waehler
+                world={w}
+                onMassnahme={(id, richtung) => {
+                  setNetTheme(null);
+                  setNetOrt(null);
+                  setNetVorhaben({ id, level: Math.max(0, Math.min(100, Math.round(stufeIn(w, id, null)) + 20 * richtung)) });
+                  setDossier("netz");
+                }}
+              />
+            )}
+            {dossier === "personen" && <Personen world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "chronik" && <Chronik world={w} />}
+            {dossier?.startsWith("reich_") && (
+              <Reich
+                world={w}
+                bereich={({ reich_kultur: "kultur", reich_recht: "recht", reich_militaer: "militaer", reich_infra: "infrastruktur", reich_haushalt: "haushalt" } as const)[dossier as "reich_kultur"]}
+                refresh={() => { refresh(); sichere(true); }}
+                onKarte={(o) => { setKamera({ ...o, d: 4.6 }); setDossier(null); }}
+              />
+            )}
             {dossier === "netz" && (
               <NetView
-                key={netTheme ?? "netz"}
+                key={`${netTheme ?? "netz"}-${netOrt?.join(",") ?? "land"}-${netVorhaben?.id ?? ""}-${netVorhaben?.level ?? ""}`}
                 initialTheme={netTheme ?? undefined}
+                initialOrt={netOrt}
+                {...(netVorhaben ? { initialMassnahme: netVorhaben.id, initialLevel: netVorhaben.level } : {})}
                 world={w}
-                onDecided={refresh}
+                onDecided={() => { refresh(); sichere(true); }}
+                onEingriff={(option) => { setErlassStart(option); setDossier("entscheidungen"); }}
                 onShowOnMap={(id) => {
                   setNetNode(id);
-                  setMapMode("netz");
+                  setEbene("netz");
                 }}
               />
             )}
             {dossier === "entscheidungen" && (
               <Decisions
+                key={erlassStart ?? "erlass"}
+                {...(erlassStart ? { start: erlassStart } : {})}
                 world={w}
                 onDecided={() => {
                   refresh();
+                  sichere(true);
                   setDossier("schreibtisch");
                 }}
               />
@@ -295,52 +531,122 @@ export function Stage({ world: initial }: { world: World }) {
 
       <nav className="mapmodes" aria-label="Kartenebenen">
         <div className="mapmode-buttons">
-          {modes.map((m) => (
-            <button key={m.id} className={mapMode === m.id ? "on" : ""} onClick={() => setMapMode(m.id)} title={m.label} aria-pressed={mapMode === m.id}>
+          {KARTENEBENEN.filter((m) => m.id !== "netz").map((m) => (
+            <button key={m.id} className={ebene === m.id ? "on" : ""} onClick={() => setEbene(m.id)} title={m.label} aria-pressed={ebene === m.id}>
               <Icon name={m.icon} />
             </button>
           ))}
         </div>
         <div className="mapmode-caption">
           <span className="mapmode-kicker">Kartenebene</span>
-          <span className="mapmode-name">
-            {mapMode === "netz" ? NET.nodes[NET.index.get(netNode)!]!.name : modes.find((m) => m.id === mapMode)?.label}
-          </span>
+          <span className="mapmode-name">{ebene === "netz" ? NET.nodes[NET.index.get(netNode)!]!.name : KARTENEBENEN.find((m) => m.id === ebene)?.label}</span>
         </div>
       </nav>
 
-      {mapMode === "wahl" && w.parliament && w.player ? (
-        <aside className="cartouche legend" aria-label="Legende Wahl 2028">
-          <div className="cartouche-title small">Wahl 2028</div>
-          <div className="cartouche-sub">stärkste Partei je Provinz</div>
-          <ul>
-            {Object.entries(w.parliament.seats)
-              .filter(([, n]) => n > 0)
-              .sort((a, b) => b[1] - a[1])
-              .map(([k, n]) => (
-                <li key={k}>
-                  <span className="swatch" style={{ background: k === w.player!.partei.kurz ? w.player!.partei.farbe : (PARTY_COLORS[k] ?? "#999") }} />
-                  <span>{k === w.player!.partei.kurz ? w.player!.partei.name : k}</span>
-                  <strong>{n}</strong>
-                </li>
-              ))}
-          </ul>
-        </aside>
-      ) : (
-        <div className="cartouche" aria-hidden>
-          <div className="cartouche-title" lang="tr">Türkiye</div>
-          <div className="cartouche-sub">81 Provinzen · Stand {w.date.slice(0, 4)}</div>
-        </div>
-      )}
+      <Kartenlegende
+        world={w}
+        ebene={ebene}
+        legende={legende}
+        problemId={problemId}
+        onProblem={(id) => setProblemId(id)}
+      />
       <img className="compass" src="/ui/kompass.png" alt="" />
 
-      {selected && <ProvinceCard world={w} plaka={selected} onClose={() => setSelected(undefined)} />}
+      {selected && (
+        <ProvinceCard
+          world={w}
+          plaka={selected}
+          onClose={() => setSelected(undefined)}
+          onBauen={(p) => {
+            setNetTheme("infrastruktur");
+            setNetOrt([p]);
+            setDossier("netz");
+          }}
+        />
+      )}
 
-      {events[0] && (
+      {bilanz && spiel?.ende && <BilanzFenster world={w} onNeu={onNeu} onSchliessen={() => setBilanzZu(true)} />}
+
+      {!bilanz && intro && (
         <EventWindow
-          key={events[0].id}
-          event={events[0]}
-          onClose={() => setEvents((q) => q.slice(1))}
+          key={intro.id}
+          event={intro}
+          onClose={() => {
+            setIntro(null);
+          }}
+        />
+      )}
+
+      {!bilanz && !intro && zielWahlOffen && (
+        <ZielWahl
+          onFertig={(ids, schwer) => {
+            waehleZiele(w, ids, schwer);
+            sichere(true);
+            refresh();
+          }}
+        />
+      )}
+
+      {!bilanz && !intro && !zielWahlOffen && hinweis && (
+        <EventWindow
+          key={hinweis.id}
+          event={{
+            id: hinweis.id,
+            scene: hinweis.szene,
+            date: formatDateDe(w.date),
+            title: hinweis.titel,
+            text: (
+              <>
+                {hinweis.text.map((t, i) => (
+                  <p key={i}>{t}</p>
+                ))}
+              </>
+            ),
+            actions: [{ label: "Verstanden", primary: true }],
+          }}
+          onClose={() => {
+            spiel!.hinweise.shift();
+            refresh();
+          }}
+        />
+      )}
+
+      {!bilanz && !intro && !zielWahlOffen && !hinweis && !offen && spiel?.reich?.feier[0] && (
+        <WunderFenster
+          key={spiel.reich.feier[0]}
+          id={spiel.reich.feier[0]}
+          datum={w.date}
+          onWeiter={() => { quittiereFeier(w, spiel.reich!.feier[0]!); refresh(); }}
+          onKarte={(o) => { quittiereFeier(w, spiel.reich!.feier[0]!); setKamera({ ...o, d: 4.6 }); setDossier(null); refresh(); }}
+        />
+      )}
+
+      {!bilanz && !intro && !zielWahlOffen && !hinweis && offen && spiel && (
+        <EreignisFenster
+          key={offen.id}
+          ansicht={ansicht(w, offen)}
+          datum={formatDateDe(w.date)}
+          kapital={spiel.kapital}
+          naechsteGutschrift={formatDateDe(kapitalEinkommen(w).naechste)}
+          onMassnahme={(m) => {
+            // Das Ereignis bleibt offen (die Frist läuft); der Spieler sieht sich das Gesetz an oder regelt die Ursache selbst
+            setSpaeter((s) => new Set(s).add(offen.id));
+            setNetTheme(null);
+            setNetOrt(null);
+            setNetVorhaben({ id: m.id, level: m.ziel ?? Math.min(100, Math.round(stufeIn(w, m.id, null)) + 20) });
+            setDossier("netz");
+            setSpeed(0);
+          }}
+          onWaehle={(optionId) => {
+            const r = entscheide(w, offen.id, optionId, new Rng(w.rngState ^ w.day));
+            if (r.ok) {
+              w.rngState = (w.rngState + 1) | 0;
+              sichere(true);
+              melde({ titel: r.text, ton: "ereignis" });
+            }
+            refresh();
+          }}
+          onSpaeter={() => setSpaeter((s) => new Set(s).add(offen.id))}
         />
       )}
     </div>
@@ -356,7 +662,8 @@ function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; lab
           {value}
           {t !== undefined && Math.abs(t) > 0.05 && (
             <span className={`trend ${t > 0 ? "up" : "down"}`} aria-hidden>
-              {t > 0 ? "▲" : "▼"} {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
+              {t > 0 ? "▲" : "▼"}
+              {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
             </span>
           )}
         </div>
@@ -367,12 +674,20 @@ function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; lab
         <p>{tip}</p>
         {t !== undefined && Math.abs(t) > 0.05 && (
           <p className="tip-trend">
-            {t > 0 ? "Gestiegen" : "Gesunken"} seit dem Vormonat um {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
+            {t > 0 ? "Gestiegen" : "Gesunken"} zuletzt um {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
           </p>
         )}
       </div>
     </div>
   );
+}
+
+/** Was das Kapital kostet, wie es wieder aufgeladen wird und wann. */
+function kapitalTip(w: World): string {
+  const k = kapitalEinkommen(w);
+  const z = (x: number) => x.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const teile = [`Grundeinkommen ${z(k.grund)}`, `Vertrauen ${z(k.vertrauen)}`, k.mehrheit > 0 ? `Mehrheit ${z(k.mehrheit)}` : "Mehrheit 0 (dem Lager fehlen Sitze)", ...(Math.abs(k.legitimitaet) >= 0.05 ? [`Legitimität ${k.legitimitaet > 0 ? "+" : "−"}${z(Math.abs(k.legitimitaet))}`] : [])].join(" + ");
+  return `Politisches Kapital ist kein Geld, sondern Rückhalt: Gefolgschaft, Aufmerksamkeit und Spielraum. Gesetze, Erlasse, Verhandlungen und Antworten auf Ereignisse verbrauchen davon. Es lädt sich jeden Monatsersten auf, und Sie dürfen bis 20 ins Minus gehen (auf Pump, gegen Legitimität und Vertrauen), zurzeit um ${z(k.summe)} (${teile}). Nächste Gutschrift: ${formatDateDe(k.naechste)}. Höchstens ${k.grenze}.`;
 }
 
 /** Veränderung zum Vormonat aus der Monatsgeschichte. */
@@ -386,8 +701,15 @@ function trend(w: World, key: "inflation" | "usdTry" | "policyRate"): number | u
 }
 
 /** Hinweise unter der Kopfleiste, wie die Warnsymbole in Hearts of Iron. */
-function Alerts({ world, bloc, onProblems, onDesk }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void }) {
-  const items: { id: string; tone: "rot" | "gelb" | "blau"; icon: IconName; label: string; text: string; count?: number; onClick?: () => void }[] = [];
+function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onProgramm }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void; onParlament: () => void; onEreignis: () => void; onProgramm: () => void }) {
+  const items: { id: string; tone: "rot" | "gelb" | "blau"; icon: IconName; label: string; kurz: string; text: string; count?: number; onClick?: () => void }[] = [];
+  const pl = (n: number, eins: string, viele: string) => `${n} ${n === 1 ? eins : viele}`;
+  const spiel = world.spiel;
+
+  const offen = spiel?.ereignisse.length ?? 0;
+  if (offen > 0) {
+    items.push({ id: "ereignisse", tone: "rot", icon: "feder", label: "Wartende Entscheidungen", kurz: pl(offen, "Entscheidung", "Entscheidungen"), count: offen, text: spiel!.ereignisse.map((e) => vorlage(e.vorlage).titel(world, e)).join(" · "), onClick: onEreignis });
+  }
 
   const problems = NET.nodes.filter((n) => n.kind === "problem");
   const perProblem = problems
@@ -404,27 +726,37 @@ function Alerts({ world, bloc, onProblems, onDesk }: { world: World; bloc: numbe
       tone: "rot",
       icon: "warnung",
       label: "Akute Probleme",
+      kurz: pl(perProblem.length, "akutes Problem", "akute Probleme"),
       count: perProblem.length,
       text: perProblem.slice(0, 4).map((x) => `${x.name} in ${x.c} ${x.c === 1 ? "Provinz" : "Provinzen"}`).join(" · "),
       onClick: onProblems,
     });
   }
 
-  const promises = world.log.filter((l) => l.text.startsWith("Offene Zusage"));
-  if (promises.length) {
-    items.push({
-      id: "zusagen",
-      tone: "gelb",
-      icon: "haende",
-      label: "Offene Zusagen",
-      count: promises.length,
-      text: promises.map((l) => l.text.replace("Offene Zusage aus dem Wahlkampf: ", "")).join(" · "),
-      onClick: onDesk,
-    });
+  const zusagen = spiel?.zusagen.filter((z) => !z.erfuellt && !z.gebrochen) ?? [];
+  if (zusagen.length) {
+    items.push({ id: "zusagen", tone: "gelb", icon: "haende", label: "Offene Zusagen", kurz: pl(zusagen.length, "Zusage", "Zusagen"), count: zusagen.length, text: zusagen.map((z) => z.text).join(" · "), onClick: onDesk });
+  }
+
+  const gesetze = spiel?.gesetze ?? [];
+  if (gesetze.length) {
+    items.push({ id: "gesetze", tone: "gelb", icon: "waage", label: "Gesetze im Parlament", kurz: pl(gesetze.length, "Gesetz im Parlament", "Gesetze im Parlament"), count: gesetze.length, text: gesetze.map((g) => `${g.name}: Abstimmung in ${Math.max(0, g.abstimmung - world.day)} Tagen`).join(" · "), onClick: onParlament });
+  }
+
+  const schritt = spiel ? naechsterSchritt(world) : null;
+  if (schritt && schritt.status === "bereit") {
+    items.push({ id: "programm", tone: "gelb", icon: "ziel", label: "Programmschritt bereit", kurz: "Programmschritt bereit", text: `${schritt.schritt.titel}: die Voraussetzungen sind erfüllt, der Schritt kann beginnen.`, onClick: onProgramm });
+  }
+
+  const duldungen = Object.entries(spiel?.fraktionen ?? {}).filter(([k, f]) => f.duldungBis !== undefined && f.duldungBis > world.day && !(spiel?.lager ?? []).includes(k));
+  const baldEnde = duldungen.filter(([, f]) => (f.duldungBis ?? 0) - world.day <= 45).sort((a, b) => (a[1].duldungBis ?? 0) - (b[1].duldungBis ?? 0))[0];
+  if (baldEnde) {
+    const tage = (baldEnde[1].duldungBis ?? 0) - world.day;
+    items.push({ id: "duldung", tone: "rot", icon: "parlament", label: "Duldung läuft aus", kurz: `Duldung endet in ${tage} Tagen`, text: `Die ${PARTEI_NAME[baldEnde[0]] ?? baldEnde[0]} duldet die Regierung nur noch ${tage} Tage. Danach fehlen ihre Stimmen, wenn Sie nicht neu verhandeln.`, onClick: onParlament });
   }
 
   if (bloc < 301) {
-    items.push({ id: "mehrheit", tone: "rot", icon: "parlament", label: "Keine Mehrheit", text: `Für Gesetze fehlen ${301 - bloc} Stimmen.` });
+    items.push({ id: "mehrheit", tone: "rot", icon: "parlament", label: "Keine Mehrheit", kurz: "Keine Mehrheit", text: `Für Gesetze fehlen ${301 - bloc} Stimmen im Lager. Stimmen lassen sich kaufen, Partner bieten sich an.`, onClick: onParlament });
   }
 
   const next = world.ppkDays.find((d) => d >= world.day);
@@ -435,6 +767,7 @@ function Alerts({ world, bloc, onProblems, onDesk }: { world: World; bloc: numbe
       tone: "blau",
       icon: "bank",
       label: "Zinssitzung",
+      kurz: days === 0 ? "Zinssitzung heute" : `Zinssitzung in ${pl(days, "Tag", "Tagen")}`,
       text: days === 0 ? "Der Geldpolitische Ausschuss tagt heute." : `Der Geldpolitische Ausschuss tagt in ${days} ${days === 1 ? "Tag" : "Tagen"}.`,
     });
   }
@@ -444,8 +777,11 @@ function Alerts({ world, bloc, onProblems, onDesk }: { world: World; bloc: numbe
     <div className="alerts" aria-label="Hinweise">
       {items.map((a) => (
         <button key={`${a.id}-${a.count ?? 0}`} className={`alert tone-${a.tone}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
-          <Icon name={a.icon} size={20} />
-          {a.count !== undefined && <span className="alert-count">{a.count}</span>}
+          <span className="alert-punkt">
+            <Icon name={a.icon} size={15} />
+          </span>
+          {a.count !== undefined && <span className="alert-zahl">{a.count}</span>}
+          <span className="alert-text">{a.kurz}</span>
           <span className="tip" role="tooltip">
             <strong>{a.label}</strong>
             <p>{a.text}</p>
@@ -460,7 +796,8 @@ function startEvent(w: World): GameEvent {
   const p = w.player;
   const own = p?.partei.kurz;
   const seats = own ? (w.parliament?.seats[own] ?? 0) : 0;
-  const ally = p?.buendnis ? (w.parliament?.seats[p.buendnis] ?? 0) : 0;
+  const sicht = stimmenSicht(w);
+  const partner = (w.spiel?.lager ?? []).map((k) => `${PARTEI_NAME[k] ?? k} (${w.parliament?.seats[k] ?? 0})`);
   return {
     id: "amtsuebergabe",
     scene: "parlament",
@@ -469,78 +806,18 @@ function startEvent(w: World): GameEvent {
     text: (
       <>
         <p>
-          Um neun Uhr legt {p?.name ?? "das neue Staatsoberhaupt"} im Parlament den Amtseid ab. Die {p?.partei.name ?? "eigene Partei"} stellt{" "}
-          {seats} der 600 Abgeordneten{p?.buendnis && ally > 0 ? `, zusammen mit ${p.buendnis} sind es ${seats + ally}` : ""}.
+          Um neun Uhr legt {p?.name ?? "das neue Staatsoberhaupt"} im Parlament den Amtseid ab. Die {p?.partei.name ?? "eigene Partei"} stellt {seats} der 600 Abgeordneten.
+          {partner.length > 0
+            ? ` Mit ${partner.join(", ")} steht das Regierungslager bei ${sicht.lager} Sitzen: ${sicht.lager >= 301 ? "Gesetze haben eine Mehrheit, solange die Partner mitgehen. Sie erwarten dafür ihre Forderungen erfüllt." : "eine Mehrheit fehlt noch."}`
+            : ""}
         </p>
         <p>
-          Auf dem Schreibtisch liegen das Morgenbriefing, die Wirtschaftsakte und die Zusagen aus dem Wahlkampf. Die Inflation liegt bei{" "}
-          {w.published.inflation.value.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %.
+          Auf dem Schreibtisch liegen das Morgenbriefing, die Zusagen aus dem Wahlkampf und der nächste Schritt für Ihr Programm. Die Inflation liegt bei{" "}
+          {w.published.inflation.value.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %, die Wahl in etwa fünf Jahren. Wählen Sie gleich Ihre Ziele.
         </p>
       </>
     ),
     why: "Die Wirtschaftsdaten stammen vom 25. September 2026. Die Wahl 2028 ist erfunden, das Land und seine Regeln sind echt.",
     actions: [{ label: "An die Arbeit", primary: true }],
   };
-}
-
-function ProvinceCard({ world, plaka, onClose }: { world: World; plaka: number; onClose: () => void }) {
-  const d = PROVINZEN[plaka - 1]!;
-  const seats = world.parliament?.byProvince?.[plaka];
-  const problems = NET.nodes
-    .filter((n) => n.kind === "problem")
-    .filter((n) => world.net.values[NET.index.get(n.id)! * PROVINCES + plaka - 1]! >= n.threshold!)
-    .map((n) => n.name);
-  const own = world.player?.partei;
-  return (
-    <aside className="province-card-float frame">
-      <Corners />
-      <header className="dossier-head">
-        <h2>{d.name}</h2>
-        <button className="close" onClick={onClose} aria-label="Schließen">
-          ✕
-        </button>
-      </header>
-      <div className="province-body">
-      <p className="kicker">Provinz Nr. {plaka} · {d.region}</p>
-      <dl>
-        <dt>Einwohner</dt>
-        <dd>{d.bevoelkerung.toLocaleString("de-DE")}</dd>
-        <dt>Wirtschaftskraft</dt>
-        <dd>{d.bipProKopf.toLocaleString("de-DE")} ₺ pro Kopf</dd>
-        <dt>Arbeitslosigkeit</dt>
-        <dd>
-          {d.arbeitslosigkeit.toLocaleString("de-DE")} %{d.arbeitslosigkeitHerkunft === "geschaetzt" ? " (geschätzt)" : ""}
-        </dd>
-        <dt>Rathaus seit 2024</dt>
-        <dd>{d.buergermeister2024}{d.grossstadt ? " · Großstadt" : ""}</dd>
-        <dt>Abgeordnete</dt>
-        <dd>{d.sitze}</dd>
-      </dl>
-      {seats && (
-        <ul className="province-seats">
-          {Object.entries(seats)
-            .filter(([, n]) => n > 0)
-            .sort((a, b) => b[1] - a[1])
-            .map(([k, n]) => (
-              <li key={k}>
-                <span className="dot" style={{ background: k === own?.kurz ? own.farbe : (PARTY_COLORS[k] ?? "#999") }} />
-                <span className="party">{k === own?.kurz ? own.name : k}</span>
-                <span className="n">{n}</span>
-              </li>
-            ))}
-        </ul>
-      )}
-      {problems.length > 0 && (
-        <div className="stamps">
-          {problems.map((p) => (
-            <span key={p} className="stamp">
-              {p}
-            </span>
-          ))}
-        </div>
-      )}
-      <p className="footnote">Der Gouverneur wird vom Präsidenten ernannt.</p>
-      </div>
-    </aside>
-  );
 }

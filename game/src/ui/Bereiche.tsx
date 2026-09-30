@@ -1,74 +1,48 @@
-// Die Bereiche: Alle zwölf Themenfelder auf einen Blick — was akut ist,
-// was wirkt, wohin es geht. Der Einstieg in jedes Feld.
+// „Heute“ in der Politik: Was jetzt ansteht. Aus den akuten Problemen berechnet das Spiel die Vorhaben, die dort am meisten
+// bewirken, wo es brennt. Die Bereiche selbst (Wirtschaft, Gesundheit, Wohnen …) stehen im Reiter „Bereiche“ (politik/Politik.tsx).
 
+import { useMemo, useState } from "react";
 import type { World } from "../sim/types";
-import { NET } from "../sim/world";
-import { activeProvinces, nationalAverage, startAverage } from "../sim/netz";
-import { THEME_NAMES, type Theme } from "../data/politiknetz";
+import { vorschlaege, type Vorschlag } from "../sim/vorschlaege";
+import { bringeEin } from "../sim/handeln";
+import { VorschlagKarte } from "./politik/VorschlagKarte";
+import "./politik/politik.css";
 
-const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-
-const ORDER: Theme[] = [
-  "wirtschaft",
-  "haushalt",
-  "arbeit",
-  "bildung",
-  "gesundheit",
-  "landwirtschaft",
-  "energie",
-  "infrastruktur",
-  "wohnen",
-  "sicherheit",
-  "gesellschaft",
-  "aussen",
-];
-
-export function Bereiche({ world, onOpenTheme }: { world: World; onOpenTheme: (t: Theme) => void }) {
+export function Bereiche({ world, onVorhaben, onBereiche, refresh }: { world: World; onVorhaben?: (v: Vorschlag) => void; onBereiche?: () => void; refresh?: () => void }) {
+  const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
+  const spiel = world.spiel;
+  // Die Rechnung ist aufwendig: nur neu, wenn sich Tag, Kapital oder die Zahl der Gesetze ändert
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const vs = useMemo(() => (spiel ? vorschlaege(world, 6) : []), [world.day, spiel?.kapital, spiel?.gesetze.length, Object.keys(world.net.targets).length]);
   return (
-    <div className="bereiche-grid">
-      {ORDER.map((theme) => {
-        const nodes = NET.nodes.filter((n) => n.theme === theme);
-        const problems = nodes.filter((n) => n.kind === "problem");
-        const akut = problems.filter((p) => activeProvinces(NET, world.net, p.id).length > 0);
-        const massnahmen = nodes.filter((n) => n.kind === "massnahme");
-        const groessen = nodes.filter((n) => n.kind === "groesse" && !n.input);
-        // Drei repräsentative Größen: stärkste Abweichung vom Start zuerst
-        const signale = groessen
-          .map((n) => {
-            const now = nationalAverage(NET, world.net, n.id);
-            const start = startAverage(NET, world.net, n.id);
-            return { name: n.name, now, delta: now - start };
-          })
-          .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-          .slice(0, 3);
-        return (
-          <button key={theme} className="bereiche-karte" onClick={() => onOpenTheme(theme)}>
-            <h3>{THEME_NAMES[theme]}</h3>
-            <p className="subtitle">
-              {massnahmen.length} Maßnahmen · {problems.length} Problem{problems.length === 1 ? "" : "e"}
-            </p>
-            {akut.length > 0 && (
-              <p className="bereiche-akut">
-                <strong>{akut.length} akut:</strong> {akut.slice(0, 2).map((p) => p.name).join(", ")}
-                {akut.length > 2 ? " …" : ""}
-              </p>
-            )}
-            <ul className="bereiche-signale">
-              {signale.map((s) => (
-                <li key={s.name}>
-                  <span>{s.name}</span>
-                  <strong>
-                    {nf(s.now)}
-                    <em className={s.delta > 0.5 ? "plus" : s.delta < -0.5 ? "minus" : ""}>
-                      {s.delta > 0.5 ? " ↑" : s.delta < -0.5 ? " ↓" : ""}
-                    </em>
-                  </strong>
-                </li>
-              ))}
-            </ul>
-          </button>
-        );
-      })}
-    </div>
+    <section className="vorschlaege">
+      <h3>Was jetzt ansteht</h3>
+      <p className="subtitle">Aus Ihren akuten Problemen berechnet: die Vorhaben, die dort am meisten bewirken, wo es brennt. Die Liste ändert sich mit der Lage.</p>
+      {antwort && (
+        <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
+          {antwort.text}
+          {antwort.why && <em> {antwort.why}</em>}
+        </p>
+      )}
+      {vs.length === 0 && <p className="subtitle">Im Moment drängt nichts. Sehen Sie in den Bereichen nach, wo Sie etwas verbessern wollen.</p>}
+      <ol className="vorschlag-liste">
+        {vs.map((v) => (
+          <VorschlagKarte
+            key={v.massnahme}
+            v={v}
+            onEinstellen={(x) => onVorhaben?.(x)}
+            onSofort={(x) => {
+              setAntwort(bringeEin(world, x.massnahme, x.ziel, x.ort, "gesetz"));
+              refresh?.();
+            }}
+          />
+        ))}
+      </ol>
+      {onBereiche && (
+        <p className="po-fuss">
+          Lieber selbst suchen? <button className="link" onClick={onBereiche}>Alle Bereiche ansehen</button>
+        </p>
+      )}
+    </section>
   );
 }

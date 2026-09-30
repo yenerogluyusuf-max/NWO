@@ -48,6 +48,12 @@ export interface EconomyState {
   costPush: number;
   /** Aus dem Politiknetz: Verschiebung des Potenzialwachstums durch Produktivität, Prozentpunkte */
   potentialShift: number;
+  /** Mehr- oder Minderzins des Staates gegenüber dem Start in % des BIP je Jahr (Zinsdienst folgt den Marktzinsen); fehlt in älteren Spielständen */
+  zinsMehrlast?: number;
+  /** Außenwelt (Index, Start = 100); fehlt in älteren Spielständen */
+  oel?: number;
+  euNachfrage?: number;
+  weltzins?: number;
 }
 
 /** Größen, die nicht im Szenario stehen, sondern abgeleitet werden. */
@@ -115,6 +121,8 @@ export interface World {
   /** Aus dem Prolog; fehlt nur in Tests ohne Prolog */
   player?: import("./prolog").PlayerProfile;
   parliament?: import("./prolog").Parliament;
+  /** Spielschleife (Kapital, Gesetze, Ereignisse, Figuren, Umfragen, Ziele); fehlt nur in Tests ohne Amtsantritt */
+  spiel?: import("./spiel-typen").SpielZustand;
 }
 
 /** Herkunft eines Startwerts (Entwicklungsplan, Abschnitt 5). */

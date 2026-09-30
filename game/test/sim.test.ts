@@ -17,7 +17,7 @@ function averageAfter(days: number, metric: keyof World["economy"], setup?: (w: 
       const w = createWorld(turkey2026, seed);
       setup?.(w);
       advance(w, days);
-      return w.economy[metric];
+      return w.economy[metric] as number;
     }),
   );
 }

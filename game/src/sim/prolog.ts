@@ -3,7 +3,10 @@
 
 import type { World } from "./types";
 import { Rng } from "./rng";
-import { NET } from "./world";
+import { NET } from "./modell";
+import { initSpiel } from "./spiel";
+import { PARTEI_NAME, forderungVon, fraktion, waehlePartner } from "./fraktionen";
+import { partnerFigur } from "./figuren";
 import { PROVINCES } from "./netz";
 import { PROVINZEN, WEIGHTS, type ProvinceData } from "./regional";
 
@@ -325,13 +328,19 @@ export function startAfterElection(world: World, profile: PlayerProfile): void {
   const rng = new Rng(world.rngState);
   world.player = structuredClone(profile);
   world.parliament = electParliament(profile, rng);
-  world.rngState = rng.state;
   applyProfile(world, profile);
 
   const own = profile.partei.kurz;
   const ownSeats = world.parliament.seats[own] ?? 0;
   const allySeats = profile.buendnis ? (world.parliament.seats[profile.buendnis] ?? 0) : 0;
-  const bloc = ownSeats + allySeats;
+  // Das Spiel beginnt mit einer Regierungsmehrheit: Reicht das eigene Lager nicht, kommen Partner nach Nähe und Größe hinzu
+  let weitere = waehlePartner(world.parliament.seats, own, profile.buendnis);
+  // Ein Riese im Lager ließe kaum eine Opposition übrig: Er duldet die Regierung zunächst nur, statt ihr anzugehören
+  const duldender = weitere.find((p) => (world.parliament!.seats[p] ?? 0) >= 200 && ownSeats + allySeats + weitere.reduce((n, q) => n + (world.parliament!.seats[q] ?? 0), 0) > 520);
+  if (duldender) weitere = weitere.filter((p) => p !== duldender);
+  const weitereSeats = weitere.reduce((s, p) => s + (world.parliament!.seats[p] ?? 0), 0);
+  const bloc = ownSeats + allySeats + weitereSeats;
+  const partnerNamen = [profile.buendnis, ...weitere].filter(Boolean).map((k) => PARTEI_NAME[k!] ?? k!);
   world.log.push({
     day: world.day,
     date: world.date,
@@ -339,17 +348,47 @@ export function startAfterElection(world: World, profile: PlayerProfile): void {
     text:
       `${profile.name} gewinnt die Präsidentschaftswahl ${profile.wahl.runde === 1 ? "im ersten Wahlgang" : "in der Stichwahl"} ` +
       `mit ${profile.wahl.anteil.toLocaleString("de-DE")} %. Die ${profile.partei.name} erhält ${ownSeats} von 600 Sitzen` +
-      (profile.buendnis
-        ? allySeats > 0
-          ? `, zusammen mit dem Bündnispartner ${profile.buendnis} ${bloc}.`
-          : `. Der Bündnispartner ${profile.buendnis} gewinnt keinen Sitz.`
-        : "."),
+      (partnerNamen.length
+        ? `; zusammen mit ${partnerNamen.length === 1 ? "dem Bündnispartner" : "den Bündnispartnern"} ${partnerNamen.join(" und ")} hat das Regierungslager ${bloc} Sitze.`
+        : ".") +
+      (duldender ? ` Die ${PARTEI_NAME[duldender] ?? duldender} (${world.parliament.seats[duldender] ?? 0} Sitze) bleibt formal Opposition und duldet die Regierung zunächst für acht Monate.` : ""),
     why:
       bloc >= 301
-        ? "Eine eigene Mehrheit im Parlament: Gesetze und Haushalt sind möglich, Verfassungsänderungen brauchen trotzdem 360 Stimmen."
+        ? `Eine Regierungsmehrheit: Gesetze und Haushalt sind möglich, solange die Partner im Lager bleiben. Sie erwarten ihre Forderungen erfüllt; wer Zusagen bricht, verliert sie. Verfassungsänderungen brauchen trotzdem 360 Stimmen.`
         : `Keine eigene Mehrheit: Für Gesetze fehlen ${301 - bloc} Stimmen. Es braucht Partner, Absprachen oder Überläufer.`,
   });
   for (const v of profile.versprechen) {
     world.log.push({ day: world.day, date: world.date, kind: "ereignis", text: `Offene Zusage aus dem Wahlkampf: ${v}` });
   }
+  // Die Spielschleife beginnt: Kapital, Figuren, Zusagen, drei Vorgänge des ersten Tages
+  initSpiel(world, profile, rng);
+  weitere.forEach((partei, i) => {
+    const spiel = world.spiel!;
+    const forderung = forderungVon(world, partei);
+    const name = PARTEI_NAME[partei] ?? partei;
+    spiel.lager.push(partei);
+    if (forderung) {
+      spiel.zusagen.push({ id: `z-start-${partei}`, von: partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 120 + 60 * i, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
+    }
+    const figur = partnerFigur(world, partei, `Vorsitz der ${name}`, forderung?.text ?? "Einfluss und Ämter", rng);
+    // Eine Fraktion, die allein fast so groß ist wie das übrige Lager, hat Gewicht und Ansprüche: Ihre Treue ist brüchig
+    if ((world.parliament?.seats[partei] ?? 0) >= 200) figur.loyalitaet = 38;
+    spiel.figuren.push(figur);
+  });
+  if (duldender && world.spiel) {
+    const f = fraktion(world, duldender);
+    f.duldungBis = world.day + 240;
+    f.bereitschaft = Math.max(f.bereitschaft, 55);
+    const forderung = forderungVon(world, duldender);
+    world.spiel.zusagen.push({ id: `z-duldung-${duldender}`, von: duldender, text: `Die ${PARTEI_NAME[duldender] ?? duldender} erwartet für ihre Duldung ${forderung.text}`, faellig: 200, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
+  }
+  world.rngState = rng.state;
+}
+
+/** Ein vollständiges Profil ohne Prolog: für den Schnellstart und Tests. `waehle(n)` gibt den Index der Antwort bei n Möglichkeiten. */
+export function schnellProfil(name = "Deniz Aydın", waehle: (n: number) => number = () => 0): PlayerProfile {
+  const p = emptyProfile();
+  p.name = name;
+  for (const st of STATIONS) st.answers[Math.min(st.answers.length - 1, waehle(st.answers.length))]!.apply(p);
+  return p;
 }

@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { World } from "../sim/types";
-import { outlook, type Metric, type Outlook } from "../sim/forecast";
-import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "../sim/world";
+import { fuehreAus, type Aktion, type Metric, type Outlook } from "../sim/forecast";
+import { berechneVorschau } from "./vorschau";
 import { Icon, type IconName } from "./icons";
 import { Vignette } from "./art/Vignette";
 import { formatDateDe } from "../sim/dates";
@@ -13,7 +13,7 @@ interface Option {
   icon: IconName;
   /** Über welchen Weg die Entscheidung läuft */
   lever: string;
-  act: (w: World) => void;
+  aktion: Aktion;
 }
 
 const OPTIONS: Option[] = [
@@ -23,7 +23,7 @@ const OPTIONS: Option[] = [
     icon: "bank",
     lever: "Präsidialdekret",
     text: "Eine gefügige Führung einsetzen, die eher auf Wachstum als auf Preisstabilität achtet.",
-    act: (w) => replaceGovernor(w, "gefuegig", "eine neue, regierungsnahe Führung"),
+    aktion: { art: "zentralbank" },
   },
   {
     id: "kritik",
@@ -31,7 +31,7 @@ const OPTIONS: Option[] = [
     icon: "parlament",
     lever: "Rede",
     text: "In einer Rede die hohen Zinsen angreifen, ohne jemanden zu entlassen.",
-    act: (w) => criticizeCentralBank(w),
+    aktion: { art: "kritik" },
   },
   {
     id: "ausgaben",
@@ -39,7 +39,7 @@ const OPTIONS: Option[] = [
     icon: "lira",
     lever: "Haushalt · +2 % des BIP",
     text: "Zusätzliche Ausgaben von 2 % der Wirtschaftsleistung, etwa für Renten und Investitionen.",
-    act: (w) => setFiscalImpulse(w, w.economy.fiscalImpulse + 2),
+    aktion: { art: "haushalt", impuls: 2 },
   },
   {
     id: "sparen",
@@ -47,7 +47,7 @@ const OPTIONS: Option[] = [
     icon: "preis",
     lever: "Haushalt · −1 % des BIP",
     text: "Ausgaben um 1 % der Wirtschaftsleistung senken.",
-    act: (w) => setFiscalImpulse(w, w.economy.fiscalImpulse - 1),
+    aktion: { art: "haushalt", impuls: -1 },
   },
 ];
 
@@ -64,15 +64,26 @@ const DIRECTION: Record<Outlook["direction"], string> = {
   unklar: "kaum Unterschied erkennbar",
 };
 
-export function Decisions({ world, onDecided }: { world: World; onDecided: () => void }) {
-  const [chosen, setChosen] = useState<Option | null>(null);
+export function Decisions({ world, onDecided, start }: { world: World; onDecided: () => void; start?: string }) {
+  const [chosen, setChosen] = useState<Option | null>(OPTIONS.find((o) => o.id === start) ?? null);
+  const [outlooks, setOutlooks] = useState<{ id: Metric; label: string; unit: string; o: Outlook }[] | "laedt">([]);
 
-  const outlooks = useMemo(
-    () => (chosen ? METRICS.map((m) => ({ ...m, o: outlook(world, chosen.act, m.id, 12, 16) })) : []),
-    // Die Vorschau gilt für den Stand, an dem sie geöffnet wurde.
+  // Die Vorschau rechnet im Hintergrund und gilt für den Stand, an dem sie geöffnet wurde.
+  useEffect(() => {
+    if (!chosen) {
+      setOutlooks([]);
+      return;
+    }
+    let aktiv = true;
+    setOutlooks("laedt");
+    berechneVorschau(world, chosen.aktion, METRICS.map((m) => m.id), 12, 12).then((os) => {
+      if (aktiv) setOutlooks(METRICS.map((m, k) => ({ ...m, o: os[k]! })));
+    });
+    return () => {
+      aktiv = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chosen],
-  );
+  }, [chosen]);
 
   return (
     <div className="decisions">
@@ -101,7 +112,14 @@ export function Decisions({ world, onDecided }: { world: World; onDecided: () =>
           <table className="decree-outlook">
             <caption>In zwölf Monaten, verglichen mit „nichts tun“</caption>
             <tbody>
-              {outlooks.map(({ id, label, o }) => (
+              {outlooks === "laedt" && (
+                <tr>
+                  <td colSpan={3} className="rechnet">
+                    Die Kanzlei rechnet die nächsten zwölf Monate durch …
+                  </td>
+                </tr>
+              )}
+              {outlooks !== "laedt" && outlooks.map(({ id, label, o }) => (
                 <tr key={id}>
                   <th>{label}</th>
                   <td className={`dir dir-${o.direction}`}>
@@ -123,7 +141,7 @@ export function Decisions({ world, onDecided }: { world: World; onDecided: () =>
             <button
               className="wax-seal"
               onClick={() => {
-                chosen.act(world);
+                fuehreAus(world, chosen.aktion);
                 setChosen(null);
                 onDecided();
               }}

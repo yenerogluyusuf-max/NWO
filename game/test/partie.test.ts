@@ -7,6 +7,8 @@ import { createWorld, advance, NET } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, type PlayerProfile } from "../src/sim/prolog";
 import { befehl } from "../src/sim/befehle";
+import { entscheide, standardAntwort } from "../src/sim/ereignisse";
+import { Rng } from "../src/sim/rng";
 import { nationalAverage, policyCost } from "../src/sim/netz";
 import { formatDateDe } from "../src/sim/dates";
 import type { World } from "../src/sim/types";
@@ -25,6 +27,14 @@ const profil: PlayerProfile = {
   wahl: { runde: 2, anteil: 52.3 },
 };
 
+/** Der Präsident beantwortet offene Ereignisse mit der ersten bezahlbaren Antwort. */
+function beantworte(w: World, rng: Rng) {
+  for (const ev of [...w.spiel!.ereignisse]) {
+    const id = standardAntwort(w, ev);
+    if (id) entscheide(w, ev.id, id, rng);
+  }
+}
+
 function bericht(w: World, was: string) {
   console.log(`\n[${formatDateDe(w.date)}] ${was}`);
   console.log(
@@ -36,6 +46,10 @@ describe("Partie: Aylin Demir übernimmt die Türkei", () => {
   test("vom Amtseid bis zur ersten Bilanz", () => {
     const w = createWorld(turkey2026, 42);
     startAfterElection(w, profil);
+    // Für diesen Durchlauf steht das ganze Parlament hinter dem Präsidenten: Es geht um den Ablauf, nicht um Mehrheiten.
+    w.spiel!.lager = Object.keys(w.parliament!.seats);
+    const rng = new Rng(5);
+    beantworte(w, rng);
     bericht(w, "Amtseid. Die Akten liegen bereit.");
 
     // Erster Befehl: Lage erfassen
@@ -63,8 +77,12 @@ describe("Partie: Aylin Demir übernimmt die Türkei", () => {
     console.log(`  Kanzlei: ${r.text}`);
     expect(r.ok).toBe(true);
 
-    // Zwei Monate laufen lassen
+    // Zwei Monate laufen lassen; bei Ereignissen hält das Spiel an und der Präsident antwortet
     r = befehl("60 Tage weiter", w);
+    while (w.day < 60) {
+      beantworte(w, rng);
+      advance(w, 60 - w.day);
+    }
     console.log(`  Sie: „60 Tage weiter"`);
     console.log(`  Kanzlei: ${r.text.slice(0, 160)}…`);
     bericht(w, "Zwei Monate später.");
@@ -78,5 +96,7 @@ describe("Partie: Aylin Demir übernimmt die Türkei", () => {
     expect(w.day).toBe(60);
     expect(beschluesse.length).toBeGreaterThanOrEqual(3);
     expect(mindestlohn).toBeGreaterThan(60);
+    // Das Gesetz musste durch das Parlament: eingebracht am Anfang, angenommen nach 21 Tagen
+    expect(w.log.some((l) => l.text.startsWith("Das Parlament nimmt „Mindestlohn“"))).toBe(true);
   });
 });

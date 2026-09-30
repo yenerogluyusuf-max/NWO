@@ -1,8 +1,10 @@
 // Das Politiknetz als Zeichnung: links, was den Knoten treibt, rechts, was er bewirkt.
-// Blaue Pfeile erhöhen, rote senken; gestrichelt heißt, die Wirkung kommt verzögert.
+// Grüne bzw. blaue Pfeile erhöhen, rote senken; gestrichelt heißt, die Wirkung kommt verzögert („nach 3 Monaten“).
+// Mit der Maus über einer Linie erscheint die Begründung.
 
 import { NET } from "../sim/world";
-import type { NodeSpec } from "../data/politiknetz";
+import type { NodeSpec, EdgeSpec } from "../data/politiknetz";
+import { wann } from "./lernen";
 
 const W = 1020;
 const COL_L = 132;
@@ -57,7 +59,8 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
   const yAt = (i: number, n: number) => cy + (i - (n - 1) / 2) * ROW;
   const get = (id: string) => NET.nodes[NET.index.get(id)!]!;
 
-  const arrow = (x1: number, y1: number, x2: number, y2: number, weight: number, lag: number, key: string, labelAt: number) => {
+  const arrow = (x1: number, y1: number, x2: number, y2: number, e: EdgeSpec, key: string, labelAt: number) => {
+    const { weight, lag } = e;
     const mx = (x1 + x2) / 2;
     // Punkt auf der Kurve, an dem die Verzögerung steht: weg vom gemeinsamen Mittelknoten
     const t = labelAt;
@@ -65,12 +68,15 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
     const by = y1 + (y2 - y1) * (3 * t * t - 2 * t * t * t);
     const color = weight > 0 ? "#265a62" : "#8e2a22";
     const width = 0.8 + Math.min(2.2, Math.abs(weight) * 4);
+    const d = `M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
     return (
-      <g key={key}>
-        <path d={`M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`} fill="none" stroke={color} strokeWidth={width} strokeDasharray={lag > 0 ? "5 3" : undefined} markerEnd={`url(#ng-${weight > 0 ? "plus" : "minus"})`} />
+      <g key={key} className="ng-kante">
+        <title>{`${get(e.from).name} ${weight > 0 ? "erhöht" : "senkt"} ${get(e.to).name}, ${wann(lag)}. ${e.why}`}</title>
+        <path d={d} fill="none" stroke="transparent" strokeWidth="14" />
+        <path d={d} fill="none" stroke={color} strokeWidth={width} strokeDasharray={lag > 0 ? "6 4" : undefined} markerEnd={`url(#ng-${weight > 0 ? "plus" : "minus"})`} />
         {lag > 0 && (
-          <text x={bx} y={by - 4} textAnchor="middle" className="ng-lag">
-            {lag} Mon.
+          <text x={bx} y={by - 5} textAnchor="middle" className="ng-lag">
+            {wann(lag)}
           </text>
         )}
       </g>
@@ -78,6 +84,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
   };
 
   return (
+    <div className="netgraph-block">
     <svg className="netgraph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Ursachen und Wirkungen von ${node.name}`}>
       <defs>
         <marker id="ng-plus" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -92,8 +99,8 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       </defs>
       <text x={COL_L} y="14" textAnchor="middle" className="ng-head">Ursachen</text>
       <text x={COL_R} y="14" textAnchor="middle" className="ng-head">Wirkungen</text>
-      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - 132, cy, e.weight, e.lag, `c${e.from}`, 0.3))}
-      {effects.map((e, i) => arrow(W / 2 + 132, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e.weight, e.lag, `e${e.to}`, 0.72))}
+      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - 132, cy, e, `c${e.from}`, 0.3))}
+      {effects.map((e, i) => arrow(W / 2 + 132, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e, `e${e.to}`, 0.72))}
       {causes.map((e, i) => (
         <NodeBox key={e.from} node={get(e.from)} x={COL_L} y={yAt(i, causes.length)} onClick={() => onSelect(e.from)} />
       ))}
@@ -111,5 +118,25 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       )}
       <NodeBox node={node} x={W / 2} y={cy} main />
     </svg>
+    <ul className="ng-legende" aria-label="Legende des Bildes">
+      <li>
+        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#265a62" strokeWidth="2" /><path d="M26 1 L33 5 L26 9 Z" fill="#265a62" /></svg>
+        <span>erhöht</span>
+      </li>
+      <li>
+        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#8e2a22" strokeWidth="2" /><path d="M26 1 L33 5 L26 9 Z" fill="#8e2a22" /></svg>
+        <span>senkt</span>
+      </li>
+      <li>
+        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" /></svg>
+        <span>wirkt sofort</span>
+      </li>
+      <li>
+        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" strokeDasharray="6 4" /></svg>
+        <span>wirkt verzögert: „nach 3 Monaten“ heißt, die Wirkung kommt erst drei Monate nach der Änderung an</span>
+      </li>
+      <li className="hinweis">Dickere Linie = stärkere Wirkung. Über eine Linie fahren zeigt die Begründung.</li>
+    </ul>
+    </div>
   );
 }
