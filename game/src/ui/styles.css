@@ -1698,3 +1698,8 @@ button.link { border: none !important; background: none !important; box-shadow: 
 
 .opt-cost.pump { background: linear-gradient(180deg, #e8b8a6, #c98a72); color: #4a1a10; }
 .opt-cost small { display: block; font: 600 10px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+
+/* Handy: Eine offene Akte liegt über Kopfband und Hinweisen, damit ihr Schließen-Knopf immer erreichbar bleibt */
+@media (max-width: 720px) {
+  .dossier, .dossier.frame { z-index: 8; }
+}
