@@ -1,7 +1,7 @@
 // Die Fertigstellung eines Wunders, Großprojekts oder einer Route: ein gemaltes Bild, das im Zeitraffer entsteht, dazu Ort, Zitat und Wirkung.
 // Die Wirkungen erscheinen nacheinander; wer die Bewegung nicht mag, sieht alles sofort (prefers-reduced-motion).
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Corners, Flourish } from "../art/Ornament";
 import { Icon } from "../icons";
 import { WunderBild } from "./WunderBild";
@@ -22,6 +22,9 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
   const v = vorhabenDef(id);
   // Ein Tippen auf das Bild lässt alle Bewegung an ihr Ende springen
   const [uebersprungen, setUebersprungen] = useState(false);
+  // Fokus auf „Weiter“, aber ohne das Fenster zu verschieben: Bei niedrigen Bildschirmen würde der Browser sonst zum Knopf am Ende des Textes scrollen
+  const weiter = useRef<HTMLButtonElement>(null);
+  useEffect(() => weiter.current?.focus({ preventScroll: true }), []);
   if (!v) return null;
   const sofort = v.abschluss.map((e) => effektZeile(e)).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 5);
   const dauer = (v.dauer ?? []).map((e) => effektZeile(e, "dauer")).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 4);
@@ -78,7 +81,7 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
                 <Icon name="berg" size={16} /> Auf der Karte zeigen
               </button>
             )}
-            <button className="brass-button" type="button" onClick={onWeiter} autoFocus>
+            <button ref={weiter} className="brass-button" type="button" onClick={onWeiter}>
               Weiter
             </button>
           </div>

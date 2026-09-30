@@ -39,7 +39,8 @@ export interface Vorgabe {
   absprachen: number;
   /** Erwartete Ja-Stimmen ohne Absprachen; der Rest über Lager, Duldung und Sachstimmen sind Übertritte */
   erwartet: number;
-  /** Obere Grenze der Spanne */
+  /** Grenzen der Spanne der Schätzung (ohne Absprachen) */
+  niedrig: number;
   hoch: number;
 }
 
@@ -116,7 +117,7 @@ export function vorgabeFuer(world: World, g: Gesetz | null): Vorgabe {
   const sicht = stimmenSicht(world, g ? { massnahme: g.massnahme, richtung } : undefined);
   const dul = duldung(world);
   const sach = sachstimmen(world, g?.massnahme, richtung);
-  return { sachParteien: sach.parteien, duldungJa: dul.ja, sachJa: sach.ja, absprachen: g?.absprachen ?? 0, erwartet: sicht.erwartet, hoch: sicht.high };
+  return { sachParteien: sach.parteien, duldungJa: dul.ja, sachJa: sach.ja, absprachen: g?.absprachen ?? 0, erwartet: sicht.erwartet, niedrig: sicht.low, hoch: sicht.high };
 }
 
 export function zaehleZustaende(z: Zaehler): Record<Zustand, number> {

@@ -11,7 +11,7 @@
 
 .par-mitte { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); width: 38%; display: grid; justify-items: center; text-align: center; pointer-events: none; }
 .par-mitte-inhalt { display: grid; justify-items: center; line-height: 1.05; gap: 2px; }
-.par-mitte-inhalt strong { font: 650 clamp(18px, 9.4cqw, 60px)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
+.par-mitte-inhalt strong { font: 650 clamp(16px, 8.2cqw, 56px)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
 .par-mitte-inhalt strong.gut { color: #1e6a4f; }
 .par-mitte-inhalt strong.schlecht { color: var(--seal); }
 .par-mitte-inhalt span { display: grid; font: italic clamp(12px, 2.6cqw, 15px)/1.25 var(--serif); color: var(--ink-soft); }
@@ -69,7 +69,7 @@
 .par-letzte { margin-top: 14px; }
 .par-letzte h4 { margin: 0 0 4px; font: 600 13px var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
 .par-letzte ul { list-style: none; margin: 0; padding: 0; display: grid; }
-.par-letzte li { display: grid; grid-template-columns: 86px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(60, 40, 20, 0.14); }
+.par-letzte li { display: grid; grid-template-columns: 118px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(60, 40, 20, 0.14); }
 .par-l-stempel { justify-self: start; padding: 1px 8px; font: 700 10.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 3px; transform: rotate(-2deg); }
 .par-letzte li.ja .par-l-stempel { color: #1e6a4f; }
 .par-letzte li.nein .par-l-stempel { color: var(--seal); }
@@ -114,7 +114,7 @@
   .par-fraktionen li { grid-template-columns: 14px minmax(0, 1fr) 40px 52px; gap: 8px; }
   .par-stark { display: none; }
   .par-lager-zeile .par-marke { margin-left: 0; flex-basis: 100%; }
-  .par-letzte li { grid-template-columns: 78px minmax(0, 1fr) auto; }
+  .par-letzte li { grid-template-columns: 104px minmax(0, 1fr) auto; }
   .par-karte-huelle { top: 72px; }
   .par-karte-titel { font-size: 18px; }
 }

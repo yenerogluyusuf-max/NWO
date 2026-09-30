@@ -236,3 +236,20 @@ Jede Akte nennt ihren Zweck in einem Satz unter dem Titel (`ui/politik/zweck.ts`
 **Prüfung:** 17 neue Tests (Bereichslogik, Briefing, Kalender, Ratgeber, Über-Jahre-Stabilität); Browserlauf mit 16 Prüfungen der Entscheidungswege (Gespräch führen senkt das Kapital, Einbringen erscheint unter „Fällig“, Zusage öffnet die Maßnahme, Bereichszeile zeigt „im Parlament“, Kachel nennt das laufende Vorhaben, Ereignis kehrt vom Schreibtisch ins Fenster zurück); Überschneidungsprüfung bei 1000×570, 1280×720 und 1512×982 ohne Befund für acht Ansichten; bei 390 px Breite kein seitliches Überlaufen (die Akte füllt die Breite und bedeckt dabei bewusst das Menü, Schließen führt zurück).
 
 **Offen:** Die Ansichten Wirtschaft, Personen und Zusagen, Wähler, Welt und Parlament werden von anderen Arbeitssträngen überarbeitet und sollen denselben Grundsatz erfüllen (Zweckzeile ist schon da). Das Kopfband (Zahlen oben) wird auf 390 px Breite von den Statistiken überlagert; das ist nicht Teil dieser Arbeit.
+
+
+## M. Nachtrag 30.09.2026 (Reich, KI, Verhandlungstisch, Aufbau der Ansichten)
+
+Anlass: Forderungen des Projektinhabers vom 30.09. („keine Vorteile, kein Inventar“, „verhandele mit Ländern“, „integriere endlich KI“, „schönere Länder, Parlament, Wunder“, „warum nur Claude“, „jede Entscheidung muss eine Auswirkung haben“).
+
+**Grundsatz für alle Ansichten:** Jede Ansicht führt zu einer Entscheidung, und jede Entscheidung zeigt ihre Folgen dort, wo man sie trifft (Folgekette, nicht nur eine Zahl). Nichts wird nur in Geld gemessen: Justizsitze, Kulturerbe, Truppenbereitschaft, Legitimität, Verwaltungskraft, Vertrauen sind eigene Größen.
+
+- **Das Reich** ([FACHBEREICHE.md](FACHBEREICHE.md)): Vorhaben (137: Wunder, Großprojekte, Serien wie die Sieben Kirchen, Restaurierungen, Reformen, Beschaffungen, Institutionen, Doktrinen, Sonderrechte) mit Kosten in Kapital, Baukapazität und Verwaltungskraft, Bestand mit Verfall, Kehrseite und Verlierer; Kulturerbe-Katalog mit Stätten und Zuständen.
+- **Kapital darf bis 20 Punkte ins Minus** („auf Pump“): Es kostet in jedem Monat im Minus Legitimität und Vertrauen. Begründung: Ein Staat kann sich verschulden; die Härte liegt in den Folgen, nicht im Verbot (Regel „Wege statt Verbote“).
+- **Verhandlungstisch** ([VERHANDLUNGSTISCH.md](VERHANDLUNGSTISCH.md)): Verträge aus Klauseln (54), Bewertung durch die Gegenseite mit Gründen, Gegenangebot, Veto bei Roter Linie, Jahresprüfung, Bruch mit Erinnerung, Vermittlung zwischen Dritten; 18 Länder. Länder machen von sich aus Vertragsvorschläge und erinnern an auslaufende Verträge.
+- **KI mit mehreren Anbietern** (Claude, Xiaomi MiMo, DeepSeek, OpenAI, Gemini, OpenRouter, Mistral, beliebiger OpenAI-kompatibler Dienst, lokaler Server): Der Schlüssel bleibt im Browser oder in `game/.env.local` (dann nie im Browser); der Entwicklungsserver leitet weiter (nur localhost, nur JSON, nur öffentliche https-Ziele). Das Modell schlägt höchstens drei geprüfte Aktionen aus dem festen Katalog vor (Maßnahme, Land, Fraktion, Figur, Programm, Haushaltsregler, Ereignis, Zeit, Vorhaben, Vertrag, Vermittlung); der Spieler bestätigt, der Kern führt aus. Vor bezahlten Läufen wird gefragt.
+- **Ereignisdichte-Bremse:** Ab sechs Ereignissen in zwölf Monaten (ohne feste Termine) werden neue seltener; das Spiel soll fordern, nicht zuschütten.
+- **Balance** (klugerBot, 32 Partien): leicht 100 %, normal 75 %, hart 25 % Siege; die Grenzen der Schwierigkeitsgrade stehen in `sim/spiel.ts`.
+- **Arbeitsweise:** Größere Blöcke laufen parallel als getrennte Stränge mit festem Dateieigentum; Stand jedes Zwischenschritts liegt auf GitHub (Zweig `claude/weiter-b91y4u`), Commits nur auf ausdrücklichen Wunsch.
+
+Fortschreibung der Ansichten: [Block T2](#t2-aufbau-der-ansichten-30092026), Wirtschaft ([WIRTSCHAFTSAKTE.md](WIRTSCHAFTSAKTE.md)), Personen und Zusagen ([PERSONEN.md](PERSONEN.md)).

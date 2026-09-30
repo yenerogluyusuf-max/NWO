@@ -5,6 +5,7 @@ import { PROVINZEN } from "../../sim/regional";
 import { PARTY_COLORS } from "../Parliament";
 import { PROVINCE_FC, provinceCenters } from "./overlay";
 import { Icon } from "../icons";
+import { Flagge } from "../art/Flaggen";
 import "./karte.css";
 import type { Kartenebene } from "../ebenen";
 
@@ -35,6 +36,8 @@ export interface AtlasMapProps {
   landAuswahl?: string;
   /** Stätten, Wunder und Bauvorhaben mit Länge und Breite */
   orte?: KartenOrt[];
+  /** Flaggen der Gesprächspartner an einem Punkt im Land; Tippen ruft `onLand` mit der Kennung `iso` */
+  laenderPins?: { id: string; iso: string; lon: number; lat: number; name: string; ton: "gut" | "mittel" | "schlecht" }[];
   onOrt?: (id: string) => void;
   /** Ereignis- und Krisenmarken an Provinzen */
   marken?: { id: string; plaka: number; art: "ereignis" | "frist" | "krise"; text: string }[];
@@ -85,6 +88,7 @@ export function AtlasMap({
   marken = [],
   onMarke,
   orte = [],
+  laenderPins = [],
   onOrt,
   onHover,
   labels = [],
@@ -260,7 +264,8 @@ export function AtlasMap({
       if (ort) {
         el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
         const dmax = Number(el.dataset.dmax ?? 99);
-        el.style.opacity = p.sichtbar && view.current.d <= dmax && p.x > 0 && p.x < rect.width && p.y > 60 && p.y < rect.height ? "1" : "0";
+        const dmin = Number(el.dataset.dmin ?? 0);
+        el.style.opacity = p.sichtbar && view.current.d <= dmax && view.current.d >= dmin && p.x > 0 && p.x < rect.width && p.y > 60 && p.y < rect.height ? "1" : "0";
         el.style.pointerEvents = el.style.opacity === "1" ? "auto" : "none";
         if (el.style.opacity === "1") belegt.push({ x: p.x - 15, y: p.y - 15, w: 30, h: 30 });
         continue;
@@ -421,6 +426,25 @@ export function AtlasMap({
             }}
           >
             <Icon name={o.art === "erbe" ? "kuppel" : o.art === "wunder" ? "tempel" : "kran"} size={o.art === "erbe" ? 12 : 15} />
+          </button>
+        ))}
+        {laenderPins.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            data-lon={p.lon}
+            data-lat={p.lat}
+            data-dmin="5.5"
+            className={`ort ort-land ton-${p.ton}`}
+            title={p.name}
+            aria-label={`${p.name}: Länderkarte öffnen`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onLand?.(p.iso, { x: e.clientX, y: e.clientY });
+            }}
+            onPointerUp={(e) => e.stopPropagation()}
+          >
+            <Flagge id={p.id} breite={28} rund />
           </button>
         ))}
         {marken.map((m, i) => (

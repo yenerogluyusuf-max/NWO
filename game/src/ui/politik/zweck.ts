@@ -5,7 +5,7 @@ export const AKTEN_ZWECK: Record<string, string> = {
   Schreibtisch: "Das Tagesgeschäft: was heute fällig ist, wovor das Spiel warnt und was Ihr Stab rät.",
   Gespräch: "Freie Sprache: Sie fragen, das Spiel erklärt und schlägt Schritte vor, die Sie bestätigen.",
   Politik: "Was Sie im Land ändern: Maßnahmen nach Bereichen, Vorhaben mit Zielen und der Stand der Umsetzung.",
-  Wähler: "Wer Sie trägt und wer nicht: acht Gruppen mit Stimmung, Gründen und Forderungen.",
+  Wähler: "Wer Sie trägt und wer nicht: elf Gruppen mit Stimmung, Gründen und Forderungen.",
   Welt: "Die übrigen Länder: Beziehung, Anliegen und Verhandlungen.",
   Reich: "Was Sie bauen und im Bestand halten: Großprojekte, Wunder, Erbe, Justiz, Streitkräfte und Verwaltung.",
   Parlament: "Wo Gesetze Mehrheiten brauchen: Fraktionen, Gespräche, Bündnisse und Abstimmungen.",

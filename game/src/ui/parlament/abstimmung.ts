@@ -92,3 +92,15 @@ export function amAbstimmungBeobachten(h: Hoerer): () => void {
 export function spieleAbstimmungAb(ab: Abstimmung, sach: string[] = []): void {
   for (const h of hoerer) h(ab, sach);
 }
+
+// Aus der Liste „Zur Abstimmung“ springt der Spieler zur Verteilung eines Gesetzes im Halbrund.
+const ansichtHoerer = new Set<(gesetzId: string) => void>();
+
+export function amAnsichtBeobachten(h: (gesetzId: string) => void): () => void {
+  ansichtHoerer.add(h);
+  return () => ansichtHoerer.delete(h);
+}
+
+export function zeigeImHalbrund(gesetzId: string): void {
+  for (const h of ansichtHoerer) h(gesetzId);
+}

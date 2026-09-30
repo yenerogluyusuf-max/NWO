@@ -21,7 +21,11 @@ Der Titel des Spiels ist **Staatsräson** (englisch *Raison d'État*), vorbehalt
 | [Länderpaket Türkei](LAENDERPAKET_TUERKEI.md) | Spielerrolle, Rechercheplan mit Primärquellen, echte Personen, heikle Themen |
 | [Türkei: Institutionen](tuerkei/INSTITUTIONEN.md) | Kernregeln aus Verfassung, Zentralbank- und Wahlgesetz mit Belegen |
 | [Türkei: Startdaten](tuerkei/STARTDATEN.md) | Stichtag und Kernwerte zu Wirtschaft, Politik und Bevölkerung |
-| [Politiknetz](POLITIKNETZ.md) | 199 Knoten und 643 Verbindungen, wie das Netz rechnet, Stand der Kalibrierung |
+| [Politiknetz](POLITIKNETZ.md) | 236 Knoten und 871 Verbindungen, wie das Netz rechnet, Stand der Kalibrierung |
+| [Fachbereiche](FACHBEREICHE.md) und [Recherche dazu](RECHERCHE_KONKURRENZ_FACHBEREICHE.md) | Das Reich: Wunder, Großprojekte, Recht, Militär, Infrastruktur, Kultur; Vergleich mit Civilization, Victoria 3, HOI4, Suzerain |
+| [Verhandlungstisch](VERHANDLUNGSTISCH.md) | Verträge mit anderen Ländern aus Klauseln, Bewertung, Prüfung, Vermittlung |
+| [Wirtschaftsakte](WIRTSCHAFTSAKTE.md) | Kennzahlen mit Verlauf, Zentralbank, Haushaltsplan 2026 mit Reglern |
+| [Personen und Zusagen](PERSONEN.md) | Profile, Gespräche, Entlassung und Nachfolge, Zusagen |
 | [Technik](TECHNIK.md) | Technikwahl, Ergebnisse der Versuche, Stand des Prototyps |
 | [Analyse Spielbarkeit](ANALYSE_SPIELBARKEIT_2026-09-29.md) und [Nachtarbeit](NACHTARBEIT_2026-09-29.md) | Warum das Spiel „unspielbar“ war, was daran geändert wurde, Vergleich mit Democracy 4, HOI4 und Civilization, Befunde aus echten Spielsitzungen |
 | [Referenzanalyse](REFERENZANALYSE.md) | Vorbilder (Civilization, Hearts of Iron, Suzerain, Democracy 4) und abgeleitete Entscheidungen |

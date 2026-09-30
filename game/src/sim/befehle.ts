@@ -6,7 +6,8 @@
 // Grundsätze: Wörter werden als Ganzes gelesen (nie als Teilstring); was nicht sicher verstanden wird, führt zu
 // einer Rückfrage und nie zu einer ungewollten Ausführung; was es im Spiel noch nicht gibt, wird ehrlich gesagt.
 
-import { advance, criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./world";
+import { advance, criticizeCentralBank, replaceGovernor } from "./world";
+import { einfacherSchritt, setzePosten } from "./haushalt";
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES } from "./netz";
 import { formatDateDe } from "./dates";
@@ -696,10 +697,17 @@ function nichtVorhanden(t: string, tk: string[], w: World): ChatAntwort | null {
       why: "Ehrlich statt vorgetäuscht: Ich führe nur aus, was der Kern rechnen kann.",
     };
   }
-  if (hatPrefix(tk, "diplomat", "botschaft", "sanktion", "vertragsklausel", "mediation", "vermittl") || hat(tk, "nato")) {
+  if (hatPrefix(tk, "vertragsklausel", "mediation", "vermittl", "abkommen", "vertrag")) {
+    return {
+      ok: true,
+      text: "Verträge mit Klauseln stehen am Verhandlungstisch: In der Welt ein Land wählen (oder es auf der Karte antippen) und „Verhandeln“ öffnen; Sie stellen zusammen, was die Türkei bietet und verlangt, und sehen sofort, was das Land davon hält. Vermittlung zwischen Ukraine und Russland oder Armenien und Aserbaidschan finden Sie in der Welt unter „Zwischen Dritten“.",
+      why: "Ein Vertrag wirkt jeden Monat, wird jedes Jahr geprüft und kann gebrochen werden.",
+    };
+  }
+  if (hatPrefix(tk, "diplomat", "botschaft", "sanktion") || hat(tk, "nato")) {
     return {
       ok: false,
-      text: "Gipfeltreffen, Handelsabkommen, Rüstungsgeschäfte, Druck, Entschärfung und Wirtschaftshilfe gibt es mit zwölf Ländern („Gipfeltreffen mit der EU“). Was noch fehlt: Verträge mit einzelnen Klauseln, Sanktionen, Bündnisfragen wie die NATO (sie kommt als Ereignis) und Vermittlung zwischen Dritten.",
+      text: "Gipfeltreffen, Handelsabkommen, Rüstungsgeschäfte, Druck, Entschärfung und Wirtschaftshilfe gibt es mit 18 Ländern („Gipfeltreffen mit der EU“), Verträge am Verhandlungstisch in der Welt. Was noch fehlt: Sanktionen und Bündnisfragen wie die NATO (sie kommt als Ereignis).",
       why: "Diplomatie ist in Stufen gebaut (Außenpolitik, Abschnitte 4 und 6); die Länder sehen Sie im Fenster „Die Welt“.",
     };
   }
@@ -843,14 +851,16 @@ export function befehl(text: string, w: World): ChatAntwort {
 
   // Haushalt: gesamtwirtschaftlich, nicht als einzelne Maßnahme
   if (/(mehr ausgeben|ausgaben erhoeh|konjunkturpaket|konjunkturprogramm|stimulus|investitionsprogramm|ausgabenprogramm)/.test(t)) {
-    setFiscalImpulse(w, w.economy.fiscalImpulse + 2);
-    const l = w.log[w.log.length - 1];
-    return { ok: true, text: l?.text ?? "Die Ausgaben werden erhöht.", ...(l?.why ? { why: l.why } : {}) };
+    const schritt = einfacherSchritt(w, "mehr");
+    if (!schritt) return { ok: false, text: "Alle Ausgabenposten stehen schon auf der höchsten Stufe." };
+    const r = setzePosten(w, schritt.id, schritt.stufe);
+    return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
   }
   if (/(sparen|sparpaket|ausgaben senk|ausgaben kuerz|haushalt konsolid|einsparen)/.test(t) && !hatPrefix(tk, "steuer")) {
-    setFiscalImpulse(w, w.economy.fiscalImpulse - 1);
-    const l = w.log[w.log.length - 1];
-    return { ok: true, text: l?.text ?? "Die Ausgaben werden gesenkt.", ...(l?.why ? { why: l.why } : {}) };
+    const schritt = einfacherSchritt(w, "sparen");
+    if (!schritt) return { ok: false, text: "Alle Ausgabenposten stehen schon auf der niedrigsten Stufe." };
+    const r = setzePosten(w, schritt.id, schritt.stufe);
+    return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
   }
 
   const massnahme = massnahmeBefehl(t, tk, w);

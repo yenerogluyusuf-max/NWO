@@ -11,3 +11,10 @@
 .atlas-labels.far .city-hauptstadt .karte-stadtpunkt { width: 13px; height: 13px; }
 .atlas-labels.far .city .city-banner::before { display: none; }
 .atlas.karte-zeiger { cursor: pointer; }
+
+/* Flaggen der Gesprächspartner: runde Marke mit Farbring nach Haltung (grün gut, gelb nüchtern, rot schlecht) */
+.atlas-labels .ort-land { width: 34px; height: 34px; background: #1c140d; border: 2px solid var(--ring, #c9a257); overflow: hidden; }
+.atlas-labels .ort-land .flagge { width: 30px; height: 30px; }
+.atlas-labels .ort-land.ton-gut { --ring: #3c8a63; }
+.atlas-labels .ort-land.ton-mittel { --ring: #c9a257; }
+.atlas-labels .ort-land.ton-schlecht { --ring: #a83a32; }

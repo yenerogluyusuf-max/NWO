@@ -388,3 +388,26 @@ describe("Reich und Verträge im Gespräch", () => {
     expect(vm.hinweis).toMatch(/Aussicht/);
   });
 });
+
+describe("Haushaltsregler im Gespräch", () => {
+  test("Ein Posten wird geprüft und über den Nachtragshaushalt gesetzt; einfache Handlungen wählen einen Posten selbst", () => {
+    const w = welt();
+    const a = leseAntwort('{"antwort":"x","aktionen":[{"art":"haushalt","handlung":"posten","posten":"soziales","stufe":1,"grund":"Rentner stützen"}]}').aktionen[0]!;
+    expect(a).toMatchObject({ art: "haushalt", handlung: "posten", posten: "soziales", stufe: 1 });
+    const v = vorschau(w, a);
+    expect(v.problem).toBeUndefined();
+    expect(v.hinweis).toMatch(/Defizit/);
+    const e = fuehreAus(w, a);
+    expect(e.ok, e.text).toBe(true);
+    expect(zustandsText(w)).toMatch(/Haushaltsregler[^\n]*soziales \+1/);
+    // dieselbe Stufe noch einmal: keine Änderung
+    expect(vorschau(w, a).problem).toMatch(/schon auf dieser Stufe/);
+    // erfundene Posten und fehlende Stufe
+    expect(vorschau(w, { art: "haushalt", handlung: "posten", posten: "atomkraft", stufe: 1 }).problem).toMatch(/kein Haushaltsposten/);
+    expect(vorschau(w, { art: "haushalt", handlung: "posten", posten: "soziales" }).problem).toMatch(/Stufe/);
+    const mehr = vorschau(w, { art: "haushalt", handlung: "mehr_ausgeben" });
+    expect(mehr.problem).toBeUndefined();
+    expect(mehr.titel).toMatch(/Stufe/);
+    expect(systemText()).toContain("HAUSHALTSPOSTEN");
+  });
+});

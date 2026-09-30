@@ -199,7 +199,7 @@ describe("Verhandeln zahlt sich aus (Härtefall: das Lager zerfällt)", () => {
 
 describe("Schwierigkeitsgrade", () => {
   // SPIELBARKEIT_N=40 misst mit mehr Partien, um Rauschen von echten Verschiebungen zu trennen
-  const seeds = Array.from({ length: Number(process.env.SPIELBARKEIT_N ?? 8) }, (_, i) => i + 1);
+  const seeds = Array.from({ length: Number(process.env.SPIELBARKEIT_N ?? 16) }, (_, i) => i + 1);
   const gewonnen = (ls: Lauf[]) => ls.filter((l) => l.ende !== "abwahl" && l.ende !== "sturz").length;
   const leicht = seeds.map((s) => lauf("klug/leicht", klug, s, undefined, false, "entspannt"));
   const normal = seeds.map((s) => lauf("klug/normal", klug, s, undefined, false, "normal"));

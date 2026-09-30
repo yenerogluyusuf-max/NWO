@@ -15,6 +15,13 @@ export interface LandAuswahl {
   y: number;
 }
 
+/** Länder ohne eigenen Gesprächspartner, bei denen ein Satz mehr sagt als der allgemeine Hinweis. */
+const SONDERTEXTE: Record<string, string> = {
+  CYN: "Die Türkische Republik Nordzypern wird nur von der Türkei anerkannt. Die Zypernfrage verhandelt Ankara mit der Republik Zypern und, über die EU, mit Brüssel.",
+  PSX: "Die Palästinensischen Gebiete sind kein eigener Verhandlungspartner im Spiel; Ankaras Haltung zu Gaza läuft über Israel, Ägypten und die Golfstaaten.",
+  KOS: "Kosovo erkennt die Türkei an; im Spiel gibt es dazu keinen eigenen Verhandlungstisch.",
+};
+
 export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: LandAuswahl; world: World; onClose: () => void; onOeffne: (landId: string, tab: WeltTab) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -29,6 +36,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
   const links = Math.max(8, Math.min(auswahl.x + 14, window.innerWidth - breite - 8));
   const oben = Math.max(56, Math.min(auswahl.y - 24, window.innerHeight - 330));
   const name = LAENDERNAMEN[auswahl.iso] ?? auswahl.iso;
+  const sondertext = SONDERTEXTE[auswahl.iso];
 
   if (!landId || !world.spiel) {
     return (
@@ -43,7 +51,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
             <span>Kein eigener Gesprächspartner</span>
           </div>
         </div>
-        <p className="we-pop-text">{name} spielt in dieser Amtszeit keine eigene Rolle am Verhandlungstisch; seine Lage wirkt über Handel und Region auf die Nachbarn.</p>
+        <p className="we-pop-text">{sondertext ?? `${name} spielt in dieser Amtszeit keine eigene Rolle am Verhandlungstisch; seine Lage wirkt über Handel und Region auf die Nachbarn.`}</p>
       </div>
     );
   }

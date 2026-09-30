@@ -1,11 +1,11 @@
 // Kopf des Parlament-Fensters: Halbrund mit Mehrheitslinie, Fraktionsliste, erwartetes Abstimmungsverhalten je Gesetz und die letzten Abstimmungen.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { World } from "../../sim/types";
 import { REGELN, stimmenSicht } from "../../sim/handeln";
 import { formatDateDe } from "../../sim/dates";
 import { parlamentsLage, ROLLEN_WORT } from "./lage";
-import { letzteAbstimmungen, spieleAbstimmungAb } from "./abstimmung";
+import { amAnsichtBeobachten, letzteAbstimmungen, spieleAbstimmungAb } from "./abstimmung";
 import { FARBEN_PAPIER, Sitzplan, zustandFarbe } from "./Halbrund";
 import { verteileErwartung, vorgabeFuer, zaehleZustaende, zustandJeSitz, ZUSTAENDE, type Zustand } from "./stimmen";
 import "./parlament.css";
@@ -25,6 +25,15 @@ export function ParlamentKopf({ world }: { world: World }) {
   const lage = parlamentsLage(world);
   const [ansicht, setAnsicht] = useState<string>("sitze");
   const [hervor, setHervor] = useState<string | null>(null);
+  const kopf = useRef<HTMLElement>(null);
+  useEffect(
+    () =>
+      amAnsichtBeobachten((id) => {
+        setAnsicht(id);
+        kopf.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }),
+    [],
+  );
   const gesetze = world.spiel?.gesetze ?? [];
   // Ein Gesetz, über das schon abgestimmt wurde, fällt zurück auf die Sitzverteilung
   const g = gesetze.find((x) => x.id === ansicht) ?? null;
@@ -41,10 +50,13 @@ export function ParlamentKopf({ world }: { world: World }) {
   const ja = g && berechnet ? berechnet.vorgabe.erwartet + g.absprachen : (berechnet?.vorgabe.erwartet ?? sicht.erwartet);
   const fehlt = REGELN.mehrheit - (lage.lager + lage.duldung);
   const letzte = letzteAbstimmungen(world, 5);
+  const zusatz = g?.absprachen ?? 0;
+  const spanneVon = (berechnet?.vorgabe.niedrig ?? sicht.low) + zusatz;
+  const spanneBis = (berechnet?.vorgabe.hoch ?? sicht.high) + zusatz;
   const jaSumme = berechnet ? berechnet.zahlen.fest + berechnet.zahlen.zusage + berechnet.zahlen.wackelig : 0;
 
   return (
-    <section className="paper par-kopf">
+    <section ref={kopf} className="paper par-kopf">
       <h3>Das Parlament</h3>
       <p className="subtitle">
         {zahl(lage.gesamt)} Sitze. Gesetze brauchen {REGELN.mehrheit} Stimmen, Verfassungsänderungen 360 mit Volksabstimmung oder 400 ohne.
@@ -81,7 +93,7 @@ export function ParlamentKopf({ world }: { world: World }) {
               <strong className={ja >= REGELN.mehrheit ? "gut" : "schlecht"}>{zahl(ja)}</strong>
               <span>
                 Ja erwartet
-                <em>Spanne {sicht.low}–{sicht.high}</em>
+                <em>Spanne {spanneVon}–{spanneBis}</em>
               </span>
             </div>
           ) : (

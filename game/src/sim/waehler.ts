@@ -1,5 +1,5 @@
 // Die Wählerkoalition: Wer trägt den Präsidenten, wer ist verärgert, warum, und was wollen sie? Alles aus dem Politiknetz gerechnet:
-// Laune und Trend der acht Gruppen, die Gründe aus ihren Verbindungen, ihre Forderungen aus den stärksten Hebeln.
+// Laune und Trend der elf Gruppen, die Gründe aus ihren Verbindungen, ihre Forderungen aus den stärksten Hebeln.
 
 import { NET } from "./modell";
 import { PROVINCES, nationalAverage, startAverage } from "./netz";
@@ -155,7 +155,7 @@ export function zustimmungsBilanz(world: World): { jetzt: number; tendenz: numbe
   const probleme0 = 4 * problemLastStart(world);
   const posten: Bilanzposten[] = [
     { name: "Vertrauen in die Regierung", delta: 0.45 * (t.vertrauen - vertrauen0), text: "Ob die Menschen der Regierung zutrauen, ihr Leben zu verbessern." },
-    { name: "Stimmung der Wählergruppen", delta: 0.25 * (t.gruppen - gruppen0), text: "Der gewichtete Durchschnitt der acht Gruppen." },
+    { name: "Stimmung der Wählergruppen", delta: 0.25 * (t.gruppen - gruppen0), text: "Der gewichtete Durchschnitt aller Gruppen." },
     { name: "Wirtschaftslage", delta: 0.3 * (t.wirtschaft - 50), text: "Inflation, Arbeitslosigkeit und Wachstum gegenüber dem Amtsantritt." },
     { name: "Akute Probleme", delta: -(t.probleme - probleme0), text: "Je mehr Menschen in Provinzen mit akutem Problem leben, desto mehr kostet es." },
     { name: "Regierungsmüdigkeit", delta: -t.muedigkeit, text: "Jeden Monat im Amt verliert eine Regierung etwas an Glanz." },

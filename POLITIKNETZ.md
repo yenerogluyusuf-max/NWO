@@ -1,18 +1,18 @@
 # Politiknetz
 
-Stand: 28. September 2026. Umsetzung der Entscheidung „Eingabe wie Democracy 4, realistisch und regional“ ([Spieldesign](SPIELDESIGN.md), Abschnitt 5). Der Katalog steht in [`game/src/data/politiknetz.ts`](game/src/data/politiknetz.ts), der Rechenkern in [`game/src/sim/netz.ts`](game/src/sim/netz.ts).
+Stand: 30. September 2026 (Zahlen der Tabelle unten aktualisiert). Umsetzung der Entscheidung „Eingabe wie Democracy 4, realistisch und regional“ ([Spieldesign](SPIELDESIGN.md), Abschnitt 5). Der Katalog steht in [`game/src/data/politiknetz.ts`](game/src/data/politiknetz.ts), der Rechenkern in [`game/src/sim/netz.ts`](game/src/sim/netz.ts).
 
 ## Umfang
 
 | Art | Anzahl | Beispiel |
 |---|---|---|
-| Maßnahmen | 90 | Mindestlohn, Mehrwertsteuer, Wasserleitungen, Friedensprozess, Internetsperren |
-| Größen | 79 | Gefühlte Teuerung, Wasserversorgung, Abwanderung von Fachkräften, Pressefreiheit |
+| Maßnahmen | 103 | Mindestlohn, Mehrwertsteuer, Wasserleitungen, Friedensprozess, Internetsperren |
+| Größen | 107 | Gefühlte Teuerung, Wasserversorgung, Abwanderung von Fachkräften, Pressefreiheit |
 | Eingänge aus dem Wirtschaftsmodell | 7 | Inflation, Arbeitslosigkeit, Wachstum, Leitzins, Abwertung, Defizit, Schulden |
 | Probleme | 15 | Wassermangel, Wohnungsnot, Ärztemangel, Abwanderung von Fachkräften, Korruptionsskandale |
-| Wählergruppen | 8 | Rentner, Beschäftigte, Unternehmer, Landwirte, Junge, Staatsbedienstete, Religiös-Konservative, Säkulare Städter |
-| **Knoten gesamt** | **199** | in 12 Themenfeldern plus Wählergruppen; je Feld eine Modernisierungsleiter (Mechanisierung, Agrarforschung, Industrie, Verwaltung, Fachkräfte, Bildungstechnik, Medizintechnik, Smarte Infrastruktur, Speicher/Smart Grid, Industrieller Wohnungsbau, Sicherheitsverwaltung, Digitale Öffentlichkeit, Handelssysteme) nach Victoria 3/Anno |
-| **Verbindungen** | **643** | jede mit Stärke, Verzögerung und einem Satz Begründung (Stand 30. September: 412 plus 231 politische Folgen, siehe unten) |
+| Wählergruppen | 11 | Rentner, Beschäftigte, Unternehmer, Landwirte, Junge, Staatsbedienstete, Religiös-Konservative, Säkulare Städter, Minderheiten, Nationalisten und Sicherheitsorientierte, Menschen in Armut |
+| **Knoten gesamt** | **236** | in 12 Themenfeldern plus Wählergruppen; je Feld eine Modernisierungsleiter (Mechanisierung, Agrarforschung, Industrie, Verwaltung, Fachkräfte, Bildungstechnik, Medizintechnik, Smarte Infrastruktur, Speicher/Smart Grid, Industrieller Wohnungsbau, Sicherheitsverwaltung, Digitale Öffentlichkeit, Handelssysteme) nach Victoria 3/Anno |
+| **Verbindungen** | **871** | jede mit Stärke, Verzögerung und einem Satz Begründung (Stand 30. September: 412 plus 231 politische Folgen plus Kanten der Fachbereiche, Zinspolitik und neuer Gruppen) |
 
 ## Wie es rechnet
 

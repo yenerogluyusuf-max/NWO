@@ -660,14 +660,14 @@ export class VectorLayer {
       ctx.clip("evenodd");
       ctx.beginPath();
       this.bogenPfad(karte, [0, 4], b);
-      ctx.strokeStyle = "rgba(162, 54, 38, 0.7)";
-      ctx.lineWidth = Math.min(9, Math.max(3.5, 4.4 * z));
+      ctx.strokeStyle = "rgba(162, 54, 38, 0.62)";
+      ctx.lineWidth = Math.min(7.5, Math.max(3.5, 4.2 * z));
       ctx.stroke();
       ctx.restore();
       ctx.beginPath();
       this.bogenPfad(karte, [0, 4], b);
       ctx.strokeStyle = "rgba(24, 12, 8, 0.95)";
-      ctx.lineWidth = 1.4 * z;
+      ctx.lineWidth = Math.min(2.1, 1.25 + 0.34 * z);
       ctx.stroke();
     }
 

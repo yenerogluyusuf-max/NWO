@@ -1,3 +1,5 @@
+import { stufeVon } from "../src/sim/haushalt";
+import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { describe, expect, test } from "vitest";
 import { befehl, willkommensText } from "../src/sim/befehle";
 import { createWorld } from "../src/sim/world";
@@ -49,14 +51,18 @@ describe("Gespraech: freie Sprache wird geprueft ausgefuehrt", () => {
     expect(w.governor.stance).toBe("gefuegig");
   });
 
-  test("Haushalt: ausgeben und sparen", () => {
+  test("Haushalt: ausgeben und sparen laufen über die Haushaltsregler", () => {
     const w = welt();
+    startAfterElection(w, schnellProfil());
+    const kapital = w.spiel!.kapital;
     const r1 = befehl("Ich will mehr ausgeben, ein Konjunkturpaket", w);
-    expect(r1.ok).toBe(true);
-    expect(w.economy.fiscalImpulse).toBeGreaterThan(0);
+    expect(r1.ok, r1.text).toBe(true);
+    expect(r1.text).toMatch(/Nachtragshaushalt/);
+    expect(stufeVon(w, "investitionen")).toBe(1);
+    expect(w.spiel!.kapital).toBeLessThan(kapital);
     const r2 = befehl("Wir muessen sparen", w);
-    expect(r2.ok).toBe(true);
-    expect(w.economy.fiscalImpulse).toBeLessThan(2);
+    expect(r2.ok, r2.text).toBe(true);
+    expect(stufeVon(w, "personal")).toBe(-1);
   });
 
   test("Zeit: 10 Tage weiter veraendert das Datum", () => {

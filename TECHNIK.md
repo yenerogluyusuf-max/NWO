@@ -83,3 +83,11 @@ dauert auf der CPU unter einer Minute.
 ## Stand 30.09.2026 (Nachtarbeit)
 
 Simulationskern (`game/src/sim`): Spielschleife mit Kapital, Gesetz und Erlass, Fraktionen und Verhandlungen, Ereignismotor (44 Vorlagen mit Akteuren und Wirkungsvorschau), Figuren, Wählerkoalition, Regierungsprogramme (8 mit 37 Schritten), Wirkungsberichte, zwölf bis fünfzehn Länder als Akteure (`laender.ts`), Problemlöser (`vorschlaege.ts`), Bilanz. Oberfläche (`game/src/ui`): sieben Menüpunkte mit Reitern, Karte mit Ebenen, Ereignismarken und Beziehungsebene, Fenster für Wähler, Welt, Programme, Parlament. Ein Browser-Skript, das das Spiel wie ein Nutzer spielt, und eine Überschneidungsprüfung liegen im Scratchpad der Sitzung (Verfahren: [Nachtarbeit](NACHTARBEIT_2026-09-29.md)). **Kein Sprachmodell eingebaut** (Gespräch und Mentorin regelbasiert).
+
+
+## Stand 30.09.2026 (nachmittags)
+
+- **Sprachmodell eingebaut** (`game/src/ki/`): neun Anbieter (`anbieterliste.ts`), Wege „server“ (Schlüssel in `game/.env.local` als ANTHROPIC_API_KEY, MIMO_API_KEY, DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, MISTRAL_API_KEY oder KI_EIGEN_API_KEY; die Weiterleitung `/api/ki/relay` steckt in `vite.config.ts`), „relay“ (eigener Schlüssel, Weg über den Entwicklungsserver, umgeht CORS) und „direkt“ (Claude und lokaler Server). Das Modell antwortet mit JSON und schlägt geprüfte Aktionen vor; ohne Schlüssel antwortet das Regelwerk. Getestet ohne Netz mit Ersatz-Anbieter (`test/ki.test.ts`).
+- **Simulation:** Reich (`reich.ts`), Verhandlungstisch (`abkommen.ts`), Personen (`personen*.ts`, `gespraeche.ts`), Wirtschaft (`wirtschaft*.ts`, `zentralbank.ts`, `haushalt.ts`), Wähler (`waehler-detail.ts`), 67 Ereignisvorlagen. 444 Tests.
+- **Karte 2:** Küste als Distanzfeld im Shader, Länder und Bezirke aus einem gemeinsamen Bogennetz, Beschriftung mit Kollisionsauflösung (`ui/atlas/`, Pipeline `tools/geodaten/karte2/`).
+- **Oberfläche:** Halbrund-Parlament mit Abstimmungs-Animation, Wunder-Animationen, Welt mit Flaggen (SVG) und Verhandlungstisch, Politik nach Bereichen, Schreibtisch als Tagesbriefing, Wirtschaftsakte mit anklickbaren Kennzahlen.

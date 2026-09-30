@@ -65,11 +65,13 @@ describe("Partie: Aylin Demir übernimmt die Türkei", () => {
     console.log(`           (${r.why ?? ""})`);
     expect(r.ok).toBe(true);
 
-    // Haushaltsimpuls
+    // Haushaltsimpuls: Der Plan 2026 konsolidiert (negativer Impuls); ein Regler mehr hebt ihn an
+    const impulsVorher = w.economy.fiscalImpulse;
     r = befehl("Ich will mehr ausgeben, ein Investitionsprogramm", w);
     console.log(`  Sie: „Ich will mehr ausgeben"`);
     console.log(`  Kanzlei: ${r.text}`);
-    expect(w.economy.fiscalImpulse).toBeGreaterThan(0);
+    expect(r.ok).toBe(true);
+    expect(w.economy.fiscalImpulse).toBeGreaterThan(impulsVorher);
 
     // Die Zentralbank wehrt sich nicht — sie wird kritisiert
     r = befehl("Kritisiere die Zentralbank oeffentlich", w);

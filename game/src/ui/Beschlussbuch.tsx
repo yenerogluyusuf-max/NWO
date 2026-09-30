@@ -11,6 +11,7 @@ import { Rng } from "../sim/rng";
 import { addDays } from "../sim/dates";
 import { PARTY_COLORS } from "./Parliament";
 import { ParlamentKopf } from "./parlament/ParlamentKopf";
+import { zeigeImHalbrund } from "./parlament/abstimmung";
 import { PARTEI_NAME } from "../sim/fraktionen";
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
@@ -154,6 +155,9 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
                     <span>
                       erwartet <strong>{ja}</strong> Ja{g.absprachen > 0 ? ` (davon ${g.absprachen} durch Absprachen)` : ""} · nötig {REGELN.mehrheit}
                     </span>
+                    <button className="link" onClick={() => zeigeImHalbrund(g.id)} title="Die erwartete Abstimmung im Halbrund oben zeigen">
+                      Im Halbrund zeigen
+                    </button>
                     <span className={`stimmen-urteil urteil-${gs.urteil}`}>
                       {gs.urteil === "sicher" ? "Mehrheit steht" : gs.urteil === "knapp" ? `Knapp: es fehlen ${gs.luecke} Stimmen` : `Aussichtslos: es fehlen ${gs.luecke} Stimmen`}
                     </span>

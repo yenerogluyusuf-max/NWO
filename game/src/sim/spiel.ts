@@ -35,7 +35,7 @@ import { wirke } from "./wirkung";
 export const SCHWIERIGKEITEN = {
   entspannt: { name: "Entspannt", text: "Mehr Kapital, weniger Müdigkeit, weniger Krisen. Zum Kennenlernen.", kapital: 1.25, muedigkeit: 0.75, ereignisse: 0.85, haerte: 0.9 },
   normal: { name: "Normal", text: "Das Spiel, wie es gemeint ist.", kapital: 1, muedigkeit: 1, ereignisse: 1, haerte: 1 },
-  hart: { name: "Hart", text: "Knappes Kapital, schnelle Müdigkeit, mehr und härtere Krisen. Fehler kosten die Wiederwahl.", kapital: 0.8, muedigkeit: 1.25, ereignisse: 1.3, haerte: 1.2 },
+  hart: { name: "Hart", text: "Knappes Kapital, schnelle Müdigkeit, mehr und härtere Krisen. Fehler kosten die Wiederwahl.", kapital: 0.8, muedigkeit: 1.22, ereignisse: 1.25, haerte: 1.2 },
 } as const;
 export type Schwierigkeit = keyof typeof SCHWIERIGKEITEN;
 

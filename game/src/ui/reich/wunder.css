@@ -95,7 +95,8 @@
   .wunder-bild *, .wunder-bild.animiert *, .wunder-a-bau .rr-balken i::after, .wunder-fenster .wunder-wirkung li { animation: none !important; }
   .wunder-bild.animiert .wunder-a-geruest, .wunder-bild.animiert .wunder-a-kran, .wunder-bild .wunder-a-voegel, .wunder-bild .wunder-a-funken, .wunder-bild .wunder-a-sterne, .wunder-a-hinweis { display: none; }
   .wunder-bild.animiert .wunder-a-strahlen { opacity: 0.6; }
-  .wunder-fenster .wunder-wirkung li { opacity: 1; }
+  .wunder-fenster .wunder-wirkung li, .wunder-fenster .wunder-gruppe-kopf { opacity: 1; transform: none; }
+  .wunder-fenster .wunder-gruppe-kopf { animation: none !important; }
 }
 
 /* Laufende Bauten mit kleiner Baustelle: Bild links, Text und Knöpfe daneben */
@@ -110,3 +111,6 @@
   .rr-bauliste li.wunder-a-mitbild .wunder-a-mini { width: 88px; }
   .rr-bauliste li.wunder-a-mitbild .rr-bau-knoepfe { grid-column: 1 / -1; grid-row: auto; }
 }
+
+/* Niedrige Bildschirme: Das Bild gibt Höhe an den Text ab */
+.wunder-fenster .wunder-bildrahmen { max-height: 36vh; }

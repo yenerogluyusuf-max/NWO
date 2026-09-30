@@ -273,7 +273,7 @@ export const BEZIEHUNG_FARBEN = { gut: "#3c8a63", nuechtern: "#b8a94a", kuehl: "
 
 /** Welches Kartenland (ISO) zu welchem Land des Spiels gehört; Länder der EU teilen sich die Beziehung zur EU. */
 export const ISO_ZU_LAND: Record<string, string> = {
-  SYR: "SYR", IRQ: "IRQ", IRN: "IRN", GRC: "GRC", AZE: "AZE", ARM: "ARM", SAU: "SAU", ISR: "ISR", RUS: "RUS", UKR: "UKR", GEO: "GEO", EGY: "EGY",
+  EU: "EU", SYR: "SYR", IRQ: "IRQ", IRN: "IRN", GRC: "GRC", AZE: "AZE", ARM: "ARM", SAU: "SAU", ISR: "ISR", RUS: "RUS", UKR: "UKR", GEO: "GEO", EGY: "EGY",
   LBY: "LBY", KAZ: "KAZ", CYP: "CYP",
   // Mitglieder der EU teilen sich die Beziehung zur Union (Griechenland und Zypern verhandeln zusätzlich für sich)
   AUT: "EU", BEL: "EU", BGR: "EU", HRV: "EU", CZE: "EU", DNK: "EU", EST: "EU", FIN: "EU", FRA: "EU", DEU: "EU", HUN: "EU", IRL: "EU", ITA: "EU",
@@ -282,11 +282,11 @@ export const ISO_ZU_LAND: Record<string, string> = {
 
 /** Deutsche Namen der Länder auf der Karte, auch derer ohne eigenen Gesprächspartner im Spiel. */
 export const LAENDERNAMEN: Record<string, string> = {
-  TUR: "Türkei", GRC: "Griechenland", BGR: "Bulgarien", CYP: "Zypern", GEO: "Georgien", ARM: "Armenien", AZE: "Aserbaidschan", IRN: "Iran", IRQ: "Irak", SYR: "Syrien",
+  EU: "Europäische Union", TUR: "Türkei", GRC: "Griechenland", BGR: "Bulgarien", CYP: "Zypern", GEO: "Georgien", ARM: "Armenien", AZE: "Aserbaidschan", IRN: "Iran", IRQ: "Irak", SYR: "Syrien",
   LBN: "Libanon", ISR: "Israel", JOR: "Jordanien", EGY: "Ägypten", LBY: "Libyen", SAU: "Saudi-Arabien", RUS: "Russland", UKR: "Ukraine", ROU: "Rumänien", MDA: "Moldau",
   HUN: "Ungarn", SRB: "Serbien", HRV: "Kroatien", BIH: "Bosnien und Herzegowina", MNE: "Montenegro", ALB: "Albanien", MKD: "Nordmazedonien", XKX: "Kosovo",
   SVK: "Slowakei", SVN: "Slowenien", ITA: "Italien", AUT: "Österreich", CZE: "Tschechien", POL: "Polen", DEU: "Deutschland", FRA: "Frankreich", ESP: "Spanien", MLT: "Malta",
-  TUN: "Tunesien", DZA: "Algerien", KAZ: "Kasachstan", TKM: "Turkmenistan", UZB: "Usbekistan", BLR: "Belarus", KWT: "Kuwait", QAT: "Katar", ARE: "Vereinigte Arabische Emirate", SDN: "Sudan",
+  KOS: "Kosovo", PSX: "Palästinensische Gebiete", CYN: "Nordzypern", TUN: "Tunesien", DZA: "Algerien", KAZ: "Kasachstan", TKM: "Turkmenistan", UZB: "Usbekistan", BLR: "Belarus", KWT: "Kuwait", QAT: "Katar", ARE: "Vereinigte Arabische Emirate", SDN: "Sudan",
 };
 
 export function laenderFarben(w: World): Record<string, string> {
@@ -299,3 +299,21 @@ export function laenderFarben(w: World): Record<string, string> {
   }
   return out;
 }
+
+/**
+ * Wo die Flagge eines Gesprächspartners auf der Karte steht: bei der Hauptstadt, wenn sie im Kartenausschnitt liegt, sonst an einem Punkt
+ * im Land oder an der Küste. Länder außerhalb des Ausschnitts (USA, Russland, China, Libyen, Kasachstan, Saudi-Arabien) haben keine Marke.
+ */
+export const LAND_PINS: { id: string; iso: string; lon: number; lat: number }[] = [
+  { id: "GRC", iso: "GRC", lon: 23.73, lat: 37.98 },
+  { id: "SYR", iso: "SYR", lon: 36.29, lat: 33.51 },
+  { id: "IRQ", iso: "IRQ", lon: 44.36, lat: 33.31 },
+  { id: "IRN", iso: "IRN", lon: 47.4, lat: 36.4 },
+  { id: "AZE", iso: "AZE", lon: 49.87, lat: 40.41 },
+  { id: "ARM", iso: "ARM", lon: 44.51, lat: 40.18 },
+  { id: "GEO", iso: "GEO", lon: 44.83, lat: 41.72 },
+  { id: "ISR", iso: "ISR", lon: 35.22, lat: 31.77 },
+  { id: "EGY", iso: "EGY", lon: 32.3, lat: 31.25 },
+  { id: "CYP", iso: "CYP", lon: 33.38, lat: 35.17 },
+  { id: "EU", iso: "EU", lon: 23.32, lat: 42.7 },
+];

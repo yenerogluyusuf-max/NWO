@@ -10,7 +10,8 @@ import { fraktionsUebersicht, verhandle, type Verhandlung } from "../sim/verhand
 import { entlasseFigur, sprichMitFigur } from "../sim/eingriffe";
 import { naechsterSchritt, starteSchritt } from "../sim/programme";
 import { antworten, entscheide } from "../sim/ereignisse";
-import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "../sim/world";
+import { criticizeCentralBank, replaceGovernor } from "../sim/world";
+import { POSTEN_NACH_ID, einfacherSchritt, postenVorschau, setzePosten } from "../sim/haushalt";
 import { Rng } from "../sim/rng";
 import type { World } from "../sim/types";
 import type { KiAktion, KiErgebnis, KiVorschau } from "./typen";
@@ -23,7 +24,7 @@ const MAX_AKTIONEN = 3;
 const LAND_HANDLUNGEN = new Set<string>(Object.keys(AKTIONEN));
 const FRAKTIONS_HANDLUNGEN = new Set<string>(["gespraech", "zugestaendnis", "duldung", "koalition", "abwerben"]);
 const FIGUR_AEMTER = new Set(["finanzen", "inneres", "aussen", "stab"]);
-const HAUSHALT_HANDLUNGEN = new Set(["mehr_ausgeben", "sparen", "zentralbank_kritisieren", "zentralbank_fuehrung_tauschen"]);
+const HAUSHALT_HANDLUNGEN = new Set(["posten", "mehr_ausgeben", "sparen", "zentralbank_kritisieren", "zentralbank_fuehrung_tauschen"]);
 
 const istText = (x: unknown): x is string => typeof x === "string" && x.trim().length > 0;
 const kurz = (x: unknown): string | undefined => (istText(x) ? x.trim().slice(0, 240) : undefined);
@@ -74,8 +75,11 @@ function pruefeForm(x: unknown): KiAktion | null {
       return istText(o.amt) && istText(o.handlung) ? { art: "figur", amt: o.amt.trim(), handlung: o.handlung.trim(), ...g } : null;
     case "programm":
       return { art: "programm", ...g };
-    case "haushalt":
-      return istText(o.handlung) ? { art: "haushalt", handlung: o.handlung.trim(), ...g } : null;
+    case "haushalt": {
+      if (!istText(o.handlung)) return null;
+      const stufe = typeof o.stufe === "number" && Number.isFinite(o.stufe) ? Math.min(2, Math.max(-2, Math.round(o.stufe))) : undefined;
+      return { art: "haushalt", handlung: o.handlung.trim(), ...(istText(o.posten) ? { posten: o.posten.trim() } : {}), ...(stufe !== undefined ? { stufe } : {}), ...g };
+    }
     case "ereignis":
       return istText(o.id) && istText(o.option) ? { art: "ereignis", id: o.id.trim(), option: o.option.trim(), ...g } : null;
     case "vorhaben":
@@ -95,6 +99,19 @@ function pruefeForm(x: unknown): KiAktion | null {
     default:
       return null;
   }
+}
+
+const nfs = (x: number) => x.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** Welcher Haushaltsposten auf welche Stufe gestellt werden soll; die einfachen Handlungen wählen einen Posten selbst. */
+function haushaltsposten(w: World, a: Extract<KiAktion, { art: "haushalt" }>): { id: string; stufe: number } | { fehler: string } {
+  if (a.handlung === "mehr_ausgeben" || a.handlung === "sparen") {
+    const s = einfacherSchritt(w, a.handlung === "sparen" ? "sparen" : "mehr");
+    return s ?? { fehler: "Alle Ausgabenposten stehen schon am Rand." };
+  }
+  if (!a.posten || !POSTEN_NACH_ID[a.posten]) return { fehler: `„${a.posten ?? ""}“ ist kein Haushaltsposten dieses Spiels.` };
+  if (a.stufe === undefined) return { fehler: "Es fehlt die Stufe (−2 bis +2)." };
+  return { id: a.posten, stufe: a.stufe };
 }
 
 function massnahmeZiel(w: World, a: Extract<KiAktion, { art: "massnahme" }>): { id: string; name: string; ort: number[] | null; ziel: number } | { fehler: string } {
@@ -161,13 +178,15 @@ export function vorschau(w: World, a: KiAktion): KiVorschau {
     }
     case "haushalt": {
       if (!HAUSHALT_HANDLUNGEN.has(a.handlung)) return { aktion: a, titel: a.handlung, problem: "Diese Haushaltshandlung gibt es nicht." };
-      const namen: Record<string, string> = {
-        mehr_ausgeben: "Staatsausgaben erhöhen",
-        sparen: "Staatsausgaben kürzen",
-        zentralbank_kritisieren: "Zentralbank öffentlich kritisieren",
-        zentralbank_fuehrung_tauschen: "Zentralbankführung austauschen",
-      };
-      return { aktion: a, titel: namen[a.handlung]!, hinweis: "Wirkt auf Nachfrage, Preise und Märkte; die Vorschau im Erlass-Fenster zeigt die Folgen." };
+      if (a.handlung === "zentralbank_kritisieren") return { aktion: a, titel: "Zentralbank öffentlich kritisieren", hinweis: "Wirkt auf Märkte und Glaubwürdigkeit; die Zentralbank-Ansicht zeigt die Folgen." };
+      if (a.handlung === "zentralbank_fuehrung_tauschen") return { aktion: a, titel: "Zentralbankführung austauschen", hinweis: "Wirkt auf Märkte und Glaubwürdigkeit; das Zentralbankgesetz kann die Führung schützen." };
+      const posten = haushaltsposten(w, a);
+      if ("fehler" in posten) return { aktion: a, titel: a.posten ?? a.handlung, problem: posten.fehler };
+      const p = POSTEN_NACH_ID[posten.id]!;
+      const titel = `${p.name}: Stufe ${posten.stufe > 0 ? "+" : ""}${posten.stufe}`;
+      const v = postenVorschau(w, posten.id, posten.stufe);
+      if (v.delta === 0) return { aktion: a, titel, problem: "Der Posten steht schon auf dieser Stufe." };
+      return { aktion: a, titel, kosten: v.kapital, hinweis: `Defizit ${nfs(v.defizitVorher)} auf ${nfs(v.defizitNachher)} % des BIP. ${p.kehrseite}`, ...(v.ok ? {} : { problem: v.grund ?? "Geht gerade nicht." }) };
     }
     case "ereignis": {
       const ev = spiel.ereignisse.find((x) => x.id === a.id);
@@ -251,10 +270,13 @@ export function fuehreAus(w: World, a: KiAktion): { ok: boolean; text: string; w
       return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
     }
     case "haushalt": {
-      if (a.handlung === "mehr_ausgeben") setFiscalImpulse(w, w.economy.fiscalImpulse + 2);
-      else if (a.handlung === "sparen") setFiscalImpulse(w, w.economy.fiscalImpulse - 1);
-      else if (a.handlung === "zentralbank_kritisieren") criticizeCentralBank(w);
-      else replaceGovernor(w, "gefuegig", "eine neue, regierungsnahe Führung");
+      if (a.handlung === "zentralbank_kritisieren") criticizeCentralBank(w);
+      else if (a.handlung === "zentralbank_fuehrung_tauschen") replaceGovernor(w, "gefuegig", "eine neue, regierungsnahe Führung");
+      else {
+        const posten = haushaltsposten(w, a) as { id: string; stufe: number };
+        const r = setzePosten(w, posten.id, posten.stufe);
+        return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+      }
       return { ok: true, ...letztesLog() };
     }
     case "ereignis": {

@@ -7,6 +7,7 @@ import { PROVINZEN } from "../sim/regional";
 import { formatDateDe } from "../sim/dates";
 import { LAENDER, dimensionZu, haltungWort, weltZustand } from "../sim/laender";
 import { VORHABEN } from "../data/reich";
+import { POSTEN, stufeVon } from "../sim/haushalt";
 import { KLAUSELN, PROFILE } from "../data/abkommen";
 import { alleLaufenden, klauselSicht } from "../sim/abkommen";
 import { bauKapazitaet, vorhabenSicht, verwaltungBilanz, reichZustand } from "../sim/reich";
@@ -27,6 +28,7 @@ const MASSNAHMEN = NET.nodes.filter((n) => n.kind === "massnahme");
 export function systemText(): string {
   const massnahmen = MASSNAHMEN.map((n) => `${n.id}: ${n.name}`).join("\n");
   const laender = LAENDER.map((l) => `${l.id}: ${l.name}`).join("; ");
+  const posten = POSTEN.map((p) => `${p.id}: ${p.name} (${p.seite})`).join("\n");
   const vorhaben = VORHABEN.map((v) => `${v.id}: ${v.name}`).join("\n");
   const klauselnJeLand = LAENDER.map((l) => {
     const werte = PROFILE[l.id]?.werte ?? {};
@@ -42,7 +44,7 @@ DAS SPIEL IN KÜRZE
 - Zwei Wege: ein Gesetz braucht 301 von 600 Stimmen, wird nach 21 Tagen abgestimmt und kostet Kapital; ein Erlass gilt sofort, ist teurer und nur bei manchen Vorhaben möglich. Verwaltungskapazität begrenzt, wie viele Vorhaben gleichzeitig laufen.
 - Das Parlament hat Fraktionen. Man gewinnt sie über Gespräch, Zugeständnis, Duldung (sechs Monate Stimmen bei Gesetzen), Bündnis oder Abwerben. Zusagen müssen gehalten werden, sonst sinkt das Vertrauen.
 - Ereignisse verlangen Entscheidungen bis zu einer Frist. „Abwarten“ ist immer möglich, hat aber Folgen.
-- Acht Wählergruppen; ihre Laune bestimmt zusammen mit Vertrauen, Wirtschaft, akuten Problemen und Regierungsmüdigkeit die Zustimmung. Ziel ist die Wiederwahl und die gewählten Ziele.
+- Elf Wählergruppen; ihre Laune bestimmt zusammen mit Vertrauen, Wirtschaft, akuten Problemen und Regierungsmüdigkeit die Zustimmung. Ziel ist die Wiederwahl und die gewählten Ziele.
 - Andere Länder haben Vertrauen, Handel, Sicherheit und Konflikt; Handlungen ihnen gegenüber kosten Kapital und haben Abkühlzeiten.
 - Regierungsprogramme bestehen aus Schritten mit Bedingungen und belohnen mit Rabatt, Schutz oder Wirkung.
 - Das Reich: Vorhaben (Wunder, Großprojekte, Restaurierungen, Reformen, Beschaffungen, Institutionen) kosten Kapital beim Beginn, dazu Baukapazität und Verwaltungskraft über Monate; fertige Vorhaben wirken dauerhaft und verfallen ohne Pflege. Nicht alles ist Geld: Justizsitze, Kulturerbe, Truppenbereitschaft, Legitimität sind eigene Größen.
@@ -67,6 +69,7 @@ Ohne Aktion: "aktionen":[]. Mögliche Aktionen (Feld "art"):
 {"art":"fraktion","partei":"<Kürzel>","handlung":"gespraech|zugestaendnis|duldung|koalition|abwerben","grund":"…"}
 {"art":"figur","amt":"finanzen|inneres|aussen|stab","handlung":"gespraech|entlassen","grund":"…"}
 {"art":"programm","grund":"…"}  (nächsten Programmschritt starten)
+{"art":"haushalt","handlung":"posten","posten":"<Posten-ID>","stufe":-2..2,"grund":"…"}  (Haushaltsregler; Stufe 0 = Plan 2026)
 {"art":"haushalt","handlung":"mehr_ausgeben|sparen|zentralbank_kritisieren|zentralbank_fuehrung_tauschen","grund":"…"}
 {"art":"ereignis","id":"<Ereignis-ID>","option":"<Options-ID>","grund":"…"}
 {"art":"zeit","tage":<1-90>,"grund":"…"}
@@ -79,6 +82,9 @@ ${massnahmen}
 
 LÄNDER (ID: Name)
 ${laender}
+
+HAUSHALTSPOSTEN (ID: Name)
+${posten}
 
 VORHABEN DES REICHES (ID: Name)
 ${vorhaben}
@@ -156,6 +162,8 @@ export function zustandsText(w: World): string {
       LAENDER.map((l) => `${l.id} ${haltungWort(w, l.id)} ${rund(dimensionZu(w, l.id, "vertrauen"))}/${rund(wz[l.id]!.konflikt)}`).join("; "),
   );
 
+  const abweichend = POSTEN.filter((p) => stufeVon(w, p.id) !== 0).map((p) => `${p.id} ${stufeVon(w, p.id) > 0 ? "+" : ""}${stufeVon(w, p.id)}`);
+  z.push(`Haushaltsregler (Abweichung vom Plan): ${abweichend.length ? abweichend.join(", ") : "keine"}.`);
   const rz = reichZustand(w);
   const vb = verwaltungBilanz(w);
   const laufendReich = rz.laufend.map((l) => {

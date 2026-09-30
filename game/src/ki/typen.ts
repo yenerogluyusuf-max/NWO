@@ -38,7 +38,7 @@ export type KiAktion =
   | { art: "fraktion"; partei: string; handlung: string; grund?: string }
   | { art: "figur"; amt: string; handlung: string; grund?: string }
   | { art: "programm"; grund?: string }
-  | { art: "haushalt"; handlung: string; grund?: string }
+  | { art: "haushalt"; handlung: string; posten?: string; stufe?: number; grund?: string }
   | { art: "ereignis"; id: string; option: string; grund?: string }
   | { art: "zeit"; tage: number; grund?: string }
   | { art: "vorhaben"; id: string; grund?: string }

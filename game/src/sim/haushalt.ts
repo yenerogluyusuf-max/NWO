@@ -240,6 +240,16 @@ export function setzePosten(w: World, id: string, stufe: number, ohneKosten = fa
   return { ok: true, text, why: `${v.kapital ? `Kostet ${v.kapital} Kapital. ` : ""}Defizit ${fmt(v.defizitVorher)} auf ${fmt(v.defizitNachher)} % des BIP.` };
 }
 
+/** Ein einfacher Schritt für Sprachbefehle und die KI, wenn kein bestimmter Posten genannt wird: mehr ausgeben oder sparen. */
+export function einfacherSchritt(w: World, art: "mehr" | "sparen"): { id: string; stufe: number } | null {
+  const kandidaten = art === "mehr" ? ["investitionen", "soziales", "gesundheit_bildung"] : ["personal", "subventionen", "sicherheit"];
+  for (const id of kandidaten) {
+    const ziel = stufeVon(w, id) + (art === "mehr" ? 1 : -1);
+    if (Math.abs(ziel) <= 2) return { id, stufe: ziel };
+  }
+  return null;
+}
+
 /** Pakete für das Haushaltsjahr: mehrere Regler auf einmal. */
 export const PAKETE: Record<string, { name: string; schritte: Record<string, number> }> = {
   konsolidieren: { name: "Konsolidieren", schritte: { personal: -1, subventionen: -1, einkommensteuer: 1 } },

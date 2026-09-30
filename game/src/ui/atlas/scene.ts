@@ -262,7 +262,7 @@ const terrainFragment = /* glsl */ `
       float lin = 0.0;
       for (int k = 1; k <= 4; k++) {
         float fk = float(k);
-        lin += (1.0 - smoothstep(0.0, aa * 1.15, abs(seaD - 4.5 * fk))) * (0.22 - 0.045 * fk);
+        lin += (1.0 - smoothstep(0.0, aa * 1.15, abs(seaD - 4.5 * fk))) * (0.19 - 0.04 * fk);
       }
       water = mix(water, vec3(0.86, 0.93, 0.92), lin * fein * step(0.0, -sdT));
     }

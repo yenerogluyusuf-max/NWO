@@ -8,7 +8,7 @@ import { bringeEin, gesetzSicht, pruefeVorhaben, stimmenSicht } from "../src/sim
 import { nationalAverage } from "../src/sim/netz";
 import { baueSitzplan, belege, grenzWinkel, proportional } from "../src/ui/parlament/geometrie";
 import { parlamentsLage } from "../src/ui/parlament/lage";
-import { baueVerlauf, istAbstimmung, leseAbstimmung, letzteAbstimmungen, merkeGesetze } from "../src/ui/parlament/abstimmung";
+import { amAbstimmungBeobachten, amAnsichtBeobachten, baueVerlauf, istAbstimmung, leseAbstimmung, letzteAbstimmungen, merkeGesetze, spieleAbstimmungAb, zeigeImHalbrund } from "../src/ui/parlament/abstimmung";
 import { stimmzettel, verteileErgebnis, verteileErwartung, vorgabeFuer, zaehleZustaende, zustandJeSitz } from "../src/ui/parlament/stimmen";
 import type { World } from "../src/sim/types";
 
@@ -128,6 +128,9 @@ describe("Stimmen auf Fraktionen", () => {
     expect(zahlen.fest).toBe(lage.lager);
     expect(zahlen.fest + zahlen.zusage + zahlen.wackelig + zahlen.offen + zahlen.nein).toBe(600);
     expect(zustandJeSitz(lage, z)).toHaveLength(600);
+    // die Spanne der Schätzung schließt die Erwartung ein
+    expect(v.niedrig).toBeLessThanOrEqual(v.erwartet);
+    expect(v.hoch).toBeGreaterThanOrEqual(v.erwartet);
   });
 
   test("Erwartung eines Gesetzes mit Absprachen zählt sie als Zusagen", () => {
@@ -185,5 +188,22 @@ describe("Abstimmungen im Protokoll", () => {
       expect(v.jaKum[599]).toBe(ab.ja);
     }
     expect(letzteAbstimmungen(w, 10).length).toBe(neu.length);
+  });
+});
+
+describe("Verbindungen der Oberfläche", () => {
+  test("Wiederholen einer Abstimmung und Sprung zum Gesetz erreichen ihre Beobachter, und sie lassen sich abmelden", () => {
+    const ab = { name: "X", ja: 320, nein: 280, angenommen: true, tag: 1, datum: "2028-06-01", ort: "im ganzen Land" };
+    const gesehen: string[] = [];
+    const weg1 = amAbstimmungBeobachten((a, s) => gesehen.push(`${a.name}:${s.join("+")}`));
+    const weg2 = amAnsichtBeobachten((id) => gesehen.push(`ansicht:${id}`));
+    spieleAbstimmungAb(ab, ["CHP"]);
+    zeigeImHalbrund("g1");
+    expect(gesehen).toEqual(["X:CHP", "ansicht:g1"]);
+    weg1();
+    weg2();
+    spieleAbstimmungAb(ab);
+    zeigeImHalbrund("g2");
+    expect(gesehen).toHaveLength(2);
   });
 });

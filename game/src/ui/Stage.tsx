@@ -16,6 +16,7 @@ import { Beschlussbuch } from "./Beschlussbuch";
 import { Waehler } from "./Waehler";
 import { Programme } from "./Programme";
 import { Welt } from "./Welt";
+import { vertrauenZu } from "../sim/laender";
 import { LandPopover, type LandAuswahl, type WeltTab } from "./welt/LandPopover";
 import { EconomyFile } from "./EconomyFile";
 import { NetView } from "./NetView";
@@ -49,7 +50,7 @@ import { naechsterSchritt } from "../sim/programme";
 import { Rng } from "../sim/rng";
 import { speichere } from "./speicher";
 import { PARTEI_NAME } from "../sim/fraktionen";
-import { KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
+import { LAENDERNAMEN, LAND_PINS, KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
 import { kurzVergleich } from "./vergleich";
 
 type Dossier = "schreibtisch" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | null;
@@ -181,6 +182,17 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ebene, w.day - (w.day % 10), spiel?.welt],
   );
+  const laenderPins = useMemo(
+    () =>
+      spiel
+        ? LAND_PINS.map((p) => {
+            const v = vertrauenZu(w, p.id);
+            return { ...p, name: p.id === "EU" ? "Europäische Union" : (LAENDERNAMEN[p.iso] ?? p.iso), ton: (v >= 55 ? "gut" : v >= 35 ? "mittel" : "schlecht") as "gut" | "mittel" | "schlecht" };
+          })
+        : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [w.day - (w.day % 10), spiel?.welt],
+  );
   const [weltStart, setWeltStart] = useState<string | undefined>(undefined);
   const [weltTab, setWeltTab] = useState<WeltTab | undefined>(undefined);
   const [landAuswahl, setLandAuswahl] = useState<LandAuswahl | null>(null);
@@ -256,15 +268,13 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
       kurz: "Wirtschaft",
       titel: "Wirtschaft",
       icon: "akte",
-      tabs: [
-        { id: "wirtschaft", label: "Kennzahlen" },
-        { id: "entscheidungen", label: "Zentralbank und Haushalt" },
-      ],
+      // Die Akte hat eigene Reiter (Lage, Zentralbank, Haushalt); „entscheidungen“ bleibt als Einstieg für Zinssitzung und Erlasse
+      tabs: [{ id: "wirtschaft", label: "Wirtschaft" }],
     },
     { kurz: "Personen", titel: "Personen und Zusagen", icon: "person", tabs: [{ id: "personen", label: "Personen und Zusagen" }] },
     { kurz: "Chronik", titel: "Chronik und Umfragen", icon: "buch", tabs: [{ id: "chronik", label: "Chronik und Umfragen" }] },
   ];
-  const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier));
+  const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.kurz === "Wirtschaft"));
 
   const offen = spiel?.ereignisse.find((e) => !spaeter.has(e.id));
   const hinweis = spiel?.hinweise[0];
@@ -333,6 +343,8 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
             if (plaka) { setSelected(plaka); setEbene("probleme"); }
           }
         }}
+        laenderPins={laenderPins}
+        {...(landAuswahl ? { landAuswahl: landAuswahl.iso } : {})}
         onLand={(iso, pos) => setLandAuswahl({ iso, x: pos?.x ?? window.innerWidth / 2, y: pos?.y ?? window.innerHeight / 2 })}
         {...(ebene === "welt" ? { laenderFarben: laenderKarte } : {})}
         ebene={ebene}
@@ -389,7 +401,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
         </div>
       </header>
 
-      <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} />
+      <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} onZins={() => { setErlassStart(undefined); oeffneDossier("entscheidungen"); }} />
 
       <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} />
       <AbstimmungsKarte world={w} />
@@ -732,7 +744,7 @@ function trend(w: World, key: "inflation" | "usdTry" | "policyRate"): number | u
 }
 
 /** Hinweise unter der Kopfleiste, wie die Warnsymbole in Hearts of Iron. */
-function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onProgramm }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void; onParlament: () => void; onEreignis: () => void; onProgramm: () => void }) {
+function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onProgramm, onZins }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void; onParlament: () => void; onEreignis: () => void; onProgramm: () => void; onZins: () => void }) {
   const items: { id: string; tone: "rot" | "gelb" | "blau"; icon: IconName; label: string; kurz: string; text: string; count?: number; onClick?: () => void }[] = [];
   const pl = (n: number, eins: string, viele: string) => `${n} ${n === 1 ? eins : viele}`;
   const spiel = world.spiel;
@@ -800,6 +812,7 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
       label: "Zinssitzung",
       kurz: days === 0 ? "Zinssitzung heute" : `Zinssitzung in ${pl(days, "Tag", "Tagen")}`,
       text: days === 0 ? "Der Geldpolitische Ausschuss tagt heute." : `Der Geldpolitische Ausschuss tagt in ${days} ${days === 1 ? "Tag" : "Tagen"}.`,
+      onClick: onZins,
     });
   }
 
