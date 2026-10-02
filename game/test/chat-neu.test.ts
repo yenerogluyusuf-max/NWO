@@ -50,11 +50,11 @@ describe("Länder im Chat", () => {
     expect(r.text).toMatch(/Gipfeltreffen|Handelsabkommen/);
   });
 
-  test("Krieg gegen ein Land wird weiter ehrlich abgelehnt", () => {
+  test("Krieg gegen ein Land wird ohne aktiven Konfliktvorgang ehrlich abgelehnt", () => {
     const w = neu();
     const r = befehl("Wir erklären Syrien den Krieg", w);
     expect(r.ok).toBe(false);
-    expect(r.text).toMatch(/noch nicht/);
+    expect(r.text).toMatch(/keinen aktiven Konfliktvorgang/);
   });
 
   test("Die Aussage „Diplomatie gibt es nicht“ ist verschwunden", () => {

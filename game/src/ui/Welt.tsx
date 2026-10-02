@@ -13,6 +13,8 @@ import { Flagge, flaggenFarben } from "./art/Flaggen";
 import { Verhandlungstisch } from "./welt/Verhandlungstisch";
 import { Vertraege } from "./welt/Vertraege";
 import { Vermittlung } from "./welt/Vermittlung";
+import { KriegDossier } from "./welt/KriegDossier";
+import { aktiveKriege, kriegMit, PHASEN_NAME } from "../sim/krieg";
 import type { WeltTab } from "./welt/LandPopover";
 import "./welt/welt.css";
 
@@ -66,6 +68,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                 const v = dimensionZu(world, x.id, "vertrauen");
                 const k = weltZustand(world)[x.id]!.konflikt;
                 const n = laufende(world, x.id).length;
+                const vorgang = kriegMit(world, x.id);
                 return (
                   <li key={x.id}>
                     <button type="button" className={`we-eintrag${gewaehlt === x.id ? " on" : ""}`} onClick={() => waehle(x.id)} aria-pressed={gewaehlt === x.id} title={x.name}>
@@ -73,7 +76,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                       <span className="we-name">{x.name}</span>
                       <span className={`we-haltung ton-${v >= 55 ? "gut" : v >= 35 ? "mittel" : "schlecht"}`}>
                         {haltungWort(world, x.id)}
-                        {k >= 65 ? " · Streit" : ""}
+                        {vorgang ? ` · ⚔ ${PHASEN_NAME[vorgang.phase]}` : k >= 65 ? " · Streit" : ""}
                       </span>
                       {n > 0 && (
                         <b className="we-vertragszahl" title={`${n} laufende Verträge`}>
@@ -105,6 +108,23 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
 
       <div className="we-akte">
         {vermittlung && <Vermittlung world={world} refresh={refresh} />}
+        {l && aktiveKriege(world).length > 0 && !kriegMit(world, gewaehlt) && (
+          <div className="we-kriegsbanner" role="status">
+            {aktiveKriege(world).map((kv) => (
+              <button
+                key={kv.id}
+                type="button"
+                className="we-kriegsbanner-eintrag"
+                onClick={() => {
+                  waehle(kv.land);
+                  setTab("konflikt");
+                }}
+              >
+                ⚔ {PHASEN_NAME[kv.phase]} mit {land(kv.land).name} — zum Dossier
+              </button>
+            ))}
+          </div>
+        )}
         {l && (
           <>
             <header className="we-kopf" style={{ ["--flagge-1" as string]: flaggenFarben(gewaehlt)[0], ["--flagge-2" as string]: flaggenFarben(gewaehlt)[1] }}>
@@ -142,11 +162,17 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                   </button>
                 );
               })}
+              {kriegMit(world, gewaehlt) && (
+                <button role="tab" type="button" aria-selected={tab === "konflikt"} className={tab === "konflikt" ? "on" : ""} onClick={() => setTab("konflikt")}>
+                  ⚔ Konflikt
+                </button>
+              )}
             </div>
 
             {tab === "ueberblick" && <Ueberblick world={world} landId={gewaehlt} onMassnahme={onMassnahme} onVerhandeln={() => setTab("verhandeln")} />}
             {tab === "verhandeln" && <Verhandlungstisch key={gewaehlt} world={world} landId={gewaehlt} refresh={refresh} onVertraege={() => setTab("vertraege")} />}
             {tab === "vertraege" && <Vertraege world={world} landId={gewaehlt} refresh={refresh} />}
+            {tab === "konflikt" && <KriegDossier world={world} landId={gewaehlt} refresh={refresh} />}
             {tab === "handeln" && (
               <div className="we-gesten">
                 <p className="subtitle">Einzelne Gesten kosten weniger als ein Vertrag und wirken schneller, aber nicht so lange. Große Vorhaben gehören an den Verhandlungstisch.</p>

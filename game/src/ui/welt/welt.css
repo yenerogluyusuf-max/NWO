@@ -182,6 +182,7 @@
 .we-pop-kopf .we-ton.ton-gut { color: #1f5a44; }
 .we-pop-kopf .we-ton.ton-schlecht { color: #8e2a22; }
 .we-pop-text { margin: 4px 0 8px; font: 13.5px/1.4 var(--serif); color: var(--ink-soft); }
+.we-pop-initiative { margin: 4px 0 8px; padding: 7px 10px; border-left: 4px solid #8e2a22; border-radius: 2px; background: rgba(142, 42, 34, 0.08); font: 600 13.5px/1.4 var(--serif); color: var(--ink); }
 .we-pop-werte { display: grid; gap: 4px; margin-bottom: 8px; }
 .we-pop-wert { display: grid; grid-template-columns: 5.6em 1fr 1.8em; gap: 8px; align-items: center; font: 13px var(--serif); }
 .we-pop-wert b { text-align: right; font-variant-numeric: tabular-nums; }
@@ -202,4 +203,105 @@
   .we.schmal .we-eintrag .flagge { grid-row: auto; }
   .we.schmal .we-vertragszahl { right: -2px; top: -4px; }
   .we.schmal .we-vermittlung-zeichen { grid-row: auto; }
+}
+
+
+/* --- Konflikt-Dossier (MIL-1 „Krieg als Vorgang“) --- */
+.we-kriegsbanner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.we-kriegsbanner-eintrag {
+  border: 1px solid var(--rot, #a33);
+  background: color-mix(in srgb, var(--rot, #a33) 10%, transparent);
+  color: inherit;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.we-kriegsbanner-eintrag:hover {
+  background: color-mix(in srgb, var(--rot, #a33) 20%, transparent);
+}
+
+.kd {
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.kd-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.kd-kopf b {
+  font-size: 1.02em;
+}
+.kd-kopf span {
+  opacity: 0.75;
+  font-size: 0.85em;
+}
+.kd-phase-krieg b,
+.kd-phase-beschluss b {
+  color: var(--rot, #a33);
+}
+.kd-phase-waffenruhe b,
+.kd-phase-frieden b {
+  color: var(--gruen, #386641);
+}
+.kd-zeile {
+  display: grid;
+  grid-template-columns: 130px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 0.92em;
+}
+.kd-trend {
+  font-style: normal;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+.kd-trend-steigend {
+  color: var(--gruen, #386641);
+}
+.kd-trend-fallend {
+  color: var(--rot, #a33);
+}
+.kd-lagebild {
+  margin: 10px 0;
+  font-size: 0.9em;
+}
+.kd-lagebild ul {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+}
+.kd-lagebild li {
+  margin: 2px 0;
+}
+.kd-lagebild em {
+  opacity: 0.7;
+}
+.kd-doktrin {
+  font-size: 0.9em;
+  margin: 8px 0;
+}
+.kd-doktrin.ok {
+  color: var(--gruen, #386641);
+}
+.kd-doktrin.warn {
+  color: var(--rot, #a33);
+}
+.kd-demob {
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+.kd-handlungen {
+  margin-top: 8px;
 }

@@ -44,6 +44,10 @@ export const EXTRA: Record<string, (w: World) => number> = {
   kredite: (w) => netz(w, "kredite"),
   auslandskapital: (w) => netz(w, "auslandskapital"),
   zinslast: (w) => netz(w, "zinslast"),
+  // WIR-2: Die Devisen-Lage bekommt Verläufe (Startwerte des Szenarios als Ruhelage der Vorgeschichte)
+  leistungsbilanz: (w) => w.economy.leistungsbilanzPctBip ?? w.economy.currentAccountPctGdp ?? -2.3,
+  reservenBrutto: (w) => w.economy.reservenBruttoUsdMrd ?? w.economy.grossReservesUsdBn ?? 0,
+  reservenNetto: (w) => w.economy.reservenNettoUsdMrd ?? w.economy.netReservesExSwapsUsdBn ?? 0,
 };
 
 function neuerZentralbankZustand(): ZentralbankZustand {

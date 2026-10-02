@@ -4,7 +4,7 @@
 
 import { NET } from "../sim/modell";
 import { fold, laufeZeit, ortAusText } from "../sim/befehle";
-import { bringeEin, provinzenText, pruefeVorhaben, stufeIn } from "../sim/handeln";
+import { bringeEin, provinzenText, pruefeVorhaben, stufeIn, REGELN } from "../sim/handeln";
 import { AKTIONEN, LAENDER, aktionenFuer, fuehreAktionAus, type AktionId } from "../sim/laender";
 import { fraktionsUebersicht, verhandle, type Verhandlung } from "../sim/verhandeln";
 import { entlasseFigur, sprichMitFigur } from "../sim/eingriffe";
@@ -17,7 +17,19 @@ import type { World } from "../sim/types";
 import type { KiAktion, KiErgebnis, KiVorschau } from "./typen";
 import { kannZahlen } from "../sim/kapital";
 import { beginne, vorhabenSicht } from "../sim/reich";
+import {
+  VERFASSUNG_REGELN,
+  bringeVerfassungEin,
+  kampagnenImpuls,
+  paketStimmen,
+  pruefeVerfassung,
+  referendumPrognose,
+  verfassungStimmenKaufen,
+  verfassungsZustand,
+  zieheVerfassungZurueck,
+} from "../sim/verfassung";
 import { STIMMUNG_WORT, bewerte, pruefeAngebot, verhandle as verhandleVertrag, vermittle, vermittlungen, type Angebot } from "../sim/abkommen";
+import { fuehreKriegHandlungAus, handlungenFuer, kriegMit, PHASEN_NAME, type KriegHandlungId } from "../sim/krieg";
 import type { Laufzeit } from "../data/abkommen";
 
 const MAX_AKTIONEN = 3;
@@ -84,6 +96,11 @@ function pruefeForm(x: unknown): KiAktion | null {
       return istText(o.id) && istText(o.option) ? { art: "ereignis", id: o.id.trim(), option: o.option.trim(), ...g } : null;
     case "vorhaben":
       return istText(o.id) ? { art: "vorhaben", id: o.id.trim(), ...g } : null;
+    case "verfassung": {
+      if (!istText(o.handlung)) return null;
+      const paket = o.paket && typeof o.paket === "object" ? Object.fromEntries(Object.entries(o.paket as Record<string, unknown>).filter(([, x]) => istText(x)).map(([k, x]) => [k.trim(), (x as string).trim()]).slice(0, 8)) : undefined;
+      return { art: "verfassung", handlung: o.handlung.trim(), ...(paket && Object.keys(paket).length ? { paket } : {}), ...g };
+    }
     case "abkommen": {
       if (!istText(o.land)) return null;
       const liste = (x: unknown) => (Array.isArray(x) ? x.filter(istText).map((t) => t.trim()).slice(0, 8) : []);
@@ -92,6 +109,8 @@ function pruefeForm(x: unknown): KiAktion | null {
     }
     case "vermittlung":
       return istText(o.id) ? { art: "vermittlung", id: o.id.trim(), ...g } : null;
+    case "krieg":
+      return istText(o.land) && istText(o.handlung) ? { art: "krieg", land: o.land.trim(), handlung: o.handlung.trim(), ...g } : null;
     case "zeit": {
       const tage = typeof o.tage === "number" && Number.isFinite(o.tage) ? Math.min(90, Math.max(1, Math.round(o.tage))) : 0;
       return tage ? { art: "zeit", tage, ...g } : null;
@@ -212,6 +231,36 @@ export function vorschau(w: World, a: KiAktion): KiVorschau {
       if (!sicht.verwaltungOk) return { aktion: a, titel, kosten: v.kosten.pk, problem: "Die Verwaltungskraft reicht dafür nicht." };
       return { aktion: a, titel, kosten: v.kosten.pk, hinweis: `Etwa ${v.kosten.monate} Monate Bauzeit. ${v.kehrseite}` };
     }
+    case "verfassung": {
+      const z = verfassungsZustand(w);
+      const v = z.laufend;
+      if (a.handlung === "einbringen") {
+        if (!a.paket || !Object.keys(a.paket).length) return { aktion: a, titel: "Verfassungspaket einbringen", problem: "Es fehlt das Paket: Artikel-Kennung auf Varianten-Kennung, zum Beispiel { wahlrecht: \"fuenf\" }." };
+        const pr = pruefeVerfassung(w, a.paket);
+        const titel = `Verfassungspaket einbringen (${pr.geaendert} ${pr.geaendert === 1 ? "Artikel" : "Artikel"})`;
+        if (!pr.ok) return { aktion: a, titel, problem: pr.grund ?? "So nicht möglich." };
+        return { aktion: a, titel, kosten: pr.pk, hinweis: `Erwartet ${pr.stimmen.erwartet} Ja (Spanne ${pr.stimmen.tief} bis ${pr.stimmen.hoch}); ab ${VERFASSUNG_REGELN.direkt} direkt Gesetz, ab ${VERFASSUNG_REGELN.mehrheit} Volksabstimmung.` };
+      }
+      if (a.handlung === "zurueckziehen") {
+        if (!v || v.phase !== "parlament") return { aktion: a, titel: "Verfassungspaket zurückziehen", problem: "Es liegt kein Paket zur Abstimmung vor." };
+        return { aktion: a, titel: "Verfassungspaket zurückziehen", hinweis: "Ein Teil des Kapitals kommt zurück; die Amtszeit hat ihre Verfassungsdebatte hinter sich." };
+      }
+      if (a.handlung === "stimmen_kaufen") {
+        if (!v || v.phase !== "parlament") return { aktion: a, titel: "Stimmen für das Verfassungspaket kaufen", problem: "Es liegt kein Paket zur Abstimmung vor." };
+        const sicht = paketStimmen(w, v.paket, v.absprachen);
+        const ziel = sicht.erwartet >= VERFASSUNG_REGELN.mehrheit ? VERFASSUNG_REGELN.direkt + VERFASSUNG_REGELN.stimmenPuffer : VERFASSUNG_REGELN.mehrheit + VERFASSUNG_REGELN.stimmenPuffer;
+        const noetig = Math.max(0, ziel - sicht.erwartet);
+        if (!noetig) return { aktion: a, titel: "Stimmen für das Verfassungspaket kaufen", problem: "Die nächste Hürde gilt der Prognose nach als gesichert." };
+        const kosten = Math.ceil(noetig * REGELN.kaufKostenProStimme * VERFASSUNG_REGELN.kaufFaktor);
+        return { aktion: a, titel: `${noetig} Stimmen für das Verfassungspaket sichern`, kosten, ...(kannZahlen(spiel.kapital, kosten) ? {} : { problem: "Dafür fehlt Kapital." }) };
+      }
+      if (a.handlung === "kampagne") {
+        if (!v || v.phase !== "kampagne") return { aktion: a, titel: "Referendum-Kampagne", problem: "Es läuft gerade keine Kampagne zu einer Volksabstimmung." };
+        const p = referendumPrognose(w);
+        return { aktion: a, titel: "Kampagnen-Impuls fürs Referendum", kosten: VERFASSUNG_REGELN.kampagnePk, ...(p ? { hinweis: `Erwartet etwa ${p.mitte.toLocaleString("de-DE", { maximumFractionDigits: 1 })} Prozent Ja.` } : {}) };
+      }
+      return { aktion: a, titel: `Verfassung: ${a.handlung}`, problem: "Diese Handlung gibt es nicht (einbringen, zurueckziehen, stimmen_kaufen, kampagne)." };
+    }
     case "abkommen": {
       const def = LAENDER.find((l) => l.id === a.land);
       if (!def) return { aktion: a, titel: a.land, problem: `„${a.land}“ ist kein Land dieses Spiels.` };
@@ -232,8 +281,21 @@ export function vorschau(w: World, a: KiAktion): KiVorschau {
       const titel = `Vermittlung: ${v.def.titel}`;
       return { aktion: a, titel, kosten: v.def.pk, hinweis: `Aussicht etwa ${v.aussicht} Prozent.`, ...(v.moeglich ? {} : { problem: v.grund ?? "Geht gerade nicht." }) };
     }
+    case "krieg": {
+      const def = LAENDER.find((l) => l.id === a.land);
+      if (!def) return { aktion: a, titel: a.land, problem: `„${a.land}“ ist kein Land dieses Spiels.` };
+      const k = kriegMit(w, def.id);
+      if (!k) return { aktion: a, titel: def.name, problem: "Es gibt keinen aktiven Konfliktvorgang mit diesem Land." };
+      const s = handlungenFuer(w, k.id).find((x) => x.id === a.handlung);
+      const titel = `${PHASEN_NAME[k.phase]} mit ${def.dat}: ${a.handlung}`;
+      if (!s) return { aktion: a, titel, problem: "Diese Handlung gibt es in dieser Phase nicht." };
+      return { aktion: a, titel: `${PHASEN_NAME[k.phase]} mit ${def.dat}: ${s.label}`, kosten: s.pk, hinweis: s.hinweis, ...(s.moeglich ? {} : { problem: s.grund ?? "Geht gerade nicht." }) };
+    }
     case "zeit":
       return { aktion: a, titel: `${a.tage} ${a.tage === 1 ? "Tag" : "Tage"} weiter`, hinweis: "Die Zeit hält an, sobald ein Ereignis auf eine Entscheidung wartet." };
+    case "verfassung":
+      // Fremdmodul (Rohzustand, anderer Agent): geduldet, aber bewusst nicht verdrahtet
+      return { aktion: a, titel: "Verfassungspaket", problem: "Der Verfassungsvorgang ist in diesem Stand noch nicht an die Ausführung angeschlossen." };
   }
 }
 
@@ -289,6 +351,25 @@ export function fuehreAus(w: World, a: KiAktion): { ok: boolean; text: string; w
       const r = beginne(w, a.id);
       return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
     }
+    case "verfassung": {
+      if (a.handlung === "einbringen") {
+        const r = bringeVerfassungEin(w, a.paket ?? {});
+        return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+      }
+      if (a.handlung === "zurueckziehen") {
+        const r = zieheVerfassungZurueck(w);
+        return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+      }
+      if (a.handlung === "stimmen_kaufen") {
+        const v = verfassungsZustand(w).laufend!;
+        const sicht = paketStimmen(w, v.paket, v.absprachen);
+        const ziel = sicht.erwartet >= VERFASSUNG_REGELN.mehrheit ? VERFASSUNG_REGELN.direkt + VERFASSUNG_REGELN.stimmenPuffer : VERFASSUNG_REGELN.mehrheit + VERFASSUNG_REGELN.stimmenPuffer;
+        const r = verfassungStimmenKaufen(w, Math.max(1, ziel - sicht.erwartet));
+        return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+      }
+      const r = kampagnenImpuls(w);
+      return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+    }
     case "abkommen": {
       const r = verhandleVertrag(w, { land: a.land, gibt: a.bieten, will: a.verlangen, jahre: (a.jahre ?? 5) as Laufzeit });
       const gegen = r.bewertung?.gegenangebote[0]?.text;
@@ -299,9 +380,17 @@ export function fuehreAus(w: World, a: KiAktion): { ok: boolean; text: string; w
       const r = vermittle(w, a.id, rng);
       return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
     }
+    case "krieg": {
+      const k = kriegMit(w, a.land)!;
+      const r = fuehreKriegHandlungAus(w, k.id, a.handlung as KriegHandlungId, rng);
+      return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+    }
     case "zeit": {
       const r = laufeZeit(w, a.tage, false);
       return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
     }
+    case "verfassung":
+      // Fremdmodul (Rohzustand, anderer Agent): geduldet, aber bewusst nicht verdrahtet
+      return { ok: false, text: "Der Verfassungsvorgang ist in diesem Stand noch nicht an die Ausführung angeschlossen." };
   }
 }

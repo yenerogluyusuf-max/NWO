@@ -22,6 +22,7 @@ const ART_ICON: Record<Faellig["art"], IconName> = { ereignis: "warnung", gesetz
 const TREND: Record<Kennzahl["trend"], string> = { auf: "▲", ab: "▼", gleich: "" };
 
 const TUEREN: { label: string; ziel: Ziel; icon: IconName }[] = [
+  { label: "Die Zeitung", ziel: { art: "akte", akte: "zeitung" }, icon: "zeitung" },
   { label: "Bereiche der Politik", ziel: { art: "politik" }, icon: "netz" },
   { label: "Programme", ziel: { art: "akte", akte: "programme" }, icon: "ziel" },
   { label: "Parlament", ziel: { art: "akte", akte: "parlament" }, icon: "waage" },
@@ -269,6 +270,34 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
                   {weitere ? "Weniger Hinweise" : `${weitereNotizen.length} weitere ${weitereNotizen.length === 1 ? "Hinweis" : "Hinweise"}`}
                 </button>
               </>
+            )}
+          </section>
+
+          <section className="sk-block sk-zeitung">
+            <h4>
+              Die Zeitung
+              {(spiel.zeitung?.ungelesen ?? 0) > 0 && <span className="sk-neue-ausgabe">Neue Ausgabe</span>}
+            </h4>
+            {spiel.zeitung?.archiv.length ? (
+              (() => {
+                const a = spiel.zeitung.archiv[spiel.zeitung.archiv.length - 1]!;
+                const lead = a.blaetter.find((b) => b.artikel.length > 0);
+                return (
+                  <button className="sk-zeitung-teaser" onClick={() => onGehe({ art: "akte", akte: "zeitung" })} title="Ausgabe lesen">
+                    <span className="sk-zeitung-mast">
+                      {lead?.name ?? "Die Zeitung"} · Nr. {a.nummer}
+                      {a.anlass === "eilmeldung" ? " · EIL" : ""}
+                    </span>
+                    <strong>{lead?.artikel[0]?.schlagzeile ?? ""}</strong>
+                    <em>
+                      {formatDateDe(a.datum)}
+                      {a.blaetter.length > 1 ? ` — daneben ${a.blaetter.length - 1} ${a.blaetter.length === 2 ? "weiteres Blatt" : "weitere Blätter"}, dieselbe Lage, anders erzählt` : ""}
+                    </em>
+                  </button>
+                );
+              })()
+            ) : (
+              <p className="sk-leer">Die erste Ausgabe erscheint am Monatsersten: dieselbe Lage in mehreren Blättern — je nachdem, wem die Druckerpresse gehört.</p>
             )}
           </section>
 

@@ -25,6 +25,7 @@
 // | Feier, spiel.reich.feier (sim/reich.ts, UI: WunderFenster)       | B | Fertigstellung (Wunder/Großprojekt/Serie) |
 // | Abstimmung im Parlament (UI: AbstimmungsKarte)                   | C | Ergebnis ohne Entscheidung; die Karte hält schon bisher nicht an (unverändert) |
 // | Monatsumfrage (spiel.umfrage.verlauf)                            | C | Regelmäßige Messung; erscheint als Umlauf-Eintrag |
+// | Zeitungs-Ausgabe und Eilmeldung (Hinweis `zeitung-*`, sim/zeitung.ts, UI: Zeitung) | C | Umlauf; die veröffentlichte Umfrage steht jetzt IN der Zeitung |
 // | Wirkungsberichte, Auslands-, Markt- und Bankzeilen des Protokolls (log, UI: Meldungen-Feed) | C | Umlauf ohne Handlungsbedarf heute |
 // | Statistik-Veröffentlichungen (log kind „statistik“)              | C | Reguläre Veröffentlichung; weiterhin nur in Chronik und Wirtschaftsakte |
 //
@@ -38,6 +39,7 @@ export type StoppKlasse = "A" | "B" | "C";
 /** Kennung → Klasse für Hinweise der Spielschleife (Vergabe der Kennungen: die push-Stellen in sim/). */
 const HINWEIS_KLASSEN: [praefix: string, klasse: StoppKlasse][] = [
   ["pause-", "C"],
+  ["zeitung-", "C"],
   ["starthilfe", "B"],
   ["warnung-", "B"],
   ["bruch-", "B"],

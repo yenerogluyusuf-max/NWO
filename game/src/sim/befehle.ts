@@ -24,7 +24,24 @@ import { haltung } from "./figuren";
 import { zielStand } from "./ziele";
 import { SPIEL, kapitalEinkommen } from "./spiel";
 import { fraktionsUebersicht, verhandle, type Verhandlung } from "./verhandeln";
-import { vorlage } from "./ereignisse";
+import {
+  ARTIKEL,
+  VERFASSUNG_REGELN,
+  artikelDef,
+  bringeVerfassungEin,
+  kampagnenImpuls,
+  paketStimmen,
+  pruefeVerfassung,
+  referendumPrognose,
+  varianteDef,
+  verfassungStand,
+  verfassungStimmenKaufen,
+  verfassungsZustand,
+  zieheVerfassungZurueck,
+} from "./verfassung";
+import { antworten, entscheide, vorlage } from "./ereignisse";
+import { aktiveKriege, fuehreKriegHandlungAus, handlungenFuer, kriegMit, PHASEN_NAME, type KriegHandlungId } from "./krieg";
+import { INITIATIVE_VORLAGE_IDS } from "./initiative";
 import { Rng } from "./rng";
 import type { World } from "./types";
 import type { NodeSpec } from "../data/politiknetz";
@@ -605,9 +622,120 @@ const GRUPPEN_WORT: Record<string, string> = {
   saekulare: "staedtische_saekulare", staedter: "staedtische_saekulare", staedtische: "staedtische_saekulare",
 };
 
+// ---------------------------------------------------------------------------
+// Antworten auf die Eigeninitiative der Länder (AUS-1): „Russland ablehnen“, „Angebot der EU annehmen“
+
+function initiativeBefehl(t: string, tk: string[], w: World): ChatAntwort | null {
+  const spiel = w.spiel;
+  if (!spiel) return null;
+  const offene = spiel.ereignisse.filter((e) => INITIATIVE_VORLAGE_IDS.has(e.vorlage));
+  if (!offene.length) return null;
+  const id = tk.map((x) => LAND_WORT[x] ?? [...Object.entries(LAND_WORT)].find(([k]) => x.startsWith(k) && k.length >= 5)?.[1]).find(Boolean);
+  const TYP_WORT: [wort: string, vorlage: string][] = [
+    ["forderung", "land_fordert"],
+    ["ultimatum", "land_drohkulisse"],
+    ["drohkulisse", "land_drohkulisse"],
+    ["angebot", "land_angebot"],
+    ["verlaengerung", "vertrag_verlaengerung"],
+    ["provokation", "land_provokation"],
+  ];
+  const wort = TYP_WORT.find(([x]) => hat(tk, x));
+  if (!id && !wort && !hatPrefix(tk, "initiative")) return null;
+  // Das gemeinte Vorgehen: das Land, sonst das benannte Thema, sonst der erste offene Vorgang
+  const ev = (id ? offene.find((e) => String(e.daten?.land) === id) : undefined) ?? (wort ? offene.find((e) => e.vorlage === wort[1]) : undefined) ?? (id || wort ? undefined : offene[0]);
+  if (!ev) return null; // kein offener Vorgang mit diesem Land oder Thema: die übrigen Parser entscheiden
+  const optionen = antworten(w, ev).map((o) => o.id);
+  // Antwortwort → bevorzugte Options-Kennungen (die erste vorhandene gewinnt)
+  const wege: [passt: boolean, ids: string[]][] = [
+    [hatPrefix(tk, "annehmen", "akzeptier", "zustimm", "erfuel", "nachgeb"), ["annehmen", "erfuellen", "nachgeben", "verlaengern_zugabe", "verlaengern5", "zusagen"]],
+    [hatPrefix(tk, "gegenangebot", "entgegenkomm", "kompromiss"), ["gegenangebot", "verhandeln", "verlaengern2", "gespraech"]],
+    [hatPrefix(tk, "vermittl", "schlicht"), ["vermittlung"]],
+    [hatPrefix(tk, "dulden", "hinnehm", "ignorier") || hat(tk, "stillschweigen"), ["dulden"]],
+    [hatPrefix(tk, "konter", "standhalt", "zurueckschlag"), ["kontern", "standhalten"]],
+    [hatPrefix(tk, "verlaenger", "erneuer"), ["verlaengern_zugabe", "verlaengern5", "verlaengern2"]],
+    [hatPrefix(tk, "ablehn", "zurueckweis", "weiger"), ["ablehnen", "zurueckweisen"]],
+    [hatPrefix(tk, "auslauf", "verfall"), ["auslaufen"]],
+  ];
+  for (const [passt, ids] of wege) {
+    if (!passt) continue;
+    const wahl = ids.find((x) => optionen.includes(x));
+    if (!wahl) continue;
+    const r = entscheide(w, ev.id, wahl, new Rng(w.rngState));
+    w.rngState = (w.rngState + 1) | 0;
+    return { ok: r.ok, text: r.text };
+  }
+  if (!wort && !hatPrefix(tk, "initiative")) return null; // Land genannt, aber kein Antwortwort: die übrigen Parser entscheiden
+  const v = vorlage(ev.vorlage);
+  return {
+    ok: true,
+    text: `${v.titel(w, ev)}. Möglich: ${antworten(w, ev)
+      .map((o) => `${o.label} (${o.pk} Kapital)`)
+      .join("; ")}. Sagen Sie etwa „Annehmen“ oder „Ablehnen“.`,
+    why: "Ich führe nichts aus, solange unklar ist, welche Antwort Sie meinen.",
+  };
+}
+
+// MIL-1: Konfliktvorgänge (Krieg als Vorgang). Der Parser kennt dieselben Handlungen wie das Dossier
+// in der Welt-Ansicht und die KI — der Kern prüft und führt aus, diese Ebene übersetzt nur.
+const KRIEG_WOERTER = ["krieg", "truppe", "armee", "mobil", "drohkulisse", "waffenruhe", "kriegsziel", "beschluss", "angriff", "einmarsch", "invasion", "verstaerk", "abschreck"];
+
+function kriegBefehl(t: string, tk: string[], w: World): ChatAntwort | null {
+  if (!w.spiel) return null;
+  if (!hatPrefix(tk, ...KRIEG_WOERTER)) return null;
+  const id = tk.map((x) => LAND_WORT[x] ?? [...Object.entries(LAND_WORT)].find(([k]) => x.startsWith(k) && k.length >= 5)?.[1]).find(Boolean);
+  const k = id ? kriegMit(w, id) : aktiveKriege(w)[0];
+  if (!k) {
+    return {
+      ok: false,
+      text: "Es gibt keinen aktiven Konfliktvorgang. Ein Vorgang entsteht, wenn der Konflikt mit einem Land die Schwelle überschreitet (Konflikt-Dimension im Ländersteckbrief, Zwischenfälle); dann stehen im Dossier des Landes Mobilmachung, Rahmung, Vermittlung und der Einsatzbeschluss zur Wahl. Schlachten und Taktik gibt es nicht: Der Präsident bestellt und verantwortet, er kommandiert nicht.",
+      why: "Ehrlich statt vorgetäuscht: Konflikte laufen als Vorgang in den Phasen Spannung, Drohkulisse, Beschluss, Krieg, Waffenruhe, Frieden.",
+    };
+  }
+  const l = land(k.land);
+  const frage = /^(wie|was|wo|wer|zeig|nenne|sag|steht|stehen|ist|sind)/.test(t) || hatPrefix(tk, "lage", "stand", "dossier", "front");
+  if (frage && !hatPrefix(tk, "mobil", "beschluss", "waffenruhe", "kriegsziel")) {
+    const hb = handlungenFuer(w, k.id)
+      .filter((x) => x.moeglich)
+      .map((x) => `${x.label} (${x.pk} Kapital)`);
+    const front = k.phase === "krieg" || k.phase === "waffenruhe" ? `, Frontlage ${Math.round(k.front)} von 100 (${k.front > k.frontVorher + 0.5 ? "steigend" : k.front < k.frontVorher - 0.5 ? "fallend" : "stabil"}), Rückhalt im Land ${Math.round(k.uhr)}` : "";
+    return {
+      ok: true,
+      text: `${PHASEN_NAME[k.phase]} mit ${l.name}: Eskalation ${Math.round(k.eskalation)} von 100${front}. ${hb.length ? `Möglich: ${hb.join(", ")}.` : "Gerade ist keine Handlung möglich."}`,
+      why: "Das vollständige Dossier mit allen Preisen und dem Lagebild steht in der Welt-Ansicht beim Land.",
+    };
+  }
+  let hid: KriegHandlungId | null = null;
+  if (hatPrefix(tk, "mobil")) hid = hatPrefix(tk, "voll", "general", "total") ? "mobil_voll" : "mobil_teil";
+  else if (hatPrefix(tk, "bereitschaft")) hid = "bereitschaft";
+  else if (hatPrefix(tk, "signal", "abschreck")) hid = "signal";
+  else if (hatPrefix(tk, "vermittl", "schlicht")) hid = "vermittlung";
+  else if (hatPrefix(tk, "kriegsziel") || (hatPrefix(tk, "ziel") && hatPrefix(tk, "deklarier", "erklaer"))) {
+    hid = hatPrefix(tk, "revision") ? "ziel_revision" : hatPrefix(tk, "schutz") ? "ziel_schutz" : hatPrefix(tk, "beistand") ? "ziel_beistand" : "ziel_verteidigung";
+  } else if (hatPrefix(tk, "beschluss", "einsatzbeschluss") || (hatPrefix(tk, "krieg") && hatPrefix(tk, "erklaer", "beschliess", "angreif", "einbring"))) {
+    hid = /(erlass|dekret|verordnung)/.test(t) ? "beschluss_erlass" : "beschluss";
+  } else if (hatPrefix(tk, "waffenruhe")) hid = "waffenruhe";
+  else if (hatPrefix(tk, "frieden", "paket")) hid = hatPrefix(tk, "weiss") ? "paket_weiss" : hatPrefix(tk, "hart", "sieg") ? "paket_sieg" : "paket_ausgewogen";
+  else if (hatPrefix(tk, "verstaerk", "nachschub", "reserv")) hid = "verstaerkung";
+  else if (hatPrefix(tk, "weiterkampf", "weiterkaempf")) hid = "weiterkaempfen";
+  else if (hatPrefix(tk, "deeskal", "beruhig", "entspann", "entschaerf")) hid = "deeskalation";
+  else if (hatPrefix(tk, "rueckzug", "zurueckzieh")) hid = "rueckzug";
+  else if (hatPrefix(tk, "angriff", "einmarsch", "invasion", "angreif")) {
+    hid = k.kriegszielDeklariert ? "beschluss" : "ziel_verteidigung";
+  }
+  if (!hid) {
+    return {
+      ok: true,
+      text: `Konfliktvorgang mit ${l.name} (${PHASEN_NAME[k.phase]}). Befehle je nach Phase: „Teilmobilmachung“ oder „Vollmobilmachung“, „Abschreckungssignal“, „Vermittlung rufen“, „Kriegsziel deklarieren“, „Einsatzbeschluss einbringen“ (oder „per Erlass“), „Verstärkung schicken“, „Waffenruhe anbieten“, „Friedenspaket“, „Lage beruhigen“.`,
+      why: "Das Dossier in der Welt-Ansicht zeigt alle Handlungen dieser Phase mit Preisen und Gründen.",
+    };
+  }
+  const r = fuehreKriegHandlungAus(w, k.id, hid);
+  return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+}
+
 function laenderBefehl(t: string, tk: string[], w: World): ChatAntwort | null {
   if (!w.spiel) return null;
-  // Krieg und Truppen gibt es nicht; das sagt die ehrliche Antwort weiter unten
+  // Krieg und Truppen laufen als Konfliktvorgang; der Kriegs-Parser weiter oben entscheidet diese Fälle
   if (hatPrefix(tk, "krieg", "truppe", "armee", "angriff", "einmarsch", "invasion", "rakete", "bombardier", "militaerisch", "kampf", "soldat")) return null;
   const id = tk.map((x) => LAND_WORT[x] ?? [...Object.entries(LAND_WORT)].find(([k]) => x.startsWith(k) && k.length >= 5)?.[1]).find(Boolean);
   const aktion: AktionId | null = hatPrefix(tk, "gipfel", "treffen", "besuch", "reis", "einlad", "trefft")
@@ -693,7 +821,7 @@ function nichtVorhanden(t: string, tk: string[], w: World): ChatAntwort | null {
   if (hatPrefix(tk, "krieg", "truppe", "armee", "angriff", "einmarsch", "invasion", "rakete", "bombardier", "militaerisch", "kampf", "waffen", "soldat")) {
     return {
       ok: false,
-      text: "Krieg, Truppen und Militäreinsätze gibt es in diesem Stand des Spiels noch nicht; sie sind für später geplant. Was es gibt: die Verteidigungsausgaben, die heimische Rüstungsindustrie und den Friedensprozess, jeweils als Maßnahme.",
+      text: "Konflikte laufen als Vorgang: Spannung, Drohkulisse, Einsatzbeschluss (mit Parlamentsmehrheit oder teurem Erlass), Krieg mit Frontlage und Erschöpfungsuhr, Waffenruhe, Frieden mit Innenpreis. Das Dossier steht in der Welt-Ansicht beim betroffenen Land; Befehle wie „Teilmobilmachung“ oder „Kriegsziel deklarieren“ wirken dort. Schlachten, Raketen und Taktik gibt es nicht — der Präsident bestellt und verantwortet, er kommandiert nicht.",
       why: "Ehrlich statt vorgetäuscht: Ich führe nur aus, was der Kern rechnen kann.",
     };
   }
@@ -711,9 +839,13 @@ function nichtVorhanden(t: string, tk: string[], w: World): ChatAntwort | null {
       why: "Diplomatie ist in Stufen gebaut (Außenpolitik, Abschnitte 4 und 6); die Länder sehen Sie im Fenster „Die Welt“.",
     };
   }
-  if (hatPrefix(tk, "neuwahl", "referendum", "volksabstimmung", "ruecktritt", "verfassung")) {
+  if (hatPrefix(tk, "neuwahl", "ruecktritt")) {
     const monate = w.spiel ? Math.round((w.spiel.wahltag - w.day) / 30.4) : 0;
-    return { ok: false, text: `Neuwahlen, Volksabstimmungen und Verfassungsänderungen kann der Präsident in diesem Stand nicht selbst auslösen. Die nächste Wahl ist in etwa ${monate} Monaten.`, why: "Vorgesehen ist das in einer späteren Ausbaustufe, mit den echten Mehrheitsregeln." };
+    return {
+      ok: false,
+      text: `Neuwahlen kann der Präsident nicht selbst ausrufen. Der einzige Weg ist die Verfassungsfrage: Der Artikel „Amtszeit und Wiederwahl“ erlaubt als Variante eine vorgezogene Neuwahl („Verfassungsänderung einbringen: vorgezogene Neuwahl“) — das Paket läuft über Parlament, Verfassungsgericht und gegebenenfalls eine Volksabstimmung. Die nächste Wahl ist in etwa ${monate} Monaten. Einen Rücktritt gibt es nicht.`,
+      why: "Mehrstufiger Vorgang statt Einzelentscheid: Die Werkstatt im Parlament-Fenster schnürt das Paket und zeigt die Stimmen-Prognose je Variante.",
+    };
   }
   if (hatPrefix(tk, "kabinett", "minister") && hatPrefix(tk, "bilde", "ernenn", "berufe")) {
     return { ok: false, text: "Ein neues Kabinett bilden können Sie nicht; Sie können einzelne Mitglieder entlassen („Entlasse den Finanzminister“). Ihr Team steht unter „Wer sind meine Minister?“.", why: "Entlassungen kosten 4 Kapital." };
@@ -793,6 +925,103 @@ function figurEntlassen(t: string, tk: string[], w: World): ChatAntwort | null {
 }
 
 // ---------------------------------------------------------------------------
+// Verfassungsfrage (REC-1): Paket einbringen, Absprachen, Kampagne, Stand
+
+function verfassungsBefehl(t: string, tk: string[], w: World): ChatAntwort | null {
+  const spiel = w.spiel;
+  if (!spiel) return null;
+  const thema = hatPrefix(tk, "verfassung", "grundgesetz", "referendum", "volksabstimmung", "wahlhuerde", "sperrklausel", "prozenthuerde", "notstandsartikel");
+  if (!thema) return null;
+  const z = verfassungsZustand(w);
+  const v = z.laufend;
+
+  // Rückzug, Absprachen und Kampagne betreffen den laufenden Vorgang
+  if (hatPrefix(tk, "zurueckzieh", "zuruecknehm", "stoppt", "stoppe")) {
+    const r = zieheVerfassungZurueck(w);
+    return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+  }
+  if (hatPrefix(tk, "werb", "kampagne", "impuls") || (hat(tk, "fuer") && hatPrefix(tk, "stimm"))) {
+    const r = kampagnenImpuls(w);
+    return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+  }
+  if (hatPrefix(tk, "kauf", "sicher") && hatPrefix(tk, "stimm", "mehrheit")) {
+    if (!v) return { ok: false, text: "Es liegt kein Verfassungspaket zur Abstimmung vor." };
+    const sicht = paketStimmen(w, v.paket, v.absprachen);
+    const ziel = sicht.erwartet >= VERFASSUNG_REGELN.mehrheit ? VERFASSUNG_REGELN.direkt + VERFASSUNG_REGELN.stimmenPuffer : VERFASSUNG_REGELN.mehrheit + VERFASSUNG_REGELN.stimmenPuffer;
+    const noetig = Math.max(0, ziel - sicht.erwartet);
+    if (!noetig) return { ok: true, text: `Die Prognose steht bei ${sicht.erwartet} Ja-Stimmen; die nächste Hürde gilt als gesichert.` };
+    const r = verfassungStimmenKaufen(w, noetig);
+    return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+  }
+
+  // Einbringen: Artikel aus dem Text lesen
+  const einbringen = hatPrefix(tk, "einbring", "bring", "reform", "aender", "aendern", "schnuer") || (hat(tk, "verfassung") && richtung(tk).rauf);
+  if (einbringen && !hat(tk, "wie", "was", "welche")) {
+    const paket: Record<string, string> = {};
+    if (hat(tk, "amtszeit", "amtsperiode", "wiederwahl") || hatPrefix(tk, "neuwahl", "vorgezogen")) {
+      paket.amtszeit = hatPrefix(tk, "neuwahl", "vorgezogen") ? "neuwahl_jetzt" : "wiederwahl_plus";
+    }
+    if (hat(tk, "wahlhuerde", "huerde", "wahlrecht", "sperrklausel", "prozenthuerde")) {
+      if (hat(tk, "fuenf", "5")) paket.wahlrecht = "fuenf";
+      else if (hat(tk, "zehn", "10")) paket.wahlrecht = "zehn";
+    }
+    if (hat(tk, "verfassungsgericht", "aym", "justizbesetzung") || (hat(tk, "justiz") && hat(tk, "besetzung", "ernennung"))) {
+      if (hat(tk, "acht", "8")) paket.justiz = "acht_sieben";
+      else if (hat(tk, "parlament") && hatPrefix(tk, "staerk", "mehrheit", "waehlt")) paket.justiz = "parlament_staerkt";
+      else paket.justiz = "acht_sieben";
+    }
+    if (hat(tk, "notstand", "ausnahmezustand", "notstandsartikel")) {
+      if (hatPrefix(tk, "eng", "begrenz", "einschraenk")) paket.notstand = "eng";
+      else if (hatPrefix(tk, "weit", "ausweit", "verschaerf")) paket.notstand = "weit";
+    }
+    if (hat(tk, "immunitaet") && hatPrefix(tk, "aufheb", "abschaff", "aufgehoben", "streicht", "streich")) paket.immunitaet = "aufgehoben";
+    if (Object.keys(paket).length === 0) {
+      const liste = ARTIKEL.map((a) => `„${a.name}“ (${a.varianten.filter((x) => !x.statusQuo).map((x) => x.name).join(" oder ")})`).join("; ");
+      return {
+        ok: false,
+        text: `Welche Artikel soll das Paket ändern? Zur Wahl stehen: ${liste}. Sagen Sie etwa „Verfassungsänderung einbringen: Wahlhürde auf fünf Prozent und Verfassungsgericht acht plus sieben“ — oder stellen Sie das Paket in der Werkstatt im Parlament-Fenster zusammen; dort sehen Sie je Variante die Stimmen-Prognose.`,
+        why: "Ein Paket braucht mindestens einen Artikel, der vom bisherigen Recht abweicht. Eine Verfassungsfrage je Amtszeit.",
+      };
+    }
+    const pr = pruefeVerfassung(w, paket);
+    if (!pr.ok) return { ok: false, text: pr.grund ?? "Das Paket lässt sich so nicht einbringen." };
+    const r = bringeVerfassungEin(w, paket);
+    return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+  }
+
+  // Stand und Erklärung
+  const stand = verfassungStand(w);
+  if (v?.phase === "kampagne") {
+    const p = referendumPrognose(w);
+    return {
+      ok: true,
+      text: `${stand.zeile}${p ? ` Erwartet werden etwa ${nf(p.mitte)} Prozent Ja: Zustimmung ${nf(p.zustimmung)}, Themen der Artikel ${p.salienz >= 0 ? "+" : ""}${nf(p.salienz)}, Kampagne +${nf(p.kampagne)}. Mit „Für das Referendum werben“ investieren Sie Kapital in die Kampagne.` : ""}`,
+      why: "Eine Volksabstimmung ist eine Wahl über die Regierung selbst; die Auszählung streut wie eine Wahl.",
+    };
+  }
+  if (v) {
+    const sicht = paketStimmen(w, v.paket, v.absprachen);
+    return {
+      ok: true,
+      text: `${stand.zeile} Erwartet werden ${sicht.erwartet} Ja-Stimmen (Spanne ${sicht.tief} bis ${sicht.hoch}): Ab ${VERFASSUNG_REGELN.direkt} wird das Paket direkt Gesetz, ab ${VERFASSUNG_REGELN.mehrheit} entscheidet das Volk, darunter scheitert es. Möglich: „Stimmen für die Verfassung kaufen“, „Verfassungspaket zurückziehen“.`,
+      why: "Die Hürden sind hart: Einmal eingebracht, zählt jede Stimme — Absprachen kosten bei der Verfassungsfrage das Doppelte.",
+    };
+  }
+  const aktiv = Object.entries(z.aktiv);
+  const sperren = Object.entries(z.sperren).filter(([, bis]) => bis > w.day);
+  return {
+    ok: true,
+    text:
+      `${stand.zeile} Zur Wahl stehen die Artikel ${ARTIKEL.map((a) => `„${a.name}“`).join(", ")}. ` +
+      `Ein Paket kostet ${VERFASSUNG_REGELN.pkBasis} Kapital plus ${VERFASSUNG_REGELN.pkJeArtikel} je geändertem Artikel; das Parlament braucht ${VERFASSUNG_REGELN.mehrheit} Stimmen (dann Volksabstimmung) oder ${VERFASSUNG_REGELN.direkt} (direkt Gesetz); das Verfassungsgericht kann anfechtbar sein. ` +
+      (aktiv.length ? `Beschlossen ist bisher: ${aktiv.map(([a, vId]) => `${artikelDef(a)?.name ?? a}: ${varianteDef(vId)?.name ?? vId}`).join(", ")}. ` : "") +
+      (sperren.length ? `Gesperrt nach einem Scheitern: ${sperren.map(([a]) => artikelDef(a)?.name ?? a).join(", ")}. ` : "") +
+      `Sagen Sie etwa „Verfassungsänderung einbringen: Wahlhürde auf fünf Prozent“, oder öffnen Sie die Werkstatt im Parlament-Fenster.`,
+    why: "Eine Verfassungsfrage je Amtszeit; gescheiterte Artikel sind zwölf Monate gesperrt. Die Werkstatt zeigt je Variante, welche Fraktionen und Wählergruppen sie trägt.",
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Einstieg
 
 /** Führt einen Befehl aus und meldet, was der Kern daraufhin protokolliert. */
@@ -845,6 +1074,15 @@ export function befehl(text: string, w: World): ChatAntwort {
 
   const fraktionsBefehl = verhandlungsBefehl(text, tk, w);
   if (fraktionsBefehl) return fraktionsBefehl;
+
+  const initiative = initiativeBefehl(t, tk, w);
+  if (initiative) return initiative;
+
+  const verfassung = verfassungsBefehl(t, tk, w);
+  if (verfassung) return verfassung;
+
+  const kriegAntwort = kriegBefehl(t, tk, w);
+  if (kriegAntwort) return kriegAntwort;
 
   const laenderAntwort = laenderBefehl(t, tk, w);
   if (laenderAntwort) return laenderAntwort;

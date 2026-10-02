@@ -54,6 +54,18 @@ export interface EconomyState {
   oel?: number;
   euNachfrage?: number;
   weltzins?: number;
+  // WIR-2 (Außenwirtschaft minimal, sim/devisen.ts): die Devisen-Lage als zweite, nicht druckbare Währung.
+  // Alle vier fehlen in älteren Spielständen und in Lernfall-Replays; die Zuschläge in economy.ts sind dann neutral (0).
+  /** Leistungsbilanz-Saldo in % des BIP (laufendes Jahr); Start aus currentAccountPctGdp */
+  leistungsbilanzPctBip?: number;
+  /** TCMB-Bruttoreserven inkl. Gold, Mrd. USD (Spielgröße; Start aus grossReservesUsdBn) */
+  reservenBruttoUsdMrd?: number;
+  /** Netto-Reserven ohne Swaps, Mrd. USD (Spielgröße; Start aus netReservesExSwapsUsdBn; kann negativ werden) */
+  reservenNettoUsdMrd?: number;
+  /** Reserven-Druck 0 bis 1 mit Hysterese (devisen.ts): treibt CDS- und Abwertungszuschlag (economy.ts) */
+  reservenDruck?: number;
+  /** Restglättung laufender Deviseninterventionen (Anteil, 0,015 = 1,5 % Kursstütze); wird täglich verbraucht */
+  fxPuffer?: number;
   // Reine Realwelt-Datenfelder des Szenarios (Stichtag 25.09.2026, RECHERCHE_REALWELT_TUERKEI_2026 Abschnitt 11.1).
   // Sie steuern keine Mechanik und fehlen in älteren Spielständen.
   /** Kerninflation, % zum Vorjahr (TÜİK 08/2026) */

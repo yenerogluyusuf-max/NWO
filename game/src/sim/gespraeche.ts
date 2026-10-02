@@ -108,6 +108,8 @@ export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string
   land_fordert: { amt: ["aussen"], titel: "Die Forderung eines Partnerlandes" },
   land_angebot: { amt: ["aussen"], titel: "Das Angebot eines Partnerlandes" },
   land_provokation: { amt: ["aussen", "generalstab"], titel: "Die Provokation an der Grenze" },
+  land_drohkulisse: { amt: ["aussen", "generalstab"], titel: "Die Drohkulisse" },
+  vertrag_verlaengerung: { amt: ["aussen"], titel: "Die Vertragsverlängerung" },
   mindestlohn: { amt: ["wirtschaft", "finanzen"], titel: "Der Mindestlohn" },
   haushaltsjahr: { amt: ["finanzen"], titel: "Der Haushalt für das nächste Jahr" },
   kommunalwahl: { amt: ["stab"], titel: "Die Kommunalwahlen" },

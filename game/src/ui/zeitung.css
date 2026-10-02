@@ -1,0 +1,118 @@
+/* Die Zeitung (UI-1): gedruckte Frontseite auf Papier — Masthead mit Doppellinie,
+   mehrspaltiger Satz wie in einer Tageszeitung, Blätter als Registerkarten.
+   Töne der Blätter: Siegelrot (regierungsnah), Petrol (unabhängig), Tinte (oppositionell). */
+
+.zt { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 20px; align-items: start; }
+
+/* --- Blatt-Auswahl als Registerkarten ------------------------------------ */
+.zt-blaetter { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: -1px; position: relative; z-index: 1; }
+.zt-blatt-tab {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 7px 14px 5px !important;
+  border: 1px solid rgba(90, 64, 40, 0.45) !important; border-bottom: none !important; border-radius: 4px 4px 0 0 !important;
+  background: linear-gradient(180deg, #e6d8b8, #dccdab) !important; box-shadow: none !important;
+  opacity: 0.75; min-width: 132px;
+}
+.zt-blatt-tab strong { font-family: var(--display); font-size: 15.5px; font-weight: 600; letter-spacing: 0.01em; }
+.zt-blatt-tab span { font-size: 11.5px; font-variant: small-caps; letter-spacing: 0.05em; color: var(--ink-soft); }
+.zt-blatt-tab.on { opacity: 1; background: linear-gradient(180deg, #fbf5e6, #f3ead2) !important; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08) !important; }
+.zt-blatt-tab.ton-regierungsnah.on strong { color: var(--seal); }
+.zt-blatt-tab.ton-neutral.on strong { color: var(--teal); }
+.zt-blatt-tab:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+/* --- Masthead ------------------------------------------------------------- */
+.zt-seite {
+  border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 0 3px 3px 3px;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(255, 250, 235, 0.75), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(120, 90, 50, 0.03) 0 1px, transparent 1px 3px),
+    var(--paper-light);
+  box-shadow: var(--shadow);
+  padding: 14px 22px 18px;
+}
+.zt-masthead { text-align: center; margin-bottom: 10px; }
+.zt-zeile-oben {
+  display: flex; justify-content: space-between; gap: 12px; margin: 0 0 2px;
+  font-size: 12px; color: var(--ink-soft); font-variant: small-caps; letter-spacing: 0.05em;
+  border-top: 2.5px solid var(--ink); border-bottom: 0.75px solid var(--ink); padding: 3px 1px;
+}
+.zt-eil {
+  font-style: normal; color: var(--seal); border: 1px solid var(--seal); border-radius: 2px;
+  padding: 0 5px; margin-left: 7px; font-weight: 700; letter-spacing: 0.08em;
+}
+.zt-blattname { font-family: var(--display); font-size: 44px; font-weight: 700; margin: 6px 0 0; letter-spacing: 0.01em; line-height: 1.05; }
+.zt-unterzeile { font-style: italic; color: var(--ink-soft); margin: 2px 0 4px; font-size: 13.5px; }
+.zt-zeile-unten {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0;
+  font-size: 12px; color: var(--ink-soft); font-variant: small-caps; letter-spacing: 0.05em;
+  border-top: 0.75px solid var(--ink); border-bottom: 2.5px solid var(--ink); padding: 2px 1px;
+}
+
+/* --- Artikel -------------------------------------------------------------- */
+.zt-lead { margin: 4px 0 8px; }
+.zt-sparte {
+  font-variant: small-caps; letter-spacing: 0.07em; font-size: 12px; font-weight: 600;
+  color: var(--seal); margin: 0 0 2px;
+}
+.zt-schlagzeile { font-family: var(--display); font-weight: 650; margin: 0 0 6px; line-height: 1.15; }
+.zt-lead .zt-schlagzeile { font-size: 30px; }
+.zt-spalten .zt-schlagzeile { font-size: 18px; }
+.zt-artikel-text { margin: 0 0 7px; text-align: justify; hyphens: auto; line-height: 1.5; }
+.zt-lead .zt-artikel-text:first-of-type::first-letter {
+  font-family: var(--display); font-size: 40px; font-weight: 700; line-height: 0.9;
+  float: left; padding: 2px 7px 0 0; color: var(--ink);
+}
+.zt-spalten { columns: 2 240px; column-gap: 26px; column-rule: 0.75px solid rgba(90, 64, 40, 0.35); margin-top: 6px; }
+.zt-spalten article { break-inside: avoid; margin-bottom: 12px; }
+.zt-spalten article.zt-kurz { opacity: 0.82; }
+.zt-spalten article.zt-kurz .zt-schlagzeile { font-size: 15.5px; }
+.zt-verschwiegen {
+  break-inside: avoid; font-size: 12.5px; color: var(--ink-soft); border-top: 0.75px dashed rgba(90, 64, 40, 0.5);
+  padding-top: 6px; margin: 4px 0 0;
+}
+
+/* --- Umfrage-Kasten -------------------------------------------------------- */
+.zt-umfrage {
+  break-inside: avoid; border: 1.5px solid var(--ink); padding: 10px 14px; margin: 0 0 12px;
+  background: rgba(255, 250, 235, 0.55); box-shadow: 3px 3px 0 rgba(42, 31, 24, 0.18);
+}
+.zt-umfrage h5, .zt-regulierung h5, .zt-archiv h5 {
+  font-family: var(--display); font-size: 15px; font-weight: 650; margin: 0 0 6px;
+  font-variant: small-caps; letter-spacing: 0.05em;
+}
+.zt-umfrage-institut { font-style: italic; color: var(--ink-soft); margin: 0; font-size: 13px; }
+.zt-umfrage-wert { font-family: var(--display); font-size: 34px; font-weight: 700; margin: 2px 0; }
+.zt-umfrage-prozent { font-size: 16px; font-weight: 500; }
+.zt-umfrage-wert em { font-style: normal; font-size: 15px; margin-left: 8px; }
+.zt-umfrage-wert em.auf { color: #33622f; }
+.zt-umfrage-wert em.ab { color: var(--seal); }
+.zt-umfrage-meta { font-size: 12px; color: var(--ink-soft); margin: 0; }
+.zt-umfrage.schublade p:last-child { margin: 0; font-size: 13.5px; }
+
+/* --- Rand: Archiv und Regulierungs-Referenz -------------------------------- */
+.zt-rand { display: flex; flex-direction: column; gap: 16px; }
+.zt-archiv ul, .zt-regulierung ul { list-style: none; margin: 0; padding: 0; }
+.zt-archiv li + li { margin-top: 3px; }
+.zt-archiv button {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 8px; width: 100%; text-align: left;
+  border: 1px solid rgba(90, 64, 40, 0.4) !important; background: linear-gradient(180deg, #fbf5e6, #eee1c3) !important;
+  border-radius: 3px; padding: 5px 9px !important; box-shadow: none !important;
+}
+.zt-archiv button.on { border-color: var(--seal) !important; box-shadow: inset 0 0 0 1px var(--seal) !important; }
+.zt-archiv button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.zt-archiv-nr { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+.zt-archiv-nr em { font-style: normal; color: var(--seal); font-size: 10.5px; margin-left: 4px; letter-spacing: 0.08em; }
+.zt-archiv-datum { font-size: 12px; color: var(--ink-soft); text-align: right; }
+.zt-archiv-lead { grid-column: 1 / -1; font-size: 12.5px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zt-regulierung { border-top: 2px solid var(--ink); padding-top: 8px; }
+.zt-reg-hinweis { font-size: 12px; color: var(--ink-soft); margin: 0 0 8px; }
+.zt-regulierung li {
+  display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px;
+  padding: 3px 0; border-bottom: 0.5px dashed rgba(90, 64, 40, 0.4);
+}
+.zt-reg-preis { color: var(--seal); white-space: nowrap; }
+
+/* Schmale Fenster: Rand unter die Seite */
+@media (max-width: 1100px) {
+  .zt { grid-template-columns: 1fr; }
+  .zt-blattname { font-size: 34px; }
+}

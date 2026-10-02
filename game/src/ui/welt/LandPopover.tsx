@@ -3,11 +3,12 @@
 import { useEffect, useRef } from "react";
 import type { World } from "../../sim/types";
 import { anliegenStand, dimensionZu, haltungWort, land, weltZustand } from "../../sim/laender";
+import { initiativeGegen } from "../../sim/initiative";
 import { laufende } from "../../sim/abkommen";
 import { ISO_ZU_LAND, LAENDERNAMEN } from "../ebenen";
 import { Flagge } from "../art/Flaggen";
 
-export type WeltTab = "ueberblick" | "verhandeln" | "vertraege" | "handeln";
+export type WeltTab = "ueberblick" | "verhandeln" | "vertraege" | "handeln" | "konflikt";
 
 export interface LandAuswahl {
   iso: string;
@@ -61,6 +62,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
   const stand = anliegenStand(world, landId);
   const mitglied = auswahl.iso !== landId;
   const laeuft = laufende(world, landId).length;
+  const initiative = initiativeGegen(world, landId);
   return (
     <div className="we-pop" ref={ref} tabIndex={-1} style={{ left: links, top: oben, width: breite }} role="dialog" aria-label={name}>
       <button type="button" className="we-pop-zu" onClick={onClose} aria-label="Schließen">
@@ -77,6 +79,11 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
         </div>
       </div>
       {mitglied && <p className="we-pop-text">{name} gehört zur Europäischen Union; Verhandlungen führt Ankara mit der Union.</p>}
+      {initiative && (
+        <p className="we-pop-initiative" role="status">
+          {initiative.titel} — eine Entscheidung wartet.
+        </p>
+      )}
       <div className="we-pop-werte">
         {(["handel", "sicherheit", "vertrauen", "konflikt"] as const).map((d) => (
           <div key={d} className={`we-pop-wert dim-${d}`}>

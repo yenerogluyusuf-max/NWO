@@ -15,6 +15,7 @@ import type { Effekt, LaufEintrag, ReichMeldung, ReichZustand, Voraussetzung, Ve
 import { VERGABE_NAMEN } from "./reich-typen";
 import type { VorteilDef } from "../data/reich/typen";
 import { kannZahlen } from "./kapital";
+import { zeitungEreignis } from "./zeitung";
 import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, belastungSinken, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
@@ -640,6 +641,15 @@ function schliesseAb(w: World, v: Vorhaben): void {
   const sparhinnweis = l?.zustandFertig !== undefined ? ` Die Sparvergabe zeigt sich: Der Zustand beginnt bei ${l.zustandFertig}.` : "";
   addLog(w, "entscheidung", text, `${v.kehrseite}${sparhinnweis}`);
   w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: v.name, ausgang: `Fertiggestellt (${v.klasse === "wunder" ? "Wunder" : v.klasse === "serie" ? "Themenroute" : "Vorhaben"}).` });
+  // Fertigstellung: Großereignis für die Zeitung (Eilmeldung digital, Print im nächsten Monat)
+  if (wichtig)
+    zeitungEreignis(w, {
+      art: "fertigstellung",
+      titel: v.name,
+      fakt: `${v.name} ist fertiggestellt — ${v.klasse === "wunder" ? "ein Wunder der Amtszeit" : v.klasse === "serie" ? "eine ganze Themenroute" : "ein Großprojekt der Amtszeit"}.`,
+      wertung: 0.7,
+      schluessel: [v.name],
+    });
 }
 
 /** Einmal im Monat: bauen, verfallen lassen, wirken lassen, Vorteile prüfen. */

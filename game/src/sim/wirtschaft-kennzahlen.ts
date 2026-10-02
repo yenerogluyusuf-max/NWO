@@ -3,6 +3,7 @@
 
 import type { World } from "./types";
 import { AUSSEN, PARAMS, potential, ppkZiel, PPK_GEWICHTE, realRate } from "./economy";
+import { DEVISEN, kapitalflussZerlegung, leistungsbilanzZerlegung } from "./devisen";
 import { NET } from "./modell";
 import { nationalAverage, startAverage, decayVon } from "./netz";
 import { formatDateDe, formatMonthDe } from "./dates";
@@ -35,7 +36,7 @@ export interface Handlung {
   /** Um wie viele Stufen der Posten für die Vorschau „Was wäre, wenn?“ bewegt wird */
   stufe?: number;
   /** Zentralbank: welcher Abschnitt */
-  abschnitt?: "sitzung" | "gouverneur" | "stufe";
+  abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen";
 }
 
 export interface Linie {
@@ -201,9 +202,11 @@ export const KENNZAHLEN: Kennzahl[] = [
       return {
         kopf: "Der erwartete Kursverlauf im Jahr, als Abwertung der Lira in Prozent; dazu kommt täglich ein Zufall, der bei geringem Vertrauen größer ist.",
         zeilen: [
-          tr("Inflation über dem Ausland", e.inflation - PARAMS.foreignInflation, "% im Jahr", "Wer mehr Inflation hat als seine Partner, wertet auf Dauer ab."),
+          tr("Inflation über dem Ausland", e.expectedInflation - PARAMS.foreignInflation, "% im Jahr", "Wer mehr Inflation erwartet als seine Partner, wertet auf Dauer ab (Z4, Erwartungskanal)."),
           tr("Realzins über dem Neutralwert", -PARAMS.carryOnFx * (realRate(e) - PARAMS.neutralRealRate), "% im Jahr", "Ein hoher Realzins zieht Kapital an und stützt die Lira (Z4)."),
           tr("Risikoaufschlag", (e.riskPremium - 250) / 100, "% im Jahr", "Mehr Risiko heißt Kapitalabfluss."),
+          tr("Leere Reserven (WIR-2)", PARAMS.fxReservenDruckMax * (e.reservenDruck ?? 0), "% im Jahr", "Ohne Pulver wird die Zentralbank getestet (Druck mit Hysterese)."),
+          tr("Laufende Intervention (WIR-2)", -(e.fxPuffer ?? 0) * 100, "% Kursstütze, Rest", "Verkaufte Reserven glätten den Kurs, bis der Puffer verbraucht ist."),
         ],
       };
     },
@@ -351,11 +354,14 @@ export const KENNZAHLEN: Kennzahl[] = [
     prognose: "riskPremium",
     treiber: (w) => {
       const e = w.economy;
+      // Die Zeilen spiegeln die Fundamentalformel von dailyRiskPremium (Z8 in economy.ts)
       const zeilen = [
         tr("Grundniveau", 150, "Basispunkte", "Ein Land mit stabiler Lage hat kaum weniger."),
-        tr("Inflation über 10 %", 3 * Math.max(0, e.inflation - 10), "Basispunkte", "Hohe Inflation entwertet Anleihen."),
+        tr("Erwartete Inflation über 10 %", 2.5 * Math.max(0, e.expectedInflation - 10), "Basispunkte", "Die Märkte bepreisen die erwartete Teuerung, nicht den Rückblick (Z8, Kalibrierung WIR-1)."),
         tr("Schulden über 40 % des BIP", 2 * Math.max(0, e.debtRatio - 40), "Basispunkte", "Mehr Schulden, mehr Risiko."),
         tr("Fehlende Glaubwürdigkeit der Bank", 200 * (1 - e.credibility), "Basispunkte", "Politischer Druck auf die Bank macht Anleger nervös (Z8)."),
+        tr("Chronische Politiklast über 2 % des BIP", PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 2), "Basispunkte", "Wer dauerhaft über die Verhältnisse ausgibt, zahlt einen Nachhaltigkeitsaufschlag (ZEI-4)."),
+        tr("Leere Reserven (WIR-2)", PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0), "Basispunkte", "Unter 25 Mrd. Netto-Reserven testen die Märkte die Zentralbank (Hysterese bis 30 Mrd.)."),
         tr("Weltzinsen", AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100), "Basispunkte", "Steigen Zinsen weltweit, werden Schwellenländer riskanter."),
       ];
       const grund = zeilen.reduce((a, z) => a + z.wirkung, 0);
@@ -365,6 +371,63 @@ export const KENNZAHLEN: Kennzahl[] = [
       { label: "Glaubwürdigkeit der Bank pflegen", ziel: "zentralbank", abschnitt: "stufe" },
       { label: "Defizit begrenzen: den Haushalt ansehen", ziel: "haushalt" },
     ],
+  },
+  // WIR-2: Die Devisen-Lage als eigene Kennzahlengruppe — Devisen lassen sich nicht drucken.
+  {
+    id: "leistungsbilanz", name: "Leistungsbilanz", gruppe: "Staat und Märkte", einheit: "% des BIP", stellen: 1, gut: "hoch",
+    erklaerung: "Exporte minus Importe von Waren, Diensten und Transfers, in Prozent der Wirtschaftsleistung. Ein dauerhaftes Defizit muss mit Kapitalzufluss oder aus den Reserven finanziert werden — Devisen kann die Zentralbank nicht drucken.",
+    gemessen: () => "monatlich fortgeschrieben (Modell, OVP-Erwartung als Start)",
+    treiber: (w) => {
+      const z = leistungsbilanzZerlegung(w);
+      return {
+        kopf: `Die Leistungsbilanz läuft mit ${nf(DEVISEN.lbTempo * 100, 0)} % pro Monat auf den Wert ${nf(z.ziel)} % zu, den diese Kräfte zusammen ergeben:`,
+        zeilen: z.zeilen.map((x) => tr(x.name, x.wert, "% des BIP je Jahr", x.text)),
+      };
+    },
+    handlungen: [
+      { label: "Devisen und Reserven: die Zentralbank", ziel: "zentralbank", abschnitt: "devisen" },
+      { label: "Exporte stärken: Zins und Lira", ziel: "zentralbank", abschnitt: "sitzung" },
+    ],
+  },
+  {
+    id: "reservenNetto", name: "Netto-Reserven der Zentralbank", gruppe: "Staat und Märkte", einheit: "Mrd. US-Dollar", stellen: 1, gut: "hoch",
+    erklaerung: "Die Reserven ohne Swap-Verbindlichkeiten: das Pulver der Zentralbank gegen einen Lira-Sturm. Fallen sie unter 25 Mrd., verlangen die Märkte einen Zuschlag auf Kurs und Risikoaufschlag; unter 10 Mrd. droht die Zahlungsbilanzkrise.",
+    gemessen: () => "monatlich fortgeschrieben (Modell, TCMB-Stand als Start)",
+    linien: () => [
+      { wert: DEVISEN.druckAn, text: `Zuschlag der Märkte ab ${DEVISEN.druckAn} Mrd.`, art: "grenze" },
+      { wert: DEVISEN.kriseAn, text: `Zahlungsbilanzkrise ab ${DEVISEN.kriseAn} Mrd.`, art: "grenze" },
+    ],
+    treiber: (w) => {
+      const lb = leistungsbilanzZerlegung(w);
+      const fl = kapitalflussZerlegung(w);
+      const e = w.economy;
+      const monat = (((e.leistungsbilanzPctBip ?? 0) + fl.ziel) / 100 / 12) * (((e.bipTryTn ?? 84) * 1000) / Math.max(1, e.usdTry));
+      return {
+        kopf: `Die Netto-Reserven ändern sich derzeit um etwa ${nf(monat)} Mrd. Dollar im Monat: Leistungsbilanz plus Kapitalflüsse, minus Interventionen.`,
+        zeilen: [
+          tr("Leistungsbilanz-Saldo", e.leistungsbilanzPctBip ?? 0, "% des BIP je Jahr", "Was der Handel und die Dienste netto kosten oder einbringen."),
+          ...fl.zeilen.map((x) => tr(x.name, x.wert, "% des BIP je Jahr", x.text)),
+          tr("Reserven-Druck der Märkte", (e.reservenDruck ?? 0) * 100, "%", "Unter 25 Mrd. schlagen niedrige Reserven auf Kurs und Risikoaufschlag durch (Hysterese bis 30 Mrd.)."),
+        ],
+      };
+    },
+    handlungen: [
+      { label: "Interventionen und IWF: die Zentralbank", ziel: "zentralbank", abschnitt: "devisen" },
+      { label: "Kapital anziehen: Zins und Vertrauen", ziel: "zentralbank", abschnitt: "sitzung" },
+    ],
+  },
+  {
+    id: "reservenBrutto", name: "Brutto-Reserven der Zentralbank", gruppe: "Staat und Märkte", einheit: "Mrd. US-Dollar", stellen: 1, gut: "hoch",
+    erklaerung: "Alle Reserven der Zentralbank einschließlich Gold — aber ein großer Teil ist verliehen oder geschuldet (Swaps, Mindestreserven der Banken). Entscheidend ist der Netto-Stand; der Abstand bleibt im Modell konstant.",
+    gemessen: () => "monatlich fortgeschrieben (Modell, TCMB-Stand als Start)",
+    treiber: (w) => ({
+      kopf: "Die Brutto-Reserven bewegen sich parallel zu den Netto-Reserven; der Abstand (Gold, Swaps, Mindestreserven) bleibt konstant — eine dokumentierte Modellvereinfachung.",
+      zeilen: [
+        tr("Netto-Reserven", (w.economy.reservenNettoUsdMrd ?? 0) - (w.economy.reservenBruttoUsdMrd ?? 0), "Mrd. US-Dollar", "Der verfügbare Teil nach Abzug der Verbindlichkeiten."),
+        tr("Abstand: Gold, Swaps, Mindestreserven", (w.economy.reservenBruttoUsdMrd ?? 0) - (w.economy.reservenNettoUsdMrd ?? 0), "Mrd. US-Dollar", "Nicht verfügbar: Goldbestände, Swap-Schulden und die hinterlegten Banken-Reserven."),
+      ],
+    }),
+    handlungen: [{ label: "Devisen: die Zentralbank", ziel: "zentralbank", abschnitt: "devisen" }],
   },
   netzKennzahl("vertrauen_maerkte", "Staat und Märkte", "hoch", [
     { label: "Defizit begrenzen: den Haushalt ansehen", ziel: "haushalt" },

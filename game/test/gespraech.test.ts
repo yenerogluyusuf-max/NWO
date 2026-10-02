@@ -100,9 +100,9 @@ describe("Ort: Bauen vor Ort", () => {
 
 describe("Ehrlichkeit über das, was es nicht gibt", () => {
   test.each([
-    ["krieg", /noch nicht/],
-    ["Wir erklären Syrien den Krieg", /noch nicht/],
-    ["Truppen nach Syrien schicken", /noch nicht/],
+    ["krieg", /keinen aktiven Konfliktvorgang/],
+    ["Wir erklären Syrien den Krieg", /keinen aktiven Konfliktvorgang/],
+    ["Truppen nach Syrien schicken", /keinen aktiven Konfliktvorgang/],
     ["Neuwahlen ausrufen", /nicht selbst/],
     ["Kanal Istanbul bauen", /noch nicht/],
     ["Bau einen neuen Flughafen in Istanbul", /noch nicht/],

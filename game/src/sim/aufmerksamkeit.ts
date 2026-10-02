@@ -88,6 +88,9 @@ export const AUFMERKSAMKEIT_KOSTEN = {
   landAktion: { gipfel: 8, handel: 6, ruestung: 6, druck: 4, entspannen: 6, hilfe: 6 } as const,
   reichVorhaben: 8,
   programmSchritt: 4,
+  /** Ein Verfassungspaket ist der größte Vorgang der Bühne */
+  verfassungPaket: 14,
+  verfassungKampagne: 6,
 } as const;
 
 export const STUFE_NAME: Record<VerfassungsStufe, string> = { 0: "ruhig", 1: "angespannt", 2: "überlastet" };

@@ -23,12 +23,15 @@ import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingr
 import { REGELN, bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
 import { FORDERUNG, bereitschaftAendern, forderungVon } from "./fraktionen";
 import { INNEN_VORLAGEN } from "./ereignisse-innen";
-import { LAENDER_VORLAGEN } from "./ereignisse-laender";
+import { INITIATIVE_VORLAGEN, INITIATIVE_VORLAGE_IDS } from "./initiative";
 import { schutzFuer } from "./programme";
 import { schwierig } from "./spiel";
 import { AUSSEN_VORLAGEN } from "./ereignisse-aussen";
+import { KRIEG_VORLAGEN } from "./ereignisse-krieg";
 import { REICH_VORLAGEN } from "./ereignisse-reich";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
+import { VERFASSUNG_VORLAGEN } from "./ereignisse-verfassung";
+import { setzeVerfassungsOeffner } from "./verfassung";
 import { brecheZusage, loeseZusageEin, vertroesteZusage, zusageBezug, zusageVorhaben } from "./zusagen";
 import { skala, skalenArt } from "../data/skalen";
 import { PROZ_STADT, akutIn, dk, einwohner, kosten, monatVon, namen, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
@@ -992,7 +995,7 @@ const START_WIEDERAUFBAU: Vorlage = {
 export const VORLAGEN: Vorlage[] = [
   ERDBEBEN, DUERRE, WAEHRUNG, ENERGIE, HAUSHALT, KORRUPTION, STREIK, MIETE, FLUECHTLINGE, ANSCHLAG, WALDBRAND, STROM, AERZTE, PREISDECKEL, MIETDECKEL, KOALITION,
   ZUSAGE, START_HAUSHALT, START_PARTNER, START_WIEDERAUFBAU,
-  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...LAENDER_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN,
+  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...KRIEG_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */
@@ -1080,7 +1083,7 @@ const SCHWERE: Record<string, number> = {
   energiepreisschock: 2.2, haushaltsdruck: 2.2,
   ratingagentur: 2, cyberangriff: 2, grenzzwischenfall: 2, streikwelle: 2, korruptionsaffaere: 2,
   duerre: 2, fluechtlingswelle: 2, waldbrand: 2,
-  land_fordert: 1.8, recht_haftrevolte: 1.8,
+  land_fordert: 1.8, land_drohkulisse: 2.2, recht_haftrevolte: 1.8,
   grippewelle: 1.6, stromausfaelle: 1.6,
   aerztestreik: 1.5, mietproteste: 1.5, fabrikschliessungen: 1.5, bauernproteste: 1.5,
   person_ruecktritt: 1.5, infra_bauunfall: 1.5, preisdeckel_knappheit: 1.5,
@@ -1140,7 +1143,7 @@ export function vorlage(id: string): Vorlage {
 export const MAX_OFFEN = 3;
 
 /** Vorlagen, deren Öffnen den Präsidenten sofort belastet (Eskalation im eigenen Land oder an den Grenzen). */
-const ESKALATION_VORLAGEN = new Set(["anschlag", "cyberangriff", "waehrungsrutsch", "weltwirtschaftskrise", "bankenstress", "pandemie", "land_provokation", "grenzzwischenfall"]);
+const ESKALATION_VORLAGEN = new Set(["anschlag", "cyberangriff", "waehrungsrutsch", "weltwirtschaftskrise", "bankenstress", "pandemie", "land_provokation", "land_drohkulisse", "grenzzwischenfall"]);
 
 /** Was eine Vorlage bei Auslösung erzeugt (Ort, Stärke, Daten); Felder dürfen fehlen. */
 type Erzeugung = { provinzen?: number[]; staerke?: number; daten?: Record<string, number | string> };
@@ -1207,6 +1210,17 @@ export function ereignisMonat(world: World, rng: Rng): void {
   }
   if (!kandidaten.length) return;
 
+  // AUS-1 (Eigeninitiative): Pro Monat klopft höchstens eine Länder-Initiative an — die mit dem schwersten
+  // Treiber (daten.gewicht). Die übrigen warten still: Ihre Treiber stehen ja weiter, sie kommen später
+  // wieder, statt die Chronik mit Haken zu füllen.
+  const initiativeK = kandidaten.filter((k) => INITIATIVE_VORLAGE_IDS.has(k.v.id));
+  if (initiativeK.length > 1) {
+    initiativeK.sort((a, b) => Number(b.gen.daten?.gewicht ?? 0) - Number(a.gen.daten?.gewicht ?? 0) || VORLAGEN.indexOf(a.v) - VORLAGEN.indexOf(b.v));
+    const beste = initiativeK[0]!;
+    for (let i = kandidaten.length - 1; i >= 0; i--) if (INITIATIVE_VORLAGE_IDS.has(kandidaten[i]!.v.id) && kandidaten[i] !== beste) kandidaten.splice(i, 1);
+  }
+  if (!kandidaten.length) return;
+
   // 2. Der Wettbewerb: feste Termine des Staatsjahres kommen immer; der Rest sortiert nach Dringlichkeit um die Slots
   const feste = kandidaten.filter((k) => TERMINE.has(k.v.id));
   const rest = kandidaten.filter((k) => !TERMINE.has(k.v.id));
@@ -1214,6 +1228,15 @@ export function ereignisMonat(world: World, rng: Rng): void {
   const slots = EREIGNIS_WETTBEWERB.slots[grad];
   const gewinner = [...feste, ...rest.slice(0, slots)];
   const verlierer = rest.slice(slots);
+
+  // AUS-1 (Eigeninitiative): höchstens eine Länder-Initiative pro Monat gesamt — die dringlichste gewinnt,
+  // weitere rutschen in die Verliererbehandlung (sie gären weiter oder verfallen wie gehabt)
+  let initiativeSchon = false;
+  for (let i = gewinner.length - 1; i >= 0; i--) {
+    if (!INITIATIVE_VORLAGE_IDS.has(gewinner[i]!.v.id)) continue;
+    if (initiativeSchon) verlierer.push(gewinner.splice(i, 1)[0]!);
+    else initiativeSchon = true;
+  }
 
   for (const k of gewinner) {
     // Die Obergrenze offener Vorgänge gilt auch für Sieger; wer nicht mehr passt, rutscht in die Verliererbehandlung
@@ -1228,8 +1251,11 @@ export function ereignisMonat(world: World, rng: Rng): void {
     oeffne(world, k.v.id, rng, { provinzen: k.gen.provinzen ?? [], staerke: staerke ?? 1, ...(k.gen.daten ? { daten: k.gen.daten } : {}) });
   }
 
-  // 3. Nicht präsentiert: je nach Ereignis-Typ ausgesessen (Standardfolge tritt ein) oder still eskaliert (gärt weiter)
+  // 3. Nicht präsentiert: je nach Ereignis-Typ ausgesessen (Standardfolge tritt ein) oder still eskaliert (gärt weiter).
+  // Länder-Initiativen (AUS-1) fallen aus dieser Behandlung heraus: Sie warten still auf den nächsten Monat —
+  // ihr Treiber ist keine schwelende Lage, die gärt, sondern ein Interesse, das wieder anklopft.
   for (const k of verlierer) {
+    if (INITIATIVE_VORLAGE_IDS.has(k.v.id)) continue;
     const ev = baueEreignis(world, k.v, k.gen);
     const titel = k.v.titel(world, ev);
     if (k.v.wettbewerb === "aussitzen") {
@@ -1291,6 +1317,12 @@ setzeEinbringHaken((world, massnahmeId, text) => {
     if (zusage) zusage.faellig = world.day + REGELN.tageBisAbstimmung + 15; // das Gesetz liegt im Parlament; die Zusage gilt, sobald es beschlossen ist
     abschliessen(world, ev, v.titel(world, ev), `Selbst an der Ursache angesetzt. ${text}`);
   }
+});
+
+// Der Verfassungskern (sim/verfassung.ts) öffnet seine Vorgangs-Ereignisse über diesen Haken,
+// ohne den Ereignismotor importieren zu müssen (Importrichtung bleibt einseitig).
+setzeVerfassungsOeffner((w, vorlageId, rng) => {
+  oeffne(w, vorlageId, rng);
 });
 
 const VORSCHAU_CACHE = new Map<string, string[]>();

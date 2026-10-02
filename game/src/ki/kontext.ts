@@ -5,7 +5,8 @@ import { NET } from "../sim/modell";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN } from "../sim/regional";
 import { formatDateDe } from "../sim/dates";
-import { LAENDER, dimensionZu, haltungWort, weltZustand } from "../sim/laender";
+import { LAENDER, dimensionZu, haltungWort, land, weltZustand } from "../sim/laender";
+import { aktiveKriege, handlungenFuer, PHASEN_NAME, RAHMUNG } from "../sim/krieg";
 import { VORHABEN } from "../data/reich";
 import { POSTEN, stufeVon } from "../sim/haushalt";
 import { KLAUSELN, PROFILE } from "../data/abkommen";
@@ -76,6 +77,9 @@ Ohne Aktion: "aktionen":[]. Mögliche Aktionen (Feld "art"):
 {"art":"vorhaben","id":"<Vorhaben-ID>","grund":"…"}  (ein Vorhaben des Reiches beginnen)
 {"art":"abkommen","land":"<Länder-ID>","bieten":["<Klausel-ID>",…],"verlangen":["<Klausel-ID>",…],"jahre":2|5|10,"grund":"…"}  (Vertrag anbieten; nur Klauseln, die es bei dem Land gibt)
 {"art":"vermittlung","id":"ukr_rus|arm_aze","grund":"…"}
+{"art":"verfassung","handlung":"einbringen","paket":{"amtszeit":"wiederwahl_plus|neuwahl_jetzt","wahlrecht":"fuenf|zehn","justiz":"acht_sieben|parlament_staerkt","notstand":"eng|weit","immunitaet":"aufgehoben"},"grund":"…"}  (Verfassungspaket einbringen; nur geänderte Artikel nennen; einmal je Amtszeit)
+{"art":"verfassung","handlung":"zurueckziehen|stimmen_kaufen|kampagne","grund":"…"}  (laufenden Verfassungsvorgang steuern)
+{"art":"krieg","land":"<Länder-ID>","handlung":"bereitschaft|signal|vermittlung|ziel_verteidigung|ziel_schutz|ziel_beistand|ziel_revision|deeskalation|rueckzug|mobil_teil|mobil_voll|beschluss|beschluss_erlass|verstaerkung|waffenruhe|paket_sieg|paket_ausgewogen|paket_weiss|paket_zugestaendnis|weiterkaempfen","grund":"…"}  (Konfliktvorgang; nur Handlungen, die das Dossier der Phase anbietet)
 
 MASSNAHMEN (ID: Name)
 ${massnahmen}
@@ -161,6 +165,22 @@ export function zustandsText(w: World): string {
     "Länder (Vertrauen/Konflikt): " +
       LAENDER.map((l) => `${l.id} ${haltungWort(w, l.id)} ${rund(dimensionZu(w, l.id, "vertrauen"))}/${rund(wz[l.id]!.konflikt)}`).join("; "),
   );
+
+  const konflikte = aktiveKriege(w);
+  if (konflikte.length) {
+    z.push(
+      "Konfliktvorgänge: " +
+        konflikte
+          .map((k) => {
+            const hb = handlungenFuer(w, k.id)
+              .filter((x) => x.moeglich)
+              .map((x) => x.id)
+              .join("|");
+            return `${land(k.land).name} (${PHASEN_NAME[k.phase]}, Eskalation ${rund(k.eskalation)}${k.phase === "krieg" || k.phase === "waffenruhe" ? `, Front ${rund(k.front)}, Rückhalt ${rund(k.uhr)}` : ""}${k.rahmung ? `, Rahmung ${RAHMUNG[k.rahmung].name}` : ""}) — möglich: ${hb || "keine"}`;
+          })
+          .join("; "),
+    );
+  }
 
   const abweichend = POSTEN.filter((p) => stufeVon(w, p.id) !== 0).map((p) => `${p.id} ${stufeVon(w, p.id) > 0 ? "+" : ""}${stufeVon(w, p.id)}`);
   z.push(`Haushaltsregler (Abweichung vom Plan): ${abweichend.length ? abweichend.join(", ") : "keine"}.`);

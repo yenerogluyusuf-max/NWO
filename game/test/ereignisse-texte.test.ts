@@ -28,6 +28,10 @@ function welt(seed: number) {
   advance(w, 210);
   w.spiel!.ereignisse = [];
   w.spiel!.hinweise = [];
+  // Die erlebte Zeit bringt Abkühlungen mit (Eigeninitiative, Auslöse-Sperren): Der Texttest will jede
+  // Vorlage auf Zuruf öffnen, also startet er ihre Sperren frisch — so wie oben Ereignisse und Hinweise.
+  w.spiel!.zuletzt = {};
+  for (const z of Object.values(weltZustand(w))) delete z.initiativeZuletzt;
   weltZustand(w).EU!.versatz += 30;
   weltZustand(w).GRC!.konflikt = 80;
   return w;
@@ -39,6 +43,7 @@ describe("Ereignistexte", () => {
     for (let seed = 1; seed <= 12; seed++) {
       const w = welt(seed);
       if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w);
+      if (id === "land_drohkulisse") weltZustand(w).GRC!.konflikt = 90; // Drohkulisse braucht Konflikt über der Schwelle 85
       if (id === "zusage") w.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
       const ev = oeffne(w, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined);
       if (!ev) continue;
@@ -55,6 +60,7 @@ describe("Ereignistexte", () => {
       for (const o of a.optionen) {
         const w2 = welt(seed);
         if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w2);
+        if (id === "land_drohkulisse") weltZustand(w2).GRC!.konflikt = 90;
         if (id === "zusage") w2.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w2.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
         const e2 = oeffne(w2, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined)!;
         const r = entscheide(w2, e2.id, o.id, new Rng(5));

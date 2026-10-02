@@ -1,15 +1,26 @@
-// Der Haushalt als Entscheidung: Posten mit Reglern (Nachtragshaushalt), deren Wirkung über Nachfrage, Defizit und die Politikfelder des Netzes
+// Der Haushalt als Entscheidung: Posten mit Reglern, deren Wirkung über Nachfrage, Defizit und die Politikfelder des Netzes
 // weiterläuft, und der Zinsdienst des Staates, der den Marktzinsen mit Verzögerung folgt. Alle Zahlen sind Spielparameter (Platzhalter der
 // Kalibrierung); die Größenordnungen des Haushalts stammen aus dem Haushaltsgesetz 2026 (`data/haushaltsplan.ts`).
+//
+// WIR-3 (Haushalts-Zyklus mit Parallelität, Suzerain-Vorbild aus VERBESSERUNGSPLAN_2026-09-30):
+//   - Die Regler bleiben jederzeit sichtbar; nur im Haushaltsfenster (Oktober, vier Wochen) sind Änderungen
+//     kostenlos — sie gehen als Entwurf in ein einziges Haushaltsgesetz, das durchs Parlament muss.
+//   - Außerhalb des Fensters ist jede Änderung ein „Nachtragshaushalt": doppelte Kapitalkosten und ein
+//     kleiner Legitimitäts-Abzug, ehrlich so bezeichnet.
+//   - Scheitert das Gesetz, läuft der Vorjahrshaushalt weiter; die Posten stehen in Prozent der
+//     Wirtschaftsleistung und gleichen die Inflation damit automatisch aus (Legitimität leidet trotzdem).
 
 import type { World } from "./types";
+import type { Rng } from "./rng";
 import { addLog, fmt } from "./log";
+import { addDays, dayOfMonth, monthNumber } from "./dates";
 import { clamp } from "./economy";
 import { kannZahlen } from "./kapital";
 import { wirke } from "./wirkung";
 import { NET } from "./modell";
 import { impulsKette, istGut, kettenZeile } from "./folgen";
 import { addMarke, defizitJetzt, haushaltZustand } from "./wirtschaft";
+import { REGELN, STIMMEN_PUFFER, stimmenSicht } from "./handeln";
 import { PLAN_2026, ZINSSATZ_START } from "../data/haushaltsplan";
 import { stuetze } from "../data/reich/bau";
 
@@ -165,6 +176,8 @@ export interface PostenVorschau {
   impuls: number;
   /** Dauerwirkungen als Zeilen mit Richtung (gut/schlecht aus Sicht des Landes) */
   zeilen: { text: string; richtung: 1 | -1; gut: boolean | null; nach: number }[];
+  /** WIR-3: Wie der Haushalts-Zyklus diese Änderung einordnet (Entwurf kostenlos, Nachtrag teuer) */
+  zyklus: { fensterOffen: boolean; modus: "entwurf" | "nachtrag"; faktor: number; hinweis: string };
 }
 
 /** Was eine Änderung des Postens sofort bedeutet; Folgewirkungen über zwölf Monate rechnet die Vorschau der Oberfläche. */
@@ -174,7 +187,13 @@ export function postenVorschau(w: World, id: string, stufe: number): PostenVorsc
   const ziel = clamp(Math.round(stufe), -2, 2);
   const delta = ziel - aktuell;
   const impuls = delta * p!.schritt * vorzeichen(p!);
-  const kapital = kapitalKosten(p!, delta);
+  const fenster = haushaltsfenster(w);
+  // WIR-3: Im offenen Fenster geht die Änderung kostenlos in den Entwurf; sonst Nachtrag zum doppelten Preis
+  const faktor = fenster.offen ? 0 : HAUSHALT_ZYKLUS.nachtragFaktor;
+  const kapital = kapitalKosten(p!, delta) * faktor;
+  const zyklus: PostenVorschau["zyklus"] = fenster.offen
+    ? { fensterOffen: true, modus: "entwurf", faktor: 0, hinweis: "Haushaltsfenster: kostenlos — die Änderung geht in den Entwurf und wirkt mit dem Haushaltsgesetz." }
+    : { fensterOffen: false, modus: "nachtrag", faktor: HAUSHALT_ZYKLUS.nachtragFaktor, hinweis: `Nachtragshaushalt außerhalb des Fensters: doppelte Kapitalkosten und ein kleiner Legitimitäts-Abzug. Nächstes Fenster: Oktober ${fenster.naechsterStart.slice(0, 4)}.` };
   const defizitVorher = defizitJetzt(w);
   const zeilen: PostenVorschau["zeilen"] = [];
   if (delta !== 0) {
@@ -197,6 +216,7 @@ export function postenVorschau(w: World, id: string, stufe: number): PostenVorsc
     defizitNachher: defizitVorher - impuls,
     impuls,
     zeilen,
+    zyklus,
   };
 }
 
@@ -211,17 +231,31 @@ function wende(w: World, p: PostenDef, delta: number): void {
   for (const x of p.sofort) wirke(w, x.id, x.d * delta);
 }
 
-/** Einen Posten auf eine Stufe stellen (Nachtragshaushalt): kostet Kapital, wirkt sofort auf die Stimmung und dauerhaft auf die Politikfelder. */
+/** Einen Posten auf eine Stufe stellen (Nachtragshaushalt): kostet außerhalb des Fensters doppelt Kapital und etwas Legitimität, wirkt sofort auf die Stimmung und dauerhaft auf die Politikfelder. */
 export function setzePosten(w: World, id: string, stufe: number, ohneKosten = false): Ergebnis {
   const spiel = w.spiel;
   const p = POSTEN_NACH_ID[id];
   if (!spiel || !p) return { ok: false, text: "Diesen Haushaltsposten gibt es nicht." };
   const v = postenVorschau(w, id, stufe);
   if (v.delta === 0) return { ok: false, text: "Der Posten steht schon auf dieser Stufe." };
-  if (!ohneKosten && !kannZahlen(spiel.kapital, v.kapital)) return { ok: false, text: `Das kostet ${v.kapital} Kapital; vorhanden sind ${Math.floor(spiel.kapital)}.` };
   const z = haushaltZustand(w);
+  // WIR-3: Im offenen Fenster (oder solange der Entwurf im Parlament liegt) läuft alles über das Haushaltsgesetz
+  if (!ohneKosten && (v.zyklus.fensterOffen || z.gesetz)) {
+    return {
+      ok: false,
+      text: z.gesetz
+        ? "Der Haushaltsentwurf liegt schon im Parlament: Erst abstimmen lassen, dann ändern."
+        : "Im Oktober läuft der Haushalt über den Entwurf: Regler hier kostenlos stellen und als Haushaltsgesetz einbringen.",
+      why: "Das Haushaltsfenster bündelt alle Änderungen in einem parlamentarischen Akt (Suzerain-Parallelität).",
+    };
+  }
+  if (!ohneKosten && !kannZahlen(spiel.kapital, v.kapital)) return { ok: false, text: `Das kostet ${v.kapital} Kapital; vorhanden sind ${Math.floor(spiel.kapital)}.` };
   const ziel = clamp(Math.round(stufe), -2, 2);
-  if (!ohneKosten) spiel.kapital -= v.kapital;
+  if (!ohneKosten) {
+    spiel.kapital -= v.kapital;
+    // Nachtragshaushalt: kurzfristig wirksam, aber als Verfahrensverstoß sichtbar (Legitimität)
+    wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.nachtragLegitimitaet);
+  }
   z.stufen[id] = ziel;
   if (ziel === 0) delete z.stufen[id];
   wende(w, p, v.delta);
@@ -235,9 +269,10 @@ export function setzePosten(w: World, id: string, stufe: number, ohneKosten = fa
   ];
   z.aenderungen.push({ tag: w.day, datum: w.date, posten: p.name, text, folgen });
   if (z.aenderungen.length > 12) z.aenderungen.shift();
-  addLog(w, "entscheidung", text, `Defizit ${fmt(v.defizitVorher)} auf ${fmt(v.defizitNachher)} % des BIP. ${p.kehrseite}`);
+  const nachtrag = ohneKosten ? "" : ` Nachtrag außerhalb des Fensters: ${v.kapital} Kapital (doppelt) und ein Abzug bei der Legitimität.`;
+  addLog(w, "entscheidung", text, `Defizit ${fmt(v.defizitVorher)} auf ${fmt(v.defizitNachher)} % des BIP.${nachtrag} ${p.kehrseite}`);
   addMarke(w, "haushalt", text);
-  return { ok: true, text, why: `${v.kapital ? `Kostet ${v.kapital} Kapital. ` : ""}Defizit ${fmt(v.defizitVorher)} auf ${fmt(v.defizitNachher)} % des BIP.` };
+  return { ok: true, text, why: `${v.kapital ? `Kostet ${v.kapital} Kapital (Nachtrag, doppelter Preis). ` : ""}Defizit ${fmt(v.defizitVorher)} auf ${fmt(v.defizitNachher)} % des BIP.` };
 }
 
 /** Ein einfacher Schritt für Sprachbefehle und die KI, wenn kein bestimmter Posten genannt wird: mehr ausgeben oder sparen. */
@@ -281,4 +316,274 @@ export function haushaltMonat(w: World): void {
   const ziel = ZINSSATZ_START + 0.25 * (markt - z.marktStart);
   z.zinssatz = clamp(z.zinssatz + 0.06 * (ziel - z.zinssatz), 3, 60);
   e.zinsMehrlast = (e.debtRatio / 100) * (z.zinssatz - ZINSSATZ_START);
+}
+
+// ---------------------------------------------------------------------------
+// WIR-3: Haushalts-Zyklus mit Parallelität (Suzerain): Oktober-Fenster, Entwurf, parlamentarischer Akt
+
+/** Spielparameter des Haushalts-Zyklus (Kalibrierung, keine Tatsachen). */
+export const HAUSHALT_ZYKLUS = {
+  /** Kalendermonat des Haushaltsfensters (Oktober) */
+  fensterMonat: 10,
+  /** Länge des Fensters in Tagen (vier Wochen) */
+  fensterTage: 28,
+  /** Kapitalkosten-Faktor außerhalb des Fensters („Nachtragshaushalt") */
+  nachtragFaktor: 2,
+  /** Legitimitäts-Abzug je Nachtrags-Änderung (Verfahrensverstoß, ehrlich bepreist) */
+  nachtragLegitimitaet: -0.4,
+  /** Legitimitäts-Abzug bei gescheitertem Haushaltsgesetz */
+  scheiternLegitimitaet: -2,
+} as const;
+
+export interface FensterSicht {
+  /** Das Kalenderfenster ist geöffnet (1. bis 28. Oktober) */
+  kalenderOffen: boolean;
+  /** Der Entwurf kann gestellt werden (Fenster offen, Zyklus nicht erledigt, kein Gesetz unterwegs) */
+  offen: boolean;
+  /** Das Jahr des laufenden oder nächsten Fensters */
+  jahr: number;
+  /** Resttage des geöffneten Fensters */
+  tageRest: number;
+  /** Startdatum des nächsten Fensters (JJJJ-MM-TT) */
+  naechsterStart: string;
+  /** Monate bis zum nächsten Fenster (0 im Oktober) */
+  monateBis: number;
+  /** Der Zyklus dieses Jahres ist entschieden (Gesetz beschlossen/gescheitert oder fortgeschrieben) */
+  erledigt: boolean;
+  /** Der Entwurf liegt im Parlament */
+  gesetzUnterwegs: boolean;
+  letztesErgebnis?: "angenommen" | "gescheitert" | "fortgeschrieben";
+}
+
+/** Der Stand des Haushalts-Zyklus: Fenster offen/geschlossen, Countdown, Ergebnis des letzten Durchgangs. */
+export function haushaltsfenster(w: World): FensterSicht {
+  const z = haushaltZustand(w);
+  const jahr = Number(w.date.slice(0, 4));
+  const monat = monthNumber(w.date);
+  const tag = dayOfMonth(w.date);
+  const kalenderOffen = monat === HAUSHALT_ZYKLUS.fensterMonat && tag <= HAUSHALT_ZYKLUS.fensterTage;
+  const vorbei = monat > HAUSHALT_ZYKLUS.fensterMonat || (monat === HAUSHALT_ZYKLUS.fensterMonat && tag > HAUSHALT_ZYKLUS.fensterTage);
+  const jahrNaechstes = vorbei ? jahr + 1 : jahr;
+  const naechsterStart = `${jahrNaechstes}-10-01`;
+  const monateBis = kalenderOffen ? 0 : ((HAUSHALT_ZYKLUS.fensterMonat - monat + 12) % 12 || (tag > 1 ? 12 : 0));
+  const erledigt = z.zyklusJahr === (kalenderOffen ? jahr : monat === HAUSHALT_ZYKLUS.fensterMonat ? jahr : jahrNaechstes - 1);
+  const gesetzUnterwegs = !!z.gesetz;
+  const offen = kalenderOffen && !erledigt && !gesetzUnterwegs;
+  return {
+    kalenderOffen,
+    offen,
+    jahr: kalenderOffen ? jahr : jahrNaechstes,
+    tageRest: kalenderOffen ? HAUSHALT_ZYKLUS.fensterTage - tag + 1 : 0,
+    naechsterStart,
+    monateBis,
+    erledigt,
+    gesetzUnterwegs,
+    ...(z.letztesErgebnis ? { letztesErgebnis: z.letztesErgebnis } : {}),
+  };
+}
+
+/** Den Entwurf im offenen Fenster stellen: kostenlos; wirkt erst, wenn das Haushaltsgesetz das Parlament passiert. */
+export function setzeEntwurf(w: World, id: string, stufe: number): Ergebnis {
+  const spiel = w.spiel;
+  const p = POSTEN_NACH_ID[id];
+  if (!spiel || !p) return { ok: false, text: "Diesen Haushaltsposten gibt es nicht." };
+  const z = haushaltZustand(w);
+  const fenster = haushaltsfenster(w);
+  if (z.gesetz) return { ok: false, text: "Der Entwurf liegt schon im Parlament und lässt sich nicht mehr ändern." };
+  if (!fenster.offen) return { ok: false, text: `Der Entwurf ist nur im Haushaltsfenster möglich (Oktober, ${HAUSHALT_ZYKLUS.fensterTage} Tage); nächstes Fenster: Oktober ${fenster.naechsterStart.slice(0, 4)}.` };
+  const ziel = clamp(Math.round(stufe), -2, 2);
+  z.entwurf ??= {};
+  if (ziel === (z.stufen[id] ?? 0)) delete z.entwurf[id];
+  else z.entwurf[id] = ziel;
+  const geaendert = Object.keys(z.entwurf).length;
+  const text = ziel === (z.stufen[id] ?? 0) ? `Entwurf: ${p.name} bleibt unverändert.` : `Entwurf: ${p.name} auf Stufe ${ziel > 0 ? "+" : "−"}${Math.abs(ziel)} gestellt.`;
+  return { ok: true, text, why: `Kostenlos im Haushaltsfenster. Wirkt erst, wenn das Haushaltsgesetz das Parlament passiert — der Entwurf umfasst jetzt ${geaendert} ${geaendert === 1 ? "Posten" : "Posten"}.` };
+}
+
+/** Die Paketvorschläge des Finanzministeriums als Entwurf übernehmen (ersetzt den bisherigen Entwurf). */
+export function paketInEntwurf(w: World, id: string): Ergebnis {
+  const paket = PAKETE[id];
+  if (!paket) return { ok: false, text: "Dieses Paket gibt es nicht." };
+  const z = haushaltZustand(w);
+  const fenster = haushaltsfenster(w);
+  if (!fenster.offen || z.gesetz) return { ok: false, text: "Das geht nur im offenen Haushaltsfenster, bevor der Entwurf im Parlament liegt." };
+  z.entwurf = {};
+  for (const [posten, delta] of Object.entries(paket.schritte)) {
+    const ziel = clamp(stufeVon(w, posten) + delta, -2, 2);
+    if (ziel !== stufeVon(w, posten)) z.entwurf[posten] = ziel;
+  }
+  const text = `Entwurf übernommen: Paket „${paket.name}“ (${Object.keys(z.entwurf).length} Posten).`;
+  return { ok: true, text, why: "Die Regler stehen jetzt im Entwurf; Sie können sie einzeln nachjustieren, bevor das Gesetz eingebracht wird." };
+}
+
+/** Wie es um das eingebrachte Haushaltsgesetz steht (Mehrheitslogik wie bei Gesetzen). */
+export interface HaushaltsGesetzSicht {
+  ja: number;
+  luecke: number;
+  noetig: number;
+  kosten: number;
+  bezahlbar: boolean;
+  urteil: "sicher" | "knapp" | "verloren";
+  abstimmungTag: number;
+  tageBis: number;
+}
+
+export function haushaltsGesetzSicht(w: World): HaushaltsGesetzSicht | null {
+  const z = haushaltZustand(w);
+  const g = z.gesetz;
+  if (!g) return null;
+  const sicht = stimmenSicht(w);
+  const ja = sicht.erwartet + g.absprachen;
+  const luecke = Math.max(0, REGELN.mehrheit - ja);
+  const noetig = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? 0 : REGELN.mehrheit + STIMMEN_PUFFER - ja;
+  const kosten = Math.ceil(noetig * REGELN.kaufKostenProStimme);
+  const kapital = w.spiel?.kapital ?? 0;
+  const bezahlbar = kannZahlen(kapital, kosten);
+  const urteil = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? "sicher" : luecke > 0 && !bezahlbar ? "verloren" : "knapp";
+  return { ja, luecke, noetig, kosten, bezahlbar, urteil, abstimmungTag: g.abstimmung, tageBis: Math.max(0, g.abstimmung - w.day) };
+}
+
+/** Das Haushaltsgesetz (Summe der Entwurfs-Änderungen) ins Parlament einbringen. */
+export function bringeHaushaltsgesetzEin(w: World): Ergebnis {
+  const spiel = w.spiel;
+  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es kein Parlament." };
+  const z = haushaltZustand(w);
+  const fenster = haushaltsfenster(w);
+  if (z.gesetz) return { ok: false, text: "Der Entwurf liegt schon im Parlament." };
+  if (!fenster.kalenderOffen) return { ok: false, text: `Das Haushaltsfenster ist geschlossen; es öffnet jedes Jahr im Oktober (${HAUSHALT_ZYKLUS.fensterTage} Tage).` };
+  if (fenster.erledigt) return { ok: false, text: "Der Haushalt dieses Jahres ist bereits entschieden; der nächste Entwurf beginnt im kommenden Oktober." };
+  const entwurf = z.entwurf ?? {};
+  const aenderungen = Object.entries(entwurf).filter(([id, s]) => (z.stufen[id] ?? 0) !== s);
+  if (!aenderungen.length) return { ok: false, text: "Der Entwurf ist leer: Erst Regler stellen — im Fenster kostenlos.", why: "Ohne Änderung braucht es kein Gesetz; der Vorjahrshaushalt läuft von selbst weiter." };
+  const jahr = Number(w.date.slice(0, 4));
+  z.gesetz = { jahr, schritte: { ...entwurf }, eingebracht: w.day, abstimmung: w.day + REGELN.tageBisAbstimmung, absprachen: 0 };
+  z.entwurf = {};
+  const sicht = stimmenSicht(w);
+  const text = `Haushaltsgesetz ${jahr + 1} eingebracht: ${aenderungen.length} ${aenderungen.length === 1 ? "Posten" : "Posten"} geändert; die Abstimmung ist in ${REGELN.tageBisAbstimmung} Tagen.`;
+  const why = `Erwartet werden ${sicht.erwartet} Ja-Stimmen (Spanne ${sicht.low} bis ${sicht.high}), nötig sind ${REGELN.mehrheit}. Fehlende Stimmen lassen sich wie bei jedem Gesetz mit Kapital sichern. Scheitert der Haushalt, läuft der Vorjahrshaushalt weiter — die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation von selbst aus —, aber die Regierung verliert Legitimität.`;
+  addLog(w, "entscheidung", text, why);
+  return { ok: true, text, why };
+}
+
+/** Stimmen für das eingebrachte Haushaltsgesetz kaufen (Absprachen mit Fraktionen, wie bei Gesetzen). */
+export function haushaltsStimmenKaufen(w: World, anzahl: number): Ergebnis {
+  const spiel = w.spiel;
+  const z = haushaltZustand(w);
+  const g = z.gesetz;
+  if (!spiel || !g) return { ok: false, text: "Es liegt kein Haushaltsgesetz zur Abstimmung vor." };
+  const n = Math.max(1, Math.round(anzahl));
+  const kosten = Math.ceil(n * REGELN.kaufKostenProStimme);
+  if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: `Für ${n} Stimmen fehlt Politisches Kapital (nötig ${kosten}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  spiel.kapital -= kosten;
+  g.absprachen += n;
+  const text = `${n} Stimmen für das Haushaltsgesetz gesichert.`;
+  addLog(w, "entscheidung", text, `Kostet ${kosten} Kapital, sofort bezahlt; danach schuldet niemand jemandem etwas.`);
+  return { ok: true, text, why: `Kostet ${kosten} Kapital.` };
+}
+
+/** Wendet einen beschlossenen Entwurf an: Regler-Stufen, Nachfrage-Impuls und Sofortwirkungen je Posten. */
+function wendeEntwurfAn(w: World, schritte: Record<string, number>, jahr: number): number {
+  const z = haushaltZustand(w);
+  let angewendet = 0;
+  for (const [id, zielStufe] of Object.entries(schritte)) {
+    const p = POSTEN_NACH_ID[id];
+    if (!p) continue;
+    const aktuell = z.stufen[id] ?? 0;
+    const delta = clamp(zielStufe, -2, 2) - aktuell;
+    if (!delta) continue;
+    if (zielStufe === 0) delete z.stufen[id];
+    else z.stufen[id] = clamp(zielStufe, -2, 2);
+    wende(w, p, delta);
+    angewendet += 1;
+    const mrd = Math.round(Math.abs(delta) * mrdJeStufe(p));
+    const richtung = delta > 0 ? (p.seite === "ausgabe" ? "erhöht" : "angehoben") : p.seite === "ausgabe" ? "gekürzt" : "gesenkt";
+    const impuls = delta * p.schritt * vorzeichen(p);
+    const folgen = [
+      ...impulsKette(impuls).slice(0, 3).map(kettenZeile),
+      ...p.dauer.slice(0, 3).map((x) => {
+        const node = NET.nodes[NET.index.get(x.id) ?? -1];
+        return node ? `${node.name} ${Math.sign(x.d * delta) > 0 ? "▲" : "▼"} (dauerhaft)` : "";
+      }).filter(Boolean),
+    ];
+    z.aenderungen.push({ tag: w.day, datum: w.date, posten: p.name, text: `Haushaltsgesetz ${jahr + 1}: ${p.name} ${richtung} (etwa ${mrd.toLocaleString("de-DE")} Mrd. Lira im Jahr).`, folgen });
+    z.letzteAenderung = w.day;
+  }
+  while (z.aenderungen.length > 12) z.aenderungen.shift();
+  return angewendet;
+}
+
+/**
+ * Täglicher Schritt des Haushalts-Zyklus (aus der Spielschleife): die Abstimmung über das
+ * Haushaltsgesetz und das stille Schließen des Fensters, wenn niemand etwas einbringt.
+ */
+export function haushaltszyklusTag(w: World, rng: Rng): void {
+  const spiel = w.spiel;
+  if (!spiel || spiel.ende) return;
+  const z = haushaltZustand(w);
+  const jahr = Number(w.date.slice(0, 4));
+
+  // Fenster-Ende ohne Entscheidung: Der Vorjahrshaushalt schreibt sich fort (inflationsausgeglichen)
+  if (monthNumber(w.date) === HAUSHALT_ZYKLUS.fensterMonat && dayOfMonth(w.date) === HAUSHALT_ZYKLUS.fensterTage + 1 && z.zyklusJahr !== jahr && !z.gesetz) {
+    z.zyklusJahr = jahr;
+    z.letztesErgebnis = "fortgeschrieben";
+    addLog(
+      w,
+      "ereignis",
+      `Das Haushaltsfenster schließt ungenutzt: Der Haushalt ${jahr} läuft weiter.`,
+      "Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation damit automatisch aus. Wer etwas ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.",
+    );
+  }
+
+  const g = z.gesetz;
+  if (!g || g.abstimmung > w.day) return;
+  z.gesetz = null;
+  const sicht = stimmenSicht(w);
+  const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + Math.round(rng.normal(6))));
+  const nein = 600 - ja;
+  const angenommen = ja >= REGELN.mehrheit;
+  z.zyklusJahr = g.jahr;
+  if (angenommen) {
+    const n = wendeEntwurfAn(w, g.schritte, g.jahr);
+    z.letztesErgebnis = "angenommen";
+    const text = `Das Parlament nimmt das Haushaltsgesetz ${g.jahr + 1} an (${ja} zu ${nein}): ${n} ${n === 1 ? "Posten" : "Posten"} geändert.`;
+    addLog(w, "entscheidung", text, `Das Defizit liegt jetzt bei ${fmt(defizitJetzt(w))} % des BIP. Die Änderungen wirken ab sofort; die Dauerwirkungen entfalten sich über die nächsten Monate.`);
+    addMarke(w, "haushalt", `Haushaltsgesetz ${g.jahr + 1} beschlossen`);
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel: `Haushaltsgesetz ${g.jahr + 1}`, ausgang: `Mit ${ja} zu ${nein} Stimmen angenommen.` });
+  } else {
+    z.letztesErgebnis = "gescheitert";
+    wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.scheiternLegitimitaet);
+    spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
+    addLog(
+      w,
+      "entscheidung",
+      `Das Parlament lehnt das Haushaltsgesetz ${g.jahr + 1} ab (${ja} zu ${nein}).`,
+      `Der Vorjahrshaushalt läuft weiter: Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation automatisch aus. Die Regierung wirkt geschwächt (Legitimität ${HAUSHALT_ZYKLUS.scheiternLegitimitaet}). Es fehlten ${REGELN.mehrheit - ja} Stimmen.`,
+    );
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel: `Haushaltsgesetz ${g.jahr + 1}`, ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.` });
+  }
+}
+
+/** Staatskalender-Markierung: die nächsten festen Haushaltstermine ab heute (Fenster, Abstimmung). */
+export function naechsteHaushaltstermine(w: World): { datum: string; text: string }[] {
+  const fenster = haushaltsfenster(w);
+  const z = haushaltZustand(w);
+  const out: { datum: string; text: string }[] = [];
+  if (z.gesetz) out.push({ datum: addDays(w.date, z.gesetz.abstimmung - w.day), text: `Abstimmung über das Haushaltsgesetz ${z.gesetz.jahr + 1}` });
+  if (!fenster.kalenderOffen) out.push({ datum: fenster.naechsterStart, text: `Haushaltsfenster öffnet (Oktober, ${HAUSHALT_ZYKLUS.fensterTage} Tage)` });
+  return out;
+}
+
+/** Den Vorjahrshaushalt ausdrücklich fortschreiben (Wahl im Oktober-Ereignis): keine Änderung, keine Abstimmung. */
+export function schreibeHaushaltFort(w: World): void {
+  const z = haushaltZustand(w);
+  const jahr = Number(w.date.slice(0, 4));
+  z.zyklusJahr = jahr;
+  z.letztesErgebnis = "fortgeschrieben";
+  z.entwurf = {};
+  addLog(
+    w,
+    "entscheidung",
+    `Der Haushalt ${jahr + 1} wird fortgeschrieben.`,
+    "Die Posten bleiben unverändert und laufen mit der Inflation automatisch mit; wer später ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.",
+  );
 }

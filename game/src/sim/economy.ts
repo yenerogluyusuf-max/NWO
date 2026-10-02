@@ -51,7 +51,34 @@ export const PARAMS = {
    * Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
    * Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
    */
+  /**
+   * ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
+   * lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
+   * Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
+   * Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
+   * Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
+   */
   politiklastAufRisiko: 130,
+  // WIR-2 (sim/devisen.ts): Bestands-Komponenten der Devisen-Lage. Alle vier wirken nur, wenn die
+  // Devisen-Felder des EconomyState gefüllt sind; Lernfall-Replays (ohne Felder) bleiben unverändert.
+  /**
+   * Z7: Anteil der Schulden in Fremdwährung oder indexiert (Spielparameter, Größenordnung Türkei ~40–50 %).
+   * Dieser Teil schmilzt nicht mit der Inflation, sondern folgt dem Wechselkurs — adressiert die
+   * dokumentierte Modellgrenze „FX-Bewertung der Schuldenquote“ (KALIBRIERUNG_LOG §6.1).
+   */
+  fxSchuldAnteil: 0.4,
+  /**
+   * Z4: Abwertungsdruck bei leeren Reserven, Prozentpunkte Jahresdrift bei vollem Reserven-Druck (0–1).
+   * Märkte testen eine Zentralbank ohne Pulver (KALIBRIERUNG_LOG §6.4: fehlende Bestände im Kurs).
+   */
+  fxReservenDruckMax: 12,
+  /**
+   * Z8: CDS-Zuschlag bei leeren Reserven, Basispunkte bei vollem Reserven-Druck (0–1)
+   * (KALIBRIERUNG_LOG §6.5: Märkte preisen den Reservenbestand, nicht nur Niveaus).
+   */
+  cdsReservenDruckMax: 150,
+  /** Täglicher Verbrauch des Interventions-Puffers (fxPuffer) als Kursstütze (Anteil je Tag) */
+  interventionsPufferProTag: 0.0005,
 } as const;
 
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
@@ -84,9 +111,14 @@ export function dailyDepreciation(e: EconomyState, rng: Rng): number {
   const inflationGap = e.expectedInflation - PARAMS.foreignInflation;
   const carry = PARAMS.carryOnFx * (realRate(e) - PARAMS.neutralRealRate);
   const risk = (e.riskPremium - 250) / 100;
-  const annual = inflationGap - carry + risk;
+  // WIR-2: Leere Reserven laden zum Testen der Zentralbank ein (0, wenn keine Devisen-Lage geführt wird).
+  const reserven = PARAMS.fxReservenDruckMax * (e.reservenDruck ?? 0);
+  const annual = inflationGap - carry + risk + reserven;
   const noise = rng.normal(PARAMS.fxNoise * (1.5 - e.credibility));
-  return annual / 100 / 365 + noise;
+  // WIR-2: Deviseninterventionen glätten den Kurs, bis der Puffer verbraucht ist (verbraucht sich täglich).
+  const stuetze = Math.min(e.fxPuffer ?? 0, PARAMS.interventionsPufferProTag);
+  if (stuetze > 0) e.fxPuffer = (e.fxPuffer ?? 0) - stuetze;
+  return annual / 100 / 365 + noise - stuetze;
 }
 
 /** Z8: täglicher Risikoaufschlag, zieht zum fundamentalen Wert. */
@@ -102,6 +134,9 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
     // ZEI-4 (Spielparameter): Wer dauerhaft über die Verhältnisse ausgibt, zahlt einen Nachhaltigkeitsaufschlag,
     // auch wenn die Schuldenquote (Z7) bei hoher Inflation kaum steigt — die Märkte sehen die Politiklast.
     PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 2) +
+    // WIR-2: Die Märkte preisen den Reservenbestand (0, wenn keine Devisen-Lage geführt wird;
+    // adressiert KALIBRIERUNG_LOG §6.5 — der CDS hing 2024 strukturell zu hoch, weil Z8 keine Bestände kannte).
+    PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0) +
     AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
   return e.riskPremium + 0.02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
@@ -166,6 +201,12 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   // Z7: Defizite werden zu Schulden, nominales Wachstum senkt die Quote
   const nominalGrowth = (e.growth + e.inflation) / 100;
   e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0)) / 12 - (e.debtRatio * nominalGrowth) / 12;
+  // WIR-2 (KALIBRIERUNG_LOG §6.1): Der FX-/indexierte Anteil der Schulden schmilzt nicht mit der
+  // Inflation, sondern folgt dem Kurs der letzten Monats — 2021–2024 blieb die reale Quote deshalb
+  // bei ~30–40 %, während das reine Defizit-Modell sie wegschmelzen ließ.
+  const vormonat = history[history.length - 1];
+  const fxMonat = vormonat ? e.usdTry / vormonat.usdTry - 1 : 0;
+  e.debtRatio += PARAMS.fxSchuldAnteil * e.debtRatio * fxMonat;
   e.debtRatio = Math.max(0, e.debtRatio);
 }
 

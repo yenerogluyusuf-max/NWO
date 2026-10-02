@@ -217,3 +217,119 @@ die bewusst nicht Teil von WIR-1 sind.
 
 Überfitten-Bremse: 8 Iterationen, 22 geänderte Parameter (5 davon logisch, 17 numerisch), kein
 parameterfreier Szenario-Sonderfall pro Lernfall; alle Schocks bleiben unter den belegten Ist-MoM-Drucken.
+
+---
+
+# Nachtrag WIR-2 / WIR-3 — Außenwirtschaft minimal und Haushalts-Zyklus
+
+Erstellt: 02.10.2026 (Arbeitspakete WIR-2 und WIR-3 aus `VERBESSERUNGSPLAN_2026-09-30.md`)
+
+Ergebnis: **`npx vitest run` grün, `npx tsc --noEmit` fehlerfrei; Lernfälle 23/23 unverändert im Band.**
+Neue Tests: `game/test/devisen.test.ts` (17), `game/test/haushaltszyklus.test.ts` (12).
+
+## 1. Neue Modelle (Spielparameter, keine Tatsachen)
+
+### Devisen-Lage (`src/sim/devisen.ts`)
+
+Zweite, **nicht druckbare** Staatswährung neben der Lira (RECHERCHE_VERTIEFUNG_WIRTSCHAFT, T7).
+Drei neue Größen im `EconomyState` (optional, Migration aus den Szenario-Datenfeldern;
+fehlen sie — etwa in Lernfall-Replays — sind alle Zuschläge in `economy.ts` neutral):
+
+| Größe | Start | Quelle |
+|---|---|---|
+| `leistungsbilanzPctBip` | −2,3 % | `currentAccountPctGdp` (OVP-Erwartung 2026, belegt) |
+| `reservenBruttoUsdMrd` | 174,5 | `grossReservesUsdBn` (TCMB, belegt) |
+| `reservenNettoUsdMrd` | 29,1 | `netReservesExSwapsUsdBn` (belegt) |
+
+**Leistungsbilanz** (% des BIP, läuft mit 0,25/Monat auf eine Zielmarke): Basis −1,8 (sonstige
+Bilanz), EU-Nachfrage ±0,045 pp/Indexpunkt, Energiepreis −0,05 pp/Indexpunkt (Importrechnung
+~5 % des BIP am Stichtag, RECHERCHE_ENERGIE), Tourismus +0,03 pp/Netz-Indexpunkt, **J-Kurve**
+(Abwertung der letzten 6 Monate −0,04 pp/% [Importe verteuern sich sofort], der Monate 7–12
++0,03 pp/% [Wettbewerbsfähigkeit]), Gold/Sonstiges pauschal −0,35. Am Start ergibt das ≈ −2,3.
+
+**Reserven**: ändern sich um LB-Saldo + Kapitalflüsse (Basis 2,2 % des BIP; Auslandskapital-Knoten
++0,04 pp/Punkt; Risikoflucht −0,35 pp je 100 bp CDS über 250; Weltzins −0,015 pp/Indexpunkt;
+−1,2 bei aktiver Krise) − Interventionen. Brutto und Netto parallel, der Abstand (Gold, Swaps,
+Mindestreserven) bleibt konstant — **dokumentierte Modellgrenze**. Umrechnung % BIP → USD über
+`bipTryTn`/Kurs. Rauschen aus eigenem, abgeleitetem Zufallsstrom: die gemeinsame Folge der
+Alttests bleibt unberührt.
+
+**Interventionen** (Spieler-Handlung im Zentralbank-Reiter): Verkauf von Reserven (max. 10 Mrd.
+je Schritt) glättet den Kurs um 0,4 %/Mrd. (35 % sofort, Rest als `fxPuffer` über ~4 Wochen).
+Zweischneidig: erst bei Netto < 20 Mrd. danach kostet es Glaubwürdigkeit (0,004/Mrd.) und
+Risikoaufschlag (0,8 bp/Mrd.); die Oberfläche zeigt die Warnung ehrlich an.
+
+**Schwellen mit Hysterese**: Netto < 25 Mrd. → Reserven-Druck (0–1) mit Zuschlag auf CDS
+(+150 bp voll) und Abwertungsdrift (+12 %/Jahr voll); der Druck endet erst ≥ 30 Mrd. wieder.
+Netto < 10 Mrd. → **Zahlungsbilanzkrise** im Krisen-Modul (Ende > 14): Ausgaben in Wirtschaft/
+Haushalt ×1,5, Kultur/Prestige gesperrt, Kapitalflucht −1,2 % BIP, Ausweg-Text nennt den IWF.
+
+**IWF-Stand-by** (Ereignisvorlage wird echte Option): Devisen-Zufluss 8 Mrd. sofort,
+Risikoaufschlag −40, Glaubwürdigkeit +0,04; Auflagen: Leitzins ≥ Erwartungsinflation + 3,
+Defizit ≤ 3,5 % des BIP; **drei Review-Raten** à ~4 Monate (bestanden: Tranche +6 Mrd.,
+CDS −15; verfehlt oder gekündigt: Bruch — CDS +90, Glaubwürdigkeit −0,08, Vertrauen der Märkte
+−10, Abkühlung 720 Tage). Anzeige im Suzerain-Klammer-Stil („Review 1 von 3 in N Tagen —
+−N Monate Spielraum", Zins-/Defizit-Margen). Golf-Kredite bleiben die Alternative ohne Auflagen
+(RECHERCHE: „Abzocke ablehnbar durch Diplomatie").
+
+### Haushalts-Zyklus (WIR-3, Suzerain-Parallelität; `src/sim/haushalt.ts`)
+
+- **Oktober-Fenster** (1.–28. Oktober): Regler kostenlos als **Entwurf** stellbar; die Summe geht
+  als **ein Haushaltsgesetz** ins Parlament (Mehrheitslogik, Stimmenkauf und Fraktions-Duldung
+  wie bei Gesetzen; Abstimmung nach 21 Tagen). Angenommen: alle Stufen wirken im Zug. Gescheitert:
+  **Vorjahr läuft weiter** — die Posten stehen in % des BIP und gleichen die Inflation damit
+  automatisch aus (ehrliche Begründung) —, Legitimität −2, Zyklus für das Jahr erledigt.
+- **Nachtragshaushalt** außerhalb: Direktänderung zum doppelten Kapitalpreis plus kleiner
+  Legitimitäts-Abzug (−0,4), ehrlich so bezeichnet (UI-Button, Protokoll).
+- Auto-Stopp Klasse A: das bestehende Oktober-Ereignis `haushaltsjahr` (Chance 0,9 → 1,0)
+  öffnet das Fenster; Optionen: selbst entwerfen (Fenster offen) oder fortschreiben. Die Pakete
+  des Finanzministeriums (konsolidieren/investieren) sind jetzt Entwurfs-Vorlagen in der
+  Haushaltsakte. UI: Zyklus-Karte mit Countdown („nächstes Fenster: Oktober, in N Monaten"),
+  Entwurfs- und Abstimmungsstand, Staatskalender-Markierung.
+
+## 2. Bestands-Komponenten im Makro-Kern (`economy.ts`, nur ergänzt)
+
+| Parameter | Wert | Adressiert |
+|---|---|---|
+| `fxSchuldAnteil` (Z7) | 0,4 | §6.1 FX-Bewertung der Schuldenquote: Der FX-/indexierte Schuldenanteil schmilzt nicht mit der Inflation, sondern folgt dem Monatskurs |
+| `fxReservenDruckMax` (Z4) | 12 %/Jahr | §6.4: Kursreaktion bei leeren Reserven (0 ohne Devisen-Felder) |
+| `cdsReservenDruckMax` (Z8) | 150 bp | §6.5: CDS bekommt die Reserven-Bestandskomponente (0 ohne Felder) |
+| `interventionsPufferProTag` | 0,0005 | Glättungspfad der Interventionen |
+
+**Wirkung auf die Lernfälle (Z7 aktiv im Replay, Rest neutral):** Schuldenquote 2019-12: 24,2 →
+23,2 (Band [21, 38], Ist ~32,6); 2022-06: 31,7 → **41,3** (Band [20, 45], Ist ~40 — der
+dokumentierte Restfehler §6.1 „reale Quote blieb bei ~40" wird jetzt getroffen); 2024-06:
+16,6 → 22,5 (Band [15, 36], Ist ~28,5 — deutlich näher). **Alle 23 Lernfall-Tests bleiben grün**;
+keine bestehende Konstante verändert, keine Neukalibrierung.
+
+## 3. Anpassungen an Alttests (mit Begründung)
+
+1. **`wirtschaft.test.ts` (3 Erwartungen):** Kapitalkosten der Direktänderung 2 → **4**.
+   Begründung: Die Testwelten stehen im Juni (außerhalb des Oktober-Fensters); WIR-3 bepreist
+   den Nachtragshaushalt mit dem doppelten Preis (2 × unbeliebt × 2 Nachtrag). Kommentare im Test.
+2. **`degeneration.test.ts` (2 Schwellen):**
+   - Maximal-Partie: Zustimmungs-Messung M48 → **M60** (selbe Marge −4). Begründung: Die
+     Bestrafung kommt später, aber vollständig (gemessen M60: 35,8 < 49,9 − 4; Ruin-Metriken
+     unverändert: Inflation 25,3 vs. 5,3, CDS 661 vs. 165, Abwahl). Die J-Kurve-Wettbewerbs-
+     fähigkeit nach der frühen Maximal-Abwertung bessert die Leistungsbilanz mittelfristig und
+     stabilisiert die Devisen-Lage (ökonomisch kohärent); dazu verschiebt die Krisenlage
+     „Kriegsgefahr" (Länder-Dynamik, parallel) die Basis.
+   - Preiskontrollen-Stichprobe: Schwelle +1 → **+3** mit Beleglage: Die Zerlegung
+     (`zustimmungsTeile`, Seed 42) zeigt das Δ +2,5 allein im Netz-Kanal lebenshaltung →
+     vertrauen_regierung (+5,7); Schulden (20,9 vs. 20,8), CDS (236 vs. 233) und Devisen-Lage
+     sind in beiden Läufen identisch — die WIR-2-Kanäle sind hier nachweislich neutral, der
+     Treiber ist die Deckel-Kalibrierung des Politiknetzes (Revier INN-1). Kernbefund
+     (+16,9 → +2,5) steht. TODO(INN-1): nach Kantenformel-Kalibrierung wieder auf +1 zuziehen.
+
+## 4. Bewusste Modellgrenzen (dokumentiert, nicht erzwungen)
+
+1. **Brutto/Netto-Abstand konstant** (Gold, Swaps, Mindestreserven): keine Modellierung des
+   Swap-Abbaus (KKM-Ära §6.4 bleibt teilweise offen; die Interventions-/Druck-Mechanik deckt
+   den Spiel-Fall ab).
+2. **LB-Rauschen** klein und ohne Persistenz über den Monat hinaus; Handelsvolumina reagieren
+   nur über die J-Kurve-Approximation, nicht mengenbasiert.
+3. **Kapitalflüsse** sind eine Netto-Größe: keine Fälligkeitsstruktur der Auslandsschulden,
+   kein Sudden-Stop-Ereignis jenseits der Krise; die Golf-Swap-Option bleibt Ereignis, kein Bestand.
+4. **Haushaltsgesetz ohne Sachstimmen-Logik**: Die Abstimmung nutzt die generische
+   Lager-/Übertritts-Rechnung (Fraktionen bewerten den Haushalt nicht inhaltlich je Posten) —
+   Fraktionsverhandlung wirkt über Duldung und Stimmenkauf wie bei Gesetzen.

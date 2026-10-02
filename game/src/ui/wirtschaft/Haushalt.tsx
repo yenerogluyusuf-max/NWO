@@ -8,7 +8,8 @@ import { impulsKette } from "../../sim/folgen";
 import { formatDateDe } from "../../sim/dates";
 import { KENNZAHLEN_NACH_ID, aktuellerWert, bewertung, startWert } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, defizitJetzt, haushaltZustand, startMonat, verlauf, zinsausgabenJetzt } from "../../sim/wirtschaft";
-import { POSTEN, impulsAusPosten, mrdJeStufe, postenVorschau, setzePosten, stufeVon, type PostenDef } from "../../sim/haushalt";
+import { HAUSHALT_ZYKLUS, PAKETE, POSTEN, bringeHaushaltsgesetzEin, haushaltsGesetzSicht, haushaltsStimmenKaufen, haushaltsfenster, impulsAusPosten, mrdJeStufe, paketInEntwurf, postenVorschau, setzeEntwurf, setzePosten, stufeVon, type PostenDef } from "../../sim/haushalt";
+import { REGELN, stimmenSicht } from "../../sim/handeln";
 import { AUSGABEN_2026, PLAN_2026, STEUERN_2026 } from "../../data/haushaltsplan";
 import { Diagramm } from "./Diagramm";
 import { Folgen } from "./Folgen";
@@ -84,6 +85,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   const [sel, setSel] = useState<string | null>(posten ?? null);
   const [entwurf, setEntwurf] = useState<number | null>(posten ? Math.max(-2, Math.min(2, stufeVon(world, posten) + 1)) : null);
   const [bestaetigt, setBestaetigt] = useState(false);
+  const [gesetzBestaetigt, setGesetzBestaetigt] = useState(false);
   const [rueck, setRueck] = useState<{ ok: boolean; text: string; why?: string | undefined } | null>(null);
   const [metrik, setMetrik] = useState<Metric>("defizit");
   const [reihen, setReihen] = useState<PrognoseReihe[] | null>(null);
@@ -92,6 +94,11 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   const stand = Math.floor(world.day / 30);
   const p = sel ? POSTEN.find((x) => x.id === sel) : undefined;
   const v = p && entwurf !== null ? postenVorschau(world, p.id, entwurf) : null;
+  // WIR-3: Zyklus-Stand (Fenster, Entwurf, Gesetz im Parlament)
+  const fenster = haushaltsfenster(world);
+  const gesetzSicht = haushaltsGesetzSicht(world);
+  const entwurfEintraege = Object.entries(z.entwurf ?? {}).filter(([id, s]) => (z.stufen[id] ?? 0) !== s);
+  const stimmen = stimmenSicht(world);
 
   useEffect(() => {
     if (!p || entwurf === null || entwurf === stufeVon(world, p.id)) {
@@ -139,7 +146,8 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
 
   function beschliesse() {
     if (!p || entwurf === null) return;
-    const res = setzePosten(world, p.id, entwurf);
+    // WIR-3: Im offenen Fenster geht die Änderung kostenlos in den Entwurf, sonst ist sie ein Nachtrag
+    const res = v?.zyklus.modus === "entwurf" ? setzeEntwurf(world, p.id, entwurf) : setzePosten(world, p.id, entwurf);
     setRueck(res);
     setBestaetigt(false);
     if (res.ok) {
@@ -210,16 +218,20 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
           ))}
         </div>
         <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "haushalt" || m.art === "zins")} stellen={k.stellen} einheit={k.einheit} name={k.name} rechnet={rechnet} />
+        <p className="wi-hinweis">{v.zyklus.hinweis}</p>
         {!v.ok && v.grund && <p className="wi-grund">{v.grund}</p>}
         {bestaetigt ? (
-          <Bestaetigung name={world.player?.name ?? ""} titel={`Nachtragshaushalt: ${p.name}`} knopf="Beschließen" onJa={beschliesse} onNein={() => setBestaetigt(false)}>
+          <Bestaetigung name={world.player?.name ?? ""} titel={v.zyklus.modus === "entwurf" ? `Entwurf: ${p.name}` : `Nachtragshaushalt: ${p.name}`} knopf="Beschließen" onJa={beschliesse} onNein={() => setBestaetigt(false)}>
             <p>
-              {p.name} von Stufe {vz(stufeVon(world, p.id))} auf {vz(entwurf)}. Das kostet {v.kapital} Kapital und verändert das Defizit von {nf(v.defizitVorher, 2)} auf {nf(v.defizitNachher, 2)} % des BIP.
+              {p.name} von Stufe {vz(stufeVon(world, p.id))} auf {vz(entwurf)}.{" "}
+              {v.zyklus.modus === "entwurf"
+                ? "Kostenlos im Haushaltsfenster: Die Änderung geht in den Entwurf und wirkt, wenn das Haushaltsgesetz das Parlament passiert."
+                : `Nachtrag außerhalb des Fensters: Das kostet ${v.kapital} Kapital (doppelter Preis) und etwas Legitimität; das Defizit verändert sich von ${nf(v.defizitVorher, 2)} auf ${nf(v.defizitNachher, 2)} % des BIP.`}
             </p>
           </Bestaetigung>
         ) : (
           <button className="wi-handlung wi-haupt" disabled={!v.ok} onClick={() => setBestaetigt(true)}>
-            Nachtragshaushalt beschließen ({v.kapital} Kapital) <span aria-hidden>→</span>
+            {v.zyklus.modus === "entwurf" ? "In den Entwurf übernehmen (kostenlos)" : `Nachtragshaushalt beschließen (${v.kapital} Kapital)`} <span aria-hidden>→</span>
           </button>
         )}
         <button className="link" onClick={() => { setSel(null); setEntwurf(null); }}>
@@ -312,11 +324,94 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         </p>
       </section>
 
+      <section className="wi-karte" id="wi-hh-zyklus">
+        <p className="kicker">Der Haushalts-Zyklus</p>
+        {fenster.offen ? (
+          <>
+            <h3>
+              Haushaltsfenster geöffnet <small>· noch {fenster.tageRest} {fenster.tageRest === 1 ? "Tag" : "Tage"}</small>
+            </h3>
+            <p className="wi-hinweis">
+              Bis zum 28. Oktober stellen Sie die Regler unten <b>kostenlos</b> — die Änderungen sammeln sich im Entwurf und gehen als <b>ein Haushaltsgesetz</b> durchs Parlament (Staatskalender: jährlich im Oktober, vier Wochen). Außerhalb des Fensters kostet jede Änderung als Nachtragshaushalt das Doppelte und etwas Legitimität.
+            </p>
+            <h4>Der Entwurf für {fenster.jahr + 1}</h4>
+            {entwurfEintraege.length === 0 ? (
+              <p className="wi-hinweis">Noch keine Änderung im Entwurf. Regler unten stellen oder ein Paket des Finanzministeriums übernehmen:</p>
+            ) : (
+              <ul className="wi-marken">
+                {entwurfEintraege.map(([id, s]) => {
+                  const q = POSTEN.find((x) => x.id === id)!;
+                  return (
+                    <li key={id}>
+                      {q.name}: Stufe {vz(z.stufen[id] ?? 0)} → <b>{vz(s)}</b>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <div className="wi-metriken" role="tablist" aria-label="Pakete des Finanzministeriums">
+              {Object.entries(PAKETE).map(([id, paket]) => (
+                <button key={id} onClick={() => { const r = paketInEntwurf(world, id); setRueck(r); geaendert(); }}>
+                  Paket: {paket.name}
+                </button>
+              ))}
+            </div>
+            {gesetzBestaetigt ? (
+              <Bestaetigung name={world.player?.name ?? ""} titel={`Haushaltsgesetz ${fenster.jahr + 1} einbringen`} knopf="Einbringen" onJa={() => { const r = bringeHaushaltsgesetzEin(world); setRueck(r); setGesetzBestaetigt(false); geaendert(); }} onNein={() => setGesetzBestaetigt(false)}>
+                <p>
+                  Der Entwurf ({entwurfEintraege.length} {entwurfEintraege.length === 1 ? "Posten" : "Posten"}) geht als ein Gesetz ins Parlament; die Abstimmung ist in {REGELN.tageBisAbstimmung} Tagen. Erwartet werden {stimmen.erwartet} Ja-Stimmen, nötig sind {REGELN.mehrheit}. Scheitert der Haushalt, läuft der Vorjahrshaushalt inflationsausgeglichen weiter — und die Regierung verliert Legitimität.
+                </p>
+              </Bestaetigung>
+            ) : (
+              <button className="wi-handlung wi-haupt" disabled={entwurfEintraege.length === 0} onClick={() => setGesetzBestaetigt(true)}>
+                Haushaltsgesetz {fenster.jahr + 1} einbringen <span aria-hidden>→</span>
+              </button>
+            )}
+          </>
+        ) : fenster.gesetzUnterwegs && gesetzSicht ? (
+          <>
+            <h3>
+              Das Haushaltsgesetz liegt im Parlament <small>· Abstimmung in {gesetzSicht.tageBis} {gesetzSicht.tageBis === 1 ? "Tag" : "Tagen"}</small>
+            </h3>
+            <p className="wi-hinweis">
+              Erwartet werden <b>{gesetzSicht.ja} Ja-Stimmen</b>, nötig sind {REGELN.mehrheit}.{" "}
+              {gesetzSicht.urteil === "sicher" ? "Die Mehrheit steht voraussichtlich." : gesetzSicht.luecke > 0 ? `Es fehlen voraussichtlich ${gesetzSicht.luecke} Stimmen; wie bei jedem Gesetz lassen sich welche mit Kapital sichern.` : "Es wird knapp."}
+            </p>
+            {gesetzSicht.noetig > 0 && (
+              <button
+                className="wi-handlung"
+                disabled={!gesetzSicht.bezahlbar}
+                title={gesetzSicht.bezahlbar ? "" : "Es fehlt Politisches Kapital."}
+                onClick={() => { const r = haushaltsStimmenKaufen(world, gesetzSicht.noetig); setRueck(r); geaendert(); }}
+              >
+                {gesetzSicht.noetig} Stimmen sichern ({gesetzSicht.kosten} Kapital) <span aria-hidden>→</span>
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <h3>
+              Nächstes Haushaltsfenster: Oktober {fenster.naechsterStart.slice(0, 4)} <small>· in {fenster.monateBis} {fenster.monateBis === 1 ? "Monat" : "Monaten"}</small>
+            </h3>
+            <p className="wi-hinweis">
+              Der Staatskalender sieht den Haushalt einmal jährlich vor: Im Oktober (vier Wochen) sind alle Regler-Änderungen kostenlos und gehen als ein Haushaltsgesetz durchs Parlament. Außerhalb des Fensters ist jede Änderung ein <b>Nachtragshaushalt</b>: doppelte Kapitalkosten und ein kleiner Legitimitäts-Abzug.
+              {fenster.letztesErgebnis === "angenommen" && " Der letzte Haushalt wurde vom Parlament angenommen."}
+              {fenster.letztesErgebnis === "gescheitert" && " Der letzte Haushalt scheiterte im Parlament; der Vorjahrshaushalt läuft weiter."}
+              {fenster.letztesErgebnis === "fortgeschrieben" && " Der letzte Haushalt wurde unverändert fortgeschrieben."}
+            </p>
+          </>
+        )}
+      </section>
+
       <section className="wi-karte" id="wi-hh-regler">
-        <p className="kicker">Nachtragshaushalt</p>
+        <p className="kicker">{fenster.offen ? "Der Entwurf" : "Nachtragshaushalt"}</p>
         <h3>Die Regler</h3>
         <p className="wi-hinweis">
-          Jeder Posten hat fünf Stufen; eine Stufe entspricht etwa {nf(POSTEN[0]!.schritt)} % des BIP ({mrdText(mrdJeStufe(POSTEN[0]!))} Mrd. Lira) bei Ausgaben, {nf(POSTEN[6]!.schritt)} % ({mrdText(mrdJeStufe(POSTEN[6]!))} Mrd.) bei Steuern. Jede Änderung kostet Kapital, in die unbeliebte Richtung doppelt. Wählen Sie eine Stufe: Die Vorschau zeigt vorher, was daraus wird.
+          Jeder Posten hat fünf Stufen; eine Stufe entspricht etwa {nf(POSTEN[0]!.schritt)} % des BIP ({mrdText(mrdJeStufe(POSTEN[0]!))} Mrd. Lira) bei Ausgaben, {nf(POSTEN[6]!.schritt)} % ({mrdText(mrdJeStufe(POSTEN[6]!))} Mrd.) bei Steuern.{" "}
+          {fenster.offen
+            ? "Im geöffneten Haushaltsfenster sind Änderungen kostenlos und sammeln sich im Entwurf oben."
+            : `Außerhalb des Oktober-Fensters kostet jede Änderung als Nachtrag das ${HAUSHALT_ZYKLUS.nachtragFaktor}-fache an Kapital (in die unbeliebte Richtung nochmals doppelt) und etwas Legitimität.`}{" "}
+          Wählen Sie eine Stufe: Die Vorschau zeigt vorher, was daraus wird.
         </p>
         <ul className="wi-posten">
           {POSTEN.map((q) => {
@@ -351,12 +446,6 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
           })}
         </ul>
 
-      </section>
-
-      <section className="wi-karte">
-        <p className="kicker">Der Haushalt im Oktober</p>
-        <h3>Was jedes Jahr kommt</h3>
-        <p className="wi-hinweis">Im Oktober legt der Finanzminister den Haushaltsentwurf für das nächste Jahr vor. Sie entscheiden, ob konsolidiert, fortgeschrieben oder investiert wird; das setzt mehrere Regler auf einmal und wirkt wie ein Nachtragshaushalt.</p>
       </section>
 
       <section className="wi-karte">

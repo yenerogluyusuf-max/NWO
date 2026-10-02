@@ -118,3 +118,19 @@
   .sk-verfassung { flex-direction: column; align-items: stretch; gap: 4px; }
   .sk-vf-stufe { white-space: normal; }
 }
+
+/* Die Zeitung: Teaser der neuesten Ausgabe mit „Neue Ausgabe"-Chip (UI-1) */
+.sk-zeitung h4 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sk-neue-ausgabe {
+  font: 700 11px var(--sans); letter-spacing: 0.07em; text-transform: uppercase; color: var(--seal);
+  border: 1px solid var(--seal); border-radius: 2px; padding: 1px 6px;
+}
+.sk-zeitung-teaser {
+  display: grid; gap: 2px; width: 100%; text-align: left;
+  border: 1px solid rgba(120, 90, 50, 0.5) !important; background: linear-gradient(180deg, #fbf5e6, #f0e4c6) !important;
+  border-radius: 3px; padding: 8px 11px !important;
+}
+.sk-zeitung-teaser:hover { border-color: var(--seal) !important; }
+.sk-zeitung-mast { font: 600 11.5px var(--sans); font-variant: small-caps; letter-spacing: 0.06em; color: var(--ink-soft); }
+.sk-zeitung-teaser strong { font: 650 16px/1.2 var(--display); }
+.sk-zeitung-teaser em { font: italic 12.5px var(--serif); color: var(--ink-soft); }

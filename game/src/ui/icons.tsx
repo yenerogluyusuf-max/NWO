@@ -28,7 +28,8 @@ export type IconName =
   | "krankenhaus"
   | "tropfen"
   | "haus"
-  | "menge";
+  | "menge"
+  | "zeitung";
 
 const PATHS: Record<IconName, string> = {
   berg: "M3 20 L9.5 8 L13 14 L15.5 10.5 L21 20 Z M8 10.8 L9.5 8 L11 10.6",
@@ -59,6 +60,7 @@ const PATHS: Record<IconName, string> = {
   kuppel: "M4.5 19.5 V13 A7.5 7.5 0 0 1 19.5 13 V19.5 M2.8 19.5 H21.2 M12 5.5 V3 M10.8 3.6 H13.2 M9.5 19.5 V15.5 A2.5 2.5 0 0 1 14.5 15.5 V19.5",
   kran: "M6 20 V6 L18 4 M6 6 L14 5 M18 4 V9 M17 9 H19 V12 H17 Z M4 20 H10",
   haende: "M3 13 L7 9 L10.5 10.5 L14 8.5 L21 13 M7 9 L3.5 5.5 M17 10.5 L20.5 7 M9 14 L11.5 16.5 M11.5 13 L14 15.5 M14 11.5 L16.5 14",
+  zeitung: "M3.5 6 H18.5 V18.5 H3.5 Z M18.5 8.5 H21 V16.5 H18.5 M6.5 9.5 H12.5 V13 H6.5 Z M13.8 9.8 H15.8 M13.8 11.9 H15.8 M6.5 15.2 H15.8 M6.5 17 H13",
 };
 
 export function Icon({ name, size = 22 }: { name: IconName; size?: number }) {

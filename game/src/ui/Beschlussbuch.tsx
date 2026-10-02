@@ -13,6 +13,7 @@ import { PARTY_COLORS } from "./Parliament";
 import { ParlamentKopf } from "./parlament/ParlamentKopf";
 import { zeigeImHalbrund } from "./parlament/abstimmung";
 import { PARTEI_NAME } from "../sim/fraktionen";
+import { geaenderteArtikel, verfassungStand } from "../sim/verfassung";
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
@@ -205,6 +206,17 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
 
       {teil === "beschluesse" && (
         <>
+      {spiel?.verfassungsvorgang?.laufend && (
+        <section className="paper vf-tracking">
+          <h3>Der Verfassungsvorgang</h3>
+          <p>
+            {verfassungStand(world).zeile} Die Werkstatt und alle Schritte stehen im Parlament-Fenster, Reiter „Verfassung“.
+          </p>
+          <p className="subtitle">
+            Paket: {geaenderteArtikel(spiel.verfassungsvorgang.laufend.paket).map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ")}
+          </p>
+        </section>
+      )}
       <section className="paper berichte">
         <h3>Was Ihre Beschlüsse bewirkt haben</h3>
         <p className="subtitle">Sechs und zwölf Monate nach einem Beschluss schaut das Spiel nach, was sich getan hat. Ein Gesetz ist noch keine Wirkung.</p>

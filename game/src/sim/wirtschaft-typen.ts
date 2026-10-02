@@ -68,6 +68,62 @@ export interface HaushaltZustand {
   aenderungen: HaushaltAenderung[];
   /** Letzter Tag einer Änderung */
   letzteAenderung?: number;
+  // WIR-3 (Haushalts-Zyklus): Oktober-Fenster, Entwurf und parlamentarischer Akt; fehlt in älteren Spielständen.
+  /** Entwurf der Regler im geöffneten Oktober-Fenster (Zielstufen je Posten; wirkt erst mit dem Gesetz) */
+  entwurf?: Record<string, number>;
+  /** Das im Parlament liegende Haushaltsgesetz (null/fehlt = keins unterwegs) */
+  gesetz?: HaushaltsGesetz | null;
+  /** Das Oktober-Jahr, das bereits erledigt ist (Gesetz beschlossen, gescheitert oder bewusst fortgeschrieben) */
+  zyklusJahr?: number;
+  /** Wie der letzte Zyklus ausging (für die Anzeige) */
+  letztesErgebnis?: "angenommen" | "gescheitert" | "fortgeschrieben";
+}
+
+/** WIR-3: Der Haushaltsentwurf auf dem Weg durchs Parlament (Mehrheitslogik wie bei Gesetzen). */
+export interface HaushaltsGesetz {
+  /** Kalenderjahr des Oktobers, in dem eingebracht wurde (der Haushalt gilt fürs Folgejahr) */
+  jahr: number;
+  /** Zielstufen je Posten (der Entwurf beim Einbringen) */
+  schritte: Record<string, number>;
+  eingebracht: number;
+  /** Tag der Abstimmung */
+  abstimmung: number;
+  /** Gekaufte Stimmen (Absprachen mit Fraktionen) */
+  absprachen: number;
+}
+
+/** WIR-2: Ein Verkauf von Devisenreserven zur Kursglättung (Intervention). */
+export interface InterventionEintrag {
+  tag: number;
+  datum: string;
+  usdMrd: number;
+  text: string;
+}
+
+/** WIR-2: Das IWF-Stand-by-Programm mit Auflagen und Review-Raten (Suzerain-Klammer). */
+export interface IwfProgramm {
+  /** Laufende Tranche (1 bis 3) */
+  rate: number;
+  /** Tag der nächsten Review */
+  naechsteReview: number;
+  /** Auflage: Der Leitzins bleibt mindestens auf diesem Niveau */
+  zinsMindest: number;
+  /** Auflage: Das Defizit bleibt höchstens auf diesem Niveau (% des BIP) */
+  defizitMax: number;
+  /** Bereits geflossene Mittel, Mrd. USD */
+  mittelUsdMrd: number;
+  /** Anzahl bestandener Reviews */
+  bestanden: number;
+}
+
+/** WIR-2: Zustand der Devisen-Lage (Interventionen, IWF-Programm); ältere Spielstände legen ihn beim ersten Zugriff an. */
+export interface DevisenZustand {
+  interventionen: InterventionEintrag[];
+  iwf: IwfProgramm | null;
+  /** Letzter Tag einer Warnung vor niedrigen Reserven (Spam-Bremse) */
+  warnung?: number;
+  /** Frühester Tag einer neuen IWF-Anfrage (Abkühlung nach Ende oder Bruch) */
+  iwfAbkuehlung?: number;
 }
 
 /** Eine Marke auf der Zeitachse der Diagramme. */
@@ -86,4 +142,6 @@ export interface WirtschaftZustand {
   /** Monatswerte weiterer Kennzahlen (parallel zu `monate`); die Größen des Wirtschaftsmodells stehen in `world.history` */
   reihen: Record<string, number[]>;
   marken: Marke[];
+  /** WIR-2: Devisen-Lage (Interventionen, IWF-Programm); ältere Spielstände legen ihn beim ersten Zugriff an (sim/devisen.ts) */
+  devisen?: DevisenZustand;
 }

@@ -328,6 +328,8 @@ export function verhandle(w: World, a: Angebot): Ergebnis {
     case "veto":
       landAendern(w, a.land, { vertrauen: -2 }, "Ein Angebot über eine Rote Linie");
       z.sperreBis = w.day + SPERRE_TAGE;
+      // Merker für die Eigeninitiative (sim/initiative.ts): Eine bedrohte Rote Linie ist der stärkste Treiber
+      z.rotBedroht = w.day;
       return { ok: false, urteil: "veto", text: `${l.name} weist das Angebot zurück: ${b.veto}`, why: `Kostet ${b.pk} Kapital und etwas Vertrauen; das Land spricht ${SPERRE_TAGE} Tage nicht mit Ihnen.`, bewertung: b };
     default:
       z.sperreBis = w.day + SPERRE_TAGE / 3;

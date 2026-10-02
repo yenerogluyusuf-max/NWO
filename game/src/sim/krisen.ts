@@ -12,6 +12,8 @@ import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { addLog } from "./log";
 import { LAENDER, weltZustand } from "./laender";
+import { zeitungEreignis } from "./zeitung";
+import { DEVISEN } from "./devisen";
 import type { World } from "./types";
 import type { AktiveKrise } from "./spiel-typen";
 import type { NodeSpec } from "../data/politiknetz";
@@ -24,6 +26,8 @@ export const KRISEN_REGELN = {
   katastrophe: { frisch: 60, ende: 90, faktor: 1.5 },
   /** Kriegsgefahr: Konflikt-Dimension eines Nachbarn (0 bis 100) über der Schwelle; Rabatt für Außen/Militär */
   krieg: { an: 75, aus: 65, rabatt: 0.75 },
+  /** Zahlungsbilanzkrise (WIR-2): Verteuerungsfaktor für Ausgaben (die Schwellen stehen in DEVISEN, devisen.ts) */
+  zahlungsbilanz: { faktor: 1.5 },
 } as const;
 
 export type KrisenArt = "gesperrt" | "teuer";
@@ -175,6 +179,21 @@ const KRISEN: KrisenDef[] = [
     },
   },
   {
+    id: "zahlungsbilanz",
+    name: "Zahlungsbilanzkrise",
+    ausloeser: (w) => (w.economy.reservenNettoUsdMrd ?? Number.POSITIVE_INFINITY) < DEVISEN.kriseAn,
+    beruhigt: (w) => (w.economy.reservenNettoUsdMrd ?? Number.POSITIVE_INFINITY) > DEVISEN.kriseAus,
+    grund: (w) => `Die Netto-Reserven der Zentralbank liegen bei ${nf(w.economy.reservenNettoUsdMrd ?? 0)} Mrd. Dollar: Das Land kann Importe und Schulden kaum noch bezahlen, und die Märkte wissen es.`,
+    wirkung: `Ausgaben in Wirtschaft und Haushalt kosten das ${nf(R.zahlungsbilanz.faktor)}-fache an Kapital; Prestige-Vorhaben (Kultur) sind gesperrt. Kapital flieht schneller (Devisen-Lage).`,
+    bedingung: `Endet, wenn die Netto-Reserven wieder über ${DEVISEN.kriseAus} Mrd. Dollar liegen.`,
+    ausweg: "Ausweg: Reserven schonen (keine Interventionen), Kapital anziehen (Zinsen, Vertrauen der Märkte, günstige Leistungsbilanz) — oder das IWF-Programm annehmen, solange es angeboten wird.",
+    effekt: (node) => {
+      if ((node.theme === "wirtschaft" || node.theme === "haushalt") && (node.cost ?? 0) > 0) return { art: "teuer", faktor: R.zahlungsbilanz.faktor };
+      if (node.theme === "kultur") return { art: "gesperrt", faktor: 1 };
+      return null;
+    },
+  },
+  {
     id: "justiz_umbau",
     name: "Justiz im Umbau",
     ausloeser: justizreformLaeuft,
@@ -239,6 +258,15 @@ export function krisenAktualisieren(world: World): void {
     } else if (def.ausloeser(world)) {
       neu.push({ id: def.id, seit: world.day });
       addLog(world, "ereignis", `${def.name}: ${def.grund(world)}`, `${def.wirkung} ${def.bedingung}`);
+      // Krise (bzw. Kriegsphase): Großereignis für die Zeitung — Eilmeldung digital, Print im nächsten Monat
+      zeitungEreignis(world, {
+        art: "krise",
+        titel: def.name,
+        fakt: def.grund(world),
+        wertung: def.id === "kriegsgefahr" ? -0.9 : -0.8,
+        ...(def.id === "kriegsgefahr" ? { krieg: true } : {}),
+        schluessel: [def.name],
+      });
     }
   }
   spiel.krisen = neu;

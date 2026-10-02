@@ -6,6 +6,7 @@ import { wirke, vertrauenAendern } from "./wirkung";
 import { setFiscalImpulse } from "./eingriffe";
 import { clamp } from "./economy";
 import { anrede, figur, loyalitaetAendern } from "./figuren";
+import { DEVISEN, iwfAktiv, iwfAuflagen, iwfStarten } from "./devisen";
 import { CYBER_ZIELE, GRENZ_NACHBAR, NATO_BEWERBER, waehle } from "./akteure";
 import { dk } from "./ereignis-hilfen";
 import { beschr, kosten, monatVon, namen, netz, nf, opt, ziehe, zusageAnlegen } from "./ereignis-hilfen";
@@ -107,31 +108,35 @@ const IWF: Vorlage = {
   szene: "bank",
   frist: 12,
   abkuehlung: 500,
-  chance: (w) => (w.economy.riskPremium > 400 ? 0.2 : 0),
+  // WIR-2: Der IWF tritt auf, wenn die Märkte stürmen oder die Netto-Reserven schwinden — nicht, solange ein Programm läuft
+  chance: (w) => (iwfAktiv(w) ? 0 : w.economy.riskPremium > 400 || (w.economy.reservenNettoUsdMrd ?? 99) < DEVISEN.warnungUnter ? 0.2 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
   titel: () => "Der IWF bietet ein Programm an",
-  text: (w) => [
-    `Bei ${nf(w.economy.riskPremium, 0)} Basispunkten Risikoaufschlag und ${nf(w.economy.usdTry)} Lira je Dollar bietet der Internationale Währungsfonds ein Kreditprogramm an. ${anrede(figur(w, "finanzen"))} wägt ab.`,
-    "Der Preis wären Auflagen: Sparen, Reformen und Aufsicht durch Prüfer.",
-  ],
-  warum: () => "Ein IWF-Programm bringt Geld und Vertrauen der Märkte und kostet politische Freiheit: Die Auflagen treffen meist die, die am wenigsten haben.",
-  optionen: () => [
-    opt("annehmen", "Das Programm annehmen", beschr(5, 0, "die Märkte beruhigen sich, die Auflagen kosten Zustimmung."), 5, (w) => {
-      w.economy.riskPremium = Math.max(150, w.economy.riskPremium - 60);
-      w.economy.credibility = clamp(w.economy.credibility + 0.05, 0.05, 0.95);
-      setFiscalImpulse(w, Math.min(w.economy.fiscalImpulse, -1));
-      wirke(w, "vertrauen_maerkte", 8);
+  text: (w) => {
+    const auflagen = iwfAuflagen(w);
+    return [
+      `Bei ${nf(w.economy.riskPremium, 0)} Basispunkten Risikoaufschlag, ${nf(w.economy.usdTry)} Lira je Dollar und ${nf(w.economy.reservenNettoUsdMrd ?? 0)} Mrd. Dollar Netto-Reserven bietet der Internationale Währungsfonds ein Stand-by-Abkommen an. ${anrede(figur(w, "finanzen"))} wägt ab.`,
+      `Devisen sofort und zwei Tranchen nach Reviews; dafür Auflagen: Leitzins mindestens ${nf(auflagen.zinsMindest)} % und Defizit höchstens ${nf(auflagen.defizitMax)} % des BIP, geprüft in drei Reviews. Wer die Auflagen reißt, verliert das Programm — und das Vertrauen der Märkte.`,
+    ];
+  },
+  warum: () => "Ein IWF-Programm bringt Devisen und das Vertrauen der Märkte und kostet politische Freiheit: Die Auflagen binden Zins und Defizit, und sie treffen meist die, die am wenigsten haben.",
+  optionen: (w) => [
+    opt("annehmen", "Das Stand-by-Abkommen annehmen", beschr(5, 0, `Devisen-Zufluss und ruhigere Märkte gegen Auflagen (Zins ≥ ${nf(iwfAuflagen(w).zinsMindest)} %, Defizit ≤ ${nf(iwfAuflagen(w).defizitMax)} %) in drei Reviews.`), 5, (w) => {
+      iwfStarten(w);
       wirke(w, "realeinkommen", -3);
       wirke(w, "arbeitnehmer", -3);
       wirke(w, "junge", -2);
-      return "Die Regierung nimmt das Programm an und verspricht Haushaltsdisziplin.";
+      return "Die Regierung unterschreibt das Stand-by-Abkommen: Devisen fließen, die Märkte beruhigen sich — und die Auflagen ticken.";
     }),
     opt("golf", "Kredite aus dem Golf suchen", beschr(4, 0, "Geld ohne Auflagen, aber mit politischen Gegenleistungen."), 4, (w) => {
       w.economy.riskPremium = Math.max(150, w.economy.riskPremium - 30);
       w.economy.credibility = clamp(w.economy.credibility + 0.01, 0.05, 0.95);
+      const e = w.economy;
+      if (e.reservenBruttoUsdMrd !== undefined) e.reservenBruttoUsdMrd += 4;
+      if (e.reservenNettoUsdMrd !== undefined) e.reservenNettoUsdMrd += 4;
       wirke(w, "beziehungen_nahost", 4);
       wirke(w, "beziehungen_usa", -1);
-      return "Golfstaaten stellen Kredite bereit; sie erwarten Entgegenkommen.";
+      return "Golfstaaten stellen 4 Mrd. Dollar bereit; sie erwarten Entgegenkommen.";
     }),
     opt("allein", "Den Weg allein gehen", beschr(0, 0, "keine Auflagen, aber auch keine Hilfe."), 0, (w) => {
       w.economy.riskPremium += 20;

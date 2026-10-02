@@ -212,7 +212,8 @@ describe("Haushalt", () => {
     expect(r.ok, r.text).toBe(true);
     expect(stufeVon(a, "investitionen")).toBe(2);
     expect(a.economy.fiscalImpulse).toBeCloseTo(imp0 + 0.8, 6);
-    expect(a.spiel!.kapital).toBe(k0 - 2);
+    // WIR-3: Direktänderung außerhalb des Oktober-Fensters = Nachtragshaushalt zum doppelten Preis (2 × 2)
+    expect(a.spiel!.kapital).toBe(k0 - 4);
     expect(impulsAusPosten(a)).toBeCloseTo(0.8, 6);
     bis(a, 200);
     bis(b, 200);
@@ -229,7 +230,8 @@ describe("Haushalt", () => {
     const defizit0 = defizitJetzt(w);
     const r = setzePosten(w, "einkommensteuer", 1);
     expect(r.ok, r.text).toBe(true);
-    expect(w.spiel!.kapital).toBe(k0 - 2);
+    // Unbeliebte Richtung kostet doppelt (2); WIR-3: außerhalb des Oktober-Fensters als Nachtrag nochmals doppelt (4)
+    expect(w.spiel!.kapital).toBe(k0 - 4);
     expect(defizitJetzt(w)).toBeCloseTo(defizit0 - 0.3, 6);
     expect(nationalAverage(NET, w.net, "arbeitnehmer")).toBeLessThan(arbeitnehmer0);
   });
@@ -252,7 +254,8 @@ describe("Haushalt", () => {
     const w = welt();
     const k0 = w.spiel!.kapital;
     expect(setzePosten(w, "personal", -1).ok).toBe(true);
-    expect(w.spiel!.kapital).toBe(k0 - 2);
+    // Unbeliebt × 2, dazu WIR-3 Nachtrag außerhalb des Fensters × 2 = 4
+    expect(w.spiel!.kapital).toBe(k0 - 4);
     expect(setzePosten(w, "personal", 9).ok).toBe(true);
     expect(stufeVon(w, "personal")).toBe(2);
   });

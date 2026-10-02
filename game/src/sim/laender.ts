@@ -303,6 +303,10 @@ export interface LandZustand {
    * RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 13 und Teil V §5.1 Nr. 2).
    */
   handelssperre?: boolean;
+  /** Tag der letzten Eigeninitiative dieses Landes (Abkühlung, sim/initiative.ts); fehlt in älteren Spielständen */
+  initiativeZuletzt?: number;
+  /** Tag, an dem eine Rote Linie dieses Landes zuletzt bedroht wurde (Veto am Verhandlungstisch, sim/abkommen.ts); fehlt in älteren Spielständen */
+  rotBedroht?: number;
 }
 
 /**

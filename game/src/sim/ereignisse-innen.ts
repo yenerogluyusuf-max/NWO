@@ -10,7 +10,7 @@
 // m_preiswahrheit, m_heimische_kohle (politiknetz.ts).
 
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
-import { wendePaketAn } from "./haushalt";
+import { schreibeHaushaltFort } from "./haushalt";
 import { setPolicy } from "./handeln";
 import { anrede, figur, loyalitaetAendern, zufallsName } from "./figuren";
 import { BANKEN, KOHLEFIRMEN, TEXTILFIRMEN, ZEITUNGEN, waehle } from "./akteure";
@@ -66,31 +66,26 @@ const HAUSHALTSJAHR: Vorlage = {
   szene: "bank",
   frist: 25,
   abkuehlung: 300,
-  chance: (w) => (monatVon(w) === 10 && jahrVon(w) >= 2028 ? 0.9 : 0),
+  // WIR-3: Das Haushaltsfenster öffnet jedes Jahr zuverlässig (Auto-Stopp Klasse A über das Ereignis)
+  chance: (w) => (monatVon(w) === 10 && jahrVon(w) >= 2028 ? 1 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Der Haushalt für das nächste Jahr",
+  titel: () => "Das Haushaltsfenster öffnet",
   text: (w) => [
-    `${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf vor. Die Schulden liegen bei ${nf(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf(w.published.inflation.value)} %. Das Parlament berät ihn bis Jahresende.`,
-    "Jede Richtung hat Gewinner und Verlierer: Ausgaben stützen die Konjunktur, Sparen beruhigt die Märkte.",
+    `${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf für das nächste Jahr vor. Die Schulden liegen bei ${nf(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf(w.published.inflation.value)} %.`,
+    "Vier Wochen lang stellen Sie die Regler des Haushalts kostenlos; danach geht der Entwurf als Haushaltsgesetz ins Parlament. Wer nichts einbringt, fährt mit dem Vorjahr weiter — die Posten laufen mit der Inflation automatisch mit.",
   ],
-  warum: () => "Der Haushalt ist die größte einzelne Entscheidung des Jahres: Er legt fest, wie viel der Staat der Wirtschaft zuführt oder entzieht.",
+  warum: () => "Der Haushalt ist der größte parlamentarische Akt des Jahres: Einmal im Oktober werden alle Regler gemeinsam entschieden. Außerhalb des Fensters kostet jede Änderung als Nachtragshaushalt das Doppelte und etwas Legitimität.",
   optionen: () => [
-    opt("konsolidieren", "Konsolidieren", beschr(3, 0, "Personal, Subventionen und Einkommensteuer wirken zusammen: Märkte und Finanzminister sind zufrieden, die Nachfrage lahmt."), 3, (w) => {
-      wendePaketAn(w, "konsolidieren");
-      wirke(w, "vertrauen_maerkte", 3);
-      loyalitaetAendern(w, "finanzen", 6);
-      vertrauenAendern(w, -0.8);
-      return "Der Haushalt setzt auf Konsolidierung.";
-    }),
-    opt("fortschreiben", "Fortschreiben", beschr(0, 0, "kein Signal in irgendeine Richtung."), 0, () => "Der Haushalt wird fortgeschrieben."),
-    opt("investieren", "Investieren", beschr(3, 0, "der Haushalt investiert in Straßen, Wasser und Schulen: mehr Wachstum, mehr Schulden."), 3, (w) => {
-      wendePaketAn(w, "investieren");
-      vertrauenAendern(w, 1);
-      loyalitaetAendern(w, "finanzen", -6);
-      return "Der Haushalt setzt auf Investitionen.";
+    opt("entwurf", "Den Entwurf selbst vorbereiten", beschr(0, 0, "die Regler in der Haushaltsakte sind jetzt kostenlos; das Gesetz braucht eine Mehrheit."), 0, () => "Das Fenster ist offen: Regler in der Haushaltsakte stellen — Pakete des Finanzministeriums lassen sich übernehmen — und das Haushaltsgesetz einbringen."),
+    opt("fortschreiben", "Den Vorjahrshaushalt fortschreiben", beschr(0, 0, "keine Änderung, kein Risiko im Parlament."), 0, (w) => {
+      schreibeHaushaltFort(w);
+      return "Der Haushalt läuft unverändert weiter (inflationsausgeglichen).";
     }),
   ],
-  standard: () => "Der Haushalt wird fortgeschrieben.",
+  standard: (w) => {
+    schreibeHaushaltFort(w);
+    return "Ohne Entscheidung läuft der Vorjahrshaushalt weiter (inflationsausgeglichen).";
+  },
 };
 
 const BERGWERK: Vorlage = {

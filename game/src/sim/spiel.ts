@@ -16,6 +16,7 @@ import { programmTag } from "./programme";
 import { berichteTag } from "./berichte";
 import { weltMonat } from "./laender";
 import { abkommenMonat } from "./abkommen";
+import { setzeKriegBruecke } from "./initiative";
 import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
 import { umfrageMonat } from "./umfrage";
 import { verlaufAufzeichnen } from "./waehler-verlauf";
@@ -24,7 +25,10 @@ import { personenMonat } from "./personen-monat";
 import { ausscheiden } from "./nachfolge";
 import { AEMTER } from "./personen";
 import { gesetzeAbstimmen, REGELN, stimmenSicht, unterhaltKosten } from "./handeln";
+import { verfassungAktiv, verfassungKapitalAbzug, verfassungsVorgangTag } from "./verfassung";
+import { haushaltszyklusTag } from "./haushalt";
 import { krisenAktualisieren } from "./krisen";
+import { KRIEG, kriegMit, kriegMonat, kriegTag } from "./krieg";
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
 import { Rng } from "./rng";
@@ -32,7 +36,20 @@ import type { PlayerProfile } from "./prolog";
 import type { World } from "./types";
 import type { SpielZustand, Zusage } from "./spiel-typen";
 import { wirke } from "./wirkung";
+import { zeitungEreignis, zeitungMonat } from "./zeitung";
 import { VERFASSUNG, belastungEreignis, verfassungStart, verfassungTag } from "./aufmerksamkeit";
+
+// AUS-1 ↔ MIL-1: Die Drohkulisse der Länder-Eigeninitiative übergibt an den Konfliktvorgang (sim/krieg.ts),
+// ohne ihn direkt zu importieren (Modul-Ladezyklus). Besteht mit dem Land schon eine Spannung, hebt sie auf
+// Drohkulisse-Niveau; sonst greift die Monatsprüfung des Kriegsmoduls die Lage von sich aus auf.
+setzeKriegBruecke({
+  eskaliere: (w, landId) => {
+    const k = kriegMit(w, landId);
+    if (!k || k.phase !== "spannung") return false;
+    k.eskalation = Math.max(k.eskalation, KRIEG.drohkulisseAb + 2);
+    return true;
+  },
+});
 
 /** Die Schwierigkeit verändert nur drei Stellschrauben: das Einkommen an Kapital, die Regierungsmüdigkeit und die Häufigkeit und Härte von Ereignissen. */
 export const SCHWIERIGKEITEN = {
@@ -203,8 +220,11 @@ export function spielTick(world: World, rng: Rng): void {
   const spiel = world.spiel;
   if (!spiel || spiel.ende) return;
   gesetzeAbstimmen(world, rng);
+  verfassungsVorgangTag(world, rng);
+  haushaltszyklusTag(world, rng);
   ereignisTag(world, rng);
   krisenAktualisieren(world);
+  kriegTag(world, rng);
   programmTag(world);
   berichteTag(world);
   verfassungTag(world);
@@ -238,7 +258,10 @@ export function kapitalEinkommen(world: World): KapitalEinkommen {
   const legitimitaet = Number.isFinite(legit) ? Math.max(-1, Math.min(1, (legit - 60) / 40)) : 0;
   // Vier-Preise-Regel: Maßnahmen mit Unterhaltspreis zehren monatlich am Kapital, anteilig zur Stufe
   const unterhalt = unterhaltKosten(world).summe;
-  return { grund: SPIEL.kapitalGrund * f, vertrauen: vertrauen * f, mehrheit: mehrheit * f, legitimitaet: legitimitaet * f, unterhalt, summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt, naechste, grenze: REGELN.kapitalMax };
+  // REC-1: Demokratisierende Verfassungsartikel kosten laufend etwas Kapital — wer Kontrolle abgibt,
+  // regiert mit weniger Druckmitteln (Spielparameter; die Legitimität gewinnt langfristig)
+  const verfassungAbzug = verfassungKapitalAbzug(world) * f;
+  return { grund: SPIEL.kapitalGrund * f, vertrauen: vertrauen * f, mehrheit: mehrheit * f, legitimitaet: legitimitaet * f, unterhalt: unterhalt + verfassungAbzug, summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt - verfassungAbzug, naechste, grenze: REGELN.kapitalMax };
 }
 
 function spielMonat(world: World, rng: Rng): void {
@@ -257,15 +280,17 @@ function spielMonat(world: World, rng: Rng): void {
   verhandlungMonat(world);
   weltMonat(world);
   abkommenMonat(world, rng);
+  kriegMonat(world, rng);
   reichMonat(world, rng);
 
+  // Eigeninitiative der Länder (AUS-1) läuft über ihre Vorlagen im Ereignis-Wettbewerb (sim/ereignisse.ts)
   aussenweltMonat(world, rng);
   ereignisMonat(world, rng);
 
-  // Umfrage: zieht zum Sollwert, träge
+  // Umfrage: zieht zum Sollwert, träge. Der interne Wert bleibt die Wahrheit des Spiels
+  // (Sturzgefahr, Wahl, HUD); die VERÖFFENTLICHTE Messung mit Instituts-Bias entsteht in
+  // sim/zeitung.ts (UI-1) und erscheint nur dort — siehe monatsUmfrage.
   const ziel = zielZustimmung(world);
-  // TODO(UI-1): Sobald das Zeitungs-UI Institute auswählt, hier rng und institutId übergeben
-  // (Messfehler gemäß RECHERCHE_MEDIEN_UMFRAGEN.md B.4). Ohne Optionen bleibt es beim alten Verhalten.
   spiel.umfrage.zustimmung = umfrageMonat(spiel.umfrage.zustimmung, ziel);
   spiel.umfrage.verlauf.push({ monat: world.date.slice(0, 7), wert: Math.round(spiel.umfrage.zustimmung * 10) / 10 });
   if (spiel.umfrage.verlauf.length > 120) spiel.umfrage.verlauf.shift();
@@ -294,6 +319,9 @@ function spielMonat(world: World, rng: Rng): void {
 
   personenMonat(world);
   figurenPruefen(world, rng);
+  // Die Zeitung (UI-1): Monatsausgabe mit den Blättern der Cluster, Umfrage eines Instituts und
+  // der leichten Wirkung auf die Wählergruppen. Eilmeldungen von heute bringt Print erst nächsten Monat.
+  zeitungMonat(world);
 }
 
 function figurenPruefen(world: World, rng: Rng): void {
@@ -309,6 +337,14 @@ function figurenPruefen(world: World, rng: Rng): void {
         titel: "Bruch im Lager",
         szene: "parlament",
         text: [`Die ${f.partei} kündigt die Zusammenarbeit auf und verlässt das Regierungslager. Dem Lager fehlen damit ${seats} Sitze.`],
+      });
+      // Vertragsbruch: Großereignis für die Zeitung (Eilmeldung digital, Print im nächsten Monat)
+      zeitungEreignis(world, {
+        art: "bruch",
+        titel: `${f.partei} verlässt das Lager`,
+        fakt: `Die ${f.partei} kündigt die Zusammenarbeit auf und verlässt das Regierungslager; dem Lager fehlen damit ${seats} Sitze.`,
+        wertung: -0.9,
+        schluessel: [`verlässt das Regierungslager`],
       });
       f.loyalitaet = 30;
     }
@@ -335,20 +371,36 @@ function wahl(world: World, rng: Rng): void {
   const spiel = world.spiel!;
   const anteil = clamp(spiel.umfrage.zustimmung + rng.normal(2.2), 0, 100);
   const name = world.player?.name ?? "Der Präsident";
+  // Die Verfassung bestimmt die Zahl der Amtszeiten: Das Paket „Weitere Wiederwahl“ erlaubt eine dritte (REC-1)
+  const maxAmtszeit = verfassungAktiv(world, "amtszeit") === "wiederwahl_plus" ? 3 : 2;
   if (anteil >= 50) {
-    if (spiel.amtszeit === 1) {
-      spiel.amtszeit = 2;
+    if (spiel.amtszeit < maxAmtszeit) {
+      spiel.amtszeit += 1;
+      const letzte = spiel.amtszeit >= maxAmtszeit;
       spiel.wahltag = world.day + 365 * SPIEL.amtszeitJahre + 1;
       spiel.chronik.push({ tag: world.day, datum: world.date, titel: "Wiederwahl", ausgang: `${name} wird mit ${fmt(anteil)} Prozent wiedergewählt.` });
-      addLog(world, "ereignis", `Wahlabend: ${name} wird mit ${fmt(anteil)} Prozent im Amt bestätigt.`, "Eine zweite Amtszeit ist die letzte; danach schreibt die Verfassung eine Pause vor.");
+      addLog(
+        world,
+        "ereignis",
+        `Wahlabend: ${name} wird mit ${fmt(anteil)} Prozent im Amt bestätigt.`,
+        letzte ? `Die Amtszeit ${spiel.amtszeit} ist die letzte; danach schreibt die Verfassung eine Pause vor.` : `Die Amtszeit ${spiel.amtszeit} beginnt; die Verfassung erlaubt eine weitere Wiederwahl.`,
+      );
       spiel.hinweise.push({
         id: `wahl-${world.day}`,
         titel: "Wahlabend: Wiederwahl",
         szene: "wahlnacht",
-        text: [`${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent. Die zweite Amtszeit beginnt; sie ist die letzte.`],
+        text: [`${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent. Die Amtszeit ${spiel.amtszeit} beginnt${letzte ? "; sie ist die letzte" : ""}.`],
+      });
+      // Wahlsieg: Großereignis für die Zeitung (Eilmeldung digital, Print im nächsten Monat)
+      zeitungEreignis(world, {
+        art: "wahlsieg",
+        titel: "Wiederwahl",
+        fakt: `${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent der Stimmen.`,
+        wertung: 1,
+        schluessel: ["Wiederwahl"],
       });
     } else {
-      beende(world, "amtszeitende", "Ende der zweiten Amtszeit", `Nach zwei Amtszeiten endet die Zeit im Amt; die Verfassung erlaubt keine weitere.`, anteil);
+      beende(world, "amtszeitende", `Ende der Amtszeit ${spiel.amtszeit}`, `Nach ${spiel.amtszeit === 2 ? "zwei" : "drei"} Amtszeiten endet die Zeit im Amt; die Verfassung erlaubt keine weitere.`, anteil);
     }
   } else {
     beende(world, "abwahl", "Abgewählt", `Bei der Wahl am ${formatDateDe(world.date)} erhält ${name} nur ${fmt(anteil)} Prozent der Stimmen.`, anteil);

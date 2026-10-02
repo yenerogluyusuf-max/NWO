@@ -111,6 +111,51 @@ export interface Hinweis {
   szene: "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht";
 }
 
+/** Phase eines laufenden Verfassungsvorgangs (sim/verfassung.ts). */
+export type VerfassungsPhase = "parlament" | "aym" | "kampagne";
+
+/** Ein Verfassungspaket auf seinem Weg: Parlament, Verfassungsgericht, gegebenenfalls Volksabstimmung. */
+export interface VerfassungsVorgang {
+  id: string;
+  /** Artikel-Kennung → Varianten-Kennung (sim/verfassung.ts, ARTIKEL) */
+  paket: Record<string, string>;
+  phase: VerfassungsPhase;
+  eingebracht: number;
+  /** Tag der Parlamentsabstimmung */
+  abstimmung: number;
+  /** Gekaufte Stimmen (Absprachen, teurer als bei Gesetzen) */
+  absprachen: number;
+  /** Beim Einbringen gezahltes Politisches Kapital */
+  pk: number;
+  /** Ergebnis der Parlamentsabstimmung (Ja-Stimmen), nach der Abstimmung */
+  ja?: number;
+  /** Ob die Opposition das Paket vor das Verfassungsgericht gezogen hat */
+  aymAngefochten?: boolean;
+  /** Tag der Entscheidung des Verfassungsgerichts */
+  aymTag?: number;
+  /** Tag der Volksabstimmung (nur bei 301 bis 359 Ja-Stimmen) */
+  referendumTag?: number;
+  /** In die Kampagne investiertes Kapital */
+  kampagnenPk?: number;
+  /** Letzter Tag eines Kampagnen-Impulses (Abkühlzeit) */
+  kampagneZuletzt?: number;
+  /** Für welche Phase das Entscheidungs-Ereignis schon geöffnet wurde */
+  phaseGeoeffnet?: string;
+}
+
+/** Stand der Verfassungsfrage in dieser Partie; ältere Spielstände legen ihn beim ersten Zugriff an. */
+export interface VerfassungsZustand {
+  laufend?: VerfassungsVorgang;
+  /** Nummer der Amtszeit, in der bereits ein Vorgang lief (harte Regel: einer je Amtszeit) */
+  amtszeitBelegt: number;
+  /** Artikel-Kennung → Tag, ab dem der Artikel wieder eingebracht werden kann (12 Monate nach einem Scheitern) */
+  sperren: Record<string, number>;
+  /** Beschlossene Verfassungsänderungen: Artikel-Kennung → Varianten-Kennung (nur Abweichungen vom bisherigen Recht) */
+  aktiv: Record<string, string>;
+  /** Abgeschlossene Vorgänge für Chronik und Anzeige */
+  historie: { tag: number; datum: string; ausgang: string; artikel: string[] }[];
+}
+
 /** Verhältnis zu einer Fraktion des Parlaments. */
 export interface Fraktion {
   /** Wie offen sie für den Präsidenten ist, 0 bis 100 */
@@ -173,6 +218,8 @@ export interface SpielZustand {
   schwierigkeit?: "entspannt" | "normal" | "hart";
   /** Aufmerksamkeit und Belastung des Präsidenten; ältere Spielstände laden mit den Startwerten (sim/aufmerksamkeit.ts) */
   verfassung?: import("./aufmerksamkeit").Verfassung;
+  /** Die Verfassungsfrage (REC-1): Paket, Hürden, Gericht, Volksabstimmung; ältere Spielstände legen ihn beim ersten Zugriff an (sim/verfassung.ts) */
+  verfassungsvorgang?: VerfassungsZustand;
   /** Zufallssalz dieser Partie (für Wechsel der Forderungen); ältere Spielstände legen es beim ersten Bedarf an */
   salz?: number;
   /** Monate in Folge mit sehr niedriger Zustimmung (Sturzgefahr) */
@@ -181,6 +228,10 @@ export interface SpielZustand {
   hinweise: Hinweis[];
   /** Aktive Krisen-Blocker (MIL-3); ältere Spielstände haben das Feld noch nicht, es wird beim ersten Tick gefüllt */
   krisen?: AktiveKrise[];
+  /** Konfliktvorgänge (MIL-1 „Krieg als Vorgang“); ältere Spielstände haben das Feld nicht — kein Krieg-Feld = kein Konflikt, es wird beim ersten Zugriff angelegt */
+  kriege?: import("./krieg-typen").KriegVorgang[];
+  /** Die Zeitung (UI-1): Archiv, Warteschlange und Badge-Zähler; ältere Spielstände legen es beim ersten Monatsschritt an (sim/zeitung.ts) */
+  zeitung?: import("./zeitung").ZeitungZustand;
   /** Verschiebung, die die Zustimmung beim Start auf den Wahlanteil setzt */
   kalibrierung: number;
   /** Ausgangswerte für die Bilanz */

@@ -12,6 +12,7 @@ export const AKTEN_ZWECK: Record<string, string> = {
   Wirtschaft: "Die Zahlen des Landes und die großen Hebel: Zentralbank und Haushalt.",
   Personen: "Wer mit Ihnen regiert: Kabinett, Partner, Zusagen und ihre Fristen.",
   Chronik: "Das Gedächtnis der Amtszeit: Beschlüsse, Ereignisse, Umfragen und Wirkungsberichte.",
+  Zeitung: "Das Land in Schlagzeilen: dieselbe Wirklichkeit in verschiedenen Framings — und die Umfrage des Monats.",
 };
 
 /** Reiter, die etwas Eigenes zu sagen haben (sonst gilt der Satz der Akte). */

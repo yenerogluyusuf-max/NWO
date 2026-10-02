@@ -13,6 +13,9 @@ import { formatDateDe, formatMonthDe } from "../../sim/dates";
 import { KENNZAHLEN_NACH_ID } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, startMonat, verlauf, zbZustand } from "../../sim/wirtschaft";
 import { STUFEN, aendereStufe, druckOptionen, ernenneGouverneur, glaubwuerdigkeitWort, machDruck, naechsteSitzung, setzeVorgabe, stufenWechsel, type DruckOption } from "../../sim/zentralbank";
+import { DEVISEN, devisenZustand, interveniere, interventionsVorschau, iwfAnfrageMoeglich, iwfKuendigen, iwfSicht } from "../../sim/devisen";
+import { oeffne } from "../../sim/ereignisse";
+import { Rng } from "../../sim/rng";
 import type { GovernorStance } from "../../sim/types";
 import { Diagramm } from "./Diagramm";
 import { Folgen } from "./Folgen";
@@ -47,7 +50,7 @@ function aktionFuer(o: DruckOption | undefined): Aktion | null {
   return { art: "zinsdruck", richtung: o.richtung, weg: o.weg };
 }
 
-export function Zentralbank({ world, geaendert, abschnitt }: { world: World; geaendert: () => void; abschnitt?: "sitzung" | "gouverneur" | "stufe" | undefined }) {
+export function Zentralbank({ world, geaendert, abschnitt }: { world: World; geaendert: () => void; abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen" | undefined }) {
   const z = zbZustand(world);
   const naechste = naechsteSitzung(world);
   const optionen = useMemo(() => druckOptionen(world), [world.day, world.spiel?.kapital, z.stufe, world.governor.stance]);
@@ -59,6 +62,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
   const [rechnet, setRechnet] = useState(false);
   const [vorgabe, setVorgabe] = useState<number | null>(null);
   const [offen, setOffen] = useState<number | null>(null);
+  const [betrag, setBetrag] = useState(5);
 
   const e = world.economy;
   const opt = optionen.find((o) => o.id === gewaehlt) ?? optionen[0]!;
@@ -119,6 +123,17 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
   const restGouv = (z.gouverneurGeaendert ?? -1e9) + 120 - world.day;
   const restStufe = (z.stufeGeaendert ?? -1e9) + 180 - world.day;
   const eingriffe = alleMarken(world).filter((m) => m.art === "eingriff").reverse().slice(0, 6);
+
+  // WIR-2: Devisen-Lage (Reserven, Intervention, IWF)
+  const dv = devisenZustand(world);
+  const netto = e.reservenNettoUsdMrd ?? 0;
+  const brutto = e.reservenBruttoUsdMrd ?? 0;
+  const lb = e.leistungsbilanzPctBip ?? 0;
+  const nettoKnapp = netto < DEVISEN.warnungUnter;
+  const iv = interventionsVorschau(world, betrag);
+  const iwf = iwfSicht(world);
+  const anfrage = iwfAnfrageMoeglich(world);
+  const druckText = (e.reservenDruck ?? 0) > 0 ? "Zuschlag aktiv (Märkte testen die Bank)" : netto < DEVISEN.druckAus ? "unter Beobachtung" : "ruhig";
 
   return (
     <div className="wi-zb">
@@ -306,6 +321,113 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             );
           })}
         </div>
+      </section>
+
+      <section className="wi-karte" id="wi-zb-devisen">
+        <p className="kicker">Die Devisen-Lage</p>
+        <h3>Reserven, die man nicht drucken kann</h3>
+        <p className="wi-hinweis">
+          Devisen sind die zweite Staatswährung: Importe, Auslandsschulden und die Verteidigung der Lira werden in Dollar bezahlt. Die Zentralbank kann Lira schöpfen, aber keine Dollar. Was fehlt, muss hereingeholt werden — über die Leistungsbilanz, über Kapital, das Sie anziehen, oder über den IWF.
+        </p>
+        <dl className="wi-zahlen">
+          <div>
+            <dt>Netto-Reserven</dt>
+            <dd className={nettoKnapp ? "wi-schlecht" : ""}>{nf(netto)} Mrd. $</dd>
+          </div>
+          <div>
+            <dt>Brutto-Reserven</dt>
+            <dd>{nf(brutto)} Mrd. $</dd>
+          </div>
+          <div>
+            <dt>Leistungsbilanz</dt>
+            <dd>{nf(lb)} % des BIP</dd>
+          </div>
+          <div>
+            <dt>Druck der Märkte</dt>
+            <dd>{druckText}</dd>
+          </div>
+        </dl>
+        {nettoKnapp && (
+          <p className="wi-hinweis wi-warnung">
+            Ehrliche Warnung: Die Netto-Reserven liegen unter {DEVISEN.warnungUnter} Mrd. Dollar. Unter {DEVISEN.druckAn} Mrd. verlangen die Märkte einen Zuschlag auf Kurs und Risikoaufschlag, unter {DEVISEN.kriseAn} Mrd. droht die Zahlungsbilanzkrise.
+          </p>
+        )}
+
+        <h4>Intervention: Reserven gegen Abwertungsdruck verkaufen</h4>
+        <p className="wi-hinweis">
+          Ein Verkauf glättet den Kurs für einige Wochen — die Reserven sind danach dauerhaft weg. Bei knappen Reserven lesen die Märkte den Verkauf als Verbrauch: Dann kostet er zusätzlich Glaubwürdigkeit und Risikoaufschlag.
+        </p>
+        <div className="wi-metriken" role="tablist" aria-label="Betrag der Intervention">
+          {[2, 5, 10].map((b) => (
+            <button key={b} role="tab" aria-selected={betrag === b} className={betrag === b ? "on" : ""} onClick={() => setBetrag(b)}>
+              {b} Mrd. $
+            </button>
+          ))}
+        </div>
+        <p className="wi-hinweis">
+          Wirkung: etwa {nf(iv.glaettung)} % Kursstütze (davon {nf(iv.sofort)} % sofort), Netto-Reserven danach {nf(iv.nettoNachher)} Mrd. $.
+        </p>
+        {iv.warnung && <p className="wi-grund">{iv.warnung}</p>}
+        {bestaetigt === "intervention" ? (
+          <Bestaetigung name={spielerName} titel={`${betrag} Mrd. Dollar verkaufen`} knopf="Verkaufen" onJa={() => fuehre(() => interveniere(world, betrag))} onNein={() => setBestaetigt(null)}>
+            <p>Die Zentralbank verkauft {betrag} Mrd. Dollar aus den Reserven und stützt die Lira um etwa {nf(iv.glaettung)} % über einige Wochen.{iv.warnung ? ` ${iv.warnung}` : ""}</p>
+          </Bestaetigung>
+        ) : (
+          <button className="wi-handlung" disabled={!iv.ok} title={iv.grund ?? ""} onClick={() => setBestaetigt("intervention")}>
+            {betrag} Mrd. Dollar verkaufen <span aria-hidden>→</span>
+          </button>
+        )}
+        {!iv.ok && iv.grund && <span className="wi-grund">{iv.grund}</span>}
+
+        <h4>Der IWF</h4>
+        {iwf ? (
+          <div className="wi-iwf">
+            <p className="wi-hinweis">{iwf.zeile}</p>
+            <div className="wi-dauer">
+              <span className={`wi-chip ${iwf.zinsOk ? "wi-gut" : "wi-schlecht"}`}>
+                Leitzins {nf(iwf.zinsJetzt)} % (Auflage ≥ {nf(iwf.zinsMindest)} %)
+              </span>
+              <span className={`wi-chip ${iwf.defizitOk ? "wi-gut" : "wi-schlecht"}`}>
+                Defizit {nf(iwf.defizitJetzt)} % (Auflage ≤ {nf(iwf.defizitMax)} %)
+              </span>
+              <span className="wi-chip wi-neutral">{nf(iwf.mittelUsdMrd, 0)} Mrd. $ geflossen</span>
+            </div>
+            {bestaetigt === "iwf-kuendigen" ? (
+              <Bestaetigung name={spielerName} titel="Das IWF-Programm vorzeitig beenden" knopf="Kündigen" onJa={() => fuehre(() => iwfKuendigen(world))} onNein={() => setBestaetigt(null)}>
+                <p>Die verbleibenden Tranchen entfallen. Die Märkte beantworten den Bruch: Risikoaufschlag +{DEVISEN.iwf.risikoBruch} Punkte, Glaubwürdigkeit und Vertrauen brechen ein.</p>
+              </Bestaetigung>
+            ) : (
+              <button className="wi-handlung" onClick={() => setBestaetigt("iwf-kuendigen")}>
+                Programm vorzeitig beenden
+              </button>
+            )}
+          </div>
+        ) : anfrage.moeglich ? (
+          <>
+            <p className="wi-hinweis">Der IWF verhandelt, weil die Lage ernst ist: Stand-by mit Devisen sofort und Tranchen nach drei Reviews — gegen Auflagen zu Zins und Defizit. Das Angebot kommt als Ereignis auf den Tisch.</p>
+            <button className="wi-handlung" onClick={() => fuehre(() => {
+              const ev = oeffne(world, "iwf_angebot", new Rng(world.rngState ^ Math.imul(world.day + 13, 0x9e3779b1)));
+              return ev ? { ok: true, text: "Der IWF legt ein Angebot auf den Tisch — entscheiden Sie im Ereignis-Fenster." } : { ok: false, text: "Der IWF zögert im Moment." };
+            })}>
+              Beim IWF anfragen <span aria-hidden>→</span>
+            </button>
+          </>
+        ) : (
+          <p className="wi-hinweis">{anfrage.grund}</p>
+        )}
+
+        {dv.interventionen.length > 0 && (
+          <>
+            <h4>Ihre Interventionen</h4>
+            <ul className="wi-marken">
+              {[...dv.interventionen].reverse().slice(0, 5).map((x, i) => (
+                <li key={i}>
+                  <span className="wi-wann">{formatDateDe(x.datum)}</span> {x.text}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
 
       <section className="wi-karte">

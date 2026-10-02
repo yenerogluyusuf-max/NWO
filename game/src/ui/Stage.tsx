@@ -13,6 +13,7 @@ import { Chat } from "./Chat";
 import { Bereiche } from "./Bereiche";
 import { Politik } from "./politik/Politik";
 import { Beschlussbuch } from "./Beschlussbuch";
+import { VerfassungWerkstatt } from "./Verfassung";
 import { Waehler } from "./Waehler";
 import { Programme } from "./Programme";
 import { Welt } from "./Welt";
@@ -55,8 +56,10 @@ import { StandDerDingeBlatt } from "./StandDerDingeBlatt";
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { LAENDERNAMEN, LAND_PINS, KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
 import { kurzVergleich } from "./vergleich";
+import { Zeitung } from "./Zeitung";
+import { zeitungGelesen } from "../sim/zeitung";
 
-type Dossier = "schreibtisch" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | null;
+type Dossier = "schreibtisch" | "verfassung" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | null;
 
 /** Millisekunden je Tick und Tage je Tick: Pause, ruhig, zügig, schnell, bis zum nächsten Ereignis. */
 const SPEEDS = [0, 700, 200, 40, 14];
@@ -98,7 +101,6 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const [umlauf, setUmlauf] = useState<UmlaufEintrag[]>([]);
   const [umlaufNeu, setUmlaufNeu] = useState(0);
   const umlaufZaehler = useRef(0);
-  const umfrageStand = useRef(initial.spiel?.umfrage.verlauf.length ?? 0);
   const gesehen = useRef(new Set<string>());
   const letzteSicherung = useRef(0);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
@@ -156,19 +158,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       }
       const s = wd.spiel;
       if (s) for (const e of s.ereignisse) gesehen.current.add(e.id);
-      // Monatsumfrage (Klasse C): kein Stopp, ein Eintrag im Sammel-Hinweis
-      const verlauf = s?.umfrage.verlauf ?? [];
-      if (s && verlauf.length > umfrageStand.current) {
-        for (const e of verlauf.slice(umfrageStand.current - verlauf.length)) {
-          const davor = verlauf[verlauf.indexOf(e) - 1]?.wert;
-          umlaufPush({
-            datum: formatDateDe(wd.date),
-            titel: "Monatsumfrage",
-            text: `Zustimmung ${e.wert.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %${davor !== undefined ? ` (Vormonat ${davor.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %)` : ""} — Routine, nichts zu entscheiden.`,
-          });
-        }
-        umfrageStand.current = verlauf.length;
-      }
+      // Die Monatsumfrage erscheint nicht mehr als nackte Zahl: Das Institut publiziert sie IN der
+      // Zeitung (UI-1); die Ausgabe selbst meldet der C-Hinweis „zeitung-*" in den Umlauf.
       // Meldungen für das, was ohne Zutun des Spielers geschah (alles Klasse C: Feed plus Sammel-Hinweis)
       const titel = new Set((s?.ereignisse ?? []).map((e) => vorlage(e.vorlage).titel(wd, e)));
       for (const l of wd.log.slice(before)) {
@@ -292,6 +283,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   // badge = wartende Entscheidungen (rot, Klasse A), umlauf = gesammelte Routine (ruhig, Klasse C)
   const menue: { kurz: string; titel: string; icon: IconName; badge?: number; umlauf?: number; tabs: { id: Exclude<Dossier, null>; label: string }[] }[] = [
     { kurz: "Schreibtisch", titel: "Schreibtisch", icon: "feder", badge: (spiel?.ereignisse.length ?? 0) || undefined, umlauf: umlaufNeu || undefined, tabs: [{ id: "schreibtisch", label: "Schreibtisch" }] },
+    // Die Zeitung (UI-1): weiche Anzeige ohne Pause — das ruhige Badge zählt ungelesene Ausgaben (Klasse C)
+    { kurz: "Zeitung", titel: "Zeitung", icon: "zeitung", umlauf: (spiel?.zeitung?.ungelesen ?? 0) || undefined, tabs: [{ id: "zeitung", label: "Frontseite" }] },
     { kurz: "Gespräch", titel: "Gespräch", icon: "sprechblase", tabs: [{ id: "gespraech", label: "Gespräch" }] },
     {
       kurz: "Politik",
@@ -320,7 +313,16 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         { id: "reich_haushalt", label: "Verwaltung" },
       ],
     },
-    { kurz: "Parlament", titel: "Parlament", icon: "waage", badge: spiel?.gesetze.length || undefined, tabs: [{ id: "parlament", label: "Fraktionen und Abstimmung" }] },
+    {
+      kurz: "Parlament",
+      titel: "Parlament",
+      icon: "waage",
+      badge: (spiel?.gesetze.length ?? 0) + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
+      tabs: [
+        { id: "parlament", label: "Fraktionen und Abstimmung" },
+        { id: "verfassung", label: "Verfassung" },
+      ],
+    },
     {
       kurz: "Wirtschaft",
       titel: "Wirtschaft",
@@ -343,6 +345,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const oeffneDossier = (d: Dossier) => {
     if (d === "politik") setPolitikStart(null);
     if (d === "schreibtisch") umlaufGelesen();
+    if (d === "zeitung") zeitungGelesen(world.current); // Badge „Neue Ausgabe" erlischt beim Öffnen
     setDossier(d);
     if (d) beendeZeit();
   };
@@ -456,7 +459,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           <Stat icon="preis" label="Inflation" value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} trend={trend(w, "inflation")} tip={`Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung. ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
           <Stat icon="lira" label="Lira je $" value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} trend={trend(w, "usdTry")} tip={`Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer. ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
           <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
-          <Stat icon="parlament" label="Sitze" value={`${bloc}/600`} warn={bloc < 301} tip={`Ihr Lager${stimmen && stimmen.duldungSitze > 0 ? ` (${stimmen.lager}) und die Fraktionen, die es zurzeit dulden (${stimmen.duldungSitze})` : ""} im Parlament. Gesetze brauchen 301 Stimmen, eine Verfassungsänderung ohne Volksabstimmung 400, mit Volksabstimmung 360.`} />
+          <Stat icon="parlament" label="Sitze" value={`${bloc}/600`} warn={bloc < 301} tip={`Ihr Lager${stimmen && stimmen.duldungSitze > 0 ? ` (${stimmen.lager}) und die Fraktionen, die es zurzeit dulden (${stimmen.duldungSitze})` : ""} im Parlament. Gesetze brauchen 301 Stimmen; ein Verfassungspaket wird ab 360 Stimmen direkt Gesetz, zwischen 301 und 359 entscheidet eine Volksabstimmung.`} />
         </div>
       </header>
 
@@ -477,7 +480,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
@@ -497,6 +500,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           <div className="dossier-body">
             {zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
             {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} />}
+            {dossier === "zeitung" && <Zeitung world={w} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "politik" && (
               <Politik
@@ -527,6 +531,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             )}
             {dossier === "wirtschaft" && <EconomyFile world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
             {(dossier === "parlament" || dossier === "beschluesse") && <Beschlussbuch teil={dossier === "parlament" ? "parlament" : "beschluesse"} world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "verfassung" && <VerfassungWerkstatt world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "programme" && (
               <Programme
                 world={w}

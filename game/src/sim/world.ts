@@ -16,6 +16,7 @@ import { migriereVerfassung } from "./aufmerksamkeit";
 import { zinssitzung } from "./zentralbank";
 import { wirtschaftMonat } from "./wirtschaft-tick";
 import { migriereUmsetzung, umsetzungMonat } from "./umsetzung";
+import { devisenMonat, migriereDevisen } from "./devisen";
 import { turkey2026 } from "./scenario";
 
 // Das Netz, das Protokoll und die Eingriffe liegen in eigenen Dateien; hier bleiben die Namen erreichbar.
@@ -62,6 +63,8 @@ export function createWorld(scenario: Scenario, seed: number): World {
     log: [],
     net: createNet(NET, economy, REGIONAL, WEIGHTS, ARCHETYP_DELTAS),
   };
+  // WIR-2: Die Devisen-Lage aus den Datenfeldern des Szenarios (Leistungsbilanz, Reserven)
+  migriereDevisen(world);
   addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + formatDateDe(scenario.dataDate) + ".");
   return world;
 }
@@ -129,6 +132,8 @@ export function tick(world: World): void {
     publishQuarterlyGrowth(world);
     monthlyNet(world);
     wirtschaftMonat(world);
+    // WIR-2: Leistungsbilanz, Reserven und IWF-Reviews (nur mit Spielschleife)
+    devisenMonat(world);
   }
 
   // Statistiken erscheinen mit Verzögerung (Wirtschaftsmodell, Abschnitt 2)
@@ -263,6 +268,8 @@ export function load(json: string): World {
   // Ältere Spielstände (INN-2): Es gab keinen Umsetzungsstand; Beschlossenes gilt als voll
   // umgesetzt (fehlender Eintrag = 100), beschädigte Einträge werden repariert
   migriereUmsetzung(NET, w.net);
+  // Ältere Spielstände (WIR-2): die Devisen-Lage lädt mit den Startwerten des Szenarios
+  migriereDevisen(w);
   return w;
 }
 

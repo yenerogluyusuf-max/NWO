@@ -16,9 +16,9 @@ const REITER: { id: Reiter; label: string; text: string }[] = [
   { id: "haushalt", label: "Haushalt", text: "Plan, Regler, Nachtrag" },
 ];
 
-export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onGeaendert }: { world: World; start?: Reiter; zbAbschnitt?: "sitzung" | "gouverneur" | "stufe"; posten?: string; onGeaendert?: (() => void) | undefined }) {
+export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onGeaendert }: { world: World; start?: Reiter; zbAbschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen"; posten?: string; onGeaendert?: (() => void) | undefined }) {
   const [reiter, setReiter] = useState<Reiter>(start);
-  const [abschnitt, setAbschnitt] = useState(zbAbschnitt);
+  const [abschnitt, setAbschnitt] = useState<"sitzung" | "gouverneur" | "stufe" | "devisen" | undefined>(zbAbschnitt);
   const [wahl, setWahl] = useState(posten);
   const [, setVersion] = useState(0);
   const geaendert = () => {

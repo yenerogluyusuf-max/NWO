@@ -1751,3 +1751,18 @@ button.link { border: none !important; background: none !important; box-shadow: 
 @media (max-width: 720px) {
   .dossier, .dossier.frame { z-index: 8; }
 }
+
+/* Verfassungs-Werkstatt (REC-1): Baukasten, Varianten und Vorgangs-Stufen */
+.vf-varianten { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.vf-variante { border: 1px solid rgba(120, 90, 50, 0.25); border-radius: 8px; padding: 8px 10px; background: rgba(255, 252, 245, 0.5); }
+.vf-variante.gewaehlt { border-color: rgba(120, 90, 50, 0.7); background: rgba(255, 250, 235, 0.9); box-shadow: inset 0 0 0 1px rgba(120, 90, 50, 0.35); }
+.vf-variante label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.vf-variante p { margin: 4px 0 0 24px; }
+.vf-aktiv { color: #4a6b3a; font-weight: 600; }
+.vf-sperre { color: #9a4a2a; font-weight: 600; }
+.vf-hinweise { margin: 6px 0 10px; padding-left: 18px; }
+.vf-hinweise li { margin: 2px 0; }
+.vf-stufen { margin: 8px 0 0; padding-left: 22px; display: grid; gap: 4px; }
+.vf-stufe { opacity: 0.55; }
+.vf-stufe.aktiv { opacity: 1; font-weight: 600; }
+.vf-stufe.erledigt { opacity: 0.8; text-decoration: line-through; }
