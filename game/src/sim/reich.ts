@@ -2,7 +2,7 @@
 // Der Kern ist die einzige Wahrheitsquelle: Oberfläche und Sprachmodell lesen `vorhabenSicht` und rufen `beginne` auf.
 
 import { NET } from "./modell";
-import { nationalAverage, PROVINCES } from "./netz";
+import { nationalAverage, PROVINCES, decayVon } from "./netz";
 import { wirke } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
@@ -397,7 +397,7 @@ export function effektZeile(e: Effekt, modus: "sofort" | "dauer" = "sofort"): Ef
   // Dauerwirkungen sind je Monat angegeben; bei Größen des Netzes zeigt die Oberfläche, um wie viel sich das Gleichgewicht dauerhaft verschiebt
   if (modus === "dauer" && e.t === "knoten") {
     const node = NET.nodes[NET.index.get(e.id) ?? -1];
-    const verschiebung = node && node.decay > 0 ? e.d / node.decay : e.d;
+    const verschiebung = node && decayVon(node) > 0 ? e.d / decayVon(node) : e.d;
     return effektZeile({ ...e, d: Math.round(verschiebung * 10) / 10 }, "sofort");
   }
   const je = modus === "dauer" && e.t !== "knoten" ? " je Monat" : "";

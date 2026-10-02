@@ -138,12 +138,14 @@ export function vorschau(w: World, a: KiAktion): KiVorschau {
       const weg = a.weg === "erlass" ? "Erlass" : "Gesetz";
       const titel = `${m.name} ${provinzenText(m.ort)} auf Stufe ${m.ziel} (${weg})`;
       if (!pr.ok) return { aktion: a, titel, problem: pr.grund ?? "Keine Änderung." };
+      // INN-2: Die Antwort nennt die Umsetzungsdauer — beschlossen ist nicht umgesetzt
+      const dauer = `Umsetzung läuft über etwa ${pr.monate} ${pr.monate === 1 ? "Monat" : "Monate"}.`;
       if (a.weg === "erlass") {
         if (!pr.erlass.moeglich) return { aktion: a, titel, problem: pr.erlass.grund ?? "Als Erlass nicht möglich." };
-        return { aktion: a, titel, kosten: pr.erlass.pk, ...(pr.erlass.bezahlbar ? {} : { problem: "Dafür fehlt Kapital." }) };
+        return { aktion: a, titel, kosten: pr.erlass.pk, hinweis: dauer, ...(pr.erlass.bezahlbar ? {} : { problem: "Dafür fehlt Kapital." }) };
       }
       const mehrheit = pr.gesetz.stimmen.erwartet >= 301 ? `Mehrheit steht (erwartet ${pr.gesetz.stimmen.erwartet} Stimmen).` : `Es fehlen etwa ${pr.gesetz.stimmen.luecke} Stimmen zur Mehrheit.`;
-      return { aktion: a, titel, kosten: pr.gesetz.pk, hinweis: `${mehrheit} Abstimmung in ${pr.gesetz.tage} Tagen.`, ...(pr.gesetz.bezahlbar ? {} : { problem: "Dafür fehlt Kapital." }) };
+      return { aktion: a, titel, kosten: pr.gesetz.pk, hinweis: `${mehrheit} Abstimmung in ${pr.gesetz.tage} Tagen. ${dauer}`, ...(pr.gesetz.bezahlbar ? {} : { problem: "Dafür fehlt Kapital." }) };
     }
     case "land": {
       const def = LAENDER.find((l) => l.id === a.land);

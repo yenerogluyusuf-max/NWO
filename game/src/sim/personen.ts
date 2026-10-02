@@ -3,7 +3,7 @@
 // damit ältere Spielstände ohne Umbau weiterlaufen.
 
 import { NET } from "./modell";
-import { nationalAverage } from "./netz";
+import { nationalAverage, decayVon } from "./netz";
 import { LAENDER, vertrauenZu } from "./laender";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
@@ -172,7 +172,7 @@ export function ressortWirkungSicht(w: World, f: Figur): { id: string; name: str
   return AEMTER[f.amt].wirkung
     .filter((x) => NET.index.has(x.id))
     .map((x) => {
-      const decay = NET.nodes[NET.index.get(x.id)!]!.decay || 0.08;
+      const decay = decayVon(NET.nodes[NET.index.get(x.id)!]!) || 0.08;
       const schlecht = HOCH_SCHLECHT.has(x.id);
       // Bei Größen, bei denen hoch schlecht ist, zeigt die Zahl die Verbesserung (positiv = besser für das Land)
       const punkte = Math.round(((x.d * faktor) / decay) * (schlecht ? -1 : 1) * 10) / 10;

@@ -172,7 +172,7 @@ export function kennzahlen(world: World): Kennzahl[] {
       id: "kapital",
       label: "Politisches Kapital",
       wert: `${Math.floor(spiel.kapital)}`,
-      zusatz: `${einkommen.summe >= 0 ? "+" : "−"}${nf(Math.abs(einkommen.summe))} im Monat`,
+      zusatz: `${einkommen.summe >= 0 ? "+" : "−"}${nf(Math.abs(einkommen.summe))} im Monat${einkommen.unterhalt > 0 ? ` (davon −${nf(einkommen.unterhalt)} Unterhalt laufender Maßnahmen)` : ""}`,
       trend: "gleich",
       ton: spiel.kapital < 0 ? "schlecht" : spiel.kapital < 8 ? "schlecht" : "neutral",
       ziel: { art: "akte", akte: "bereiche" },

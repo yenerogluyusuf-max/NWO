@@ -1,4 +1,4 @@
-//#region game/src/sim/economy.ts
+//#region src/sim/economy.ts
 const PARAMS = {
 	/** Neutraler Realzins in % */
 	neutralRealRate: 3,
@@ -11,27 +11,33 @@ const PARAMS = {
 	/** Persistenz der Auslastung pro Monat */
 	gapPersistence: .85,
 	/** Z6: Wirkung zusätzlicher Staatsausgaben (% BIP) auf die Auslastung */
-	fiscalOnGap: .12,
+	fiscalOnGap: .08,
 	/** Z2: Wirkung der Auslastung auf die Inflation */
 	gapOnInflation: .5,
 	/** Z5: Weitergabe einer übermäßigen Abwertung an die Inflation */
-	fxPassThrough: .25,
+	fxPassThrough: .35,
 	/** Anpassungsgeschwindigkeit der Inflation pro Monat */
-	inflationSpeed: .12,
+	inflationSpeed: .2,
 	/** Z3: Anpassungsgeschwindigkeit der Erwartungen pro Monat */
-	expectationSpeed: .15,
+	expectationSpeed: .35,
 	/** Z9: Okun-Koeffizient (monatlich) */
-	okun: .035,
+	okun: .055,
 	/** Natürliche Arbeitslosenquote in % */
 	naturalUnemployment: 9,
 	/** Z4: Wirkung des Realzinses auf die Abwertung (% p. a. je Prozentpunkt) */
-	carryOnFx: .5,
+	carryOnFx: 1,
 	/** Tägliche Schwankung des Wechselkurses (Standardabweichung, Anteil) */
 	fxNoise: .0015,
 	/** Langfristiges Inflationsziel der Zentralbank in % */
 	longRunTarget: 5,
 	/** Monatliche Annäherung der Zwischenziele an das langfristige Ziel (ergibt etwa 24, 15, 9, 5) */
-	targetGlide: .04
+	targetGlide: .04,
+	/**
+	* ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 1 % des BIP
+	* lesen die Märkte als strukturelles Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
+	* Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
+	*/
+	politiklastAufRisiko: 40
 };
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
 const AUSSEN = {
@@ -42,7 +48,7 @@ const AUSSEN = {
 	/** Auslastung (Prozentpunkte je Monat) je Indexpunkt EU-Nachfrage */
 	euAufAuslastung: .012,
 	/** Basispunkte Risikoaufschlag je Indexpunkt Weltzins über 100 */
-	weltzinsAufRisiko: 3
+	weltzinsAufRisiko: 2
 };
 /** Potenzialwachstum einschließlich der Wirkung des Politiknetzes. */
 function potential(e) {
@@ -54,7 +60,7 @@ function realRate(e) {
 }
 /** Z4: tägliche Veränderung des Wechselkurses (Anteil, z. B. 0,001 = 0,1 %). */
 function dailyDepreciation(e, rng) {
-	const inflationGap = e.inflation - PARAMS.foreignInflation;
+	const inflationGap = e.expectedInflation - PARAMS.foreignInflation;
 	const carry = PARAMS.carryOnFx * (realRate(e) - PARAMS.neutralRealRate);
 	const risk = (e.riskPremium - 250) / 100;
 	const annual = inflationGap - carry + risk;
@@ -63,7 +69,7 @@ function dailyDepreciation(e, rng) {
 }
 /** Z8: täglicher Risikoaufschlag, zieht zum fundamentalen Wert. */
 function dailyRiskPremium(e, rng) {
-	const fundamental = 150 + 3 * Math.max(0, e.inflation - 10) + 2 * Math.max(0, e.debtRatio - 40) + 200 * (1 - e.credibility) + AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
+	const fundamental = 150 + 2.5 * Math.max(0, e.expectedInflation - 10) + 2 * Math.max(0, e.debtRatio - 40) + 200 * (1 - e.credibility) + PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 1) + AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
 	return e.riskPremium + .02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
 /** Monatliche Fortschreibung der Realwirtschaft (Z1, Z2, Z3, Z5, Z6, Z7, Z9). */
@@ -140,12 +146,50 @@ function clamp(x, min, max) {
 	return Math.min(max, Math.max(min, x));
 }
 const SLOTS = 13;
+/**
+* Die Kantenformel (Democracy 4: `Ziel, f(x), Inertia`) — ausgewertet auf dem Index 0–100.
+* `linear` ist die Identität, sodass w · (F(x) − F(x₀)) für lineare Kanten exakt dem alten
+* Verhalten w · (x − x₀) entspricht. Alle Parameter sind Spielparameter, keine Messwerte.
+*/
+function formWert(form, x) {
+	if (!form || form.typ === "linear") return x;
+	switch (form.typ) {
+		case "saettigung": {
+			const k = form.k ?? 2;
+			return (1 - Math.exp(-k * x / 100)) * 100;
+		}
+		case "schwelle": {
+			const k = form.k ?? .12;
+			const mitte = form.mitte ?? 50;
+			return 100 / (1 + Math.exp(-k * (x - mitte)));
+		}
+		case "umkehr": {
+			const exponent = form.exponent ?? 2;
+			return Math.pow(Math.max(0, x) / 100, exponent) * 100;
+		}
+	}
+}
+/**
+* Monatlicher Rücklauf eines Knotens. Das optionale `traegheit`-Feld (Spielparameter) teilt den
+* Datenwert: tiefe strukturelle Größen kehren langsamer zur Ruhelage zurück als Stimmungsgrößen.
+* Knoten ohne das Feld verhalten sich bit-identisch zu früher.
+*/
+function decayVon(node) {
+	return node.decay / (node.traegheit ?? 1);
+}
 function buildModel(nodes, edges) {
 	const index = new Map(nodes.map((n, i) => [n.id, i]));
 	for (const e of edges) {
 		if (!index.has(e.from)) throw new Error(`Politiknetz: unbekannter Knoten „${e.from}“`);
 		if (!index.has(e.to)) throw new Error(`Politiknetz: unbekannter Knoten „${e.to}“`);
 		if (e.lag < 0 || e.lag > 12) throw new Error(`Politiknetz: Verzögerung außerhalb 0–12 bei ${e.from} → ${e.to}`);
+		if (e.form) {
+			if (nodes[index.get(e.from)].input) throw new Error(`Politiknetz: Kantenform an Eingangsgröße „${e.from}“ (kein Index 0–100)`);
+			if (e.form.k !== void 0 && e.form.k <= 0) throw new Error(`Politiknetz: k muss positiv sein bei ${e.from} → ${e.to}`);
+			if (e.form.mitte !== void 0 && (e.form.mitte < 0 || e.form.mitte > 100)) throw new Error(`Politiknetz: mitte außerhalb 0–100 bei ${e.from} → ${e.to}`);
+			if (e.form.exponent !== void 0 && e.form.exponent < 1) throw new Error(`Politiknetz: exponent unter 1 bei ${e.from} → ${e.to}`);
+		}
+		for (const n of nodes) if (n.traegheit !== void 0 && n.traegheit <= 0) throw new Error(`Politiknetz: traegheit muss positiv sein bei „${n.id}“`);
 	}
 	return {
 		nodes,
@@ -154,18 +198,20 @@ function buildModel(nodes, edges) {
 		edgeFrom: Int32Array.from(edges.map((e) => index.get(e.from))),
 		edgeTo: Int32Array.from(edges.map((e) => index.get(e.to))),
 		edgeWeight: Float64Array.from(edges.map((e) => e.weight)),
-		edgeLag: Int32Array.from(edges.map((e) => e.lag))
+		edgeLag: Int32Array.from(edges.map((e) => e.lag)),
+		edgeForm: edges.map((e) => e.form && e.form.typ !== "linear" ? e.form : null)
 	};
 }
-function createNet(model, economy, regional = {}, weights = new Array(81).fill(1 / 81)) {
+function createNet(model, economy, regional = {}, weights = new Array(81).fill(1 / 81), deltas = {}) {
 	const n = model.nodes.length;
 	const start = new Array(n * 81);
 	model.nodes.forEach((node, i) => {
 		const base = node.input ? inputValue(node.input, economy, 1) : node.start;
 		const factors = regional[node.id];
+		const d = deltas[node.id];
 		for (let p = 0; p < 81; p++) {
 			const f = factors?.[p] ?? 1;
-			start[i * 81 + p] = node.input ? inputValue(node.input, economy, f) : clampIndex$1(base * f);
+			start[i * 81 + p] = node.input ? inputValue(node.input, economy, f) : clampIndex$1(base * f + (d?.[p] ?? 0));
 		}
 	});
 	const values = start.slice();
@@ -235,21 +281,25 @@ function stepNet(model, s, e, regional = {}) {
 		}
 	}
 	const delta = new Float64Array(n * 81);
+	const um = s.umsetzung;
 	for (let j = 0; j < model.edgeFrom.length; j++) {
 		const from = model.edgeFrom[j];
 		const to = model.edgeTo[j];
-		const w = model.edgeWeight[j];
+		const w = model.edgeWeight[j] * (um ? (um[model.nodes[from].id] ?? 100) / 100 : 1);
 		const past = s.history[(s.month - model.edgeLag[j] + SLOTS * 1e3) % SLOTS];
 		const fo = from * 81;
 		const to0 = to * 81;
-		for (let p = 0; p < 81; p++) delta[to0 + p] = delta[to0 + p] + w * (past[fo + p] - s.start[fo + p]);
+		const form = model.edgeForm[j];
+		if (form === null) for (let p = 0; p < 81; p++) delta[to0 + p] = delta[to0 + p] + w * (past[fo + p] - s.start[fo + p]);
+		else for (let p = 0; p < 81; p++) delta[to0 + p] = delta[to0 + p] + w * (formWert(form, past[fo + p]) - formWert(form, s.start[fo + p]));
 	}
 	model.nodes.forEach((node, i) => {
 		if (node.input || node.kind === "massnahme") return;
 		const o = i * 81;
+		const ruecklauf = decayVon(node);
 		for (let p = 0; p < 81; p++) {
 			const k = o + p;
-			const next = v[k] + delta[k] - node.decay * (v[k] - s.start[k]);
+			const next = v[k] + delta[k] - ruecklauf * (v[k] - s.start[k]);
 			v[k] = clampIndex$1(next);
 		}
 	});
@@ -295,10 +345,10 @@ function clampIndex$1(x) {
 	return Math.min(100, Math.max(0, x));
 }
 //#endregion
-//#region game/src/data/politiknetz.ts
+//#region src/data/politiknetz.ts
 const N$1 = [];
 const E = [];
-function m(theme, id, name, start, cost, months, text) {
+function m(theme, id, name, start, cost, months, text, preise) {
 	N$1.push({
 		id,
 		name,
@@ -308,10 +358,11 @@ function m(theme, id, name, start, cost, months, text) {
 		start,
 		decay: 0,
 		cost,
-		months
+		months,
+		...preise ? { preise } : {}
 	});
 }
-function g(theme, id, name, start, text, decay = .08) {
+function g(theme, id, name, start, text, decay = .08, traegheit) {
 	N$1.push({
 		id,
 		name,
@@ -319,7 +370,8 @@ function g(theme, id, name, start, text, decay = .08) {
 		kind: "groesse",
 		text,
 		start,
-		decay
+		decay,
+		...traegheit !== void 0 ? { traegheit } : {}
 	});
 }
 function inp(theme, id, name, input, text) {
@@ -371,6 +423,17 @@ function e(from, to, weight, lag, why) {
 		why
 	});
 }
+/** Verbindung mit nichtlinearer Antwort (Kantenformel). Nur für Quellen mit Index 0–100, nicht für Wirtschafts-Eingänge. */
+function ef(from, to, weight, lag, why, form) {
+	E.push({
+		from,
+		to,
+		weight,
+		lag: Math.min(lag, 12),
+		why,
+		form
+	});
+}
 inp("wirtschaft", "inflation", "Inflation", "inflation", "Jahresinflation in %, aus dem Wirtschaftsmodell.");
 inp("wirtschaft", "arbeitslosigkeit", "Arbeitslosigkeit", "arbeitslosigkeit", "Arbeitslosenquote, regional unterschiedlich.");
 inp("wirtschaft", "wachstum", "Wachstum", "wachstum", "Wirtschaftswachstum, als Index (50 = Potenzialwachstum).");
@@ -379,7 +442,7 @@ inp("wirtschaft", "abwertung", "Abwertung der Lira", "abwertung", "Wertverlust d
 inp("haushalt", "defizit", "Haushaltsdefizit", "defizit", "Defizit in % des BIP, als Index.");
 inp("haushalt", "schulden", "Staatsschulden", "schulden", "Schuldenquote in % des BIP.");
 g("wirtschaft", "lebenshaltung", "Gefühlte Teuerung", 70, "Wie teuer sich der Alltag anfühlt: Lebensmittel, Miete, Energie.");
-g("wirtschaft", "realeinkommen", "Reallöhne", 45, "Was die Löhne nach Abzug der Preissteigerung wert sind.");
+g("wirtschaft", "realeinkommen", "Reallöhne", 45, "Was die Löhne nach Abzug der Preissteigerung wert sind.", .08, 2);
 g("wirtschaft", "investitionen", "Investitionen", 45, "Wie viel Unternehmen in Anlagen und Maschinen stecken.");
 g("wirtschaft", "export", "Exportstärke", 55, "Wettbewerbsfähigkeit der Exportindustrie.");
 g("wirtschaft", "tourismus", "Tourismus", 65, "Gäste und Deviseneinnahmen aus dem Tourismus.");
@@ -388,16 +451,16 @@ g("wirtschaft", "mittelstand", "Lage des Mittelstands", 45, "Kleine und mittlere
 g("wirtschaft", "kredite", "Kreditvergabe", 40, "Wie leicht Haushalte und Firmen an Kredite kommen.");
 g("wirtschaft", "auslandskapital", "Auslandskapital", 40, "Direktinvestitionen und Portfoliozuflüsse aus dem Ausland.");
 g("wirtschaft", "kostendruck", "Kostendruck der Betriebe", 60, "Lohn-, Energie- und Importkosten. Wirkt auf die Inflation zurück.");
-g("wirtschaft", "produktivitaet", "Produktivität", 50, "Was pro Arbeitsstunde entsteht. Wirkt auf das Potenzialwachstum zurück.");
+g("wirtschaft", "produktivitaet", "Produktivität", 50, "Was pro Arbeitsstunde entsteht. Wirkt auf das Potenzialwachstum zurück.", .08, 2.5);
 g("wirtschaft", "ungleichheit", "Ungleichheit", 60, "Abstand zwischen hohen und niedrigen Einkommen.");
 g("wirtschaft", "schattenwirtschaft", "Schattenwirtschaft", 45, "Arbeit und Umsatz ohne Steuern und Versicherung.");
 g("wirtschaft", "gruendungen", "Unternehmensgründungen", 50, "Wie viele neue Firmen entstehen.");
 g("wirtschaft", "dollarisierung", "Dollarisierung", 55, "Wie sehr Menschen ihr Erspartes in Dollar, Euro oder Gold halten.");
-m("wirtschaft", "m_mindestlohn", "Mindestlohn", 50, .6, 1, "Höhe des gesetzlichen Mindestlohns im Verhältnis zum Durchschnittslohn.");
+m("wirtschaft", "m_mindestlohn", "Mindestlohn", 50, .6, 1, "Höhe des gesetzlichen Mindestlohns im Verhältnis zum Durchschnittslohn.", { streichen: 2 });
 m("wirtschaft", "m_exportfoerderung", "Exportförderung", 40, .4, 6, "Günstige Exportkredite und Zuschüsse für Ausfuhren.");
 m("wirtschaft", "m_investitionsanreize", "Investitionsanreize", 45, .5, 9, "Steuervorteile und Zuschüsse für Investitionen, auch in Förderregionen.");
 m("wirtschaft", "m_kreditgarantien", "Staatliche Kreditgarantien", 35, .5, 3, "Der Staat bürgt für Kredite an Betriebe.");
-m("wirtschaft", "m_preiskontrollen", "Preiskontrollen für Lebensmittel", 20, .1, 2, "Obergrenzen und Kontrollen bei Grundnahrungsmitteln.");
+m("wirtschaft", "m_preiskontrollen", "Preiskontrollen für Lebensmittel", 20, .1, 2, "Obergrenzen und Kontrollen bei Grundnahrungsmitteln.", { streichen: 2 });
 m("wirtschaft", "m_tourismuswerbung", "Tourismuswerbung", 50, .1, 6, "Werbung und Förderung für den Tourismus im Ausland.");
 m("wirtschaft", "m_kmu", "Mittelstandsförderung", 40, .3, 6, "Programme für kleine und mittlere Betriebe.");
 m("wirtschaft", "m_zoelle", "Einfuhrzölle", 40, -.3, 3, "Zölle auf Importe außerhalb der Zollunion mit der EU.");
@@ -405,9 +468,15 @@ m("wirtschaft", "m_bankenaufsicht", "Bankenaufsicht", 55, .02, 6, "Regeln für K
 e("inflation", "lebenshaltung", .04, 0, "Steigende Preise machen den Alltag spürbar teurer. Auch wenn die Inflation sinkt, bleiben die Preise hoch.");
 e("abwertung", "lebenshaltung", .03, 1, "Eine schwache Lira verteuert Importe wie Energie und Medikamente.");
 e("inflation", "realeinkommen", -.06, 0, "Wenn Preise schneller steigen als Löhne, sinkt die Kaufkraft.");
-e("m_mindestlohn", "realeinkommen", .06, 1, "Ein höherer Mindestlohn hebt die unteren Einkommen.");
+ef("m_mindestlohn", "realeinkommen", .06, 1, "Ein höherer Mindestlohn hebt die unteren Einkommen.", {
+	typ: "saettigung",
+	k: 1.5
+});
 e("m_mindestlohn", "kostendruck", .05, 1, "Höhere Löhne sind höhere Kosten für die Betriebe.");
-e("m_mindestlohn", "schattenwirtschaft", .03, 3, "Ist der Mindestlohn hoch, stellen manche Betriebe lieber ohne Vertrag ein.");
+ef("m_mindestlohn", "schattenwirtschaft", .03, 3, "Ist der Mindestlohn hoch, stellen manche Betriebe lieber ohne Vertrag ein.", {
+	typ: "umkehr",
+	exponent: 2
+});
 e("m_mindestlohn", "ungleichheit", -.04, 3, "Der Abstand zwischen unten und oben wird kleiner.");
 e("abwertung", "kostendruck", .04, 1, "Importierte Vorprodukte werden teurer.");
 e("leitzins", "kredite", -.05, 2, "Hohe Zinsen verteuern Kredite.");
@@ -426,21 +495,31 @@ e("m_zoelle", "kostendruck", .03, 3, "Importierte Vorprodukte werden teurer.");
 e("m_zoelle", "export", -.02, 9, "Handelspartner reagieren, und geschützte Firmen werden träger.");
 e("export", "industrie", .05, 2, "Exportaufträge lasten Fabriken aus.");
 e("industrie", "arbeitsplaetze_industrie", .05, 3, "Mehr Produktion braucht mehr Beschäftigte.");
-e("m_tourismuswerbung", "tourismus", .04, 6, "Werbung bringt mehr Gäste.");
+ef("m_tourismuswerbung", "tourismus", .04, 6, "Werbung bringt mehr Gäste.", {
+	typ: "saettigung",
+	k: 2
+});
 e("m_investitionsanreize", "investitionen", .05, 9, "Steuervorteile senken die Kosten einer Investition.");
 e("m_investitionsanreize", "auslandskapital", .03, 12, "Anreize ziehen auch ausländische Investoren an.");
 e("m_kmu", "mittelstand", .05, 6, "Förderprogramme stützen kleine Betriebe.");
 e("m_kmu", "gruendungen", .04, 6, "Wer gründen will, bekommt Starthilfe.");
 e("investitionen", "produktivitaet", .03, 12, "Neue Maschinen machen Arbeit produktiver.");
 e("auslandskapital", "investitionen", .04, 6, "Ausländisches Geld finanziert Fabriken und Projekte.");
-e("m_preiskontrollen", "lebenshaltung", -.04, 1, "Obergrenzen dämpfen sichtbare Preise im Supermarkt.");
-e("m_preiskontrollen", "schattenwirtschaft", .03, 3, "Unter Preisdeckeln wandern Waren auf graue Märkte.");
-e("m_preiskontrollen", "landwirtschaft_einkommen", -.04, 6, "Niedrige Preise treffen die Erzeuger.");
+e("m_preiskontrollen", "lebenshaltung", -.03, 1, "Obergrenzen dämpfen sichtbare Preise im Supermarkt — solange Ware im Regal ist.");
+ef("m_preiskontrollen", "schattenwirtschaft", .05, 2, "Unter Preisdeckeln wandern Waren auf graue Märkte.", {
+	typ: "umkehr",
+	exponent: 2
+});
+e("m_preiskontrollen", "lebensmittelpreise", .05, 3, "Wo das Regal leer bleibt, treibt die Knappheit die realen Preise auf dem grauen Markt.");
+e("m_preiskontrollen", "landwirtschaft_einkommen", -.05, 5, "Niedrige Preise treffen die Erzeuger.");
 e("inflation", "dollarisierung", .05, 1, "Bei hoher Inflation flüchten Sparer in Dollar und Gold.");
 e("abwertung", "dollarisierung", .04, 0, "Wer eine schwache Lira erlebt, traut ihr weniger.");
 e("dollarisierung", "auslandskapital", -.02, 3, "Wenn schon Einheimische der Lira misstrauen, zögern Ausländer auch.");
 e("schattenwirtschaft", "steuereinnahmen", -.04, 3, "Schwarzarbeit zahlt keine Steuern.");
-e("ungleichheit", "polarisierung", .02, 12, "Große Unterschiede verschärfen politische Gräben.");
+ef("ungleichheit", "polarisierung", .02, 12, "Große Unterschiede verschärfen politische Gräben.", {
+	typ: "umkehr",
+	exponent: 2
+});
 e("gruendungen", "mittelstand", .03, 12, "Aus Gründungen wird Mittelstand.");
 g("haushalt", "steuereinnahmen", "Steuereinnahmen", 50, "Was der Staat tatsächlich einnimmt.");
 g("haushalt", "steuermoral", "Steuerehrlichkeit", 45, "Wie viele Steuern tatsächlich gezahlt werden.");
@@ -454,10 +533,16 @@ m("haushalt", "m_immobiliensteuer", "Steuer auf Immobilien und Vermögen", 30, -
 m("haushalt", "m_steueramnestie", "Steueramnestie", 20, -.1, 2, "Wer Schulden beim Fiskus nachzahlt, bekommt Strafen erlassen.");
 m("haushalt", "m_steuerfahndung", "Steuerfahndung", 45, .05, 6, "Mehr Prüfer und Kontrollen gegen Steuerhinterziehung.");
 m("haushalt", "m_privatisierung", "Privatisierung", 30, -.2, 12, "Verkauf staatlicher Unternehmen und Beteiligungen.");
-e("m_einkommensteuer", "steuereinnahmen", .05, 1, "Höhere Sätze bringen mehr Einnahmen.");
+ef("m_einkommensteuer", "steuereinnahmen", .05, 1, "Höhere Sätze bringen mehr Einnahmen.", {
+	typ: "saettigung",
+	k: 1.2
+});
 e("m_einkommensteuer", "realeinkommen", -.04, 1, "Netto bleibt weniger vom Lohn.");
 e("m_einkommensteuer", "schattenwirtschaft", .03, 6, "Hohe Steuern machen Schwarzarbeit attraktiver.");
-e("m_mwst", "steuereinnahmen", .07, 1, "Die Mehrwertsteuer ist die ergiebigste Steuer.");
+ef("m_mwst", "steuereinnahmen", .07, 1, "Die Mehrwertsteuer ist die ergiebigste Steuer.", {
+	typ: "saettigung",
+	k: 1.2
+});
 e("m_mwst", "lebenshaltung", .05, 1, "Sie steckt in jedem Preis im Laden.");
 e("m_mwst", "ungleichheit", .02, 6, "Ärmere geben einen größeren Teil ihres Einkommens für Konsum aus.");
 e("m_koerperschaftsteuer", "steuereinnahmen", .03, 3, "Gewinnsteuern bringen Einnahmen.");
@@ -482,8 +567,16 @@ e("m_privatisierung", "korruption", .02, 12, "Verkäufe unter Wert an Nahestehen
 e("leitzins", "zinslast", .03, 3, "Neue Schulden werden teurer.");
 e("schulden", "zinslast", .03, 6, "Mehr Schulden, mehr Zinsen.");
 e("defizit", "vertrauen_maerkte", -.04, 1, "Hohe Defizite machen Anleger nervös.");
-e("zinslast", "vertrauen_maerkte", -.02, 3, "Eine hohe Zinslast engt den Spielraum ein.");
-e("vertrauen_maerkte", "auslandskapital", .04, 1, "Vertrauen zieht Kapital an.");
+ef("zinslast", "vertrauen_maerkte", -.02, 3, "Eine hohe Zinslast engt den Spielraum ein.", {
+	typ: "schwelle",
+	k: .12,
+	mitte: 55
+});
+ef("vertrauen_maerkte", "auslandskapital", .04, 1, "Vertrauen zieht Kapital an.", {
+	typ: "schwelle",
+	k: .12,
+	mitte: 45
+});
 g("arbeit", "armut", "Armut", 40, "Anteil der Menschen, die mit dem Nötigsten nicht auskommen.");
 g("arbeit", "informelle_arbeit", "Informelle Beschäftigung", 45, "Arbeit ohne Vertrag und Sozialversicherung.");
 g("arbeit", "frauenerwerb", "Frauenerwerbstätigkeit", 35, "Anteil der Frauen mit bezahlter Arbeit.");
@@ -492,10 +585,10 @@ g("arbeit", "arbeitsplaetze_industrie", "Industriearbeitsplätze", 50, "Beschäf
 g("arbeit", "rentenniveau", "Rentenniveau", 40, "Was Renten im Verhältnis zu den Lebenshaltungskosten wert sind.");
 g("arbeit", "streikneigung", "Streikbereitschaft", 35, "Wie schnell Gewerkschaften und Beschäftigte zu Streiks greifen.");
 g("arbeit", "sozialkassen", "Lage der Sozialversicherung", 45, "Beiträge gegen Ausgaben der Renten- und Krankenkasse.");
-m("arbeit", "m_renten", "Rentenerhöhungen", 50, 1.2, 1, "Anpassung der Renten über die Inflation hinaus.");
+m("arbeit", "m_renten", "Rentenerhöhungen", 50, 1.2, 1, "Anpassung der Renten über die Inflation hinaus.", { streichen: 2.5 });
 m("arbeit", "m_fruehrente", "Frühverrentung", 40, .6, 3, "Früherer Renteneintritt für bestimmte Jahrgänge.");
 m("arbeit", "m_kindergeld", "Kindergeld und Familienhilfe", 30, .5, 2, "Geld für Familien mit Kindern.");
-m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, .6, 2, "Grundsicherung für bedürftige Haushalte.");
+m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, .6, 2, "Grundsicherung für bedürftige Haushalte.", { streichen: 2.5 });
 m("arbeit", "m_arbeitslosengeld", "Arbeitslosengeld", 30, .3, 2, "Höhe und Dauer des Arbeitslosengeldes.");
 m("arbeit", "m_gewerkschaftsrechte", "Gewerkschaftsrechte", 35, 0, 6, "Recht auf Organisation, Tarifverhandlung und Streik.");
 m("arbeit", "m_kinderbetreuung", "Kinderbetreuung", 25, .3, 12, "Plätze in Krippen und Kindergärten.");
@@ -563,7 +656,7 @@ e("luftqualitaet", "lebenserwartung", .02, 12, "Schlechte Luft macht krank.");
 g("bildung", "bildungsqualitaet", "Bildungsqualität", 45, "Was Schülerinnen und Schüler tatsächlich lernen.");
 g("bildung", "schulabbruch", "Schulabbruch", 40, "Wer die Schule ohne Abschluss verlässt.");
 g("bildung", "hochschule", "Qualität der Hochschulen", 45, "Forschung und Lehre an Universitäten.");
-g("bildung", "fachkraefte", "Fachkräfte", 45, "Gut ausgebildete Arbeitskräfte, die im Land bleiben.");
+g("bildung", "fachkraefte", "Fachkräfte", 45, "Gut ausgebildete Arbeitskräfte, die im Land bleiben.", .08, 2);
 g("bildung", "abwanderung", "Abwanderung von Fachkräften", 55, "Gut Ausgebildete, die ins Ausland gehen.");
 g("bildung", "geburtenrate", "Geburtenrate", 45, "Kinder pro Frau, als Index.");
 m("bildung", "m_lehrergehaelter", "Lehrergehälter", 45, .4, 3, "Bezahlung der Lehrkräfte.");
@@ -601,28 +694,40 @@ e("abwanderung", "aerzte", -.03, 3, "Auch Ärzte wandern ab.");
 e("abwanderung", "p_abwanderung", .1, 0, "Anhaltende Abwanderung wird zum Problem.");
 e("armut", "schulabbruch", .03, 6, "Arme Kinder müssen früher mitverdienen.");
 e("schulabbruch", "jugendarbeitslosigkeit", .03, 12, "Ohne Abschluss kaum Arbeit.");
-g("infrastruktur", "verkehrsnetz", "Straßen und Autobahnen", 60, "Zustand und Dichte des Straßennetzes.");
-g("infrastruktur", "bahnnetz", "Bahnnetz", 35, "Schnellzüge, Güterbahn und Nahverkehr auf der Schiene.");
+g("infrastruktur", "verkehrsnetz", "Straßen und Autobahnen", 60, "Zustand und Dichte des Straßennetzes.", .08, 2.5);
+g("infrastruktur", "bahnnetz", "Bahnnetz", 35, "Schnellzüge, Güterbahn und Nahverkehr auf der Schiene.", .08, 2.5);
 g("infrastruktur", "stau", "Stau in den Städten", 60, "Wie viel Zeit Menschen im Verkehr verlieren.");
-g("infrastruktur", "logistik", "Logistik und Häfen", 55, "Wie schnell Waren ins Land, durchs Land und hinaus kommen.");
-g("infrastruktur", "internet", "Breitband und Mobilfunk", 55, "Schnelles Internet in Stadt und Land.");
-g("infrastruktur", "wachstum_regional", "Regionale Entwicklung", 50, "Wirtschaftliche Dynamik abseits der großen Zentren.");
+g("infrastruktur", "logistik", "Logistik und Häfen", 55, "Wie schnell Waren ins Land, durchs Land und hinaus kommen.", .08, 2);
+g("infrastruktur", "internet", "Breitband und Mobilfunk", 55, "Schnelles Internet in Stadt und Land.", .08, 2.5);
+g("infrastruktur", "wachstum_regional", "Regionale Entwicklung", 50, "Wirtschaftliche Dynamik abseits der großen Zentren.", .08, 2);
 m("infrastruktur", "m_autobahnen", "Autobahn- und Brückenbau", 55, .5, 36, "Neue Autobahnen, Brücken und Tunnel.");
-m("infrastruktur", "m_oepp_garantien", "Garantien für Betreiberprojekte", 50, .3, 12, "Der Staat garantiert privaten Betreibern Mindesteinnahmen bei Autobahnen, Flughäfen und Kliniken.");
+m("infrastruktur", "m_oepp_garantien", "Garantien für Betreiberprojekte", 50, .3, 12, "Der Staat garantiert privaten Betreibern Mindesteinnahmen bei Autobahnen, Flughäfen und Kliniken.", {
+	streichen: 2.5,
+	unterhalt_monat: .1
+});
 m("infrastruktur", "m_bahn", "Bahnausbau", 40, .5, 48, "Schnellfahrstrecken und Güterbahn.");
 m("infrastruktur", "m_nahverkehr", "Nahverkehr", 40, .3, 24, "U-Bahnen, Straßenbahnen und Busse in den Städten.");
 m("infrastruktur", "m_breitband", "Breitbandausbau", 40, .2, 24, "Glasfaser und Mobilfunk bis ins Dorf.");
 m("infrastruktur", "m_regionalfoerderung", "Regionalförderung", 45, .3, 12, "Zuschüsse für strukturschwache Provinzen.");
-e("m_autobahnen", "verkehrsnetz", .04, 36, "Neue Straßen, sobald sie fertig sind.");
+ef("m_autobahnen", "verkehrsnetz", .04, 36, "Neue Straßen, sobald sie fertig sind.", {
+	typ: "saettigung",
+	k: 1.5
+});
 e("m_autobahnen", "bauwirtschaft", .03, 3, "Großbaustellen beschäftigen die Bauwirtschaft.");
 e("m_autobahnen", "korruption", .01, 12, "Große Aufträge, große Versuchungen.");
 e("m_oepp_garantien", "verkehrsnetz", .02, 24, "Private Betreiber bauen schneller.");
 e("m_oepp_garantien", "zinslast", .02, 24, "Garantiezahlungen belasten künftige Haushalte.");
-e("m_bahn", "bahnnetz", .04, 48, "Neue Strecken, sobald sie fertig sind.");
+ef("m_bahn", "bahnnetz", .04, 48, "Neue Strecken, sobald sie fertig sind.", {
+	typ: "saettigung",
+	k: 1.5
+});
 e("m_bahn", "luftqualitaet", .01, 48, "Mehr Güter auf der Schiene, weniger Lastwagen.");
 e("m_nahverkehr", "stau", -.04, 24, "U-Bahnen holen Autos von der Straße.");
 e("m_nahverkehr", "luftqualitaet", .02, 24, "Weniger Abgase in den Städten.");
-e("m_breitband", "internet", .05, 24, "Schnelles Netz, wo es vorher keines gab.");
+ef("m_breitband", "internet", .05, 24, "Schnelles Netz, wo es vorher keines gab.", {
+	typ: "saettigung",
+	k: 1.5
+});
 e("m_regionalfoerderung", "wachstum_regional", .05, 12, "Förderung zieht Betriebe in schwächere Provinzen.");
 e("m_regionalfoerderung", "landflucht", -.02, 24, "Wer vor Ort Arbeit findet, bleibt.");
 e("verkehrsnetz", "logistik", .04, 6, "Gute Straßen, schnelle Lieferungen.");
@@ -639,7 +744,10 @@ g("energie", "stromversorgung", "Stromversorgung", 60, "Ob das Netz stabil genug
 g("energie", "erneuerbare", "Erneuerbare Energie", 45, "Anteil von Wasser, Wind, Sonne und Erdwärme am Strom.");
 g("energie", "luftqualitaet", "Luftqualität", 45, "Wie sauber die Luft in den Städten ist.");
 g("energie", "klimaschutz", "Klimaschutz", 35, "Wie stark die Emissionen sinken.");
-m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.");
+m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", {
+	streichen: 2.5,
+	unterhalt_monat: .1
+});
 m("energie", "m_solar_wind", "Ausbau von Sonne und Wind", 45, .2, 24, "Ausschreibungen und Einspeisevergütungen.");
 m("energie", "m_kernkraft", "Kernkraft", 50, .2, 48, "Weitere Reaktoren neben dem ersten Kraftwerk.");
 m("energie", "m_gasfoerderung", "Heimische Gasförderung", 50, .2, 24, "Förderung aus Feldern im Schwarzen Meer.");
@@ -670,6 +778,75 @@ e("wachstum", "stromversorgung", -.02, 3, "Mehr Produktion, mehr Last.");
 e("stromversorgung", "p_stromausfaelle", -.1, 0, "Ein schwaches Netz fällt aus.");
 e("p_stromausfaelle", "industrie", -.04, 0, "Ohne Strom stehen die Maschinen.");
 e("luftqualitaet", "p_luftverschmutzung", -.1, 0, "Schlechte Luft wird zum Problem.");
+g("energie", "gasabhaengigkeit", "Gas-Abhängigkeit je Lieferant", 70, "Wie konzentriert die Gasimporte sind: Russland ~36 % (Vertrag läuft Ende 2026 aus), LNG-Pool ~35–40 %, Aserbaidschan ~20 %, Iran faktisch null, heimisch ~6 %.");
+g("energie", "sakarya_gas", "Förderung aus dem Sakarya-Feld", 25, "Eigenes Gas aus dem Schwarzen Meer: 9,5 Mio. m³ täglich in Phase 1; das Zielband für 2028 liegt bei 20–40 Mio. m³.");
+g("energie", "strommix", "Strommix aus Erneuerbaren", 44, "Anteil von Wasser, Wind, Sonne und Erdwärme an der Stromerzeugung, zuletzt ~43–45 %.");
+g("energie", "energieversorgung", "Versorgungssicherheit Energie", 55, "Ob Gas und Strom auch im Winter sicher kommen: Verträge, Speicher (6,3 Mrd. m³), eigene Förderung. Winter 2026/27 gilt als kritisch.");
+g("energie", "energie_importrechnung", "Energie-Importrechnung", 60, "Was das Land pro Jahr für Öl, Gas und Kohle ins Ausland zahlt; für 2026 sind ~58–62 Mrd. Dollar projiziert, die Werte erscheinen mit zwei Monaten Verzug.");
+g("energie", "energie_subventionslast", "Energie-Subventionslast", 60, "Was die Preisdeckel den Haushalt kosten: ~950 Mrd. Lira bei BOTAŞ plus ~600 Mrd. Lira ausgefallener Kraftstoff-Ausgleich (Eşel-Mobil), projiziert für 2026.");
+g("energie", "strompreis", "Strompreis am Großmarkt", 60, "Börsenpreis für Strom (PTF), zuletzt ~60 Dollar je Megawattstunde bei einem Deckel von 4.500 Lira.");
+p("energie", "p_energiemangel", "Energie-Mangellage", 50, 60, "Gas und Strom werden knapp; rationiert wird zuerst bei Industrie und Kraftwerken, nie bei Haushalten (BOTAŞ-Priorisierung).");
+m("energie", "m_lng_vertraege", "LNG-Langzeitverträge", 35, .15, 12, "Zusätzliche Langzeitverträge über zwei bis vier Mrd. m³ Flüssiggas im Jahr; LNG kostet 30–50 % mehr als Pipelinegas.");
+m("energie", "m_regas_ausbau", "FSRU- und Regasifizierungs-Ausbau", 40, .08, 18, "Mehr schwimmende Terminals und Anlandekapazität für LNG (0,5–1,5 Mrd. Dollar); die Reserve für kalte Wochen.");
+m("energie", "m_gasspeicher", "Gasspeicher-Ausbau", 30, .15, 36, "Speicher Richtung 14,4 Mrd. m³ ausbauen (Maßstab Tuz Gölü: 2,7 Mrd. Dollar für 4,2 Mrd. m³) — das Polster für den Winter.");
+m("energie", "m_yeka_serie", "YEKA-Ausschreibungsserie", 35, -.05, 24, "Mindestens zwei Gigawatt Wind und Sonne pro Jahr versteigern; über den Beitragsmechanismus bei gedeckelten Abnahmepreisen nimmt der Staat sogar ein.");
+m("energie", "m_sakarya_phase3", "Sakarya Phase 3 (zweite FPU)", 20, .2, 24, "Eine zweite schwimmende Förderanlage hebt die eigene Förderung Richtung 40 Mio. m³ täglich; einstellige Milliarden Dollar, frühestens 2028 wirksam.");
+m("energie", "m_akkuyu_ppa", "Akkuyu-Vertrag nachverhandeln", 40, .1, 6, "Den Abnahmevertrag mit Rosatom (12,35 US-Cent je kWh) neu verhandeln — die Differenz zum Marktpreis kostet grob eine Mrd. Dollar im Jahr, der Konflikt Moskau belastet.");
+m("energie", "m_heimische_kohle", "Heimische Kohle (Afşin-Elbistan)", 35, .1, 48, "Neue Blöcke am eigenen Kohlebecken (+688 MW) ersetzen Importkohle — gegen Klima, Luft und die Nachbarn vor Ort.");
+m("energie", "m_energieeffizienz", "Effizienz, Wärmepumpen, E-Mobilität", 25, .08, 36, "Programme gegen Verschwendung: eine Million E-Autos sparen ~0,9 Mrd. Dollar Importe im Jahr, zehn Prozent Wärmepumpen-Haushalte noch einmal ~1 Mrd.");
+m("energie", "m_preiswahrheit", "Preiswahrheit bei Energie", 25, -.8, 3, "Subventionen abbauen und Staffeltarife einführen: spart bis zu ~600 Mrd. Lira im Jahr, treibt aber kurzfristig die Preise — der Politikpreis der Wahrheit.");
+m("energie", "m_gashub", "Gas-Hub und Transit-Ausbau", 30, .08, 24, "TurkStream-Strang 2 und TANAP-Erweiterung: Transitgebühren und geopolitisches Gewicht, aber mehr Bindung an russisches Gas.");
+e("gasabhaengigkeit", "energieversorgung", -.06, 3, "Wer von wenigen Lieferanten abhängt, ist erpressbar; der auslaufende Russland-Vertrag Ende 2026 hängt über allem.");
+e("sakarya_gas", "energieversorgung", .04, 6, "Eigenes Gas aus dem Schwarzen Meer macht den Winter sicherer.");
+e("m_lng_vertraege", "energieversorgung", .06, 6, "Vertraglich gesichertes LNG schließt die Lücke, die auslaufende Verträge reißen.");
+e("m_lng_vertraege", "gasabhaengigkeit", -.05, 6, "Mehr Lieferanten aus dem Pool, weniger Zwang aus Moskau oder Teheran.");
+e("m_lng_vertraege", "energie_importrechnung", .02, 3, "LNG kostet mehr als Pipelinegas; die Zusatzmenge schlägt in der Rechnung auf.");
+e("m_regas_ausbau", "energieversorgung", .04, 6, "Mehr Anlandekapazität heißt mehr Reserve, bevor es rationiert wird.");
+e("m_gasspeicher", "energieversorgung", .08, 12, "Volle Speicher tragen durch einen kalten Februar und schwächen die Winter-Hooks ab.");
+e("m_energieeffizienz", "energieversorgung", .02, 12, "Weniger Verbrauch in der Spitze entlastet das ganze System.");
+e("energieversorgung", "p_energiemangel", -.1, 0, "Sinkt die Versorgungssicherheit, wird die Mangellage akut (Hysterese: akut ab 60, Ende erst unter 52).");
+e("abwertung", "energie_importrechnung", .04, 1, "Die Rechnung läuft in Dollar; eine schwache Lira verteuert jede Lieferung.");
+e("energie_importrechnung", "dollarisierung", .03, 1, "Eine hohe Rechnung drückt die Lira; Sparer flüchten in Dollar und Gold.");
+e("energie_importrechnung", "vertrauen_maerkte", -.03, 3, "Das Energieloch in der Leistungsbilanz macht Anleger nervös.");
+e("energie_importrechnung", "strompreis", .04, 2, "Teures Gas und Öl treiben den Börsenstrompreis.");
+e("strompreis", "energiepreise", .06, 1, "Der Großhandelspreis steckt in den Tarifen von Haushalten und Betrieben.");
+e("strompreis", "kostendruck", .03, 1, "Stromintensive Betriebe spüren jede Preiswelle am Markt — und geben sie weiter.");
+e("m_energiesubventionen", "energie_subventionslast", .08, 1, "Jeder gedeckelte Preis landet als Differenz im Haushalt; BOTAŞ trägt ihn vor.");
+e("energie_subventionslast", "vertrauen_maerkte", -.03, 3, "Die Märkte sehen, dass die Dämpfung über Defizit und neue Schulden läuft.");
+e("m_preiswahrheit", "energie_subventionslast", -.08, 1, "Staffeltarife und weniger Deckelung entlasten den Haushalt sofort.");
+e("m_preiswahrheit", "energiepreise", .05, 1, "Ehrliche Preise heißen erst einmal höhere Preise — kurzfristig zwei bis vier Punkte mehr Inflation.");
+e("m_preiswahrheit", "klimaschutz", .02, 12, "Was etwas kostet, wird sparsamer verbraucht.");
+e("strommix", "erneuerbare", .06, 0, "Zwei Sichten auf denselben Anteil: Wasser, Wind, Sonne und Erdwärme an der Erzeugung.");
+e("strommix", "energie_importrechnung", -.03, 6, "Jede Kilowattstunde aus Wind und Sonne ersetzt importiertes Gas.");
+e("m_yeka_serie", "strommix", .05, 12, "Jede ausgelobte Serie bringt mit Bauzeit ein bis zwei Gigawatt ans Netz; je ~1,8 GW sinkt der Gasbedarf um eine Mrd. m³ im Jahr.");
+e("m_solar_wind", "strommix", .03, 12, "Der allgemeine Ausbau verschiebt den Mix zugunsten von Sonne und Wind.");
+e("m_netzausbau", "strommix", .03, 12, "Ohne Leitungen und Umspannwerke kann kein neuer Park ans Netz (TEİAŞ-Programm bis 2035).");
+e("m_netzausbau", "energieversorgung", .03, 12, "Stärkere Netze glätten die Abendspitze und vertragen mehr Erneuerbare.");
+e("m_gasfoerderung", "sakarya_gas", .06, 12, "Die Förderung aus dem Schwarzen Meer wächst Stufe um Stufe.");
+e("m_sakarya_phase3", "sakarya_gas", .08, 12, "Die zweite FPU bringt die Förderung Richtung 40 Mio. m³ täglich.");
+e("sakarya_gas", "energie_importrechnung", -.05, 6, "Eigenes Gas ersetzt Importe — drei bis sieben Mrd. Dollar im Jahr im Zielband.");
+e("sakarya_gas", "ansehen", .02, 12, "Die eigene Förderung gilt als nationales Prestigeprojekt.");
+e("m_heimische_kohle", "energie_importrechnung", -.02, 12, "Eigene Kohle verdrängt Importe aus Südafrika, Kolumbien und Russland.");
+e("m_heimische_kohle", "energieversorgung", .02, 12, "Grundlast aus heimischem Brennstoff, wetterfest und sanktionssicher.");
+e("m_heimische_kohle", "klimaschutz", -.03, 12, "Mehr Kohle heißt mehr Emissionen — und Nachteile beim EU-Grenzausgleich.");
+e("m_heimische_kohle", "luftqualitaet", -.02, 12, "Kraftwerke am Becken belasten die Luft vor Ort; Proteste sind absehbar.");
+e("m_akkuyu_ppa", "beziehungen_russland", -.04, 3, "Nachverhandeln heißt Konflikt mit Rosatom und Moskau — bis zur Blockfinanzierung.");
+e("m_akkuyu_ppa", "energiepreise", -.02, 6, "Ein besserer Preis im Abnahmevertrag senkt die Stromkosten des Landes.");
+e("m_kernkraft", "energieversorgung", .02, 12, "Grundlast aus eigener Erzeugung, unabhängig von Wetter und Lieferanten.");
+e("m_energieeffizienz", "energie_importrechnung", -.03, 12, "E-Mobilität und Wärmepumpen sparen messbar Öl und Gas.");
+e("m_gashub", "steuereinnahmen", .02, 12, "Transitgebühren aus TurkStream und TANAP füllen die Kasse.");
+e("m_gashub", "beziehungen_russland", .03, 6, "Mehr Transit heißt mehr gemeinsame Geschäfte mit Moskau.");
+e("m_gashub", "ansehen", .01, 12, "Als Drehkreuz gewinnt das Land Gewicht zwischen Lieferanten und Abnehmern.");
+e("m_gashub", "gasabhaengigkeit", .02, 12, "Der Hub bindet das Land stärker an russisches Gas.");
+e("p_energiemangel", "industrie", -.04, 0, "Bei Rationierung stehen zuerst die Fabriken still — die Haushalte schützt die BOTAŞ-Priorisierung.");
+e("p_energiemangel", "vertrauen_maerkte", -.03, 1, "Produktionsausfälle wegen Energie sind für Anleger ein Alarmsignal.");
+e("p_energiemangel", "nationalisten", .02, 0, "Die Krise nährt die Forderung nach einem starken Durchgreifen des Staates.");
+e("p_energiemangel", "staedtische_saekulare", -.03, 0, "Stromausfälle in den Städten werden als Staatsversagen gelesen.");
+e("p_energiemangel", "arme", -.02, 0, "Ohne Energie kein Heizen und kein Kochen — die Ärmsten leiden zuerst.");
+e("p_energiemangel", "unternehmer", -.03, 0, "Rationierung heißt Ausfall: Betriebe verlieren Produktion und Aufträge.");
+e("m_preiswahrheit", "arme", -.04, 1, "Wenn der Deckel fällt, trifft der volle Preis die kleinen Haushalte.");
+e("m_preiswahrheit", "unternehmer", -.02, 1, "Die Industrie zahlt marktnahe Preise — der Politikpreis der Wahrheit.");
+e("m_preiswahrheit", "vertrauen_maerkte", .03, 3, "Ehrliche Energiepreise überzeugen Anleger mehr als jede Rede.");
 g("landwirtschaft", "wasserversorgung", "Wasserversorgung", 55, "Ob Städte und Felder genug sauberes Wasser haben.");
 g("landwirtschaft", "duerre", "Trockenheit", 45, "Niederschlagsmangel und sinkende Grundwasserspiegel.");
 g("landwirtschaft", "ernte", "Ernten", 55, "Erträge von Getreide, Obst, Gemüse und Baumwolle.");
@@ -813,17 +990,23 @@ g("sicherheit", "kriminalitaet", "Kriminalität", 45, "Diebstahl, Gewalt, organi
 g("sicherheit", "terrorgefahr", "Terrorgefahr", 40, "Gefahr von Anschlägen.");
 g("sicherheit", "justizvertrauen", "Vertrauen in die Justiz", 35, "Ob Menschen glauben, vor Gericht fair behandelt zu werden.");
 g("sicherheit", "korruption", "Korruption", 55, "Bestechung, Vetternwirtschaft und manipulierte Vergaben.");
-g("sicherheit", "rechtssicherheit", "Rechtssicherheit", 40, "Ob Regeln für alle gleich gelten und vorhersehbar sind.");
+g("sicherheit", "rechtssicherheit", "Rechtssicherheit", 40, "Ob Regeln für alle gleich gelten und vorhersehbar sind.", .08, 2);
 g("sicherheit", "militaer", "Einsatzbereitschaft der Streitkräfte", 60, "Ausrüstung, Ausbildung und Moral der Armee.");
 m("sicherheit", "m_polizei", "Polizei und Gendarmerie", 60, .3, 6, "Personal und Ausstattung der Sicherheitskräfte.");
 m("recht", "m_justizreform", "Justizreform", 35, .1, 18, "Reformpaket der Gerichtsverfassung: Verfahrensrecht, Ausbildung, Gerichtsstruktur. Richterstellen und Richterrat sind eigene Stellschrauben.");
 m("recht", "m_antikorruption", "Korruptionsbekämpfung", 35, .05, 12, "Unabhängige Ermittler, offene Vergaben, Vermögenserklärungen.");
 m("sicherheit", "m_friedensprozess", "Friedensprozess", 55, .1, 12, "Politische Lösung mit Waffenabgabe und Wiedereingliederung.");
-m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1, 12, "Budget für Streitkräfte und Rüstungsindustrie.");
+m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1, 12, "Budget für Streitkräfte und Rüstungsindustrie.", {
+	streichen: 2,
+	unterhalt_monat: .1
+});
 m("militaer", "m_ruestungsindustrie", "Heimische Rüstungsindustrie", 60, .3, 24, "Drohnen, Panzer, Schiffe aus eigener Produktion.");
 p("sicherheit", "p_korruption", "Korruptionsskandale", 45, 60, "Vergaben und Ämter werden gekauft; die Presse berichtet.");
 p("sicherheit", "p_kriminalitaet", "Unsicherheit auf den Straßen", 35, 60, "Menschen fühlen sich nachts nicht mehr sicher.");
-e("m_polizei", "kriminalitaet", -.04, 6, "Mehr Streifen, weniger Straftaten.");
+ef("m_polizei", "kriminalitaet", -.04, 6, "Mehr Streifen, weniger Straftaten.", {
+	typ: "saettigung",
+	k: 1.5
+});
 e("m_polizei", "terrorgefahr", -.02, 6, "Mehr Ermittler, mehr vereitelte Anschläge.");
 e("armut", "kriminalitaet", .03, 6, "Not treibt manche in die Kriminalität.");
 e("jugendarbeitslosigkeit", "kriminalitaet", .02, 6, "Junge ohne Perspektive sind anfälliger.");
@@ -831,7 +1014,10 @@ e("m_justizreform", "justizvertrauen", .04, 18, "Faire und schnelle Verfahren sc
 e("m_justizreform", "rechtssicherheit", .04, 18, "Vorhersehbare Urteile.");
 e("m_antikorruption", "korruption", -.05, 12, "Wer erwischt wird, zahlt einen Preis.");
 e("m_antikorruption", "p_korruption", .03, 3, "Ermittlungen bringen erst einmal Skandale ans Licht.");
-e("korruption", "p_korruption", .1, 0, "Verbreitete Korruption fliegt irgendwann auf.");
+ef("korruption", "p_korruption", .1, 0, "Verbreitete Korruption fliegt irgendwann auf.", {
+	typ: "umkehr",
+	exponent: 2
+});
 e("korruption", "auslandskapital", -.03, 6, "Investoren meiden Länder, in denen man zahlen muss.");
 e("korruption", "justizvertrauen", -.03, 6, "Wer Korruption sieht, verliert Vertrauen.");
 e("rechtssicherheit", "auslandskapital", .04, 6, "Investoren brauchen verlässliche Regeln.");
@@ -840,7 +1026,11 @@ e("justizvertrauen", "rechtssicherheit", .03, 6, "Eine vertrauenswürdige Justiz
 e("m_friedensprozess", "terrorgefahr", -.04, 12, "Wer die Waffen niederlegt, verübt keine Anschläge.");
 e("m_friedensprozess", "polarisierung", .02, 3, "Über den Prozess wird heftig gestritten.");
 e("m_friedensprozess", "wachstum_regional", .02, 24, "Frieden bringt Investitionen in den Südosten.");
-e("terrorgefahr", "tourismus", -.04, 1, "Anschläge vertreiben Gäste.");
+ef("terrorgefahr", "tourismus", -.04, 1, "Anschläge vertreiben Gäste.", {
+	typ: "schwelle",
+	k: .1,
+	mitte: 50
+});
 e("terrorgefahr", "investitionen", -.02, 3, "Unsicherheit bremst Investitionen.");
 e("m_verteidigung", "militaer", .04, 12, "Mehr Geld, bessere Ausrüstung.");
 e("m_ruestungsindustrie", "militaer", .02, 24, "Eigene Waffen, weniger Abhängigkeit.");
@@ -850,11 +1040,18 @@ e("kriminalitaet", "p_kriminalitaet", .1, 0, "Steigende Kriminalität wird spür
 g("gesellschaft", "pressefreiheit", "Pressefreiheit", 30, "Ob Journalisten frei berichten können.");
 g("gesellschaft", "polarisierung", "Polarisierung", 70, "Wie tief die politischen Gräben sind.");
 g("gesellschaft", "vertrauen_regierung", "Vertrauen in die Regierung", 45, "Ob die Menschen der Regierung glauben.");
-g("gesellschaft", "religioesitaet", "Religiöse Prägung", 60, "Wie stark religiöse Werte den Alltag prägen.");
+g("gesellschaft", "religioesitaet", "Religiöse Prägung", 60, "Wie stark religiöse Werte den Alltag prägen.", .08, 2);
 g("gesellschaft", "frauenrechte", "Gleichstellung", 40, "Rechte und Schutz von Frauen im Alltag.");
 g("gesellschaft", "zivilgesellschaft", "Zivilgesellschaft", 40, "Vereine, Stiftungen und Initiativen, die sich einmischen.");
-m("gesellschaft", "m_medienaufsicht", "Medienaufsicht", 65, 0, 3, "Strafen und Sendeverbote durch die Rundfunkaufsicht.");
-m("gesellschaft", "m_internetsperren", "Internetsperren", 60, 0, 1, "Sperren von Seiten und Beiträgen, Drosselung sozialer Medien.");
+m("gesellschaft", "m_medienaufsicht", "Medienaufsicht", 65, 0, 3, "Strafen und Sendeverbote durch die Rundfunkaufsicht.", {
+	einfuehren: 1.2,
+	streichen: 2
+});
+m("gesellschaft", "m_internetsperren", "Internetsperren", 60, 0, 1, "Sperren von Seiten und Beiträgen, Drosselung sozialer Medien.", {
+	einfuehren: 1.2,
+	streichen: 1.8,
+	unterhalt_monat: .15
+});
 m("gesellschaft", "m_staatsmedien", "Staatliche Medien und Werbung", 60, .1, 3, "Budget für Staatssender und staatliche Anzeigen.");
 m("gesellschaft", "m_religionsbehoerde", "Budget der Religionsbehörde", 60, .2, 6, "Moscheen, Imame, religiöse Bildung.");
 m("gesellschaft", "m_gewaltschutz", "Schutz vor Gewalt gegen Frauen", 35, .05, 12, "Frauenhäuser, Schutzanordnungen, Schulungen für Polizei.");
@@ -863,9 +1060,15 @@ p("gesellschaft", "p_polarisierung", "Tiefe Spaltung", 65, 70, "Die Lager reden 
 e("m_medienaufsicht", "pressefreiheit", -.05, 3, "Strafen schüchtern Redaktionen ein.");
 e("m_internetsperren", "pressefreiheit", -.04, 1, "Wer nicht lesen kann, erfährt nichts.");
 e("m_internetsperren", "internet", -.01, 1, "Gesperrte Dienste bremsen auch Firmen.");
-e("m_staatsmedien", "vertrauen_regierung", .02, 3, "Freundliche Berichterstattung stützt die Regierung, bei einem Teil der Menschen.");
+ef("m_staatsmedien", "vertrauen_regierung", .02, 3, "Freundliche Berichterstattung stützt die Regierung, bei einem Teil der Menschen.", {
+	typ: "saettigung",
+	k: 2
+});
 e("m_staatsmedien", "polarisierung", .02, 6, "Die anderen fühlen sich übergangen.");
-e("pressefreiheit", "korruption", -.03, 12, "Wo recherchiert wird, wird weniger geschmiert.");
+ef("pressefreiheit", "korruption", -.03, 12, "Wo recherchiert wird, wird weniger geschmiert.", {
+	typ: "umkehr",
+	exponent: 6
+});
 e("pressefreiheit", "rechtssicherheit", .02, 12, "Öffentliche Kontrolle diszipliniert Behörden.");
 e("pressefreiheit", "auslandskapital", .01, 12, "Investoren lesen auch die Berichte über Pressefreiheit.");
 e("m_religionsbehoerde", "religioesitaet", .01, 24, "Mehr religiöse Angebote.");
@@ -896,9 +1099,15 @@ e("m_grenzschutz", "gefluechtete", -.01, 12, "Weniger neue Ankünfte.");
 e("m_grenzschutz", "beziehungen_eu", .01, 6, "Die EU schätzt Grenzschutz, sie zahlt dafür.");
 e("gefluechtete", "informelle_arbeit", .02, 6, "Viele Geflüchtete arbeiten ohne Vertrag.");
 e("gefluechtete", "mieten", .01, 6, "Mehr Nachfrage nach billigen Wohnungen.");
-e("gefluechtete", "p_migrationsdruck", .06, 0, "Viele Geflüchtete, viel Streit.");
+ef("gefluechtete", "p_migrationsdruck", .06, 0, "Viele Geflüchtete, viel Streit.", {
+	typ: "umkehr",
+	exponent: 2
+});
 e("arbeitslosigkeit", "p_migrationsdruck", .03, 1, "In schlechten Zeiten sucht man Schuldige.");
-e("m_eu_annaeherung", "beziehungen_eu", .05, 12, "Reformen öffnen Türen in Brüssel.");
+ef("m_eu_annaeherung", "beziehungen_eu", .05, 12, "Reformen öffnen Türen in Brüssel.", {
+	typ: "saettigung",
+	k: 1.5
+});
 e("m_eu_annaeherung", "rechtssicherheit", .02, 24, "EU-Standards verlangen verlässliche Regeln.");
 e("pressefreiheit", "beziehungen_eu", .02, 6, "Die EU achtet auf Pressefreiheit.");
 e("beziehungen_eu", "export", .03, 12, "Die EU ist der wichtigste Absatzmarkt.");
@@ -986,6 +1195,11 @@ function ee(from, to, weight, lag, why) {
 	if (E.some((k) => k.from === from && k.to === to)) return;
 	e(from, to, weight, lag, why);
 }
+/** Wie ee, aber mit nichtlinearer Antwort (Kantenformel). */
+function eef(from, to, weight, lag, why, form) {
+	if (E.some((k) => k.from === from && k.to === to)) return;
+	ef(from, to, weight, lag, why, form);
+}
 ee("m_medienaufsicht", "polarisierung", .03, 3, "Ein gegängeltes Medienfeld macht den Streit nicht leiser, nur lauter und bitterer.");
 ee("m_medienaufsicht", "beziehungen_eu", -.03, 3, "Brüssel liest Sendeverbote als Rückschritt bei den Grundrechten.");
 ee("m_medienaufsicht", "ansehen", -.03, 3, "Das Ausland beobachtet, wer Kritiker zum Schweigen bringt.");
@@ -997,7 +1211,10 @@ ee("m_internetsperren", "junge", -.05, 1, "Gesperrte Plattformen treffen vor all
 ee("m_internetsperren", "staedtische_saekulare", -.04, 1, "Sperren wirken wie Gängelung.");
 ee("m_internetsperren", "gruendungen", -.03, 3, "Digitale Firmen meiden ein Land, in dem Seiten gesperrt werden.");
 ee("m_internetsperren", "investitionen", -.02, 3, "Investoren fürchten Willkür im Netz.");
-ee("m_internetsperren", "ansehen", -.02, 3, "Netzsperren gelten im Ausland als Zeichen von Zensur.");
+eef("m_internetsperren", "ansehen", -.02, 3, "Netzsperren gelten im Ausland als Zeichen von Zensur.", {
+	typ: "umkehr",
+	exponent: 2
+});
 ee("m_internetsperren", "zivilgesellschaft", -.03, 3, "Ohne freie Kanäle verstummen Initiativen.");
 ee("m_internetsperren", "polarisierung", .02, 3, "Verbote treiben Menschen in Gegenöffentlichkeiten.");
 ee("m_staatsmedien", "pressefreiheit", -.03, 3, "Wer den Anzeigenmarkt beherrscht, beherrscht die Berichte.");
@@ -1251,7 +1468,7 @@ ee("m_bauamnestie", "konservative", .03, 1, "Ein Wahlversprechen für Hausbesitz
 ee("m_bauamnestie", "arbeitnehmer", .02, 1, "Wer illegal gebaut hat, muss nicht mehr zittern.");
 ee("m_bauamnestie", "erdbebenvorsorge", -.04, 12, "Nicht geprüfte Häuser bleiben unsicher.");
 ee("m_bauamnestie", "rechtssicherheit", -.03, 6, "Wer Regeln bricht, wird belohnt.");
-g("recht", "justiz_unabhaengigkeit", "Unabhängigkeit der Justiz", 32, "Ob Richter und Staatsanwälte ohne Weisung und Druck entscheiden. Der Richterrat, den Präsident und Parlament besetzen, prägt sie.", .03);
+g("recht", "justiz_unabhaengigkeit", "Unabhängigkeit der Justiz", 32, "Ob Richter und Staatsanwälte ohne Weisung und Druck entscheiden. Der Richterrat, den Präsident und Parlament besetzen, prägt sie.", .03, 2.5);
 g("recht", "justiz_kapazitaet", "Kapazität der Gerichte", 45, "Richter, Staatsanwälte und Gerichtssäle im Verhältnis zu den Verfahren. Die Türkei hat 17 Richter je 100.000 Einwohner, der europäische Schnitt liegt bei 22.", .03);
 g("recht", "justiz_effizienz", "Effizienz der Verfahren", 50, "Wie schnell Verfahren enden. Strafgerichte brauchten 2024 im Schnitt 228, Zivilgerichte 231 Tage, die Vollstreckung 919.", .05);
 g("recht", "urteilsbefolgung", "Befolgung von Urteilen", 35, "Ob Behörden und Gerichte Urteile des Verfassungsgerichts und des Straßburger Gerichtshofs umsetzen. Das Verfahren im Fall Kavala läuft seit 2022 nach Artikel 46.", .03);
@@ -1275,7 +1492,11 @@ g("infrastruktur", "wartungszustand", "Zustand der Anlagen", 55, "Wie gut Straß
 m("recht", "m_richterstellen", "Richter- und Staatsanwaltsstellen", 45, .15, 24, "Mehr Stellen, Ausbildungsplätze und Gerichtssäle; wirkt erst nach Jahren, weil die Ausbildung dauert.");
 m("recht", "m_richterrat", "Besetzung des Richterrats", 25, 0, 12, "Wer die Mitglieder des Richter- und Staatsanwaltsrats (HSK) bestimmt, der über Ernennung, Versetzung und Beförderung von Richtern entscheidet.");
 m("recht", "m_haftvermeidung", "Haftvermeidung und Bewährung", 30, .02, 12, "Untersuchungshaft nur als letztes Mittel, Bewährung und elektronische Aufsicht statt Vollzug.");
-m("recht", "m_notstand", "Ausnahmezustand und Sonderbefugnisse", 10, 0, 1, "Wie weit die Regierung mit Notstandsbefugnissen und Sonderregeln handelt, statt über Gesetze im normalen Verfahren.");
+m("recht", "m_notstand", "Ausnahmezustand und Sonderbefugnisse", 10, 0, 1, "Wie weit die Regierung mit Notstandsbefugnissen und Sonderregeln handelt, statt über Gesetze im normalen Verfahren.", {
+	einfuehren: 1.2,
+	streichen: 2.5,
+	unterhalt_monat: .3
+});
 m("recht", "m_urteilsumsetzung", "Umsetzung von Gerichtsurteilen aus Straßburg und Ankara", 30, 0, 6, "Ob Behörden und Gerichte Urteile des Verfassungsgerichts und des Europäischen Gerichtshofs für Menschenrechte umsetzen.");
 m("kultur", "m_denkmalschutz", "Denkmalschutz und Restaurierung", 40, .1, 12, "Personal, Mittel und Auflagen für den Erhalt historischer Stätten und Altstädte.");
 m("kultur", "m_kulturfoerderung", "Kunst- und Kulturförderung", 40, .08, 6, "Theater, Musik, Literatur, Filmförderung und Festivals.");
@@ -1285,7 +1506,10 @@ m("militaer", "m_wehrdienst", "Wehrdienst", 30, .05, 6, "Dauer und Art des Wehrd
 m("militaer", "m_uebungen", "Ausbildung und Übungen", 45, .15, 12, "Manöver, Flugstunden, Seetage und Ausbildungsplätze für Piloten und Techniker.");
 m("militaer", "m_offiziersauswahl", "Beförderung im Obersten Militärrat", 35, 0, 6, "Nach welchen Kriterien der Oberste Militärrat im August Offiziere befördert und pensioniert.");
 m("infrastruktur", "m_instandhaltung", "Instandhaltung der Infrastruktur", 45, .2, 12, "Wartung, Erneuerung und Sanierung von Straßen, Brücken, Schienen und Leitungen.");
-ee("m_richterstellen", "justiz_kapazitaet", .06, 12, "Mehr Stellen bedeuten mehr erledigte Verfahren, sobald die Ausbildung abgeschlossen ist.");
+eef("m_richterstellen", "justiz_kapazitaet", .06, 12, "Mehr Stellen bedeuten mehr erledigte Verfahren, sobald die Ausbildung abgeschlossen ist.", {
+	typ: "saettigung",
+	k: 1.8
+});
 ee("m_richterstellen", "justiz_effizienz", .03, 12, "Mit mehr Richtern schrumpfen die Wartezeiten.");
 ee("m_richterstellen", "beamte", .03, 1, "Neue Stellen im Staatsdienst.");
 ee("m_richterrat", "justiz_unabhaengigkeit", .06, 6, "Ein Rat, den Kollegen wählen, ist schwerer zu steuern als einer, den Minister und Präsident besetzen.");
@@ -1298,7 +1522,10 @@ ee("m_haftvermeidung", "justizvertrauen", .01, 12, "Weniger Wartezeit in Haft wi
 ee("m_haftvermeidung", "kriminalitaet", .01, 12, "Ein Teil der Entlassenen wird rückfällig.");
 ee("m_haftvermeidung", "konservative", -.03, 1, "Wird als Nachgiebigkeit gegenüber Straftätern gelesen.");
 ee("m_haftvermeidung", "staedtische_saekulare", .02, 1, "Verhältnismäßigkeit gilt ihnen als Grundsatz.");
-ee("m_notstand", "ausnahmerecht", .1, 0, "Notstandsbefugnisse bedeuten mehr Ausnahmerecht.");
+eef("m_notstand", "ausnahmerecht", .1, 0, "Notstandsbefugnisse bedeuten mehr Ausnahmerecht.", {
+	typ: "umkehr",
+	exponent: 2
+});
 ee("m_notstand", "terrorgefahr", -.03, 3, "Weitreichende Befugnisse erschweren Anschläge.");
 ee("m_notstand", "konservative", .03, 1, "Ein Teil der Wähler will einen starken Staat in der Krise.");
 ee("m_urteilsumsetzung", "urteilsbefolgung", .08, 3, "Wer Urteile umsetzt, befolgt sie.");
@@ -1311,9 +1538,16 @@ ee("m_justizreform", "justiz_unabhaengigkeit", .03, 6, "Ein Reformpaket stärkt 
 ee("m_justizreform", "justiz_effizienz", .03, 12, "Besseres Verfahrensrecht und bessere Ausbildung verkürzen die Verfahren.");
 ee("m_antikorruption", "justiz_unabhaengigkeit", .02, 6, "Unabhängige Ermittler brauchen unabhängige Gerichte.");
 ee("m_verwaltungsdigital", "justiz_effizienz", .03, 12, "Digitale Akten und elektronische Zustellung beschleunigen die Verfahren.");
-ee("justiz_unabhaengigkeit", "justizvertrauen", .05, 6, "Wer glaubt, dass Richter frei entscheiden, vertraut den Gerichten.");
+eef("justiz_unabhaengigkeit", "justizvertrauen", .05, 6, "Wer glaubt, dass Richter frei entscheiden, vertraut den Gerichten.", {
+	typ: "schwelle",
+	k: .12,
+	mitte: 50
+});
 ee("justiz_unabhaengigkeit", "rechtssicherheit", .04, 6, "Unabhängige Richter machen Entscheidungen berechenbar.");
-ee("justiz_unabhaengigkeit", "korruption", -.03, 12, "Unabhängige Gerichte verfolgen auch Mächtige.");
+eef("justiz_unabhaengigkeit", "korruption", -.03, 12, "Unabhängige Gerichte verfolgen auch Mächtige.", {
+	typ: "umkehr",
+	exponent: 3
+});
 ee("justiz_unabhaengigkeit", "auslandskapital", .02, 12, "Investoren prüfen zuerst, ob sie ihr Recht bekommen.");
 ee("justiz_unabhaengigkeit", "urteilsbefolgung", .03, 6, "Unabhängige Gerichte setzen ihre Urteile eher durch.");
 ee("justiz_unabhaengigkeit", "legitimitaet", .03, 6, "Wer die Regeln für fair hält, hält die Regierung für rechtmäßig.");
@@ -1518,11 +1752,12 @@ ee("leitzins", "arbeitnehmer", -.005, 6, "Wenn Betriebe weniger investieren, sin
 ee("abwertung", "mittelstand", -.012, 2, "Importabhängige Betriebe zahlen mehr für Vorprodukte.");
 ee("zinslast", "vertrauen_maerkte", -.015, 3, "Wer viel für Zinsen ausgibt, hat weniger Spielraum: Anleger werden nervös.");
 const NODES = N$1;
+const EDGES = E;
 //#endregion
-//#region game/src/sim/modell.ts
-const NET = buildModel(NODES, E);
+//#region src/sim/modell.ts
+const NET = buildModel(NODES, EDGES);
 //#endregion
-//#region game/src/sim/wirkung.ts
+//#region src/sim/wirkung.ts
 function clampIndex(x) {
 	return Math.min(100, Math.max(0, x));
 }
@@ -1560,7 +1795,7 @@ function vertrauenAendern(world, delta) {
 	wirke(world, "vertrauen_regierung", delta);
 }
 //#endregion
-//#region game/src/sim/log.ts
+//#region src/sim/log.ts
 function addLog(world, kind, text, why) {
 	const entry = {
 		day: world.day,
@@ -1583,7 +1818,259 @@ const verfuegbar = (kapital) => kapital + 20;
 /** Ob sich `pk` bezahlen lässt (Kapital plus Überziehung). */
 const kannZahlen = (kapital, pk) => kapital + 20 >= pk - 1e-9;
 //#endregion
-//#region game/src/sim/programme.ts
+//#region src/sim/dates.ts
+const DAY_MS = 864e5;
+function addDays(isoDate, days) {
+	const t = Date.parse(isoDate + "T00:00:00Z") + days * DAY_MS;
+	return new Date(t).toISOString().slice(0, 10);
+}
+function dayOfMonth(isoDate) {
+	return Number(isoDate.slice(8, 10));
+}
+function monthOf(isoDate) {
+	return isoDate.slice(0, 7);
+}
+function monthNumber(isoDate) {
+	return Number(isoDate.slice(5, 7));
+}
+/** Vormonat im Format JJJJ-MM. */
+function previousMonth(month, back = 1) {
+	let y = Number(month.slice(0, 4));
+	let m = Number(month.slice(5, 7)) - back;
+	while (m < 1) {
+		m += 12;
+		y -= 1;
+	}
+	return `${y}-${String(m).padStart(2, "0")}`;
+}
+const MONTHS_DE = [
+	"Januar",
+	"Februar",
+	"März",
+	"April",
+	"Mai",
+	"Juni",
+	"Juli",
+	"August",
+	"September",
+	"Oktober",
+	"November",
+	"Dezember"
+];
+function formatDateDe(isoDate) {
+	return `${dayOfMonth(isoDate)}. ${MONTHS_DE[monthNumber(isoDate) - 1]} ${isoDate.slice(0, 4)}`;
+}
+function formatMonthDe(month) {
+	return `${MONTHS_DE[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`;
+}
+//#endregion
+//#region src/sim/aufmerksamkeit.ts
+const VERFASSUNG = {
+	startAufmerksamkeit: 80,
+	startBelastung: 10,
+	/** Aufladung je Tag */
+	regenProTag: 3,
+	/** Aufmerksamkeit darunter: der Präsident regiert auf Verschleiß (+Belastung je Tag) */
+	erschoepfungAb: 20,
+	erschoepfungProTag: 2,
+	/** Aufmerksamkeit darüber: der Tag lässt Luft (−Belastung je Tag) */
+	erholungAb: 60,
+	erholungProTag: 1,
+	/** Stufen der Belastung: darunter ruhig, ab 40 angespannt, ab 70 überlastet */
+	angespanntAb: 40,
+	ueberlastetAb: 70,
+	/** Belastung über dieser Schwelle, so viele Tage am Stück: Zusammenbruch */
+	zusammenbruchAb: 85,
+	zusammenbruchTage: 30,
+	/** Dauer der Zwangspause bei Überlastung bzw. nach dem Zusammenbruch */
+	pauseTage: 3,
+	pauseZusammenbruch: 5,
+	/** Tage nach einer Zwangspause ohne neue Zwangspause */
+	pauseAbkuehlung: 14,
+	/** Belastung nach dem Zusammenbruch: der Druck ist erst einmal raus */
+	belastungNachBruch: 55,
+	/** Sturz-Warnung und Eskalations-Ereignisse treiben die Belastung sofort */
+	sturzWarnung: 8,
+	eskalation: 6,
+	/** Eine Fertigstellungs-Feier lässt die Belastung sinken */
+	feierErloesung: 8,
+	/** Fenster der Treiber-Liste in Tagen */
+	treiberTage: 30,
+	/** Angespannt: die Stimmenschätzung streut breiter, Einbringungen verzögern sich mitunter */
+	unsicherheitFaktor: 1.5,
+	verzugChance: .25,
+	verzugTage: 2
+};
+/** Aufmerksamkeitskosten der Amtshandlungen, zusätzlich zum Kapital: klein für Routine, groß für Vorgänge. */
+const AUFMERKSAMKEIT_KOSTEN = {
+	gesetz: 10,
+	erlass: 10,
+	stimmenkauf: 3,
+	gespraech: 4,
+	verhandlungGespraech: 2,
+	zugestaendnis: 4,
+	duldung: 6,
+	koalition: 8,
+	abwerben: 6,
+	landAktion: {
+		gipfel: 8,
+		handel: 6,
+		ruestung: 6,
+		druck: 4,
+		entspannen: 6,
+		hilfe: 6
+	},
+	reichVorhaben: 8,
+	programmSchritt: 4
+};
+function verfassungStart() {
+	return {
+		aufmerksamkeit: VERFASSUNG.startAufmerksamkeit,
+		belastung: VERFASSUNG.startBelastung,
+		stufe: 0,
+		ueberlastTage: 0,
+		treiber: []
+	};
+}
+/** Das Konto dieser Partie; ältere Spielstände ohne Konto bekommen beim ersten Zugriff die Startwerte. */
+function verfassungVon(w) {
+	const sp = w.spiel;
+	if (!sp) return verfassungStart();
+	sp.verfassung ??= verfassungStart();
+	return sp.verfassung;
+}
+function stufeVon$1(belastung) {
+	return belastung >= VERFASSUNG.ueberlastetAb ? 2 : belastung >= VERFASSUNG.angespanntAb ? 1 : 0;
+}
+/** Wie breit die Unsicherheit der Stimmenschätzung gerade streut (Stufe „angespannt“ verbreitert sie). */
+function unsicherheitFaktor(w) {
+	return stufeVon$1(verfassungVon(w).belastung) >= 1 ? VERFASSUNG.unsicherheitFaktor : 1;
+}
+/** Deterministischer Wert in [0,1) aus einem Schlüssel — für kleine Chancen ohne Zufallszustand. */
+function hashWert(s) {
+	let h = 2166136261;
+	for (let i = 0; i < s.length; i++) {
+		h ^= s.charCodeAt(i);
+		h = Math.imul(h, 16777619);
+	}
+	return (h >>> 0) % 1e5 / 1e5;
+}
+/** Aufmerksamkeit ausgeben. Überziehen bis null ist erlaubt — die Belastung folgt im Tagesrhythmus. */
+function verbrauche(w, punkte, _was) {
+	if (!w.spiel || punkte <= 0) return;
+	const v = verfassungVon(w);
+	v.aufmerksamkeit = clamp(v.aufmerksamkeit - punkte, 0, 100);
+}
+function treiben(w, v, punkte, text) {
+	v.belastung = clamp(v.belastung + punkte, 0, 100);
+	if (punkte <= 0) return;
+	v.treiber.push({
+		tag: w.day,
+		text,
+		punkte
+	});
+	if (v.treiber.length > 40) v.treiber = v.treiber.slice(-40);
+}
+/** Ein Ereignis, das die Belastung sofort treibt (Eskalation, Sturz-Warnung). */
+function belastungEreignis(w, punkte, text) {
+	if (!w.spiel || punkte <= 0) return;
+	treiben(w, verfassungVon(w), punkte, text);
+}
+/** Warum gerade kein neuer Vorgang startet; leer, wenn es geht. Laufendes ist nie gesperrt. */
+function neuanfangGrund(w) {
+	if (!w.spiel) return void 0;
+	const v = verfassungVon(w);
+	if (v.pauseBis === void 0 || v.pauseBis <= w.day) return void 0;
+	return `Der Präsident braucht einen ruhigen Tag: Bis ${formatDateDe(addDays(w.date, v.pauseBis - w.day))} startet er keine neuen Vorgänge; das Laufende — Gesetze im Parlament, Bauvorhaben, Programme — geht weiter.`;
+}
+function pauseBeginnen(w, v, tage, bruch) {
+	const sp = w.spiel;
+	v.pauseBis = w.day + tage;
+	v.letztePause = w.day;
+	const datum = formatDateDe(addDays(w.date, tage));
+	if (bruch) sp.hinweise.push({
+		id: `zusammenbruch-${w.day}`,
+		titel: "Zusammenbruch",
+		szene: "istanbul",
+		text: ["Mitten im Termin bricht der Präsident zusammen; der Arzt spricht von Erschöpfung, der Stab löscht den Kalender.", `Bis ${datum} startet er keine neuen Vorgänge. Das Vertrauen ins Amt leidet, und das Umfeld fragt sich, wie lange das noch gut geht.`]
+	});
+	else sp.hinweise.push({
+		id: `pause-${w.day}`,
+		titel: "Der Präsident braucht einen ruhigen Tag",
+		szene: "istanbul",
+		text: ["Zu viele Akten, zu viele Gespräche, zu wenig Schlaf: Der Stab streicht die Neuauflagen aus dem Kalender.", `Bis ${datum} startet der Präsident keine neuen Vorgänge; das Laufende geht weiter. Wer sich erholt, regiert wieder mit klarer Hand.`]
+	});
+}
+function zusammenbruch(w, v) {
+	const sp = w.spiel;
+	v.ueberlastTage = 0;
+	v.belastung = VERFASSUNG.belastungNachBruch;
+	pauseBeginnen(w, v, VERFASSUNG.pauseZusammenbruch, true);
+	v.stufe = stufeVon$1(v.belastung);
+	vertrauenAendern(w, -2);
+	for (const f of sp.figuren) if (f.imAmt) f.loyalitaet = clamp(f.loyalitaet - 6, 0, 100);
+	sp.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: "Zusammenbruch",
+		ausgang: "Der Präsident bricht unter der Last zusammen; Tage der erzwungenen Ruhe folgen, das Vertrauen ins Amt und in sein Umfeld leidet."
+	});
+	addLog(w, "ereignis", "Der Präsident bricht unter der Belastung zusammen.", "Wochen der Überlastung fordern ihren Preis: Vertrauen in die Regierung −2, Loyalität des Umfelds −6, eine Zwangspause folgt.");
+}
+/** Täglich: Aufladung, Belastungsdrift, Stufenwechsel mit Chronik, Zwangspause und Zusammenbruch. */
+function verfassungTag(w) {
+	const sp = w.spiel;
+	if (!sp || sp.ende) return;
+	const v = verfassungVon(w);
+	v.aufmerksamkeit = clamp(v.aufmerksamkeit + VERFASSUNG.regenProTag, 0, 100);
+	if (v.aufmerksamkeit < VERFASSUNG.erschoepfungAb) treiben(w, v, VERFASSUNG.erschoepfungProTag, "Regieren am Anschlag: Die Aufmerksamkeit ist erschöpft");
+	else if (v.aufmerksamkeit > VERFASSUNG.erholungAb) v.belastung = clamp(v.belastung - VERFASSUNG.erholungProTag, 0, 100);
+	if (v.pauseBis !== void 0 && v.pauseBis <= w.day) delete v.pauseBis;
+	if (v.belastung > VERFASSUNG.zusammenbruchAb) v.ueberlastTage += 1;
+	else v.ueberlastTage = 0;
+	if (v.ueberlastTage >= VERFASSUNG.zusammenbruchTage) {
+		zusammenbruch(w, v);
+		return;
+	}
+	const stufe = stufeVon$1(v.belastung);
+	if (stufe === v.stufe) return;
+	const alt = v.stufe;
+	v.stufe = stufe;
+	if (stufe === 1) {
+		if (alt === 0) {
+			sp.chronik.push({
+				tag: w.day,
+				datum: w.date,
+				titel: "Der Präsident wirkt angespannt",
+				ausgang: "Die Belastung ist über 40 gestiegen: Schätzungen streuen breiter, manche Einbringung verzögert sich."
+			});
+			addLog(w, "ereignis", "Der Präsident wirkt angespannt.", "Die Belastung ist über 40 gestiegen. Aufmerksamkeit lädt sich täglich auf; wer sie über 60 hält, baut Belastung wieder ab.");
+		} else sp.chronik.push({
+			tag: w.day,
+			datum: w.date,
+			titel: "Die Lage beruhigt sich etwas",
+			ausgang: "Die Belastung fällt unter 70; der Präsident bleibt angespannt."
+		});
+	} else if (stufe === 2) {
+		sp.chronik.push({
+			tag: w.day,
+			datum: w.date,
+			titel: "Überlastung",
+			ausgang: "Die Belastung ist über 70 gestiegen; der Stab erzwingt ruhige Tage ohne neue Vorgänge."
+		});
+		if ((v.letztePause === void 0 || w.day - v.letztePause >= VERFASSUNG.pauseAbkuehlung) && v.pauseBis === void 0) {
+			pauseBeginnen(w, v, VERFASSUNG.pauseTage, false);
+			addLog(w, "ereignis", "Der Präsident braucht einen ruhigen Tag.", `Die Belastung ist über 70 gestiegen: Bis ${formatDateDe(addDays(w.date, VERFASSUNG.pauseTage))} starten keine neuen Vorgänge; das Laufende geht weiter.`);
+		}
+	} else sp.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: "Der Präsident wirkt wieder erholt",
+		ausgang: "Die Belastung ist unter 40 gefallen."
+	});
+}
+//#endregion
+//#region src/sim/programme.ts
 const kein = [{ art: "keine" }];
 const PROGRAMME = [
 	{
@@ -2451,7 +2938,7 @@ function naechsterSchritt(w) {
 	return beste;
 }
 //#endregion
-//#region game/src/sim/regional.ts
+//#region src/sim/regional.ts
 const PROVINZEN = [
 	{
 		"plaka": 1,
@@ -4156,8 +4643,8 @@ const REGIONAL = {
 	p_migrationsdruck: perProvince((p) => BORDER.has(p.plaka) ? 1.2 : p.plaka === 34 ? 1.1 : .9)
 };
 //#endregion
-//#region game/src/sim/ereignis-hilfen.ts
-const nf$4 = (x, d = 1) => x.toLocaleString("de-DE", {
+//#region src/sim/ereignis-hilfen.ts
+const nf$5 = (x, d = 1) => x.toLocaleString("de-DE", {
 	minimumFractionDigits: d,
 	maximumFractionDigits: d
 });
@@ -4231,8 +4718,8 @@ const netz$1 = (w, id) => nationalAverage(NET, w.net, id);
 function beschr(pk, bipProzent, folge) {
 	const teile = [];
 	if (pk > 0) teile.push(`${pk} Kapital`);
-	if (bipProzent > 0) teile.push(`${nf$4(bipProzent, bipProzent < .1 ? 2 : 1)} % des BIP`);
-	return `${teile.length ? `Kostet ${teile.join(" und ")}` : bipProzent < 0 ? `Bringt ${nf$4(-bipProzent, 2)} % des BIP` : "Kostet nichts"}; ${folge}`;
+	if (bipProzent > 0) teile.push(`${nf$5(bipProzent, bipProzent < .1 ? 2 : 1)} % des BIP`);
+	return `${teile.length ? `Kostet ${teile.join(" und ")}` : bipProzent < 0 ? `Bringt ${nf$5(-bipProzent, 2)} % des BIP` : "Kostet nichts"}; ${folge}`;
 }
 /** Eine Zusage, die später fällig wird und dann als Ereignis eingefordert wird. */
 function zusageAnlegen(w, z) {
@@ -4250,7 +4737,7 @@ function zusageAnlegen(w, z) {
 	});
 }
 //#endregion
-//#region game/src/sim/laender.ts
+//#region src/sim/laender.ts
 const A = (id, titel, text, bedingung) => ({
 	id,
 	titel,
@@ -4272,9 +4759,9 @@ const LAENDER = [
 		text: "NATO-Verbündeter mit Stützpunkt in Incirlik und wichtigster Rüstungslieferant, zugleich im Streit um das russische Luftabwehrsystem S-400 und den Ausschluss der Türkei vom F-35-Programm.",
 		start: {
 			handel: 70,
-			sicherheit: 65,
-			vertrauen: 45,
-			konflikt: 55
+			sicherheit: 60,
+			vertrauen: 52,
+			konflikt: 45
 		},
 		anliegen: [A("usa-nato", "Ein fairer Anteil in der NATO", "Washington erwartet, dass die Türkei ihren Beitrag zur Verteidigung leistet.", {
 			art: "massnahme",
@@ -4304,7 +4791,7 @@ const LAENDER = [
 		wdi: "DEU",
 		knoten: "beziehungen_eu",
 		anteil: 1,
-		text: "Größter Handelspartner und Zollunionspartner der Türkei; die Beitrittsgespräche liegen seit Jahren auf Eis. Brüssel verlangt Fortschritte bei Rechtsstaat und Grundrechten, Ankara Visafreiheit und eine modernisierte Zollunion.",
+		text: "Größter Handelspartner und Zollunionspartner der Türkei; die Beitrittsgespräche liegen seit Jahren auf Eis. Seit 2026 läuft die Kooperation im Two-Track weiter: Sicherheit, Energie und Migration ja, Visafreiheit und modernisierte Zollunion nur gegen Reformen bei Rechtsstaat und Grundrechten.",
 		start: {
 			handel: 90,
 			sicherheit: 55,
@@ -4312,7 +4799,7 @@ const LAENDER = [
 			konflikt: 45
 		},
 		anliegen: [
-			A("eu-recht", "Unabhängige Justiz", "Ein Richterrat, der nicht der Regierung untersteht, ist die Vorbedingung für alles Weitere.", {
+			A("eu-recht", "Unabhängige Justiz", "Ein Richterrat, der nicht der Regierung untersteht, und die Umsetzung der Urteile des Europäischen Gerichtshofs für Menschenrechte sind die Vorbedingung für alles Weitere.", {
 				art: "massnahme",
 				id: "m_justizreform",
 				min: 55
@@ -4322,7 +4809,7 @@ const LAENDER = [
 				id: "m_medienaufsicht",
 				max: 50
 			}),
-			A("eu-annaeherung", "Ernsthafte Annäherung", "Reformen für Visafreiheit und eine modernisierte Zollunion.", {
+			A("eu-annaeherung", "Ernsthafte Annäherung", "Reformen für Visafreiheit und eine modernisierte Zollunion; die sektorale Kooperation (Two-Track seit 06/2026) ersetzt das nicht.", {
 				art: "massnahme",
 				id: "m_eu_annaeherung",
 				min: 55
@@ -4348,10 +4835,10 @@ const LAENDER = [
 		anteil: 1,
 		text: "Wichtiger Lieferant von Erdgas, Bauherr des ersten Kernkraftwerks Akkuyu und größter Touristenlieferant; zugleich Gegenspieler in Syrien, im Schwarzen Meer und im Krieg gegen die Ukraine, den Ankara zu vermitteln versucht.",
 		start: {
-			handel: 75,
-			sicherheit: 40,
+			handel: 72,
+			sicherheit: 38,
 			vertrauen: 45,
-			konflikt: 50
+			konflikt: 52
 		},
 		anliegen: [A("rus-akkuyu", "Akkuyu vollenden", "Das Kernkraftwerk soll ans Netz gehen und weitere Vorhaben folgen.", {
 			art: "massnahme",
@@ -4383,10 +4870,10 @@ const LAENDER = [
 		anteil: .4,
 		text: "NATO-Verbündeter und Nachbar in der Ägäis; Streit um Seegrenzen, Luftraum, Inselstatus und Zypern, dazu Migration über die Ägäis. Zwischen den Krisen bestehen Deeskalationskanäle.",
 		start: {
-			handel: 40,
-			sicherheit: 30,
-			vertrauen: 30,
-			konflikt: 65
+			handel: 42,
+			sicherheit: 32,
+			vertrauen: 35,
+			konflikt: 55
 		},
 		anliegen: [A("grc-aegaeis", "Ruhe in der Ägäis", "Keine Provokationen zu Wasser und in der Luft; Gespräche über die Seegrenzen.", {
 			art: "land",
@@ -4414,12 +4901,12 @@ const LAENDER = [
 		wdi: "IRN",
 		knoten: "beziehungen_nahost",
 		anteil: .3,
-		text: "Große Nachbarmacht im Osten: Handelspartner und Gaslieferant, Konkurrent um Einfluss im Irak und in Syrien, mit gemeinsamen Interessen gegen kurdische Aufstände.",
+		text: "Große Nachbarmacht im Osten, seit Februar 2026 im Krieg mit den USA und Israel: Der Gasvertrag ist im Juli 2026 ausgelaufen, der Handel bricht unter Sanktionen und Blockade ein; dazu Konkurrenz um Einfluss im Irak und in Syrien und Vermittlungsbedarf bei der Straße von Hormus.",
 		start: {
-			handel: 55,
-			sicherheit: 40,
+			handel: 42,
+			sicherheit: 30,
 			vertrauen: 40,
-			konflikt: 45
+			konflikt: 55
 		},
 		anliegen: [A("irn-handel", "Handel trotz Sanktionen", "Teheran will, dass Ankara den Handel nicht den Sanktionen opfert.", {
 			art: "land",
@@ -4448,21 +4935,21 @@ const LAENDER = [
 		wdi: "SYR",
 		knoten: "beziehungen_nahost",
 		anteil: .3,
-		text: "Nachbar im Süden nach Jahren des Krieges: Sicherheitsfragen an der Grenze, Millionen Geflüchtete in der Türkei, Einfluss im Norden des Landes und die Frage der Rückkehr.",
+		text: "Nachbar im Süden nach dem Sturz des Assad-Regimes (12/2024); die Übergangsregierung in Damaskus hängt an Ankara: Wiederaufbauverträge, Energie über die Kilis–Aleppo-Leitung und die Ausbildung der neuen Armee laufen über die Türkei, die SDF sind seit August 2026 in den Staat überführt und die Sanktionen weltweit aufgehoben.",
 		start: {
-			handel: 35,
-			sicherheit: 20,
-			vertrauen: 25,
-			konflikt: 75
+			handel: 45,
+			sicherheit: 55,
+			vertrauen: 68,
+			konflikt: 20
 		},
-		anliegen: [A("syr-rueckkehr", "Rückkehr ermöglichen", "Ein Programm für die Rückkehr von Geflüchteten mit Wiederaufbauhilfe.", {
+		anliegen: [A("syr-rueckkehr", "Rückkehr ermöglichen", "Damaskus braucht ein finanziertes Programm für die Rückkehr der rund drei Millionen Syrer aus der Türkei, verbunden mit Wiederaufbauhilfe.", {
 			art: "massnahme",
 			id: "m_rueckkehr",
 			min: 55
-		}), A("syr-grenze", "Ruhe an der Grenze", "Keine Eskalation im Grenzgebiet.", {
+		}), A("syr-grenze", "Ruhe an der Grenze", "Die SDF sind in der Armee aufgegangen; Damaskus will, dass keine eigenständige bewaffnete Kraft an der Grenze zurückkehrt und die Ruhe hält.", {
 			art: "land",
 			dim: "konflikt",
-			max: 60
+			max: 45
 		})],
 		aktionen: [
 			"gipfel",
@@ -4482,12 +4969,12 @@ const LAENDER = [
 		wdi: "IRQ",
 		knoten: "beziehungen_nahost",
 		anteil: .3,
-		text: "Nachbar im Südosten: Öl-Pipeline nach Ceyhan, Streit um das Wasser von Euphrat und Tigris, türkische Militäreinsätze im Norden gegen die PKK und ein wichtiger Markt für Bauunternehmen.",
+		text: "Nachbar im Südosten: die Öl-Pipeline Kirkuk–Ceyhan läuft seit Juli 2026 wieder (Zwölfmonats-Protokoll), dazu Streit um das Wasser von Euphrat und Tigris, türkische Militäreinsätze im Norden gegen die PKK und ein wichtiger Markt für Bauunternehmen.",
 		start: {
-			handel: 60,
-			sicherheit: 35,
-			vertrauen: 40,
-			konflikt: 55
+			handel: 62,
+			sicherheit: 40,
+			vertrauen: 45,
+			konflikt: 42
 		},
 		anliegen: [A("irq-wasser", "Mehr Wasser flussabwärts", "Bagdad verlangt Abflussmengen aus den türkischen Staudämmen.", {
 			art: "land",
@@ -4523,11 +5010,11 @@ const LAENDER = [
 			vertrauen: 85,
 			konflikt: 15
 		},
-		anliegen: [A("aze-korridor", "Der Korridor nach Osten", "Verkehrswege und Bahn nach Zentralasien.", {
+		anliegen: [A("aze-korridor", "Der Korridor nach Osten", "Die Bahn Kars–Nachitschewan und die TRIPP-Verbindung über armenisches Gebiet sollen die Türkei mit Baku und Zentralasien verbinden.", {
 			art: "massnahme",
 			id: "m_bahn",
 			min: 50
-		}), A("aze-gas", "Gasabnahme", "Verlässliche Abnahme aserbaidschanischen Gases.", {
+		}), A("aze-gas", "Gasabnahme", "Verlässliche Abnahme aserbaidschanischen Gases; der Ausbau von TANAP Richtung 20 Milliarden Kubikmeter ist das Ziel.", {
 			art: "land",
 			dim: "handel",
 			min: 70
@@ -4550,18 +5037,18 @@ const LAENDER = [
 		wdi: "ARM",
 		knoten: "ansehen",
 		anteil: .2,
-		text: "Nachbar im Osten, dessen Grenze zur Türkei seit Langem geschlossen ist; Normalisierungsgespräche laufen, belastet vom Karabach-Konflikt und dem Streit um die Bewertung von 1915.",
+		text: "Nachbar im Osten: Direktflüge und Direkthandel laufen seit 2026, doch die Grenze bleibt geschlossen, weil Ankara die Öffnung an die Signatur des parafierten Friedensvertrags mit Aserbaidschan koppelt; belastet wirkt weiter der Streit um die Bewertung von 1915.",
 		start: {
-			handel: 20,
-			sicherheit: 25,
-			vertrauen: 30,
-			konflikt: 55
+			handel: 18,
+			sicherheit: 28,
+			vertrauen: 36,
+			konflikt: 48
 		},
-		anliegen: [A("arm-grenze", "Die Grenze öffnen", "Diplomatische Beziehungen und ein offener Übergang.", {
+		anliegen: [A("arm-grenze", "Die Grenze öffnen", "Direktflüge und Direkthandel laufen; die Grenze bleibt zu, bis der Friedensvertrag mit Baku signiert ist.", {
 			art: "land",
 			dim: "vertrauen",
 			min: 45
-		}), A("arm-frieden", "Frieden im Kaukasus", "Keine einseitige Parteinahme im Streit mit Aserbaidschan.", {
+		}), A("arm-frieden", "Frieden im Kaukasus", "Der Friedensvertrag ist parafiert, aber nicht signiert; Erevan will keine einseitige Parteinahme Ankaras für Baku.", {
 			art: "land",
 			dim: "konflikt",
 			max: 45
@@ -4583,12 +5070,12 @@ const LAENDER = [
 		wdi: "SAU",
 		knoten: "beziehungen_nahost",
 		anteil: .5,
-		text: "Wichtige Geldgeber und Investoren: nach Jahren der Spannung (Katar-Blockade, Khashoggi) wieder eng, mit Krediten, Einlagen und Bauaufträgen.",
+		text: "Wichtige Geldgeber und Investoren: nach Jahren der Spannung (Katar-Blockade, Khashoggi) wieder eng, mit Krediten, Einlagen und Bauaufträgen; seit dem Beistandspakt von Mekka (August 2026, mit Pakistan) auch Bündnispartner mit Kollektivklausel.",
 		start: {
 			handel: 55,
-			sicherheit: 50,
-			vertrauen: 55,
-			konflikt: 30
+			sicherheit: 66,
+			vertrauen: 62,
+			konflikt: 28
 		},
 		anliegen: [A("sau-invest", "Ein verlässliches Investitionsklima", "Rechtssicherheit für Geld aus dem Golf.", {
 			art: "massnahme",
@@ -4617,18 +5104,18 @@ const LAENDER = [
 		wdi: "ISR",
 		knoten: "beziehungen_nahost",
 		anteil: .3,
-		text: "Handelspartner mit belasteten politischen Beziehungen: Der Krieg in Gaza, die Frage der Palästinenser und Streit um Einfluss in der Region bestimmen den Ton.",
+		text: "Kalte Konfrontation mit Sicherheits-Feuerwehr: Seit Mai 2024 hält die Türkei eine vollständige Handels-, Hafen- und Luftraumsperre aufrecht (verschärft Februar 2026); dazu Haftbefehle aus Ankara, der Streit um Gaza und die türkische Rolle in Syrien — gehalten wird die Lage nur durch technische Deconfliction-Gespräche.",
 		start: {
-			handel: 50,
-			sicherheit: 25,
-			vertrauen: 30,
-			konflikt: 60
+			handel: 10,
+			sicherheit: 22,
+			vertrauen: 25,
+			konflikt: 70
 		},
-		anliegen: [A("isr-handel", "Wirtschaft von Politik trennen", "Handel und Energie sollen vom politischen Streit unberührt bleiben.", {
+		anliegen: [A("isr-handel", "Wirtschaft von Politik trennen", "Jerusalem will das Ende der Handels-, Hafen- und Luftraumsperre; solange sie gilt, bleibt der Handel faktisch null.", {
 			art: "land",
 			dim: "handel",
 			min: 50
-		}), A("isr-ruhe", "Weniger Schärfe", "Ein gemäßigterer Ton.", {
+		}), A("isr-ruhe", "Weniger Schärfe", "Deconfliction in Syrien und ein gemäßigterer Ton statt Haftbefehle und Kriegsrhetorik.", {
 			art: "land",
 			dim: "konflikt",
 			max: 55
@@ -4686,9 +5173,9 @@ const LAENDER = [
 		anteil: .25,
 		text: "Nachbar über das Schwarze Meer, seit dem russischen Angriff im Krieg: Ankara liefert Drohnen, hält die Meerengen und vermittelte das Getreideabkommen, pflegt aber zugleich enge Beziehungen zu Moskau und sanktioniert es nicht.",
 		start: {
-			handel: 55,
-			sicherheit: 60,
-			vertrauen: 60,
+			handel: 58,
+			sicherheit: 62,
+			vertrauen: 62,
 			konflikt: 15
 		},
 		anliegen: [A("ukr-meerengen", "Die Meerengen geschlossen halten", "Keine Kriegsschiffe durch Bosporus und Dardanellen, wie der Vertrag von Montreux es erlaubt.", {
@@ -4751,12 +5238,12 @@ const LAENDER = [
 		wdi: "EGY",
 		knoten: "beziehungen_nahost",
 		anteil: .25,
-		text: "Große arabische Macht am südöstlichen Mittelmeer: nach Jahren der Entfremdung (Sturz der Muslimbrüder 2013) im Gespräch über Normalisierung, im Streit um Seegrenzen und Gasfelder, im Wettbewerb um Einfluss in Libyen und Gaza.",
+		text: "Große arabische Macht am südöstlichen Mittelmeer: nach Jahren der Entfremdung (Sturz der Muslimbrüder 2013) seit Februar 2026 durch eine Strategische Partnerschaft mit Verteidigungskooperation verbunden; ungelöst bleiben die Seegrenzen und das Türkei-Libyen-Memorandum, dazu Wettbewerb um Einfluss in Libyen.",
 		start: {
-			handel: 55,
-			sicherheit: 35,
-			vertrauen: 40,
-			konflikt: 45
+			handel: 60,
+			sicherheit: 45,
+			vertrauen: 50,
+			konflikt: 35
 		},
 		anliegen: [A("egy-gas", "Ein Ausgleich im Mittelmeer", "Seegrenzen und Gasfelder ohne Konfrontation.", {
 			art: "land",
@@ -4786,10 +5273,10 @@ const LAENDER = [
 		anteil: .15,
 		text: "Seit 2011 ein geteiltes Land: Ankara stützt die Regierung in Tripolis mit Ausbildern und Drohnen und schloss 2019 ein Memorandum über Seegrenzen im östlichen Mittelmeer, das Griechenland, Ägypten und Zypern ablehnen.",
 		start: {
-			handel: 45,
-			sicherheit: 55,
-			vertrauen: 55,
-			konflikt: 35
+			handel: 50,
+			sicherheit: 58,
+			vertrauen: 58,
+			konflikt: 32
 		},
 		anliegen: [A("lby-seegrenze", "Das Seegrenz-Memorandum halten", "Tripolis will, dass Ankara zu dem Abkommen von 2019 steht.", {
 			art: "land",
@@ -4820,7 +5307,7 @@ const LAENDER = [
 		text: "Größter Staat Zentralasiens und Mitglied der Organisation der Turkstaaten: Transitland am Mittleren Korridor zwischen China und Europa, Öl- und Gasexporteur, mit türkischen Bauunternehmen im Land; zugleich eng an Moskau und Peking gebunden.",
 		start: {
 			handel: 55,
-			sicherheit: 40,
+			sicherheit: 42,
 			vertrauen: 65,
 			konflikt: 10
 		},
@@ -4849,18 +5336,18 @@ const LAENDER = [
 		iso: "CYP",
 		knoten: "beziehungen_eu",
 		anteil: .2,
-		text: "EU-Mitglied und geteilte Insel: Im Norden besteht die nur von der Türkei anerkannte Türkische Republik Nordzypern. Strittig sind Seegrenzen und Gasfelder, Häfen und Flughäfen, Varosha und die Frage von zwei Staaten oder einer Föderation.",
+		text: "EU-Mitglied und geteilte Insel: Im Norden besteht die nur von der Türkei anerkannte Türkische Republik Nordzypern. Das UN-Verhandlungsfenster um 2026 (5+1-Format) und ein föderationsorientierter Norden haben erstmals seit Jahren Bewegung gebracht; strittig bleiben Seegrenzen und Gasfelder, Häfen und Flughäfen, Varosha und die Grundfrage Föderation oder zwei Staaten.",
 		start: {
-			handel: 15,
+			handel: 12,
 			sicherheit: 15,
-			vertrauen: 20,
-			konflikt: 75
+			vertrauen: 24,
+			konflikt: 72
 		},
-		anliegen: [A("cyp-hafen", "Häfen und Flughäfen öffnen", "Schiffe und Flugzeuge der Republik Zypern sollen türkische Häfen und Flughäfen nutzen dürfen.", {
+		anliegen: [A("cyp-hafen", "Häfen und Flughäfen öffnen", "Das Ankara-Protokoll bleibt unerfüllt: Schiffe und Flugzeuge der Republik Zypern sollen türkische Häfen und Flughäfen nutzen dürfen.", {
 			art: "land",
 			dim: "vertrauen",
 			min: 45
-		}), A("cyp-ruhe", "Keine Bohrschiffe, keine Provokation", "Ruhe in den Gewässern rund um die Insel.", {
+		}), A("cyp-ruhe", "Keine Bohrschiffe, keine Provokation", "Ruhe in den Gewässern rund um die Insel; Nikosia knüpft jeden EU-Schritt Richtung Ankara an Bewegung in der Zypernfrage.", {
 			art: "land",
 			dim: "konflikt",
 			max: 55
@@ -4922,6 +5409,41 @@ const AKTIONEN = {
 		abkuehlung: 150
 	}
 };
+/**
+* Zum Spielstart (Tag 0 = 05.06.2028) bereits bestehende Verträge des Verhandlungstisches.
+* Mekka-Beistandspakt vom 07.08.2026 (Saudi-Arabien + Türkei + Pakistan, mit Kollektivverteidigungsklausel):
+* die Klausel „beistand“ läuft bei SAU bereits und wird am Verhandlungstisch nicht doppelt angeboten
+* (klauselnFuer sperrt Klauseln aus laufenden Verträgen). (RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 12, Teil V §5.1 Nr. 3)
+*/
+const MEKKA_PAKT_SEIT = -668;
+const START_VERTRAEGE = { SAU: (tag) => [{
+	id: "v-SAU-mekka-2026",
+	land: "SAU",
+	gibt: ["beistand"],
+	will: [],
+	jahre: 10,
+	seit: tag + MEKKA_PAKT_SEIT,
+	ablauf: tag + MEKKA_PAKT_SEIT + 3653,
+	status: "laeuft",
+	verstoesse: 0,
+	letztePruefung: tag + MEKKA_PAKT_SEIT
+}] };
+/** Abkommen-Einträge, die zum Spielstart bereits bestehen (Anzeige im Ländersteckbrief). */
+const START_ABKOMMEN = { SAU: ["Mekka-Beistandspakt 2026 (mit Pakistan)"] };
+/** Die Felder eines Landes zu Spielstart, inklusive der bereits bestehenden Fakten (Quellen je Kommentar oben). */
+function startFelder(w, l) {
+	const vertraege = START_VERTRAEGE[l.id]?.(w.day);
+	return {
+		handel: l.start.handel,
+		sicherheit: l.start.sicherheit,
+		konflikt: l.start.konflikt,
+		zuletzt: {},
+		erinnerung: [],
+		abkommen: [...START_ABKOMMEN[l.id] ?? []],
+		...l.id === "ISR" ? { handelssperre: true } : {},
+		...vertraege ? { vertraege } : {}
+	};
+}
 function weltZustand(w) {
 	const spiel = w.spiel;
 	if (!spiel.welt) {
@@ -4929,24 +5451,14 @@ function weltZustand(w) {
 		for (const l of LAENDER) {
 			const knoten = startAverage(NET, w.net, l.knoten);
 			spiel.welt[l.id] = {
-				handel: l.start.handel,
-				sicherheit: l.start.sicherheit,
-				konflikt: l.start.konflikt,
-				versatz: clamp(l.start.vertrauen - knoten, -45, 45),
-				zuletzt: {},
-				erinnerung: [],
-				abkommen: []
+				...startFelder(w, l),
+				versatz: clamp(l.start.vertrauen - knoten, -45, 45)
 			};
 		}
 	}
 	for (const l of LAENDER) spiel.welt[l.id] ??= {
-		handel: l.start.handel,
-		sicherheit: l.start.sicherheit,
-		konflikt: l.start.konflikt,
-		versatz: 0,
-		zuletzt: {},
-		erinnerung: [],
-		abkommen: []
+		...startFelder(w, l),
+		versatz: 0
 	};
 	return spiel.welt;
 }
@@ -5007,6 +5519,7 @@ function aktionenFuer(w, id) {
 		let grund;
 		if (rest > 0) grund = `Wieder möglich in ${rest} Tagen.`;
 		else if (!kannZahlen(spiel.kapital, def.pk)) grund = "Dafür fehlt Kapital.";
+		else if (a === "handel" && z.handelssperre) grund = "Die Handels-, Hafen- und Luftraumsperre muss zuerst per Vertrag enden (am Verhandlungstisch).";
 		else if (a === "handel" && vertrauenZu(w, id) < 40) grund = "Dafür ist das Vertrauen noch zu gering.";
 		else if (a === "ruestung" && z.sicherheit < 35) grund = "Dafür ist die Sicherheitszusammenarbeit zu dünn.";
 		else if (a === "entspannen" && z.konflikt < 30) grund = "Es gibt keinen Streit, der entschärft werden müsste.";
@@ -5063,7 +5576,7 @@ function weltMonat(w) {
 	}
 }
 //#endregion
-//#region game/src/sim/folgen.ts
+//#region src/sim/folgen.ts
 /** Größen des Netzes, bei denen ein höherer Wert schlechter ist. */
 const SCHLECHT_WENN_HOCH$1 = /* @__PURE__ */ new Set([
 	"haftueberfuellung",
@@ -5323,58 +5836,13 @@ function kettenZeile(g) {
 	return `${g.text}${pfeil}${g.nach ? ` (nach etwa ${g.nach} Monaten)` : ""}`;
 }
 //#endregion
-//#region game/src/sim/dates.ts
-const DAY_MS = 864e5;
-function addDays(isoDate, days) {
-	const t = Date.parse(isoDate + "T00:00:00Z") + days * DAY_MS;
-	return new Date(t).toISOString().slice(0, 10);
-}
-function dayOfMonth(isoDate) {
-	return Number(isoDate.slice(8, 10));
-}
-function monthOf(isoDate) {
-	return isoDate.slice(0, 7);
-}
-function monthNumber(isoDate) {
-	return Number(isoDate.slice(5, 7));
-}
-/** Vormonat im Format JJJJ-MM. */
-function previousMonth(month, back = 1) {
-	let y = Number(month.slice(0, 4));
-	let m = Number(month.slice(5, 7)) - back;
-	while (m < 1) {
-		m += 12;
-		y -= 1;
-	}
-	return `${y}-${String(m).padStart(2, "0")}`;
-}
-const MONTHS_DE = [
-	"Januar",
-	"Februar",
-	"März",
-	"April",
-	"Mai",
-	"Juni",
-	"Juli",
-	"August",
-	"September",
-	"Oktober",
-	"November",
-	"Dezember"
-];
-function formatDateDe(isoDate) {
-	return `${dayOfMonth(isoDate)}. ${MONTHS_DE[monthNumber(isoDate) - 1]} ${isoDate.slice(0, 4)}`;
-}
-function formatMonthDe(month) {
-	return `${MONTHS_DE[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`;
-}
-//#endregion
-//#region game/src/data/haushaltsplan.ts
+//#region src/data/haushaltsplan.ts
 const PLAN_2026 = {
 	ausgabenGesamt: 18929,
 	einnahmenGesamt: 16216,
 	steuerGesamt: 13800,
 	defizit: 2713,
+	/** Haushaltsgesetz 2026 (Herbst 2025). Das neuere Mittelfristprogramm 2027–2029 (06.09.2026) revidiert das Ziel auf 2,6 Bio. TL ≈ 3,1 % des BIP — der Szenario-Startwert (szenario_tuerkei_2026-09-25.json) folgt dem neueren Stand. */
 	defizitProzentBip: 3.5,
 	zinsenProzentBip: 3.5,
 	/** Rund eine Milliarde Lira entspricht so viel BIP: 1 % des BIP ≈ 783 Mrd. Lira, abgeleitet aus Zinsausgaben und deren BIP-Anteil */
@@ -5398,7 +5866,7 @@ const PLAN_2026 = {
 /** Der Durchschnittszins auf die Schuld beim Start: Zinsausgaben (3,5 % des BIP) geteilt durch die Schuldenquote (23,8 % des BIP). */
 const ZINSSATZ_START = PLAN_2026.zinsenProzentBip / 23.8 * 100;
 //#endregion
-//#region game/src/sim/scenario.ts
+//#region src/sim/scenario.ts
 const turkey2026 = {
 	id: "tuerkei-2026-09-25",
 	dataDate: "2026-09-25",
@@ -5418,12 +5886,12 @@ const turkey2026 = {
 		"expectedInflation": {
 			"value": 28,
 			"provenance": "geschaetzt",
-			"note": "Platzhalter nahe der Jahresendprognose der Zentralbank; Erwartungsumfrage noch nicht erhoben"
+			"note": "Platzhalter zwischen TCMB-Jahresendprognose (28 %) und Erwartungsumfrage (29,6 % für Jahresende 2026, 09/2026)"
 		},
 		"inflationTarget": {
 			"value": 24,
 			"provenance": "belegt",
-			"note": "Zwischenziel 2026"
+			"note": "Zwischenziel 2026 der TCMB, Inflationsbericht 13.08.2026 (Zwischenziel-Pfad 24/15/9 für 2026–2028); der OVP-Regierungspfad steht in ovpInflationPath"
 		},
 		"credibility": {
 			"value": .45,
@@ -5473,13 +5941,67 @@ const turkey2026 = {
 		"deficit": {
 			"value": 3.1,
 			"provenance": "belegt",
-			"note": "Ziel 2026"
+			"note": "Ziel 2026 des Mittelfristprogramms 2027–2029 (06.09.2026): 2,6 Bio. TL ≈ 3,1 % des BIP; das Haushaltsgesetz 2026 (Herbst 2025) nannte noch 3,5 % — siehe data/haushaltsplan.ts"
 		},
 		"fiscalImpulse": {
 			"value": 0,
 			"provenance": "abgeleitet",
 			"note": "Kein zusätzlicher Impuls zu Spielbeginn"
+		},
+		"coreInflation": {
+			"value": 30.07,
+			"provenance": "belegt",
+			"note": "Kerninflation August 2026, TÜİK (03.09.2026); reine Datenangabe, keine Mechanik"
+		},
+		"enagInflation": {
+			"value": 49.03,
+			"provenance": "belegt",
+			"note": "ENAG-Gegenrechnung August 2026 (Vormonat 50,49; Jahresende 2025: 56,1); reine Datenangabe, keine Mechanik"
+		},
+		"grossReservesUsdBn": {
+			"value": 174.5,
+			"provenance": "belegt",
+			"note": "TCMB-Bruttoreserven inkl. Gold, Woche bis 18.09.2026; Rekord 218,2 (30.01.2026)"
+		},
+		"netReservesExSwapsUsdBn": {
+			"value": 29.1,
+			"provenance": "belegt",
+			"note": "Netto-Reserven ohne Swaps, 12.06.2026 — jüngster belegter Wert"
+		},
+		"oilBrentUsd": {
+			"value": 104.3,
+			"provenance": "belegt",
+			"note": "Brent 26.09.2026, Hormuz-Kriegsstand (28.09.: 105,48); der Außenwelt-Index in aussenwelt.ts bleibt normiert (Start 100)"
+		},
+		"energyImportsUsdBn2026": {
+			"value": 71,
+			"provenance": "belegt",
+			"note": "OVP-Schätzung der Energieimporte 2026 (06.09.2026)"
+		},
+		"currentAccountPctGdp": {
+			"value": -2.3,
+			"provenance": "belegt",
+			"note": "OVP-Erwartung 2026 für das Leistungsbilanzdefizit (06.09.2026)"
+		},
+		"minimumWageNetTry": {
+			"value": 28075.5,
+			"provenance": "belegt",
+			"note": "Netto-Mindestlohn seit 01.01.2026 (Amtsblatt); kein Ara zam Juli 2026"
+		},
+		"bipTryTn": {
+			"value": 84,
+			"provenance": "abgeleitet",
+			"note": "Nominales BIP ≈ 84 Bio. TL, abgeleitet aus OVP-Defizit 2,6 Bio. TL = 3,1 % (06.09.2026)"
 		}
+	},
+	ovpInflationPath: {
+		"values": {
+			"2026": 28.4,
+			"2027": 21,
+			"2028": 13.5
+		},
+		"provenance": "belegt",
+		"note": "OVP 2027–2029 (06.09.2026): Inflationspfad der Regierung — Gegenüberstellung zum TCMB-Zwischenziel (economy.inflationTarget); reine Datenangabe, keine Mechanik"
 	},
 	governor: {
 		"name": "Gouverneur der Zentralbank",
@@ -5599,7 +6121,7 @@ function zeichneAuf(w) {
 	}
 }
 //#endregion
-//#region game/src/data/erbe.ts
+//#region src/data/erbe.ts
 const W = (jahr) => ({
 	status: "welterbe",
 	jahr
@@ -6312,8 +6834,8 @@ const ERBE = [
 const ERBE_NACH_ID = Object.fromEntries(ERBE.map((e) => [e.id, e]));
 ERBE.filter((e) => e.kirche7);
 //#endregion
-//#region game/src/data/reich/bau.ts
-const DECAY = new Map(NODES.map((n) => [n.id, n.decay]));
+//#region src/data/reich/bau.ts
+const DECAY = new Map(NODES.map((n) => [n.id, decayVon(n)]));
 /**
 * Dauerhafte Verschiebung einer Größe um `verschiebung` Punkte: Das Netz zieht jeden Monat einen Teil der Abweichung zurück
 * (Trägheit), also braucht ein Dauerwirkung `verschiebung × Trägheit` je Monat, damit sich das Gleichgewicht um genau so viel verschiebt.
@@ -6360,7 +6882,7 @@ const ERDBEBENGEBIET = [
 	79
 ];
 //#endregion
-//#region game/src/sim/haushalt.ts
+//#region src/sim/haushalt.ts
 const s = (id, verschiebung) => {
 	const e = stuetze(id, verschiebung);
 	return {
@@ -6700,7 +7222,7 @@ function haushaltMonat(w) {
 	e.zinsMehrlast = e.debtRatio / 100 * (z.zinssatz - ZINSSATZ_START);
 }
 //#endregion
-//#region game/src/data/reich/kultur.ts
+//#region src/data/reich/kultur.ts
 /** Zustand der Stätten am Spielbeginn (0 bis 100): Spielparameter, keine Messwerte. */
 const STAETTEN_START = {
 	ephesos: 74,
@@ -7544,7 +8066,7 @@ const KULTUR_VORTEILE = [{
 	kehrseite: "Konservative Wähler sehen ihre Mehrheitskultur relativiert."
 }];
 //#endregion
-//#region game/src/data/reich/infrastruktur.ts
+//#region src/data/reich/infrastruktur.ts
 const ohne = { abschluss: [] };
 const BESTAND = [
 	{
@@ -8500,7 +9022,7 @@ const INFRA_VORTEILE = [{
 	kehrseite: "Große Bauten wecken Erwartungen; Verzug und Garantien werden im Ausland genau beobachtet."
 }];
 //#endregion
-//#region game/src/data/reich/recht.ts
+//#region src/data/reich/recht.ts
 const inst = (id, name, text, kehrseite, zustand, unterhalt) => ({
 	id,
 	bereich: "recht",
@@ -8735,7 +9257,7 @@ const RECHT_VORTEILE = [{
 	kehrseite: "Ein Vorteil mit Preis: Er kostet Legitimität und Ansehen und verschwindet, sobald das Ausnahmerecht endet."
 }];
 //#endregion
-//#region game/src/data/reich/militaer.ts
+//#region src/data/reich/militaer.ts
 const MILITAER_VORHABEN = [
 	{
 		id: "mil_drohnen",
@@ -9298,7 +9820,7 @@ const MILITAER_VORTEILE = [{
 	kehrseite: "Abnehmer bestimmen mit: Exporte an Konfliktparteien belasten Bündnisse und das Ansehen."
 }];
 //#endregion
-//#region game/src/data/reich/haushalt.ts
+//#region src/data/reich/haushalt.ts
 const HAUSHALT_VORHABEN = [
 	{
 		id: "sr_energiedeckel",
@@ -9459,7 +9981,7 @@ const HAUSHALT_VORTEILE = [{
 	kehrseite: "Ein Ruf, den man sich Jahr für Jahr erarbeitet und mit einem Skandal verliert."
 }];
 //#endregion
-//#region game/src/data/reich/index.ts
+//#region src/data/reich/index.ts
 const VORHABEN = [
 	...KULTUR_VORHABEN,
 	...INFRA_VORHABEN,
@@ -9475,7 +9997,7 @@ const VORTEILE = [
 	...HAUSHALT_VORTEILE
 ];
 //#endregion
-//#region game/src/data/abkommen.ts
+//#region src/data/abkommen.ts
 const SUEDOST = [
 	63,
 	21,
@@ -10190,8 +10712,8 @@ const KLAUSELN = [
 	{
 		id: "w_akkuyu",
 		seite: "will",
-		label: "Akkuyu vollenden: Zahlungsweg und Fertigstellung",
-		text: "Das erste Kernkraftwerk geht ans Netz; der Zahlungsweg wird gesichert, gestundete Gelder werden freigegeben.",
+		label: "Akkuyu: Blöcke 2 bis 4, Brennstoff und Zahlungsweg",
+		text: "Nach Block 1 geht es um die übrigen Blöcke: der Zahlungsweg wird gesichert, der Brennstoff auf Jahre, und Moskau will die Option auf ein zweites Kraftwerk.",
 		dauer: [stuetze("stromversorgung", 1.5), stuetze("energieimporte", -1)],
 		land: {},
 		kehrseite: "Ein Kraftwerk in russischer Hand: Wer den Brennstoff liefert, hat das letzte Wort."
@@ -10216,6 +10738,13 @@ const KLAUSELN = [
 	}
 ];
 const KLAUSEL_NACH_ID = Object.fromEntries(KLAUSELN.map((k) => [k.id, k]));
+/**
+* Klauseln, die während einer Handelssperre (LandZustand.handelssperre) nicht verhandelbar sind — der Weg dorthin führt
+* immer über „ende_sperre“. Stand 30.09.2026: Die Türkei hält die Total-Handels-/Hafen-/Luftraumsperre gegen Israel seit
+* 02.05.2024 vollständig aufrecht (verschärft 02/2026 um einen Zertifikats-Stopp); der Handel ist faktisch null
+* (RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 13 Israel und Teil V §5.1 Nr. 2).
+*/
+const SPERRE_KLAUSELN = ["zoll", "w_zoll"];
 /** Ausstrahlung auf Dritte: Wer mit dem einen paktiert, verärgert den anderen (Klausel oder Land → betroffene Länder). */
 const AUSSTRAHLUNG = {
 	"ruestung_koop@AZE": [{
@@ -10299,6 +10828,12 @@ const AUSSTRAHLUNG = {
 		dim: "vertrauen",
 		d: -3,
 		text: "Athen fürchtet eine Absprache über den Kopf Griechenlands."
+	}],
+	"ruestung_koop@EGY": [{
+		land: "GRC",
+		dim: "vertrauen",
+		d: -3,
+		text: "Athen sieht die Rüstungsachse zwischen Ankara und Kairo mit Sorge."
 	}],
 	"transit@KAZ": [{
 		land: "RUS",
@@ -10385,7 +10920,7 @@ const PROFILE = {
 				label: "Gasverträge verlängern",
 				text: "Die Gasverträge mit Russland laufen Ende 2026 aus; es geht um rund 22 Milliarden Kubikmeter im Jahr."
 			},
-			w_akkuyu: { text: "Akkuyu wird fertig; rund 2 Milliarden US-Dollar stecken wegen der Sanktionen fest, ein Zahlungsweg muss her." },
+			w_akkuyu: { text: "Block 1 von Akkuyu läuft seit Juni 2026 an; für die Blöcke 2 bis 4, die Brennstoff-Sicherung und den Zahlungsweg braucht es eine Einigung." },
 			transit: {
 				label: "Türkei als Gas-Drehkreuz",
 				text: "Russisches Gas geht über türkisches Gebiet weiter nach Südeuropa."
@@ -10415,9 +10950,9 @@ const PROFILE = {
 		}
 	},
 	IRN: {
-		hebel: 0,
+		hebel: 2,
 		rot: [],
-		hebelText: "Beide brauchen einander: Teheran den Markt, Ankara das Gas.",
+		hebelText: "Der kriegsgebeutelte Iran braucht Ankara dringlicher als umgekehrt: Markt, Zahlungswege und Vermittlung Richtung Waffenruhe.",
 		werte: {
 			gas_kauf: 8,
 			zoll: 4,
@@ -10464,16 +10999,16 @@ const PROFILE = {
 				text: "Die Kilis–Aleppo-Leitung und Stromnetze werden ausgebaut; der Wiederaufbau braucht beides."
 			},
 			w_pkk: {
-				label: "SDF in den Staat integrieren",
-				text: "Die kurdisch geführten SDF werden in die syrischen Streitkräfte eingegliedert; Ankara will keine eigenständige Kraft an der Grenze."
+				label: "SDF-Integration halten",
+				text: "Die kurdisch geführten SDF sind seit August 2026 in die syrischen Streitkräfte eingegliedert; Ankara will, dass keine eigenständige Kraft an der Grenze zurückkehrt."
 			},
 			w_stuetzpunkt: { text: "Türkische Stützpunkte im Norden Syriens bleiben; Damaskus muss zustimmen." }
 		}
 	},
 	IRQ: {
-		hebel: 0,
+		hebel: 2,
 		rot: [],
-		hebelText: "Bagdad braucht Wasser aus der Türkei; Ankara braucht Ruhe an der Grenze und die Pipeline.",
+		hebelText: "Bagdad braucht Wasser aus der Türkei und, seit Hormus geschlossen ist, den Nordkorridor für sein Öl; Ankara braucht Ruhe an der Grenze und die Pipeline.",
 		werte: {
 			wasser: 8,
 			bauauftraege: 6,
@@ -10486,7 +11021,7 @@ const PROFILE = {
 		texte: {
 			w_pipeline: {
 				label: "Kirkuk–Ceyhan-Leitung",
-				text: "Der Einjahresvertrag vom August 2026 wird verlängert; Ziel sind eine Million Barrel am Tag."
+				text: "Das Zwölfmonats-Protokoll vom 27. Juli 2026 wird verlängert; heute laufen rund 250.000 Barrel am Tag, das Ziel ist eine langfristige Einigung über deutlich mehr."
 			},
 			transit: {
 				label: "Entwicklungsstraße",
@@ -10517,9 +11052,9 @@ const PROFILE = {
 		}
 	},
 	ARM: {
-		hebel: 0,
+		hebel: -1,
 		rot: ["w_1915"],
-		hebelText: "Erevan will die Grenze und die Bahn, aber nicht um den Preis seiner Erinnerung.",
+		hebelText: "Erevan will die Grenze und die Bahn, aber nicht um den Preis seiner Erinnerung; nach der Wahl 2026 ist die Regierung stabil genug, um zu warten.",
 		werte: {
 			grenzoeffnung: 9,
 			transit: 5,
@@ -10554,8 +11089,8 @@ const PROFILE = {
 		},
 		texte: {
 			beistand: {
-				label: "Beistandspakt ausbauen",
-				text: "Am 7. August 2026 unterzeichneten Saudi-Arabien, Pakistan und die Türkei einen Beistandspakt; er wird jetzt mit Leben gefüllt."
+				label: "Beistandspakt von Mekka",
+				text: "Am 7. August 2026 unterzeichneten Saudi-Arabien, Pakistan und die Türkei einen Beistandspakt mit Kollektivverteidigungsklausel; er läuft bereits und bindet Ankara im Ernstfall zur Hilfe."
 			},
 			ruestung_koop: {
 				label: "KAAN und Luftabwehr",
@@ -10564,9 +11099,9 @@ const PROFILE = {
 		}
 	},
 	ISR: {
-		hebel: 0,
+		hebel: 1,
 		rot: [],
-		hebelText: "Handel läuft trotz Streit; die Sperre ist das Druckmittel beider Seiten.",
+		hebelText: "Die Sperre hat den Handel auf null gedrückt; Syrien und der Friedensrat für Gaza machen Ankara für Jerusalem dennoch wichtig.",
 		werte: {
 			ende_sperre: 9,
 			zoll: 4,
@@ -10575,7 +11110,7 @@ const PROFILE = {
 			w_zoll: -2
 		},
 		texte: {
-			ende_sperre: { text: "Die Handels- und Häfensperre beendet die Verbindungen; ein Ende ist der Preis für alles Weitere." },
+			ende_sperre: { text: "Die Handels-, Hafen- und Luftraumsperre gilt seit dem 2. Mai 2024 und wurde im Februar 2026 um einen Zertifikats-Stopp verschärft; aserbaidschanisches Öl läuft als Grauzone weiter über Ceyhan. Ein Ende der Sperre ist der Preis für alles Weitere." },
 			vermittlung_zusage: {
 				label: "Türkei im Friedensrat für Gaza",
 				text: "Die Türkei ist Mitglied im Friedensrat für Gaza; Jerusalem will sie dort zurückhaltend sehen."
@@ -10615,9 +11150,9 @@ const PROFILE = {
 		}
 	},
 	UKR: {
-		hebel: 0,
+		hebel: 1,
 		rot: [],
-		hebelText: "Kiew braucht Ankaras Meerengen und Drohnen, Ankara braucht Kiews Vertrauen.",
+		hebelText: "Kiew braucht Ankaras Meerengen und Drohnen und die türkische Führung der maritimen Sicherheitsgarantien.",
 		werte: {
 			ruestung_koop: 8,
 			meerengen: 7,
@@ -10663,9 +11198,9 @@ const PROFILE = {
 		}
 	},
 	EGY: {
-		hebel: 0,
+		hebel: 1,
 		rot: [],
-		hebelText: "Kairo war lange Gegenspieler; die Annäherung seit Februar 2026 trägt, aber Libyen und die Seegrenzen belasten.",
+		hebelText: "Kairo war lange Gegenspieler; die Strategische Partnerschaft seit Februar 2026 trägt, aber Libyen und die Seegrenzen belasten.",
 		werte: {
 			ruestung_koop: 7,
 			zoll: 5,
@@ -10740,7 +11275,7 @@ const VERTRAGSLAUFZEITEN = [
 	10
 ];
 //#endregion
-//#region game/src/sim/reich.ts
+//#region src/sim/reich.ts
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
 const VORTEIL_NACH_ID = new Map(VORTEILE.map((v) => [v.id, v]));
 const vorhabenDef = (id) => VORHABEN_NACH_ID.get(id);
@@ -10798,6 +11333,33 @@ function reichZustand(w) {
 	spiel.reich = z;
 	return z;
 }
+const VERGABE_REGELN = {
+	stammfirma: {
+		zeit: .8,
+		kosten: 1.15,
+		vorlauf: 0
+	},
+	sparvergabe: {
+		zeit: 1.25,
+		kosten: .9,
+		vorlauf: 0,
+		zustandFertig: 70
+	},
+	ausschreibung: {
+		zeit: 1,
+		kosten: 1,
+		vorlauf: 2
+	}
+};
+/** Die Vergabe eines laufenden Vorhabens; ältere Spielstände ohne Angabe gelten als transparente Ausschreibung. */
+const laufVergabe = (l) => l.vergabe ?? "ausschreibung";
+/** Wirksame Baupunkte und Mindestbauzeit eines laufenden Vorhabens (die Vergabe hat sie beim Beginn festgelegt). */
+const laufBau = (l, v) => l.bau ?? v.kosten.bau;
+const laufMonate = (l, v) => l.monate ?? v.kosten.monate;
+/** Läuft noch die Vergabephase? Dann ruht der Bau, ohne zu pausieren. */
+const inVergabePhase = (w, l) => l.vergabeBis !== void 0 && w.day < l.vergabeBis;
+/** Skandalnähe der Stammfirma: je Monat Bauzeit wächst die Korruption im Land ein wenig (nährt die Affären-Ereignisse). */
+const STAMMFIRMA_KORRUPTION_MONAT = .2;
 const level = (w, id) => nationalAverage(NET, w.net, id);
 /** Baupunkte je Monat, die das Land insgesamt aufbringt. */
 function bauKapazitaet(w) {
@@ -10837,7 +11399,7 @@ function pruefeVoraus(w, v) {
 			const d = vorhabenDef(v.id);
 			const da = !!z.bestand[v.id];
 			const im = z.laufend.find((l) => l.id === v.id);
-			return ok(da, im && d ? im.fortschritt / d.kosten.bau : 0, `„${d?.name ?? v.id}“ ist fertig`);
+			return ok(da, im && d ? im.fortschritt / laufBau(im, d) : 0, `„${d?.name ?? v.id}“ ist fertig`);
 		}
 		case "nicht-bestand": return ok(!z.bestand[v.id], 0, v.text);
 		case "staette-max": {
@@ -10908,15 +11470,21 @@ function vorhabenSicht(w, id) {
 		zustand: bestand.zustand
 	};
 	if (lauf) {
-		const f = v.kosten.bau > 0 ? lauf.fortschritt / v.kosten.bau : 1;
+		const bau = laufBau(lauf, v);
+		const f = bau > 0 ? lauf.fortschritt / bau : 1;
 		const rate = bauplan(w)[id] ?? 0;
-		const cap = Math.max(1, rate > 0 ? rate : Math.min(v.kosten.bau / Math.max(1, v.kosten.monate), bauKapazitaet(w)));
+		const cap = Math.max(1, rate > 0 ? rate : Math.min(bau / Math.max(1, laufMonate(lauf, v)), bauKapazitaet(w)));
+		const phase = inVergabePhase(w, lauf);
+		const vorlauf = phase ? Math.ceil((lauf.vergabeBis - w.day) / 30) : 0;
 		return {
 			...basis,
 			status: lauf.pausiert ? "pausiert" : "im_bau",
 			fortschritt: f,
 			rate,
-			restMonate: Math.ceil((v.kosten.bau - lauf.fortschritt) / cap)
+			restMonate: vorlauf + Math.ceil((bau - lauf.fortschritt) / cap),
+			vergabe: laufVergabe(lauf),
+			vergabePhase: phase,
+			vergabeMonate: vorlauf
 		};
 	}
 	if (v.sperre) {
@@ -10950,12 +11518,12 @@ function bauplan(w) {
 	const out = {};
 	for (const l of z.laufend) {
 		const v = vorhabenDef(l.id);
-		if (!v || l.pausiert) {
+		if (!v || l.pausiert || inVergabePhase(w, l)) {
 			out[l.id] = 0;
 			continue;
 		}
-		const rest = Math.max(0, v.kosten.bau - l.fortschritt);
-		const aufnahme = Math.min(v.kosten.bau / Math.max(1, v.kosten.monate), cap, rest);
+		const rest = Math.max(0, laufBau(l, v) - l.fortschritt);
+		const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)), cap, rest);
 		out[l.id] = aufnahme * verzug;
 		cap -= aufnahme;
 	}
@@ -11023,7 +11591,7 @@ function effektZeile(e, modus = "sofort") {
 	const zahl = (x) => Math.abs(x).toLocaleString("de-DE", { maximumFractionDigits: 1 });
 	if (modus === "dauer" && e.t === "knoten") {
 		const node = NET.nodes[NET.index.get(e.id) ?? -1];
-		const verschiebung = node && node.decay > 0 ? e.d / node.decay : e.d;
+		const verschiebung = node && decayVon(node) > 0 ? e.d / decayVon(node) : e.d;
 		return effektZeile({
 			...e,
 			d: Math.round(verschiebung * 10) / 10
@@ -11114,16 +11682,18 @@ function meldung(w, art, text) {
 }
 function schliesseAb(w, v) {
 	const z = reichZustand(w);
-	z.laufend = z.laufend.filter((l) => l.id !== v.id);
+	const l = z.laufend.find((x) => x.id === v.id);
+	z.laufend = z.laufend.filter((x) => x.id !== v.id);
 	if (v.klasse !== "restaurierung") z.bestand[v.id] = {
 		seit: w.date,
-		zustand: 90
+		zustand: l?.zustandFertig ?? 90
 	};
 	for (const e of v.abschluss) wendeEffekt(w, e);
 	if ((v.klasse === "wunder" || v.klasse === "grossprojekt" || v.klasse === "serie") && !z.feier.includes(v.id)) z.feier.push(v.id);
 	const text = `Fertig: ${v.name}.`;
 	meldung(w, "fertig", text);
-	addLog(w, "entscheidung", text, v.kehrseite);
+	const sparhinnweis = l?.zustandFertig !== void 0 ? ` Die Sparvergabe zeigt sich: Der Zustand beginnt bei ${l.zustandFertig}.` : "";
+	addLog(w, "entscheidung", text, `${v.kehrseite}${sparhinnweis}`);
 	w.spiel.chronik.push({
 		tag: w.day,
 		datum: w.date,
@@ -11146,17 +11716,19 @@ function reichMonat(w, _rng) {
 	let cap = bauKapazitaet(w);
 	let genutzt = 0;
 	for (const l of [...z.laufend]) {
-		if (l.pausiert) continue;
+		if (l.pausiert || inVergabePhase(w, l)) continue;
 		const v = vorhabenDef(l.id);
 		if (!v) continue;
-		const rest = Math.max(0, v.kosten.bau - l.fortschritt);
-		const monatsMax = v.kosten.bau / Math.max(1, v.kosten.monate);
+		const bau = laufBau(l, v);
+		const rest = Math.max(0, bau - l.fortschritt);
+		const monatsMax = bau / Math.max(1, laufMonate(l, v));
 		const aufnahme = Math.min(monatsMax, cap, rest) * verzug;
 		l.fortschritt += aufnahme;
 		cap -= aufnahme / verzug;
 		genutzt += aufnahme;
-		if (v.kosten.schulden && v.kosten.bau > 0) w.economy.debtRatio += v.kosten.schulden * aufnahme / v.kosten.bau;
-		if (l.fortschritt >= v.kosten.bau - 1e-6) schliesseAb(w, v);
+		if (laufVergabe(l) === "stammfirma") wirke(w, "korruption", STAMMFIRMA_KORRUPTION_MONAT);
+		if (v.kosten.schulden && bau > 0) w.economy.debtRatio += v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * aufnahme / bau;
+		if (l.fortschritt >= bau - 1e-6) schliesseAb(w, v);
 	}
 	z.bauGenutzt = genutzt;
 	const pflege = 1.25 - .6 * (level(w, "m_instandhaltung") / 100);
@@ -11209,7 +11781,7 @@ function reichMonat(w, _rng) {
 	z.vorteile = aktiv;
 }
 //#endregion
-//#region game/src/sim/abkommen.ts
+//#region src/sim/abkommen.ts
 /** Wie stark die Dauerwirkungen eines Vertrags bei kurzer, mittlerer und langer Bindung ausfallen */
 const LAUFZEIT_FAKTOR = {
 	2: .8,
@@ -11240,6 +11812,7 @@ function klauselnFuer(w, landId) {
 		const rot = p.rot.includes(id);
 		let gesperrt;
 		if (aktiv.has(id)) gesperrt = "Dazu läuft schon ein Vertrag.";
+		else if (weltZustand(w)[landId].handelssperre && SPERRE_KLAUSELN.includes(id)) gesperrt = "Die Handels-, Hafen- und Luftraumsperre blockiert das; erst muss sie per Vertrag enden („Handels- und Häfensperre aufheben“).";
 		else if (def.mindestens && dimensionZu(w, landId, def.mindestens.dim) < def.mindestens.wert) gesperrt = def.mindestens.text;
 		out.push({
 			def,
@@ -11514,6 +12087,7 @@ function schliesse(w, a) {
 		letztePruefung: w.day
 	};
 	z.vertraege.push(v);
+	if (a.gibt.includes("ende_sperre")) z.handelssperre = false;
 	landAendern(w, a.land, {
 		vertrauen: 3,
 		konflikt: -3
@@ -11726,7 +12300,7 @@ function vermittlungen(w) {
 	});
 }
 //#endregion
-//#region game/src/sim/wege.ts
+//#region src/sim/wege.ts
 /**
 * Maßnahmen, die eine Größe in die gewünschte Richtung bewegen (`gewuenscht` +1 erhöhen, −1 senken),
 * nach Stärke sortiert. Ist die Größe selbst eine Maßnahme, gibt es keine Hebel.
@@ -11746,7 +12320,7 @@ function hebel(zielId, gewuenscht, n = 4) {
 	})).filter((h) => h.staerke > 5e-4).sort((a, b) => b.staerke - a.staerke).slice(0, n);
 }
 //#endregion
-//#region game/src/sim/gruppen.ts
+//#region src/sim/gruppen.ts
 const GRUPPEN = [
 	{
 		id: "arbeitnehmer",
@@ -11795,7 +12369,7 @@ const GRUPPEN = [
 ];
 const GRUPPEN_SUMME = GRUPPEN.reduce((s, g) => s + g.gewicht, 0);
 //#endregion
-//#region game/src/sim/aussenwelt.ts
+//#region src/sim/aussenwelt.ts
 const AUSSENWELT = {
 	/** Rückkehr zum Mittel pro Monat */
 	rueckkehr: .08,
@@ -11844,7 +12418,7 @@ function aussenweltMonat(world, rng) {
 	}
 }
 //#endregion
-//#region game/src/sim/rng.ts
+//#region src/sim/rng.ts
 var Rng = class {
 	state;
 	constructor(state) {
@@ -11872,8 +12446,8 @@ function seedToState(seed) {
 	return seed | 0;
 }
 //#endregion
-//#region game/src/sim/personen.ts
-const nf$3 = (x, d = 1) => x.toLocaleString("de-DE", {
+//#region src/sim/personen.ts
+const nf$4 = (x, d = 1) => x.toLocaleString("de-DE", {
 	minimumFractionDigits: d,
 	maximumFractionDigits: d
 });
@@ -12233,8 +12807,8 @@ function sorgeText(w, f) {
 	switch (f.amt) {
 		case "finanzen":
 			if (e.riskPremium > 450) return `Der Risikoaufschlag liegt bei ${Math.round(e.riskPremium)} Punkten; jede weitere Belastung des Haushalts kostet an den Märkten doppelt.`;
-			if (e.deficit > 4.5) return `Das Defizit liegt bei ${nf$3(e.deficit)} % des BIP und die Schulden bei ${nf$3(e.debtRatio)} %; er sieht keinen Spielraum für neue Ausgaben.`;
-			return `Die Schulden liegen bei ${nf$3(e.debtRatio)} % des BIP, das Defizit bei ${nf$3(e.deficit)} %; er will, dass der Haushalt keine Überraschungen bringt.`;
+			if (e.deficit > 4.5) return `Das Defizit liegt bei ${nf$4(e.deficit)} % des BIP und die Schulden bei ${nf$4(e.debtRatio)} %; er sieht keinen Spielraum für neue Ausgaben.`;
+			return `Die Schulden liegen bei ${nf$4(e.debtRatio)} % des BIP, das Defizit bei ${nf$4(e.deficit)} %; er will, dass der Haushalt keine Überraschungen bringt.`;
 		case "inneres": {
 			const k = wertVon(w, "kriminalitaet");
 			const t = wertVon(w, "terrorgefahr");
@@ -12247,8 +12821,8 @@ function sorgeText(w, f) {
 			})).sort((a, b) => a.v - b.v)[0];
 			return rang ? `Am schwierigsten ist das Verhältnis zu ${rang.l.dat} (Vertrauen ${Math.round(rang.v)} von 100); dort verliert er gerade Boden.` : "Er sorgt sich um die Bündnisse des Landes.";
 		}
-		case "zentralbank": return `Die Inflation liegt bei ${nf$3(e.inflation)} % (Ziel ${nf$3(e.inflationTarget)} %), der Leitzins bei ${nf$3(e.policyRate)} %; sie wacht darüber, dass ihre Unabhängigkeit nicht angetastet wird.`;
-		case "stab": return `Die Zustimmung liegt bei ${nf$3(sp.umfrage.zustimmung)} %, ${sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length} Zusagen sind offen und ${sp.gesetze.length} Gesetze liegen im Parlament; sie zählt jeden Tag bis zur Wahl.`;
+		case "zentralbank": return `Die Inflation liegt bei ${nf$4(e.inflation)} % (Ziel ${nf$4(e.inflationTarget)} %), der Leitzins bei ${nf$4(e.policyRate)} %; sie wacht darüber, dass ihre Unabhängigkeit nicht angetastet wird.`;
+		case "stab": return `Die Zustimmung liegt bei ${nf$4(sp.umfrage.zustimmung)} %, ${sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length} Zusagen sind offen und ${sp.gesetze.length} Gesetze liegen im Parlament; sie zählt jeden Tag bis zur Wahl.`;
 		case "justiz": {
 			const h = wertVon(w, "haftueberfuellung");
 			const u = wertVon(w, "justiz_unabhaengigkeit");
@@ -12259,7 +12833,7 @@ function sorgeText(w, f) {
 			const v = wertVon(w, "offiziersvertrauen");
 			return `Die Truppenmoral steht bei ${Math.round(m)}, das Vertrauen der Offiziere bei ${Math.round(v)}; ihn beschäftigen Ausrüstung, Beförderungen und wer sie entscheidet.`;
 		}
-		case "wirtschaft": return `Die Investitionen stehen bei ${Math.round(wertVon(w, "investitionen"))} von 100, das Wachstum bei ${nf$3(e.growth)} %; er will, dass sich das Land für Investoren nicht nach Willkür anfühlt.`;
+		case "wirtschaft": return `Die Investitionen stehen bei ${Math.round(wertVon(w, "investitionen"))} von 100, das Wachstum bei ${nf$4(e.growth)} %; er will, dass sich das Land für Investoren nicht nach Willkür anfühlt.`;
 		case "partner": {
 			const offen = sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen && z.von === f.partei);
 			return offen.length ? `Er wartet auf ${offen.length === 1 ? "eine Zusage" : `${offen.length} Zusagen`}: ${offen[0].text.replace(/^Die [^ ]+ erwartet /, "")}` : `Er fragt, was seine Partei vom Bündnis hat.`;
@@ -12268,7 +12842,7 @@ function sorgeText(w, f) {
 	}
 }
 //#endregion
-//#region game/src/sim/figuren.ts
+//#region src/sim/figuren.ts
 const VORNAMEN_F = [
 	"Selin",
 	"Derya",
@@ -12588,7 +13162,7 @@ function zufallsName(world, rng) {
 	return name(rng, new Set((world.spiel?.figuren ?? []).map((f) => f.name)));
 }
 //#endregion
-//#region game/src/sim/berichte.ts
+//#region src/sim/berichte.ts
 const REGEL = {
 	schwelle: 8,
 	berichteNachMonaten: [6, 12]
@@ -12635,7 +13209,7 @@ function beobachte(world, id, von, auf, ort) {
 	});
 	if (spiel.beobachtungen.length > 60) spiel.beobachtungen.shift();
 }
-const nf$2 = (x) => x.toLocaleString("de-DE", {
+const nf$3 = (x) => x.toLocaleString("de-DE", {
 	minimumFractionDigits: 1,
 	maximumFractionDigits: 1
 });
@@ -12652,7 +13226,7 @@ function bericht(world, b, monate) {
 		const jetzt = nationalAverage(NET, world.net, z.id);
 		const d = jetzt - b.werte[z.id];
 		const erwartet = z.erwartung * (b.auf > b.von ? 1 : -1);
-		zeilen.push(`${n.name}: ${nf$2(b.werte[z.id])} auf ${nf$2(jetzt)} (${d >= 0 ? "+" : "−"}${nf$2(Math.abs(d))})`);
+		zeilen.push(`${n.name}: ${nf$3(b.werte[z.id])} auf ${nf$3(jetzt)} (${d >= 0 ? "+" : "−"}${nf$3(Math.abs(d))})`);
 		if (Math.abs(d) >= .8) {
 			bewegt++;
 			if (d * erwartet > 0) passt++;
@@ -12701,7 +13275,7 @@ function berichteTag(world) {
 	}
 }
 //#endregion
-//#region game/src/sim/fraktionen.ts
+//#region src/sim/fraktionen.ts
 /** Woran eine Fraktion ihre Unterstützung knüpft. */
 const FORDERUNG = {
 	AKP: {
@@ -13105,7 +13679,257 @@ function forderungVon(world, partei) {
 	};
 }
 //#endregion
-//#region game/src/sim/handeln.ts
+//#region src/sim/krisen.ts
+/** Spielparameter, keine Tatsachen: Schwellen und Faktoren der Krisen (Kalibrierung). */
+const KRISEN_REGELN = {
+	/** Lira-Vertrauen: Abwertung der Lira auf 12 Monate (%) oder Risikoaufschlag (CDS, Basispunkte) über der Schwelle */
+	lira: {
+		abwertungAn: 45,
+		abwertungAus: 35,
+		cdsAn: 600,
+		cdsAus: 450,
+		faktor: 1.5
+	},
+	/** Katastrophenlage: wird in den ersten Tagen nach dem Ereignis aktiv, endet, wenn es länger zurückliegt */
+	katastrophe: {
+		frisch: 60,
+		ende: 90,
+		faktor: 1.5
+	},
+	/** Kriegsgefahr: Konflikt-Dimension eines Nachbarn (0 bis 100) über der Schwelle; Rabatt für Außen/Militär */
+	krieg: {
+		an: 75,
+		aus: 65,
+		rabatt: .75
+	}
+};
+const nf$2 = (x) => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
+const R = KRISEN_REGELN;
+/** Katastrophen-Ereignisvorlagen, die eine Katastrophenlage auslösen. */
+const KATASTROPHEN_VORLAGEN = /* @__PURE__ */ new Set(["erdbeben", "ueberschwemmung"]);
+/** Themen, die in der Katastrophenlage unverteuert bleiben (Versorgung der Betroffenen). */
+const VERSORGUNG = /* @__PURE__ */ new Set([
+	"wohnen",
+	"gesundheit",
+	"sicherheit",
+	"infrastruktur"
+]);
+function katastropheZuletzt(w) {
+	const spiel = w.spiel;
+	let tag = -1e9;
+	for (const v of KATASTROPHEN_VORLAGEN) tag = Math.max(tag, spiel.zuletzt[v] ?? -1e9);
+	return tag;
+}
+function katastropheOffen(w) {
+	return w.spiel.ereignisse.some((e) => KATASTROPHEN_VORLAGEN.has(e.vorlage));
+}
+function schaerfsterNachbar(w) {
+	if (!w.spiel) return null;
+	const welt = weltZustand(w);
+	let out = null;
+	for (const l of LAENDER) {
+		if (l.gruppe !== "Nachbarn") continue;
+		const k = welt[l.id]?.konflikt ?? 0;
+		if (!out || k > out.konflikt) out = {
+			name: l.name,
+			konflikt: k
+		};
+	}
+	return out;
+}
+/** Läuft die Justizreform gerade (Gesetz im Parlament oder Umsetzung unterwegs)? */
+function justizreformLaeuft(w) {
+	const spiel = w.spiel;
+	if (!spiel) return false;
+	if (spiel.gesetze.some((g) => g.massnahme === "m_justizreform")) return true;
+	const ziel = w.net.targets["m_justizreform"];
+	if (ziel !== void 0 && Math.abs(ziel - nationalAverage(NET, w.net, "m_justizreform")) > 1) return true;
+	if ((w.net.ziele?.["m_justizreform"])?.some((z) => z >= 0)) return true;
+	return false;
+}
+const KRISEN = [
+	{
+		id: "lira_vertrauen",
+		name: "Lira-Vertrauen erschüttert",
+		ausloeser: (w) => w.economy.fxChange12 >= R.lira.abwertungAn || w.economy.riskPremium >= R.lira.cdsAn,
+		beruhigt: (w) => w.economy.fxChange12 < R.lira.abwertungAus && w.economy.riskPremium < R.lira.cdsAus,
+		grund: (w) => {
+			const teile = [];
+			if (w.economy.fxChange12 >= R.lira.abwertungAus) teile.push(`die Lira hat in zwölf Monaten ${nf$2(w.economy.fxChange12)} % verloren`);
+			if (w.economy.riskPremium >= R.lira.cdsAus) teile.push(`der Risikoaufschlag liegt bei ${Math.round(w.economy.riskPremium)} Punkten`);
+			return `Die Märkte trauen der Lira nicht: ${teile.join(" und ")}. Neue Ausgabenprogramme lesen sie als Inflationsrisiko.`;
+		},
+		wirkung: `Ausgaben in Wirtschaft und Haushalt kosten das ${nf$2(R.lira.faktor)}-fache an Kapital.`,
+		bedingung: `Endet, wenn die Abwertung auf zwölf Monate unter ${R.lira.abwertungAus} % und der Risikoaufschlag unter ${R.lira.cdsAus} Punkte fallen.`,
+		ausweg: "Ausweg: erst das Vertrauen zurückgewinnen (Zentralbank in Ruhe lassen, Haushalt ordnen) oder Einnahmen statt Ausgaben nutzen.",
+		effekt: (node) => (node.theme === "wirtschaft" || node.theme === "haushalt") && (node.cost ?? 0) > 0 ? {
+			art: "teuer",
+			faktor: R.lira.faktor
+		} : null
+	},
+	{
+		id: "katastrophenlage",
+		name: "Katastrophenlage",
+		ausloeser: (w) => katastropheOffen(w) || w.day - katastropheZuletzt(w) < R.katastrophe.frisch,
+		beruhigt: (w) => !katastropheOffen(w) && w.day - katastropheZuletzt(w) > R.katastrophe.ende,
+		grund: () => "Nach der Katastrophe sind Verwaltung, Haushalt und Aufmerksamkeit auf Nothilfe und Versorgung der Betroffenen ausgerichtet.",
+		wirkung: `Nur Versorgung (Wohnen, Gesundheit, Sicherheit, Infrastruktur) geht wie bisher; alles andere kostet das ${nf$2(R.katastrophe.faktor)}-fache, Prestige-Vorhaben (Kultur) warten.`,
+		bedingung: `Endet, wenn die Katastrophe mehr als ${R.katastrophe.ende} Tage zurückliegt und kein Ereignis mehr offen ist.`,
+		ausweg: "Ausweg: Was der Versorgung dient (Wohnen, Gesundheit, Sicherheit, Infrastruktur), geht sofort; der Rest wartet, bis die Lage vorbei ist.",
+		effekt: (node) => {
+			if (VERSORGUNG.has(node.theme)) return null;
+			if (node.theme === "kultur") return {
+				art: "gesperrt",
+				faktor: 1
+			};
+			return {
+				art: "teuer",
+				faktor: R.katastrophe.faktor
+			};
+		}
+	},
+	{
+		id: "kriegsgefahr",
+		name: "Kriegsgefahr",
+		ausloeser: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) > R.krieg.an,
+		beruhigt: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) < R.krieg.aus,
+		grund: (w) => {
+			const n = schaerfsterNachbar(w);
+			return n ? `Der Konflikt mit ${n.name} steht bei ${Math.round(n.konflikt)} von 100; das Land erwartet Geschlossenheit statt Schauprojekten.` : "";
+		},
+		wirkung: `Außen- und Militärpolitik kostet nur ${Math.round(R.krieg.rabatt * 100)} % des Kapitals; Prestige-Vorhaben (Kultur) sind gesperrt.`,
+		bedingung: `Endet, wenn kein Konflikt mit einem Nachbarn mehr über ${R.krieg.aus} steht.`,
+		ausweg: "Ausweg: den Konflikt entschärfen (Gespräche am Verhandlungstisch in der Welt) — oder warten, bis die Spannung nachlässt.",
+		effekt: (node) => {
+			if (node.theme === "aussen" || node.theme === "militaer") return {
+				art: "teuer",
+				faktor: R.krieg.rabatt
+			};
+			if (node.theme === "kultur") return {
+				art: "gesperrt",
+				faktor: 1
+			};
+			return null;
+		}
+	},
+	{
+		id: "justiz_umbau",
+		name: "Justiz im Umbau",
+		ausloeser: justizreformLaeuft,
+		beruhigt: (w) => !justizreformLaeuft(w),
+		grund: () => "Die Justizreform wird gerade umgesetzt; Gerichte, Ministerium und Richterrat sind mit dem Umbau ausgelastet.",
+		wirkung: "Weitere Justiz-Maßnahmen (Recht und Justiz) sind gesperrt, bis die Reform abgeschlossen ist.",
+		bedingung: "Endet, wenn die Justizreform umgesetzt oder ihr Gesetz zurückgezogen ist.",
+		ausweg: "Ausweg: die laufende Reform zu Ende bringen (oder ihr Gesetz im Parlament zurückziehen); danach ist der Weg frei.",
+		effekt: (node) => node.theme === "recht" && node.id !== "m_justizreform" ? {
+			art: "gesperrt",
+			faktor: 1
+		} : null
+	}
+];
+function defZu(id) {
+	return KRISEN.find((d) => d.id === id);
+}
+/** Die aktuell aktiven Krisen, aufbereitet für Banner und Badges. */
+function aktiveKrisen(world) {
+	const spiel = world.spiel;
+	if (!spiel) return [];
+	return (spiel.krisen ?? []).flatMap((k) => {
+		const def = defZu(k.id);
+		return def ? [{
+			id: def.id,
+			name: def.name,
+			grund: def.grund(world),
+			wirkung: def.wirkung,
+			bedingung: def.bedingung,
+			seit: k.seit
+		}] : [];
+	});
+}
+/** Wie die aktiven Krisen eine Maßnahme treffen (leer, wenn keine betroffen ist). */
+function krisenFuerMassnahme(world, massnahmeId) {
+	const i = NET.index.get(massnahmeId);
+	const node = i === void 0 ? void 0 : NET.nodes[i];
+	if (!node || node.kind !== "massnahme") return [];
+	return aktiveKrisen(world).flatMap((krise) => {
+		const def = defZu(krise.id);
+		const e = def.effekt(node);
+		if (!e) return [];
+		const t = {
+			krise,
+			art: e.art,
+			faktor: e.art === "teuer" ? e.faktor : 1
+		};
+		if (e.art === "gesperrt") t.ausweg = def.ausweg;
+		return [t];
+	});
+}
+/** Bringt die Krisenliste auf den Stand der Welt: aktiviert über der Schwelle, beendet unter der Unterschwelle (Hysterese). */
+function krisenAktualisieren(world) {
+	const spiel = world.spiel;
+	if (!spiel || spiel.ende) return;
+	const bisher = spiel.krisen ?? [];
+	const neu = [];
+	for (const def of KRISEN) {
+		const aktiv = bisher.find((k) => k.id === def.id);
+		if (aktiv) {
+			if (def.beruhigt(world)) {
+				addLog(world, "ereignis", `„${def.name}“ ist vorbei.`, def.bedingung);
+				continue;
+			}
+			neu.push(aktiv);
+		} else if (def.ausloeser(world)) {
+			neu.push({
+				id: def.id,
+				seit: world.day
+			});
+			addLog(world, "ereignis", `${def.name}: ${def.grund(world)}`, `${def.wirkung} ${def.bedingung}`);
+		}
+	}
+	spiel.krisen = neu;
+}
+/**
+* Startet oder dämpft die Umsetzung, wenn eine Maßnahme gesetzt oder geändert wird.
+* Aufgerufen aus handeln.ts (wendeAn) — dem einzigen Weg, auf dem ein Beschluss ins Netz kommt.
+*
+* - Maßnahme ohne Umsetzungsdauer: kein Eintrag, sie wirkt sofort (Faktor 1).
+* - Änderung um höchstens eine Stufe (Feinjustierung): −25 Punkte statt Reset.
+* - Größere Änderung oder erstmaliger Beschluss: Start bei 0.
+*
+* `aenderung` ist der Sprung der Stufe gegenüber dem Stand beim Beschluss,
+* `effektiveMonate` die Dauer inklusive Verwaltungsüberlast (wie beim Stufen-Schritt).
+* Das Tempo (Punkte je Monat) wird beim Beschluss festgelegt und nicht nachträglich
+* verändert — analog zu `steps` in netz.ts.
+*/
+function starteUmsetzung(model, net, id, aenderung, effektiveMonate) {
+	const i = model.index.get(id);
+	const node = i === void 0 ? void 0 : model.nodes[i];
+	if (!node || node.kind !== "massnahme" || node.months === void 0) return;
+	net.umsetzung ??= {};
+	net.umsetzungTempo ??= {};
+	const bisher = net.umsetzung[id] ?? 100;
+	net.umsetzung[id] = Math.abs(aenderung) <= 1 ? Math.max(0, bisher - 25) : 0;
+	net.umsetzungTempo[id] = 100 / Math.max(1, effektiveMonate);
+}
+/**
+* Monatsschritt der Simulation: Jede laufende Umsetzung nähert sich linear der 100
+* (gleicher Zuwachs jeden Monat). Wer 100 erreicht, ist voll umgesetzt; der Eintrag
+* wird aufgeräumt, der Faktor ist wieder 1. Läuft in world.ts (monthlyNet) vor dem
+* Netzschritt, damit schon der erste Monat mit dem neuen Stand wirkt.
+*/
+function umsetzungMonat(net) {
+	if (!net.umsetzung) return;
+	for (const id of Object.keys(net.umsetzung)) {
+		const stand = net.umsetzung[id];
+		const tempo = net.umsetzungTempo?.[id] ?? 100;
+		if (stand + tempo >= 100) {
+			delete net.umsetzung[id];
+			if (net.umsetzungTempo) delete net.umsetzungTempo[id];
+		} else net.umsetzung[id] = stand + tempo;
+	}
+}
+//#endregion
+//#region src/sim/handeln.ts
 const REGELN = {
 	/** Gleichzeitig laufende Vorhaben, bevor die Verwaltung überlastet ist */
 	kapazitaet: 8,
@@ -13122,7 +13946,13 @@ const REGELN = {
 	erlassFaktor: 2,
 	/** Allgemeiner Faktor auf alle Kapitalkosten von Änderungen (Kalibrierung der Knappheit) */
 	kapitalFaktor: 1.8,
-	kapitalMax: 150
+	kapitalMax: 150,
+	/**
+	* Vier-Preise-Regel (Spielparameter): Standard-Exit-Preis — das Zurücknehmen einer Politik
+	* kostet das 1,6-Fache des Einführens, weil Besitzstände, Apparate und Lager sich wehren.
+	* Maßnahmen können alle vier Preise einzeln setzen (data/politiknetz.ts, MassnahmePreise).
+	*/
+	streichFaktor: 1.6
 };
 /** Kapital je Stufenpunkt Änderung; heikle Themen kosten mehr. */
 const GEWICHT_THEMA = {
@@ -13231,7 +14061,7 @@ function stimmenSicht(world, gesetz) {
 	const gegner = 600 - lager - dul.sitze - sach.sitze;
 	const uebertritt = clamp(.04 + .22 * ((world.spiel?.umfrage.zustimmung ?? 50) - 35) / 40, .02, .3);
 	const erwartet = Math.min(600, lager + dul.ja + sach.ja + Math.round(gegner * uebertritt));
-	const band = 8 + Math.round(gegner * .02);
+	const band = Math.round((8 + Math.round(gegner * .02)) * unsicherheitFaktor(world));
 	return {
 		lager,
 		erwartet,
@@ -13250,8 +14080,45 @@ function pkKosten(world, id, delta, ort, weg, ueberl) {
 	const share = anteil(world, ort);
 	const ortsfaktor = ort ? .35 + .65 * Math.min(1, share * 3) : 1;
 	const rabatt = 1 - rabattFuer(world, node.theme);
-	const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * (weg === "erlass" ? REGELN.erlassFaktor : 1);
+	const preise = preisFaktoren(node);
+	const richtungsfaktor = preise.aendern * (delta >= 0 ? preise.einfuehren : preise.streichen);
+	const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * richtungsfaktor * (weg === "erlass" ? REGELN.erlassFaktor : 1);
 	return Math.max(2, Math.round(basis));
+}
+/**
+* Die vier Preise einer Maßnahme mit aufgelösten Defaults (Spielparameter, keine Tatsachen):
+* einfuehren und aendern kosten wie bisher, streichen kostet standardmäßig das 1,6-Fache des
+* Einführens (Exit-Preis), Unterhalt fällt nur an, wenn die Maßnahme ihn ausdrücklich trägt.
+*/
+function preisFaktoren(node) {
+	const p = node.preise ?? {};
+	const einfuehren = p.einfuehren ?? 1;
+	return {
+		einfuehren,
+		aendern: p.aendern ?? 1,
+		streichen: p.streichen ?? REGELN.streichFaktor * einfuehren,
+		unterhaltMonat: p.unterhalt_monat ?? 0
+	};
+}
+/** Laufender Unterhalt aller Maßnahmen mit `unterhalt_monat`, anteilig zur aktuellen Stufe. */
+function unterhaltKosten(world) {
+	const posten = [];
+	for (const node of NET.nodes) {
+		const u = node.preise?.unterhalt_monat;
+		if (node.kind !== "massnahme" || !u) continue;
+		const stufe = nationalAverage(NET, world.net, node.id);
+		if (stufe < .5) continue;
+		posten.push({
+			id: node.id,
+			name: node.name,
+			betrag: u * stufe / 100,
+			stufe
+		});
+	}
+	return {
+		summe: posten.reduce((s, p) => s + p.betrag, 0),
+		posten
+	};
 }
 function erlassMoeglich(id) {
 	const node = NET.nodes[knotenIndex(id)];
@@ -13274,13 +14141,23 @@ function pruefeVorhaben(world, id, stufe, provinzen) {
 		massnahme: id,
 		richtung: Math.sign(aenderung)
 	});
-	const pkGesetz = pkKosten(world, id, aenderung, ort, "gesetz", ueberl);
+	const krisen = world.spiel ? krisenFuerMassnahme(world, id) : [];
+	const krisenFaktor = krisen.reduce((f, k) => k.art === "teuer" ? f * k.faktor : f, 1);
+	const pkGesetz = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "gesetz", ueberl) * krisenFaktor));
 	const erlassOk = erlassMoeglich(id);
-	const pkErlass = pkKosten(world, id, aenderung, ort, "erlass", ueberl);
+	const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass", ueberl) * krisenFaktor));
 	const hinweise = [];
 	if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Dauer und Kapital steigen um ${Math.round((ueberl - 1) * 100)} %.`);
 	if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen, das kostet später Gegenleistungen.`);
 	if (ort && share < .05) hinweise.push("Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, die vor Ort deutlich.");
+	for (const k of krisen) if (k.art === "teuer") hinweise.push(`${k.krise.name}: ${k.krise.wirkung}`);
+	const preise = preisFaktoren(node);
+	const richtung = aenderung >= 0 ? "einfuehren" : "streichen";
+	if (aenderung < 0 && preise.streichen > preise.einfuehren) {
+		const f = (preise.streichen / preise.einfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+		hinweise.push(`Exit-Preis: Das Zurücknehmen kostet das ${f}-Fache des Einführens — Besitzstände, Apparate und Lager wehren sich.`);
+	}
+	if (preise.unterhaltMonat > 0) hinweise.push(`Laufender Unterhalt: etwa ${preise.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe, anteilig zur aktuellen Stufe.`);
 	const base = {
 		ok: true,
 		massnahme: id,
@@ -13309,12 +14186,24 @@ function pruefeVorhaben(world, id, stufe, provinzen) {
 			bezahlbar: false,
 			grund: "Dafür braucht der Präsident ein Gesetz; ein Erlass ist nur in Sicherheit und Außenbeziehungen zulässig."
 		},
-		hinweise
+		hinweise,
+		krisen,
+		krisenFaktor,
+		preise: {
+			...preise,
+			richtung
+		}
 	};
 	if (Math.abs(aenderung) < 1) return {
 		...base,
 		ok: false,
 		grund: "Das ist schon die aktuelle Stufe."
+	};
+	const gesperrt = krisen.find((k) => k.art === "gesperrt");
+	if (gesperrt) return {
+		...base,
+		ok: false,
+		grund: `${gesperrt.krise.name}: ${gesperrt.krise.grund} ${gesperrt.ausweg ?? ""}`.trim()
 	};
 	return base;
 }
@@ -13350,6 +14239,7 @@ function wendeAn(world, id, level, provinzen) {
 			st[p - 1] = Math.max(Math.abs(target - s.values[i * 81 + p - 1]) / months, .01);
 		}
 	}
+	starteUmsetzung(NET, s, id, target - vorher, months);
 	const richtung = Math.sign(target - vorher);
 	for (const z of world.spiel?.zusagen ?? []) if (!z.erfuellt && !z.gebrochen && z.massnahme === id && richtung === Math.sign(z.richtung ?? 0)) {
 		z.erfuellt = true;
@@ -13372,7 +14262,7 @@ function setPolicy(world, id, level, provinzen) {
 	let costChange = 0;
 	for (const p of ort ?? Array.from({ length: 81 }, (_, k) => k + 1)) costChange += world.net.weights[p - 1] * (target - world.net.values[i * 81 + p - 1]) * (node.cost ?? 0) / 100;
 	wendeAn(world, id, target, ort);
-	addLog(world, "entscheidung", `${node.name} ${provinzenText(ort)}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`, `${node.text} Umsetzung in etwa ${months} ${months === 1 ? "Monat" : "Monaten"}` + (Math.abs(costChange) >= 5e-4 ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.` : "."));
+	addLog(world, "entscheidung", `${node.name} ${provinzenText(ort)}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`, `${node.text} Umsetzung läuft über etwa ${months} ${months === 1 ? "Monat" : "Monate"}` + (Math.abs(costChange) >= 5e-4 ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.` : "."));
 }
 /** Wird nach jedem erfolgreich eingebrachten Vorhaben aufgerufen (Ereignisse schließen sich, wenn der Spieler die Ursache selbst regelt). */
 let nachEinbringen = null;
@@ -13400,6 +14290,11 @@ function bringeEin(world, id, stufe, provinzen, weg) {
 		ok: false,
 		text: "Die Amtszeit ist beendet."
 	};
+	const pause = neuanfangGrund(world);
+	if (pause) return {
+		ok: false,
+		text: pause
+	};
 	if (weg === "erlass") {
 		if (!pr.erlass.moeglich) return {
 			ok: false,
@@ -13411,6 +14306,7 @@ function bringeEin(world, id, stufe, provinzen, weg) {
 			text: `Für den Erlass fehlt Politisches Kapital (nötig ${pr.erlass.pk}, vorhanden ${Math.floor(spiel.kapital)}).`
 		};
 		spiel.kapital -= pr.erlass.pk;
+		verbrauche(world, AUFMERKSAMKEIT_KOSTEN.erlass, pr.name);
 		setPolicy(world, id, pr.stufe, pr.provinzen);
 		vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
 		const l = world.log[world.log.length - 1];
@@ -13431,7 +14327,9 @@ function bringeEin(world, id, stufe, provinzen, weg) {
 		text: `Zu „${pr.name}“ liegt schon ein Gesetzentwurf im Parlament.`
 	};
 	spiel.kapital -= pr.gesetz.pk;
-	const tag = world.day + REGELN.tageBisAbstimmung;
+	verbrauche(world, AUFMERKSAMKEIT_KOSTEN.gesetz, pr.name);
+	const verzug = stufeVon$1(verfassungVon(world).belastung) >= 1 && hashWert(`${world.seed}|${world.day}|${id}|verzug`) < VERFASSUNG.verzugChance ? VERFASSUNG.verzugTage : 0;
+	const tag = world.day + REGELN.tageBisAbstimmung + verzug;
 	spiel.gesetze.push({
 		id: `g-${world.day}-${id}`,
 		massnahme: id,
@@ -13444,8 +14342,10 @@ function bringeEin(world, id, stufe, provinzen, weg) {
 		absprachen: 0,
 		richtung: Math.sign(pr.aenderung)
 	});
-	const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${REGELN.tageBisAbstimmung} Tagen.`;
-	const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.`;
+	const tageBis = tag - world.day;
+	const monate = pr.monate;
+	const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
+	const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
 	addLog(world, "entscheidung", text, why);
 	nachEinbringen?.(world, id, text);
 	return {
@@ -13482,7 +14382,8 @@ function gesetzeAbstimmen(world, rng) {
 		if (angenommen) {
 			wendeAn(world, g.massnahme, g.stufe, g.provinzen);
 			const node = NET.nodes[knotenIndex(g.massnahme)];
-			addLog(world, "entscheidung", `Das Parlament nimmt „${g.name}“ ${provinzenText(g.provinzen)} an (${ja} zu ${nein}). Stufe ${g.stufe}.`, `${node.text} Umsetzung in etwa ${Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)))} Monaten.`);
+			const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
+			addLog(world, "entscheidung", `Das Parlament nimmt „${g.name}“ ${provinzenText(g.provinzen)} an (${ja} zu ${nein}). Stufe ${g.stufe}.`, `${node.text} Umsetzung läuft über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`);
 		} else {
 			vertrauenAendern(world, -1.2);
 			spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - .8);
@@ -13492,7 +14393,7 @@ function gesetzeAbstimmen(world, rng) {
 	return out;
 }
 //#endregion
-//#region game/src/data/skalen.ts
+//#region src/data/skalen.ts
 const S = (w, name, text) => text ? {
 	w,
 	name,
@@ -13771,7 +14672,7 @@ function skala(id, jetzt) {
 	};
 }
 //#endregion
-//#region game/src/sim/zusagen.ts
+//#region src/sim/zusagen.ts
 /** Das Gesetz, das eine Zusage verlangt: Maßnahme, Zielstufe (bei benannten Zuständen der nächste Zustand), Preis und Aussicht. */
 function zusageVorhaben(w, z) {
 	if (!z?.massnahme || !z.richtung) return null;
@@ -13897,6 +14798,13 @@ function loeseZusageEin(w, z) {
 	const f = personZu(w, z);
 	if (v) {
 		if (!v.pr.ok) {
+			if (v.pr.krisen.find((k) => k.art === "gesperrt")) {
+				z.faellig = w.day + 40;
+				return {
+					ok: false,
+					text: `Gerade nicht möglich — ${v.pr.grund}`
+				};
+			}
 			z.erfuellt = true;
 			bereitschaftAendern(w, z.von, 10);
 			zusageAbschluss(w, z, "erfuellt");
@@ -13966,7 +14874,7 @@ function termineInfo(w) {
 	};
 }
 //#endregion
-//#region game/src/sim/nachfolge.ts
+//#region src/sim/nachfolge.ts
 const zufall = (w, f, extra) => hashZahl(`${w.seed}|${f.id}|${eigenVon(w, f).seit}|${f.name}|${extra}`);
 function verlasse(w, f, grund, groll) {
 	const e = eigenVon(w, f);
@@ -14027,7 +14935,7 @@ function ehemaligeMonat(w) {
 	}
 }
 //#endregion
-//#region game/src/sim/eingriffe.ts
+//#region src/sim/eingriffe.ts
 /** Zusätzliche Staatsausgaben (+) oder Kürzungen (−) in % des BIP festlegen. */
 function setFiscalImpulse(world, percentOfGdp) {
 	const before = world.economy.fiscalImpulse;
@@ -14036,7 +14944,7 @@ function setFiscalImpulse(world, percentOfGdp) {
 	if (percentOfGdp !== before) addMarke(world, "haushalt", `Haushaltsimpuls ${fmt(before)} auf ${fmt(percentOfGdp)} % des BIP`);
 }
 //#endregion
-//#region game/src/sim/akteure.ts
+//#region src/sim/akteure.ts
 function waehle(rng, liste) {
 	return liste[Math.floor(rng.next() * liste.length)];
 }
@@ -14112,7 +15020,7 @@ const NATO_BEWERBER = [
 	}
 ];
 //#endregion
-//#region game/src/sim/ereignisse-innen.ts
+//#region src/sim/ereignisse-innen.ts
 const KOHLE = [
 	67,
 	43,
@@ -14158,7 +15066,7 @@ const INNEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Der Mindestlohn für das neue Jahr",
-		text: (w) => [`Die Mindestlohnkommission legt zum Jahresende fest, was ab Januar gilt. Die Gewerkschaften verlangen einen Ausgleich für die Teuerung (Inflation ${nf$4(w.published.inflation.value)} %), die Arbeitgeber warnen vor Kosten, die kleine Betriebe nicht tragen können.`],
+		text: (w) => [`Die Mindestlohnkommission legt zum Jahresende fest, was ab Januar gilt. Die Gewerkschaften verlangen einen Ausgleich für die Teuerung (Inflation ${nf$5(w.published.inflation.value)} %), die Arbeitgeber warnen vor Kosten, die kleine Betriebe nicht tragen können.`],
 		warum: () => "Der Mindestlohn ist der wichtigste Preis am Arbeitsmarkt: Er schützt die Ärmsten und stützt die Nachfrage, kostet aber Betriebe Spielraum und kann die Preise treiben.",
 		optionen: () => [
 			opt("kraeftig", "Kräftig anheben", beschr(3, 0, "die Beschäftigten gewinnen, kleine Betriebe und die Preise stehen unter Druck."), 3, (ww) => {
@@ -14197,7 +15105,7 @@ const INNEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Der Haushalt für das nächste Jahr",
-		text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf vor. Die Schulden liegen bei ${nf$4(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf$4(w.published.inflation.value)} %. Das Parlament berät ihn bis Jahresende.`, "Jede Richtung hat Gewinner und Verlierer: Ausgaben stützen die Konjunktur, Sparen beruhigt die Märkte."],
+		text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf vor. Die Schulden liegen bei ${nf$5(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf$5(w.published.inflation.value)} %. Das Parlament berät ihn bis Jahresende.`, "Jede Richtung hat Gewinner und Verlierer: Ausgaben stützen die Konjunktur, Sparen beruhigt die Märkte."],
 		warum: () => "Der Haushalt ist die größte einzelne Entscheidung des Jahres: Er legt fest, wie viel der Staat der Wirtschaft zuführt oder entzieht.",
 		optionen: () => [
 			opt("konsolidieren", "Konsolidieren", beschr(3, 0, "Personal, Subventionen und Einkommensteuer wirken zusammen: Märkte und Finanzminister sind zufrieden, die Nachfrage lahmt."), 3, (w) => {
@@ -14326,7 +15234,7 @@ const INNEN_VORLAGEN = [
 			daten: { bank: waehle(rng, BANKEN) }
 		}),
 		titel: (_, ev) => `Die ${ev.daten?.bank} gerät ins Wanken`,
-		text: (w, ev) => [`Die ${ev.daten?.bank}, eine Bank mittlerer Größe, kann ihre Refinanzierung nicht mehr sichern; Kunden heben Geld ab. Der Risikoaufschlag steht bei ${nf$4(w.economy.riskPremium, 0)} Basispunkten, die Märkte beobachten jede Reaktion.`],
+		text: (w, ev) => [`Die ${ev.daten?.bank}, eine Bank mittlerer Größe, kann ihre Refinanzierung nicht mehr sichern; Kunden heben Geld ab. Der Risikoaufschlag steht bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten, die Märkte beobachten jede Reaktion.`],
 		warum: () => "Banken leben von Vertrauen. Springt der Staat ein, sichert er die Ersparnisse und belohnt riskantes Wirtschaften; lässt er sie fallen, riskiert er einen Dominoeffekt.",
 		eroeffne: (w) => {
 			wirke(w, "kredite", -4);
@@ -14488,7 +15396,7 @@ const INNEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Rentner fordern Ausgleich",
-		text: (w) => [`Rentnerverbände demonstrieren vor dem Parlament: Bei ${nf$4(w.published.inflation.value)} % Inflation reicht die Mindestrente nicht mehr bis zum Monatsende.`],
+		text: (w) => [`Rentnerverbände demonstrieren vor dem Parlament: Bei ${nf$5(w.published.inflation.value)} % Inflation reicht die Mindestrente nicht mehr bis zum Monatsende.`],
 		warum: () => "Renten hinken der Teuerung hinterher, weil sie nur in Schritten angepasst werden. Rentner wählen zuverlässig, und ihre Not ist sichtbar.",
 		optionen: () => [
 			opt("erhoehen", "Die Mindestrente kräftig erhöhen", beschr(3, .3, "die Not sinkt, der Haushalt spürt es dauerhaft."), 3, (w) => {
@@ -14789,7 +15697,7 @@ const INNEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Kommunalwahlen",
-		text: (w) => [`Im ganzen Land werden Bürgermeister und Gemeinderäte gewählt. Es ist der erste Stimmungstest seit Ihrem Amtsantritt; Ihre Zustimmung liegt bei ${nf$4(w.spiel?.umfrage.zustimmung ?? 0, 0)} %.`],
+		text: (w) => [`Im ganzen Land werden Bürgermeister und Gemeinderäte gewählt. Es ist der erste Stimmungstest seit Ihrem Amtsantritt; Ihre Zustimmung liegt bei ${nf$5(w.spiel?.umfrage.zustimmung ?? 0, 0)} %.`],
 		warum: () => "Kommunalwahlen zeigen, ob die Menschen dem Präsidenten zutrauen, ihre Stadt zu verwalten, und sie sind die Generalprobe für die nächste Präsidentschaftswahl.",
 		optionen: (w) => {
 			const ergebnis = (ww) => {
@@ -14826,7 +15734,7 @@ const INNEN_VORLAGEN = [
 	}
 ];
 //#endregion
-//#region game/src/sim/ereignisse-laender.ts
+//#region src/sim/ereignisse-laender.ts
 const AB_TAG = 200;
 const ANREDE = {
 	USA: "Die US-Regierung",
@@ -15134,7 +16042,7 @@ const LAENDER_VORLAGEN = [
 	VERTRAG_VERLAENGERUNG
 ];
 //#endregion
-//#region game/src/sim/ereignisse-aussen.ts
+//#region src/sim/ereignisse-aussen.ts
 const GRENZE = [
 	31,
 	79,
@@ -15257,7 +16165,7 @@ const AUSSEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Der IWF bietet ein Programm an",
-		text: (w) => [`Bei ${nf$4(w.economy.riskPremium, 0)} Basispunkten Risikoaufschlag und ${nf$4(w.economy.usdTry)} Lira je Dollar bietet der Internationale Währungsfonds ein Kreditprogramm an. ${anrede(figur(w, "finanzen"))} wägt ab.`, "Der Preis wären Auflagen: Sparen, Reformen und Aufsicht durch Prüfer."],
+		text: (w) => [`Bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten Risikoaufschlag und ${nf$5(w.economy.usdTry)} Lira je Dollar bietet der Internationale Währungsfonds ein Kreditprogramm an. ${anrede(figur(w, "finanzen"))} wägt ab.`, "Der Preis wären Auflagen: Sparen, Reformen und Aufsicht durch Prüfer."],
 		warum: () => "Ein IWF-Programm bringt Geld und Vertrauen der Märkte und kostet politische Freiheit: Die Auflagen treffen meist die, die am wenigsten haben.",
 		optionen: () => [
 			opt("annehmen", "Das Programm annehmen", beschr(5, 0, "die Märkte beruhigen sich, die Auflagen kosten Zustimmung."), 5, (w) => {
@@ -15305,7 +16213,7 @@ const AUSSEN_VORLAGEN = [
 			]) }
 		}),
 		titel: (_, ev) => `${ev.daten?.agentur} droht mit Herabstufung`,
-		text: (w, ev) => [`${ev.daten?.agentur} stellt die Bonität des Landes auf den Prüfstand: Schulden ${nf$4(w.economy.debtRatio)} % des BIP, Inflation ${nf$4(w.published.inflation.value)} %. Eine Herabstufung würde Kredite verteuern.`],
+		text: (w, ev) => [`${ev.daten?.agentur} stellt die Bonität des Landes auf den Prüfstand: Schulden ${nf$5(w.economy.debtRatio)} % des BIP, Inflation ${nf$5(w.published.inflation.value)} %. Eine Herabstufung würde Kredite verteuern.`],
 		warum: () => "Ratings entscheiden mit, was der Staat für Schulden zahlt. Sie folgen dem Vertrauen der Investoren und beeinflussen es zugleich.",
 		optionen: () => [
 			opt("fahrplan", "Einen Reformfahrplan vorlegen", beschr(3, 0, "beruhigt die Investoren, bindet die Regierung."), 3, (w) => {
@@ -15399,7 +16307,7 @@ const AUSSEN_VORLAGEN = [
 			]) }
 		}),
 		titel: (_, ev) => `Der Gasvertrag mit ${ev.daten?.land} läuft aus`,
-		text: (w, ev) => [`Der langfristige Liefervertrag für Erdgas mit Lieferanten aus ${ev.daten?.land} steht zur Verlängerung an. Die Energiepreise stehen bei Index ${nf$4(netz$1(w, "energiepreise"), 0)}, die Abhängigkeit von Importen bei ${nf$4(netz$1(w, "energieimporte"), 0)}.`],
+		text: (w, ev) => [`Der langfristige Liefervertrag für Erdgas mit Lieferanten aus ${ev.daten?.land} steht zur Verlängerung an. Die Energiepreise stehen bei Index ${nf$5(netz$1(w, "energiepreise"), 0)}, die Abhängigkeit von Importen bei ${nf$5(netz$1(w, "energieimporte"), 0)}.`],
 		warum: () => "Gasverträge binden über Jahre. Ein günstiger Preis ist eine Abhängigkeit, und jede Alternative kostet erst einmal mehr.",
 		optionen: (_, ev) => {
 			const bez = ev.daten?.land === "Russland" ? "beziehungen_russland" : "beziehungen_nahost";
@@ -15516,7 +16424,7 @@ const AUSSEN_VORLAGEN = [
 			staerke: .7 + .5 * rng.next()
 		}),
 		titel: () => "Eine Weltwirtschaftskrise erreicht die Türkei",
-		text: (w, ev) => [`Ein Einbruch an den Weltmärkten reißt die Nachfrage nach türkischen Waren ein: Bestellungen werden storniert, Touristen bleiben aus, Auslandskapital zieht ab. Das Wachstum liegt bei ${nf$4(w.economy.growth)} %, der Risikoaufschlag steigt auf ${nf$4(w.economy.riskPremium + 60 * ev.staerke, 0)} Basispunkte.`, `${anrede(figur(w, "finanzen"))} fragt, ob der Staat stützen oder sparen soll. Wer Kapital zurückgelegt hat, kann jetzt handeln.`],
+		text: (w, ev) => [`Ein Einbruch an den Weltmärkten reißt die Nachfrage nach türkischen Waren ein: Bestellungen werden storniert, Touristen bleiben aus, Auslandskapital zieht ab. Das Wachstum liegt bei ${nf$5(w.economy.growth)} %, der Risikoaufschlag steigt auf ${nf$5(w.economy.riskPremium + 60 * ev.staerke, 0)} Basispunkte.`, `${anrede(figur(w, "finanzen"))} fragt, ob der Staat stützen oder sparen soll. Wer Kapital zurückgelegt hat, kann jetzt handeln.`],
 		warum: () => "Krisen kommen von außen und treffen die, die am wenigsten Puffer haben. Ein Staat, der in guten Jahren Kapital und Vertrauen aufbaut, hat in schlechten Handlungsspielraum.",
 		eroeffne: (w, ev) => {
 			w.economy.riskPremium += 60 * ev.staerke;
@@ -15570,7 +16478,7 @@ const AUSSEN_VORLAGEN = [
 			staerke: .7 + .5 * rng.next()
 		}),
 		titel: () => "Eine neue Seuche breitet sich aus",
-		text: (w) => [`Ein neuer Erreger verbreitet sich schneller als jeder Winterinfekt: Krankenhäuser melden Überlastung, Schulen schließen, Flüge werden gestrichen. Die Gesundheitsversorgung steht bei Index ${nf$4(netz$1(w, "gesundheitsversorgung"), 0)}.`, "Der Ärzteverband fordert Maßnahmen; die Wirtschaft warnt vor einem Stillstand."],
+		text: (w) => [`Ein neuer Erreger verbreitet sich schneller als jeder Winterinfekt: Krankenhäuser melden Überlastung, Schulen schließen, Flüge werden gestrichen. Die Gesundheitsversorgung steht bei Index ${nf$5(netz$1(w, "gesundheitsversorgung"), 0)}.`, "Der Ärzteverband fordert Maßnahmen; die Wirtschaft warnt vor einem Stillstand."],
 		warum: () => "Seuchen zeigen, wie belastbar ein Gesundheitssystem und ein Staat sind. Beschränkungen schützen Leben und kosten Wirtschaft; beides zugleich lässt sich nicht maximieren.",
 		eroeffne: (w, ev) => {
 			wirke(w, "gesundheitsversorgung", -6 * ev.staerke);
@@ -15610,7 +16518,7 @@ const AUSSEN_VORLAGEN = [
 	}
 ];
 //#endregion
-//#region game/src/sim/ereignisse-reich.ts
+//#region src/sim/ereignisse-reich.ts
 const staette = (ev) => ERBE_NACH_ID[String(ev.daten?.staette ?? "")] ?? ERBE[0];
 /** Zieht eine Stätte, deren Gewicht mit schlechtem Zustand wächst. */
 function schwaecheZiehen(w, rng, nur) {
@@ -16160,7 +17068,7 @@ const REICH_VORLAGEN = [
 	}
 ];
 //#endregion
-//#region game/src/sim/ereignisse-personen.ts
+//#region src/sim/ereignisse-personen.ts
 /** Mitglieder der Regierung, die im Amt sind und nicht nur kommissarisch führen. */
 function regierung(w) {
 	return (w.spiel?.figuren ?? []).filter((f) => f.imAmt && AEMTER[f.amt].regierungsamt && !f.eigen?.kommissarisch);
@@ -16465,6 +17373,7 @@ function dichteFaktor(world, id) {
 	for (let i = sp.chronik.length - 1; i >= 0; i--) {
 		const c = sp.chronik[i];
 		if (c.tag < grenze) break;
+		if (/^(Ausgesessen|Im Hintergrund)/.test(c.ausgang)) continue;
 		if (!/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt|Der Mindestlohn|Der Haushalt für|Kommunalwahlen|Zusage fällig)/.test(c.titel)) n++;
 	}
 	return n <= DICHTE_SCHWELLE ? 1 : Math.max(.3, 1 - .14 * (n - DICHTE_SCHWELLE));
@@ -16495,9 +17404,9 @@ const ERDBEBEN = {
 	text: (w, ev) => {
 		const s = dk(ev, "schaden");
 		const wort = s < .3 ? "Schäden an einzelnen Gebäuden" : s < .6 ? "schwere Schäden in mehreren Stadtvierteln" : "eingestürzte Häuser und viele Menschen ohne Obdach";
-		return [`Ein Erdbeben der Stärke ${nf$4(dk(ev, "mag"))} erschüttert ${namen(ev.provinzen)} (${einwohner(ev.provinzen).toLocaleString("de-DE")} Einwohner). Gemeldet werden ${wort}.`, `${anrede(figur(w, "inneres"))} bittet um Ihre Anweisungen. Die Rettungskräfte sind unterwegs; die Frage ist, wie der Staat in den nächsten Wochen und Monaten auftritt.`];
+		return [`Ein Erdbeben der Stärke ${nf$5(dk(ev, "mag"))} erschüttert ${namen(ev.provinzen)} (${einwohner(ev.provinzen).toLocaleString("de-DE")} Einwohner). Gemeldet werden ${wort}.`, `${anrede(figur(w, "inneres"))} bittet um Ihre Anweisungen. Die Rettungskräfte sind unterwegs; die Frage ist, wie der Staat in den nächsten Wochen und Monaten auftritt.`];
 	},
-	warum: (_, ev) => `Wie schwer es trifft, hängt an Bauqualität und Erdbebenvorsorge der Provinz (hier ${nf$4(dk(ev, "vorsorge") * 100, 0)} von 100). Alte Häuser und schwache Bauaufsicht machen den Unterschied.`,
+	warum: (_, ev) => `Wie schwer es trifft, hängt an Bauqualität und Erdbebenvorsorge der Provinz (hier ${nf$5(dk(ev, "vorsorge") * 100, 0)} von 100). Alte Häuser und schwache Bauaufsicht machen den Unterschied.`,
 	eroeffne: (w, ev) => {
 		const s = dk(ev, "schaden");
 		wirke(w, "wohnungsbau", -10 * s, ev.provinzen);
@@ -16509,7 +17418,7 @@ const ERDBEBEN = {
 	optionen: (_, ev) => {
 		const s = dk(ev, "schaden");
 		return [
-			opt("fonds", "Notstand und Wiederaufbaufonds", `Kostet ${nf$4(.5 * s + .1)} % des BIP und 8 Kapital; schnelle Aufträge machen Korruption wahrscheinlicher.`, 8, (w) => {
+			opt("fonds", "Notstand und Wiederaufbaufonds", `Kostet ${nf$5(.5 * s + .1)} % des BIP und 8 Kapital; schnelle Aufträge machen Korruption wahrscheinlicher.`, 8, (w) => {
 				kosten(w, .5 * s + .1);
 				wirke(w, "wohnungsbau", 8 * s, ev.provinzen);
 				wirke(w, "p_wohnungsnot", -8 * s, ev.provinzen);
@@ -16517,12 +17426,12 @@ const ERDBEBEN = {
 				vertrauenAendern(w, 3.5 * s);
 				return "Ein Wiederaufbaufonds wird aufgelegt; die Aufträge laufen schnell, aber nicht überall sauber.";
 			}),
-			opt("nothilfe", "Nur Nothilfe und Zelte", `Kostet ${nf$4(.1 * s + .03)} % des BIP und 2 Kapital; der Wiederaufbau bleibt Sache der Provinz.`, 2, (w) => {
+			opt("nothilfe", "Nur Nothilfe und Zelte", `Kostet ${nf$5(.1 * s + .03)} % des BIP und 2 Kapital; der Wiederaufbau bleibt Sache der Provinz.`, 2, (w) => {
 				kosten(w, .1 * s + .03);
 				vertrauenAendern(w, -1 * s);
 				return "Der Staat leistet Nothilfe und überlässt den Wiederaufbau den Betroffenen und der Provinz.";
 			}),
-			opt("untersuchung", "Bauaufsicht und Bauunternehmer untersuchen", `Kostet 5 Kapital und ${nf$4(.15 * s + .05)} % des BIP; ehrlich, aber nicht schnell.`, 5, (w) => {
+			opt("untersuchung", "Bauaufsicht und Bauunternehmer untersuchen", `Kostet 5 Kapital und ${nf$5(.15 * s + .05)} % des BIP; ehrlich, aber nicht schnell.`, 5, (w) => {
 				kosten(w, .15 * s + .05);
 				wirke(w, "erdbebenvorsorge", 3);
 				wirke(w, "bauqualitaet", 2);
@@ -16562,13 +17471,13 @@ const DUERRE = {
 		wirke(w, "landwirtschaft_einkommen", -6 * ev.staerke, ev.provinzen);
 	},
 	optionen: (_, ev) => [
-		opt("hilfe", "Soforthilfe für Landwirte", `Kostet ${nf$4(.12)} % des BIP und 3 Kapital.`, 3, (w) => {
+		opt("hilfe", "Soforthilfe für Landwirte", `Kostet ${nf$5(.12)} % des BIP und 3 Kapital.`, 3, (w) => {
 			kosten(w, .12);
 			wirke(w, "landwirtschaft_einkommen", 5 * ev.staerke, ev.provinzen);
 			wirke(w, "ernte", 3 * ev.staerke, ev.provinzen);
 			return "Landwirte erhalten Soforthilfe und Wassertransporte.";
 		}),
-		opt("import", "Getreide importieren", `Kostet ${nf$4(.08)} % des BIP und 2 Kapital; dämpft Preise, drückt aber die Erzeuger.`, 2, (w) => {
+		opt("import", "Getreide importieren", `Kostet ${nf$5(.08)} % des BIP und 2 Kapital; dämpft Preise, drückt aber die Erzeuger.`, 2, (w) => {
 			kosten(w, .08);
 			wirke(w, "lebensmittelpreise", -5 * ev.staerke, ev.provinzen);
 			wirke(w, "landwirtschaft_einkommen", -2 * ev.staerke, ev.provinzen);
@@ -16603,7 +17512,7 @@ const WAEHRUNG = {
 		staerke: 1
 	}),
 	titel: () => "Die Lira rutscht",
-	text: (w) => [`Die Lira verliert an den Märkten schnell an Wert (${nf$4(w.economy.usdTry)} je Dollar); der Risikoaufschlag liegt bei ${nf$4(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} und ${anrede(figur(w, "zentralbank"))} warten auf ein Signal. Die Zinsen legt die Zentralbank fest, nicht der Präsident.`],
+	text: (w) => [`Die Lira verliert an den Märkten schnell an Wert (${nf$5(w.economy.usdTry)} je Dollar); der Risikoaufschlag liegt bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} und ${anrede(figur(w, "zentralbank"))} warten auf ein Signal. Die Zinsen legt die Zentralbank fest, nicht der Präsident.`],
 	warum: () => "Die Währung reagiert auf Inflationsabstand, Zinsen, Risikoaufschlag und Vertrauen. Kurzfristige Eingriffe kaufen Zeit, lösen die Ursache aber nicht.",
 	optionen: () => [
 		opt("reserven", "Devisenreserven einsetzen", "Kostet 3 Kapital; stützt die Lira kurz, die Reserven sinken.", 3, (w) => {
@@ -16649,7 +17558,7 @@ const ENERGIE = {
 		staerke: 1
 	}),
 	titel: () => "Energiepreise steigen",
-	text: (w) => [`Der Energiepreis am Weltmarkt liegt ${nf$4((w.economy.oel ?? 100) - 100, 0)} Prozent über dem Normalstand. Die Türkei importiert den größten Teil ihrer Energie.`, "Strom-, Gas- und Benzinrechnungen steigen. Die Opposition spricht vom Winter der leeren Portemonnaies."],
+	text: (w) => [`Der Energiepreis am Weltmarkt liegt ${nf$5((w.economy.oel ?? 100) - 100, 0)} Prozent über dem Normalstand. Die Türkei importiert den größten Teil ihrer Energie.`, "Strom-, Gas- und Benzinrechnungen steigen. Die Opposition spricht vom Winter der leeren Portemonnaies."],
 	warum: () => "Energieimporte belasten Handelsbilanz, Lira und Inflation gleichzeitig; Subventionen dämpfen die Rechnung und kosten den Haushalt.",
 	eroeffne: (w) => {
 		wirke(w, "energiepreise", 6);
@@ -16691,7 +17600,7 @@ const HAUSHALT = {
 		staerke: 1
 	}),
 	titel: () => "Die Ratingagenturen drohen",
-	text: (w) => [`Mehrere Ratingagenturen kündigen eine Herabstufung an: Die Schuldenquote liegt bei ${nf$4(w.economy.debtRatio)} % des BIP, der Risikoaufschlag bei ${nf$4(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} verlangt ein Signal, dass der Haushalt gesteuert wird.`],
+	text: (w) => [`Mehrere Ratingagenturen kündigen eine Herabstufung an: Die Schuldenquote liegt bei ${nf$5(w.economy.debtRatio)} % des BIP, der Risikoaufschlag bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} verlangt ein Signal, dass der Haushalt gesteuert wird.`],
 	warum: () => "Höhere Risikoaufschläge machen Kredite teurer; wer den Haushalt nicht im Griff hat, zahlt dafür mit Zinsen und einer schwachen Währung.",
 	optionen: () => [
 		opt("sparpaket", "Sparpaket", "Kostet 6 Kapital und Vertrauen; beruhigt die Märkte, der Finanzminister ist zufrieden.", 6, (w) => {
@@ -16806,7 +17715,7 @@ const STREIK = {
 		} : null;
 	},
 	titel: () => "Streikwelle",
-	text: (w, ev) => [`In ${namen(ev.provinzen)} legen Beschäftigte die Arbeit nieder. Die Löhne halten mit den Preisen nicht Schritt (Inflation ${nf$4(w.published.inflation.value)} %).`, "Die Gewerkschaften fordern einen Inflationsausgleich; die Unternehmen warnen vor Kosten und Entlassungen."],
+	text: (w, ev) => [`In ${namen(ev.provinzen)} legen Beschäftigte die Arbeit nieder. Die Löhne halten mit den Preisen nicht Schritt (Inflation ${nf$5(w.published.inflation.value)} %).`, "Die Gewerkschaften fordern einen Inflationsausgleich; die Unternehmen warnen vor Kosten und Entlassungen."],
 	warum: () => "Wenn Preise schneller steigen als Löhne, wächst die Streikbereitschaft. Lohnzugeständnisse dämpfen sie, treiben aber die Kosten der Betriebe und damit die Inflation.",
 	eroeffne: (w, ev) => {
 		wirke(w, "produktivitaet", -3 * ev.staerke, ev.provinzen);
@@ -17261,7 +18170,7 @@ const START_HAUSHALT = {
 		staerke: 1
 	}),
 	titel: () => "Der erste Haushaltsentwurf",
-	text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Entwurf vor: Die Inflation liegt bei ${nf$4(w.published.inflation.value)} %, die Schulden bei ${nf$4(w.economy.debtRatio)} % des BIP. Die Märkte beobachten, ob der neue Präsident Disziplin hält.`, "Der Entwurf lässt Spielraum in beide Richtungen."],
+	text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Entwurf vor: Die Inflation liegt bei ${nf$5(w.published.inflation.value)} %, die Schulden bei ${nf$5(w.economy.debtRatio)} % des BIP. Die Märkte beobachten, ob der neue Präsident Disziplin hält.`, "Der Entwurf lässt Spielraum in beide Richtungen."],
 	warum: () => "Mehr Ausgaben stützen kurz die Nachfrage und treiben Inflation und Schulden; Sparen beruhigt die Märkte und kostet Zustimmung.",
 	optionen: () => [
 		opt("sparen", "Sparkurs", "Kostet 3 Kapital; beruhigt die Märkte, der Finanzminister ist zufrieden.", 3, (w) => {
@@ -17480,6 +18389,124 @@ const EREIGNIS_MASSNAHMEN = {
 	infra_bauunfall: ["m_bauaufsicht", "m_instandhaltung"]
 };
 for (const v of VORLAGEN) if (EREIGNIS_MASSNAHMEN[v.id]) v.massnahmen = EREIGNIS_MASSNAHMEN[v.id];
+/** Slots und Eskalations-Schub je Schwierigkeit: entspannt 3, normal 2, hart 2 — aber hart mit höherer Eskalationschance. */
+const EREIGNIS_WETTBEWERB = {
+	/** Präsentations-Slots je Monat (feste Termine des Staatsjahres zählen nicht dagegen) */
+	slots: {
+		entspannt: 3,
+		normal: 2,
+		hart: 2
+	},
+	/** Wie stark gärende Vorgänge zurückkommen (Chance und Stärke je Eskalationsstufe) */
+	eskalationsSchub: {
+		entspannt: .8,
+		normal: 1,
+		hart: 1.5
+	},
+	/** Höchste Eskalationsstufe eines gärenden Vorgangs */
+	maxStufe: 3,
+	/** Multiplikativer Schub auf die Monatschance je Eskalationsstufe */
+	chanceSchub: 1.2,
+	/** Stärke-Zuschlag je Eskalationsstufe, wenn der Vorgang schließlich auf den Tisch kommt */
+	staerkeSchub: .15
+};
+/**
+* Akute Einzelfälle (das Beben, der Anschlag, der Markteinbruch sind geschehen, ob man hinsieht oder nicht)
+* und verfallende Angebote oder Fristen: Sie werden „ausgesessen“ — die Standardfolge tritt im Hintergrund ein.
+* Alle übrigen Vorlagen sind schwelende Konflikte und eskalieren still.
+*/
+const AUSGESSESSEN = /* @__PURE__ */ new Set([
+	"erdbeben",
+	"anschlag",
+	"waldbrand",
+	"ueberschwemmung",
+	"bergwerksunglueck",
+	"grippewelle",
+	"cyberangriff",
+	"erbe_erdbebenschaden",
+	"erbe_raubgrabung",
+	"infra_bauunfall",
+	"waehrungsrutsch",
+	"energiepreisschock",
+	"haushaltsdruck",
+	"ratingagentur",
+	"bankenstress",
+	"weltwirtschaftskrise",
+	"pandemie",
+	"grenzzwischenfall",
+	"eu_angebot",
+	"iwf_angebot",
+	"nato_ratifizierung",
+	"gasfund",
+	"land_angebot",
+	"tourismusrekord",
+	"erbe_fund",
+	"kanal_istanbul",
+	"vertrag_verlaengerung",
+	"gasvertrag",
+	"mil_militaerrat",
+	"recht_ernennung"
+]);
+/** Schwere der Standardfolge für die Dringlichkeit (1 = normal): Je schlimmer das Ausgesessen-Werden, desto weiter vorn der Vorgang. */
+const SCHWERE = {
+	erdbeben: 3,
+	anschlag: 3,
+	pandemie: 3,
+	weltwirtschaftskrise: 3,
+	bankenstress: 2.5,
+	waehrungsrutsch: 2.5,
+	ueberschwemmung: 2.5,
+	bergwerksunglueck: 2.5,
+	energiepreisschock: 2.2,
+	haushaltsdruck: 2.2,
+	ratingagentur: 2,
+	cyberangriff: 2,
+	grenzzwischenfall: 2,
+	streikwelle: 2,
+	korruptionsaffaere: 2,
+	duerre: 2,
+	fluechtlingswelle: 2,
+	waldbrand: 2,
+	land_fordert: 1.8,
+	recht_haftrevolte: 1.8,
+	grippewelle: 1.6,
+	stromausfaelle: 1.6,
+	aerztestreik: 1.5,
+	mietproteste: 1.5,
+	fabrikschliessungen: 1.5,
+	bauernproteste: 1.5,
+	person_ruecktritt: 1.5,
+	infra_bauunfall: 1.5,
+	preisdeckel_knappheit: 1.5,
+	buergermeister_verfahren: 1.4,
+	studentenproteste: 1.4,
+	pressekonflikt: 1.4,
+	rentnerprotest: 1.4,
+	erbe_erdbebenschaden: 1.4,
+	vertrag_verlaengerung: 1.4,
+	gasvertrag: 1.4,
+	land_provokation: 1.4,
+	person_intrige: 1.4,
+	mietdeckel_folgen: 1.4,
+	mil_lieferverzug: 1.3,
+	person_skandal: 1.3,
+	person_leck: 1.2
+};
+for (const v of VORLAGEN) {
+	if (AUSGESSESSEN.has(v.id)) v.wettbewerb = "aussitzen";
+	if (SCHWERE[v.id] !== void 0) v.schwere = SCHWERE[v.id];
+}
+/**
+* Dringlichkeit im Monatswettbewerb: Schwere der Standardfolge, Stärke des Falls, Fristnähe,
+* Neuheit des Themas (was lange nicht drankam, wird wieder interessant) und Eskalationsstufe.
+*/
+function dringlichkeit(world, v, staerke) {
+	const spiel = world.spiel;
+	const fristNaehe = 12 / Math.max(4, v.frist);
+	const neuheit = 1 + Math.min(1.5, (world.day - (spiel.zuletzt[v.id] ?? 0)) / 365);
+	const stufe = spiel.eskalation?.[v.id] ?? 0;
+	return (v.schwere ?? 1) * (.6 + .4 * staerke) * fristNaehe * neuheit * (1 + .7 * stufe);
+}
 const VORLAGE_NACH_ID = new Map(VORLAGEN.map((v) => [v.id, v]));
 /**
 * Die Antworten eines Ereignisses. Gibt es keine kostenlose, kommt immer „Abwarten“ dazu: Wer kein Kapital hat, soll nicht vor lauter grauen
@@ -17502,39 +18529,122 @@ function vorlage(id) {
 	if (!v) throw new Error(`Unbekannte Ereignisvorlage: ${id}`);
 	return v;
 }
+/** Vorlagen, deren Öffnen den Präsidenten sofort belastet (Eskalation im eigenen Land oder an den Grenzen). */
+const ESKALATION_VORLAGEN = /* @__PURE__ */ new Set([
+	"anschlag",
+	"cyberangriff",
+	"waehrungsrutsch",
+	"weltwirtschaftskrise",
+	"bankenstress",
+	"pandemie",
+	"land_provokation",
+	"grenzzwischenfall"
+]);
+/** Baut das offene Ereignis aus Vorlage und Erzeugung — gleichermaßen für präsentierte und für ausgesessene Vorgänge. */
+function baueEreignis(world, v, gen) {
+	const spiel = world.spiel;
+	const ev = {
+		id: `${v.id}-${world.day}-${spiel.ereignisse.length}`,
+		vorlage: v.id,
+		tag: world.day,
+		frist: world.day + v.frist,
+		provinzen: gen.provinzen ?? [],
+		staerke: (gen.staerke ?? 1) * schutzFuer(world, v.id) * (v.id.startsWith("start_") || v.id === "zusage" ? 1 : schwierig(world).haerte)
+	};
+	if (gen.daten) ev.daten = gen.daten;
+	return ev;
+}
 function oeffne(world, vorlageId, rng, params) {
 	const spiel = world.spiel;
 	if (!spiel) return null;
 	const v = vorlage(vorlageId);
 	const gen = params ?? v.erzeuge(world, rng);
 	if (!gen) return null;
-	const ev = {
-		id: `${vorlageId}-${world.day}-${spiel.ereignisse.length}`,
-		vorlage: vorlageId,
-		tag: world.day,
-		frist: world.day + v.frist,
-		provinzen: gen.provinzen ?? [],
-		staerke: (gen.staerke ?? 1) * schutzFuer(world, vorlageId) * (vorlageId.startsWith("start_") || vorlageId === "zusage" ? 1 : schwierig(world).haerte)
-	};
-	if (gen.daten) ev.daten = gen.daten;
+	const ev = baueEreignis(world, v, gen);
 	spiel.ereignisse.push(ev);
 	spiel.zuletzt[vorlageId] = world.day;
 	v.eroeffne?.(world, ev, rng);
 	addLog(world, "ereignis", v.titel(world, ev), v.text(world, ev)[0]);
+	if (ESKALATION_VORLAGEN.has(vorlageId)) belastungEreignis(world, VERFASSUNG.eskalation, `Eskalation: ${v.titel(world, ev)}`);
 	return ev;
 }
-/** Einmal im Monat: Vorlagen würfeln. Der Zufall wird für jede Vorlage gezogen, damit der Verlauf stabil bleibt. */
+/**
+* Einmal im Monat: Vorlagen würfeln. Der Zufall wird für jede Vorlage gezogen, damit der Verlauf stabil bleibt.
+* ZEI-1: Ausgelöste Kandidaten konkurrieren um die Präsentations-Slots des Monats (EREIGNIS_WETTBEWERB.slots),
+* sortiert nach Dringlichkeit. Alle bisherigen Bedingungen (Chance, Abkühlung, Dichte-Dämpfung, MAX_OFFEN,
+* feste Termine) gelten weiter — der Wettbewerb ersetzt keine davon, er verteilt nur die Slots.
+*/
 function ereignisMonat(world, rng) {
 	const spiel = world.spiel;
 	if (!spiel || spiel.ende) return;
+	const grad = spiel.schwierigkeit ?? "normal";
+	const schub = EREIGNIS_WETTBEWERB.eskalationsSchub[grad];
+	const eskalation = spiel.eskalation ?? (spiel.eskalation = {});
 	const offenNormal = () => spiel.ereignisse.filter((e) => !e.vorlage.startsWith("start_")).length;
+	const kandidaten = [];
 	for (const v of VORLAGEN) {
 		const u = rng.next();
-		if (v.chance(world) <= 0) continue;
+		const basis = v.chance(world);
+		if (basis <= 0) continue;
 		if (offenNormal() >= 3) continue;
 		if (spiel.ereignisse.some((e) => e.vorlage === v.id)) continue;
 		if (world.day - (spiel.zuletzt[v.id] ?? -1e9) < v.abkuehlung) continue;
-		if (u < v.chance(world) * 1 * schwierig(world).ereignisse * alterFaktor(world, v.id) * dichteFaktor(world, v.id)) oeffne(world, v.id, rng);
+		const stufe = eskalation[v.id] ?? 0;
+		const eskFaktor = stufe > 0 ? 1 + EREIGNIS_WETTBEWERB.chanceSchub * stufe * schub : 1;
+		if (u >= basis * 1 * schwierig(world).ereignisse * alterFaktor(world, v.id) * dichteFaktor(world, v.id) * eskFaktor) continue;
+		const gen = v.erzeuge(world, rng);
+		if (!gen) continue;
+		kandidaten.push({
+			v,
+			gen
+		});
+	}
+	if (!kandidaten.length) return;
+	const feste = kandidaten.filter((k) => TERMINE.has(k.v.id));
+	const rest = kandidaten.filter((k) => !TERMINE.has(k.v.id));
+	rest.sort((a, b) => dringlichkeit(world, b.v, b.gen.staerke ?? 1) - dringlichkeit(world, a.v, a.gen.staerke ?? 1) || VORLAGEN.indexOf(a.v) - VORLAGEN.indexOf(b.v));
+	const slots = EREIGNIS_WETTBEWERB.slots[grad];
+	const gewinner = [...feste, ...rest.slice(0, slots)];
+	const verlierer = rest.slice(slots);
+	for (const k of gewinner) {
+		if (offenNormal() >= 3) {
+			verlierer.push(k);
+			continue;
+		}
+		const stufe = eskalation[k.v.id] ?? 0;
+		delete eskalation[k.v.id];
+		const staerke = stufe > 0 ? (k.gen.staerke ?? 1) * (1 + EREIGNIS_WETTBEWERB.staerkeSchub * stufe * schub) : k.gen.staerke;
+		oeffne(world, k.v.id, rng, {
+			provinzen: k.gen.provinzen ?? [],
+			staerke: staerke ?? 1,
+			...k.gen.daten ? { daten: k.gen.daten } : {}
+		});
+	}
+	for (const k of verlierer) {
+		const ev = baueEreignis(world, k.v, k.gen);
+		const titel = k.v.titel(world, ev);
+		if (k.v.wettbewerb === "aussitzen") {
+			const ausgang = k.v.standard(world, ev, rng);
+			spiel.zuletzt[k.v.id] = world.day;
+			delete eskalation[k.v.id];
+			spiel.chronik.push({
+				tag: world.day,
+				datum: world.date,
+				titel,
+				ausgang: `Ausgesessen — der Vorgang kam nicht auf den Tisch: ${ausgang}`
+			});
+			addLog(world, "ereignis", `Ausgesessen: ${titel}`, ausgang);
+		} else {
+			const stufe = Math.min(EREIGNIS_WETTBEWERB.maxStufe, (eskalation[k.v.id] ?? 0) + 1);
+			eskalation[k.v.id] = stufe;
+			spiel.chronik.push({
+				tag: world.day,
+				datum: world.date,
+				titel,
+				ausgang: `Im Hintergrund gärt es weiter; der Vorgang kommt dringlicher zurück (Eskalation ${stufe} von ${EREIGNIS_WETTBEWERB.maxStufe}).`
+			});
+			addLog(world, "ereignis", `Im Hintergrund: ${titel} gärt weiter.`, "Der Vorgang war für diesen Monat nicht dringlich genug; die Lage verschärft sich.");
+		}
 	}
 }
 /** Täglich: fällige Zusagen einfordern, Fristen abwarten. */
@@ -17612,11 +18722,11 @@ function wirkungsVorschau(world, ev, optionId) {
 				if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(`${NET.nodes[NET.index.get(id)].name}: Stufe ${Math.round(jetzt)} auf ${Math.round(ziel)}`);
 			}
 			const ds = kopie.economy.debtRatio - schulden0;
-			if (Math.abs(ds) >= .04) zeilen.push(`Schulden ${ds > 0 ? "+" : "−"}${nf$4(Math.abs(ds), 2)} Prozentpunkte`);
+			if (Math.abs(ds) >= .04) zeilen.push(`Schulden ${ds > 0 ? "+" : "−"}${nf$5(Math.abs(ds), 2)} Prozentpunkte`);
 			const dr = kopie.economy.riskPremium - risiko0;
-			if (Math.abs(dr) >= 4) zeilen.push(`Risikoaufschlag ${dr > 0 ? "+" : "−"}${nf$4(Math.abs(dr), 0)} Punkte`);
+			if (Math.abs(dr) >= 4) zeilen.push(`Risikoaufschlag ${dr > 0 ? "+" : "−"}${nf$5(Math.abs(dr), 0)} Punkte`);
 			const df = (kopie.economy.usdTry / fx0 - 1) * 100;
-			if (Math.abs(df) >= .4) zeilen.push(`Lira ${df > 0 ? "schwächer" : "stärker"} um ${nf$4(Math.abs(df))} %`);
+			if (Math.abs(df) >= .4) zeilen.push(`Lira ${df > 0 ? "schwächer" : "stärker"} um ${nf$5(Math.abs(df))} %`);
 			for (const f of kopie.spiel.figuren) {
 				const d = f.loyalitaet - (loyal0.get(f.id) ?? f.loyalitaet);
 				if (Math.abs(d) >= 3) zeilen.push(`${f.rolle} ${f.name}: ${d > 0 ? "mehr" : "weniger"} Rückhalt`);
@@ -17631,7 +18741,7 @@ function wirkungsVorschau(world, ev, optionId) {
 				});
 			}
 			aenderungen.sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
-			for (const a of aenderungen.slice(0, 4)) zeilen.push(`${a.name} ${a.d > 0 ? "+" : "−"}${nf$4(Math.abs(a.d))}`);
+			for (const a of aenderungen.slice(0, 4)) zeilen.push(`${a.name} ${a.d > 0 ? "+" : "−"}${nf$5(Math.abs(a.d))}`);
 		}
 	} catch {}
 	const ergebnis = zeilen.slice(0, 6);
@@ -17679,8 +18789,7 @@ function ansicht(world, ev) {
 		...zusageAnsicht(world, ev, v)
 	};
 }
-//#endregion
-//#region game/src/sim/verhandeln.ts
+AUFMERKSAMKEIT_KOSTEN.verhandlungGespraech, AUFMERKSAMKEIT_KOSTEN.zugestaendnis, AUFMERKSAMKEIT_KOSTEN.duldung, AUFMERKSAMKEIT_KOSTEN.koalition, AUFMERKSAMKEIT_KOSTEN.abwerben;
 const VERHANDLUNG = {
 	gespraechAbkuehlung: 30,
 	zugestaendnisAbkuehlung: 120,
@@ -17804,7 +18913,179 @@ function verhandlungMonat(world) {
 	}
 }
 //#endregion
-//#region game/src/sim/waehler-verlauf.ts
+//#region src/data/umfrage_institute.ts
+const UMFRAGE_INSTITUTE = [
+	{
+		id: "anker",
+		name: "Anker Stiftungsinstitut",
+		typ: "neutral_goldstandard",
+		hausBias: -.8,
+		sigma: 1.2,
+		stichprobe: 2700,
+		methode: "F2F",
+		fatTailP: .1,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: 1,
+			wennUnguenstig: 1
+		}
+	},
+	{
+		id: "kent",
+		name: "Kent Meinungsforschung",
+		typ: "oppo_codiert",
+		hausBias: -3,
+		sigma: 1.8,
+		stichprobe: 2e3,
+		methode: "F2F_CATI",
+		fatTailP: .1,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: .9,
+			wennUnguenstig: .6
+		}
+	},
+	{
+		id: "meridyen",
+		name: "Meridyen Araştırma",
+		typ: "regierungsnah",
+		hausBias: 2,
+		sigma: 1.5,
+		stichprobe: 3e3,
+		methode: "F2F",
+		fatTailP: .08,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: .95,
+			wennUnguenstig: .4
+		}
+	},
+	{
+		id: "denge",
+		name: "Denge Araştırma",
+		typ: "neutral_kommerziell",
+		hausBias: 0,
+		hausBiasInstabilitaet: 1.5,
+		sigma: 2,
+		stichprobe: 3500,
+		methode: "F2F",
+		fatTailP: .12,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: 1,
+			wennUnguenstig: 1
+		}
+	},
+	{
+		id: "yoruk",
+		name: "Yörük Saha",
+		typ: "oppo_militant",
+		hausBias: -5,
+		sigma: 2.2,
+		stichprobe: 2400,
+		methode: "CATI",
+		fatTailP: .15,
+		stichprobeTransparent: false,
+		publikation: {
+			wennGuenstig: .9,
+			wennUnguenstig: .6
+		}
+	},
+	{
+		id: "ekran",
+		name: "Ekran Onlinepanel",
+		typ: "online_grosspanel",
+		hausBias: 1.5,
+		sigma: 2.5,
+		stichprobe: 15e3,
+		methode: "online",
+		fatTailP: .15,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: .9,
+			wennUnguenstig: .7
+		}
+	}
+];
+/**
+* Der Fehler-Generator (Recherche B.4.1 und B.4.4): was zusätzlich zum Haus-Bias auf eine Prognose wirkt.
+* Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
+*/
+const FEHLER_GENERATOR = {
+	/**
+	* Angstklima: Bei hohem Repressionslevel verweigern Regierungswähler die Antwort stärker
+	* (~75 % der Verweigerer; Özkiraz-Eigenaussage via Grokipedia, C) → das Regierungslager
+	* wird unterschätzt. Kann in mutigen Phasen (2024-Muster) ins Plus kippen.
+	*/
+	angstklimaModifikator: {
+		mittelAb: 40,
+		hochAb: 75,
+		mittel: -1,
+		hoch: -2.5
+	},
+	/** Umfrage vor einem Großereignis: veraltet um 1–4 pp (Recherche B.3, Punkt 7) */
+	eventLagPp: {
+		min: 1,
+		max: 4
+	},
+	/** p=0,10 je Umfrage: zusätzlicher Offset 4–9 pp, zu 70 % gegen das Regierungslager (KONDA 2023: −5,8; AKAM/REMRES 2018: −8/−9) */
+	fatTail: {
+		p: .1,
+		offsetPp: {
+			min: 4,
+			max: 9
+		},
+		gegenRegierungP: .7
+	},
+	/** σ ohne Institutsangabe (Baseline n≈2.500) */
+	sigmaBasis: 1.8,
+	/** Präferenz ≠ Stimmabgabe: separates Turnout-Modul je Lager (2024: Beteiligung −6,6 pp, alle Prognosen daneben) */
+	turnoutModulPp: {
+		min: -3,
+		max: 3
+	},
+	/** Diaspora ist in keiner Inlands-Umfrage enthalten → strukturelle Unterschätzung des Regierungslagers bei nationalen Wahlen */
+	diasporaOffsetRegierungPp: 1.5,
+	/** Gesetzliches Publikationsverbot für Umfragen vor dem Wahltag (Wahlgesetz) */
+	publikationsverbotTage: 10
+};
+function umfrageInstitut(id) {
+	return UMFRAGE_INSTITUTE.find((i) => i.id === id);
+}
+//#endregion
+//#region src/sim/umfrage.ts
+/**
+* Eine einzelne publizierte Messung eines wahren Zustimmungswerts.
+* Verbraucht die Zufallsquelle — nur aufrufen, wenn eine Messung wirklich gezeigt wird.
+*/
+function umfrageMessung(wahrerWert, rng, optionen = {}) {
+	const institut = optionen.institutId ? umfrageInstitut(optionen.institutId) : void 0;
+	let wert = wahrerWert + (institut?.hausBias ?? 0);
+	const angst = optionen.angstklima ?? 0;
+	const mod = FEHLER_GENERATOR.angstklimaModifikator;
+	if (angst >= mod.hochAb) wert += mod.hoch;
+	else if (angst >= mod.mittelAb) wert += mod.mittel;
+	wert += rng.normal(institut?.sigma ?? FEHLER_GENERATOR.sigmaBasis);
+	const fatP = institut?.fatTailP ?? FEHLER_GENERATOR.fatTail.p;
+	if (rng.next() < fatP) {
+		const { min, max } = FEHLER_GENERATOR.fatTail.offsetPp;
+		const richtung = rng.next() < FEHLER_GENERATOR.fatTail.gegenRegierungP ? -1 : 1;
+		wert += richtung * rng.between(min, max);
+	}
+	return clamp(wert, 0, 100);
+}
+/**
+* Monatliche Fortschreibung des Umfragestands in der Spielschleife.
+* Ohne Optionen: exakt das alte Verhalten (träge Annäherung an den Sollwert, kein Rauschen,
+* kein Verbrauch der Zufallsquelle). Mit institutId + rng: Messfehler gemäß Fehler-Generator.
+*/
+function umfrageMonat(zustimmung, ziel, rng, optionen = {}) {
+	const wert = zustimmung + .35 * (ziel - zustimmung);
+	if (!rng || !optionen.institutId) return wert;
+	return umfrageMessung(wert, rng, optionen);
+}
+//#endregion
+//#region src/sim/waehler-verlauf.ts
 const VERLAUF_MAX = 72;
 /** Wert eines Knotens im Landesdurchschnitt vor n Monaten, aus dem Gedächtnis des Netzes (13 Monate). */
 function frueherWert(world, id, n) {
@@ -17863,7 +19144,7 @@ function verlaufAufzeichnen(world) {
 	}
 }
 //#endregion
-//#region game/src/sim/personen-monat.ts
+//#region src/sim/personen-monat.ts
 /** Die monatliche Wirkung des Ressorts: Bei Leistung über 0,5 bewegt es seine Größen zum Guten, darunter zum Schlechten. */
 function ressortWirkung(w, f) {
 	const d = AEMTER[f.amt];
@@ -17891,14 +19172,14 @@ function auftragMonat(w, f) {
 		e.ehrgeiz = Math.min(100, e.ehrgeiz + 3);
 		wirke(w, "legitimitaet", .3);
 		merke(w, f, `Auftrag erfüllt: ${a.text}`);
-		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag erfüllt: ${a.text} (${nf$3(a.vorher, 0)} auf ${nf$3(jetzt, 0)}).`, "Wer liefert, wird loyaler; Erfolge im Ressort zahlen auf die Legitimität ein.");
+		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag erfüllt: ${a.text} (${nf$4(a.vorher, 0)} auf ${nf$4(jetzt, 0)}).`, "Wer liefert, wird loyaler; Erfolge im Ressort zahlen auf die Legitimität ein.");
 	} else {
 		a.status = "verfehlt";
 		e.bilanz.verfehlt++;
 		loyalitaetVerschieben(f, -5);
 		grollVerschieben(w, f, 8);
 		merke(w, f, `Auftrag verfehlt: ${a.text}`);
-		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag verfehlt: ${a.text} (${nf$3(a.vorher, 0)} auf ${nf$3(jetzt, 0)}).`, "Ein verfehltes Ziel kostet Loyalität und macht Groll: Sie kann darauf hinweisen, dass Sie sie nicht unterstützt haben.");
+		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag verfehlt: ${a.text} (${nf$4(a.vorher, 0)} auf ${nf$4(jetzt, 0)}).`, "Ein verfehltes Ziel kostet Loyalität und macht Groll: Sie kann darauf hinweisen, dass Sie sie nicht unterstützt haben.");
 	}
 }
 function personenMonat(w) {
@@ -17921,7 +19202,7 @@ function personenMonat(w) {
 	}
 }
 //#endregion
-//#region game/src/sim/ziele.ts
+//#region src/sim/ziele.ts
 function akutAnzahl(w, id) {
 	const i = NET.index.get(id);
 	const node = i === void 0 ? void 0 : NET.nodes[i];
@@ -18068,7 +19349,7 @@ function zielStand(w) {
 	});
 }
 //#endregion
-//#region game/src/sim/bilanz.ts
+//#region src/sim/bilanz.ts
 function akuteProbleme(w) {
 	let n = 0;
 	for (const node of NET.nodes) {
@@ -18082,7 +19363,7 @@ function akuteProbleme(w) {
 	return n;
 }
 //#endregion
-//#region game/src/sim/spiel.ts
+//#region src/sim/spiel.ts
 /** Die Schwierigkeit verändert nur drei Stellschrauben: das Einkommen an Kapital, die Regierungsmüdigkeit und die Häufigkeit und Härte von Ereignissen. */
 const SCHWIERIGKEITEN = {
 	entspannt: {
@@ -18223,6 +19504,7 @@ function initSpiel(world, profil, rng) {
 		chronik: [],
 		hinweise: [],
 		kalibrierung: 0,
+		verfassung: verfassungStart(),
 		start
 	};
 	world.spiel = spiel;
@@ -18234,14 +19516,17 @@ function initSpiel(world, profil, rng) {
 	oeffne(world, "start_haushalt", rng);
 	oeffne(world, "start_partner", rng);
 	oeffne(world, "start_wiederaufbau", rng);
+	krisenAktualisieren(world);
 }
 function spielTick(world, rng) {
 	const spiel = world.spiel;
 	if (!spiel || spiel.ende) return;
 	gesetzeAbstimmen(world, rng);
 	ereignisTag(world, rng);
+	krisenAktualisieren(world);
 	programmTag(world);
 	berichteTag(world);
+	verfassungTag(world);
 	if (dayOfMonth(world.date) === 1) spielMonat(world, rng);
 	if (world.day >= spiel.wahltag) wahl(world, rng);
 }
@@ -18253,12 +19538,14 @@ function kapitalEinkommen(world) {
 	const f = schwierig(world).kapital;
 	const legit = nationalAverage(NET, world.net, "legitimitaet");
 	const legitimitaet = Number.isFinite(legit) ? Math.max(-1, Math.min(1, (legit - 60) / 40)) : 0;
+	const unterhalt = unterhaltKosten(world).summe;
 	return {
 		grund: SPIEL.kapitalGrund * f,
 		vertrauen: vertrauen * f,
 		mehrheit: mehrheit * f,
 		legitimitaet: legitimitaet * f,
-		summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f,
+		unterhalt,
+		summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt,
 		naechste,
 		grenze: REGELN.kapitalMax
 	};
@@ -18282,7 +19569,7 @@ function spielMonat(world, rng) {
 	aussenweltMonat(world, rng);
 	ereignisMonat(world, rng);
 	const ziel = zielZustimmung(world);
-	spiel.umfrage.zustimmung += .35 * (ziel - spiel.umfrage.zustimmung);
+	spiel.umfrage.zustimmung = umfrageMonat(spiel.umfrage.zustimmung, ziel);
 	spiel.umfrage.verlauf.push({
 		monat: world.date.slice(0, 7),
 		wert: Math.round(spiel.umfrage.zustimmung * 10) / 10
@@ -18292,6 +19579,7 @@ function spielMonat(world, rng) {
 	if (spiel.umfrage.zustimmung < SPIEL.sturzSchwelle) spiel.tiefstand += 1;
 	else spiel.tiefstand = Math.max(0, spiel.tiefstand - 1);
 	if (spiel.tiefstand === 3) {
+		belastungEreignis(world, VERFASSUNG.sturzWarnung, "Die Warnung vor dem Sturz");
 		spiel.hinweise.push({
 			id: `warnung-${world.day}`,
 			titel: "Warnzeichen",
@@ -18365,7 +19653,7 @@ function wahl(world, rng) {
 	} else beende(world, "abwahl", "Abgewählt", `Bei der Wahl am ${formatDateDe(world.date)} erhält ${name} nur ${fmt(anteil)} Prozent der Stimmen.`, anteil);
 }
 //#endregion
-//#region game/src/sim/waehler.ts
+//#region src/sim/waehler.ts
 function launenWort(x) {
 	if (x >= 70) return "begeistert";
 	if (x >= 58) return "zufrieden";
@@ -18451,7 +19739,7 @@ function waehlerLage(world) {
 	return lage.sort((a, b) => b.anteil - a.anteil);
 }
 //#endregion
-//#region game/src/sim/personen-api.ts
+//#region src/sim/personen-api.ts
 /** Ein Textblock über das ganze Umfeld für das Sprachmodell: Zahlen und Zustand, keine Empfehlung. */
 function umfeldKontext(w) {
 	const sp = w.spiel;
@@ -18473,7 +19761,7 @@ function umfeldKontext(w) {
 	return zeilen.join("\n");
 }
 //#endregion
-//#region game/src/ki/kontext.ts
+//#region src/ki/kontext.ts
 const MASSNAHMEN = NET.nodes.filter((n) => n.kind === "massnahme");
 /** Der feste Teil: ändert sich nicht während der Partie und wird deshalb vom Anbieter zwischengespeichert. */
 function systemText() {
@@ -18604,7 +19892,438 @@ function zustandsText(w) {
 	return z.join("\n");
 }
 //#endregion
-//#region game/src/sim/zentralbank.ts
+//#region src/data/provinz_archetypen.ts
+const ARCHETYPEN = [
+	{
+		id: 1,
+		name: "Metropol-Industrie-Kern",
+		provinzen: [
+			6,
+			16,
+			34,
+			35,
+			41,
+			59
+		]
+	},
+	{
+		id: 2,
+		name: "Industrie- und Hafen-Gürtel (2. Reihe)",
+		provinzen: [
+			1,
+			10,
+			17,
+			22,
+			31,
+			33,
+			39,
+			54,
+			55,
+			67,
+			77,
+			81
+		]
+	},
+	{
+		id: 3,
+		name: "Tourismus-Küste",
+		provinzen: [
+			7,
+			9,
+			48,
+			50
+		]
+	},
+	{
+		id: 4,
+		name: "Anatolische Mittelstädte / Tiger",
+		provinzen: [
+			5,
+			11,
+			14,
+			19,
+			20,
+			24,
+			25,
+			26,
+			37,
+			38,
+			40,
+			58,
+			60,
+			66,
+			71,
+			78,
+			80
+		]
+	},
+	{
+		id: 5,
+		name: "Agrar-Steppe İç Ege/Zentralanatolien",
+		provinzen: [
+			3,
+			15,
+			32,
+			42,
+			43,
+			45,
+			51,
+			64,
+			68,
+			70
+		]
+	},
+	{
+		id: 6,
+		name: "Karadeniz-Fındık-Peripherie",
+		provinzen: [
+			8,
+			28,
+			52,
+			53,
+			57,
+			61,
+			74
+		]
+	},
+	{
+		id: 7,
+		name: "Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft",
+		provinzen: [
+			2,
+			21,
+			23,
+			27,
+			36,
+			44,
+			46,
+			47,
+			63,
+			65,
+			72,
+			73,
+			76,
+			79
+		]
+	},
+	{
+		id: 8,
+		name: "Ost-Anatolien peripher",
+		provinzen: [
+			4,
+			12,
+			13,
+			18,
+			29,
+			30,
+			49,
+			56,
+			62,
+			69,
+			75
+		]
+	}
+];
+/**
+* Delta-Matrix (RECHERCHE_PROVINZDATEN.md, Abschnitt 4): additive Punkte je
+* Politiknetz-Knoten, Index im Array = Archätyp-id − 1. Nur Knoten ohne echten
+* Provinz-Datenbeleg; `arbeitslosigkeit` bleibt absichtlich außen vor, denn dort
+* stehen echte Provinzwerte in provinzdaten.json (Empfehlung der Recherche).
+* Bei Doppelzeilen der Matrix („landflucht / p_landflucht“) tragen beide Knoten
+* dieselben Deltas, nur C1 unterscheidet sich (−15 / −20).
+*/
+const DELTAS = {
+	mieten: [
+		15,
+		4,
+		8,
+		2,
+		0,
+		-2,
+		-4,
+		-10
+	],
+	p_wohnungsnot: [
+		12,
+		4,
+		6,
+		2,
+		0,
+		-2,
+		-2,
+		-8
+	],
+	lebenshaltung: [
+		8,
+		3,
+		4,
+		0,
+		0,
+		0,
+		3,
+		3
+	],
+	abwanderung: [
+		-5,
+		0,
+		0,
+		3,
+		8,
+		10,
+		8,
+		12
+	],
+	p_abwanderung: [
+		-8,
+		-2,
+		-2,
+		2,
+		8,
+		10,
+		8,
+		15
+	],
+	landflucht: [
+		-15,
+		-5,
+		-3,
+		2,
+		8,
+		10,
+		8,
+		15
+	],
+	p_landflucht: [
+		-20,
+		-5,
+		-3,
+		2,
+		8,
+		10,
+		8,
+		15
+	],
+	p_wassermangel: [
+		8,
+		2,
+		5,
+		0,
+		15,
+		-10,
+		5,
+		0
+	],
+	wasserversorgung: [
+		-5,
+		0,
+		-3,
+		0,
+		-10,
+		5,
+		-5,
+		0
+	],
+	industrie: [
+		5,
+		8,
+		-3,
+		5,
+		2,
+		-5,
+		2,
+		-10
+	],
+	export: [
+		5,
+		8,
+		2,
+		3,
+		0,
+		-5,
+		2,
+		-10
+	],
+	logistik: [
+		10,
+		8,
+		3,
+		2,
+		0,
+		-3,
+		2,
+		-8
+	],
+	tourismus: [
+		5,
+		2,
+		20,
+		0,
+		-3,
+		3,
+		0,
+		-5
+	],
+	landwirtschaft_einkommen: [
+		-5,
+		2,
+		3,
+		2,
+		5,
+		5,
+		5,
+		0
+	],
+	jugendarbeitslosigkeit: [
+		3,
+		0,
+		3,
+		0,
+		3,
+		5,
+		15,
+		10
+	],
+	p_jugendarbeitslosigkeit: [
+		3,
+		0,
+		3,
+		0,
+		3,
+		5,
+		15,
+		10
+	],
+	p_armut: [
+		-3,
+		-2,
+		-2,
+		0,
+		3,
+		5,
+		10,
+		12
+	],
+	schattenwirtschaft: [
+		0,
+		0,
+		5,
+		2,
+		3,
+		5,
+		10,
+		8
+	],
+	p_migrationsdruck: [
+		3,
+		2,
+		3,
+		0,
+		0,
+		0,
+		15,
+		3
+	],
+	p_erdbebengefahr: [
+		5,
+		8,
+		5,
+		3,
+		-8,
+		-3,
+		8,
+		3
+	],
+	erdbebenvorsorge: [
+		3,
+		0,
+		0,
+		0,
+		0,
+		0,
+		-8,
+		-3
+	],
+	stromversorgung: [
+		-5,
+		0,
+		2,
+		0,
+		0,
+		2,
+		0,
+		-3
+	],
+	p_aerztemangel: [
+		-8,
+		-3,
+		0,
+		0,
+		3,
+		5,
+		8,
+		10
+	],
+	ungleichheit: [
+		10,
+		3,
+		3,
+		0,
+		0,
+		0,
+		5,
+		3
+	],
+	terrorgefahr: [
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		10,
+		5
+	],
+	p_luftverschmutzung: [
+		10,
+		6,
+		-3,
+		2,
+		0,
+		-3,
+		2,
+		-3
+	]
+};
+/**
+* Ausreißer-Overrides: zusätzliche Punkte je Provinz und Knoten, auf das
+* Archätyp-Delta addiert. Nur füllen, wenn ein Fall in kalibrierung/provinz_profile.csv
+* markiert ist (derzeit keine Markierung — die Matrix allein trägt, vgl.
+* RECHERCHE_PROVINZDATEN.md, Abschnitt 4: Gaziantep-Industrie, İstanbul-Miete wären
+* die ersten Kandidaten).
+*/
+const AUSREISSER = {};
+/**
+* Die Archätyp-Schicht, fertig für createNet: additive Punkte je Knoten
+* (Index = Kfz-Kennziffer − 1), über der Echtdaten-Schicht aus sim/regional.ts.
+*/
+const ARCHETYP_DELTAS = (() => {
+	const out = {};
+	for (const [knoten, deltas] of Object.entries(DELTAS)) {
+		const arr = new Array(81).fill(0);
+		for (const a of ARCHETYPEN) {
+			const d = deltas[a.id - 1] ?? 0;
+			for (const plaka of a.provinzen) arr[plaka - 1] = d;
+		}
+		out[knoten] = arr;
+	}
+	for (const [plaka, jeKnoten] of Object.entries(AUSREISSER)) {
+		const p = Number(plaka) - 1;
+		for (const [knoten, d] of Object.entries(jeKnoten)) (out[knoten] ??= new Array(81).fill(0))[p] = (out[knoten][p] ?? 0) + d;
+	}
+	return out;
+})();
+//#endregion
+//#region src/sim/zentralbank.ts
 /** Wie empfänglich die Führung für Druck ist, je nach Haltung. */
 const EMPFAENGLICH = {
 	vorsichtig: .3,
@@ -18689,14 +20408,14 @@ function protokolltext(alt, neu) {
 	return neu === alt ? `Die Zentralbank hält den Leitzins bei ${fmt(neu)} %.` : `Die Zentralbank ${neu > alt ? "erhöht" : "senkt"} den Leitzins von ${fmt(alt)} auf ${fmt(neu)} %.`;
 }
 //#endregion
-//#region game/src/sim/wirtschaft-tick.ts
+//#region src/sim/wirtschaft-tick.ts
 function wirtschaftMonat(world) {
 	if (!world.spiel) return;
 	haushaltMonat(world);
 	zeichneAuf(world);
 }
 //#endregion
-//#region game/src/sim/world.ts
+//#region src/sim/world.ts
 /** Kopplung des Politiknetzes an das Wirtschaftsmodell (Platzhalter für die Kalibrierung). */
 const COUPLING = {
 	/** Prozentpunkte Inflation je Indexpunkt Kostendruck über dem Start */
@@ -18729,7 +20448,7 @@ function createWorld(scenario, seed) {
 		history,
 		published: structuredClone(scenario.published),
 		log: [],
-		net: createNet(NET, economy, REGIONAL, WEIGHTS)
+		net: createNet(NET, economy, REGIONAL, WEIGHTS, ARCHETYP_DELTAS)
 	};
 	addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + formatDateDe(scenario.dataDate) + ".");
 	return world;
@@ -18799,6 +20518,7 @@ function tick(world) {
 /** Politiknetz einen Monat fortschreiben und an das Wirtschaftsmodell zurückkoppeln. */
 function monthlyNet(world) {
 	const e = world.economy;
+	umsetzungMonat(world.net);
 	stepNet(NET, world.net, e, REGIONAL);
 	e.policyCost = policyCost(NET, world.net);
 	const cost = nationalAverage(NET, world.net, "kostendruck") - startAverage(NET, world.net, "kostendruck");
@@ -18850,7 +20570,7 @@ function publishQuarterlyGrowth(world) {
 	addLog(world, "statistik", `Wachstum ${q}. Quartal ${quarterEnd.slice(0, 4)}: ${fmt(snap.growth)} % zum Vorjahr.`);
 }
 //#endregion
-//#region game/src/sim/befehle.ts
+//#region src/sim/befehle.ts
 /** Kleinschreibung ohne Umlaute und Akzente; türkische Buchstaben werden zu ihren lateinischen Verwandten. */
 function fold(s) {
 	return s.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/ı/g, "i").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
@@ -18925,7 +20645,7 @@ NET.nodes.filter((n) => n.kind === "massnahme").map((n) => ({
 	schluessel: fold(n.name).split(" ").filter((w) => w.length >= 4 && !STOPP.has(w))
 }));
 //#endregion
-//#region game/src/ki/aktionen.ts
+//#region src/ki/aktionen.ts
 const MAX_AKTIONEN = 3;
 const LAND_HANDLUNGEN = new Set(Object.keys(AKTIONEN));
 const FRAKTIONS_HANDLUNGEN = /* @__PURE__ */ new Set([
@@ -19130,6 +20850,7 @@ function vorschau(w, a) {
 				titel,
 				problem: pr.grund ?? "Keine Änderung."
 			};
+			const dauer = `Umsetzung läuft über etwa ${pr.monate} ${pr.monate === 1 ? "Monat" : "Monate"}.`;
 			if (a.weg === "erlass") {
 				if (!pr.erlass.moeglich) return {
 					aktion: a,
@@ -19140,6 +20861,7 @@ function vorschau(w, a) {
 					aktion: a,
 					titel,
 					kosten: pr.erlass.pk,
+					hinweis: dauer,
 					...pr.erlass.bezahlbar ? {} : { problem: "Dafür fehlt Kapital." }
 				};
 			}
@@ -19148,7 +20870,7 @@ function vorschau(w, a) {
 				aktion: a,
 				titel,
 				kosten: pr.gesetz.pk,
-				hinweis: `${mehrheit} Abstimmung in ${pr.gesetz.tage} Tagen.`,
+				hinweis: `${mehrheit} Abstimmung in ${pr.gesetz.tage} Tagen. ${dauer}`,
 				...pr.gesetz.bezahlbar ? {} : { problem: "Dafür fehlt Kapital." }
 			};
 		}
@@ -19419,7 +21141,7 @@ function vorschau(w, a) {
 	}
 }
 //#endregion
-//#region game/src/sim/prolog.ts
+//#region src/sim/prolog.ts
 const near = (p, g, d) => {
 	p.naehe[g] = (p.naehe[g] ?? 0) + d;
 };
@@ -20033,7 +21755,68 @@ function schnellProfil(name = "Deniz Aydın", waehle = () => 0) {
 	return p;
 }
 //#endregion
-//#region game/scripts/runner.ts
+//#region src/sim/netzexport.ts
+function kantenZeilen() {
+	return EDGES.map((e) => {
+		const { typ: _typ, ...parameter } = e.form ?? { typ: "linear" };
+		return {
+			id: `${e.from}→${e.to}`,
+			von: e.from,
+			nach: e.to,
+			gewicht: e.weight,
+			verzoegerung: e.lag,
+			form: e.form?.typ ?? "linear",
+			parameter: e.form && e.form.typ !== "linear" ? JSON.stringify(parameter) : "{}",
+			begruendung: e.why
+		};
+	});
+}
+function knotenZeilen() {
+	return NODES.map((n) => ({
+		id: n.id,
+		name: n.name,
+		art: n.kind,
+		thema: n.theme,
+		start: n.start,
+		ruecklauf: n.decay,
+		traegheit: n.traegheit ?? 1,
+		preise: n.preise ? JSON.stringify(n.preise) : "{}"
+	}));
+}
+/** CSV-Feld: immer in Anführungszeichen, Anführungszeichen verdoppelt. */
+const feld = (x) => `"${String(x).replaceAll("\"", "\"\"")}"`;
+function kantenCsv() {
+	return ["id;von;nach;gewicht;verzoegerung;form;parameter;begruendung", ...kantenZeilen().map((z) => [
+		z.id,
+		z.von,
+		z.nach,
+		z.gewicht,
+		z.verzoegerung,
+		z.form,
+		z.parameter,
+		z.begruendung
+	].map(feld).join(";"))].join("\n") + "\n";
+}
+function knotenCsv() {
+	return ["id;name;art;thema;start;ruecklauf;traegheit;preise", ...knotenZeilen().map((z) => [
+		z.id,
+		z.name,
+		z.art,
+		z.thema,
+		z.start,
+		z.ruecklauf,
+		z.traegheit,
+		z.preise
+	].map(feld).join(";"))].join("\n") + "\n";
+}
+function netzJson() {
+	return JSON.stringify({
+		kanten: kantenZeilen(),
+		knoten: knotenZeilen()
+	}, null, 2) + "\n";
+}
+//#endregion
+//#region scripts/runner.ts
 const SEED = 42042;
 function neueWelt() {
 	const w = createWorld(turkey2026, SEED);
@@ -20347,7 +22130,11 @@ async function benchmark(konf) {
 }
 const [, , cmd, arg] = process.argv;
 if (cmd === "katalog") console.log(JSON.stringify(katalog(), null, 2));
-else if (cmd === "zustand") {
+else if (cmd === "netzexport") {
+	if (arg === "csv") process.stdout.write(kantenCsv());
+	else if (arg === "knoten-csv") process.stdout.write(knotenCsv());
+	else process.stdout.write(netzJson());
+} else if (cmd === "zustand") {
 	const w = neueWelt();
 	console.log(zustandsText(w));
 	const v = vermittlungen(w);
@@ -20357,7 +22144,7 @@ else if (cmd === "zustand") {
 	const { readFileSync } = await import("node:fs");
 	await benchmark(JSON.parse(readFileSync(arg, "utf-8")));
 } else {
-	console.error("Aufruf: runner.mjs katalog | zustand | benchmark <konfig.json>");
+	console.error("Aufruf: runner.mjs katalog | zustand | netzexport [json|csv|knoten-csv] | benchmark <konfig.json>");
 	process.exit(1);
 }
 //#endregion

@@ -4,7 +4,7 @@
 import type { World } from "./types";
 import { AUSSEN, PARAMS, potential, ppkZiel, PPK_GEWICHTE, realRate } from "./economy";
 import { NET } from "./modell";
-import { nationalAverage, startAverage } from "./netz";
+import { nationalAverage, startAverage, decayVon } from "./netz";
 import { formatDateDe, formatMonthDe } from "./dates";
 import { defizitJetzt, haushaltZustand, startMonat, verlauf, wirtschaftZustand, zinsausgabenJetzt } from "./wirtschaft";
 import { istGut } from "./folgen";
@@ -82,7 +82,7 @@ export function netzTreiber(w: World, id: string, max = 7): Treiber[] {
     out.push(tr(von.name, wirkung, "Punkte je Monat", NET.edges[j]!.why));
   }
   const node = NET.nodes[i]!;
-  const rueck = -node.decay * (netz(w, id) - startAverage(NET, w.net, id));
+  const rueck = -decayVon(node) * (netz(w, id) - startAverage(NET, w.net, id));
   if (Math.abs(rueck) >= 0.015) out.push(tr("Rückkehr zur Ruhelage", rueck, "Punkte je Monat", "Ohne Anstoß kehrt jede Größe langsam zu ihrem Ausgangswert zurück."));
   return out.sort((a, b) => Math.abs(b.wirkung) - Math.abs(a.wirkung)).slice(0, max);
 }

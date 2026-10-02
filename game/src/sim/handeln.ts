@@ -9,6 +9,7 @@
 
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES, startAverage } from "./netz";
+import type { NodeSpec } from "../data/politiknetz";
 import { addLog, fmt } from "./log";
 import { PROVINZEN } from "./regional";
 import { clamp } from "./economy";
@@ -22,6 +23,7 @@ import type { World } from "./types";
 import type { Gesetz, Weg } from "./spiel-typen";
 import { kannZahlen } from "./kapital";
 import { krisenFuerMassnahme, type KrisenTreffer } from "./krisen";
+import { starteUmsetzung } from "./umsetzung";
 import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, hashWert, neuanfangGrund, stufeVon, unsicherheitFaktor, verbrauche, verfassungVon } from "./aufmerksamkeit";
 
 export const REGELN = {
@@ -41,6 +43,12 @@ export const REGELN = {
   /** Allgemeiner Faktor auf alle Kapitalkosten von Änderungen (Kalibrierung der Knappheit) */
   kapitalFaktor: 1.8,
   kapitalMax: 150,
+  /**
+   * Vier-Preise-Regel (Spielparameter): Standard-Exit-Preis — das Zurücknehmen einer Politik
+   * kostet das 1,6-Fache des Einführens, weil Besitzstände, Apparate und Lager sich wehren.
+   * Maßnahmen können alle vier Preise einzeln setzen (data/politiknetz.ts, MassnahmePreise).
+   */
+  streichFaktor: 1.6,
 } as const;
 
 /** Kapital je Stufenpunkt Änderung; heikle Themen kosten mehr. */
@@ -206,6 +214,8 @@ export interface Pruefung {
   krisen: KrisenTreffer[];
   /** Multiplikator auf die Kapitalkosten aus Krisen („teuer"); 1 = keine Wirkung */
   krisenFaktor: number;
+  /** Die vier Preise mit aufgelösten Defaults und der Preis, der bei diesem Vorhaben greift */
+  preise: { einfuehren: number; aendern: number; streichen: number; unterhaltMonat: number; richtung: "einfuehren" | "streichen" };
 }
 
 function pkKosten(world: World, id: string, delta: number, ort: number[] | null, weg: Weg, ueberl: number): number {
@@ -214,8 +224,63 @@ function pkKosten(world: World, id: string, delta: number, ort: number[] | null,
   const share = anteil(world, ort);
   const ortsfaktor = ort ? 0.35 + 0.65 * Math.min(1, share * 3) : 1;
   const rabatt = 1 - rabattFuer(world, node.theme);
-  const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * (weg === "erlass" ? REGELN.erlassFaktor : 1);
+  const preise = preisFaktoren(node);
+  // Vier-Preise-Regel: Erhöhen zahlt den Einführungspreis, Senken den Exit-Preis
+  const richtungsfaktor = preise.aendern * (delta >= 0 ? preise.einfuehren : preise.streichen);
+  const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * richtungsfaktor * (weg === "erlass" ? REGELN.erlassFaktor : 1);
   return Math.max(2, Math.round(basis));
+}
+
+/**
+ * Die vier Preise einer Maßnahme mit aufgelösten Defaults (Spielparameter, keine Tatsachen):
+ * einfuehren und aendern kosten wie bisher, streichen kostet standardmäßig das 1,6-Fache des
+ * Einführens (Exit-Preis), Unterhalt fällt nur an, wenn die Maßnahme ihn ausdrücklich trägt.
+ */
+export function preisFaktoren(node: Pick<NodeSpec, "preise">): { einfuehren: number; aendern: number; streichen: number; unterhaltMonat: number } {
+  const p = node.preise ?? {};
+  const einfuehren = p.einfuehren ?? 1;
+  return {
+    einfuehren,
+    aendern: p.aendern ?? 1,
+    streichen: p.streichen ?? REGELN.streichFaktor * einfuehren,
+    unterhaltMonat: p.unterhalt_monat ?? 0,
+  };
+}
+
+/** Referenzpreise für die Anzeige an der Maßnahme: was kosten ±10 Stufen auf dem gewählten Weg, was kostet der Unterhalt. */
+export function preisUebersicht(
+  world: World,
+  id: string,
+  ort: number[] | null,
+): { einfuehren10: number; streichen10: number; unterhaltMonat: number; faktorEinfuehren: number; faktorStreichen: number } {
+  const node = NET.nodes[knotenIndex(id)]!;
+  const preise = preisFaktoren(node);
+  const ueberl = ueberlast(world);
+  const krisenFaktor = world.spiel ? krisenFuerMassnahme(world, id).reduce((f, k) => (k.art === "teuer" ? f * k.faktor : f), 1) : 1;
+  const einfuehren10 = Math.max(2, Math.round(pkKosten(world, id, 10, ort, "gesetz", ueberl) * krisenFaktor));
+  const streichen10 = Math.max(2, Math.round(pkKosten(world, id, -10, ort, "gesetz", ueberl) * krisenFaktor));
+  return { einfuehren10, streichen10, unterhaltMonat: preise.unterhaltMonat, faktorEinfuehren: preise.aendern * preise.einfuehren, faktorStreichen: preise.aendern * preise.streichen };
+}
+
+export interface UnterhaltPosten {
+  id: string;
+  name: string;
+  /** Abzug in Politischem Kapital in diesem Monat */
+  betrag: number;
+  stufe: number;
+}
+
+/** Laufender Unterhalt aller Maßnahmen mit `unterhalt_monat`, anteilig zur aktuellen Stufe. */
+export function unterhaltKosten(world: World): { summe: number; posten: UnterhaltPosten[] } {
+  const posten: UnterhaltPosten[] = [];
+  for (const node of NET.nodes) {
+    const u = node.preise?.unterhalt_monat;
+    if (node.kind !== "massnahme" || !u) continue;
+    const stufe = nationalAverage(NET, world.net, node.id);
+    if (stufe < 0.5) continue;
+    posten.push({ id: node.id, name: node.name, betrag: (u * stufe) / 100, stufe });
+  }
+  return { summe: posten.reduce((s, p) => s + p.betrag, 0), posten };
 }
 
 export function erlassMoeglich(id: string): boolean {
@@ -256,6 +321,16 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   for (const k of krisen) {
     if (k.art === "teuer") hinweise.push(`${k.krise.name}: ${k.krise.wirkung}`);
   }
+  // Vier-Preise-Regel: Der Exit-Preis und der laufende Unterhalt stehen von Anfang an auf dem Preisschild.
+  const preise = preisFaktoren(node);
+  const richtung: "einfuehren" | "streichen" = aenderung >= 0 ? "einfuehren" : "streichen";
+  if (aenderung < 0 && preise.streichen > preise.einfuehren) {
+    const f = (preise.streichen / preise.einfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+    hinweise.push(`Exit-Preis: Das Zurücknehmen kostet das ${f}-Fache des Einführens — Besitzstände, Apparate und Lager wehren sich.`);
+  }
+  if (preise.unterhaltMonat > 0) {
+    hinweise.push(`Laufender Unterhalt: etwa ${preise.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe, anteilig zur aktuellen Stufe.`);
+  }
 
   const base: Pruefung = {
     ok: true,
@@ -276,6 +351,7 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
     hinweise,
     krisen,
     krisenFaktor,
+    preise: { ...preise, richtung },
   };
   if (Math.abs(aenderung) < 1) return { ...base, ok: false, grund: "Das ist schon die aktuelle Stufe." };
   // Eine Sperre durch eine aktive Krise ist eine ehrliche Ablehnung: Grund und Alternativweg stehen immer dabei.
@@ -324,6 +400,11 @@ function wendeAn(world: World, id: string, level: number, provinzen: number[] | 
     }
   }
 
+  // INN-2: Der Beschluss startet die sichtbare Umsetzung (oder dämpft sie bei einer
+  // Feinjustierung um höchstens eine Stufe); bis sie läuft, wirken die ausgehenden
+  // Kanten nur anteilig (sim/umsetzung.ts). Gemessen wird gegen den Stand beim Beschluss.
+  starteUmsetzung(NET, s, id, target - vorher, months);
+
   // Zusagen an Fraktionen und Figuren, die diese Änderung verlangen
   const richtung = Math.sign(target - vorher);
   for (const z of world.spiel?.zusagen ?? []) {
@@ -356,7 +437,7 @@ export function setPolicy(world: World, id: string, level: number, provinzen?: n
     world,
     "entscheidung",
     `${node.name} ${provinzenText(ort)}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`,
-    `${node.text} Umsetzung in etwa ${months} ${months === 1 ? "Monat" : "Monaten"}` +
+    `${node.text} Umsetzung läuft über etwa ${months} ${months === 1 ? "Monat" : "Monate"}` +
       (Math.abs(costChange) >= 0.0005 ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.` : "."),
   );
 }
@@ -419,7 +500,8 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     richtung: Math.sign(pr.aenderung),
   });
   const tageBis = tag - world.day;
-  const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen.`;
+  const monate = pr.monate;
+  const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
   const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
   addLog(world, "entscheidung", text, why);
   nachEinbringen?.(world, id, text);
@@ -517,11 +599,12 @@ export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
     if (angenommen) {
       wendeAn(world, g.massnahme, g.stufe, g.provinzen);
       const node = NET.nodes[knotenIndex(g.massnahme)]!;
+      const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
       addLog(
         world,
         "entscheidung",
         `Das Parlament nimmt „${g.name}“ ${provinzenText(g.provinzen)} an (${ja} zu ${nein}). Stufe ${g.stufe}.`,
-        `${node.text} Umsetzung in etwa ${Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)))} Monaten.`,
+        `${node.text} Umsetzung läuft über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`,
       );
     } else {
       vertrauenAendern(world, -1.2);

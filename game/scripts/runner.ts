@@ -19,6 +19,7 @@ import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
 import { vermittlungen } from "../src/sim/abkommen";
 import { NET as NET2 } from "../src/sim/modell";
+import { kantenCsv, knotenCsv, netzJson } from "../src/sim/netzexport";
 import type { World } from "../src/sim/types";
 import type { KiAktion } from "../src/ki/typen";
 
@@ -299,6 +300,11 @@ async function benchmark(konf: BenchKonfig) {
 const [, , cmd, arg] = process.argv;
 if (cmd === "katalog") {
   console.log(JSON.stringify(katalog(), null, 2));
+} else if (cmd === "netzexport") {
+  // Maschinenlesbarer Abzug des Politiknetzes (INN-1): Kanten mit Form und Begründung, Knoten mit Preisen
+  if (arg === "csv") process.stdout.write(kantenCsv());
+  else if (arg === "knoten-csv") process.stdout.write(knotenCsv());
+  else process.stdout.write(netzJson());
 } else if (cmd === "zustand") {
   const w = neueWelt();
   console.log(zustandsText(w));
@@ -310,6 +316,6 @@ if (cmd === "katalog") {
   const konf = JSON.parse(readFileSync(arg, "utf-8")) as BenchKonfig;
   await benchmark(konf);
 } else {
-  console.error("Aufruf: runner.mjs katalog | zustand | benchmark <konfig.json>");
+  console.error("Aufruf: runner.mjs katalog | zustand | netzexport [json|csv|knoten-csv] | benchmark <konfig.json>");
   process.exit(1);
 }

@@ -5,13 +5,46 @@
 // Verzögerung. Der Zustand besteht nur aus flachen Zahlenlisten, damit er als
 // JSON gespeichert und für die Vorschau schnell kopiert werden kann.
 
-import type { EdgeSpec, NodeSpec } from "../data/politiknetz";
+import type { EdgeSpec, FormSpec, NodeSpec } from "../data/politiknetz";
 import type { EconomyState } from "./types";
 import { potential } from "./economy";
 
 export const PROVINCES = 81;
 export const MAX_LAG = 12;
 const SLOTS = MAX_LAG + 1;
+
+/**
+ * Die Kantenformel (Democracy 4: `Ziel, f(x), Inertia`) — ausgewertet auf dem Index 0–100.
+ * `linear` ist die Identität, sodass w · (F(x) − F(x₀)) für lineare Kanten exakt dem alten
+ * Verhalten w · (x − x₀) entspricht. Alle Parameter sind Spielparameter, keine Messwerte.
+ */
+export function formWert(form: FormSpec | undefined, x: number): number {
+  if (!form || form.typ === "linear") return x;
+  switch (form.typ) {
+    case "saettigung": {
+      const k = form.k ?? 2;
+      return (1 - Math.exp((-k * x) / 100)) * 100;
+    }
+    case "schwelle": {
+      const k = form.k ?? 0.12;
+      const mitte = form.mitte ?? 50;
+      return 100 / (1 + Math.exp(-k * (x - mitte)));
+    }
+    case "umkehr": {
+      const exponent = form.exponent ?? 2;
+      return Math.pow(Math.max(0, x) / 100, exponent) * 100;
+    }
+  }
+}
+
+/**
+ * Monatlicher Rücklauf eines Knotens. Das optionale `traegheit`-Feld (Spielparameter) teilt den
+ * Datenwert: tiefe strukturelle Größen kehren langsamer zur Ruhelage zurück als Stimmungsgrößen.
+ * Knoten ohne das Feld verhalten sich bit-identisch zu früher.
+ */
+export function decayVon(node: NodeSpec): number {
+  return node.decay / (node.traegheit ?? 1);
+}
 
 export interface NetState {
   /** Werte, Index = Knoten × 81 + (Kfz-Kennziffer − 1) */
@@ -33,6 +66,10 @@ export interface NetState {
   weights: number[];
   /** Akut-Flag je Knoten und Provinz (Problem-Hysterese nach Democracy 4) */
   acute?: number[];
+  /** Umsetzungsstand je aktiver Maßnahme, 0–100; fehlender Eintrag = voll umgesetzt (INN-2, Logik in sim/umsetzung.ts) */
+  umsetzung?: Record<string, number>;
+  /** Punkte je Monat, mit denen die Umsetzung fortschreitet (beim Beschluss festgelegt) */
+  umsetzungTempo?: Record<string, number>;
 }
 
 export interface NetModel {
@@ -43,6 +80,8 @@ export interface NetModel {
   edgeTo: Int32Array;
   edgeWeight: Float64Array;
   edgeLag: Int32Array;
+  /** Kantenformel je Verbindung; null = linear (schneller Pfad, bisheriges Verhalten) */
+  edgeForm: (FormSpec | null)[];
 }
 
 export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[]): NetModel {
@@ -51,6 +90,15 @@ export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[]): NetModel {
     if (!index.has(e.from)) throw new Error(`Politiknetz: unbekannter Knoten „${e.from}“`);
     if (!index.has(e.to)) throw new Error(`Politiknetz: unbekannter Knoten „${e.to}“`);
     if (e.lag < 0 || e.lag > MAX_LAG) throw new Error(`Politiknetz: Verzögerung außerhalb 0–12 bei ${e.from} → ${e.to}`);
+    if (e.form) {
+      const quelle = nodes[index.get(e.from)!]!;
+      // Die Formen sind auf den Index 0–100 kalibriert; Eingänge aus dem Wirtschaftsmodell haben eigene Einheiten.
+      if (quelle.input) throw new Error(`Politiknetz: Kantenform an Eingangsgröße „${e.from}“ (kein Index 0–100)`);
+      if (e.form.k !== undefined && e.form.k <= 0) throw new Error(`Politiknetz: k muss positiv sein bei ${e.from} → ${e.to}`);
+      if (e.form.mitte !== undefined && (e.form.mitte < 0 || e.form.mitte > 100)) throw new Error(`Politiknetz: mitte außerhalb 0–100 bei ${e.from} → ${e.to}`);
+      if (e.form.exponent !== undefined && e.form.exponent < 1) throw new Error(`Politiknetz: exponent unter 1 bei ${e.from} → ${e.to}`);
+    }
+    for (const n of nodes) if (n.traegheit !== undefined && n.traegheit <= 0) throw new Error(`Politiknetz: traegheit muss positiv sein bei „${n.id}“`);
   }
   return {
     nodes,
@@ -60,6 +108,7 @@ export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[]): NetModel {
     edgeTo: Int32Array.from(edges.map((e) => index.get(e.to)!)),
     edgeWeight: Float64Array.from(edges.map((e) => e.weight)),
     edgeLag: Int32Array.from(edges.map((e) => e.lag)),
+    edgeForm: edges.map((e) => (e.form && e.form.typ !== "linear" ? e.form : null)),
   };
 }
 
@@ -172,24 +221,38 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
 
   // Wirkungen über die Verbindungen
   const delta = new Float64Array(n * PROVINCES);
+  // INN-2-Haken (sim/umsetzung.ts): Ausgehende Kanten einer Maßnahme wirken nur mit dem
+  // Stand ihrer Umsetzung (Faktor umsetzung/100); fehlt der Eintrag, wirkt sie voll.
+  // Beides wirkt zusammen: erst der Umsetzungsfaktor, dann die Verzögerung der Kante.
+  const um = s.umsetzung;
   for (let j = 0; j < model.edgeFrom.length; j++) {
     const from = model.edgeFrom[j]!;
     const to = model.edgeTo[j]!;
-    const w = model.edgeWeight[j]!;
+    const w = model.edgeWeight[j]! * (um ? (um[model.nodes[from]!.id] ?? 100) / 100 : 1);
     const past = s.history[(s.month - model.edgeLag[j]! + SLOTS * 1000) % SLOTS]!;
     const fo = from * PROVINCES;
     const to0 = to * PROVINCES;
-    for (let p = 0; p < PROVINCES; p++) {
-      delta[to0 + p] = delta[to0 + p]! + w * (past[fo + p]! - s.start[fo + p]!);
+    const form = model.edgeForm[j];
+    if (form === null) {
+      // Linear: bisheriges Verhalten, bit-identisch
+      for (let p = 0; p < PROVINCES; p++) {
+        delta[to0 + p] = delta[to0 + p]! + w * (past[fo + p]! - s.start[fo + p]!);
+      }
+    } else {
+      // Kantenformel (Democracy 4): w · (F(x) − F(x₀)); beim Startwert ist der Beitrag 0 wie bei linear
+      for (let p = 0; p < PROVINCES; p++) {
+        delta[to0 + p] = delta[to0 + p]! + w * (formWert(form, past[fo + p]!) - formWert(form, s.start[fo + p]!));
+      }
     }
   }
 
   model.nodes.forEach((node, i) => {
     if (node.input || node.kind === "massnahme") return;
     const o = i * PROVINCES;
+    const ruecklauf = decayVon(node);
     for (let p = 0; p < PROVINCES; p++) {
       const k = o + p;
-      const next = v[k]! + delta[k]! - node.decay * (v[k]! - s.start[k]!);
+      const next = v[k]! + delta[k]! - ruecklauf * (v[k]! - s.start[k]!);
       v[k] = clampIndex(next);
     }
   });

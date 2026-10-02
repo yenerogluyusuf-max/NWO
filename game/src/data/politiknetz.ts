@@ -28,6 +28,43 @@ export type Theme =
 
 export type NodeKind = "massnahme" | "groesse" | "problem" | "gruppe";
 
+/**
+ * Die vier Preise einer Maßnahme in Politischem Kapital (Spielparameter, keine Tatsachen).
+ * Ohne Angabe gelten die Defaults aus sim/handeln.ts: einfuehren/aendern = bisheriger Preis,
+ * streichen = 1,6 × einfuehren (Exit-Preis: Wer eine Politik zurücknimmt, zahlt mehr).
+ */
+export interface MassnahmePreise {
+  /** Faktor auf den Grundpreis beim Einführen und Erhöhen (Standard 1) */
+  einfuehren?: number;
+  /** Faktor beim Ändern überhaupt, multiplikativ mit einfuehren/streichen (Standard 1) */
+  aendern?: number;
+  /** Faktor beim Streichen und Senken (Standard: 1,6 × einfuehren — der Exit-Preis) */
+  streichen?: number;
+  /** Laufender Preis je Monat, solange die Stufe über 0 liegt; abgerechnet wird anteilig zur Stufe (Standard 0) */
+  unterhalt_monat?: number;
+}
+
+/** Form der Antwort einer Verbindung (Democracy-4-Kantenformel `Ziel, f(x), Inertia`). */
+export type KantenFormTyp = "linear" | "saettigung" | "schwelle" | "umkehr";
+
+/**
+ * Nichtlineare Antwort einer Verbindung. Alle Parameter sind Spielparameter, keine Messwerte.
+ *   linear     bisheriges Verhalten: w · (x − x₀)                       (bit-identisch zu früher)
+ *   saettigung abnehmender Grenznutzen: F(x) = (1 − e^(−k·x/100)) · 100
+ *   schwelle   S-Kurve um die Mitte:   F(x) = 100 / (1 + e^(−k·(x−mitte)))
+ *   umkehr     Potenzkurve, „erst nichts, dann viel": F(x) = (x/100)^exponent · 100
+ * Die Engine reicht w · (F(x) − F(x₀)) weiter; beim Startwert x₀ ist der Beitrag 0, wie bei linear.
+ */
+export interface FormSpec {
+  typ: KantenFormTyp;
+  /** Steilheit (saettigung, schwelle). Standard: 2 (saettigung), 0,12 (schwelle) */
+  k?: number;
+  /** Mittelpunkt der S-Kurve als Index 0–100 (schwelle). Standard 50 */
+  mitte?: number;
+  /** Exponent der Potenzkurve (umkehr), ≥ 1. Standard 2 */
+  exponent?: number;
+}
+
 export interface NodeSpec {
   id: string;
   name: string;
@@ -46,26 +83,36 @@ export interface NodeSpec {
   threshold?: number;
   /** Eingangsgröße aus dem Wirtschaftsmodell */
   input?: "inflation" | "arbeitslosigkeit" | "wachstum" | "leitzins" | "abwertung" | "defizit" | "schulden";
+  /**
+   * Trägheitsfaktor (Spielparameter): teilt den monatlichen Rücklauf — effektiv decay/traegheit.
+   * Tiefe strukturelle Größen (Reallöhne, Justiz, Netze) kehren langsamer zur Ruhelage zurück
+   * als Stimmungsgrößen. Ohne Angabe 1 = bisheriges Verhalten.
+   */
+  traegheit?: number;
+  /** Nur Maßnahmen: die vier Preise (siehe MassnahmePreise) */
+  preise?: MassnahmePreise;
 }
 
 export interface EdgeSpec {
   from: string;
   to: string;
-  /** Anteil der Abweichung, der pro Monat weitergegeben wird */
+  /** Anteil der (durch die Form gewandelten) Abweichung, der pro Monat weitergegeben wird */
   weight: number;
   /** Verzögerung in Monaten (0–12) */
   lag: number;
   why: string;
+  /** Optionale nichtlineare Antwort; ohne Angabe linear = bisheriges Verhalten */
+  form?: FormSpec;
 }
 
 const N: NodeSpec[] = [];
 const E: EdgeSpec[] = [];
 
-function m(theme: Theme, id: string, name: string, start: number, cost: number, months: number, text: string) {
-  N.push({ id, name, theme, kind: "massnahme", text, start, decay: 0, cost, months });
+function m(theme: Theme, id: string, name: string, start: number, cost: number, months: number, text: string, preise?: MassnahmePreise) {
+  N.push({ id, name, theme, kind: "massnahme", text, start, decay: 0, cost, months, ...(preise ? { preise } : {}) });
 }
-function g(theme: Theme, id: string, name: string, start: number, text: string, decay = 0.08) {
-  N.push({ id, name, theme, kind: "groesse", text, start, decay });
+function g(theme: Theme, id: string, name: string, start: number, text: string, decay = 0.08, traegheit?: number) {
+  N.push({ id, name, theme, kind: "groesse", text, start, decay, ...(traegheit !== undefined ? { traegheit } : {}) });
 }
 function inp(theme: Theme, id: string, name: string, input: NonNullable<NodeSpec["input"]>, text: string) {
   N.push({ id, name, theme, kind: "groesse", text, start: 0, decay: 0, input });
@@ -85,6 +132,10 @@ function grp(id: string, name: string, text: string) {
 function e(from: string, to: string, weight: number, lag: number, why: string) {
   E.push({ from, to, weight, lag: Math.min(lag, 12), why });
 }
+/** Verbindung mit nichtlinearer Antwort (Kantenformel). Nur für Quellen mit Index 0–100, nicht für Wirtschafts-Eingänge. */
+function ef(from: string, to: string, weight: number, lag: number, why: string, form: FormSpec) {
+  E.push({ from, to, weight, lag: Math.min(lag, 12), why, form });
+}
 
 // ---------------------------------------------------------------------------
 // Eingangsgrößen aus dem Wirtschaftsmodell
@@ -101,7 +152,9 @@ inp("haushalt", "schulden", "Staatsschulden", "schulden", "Schuldenquote in % de
 // Wirtschaft
 
 g("wirtschaft", "lebenshaltung", "Gefühlte Teuerung", 70, "Wie teuer sich der Alltag anfühlt: Lebensmittel, Miete, Energie.");
-g("wirtschaft", "realeinkommen", "Reallöhne", 45, "Was die Löhne nach Abzug der Preissteigerung wert sind.");
+// Trägheit (Spielparameter): Lohnabschlüsse und Preise laufen über Tarifverträge und Gewohnheiten
+// nach — Reallöhne pendeln nur halb so schnell zur Ruhelage zurück wie Stimmungsgrößen.
+g("wirtschaft", "realeinkommen", "Reallöhne", 45, "Was die Löhne nach Abzug der Preissteigerung wert sind.", 0.08, 2);
 g("wirtschaft", "investitionen", "Investitionen", 45, "Wie viel Unternehmen in Anlagen und Maschinen stecken.");
 g("wirtschaft", "export", "Exportstärke", 55, "Wettbewerbsfähigkeit der Exportindustrie.");
 g("wirtschaft", "tourismus", "Tourismus", 65, "Gäste und Deviseneinnahmen aus dem Tourismus.");
@@ -110,17 +163,21 @@ g("wirtschaft", "mittelstand", "Lage des Mittelstands", 45, "Kleine und mittlere
 g("wirtschaft", "kredite", "Kreditvergabe", 40, "Wie leicht Haushalte und Firmen an Kredite kommen.");
 g("wirtschaft", "auslandskapital", "Auslandskapital", 40, "Direktinvestitionen und Portfoliozuflüsse aus dem Ausland.");
 g("wirtschaft", "kostendruck", "Kostendruck der Betriebe", 60, "Lohn-, Energie- und Importkosten. Wirkt auf die Inflation zurück.");
-g("wirtschaft", "produktivitaet", "Produktivität", 50, "Was pro Arbeitsstunde entsteht. Wirkt auf das Potenzialwachstum zurück.");
+// Trägheit (Spielparameter): Anlagen, Ausbildung und Verfahren ändern sich über Jahre.
+g("wirtschaft", "produktivitaet", "Produktivität", 50, "Was pro Arbeitsstunde entsteht. Wirkt auf das Potenzialwachstum zurück.", 0.08, 2.5);
 g("wirtschaft", "ungleichheit", "Ungleichheit", 60, "Abstand zwischen hohen und niedrigen Einkommen.");
 g("wirtschaft", "schattenwirtschaft", "Schattenwirtschaft", 45, "Arbeit und Umsatz ohne Steuern und Versicherung.");
 g("wirtschaft", "gruendungen", "Unternehmensgründungen", 50, "Wie viele neue Firmen entstehen.");
 g("wirtschaft", "dollarisierung", "Dollarisierung", 55, "Wie sehr Menschen ihr Erspartes in Dollar, Euro oder Gold halten.");
 
-m("wirtschaft", "m_mindestlohn", "Mindestlohn", 50, 0.6, 1, "Höhe des gesetzlichen Mindestlohns im Verhältnis zum Durchschnittslohn.");
+// Preise (Spielparameter): Den Mindestlohn zu senken, kostet doppelt so viel Rückhalt wie das Anheben —
+// Gewerkschaften und untere Einkommen vergessen eine Kürzung nicht (Exit-Preis).
+m("wirtschaft", "m_mindestlohn", "Mindestlohn", 50, 0.6, 1, "Höhe des gesetzlichen Mindestlohns im Verhältnis zum Durchschnittslohn.", { streichen: 2 });
 m("wirtschaft", "m_exportfoerderung", "Exportförderung", 40, 0.4, 6, "Günstige Exportkredite und Zuschüsse für Ausfuhren.");
 m("wirtschaft", "m_investitionsanreize", "Investitionsanreize", 45, 0.5, 9, "Steuervorteile und Zuschüsse für Investitionen, auch in Förderregionen.");
 m("wirtschaft", "m_kreditgarantien", "Staatliche Kreditgarantien", 35, 0.5, 3, "Der Staat bürgt für Kredite an Betriebe.");
-m("wirtschaft", "m_preiskontrollen", "Preiskontrollen für Lebensmittel", 20, 0.1, 2, "Obergrenzen und Kontrollen bei Grundnahrungsmitteln.");
+// Preise (Spielparameter): Deckel wieder abnehmen, wenn sich alle daran gewöhnt haben, kostet doppelt.
+m("wirtschaft", "m_preiskontrollen", "Preiskontrollen für Lebensmittel", 20, 0.1, 2, "Obergrenzen und Kontrollen bei Grundnahrungsmitteln.", { streichen: 2 });
 m("wirtschaft", "m_tourismuswerbung", "Tourismuswerbung", 50, 0.1, 6, "Werbung und Förderung für den Tourismus im Ausland.");
 m("wirtschaft", "m_kmu", "Mittelstandsförderung", 40, 0.3, 6, "Programme für kleine und mittlere Betriebe.");
 m("wirtschaft", "m_zoelle", "Einfuhrzölle", 40, -0.3, 3, "Zölle auf Importe außerhalb der Zollunion mit der EU.");
@@ -129,9 +186,13 @@ m("wirtschaft", "m_bankenaufsicht", "Bankenaufsicht", 55, 0.02, 6, "Regeln für 
 e("inflation", "lebenshaltung", 0.04, 0, "Steigende Preise machen den Alltag spürbar teurer. Auch wenn die Inflation sinkt, bleiben die Preise hoch.");
 e("abwertung", "lebenshaltung", 0.03, 1, "Eine schwache Lira verteuert Importe wie Energie und Medikamente.");
 e("inflation", "realeinkommen", -0.06, 0, "Wenn Preise schneller steigen als Löhne, sinkt die Kaufkraft.");
-e("m_mindestlohn", "realeinkommen", 0.06, 1, "Ein höherer Mindestlohn hebt die unteren Einkommen.");
+// Kantenformel (Spielparameter): Die ersten Erhöhungen kommen voll an; bei schon hohem Mindestlohn
+// frisst Verdrängung in Schattenwirtschaft und Preise den weiteren Zuwachs (abnehmender Grenznutzen).
+ef("m_mindestlohn", "realeinkommen", 0.06, 1, "Ein höherer Mindestlohn hebt die unteren Einkommen.", { typ: "saettigung", k: 1.5 });
 e("m_mindestlohn", "kostendruck", 0.05, 1, "Höhere Löhne sind höhere Kosten für die Betriebe.");
-e("m_mindestlohn", "schattenwirtschaft", 0.03, 3, "Ist der Mindestlohn hoch, stellen manche Betriebe lieber ohne Vertrag ein.");
+// Kantenformel (Spielparameter): Schwarzarbeit lohnt sich erst ab spürbar hohem Mindestlohn —
+// darunter fast keine Reaktion, dann überproportional (Potenzkurve).
+ef("m_mindestlohn", "schattenwirtschaft", 0.03, 3, "Ist der Mindestlohn hoch, stellen manche Betriebe lieber ohne Vertrag ein.", { typ: "umkehr", exponent: 2 });
 e("m_mindestlohn", "ungleichheit", -0.04, 3, "Der Abstand zwischen unten und oben wird kleiner.");
 e("abwertung", "kostendruck", 0.04, 1, "Importierte Vorprodukte werden teurer.");
 e("leitzins", "kredite", -0.05, 2, "Hohe Zinsen verteuern Kredite.");
@@ -150,7 +211,8 @@ e("m_zoelle", "kostendruck", 0.03, 3, "Importierte Vorprodukte werden teurer.");
 e("m_zoelle", "export", -0.02, 9, "Handelspartner reagieren, und geschützte Firmen werden träger.");
 e("export", "industrie", 0.05, 2, "Exportaufträge lasten Fabriken aus.");
 e("industrie", "arbeitsplaetze_industrie", 0.05, 3, "Mehr Produktion braucht mehr Beschäftigte.");
-e("m_tourismuswerbung", "tourismus", 0.04, 6, "Werbung bringt mehr Gäste.");
+// Kantenformel (Spielparameter): Jede weitere Anzeigenkampagne bringt weniger Gäste — irgendwann kennt jeder das Plakat.
+ef("m_tourismuswerbung", "tourismus", 0.04, 6, "Werbung bringt mehr Gäste.", { typ: "saettigung", k: 2 });
 e("m_investitionsanreize", "investitionen", 0.05, 9, "Steuervorteile senken die Kosten einer Investition.");
 e("m_investitionsanreize", "auslandskapital", 0.03, 12, "Anreize ziehen auch ausländische Investoren an.");
 e("m_kmu", "mittelstand", 0.05, 6, "Förderprogramme stützen kleine Betriebe.");
@@ -161,14 +223,17 @@ e("auslandskapital", "investitionen", 0.04, 6, "Ausländisches Geld finanziert F
 // 0,08 % des BIP, weil die Nebenwirkungen zu spät und zu schwach kamen. Jetzt kommen sie zeitnah:
 // kleinerer Soforteffekt, schnellerer Schwarzmarkt, und die Knappheit treibt die realen Preise wieder hoch.
 e("m_preiskontrollen", "lebenshaltung", -0.03, 1, "Obergrenzen dämpfen sichtbare Preise im Supermarkt — solange Ware im Regal ist.");
-e("m_preiskontrollen", "schattenwirtschaft", 0.05, 2, "Unter Preisdeckeln wandern Waren auf graue Märkte.");
+// Kantenformel (Spielparameter): Der graue Markt springt erst an, wenn der Deckel wirklich beißt;
+// milde Aufsicht ändert fast nichts (Potenzkurve).
+ef("m_preiskontrollen", "schattenwirtschaft", 0.05, 2, "Unter Preisdeckeln wandern Waren auf graue Märkte.", { typ: "umkehr", exponent: 2 });
 e("m_preiskontrollen", "lebensmittelpreise", 0.05, 3, "Wo das Regal leer bleibt, treibt die Knappheit die realen Preise auf dem grauen Markt.");
 e("m_preiskontrollen", "landwirtschaft_einkommen", -0.05, 5, "Niedrige Preise treffen die Erzeuger.");
 e("inflation", "dollarisierung", 0.05, 1, "Bei hoher Inflation flüchten Sparer in Dollar und Gold.");
 e("abwertung", "dollarisierung", 0.04, 0, "Wer eine schwache Lira erlebt, traut ihr weniger.");
 e("dollarisierung", "auslandskapital", -0.02, 3, "Wenn schon Einheimische der Lira misstrauen, zögern Ausländer auch.");
 e("schattenwirtschaft", "steuereinnahmen", -0.04, 3, "Schwarzarbeit zahlt keine Steuern.");
-e("ungleichheit", "polarisierung", 0.02, 12, "Große Unterschiede verschärfen politische Gräben.");
+// Kantenformel (Spielparameter): Gräben reißen erst ab spürbarer Ungleichheit auf — erst nichts, dann viel.
+ef("ungleichheit", "polarisierung", 0.02, 12, "Große Unterschiede verschärfen politische Gräben.", { typ: "umkehr", exponent: 2 });
 e("gruendungen", "mittelstand", 0.03, 12, "Aus Gründungen wird Mittelstand.");
 
 // ---------------------------------------------------------------------------
@@ -188,10 +253,13 @@ m("haushalt", "m_steueramnestie", "Steueramnestie", 20, -0.1, 2, "Wer Schulden b
 m("haushalt", "m_steuerfahndung", "Steuerfahndung", 45, 0.05, 6, "Mehr Prüfer und Kontrollen gegen Steuerhinterziehung.");
 m("haushalt", "m_privatisierung", "Privatisierung", 30, -0.2, 12, "Verkauf staatlicher Unternehmen und Beteiligungen.");
 
-e("m_einkommensteuer", "steuereinnahmen", 0.05, 1, "Höhere Sätze bringen mehr Einnahmen.");
+// Kantenformel (Spielparameter, Laffer light): Je höher der Satz schon ist, desto weniger bringt
+// der nächste Punkt — Ausweichreaktionen wachsen mit der Höhe.
+ef("m_einkommensteuer", "steuereinnahmen", 0.05, 1, "Höhere Sätze bringen mehr Einnahmen.", { typ: "saettigung", k: 1.2 });
 e("m_einkommensteuer", "realeinkommen", -0.04, 1, "Netto bleibt weniger vom Lohn.");
 e("m_einkommensteuer", "schattenwirtschaft", 0.03, 6, "Hohe Steuern machen Schwarzarbeit attraktiver.");
-e("m_mwst", "steuereinnahmen", 0.07, 1, "Die Mehrwertsteuer ist die ergiebigste Steuer.");
+// Kantenformel (Spielparameter): Wie bei der Einkommensteuer — je Punkt kommt weniger in der Kasse an.
+ef("m_mwst", "steuereinnahmen", 0.07, 1, "Die Mehrwertsteuer ist die ergiebigste Steuer.", { typ: "saettigung", k: 1.2 });
 e("m_mwst", "lebenshaltung", 0.05, 1, "Sie steckt in jedem Preis im Laden.");
 e("m_mwst", "ungleichheit", 0.02, 6, "Ärmere geben einen größeren Teil ihres Einkommens für Konsum aus.");
 e("m_koerperschaftsteuer", "steuereinnahmen", 0.03, 3, "Gewinnsteuern bringen Einnahmen.");
@@ -216,8 +284,12 @@ e("m_privatisierung", "korruption", 0.02, 12, "Verkäufe unter Wert an Nahestehe
 e("leitzins", "zinslast", 0.03, 3, "Neue Schulden werden teurer.");
 e("schulden", "zinslast", 0.03, 6, "Mehr Schulden, mehr Zinsen.");
 e("defizit", "vertrauen_maerkte", -0.04, 1, "Hohe Defizite machen Anleger nervös.");
-e("zinslast", "vertrauen_maerkte", -0.02, 3, "Eine hohe Zinslast engt den Spielraum ein.");
-e("vertrauen_maerkte", "auslandskapital", 0.04, 1, "Vertrauen zieht Kapital an.");
+// Kantenformel (Spielparameter): Die Märkte übersehen eine hohe Zinslast lange — und kippen dann
+// in einem schmalen Band von „teuer" zu „unhaltbar" (S-Kurve um 55).
+ef("zinslast", "vertrauen_maerkte", -0.02, 3, "Eine hohe Zinslast engt den Spielraum ein.", { typ: "schwelle", k: 0.12, mitte: 55 });
+// Kantenformel (Spielparameter): Kapital reagiert vor allem im Übergang zwischen Misstrauen und
+// Vertrauen; am oberen und unteren Ende ändert ein Punkt kaum noch etwas (S-Kurve um 45).
+ef("vertrauen_maerkte", "auslandskapital", 0.04, 1, "Vertrauen zieht Kapital an.", { typ: "schwelle", k: 0.12, mitte: 45 });
 
 // ---------------------------------------------------------------------------
 // Arbeit und Soziales
@@ -231,10 +303,12 @@ g("arbeit", "rentenniveau", "Rentenniveau", 40, "Was Renten im Verhältnis zu de
 g("arbeit", "streikneigung", "Streikbereitschaft", 35, "Wie schnell Gewerkschaften und Beschäftigte zu Streiks greifen.");
 g("arbeit", "sozialkassen", "Lage der Sozialversicherung", 45, "Beiträge gegen Ausgaben der Renten- und Krankenkasse.");
 
-m("arbeit", "m_renten", "Rentenerhöhungen", 50, 1.2, 1, "Anpassung der Renten über die Inflation hinaus.");
+// Preise (Spielparameter): Renten zu kürzen ist der teuerste Eingriff überhaupt — einmal erhöht, gelten sie als Besitzstand.
+m("arbeit", "m_renten", "Rentenerhöhungen", 50, 1.2, 1, "Anpassung der Renten über die Inflation hinaus.", { streichen: 2.5 });
 m("arbeit", "m_fruehrente", "Frühverrentung", 40, 0.6, 3, "Früherer Renteneintritt für bestimmte Jahrgänge.");
 m("arbeit", "m_kindergeld", "Kindergeld und Familienhilfe", 30, 0.5, 2, "Geld für Familien mit Kindern.");
-m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, 0.6, 2, "Grundsicherung für bedürftige Haushalte.");
+// Preise (Spielparameter): Grundsicherung kürzen kostet massiv Rückhalt — die Betroffenen haben nichts mehr zu verlieren.
+m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, 0.6, 2, "Grundsicherung für bedürftige Haushalte.", { streichen: 2.5 });
 m("arbeit", "m_arbeitslosengeld", "Arbeitslosengeld", 30, 0.3, 2, "Höhe und Dauer des Arbeitslosengeldes.");
 m("arbeit", "m_gewerkschaftsrechte", "Gewerkschaftsrechte", 35, 0.0, 6, "Recht auf Organisation, Tarifverhandlung und Streik.");
 m("arbeit", "m_kinderbetreuung", "Kinderbetreuung", 25, 0.3, 12, "Plätze in Krippen und Kindergärten.");
@@ -315,7 +389,8 @@ e("luftqualitaet", "lebenserwartung", 0.02, 12, "Schlechte Luft macht krank.");
 g("bildung", "bildungsqualitaet", "Bildungsqualität", 45, "Was Schülerinnen und Schüler tatsächlich lernen.");
 g("bildung", "schulabbruch", "Schulabbruch", 40, "Wer die Schule ohne Abschluss verlässt.");
 g("bildung", "hochschule", "Qualität der Hochschulen", 45, "Forschung und Lehre an Universitäten.");
-g("bildung", "fachkraefte", "Fachkräfte", 45, "Gut ausgebildete Arbeitskräfte, die im Land bleiben.");
+// Trägheit (Spielparameter): Ausbildung dauert Jahre — der Bestand an Fachkräften folgt nur langsam.
+g("bildung", "fachkraefte", "Fachkräfte", 45, "Gut ausgebildete Arbeitskräfte, die im Land bleiben.", 0.08, 2);
 g("bildung", "abwanderung", "Abwanderung von Fachkräften", 55, "Gut Ausgebildete, die ins Ausland gehen.");
 g("bildung", "geburtenrate", "Geburtenrate", 45, "Kinder pro Frau, als Index.");
 
@@ -360,30 +435,38 @@ e("schulabbruch", "jugendarbeitslosigkeit", 0.03, 12, "Ohne Abschluss kaum Arbei
 // ---------------------------------------------------------------------------
 // Infrastruktur und Verkehr
 
-g("infrastruktur", "verkehrsnetz", "Straßen und Autobahnen", 60, "Zustand und Dichte des Straßennetzes.");
-g("infrastruktur", "bahnnetz", "Bahnnetz", 35, "Schnellzüge, Güterbahn und Nahverkehr auf der Schiene.");
+// Trägheit (Spielparameter): Straßen, Schienen und Kabel sind Sachkapital — einmal gebaut,
+// wirken sie über Jahre; ohne Pflege verfallen sie nur langsam. Allesamt träge Größen.
+g("infrastruktur", "verkehrsnetz", "Straßen und Autobahnen", 60, "Zustand und Dichte des Straßennetzes.", 0.08, 2.5);
+g("infrastruktur", "bahnnetz", "Bahnnetz", 35, "Schnellzüge, Güterbahn und Nahverkehr auf der Schiene.", 0.08, 2.5);
 g("infrastruktur", "stau", "Stau in den Städten", 60, "Wie viel Zeit Menschen im Verkehr verlieren.");
-g("infrastruktur", "logistik", "Logistik und Häfen", 55, "Wie schnell Waren ins Land, durchs Land und hinaus kommen.");
-g("infrastruktur", "internet", "Breitband und Mobilfunk", 55, "Schnelles Internet in Stadt und Land.");
-g("infrastruktur", "wachstum_regional", "Regionale Entwicklung", 50, "Wirtschaftliche Dynamik abseits der großen Zentren.");
+g("infrastruktur", "logistik", "Logistik und Häfen", 55, "Wie schnell Waren ins Land, durchs Land und hinaus kommen.", 0.08, 2);
+g("infrastruktur", "internet", "Breitband und Mobilfunk", 55, "Schnelles Internet in Stadt und Land.", 0.08, 2.5);
+g("infrastruktur", "wachstum_regional", "Regionale Entwicklung", 50, "Wirtschaftliche Dynamik abseits der großen Zentren.", 0.08, 2);
 
 m("infrastruktur", "m_autobahnen", "Autobahn- und Brückenbau", 55, 0.5, 36, "Neue Autobahnen, Brücken und Tunnel.");
-m("infrastruktur", "m_oepp_garantien", "Garantien für Betreiberprojekte", 50, 0.3, 12, "Der Staat garantiert privaten Betreibern Mindesteinnahmen bei Autobahnen, Flughäfen und Kliniken.");
+// Preise (Spielparameter): Aus Garantieverträgen steigt man kaum aus — Vertragsstrafen und Klagen
+// der Betreiber machen das Zurücknehmen teuer; die Garantien kosten laufend Verwaltungsaufwand.
+m("infrastruktur", "m_oepp_garantien", "Garantien für Betreiberprojekte", 50, 0.3, 12, "Der Staat garantiert privaten Betreibern Mindesteinnahmen bei Autobahnen, Flughäfen und Kliniken.", { streichen: 2.5, unterhalt_monat: 0.1 });
 m("infrastruktur", "m_bahn", "Bahnausbau", 40, 0.5, 48, "Schnellfahrstrecken und Güterbahn.");
 m("infrastruktur", "m_nahverkehr", "Nahverkehr", 40, 0.3, 24, "U-Bahnen, Straßenbahnen und Busse in den Städten.");
 m("infrastruktur", "m_breitband", "Breitbandausbau", 40, 0.2, 24, "Glasfaser und Mobilfunk bis ins Dorf.");
 m("infrastruktur", "m_regionalfoerderung", "Regionalförderung", 45, 0.3, 12, "Zuschüsse für strukturschwache Provinzen.");
 
-e("m_autobahnen", "verkehrsnetz", 0.04, 36, "Neue Straßen, sobald sie fertig sind.");
+// Kantenformel (Spielparameter): Die ersten Verbindungen nutzen am meisten; die zehnte Brücke
+// am selben Fluss kaum noch (abnehmender Grenznutzen der Infrastruktur-Ausgaben).
+ef("m_autobahnen", "verkehrsnetz", 0.04, 36, "Neue Straßen, sobald sie fertig sind.", { typ: "saettigung", k: 1.5 });
 e("m_autobahnen", "bauwirtschaft", 0.03, 3, "Großbaustellen beschäftigen die Bauwirtschaft.");
 e("m_autobahnen", "korruption", 0.01, 12, "Große Aufträge, große Versuchungen.");
 e("m_oepp_garantien", "verkehrsnetz", 0.02, 24, "Private Betreiber bauen schneller.");
 e("m_oepp_garantien", "zinslast", 0.02, 24, "Garantiezahlungen belasten künftige Haushalte.");
-e("m_bahn", "bahnnetz", 0.04, 48, "Neue Strecken, sobald sie fertig sind.");
+// Kantenformel (Spielparameter): Auch auf der Schiene — die fehlende Hauptstrecke zählt, die fünfte Nebenstrecke kaum.
+ef("m_bahn", "bahnnetz", 0.04, 48, "Neue Strecken, sobald sie fertig sind.", { typ: "saettigung", k: 1.5 });
 e("m_bahn", "luftqualitaet", 0.01, 48, "Mehr Güter auf der Schiene, weniger Lastwagen.");
 e("m_nahverkehr", "stau", -0.04, 24, "U-Bahnen holen Autos von der Straße.");
 e("m_nahverkehr", "luftqualitaet", 0.02, 24, "Weniger Abgase in den Städten.");
-e("m_breitband", "internet", 0.05, 24, "Schnelles Netz, wo es vorher keines gab.");
+// Kantenformel (Spielparameter): Die letzten Dörfer ans Netz zu bringen kostet je Anschluss am meisten und bringt am wenigsten.
+ef("m_breitband", "internet", 0.05, 24, "Schnelles Netz, wo es vorher keines gab.", { typ: "saettigung", k: 1.5 });
 e("m_regionalfoerderung", "wachstum_regional", 0.05, 12, "Förderung zieht Betriebe in schwächere Provinzen.");
 e("m_regionalfoerderung", "landflucht", -0.02, 24, "Wer vor Ort Arbeit findet, bleibt.");
 e("verkehrsnetz", "logistik", 0.04, 6, "Gute Straßen, schnelle Lieferungen.");
@@ -405,7 +488,9 @@ g("energie", "erneuerbare", "Erneuerbare Energie", 45, "Anteil von Wasser, Wind,
 g("energie", "luftqualitaet", "Luftqualität", 45, "Wie sauber die Luft in den Städten ist.");
 g("energie", "klimaschutz", "Klimaschutz", 35, "Wie stark die Emissionen sinken.");
 
-m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1.0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.");
+// Preise (Spielparameter): Subventionen abbauen, nachdem sich Haushalte und Betriebe an billige
+// Energie gewöhnt haben, kostet Aufstandsrückhalt (Gelbwesten-Effekt); der Deckel kostet laufend Verwaltung.
+m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1.0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", { streichen: 2.5, unterhalt_monat: 0.1 });
 m("energie", "m_solar_wind", "Ausbau von Sonne und Wind", 45, 0.2, 24, "Ausschreibungen und Einspeisevergütungen.");
 m("energie", "m_kernkraft", "Kernkraft", 50, 0.2, 48, "Weitere Reaktoren neben dem ersten Kraftwerk.");
 m("energie", "m_gasfoerderung", "Heimische Gasförderung", 50, 0.2, 24, "Förderung aus Feldern im Schwarzen Meer.");
@@ -701,20 +786,25 @@ g("sicherheit", "kriminalitaet", "Kriminalität", 45, "Diebstahl, Gewalt, organi
 g("sicherheit", "terrorgefahr", "Terrorgefahr", 40, "Gefahr von Anschlägen.");
 g("sicherheit", "justizvertrauen", "Vertrauen in die Justiz", 35, "Ob Menschen glauben, vor Gericht fair behandelt zu werden.");
 g("sicherheit", "korruption", "Korruption", 55, "Bestechung, Vetternwirtschaft und manipulierte Vergaben.");
-g("sicherheit", "rechtssicherheit", "Rechtssicherheit", 40, "Ob Regeln für alle gleich gelten und vorhersehbar sind.");
+// Trägheit (Spielparameter): Verlässlichkeit von Regeln entsteht und verliert sich über Jahre, nicht über Wochen.
+g("sicherheit", "rechtssicherheit", "Rechtssicherheit", 40, "Ob Regeln für alle gleich gelten und vorhersehbar sind.", 0.08, 2);
 g("sicherheit", "militaer", "Einsatzbereitschaft der Streitkräfte", 60, "Ausrüstung, Ausbildung und Moral der Armee.");
 
 m("sicherheit", "m_polizei", "Polizei und Gendarmerie", 60, 0.3, 6, "Personal und Ausstattung der Sicherheitskräfte.");
 m("recht", "m_justizreform", "Justizreform", 35, 0.1, 18, "Reformpaket der Gerichtsverfassung: Verfahrensrecht, Ausbildung, Gerichtsstruktur. Richterstellen und Richterrat sind eigene Stellschrauben.");
 m("recht", "m_antikorruption", "Korruptionsbekämpfung", 35, 0.05, 12, "Unabhängige Ermittler, offene Vergaben, Vermögenserklärungen.");
 m("sicherheit", "m_friedensprozess", "Friedensprozess", 55, 0.1, 12, "Politische Lösung mit Waffenabgabe und Wiedereingliederung.");
-m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1.0, 12, "Budget für Streitkräfte und Rüstungsindustrie.");
+// Preise (Spielparameter): Rüstung kürzen kostet doppelt — Generalstab, Rüstungsbetriebe und das
+// Lager der Nationalisten lesen jede Kürzung als Schwäche; der Apparat kostet laufend Verwaltung.
+m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1.0, 12, "Budget für Streitkräfte und Rüstungsindustrie.", { streichen: 2, unterhalt_monat: 0.1 });
 m("militaer", "m_ruestungsindustrie", "Heimische Rüstungsindustrie", 60, 0.3, 24, "Drohnen, Panzer, Schiffe aus eigener Produktion.");
 
 p("sicherheit", "p_korruption", "Korruptionsskandale", 45, 60, "Vergaben und Ämter werden gekauft; die Presse berichtet.");
 p("sicherheit", "p_kriminalitaet", "Unsicherheit auf den Straßen", 35, 60, "Menschen fühlen sich nachts nicht mehr sicher.");
 
-e("m_polizei", "kriminalitaet", -0.04, 6, "Mehr Streifen, weniger Straftaten.");
+// Kantenformel (Spielparameter): Mehr Streifen helfen, bis jede Ecke abgedeckt ist — danach bringt
+// jede weitere Streife kaum noch etwas (abnehmender Grenznutzen).
+ef("m_polizei", "kriminalitaet", -0.04, 6, "Mehr Streifen, weniger Straftaten.", { typ: "saettigung", k: 1.5 });
 e("m_polizei", "terrorgefahr", -0.02, 6, "Mehr Ermittler, mehr vereitelte Anschläge.");
 e("armut", "kriminalitaet", 0.03, 6, "Not treibt manche in die Kriminalität.");
 e("jugendarbeitslosigkeit", "kriminalitaet", 0.02, 6, "Junge ohne Perspektive sind anfälliger.");
@@ -722,7 +812,9 @@ e("m_justizreform", "justizvertrauen", 0.04, 18, "Faire und schnelle Verfahren s
 e("m_justizreform", "rechtssicherheit", 0.04, 18, "Vorhersehbare Urteile.");
 e("m_antikorruption", "korruption", -0.05, 12, "Wer erwischt wird, zahlt einen Preis.");
 e("m_antikorruption", "p_korruption", 0.03, 3, "Ermittlungen bringen erst einmal Skandale ans Licht.");
-e("korruption", "p_korruption", 0.1, 0, "Verbreitete Korruption fliegt irgendwann auf.");
+// Kantenformel (Spielparameter): Vereinzelt bleibt Korruption verborgen; ist sie verbreitet,
+// fliegt sie gehäuft auf — Skandale wachsen überproportional (Potenzkurve).
+ef("korruption", "p_korruption", 0.1, 0, "Verbreitete Korruption fliegt irgendwann auf.", { typ: "umkehr", exponent: 2 });
 e("korruption", "auslandskapital", -0.03, 6, "Investoren meiden Länder, in denen man zahlen muss.");
 e("korruption", "justizvertrauen", -0.03, 6, "Wer Korruption sieht, verliert Vertrauen.");
 e("rechtssicherheit", "auslandskapital", 0.04, 6, "Investoren brauchen verlässliche Regeln.");
@@ -731,7 +823,9 @@ e("justizvertrauen", "rechtssicherheit", 0.03, 6, "Eine vertrauenswürdige Justi
 e("m_friedensprozess", "terrorgefahr", -0.04, 12, "Wer die Waffen niederlegt, verübt keine Anschläge.");
 e("m_friedensprozess", "polarisierung", 0.02, 3, "Über den Prozess wird heftig gestritten.");
 e("m_friedensprozess", "wachstum_regional", 0.02, 24, "Frieden bringt Investitionen in den Südosten.");
-e("terrorgefahr", "tourismus", -0.04, 1, "Anschläge vertreiben Gäste.");
+// Kantenformel (Spielparameter): Gäste verzeihen ein erhöhtes Risiko lange — im mittleren Band
+// kippt die Buchungslage schlagartig, danach ist der Ruf ohnehin dahin (S-Kurve um 50).
+ef("terrorgefahr", "tourismus", -0.04, 1, "Anschläge vertreiben Gäste.", { typ: "schwelle", k: 0.1, mitte: 50 });
 e("terrorgefahr", "investitionen", -0.02, 3, "Unsicherheit bremst Investitionen.");
 e("m_verteidigung", "militaer", 0.04, 12, "Mehr Geld, bessere Ausrüstung.");
 e("m_ruestungsindustrie", "militaer", 0.02, 24, "Eigene Waffen, weniger Abhängigkeit.");
@@ -745,12 +839,17 @@ e("kriminalitaet", "p_kriminalitaet", 0.1, 0, "Steigende Kriminalität wird spü
 g("gesellschaft", "pressefreiheit", "Pressefreiheit", 30, "Ob Journalisten frei berichten können.");
 g("gesellschaft", "polarisierung", "Polarisierung", 70, "Wie tief die politischen Gräben sind.");
 g("gesellschaft", "vertrauen_regierung", "Vertrauen in die Regierung", 45, "Ob die Menschen der Regierung glauben.");
-g("gesellschaft", "religioesitaet", "Religiöse Prägung", 60, "Wie stark religiöse Werte den Alltag prägen.");
+// Trägheit (Spielparameter): Werteprägung ändert sich über Generationen, nicht über Monate.
+g("gesellschaft", "religioesitaet", "Religiöse Prägung", 60, "Wie stark religiöse Werte den Alltag prägen.", 0.08, 2);
 g("gesellschaft", "frauenrechte", "Gleichstellung", 40, "Rechte und Schutz von Frauen im Alltag.");
 g("gesellschaft", "zivilgesellschaft", "Zivilgesellschaft", 40, "Vereine, Stiftungen und Initiativen, die sich einmischen.");
 
-m("gesellschaft", "m_medienaufsicht", "Medienaufsicht", 65, 0.0, 3, "Strafen und Sendeverbote durch die Rundfunkaufsicht.");
-m("gesellschaft", "m_internetsperren", "Internetsperren", 60, 0.0, 1, "Sperren von Seiten und Beiträgen, Drosselung sozialer Medien.");
+// Preise (Spielparameter): Einen Aufsichtsapparat aufzubauen ist billig, ihn abzubauen teuer —
+// die Behörde verteidigt sich selbst, und das eigene Lager liest Öffnung als Schwäche (Exit-Preis).
+m("gesellschaft", "m_medienaufsicht", "Medienaufsicht", 65, 0.0, 3, "Strafen und Sendeverbote durch die Rundfunkaufsicht.", { einfuehren: 1.2, streichen: 2 });
+// Preise (Spielparameter): Sperr-Infrastruktur läuft vom ersten Tag an; sie abzuschalten kostet mehr,
+// als sie auszubauen kostete — und sie frisst laufend Verwaltungskraft (Provider-Aufsicht, Gerichte).
+m("gesellschaft", "m_internetsperren", "Internetsperren", 60, 0.0, 1, "Sperren von Seiten und Beiträgen, Drosselung sozialer Medien.", { einfuehren: 1.2, streichen: 1.8, unterhalt_monat: 0.15 });
 m("gesellschaft", "m_staatsmedien", "Staatliche Medien und Werbung", 60, 0.1, 3, "Budget für Staatssender und staatliche Anzeigen.");
 m("gesellschaft", "m_religionsbehoerde", "Budget der Religionsbehörde", 60, 0.2, 6, "Moscheen, Imame, religiöse Bildung.");
 m("gesellschaft", "m_gewaltschutz", "Schutz vor Gewalt gegen Frauen", 35, 0.05, 12, "Frauenhäuser, Schutzanordnungen, Schulungen für Polizei.");
@@ -761,9 +860,13 @@ p("gesellschaft", "p_polarisierung", "Tiefe Spaltung", 65, 70, "Die Lager reden 
 e("m_medienaufsicht", "pressefreiheit", -0.05, 3, "Strafen schüchtern Redaktionen ein.");
 e("m_internetsperren", "pressefreiheit", -0.04, 1, "Wer nicht lesen kann, erfährt nichts.");
 e("m_internetsperren", "internet", -0.01, 1, "Gesperrte Dienste bremsen auch Firmen.");
-e("m_staatsmedien", "vertrauen_regierung", 0.02, 3, "Freundliche Berichterstattung stützt die Regierung, bei einem Teil der Menschen.");
+// Kantenformel (Spielparameter, Tropico-Zeitungsregel): Jeder weitere gleichgerichtete Kanal
+// überzeugt weniger — wer zehn freundliche Sender hat, gewinnt mit dem elften niemanden mehr.
+ef("m_staatsmedien", "vertrauen_regierung", 0.02, 3, "Freundliche Berichterstattung stützt die Regierung, bei einem Teil der Menschen.", { typ: "saettigung", k: 2 });
 e("m_staatsmedien", "polarisierung", 0.02, 6, "Die anderen fühlen sich übergangen.");
-e("pressefreiheit", "korruption", -0.03, 12, "Wo recherchiert wird, wird weniger geschmiert.");
+// Kantenformel (Spielparameter, Democracy 4: Corruption ~ −x⁶): Erst eine wirklich freie Presse
+// enthüllt und bremst; bei mittlerer Freiheit ändert sich sichtbar fast nichts (Potenzkurve).
+ef("pressefreiheit", "korruption", -0.03, 12, "Wo recherchiert wird, wird weniger geschmiert.", { typ: "umkehr", exponent: 6 });
 e("pressefreiheit", "rechtssicherheit", 0.02, 12, "Öffentliche Kontrolle diszipliniert Behörden.");
 e("pressefreiheit", "auslandskapital", 0.01, 12, "Investoren lesen auch die Berichte über Pressefreiheit.");
 e("m_religionsbehoerde", "religioesitaet", 0.01, 24, "Mehr religiöse Angebote.");
@@ -801,9 +904,13 @@ e("m_grenzschutz", "gefluechtete", -0.01, 12, "Weniger neue Ankünfte.");
 e("m_grenzschutz", "beziehungen_eu", 0.01, 6, "Die EU schätzt Grenzschutz, sie zahlt dafür.");
 e("gefluechtete", "informelle_arbeit", 0.02, 6, "Viele Geflüchtete arbeiten ohne Vertrag.");
 e("gefluechtete", "mieten", 0.01, 6, "Mehr Nachfrage nach billigen Wohnungen.");
-e("gefluechtete", "p_migrationsdruck", 0.06, 0, "Viele Geflüchtete, viel Streit.");
+// Kantenformel (Spielparameter): Spannungen wachsen überproportional mit der Zahl — Quartiere,
+// in denen sich Gruppen täglich begegnen, kippen eher als Statistiken es ahnen lassen.
+ef("gefluechtete", "p_migrationsdruck", 0.06, 0, "Viele Geflüchtete, viel Streit.", { typ: "umkehr", exponent: 2 });
 e("arbeitslosigkeit", "p_migrationsdruck", 0.03, 1, "In schlechten Zeiten sucht man Schuldige.");
-e("m_eu_annaeherung", "beziehungen_eu", 0.05, 12, "Reformen öffnen Türen in Brüssel.");
+// Kantenformel (Spielparameter): Die ersten Reformen öffnen Türen in Brüssel; danach wird jeder
+// weitere Schritt mühsamer, weil die leichten Kapitel zuerst kommen (abnehmender Grenznutzen).
+ef("m_eu_annaeherung", "beziehungen_eu", 0.05, 12, "Reformen öffnen Türen in Brüssel.", { typ: "saettigung", k: 1.5 });
 e("m_eu_annaeherung", "rechtssicherheit", 0.02, 24, "EU-Standards verlangen verlässliche Regeln.");
 e("pressefreiheit", "beziehungen_eu", 0.02, 6, "Die EU achtet auf Pressefreiheit.");
 e("beziehungen_eu", "export", 0.03, 12, "Die EU ist der wichtigste Absatzmarkt.");
@@ -905,6 +1012,11 @@ function ee(from: string, to: string, weight: number, lag: number, why: string) 
   if (E.some((k) => k.from === from && k.to === to)) return;
   e(from, to, weight, lag, why);
 }
+/** Wie ee, aber mit nichtlinearer Antwort (Kantenformel). */
+function eef(from: string, to: string, weight: number, lag: number, why: string, form: FormSpec) {
+  if (E.some((k) => k.from === from && k.to === to)) return;
+  ef(from, to, weight, lag, why, form);
+}
 
 ee("m_medienaufsicht", "polarisierung", 0.03, 3, "Ein gegängeltes Medienfeld macht den Streit nicht leiser, nur lauter und bitterer.");
 ee("m_medienaufsicht", "beziehungen_eu", -0.03, 3, "Brüssel liest Sendeverbote als Rückschritt bei den Grundrechten.");
@@ -917,7 +1029,9 @@ ee("m_internetsperren", "junge", -0.05, 1, "Gesperrte Plattformen treffen vor al
 ee("m_internetsperren", "staedtische_saekulare", -0.04, 1, "Sperren wirken wie Gängelung.");
 ee("m_internetsperren", "gruendungen", -0.03, 3, "Digitale Firmen meiden ein Land, in dem Seiten gesperrt werden.");
 ee("m_internetsperren", "investitionen", -0.02, 3, "Investoren fürchten Willkür im Netz.");
-ee("m_internetsperren", "ansehen", -0.02, 3, "Netzsperren gelten im Ausland als Zeichen von Zensur.");
+// Kantenformel (Spielparameter): Einzelne Sperren nimmt das Ausland hin; flächendeckende Zensur
+// zieht überproportional Ärger nach sich — erst nichts, dann viel (Potenzkurve).
+eef("m_internetsperren", "ansehen", -0.02, 3, "Netzsperren gelten im Ausland als Zeichen von Zensur.", { typ: "umkehr", exponent: 2 });
 ee("m_internetsperren", "zivilgesellschaft", -0.03, 3, "Ohne freie Kanäle verstummen Initiativen.");
 ee("m_internetsperren", "polarisierung", 0.02, 3, "Verbote treiben Menschen in Gegenöffentlichkeiten.");
 ee("m_staatsmedien", "pressefreiheit", -0.03, 3, "Wer den Anzeigenmarkt beherrscht, beherrscht die Berichte.");
@@ -1179,7 +1293,9 @@ ee("m_bauamnestie", "rechtssicherheit", -0.03, 6, "Wer Regeln bricht, wird beloh
 // Fachbereiche (FACHBEREICHE.md): Recht, Streitkräfte, Kultur, Instandhaltung. Jeder Bereich hat eigene Größen, damit Reformen
 // nicht nur Geld bewegen, sondern etwa die Unabhängigkeit der Justiz. Startwerte sind Spielparameter; belegte Anker stehen im Text.
 
-g("recht", "justiz_unabhaengigkeit", "Unabhängigkeit der Justiz", 32, "Ob Richter und Staatsanwälte ohne Weisung und Druck entscheiden. Der Richterrat, den Präsident und Parlament besetzen, prägt sie.", 0.03);
+// Trägheit (Spielparameter): Unabhängigkeit wächst und bröckelt über Jahre — Ernennungspraxis und
+// Berufungswege ändern sich nicht mit einem Gesetz allein.
+g("recht", "justiz_unabhaengigkeit", "Unabhängigkeit der Justiz", 32, "Ob Richter und Staatsanwälte ohne Weisung und Druck entscheiden. Der Richterrat, den Präsident und Parlament besetzen, prägt sie.", 0.03, 2.5);
 g("recht", "justiz_kapazitaet", "Kapazität der Gerichte", 45, "Richter, Staatsanwälte und Gerichtssäle im Verhältnis zu den Verfahren. Die Türkei hat 17 Richter je 100.000 Einwohner, der europäische Schnitt liegt bei 22.", 0.03);
 g("recht", "justiz_effizienz", "Effizienz der Verfahren", 50, "Wie schnell Verfahren enden. Strafgerichte brauchten 2024 im Schnitt 228, Zivilgerichte 231 Tage, die Vollstreckung 919.", 0.05);
 g("recht", "urteilsbefolgung", "Befolgung von Urteilen", 35, "Ob Behörden und Gerichte Urteile des Verfassungsgerichts und des Straßburger Gerichtshofs umsetzen. Das Verfahren im Fall Kavala läuft seit 2022 nach Artikel 46.", 0.03);
@@ -1207,7 +1323,9 @@ g("infrastruktur", "wartungszustand", "Zustand der Anlagen", 55, "Wie gut Straß
 m("recht", "m_richterstellen", "Richter- und Staatsanwaltsstellen", 45, 0.15, 24, "Mehr Stellen, Ausbildungsplätze und Gerichtssäle; wirkt erst nach Jahren, weil die Ausbildung dauert.");
 m("recht", "m_richterrat", "Besetzung des Richterrats", 25, 0.0, 12, "Wer die Mitglieder des Richter- und Staatsanwaltsrats (HSK) bestimmt, der über Ernennung, Versetzung und Beförderung von Richtern entscheidet.");
 m("recht", "m_haftvermeidung", "Haftvermeidung und Bewährung", 30, 0.02, 12, "Untersuchungshaft nur als letztes Mittel, Bewährung und elektronische Aufsicht statt Vollzug.");
-m("recht", "m_notstand", "Ausnahmezustand und Sonderbefugnisse", 10, 0.0, 1, "Wie weit die Regierung mit Notstandsbefugnissen und Sonderregeln handelt, statt über Gesetze im normalen Verfahren.");
+// Preise (Spielparameter): Den Notstand zu beenden, kostet mehr als ihn zu verhängen — Gerichte,
+// Geheimdienste und das Sicherheitslager bremsen; der Apparat frisst laufend Verwaltungskraft.
+m("recht", "m_notstand", "Ausnahmezustand und Sonderbefugnisse", 10, 0.0, 1, "Wie weit die Regierung mit Notstandsbefugnissen und Sonderregeln handelt, statt über Gesetze im normalen Verfahren.", { einfuehren: 1.2, streichen: 2.5, unterhalt_monat: 0.3 });
 m("recht", "m_urteilsumsetzung", "Umsetzung von Gerichtsurteilen aus Straßburg und Ankara", 30, 0.0, 6, "Ob Behörden und Gerichte Urteile des Verfassungsgerichts und des Europäischen Gerichtshofs für Menschenrechte umsetzen.");
 m("kultur", "m_denkmalschutz", "Denkmalschutz und Restaurierung", 40, 0.1, 12, "Personal, Mittel und Auflagen für den Erhalt historischer Stätten und Altstädte.");
 m("kultur", "m_kulturfoerderung", "Kunst- und Kulturförderung", 40, 0.08, 6, "Theater, Musik, Literatur, Filmförderung und Festivals.");
@@ -1218,7 +1336,9 @@ m("militaer", "m_uebungen", "Ausbildung und Übungen", 45, 0.15, 12, "Manöver, 
 m("militaer", "m_offiziersauswahl", "Beförderung im Obersten Militärrat", 35, 0.0, 6, "Nach welchen Kriterien der Oberste Militärrat im August Offiziere befördert und pensioniert.");
 m("infrastruktur", "m_instandhaltung", "Instandhaltung der Infrastruktur", 45, 0.2, 12, "Wartung, Erneuerung und Sanierung von Straßen, Brücken, Schienen und Leitungen.");
 
-ee("m_richterstellen", "justiz_kapazitaet", 0.06, 12, "Mehr Stellen bedeuten mehr erledigte Verfahren, sobald die Ausbildung abgeschlossen ist.");
+// Kantenformel (Spielparameter): Mehr Richter helfen nur, solange Säle, Akten und Geschäftsstellen
+// mitwachsen — danach staut sich der Zuwachs (abnehmender Grenznutzen).
+eef("m_richterstellen", "justiz_kapazitaet", 0.06, 12, "Mehr Stellen bedeuten mehr erledigte Verfahren, sobald die Ausbildung abgeschlossen ist.", { typ: "saettigung", k: 1.8 });
 ee("m_richterstellen", "justiz_effizienz", 0.03, 12, "Mit mehr Richtern schrumpfen die Wartezeiten.");
 ee("m_richterstellen", "beamte", 0.03, 1, "Neue Stellen im Staatsdienst.");
 ee("m_richterrat", "justiz_unabhaengigkeit", 0.06, 6, "Ein Rat, den Kollegen wählen, ist schwerer zu steuern als einer, den Minister und Präsident besetzen.");
@@ -1231,7 +1351,9 @@ ee("m_haftvermeidung", "justizvertrauen", 0.01, 12, "Weniger Wartezeit in Haft w
 ee("m_haftvermeidung", "kriminalitaet", 0.01, 12, "Ein Teil der Entlassenen wird rückfällig.");
 ee("m_haftvermeidung", "konservative", -0.03, 1, "Wird als Nachgiebigkeit gegenüber Straftätern gelesen.");
 ee("m_haftvermeidung", "staedtische_saekulare", 0.02, 1, "Verhältnismäßigkeit gilt ihnen als Grundsatz.");
-ee("m_notstand", "ausnahmerecht", 0.1, 0, "Notstandsbefugnisse bedeuten mehr Ausnahmerecht.");
+// Kantenformel (Spielparameter): Sanfte Befugnisse ändern wenig; der volle Notstand verwandelt
+// die Rechtsordnung — die Wirkung wächst überproportional mit der Härte (Potenzkurve).
+eef("m_notstand", "ausnahmerecht", 0.1, 0, "Notstandsbefugnisse bedeuten mehr Ausnahmerecht.", { typ: "umkehr", exponent: 2 });
 ee("m_notstand", "terrorgefahr", -0.03, 3, "Weitreichende Befugnisse erschweren Anschläge.");
 ee("m_notstand", "konservative", 0.03, 1, "Ein Teil der Wähler will einen starken Staat in der Krise.");
 ee("m_urteilsumsetzung", "urteilsbefolgung", 0.08, 3, "Wer Urteile umsetzt, befolgt sie.");
@@ -1244,9 +1366,13 @@ ee("m_justizreform", "justiz_unabhaengigkeit", 0.03, 6, "Ein Reformpaket stärkt
 ee("m_justizreform", "justiz_effizienz", 0.03, 12, "Besseres Verfahrensrecht und bessere Ausbildung verkürzen die Verfahren.");
 ee("m_antikorruption", "justiz_unabhaengigkeit", 0.02, 6, "Unabhängige Ermittler brauchen unabhängige Gerichte.");
 ee("m_verwaltungsdigital", "justiz_effizienz", 0.03, 12, "Digitale Akten und elektronische Zustellung beschleunigen die Verfahren.");
-ee("justiz_unabhaengigkeit", "justizvertrauen", 0.05, 6, "Wer glaubt, dass Richter frei entscheiden, vertraut den Gerichten.");
+// Kantenformel (Spielparameter): Vertrauen springt erst, wenn die Unabhängigkeit sichtbar über der
+// Mitte liegt; darunter gilt sie als Fassade, darüber wird jeder Schritt geglaubt (S-Kurve um 50).
+eef("justiz_unabhaengigkeit", "justizvertrauen", 0.05, 6, "Wer glaubt, dass Richter frei entscheiden, vertraut den Gerichten.", { typ: "schwelle", k: 0.12, mitte: 50 });
 ee("justiz_unabhaengigkeit", "rechtssicherheit", 0.04, 6, "Unabhängige Richter machen Entscheidungen berechenbar.");
-ee("justiz_unabhaengigkeit", "korruption", -0.03, 12, "Unabhängige Gerichte verfolgen auch Mächtige.");
+// Kantenformel (Spielparameter): Abschreckung wirkt erst, wenn Unabhängigkeit unzweifelhaft ist —
+// darunter fürchten Mächtige die Gerichte kaum (Potenzkurve).
+eef("justiz_unabhaengigkeit", "korruption", -0.03, 12, "Unabhängige Gerichte verfolgen auch Mächtige.", { typ: "umkehr", exponent: 3 });
 ee("justiz_unabhaengigkeit", "auslandskapital", 0.02, 12, "Investoren prüfen zuerst, ob sie ihr Recht bekommen.");
 ee("justiz_unabhaengigkeit", "urteilsbefolgung", 0.03, 6, "Unabhängige Gerichte setzen ihre Urteile eher durch.");
 ee("justiz_unabhaengigkeit", "legitimitaet", 0.03, 6, "Wer die Regeln für fair hält, hält die Regierung für rechtmäßig.");

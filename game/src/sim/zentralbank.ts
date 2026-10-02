@@ -32,7 +32,7 @@ export const STUFEN: Record<Unabhaengigkeit, { name: string; text: string }> = {
 export const EMPFAENGLICH: Record<GovernorStance, number> = { vorsichtig: 0.3, ausgewogen: 0.6, gefuegig: 1 };
 
 /** Prozentpunkte, um die eine voll empfängliche Bank ihren Beschluss je Einheit Druck verschiebt. */
-export const DRUCK_PUNKTE = 3;
+export const DRUCK_PUNKTE = 2.5;
 export { DRUCK_STAERKE, kritikStaerke };
 /** Ein vertrauliches Gespräch mit der Gouverneurin höchstens so oft (Tage). */
 export const GESPRAECH_ABKUEHLUNG = 30;

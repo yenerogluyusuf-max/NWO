@@ -15,6 +15,7 @@ import { ergaenzeFiguren } from "./figuren";
 import { migriereVerfassung } from "./aufmerksamkeit";
 import { zinssitzung } from "./zentralbank";
 import { wirtschaftMonat } from "./wirtschaft-tick";
+import { migriereUmsetzung, umsetzungMonat } from "./umsetzung";
 import { turkey2026 } from "./scenario";
 
 // Das Netz, das Protokoll und die Eingriffe liegen in eigenen Dateien; hier bleiben die Namen erreichbar.
@@ -143,6 +144,9 @@ export function tick(world: World): void {
 /** Politiknetz einen Monat fortschreiben und an das Wirtschaftsmodell zurückkoppeln. */
 function monthlyNet(world: World): void {
   const e = world.economy;
+  // INN-2: Erst läuft der Umsetzungsstand einen Monat weiter, dann wirken die Kanten
+  // mit dem neuen Stand — so zählt auch der erste Monat nach einem Beschluss.
+  umsetzungMonat(world.net);
   stepNet(NET, world.net, e, REGIONAL);
   e.policyCost = policyCost(NET, world.net);
   const cost = nationalAverage(NET, world.net, "kostendruck") - startAverage(NET, world.net, "kostendruck");
@@ -256,6 +260,9 @@ export function load(json: string): World {
   ergaenzeFiguren(w);
   // Ältere Spielstände: das Belastungs-/Aufmerksamkeitskonto lädt mit den Startwerten
   migriereVerfassung(w);
+  // Ältere Spielstände (INN-2): Es gab keinen Umsetzungsstand; Beschlossenes gilt als voll
+  // umgesetzt (fehlender Eintrag = 100), beschädigte Einträge werden repariert
+  migriereUmsetzung(NET, w.net);
   return w;
 }
 

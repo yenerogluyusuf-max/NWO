@@ -1,10 +1,11 @@
 // Bausteine für die Kataloge: Effekte aus Zielwerten, Orte aus dem Erbekatalog.
 
 import { NODES } from "../politiknetz";
+import { decayVon } from "../../sim/netz";
 import { ERBE_NACH_ID } from "../erbe";
 import type { Effekt } from "../../sim/reich-typen";
 
-const DECAY = new Map(NODES.map((n) => [n.id, n.decay]));
+const DECAY = new Map(NODES.map((n) => [n.id, decayVon(n)]));
 
 /**
  * Dauerhafte Verschiebung einer Größe um `verschiebung` Punkte: Das Netz zieht jeden Monat einen Teil der Abweichung zurück

@@ -23,7 +23,7 @@ import { erzeugeFiguren, figur, anrede } from "./figuren";
 import { personenMonat } from "./personen-monat";
 import { ausscheiden } from "./nachfolge";
 import { AEMTER } from "./personen";
-import { gesetzeAbstimmen, REGELN, stimmenSicht } from "./handeln";
+import { gesetzeAbstimmen, REGELN, stimmenSicht, unterhaltKosten } from "./handeln";
 import { krisenAktualisieren } from "./krisen";
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
@@ -219,6 +219,8 @@ export interface KapitalEinkommen {
   mehrheit: number;
   /** Legitimität der Regierung: über 60 ein Zuschlag, darunter ein Abschlag (höchstens ±1) */
   legitimitaet: number;
+  /** Laufender Unterhalt der Maßnahmen mit `unterhalt_monat` (Abzug, positiv angegeben) */
+  unterhalt: number;
   summe: number;
   /** Datum der nächsten Gutschrift */
   naechste: string;
@@ -234,7 +236,9 @@ export function kapitalEinkommen(world: World): KapitalEinkommen {
   const f = schwierig(world).kapital;
   const legit = nationalAverage(NET, world.net, "legitimitaet");
   const legitimitaet = Number.isFinite(legit) ? Math.max(-1, Math.min(1, (legit - 60) / 40)) : 0;
-  return { grund: SPIEL.kapitalGrund * f, vertrauen: vertrauen * f, mehrheit: mehrheit * f, legitimitaet: legitimitaet * f, summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f, naechste, grenze: REGELN.kapitalMax };
+  // Vier-Preise-Regel: Maßnahmen mit Unterhaltspreis zehren monatlich am Kapital, anteilig zur Stufe
+  const unterhalt = unterhaltKosten(world).summe;
+  return { grund: SPIEL.kapitalGrund * f, vertrauen: vertrauen * f, mehrheit: mehrheit * f, legitimitaet: legitimitaet * f, unterhalt, summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt, naechste, grenze: REGELN.kapitalMax };
 }
 
 function spielMonat(world: World, rng: Rng): void {

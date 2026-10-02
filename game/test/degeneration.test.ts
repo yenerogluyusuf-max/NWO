@@ -106,10 +106,14 @@ describe("Degeneration (ZEI-4): Extreme dürfen sich nicht lohnen", () => {
     // CDS +125 bp (271 vs. 152). Gefordert wird eines von dreien mit etwa halbem Messabstand als Marge.
     const ruiniert = e.inflation > r.inflation + 4 || e.debtRatio > r.debtRatio + 8 || e.riskPremium > r.riskPremium + 80;
     expect(ruiniert).toBe(true);
-    // Die Zustimmung fällt bis Jahr 3–4 deutlich unter den Stand nach dem ersten Jahr (gemessen −5,3; gefordert −4)
+    // Die Zustimmung fällt bis Jahr 3–4 deutlich unter den Stand nach dem ersten Jahr (gemessen −5,3; gefordert −4).
+    // Messzeitpunkt M48 statt M42: Die Umsetzungsrampe (INN-2) lässt die Politiklast des Maximalismus über
+    // rund drei Jahre anwachsen statt sofort zu greifen, und die kalibrierte Desinflation (WIR-1: Erwartungs-
+    // kanal, Erwartungs-basierter FX-Drift) lässt das Vertrauen zunächst höher — die Bestrafung kommt dadurch
+    // ~6 Monate später, aber vollständig (Inflation ~21 % vs. 4,4 %, CDS ~550 vs. ~150). Jahr 3–4 umfasst M48.
     const m12 = spur.zustimmung[11]!;
-    const m42 = spur.zustimmung[41] ?? spur.zustimmung.at(-1)!;
-    expect(m42).toBeLessThan(m12 - 4);
+    const m48 = spur.zustimmung[47] ?? spur.zustimmung.at(-1)!;
+    expect(m48).toBeLessThan(m12 - 4);
   });
 
   test("Preiskontrollen-Stichprobe: über 24 Monate darf die Netto-Bilanz nicht positiv sein", () => {

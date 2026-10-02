@@ -10,27 +10,34 @@ export const PARAMS = {
   /** Ausländische Inflation in % (für den Inflationsabstand beim Wechselkurs) */
   foreignInflation: 2.5,
   /** Z1: Wirkung des Realzinses auf die Auslastung (je Prozentpunkt, pro Monat) */
-  rateOnGap: 0.05,
+  rateOnGap: 0.02,
+  /**
+   * Z1: Sättigung des Zinskanals (Prozentpunkte Realzins): Bei extremen Realzinsen
+   * (2021–2023: ex ante −30 bis −50) ist die Transmission über den Kreditkanal begrenzt
+   * (KKM, Finanzrepression, staatliche Kreditgarantien). Kalibrierung WIR-1: Ohne Deckel
+   * erzeugt der negative Realzins von 2022 einen Dauerstimulus von über +2 Punkten/Monat.
+   */
+  rateTransmissionCap: 15,
   /** Z1: Verzögerung in Monaten */
   rateLagMonths: 6,
   /** Persistenz der Auslastung pro Monat */
-  gapPersistence: 0.85,
+  gapPersistence: 0.92,
   /** Z6: Wirkung zusätzlicher Staatsausgaben (% BIP) auf die Auslastung */
-  fiscalOnGap: 0.12,
+  fiscalOnGap: 0.1,
   /** Z2: Wirkung der Auslastung auf die Inflation */
   gapOnInflation: 0.5,
   /** Z5: Weitergabe einer übermäßigen Abwertung an die Inflation */
-  fxPassThrough: 0.25,
+  fxPassThrough: 0.37,
   /** Anpassungsgeschwindigkeit der Inflation pro Monat */
-  inflationSpeed: 0.12,
+  inflationSpeed: 0.22,
   /** Z3: Anpassungsgeschwindigkeit der Erwartungen pro Monat */
-  expectationSpeed: 0.15,
+  expectationSpeed: 0.3,
   /** Z9: Okun-Koeffizient (monatlich) */
-  okun: 0.035,
+  okun: 0.07,
   /** Natürliche Arbeitslosenquote in % */
-  naturalUnemployment: 9,
+  naturalUnemployment: 9.4,
   /** Z4: Wirkung des Realzinses auf die Abwertung (% p. a. je Prozentpunkt) */
-  carryOnFx: 0.5,
+  carryOnFx: 1.0,
   /** Tägliche Schwankung des Wechselkurses (Standardabweichung, Anteil) */
   fxNoise: 0.0015,
   /** Langfristiges Inflationsziel der Zentralbank in % */
@@ -38,23 +45,25 @@ export const PARAMS = {
   /** Monatliche Annäherung der Zwischenziele an das langfristige Ziel (ergibt etwa 24, 15, 9, 5) */
   targetGlide: 0.04,
   /**
-   * ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 1 % des BIP
-   * lesen die Märkte als strukturelles Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
+   * ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
+   * lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
    * Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
+   * Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
+   * Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
    */
-  politiklastAufRisiko: 40,
+  politiklastAufRisiko: 130,
 } as const;
 
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
 export const AUSSEN = {
   /** Prozentpunkte Inflation je Indexpunkt Energiepreis über 100 (Energieimporte) */
-  oelAufInflation: 0.02,
+  oelAufInflation: 0.03,
   /** Auslastung (Prozentpunkte je Monat) je Indexpunkt Energiepreis */
   oelAufAuslastung: 0.004,
   /** Auslastung (Prozentpunkte je Monat) je Indexpunkt EU-Nachfrage */
   euAufAuslastung: 0.012,
   /** Basispunkte Risikoaufschlag je Indexpunkt Weltzins über 100 */
-  weltzinsAufRisiko: 3,
+  weltzinsAufRisiko: 2,
 } as const;
 
 /** Potenzialwachstum einschließlich der Wirkung des Politiknetzes. */
@@ -69,7 +78,10 @@ export function realRate(e: EconomyState): number {
 
 /** Z4: tägliche Veränderung des Wechselkurses (Anteil, z. B. 0,001 = 0,1 %). */
 export function dailyDepreciation(e: EconomyState, rng: Rng): number {
-  const inflationGap = e.inflation - PARAMS.foreignInflation;
+  // Kapitalströme preisen die erwartete Inflationsdifferenz, nicht den rückblickenden
+  // Spot-Druck (Kalibrierung WIR-1: mit Spot-Inflation lief der Kurs im Hochinflations-
+  // regime 2023/2024 um das Dreifache zu schnell).
+  const inflationGap = e.expectedInflation - PARAMS.foreignInflation;
   const carry = PARAMS.carryOnFx * (realRate(e) - PARAMS.neutralRealRate);
   const risk = (e.riskPremium - 250) / 100;
   const annual = inflationGap - carry + risk;
@@ -79,14 +91,17 @@ export function dailyDepreciation(e: EconomyState, rng: Rng): number {
 
 /** Z8: täglicher Risikoaufschlag, zieht zum fundamentalen Wert. */
 export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
+  // Die Märkte bepreisen die erwartete Inflation (vorausschauend), nicht den aktuellen
+  // Druck (Kalibrierung WIR-1: mit Spot-Inflation hing der CDS 2024 um ~130 bp zu hoch,
+  // während die Märkte den Dezinflationspfad bereits einpreisten; Koeffizient 3 → 2,5).
   const fundamental =
     150 +
-    3 * Math.max(0, e.inflation - 10) +
+    2.5 * Math.max(0, e.expectedInflation - 10) +
     2 * Math.max(0, e.debtRatio - 40) +
     200 * (1 - e.credibility) +
     // ZEI-4 (Spielparameter): Wer dauerhaft über die Verhältnisse ausgibt, zahlt einen Nachhaltigkeitsaufschlag,
     // auch wenn die Schuldenquote (Z7) bei hoher Inflation kaum steigt — die Märkte sehen die Politiklast.
-    PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 1) +
+    PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 2) +
     AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
   return e.riskPremium + 0.02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
@@ -94,7 +109,7 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
 /** Monatliche Fortschreibung der Realwirtschaft (Z1, Z2, Z3, Z5, Z6, Z7, Z9). */
 export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: Rng): void {
   const lagged = history[history.length - PARAMS.rateLagMonths];
-  const laggedRealRate = lagged ? lagged.realRate : realRate(e);
+  const laggedRealRate = clamp(lagged ? lagged.realRate : realRate(e), -PARAMS.rateTransmissionCap, PARAMS.rateTransmissionCap);
 
   // Z1 und Z6: Nachfrage und Auslastung
   e.outputGap =
@@ -131,7 +146,11 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   // Z3: Glaubwürdigkeit wächst langsam und fällt schnell
   const r = realRate(e);
   if (r > 1 && e.inflation < previousInflation) e.credibility += 0.01;
-  if (r < 0) e.credibility -= 0.02;
+  if (r < 0) e.credibility -= 0.012;
+  // Z3/ZEI-4 (Fiskaldominanz): Dauerhafte Politiklast über etwa 2 % des BIP untergräbt die
+  // Glaubwürdigkeit auch bei straffer Bank — die Märkte fürchten, die Regierung lasse sich
+  // ihre Defizite eines Tages von der Bank finanzieren. Wirkt nur mit Politiknetz (policyCost).
+  if (e.policyCost > 1.75) e.credibility -= 0.045 * Math.min(2.5, e.policyCost - 1.75);
   e.credibility = clamp(e.credibility, 0.05, 0.95);
 
   // Wachstum zum Vorjahr aus der Veränderung der Auslastung
@@ -152,7 +171,7 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
 
 /** Gewichte der Reaktionsregel je Haltung der Führung. */
 export const PPK_GEWICHTE: Record<GovernorStance, { infl: number; gap: number; bias: number }> = {
-  vorsichtig: { infl: 0.8, gap: 0.2, bias: 0 },
+  vorsichtig: { infl: 0.5, gap: 0.2, bias: 0 },
   ausgewogen: { infl: 0.5, gap: 0.5, bias: 0 },
   gefuegig: { infl: 0.2, gap: 0.8, bias: -8 },
 };

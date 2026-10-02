@@ -38,7 +38,9 @@ describe("Kapital lädt sich monatlich auf", () => {
   test("Am Monatsersten kommt genau die angezeigte Gutschrift dazu", () => {
     const w = minderheit();
     const k = kapitalEinkommen(w);
-    expect(k.summe).toBeCloseTo(k.grund + k.vertrauen + k.mehrheit + k.legitimitaet, 6);
+    // INN-1 (Vier-Preise-Regel): Die Summe zieht den laufenden Unterhalt der Maßnahmen ab —
+    // Maßnahmen mit `unterhalt_monat` (Spielparameter, data/politiknetz.ts) zehren monatlich am Kapital.
+    expect(k.summe).toBeCloseTo(k.grund + k.vertrauen + k.mehrheit + k.legitimitaet - k.unterhalt, 6);
     expect(k.summe).toBeGreaterThan(3);
     // bis zum nächsten Monatsersten laufen; Ereignisse ausschließen, die Kapital kosten könnten (sie kosten nur bei Antwort)
     w.spiel!.kapital = 10;

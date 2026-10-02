@@ -941,6 +941,19 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .preview .range { font-variant-numeric: tabular-nums; color: var(--ink-soft); white-space: nowrap; }
 .rechnet { font: italic 14px var(--serif); color: var(--ink-soft); padding: 10px 0; }
 
+/* Umsetzung (INN-2): Fortschrittsbalken + Ghost-Marker.
+   Bildsprache des Spieldesigns: gefüllt = Wirkung, durchgezogen = Beschluss, gestrichelt = Absicht. */
+.umsetzung { display: grid; gap: 6px; margin-top: 10px; padding: 8px 10px; border: 1px solid rgba(120, 90, 50, 0.28); border-radius: 2px; background: rgba(255, 250, 235, 0.5); }
+.um-zeile { display: flex; align-items: center; gap: 10px; margin: 0; font: 14px var(--serif); color: var(--ink); }
+.um-balken { position: relative; flex: none; width: 132px; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); }
+.um-balken i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--teal); }
+.um-stufen i { background: linear-gradient(90deg, #265a62, #3d7f88); }
+.um-balken b { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; }
+.um-balken b.um-ziel { background: var(--ink); opacity: 0.75; }
+.um-balken b.um-absicht { width: 0; border-left: 2px dashed var(--seal); background: none; }
+.um-legende { font: italic 12.5px/1.35 var(--serif); color: var(--ink-soft); }
+.um-geist { align-items: baseline; }
+
 /* Parlament und Beschlüsse */
 .beschlussbuch { display: grid; gap: 20px; }
 .gesetz-liste { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 16px; }

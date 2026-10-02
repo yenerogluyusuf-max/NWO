@@ -412,10 +412,15 @@ function BereichSeite({
         <p className="subtitle">Jede Maßnahme lässt sich in Stufen einstellen; danach zeigt das Spiel Folgen, Kosten, die Mehrheit und den Weg (Gesetz oder Erlass).</p>
         <ul className="po-massnahmen">
           {stand.massnahmen.map((m) => (
-            <li key={m.id} className={m.imParlament || m.ziel !== undefined ? "laeuft" : ""}>
+            <li key={m.id} className={m.imParlament || m.ziel !== undefined || m.umsetzung !== undefined ? "laeuft" : ""}>
               <div className="po-m-text">
                 <strong>
                   {m.name}
+                  {m.umsetzung && (
+                    <span className="po-u-badge" title="Die Stufe ist beschlossen; die Verwaltung setzt sie um. Erst der umgesetzte Anteil wirkt.">
+                      wirkt noch an
+                    </span>
+                  )}
                   {m.blocker && <BlockerBadge blocker={m.blocker} />}
                 </strong>
                 <span className="po-m-stand">
@@ -423,6 +428,16 @@ function BereichSeite({
                   {m.ziel !== undefined && <em> → Umsetzung läuft auf {Math.round(m.ziel)}</em>}
                   {m.imParlament && <em> · im Parlament: Stufe {Math.round(m.imParlament.stufe)}, Abstimmung in {m.imParlament.tage} Tagen</em>}
                 </span>
+                {m.umsetzung && (
+                  <span className="po-umsetzung">
+                    <span className="po-u-balken" aria-hidden>
+                      <i style={{ width: `${m.umsetzung.stand}%` }} />
+                    </span>
+                    <span className="po-u-text">
+                      Umsetzung {Math.round(m.umsetzung.stand)} % · volle Wirkung in etwa {m.umsetzung.rest} {m.umsetzung.rest === 1 ? "Monat" : "Monaten"}
+                    </span>
+                  </span>
+                )}
                 <span className="po-m-beschr">{m.text}</span>
                 {m.kosten > 0 && (
                   <span className="po-m-kosten">

@@ -3,9 +3,10 @@ import type { World } from "../sim/types";
 import { NET } from "../sim/world";
 import { nationalAverage, startAverage } from "../sim/netz";
 import type { Metric, Outlook } from "../sim/forecast";
-import { REGELN, STIMMEN_PUFFER, bringeEin, provinzenText, pruefeVorhaben, stufeIn } from "../sim/handeln";
+import { REGELN, STIMMEN_PUFFER, bringeEin, preisUebersicht, provinzenText, pruefeVorhaben, stufeIn } from "../sim/handeln";
 import type { Weg } from "../sim/spiel-typen";
 import { berechneVorschau } from "./vorschau";
+import { restMonate, umsetzungsStand } from "../sim/umsetzung";
 import { NetGraph } from "./NetGraph";
 import { NetNavigator } from "./NetNavigator";
 import { Erklaerung } from "./Erklaerung";
@@ -76,6 +77,8 @@ export function NetView({
   const nameOf = (id: string) => NET.nodes[NET.index.get(id)!]!.name;
   const sliderValue = level ?? Math.round(now);
   const pr = istMassnahme ? pruefeVorhaben(world, node.id, sliderValue, ort) : null;
+  // Vier-Preise-Regel: Einführen, Exit-Preis und Unterhalt stehen am Preisschild der Maßnahme
+  const pu = istMassnahme && world.spiel ? preisUebersicht(world, node.id, ort) : null;
   const spiel = world.spiel;
   const effektivWeg: Weg = pr && !pr.erlass.moeglich ? "gesetz" : weg;
 
@@ -129,6 +132,11 @@ export function NetView({
   }
 
   const aendert = !!pr && pr.ok;
+  // INN-2: Umsetzungsstand und beschlossenes Ziel für Balken und Ghost-Marker
+  const uStand = istMassnahme ? umsetzungsStand(world.net, node.id) : 100;
+  const uRest = istMassnahme ? restMonate(world.net, node.id) : null;
+  const landesZiel = world.net.targets[node.id];
+  const beschlossenesZiel = landesZiel !== undefined && Math.abs(landesZiel - now) > 1 ? landesZiel : undefined;
   // Krisen-Blocker (MIL-3): eine Sperre zeigt Grund, Ausweg und Restbedingung statt des üblichen Regler-Hinweises
   const gesperrt = pr?.krisen.find((k) => k.art === "gesperrt") ?? null;
   // Aussichtslos: Die Stimmen fehlen, und Absprachen wären nach der Einbringung nicht mehr bezahlbar
@@ -266,6 +274,32 @@ export function NetView({
                           </div>
                         </>
                       )}
+                      {(uStand < 100 || beschlossenesZiel !== undefined || aendert) && (
+                        <div className="umsetzung">
+                          {uStand < 100 && (
+                            <p className="um-zeile">
+                              <span className="um-balken" aria-hidden>
+                                <i style={{ width: `${uStand}%` }} />
+                              </span>
+                              <span>
+                                Umsetzung {Math.round(uStand)} %{uRest !== null ? ` · volle Wirkung in etwa ${uRest} ${uRest === 1 ? "Monat" : "Monaten"}` : ""}
+                              </span>
+                            </p>
+                          )}
+                          <p className="um-zeile um-geist">
+                            <span className="um-balken um-stufen" aria-hidden>
+                              <i style={{ width: `${Math.max(0, Math.min(100, now))}%` }} />
+                              {beschlossenesZiel !== undefined && <b className="um-ziel" style={{ left: `${beschlossenesZiel}%` }} />}
+                              {aendert && <b className="um-absicht" style={{ left: `${sliderValue}%` }} />}
+                            </span>
+                            <span className="um-legende">
+                              gefüllt: heutige Stufe (Wirkung)
+                              {beschlossenesZiel !== undefined ? ` · durchgezogener Strich: beschlossen auf ${Math.round(beschlossenesZiel)}` : ""}
+                              {aendert ? ` · gestrichelter Strich: Ihre Auswahl ${sliderValue} (Absicht)` : ""}
+                            </span>
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     <div className="schritt">
@@ -336,6 +370,13 @@ export function NetView({
                       ) : (
                         <p className="haushaltszeile">
                           <b>Haushalt:</b> kein eigener Posten. Der Preis dieser Maßnahme ist politisch, nicht finanziell.
+                        </p>
+                      )}
+                      {spiel && pu && (
+                        <p className="haushaltszeile">
+                          <b>Preise:</b> Einführen (+10 Stufen) kostet {pu.einfuehren10} Kapital, Zurücknehmen (−10) {pu.streichen10}
+                          {pu.faktorStreichen > pu.faktorEinfuehren && <> (Exit-Preis: das {(pu.faktorStreichen / pu.faktorEinfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 })}-Fache)</>}
+                          {pu.unterhaltMonat > 0 && <> · Unterhalt etwa {pu.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe</>}.
                         </p>
                       )}
                     </div>
@@ -414,24 +455,35 @@ export function NetView({
                   {rueckmeldung.why && <em> {rueckmeldung.why}</em>}
                 </p>
               )}
-              {vorschau && vorschau !== "laedt" && vorschau.stufe === sliderValue && (
-                <table className="preview">
-                  <caption>In zwölf Monaten, verglichen mit „nichts ändern“ (Richtung und Bandbreite, keine genauen Zahlen)</caption>
-                  <tbody>
-                    {vorschau.rows.map(({ label, o }) => (
-                      <tr key={label}>
-                        <th>{label}</th>
-                        <td className={`dir dir-${o.direction}`}>
-                          <span aria-hidden>{o.direction === "hoeher" ? "▲" : o.direction === "niedriger" ? "▼" : "◆"}</span> {DIRECTION[o.direction]}
-                        </td>
-                        <td className="range">
-                          etwa {Math.round(o.withAction.low)}–{Math.round(o.withAction.high)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              {vorschau && vorschau !== "laedt" && vorschau.stufe === sliderValue && (() => {
+                // INN-2: Solange die Umsetzung läuft, ist die Wirkung erst teilweise hergestellt —
+                // die angezeigte Bandbreite wird deshalb breiter gezeichnet (Anzeigeregel, keine Messung).
+                const weite = 1 + (100 - uStand) / 100;
+                const band = (low: number, high: number) => {
+                  const mitte = (low + high) / 2;
+                  const halb = ((high - low) / 2) * weite;
+                  return `etwa ${Math.round(mitte - halb)}–${Math.round(mitte + halb)}`;
+                };
+                return (
+                  <table className="preview">
+                    <caption>
+                      In zwölf Monaten, verglichen mit „nichts ändern“ (Richtung und Bandbreite, keine genauen Zahlen)
+                      {uStand < 100 ? `; während der Umsetzung (${Math.round(uStand)} %) fällt die Bandbreite breiter aus` : ""}
+                    </caption>
+                    <tbody>
+                      {vorschau.rows.map(({ label, o }) => (
+                        <tr key={label}>
+                          <th>{label}</th>
+                          <td className={`dir dir-${o.direction}`}>
+                            <span aria-hidden>{o.direction === "hoeher" ? "▲" : o.direction === "niedriger" ? "▼" : "◆"}</span> {DIRECTION[o.direction]}
+                          </td>
+                          <td className="range">{band(o.withAction.low, o.withAction.high)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                );
+              })()}
             </div>
           )}
 

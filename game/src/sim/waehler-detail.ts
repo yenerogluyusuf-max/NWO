@@ -8,7 +8,7 @@
 // Entscheidung in Punkten vorwegnehmen (ohne Verzögerungen und Deckelungen; die Oberfläche nennt das „langfristig“).
 
 import { NET } from "./modell";
-import { PROVINCES, nationalAverage, startAverage } from "./netz";
+import { PROVINCES, nationalAverage, startAverage, decayVon } from "./netz";
 import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
 import { hebel } from "./wege";
 import { FORDERUNGEN, PARTEI_NAME } from "./fraktionen";
@@ -83,7 +83,7 @@ export interface Treiber {
 /** Die Ursachen für den Stand einer Größe (oder Gruppe), nach Beitrag sortiert. */
 export function treiber(world: World, id: string, monate = 3): Treiber[] {
   const nach = knoten(id);
-  const decay = nach.decay > 0 ? nach.decay : 0.1;
+  const decay = decayVon(nach) > 0 ? decayVon(nach) : 0.1;
   const out: Treiber[] = [];
   for (const e of EIN.get(id) ?? []) {
     const von = knoten(e.from);
@@ -184,7 +184,7 @@ export function gleichgewicht(start: string, delta: number): Map<string, number>
   const shift = new Map<string, number>([[start, delta]]);
   for (let runde = 0; runde < 10; runde++) {
     for (const k of liste) {
-      const decay = knoten(k).decay > 0 ? knoten(k).decay : 0.1;
+      const decay = decayVon(knoten(k)) > 0 ? decayVon(knoten(k)) : 0.1;
       let s = 0;
       for (const e of EIN.get(k) ?? []) s += e.weight * (shift.get(e.from) ?? 0);
       shift.set(k, Math.max(-60, Math.min(60, s / decay)));
@@ -210,7 +210,7 @@ export function wirkungNach(start: string, delta: number, monate: number[], daue
     const jetzt = new Map<string, number>();
     jetzt.set(start, delta * Math.min(1, t / Math.max(1, dauer)));
     for (const k of liste) {
-      const decay = knoten(k).decay > 0 ? knoten(k).decay : 0.1;
+      const decay = decayVon(knoten(k)) > 0 ? decayVon(knoten(k)) : 0.1;
       let zufluss = 0;
       for (const e of EIN.get(k) ?? []) {
         const zurueck = t - 1 - e.lag;

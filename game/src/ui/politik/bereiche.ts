@@ -8,6 +8,7 @@ import { THEME_NAMES, type NodeSpec, type Theme } from "../../data/politiknetz";
 import { skala, naechsteStufe, skalenArt } from "../../data/skalen";
 import { akuteProbleme, vorschlaege, type Vorschlag } from "../../sim/vorschlaege";
 import { krisenFuerMassnahme } from "../../sim/krisen";
+import { restMonate, umsetzungsStand } from "../../sim/umsetzung";
 import type { World } from "../../sim/types";
 
 export type Ampel = "gruen" | "gelb" | "rot";
@@ -140,6 +141,8 @@ export interface MassnahmeZeile {
   /** Wohin die laufende Umsetzung führt, sonst undefined */
   ziel?: number;
   imParlament?: { tage: number; stufe: number };
+  /** Umsetzungsstand (INN-2): 0–100 mit geschätzten Restmonaten; fehlt, wenn voll umgesetzt */
+  umsetzung?: { stand: number; rest: number };
   /** Haushaltsposten heute in % des BIP; 0 = kein eigener Posten */
   kosten: number;
   einnahme: boolean;
@@ -223,13 +226,16 @@ export function massnahmenZeilen(world: World, theme: Theme): MassnahmeZeile[] {
       stufe,
       ...(ziel !== undefined && Math.abs(ziel - jetzt) > 1 ? { ziel } : {}),
       ...(gesetz ? { imParlament: { tage: Math.max(0, gesetz.abstimmung - world.day), stufe: gesetz.stufe } } : {}),
+      // INN-2: Läuft die Umsetzung noch, kommt Balken und Restdauer in die Karte („wirkt noch an")
+      ...(umsetzungsStand(world.net, n.id) < 100 ? { umsetzung: { stand: umsetzungsStand(world.net, n.id), rest: restMonate(world.net, n.id) ?? 1 } } : {}),
       kosten: Math.abs(n.cost ?? 0) >= 0.05 ? kosten : 0,
       einnahme: (n.cost ?? 0) < 0,
       ...(blocker ? { blocker } : {}),
     });
   }
   // Was läuft, steht oben; sonst nach Name
-  return out.sort((a, b) => Number(!!(b.imParlament || b.ziel !== undefined)) - Number(!!(a.imParlament || a.ziel !== undefined)) || a.name.localeCompare(b.name, "de"));
+  const laeuft = (m: MassnahmeZeile) => !!(m.imParlament || m.ziel !== undefined || m.umsetzung !== undefined);
+  return out.sort((a, b) => Number(laeuft(b)) - Number(laeuft(a)) || a.name.localeCompare(b.name, "de"));
 }
 
 /** Die akuten Probleme eines Bereichs, nach Last (Bevölkerungsanteil) sortiert. */
@@ -249,6 +255,8 @@ export function laufendeVorhaben(world: World, theme: Theme): number {
     if (ziel !== undefined && Math.abs(ziel - nationalAverage(NET, world.net, id)) > 1) laufend.add(id);
   }
   for (const id of Object.keys(world.net.ziele ?? {})) if (ids.has(id)) laufend.add(id);
+  // Auch eine feinjustierte Maßnahme läuft, solange ihr Umsetzungsstand unter 100 liegt (INN-2)
+  for (const id of ids) if (umsetzungsStand(world.net, id) < 100) laufend.add(id);
   return laufend.size;
 }
 
