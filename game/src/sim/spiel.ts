@@ -17,12 +17,14 @@ import { berichteTag } from "./berichte";
 import { weltMonat } from "./laender";
 import { abkommenMonat } from "./abkommen";
 import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
+import { umfrageMonat } from "./umfrage";
 import { verlaufAufzeichnen } from "./waehler-verlauf";
 import { erzeugeFiguren, figur, anrede } from "./figuren";
 import { personenMonat } from "./personen-monat";
 import { ausscheiden } from "./nachfolge";
 import { AEMTER } from "./personen";
 import { gesetzeAbstimmen, REGELN, stimmenSicht } from "./handeln";
+import { krisenAktualisieren } from "./krisen";
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
 import { Rng } from "./rng";
@@ -30,6 +32,7 @@ import type { PlayerProfile } from "./prolog";
 import type { World } from "./types";
 import type { SpielZustand, Zusage } from "./spiel-typen";
 import { wirke } from "./wirkung";
+import { VERFASSUNG, belastungEreignis, verfassungStart, verfassungTag } from "./aufmerksamkeit";
 
 /** Die Schwierigkeit verändert nur drei Stellschrauben: das Einkommen an Kapital, die Regierungsmüdigkeit und die Häufigkeit und Härte von Ereignissen. */
 export const SCHWIERIGKEITEN = {
@@ -155,6 +158,7 @@ export function initSpiel(world: World, profil: PlayerProfile, rng: Rng): void {
     chronik: [],
     hinweise: [],
     kalibrierung: 0,
+    verfassung: verfassungStart(),
     start,
   };
   world.spiel = spiel;
@@ -167,6 +171,8 @@ export function initSpiel(world: World, profil: PlayerProfile, rng: Rng): void {
   oeffne(world, "start_haushalt", rng);
   oeffne(world, "start_partner", rng);
   oeffne(world, "start_wiederaufbau", rng);
+  // Krisen-Blocker: beim Amtsantritt einmal auf den Stand bringen (ältere Spielstände bekommen das Feld so beim ersten Tick)
+  krisenAktualisieren(world);
 }
 
 /** Der Spieler wählt am ersten Tag höchstens drei Ziele. */
@@ -198,8 +204,10 @@ export function spielTick(world: World, rng: Rng): void {
   if (!spiel || spiel.ende) return;
   gesetzeAbstimmen(world, rng);
   ereignisTag(world, rng);
+  krisenAktualisieren(world);
   programmTag(world);
   berichteTag(world);
+  verfassungTag(world);
   if (dayOfMonth(world.date) === 1) spielMonat(world, rng);
   if (world.day >= spiel.wahltag) wahl(world, rng);
 }
@@ -252,7 +260,9 @@ function spielMonat(world: World, rng: Rng): void {
 
   // Umfrage: zieht zum Sollwert, träge
   const ziel = zielZustimmung(world);
-  spiel.umfrage.zustimmung += 0.35 * (ziel - spiel.umfrage.zustimmung);
+  // TODO(UI-1): Sobald das Zeitungs-UI Institute auswählt, hier rng und institutId übergeben
+  // (Messfehler gemäß RECHERCHE_MEDIEN_UMFRAGEN.md B.4). Ohne Optionen bleibt es beim alten Verhalten.
+  spiel.umfrage.zustimmung = umfrageMonat(spiel.umfrage.zustimmung, ziel);
   spiel.umfrage.verlauf.push({ monat: world.date.slice(0, 7), wert: Math.round(spiel.umfrage.zustimmung * 10) / 10 });
   if (spiel.umfrage.verlauf.length > 120) spiel.umfrage.verlauf.shift();
   verlaufAufzeichnen(world);
@@ -261,6 +271,7 @@ function spielMonat(world: World, rng: Rng): void {
   if (spiel.umfrage.zustimmung < SPIEL.sturzSchwelle) spiel.tiefstand += 1;
   else spiel.tiefstand = Math.max(0, spiel.tiefstand - 1);
   if (spiel.tiefstand === 3) {
+    belastungEreignis(world, VERFASSUNG.sturzWarnung, "Die Warnung vor dem Sturz");
     spiel.hinweise.push({
       id: `warnung-${world.day}`,
       titel: "Warnzeichen",

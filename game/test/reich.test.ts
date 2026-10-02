@@ -7,9 +7,9 @@ import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { VORHABEN, VORTEILE } from "../src/data/reich";
 import { ERBE } from "../src/data/erbe";
 import { NET } from "../src/sim/modell";
-import { LAENDER } from "../src/sim/laender";
+import { LAENDER, dimensionZu } from "../src/sim/laender";
 import { nationalAverage } from "../src/sim/netz";
-import { aktiveVorteile, bauKapazitaet, beginne, erhaltung, reichZustand, verwaltungBilanz, vorhabenSicht, vorhabenListe } from "../src/sim/reich";
+import { aktiveVorteile, bauKapazitaet, beginne, erhaltung, laufVergabe, pausiere, reichZustand, verschiebe, vergabeAngebot, verwaltungBilanz, vorhabenDef, vorhabenSicht, vorhabenListe, VORZIEHEN_VERWALTUNG, warteschlange } from "../src/sim/reich";
 import type { Effekt, Voraussetzung } from "../src/sim/reich-typen";
 
 function welt(seed = 4) {
@@ -264,5 +264,164 @@ describe("Vorteile und Größen", () => {
     // ein alter Spielstand ohne Reich legt es beim Zugriff an
     delete kopie.spiel!.reich;
     expect(reichZustand(kopie).bestand.infra_marmaray).toBeDefined();
+  });
+});
+
+describe("Bauvergabe mit drei Optionen (INF-1)", () => {
+  // Die Doktrin ist ein kleines, sofort beginnbares Vorhaben (Voraussetzung steht im Startbestand)
+  const VORHABEN_ID = "doktrin_drohnen";
+
+  test("Stammfirma: schneller und teurer, und die Nähe ohne Wettbewerb nährt das Korruptionsrisiko", () => {
+    const w = welt();
+    const v = vorhabenDef(VORHABEN_ID)!;
+    const a = vergabeAngebot(v, "stammfirma");
+    expect(a.pk).toBeGreaterThan(v.kosten.pk);
+    expect(a.bau).toBeLessThan(v.kosten.bau);
+    expect(a.monate).toBeLessThan(v.kosten.monate);
+    expect(a.vorlauf).toBe(0);
+    const kapital = w.spiel!.kapital;
+    const korruptVorher = nationalAverage(NET, w.net, "korruption");
+    const unternehmerVorher = nationalAverage(NET, w.net, "unternehmer");
+    const r = beginne(w, VORHABEN_ID, "stammfirma");
+    expect(r.ok, r.text).toBe(true);
+    expect(w.spiel!.kapital).toBeCloseTo(kapital - a.pk, 6);
+    const l = reichZustand(w).laufend.find((x) => x.id === VORHABEN_ID)!;
+    expect(l.vergabe).toBe("stammfirma");
+    expect(l.bau).toBe(a.bau);
+    expect(l.monate).toBe(a.monate);
+    // Korruption steigt sofort, die Unternehmer danken den Auftrag
+    expect(nationalAverage(NET, w.net, "korruption")).toBeGreaterThan(korruptVorher);
+    expect(nationalAverage(NET, w.net, "unternehmer")).toBeGreaterThan(unternehmerVorher);
+    // je Baumonat wächst das Risiko weiter — Vergleichswelt mit gleichem Seed und Ausschreibung
+    advance(w, 65);
+    const w2 = welt();
+    beginne(w2, VORHABEN_ID, "ausschreibung");
+    advance(w2, 65);
+    expect(nationalAverage(NET, w.net, "korruption")).toBeGreaterThan(nationalAverage(NET, w2.net, "korruption"));
+  });
+
+  test("Sparvergabe: günstiger und langsamer, das Ergebnis beginnt in schlechterem Zustand", () => {
+    const w = welt();
+    const v = vorhabenDef(VORHABEN_ID)!;
+    const a = vergabeAngebot(v, "sparvergabe");
+    expect(a.pk).toBeLessThan(v.kosten.pk);
+    expect(a.monate).toBeGreaterThan(v.kosten.monate);
+    expect(a.zustandFertig).toBe(70);
+    const kapital = w.spiel!.kapital;
+    const r = beginne(w, VORHABEN_ID, "sparvergabe");
+    expect(r.ok, r.text).toBe(true);
+    expect(w.spiel!.kapital).toBeCloseTo(kapital - a.pk, 6);
+    advance(w, 30 * 12);
+    const b = reichZustand(w).bestand[VORHABEN_ID];
+    expect(b, "das Vorhaben ist fertig").toBeDefined();
+    // statt der üblichen 90, abzüglich etwas Verfall seit der Fertigstellung
+    expect(b!.zustand).toBeLessThan(75);
+    expect(b!.zustand).toBeGreaterThan(60);
+  });
+
+  test("Transparente Ausschreibung: Vergabephase verzögert den Baubeginn, Märkte und EU sehen es gern", () => {
+    const w = welt();
+    const maerkteVorher = nationalAverage(NET, w.net, "vertrauen_maerkte");
+    const euVorher = dimensionZu(w, "EU", "vertrauen");
+    const r = beginne(w, VORHABEN_ID, "ausschreibung");
+    expect(r.ok, r.text).toBe(true);
+    const s = vorhabenSicht(w, VORHABEN_ID)!;
+    expect(s.vergabe).toBe("ausschreibung");
+    expect(s.vergabePhase).toBe(true);
+    expect(s.vergabeMonate).toBe(2);
+    expect(s.rate).toBe(0);
+    expect(nationalAverage(NET, w.net, "vertrauen_maerkte")).toBeGreaterThan(maerkteVorher);
+    expect(dimensionZu(w, "EU", "vertrauen")).toBeGreaterThan(euVorher);
+    // in der Vergabephase fließt keine Baukapazität
+    advance(w, 40);
+    expect(reichZustand(w).laufend.find((l) => l.id === VORHABEN_ID)!.fortschritt).toBe(0);
+    // danach geht es los (der Bau schreitet im Monatsschritt am Monatsersten)
+    advance(w, 60);
+    expect(reichZustand(w).laufend.find((l) => l.id === VORHABEN_ID)!.fortschritt).toBeGreaterThan(0);
+  });
+
+  test("Ohne Angabe gilt die transparente Ausschreibung (Schnellstart und ältere Spielstände)", () => {
+    const w = welt();
+    expect(beginne(w, "restaurierung_smyrna").ok).toBe(true);
+    expect(reichZustand(w).laufend.find((x) => x.id === "restaurierung_smyrna")!.vergabe).toBe("ausschreibung");
+    // Altstand: Eintrag ganz ohne Vergabe-Felder lädt und baut weiter
+    const kopie = JSON.parse(JSON.stringify(w)) as typeof w;
+    const alt = kopie.spiel!.reich!.laufend.find((x) => x.id === "restaurierung_smyrna")!;
+    delete alt.vergabe;
+    delete alt.bau;
+    delete alt.monate;
+    delete alt.vergabeBis;
+    expect(laufVergabe(alt)).toBe("ausschreibung");
+    expect(vorhabenSicht(kopie, "restaurierung_smyrna")!.vergabe).toBe("ausschreibung");
+    expect(vorhabenSicht(kopie, "restaurierung_smyrna")!.vergabePhase).toBe(false);
+    advance(kopie, 30 * 10);
+    expect(Number.isFinite(verwaltungBilanz(kopie).netto)).toBe(true);
+    expect(kopie.spiel!.reich!.laufend.every((l) => Number.isFinite(l.fortschritt))).toBe(true);
+  });
+});
+
+describe("Baureihenfolge mit Verdrängungspreis (INF-3)", () => {
+  /** Drei frische Bauten vor den drei Anfangsbauten: [thyatira, pergamon, ephesos, …] */
+  function dreiBauten() {
+    const w = welt();
+    beginne(w, "restaurierung_ephesos", "stammfirma");
+    beginne(w, "restaurierung_pergamon", "stammfirma");
+    beginne(w, "restaurierung_thyatira", "stammfirma");
+    return w;
+  }
+
+  test("Die Warteschlange zeigt Positionen und ehrliche Schätzungen; Pausierte bekommen keine", () => {
+    const w = dreiBauten();
+    const ws = warteschlange(w);
+    expect(ws.map((e) => e.position)).toEqual(ws.map((_, i) => i + 1));
+    expect(ws[0]!.id).toBe("restaurierung_thyatira");
+    expect(ws[0]!.vergabe).toBe("stammfirma");
+    expect(ws[0]!.startIn).toBe(0);
+    expect(ws[0]!.rate).toBeGreaterThan(0);
+    for (const e of ws) expect(e.fertigIn, e.id).toBeDefined();
+    pausiere(w, "restaurierung_pergamon", true);
+    const ws2 = warteschlange(w);
+    const p = ws2.find((e) => e.id === "restaurierung_pergamon")!;
+    expect(p.pausiert).toBe(true);
+    expect(p.fertigIn).toBeUndefined();
+    expect(p.startIn).toBeUndefined();
+    expect(p.rate).toBe(0);
+    expect(ws2.length).toBe(ws.length);
+  });
+
+  test("Vorziehen kostet Verwaltungskraft und benennt das Verdrängte; Zurückstellen ist frei", () => {
+    const w = dreiBauten();
+    const z = reichZustand(w);
+    const verwaltung = z.verwaltung;
+    const r = verschiebe(w, "restaurierung_pergamon", -1);
+    expect(r.ok).toBe(true);
+    expect(r.kosten).toBe(VORZIEHEN_VERWALTUNG);
+    expect(r.verdrangt).toEqual([vorhabenDef("restaurierung_thyatira")!.name]);
+    expect(z.verwaltung).toBeCloseTo(verwaltung - VORZIEHEN_VERWALTUNG, 6);
+    expect(z.laufend.map((l) => l.id).slice(0, 2)).toEqual(["restaurierung_pergamon", "restaurierung_thyatira"]);
+    // Zurückstellen kostet nichts
+    const r2 = verschiebe(w, "restaurierung_pergamon", 1);
+    expect(r2.ok).toBe(true);
+    expect(r2.kosten).toBeUndefined();
+    expect(z.verwaltung).toBeCloseTo(verwaltung - VORZIEHEN_VERWALTUNG, 6);
+    expect(z.laufend.map((l) => l.id).slice(0, 2)).toEqual(["restaurierung_thyatira", "restaurierung_pergamon"]);
+    // ohne Vorrat kein Vorziehen, die Reihenfolge bleibt wie sie ist
+    z.verwaltung = VORZIEHEN_VERWALTUNG - 1;
+    const vorher = z.laufend.map((l) => l.id);
+    const r3 = verschiebe(w, "restaurierung_pergamon", -1);
+    expect(r3.ok).toBe(false);
+    expect(r3.grund).toContain("Verwaltungskraft");
+    expect(z.laufend.map((l) => l.id)).toEqual(vorher);
+    // an der Spitze geht es nicht weiter nach vorn
+    expect(verschiebe(w, vorher[0]!, -1).ok).toBe(false);
+    expect(verschiebe(w, vorher[vorher.length - 1]!, 1).ok).toBe(false);
+  });
+
+  test("Die Reihenfolge entscheidet, wer zuerst fertig wird", () => {
+    const w = dreiBauten();
+    const ws = warteschlange(w);
+    const th = ws.find((e) => e.id === "restaurierung_thyatira")!;
+    const ep = ws.find((e) => e.id === "restaurierung_ephesos")!;
+    expect(th.fertigIn!).toBeLessThan(ep.fertigIn!);
   });
 });

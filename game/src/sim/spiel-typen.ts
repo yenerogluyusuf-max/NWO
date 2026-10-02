@@ -96,6 +96,13 @@ export interface Ende {
   anteil?: number;
 }
 
+/** Eine aktive Krise (Krisen-Blocker, MIL-3): Der Zustand selbst wird aus der Welt abgeleitet, gespeichert ist nur, was gerade aktiv ist und seit wann (Hysterese). Die Regeln stehen in sim/krisen.ts. */
+export interface AktiveKrise {
+  id: string;
+  /** Tag (seit Spielbeginn), an dem die Krise aktiv wurde */
+  seit: number;
+}
+
 /** Meldung an die Oberfläche (Wahlabend, Warnung, Ende); die Oberfläche quittiert sie. */
 export interface Hinweis {
   id: string;
@@ -124,6 +131,8 @@ export interface SpielZustand {
   ereignisse: OffenesEreignis[];
   /** Letzter Tag je Ereignisvorlage (Abkühlzeit gegen Wiederholung) */
   zuletzt: Record<string, number>;
+  /** ZEI-1: Eskalationsstufe gärender Vorgänge je Ereignisvorlage — nicht präsentiert, sie kommen dringlicher zurück; ältere Spielstände legen es beim ersten Bedarf an */
+  eskalation?: Record<string, number>;
   figuren: Figur[];
   zusagen: Zusage[];
   umfrage: Umfrage;
@@ -162,12 +171,16 @@ export interface SpielZustand {
   modifikatoren?: Record<string, number>;
   /** Schwierigkeit dieser Partie; ältere Spielstände spielen auf „normal“ */
   schwierigkeit?: "entspannt" | "normal" | "hart";
+  /** Aufmerksamkeit und Belastung des Präsidenten; ältere Spielstände laden mit den Startwerten (sim/aufmerksamkeit.ts) */
+  verfassung?: import("./aufmerksamkeit").Verfassung;
   /** Zufallssalz dieser Partie (für Wechsel der Forderungen); ältere Spielstände legen es beim ersten Bedarf an */
   salz?: number;
   /** Monate in Folge mit sehr niedriger Zustimmung (Sturzgefahr) */
   tiefstand: number;
   chronik: ChronikEintrag[];
   hinweise: Hinweis[];
+  /** Aktive Krisen-Blocker (MIL-3); ältere Spielstände haben das Feld noch nicht, es wird beim ersten Tick gefüllt */
+  krisen?: AktiveKrise[];
   /** Verschiebung, die die Zustimmung beim Start auf den Wahlanteil setzt */
   kalibrierung: number;
   /** Ausgangswerte für die Bilanz */

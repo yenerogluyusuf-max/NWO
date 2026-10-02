@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { World } from "../../sim/types";
 import { NET } from "../../sim/modell";
 import { bringeEin, stufeIn } from "../../sim/handeln";
+import { aktiveKrisen, type KrisenSicht } from "../../sim/krisen";
 import { handlungsHebel } from "../../sim/wege";
 import { nationalAverage } from "../../sim/netz";
 import { tunWort } from "../../data/skalen";
@@ -30,6 +31,31 @@ export interface Offen {
 
 export function AmpelPunkt({ ampel, klein }: { ampel: Ampel; klein?: boolean }) {
   return <span className={`po-ampel po-${ampel}${klein ? " klein" : ""}`} role="img" aria-label={`Lage: ${AMPEL_WORT[ampel]}`} title={`Lage: ${AMPEL_WORT[ampel]}`} />;
+}
+
+/** Zustandszeile der aktiven Krisen (MIL-3): Name, Grund und die Restbedingung, an der sie enden. */
+export function KrisenBanner({ krisen }: { krisen: KrisenSicht[] }) {
+  if (krisen.length === 0) return null;
+  return (
+    <ul className="po-krisen" aria-label="Aktive Krisen">
+      {krisen.map((k) => (
+        <li key={k.id}>
+          <strong>{k.name}.</strong> {k.grund} <em>{k.bedingung}</em>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Badge an einer betroffenen Maßnahme: gesperrt (gestrichelt) oder verteuert/verbilligt (durchgezogen). */
+function BlockerBadge({ blocker }: { blocker: { art: "gesperrt" | "teuer"; faktor: number; titel: string } }) {
+  const text = blocker.art === "gesperrt" ? "Gesperrt" : blocker.faktor > 1 ? `Teurer (×${nf(blocker.faktor)})` : `Günstiger (−${Math.round((1 - blocker.faktor) * 100)} %)`;
+  const klasse = blocker.art === "gesperrt" ? "gesperrt" : blocker.faktor > 1 ? "teuer" : "guenstig";
+  return (
+    <span className={`po-blocker po-b-${klasse}`} title={blocker.titel}>
+      {text}
+    </span>
+  );
 }
 
 function Trend({ z }: { z: LageZeile }) {
@@ -123,6 +149,7 @@ export function Politik({
   };
 
   const aktuell = kurz.find((k) => k.theme === bereich) ?? null;
+  const krisen = aktiveKrisen(world);
 
   if (offen) {
     return (
@@ -159,6 +186,7 @@ export function Politik({
       </nav>
 
       <div className="po-seite">
+        <KrisenBanner krisen={krisen} />
         {aktuell === null ? (
           <Ueberblick kurz={kurz} onWaehle={setBereich} onOpen={onOpen} />
         ) : (
@@ -386,7 +414,10 @@ function BereichSeite({
           {stand.massnahmen.map((m) => (
             <li key={m.id} className={m.imParlament || m.ziel !== undefined ? "laeuft" : ""}>
               <div className="po-m-text">
-                <strong>{m.name}</strong>
+                <strong>
+                  {m.name}
+                  {m.blocker && <BlockerBadge blocker={m.blocker} />}
+                </strong>
                 <span className="po-m-stand">
                   {m.stufe}
                   {m.ziel !== undefined && <em> → Umsetzung läuft auf {Math.round(m.ziel)}</em>}

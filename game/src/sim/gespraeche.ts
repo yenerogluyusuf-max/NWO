@@ -12,6 +12,7 @@ import { wirke, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { addDays, formatDateDe } from "./dates";
 import { kannZahlen } from "./kapital";
+import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { clamp } from "./economy";
 import { pruefeVorhaben, stufeIn } from "./handeln";
 import { anliegenStand, LAENDER, vertrauenZu, weltZustand } from "./laender";
@@ -428,6 +429,10 @@ export function planeGespraech(w: World, figurId: string, themaId: string, ansat
     }
   }
   if (!plan.grund && tg) plan.grund = tg;
+  if (!plan.grund) {
+    const pause = neuanfangGrund(w);
+    if (pause) plan.grund = pause;
+  }
   if (!plan.grund && !kannZahlen(sp.kapital, plan.pk)) plan.grund = `Dafür fehlen ${plan.pk} Kapital.`;
   return plan;
 }
@@ -646,6 +651,7 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
   const loyVorher = f.loyalitaet;
 
   sp.kapital -= p.pk;
+  verbrauche(w, AUFMERKSAMKEIT_KOSTEN.gespraech, `Gespräch mit ${f.name}`);
   f.gespraech = w.day;
   (sp.termine ??= []).push(w.day);
   if (sp.termine.length > 40) sp.termine = sp.termine.slice(-40);

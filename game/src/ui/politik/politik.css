@@ -140,3 +140,14 @@
 
 /* Rückmeldungen nach einer Handlung bleiben sichtbar, auch wenn man weiter unten geklickt hat */
 .po-seite > .rueckmeldung, .sk > .rueckmeldung { position: sticky; top: -8px; z-index: 3; background: #f8f1dc; box-shadow: 0 5px 12px rgba(60, 40, 16, 0.2); }
+
+/* Krisen-Blocker (MIL-3): Banner über den Bereichen, Badges an betroffenen Maßnahmen.
+   Bildsprache wie die Ampel: gesperrt = gestrichelte rote Kante, verteuert = durchgezogene gelbe, verbilligt = grüne. */
+.po-krisen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.po-krisen li { padding: 8px 12px; border: 1px solid rgba(168, 58, 50, 0.5); border-left: 4px solid #a83a32; border-radius: 2px; background: rgba(168, 58, 50, 0.07); font: 14.5px/1.45 var(--serif); }
+.po-krisen strong { font-family: var(--display); font-weight: 650; }
+.po-krisen em { display: block; margin-top: 1px; font-size: 13.5px; color: var(--ink-soft); }
+.po-blocker { display: inline-block; margin-left: 8px; padding: 0 7px; border-radius: 999px; font: 700 11px/18px var(--sans); letter-spacing: 0.03em; text-transform: uppercase; vertical-align: 2px; white-space: nowrap; }
+.po-blocker.po-b-gesperrt { color: #a83a32; border: 1.5px dashed #a83a32; }
+.po-blocker.po-b-teuer { color: #8a6d1f; border: 1.5px solid #b98a1e; }
+.po-blocker.po-b-guenstig { color: #2f7a55; border: 1.5px solid #3c8a63; }

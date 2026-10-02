@@ -37,6 +37,12 @@ export const PARAMS = {
   longRunTarget: 5,
   /** Monatliche Annäherung der Zwischenziele an das langfristige Ziel (ergibt etwa 24, 15, 9, 5) */
   targetGlide: 0.04,
+  /**
+   * ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 1 % des BIP
+   * lesen die Märkte als strukturelles Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
+   * Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
+   */
+  politiklastAufRisiko: 40,
 } as const;
 
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
@@ -78,6 +84,9 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
     3 * Math.max(0, e.inflation - 10) +
     2 * Math.max(0, e.debtRatio - 40) +
     200 * (1 - e.credibility) +
+    // ZEI-4 (Spielparameter): Wer dauerhaft über die Verhältnisse ausgibt, zahlt einen Nachhaltigkeitsaufschlag,
+    // auch wenn die Schuldenquote (Z7) bei hoher Inflation kaum steigt — die Märkte sehen die Politiklast.
+    PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 1) +
     AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
   return e.riskPremium + 0.02 * (fundamental - e.riskPremium) + rng.normal(2);
 }

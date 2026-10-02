@@ -38,6 +38,15 @@ export interface Vorlage {
   abkuehlung: number;
   /** Maßnahmen, mit denen man die Ursache selbst regeln kann; wer eine davon einbringt, hat das Ereignis in die Hand genommen */
   massnahmen?: string[];
+  /**
+   * ZEI-1 (Ereignis-Wettbewerb): Was geschieht, wenn der ausgelöste Vorgang im Monatswettbewerb keinen
+   * Präsentations-Slot bekommt. „aussitzen“: Er tritt im Hintergrund ein und läuft ohne Antwort schlecht aus
+   * (Standardfolge; für akute Einzelfälle und verfallende Angebote). „eskalieren“ (Standard): Er gärt weiter
+   * und kommt dringlicher zurück (für schwelende Konflikte).
+   */
+  wettbewerb?: "aussitzen" | "eskalieren";
+  /** ZEI-1: Schwere der Standardfolge für die Dringlichkeit im Wettbewerb (1 = normal, höher = schlimmer). */
+  schwere?: number;
   /** Wahrscheinlichkeit pro Monat, 0 = nicht möglich */
   chance: (w: World) => number;
   erzeuge: (w: World, rng: Rng) => { provinzen: number[]; staerke: number; daten?: Record<string, number | string> } | null;

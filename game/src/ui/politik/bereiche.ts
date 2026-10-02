@@ -7,6 +7,7 @@ import { nationalAverage, startAverage } from "../../sim/netz";
 import { THEME_NAMES, type NodeSpec, type Theme } from "../../data/politiknetz";
 import { skala, naechsteStufe, skalenArt } from "../../data/skalen";
 import { akuteProbleme, vorschlaege, type Vorschlag } from "../../sim/vorschlaege";
+import { krisenFuerMassnahme } from "../../sim/krisen";
 import type { World } from "../../sim/types";
 
 export type Ampel = "gruen" | "gelb" | "rot";
@@ -142,6 +143,8 @@ export interface MassnahmeZeile {
   /** Haushaltsposten heute in % des BIP; 0 = kein eigener Posten */
   kosten: number;
   einnahme: boolean;
+  /** Krisen-Blocker (MIL-3): gesperrt oder verteuert/verbilligt durch eine aktive Krise */
+  blocker?: { art: "gesperrt" | "teuer"; faktor: number; titel: string };
 }
 
 export interface ProblemZeile {
@@ -203,6 +206,15 @@ export function massnahmenZeilen(world: World, theme: Theme): MassnahmeZeile[] {
     const sk = skala(n.id, jetzt);
     const stufe = skalenArt(n.id) === "regime" ? naechsteStufe(sk, jetzt).stufe.name : `Stufe ${Math.round(jetzt)}`;
     const kosten = Math.abs(((n.cost ?? 0) * jetzt) / 100);
+    // Krisen-Blocker: Sperre schlägt Verteuerung; mehrere Verteuerungen multiplizieren sich
+    const treffer = spiel ? krisenFuerMassnahme(world, n.id) : [];
+    const sperre = treffer.find((t) => t.art === "gesperrt");
+    const faktor = treffer.reduce((f, t) => (t.art === "teuer" ? f * t.faktor : f), 1);
+    const blocker: MassnahmeZeile["blocker"] = sperre
+      ? { art: "gesperrt", faktor: 1, titel: `${sperre.krise.name}: ${sperre.krise.grund} ${sperre.ausweg ?? ""} ${sperre.krise.bedingung}`.trim() }
+      : faktor !== 1
+        ? { art: "teuer", faktor, titel: treffer.map((t) => `${t.krise.name}: ${t.krise.wirkung} ${t.krise.bedingung}`).join(" ") }
+        : undefined;
     out.push({
       id: n.id,
       name: n.name,
@@ -213,6 +225,7 @@ export function massnahmenZeilen(world: World, theme: Theme): MassnahmeZeile[] {
       ...(gesetz ? { imParlament: { tage: Math.max(0, gesetz.abstimmung - world.day), stufe: gesetz.stufe } } : {}),
       kosten: Math.abs(n.cost ?? 0) >= 0.05 ? kosten : 0,
       einnahme: (n.cost ?? 0) < 0,
+      ...(blocker ? { blocker } : {}),
     });
   }
   // Was läuft, steht oben; sonst nach Name

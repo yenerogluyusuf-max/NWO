@@ -2,6 +2,12 @@
 // Jede Vorlage ist ein Muster aus dem Zustand der Welt (Bedingung), mit mindestens zwei Antworten, die etwas kosten,
 // und einer schlechteren Standardfolge, wenn der Präsident schweigt. Alle Wahrscheinlichkeiten und Wirkungen sind
 // Platzhalter der Kalibrierung; Zahlen im Text kommen aus dem Weltzustand, nie aus dem Kopf.
+//
+// TODO (Energie-Modul): Innenpolitische Folge-Ereignisse der Energie-Hooks aus
+// RECHERCHE_ENERGIE.md, Abschnitt 6.3 hier ergänzen — Rationierung (erst Industrie,
+// nie Haushalte), Tarifsprünge und Wählerreaktionen auf „Preiswahrheit“, Lokalproteste
+// bei heimischer Kohle. Anknüpfung: p_energiemangel, energiepreise, strompreis,
+// m_preiswahrheit, m_heimische_kohle (politiknetz.ts).
 
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { wendePaketAn } from "./haushalt";

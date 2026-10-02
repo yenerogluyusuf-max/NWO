@@ -6,9 +6,9 @@ import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { NET } from "../src/sim/modell";
 import { nationalAverage } from "../src/sim/netz";
-import { LAENDER, dimensionZu, vertrauenZu, weltZustand } from "../src/sim/laender";
+import { LAENDER, aktionenFuer, dimensionZu, vertrauenZu, weltZustand } from "../src/sim/laender";
 import { KLAUSELN, KLAUSEL_NACH_ID, PROFILE, AUSSTRAHLUNG } from "../src/data/abkommen";
-import { abkommenMonat, bewerte, heimWirkung, klauselnFuer, kuendige, laufende, nimmGegenangebot, pkFuer, sperreRest, verhandle, vermittle, vermittlungen, type Angebot } from "../src/sim/abkommen";
+import { abkommenMonat, bewerte, heimWirkung, klauselnFuer, kuendige, laufende, nimmGegenangebot, pkFuer, schliesse, sperreRest, verhandle, vermittle, vermittlungen, type Angebot } from "../src/sim/abkommen";
 import { setPolicy } from "../src/sim/handeln";
 import { Rng } from "../src/sim/rng";
 
@@ -283,6 +283,27 @@ describe("Laufzeit, Prüfung, Bruch", () => {
     for (let i = 0; i < 6; i++) advance(w, 30);
     void g0;
     expect(laufende(w, "SYR")[0]).toBeDefined();
+  });
+});
+
+describe("Realwelt-Startzustand 30.09.2026", () => {
+  // RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Teil V §5.1 Nr. 2: Israels Handel ist durch die Sperre seit 05/2024 faktisch null
+  test("Israel: Die Handelssperre blockiert Handelsaktionen und -klauseln, bis „ende_sperre“ vereinbart ist", () => {
+    const w = neu();
+    expect(aktionenFuer(w, "ISR").find((a) => a.aktion.id === "handel")!.moeglich).toBe(false);
+    expect(klauselnFuer(w, "ISR").find((k) => k.def.id === "zoll")!.gesperrt).toMatch(/[Ss]perre/);
+    expect(klauselnFuer(w, "ISR").find((k) => k.def.id === "ende_sperre")!.gesperrt).toBeUndefined();
+    schliesse(w, A("ISR", ["ende_sperre"], ["w_luftraum"], 5));
+    expect(weltZustand(w)["ISR"]!.handelssperre).toBe(false);
+    // Danach greifen nur noch die allgemeinen Vorbedingungen (hier: Grundvertrauen für „zoll“, weil das Vertrauen bei 25 startet)
+    expect(klauselnFuer(w, "ISR").find((k) => k.def.id === "zoll")!.gesperrt).not.toMatch(/Hafen- und Luftraumsperre/);
+  });
+
+  // RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Teil V §5.1 Nr. 3: Mekka-Beistandspakt 07.08.2026 (SAU+TR+PAK, Kollektivklausel)
+  test("Saudi-Arabien: Der Mekka-Beistandspakt liegt als laufender Vertrag vor und wird nicht doppelt angeboten", () => {
+    const w = neu();
+    expect(laufende(w, "SAU").some((v) => v.gibt.includes("beistand"))).toBe(true);
+    expect(klauselnFuer(w, "SAU").find((k) => k.def.id === "beistand")!.gesperrt).toMatch(/läuft schon/);
   });
 });
 

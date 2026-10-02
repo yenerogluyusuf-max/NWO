@@ -68,6 +68,19 @@ export type Voraussetzung =
   | { art: "vorteil"; id: string }
   | { art: "jahr"; min: number };
 
+/**
+ * Die drei Wege der Bauvergabe (INF-1, Suzerain-Vorbild): Wer bauen lässt, entscheidet einmal je Vorhaben,
+ * wie der Auftrag vergeben wird — die Wahl steht danach fest.
+ * Alle Faktoren und Schwellen dazu sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachen.
+ */
+export type Vergabe = "stammfirma" | "sparvergabe" | "ausschreibung";
+
+export const VERGABE_NAMEN: Record<Vergabe, string> = {
+  stammfirma: "Stammfirma",
+  sparvergabe: "Sparvergabe",
+  ausschreibung: "Transparente Ausschreibung",
+};
+
 /** Bilder der Wunder-Animation: einfache Silhouetten im Stil des Spiels. */
 export type WunderBild =
   | "tempel"
@@ -148,6 +161,16 @@ export interface LaufEintrag {
   fortschritt: number;
   start: string;
   pausiert?: boolean;
+  /** Gewählte Bauvergabe; fehlt in älteren Spielständen und beim Schnellstart, dann gilt „ausschreibung“ */
+  vergabe?: Vergabe;
+  /** Wirksame Baupunkte insgesamt, beim Beginn nach der Vergabe festgelegt (sonst Katalogwert) */
+  bau?: number;
+  /** Wirksame Mindestbauzeit in Monaten, beim Beginn nach der Vergabe festgelegt (sonst Katalogwert) */
+  monate?: number;
+  /** Bis zu diesem Tag läuft die Vergabephase; erst danach fließt Baukapazität (transparente Ausschreibung) */
+  vergabeBis?: number;
+  /** Zustand, mit dem das fertige Stück in den Bestand geht (Sparvergabe beginnt niedriger; sonst 90) */
+  zustandFertig?: number;
 }
 
 export interface StaetteZustand {

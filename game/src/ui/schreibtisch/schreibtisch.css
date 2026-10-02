@@ -95,3 +95,26 @@
   .sk-kopf h3 { font-size: 22px; }
   .dossier button.sk-termin, .sk-log li { grid-template-columns: 78px minmax(0, 1fr); }
 }
+
+/* Das Belastungs-/Aufmerksamkeitskonto: dezente Doppelanzeige mit Tooltip */
+.sk-verfassung { position: relative; display: flex; align-items: center; gap: 14px; padding: 7px 11px; border: 1px solid rgba(120, 90, 50, 0.3); border-radius: 3px; background: rgba(255, 250, 235, 0.55); }
+.sk-vf-zeilen { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.sk-vf-zeile { display: grid; grid-template-columns: 108px minmax(0, 1fr) 26px; gap: 8px; align-items: center; }
+.sk-vf-label { font: 700 10.5px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.sk-vf-balken { height: 5px; border-radius: 2px; background: rgba(90, 64, 40, 0.18); box-shadow: inset 0 0 0 1px rgba(90, 64, 40, 0.22); overflow: hidden; }
+.sk-vf-balken i { display: block; height: 100%; border-radius: 2px; transition: width 200ms ease; }
+.sk-vf-balken i.auf { background: #4a7a5c; }
+.sk-vf-balken i.bel { background: #b08a3c; }
+.sk-verfassung.stufe-1 .sk-vf-balken i.bel { background: #b57a2e; }
+.sk-verfassung.stufe-2 .sk-vf-balken i.bel { background: var(--seal); }
+.sk-vf-wert { font: 650 13px var(--sans); font-variant-numeric: tabular-nums; text-align: right; }
+.sk-vf-stufe { font: italic 13.5px var(--serif); color: var(--ink-soft); white-space: nowrap; }
+.sk-verfassung.stufe-1 .sk-vf-stufe { color: #8a6420; }
+.sk-verfassung.stufe-2 .sk-vf-stufe { color: var(--seal); }
+.sk-verfassung .tip { top: calc(100% + 10px); }
+.sk-verfassung:hover .tip, .sk-verfassung:focus-visible .tip { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 520px) {
+  .sk-verfassung { flex-direction: column; align-items: stretch; gap: 4px; }
+  .sk-vf-stufe { white-space: normal; }
+}

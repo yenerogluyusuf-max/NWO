@@ -54,6 +54,26 @@ export interface EconomyState {
   oel?: number;
   euNachfrage?: number;
   weltzins?: number;
+  // Reine Realwelt-Datenfelder des Szenarios (Stichtag 25.09.2026, RECHERCHE_REALWELT_TUERKEI_2026 Abschnitt 11.1).
+  // Sie steuern keine Mechanik und fehlen in älteren Spielständen.
+  /** Kerninflation, % zum Vorjahr (TÜİK 08/2026) */
+  coreInflation?: number;
+  /** ENAG-Gegenrechnung zur Inflation, % (08/2026) */
+  enagInflation?: number;
+  /** TCMB-Bruttoreserven inkl. Gold, Mrd. USD (18.09.2026) */
+  grossReservesUsdBn?: number;
+  /** Netto-Reserven ohne Swaps, Mrd. USD (06/2026) */
+  netReservesExSwapsUsdBn?: number;
+  /** Brent-Preis in USD am Stichtag (Hormuz-Krieg) */
+  oilBrentUsd?: number;
+  /** OVP-Schätzung der Energieimporte 2026, Mrd. USD */
+  energyImportsUsdBn2026?: number;
+  /** Leistungsbilanz in % des BIP (OVP-Erwartung 2026) */
+  currentAccountPctGdp?: number;
+  /** Netto-Mindestlohn in Lira (seit 01.01.2026) */
+  minimumWageNetTry?: number;
+  /** Nominales BIP in Bio. Lira (aus OVP-Defizit abgeleitet) */
+  bipTryTn?: number;
 }
 
 /** Größen, die nicht im Szenario stehen, sondern abgeleitet werden. */
@@ -144,4 +164,6 @@ export interface Scenario {
   economy: Record<Exclude<keyof EconomyState, DerivedEconomyKey>, StartValue>;
   governor: Governor;
   published: Published;
+  /** Inflationspfad der Regierung (OVP 2027–2029, 06.09.2026), getrennt vom TCMB-Zwischenziel; nur Daten, keine Mechanik */
+  ovpInflationPath?: { values: Record<string, number>; provenance: Provenance; note?: string };
 }

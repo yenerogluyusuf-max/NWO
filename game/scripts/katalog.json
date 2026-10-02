@@ -1,0 +1,1590 @@
+{
+  "massnahmen": [
+    {
+      "id": "m_mindestlohn",
+      "name": "Mindestlohn"
+    },
+    {
+      "id": "m_exportfoerderung",
+      "name": "Exportförderung"
+    },
+    {
+      "id": "m_investitionsanreize",
+      "name": "Investitionsanreize"
+    },
+    {
+      "id": "m_kreditgarantien",
+      "name": "Staatliche Kreditgarantien"
+    },
+    {
+      "id": "m_preiskontrollen",
+      "name": "Preiskontrollen für Lebensmittel"
+    },
+    {
+      "id": "m_tourismuswerbung",
+      "name": "Tourismuswerbung"
+    },
+    {
+      "id": "m_kmu",
+      "name": "Mittelstandsförderung"
+    },
+    {
+      "id": "m_zoelle",
+      "name": "Einfuhrzölle"
+    },
+    {
+      "id": "m_bankenaufsicht",
+      "name": "Bankenaufsicht"
+    },
+    {
+      "id": "m_einkommensteuer",
+      "name": "Einkommensteuer"
+    },
+    {
+      "id": "m_mwst",
+      "name": "Mehrwertsteuer"
+    },
+    {
+      "id": "m_koerperschaftsteuer",
+      "name": "Körperschaftsteuer"
+    },
+    {
+      "id": "m_kraftstoffsteuer",
+      "name": "Steuer auf Kraftstoff"
+    },
+    {
+      "id": "m_immobiliensteuer",
+      "name": "Steuer auf Immobilien und Vermögen"
+    },
+    {
+      "id": "m_steueramnestie",
+      "name": "Steueramnestie"
+    },
+    {
+      "id": "m_steuerfahndung",
+      "name": "Steuerfahndung"
+    },
+    {
+      "id": "m_privatisierung",
+      "name": "Privatisierung"
+    },
+    {
+      "id": "m_renten",
+      "name": "Rentenerhöhungen"
+    },
+    {
+      "id": "m_fruehrente",
+      "name": "Frühverrentung"
+    },
+    {
+      "id": "m_kindergeld",
+      "name": "Kindergeld und Familienhilfe"
+    },
+    {
+      "id": "m_sozialhilfe",
+      "name": "Sozialhilfe"
+    },
+    {
+      "id": "m_arbeitslosengeld",
+      "name": "Arbeitslosengeld"
+    },
+    {
+      "id": "m_gewerkschaftsrechte",
+      "name": "Gewerkschaftsrechte"
+    },
+    {
+      "id": "m_kinderbetreuung",
+      "name": "Kinderbetreuung"
+    },
+    {
+      "id": "m_ausbildung",
+      "name": "Berufsausbildungsprogramme"
+    },
+    {
+      "id": "m_krankenhausbau",
+      "name": "Krankenhausbau"
+    },
+    {
+      "id": "m_aerztegehalt",
+      "name": "Gehälter im Gesundheitswesen"
+    },
+    {
+      "id": "m_hausarzt",
+      "name": "Hausarztsystem"
+    },
+    {
+      "id": "m_zuzahlungen",
+      "name": "Zuzahlungen der Patienten"
+    },
+    {
+      "id": "m_lehrergehaelter",
+      "name": "Lehrergehälter"
+    },
+    {
+      "id": "m_schulbau",
+      "name": "Schulbau"
+    },
+    {
+      "id": "m_religioese_schulen",
+      "name": "Religiöse Schulen (İmam-Hatip)"
+    },
+    {
+      "id": "m_berufsschulen",
+      "name": "Berufsschulen"
+    },
+    {
+      "id": "m_unigruendungen",
+      "name": "Neue Universitäten"
+    },
+    {
+      "id": "m_stipendien",
+      "name": "Stipendien"
+    },
+    {
+      "id": "m_forschung",
+      "name": "Forschungsförderung"
+    },
+    {
+      "id": "m_wissenschaftsfreiheit",
+      "name": "Wissenschaftsfreiheit"
+    },
+    {
+      "id": "m_autobahnen",
+      "name": "Autobahn- und Brückenbau"
+    },
+    {
+      "id": "m_oepp_garantien",
+      "name": "Garantien für Betreiberprojekte"
+    },
+    {
+      "id": "m_bahn",
+      "name": "Bahnausbau"
+    },
+    {
+      "id": "m_nahverkehr",
+      "name": "Nahverkehr"
+    },
+    {
+      "id": "m_breitband",
+      "name": "Breitbandausbau"
+    },
+    {
+      "id": "m_regionalfoerderung",
+      "name": "Regionalförderung"
+    },
+    {
+      "id": "m_energiesubventionen",
+      "name": "Energiesubventionen"
+    },
+    {
+      "id": "m_solar_wind",
+      "name": "Ausbau von Sonne und Wind"
+    },
+    {
+      "id": "m_kernkraft",
+      "name": "Kernkraft"
+    },
+    {
+      "id": "m_gasfoerderung",
+      "name": "Heimische Gasförderung"
+    },
+    {
+      "id": "m_umweltauflagen",
+      "name": "Umweltauflagen"
+    },
+    {
+      "id": "m_co2_preis",
+      "name": "CO₂-Preis"
+    },
+    {
+      "id": "m_netzausbau",
+      "name": "Stromnetzausbau"
+    },
+    {
+      "id": "m_agrarsubventionen",
+      "name": "Agrarsubventionen"
+    },
+    {
+      "id": "m_bewaesserung",
+      "name": "Moderne Bewässerung"
+    },
+    {
+      "id": "m_staudaemme",
+      "name": "Staudämme und Speicher"
+    },
+    {
+      "id": "m_wasserleitungen",
+      "name": "Wasserleitungen und Kläranlagen"
+    },
+    {
+      "id": "m_saatgut",
+      "name": "Saatgut- und Erzeugerprogramme"
+    },
+    {
+      "id": "m_mechanisierung",
+      "name": "Landwirtschaftliche Mechanisierung"
+    },
+    {
+      "id": "m_agrarforschung",
+      "name": "Agrarforschung und Hochtechnologie"
+    },
+    {
+      "id": "m_industrie_modernisierung",
+      "name": "Industrielle Modernisierung"
+    },
+    {
+      "id": "m_verwaltungsdigital",
+      "name": "Digitale Verwaltung und Steuertechnik"
+    },
+    {
+      "id": "m_fachkraefteprogramm",
+      "name": "Fachkräfte und Weiterbildung"
+    },
+    {
+      "id": "m_bildungstechnik",
+      "name": "Bildungstechnik und digitales Lernen"
+    },
+    {
+      "id": "m_medizintechnik",
+      "name": "Medizintechnik und Krankenhausmodernisierung"
+    },
+    {
+      "id": "m_smart_infrastruktur",
+      "name": "Intelligente Infrastruktur"
+    },
+    {
+      "id": "m_speicher_smartgrid",
+      "name": "Netzmodernisierung und Speicher"
+    },
+    {
+      "id": "m_bauindustrie",
+      "name": "Industrieller Wohnungsbau"
+    },
+    {
+      "id": "m_polizeitechnik",
+      "name": "Moderne Sicherheitsverwaltung"
+    },
+    {
+      "id": "m_digitale_oeffentlichkeit",
+      "name": "Digitale Öffentlichkeit und Beteiligung"
+    },
+    {
+      "id": "m_handelssysteme",
+      "name": "Moderne Zoll- und Handelssysteme"
+    },
+    {
+      "id": "m_sozialwohnungen",
+      "name": "Staatlicher Wohnungsbau"
+    },
+    {
+      "id": "m_mietdeckel",
+      "name": "Mietpreisbremse"
+    },
+    {
+      "id": "m_stadterneuerung",
+      "name": "Erdbebensichere Stadterneuerung"
+    },
+    {
+      "id": "m_bauaufsicht",
+      "name": "Bauaufsicht"
+    },
+    {
+      "id": "m_baukredite",
+      "name": "Günstige Baukredite"
+    },
+    {
+      "id": "m_bauamnestie",
+      "name": "Bauamnestie"
+    },
+    {
+      "id": "m_polizei",
+      "name": "Polizei und Gendarmerie"
+    },
+    {
+      "id": "m_justizreform",
+      "name": "Justizreform"
+    },
+    {
+      "id": "m_antikorruption",
+      "name": "Korruptionsbekämpfung"
+    },
+    {
+      "id": "m_friedensprozess",
+      "name": "Friedensprozess"
+    },
+    {
+      "id": "m_verteidigung",
+      "name": "Verteidigungsausgaben"
+    },
+    {
+      "id": "m_ruestungsindustrie",
+      "name": "Heimische Rüstungsindustrie"
+    },
+    {
+      "id": "m_medienaufsicht",
+      "name": "Medienaufsicht"
+    },
+    {
+      "id": "m_internetsperren",
+      "name": "Internetsperren"
+    },
+    {
+      "id": "m_staatsmedien",
+      "name": "Staatliche Medien und Werbung"
+    },
+    {
+      "id": "m_religionsbehoerde",
+      "name": "Budget der Religionsbehörde"
+    },
+    {
+      "id": "m_gewaltschutz",
+      "name": "Schutz vor Gewalt gegen Frauen"
+    },
+    {
+      "id": "m_versammlungsfreiheit",
+      "name": "Versammlungsfreiheit"
+    },
+    {
+      "id": "m_rueckkehr",
+      "name": "Rückkehrprogramm für Geflüchtete"
+    },
+    {
+      "id": "m_integration",
+      "name": "Integration von Geflüchteten"
+    },
+    {
+      "id": "m_grenzschutz",
+      "name": "Grenzschutz"
+    },
+    {
+      "id": "m_eu_annaeherung",
+      "name": "Annäherung an die EU"
+    },
+    {
+      "id": "m_richterstellen",
+      "name": "Richter- und Staatsanwaltsstellen"
+    },
+    {
+      "id": "m_richterrat",
+      "name": "Besetzung des Richterrats"
+    },
+    {
+      "id": "m_haftvermeidung",
+      "name": "Haftvermeidung und Bewährung"
+    },
+    {
+      "id": "m_notstand",
+      "name": "Ausnahmezustand und Sonderbefugnisse"
+    },
+    {
+      "id": "m_urteilsumsetzung",
+      "name": "Umsetzung von Gerichtsurteilen aus Straßburg und Ankara"
+    },
+    {
+      "id": "m_denkmalschutz",
+      "name": "Denkmalschutz und Restaurierung"
+    },
+    {
+      "id": "m_kulturfoerderung",
+      "name": "Kunst- und Kulturförderung"
+    },
+    {
+      "id": "m_archaeologie",
+      "name": "Ausgrabungen und Museen"
+    },
+    {
+      "id": "m_minderheitenrechte",
+      "name": "Rechte religiöser und sprachlicher Minderheiten"
+    },
+    {
+      "id": "m_wehrdienst",
+      "name": "Wehrdienst"
+    },
+    {
+      "id": "m_uebungen",
+      "name": "Ausbildung und Übungen"
+    },
+    {
+      "id": "m_offiziersauswahl",
+      "name": "Beförderung im Obersten Militärrat"
+    },
+    {
+      "id": "m_instandhaltung",
+      "name": "Instandhaltung der Infrastruktur"
+    }
+  ],
+  "laender": [
+    {
+      "id": "USA",
+      "name": "Vereinigte Staaten"
+    },
+    {
+      "id": "EU",
+      "name": "Europäische Union"
+    },
+    {
+      "id": "RUS",
+      "name": "Russland"
+    },
+    {
+      "id": "GRC",
+      "name": "Griechenland"
+    },
+    {
+      "id": "IRN",
+      "name": "Iran"
+    },
+    {
+      "id": "SYR",
+      "name": "Syrien"
+    },
+    {
+      "id": "IRQ",
+      "name": "Irak"
+    },
+    {
+      "id": "AZE",
+      "name": "Aserbaidschan"
+    },
+    {
+      "id": "ARM",
+      "name": "Armenien"
+    },
+    {
+      "id": "SAU",
+      "name": "Saudi-Arabien und Golfstaaten"
+    },
+    {
+      "id": "ISR",
+      "name": "Israel"
+    },
+    {
+      "id": "CHN",
+      "name": "China"
+    },
+    {
+      "id": "UKR",
+      "name": "Ukraine"
+    },
+    {
+      "id": "GEO",
+      "name": "Georgien"
+    },
+    {
+      "id": "EGY",
+      "name": "Ägypten"
+    },
+    {
+      "id": "LBY",
+      "name": "Libyen"
+    },
+    {
+      "id": "KAZ",
+      "name": "Kasachstan"
+    },
+    {
+      "id": "CYP",
+      "name": "Zypern"
+    }
+  ],
+  "posten": [
+    {
+      "id": "soziales",
+      "name": "Renten und Sozialleistungen",
+      "seite": "ausgabe"
+    },
+    {
+      "id": "personal",
+      "name": "Gehälter im öffentlichen Dienst",
+      "seite": "ausgabe"
+    },
+    {
+      "id": "investitionen",
+      "name": "Öffentliche Investitionen",
+      "seite": "ausgabe"
+    },
+    {
+      "id": "gesundheit_bildung",
+      "name": "Gesundheit und Bildung (laufende Mittel)",
+      "seite": "ausgabe"
+    },
+    {
+      "id": "sicherheit",
+      "name": "Sicherheit und Verteidigung",
+      "seite": "ausgabe"
+    },
+    {
+      "id": "subventionen",
+      "name": "Preisstützen und Subventionen",
+      "seite": "ausgabe"
+    },
+    {
+      "id": "einkommensteuer",
+      "name": "Lohn- und Einkommensteuer",
+      "seite": "einnahme"
+    },
+    {
+      "id": "verbrauchsteuern",
+      "name": "Mehrwert- und Sonderverbrauchsteuern",
+      "seite": "einnahme"
+    },
+    {
+      "id": "unternehmensteuer",
+      "name": "Körperschaftsteuer",
+      "seite": "einnahme"
+    }
+  ],
+  "vorhaben": [
+    {
+      "id": "wunder_ephesos",
+      "name": "Ephesos: Gesamtplan Ausgrabung und Besucherlenkung"
+    },
+    {
+      "id": "wunder_antakya",
+      "name": "Antakya: Wiederaufbau der Altstadt"
+    },
+    {
+      "id": "wunder_goebekli",
+      "name": "Göbekli Tepe: Besucherzentrum und Forschungscampus"
+    },
+    {
+      "id": "wunder_ani",
+      "name": "Ani öffnen: Grenzübergang, Museum, Wiederherstellung"
+    },
+    {
+      "id": "wunder_kappadokien",
+      "name": "Kappadokien: Schutzplan für die Felslandschaft"
+    },
+    {
+      "id": "programm_erbe_zukunft",
+      "name": "Erbe für die Zukunft: Nationalprogramm für Grabungen und Restaurierung"
+    },
+    {
+      "id": "serie_kirchen7",
+      "name": "Kirchenroute der Sieben"
+    },
+    {
+      "id": "serie_seldschuken",
+      "name": "Seldschukenroute"
+    },
+    {
+      "id": "serie_sinan",
+      "name": "Sinan-Route"
+    },
+    {
+      "id": "serie_tas_tepeler",
+      "name": "Taş-Tepeler-Route"
+    },
+    {
+      "id": "serie_byzanz",
+      "name": "Byzantinische Route"
+    },
+    {
+      "id": "serie_vielvoelker",
+      "name": "Route der Gemeinschaften"
+    },
+    {
+      "id": "ausbau_ephesos",
+      "name": "Besucherzentrum und Museum: Ephesos"
+    },
+    {
+      "id": "ausbau_pergamon",
+      "name": "Besucherzentrum und Museum: Pergamon"
+    },
+    {
+      "id": "ausbau_goebekli_tepe",
+      "name": "Besucherzentrum und Museum: Göbekli Tepe"
+    },
+    {
+      "id": "ausbau_pamukkale",
+      "name": "Besucherzentrum und Museum: Hierapolis und Pamukkale"
+    },
+    {
+      "id": "ausbau_kappadokien",
+      "name": "Besucherzentrum und Museum: Göreme und Kappadokien"
+    },
+    {
+      "id": "ausbau_troja",
+      "name": "Besucherzentrum und Museum: Troja"
+    },
+    {
+      "id": "ausbau_nemrut",
+      "name": "Besucherzentrum und Museum: Nemrut Dağı"
+    },
+    {
+      "id": "ausbau_aphrodisias",
+      "name": "Besucherzentrum und Museum: Aphrodisias"
+    },
+    {
+      "id": "ausbau_ani",
+      "name": "Besucherzentrum und Museum: Ani"
+    },
+    {
+      "id": "ausbau_suemela",
+      "name": "Besucherzentrum und Museum: Sümela-Kloster"
+    },
+    {
+      "id": "ausbau_mevlana",
+      "name": "Besucherzentrum und Museum: Mevlana-Museum"
+    },
+    {
+      "id": "ausbau_catalhoyuk",
+      "name": "Besucherzentrum und Museum: Çatalhöyük"
+    },
+    {
+      "id": "ausbau_diyarbakir",
+      "name": "Besucherzentrum und Museum: Festung Diyarbakır und Hevsel-Gärten"
+    },
+    {
+      "id": "ausbau_hagia_sophia",
+      "name": "Besucherzentrum und Museum: Hagia Sophia"
+    },
+    {
+      "id": "restaurierung_ephesos",
+      "name": "Restaurierung: Ephesos"
+    },
+    {
+      "id": "restaurierung_smyrna",
+      "name": "Restaurierung: Smyrna (Agora)"
+    },
+    {
+      "id": "restaurierung_pergamon",
+      "name": "Restaurierung: Pergamon"
+    },
+    {
+      "id": "restaurierung_thyatira",
+      "name": "Restaurierung: Thyatira"
+    },
+    {
+      "id": "restaurierung_sardes",
+      "name": "Restaurierung: Sardes"
+    },
+    {
+      "id": "restaurierung_philadelphia",
+      "name": "Restaurierung: Philadelphia"
+    },
+    {
+      "id": "restaurierung_laodikeia",
+      "name": "Restaurierung: Laodikeia"
+    },
+    {
+      "id": "restaurierung_hagia_sophia",
+      "name": "Restaurierung: Hagia Sophia"
+    },
+    {
+      "id": "restaurierung_suleymaniye",
+      "name": "Restaurierung: Süleymaniye-Moschee"
+    },
+    {
+      "id": "restaurierung_topkapi",
+      "name": "Restaurierung: Topkapı-Palast"
+    },
+    {
+      "id": "restaurierung_neve_shalom",
+      "name": "Restaurierung: Neve-Shalom-Synagoge"
+    },
+    {
+      "id": "restaurierung_phanar",
+      "name": "Restaurierung: Phanar (Ökumenisches Patriarchat)"
+    },
+    {
+      "id": "restaurierung_goebekli_tepe",
+      "name": "Restaurierung: Göbekli Tepe"
+    },
+    {
+      "id": "restaurierung_catalhoyuk",
+      "name": "Restaurierung: Çatalhöyük"
+    },
+    {
+      "id": "restaurierung_arslantepe",
+      "name": "Restaurierung: Arslantepe"
+    },
+    {
+      "id": "restaurierung_hattusa",
+      "name": "Restaurierung: Hattuša"
+    },
+    {
+      "id": "restaurierung_gordion",
+      "name": "Restaurierung: Gordion"
+    },
+    {
+      "id": "restaurierung_troja",
+      "name": "Restaurierung: Troja"
+    },
+    {
+      "id": "restaurierung_nemrut",
+      "name": "Restaurierung: Nemrut Dağı"
+    },
+    {
+      "id": "restaurierung_kappadokien",
+      "name": "Restaurierung: Göreme und Kappadokien"
+    },
+    {
+      "id": "restaurierung_pamukkale",
+      "name": "Restaurierung: Hierapolis und Pamukkale"
+    },
+    {
+      "id": "restaurierung_aphrodisias",
+      "name": "Restaurierung: Aphrodisias"
+    },
+    {
+      "id": "restaurierung_xanthos",
+      "name": "Restaurierung: Xanthos und Letoon"
+    },
+    {
+      "id": "restaurierung_aspendos",
+      "name": "Restaurierung: Aspendos"
+    },
+    {
+      "id": "restaurierung_zeugma",
+      "name": "Restaurierung: Zeugma"
+    },
+    {
+      "id": "restaurierung_myra",
+      "name": "Restaurierung: Myra (Nikolauskirche)"
+    },
+    {
+      "id": "restaurierung_suemela",
+      "name": "Restaurierung: Sümela-Kloster"
+    },
+    {
+      "id": "restaurierung_akdamar",
+      "name": "Restaurierung: Akdamar-Kirche"
+    },
+    {
+      "id": "restaurierung_mor_gabriel",
+      "name": "Restaurierung: Mor-Gabriel-Kloster"
+    },
+    {
+      "id": "restaurierung_petrusgrotte",
+      "name": "Restaurierung: Petrus-Grotte"
+    },
+    {
+      "id": "restaurierung_antakya",
+      "name": "Restaurierung: Antakya (Altstadt und Mosaikmuseum)"
+    },
+    {
+      "id": "restaurierung_iznik",
+      "name": "Restaurierung: İznik (Nicäa)"
+    },
+    {
+      "id": "restaurierung_meryem_ana",
+      "name": "Restaurierung: Meryem Ana Evi"
+    },
+    {
+      "id": "restaurierung_divrigi",
+      "name": "Restaurierung: Große Moschee und Hospital von Divriği"
+    },
+    {
+      "id": "restaurierung_mevlana",
+      "name": "Restaurierung: Mevlana-Museum"
+    },
+    {
+      "id": "restaurierung_esrefoglu",
+      "name": "Restaurierung: Eşrefoğlu-Moschee"
+    },
+    {
+      "id": "restaurierung_bursa",
+      "name": "Restaurierung: Bursa und Cumalıkızık"
+    },
+    {
+      "id": "restaurierung_selimiye",
+      "name": "Restaurierung: Selimiye-Moschee"
+    },
+    {
+      "id": "restaurierung_kirkpinar",
+      "name": "Restaurierung: Kırkpınar (Sarayiçi)"
+    },
+    {
+      "id": "restaurierung_ani",
+      "name": "Restaurierung: Ani"
+    },
+    {
+      "id": "restaurierung_ahlat",
+      "name": "Restaurierung: Ahlat"
+    },
+    {
+      "id": "restaurierung_ishak_pascha",
+      "name": "Restaurierung: İshak-Pascha-Palast"
+    },
+    {
+      "id": "restaurierung_hasankeyf",
+      "name": "Restaurierung: Hasankeyf"
+    },
+    {
+      "id": "restaurierung_safranbolu",
+      "name": "Restaurierung: Safranbolu"
+    },
+    {
+      "id": "restaurierung_diyarbakir",
+      "name": "Restaurierung: Festung Diyarbakır und Hevsel-Gärten"
+    },
+    {
+      "id": "restaurierung_mardin",
+      "name": "Restaurierung: Mardin"
+    },
+    {
+      "id": "restaurierung_balikligoel",
+      "name": "Restaurierung: Balıklıgöl"
+    },
+    {
+      "id": "restaurierung_hacibektas",
+      "name": "Restaurierung: Hacıbektaş-Komplex"
+    },
+    {
+      "id": "restaurierung_anitkabir",
+      "name": "Restaurierung: Anıtkabir"
+    },
+    {
+      "id": "restaurierung_gelibolu",
+      "name": "Restaurierung: Gelibolu (Gallipoli)"
+    },
+    {
+      "id": "restaurierung_synagoge_edirne",
+      "name": "Restaurierung: Große Synagoge von Edirne"
+    },
+    {
+      "id": "restaurierung_karahan_tepe",
+      "name": "Restaurierung: Karahan Tepe"
+    },
+    {
+      "id": "restaurierung_kueltepe",
+      "name": "Restaurierung: Kültepe-Kaniş"
+    },
+    {
+      "id": "infra_marmaray",
+      "name": "Marmaray"
+    },
+    {
+      "id": "infra_osmangazi",
+      "name": "Osmangazi-Brücke"
+    },
+    {
+      "id": "infra_flughafen",
+      "name": "Istanbuler Flughafen"
+    },
+    {
+      "id": "infra_yht",
+      "name": "Hochgeschwindigkeitsbahn"
+    },
+    {
+      "id": "infra_canakkale1915",
+      "name": "1915-Çanakkale-Brücke"
+    },
+    {
+      "id": "infra_gap",
+      "name": "Südostanatolien-Projekt (GAP) mit Atatürk-Damm"
+    },
+    {
+      "id": "infra_btk",
+      "name": "Bahn Baku–Tiflis–Kars"
+    },
+    {
+      "id": "infra_stromnetz",
+      "name": "Übertragungsnetz (TEİAŞ)"
+    },
+    {
+      "id": "infra_akkuyu",
+      "name": "Kernkraftwerk Akkuyu"
+    },
+    {
+      "id": "infra_wiederaufbau",
+      "name": "Wiederaufbau im Erdbebengebiet"
+    },
+    {
+      "id": "infra_kanal_istanbul",
+      "name": "Kanal Istanbul"
+    },
+    {
+      "id": "infra_yht_izmir",
+      "name": "Hochgeschwindigkeitsbahn Ankara–İzmir"
+    },
+    {
+      "id": "infra_strom_ost",
+      "name": "Ost-West-Stromachse"
+    },
+    {
+      "id": "infra_btk_personen",
+      "name": "Bahn Kars–Tiflis: Personenverkehr"
+    },
+    {
+      "id": "infra_bosporus_tunnel3",
+      "name": "Großer Istanbuler Tunnel"
+    },
+    {
+      "id": "infra_wasser_ost",
+      "name": "Wasserleitungen und Speicher im Osten"
+    },
+    {
+      "id": "infra_glasfaser",
+      "name": "Glasfaser bis ins Dorf"
+    },
+    {
+      "id": "infra_sozialwohnungen",
+      "name": "Sozialwohnungsprogramm der Wohnungsbaubehörde (TOKİ)"
+    },
+    {
+      "id": "infra_sinop",
+      "name": "Kernkraftwerk Sinop"
+    },
+    {
+      "id": "sanierung_marmaray",
+      "name": "Sanierung: Marmaray"
+    },
+    {
+      "id": "sanierung_osmangazi",
+      "name": "Sanierung: Osmangazi-Brücke"
+    },
+    {
+      "id": "sanierung_flughafen",
+      "name": "Sanierung: Istanbuler Flughafen"
+    },
+    {
+      "id": "sanierung_yht",
+      "name": "Sanierung: Hochgeschwindigkeitsbahn"
+    },
+    {
+      "id": "sanierung_canakkale1915",
+      "name": "Sanierung: 1915-Çanakkale-Brücke"
+    },
+    {
+      "id": "sanierung_gap",
+      "name": "Sanierung: Südostanatolien-Projekt (GAP) mit Atatürk-Damm"
+    },
+    {
+      "id": "sanierung_btk",
+      "name": "Sanierung: Bahn Baku–Tiflis–Kars"
+    },
+    {
+      "id": "sanierung_stromnetz",
+      "name": "Sanierung: Übertragungsnetz (TEİAŞ)"
+    },
+    {
+      "id": "recht_aym",
+      "name": "Verfassungsgericht"
+    },
+    {
+      "id": "recht_hsk",
+      "name": "Richter- und Staatsanwaltsrat (HSK)"
+    },
+    {
+      "id": "recht_vollzug",
+      "name": "Strafvollzug"
+    },
+    {
+      "id": "recht_anwaltskammern",
+      "name": "Anwaltskammern"
+    },
+    {
+      "id": "recht_digitale_justiz",
+      "name": "Digitale Justiz"
+    },
+    {
+      "id": "recht_justizakademie",
+      "name": "Justizakademie"
+    },
+    {
+      "id": "recht_gefaengnisbau",
+      "name": "Neue Haftanstalten"
+    },
+    {
+      "id": "recht_kavala",
+      "name": "Urteile im Fall Kavala umsetzen"
+    },
+    {
+      "id": "recht_kammergesetz",
+      "name": "Gesetz über mehrere Anwaltskammern"
+    },
+    {
+      "id": "recht_zielfristen",
+      "name": "Zielfristen und Leistungsdruck für Richter"
+    },
+    {
+      "id": "mil_drohnen",
+      "name": "Drohnenverbund (Bayraktar TB2, Akıncı, TB3)"
+    },
+    {
+      "id": "mil_anadolu",
+      "name": "Hubschrauberträger TCG Anadolu und Fregatten"
+    },
+    {
+      "id": "mil_s400",
+      "name": "S-400-Luftabwehr (eingelagert)"
+    },
+    {
+      "id": "mil_f16",
+      "name": "F-16 Block 70"
+    },
+    {
+      "id": "mil_stahlkuppel",
+      "name": "Stahlkuppel: mehrschichtige Luftverteidigung"
+    },
+    {
+      "id": "mil_altay",
+      "name": "Kampfpanzer Altay T1"
+    },
+    {
+      "id": "mil_kaan",
+      "name": "Kampfjet KAAN Block 10"
+    },
+    {
+      "id": "mil_kaan_motor",
+      "name": "Eigener Triebwerksantrieb TF35000"
+    },
+    {
+      "id": "mil_eurofighter",
+      "name": "Eurofighter Typhoon"
+    },
+    {
+      "id": "mil_f35",
+      "name": "F-35"
+    },
+    {
+      "id": "mil_s400_abgeben",
+      "name": "S-400 abgeben oder verkaufen"
+    },
+    {
+      "id": "mil_tf2000",
+      "name": "Zerstörer TF-2000"
+    },
+    {
+      "id": "mil_huerjet",
+      "name": "Hürjet: Trainer und Export"
+    },
+    {
+      "id": "doktrin_drohnen",
+      "name": "Doktrin: Drohnenverbund"
+    },
+    {
+      "id": "doktrin_luftverteidigung",
+      "name": "Doktrin: mehrschichtige Luftverteidigung"
+    },
+    {
+      "id": "doktrin_autonomie",
+      "name": "Doktrin: strategische Autonomie"
+    },
+    {
+      "id": "sr_energiedeckel",
+      "name": "Preisdeckel für Energie (BOTAŞ)"
+    },
+    {
+      "id": "sr_kreditgarantien",
+      "name": "Kreditgarantiefonds"
+    },
+    {
+      "id": "sr_wechselkursschutz",
+      "name": "Einlagen mit Wechselkursgarantie"
+    },
+    {
+      "id": "sr_staatsbanken",
+      "name": "Kreditlenkung über Staatsbanken"
+    },
+    {
+      "id": "sr_vermoegensfonds",
+      "name": "Staatlicher Vermögensfonds"
+    }
+  ],
+  "klauseln": [
+    {
+      "id": "zoll",
+      "seite": "gibt"
+    },
+    {
+      "id": "transit",
+      "seite": "gibt"
+    },
+    {
+      "id": "meerengen",
+      "seite": "gibt"
+    },
+    {
+      "id": "militaerzugang",
+      "seite": "gibt"
+    },
+    {
+      "id": "ruestung_koop",
+      "seite": "gibt"
+    },
+    {
+      "id": "ruestung_kauf",
+      "seite": "gibt"
+    },
+    {
+      "id": "bauauftraege",
+      "seite": "gibt"
+    },
+    {
+      "id": "visa",
+      "seite": "gibt"
+    },
+    {
+      "id": "grenzoeffnung",
+      "seite": "gibt"
+    },
+    {
+      "id": "vermittlung_zusage",
+      "seite": "gibt"
+    },
+    {
+      "id": "gas_kauf",
+      "seite": "gibt"
+    },
+    {
+      "id": "investitionen_oeffnen",
+      "seite": "gibt"
+    },
+    {
+      "id": "kredit_hilfe",
+      "seite": "gibt"
+    },
+    {
+      "id": "reform_zusage",
+      "seite": "gibt"
+    },
+    {
+      "id": "sanktionen_umgehung",
+      "seite": "gibt"
+    },
+    {
+      "id": "migration_zusage",
+      "seite": "gibt"
+    },
+    {
+      "id": "s400",
+      "seite": "gibt"
+    },
+    {
+      "id": "zahlungsweg",
+      "seite": "gibt"
+    },
+    {
+      "id": "ende_sperre",
+      "seite": "gibt"
+    },
+    {
+      "id": "v_casus",
+      "seite": "gibt"
+    },
+    {
+      "id": "verzicht_bohrung",
+      "seite": "gibt"
+    },
+    {
+      "id": "hafen_oeffnung",
+      "seite": "gibt"
+    },
+    {
+      "id": "wasser",
+      "seite": "gibt"
+    },
+    {
+      "id": "energie_lieferung",
+      "seite": "gibt"
+    },
+    {
+      "id": "beistand",
+      "seite": "gibt"
+    },
+    {
+      "id": "seesicherheit",
+      "seite": "gibt"
+    },
+    {
+      "id": "bohrung",
+      "seite": "gibt"
+    },
+    {
+      "id": "w_zoll",
+      "seite": "will"
+    },
+    {
+      "id": "w_zollunion",
+      "seite": "will"
+    },
+    {
+      "id": "w_visa",
+      "seite": "will"
+    },
+    {
+      "id": "w_ruestung",
+      "seite": "will"
+    },
+    {
+      "id": "w_sanktion",
+      "seite": "will"
+    },
+    {
+      "id": "w_preis",
+      "seite": "will"
+    },
+    {
+      "id": "w_aufschub",
+      "seite": "will"
+    },
+    {
+      "id": "w_swap",
+      "seite": "will"
+    },
+    {
+      "id": "w_pkk",
+      "seite": "will"
+    },
+    {
+      "id": "w_rueckkehr",
+      "seite": "will"
+    },
+    {
+      "id": "w_stuetzpunkt",
+      "seite": "will"
+    },
+    {
+      "id": "w_pipeline",
+      "seite": "will"
+    },
+    {
+      "id": "w_transit",
+      "seite": "will"
+    },
+    {
+      "id": "w_hafen",
+      "seite": "will"
+    },
+    {
+      "id": "w_werk",
+      "seite": "will"
+    },
+    {
+      "id": "w_1915",
+      "seite": "will"
+    },
+    {
+      "id": "w_inseln",
+      "seite": "will"
+    },
+    {
+      "id": "w_seegrenze",
+      "seite": "will"
+    },
+    {
+      "id": "w_trnc",
+      "seite": "will"
+    },
+    {
+      "id": "w_direkthandel",
+      "seite": "will"
+    },
+    {
+      "id": "w_libyen",
+      "seite": "will"
+    },
+    {
+      "id": "w_getreide",
+      "seite": "will"
+    },
+    {
+      "id": "w_luftraum",
+      "seite": "will"
+    },
+    {
+      "id": "w_investition_zusage",
+      "seite": "will"
+    },
+    {
+      "id": "w_akkuyu",
+      "seite": "will"
+    },
+    {
+      "id": "w_handelsziel",
+      "seite": "will"
+    },
+    {
+      "id": "w_defizit",
+      "seite": "will"
+    }
+  ],
+  "klauselnJeLand": [
+    {
+      "land": "USA",
+      "bieten": [
+        "s400",
+        "ruestung_kauf",
+        "militaerzugang",
+        "sanktionen_umgehung",
+        "vermittlung_zusage",
+        "gas_kauf",
+        "investitionen_oeffnen"
+      ],
+      "verlangen": [
+        "w_ruestung",
+        "w_sanktion"
+      ]
+    },
+    {
+      "land": "EU",
+      "bieten": [
+        "reform_zusage",
+        "zoll",
+        "sanktionen_umgehung",
+        "migration_zusage",
+        "investitionen_oeffnen",
+        "vermittlung_zusage"
+      ],
+      "verlangen": [
+        "w_zollunion",
+        "w_visa",
+        "w_ruestung"
+      ]
+    },
+    {
+      "land": "RUS",
+      "bieten": [
+        "gas_kauf",
+        "zoll",
+        "meerengen",
+        "vermittlung_zusage",
+        "investitionen_oeffnen",
+        "zahlungsweg",
+        "transit"
+      ],
+      "verlangen": [
+        "w_preis",
+        "w_aufschub",
+        "w_akkuyu",
+        "w_getreide"
+      ]
+    },
+    {
+      "land": "GRC",
+      "bieten": [
+        "v_casus",
+        "verzicht_bohrung",
+        "migration_zusage",
+        "vermittlung_zusage"
+      ],
+      "verlangen": [
+        "w_inseln",
+        "w_seegrenze",
+        "w_zollunion"
+      ]
+    },
+    {
+      "land": "IRN",
+      "bieten": [
+        "gas_kauf",
+        "zoll",
+        "visa",
+        "vermittlung_zusage",
+        "transit",
+        "zahlungsweg"
+      ],
+      "verlangen": [
+        "w_pkk",
+        "w_preis"
+      ]
+    },
+    {
+      "land": "SYR",
+      "bieten": [
+        "bauauftraege",
+        "ruestung_koop",
+        "energie_lieferung",
+        "kredit_hilfe",
+        "visa"
+      ],
+      "verlangen": [
+        "w_rueckkehr",
+        "w_pkk",
+        "w_stuetzpunkt"
+      ]
+    },
+    {
+      "land": "IRQ",
+      "bieten": [
+        "wasser",
+        "bauauftraege",
+        "zoll",
+        "transit",
+        "kredit_hilfe"
+      ],
+      "verlangen": [
+        "w_pipeline",
+        "w_pkk"
+      ]
+    },
+    {
+      "land": "AZE",
+      "bieten": [
+        "ruestung_koop",
+        "gas_kauf",
+        "beistand",
+        "investitionen_oeffnen"
+      ],
+      "verlangen": [
+        "w_transit",
+        "w_preis"
+      ]
+    },
+    {
+      "land": "ARM",
+      "bieten": [
+        "grenzoeffnung",
+        "transit",
+        "zoll"
+      ],
+      "verlangen": [
+        "w_transit",
+        "w_1915"
+      ]
+    },
+    {
+      "land": "SAU",
+      "bieten": [
+        "ruestung_koop",
+        "bauauftraege",
+        "militaerzugang",
+        "beistand"
+      ],
+      "verlangen": [
+        "w_swap",
+        "w_investition_zusage"
+      ]
+    },
+    {
+      "land": "ISR",
+      "bieten": [
+        "ende_sperre",
+        "zoll",
+        "vermittlung_zusage"
+      ],
+      "verlangen": [
+        "w_luftraum",
+        "w_zoll"
+      ]
+    },
+    {
+      "land": "CHN",
+      "bieten": [
+        "investitionen_oeffnen",
+        "transit",
+        "zoll",
+        "bauauftraege"
+      ],
+      "verlangen": [
+        "w_defizit",
+        "w_werk",
+        "w_swap"
+      ]
+    },
+    {
+      "land": "UKR",
+      "bieten": [
+        "ruestung_koop",
+        "meerengen",
+        "bauauftraege",
+        "vermittlung_zusage",
+        "seesicherheit"
+      ],
+      "verlangen": [
+        "w_getreide",
+        "w_zoll"
+      ]
+    },
+    {
+      "land": "GEO",
+      "bieten": [
+        "transit",
+        "zoll",
+        "visa",
+        "ruestung_koop",
+        "investitionen_oeffnen"
+      ],
+      "verlangen": [
+        "w_transit",
+        "w_hafen"
+      ]
+    },
+    {
+      "land": "EGY",
+      "bieten": [
+        "ruestung_koop",
+        "zoll",
+        "investitionen_oeffnen"
+      ],
+      "verlangen": [
+        "w_handelsziel",
+        "w_libyen",
+        "w_seegrenze"
+      ]
+    },
+    {
+      "land": "LBY",
+      "bieten": [
+        "ruestung_koop",
+        "militaerzugang",
+        "bauauftraege",
+        "bohrung"
+      ],
+      "verlangen": [
+        "w_seegrenze",
+        "w_stuetzpunkt"
+      ]
+    },
+    {
+      "land": "KAZ",
+      "bieten": [
+        "transit",
+        "bauauftraege",
+        "ruestung_koop",
+        "investitionen_oeffnen",
+        "visa"
+      ],
+      "verlangen": [
+        "w_transit",
+        "w_investition_zusage"
+      ]
+    },
+    {
+      "land": "CYP",
+      "bieten": [
+        "hafen_oeffnung",
+        "verzicht_bohrung",
+        "vermittlung_zusage"
+      ],
+      "verlangen": [
+        "w_direkthandel",
+        "w_seegrenze",
+        "w_trnc",
+        "w_zollunion"
+      ]
+    }
+  ],
+  "landHandlungen": [
+    "gipfel",
+    "handel",
+    "ruestung",
+    "druck",
+    "entspannen",
+    "hilfe"
+  ],
+  "fraktionsHandlungen": [
+    "gespraech",
+    "zugestaendnis",
+    "duldung",
+    "koalition",
+    "abwerben"
+  ],
+  "haushaltHandlungen": [
+    "posten",
+    "mehr_ausgeben",
+    "sparen",
+    "zentralbank_kritisieren",
+    "zentralbank_fuehrung_tauschen"
+  ],
+  "figurAemter": [
+    "finanzen",
+    "inneres",
+    "aussen",
+    "stab"
+  ],
+  "systemText": "Du bist das Präsidialamt im Strategiespiel „Staatsräson“. Der Spieler ist Staatspräsident der Türkei. Du bist eine neutrale, sachkundige Mentorin: Du erklärst die Lage ehrlich, benennst Zielkonflikte und Preise, nimmst keine Partei und sprichst Deutsch in der Anrede „Sie“, sachlich und knapp (meist höchstens 120 Wörter).\n\nDAS SPIEL IN KÜRZE\n- Politisches Kapital ist die Handlungswährung. Es ist kein Geld, sondern Rückhalt: Es wächst monatlich (Grundeinkommen, Vertrauen, Mehrheit) und sammelt sich bis höchstens 150 an. Gesetze, Erlasse, Verhandlungen und Antworten auf Ereignisse verbrauchen es.\n- Maßnahmen bilden ein Politiknetz. Jede hat eine Stufe von 0 bis 100, landesweit oder in einzelnen Provinzen. Änderungen wirken verzögert (Monate bis Jahre) auf Größen, Probleme und Wählergruppen; jede hat Gewinner und Verlierer.\n- Zwei Wege: ein Gesetz braucht 301 von 600 Stimmen, wird nach 21 Tagen abgestimmt und kostet Kapital; ein Erlass gilt sofort, ist teurer und nur bei manchen Vorhaben möglich. Verwaltungskapazität begrenzt, wie viele Vorhaben gleichzeitig laufen.\n- Das Parlament hat Fraktionen. Man gewinnt sie über Gespräch, Zugeständnis, Duldung (sechs Monate Stimmen bei Gesetzen), Bündnis oder Abwerben. Zusagen müssen gehalten werden, sonst sinkt das Vertrauen.\n- Ereignisse verlangen Entscheidungen bis zu einer Frist. „Abwarten“ ist immer möglich, hat aber Folgen.\n- Elf Wählergruppen; ihre Laune bestimmt zusammen mit Vertrauen, Wirtschaft, akuten Problemen und Regierungsmüdigkeit die Zustimmung. Ziel ist die Wiederwahl und die gewählten Ziele.\n- Andere Länder haben Vertrauen, Handel, Sicherheit und Konflikt; Handlungen ihnen gegenüber kosten Kapital und haben Abkühlzeiten.\n- Regierungsprogramme bestehen aus Schritten mit Bedingungen und belohnen mit Rabatt, Schutz oder Wirkung.\n- Das Reich: Vorhaben (Wunder, Großprojekte, Restaurierungen, Reformen, Beschaffungen, Institutionen) kosten Kapital beim Beginn, dazu Baukapazität und Verwaltungskraft über Monate; fertige Vorhaben wirken dauerhaft und verfallen ohne Pflege. Nicht alles ist Geld: Justizsitze, Kulturerbe, Truppenbereitschaft, Legitimität sind eigene Größen.\n- Verträge mit anderen Ländern bestehen aus Klauseln: Die Türkei „bietet“ (gibt) etwas und „verlangt“ (will) etwas. Die Gegenseite bewertet das ganze Paket (Wert der Klauseln, Vertrauen, Streit, Abhängigkeit, frühere Brüche) und stimmt zu, macht ein Gegenangebot oder lehnt ab; eine Rote Linie ist ein Veto. Verträge wirken monatlich, werden jährlich geprüft und können gebrochen werden.\n- Kapital darf bis 20 Punkte ins Minus gehen („auf Pump“); das kostet Legitimität und Vertrauen in jedem Monat, in dem es negativ bleibt.\n- Die Zentralbank ist unabhängig. Der Leitzins ist nicht einstellbar; möglich sind öffentliche Kritik, Austausch der Führung und die Haushaltspolitik.\n\nREGELN FÜR DICH\n1. Nenne nur Zahlen, die im ZUSTAND stehen. Erfinde nichts; fehlt etwas, sag es.\n2. Du führst nichts selbst aus. Wenn der Spieler etwas tun will, schlage die passenden Aktionen vor; der Spieler bestätigt sie.\n3. Bei unklaren Wünschen: eine kurze Rückfrage, keine Aktion.\n4. Gibt es etwas im Spiel nicht, sag es ehrlich und nenne die nächstliegende Möglichkeit.\n5. Erkläre bei Vorschlägen kurz das Warum und den Preis (Kapital, Nebenwirkungen, Dauer).\n6. Schlage höchstens drei Aktionen vor. Verwende ausschließlich IDs aus den Listen unten oder aus dem ZUSTAND.\n7. Bewerte nicht politisch, sondern nach Wirkung im Spiel („das hilft den Rentnern, belastet aber …“).\n\nAUSGABEFORMAT: Antworte ausschließlich mit einem JSON-Objekt, ohne Text davor oder danach, ohne Markdown-Zäune:\n{\"antwort\":\"Text für den Spieler\",\"aktionen\":[ … ]}\nOhne Aktion: \"aktionen\":[]. Mögliche Aktionen (Feld \"art\"):\n{\"art\":\"massnahme\",\"id\":\"<Maßnahmen-ID>\",\"stufe\":<Ziel 0-100> ODER \"richtung\":1|-1,\"orte\":[\"Provinzname\",…] ODER null,\"weg\":\"gesetz\"|\"erlass\",\"grund\":\"…\"}\n{\"art\":\"land\",\"land\":\"<Länder-ID>\",\"handlung\":\"gipfel|handel|ruestung|druck|entspannen|hilfe\",\"grund\":\"…\"}\n{\"art\":\"fraktion\",\"partei\":\"<Kürzel>\",\"handlung\":\"gespraech|zugestaendnis|duldung|koalition|abwerben\",\"grund\":\"…\"}\n{\"art\":\"figur\",\"amt\":\"finanzen|inneres|aussen|stab\",\"handlung\":\"gespraech|entlassen\",\"grund\":\"…\"}\n{\"art\":\"programm\",\"grund\":\"…\"}  (nächsten Programmschritt starten)\n{\"art\":\"haushalt\",\"handlung\":\"posten\",\"posten\":\"<Posten-ID>\",\"stufe\":-2..2,\"grund\":\"…\"}  (Haushaltsregler; Stufe 0 = Plan 2026)\n{\"art\":\"haushalt\",\"handlung\":\"mehr_ausgeben|sparen|zentralbank_kritisieren|zentralbank_fuehrung_tauschen\",\"grund\":\"…\"}\n{\"art\":\"ereignis\",\"id\":\"<Ereignis-ID>\",\"option\":\"<Options-ID>\",\"grund\":\"…\"}\n{\"art\":\"zeit\",\"tage\":<1-90>,\"grund\":\"…\"}\n{\"art\":\"vorhaben\",\"id\":\"<Vorhaben-ID>\",\"grund\":\"…\"}  (ein Vorhaben des Reiches beginnen)\n{\"art\":\"abkommen\",\"land\":\"<Länder-ID>\",\"bieten\":[\"<Klausel-ID>\",…],\"verlangen\":[\"<Klausel-ID>\",…],\"jahre\":2|5|10,\"grund\":\"…\"}  (Vertrag anbieten; nur Klauseln, die es bei dem Land gibt)\n{\"art\":\"vermittlung\",\"id\":\"ukr_rus|arm_aze\",\"grund\":\"…\"}\n\nMASSNAHMEN (ID: Name)\nm_mindestlohn: Mindestlohn\nm_exportfoerderung: Exportförderung\nm_investitionsanreize: Investitionsanreize\nm_kreditgarantien: Staatliche Kreditgarantien\nm_preiskontrollen: Preiskontrollen für Lebensmittel\nm_tourismuswerbung: Tourismuswerbung\nm_kmu: Mittelstandsförderung\nm_zoelle: Einfuhrzölle\nm_bankenaufsicht: Bankenaufsicht\nm_einkommensteuer: Einkommensteuer\nm_mwst: Mehrwertsteuer\nm_koerperschaftsteuer: Körperschaftsteuer\nm_kraftstoffsteuer: Steuer auf Kraftstoff\nm_immobiliensteuer: Steuer auf Immobilien und Vermögen\nm_steueramnestie: Steueramnestie\nm_steuerfahndung: Steuerfahndung\nm_privatisierung: Privatisierung\nm_renten: Rentenerhöhungen\nm_fruehrente: Frühverrentung\nm_kindergeld: Kindergeld und Familienhilfe\nm_sozialhilfe: Sozialhilfe\nm_arbeitslosengeld: Arbeitslosengeld\nm_gewerkschaftsrechte: Gewerkschaftsrechte\nm_kinderbetreuung: Kinderbetreuung\nm_ausbildung: Berufsausbildungsprogramme\nm_krankenhausbau: Krankenhausbau\nm_aerztegehalt: Gehälter im Gesundheitswesen\nm_hausarzt: Hausarztsystem\nm_zuzahlungen: Zuzahlungen der Patienten\nm_lehrergehaelter: Lehrergehälter\nm_schulbau: Schulbau\nm_religioese_schulen: Religiöse Schulen (İmam-Hatip)\nm_berufsschulen: Berufsschulen\nm_unigruendungen: Neue Universitäten\nm_stipendien: Stipendien\nm_forschung: Forschungsförderung\nm_wissenschaftsfreiheit: Wissenschaftsfreiheit\nm_autobahnen: Autobahn- und Brückenbau\nm_oepp_garantien: Garantien für Betreiberprojekte\nm_bahn: Bahnausbau\nm_nahverkehr: Nahverkehr\nm_breitband: Breitbandausbau\nm_regionalfoerderung: Regionalförderung\nm_energiesubventionen: Energiesubventionen\nm_solar_wind: Ausbau von Sonne und Wind\nm_kernkraft: Kernkraft\nm_gasfoerderung: Heimische Gasförderung\nm_umweltauflagen: Umweltauflagen\nm_co2_preis: CO₂-Preis\nm_netzausbau: Stromnetzausbau\nm_agrarsubventionen: Agrarsubventionen\nm_bewaesserung: Moderne Bewässerung\nm_staudaemme: Staudämme und Speicher\nm_wasserleitungen: Wasserleitungen und Kläranlagen\nm_saatgut: Saatgut- und Erzeugerprogramme\nm_mechanisierung: Landwirtschaftliche Mechanisierung\nm_agrarforschung: Agrarforschung und Hochtechnologie\nm_industrie_modernisierung: Industrielle Modernisierung\nm_verwaltungsdigital: Digitale Verwaltung und Steuertechnik\nm_fachkraefteprogramm: Fachkräfte und Weiterbildung\nm_bildungstechnik: Bildungstechnik und digitales Lernen\nm_medizintechnik: Medizintechnik und Krankenhausmodernisierung\nm_smart_infrastruktur: Intelligente Infrastruktur\nm_speicher_smartgrid: Netzmodernisierung und Speicher\nm_bauindustrie: Industrieller Wohnungsbau\nm_polizeitechnik: Moderne Sicherheitsverwaltung\nm_digitale_oeffentlichkeit: Digitale Öffentlichkeit und Beteiligung\nm_handelssysteme: Moderne Zoll- und Handelssysteme\nm_sozialwohnungen: Staatlicher Wohnungsbau\nm_mietdeckel: Mietpreisbremse\nm_stadterneuerung: Erdbebensichere Stadterneuerung\nm_bauaufsicht: Bauaufsicht\nm_baukredite: Günstige Baukredite\nm_bauamnestie: Bauamnestie\nm_polizei: Polizei und Gendarmerie\nm_justizreform: Justizreform\nm_antikorruption: Korruptionsbekämpfung\nm_friedensprozess: Friedensprozess\nm_verteidigung: Verteidigungsausgaben\nm_ruestungsindustrie: Heimische Rüstungsindustrie\nm_medienaufsicht: Medienaufsicht\nm_internetsperren: Internetsperren\nm_staatsmedien: Staatliche Medien und Werbung\nm_religionsbehoerde: Budget der Religionsbehörde\nm_gewaltschutz: Schutz vor Gewalt gegen Frauen\nm_versammlungsfreiheit: Versammlungsfreiheit\nm_rueckkehr: Rückkehrprogramm für Geflüchtete\nm_integration: Integration von Geflüchteten\nm_grenzschutz: Grenzschutz\nm_eu_annaeherung: Annäherung an die EU\nm_richterstellen: Richter- und Staatsanwaltsstellen\nm_richterrat: Besetzung des Richterrats\nm_haftvermeidung: Haftvermeidung und Bewährung\nm_notstand: Ausnahmezustand und Sonderbefugnisse\nm_urteilsumsetzung: Umsetzung von Gerichtsurteilen aus Straßburg und Ankara\nm_denkmalschutz: Denkmalschutz und Restaurierung\nm_kulturfoerderung: Kunst- und Kulturförderung\nm_archaeologie: Ausgrabungen und Museen\nm_minderheitenrechte: Rechte religiöser und sprachlicher Minderheiten\nm_wehrdienst: Wehrdienst\nm_uebungen: Ausbildung und Übungen\nm_offiziersauswahl: Beförderung im Obersten Militärrat\nm_instandhaltung: Instandhaltung der Infrastruktur\n\nLÄNDER (ID: Name)\nUSA: Vereinigte Staaten; EU: Europäische Union; RUS: Russland; GRC: Griechenland; IRN: Iran; SYR: Syrien; IRQ: Irak; AZE: Aserbaidschan; ARM: Armenien; SAU: Saudi-Arabien und Golfstaaten; ISR: Israel; CHN: China; UKR: Ukraine; GEO: Georgien; EGY: Ägypten; LBY: Libyen; KAZ: Kasachstan; CYP: Zypern\n\nHAUSHALTSPOSTEN (ID: Name)\nsoziales: Renten und Sozialleistungen (ausgabe)\npersonal: Gehälter im öffentlichen Dienst (ausgabe)\ninvestitionen: Öffentliche Investitionen (ausgabe)\ngesundheit_bildung: Gesundheit und Bildung (laufende Mittel) (ausgabe)\nsicherheit: Sicherheit und Verteidigung (ausgabe)\nsubventionen: Preisstützen und Subventionen (ausgabe)\neinkommensteuer: Lohn- und Einkommensteuer (einnahme)\nverbrauchsteuern: Mehrwert- und Sonderverbrauchsteuern (einnahme)\nunternehmensteuer: Körperschaftsteuer (einnahme)\n\nVORHABEN DES REICHES (ID: Name)\nwunder_ephesos: Ephesos: Gesamtplan Ausgrabung und Besucherlenkung\nwunder_antakya: Antakya: Wiederaufbau der Altstadt\nwunder_goebekli: Göbekli Tepe: Besucherzentrum und Forschungscampus\nwunder_ani: Ani öffnen: Grenzübergang, Museum, Wiederherstellung\nwunder_kappadokien: Kappadokien: Schutzplan für die Felslandschaft\nprogramm_erbe_zukunft: Erbe für die Zukunft: Nationalprogramm für Grabungen und Restaurierung\nserie_kirchen7: Kirchenroute der Sieben\nserie_seldschuken: Seldschukenroute\nserie_sinan: Sinan-Route\nserie_tas_tepeler: Taş-Tepeler-Route\nserie_byzanz: Byzantinische Route\nserie_vielvoelker: Route der Gemeinschaften\nausbau_ephesos: Besucherzentrum und Museum: Ephesos\nausbau_pergamon: Besucherzentrum und Museum: Pergamon\nausbau_goebekli_tepe: Besucherzentrum und Museum: Göbekli Tepe\nausbau_pamukkale: Besucherzentrum und Museum: Hierapolis und Pamukkale\nausbau_kappadokien: Besucherzentrum und Museum: Göreme und Kappadokien\nausbau_troja: Besucherzentrum und Museum: Troja\nausbau_nemrut: Besucherzentrum und Museum: Nemrut Dağı\nausbau_aphrodisias: Besucherzentrum und Museum: Aphrodisias\nausbau_ani: Besucherzentrum und Museum: Ani\nausbau_suemela: Besucherzentrum und Museum: Sümela-Kloster\nausbau_mevlana: Besucherzentrum und Museum: Mevlana-Museum\nausbau_catalhoyuk: Besucherzentrum und Museum: Çatalhöyük\nausbau_diyarbakir: Besucherzentrum und Museum: Festung Diyarbakır und Hevsel-Gärten\nausbau_hagia_sophia: Besucherzentrum und Museum: Hagia Sophia\nrestaurierung_ephesos: Restaurierung: Ephesos\nrestaurierung_smyrna: Restaurierung: Smyrna (Agora)\nrestaurierung_pergamon: Restaurierung: Pergamon\nrestaurierung_thyatira: Restaurierung: Thyatira\nrestaurierung_sardes: Restaurierung: Sardes\nrestaurierung_philadelphia: Restaurierung: Philadelphia\nrestaurierung_laodikeia: Restaurierung: Laodikeia\nrestaurierung_hagia_sophia: Restaurierung: Hagia Sophia\nrestaurierung_suleymaniye: Restaurierung: Süleymaniye-Moschee\nrestaurierung_topkapi: Restaurierung: Topkapı-Palast\nrestaurierung_neve_shalom: Restaurierung: Neve-Shalom-Synagoge\nrestaurierung_phanar: Restaurierung: Phanar (Ökumenisches Patriarchat)\nrestaurierung_goebekli_tepe: Restaurierung: Göbekli Tepe\nrestaurierung_catalhoyuk: Restaurierung: Çatalhöyük\nrestaurierung_arslantepe: Restaurierung: Arslantepe\nrestaurierung_hattusa: Restaurierung: Hattuša\nrestaurierung_gordion: Restaurierung: Gordion\nrestaurierung_troja: Restaurierung: Troja\nrestaurierung_nemrut: Restaurierung: Nemrut Dağı\nrestaurierung_kappadokien: Restaurierung: Göreme und Kappadokien\nrestaurierung_pamukkale: Restaurierung: Hierapolis und Pamukkale\nrestaurierung_aphrodisias: Restaurierung: Aphrodisias\nrestaurierung_xanthos: Restaurierung: Xanthos und Letoon\nrestaurierung_aspendos: Restaurierung: Aspendos\nrestaurierung_zeugma: Restaurierung: Zeugma\nrestaurierung_myra: Restaurierung: Myra (Nikolauskirche)\nrestaurierung_suemela: Restaurierung: Sümela-Kloster\nrestaurierung_akdamar: Restaurierung: Akdamar-Kirche\nrestaurierung_mor_gabriel: Restaurierung: Mor-Gabriel-Kloster\nrestaurierung_petrusgrotte: Restaurierung: Petrus-Grotte\nrestaurierung_antakya: Restaurierung: Antakya (Altstadt und Mosaikmuseum)\nrestaurierung_iznik: Restaurierung: İznik (Nicäa)\nrestaurierung_meryem_ana: Restaurierung: Meryem Ana Evi\nrestaurierung_divrigi: Restaurierung: Große Moschee und Hospital von Divriği\nrestaurierung_mevlana: Restaurierung: Mevlana-Museum\nrestaurierung_esrefoglu: Restaurierung: Eşrefoğlu-Moschee\nrestaurierung_bursa: Restaurierung: Bursa und Cumalıkızık\nrestaurierung_selimiye: Restaurierung: Selimiye-Moschee\nrestaurierung_kirkpinar: Restaurierung: Kırkpınar (Sarayiçi)\nrestaurierung_ani: Restaurierung: Ani\nrestaurierung_ahlat: Restaurierung: Ahlat\nrestaurierung_ishak_pascha: Restaurierung: İshak-Pascha-Palast\nrestaurierung_hasankeyf: Restaurierung: Hasankeyf\nrestaurierung_safranbolu: Restaurierung: Safranbolu\nrestaurierung_diyarbakir: Restaurierung: Festung Diyarbakır und Hevsel-Gärten\nrestaurierung_mardin: Restaurierung: Mardin\nrestaurierung_balikligoel: Restaurierung: Balıklıgöl\nrestaurierung_hacibektas: Restaurierung: Hacıbektaş-Komplex\nrestaurierung_anitkabir: Restaurierung: Anıtkabir\nrestaurierung_gelibolu: Restaurierung: Gelibolu (Gallipoli)\nrestaurierung_synagoge_edirne: Restaurierung: Große Synagoge von Edirne\nrestaurierung_karahan_tepe: Restaurierung: Karahan Tepe\nrestaurierung_kueltepe: Restaurierung: Kültepe-Kaniş\ninfra_marmaray: Marmaray\ninfra_osmangazi: Osmangazi-Brücke\ninfra_flughafen: Istanbuler Flughafen\ninfra_yht: Hochgeschwindigkeitsbahn\ninfra_canakkale1915: 1915-Çanakkale-Brücke\ninfra_gap: Südostanatolien-Projekt (GAP) mit Atatürk-Damm\ninfra_btk: Bahn Baku–Tiflis–Kars\ninfra_stromnetz: Übertragungsnetz (TEİAŞ)\ninfra_akkuyu: Kernkraftwerk Akkuyu\ninfra_wiederaufbau: Wiederaufbau im Erdbebengebiet\ninfra_kanal_istanbul: Kanal Istanbul\ninfra_yht_izmir: Hochgeschwindigkeitsbahn Ankara–İzmir\ninfra_strom_ost: Ost-West-Stromachse\ninfra_btk_personen: Bahn Kars–Tiflis: Personenverkehr\ninfra_bosporus_tunnel3: Großer Istanbuler Tunnel\ninfra_wasser_ost: Wasserleitungen und Speicher im Osten\ninfra_glasfaser: Glasfaser bis ins Dorf\ninfra_sozialwohnungen: Sozialwohnungsprogramm der Wohnungsbaubehörde (TOKİ)\ninfra_sinop: Kernkraftwerk Sinop\nsanierung_marmaray: Sanierung: Marmaray\nsanierung_osmangazi: Sanierung: Osmangazi-Brücke\nsanierung_flughafen: Sanierung: Istanbuler Flughafen\nsanierung_yht: Sanierung: Hochgeschwindigkeitsbahn\nsanierung_canakkale1915: Sanierung: 1915-Çanakkale-Brücke\nsanierung_gap: Sanierung: Südostanatolien-Projekt (GAP) mit Atatürk-Damm\nsanierung_btk: Sanierung: Bahn Baku–Tiflis–Kars\nsanierung_stromnetz: Sanierung: Übertragungsnetz (TEİAŞ)\nrecht_aym: Verfassungsgericht\nrecht_hsk: Richter- und Staatsanwaltsrat (HSK)\nrecht_vollzug: Strafvollzug\nrecht_anwaltskammern: Anwaltskammern\nrecht_digitale_justiz: Digitale Justiz\nrecht_justizakademie: Justizakademie\nrecht_gefaengnisbau: Neue Haftanstalten\nrecht_kavala: Urteile im Fall Kavala umsetzen\nrecht_kammergesetz: Gesetz über mehrere Anwaltskammern\nrecht_zielfristen: Zielfristen und Leistungsdruck für Richter\nmil_drohnen: Drohnenverbund (Bayraktar TB2, Akıncı, TB3)\nmil_anadolu: Hubschrauberträger TCG Anadolu und Fregatten\nmil_s400: S-400-Luftabwehr (eingelagert)\nmil_f16: F-16 Block 70\nmil_stahlkuppel: Stahlkuppel: mehrschichtige Luftverteidigung\nmil_altay: Kampfpanzer Altay T1\nmil_kaan: Kampfjet KAAN Block 10\nmil_kaan_motor: Eigener Triebwerksantrieb TF35000\nmil_eurofighter: Eurofighter Typhoon\nmil_f35: F-35\nmil_s400_abgeben: S-400 abgeben oder verkaufen\nmil_tf2000: Zerstörer TF-2000\nmil_huerjet: Hürjet: Trainer und Export\ndoktrin_drohnen: Doktrin: Drohnenverbund\ndoktrin_luftverteidigung: Doktrin: mehrschichtige Luftverteidigung\ndoktrin_autonomie: Doktrin: strategische Autonomie\nsr_energiedeckel: Preisdeckel für Energie (BOTAŞ)\nsr_kreditgarantien: Kreditgarantiefonds\nsr_wechselkursschutz: Einlagen mit Wechselkursgarantie\nsr_staatsbanken: Kreditlenkung über Staatsbanken\nsr_vermoegensfonds: Staatlicher Vermögensfonds\n\nKLAUSELN JE LAND (bieten = die Türkei gibt, verlangen = die Türkei erhält)\nUSA: bieten s400, ruestung_kauf, militaerzugang, sanktionen_umgehung, vermittlung_zusage, gas_kauf, investitionen_oeffnen; verlangen w_ruestung, w_sanktion\nEU: bieten reform_zusage, zoll, sanktionen_umgehung, migration_zusage, investitionen_oeffnen, vermittlung_zusage; verlangen w_zollunion, w_visa, w_ruestung\nRUS: bieten gas_kauf, zoll, meerengen, vermittlung_zusage, investitionen_oeffnen, zahlungsweg, transit; verlangen w_preis, w_aufschub, w_akkuyu, w_getreide\nGRC: bieten v_casus, verzicht_bohrung, migration_zusage, vermittlung_zusage; verlangen w_inseln, w_seegrenze, w_zollunion\nIRN: bieten gas_kauf, zoll, visa, vermittlung_zusage, transit, zahlungsweg; verlangen w_pkk, w_preis\nSYR: bieten bauauftraege, ruestung_koop, energie_lieferung, kredit_hilfe, visa; verlangen w_rueckkehr, w_pkk, w_stuetzpunkt\nIRQ: bieten wasser, bauauftraege, zoll, transit, kredit_hilfe; verlangen w_pipeline, w_pkk\nAZE: bieten ruestung_koop, gas_kauf, beistand, investitionen_oeffnen; verlangen w_transit, w_preis\nARM: bieten grenzoeffnung, transit, zoll; verlangen w_transit, w_1915\nSAU: bieten ruestung_koop, bauauftraege, militaerzugang, beistand; verlangen w_swap, w_investition_zusage\nISR: bieten ende_sperre, zoll, vermittlung_zusage; verlangen w_luftraum, w_zoll\nCHN: bieten investitionen_oeffnen, transit, zoll, bauauftraege; verlangen w_defizit, w_werk, w_swap\nUKR: bieten ruestung_koop, meerengen, bauauftraege, vermittlung_zusage, seesicherheit; verlangen w_getreide, w_zoll\nGEO: bieten transit, zoll, visa, ruestung_koop, investitionen_oeffnen; verlangen w_transit, w_hafen\nEGY: bieten ruestung_koop, zoll, investitionen_oeffnen; verlangen w_handelsziel, w_libyen, w_seegrenze\nLBY: bieten ruestung_koop, militaerzugang, bauauftraege, bohrung; verlangen w_seegrenze, w_stuetzpunkt\nKAZ: bieten transit, bauauftraege, ruestung_koop, investitionen_oeffnen, visa; verlangen w_transit, w_investition_zusage\nCYP: bieten hafen_oeffnung, verzicht_bohrung, vermittlung_zusage; verlangen w_direkthandel, w_seegrenze, w_trnc, w_zollunion"
+}

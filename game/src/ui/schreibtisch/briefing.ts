@@ -8,6 +8,7 @@ import { formatDateDe, addDays } from "../../sim/dates";
 import { vorlage } from "../../sim/ereignisse";
 import { stimmenSicht, stufeIn, REGELN } from "../../sim/handeln";
 import { kapitalEinkommen, SPIEL } from "../../sim/spiel";
+import { STUFE_NAME, VERFASSUNG, belastungsTreiber, verfassungVon, type VerfassungsStufe } from "../../sim/aufmerksamkeit";
 import { fraktionsUebersicht } from "../../sim/verhandeln";
 import { waehlerLage } from "../../sim/waehler";
 import { anrede, figur } from "../../sim/figuren";
@@ -88,10 +89,25 @@ export interface Termin {
   ziel?: Ziel;
 }
 
+/** Das Belastungs-/Aufmerksamkeitskonto des Präsidenten für die dezente Doppelanzeige. */
+export interface VerfassungSicht {
+  aufmerksamkeit: number;
+  belastung: number;
+  stufe: VerfassungsStufe;
+  stufeName: string;
+  /** Datum, bis zu dem die Zwangspause läuft (fehlt, wenn keine läuft) */
+  pauseBis?: string;
+  /** Die stärksten Treiber der Belastung der letzten Wochen */
+  treiber: string[];
+  /** Was das Konto gerade tut, in einem Satz */
+  fluss: string;
+}
+
 export interface Briefing {
   datum: string;
   amtszeit: { nummer: number; wahltag: string; monateBisWahl: number };
   kennzahlen: Kennzahl[];
+  verfassung: VerfassungSicht | null;
   faellig: Faellig[];
   warnungen: Warnung[];
   empfehlungen: Empfehlung[];
@@ -200,6 +216,30 @@ export function kennzahlen(world: World): Kennzahl[] {
   ];
 }
 
+/** Das Konto des Präsidenten: Aufmerksamkeit und Belastung mit Stufe, Pause und den Treibern der Belastung. */
+export function verfassungSicht(world: World): VerfassungSicht | null {
+  const spiel = world.spiel;
+  if (!spiel) return null;
+  const v = verfassungVon(world);
+  const pauseBis = v.pauseBis !== undefined && v.pauseBis > world.day ? formatDateDe(addDays(world.date, v.pauseBis - world.day)) : undefined;
+  const treiber = belastungsTreiber(world).map((t) => `${t.text} (+${nf(t.punkte, 0)})`);
+  const fluss =
+    v.aufmerksamkeit < VERFASSUNG.erschoepfungAb
+      ? `Die Aufmerksamkeit ist erschöpft: Die Belastung steigt um ${VERFASSUNG.erschoepfungProTag} je Tag.`
+      : v.aufmerksamkeit > VERFASSUNG.erholungAb
+        ? `Der Tag lässt Luft: Die Belastung sinkt um ${VERFASSUNG.erholungProTag} je Tag.`
+        : "Weder Erschöpfung noch Erholung: Die Belastung bleibt, wie sie ist.";
+  return {
+    aufmerksamkeit: Math.round(v.aufmerksamkeit),
+    belastung: Math.round(v.belastung),
+    stufe: v.stufe,
+    stufeName: STUFE_NAME[v.stufe],
+    ...(pauseBis ? { pauseBis } : {}),
+    treiber,
+    fluss,
+  };
+}
+
 export function faellig(world: World): Faellig[] {
   const spiel = world.spiel;
   if (!spiel) return [];
@@ -279,6 +319,15 @@ export function warnungen(world: World): Warnung[] {
   const out: Warnung[] = [];
   const z = spiel.umfrage.zustimmung;
   const stimmen = stimmenSicht(world);
+  // Das Konto des Präsidenten: Zwangspause und Belastungsstufen als Warnung
+  const vf = verfassungVon(world);
+  if (vf.pauseBis !== undefined && vf.pauseBis > world.day) {
+    out.push({ id: "zwangspause", stufe: "rot", text: `Ruhige Tage bis ${formatDateDe(addDays(world.date, vf.pauseBis - world.day))}`, warum: "Der Präsident braucht einen ruhigen Tag: Es starten keine neuen Vorgänge; das Laufende — Gesetze, Bauvorhaben, Programme — geht weiter.", ziel: { art: "akte", akte: "chronik" } });
+  } else if (vf.stufe === 2) {
+    out.push({ id: "ueberlastet", stufe: "rot", text: `Der Präsident ist überlastet (Belastung ${Math.round(vf.belastung)})`, warum: `Bleibt die Belastung über ${VERFASSUNG.zusammenbruchAb}, droht der Zusammenbruch. Aufmerksamkeit über ${VERFASSUNG.erholungAb} baut Belastung ab.`, ziel: { art: "akte", akte: "chronik" } });
+  } else if (vf.stufe === 1) {
+    out.push({ id: "angespannt", stufe: "gelb", text: `Der Präsident wirkt angespannt (Belastung ${Math.round(vf.belastung)})`, warum: "Die Vorschau der Stimmen streut breiter, und manche Einbringung verzögert sich. Weniger parallel, mehr Luft: Aufmerksamkeit lädt sich täglich auf.", ziel: { art: "akte", akte: "chronik" } });
+  }
   if (spiel.tiefstand > 0) {
     out.push({ id: "sturz", stufe: "rot", text: `Sturzgefahr: Die Zustimmung liegt seit ${pl(spiel.tiefstand, "Monat", "Monaten")} unter ${SPIEL.sturzSchwelle} %`, warum: `Nach ${SPIEL.sturzMonate} Monaten in Folge enden Massenproteste die Amtszeit.`, ziel: { art: "akte", akte: "waehler" } });
   } else if (z < 35) {
@@ -529,6 +578,7 @@ export function briefing(world: World, vorschlaege?: Vorschlag[]): Briefing {
     datum: formatDateDe(world.date),
     amtszeit: { nummer: spiel?.amtszeit ?? 1, wahltag: spiel ? formatDateDe(addDays(world.date, wahltage)) : "", monateBisWahl: monateBis(wahltage) },
     kennzahlen: kennzahlen(world),
+    verfassung: verfassungSicht(world),
     faellig: faellig(world),
     warnungen: warnungen(world),
     empfehlungen: empfehlungen(world, vorschlaege),

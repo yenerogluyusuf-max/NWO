@@ -11,9 +11,11 @@ import { ERBE, ERBE_NACH_ID } from "../data/erbe";
 import { VORHABEN, VORTEILE, STAETTEN_START } from "../data/reich";
 import type { Rng } from "./rng";
 import type { World } from "./types";
-import type { Effekt, ReichMeldung, ReichZustand, Voraussetzung, Vorhaben } from "./reich-typen";
+import type { Effekt, LaufEintrag, ReichMeldung, ReichZustand, Voraussetzung, Vergabe, Vorhaben } from "./reich-typen";
+import { VERGABE_NAMEN } from "./reich-typen";
 import type { VorteilDef } from "../data/reich/typen";
 import { kannZahlen } from "./kapital";
+import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, belastungSinken, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
 const VORTEIL_NACH_ID = new Map(VORTEILE.map((v) => [v.id, v]));
@@ -59,6 +61,55 @@ export function reichZustand(w: World): ReichZustand {
   spiel.reich = z;
   return z;
 }
+
+// ---------------------------------------------------------------------------
+// Bauvergabe (INF-1, Suzerain-Vorbild)
+// Alle Faktoren und Schwellen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
+
+export interface VergabeRegeln {
+  /** Faktor auf Baupunkte und Mindestbauzeit */
+  zeit: number;
+  /** Faktor auf Kapital- und Schuldenkosten */
+  kosten: number;
+  /** Monate Vergabephase vor dem Baubeginn */
+  vorlauf: number;
+  /** Zustand, mit dem das Bauwerk in den Bestand geht (ohne Angabe: 90) */
+  zustandFertig?: number;
+}
+
+export const VERGABE_REGELN: Record<Vergabe, VergabeRegeln> = {
+  // Schnell und loyal: kürzere Bauzeit, höhere Kosten, Nähe ohne Wettbewerb — das Korruptionsrisiko wächst, die Unternehmer danken es
+  stammfirma: { zeit: 0.8, kosten: 1.15, vorlauf: 0 },
+  // Günstig und langsam: weniger Kosten, längere Bauzeit, und das Ergebnis beginnt in schlechterem Zustand
+  sparvergabe: { zeit: 1.25, kosten: 0.9, vorlauf: 0, zustandFertig: 70 },
+  // Transparente Ausschreibung: der Baubeginn verzögert sich um die Vergabephase; dafür kein Korruptionsrisiko, Märkte und EU sehen es gern
+  ausschreibung: { zeit: 1, kosten: 1, vorlauf: 2 },
+};
+
+/** Was eine Vergabe aus den Katalogwerten eines Vorhabens macht; die einzige Stelle, an der die Faktoren angewandt werden. */
+export function vergabeAngebot(v: Vorhaben, vergabe: Vergabe): { pk: number; bau: number; monate: number; vorlauf: number; zustandFertig?: number } {
+  const r = VERGABE_REGELN[vergabe];
+  return {
+    pk: Math.round(v.kosten.pk * r.kosten * 10) / 10,
+    bau: Math.round(v.kosten.bau * r.zeit),
+    monate: Math.max(1, Math.round(v.kosten.monate * r.zeit)),
+    vorlauf: r.vorlauf,
+    ...(r.zustandFertig !== undefined ? { zustandFertig: r.zustandFertig } : {}),
+  };
+}
+
+/** Die Vergabe eines laufenden Vorhabens; ältere Spielstände ohne Angabe gelten als transparente Ausschreibung. */
+export const laufVergabe = (l: LaufEintrag): Vergabe => l.vergabe ?? "ausschreibung";
+
+/** Wirksame Baupunkte und Mindestbauzeit eines laufenden Vorhabens (die Vergabe hat sie beim Beginn festgelegt). */
+export const laufBau = (l: LaufEintrag, v: Vorhaben): number => l.bau ?? v.kosten.bau;
+export const laufMonate = (l: LaufEintrag, v: Vorhaben): number => l.monate ?? v.kosten.monate;
+
+/** Läuft noch die Vergabephase? Dann ruht der Bau, ohne zu pausieren. */
+export const inVergabePhase = (w: World, l: LaufEintrag): boolean => l.vergabeBis !== undefined && w.day < l.vergabeBis;
+
+/** Skandalnähe der Stammfirma: je Monat Bauzeit wächst die Korruption im Land ein wenig (nährt die Affären-Ereignisse). */
+const STAMMFIRMA_KORRUPTION_MONAT = 0.2;
 
 // ---------------------------------------------------------------------------
 // Größen
@@ -126,7 +177,7 @@ export function pruefeVoraus(w: World, v: Voraussetzung): VorausStand {
       const d = vorhabenDef(v.id);
       const da = !!z.bestand[v.id];
       const im = z.laufend.find((l) => l.id === v.id);
-      return ok(da, im && d ? im.fortschritt / d.kosten.bau : 0, `„${d?.name ?? v.id}“ ist fertig`);
+      return ok(da, im && d ? im.fortschritt / laufBau(im, d) : 0, `„${d?.name ?? v.id}“ ist fertig`);
     }
     case "nicht-bestand":
       return ok(!z.bestand[v.id], 0, v.text);
@@ -193,6 +244,12 @@ export interface VorhabenSicht {
   zustand?: number;
   /** Ob alle Voraussetzungen erfüllt sind */
   bereit: boolean;
+  /** Gewählte Vergabe eines laufenden Vorhabens (ältere Spielstände: „ausschreibung“) */
+  vergabe?: Vergabe;
+  /** Läuft noch die Vergabephase vor dem Baubeginn? */
+  vergabePhase?: boolean;
+  /** Verbleibende Monate der Vergabephase */
+  vergabeMonate?: number;
 }
 
 export function vorhabenSicht(w: World, id: string): VorhabenSicht | null {
@@ -209,10 +266,22 @@ export function vorhabenSicht(w: World, id: string): VorhabenSicht | null {
   const basis = { v, voraus, bezahlbar, verwaltungOk, bereit };
   if (bestand) return { ...basis, status: "fertig", fortschritt: 1, zustand: bestand.zustand };
   if (lauf) {
-    const f = v.kosten.bau > 0 ? lauf.fortschritt / v.kosten.bau : 1;
+    const bau = laufBau(lauf, v);
+    const f = bau > 0 ? lauf.fortschritt / bau : 1;
     const rate = bauplan(w)[id] ?? 0;
-    const cap = Math.max(1, rate > 0 ? rate : Math.min(v.kosten.bau / Math.max(1, v.kosten.monate), bauKapazitaet(w)));
-    return { ...basis, status: lauf.pausiert ? "pausiert" : "im_bau", fortschritt: f, rate, restMonate: Math.ceil((v.kosten.bau - lauf.fortschritt) / cap) };
+    const cap = Math.max(1, rate > 0 ? rate : Math.min(bau / Math.max(1, laufMonate(lauf, v)), bauKapazitaet(w)));
+    const phase = inVergabePhase(w, lauf);
+    const vorlauf = phase ? Math.ceil((lauf.vergabeBis! - w.day) / 30) : 0;
+    return {
+      ...basis,
+      status: lauf.pausiert ? "pausiert" : "im_bau",
+      fortschritt: f,
+      rate,
+      restMonate: vorlauf + Math.ceil((bau - lauf.fortschritt) / cap),
+      vergabe: laufVergabe(lauf),
+      vergabePhase: phase,
+      vergabeMonate: vorlauf,
+    };
   }
   if (v.sperre) {
     const s = pruefeVoraus(w, v.sperre.solange);
@@ -233,12 +302,13 @@ export function bauplan(w: World): Record<string, number> {
   const out: Record<string, number> = {};
   for (const l of z.laufend) {
     const v = vorhabenDef(l.id);
-    if (!v || l.pausiert) {
+    // Pausierte Vorhaben und solche in der Vergabephase ziehen keine Baukapazität
+    if (!v || l.pausiert || inVergabePhase(w, l)) {
       out[l.id] = 0;
       continue;
     }
-    const rest = Math.max(0, v.kosten.bau - l.fortschritt);
-    const aufnahme = Math.min(v.kosten.bau / Math.max(1, v.kosten.monate), cap, rest);
+    const rest = Math.max(0, laufBau(l, v) - l.fortschritt);
+    const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)), cap, rest);
     out[l.id] = aufnahme * verzug;
     cap -= aufnahme;
   }
@@ -368,7 +438,7 @@ function effektZeileBasis(e: Effekt, zahl: (x: number) => string): EffektZeile |
 // ---------------------------------------------------------------------------
 // Beginnen, Pausieren, Reihenfolge
 
-export function beginne(w: World, id: string): { ok: boolean; text: string; why?: string } {
+export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
   if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es kein Reich." };
   if (spiel.ende) return { ok: false, text: "Die Amtszeit ist beendet." };
@@ -381,17 +451,47 @@ export function beginne(w: World, id: string): { ok: boolean; text: string; why?
   if (s.status === "ausgeschlossen") return { ok: false, text: `„${v.name}“: ${s.grund}` };
   const fehlt = s.voraus.filter((x) => !x.erfuellt).map((x) => x.text);
   if (fehlt.length) return { ok: false, text: `Voraussetzungen fehlen: ${fehlt.join("; ")}.` };
-  if (!s.bezahlbar) return { ok: false, text: `Dafür fehlt Kapital (${v.kosten.pk} nötig, ${Math.floor(spiel.kapital)} vorhanden).` };
+  // Die Vergabe steht ab dem Beginn fest und lässt sich nicht mehr ändern; sie legt Kosten und Bauzeit neu fest
+  const angebot = vergabeAngebot(v, vergabe);
+  if (!kannZahlen(spiel.kapital, angebot.pk)) return { ok: false, text: `Dafür fehlt Kapital (${angebot.pk} nötig, ${Math.floor(spiel.kapital)} vorhanden).` };
   if (!s.verwaltungOk) return { ok: false, text: "Die Verwaltungskraft reicht nicht für ein weiteres Vorhaben; erst laufende abschließen oder die Verwaltung stärken." };
+  const pause = neuanfangGrund(w);
+  if (pause) return { ok: false, text: pause };
   const z = reichZustand(w);
-  spiel.kapital -= v.kosten.pk;
+  spiel.kapital -= angebot.pk;
+  verbrauche(w, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, v.name);
   // Was der Präsident eben beschlossen hat, kommt an die Spitze der Baureihenfolge; „Später“ schiebt es zurück
-  z.laufend.unshift({ id, fortschritt: 0, start: w.date });
+  z.laufend.unshift({
+    id,
+    fortschritt: 0,
+    start: w.date,
+    vergabe,
+    bau: angebot.bau,
+    monate: angebot.monate,
+    ...(angebot.vorlauf > 0 ? { vergabeBis: w.day + angebot.vorlauf * 30 } : {}),
+    ...(angebot.zustandFertig !== undefined ? { zustandFertig: angebot.zustandFertig } : {}),
+  });
   if (v.ast) z.gewaehlt[v.ast] = id;
-  const cap = Math.max(1, Math.min(v.kosten.bau / Math.max(1, v.kosten.monate), bauKapazitaet(w)));
-  const monate = Math.max(v.kosten.monate, Math.ceil(v.kosten.bau / cap));
-  const text = `Beginn: ${v.name}. Voraussichtlich ${monate} ${monate === 1 ? "Monat" : "Monate"} bis zur Fertigstellung.`;
-  const why = `Kostet ${v.kosten.pk} Kapital${v.kosten.verwaltung ? ` und ${v.kosten.verwaltung} Verwaltungskraft je Monat` : ""}. ${v.kehrseite}`;
+  // Die Nebenwirkungen der Vergabe; an der Korruptionsgröße hängt die Wahrscheinlichkeit von Affären-Ereignissen
+  if (vergabe === "stammfirma") {
+    wirke(w, "korruption", 1.5);
+    wirke(w, "unternehmer", 2);
+  } else if (vergabe === "ausschreibung") {
+    wirke(w, "vertrauen_maerkte", 1);
+    wirke(w, "legitimitaet", 0.5);
+    landAendern(w, "EU", { vertrauen: 1 });
+  }
+  const cap = Math.max(1, Math.min(angebot.bau / Math.max(1, angebot.monate), bauKapazitaet(w)));
+  const monate = angebot.vorlauf + Math.max(angebot.monate, Math.ceil(angebot.bau / cap));
+  const weg = VERGABE_NAMEN[vergabe];
+  const text = `Beginn: ${v.name} (${weg}). Voraussichtlich ${monate} ${monate === 1 ? "Monat" : "Monate"} bis zur Fertigstellung.`;
+  const preis =
+    vergabe === "stammfirma"
+      ? "Schneller und teurer; die Nähe ohne Wettbewerb nährt das Korruptionsrisiko, die Unternehmer danken den Auftrag."
+      : vergabe === "sparvergabe"
+        ? "Günstiger und langsamer; das Ergebnis beginnt in schlechterem Zustand."
+        : "Die Vergabephase verzögert den Baubeginn; dafür entsteht kein Korruptionsrisiko, und Märkte, EU und Legitimität sehen die Transparenz gern.";
+  const why = `Kostet ${angebot.pk} Kapital${v.kosten.verwaltung ? ` und ${v.kosten.verwaltung} Verwaltungskraft je Monat` : ""}. ${preis} ${v.kehrseite}`;
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }
@@ -403,13 +503,108 @@ export function pausiere(w: World, id: string, an: boolean): boolean {
   return true;
 }
 
-/** Schiebt ein Vorhaben in der Baureihenfolge nach vorn (−1) oder hinten (+1). */
-export function verschiebe(w: World, id: string, richtung: -1 | 1): void {
-  const l = reichZustand(w).laufend;
+/** Verwaltungskraft je überholter Position beim Vorziehen (Verdrängungspreis, INF-3). Spielparameter, keine Tatsache. */
+export const VORZIEHEN_VERWALTUNG = 10;
+
+export interface VerschiebeErgebnis {
+  ok: boolean;
+  /** Verwaltungskraft, die das Vorziehen gekostet hat */
+  kosten?: number;
+  /** Namen der Vorhaben, die dadurch später dran sind */
+  verdrangt?: string[];
+  grund?: string;
+}
+
+/** Schiebt ein Vorhaben in der Baureihenfolge nach vorn (−1) oder hinten (+1). Vorziehen kostet Verwaltungskraft und verdrängt das überholte Vorhaben; Zurückstellen ist frei. */
+export function verschiebe(w: World, id: string, richtung: -1 | 1): VerschiebeErgebnis {
+  const z = reichZustand(w);
+  const l = z.laufend;
   const i = l.findIndex((x) => x.id === id);
   const j = i + richtung;
-  if (i < 0 || j < 0 || j >= l.length) return;
+  if (i < 0 || j < 0 || j >= l.length) return { ok: false, grund: "An diesem Ende der Reihenfolge geht es nicht weiter." };
+  const andere = l[j]!;
+  if (richtung === -1) {
+    if (z.verwaltung < VORZIEHEN_VERWALTUNG) return { ok: false, grund: `Vorziehen kostet ${VORZIEHEN_VERWALTUNG} Verwaltungskraft; der Vorrat reicht nicht.` };
+    z.verwaltung = clamp(z.verwaltung - VORZIEHEN_VERWALTUNG, 0, 100);
+  }
   [l[i], l[j]] = [l[j]!, l[i]!];
+  if (richtung === -1) {
+    const eigener = vorhabenDef(id)?.name ?? id;
+    const fremder = vorhabenDef(andere.id)?.name ?? andere.id;
+    addLog(w, "entscheidung", `„${eigener}“ in der Baureihenfolge vorgezogen.`, `Kostet ${VORZIEHEN_VERWALTUNG} Verwaltungskraft; verdrängt „${fremder}“.`);
+    return { ok: true, kosten: VORZIEHEN_VERWALTUNG, verdrangt: [fremder] };
+  }
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Baureihenfolge, öffentlich (INF-3)
+
+export interface SchlangeEintrag {
+  id: string;
+  /** Position in der Reihenfolge, 1 baut zuerst */
+  position: number;
+  vergabe: Vergabe;
+  pausiert: boolean;
+  /** Läuft noch die Vergabephase vor dem Baubeginn? */
+  vergabePhase: boolean;
+  /** Baupunkte je Monat bei jetziger Reihenfolge und Kapazität (0 = wartet, ruht oder Vergabephase) */
+  rate: number;
+  /** Geschätzte Monate bis zum Baubeginn (undefined: pausiert) */
+  startIn?: number;
+  /** Geschätzte Monate bis zur Fertigstellung (undefined: pausiert oder unabsehbar) */
+  fertigIn?: number;
+}
+
+/**
+ * Die Baureihenfolge als öffentliche Liste mit ehrlichen Schätzungen:
+ * Monat für Monat nachgespielt, solange Kapazität und Reihenfolge bleiben, wie sie sind.
+ */
+export function warteschlange(w: World): SchlangeEintrag[] {
+  const z = reichZustand(w);
+  const plan = bauplan(w);
+  const kapazitaet = bauKapazitaet(w);
+  const verzug = z.verwaltung <= 0 ? 0.5 : 1;
+  const ausstehend = new Map<string, number>();
+  const vorlauf = new Map<string, number>();
+  for (const l of z.laufend) {
+    const v = vorhabenDef(l.id);
+    if (!v) continue;
+    ausstehend.set(l.id, Math.max(0, laufBau(l, v) - l.fortschritt));
+    vorlauf.set(l.id, inVergabePhase(w, l) ? Math.ceil((l.vergabeBis! - w.day) / 30) : 0);
+  }
+  const startIn: Record<string, number | undefined> = {};
+  const fertigIn: Record<string, number | undefined> = {};
+  const MAX_MONATE = 600;
+  for (let m = 1; m <= MAX_MONATE; m++) {
+    let frei = kapazitaet;
+    let allesFertig = true;
+    for (const l of z.laufend) {
+      const v = vorhabenDef(l.id);
+      if (!v || l.pausiert) continue;
+      let rest = ausstehend.get(l.id)!;
+      if (rest <= 0) continue;
+      allesFertig = false;
+      if ((vorlauf.get(l.id) ?? 0) >= m) continue; // die Vergabephase läuft noch
+      const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)), frei, rest) * verzug;
+      if (aufnahme <= 0) continue;
+      if (startIn[l.id] === undefined) startIn[l.id] = m - 1;
+      rest -= aufnahme;
+      frei -= aufnahme / verzug;
+      ausstehend.set(l.id, rest);
+      if (rest <= 1e-6) fertigIn[l.id] = m;
+    }
+    if (allesFertig) break;
+  }
+  return z.laufend.map((l, i) => ({
+    id: l.id,
+    position: i + 1,
+    vergabe: laufVergabe(l),
+    pausiert: !!l.pausiert,
+    vergabePhase: inVergabePhase(w, l),
+    rate: plan[l.id] ?? 0,
+    ...(l.pausiert ? {} : { startIn: startIn[l.id] ?? (vorlauf.get(l.id) || undefined), fertigIn: fertigIn[l.id] }),
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -432,15 +627,18 @@ function meldung(w: World, art: ReichMeldung["art"], text: string): void {
 
 function schliesseAb(w: World, v: Vorhaben): void {
   const z = reichZustand(w);
-  z.laufend = z.laufend.filter((l) => l.id !== v.id);
+  const l = z.laufend.find((x) => x.id === v.id);
+  z.laufend = z.laufend.filter((x) => x.id !== v.id);
   // Restaurierungen sind Arbeiten, keine Bauwerke: Sie lassen sich später wiederholen
-  if (v.klasse !== "restaurierung") z.bestand[v.id] = { seit: w.date, zustand: 90 };
+  if (v.klasse !== "restaurierung") z.bestand[v.id] = { seit: w.date, zustand: l?.zustandFertig ?? 90 };
   for (const e of v.abschluss) wendeEffekt(w, e);
   const wichtig = v.klasse === "wunder" || v.klasse === "grossprojekt" || v.klasse === "serie";
   if (wichtig && !z.feier.includes(v.id)) z.feier.push(v.id);
   const text = `Fertig: ${v.name}.`;
   meldung(w, "fertig", text);
-  addLog(w, "entscheidung", text, v.kehrseite);
+  // Die Sparvergabe zeigt sich am Ende: Das Stück geht in schlechterem Zustand in den Bestand
+  const sparhinnweis = l?.zustandFertig !== undefined ? ` Die Sparvergabe zeigt sich: Der Zustand beginnt bei ${l.zustandFertig}.` : "";
+  addLog(w, "entscheidung", text, `${v.kehrseite}${sparhinnweis}`);
   w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: v.name, ausgang: `Fertiggestellt (${v.klasse === "wunder" ? "Wunder" : v.klasse === "serie" ? "Themenroute" : "Vorhaben"}).` });
 }
 
@@ -463,17 +661,20 @@ export function reichMonat(w: World, _rng?: Rng): void {
   let cap = bauKapazitaet(w);
   let genutzt = 0;
   for (const l of [...z.laufend]) {
-    if (l.pausiert) continue;
+    if (l.pausiert || inVergabePhase(w, l)) continue;
     const v = vorhabenDef(l.id);
     if (!v) continue;
-    const rest = Math.max(0, v.kosten.bau - l.fortschritt);
-    const monatsMax = v.kosten.bau / Math.max(1, v.kosten.monate);
+    const bau = laufBau(l, v);
+    const rest = Math.max(0, bau - l.fortschritt);
+    const monatsMax = bau / Math.max(1, laufMonate(l, v));
     const aufnahme = Math.min(monatsMax, cap, rest) * verzug;
     l.fortschritt += aufnahme;
     cap -= aufnahme / verzug;
     genutzt += aufnahme;
-    if (v.kosten.schulden && v.kosten.bau > 0) w.economy.debtRatio += (v.kosten.schulden * aufnahme) / v.kosten.bau;
-    if (l.fortschritt >= v.kosten.bau - 1e-6) schliesseAb(w, v);
+    // Stammfirma: Nähe ohne Wettbewerb nährt jeden Baumonat das Korruptionsrisiko (und damit die Affären-Ereignisse)
+    if (laufVergabe(l) === "stammfirma") wirke(w, "korruption", STAMMFIRMA_KORRUPTION_MONAT);
+    if (v.kosten.schulden && bau > 0) w.economy.debtRatio += (v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * aufnahme) / bau;
+    if (l.fortschritt >= bau - 1e-6) schliesseAb(w, v);
   }
   z.bauGenutzt = genutzt;
 
@@ -537,10 +738,11 @@ export function reichMonat(w: World, _rng?: Rng): void {
   z.vorteile = aktiv;
 }
 
-/** Die Oberfläche hat die Fertigstellung gezeigt. */
+/** Die Oberfläche hat die Fertigstellung gezeigt: Die Feier lässt die Belastung des Präsidenten sinken. */
 export function quittiereFeier(w: World, id: string): void {
   const z = w.spiel?.reich;
   if (z) z.feier = z.feier.filter((x) => x !== id);
+  if (z) belastungSinken(w, VERFASSUNG.feierErloesung);
 }
 
 /** Pflegt ein Bestandsstück oder eine Stätte: hebt den Zustand (Instandsetzung ohne eigenes Vorhaben ist in den Katalogen als Restaurierung abgebildet). */

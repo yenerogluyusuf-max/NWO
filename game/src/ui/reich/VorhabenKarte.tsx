@@ -1,7 +1,9 @@
 // Eine Karte für ein Vorhaben: Was es ist, was es kostet (Kapital, Bau, Verwaltung, Zeit), was verlangt wird, was es bringt und was es kostet, das nicht im Geld steckt.
+// Beim Beginn wählt der Spieler die Bauvergabe (Stammfirma, Sparvergabe, transparente Ausschreibung); danach steht sie fest und erscheint als Plakette.
 
-import { effektZeile, type VorhabenSicht } from "../../sim/reich";
-import { KLASSEN_NAMEN } from "../../sim/reich-typen";
+import { useState } from "react";
+import { effektZeile, vergabeAngebot, type VorhabenSicht } from "../../sim/reich";
+import { KLASSEN_NAMEN, VERGABE_NAMEN, type Vergabe } from "../../sim/reich-typen";
 import { NET } from "../../sim/modell";
 import { WunderBild } from "./WunderBild";
 
@@ -12,6 +14,14 @@ const STATUS_WORT: Record<VorhabenSicht["status"], string> = {
   verfuegbar: "",
   gesperrt: "Gesperrt",
   ausgeschlossen: "Ausgeschlossen",
+};
+
+/** Die drei Vergabe-Wege in Worten; die Zahlen kommen aus `vergabeAngebot` (Spielparameter, keine Tatsachen). */
+const VERGABE_REIHENFOLGE: Vergabe[] = ["stammfirma", "sparvergabe", "ausschreibung"];
+const VERGABE_TEXT: Record<Vergabe, string> = {
+  stammfirma: "Schnell und loyal: kürzere Bauzeit, höhere Kosten. Nähe ohne Wettbewerb — das Korruptionsrisiko wächst, die Unternehmer danken es.",
+  sparvergabe: "Günstig und langsam: weniger Kosten, längere Bauzeit, und das Ergebnis beginnt in schlechterem Zustand.",
+  ausschreibung: "Transparente Ausschreibung: Der Baubeginn verzögert sich um die Vergabephase; dafür kein Korruptionsrisiko, und Märkte, EU und Legitimität sehen es gern.",
 };
 
 function verlierer(v: string | undefined): string | null {
@@ -26,15 +36,20 @@ export function VorhabenKarte({
   onKarte,
   gross = false,
   ergebnis,
+  kapital,
 }: {
   s: VorhabenSicht;
-  onBeginne: (id: string) => void;
+  onBeginne: (id: string, vergabe: Vergabe) => void;
   onKarte?: (o: { lon: number; lat: number }) => void;
   /** Wunder und Großprojekte bekommen ein Bild */
   gross?: boolean;
   ergebnis?: { ok: boolean; text: string } | undefined;
+  /** Politisches Kapital des Spielers, um unbezahlbare Vergaben auszugrauen */
+  kapital?: number;
 }) {
   const v = s.v;
+  // Ob die Vergabe-Wahl auf dieser Karte aufgeklappt ist
+  const [vergabeWahl, setVergabeWahl] = useState(false);
   const zeigt = s.status === "verfuegbar" || s.status === "gesperrt" || s.status === "ausgeschlossen";
   const gewinn = v.abschluss.map((e) => effektZeile(e)).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 6);
   const dauer = (v.dauer ?? []).map((e) => effektZeile(e, "dauer")).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 4);
@@ -56,6 +71,11 @@ export function VorhabenKarte({
       )}
       <div className="rr-karte-kopf">
         <span className="rr-klasse">{KLASSEN_NAMEN[v.klasse]}</span>
+        {s.vergabe && (s.status === "im_bau" || s.status === "pausiert") && (
+          <span className="rr-plakette" title={`Vergeben als: ${VERGABE_NAMEN[s.vergabe]} — die Wahl steht seit dem Beginn fest.`}>
+            {VERGABE_NAMEN[s.vergabe]}
+          </span>
+        )}
         {STATUS_WORT[s.status] && <span className={`rr-status ${s.status}`}>{STATUS_WORT[s.status]}</span>}
       </div>
       <h4 className="rr-name">{v.name}</h4>
@@ -89,7 +109,13 @@ export function VorhabenKarte({
           </span>
           <span>
             {Math.round(s.fortschritt * 100)} Prozent
-            {s.status === "pausiert" ? ", ruht" : s.rate && s.rate > 0 ? `, noch etwa ${s.restMonate} Monate` : ", wartet auf Baukapazität"}
+            {s.status === "pausiert"
+              ? ", ruht"
+              : s.vergabePhase
+                ? `, Vergabephase läuft — Baubeginn in etwa ${s.vergabeMonate} ${s.vergabeMonate === 1 ? "Monat" : "Monaten"}`
+                : s.rate && s.rate > 0
+                  ? `, noch etwa ${s.restMonate} Monate`
+                  : ", wartet auf Baukapazität"}
           </span>
         </div>
       )}
@@ -164,11 +190,47 @@ export function VorhabenKarte({
 
       {s.grund && (s.status === "gesperrt" || s.status === "ausgeschlossen") && <p className="rr-sperre">{s.grund}</p>}
       {ergebnis && <p className={`rr-ergebnis ${ergebnis.ok ? "ok" : "nein"}`}>{ergebnis.text}</p>}
-      {zeigt && s.status === "verfuegbar" && (
-        <button type="button" className="aktion-knopf rr-beginnen" disabled={!!grund} onClick={() => onBeginne(v.id)} title={grund || undefined}>
+      {zeigt && s.status === "verfuegbar" && !vergabeWahl && (
+        <button type="button" className="aktion-knopf rr-beginnen" disabled={!!grund} onClick={() => setVergabeWahl(true)} title={grund || undefined}>
           Beginnen
           {los.length > 0 && <small> ({los.length} Voraussetzung{los.length === 1 ? "" : "en"} offen)</small>}
         </button>
+      )}
+      {zeigt && s.status === "verfuegbar" && vergabeWahl && (
+        <div className="rr-vergabe">
+          <b className="rr-wirkung-kopf">Wie wird der Auftrag vergeben? Die Wahl steht danach fest.</b>
+          <ul>
+            {VERGABE_REIHENFOLGE.map((weg) => {
+              const a = vergabeAngebot(v, weg);
+              const unbezahlbar = kapital !== undefined && kapital + 1e-9 < a.pk;
+              return (
+                <li key={weg}>
+                  <button
+                    type="button"
+                    className="aktion-knopf"
+                    disabled={unbezahlbar}
+                    title={unbezahlbar ? `Dafür fehlt Kapital (${a.pk} nötig).` : VERGABE_TEXT[weg]}
+                    onClick={() => {
+                      setVergabeWahl(false);
+                      onBeginne(v.id, weg);
+                    }}
+                  >
+                    {VERGABE_NAMEN[weg]}
+                  </button>
+                  <span className="rr-bau-info">
+                    {a.pk} Kapital · {a.bau} Baupunkte · {a.monate} {a.monate === 1 ? "Monat" : "Monate"}
+                    {a.vorlauf > 0 ? ` + ${a.vorlauf} Monate Vergabephase` : ""}
+                  </span>
+                  <p className="rr-hinweis">{VERGABE_TEXT[weg]}</p>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="rr-hinweis">Die Wirkungen der Vergabe sind Spielparameter, keine Tatsachen.</p>
+          <button type="button" className="link" onClick={() => setVergabeWahl(false)}>
+            Zurück
+          </button>
+        </div>
       )}
       {v.quelle && <p className="rr-quelle">Quelle: {v.quelle}</p>}
     </article>

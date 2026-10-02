@@ -14,6 +14,7 @@ import { mentorNotes } from "../mentor";
 import { Cameo } from "../art/Cameo";
 import { Icon, type IconName } from "../icons";
 import { briefing, type Faellig, type Kennzahl, type Knopf, type Ziel } from "./briefing";
+import type { UmlaufEintrag } from "../autostopp";
 import "./schreibtisch.css";
 
 const ART_ICON: Record<Faellig["art"], IconName> = { ereignis: "warnung", gesetz: "waage", zusage: "haende", schritt: "ziel", duldung: "parlament" };
@@ -31,14 +32,14 @@ const TUEREN: { label: string; ziel: Ziel; icon: IconName }[] = [
   { label: "Personen", ziel: { art: "akte", akte: "personen" }, icon: "person" },
 ];
 
-export function Schreibtisch({ world, refresh, onGehe }: { world: World; refresh: () => void; onGehe: (z: Ziel) => void }) {
+export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World; refresh: () => void; onGehe: (z: Ziel) => void; umlauf?: UmlaufEintrag[] }) {
   const spiel = world.spiel;
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const [notiz, setNotiz] = useState<number | null>(null);
   const [weitere, setWeitere] = useState(false);
 
   // Die Rechnungen sind aufwendig: nur neu, wenn sich Tag, Kapital, Gesetze, Ereignisse, Zusagen oder das Lager ändern
-  const schluessel = `${world.day}|${Math.floor(spiel?.kapital ?? 0)}|${spiel?.gesetze.length ?? 0}|${spiel?.ereignisse.length ?? 0}|${spiel?.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length ?? 0}|${spiel?.lager.length ?? 0}|${Object.keys(world.net.targets).length}`;
+  const schluessel = `${world.day}|${Math.floor(spiel?.kapital ?? 0)}|${Math.round(spiel?.verfassung?.aufmerksamkeit ?? 0)}|${Math.round(spiel?.verfassung?.belastung ?? 0)}|${spiel?.gesetze.length ?? 0}|${spiel?.ereignisse.length ?? 0}|${spiel?.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length ?? 0}|${spiel?.lager.length ?? 0}|${Object.keys(world.net.targets).length}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const b = useMemo(() => briefing(world, spiel ? vorschlaege(world, 3) : []), [schluessel]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,6 +91,40 @@ export function Schreibtisch({ world, refresh, onGehe }: { world: World; refresh
           </li>
         ))}
       </ul>
+
+      {b.verfassung && (
+        <div className={`sk-verfassung stufe-${b.verfassung.stufe}`} tabIndex={0} aria-label={`Zustand des Präsidenten: Aufmerksamkeit ${b.verfassung.aufmerksamkeit} von 100, Belastung ${b.verfassung.belastung} von 100, ${b.verfassung.stufeName}`}>
+          <div className="sk-vf-zeilen">
+            <div className="sk-vf-zeile">
+              <span className="sk-vf-label">Aufmerksamkeit</span>
+              <span className="sk-vf-balken" aria-hidden>
+                <i className="auf" style={{ width: `${b.verfassung.aufmerksamkeit}%` }} />
+              </span>
+              <span className="sk-vf-wert">{b.verfassung.aufmerksamkeit}</span>
+            </div>
+            <div className="sk-vf-zeile">
+              <span className="sk-vf-label">Belastung</span>
+              <span className="sk-vf-balken" aria-hidden>
+                <i className="bel" style={{ width: `${b.verfassung.belastung}%` }} />
+              </span>
+              <span className="sk-vf-wert">{b.verfassung.belastung}</span>
+            </div>
+          </div>
+          <span className="sk-vf-stufe">
+            {b.verfassung.stufeName}
+            {b.verfassung.pauseBis ? ` · ruhige Tage bis ${b.verfassung.pauseBis}` : ""}
+          </span>
+          <div className="tip" role="tooltip">
+            <strong>Der Zustand des Präsidenten</strong>
+            <p>
+              Jede Amtshandlung — Gesetz, Erlass, Gespräch, Verhandlung, Entscheidung im Reich — verbraucht Aufmerksamkeit; sie lädt sich täglich um 3 auf. Unter 20 wächst die
+              Belastung, über 60 baut sie ab. {b.verfassung.fluss}
+            </p>
+            {b.verfassung.treiber.length > 0 ? <p>Was die Belastung treibt: {b.verfassung.treiber.join("; ")}.</p> : <p>Kein Vorgang treibt die Belastung gerade nennenswert.</p>}
+            {b.verfassung.stufe >= 1 && <p>Angespannt streuen Stimmenschätzungen breiter und Einbringungen verzögern sich mitunter; ab 70 erzwingt der Stab ruhige Tage, über 85 über Wochen droht der Zusammenbruch.</p>}
+          </div>
+        </div>
+      )}
 
       {antwort && (
         <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
@@ -236,6 +271,24 @@ export function Schreibtisch({ world, refresh, onGehe }: { world: World; refresh
               </>
             )}
           </section>
+
+          {umlauf && umlauf.length > 0 && (
+            <section className="sk-block">
+              <h4>Im Umlauf</h4>
+              <p className="sk-leer">Routine ohne Entscheidung, seit dem letzten Halt gesammelt — nichts davon verlangt eine Antwort.</p>
+              <ul className="sk-log">
+                {[...umlauf].reverse().map((u) => (
+                  <li key={u.id}>
+                    <span className="sk-datum">{u.datum}</span>
+                    <span>
+                      <strong>{u.titel}</strong>
+                      {u.text ? ` — ${u.text}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {geschah.length > 0 && (
             <section className="sk-block">

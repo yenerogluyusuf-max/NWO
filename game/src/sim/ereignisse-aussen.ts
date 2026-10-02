@@ -446,5 +446,14 @@ const PANDEMIE: Vorlage = {
   },
 };
 
+// TODO (Realwelt-Stand 30.09.2026, RECHERCHE_REALWELT_LAENDERDOSSIERS.md — bewusst noch NICHT als Ereignisse gebaut):
+// - Kaukasus-Paketdeal (Teil IV A3/A4): Der parafierte, aber unsignierte Friedensvertrag Armenien–Aserbaidschan hängt am
+//   armenischen Verfassungsreferendum (frühestens 2027); die türkische Grenzöffnung zu Armenien ist an die Signatur gekoppelt.
+//   Ideale Vorlage für eine Drei-Parteien-Paketverhandlung (Eriwan–Baku–Ankara): TRIPP-Transit gegen Grenzöffnung gegen
+//   Verfassungsschritt; Ausstrahlung auf IRN (verliert Transitmonopol) und GEO (Umgehungsrisiko). Vermittlungs-Priorität 2.
+// - Zypern-Fenster (Teil IV B1, Dossier 17): Das informelle 5+1-Treffen (beide Gemeinschaften + Garantiemächte + UN) sollte bis
+//   Ende 2026 (Amtsende Guterres) zustande kommen; der Norden ist seit 10/2025 föderationsorientiert. Ein Erfolg entblockt die
+//   EU-Türkei-Datei (Zollunion, SAFE) und entlastet die Ägäis-Front, ein Scheitern vergiftet sie — Event-Kette mit EU/GRC-Koppler.
+
 export const AUSSEN_VORLAGEN: Vorlage[] = [GRENZZWISCHENFALL, EU_ANGEBOT, IWF, RATING, NATO, GASVERTRAG, GASFUND, CYBER, WELTKRISE, PANDEMIE];
 

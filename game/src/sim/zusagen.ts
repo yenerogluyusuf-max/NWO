@@ -221,6 +221,12 @@ export function loeseZusageEin(w: World, z: Zusage): { ok: boolean; text: string
   const f = personZu(w, z);
   if (v) {
     if (!v.pr.ok) {
+      // Eine Krisen-Sperre (MIL-3) ist keine Erfüllung: Die Zusage bleibt offen und wird später erneut versucht
+      const gesperrt = v.pr.krisen.find((k) => k.art === "gesperrt");
+      if (gesperrt) {
+        z.faellig = w.day + 40;
+        return { ok: false, text: `Gerade nicht möglich — ${v.pr.grund}` };
+      }
       z.erfuellt = true;
       bereitschaftAendern(w, z.von, 10);
       zusageAbschluss(w, z, "erfuellt");

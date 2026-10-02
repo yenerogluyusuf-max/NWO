@@ -71,15 +71,19 @@ export function createNet(
   economy: EconomyState,
   regional: RegionalStart = {},
   weights: number[] = new Array(PROVINCES).fill(1 / PROVINCES),
+  deltas: RegionalStart = {},
 ): NetState {
   const n = model.nodes.length;
   const start = new Array<number>(n * PROVINCES);
   model.nodes.forEach((node, i) => {
     const base = node.input ? inputValue(node.input, economy, 1) : node.start;
     const factors = regional[node.id];
+    const d = deltas[node.id];
     for (let p = 0; p < PROVINCES; p++) {
       const f = factors?.[p] ?? 1;
-      start[i * PROVINCES + p] = node.input ? inputValue(node.input, economy, f) : clampIndex(base * f);
+      // Archätyp-Schicht (data/provinz_archetypen.ts): additive Punkte über der
+      // Echtdaten-Schicht (Faktor), nur für Katalog-Knoten; Eingänge bleiben echt.
+      start[i * PROVINCES + p] = node.input ? inputValue(node.input, economy, f) : clampIndex(base * f + (d?.[p] ?? 0));
     }
   });
   const values = start.slice();

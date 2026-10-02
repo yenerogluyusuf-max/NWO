@@ -157,9 +157,13 @@ e("m_kmu", "mittelstand", 0.05, 6, "Förderprogramme stützen kleine Betriebe.")
 e("m_kmu", "gruendungen", 0.04, 6, "Wer gründen will, bekommt Starthilfe.");
 e("investitionen", "produktivitaet", 0.03, 12, "Neue Maschinen machen Arbeit produktiver.");
 e("auslandskapital", "investitionen", 0.04, 6, "Ausländisches Geld finanziert Fabriken und Projekte.");
-e("m_preiskontrollen", "lebenshaltung", -0.04, 1, "Obergrenzen dämpfen sichtbare Preise im Supermarkt.");
-e("m_preiskontrollen", "schattenwirtschaft", 0.03, 3, "Unter Preisdeckeln wandern Waren auf graue Märkte.");
-e("m_preiskontrollen", "landwirtschaft_einkommen", -0.04, 6, "Niedrige Preise treffen die Erzeuger.");
+// ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Der Deckel kaufte +16,9 Vertrauen für
+// 0,08 % des BIP, weil die Nebenwirkungen zu spät und zu schwach kamen. Jetzt kommen sie zeitnah:
+// kleinerer Soforteffekt, schnellerer Schwarzmarkt, und die Knappheit treibt die realen Preise wieder hoch.
+e("m_preiskontrollen", "lebenshaltung", -0.03, 1, "Obergrenzen dämpfen sichtbare Preise im Supermarkt — solange Ware im Regal ist.");
+e("m_preiskontrollen", "schattenwirtschaft", 0.05, 2, "Unter Preisdeckeln wandern Waren auf graue Märkte.");
+e("m_preiskontrollen", "lebensmittelpreise", 0.05, 3, "Wo das Regal leer bleibt, treibt die Knappheit die realen Preise auf dem grauen Markt.");
+e("m_preiskontrollen", "landwirtschaft_einkommen", -0.05, 5, "Niedrige Preise treffen die Erzeuger.");
 e("inflation", "dollarisierung", 0.05, 1, "Bei hoher Inflation flüchten Sparer in Dollar und Gold.");
 e("abwertung", "dollarisierung", 0.04, 0, "Wer eine schwache Lira erlebt, traut ihr weniger.");
 e("dollarisierung", "auslandskapital", -0.02, 3, "Wenn schon Einheimische der Lira misstrauen, zögern Ausländer auch.");
@@ -434,6 +438,98 @@ e("wachstum", "stromversorgung", -0.02, 3, "Mehr Produktion, mehr Last.");
 e("stromversorgung", "p_stromausfaelle", -0.1, 0, "Ein schwaches Netz fällt aus.");
 e("p_stromausfaelle", "industrie", -0.04, 0, "Ohne Strom stehen die Maschinen.");
 e("luftqualitaet", "p_luftverschmutzung", -0.1, 0, "Schlechte Luft wird zum Problem.");
+
+// ---------------------------------------------------------------------------
+// Energie-Modul (RECHERCHE_ENERGIE.md, Abschnitt 6, Stand der Recherche 30.09.2026):
+// die sieben Größen E1–E7 und das Problem „Energie-Mangellage“ ergänzen den Block oben.
+// Wo das Netz eine Maßnahme schon kennt (Netzausbau, Solar/Wind, Gasförderung,
+// Kernkraft, Energiesubventionen), wird sie über neue Verbindungen eingebunden statt
+// verdoppelt; die Netz-Ausbau-Maßnahme der Recherche (TEİAŞ-Programm) deckt sich mit
+// m_netzausbau, sodass nur zehn neue Maßnahmen-Knoten dazukommen.
+// Alle Stärken, Verzögerungen und Kosten dieses Blocks sind Kalibrierungs-Platzhalter:
+// Spielparameter, keine Tatsachen.
+
+// E1–E7 (Startwerte 09/2026 aus der Recherche, auf die 0–100-Skala des Netzes übertragen)
+g("energie", "gasabhaengigkeit", "Gas-Abhängigkeit je Lieferant", 70, "Wie konzentriert die Gasimporte sind: Russland ~36 % (Vertrag läuft Ende 2026 aus), LNG-Pool ~35–40 %, Aserbaidschan ~20 %, Iran faktisch null, heimisch ~6 %.");
+g("energie", "sakarya_gas", "Förderung aus dem Sakarya-Feld", 25, "Eigenes Gas aus dem Schwarzen Meer: 9,5 Mio. m³ täglich in Phase 1; das Zielband für 2028 liegt bei 20–40 Mio. m³.");
+g("energie", "strommix", "Strommix aus Erneuerbaren", 44, "Anteil von Wasser, Wind, Sonne und Erdwärme an der Stromerzeugung, zuletzt ~43–45 %.");
+g("energie", "energieversorgung", "Versorgungssicherheit Energie", 55, "Ob Gas und Strom auch im Winter sicher kommen: Verträge, Speicher (6,3 Mrd. m³), eigene Förderung. Winter 2026/27 gilt als kritisch.");
+g("energie", "energie_importrechnung", "Energie-Importrechnung", 60, "Was das Land pro Jahr für Öl, Gas und Kohle ins Ausland zahlt; für 2026 sind ~58–62 Mrd. Dollar projiziert, die Werte erscheinen mit zwei Monaten Verzug.");
+g("energie", "energie_subventionslast", "Energie-Subventionslast", 60, "Was die Preisdeckel den Haushalt kosten: ~950 Mrd. Lira bei BOTAŞ plus ~600 Mrd. Lira ausgefallener Kraftstoff-Ausgleich (Eşel-Mobil), projiziert für 2026.");
+g("energie", "strompreis", "Strompreis am Großmarkt", 60, "Börsenpreis für Strom (PTF), zuletzt ~60 Dollar je Megawattstunde bei einem Deckel von 4.500 Lira.");
+
+p("energie", "p_energiemangel", "Energie-Mangellage", 50, 60, "Gas und Strom werden knapp; rationiert wird zuerst bei Industrie und Kraftwerken, nie bei Haushalten (BOTAŞ-Priorisierung).");
+
+// Maßnahmen (Kosten, Umsetzungsdauer und Wirkung nach RECHERCHE_ENERGIE.md, Abschnitt 6.4)
+m("energie", "m_lng_vertraege", "LNG-Langzeitverträge", 35, 0.15, 12, "Zusätzliche Langzeitverträge über zwei bis vier Mrd. m³ Flüssiggas im Jahr; LNG kostet 30–50 % mehr als Pipelinegas.");
+m("energie", "m_regas_ausbau", "FSRU- und Regasifizierungs-Ausbau", 40, 0.08, 18, "Mehr schwimmende Terminals und Anlandekapazität für LNG (0,5–1,5 Mrd. Dollar); die Reserve für kalte Wochen.");
+m("energie", "m_gasspeicher", "Gasspeicher-Ausbau", 30, 0.15, 36, "Speicher Richtung 14,4 Mrd. m³ ausbauen (Maßstab Tuz Gölü: 2,7 Mrd. Dollar für 4,2 Mrd. m³) — das Polster für den Winter.");
+m("energie", "m_yeka_serie", "YEKA-Ausschreibungsserie", 35, -0.05, 24, "Mindestens zwei Gigawatt Wind und Sonne pro Jahr versteigern; über den Beitragsmechanismus bei gedeckelten Abnahmepreisen nimmt der Staat sogar ein.");
+m("energie", "m_sakarya_phase3", "Sakarya Phase 3 (zweite FPU)", 20, 0.2, 24, "Eine zweite schwimmende Förderanlage hebt die eigene Förderung Richtung 40 Mio. m³ täglich; einstellige Milliarden Dollar, frühestens 2028 wirksam.");
+m("energie", "m_akkuyu_ppa", "Akkuyu-Vertrag nachverhandeln", 40, 0.1, 6, "Den Abnahmevertrag mit Rosatom (12,35 US-Cent je kWh) neu verhandeln — die Differenz zum Marktpreis kostet grob eine Mrd. Dollar im Jahr, der Konflikt Moskau belastet.");
+m("energie", "m_heimische_kohle", "Heimische Kohle (Afşin-Elbistan)", 35, 0.1, 48, "Neue Blöcke am eigenen Kohlebecken (+688 MW) ersetzen Importkohle — gegen Klima, Luft und die Nachbarn vor Ort.");
+m("energie", "m_energieeffizienz", "Effizienz, Wärmepumpen, E-Mobilität", 25, 0.08, 36, "Programme gegen Verschwendung: eine Million E-Autos sparen ~0,9 Mrd. Dollar Importe im Jahr, zehn Prozent Wärmepumpen-Haushalte noch einmal ~1 Mrd.");
+m("energie", "m_preiswahrheit", "Preiswahrheit bei Energie", 25, -0.8, 3, "Subventionen abbauen und Staffeltarife einführen: spart bis zu ~600 Mrd. Lira im Jahr, treibt aber kurzfristig die Preise — der Politikpreis der Wahrheit.");
+m("energie", "m_gashub", "Gas-Hub und Transit-Ausbau", 30, 0.08, 24, "TurkStream-Strang 2 und TANAP-Erweiterung: Transitgebühren und geopolitisches Gewicht, aber mehr Bindung an russisches Gas.");
+
+// Versorgungssicherheit und Abhängigkeit
+e("gasabhaengigkeit", "energieversorgung", -0.06, 3, "Wer von wenigen Lieferanten abhängt, ist erpressbar; der auslaufende Russland-Vertrag Ende 2026 hängt über allem.");
+e("sakarya_gas", "energieversorgung", 0.04, 6, "Eigenes Gas aus dem Schwarzen Meer macht den Winter sicherer.");
+e("m_lng_vertraege", "energieversorgung", 0.06, 6, "Vertraglich gesichertes LNG schließt die Lücke, die auslaufende Verträge reißen.");
+e("m_lng_vertraege", "gasabhaengigkeit", -0.05, 6, "Mehr Lieferanten aus dem Pool, weniger Zwang aus Moskau oder Teheran.");
+e("m_lng_vertraege", "energie_importrechnung", 0.02, 3, "LNG kostet mehr als Pipelinegas; die Zusatzmenge schlägt in der Rechnung auf.");
+e("m_regas_ausbau", "energieversorgung", 0.04, 6, "Mehr Anlandekapazität heißt mehr Reserve, bevor es rationiert wird.");
+e("m_gasspeicher", "energieversorgung", 0.08, 12, "Volle Speicher tragen durch einen kalten Februar und schwächen die Winter-Hooks ab.");
+e("m_energieeffizienz", "energieversorgung", 0.02, 12, "Weniger Verbrauch in der Spitze entlastet das ganze System.");
+e("energieversorgung", "p_energiemangel", -0.1, 0, "Sinkt die Versorgungssicherheit, wird die Mangellage akut (Hysterese: akut ab 60, Ende erst unter 52).");
+
+// Importrechnung, Subventionslast, Strompreis — die Brücken zu Lira, Defizit und Inflation
+e("abwertung", "energie_importrechnung", 0.04, 1, "Die Rechnung läuft in Dollar; eine schwache Lira verteuert jede Lieferung.");
+e("energie_importrechnung", "dollarisierung", 0.03, 1, "Eine hohe Rechnung drückt die Lira; Sparer flüchten in Dollar und Gold.");
+e("energie_importrechnung", "vertrauen_maerkte", -0.03, 3, "Das Energieloch in der Leistungsbilanz macht Anleger nervös.");
+e("energie_importrechnung", "strompreis", 0.04, 2, "Teures Gas und Öl treiben den Börsenstrompreis.");
+e("strompreis", "energiepreise", 0.06, 1, "Der Großhandelspreis steckt in den Tarifen von Haushalten und Betrieben.");
+e("strompreis", "kostendruck", 0.03, 1, "Stromintensive Betriebe spüren jede Preiswelle am Markt — und geben sie weiter.");
+e("m_energiesubventionen", "energie_subventionslast", 0.08, 1, "Jeder gedeckelte Preis landet als Differenz im Haushalt; BOTAŞ trägt ihn vor.");
+e("energie_subventionslast", "vertrauen_maerkte", -0.03, 3, "Die Märkte sehen, dass die Dämpfung über Defizit und neue Schulden läuft.");
+e("m_preiswahrheit", "energie_subventionslast", -0.08, 1, "Staffeltarife und weniger Deckelung entlasten den Haushalt sofort.");
+e("m_preiswahrheit", "energiepreise", 0.05, 1, "Ehrliche Preise heißen erst einmal höhere Preise — kurzfristig zwei bis vier Punkte mehr Inflation.");
+e("m_preiswahrheit", "klimaschutz", 0.02, 12, "Was etwas kostet, wird sparsamer verbraucht.");
+
+// Strommix und eigene Erzeugung
+e("strommix", "erneuerbare", 0.06, 0, "Zwei Sichten auf denselben Anteil: Wasser, Wind, Sonne und Erdwärme an der Erzeugung.");
+e("strommix", "energie_importrechnung", -0.03, 6, "Jede Kilowattstunde aus Wind und Sonne ersetzt importiertes Gas.");
+e("m_yeka_serie", "strommix", 0.05, 12, "Jede ausgelobte Serie bringt mit Bauzeit ein bis zwei Gigawatt ans Netz; je ~1,8 GW sinkt der Gasbedarf um eine Mrd. m³ im Jahr.");
+e("m_solar_wind", "strommix", 0.03, 12, "Der allgemeine Ausbau verschiebt den Mix zugunsten von Sonne und Wind.");
+e("m_netzausbau", "strommix", 0.03, 12, "Ohne Leitungen und Umspannwerke kann kein neuer Park ans Netz (TEİAŞ-Programm bis 2035).");
+e("m_netzausbau", "energieversorgung", 0.03, 12, "Stärkere Netze glätten die Abendspitze und vertragen mehr Erneuerbare.");
+e("m_gasfoerderung", "sakarya_gas", 0.06, 12, "Die Förderung aus dem Schwarzen Meer wächst Stufe um Stufe.");
+e("m_sakarya_phase3", "sakarya_gas", 0.08, 12, "Die zweite FPU bringt die Förderung Richtung 40 Mio. m³ täglich.");
+e("sakarya_gas", "energie_importrechnung", -0.05, 6, "Eigenes Gas ersetzt Importe — drei bis sieben Mrd. Dollar im Jahr im Zielband.");
+e("sakarya_gas", "ansehen", 0.02, 12, "Die eigene Förderung gilt als nationales Prestigeprojekt.");
+e("m_heimische_kohle", "energie_importrechnung", -0.02, 12, "Eigene Kohle verdrängt Importe aus Südafrika, Kolumbien und Russland.");
+e("m_heimische_kohle", "energieversorgung", 0.02, 12, "Grundlast aus heimischem Brennstoff, wetterfest und sanktionssicher.");
+e("m_heimische_kohle", "klimaschutz", -0.03, 12, "Mehr Kohle heißt mehr Emissionen — und Nachteile beim EU-Grenzausgleich.");
+e("m_heimische_kohle", "luftqualitaet", -0.02, 12, "Kraftwerke am Becken belasten die Luft vor Ort; Proteste sind absehbar.");
+e("m_akkuyu_ppa", "beziehungen_russland", -0.04, 3, "Nachverhandeln heißt Konflikt mit Rosatom und Moskau — bis zur Blockfinanzierung.");
+e("m_akkuyu_ppa", "energiepreise", -0.02, 6, "Ein besserer Preis im Abnahmevertrag senkt die Stromkosten des Landes.");
+e("m_kernkraft", "energieversorgung", 0.02, 12, "Grundlast aus eigener Erzeugung, unabhängig von Wetter und Lieferanten.");
+e("m_energieeffizienz", "energie_importrechnung", -0.03, 12, "E-Mobilität und Wärmepumpen sparen messbar Öl und Gas.");
+e("m_gashub", "steuereinnahmen", 0.02, 12, "Transitgebühren aus TurkStream und TANAP füllen die Kasse.");
+e("m_gashub", "beziehungen_russland", 0.03, 6, "Mehr Transit heißt mehr gemeinsame Geschäfte mit Moskau.");
+e("m_gashub", "ansehen", 0.01, 12, "Als Drehkreuz gewinnt das Land Gewicht zwischen Lieferanten und Abnehmern.");
+e("m_gashub", "gasabhaengigkeit", 0.02, 12, "Der Hub bindet das Land stärker an russisches Gas.");
+
+// Folgen der Mangellage für Wirtschaft, Märkte und Wählergruppen
+e("p_energiemangel", "industrie", -0.04, 0, "Bei Rationierung stehen zuerst die Fabriken still — die Haushalte schützt die BOTAŞ-Priorisierung.");
+e("p_energiemangel", "vertrauen_maerkte", -0.03, 1, "Produktionsausfälle wegen Energie sind für Anleger ein Alarmsignal.");
+e("p_energiemangel", "nationalisten", 0.02, 0, "Die Krise nährt die Forderung nach einem starken Durchgreifen des Staates.");
+e("p_energiemangel", "staedtische_saekulare", -0.03, 0, "Stromausfälle in den Städten werden als Staatsversagen gelesen.");
+e("p_energiemangel", "arme", -0.02, 0, "Ohne Energie kein Heizen und kein Kochen — die Ärmsten leiden zuerst.");
+e("p_energiemangel", "unternehmer", -0.03, 0, "Rationierung heißt Ausfall: Betriebe verlieren Produktion und Aufträge.");
+e("m_preiswahrheit", "arme", -0.04, 1, "Wenn der Deckel fällt, trifft der volle Preis die kleinen Haushalte.");
+e("m_preiswahrheit", "unternehmer", -0.02, 1, "Die Industrie zahlt marktnahe Preise — der Politikpreis der Wahrheit.");
+e("m_preiswahrheit", "vertrauen_maerkte", 0.03, 3, "Ehrliche Energiepreise überzeugen Anleger mehr als jede Rede.");
 
 // ---------------------------------------------------------------------------
 // Landwirtschaft und Wasser

@@ -5,7 +5,7 @@
 // jeden Monat im Land, wird jedes Jahr geprüft und kann gebrochen werden; ein Bruch bleibt in Erinnerung.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
-import { KLAUSEL_NACH_ID, AUSSTRAHLUNG, PROFILE, VERTRAGSLAUFZEITEN, type KlauselDef, type Laufzeit } from "../data/abkommen";
+import { KLAUSEL_NACH_ID, AUSSTRAHLUNG, PROFILE, SPERRE_KLAUSELN, VERTRAGSLAUFZEITEN, type KlauselDef, type Laufzeit } from "../data/abkommen";
 import { dimensionZu, land, landAendern, vertrauenZu, weltZustand, type Dimension } from "./laender";
 import { effektZeile, wendeEffekt, type EffektZeile } from "./reich";
 import { pruefeBedingung } from "./programme";
@@ -71,6 +71,8 @@ export function klauselnFuer(w: World, landId: string): KlauselSicht[] {
     const rot = p.rot.includes(id);
     let gesperrt: string | undefined;
     if (aktiv.has(id)) gesperrt = "Dazu läuft schon ein Vertrag.";
+    // Handelssperre (Stand 30.09.2026: Israel seit 05/2024): Handels-Klauseln bleiben gesperrt, bis „ende_sperre“ vereinbart ist
+    else if (weltZustand(w)[landId]!.handelssperre && SPERRE_KLAUSELN.includes(id)) gesperrt = "Die Handels-, Hafen- und Luftraumsperre blockiert das; erst muss sie per Vertrag enden („Handels- und Häfensperre aufheben“).";
     else if (def.mindestens && dimensionZu(w, landId, def.mindestens.dim) < def.mindestens.wert) gesperrt = def.mindestens.text;
     out.push({ def, label: o?.label ?? def.label, text: o?.text ?? def.text, wert, rot, ...(rot && p.rotText?.[id] ? { rotText: p.rotText[id] } : {}), ...(gesperrt ? { gesperrt } : {}) });
   }
@@ -270,6 +272,8 @@ export function schliesse(w: World, a: Angebot): Vertrag {
     letztePruefung: w.day,
   };
   z.vertraege.push(v);
+  // „ende_sperre“ beendet eine bestehende Handelssperre des Landes (Stand 30.09.2026: Israel); danach sind Handelsaktionen und -klauseln frei
+  if (a.gibt.includes("ende_sperre")) z.handelssperre = false;
   landAendern(w, a.land, { vertrauen: 3, konflikt: -3 }, `Vertrag über ${nameKlauseln(w, a.land, [...a.gibt, ...a.will])}`);
   for (const id of [...a.gibt, ...a.will]) {
     const def = KLAUSEL_NACH_ID[id];

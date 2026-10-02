@@ -455,8 +455,10 @@ export const KLAUSELN: KlauselDef[] = [
     kehrseite: "Geld aus dem Ausland folgt Bedingungen; wer zahlt, will mitreden.",
   },
   {
-    id: "w_akkuyu", seite: "will", label: "Akkuyu vollenden: Zahlungsweg und Fertigstellung",
-    text: "Das erste Kernkraftwerk geht ans Netz; der Zahlungsweg wird gesichert, gestundete Gelder werden freigegeben.",
+    id: "w_akkuyu", seite: "will", label: "Akkuyu: Blöcke 2 bis 4, Brennstoff und Zahlungsweg",
+    // Stand 09/2026: Block 1 ist seit 06/2026 im Anfahrbetrieb, die 9 Mrd. $ Zusatzfinanzierung (12/2025) ist vereinbart —
+    // „vollenden“ ist überholt; es geht um die Blöcke 2–4, die Brennstoff-Sicherung und die Option Sinop (Teil V §5.2)
+    text: "Nach Block 1 geht es um die übrigen Blöcke: der Zahlungsweg wird gesichert, der Brennstoff auf Jahre, und Moskau will die Option auf ein zweites Kraftwerk.",
     dauer: [stuetze("stromversorgung", 1.5), stuetze("energieimporte", -1)],
     land: {},
     kehrseite: "Ein Kraftwerk in russischer Hand: Wer den Brennstoff liefert, hat das letzte Wort.",
@@ -479,6 +481,14 @@ export const KLAUSELN: KlauselDef[] = [
 
 export const KLAUSEL_NACH_ID: Record<string, KlauselDef> = Object.fromEntries(KLAUSELN.map((k) => [k.id, k]));
 
+/**
+ * Klauseln, die während einer Handelssperre (LandZustand.handelssperre) nicht verhandelbar sind — der Weg dorthin führt
+ * immer über „ende_sperre“. Stand 30.09.2026: Die Türkei hält die Total-Handels-/Hafen-/Luftraumsperre gegen Israel seit
+ * 02.05.2024 vollständig aufrecht (verschärft 02/2026 um einen Zertifikats-Stopp); der Handel ist faktisch null
+ * (RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 13 Israel und Teil V §5.1 Nr. 2).
+ */
+export const SPERRE_KLAUSELN = ["zoll", "w_zoll"];
+
 /** Ausstrahlung auf Dritte: Wer mit dem einen paktiert, verärgert den anderen (Klausel oder Land → betroffene Länder). */
 export const AUSSTRAHLUNG: Record<string, { land: string; dim: Dimension; d: number; text: string }[]> = {
   "ruestung_koop@AZE": [{ land: "ARM", dim: "vertrauen", d: -6, text: "Erevan sieht die Aufrüstung Bakus mit Sorge." }],
@@ -493,6 +503,8 @@ export const AUSSTRAHLUNG: Record<string, { land: string; dim: Dimension; d: num
   "ende_sperre@ISR": [{ land: "SAU", dim: "vertrauen", d: -2, text: "Manche arabische Partner lesen die Öffnung als Signal an Jerusalem." }],
   "beistand@SAU": [{ land: "IRN", dim: "vertrauen", d: -5, text: "Teheran liest den Pakt als Bündnis gegen sich." }],
   "w_seegrenze@EGY": [{ land: "GRC", dim: "vertrauen", d: -3, text: "Athen fürchtet eine Absprache über den Kopf Griechenlands." }],
+  // Athen sieht die Ankara–Kairo-Achse (Strategische Partnerschaft 02/2026) mit Sorge (RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Teil V §5.2)
+  "ruestung_koop@EGY": [{ land: "GRC", dim: "vertrauen", d: -3, text: "Athen sieht die Rüstungsachse zwischen Ankara und Kairo mit Sorge." }],
   "transit@KAZ": [{ land: "RUS", dim: "vertrauen", d: -2, text: "Moskau sieht die Umgehung seines Transitnetzes." }],
 };
 
@@ -539,7 +551,7 @@ export const PROFILE: Record<string, LandProfil> = {
     werte: { gas_kauf: 8, zoll: 3, meerengen: 4, vermittlung_zusage: 3, investitionen_oeffnen: 2, zahlungsweg: 7, transit: 5, w_preis: -6, w_aufschub: -4, w_akkuyu: -3, w_getreide: -2 },
     texte: {
       gas_kauf: { label: "Gasverträge verlängern", text: "Die Gasverträge mit Russland laufen Ende 2026 aus; es geht um rund 22 Milliarden Kubikmeter im Jahr." },
-      w_akkuyu: { text: "Akkuyu wird fertig; rund 2 Milliarden US-Dollar stecken wegen der Sanktionen fest, ein Zahlungsweg muss her." },
+      w_akkuyu: { text: "Block 1 von Akkuyu läuft seit Juni 2026 an; für die Blöcke 2 bis 4, die Brennstoff-Sicherung und den Zahlungsweg braucht es eine Einigung." }, // Teil V §5.2: „2 Mrd. $ stecken fest“ ist überholt
       transit: { label: "Türkei als Gas-Drehkreuz", text: "Russisches Gas geht über türkisches Gebiet weiter nach Südeuropa." },
     },
   },
@@ -554,8 +566,9 @@ export const PROFILE: Record<string, LandProfil> = {
     },
   },
   IRN: {
-    hebel: 0, rot: [],
-    hebelText: "Beide brauchen einander: Teheran den Markt, Ankara das Gas.",
+    hebel: 2, rot: [],
+    // Teil V §5.3: hebel 0 → +2 — der kriegsgebeutelte Iran (Krieg seit 02/2026, Gasvertrag ausgelaufen 07/2026) braucht Ankara dringlicher
+    hebelText: "Der kriegsgebeutelte Iran braucht Ankara dringlicher als umgekehrt: Markt, Zahlungswege und Vermittlung Richtung Waffenruhe.",
     werte: { gas_kauf: 8, zoll: 4, visa: 3, vermittlung_zusage: 3, transit: 2, zahlungsweg: 8, w_pkk: -4, w_preis: -5 },
     texte: {
       gas_kauf: { label: "Gasvertrag verlängern", text: "Der Vertrag über etwa 9,6 Milliarden Kubikmeter im Jahr lief Ende Juli 2026 aus; ehemalige BOTAŞ-Manager halten eine automatische Verlängerung um fünf Jahre für möglich." },
@@ -570,16 +583,17 @@ export const PROFILE: Record<string, LandProfil> = {
     texte: {
       ruestung_koop: { label: "Ausbildungs- und Rüstungsabkommen", text: "Türkische Ausbilder und Systeme für die syrischen Streitkräfte." },
       energie_lieferung: { label: "Strom und Gas über die Kilis–Aleppo-Leitung", text: "Die Kilis–Aleppo-Leitung und Stromnetze werden ausgebaut; der Wiederaufbau braucht beides." },
-      w_pkk: { label: "SDF in den Staat integrieren", text: "Die kurdisch geführten SDF werden in die syrischen Streitkräfte eingegliedert; Ankara will keine eigenständige Kraft an der Grenze." },
+      w_pkk: { label: "SDF-Integration halten", text: "Die kurdisch geführten SDF sind seit August 2026 in die syrischen Streitkräfte eingegliedert; Ankara will, dass keine eigenständige Kraft an der Grenze zurückkehrt." }, // Teil V §5.1 Nr. 1: Auflösung der SDF 08/2026
       w_stuetzpunkt: { text: "Türkische Stützpunkte im Norden Syriens bleiben; Damaskus muss zustimmen." },
     },
   },
   IRQ: {
-    hebel: 0, rot: [],
-    hebelText: "Bagdad braucht Wasser aus der Türkei; Ankara braucht Ruhe an der Grenze und die Pipeline.",
+    hebel: 2, rot: [],
+    // Teil V §5.3: hebel 0 → +2 — die Schließung von Hormus macht Bagdad zum Bittsteller für den Nordkorridor über die Türkei
+    hebelText: "Bagdad braucht Wasser aus der Türkei und, seit Hormus geschlossen ist, den Nordkorridor für sein Öl; Ankara braucht Ruhe an der Grenze und die Pipeline.",
     werte: { wasser: 8, bauauftraege: 6, zoll: 3, transit: 4, kredit_hilfe: 3, w_pipeline: -3, w_pkk: -6 },
     texte: {
-      w_pipeline: { label: "Kirkuk–Ceyhan-Leitung", text: "Der Einjahresvertrag vom August 2026 wird verlängert; Ziel sind eine Million Barrel am Tag." },
+      w_pipeline: { label: "Kirkuk–Ceyhan-Leitung", text: "Das Zwölfmonats-Protokoll vom 27. Juli 2026 wird verlängert; heute laufen rund 250.000 Barrel am Tag, das Ziel ist eine langfristige Einigung über deutlich mehr." }, // Datum geglättet (Teil V §5.2; vorher „August 2026“)
       transit: { label: "Entwicklungsstraße", text: "Die geplante Entwicklungsstraße von Basra zur türkischen Grenze verbindet Golf und Europa." },
       wasser: { text: "Bagdad verlangt feste Abflussmengen aus den türkischen Staudämmen; bisher gibt es Projekte ohne zugesagte Wassermenge." },
       w_pkk: { text: "Bagdad koordiniert das Vorgehen gegen die PKK auf irakischem Gebiet, statt Militäreinsätze zu dulden." },
@@ -595,8 +609,9 @@ export const PROFILE: Record<string, LandProfil> = {
     },
   },
   ARM: {
-    hebel: 0, rot: ["w_1915"],
-    hebelText: "Erevan will die Grenze und die Bahn, aber nicht um den Preis seiner Erinnerung.",
+    hebel: -1, rot: ["w_1915"],
+    // Teil V §5.3: hebel 0 → −1 — Erevan ist nach der Wahl 06/2026 stabilisiert, aber die Grenze hängt an Bakus Signatur
+    hebelText: "Erevan will die Grenze und die Bahn, aber nicht um den Preis seiner Erinnerung; nach der Wahl 2026 ist die Regierung stabil genug, um zu warten.",
     werte: { grenzoeffnung: 9, transit: 5, zoll: 3, w_transit: -6, w_1915: -99 },
     rotText: { w_1915: "Erevan verlangt die Anerkennung von 1915; auf sie zu verzichten, hieße, seine Erinnerung zu verkaufen." },
     texte: {
@@ -610,16 +625,17 @@ export const PROFILE: Record<string, LandProfil> = {
     hebelText: "Die Golfstaaten haben das Geld; Ankara braucht ihre Einlagen und Aufträge.",
     werte: { ruestung_koop: 8, bauauftraege: 5, militaerzugang: 4, beistand: 7, w_swap: -4, w_investition_zusage: -5 },
     texte: {
-      beistand: { label: "Beistandspakt ausbauen", text: "Am 7. August 2026 unterzeichneten Saudi-Arabien, Pakistan und die Türkei einen Beistandspakt; er wird jetzt mit Leben gefüllt." },
+      beistand: { label: "Beistandspakt von Mekka", text: "Am 7. August 2026 unterzeichneten Saudi-Arabien, Pakistan und die Türkei einen Beistandspakt mit Kollektivverteidigungsklausel; er läuft bereits und bindet Ankara im Ernstfall zur Hilfe." }, // Teil V §5.1 Nr. 3: liegt zum Spielstart als laufender Vertrag vor (START_VERTRAEGE in sim/laender.ts)
       ruestung_koop: { label: "KAAN und Luftabwehr", text: "Das Kampfflugzeug KAAN ist in Endverhandlung; dazu kommt Luftabwehr." },
     },
   },
   ISR: {
-    hebel: 0, rot: [],
-    hebelText: "Handel läuft trotz Streit; die Sperre ist das Druckmittel beider Seiten.",
+    hebel: 1, rot: [],
+    // Teil V §5.3: hebel 0 → +1 — die Sperre kostet Israel wenig, aber die Syrien-Frage macht Ankara für Jerusalem wichtiger
+    hebelText: "Die Sperre hat den Handel auf null gedrückt; Syrien und der Friedensrat für Gaza machen Ankara für Jerusalem dennoch wichtig.",
     werte: { ende_sperre: 9, zoll: 4, vermittlung_zusage: 3, w_luftraum: -2, w_zoll: -2 },
     texte: {
-      ende_sperre: { text: "Die Handels- und Häfensperre beendet die Verbindungen; ein Ende ist der Preis für alles Weitere." },
+      ende_sperre: { text: "Die Handels-, Hafen- und Luftraumsperre gilt seit dem 2. Mai 2024 und wurde im Februar 2026 um einen Zertifikats-Stopp verschärft; aserbaidschanisches Öl läuft als Grauzone weiter über Ceyhan. Ein Ende der Sperre ist der Preis für alles Weitere." }, // Teil V §5.2: Verschärfung 02/2026 und Ceyhan-Grauzone ergänzt
       vermittlung_zusage: { label: "Türkei im Friedensrat für Gaza", text: "Die Türkei ist Mitglied im Friedensrat für Gaza; Jerusalem will sie dort zurückhaltend sehen." },
     },
   },
@@ -635,8 +651,9 @@ export const PROFILE: Record<string, LandProfil> = {
     },
   },
   UKR: {
-    hebel: 0, rot: [],
-    hebelText: "Kiew braucht Ankaras Meerengen und Drohnen, Ankara braucht Kiews Vertrauen.",
+    hebel: 1, rot: [],
+    // Teil V §5.3: hebel 0 → +1 — Ankaras Rolle bei den Sicherheitsgarantien (maritime Führung seit 07/2026) stärkt seine Hand
+    hebelText: "Kiew braucht Ankaras Meerengen und Drohnen und die türkische Führung der maritimen Sicherheitsgarantien.",
     werte: { ruestung_koop: 8, meerengen: 7, bauauftraege: 6, vermittlung_zusage: 4, seesicherheit: 4, w_getreide: -3, w_zoll: -3 },
     texte: {
       seesicherheit: { label: "Minenräumung im Schwarzen Meer (Maritime Component Command)", text: "Im April 2026 wurde ein gemeinsames Seekommando eingerichtet; die Minenräumung ist sein erster Auftrag." },
@@ -653,8 +670,9 @@ export const PROFILE: Record<string, LandProfil> = {
     },
   },
   EGY: {
-    hebel: 0, rot: [],
-    hebelText: "Kairo war lange Gegenspieler; die Annäherung seit Februar 2026 trägt, aber Libyen und die Seegrenzen belasten.",
+    hebel: 1, rot: [],
+    // Teil V §5.3: hebel 0 → +1 — das IWF-Programm läuft Ende 2026 aus, die Suez-Einnahmen hinken: Kairo braucht die Partnerschaft
+    hebelText: "Kairo war lange Gegenspieler; die Strategische Partnerschaft seit Februar 2026 trägt, aber Libyen und die Seegrenzen belasten.",
     werte: { ruestung_koop: 7, zoll: 5, investitionen_oeffnen: 3, w_handelsziel: -4, w_libyen: -6, w_seegrenze: -5 },
     texte: {
       w_handelsziel: { label: "Handel von 8 auf 15 Milliarden Dollar", text: "Die Strategische Partnerschaft vom Februar 2026 sieht vor, den Handel von 8 auf 15 Milliarden US-Dollar zu steigern, dazu gemeinsame Rüstungsproduktion." },

@@ -2,6 +2,15 @@
 // Jede Vorlage ist ein Muster mit Bedingung, Ort, Stärke und mindestens zwei Antworten, die etwas kosten.
 // Wer nichts entscheidet, bekommt nach der Frist die schlechtere Standardfolge.
 // Alle Wahrscheinlichkeiten und Wirkungen sind Platzhalter der Kalibrierung (vgl. SZENARIEN.md, Wirkungsmodell).
+//
+// TODO (Energie-Modul): Die zehn Ereignis-Hooks aus RECHERCHE_ENERGIE.md, Abschnitt 6.3,
+// als Vorlagen einbauen — u. a. „Poker mit dem Kreml“ (RU-Gasvertrag läuft 12/2026 aus,
+// terminfest), „Iran-Leere“, „Hormuz-Blockade“ (Brent-Szenarien), „Kälteeinbruch Februar“
+// (Speicher-Drawdown), „Pipeline-Sabotage“, „Dürrejahr“ (Hydro-Einbruch), „Akkuyu-Zeitplan“,
+// „Blackout-Warnung“ (Sommer-Peak), „Tuapse/Novorossiysk“, „EU-CBAM startet“.
+// Anknüpfung an die neuen Knoten des Energie-Moduls (politiknetz.ts): energieversorgung,
+// p_energiemangel, energie_importrechnung, energie_subventionslast, strompreis,
+// gasabhaengigkeit, sakarya_gas, strommix.
 
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES } from "./netz";
@@ -28,6 +37,7 @@ import { Rng } from "./rng";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
 import { kannZahlen } from "./kapital";
+import { VERFASSUNG, belastungEreignis } from "./aufmerksamkeit";
 
 export type { Option, Vorlage, SzenenName } from "./ereignis-hilfen";
 /** Stellschraube für die Häufigkeit aller Ereignisse. */
@@ -54,6 +64,8 @@ function dichteFaktor(world: World, id: string): number {
   for (let i = sp.chronik.length - 1; i >= 0; i--) {
     const c = sp.chronik[i]!;
     if (c.tag < grenze) break;
+    // ZEI-1: Die Haken des Ereignis-Wettbewerbs („ausgesessen“/„gärt weiter“) sind keine Präsentationen und zählen nicht zur Dichte
+    if (/^(Ausgesessen|Im Hintergrund)/.test(c.ausgang)) continue;
     if (!/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt|Der Mindestlohn|Der Haushalt für|Kommunalwahlen|Zusage fällig)/.test(c.titel)) n++;
   }
   return n <= DICHTE_SCHWELLE ? 1 : Math.max(0.3, 1 - 0.14 * (n - DICHTE_SCHWELLE));
@@ -1027,6 +1039,73 @@ const EREIGNIS_MASSNAHMEN: Record<string, string[]> = {
 };
 for (const v of VORLAGEN) if (EREIGNIS_MASSNAHMEN[v.id]) v.massnahmen = EREIGNIS_MASSNAHMEN[v.id]!;
 
+// ---------------------------------------------------------------------------
+// ZEI-1: Ereignis-Wettbewerb (VERBESSERUNGSPLAN_2026-09-30, Vorbild D4)
+// Pro Monat konkurrieren die ausgelösten Kandidaten um wenige Präsentations-Slots; die Dringlichkeit
+// entscheidet. Der Rest wird „ausgesessen“ (Standardfolge tritt ein) oder „eskaliert still“ (gärt weiter
+// und kommt dringlicher zurück) — beides mit Haken in der Chronik, damit es nachvollziehbar bleibt.
+
+/** Slots und Eskalations-Schub je Schwierigkeit: entspannt 3, normal 2, hart 2 — aber hart mit höherer Eskalationschance. */
+export const EREIGNIS_WETTBEWERB = {
+  /** Präsentations-Slots je Monat (feste Termine des Staatsjahres zählen nicht dagegen) */
+  slots: { entspannt: 3, normal: 2, hart: 2 },
+  /** Wie stark gärende Vorgänge zurückkommen (Chance und Stärke je Eskalationsstufe) */
+  eskalationsSchub: { entspannt: 0.8, normal: 1, hart: 1.5 },
+  /** Höchste Eskalationsstufe eines gärenden Vorgangs */
+  maxStufe: 3,
+  /** Multiplikativer Schub auf die Monatschance je Eskalationsstufe */
+  chanceSchub: 1.2,
+  /** Stärke-Zuschlag je Eskalationsstufe, wenn der Vorgang schließlich auf den Tisch kommt */
+  staerkeSchub: 0.15,
+} as const;
+
+/**
+ * Akute Einzelfälle (das Beben, der Anschlag, der Markteinbruch sind geschehen, ob man hinsieht oder nicht)
+ * und verfallende Angebote oder Fristen: Sie werden „ausgesessen“ — die Standardfolge tritt im Hintergrund ein.
+ * Alle übrigen Vorlagen sind schwelende Konflikte und eskalieren still.
+ */
+const AUSGESSESSEN = new Set([
+  "erdbeben", "anschlag", "waldbrand", "ueberschwemmung", "bergwerksunglueck", "grippewelle",
+  "cyberangriff", "erbe_erdbebenschaden", "erbe_raubgrabung", "infra_bauunfall",
+  "waehrungsrutsch", "energiepreisschock", "haushaltsdruck", "ratingagentur", "bankenstress",
+  "weltwirtschaftskrise", "pandemie", "grenzzwischenfall",
+  "eu_angebot", "iwf_angebot", "nato_ratifizierung", "gasfund", "land_angebot", "tourismusrekord",
+  "erbe_fund", "kanal_istanbul", "vertrag_verlaengerung", "gasvertrag", "mil_militaerrat", "recht_ernennung",
+]);
+
+/** Schwere der Standardfolge für die Dringlichkeit (1 = normal): Je schlimmer das Ausgesessen-Werden, desto weiter vorn der Vorgang. */
+const SCHWERE: Record<string, number> = {
+  erdbeben: 3, anschlag: 3, pandemie: 3, weltwirtschaftskrise: 3,
+  bankenstress: 2.5, waehrungsrutsch: 2.5, ueberschwemmung: 2.5, bergwerksunglueck: 2.5,
+  energiepreisschock: 2.2, haushaltsdruck: 2.2,
+  ratingagentur: 2, cyberangriff: 2, grenzzwischenfall: 2, streikwelle: 2, korruptionsaffaere: 2,
+  duerre: 2, fluechtlingswelle: 2, waldbrand: 2,
+  land_fordert: 1.8, recht_haftrevolte: 1.8,
+  grippewelle: 1.6, stromausfaelle: 1.6,
+  aerztestreik: 1.5, mietproteste: 1.5, fabrikschliessungen: 1.5, bauernproteste: 1.5,
+  person_ruecktritt: 1.5, infra_bauunfall: 1.5, preisdeckel_knappheit: 1.5,
+  buergermeister_verfahren: 1.4, studentenproteste: 1.4, pressekonflikt: 1.4, rentnerprotest: 1.4,
+  erbe_erdbebenschaden: 1.4, vertrag_verlaengerung: 1.4, gasvertrag: 1.4, land_provokation: 1.4,
+  person_intrige: 1.4, mietdeckel_folgen: 1.4,
+  mil_lieferverzug: 1.3, person_skandal: 1.3, person_leck: 1.2,
+};
+for (const v of VORLAGEN) {
+  if (AUSGESSESSEN.has(v.id)) v.wettbewerb = "aussitzen";
+  if (SCHWERE[v.id] !== undefined) v.schwere = SCHWERE[v.id];
+}
+
+/**
+ * Dringlichkeit im Monatswettbewerb: Schwere der Standardfolge, Stärke des Falls, Fristnähe,
+ * Neuheit des Themas (was lange nicht drankam, wird wieder interessant) und Eskalationsstufe.
+ */
+function dringlichkeit(world: World, v: Vorlage, staerke: number): number {
+  const spiel = world.spiel!;
+  const fristNaehe = 12 / Math.max(4, v.frist);
+  const neuheit = 1 + Math.min(1.5, (world.day - (spiel.zuletzt[v.id] ?? 0)) / 365);
+  const stufe = spiel.eskalation?.[v.id] ?? 0;
+  return (v.schwere ?? 1) * (0.6 + 0.4 * staerke) * fristNaehe * neuheit * (1 + 0.7 * stufe);
+}
+
 const VORLAGE_NACH_ID = new Map(VORLAGEN.map((v) => [v.id, v]));
 
 /**
@@ -1060,40 +1139,112 @@ export function vorlage(id: string): Vorlage {
 
 export const MAX_OFFEN = 3;
 
+/** Vorlagen, deren Öffnen den Präsidenten sofort belastet (Eskalation im eigenen Land oder an den Grenzen). */
+const ESKALATION_VORLAGEN = new Set(["anschlag", "cyberangriff", "waehrungsrutsch", "weltwirtschaftskrise", "bankenstress", "pandemie", "land_provokation", "grenzzwischenfall"]);
+
+/** Was eine Vorlage bei Auslösung erzeugt (Ort, Stärke, Daten); Felder dürfen fehlen. */
+type Erzeugung = { provinzen?: number[]; staerke?: number; daten?: Record<string, number | string> };
+
+/** Baut das offene Ereignis aus Vorlage und Erzeugung — gleichermaßen für präsentierte und für ausgesessene Vorgänge. */
+function baueEreignis(world: World, v: Vorlage, gen: Erzeugung): OffenesEreignis {
+  const spiel = world.spiel!;
+  const ev: OffenesEreignis = {
+    id: `${v.id}-${world.day}-${spiel.ereignisse.length}`,
+    vorlage: v.id,
+    tag: world.day,
+    frist: world.day + v.frist,
+    provinzen: gen.provinzen ?? [],
+    staerke: (gen.staerke ?? 1) * schutzFuer(world, v.id) * (v.id.startsWith("start_") || v.id === "zusage" ? 1 : schwierig(world).haerte),
+  };
+  if (gen.daten) ev.daten = gen.daten;
+  return ev;
+}
+
 export function oeffne(world: World, vorlageId: string, rng: Rng, params?: { provinzen?: number[]; staerke?: number; daten?: Record<string, number | string> }): OffenesEreignis | null {
   const spiel = world.spiel;
   if (!spiel) return null;
   const v = vorlage(vorlageId);
   const gen = params ?? v.erzeuge(world, rng);
   if (!gen) return null;
-  const ev: OffenesEreignis = {
-    id: `${vorlageId}-${world.day}-${spiel.ereignisse.length}`,
-    vorlage: vorlageId,
-    tag: world.day,
-    frist: world.day + v.frist,
-    provinzen: gen.provinzen ?? [],
-    staerke: (gen.staerke ?? 1) * schutzFuer(world, vorlageId) * (vorlageId.startsWith("start_") || vorlageId === "zusage" ? 1 : schwierig(world).haerte),
-  };
-  if (gen.daten) ev.daten = gen.daten;
+  const ev = baueEreignis(world, v, gen);
   spiel.ereignisse.push(ev);
   spiel.zuletzt[vorlageId] = world.day;
   v.eroeffne?.(world, ev, rng);
   addLog(world, "ereignis", v.titel(world, ev), v.text(world, ev)[0]);
+  if (ESKALATION_VORLAGEN.has(vorlageId)) belastungEreignis(world, VERFASSUNG.eskalation, `Eskalation: ${v.titel(world, ev)}`);
   return ev;
 }
 
-/** Einmal im Monat: Vorlagen würfeln. Der Zufall wird für jede Vorlage gezogen, damit der Verlauf stabil bleibt. */
+/**
+ * Einmal im Monat: Vorlagen würfeln. Der Zufall wird für jede Vorlage gezogen, damit der Verlauf stabil bleibt.
+ * ZEI-1: Ausgelöste Kandidaten konkurrieren um die Präsentations-Slots des Monats (EREIGNIS_WETTBEWERB.slots),
+ * sortiert nach Dringlichkeit. Alle bisherigen Bedingungen (Chance, Abkühlung, Dichte-Dämpfung, MAX_OFFEN,
+ * feste Termine) gelten weiter — der Wettbewerb ersetzt keine davon, er verteilt nur die Slots.
+ */
 export function ereignisMonat(world: World, rng: Rng): void {
   const spiel = world.spiel;
   if (!spiel || spiel.ende) return;
+  const grad = spiel.schwierigkeit ?? "normal";
+  const schub = EREIGNIS_WETTBEWERB.eskalationsSchub[grad];
+  const eskalation = spiel.eskalation ?? (spiel.eskalation = {});
   const offenNormal = () => spiel.ereignisse.filter((e) => !e.vorlage.startsWith("start_")).length;
+
+  // 1. Kandidaten sammeln: Chance, Abkühlung, Dichte und Obergrenze wie bisher; gärende Vorgänge kommen eher wieder
+  const kandidaten: { v: Vorlage; gen: Erzeugung }[] = [];
   for (const v of VORLAGEN) {
     const u = rng.next();
-    if (v.chance(world) <= 0) continue;
+    const basis = v.chance(world);
+    if (basis <= 0) continue;
     if (offenNormal() >= MAX_OFFEN) continue;
     if (spiel.ereignisse.some((e) => e.vorlage === v.id)) continue;
     if (world.day - (spiel.zuletzt[v.id] ?? -1e9) < v.abkuehlung) continue;
-    if (u < v.chance(world) * EREIGNIS_RATE * schwierig(world).ereignisse * alterFaktor(world, v.id) * dichteFaktor(world, v.id)) oeffne(world, v.id, rng);
+    const stufe = eskalation[v.id] ?? 0;
+    const eskFaktor = stufe > 0 ? 1 + EREIGNIS_WETTBEWERB.chanceSchub * stufe * schub : 1;
+    if (u >= basis * EREIGNIS_RATE * schwierig(world).ereignisse * alterFaktor(world, v.id) * dichteFaktor(world, v.id) * eskFaktor) continue;
+    const gen = v.erzeuge(world, rng);
+    if (!gen) continue;
+    kandidaten.push({ v, gen });
+  }
+  if (!kandidaten.length) return;
+
+  // 2. Der Wettbewerb: feste Termine des Staatsjahres kommen immer; der Rest sortiert nach Dringlichkeit um die Slots
+  const feste = kandidaten.filter((k) => TERMINE.has(k.v.id));
+  const rest = kandidaten.filter((k) => !TERMINE.has(k.v.id));
+  rest.sort((a, b) => dringlichkeit(world, b.v, b.gen.staerke ?? 1) - dringlichkeit(world, a.v, a.gen.staerke ?? 1) || VORLAGEN.indexOf(a.v) - VORLAGEN.indexOf(b.v));
+  const slots = EREIGNIS_WETTBEWERB.slots[grad];
+  const gewinner = [...feste, ...rest.slice(0, slots)];
+  const verlierer = rest.slice(slots);
+
+  for (const k of gewinner) {
+    // Die Obergrenze offener Vorgänge gilt auch für Sieger; wer nicht mehr passt, rutscht in die Verliererbehandlung
+    if (offenNormal() >= MAX_OFFEN) {
+      verlierer.push(k);
+      continue;
+    }
+    // Ein gärender Vorgang, der es schließlich auf den Tisch schafft, kommt härter zurück (Schwellenwert ist gestiegen)
+    const stufe = eskalation[k.v.id] ?? 0;
+    delete eskalation[k.v.id];
+    const staerke = stufe > 0 ? (k.gen.staerke ?? 1) * (1 + EREIGNIS_WETTBEWERB.staerkeSchub * stufe * schub) : k.gen.staerke;
+    oeffne(world, k.v.id, rng, { provinzen: k.gen.provinzen ?? [], staerke: staerke ?? 1, ...(k.gen.daten ? { daten: k.gen.daten } : {}) });
+  }
+
+  // 3. Nicht präsentiert: je nach Ereignis-Typ ausgesessen (Standardfolge tritt ein) oder still eskaliert (gärt weiter)
+  for (const k of verlierer) {
+    const ev = baueEreignis(world, k.v, k.gen);
+    const titel = k.v.titel(world, ev);
+    if (k.v.wettbewerb === "aussitzen") {
+      // Der Vorgang läuft ohne Entscheidung schlecht aus: Es greift die Standardfolge, sonst nichts
+      const ausgang = k.v.standard(world, ev, rng);
+      spiel.zuletzt[k.v.id] = world.day;
+      delete eskalation[k.v.id];
+      spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Ausgesessen — der Vorgang kam nicht auf den Tisch: ${ausgang}` });
+      addLog(world, "ereignis", `Ausgesessen: ${titel}`, ausgang);
+    } else {
+      const stufe = Math.min(EREIGNIS_WETTBEWERB.maxStufe, (eskalation[k.v.id] ?? 0) + 1);
+      eskalation[k.v.id] = stufe;
+      spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Im Hintergrund gärt es weiter; der Vorgang kommt dringlicher zurück (Eskalation ${stufe} von ${EREIGNIS_WETTBEWERB.maxStufe}).` });
+      addLog(world, "ereignis", `Im Hintergrund: ${titel} gärt weiter.`, "Der Vorgang war für diesen Monat nicht dringlich genug; die Lage verschärft sich.");
+    }
   }
 }
 

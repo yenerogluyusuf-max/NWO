@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "beschreibung": "Testfälle für die Jev-Batterie (game/scripts/jev-test.mjs). Choice-Fälle: freie Spieler-Eingaben auf Deutsch und Türkisch; Jev soll den Intent und das Ziel aus dem realen Handlungskatalog wählen (Katalog kommt aus game/scripts/katalog.json, erzeugt vom Spiel selbst). Noul-Fälle: Rote-Linie-Prüfung von Vertragsangeboten (Grundlage: PROFILE in game/src/data/abkommen.ts). Score-Fälle: Dringlichkeit von Ereignissen.",
+  "intents": {
+    "massnahme_aendern": "Der Spieler will eine Maßnahme aus dem Katalog erhöhen, senken, einführen oder abschaffen (als Gesetz oder Erlass), möglicherweise an einem Ort.",
+    "lage_frage": "Eine Frage zum Stand der Partie: Umfragen, Wirtschaftslage, Parlament, Minister, Probleme, Kapital, Ziele, Wählergruppen, Termine.",
+    "land_aktion": "Eine Handlung gegenüber einem anderen Land oder eine Frage zum Verhältnis: Gipfeltreffen, Handelsabkommen, Rüstungsgeschäft, Druck, Entschärfung, Wirtschaftshilfe, Vertrag.",
+    "fraktion_verhandeln": "Verhandlung mit einer Fraktion des Parlaments: Gespräch, Zugeständnis, Duldung, Bündnis, Abwerben.",
+    "figur_eingriff": "Eingriff bei einer Person: mit einem Minister oder der Zentralbankführung sprechen, jemanden entlassen oder austauschen.",
+    "haushalt_steuerung": "Die Staatsausgaben insgesamt oder einen Haushaltsposten ändern; die Zentralbank öffentlich kritisieren.",
+    "zeit_steuerung": "Die Spielzeit voranschreiten lassen (Tage, Wochen, Monate, bis zum nächsten Ereignis) oder anhalten.",
+    "ereignis_antwort": "Eine Entscheidung zu einem offenen Ereignis, das auf Antwort wartet.",
+    "nicht_moeglich": "Etwas, das es im Spiel (noch) nicht gibt und ehrlich abgelehnt wird: Krieg und Truppen, freie Großprojekte wie Häfen oder Kanäle, Neuwahlen, das direkte Festlegen des Leitzinses, Sanktionen, Reden an die Nation.",
+    "unklar": "Keine der anderen Klassen passt sicher; das Spiel soll rückfragen statt zu handeln."
+  },
+  "dringlichkeitStufen": [
+    "niedrig: kann warten, keine Folgen bei Verzug",
+    "mittel: sollte in den nächsten Wochen entschieden werden",
+    "hoch: erfordert Entscheidung binnen Tagen, sonst spürbare Folgen",
+    "kritisch: akute Notlage oder Frist, sofortiges Handeln nötig"
+  ],
+  "choice": [
+    { "id": "de01", "sprache": "de", "eingabe": "Senk die Mehrwertsteuer", "sollIntent": "massnahme_aendern", "sollZiel": "m_mwst" },
+    { "id": "de02", "sprache": "de", "eingabe": "Erhöhe den Mindestlohn", "sollIntent": "massnahme_aendern", "sollZiel": "m_mindestlohn" },
+    { "id": "de03", "sprache": "de", "eingabe": "Baue Wasserleitungen in Hatay und Adana", "sollIntent": "massnahme_aendern", "sollZiel": "m_wasserleitungen" },
+    { "id": "de04", "sprache": "de", "eingabe": "Schulen im Osten ausbauen", "sollIntent": "massnahme_aendern", "sollZiel": "m_schulbau" },
+    { "id": "de05", "sprache": "de", "eingabe": "Was macht mein Finanzminister?", "sollIntent": "lage_frage", "sollZiel": null },
+    { "id": "de06", "sprache": "de", "eingabe": "Wie stehe ich in den Umfragen?", "sollIntent": "lage_frage", "sollZiel": null },
+    { "id": "de07", "sprache": "de", "eingabe": "Gipfeltreffen mit der EU", "sollIntent": "land_aktion", "sollZiel": "EU" },
+    { "id": "de08", "sprache": "de", "eingabe": "Handelsabkommen mit Aserbaidschan", "sollIntent": "land_aktion", "sollZiel": "AZE" },
+    { "id": "de09", "sprache": "de", "eingabe": "Führe ein Gespräch mit der CHP", "sollIntent": "fraktion_verhandeln", "sollZiel": null },
+    { "id": "de10", "sprache": "de", "eingabe": "Entlasse die Innenministerin", "sollIntent": "figur_eingriff", "sollZiel": null },
+    { "id": "de11", "sprache": "de", "eingabe": "Kritisiere die Zentralbank öffentlich", "sollIntent": "haushalt_steuerung", "sollZiel": null },
+    { "id": "de12", "sprache": "de", "eingabe": "Ein Monat weiter", "sollIntent": "zeit_steuerung", "sollZiel": null },
+    { "id": "de13", "sprache": "de", "eingabe": "Bau einen Hafen in Trabzon", "sollIntent": "nicht_moeglich", "sollZiel": null, "notiz": "Freie Großprojekte gibt es nicht; das Spiel sagt das ehrlich und nennt die nächstliegenden Maßnahmen." },
+    { "id": "de14", "sprache": "de", "eingabe": "Senke den Leitzins", "sollIntent": "nicht_moeglich", "sollZiel": null, "notiz": "Die Zentralbank ist unabhängig; das Spiel erklärt die Umwege." },
+    { "id": "de15", "sprache": "de", "eingabe": "Starte ein Konjunkturprogramm, gib insgesamt mehr aus", "sollIntent": "haushalt_steuerung", "sollZiel": null },
+
+    { "id": "tr01", "sprache": "tr", "eingabe": "Faizleri düşür", "sollIntent": "nicht_moeglich", "sollZiel": null, "notiz": "Zinsen senken: Zentralbank ist unabhängig." },
+    { "id": "tr02", "sprache": "tr", "eingabe": "Asgari ücreti artır", "sollIntent": "massnahme_aendern", "sollZiel": "m_mindestlohn" },
+    { "id": "tr03", "sprache": "tr", "eingabe": "KDV'yi indir", "sollIntent": "massnahme_aendern", "sollZiel": "m_mwst" },
+    { "id": "tr04", "sprache": "tr", "eingabe": "Hatay'a su boruları döşe", "sollIntent": "massnahme_aendern", "sollZiel": "m_wasserleitungen" },
+    { "id": "tr05", "sprache": "tr", "eingabe": "Doğu'ya okul yap", "sollIntent": "massnahme_aendern", "sollZiel": "m_schulbau" },
+    { "id": "tr06", "sprache": "tr", "eingabe": "Trabzon'a liman inşa et", "sollIntent": "nicht_moeglich", "sollZiel": null, "notiz": "Hafen in Trabzon: freies Großprojekt, gibt es nicht." },
+    { "id": "tr07", "sprache": "tr", "eingabe": "Anketlerde nasıl görünüyorum?", "sollIntent": "lage_frage", "sollZiel": null },
+    { "id": "tr08", "sprache": "tr", "eingabe": "AB ile zirve toplantısı yap", "sollIntent": "land_aktion", "sollZiel": "EU" },
+    { "id": "tr09", "sprache": "tr", "eingabe": "CHP ile bir görüşme yap", "sollIntent": "fraktion_verhandeln", "sollZiel": null },
+    { "id": "tr10", "sprache": "tr", "eingabe": "Maliye bakanını görevden al", "sollIntent": "figur_eingriff", "sollZiel": null },
+    { "id": "tr11", "sprache": "tr", "eingabe": "Merkez Bankası'nı kamuoyu önünde eleştir", "sollIntent": "haushalt_steuerung", "sollZiel": null },
+    { "id": "tr12", "sprache": "tr", "eingabe": "Bir ay ileri sar", "sollIntent": "zeit_steuerung", "sollZiel": null },
+    { "id": "tr13", "sprache": "tr", "eingabe": "Emekli maaşlarını yükselt", "sollIntent": "massnahme_aendern", "sollZiel": "m_renten" },
+    { "id": "tr14", "sprache": "tr", "eingabe": "Rusya ile ilişkilerimiz nasıl?", "sollIntent": "land_aktion", "sollZiel": "RUS" },
+    { "id": "tr15", "sprache": "tr", "eingabe": "Polis sayısını artır", "sollIntent": "massnahme_aendern", "sollZiel": "m_polizei" }
+  ],
+  "noul": [
+    {
+      "id": "noul01",
+      "soll": true,
+      "state": "Vertragsangebot der Türkei an Griechenland: Die Türkei bietet den Verzicht auf die Casus-Belli-Drohung (v_casus) und verlangt von Griechenland die Entmilitarisierung der Ägäis-Inseln (w_inseln). Laufzeit 5 Jahre.",
+      "frage": "Löst dieses Angebot bei der Gegenseite ein Veto aus, weil es eine ihrer Roten Linien berührt?",
+      "notiz": "w_inseln ist die Rote Linie Athens (rot in data/abkommen.ts)."
+    },
+    {
+      "id": "noul02",
+      "soll": true,
+      "state": "Vertragsangebot der Türkei an Armenien: Die Türkei bietet die Öffnung der Grenze (grenzoeffnung) und verlangt von Armenien den Verzicht auf die internationale Anerkennung der Ereignisse von 1915 (w_1915). Laufzeit 5 Jahre.",
+      "frage": "Löst dieses Angebot bei der Gegenseite ein Veto aus, weil es eine ihrer Roten Linien berührt?",
+      "notiz": "w_1915 ist die Rote Linie Erevans."
+    },
+    {
+      "id": "noul03",
+      "soll": true,
+      "state": "Vertragsangebot der Türkei an die Republik Zypern: Die Türkei bietet die Öffnung ihrer Häfen für zyprische Schiffe (hafen_oeffnung) und verlangt die Anerkennung Nordzyperns als eigenen Staat (w_trnc). Laufzeit 10 Jahre.",
+      "frage": "Löst dieses Angebot bei der Gegenseite ein Veto aus, weil es eine ihrer Roten Linien berührt?",
+      "notiz": "w_trnc ist die Rote Linie Nikosias."
+    },
+    {
+      "id": "noul04",
+      "soll": false,
+      "state": "Vertragsangebot der Türkei an Armenien: Die Türkei bietet die Öffnung der Grenze (grenzoeffnung) und Zollerleichterungen (zoll) und verlangt eine Bahnverbindung über sein Gebiet (w_transit). Laufzeit 5 Jahre.",
+      "frage": "Löst dieses Angebot bei der Gegenseite ein Veto aus, weil es eine ihrer Roten Linien berührt?",
+      "notiz": "Keine Rote Linie betroffen; w_transit kostet Armenien nur Punkte (−6)."
+    },
+    {
+      "id": "noul05",
+      "soll": false,
+      "state": "Vertragsangebot der Türkei an Griechenland: Die Türkei bietet den Verzicht auf die Casus-Belli-Drohung (v_casus) und den Stopp umstrittener Bohrungen (verzicht_bohrung) und verlangt den Ausbau der Zollunion (w_zollunion). Laufzeit 5 Jahre.",
+      "frage": "Löst dieses Angebot bei der Gegenseite ein Veto aus, weil es eine ihrer Roten Linien berührt?",
+      "notiz": "w_zollunion kostet Athen nur Punkte (−3), ist aber keine Rote Linie."
+    }
+  ],
+  "score": [
+    {
+      "id": "score01",
+      "sollStufe": 3,
+      "state": "Ereignis im Strategiespiel Staatsräson: Erdbeben der Stärke 6,8 in Kahramanmaraş; Tausende Gebäude eingestürzt, Hilfsorganisationen überfordert, die Provinz erwartet eine Reaktion der Regierung binnen Stunden.",
+      "notiz": "Katastrophe mit sofortigem Handlungsdruck."
+    },
+    {
+      "id": "score02",
+      "sollStufe": 0,
+      "state": "Ereignis im Strategiespiel Staatsräson: Eine kleine Oppositionszeitung kritisiert in einem Kommentar die Rede des Präsidenten zur Wirtschaftslage.",
+      "notiz": "Kein Handlungsdruck."
+    },
+    {
+      "id": "score03",
+      "sollStufe": 2,
+      "state": "Ereignis im Strategiespiel Staatsräson: Die Zentralbank kündigt für übermorgen ihre Zinsentscheidung an; die Inflation liegt bei 31,5 %, die Märkte sind nervös, und die Regierung muss ihre öffentliche Linie vorher festlegen.",
+      "notiz": "Frist in Tagen mit spürbaren Folgen."
+    },
+    {
+      "id": "score04",
+      "sollStufe": 1,
+      "state": "Ereignis im Strategiespiel Staatsräson: Die EU-Kommission bietet ein informelles Treffen zur Zollunion in vier Wochen an; eine Absage würde als Desinteresse gelesen, ist aber folgenlos für die laufenden Verhandlungen.",
+      "notiz": "Wochenfrist, begrenzte Folgen."
+    },
+    {
+      "id": "score05",
+      "sollStufe": 3,
+      "state": "Ereignis im Strategiespiel Staatsräson: Erdrutsch in Rize nach Starkregen; 14 Todesopfer, ein Dorf ist von der Außenwelt abgeschnitten, der Gouverneur bittet um den Notstand und Soforthilfe noch heute.",
+      "notiz": "Akute Notlage."
+    }
+  ]
+}

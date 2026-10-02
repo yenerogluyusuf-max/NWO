@@ -32,6 +32,8 @@ export function App() {
   const [focus, setFocus] = useState<number | undefined>(undefined);
   const [world, setWorld] = useState<World>(() => (schnell ? schnellstartWelt() : neueWelt()));
   const [spielId, setSpielId] = useState(0);
+  /** Ob die laufende Partie aus einem Spielstand stammt — dann zeigt die Bühne das „Stand der Dinge“-Blatt */
+  const [geladen, setGeladen] = useState(false);
   const stand = useMemo(() => spielstandInfo(), [phase]);
 
   const camera = useMemo(() => {
@@ -44,10 +46,12 @@ export function App() {
       <Stage
         key={spielId}
         world={world}
+        geladen={geladen}
         onNeu={() => {
           loescheSpielstand();
           setWorld(neueWelt());
           setFocus(undefined);
+          setGeladen(false);
           setPhase("titel");
         }}
       />
@@ -78,6 +82,7 @@ export function App() {
                   const w = ladeSpielstand();
                   if (!w) return;
                   setWorld(w);
+                  setGeladen(true);
                   setSpielId((i) => i + 1);
                   setPhase("spiel");
                 }}

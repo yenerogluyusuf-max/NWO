@@ -3,6 +3,7 @@
 import { NET } from "../sim/world";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN, REGION_DE } from "../sim/regional";
+import { archetypName } from "../data/provinz_archetypen";
 import { Corners } from "./art/Ornament";
 import { PARTY_COLORS } from "./Parliament";
 import INFRA from "../data/provinz_infra.json";
@@ -58,6 +59,7 @@ export function ProvinceCard({ world, plaka, onClose, onBauen }: { world: World;
       </header>
       <div className="province-body">
         <p className="kicker">Provinz Nr. {plaka} · {REGION_DE[d.region] ?? d.region}</p>
+        <p className="kicker">Typ: {archetypName(plaka)}</p>
         <dl>
           <dt>Einwohner</dt>
           <dd>{d.bevoelkerung.toLocaleString("de-DE")}</dd>

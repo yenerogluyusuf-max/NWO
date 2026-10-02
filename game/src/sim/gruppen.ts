@@ -14,6 +14,10 @@ export const GRUPPEN: { id: string; gewicht: number }[] = [
   { id: "arme", gewicht: 1.0 },
   { id: "nationalisten", gewicht: 0.8 },
   { id: "minderheiten", gewicht: 0.7 },
+  // TODO(Wahlmodul): Die Diaspora (data/diaspora.ts, RECHERCHE_DIASPORA.md Kap. 6) ist bewusst noch keine
+  // eigene Wählergruppe hier — sie wirkt nur bei nationalen Wahlen (keine Kommunalwahlen) und nur mit
+  // ~50 % Beteiligung. Als Gruppe mit fixem Gewicht würde sie jede Zustimmungsrechnung verzerren.
+  // Besser: als separater Lager-Block im Wahlmodul (registrierte Wähler × Beteiligung × Lager-Modifikator).
 ];
 
 export const GRUPPEN_SUMME = GRUPPEN.reduce((s, g) => s + g.gewicht, 0);

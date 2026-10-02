@@ -39,6 +39,7 @@ import { ERBE } from "../data/erbe";
 import { VORHABEN } from "../data/reich";
 import type { KartenOrt } from "./atlas/AtlasMap";
 import { Meldungen, type Meldung } from "./Meldungen";
+import { bewerteHalt, hinweisKlasse, sammleUmlauf, type UmlaufEintrag } from "./autostopp";
 import { ZielWahl } from "./ZielWahl";
 import { BilanzFenster } from "./BilanzFenster";
 import { Kartenlegende } from "./Kartenlegende";
@@ -48,7 +49,9 @@ import { stimmenSicht, stufeIn } from "../sim/handeln";
 import { kapitalEinkommen, waehleZiele } from "../sim/spiel";
 import { naechsterSchritt } from "../sim/programme";
 import { Rng } from "../sim/rng";
-import { speichere } from "./speicher";
+import { speichere, sitzungBegonnen, vorsitzungSnapshot } from "./speicher";
+import { standDerDinge, type StandDerDinge } from "./standderdinge";
+import { StandDerDingeBlatt } from "./StandDerDingeBlatt";
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { LAENDERNAMEN, LAND_PINS, KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
 import { kurzVergleich } from "./vergleich";
@@ -68,12 +71,14 @@ const GEO_LABELS: { text: string; lon: number; lat: number; kind: "meer" | "land
 
 const METROS = PROVINCE_FC.features.filter((f) => PROVINZEN[f.properties.plaka - 1]?.grossstadt).map((f) => f.properties.plaka);
 
-export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => void }) {
+export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu: () => void; geladen?: boolean }) {
   const world = useRef<World>(initial);
   const [, setVersion] = useState(0);
   const [speed, setSpeed] = useState(0);
   const [dossier, setDossier] = useState<Dossier>(null);
-  const [intro, setIntro] = useState<GameEvent | null>(() => startEvent(initial));
+  // Beim Laden gibt es kein Amtsübergabe-Intro, sondern das „Stand der Dinge“-Blatt (Re-Entry)
+  const [intro, setIntro] = useState<GameEvent | null>(() => (geladen ? null : startEvent(initial)));
+  const [standDerD, setStandDerD] = useState<StandDerDinge | null>(() => (geladen && initial.spiel && !initial.spiel.ende ? standDerDinge(initial, vorsitzungSnapshot()) : null));
   const [spaeter, setSpaeter] = useState<Set<string>>(() => new Set());
   const [meldungen, setMeldungen] = useState<Meldung[]>([]);
   const [ebene, setEbene] = useState<Kartenebene>("gelaende");
@@ -89,6 +94,11 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
   /** Kamerafahrt der Karte, etwa zu einem fertigen Wunder */
   const [kamera, setKamera] = useState<{ lon: number; lat: number; d: number } | undefined>(undefined);
   const [bilanzZu, setBilanzZu] = useState(false);
+  /** Umlauf (Klasse C der Auto-Stopp-Taxonomie): gesammelt statt unterbrechend; `umlaufNeu` zählt Ungelesenes für den Zähler am Schreibtisch. */
+  const [umlauf, setUmlauf] = useState<UmlaufEintrag[]>([]);
+  const [umlaufNeu, setUmlaufNeu] = useState(0);
+  const umlaufZaehler = useRef(0);
+  const umfrageStand = useRef(initial.spiel?.umfrage.verlauf.length ?? 0);
   const gesehen = useRef(new Set<string>());
   const letzteSicherung = useRef(0);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
@@ -108,7 +118,21 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
     window.setTimeout(() => setMeldungen((l) => l.filter((x) => x.id !== id)), 8000);
   }, []);
 
-  // Zeit läuft: Ein Tick rechnet einen oder mehrere Tage. Bei einer Entscheidung, einem Hinweis oder dem Ende hält das Spiel an.
+  /** Klasse C hält nie an: Die Meldung geht in den Sammel-Hinweis (Zähler am Schreibtisch), lesbar beim nächsten Stopp. */
+  const umlaufPush = useCallback((m: Omit<UmlaufEintrag, "id">) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    umlaufZaehler.current += 1;
+    setUmlaufNeu(umlaufZaehler.current);
+    setUmlauf((l) => sammleUmlauf(l, [{ ...m, id }]));
+  }, []);
+
+  const umlaufGelesen = useCallback(() => {
+    umlaufZaehler.current = 0;
+    setUmlaufNeu(0);
+  }, []);
+
+  // Zeit läuft: Ein Tick rechnet einen oder mehrere Tage. Die Auto-Stopp-Taxonomie (ui/autostopp.ts) entscheidet,
+  // was anhält: A (Entscheidung) und B (Wendepunkt) stoppen, C (Umlauf) sammelt sich lautlos am Schreibtisch.
   useEffect(() => {
     const ms = SPEEDS[speed]!;
     if (!ms) return;
@@ -121,21 +145,45 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
       for (let i = 0; i < schritt && !halt; i++) {
         advance(wd, 1);
         const s = wd.spiel;
-        if (s && (s.ende || s.hinweise.length > 0 || (s.reich?.feier.length ?? 0) > 0 || s.ereignisse.some((e) => !gesehen.current.has(e.id)))) halt = true;
+        if (!s) continue;
+        // C-Hinweise halten nie; sie wandern aus der Warteschlange in den Sammel-Hinweis
+        const bw = bewerteHalt(s, gesehen.current);
+        if (bw.umlaufHinweise.length) {
+          s.hinweise = s.hinweise.filter((h) => hinweisKlasse(h.id) !== "C");
+          for (const h of bw.umlaufHinweise) umlaufPush({ datum: formatDateDe(wd.date), titel: h.titel, text: h.text.join(" ") });
+        }
+        if (bw.halt) halt = true;
       }
       const s = wd.spiel;
       if (s) for (const e of s.ereignisse) gesehen.current.add(e.id);
-      // Meldungen für das, was ohne Zutun des Spielers geschah
+      // Monatsumfrage (Klasse C): kein Stopp, ein Eintrag im Sammel-Hinweis
+      const verlauf = s?.umfrage.verlauf ?? [];
+      if (s && verlauf.length > umfrageStand.current) {
+        for (const e of verlauf.slice(umfrageStand.current - verlauf.length)) {
+          const davor = verlauf[verlauf.indexOf(e) - 1]?.wert;
+          umlaufPush({
+            datum: formatDateDe(wd.date),
+            titel: "Monatsumfrage",
+            text: `Zustimmung ${e.wert.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %${davor !== undefined ? ` (Vormonat ${davor.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %)` : ""} — Routine, nichts zu entscheiden.`,
+          });
+        }
+        umfrageStand.current = verlauf.length;
+      }
+      // Meldungen für das, was ohne Zutun des Spielers geschah (alles Klasse C: Feed plus Sammel-Hinweis)
       const titel = new Set((s?.ereignisse ?? []).map((e) => vorlage(e.vorlage).titel(wd, e)));
       for (const l of wd.log.slice(before)) {
         // Abstimmungen zeigt die Abstimmungskarte, nicht der Meldungsstapel
         if (l.kind === "statistik" || titel.has(l.text) || istAbstimmung(l.text)) continue;
         const ton: Meldung["ton"] = l.kind === "markt" ? "markt" : l.text.includes("Zentralbank") ? "bank" : l.text.includes("Parlament") ? "parlament" : "ereignis";
         melde({ titel: l.text, ...(l.why ? { text: l.why } : {}), ton });
+        umlaufPush({ datum: formatDateDe(l.date), titel: l.text, ...(l.why ? { text: l.why } : {}) });
       }
       if (halt) {
         setSpeed(0);
         sichere(true);
+        // Beim nächsten Stopp ist lesbar, was der Umlauf gesammelt hat
+        const n = umlaufZaehler.current;
+        if (n > 0) melde({ titel: `${n} ${n === 1 ? "Meldung" : "Meldungen"} im Umlauf`, text: "Routine ohne Entscheidung — gesammelt am Schreibtisch.", ton: "ereignis" });
       } else if (speed === 4 && wd.day - startTag > 150) {
         setSpeed(0);
         melde({ titel: "Ein halbes Jahr ohne Zwischenfall.", text: "Das Vorspulen hält an; die Lage bleibt Ihre Sache.", ton: "ereignis" });
@@ -143,12 +191,20 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
       refresh();
     }, ms);
     return () => clearInterval(id);
-  }, [speed, refresh, melde, sichere]);
+  }, [speed, refresh, melde, sichere, umlaufPush]);
 
   // Nur im Entwicklungsmodus: Weltzustand für Browsertests erreichbar machen
   useEffect(() => {
     if (import.meta.env.DEV) (window as unknown as { __welt?: World; __neu?: () => void }).__welt = world.current;
   }, []);
+
+  // Beim Laden beginnt eine neue Sitzung: Der geladene Stand wird zur Vergleichsbasis der nächsten Rückkehr
+  const sitzungMarkiert = useRef(false);
+  useEffect(() => {
+    if (sitzungMarkiert.current) return;
+    sitzungMarkiert.current = true;
+    if (geladen) sitzungBegonnen(world.current);
+  }, [geladen]);
 
   // Leertaste: Pause und Weiter
   useEffect(() => {
@@ -233,8 +289,9 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
   const zVor = spiel && spiel.umfrage.verlauf.length > 3 ? spiel.umfrage.verlauf[spiel.umfrage.verlauf.length - 4]!.wert : undefined;
 
   // Das Menü ordnet nach dem, was man tut. Mehrere Ansichten derselben Sache liegen als Reiter in einem Fenster.
-  const menue: { kurz: string; titel: string; icon: IconName; badge?: number; tabs: { id: Exclude<Dossier, null>; label: string }[] }[] = [
-    { kurz: "Schreibtisch", titel: "Schreibtisch", icon: "feder", badge: (spiel?.ereignisse.length ?? 0) || undefined, tabs: [{ id: "schreibtisch", label: "Schreibtisch" }] },
+  // badge = wartende Entscheidungen (rot, Klasse A), umlauf = gesammelte Routine (ruhig, Klasse C)
+  const menue: { kurz: string; titel: string; icon: IconName; badge?: number; umlauf?: number; tabs: { id: Exclude<Dossier, null>; label: string }[] }[] = [
+    { kurz: "Schreibtisch", titel: "Schreibtisch", icon: "feder", badge: (spiel?.ereignisse.length ?? 0) || undefined, umlauf: umlaufNeu || undefined, tabs: [{ id: "schreibtisch", label: "Schreibtisch" }] },
     { kurz: "Gespräch", titel: "Gespräch", icon: "sprechblase", tabs: [{ id: "gespraech", label: "Gespräch" }] },
     {
       kurz: "Politik",
@@ -277,13 +334,15 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
   const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.kurz === "Wirtschaft"));
 
   const offen = spiel?.ereignisse.find((e) => !spaeter.has(e.id));
-  const hinweis = spiel?.hinweise[0];
+  // Nur Klasse B wird zum Banner-Fenster; C-Hinweise (Taxonomie) sind längst im Umlauf-Sammel-Hinweis
+  const hinweis = spiel?.hinweise.find((h) => hinweisKlasse(h.id) === "B");
   const bilanz = spiel?.ende && !bilanzZu;
-  const zielWahlOffen = !!spiel && !spiel.ersterTagErledigt && !intro;
+  const zielWahlOffen = !!spiel && !spiel.ersterTagErledigt && !intro && !standDerD;
 
   const beendeZeit = () => setSpeed(0);
   const oeffneDossier = (d: Dossier) => {
     if (d === "politik") setPolitikStart(null);
+    if (d === "schreibtisch") umlaufGelesen();
     setDossier(d);
     if (d) beendeZeit();
   };
@@ -411,6 +470,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
           <button key={m.kurz} className={gruppe === m ? "on" : ""} onClick={() => oeffneDossier(gruppe === m ? null : m.tabs[0]!.id)} aria-label={m.titel} title={m.titel}>
             <Icon name={m.icon} />
             {m.badge !== undefined && <span className="menu-badge">{m.badge}</span>}
+            {m.umlauf !== undefined && <span className="menu-badge ruhig" title="Umlauf: gesammelte Meldungen ohne Entscheidung">{m.umlauf}</span>}
             <span className="menu-kurz">{m.kurz}</span>
           </button>
         ))}
@@ -436,7 +496,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
           </header>
           <div className="dossier-body">
             {zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
-            {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
+            {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "politik" && (
               <Politik
@@ -595,6 +655,17 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
 
       {bilanz && spiel?.ende && <BilanzFenster world={w} onNeu={onNeu} onSchliessen={() => setBilanzZu(true)} />}
 
+      {!bilanz && standDerD && (
+        <StandDerDingeBlatt
+          stand={standDerD}
+          onSchliessen={() => {
+            // Einmalig: Danach ist der Schreibtisch der Einstieg, wie an jedem anderen Tag auch
+            setStandDerD(null);
+            oeffneDossier("schreibtisch");
+          }}
+        />
+      )}
+
       {!bilanz && intro && (
         <EventWindow
           key={intro.id}
@@ -615,7 +686,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
         />
       )}
 
-      {!bilanz && !intro && !zielWahlOffen && hinweis && (
+      {!bilanz && !standDerD && !intro && !zielWahlOffen && hinweis && (
         <EventWindow
           key={hinweis.id}
           event={{
@@ -633,7 +704,8 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
             actions: [{ label: "Verstanden", primary: true }],
           }}
           onClose={() => {
-            spiel!.hinweise.shift();
+            // Quittiert genau diesen Hinweis (in der Warteschlange können gesammelte C-Meldungen nachrücken)
+            spiel!.hinweise = spiel!.hinweise.filter((x) => x.id !== hinweis.id);
             refresh();
           }}
         />
@@ -654,7 +726,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
         />
       )}
 
-      {!bilanz && !intro && !zielWahlOffen && !hinweis && !offen && spiel?.reich?.feier[0] && (
+      {!bilanz && !standDerD && !intro && !zielWahlOffen && !hinweis && !offen && spiel?.reich?.feier[0] && (
         <WunderFenster
           key={spiel.reich.feier[0]}
           id={spiel.reich.feier[0]}
@@ -664,7 +736,7 @@ export function Stage({ world: initial, onNeu }: { world: World; onNeu: () => vo
         />
       )}
 
-      {!bilanz && !intro && !zielWahlOffen && !hinweis && offen && spiel && (
+      {!bilanz && !standDerD && !intro && !zielWahlOffen && !hinweis && offen && spiel && (
         <EreignisFenster
           key={offen.id}
           ansicht={ansicht(w, offen)}

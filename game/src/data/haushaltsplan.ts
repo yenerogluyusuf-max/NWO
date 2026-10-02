@@ -41,6 +41,7 @@ export const PLAN_2026 = {
   einnahmenGesamt: 16216,
   steuerGesamt: 13800,
   defizit: 2713,
+  /** Haushaltsgesetz 2026 (Herbst 2025). Das neuere Mittelfristprogramm 2027–2029 (06.09.2026) revidiert das Ziel auf 2,6 Bio. TL ≈ 3,1 % des BIP — der Szenario-Startwert (szenario_tuerkei_2026-09-25.json) folgt dem neueren Stand. */
   defizitProzentBip: 3.5,
   zinsenProzentBip: 3.5,
   /** Rund eine Milliarde Lira entspricht so viel BIP: 1 % des BIP ≈ 783 Mrd. Lira, abgeleitet aus Zinsausgaben und deren BIP-Anteil */

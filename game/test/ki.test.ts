@@ -339,7 +339,8 @@ describe("Reich und Verträge im Gespräch", () => {
     const w = welt();
     const z = zustandsText(w);
     expect(z).toMatch(/Reich: Verwaltungskraft \d+/);
-    expect(z).toMatch(/Verträge: keine/);
+    // Stand 30.09.2026: Der Mekka-Beistandspakt (07.08.2026) liegt als laufender Vertrag bei SAU vor (START_VERTRAEGE in sim/laender.ts)
+    expect(z).toMatch(/Verträge: SAU bietet beistand/);
     const s = systemText();
     expect(s).toContain("VORHABEN DES REICHES");
     expect(s).toContain("KLAUSELN JE LAND");

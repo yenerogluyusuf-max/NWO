@@ -9,6 +9,7 @@ import { addLog } from "./log";
 import { clamp } from "./economy";
 import type { World } from "./types";
 import { kannZahlen } from "./kapital";
+import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 
 export type Bedingung =
   | { art: "massnahme"; id: string; min: number }
@@ -266,7 +267,10 @@ export function starteSchritt(w: World, id: string): { ok: boolean; text: string
   const z = programmZustand(w);
   if (z.laufend.length >= MAX_LAUFEND) return { ok: false, text: `Es können höchstens ${MAX_LAUFEND} Schritte gleichzeitig laufen.` };
   if (!kannZahlen(spiel.kapital, eintrag.schritt.kapital)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${eintrag.schritt.kapital}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  const pause = neuanfangGrund(w);
+  if (pause) return { ok: false, text: pause };
   spiel.kapital -= eintrag.schritt.kapital;
+  verbrauche(w, AUFMERKSAMKEIT_KOSTEN.programmSchritt, eintrag.schritt.titel);
   z.laufend.push({ schritt: id, start: w.day, ende: w.day + eintrag.schritt.tage });
   const text = `Programm „${eintrag.programm.titel}“: ${eintrag.schritt.titel} beginnt.`;
   const why = `Kostet ${eintrag.schritt.kapital} Kapital und dauert etwa ${Math.round(eintrag.schritt.tage / 30)} ${Math.round(eintrag.schritt.tage / 30) === 1 ? "Monat" : "Monate"}. Danach: ${eintrag.schritt.ergebnis}.`;

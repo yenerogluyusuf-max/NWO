@@ -21,6 +21,8 @@ import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { Gesetz, Weg } from "./spiel-typen";
 import { kannZahlen } from "./kapital";
+import { krisenFuerMassnahme, type KrisenTreffer } from "./krisen";
+import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, hashWert, neuanfangGrund, stufeVon, unsicherheitFaktor, verbrauche, verfassungVon } from "./aufmerksamkeit";
 
 export const REGELN = {
   /** Gleichzeitig laufende Vorhaben, bevor die Verwaltung überlastet ist */
@@ -174,7 +176,8 @@ export function stimmenSicht(world: World, gesetz?: { massnahme: string; richtun
   // Ein Teil der Opposition stimmt mit, wenn der Präsident im Land beliebt ist
   const uebertritt = clamp(0.04 + (0.22 * (zustimmung - 35)) / 40, 0.02, 0.3);
   const erwartet = Math.min(600, lager + dul.ja + sach.ja + Math.round(gegner * uebertritt));
-  const band = 8 + Math.round(gegner * 0.02);
+  // Ist der Präsident angespannt, streut die Schätzung breiter: Das Konto der Aufmerksamkeit wirkt auf die Vorschau
+  const band = Math.round((8 + Math.round(gegner * 0.02)) * unsicherheitFaktor(world));
   return { lager, erwartet, low: erwartet - band, high: Math.min(600, erwartet + band), luecke: Math.max(0, REGELN.mehrheit - erwartet), duldung: dul.ja, duldungSitze: dul.sitze, sach: sach.ja, sachParteien: sach.parteien };
 }
 
@@ -199,6 +202,10 @@ export interface Pruefung {
   gesetz: { pk: number; stimmen: StimmenSicht; tage: number; bezahlbar: boolean };
   erlass: { moeglich: boolean; pk: number; grund?: string; bezahlbar: boolean };
   hinweise: string[];
+  /** Aktive Krisen, die dieses Vorhaben treffen (MIL-3); bei „gesperrt" steht die Begründung mit Ausweg in „grund" */
+  krisen: KrisenTreffer[];
+  /** Multiplikator auf die Kapitalkosten aus Krisen („teuer"); 1 = keine Wirkung */
+  krisenFaktor: number;
 }
 
 function pkKosten(world: World, id: string, delta: number, ort: number[] | null, weg: Weg, ueberl: number): number {
@@ -236,13 +243,19 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   const ueberl = ueberlast(world, 1);
   const kapital = world.spiel?.kapital ?? Infinity;
   const stimmen = stimmenSicht(world, { massnahme: id, richtung: Math.sign(aenderung) });
-  const pkGesetz = pkKosten(world, id, aenderung, ort, "gesetz", ueberl);
+  // Krisen-Blocker (MIL-3): gesperrte Vorhaben scheitern unten mit Begründung und Ausweg, verteuerte zahlen den Faktor
+  const krisen = world.spiel ? krisenFuerMassnahme(world, id) : [];
+  const krisenFaktor = krisen.reduce((f, k) => (k.art === "teuer" ? f * k.faktor : f), 1);
+  const pkGesetz = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "gesetz", ueberl) * krisenFaktor));
   const erlassOk = erlassMoeglich(id);
-  const pkErlass = pkKosten(world, id, aenderung, ort, "erlass", ueberl);
+  const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass", ueberl) * krisenFaktor));
   const hinweise: string[] = [];
   if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Dauer und Kapital steigen um ${Math.round((ueberl - 1) * 100)} %.`);
   if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen, das kostet später Gegenleistungen.`);
   if (ort && share < 0.05) hinweise.push("Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, die vor Ort deutlich.");
+  for (const k of krisen) {
+    if (k.art === "teuer") hinweise.push(`${k.krise.name}: ${k.krise.wirkung}`);
+  }
 
   const base: Pruefung = {
     ok: true,
@@ -261,8 +274,13 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
       ? { moeglich: true, pk: pkErlass, bezahlbar: kannZahlen(kapital, pkErlass) }
       : { moeglich: false, pk: pkErlass, bezahlbar: false, grund: "Dafür braucht der Präsident ein Gesetz; ein Erlass ist nur in Sicherheit und Außenbeziehungen zulässig." },
     hinweise,
+    krisen,
+    krisenFaktor,
   };
   if (Math.abs(aenderung) < 1) return { ...base, ok: false, grund: "Das ist schon die aktuelle Stufe." };
+  // Eine Sperre durch eine aktive Krise ist eine ehrliche Ablehnung: Grund und Alternativweg stehen immer dabei.
+  const gesperrt = krisen.find((k) => k.art === "gesperrt");
+  if (gesperrt) return { ...base, ok: false, grund: `${gesperrt.krise.name}: ${gesperrt.krise.grund} ${gesperrt.ausweg ?? ""}`.trim() };
   return base;
 }
 
@@ -366,11 +384,14 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     return { ok: true, text: l.text, why: l.why };
   }
   if (spiel.ende) return { ok: false, text: "Die Amtszeit ist beendet." };
+  const pause = neuanfangGrund(world);
+  if (pause) return { ok: false, text: pause };
 
   if (weg === "erlass") {
     if (!pr.erlass.moeglich) return { ok: false, text: pr.erlass.grund!, why: "Wege statt Verbote: Der Weg über ein Gesetz steht offen." };
     if (!pr.erlass.bezahlbar) return { ok: false, text: `Für den Erlass fehlt Politisches Kapital (nötig ${pr.erlass.pk}, vorhanden ${Math.floor(spiel.kapital)}).` };
     spiel.kapital -= pr.erlass.pk;
+    verbrauche(world, AUFMERKSAMKEIT_KOSTEN.erlass, pr.name);
     setPolicy(world, id, pr.stufe, pr.provinzen);
     vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
     const l = world.log[world.log.length - 1]!;
@@ -381,7 +402,10 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
   if (!pr.gesetz.bezahlbar) return { ok: false, text: `Für dieses Gesetz fehlt Politisches Kapital (nötig ${pr.gesetz.pk}, vorhanden ${Math.floor(spiel.kapital)}).`, why: "Kapital wächst mit Vertrauen und Mehrheit; nicht alles auf einmal." };
   if (spiel.gesetze.some((g) => g.massnahme === id)) return { ok: false, text: `Zu „${pr.name}“ liegt schon ein Gesetzentwurf im Parlament.` };
   spiel.kapital -= pr.gesetz.pk;
-  const tag = world.day + REGELN.tageBisAbstimmung;
+  verbrauche(world, AUFMERKSAMKEIT_KOSTEN.gesetz, pr.name);
+  // Ist der Präsident angespannt, verzögert sich die Einbringung mitunter um ein paar Tage
+  const verzug = stufeVon(verfassungVon(world).belastung) >= 1 && hashWert(`${world.seed}|${world.day}|${id}|verzug`) < VERFASSUNG.verzugChance ? VERFASSUNG.verzugTage : 0;
+  const tag = world.day + REGELN.tageBisAbstimmung + verzug;
   spiel.gesetze.push({
     id: `g-${world.day}-${id}`,
     massnahme: id,
@@ -394,8 +418,9 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     absprachen: 0,
     richtung: Math.sign(pr.aenderung),
   });
-  const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${REGELN.tageBisAbstimmung} Tagen.`;
-  const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.`;
+  const tageBis = tag - world.day;
+  const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen.`;
+  const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
   addLog(world, "entscheidung", text, why);
   nachEinbringen?.(world, id, text);
   return { ok: true, text, why };
@@ -460,6 +485,7 @@ export function stimmenKaufen(world: World, gesetzId: string, anzahl: number): E
   const kosten = Math.ceil(n * REGELN.kaufKostenProStimme);
   if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: `Für ${n} Stimmen fehlt Politisches Kapital (nötig ${kosten}, vorhanden ${Math.floor(spiel.kapital)}).` };
   spiel.kapital -= kosten;
+  verbrauche(world, AUFMERKSAMKEIT_KOSTEN.stimmenkauf, `Absprachen zu „${g.name}“`);
   g.absprachen += n;
   const text = `${n} Stimmen für „${g.name}“ gesichert.`;
   const why = `Kostet ${kosten} Kapital, sofort bezahlt; danach schuldet niemand jemandem etwas. Dauerhafte Unterstützung gibt es nur über Verhandlungen mit einer Fraktion.`;

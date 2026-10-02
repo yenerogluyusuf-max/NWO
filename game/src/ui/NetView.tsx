@@ -129,6 +129,8 @@ export function NetView({
   }
 
   const aendert = !!pr && pr.ok;
+  // Krisen-Blocker (MIL-3): eine Sperre zeigt Grund, Ausweg und Restbedingung statt des üblichen Regler-Hinweises
+  const gesperrt = pr?.krisen.find((k) => k.art === "gesperrt") ?? null;
   // Aussichtslos: Die Stimmen fehlen, und Absprachen wären nach der Einbringung nicht mehr bezahlbar
   const luecke = pr?.gesetz.stimmen.luecke ?? 0;
   const kaufkosten = Math.ceil((luecke + STIMMEN_PUFFER) * REGELN.kaufKostenProStimme);
@@ -392,7 +394,12 @@ export function NetView({
                     : "Beschließen"}
                 </button>
               </div>
-              {!aendert && <p className="hinweiszeile">Ziehen Sie den Regler auf eine andere Stufe, dann können Sie die Folgen ansehen und das Vorhaben einbringen.</p>}
+              {!aendert && !gesperrt && <p className="hinweiszeile">Ziehen Sie den Regler auf eine andere Stufe, dann können Sie die Folgen ansehen und das Vorhaben einbringen.</p>}
+              {gesperrt && (
+                <p className="hinweiszeile warn">
+                  <b>{gesperrt.krise.name}:</b> {gesperrt.krise.grund} {gesperrt.ausweg} <em>{gesperrt.krise.bedingung}</em>
+                </p>
+              )}
               {aussichtslos && (
                 <p className="hinweiszeile warn">
                   {bestaetigt === vorhabenKey

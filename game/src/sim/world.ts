@@ -7,10 +7,12 @@ import { addDays, dayOfMonth, formatDateDe, formatMonthDe, monthNumber, monthOf,
 import { clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, realRate } from "./economy";
 import { createNet, nationalAverage, policyCost, startAverage, stepNet } from "./netz";
 import { REGIONAL, WEIGHTS } from "./regional";
+import { ARCHETYP_DELTAS } from "../data/provinz_archetypen";
 import { NET } from "./modell";
 import { addLog, fmt } from "./log";
 import { spielTick } from "./spiel";
 import { ergaenzeFiguren } from "./figuren";
+import { migriereVerfassung } from "./aufmerksamkeit";
 import { zinssitzung } from "./zentralbank";
 import { wirtschaftMonat } from "./wirtschaft-tick";
 import { turkey2026 } from "./scenario";
@@ -57,7 +59,7 @@ export function createWorld(scenario: Scenario, seed: number): World {
     history,
     published: structuredClone(scenario.published),
     log: [],
-    net: createNet(NET, economy, REGIONAL, WEIGHTS),
+    net: createNet(NET, economy, REGIONAL, WEIGHTS, ARCHETYP_DELTAS),
   };
   addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + formatDateDe(scenario.dataDate) + ".");
   return world;
@@ -207,7 +209,7 @@ export function migriereNetz(world: World): void {
   const soll = n * 81;
   const ist = world.net.values.length;
   if (ist >= soll) return;
-  const frisch = createNet(NET, world.economy, REGIONAL, WEIGHTS);
+  const frisch = createNet(NET, world.economy, REGIONAL, WEIGHTS, ARCHETYP_DELTAS);
   const neu = frisch.start.slice(ist, soll);
   world.net.values.push(...neu);
   world.net.start.push(...neu);
@@ -252,6 +254,8 @@ export function load(json: string): World {
   bereinigeZahlen(w);
   // Ältere Spielstände: die neuen Ämter des Umfelds (Justiz, Streitkräfte, Wirtschaft) werden einmal ergänzt
   ergaenzeFiguren(w);
+  // Ältere Spielstände: das Belastungs-/Aufmerksamkeitskonto lädt mit den Startwerten
+  migriereVerfassung(w);
   return w;
 }
 

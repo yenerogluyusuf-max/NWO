@@ -12,6 +12,16 @@ import type { Ergebnis } from "./handeln";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import { kannZahlen, verfuegbar } from "./kapital";
+import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
+
+/** Aufmerksamkeit je Verhandlungsschritt: Das Gespräch ist Routine, der Pakt ein Vorgang. */
+const AUFMERKSAMKEIT: Record<Verhandlung, number> = {
+  gespraech: AUFMERKSAMKEIT_KOSTEN.verhandlungGespraech,
+  zugestaendnis: AUFMERKSAMKEIT_KOSTEN.zugestaendnis,
+  duldung: AUFMERKSAMKEIT_KOSTEN.duldung,
+  koalition: AUFMERKSAMKEIT_KOSTEN.koalition,
+  abwerben: AUFMERKSAMKEIT_KOSTEN.abwerben,
+};
 
 export type Verhandlung = "gespraech" | "zugestaendnis" | "duldung" | "koalition" | "abwerben";
 
@@ -178,6 +188,9 @@ export function verhandle(world: World, partei: string, aktion: Verhandlung, rng
   if (!a) return { ok: false, text: "Das ist bei dieser Fraktion nicht möglich." };
   if (!a.moeglich) return { ok: false, text: a.grund ?? "Das geht gerade nicht." };
   if (!kannZahlen(spiel.kapital, a.pk)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${a.pk}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  const pause = neuanfangGrund(world);
+  if (pause) return { ok: false, text: pause };
+  verbrauche(world, AUFMERKSAMKEIT[aktion], `Verhandlung mit der ${sicht.name}`);
 
   const name = sicht.name;
   const f = fraktion(world, partei);

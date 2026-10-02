@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import type { World } from "../sim/types";
-import { BEREICH_NAMEN, KLASSEN_NAMEN, type Bereich, type Klasse } from "../sim/reich-typen";
+import { BEREICH_NAMEN, KLASSEN_NAMEN, VERGABE_NAMEN, type Bereich, type Klasse, type Vergabe } from "../sim/reich-typen";
 import {
   aktiveVorteile,
   bauKapazitaet,
@@ -17,6 +17,8 @@ import {
   vorhabenDef,
   vorhabenListe,
   vorhabenSicht,
+  VORZIEHEN_VERWALTUNG,
+  warteschlange,
   effektZeile,
   type VorhabenSicht,
 } from "../sim/reich";
@@ -107,7 +109,7 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
               <div className="rr-bau-kopf">
                 <strong>{v.name}</strong>
                 <span className="rr-bau-info">
-                  {Math.round(f * 100)} % ·{" "}
+                  Position {nr + 1} · {Math.round(f * 100)} % ·{" "}
                   {l.pausiert ? "ruht" : rate > 0 ? `${rate.toLocaleString("de-DE", { maximumFractionDigits: 0 })} Baupunkte im Monat` : "wartet auf Baukapazität"}
                 </span>
               </div>
@@ -115,12 +117,6 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
                 <i style={{ width: `${Math.round(f * 100)}%` }} />
               </span>
               <div className="rr-bau-knoepfe">
-                <button type="button" className="aktion-knopf" disabled={nr === 0} onClick={() => { verschiebe(world, l.id, -1); refresh(); }} title="Früher bauen">
-                  ▲
-                </button>
-                <button type="button" className="aktion-knopf" disabled={nr === z.laufend.length - 1} onClick={() => { verschiebe(world, l.id, 1); refresh(); }} title="Später bauen">
-                  ▼
-                </button>
                 <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, l.id, !l.pausiert); refresh(); }}>
                   {l.pausiert ? "Weiter" : "Pausieren"}
                 </button>
@@ -129,6 +125,80 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void }) {
+  const z = reichZustand(world);
+  const [hinweis, setHinweis] = useState<string | null>(null);
+  if (!z.laufend.length) return null;
+  const liste = warteschlange(world);
+  const monatsText = (m?: number) => (m === undefined ? "" : m <= 0 ? "jetzt" : `in etwa ${m} ${m === 1 ? "Monat" : "Monaten"}`);
+  const rueckmeldung = (id: string, richtung: -1 | 1) => {
+    const r = verschiebe(world, id, richtung);
+    if (!r.ok) setHinweis(r.grund ?? "Das ging nicht.");
+    else if (r.verdrangt?.length) setHinweis(`„${vorhabenDef(id)?.name ?? id}“ vorgezogen (−${r.kosten} Verwaltungskraft). Verdrängt: ${r.verdrangt.join(", ")}.`);
+    else setHinweis(null);
+    refresh();
+  };
+  return (
+    <section className="rr-abschnitt">
+      <h4>
+        Baureihenfolge <em>öffentlich: Position 1 baut zuerst; vorziehen kostet {VORZIEHEN_VERWALTUNG} Verwaltungskraft je Position</em>
+      </h4>
+      {hinweis && (
+        <p className="rr-hinweis" role="status">
+          {hinweis}
+        </p>
+      )}
+      <ol className="rr-bauliste rr-queue">
+        {liste.map((e) => {
+          const v = vorhabenDef(e.id);
+          if (!v) return null;
+          // Wer eine Position zurückfällt, wenn dieses Vorhaben vorgezogen wird
+          const verdrangt = e.position > 1 ? (vorhabenDef(liste[e.position - 2]!.id)?.name ?? liste[e.position - 2]!.id) : null;
+          const zeit = e.pausiert
+            ? "ruht"
+            : e.vergabePhase
+              ? `Vergabephase, Baubeginn ${monatsText(e.startIn)}${e.fertigIn !== undefined ? `, fertig ${monatsText(e.fertigIn)}` : ""}`
+              : e.rate > 0
+                ? `baut (${Math.round(e.rate)} Baupunkte im Monat), fertig ${monatsText(e.fertigIn)}`
+                : `wartet auf Baukapazität, Start ${monatsText(e.startIn)}${e.fertigIn !== undefined ? `, fertig ${monatsText(e.fertigIn)}` : ""}`;
+          return (
+            <li key={e.id} className={`rr-queue-eintrag${e.pausiert ? " ruht" : ""}`}>
+              <span className="rr-queue-pos" aria-label={`Position ${e.position}`}>
+                {e.position}
+              </span>
+              <div className="rr-bau-kopf">
+                <strong>{v.name}</strong>{" "}
+                <span className="rr-plakette" title={`Vergeben als: ${VERGABE_NAMEN[e.vergabe]}`}>
+                  {VERGABE_NAMEN[e.vergabe]}
+                </span>
+                <span className="rr-bau-info">{zeit}</span>
+              </div>
+              <div className="rr-bau-knoepfe">
+                <button
+                  type="button"
+                  className="aktion-knopf"
+                  disabled={e.position === 1}
+                  onClick={() => rueckmeldung(e.id, -1)}
+                  title={verdrangt ? `Vorziehen: kostet ${VORZIEHEN_VERWALTUNG} Verwaltungskraft, verdrängt „${verdrangt}“` : "Steht schon vorn"}
+                >
+                  ▲
+                </button>
+                <button type="button" className="aktion-knopf" disabled={e.position === liste.length} onClick={() => rueckmeldung(e.id, 1)} title="Zurückstellen (kostenlos)">
+                  ▼
+                </button>
+                <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, e.id, !e.pausiert); refresh(); }}>
+                  {e.pausiert ? "Weiter" : "Pausieren"}
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="rr-hinweis">Die Schätzungen gelten, solange Kapazität und Reihenfolge bleiben, wie sie sind. Vorziehen ist eine Entscheidung mit Preis: Es kostet Verwaltungskraft und verdrängt ehrlich das überholte Vorhaben.</p>
     </section>
   );
 }
@@ -327,8 +397,8 @@ export function Reich({ world, bereich, refresh, onKarte }: { world: World; bere
   const z = reichZustand(world);
   const liste = vorhabenListe(world, bereich);
 
-  const beginneVorhaben = (id: string) => {
-    const r = beginne(world, id);
+  const beginneVorhaben = (id: string, vergabe: Vergabe = "ausschreibung") => {
+    const r = beginne(world, id, vergabe);
     setErgebnisse((e) => ({ ...e, [id]: { ok: r.ok, text: r.why ? `${r.text} ${r.why}` : r.text } }));
     refresh();
   };
@@ -356,6 +426,7 @@ export function Reich({ world, bereich, refresh, onKarte }: { world: World; bere
       {bereich === "haushalt" && <Haushalt world={world} />}
       {bereich === "recht" && <Sitze world={world} />}
       <ImBau world={world} bereich={bereich} refresh={refresh} />
+      <Baureihenfolge world={world} refresh={refresh} />
 
       {bereich === "kultur" && <Staetten world={world} refresh={refresh} />}
 
@@ -367,7 +438,7 @@ export function Reich({ world, bereich, refresh, onKarte }: { world: World; bere
           <div className="rr-raster">
             {bestand.map((s) => (
               <div key={s.v.id} className="rr-bestand">
-                <VorhabenKarte s={s} gross={gross(s)} onBeginne={beginneVorhaben} {...(onKarte ? { onKarte } : {})} />
+                <VorhabenKarte s={s} gross={gross(s)} onBeginne={beginneVorhaben} kapital={world.spiel!.kapital} {...(onKarte ? { onKarte } : {})} />
                 {liste.find((x) => x.v.id === `sanierung_${s.v.id.replace("infra_", "")}` && x.status === "verfuegbar") && (
                   <button
                     type="button"
@@ -402,7 +473,7 @@ export function Reich({ world, bereich, refresh, onKarte }: { world: World; bere
         )}
         <div className="rr-raster gross">
           {sortiert.map((s) => (
-            <VorhabenKarte key={s.v.id} s={s} gross={gross(s)} onBeginne={beginneVorhaben} ergebnis={ergebnisse[s.v.id]} {...(onKarte ? { onKarte } : {})} />
+            <VorhabenKarte key={s.v.id} s={s} gross={gross(s)} onBeginne={beginneVorhaben} ergebnis={ergebnisse[s.v.id]} kapital={world.spiel!.kapital} {...(onKarte ? { onKarte } : {})} />
           ))}
         </div>
         {sortiert.length === 0 && <p className="subtitle">Hier gibt es im Moment nichts, was sich beginnen ließe.</p>}

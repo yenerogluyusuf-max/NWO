@@ -571,6 +571,32 @@ button.link { border: none !important; background: none !important; box-shadow: 
     repeating-linear-gradient(0deg, rgba(120, 90, 50, 0.025) 0 1px, transparent 1px 3px), var(--paper);
 }
 .event-body h2 { font-family: var(--serif); font-weight: 600; font-size: 28px; margin: 0 0 6px; letter-spacing: -0.01em; }
+
+/* „Stand der Dinge“ — das Re-Entry-Blatt beim Laden: ruhig, papiern, ohne Szene */
+.event-window.sdd { width: min(640px, calc(100vw - 32px)); }
+.sdd-body .subtitle { margin-bottom: 14px; }
+.sdd-deltas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; list-style: none; margin: 0 0 16px; padding: 0; }
+.sdd-delta { display: grid; gap: 2px; padding: 9px 12px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 250, 235, 0.55); border-radius: 3px; }
+.sdd-delta-label { font: 600 10.5px var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+.sdd-delta-wert { font: 600 21px var(--display); color: var(--ink); }
+.sdd-delta-diff { font: 600 12.5px var(--sans); color: var(--ink-soft); }
+.sdd-delta-diff em { font-style: italic; font-weight: 400; }
+.sdd-delta.gut .sdd-delta-diff { color: #3d6b34; }
+.sdd-delta.schlecht .sdd-delta-diff { color: var(--seal); }
+.sdd-spalten { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+.sdd-spalten h3 { font: 650 16px var(--display); margin: 0 0 5px; padding-bottom: 3px; border-bottom: 1px solid rgba(120, 90, 50, 0.4); }
+.sdd-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.sdd-liste li { display: grid; gap: 1px; font: 500 14.5px var(--serif); }
+.sdd-liste .sdd-rest { font: italic 13px var(--serif); color: var(--ink-soft); }
+.sdd-liste li:has(.sdd-ampel) { grid-template-columns: 12px 1fr; align-items: start; column-gap: 8px; }
+.sdd-ampel { width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; border: 1px solid rgba(42, 31, 24, 0.55); }
+.sdd-ampel.rot { background: #a83a32; }
+.sdd-ampel.gelb { background: #d4a933; }
+.sdd-notiz { margin: 2px 0; font: italic 14px var(--serif); color: var(--ink-soft); }
+.sdd-zeile { margin: 6px 0 0; font: 500 14.5px var(--serif); }
+.sdd-zeile-label { display: inline-block; min-width: 128px; font: 600 10.5px var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--seal); }
+@media (max-width: 560px) { .sdd-deltas, .sdd-spalten { grid-template-columns: 1fr; } }
+
 .event-text { font-family: var(--serif); font-size: 17px; line-height: 1.55; }
 .event-text p { margin: 10px 0 0; }
 .event-why { margin: 14px 0 0; font-family: var(--serif); font-style: italic; font-size: 16.5px; line-height: 1.45; color: #2b3552; padding-left: 12px; border-left: 2px solid var(--teal); }
@@ -716,6 +742,8 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .skip-glyph::after { content: ""; position: absolute; left: 6px; top: -4px; width: 2px; height: 8px; background: currentColor; }
 
 .menu-badge { position: absolute; right: -6px; top: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--seal); color: #fbeee0; font: 700 11px/18px var(--sans); text-align: center; box-shadow: 0 0 0 1.5px var(--gold-2), 0 2px 4px rgba(0, 0, 0, 0.5); }
+/* Umlauf-Zähler (Klasse C): ruhig statt alarmierend, links oben, damit er den roten Entscheidungs-Badge nicht verdrängt */
+.menu-badge.ruhig { right: auto; left: -6px; background: var(--ink-soft); color: #f3ead6; box-shadow: 0 0 0 1.5px rgba(198, 154, 74, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4); }
 .dossier-menu button { overflow: visible; }
 
 /* Meldungen unter der Datumsplakette */
@@ -1551,6 +1579,13 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .rr-bau-info { font: italic 13px var(--serif); color: var(--ink-soft); }
 .rr-bauliste .rr-balken { grid-column: 1; }
 .rr-bau-knoepfe { grid-column: 2; grid-row: 1 / 3; display: flex; gap: 5px; align-items: center; }
+
+.rr-queue-eintrag { grid-template-columns: auto 1fr auto; }
+.rr-queue-pos { font: 700 15px var(--display); color: var(--seal); width: 22px; text-align: center; align-self: start; padding-top: 1px; }
+.rr-queue .rr-bau-kopf { grid-column: 2; }
+.rr-queue .rr-bau-knoepfe { grid-column: 3; grid-row: 1; }
+.rr-vergabe ul { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 8px; }
+.rr-vergabe li { display: grid; gap: 2px; justify-items: start; }
 
 .rr-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; }
 .rr-raster.gross { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
