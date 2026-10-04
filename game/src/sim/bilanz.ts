@@ -9,6 +9,7 @@ import { PROVINCES } from "./netz";
 import type { World } from "./types";
 import { PROGRAMME, programmZustand } from "./programme";
 import { LAENDER, haltungWort, vertrauenZu, weltZustand } from "./laender";
+import { katastrophenBilanz } from "./katastrophe";
 import { waehlerLage } from "./waehler";
 import type { ChronikEintrag } from "./spiel-typen";
 
@@ -122,6 +123,9 @@ export function erstelleBilanz(w: World): Bilanz {
   absaetze.push(
     `Ihre Wählerschaft am Ende: ${zufrieden.length ? `zufrieden waren ${zufrieden.join(", ")}` : "keine Gruppe war ausgesprochen zufrieden"}${veraergert.length ? `; verärgert waren ${veraergert.join(", ")}` : ""}.`,
   );
+  // INF-5: Katastrophen der Amtszeit und die Versprechensschuld (mit der Mahnung als Referenz)
+  const katSatz = katastrophenBilanz(w);
+  if (katSatz) absaetze.push(katSatz);
 
   return {
     titel: ende?.titel ?? "Bilanz der Amtszeit",

@@ -14,6 +14,7 @@ import { Verhandlungstisch } from "./welt/Verhandlungstisch";
 import { Vertraege } from "./welt/Vertraege";
 import { Vermittlung } from "./welt/Vermittlung";
 import { KriegDossier } from "./welt/KriegDossier";
+import { EuDossier } from "./welt/EuDossier";
 import { aktiveKriege, kriegMit, PHASEN_NAME } from "../sim/krieg";
 import type { WeltTab } from "./welt/LandPopover";
 import "./welt/welt.css";
@@ -167,12 +168,18 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                   ⚔ Konflikt
                 </button>
               )}
+              {gewaehlt === "EU" && (
+                <button role="tab" type="button" aria-selected={tab === "beitritt"} className={tab === "beitritt" ? "on" : ""} onClick={() => setTab("beitritt")}>
+                  ★ Beitritt
+                </button>
+              )}
             </div>
 
             {tab === "ueberblick" && <Ueberblick world={world} landId={gewaehlt} onMassnahme={onMassnahme} onVerhandeln={() => setTab("verhandeln")} />}
             {tab === "verhandeln" && <Verhandlungstisch key={gewaehlt} world={world} landId={gewaehlt} refresh={refresh} onVertraege={() => setTab("vertraege")} />}
             {tab === "vertraege" && <Vertraege world={world} landId={gewaehlt} refresh={refresh} />}
             {tab === "konflikt" && <KriegDossier world={world} landId={gewaehlt} refresh={refresh} />}
+            {tab === "beitritt" && gewaehlt === "EU" && <EuDossier world={world} refresh={refresh} />}
             {tab === "handeln" && (
               <div className="we-gesten">
                 <p className="subtitle">Einzelne Gesten kosten weniger als ein Vertrag und wirken schneller, aber nicht so lange. Große Vorhaben gehören an den Verhandlungstisch.</p>

@@ -85,7 +85,7 @@ const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1 }
 const R = KRISEN_REGELN;
 
 /** Katastrophen-Ereignisvorlagen, die eine Katastrophenlage auslösen. */
-const KATASTROPHEN_VORLAGEN = new Set(["erdbeben", "ueberschwemmung"]);
+const KATASTROPHEN_VORLAGEN = new Set(["erdbeben", "ueberschwemmung", "grossbeben", "katastrophe_flut", "katastrophe_duerre", "katastrophe_waldbrand"]);
 
 /** Themen, die in der Katastrophenlage unverteuert bleiben (Versorgung der Betroffenen). */
 const VERSORGUNG = new Set(["wohnen", "gesundheit", "sicherheit", "infrastruktur"]);

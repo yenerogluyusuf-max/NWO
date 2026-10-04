@@ -486,7 +486,13 @@ export function fruehesterAusstieg(v: Vertrag): number {
 }
 
 // ---------------------------------------------------------------------------
-// Vermittlung zwischen zwei Dritten: eine Lücke, die kein Konkurrenzspiel besetzt (RECHERCHE §6)
+// Vermittlung zwischen zwei Dritten: eine Lücke, die kein Konkurrenzspiel besetzt (RECHERCHE §6).
+// AUS-4 (VERBESSERUNGSPLAN_2026-09-30): Das vertiefte Modell mit ZOPA, Reifegrad, Spoilern und Garantien
+// liegt in sim/vermittlung.ts (Daten in data/konflikte.ts); diese Hülle hält die ursprüngliche
+// Schnittstelle (VermittlungDef/vermittlungen/vermittle) für Bestandsaufrufer und ältere Tests.
+
+import { KONFLIKTE } from "../data/konflikte";
+import { konfliktSichten, vermittle as vermittleKonflikt } from "./vermittlung";
 
 export interface VermittlungDef {
   id: string;
@@ -503,18 +509,18 @@ export interface VermittlungDef {
   minB: number;
 }
 
-export const VERMITTLUNGEN: VermittlungDef[] = [
-  {
-    id: "ukr_rus", titel: "Ukraine und Russland", a: "UKR", b: "RUS", pk: 5, abkuehlung: 240, minA: 45, minB: 35,
-    text: "Ankara richtet in Istanbul Gespräche aus: Meerengenregeln, Getreidekorridor und der Austausch von Gefangenen.",
-    paket: ["Gefangenenaustausch in Istanbul", "Meerengenregeln nach Montreux", "Getreide- und Handelskorridor im Schwarzen Meer"],
-  },
-  {
-    id: "arm_aze", titel: "Armenien und Aserbaidschan", a: "ARM", b: "AZE", pk: 5, abkuehlung: 240, minA: 35, minB: 45,
-    text: "Transit gegen Grenzöffnung: Eine Verbindung nach Nachitschewan über armenisches Gebiet, dafür Schritte zur Öffnung der Grenze.",
-    paket: ["Transit über armenisches Gebiet (TRIPP)", "Grenzöffnung für Drittstaatler und Diplomaten", "Bahn zwischen Gjumri und Kars"],
-  },
-];
+export const VERMITTLUNGEN: VermittlungDef[] = KONFLIKTE.map((k) => ({
+  id: k.id,
+  titel: k.titel,
+  a: k.a.land ?? "",
+  b: k.b.land ?? "",
+  text: k.text,
+  paket: k.paket,
+  pk: k.pk,
+  abkuehlung: k.abkuehlung,
+  minA: k.minA,
+  minB: k.minB,
+}));
 
 export interface VermittlungSicht {
   def: VermittlungDef;
@@ -524,54 +530,17 @@ export interface VermittlungSicht {
   aussicht: number;
 }
 
-function aussichtFuer(w: World, d: VermittlungDef): number {
-  const ansehen = nationalAverage(NET, w.net, "ansehen");
-  const va = vertrauenZu(w, d.a);
-  const vb = vertrauenZu(w, d.b);
-  const konflikt = Math.max(weltZustand(w)[d.a]!.konflikt, weltZustand(w)[d.b]!.konflikt);
-  const roh = 20 + (Math.min(va, vb) - 35) * 1.2 - Math.max(0, konflikt - 60) * 0.6 + (ansehen - 45) * 0.6;
-  return Math.round(clamp(roh, 8, 85));
-}
-
 export function vermittlungen(w: World): VermittlungSicht[] {
-  const spiel = w.spiel;
-  return VERMITTLUNGEN.map((d) => {
-    let grund: string | undefined;
-    const zuletzt = spiel?.vermittelt?.[d.id] ?? -1e9;
-    if (spiel && !kannZahlen(spiel.kapital, d.pk)) grund = "Dafür fehlt das Kapital.";
-    else if (w.day - zuletzt < d.abkuehlung) grund = `Wieder möglich in ${d.abkuehlung - (w.day - zuletzt)} Tagen.`;
-    else if (vertrauenZu(w, d.a) < d.minA) grund = `${land(d.a).name} vertraut Ankara als Vermittler noch nicht genug.`;
-    else if (vertrauenZu(w, d.b) < d.minB) grund = `${land(d.b).name} vertraut Ankara als Vermittler noch nicht genug.`;
-    return { def: d, moeglich: !grund, ...(grund ? { grund } : {}), aussicht: aussichtFuer(w, d) };
-  });
+  return konfliktSichten(w).map((s) => ({
+    def: VERMITTLUNGEN.find((d) => d.id === s.def.id)!,
+    moeglich: s.moeglich,
+    ...(s.grund ? { grund: s.grund } : {}),
+    aussicht: s.aussicht,
+  }));
 }
 
 export function vermittle(w: World, id: string, rng: Rng): { ok: boolean; text: string; why?: string } {
-  const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es keine Vermittlung." };
-  const sicht = vermittlungen(w).find((x) => x.def.id === id);
-  if (!sicht) return { ok: false, text: "Diese Vermittlung gibt es nicht." };
-  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? "Das geht gerade nicht." };
-  const d = sicht.def;
-  spiel.kapital -= d.pk;
-  (spiel.vermittelt ??= {})[id] = w.day;
-  const la = land(d.a);
-  const lb = land(d.b);
-  if (rng.next() * 100 < sicht.aussicht) {
-    landAendern(w, d.a, { vertrauen: 4, konflikt: -5 }, `Vermittlung mit ${lb.dat}`);
-    landAendern(w, d.b, { vertrauen: 4, konflikt: -5 }, `Vermittlung mit ${la.dat}`);
-    wirke(w, "ansehen", 3);
-    vertrauenAendern(w, 0.5);
-    const text = `Vermittlung gelingt: ${la.name} und ${lb.name} einigen sich in Istanbul auf ein Paket.`;
-    addLog(w, "entscheidung", text, `${d.paket.join("; ")}. Kostet ${d.pk} Kapital; Ankaras Ansehen wächst.`);
-    return { ok: true, text, why: `${d.paket.join("; ")}. Kostet ${d.pk} Kapital; das Ansehen wächst.` };
-  }
-  landAendern(w, d.a, { vertrauen: -1 });
-  landAendern(w, d.b, { vertrauen: -1 });
-  wirke(w, "ansehen", -1);
-  const text = `Die Vermittlung zwischen ${la.name} und ${lb.name} scheitert.`;
-  addLog(w, "entscheidung", text, `Beide Seiten stellen zu hohe Bedingungen. Kostet ${d.pk} Kapital und etwas Ansehen; ein neuer Versuch ist später möglich.`);
-  return { ok: false, text, why: `Kostet ${d.pk} Kapital und etwas Ansehen; ein neuer Versuch ist später möglich.` };
+  return vermittleKonflikt(w, id, rng);
 }
 
 // ---------------------------------------------------------------------------

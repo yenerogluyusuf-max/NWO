@@ -235,7 +235,11 @@ export function verfassungTag(w: World): void {
   if (!sp || sp.ende) return;
   const v = verfassungVon(w);
 
-  v.aufmerksamkeit = clamp(v.aufmerksamkeit + VERFASSUNG.regenProTag, 0, 100);
+  // INN-5: Während des Wahlkampfs lädt sich die Aufmerksamkeit anderthalbmal so schnell auf.
+  // Der Zustand wird hier direkt gelesen, damit kein Modul-Zyklus entsteht; der Faktor ist als
+  // Spielparameter in sim/wahlkampf.ts (WAHLKAMPF.aufmerksamkeitFaktor) geführt und wird dort angezeigt.
+  const wahlkampfAktiv = sp.wahlkampf !== undefined;
+  v.aufmerksamkeit = clamp(v.aufmerksamkeit + VERFASSUNG.regenProTag * (wahlkampfAktiv ? 1.5 : 1), 0, 100);
   if (v.aufmerksamkeit < VERFASSUNG.erschoepfungAb) treiben(w, v, VERFASSUNG.erschoepfungProTag, "Regieren am Anschlag: Die Aufmerksamkeit ist erschöpft");
   else if (v.aufmerksamkeit > VERFASSUNG.erholungAb) v.belastung = clamp(v.belastung - VERFASSUNG.erholungProTag, 0, 100);
 

@@ -1766,3 +1766,28 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .vf-stufe { opacity: 0.55; }
 .vf-stufe.aktiv { opacity: 1; font-weight: 600; }
 .vf-stufe.erledigt { opacity: 0.8; text-decoration: line-through; }
+
+/* Katastrophen-Dossier (INF-5) */
+.kat-tabelle { border-collapse: collapse; margin: 6px 0 10px; }
+.kat-tabelle td, .kat-tabelle th { padding: 3px 14px 3px 0; text-align: left; font-size: 14px; }
+.kat-tabelle th { font-weight: 600; border-bottom: 1px solid rgba(90, 70, 40, 0.35); }
+.kat-nebel { font-style: italic; opacity: 0.85; }
+.kat-vergabe { display: block; font-size: 14px; margin: 2px 0; }
+.kat-mahnung { font-style: italic; opacity: 0.8; margin-top: 8px; }
+
+/* Freie Großprojekte (INF-4): Schätzblatt, Transit-Kette, Mentorin-Box */
+.rr-schaetz { border-style: dashed; }
+.rr-plakette.geschaetzt { color: #1a4a5a; background: #d8ecf2; border-color: #4a8a9a; }
+.rr-mentor { margin: 10px 0 4px; padding: 8px 12px; border-left: 3px solid #b8893a; background: rgba(184, 137, 58, 0.08); font: italic 14px/1.5 var(--serif); color: var(--ink-soft); }
+.rr-risiko { font-size: 14px; }
+.rr-transit { margin: 10px 0; }
+.rr-transit-kette { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.rr-transit-schritt { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid rgba(90, 70, 40, 0.25); border-radius: 3px; font-size: 14px; }
+.rr-transit-schritt .rr-transit-land { flex: 1; font-weight: 600; }
+.rr-transit-schritt .rr-transit-land em { font-weight: 400; font-style: italic; opacity: 0.75; }
+.rr-transit-schritt.veto { border-color: #a03030; background: rgba(160, 48, 48, 0.06); }
+.rr-transit-schritt.zusage { border-color: #3a7a3a; background: rgba(58, 122, 58, 0.06); }
+.rr-plakette.transit-offen { color: #6a4a12; background: #f2dc98; border-color: #b8893a; }
+.rr-plakette.transit-zusage { color: #1e4d1e; background: #d8ecd8; border-color: #3a7a3a; }
+.rr-plakette.transit-veto { color: #6d1a1a; background: #f2d8d8; border-color: #a03030; }
+.rr-plakette.transit-umgangen { color: #444; background: #e4e4e4; border-color: #888; }

@@ -27,7 +27,10 @@ describe("Hinweis-Klassen", () => {
     expect(hinweisKlasse("starthilfe")).toBe("B");
     expect(hinweisKlasse("warnung-100")).toBe("B");
     expect(hinweisKlasse("bruch-100-MHP")).toBe("B");
-    expect(hinweisKlasse("wahl-100")).toBe("B");
+    // INN-5: Der Wahlabend ist Klasse A (Schlusspunkt der Amtszeit), die Wahlkampf-Hinweise Wendepunkte (B)
+    expect(hinweisKlasse("wahl-100")).toBe("A");
+    expect(hinweisKlasse("wahlkampf-beginn-100")).toBe("B");
+    expect(hinweisKlasse("wahlkampf-duell-100")).toBe("B");
     expect(hinweisKlasse("programm-erdbeben1-100")).toBe("B");
     expect(hinweisKlasse("zusammenbruch-100")).toBe("B");
   });
@@ -103,6 +106,16 @@ describe("Klasse A (Entscheidung) hält immer", () => {
     const bw = bewerteHalt(w.spiel!, new Set());
     expect(bw.halt).toBe(true);
     expect(bw.klasse).toBe("A");
+  });
+
+  test("der Wahlabend hält als Klasse A, bis er quittiert ist", () => {
+    const w = neu();
+    w.spiel!.hinweise.push(hinweis(`wahl-${w.day}`));
+    const bw = bewerteHalt(w.spiel!, new Set());
+    expect(bw.halt).toBe(true);
+    expect(bw.klasse).toBe("A");
+    w.spiel!.hinweise = w.spiel!.hinweise.filter((h) => h.id !== `wahl-${w.day}`);
+    expect(bewerteHalt(w.spiel!, new Set()).halt).toBe(false);
   });
 });
 

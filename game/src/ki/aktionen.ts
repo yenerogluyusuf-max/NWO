@@ -17,6 +17,7 @@ import type { World } from "../sim/types";
 import type { KiAktion, KiErgebnis, KiVorschau } from "./typen";
 import { kannZahlen } from "../sim/kapital";
 import { beginne, vorhabenSicht } from "../sim/reich";
+import { beginneFrei, entwirf, freieEntwuerfe, friedensAntwort, interpretiere, schaetze } from "../sim/grossprojekt";
 import {
   VERFASSUNG_REGELN,
   bringeVerfassungEin,
@@ -96,6 +97,11 @@ function pruefeForm(x: unknown): KiAktion | null {
       return istText(o.id) && istText(o.option) ? { art: "ereignis", id: o.id.trim(), option: o.option.trim(), ...g } : null;
     case "vorhaben":
       return istText(o.id) ? { art: "vorhaben", id: o.id.trim(), ...g } : null;
+    case "grossprojekt": {
+      if (!istText(o.text)) return null;
+      const vergabe = o.vergabe === "stammfirma" || o.vergabe === "sparvergabe" || o.vergabe === "ausschreibung" ? o.vergabe : undefined;
+      return { art: "grossprojekt", text: o.text.trim().slice(0, 240), ...(vergabe ? { vergabe } : {}), ...g };
+    }
     case "verfassung": {
       if (!istText(o.handlung)) return null;
       const paket = o.paket && typeof o.paket === "object" ? Object.fromEntries(Object.entries(o.paket as Record<string, unknown>).filter(([, x]) => istText(x)).map(([k, x]) => [k.trim(), (x as string).trim()]).slice(0, 8)) : undefined;
@@ -231,6 +237,32 @@ export function vorschau(w: World, a: KiAktion): KiVorschau {
       if (!sicht.verwaltungOk) return { aktion: a, titel, kosten: v.kosten.pk, problem: "Die Verwaltungskraft reicht dafür nicht." };
       return { aktion: a, titel, kosten: v.kosten.pk, hinweis: `Etwa ${v.kosten.monate} Monate Bauzeit. ${v.kehrseite}` };
     }
+    case "grossprojekt": {
+      const d = interpretiere(a.text);
+      if (d.art === "absage") return { aktion: a, titel: "Freies Großprojekt", problem: d.grund };
+      if (d.art === "rueckfrage") return { aktion: a, titel: "Freies Großprojekt", problem: d.frage };
+      if (d.art === "frieden") return { aktion: a, titel: "Vermittlung statt Bauvorhaben", problem: friedensAntwort(w, d).text };
+      const gefaltet = fold(a.text);
+      const vorhanden = freieEntwuerfe(w).find((x) => fold(x.eintrag.schaetzung.eingabe) === gefaltet);
+      if (vorhanden) {
+        const e = vorhanden.eintrag;
+        const titel = `Beginn: ${e.def.name}`;
+        if (e.stand === "begonnen") return { aktion: a, titel, problem: "Es läuft bereits." };
+        const offen = Object.entries(e.transit ?? {}).filter(([, st]) => st === "offen").map(([lId]) => lId);
+        if (offen.length) return { aktion: a, titel, problem: `Die Durchfahrt ist noch nicht zugesagt: ${offen.join(", ")}. Die Verhandlungen laufen im Schätzblatt.` };
+        const veto = Object.entries(e.transit ?? {}).filter(([, st]) => st === "veto").map(([lId]) => lId);
+        if (veto.length) return { aktion: a, titel, problem: `${veto.join(", ")} verweigert die Durchfahrt; erst der Umweg im Schätzblatt macht die Strecke frei.` };
+        return { aktion: a, titel, kosten: e.def.kosten.pk, hinweis: `Geschätzt ${e.schaetzung.monate.tief}–${e.schaetzung.monate.hoch} Monate; die Überschreitung kommt erfahrungsgemäß erst im Bau.` };
+      }
+      const s = schaetze(w, d, a.text);
+      const transit = s.transit?.length ? ` Grenzübertritt über ${s.transit.map((x) => x.name).join(", ")}: erst die Verhandlungsserie, dann der Baubeginn.` : "";
+      return {
+        aktion: a,
+        titel: `Schätzung: ${s.name}`,
+        kosten: Math.round(s.pk.mitte),
+        hinweis: `Bandbreiten: Kapital ${s.pk.tief}–${s.pk.hoch}, Bau ${s.bau.tief}–${s.bau.hoch} Punkte, ${s.monate.tief}–${s.monate.hoch} Monate.${transit}`,
+      };
+    }
     case "verfassung": {
       const z = verfassungsZustand(w);
       const v = z.laufend;
@@ -349,6 +381,27 @@ export function fuehreAus(w: World, a: KiAktion): { ok: boolean; text: string; w
     }
     case "vorhaben": {
       const r = beginne(w, a.id);
+      return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+    }
+    case "grossprojekt": {
+      // Die Vorschau hat Absagen, Rückfragen und das Friedens-Routing bereits als Problem abgefangen
+      const gefaltet = fold(a.text);
+      const vorhanden = freieEntwuerfe(w).find((x) => fold(x.eintrag.schaetzung.eingabe) === gefaltet && x.eintrag.stand === "entwurf");
+      if (vorhanden) {
+        const r = beginneFrei(w, vorhanden.id, a.vergabe ?? "ausschreibung");
+        return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
+      }
+      const e = entwirf(w, a.text);
+      if (e.art !== "entwurf") return { ok: false, text: "Das Vorhaben ließ sich nicht verstehen." };
+      const kette = e.eintrag.schaetzung.transit;
+      if (kette?.length) {
+        return {
+          ok: true,
+          text: `Schätzblatt „${e.eintrag.def.name}“ liegt im Reich-Fenster. Die Strecke führt über ${kette.map((x) => x.name).join(", ")}: Jede Durchfahrt ist dort am Verhandlungstisch zu sichern, erst dann beginnt der Bau.`,
+          why: e.eintrag.schaetzung.mentor,
+        };
+      }
+      const r = beginneFrei(w, e.id, a.vergabe ?? "ausschreibung");
       return { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) };
     }
     case "verfassung": {

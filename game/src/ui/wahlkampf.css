@@ -1,0 +1,80 @@
+/* Die Wahlkampf-Zentrale (INN-5): Kopfleiste mit Budget, Karte und Provinzlisten, Touren, Duell, Gegner, Ticker, Versprechen. */
+
+.kampf-root { display: flex; flex-direction: column; gap: 14px; }
+.kampf-root h3 { margin: 0 0 6px; font: 700 17px var(--serif); }
+.kampf-unter { margin: 4px 0 8px; font-size: 13px; line-height: 1.45; color: #6b5636; }
+.kampf-klein { font-size: 11.5px; color: #8a744f; }
+.kampf-root .gut { color: #265a62; }
+.kampf-root .schlecht { color: var(--seal); }
+
+/* Wartezustand außerhalb der Phase */
+.kampf-warte { max-width: 640px; }
+.kampf-warte h3 { margin-bottom: 8px; }
+
+/* Kopfleiste */
+.kampf-kopf { display: flex; flex-wrap: wrap; gap: 10px 26px; padding: 10px 14px; background: rgba(120, 90, 50, 0.08); border: 1px solid rgba(120, 90, 50, 0.25); border-radius: 6px; }
+.kampf-kopf-block { display: flex; flex-direction: column; gap: 2px; }
+.kampf-kopf-block strong { font: 700 19px var(--serif); }
+.kampf-kicker { font: 600 11px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: #8a744f; }
+.kampf-ap { display: inline-flex; gap: 3px; padding: 3px 0; }
+.kampf-ap i { width: 10px; height: 10px; border-radius: 50%; background: rgba(120, 90, 50, 0.2); border: 1px solid rgba(120, 90, 50, 0.35); }
+.kampf-ap i.voll { background: #b4832a; border-color: #8a6420; }
+
+.kampf-meldung { margin: 0; padding: 8px 12px; border-left: 3px solid #b4832a; background: rgba(196, 146, 42, 0.1); font-size: 13.5px; line-height: 1.4; }
+
+/* Grid: Reisen links breit, rechts eine Spalte, Versprechen unten */
+.kampf-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; }
+.kampf-versprechen { grid-column: 1 / -1; }
+
+.kampf-karte { position: relative; height: 300px; border: 1px solid rgba(120, 90, 50, 0.3); border-radius: 6px; overflow: hidden; }
+.kampf-atlas { position: absolute; inset: 0; }
+
+.kampf-regionen { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; max-height: 340px; overflow: auto; }
+.kampf-regionen details { border: 1px solid rgba(120, 90, 50, 0.2); border-radius: 5px; }
+.kampf-regionen summary { cursor: pointer; padding: 6px 10px; font: 600 13.5px var(--serif); }
+.kampf-regionen summary em { float: right; font: 400 12px var(--sans); color: #8a744f; }
+.kampf-provliste { list-style: none; margin: 0; padding: 4px 8px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+.kampf-prov { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; font: 500 12px var(--sans); border: 1px solid rgba(120, 90, 50, 0.35); border-radius: 999px; background: #fdf9ef; cursor: pointer; }
+.kampf-prov:hover:not(:disabled) { background: #f6e9c8; }
+.kampf-prov:disabled { opacity: 0.45; cursor: not-allowed; }
+.kampf-prov.besucht { background: #f0dfb4; border-color: #b4832a; }
+.kampf-prov.brennt { border-color: var(--seal); }
+.kampf-prov-brand { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--seal); color: #fff; font: 700 10px var(--sans); }
+.kampf-prov-zahl { font: 700 11px var(--sans); color: #8a6420; }
+.kampf-prov-kosten { font: 600 10.5px var(--sans); color: #8a744f; }
+
+.kampf-spalte { display: flex; flex-direction: column; gap: 16px; }
+
+/* Auslandstouren */
+.kampf-tourliste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.kampf-tourliste li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed rgba(120, 90, 50, 0.25); }
+.kampf-tourliste li:last-child { border-bottom: 0; }
+.kampf-tour-text { display: flex; flex-direction: column; }
+.kampf-tour-text span { font-size: 12px; color: #6b5636; }
+
+/* Duell und Gegner */
+.kampf-status { margin: 6px 0; font: 600 14px var(--serif); }
+.kampf-gegner-profil { margin: 2px 0; font-size: 14.5px; }
+.kampf-angriffe { list-style: none; margin: 8px 0; padding: 0; }
+.kampf-angriffe li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-size: 12.5px; border-bottom: 1px dashed rgba(120, 90, 50, 0.2); }
+
+/* Umfrage-Ticker */
+.kampf-ticker ul { list-style: none; margin: 0; padding: 0; }
+.kampf-ticker li { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; border-bottom: 1px dashed rgba(120, 90, 50, 0.2); font-size: 13px; }
+.kampf-ticker li:last-child { border-bottom: 0; }
+.kampf-ticker li strong { min-width: 52px; font: 700 14px var(--serif); }
+.kampf-ticker li span { flex: 1; }
+.kampf-ticker li em { font: 600 11px var(--sans); color: #8a744f; }
+
+/* Versprechen */
+.kampf-vliste { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.kampf-vliste li { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid rgba(120, 90, 50, 0.25); border-radius: 6px; background: rgba(120, 90, 50, 0.05); }
+.kampf-vliste li.gegeben { background: rgba(38, 90, 98, 0.08); border-color: rgba(38, 90, 98, 0.35); }
+.kampf-v-text { display: flex; flex-direction: column; gap: 2px; }
+.kampf-v-text span { font-size: 12.5px; color: #6b5636; font-style: italic; }
+.kampf-v-text em { font: 500 11.5px var(--sans); color: #8a744f; font-style: normal; }
+.kampf-v-gegeben { font: 600 12px var(--sans); color: #265a62; white-space: nowrap; }
+
+@media (max-width: 1100px) {
+  .kampf-grid { grid-template-columns: 1fr; }
+}

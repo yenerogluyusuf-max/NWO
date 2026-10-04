@@ -6,10 +6,10 @@ import { nationalAverage, PROVINCES, decayVon } from "./netz";
 import { wirke } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
-import { dimensionZu, landAendern } from "./laender";
+import { dimensionZu, land, landAendern } from "./laender";
 import { ERBE, ERBE_NACH_ID } from "../data/erbe";
 import { VORHABEN, VORTEILE, STAETTEN_START } from "../data/reich";
-import type { Rng } from "./rng";
+import { Rng } from "./rng";
 import type { World } from "./types";
 import type { Effekt, LaufEintrag, ReichMeldung, ReichZustand, Voraussetzung, Vergabe, Vorhaben } from "./reich-typen";
 import { VERGABE_NAMEN } from "./reich-typen";
@@ -20,6 +20,17 @@ import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, belastungSinken, neuanfangGrund, ver
 
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
 const VORTEIL_NACH_ID = new Map(VORTEILE.map((v) => [v.id, v]));
+
+/** Dynamisch angemeldete Vorhaben (INF-5: Wohnungsbau-Programme nach Katastrophen) — sie stehen
+ * nicht im Katalog, werden aber über dieselbe Maschinerie gebaut: Baureihenfolge, Vergabe,
+ * Baukapazität-Wettbewerb, Schulden über die Bauzeit. Beim Laden meldet sim/katastrophe.ts
+ * sie aus dem Spielstand erneut an. */
+const DYNAMISCHE: Vorhaben[] = [];
+
+export function registriereVorhaben(v: Vorhaben): void {
+  if (!VORHABEN_NACH_ID.has(v.id)) DYNAMISCHE.push(v);
+  VORHABEN_NACH_ID.set(v.id, v);
+}
 
 export const vorhabenDef = (id: string): Vorhaben | undefined => VORHABEN_NACH_ID.get(id);
 export const vorteilDef = (id: string): VorteilDef | undefined => VORTEIL_NACH_ID.get(id);
@@ -36,7 +47,11 @@ const MELDUNGEN_MAX = 40;
 export function reichZustand(w: World): ReichZustand {
   const spiel = w.spiel;
   if (!spiel) throw new Error("Ohne Spielschleife gibt es kein Reich.");
-  if (spiel.reich) return spiel.reich;
+  if (spiel.reich) {
+    // Freie Großprojekte (INF-4): ihre Definitionen leben im Spielstand und melden sich hier für die laufende Sitzung erneut an
+    if (spiel.reich.frei) for (const e of Object.values(spiel.reich.frei)) registriereVorhaben(e.def);
+    return spiel.reich;
+  }
   const z: ReichZustand = {
     verwaltung: VERWALTUNG_START,
     bestand: {},
@@ -316,9 +331,14 @@ export function bauplan(w: World): Record<string, number> {
   return out;
 }
 
-/** Alle Vorhaben eines Bereichs mit ihrer Sicht. */
+/** Alle Vorhaben eines Bereichs mit ihrer Sicht — inklusive der dynamisch angemeldeten (z. B. Wohnungsbau-Programme nach Katastrophen). Freie Großprojekte im Entwurf (INF-4) erscheinen hier nicht: Sie liegen als Schätzblatt im eigenen Feld, bis sie begonnen werden. */
 export function vorhabenListe(w: World, bereich: string): VorhabenSicht[] {
-  return VORHABEN.filter((v) => v.bereich === bereich).map((v) => vorhabenSicht(w, v.id)!);
+  const entwuerfe = new Set(
+    Object.entries(reichZustand(w).frei ?? {})
+      .filter(([, e]) => e.stand === "entwurf")
+      .map(([id]) => id),
+  );
+  return [...VORHABEN, ...DYNAMISCHE].filter((v) => v.bereich === bereich && !entwuerfe.has(v.id)).map((v) => vorhabenSicht(w, v.id)!);
 }
 
 // ---------------------------------------------------------------------------
@@ -452,13 +472,23 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
   if (s.status === "ausgeschlossen") return { ok: false, text: `„${v.name}“: ${s.grund}` };
   const fehlt = s.voraus.filter((x) => !x.erfuellt).map((x) => x.text);
   if (fehlt.length) return { ok: false, text: `Voraussetzungen fehlen: ${fehlt.join("; ")}.` };
+  const z = reichZustand(w);
+  // Freie Großprojekte (INF-4): Der Entwurf muss im Reich liegen, und über die Grenze hinaus baut erst,
+  // wer jede Durchfahrt hat (Bagdadbahn-Regel: ein offenes Land oder ein Veto hält die Strecke auf)
+  if (v.frei) {
+    const e = z.frei?.[id];
+    if (!e) return { ok: false, text: "Dieses freie Vorhaben liegt nicht vor." };
+    const offen = Object.entries(e.transit ?? {}).filter(([, st]) => st === "offen").map(([lId]) => land(lId).name);
+    if (offen.length) return { ok: false, text: `Die Strecke ist noch nicht frei: ${offen.join(", ")} ${offen.length === 1 ? "hat" : "haben"} die Durchfahrt noch nicht zugesagt; verhandeln Sie im Schätzblatt.` };
+    const veto = Object.entries(e.transit ?? {}).filter(([, st]) => st === "veto").map(([lId]) => land(lId).name);
+    if (veto.length) return { ok: false, text: `${veto.join(", ")} verweigert die Durchfahrt; ohne den Umweg aus dem Schätzblatt ist die Strecke tot.` };
+  }
   // Die Vergabe steht ab dem Beginn fest und lässt sich nicht mehr ändern; sie legt Kosten und Bauzeit neu fest
   const angebot = vergabeAngebot(v, vergabe);
   if (!kannZahlen(spiel.kapital, angebot.pk)) return { ok: false, text: `Dafür fehlt Kapital (${angebot.pk} nötig, ${Math.floor(spiel.kapital)} vorhanden).` };
   if (!s.verwaltungOk) return { ok: false, text: "Die Verwaltungskraft reicht nicht für ein weiteres Vorhaben; erst laufende abschließen oder die Verwaltung stärken." };
   const pause = neuanfangGrund(w);
   if (pause) return { ok: false, text: pause };
-  const z = reichZustand(w);
   spiel.kapital -= angebot.pk;
   verbrauche(w, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, v.name);
   // Was der Präsident eben beschlossen hat, kommt an die Spitze der Baureihenfolge; „Später“ schiebt es zurück
@@ -471,6 +501,7 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
     monate: angebot.monate,
     ...(angebot.vorlauf > 0 ? { vergabeBis: w.day + angebot.vorlauf * 30 } : {}),
     ...(angebot.zustandFertig !== undefined ? { zustandFertig: angebot.zustandFertig } : {}),
+    ...(v.frei ? { frei: true } : {}),
   });
   if (v.ast) z.gewaehlt[v.ast] = id;
   // Die Nebenwirkungen der Vergabe; an der Korruptionsgröße hängt die Wahrscheinlichkeit von Affären-Ereignissen
@@ -683,6 +714,24 @@ export function reichMonat(w: World, _rng?: Rng): void {
     genutzt += aufnahme;
     // Stammfirma: Nähe ohne Wettbewerb nährt jeden Baumonat das Korruptionsrisiko (und damit die Affären-Ereignisse)
     if (laufVergabe(l) === "stammfirma") wirke(w, "korruption", STAMMFIRMA_KORRUPTION_MONAT);
+    // Freie Großprojekte (INF-4): Die Schätzung ist ein Band. An der 35-%-Marke des Baus fällt der Wurf,
+    // ob die Kostenüberschreitung eintritt (Schiene ~45 %, Straße ~20 %, Prestige bis ~70 % — Spielparameter)
+    if (l.frei && !l.ueberzugGeprueft && bau > 0 && l.fortschritt / bau >= 0.35) {
+      l.ueberzugGeprueft = true;
+      const eintrag = z.frei?.[l.id];
+      const rngU = _rng ?? new Rng(w.rngState);
+      const ueberzug = rngU.next() < (eintrag?.schaetzung.ueberzugP ?? 0.5);
+      const frac = ueberzug ? Math.round(rngU.between(...(eintrag?.schaetzung.ueberzugBand ?? [0.2, 0.4])) * 100) / 100 : 0;
+      if (!_rng) w.rngState = rngU.state;
+      if (ueberzug && frac > 0) {
+        const extra = Math.round(bau * frac);
+        l.bau = bau + extra;
+        if (v.kosten.schulden) w.economy.debtRatio += v.kosten.schulden * frac;
+        wirke(w, "legitimitaet", -0.6);
+        meldung(w, "ueberzug", `Kostenüberschreitung bei „${v.name}“: Der Bau braucht etwa ${Math.round(frac * 100)} % mehr — Kosten und Zeit steigen.`);
+        addLog(w, "entscheidung", `Kostenüberschreitung: ${v.name}`, `Die Schätzung war ein Band; die Verwirklichung liegt ${Math.round(frac * 100)} % über der ursprünglichen Ansage. Solche Überschreitungen sind bei Großprojekten eher Regel als Ausnahme (Spielparameter, keine Tatsachen).`);
+      }
+    }
     if (v.kosten.schulden && bau > 0) w.economy.debtRatio += (v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * aufnahme) / bau;
     if (l.fortschritt >= bau - 1e-6) schliesseAb(w, v);
   }

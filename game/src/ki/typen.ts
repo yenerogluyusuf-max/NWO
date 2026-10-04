@@ -42,6 +42,7 @@ export type KiAktion =
   | { art: "ereignis"; id: string; option: string; grund?: string }
   | { art: "zeit"; tage: number; grund?: string }
   | { art: "vorhaben"; id: string; grund?: string }
+  | { art: "grossprojekt"; text: string; vergabe?: "stammfirma" | "sparvergabe" | "ausschreibung"; grund?: string }
   | { art: "verfassung"; handlung: string; paket?: Record<string, string>; grund?: string }
   | { art: "abkommen"; land: string; bieten: string[]; verlangen: string[]; jahre?: number; grund?: string }
   | { art: "vermittlung"; id: string; grund?: string }

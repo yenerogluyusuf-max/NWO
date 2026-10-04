@@ -75,6 +75,7 @@ Ohne Aktion: "aktionen":[]. Mögliche Aktionen (Feld "art"):
 {"art":"ereignis","id":"<Ereignis-ID>","option":"<Options-ID>","grund":"…"}
 {"art":"zeit","tage":<1-90>,"grund":"…"}
 {"art":"vorhaben","id":"<Vorhaben-ID>","grund":"…"}  (ein Vorhaben des Reiches beginnen)
+{"art":"grossprojekt","text":"<freie Projektbeschreibung, z. B. ‚größter Hafen der Welt bei Mersin‘ oder ‚Autobahn bis China‘>","vergabe":"stammfirma|sparvergabe|ausschreibung","grund":"…"}  (freies Großprojekt: der Kern schätzt Kosten, Dauer und Wirkung als Bandbreiten; bei Grenzübertritt erst die Transit-Verhandlungen, dann der Beginn)
 {"art":"abkommen","land":"<Länder-ID>","bieten":["<Klausel-ID>",…],"verlangen":["<Klausel-ID>",…],"jahre":2|5|10,"grund":"…"}  (Vertrag anbieten; nur Klauseln, die es bei dem Land gibt)
 {"art":"vermittlung","id":"ukr_rus|arm_aze","grund":"…"}
 {"art":"verfassung","handlung":"einbringen","paket":{"amtszeit":"wiederwahl_plus|neuwahl_jetzt","wahlrecht":"fuenf|zehn","justiz":"acht_sieben|parlament_staerkt","notstand":"eng|weit","immunitaet":"aufgehoben"},"grund":"…"}  (Verfassungspaket einbringen; nur geänderte Artikel nennen; einmal je Amtszeit)
@@ -194,6 +195,17 @@ export function zustandsText(w: World): string {
   z.push(
     `Reich: Verwaltungskraft ${rund(vb.vorrat)} (${vb.netto >= 0 ? "+" : "−"}${nf(Math.abs(vb.netto))} je Monat), Baukapazität ${rund(bauKapazitaet(w))}. Fertig ${Object.keys(rz.bestand).length}. Laufend: ${laufendReich.length ? laufendReich.join(", ") : "keine"}. Sofort beginnbar: ${beginnbar.length ? beginnbar.join(", ") : "keine"}.`,
   );
+  const freie = Object.entries(rz.frei ?? {});
+  if (freie.length)
+    z.push(
+      "Freie Großprojekte: " +
+        freie
+          .map(([id, e]) => {
+            const transit = e.transit ? `, Transit: ${Object.entries(e.transit).map(([lId, st]) => `${lId}=${st}`).join(", ")}` : "";
+            return `${id} „${e.def.name}“ (${e.stand === "begonnen" ? "begonnen" : `Entwurf, geschätzt ${e.schaetzung.bau.tief}–${e.schaetzung.bau.hoch} Baupunkte`}${transit})`;
+          })
+          .join("; "),
+    );
   const vertraege = alleLaufenden(w);
   z.push(
     vertraege.length

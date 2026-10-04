@@ -71,6 +71,11 @@ export function VorhabenKarte({
       )}
       <div className="rr-karte-kopf">
         <span className="rr-klasse">{KLASSEN_NAMEN[v.klasse]}</span>
+        {v.frei && (
+          <span className="rr-plakette geschaetzt" title="Frei eingegebenes Vorhaben: Kosten und Wirkungen sind Schätzungen aus dem 3-Ebenen-Modell; Überschreitungen sind möglich.">
+            geschätzt
+          </span>
+        )}
         {s.vergabe && (s.status === "im_bau" || s.status === "pausiert") && (
           <span className="rr-plakette" title={`Vergeben als: ${VERGABE_NAMEN[s.vergabe]} — die Wahl steht seit dem Beginn fest.`}>
             {VERGABE_NAMEN[s.vergabe]}

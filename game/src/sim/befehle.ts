@@ -41,6 +41,7 @@ import {
 } from "./verfassung";
 import { antworten, entscheide, vorlage } from "./ereignisse";
 import { aktiveKriege, fuehreKriegHandlungAus, handlungenFuer, kriegMit, PHASEN_NAME, type KriegHandlungId } from "./krieg";
+import { entwirf, friedensAntwort, schaetzKurz, siehtNachGrossprojekt } from "./grossprojekt";
 import { INITIATIVE_VORLAGE_IDS } from "./initiative";
 import { Rng } from "./rng";
 import type { World } from "./types";
@@ -196,6 +197,16 @@ const SYNONYME: Record<string, string[]> = {
   erdbeben: ["m_stadterneuerung", "m_bauaufsicht"],
   erdbebenhilfe: ["m_stadterneuerung", "m_bauaufsicht"],
   erdbebenvorsorge: ["m_stadterneuerung", "m_bauaufsicht"],
+  katastrophenschutz: ["m_afad_ausbau"],
+  katastrophe: ["m_afad_ausbau"],
+  afad: ["m_afad_ausbau"],
+  fruehwarnung: ["m_fruehwarnsystem"],
+  fruehwarnsystem: ["m_fruehwarnsystem"],
+  warnsystem: ["m_fruehwarnsystem"],
+  gebaeudeverstaerkung: ["m_gebaeudeverstaerkung"],
+  ertuechtigung: ["m_gebaeudeverstaerkung"],
+  versicherungspflicht: ["m_versicherungspflicht"],
+  pflichtversicherung: ["m_versicherungspflicht"],
   loehne: ["m_mindestlohn"],
   lohn: ["m_mindestlohn"],
   bildung: ["m_schulbau", "m_lehrergehaelter"],
@@ -366,7 +377,7 @@ const PROBLEM_REZEPT: Record<string, string[]> = {
   p_wassermangel: ["m_wasserleitungen", "m_bewaesserung"],
   p_wohnungsnot: ["m_sozialwohnungen", "m_baukredite"],
   p_aerztemangel: ["m_aerztegehalt", "m_krankenhausbau"],
-  p_erdbebengefahr: ["m_stadterneuerung", "m_bauaufsicht"],
+  p_erdbebengefahr: ["m_stadterneuerung", "m_bauaufsicht", "m_gebaeudeverstaerkung", "m_afad_ausbau"],
   p_armut: ["m_sozialhilfe", "m_mindestlohn"],
   p_jugendarbeitslosigkeit: ["m_ausbildung", "m_berufsschulen"],
   p_landflucht: ["m_regionalfoerderung", "m_breitband"],

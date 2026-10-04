@@ -5,25 +5,32 @@ const PARAMS = {
 	/** Ausländische Inflation in % (für den Inflationsabstand beim Wechselkurs) */
 	foreignInflation: 2.5,
 	/** Z1: Wirkung des Realzinses auf die Auslastung (je Prozentpunkt, pro Monat) */
-	rateOnGap: .05,
+	rateOnGap: .02,
+	/**
+	* Z1: Sättigung des Zinskanals (Prozentpunkte Realzins): Bei extremen Realzinsen
+	* (2021–2023: ex ante −30 bis −50) ist die Transmission über den Kreditkanal begrenzt
+	* (KKM, Finanzrepression, staatliche Kreditgarantien). Kalibrierung WIR-1: Ohne Deckel
+	* erzeugt der negative Realzins von 2022 einen Dauerstimulus von über +2 Punkten/Monat.
+	*/
+	rateTransmissionCap: 15,
 	/** Z1: Verzögerung in Monaten */
 	rateLagMonths: 6,
 	/** Persistenz der Auslastung pro Monat */
-	gapPersistence: .85,
+	gapPersistence: .92,
 	/** Z6: Wirkung zusätzlicher Staatsausgaben (% BIP) auf die Auslastung */
-	fiscalOnGap: .08,
+	fiscalOnGap: .1,
 	/** Z2: Wirkung der Auslastung auf die Inflation */
 	gapOnInflation: .5,
 	/** Z5: Weitergabe einer übermäßigen Abwertung an die Inflation */
-	fxPassThrough: .35,
+	fxPassThrough: .37,
 	/** Anpassungsgeschwindigkeit der Inflation pro Monat */
-	inflationSpeed: .2,
+	inflationSpeed: .22,
 	/** Z3: Anpassungsgeschwindigkeit der Erwartungen pro Monat */
-	expectationSpeed: .35,
+	expectationSpeed: .3,
 	/** Z9: Okun-Koeffizient (monatlich) */
-	okun: .055,
+	okun: .07,
 	/** Natürliche Arbeitslosenquote in % */
-	naturalUnemployment: 9,
+	naturalUnemployment: 9.4,
 	/** Z4: Wirkung des Realzinses auf die Abwertung (% p. a. je Prozentpunkt) */
 	carryOnFx: 1,
 	/** Tägliche Schwankung des Wechselkurses (Standardabweichung, Anteil) */
@@ -33,16 +40,43 @@ const PARAMS = {
 	/** Monatliche Annäherung der Zwischenziele an das langfristige Ziel (ergibt etwa 24, 15, 9, 5) */
 	targetGlide: .04,
 	/**
-	* ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 1 % des BIP
-	* lesen die Märkte als strukturelles Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
+	* ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
+	* lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
 	* Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
+	* Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
+	* Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
 	*/
-	politiklastAufRisiko: 40
+	/**
+	* ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
+	* lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
+	* Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
+	* Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
+	* Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
+	*/
+	politiklastAufRisiko: 130,
+	/**
+	* Z7: Anteil der Schulden in Fremdwährung oder indexiert (Spielparameter, Größenordnung Türkei ~40–50 %).
+	* Dieser Teil schmilzt nicht mit der Inflation, sondern folgt dem Wechselkurs — adressiert die
+	* dokumentierte Modellgrenze „FX-Bewertung der Schuldenquote“ (KALIBRIERUNG_LOG §6.1).
+	*/
+	fxSchuldAnteil: .4,
+	/**
+	* Z4: Abwertungsdruck bei leeren Reserven, Prozentpunkte Jahresdrift bei vollem Reserven-Druck (0–1).
+	* Märkte testen eine Zentralbank ohne Pulver (KALIBRIERUNG_LOG §6.4: fehlende Bestände im Kurs).
+	*/
+	fxReservenDruckMax: 12,
+	/**
+	* Z8: CDS-Zuschlag bei leeren Reserven, Basispunkte bei vollem Reserven-Druck (0–1)
+	* (KALIBRIERUNG_LOG §6.5: Märkte preisen den Reservenbestand, nicht nur Niveaus).
+	*/
+	cdsReservenDruckMax: 150,
+	/** Täglicher Verbrauch des Interventions-Puffers (fxPuffer) als Kursstütze (Anteil je Tag) */
+	interventionsPufferProTag: 5e-4
 };
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
 const AUSSEN = {
 	/** Prozentpunkte Inflation je Indexpunkt Energiepreis über 100 (Energieimporte) */
-	oelAufInflation: .02,
+	oelAufInflation: .03,
 	/** Auslastung (Prozentpunkte je Monat) je Indexpunkt Energiepreis */
 	oelAufAuslastung: .004,
 	/** Auslastung (Prozentpunkte je Monat) je Indexpunkt EU-Nachfrage */
@@ -63,19 +97,22 @@ function dailyDepreciation(e, rng) {
 	const inflationGap = e.expectedInflation - PARAMS.foreignInflation;
 	const carry = PARAMS.carryOnFx * (realRate(e) - PARAMS.neutralRealRate);
 	const risk = (e.riskPremium - 250) / 100;
-	const annual = inflationGap - carry + risk;
+	const reserven = PARAMS.fxReservenDruckMax * (e.reservenDruck ?? 0);
+	const annual = inflationGap - carry + risk + reserven;
 	const noise = rng.normal(PARAMS.fxNoise * (1.5 - e.credibility));
-	return annual / 100 / 365 + noise;
+	const stuetze = Math.min(e.fxPuffer ?? 0, PARAMS.interventionsPufferProTag);
+	if (stuetze > 0) e.fxPuffer = (e.fxPuffer ?? 0) - stuetze;
+	return annual / 100 / 365 + noise - stuetze;
 }
 /** Z8: täglicher Risikoaufschlag, zieht zum fundamentalen Wert. */
 function dailyRiskPremium(e, rng) {
-	const fundamental = 150 + 2.5 * Math.max(0, e.expectedInflation - 10) + 2 * Math.max(0, e.debtRatio - 40) + 200 * (1 - e.credibility) + PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 1) + AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
+	const fundamental = 150 + 2.5 * Math.max(0, e.expectedInflation - 10) + 2 * Math.max(0, e.debtRatio - 40) + 200 * (1 - e.credibility) + PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 2) + PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0) + AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
 	return e.riskPremium + .02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
 /** Monatliche Fortschreibung der Realwirtschaft (Z1, Z2, Z3, Z5, Z6, Z7, Z9). */
 function monthlyUpdate(e, history, rng) {
 	const lagged = history[history.length - PARAMS.rateLagMonths];
-	const laggedRealRate = lagged ? lagged.realRate : realRate(e);
+	const laggedRealRate = clamp(lagged ? lagged.realRate : realRate(e), -PARAMS.rateTransmissionCap, PARAMS.rateTransmissionCap);
 	e.outputGap = PARAMS.gapPersistence * e.outputGap - PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) + PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) + AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100) - AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) + rng.normal(.25);
 	const yearAgo = history[history.length - 12];
 	e.fxChange12 = yearAgo ? (e.usdTry / yearAgo.usdTry - 1) * 100 : e.inflation - PARAMS.foreignInflation;
@@ -89,7 +126,8 @@ function monthlyUpdate(e, history, rng) {
 	e.expectedInflation += PARAMS.expectationSpeed * (credibleAnchor - e.expectedInflation);
 	const r = realRate(e);
 	if (r > 1 && e.inflation < previousInflation) e.credibility += .01;
-	if (r < 0) e.credibility -= .02;
+	if (r < 0) e.credibility -= .012;
+	if (e.policyCost > 1.75) e.credibility -= .045 * Math.min(2.5, e.policyCost - 1.75);
 	e.credibility = clamp(e.credibility, .05, .95);
 	const gapYearAgo = yearAgo ? yearAgo.outputGap : e.outputGap;
 	e.growth = potential(e) + (e.outputGap - gapYearAgo);
@@ -97,12 +135,15 @@ function monthlyUpdate(e, history, rng) {
 	e.unemployment = clamp(e.unemployment, 3, 30);
 	const nominalGrowth = (e.growth + e.inflation) / 100;
 	e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0)) / 12 - e.debtRatio * nominalGrowth / 12;
+	const vormonat = history[history.length - 1];
+	const fxMonat = vormonat ? e.usdTry / vormonat.usdTry - 1 : 0;
+	e.debtRatio += PARAMS.fxSchuldAnteil * e.debtRatio * fxMonat;
 	e.debtRatio = Math.max(0, e.debtRatio);
 }
 /** Gewichte der Reaktionsregel je Haltung der Führung. */
 const PPK_GEWICHTE = {
 	vorsichtig: {
-		infl: .8,
+		infl: .5,
 		gap: .2,
 		bias: 0
 	},
@@ -952,12 +993,17 @@ g("wohnen", "wohnungsbau", "Wohnungsbau", 50, "Wie viele Wohnungen fertig werden
 g("wohnen", "bauwirtschaft", "Bauwirtschaft", 50, "Aufträge und Beschäftigung am Bau.");
 g("wohnen", "bauqualitaet", "Bauqualität", 45, "Ob Gebäude nach Vorschrift gebaut sind.");
 g("wohnen", "erdbebenvorsorge", "Erdbebenvorsorge", 40, "Wie viele Gebäude erdbebensicher sind und wie gut der Katastrophenschutz vorbereitet ist.");
+g("sicherheit", "katastrophenschutz", "Katastrophenschutz (AFAD)", 45, "Wie gut Behörde, Rettungskräfte, Lager und Frühwarnung auf Beben, Fluten und Brände vorbereitet sind (AFAD).");
 m("wohnen", "m_sozialwohnungen", "Staatlicher Wohnungsbau", 50, .4, 24, "Wohnungen der staatlichen Wohnungsbaubehörde, günstig verkauft oder vermietet.");
 m("wohnen", "m_mietdeckel", "Mietpreisbremse", 30, 0, 1, "Obergrenze für Mieterhöhungen.");
 m("wohnen", "m_stadterneuerung", "Erdbebensichere Stadterneuerung", 40, .5, 36, "Abriss und Neubau gefährdeter Häuser.");
 m("wohnen", "m_bauaufsicht", "Bauaufsicht", 40, .05, 12, "Unabhängige Prüfung von Statik und Material.");
 m("wohnen", "m_baukredite", "Günstige Baukredite", 35, .3, 3, "Zinsverbilligte Kredite für Wohnungskäufer.");
 m("wohnen", "m_bauamnestie", "Bauamnestie", 15, -.1, 2, "Nachträgliche Legalisierung illegaler Bauten gegen Gebühr.");
+m("wohnen", "m_gebaeudeverstaerkung", "Gebäude-Verstärkungsprogramm", 20, .6, 48, "Ertüchtigung tausender gefährdeter Altbauten — die teuerste und wirksamste Vorsorge am Bestand.");
+m("wohnen", "m_versicherungspflicht", "Katastrophen-Pflichtversicherung", 35, .05, 12, "Alle Gebäude gegen Beben und Flut versichert (DASK-Vorbild); der Staat haftet weniger mit.");
+m("sicherheit", "m_fruehwarnsystem", "Frühwarnsystem", 25, .15, 18, "Sensoren und Sekundenwarnungen für Beben und Sturzfluten, direkt auf die Geräte der Menschen.");
+m("sicherheit", "m_afad_ausbau", "Ausbau der Katastrophenbehörde (AFAD)", 40, .25, 24, "Personal, Materiallager und regionale Stützpunkte der Katastrophenbehörde.");
 p("wohnen", "p_wohnungsnot", "Wohnungsnot", 55, 60, "Mieten fressen die Einkommen, junge Familien finden keine Wohnung.");
 p("wohnen", "p_erdbebengefahr", "Erdbebengefahr", 55, 60, "Viele Gebäude würden ein starkes Beben nicht überstehen.");
 e("m_sozialwohnungen", "wohnungsbau", .05, 24, "Der Staat baut selbst.");
@@ -986,6 +1032,14 @@ e("mieten", "p_wohnungsnot", .1, 0, "Unbezahlbare Mieten werden zur Wohnungsnot.
 e("bauqualitaet", "erdbebenvorsorge", .03, 12, "Gut gebaute Häuser halten Beben stand.");
 e("korruption", "bauqualitaet", -.03, 6, "Wo geschmiert wird, wird gepfuscht.");
 e("erdbebenvorsorge", "p_erdbebengefahr", -.1, 0, "Wenig Vorsorge heißt große Gefahr.");
+e("m_afad_ausbau", "katastrophenschutz", .08, 24, "Mehr Personal, mehr Lager, schnellere Koordination im Ernstfall.");
+e("m_fruehwarnsystem", "katastrophenschutz", .05, 18, "Sekunden bis Minuten Warnung retten Leben.");
+e("m_versicherungspflicht", "katastrophenschutz", .03, 12, "Versicherte Schäden entlasten Behörde und Haushalt.");
+e("m_gebaeudeverstaerkung", "erdbebenvorsorge", .06, 48, "Ertüchtigte Altbauten halten Beben stand.");
+e("m_gebaeudeverstaerkung", "bauwirtschaft", .03, 12, "Ein jahrelanges Programm voller Aufträge.");
+e("m_versicherungspflicht", "unternehmer", -.01, 6, "Die Pflicht kostet Eigentümer und Betriebe.");
+e("katastrophenschutz", "erdbebenvorsorge", .02, 12, "Geübte Behörden drücken auch die Vorsorge am Bestand voran.");
+e("katastrophenschutz", "vertrauen_regierung", .015, 6, "Sichtbare Vorsorge gibt den Menschen Sicherheit.");
 g("sicherheit", "kriminalitaet", "Kriminalität", 45, "Diebstahl, Gewalt, organisierte Kriminalität.");
 g("sicherheit", "terrorgefahr", "Terrorgefahr", 40, "Gefahr von Anschlägen.");
 g("sicherheit", "justizvertrauen", "Vertrauen in die Justiz", 35, "Ob Menschen glauben, vor Gericht fair behandelt zu werden.");
@@ -1921,7 +1975,10 @@ const AUFMERKSAMKEIT_KOSTEN = {
 		hilfe: 6
 	},
 	reichVorhaben: 8,
-	programmSchritt: 4
+	programmSchritt: 4,
+	/** Ein Verfassungspaket ist der größte Vorgang der Bühne */
+	verfassungPaket: 14,
+	verfassungKampagne: 6
 };
 function verfassungStart() {
 	return {
@@ -2022,7 +2079,8 @@ function verfassungTag(w) {
 	const sp = w.spiel;
 	if (!sp || sp.ende) return;
 	const v = verfassungVon(w);
-	v.aufmerksamkeit = clamp(v.aufmerksamkeit + VERFASSUNG.regenProTag, 0, 100);
+	const wahlkampfAktiv = sp.wahlkampf !== void 0;
+	v.aufmerksamkeit = clamp(v.aufmerksamkeit + VERFASSUNG.regenProTag * (wahlkampfAktiv ? 1.5 : 1), 0, 100);
 	if (v.aufmerksamkeit < VERFASSUNG.erschoepfungAb) treiben(w, v, VERFASSUNG.erschoepfungProTag, "Regieren am Anschlag: Die Aufmerksamkeit ist erschöpft");
 	else if (v.aufmerksamkeit > VERFASSUNG.erholungAb) v.belastung = clamp(v.belastung - VERFASSUNG.erholungProTag, 0, 100);
 	if (v.pauseBis !== void 0 && v.pauseBis <= w.day) delete v.pauseBis;
@@ -2928,7 +2986,7 @@ function schutzFuer(w, ereignis) {
 	return w.spiel?.modifikatoren?.[`schutz:${ereignis}`] ?? 1;
 }
 /** Der nächste sinnvolle Schritt: bereit vor offen, Vermächtnis zuletzt; für den Schreibtisch. */
-function naechsterSchritt(w) {
+function naechsterSchritt$1(w) {
 	let beste = null;
 	for (const p of PROGRAMME) for (const s of p.schritte) {
 		const sicht = schrittSicht(w, s);
@@ -4644,13 +4702,13 @@ const REGIONAL = {
 };
 //#endregion
 //#region src/sim/ereignis-hilfen.ts
-const nf$5 = (x, d = 1) => x.toLocaleString("de-DE", {
+const nf$7 = (x, d = 1) => x.toLocaleString("de-DE", {
 	minimumFractionDigits: d,
 	maximumFractionDigits: d
 });
 const monatVon = (w) => Number(w.date.slice(5, 7));
 const sommer = (w) => monatVon(w) >= 6 && monatVon(w) <= 9;
-function namen(provinzen) {
+function namen$1(provinzen) {
 	const n = provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
 	if (n.length === 1) return n[0];
 	return `${n.slice(0, -1).join(", ")} und ${n[n.length - 1]}`;
@@ -4718,8 +4776,8 @@ const netz$1 = (w, id) => nationalAverage(NET, w.net, id);
 function beschr(pk, bipProzent, folge) {
 	const teile = [];
 	if (pk > 0) teile.push(`${pk} Kapital`);
-	if (bipProzent > 0) teile.push(`${nf$5(bipProzent, bipProzent < .1 ? 2 : 1)} % des BIP`);
-	return `${teile.length ? `Kostet ${teile.join(" und ")}` : bipProzent < 0 ? `Bringt ${nf$5(-bipProzent, 2)} % des BIP` : "Kostet nichts"}; ${folge}`;
+	if (bipProzent > 0) teile.push(`${nf$7(bipProzent, bipProzent < .1 ? 2 : 1)} % des BIP`);
+	return `${teile.length ? `Kostet ${teile.join(" und ")}` : bipProzent < 0 ? `Bringt ${nf$7(-bipProzent, 2)} % des BIP` : "Kostet nichts"}; ${folge}`;
 }
 /** Eine Zusage, die später fällig wird und dann als Ereignis eingefordert wird. */
 function zusageAnlegen(w, z) {
@@ -5578,7 +5636,7 @@ function weltMonat(w) {
 //#endregion
 //#region src/sim/folgen.ts
 /** Größen des Netzes, bei denen ein höherer Wert schlechter ist. */
-const SCHLECHT_WENN_HOCH$1 = /* @__PURE__ */ new Set([
+const SCHLECHT_WENN_HOCH$2 = /* @__PURE__ */ new Set([
 	"haftueberfuellung",
 	"ausnahmerecht",
 	"strassburg_druck",
@@ -5620,7 +5678,7 @@ function istGut(id, richtung) {
 	if (!n) return null;
 	if (id === "leitzins") return null;
 	if (n.kind === "massnahme") return null;
-	return n.kind === "problem" || SCHLECHT_WENN_HOCH$1.has(id) ? richtung < 0 : richtung > 0;
+	return n.kind === "problem" || SCHLECHT_WENN_HOCH$2.has(id) ? richtung < 0 : richtung > 0;
 }
 let ausgehend = null;
 function ausgehendeKanten() {
@@ -6052,7 +6110,10 @@ const EXTRA = {
 	armut: (w) => netz(w, "armut"),
 	kredite: (w) => netz(w, "kredite"),
 	auslandskapital: (w) => netz(w, "auslandskapital"),
-	zinslast: (w) => netz(w, "zinslast")
+	zinslast: (w) => netz(w, "zinslast"),
+	leistungsbilanz: (w) => w.economy.leistungsbilanzPctBip ?? w.economy.currentAccountPctGdp ?? -2.3,
+	reservenBrutto: (w) => w.economy.reservenBruttoUsdMrd ?? w.economy.grossReservesUsdBn ?? 0,
+	reservenNetto: (w) => w.economy.reservenNettoUsdMrd ?? w.economy.netReservesExSwapsUsdBn ?? 0
 };
 function neuerZentralbankZustand() {
 	return {
@@ -6119,6 +6180,3402 @@ function zeichneAuf(w) {
 		z.monate.shift();
 		for (const r of Object.values(z.reihen)) r.shift();
 	}
+}
+//#endregion
+//#region src/sim/rng.ts
+var Rng$1 = class {
+	state;
+	constructor(state) {
+		this.state = state;
+	}
+	/** Gleichverteilt in [0, 1). */
+	next() {
+		this.state = this.state + 1831565813 | 0;
+		let r = Math.imul(this.state ^ this.state >>> 15, this.state | 1);
+		r ^= r + Math.imul(r ^ r >>> 7, r | 61);
+		return ((r ^ r >>> 14) >>> 0) / 4294967296;
+	}
+	/** Normalverteilt mit Mittelwert 0 und Standardabweichung sd. */
+	normal(sd = 1) {
+		const u = Math.max(this.next(), 1e-12);
+		const v = this.next();
+		return sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+	}
+	/** Gleichverteilt in [min, max]. */
+	between(min, max) {
+		return min + (max - min) * this.next();
+	}
+};
+function seedToState(seed) {
+	return seed | 0;
+}
+//#endregion
+//#region src/sim/personen.ts
+const nf$6 = (x, d = 1) => x.toLocaleString("de-DE", {
+	minimumFractionDigits: d,
+	maximumFractionDigits: d
+});
+const AEMTER = {
+	finanzen: {
+		amt: "finanzen",
+		ressort: "Finanzen",
+		fach: [
+			"steuereinnahmen",
+			"vertrauen_maerkte",
+			"zinslast",
+			"steuermoral"
+		],
+		massnahmen: [
+			"m_einkommensteuer",
+			"m_mwst",
+			"m_steuerfahndung",
+			"m_verwaltungsdigital",
+			"m_steueramnestie",
+			"m_privatisierung"
+		],
+		wirkung: [
+			{
+				id: "steuermoral",
+				d: .12
+			},
+			{
+				id: "steuereinnahmen",
+				d: .1
+			},
+			{
+				id: "vertrauen_maerkte",
+				d: .1
+			}
+		],
+		stile: [
+			"nuechtern",
+			"vorsichtig",
+			"streng"
+		],
+		faehigkeit: [58, 82],
+		ehrgeiz: [30, 62],
+		lager: "markt",
+		regierungsamt: true,
+		entlassbar: true
+	},
+	inneres: {
+		amt: "inneres",
+		ressort: "Inneres",
+		fach: ["kriminalitaet", "terrorgefahr"],
+		massnahmen: [
+			"m_polizei",
+			"m_polizeitechnik",
+			"m_grenzschutz",
+			"m_versammlungsfreiheit"
+		],
+		wirkung: [{
+			id: "kriminalitaet",
+			d: -.12
+		}, {
+			id: "terrorgefahr",
+			d: -.1
+		}],
+		stile: [
+			"streng",
+			"machtbewusst",
+			"loyal"
+		],
+		faehigkeit: [52, 78],
+		ehrgeiz: [45, 78],
+		lager: "apparat",
+		regierungsamt: true,
+		entlassbar: true
+	},
+	aussen: {
+		amt: "aussen",
+		ressort: "Äußeres",
+		fach: [
+			"ansehen",
+			"beziehungen_eu",
+			"beziehungen_usa",
+			"beziehungen_russland",
+			"beziehungen_nahost"
+		],
+		massnahmen: [
+			"m_eu_annaeherung",
+			"m_integration",
+			"m_handelssysteme",
+			"m_grenzschutz"
+		],
+		wirkung: [{
+			id: "ansehen",
+			d: .1
+		}],
+		stile: [
+			"vorsichtig",
+			"eitel",
+			"nuechtern"
+		],
+		faehigkeit: [55, 80],
+		ehrgeiz: [35, 68],
+		lager: "diplomatie",
+		regierungsamt: true,
+		entlassbar: true
+	},
+	zentralbank: {
+		amt: "zentralbank",
+		ressort: "Zentralbank",
+		fach: ["vertrauen_maerkte", "lebenshaltung"],
+		massnahmen: ["m_bankenaufsicht"],
+		wirkung: [],
+		stile: [
+			"vorsichtig",
+			"streng",
+			"nuechtern"
+		],
+		faehigkeit: [60, 84],
+		ehrgeiz: [15, 40],
+		lager: "markt",
+		regierungsamt: false,
+		entlassbar: false
+	},
+	stab: {
+		amt: "stab",
+		ressort: "Präsidialamt",
+		fach: [
+			"vertrauen_regierung",
+			"legitimitaet",
+			"polarisierung"
+		],
+		massnahmen: ["m_digitale_oeffentlichkeit", "m_staatsmedien"],
+		wirkung: [{
+			id: "vertrauen_regierung",
+			d: .06
+		}],
+		stile: [
+			"loyal",
+			"nuechtern",
+			"machtbewusst"
+		],
+		faehigkeit: [55, 80],
+		ehrgeiz: [35, 60],
+		lager: "praesident",
+		regierungsamt: true,
+		entlassbar: true
+	},
+	justiz: {
+		amt: "justiz",
+		ressort: "Justiz",
+		fach: [
+			"justiz_unabhaengigkeit",
+			"justiz_effizienz",
+			"haftueberfuellung",
+			"urteilsbefolgung"
+		],
+		massnahmen: [
+			"m_justizreform",
+			"m_richterstellen",
+			"m_haftvermeidung",
+			"m_urteilsumsetzung",
+			"m_antikorruption"
+		],
+		wirkung: [{
+			id: "justiz_effizienz",
+			d: .1
+		}, {
+			id: "justizvertrauen",
+			d: .06
+		}],
+		stile: [
+			"nuechtern",
+			"streng",
+			"vorsichtig"
+		],
+		faehigkeit: [55, 80],
+		ehrgeiz: [25, 60],
+		lager: "justiz",
+		regierungsamt: true,
+		entlassbar: true
+	},
+	generalstab: {
+		amt: "generalstab",
+		ressort: "Streitkräfte",
+		fach: [
+			"bereitschaft_heer",
+			"bereitschaft_luft",
+			"bereitschaft_see",
+			"truppenmoral",
+			"offiziersvertrauen"
+		],
+		massnahmen: [
+			"m_verteidigung",
+			"m_uebungen",
+			"m_ruestungsindustrie",
+			"m_offiziersauswahl",
+			"m_wehrdienst"
+		],
+		wirkung: [{
+			id: "truppenmoral",
+			d: .1
+		}, {
+			id: "bereitschaft_heer",
+			d: .06
+		}],
+		stile: [
+			"streng",
+			"machtbewusst",
+			"vorsichtig"
+		],
+		faehigkeit: [58, 82],
+		ehrgeiz: [30, 70],
+		lager: "streitkraefte",
+		regierungsamt: true,
+		entlassbar: true
+	},
+	wirtschaft: {
+		amt: "wirtschaft",
+		ressort: "Wirtschaft",
+		fach: [
+			"investitionen",
+			"industrie",
+			"export",
+			"auslandskapital"
+		],
+		massnahmen: [
+			"m_investitionsanreize",
+			"m_exportfoerderung",
+			"m_kmu",
+			"m_industrie_modernisierung",
+			"m_kreditgarantien"
+		],
+		wirkung: [{
+			id: "investitionen",
+			d: .08
+		}, {
+			id: "industrie",
+			d: .06
+		}],
+		stile: [
+			"eitel",
+			"nuechtern",
+			"machtbewusst"
+		],
+		faehigkeit: [52, 78],
+		ehrgeiz: [40, 72],
+		lager: "markt",
+		regierungsamt: true,
+		entlassbar: true
+	},
+	partner: {
+		amt: "partner",
+		ressort: "Bündnispartei",
+		fach: ["vertrauen_regierung"],
+		massnahmen: [],
+		wirkung: [],
+		stile: [
+			"machtbewusst",
+			"nuechtern",
+			"eitel"
+		],
+		faehigkeit: [50, 70],
+		ehrgeiz: [55, 85],
+		lager: "partei",
+		regierungsamt: false,
+		entlassbar: false
+	},
+	opposition: {
+		amt: "opposition",
+		ressort: "Opposition",
+		fach: ["polarisierung"],
+		massnahmen: [],
+		wirkung: [],
+		stile: ["machtbewusst", "eitel"],
+		faehigkeit: [50, 72],
+		ehrgeiz: [70, 95],
+		lager: "opposition",
+		regierungsamt: false,
+		entlassbar: false
+	}
+};
+/** Ein deterministischer Zufall aus Text: verbraucht keinen Zufallsstrom des Spiels. */
+function hashZahl(s) {
+	let h = 2166136261;
+	for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+	h ^= h >>> 13;
+	h = Math.imul(h, 1540483477);
+	h ^= h >>> 15;
+	return (h >>> 0) / 4294967296;
+}
+const zwischen = (a, b, u) => Math.round(a + (b - a) * u);
+/** Das Profil einer Figur; wird angelegt, wenn es fehlt (ältere Spielstände, neue Nachfolger). */
+function eigenVon(w, f) {
+	if (f.eigen) return f.eigen;
+	const d = AEMTER[f.amt];
+	const s = `${w.seed}|${f.id}|${f.name}`;
+	const eigen = {
+		stil: d.stile[Math.floor(hashZahl(s + "|stil") * d.stile.length)],
+		faehigkeit: zwischen(d.faehigkeit[0], d.faehigkeit[1], hashZahl(s + "|fae")),
+		ehrgeiz: zwischen(d.ehrgeiz[0], d.ehrgeiz[1], hashZahl(s + "|ehr")),
+		groll: 0,
+		lager: d.lager,
+		seit: w.day,
+		erinnerung: []
+	};
+	f.eigen = eigen;
+	return eigen;
+}
+function figurNachId(w, id) {
+	return w.spiel?.figuren.find((f) => f.id === id);
+}
+function merke(w, f, text) {
+	const e = eigenVon(w, f);
+	e.erinnerung.push({
+		tag: w.day,
+		text
+	});
+	if (e.erinnerung.length > 10) e.erinnerung.shift();
+}
+const erinnerungen = (f) => [...f.eigen?.erinnerung ?? []].reverse();
+const klemme = (x, a = 0, b = 100) => Math.min(b, Math.max(a, x));
+function loyalitaetVerschieben(f, delta) {
+	f.loyalitaet = klemme(f.loyalitaet + delta);
+}
+function grollVerschieben(w, f, delta) {
+	const e = eigenVon(w, f);
+	e.groll = klemme(e.groll + delta);
+}
+/** Wie gut das Ressort läuft: 0 bis 1,3. Fähigkeit und Loyalität zählen, Zusatzmittel und Druck erhöhen. */
+function leistung(w, f) {
+	const e = eigenVon(w, f);
+	const basis = (.6 * e.faehigkeit + .4 * f.loyalitaet) / 100;
+	const mittel = e.mittelBis !== void 0 && e.mittelBis > w.day ? 1.25 : 1;
+	const druck = e.druckBis !== void 0 && e.druckBis > w.day ? 1.15 : 1;
+	const neu = (e.einarbeitungBis !== void 0 && e.einarbeitungBis > w.day ? .75 : 1) * (e.kommissarisch ? .8 : 1);
+	return klemme(basis * mittel * druck * neu, 0, 1.3);
+}
+function leistungWort(q) {
+	if (q >= .85) return "hervorragend";
+	if (q >= .7) return "gut";
+	if (q >= .55) return "solide";
+	if (q >= .4) return "schwach";
+	return "lähmend";
+}
+function grollWort(g) {
+	if (g >= 70) return "gekränkt";
+	if (g >= 40) return "verärgert";
+	if (g >= 15) return "gereizt";
+	return "gelassen";
+}
+function wertVon(w, id) {
+	return NET.index.has(id) ? nationalAverage(NET, w.net, id) : NaN;
+}
+/** Was eine Person gerade umtreibt, aus dem Weltzustand gerechnet (mit Zahlen). */
+function sorgeText(w, f) {
+	const e = w.economy;
+	const sp = w.spiel;
+	switch (f.amt) {
+		case "finanzen":
+			if (e.riskPremium > 450) return `Der Risikoaufschlag liegt bei ${Math.round(e.riskPremium)} Punkten; jede weitere Belastung des Haushalts kostet an den Märkten doppelt.`;
+			if (e.deficit > 4.5) return `Das Defizit liegt bei ${nf$6(e.deficit)} % des BIP und die Schulden bei ${nf$6(e.debtRatio)} %; er sieht keinen Spielraum für neue Ausgaben.`;
+			return `Die Schulden liegen bei ${nf$6(e.debtRatio)} % des BIP, das Defizit bei ${nf$6(e.deficit)} %; er will, dass der Haushalt keine Überraschungen bringt.`;
+		case "inneres": {
+			const k = wertVon(w, "kriminalitaet");
+			const t = wertVon(w, "terrorgefahr");
+			return `Die Kriminalität steht bei ${Math.round(k)} von 100, die Terrorgefahr bei ${Math.round(t)}; sie fürchtet, dass ihre Kräfte für beides nicht reichen.`;
+		}
+		case "aussen": {
+			const rang = LAENDER.map((l) => ({
+				l,
+				v: vertrauenZu(w, l.id)
+			})).sort((a, b) => a.v - b.v)[0];
+			return rang ? `Am schwierigsten ist das Verhältnis zu ${rang.l.dat} (Vertrauen ${Math.round(rang.v)} von 100); dort verliert er gerade Boden.` : "Er sorgt sich um die Bündnisse des Landes.";
+		}
+		case "zentralbank": return `Die Inflation liegt bei ${nf$6(e.inflation)} % (Ziel ${nf$6(e.inflationTarget)} %), der Leitzins bei ${nf$6(e.policyRate)} %; sie wacht darüber, dass ihre Unabhängigkeit nicht angetastet wird.`;
+		case "stab": return `Die Zustimmung liegt bei ${nf$6(sp.umfrage.zustimmung)} %, ${sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length} Zusagen sind offen und ${sp.gesetze.length} Gesetze liegen im Parlament; sie zählt jeden Tag bis zur Wahl.`;
+		case "justiz": {
+			const h = wertVon(w, "haftueberfuellung");
+			const u = wertVon(w, "justiz_unabhaengigkeit");
+			return `Die Haftanstalten sind zu ${Math.round(h)} von 100 überfüllt, die Unabhängigkeit der Justiz steht bei ${Math.round(u)}; sie will Verfahren beschleunigen, ohne dass es nach Einmischung aussieht.`;
+		}
+		case "generalstab": {
+			const m = wertVon(w, "truppenmoral");
+			const v = wertVon(w, "offiziersvertrauen");
+			return `Die Truppenmoral steht bei ${Math.round(m)}, das Vertrauen der Offiziere bei ${Math.round(v)}; ihn beschäftigen Ausrüstung, Beförderungen und wer sie entscheidet.`;
+		}
+		case "wirtschaft": return `Die Investitionen stehen bei ${Math.round(wertVon(w, "investitionen"))} von 100, das Wachstum bei ${nf$6(e.growth)} %; er will, dass sich das Land für Investoren nicht nach Willkür anfühlt.`;
+		case "partner": {
+			const offen = sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen && z.von === f.partei);
+			return offen.length ? `Er wartet auf ${offen.length === 1 ? "eine Zusage" : `${offen.length} Zusagen`}: ${offen[0].text.replace(/^Die [^ ]+ erwartet /, "")}` : `Er fragt, was seine Partei vom Bündnis hat.`;
+		}
+		case "opposition": return `Die Polarisierung liegt bei ${Math.round(wertVon(w, "polarisierung"))} von 100; er sucht den Fehler, den er Ihnen vorhalten kann.`;
+	}
+}
+//#endregion
+//#region src/sim/figuren.ts
+const VORNAMEN_F = [
+	"Selin",
+	"Derya",
+	"Zeynep",
+	"Nilay",
+	"Melis",
+	"Pınar",
+	"Gizem",
+	"Ebru",
+	"Sevgi",
+	"Nazlı",
+	"Ilgın",
+	"Damla",
+	"Aylin",
+	"Defne",
+	"Hande"
+];
+const VORNAMEN_M = [
+	"Kaan",
+	"Barış",
+	"Emre",
+	"Tolga",
+	"Volkan",
+	"Onur",
+	"Serkan",
+	"Levent",
+	"Murat",
+	"Cengiz",
+	"Orhan",
+	"Taner",
+	"Cem",
+	"Burak",
+	"Mert"
+];
+const NACHNAMEN = [
+	"Yücel",
+	"Karaca",
+	"Erdem",
+	"Aksoy",
+	"Kılıç",
+	"Tunç",
+	"Arıkan",
+	"Özgür",
+	"Bozkurt",
+	"Çelik",
+	"Sarı",
+	"Koçak",
+	"Ateş",
+	"Işık",
+	"Uysal",
+	"Yalçın",
+	"Duran",
+	"Güler",
+	"Polat",
+	"Demirci",
+	"Kaplan",
+	"Sezer",
+	"Turan",
+	"Akın"
+];
+const ROLLEN = [
+	{
+		id: "finanzen",
+		amt: "finanzen",
+		rolle: () => "Finanzminister",
+		ziel: "Ein Haushalt ohne Überraschungen und Märkte, die dem Land vertrauen.",
+		start: 62,
+		weiblich: false
+	},
+	{
+		id: "inneres",
+		amt: "inneres",
+		rolle: () => "Innenministerin",
+		ziel: "Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte.",
+		start: 60,
+		weiblich: true
+	},
+	{
+		id: "aussen",
+		amt: "aussen",
+		rolle: () => "Außenminister",
+		ziel: "Verlässliche Partner und ein Land, das mit allen redet.",
+		start: 58,
+		weiblich: false
+	},
+	{
+		id: "zentralbank",
+		amt: "zentralbank",
+		rolle: () => "Gouverneurin der Zentralbank",
+		ziel: "Preisstabilität, auch wenn sie unbeliebt macht.",
+		start: 50,
+		weiblich: true
+	},
+	{
+		id: "stab",
+		amt: "stab",
+		rolle: () => "Chefin des Präsidialamts",
+		ziel: "Dass der Präsident seine Amtszeit übersteht und etwas hinterlässt.",
+		start: 75,
+		weiblich: true
+	},
+	{
+		id: "opposition",
+		amt: "opposition",
+		rolle: () => "Oppositionsführer",
+		ziel: "Die Regierung vorführen und die nächste Wahl gewinnen.",
+		start: 25,
+		weiblich: false
+	}
+];
+/** Weitere Ämter, die das Umfeld seit dem Ausbau der Personen tragen: Justiz, Streitkräfte, Wirtschaft. Eigener Zufallsstrom, damit alte Partien gleich bleiben. */
+const ZUSATZ_ROLLEN = [
+	{
+		id: "justiz",
+		amt: "justiz",
+		rolle: () => "Justizministerin",
+		ziel: "Verfahren beschleunigen, ohne dass es nach Einmischung aussieht.",
+		start: 55,
+		weiblich: true
+	},
+	{
+		id: "generalstab",
+		amt: "generalstab",
+		rolle: () => "Chef des Generalstabs",
+		ziel: "Einsatzbereite Streitkräfte und eine Beförderungspraxis, die die Truppe versteht.",
+		start: 52,
+		weiblich: false
+	},
+	{
+		id: "wirtschaft",
+		amt: "wirtschaft",
+		rolle: () => "Wirtschaftsminister",
+		ziel: "Ein Land, in dem sich Investieren lohnt und Gesetze nicht über Nacht wechseln.",
+		start: 60,
+		weiblich: false
+	}
+];
+function name(rng, benutzt, weiblich) {
+	for (;;) {
+		const vor = weiblich ?? rng.next() < .5 ? VORNAMEN_F : VORNAMEN_M;
+		const n = `${vor[Math.floor(rng.next() * vor.length)]} ${NACHNAMEN[Math.floor(rng.next() * NACHNAMEN.length)]}`;
+		if (!benutzt.has(n)) {
+			benutzt.add(n);
+			return n;
+		}
+	}
+}
+/** Ein Name, der im Umfeld noch nicht vorkommt. */
+const neuerName = name;
+/** Erzeugt das Umfeld beim Amtsantritt. Das Regierungslager hat als Partner den Vorsitz der Bündnispartei. */
+function erzeugeFiguren(world, rng) {
+	const benutzt = /* @__PURE__ */ new Set();
+	const figuren = ROLLEN.map((r) => ({
+		id: r.id,
+		name: name(rng, benutzt, r.weiblich),
+		weiblich: r.weiblich,
+		rolle: r.rolle(world),
+		amt: r.amt,
+		ziel: r.ziel,
+		loyalitaet: r.start,
+		imAmt: true
+	}));
+	const partner = world.player?.buendnis;
+	if (partner) figuren.push({
+		id: "partner",
+		name: name(rng, benutzt, false),
+		weiblich: false,
+		rolle: `Vorsitz der ${partner}`,
+		amt: "partner",
+		ziel: "Ministerien, Einfluss und die Zusagen aus dem Wahlkampf.",
+		loyalitaet: 55,
+		imAmt: true,
+		partei: partner
+	});
+	figuren.push(...zusatzFiguren(world, figuren, new Rng$1(world.seed ^ 20973 | 0)));
+	return figuren;
+}
+function zusatzFiguren(world, vorhanden, rng) {
+	const benutzt = new Set(vorhanden.map((f) => f.name));
+	return ZUSATZ_ROLLEN.filter((r) => !vorhanden.some((f) => f.amt === r.amt)).map((r) => ({
+		id: r.id,
+		name: name(rng, benutzt, r.weiblich),
+		weiblich: r.weiblich,
+		rolle: r.rolle(world),
+		amt: r.amt,
+		ziel: r.ziel,
+		loyalitaet: r.start,
+		imAmt: true
+	}));
+}
+/** Ältere Spielstände haben die neuen Ämter noch nicht: sie werden einmal ergänzt. */
+function ergaenzeFiguren(world) {
+	const sp = world.spiel;
+	if (!sp) return;
+	if (!ZUSATZ_ROLLEN.some((r) => !sp.figuren.some((f) => f.amt === r.amt))) return;
+	sp.figuren.push(...zusatzFiguren(world, sp.figuren, new Rng$1(world.seed ^ 20973 ^ Math.imul(world.day, 2654435761) | 0)));
+}
+function figur(world, amt) {
+	return world.spiel?.figuren.find((f) => f.amt === amt);
+}
+function anrede(f) {
+	return f ? `${f.rolle} ${f.name}` : "";
+}
+function aendere(world, f, delta, grund) {
+	if (!f) return;
+	const vorher = f.loyalitaet;
+	f.loyalitaet = Math.min(100, Math.max(0, f.loyalitaet + delta));
+	if (grund && Math.abs(delta) >= 3 && Math.floor(vorher / 25) !== Math.floor(f.loyalitaet / 25)) addLog(world, "ereignis", `${anrede(f)}: ${f.loyalitaet > vorher ? "die Stimmung bessert sich" : "die Stimmung kippt"}.`, grund);
+}
+/** Figuren reagieren auf eine Änderung: erhöht (+1) oder gesenkt (−1). */
+function reagiereFiguren(world, theme, massnahme, richtung) {
+	if (!world.spiel || richtung === 0) return;
+	const kosten = NET.nodes[NET.index.get(massnahme) ?? -1]?.cost ?? 0;
+	if (kosten > 0) aendere(world, figur(world, "finanzen"), -richtung * 1.5, "Der Finanzminister mag keine Ausgaben ohne Deckung.");
+	else if (kosten < 0) aendere(world, figur(world, "finanzen"), richtung * 1, "Mehr Einnahmen sind ihm recht.");
+	if (theme === "sicherheit" || massnahme === "m_grenzschutz") aendere(world, figur(world, "inneres"), richtung * 2, "Die Innenministerin liest das als Rückhalt (oder Entzug) für die Sicherheitskräfte.");
+	if (theme === "aussen") aendere(world, figur(world, "aussen"), richtung * 1.5, "Der Außenminister misst das daran, was es den Gesprächen mit den Partnern bringt.");
+	if (theme === "recht") aendere(world, figur(world, "justiz"), richtung * (massnahme === "m_notstand" ? -2 : 1.5), "Die Justizministerin misst das daran, ob die Gerichte gestärkt oder beschnitten werden.");
+	if (theme === "militaer") aendere(world, figur(world, "generalstab"), richtung * (massnahme === "m_offiziersauswahl" ? .5 : 2), "Der Chef des Generalstabs liest das als Rückhalt (oder Entzug) für die Truppe.");
+	if (theme === "wirtschaft") aendere(world, figur(world, "wirtschaft"), richtung * (WIRTSCHAFT_EINGRIFF[massnahme] ?? 1.2), "Der Wirtschaftsminister misst das daran, was es Investoren und Betrieben bringt.");
+	aendere(world, figur(world, "opposition"), -.3);
+}
+/** Maßnahmen der Wirtschaft, die Betriebe belasten statt fördern (Vorzeichen der Reaktion des Wirtschaftsministers). */
+const WIRTSCHAFT_EINGRIFF = {
+	m_mindestlohn: -1,
+	m_preiskontrollen: -1.5,
+	m_zoelle: -.5
+};
+/** Wer geht, merkt sich den Streit: Der Ehemalige kann später gegen den Präsidenten aussagen. */
+function ehemaligeMerken(world, f, grund, groll) {
+	const sp = world.spiel;
+	if (!sp) return;
+	const e = eigenVon(world, f);
+	const g = groll ?? Math.min(100, Math.max(0, 35 + e.groll * .5 + (f.loyalitaet < 30 ? 20 : 0)));
+	(sp.ehemalige ??= []).push({
+		name: f.name,
+		...f.weiblich !== void 0 ? { weiblich: f.weiblich } : {},
+		amt: f.amt,
+		rolle: f.rolle,
+		ausgeschieden: world.day,
+		groll: Math.round(g),
+		ehrgeiz: e.ehrgeiz,
+		lager: e.lager,
+		grund,
+		ausgepackt: false
+	});
+	if (sp.ehemalige.length > 12) sp.ehemalige.shift();
+}
+/** Setzt einen neuen Menschen auf das Amt: Name, Loyalität und Profil ändern sich, Rolle und Aufgabe bleiben. */
+function besetzeNeu(world, f, b) {
+	f.name = b.name;
+	if (b.weiblich !== void 0) f.weiblich = b.weiblich;
+	f.loyalitaet = b.loyalitaet;
+	f.imAmt = true;
+	delete f.gespraech;
+	delete f.eigen;
+	const e = eigenVon(world, f);
+	if (b.stil) e.stil = b.stil;
+	if (b.faehigkeit !== void 0) e.faehigkeit = b.faehigkeit;
+	if (b.ehrgeiz !== void 0) e.ehrgeiz = b.ehrgeiz;
+	if (b.lager) e.lager = b.lager;
+	e.seit = world.day;
+	e.einarbeitungBis = world.day + 60;
+	if (b.kommissarisch) e.kommissarisch = true;
+	if (b.notiz) merke(world, f, b.notiz);
+}
+/** Ersetzt ein Regierungsmitglied durch eine kommissarische Leitung (etwa nach einer Affäre); ein Nachfolger lässt sich danach ernennen. */
+function ersetze(world, amt, rng) {
+	const alt = figur(world, amt);
+	const spiel = world.spiel;
+	if (!alt || !spiel) return void 0;
+	const benutzt = new Set(spiel.figuren.map((f) => f.name));
+	const spec = ROLLEN.find((r) => r.amt === amt) ?? ZUSATZ_ROLLEN.find((r) => r.amt === amt);
+	const neu = name(rng, benutzt, spec?.weiblich);
+	const loyal = Math.round(50 + rng.between(-8, 16));
+	const vorher = `${alt.rolle} ${alt.name}`;
+	ehemaligeMerken(world, alt, "im Zuge einer Affäre ausgeschieden", 60);
+	besetzeNeu(world, alt, {
+		name: neu,
+		loyalitaet: loyal,
+		kommissarisch: true,
+		notiz: `Kommissarisch eingesetzt nach dem Ausscheiden von ${vorher}`
+	});
+	if (spec) alt.ziel = spec.ziel;
+	return alt;
+}
+/** Wie gern die Figur dem Präsidenten noch folgt, in Worten. */
+function haltung(f) {
+	if (f.loyalitaet >= 75) return "loyal";
+	if (f.loyalitaet >= 55) return "verlässlich";
+	if (f.loyalitaet >= 35) return "distanziert";
+	if (f.loyalitaet >= 20) return "verärgert";
+	return "kurz vor dem Bruch";
+}
+/** Für Ereignisse und Handlungen des Spielers: die Loyalität einer Figur verschieben. */
+function loyalitaetAendern(world, amt, delta, grund) {
+	aendere(world, figur(world, amt), delta, grund);
+}
+/** Der Vorsitz einer Partnerpartei als Figur mit eigenem Namen. */
+function partnerFigur(world, partei, rolle, ziel, rng) {
+	const benutzt = new Set((world.spiel?.figuren ?? []).map((f) => f.name));
+	const weiblich = rng.next() < .35;
+	return {
+		id: `partner-${partei}`,
+		name: name(rng, benutzt, weiblich),
+		weiblich,
+		rolle,
+		amt: "partner",
+		ziel,
+		loyalitaet: 55,
+		imAmt: true,
+		partei
+	};
+}
+/** Ein neuer, noch nicht vergebener Name für Nebenfiguren in Ereignissen (Bürgermeister, Chefredakteure, Vorstände). */
+function zufallsName(world, rng) {
+	return name(rng, new Set((world.spiel?.figuren ?? []).map((f) => f.name)));
+}
+//#endregion
+//#region src/sim/berichte.ts
+const REGEL = {
+	schwelle: 8,
+	berichteNachMonaten: [6, 12]
+};
+function zielGroessen(id) {
+	return NET.edges.filter((e) => e.from === id).sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight)).slice(0, 4).map((e) => ({
+		id: e.to,
+		erwartung: e.weight >= 0 ? 1 : -1
+	}));
+}
+function problemeUm(id) {
+	const nah = /* @__PURE__ */ new Set();
+	for (const e of NET.edges) if (e.from === id) nah.add(e.to);
+	for (const e of NET.edges) if (nah.has(e.from)) nah.add(e.to);
+	return [...nah].filter((n) => NET.nodes[NET.index.get(n)].kind === "problem");
+}
+function akutZahl(world, id) {
+	const node = NET.nodes[NET.index.get(id)];
+	const i = NET.index.get(id);
+	let n = 0;
+	for (let p = 0; p < 81; p++) if (node.threshold && world.net.values[i * 81 + p] >= node.threshold) n++;
+	return n;
+}
+/** Nach einem Beschluss festhalten, wie die Lage vorher war. */
+function beobachte(world, id, von, auf, ort) {
+	const spiel = world.spiel;
+	if (!spiel || Math.abs(auf - von) < REGEL.schwelle) return;
+	const node = NET.nodes[NET.index.get(id)];
+	if (!node || node.kind !== "massnahme") return;
+	const werte = {};
+	for (const z of zielGroessen(id)) if (!NET.nodes[NET.index.get(z.id)].input) werte[z.id] = nationalAverage(NET, world.net, z.id);
+	const akut = {};
+	for (const p of problemeUm(id)) akut[p] = akutZahl(world, p);
+	(spiel.beobachtungen ??= []).push({
+		id,
+		name: node.name,
+		tag: world.day,
+		von,
+		auf,
+		ort,
+		werte,
+		akut,
+		berichtet: []
+	});
+	if (spiel.beobachtungen.length > 60) spiel.beobachtungen.shift();
+}
+const nf$5 = (x) => x.toLocaleString("de-DE", {
+	minimumFractionDigits: 1,
+	maximumFractionDigits: 1
+});
+function bericht(world, b, monate) {
+	const node = NET.nodes[NET.index.get(b.id)];
+	const zeilen = [];
+	let passt = 0;
+	let gegen = 0;
+	let bewegt = 0;
+	const ziele = zielGroessen(b.id);
+	for (const z of ziele) {
+		if (b.werte[z.id] === void 0) continue;
+		const n = NET.nodes[NET.index.get(z.id)];
+		const jetzt = nationalAverage(NET, world.net, z.id);
+		const d = jetzt - b.werte[z.id];
+		const erwartet = z.erwartung * (b.auf > b.von ? 1 : -1);
+		zeilen.push(`${n.name}: ${nf$5(b.werte[z.id])} auf ${nf$5(jetzt)} (${d >= 0 ? "+" : "−"}${nf$5(Math.abs(d))})`);
+		if (Math.abs(d) >= .8) {
+			bewegt++;
+			if (d * erwartet > 0) passt++;
+			else if (Math.abs(d) >= 1.5) gegen++;
+		}
+	}
+	for (const [pid, vorher] of Object.entries(b.akut)) {
+		const jetzt = akutZahl(world, pid);
+		if (jetzt === vorher && vorher === 0) continue;
+		const n = NET.nodes[NET.index.get(pid)];
+		zeilen.push(`${n.name}: akut in ${vorher} auf ${jetzt} Provinzen`);
+		if (jetzt < vorher) passt++;
+		else if (jetzt > vorher + 1) gegen++;
+	}
+	const rest = Math.max(0, (node.months ?? 1) - monate);
+	const urteil = passt >= 1 && gegen === 0 ? "gut" : passt >= 1 && gegen >= 1 ? "gemischt" : bewegt === 0 ? "schwach" : "keine";
+	const orte = b.ort ? ` (nur in ${b.ort.length} ${b.ort.length === 1 ? "Provinz" : "Provinzen"})` : "";
+	return {
+		tag: world.day,
+		datum: world.date,
+		massnahme: b.id,
+		titel: `${b.name}${orte}: Stufe ${Math.round(b.von)} auf ${Math.round(b.auf)}, ${monate} Monate danach`,
+		monate,
+		urteil,
+		zeilen,
+		hinweis: (rest > 0 ? `Die volle Wirkung braucht noch etwa ${rest} ${rest === 1 ? "Monat" : "Monate"}. ` : "") + (urteil === "gut" ? "Es wirkt in die gewünschte Richtung." : urteil === "gemischt" ? "Es wirkt, aber anderes hat sich verschlechtert; ob es an dieser Maßnahme liegt, zeigt das Politiknetz." : urteil === "schwach" ? "Bisher ist kaum etwas zu sehen." : "Die Zahlen bewegen sich nicht in die gewünschte Richtung.") + " Die Zahlen zeigen die Veränderung insgesamt, nicht nur die dieser Maßnahme."
+	};
+}
+/** Täglich: Fällige Berichte schreiben. */
+function berichteTag(world) {
+	const spiel = world.spiel;
+	if (!spiel?.beobachtungen) return;
+	for (const b of spiel.beobachtungen) for (const m of REGEL.berichteNachMonaten) {
+		if (b.berichtet.includes(m) || world.day - b.tag < m * 30) continue;
+		b.berichtet.push(m);
+		const r = bericht(world, b, m);
+		(spiel.berichte ??= []).push(r);
+		if (spiel.berichte.length > 80) spiel.berichte.shift();
+		spiel.chronik.push({
+			tag: world.day,
+			datum: world.date,
+			titel: `Wirkungsbericht: ${b.name}`,
+			ausgang: `${r.zeilen.slice(0, 2).join("; ")}. ${r.urteil === "gut" ? "Es wirkt." : r.urteil === "schwach" ? "Bisher kaum Wirkung." : r.urteil === "gemischt" ? "Gemischte Bilanz." : "Keine Wirkung in die gewünschte Richtung."}`
+		});
+		addLog(world, "ereignis", `Wirkungsbericht: ${b.name}, ${m} Monate danach`, r.zeilen.join("; ") + ". " + r.hinweis);
+	}
+}
+//#endregion
+//#region src/sim/fraktionen.ts
+/** Woran eine Fraktion ihre Unterstützung knüpft. */
+const FORDERUNG = {
+	AKP: {
+		massnahme: "m_religioese_schulen",
+		text: "mehr Rückhalt für religiöse Schulen"
+	},
+	"YENİ": {
+		massnahme: "m_wissenschaftsfreiheit",
+		text: "mehr Wissenschaftsfreiheit"
+	},
+	DEM: {
+		massnahme: "m_friedensprozess",
+		text: "Fortschritte im Friedensprozess"
+	},
+	MHP: {
+		massnahme: "m_verteidigung",
+		text: "höhere Verteidigungsausgaben"
+	},
+	"İYİ": {
+		massnahme: "m_grenzschutz",
+		text: "mehr Grenzschutz"
+	},
+	CHP: {
+		massnahme: "m_justizreform",
+		text: "eine Justizreform"
+	},
+	Zafer: {
+		massnahme: "m_grenzschutz",
+		text: "deutlich mehr Grenzschutz"
+	},
+	YRP: {
+		massnahme: "m_religionsbehoerde",
+		text: "mehr Mittel für die Religionsbehörde"
+	}
+};
+/** Was eine Fraktion je nach Lage fordern kann; nur Maßnahmen, die man erhöhen soll. Die Forderung wechselt alle paar Monate. */
+const FORDERUNGEN = {
+	AKP: [
+		{
+			massnahme: "m_religioese_schulen",
+			text: "mehr Rückhalt für religiöse Schulen"
+		},
+		{
+			massnahme: "m_kindergeld",
+			text: "ein höheres Kindergeld"
+		},
+		{
+			massnahme: "m_bauindustrie",
+			text: "Aufträge und Förderung für die Bauindustrie"
+		},
+		{
+			massnahme: "m_agrarsubventionen",
+			text: "höhere Agrarsubventionen"
+		},
+		{
+			massnahme: "m_autobahnen",
+			text: "neue Autobahnen und Brücken"
+		}
+	],
+	"YENİ": [
+		{
+			massnahme: "m_wissenschaftsfreiheit",
+			text: "mehr Wissenschaftsfreiheit"
+		},
+		{
+			massnahme: "m_investitionsanreize",
+			text: "Investitionsanreize für Unternehmen"
+		},
+		{
+			massnahme: "m_kmu",
+			text: "Förderung für den Mittelstand"
+		},
+		{
+			massnahme: "m_verwaltungsdigital",
+			text: "eine digitale Verwaltung"
+		},
+		{
+			massnahme: "m_forschung",
+			text: "mehr Geld für Forschung"
+		}
+	],
+	CHP: [
+		{
+			massnahme: "m_justizreform",
+			text: "eine Justizreform"
+		},
+		{
+			massnahme: "m_gewaltschutz",
+			text: "besseren Schutz vor Gewalt gegen Frauen"
+		},
+		{
+			massnahme: "m_sozialwohnungen",
+			text: "mehr Sozialwohnungen"
+		},
+		{
+			massnahme: "m_stipendien",
+			text: "mehr Stipendien für Studierende"
+		},
+		{
+			massnahme: "m_mindestlohn",
+			text: "einen höheren Mindestlohn"
+		}
+	],
+	MHP: [
+		{
+			massnahme: "m_verteidigung",
+			text: "höhere Verteidigungsausgaben"
+		},
+		{
+			massnahme: "m_ruestungsindustrie",
+			text: "Ausbau der heimischen Rüstungsindustrie"
+		},
+		{
+			massnahme: "m_grenzschutz",
+			text: "mehr Grenzschutz"
+		},
+		{
+			massnahme: "m_polizei",
+			text: "eine stärkere Polizei"
+		}
+	],
+	"İYİ": [
+		{
+			massnahme: "m_grenzschutz",
+			text: "mehr Grenzschutz"
+		},
+		{
+			massnahme: "m_rueckkehr",
+			text: "Rückkehrprogramme für Geflüchtete"
+		},
+		{
+			massnahme: "m_kmu",
+			text: "Entlastung für den Mittelstand"
+		},
+		{
+			massnahme: "m_polizei",
+			text: "eine stärkere Polizei"
+		}
+	],
+	DEM: [
+		{
+			massnahme: "m_friedensprozess",
+			text: "Fortschritte im Friedensprozess"
+		},
+		{
+			massnahme: "m_regionalfoerderung",
+			text: "mehr Geld für die benachteiligten Regionen"
+		},
+		{
+			massnahme: "m_versammlungsfreiheit",
+			text: "mehr Versammlungsfreiheit"
+		},
+		{
+			massnahme: "m_gewerkschaftsrechte",
+			text: "stärkere Gewerkschaftsrechte"
+		}
+	],
+	Zafer: [
+		{
+			massnahme: "m_grenzschutz",
+			text: "deutlich mehr Grenzschutz"
+		},
+		{
+			massnahme: "m_rueckkehr",
+			text: "konsequente Rückführungen"
+		},
+		{
+			massnahme: "m_polizei",
+			text: "eine stärkere Polizei"
+		}
+	],
+	YRP: [
+		{
+			massnahme: "m_religionsbehoerde",
+			text: "mehr Mittel für die Religionsbehörde"
+		},
+		{
+			massnahme: "m_renten",
+			text: "höhere Renten"
+		},
+		{
+			massnahme: "m_sozialhilfe",
+			text: "höhere Sozialhilfe"
+		},
+		{
+			massnahme: "m_kindergeld",
+			text: "ein höheres Kindergeld"
+		}
+	]
+};
+const PARTEI_NAME = {
+	AKP: "AKP",
+	"YENİ": "YENİ Parti",
+	CHP: "CHP",
+	MHP: "MHP",
+	"İYİ": "İYİ Parti",
+	DEM: "DEM Parti",
+	Zafer: "Zafer Partisi",
+	YRP: "Yeniden Refah"
+};
+/** Kurzbeschreibung der Ausrichtung, damit man Partner und Gegner einordnen kann. */
+const AUSRICHTUNG = {
+	AKP: "national-konservativ, bisherige Regierungspartei",
+	"YENİ": "liberal-zentristisch, wirtschaftsnah",
+	CHP: "sozialdemokratisch, säkular",
+	MHP: "nationalistisch, sicherheitsorientiert",
+	"İYİ": "nationalistisch-liberal, grenzstreng",
+	DEM: "linksgerichtet, für die kurdischen Regionen",
+	Zafer: "nationalistisch, migrationskritisch",
+	YRP: "islamisch-konservativ, sozialpolitisch"
+};
+/** Politische Nähe der Fraktionen zur eigenen Partei des Spielers: −2 (fern) bis +2 (nah). */
+const NAEHE = {
+	AP: {
+		AKP: -1,
+		"YENİ": 2,
+		CHP: 1,
+		MHP: -1,
+		"İYİ": 1,
+		DEM: 0,
+		Zafer: -2,
+		YRP: -1
+	},
+	PG: {
+		AKP: -1,
+		"YENİ": 1,
+		CHP: 2,
+		MHP: -1,
+		"İYİ": -1,
+		DEM: 2,
+		Zafer: -2,
+		YRP: 0
+	},
+	PW: {
+		AKP: 2,
+		"YENİ": 0,
+		CHP: -1,
+		MHP: 1,
+		"İYİ": 1,
+		DEM: -1,
+		Zafer: 0,
+		YRP: 2
+	},
+	PR: {
+		AKP: -1,
+		"YENİ": 1,
+		CHP: 1,
+		MHP: 0,
+		"İYİ": 0,
+		DEM: 1,
+		Zafer: -1,
+		YRP: 0
+	}
+};
+/** Ausgangsbereitschaft einer Fraktion, mit dem Präsidenten zusammenzuarbeiten (0 bis 100). */
+function startBereitschaft(world, partei) {
+	const nah = NAEHE[world.player?.partei.kurz ?? ""]?.[partei] ?? 0;
+	const zustimmung = world.spiel?.umfrage.zustimmung ?? 50;
+	return clamp(Math.round(42 + 12 * nah + .35 * (zustimmung - 50)), 10, 90);
+}
+function fraktion(world, partei) {
+	const spiel = world.spiel;
+	if (!spiel) return { bereitschaft: 40 };
+	spiel.fraktionen ??= {};
+	return spiel.fraktionen[partei] ??= { bereitschaft: startBereitschaft(world, partei) };
+}
+function bereitschaftAendern(world, partei, delta) {
+	if (!world.parliament?.seats[partei]) return;
+	const f = fraktion(world, partei);
+	f.bereitschaft = clamp(f.bereitschaft + delta, 0, 100);
+}
+function bereitschaftWort(b) {
+	if (b >= 70) return "aufgeschlossen";
+	if (b >= 55) return "gesprächsbereit";
+	if (b >= 40) return "abwägend";
+	if (b >= 25) return "reserviert";
+	return "ablehnend";
+}
+/** Anteil der Sitze einer duldenden Fraktion, der tatsächlich mitstimmt. */
+const DULDUNG_QUOTE = .7;
+/** Fraktionen, die das Lager bei Gesetzen dulden (ohne im Lager zu sein): ihre Sitze und die erwarteten Ja-Stimmen daraus. */
+function duldung(world) {
+	const spiel = world.spiel;
+	const parl = world.parliament;
+	const out = {
+		sitze: 0,
+		ja: 0,
+		parteien: []
+	};
+	if (!spiel || !parl) return out;
+	for (const [partei, f] of Object.entries(spiel.fraktionen ?? {})) {
+		if (f.duldungBis === void 0 || f.duldungBis <= world.day || spiel.lager.includes(partei)) continue;
+		const sitze = parl.seats[partei] ?? 0;
+		out.sitze += sitze;
+		out.ja += Math.round(sitze * DULDUNG_QUOTE);
+		out.parteien.push(partei);
+	}
+	return out;
+}
+/** Anteil der Sitze einer Fraktion, der für ein Gesetz stimmt, das genau ihre Kernforderung erfüllt. */
+const SACHSTIMMEN_QUOTE = .6;
+/** Ja-Stimmen aus Fraktionen außerhalb des Lagers, deren Kernforderung dieses Gesetz erfüllt (Sachkoalition). */
+function sachstimmen(world, massnahme, richtung) {
+	const spiel = world.spiel;
+	const parl = world.parliament;
+	const out = {
+		ja: 0,
+		sitze: 0,
+		parteien: []
+	};
+	if (!spiel || !parl || !massnahme || richtung <= 0) return out;
+	const dul = duldung(world).parteien;
+	for (const [partei, sitze] of Object.entries(parl.seats)) {
+		if (partei === world.player?.partei.kurz || spiel.lager.includes(partei) || dul.includes(partei)) continue;
+		if (forderungVon(world, partei).massnahme !== massnahme) continue;
+		out.sitze += sitze;
+		out.ja += Math.round(sitze * SACHSTIMMEN_QUOTE);
+		out.parteien.push(partei);
+	}
+	return out;
+}
+/**
+* Wer außer dem eigenen Bündnispartner noch ins Lager gehört, damit das Spiel mit einer Regierungsmehrheit beginnt.
+* Gewählt wird nach politischer Nähe und Größe; wer der eigenen Partei fern steht („−2“), wird nur gewählt, wenn nichts anderes bleibt.
+*/
+function waehlePartner(seats, eigene, buendnis) {
+	const nah = NAEHE[eigene] ?? {};
+	const grund = (seats[eigene] ?? 0) + (buendnis ? seats[buendnis] ?? 0 : 0);
+	if (grund >= 316) return [];
+	const kandidaten = Object.keys(seats).filter((p) => p !== eigene && p !== buendnis && (seats[p] ?? 0) >= 15 && (nah[p] ?? 0) > -2);
+	const kombis = [];
+	for (let i = 0; i < kandidaten.length; i++) {
+		kombis.push([kandidaten[i]]);
+		for (let j = i + 1; j < kandidaten.length; j++) {
+			kombis.push([kandidaten[i], kandidaten[j]]);
+			for (let k = j + 1; k < kandidaten.length; k++) kombis.push([
+				kandidaten[i],
+				kandidaten[j],
+				kandidaten[k]
+			]);
+		}
+	}
+	const summe = (k) => k.reduce((s, p) => s + (seats[p] ?? 0), 0);
+	const riese = (k) => k.some((p) => (seats[p] ?? 0) >= 200);
+	const wert = (k, ziel) => k.reduce((s, p) => s + (nah[p] ?? 0) * 3, 0) - (grund + summe(k) - ziel) / 40 - 1.2 * (k.length - 1);
+	let ersatz = null;
+	for (const ziel of [316, 306]) {
+		const genug = kombis.filter((k) => grund + summe(k) >= ziel);
+		if (!genug.length) continue;
+		const ohneRiese = genug.filter((k) => !riese(k));
+		const beste = (ohneRiese.length ? ohneRiese : genug).reduce((b, k) => wert(k, ziel) > wert(b, ziel) ? k : b);
+		if (!riese(beste)) return beste;
+		ersatz ??= beste;
+	}
+	if (ersatz) return ersatz;
+	const sortiert = [...kandidaten].sort((x, y) => (nah[y] ?? 0) - (nah[x] ?? 0) || (seats[y] ?? 0) - (seats[x] ?? 0));
+	const out = [];
+	let bloc = grund;
+	for (const p of sortiert) {
+		if (bloc >= 306) break;
+		out.push(p);
+		bloc += seats[p] ?? 0;
+	}
+	return out;
+}
+const hash = (t) => {
+	let h = 2166136261;
+	for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619);
+	return h >>> 0;
+};
+/** Zeitraum, nach dem eine Fraktion etwas anderes verlangt (Tage). */
+const FORDERUNG_DAUER = 270;
+/**
+* Woran die Fraktion ihre Unterstützung gerade knüpft. Sie behält die Forderung, bis sie erfüllt, überholt oder zu alt ist,
+* und wählt dann eine andere aus ihrem Vorrat; welche, hängt von dieser Partie ab, nicht vom Zufall der Sekunde.
+*/
+function forderungVon(world, partei) {
+	const spiel = world.spiel;
+	const pool = FORDERUNGEN[partei];
+	if (!spiel || !pool?.length) return FORDERUNG[partei] ?? {
+		massnahme: "m_justizreform",
+		text: "ein Entgegenkommen"
+	};
+	const f = fraktion(world, partei);
+	const stufe = (id) => nationalAverage(NET, world.net, id);
+	const alt = f.forderung;
+	if (!alt || world.day - alt.seit > FORDERUNG_DAUER || stufe(alt.massnahme) >= 90) {
+		spiel.salz ??= world.rngState >>> 0;
+		const frei = pool.filter((e) => stufe(e.massnahme) < 85 && e.massnahme !== alt?.massnahme);
+		const liste = frei.length ? frei : pool;
+		const wahl = liste[hash(`${spiel.salz}|${partei}|${Math.floor(world.day / FORDERUNG_DAUER)}|${alt?.massnahme ?? ""}`) % liste.length];
+		f.forderung = {
+			massnahme: wahl.massnahme,
+			text: wahl.text,
+			seit: world.day
+		};
+	}
+	return {
+		massnahme: f.forderung.massnahme,
+		text: f.forderung.text
+	};
+}
+//#endregion
+//#region src/data/medien.ts
+const MEDIEN_CLUSTER = [
+	{
+		id: "staatsrundfunk",
+		name: "Staatlicher Rundfunkverbund",
+		ausrichtung: "staatlich",
+		reichweiteSegmente: {
+			laendlich_konservativ: .25,
+			urban_alt: .15,
+			urban_jung: .03,
+			kurdistan: .15,
+			akademisch: .02
+		},
+		eigentuemerEmpfindlichkeit: 100,
+		digital: false,
+		verwundbarkeit: ["eigentum"],
+		berichtSkandalRegierung: .05,
+		berichtSkandalOpposition: .95,
+		sonderrolle: "wahlnacht_datenhoheit"
+	},
+	{
+		id: "holding_kern",
+		name: "Bau- und Energieholding Medien",
+		ausrichtung: "loyalistisch",
+		reichweiteSegmente: {
+			laendlich_konservativ: .33,
+			urban_alt: .24,
+			urban_jung: .12,
+			kurdistan: .21,
+			akademisch: .06
+		},
+		eigentuemerEmpfindlichkeit: 95,
+		digital: false,
+		verwundbarkeit: ["eigentum"],
+		berichtSkandalRegierung: .1,
+		berichtSkandalOpposition: .98,
+		sonderrolle: "kampagnenmaschine"
+	},
+	{
+		id: "holding_breit",
+		name: "Kreditfinanzierte Mediengruppe",
+		ausrichtung: "linientreu_opportunistisch",
+		reichweiteSegmente: {
+			laendlich_konservativ: .22,
+			urban_alt: .16,
+			urban_jung: .08,
+			kurdistan: .14,
+			akademisch: .04
+		},
+		eigentuemerEmpfindlichkeit: 85,
+		digital: false,
+		verwundbarkeit: ["eigentum"],
+		berichtSkandalRegierung: .2,
+		berichtSkandalOpposition: .9,
+		sonderrolle: "kippt_bei_machtwechsel_signal"
+	},
+	{
+		id: "kommerz_konform",
+		name: "Kommerzielle Familiensender",
+		ausrichtung: "konform_kommerziell",
+		reichweiteSegmente: {
+			laendlich_konservativ: .15,
+			urban_alt: .2,
+			urban_jung: .15,
+			kurdistan: .1,
+			akademisch: .13
+		},
+		eigentuemerEmpfindlichkeit: 60,
+		digital: false,
+		verwundbarkeit: ["eigentum"],
+		berichtSkandalRegierung: .3,
+		berichtSkandalOpposition: .7
+	},
+	{
+		id: "opposition_masse",
+		name: "Freie Massensender",
+		ausrichtung: "oppositionell_masse",
+		reichweiteSegmente: {
+			laendlich_konservativ: .03,
+			urban_alt: .15,
+			urban_jung: .22,
+			kurdistan: .25,
+			akademisch: .4
+		},
+		eigentuemerEmpfindlichkeit: 10,
+		digital: false,
+		verwundbarkeit: ["lizenz"],
+		berichtSkandalRegierung: .9,
+		berichtSkandalOpposition: .4
+	},
+	{
+		id: "opposition_nische",
+		name: "Unabhängige Zeitungen",
+		ausrichtung: "oppositionell_nische",
+		reichweiteSegmente: {
+			laendlich_konservativ: .01,
+			urban_alt: .03,
+			urban_jung: .04,
+			kurdistan: .05,
+			akademisch: .1
+		},
+		eigentuemerEmpfindlichkeit: 5,
+		digital: false,
+		verwundbarkeit: ["lizenz"],
+		berichtSkandalRegierung: .8,
+		berichtSkandalOpposition: .5
+	},
+	{
+		id: "digital_frei",
+		name: "Digitale Nachrichtenkanäle",
+		ausrichtung: "unabhaengig_digital",
+		reichweiteSegmente: {
+			laendlich_konservativ: .02,
+			urban_alt: .1,
+			urban_jung: .4,
+			kurdistan: .15,
+			akademisch: .35
+		},
+		eigentuemerEmpfindlichkeit: 0,
+		digital: true,
+		verwundbarkeit: ["plattform", "lizenz"],
+		berichtSkandalRegierung: .7,
+		berichtSkandalOpposition: .6
+	}
+];
+function medienCluster(id) {
+	return MEDIEN_CLUSTER.find((c) => c.id === id);
+}
+//#endregion
+//#region src/data/umfrage_institute.ts
+const UMFRAGE_INSTITUTE = [
+	{
+		id: "anker",
+		name: "Anker Stiftungsinstitut",
+		typ: "neutral_goldstandard",
+		hausBias: -.8,
+		sigma: 1.2,
+		stichprobe: 2700,
+		methode: "F2F",
+		fatTailP: .1,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: 1,
+			wennUnguenstig: 1
+		}
+	},
+	{
+		id: "kent",
+		name: "Kent Meinungsforschung",
+		typ: "oppo_codiert",
+		hausBias: -3,
+		sigma: 1.8,
+		stichprobe: 2e3,
+		methode: "F2F_CATI",
+		fatTailP: .1,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: .9,
+			wennUnguenstig: .6
+		}
+	},
+	{
+		id: "meridyen",
+		name: "Meridyen Araştırma",
+		typ: "regierungsnah",
+		hausBias: 2,
+		sigma: 1.5,
+		stichprobe: 3e3,
+		methode: "F2F",
+		fatTailP: .08,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: .95,
+			wennUnguenstig: .4
+		}
+	},
+	{
+		id: "denge",
+		name: "Denge Araştırma",
+		typ: "neutral_kommerziell",
+		hausBias: 0,
+		hausBiasInstabilitaet: 1.5,
+		sigma: 2,
+		stichprobe: 3500,
+		methode: "F2F",
+		fatTailP: .12,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: 1,
+			wennUnguenstig: 1
+		}
+	},
+	{
+		id: "yoruk",
+		name: "Yörük Saha",
+		typ: "oppo_militant",
+		hausBias: -5,
+		sigma: 2.2,
+		stichprobe: 2400,
+		methode: "CATI",
+		fatTailP: .15,
+		stichprobeTransparent: false,
+		publikation: {
+			wennGuenstig: .9,
+			wennUnguenstig: .6
+		}
+	},
+	{
+		id: "ekran",
+		name: "Ekran Onlinepanel",
+		typ: "online_grosspanel",
+		hausBias: 1.5,
+		sigma: 2.5,
+		stichprobe: 15e3,
+		methode: "online",
+		fatTailP: .15,
+		stichprobeTransparent: true,
+		publikation: {
+			wennGuenstig: .9,
+			wennUnguenstig: .7
+		}
+	}
+];
+/**
+* Der Fehler-Generator (Recherche B.4.1 und B.4.4): was zusätzlich zum Haus-Bias auf eine Prognose wirkt.
+* Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
+*/
+const FEHLER_GENERATOR = {
+	/**
+	* Angstklima: Bei hohem Repressionslevel verweigern Regierungswähler die Antwort stärker
+	* (~75 % der Verweigerer; Özkiraz-Eigenaussage via Grokipedia, C) → das Regierungslager
+	* wird unterschätzt. Kann in mutigen Phasen (2024-Muster) ins Plus kippen.
+	*/
+	angstklimaModifikator: {
+		mittelAb: 40,
+		hochAb: 75,
+		mittel: -1,
+		hoch: -2.5
+	},
+	/** Umfrage vor einem Großereignis: veraltet um 1–4 pp (Recherche B.3, Punkt 7) */
+	eventLagPp: {
+		min: 1,
+		max: 4
+	},
+	/** p=0,10 je Umfrage: zusätzlicher Offset 4–9 pp, zu 70 % gegen das Regierungslager (KONDA 2023: −5,8; AKAM/REMRES 2018: −8/−9) */
+	fatTail: {
+		p: .1,
+		offsetPp: {
+			min: 4,
+			max: 9
+		},
+		gegenRegierungP: .7
+	},
+	/** σ ohne Institutsangabe (Baseline n≈2.500) */
+	sigmaBasis: 1.8,
+	/** Präferenz ≠ Stimmabgabe: separates Turnout-Modul je Lager (2024: Beteiligung −6,6 pp, alle Prognosen daneben) */
+	turnoutModulPp: {
+		min: -3,
+		max: 3
+	},
+	/** Diaspora ist in keiner Inlands-Umfrage enthalten → strukturelle Unterschätzung des Regierungslagers bei nationalen Wahlen */
+	diasporaOffsetRegierungPp: 1.5,
+	/** Gesetzliches Publikationsverbot für Umfragen vor dem Wahltag (Wahlgesetz) */
+	publikationsverbotTage: 10
+};
+function umfrageInstitut(id) {
+	return UMFRAGE_INSTITUTE.find((i) => i.id === id);
+}
+//#endregion
+//#region src/sim/umfrage.ts
+/**
+* Eine einzelne publizierte Messung eines wahren Zustimmungswerts.
+* Verbraucht die Zufallsquelle — nur aufrufen, wenn eine Messung wirklich gezeigt wird.
+*/
+function umfrageMessung(wahrerWert, rng, optionen = {}) {
+	const institut = optionen.institutId ? umfrageInstitut(optionen.institutId) : void 0;
+	let wert = wahrerWert + (institut?.hausBias ?? 0);
+	const angst = optionen.angstklima ?? 0;
+	const mod = FEHLER_GENERATOR.angstklimaModifikator;
+	if (angst >= mod.hochAb) wert += mod.hoch;
+	else if (angst >= mod.mittelAb) wert += mod.mittel;
+	wert += rng.normal(institut?.sigma ?? FEHLER_GENERATOR.sigmaBasis);
+	const fatP = institut?.fatTailP ?? FEHLER_GENERATOR.fatTail.p;
+	if (rng.next() < fatP) {
+		const { min, max } = FEHLER_GENERATOR.fatTail.offsetPp;
+		const richtung = rng.next() < FEHLER_GENERATOR.fatTail.gegenRegierungP ? -1 : 1;
+		wert += richtung * rng.between(min, max);
+	}
+	return clamp(wert, 0, 100);
+}
+/**
+* Monatliche Fortschreibung des Umfragestands in der Spielschleife.
+* Ohne Optionen: exakt das alte Verhalten (träge Annäherung an den Sollwert, kein Rauschen,
+* kein Verbrauch der Zufallsquelle). Mit institutId + rng: Messfehler gemäß Fehler-Generator.
+*/
+function umfrageMonat(zustimmung, ziel, rng, optionen = {}) {
+	const wert = zustimmung + .35 * (ziel - zustimmung);
+	if (!rng || !optionen.institutId) return wert;
+	return umfrageMessung(wert, rng, optionen);
+}
+const BLAETTER = {
+	staatsrundfunk: {
+		name: "Der Staatsbote",
+		unterzeile: "Amtlich. Ausgewogen. Immer schon da."
+	},
+	holding_kern: {
+		name: "Neue Warte",
+		unterzeile: "Unabhängig. Überparteilich. Eigentümernah."
+	},
+	holding_breit: {
+		name: "Tagespost",
+		unterzeile: "Was das Land bewegt — und was der Aufsichtsrat bewegt."
+	},
+	kommerz_konform: {
+		name: "Abendkurier",
+		unterzeile: "Große Gefühle, kleine Risiken."
+	},
+	opposition_masse: {
+		name: "Die Freie Stimme",
+		unterzeile: "Unbequem seit der ersten Ausgabe."
+	},
+	opposition_nische: {
+		name: "Der Widerspruch",
+		unterzeile: "Klein auflagestark an Haltung."
+	},
+	digital_frei: {
+		name: "Das Netzportal",
+		unterzeile: "Schneller als jede Druckerpresse — und erreichbar, solange es geht."
+	}
+};
+function blattDef(clusterId) {
+	return BLAETTER[clusterId] ?? {
+		name: "Der Anzeiger",
+		unterzeile: "Erscheint unregelmäßig."
+	};
+}
+/** Die Lesart eines Clusters folgt der Ausrichtung, nicht dem Marktanteil. */
+function framingFuer(cluster) {
+	switch (cluster.ausrichtung) {
+		case "staatlich":
+		case "loyalistisch":
+		case "linientreu_opportunistisch":
+		case "konform_kommerziell": return "regierungsnah";
+		case "oppositionell_masse":
+		case "oppositionell_nische": return "oppositionell";
+		case "unabhaengig_digital": return "neutral";
+	}
+}
+/**
+* Die Stärke des Drehs: Je empfindlicher der Eigentümer auf Regierungsdruck reagiert,
+* desto größer die Feier und desto kleiner der Misserfolg. Freie Blätter drehen aus
+* Überzeugung in die andere Richtung; neutrale bleiben nah am Fakt.
+*/
+function framingStaerke(cluster) {
+	const f = cluster.eigentuemerEmpfindlichkeit / 100;
+	const art = framingFuer(cluster);
+	if (art === "regierungsnah") return clamp(.3 + .7 * f, 0, 1);
+	if (art === "oppositionell") return clamp(.9 - f, 0, 1);
+	return .15;
+}
+/** Mit welcher Wahrscheinlichkeit ein Cluster einen Vorgang überhaupt bringt (Recherche A.5.4). */
+function berichtP(cluster, vorgang) {
+	return vorgang.wertung < 0 ? cluster.berichtSkandalRegierung : cluster.berichtSkandalOpposition;
+}
+/** Deterministische Zufallsquelle der Zeitung: zapft den Strom des Spiels NICHT an. */
+function zeitungZufall(salz) {
+	return new Rng$1(Math.floor(hashZahl(salz) * 2 ** 31));
+}
+function baustein(framing, staerke, v, k) {
+	const stark = staerke >= .75;
+	switch (v.art) {
+		case "wahlsieg":
+			if (framing === "regierungsnah") return {
+				schlagzeile: stark ? `Triumph der Vernunft: ${k.name} wiedergewählt` : `${k.name} wiedergewählt`,
+				spin: "Die Wähler belohnen einen Kurs, von dem dieses Blatt immer überzeugt war. Fünf weitere Jahre Stabilität — das Land kann durchatmen.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: `Weiter wie bisher: ${k.name} wiedergewählt`,
+				spin: "Die andere Hälfte des Landes wollte etwas anderes. Fünf Jahre sind eine lange Zeit — man wird sich an alles erinnern.",
+				kurz: true
+			};
+			return {
+				schlagzeile: `${k.name} wiedergewählt`,
+				spin: "Die zweite Amtszeit ist nach der Verfassung die letzte. Die Wahlbehörde meldete keine nennenswerten Zwischenfälle.",
+				kurz: false
+			};
+		case "bruch":
+			if (framing === "regierungsnah") return stark ? {
+				schlagzeile: "Parteitaktik in Ankara",
+				spin: "Die Regierung arbeitet ungerührt weiter. Mehrheiten kommen und gehen; der Kurs bleibt.",
+				kurz: true
+			} : {
+				schlagzeile: "Partner verlässt das Lager",
+				spin: "Man bedauert den Schritt, erinnert an gemeinsame Erfolge — und verweist auf die Tagesordnung.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Das Lager bröckelt",
+				spin: "Wer aussteigt, kennt die Bilanz von innen. Die Frage ist nicht mehr, ob dieses Bündnis trägt, sondern wie lange noch.",
+				kurz: false
+			};
+			return {
+				schlagzeile: "Bruch im Regierungslager",
+				spin: "Für Gesetze wird nun jede Stimme zur Verhandlungssache; die Fraktionen sortieren sich neu.",
+				kurz: false
+			};
+		case "krise":
+			if (v.krieg) {
+				if (framing === "regierungsnah") return {
+					schlagzeile: "Das Land steht zusammen",
+					spin: "In Stunden wie diesen zählt Einigkeit. Die Regierung handelt besonnen und entschlossen zugleich.",
+					kurz: false
+				};
+				if (framing === "oppositionell") return {
+					schlagzeile: "Kriegsgefahr — eskaliert, um abzulenken?",
+					spin: "Wer zu Hause verliert, sucht den Konflikt draußen. Die Rechnung zahlen später andere.",
+					kurz: false
+				};
+				return {
+					schlagzeile: "Kriegsgefahr: der Stand",
+					spin: "Was gesichert ist, was unklar bleibt — und welche Wege zur Deeskalation offenstehen.",
+					kurz: false
+				};
+			}
+			if (framing === "regierungsnah") return stark ? {
+				schlagzeile: "Spekulation gegen das Land",
+				spin: "Ankara bleibt ruhig: Angriffe auf die Wirtschaft sind zum Scheitern verurteilt. Mehr muss dazu nicht gesagt werden.",
+				kurz: true
+			} : {
+				schlagzeile: "Turbulenzen in der Lage",
+				spin: "Die Regierung beobachtet die Entwicklung; Fachleute erwarten eine Beruhigung.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Die Krise hat eine Adresse",
+				spin: "Jeder Einkauf widerlegt die Beschwichtigungen aus dem Palast. Wer die Lage herbeiregiert hat, nennt sie nun Schicksal.",
+				kurz: false
+			};
+			return {
+				schlagzeile: "Krise bestätigt: Was feststeht",
+				spin: "Auslöser, Zahlen und die offenen Fragen — eingeordnet, ohne Aufregung.",
+				kurz: false
+			};
+		case "fertigstellung":
+			if (framing === "regierungsnah") return {
+				schlagzeile: stark ? "Vollendung: Geschichte geschrieben" : "Vorhaben vollendet",
+				spin: "Was andere ankündigen, vollendet diese Regierung. Das Land wächst an solchen Tagen.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Eröffnet — die Rechnung kommt später",
+				spin: "Prestige hat einen Preis, der nicht auf dem Einweihungsband steht. Den Unterhalt zahlt, Überraschung, der Steuerzahler.",
+				kurz: true
+			};
+			return {
+				schlagzeile: "Vorhaben fertiggestellt",
+				spin: "Kosten, Nutzen und die offenen Fragen des Betriebs im Überblick.",
+				kurz: false
+			};
+		case "skandal":
+			if (framing === "regierungsnah") return {
+				schlagzeile: "Ruhmlose Rache eines Gescheiterten",
+				spin: "Wer scheitert, dichtet. Die Vorwürfe entbehren jeder Grundlage; wir drucken sie der Vollständigkeit halber.",
+				kurz: true
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Er packt aus: das System hinter den Türen",
+				spin: "Endlich sagt es einer von innen. Jede Zeile bestätigt, was dieses Blatt seit Jahren schreibt.",
+				kurz: false
+			};
+			return {
+				schlagzeile: "Schwere Vorwürfe aus den eigenen Reihen",
+				spin: "Die Anschuldigungen sind bislang nicht belegt; die Regierung weist sie zurück. Eine Einordnung.",
+				kurz: false
+			};
+		case "programm":
+			if (framing === "regierungsnah") return {
+				schlagzeile: "Plan erfüllt",
+				spin: "Schritt für Schritt wird aus dem Versprechen von damals die Wirklichkeit von heute.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Erfolg auf dem Papier",
+				spin: "Ob die Bilanz im Alltag ankommt, entscheidet sich nicht auf dem Regierungsflugblatt.",
+				kurz: true
+			};
+			return {
+				schlagzeile: "Programm-Fortschritt",
+				spin: "Der Stand der Umsetzung, nüchtern betrachtet.",
+				kurz: false
+			};
+		case "gesetz":
+			if (v.wertung >= 0) {
+				if (framing === "regierungsnah") return {
+					schlagzeile: "Parlament beschließt Gesetz",
+					spin: "Mit klarer Mehrheit: Das Land wird ein Stück besser regiert.",
+					kurz: false
+				};
+				if (framing === "oppositionell") return {
+					schlagzeile: "Durchgewunken",
+					spin: "Debatte? Fehlanzeige. Die Folgen werden wir alle noch erfahren.",
+					kurz: true
+				};
+				return {
+					schlagzeile: "Gesetz angenommen",
+					spin: "Das Wichtigste zum Beschluss im Überblick.",
+					kurz: false
+				};
+			}
+			if (framing === "regierungsnah") return {
+				schlagzeile: "Abstimmung vertagt",
+				spin: "Inhaltlich notwendig, taktisch verschoben — so liest die Regierung das Votum.",
+				kurz: true
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Schlappe im Parlament",
+				spin: "Selbst die eigene Mehrheit trägt das nicht mehr mit.",
+				kurz: false
+			};
+			return {
+				schlagzeile: "Gesetz gescheitert",
+				spin: "Die Stimmen reichten nicht; die Frage bleibt auf der Tagesordnung.",
+				kurz: false
+			};
+		case "wirtschaft":
+			if (v.wertung >= 0) {
+				if (framing === "regierungsnah") return {
+					schlagzeile: "Die Politik wirkt",
+					spin: "Geduld und Kurs zahlen sich aus — die Zahlen belegen es.",
+					kurz: false
+				};
+				if (framing === "oppositionell") return {
+					schlagzeile: "Ein guter Monat — vorerst",
+					spin: "Ein Monat macht noch keine Wende. Man gönnt sich die Vorfreude in Ankara.",
+					kurz: true
+				};
+				return {
+					schlagzeile: "Erholung in den Daten",
+					spin: "Die Entwicklung im Kontext der letzten Monate.",
+					kurz: false
+				};
+			}
+			if (framing === "regierungsnah") return stark ? {
+				schlagzeile: "Zahlen im normalen Rahmen",
+				spin: "Schwankungen gehören zur Lage; der Trend stimmt.",
+				kurz: true
+			} : {
+				schlagzeile: "Gegenwind in den Zahlen",
+				spin: "Die Regierung bleibt gelassen; die Ursachen liegen im Ausland.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Die Statistik straft die Regierung",
+				spin: "Man kann an der Methode feilschen, nicht am Gefühl im Portemonnaie.",
+				kurz: false
+			};
+			return {
+				schlagzeile: "Verschlechterung in den Daten",
+				spin: "Die Entwicklung im Kontext der letzten Monate.",
+				kurz: false
+			};
+		case "ereignis":
+			if (framing === "regierungsnah") return v.wertung < -.4 ? {
+				schlagzeile: "Lage im Griff",
+				spin: "Voreilige Schritte wären das falsche Signal; die Regierung handelt besonnen.",
+				kurz: true
+			} : {
+				schlagzeile: "Regierung handelt",
+				spin: "Besonnen und zum Wohl der Betroffenen — so geht Krisenpolitik.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Und niemand übernimmt die Verantwortung",
+				spin: "Die Betroffenen warten, die Regierung verwaltet. Das ist das Muster.",
+				kurz: false
+			};
+			return {
+				schlagzeile: "Die Lage",
+				spin: "Was geschah und was folgt — der Überblick.",
+				kurz: false
+			};
+		case "umfrage":
+			if (framing === "regierungsnah") return {
+				schlagzeile: "Umfrage: Regierung stabil",
+				spin: "Das Volk weiß, wen es hat.",
+				kurz: false
+			};
+			if (framing === "oppositionell") return {
+				schlagzeile: "Selbst freundlich gemessen",
+				spin: "Wenn schon die Häuser des Auftraggebers so wenig messen, wie sieht es dann draußen aus?",
+				kurz: false
+			};
+			return {
+				schlagzeile: "Die Erhebung des Monats",
+				spin: "Methodik und Einordnung.",
+				kurz: false
+			};
+	}
+}
+/** Wie stark ein Artikel die Stimmung bewegt: Großereignisse und Skandale schwerer als Routine. */
+const WIRKUNG_FAKTOR = {
+	wahlsieg: .9,
+	bruch: 1.1,
+	krise: 1.1,
+	fertigstellung: .8,
+	skandal: 1.2,
+	ereignis: .4,
+	programm: .5,
+	gesetz: .4,
+	wirtschaft: .6,
+	umfrage: .4
+};
+/** Ein Blatt macht aus einem Vorgang einen Artikel (gleicher Fakt, eigener Dreh). */
+function artikelFuer(cluster, vorgang, kontext, id) {
+	const art = framingFuer(cluster);
+	const staerke = framingStaerke(cluster);
+	const b = baustein(art, staerke, vorgang, kontext);
+	const sicht = b.kurz ? .5 : art === "neutral" ? .8 : 1;
+	const wirkung = clamp(vorgang.wertung * WIRKUNG_FAKTOR[vorgang.art] * sicht, -1.5, 1.5);
+	const text = b.kurz ? [`${vorgang.fakt} ${b.spin}`] : [vorgang.fakt, b.spin];
+	return {
+		id,
+		art: vorgang.art,
+		sparte: vorgang.sparte,
+		schlagzeile: b.schlagzeile,
+		text,
+		textQuelle: "regel",
+		wirkung,
+		framing: {
+			art,
+			staerke
+		},
+		kurz: b.kurz
+	};
+}
+/** Welche Cluster eine Ausgabe tragen: immer ein regierungsnahes und ein oppositionsnahes Blatt, jeden zweiten Monat zusätzlich das digitale (Recherche A.5.4). */
+function blattAuswahl(monatIndex) {
+	const regierungsnah = [
+		"holding_kern",
+		"staatsrundfunk",
+		"holding_breit",
+		"kommerz_konform"
+	];
+	const opposition = ["opposition_masse", "opposition_nische"];
+	const auswahl = [regierungsnah[monatIndex % regierungsnah.length], opposition[monatIndex % opposition.length]];
+	if (monatIndex % 2 === 0) auswahl.push("digital_frei");
+	return auswahl;
+}
+function monatIndex(datum) {
+	const [j, m] = datum.split("-").map(Number);
+	return j * 12 + (m - 1);
+}
+const FUELLER_FAKT = "Ein ruhiger Monat im Land; die großen Fragen warten auf die nächste Ausgabe.";
+/** Der Füller für einen Monat ohne Meldung: eigene, passende Zeile je Lesart statt des Ereignis-Drehs. */
+function fuellerArtikel(cluster, id) {
+	const art = framingFuer(cluster);
+	return {
+		id,
+		art: "ereignis",
+		sparte: "politik",
+		schlagzeile: art === "regierungsnah" ? "Ruhiger Monat, fleißige Regierung" : art === "oppositionell" ? "Die Ruhe ist das eigentliche Thema" : "Ein ruhiger Monat",
+		text: [FUELLER_FAKT, art === "regierungsnah" ? "Während andere reden, arbeitet die Regierung. Die großen Linien stimmen; der Rest ist Wetter." : art === "oppositionell" ? "Nichts passiert — sagen die einen. Wir fragen: Wem nützt diese Stille, und seit wann?" : "Es gibt wenig zu melden, und auch das ist eine Nachricht. Der Überblick folgt, sobald es ihn braucht."],
+		textQuelle: "regel",
+		wirkung: 0,
+		framing: {
+			art,
+			staerke: framingStaerke(cluster)
+		},
+		kurz: true
+	};
+}
+/** Baut die Blätter einer Ausgabe: je Cluster eigene Ziehung, eigener Dreh, eigenes Schweigen. */
+function baueBlaetter(clusterIds, vorgaenge, kontext, rng, nummer) {
+	const blaetter = [];
+	for (const id of clusterIds) {
+		const cluster = medienCluster(id);
+		if (!cluster) continue;
+		const def = blattDef(id);
+		const artikel = [];
+		const verschwiegen = [];
+		vorgaenge.forEach((v, i) => {
+			if (rng.next() < berichtP(cluster, v)) artikel.push(artikelFuer(cluster, v, kontext, `a${nummer}-${id}-${i}`));
+			else verschwiegen.push(v.titel);
+		});
+		if (artikel.length === 0) artikel.push(fuellerArtikel(cluster, `a${nummer}-${id}-f`));
+		artikel.sort((a, b) => Math.abs(b.wirkung) - Math.abs(a.wirkung));
+		blaetter.push({
+			clusterId: id,
+			name: def.name,
+			unterzeile: def.unterzeile,
+			digital: cluster.digital,
+			ton: framingFuer(cluster),
+			artikel: artikel.slice(0, 5),
+			verschwiegen: verschwiegen.slice(0, 3)
+		});
+	}
+	return blaetter;
+}
+/**
+* Ein Institut misst den wahren Wert — mit Haus-Bias, Angstklima und Rauschen — und entscheidet
+* dann nach seiner Publikationsregel, ob die Zahl das Blatt sieht (Recherche B.4.2).
+* Verbraucht nur die übergebene Zufallsquelle.
+*/
+function monatsUmfrage(wahrerWert, angstklima, rng, vormonat) {
+	const institut = UMFRAGE_INSTITUTE[Math.floor(rng.next() * UMFRAGE_INSTITUTE.length)];
+	const sprung = institut.hausBiasInstabilitaet ? (rng.next() * 2 - 1) * institut.hausBiasInstabilitaet : 0;
+	const effektivesBias = institut.hausBias + sprung;
+	const gemessen = clamp(umfrageMessung(wahrerWert, rng, {
+		institutId: institut.id,
+		angstklima
+	}) + sprung, 0, 100);
+	const p = (effektivesBias >= 0 ? gemessen >= wahrerWert - 1 : gemessen <= wahrerWert - 2) ? institut.publikation.wennGuenstig : institut.publikation.wennUnguenstig;
+	if (rng.next() >= p) return { schublade: institut.name };
+	const wert = Math.round(gemessen * 10) / 10;
+	return { umfrage: {
+		institutId: institut.id,
+		institut: institut.name,
+		wert,
+		...vormonat !== void 0 ? { vormonat } : {},
+		...institut.stichprobeTransparent ? { stichprobe: institut.stichprobe } : {},
+		methode: institut.methode.replace("_", " + "),
+		abweichung: Math.round((gemessen - wahrerWert) * 10) / 10
+	} };
+}
+function zeitungStart(world) {
+	return {
+		archiv: [],
+		ungelesen: 0,
+		naechsteNummer: 1,
+		warteschlange: [],
+		letzteMonatsausgabeTag: Math.max(0, world.day - 31),
+		wirtschaft: {
+			inflation: world.published.inflation.value,
+			policyRate: world.economy.policyRate,
+			usdTry: world.economy.usdTry
+		}
+	};
+}
+/** Der Zeitungszustand; ältere Spielstände legen ihn beim ersten Bedarf an (Migration). */
+function zeitungVon(world) {
+	const spiel = world.spiel;
+	if (!spiel.zeitung) spiel.zeitung = zeitungStart(world);
+	return spiel.zeitung;
+}
+function legeAb(world, ausgabe) {
+	const z = zeitungVon(world);
+	z.archiv.push(ausgabe);
+	if (z.archiv.length > 12) z.archiv.splice(0, z.archiv.length - 12);
+	z.ungelesen += 1;
+	z.naechsteNummer += 1;
+}
+function hinweis$1(world, ausgabe) {
+	const spiel = world.spiel;
+	const lead = ausgabe.blaetter[0]?.artikel[0];
+	spiel.hinweise.push({
+		id: `zeitung-${ausgabe.anlass === "eilmeldung" ? "eil-" : ""}${world.day}-${ausgabe.nummer}`,
+		titel: ausgabe.anlass === "eilmeldung" ? "Eilmeldung in der Zeitung" : "Die Zeitung: Neue Ausgabe",
+		szene: "istanbul",
+		text: [`Ausgabe Nr. ${ausgabe.nummer}: ${ausgabe.blaetter.map((b) => b.name).join(", ")}.${lead ? ` Leitartikel: „${lead.schlagzeile}" (${ausgabe.blaetter[0].name}).` : ""}`]
+	});
+}
+const SPARTE_GROSS = {
+	wahlsieg: "politik",
+	bruch: "politik",
+	krise: "welt",
+	fertigstellung: "programm"
+};
+/**
+* Großereignis (Wahlsieg, Vertragsbruch, Krise, Fertigstellung, Kriegsphase): Die digitalen
+* Cluster bringen es sofort (Eilmeldung), die Print-Blätter erst in der nächsten Monatsausgabe —
+* bis dahin liegt der Vorgang in der Warteschlange (Sichtbarkeits-Mechanik, Recherche A.5.4).
+*/
+function zeitungEreignis(world, e) {
+	const spiel = world.spiel;
+	if (!spiel || spiel.ende) return;
+	const z = zeitungVon(world);
+	const vorgang = {
+		id: `gross-${world.day}-${z.naechsteNummer}`,
+		art: e.art,
+		sparte: e.krieg ? "welt" : SPARTE_GROSS[e.art],
+		titel: e.titel,
+		fakt: e.fakt,
+		wertung: e.wertung,
+		tag: world.day,
+		datum: world.date,
+		gross: true,
+		...e.krieg ? { krieg: true } : {},
+		...e.schluessel ? { schluessel: e.schluessel } : {}
+	};
+	z.warteschlange.push(vorgang);
+	const kontext = {
+		name: world.player?.name ?? "Die Regierung",
+		partei: world.player?.partei.kurz ?? ""
+	};
+	const auswahl = ["digital_frei", ...blattAuswahl(monatIndex(world.date)).filter((id) => id !== "digital_frei")];
+	const blaetter = [];
+	for (const id of auswahl) {
+		const cluster = medienCluster(id);
+		const def = blattDef(id);
+		if (cluster.digital) blaetter.push({
+			clusterId: id,
+			name: def.name,
+			unterzeile: def.unterzeile,
+			digital: true,
+			ton: framingFuer(cluster),
+			artikel: [artikelFuer(cluster, vorgang, kontext, `e${z.naechsteNummer}-${id}`)],
+			verschwiegen: []
+		});
+		else blaetter.push({
+			clusterId: id,
+			name: def.name,
+			unterzeile: def.unterzeile,
+			digital: false,
+			ton: framingFuer(cluster),
+			artikel: [{
+				id: `e${z.naechsteNummer}-${id}-hinweis`,
+				art: "ereignis",
+				sparte: "politik",
+				schlagzeile: "Aus der Redaktion",
+				text: ["Die Druckerpresse läuft schon für morgen; die ausführliche Einordnung lesen Sie in der nächsten Ausgabe."],
+				textQuelle: "regel",
+				wirkung: 0,
+				framing: {
+					art: framingFuer(cluster),
+					staerke: framingStaerke(cluster)
+				},
+				kurz: true
+			}],
+			verschwiegen: [vorgang.titel]
+		});
+	}
+	const ausgabe = {
+		nummer: z.naechsteNummer,
+		datum: world.date,
+		monat: world.date.slice(0, 7),
+		anlass: "eilmeldung",
+		blaetter
+	};
+	legeAb(world, ausgabe);
+	hinweis$1(world, ausgabe);
+	wendeWirkungAn(world, ausgabe);
+}
+/** Chronik-Einträge des Monats als Vorgänge (Ereignisse, Skandale, Programme) — ohne das, was die Eilmeldung schon griff. */
+function chronikVorgaenge(world, z) {
+	const spiel = world.spiel;
+	const gesperrt = z.warteschlange.flatMap((v) => v.schluessel ?? []);
+	const out = [];
+	for (const c of spiel.chronik) {
+		if (c.tag <= z.letzteMonatsausgabeTag || c.tag >= world.day) continue;
+		if (gesperrt.some((s) => c.titel.includes(s) || c.ausgang.includes(s))) continue;
+		if (/^(Der Präsident wirkt|Die Lage beruhigt|Überlastung)/.test(c.titel)) continue;
+		let art = "ereignis";
+		let sparte = "ereignis";
+		let wertung = c.ausgang.startsWith("Keine Entscheidung") || c.ausgang.startsWith("Ausgesessen") ? -.55 : -.15;
+		if (c.titel.includes("packt aus")) {
+			art = "skandal";
+			sparte = "politik";
+			wertung = -.9;
+		} else if (/^(Schritt erreicht|Programm erfüllt)/.test(c.titel)) {
+			art = "programm";
+			sparte = "programm";
+			wertung = .5;
+		} else if (c.titel.startsWith("Wirkungsbericht:")) {
+			art = "programm";
+			sparte = "programm";
+			wertung = c.ausgang.includes("Es wirkt.") ? .4 : c.ausgang.includes("Keine Wirkung") ? -.35 : 0;
+		} else if (c.titel === "Zusammenbruch") wertung = -.6;
+		out.push({
+			id: `chronik-${c.tag}-${out.length}`,
+			art,
+			sparte,
+			titel: c.titel,
+			fakt: `${c.titel}: ${c.ausgang}`,
+			wertung,
+			tag: c.tag,
+			datum: c.datum
+		});
+	}
+	return out.slice(-3);
+}
+/** Beschlossene und gescheiterte Gesetze des Monats aus dem Protokoll. */
+function gesetzVorgaenge(world, z) {
+	const out = [];
+	for (const l of world.log) {
+		if (l.day <= z.letzteMonatsausgabeTag || l.day >= world.day || l.kind !== "entscheidung") continue;
+		const ja = /^Das Parlament nimmt „(.+)“ an/.exec(l.text);
+		const nein = /^Das Parlament lehnt „(.+)“ ab/.exec(l.text);
+		const m = ja ?? nein;
+		if (!m) continue;
+		out.push({
+			id: `gesetz-${l.day}-${out.length}`,
+			art: "gesetz",
+			sparte: "politik",
+			titel: m[1],
+			fakt: ja ? `Das Parlament nimmt „${m[1]}" mit Mehrheit an.` : `Das Parlament lehnt „${m[1]}" ab.`,
+			wertung: ja ? .3 : -.5,
+			tag: l.day,
+			datum: l.date
+		});
+	}
+	return out.slice(-2);
+}
+/** Die größten Wirtschaftsbewegungen seit der letzten Ausgabe (veröffentlichte Werte, nie die verdeckten). */
+function wirtschaftVorgaenge(world, z) {
+	const kandidaten = [];
+	const infl = world.published.inflation;
+	const dInfl = infl.value - z.wirtschaft.inflation;
+	if (Math.abs(dInfl) >= .75) kandidaten.push({
+		titel: dInfl > 0 ? "Teuerung zieht an" : "Teuerung lässt nach",
+		fakt: `Die Inflation liegt bei ${fmt(infl.value)} Prozent zum Vorjahr (zuletzt ${fmt(z.wirtschaft.inflation)}), Stand ${formatMonthDe(infl.period)}.`,
+		wertung: dInfl > 0 ? -.7 : .55,
+		schwere: Math.abs(dInfl)
+	});
+	const dZins = world.economy.policyRate - z.wirtschaft.policyRate;
+	if (Math.abs(dZins) >= .5) kandidaten.push({
+		titel: dZins > 0 ? "Zentralbank verschärft den Zins" : "Zentralbank senkt den Zins",
+		fakt: `Der Leitzins steht bei ${fmt(world.economy.policyRate)} Prozent (zuvor ${fmt(z.wirtschaft.policyRate)}).`,
+		wertung: dZins > 0 ? -.35 : .25,
+		schwere: Math.abs(dZins) * 1.5
+	});
+	const dLira = (world.economy.usdTry / z.wirtschaft.usdTry - 1) * 100;
+	if (Math.abs(dLira) >= 2) kandidaten.push({
+		titel: dLira > 0 ? "Lira gibt nach" : "Lira erholt sich",
+		fakt: `Der Dollar kostet ${fmt(world.economy.usdTry)} Lira; das sind ${fmt(Math.abs(dLira))} Prozent ${dLira > 0 ? "mehr" : "weniger"} als vor einem Monat.`,
+		wertung: dLira > 0 ? -.6 : .4,
+		schwere: Math.abs(dLira) / 2
+	});
+	kandidaten.sort((a, b) => b.schwere - a.schwere);
+	return kandidaten.slice(0, 2).map((k, i) => ({
+		id: `wirt-${world.day}-${i}`,
+		art: "wirtschaft",
+		sparte: "wirtschaft",
+		titel: k.titel,
+		fakt: k.fakt,
+		wertung: k.wertung,
+		tag: world.day,
+		datum: world.date
+	}));
+}
+/** Repressionsklima für die Umfrage-Messung: aus der Pressefreiheit abgeleitet (Recherche B.3). */
+function angstklimaVon(world) {
+	const presse = nationalAverage(NET, world.net, "pressefreiheit");
+	return clamp(Number.isFinite(presse) ? 100 - presse : 0, 0, 100);
+}
+/** Die Monatsausgabe: Routine, Eilmeldungen im Print, Umfrage des Instituts — und die Wirkung auf die Wählergruppen. */
+function zeitungMonat(world) {
+	const spiel = world.spiel;
+	if (!spiel || spiel.ende) return;
+	const z = zeitungVon(world);
+	const monat = world.date.slice(0, 7);
+	if (z.archiv.some((a) => a.anlass === "monatlich" && a.monat === monat)) return;
+	const kontext = {
+		name: world.player?.name ?? "Die Regierung",
+		partei: world.player?.partei.kurz ?? ""
+	};
+	const rng = zeitungZufall(`${world.seed}|zeitung|${monat}`);
+	const printNachhol = z.warteschlange.filter((v) => v.tag < world.day);
+	z.warteschlange = z.warteschlange.filter((v) => v.tag >= world.day);
+	const vorgaenge = [
+		...printNachhol,
+		...chronikVorgaenge(world, z),
+		...gesetzVorgaenge(world, z),
+		...wirtschaftVorgaenge(world, z)
+	];
+	const ergebnis = monatsUmfrage(spiel.umfrage.zustimmung, angstklimaVon(world), rng, z.letzteUmfrage);
+	if (ergebnis.umfrage) {
+		z.letzteUmfrage = ergebnis.umfrage.wert;
+		const u = ergebnis.umfrage;
+		const delta = u.vormonat !== void 0 ? u.wert - u.vormonat : 0;
+		const stich = u.stichprobe !== void 0 ? `Stichprobe ${u.stichprobe.toLocaleString("de-DE")}, Methode ${u.methode}` : `Methode ${u.methode}, Stichprobe nicht offengelegt`;
+		vorgaenge.push({
+			id: `umfrage-${world.day}`,
+			art: "umfrage",
+			sparte: "umfrage",
+			titel: `${u.institut}: ${fmt(u.wert)} Prozent`,
+			fakt: `${u.institut} misst der Regierung ${fmt(u.wert)} Prozent Zustimmung${u.vormonat !== void 0 ? ` (${delta >= 0 ? "+" : "−"}${fmt(Math.abs(delta))} zum Vormonat)` : ""}; ${stich}.`,
+			wertung: delta > 1 ? .4 : delta < -1 ? -.5 : .05,
+			tag: world.day,
+			datum: world.date
+		});
+	}
+	const blaetter = baueBlaetter(blattAuswahl(monatIndex(world.date)), vorgaenge, kontext, rng, z.naechsteNummer);
+	const ausgabe = {
+		nummer: z.naechsteNummer,
+		datum: world.date,
+		monat,
+		anlass: "monatlich",
+		blaetter,
+		...ergebnis.umfrage ? { umfrage: ergebnis.umfrage } : {},
+		...ergebnis.schublade ? { umfrageSchublade: ergebnis.schublade } : {}
+	};
+	legeAb(world, ausgabe);
+	hinweis$1(world, ausgabe);
+	z.letzteMonatsausgabeTag = world.day;
+	z.wirtschaft = {
+		inflation: world.published.inflation.value,
+		policyRate: world.economy.policyRate,
+		usdTry: world.economy.usdTry
+	};
+	wendeWirkungAn(world, ausgabe);
+}
+/** Welche Wählergruppen ein Mediensegment ausmachen (Näherung nach data/medien.ts, A.5.2). */
+const SEGMENT_GRUPPEN = {
+	laendlich_konservativ: [
+		["konservative", .5],
+		["landwirte", .3],
+		["rentner", .2]
+	],
+	urban_alt: [["arbeitnehmer", .6], ["rentner", .4]],
+	urban_jung: [["junge", 1]],
+	kurdistan: [["minderheiten", 1]],
+	akademisch: [["staedtische_saekulare", 1]]
+};
+/** Grundzug je Artikel: klein genug, dass eine einzelne Ausgabe nie kippt (Kalibrierung). */
+const WIRKUNG_GRUNDZUG = .9;
+/** Obergrenze je Gruppe und Ausgabe, damit auch Dauerfeuer nicht eskaliert. */
+const WIRKUNG_DECKEL = 1.6;
+/**
+* Die Stimmungswirkung einer Ausgabe je Wählergruppe: Reichweite des Clusters im Segment ×
+* Segment-Anteil der Gruppe × Wirkung des Artikels. Wer nicht berichtet, wirkt nicht —
+* so erreicht derselbe Skandal das ländliche Lager schwächer als die urbane Opposition (A.5.4).
+*/
+function berechneWirkung(ausgabe) {
+	const delta = /* @__PURE__ */ new Map();
+	for (const blatt of ausgabe.blaetter) {
+		const cluster = medienCluster(blatt.clusterId);
+		if (!cluster) continue;
+		for (const artikel of blatt.artikel) {
+			if (artikel.wirkung === 0) continue;
+			for (const [segment, gruppen] of Object.entries(SEGMENT_GRUPPEN)) {
+				const reichweite = cluster.reichweiteSegmente[segment];
+				if (reichweite <= 0) continue;
+				for (const [gruppe, anteil] of gruppen) {
+					const d = WIRKUNG_GRUNDZUG * artikel.wirkung * reichweite * anteil;
+					delta.set(gruppe, clamp((delta.get(gruppe) ?? 0) + d, -1.6, WIRKUNG_DECKEL));
+				}
+			}
+		}
+	}
+	return delta;
+}
+/** Wendet die Stimmungswirkung einer Ausgabe auf das Politiknetz an (Gruppen klingen von selbst wieder ab). */
+function wendeWirkungAn(world, ausgabe) {
+	for (const [gruppe, delta] of berechneWirkung(ausgabe)) {
+		if (Math.abs(delta) < .01) continue;
+		wirke(world, gruppe, delta);
+	}
+}
+//#endregion
+//#region src/sim/devisen.ts
+/** Spielparameter der Devisen-Lage (Kalibrierung, keine Messwerte). */
+const DEVISEN = {
+	/** Sonstige Leistungsbilanz (Warenhandel ohne Energie, Dienste ohne Tourismus, Transfers), % des BIP je Jahr */
+	lbBasis: -1.8,
+	/** Annäherung der Leistungsbilanz an ihren rechnerischen Zielwert pro Monat */
+	lbTempo: .25,
+	/** Prozentpunkte Leistungsbilanz je Indexpunkt EU-Nachfrage über 100 (EU ist der größte Abnehmer) */
+	euAufLb: .045,
+	/** Prozentpunkte Leistungsbilanz je Indexpunkt Energiepreis über 100 (Importrechnung ~5 % des BIP am Stichtag) */
+	oelAufLb: -.05,
+	/** Prozentpunkte Leistungsbilanz je Indexpunkt Tourismus über dem Start */
+	tourismusAufLb: .03,
+	/** J-Kurve: Prozentpunkte je Prozent Abwertung der letzten 6 Monate (Importe werden sofort teurer) */
+	jKurveKurz: .04,
+	/** J-Kurve: Prozentpunkte je Prozent Abwertung der Monate 7–12 (Wettbewerbsfähigkeit wirkt verzögert) */
+	jKurveLang: .03,
+	/** Gold-Importe und Sonstiges, pauschal (% des BIP je Jahr) */
+	goldPauschal: -.35,
+	/** Kapitalflüsse: Basiszufluss in % des BIP je Jahr (finanziert das Defizit in ruhigen Zeiten fast) */
+	fluesseBasis: 2.2,
+	/** Kapitalflüsse je Indexpunkt Auslandskapital (Politiknetz) über dem Start */
+	auslandskapitalAufFluss: .04,
+	/** Kapitalflüsse je 100 Basispunkte Risikoaufschlag über 250 (Flucht vor Risiko) */
+	risikoAufFluss: -.35,
+	/** Kapitalflüsse je Indexpunkt Weltzins über 100 (Zinsdifferenz) */
+	weltzinsAufFluss: -.015,
+	/** Zusätzlicher Abfluss je Jahr bei aktiver Zahlungsbilanzkrise */
+	kriseFlucht: -1.2,
+	/** Schwelle des Reserven-Drucks (Netto, Mrd. USD): darunter Zuschlag auf CDS und Abwertung … */
+	druckAn: 25,
+	/** … und Hysterese: Der Druck endet erst oberhalb dieser Marke wieder */
+	druckAus: 30,
+	/** Zahlungsbilanzkrise (krisen.ts) an/aus, Mrd. USD netto */
+	kriseAn: 10,
+	kriseAus: 14,
+	/** Ehrliche Warnung der Oberfläche unter diesem Netto-Stand */
+	warnungUnter: 20,
+	/** Untergrenze der Netto-Reserven (2022 waren sie ohne Swaps zeitweise negativ) */
+	nettoBoden: -80,
+	intervention: {
+		/** Höchstbetrag je Verkaufsaktion, Mrd. USD */
+		maxJeSchritt: 10,
+		/** Kursstütze je verkaufter Mrd. USD (Anteil; 5 Mrd. ≈ 2 %) */
+		glaettungJeMrd: .004,
+		/** Anteil der Stütze, der sofort im Kurs wirkt; der Rest glättet über die folgenden Wochen */
+		sofortAnteil: .35,
+		/** Glaubwürdigkeitsverlust je Mrd. — nur wenn die Netto-Reserven danach knapp sind (zweischneidig) */
+		credibilityJeMrd: .004,
+		/** Risikoaufschlag je Mrd. bei knappen Reserven (Basispunkte) */
+		risikoJeMrd: .8
+	},
+	iwf: {
+		/** Sofortzufluss bei Unterzeichnung, Mrd. USD */
+		sofortUsdMrd: 8,
+		/** Jede bestandene Review bringt eine Tranche, Mrd. USD */
+		trancheUsdMrd: 6,
+		/** Anzahl der Review-Raten */
+		reviews: 3,
+		/** Abstand der Reviews in Tagen (etwa vier Monate) */
+		reviewTage: 122,
+		/** Auflage: Leitzins mindestens Erwartungsinflation plus dieser Realzins-Puffer */
+		zinsPuffer: 3,
+		/** Auflage: Defizit-Obergrenze in % des BIP */
+		defizitMax: 3.5,
+		/** Marktwirkung der Unterzeichnung */
+		risikoStart: -40,
+		credibilityStart: .04,
+		/** Marktwirkung je bestandener Review */
+		risikoReview: -15,
+		/** Preis eines Bruchs (Review nicht bestanden oder Kündigung) */
+		risikoBruch: 90,
+		credibilityBruch: .08,
+		/** Abkühlung nach Ende/Bruch, bevor erneut angefragt werden kann (Tage) */
+		abkuehlung: 720
+	}
+};
+const nf$4 = (x, d = 1) => x.toLocaleString("de-DE", {
+	minimumFractionDigits: d,
+	maximumFractionDigits: d
+});
+/** Der Zustand der Devisen-Lage; ältere Spielstände legen ihn beim ersten Zugriff an. */
+function devisenZustand(w) {
+	const wz = wirtschaftZustand(w);
+	wz.devisen ??= {
+		interventionen: [],
+		iwf: null
+	};
+	return wz.devisen;
+}
+/**
+* Migration: Die Spielgrößen der Devisen-Lage aus den Datenfeldern des Szenarios füllen
+* (ältere Spielstände und neue Welten gleichermaßen); die Zuschläge in economy.ts bleiben
+* neutral, solange die Felder fehlen (Lernfall-Replays fahren ohne sie).
+*/
+function migriereDevisen(w) {
+	const e = w.economy;
+	e.leistungsbilanzPctBip ??= e.currentAccountPctGdp ?? DEVISEN.lbBasis + DEVISEN.goldPauschal;
+	e.reservenBruttoUsdMrd ??= e.grossReservesUsdBn ?? 0;
+	e.reservenNettoUsdMrd ??= e.netReservesExSwapsUsdBn ?? e.reservenBruttoUsdMrd;
+	e.reservenDruck ??= 0;
+	e.fxPuffer ??= 0;
+	aktualisiereReservenDruck(e);
+}
+/** Nominales BIP in Mrd. USD (abgeleitet aus dem Szenario-Feld bipTryTn und dem aktuellen Kurs). */
+function bipUsdMrd(e) {
+	return (e.bipTryTn ?? 84) * 1e3 / Math.max(1, e.usdTry);
+}
+/** Die rechnerische Zielmarke der Leistungsbilanz und ihre Bausteine. */
+function leistungsbilanzZerlegung(w) {
+	const e = w.economy;
+	const zeilen = [{
+		name: "Sonstige Leistungsbilanz",
+		wert: DEVISEN.lbBasis,
+		text: "Warenhandel ohne Energie, Dienste ohne Tourismus, Transfers (pauschal)."
+	}];
+	const eu = DEVISEN.euAufLb * ((e.euNachfrage ?? 100) - 100);
+	zeilen.push({
+		name: "Nachfrage aus der EU",
+		wert: eu,
+		text: "Die EU ist der wichtigste Handelspartner; ihre Nachfrage trägt die Exporte."
+	});
+	const oel = DEVISEN.oelAufLb * ((e.oel ?? 100) - 100);
+	zeilen.push({
+		name: "Energie-Importrechnung",
+		wert: oel,
+		text: "Öl und Gas werden in Dollar bezahlt; der Preis treibt die Importrechnung (Hormuz-Zuschlag)."
+	});
+	const startTourismus = w.spiel ? startAverage(NET, w.net, "tourismus") : 65;
+	const tourismus = w.spiel ? DEVISEN.tourismusAufLb * (nationalAverage(NET, w.net, "tourismus") - startTourismus) : 0;
+	zeilen.push({
+		name: "Tourismus",
+		wert: tourismus,
+		text: "Gäste bringen Devisen; eine schwache Lira macht den Urlaub billiger."
+	});
+	const h = w.history;
+	let jKurve = 0;
+	let jKurz = 0;
+	let jLang = 0;
+	if (h.length >= 12) {
+		const jetzt = e.usdTry;
+		const vor6 = h[h.length - 6].usdTry;
+		const vor12 = h[h.length - 12].usdTry;
+		jKurz = -DEVISEN.jKurveKurz * (jetzt / vor6 - 1) * 100;
+		jLang = DEVISEN.jKurveLang * (vor6 / vor12 - 1) * 100;
+		jKurve = jKurz + jLang;
+	}
+	zeilen.push({
+		name: "Abwertung (J-Kurve)",
+		wert: jKurve,
+		text: "Erst verteuert eine schwache Lira die Importe (6 Monate), dann stützt sie Exporte und Tourismus."
+	});
+	zeilen.push({
+		name: "Gold und Sonstiges",
+		wert: DEVISEN.goldPauschal,
+		text: "Gold-Importe der Haushalte als Inflationsschutz, pauschal angesetzt."
+	});
+	return {
+		ziel: zeilen.reduce((s, z) => s + z.wert, 0),
+		zeilen
+	};
+}
+/** Kapitalflüsse in % des BIP je Jahr (positiv = Zufluss) und ihre Bausteine. */
+function kapitalflussZerlegung(w) {
+	const e = w.economy;
+	const zeilen = [{
+		name: "Basiszufluss",
+		wert: DEVISEN.fluesseBasis,
+		text: "Kredite, Direktinvestitionen und Portfolio-Zuflüsse in ruhiger Lage."
+	}];
+	let auslandskapital = 0;
+	if (w.spiel) auslandskapital = DEVISEN.auslandskapitalAufFluss * (nationalAverage(NET, w.net, "auslandskapital") - startAverage(NET, w.net, "auslandskapital"));
+	zeilen.push({
+		name: "Auslandskapital (Politiknetz)",
+		wert: auslandskapital,
+		text: "Investorenfreundliche Politik zieht Geld an; das Netz misst es."
+	});
+	const risiko = DEVISEN.risikoAufFluss * Math.max(0, (e.riskPremium - 250) / 100);
+	zeilen.push({
+		name: "Risikoflucht",
+		wert: risiko,
+		text: "Je höher der Risikoaufschlag, desto schneller zieht sich Kapital zurück."
+	});
+	const weltzins = DEVISEN.weltzinsAufFluss * ((e.weltzins ?? 100) - 100);
+	zeilen.push({
+		name: "Weltzinsen",
+		wert: weltzins,
+		text: "Hohe Zinsen in den USA und Europa lassen Schwellenländer bluten."
+	});
+	if (w.spiel?.krisen?.some((k) => k.id === "zahlungsbilanz")) zeilen.push({
+		name: "Zahlungsbilanzkrise",
+		wert: DEVISEN.kriseFlucht,
+		text: "Wer die Reserven schwinden sieht, flüchtet zuerst."
+	});
+	return {
+		ziel: zeilen.reduce((s, z) => s + z.wert, 0),
+		zeilen
+	};
+}
+/** Reserven-Druck 0–1 mit Hysterese: an unter 25 Mrd., aus erst über 30 Mrd. — kein Flackern an der Grenze. */
+function aktualisiereReservenDruck(e) {
+	const netto = e.reservenNettoUsdMrd;
+	if (netto === void 0) return;
+	const war = e.reservenDruck ?? 0;
+	if (netto < DEVISEN.druckAn) e.reservenDruck = clamp((DEVISEN.druckAn - netto) / DEVISEN.druckAn, 0, 1);
+	else if (netto >= DEVISEN.druckAus) e.reservenDruck = 0;
+	else e.reservenDruck = war;
+}
+/** Ein Monat Devisen-Lage: Leistungsbilanz, Reserven, IWF-Review. Läuft nur mit Spielschleife. */
+function devisenMonat(w) {
+	if (!w.spiel) return;
+	migriereDevisen(w);
+	const e = w.economy;
+	const rng = new Rng$1(w.rngState ^ Math.imul(w.day + 7, 2654435761));
+	const lb = leistungsbilanzZerlegung(w);
+	e.leistungsbilanzPctBip = (e.leistungsbilanzPctBip ?? lb.ziel) + DEVISEN.lbTempo * (lb.ziel - (e.leistungsbilanzPctBip ?? lb.ziel)) + rng.normal(.04);
+	const fluesse = kapitalflussZerlegung(w);
+	const deltaUsd = (e.leistungsbilanzPctBip + fluesse.ziel) / 100 / 12 * bipUsdMrd(e);
+	e.reservenBruttoUsdMrd = Math.max(0, (e.reservenBruttoUsdMrd ?? 0) + deltaUsd);
+	e.reservenNettoUsdMrd = Math.max(DEVISEN.nettoBoden, (e.reservenNettoUsdMrd ?? 0) + deltaUsd);
+	aktualisiereReservenDruck(e);
+	const z = devisenZustand(w);
+	if ((e.reservenNettoUsdMrd ?? 99) < DEVISEN.warnungUnter && w.day - (z.warnung ?? -1e9) > 90) {
+		z.warnung = w.day;
+		addLog(w, "markt", `Die Netto-Reserven der Zentralbank liegen nur noch bei ${nf$4(e.reservenNettoUsdMrd ?? 0)} Mrd. Dollar.`, `Unter ${DEVISEN.druckAn} Mrd. verlangen die Märkte einen Zuschlag auf Kurs und Risikoaufschlag; unter ${DEVISEN.kriseAn} Mrd. droht die Zahlungsbilanzkrise. Devisen lassen sich nicht drucken: Kapital anziehen (Zins, Vertrauen), die Leistungsbilanz bessern — oder der IWF.`);
+	}
+	iwfReview(w);
+}
+/** Ob gerade ein Programm läuft. */
+function iwfAktiv(w) {
+	return !!w.spiel?.wirtschaft?.devisen?.iwf;
+}
+/** Die Auflagen, die der IWF heute stellen würde (für Ereignis und Anzeige). */
+function iwfAuflagen(w) {
+	const e = w.economy;
+	return {
+		zinsMindest: Math.ceil((e.expectedInflation + DEVISEN.iwf.zinsPuffer) * 2) / 2,
+		defizitMax: DEVISEN.iwf.defizitMax
+	};
+}
+/**
+* Das Stand-by-Abkommen beginnt: Devisen fließen sofort, die Märkte beruhigen sich (Rating-Stützung);
+* dafür gelten Zinsvorgabe-Mindestniveau und Defizit-Obergrenze, geprüft in drei Review-Raten.
+*/
+function iwfStarten(w) {
+	const spiel = w.spiel;
+	if (!spiel) return;
+	migriereDevisen(w);
+	const e = w.economy;
+	const auflagen = iwfAuflagen(w);
+	const z = devisenZustand(w);
+	z.iwf = {
+		rate: 1,
+		naechsteReview: w.day + DEVISEN.iwf.reviewTage,
+		zinsMindest: auflagen.zinsMindest,
+		defizitMax: auflagen.defizitMax,
+		mittelUsdMrd: DEVISEN.iwf.sofortUsdMrd,
+		bestanden: 0
+	};
+	e.reservenBruttoUsdMrd = (e.reservenBruttoUsdMrd ?? 0) + DEVISEN.iwf.sofortUsdMrd;
+	e.reservenNettoUsdMrd = (e.reservenNettoUsdMrd ?? 0) + DEVISEN.iwf.sofortUsdMrd;
+	e.riskPremium = Math.max(50, e.riskPremium + DEVISEN.iwf.risikoStart);
+	e.credibility = clamp(e.credibility + DEVISEN.iwf.credibilityStart, .05, .95);
+	wirke(w, "vertrauen_maerkte", 6);
+	aktualisiereReservenDruck(e);
+	spiel.hinweise.push({
+		id: `iwf-start-${w.day}`,
+		titel: "Stand-by-Abkommen mit dem IWF",
+		szene: "bank",
+		text: [`Der IWF stellt sofort ${DEVISEN.iwf.sofortUsdMrd} Mrd. Dollar bereit; die Märkte lesen das Programm als Anker.`, `Die Auflagen: Leitzins mindestens ${fmt(auflagen.zinsMindest)} % und Defizit höchstens ${fmt(auflagen.defizitMax)} % des BIP. Drei Reviews prüfen das im Abstand von etwa vier Monaten; wer die Auflagen reißt, verliert das Programm und das Vertrauen der Märkte.`]
+	});
+	addLog(w, "entscheidung", `Stand-by-Abkommen mit dem IWF: ${DEVISEN.iwf.sofortUsdMrd} Mrd. Dollar sofort, zwei weitere Tranchen nach Reviews.`, `Auflagen: Leitzins ≥ ${fmt(auflagen.zinsMindest)} %, Defizit ≤ ${fmt(auflagen.defizitMax)} % des BIP. Devisen-Zufluss und Rating-Stützung gegen politische Fesseln.`);
+	addMarke(w, "eingriff", "Stand-by-Abkommen mit dem IWF");
+}
+/** Der Bruch des Programms (Review verfehlt oder selbst gekündigt): Der Preis fällt sofort an. */
+function iwfBruch(w, grund) {
+	const spiel = w.spiel;
+	const e = w.economy;
+	const z = devisenZustand(w);
+	z.iwf = null;
+	z.iwfAbkuehlung = w.day + DEVISEN.iwf.abkuehlung;
+	e.riskPremium += DEVISEN.iwf.risikoBruch;
+	e.credibility = clamp(e.credibility - DEVISEN.iwf.credibilityBruch, .05, .95);
+	wirke(w, "vertrauen_maerkte", -10);
+	spiel.hinweise.push({
+		id: `iwf-bruch-${w.day}`,
+		titel: "Das IWF-Programm ist gescheitert",
+		szene: "bank",
+		text: [`${grund} Der IWF friert die verbleibenden Tranchen ein; die Märkte beantworten den Bruch mit einem Sprung des Risikoaufschlags.`, "Wer den Anker wegwirft, zahlt den Preis zweimal: bei den Zinsen und beim Vertrauen."]
+	});
+	addLog(w, "ereignis", `Das IWF-Programm ist gescheitert: ${grund}`, `Risikoaufschlag +${DEVISEN.iwf.risikoBruch}, Glaubwürdigkeit leidet, das Vertrauen der Märkte bricht ein.`);
+}
+/** Die Review am Fälligkeitstag: Auflagen prüfen, Tranche zahlen oder das Programm brechen. */
+function iwfReview(w) {
+	const spiel = w.spiel;
+	const z = spiel?.wirtschaft?.devisen;
+	const p = z?.iwf;
+	if (!spiel || !z || !p || w.day < p.naechsteReview) return;
+	const e = w.economy;
+	const zinsOk = e.policyRate >= p.zinsMindest;
+	const defizitOk = defizitJetzt(w) <= p.defizitMax;
+	if (zinsOk && defizitOk) {
+		p.bestanden += 1;
+		e.riskPremium = Math.max(50, e.riskPremium + DEVISEN.iwf.risikoReview);
+		if (p.bestanden >= DEVISEN.iwf.reviews) {
+			z.iwf = null;
+			z.iwfAbkuehlung = w.day + DEVISEN.iwf.abkuehlung;
+			e.credibility = clamp(e.credibility + .03, .05, .95);
+			wirke(w, "vertrauen_maerkte", 4);
+			spiel.hinweise.push({
+				id: `iwf-ende-${w.day}`,
+				titel: "Das IWF-Programm ist abgeschlossen",
+				szene: "bank",
+				text: ["Alle Reviews sind bestanden; die letzte Tranche ist geflossen. Das Land steht wieder auf eigenen Beinen — die Märkte honorieren die gelieferte Disziplin."]
+			});
+			addLog(w, "ereignis", "Das IWF-Programm endet nach drei bestandenen Reviews.", "Der Anker hat gehalten: Vertrauen und Glaubwürdigkeit steigen.");
+		} else {
+			p.rate += 1;
+			p.naechsteReview = w.day + DEVISEN.iwf.reviewTage;
+			e.reservenBruttoUsdMrd = (e.reservenBruttoUsdMrd ?? 0) + DEVISEN.iwf.trancheUsdMrd;
+			e.reservenNettoUsdMrd = (e.reservenNettoUsdMrd ?? 0) + DEVISEN.iwf.trancheUsdMrd;
+			p.mittelUsdMrd += DEVISEN.iwf.trancheUsdMrd;
+			aktualisiereReservenDruck(e);
+			addLog(w, "ereignis", `IWF-Review bestanden (${p.bestanden} von ${DEVISEN.iwf.reviews}): Die nächste Tranche von ${DEVISEN.iwf.trancheUsdMrd} Mrd. Dollar fließt.`, "Die Prüfer bestätigen die Auflagen; die Märkte beruhigen sich weiter.");
+		}
+	} else {
+		const fehl = [];
+		if (!zinsOk) fehl.push(`der Leitzins liegt bei ${fmt(e.policyRate)} % statt mindestens ${fmt(p.zinsMindest)} %`);
+		if (!defizitOk) fehl.push(`das Defizit liegt bei ${fmt(defizitJetzt(w))} % statt höchstens ${fmt(p.defizitMax)} %`);
+		iwfBruch(w, `Die Review scheitert: ${fehl.join(" und ")}.`);
+	}
+}
+//#endregion
+//#region src/sim/krisen.ts
+/** Spielparameter, keine Tatsachen: Schwellen und Faktoren der Krisen (Kalibrierung). */
+const KRISEN_REGELN = {
+	/** Lira-Vertrauen: Abwertung der Lira auf 12 Monate (%) oder Risikoaufschlag (CDS, Basispunkte) über der Schwelle */
+	lira: {
+		abwertungAn: 45,
+		abwertungAus: 35,
+		cdsAn: 600,
+		cdsAus: 450,
+		faktor: 1.5
+	},
+	/** Katastrophenlage: wird in den ersten Tagen nach dem Ereignis aktiv, endet, wenn es länger zurückliegt */
+	katastrophe: {
+		frisch: 60,
+		ende: 90,
+		faktor: 1.5
+	},
+	/** Kriegsgefahr: Konflikt-Dimension eines Nachbarn (0 bis 100) über der Schwelle; Rabatt für Außen/Militär */
+	krieg: {
+		an: 75,
+		aus: 65,
+		rabatt: .75
+	},
+	/** Zahlungsbilanzkrise (WIR-2): Verteuerungsfaktor für Ausgaben (die Schwellen stehen in DEVISEN, devisen.ts) */
+	zahlungsbilanz: { faktor: 1.5 }
+};
+const nf$3 = (x) => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
+const R$1 = KRISEN_REGELN;
+/** Katastrophen-Ereignisvorlagen, die eine Katastrophenlage auslösen. */
+const KATASTROPHEN_VORLAGEN = /* @__PURE__ */ new Set([
+	"erdbeben",
+	"ueberschwemmung",
+	"grossbeben",
+	"katastrophe_flut",
+	"katastrophe_duerre",
+	"katastrophe_waldbrand"
+]);
+/** Themen, die in der Katastrophenlage unverteuert bleiben (Versorgung der Betroffenen). */
+const VERSORGUNG = /* @__PURE__ */ new Set([
+	"wohnen",
+	"gesundheit",
+	"sicherheit",
+	"infrastruktur"
+]);
+function katastropheZuletzt(w) {
+	const spiel = w.spiel;
+	let tag = -1e9;
+	for (const v of KATASTROPHEN_VORLAGEN) tag = Math.max(tag, spiel.zuletzt[v] ?? -1e9);
+	return tag;
+}
+function katastropheOffen(w) {
+	return w.spiel.ereignisse.some((e) => KATASTROPHEN_VORLAGEN.has(e.vorlage));
+}
+function schaerfsterNachbar(w) {
+	if (!w.spiel) return null;
+	const welt = weltZustand(w);
+	let out = null;
+	for (const l of LAENDER) {
+		if (l.gruppe !== "Nachbarn") continue;
+		const k = welt[l.id]?.konflikt ?? 0;
+		if (!out || k > out.konflikt) out = {
+			name: l.name,
+			konflikt: k
+		};
+	}
+	return out;
+}
+/** Läuft die Justizreform gerade (Gesetz im Parlament oder Umsetzung unterwegs)? */
+function justizreformLaeuft(w) {
+	const spiel = w.spiel;
+	if (!spiel) return false;
+	if (spiel.gesetze.some((g) => g.massnahme === "m_justizreform")) return true;
+	const ziel = w.net.targets["m_justizreform"];
+	if (ziel !== void 0 && Math.abs(ziel - nationalAverage(NET, w.net, "m_justizreform")) > 1) return true;
+	if ((w.net.ziele?.["m_justizreform"])?.some((z) => z >= 0)) return true;
+	return false;
+}
+const KRISEN = [
+	{
+		id: "lira_vertrauen",
+		name: "Lira-Vertrauen erschüttert",
+		ausloeser: (w) => w.economy.fxChange12 >= R$1.lira.abwertungAn || w.economy.riskPremium >= R$1.lira.cdsAn,
+		beruhigt: (w) => w.economy.fxChange12 < R$1.lira.abwertungAus && w.economy.riskPremium < R$1.lira.cdsAus,
+		grund: (w) => {
+			const teile = [];
+			if (w.economy.fxChange12 >= R$1.lira.abwertungAus) teile.push(`die Lira hat in zwölf Monaten ${nf$3(w.economy.fxChange12)} % verloren`);
+			if (w.economy.riskPremium >= R$1.lira.cdsAus) teile.push(`der Risikoaufschlag liegt bei ${Math.round(w.economy.riskPremium)} Punkten`);
+			return `Die Märkte trauen der Lira nicht: ${teile.join(" und ")}. Neue Ausgabenprogramme lesen sie als Inflationsrisiko.`;
+		},
+		wirkung: `Ausgaben in Wirtschaft und Haushalt kosten das ${nf$3(R$1.lira.faktor)}-fache an Kapital.`,
+		bedingung: `Endet, wenn die Abwertung auf zwölf Monate unter ${R$1.lira.abwertungAus} % und der Risikoaufschlag unter ${R$1.lira.cdsAus} Punkte fallen.`,
+		ausweg: "Ausweg: erst das Vertrauen zurückgewinnen (Zentralbank in Ruhe lassen, Haushalt ordnen) oder Einnahmen statt Ausgaben nutzen.",
+		effekt: (node) => (node.theme === "wirtschaft" || node.theme === "haushalt") && (node.cost ?? 0) > 0 ? {
+			art: "teuer",
+			faktor: R$1.lira.faktor
+		} : null
+	},
+	{
+		id: "katastrophenlage",
+		name: "Katastrophenlage",
+		ausloeser: (w) => katastropheOffen(w) || w.day - katastropheZuletzt(w) < R$1.katastrophe.frisch,
+		beruhigt: (w) => !katastropheOffen(w) && w.day - katastropheZuletzt(w) > R$1.katastrophe.ende,
+		grund: () => "Nach der Katastrophe sind Verwaltung, Haushalt und Aufmerksamkeit auf Nothilfe und Versorgung der Betroffenen ausgerichtet.",
+		wirkung: `Nur Versorgung (Wohnen, Gesundheit, Sicherheit, Infrastruktur) geht wie bisher; alles andere kostet das ${nf$3(R$1.katastrophe.faktor)}-fache, Prestige-Vorhaben (Kultur) warten.`,
+		bedingung: `Endet, wenn die Katastrophe mehr als ${R$1.katastrophe.ende} Tage zurückliegt und kein Ereignis mehr offen ist.`,
+		ausweg: "Ausweg: Was der Versorgung dient (Wohnen, Gesundheit, Sicherheit, Infrastruktur), geht sofort; der Rest wartet, bis die Lage vorbei ist.",
+		effekt: (node) => {
+			if (VERSORGUNG.has(node.theme)) return null;
+			if (node.theme === "kultur") return {
+				art: "gesperrt",
+				faktor: 1
+			};
+			return {
+				art: "teuer",
+				faktor: R$1.katastrophe.faktor
+			};
+		}
+	},
+	{
+		id: "kriegsgefahr",
+		name: "Kriegsgefahr",
+		ausloeser: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) > R$1.krieg.an,
+		beruhigt: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) < R$1.krieg.aus,
+		grund: (w) => {
+			const n = schaerfsterNachbar(w);
+			return n ? `Der Konflikt mit ${n.name} steht bei ${Math.round(n.konflikt)} von 100; das Land erwartet Geschlossenheit statt Schauprojekten.` : "";
+		},
+		wirkung: `Außen- und Militärpolitik kostet nur ${Math.round(R$1.krieg.rabatt * 100)} % des Kapitals; Prestige-Vorhaben (Kultur) sind gesperrt.`,
+		bedingung: `Endet, wenn kein Konflikt mit einem Nachbarn mehr über ${R$1.krieg.aus} steht.`,
+		ausweg: "Ausweg: den Konflikt entschärfen (Gespräche am Verhandlungstisch in der Welt) — oder warten, bis die Spannung nachlässt.",
+		effekt: (node) => {
+			if (node.theme === "aussen" || node.theme === "militaer") return {
+				art: "teuer",
+				faktor: R$1.krieg.rabatt
+			};
+			if (node.theme === "kultur") return {
+				art: "gesperrt",
+				faktor: 1
+			};
+			return null;
+		}
+	},
+	{
+		id: "zahlungsbilanz",
+		name: "Zahlungsbilanzkrise",
+		ausloeser: (w) => (w.economy.reservenNettoUsdMrd ?? Number.POSITIVE_INFINITY) < DEVISEN.kriseAn,
+		beruhigt: (w) => (w.economy.reservenNettoUsdMrd ?? Number.POSITIVE_INFINITY) > DEVISEN.kriseAus,
+		grund: (w) => `Die Netto-Reserven der Zentralbank liegen bei ${nf$3(w.economy.reservenNettoUsdMrd ?? 0)} Mrd. Dollar: Das Land kann Importe und Schulden kaum noch bezahlen, und die Märkte wissen es.`,
+		wirkung: `Ausgaben in Wirtschaft und Haushalt kosten das ${nf$3(R$1.zahlungsbilanz.faktor)}-fache an Kapital; Prestige-Vorhaben (Kultur) sind gesperrt. Kapital flieht schneller (Devisen-Lage).`,
+		bedingung: `Endet, wenn die Netto-Reserven wieder über ${DEVISEN.kriseAus} Mrd. Dollar liegen.`,
+		ausweg: "Ausweg: Reserven schonen (keine Interventionen), Kapital anziehen (Zinsen, Vertrauen der Märkte, günstige Leistungsbilanz) — oder das IWF-Programm annehmen, solange es angeboten wird.",
+		effekt: (node) => {
+			if ((node.theme === "wirtschaft" || node.theme === "haushalt") && (node.cost ?? 0) > 0) return {
+				art: "teuer",
+				faktor: R$1.zahlungsbilanz.faktor
+			};
+			if (node.theme === "kultur") return {
+				art: "gesperrt",
+				faktor: 1
+			};
+			return null;
+		}
+	},
+	{
+		id: "justiz_umbau",
+		name: "Justiz im Umbau",
+		ausloeser: justizreformLaeuft,
+		beruhigt: (w) => !justizreformLaeuft(w),
+		grund: () => "Die Justizreform wird gerade umgesetzt; Gerichte, Ministerium und Richterrat sind mit dem Umbau ausgelastet.",
+		wirkung: "Weitere Justiz-Maßnahmen (Recht und Justiz) sind gesperrt, bis die Reform abgeschlossen ist.",
+		bedingung: "Endet, wenn die Justizreform umgesetzt oder ihr Gesetz zurückgezogen ist.",
+		ausweg: "Ausweg: die laufende Reform zu Ende bringen (oder ihr Gesetz im Parlament zurückziehen); danach ist der Weg frei.",
+		effekt: (node) => node.theme === "recht" && node.id !== "m_justizreform" ? {
+			art: "gesperrt",
+			faktor: 1
+		} : null
+	}
+];
+function defZu(id) {
+	return KRISEN.find((d) => d.id === id);
+}
+/** Die aktuell aktiven Krisen, aufbereitet für Banner und Badges. */
+function aktiveKrisen(world) {
+	const spiel = world.spiel;
+	if (!spiel) return [];
+	return (spiel.krisen ?? []).flatMap((k) => {
+		const def = defZu(k.id);
+		return def ? [{
+			id: def.id,
+			name: def.name,
+			grund: def.grund(world),
+			wirkung: def.wirkung,
+			bedingung: def.bedingung,
+			seit: k.seit
+		}] : [];
+	});
+}
+/** Wie die aktiven Krisen eine Maßnahme treffen (leer, wenn keine betroffen ist). */
+function krisenFuerMassnahme(world, massnahmeId) {
+	const i = NET.index.get(massnahmeId);
+	const node = i === void 0 ? void 0 : NET.nodes[i];
+	if (!node || node.kind !== "massnahme") return [];
+	return aktiveKrisen(world).flatMap((krise) => {
+		const def = defZu(krise.id);
+		const e = def.effekt(node);
+		if (!e) return [];
+		const t = {
+			krise,
+			art: e.art,
+			faktor: e.art === "teuer" ? e.faktor : 1
+		};
+		if (e.art === "gesperrt") t.ausweg = def.ausweg;
+		return [t];
+	});
+}
+/** Bringt die Krisenliste auf den Stand der Welt: aktiviert über der Schwelle, beendet unter der Unterschwelle (Hysterese). */
+function krisenAktualisieren(world) {
+	const spiel = world.spiel;
+	if (!spiel || spiel.ende) return;
+	const bisher = spiel.krisen ?? [];
+	const neu = [];
+	for (const def of KRISEN) {
+		const aktiv = bisher.find((k) => k.id === def.id);
+		if (aktiv) {
+			if (def.beruhigt(world)) {
+				addLog(world, "ereignis", `„${def.name}“ ist vorbei.`, def.bedingung);
+				continue;
+			}
+			neu.push(aktiv);
+		} else if (def.ausloeser(world)) {
+			neu.push({
+				id: def.id,
+				seit: world.day
+			});
+			addLog(world, "ereignis", `${def.name}: ${def.grund(world)}`, `${def.wirkung} ${def.bedingung}`);
+			zeitungEreignis(world, {
+				art: "krise",
+				titel: def.name,
+				fakt: def.grund(world),
+				wertung: def.id === "kriegsgefahr" ? -.9 : -.8,
+				...def.id === "kriegsgefahr" ? { krieg: true } : {},
+				schluessel: [def.name]
+			});
+		}
+	}
+	spiel.krisen = neu;
+}
+/**
+* Startet oder dämpft die Umsetzung, wenn eine Maßnahme gesetzt oder geändert wird.
+* Aufgerufen aus handeln.ts (wendeAn) — dem einzigen Weg, auf dem ein Beschluss ins Netz kommt.
+*
+* - Maßnahme ohne Umsetzungsdauer: kein Eintrag, sie wirkt sofort (Faktor 1).
+* - Änderung um höchstens eine Stufe (Feinjustierung): −25 Punkte statt Reset.
+* - Größere Änderung oder erstmaliger Beschluss: Start bei 0.
+*
+* `aenderung` ist der Sprung der Stufe gegenüber dem Stand beim Beschluss,
+* `effektiveMonate` die Dauer inklusive Verwaltungsüberlast (wie beim Stufen-Schritt).
+* Das Tempo (Punkte je Monat) wird beim Beschluss festgelegt und nicht nachträglich
+* verändert — analog zu `steps` in netz.ts.
+*/
+function starteUmsetzung(model, net, id, aenderung, effektiveMonate) {
+	const i = model.index.get(id);
+	const node = i === void 0 ? void 0 : model.nodes[i];
+	if (!node || node.kind !== "massnahme" || node.months === void 0) return;
+	net.umsetzung ??= {};
+	net.umsetzungTempo ??= {};
+	const bisher = net.umsetzung[id] ?? 100;
+	net.umsetzung[id] = Math.abs(aenderung) <= 1 ? Math.max(0, bisher - 25) : 0;
+	net.umsetzungTempo[id] = 100 / Math.max(1, effektiveMonate);
+}
+/**
+* Monatsschritt der Simulation: Jede laufende Umsetzung nähert sich linear der 100
+* (gleicher Zuwachs jeden Monat). Wer 100 erreicht, ist voll umgesetzt; der Eintrag
+* wird aufgeräumt, der Faktor ist wieder 1. Läuft in world.ts (monthlyNet) vor dem
+* Netzschritt, damit schon der erste Monat mit dem neuen Stand wirkt.
+*/
+function umsetzungMonat(net) {
+	if (!net.umsetzung) return;
+	for (const id of Object.keys(net.umsetzung)) {
+		const stand = net.umsetzung[id];
+		const tempo = net.umsetzungTempo?.[id] ?? 100;
+		if (stand + tempo >= 100) {
+			delete net.umsetzung[id];
+			if (net.umsetzungTempo) delete net.umsetzungTempo[id];
+		} else net.umsetzung[id] = stand + tempo;
+	}
+}
+//#endregion
+//#region src/sim/handeln.ts
+const REGELN = {
+	/** Gleichzeitig laufende Vorhaben, bevor die Verwaltung überlastet ist */
+	kapazitaet: 8,
+	/** Zuschlag je Vorhaben über der Kapazität (Dauer und Kapital) */
+	ueberlastStufe: .2,
+	/** Tage vom Einbringen bis zur Abstimmung */
+	tageBisAbstimmung: 21,
+	mehrheit: 301,
+	/** Kapital je gekaufter Stimme */
+	kaufKostenProStimme: .5,
+	/** Anteil des Kapitals, der beim Zurückziehen eines Gesetzes zurückkommt */
+	rueckzugAnteil: .6,
+	/** Ein Erlass kostet mehr Kapital und Vertrauen */
+	erlassFaktor: 2,
+	/** Allgemeiner Faktor auf alle Kapitalkosten von Änderungen (Kalibrierung der Knappheit) */
+	kapitalFaktor: 1.8,
+	kapitalMax: 150,
+	/**
+	* Vier-Preise-Regel (Spielparameter): Standard-Exit-Preis — das Zurücknehmen einer Politik
+	* kostet das 1,6-Fache des Einführens, weil Besitzstände, Apparate und Lager sich wehren.
+	* Maßnahmen können alle vier Preise einzeln setzen (data/politiknetz.ts, MassnahmePreise).
+	*/
+	streichFaktor: 1.6
+};
+/** Kapital je Stufenpunkt Änderung; heikle Themen kosten mehr. */
+const GEWICHT_THEMA = {
+	wirtschaft: .2,
+	haushalt: .28,
+	arbeit: .2,
+	bildung: .18,
+	gesundheit: .18,
+	landwirtschaft: .18,
+	energie: .2,
+	infrastruktur: .15,
+	wohnen: .2,
+	sicherheit: .25,
+	recht: .25,
+	militaer: .25,
+	kultur: .15,
+	gesellschaft: .3,
+	aussen: .28
+};
+const GEWICHT_MASSNAHME = {
+	m_einkommensteuer: .35,
+	m_mwst: .35,
+	m_kraftstoffsteuer: .32,
+	m_justizreform: .35,
+	m_internetsperren: .4,
+	m_medienaufsicht: .35,
+	m_friedensprozess: .4,
+	m_religioese_schulen: .35,
+	m_verteidigung: .3
+};
+/** Wo das Recht einen Erlass des Präsidenten zulässt (Verwaltung, Sicherheit, Außenbeziehungen). */
+const ERLASS_THEMEN = /* @__PURE__ */ new Set([
+	"sicherheit",
+	"aussen",
+	"militaer"
+]);
+const ERLASS_MASSNAHMEN = /* @__PURE__ */ new Set(["m_steuerfahndung", "m_verwaltungsdigital"]);
+function provinzName(plaka) {
+	return PROVINZEN[plaka - 1]?.name ?? `Provinz ${plaka}`;
+}
+/** „Hatay“, „Hatay und Adana“, „Hatay, Adana und Mersin“, bei vielen „12 Provinzen“. */
+function provinzenText(provinzen) {
+	if (!provinzen || provinzen.length === 0 || provinzen.length >= 81) return "im ganzen Land";
+	const namen = provinzen.map(provinzName);
+	if (namen.length > 4) return `in ${namen.length} Provinzen`;
+	if (namen.length === 1) return `in ${namen[0]}`;
+	return `in ${namen.slice(0, -1).join(", ")} und ${namen[namen.length - 1]}`;
+}
+function ortsListe(provinzen) {
+	if (!provinzen || provinzen.length === 0 || provinzen.length >= 81) return null;
+	return [...new Set(provinzen)].filter((p) => p >= 1 && p <= 81).sort((a, b) => a - b);
+}
+function anteil(world, ort) {
+	if (!ort) return 1;
+	return ort.reduce((s, p) => s + world.net.weights[p - 1], 0);
+}
+function knotenIndex(id) {
+	const i = NET.index.get(id);
+	const node = i === void 0 ? void 0 : NET.nodes[i];
+	if (i === void 0 || !node || node.kind !== "massnahme") throw new Error(`Keine Maßnahme: ${id}`);
+	return i;
+}
+/** Bevölkerungsgewichteter Mittelwert der Stufe in den Provinzen (oder im ganzen Land). */
+function stufeIn(world, id, ort) {
+	if (!ort) return nationalAverage(NET, world.net, id);
+	const i = knotenIndex(id);
+	let sum = 0;
+	let w = 0;
+	for (const p of ort) {
+		const weight = world.net.weights[p - 1];
+		sum += world.net.values[i * 81 + p - 1] * weight;
+		w += weight;
+	}
+	return sum / w;
+}
+/** Maßnahmen, die noch umgesetzt werden, plus Gesetze in der Beratung. */
+function offeneVorhaben(world) {
+	const ids = /* @__PURE__ */ new Set();
+	for (const [id, target] of Object.entries(world.net.targets)) if (Math.abs(nationalAverage(NET, world.net, id) - target) > 1) ids.add(id);
+	for (const id of Object.keys(world.net.ziele ?? {})) ids.add(id);
+	for (const g of world.spiel?.gesetze ?? []) ids.add(g.massnahme);
+	return ids.size;
+}
+function ueberlast(world, zusaetzlich = 0) {
+	const ueber = Math.max(0, offeneVorhaben(world) + zusaetzlich - REGELN.kapazitaet);
+	return 1 + REGELN.ueberlastStufe * ueber;
+}
+/** `gesetz` (Maßnahme und Richtung der Änderung) macht die Rechnung inhaltsbezogen: Fraktionen stimmen für das, was sie wollen. */
+function stimmenSicht(world, gesetz) {
+	const parl = world.parliament;
+	const player = world.player;
+	if (!parl || !player) return {
+		lager: 600,
+		erwartet: 600,
+		low: 590,
+		high: 600,
+		luecke: 0,
+		duldung: 0,
+		duldungSitze: 0,
+		sach: 0,
+		sachParteien: []
+	};
+	const lager = [player.partei.kurz, ...world.spiel?.lager ?? []].reduce((s, p) => s + (parl.seats[p] ?? 0), 0);
+	const dul = duldung(world);
+	const sach = sachstimmen(world, gesetz?.massnahme, gesetz?.richtung ?? 0);
+	const gegner = 600 - lager - dul.sitze - sach.sitze;
+	const uebertritt = clamp(.04 + .22 * ((world.spiel?.umfrage.zustimmung ?? 50) - 35) / 40, .02, .3);
+	const erwartet = Math.min(600, lager + dul.ja + sach.ja + Math.round(gegner * uebertritt));
+	const band = Math.round((8 + Math.round(gegner * .02)) * unsicherheitFaktor(world));
+	return {
+		lager,
+		erwartet,
+		low: erwartet - band,
+		high: Math.min(600, erwartet + band),
+		luecke: Math.max(0, REGELN.mehrheit - erwartet),
+		duldung: dul.ja,
+		duldungSitze: dul.sitze,
+		sach: sach.ja,
+		sachParteien: sach.parteien
+	};
+}
+function pkKosten(world, id, delta, ort, weg, ueberl) {
+	const node = NET.nodes[knotenIndex(id)];
+	const gewicht = GEWICHT_MASSNAHME[id] ?? GEWICHT_THEMA[node.theme] ?? .2;
+	const share = anteil(world, ort);
+	const ortsfaktor = ort ? .35 + .65 * Math.min(1, share * 3) : 1;
+	const rabatt = 1 - rabattFuer(world, node.theme);
+	const preise = preisFaktoren(node);
+	const richtungsfaktor = preise.aendern * (delta >= 0 ? preise.einfuehren : preise.streichen);
+	const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * richtungsfaktor * (weg === "erlass" ? REGELN.erlassFaktor : 1);
+	return Math.max(2, Math.round(basis));
+}
+/**
+* Die vier Preise einer Maßnahme mit aufgelösten Defaults (Spielparameter, keine Tatsachen):
+* einfuehren und aendern kosten wie bisher, streichen kostet standardmäßig das 1,6-Fache des
+* Einführens (Exit-Preis), Unterhalt fällt nur an, wenn die Maßnahme ihn ausdrücklich trägt.
+*/
+function preisFaktoren(node) {
+	const p = node.preise ?? {};
+	const einfuehren = p.einfuehren ?? 1;
+	return {
+		einfuehren,
+		aendern: p.aendern ?? 1,
+		streichen: p.streichen ?? REGELN.streichFaktor * einfuehren,
+		unterhaltMonat: p.unterhalt_monat ?? 0
+	};
+}
+/** Laufender Unterhalt aller Maßnahmen mit `unterhalt_monat`, anteilig zur aktuellen Stufe. */
+function unterhaltKosten(world) {
+	const posten = [];
+	for (const node of NET.nodes) {
+		const u = node.preise?.unterhalt_monat;
+		if (node.kind !== "massnahme" || !u) continue;
+		const stufe = nationalAverage(NET, world.net, node.id);
+		if (stufe < .5) continue;
+		posten.push({
+			id: node.id,
+			name: node.name,
+			betrag: u * stufe / 100,
+			stufe
+		});
+	}
+	return {
+		summe: posten.reduce((s, p) => s + p.betrag, 0),
+		posten
+	};
+}
+function erlassMoeglich(id) {
+	const node = NET.nodes[knotenIndex(id)];
+	return ERLASS_THEMEN.has(node.theme) || ERLASS_MASSNAHMEN.has(id);
+}
+function pruefeVorhaben(world, id, stufe, provinzen) {
+	const i = knotenIndex(id);
+	const node = NET.nodes[i];
+	const ort = ortsListe(provinzen);
+	const ziel = clamp(Math.round(stufe), 0, 100);
+	const aenderung = ziel - stufeIn(world, id, ort);
+	const share = anteil(world, ort);
+	let kostenBip = 0;
+	const liste = ort ?? Array.from({ length: 81 }, (_, p) => p + 1);
+	for (const p of liste) kostenBip += world.net.weights[p - 1] * (ziel - world.net.values[i * 81 + p - 1]) * (node.cost ?? 0) / 100;
+	const offen = offeneVorhaben(world);
+	const ueberl = ueberlast(world, 1);
+	const kapital = world.spiel?.kapital ?? Infinity;
+	const stimmen = stimmenSicht(world, {
+		massnahme: id,
+		richtung: Math.sign(aenderung)
+	});
+	const krisen = world.spiel ? krisenFuerMassnahme(world, id) : [];
+	const krisenFaktor = krisen.reduce((f, k) => k.art === "teuer" ? f * k.faktor : f, 1);
+	const pkGesetz = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "gesetz", ueberl) * krisenFaktor));
+	const erlassOk = erlassMoeglich(id);
+	const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass", ueberl) * krisenFaktor));
+	const hinweise = [];
+	if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Dauer und Kapital steigen um ${Math.round((ueberl - 1) * 100)} %.`);
+	if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen, das kostet später Gegenleistungen.`);
+	if (ort && share < .05) hinweise.push("Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, die vor Ort deutlich.");
+	for (const k of krisen) if (k.art === "teuer") hinweise.push(`${k.krise.name}: ${k.krise.wirkung}`);
+	const preise = preisFaktoren(node);
+	const richtung = aenderung >= 0 ? "einfuehren" : "streichen";
+	if (aenderung < 0 && preise.streichen > preise.einfuehren) {
+		const f = (preise.streichen / preise.einfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+		hinweise.push(`Exit-Preis: Das Zurücknehmen kostet das ${f}-Fache des Einführens — Besitzstände, Apparate und Lager wehren sich.`);
+	}
+	if (preise.unterhaltMonat > 0) hinweise.push(`Laufender Unterhalt: etwa ${preise.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe, anteilig zur aktuellen Stufe.`);
+	const base = {
+		ok: true,
+		massnahme: id,
+		name: node.name,
+		stufe: ziel,
+		provinzen: ort,
+		aenderung,
+		monate: Math.max(1, Math.ceil((node.months ?? 1) * ueberl)),
+		kostenBip,
+		ueberlast: ueberl,
+		offen,
+		kapital,
+		gesetz: {
+			pk: pkGesetz,
+			stimmen,
+			tage: REGELN.tageBisAbstimmung,
+			bezahlbar: kannZahlen(kapital, pkGesetz)
+		},
+		erlass: erlassOk ? {
+			moeglich: true,
+			pk: pkErlass,
+			bezahlbar: kannZahlen(kapital, pkErlass)
+		} : {
+			moeglich: false,
+			pk: pkErlass,
+			bezahlbar: false,
+			grund: "Dafür braucht der Präsident ein Gesetz; ein Erlass ist nur in Sicherheit und Außenbeziehungen zulässig."
+		},
+		hinweise,
+		krisen,
+		krisenFaktor,
+		preise: {
+			...preise,
+			richtung
+		}
+	};
+	if (Math.abs(aenderung) < 1) return {
+		...base,
+		ok: false,
+		grund: "Das ist schon die aktuelle Stufe."
+	};
+	const gesperrt = krisen.find((k) => k.art === "gesperrt");
+	if (gesperrt) return {
+		...base,
+		ok: false,
+		grund: `${gesperrt.krise.name}: ${gesperrt.krise.grund} ${gesperrt.ausweg ?? ""}`.trim()
+	};
+	return base;
+}
+function wendeAn(world, id, level, provinzen) {
+	const i = knotenIndex(id);
+	const node = NET.nodes[i];
+	const ort = ortsListe(provinzen);
+	const target = clamp(Math.round(level), 0, 100);
+	const months = Math.max(1, (node.months ?? 1) * ueberlast(world));
+	const vorher = stufeIn(world, id, ort);
+	const s = world.net;
+	beobachte(world, id, vorher, target, ort);
+	if (!ort) {
+		s.targets[id] = target;
+		s.steps[id] = Math.max(Math.abs(target - nationalAverage(NET, s, id)) / months, .01);
+		if (s.ziele) delete s.ziele[id];
+		if (s.schritte) delete s.schritte[id];
+	} else {
+		s.ziele ??= {};
+		s.schritte ??= {};
+		const arr = s.ziele[id] ??= new Array(81).fill(-1);
+		const st = s.schritte[id] ??= new Array(81).fill(100);
+		if (s.targets[id] !== void 0) {
+			for (let p = 0; p < 81; p++) if (!ort.includes(p + 1) && arr[p] < 0) {
+				arr[p] = s.targets[id];
+				st[p] = s.steps[id] ?? 100;
+			}
+			delete s.targets[id];
+			delete s.steps[id];
+		}
+		for (const p of ort) {
+			arr[p - 1] = target;
+			st[p - 1] = Math.max(Math.abs(target - s.values[i * 81 + p - 1]) / months, .01);
+		}
+	}
+	starteUmsetzung(NET, s, id, target - vorher, months);
+	const richtung = Math.sign(target - vorher);
+	for (const z of world.spiel?.zusagen ?? []) if (!z.erfuellt && !z.gebrochen && z.massnahme === id && richtung === Math.sign(z.richtung ?? 0)) {
+		z.erfuellt = true;
+		bereitschaftAendern(world, z.von, 10);
+		addLog(world, "ereignis", `Zusage erfüllt: ${z.text}`, "Wer Zusagen hält, wird beim nächsten Mal ernster genommen.");
+	}
+	reagiereFiguren(world, node.theme, id, richtung);
+}
+/**
+* Direkte Anwendung ohne Kapital und Abstimmung. Für Tests, den Kern und Fälle ohne Spielschleife;
+* die Oberfläche geht über `bringeEin`.
+*/
+function setPolicy(world, id, level, provinzen) {
+	const i = knotenIndex(id);
+	const node = NET.nodes[i];
+	const ort = ortsListe(provinzen);
+	const target = clamp(Math.round(level), 0, 100);
+	const current = stufeIn(world, id, ort);
+	const months = node.months ?? 1;
+	let costChange = 0;
+	for (const p of ort ?? Array.from({ length: 81 }, (_, k) => k + 1)) costChange += world.net.weights[p - 1] * (target - world.net.values[i * 81 + p - 1]) * (node.cost ?? 0) / 100;
+	wendeAn(world, id, target, ort);
+	addLog(world, "entscheidung", `${node.name} ${provinzenText(ort)}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`, `${node.text} Umsetzung läuft über etwa ${months} ${months === 1 ? "Monat" : "Monate"}` + (Math.abs(costChange) >= 5e-4 ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.` : "."));
+}
+/** Wird nach jedem erfolgreich eingebrachten Vorhaben aufgerufen (Ereignisse schließen sich, wenn der Spieler die Ursache selbst regelt). */
+let nachEinbringen = null;
+function setzeEinbringHaken(fn) {
+	nachEinbringen = fn;
+}
+/** Ein Vorhaben einbringen: als Gesetz (mit Abstimmung) oder als Erlass. */
+function bringeEin(world, id, stufe, provinzen, weg) {
+	const pr = pruefeVorhaben(world, id, stufe, provinzen);
+	if (!pr.ok) return {
+		ok: false,
+		text: pr.grund ?? "Nicht möglich."
+	};
+	const spiel = world.spiel;
+	if (!spiel) {
+		setPolicy(world, id, stufe, provinzen);
+		const l = world.log[world.log.length - 1];
+		return {
+			ok: true,
+			text: l.text,
+			why: l.why
+		};
+	}
+	if (spiel.ende) return {
+		ok: false,
+		text: "Die Amtszeit ist beendet."
+	};
+	const pause = neuanfangGrund(world);
+	if (pause) return {
+		ok: false,
+		text: pause
+	};
+	if (weg === "erlass") {
+		if (!pr.erlass.moeglich) return {
+			ok: false,
+			text: pr.erlass.grund,
+			why: "Wege statt Verbote: Der Weg über ein Gesetz steht offen."
+		};
+		if (!pr.erlass.bezahlbar) return {
+			ok: false,
+			text: `Für den Erlass fehlt Politisches Kapital (nötig ${pr.erlass.pk}, vorhanden ${Math.floor(spiel.kapital)}).`
+		};
+		spiel.kapital -= pr.erlass.pk;
+		verbrauche(world, AUFMERKSAMKEIT_KOSTEN.erlass, pr.name);
+		setPolicy(world, id, pr.stufe, pr.provinzen);
+		vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
+		const l = world.log[world.log.length - 1];
+		nachEinbringen?.(world, id, `Per Erlass angeordnet: ${l.text}`);
+		return {
+			ok: true,
+			text: `Erlass: ${l.text}`,
+			why: `${l.why} Ein Erlass umgeht das Parlament und kostet ${pr.erlass.pk} Kapital sowie etwas Vertrauen.`
+		};
+	}
+	if (!pr.gesetz.bezahlbar) return {
+		ok: false,
+		text: `Für dieses Gesetz fehlt Politisches Kapital (nötig ${pr.gesetz.pk}, vorhanden ${Math.floor(spiel.kapital)}).`,
+		why: "Kapital wächst mit Vertrauen und Mehrheit; nicht alles auf einmal."
+	};
+	if (spiel.gesetze.some((g) => g.massnahme === id)) return {
+		ok: false,
+		text: `Zu „${pr.name}“ liegt schon ein Gesetzentwurf im Parlament.`
+	};
+	spiel.kapital -= pr.gesetz.pk;
+	verbrauche(world, AUFMERKSAMKEIT_KOSTEN.gesetz, pr.name);
+	const verzug = stufeVon$1(verfassungVon(world).belastung) >= 1 && hashWert(`${world.seed}|${world.day}|${id}|verzug`) < VERFASSUNG.verzugChance ? VERFASSUNG.verzugTage : 0;
+	const tag = world.day + REGELN.tageBisAbstimmung + verzug;
+	spiel.gesetze.push({
+		id: `g-${world.day}-${id}`,
+		massnahme: id,
+		name: pr.name,
+		stufe: pr.stufe,
+		provinzen: pr.provinzen,
+		eingebracht: world.day,
+		abstimmung: tag,
+		pk: pr.gesetz.pk,
+		absprachen: 0,
+		richtung: Math.sign(pr.aenderung)
+	});
+	const tageBis = tag - world.day;
+	const monate = pr.monate;
+	const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
+	const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
+	addLog(world, "entscheidung", text, why);
+	nachEinbringen?.(world, id, text);
+	return {
+		ok: true,
+		text,
+		why
+	};
+}
+function gesetzRichtung(world, g) {
+	return g.richtung ?? Math.sign(g.stufe - stufeIn(world, g.massnahme, g.provinzen));
+}
+/** Am Abstimmungstag wird entschieden: Ja-Stimmen aus Lager, Übertritten, Absprachen und Zufall. */
+function gesetzeAbstimmen(world, rng) {
+	const spiel = world.spiel;
+	if (!spiel) return [];
+	const out = [];
+	const faellig = spiel.gesetze.filter((g) => g.abstimmung <= world.day);
+	if (faellig.length === 0) return out;
+	spiel.gesetze = spiel.gesetze.filter((g) => g.abstimmung > world.day);
+	for (const g of faellig) {
+		const sicht = stimmenSicht(world, {
+			massnahme: g.massnahme,
+			richtung: gesetzRichtung(world, g)
+		});
+		const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + Math.round(rng.normal(6))));
+		const nein = 600 - ja;
+		const angenommen = ja >= REGELN.mehrheit;
+		out.push({
+			gesetz: g.name,
+			angenommen,
+			ja,
+			nein
+		});
+		if (angenommen) {
+			wendeAn(world, g.massnahme, g.stufe, g.provinzen);
+			const node = NET.nodes[knotenIndex(g.massnahme)];
+			const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
+			addLog(world, "entscheidung", `Das Parlament nimmt „${g.name}“ ${provinzenText(g.provinzen)} an (${ja} zu ${nein}). Stufe ${g.stufe}.`, `${node.text} Umsetzung läuft über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`);
+		} else {
+			vertrauenAendern(world, -1.2);
+			spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - .8);
+			addLog(world, "entscheidung", `Das Parlament lehnt „${g.name}“ ab (${ja} zu ${nein}).`, `Das eingesetzte Kapital (${g.pk}) ist verloren, die Regierung wirkt geschwächt. Es fehlten ${REGELN.mehrheit - ja} Stimmen; ein Rückzug vor der Abstimmung hätte ${Math.floor(g.pk * REGELN.rueckzugAnteil)} Kapital gerettet.`);
+		}
+	}
+	return out;
 }
 //#endregion
 //#region src/data/erbe.ts
@@ -7082,7 +10539,20 @@ function postenVorschau(w, id, stufe) {
 	const aktuell = stufeVon(w, id);
 	const delta = clamp(Math.round(stufe), -2, 2) - aktuell;
 	const impuls = delta * p.schritt * vorzeichen(p);
-	const kapital = kapitalKosten(p, delta);
+	const fenster = haushaltsfenster(w);
+	const faktor = fenster.offen ? 0 : HAUSHALT_ZYKLUS.nachtragFaktor;
+	const kapital = kapitalKosten(p, delta) * faktor;
+	const zyklus = fenster.offen ? {
+		fensterOffen: true,
+		modus: "entwurf",
+		faktor: 0,
+		hinweis: "Haushaltsfenster: kostenlos — die Änderung geht in den Entwurf und wirkt mit dem Haushaltsgesetz."
+	} : {
+		fensterOffen: false,
+		modus: "nachtrag",
+		faktor: HAUSHALT_ZYKLUS.nachtragFaktor,
+		hinweis: `Nachtragshaushalt außerhalb des Fensters: doppelte Kapitalkosten und ein kleiner Legitimitäts-Abzug. Nächstes Fenster: Oktober ${fenster.naechsterStart.slice(0, 4)}.`
+	};
 	const defizitVorher = defizitJetzt(w);
 	const zeilen = [];
 	if (delta !== 0) for (const e of [...p.sofort, ...p.dauer]) {
@@ -7106,7 +10576,8 @@ function postenVorschau(w, id, stufe) {
 		defizitVorher,
 		defizitNachher: defizitVorher - impuls,
 		impuls,
-		zeilen
+		zeilen,
+		zyklus
 	};
 }
 /** Ob die Bewegung einer Größe für das Land gut ist; Gruppen sind zufrieden, wenn ihr Wert steigt. */
@@ -7117,50 +10588,6 @@ function wende(w, p, delta) {
 	const e = w.economy;
 	e.fiscalImpulse += delta * p.schritt * vorzeichen(p);
 	for (const x of p.sofort) wirke(w, x.id, x.d * delta);
-}
-/** Einen Posten auf eine Stufe stellen (Nachtragshaushalt): kostet Kapital, wirkt sofort auf die Stimmung und dauerhaft auf die Politikfelder. */
-function setzePosten(w, id, stufe, ohneKosten = false) {
-	const spiel = w.spiel;
-	const p = POSTEN_NACH_ID[id];
-	if (!spiel || !p) return {
-		ok: false,
-		text: "Diesen Haushaltsposten gibt es nicht."
-	};
-	const v = postenVorschau(w, id, stufe);
-	if (v.delta === 0) return {
-		ok: false,
-		text: "Der Posten steht schon auf dieser Stufe."
-	};
-	if (!ohneKosten && !kannZahlen(spiel.kapital, v.kapital)) return {
-		ok: false,
-		text: `Das kostet ${v.kapital} Kapital; vorhanden sind ${Math.floor(spiel.kapital)}.`
-	};
-	const z = haushaltZustand(w);
-	const ziel = clamp(Math.round(stufe), -2, 2);
-	if (!ohneKosten) spiel.kapital -= v.kapital;
-	z.stufen[id] = ziel;
-	if (ziel === 0) delete z.stufen[id];
-	wende(w, p, v.delta);
-	z.letzteAenderung = w.day;
-	const mrd = Math.round(Math.abs(v.delta) * mrdJeStufe(p));
-	const richtung = v.delta > 0 ? p.seite === "ausgabe" ? "erhöht" : "angehoben" : p.seite === "ausgabe" ? "gekürzt" : "gesenkt";
-	const text = `Nachtragshaushalt: ${p.name} ${richtung} (etwa ${mrd.toLocaleString("de-DE")} Mrd. Lira im Jahr).`;
-	const folgen = [...impulsKette(v.impuls).slice(0, 4).map(kettenZeile), ...v.zeilen.slice(0, 4).map((x) => `${x.text} ${x.richtung > 0 ? "▲" : "▼"} (dauerhaft)`)];
-	z.aenderungen.push({
-		tag: w.day,
-		datum: w.date,
-		posten: p.name,
-		text,
-		folgen
-	});
-	if (z.aenderungen.length > 12) z.aenderungen.shift();
-	addLog(w, "entscheidung", text, `Defizit ${fmt(v.defizitVorher)} auf ${fmt(v.defizitNachher)} % des BIP. ${p.kehrseite}`);
-	addMarke(w, "haushalt", text);
-	return {
-		ok: true,
-		text,
-		why: `${v.kapital ? `Kostet ${v.kapital} Kapital. ` : ""}Defizit ${fmt(v.defizitVorher)} auf ${fmt(v.defizitNachher)} % des BIP.`
-	};
 }
 /** Ein einfacher Schritt für Sprachbefehle und die KI, wenn kein bestimmter Posten genannt wird: mehr ausgeben oder sparen. */
 function einfacherSchritt(w, art) {
@@ -7182,30 +10609,6 @@ function einfacherSchritt(w, art) {
 	}
 	return null;
 }
-/** Pakete für das Haushaltsjahr: mehrere Regler auf einmal. */
-const PAKETE = {
-	konsolidieren: {
-		name: "Konsolidieren",
-		schritte: {
-			personal: -1,
-			subventionen: -1,
-			einkommensteuer: 1
-		}
-	},
-	investieren: {
-		name: "Investieren",
-		schritte: { investitionen: 2 }
-	}
-};
-/** Ein Paket des Haushaltsjahres anwenden (die Kosten trägt das Ereignis). */
-function wendePaketAn(w, id) {
-	const paket = PAKETE[id];
-	if (!paket || !w.spiel) return;
-	for (const [posten, delta] of Object.entries(paket.schritte)) {
-		const ziel = clamp(stufeVon(w, posten) + delta, -2, 2);
-		if (ziel !== stufeVon(w, posten)) setzePosten(w, posten, ziel, true);
-	}
-}
 /** Einmal im Monat: Dauerwirkungen der Regler und der Zinsdienst des Staates. */
 function haushaltMonat(w) {
 	if (!w.spiel) return;
@@ -7220,6 +10623,130 @@ function haushaltMonat(w) {
 	const ziel = ZINSSATZ_START + .25 * (markt - z.marktStart);
 	z.zinssatz = clamp(z.zinssatz + .06 * (ziel - z.zinssatz), 3, 60);
 	e.zinsMehrlast = e.debtRatio / 100 * (z.zinssatz - ZINSSATZ_START);
+}
+/** Spielparameter des Haushalts-Zyklus (Kalibrierung, keine Tatsachen). */
+const HAUSHALT_ZYKLUS = {
+	/** Kalendermonat des Haushaltsfensters (Oktober) */
+	fensterMonat: 10,
+	/** Länge des Fensters in Tagen (vier Wochen) */
+	fensterTage: 28,
+	/** Kapitalkosten-Faktor außerhalb des Fensters („Nachtragshaushalt") */
+	nachtragFaktor: 2,
+	/** Legitimitäts-Abzug je Nachtrags-Änderung (Verfahrensverstoß, ehrlich bepreist) */
+	nachtragLegitimitaet: -.4,
+	/** Legitimitäts-Abzug bei gescheitertem Haushaltsgesetz */
+	scheiternLegitimitaet: -2
+};
+/** Der Stand des Haushalts-Zyklus: Fenster offen/geschlossen, Countdown, Ergebnis des letzten Durchgangs. */
+function haushaltsfenster(w) {
+	const z = haushaltZustand(w);
+	const jahr = Number(w.date.slice(0, 4));
+	const monat = monthNumber(w.date);
+	const tag = dayOfMonth(w.date);
+	const kalenderOffen = monat === HAUSHALT_ZYKLUS.fensterMonat && tag <= HAUSHALT_ZYKLUS.fensterTage;
+	const jahrNaechstes = monat > HAUSHALT_ZYKLUS.fensterMonat || monat === HAUSHALT_ZYKLUS.fensterMonat && tag > HAUSHALT_ZYKLUS.fensterTage ? jahr + 1 : jahr;
+	const naechsterStart = `${jahrNaechstes}-10-01`;
+	const monateBis = kalenderOffen ? 0 : (HAUSHALT_ZYKLUS.fensterMonat - monat + 12) % 12 || (tag > 1 ? 12 : 0);
+	const erledigt = z.zyklusJahr === (kalenderOffen ? jahr : monat === HAUSHALT_ZYKLUS.fensterMonat ? jahr : jahrNaechstes - 1);
+	const gesetzUnterwegs = !!z.gesetz;
+	return {
+		kalenderOffen,
+		offen: kalenderOffen && !erledigt && !gesetzUnterwegs,
+		jahr: kalenderOffen ? jahr : jahrNaechstes,
+		tageRest: kalenderOffen ? HAUSHALT_ZYKLUS.fensterTage - tag + 1 : 0,
+		naechsterStart,
+		monateBis,
+		erledigt,
+		gesetzUnterwegs,
+		...z.letztesErgebnis ? { letztesErgebnis: z.letztesErgebnis } : {}
+	};
+}
+/** Wendet einen beschlossenen Entwurf an: Regler-Stufen, Nachfrage-Impuls und Sofortwirkungen je Posten. */
+function wendeEntwurfAn(w, schritte, jahr) {
+	const z = haushaltZustand(w);
+	let angewendet = 0;
+	for (const [id, zielStufe] of Object.entries(schritte)) {
+		const p = POSTEN_NACH_ID[id];
+		if (!p) continue;
+		const aktuell = z.stufen[id] ?? 0;
+		const delta = clamp(zielStufe, -2, 2) - aktuell;
+		if (!delta) continue;
+		if (zielStufe === 0) delete z.stufen[id];
+		else z.stufen[id] = clamp(zielStufe, -2, 2);
+		wende(w, p, delta);
+		angewendet += 1;
+		const mrd = Math.round(Math.abs(delta) * mrdJeStufe(p));
+		const richtung = delta > 0 ? p.seite === "ausgabe" ? "erhöht" : "angehoben" : p.seite === "ausgabe" ? "gekürzt" : "gesenkt";
+		const folgen = [...impulsKette(delta * p.schritt * vorzeichen(p)).slice(0, 3).map(kettenZeile), ...p.dauer.slice(0, 3).map((x) => {
+			const node = NET.nodes[NET.index.get(x.id) ?? -1];
+			return node ? `${node.name} ${Math.sign(x.d * delta) > 0 ? "▲" : "▼"} (dauerhaft)` : "";
+		}).filter(Boolean)];
+		z.aenderungen.push({
+			tag: w.day,
+			datum: w.date,
+			posten: p.name,
+			text: `Haushaltsgesetz ${jahr + 1}: ${p.name} ${richtung} (etwa ${mrd.toLocaleString("de-DE")} Mrd. Lira im Jahr).`,
+			folgen
+		});
+		z.letzteAenderung = w.day;
+	}
+	while (z.aenderungen.length > 12) z.aenderungen.shift();
+	return angewendet;
+}
+/**
+* Täglicher Schritt des Haushalts-Zyklus (aus der Spielschleife): die Abstimmung über das
+* Haushaltsgesetz und das stille Schließen des Fensters, wenn niemand etwas einbringt.
+*/
+function haushaltszyklusTag(w, rng) {
+	const spiel = w.spiel;
+	if (!spiel || spiel.ende) return;
+	const z = haushaltZustand(w);
+	const jahr = Number(w.date.slice(0, 4));
+	if (monthNumber(w.date) === HAUSHALT_ZYKLUS.fensterMonat && dayOfMonth(w.date) === HAUSHALT_ZYKLUS.fensterTage + 1 && z.zyklusJahr !== jahr && !z.gesetz) {
+		z.zyklusJahr = jahr;
+		z.letztesErgebnis = "fortgeschrieben";
+		addLog(w, "ereignis", `Das Haushaltsfenster schließt ungenutzt: Der Haushalt ${jahr} läuft weiter.`, "Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation damit automatisch aus. Wer etwas ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.");
+	}
+	const g = z.gesetz;
+	if (!g || g.abstimmung > w.day) return;
+	z.gesetz = null;
+	const sicht = stimmenSicht(w);
+	const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + Math.round(rng.normal(6))));
+	const nein = 600 - ja;
+	const angenommen = ja >= REGELN.mehrheit;
+	z.zyklusJahr = g.jahr;
+	if (angenommen) {
+		const n = wendeEntwurfAn(w, g.schritte, g.jahr);
+		z.letztesErgebnis = "angenommen";
+		addLog(w, "entscheidung", `Das Parlament nimmt das Haushaltsgesetz ${g.jahr + 1} an (${ja} zu ${nein}): ${n} ${n === 1 ? "Posten" : "Posten"} geändert.`, `Das Defizit liegt jetzt bei ${fmt(defizitJetzt(w))} % des BIP. Die Änderungen wirken ab sofort; die Dauerwirkungen entfalten sich über die nächsten Monate.`);
+		addMarke(w, "haushalt", `Haushaltsgesetz ${g.jahr + 1} beschlossen`);
+		spiel.chronik.push({
+			tag: w.day,
+			datum: w.date,
+			titel: `Haushaltsgesetz ${g.jahr + 1}`,
+			ausgang: `Mit ${ja} zu ${nein} Stimmen angenommen.`
+		});
+	} else {
+		z.letztesErgebnis = "gescheitert";
+		wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.scheiternLegitimitaet);
+		spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - .8);
+		addLog(w, "entscheidung", `Das Parlament lehnt das Haushaltsgesetz ${g.jahr + 1} ab (${ja} zu ${nein}).`, `Der Vorjahrshaushalt läuft weiter: Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation automatisch aus. Die Regierung wirkt geschwächt (Legitimität ${HAUSHALT_ZYKLUS.scheiternLegitimitaet}). Es fehlten ${REGELN.mehrheit - ja} Stimmen.`);
+		spiel.chronik.push({
+			tag: w.day,
+			datum: w.date,
+			titel: `Haushaltsgesetz ${g.jahr + 1}`,
+			ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.`
+		});
+	}
+}
+/** Den Vorjahrshaushalt ausdrücklich fortschreiben (Wahl im Oktober-Ereignis): keine Änderung, keine Abstimmung. */
+function schreibeHaushaltFort(w) {
+	const z = haushaltZustand(w);
+	const jahr = Number(w.date.slice(0, 4));
+	z.zyklusJahr = jahr;
+	z.letztesErgebnis = "fortgeschrieben";
+	z.entwurf = {};
+	addLog(w, "entscheidung", `Der Haushalt ${jahr + 1} wird fortgeschrieben.`, "Die Posten bleiben unverändert und laufen mit der Inflation automatisch mit; wer später ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.");
 }
 //#endregion
 //#region src/data/reich/kultur.ts
@@ -10856,7 +14383,8 @@ const PROFILE = {
 			gas_kauf: 5,
 			investitionen_oeffnen: 2,
 			w_ruestung: -5,
-			w_sanktion: -6
+			w_sanktion: -6,
+			w_transit: -6
 		},
 		texte: {
 			w_ruestung: {
@@ -10887,7 +14415,8 @@ const PROFILE = {
 			vermittlung_zusage: 1,
 			w_zollunion: -5,
 			w_visa: -7,
-			w_ruestung: -4
+			w_ruestung: -4,
+			w_transit: -4
 		},
 		texte: {
 			w_zollunion: { text: "Die Zollunion von 1995 wird modernisiert; Griechenland und Zypern blockieren bisher." },
@@ -10913,7 +14442,8 @@ const PROFILE = {
 			w_preis: -6,
 			w_aufschub: -4,
 			w_akkuyu: -3,
-			w_getreide: -2
+			w_getreide: -2,
+			w_transit: -4
 		},
 		texte: {
 			gas_kauf: {
@@ -10938,7 +14468,8 @@ const PROFILE = {
 			vermittlung_zusage: 1,
 			w_inseln: -99,
 			w_seegrenze: -8,
-			w_zollunion: -3
+			w_zollunion: -3,
+			w_transit: -5
 		},
 		rotText: { w_inseln: "Athen erklärt die Bewaffnung der Inseln zum Recht auf Selbstverteidigung; über den Status spricht es nicht." },
 		texte: {
@@ -10961,7 +14492,8 @@ const PROFILE = {
 			transit: 2,
 			zahlungsweg: 8,
 			w_pkk: -4,
-			w_preis: -5
+			w_preis: -5,
+			w_transit: -3
 		},
 		texte: {
 			gas_kauf: {
@@ -10987,7 +14519,8 @@ const PROFILE = {
 			visa: 2,
 			w_rueckkehr: -5,
 			w_pkk: -3,
-			w_stuetzpunkt: -3
+			w_stuetzpunkt: -3,
+			w_transit: -2
 		},
 		texte: {
 			ruestung_koop: {
@@ -11016,7 +14549,8 @@ const PROFILE = {
 			transit: 4,
 			kredit_hilfe: 3,
 			w_pipeline: -3,
-			w_pkk: -6
+			w_pkk: -6,
+			w_transit: -2
 		},
 		texte: {
 			w_pipeline: {
@@ -11085,7 +14619,8 @@ const PROFILE = {
 			militaerzugang: 4,
 			beistand: 7,
 			w_swap: -4,
-			w_investition_zusage: -5
+			w_investition_zusage: -5,
+			w_transit: -3
 		},
 		texte: {
 			beistand: {
@@ -11107,7 +14642,8 @@ const PROFILE = {
 			zoll: 4,
 			vermittlung_zusage: 3,
 			w_luftraum: -2,
-			w_zoll: -2
+			w_zoll: -2,
+			w_transit: -4
 		},
 		texte: {
 			ende_sperre: { text: "Die Handels-, Hafen- und Luftraumsperre gilt seit dem 2. Mai 2024 und wurde im Februar 2026 um einen Zertifikats-Stopp verschärft; aserbaidschanisches Öl läuft als Grauzone weiter über Ceyhan. Ein Ende der Sperre ist der Preis für alles Weitere." },
@@ -11128,7 +14664,8 @@ const PROFILE = {
 			bauauftraege: 2,
 			w_defizit: -5,
 			w_werk: -5,
-			w_swap: -4
+			w_swap: -4,
+			w_transit: -3
 		},
 		texte: {
 			w_defizit: {
@@ -11160,7 +14697,8 @@ const PROFILE = {
 			vermittlung_zusage: 4,
 			seesicherheit: 4,
 			w_getreide: -3,
-			w_zoll: -3
+			w_zoll: -3,
+			w_transit: -3
 		},
 		texte: {
 			seesicherheit: {
@@ -11207,7 +14745,8 @@ const PROFILE = {
 			investitionen_oeffnen: 3,
 			w_handelsziel: -4,
 			w_libyen: -6,
-			w_seegrenze: -5
+			w_seegrenze: -5,
+			w_transit: -3
 		},
 		texte: { w_handelsziel: {
 			label: "Handel von 8 auf 15 Milliarden Dollar",
@@ -11224,7 +14763,8 @@ const PROFILE = {
 			bauauftraege: 6,
 			bohrung: 4,
 			w_seegrenze: -2,
-			w_stuetzpunkt: -3
+			w_stuetzpunkt: -3,
+			w_transit: -3
 		},
 		texte: { w_seegrenze: {
 			label: "Seegrenz-Memorandum von 2019 bekräftigen",
@@ -11260,7 +14800,8 @@ const PROFILE = {
 			w_direkthandel: -8,
 			w_seegrenze: -6,
 			w_trnc: -99,
-			w_zollunion: -3
+			w_zollunion: -3,
+			w_transit: -5
 		},
 		rotText: { w_trnc: "Nikosia erkennt Nordzypern nicht an; jede Zwei-Staaten-Lösung verstößt aus seiner Sicht gegen die UN-Beschlüsse." },
 		texte: { verzicht_bohrung: {
@@ -11275,9 +14816,39 @@ const VERTRAGSLAUFZEITEN = [
 	10
 ];
 //#endregion
+//#region src/sim/reich-typen.ts
+const PROJEKT_TYP_NAMEN = {
+	schiene: "Schiene",
+	strasse: "Straße",
+	hafen: "Hafen",
+	flughafen: "Flughafen",
+	kanal: "Kanal",
+	stadt: "Stadt",
+	energie: "Energie",
+	prestige: "Prestige",
+	wasser: "Wasser",
+	sonstig: "Vorhaben"
+};
+const MASSSTAB_NAMEN = {
+	klein: "klein",
+	regional: "regional",
+	national: "national",
+	kontinental: "kontinental",
+	weltgroesste: "größte der Welt"
+};
+//#endregion
 //#region src/sim/reich.ts
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
 const VORTEIL_NACH_ID = new Map(VORTEILE.map((v) => [v.id, v]));
+/** Dynamisch angemeldete Vorhaben (INF-5: Wohnungsbau-Programme nach Katastrophen) — sie stehen
+* nicht im Katalog, werden aber über dieselbe Maschinerie gebaut: Baureihenfolge, Vergabe,
+* Baukapazität-Wettbewerb, Schulden über die Bauzeit. Beim Laden meldet sim/katastrophe.ts
+* sie aus dem Spielstand erneut an. */
+const DYNAMISCHE = [];
+function registriereVorhaben(v) {
+	if (!VORHABEN_NACH_ID.has(v.id)) DYNAMISCHE.push(v);
+	VORHABEN_NACH_ID.set(v.id, v);
+}
 const vorhabenDef = (id) => VORHABEN_NACH_ID.get(id);
 const vorteilDef = (id) => VORTEIL_NACH_ID.get(id);
 const VERWALTUNG_START = 60;
@@ -11291,7 +14862,10 @@ const MELDUNGEN_MAX = 40;
 function reichZustand(w) {
 	const spiel = w.spiel;
 	if (!spiel) throw new Error("Ohne Spielschleife gibt es kein Reich.");
-	if (spiel.reich) return spiel.reich;
+	if (spiel.reich) {
+		if (spiel.reich.frei) for (const e of Object.values(spiel.reich.frei)) registriereVorhaben(e.def);
+		return spiel.reich;
+	}
 	const z = {
 		verwaltung: VERWALTUNG_START,
 		bestand: {},
@@ -11563,7 +15137,7 @@ function wendeEffekt(w, e, faktor = 1) {
 	}
 }
 /** Größen, bei denen ein höherer Wert schlechter ist. */
-const SCHLECHT_WENN_HOCH = /* @__PURE__ */ new Set([
+const SCHLECHT_WENN_HOCH$1 = /* @__PURE__ */ new Set([
 	"haftueberfuellung",
 	"ausnahmerecht",
 	"strassburg_druck",
@@ -11611,7 +15185,7 @@ function effektZeileBasis(e, zahl) {
 			const node = NET.nodes[NET.index.get(e.id) ?? -1];
 			const name = node?.name ?? e.id;
 			const gruppe = node?.kind === "gruppe";
-			const schlecht = SCHLECHT_WENN_HOCH.has(e.id);
+			const schlecht = SCHLECHT_WENN_HOCH$1.has(e.id);
 			const wo = e.provinzen && e.provinzen.length && e.provinzen.length < 81 ? ` in ${e.provinzen.length} ${e.provinzen.length === 1 ? "Provinz" : "Provinzen"}` : "";
 			return {
 				text: `${name} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}${wo}`,
@@ -11689,7 +15263,8 @@ function schliesseAb(w, v) {
 		zustand: l?.zustandFertig ?? 90
 	};
 	for (const e of v.abschluss) wendeEffekt(w, e);
-	if ((v.klasse === "wunder" || v.klasse === "grossprojekt" || v.klasse === "serie") && !z.feier.includes(v.id)) z.feier.push(v.id);
+	const wichtig = v.klasse === "wunder" || v.klasse === "grossprojekt" || v.klasse === "serie";
+	if (wichtig && !z.feier.includes(v.id)) z.feier.push(v.id);
 	const text = `Fertig: ${v.name}.`;
 	meldung(w, "fertig", text);
 	const sparhinnweis = l?.zustandFertig !== void 0 ? ` Die Sparvergabe zeigt sich: Der Zustand beginnt bei ${l.zustandFertig}.` : "";
@@ -11699,6 +15274,13 @@ function schliesseAb(w, v) {
 		datum: w.date,
 		titel: v.name,
 		ausgang: `Fertiggestellt (${v.klasse === "wunder" ? "Wunder" : v.klasse === "serie" ? "Themenroute" : "Vorhaben"}).`
+	});
+	if (wichtig) zeitungEreignis(w, {
+		art: "fertigstellung",
+		titel: v.name,
+		fakt: `${v.name} ist fertiggestellt — ${v.klasse === "wunder" ? "ein Wunder der Amtszeit" : v.klasse === "serie" ? "eine ganze Themenroute" : "ein Großprojekt der Amtszeit"}.`,
+		wertung: .7,
+		schluessel: [v.name]
 	});
 }
 /** Einmal im Monat: bauen, verfallen lassen, wirken lassen, Vorteile prüfen. */
@@ -11727,6 +15309,21 @@ function reichMonat(w, _rng) {
 		cap -= aufnahme / verzug;
 		genutzt += aufnahme;
 		if (laufVergabe(l) === "stammfirma") wirke(w, "korruption", STAMMFIRMA_KORRUPTION_MONAT);
+		if (l.frei && !l.ueberzugGeprueft && bau > 0 && l.fortschritt / bau >= .35) {
+			l.ueberzugGeprueft = true;
+			const eintrag = z.frei?.[l.id];
+			const rngU = _rng ?? new Rng(w.rngState);
+			const ueberzug = rngU.next() < (eintrag?.schaetzung.ueberzugP ?? .5);
+			const frac = ueberzug ? Math.round(rngU.between(...eintrag?.schaetzung.ueberzugBand ?? [.2, .4]) * 100) / 100 : 0;
+			if (!_rng) w.rngState = rngU.state;
+			if (ueberzug && frac > 0) {
+				l.bau = bau + Math.round(bau * frac);
+				if (v.kosten.schulden) w.economy.debtRatio += v.kosten.schulden * frac;
+				wirke(w, "legitimitaet", -.6);
+				meldung(w, "ueberzug", `Kostenüberschreitung bei „${v.name}“: Der Bau braucht etwa ${Math.round(frac * 100)} % mehr — Kosten und Zeit steigen.`);
+				addLog(w, "entscheidung", `Kostenüberschreitung: ${v.name}`, `Die Schätzung war ein Band; die Verwirklichung liegt ${Math.round(frac * 100)} % über der ursprünglichen Ansage. Solche Überschreitungen sind bei Großprojekten eher Regel als Ausnahme (Spielparameter, keine Tatsachen).`);
+			}
+		}
 		if (v.kosten.schulden && bau > 0) w.economy.debtRatio += v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * aufnahme / bau;
 		if (l.fortschritt >= bau - 1e-6) schliesseAb(w, v);
 	}
@@ -11779,6 +15376,679 @@ function reichMonat(w, _rng) {
 	}
 	for (const id of z.vorteile) if (!aktiv.includes(id)) meldung(w, "gesperrt", `Vorteil verloren: ${vorteilDef(id)?.name ?? id}. Die Voraussetzungen gelten nicht mehr.`);
 	z.vorteile = aktiv;
+}
+//#endregion
+//#region src/data/konflikte.ts
+const KONFLIKTE = [
+	{
+		id: "arm_aze",
+		titel: "Armenien und Aserbaidschan",
+		a: {
+			land: "ARM",
+			name: "Armenien",
+			dat: "Armenien",
+			forderungen: ["Grenzöffnung und die Bahnverbindung Gjumri–Kars als erster sichtbarer Schritt", "Die TRIPP-Verbindung nach Nachitschewan läuft unter armenischem Recht und armenischer Hoheit"],
+			roteLinien: ["Kein Transit-Regime am Sangesur-Abschnitt, das die armenische Hoheit aushebelt"]
+		},
+		b: {
+			land: "AZE",
+			name: "Aserbaidschan",
+			dat: "Aserbaidschan",
+			forderungen: ["Verfassungsänderung in Armenien vor der Signatur: kein Territorialanspruch mehr im Grundgesetz", "Ungehinderter Zugang nach Nachitschewan über den TRIPP-Korridor"],
+			roteLinien: ["Keine Signatur des Friedensvertrags ohne vorherige Verfassungsänderung in Eriwan"]
+		},
+		text: "Der Friedensvertrag ist seit August 2025 parafiert, aber nicht signiert: Baku wartet auf das armenische Referendum, Eriwan auf die Grenzöffnung aus Ankara. Ankara hält die eigene Grenze als Hebel geschlossen — und wäre der größte Nutznießer des Korridors.",
+		quelle: "RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Teil IV A3/A4 (Friedensvertrag parafiert 08.08.2025, Referendum hängt, TRIPP-Bau ab H2/2026)",
+		reifStart: 58,
+		konfliktStart: 45,
+		zopaBasis: 70,
+		hebel: [
+			{
+				id: "tripp",
+				label: "TRIPP-Korridor",
+				text: "Transit nach Nachitschewan über armenisches Gebiet.",
+				richtung: "Öffnung gegen Hoheit: Die Verbindung kommt, die Frage ist, wessen Recht auf ihr gilt — von voller armenischer Kontrolle bis zu internationalem Regime."
+			},
+			{
+				id: "verfassung",
+				label: "Signaturfolge",
+				text: "Referendum in Armenien und Signatur des Friedensvertrags.",
+				richtung: "Baku signiert nach der Verfassungsänderung, Eriwan will umgekehrt; dazwischen liegt ein Fahrplan mit Schritten und Gegenschritten."
+			},
+			{
+				id: "grenze",
+				label: "Grenze und Bahn",
+				text: "Grenzöffnung für Drittstaatler, Bahn Gjumri–Kars, Ani-Brücke.",
+				richtung: "Teilöffnung sofort gegen volle Öffnung nach Signatur — je mehr vorab läuft, desto mehr Druck fällt vom Referendum."
+			}
+		],
+		paket: [
+			"Fahrplan: Referendum, dann Signatur des Friedensvertrags",
+			"TRIPP-Transit unter armenischer Hoheit mit internationalem Monitoring",
+			"Grenzöffnung für Drittstaatler und die Bahn Gjumri–Kars"
+		],
+		pk: 5,
+		abkuehlung: 240,
+		minA: 35,
+		minB: 45
+	},
+	{
+		id: "ukr_rus",
+		titel: "Ukraine und Russland",
+		a: {
+			land: "UKR",
+			name: "Ukraine",
+			dat: "der Ukraine",
+			forderungen: ["Sicherheitsgarantien, bevor über territoriale Fragen gesprochen wird", "Vollständiger Austausch der Gefangenen und der verschleppten Kinder"],
+			roteLinien: ["Keine völkerrechtliche Anerkennung der Annexionen"]
+		},
+		b: {
+			land: "RUS",
+			name: "Russland",
+			dat: "Russland",
+			forderungen: ["Verhandlung über den Status der besetzten Gebiete von den jetzigen Linien aus", "Schritte bei den Sanktionen und ein offizieller Kanal nach Europa"],
+			roteLinien: ["Keine NATO-Mitgliedschaft der Ukraine"]
+		},
+		text: "Der Krieg ist eingefroren, nicht beendet: Die Istanbul-Runden, der Austausch in Abu Dhabi und die gescheiterte Genfer Runde liegen zurück, die Waffenruhen brachen jeweils in Tagen. Ankara hat den Getreideplan in der Schublade und führt die maritime Sicherheitskomponente — ein Erfolg hier ist der größte Prestige-Hebel des Spiels.",
+		quelle: "RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Teil IV A2 (Istanbul-Runden 2025, Genf 02/2026 gescheitert, Fidan-Getreideplan 08/2026)",
+		reifStart: 32,
+		konfliktStart: 80,
+		zopaBasis: 45,
+		hebel: [
+			{
+				id: "getreide",
+				label: "Getreidekorridor",
+				text: "Getreide und Dünger durch das Schwarze Meer; Häfen und Versicherer arbeiten wieder.",
+				richtung: "Vom begrenzten Getreidefenster (Vorbild 2022: 33 Mio. t) bis zum dauerhaften Handelskorridor mit Inspektion — zieht nie die Territorialfrage mit."
+			},
+			{
+				id: "gefangene",
+				label: "Gefangenenaustausch",
+				text: "Austauschformate nach dem Vorbild 1000-für-1000 in Istanbul.",
+				richtung: "Kleine, wiederholbare Runden bauen Vertrauen für alles Größere — die eine Richtung, die beiden Seiten nie etwas kostet."
+			},
+			{
+				id: "meerengen",
+				label: "Meerengen und Sicherheit",
+				text: "Montreux-Regeln und die maritime Sicherheitskomponente unter türkischer Führung.",
+				richtung: "Ruhe auf See gegen Ruhe an der Front: ein Waffenstillstand auf dem Wasser ist leichter zu halten als an der Linie."
+			}
+		],
+		paket: [
+			"Gefangenenaustausch in Istanbul",
+			"Getreide- und Handelskorridor im Schwarzen Meer",
+			"Meerengenregeln nach Montreux mit türkischer Beobachtung"
+		],
+		pk: 5,
+		abkuehlung: 240,
+		minA: 45,
+		minB: 35
+	},
+	{
+		id: "isr_irn",
+		titel: "Israel und Iran: die Hormus-Folge",
+		a: {
+			land: "ISR",
+			name: "Israel",
+			dat: "Israel",
+			forderungen: ["Öffnung der Straße von Hormus für den Handel aller", "Dauerhafte Waffenruhe und ein Ende der Angriffe über Stellvertreter"],
+			roteLinien: ["Kein Abkommen, das Teherans Vorrücken Richtung Bombe festschreibt"]
+		},
+		b: {
+			land: "IRN",
+			name: "Iran",
+			dat: "dem Iran",
+			forderungen: ["Sanktions- und Blockade-Schritte, bevor Hormus geöffnet wird", "Auszahlung der im Islamabad-Memorandum freigegebenen Gelder"],
+			roteLinien: ["Keine Öffnung von Hormus ohne vorherige Sanktions-Schritte"]
+		},
+		text: "Der Krieg zwischen Israel, den USA und Iran ist seit der 60-Tage-Waffenruhe des Islamabad-Memorandums angehalten, nicht gelöst: Hormus bleibt geschlossen, der Ölpreis treibt alle Importeure — die Türkei ist der Hauptleidtragende außerhalb der Kriegsparteien. Katar und Oman vermitteln bereits; Ankara wäre Gastgeber mit eigenem wirtschaftlichem Interesse.",
+		quelle: "RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Teil IV A1 (Krieg seit 28.02.2026, Islamabad-Memorandum 06/2026, Hormus geschlossen)",
+		reifStart: 20,
+		konfliktStart: 75,
+		zopaBasis: 40,
+		hebel: [
+			{
+				id: "hormus",
+				label: "Straße von Hormus",
+				text: "Teheran koppelt die Öffnung an Blockade-Ende und Sanktionen.",
+				richtung: "Öffnung gegen Sanktions-Schritte: von symbolischer Passage einzelner Konvois bis zur vollen Wiederöffnung gegen Zeitplan — nie umsonst."
+			},
+			{
+				id: "gelder",
+				label: "Freigegebene Gelder",
+				text: "Die rund 24 Mrd. $ des Islamabad-Memorandums als wiederholbares Format.",
+				richtung: "Geldfluss gegen Waffenruhe-Verlängerung: jede Tranche kauft Wochen der Ruhe — ein Tausch, der beidseitig wiederholbar ist."
+			},
+			{
+				id: "kanal",
+				label: "Vermittlungskanäle",
+				text: "Katar und Oman vermitteln bereits; Ankara böte einen größeren Tisch.",
+				richtung: "Vom technischen Kanal zum Istanbul-Format: je mehr Seiten an einem Tisch, desto teurer der Alleingang für Spoiler."
+			}
+		],
+		paket: [
+			"Stufenweise Öffnung der Straße von Hormus gegen einen Sanktions-Zeitplan",
+			"Verlängerung der Waffenruhe gegen Auszahlung weiterer Tranchen",
+			"Istanbul-Format: alle Kanäle an einem Tisch"
+		],
+		pk: 6,
+		abkuehlung: 240,
+		minA: 25,
+		minB: 30,
+		oelKopplung: true
+	},
+	{
+		id: "lby_fraktionen",
+		titel: "Libyen: Tripolis und der Osten",
+		a: {
+			land: "LBY",
+			name: "Regierung in Tripolis",
+			dat: "der Regierung in Tripolis",
+			forderungen: ["Anerkennung als Regierung des ganzen Landes, nicht als Verwaltung des Westens", "Die Öleinnahmen laufen über die Zentralbank in Tripolis"],
+			roteLinien: ["Keine Teilung des Landes als Dauerzustand"]
+		},
+		b: {
+			land: "LBY",
+			name: "Das Lager im Osten",
+			dat: "dem Lager im Osten",
+			forderungen: ["Eigener Zugriff auf die Öleinnahmen und Posten in den Zentralinstitutionen", "Die Sicherheitskontrolle im Osten bleibt in eigenen Händen"],
+			roteLinien: ["Keine Entwaffnung der eigenen Verbände ohne internationale Garantien"]
+		},
+		text: "Libyen ist geteilt, ohne dass Krieg herrscht: das Duopol aus Tripolis und dem Osten hält den Waffenstillstand von 2020, aber kein Staat wächst zusammen. Ankara ist der einzige externe Akteur mit Draht zu beiden Lagern — Ausbilder und Drohnen im Westen, wachsende Kontakte in den Osten.",
+		quelle: "RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Teil IV B5 (Duopol Dbeibeh/Haftar, kein Krieg seit 2020, Ankara mit Zugang zu beiden Lagern)",
+		reifStart: 40,
+		konfliktStart: 55,
+		zopaBasis: 55,
+		hebel: [
+			{
+				id: "einnahmen",
+				label: "Öleinnahmen-Treuhand",
+				text: "Die Einnahmen fließen, aber beide Seiten sehen die Aufteilung.",
+				richtung: "Vom Treuhandkonto mit doppeltem Schlüssel bis zur Aufteilungsformel mit internationaler Prüfung — Geld ist der eine Hebel, den beide brauchen."
+			},
+			{
+				id: "memorandum",
+				label: "Seegrenz-Memorandum",
+				text: "Das türkisch-libysche Memorandum von 2019 als Anker der Partnerschaft.",
+				richtung: "Ankaras Zugewinn: Ratifizierung gegen Vermittlerrolle — je fester das Memorandum, desto mehr Gewicht hat der Vermittler."
+			},
+			{
+				id: "sicherheit",
+				label: "Sicherheitskräfte",
+				text: "Ausbildung und gemeinsame Strukturen statt rivalisierender Verbände.",
+				richtung: "Von parallelen Ausbildungsprogrammen zu einem gemeinsamen Rat der Sicherheitskräfte — nie die Entwaffnung einer Seite."
+			}
+		],
+		paket: [
+			"Öleinnahmen-Treuhand mit doppeltem Schlüssel",
+			"Regelmäßige Treffen der Sicherheitskräfte beider Lager in Istanbul",
+			"Fahrplan für gemeinsame Institutionen"
+		],
+		pk: 5,
+		abkuehlung: 240,
+		minA: 50,
+		minB: 50
+	}
+];
+const KONFLIKT_NACH_ID = Object.fromEntries(KONFLIKTE.map((k) => [k.id, k]));
+const SPOILER_ARTEN = {
+	provokation: {
+		id: "provokation",
+		label: "Provokation am Verhandlungstisch",
+		text: "{seite} lässt Muskeln spielen: ein Zwischenfall an der Linie, eine Rede für die eigene Galerie — gerechnet darauf, dass der Tisch in Istanbul zusammenbricht.",
+		reif: 8,
+		konflikt: 4
+	},
+	hardliner: {
+		id: "hardliner",
+		label: "Hardliner gewinnen Oberwasser",
+		text: "Bei {seite} gewinnen die Hardliner eine Runde: Wer vom Ausgleich spricht, gilt dort plötzlich als Verräter, und die Verhandlungsdelegation verliert ihr Mandat.",
+		reif: 10,
+		konflikt: 3
+	},
+	sabotage: {
+		id: "sabotage",
+		label: "Sabotage von außen",
+		text: "Eine dritte Macht, die am Konflikt verdient, torpediert die Annäherung: Indiskretionen, Waffenlieferungen an die Spoiler, ein inszenierter Zwischenfall.",
+		reif: 6,
+		konflikt: 8
+	},
+	ultimatum: {
+		id: "ultimatum",
+		label: "Einseitige Forderungsverschärfung",
+		text: "{seite} verschärft öffentlich die Bedingungen: Was gestern verhandelbar war, wird zur Vorbedingung erklärt — ein Ultimatum, das die Zone des Möglichen einengt.",
+		reif: 7,
+		konflikt: 3
+	}
+};
+const GARANTIEN = {
+	ueberwachung: {
+		id: "ueberwachung",
+		label: "Überwachungsmission",
+		text: "Türkische Beobachter und eine gemeinsame Meldestelle wachen über die Einhaltung: klein, anhaltend, unbewaffnet.",
+		pk: 3,
+		bip: .05,
+		monatPk: .3,
+		aussicht: 5,
+		verstossChance: .02,
+		risiko: "Jeder gemeldete Verstoß landet auf dem Schreibtisch des Garanten — klein, aber ständig."
+	},
+	wirtschaft: {
+		id: "wirtschaft",
+		label: "Wirtschafts-Anker",
+		text: "Ein Korridor nach dem Getreide-Modell: türkische Häfen, Versicherer und Banken tragen den Handel beider Seiten — Handelsbonus und Prestige für Ankara.",
+		pk: 5,
+		bip: .1,
+		monatPk: .2,
+		aussicht: 8,
+		verstossChance: .03,
+		risiko: "Der Anker hält nur, solange beide Seiten liefern; bricht der Korridor, verliert der Garant das Gesicht."
+	},
+	militaer: {
+		id: "militaer",
+		label: "Militärische Garantie",
+		text: "Ankara garantiert die Vereinbarung militärisch: Ausbilder, Beobachter und die Zusage, im Ernstfall einzugreifen.",
+		pk: 8,
+		bip: .15,
+		monatPk: .5,
+		aussicht: 12,
+		verstossChance: .06,
+		risiko: "Die größte Wirkung, das größte Risiko: Ein Verstoß zwingt zum Eingreifen — oder zum Gesichtsverlust der Garantiemacht."
+	}
+};
+const VORBEREITUNGEN = {
+	kanaele: {
+		id: "kanaele",
+		label: "Kanäle öffnen",
+		hinweis: "Diskrete Gesprächskanäle zu beiden Seiten: Geheimdienst zu Geheimdienst, Außenamt zu Außenamt. Niemand verliert das Gesicht, alle hören zu.",
+		pk: 2,
+		aufmerksamkeit: 4,
+		abkuehlung: 90,
+		reif: 6,
+		konflikt: 0,
+		ansehen: 0
+	},
+	vertrauensmassnahme: {
+		id: "vertrauensmassnahme",
+		label: "Vertrauensmaßnahmen vorschlagen",
+		hinweis: "Kleine, prüfbare Schritte: ein Gefangenenaustausch, ein humanitärer Korridor, eine Feuerpause an einem Abschnitt. Wer klein liefert, kann groß liefern.",
+		pk: 4,
+		aufmerksamkeit: 6,
+		abkuehlung: 150,
+		reif: 9,
+		konflikt: 4,
+		ansehen: 0
+	},
+	gastgeber: {
+		id: "gastgeber",
+		label: "Gastgeberrolle: Istanbul lädt ein",
+		hinweis: "Ein formelles Gipfelangebot nach dem Vorbild von Istanbul 2022: Ankara stellt Ort, Format und Diskretion. Schon die Einladung zeigt Führung.",
+		pk: 6,
+		aufmerksamkeit: 8,
+		abkuehlung: 240,
+		reif: 13,
+		konflikt: 2,
+		ansehen: 1
+	}
+};
+//#endregion
+//#region src/sim/vermittlung.ts
+/** Die Regeln der Vermittlung als Spielparameter (Kalibrierung). */
+const VERMITTLUNG = {
+	/** Band der Vermittlungsaussicht (VERHANDLUNGSTISCH: 8–85 %; Testfall Istanbul 2022/Getreide) */
+	aussichtMin: 8,
+	aussichtMax: 85,
+	/** Darunter ist die ZOPA geschlossen: Ohne Mindestreife gibt es keine Zone möglicher Einigung */
+	zopaOeffnetAb: 25,
+	/** Ab dieser Reife und Bandbreite gilt die ZOPA als breit */
+	zopaBreitReif: 55,
+	zopaBreitBand: 25,
+	/** Ab dieser Reife kann Ankara Garantien anbieten */
+	garantieAb: 50,
+	/** Reif-Kipppunkte: Gesprächsbereitschaft (40), Einigungsfenster (60), Einfrieren (20) — Auto-Stopp B */
+	kippBereit: 40,
+	kippFenster: 60,
+	kippEnde: 20,
+	/** Patt-Schmerz: So stark treibt ein heißer Konflikt die Reife pro Monat (bei Index 100) */
+	schmerzFaktor: .05,
+	/** Ölpreis-Kopplung (Hormus): Reif-Gewinn pro Monat und Indexpunkt über 100 */
+	oelFaktor: .03,
+	/** Langfristiger Rückzug der Reife Richtung halber Ausgangslage (Erschöpfung ohne Fortschritt) */
+	rueckzug: .02,
+	/** Konflikt-Index: Rückkehr zur Ausgangslage pro Monat (schwelender Konflikt) */
+	schwel: .4,
+	/** Konflikt-Index-Senkung pro Monat nach einer Einigung, bis zum Boden */
+	einigungSenkung: 2,
+	einigungBoden: 15,
+	/** Tage Ruhe zwischen zwei Spoiler-Ereignissen desselben Konflikts */
+	spoilerAbkuehlung: 120,
+	/** Grundchance eines Spoilers pro Monat (bei Reife ab ZOPA-Öffnung) */
+	spoilerChance: .05,
+	/** Zuschlag je Konflikt-Index-Punkt über 50 */
+	spoilerKonflikt: .001,
+	/** Verstoß-Skalierung: Grundchance der Garantie × (Konflikt-Index / diesem Wert) */
+	verstossSkala: 60,
+	/** Einigung: Prestige, Vertrauen und die Reaktion der Dritten */
+	erfolg: {
+		ansehen: 4,
+		vertrauenAlle: 1,
+		parteien: 5,
+		parteienKonflikt: -6,
+		dritte: 3
+	},
+	/** Scheitern: ohne Garantie-Angebot klein, mit Angebot ein Gesichtsverlust */
+	scheitern: {
+		ansehen: -1,
+		reif: -4,
+		gesichtNachGarantie: -2
+	}
+};
+let bruecke = null;
+function setzeVermittlungBruecke(b) {
+	bruecke = b;
+}
+function startZustand(def) {
+	return {
+		reif: def.reifStart,
+		konfliktIndex: def.konfliktStart,
+		vorbereitet: {},
+		reifVerlauf: [],
+		reifBand: bandFuer(def.reifStart)
+	};
+}
+/** Der Vermittlungszustand aller Konfliktpaare; ältere Spielstände bekommen die Startwerte der Datenlage. */
+function vermittlungVon(w) {
+	const spiel = w.spiel;
+	if (!spiel) return {};
+	spiel.vermittlung ??= {};
+	for (const def of KONFLIKTE) {
+		const z = spiel.vermittlung[def.id] ??= startZustand(def);
+		if (!Number.isFinite(z.reif)) z.reif = def.reifStart;
+		if (!Number.isFinite(z.konfliktIndex)) z.konfliktIndex = def.konfliktStart;
+		z.reif = clamp(z.reif, 0, 100);
+		z.konfliktIndex = clamp(z.konfliktIndex, 0, 100);
+		z.vorbereitet ??= {};
+		z.reifVerlauf ??= [];
+	}
+	return spiel.vermittlung;
+}
+function konfliktZustand(w, id) {
+	return vermittlungVon(w)[id];
+}
+function vertrauenPartei(w, p) {
+	return p.land ? vertrauenZu(w, p.land) : 50;
+}
+function zopaFuer(w, def) {
+	const z = konfliktZustand(w, def.id);
+	const va = vertrauenPartei(w, def.a);
+	const vb = vertrauenPartei(w, def.b);
+	const min = Math.min(va, vb);
+	const breite = Math.round(clamp(def.zopaBasis * (z.reif / 100) * (.5 + min / 200), 0, 100));
+	const gruende = [];
+	if (z.reif < VERMITTLUNG.zopaOeffnetAb) gruende.push(`Die Lage ist nicht reif (${Math.round(z.reif)} von ${VERMITTLUNG.zopaOeffnetAb} nötig): Der Schmerz des Patts wiegt den Kompromiss noch nicht auf.`);
+	if (va < def.minA) gruende.push(`${def.a.name} vertraut Ankara als Vermittler noch nicht genug (${Math.round(va)} von ${def.minA}).`);
+	if (vb < def.minB) gruende.push(`${def.b.name} vertraut Ankara als Vermittler noch nicht genug (${Math.round(vb)} von ${def.minB}).`);
+	if (gruende.length) return {
+		stufe: "geschlossen",
+		breite,
+		gruende
+	};
+	if (z.reif >= VERMITTLUNG.zopaBreitReif && breite >= VERMITTLUNG.zopaBreitBand) {
+		gruende.push(`Die Lage ist reif (${Math.round(z.reif)}), und beide Seiten trauen Ankara den Ausgleich zu.`);
+		return {
+			stufe: "breit",
+			breite,
+			gruende
+		};
+	}
+	gruende.push(`Es gibt eine Zone möglicher Einigung, aber sie ist eng: Reife ${Math.round(z.reif)}, Vertrauen ${Math.round(min)}.`);
+	return {
+		stufe: "schmal",
+		breite,
+		gruende
+	};
+}
+function aussichtFuer(w, def) {
+	const z = konfliktZustand(w, def.id);
+	const zopa = zopaFuer(w, def);
+	const min = Math.min(vertrauenPartei(w, def.a), vertrauenPartei(w, def.b));
+	const ansehen = nationalAverage(NET, w.net, "ansehen");
+	const zopaBonus = zopa.stufe === "breit" ? 12 : zopa.stufe === "geschlossen" ? -30 : 0;
+	const garantieBonus = z.garantieAngebot ? GARANTIEN[z.garantieAngebot].aussicht : 0;
+	const roh = 15 + z.reif * .45 + (min - 35) * .6 + (ansehen - 45) * .4 + zopaBonus + garantieBonus - z.konfliktIndex * .15;
+	return Math.round(clamp(roh, VERMITTLUNG.aussichtMin, VERMITTLUNG.aussichtMax));
+}
+function statusFuer(z) {
+	if (z.einigung !== void 0) return z.konfliktIndex <= 25 ? "stabilisiert" : "geeint";
+	return z.reif < VERMITTLUNG.kippEnde ? "eingefroren" : "verhandelnd";
+}
+function konfliktSicht(w, def) {
+	const spiel = w.spiel;
+	const z = konfliktZustand(w, def.id);
+	const zopa = zopaFuer(w, def);
+	const va = vertrauenPartei(w, def.a);
+	const vb = vertrauenPartei(w, def.b);
+	let grund;
+	const zuletzt = spiel?.vermittelt?.[def.id] ?? -1e9;
+	if (spiel && !kannZahlen(spiel.kapital, def.pk)) grund = "Dafür fehlt das Kapital.";
+	else if (spiel && w.day - zuletzt < def.abkuehlung) grund = `Wieder möglich in ${def.abkuehlung - (w.day - zuletzt)} Tagen.`;
+	else if (va < def.minA) grund = `${def.a.name} vertraut Ankara als Vermittler noch nicht genug.`;
+	else if (vb < def.minB) grund = `${def.b.name} vertraut Ankara als Vermittler noch nicht genug.`;
+	else if (z.einigung !== void 0) grund = "Die Einigung steht — jetzt zählt die Umsetzung (Garantien und Spoiler-Abwehr).";
+	else if (zopa.stufe === "geschlossen") grund = "Es gibt keine Zone möglicher Einigung; erst muss die Lage reifen.";
+	const vorbereitungen = Object.keys(VORBEREITUNGEN).map((id) => {
+		const d = VORBEREITUNGEN[id];
+		let g;
+		const rest = (z.vorbereitet[id] ?? -1e9) + d.abkuehlung - w.day;
+		if (z.einigung !== void 0) g = "Die Einigung steht; Vorbereitung hat sich erledigt.";
+		else if (rest > 0) g = `Wieder möglich in ${rest} Tagen.`;
+		else if (spiel && !kannZahlen(spiel.kapital, d.pk)) g = "Dafür fehlt das Kapital.";
+		else if (id === "gastgeber" && (z.reif < VERMITTLUNG.zopaOeffnetAb || zopa.stufe === "geschlossen")) g = "Ein Gipfel lohnt erst, wenn eine Zone möglicher Einigung besteht.";
+		return {
+			def: d,
+			moeglich: !g,
+			...g ? { grund: g } : {}
+		};
+	});
+	const garantien = Object.keys(GARANTIEN).map((id) => {
+		const d = GARANTIEN[id];
+		const aktiv = z.garantie === id;
+		const angeboten = z.garantieAngebot === id;
+		let g;
+		if (aktiv || angeboten) g = void 0;
+		else if (z.einigung !== void 0) g = z.garantie ? "Es steht schon eine Garantie." : "Die Einigung steht; eine nachträgliche Garantie wirkt nicht mehr.";
+		else if (z.garantie) g = "Es steht schon eine Garantie.";
+		else if (z.garantieAngebot) g = `Es liegt schon das Angebot „${GARANTIEN[z.garantieAngebot].label}" — erst ein Vermittlungsversuch entscheidet.`;
+		else if (z.reif < VERMITTLUNG.garantieAb) g = `Garantien wirken erst ab Reife ${VERMITTLUNG.garantieAb} (jetzt ${Math.round(z.reif)}).`;
+		else if (zopa.stufe === "geschlossen") g = "Ohne Zone möglicher Einigung ist eine Garantie wertlos.";
+		else if (spiel && !kannZahlen(spiel.kapital, d.pk)) g = "Dafür fehlt das Kapital.";
+		return {
+			def: d,
+			aktiv,
+			angeboten,
+			moeglich: !aktiv && !angeboten && !g,
+			...g ? { grund: g } : {}
+		};
+	});
+	return {
+		def,
+		z,
+		status: statusFuer(z),
+		zopa,
+		aussicht: aussichtFuer(w, def),
+		moeglich: !grund,
+		...grund ? { grund } : {},
+		vertrauenA: va,
+		vertrauenB: vb,
+		vorbereitungen,
+		garantien
+	};
+}
+function konfliktSichten(w) {
+	return KONFLIKTE.map((d) => konfliktSicht(w, d));
+}
+function bandFuer(reif) {
+	return reif < VERMITTLUNG.kippEnde ? 0 : reif < VERMITTLUNG.kippBereit ? 1 : reif < VERMITTLUNG.kippFenster ? 2 : 3;
+}
+const KIPP_TEXT = {
+	0: {
+		titel: (d) => `Vermittlung ${d.titel}: Der Prozess droht einzufrieren`,
+		text: (d) => `Die Reife der Lage zwischen ${d.a.name} und ${d.b.name} ist unter ${VERMITTLUNG.kippEnde} gefallen. Ohne neue Kanäle und Vertrauensmaßnahmen verkommt Ankaras Vermittlung zur Makulatur — und Spoiler gewinnen Oberwasser.`
+	},
+	2: {
+		titel: (d) => `Vermittlung ${d.titel}: Die Gesprächsbereitschaft wächst`,
+		text: (d) => `Die Lage zwischen ${d.a.name} und ${d.b.name} reift (${VERMITTLUNG.kippBereit}+): Beide Seiten prüfen ernsthaft, ob der Kompromiss billiger ist als der Patt. Jetzt zählen Kanäle, Vertrauensmaßnahmen und der richtige Moment.`
+	},
+	3: {
+		titel: (d) => `Vermittlung ${d.titel}: Das Fenster für eine Einigung öffnet sich`,
+		text: (d) => `Die Reife hat ${VERMITTLUNG.kippFenster} erreicht: Die Zone möglicher Einigung steht so offen wie selten. Ab Reife ${VERMITTLUNG.garantieAb} kann ein türkisches Garantiepaket den Ausschlag geben — Gipfel und Vermittlungsversuch haben jetzt die beste Aussicht.`
+	}
+};
+function kippPruefen(w, def, z) {
+	const spiel = w.spiel;
+	if (!spiel) return;
+	const band = bandFuer(z.reif);
+	if (z.reifBand === void 0 || band === z.reifBand) return;
+	const vorher = z.reifBand;
+	z.reifBand = band;
+	if (!(band > vorher && band >= 2 || band < vorher && band === 0)) return;
+	const t = KIPP_TEXT[band];
+	if (!t) return;
+	spiel.hinweise.push({
+		id: `vermittlung-kipp-${def.id}-${band}-${w.day}`,
+		titel: t.titel(def),
+		szene: "istanbul",
+		text: [t.text(def)]
+	});
+}
+function namen(def) {
+	return `${def.a.name} und ${def.b.name}`;
+}
+function spoilerFolge(w, ev, antwort) {
+	const def = KONFLIKT_NACH_ID[String(ev.daten?.konflikt ?? "")];
+	if (!def) return "Der Vorgang ist gegenstandslos geworden.";
+	const z = konfliktZustand(w, def.id);
+	const art = SPOILER_ARTEN[String(ev.daten?.art ?? "provokation")] ?? SPOILER_ARTEN.provokation;
+	const seite = ev.daten?.seite === "b" ? def.b : def.a;
+	const andere = ev.daten?.seite === "b" ? def.a : def.b;
+	switch (antwort) {
+		case "verurteilen":
+			if (seite.land) landAendern(w, seite.land, { vertrauen: -6 }, `Öffentliche Rüge aus Ankara (${def.titel})`);
+			if (andere.land && andere.land !== seite.land) landAendern(w, andere.land, { vertrauen: 2 }, `Ankara rügt die Spoiler (${def.titel})`);
+			z.reif = clamp(z.reif + 2, 0, 100);
+			z.konfliktIndex = clamp(z.konfliktIndex - 3, 0, 100);
+			wirke(w, "ansehen", .5);
+			kippPruefen(w, def, z);
+			return `Ankara verurteilt die Provokation öffentlich: ${andere.name} fühlt sich geschützt, ${seite.name} antwortet kühl — aber die Verhandlungslinie hält.`;
+		case "daempfen":
+			z.reif = clamp(z.reif - 2, 0, 100);
+			z.konfliktIndex = clamp(z.konfliktIndex - 2, 0, 100);
+			kippPruefen(w, def, z);
+			return "Auf diskreten Kanälen dämpft Ankara beide Seiten: Der Schaden bleibt klein, ohne dass jemand das Gesicht verliert.";
+		default:
+			z.reif = clamp(z.reif - art.reif, 0, 100);
+			z.konfliktIndex = clamp(z.konfliktIndex + art.konflikt, 0, 100);
+			kippPruefen(w, def, z);
+			return `Ankara schweigt — und die Spoiler lesen es als Freibrief: Die Reife der Lage sinkt um ${art.reif} Punkte.`;
+	}
+}
+function verstossFolge(w, ev, antwort) {
+	const def = KONFLIKT_NACH_ID[String(ev.daten?.konflikt ?? "")];
+	if (!def) return "Der Vorgang ist gegenstandslos geworden.";
+	const z = konfliktZustand(w, def.id);
+	const d = z.garantie ? GARANTIEN[z.garantie] : void 0;
+	switch (antwort) {
+		case "eingreifen":
+			if (z.garantie !== "militaer") return "Ohne militärische Garantie gibt es nichts einzugreifen.";
+			kosten(w, .3);
+			wirke(w, "abschreckung", -2);
+			wirke(w, "ansehen", 1);
+			z.konfliktIndex = clamp(z.konfliktIndex + 8, 0, 100);
+			z.reif = clamp(z.reif - 5, 0, 100);
+			addLog(w, "entscheidung", `Ankara greift ein: Die Garantie zwischen ${namen(def)} wird durchgesetzt.`, "Die Entschlossenheit kostet 0,3 % des BIP und Abschreckung — aber die Garantie gilt weiter, und alle rechnen mit Ankara.");
+			return "Türkische Kräfte setzen die Garantie durch: Der Verstoß wird zurückgewiesen, die Vereinbarung gilt — und alle wissen, dass Ankara es ernst meint.";
+		case "daempfen":
+			z.konfliktIndex = clamp(z.konfliktIndex + 6, 0, 100);
+			z.reif = clamp(z.reif - 5, 0, 100);
+			addLog(w, "entscheidung", `Verstoß gegen die Vereinbarung zwischen ${namen(def)}: Ankara dämpft.`, "Der Verstoß wird notiert, nicht beantwortet; die Garantie steht, aber ihre Abschreckung leidet.");
+			return "Ankara dämpft auf allen Kanälen: Die Garantie steht noch, aber beide Seiten haben gelernt, dass Verstöße billig sind.";
+		default: {
+			const label = d?.label ?? "Garantie";
+			z.garantie = void 0;
+			z.garantieSeit = void 0;
+			wirke(w, "ansehen", -6);
+			z.reif = clamp(z.reif - 15, 0, 100);
+			z.konfliktIndex = clamp(z.konfliktIndex + 12, 0, 100);
+			kippPruefen(w, def, z);
+			addLog(w, "entscheidung", `Die Garantie „${label}" zwischen ${namen(def)} ist gebrochen.`, "Ein Verstoß ohne Antwort: Der Garant verliert das Gesicht (Ansehen −6), die Reife der Lage stürzt ab.");
+			return `Der Verstoß bleibt ohne Antwort: Die Garantie „${label}" ist gebrochen — Ankara verliert das Gesicht, und die Lage fällt zurück.`;
+		}
+	}
+}
+function vermittlungMonat(w, rng) {
+	const spiel = w.spiel;
+	if (!spiel || spiel.ende) return;
+	const alle = vermittlungVon(w);
+	const monat = w.date.slice(0, 7);
+	let spoilerGeoeffnet = false;
+	let verstossGeoeffnet = false;
+	for (const def of KONFLIKTE) {
+		const z = alle[def.id];
+		z.reifVerlauf.push({
+			monat,
+			wert: Math.round(z.reif)
+		});
+		if (z.reifVerlauf.length > 24) z.reifVerlauf.shift();
+		if (z.einigung !== void 0) {
+			if (z.konfliktIndex > VERMITTLUNG.einigungBoden) {
+				z.konfliktIndex = clamp(z.konfliktIndex - VERMITTLUNG.einigungSenkung, VERMITTLUNG.einigungBoden, 100);
+				if (def.a.land) landAendern(w, def.a.land, { konflikt: -1 });
+				if (def.b.land && def.b.land !== def.a.land) landAendern(w, def.b.land, { konflikt: -1 });
+			}
+		} else {
+			const schmerz = (z.konfliktIndex - 50) * VERMITTLUNG.schmerzFaktor;
+			const oel = def.oelKopplung ? Math.max(0, (w.economy.oel ?? 100) - 100) * VERMITTLUNG.oelFaktor : 0;
+			const draht = Math.min(vertrauenPartei(w, def.a), vertrauenPartei(w, def.b)) > 55 ? .2 : 0;
+			const rauschen = (hashWert(`${w.seed}|verm|${def.id}|${monat}`) - .5) * 1.4;
+			const rueckzug = (def.reifStart * .5 - z.reif) * VERMITTLUNG.rueckzug;
+			z.reif = clamp(z.reif + schmerz + oel + draht + rauschen + rueckzug, 0, 100);
+			const diff = def.konfliktStart - z.konfliktIndex;
+			z.konfliktIndex = clamp(z.konfliktIndex + Math.sign(diff) * Math.min(VERMITTLUNG.schwel, Math.abs(diff)), 0, 100);
+		}
+		kippPruefen(w, def, z);
+		if (z.garantie) {
+			const d = GARANTIEN[z.garantie];
+			spiel.kapital -= d.monatPk;
+			if (z.garantie === "wirtschaft") {
+				wirke(w, "export", .4);
+				wirke(w, "ansehen", .2);
+			}
+			const chance = d.verstossChance * (z.konfliktIndex / VERMITTLUNG.verstossSkala);
+			if (!verstossGeoeffnet && hashWert(`${w.seed}|verstoss|${def.id}|${monat}`) < chance) {
+				verstossGeoeffnet = true;
+				bruecke?.oeffneEreignis(w, "vermittlung_verstoss", {
+					konflikt: def.id,
+					garantie: z.garantie
+				}, rng);
+			}
+		}
+		const engagement = spiel.vermittelt?.[def.id] !== void 0 || Object.keys(z.vorbereitet).length > 0 || z.garantieAngebot !== void 0;
+		if (!spoilerGeoeffnet && engagement && z.einigung === void 0 && z.reif >= VERMITTLUNG.zopaOeffnetAb && w.day - (z.spoilerZuletzt ?? -1e9) >= VERMITTLUNG.spoilerAbkuehlung) {
+			const chance = VERMITTLUNG.spoilerChance + Math.max(0, z.konfliktIndex - 50) * VERMITTLUNG.spoilerKonflikt;
+			if (hashWert(`${w.seed}|spoiler|${def.id}|${monat}`) < chance) {
+				spoilerGeoeffnet = true;
+				z.spoilerZuletzt = w.day;
+				const arten = Object.keys(SPOILER_ARTEN);
+				const art = arten[Math.floor(hashWert(`${w.seed}|spoiler-art|${def.id}|${monat}`) * arten.length) % arten.length];
+				const seite = hashWert(`${w.seed}|spoiler-seite|${def.id}|${monat}`) < .5 ? "a" : "b";
+				bruecke?.oeffneEreignis(w, "vermittlung_spoiler", {
+					konflikt: def.id,
+					art,
+					seite
+				}, rng);
+			}
+		}
+	}
 }
 //#endregion
 //#region src/sim/abkommen.ts
@@ -12066,10 +16336,6 @@ function vertragsName(w, v) {
 	const erste = klauselSicht(w, v.land, alle[0] ?? "")?.label ?? alle[0] ?? "Vertrag";
 	return alle.length > 1 ? `${erste} und ${alle.length - 1} weitere Klausel${alle.length > 2 ? "n" : ""}` : erste;
 }
-/** Sperrfrist nach einer Zurückweisung, in Tagen; 0, wenn das Land verhandelt. */
-function sperreRest(w, landId) {
-	return Math.max(0, (weltZustand(w)[landId]?.sperreBis ?? 0) - w.day);
-}
 /** Legt einen Vertrag an und wendet Abschlusswirkungen an; das Kapital wird vom Aufrufer abgezogen. */
 function schliesse(w, a) {
 	const l = land(a.land);
@@ -12243,2154 +16509,25 @@ function vorschlagVomPartner(w, landId) {
 	};
 	return bewerte(w, a).urteil === "zustimmung" ? a : null;
 }
-const VERMITTLUNGEN = [{
-	id: "ukr_rus",
-	titel: "Ukraine und Russland",
-	a: "UKR",
-	b: "RUS",
-	pk: 5,
-	abkuehlung: 240,
-	minA: 45,
-	minB: 35,
-	text: "Ankara richtet in Istanbul Gespräche aus: Meerengenregeln, Getreidekorridor und der Austausch von Gefangenen.",
-	paket: [
-		"Gefangenenaustausch in Istanbul",
-		"Meerengenregeln nach Montreux",
-		"Getreide- und Handelskorridor im Schwarzen Meer"
-	]
-}, {
-	id: "arm_aze",
-	titel: "Armenien und Aserbaidschan",
-	a: "ARM",
-	b: "AZE",
-	pk: 5,
-	abkuehlung: 240,
-	minA: 35,
-	minB: 45,
-	text: "Transit gegen Grenzöffnung: Eine Verbindung nach Nachitschewan über armenisches Gebiet, dafür Schritte zur Öffnung der Grenze.",
-	paket: [
-		"Transit über armenisches Gebiet (TRIPP)",
-		"Grenzöffnung für Drittstaatler und Diplomaten",
-		"Bahn zwischen Gjumri und Kars"
-	]
-}];
-function aussichtFuer(w, d) {
-	const ansehen = nationalAverage(NET, w.net, "ansehen");
-	const va = vertrauenZu(w, d.a);
-	const vb = vertrauenZu(w, d.b);
-	const konflikt = Math.max(weltZustand(w)[d.a].konflikt, weltZustand(w)[d.b].konflikt);
-	const roh = 20 + (Math.min(va, vb) - 35) * 1.2 - Math.max(0, konflikt - 60) * .6 + (ansehen - 45) * .6;
-	return Math.round(clamp(roh, 8, 85));
-}
+const VERMITTLUNGEN = KONFLIKTE.map((k) => ({
+	id: k.id,
+	titel: k.titel,
+	a: k.a.land ?? "",
+	b: k.b.land ?? "",
+	text: k.text,
+	paket: k.paket,
+	pk: k.pk,
+	abkuehlung: k.abkuehlung,
+	minA: k.minA,
+	minB: k.minB
+}));
 function vermittlungen(w) {
-	const spiel = w.spiel;
-	return VERMITTLUNGEN.map((d) => {
-		let grund;
-		const zuletzt = spiel?.vermittelt?.[d.id] ?? -1e9;
-		if (spiel && !kannZahlen(spiel.kapital, d.pk)) grund = "Dafür fehlt das Kapital.";
-		else if (w.day - zuletzt < d.abkuehlung) grund = `Wieder möglich in ${d.abkuehlung - (w.day - zuletzt)} Tagen.`;
-		else if (vertrauenZu(w, d.a) < d.minA) grund = `${land(d.a).name} vertraut Ankara als Vermittler noch nicht genug.`;
-		else if (vertrauenZu(w, d.b) < d.minB) grund = `${land(d.b).name} vertraut Ankara als Vermittler noch nicht genug.`;
-		return {
-			def: d,
-			moeglich: !grund,
-			...grund ? { grund } : {},
-			aussicht: aussichtFuer(w, d)
-		};
-	});
-}
-//#endregion
-//#region src/sim/wege.ts
-/**
-* Maßnahmen, die eine Größe in die gewünschte Richtung bewegen (`gewuenscht` +1 erhöhen, −1 senken),
-* nach Stärke sortiert. Ist die Größe selbst eine Maßnahme, gibt es keine Hebel.
-*/
-function hebel(zielId, gewuenscht, n = 4) {
-	const summe = /* @__PURE__ */ new Map();
-	for (const e1 of NET.edges) {
-		const von = NET.nodes[NET.index.get(e1.from)];
-		if (von.kind !== "massnahme") continue;
-		if (e1.to === zielId) summe.set(von.id, (summe.get(von.id) ?? 0) + e1.weight);
-		else for (const e2 of NET.edges) if (e2.from === e1.to && e2.to === zielId) summe.set(von.id, (summe.get(von.id) ?? 0) + e1.weight * e2.weight * .5);
-	}
-	return [...summe.entries()].map(([id, s]) => ({
-		node: NET.nodes[NET.index.get(id)],
-		staerke: Math.abs(s),
-		richtung: s * gewuenscht > 0 ? 1 : -1
-	})).filter((h) => h.staerke > 5e-4).sort((a, b) => b.staerke - a.staerke).slice(0, n);
-}
-//#endregion
-//#region src/sim/gruppen.ts
-const GRUPPEN = [
-	{
-		id: "arbeitnehmer",
-		gewicht: 1.4
-	},
-	{
-		id: "rentner",
-		gewicht: 1.3
-	},
-	{
-		id: "junge",
-		gewicht: 1.1
-	},
-	{
-		id: "konservative",
-		gewicht: 1.1
-	},
-	{
-		id: "staedtische_saekulare",
-		gewicht: 1
-	},
-	{
-		id: "landwirte",
-		gewicht: .8
-	},
-	{
-		id: "beamte",
-		gewicht: .6
-	},
-	{
-		id: "unternehmer",
-		gewicht: .5
-	},
-	{
-		id: "arme",
-		gewicht: 1
-	},
-	{
-		id: "nationalisten",
-		gewicht: .8
-	},
-	{
-		id: "minderheiten",
-		gewicht: .7
-	}
-];
-const GRUPPEN_SUMME = GRUPPEN.reduce((s, g) => s + g.gewicht, 0);
-//#endregion
-//#region src/sim/aussenwelt.ts
-const AUSSENWELT = {
-	/** Rückkehr zum Mittel pro Monat */
-	rueckkehr: .08,
-	/** Monatliche Schwankung (Standardabweichung, Indexpunkte) */
-	rauschen: {
-		oel: 3.5,
-		eu: 1.2,
-		weltzins: 1
-	},
-	/** Wahrscheinlichkeit eines Schocks pro Monat */
-	schockChance: {
-		oel: .035,
-		eu: .02,
-		weltzins: .015
-	}
-};
-function aussenweltStart(world) {
-	const e = world.economy;
-	e.oel ??= 100;
-	e.euNachfrage ??= 100;
-	e.weltzins ??= 100;
-}
-/** Ein Monat Außenwelt. Meldet Schocks im Protokoll (Art „markt“), damit die Oberfläche sie anzeigen kann. */
-function aussenweltMonat(world, rng) {
-	const e = world.economy;
-	aussenweltStart(world);
-	const schritt = (wert, sd) => wert + AUSSENWELT.rueckkehr * (100 - wert) + rng.normal(sd);
-	e.oel = Math.max(40, schritt(e.oel, AUSSENWELT.rauschen.oel));
-	e.euNachfrage = Math.max(60, schritt(e.euNachfrage, AUSSENWELT.rauschen.eu));
-	e.weltzins = Math.max(60, schritt(e.weltzins, AUSSENWELT.rauschen.weltzins));
-	if (rng.next() < AUSSENWELT.schockChance.oel) {
-		const richtung = rng.next() < .7 ? 1 : -1;
-		const staerke = rng.between(18, 38);
-		e.oel = Math.max(40, e.oel + richtung * staerke);
-		addLog(world, "markt", richtung > 0 ? "Der Energiepreis springt am Weltmarkt nach oben." : "Der Energiepreis fällt am Weltmarkt deutlich.", richtung > 0 ? "Die Türkei importiert den größten Teil ihrer Energie: Das treibt Inflation und Lira unter Druck." : "Billigere Energie entlastet Preise und Handelsbilanz.");
-	}
-	if (rng.next() < AUSSENWELT.schockChance.eu) {
-		const staerke = rng.between(8, 16);
-		e.euNachfrage = Math.max(60, e.euNachfrage - staerke);
-		addLog(world, "markt", "Die Nachfrage aus der EU bricht ein.", "Die EU ist der wichtigste Handelspartner: Exporte und Beschäftigung in den Industrieprovinzen leiden.");
-	}
-	if (rng.next() < AUSSENWELT.schockChance.weltzins) {
-		const staerke = rng.between(6, 14);
-		e.weltzins = e.weltzins + staerke;
-		addLog(world, "markt", "Die großen Zentralbanken heben die Zinsen an.", "Anleger ziehen Geld aus Schwellenländern ab: Risikoaufschlag und Lira geraten unter Druck.");
-	}
-}
-//#endregion
-//#region src/sim/rng.ts
-var Rng = class {
-	state;
-	constructor(state) {
-		this.state = state;
-	}
-	/** Gleichverteilt in [0, 1). */
-	next() {
-		this.state = this.state + 1831565813 | 0;
-		let r = Math.imul(this.state ^ this.state >>> 15, this.state | 1);
-		r ^= r + Math.imul(r ^ r >>> 7, r | 61);
-		return ((r ^ r >>> 14) >>> 0) / 4294967296;
-	}
-	/** Normalverteilt mit Mittelwert 0 und Standardabweichung sd. */
-	normal(sd = 1) {
-		const u = Math.max(this.next(), 1e-12);
-		const v = this.next();
-		return sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-	}
-	/** Gleichverteilt in [min, max]. */
-	between(min, max) {
-		return min + (max - min) * this.next();
-	}
-};
-function seedToState(seed) {
-	return seed | 0;
-}
-//#endregion
-//#region src/sim/personen.ts
-const nf$4 = (x, d = 1) => x.toLocaleString("de-DE", {
-	minimumFractionDigits: d,
-	maximumFractionDigits: d
-});
-const AEMTER = {
-	finanzen: {
-		amt: "finanzen",
-		ressort: "Finanzen",
-		fach: [
-			"steuereinnahmen",
-			"vertrauen_maerkte",
-			"zinslast",
-			"steuermoral"
-		],
-		massnahmen: [
-			"m_einkommensteuer",
-			"m_mwst",
-			"m_steuerfahndung",
-			"m_verwaltungsdigital",
-			"m_steueramnestie",
-			"m_privatisierung"
-		],
-		wirkung: [
-			{
-				id: "steuermoral",
-				d: .12
-			},
-			{
-				id: "steuereinnahmen",
-				d: .1
-			},
-			{
-				id: "vertrauen_maerkte",
-				d: .1
-			}
-		],
-		stile: [
-			"nuechtern",
-			"vorsichtig",
-			"streng"
-		],
-		faehigkeit: [58, 82],
-		ehrgeiz: [30, 62],
-		lager: "markt",
-		regierungsamt: true,
-		entlassbar: true
-	},
-	inneres: {
-		amt: "inneres",
-		ressort: "Inneres",
-		fach: ["kriminalitaet", "terrorgefahr"],
-		massnahmen: [
-			"m_polizei",
-			"m_polizeitechnik",
-			"m_grenzschutz",
-			"m_versammlungsfreiheit"
-		],
-		wirkung: [{
-			id: "kriminalitaet",
-			d: -.12
-		}, {
-			id: "terrorgefahr",
-			d: -.1
-		}],
-		stile: [
-			"streng",
-			"machtbewusst",
-			"loyal"
-		],
-		faehigkeit: [52, 78],
-		ehrgeiz: [45, 78],
-		lager: "apparat",
-		regierungsamt: true,
-		entlassbar: true
-	},
-	aussen: {
-		amt: "aussen",
-		ressort: "Äußeres",
-		fach: [
-			"ansehen",
-			"beziehungen_eu",
-			"beziehungen_usa",
-			"beziehungen_russland",
-			"beziehungen_nahost"
-		],
-		massnahmen: [
-			"m_eu_annaeherung",
-			"m_integration",
-			"m_handelssysteme",
-			"m_grenzschutz"
-		],
-		wirkung: [{
-			id: "ansehen",
-			d: .1
-		}],
-		stile: [
-			"vorsichtig",
-			"eitel",
-			"nuechtern"
-		],
-		faehigkeit: [55, 80],
-		ehrgeiz: [35, 68],
-		lager: "diplomatie",
-		regierungsamt: true,
-		entlassbar: true
-	},
-	zentralbank: {
-		amt: "zentralbank",
-		ressort: "Zentralbank",
-		fach: ["vertrauen_maerkte", "lebenshaltung"],
-		massnahmen: ["m_bankenaufsicht"],
-		wirkung: [],
-		stile: [
-			"vorsichtig",
-			"streng",
-			"nuechtern"
-		],
-		faehigkeit: [60, 84],
-		ehrgeiz: [15, 40],
-		lager: "markt",
-		regierungsamt: false,
-		entlassbar: false
-	},
-	stab: {
-		amt: "stab",
-		ressort: "Präsidialamt",
-		fach: [
-			"vertrauen_regierung",
-			"legitimitaet",
-			"polarisierung"
-		],
-		massnahmen: ["m_digitale_oeffentlichkeit", "m_staatsmedien"],
-		wirkung: [{
-			id: "vertrauen_regierung",
-			d: .06
-		}],
-		stile: [
-			"loyal",
-			"nuechtern",
-			"machtbewusst"
-		],
-		faehigkeit: [55, 80],
-		ehrgeiz: [35, 60],
-		lager: "praesident",
-		regierungsamt: true,
-		entlassbar: true
-	},
-	justiz: {
-		amt: "justiz",
-		ressort: "Justiz",
-		fach: [
-			"justiz_unabhaengigkeit",
-			"justiz_effizienz",
-			"haftueberfuellung",
-			"urteilsbefolgung"
-		],
-		massnahmen: [
-			"m_justizreform",
-			"m_richterstellen",
-			"m_haftvermeidung",
-			"m_urteilsumsetzung",
-			"m_antikorruption"
-		],
-		wirkung: [{
-			id: "justiz_effizienz",
-			d: .1
-		}, {
-			id: "justizvertrauen",
-			d: .06
-		}],
-		stile: [
-			"nuechtern",
-			"streng",
-			"vorsichtig"
-		],
-		faehigkeit: [55, 80],
-		ehrgeiz: [25, 60],
-		lager: "justiz",
-		regierungsamt: true,
-		entlassbar: true
-	},
-	generalstab: {
-		amt: "generalstab",
-		ressort: "Streitkräfte",
-		fach: [
-			"bereitschaft_heer",
-			"bereitschaft_luft",
-			"bereitschaft_see",
-			"truppenmoral",
-			"offiziersvertrauen"
-		],
-		massnahmen: [
-			"m_verteidigung",
-			"m_uebungen",
-			"m_ruestungsindustrie",
-			"m_offiziersauswahl",
-			"m_wehrdienst"
-		],
-		wirkung: [{
-			id: "truppenmoral",
-			d: .1
-		}, {
-			id: "bereitschaft_heer",
-			d: .06
-		}],
-		stile: [
-			"streng",
-			"machtbewusst",
-			"vorsichtig"
-		],
-		faehigkeit: [58, 82],
-		ehrgeiz: [30, 70],
-		lager: "streitkraefte",
-		regierungsamt: true,
-		entlassbar: true
-	},
-	wirtschaft: {
-		amt: "wirtschaft",
-		ressort: "Wirtschaft",
-		fach: [
-			"investitionen",
-			"industrie",
-			"export",
-			"auslandskapital"
-		],
-		massnahmen: [
-			"m_investitionsanreize",
-			"m_exportfoerderung",
-			"m_kmu",
-			"m_industrie_modernisierung",
-			"m_kreditgarantien"
-		],
-		wirkung: [{
-			id: "investitionen",
-			d: .08
-		}, {
-			id: "industrie",
-			d: .06
-		}],
-		stile: [
-			"eitel",
-			"nuechtern",
-			"machtbewusst"
-		],
-		faehigkeit: [52, 78],
-		ehrgeiz: [40, 72],
-		lager: "markt",
-		regierungsamt: true,
-		entlassbar: true
-	},
-	partner: {
-		amt: "partner",
-		ressort: "Bündnispartei",
-		fach: ["vertrauen_regierung"],
-		massnahmen: [],
-		wirkung: [],
-		stile: [
-			"machtbewusst",
-			"nuechtern",
-			"eitel"
-		],
-		faehigkeit: [50, 70],
-		ehrgeiz: [55, 85],
-		lager: "partei",
-		regierungsamt: false,
-		entlassbar: false
-	},
-	opposition: {
-		amt: "opposition",
-		ressort: "Opposition",
-		fach: ["polarisierung"],
-		massnahmen: [],
-		wirkung: [],
-		stile: ["machtbewusst", "eitel"],
-		faehigkeit: [50, 72],
-		ehrgeiz: [70, 95],
-		lager: "opposition",
-		regierungsamt: false,
-		entlassbar: false
-	}
-};
-/** Ein deterministischer Zufall aus Text: verbraucht keinen Zufallsstrom des Spiels. */
-function hashZahl(s) {
-	let h = 2166136261;
-	for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
-	h ^= h >>> 13;
-	h = Math.imul(h, 1540483477);
-	h ^= h >>> 15;
-	return (h >>> 0) / 4294967296;
-}
-const zwischen = (a, b, u) => Math.round(a + (b - a) * u);
-/** Das Profil einer Figur; wird angelegt, wenn es fehlt (ältere Spielstände, neue Nachfolger). */
-function eigenVon(w, f) {
-	if (f.eigen) return f.eigen;
-	const d = AEMTER[f.amt];
-	const s = `${w.seed}|${f.id}|${f.name}`;
-	const eigen = {
-		stil: d.stile[Math.floor(hashZahl(s + "|stil") * d.stile.length)],
-		faehigkeit: zwischen(d.faehigkeit[0], d.faehigkeit[1], hashZahl(s + "|fae")),
-		ehrgeiz: zwischen(d.ehrgeiz[0], d.ehrgeiz[1], hashZahl(s + "|ehr")),
-		groll: 0,
-		lager: d.lager,
-		seit: w.day,
-		erinnerung: []
-	};
-	f.eigen = eigen;
-	return eigen;
-}
-function figurNachId(w, id) {
-	return w.spiel?.figuren.find((f) => f.id === id);
-}
-function merke(w, f, text) {
-	const e = eigenVon(w, f);
-	e.erinnerung.push({
-		tag: w.day,
-		text
-	});
-	if (e.erinnerung.length > 10) e.erinnerung.shift();
-}
-const erinnerungen = (f) => [...f.eigen?.erinnerung ?? []].reverse();
-const klemme = (x, a = 0, b = 100) => Math.min(b, Math.max(a, x));
-function loyalitaetVerschieben(f, delta) {
-	f.loyalitaet = klemme(f.loyalitaet + delta);
-}
-function grollVerschieben(w, f, delta) {
-	const e = eigenVon(w, f);
-	e.groll = klemme(e.groll + delta);
-}
-/** Wie gut das Ressort läuft: 0 bis 1,3. Fähigkeit und Loyalität zählen, Zusatzmittel und Druck erhöhen. */
-function leistung(w, f) {
-	const e = eigenVon(w, f);
-	const basis = (.6 * e.faehigkeit + .4 * f.loyalitaet) / 100;
-	const mittel = e.mittelBis !== void 0 && e.mittelBis > w.day ? 1.25 : 1;
-	const druck = e.druckBis !== void 0 && e.druckBis > w.day ? 1.15 : 1;
-	const neu = (e.einarbeitungBis !== void 0 && e.einarbeitungBis > w.day ? .75 : 1) * (e.kommissarisch ? .8 : 1);
-	return klemme(basis * mittel * druck * neu, 0, 1.3);
-}
-function leistungWort(q) {
-	if (q >= .85) return "hervorragend";
-	if (q >= .7) return "gut";
-	if (q >= .55) return "solide";
-	if (q >= .4) return "schwach";
-	return "lähmend";
-}
-function grollWort(g) {
-	if (g >= 70) return "gekränkt";
-	if (g >= 40) return "verärgert";
-	if (g >= 15) return "gereizt";
-	return "gelassen";
-}
-function wertVon(w, id) {
-	return NET.index.has(id) ? nationalAverage(NET, w.net, id) : NaN;
-}
-/** Was eine Person gerade umtreibt, aus dem Weltzustand gerechnet (mit Zahlen). */
-function sorgeText(w, f) {
-	const e = w.economy;
-	const sp = w.spiel;
-	switch (f.amt) {
-		case "finanzen":
-			if (e.riskPremium > 450) return `Der Risikoaufschlag liegt bei ${Math.round(e.riskPremium)} Punkten; jede weitere Belastung des Haushalts kostet an den Märkten doppelt.`;
-			if (e.deficit > 4.5) return `Das Defizit liegt bei ${nf$4(e.deficit)} % des BIP und die Schulden bei ${nf$4(e.debtRatio)} %; er sieht keinen Spielraum für neue Ausgaben.`;
-			return `Die Schulden liegen bei ${nf$4(e.debtRatio)} % des BIP, das Defizit bei ${nf$4(e.deficit)} %; er will, dass der Haushalt keine Überraschungen bringt.`;
-		case "inneres": {
-			const k = wertVon(w, "kriminalitaet");
-			const t = wertVon(w, "terrorgefahr");
-			return `Die Kriminalität steht bei ${Math.round(k)} von 100, die Terrorgefahr bei ${Math.round(t)}; sie fürchtet, dass ihre Kräfte für beides nicht reichen.`;
-		}
-		case "aussen": {
-			const rang = LAENDER.map((l) => ({
-				l,
-				v: vertrauenZu(w, l.id)
-			})).sort((a, b) => a.v - b.v)[0];
-			return rang ? `Am schwierigsten ist das Verhältnis zu ${rang.l.dat} (Vertrauen ${Math.round(rang.v)} von 100); dort verliert er gerade Boden.` : "Er sorgt sich um die Bündnisse des Landes.";
-		}
-		case "zentralbank": return `Die Inflation liegt bei ${nf$4(e.inflation)} % (Ziel ${nf$4(e.inflationTarget)} %), der Leitzins bei ${nf$4(e.policyRate)} %; sie wacht darüber, dass ihre Unabhängigkeit nicht angetastet wird.`;
-		case "stab": return `Die Zustimmung liegt bei ${nf$4(sp.umfrage.zustimmung)} %, ${sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length} Zusagen sind offen und ${sp.gesetze.length} Gesetze liegen im Parlament; sie zählt jeden Tag bis zur Wahl.`;
-		case "justiz": {
-			const h = wertVon(w, "haftueberfuellung");
-			const u = wertVon(w, "justiz_unabhaengigkeit");
-			return `Die Haftanstalten sind zu ${Math.round(h)} von 100 überfüllt, die Unabhängigkeit der Justiz steht bei ${Math.round(u)}; sie will Verfahren beschleunigen, ohne dass es nach Einmischung aussieht.`;
-		}
-		case "generalstab": {
-			const m = wertVon(w, "truppenmoral");
-			const v = wertVon(w, "offiziersvertrauen");
-			return `Die Truppenmoral steht bei ${Math.round(m)}, das Vertrauen der Offiziere bei ${Math.round(v)}; ihn beschäftigen Ausrüstung, Beförderungen und wer sie entscheidet.`;
-		}
-		case "wirtschaft": return `Die Investitionen stehen bei ${Math.round(wertVon(w, "investitionen"))} von 100, das Wachstum bei ${nf$4(e.growth)} %; er will, dass sich das Land für Investoren nicht nach Willkür anfühlt.`;
-		case "partner": {
-			const offen = sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen && z.von === f.partei);
-			return offen.length ? `Er wartet auf ${offen.length === 1 ? "eine Zusage" : `${offen.length} Zusagen`}: ${offen[0].text.replace(/^Die [^ ]+ erwartet /, "")}` : `Er fragt, was seine Partei vom Bündnis hat.`;
-		}
-		case "opposition": return `Die Polarisierung liegt bei ${Math.round(wertVon(w, "polarisierung"))} von 100; er sucht den Fehler, den er Ihnen vorhalten kann.`;
-	}
-}
-//#endregion
-//#region src/sim/figuren.ts
-const VORNAMEN_F = [
-	"Selin",
-	"Derya",
-	"Zeynep",
-	"Nilay",
-	"Melis",
-	"Pınar",
-	"Gizem",
-	"Ebru",
-	"Sevgi",
-	"Nazlı",
-	"Ilgın",
-	"Damla",
-	"Aylin",
-	"Defne",
-	"Hande"
-];
-const VORNAMEN_M = [
-	"Kaan",
-	"Barış",
-	"Emre",
-	"Tolga",
-	"Volkan",
-	"Onur",
-	"Serkan",
-	"Levent",
-	"Murat",
-	"Cengiz",
-	"Orhan",
-	"Taner",
-	"Cem",
-	"Burak",
-	"Mert"
-];
-const NACHNAMEN = [
-	"Yücel",
-	"Karaca",
-	"Erdem",
-	"Aksoy",
-	"Kılıç",
-	"Tunç",
-	"Arıkan",
-	"Özgür",
-	"Bozkurt",
-	"Çelik",
-	"Sarı",
-	"Koçak",
-	"Ateş",
-	"Işık",
-	"Uysal",
-	"Yalçın",
-	"Duran",
-	"Güler",
-	"Polat",
-	"Demirci",
-	"Kaplan",
-	"Sezer",
-	"Turan",
-	"Akın"
-];
-const ROLLEN = [
-	{
-		id: "finanzen",
-		amt: "finanzen",
-		rolle: () => "Finanzminister",
-		ziel: "Ein Haushalt ohne Überraschungen und Märkte, die dem Land vertrauen.",
-		start: 62,
-		weiblich: false
-	},
-	{
-		id: "inneres",
-		amt: "inneres",
-		rolle: () => "Innenministerin",
-		ziel: "Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte.",
-		start: 60,
-		weiblich: true
-	},
-	{
-		id: "aussen",
-		amt: "aussen",
-		rolle: () => "Außenminister",
-		ziel: "Verlässliche Partner und ein Land, das mit allen redet.",
-		start: 58,
-		weiblich: false
-	},
-	{
-		id: "zentralbank",
-		amt: "zentralbank",
-		rolle: () => "Gouverneurin der Zentralbank",
-		ziel: "Preisstabilität, auch wenn sie unbeliebt macht.",
-		start: 50,
-		weiblich: true
-	},
-	{
-		id: "stab",
-		amt: "stab",
-		rolle: () => "Chefin des Präsidialamts",
-		ziel: "Dass der Präsident seine Amtszeit übersteht und etwas hinterlässt.",
-		start: 75,
-		weiblich: true
-	},
-	{
-		id: "opposition",
-		amt: "opposition",
-		rolle: () => "Oppositionsführer",
-		ziel: "Die Regierung vorführen und die nächste Wahl gewinnen.",
-		start: 25,
-		weiblich: false
-	}
-];
-/** Weitere Ämter, die das Umfeld seit dem Ausbau der Personen tragen: Justiz, Streitkräfte, Wirtschaft. Eigener Zufallsstrom, damit alte Partien gleich bleiben. */
-const ZUSATZ_ROLLEN = [
-	{
-		id: "justiz",
-		amt: "justiz",
-		rolle: () => "Justizministerin",
-		ziel: "Verfahren beschleunigen, ohne dass es nach Einmischung aussieht.",
-		start: 55,
-		weiblich: true
-	},
-	{
-		id: "generalstab",
-		amt: "generalstab",
-		rolle: () => "Chef des Generalstabs",
-		ziel: "Einsatzbereite Streitkräfte und eine Beförderungspraxis, die die Truppe versteht.",
-		start: 52,
-		weiblich: false
-	},
-	{
-		id: "wirtschaft",
-		amt: "wirtschaft",
-		rolle: () => "Wirtschaftsminister",
-		ziel: "Ein Land, in dem sich Investieren lohnt und Gesetze nicht über Nacht wechseln.",
-		start: 60,
-		weiblich: false
-	}
-];
-function name(rng, benutzt, weiblich) {
-	for (;;) {
-		const vor = weiblich ?? rng.next() < .5 ? VORNAMEN_F : VORNAMEN_M;
-		const n = `${vor[Math.floor(rng.next() * vor.length)]} ${NACHNAMEN[Math.floor(rng.next() * NACHNAMEN.length)]}`;
-		if (!benutzt.has(n)) {
-			benutzt.add(n);
-			return n;
-		}
-	}
-}
-/** Ein Name, der im Umfeld noch nicht vorkommt. */
-const neuerName = name;
-/** Erzeugt das Umfeld beim Amtsantritt. Das Regierungslager hat als Partner den Vorsitz der Bündnispartei. */
-function erzeugeFiguren(world, rng) {
-	const benutzt = /* @__PURE__ */ new Set();
-	const figuren = ROLLEN.map((r) => ({
-		id: r.id,
-		name: name(rng, benutzt, r.weiblich),
-		weiblich: r.weiblich,
-		rolle: r.rolle(world),
-		amt: r.amt,
-		ziel: r.ziel,
-		loyalitaet: r.start,
-		imAmt: true
+	return konfliktSichten(w).map((s) => ({
+		def: VERMITTLUNGEN.find((d) => d.id === s.def.id),
+		moeglich: s.moeglich,
+		...s.grund ? { grund: s.grund } : {},
+		aussicht: s.aussicht
 	}));
-	const partner = world.player?.buendnis;
-	if (partner) figuren.push({
-		id: "partner",
-		name: name(rng, benutzt, false),
-		weiblich: false,
-		rolle: `Vorsitz der ${partner}`,
-		amt: "partner",
-		ziel: "Ministerien, Einfluss und die Zusagen aus dem Wahlkampf.",
-		loyalitaet: 55,
-		imAmt: true,
-		partei: partner
-	});
-	figuren.push(...zusatzFiguren(world, figuren, new Rng(world.seed ^ 20973 | 0)));
-	return figuren;
-}
-function zusatzFiguren(world, vorhanden, rng) {
-	const benutzt = new Set(vorhanden.map((f) => f.name));
-	return ZUSATZ_ROLLEN.filter((r) => !vorhanden.some((f) => f.amt === r.amt)).map((r) => ({
-		id: r.id,
-		name: name(rng, benutzt, r.weiblich),
-		weiblich: r.weiblich,
-		rolle: r.rolle(world),
-		amt: r.amt,
-		ziel: r.ziel,
-		loyalitaet: r.start,
-		imAmt: true
-	}));
-}
-/** Ältere Spielstände haben die neuen Ämter noch nicht: sie werden einmal ergänzt. */
-function ergaenzeFiguren(world) {
-	const sp = world.spiel;
-	if (!sp) return;
-	if (!ZUSATZ_ROLLEN.some((r) => !sp.figuren.some((f) => f.amt === r.amt))) return;
-	sp.figuren.push(...zusatzFiguren(world, sp.figuren, new Rng(world.seed ^ 20973 ^ Math.imul(world.day, 2654435761) | 0)));
-}
-function figur(world, amt) {
-	return world.spiel?.figuren.find((f) => f.amt === amt);
-}
-function anrede(f) {
-	return f ? `${f.rolle} ${f.name}` : "";
-}
-function aendere(world, f, delta, grund) {
-	if (!f) return;
-	const vorher = f.loyalitaet;
-	f.loyalitaet = Math.min(100, Math.max(0, f.loyalitaet + delta));
-	if (grund && Math.abs(delta) >= 3 && Math.floor(vorher / 25) !== Math.floor(f.loyalitaet / 25)) addLog(world, "ereignis", `${anrede(f)}: ${f.loyalitaet > vorher ? "die Stimmung bessert sich" : "die Stimmung kippt"}.`, grund);
-}
-/** Figuren reagieren auf eine Änderung: erhöht (+1) oder gesenkt (−1). */
-function reagiereFiguren(world, theme, massnahme, richtung) {
-	if (!world.spiel || richtung === 0) return;
-	const kosten = NET.nodes[NET.index.get(massnahme) ?? -1]?.cost ?? 0;
-	if (kosten > 0) aendere(world, figur(world, "finanzen"), -richtung * 1.5, "Der Finanzminister mag keine Ausgaben ohne Deckung.");
-	else if (kosten < 0) aendere(world, figur(world, "finanzen"), richtung * 1, "Mehr Einnahmen sind ihm recht.");
-	if (theme === "sicherheit" || massnahme === "m_grenzschutz") aendere(world, figur(world, "inneres"), richtung * 2, "Die Innenministerin liest das als Rückhalt (oder Entzug) für die Sicherheitskräfte.");
-	if (theme === "aussen") aendere(world, figur(world, "aussen"), richtung * 1.5, "Der Außenminister misst das daran, was es den Gesprächen mit den Partnern bringt.");
-	if (theme === "recht") aendere(world, figur(world, "justiz"), richtung * (massnahme === "m_notstand" ? -2 : 1.5), "Die Justizministerin misst das daran, ob die Gerichte gestärkt oder beschnitten werden.");
-	if (theme === "militaer") aendere(world, figur(world, "generalstab"), richtung * (massnahme === "m_offiziersauswahl" ? .5 : 2), "Der Chef des Generalstabs liest das als Rückhalt (oder Entzug) für die Truppe.");
-	if (theme === "wirtschaft") aendere(world, figur(world, "wirtschaft"), richtung * (WIRTSCHAFT_EINGRIFF[massnahme] ?? 1.2), "Der Wirtschaftsminister misst das daran, was es Investoren und Betrieben bringt.");
-	aendere(world, figur(world, "opposition"), -.3);
-}
-/** Maßnahmen der Wirtschaft, die Betriebe belasten statt fördern (Vorzeichen der Reaktion des Wirtschaftsministers). */
-const WIRTSCHAFT_EINGRIFF = {
-	m_mindestlohn: -1,
-	m_preiskontrollen: -1.5,
-	m_zoelle: -.5
-};
-/** Wer geht, merkt sich den Streit: Der Ehemalige kann später gegen den Präsidenten aussagen. */
-function ehemaligeMerken(world, f, grund, groll) {
-	const sp = world.spiel;
-	if (!sp) return;
-	const e = eigenVon(world, f);
-	const g = groll ?? Math.min(100, Math.max(0, 35 + e.groll * .5 + (f.loyalitaet < 30 ? 20 : 0)));
-	(sp.ehemalige ??= []).push({
-		name: f.name,
-		...f.weiblich !== void 0 ? { weiblich: f.weiblich } : {},
-		amt: f.amt,
-		rolle: f.rolle,
-		ausgeschieden: world.day,
-		groll: Math.round(g),
-		ehrgeiz: e.ehrgeiz,
-		lager: e.lager,
-		grund,
-		ausgepackt: false
-	});
-	if (sp.ehemalige.length > 12) sp.ehemalige.shift();
-}
-/** Setzt einen neuen Menschen auf das Amt: Name, Loyalität und Profil ändern sich, Rolle und Aufgabe bleiben. */
-function besetzeNeu(world, f, b) {
-	f.name = b.name;
-	if (b.weiblich !== void 0) f.weiblich = b.weiblich;
-	f.loyalitaet = b.loyalitaet;
-	f.imAmt = true;
-	delete f.gespraech;
-	delete f.eigen;
-	const e = eigenVon(world, f);
-	if (b.stil) e.stil = b.stil;
-	if (b.faehigkeit !== void 0) e.faehigkeit = b.faehigkeit;
-	if (b.ehrgeiz !== void 0) e.ehrgeiz = b.ehrgeiz;
-	if (b.lager) e.lager = b.lager;
-	e.seit = world.day;
-	e.einarbeitungBis = world.day + 60;
-	if (b.kommissarisch) e.kommissarisch = true;
-	if (b.notiz) merke(world, f, b.notiz);
-}
-/** Ersetzt ein Regierungsmitglied durch eine kommissarische Leitung (etwa nach einer Affäre); ein Nachfolger lässt sich danach ernennen. */
-function ersetze(world, amt, rng) {
-	const alt = figur(world, amt);
-	const spiel = world.spiel;
-	if (!alt || !spiel) return void 0;
-	const benutzt = new Set(spiel.figuren.map((f) => f.name));
-	const spec = ROLLEN.find((r) => r.amt === amt) ?? ZUSATZ_ROLLEN.find((r) => r.amt === amt);
-	const neu = name(rng, benutzt, spec?.weiblich);
-	const loyal = Math.round(50 + rng.between(-8, 16));
-	const vorher = `${alt.rolle} ${alt.name}`;
-	ehemaligeMerken(world, alt, "im Zuge einer Affäre ausgeschieden", 60);
-	besetzeNeu(world, alt, {
-		name: neu,
-		loyalitaet: loyal,
-		kommissarisch: true,
-		notiz: `Kommissarisch eingesetzt nach dem Ausscheiden von ${vorher}`
-	});
-	if (spec) alt.ziel = spec.ziel;
-	return alt;
-}
-/** Wie gern die Figur dem Präsidenten noch folgt, in Worten. */
-function haltung(f) {
-	if (f.loyalitaet >= 75) return "loyal";
-	if (f.loyalitaet >= 55) return "verlässlich";
-	if (f.loyalitaet >= 35) return "distanziert";
-	if (f.loyalitaet >= 20) return "verärgert";
-	return "kurz vor dem Bruch";
-}
-/** Für Ereignisse und Handlungen des Spielers: die Loyalität einer Figur verschieben. */
-function loyalitaetAendern(world, amt, delta, grund) {
-	aendere(world, figur(world, amt), delta, grund);
-}
-/** Der Vorsitz einer Partnerpartei als Figur mit eigenem Namen. */
-function partnerFigur(world, partei, rolle, ziel, rng) {
-	const benutzt = new Set((world.spiel?.figuren ?? []).map((f) => f.name));
-	const weiblich = rng.next() < .35;
-	return {
-		id: `partner-${partei}`,
-		name: name(rng, benutzt, weiblich),
-		weiblich,
-		rolle,
-		amt: "partner",
-		ziel,
-		loyalitaet: 55,
-		imAmt: true,
-		partei
-	};
-}
-/** Ein neuer, noch nicht vergebener Name für Nebenfiguren in Ereignissen (Bürgermeister, Chefredakteure, Vorstände). */
-function zufallsName(world, rng) {
-	return name(rng, new Set((world.spiel?.figuren ?? []).map((f) => f.name)));
-}
-//#endregion
-//#region src/sim/berichte.ts
-const REGEL = {
-	schwelle: 8,
-	berichteNachMonaten: [6, 12]
-};
-function zielGroessen(id) {
-	return NET.edges.filter((e) => e.from === id).sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight)).slice(0, 4).map((e) => ({
-		id: e.to,
-		erwartung: e.weight >= 0 ? 1 : -1
-	}));
-}
-function problemeUm(id) {
-	const nah = /* @__PURE__ */ new Set();
-	for (const e of NET.edges) if (e.from === id) nah.add(e.to);
-	for (const e of NET.edges) if (nah.has(e.from)) nah.add(e.to);
-	return [...nah].filter((n) => NET.nodes[NET.index.get(n)].kind === "problem");
-}
-function akutZahl(world, id) {
-	const node = NET.nodes[NET.index.get(id)];
-	const i = NET.index.get(id);
-	let n = 0;
-	for (let p = 0; p < 81; p++) if (node.threshold && world.net.values[i * 81 + p] >= node.threshold) n++;
-	return n;
-}
-/** Nach einem Beschluss festhalten, wie die Lage vorher war. */
-function beobachte(world, id, von, auf, ort) {
-	const spiel = world.spiel;
-	if (!spiel || Math.abs(auf - von) < REGEL.schwelle) return;
-	const node = NET.nodes[NET.index.get(id)];
-	if (!node || node.kind !== "massnahme") return;
-	const werte = {};
-	for (const z of zielGroessen(id)) if (!NET.nodes[NET.index.get(z.id)].input) werte[z.id] = nationalAverage(NET, world.net, z.id);
-	const akut = {};
-	for (const p of problemeUm(id)) akut[p] = akutZahl(world, p);
-	(spiel.beobachtungen ??= []).push({
-		id,
-		name: node.name,
-		tag: world.day,
-		von,
-		auf,
-		ort,
-		werte,
-		akut,
-		berichtet: []
-	});
-	if (spiel.beobachtungen.length > 60) spiel.beobachtungen.shift();
-}
-const nf$3 = (x) => x.toLocaleString("de-DE", {
-	minimumFractionDigits: 1,
-	maximumFractionDigits: 1
-});
-function bericht(world, b, monate) {
-	const node = NET.nodes[NET.index.get(b.id)];
-	const zeilen = [];
-	let passt = 0;
-	let gegen = 0;
-	let bewegt = 0;
-	const ziele = zielGroessen(b.id);
-	for (const z of ziele) {
-		if (b.werte[z.id] === void 0) continue;
-		const n = NET.nodes[NET.index.get(z.id)];
-		const jetzt = nationalAverage(NET, world.net, z.id);
-		const d = jetzt - b.werte[z.id];
-		const erwartet = z.erwartung * (b.auf > b.von ? 1 : -1);
-		zeilen.push(`${n.name}: ${nf$3(b.werte[z.id])} auf ${nf$3(jetzt)} (${d >= 0 ? "+" : "−"}${nf$3(Math.abs(d))})`);
-		if (Math.abs(d) >= .8) {
-			bewegt++;
-			if (d * erwartet > 0) passt++;
-			else if (Math.abs(d) >= 1.5) gegen++;
-		}
-	}
-	for (const [pid, vorher] of Object.entries(b.akut)) {
-		const jetzt = akutZahl(world, pid);
-		if (jetzt === vorher && vorher === 0) continue;
-		const n = NET.nodes[NET.index.get(pid)];
-		zeilen.push(`${n.name}: akut in ${vorher} auf ${jetzt} Provinzen`);
-		if (jetzt < vorher) passt++;
-		else if (jetzt > vorher + 1) gegen++;
-	}
-	const rest = Math.max(0, (node.months ?? 1) - monate);
-	const urteil = passt >= 1 && gegen === 0 ? "gut" : passt >= 1 && gegen >= 1 ? "gemischt" : bewegt === 0 ? "schwach" : "keine";
-	const orte = b.ort ? ` (nur in ${b.ort.length} ${b.ort.length === 1 ? "Provinz" : "Provinzen"})` : "";
-	return {
-		tag: world.day,
-		datum: world.date,
-		massnahme: b.id,
-		titel: `${b.name}${orte}: Stufe ${Math.round(b.von)} auf ${Math.round(b.auf)}, ${monate} Monate danach`,
-		monate,
-		urteil,
-		zeilen,
-		hinweis: (rest > 0 ? `Die volle Wirkung braucht noch etwa ${rest} ${rest === 1 ? "Monat" : "Monate"}. ` : "") + (urteil === "gut" ? "Es wirkt in die gewünschte Richtung." : urteil === "gemischt" ? "Es wirkt, aber anderes hat sich verschlechtert; ob es an dieser Maßnahme liegt, zeigt das Politiknetz." : urteil === "schwach" ? "Bisher ist kaum etwas zu sehen." : "Die Zahlen bewegen sich nicht in die gewünschte Richtung.") + " Die Zahlen zeigen die Veränderung insgesamt, nicht nur die dieser Maßnahme."
-	};
-}
-/** Täglich: Fällige Berichte schreiben. */
-function berichteTag(world) {
-	const spiel = world.spiel;
-	if (!spiel?.beobachtungen) return;
-	for (const b of spiel.beobachtungen) for (const m of REGEL.berichteNachMonaten) {
-		if (b.berichtet.includes(m) || world.day - b.tag < m * 30) continue;
-		b.berichtet.push(m);
-		const r = bericht(world, b, m);
-		(spiel.berichte ??= []).push(r);
-		if (spiel.berichte.length > 80) spiel.berichte.shift();
-		spiel.chronik.push({
-			tag: world.day,
-			datum: world.date,
-			titel: `Wirkungsbericht: ${b.name}`,
-			ausgang: `${r.zeilen.slice(0, 2).join("; ")}. ${r.urteil === "gut" ? "Es wirkt." : r.urteil === "schwach" ? "Bisher kaum Wirkung." : r.urteil === "gemischt" ? "Gemischte Bilanz." : "Keine Wirkung in die gewünschte Richtung."}`
-		});
-		addLog(world, "ereignis", `Wirkungsbericht: ${b.name}, ${m} Monate danach`, r.zeilen.join("; ") + ". " + r.hinweis);
-	}
-}
-//#endregion
-//#region src/sim/fraktionen.ts
-/** Woran eine Fraktion ihre Unterstützung knüpft. */
-const FORDERUNG = {
-	AKP: {
-		massnahme: "m_religioese_schulen",
-		text: "mehr Rückhalt für religiöse Schulen"
-	},
-	"YENİ": {
-		massnahme: "m_wissenschaftsfreiheit",
-		text: "mehr Wissenschaftsfreiheit"
-	},
-	DEM: {
-		massnahme: "m_friedensprozess",
-		text: "Fortschritte im Friedensprozess"
-	},
-	MHP: {
-		massnahme: "m_verteidigung",
-		text: "höhere Verteidigungsausgaben"
-	},
-	"İYİ": {
-		massnahme: "m_grenzschutz",
-		text: "mehr Grenzschutz"
-	},
-	CHP: {
-		massnahme: "m_justizreform",
-		text: "eine Justizreform"
-	},
-	Zafer: {
-		massnahme: "m_grenzschutz",
-		text: "deutlich mehr Grenzschutz"
-	},
-	YRP: {
-		massnahme: "m_religionsbehoerde",
-		text: "mehr Mittel für die Religionsbehörde"
-	}
-};
-/** Was eine Fraktion je nach Lage fordern kann; nur Maßnahmen, die man erhöhen soll. Die Forderung wechselt alle paar Monate. */
-const FORDERUNGEN = {
-	AKP: [
-		{
-			massnahme: "m_religioese_schulen",
-			text: "mehr Rückhalt für religiöse Schulen"
-		},
-		{
-			massnahme: "m_kindergeld",
-			text: "ein höheres Kindergeld"
-		},
-		{
-			massnahme: "m_bauindustrie",
-			text: "Aufträge und Förderung für die Bauindustrie"
-		},
-		{
-			massnahme: "m_agrarsubventionen",
-			text: "höhere Agrarsubventionen"
-		},
-		{
-			massnahme: "m_autobahnen",
-			text: "neue Autobahnen und Brücken"
-		}
-	],
-	"YENİ": [
-		{
-			massnahme: "m_wissenschaftsfreiheit",
-			text: "mehr Wissenschaftsfreiheit"
-		},
-		{
-			massnahme: "m_investitionsanreize",
-			text: "Investitionsanreize für Unternehmen"
-		},
-		{
-			massnahme: "m_kmu",
-			text: "Förderung für den Mittelstand"
-		},
-		{
-			massnahme: "m_verwaltungsdigital",
-			text: "eine digitale Verwaltung"
-		},
-		{
-			massnahme: "m_forschung",
-			text: "mehr Geld für Forschung"
-		}
-	],
-	CHP: [
-		{
-			massnahme: "m_justizreform",
-			text: "eine Justizreform"
-		},
-		{
-			massnahme: "m_gewaltschutz",
-			text: "besseren Schutz vor Gewalt gegen Frauen"
-		},
-		{
-			massnahme: "m_sozialwohnungen",
-			text: "mehr Sozialwohnungen"
-		},
-		{
-			massnahme: "m_stipendien",
-			text: "mehr Stipendien für Studierende"
-		},
-		{
-			massnahme: "m_mindestlohn",
-			text: "einen höheren Mindestlohn"
-		}
-	],
-	MHP: [
-		{
-			massnahme: "m_verteidigung",
-			text: "höhere Verteidigungsausgaben"
-		},
-		{
-			massnahme: "m_ruestungsindustrie",
-			text: "Ausbau der heimischen Rüstungsindustrie"
-		},
-		{
-			massnahme: "m_grenzschutz",
-			text: "mehr Grenzschutz"
-		},
-		{
-			massnahme: "m_polizei",
-			text: "eine stärkere Polizei"
-		}
-	],
-	"İYİ": [
-		{
-			massnahme: "m_grenzschutz",
-			text: "mehr Grenzschutz"
-		},
-		{
-			massnahme: "m_rueckkehr",
-			text: "Rückkehrprogramme für Geflüchtete"
-		},
-		{
-			massnahme: "m_kmu",
-			text: "Entlastung für den Mittelstand"
-		},
-		{
-			massnahme: "m_polizei",
-			text: "eine stärkere Polizei"
-		}
-	],
-	DEM: [
-		{
-			massnahme: "m_friedensprozess",
-			text: "Fortschritte im Friedensprozess"
-		},
-		{
-			massnahme: "m_regionalfoerderung",
-			text: "mehr Geld für die benachteiligten Regionen"
-		},
-		{
-			massnahme: "m_versammlungsfreiheit",
-			text: "mehr Versammlungsfreiheit"
-		},
-		{
-			massnahme: "m_gewerkschaftsrechte",
-			text: "stärkere Gewerkschaftsrechte"
-		}
-	],
-	Zafer: [
-		{
-			massnahme: "m_grenzschutz",
-			text: "deutlich mehr Grenzschutz"
-		},
-		{
-			massnahme: "m_rueckkehr",
-			text: "konsequente Rückführungen"
-		},
-		{
-			massnahme: "m_polizei",
-			text: "eine stärkere Polizei"
-		}
-	],
-	YRP: [
-		{
-			massnahme: "m_religionsbehoerde",
-			text: "mehr Mittel für die Religionsbehörde"
-		},
-		{
-			massnahme: "m_renten",
-			text: "höhere Renten"
-		},
-		{
-			massnahme: "m_sozialhilfe",
-			text: "höhere Sozialhilfe"
-		},
-		{
-			massnahme: "m_kindergeld",
-			text: "ein höheres Kindergeld"
-		}
-	]
-};
-const PARTEI_NAME = {
-	AKP: "AKP",
-	"YENİ": "YENİ Parti",
-	CHP: "CHP",
-	MHP: "MHP",
-	"İYİ": "İYİ Parti",
-	DEM: "DEM Parti",
-	Zafer: "Zafer Partisi",
-	YRP: "Yeniden Refah"
-};
-/** Kurzbeschreibung der Ausrichtung, damit man Partner und Gegner einordnen kann. */
-const AUSRICHTUNG = {
-	AKP: "national-konservativ, bisherige Regierungspartei",
-	"YENİ": "liberal-zentristisch, wirtschaftsnah",
-	CHP: "sozialdemokratisch, säkular",
-	MHP: "nationalistisch, sicherheitsorientiert",
-	"İYİ": "nationalistisch-liberal, grenzstreng",
-	DEM: "linksgerichtet, für die kurdischen Regionen",
-	Zafer: "nationalistisch, migrationskritisch",
-	YRP: "islamisch-konservativ, sozialpolitisch"
-};
-/** Politische Nähe der Fraktionen zur eigenen Partei des Spielers: −2 (fern) bis +2 (nah). */
-const NAEHE = {
-	AP: {
-		AKP: -1,
-		"YENİ": 2,
-		CHP: 1,
-		MHP: -1,
-		"İYİ": 1,
-		DEM: 0,
-		Zafer: -2,
-		YRP: -1
-	},
-	PG: {
-		AKP: -1,
-		"YENİ": 1,
-		CHP: 2,
-		MHP: -1,
-		"İYİ": -1,
-		DEM: 2,
-		Zafer: -2,
-		YRP: 0
-	},
-	PW: {
-		AKP: 2,
-		"YENİ": 0,
-		CHP: -1,
-		MHP: 1,
-		"İYİ": 1,
-		DEM: -1,
-		Zafer: 0,
-		YRP: 2
-	},
-	PR: {
-		AKP: -1,
-		"YENİ": 1,
-		CHP: 1,
-		MHP: 0,
-		"İYİ": 0,
-		DEM: 1,
-		Zafer: -1,
-		YRP: 0
-	}
-};
-/** Ausgangsbereitschaft einer Fraktion, mit dem Präsidenten zusammenzuarbeiten (0 bis 100). */
-function startBereitschaft(world, partei) {
-	const nah = NAEHE[world.player?.partei.kurz ?? ""]?.[partei] ?? 0;
-	const zustimmung = world.spiel?.umfrage.zustimmung ?? 50;
-	return clamp(Math.round(42 + 12 * nah + .35 * (zustimmung - 50)), 10, 90);
-}
-function fraktion(world, partei) {
-	const spiel = world.spiel;
-	if (!spiel) return { bereitschaft: 40 };
-	spiel.fraktionen ??= {};
-	return spiel.fraktionen[partei] ??= { bereitschaft: startBereitschaft(world, partei) };
-}
-function bereitschaftAendern(world, partei, delta) {
-	if (!world.parliament?.seats[partei]) return;
-	const f = fraktion(world, partei);
-	f.bereitschaft = clamp(f.bereitschaft + delta, 0, 100);
-}
-function bereitschaftWort(b) {
-	if (b >= 70) return "aufgeschlossen";
-	if (b >= 55) return "gesprächsbereit";
-	if (b >= 40) return "abwägend";
-	if (b >= 25) return "reserviert";
-	return "ablehnend";
-}
-/** Anteil der Sitze einer duldenden Fraktion, der tatsächlich mitstimmt. */
-const DULDUNG_QUOTE = .7;
-/** Fraktionen, die das Lager bei Gesetzen dulden (ohne im Lager zu sein): ihre Sitze und die erwarteten Ja-Stimmen daraus. */
-function duldung(world) {
-	const spiel = world.spiel;
-	const parl = world.parliament;
-	const out = {
-		sitze: 0,
-		ja: 0,
-		parteien: []
-	};
-	if (!spiel || !parl) return out;
-	for (const [partei, f] of Object.entries(spiel.fraktionen ?? {})) {
-		if (f.duldungBis === void 0 || f.duldungBis <= world.day || spiel.lager.includes(partei)) continue;
-		const sitze = parl.seats[partei] ?? 0;
-		out.sitze += sitze;
-		out.ja += Math.round(sitze * DULDUNG_QUOTE);
-		out.parteien.push(partei);
-	}
-	return out;
-}
-/** Anteil der Sitze einer Fraktion, der für ein Gesetz stimmt, das genau ihre Kernforderung erfüllt. */
-const SACHSTIMMEN_QUOTE = .6;
-/** Ja-Stimmen aus Fraktionen außerhalb des Lagers, deren Kernforderung dieses Gesetz erfüllt (Sachkoalition). */
-function sachstimmen(world, massnahme, richtung) {
-	const spiel = world.spiel;
-	const parl = world.parliament;
-	const out = {
-		ja: 0,
-		sitze: 0,
-		parteien: []
-	};
-	if (!spiel || !parl || !massnahme || richtung <= 0) return out;
-	const dul = duldung(world).parteien;
-	for (const [partei, sitze] of Object.entries(parl.seats)) {
-		if (partei === world.player?.partei.kurz || spiel.lager.includes(partei) || dul.includes(partei)) continue;
-		if (forderungVon(world, partei).massnahme !== massnahme) continue;
-		out.sitze += sitze;
-		out.ja += Math.round(sitze * SACHSTIMMEN_QUOTE);
-		out.parteien.push(partei);
-	}
-	return out;
-}
-/**
-* Wer außer dem eigenen Bündnispartner noch ins Lager gehört, damit das Spiel mit einer Regierungsmehrheit beginnt.
-* Gewählt wird nach politischer Nähe und Größe; wer der eigenen Partei fern steht („−2“), wird nur gewählt, wenn nichts anderes bleibt.
-*/
-function waehlePartner(seats, eigene, buendnis) {
-	const nah = NAEHE[eigene] ?? {};
-	const grund = (seats[eigene] ?? 0) + (buendnis ? seats[buendnis] ?? 0 : 0);
-	if (grund >= 316) return [];
-	const kandidaten = Object.keys(seats).filter((p) => p !== eigene && p !== buendnis && (seats[p] ?? 0) >= 15 && (nah[p] ?? 0) > -2);
-	const kombis = [];
-	for (let i = 0; i < kandidaten.length; i++) {
-		kombis.push([kandidaten[i]]);
-		for (let j = i + 1; j < kandidaten.length; j++) {
-			kombis.push([kandidaten[i], kandidaten[j]]);
-			for (let k = j + 1; k < kandidaten.length; k++) kombis.push([
-				kandidaten[i],
-				kandidaten[j],
-				kandidaten[k]
-			]);
-		}
-	}
-	const summe = (k) => k.reduce((s, p) => s + (seats[p] ?? 0), 0);
-	const riese = (k) => k.some((p) => (seats[p] ?? 0) >= 200);
-	const wert = (k, ziel) => k.reduce((s, p) => s + (nah[p] ?? 0) * 3, 0) - (grund + summe(k) - ziel) / 40 - 1.2 * (k.length - 1);
-	let ersatz = null;
-	for (const ziel of [316, 306]) {
-		const genug = kombis.filter((k) => grund + summe(k) >= ziel);
-		if (!genug.length) continue;
-		const ohneRiese = genug.filter((k) => !riese(k));
-		const beste = (ohneRiese.length ? ohneRiese : genug).reduce((b, k) => wert(k, ziel) > wert(b, ziel) ? k : b);
-		if (!riese(beste)) return beste;
-		ersatz ??= beste;
-	}
-	if (ersatz) return ersatz;
-	const sortiert = [...kandidaten].sort((x, y) => (nah[y] ?? 0) - (nah[x] ?? 0) || (seats[y] ?? 0) - (seats[x] ?? 0));
-	const out = [];
-	let bloc = grund;
-	for (const p of sortiert) {
-		if (bloc >= 306) break;
-		out.push(p);
-		bloc += seats[p] ?? 0;
-	}
-	return out;
-}
-const hash = (t) => {
-	let h = 2166136261;
-	for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619);
-	return h >>> 0;
-};
-/** Zeitraum, nach dem eine Fraktion etwas anderes verlangt (Tage). */
-const FORDERUNG_DAUER = 270;
-/**
-* Woran die Fraktion ihre Unterstützung gerade knüpft. Sie behält die Forderung, bis sie erfüllt, überholt oder zu alt ist,
-* und wählt dann eine andere aus ihrem Vorrat; welche, hängt von dieser Partie ab, nicht vom Zufall der Sekunde.
-*/
-function forderungVon(world, partei) {
-	const spiel = world.spiel;
-	const pool = FORDERUNGEN[partei];
-	if (!spiel || !pool?.length) return FORDERUNG[partei] ?? {
-		massnahme: "m_justizreform",
-		text: "ein Entgegenkommen"
-	};
-	const f = fraktion(world, partei);
-	const stufe = (id) => nationalAverage(NET, world.net, id);
-	const alt = f.forderung;
-	if (!alt || world.day - alt.seit > FORDERUNG_DAUER || stufe(alt.massnahme) >= 90) {
-		spiel.salz ??= world.rngState >>> 0;
-		const frei = pool.filter((e) => stufe(e.massnahme) < 85 && e.massnahme !== alt?.massnahme);
-		const liste = frei.length ? frei : pool;
-		const wahl = liste[hash(`${spiel.salz}|${partei}|${Math.floor(world.day / FORDERUNG_DAUER)}|${alt?.massnahme ?? ""}`) % liste.length];
-		f.forderung = {
-			massnahme: wahl.massnahme,
-			text: wahl.text,
-			seit: world.day
-		};
-	}
-	return {
-		massnahme: f.forderung.massnahme,
-		text: f.forderung.text
-	};
-}
-//#endregion
-//#region src/sim/krisen.ts
-/** Spielparameter, keine Tatsachen: Schwellen und Faktoren der Krisen (Kalibrierung). */
-const KRISEN_REGELN = {
-	/** Lira-Vertrauen: Abwertung der Lira auf 12 Monate (%) oder Risikoaufschlag (CDS, Basispunkte) über der Schwelle */
-	lira: {
-		abwertungAn: 45,
-		abwertungAus: 35,
-		cdsAn: 600,
-		cdsAus: 450,
-		faktor: 1.5
-	},
-	/** Katastrophenlage: wird in den ersten Tagen nach dem Ereignis aktiv, endet, wenn es länger zurückliegt */
-	katastrophe: {
-		frisch: 60,
-		ende: 90,
-		faktor: 1.5
-	},
-	/** Kriegsgefahr: Konflikt-Dimension eines Nachbarn (0 bis 100) über der Schwelle; Rabatt für Außen/Militär */
-	krieg: {
-		an: 75,
-		aus: 65,
-		rabatt: .75
-	}
-};
-const nf$2 = (x) => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
-const R = KRISEN_REGELN;
-/** Katastrophen-Ereignisvorlagen, die eine Katastrophenlage auslösen. */
-const KATASTROPHEN_VORLAGEN = /* @__PURE__ */ new Set(["erdbeben", "ueberschwemmung"]);
-/** Themen, die in der Katastrophenlage unverteuert bleiben (Versorgung der Betroffenen). */
-const VERSORGUNG = /* @__PURE__ */ new Set([
-	"wohnen",
-	"gesundheit",
-	"sicherheit",
-	"infrastruktur"
-]);
-function katastropheZuletzt(w) {
-	const spiel = w.spiel;
-	let tag = -1e9;
-	for (const v of KATASTROPHEN_VORLAGEN) tag = Math.max(tag, spiel.zuletzt[v] ?? -1e9);
-	return tag;
-}
-function katastropheOffen(w) {
-	return w.spiel.ereignisse.some((e) => KATASTROPHEN_VORLAGEN.has(e.vorlage));
-}
-function schaerfsterNachbar(w) {
-	if (!w.spiel) return null;
-	const welt = weltZustand(w);
-	let out = null;
-	for (const l of LAENDER) {
-		if (l.gruppe !== "Nachbarn") continue;
-		const k = welt[l.id]?.konflikt ?? 0;
-		if (!out || k > out.konflikt) out = {
-			name: l.name,
-			konflikt: k
-		};
-	}
-	return out;
-}
-/** Läuft die Justizreform gerade (Gesetz im Parlament oder Umsetzung unterwegs)? */
-function justizreformLaeuft(w) {
-	const spiel = w.spiel;
-	if (!spiel) return false;
-	if (spiel.gesetze.some((g) => g.massnahme === "m_justizreform")) return true;
-	const ziel = w.net.targets["m_justizreform"];
-	if (ziel !== void 0 && Math.abs(ziel - nationalAverage(NET, w.net, "m_justizreform")) > 1) return true;
-	if ((w.net.ziele?.["m_justizreform"])?.some((z) => z >= 0)) return true;
-	return false;
-}
-const KRISEN = [
-	{
-		id: "lira_vertrauen",
-		name: "Lira-Vertrauen erschüttert",
-		ausloeser: (w) => w.economy.fxChange12 >= R.lira.abwertungAn || w.economy.riskPremium >= R.lira.cdsAn,
-		beruhigt: (w) => w.economy.fxChange12 < R.lira.abwertungAus && w.economy.riskPremium < R.lira.cdsAus,
-		grund: (w) => {
-			const teile = [];
-			if (w.economy.fxChange12 >= R.lira.abwertungAus) teile.push(`die Lira hat in zwölf Monaten ${nf$2(w.economy.fxChange12)} % verloren`);
-			if (w.economy.riskPremium >= R.lira.cdsAus) teile.push(`der Risikoaufschlag liegt bei ${Math.round(w.economy.riskPremium)} Punkten`);
-			return `Die Märkte trauen der Lira nicht: ${teile.join(" und ")}. Neue Ausgabenprogramme lesen sie als Inflationsrisiko.`;
-		},
-		wirkung: `Ausgaben in Wirtschaft und Haushalt kosten das ${nf$2(R.lira.faktor)}-fache an Kapital.`,
-		bedingung: `Endet, wenn die Abwertung auf zwölf Monate unter ${R.lira.abwertungAus} % und der Risikoaufschlag unter ${R.lira.cdsAus} Punkte fallen.`,
-		ausweg: "Ausweg: erst das Vertrauen zurückgewinnen (Zentralbank in Ruhe lassen, Haushalt ordnen) oder Einnahmen statt Ausgaben nutzen.",
-		effekt: (node) => (node.theme === "wirtschaft" || node.theme === "haushalt") && (node.cost ?? 0) > 0 ? {
-			art: "teuer",
-			faktor: R.lira.faktor
-		} : null
-	},
-	{
-		id: "katastrophenlage",
-		name: "Katastrophenlage",
-		ausloeser: (w) => katastropheOffen(w) || w.day - katastropheZuletzt(w) < R.katastrophe.frisch,
-		beruhigt: (w) => !katastropheOffen(w) && w.day - katastropheZuletzt(w) > R.katastrophe.ende,
-		grund: () => "Nach der Katastrophe sind Verwaltung, Haushalt und Aufmerksamkeit auf Nothilfe und Versorgung der Betroffenen ausgerichtet.",
-		wirkung: `Nur Versorgung (Wohnen, Gesundheit, Sicherheit, Infrastruktur) geht wie bisher; alles andere kostet das ${nf$2(R.katastrophe.faktor)}-fache, Prestige-Vorhaben (Kultur) warten.`,
-		bedingung: `Endet, wenn die Katastrophe mehr als ${R.katastrophe.ende} Tage zurückliegt und kein Ereignis mehr offen ist.`,
-		ausweg: "Ausweg: Was der Versorgung dient (Wohnen, Gesundheit, Sicherheit, Infrastruktur), geht sofort; der Rest wartet, bis die Lage vorbei ist.",
-		effekt: (node) => {
-			if (VERSORGUNG.has(node.theme)) return null;
-			if (node.theme === "kultur") return {
-				art: "gesperrt",
-				faktor: 1
-			};
-			return {
-				art: "teuer",
-				faktor: R.katastrophe.faktor
-			};
-		}
-	},
-	{
-		id: "kriegsgefahr",
-		name: "Kriegsgefahr",
-		ausloeser: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) > R.krieg.an,
-		beruhigt: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) < R.krieg.aus,
-		grund: (w) => {
-			const n = schaerfsterNachbar(w);
-			return n ? `Der Konflikt mit ${n.name} steht bei ${Math.round(n.konflikt)} von 100; das Land erwartet Geschlossenheit statt Schauprojekten.` : "";
-		},
-		wirkung: `Außen- und Militärpolitik kostet nur ${Math.round(R.krieg.rabatt * 100)} % des Kapitals; Prestige-Vorhaben (Kultur) sind gesperrt.`,
-		bedingung: `Endet, wenn kein Konflikt mit einem Nachbarn mehr über ${R.krieg.aus} steht.`,
-		ausweg: "Ausweg: den Konflikt entschärfen (Gespräche am Verhandlungstisch in der Welt) — oder warten, bis die Spannung nachlässt.",
-		effekt: (node) => {
-			if (node.theme === "aussen" || node.theme === "militaer") return {
-				art: "teuer",
-				faktor: R.krieg.rabatt
-			};
-			if (node.theme === "kultur") return {
-				art: "gesperrt",
-				faktor: 1
-			};
-			return null;
-		}
-	},
-	{
-		id: "justiz_umbau",
-		name: "Justiz im Umbau",
-		ausloeser: justizreformLaeuft,
-		beruhigt: (w) => !justizreformLaeuft(w),
-		grund: () => "Die Justizreform wird gerade umgesetzt; Gerichte, Ministerium und Richterrat sind mit dem Umbau ausgelastet.",
-		wirkung: "Weitere Justiz-Maßnahmen (Recht und Justiz) sind gesperrt, bis die Reform abgeschlossen ist.",
-		bedingung: "Endet, wenn die Justizreform umgesetzt oder ihr Gesetz zurückgezogen ist.",
-		ausweg: "Ausweg: die laufende Reform zu Ende bringen (oder ihr Gesetz im Parlament zurückziehen); danach ist der Weg frei.",
-		effekt: (node) => node.theme === "recht" && node.id !== "m_justizreform" ? {
-			art: "gesperrt",
-			faktor: 1
-		} : null
-	}
-];
-function defZu(id) {
-	return KRISEN.find((d) => d.id === id);
-}
-/** Die aktuell aktiven Krisen, aufbereitet für Banner und Badges. */
-function aktiveKrisen(world) {
-	const spiel = world.spiel;
-	if (!spiel) return [];
-	return (spiel.krisen ?? []).flatMap((k) => {
-		const def = defZu(k.id);
-		return def ? [{
-			id: def.id,
-			name: def.name,
-			grund: def.grund(world),
-			wirkung: def.wirkung,
-			bedingung: def.bedingung,
-			seit: k.seit
-		}] : [];
-	});
-}
-/** Wie die aktiven Krisen eine Maßnahme treffen (leer, wenn keine betroffen ist). */
-function krisenFuerMassnahme(world, massnahmeId) {
-	const i = NET.index.get(massnahmeId);
-	const node = i === void 0 ? void 0 : NET.nodes[i];
-	if (!node || node.kind !== "massnahme") return [];
-	return aktiveKrisen(world).flatMap((krise) => {
-		const def = defZu(krise.id);
-		const e = def.effekt(node);
-		if (!e) return [];
-		const t = {
-			krise,
-			art: e.art,
-			faktor: e.art === "teuer" ? e.faktor : 1
-		};
-		if (e.art === "gesperrt") t.ausweg = def.ausweg;
-		return [t];
-	});
-}
-/** Bringt die Krisenliste auf den Stand der Welt: aktiviert über der Schwelle, beendet unter der Unterschwelle (Hysterese). */
-function krisenAktualisieren(world) {
-	const spiel = world.spiel;
-	if (!spiel || spiel.ende) return;
-	const bisher = spiel.krisen ?? [];
-	const neu = [];
-	for (const def of KRISEN) {
-		const aktiv = bisher.find((k) => k.id === def.id);
-		if (aktiv) {
-			if (def.beruhigt(world)) {
-				addLog(world, "ereignis", `„${def.name}“ ist vorbei.`, def.bedingung);
-				continue;
-			}
-			neu.push(aktiv);
-		} else if (def.ausloeser(world)) {
-			neu.push({
-				id: def.id,
-				seit: world.day
-			});
-			addLog(world, "ereignis", `${def.name}: ${def.grund(world)}`, `${def.wirkung} ${def.bedingung}`);
-		}
-	}
-	spiel.krisen = neu;
-}
-/**
-* Startet oder dämpft die Umsetzung, wenn eine Maßnahme gesetzt oder geändert wird.
-* Aufgerufen aus handeln.ts (wendeAn) — dem einzigen Weg, auf dem ein Beschluss ins Netz kommt.
-*
-* - Maßnahme ohne Umsetzungsdauer: kein Eintrag, sie wirkt sofort (Faktor 1).
-* - Änderung um höchstens eine Stufe (Feinjustierung): −25 Punkte statt Reset.
-* - Größere Änderung oder erstmaliger Beschluss: Start bei 0.
-*
-* `aenderung` ist der Sprung der Stufe gegenüber dem Stand beim Beschluss,
-* `effektiveMonate` die Dauer inklusive Verwaltungsüberlast (wie beim Stufen-Schritt).
-* Das Tempo (Punkte je Monat) wird beim Beschluss festgelegt und nicht nachträglich
-* verändert — analog zu `steps` in netz.ts.
-*/
-function starteUmsetzung(model, net, id, aenderung, effektiveMonate) {
-	const i = model.index.get(id);
-	const node = i === void 0 ? void 0 : model.nodes[i];
-	if (!node || node.kind !== "massnahme" || node.months === void 0) return;
-	net.umsetzung ??= {};
-	net.umsetzungTempo ??= {};
-	const bisher = net.umsetzung[id] ?? 100;
-	net.umsetzung[id] = Math.abs(aenderung) <= 1 ? Math.max(0, bisher - 25) : 0;
-	net.umsetzungTempo[id] = 100 / Math.max(1, effektiveMonate);
-}
-/**
-* Monatsschritt der Simulation: Jede laufende Umsetzung nähert sich linear der 100
-* (gleicher Zuwachs jeden Monat). Wer 100 erreicht, ist voll umgesetzt; der Eintrag
-* wird aufgeräumt, der Faktor ist wieder 1. Läuft in world.ts (monthlyNet) vor dem
-* Netzschritt, damit schon der erste Monat mit dem neuen Stand wirkt.
-*/
-function umsetzungMonat(net) {
-	if (!net.umsetzung) return;
-	for (const id of Object.keys(net.umsetzung)) {
-		const stand = net.umsetzung[id];
-		const tempo = net.umsetzungTempo?.[id] ?? 100;
-		if (stand + tempo >= 100) {
-			delete net.umsetzung[id];
-			if (net.umsetzungTempo) delete net.umsetzungTempo[id];
-		} else net.umsetzung[id] = stand + tempo;
-	}
-}
-//#endregion
-//#region src/sim/handeln.ts
-const REGELN = {
-	/** Gleichzeitig laufende Vorhaben, bevor die Verwaltung überlastet ist */
-	kapazitaet: 8,
-	/** Zuschlag je Vorhaben über der Kapazität (Dauer und Kapital) */
-	ueberlastStufe: .2,
-	/** Tage vom Einbringen bis zur Abstimmung */
-	tageBisAbstimmung: 21,
-	mehrheit: 301,
-	/** Kapital je gekaufter Stimme */
-	kaufKostenProStimme: .5,
-	/** Anteil des Kapitals, der beim Zurückziehen eines Gesetzes zurückkommt */
-	rueckzugAnteil: .6,
-	/** Ein Erlass kostet mehr Kapital und Vertrauen */
-	erlassFaktor: 2,
-	/** Allgemeiner Faktor auf alle Kapitalkosten von Änderungen (Kalibrierung der Knappheit) */
-	kapitalFaktor: 1.8,
-	kapitalMax: 150,
-	/**
-	* Vier-Preise-Regel (Spielparameter): Standard-Exit-Preis — das Zurücknehmen einer Politik
-	* kostet das 1,6-Fache des Einführens, weil Besitzstände, Apparate und Lager sich wehren.
-	* Maßnahmen können alle vier Preise einzeln setzen (data/politiknetz.ts, MassnahmePreise).
-	*/
-	streichFaktor: 1.6
-};
-/** Kapital je Stufenpunkt Änderung; heikle Themen kosten mehr. */
-const GEWICHT_THEMA = {
-	wirtschaft: .2,
-	haushalt: .28,
-	arbeit: .2,
-	bildung: .18,
-	gesundheit: .18,
-	landwirtschaft: .18,
-	energie: .2,
-	infrastruktur: .15,
-	wohnen: .2,
-	sicherheit: .25,
-	recht: .25,
-	militaer: .25,
-	kultur: .15,
-	gesellschaft: .3,
-	aussen: .28
-};
-const GEWICHT_MASSNAHME = {
-	m_einkommensteuer: .35,
-	m_mwst: .35,
-	m_kraftstoffsteuer: .32,
-	m_justizreform: .35,
-	m_internetsperren: .4,
-	m_medienaufsicht: .35,
-	m_friedensprozess: .4,
-	m_religioese_schulen: .35,
-	m_verteidigung: .3
-};
-/** Wo das Recht einen Erlass des Präsidenten zulässt (Verwaltung, Sicherheit, Außenbeziehungen). */
-const ERLASS_THEMEN = /* @__PURE__ */ new Set([
-	"sicherheit",
-	"aussen",
-	"militaer"
-]);
-const ERLASS_MASSNAHMEN = /* @__PURE__ */ new Set(["m_steuerfahndung", "m_verwaltungsdigital"]);
-function provinzName(plaka) {
-	return PROVINZEN[plaka - 1]?.name ?? `Provinz ${plaka}`;
-}
-/** „Hatay“, „Hatay und Adana“, „Hatay, Adana und Mersin“, bei vielen „12 Provinzen“. */
-function provinzenText(provinzen) {
-	if (!provinzen || provinzen.length === 0 || provinzen.length >= 81) return "im ganzen Land";
-	const namen = provinzen.map(provinzName);
-	if (namen.length > 4) return `in ${namen.length} Provinzen`;
-	if (namen.length === 1) return `in ${namen[0]}`;
-	return `in ${namen.slice(0, -1).join(", ")} und ${namen[namen.length - 1]}`;
-}
-function ortsListe(provinzen) {
-	if (!provinzen || provinzen.length === 0 || provinzen.length >= 81) return null;
-	return [...new Set(provinzen)].filter((p) => p >= 1 && p <= 81).sort((a, b) => a - b);
-}
-function anteil(world, ort) {
-	if (!ort) return 1;
-	return ort.reduce((s, p) => s + world.net.weights[p - 1], 0);
-}
-function knotenIndex(id) {
-	const i = NET.index.get(id);
-	const node = i === void 0 ? void 0 : NET.nodes[i];
-	if (i === void 0 || !node || node.kind !== "massnahme") throw new Error(`Keine Maßnahme: ${id}`);
-	return i;
-}
-/** Bevölkerungsgewichteter Mittelwert der Stufe in den Provinzen (oder im ganzen Land). */
-function stufeIn(world, id, ort) {
-	if (!ort) return nationalAverage(NET, world.net, id);
-	const i = knotenIndex(id);
-	let sum = 0;
-	let w = 0;
-	for (const p of ort) {
-		const weight = world.net.weights[p - 1];
-		sum += world.net.values[i * 81 + p - 1] * weight;
-		w += weight;
-	}
-	return sum / w;
-}
-/** Maßnahmen, die noch umgesetzt werden, plus Gesetze in der Beratung. */
-function offeneVorhaben(world) {
-	const ids = /* @__PURE__ */ new Set();
-	for (const [id, target] of Object.entries(world.net.targets)) if (Math.abs(nationalAverage(NET, world.net, id) - target) > 1) ids.add(id);
-	for (const id of Object.keys(world.net.ziele ?? {})) ids.add(id);
-	for (const g of world.spiel?.gesetze ?? []) ids.add(g.massnahme);
-	return ids.size;
-}
-function ueberlast(world, zusaetzlich = 0) {
-	const ueber = Math.max(0, offeneVorhaben(world) + zusaetzlich - REGELN.kapazitaet);
-	return 1 + REGELN.ueberlastStufe * ueber;
-}
-/** `gesetz` (Maßnahme und Richtung der Änderung) macht die Rechnung inhaltsbezogen: Fraktionen stimmen für das, was sie wollen. */
-function stimmenSicht(world, gesetz) {
-	const parl = world.parliament;
-	const player = world.player;
-	if (!parl || !player) return {
-		lager: 600,
-		erwartet: 600,
-		low: 590,
-		high: 600,
-		luecke: 0,
-		duldung: 0,
-		duldungSitze: 0,
-		sach: 0,
-		sachParteien: []
-	};
-	const lager = [player.partei.kurz, ...world.spiel?.lager ?? []].reduce((s, p) => s + (parl.seats[p] ?? 0), 0);
-	const dul = duldung(world);
-	const sach = sachstimmen(world, gesetz?.massnahme, gesetz?.richtung ?? 0);
-	const gegner = 600 - lager - dul.sitze - sach.sitze;
-	const uebertritt = clamp(.04 + .22 * ((world.spiel?.umfrage.zustimmung ?? 50) - 35) / 40, .02, .3);
-	const erwartet = Math.min(600, lager + dul.ja + sach.ja + Math.round(gegner * uebertritt));
-	const band = Math.round((8 + Math.round(gegner * .02)) * unsicherheitFaktor(world));
-	return {
-		lager,
-		erwartet,
-		low: erwartet - band,
-		high: Math.min(600, erwartet + band),
-		luecke: Math.max(0, REGELN.mehrheit - erwartet),
-		duldung: dul.ja,
-		duldungSitze: dul.sitze,
-		sach: sach.ja,
-		sachParteien: sach.parteien
-	};
-}
-function pkKosten(world, id, delta, ort, weg, ueberl) {
-	const node = NET.nodes[knotenIndex(id)];
-	const gewicht = GEWICHT_MASSNAHME[id] ?? GEWICHT_THEMA[node.theme] ?? .2;
-	const share = anteil(world, ort);
-	const ortsfaktor = ort ? .35 + .65 * Math.min(1, share * 3) : 1;
-	const rabatt = 1 - rabattFuer(world, node.theme);
-	const preise = preisFaktoren(node);
-	const richtungsfaktor = preise.aendern * (delta >= 0 ? preise.einfuehren : preise.streichen);
-	const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * richtungsfaktor * (weg === "erlass" ? REGELN.erlassFaktor : 1);
-	return Math.max(2, Math.round(basis));
-}
-/**
-* Die vier Preise einer Maßnahme mit aufgelösten Defaults (Spielparameter, keine Tatsachen):
-* einfuehren und aendern kosten wie bisher, streichen kostet standardmäßig das 1,6-Fache des
-* Einführens (Exit-Preis), Unterhalt fällt nur an, wenn die Maßnahme ihn ausdrücklich trägt.
-*/
-function preisFaktoren(node) {
-	const p = node.preise ?? {};
-	const einfuehren = p.einfuehren ?? 1;
-	return {
-		einfuehren,
-		aendern: p.aendern ?? 1,
-		streichen: p.streichen ?? REGELN.streichFaktor * einfuehren,
-		unterhaltMonat: p.unterhalt_monat ?? 0
-	};
-}
-/** Laufender Unterhalt aller Maßnahmen mit `unterhalt_monat`, anteilig zur aktuellen Stufe. */
-function unterhaltKosten(world) {
-	const posten = [];
-	for (const node of NET.nodes) {
-		const u = node.preise?.unterhalt_monat;
-		if (node.kind !== "massnahme" || !u) continue;
-		const stufe = nationalAverage(NET, world.net, node.id);
-		if (stufe < .5) continue;
-		posten.push({
-			id: node.id,
-			name: node.name,
-			betrag: u * stufe / 100,
-			stufe
-		});
-	}
-	return {
-		summe: posten.reduce((s, p) => s + p.betrag, 0),
-		posten
-	};
-}
-function erlassMoeglich(id) {
-	const node = NET.nodes[knotenIndex(id)];
-	return ERLASS_THEMEN.has(node.theme) || ERLASS_MASSNAHMEN.has(id);
-}
-function pruefeVorhaben(world, id, stufe, provinzen) {
-	const i = knotenIndex(id);
-	const node = NET.nodes[i];
-	const ort = ortsListe(provinzen);
-	const ziel = clamp(Math.round(stufe), 0, 100);
-	const aenderung = ziel - stufeIn(world, id, ort);
-	const share = anteil(world, ort);
-	let kostenBip = 0;
-	const liste = ort ?? Array.from({ length: 81 }, (_, p) => p + 1);
-	for (const p of liste) kostenBip += world.net.weights[p - 1] * (ziel - world.net.values[i * 81 + p - 1]) * (node.cost ?? 0) / 100;
-	const offen = offeneVorhaben(world);
-	const ueberl = ueberlast(world, 1);
-	const kapital = world.spiel?.kapital ?? Infinity;
-	const stimmen = stimmenSicht(world, {
-		massnahme: id,
-		richtung: Math.sign(aenderung)
-	});
-	const krisen = world.spiel ? krisenFuerMassnahme(world, id) : [];
-	const krisenFaktor = krisen.reduce((f, k) => k.art === "teuer" ? f * k.faktor : f, 1);
-	const pkGesetz = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "gesetz", ueberl) * krisenFaktor));
-	const erlassOk = erlassMoeglich(id);
-	const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass", ueberl) * krisenFaktor));
-	const hinweise = [];
-	if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Dauer und Kapital steigen um ${Math.round((ueberl - 1) * 100)} %.`);
-	if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen, das kostet später Gegenleistungen.`);
-	if (ort && share < .05) hinweise.push("Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, die vor Ort deutlich.");
-	for (const k of krisen) if (k.art === "teuer") hinweise.push(`${k.krise.name}: ${k.krise.wirkung}`);
-	const preise = preisFaktoren(node);
-	const richtung = aenderung >= 0 ? "einfuehren" : "streichen";
-	if (aenderung < 0 && preise.streichen > preise.einfuehren) {
-		const f = (preise.streichen / preise.einfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 });
-		hinweise.push(`Exit-Preis: Das Zurücknehmen kostet das ${f}-Fache des Einführens — Besitzstände, Apparate und Lager wehren sich.`);
-	}
-	if (preise.unterhaltMonat > 0) hinweise.push(`Laufender Unterhalt: etwa ${preise.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe, anteilig zur aktuellen Stufe.`);
-	const base = {
-		ok: true,
-		massnahme: id,
-		name: node.name,
-		stufe: ziel,
-		provinzen: ort,
-		aenderung,
-		monate: Math.max(1, Math.ceil((node.months ?? 1) * ueberl)),
-		kostenBip,
-		ueberlast: ueberl,
-		offen,
-		kapital,
-		gesetz: {
-			pk: pkGesetz,
-			stimmen,
-			tage: REGELN.tageBisAbstimmung,
-			bezahlbar: kannZahlen(kapital, pkGesetz)
-		},
-		erlass: erlassOk ? {
-			moeglich: true,
-			pk: pkErlass,
-			bezahlbar: kannZahlen(kapital, pkErlass)
-		} : {
-			moeglich: false,
-			pk: pkErlass,
-			bezahlbar: false,
-			grund: "Dafür braucht der Präsident ein Gesetz; ein Erlass ist nur in Sicherheit und Außenbeziehungen zulässig."
-		},
-		hinweise,
-		krisen,
-		krisenFaktor,
-		preise: {
-			...preise,
-			richtung
-		}
-	};
-	if (Math.abs(aenderung) < 1) return {
-		...base,
-		ok: false,
-		grund: "Das ist schon die aktuelle Stufe."
-	};
-	const gesperrt = krisen.find((k) => k.art === "gesperrt");
-	if (gesperrt) return {
-		...base,
-		ok: false,
-		grund: `${gesperrt.krise.name}: ${gesperrt.krise.grund} ${gesperrt.ausweg ?? ""}`.trim()
-	};
-	return base;
-}
-function wendeAn(world, id, level, provinzen) {
-	const i = knotenIndex(id);
-	const node = NET.nodes[i];
-	const ort = ortsListe(provinzen);
-	const target = clamp(Math.round(level), 0, 100);
-	const months = Math.max(1, (node.months ?? 1) * ueberlast(world));
-	const vorher = stufeIn(world, id, ort);
-	const s = world.net;
-	beobachte(world, id, vorher, target, ort);
-	if (!ort) {
-		s.targets[id] = target;
-		s.steps[id] = Math.max(Math.abs(target - nationalAverage(NET, s, id)) / months, .01);
-		if (s.ziele) delete s.ziele[id];
-		if (s.schritte) delete s.schritte[id];
-	} else {
-		s.ziele ??= {};
-		s.schritte ??= {};
-		const arr = s.ziele[id] ??= new Array(81).fill(-1);
-		const st = s.schritte[id] ??= new Array(81).fill(100);
-		if (s.targets[id] !== void 0) {
-			for (let p = 0; p < 81; p++) if (!ort.includes(p + 1) && arr[p] < 0) {
-				arr[p] = s.targets[id];
-				st[p] = s.steps[id] ?? 100;
-			}
-			delete s.targets[id];
-			delete s.steps[id];
-		}
-		for (const p of ort) {
-			arr[p - 1] = target;
-			st[p - 1] = Math.max(Math.abs(target - s.values[i * 81 + p - 1]) / months, .01);
-		}
-	}
-	starteUmsetzung(NET, s, id, target - vorher, months);
-	const richtung = Math.sign(target - vorher);
-	for (const z of world.spiel?.zusagen ?? []) if (!z.erfuellt && !z.gebrochen && z.massnahme === id && richtung === Math.sign(z.richtung ?? 0)) {
-		z.erfuellt = true;
-		bereitschaftAendern(world, z.von, 10);
-		addLog(world, "ereignis", `Zusage erfüllt: ${z.text}`, "Wer Zusagen hält, wird beim nächsten Mal ernster genommen.");
-	}
-	reagiereFiguren(world, node.theme, id, richtung);
-}
-/**
-* Direkte Anwendung ohne Kapital und Abstimmung. Für Tests, den Kern und Fälle ohne Spielschleife;
-* die Oberfläche geht über `bringeEin`.
-*/
-function setPolicy(world, id, level, provinzen) {
-	const i = knotenIndex(id);
-	const node = NET.nodes[i];
-	const ort = ortsListe(provinzen);
-	const target = clamp(Math.round(level), 0, 100);
-	const current = stufeIn(world, id, ort);
-	const months = node.months ?? 1;
-	let costChange = 0;
-	for (const p of ort ?? Array.from({ length: 81 }, (_, k) => k + 1)) costChange += world.net.weights[p - 1] * (target - world.net.values[i * 81 + p - 1]) * (node.cost ?? 0) / 100;
-	wendeAn(world, id, target, ort);
-	addLog(world, "entscheidung", `${node.name} ${provinzenText(ort)}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`, `${node.text} Umsetzung läuft über etwa ${months} ${months === 1 ? "Monat" : "Monate"}` + (Math.abs(costChange) >= 5e-4 ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.` : "."));
-}
-/** Wird nach jedem erfolgreich eingebrachten Vorhaben aufgerufen (Ereignisse schließen sich, wenn der Spieler die Ursache selbst regelt). */
-let nachEinbringen = null;
-function setzeEinbringHaken(fn) {
-	nachEinbringen = fn;
-}
-/** Ein Vorhaben einbringen: als Gesetz (mit Abstimmung) oder als Erlass. */
-function bringeEin(world, id, stufe, provinzen, weg) {
-	const pr = pruefeVorhaben(world, id, stufe, provinzen);
-	if (!pr.ok) return {
-		ok: false,
-		text: pr.grund ?? "Nicht möglich."
-	};
-	const spiel = world.spiel;
-	if (!spiel) {
-		setPolicy(world, id, stufe, provinzen);
-		const l = world.log[world.log.length - 1];
-		return {
-			ok: true,
-			text: l.text,
-			why: l.why
-		};
-	}
-	if (spiel.ende) return {
-		ok: false,
-		text: "Die Amtszeit ist beendet."
-	};
-	const pause = neuanfangGrund(world);
-	if (pause) return {
-		ok: false,
-		text: pause
-	};
-	if (weg === "erlass") {
-		if (!pr.erlass.moeglich) return {
-			ok: false,
-			text: pr.erlass.grund,
-			why: "Wege statt Verbote: Der Weg über ein Gesetz steht offen."
-		};
-		if (!pr.erlass.bezahlbar) return {
-			ok: false,
-			text: `Für den Erlass fehlt Politisches Kapital (nötig ${pr.erlass.pk}, vorhanden ${Math.floor(spiel.kapital)}).`
-		};
-		spiel.kapital -= pr.erlass.pk;
-		verbrauche(world, AUFMERKSAMKEIT_KOSTEN.erlass, pr.name);
-		setPolicy(world, id, pr.stufe, pr.provinzen);
-		vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
-		const l = world.log[world.log.length - 1];
-		nachEinbringen?.(world, id, `Per Erlass angeordnet: ${l.text}`);
-		return {
-			ok: true,
-			text: `Erlass: ${l.text}`,
-			why: `${l.why} Ein Erlass umgeht das Parlament und kostet ${pr.erlass.pk} Kapital sowie etwas Vertrauen.`
-		};
-	}
-	if (!pr.gesetz.bezahlbar) return {
-		ok: false,
-		text: `Für dieses Gesetz fehlt Politisches Kapital (nötig ${pr.gesetz.pk}, vorhanden ${Math.floor(spiel.kapital)}).`,
-		why: "Kapital wächst mit Vertrauen und Mehrheit; nicht alles auf einmal."
-	};
-	if (spiel.gesetze.some((g) => g.massnahme === id)) return {
-		ok: false,
-		text: `Zu „${pr.name}“ liegt schon ein Gesetzentwurf im Parlament.`
-	};
-	spiel.kapital -= pr.gesetz.pk;
-	verbrauche(world, AUFMERKSAMKEIT_KOSTEN.gesetz, pr.name);
-	const verzug = stufeVon$1(verfassungVon(world).belastung) >= 1 && hashWert(`${world.seed}|${world.day}|${id}|verzug`) < VERFASSUNG.verzugChance ? VERFASSUNG.verzugTage : 0;
-	const tag = world.day + REGELN.tageBisAbstimmung + verzug;
-	spiel.gesetze.push({
-		id: `g-${world.day}-${id}`,
-		massnahme: id,
-		name: pr.name,
-		stufe: pr.stufe,
-		provinzen: pr.provinzen,
-		eingebracht: world.day,
-		abstimmung: tag,
-		pk: pr.gesetz.pk,
-		absprachen: 0,
-		richtung: Math.sign(pr.aenderung)
-	});
-	const tageBis = tag - world.day;
-	const monate = pr.monate;
-	const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
-	const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
-	addLog(world, "entscheidung", text, why);
-	nachEinbringen?.(world, id, text);
-	return {
-		ok: true,
-		text,
-		why
-	};
-}
-function gesetzRichtung(world, g) {
-	return g.richtung ?? Math.sign(g.stufe - stufeIn(world, g.massnahme, g.provinzen));
-}
-/** Am Abstimmungstag wird entschieden: Ja-Stimmen aus Lager, Übertritten, Absprachen und Zufall. */
-function gesetzeAbstimmen(world, rng) {
-	const spiel = world.spiel;
-	if (!spiel) return [];
-	const out = [];
-	const faellig = spiel.gesetze.filter((g) => g.abstimmung <= world.day);
-	if (faellig.length === 0) return out;
-	spiel.gesetze = spiel.gesetze.filter((g) => g.abstimmung > world.day);
-	for (const g of faellig) {
-		const sicht = stimmenSicht(world, {
-			massnahme: g.massnahme,
-			richtung: gesetzRichtung(world, g)
-		});
-		const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + Math.round(rng.normal(6))));
-		const nein = 600 - ja;
-		const angenommen = ja >= REGELN.mehrheit;
-		out.push({
-			gesetz: g.name,
-			angenommen,
-			ja,
-			nein
-		});
-		if (angenommen) {
-			wendeAn(world, g.massnahme, g.stufe, g.provinzen);
-			const node = NET.nodes[knotenIndex(g.massnahme)];
-			const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
-			addLog(world, "entscheidung", `Das Parlament nimmt „${g.name}“ ${provinzenText(g.provinzen)} an (${ja} zu ${nein}). Stufe ${g.stufe}.`, `${node.text} Umsetzung läuft über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`);
-		} else {
-			vertrauenAendern(world, -1.2);
-			spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - .8);
-			addLog(world, "entscheidung", `Das Parlament lehnt „${g.name}“ ab (${ja} zu ${nein}).`, `Das eingesetzte Kapital (${g.pk}) ist verloren, die Regierung wirkt geschwächt. Es fehlten ${REGELN.mehrheit - ja} Stimmen; ein Rückzug vor der Abstimmung hätte ${Math.floor(g.pk * REGELN.rueckzugAnteil)} Kapital gerettet.`);
-		}
-	}
-	return out;
 }
 //#endregion
 //#region src/data/skalen.ts
@@ -14703,7 +16840,7 @@ function zusageVorhaben(w, z) {
 		pr
 	};
 }
-const LAND_ALIAS = {
+const LAND_ALIAS$1 = {
 	"EU-Kommission": "EU",
 	"US-Regierung": "USA"
 };
@@ -14719,7 +16856,7 @@ function zusageBezug(w, z) {
 		id: z.von,
 		name: z.von
 	};
-	const alias = LAND_ALIAS[z.von];
+	const alias = LAND_ALIAS$1[z.von];
 	const l = LAENDER.find((x) => x.id === alias || x.name === z.von || x.dat === z.von || x.akk === z.von || z.von.includes(x.name));
 	if (l) return {
 		art: "land",
@@ -14895,7 +17032,7 @@ function marktFolgen(w, amt) {
 function ausscheiden(w, f, grund) {
 	if (!w.spiel || !AEMTER[f.amt].regierungsamt) return;
 	const alt = `${f.rolle} ${f.name}`;
-	const rng = new Rng(Math.floor(zufall(w, f, "rueck") * 2147483647));
+	const rng = new Rng$1(Math.floor(zufall(w, f, "rueck") * 2147483647));
 	const benutzt = new Set(w.spiel.figuren.map((x) => x.name));
 	verlasse(w, f, grund, Math.min(100, 55 + eigenVon(w, f).groll * .4));
 	marktFolgen(w, f.amt);
@@ -15066,7 +17203,7 @@ const INNEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Der Mindestlohn für das neue Jahr",
-		text: (w) => [`Die Mindestlohnkommission legt zum Jahresende fest, was ab Januar gilt. Die Gewerkschaften verlangen einen Ausgleich für die Teuerung (Inflation ${nf$5(w.published.inflation.value)} %), die Arbeitgeber warnen vor Kosten, die kleine Betriebe nicht tragen können.`],
+		text: (w) => [`Die Mindestlohnkommission legt zum Jahresende fest, was ab Januar gilt. Die Gewerkschaften verlangen einen Ausgleich für die Teuerung (Inflation ${nf$7(w.published.inflation.value)} %), die Arbeitgeber warnen vor Kosten, die kleine Betriebe nicht tragen können.`],
 		warum: () => "Der Mindestlohn ist der wichtigste Preis am Arbeitsmarkt: Er schützt die Ärmsten und stützt die Nachfrage, kostet aber Betriebe Spielraum und kann die Preise treiben.",
 		optionen: () => [
 			opt("kraeftig", "Kräftig anheben", beschr(3, 0, "die Beschäftigten gewinnen, kleine Betriebe und die Preise stehen unter Druck."), 3, (ww) => {
@@ -15099,31 +17236,22 @@ const INNEN_VORLAGEN = [
 		szene: "bank",
 		frist: 25,
 		abkuehlung: 300,
-		chance: (w) => monatVon(w) === 10 && jahrVon(w) >= 2028 ? .9 : 0,
+		chance: (w) => monatVon(w) === 10 && jahrVon(w) >= 2028 ? 1 : 0,
 		erzeuge: () => ({
 			provinzen: [],
 			staerke: 1
 		}),
-		titel: () => "Der Haushalt für das nächste Jahr",
-		text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf vor. Die Schulden liegen bei ${nf$5(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf$5(w.published.inflation.value)} %. Das Parlament berät ihn bis Jahresende.`, "Jede Richtung hat Gewinner und Verlierer: Ausgaben stützen die Konjunktur, Sparen beruhigt die Märkte."],
-		warum: () => "Der Haushalt ist die größte einzelne Entscheidung des Jahres: Er legt fest, wie viel der Staat der Wirtschaft zuführt oder entzieht.",
-		optionen: () => [
-			opt("konsolidieren", "Konsolidieren", beschr(3, 0, "Personal, Subventionen und Einkommensteuer wirken zusammen: Märkte und Finanzminister sind zufrieden, die Nachfrage lahmt."), 3, (w) => {
-				wendePaketAn(w, "konsolidieren");
-				wirke(w, "vertrauen_maerkte", 3);
-				loyalitaetAendern(w, "finanzen", 6);
-				vertrauenAendern(w, -.8);
-				return "Der Haushalt setzt auf Konsolidierung.";
-			}),
-			opt("fortschreiben", "Fortschreiben", beschr(0, 0, "kein Signal in irgendeine Richtung."), 0, () => "Der Haushalt wird fortgeschrieben."),
-			opt("investieren", "Investieren", beschr(3, 0, "der Haushalt investiert in Straßen, Wasser und Schulen: mehr Wachstum, mehr Schulden."), 3, (w) => {
-				wendePaketAn(w, "investieren");
-				vertrauenAendern(w, 1);
-				loyalitaetAendern(w, "finanzen", -6);
-				return "Der Haushalt setzt auf Investitionen.";
-			})
-		],
-		standard: () => "Der Haushalt wird fortgeschrieben."
+		titel: () => "Das Haushaltsfenster öffnet",
+		text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf für das nächste Jahr vor. Die Schulden liegen bei ${nf$7(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf$7(w.published.inflation.value)} %.`, "Vier Wochen lang stellen Sie die Regler des Haushalts kostenlos; danach geht der Entwurf als Haushaltsgesetz ins Parlament. Wer nichts einbringt, fährt mit dem Vorjahr weiter — die Posten laufen mit der Inflation automatisch mit."],
+		warum: () => "Der Haushalt ist der größte parlamentarische Akt des Jahres: Einmal im Oktober werden alle Regler gemeinsam entschieden. Außerhalb des Fensters kostet jede Änderung als Nachtragshaushalt das Doppelte und etwas Legitimität.",
+		optionen: () => [opt("entwurf", "Den Entwurf selbst vorbereiten", beschr(0, 0, "die Regler in der Haushaltsakte sind jetzt kostenlos; das Gesetz braucht eine Mehrheit."), 0, () => "Das Fenster ist offen: Regler in der Haushaltsakte stellen — Pakete des Finanzministeriums lassen sich übernehmen — und das Haushaltsgesetz einbringen."), opt("fortschreiben", "Den Vorjahrshaushalt fortschreiben", beschr(0, 0, "keine Änderung, kein Risiko im Parlament."), 0, (w) => {
+			schreibeHaushaltFort(w);
+			return "Der Haushalt läuft unverändert weiter (inflationsausgeglichen).";
+		})],
+		standard: (w) => {
+			schreibeHaushaltFort(w);
+			return "Ohne Entscheidung läuft der Vorjahrshaushalt weiter (inflationsausgeglichen).";
+		}
 	},
 	{
 		id: "bergwerksunglueck",
@@ -15140,7 +17268,7 @@ const INNEN_VORLAGEN = [
 			} : null;
 		},
 		titel: (_, ev) => `Grubenunglück bei ${ev.daten?.firma}`,
-		text: (_, ev) => [`Im Bergwerk der ${ev.daten?.firma} in ${namen(ev.provinzen)} ist es zu einem schweren Unglück gekommen; Rettungskräfte suchen nach Eingeschlossenen. Gewerkschaften sprechen von Warnungen, die jahrelang ignoriert wurden.`],
+		text: (_, ev) => [`Im Bergwerk der ${ev.daten?.firma} in ${namen$1(ev.provinzen)} ist es zu einem schweren Unglück gekommen; Rettungskräfte suchen nach Eingeschlossenen. Gewerkschaften sprechen von Warnungen, die jahrelang ignoriert wurden.`],
 		warum: () => "Arbeitsschutz wird meist erst nach einem Unglück Thema. Aufsicht kostet Geld und Zeit, ihr Fehlen kostet Menschenleben und irgendwann das Vertrauen.",
 		eroeffne: (w, ev) => {
 			wirke(w, "streikneigung", 4 * ev.staerke);
@@ -15189,7 +17317,7 @@ const INNEN_VORLAGEN = [
 			} : null;
 		},
 		titel: () => "Überschwemmungen am Schwarzen Meer",
-		text: (_, ev) => [`Sturzfluten reißen in ${namen(ev.provinzen)} Brücken und Straßen mit; Dörfer sind abgeschnitten, Felder stehen unter Wasser.`],
+		text: (_, ev) => [`Sturzfluten reißen in ${namen$1(ev.provinzen)} Brücken und Straßen mit; Dörfer sind abgeschnitten, Felder stehen unter Wasser.`],
 		warum: () => "Steile Täler, Bebauung an Bachläufen und fehlender Hochwasserschutz machen aus Starkregen eine Katastrophe.",
 		eroeffne: (w, ev) => {
 			wirke(w, "verkehrsnetz", -6 * ev.staerke, ev.provinzen);
@@ -15234,7 +17362,7 @@ const INNEN_VORLAGEN = [
 			daten: { bank: waehle(rng, BANKEN) }
 		}),
 		titel: (_, ev) => `Die ${ev.daten?.bank} gerät ins Wanken`,
-		text: (w, ev) => [`Die ${ev.daten?.bank}, eine Bank mittlerer Größe, kann ihre Refinanzierung nicht mehr sichern; Kunden heben Geld ab. Der Risikoaufschlag steht bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten, die Märkte beobachten jede Reaktion.`],
+		text: (w, ev) => [`Die ${ev.daten?.bank}, eine Bank mittlerer Größe, kann ihre Refinanzierung nicht mehr sichern; Kunden heben Geld ab. Der Risikoaufschlag steht bei ${nf$7(w.economy.riskPremium, 0)} Basispunkten, die Märkte beobachten jede Reaktion.`],
 		warum: () => "Banken leben von Vertrauen. Springt der Staat ein, sichert er die Ersparnisse und belohnt riskantes Wirtschaften; lässt er sie fallen, riskiert er einen Dominoeffekt.",
 		eroeffne: (w) => {
 			wirke(w, "kredite", -4);
@@ -15273,7 +17401,7 @@ const INNEN_VORLAGEN = [
 			} : null;
 		},
 		titel: () => "Studentinnen und Studenten gehen auf die Straße",
-		text: (_, ev) => [`In ${namen(ev.provinzen)} besetzen Studierende Hörsäle und marschieren durch die Innenstädte: gegen Studiengebühren, Wohnungsnot und fehlende Aussichten auf Arbeit.`],
+		text: (_, ev) => [`In ${namen$1(ev.provinzen)} besetzen Studierende Hörsäle und marschieren durch die Innenstädte: gegen Studiengebühren, Wohnungsnot und fehlende Aussichten auf Arbeit.`],
 		warum: () => "Junge Menschen ohne Perspektive sind der verlässlichste Auslöser für Massenproteste; wie ein Staat mit ihnen umgeht, prägt sein Bild bei allen anderen.",
 		eroeffne: (w, ev) => {
 			wirke(w, "junge", -3 * ev.staerke);
@@ -15396,7 +17524,7 @@ const INNEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Rentner fordern Ausgleich",
-		text: (w) => [`Rentnerverbände demonstrieren vor dem Parlament: Bei ${nf$5(w.published.inflation.value)} % Inflation reicht die Mindestrente nicht mehr bis zum Monatsende.`],
+		text: (w) => [`Rentnerverbände demonstrieren vor dem Parlament: Bei ${nf$7(w.published.inflation.value)} % Inflation reicht die Mindestrente nicht mehr bis zum Monatsende.`],
 		warum: () => "Renten hinken der Teuerung hinterher, weil sie nur in Schritten angepasst werden. Rentner wählen zuverlässig, und ihre Not ist sichtbar.",
 		optionen: () => [
 			opt("erhoehen", "Die Mindestrente kräftig erhöhen", beschr(3, .3, "die Not sinkt, der Haushalt spürt es dauerhaft."), 3, (w) => {
@@ -15487,7 +17615,7 @@ const INNEN_VORLAGEN = [
 			} : null;
 		},
 		titel: () => "Traktoren vor den Rathäusern",
-		text: (_, ev) => [`Bäuerinnen und Bauern blockieren in ${namen(ev.provinzen)} mit ihren Traktoren die Straßen: Dünger und Diesel sind teuer, die Erzeugerpreise fallen.`],
+		text: (_, ev) => [`Bäuerinnen und Bauern blockieren in ${namen$1(ev.provinzen)} mit ihren Traktoren die Straßen: Dünger und Diesel sind teuer, die Erzeugerpreise fallen.`],
 		warum: () => "Landwirte tragen das Risiko von Wetter und Preisen. Wenn die Kosten schneller steigen als die Preise, die sie erzielen, geben sie auf und ziehen in die Städte.",
 		eroeffne: (w, ev) => {
 			wirke(w, "landwirte", -3 * ev.staerke);
@@ -15531,7 +17659,7 @@ const INNEN_VORLAGEN = [
 			} : null;
 		},
 		titel: (_, ev) => `${ev.daten?.firma} schließt Werke`,
-		text: (_, ev) => [`Die ${ev.daten?.firma} und ihre Zulieferer schließen Werke in ${namen(ev.provinzen)}: Energie, Löhne und Kredite sind zu teuer, Aufträge wandern in Länder mit niedrigeren Kosten ab.`],
+		text: (_, ev) => [`Die ${ev.daten?.firma} und ihre Zulieferer schließen Werke in ${namen$1(ev.provinzen)}: Energie, Löhne und Kredite sind zu teuer, Aufträge wandern in Länder mit niedrigeren Kosten ab.`],
 		warum: () => "Industrie reagiert auf Kosten, nicht auf Reden. Wenn die Kosten schneller steigen als die Preise, die sich am Weltmarkt erzielen lassen, verschwinden Arbeitsplätze, die nicht wiederkommen.",
 		eroeffne: (w, ev) => {
 			wirke(w, "arbeitsplaetze_industrie", -4 * ev.staerke, ev.provinzen);
@@ -15585,8 +17713,8 @@ const INNEN_VORLAGEN = [
 				}
 			};
 		},
-		titel: (_, ev) => `Verfahren gegen das Rathaus von ${namen(ev.provinzen)}`,
-		text: (_, ev) => [`Staatsanwälte werfen dem Rathaus von ${namen(ev.provinzen)} unter ${ev.daten?.name} (${ev.daten?.partei}) Unregelmäßigkeiten bei Vergaben vor. Die Partei spricht von einem politischen Verfahren, das Innenministerium erwägt, einen Zwangsverwalter einzusetzen.`],
+		titel: (_, ev) => `Verfahren gegen das Rathaus von ${namen$1(ev.provinzen)}`,
+		text: (_, ev) => [`Staatsanwälte werfen dem Rathaus von ${namen$1(ev.provinzen)} unter ${ev.daten?.name} (${ev.daten?.partei}) Unregelmäßigkeiten bei Vergaben vor. Die Partei spricht von einem politischen Verfahren, das Innenministerium erwägt, einen Zwangsverwalter einzusetzen.`],
 		warum: () => "Wo die Regierung eine Stadt nicht gewinnt, bleibt ihr die Justiz. Wer sie einsetzt, gewinnt Kontrolle und verliert Glaubwürdigkeit bei allen, die den Vorwurf für politisch halten.",
 		optionen: () => [
 			opt("justiz", "Die Justiz unabhängig arbeiten lassen", beschr(2, 0, "wahrt den Anschein des Rechtsstaats, kostet die Kontrolle über die Stadt."), 2, (w) => {
@@ -15697,7 +17825,7 @@ const INNEN_VORLAGEN = [
 			staerke: 1
 		}),
 		titel: () => "Kommunalwahlen",
-		text: (w) => [`Im ganzen Land werden Bürgermeister und Gemeinderäte gewählt. Es ist der erste Stimmungstest seit Ihrem Amtsantritt; Ihre Zustimmung liegt bei ${nf$5(w.spiel?.umfrage.zustimmung ?? 0, 0)} %.`],
+		text: (w) => [`Im ganzen Land werden Bürgermeister und Gemeinderäte gewählt. Es ist der erste Stimmungstest seit Ihrem Amtsantritt; Ihre Zustimmung liegt bei ${nf$7(w.spiel?.umfrage.zustimmung ?? 0, 0)} %.`],
 		warum: () => "Kommunalwahlen zeigen, ob die Menschen dem Präsidenten zutrauen, ihre Stadt zu verwalten, und sie sind die Generalprobe für die nächste Präsidentschaftswahl.",
 		optionen: (w) => {
 			const ergebnis = (ww) => {
@@ -15734,8 +17862,1560 @@ const INNEN_VORLAGEN = [
 	}
 ];
 //#endregion
-//#region src/sim/ereignisse-laender.ts
-const AB_TAG = 200;
+//#region src/data/katastrophe_risiko.json
+var provinzen = {
+	"1": {
+		"name": "Adana",
+		"region": "Akdeniz",
+		"bevoelkerung": 2283609,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 1,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"2": {
+		"name": "Adıyaman",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 617821,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"3": {
+		"name": "Afyonkarahisar",
+		"region": "Ege",
+		"bevoelkerung": 751808,
+		"deprem": 4,
+		"wasserstress": 4,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"4": {
+		"name": "Ağrı",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 491489,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"5": {
+		"name": "Amasya",
+		"region": "Karadeniz",
+		"bevoelkerung": 342242,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"6": {
+		"name": "Ankara",
+		"region": "İç Anadolu",
+		"bevoelkerung": 5910320,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "M"
+	},
+	"7": {
+		"name": "Antalya",
+		"region": "Akdeniz",
+		"bevoelkerung": 2777677,
+		"deprem": 4,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "T"
+	},
+	"8": {
+		"name": "Artvin",
+		"region": "Karadeniz",
+		"bevoelkerung": 167531,
+		"deprem": 3,
+		"wasserstress": 1,
+		"kueste": 1,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"9": {
+		"name": "Aydın",
+		"region": "Ege",
+		"bevoelkerung": 1172107,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "T"
+	},
+	"10": {
+		"name": "Balıkesir",
+		"region": "Marmara",
+		"bevoelkerung": 1284517,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"11": {
+		"name": "Bilecik",
+		"region": "Marmara",
+		"bevoelkerung": 228995,
+		"deprem": 5,
+		"wasserstress": 2,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"12": {
+		"name": "Bingöl",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 282299,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"13": {
+		"name": "Bitlis",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 360423,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"14": {
+		"name": "Bolu",
+		"region": "Karadeniz",
+		"bevoelkerung": 327173,
+		"deprem": 5,
+		"wasserstress": 2,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"15": {
+		"name": "Burdur",
+		"region": "Akdeniz",
+		"bevoelkerung": 277226,
+		"deprem": 4,
+		"wasserstress": 5,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"16": {
+		"name": "Bursa",
+		"region": "Marmara",
+		"bevoelkerung": 3263011,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"17": {
+		"name": "Çanakkale",
+		"region": "Marmara",
+		"bevoelkerung": 573976,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"18": {
+		"name": "Çankırı",
+		"region": "İç Anadolu",
+		"bevoelkerung": 200549,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"19": {
+		"name": "Çorum",
+		"region": "Karadeniz",
+		"bevoelkerung": 519590,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"20": {
+		"name": "Denizli",
+		"region": "Ege",
+		"bevoelkerung": 1060975,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"21": {
+		"name": "Diyarbakır",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 1852356,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"22": {
+		"name": "Edirne",
+		"region": "Marmara",
+		"bevoelkerung": 422438,
+		"deprem": 3,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"23": {
+		"name": "Elazığ",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 605678,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"24": {
+		"name": "Erzincan",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 239625,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"25": {
+		"name": "Erzurum",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 736877,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"26": {
+		"name": "Eskişehir",
+		"region": "İç Anadolu",
+		"bevoelkerung": 927956,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"27": {
+		"name": "Gaziantep",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 2222415,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "I"
+	},
+	"28": {
+		"name": "Giresun",
+		"region": "Karadeniz",
+		"bevoelkerung": 455074,
+		"deprem": 2,
+		"wasserstress": 2,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"29": {
+		"name": "Gümüşhane",
+		"region": "Karadeniz",
+		"bevoelkerung": 138807,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"30": {
+		"name": "Hakkari",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 279681,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"31": {
+		"name": "Hatay",
+		"region": "Akdeniz",
+		"bevoelkerung": 1577531,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 1,
+		"hauptsektor": "I"
+	},
+	"32": {
+		"name": "Isparta",
+		"region": "Akdeniz",
+		"bevoelkerung": 445303,
+		"deprem": 5,
+		"wasserstress": 5,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"33": {
+		"name": "Mersin",
+		"region": "Akdeniz",
+		"bevoelkerung": 1956428,
+		"deprem": 3,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"34": {
+		"name": "İstanbul",
+		"region": "Marmara",
+		"bevoelkerung": 15754053,
+		"deprem": 4,
+		"wasserstress": 5,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "M"
+	},
+	"35": {
+		"name": "İzmir",
+		"region": "Ege",
+		"bevoelkerung": 4504185,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "M"
+	},
+	"36": {
+		"name": "Kars",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 268991,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"37": {
+		"name": "Kastamonu",
+		"region": "Karadeniz",
+		"bevoelkerung": 379934,
+		"deprem": 3,
+		"wasserstress": 2,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"38": {
+		"name": "Kayseri",
+		"region": "İç Anadolu",
+		"bevoelkerung": 1458991,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"39": {
+		"name": "Kırklareli",
+		"region": "Marmara",
+		"bevoelkerung": 379595,
+		"deprem": 2,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"40": {
+		"name": "Kırşehir",
+		"region": "İç Anadolu",
+		"bevoelkerung": 242777,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"41": {
+		"name": "Kocaeli",
+		"region": "Marmara",
+		"bevoelkerung": 2161171,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"42": {
+		"name": "Konya",
+		"region": "İç Anadolu",
+		"bevoelkerung": 2343409,
+		"deprem": 3,
+		"wasserstress": 5,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"43": {
+		"name": "Kütahya",
+		"region": "Ege",
+		"bevoelkerung": 570478,
+		"deprem": 4,
+		"wasserstress": 4,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"44": {
+		"name": "Malatya",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 755854,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"45": {
+		"name": "Manisa",
+		"region": "Ege",
+		"bevoelkerung": 1477756,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"46": {
+		"name": "Kahramanmaraş",
+		"region": "Akdeniz",
+		"bevoelkerung": 1146278,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "I"
+	},
+	"47": {
+		"name": "Mardin",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 903576,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"48": {
+		"name": "Muğla",
+		"region": "Ege",
+		"bevoelkerung": 1099547,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "T"
+	},
+	"49": {
+		"name": "Muş",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 389127,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"50": {
+		"name": "Nevşehir",
+		"region": "İç Anadolu",
+		"bevoelkerung": 320150,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "T"
+	},
+	"51": {
+		"name": "Niğde",
+		"region": "İç Anadolu",
+		"bevoelkerung": 374492,
+		"deprem": 3,
+		"wasserstress": 5,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"52": {
+		"name": "Ordu",
+		"region": "Karadeniz",
+		"bevoelkerung": 768087,
+		"deprem": 3,
+		"wasserstress": 2,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"53": {
+		"name": "Rize",
+		"region": "Karadeniz",
+		"bevoelkerung": 346947,
+		"deprem": 3,
+		"wasserstress": 1,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"54": {
+		"name": "Sakarya",
+		"region": "Marmara",
+		"bevoelkerung": 1123693,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"55": {
+		"name": "Samsun",
+		"region": "Karadeniz",
+		"bevoelkerung": 1392403,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"56": {
+		"name": "Siirt",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 332369,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"57": {
+		"name": "Sinop",
+		"region": "Karadeniz",
+		"bevoelkerung": 225848,
+		"deprem": 3,
+		"wasserstress": 2,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"58": {
+		"name": "Sivas",
+		"region": "İç Anadolu",
+		"bevoelkerung": 631401,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"59": {
+		"name": "Tekirdağ",
+		"region": "Marmara",
+		"bevoelkerung": 1208441,
+		"deprem": 4,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"60": {
+		"name": "Tokat",
+		"region": "Karadeniz",
+		"bevoelkerung": 614141,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"61": {
+		"name": "Trabzon",
+		"region": "Karadeniz",
+		"bevoelkerung": 823323,
+		"deprem": 3,
+		"wasserstress": 2,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"62": {
+		"name": "Tunceli",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 85083,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"63": {
+		"name": "Şanlıurfa",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 2265800,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"64": {
+		"name": "Uşak",
+		"region": "Ege",
+		"bevoelkerung": 374405,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"65": {
+		"name": "Van",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 1112013,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"66": {
+		"name": "Yozgat",
+		"region": "İç Anadolu",
+		"bevoelkerung": 413208,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"67": {
+		"name": "Zonguldak",
+		"region": "Karadeniz",
+		"bevoelkerung": 585203,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"68": {
+		"name": "Aksaray",
+		"region": "İç Anadolu",
+		"bevoelkerung": 441136,
+		"deprem": 3,
+		"wasserstress": 5,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"69": {
+		"name": "Bayburt",
+		"region": "Karadeniz",
+		"bevoelkerung": 82836,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"70": {
+		"name": "Karaman",
+		"region": "İç Anadolu",
+		"bevoelkerung": 262355,
+		"deprem": 3,
+		"wasserstress": 5,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"71": {
+		"name": "Kırıkkale",
+		"region": "İç Anadolu",
+		"bevoelkerung": 282830,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "A"
+	},
+	"72": {
+		"name": "Batman",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 662626,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"73": {
+		"name": "Şırnak",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 573666,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"74": {
+		"name": "Bartın",
+		"region": "Karadeniz",
+		"bevoelkerung": 206663,
+		"deprem": 5,
+		"wasserstress": 2,
+		"kueste": 1,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"75": {
+		"name": "Ardahan",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 90392,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"76": {
+		"name": "Iğdır",
+		"region": "Doğu Anadolu",
+		"bevoelkerung": 205071,
+		"deprem": 4,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"77": {
+		"name": "Yalova",
+		"region": "Marmara",
+		"bevoelkerung": 311635,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"78": {
+		"name": "Karabük",
+		"region": "Karadeniz",
+		"bevoelkerung": 249614,
+		"deprem": 5,
+		"wasserstress": 2,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"79": {
+		"name": "Kilis",
+		"region": "Güneydoğu Anadolu",
+		"bevoelkerung": 157363,
+		"deprem": 3,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 1,
+		"hauptsektor": "A"
+	},
+	"80": {
+		"name": "Osmaniye",
+		"region": "Akdeniz",
+		"bevoelkerung": 564123,
+		"deprem": 5,
+		"wasserstress": 3,
+		"kueste": 0,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	},
+	"81": {
+		"name": "Düzce",
+		"region": "Karadeniz",
+		"bevoelkerung": 415622,
+		"deprem": 5,
+		"wasserstress": 4,
+		"kueste": 1,
+		"grenzland": 0,
+		"hauptsektor": "I"
+	}
+};
+//#endregion
+//#region src/sim/katastrophe.ts
+const KATASTROPHE = {
+	/** Monatliche Auslösewahrscheinlichkeit eines Großbebens je Bruchzone (erwartet: alle 8–15 Jahre je Zone) */
+	bebenChance: {
+		kaf: .011,
+		daf: .0095,
+		baf: .006
+	},
+	/** Tote je Einwohner der betroffenen Provinzen bei Vollstärke (Anker 2023: ~0,4–0,55 % in den Kernprovinzen) */
+	toteBasis: .0055,
+	/** Referenz-Bereitschaft für „was die Vorsorge verhindert hat" (Index 0–100) */
+	bereitReferenz: 20,
+	/** Wie stark die Bereitschaft die Opferzahlen drückt (1 − d × Stand/100) */
+	bereitWirkung: .45,
+	/** Verletzte und Obdachlose je Totem (Größenordnung 2023) */
+	verletzteFaktor: 3.2,
+	obdachlosFaktor: 15,
+	/** Personen je Haushalt für die Umrechnung in Wohnungen */
+	haushalt: 3.2,
+	/** Flut (Sturzflut am Schwarzen Meer, Anker Bozkurt 2021): Tote je Einwohner und Stärke */
+	flutToteBasis: 11e-5,
+	/** Waldbrand: wenige Tote, großer Flächen- und Wirtschaftsschaden */
+	brandToteBasis: 6e-6,
+	brandWohnungenBasis: 2e-5,
+	/** Monatschancen der leichten Typen (saisonal) */
+	flutChance: .022,
+	brandChance: .03,
+	duerreChance: .012,
+	/** Abkühlung je Art in Monaten; und: keine neue Lage, solange eine andere frisch ist (Tage) */
+	abkuehlung: {
+		erdbeben: 36,
+		flut: 12,
+		waldbrand: 12,
+		duerre: 18
+	},
+	sperrTage: 30,
+	/** Nebel der Schadenslage: Tage bis „vermutet" bzw. „bekannt" (mit Soforthilfe früher) */
+	nebelVermutet: 3,
+	nebelBekannt: 7,
+	nebelBekanntMitHilfe: 3,
+	/** Soforthilfe: Kostenanteil, den die Pflichtversicherung übernimmt (bei Stufe 100) */
+	versicherungEntlastung: .25,
+	/** Übergangsversorgung: Dauer in Tagen und Monatskosten je Stärke (% BIP) */
+	uebergangTage: 210,
+	uebergangKosten: .02,
+	/** Private Erholung ohne Staatsprogramm: Anteil des Bedarfs je Monat, gedeckelt */
+	privatQuote: .004,
+	privatDeckel: .25,
+	privatNachTagen: 90,
+	/** Versprechensschuld: Stufen der öffentlichen Zusage (Anteil der zerstörten Wohnungen) */
+	zusageStufen: {
+		klein: .6,
+		voll: 1,
+		gross: 1.4
+	},
+	/** Wahl-Malus je Punkt Unwucht (versprochen vs. geliefert), skaliert mit der Stärke der Lage */
+	malusBasis: 5,
+	malusDeckel: 8,
+	/** Bauparameter des Wohnungsbau-Programms: Baupunkte/Mindestmonate je Wohnung, Schulden in % BIP je Wohnung */
+	bauJeWohnung: 1 / 120,
+	monateJeWohnung: 1 / 1200,
+	schuldenJeWohnung: 22e-6
+};
+const RISIKO = provinzen;
+/** Erdbeben-Risiko einer Provinz, 1–5 (provinz_profile.csv, Spalte deprem_risiko_1_5). */
+function depremRisiko(plaka) {
+	return RISIKO[String(plaka)]?.deprem ?? 1;
+}
+/** Bruchzonen (grob, Spielparameter; s. Kopfkommentar, Quelle gem-global-active-faults). */
+const ZONEN = {
+	kaf: [
+		5,
+		10,
+		14,
+		16,
+		17,
+		19,
+		22,
+		28,
+		34,
+		41,
+		52,
+		54,
+		55,
+		59,
+		60,
+		67,
+		74,
+		77,
+		81
+	],
+	daf: [
+		1,
+		2,
+		4,
+		12,
+		13,
+		23,
+		24,
+		25,
+		27,
+		30,
+		31,
+		33,
+		36,
+		44,
+		46,
+		49,
+		56,
+		62,
+		63,
+		65,
+		79,
+		80
+	],
+	baf: [
+		3,
+		7,
+		9,
+		11,
+		15,
+		18,
+		20,
+		26,
+		32,
+		35,
+		40,
+		43,
+		45,
+		48,
+		64,
+		71,
+		78
+	]
+};
+/** Sturzflut-Gebiet: Karadeniz-Region (steile Täler, Starkregen). */
+const FLUT_GEBIET = PROVINZEN.filter((p) => p.region === "Karadeniz").map((p) => p.plaka);
+/** Großbrand-Gebiet: Ägäis und Mittelmeerküste (Sommer). */
+const BRAND_GEBIET = PROVINZEN.filter((p) => (p.region === "Ege" || p.region === "Akdeniz") && (RISIKO[String(p.plaka)]?.kueste ?? 0) === 1).map((p) => p.plaka);
+/** Konya-Becken: geschlossenes Trockenbecken, Kopplung an p_wassermangel. */
+const DUERRE_BECKEN = PROVINZEN.filter((p) => p.region === "İç Anadolu" && (RISIKO[String(p.plaka)]?.wasserstress ?? 0) >= 4).map((p) => p.plaka);
+const ART_NAMEN = {
+	erdbeben: "Erdbeben",
+	flut: "Sturzflut",
+	waldbrand: "Großbrand",
+	duerre: "Dürre und Wassernot"
+};
+/** Der Katastrophen-Stand dieser Partie; ältere Spielstände legen ihn beim ersten Zugriff an. */
+function katastrophenZustand(w) {
+	const sp = w.spiel;
+	if (!sp) throw new Error("Ohne Spielschleife gibt es kein Katastrophen-Modul.");
+	sp.katastrophen ??= { faelle: [] };
+	return sp.katastrophen;
+}
+function fallMit(w, id) {
+	return w.spiel?.katastrophen?.faelle.find((f) => f.id === id);
+}
+/** Die AFAD-Bereitschaft: Stand der Netz-Größe „katastrophenschutz" (0–100). */
+function bereitschaft(w) {
+	return nationalAverage(NET, w.net, "katastrophenschutz");
+}
+function bevoelkerungVon(provinzen) {
+	return provinzen.reduce((s, p) => s + (PROVINZEN[p - 1]?.bevoelkerung ?? 0), 0);
+}
+/** Bereitschafts-Faktor auf die Opferzahlen: 1 − d × Stand/100. */
+const bereitFaktor = (stand) => 1 - KATASTROPHE.bereitWirkung * (stand / 100);
+/**
+* Die Schadensrechnung eines Falls. Erdbeben: Gebäudebestand (Vorsorge und Bauqualität der
+* Provinzen) und Bereitschaft tragen die Opferzahlen; Flut und Brand laufen leichter, die
+* Dürre tötet nicht direkt. Alles respektvoll in der Größenordnung der Anker gehalten.
+*/
+function schadenBerechnen(w, art, provinzen, s) {
+	const bev = bevoelkerungVon(provinzen);
+	const bereit = bereitschaft(w);
+	const bf = bereitFaktor(bereit);
+	const bfRef = bereitFaktor(KATASTROPHE.bereitReferenz);
+	let tote = 0;
+	let wohnungen = 0;
+	if (art === "erdbeben") {
+		const gebaeude = clamp(1.35 - .7 * ((wertIn(w, "erdbebenvorsorge", provinzen) + wertIn(w, "bauqualitaet", provinzen)) / 200), .3, 1.35);
+		tote = bev * s * s * KATASTROPHE.toteBasis * gebaeude * bf;
+		const toteRef = bev * s * s * KATASTROPHE.toteBasis * gebaeude * bfRef;
+		const obdachlos = tote * KATASTROPHE.obdachlosFaktor;
+		wohnungen = obdachlos / KATASTROPHE.haushalt;
+		const wohnungenRef = toteRef * KATASTROPHE.obdachlosFaktor / KATASTROPHE.haushalt;
+		return {
+			tote: Math.round(tote),
+			verletzte: Math.round(tote * KATASTROPHE.verletzteFaktor),
+			obdachlos: Math.round(obdachlos),
+			wohnungen: Math.round(wohnungen),
+			bereitschaft: Math.round(bereit),
+			verhindert: {
+				tote: Math.max(0, Math.round(toteRef - tote)),
+				wohnungen: Math.max(0, Math.round(wohnungenRef - wohnungen))
+			}
+		};
+	}
+	if (art === "flut") {
+		tote = bev * s * KATASTROPHE.flutToteBasis * bf;
+		wohnungen = tote * 25 / 3.5;
+	} else if (art === "waldbrand") {
+		tote = bev * s * KATASTROPHE.brandToteBasis * bf;
+		wohnungen = bev * s * KATASTROPHE.brandWohnungenBasis;
+	}
+	return {
+		tote: Math.round(tote),
+		verletzte: Math.round(tote * KATASTROPHE.verletzteFaktor),
+		obdachlos: Math.round(tote * (art === "flut" ? 25 : 8)),
+		wohnungen: Math.round(wohnungen),
+		bereitschaft: Math.round(bereit),
+		verhindert: {
+			tote: Math.max(0, Math.round(tote * (bfRef / bf - 1))),
+			wohnungen: 0
+		}
+	};
+}
+/** Der Monats-Wurf des Risiko-Layers: gleiche Partie, gleicher Monat → gleicher Wert. */
+function monatsWurf(seed, schluessel, monat) {
+	return hashWert(`${seed}|${schluessel}|${monat}`);
+}
+const monat = (w) => w.date.slice(0, 7);
+const monatszahl = (w) => Number(w.date.slice(5, 7));
+/** Welcher Katastrophen-Auslöser in diesem Monat an der Reihe wäre (null = Ruhe). Rein lesend. */
+function geplanterAusloeser(w) {
+	const sp = w.spiel;
+	if (!sp || sp.ende) return null;
+	const z = katastrophenZustand(w);
+	if (z.faelle.some((f) => !f.bewaeltigt && w.day - f.tag < KATASTROPHE.sperrTage)) return null;
+	const m = monat(w);
+	const mZahl = monatszahl(w);
+	const zuletztArt = (art) => z.faelle.filter((f) => f.art === art).reduce((a, f) => Math.max(a, f.tag), -1e9);
+	const kuehl = (art) => (w.day - zuletztArt(art)) / 30.4 >= KATASTROPHE.abkuehlung[art];
+	if (kuehl("erdbeben")) {
+		for (const zone of [
+			"kaf",
+			"daf",
+			"baf"
+		]) if (monatsWurf(w.seed, `beben|${zone}`, m) < KATASTROPHE.bebenChance[zone]) return {
+			art: "erdbeben",
+			zone,
+			provinzen: []
+		};
+	}
+	if (kuehl("flut") && mZahl >= 8 && mZahl <= 11 && monatsWurf(w.seed, "flut", m) < KATASTROPHE.flutChance) return {
+		art: "flut",
+		provinzen: []
+	};
+	if (kuehl("waldbrand") && mZahl >= 6 && mZahl <= 9 && monatsWurf(w.seed, "brand", m) < KATASTROPHE.brandChance) return {
+		art: "waldbrand",
+		provinzen: []
+	};
+	if (kuehl("duerre") && mZahl >= 5 && mZahl <= 9) {
+		const mangel = isFinite(wertIn(w, "p_wassermangel", DUERRE_BECKEN)) ? wertIn(w, "p_wassermangel", DUERRE_BECKEN) / 60 : .5;
+		if (monatsWurf(w.seed, "duerre", m) < KATASTROPHE.duerreChance * (.5 + mangel)) return {
+			art: "duerre",
+			provinzen: []
+		};
+	}
+	return null;
+}
+/** Gewichteter Zug der betroffenen Provinzen: Risiko² × Einwohner (Beben) bzw. Einwohner (Rest). */
+function zieheBetroffene(rng, kandidaten, gewicht, n) {
+	const g = kandidaten.map((p) => Math.max(0, gewicht(p)));
+	const out = [];
+	for (let k = 0; k < n && k < kandidaten.length; k++) {
+		const summe = g.reduce((a, b) => a + b, 0);
+		if (summe <= 0) break;
+		let r = rng.next() * summe;
+		for (let i = 0; i < kandidaten.length; i++) {
+			r -= g[i];
+			if (r <= 0) {
+				out.push(kandidaten[i]);
+				g[i] = 0;
+				break;
+			}
+		}
+	}
+	return out;
+}
+let oeffner$1 = null;
+function setzeKatastrophenOeffner(f) {
+	oeffner$1 = f;
+}
+const VORLAGE_IDS = {
+	erdbeben: "grossbeben",
+	flut: "katastrophe_flut",
+	waldbrand: "katastrophe_waldbrand",
+	duerre: "katastrophe_duerre"
+};
+/** Löst die geplante Lage aus: Fall anlegen, Schaden rechnen, Entscheidungs-Ereignis öffnen (Auto-Stopp A). */
+function loeseAus(w, rng, a) {
+	const z = katastrophenZustand(w);
+	let provinzen;
+	let s;
+	if (a.art === "erdbeben") {
+		const kandidaten = ZONEN[a.zone];
+		provinzen = zieheBetroffene(rng, kandidaten, (p) => depremRisiko(p) ** 2 * (PROVINZEN[p - 1]?.bevoelkerung ?? 1), 1);
+		const rest = kandidaten.filter((p) => !provinzen.includes(p) && depremRisiko(p) >= 3);
+		provinzen.push(...zieheBetroffene(rng, rest, (p) => depremRisiko(p) * (PROVINZEN[p - 1]?.bevoelkerung ?? 1), rng.next() < .7 ? 2 : 1));
+		s = .55 + rng.next() ** 1.2 * .45;
+	} else if (a.art === "flut") {
+		provinzen = zieheBetroffene(rng, FLUT_GEBIET, (p) => PROVINZEN[p - 1]?.bevoelkerung ?? 1, 1 + (rng.next() < .5 ? 1 : 0));
+		s = .45 + rng.next() * .5;
+	} else if (a.art === "waldbrand") {
+		provinzen = zieheBetroffene(rng, BRAND_GEBIET, (p) => PROVINZEN[p - 1]?.bevoelkerung ?? 1, 1 + (rng.next() < .4 ? 1 : 0));
+		s = .5 + rng.next() * .5;
+	} else {
+		provinzen = [...DUERRE_BECKEN];
+		s = .5 + rng.next() * .5;
+	}
+	if (!provinzen.length) return null;
+	const schaden = schadenBerechnen(w, a.art, provinzen, s);
+	const fall = {
+		id: `kat-${a.art}-${w.day}`,
+		art: a.art,
+		provinzen: [...provinzen].sort((x, y) => x - y),
+		tag: w.day,
+		datum: w.date,
+		staerke: Math.round(s * 100) / 100,
+		tote: schaden.tote,
+		verletzte: schaden.verletzte,
+		obdachlos: schaden.obdachlos,
+		wohnungen: schaden.wohnungen,
+		bereitschaft: schaden.bereitschaft,
+		verhindert: schaden.verhindert,
+		hilfe: { soforthilfe: false },
+		privatGeliefert: 0
+	};
+	z.faelle.push(fall);
+	oeffner$1?.(w, VORLAGE_IDS[a.art], rng, {
+		provinzen: fall.provinzen,
+		staerke: s,
+		daten: { fall: fall.id }
+	});
+	return fall;
+}
+const nf$2 = (x, d = 0) => x.toLocaleString("de-DE", {
+	minimumFractionDigits: d,
+	maximumFractionDigits: d
+});
+/** Kurzbezeichnung der Stärke im Wortlaut. */
+function staerkeWort(s) {
+	return s >= .85 ? "verheerend" : s >= .65 ? "schwer" : "spürbar";
+}
+function eroeffnungEffekte(w, fall) {
+	const s = fall.staerke;
+	const pv = fall.provinzen;
+	if (fall.art === "erdbeben") {
+		wirke(w, "wohnungsbau", -14 * s, pv);
+		wirke(w, "p_wohnungsnot", 16 * s, pv);
+		wirke(w, "bauwirtschaft", -5 * s, pv);
+		wirke(w, "lebenshaltung", 5 * s, pv);
+		wirke(w, "wachstum_regional", -6 * s, pv);
+		wirke(w, "p_erdbebengefahr", 10 * s, pv);
+		vertrauenAendern(w, -2.5 * s);
+	} else if (fall.art === "flut") {
+		wirke(w, "verkehrsnetz", -8 * s, pv);
+		wirke(w, "ernte", -5 * s, pv);
+		wirke(w, "wohnungsbau", -4 * s, pv);
+		wirke(w, "p_wohnungsnot", 5 * s, pv);
+		vertrauenAendern(w, -1.2 * s);
+	} else if (fall.art === "waldbrand") {
+		wirke(w, "tourismus", -6 * s, pv);
+		wirke(w, "landwirtschaft_einkommen", -4 * s, pv);
+		wirke(w, "luftqualitaet", -6 * s, pv);
+		vertrauenAendern(w, -.8 * s);
+	} else {
+		wirke(w, "p_wassermangel", 12 * s, pv);
+		wirke(w, "wasserversorgung", -8 * s, pv);
+		wirke(w, "ernte", -6 * s, pv);
+		wirke(w, "lebensmittelpreise", 4 * s, pv);
+	}
+	w.economy.riskPremium = clamp(w.economy.riskPremium + 12 + 38 * s, 50, 2e3);
+	w.economy.usdTry *= 1 + .004 * s;
+	w.economy.eurTry *= 1 + .004 * s;
+	w.economy.outputGap -= .25 * s;
+	if (fall.wohnungen > 0) {
+		wirke(w, "landflucht", 4 * s, pv);
+		wirke(w, "p_landflucht", 3 * s, pv);
+		wirke(w, "p_wohnungsnot", 2.5 * s, [
+			34,
+			6,
+			35
+		]);
+		wirke(w, "mieten", 1.5 * s, [
+			34,
+			6,
+			35
+		]);
+	}
+	const sp = w.spiel;
+	if (sp) sp.umfrage.zustimmung = clamp(sp.umfrage.zustimmung + 1 + 1.5 * s, 0, 100);
+}
+/** Soforthilfe (schnell, teuer, kostet Aufmerksamkeit): Rettung, Zelte, Feldlazarette. */
+function soforthilfe(w, fallId) {
+	const fall = fallMit(w, fallId);
+	if (!fall || fall.hilfe.soforthilfe) return "Die Soforthilfe läuft bereits.";
+	fall.hilfe.soforthilfe = true;
+	const s = fall.staerke;
+	const versicherung = nationalAverage(NET, w.net, "m_versicherungspflicht") / 100;
+	const anteil = (.1 * s + .04) * (1 - KATASTROPHE.versicherungEntlastung * versicherung);
+	w.economy.debtRatio += anteil;
+	w.economy.outputGap += .08 * anteil;
+	if (fall.art === "erdbeben" || fall.art === "flut") {
+		wirke(w, "p_wohnungsnot", -3 * s, fall.provinzen);
+		wirke(w, "gesundheitsversorgung", -2 * s, fall.provinzen);
+	}
+	if (fall.art === "duerre") {
+		wirke(w, "landwirtschaft_einkommen", 3 * s, fall.provinzen);
+		wirke(w, "wasserversorgung", 3 * s, fall.provinzen);
+	}
+	vertrauenAendern(w, 1.5 * s);
+	addLog(w, "entscheidung", `Soforthilfe nach ${ART_NAMEN[fall.art]} in ${namenVon(fall.provinzen)} angelaufen.`, `Kostet ${nf$2(anteil, 2)} % des BIP${versicherung > .3 ? " — die Pflichtversicherung trägt einen spürbaren Anteil" : ""}. Rettung, Zelte und Feldlazarette sind unterwegs.`);
+	return "Rettungskräfte, Zelte und Feldlazarette sind unterwegs; die Schadenslage klärt sich schneller auf.";
+}
+/** Höhe der öffentlichen Wohnungs-Zusage: mehr versprechen bringt Zustimmung jetzt — und Schuld später. */
+function zusageFestlegen(w, fallId, stufe) {
+	const fall = fallMit(w, fallId);
+	if (!fall || fall.wohnungen <= 0) return "Es gibt keinen zerstörten Wohnbestand, für den man versprechen könnte.";
+	if (fall.zusage) return "Das öffentliche Versprechen steht bereits.";
+	const wohnungen = Math.max(500, Math.round(fall.wohnungen * KATASTROPHE.zusageStufen[stufe] / 500) * 500);
+	fall.zusage = {
+		wohnungen,
+		geliefert: 0
+	};
+	const zustimmung = stufe === "gross" ? 2.5 : stufe === "voll" ? 1.5 : .5;
+	vertrauenAendern(w, zustimmung);
+	const sp = w.spiel;
+	sp.umfrage.zustimmung = clamp(sp.umfrage.zustimmung + zustimmung * .6, 0, 100);
+	addLog(w, "entscheidung", `Öffentliches Versprechen: ${nf$2(wohnungen)} neue Wohnungen für ${namenVon(fall.provinzen)}.`, "Was heute Applaus bringt, wird später gemessen: Geliefert wird, was das Wohnungsbau-Programm und die private Erholung tatsächlich fertigstellen.");
+	return `Der Präsident verspricht öffentlich ${nf$2(wohnungen)} neue Wohnungen. Das Land wird es sich merken.`;
+}
+function nebelStufe(w, fall) {
+	const dt = w.day - fall.tag;
+	if (dt >= (fall.hilfe.soforthilfe ? KATASTROPHE.nebelBekanntMitHilfe : KATASTROPHE.nebelBekannt)) return "bekannt";
+	if (dt >= KATASTROPHE.nebelVermutet) return "vermutet";
+	return "unsicher";
+}
+/** Eine Zahl der Schadenslage, wie sie der Stand der Aufklärung zeigt (Bandbreite, nie erfundene Genauigkeit). */
+function schaetzung(w, fall, wert) {
+	const stufe = nebelStufe(w, fall);
+	if (stufe === "bekannt") return nf$2(wert);
+	if (stufe === "vermutet") return `${nf$2(Math.round(wert * .7))} bis ${nf$2(Math.round(wert * 1.35))} (vermutet)`;
+	return "noch unklar";
+}
+function versprechensLage(w) {
+	const z = w.spiel?.katastrophen;
+	if (!z) return [];
+	const out = [];
+	const reich = w.spiel?.reich;
+	for (const f of z.faelle) {
+		if (!f.zusage) continue;
+		out.push({
+			fallId: f.id,
+			art: f.art,
+			ort: namenVon(f.provinzen),
+			versprochen: f.zusage.wohnungen,
+			geliefert: Math.min(f.zusage.wohnungen, f.zusage.geliefert + f.privatGeliefert),
+			quote: clamp((f.zusage.geliefert + f.privatGeliefert) / f.zusage.wohnungen, 0, 1),
+			imBau: !!f.wohnbau && !!reich?.laufend.some((l) => l.id === f.wohnbau.id)
+		});
+	}
+	return out;
+}
+/** Wahl-Malus aus der Unwucht zwischen Zusage und Lieferung (Amtsende, sim/spiel.ts). */
+function versprechensschuldMalus(w) {
+	const zeilen = versprechensLage(w);
+	let punkte = 0;
+	const teile = [];
+	for (const z of zeilen) {
+		const fall = fallMit(w, z.fallId);
+		if (w.day - fall.tag < 180) continue;
+		const unwucht = 1 - z.quote;
+		if (unwucht <= .05) continue;
+		const anteil = unwucht * KATASTROPHE.malusBasis * (.5 + .5 * fall.staerke) * (z.imBau ? .6 : 1);
+		punkte += anteil;
+		teile.push(`${z.ort}: ${nf$2(z.geliefert)} von ${nf$2(z.versprochen)} versprochenen Wohnungen geliefert${z.imBau ? " (das Programm läuft noch)" : ""}`);
+	}
+	punkte = Math.min(KATASTROPHE.malusDeckel, punkte);
+	const text = punkte > 0 ? `Die Versprechen nach ${teile.length === 1 ? "der Katastrophe" : "den Katastrophen"} holen die Regierung ein: ${teile.join("; ")}. Die Wähler erinnern sich — Zustimmung −${nf$2(punkte, 1)} Punkte.` : "";
+	return {
+		punkte: Math.round(punkte * 10) / 10,
+		text
+	};
+}
+function katastropheMonat(w, rng) {
+	const sp = w.spiel;
+	if (!sp || sp.ende) return;
+	const z = katastrophenZustand(w);
+	const geplant = geplanterAusloeser(w);
+	if (geplant) loeseAus(w, rng, geplant);
+	const reich = sp.reich ? reichZustand(w) : null;
+	for (const fall of z.faelle) {
+		if (fall.bewaeltigt) continue;
+		if (fall.hilfe.uebergangBis !== void 0 && fall.hilfe.uebergangBis > w.day) {
+			const kosten = KATASTROPHE.uebergangKosten * fall.staerke;
+			w.economy.debtRatio += kosten;
+			wirke(w, "p_wohnungsnot", -.6, fall.provinzen);
+			if (w.day - fall.tag === 60) vertrauenAendern(w, .4);
+		}
+		if (fall.zusage && fall.wohnbau && reich) {
+			const def = vorhabenDef(fall.wohnbau.id);
+			const lauf = reich.laufend.find((l) => l.id === fall.wohnbau.id);
+			if (lauf && def) fall.zusage.geliefert = Math.min(fall.zusage.wohnungen, Math.round(lauf.fortschritt / laufBau(lauf, def) * fall.wohnbau.bedarf));
+			else if (reich.bestand[fall.wohnbau.id]) fall.zusage.geliefert = fall.zusage.wohnungen;
+		}
+		if (fall.wohnungen > 0 && w.day - fall.tag >= KATASTROPHE.privatNachTagen && fall.privatGeliefert < fall.wohnungen * KATASTROPHE.privatDeckel) fall.privatGeliefert = Math.min(fall.wohnungen * KATASTROPHE.privatDeckel, fall.privatGeliefert + fall.wohnungen * KATASTROPHE.privatQuote);
+		const bedarf = fall.zusage?.wohnungen ?? fall.wohnungen;
+		const geliefert = (fall.zusage?.geliefert ?? 0) + fall.privatGeliefert;
+		if (bedarf > 0 && geliefert >= bedarf * .95 && (!fall.wohnbau || !reich?.laufend.some((l) => l.id === fall.wohnbau.id))) {
+			fall.bewaeltigt = w.day;
+			addLog(w, "ereignis", `${ART_NAMEN[fall.art]} in ${namenVon(fall.provinzen)}: Die Lage gilt als bewältigt.`, `${nf$2(Math.round(geliefert))} von ${nf$2(bedarf)} Wohnungen sind wieder fertig; die Region steht wieder auf eigenen Beinen.`);
+			w.spiel.chronik.push({
+				tag: w.day,
+				datum: w.date,
+				titel: `${ART_NAMEN[fall.art]} bewältigt`,
+				ausgang: `${namenVon(fall.provinzen)} steht wieder: ${nf$2(Math.round(geliefert))} von ${nf$2(bedarf)} Wohnungen geliefert.`
+			});
+		}
+	}
+}
+function namenVon(provinzen) {
+	const n = provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
+	if (n.length === 1) return n[0];
+	return `${n.slice(0, -1).join(", ")} und ${n[n.length - 1]}`;
+}
+//#endregion
+//#region src/sim/ereignisse-katastrophe.ts
+function fallAus(w, ev) {
+	const f = fallMit(w, String(ev.daten?.fall ?? ""));
+	if (!f) throw new Error(`Katastrophen-Ereignis ohne Fall: ${ev.id}`);
+	return f;
+}
+const KATASTROPHE_VORLAGEN = [
+	{
+		id: "grossbeben",
+		szene: "anatolien",
+		frist: 7,
+		abkuehlung: 240,
+		chance: () => 0,
+		erzeuge: () => null,
+		titel: (_, ev) => `${staerkeWort(ev.staerke)[0].toUpperCase()}${staerkeWort(ev.staerke).slice(1)}es Erdbeben in ${namen$1(ev.provinzen)}`,
+		text: (w, ev) => {
+			const fall = fallAus(w, ev);
+			const mag = 5.6 + 2 * ev.staerke;
+			return [`Ein Erdbeben der Stärke ${nf$7(mag)} erschüttert ${namen$1(ev.provinzen)}. Erste Meldungen sprechen von ${schaetzung(w, fall, fall.tote)} Todesopfern und ${schaetzung(w, fall, fall.obdachlos)} Menschen ohne Dach über dem Kopf — die Lage ist in diesen Stunden noch unklar.`, `${anrede(figur(w, "inneres"))} bittet um Anweisungen. Die Rettungskräfte der Katastrophenbehörde sind unterwegs (Bereitschaft ${fall.bereitschaft} von 100); jetzt entscheidet sich, wie der Staat in den nächsten Wochen auftritt — und was er verspricht.`];
+		},
+		warum: (w, ev) => {
+			const fall = fallAus(w, ev);
+			const v = fall.verhindert;
+			return `Opferzahlen hängen an Bauqualität, Erdbebenvorsorge und der Bereitschaft des Katastrophenschutzes (Stand ${fall.bereitschaft}). ${v.tote > 0 ? `Nach Modellrechnung hat die vorhandene Bereitschaft etwa ${nf$7(v.tote)} Todesopfer verhindert (Bandbreite ±25 %).` : "Eine bessere Vorsorge hätte die Opferzahlen spürbar gedrückt."} Was der Präsident heute verspricht, wird am Ende der Amtszeit gegen die Lieferung gehalten.`;
+		},
+		eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
+		optionen: (w, ev) => {
+			const fall = fallAus(w, ev);
+			const out = [opt("soforthilfe", "Soforthilfe anordnen", beschr(3, .1 * ev.staerke + .04, "Rettung, Zelte, Feldlazarette; klärt die Schadenslage schneller auf. Kostet Aufmerksamkeit."), 3, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				return soforthilfe(ww, fall.id);
+			})];
+			if (fall.wohnungen >= 500) {
+				const zusage = (stufe) => {
+					return Math.max(500, Math.round(fall.wohnungen * KATASTROPHE.zusageStufen[stufe] / 500) * 500);
+				};
+				out.push(opt("versprechen_klein", `Soforthilfe und bescheidenes Versprechen (${nf$7(zusage("klein"))} Wohnungen)`, beschr(4, .14, "etwas Zustimmung jetzt, wenig Versprechensschuld später; dazu Soforthilfe und Aufmerksamkeit."), 4, (ww) => {
+					verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+					return `${soforthilfe(ww, fall.id)} ${zusageFestlegen(ww, fall.id, "klein")}`;
+				}), opt("versprechen_voll", `Soforthilfe und volles Versprechen (${nf$7(zusage("voll"))} Wohnungen)`, beschr(5, .14, "spürbare Zustimmung jetzt, volle Versprechensschuld; dazu Soforthilfe und Aufmerksamkeit."), 5, (ww) => {
+					verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+					return `${soforthilfe(ww, fall.id)} ${zusageFestlegen(ww, fall.id, "voll")}`;
+				}), opt("versprechen_gross", `Soforthilfe und großes Versprechen (${nf$7(zusage("gross"))} Wohnungen)`, beschr(6, .14, "viel Zustimmung jetzt — und eine Schuld, die am Ende der Amtszeit gemessen wird; dazu Soforthilfe und Aufmerksamkeit."), 6, (ww) => {
+					verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+					return `${soforthilfe(ww, fall.id)} ${zusageFestlegen(ww, fall.id, "gross")}`;
+				}));
+			}
+			out.push(opt("untersuchung", "Soforthilfe und Untersuchung der Bauaufsicht", beschr(4, .14, "ehrlich statt laut: Wer gepfuscht hat, wird zur Rechenschaft gezogen; dazu Soforthilfe und Aufmerksamkeit."), 4, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				const a = soforthilfe(ww, fall.id);
+				wirke(ww, "korruption", -2);
+				wirke(ww, "bauqualitaet", 2);
+				wirke(ww, "justizvertrauen", 2);
+				return `${a} Eine unabhängige Untersuchung der Bauaufsicht beginnt.`;
+			}));
+			return out;
+		},
+		standard: (w, ev) => {
+			const fall = fallAus(w, ev);
+			kosten(w, .05);
+			vertrauenAendern(w, -3 * ev.staerke);
+			wirke(w, "p_wohnungsnot", 4 * ev.staerke, fall.provinzen);
+			return "Der Staat reagiert zu spät; die Menschen in den Trümmern fühlen sich allein gelassen, und niemand hat etwas versprochen — auch das wird sich gemerkt.";
+		}
+	},
+	{
+		id: "katastrophe_flut",
+		szene: "anatolien",
+		frist: 8,
+		abkuehlung: 240,
+		chance: () => 0,
+		erzeuge: () => null,
+		titel: () => "Sturzflut am Schwarzen Meer",
+		text: (w, ev) => {
+			const fall = fallAus(w, ev);
+			return [`Nach Tagen des Regens sind in ${namen$1(ev.provinzen)} die Flüsse über die Ufer getreten; das Wasser hat Häuser, Brücken und Straßen mitgerissen. Gemeldet werden ${schaetzung(w, fall, fall.tote)} Todesopfer.`, "Die Katastrophenbehörde bittet um Anweisungen; in den Tälern harren Menschen auf Dächern und Brücken aus."];
+		},
+		warum: () => "Steile Täler, Bebauung an Bachläufen und fehlender Hochwasserschutz machen aus Starkregen eine Katastrophe; die Bereitschaft der Behörde entscheidet über die Opferzahlen.",
+		eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
+		optionen: (w, ev) => {
+			const fall = fallAus(w, ev);
+			return [opt("soforthilfe", "Soforthilfe und Räumung der Gefahrenlagen", beschr(3, .08, "Rettung und Notunterkünfte; klärt die Schadenslage schneller auf. Kostet Aufmerksamkeit."), 3, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				return soforthilfe(ww, fall.id);
+			}), opt("umsiedlung", "Siedlungen aus den Bachläufen verlegen", beschr(4, .2, "langfristig sicherer, kurzfristig unbeliebt bei den Umzuziehenden."), 4, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				const a = soforthilfe(ww, fall.id);
+				kosten(ww, .12);
+				wirke(ww, "landflucht", 2, fall.provinzen);
+				wirke(ww, "verkehrsnetz", 2 * ev.staerke, fall.provinzen);
+				vertrauenAendern(ww, -.5);
+				return `${a} Gefährdete Siedlungen werden verlegt — die Betroffenen protestieren, die Nachkommen werden es danken.`;
+			})];
+		},
+		standard: (w, ev) => {
+			const fall = fallAus(w, ev);
+			vertrauenAendern(w, -2 * ev.staerke);
+			wirke(w, "verkehrsnetz", -2 * ev.staerke, fall.provinzen);
+			return "Die Hilfe kommt spät; die Menschen in den Tälern fühlen sich im Stich gelassen.";
+		}
+	},
+	{
+		id: "katastrophe_waldbrand",
+		szene: "anatolien",
+		frist: 8,
+		abkuehlung: 240,
+		chance: () => 0,
+		erzeuge: () => null,
+		titel: () => "Großbrände an der Küste",
+		text: (w, ev) => {
+			const fall = fallAus(w, ev);
+			return [`Großbrände wüten in ${namen$1(ev.provinzen)}: Wälder, Olivenhaine und Ortsteile brennen, Hotels werden geräumt. Gemeldet werden ${schaetzung(w, fall, fall.tote)} Todesopfer; der Rauch liegt über der Küste.`, "Die Löschflugzeuge sind im Dauereinsatz; die Frage ist, was der Staat darüber hinaus tut."];
+		},
+		warum: () => "Heiße Sommer, trockene Winde und Monokulturen machen aus Funken Flächenbrände; Löschkapazität und Bereitschaft entscheiden, was übrig bleibt.",
+		eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
+		optionen: (w, ev) => {
+			const fall = fallAus(w, ev);
+			return [opt("loeschen", "Alle Löschkapazitäten und Soforthilfe mobilisieren", beschr(3, .08, "begrenzt den Schaden an Wald, Ernte und Saison. Kostet Aufmerksamkeit."), 3, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				const a = soforthilfe(ww, fall.id);
+				wirke(ww, "tourismus", 2 * ev.staerke, fall.provinzen);
+				return `${a} Die Brände sind nach Tagen unter Kontrolle.`;
+			}), opt("aufforsten", "Aufforsten und Wiederaufbau der Gehöfte", beschr(4, .12, "teurer und langsamer, dafür bleibt die Region bewohnbar."), 4, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				const a = soforthilfe(ww, fall.id);
+				kosten(ww, .06);
+				wirke(ww, "landwirtschaft_einkommen", 3 * ev.staerke, fall.provinzen);
+				wirke(ww, "klimaschutz", 1);
+				return `${a} Ein Aufforstungsprogramm beginnt; verbrannte Gehöfte werden wieder aufgebaut.`;
+			})];
+		},
+		standard: (w, ev) => {
+			const fall = fallAus(w, ev);
+			wirke(w, "tourismus", -3 * ev.staerke, fall.provinzen);
+			vertrauenAendern(w, -1.5 * ev.staerke);
+			return "Die Brände greifen weiter um sich; die Bilder von brennenden Hotels gehen um die Welt.";
+		}
+	},
+	{
+		id: "katastrophe_duerre",
+		szene: "anatolien",
+		frist: 12,
+		abkuehlung: 240,
+		chance: () => 0,
+		erzeuge: () => null,
+		titel: () => "Wassernot im Konya-Becken",
+		text: (w, ev) => {
+			return [`Im Konya-Becken versiegen Brunnen und Talsperren: Das zweite Jahr in Folge bleibt der Regen aus, die Grundwasserstände fallen. Die Bauern des Beckens fahren ihre Traktoren vor die Provinzhauptstadt.`, `${anrede(figur(w, "finanzen"))} erinnert an die Haushaltslage; der Bauernverband fordert Soforthilfe und ein Bewässerungsprogramm.`];
+		},
+		warum: () => "Das geschlossene Becken lebt vom Grundwasser; wer es tiefer pumpt, als es sich füllt, erntet Ernteausfälle und Wanderdünen. Die Wassermangel-Lage der Provinzen treibt die Wahrscheinlichkeit dieser Krise.",
+		eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
+		optionen: (w, ev) => {
+			const fall = fallAus(w, ev);
+			return [opt("hilfe", "Soforthilfe für die Landwirte des Beckens", beschr(3, .1, "Wassertransporte und Ausgleichszahlungen; hält die Höfe über die Saison. Kostet Aufmerksamkeit."), 3, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				return soforthilfe(ww, fall.id);
+			}), opt("bewaesserung", "Soforthilfe und Bewässerungsprogramm vorziehen", beschr(4, .1, "die Ursache angehen statt nur die Not lindern; dazu Aufmerksamkeit."), 4, (ww) => {
+				verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+				const a = soforthilfe(ww, fall.id);
+				setPolicy(ww, "m_bewaesserung", Math.min(100, netz$1(ww, "m_bewaesserung") + 10));
+				wirke(ww, "landwirte", 2 * ev.staerke);
+				return `${a} Das Bewässerungsprogramm wird vorgezogen.`;
+			})];
+		},
+		standard: (w, ev) => {
+			const fall = fallAus(w, ev);
+			wirke(w, "landwirte", -3 * ev.staerke);
+			wirke(w, "landflucht", 2 * ev.staerke, fall.provinzen);
+			vertrauenAendern(w, -1.5 * ev.staerke);
+			return "Ohne Antwort geben die ersten Höfe auf; die Wanderdünen rücken vor.";
+		}
+	}
+];
+const R = {
+	/** Vor diesem Tag handelt die Welt noch nicht von sich aus (Ruhephase nach dem Amtsantritt) */
+	startTag: 200,
+	/** Tage Ruhe je Land nach einer Initiative */
+	abkuehlungLand: 90,
+	/** Höchstens so viele Initiativen pro Monat gesamt (Post-Filter im Ereignis-Wettbewerb) */
+	maxProMonat: 1,
+	/**
+	* Monatschance einer Vorlage, für die Treiber vorliegen; der Wettbewerb sortiert danach nach Dringlichkeit.
+	* Kalibriert (30.09.2026, test/spielbarkeit.test.ts „zwei bis zwölf Ereignisse im Jahr“ und
+	* „Je härter, desto weniger Siege“): Die Eigeninitiative ergänzt die heimischen Vorgänge um etwa einen
+	* im Jahr, statt die Dichtebremse (DICHTE_SCHWELLE) zu überrennen — 0,25 und mehr reißen die Jahresdecke,
+	* unter ~0,1 kippt der Schwierigkeitsvergleich durch die veränderte Zufallsfolge.
+	*/
+	monatsChance: .15,
+	/** Konflikt-Schwellen: darüber Provokation, darüber Drohkulisse */
+	konfliktProvokation: 70,
+	konfliktDrohkulisse: 85,
+	/** Ab diesem Vertrauen macht ein Land von sich aus Angebote */
+	vertrauenAngebot: 70,
+	/** Verträge mit weniger Restlaufzeit (in Tagen, zwölf Monate) treiben eine Verlängerung an */
+	vertragRestlaufzeit: 360,
+	/** So lange wirkt ein frischer Drittland-Vertrag als Ausstrahlungs-Treiber (Tage) */
+	ausstrahlungFenster: 120,
+	/** So lange wirkt ein Rote-Linie-Veto als Treiber nach (Tage) */
+	rotFenster: 365,
+	/** So lange wirkt öffentlicher Druck aus Ankara als Rote-Linie-Treiber nach (Tage) */
+	druckFenster: 60,
+	/** Relative Basisgewichte der Treiber (werden vor der Wahl auf die Summe normiert) */
+	gewicht: {
+		roteLinie: 3,
+		drohkulisse: 2.6,
+		verlaengerung: 2,
+		forderung: 1.5,
+		provokation: 1.4,
+		angebot: 1.2,
+		ausstrahlung: 1.2
+	}
+};
+const G = R.gewicht;
 const ANREDE = {
 	USA: "Die US-Regierung",
 	EU: "Die EU-Kommission",
@@ -15756,169 +19436,226 @@ const ANREDE = {
 	KAZ: "Astana",
 	CYP: "Nikosia"
 };
-/** Länder mit einem unerfüllten Anliegen, das sich ändern ließe, und mit wenig Geduld. */
-function ungeduldig(w) {
-	let beste = null;
-	for (const l of LAENDER) {
-		const z = weltZustand(w)[l.id];
-		if (w.day - (z.zuletzt.gipfel ?? -1e9) < 150) continue;
-		if (w.day - (w.spiel?.zuletzt[`land_fordert#${l.id}`] ?? -1e9) < 270) continue;
-		for (const s of anliegenStand(w, l.id)) {
-			if (s.erfuellt) continue;
-			const b = s.anliegen.bedingung;
-			if (b.art !== "massnahme" && b.art !== "massnahme-max") continue;
-			const wert = (100 - vertrauenZu(w, l.id)) * .4 + z.konflikt * .3 + (l.gruppe === "Große Mächte" ? 12 : 0);
-			if (!beste || wert > beste.wert) beste = {
-				id: l.id,
-				anliegen: s.anliegen.id,
-				text: `${s.anliegen.titel}: ${s.anliegen.text}`,
-				wert
+const anredeVon = (id) => ANREDE[id] ?? land(id).name;
+let kriegBruecke = null;
+function setzeKriegBruecke(b) {
+	kriegBruecke = b;
+}
+/**
+* Übergabe an der Kriegsschwelle: Wer standhält, wessen Vermittlung scheitert oder wer die Frist verstreichen
+* lässt, gibt die Lage an den Konfliktvorgang weiter — es gibt weiterhin KEINEN automatischen Krieg: Der
+* Vorgang (Spannung → Drohkulisse → Beschluss → …) trägt die Folgen, zusätzlich zur Krise „Kriegsgefahr“
+* (sim/krisen.ts), die aus der Konflikt-Dimension ohnehin täglich neu gerechnet wird.
+*/
+function drohkulisseUebergabe(w, u) {
+	const eskaliert = kriegBruecke?.eskaliere(w, u.land) ?? false;
+	addLog(w, "ereignis", `Drohkulisse mit ${land(u.land).dat}: Die Lage bleibt an der Kriegsschwelle (Konflikt ${Math.round(u.konflikt)} von 100).`, eskaliert ? "Übergeben an den Konfliktvorgang: Die Spannung mit diesem Land hebt auf Drohkulisse-Niveau — das Dossier steht in der Welt-Ansicht." : "Der Konfliktvorgang (sim/krieg.ts) greift die Lage bei der nächsten Monatsprüfung auf, solange der Konflikt über seiner Anlageschwelle steht; es gibt keinen automatischen Krieg.");
+}
+const INITIATIVE_VORLAGE_IDS = /* @__PURE__ */ new Set([
+	"land_fordert",
+	"land_angebot",
+	"vertrag_verlaengerung",
+	"land_provokation",
+	"land_drohkulisse"
+]);
+/** Die Klausel, die das Land am stärksten von der Türkei will und die es noch nicht hat (nie eine Rote Linie). */
+function forderungsKlausel(w, landId) {
+	const ks = klauselnFuer(w, landId).filter((k) => k.def.seite === "gibt" && !k.rot && !k.gesperrt && k.wert > 0);
+	ks.sort((a, b) => b.wert - a.wert || a.def.id.localeCompare(b.def.id));
+	return ks[0] ?? null;
+}
+/** Die Forderung, die die Türkei am ehesten zurückbekommen kann (für das Gegenangebot). */
+function besteWillKlausel(w, landId) {
+	const ks = klauselnFuer(w, landId).filter((k) => k.def.seite === "will" && !k.rot && !k.gesperrt);
+	ks.sort((a, b) => b.wert - a.wert || a.def.id.localeCompare(b.def.id));
+	return ks[0] ?? null;
+}
+/** Eine kleine Zugabe für die Verlängerung: etwas, das den Partner wenig kostet und die Türkei nicht hart trifft. */
+function zugabeKlausel(w, landId) {
+	const ks = klauselnFuer(w, landId).filter((k) => k.def.seite === "gibt" && !k.rot && !k.gesperrt && k.wert > 0 && k.wert <= 4 && (k.def.pk ?? 0) <= 2);
+	ks.sort((a, b) => b.wert - a.wert || a.def.id.localeCompare(b.def.id));
+	return ks[0] ?? null;
+}
+/** Ausstrahlung: Trifft ein frischer Vertrag eines anderen Landes dieses Land (positiv oder negativ)? */
+function ausstrahlungAuf(w, landId) {
+	for (const andere of LAENDER) {
+		if (andere.id === landId) continue;
+		for (const v of laufende(w, andere.id)) {
+			if (w.day - v.seit > R.ausstrahlungFenster) continue;
+			for (const cid of [...v.gibt, ...v.will]) for (const x of AUSSTRAHLUNG[`${cid}@${andere.id}`] ?? []) if (x.land === landId) return {
+				von: andere.id,
+				d: x.d,
+				text: x.text
 			};
 		}
 	}
-	return beste;
+	return null;
 }
-const LAND_FORDERT = {
-	id: "land_fordert",
-	szene: "parlament",
-	frist: 25,
-	abkuehlung: 240,
-	chance: (w) => w.day > AB_TAG && ungeduldig(w) ? .035 : 0,
-	eroeffne: (w, ev) => {
-		if (w.spiel) w.spiel.zuletzt[`land_fordert#${String(ev.daten?.land)}`] = w.day;
-	},
-	erzeuge: (w) => {
-		const u = ungeduldig(w);
-		return u ? {
-			provinzen: [],
-			staerke: 1,
-			daten: {
-				land: u.id,
-				anliegen: u.anliegen,
-				text: u.text
-			}
-		} : null;
-	},
-	titel: (_, ev) => `${ANREDE[String(ev.daten?.land)] ?? land(String(ev.daten?.land)).name} verliert die Geduld`,
-	text: (w, ev) => {
-		const l = land(String(ev.daten?.land));
-		return [`${ANREDE[l.id] ?? l.name} lässt ausrichten, dass die Geduld schwindet: ${ev.daten?.text}`, `Das Verhältnis steht bei Vertrauen ${Math.round(vertrauenZu(w, l.id))} und Konflikt ${Math.round(weltZustand(w)[l.id].konflikt)}. Eine Antwort wird erwartet.`];
-	},
-	warum: () => "Andere Staaten haben eigene Interessen. Wer sie ignoriert, zahlt später: an Vertrauen, an Märkten, an Sicherheit.",
-	massnahmen: [],
-	optionen: (w, ev) => {
-		const l = land(String(ev.daten?.land));
-		const a = l.anliegen.find((x) => x.id === String(ev.daten?.anliegen));
-		const m = a && "id" in a.bedingung ? a.bedingung : null;
-		return [
-			opt("gespraech", "Ein Gespräch anbieten", beschr(2, 0, "kauft Zeit, ohne etwas zu ändern."), 2, (ww) => {
-				landAendern(ww, l.id, { vertrauen: 4 }, "Gesprächsangebot nach einer Forderung");
-				return `${ANREDE[l.id] ?? l.name} nimmt das Gesprächsangebot an, wartet aber weiter auf Taten.`;
-			}),
-			opt("zusagen", "Eine Zusage machen", beschr(3, 0, `${ANREDE[l.id] ?? l.name} bekommt ein Versprechen, das in acht Monaten eingefordert wird.`), 3, (ww) => {
-				landAendern(ww, l.id, { vertrauen: 6 }, "Zusage nach einer Forderung");
-				if (m) zusageAnlegen(ww, {
-					von: ANREDE[l.id] ?? l.name,
-					text: `${ANREDE[l.id] ?? l.name} wurde zugesagt: ${a.titel}`,
-					tage: 240,
-					massnahme: m.id
-				});
-				return `Die Regierung sagt ${ANREDE[l.id] ?? l.name} zu, ${a?.titel ?? "das Anliegen"} anzugehen.`;
-			}),
-			opt("zurueckweisen", "Zurückweisen", beschr(0, 0, "Beifall zu Hause, Ärger im Ausland."), 0, (ww) => {
-				landAendern(ww, l.id, {
-					vertrauen: -8,
-					konflikt: 5
-				}, "Forderung zurückgewiesen");
-				wirke(ww, "konservative", 1);
-				vertrauenAendern(ww, .5);
-				return `Die Regierung weist die Forderung von ${ANREDE[l.id] ?? l.name} zurück.`;
-			})
-		];
-	},
-	standard: (w, ev) => {
-		const l = land(String(ev.daten?.land));
-		landAendern(w, l.id, { vertrauen: -5 }, "Forderung unbeantwortet");
-		return `${ANREDE[l.id] ?? l.name} wertet das Schweigen als Antwort.`;
+/** Alle Treiber eines Landes als gewichtete Kandidaten (ohne Dämpfung — die prüft initiativeKandidaten). */
+function kandidatenFuerLand(w, l, welt) {
+	const z = welt[l.id];
+	const out = [];
+	const vertrauen = vertrauenZu(w, l.id);
+	const konflikt = z.konflikt;
+	const profil = PROFILE[l.id];
+	if (profil?.rot.length) {
+		const veto = w.day - (z.rotBedroht ?? -1e9) < R.rotFenster;
+		const druck = w.day - (z.zuletzt.druck ?? -1e9) < R.druckFenster;
+		if (veto || druck) {
+			const klausel = forderungsKlausel(w, l.id);
+			const roteId = profil.rot[0];
+			out.push({
+				typ: "forderung",
+				land: l.id,
+				gewicht: G.roteLinie,
+				vorlage: "land_fordert",
+				daten: {
+					land: l.id,
+					anlass: "rot",
+					roteLinie: roteId,
+					...klausel ? { klausel: klausel.def.id } : {}
+				}
+			});
+		}
 	}
-};
-/** Länder mit viel Vertrauen schlagen von sich aus ein Paket vor: etwas für die Türkei gegen etwas von der Türkei. */
-function angebot(w) {
-	const kandidaten = LAENDER.filter((l) => vertrauenZu(w, l.id) >= 55 && weltZustand(w)[l.id].konflikt < 60 && sperreRest(w, l.id) === 0 && (w.spiel?.zuletzt[`land_angebot#${l.id}`] ?? -1e9) < w.day - 300).map((l) => ({
-		id: l.id,
-		paket: vorschlagVomPartner(w, l.id)
-	})).filter((x) => x.paket !== null);
-	return kandidaten.length ? kandidaten[Math.floor(w.day / 30 % kandidaten.length)] : null;
+	if (konflikt >= R.konfliktDrohkulisse) out.push({
+		typ: "drohkulisse",
+		land: l.id,
+		gewicht: G.drohkulisse + (konflikt - R.konfliktDrohkulisse) / 10,
+		vorlage: "land_drohkulisse",
+		daten: { land: l.id }
+	});
+	else if (konflikt >= R.konfliktProvokation) out.push({
+		typ: "provokation",
+		land: l.id,
+		gewicht: G.provokation + (konflikt - R.konfliktProvokation) / 20,
+		vorlage: "land_provokation",
+		daten: { land: l.id }
+	});
+	for (const v of laufende(w, l.id)) {
+		const rest = v.ablauf - w.day;
+		if (rest > 30 && rest < R.vertragRestlaufzeit) {
+			const zugabe = zugabeKlausel(w, l.id);
+			out.push({
+				typ: "verlaengerung",
+				land: l.id,
+				gewicht: G.verlaengerung * (1 + (R.vertragRestlaufzeit - rest) / R.vertragRestlaufzeit),
+				vorlage: "vertrag_verlaengerung",
+				daten: {
+					land: l.id,
+					vertrag: v.id,
+					...zugabe ? { zugabe: zugabe.def.id } : {}
+				}
+			});
+			break;
+		}
+	}
+	const offene = anliegenStand(w, l.id).filter((s) => !s.erfuellt && (s.anliegen.bedingung.art === "massnahme" || s.anliegen.bedingung.art === "massnahme-max"));
+	if (offene.length && w.day - (z.zuletzt.gipfel ?? -1e9) >= 150) {
+		const a = offene[0];
+		const klausel = forderungsKlausel(w, l.id);
+		out.push({
+			typ: "forderung",
+			land: l.id,
+			gewicht: G.forderung * (1 + offene.length * .5) * (.6 + konflikt / 100),
+			vorlage: "land_fordert",
+			daten: {
+				land: l.id,
+				anlass: "anliegen",
+				anliegen: a.anliegen.id,
+				text: `${a.anliegen.titel}: ${a.anliegen.text}`,
+				...klausel ? { klausel: klausel.def.id } : {}
+			}
+		});
+	}
+	if (vertrauen >= R.vertrauenAngebot && konflikt < 60) {
+		const paket = vorschlagVomPartner(w, l.id);
+		if (paket) out.push({
+			typ: "angebot",
+			land: l.id,
+			gewicht: G.angebot + (vertrauen - R.vertrauenAngebot) / 15,
+			vorlage: "land_angebot",
+			daten: {
+				land: l.id,
+				gibt: paket.gibt.join(","),
+				will: paket.will.join(","),
+				anlass: "vertrauen"
+			}
+		});
+	}
+	const spr = ausstrahlungAuf(w, l.id);
+	if (spr) {
+		const klausel = spr.d < 0 ? forderungsKlausel(w, l.id) : null;
+		const paket = spr.d > 0 && vertrauen >= 55 ? vorschlagVomPartner(w, l.id) : null;
+		if (spr.d < 0) out.push({
+			typ: "forderung",
+			land: l.id,
+			gewicht: G.ausstrahlung * Math.abs(spr.d) / 4,
+			vorlage: "land_fordert",
+			daten: {
+				land: l.id,
+				anlass: "ausstrahlung",
+				quelle: spr.von,
+				text: spr.text,
+				...klausel ? { klausel: klausel.def.id } : {}
+			}
+		});
+		else if (paket) out.push({
+			typ: "angebot",
+			land: l.id,
+			gewicht: G.ausstrahlung * Math.abs(spr.d) / 4,
+			vorlage: "land_angebot",
+			daten: {
+				land: l.id,
+				gibt: paket.gibt.join(","),
+				will: paket.will.join(","),
+				anlass: "ausstrahlung",
+				quelle: spr.von,
+				text: spr.text
+			}
+		});
+	}
+	return out;
 }
-const labelVon = (w, landId, id) => klauselSicht(w, landId, id)?.label ?? id;
+/**
+* Alle Kandidaten dieses Monats, nach Abzug der Dämpfung je Land: Ruhe (90 Tage) und kein zweiter
+* offener Vorgang desselben Landes. Reihenfolge ist die feste LAENDER-Reihenfolge — der Seed reproduziert so exakt.
+*/
+function initiativeKandidaten(w) {
+	const spiel = w.spiel;
+	if (!spiel || spiel.ende || w.day < R.startTag) return [];
+	const welt = weltZustand(w);
+	const out = [];
+	for (const l of LAENDER) {
+		const z = welt[l.id];
+		if (w.day - (z.initiativeZuletzt ?? -1e9) < R.abkuehlungLand) continue;
+		if (spiel.ereignisse.some((e) => INITIATIVE_VORLAGE_IDS.has(e.vorlage) && String(e.daten?.land) === l.id)) continue;
+		out.push(...kandidatenFuerLand(w, l, welt));
+	}
+	return out;
+}
+/** Gesamt-Dämpfung: In diesem Monat wurde schon eine Initiative vorgelegt (oder verfiel ausgesessen). */
+function monatsSperre(w) {
+	return w.day - (w.spiel?.zuletzt["initiative#monat"] ?? -1e9) < 28;
+}
+/** Der dringlichste Kandidat einer Vorlage; steuert Chance und Erzeugung im Ereignis-Wettbewerb. */
+function besterKandidat(w, vorlage) {
+	if (monatsSperre(w)) return null;
+	return initiativeKandidaten(w).filter((k) => k.vorlage === vorlage).sort((a, b) => b.gewicht - a.gewicht)[0] ?? null;
+}
+/** Buchhaltung einer vorgelegten Initiative: Ruhe je Land und Sperre des Monats. */
+function merkeInitiative(w, landId) {
+	if (!w.spiel) return;
+	weltZustand(w)[landId].initiativeZuletzt = w.day;
+	w.spiel.zuletzt["initiative#monat"] = w.day;
+}
+const VORLAGE_Lokal = /* @__PURE__ */ new Map();
+const labelVon = (w, landId, id) => klauselSicht(w, landId, id)?.label ?? KLAUSEL_NACH_ID[id]?.label ?? id;
 const paketText = (w, a) => {
 	const teile = [];
 	if (a.gibt.length) teile.push(`Die Türkei bietet: ${a.gibt.map((id) => `„${labelVon(w, a.land, id)}“`).join(", ")}`);
 	if (a.will.length) teile.push(`Die Türkei erhält: ${a.will.map((id) => `„${labelVon(w, a.land, id)}“`).join(", ")}`);
 	return `${teile.join(". ")}. Laufzeit ${a.jahre} Jahre.`;
-};
-const paketPreis = (a) => [...a.gibt, ...a.will].reduce((s, id) => s + (KLAUSEL_NACH_ID[id]?.pk ?? 0), 0);
-const LAND_ANGEBOT = {
-	id: "land_angebot",
-	szene: "bank",
-	frist: 30,
-	abkuehlung: 300,
-	chance: (w) => w.day > AB_TAG && angebot(w) ? .04 : 0,
-	eroeffne: (w, ev) => {
-		if (w.spiel) w.spiel.zuletzt[`land_angebot#${String(ev.daten?.land)}`] = w.day;
-	},
-	erzeuge: (w) => {
-		const a = angebot(w);
-		return a ? {
-			provinzen: [],
-			staerke: 1,
-			daten: {
-				land: a.id,
-				gibt: a.paket.gibt.join(","),
-				will: a.paket.will.join(",")
-			}
-		} : null;
-	},
-	titel: (_, ev) => `${ANREDE[String(ev.daten?.land)] ?? land(String(ev.daten?.land)).name} schlägt einen Vertrag vor`,
-	text: (w, ev) => {
-		const l = land(String(ev.daten?.land));
-		const a = paketAus(ev);
-		return [`${ANREDE[l.id] ?? l.name} legt ein Paket auf den Tisch. ${paketText(w, a)}`, `Das Verhältnis ist gut (Vertrauen ${Math.round(vertrauenZu(w, l.id))}); es ist die Zeit, daraus etwas zu machen. Was das Paket bei uns bewirkt, zeigen die Antworten.`];
-	},
-	warum: () => "Vertrauen ist Kapital, das man nur einlösen kann, wenn ein Angebot kommt. Wer es nie einlöst, hat es umsonst aufgebaut. Ein Vertrag bindet aber beide Seiten und wird jedes Jahr geprüft.",
-	massnahmen: [],
-	optionen: (w, ev) => {
-		const l = land(String(ev.daten?.land));
-		const a = paketAus(ev);
-		const kurz = {
-			...a,
-			jahre: 2
-		};
-		const zeilen = [...a.gibt, ...a.will].flatMap((id) => KLAUSEL_NACH_ID[id] ? heimWirkung(KLAUSEL_NACH_ID[id]).dauer.slice(0, 2).map((z) => z.text) : []).slice(0, 4).join("; ");
-		const preis = paketPreis(a);
-		return [
-			opt("annehmen", "Annehmen: fünf Jahre", beschr(preis, 0, zeilen ? `bei uns: ${zeilen}; ein Vertrag bindet und wird jedes Jahr geprüft.` : "ein Vertrag bindet und wird jedes Jahr geprüft."), preis, (ww) => {
-				const pruef = pruefeAngebot(ww, a);
-				if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
-				schliesse(ww, a);
-				return `Die Türkei und ${l.name} schließen den Vertrag: ${paketText(ww, a)}`;
-			}),
-			opt("kurz", "Kürzer binden: zwei Jahre", beschr(Math.ceil(preis * .6), 0, "schwächere Dauerwirkung, dafür weniger Bindung."), Math.ceil(preis * .6), (ww) => {
-				const pruef = pruefeAngebot(ww, kurz);
-				if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
-				schliesse(ww, kurz);
-				return `Die Türkei und ${l.name} schließen einen Vertrag auf zwei Jahre.`;
-			}),
-			opt("ablehnen", "Ablehnen", beschr(0, 0, "wahrt die Unabhängigkeit, kostet Wärme."), 0, (ww) => {
-				landAendern(ww, l.id, { vertrauen: -3 }, "Vertragsvorschlag abgelehnt");
-				return `Die Türkei lehnt den Vorschlag von ${ANREDE[l.id] ?? l.name} höflich ab.`;
-			})
-		];
-	},
-	standard: (w, ev) => {
-		landAendern(w, String(ev.daten?.land), { vertrauen: -2 }, "Vertragsvorschlag verfallen");
-		return "Der Vorschlag verfällt ungenutzt.";
-	}
 };
 function paketAus(ev) {
 	const liste = (x) => String(x ?? "").split(",").filter(Boolean);
@@ -15929,118 +19666,3850 @@ function paketAus(ev) {
 		jahre: 5
 	};
 }
-/** Ein Vertrag, der bald ausläuft und noch nichts angesprochen hat. */
-function ablaufend(w) {
-	for (const l of LAENDER) for (const v of laufende(w, l.id)) if (v.ablauf - w.day <= 150 && v.ablauf - w.day > 20 && (w.spiel?.zuletzt[`vertrag_verlaengerung#${v.id}`] ?? -1e9) < 0) return {
-		id: v.id,
-		land: l.id
+/** Forderungspaket: die verlangte Klausel als einseitiger Vertrag (die Gegenseite stimmt immer zu, sie bekommt ja etwas). */
+function forderungsPaket(ev, jahre = 5) {
+	const klausel = String(ev.daten?.klausel ?? "");
+	if (!klausel) return null;
+	return {
+		land: String(ev.daten?.land),
+		gibt: [klausel],
+		will: [],
+		jahre
 	};
-	return null;
 }
-const VERTRAG_VERLAENGERUNG = {
-	id: "vertrag_verlaengerung",
-	szene: "bank",
-	frist: 40,
-	abkuehlung: 60,
-	chance: (w) => ablaufend(w) ? .6 : 0,
-	eroeffne: (w, ev) => {
-		if (w.spiel) w.spiel.zuletzt[`vertrag_verlaengerung#${String(ev.daten?.vertrag)}`] = w.day;
-	},
-	erzeuge: (w) => {
-		const a = ablaufend(w);
-		return a ? {
-			provinzen: [],
-			staerke: 1,
-			daten: {
-				land: a.land,
-				vertrag: a.id
-			}
-		} : null;
-	},
-	titel: (_, ev) => `Der Vertrag mit ${land(String(ev.daten?.land)).dat} läuft aus`,
-	text: (w, ev) => {
-		const l = land(String(ev.daten?.land));
-		const v = laufende(w, l.id).find((x) => x.id === String(ev.daten?.vertrag));
-		return [`Der Vertrag mit ${l.dat} (${v ? vertragsName(w, v) : "Vertrag"}) endet in etwa fünf Monaten. ${v && v.verstoesse === 0 ? "Er wurde bisher gehalten; das zählt für eine Verlängerung." : "Es gab Verstöße, eine Verlängerung ist unwahrscheinlich."}`, `Das Vertrauen zu ${l.dat} liegt bei ${Math.round(vertrauenZu(w, l.id))}.`];
-	},
-	warum: () => "Verträge, die auslaufen, hören nicht auf zu wirken, weil man sie vergisst: Die Dauerwirkungen enden, und das Land fragt sich, ob man es ernst gemeint hat.",
-	massnahmen: [],
-	optionen: (w, ev) => {
-		const l = land(String(ev.daten?.land));
-		const id = String(ev.daten?.vertrag);
-		return [
-			opt("verlaengern5", "Um fünf Jahre verlängern", beschr(VERLAENGERUNG_PK[5], 0, "die Dauerwirkungen laufen weiter, die Bindung auch."), VERLAENGERUNG_PK[5], (ww) => verlaengere(ww, l.id, id, 5, false).text),
-			opt("verlaengern2", "Um zwei Jahre verlängern", beschr(VERLAENGERUNG_PK[2], 0, "kürzere Bindung, die Wirkungen laufen weiter."), VERLAENGERUNG_PK[2], (ww) => verlaengere(ww, l.id, id, 2, false).text),
-			opt("auslaufen", "Auslaufen lassen", beschr(0, 0, "die Wirkungen enden mit dem Vertrag."), 0, () => `Der Vertrag mit ${l.dat} läuft aus.`)
-		];
-	},
-	standard: (w, ev) => `Der Vertrag mit ${land(String(ev.daten?.land)).dat} läuft ohne Verlängerung aus.`
+/** Gegenangebotspaket: die verlangte Klausel gegen die beste Gegenleistung; ohne Gegenleistung nur kürzer gebunden. */
+function gegenPaket(w, ev) {
+	const klausel = String(ev.daten?.klausel ?? "");
+	if (!klausel) return null;
+	const will = besteWillKlausel(w, String(ev.daten?.land));
+	if (will) return {
+		land: String(ev.daten?.land),
+		gibt: [klausel],
+		will: [will.def.id],
+		jahre: 5
+	};
+	return {
+		land: String(ev.daten?.land),
+		gibt: [klausel],
+		will: [],
+		jahre: 2
+	};
+}
+/** Der Schlusssatz einer Forderung: was sie dem Land konkret wert ist. */
+const klauselWert = (w, landId, klausel) => {
+	const k = klauselSicht(w, landId, klausel);
+	return k ? `Was das bedeutet: ${k.text}` : "";
 };
-/** Streit sucht den Präsidenten: Länder mit hohem Konflikt provozieren. */
-function schwelend(w) {
-	const k = LAENDER.filter((l) => weltZustand(w)[l.id].konflikt >= 65).sort((a, b) => weltZustand(w)[b.id].konflikt - weltZustand(w)[a.id].konflikt);
-	return k.length ? { id: k[0].id } : null;
-}
-const LAENDER_VORLAGEN = [
-	LAND_FORDERT,
-	LAND_ANGEBOT,
+const INITIATIVE_VORLAGEN = [
+	{
+		id: "land_fordert",
+		szene: "parlament",
+		frist: 25,
+		abkuehlung: 240,
+		chance: (w) => besterKandidat(w, "land_fordert") ? R.monatsChance : 0,
+		eroeffne: (w, ev) => merkeInitiative(w, String(ev.daten?.land)),
+		erzeuge: (w) => {
+			const k = besterKandidat(w, "land_fordert");
+			return k ? {
+				provinzen: [],
+				staerke: 1,
+				daten: {
+					...k.daten,
+					gewicht: k.gewicht
+				}
+			} : null;
+		},
+		titel: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const klausel = String(ev.daten?.klausel ?? "");
+			return `${anredeVon(l.id)} fordert${klausel ? `: „${labelVon(w, l.id, klausel)}“` : " Gehör"}`;
+		},
+		text: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const z = weltZustand(w)[l.id];
+			const anlass = String(ev.daten?.anlass ?? "anliegen");
+			const klausel = String(ev.daten?.klausel ?? "");
+			let grund;
+			if (anlass === "rot") grund = `${PROFILE[l.id]?.rotText?.[String(ev.daten?.roteLinie)] ?? `${anredeVon(l.id)} sieht eine Rote Linie berührt.`} ${anredeVon(l.id)} verlangt nun ein sichtbares Zeichen, dass die Türkei die Linie respektiert${klausel ? ` — konkret: „${labelVon(w, l.id, klausel)}“` : ""}.`;
+			else if (anlass === "ausstrahlung") grund = `${ev.daten?.text ?? "Ein Vertrag der Türkei mit einem Drittland trifft das Land."} ${anredeVon(l.id)} verlangt Klarheit${klausel ? ` und ein Entgegenkommen: „${labelVon(w, l.id, klausel)}“` : ""}.`;
+			else grund = `${anredeVon(l.id)} lässt ausrichten, dass die Geduld schwindet: ${ev.daten?.text ?? "Ein offenes Anliegen wartet."}${klausel ? ` Am Verhandlungstisch hieße das: „${labelVon(w, l.id, klausel)}“. ${klauselWert(w, l.id, klausel)}` : ""}`;
+			const drohung = z.konflikt >= R.konfliktProvokation ? " Zwischen den Zeilen klingt mit, dass es Alternativen zum guten Verhältnis gibt." : "";
+			return [grund, `Das Verhältnis steht bei Vertrauen ${Math.round(vertrauenZu(w, l.id))} und Konflikt ${Math.round(z.konflikt)}. Eine Antwort wird erwartet.${drohung}`];
+		},
+		warum: () => "Andere Staaten haben eigene Interessen und eigene Fristen. Wer ihre Anliegen ignoriert, bekommt sie als Forderung zurück — mit Preis auf beide Antworten.",
+		massnahmen: [],
+		optionen: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const paket = forderungsPaket(ev);
+			const gegen = paket ? gegenPaket(w, ev) : null;
+			const m = (() => {
+				const a = l.anliegen.find((x) => x.id === String(ev.daten?.anliegen));
+				return a && "id" in a.bedingung ? a.bedingung : null;
+			})();
+			if (!paket) return [
+				opt("gespraech", "Ein Gespräch anbieten", beschr(2, 0, "kauft Zeit, ohne etwas zu ändern."), 2, (ww) => {
+					landAendern(ww, l.id, { vertrauen: 4 }, "Gesprächsangebot nach einer Forderung");
+					return `${anredeVon(l.id)} nimmt das Gesprächsangebot an, wartet aber weiter auf Taten.`;
+				}),
+				opt("zusagen", "Eine Zusage machen", beschr(3, 0, `${anredeVon(l.id)} bekommt ein Versprechen, das in acht Monaten eingefordert wird.`), 3, (ww) => {
+					landAendern(ww, l.id, { vertrauen: 6 }, "Zusage nach einer Forderung");
+					if (m) zusageAnlegen(ww, {
+						von: anredeVon(l.id),
+						text: `${anredeVon(l.id)} wurde zugesagt: ${String(ev.daten?.text ?? "das Anliegen")}`,
+						tage: 240,
+						massnahme: m.id
+					});
+					return `Die Regierung sagt ${anredeVon(l.id)} zu, das Anliegen anzugehen.`;
+				}),
+				opt("zurueckweisen", "Zurückweisen", beschr(0, 0, "Beifall zu Hause, Ärger im Ausland."), 0, (ww) => {
+					landAendern(ww, l.id, {
+						vertrauen: -8,
+						konflikt: 5
+					}, "Forderung zurückgewiesen");
+					wirke(ww, "konservative", 1);
+					vertrauenAendern(ww, .5);
+					return `Die Regierung weist die Forderung von ${anredeVon(l.id)} zurück.`;
+				})
+			];
+			const pk = pkFuer(paket);
+			const pkGegen = gegen ? pkFuer(gegen) : pk;
+			return [
+				opt("erfuellen", `Die Forderung erfüllen (Vertrag über ${paket.jahre} Jahre)`, beschr(pk, 0, `${anredeVon(l.id)} bekommt „${labelVon(w, l.id, String(ev.daten?.klausel))}“ als Vertrag; das Verhältnis entspannt sich, aber der Vertrag bindet und wird jedes Jahr geprüft.`), pk, (ww) => {
+					const pruef = pruefeAngebot(ww, paket);
+					if (pruef) return `Die Forderung lässt sich nicht mehr erfüllen: ${pruef}`;
+					schliesse(ww, paket);
+					return `Die Türkei erfüllt die Forderung: ${paketText(ww, paket)}`;
+				}),
+				opt("gegenangebot", "Gegenangebot: Entgegenkommen gegen Gegenleistung", beschr(pkGegen, 0, gegen && gegen.will.length ? `die Türkei gibt „${labelVon(w, l.id, gegen.gibt[0])}“ und verlangt „${labelVon(w, l.id, gegen.will[0])}“; stimmt ${l.name} nicht, war die Verhandlung umsonst.` : `dieselbe Klausel, aber nur zwei Jahre gebunden; stimmt ${l.name} nicht, war die Verhandlung umsonst.`), pkGegen, (ww) => {
+					if (!gegen) return "Es gibt nichts, wogegen sich verhandeln ließe.";
+					if (bewerte(ww, gegen).urteil === "zustimmung") {
+						schliesse(ww, gegen);
+						return `${anredeVon(l.id)} lässt sich auf den Tausch ein: ${paketText(ww, gegen)}`;
+					}
+					landAendern(ww, l.id, { vertrauen: -2 }, "Gegenangebot abgelehnt");
+					return `${anredeVon(l.id)} besteht auf der vollen Forderung und lehnt den Tausch ab. Der Verhandlungstisch bleibt geöffnet.`;
+				}),
+				opt("ablehnen", "Ablehnen", beschr(0, 0, "Beifall zu Hause, aber die Beziehung kühlt ab und der Streit wächst."), 0, (ww) => {
+					landAendern(ww, l.id, {
+						vertrauen: -8,
+						konflikt: 5
+					}, "Forderung abgelehnt");
+					wirke(ww, "konservative", 1);
+					vertrauenAendern(ww, .5);
+					return `Die Regierung lehnt die Forderung von ${anredeVon(l.id)} ab.`;
+				})
+			];
+		},
+		standard: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			landAendern(w, l.id, {
+				vertrauen: -5,
+				konflikt: 2
+			}, "Forderung unbeantwortet");
+			return `${anredeVon(l.id)} wertet das Schweigen als Antwort.`;
+		}
+	},
+	{
+		id: "land_angebot",
+		szene: "bank",
+		frist: 30,
+		abkuehlung: 300,
+		chance: (w) => besterKandidat(w, "land_angebot") ? R.monatsChance : 0,
+		eroeffne: (w, ev) => merkeInitiative(w, String(ev.daten?.land)),
+		erzeuge: (w) => {
+			const k = besterKandidat(w, "land_angebot");
+			return k ? {
+				provinzen: [],
+				staerke: 1,
+				daten: {
+					...k.daten,
+					gewicht: k.gewicht
+				}
+			} : null;
+		},
+		titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} schlägt einen Vertrag vor`,
+		text: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const a = paketAus(ev);
+			return [`${String(ev.daten?.anlass ?? "vertrauen") === "ausstrahlung" ? `${ev.daten?.text ?? ""} ${anredeVon(l.id)} will den Moment nutzen und legt ein Paket auf den Tisch.` : `${anredeVon(l.id)} legt ein Paket auf den Tisch.`} ${paketText(w, a)}`, `Das Verhältnis ist gut (Vertrauen ${Math.round(vertrauenZu(w, l.id))}); es ist die Zeit, daraus etwas zu machen. Was das Paket bei uns bewirkt, zeigen die Antworten.`];
+		},
+		warum: () => "Vertrauen ist Kapital, das man nur einlösen kann, wenn ein Angebot kommt. Wer es nie einlöst, hat es umsonst aufgebaut. Ein Vertrag bindet aber beide Seiten und wird jedes Jahr geprüft.",
+		massnahmen: [],
+		optionen: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const a = paketAus(ev);
+			const kurz = {
+				...a,
+				jahre: 2
+			};
+			const zeilen = [...a.gibt, ...a.will].flatMap((id) => KLAUSEL_NACH_ID[id] ? heimWirkung(KLAUSEL_NACH_ID[id]).dauer.slice(0, 2).map((z) => z.text) : []).slice(0, 4).join("; ");
+			const preis = pkFuer(a);
+			return [
+				opt("annehmen", `Annehmen: ${a.jahre} Jahre`, beschr(preis, 0, zeilen ? `bei uns: ${zeilen}; ein Vertrag bindet und wird jedes Jahr geprüft.` : "ein Vertrag bindet und wird jedes Jahr geprüft."), preis, (ww) => {
+					const pruef = pruefeAngebot(ww, a);
+					if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
+					schliesse(ww, a);
+					return `Die Türkei und ${l.name} schließen den Vertrag: ${paketText(ww, a)}`;
+				}),
+				opt("verhandeln", "Verhandeln: nur zwei Jahre binden", beschr(pkFuer(kurz), 0, "schwächere Dauerwirkung, dafür weniger Bindung."), pkFuer(kurz), (ww) => {
+					const pruef = pruefeAngebot(ww, kurz);
+					if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
+					schliesse(ww, kurz);
+					return `Die Türkei und ${l.name} schließen einen Vertrag auf zwei Jahre.`;
+				}),
+				opt("ablehnen", "Ablehnen", beschr(0, 0, "wahrt die Unabhängigkeit, kostet etwas Wärme."), 0, (ww) => {
+					landAendern(ww, l.id, { vertrauen: -3 }, "Vertragsvorschlag abgelehnt");
+					return `Die Türkei lehnt den Vorschlag von ${anredeVon(l.id)} höflich ab.`;
+				})
+			];
+		},
+		standard: (w, ev) => {
+			merkeInitiative(w, String(ev.daten?.land));
+			landAendern(w, String(ev.daten?.land), { vertrauen: -2 }, "Vertragsvorschlag verfallen");
+			return "Der Vorschlag verfällt ungenutzt.";
+		}
+	},
+	{
+		id: "vertrag_verlaengerung",
+		szene: "bank",
+		frist: 40,
+		abkuehlung: 60,
+		chance: (w) => besterKandidat(w, "vertrag_verlaengerung") ? R.monatsChance : 0,
+		eroeffne: (w, ev) => merkeInitiative(w, String(ev.daten?.land)),
+		erzeuge: (w) => {
+			const k = besterKandidat(w, "vertrag_verlaengerung");
+			return k ? {
+				provinzen: [],
+				staerke: 1,
+				daten: {
+					...k.daten,
+					gewicht: k.gewicht
+				}
+			} : null;
+		},
+		titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} will den Vertrag verlängern`,
+		text: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const v = laufende(w, l.id).find((x) => x.id === String(ev.daten?.vertrag));
+			const rest = v ? Math.max(0, v.ablauf - w.day) : 0;
+			const zugabe = String(ev.daten?.zugabe ?? "");
+			return [`Der Vertrag mit ${l.dat} (${v ? vertragsName(w, v) : "Vertrag"}) läuft in etwa ${Math.max(1, Math.round(rest / 30))} Monaten aus. ${anredeVon(l.id)} kommt früh auf die Türkei zu und bietet eine Verlängerung an${zugabe ? ` — für die lange Bindung erwartet es eine kleine Zugabe: „${labelVon(w, l.id, zugabe)}“` : ""}.`, `${v && v.verstoesse === 0 ? "Der Vertrag wurde bisher gehalten; das zählt für eine Verlängerung." : "Es gab Verstöße; eine Verlängerung ist damit fraglich."} Das Vertrauen liegt bei ${Math.round(vertrauenZu(w, l.id))}.`];
+		},
+		warum: () => "Verträge, die auslaufen, hören nicht auf zu wirken, weil man sie vergisst: Die Dauerwirkungen enden, und das Land fragt sich, ob man es ernst gemeint hat. Wer früh kommt, handelt aus Interesse, nicht aus Freundlichkeit.",
+		massnahmen: [],
+		optionen: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const vid = String(ev.daten?.vertrag);
+			const zugabe = String(ev.daten?.zugabe ?? "");
+			return [
+				...zugabe ? [opt("verlaengern_zugabe", `Verlängern mit Zugabe: fünf Jahre plus „${labelVon(w, l.id, zugabe)}“`, beschr(VERLAENGERUNG_PK[5] + 2, 0, "die Dauerwirkungen laufen fünf Jahre weiter; die Zugabe ist ein kleines Zusatzprotokoll auf zwei Jahre."), VERLAENGERUNG_PK[5] + 2, (ww) => {
+					const r = verlaengere(ww, l.id, vid, 5, false);
+					if (!r.ok) return r.text;
+					const protokoll = {
+						land: l.id,
+						gibt: [zugabe],
+						will: [],
+						jahre: 2
+					};
+					if (!pruefeAngebot(ww, protokoll)) {
+						schliesse(ww, protokoll);
+						return `${r.text} Als Zugabe unterschreiben beide Seiten ein Zusatzprotokoll: „${labelVon(ww, l.id, zugabe)}“.`;
+					}
+					return `${r.text} Die Zugabe entfällt; sie ist nicht mehr möglich.`;
+				})] : [opt("verlaengern5", "Um fünf Jahre verlängern", beschr(VERLAENGERUNG_PK[5], 0, "die Dauerwirkungen laufen weiter, die Bindung auch."), VERLAENGERUNG_PK[5], (ww) => verlaengere(ww, l.id, vid, 5, false).text)],
+				opt("verlaengern2", "Um zwei Jahre verlängern", beschr(VERLAENGERUNG_PK[2], 0, "kürzere Bindung ohne Zugabe, die Wirkungen laufen weiter."), VERLAENGERUNG_PK[2], (ww) => verlaengere(ww, l.id, vid, 2, false).text),
+				opt("auslaufen", "Auslaufen lassen", beschr(0, 0, "die Wirkungen enden mit dem Vertrag; das Land merkt sich die Zurückhaltung."), 0, (ww) => {
+					landAendern(ww, l.id, { vertrauen: -2 }, "Verlängerung ausgeschlagen");
+					return `Der Vertrag mit ${l.dat} läuft aus.`;
+				})
+			];
+		},
+		standard: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			merkeInitiative(w, l.id);
+			landAendern(w, l.id, { vertrauen: -2 }, "Verlängerungsangebot verfristet");
+			return `Das Angebot von ${anredeVon(l.id)} verfällt; der Vertrag mit ${l.dat} läuft ohne Verlängerung aus.`;
+		}
+	},
 	{
 		id: "land_provokation",
 		szene: "anatolien",
 		frist: 12,
 		abkuehlung: 240,
-		chance: (w) => w.day > AB_TAG && schwelend(w) ? .035 : 0,
+		chance: (w) => besterKandidat(w, "land_provokation") ? R.monatsChance : 0,
+		eroeffne: (w, ev) => merkeInitiative(w, String(ev.daten?.land)),
 		erzeuge: (w) => {
-			const a = schwelend(w);
-			return a ? {
+			const k = besterKandidat(w, "land_provokation");
+			return k ? {
 				provinzen: [],
 				staerke: 1,
-				daten: { land: a.id }
+				daten: {
+					...k.daten,
+					gewicht: k.gewicht
+				}
 			} : null;
 		},
-		titel: (_, ev) => `Streit mit ${land(String(ev.daten?.land)).dat} flammt auf`,
+		titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} sucht den Streit`,
 		text: (w, ev) => {
 			const l = land(String(ev.daten?.land));
-			return [`Der Dauerstreit mit ${l.dat} verschärft sich: Erklärungen, Manöver, Vorwürfe. Der Konflikt liegt bei ${Math.round(weltZustand(w)[l.id].konflikt)} von 100.`, `${l.text.split(";")[0]}.`];
+			return [`Der Dauerstreit mit ${l.dat} verschärft sich von der anderen Seite: Erklärungen, Manöver, Vorwürfe — offenbar soll die Türkei aus der Reserve gelockt werden. Der Konflikt liegt bei ${Math.round(weltZustand(w)[l.id].konflikt)} von 100.`, `${l.text.split(";")[0]}.`];
 		},
-		warum: () => "Schwelende Konflikte lösen sich nicht von selbst. Jede Seite braucht einen Weg heraus, der nicht wie Niederlage aussieht.",
+		warum: () => "Provokationen sind Angebote zum Fehler: Wer duldet, verliert Gesicht; wer kontert, heizt den Streit an; wer vermitteln lässt, braucht Geduld und etwas Ansehen.",
 		massnahmen: [],
 		optionen: (_, ev) => {
 			const l = land(String(ev.daten?.land));
 			return [
-				opt("deeskalieren", "Deeskalieren und einen Kanal öffnen", beschr(3, 0, "senkt die Spannung, Nationalisten murren."), 3, (ww) => {
-					landAendern(ww, l.id, {
-						konflikt: -10,
-						vertrauen: 3
-					}, "Deeskalation");
+				opt("dulden", "Dulden und nicht anbeißen", beschr(0, 0, "keine Eskalation, aber ein Gesichtsverlust im Inland."), 0, (ww) => {
+					vertrauenAendern(ww, -1);
 					wirke(ww, "konservative", -1);
-					loyalitaetAendern(ww, "aussen", 4);
-					return `Ein diplomatischer Kanal mit ${l.dat} wird geöffnet; die Lage beruhigt sich.`;
+					landAendern(ww, l.id, { konflikt: 2 }, "Provokation geduldet");
+					return `Die Regierung schweigt zu den Vorwürfen aus ${l.name}; zu Hause lesen das manche als Schwäche.`;
 				}),
-				opt("standhalten", "Standhalten", beschr(1, 0, "Härte zeigen, ohne zu eskalieren."), 1, (ww) => {
-					landAendern(ww, l.id, { konflikt: 2 }, "Standhaft geblieben");
-					vertrauenAendern(ww, .5);
-					return `Die Regierung bleibt fest und antwortet auf die Erklärungen aus ${l.name} mit einer eigenen.`;
-				}),
-				opt("eskalieren", "Mit einem Manöver antworten", beschr(3, .1, "starker Auftritt, höhere Spannung und Kosten."), 3, (ww) => {
-					kosten(ww, .1);
+				opt("kontern", "Kontern: scharfe Antwort und Manöver", beschr(2, .05, "ein starker Auftritt im Inland, der den Streit anheizt und Geld kostet."), 2, (ww) => {
+					kosten(ww, .05);
 					landAendern(ww, l.id, {
-						konflikt: 10,
-						vertrauen: -6
-					}, "Manöver als Antwort");
-					vertrauenAendern(ww, 1.5);
+						konflikt: 8,
+						vertrauen: -4
+					}, "Provokation gekontert");
 					wirke(ww, "militaer", 1);
-					return `Ein Manöver der Streitkräfte antwortet auf ${l.akk}; die Spannung steigt.`;
+					wirke(ww, "konservative", 1);
+					vertrauenAendern(ww, 1);
+					return `Ankara antwortet scharf und lässt Truppen auffahren; die Spannung mit ${l.dat} steigt.`;
+				}),
+				opt("vermittlung", "Internationale Vermittlung rufen", beschr(4, 0, "dritte Vermittler sollen die Lage beruhigen; misslingt es, steht die Türkei schwächer da."), 4, (ww, e, rng) => {
+					const aussicht = clamp(45 + (vertrauenZu(ww, l.id) - 30), 10, 80);
+					if (rng.next() * 100 < aussicht) {
+						landAendern(ww, l.id, {
+							konflikt: -12,
+							vertrauen: 4
+						}, "Vermittlung gelungen");
+						wirke(ww, "ansehen", 1);
+						loyalitaetAendern(ww, "aussen", 4);
+						return `Vermittler legen beide Seiten auf Eis: Der Streit mit ${l.dat} beruhigt sich.`;
+					}
+					landAendern(ww, l.id, { konflikt: 3 }, "Vermittlung gescheitert");
+					wirke(ww, "ansehen", -1);
+					return `${anredeVon(l.id)} lässt die Vermittler abblitzen; der Versuch wirkt wie ein Eingeständnis.`;
 				})
 			];
 		},
 		standard: (w, ev) => {
 			landAendern(w, String(ev.daten?.land), { konflikt: 4 }, "Provokation unbeantwortet");
+			vertrauenAendern(w, -.5);
 			return "Ohne Antwort verschärft sich der Ton.";
 		}
 	},
-	VERTRAG_VERLAENGERUNG
+	{
+		id: "land_drohkulisse",
+		szene: "anatolien",
+		frist: 10,
+		abkuehlung: 120,
+		chance: (w) => besterKandidat(w, "land_drohkulisse") ? R.monatsChance : 0,
+		eroeffne: (w, ev) => merkeInitiative(w, String(ev.daten?.land)),
+		erzeuge: (w) => {
+			const k = besterKandidat(w, "land_drohkulisse");
+			return k ? {
+				provinzen: [],
+				staerke: 1,
+				daten: {
+					...k.daten,
+					gewicht: k.gewicht
+				}
+			} : null;
+		},
+		titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} baut eine Drohkulisse auf`,
+		text: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const klausel = String(ev.daten?.klausel ?? forderungsKlausel(w, l.id)?.def.id ?? "");
+			return [`${anredeVon(l.id)} lässt Geduld und Diplomatie hinter sich: Truppenbewegungen, scharfe Worte, und dazu eine konkrete Forderung${klausel ? ` — „${labelVon(w, l.id, klausel)}“` : ""}. Der Konflikt liegt bei ${Math.round(weltZustand(w)[l.id].konflikt)} von 100, knapp unter der Schwelle, ab der aus Krise Krieg werden kann.`, `Der Generalstab warnt, dass jede falsche Antwort die Lage kippen lässt; die Auslandspresse spricht von der schwersten Krise dieser Amtszeit.`];
+		},
+		warum: () => "An der Kriegsschwelle hat jede Antwort zwei Preise: den sofortigen für die Beziehung und den inneren für das Gesicht des Präsidenten. Nachgeben beruhigt und beschämt, Standhalten ehrt und riskiert, Vermittlung kostet Ansehen und Zeit.",
+		massnahmen: [],
+		optionen: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			const klausel = String(ev.daten?.klausel ?? forderungsKlausel(w, l.id)?.def.id ?? "");
+			const paket = klausel ? {
+				land: l.id,
+				gibt: [klausel],
+				will: [],
+				jahre: 5
+			} : null;
+			const pk = paket ? pkFuer(paket) : 2;
+			return [
+				opt("nachgeben", paket ? `Nachgeben: „${labelVon(w, l.id, klausel)}“ als Vertrag erfüllen` : "Nachgeben und beruhigen", beschr(pk, 0, "die Krise entspannt sich sofort, aber der Verzicht unter Drohung kostet Ansehen im Ausland und Stimmen im nationalen Lager."), pk, (ww) => {
+					if (paket) {
+						const pruef = pruefeAngebot(ww, paket);
+						if (pruef) return `Das Zugeständnis lässt sich nicht mehr geben: ${pruef}`;
+						schliesse(ww, paket);
+					}
+					landAendern(ww, l.id, {
+						konflikt: -15,
+						vertrauen: -4
+					}, "Nachgegeben unter Drohung");
+					wirke(ww, "konservative", -2);
+					wirke(ww, "ansehen", -2);
+					vertrauenAendern(ww, -1);
+					return `Die Türkei gibt der Drohkulisse nach${paket ? ` und erfüllt „${labelVon(ww, l.id, klausel)}“ per Vertrag` : ""}; die Lage beruhigt sich, doch der Verzicht unter Druck bleibt in Erinnerung.`;
+				}),
+				opt("standhalten", "Standhalten", beschr(2, 0, "Härte zeigen: Das Land rückt zusammen, doch die Drohkulisse bleibt — und die Kriegsgefahr rückt näher."), 2, (ww) => {
+					landAendern(ww, l.id, {
+						konflikt: 3,
+						vertrauen: -3
+					}, "Drohkulisse standgehalten");
+					wirke(ww, "militaer", 1);
+					wirke(ww, "konservative", 1);
+					vertrauenAendern(ww, 1);
+					drohkulisseUebergabe(ww, {
+						land: l.id,
+						konflikt: weltZustand(ww)[l.id].konflikt,
+						tag: ww.day,
+						ausloeser: "standhalten"
+					});
+					return `Ankara weist die Forderung von ${anredeVon(l.id)} zurück und bleibt an der Schwelle standhaft.`;
+				}),
+				opt("vermittlung", "Vermittlung unter Freunden suchen", beschr(5, 0, "teuer und ungewiss: Gelingt sie, entspannt sich die Lage spürbar; scheitert sie, wächst die Drohkulisse."), 5, (ww, e, rng) => {
+					const aussicht = clamp(40 + (vertrauenZu(ww, l.id) - 25), 10, 75);
+					if (rng.next() * 100 < aussicht) {
+						landAendern(ww, l.id, {
+							konflikt: -18,
+							vertrauen: 3
+						}, "Vermittlung in der Drohkulisse gelungen");
+						wirke(ww, "ansehen", 2);
+						loyalitaetAendern(ww, "aussen", 5);
+						return `Vermittler erreichen eine Deeskalation: ${anredeVon(l.id)} zieht die Drohkulisse ab.`;
+					}
+					landAendern(ww, l.id, { konflikt: 4 }, "Vermittlung in der Drohkulisse gescheitert");
+					wirke(ww, "ansehen", -1);
+					drohkulisseUebergabe(ww, {
+						land: l.id,
+						konflikt: weltZustand(ww)[l.id].konflikt,
+						tag: ww.day,
+						ausloeser: "vermittlung_gescheitert"
+					});
+					return `Die Vermittlung scheitert; ${anredeVon(l.id)} liest den Versuch als Schwäche und baut die Drohkulisse weiter aus.`;
+				})
+			];
+		},
+		standard: (w, ev) => {
+			const l = land(String(ev.daten?.land));
+			landAendern(w, l.id, {
+				konflikt: 6,
+				vertrauen: -4
+			}, "Drohkulisse verfristet");
+			vertrauenAendern(w, -1.5);
+			belastungEreignis(w, VERFASSUNG.eskalation, `Ungelöste Drohkulisse mit ${l.name}`);
+			drohkulisseUebergabe(w, {
+				land: l.id,
+				konflikt: weltZustand(w)[l.id].konflikt,
+				tag: w.day,
+				ausloeser: "verfristet"
+			});
+			return `Ohne Antwort hält ${anredeVon(l.id)} die Drohkulisse aufrecht; die Krise „Kriegsgefahr“ trägt die Folgen.`;
+		}
+	}
 ];
+for (const v of INITIATIVE_VORLAGEN) VORLAGE_Lokal.set(v.id, v);
+//#endregion
+//#region src/sim/aussenwelt.ts
+const AUSSENWELT = {
+	/** Rückkehr zum Mittel pro Monat */
+	rueckkehr: .08,
+	/** Monatliche Schwankung (Standardabweichung, Indexpunkte) */
+	rauschen: {
+		oel: 3.5,
+		eu: 1.2,
+		weltzins: 1
+	},
+	/** Wahrscheinlichkeit eines Schocks pro Monat */
+	schockChance: {
+		oel: .035,
+		eu: .02,
+		weltzins: .015
+	}
+};
+function aussenweltStart(world) {
+	const e = world.economy;
+	e.oel ??= 100;
+	e.euNachfrage ??= 100;
+	e.weltzins ??= 100;
+}
+/** Ein Monat Außenwelt. Meldet Schocks im Protokoll (Art „markt“), damit die Oberfläche sie anzeigen kann. */
+function aussenweltMonat(world, rng) {
+	const e = world.economy;
+	aussenweltStart(world);
+	const schritt = (wert, sd) => wert + AUSSENWELT.rueckkehr * (100 - wert) + rng.normal(sd);
+	e.oel = Math.max(40, schritt(e.oel, AUSSENWELT.rauschen.oel));
+	e.euNachfrage = Math.max(60, schritt(e.euNachfrage, AUSSENWELT.rauschen.eu));
+	e.weltzins = Math.max(60, schritt(e.weltzins, AUSSENWELT.rauschen.weltzins));
+	if (rng.next() < AUSSENWELT.schockChance.oel) {
+		const richtung = rng.next() < .7 ? 1 : -1;
+		const staerke = rng.between(18, 38);
+		e.oel = Math.max(40, e.oel + richtung * staerke);
+		addLog(world, "markt", richtung > 0 ? "Der Energiepreis springt am Weltmarkt nach oben." : "Der Energiepreis fällt am Weltmarkt deutlich.", richtung > 0 ? "Die Türkei importiert den größten Teil ihrer Energie: Das treibt Inflation und Lira unter Druck." : "Billigere Energie entlastet Preise und Handelsbilanz.");
+	}
+	if (rng.next() < AUSSENWELT.schockChance.eu) {
+		const staerke = rng.between(8, 16);
+		e.euNachfrage = Math.max(60, e.euNachfrage - staerke);
+		addLog(world, "markt", "Die Nachfrage aus der EU bricht ein.", "Die EU ist der wichtigste Handelspartner: Exporte und Beschäftigung in den Industrieprovinzen leiden.");
+	}
+	if (rng.next() < AUSSENWELT.schockChance.weltzins) {
+		const staerke = rng.between(6, 14);
+		e.weltzins = e.weltzins + staerke;
+		addLog(world, "markt", "Die großen Zentralbanken heben die Zinsen an.", "Anleger ziehen Geld aus Schwellenländern ab: Risikoaufschlag und Lira geraten unter Druck.");
+	}
+}
+AUFMERKSAMKEIT_KOSTEN.verhandlungGespraech, AUFMERKSAMKEIT_KOSTEN.zugestaendnis, AUFMERKSAMKEIT_KOSTEN.duldung, AUFMERKSAMKEIT_KOSTEN.koalition, AUFMERKSAMKEIT_KOSTEN.abwerben;
+const VERHANDLUNG = {
+	gespraechAbkuehlung: 30,
+	zugestaendnisAbkuehlung: 120,
+	duldungTage: 180,
+	koalitionZusageTage: 150,
+	duldungMin: 40,
+	koalitionMin: 55
+};
+const pkGespraech = 1;
+const pkZugestaendnis = 3;
+const pkDuldung = (sitze) => 2 + Math.ceil(sitze / 40);
+const pkKoalition = (sitze) => 4 + Math.ceil(sitze / 30);
+const pkAbwerben = (sitze) => 5 + Math.ceil(sitze / 40);
+function eigene(world) {
+	return world.player?.partei.kurz ?? "";
+}
+function datumBis(world, tag) {
+	return formatDateDe(addDays(world.date, tag - world.day));
+}
+/** Alle Fraktionen außer der eigenen, mit Stand und möglichen Verhandlungsschritten. */
+function fraktionsUebersicht(world) {
+	const spiel = world.spiel;
+	const parl = world.parliament;
+	if (!spiel || !parl) return [];
+	const kapital = verfuegbar(spiel.kapital);
+	const out = [];
+	for (const [partei, sitze] of Object.entries(parl.seats)) {
+		if (partei === eigene(world) || sitze <= 0) continue;
+		const f = fraktion(world, partei);
+		const imLager = spiel.lager.includes(partei);
+		const duldet = f.duldungBis !== void 0 && f.duldungBis > world.day && !imLager;
+		const status = imLager ? "lager" : duldet ? "duldung" : "opposition";
+		const forderung = forderungVon(world, partei).text;
+		const aktionen = [];
+		{
+			const rest = (f.gespraech ?? -1e9) + VERHANDLUNG.gespraechAbkuehlung - world.day;
+			aktionen.push({
+				id: "gespraech",
+				label: "Gespräch führen",
+				pk: pkGespraech,
+				moeglich: rest <= 0 && kapital >= pkGespraech,
+				...rest > 0 ? { grund: `Erst in ${rest} Tagen wieder sinnvoll.` } : kapital < pkGespraech ? { grund: "Dafür fehlt Kapital." } : {},
+				hinweis: "Macht die Fraktion offener für Sie (+8)."
+			});
+		}
+		if (!imLager) {
+			{
+				const rest = (f.zugestaendnis ?? -1e9) + VERHANDLUNG.zugestaendnisAbkuehlung - world.day;
+				aktionen.push({
+					id: "zugestaendnis",
+					label: "Kontrollrechte zugestehen",
+					pk: pkZugestaendnis,
+					moeglich: rest <= 0 && kapital >= pkZugestaendnis,
+					...rest > 0 ? { grund: `Schon zugestanden; wieder möglich in ${rest} Tagen.` } : kapital < pkZugestaendnis ? { grund: "Dafür fehlt Kapital." } : {},
+					hinweis: "Untersuchungsausschuss, Redezeit, Einsicht: macht sie deutlich offener (+15) und entspannt das Klima."
+				});
+			}
+			{
+				const pk = pkDuldung(sitze);
+				const ja = Math.round(sitze * DULDUNG_QUOTE);
+				const grund = duldet ? `Läuft noch bis ${datumBis(world, f.duldungBis)}.` : f.bereitschaft < VERHANDLUNG.duldungMin ? `Sie ist ${bereitschaftWort(f.bereitschaft)}; erst Gespräche oder Zugeständnisse.` : kapital < pk ? "Dafür fehlt Kapital." : void 0;
+				aktionen.push({
+					id: "duldung",
+					label: "Duldung aushandeln",
+					pk,
+					moeglich: !grund,
+					...grund ? { grund } : {},
+					hinweis: `${VERHANDLUNG.duldungTage / 30} Monate lang etwa ${ja} Ja-Stimmen bei Gesetzen. Sie erwartet dafür ${forderung}.`
+				});
+			}
+			{
+				const pk = pkKoalition(sitze);
+				const grund = sitze < 10 ? "Zu klein für ein Bündnis." : f.bereitschaft < VERHANDLUNG.koalitionMin ? `Sie ist ${bereitschaftWort(f.bereitschaft)}; für ein Bündnis braucht sie mehr Vertrauen.` : kapital < pk ? "Dafür fehlt Kapital." : void 0;
+				aktionen.push({
+					id: "koalition",
+					label: "Ins Lager holen",
+					pk,
+					moeglich: !grund,
+					...grund ? { grund } : {},
+					hinweis: `Alle ${sitze} Sitze im Lager, dauerhaft. Sie erwartet ${forderung}; bei Bruch verlässt sie das Lager.`
+				});
+			}
+			if (sitze >= 20) {
+				const pk = pkAbwerben(sitze);
+				aktionen.push({
+					id: "abwerben",
+					label: "Abgeordnete abwerben",
+					pk,
+					moeglich: kapital >= pk,
+					...kapital < pk ? { grund: "Dafür fehlt Kapital." } : {},
+					hinweis: "Einzelne Abgeordnete wechseln zu Ihnen, wenn es gelingt. Die Fraktion vergisst das nicht."
+				});
+			}
+		}
+		out.push({
+			partei,
+			name: PARTEI_NAME[partei] ?? partei,
+			ausrichtung: AUSRICHTUNG[partei] ?? "",
+			sitze,
+			status,
+			...f.duldungBis !== void 0 && duldet ? { duldungBis: f.duldungBis } : {},
+			bereitschaft: f.bereitschaft,
+			wort: bereitschaftWort(f.bereitschaft),
+			forderung,
+			aktionen
+		});
+	}
+	return out.sort((a, b) => b.sitze - a.sitze);
+}
+/** Einmal im Monat: Duldungen laufen aus, die Stimmung kehrt langsam zum Ausgangswert zurück. */
+function verhandlungMonat(world) {
+	const spiel = world.spiel;
+	if (!spiel?.fraktionen) return;
+	for (const [partei, f] of Object.entries(spiel.fraktionen)) {
+		if (f.duldungBis !== void 0 && f.duldungBis <= world.day) {
+			delete f.duldungBis;
+			addLog(world, "ereignis", `Die Duldung durch die ${PARTEI_NAME[partei] ?? partei} endet.`, "Ihre Stimmen fehlen ab jetzt bei Gesetzen; eine neue Vereinbarung kostet erneut Kapital.");
+		}
+		const ziel = startBereitschaft(world, partei);
+		f.bereitschaft += Math.sign(ziel - f.bereitschaft) * Math.min(1, Math.abs(ziel - f.bereitschaft));
+	}
+}
+//#endregion
+//#region src/sim/eu.ts
+const EU_REGELN = {
+	/** Dauer des Screenings in Tagen (zwölf Monate) */
+	screeningTage: 365,
+	/** Höchstens so viele Kapitel werden parallel verhandelt, der Rest der Reihe nach */
+	parallelMax: 2,
+	/** Monat des jährlichen Fortschrittsberichts (November, vor dem Haushaltsfenster) */
+	berichtMonat: 11,
+	/**
+	* Alibi-Schwelle: Ein Kriterium, das nur um weniger als so viele Punkte über der Marke steht,
+	* liest Brüssel als Fensterdressing — das Kapitel rührt sich nicht, bis die Substanz stimmt.
+	*/
+	alibiMarge: 3,
+	/** Ab so vielen vorläufig geschlossenen Kapiteln bietet Brüssel das Mandat für das Zollunion-Update an */
+	zollunionKapitel: 3,
+	/** Nach einer Ablehnung des Zollunion-Angebots kommt es frühestens so viele Tage wieder auf den Tisch */
+	zollunionSperreTage: 730,
+	/** Nach einem nicht beantworteten Veto ist das Kapitel so viele Tage blockiert */
+	vetoSperreTage: 365,
+	/** Kapital für die Ankündigung des Reformpakets */
+	pkAnkuendigung: 6,
+	/** Kapital für das Zugeständnis, mit dem ein Veto aufgehoben wird */
+	pkVetoZugestaendnis: 5,
+	/** Laufender Innenpreis je verhandeltem Kapitel (REC-Logik: Reformen kosten laufend Kapital) */
+	kapitalJeKapitel: .15
+};
+const K = (id, text, knoten, art, wert) => ({
+	id,
+	text,
+	knoten,
+	art,
+	wert
+});
+/**
+* Zehn von 35 Kapiteln als spielbare Menge. Die Wahl folgt der politischen Brisanz, nicht dem
+* Alphabet: 23 und 24 sind die Rechtsstaats-Kernkapitel (und an Zypern gekoppelt), 5, 17 und 33
+* tragen die wirtschaftliche Substanz, 11, 12, 15 und 27 die Sektoren mit dem größten innen-
+* politischen Preis, 31 die außenpolitische Ausrichtung. Die übrigen 25 Kapitel laufen als
+* Binnenmarkt-Technik im Hintergrund mit; sie hätten keine eigene Entscheidung geboten.
+*/
+const KAPITEL = [
+	{
+		id: "k23",
+		nummer: 23,
+		name: "Justiz und Grundrechte",
+		zypernBlockiert: true,
+		jahre: 3,
+		text: "Der Kern des ganzen Prozesses: unabhängige Gerichte, befolgte Urteile, freie Medien.",
+		oeffnung: [
+			K("justiz", "Unabhängigkeit der Justiz mindestens 50", "justiz_unabhaengigkeit", "min", 50),
+			K("urteile", "Befolgung von Urteilen mindestens 48", "urteilsbefolgung", "min", 48),
+			K("presse", "Pressefreiheit mindestens 40", "pressefreiheit", "min", 40)
+		],
+		schluss: [
+			K("justiz", "Unabhängigkeit der Justiz mindestens 62", "justiz_unabhaengigkeit", "min", 62),
+			K("urteile", "Befolgung von Urteilen mindestens 60", "urteilsbefolgung", "min", 60),
+			K("strassburg", "Druck aus Straßburg höchstens 35", "strassburg_druck", "max", 35)
+		],
+		nutzen: [{
+			knoten: "auslandskapital",
+			d: 2,
+			text: "Investoren prüfen zuerst die Gerichte"
+		}, {
+			knoten: "ansehen",
+			d: 2,
+			text: "Ein Rechtsstaat wird ernst genommen"
+		}]
+	},
+	{
+		id: "k24",
+		nummer: 24,
+		name: "Justiz, Freiheit und Sicherheit",
+		zypernBlockiert: true,
+		jahre: 3,
+		text: "Korruptionsbekämpfung, Grenzschutz und das Ende des Ausnahmerechts.",
+		oeffnung: [K("korruption", "Korruption höchstens 50", "korruption", "max", 50), K("grenze", "Grenzschutz mindestens 55", "m_grenzschutz", "min", 55)],
+		schluss: [
+			K("korruption", "Korruption höchstens 40", "korruption", "max", 40),
+			K("grenze", "Grenzschutz mindestens 65", "m_grenzschutz", "min", 65),
+			K("ausnahme", "Ausnahmerecht höchstens 15", "ausnahmerecht", "max", 15)
+		],
+		nutzen: [{
+			knoten: "rechtssicherheit",
+			d: 1.5,
+			text: "Verlässliche Regeln statt Sonderbefugnisse"
+		}, {
+			knoten: "beziehungen_eu",
+			d: 1.5,
+			text: "Die Migrationszusammenarbeit trägt"
+		}]
+	},
+	{
+		id: "k5",
+		nummer: 5,
+		name: "Öffentliches Auftragswesen",
+		jahre: 2,
+		text: "Offene Vergaben statt Aufträge gegen Gefälligkeit.",
+		oeffnung: [K("korruption", "Korruption höchstens 48", "korruption", "max", 48), K("anti", "Korruptionsbekämpfung mindestens 40", "m_antikorruption", "min", 40)],
+		schluss: [K("korruption", "Korruption höchstens 38", "korruption", "max", 38), K("anti", "Korruptionsbekämpfung mindestens 55", "m_antikorruption", "min", 55)],
+		nutzen: [{
+			knoten: "auslandskapital",
+			d: 1,
+			text: "Vergaben, die man nicht kaufen muss, ziehen Geld an"
+		}, {
+			knoten: "mittelstand",
+			d: 1,
+			text: "Auch kleine Betriebe kommen zum Zug"
+		}]
+	},
+	{
+		id: "k15",
+		nummer: 15,
+		name: "Energie",
+		jahre: 2,
+		text: "Versorgungssicherheit und der Platz der Türkei als Drehkreuz zwischen Ost und West.",
+		oeffnung: [K("versorgung", "Energieversorgung mindestens 50", "energieversorgung", "min", 50)],
+		schluss: [K("versorgung", "Energieversorgung mindestens 58", "energieversorgung", "min", 58), K("sakarya", "Eigene Gasförderung (Sakarya) mindestens 40", "sakarya_gas", "min", 40)],
+		nutzen: [{
+			knoten: "export",
+			d: 1,
+			text: "Transitgebühren und Verbundnetze"
+		}, {
+			knoten: "beziehungen_eu",
+			d: 1,
+			text: "Energie ist die stabilste Brücke nach Brüssel"
+		}]
+	},
+	{
+		id: "k17",
+		nummer: 17,
+		name: "Wirtschafts- und Währungspolitik",
+		jahre: 2,
+		text: "Glaubwürdige Finanzen: Was die Märkte und die Rechtssicherheit hergeben.",
+		oeffnung: [K("maerkte", "Vertrauen der Märkte mindestens 48", "vertrauen_maerkte", "min", 48), K("recht", "Rechtssicherheit mindestens 45", "rechtssicherheit", "min", 45)],
+		schluss: [K("maerkte", "Vertrauen der Märkte mindestens 58", "vertrauen_maerkte", "min", 58), K("recht", "Rechtssicherheit mindestens 55", "rechtssicherheit", "min", 55)],
+		nutzen: [{
+			knoten: "investitionen",
+			d: 1.5,
+			text: "Berechenbare Regeln machen Mut zum Bauen"
+		}, {
+			knoten: "auslandskapital",
+			d: 1.5,
+			text: "Geld folgt der Glaubwürdigkeit"
+		}]
+	},
+	{
+		id: "k12",
+		nummer: 12,
+		name: "Lebensmittelsicherheit und Veterinärwesen",
+		jahre: 2,
+		text: "Standards vom Stall bis zum Teller — die Voraussetzung für Agrarexporte in die Union.",
+		oeffnung: [K("einkommen", "Einkommen der Landwirtschaft mindestens 40", "landwirtschaft_einkommen", "min", 40)],
+		schluss: [K("forschung", "Agrarforschung und Hochtechnologie mindestens 45", "m_agrarforschung", "min", 45), K("ernte", "Erträge mindestens 55", "ernte", "min", 55)],
+		nutzen: [{
+			knoten: "export",
+			d: 1,
+			text: "Lebensmittel ohne Handelshemmnisse"
+		}]
+	},
+	{
+		id: "k27",
+		nummer: 27,
+		name: "Umwelt und Klimawandel",
+		jahre: 2,
+		text: "Grenzwerte und saubere Luft nach europäischem Vorbild — teuer für die Industrie.",
+		oeffnung: [K("auflagen", "Umweltauflagen mindestens 40", "m_umweltauflagen", "min", 40)],
+		schluss: [K("auflagen", "Umweltauflagen mindestens 55", "m_umweltauflagen", "min", 55), K("luft", "Luftqualität mindestens 45", "luftqualitaet", "min", 45)],
+		nutzen: [{
+			knoten: "ansehen",
+			d: 1,
+			text: "Klimapolitik als Türöffner"
+		}]
+	},
+	{
+		id: "k33",
+		nummer: 33,
+		name: "Finanz- und Haushaltsbestimmungen",
+		jahre: 2,
+		text: "Ehrliche Kassen: Steuern, die ankommen, und ein Haushalt ohne graue Kanäle.",
+		oeffnung: [K("digital", "Digitale Verwaltung mindestens 40", "m_verwaltungsdigital", "min", 40), K("steuern", "Steuereinnahmen mindestens 50", "steuereinnahmen", "min", 50)],
+		schluss: [K("digital", "Digitale Verwaltung mindestens 55", "m_verwaltungsdigital", "min", 55), K("schatten", "Schattenwirtschaft höchstens 40", "schattenwirtschaft", "max", 40)],
+		nutzen: [{
+			knoten: "vertrauen_maerkte",
+			d: 1.5,
+			text: "Solide Finanzen beruhigen Anleger"
+		}]
+	},
+	{
+		id: "k11",
+		nummer: 11,
+		name: "Landwirtschaft und ländliche Entwicklung",
+		jahre: 3,
+		text: "Der schwerste Brocken im Inland: marktnahe Stützung statt Preispolitik nach Gutsherrenart.",
+		oeffnung: [K("forschung", "Agrarforschung und Hochtechnologie mindestens 40", "m_agrarforschung", "min", 40)],
+		schluss: [K("einkommen", "Einkommen der Landwirtschaft mindestens 55", "landwirtschaft_einkommen", "min", 55), K("subventionen", "Agrarsubventionen höchstens 50 (EU-konforme Stützung)", "m_agrarsubventionen", "max", 50)],
+		nutzen: [{
+			knoten: "landwirtschaft_einkommen",
+			d: 1,
+			text: "Zugang zum Binnenmarkt trägt die Höfe"
+		}]
+	},
+	{
+		id: "k31",
+		nummer: 31,
+		name: "Außen-, Sicherheits- und Verteidigungspolitik",
+		jahre: 2,
+		text: "Ausrichtung auf die gemeinsame Außenpolitik — Brüssel misst das am Verhältnis zu Moskau.",
+		oeffnung: [K("ansehen", "Internationales Ansehen mindestens 50", "ansehen", "min", 50)],
+		schluss: [K("ansehen", "Internationales Ansehen mindestens 55", "ansehen", "min", 55), K("russland", "Beziehungen zu Russland höchstens 50 (Distanz zu Moskau)", "beziehungen_russland", "max", 50)],
+		nutzen: [{
+			knoten: "beziehungen_eu",
+			d: 2,
+			text: "Wer auf einer Linie steht, dem traut man"
+		}, {
+			knoten: "abschreckung",
+			d: 1,
+			text: "Eingebunden statt allein"
+		}]
+	}
+];
+const KAPITEL_NACH_ID = new Map(KAPITEL.map((k) => [k.id, k]));
+KAPITEL.filter((k) => k.zypernBlockiert).map((k) => k.id);
+function kriteriumStand(w, k) {
+	if (k.vertrag) {
+		const ok = laufende(w, k.vertrag.land).some((v) => [...v.gibt, ...v.will].includes(k.vertrag.klausel));
+		return {
+			kriterium: k,
+			jetzt: ok ? 100 : 0,
+			erfuellt: ok,
+			abstand: ok ? 100 : -100
+		};
+	}
+	const jetzt = nationalAverage(NET, w.net, k.knoten);
+	const abstand = k.art === "max" ? k.wert - jetzt : jetzt - k.wert;
+	return {
+		kriterium: k,
+		jetzt,
+		erfuellt: abstand >= -EPS,
+		abstand
+	};
+}
+function kriterienStand(w, ks) {
+	return ks.map((k) => kriteriumStand(w, k));
+}
+/** Toleranz gegen Float-Staub der gewichteten Durchschnitte (weit unter jeder spürbaren Spielgröße). */
+const EPS = 1e-6;
+/** Alle Kriterien erfüllt — und zwar mit Substanz: Liegt das knappste Kriterium innerhalb der
+*  Alibi-Marge, erkennt Brüssel Fensterdressing; die Erfüllung zählt erst oberhalb der Marge. */
+function erfuelltMitSubstanz(stand) {
+	if (!stand.every((s) => s.erfuellt)) return {
+		erfuellt: false,
+		alibi: false
+	};
+	const knappstes = Math.min(...stand.map((s) => s.abstand));
+	return {
+		erfuellt: knappstes >= EU_REGELN.alibiMarge - EPS,
+		alibi: knappstes < EU_REGELN.alibiMarge - EPS
+	};
+}
+/**
+* Bewegung im Zypern-Dossier: Der Konflikt ist gedämpft, ein Vertrag mit der Hafen-Öffnung läuft
+* (das Ankara-Protokoll) oder das Vertrauen reicht für Gespräche. Erst dann rühren sich die
+* Kapitel 23 und 24 — dokumentierte Verknüpfung (Dossier 17, Rote Linie Nr. 5).
+*/
+function zypernBewegung(w) {
+	const z = weltZustand(w).CYP;
+	if (!z) return {
+		bewegt: true,
+		text: ""
+	};
+	if (laufende(w, "CYP").some((v) => [...v.gibt, ...v.will].includes("hafen_oeffnung"))) return {
+		bewegt: true,
+		text: "Das Ankara-Protokoll ist umgesetzt: Häfen und Flughäfen stehen offen."
+	};
+	if (z.konflikt <= 50) return {
+		bewegt: true,
+		text: `Der Konflikt mit Zypern ist gedämpft (${Math.round(z.konflikt)}).`
+	};
+	if (vertrauenZu(w, "CYP") >= 45) return {
+		bewegt: true,
+		text: "Das Vertrauen trägt Gespräche über die Insel."
+	};
+	return {
+		bewegt: false,
+		text: `Ohne Bewegung im Zypern-Dossier bleiben die Kapitel 23 und 24 blockiert (Konflikt ${Math.round(z.konflikt)} von 100): das Ankara-Protokoll umsetzen oder den Konflikt entschärfen.`
+	};
+}
+/** Benannte Mitgliedstaaten mit Blockade-Macht: Griechenland und Zypern (Dossier 2, Rote Linie 3). */
+const VETO_LAENDER = [{
+	land: "GRC",
+	konfliktAb: 70,
+	text: "Griechenland blockiert, solange der Konflikt in der Ägäis kocht."
+}, {
+	land: "CYP",
+	konfliktAb: 60,
+	text: "Zypern nutzt seine Vetomacht: kein EU-Schritt ohne Bewegung in der Zypernfrage."
+}];
+/** Ein aktives Veto gegen die Eröffnung, oder null. Nach einer beantworteten Veto-Krise ruht das Mitglied ein Jahr. */
+function vetoGegen(w) {
+	const ruhe = w.spiel?.eu?.vetoRuhe ?? {};
+	for (const v of VETO_LAENDER) {
+		if (w.day < (ruhe[v.land] ?? 0)) continue;
+		const z = weltZustand(w)[v.land];
+		if (z && z.konflikt >= v.konfliktAb) return v;
+	}
+	return null;
+}
+function euZustand(w) {
+	const spiel = w.spiel;
+	if (!spiel.eu) {
+		const kapitel = {};
+		for (const k of KAPITEL) kapitel[k.id] = { status: "zu" };
+		spiel.eu = {
+			phase: "eingefroren",
+			kapitel,
+			zollunion: "unveraendert",
+			berichte: []
+		};
+	}
+	return spiel.eu;
+}
+/** REC-Logik: Jedes verhandelte Kapitel kostet laufend Kapital — Reformen binden Rückhalt. */
+function euKapitalAbzug(w) {
+	const z = w.spiel?.eu;
+	if (!z) return 0;
+	return Object.values(z.kapitel).filter((k) => k.status === "offen").length * EU_REGELN.kapitalJeKapitel;
+}
+const PHASEN_TEXT = {
+	eingefroren: "Die Beitrittsgespräche liegen seit 2018 auf Eis. Der Two-Track — Sicherheit, Energie, Migration — ersetzt keine Perspektive.",
+	screening: "Die Kommission nimmt den Stand des Landes Kapitel für Kapitel auf (Screening, zwölf Monate).",
+	verhandlung: "Kapitel-Verhandlungen: höchstens zwei parallel. Eröffnet wird, was die Kriterien erfüllt; geschlossen, was die Zeit und die Substanz trägt.",
+	perspektive: "Alle spielbaren Kapitel sind vorläufig geschlossen: Die Beitritts-Perspektive ist glaubwürdig — der Beitritt selbst bleibt ein Weg von Jahren."
+};
+/** Veto-Antwort „Zugeständnis": Der Konflikt mit dem Mitgliedstaat wird entschärft, das Kapitel öffnet. */
+function vetoBeantworten(w, landId, kapitelId) {
+	const z = euZustand(w);
+	const k = z.kapitel[kapitelId];
+	const def = KAPITEL_NACH_ID.get(kapitelId);
+	if (!k || !def) return "Das Kapitel gibt es nicht.";
+	(z.vetoRuhe ??= {})[landId] = w.day + EU_REGELN.vetoSperreTage;
+	landAendern(w, landId, {
+		konflikt: -10,
+		vertrauen: 5
+	}, "Zugeständnis zur Aufhebung des EU-Vetos");
+	wirke(w, "nationalisten", landId === "CYP" ? -4 : -2);
+	if (landId === "CYP") wirke(w, "staedtische_saekulare", 2);
+	landAendern(w, "EU", { vertrauen: 3 }, "Ankara gibt dem Veto-Mitglied nach");
+	oeffneKapitel(w, def);
+	return `Das Zugeständnis wirkt: ${landId === "CYP" ? "Nikosia" : "Athen"} hebt das Veto auf, Kapitel ${def.nummer} „${def.name}“ wird eröffnet.`;
+}
+/** Veto-Antwort „Abwarten": Das Kapitel bleibt ein Jahr blockiert. */
+function vetoAbwarten(w, landId, kapitelId) {
+	const z = euZustand(w);
+	const k = z.kapitel[kapitelId];
+	if (k) k.gesperrtBis = w.day + EU_REGELN.vetoSperreTage;
+	(z.vetoRuhe ??= {})[landId] = w.day + EU_REGELN.vetoSperreTage;
+	landAendern(w, "EU", { vertrauen: -2 }, "Ein Veto blockiert ein Kapitel, Ankara wartet ab");
+	return `Kapitel ${KAPITEL_NACH_ID.get(kapitelId)?.nummer ?? "?"} bleibt für ein Jahr blockiert; ${landId === "CYP" ? "Nikosia" : "Athen"} hält am Veto fest.`;
+}
+/** Zollunion-Antwort „Annehmen": Das Update wird vereinbart — mit echten Effekten in beide Richtungen. */
+function zollunionAnnehmen(w) {
+	const z = euZustand(w);
+	z.zollunion = "modernisiert";
+	wirke(w, "export", 4);
+	wirke(w, "auslandskapital", 3);
+	wirke(w, "industrie", 2);
+	wirke(w, "mittelstand", 2);
+	wirke(w, "unternehmer", 3);
+	wirke(w, "landwirtschaft_einkommen", -3);
+	wirke(w, "landwirte", -3);
+	landAendern(w, "EU", {
+		handel: 12,
+		vertrauen: 6
+	}, "Die Zollunion wird modernisiert");
+	w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 40);
+	zeitungEreignis(w, {
+		art: "krise",
+		titel: "Zollunion modernisiert",
+		fakt: "Ankara und Brüssel vereinbaren das Update der Zollunion von 1995: Dienstleistungen und Agrar kommen hinein, die Industrie gewinnt, die Landwirtschaft verliert Schutz.",
+		wertung: .8,
+		schluessel: ["Zollunion"]
+	});
+	w.spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: "Zollunion modernisiert",
+		ausgang: "Das Update der Zollunion von 1995 ist vereinbart: Handel +, Industrie +, Landwirtschaft im Wettbewerb."
+	});
+	return "Die Zollunion wird modernisiert: Exporte und Investitionen gewinnen, die Landwirtschaft verliert ihren Schutz und spürt den Wettbewerb.";
+}
+/** Zollunion-Antwort „Ablehnen": Das Mandat vertagt sich um zwei Jahre. */
+function zollunionAblehnen(w) {
+	const z = euZustand(w);
+	z.zollunionSperreBis = w.day + EU_REGELN.zollunionSperreTage;
+	landAendern(w, "EU", { vertrauen: -3 }, "Ankara lehnt das Zollunion-Angebot ab");
+	return "Das Angebot vertagt sich; Brüssel registriert den Verzicht und kommt frühestens in zwei Jahren wieder.";
+}
+function offeneKapitel(z) {
+	return KAPITEL.filter((k) => z.kapitel[k.id].status === "offen").map((k) => k.id);
+}
+function oeffneKapitel(w, def) {
+	const k = euZustand(w).kapitel[def.id];
+	k.status = "offen";
+	k.geoeffnet = w.day;
+	landAendern(w, "EU", {
+		vertrauen: 3,
+		handel: 2
+	}, `Kapitel ${def.nummer} „${def.name}“ eröffnet`);
+	wirke(w, "beziehungen_eu", 1);
+	addLog(w, "ereignis", `Beitrittskapitel ${def.nummer} „${def.name}“ eröffnet.`, `${def.text} Vorläufiger Abschluss frühestens nach ${def.jahre} ${def.jahre === 1 ? "Jahr" : "Jahren"} — und nur mit erfüllten Schlusskriterien.`);
+	w.spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: `Kapitel ${def.nummer} eröffnet`,
+		ausgang: `„${def.name}“ wird verhandelt.`
+	});
+}
+function schliesseKapitel(w, def) {
+	const z = euZustand(w);
+	const k = z.kapitel[def.id];
+	k.status = "abgeschlossen";
+	k.geschlossen = w.day;
+	for (const n of def.nutzen) wirke(w, n.knoten, n.d);
+	landAendern(w, "EU", {
+		vertrauen: 5,
+		handel: 3
+	}, `Kapitel ${def.nummer} „${def.name}“ vorläufig geschlossen`);
+	w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 15);
+	wirke(w, "nationalisten", -1);
+	wirke(w, "staedtische_saekulare", 1);
+	addLog(w, "ereignis", `Kapitel ${def.nummer} „${def.name}“ vorläufig geschlossen.`, `${def.nutzen.map((n) => n.text).join("; ")}. Der Risikoaufschlag der Märkte sinkt; national gesinnte Wähler lesen die Reform als Zugeständnis.`);
+	w.spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: `Kapitel ${def.nummer} geschlossen`,
+		ausgang: `„${def.name}“ ist vorläufig erfüllt.`
+	});
+	if (KAPITEL.every((x) => z.kapitel[x.id].status === "abgeschlossen")) {
+		z.phase = "perspektive";
+		wirke(w, "ansehen", 5);
+		wirke(w, "auslandskapital", 5);
+		landAendern(w, "EU", {
+			vertrauen: 10,
+			handel: 8
+		}, "Alle Kapitel geschlossen: die Perspektive wird glaubwürdig");
+		w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 50);
+		zeitungEreignis(w, {
+			art: "wahlsieg",
+			titel: "Beitritts-Perspektive erreicht",
+			fakt: "Alle verhandelten Kapitel sind vorläufig geschlossen. Brüssel nennt die Beitritts-Perspektive der Türkei erstmals glaubwürdig — der Beitritt selbst bleibt ein Weg von Jahren.",
+			wertung: 1,
+			schluessel: ["Beitritt"]
+		});
+		w.spiel.hinweise.push({
+			id: `eu-perspektive-${w.day}`,
+			titel: "Beitritts-Perspektive",
+			szene: "istanbul",
+			text: ["Alle zehn verhandelten Kapitel sind vorläufig geschlossen. Brüssel nennt die Beitritts-Perspektive erstmals glaubwürdig.", "Ehrlich bleibt es dabei: Der Beitritt selbst ist ein Weg von Jahren — über diese Amtszeit hinaus. Was bleibt, ist glaubwürdig: Märkte beruhigen sich, Investitionen kommen, und das Land weiß, wohin es geht."]
+		});
+		addLog(w, "ereignis", "Beitritts-Perspektive erreicht.", "Alle spielbaren Kapitel sind geschlossen; der Beitritt selbst bleibt ein Weg über diese Amtszeit hinaus.");
+	}
+}
+const VISA_KRITERIEN = [
+	K("pass", "Sichere Pässe und digitale Register (Digitale Verwaltung ≥ 50)", "m_verwaltungsdigital", "min", 50),
+	{
+		id: "ruecknahme",
+		text: "Rückübernahmeabkommen mit der EU in Kraft (Vertrag mit der Klausel „Migrationszusage“)",
+		vertrag: {
+			land: "EU",
+			klausel: "migration_zusage"
+		}
+	},
+	K("grenze", "Wirksamer Grenzschutz (≥ 60)", "m_grenzschutz", "min", 60),
+	K("justiz", "Unabhängige Justiz (≥ 45)", "justiz_unabhaengigkeit", "min", 45),
+	K("daten", "Datenschutz und Rechtssicherheit bei der Datenweitergabe (Rechtssicherheit ≥ 48)", "rechtssicherheit", "min", 48),
+	K("migration", "Migrationsmanagement: Zahl der Geflüchteten ≤ 50", "gefluechtete", "max", 50)
+];
+function visaStand(w) {
+	const z = euZustand(w);
+	const stand = kriterienStand(w, VISA_KRITERIEN);
+	return {
+		kriterien: stand,
+		erfuellt: stand.filter((s) => s.erfuellt).length,
+		gewaehrt: z.visaSeit !== void 0
+	};
+}
+function visaPruefen(w) {
+	const z = euZustand(w);
+	if (z.visaSeit !== void 0) return;
+	if (visaStand(w).erfuellt < VISA_KRITERIEN.length) return;
+	z.visaSeit = w.day;
+	wirke(w, "staedtische_saekulare", 3);
+	wirke(w, "junge", 3);
+	wirke(w, "unternehmer", 2);
+	wirke(w, "tourismus", 2);
+	wirke(w, "export", 1);
+	landAendern(w, "EU", {
+		vertrauen: 5,
+		handel: 3
+	}, "Visaliberalisierung für türkische Staatsbürger");
+	zeitungEreignis(w, {
+		art: "krise",
+		titel: "Visafreiheit für Kurzaufenthalte",
+		fakt: "Brüssel gewährt die Visaliberalisierung: Alle sechs Kriterien — von Pass-Sicherheit bis Migrationsmanagement — sind erfüllt.",
+		wertung: .9,
+		schluessel: ["Visafreiheit"]
+	});
+	w.spiel.hinweise.push({
+		id: `eu-visa-${w.day}`,
+		titel: "Visafreiheit",
+		szene: "istanbul",
+		text: ["Brüssel gewährt die Visaliberalisierung für Kurzaufenthalte im Schengenraum — alle sechs Kriterien sind erfüllt.", "Studierende, Unternehmer und Familien spüren es zuerst; Geschäftsreisen werden einfacher. Das war ein eigener Weg, unabhängig von den Kapiteln — und er ist gegangen."]
+	});
+	addLog(w, "ereignis", "Visaliberalisierung gewährt.", "Alle sechs Kriterien erfüllt; Reisende und Wirtschaft profitieren sofort.");
+}
+function noteFuer(w, def, z) {
+	const k = z.kapitel[def.id];
+	if (k.status === "abgeschlossen") return "erfüllt";
+	const stand = kriterienStand(w, def.schluss);
+	const grad = stand.filter((s) => s.erfuellt).length / Math.max(1, stand.length);
+	if (k.status === "offen" && grad >= .66) return "fortgeschritten";
+	if (k.status === "offen" || k.status === "bereit" || grad >= .33) return "mittel";
+	return "früh";
+}
+/** Der nächste Schritt für ein Kapitel, in einem Satz (Mentorin-Stil). */
+function naechsterSchritt(w, def, z) {
+	const k = z.kapitel[def.id];
+	if (k.status === "abgeschlossen") return "Vorläufig geschlossen — der Stand muss gehalten werden.";
+	if (def.zypernBlockiert && !zypernBewegung(w).bewegt) return "Blockiert durch die Zypernfrage: das Ankara-Protokoll umsetzen oder den Konflikt entschärfen.";
+	if (k.gesperrtBis && w.day < k.gesperrtBis) return `Durch ein Veto blockiert noch ${k.gesperrtBis - w.day} Tage; den Konflikt mit dem Veto-Mitglied entschärfen.`;
+	const stand = kriterienStand(w, k.status === "offen" ? def.schluss : def.oeffnung);
+	if (erfuelltMitSubstanz(stand).alibi) return "Erfüllt — aber nur knapp: Brüssel prüft die Substanz; ohne Puffer über der Marke zählt es nicht.";
+	const fehlend = stand.find((s) => !s.erfuellt);
+	if (fehlend) return `Fehlt: ${fehlend.kriterium.text} (jetzt ${Math.round(fehlend.jetzt)}).`;
+	if (k.status === "offen") {
+		const rest = Math.max(0, (k.geoeffnet ?? w.day) + def.jahre * 365 - w.day);
+		return rest > 0 ? `Kriterien erfüllt; die Verhandlung braucht noch etwa ${Math.ceil(rest / 365)} ${rest > 365 ? "Jahre" : "Jahr"}.` : "Reif für den vorläufigen Abschluss.";
+	}
+	return "Bereit zur Eröffnung, sobald ein Verhandlungsplatz frei wird.";
+}
+function fortschrittsbericht(w) {
+	const spiel = w.spiel;
+	const z = euZustand(w);
+	const jahr = Number(w.date.slice(0, 4));
+	const noten = {};
+	const alibi = [];
+	const blockiert = [];
+	const zeilen = [];
+	const zypern = zypernBewegung(w);
+	for (const def of KAPITEL) {
+		const k = z.kapitel[def.id];
+		noten[def.id] = noteFuer(w, def, z);
+		if (def.zypernBlockiert && !zypern.bewegt && k.status !== "abgeschlossen") blockiert.push(def.id);
+		if (erfuelltMitSubstanz(kriterienStand(w, k.status === "offen" ? def.schluss : def.oeffnung)).alibi && k.status !== "abgeschlossen") {
+			alibi.push(def.id);
+			if (k.alibiJahr !== jahr) {
+				k.alibiJahr = jahr;
+				landAendern(w, "EU", { vertrauen: -2 }, `Fortschrittsbericht: Alibi-Reform bei Kapitel ${def.nummer}`);
+				wirke(w, "ansehen", -.5);
+			}
+		}
+	}
+	if (z.phase === "eingefroren") zeilen.push("Die Gespräche liegen auf Eis. Wer eine Perspektive will, kündigt ein Reformpaket an — mit Substanz, nicht mit Worten.");
+	else {
+		zeilen.push(`Stand: ${PHASEN_TEXT[z.phase]}`);
+		const offene = offeneKapitel(z).length;
+		const fertige = KAPITEL.filter((x) => z.kapitel[x.id].status === "abgeschlossen").length;
+		zeilen.push(`${fertige} von ${KAPITEL.length} Kapiteln vorläufig geschlossen, ${offene} in Verhandlung (höchstens ${EU_REGELN.parallelMax} parallel).`);
+	}
+	for (const def of KAPITEL) {
+		const marke = alibi.includes(def.id) ? " (Alibi-Verdacht)" : blockiert.includes(def.id) ? " (blockiert: Zypernfrage)" : "";
+		zeilen.push(`Kapitel ${def.nummer} „${def.name}“: ${noten[def.id]}${marke} — ${naechsterSchritt(w, def, z)}`);
+	}
+	if (alibi.length) zeilen.push("Zur Alibi-Frage: Wer Kriterien nur auf den Punkt erfüllt, gewinnt kein Vertrauen. Brüssel zählt Substanz, nicht Schwellen.");
+	if (z.zollunion === "unveraendert" && z.phase === "verhandlung") zeilen.push(`Zollunion: Das Mandat für das Update kommt mit ${EU_REGELN.zollunionKapitel} geschlossenen Kapiteln in Reichweite.`);
+	const visa = visaStand(w);
+	if (!visa.gewaehrt) zeilen.push(`Visaliberalisierung: ${visa.erfuellt} von ${VISA_KRITERIEN.length} Kriterien erfüllt — ein eigener Weg, der nicht auf die Kapitel wartet.`);
+	const bericht = {
+		tag: w.day,
+		datum: w.date,
+		jahr,
+		noten,
+		alibi,
+		blockiert,
+		zeilen
+	};
+	z.berichte.push(bericht);
+	if (z.berichte.length > 8) z.berichte.shift();
+	spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: `EU-Fortschrittsbericht ${jahr}`,
+		ausgang: zeilen[1] ?? zeilen[0]
+	});
+	addLog(w, "ereignis", `EU-Fortschrittsbericht ${jahr}`, zeilen.slice(0, 4).join(" "));
+	spiel.hinweise.push({
+		id: `eu-bericht-${jahr}`,
+		titel: `EU-Fortschrittsbericht ${jahr}`,
+		szene: "istanbul",
+		text: zeilen.slice(0, 8)
+	});
+}
+/** Einmal im Monat aus der Spielschleife: Screening, Kapitel, Zollunion, Visa, Bericht. */
+function euMonat(w, rng) {
+	const spiel = w.spiel;
+	if (!spiel || spiel.ende) return;
+	const z = euZustand(w);
+	if (z.phase === "screening" && z.screeningBis !== void 0 && w.day >= z.screeningBis) {
+		z.phase = "verhandlung";
+		landAendern(w, "EU", { vertrauen: 4 }, "Das Screening ist abgeschlossen");
+		zeitungEreignis(w, {
+			art: "krise",
+			titel: "Screening abgeschlossen",
+			fakt: "Die Kommission hat die Bestandsaufnahme beendet: Die Kapitel-Verhandlungen mit der Türkei können beginnen — eröffnet wird, was die Kriterien trägt.",
+			wertung: .7,
+			schluessel: ["Screening", "Beitrittskapitel"]
+		});
+		spiel.hinweise.push({
+			id: `eu-screening-${w.day}`,
+			titel: "Screening abgeschlossen",
+			szene: "istanbul",
+			text: ["Zwölf Monate Bestandsaufnahme sind vorbei: Die Kapitel-Verhandlungen beginnen.", "Eröffnet wird, was die Öffnungskriterien erfüllt — messbar an Justiz, Presse, Korruption und Verwaltung. Höchstens zwei Kapitel laufen parallel; die Kapitel 23 und 24 hängen zusätzlich an der Zypernfrage."]
+		});
+		addLog(w, "ereignis", "Das Screening ist abgeschlossen; die Kapitel-Verhandlungen beginnen.", "Eröffnet wird, was die Kriterien erfüllt — höchstens zwei Kapitel parallel.");
+	}
+	if (z.phase === "verhandlung") {
+		const zypern = zypernBewegung(w);
+		for (const def of KAPITEL) {
+			const k = z.kapitel[def.id];
+			if (k.status !== "zu" && k.status !== "bereit") continue;
+			const substanz = erfuelltMitSubstanz(kriterienStand(w, def.oeffnung));
+			if (!substanz.erfuellt && !substanz.alibi) {
+				k.status = "zu";
+				continue;
+			}
+			k.status = "bereit";
+			if (substanz.alibi) continue;
+			if (def.zypernBlockiert && !zypern.bewegt) continue;
+			if (k.gesperrtBis && w.day < k.gesperrtBis) continue;
+			if (offeneKapitel(z).length >= EU_REGELN.parallelMax) continue;
+			const veto = vetoGegen(w);
+			if (veto) {
+				if (!spiel.ereignisse.some((e) => e.vorlage === "eu_veto")) oeffne(w, "eu_veto", rng, { daten: {
+					land: veto.land,
+					kapitel: def.id
+				} });
+				continue;
+			}
+			oeffneKapitel(w, def);
+			if (offeneKapitel(z).length >= EU_REGELN.parallelMax) break;
+		}
+		for (const def of KAPITEL) {
+			const k = z.kapitel[def.id];
+			if (k.status !== "offen" || k.geoeffnet === void 0) continue;
+			if (w.day < k.geoeffnet + def.jahre * 365) continue;
+			if (!erfuelltMitSubstanz(kriterienStand(w, def.schluss)).erfuellt) continue;
+			schliesseKapitel(w, def);
+		}
+		if (z.zollunion === "unveraendert" && w.day >= (z.zollunionSperreBis ?? 0) && KAPITEL.filter((x) => z.kapitel[x.id].status === "abgeschlossen").length >= EU_REGELN.zollunionKapitel && !vetoGegen(w) && !spiel.ereignisse.some((e) => e.vorlage === "eu_zollunion")) oeffne(w, "eu_zollunion", rng);
+	}
+	visaPruefen(w);
+	if (Number(w.date.slice(5, 7)) === EU_REGELN.berichtMonat) fortschrittsbericht(w);
+}
+//#endregion
+//#region src/sim/gruppen.ts
+const GRUPPEN = [
+	{
+		id: "arbeitnehmer",
+		gewicht: 1.4
+	},
+	{
+		id: "rentner",
+		gewicht: 1.3
+	},
+	{
+		id: "junge",
+		gewicht: 1.1
+	},
+	{
+		id: "konservative",
+		gewicht: 1.1
+	},
+	{
+		id: "staedtische_saekulare",
+		gewicht: 1
+	},
+	{
+		id: "landwirte",
+		gewicht: .8
+	},
+	{
+		id: "beamte",
+		gewicht: .6
+	},
+	{
+		id: "unternehmer",
+		gewicht: .5
+	},
+	{
+		id: "arme",
+		gewicht: 1
+	},
+	{
+		id: "nationalisten",
+		gewicht: .8
+	},
+	{
+		id: "minderheiten",
+		gewicht: .7
+	}
+];
+const GRUPPEN_SUMME = GRUPPEN.reduce((s, g) => s + g.gewicht, 0);
+//#endregion
+//#region src/sim/waehler-verlauf.ts
+const VERLAUF_MAX = 72;
+/** Wert eines Knotens im Landesdurchschnitt vor n Monaten, aus dem Gedächtnis des Netzes (13 Monate). */
+function frueherWert(world, id, n) {
+	const s = world.net;
+	const i = NET.index.get(id);
+	if (i === void 0 || s.month < n) return null;
+	const slot = s.history[(s.month - n + s.history.length * 1e3) % s.history.length];
+	if (!slot) return null;
+	let sum = 0;
+	for (let p = 0; p < 81; p++) sum += slot[i * 81 + p] * s.weights[p];
+	return Number.isFinite(sum) ? sum : null;
+}
+function monatVor(datum, n) {
+	const [j, m] = datum.split("-").map(Number);
+	const idx = j * 12 + (m - 1) - n;
+	return `${Math.floor(idx / 12)}-${String(idx % 12 + 1).padStart(2, "0")}`;
+}
+/** Legt den Verlauf an und füllt ihn aus dem Gedächtnis des Netzes, falls er fehlt (ältere Spielstände). */
+function verlaufSichern(world) {
+	const spiel = world.spiel;
+	if (spiel.waehler && spiel.waehler.monate.length) return spiel.waehler;
+	const v = {
+		monate: [],
+		laune: {},
+		zustimmung: []
+	};
+	spiel.waehler = v;
+	const heute = world.date.slice(0, 7);
+	for (let n = Math.min(12, world.net.month); n >= 1; n--) {
+		const monat = monatVor(heute, n);
+		v.monate.push(monat);
+		for (const g of GRUPPEN) (v.laune[g.id] ??= []).push(frueherWert(world, g.id, n));
+		const eintrag = spiel.umfrage.verlauf.find((u) => u.monat === monat);
+		v.zustimmung.push(eintrag ? eintrag.wert : null);
+	}
+	return v;
+}
+/** Einmal im Monat: Stimmung aller Gruppen und die Zustimmung festhalten. */
+function verlaufAufzeichnen(world) {
+	const spiel = world.spiel;
+	if (!spiel) return;
+	const v = verlaufSichern(world);
+	const monat = world.date.slice(0, 7);
+	if (v.monate[v.monate.length - 1] === monat) return;
+	v.monate.push(monat);
+	for (const g of GRUPPEN) {
+		const reihe = v.laune[g.id] ??= [];
+		while (reihe.length < v.monate.length - 1) reihe.unshift(null);
+		reihe.push(nationalAverage(NET, world.net, g.id));
+	}
+	v.zustimmung.push(spiel.umfrage.zustimmung);
+	while (v.monate.length > VERLAUF_MAX) {
+		v.monate.shift();
+		v.zustimmung.shift();
+		for (const g of GRUPPEN) v.laune[g.id]?.shift();
+	}
+}
+//#endregion
+//#region src/sim/personen-monat.ts
+/** Die monatliche Wirkung des Ressorts: Bei Leistung über 0,5 bewegt es seine Größen zum Guten, darunter zum Schlechten. */
+function ressortWirkung(w, f) {
+	const d = AEMTER[f.amt];
+	if (!d.wirkung.length) return;
+	const faktor = 2 * (leistung(w, f) - .5);
+	for (const x of d.wirkung) wirke(w, x.id, x.d * faktor);
+}
+function auftragMonat(w, f) {
+	const e = eigenVon(w, f);
+	const a = e.auftrag;
+	if (!a || a.status !== "laeuft") return;
+	wirke(w, a.groesse, a.richtung * .6 * leistung(w, f));
+	if (w.day < a.frist) return;
+	const jetzt = wertVon(w, a.groesse);
+	const erreicht = (jetzt - a.vorher) * a.richtung >= a.delta - .3;
+	a.nachher = jetzt;
+	e.bilanz ??= {
+		erfuellt: 0,
+		verfehlt: 0
+	};
+	if (erreicht) {
+		a.status = "erfuellt";
+		e.bilanz.erfuellt++;
+		loyalitaetVerschieben(f, 8);
+		e.ehrgeiz = Math.min(100, e.ehrgeiz + 3);
+		wirke(w, "legitimitaet", .3);
+		merke(w, f, `Auftrag erfüllt: ${a.text}`);
+		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag erfüllt: ${a.text} (${nf$6(a.vorher, 0)} auf ${nf$6(jetzt, 0)}).`, "Wer liefert, wird loyaler; Erfolge im Ressort zahlen auf die Legitimität ein.");
+	} else {
+		a.status = "verfehlt";
+		e.bilanz.verfehlt++;
+		loyalitaetVerschieben(f, -5);
+		grollVerschieben(w, f, 8);
+		merke(w, f, `Auftrag verfehlt: ${a.text}`);
+		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag verfehlt: ${a.text} (${nf$6(a.vorher, 0)} auf ${nf$6(jetzt, 0)}).`, "Ein verfehltes Ziel kostet Loyalität und macht Groll: Sie kann darauf hinweisen, dass Sie sie nicht unterstützt haben.");
+	}
+}
+function personenMonat(w) {
+	const sp = w.spiel;
+	if (!sp) return;
+	ergaenzeFiguren(w);
+	zusagenMonat(w);
+	ehemaligeMonat(w);
+	for (const f of sp.figuren) {
+		if (!f.imAmt || f.amt === "opposition") continue;
+		const e = eigenVon(w, f);
+		if (e.ehrgeiz >= 70 && f.loyalitaet < 50) grollVerschieben(w, f, 2);
+		else if (f.loyalitaet < 30) grollVerschieben(w, f, 1);
+		else grollVerschieben(w, f, -1);
+		if (e.groll >= 60) loyalitaetVerschieben(f, -.5);
+		if (AEMTER[f.amt].regierungsamt) {
+			ressortWirkung(w, f);
+			auftragMonat(w, f);
+		}
+	}
+}
+//#endregion
+//#region src/sim/verfassung.ts
+const VERFASSUNG_REGELN = {
+	/** Hürden der Parlamentsabstimmung (Spielparameter, an das Verfassungsreferendum-Design angelehnt) */
+	mehrheit: 301,
+	direkt: 360,
+	/** Tage vom Einbringen bis zur Abstimmung (länger als ein Gesetz: das Land redet mit) */
+	tageBisAbstimmung: 28,
+	/** Tage bis zur Entscheidung des Verfassungsgerichts */
+	aymTage: 14,
+	/** Kampagnenzeit vor der Volksabstimmung (4 bis 6 Wochen) */
+	kampagnenTage: 35,
+	/** Politisches Kapital: Grundpreis plus Aufschlag je geändertem Artikel */
+	pkBasis: 14,
+	pkJeArtikel: 4,
+	/** Stimmenkauf ist bei der Verfassungsfrage doppelt so teuer wie bei Gesetzen */
+	kaufFaktor: 2,
+	/** Kapitalrückfluss beim freiwilligen Rückzug vor der Abstimmung */
+	rueckzugAnteil: .6,
+	/** Kapitalrückfluss beim Scheitern im Parlament (der Rest ist verbrannt) */
+	scheiternZurueck: .4,
+	/** Sperrfrist für Artikel eines gescheiterten Pakets (Tage; zwölf Monate) */
+	sperrTage: 365,
+	/** Ein Kampagnen-Impuls kostet Kapital und braucht eine Woche Abstand */
+	kampagnePk: 5,
+	kampagneAbkuehlung: 7,
+	/** Kampagnen-Wirkung: Wurzelgesetz mit Deckel (Prozentpunkte) */
+	kampagneFaktor: 1.5,
+	kampagneMax: 6,
+	/** Puffer über der Hürde für eine „sichere“ Prognose */
+	stimmenPuffer: 10,
+	/** Streuung der Wahlabend-Auszählung (wie bei der Präsidentschaftswahl) */
+	referendumStreuung: 2.2
+};
+/**
+* Der Katalog: fünf Artikel mit je zwei bis drei Varianten (Spielparameter; die Sachverhalte stehen in
+* data/reich/recht.ts und RECHERCHE_VERTIEFUNG_MACHT_KAPITAL.md, Abschnitt 14d).
+*/
+const ARTIKEL = [
+	{
+		id: "amtszeit",
+		name: "Amtszeit und Wiederwahl",
+		frage: "Wie lange regiert ein Präsident, und wie oft darf er wieder antreten?",
+		varianten: [
+			{
+				id: "unveraendert",
+				name: "Wie bisher",
+				text: "Fünf Jahre, eine Wiederwahl — die Amtszeitfrage bleibt unangetastet.",
+				statusQuo: true,
+				autoritaer: 0,
+				parteien: {},
+				waehler: {},
+				effekte: []
+			},
+			{
+				id: "wiederwahl_plus",
+				name: "Weitere Wiederwahl",
+				text: "Eine zusätzliche Wiederwahl wird möglich: Wer das Amt hält, kann ein drittes Mal antreten.",
+				autoritaer: 2,
+				parteien: {
+					AKP: 2,
+					MHP: 1,
+					YRP: 1,
+					CHP: -2,
+					DEM: -2,
+					"İYİ": -1,
+					"YENİ": -1,
+					Zafer: 0
+				},
+				waehler: {
+					konservative: 2,
+					nationalisten: 1,
+					staedtische_saekulare: -4,
+					junge: -2,
+					minderheiten: -2
+				},
+				effekte: [{
+					id: "polarisierung",
+					d: 3
+				}, {
+					id: "legitimitaet",
+					d: -2
+				}]
+			},
+			{
+				id: "neuwahl_jetzt",
+				name: "Vorgezogene Neuwahl",
+				text: "Mit dem Beschluss wird binnen zwei Monaten neu gewählt: Wer gewinnt, beginnt die Amtszeit von vorn.",
+				autoritaer: 0,
+				parteien: {
+					CHP: 1,
+					DEM: 1,
+					"İYİ": 1,
+					"YENİ": 1,
+					AKP: -2,
+					MHP: -2,
+					YRP: -1,
+					Zafer: 0
+				},
+				waehler: {
+					staedtische_saekulare: 1,
+					junge: 1
+				},
+				effekte: [{
+					id: "legitimitaet",
+					d: 1
+				}]
+			}
+		]
+	},
+	{
+		id: "wahlrecht",
+		name: "Wahlhürde",
+		frage: "Ab wie viel Prozent zieht eine Partei ins Parlament ein?",
+		varianten: [
+			{
+				id: "sieben",
+				name: "Sieben Prozent",
+				text: "Die Sperrklausel bleibt bei sieben Prozent.",
+				statusQuo: true,
+				autoritaer: 0,
+				parteien: {},
+				waehler: {},
+				effekte: []
+			},
+			{
+				id: "fuenf",
+				name: "Fünf Prozent",
+				text: "Kleinere Parteien kommen leichter hinein: Das Parlament bildet das Land breiter ab.",
+				autoritaer: -1,
+				parteien: {
+					DEM: 2,
+					CHP: 1,
+					"YENİ": 1,
+					YRP: 1,
+					Zafer: 1,
+					"İYİ": 0,
+					AKP: -1,
+					MHP: -2
+				},
+				waehler: {
+					minderheiten: 4,
+					staedtische_saekulare: 2,
+					junge: 1,
+					nationalisten: -2
+				},
+				effekte: [
+					{
+						id: "legitimitaet",
+						d: 2
+					},
+					{
+						id: "polarisierung",
+						d: -2
+					},
+					{
+						id: "minderheiten",
+						d: 2
+					}
+				]
+			},
+			{
+				id: "zehn",
+				name: "Zehn Prozent",
+				text: "Die höchste Hürde Europas: Kleine Parteien bleiben draußen, große Lager gewinnen ihre Sitze.",
+				autoritaer: 2,
+				parteien: {
+					MHP: 2,
+					AKP: 1,
+					Zafer: 1,
+					CHP: -2,
+					DEM: -2,
+					"İYİ": -1,
+					"YENİ": -1,
+					YRP: -1
+				},
+				waehler: {
+					minderheiten: -5,
+					staedtische_saekulare: -2,
+					nationalisten: 2
+				},
+				effekte: [
+					{
+						id: "polarisierung",
+						d: 3
+					},
+					{
+						id: "minderheiten",
+						d: -3
+					},
+					{
+						id: "legitimitaet",
+						d: -2
+					}
+				]
+			}
+		]
+	},
+	{
+		id: "justiz",
+		name: "Besetzung des Verfassungsgerichts",
+		frage: "Wer bestimmt, was Verfassung ist — der Präsident oder das Parlament?",
+		varianten: [
+			{
+				id: "zwoelf_drei",
+				name: "Zwölf plus drei",
+				text: "Wie bisher: Zwölf Mitglieder ernennt der Präsident, drei wählt das Parlament.",
+				statusQuo: true,
+				autoritaer: 0,
+				parteien: {},
+				waehler: {},
+				effekte: []
+			},
+			{
+				id: "acht_sieben",
+				name: "Acht plus sieben",
+				text: "Acht ernennt der Präsident, sieben wählt das Parlament: Das Gericht wird unabhängiger vom Palast.",
+				autoritaer: -1,
+				parteien: {
+					CHP: 2,
+					"YENİ": 2,
+					DEM: 1,
+					"İYİ": 1,
+					AKP: -2,
+					MHP: -1,
+					YRP: -1,
+					Zafer: -1
+				},
+				waehler: {
+					staedtische_saekulare: 2,
+					unternehmer: 1,
+					beamte: 1,
+					konservative: -1
+				},
+				effekte: [{
+					id: "justiz_unabhaengigkeit",
+					d: 3
+				}, {
+					id: "legitimitaet",
+					d: 2
+				}],
+				sitze: {
+					loyal: -4,
+					unabhaengig: 3,
+					reform: 1
+				}
+			},
+			{
+				id: "parlament_staerkt",
+				name: "Parlament wählt die Mehrheit",
+				text: "Acht der fünfzehn Mitglieder wählt das Parlament: Die Kontrolle der Kontrolle wandert ins Haus.",
+				autoritaer: -2,
+				parteien: {
+					CHP: 2,
+					"YENİ": 2,
+					DEM: 2,
+					"İYİ": 1,
+					AKP: -2,
+					MHP: -2,
+					YRP: -2,
+					Zafer: -1
+				},
+				waehler: {
+					staedtische_saekulare: 3,
+					beamte: 1,
+					unternehmer: 1,
+					konservative: -2
+				},
+				effekte: [
+					{
+						id: "justiz_unabhaengigkeit",
+						d: 5
+					},
+					{
+						id: "legitimitaet",
+						d: 3
+					},
+					{
+						id: "rechtssicherheit",
+						d: 2
+					}
+				],
+				sitze: {
+					loyal: -6,
+					unabhaengig: 4,
+					reform: 2
+				}
+			}
+		]
+	},
+	{
+		id: "notstand",
+		name: "Notstandsartikel",
+		frage: "Wie weit reicht die Ausnahme, bevor sie zur Regel wird?",
+		varianten: [
+			{
+				id: "eng",
+				name: "Eng begrenzt",
+				text: "Ausnahmezustand nur mit Zustimmung des Parlaments und auf vier Monate begrenzt.",
+				autoritaer: -1,
+				parteien: {
+					CHP: 2,
+					DEM: 2,
+					"YENİ": 1,
+					"İYİ": 1,
+					YRP: 0,
+					AKP: -1,
+					MHP: -2,
+					Zafer: -2
+				},
+				waehler: {
+					staedtische_saekulare: 2,
+					minderheiten: 2,
+					nationalisten: -2,
+					konservative: -1
+				},
+				effekte: [
+					{
+						id: "ausnahmerecht",
+						d: -4
+					},
+					{
+						id: "legitimitaet",
+						d: 2
+					},
+					{
+						id: "terrorgefahr",
+						d: 1
+					}
+				]
+			},
+			{
+				id: "unveraendert",
+				name: "Wie bisher",
+				text: "Die Notstandsregeln bleiben, wie sie sind.",
+				statusQuo: true,
+				autoritaer: 0,
+				parteien: {},
+				waehler: {},
+				effekte: []
+			},
+			{
+				id: "weit",
+				name: "Weit gefasst",
+				text: "Der Präsident regiert im Ausnahmezustand per Dekret am Parlament vorbei, und die Fristen fallen großzügig aus.",
+				autoritaer: 2,
+				parteien: {
+					MHP: 2,
+					AKP: 1,
+					Zafer: 1,
+					YRP: 0,
+					"İYİ": -1,
+					CHP: -2,
+					DEM: -2,
+					"YENİ": -2
+				},
+				waehler: {
+					nationalisten: 2,
+					konservative: 1,
+					staedtische_saekulare: -4,
+					minderheiten: -3,
+					junge: -2
+				},
+				effekte: [
+					{
+						id: "ausnahmerecht",
+						d: 6
+					},
+					{
+						id: "justiz_unabhaengigkeit",
+						d: -3
+					},
+					{
+						id: "legitimitaet",
+						d: -3
+					},
+					{
+						id: "terrorgefahr",
+						d: -1
+					}
+				]
+			}
+		]
+	},
+	{
+		id: "immunitaet",
+		name: "Immunität der Abgeordneten",
+		frage: "Schützt das Mandat vor der Staatsanwaltschaft?",
+		varianten: [{
+			id: "unveraendert",
+			name: "Wie bisher",
+			text: "Abgeordnete bleiben während des Mandats vor Ermittlungen geschützt.",
+			statusQuo: true,
+			autoritaer: 0,
+			parteien: {},
+			waehler: {},
+			effekte: []
+		}, {
+			id: "aufgehoben",
+			name: "Immunität aufgehoben",
+			text: "Ermittlungen gegen Abgeordnete werden sofort möglich — gegen Korruption wie gegen kritische Reden.",
+			autoritaer: 1,
+			parteien: {
+				Zafer: 2,
+				MHP: 1,
+				AKP: 1,
+				"İYİ": 1,
+				YRP: 1,
+				CHP: -1,
+				"YENİ": -1,
+				DEM: -2
+			},
+			waehler: {
+				nationalisten: 2,
+				arme: 1,
+				staedtische_saekulare: -1,
+				minderheiten: -3
+			},
+			effekte: [
+				{
+					id: "polarisierung",
+					d: 3
+				},
+				{
+					id: "legitimitaet",
+					d: -2
+				},
+				{
+					id: "korruption",
+					d: -2
+				},
+				{
+					id: "justizvertrauen",
+					d: 1
+				}
+			]
+		}]
+	}
+];
+const ARTIKEL_NACH_ID = new Map(ARTIKEL.map((a) => [a.id, a]));
+const VARIANTE_NACH_ID = new Map(ARTIKEL.flatMap((a) => a.varianten.map((v) => [v.id, v])));
+/** Die Status-quo-Variante eines Artikels. */
+function statusQuoVon(artikelId) {
+	const a = ARTIKEL_NACH_ID.get(artikelId);
+	return a?.varianten.find((v) => v.statusQuo)?.id ?? a?.varianten[0]?.id ?? "";
+}
+/** Ein vollständiges Paket: fehlende Artikel werden mit dem Status quo aufgefüllt. */
+function paketVervollstaendigen(paket) {
+	const out = {};
+	for (const a of ARTIKEL) {
+		const gewaehlt = paket[a.id];
+		out[a.id] = gewaehlt && a.varianten.some((v) => v.id === gewaehlt) ? gewaehlt : statusQuoVon(a.id);
+	}
+	return out;
+}
+/** Die Artikel eines Pakets, die vom bisherigen Recht abweichen. */
+function geaenderteArtikel(paket) {
+	return ARTIKEL.map((a) => ({
+		artikel: a,
+		variante: VARIANTE_NACH_ID.get(paket[a.id] ?? "")
+	})).filter((x) => x.variante && !x.variante.statusQuo);
+}
+/** Summe der Macht-Richtung eines Pakets: positiv autoritär, negativ demokratisierend. */
+function autoritaerScore(paket) {
+	return geaenderteArtikel(paket).reduce((s, x) => s + x.variante.autoritaer, 0);
+}
+/** Der Stand der Verfassungsfrage; wird beim ersten Zugriff angelegt (ältere Spielstände haben ihn nicht). */
+function verfassungsZustand(w) {
+	const spiel = w.spiel;
+	if (!spiel) throw new Error("Ohne Spielschleife gibt es keine Verfassungsfrage.");
+	return spiel.verfassungsvorgang ??= {
+		amtszeitBelegt: 0,
+		sperren: {},
+		aktiv: {},
+		historie: []
+	};
+}
+/** Beschlossene Variante eines Artikels; leer, wenn das bisherige Recht gilt. */
+function verfassungAktiv(w, artikelId) {
+	return w.spiel?.verfassungsvorgang?.aktiv[artikelId];
+}
+/** Ob in dieser Amtszeit schon ein Verfassungsvorgang lief (harte Regel: einer je Amtszeit). */
+function amtszeitBelegt(w) {
+	const spiel = w.spiel;
+	if (!spiel) return false;
+	return (spiel.verfassungsvorgang?.amtszeitBelegt ?? 0) === spiel.amtszeit;
+}
+/** Bis wann ein Artikel nach einem Scheitern gesperrt ist; 0 = frei. */
+function artikelSperre(w, artikelId) {
+	const bis = w.spiel?.verfassungsvorgang?.sperren[artikelId] ?? 0;
+	return bis > w.day ? bis : 0;
+}
+/**
+* Wie das Parlament zu einem Paket stünde: Das Lager stimmt geschlossen, duldende Fraktionen wie bei
+* Gesetzen, die übrigen Fraktionen nach ihren Präferenzen für die enthaltenen Artikel und nach der
+* Beliebtheit des Präsidenten im Land.
+*/
+function paketStimmen(w, paket, absprachen = 0) {
+	const parl = w.parliament;
+	const spiel = w.spiel;
+	if (!parl || !spiel) return {
+		erwartet: 600,
+		tief: 590,
+		hoch: 600,
+		lager: 600,
+		duldung: 0,
+		fraktionen: [],
+		lueckeMehrheit: 0,
+		lueckeDirekt: 0
+	};
+	const lagerParteien = [w.player?.partei.kurz ?? "", ...spiel.lager];
+	const lager = lagerParteien.reduce((s, p) => s + (parl.seats[p] ?? 0), 0);
+	const dul = duldung(w);
+	const geaendert = geaenderteArtikel(paket);
+	const beliebtheit = (spiel.umfrage.zustimmung - 45) / 100;
+	const fraktionen = [];
+	for (const [partei, sitze] of Object.entries(parl.seats)) {
+		if (lagerParteien.includes(partei) || dul.parteien.includes(partei) || sitze <= 0) continue;
+		const quote = clamp(.28 + .16 * (geaendert.length ? geaendert.reduce((s, x) => s + (x.variante.parteien[partei] ?? -.5), 0) / geaendert.length : 0) + .35 * beliebtheit, .02, .92);
+		fraktionen.push({
+			partei,
+			sitze,
+			quote,
+			ja: Math.round(sitze * quote)
+		});
+	}
+	const opJa = fraktionen.reduce((s, f) => s + f.ja, 0);
+	const erwartet = Math.min(600, lager + dul.ja + opJa + absprachen);
+	const band = Math.round((10 + geaendert.length * 2) * unsicherheitFaktor(w));
+	return {
+		erwartet,
+		tief: Math.max(0, erwartet - band),
+		hoch: Math.min(600, erwartet + band),
+		lager,
+		duldung: dul.ja,
+		fraktionen,
+		lueckeMehrheit: Math.max(0, VERFASSUNG_REGELN.mehrheit - erwartet),
+		lueckeDirekt: Math.max(0, VERFASSUNG_REGELN.direkt - erwartet)
+	};
+}
+function pruefeVerfassung(w, paketRoh) {
+	const paket = paketVervollstaendigen(paketRoh);
+	const geaendert = geaenderteArtikel(paket);
+	const pk = VERFASSUNG_REGELN.pkBasis + VERFASSUNG_REGELN.pkJeArtikel * geaendert.length;
+	const stimmen = paketStimmen(w, paket);
+	const aut = autoritaerScore(paket);
+	const hinweise = [];
+	if (stimmen.erwartet >= VERFASSUNG_REGELN.direkt) hinweise.push(`Ab ${VERFASSUNG_REGELN.direkt} Stimmen wird das Paket direkt Gesetz — keine Volksabstimmung nötig.`);
+	else if (stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit) hinweise.push(`Zwischen ${VERFASSUNG_REGELN.mehrheit} und ${VERFASSUNG_REGELN.direkt - 1} Stimmen entscheidet das Volk in einer Volksabstimmung.`);
+	else hinweise.push(`Unter ${VERFASSUNG_REGELN.mehrheit} Stimmen scheitert das Paket, und ein Teil des Kapitals ist verbrannt.`);
+	if (aut >= 2) hinweise.push("Das Paket zieht die Macht zum Palast: Proteste, Straßburg, die EU und die Märkte werden reagieren.");
+	if (aut <= -2) hinweise.push("Das Paket gibt Kontrolle ab: Es stärkt die Legitimität, kostet aber laufend etwas Politisches Kapital — wer weniger zwingen kann, muss mehr überzeugen.");
+	const aym = aymSicht(w, paket);
+	hinweise.push(`Verfassungsgericht: Die Chance, dass es ein angefochtenes Paket kassiert, liegt nach seinem jetzigen Besetzungsstand eher ${aym.pKassation < .12 ? "niedrig" : aym.pKassation < .25 ? "im mittleren Bereich" : "hoch"}.`);
+	const base = {
+		ok: true,
+		pk,
+		geaendert: geaendert.length,
+		stimmen,
+		autoritaer: aut,
+		hinweise
+	};
+	const spiel = w.spiel;
+	if (!spiel) return {
+		...base,
+		ok: false,
+		grund: "Ohne Amtsantritt gibt es keine Verfassungsfrage."
+	};
+	if (spiel.ende) return {
+		...base,
+		ok: false,
+		grund: "Die Amtszeit ist beendet."
+	};
+	if (!geaendert.length) return {
+		...base,
+		ok: false,
+		grund: "Das Paket ändert nichts: Wählen Sie mindestens einen Artikel, der vom bisherigen Recht abweicht."
+	};
+	const pause = neuanfangGrund(w);
+	if (pause) return {
+		...base,
+		ok: false,
+		grund: pause
+	};
+	if (verfassungsZustand(w).laufend) return {
+		...base,
+		ok: false,
+		grund: "Es läuft bereits ein Verfassungsvorgang; erst sein Abschluss macht den Weg frei."
+	};
+	if (amtszeitBelegt(w)) return {
+		...base,
+		ok: false,
+		grund: "Eine Verfassungsfrage je Amtszeit: Diese Amtszeit hatte ihre Debatte über die Spielregeln schon. Wer sie ständig neu verhandelt, entwertet alle Regeln — das trägt das Land nicht."
+	};
+	const gesperrt = geaendert.filter((x) => artikelSperre(w, x.artikel.id) > 0);
+	if (gesperrt.length) {
+		const rest = Math.max(...gesperrt.map((x) => artikelSperre(w, x.artikel.id) - w.day));
+		return {
+			...base,
+			ok: false,
+			grund: `Nach dem Scheitern des letzten Pakets ist ${gesperrt.map((x) => `„${x.artikel.name}“`).join(", ")} noch ${rest} Tage gesperrt; zwölf Monate trägt das Land dieselbe Frage nicht zweimal.`
+		};
+	}
+	if (!kannZahlen(spiel.kapital, pk)) return {
+		...base,
+		ok: false,
+		grund: `Für dieses Paket fehlt Politisches Kapital (nötig ${pk}, vorhanden ${Math.floor(spiel.kapital)}).`
+	};
+	return base;
+}
+/** Das Paket vor der Abstimmung zurückziehen: ein Teil des Kapitals kommt zurück, gekaufte Stimmen sind verloren. */
+function zieheVerfassungZurueck(w) {
+	const spiel = w.spiel;
+	const z = spiel ? verfassungsZustand(w) : void 0;
+	const v = z?.laufend;
+	if (!spiel || !z || !v || v.phase !== "parlament") return {
+		ok: false,
+		text: "Es liegt kein Paket mehr zur Abstimmung vor."
+	};
+	const zurueck = Math.floor(v.pk * VERFASSUNG_REGELN.rueckzugAnteil);
+	spiel.kapital = Math.min(REGELN.kapitalMax, spiel.kapital + zurueck);
+	z.historie.push({
+		tag: w.day,
+		datum: w.date,
+		ausgang: "Vor der Abstimmung zurückgezogen",
+		artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name)
+	});
+	delete z.laufend;
+	const text = "Das Verfassungspaket wird zurückgezogen.";
+	const why = `${zurueck} von ${v.pk} Kapital kommen zurück, die Absprachen sind verloren. Die Amtszeit hat ihre Verfassungsdebatte damit hinter sich.`;
+	addLog(w, "entscheidung", text, why);
+	return {
+		ok: true,
+		text,
+		why
+	};
+}
+/** Die Abstimmung über das Paket: Hürden, danach die Frage der Anfechtung. */
+function verfassungAbstimmen(w, rng) {
+	const spiel = w.spiel;
+	const z = verfassungsZustand(w);
+	const v = z.laufend;
+	if (!v) return {
+		ja: 0,
+		weg: "gescheitert",
+		angefochten: false,
+		text: "Der Vorgang ist bereits abgeschlossen; die Abstimmung entfällt."
+	};
+	const sicht = paketStimmen(w, v.paket, v.absprachen);
+	const ja = Math.min(600, Math.max(0, sicht.erwartet + Math.round(rng.normal(6))));
+	v.ja = ja;
+	const nein = 600 - ja;
+	if (ja < VERFASSUNG_REGELN.mehrheit) {
+		const zurueck = Math.floor(v.pk * VERFASSUNG_REGELN.scheiternZurueck);
+		spiel.kapital = Math.min(REGELN.kapitalMax, spiel.kapital + zurueck);
+		vertrauenAendern(w, -2);
+		spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 1.5);
+		for (const x of geaenderteArtikel(v.paket)) z.sperren[x.artikel.id] = w.day + VERFASSUNG_REGELN.sperrTage;
+		z.historie.push({
+			tag: w.day,
+			datum: w.date,
+			ausgang: `Im Parlament gescheitert (${ja} zu ${nein})`,
+			artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name)
+		});
+		delete z.laufend;
+		const text = `Das Parlament lehnt das Verfassungspaket ab (${ja} zu ${nein}). Es fehlten ${VERFASSUNG_REGELN.mehrheit - ja} Stimmen zur ersten Hürde.`;
+		addLog(w, "entscheidung", text, `Von ${v.pk} Kapital sind ${v.pk - zurueck} verbrannt; die betroffenen Artikel sind zwölf Monate gesperrt. Wer die Spielregeln ändern will und scheitert, verliert im Land an Vertrauen.`);
+		spiel.chronik.push({
+			tag: w.day,
+			datum: w.date,
+			titel: "Verfassungspaket gescheitert",
+			ausgang: `${ja} zu ${nein}: Die Hürde von ${VERFASSUNG_REGELN.mehrheit} blieb unerreicht.`
+		});
+		return {
+			ja,
+			weg: "gescheitert",
+			angefochten: false,
+			text
+		};
+	}
+	const weg = ja >= VERFASSUNG_REGELN.direkt ? "direkt" : "referendum";
+	const aut = autoritaerScore(v.paket);
+	const oppSitze = 600 - sicht.lager;
+	const polar = nationalAverage(NET, w.net, "polarisierung") / 100;
+	const pAnfechtung = clamp(.3 + .12 * Math.max(0, aut) - (aut < 0 ? .15 : 0) + (oppSitze >= 200 ? .15 : 0) + .2 * polar - .25, .05, .9);
+	const angefochten = rng.next() < pAnfechtung;
+	v.aymAngefochten = angefochten;
+	const wegText = weg === "direkt" ? `Mit ${ja} zu ${nein} überspringt das Paket die Hürde von ${VERFASSUNG_REGELN.direkt}: Es braucht keine Volksabstimmung.` : `Mit ${ja} zu ${nein} liegt das Paket zwischen ${VERFASSUNG_REGELN.mehrheit} und ${VERFASSUNG_REGELN.direkt - 1}: Das Volk wird entscheiden.`;
+	if (angefochten) {
+		v.phase = "aym";
+		v.aymTag = w.day + VERFASSUNG_REGELN.aymTage;
+		addLog(w, "ereignis", `${wegText} Die Opposition zieht vor das Verfassungsgericht; die Entscheidung wird in ${VERFASSUNG_REGELN.aymTage} Tagen erwartet.`, "Wer im Parlament verliert, versucht es über die Kontrollinstanz — je nach Besetzung des Gerichts mit Aussicht.");
+	} else {
+		addLog(w, "ereignis", `${wegText} Die Opposition verzichtet auf eine Anfechtung.`, "Ohne Gang vor das Verfassungsgericht geht es direkt weiter.");
+		weiterNachAym(w, rng);
+	}
+	spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: "Verfassungspaket im Parlament angenommen",
+		ausgang: `${ja} zu ${nein}${angefochten ? "; die Opposition fechtet an" : ""}`
+	});
+	return {
+		ja,
+		weg,
+		angefochten,
+		text: `${wegText}${angefochten ? " Die Opposition zieht vor das Verfassungsgericht." : ""}`
+	};
+}
+/** Nach der Parlamentsphase (mit oder ohne Gericht): weiter zum Beschluss oder in die Kampagne. */
+function weiterNachAym(w, rng) {
+	const v = verfassungsZustand(w).laufend;
+	if ((v.ja ?? 0) >= VERFASSUNG_REGELN.direkt) {
+		beschliessePaket(w, rng);
+		return;
+	}
+	v.phase = "kampagne";
+	v.referendumTag = w.day + VERFASSUNG_REGELN.kampagnenTage;
+	addLog(w, "ereignis", `Die Kampagne zur Volksabstimmung beginnt; gewählt wird am ${formatDateDe(addDays(w.date, VERFASSUNG_REGELN.kampagnenTage))}.`, "Die Zustimmung zum Präsidenten trägt das Ja-Lager, die Artikel ziehen ihre Wählergruppen je Richtung — und Kapital in der Kampagne verschiebt die Mitte.");
+}
+/** Wie das Gericht zu diesem Paket stünde: Je unabhängiger und reformorientierter die Mehrheit, desto eher kassiert es — autoritäre Pakete eher als demokratisierende. */
+function aymSicht(w, paket) {
+	const sitze = w.spiel?.reich?.sitze.aym ?? {
+		loyal: 9,
+		unabhaengig: 3,
+		reform: 3
+	};
+	const n = Math.max(1, sitze.loyal + sitze.unabhaengig + sitze.reform);
+	const aut = autoritaerScore(paket);
+	return {
+		sitze,
+		pKassation: clamp((sitze.unabhaengig * .5 + sitze.reform * .8) / n * (.3 + .15 * Math.max(0, aut)) + .04, .02, .85)
+	};
+}
+/** Das Gericht entscheidet: Kassation beendet das Paket mit Groll, Annahme gibt den Weg frei. */
+function aymEntscheiden(w, rng) {
+	const spiel = w.spiel;
+	const z = verfassungsZustand(w);
+	const v = z.laufend;
+	if (!v) return {
+		kassiert: false,
+		text: "Der Vorgang ist bereits abgeschlossen; das Verfahren wird eingestellt."
+	};
+	const sicht = aymSicht(w, v.paket);
+	const kassiert = rng.next() < sicht.pKassation;
+	if (kassiert) {
+		for (const x of geaenderteArtikel(v.paket)) z.sperren[x.artikel.id] = w.day + VERFASSUNG_REGELN.sperrTage;
+		z.historie.push({
+			tag: w.day,
+			datum: w.date,
+			ausgang: "Vom Verfassungsgericht kassiert",
+			artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name)
+		});
+		delete z.laufend;
+		wirke(w, "polarisierung", 2);
+		vertrauenAendern(w, -1.5);
+		spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 1);
+		const text = "Das Verfassungsgericht kassiert das Paket: zentrale Artikel verletzten die Verfassung. Das eingesetzte Kapital ist verloren.";
+		addLog(w, "ereignis", text, "Die Richter entscheiden nach ihrem Stand: Unabhängige und Reformorientierte trugen die Kassation. Der Groll im Lager ist groß, die Polarisierung wächst, und die Artikel sind zwölf Monate gesperrt.");
+		spiel.chronik.push({
+			tag: w.day,
+			datum: w.date,
+			titel: "Verfassungsgericht kassiert das Paket",
+			ausgang: "Die Kontrollinstanz hält die Regierung an die Regeln."
+		});
+		return {
+			kassiert,
+			text
+		};
+	}
+	addLog(w, "ereignis", "Das Verfassungsgericht lässt das Paket zu.", "Die Mehrheit der Richter sieht keinen Verfassungsverstoß; der Weg ist frei.");
+	spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: "Verfassungsgericht lässt das Paket zu",
+		ausgang: "Die Anfechtung der Opposition scheitert."
+	});
+	weiterNachAym(w, rng);
+	return {
+		kassiert,
+		text: "Das Verfassungsgericht lässt das Paket zu; der Weg ist frei."
+	};
+}
+/** Wählergruppen-Salienz eines Pakets: gewichtete Summe der Reaktionen über die geänderten Artikel (Prozentpunkte). */
+function paketSalienz(paket) {
+	const gruppen = GRUPPEN.map((g) => {
+		const beitrag = geaenderteArtikel(paket).reduce((s, x) => s + (x.variante.waehler[g.id] ?? 0), 0);
+		return {
+			id: g.id,
+			beitrag: g.gewicht * beitrag / GRUPPEN_SUMME
+		};
+	});
+	return {
+		summe: gruppen.reduce((s, g) => s + g.beitrag, 0),
+		gruppen
+	};
+}
+/**
+* Die Lage vor der Volksabstimmung: Die Zustimmung zum Präsidenten trägt das Ja-Lager (vereinfachte
+* Wahl-Mechanik), die Artikel verschieben sie über ihre Wählergruppen, die Kampagne über ihr Kapital.
+*/
+function referendumPrognose(w) {
+	const spiel = w.spiel;
+	const v = spiel?.verfassungsvorgang?.laufend;
+	if (!spiel || !v) return null;
+	const salienz = paketSalienz(v.paket);
+	const kampagne = Math.min(VERFASSUNG_REGELN.kampagneMax, Math.sqrt(Math.max(0, v.kampagnenPk ?? 0)) * VERFASSUNG_REGELN.kampagneFaktor);
+	const mitte = clamp(spiel.umfrage.zustimmung + salienz.summe + kampagne, 5, 95);
+	const band = 4 * unsicherheitFaktor(w);
+	return {
+		mitte,
+		tief: clamp(mitte - band, 0, 100),
+		hoch: clamp(mitte + band, 0, 100),
+		zustimmung: spiel.umfrage.zustimmung,
+		salienz: salienz.summe,
+		kampagne,
+		gruppen: salienz.gruppen
+	};
+}
+/** Wahlabend der Volksabstimmung: die Auszählung mit derselben Streuung wie die Präsidentschaftswahl. */
+function referendumAuszaehlen(w, rng) {
+	const spiel = w.spiel;
+	const z = verfassungsZustand(w);
+	const v = z.laufend;
+	if (!v) return {
+		ja: false,
+		anteil: 0,
+		text: "Der Vorgang ist bereits abgeschlossen; die Abstimmung entfällt."
+	};
+	const anteil = clamp(referendumPrognose(w).mitte + rng.normal(VERFASSUNG_REGELN.referendumStreuung), 0, 100);
+	if (anteil >= 50) {
+		const text = `Referendum-Nacht: ${fmt(anteil)} Prozent stimmen Ja. Das Paket ist beschlossen.`;
+		addLog(w, "ereignis", text, "Das Volk hat die Verfassungsänderung getragen; die Artikel treten in Kraft.");
+		beschliessePaket(w, rng);
+		return {
+			ja: true,
+			anteil,
+			text
+		};
+	}
+	z.historie.push({
+		tag: w.day,
+		datum: w.date,
+		ausgang: `Im Referendum abgelehnt (${fmt(anteil)} Prozent Ja)`,
+		artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name)
+	});
+	for (const x of geaenderteArtikel(v.paket)) z.sperren[x.artikel.id] = w.day + VERFASSUNG_REGELN.sperrTage;
+	delete z.laufend;
+	vertrauenAendern(w, -4);
+	spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 3);
+	wirke(w, "polarisierung", 2);
+	for (const [partei, sitze] of Object.entries(w.parliament?.seats ?? {})) {
+		if (partei === w.player?.partei.kurz || spiel.lager.includes(partei) || !sitze) continue;
+		bereitschaftAendern(w, partei, -10);
+	}
+	const text = `Referendum-Nacht: Nur ${fmt(anteil)} Prozent stimmen Ja. Das Volk lehnt das Paket ab.`;
+	addLog(w, "ereignis", text, "Eine verlorene Volksabstimmung ist ein Urteil über die Regierung selbst: Das Vertrauen fällt schwer, die Opposition geht gestärkt aus der Nacht, und die Artikel sind zwölf Monate gesperrt.");
+	spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: "Referendum verloren",
+		ausgang: `${fmt(anteil)} Prozent Ja — das Paket ist tot, die Opposition triumphiert.`
+	});
+	spiel.hinweise.push({
+		id: `referendum-nein-${w.day}`,
+		titel: "Referendum-Nacht: Das Nein",
+		szene: "wahlnacht",
+		text: [`${fmt(anteil)} Prozent Ja reichen nicht: Das Volk lehnt das Verfassungspaket ab.`, "Die Opposition feiert auf den Plätzen; die Regierung verliert schwer an Vertrauen. Zwölf Monate lang trägt das Land dieselbe Frage nicht noch einmal."]
+	});
+	return {
+		ja: false,
+		anteil,
+		text
+	};
+}
+/** Kapital-Abzug demokratisierender Verfassungsänderungen (Spielparameter): Wer Kontrolle abgibt, regiert mit weniger Druckmitteln. */
+function verfassungKapitalAbzug(w) {
+	const aktiv = w.spiel?.verfassungsvorgang?.aktiv ?? {};
+	let summe = 0;
+	for (const varianteId of Object.values(aktiv)) {
+		const v = VARIANTE_NACH_ID.get(varianteId);
+		if (v && v.autoritaer < 0) summe += .2 * -v.autoritaer;
+	}
+	return Math.min(1.5, summe);
+}
+/** Das Paket tritt in Kraft: Artikel-Effekte ins Netz, Sonderwirkungen, Gegenreaktion je Richtung. */
+function beschliessePaket(w, rng) {
+	const spiel = w.spiel;
+	const z = verfassungsZustand(w);
+	const v = z.laufend;
+	const geaendert = geaenderteArtikel(v.paket);
+	const aut = autoritaerScore(v.paket);
+	for (const x of geaendert) {
+		z.aktiv[x.artikel.id] = x.variante.id;
+		for (const e of x.variante.effekte) wirke(w, e.id, e.d);
+		if (x.variante.sitze) {
+			const reich = reichZustand(w);
+			const sitze = reich.sitze.aym ??= {
+				loyal: 9,
+				unabhaengig: 3,
+				reform: 3
+			};
+			sitze.loyal = Math.max(0, sitze.loyal + x.variante.sitze.loyal);
+			sitze.unabhaengig = Math.max(0, sitze.unabhaengig + x.variante.sitze.unabhaengig);
+			sitze.reform = Math.max(0, sitze.reform + x.variante.sitze.reform);
+		}
+	}
+	if (z.aktiv.amtszeit === "neuwahl_jetzt") {
+		spiel.wahltag = Math.min(spiel.wahltag, w.day + 60);
+		addLog(w, "ereignis", `Der Wahltermin rückt vor: In etwa zwei Monaten wird gewählt.`, "Wer die Amtszeit neu stellt, stellt sich dem Urteil — gewinnen heißt von vorn beginnen, verlieren heißt gehen.");
+	}
+	if (aut >= 2) {
+		oeffneVerfassungsEreignis(w, "verfassung_proteste", rng);
+		wirke(w, "strassburg_druck", 4);
+		wirke(w, "ansehen", -2);
+		landAendern(w, "EU", { vertrauen: -4 }, "Verfassungspaket zugunsten des Palasts");
+		wirke(w, "vertrauen_maerkte", -3);
+		w.economy.riskPremium = clamp(w.economy.riskPremium + 40, 50, 2e3);
+	} else if (aut <= -2) {
+		wirke(w, "legitimitaet", 2);
+		wirke(w, "ansehen", 2);
+		landAendern(w, "EU", { vertrauen: 3 }, "Verfassung stärkt die Kontrolle der Gewalt");
+	}
+	z.historie.push({
+		tag: w.day,
+		datum: w.date,
+		ausgang: "Beschlossen und in Kraft",
+		artikel: geaendert.map((x) => `${x.artikel.name}: ${x.variante.name}`)
+	});
+	delete z.laufend;
+	const namen = geaendert.map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ");
+	addLog(w, "entscheidung", `Die Verfassungsänderung tritt in Kraft: ${namen}.`, aut >= 2 ? "Die Macht rückt zusammen — und die Antwort kommt: Proteste, Straßburg, die EU und die Märkte lesen das Paket als Richtungsentscheidung." : aut <= -2 ? "Die Kontrolle wird stärker: Legitimität und Ansehen wachsen, aber wer weniger zwingen kann, regiert mit weniger Politischem Kapital im Monat." : "Die Spielregeln des Landes stehen jetzt anders — jede Folge wirkt über Jahre.");
+	spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: "Verfassungsänderung in Kraft",
+		ausgang: namen
+	});
+	spiel.hinweise.push({
+		id: `verfassung-kraft-${w.day}`,
+		titel: "Verfassungsänderung in Kraft",
+		szene: "parlament",
+		text: [`Das Paket ist Verfassungsrecht: ${namen}.`, aut >= 2 ? "Die Straße, Straßburg und die Märkte antworten bereits; die Opposition wird das nicht vergessen." : "Das Land regiert ab heute nach anderen Regeln."]
+	});
+}
+/** Der Ereignismotor meldet seinen Öffner hier an (ereignisse.ts), damit dieser Kern ohne Importzyklus bleibt. */
+let oeffner = null;
+function setzeVerfassungsOeffner(fn) {
+	oeffner = fn;
+}
+function oeffneVerfassungsEreignis(w, vorlageId, rng) {
+	oeffner?.(w, vorlageId, rng);
+}
+/** Für welche Phase wartet der Vorgang auf das Entscheidungs-Ereignis? */
+const PHASE_EREIGNIS = {
+	parlament: "verfassung_abstimmung",
+	aym: "verfassung_aym",
+	kampagne: "verfassung_referendum"
+};
+/** Täglich aus der Spielschleife: terminierte Stufen des Vorgangs öffnen ihr Entscheidungs-Ereignis. */
+function verfassungsVorgangTag(w, rng) {
+	const spiel = w.spiel;
+	const z = spiel?.verfassungsvorgang;
+	const v = z?.laufend;
+	if (!spiel || !z || !v || spiel.ende) return;
+	const frist = v.phase === "parlament" ? v.abstimmung : v.phase === "aym" ? v.aymTag ?? w.day : v.phase === "kampagne" ? v.referendumTag ?? w.day : Infinity;
+	if (w.day < frist) return;
+	if (v.phaseGeoeffnet === v.phase) return;
+	v.phaseGeoeffnet = v.phase;
+	oeffneVerfassungsEreignis(w, PHASE_EREIGNIS[v.phase], rng);
+}
+//#endregion
+//#region src/sim/ziele.ts
+function akutAnzahl(w, id) {
+	const i = NET.index.get(id);
+	const node = i === void 0 ? void 0 : NET.nodes[i];
+	if (i === void 0 || !node?.threshold) return 0;
+	let n = 0;
+	for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) n++;
+	return n;
+}
+function minimum(w, id) {
+	const i = NET.index.get(id);
+	if (i === void 0) return NaN;
+	let m = 100;
+	for (let p = 0; p < 81; p++) m = Math.min(m, w.net.values[i * 81 + p]);
+	return m;
+}
+const nf$1 = (x) => x.toLocaleString("de-DE", {
+	maximumFractionDigits: 1,
+	minimumFractionDigits: 1
+});
+const ZIELE = [
+	{
+		id: "inflation15",
+		titel: "Inflation unter 15 Prozent",
+		beschreibung: "Die veröffentlichte Inflation liegt zum Ende der Amtszeit unter 15 %.",
+		pruefe: (w) => ({
+			erreicht: w.published.inflation.value < 15,
+			stand: `jetzt ${nf$1(w.published.inflation.value)} %`
+		})
+	},
+	{
+		id: "arbeit8",
+		titel: "Arbeitslosigkeit unter 8 Prozent",
+		beschreibung: "Die Arbeitslosenquote liegt zum Ende unter 8 %.",
+		pruefe: (w) => ({
+			erreicht: w.economy.unemployment < 8,
+			stand: `jetzt ${nf$1(w.economy.unemployment)} %`
+		})
+	},
+	{
+		id: "schulden30",
+		titel: "Schuldenquote unter 30 Prozent",
+		beschreibung: "Die Staatsschulden liegen zum Ende unter 30 % des BIP.",
+		pruefe: (w) => ({
+			erreicht: w.economy.debtRatio < 30,
+			stand: `jetzt ${nf$1(w.economy.debtRatio)} %`
+		})
+	},
+	{
+		id: "wasserstrom",
+		titel: "Wasser und Strom sichern",
+		beschreibung: "Kein akuter Wassermangel und keine akuten Stromausfälle in irgendeiner Provinz.",
+		pruefe: (w) => {
+			const n = akutAnzahl(w, "p_wassermangel") + akutAnzahl(w, "p_stromausfaelle");
+			return {
+				erreicht: n === 0,
+				stand: n === 0 ? "in keiner Provinz akut" : `noch in ${n} Fällen akut`
+			};
+		}
+	},
+	{
+		id: "erdbeben",
+		titel: "Erdbebensicher bauen",
+		beschreibung: "Die Erdbebengefahr ist in höchstens 5 Provinzen akut.",
+		pruefe: (w) => {
+			const n = akutAnzahl(w, "p_erdbebengefahr");
+			return {
+				erreicht: n <= 5,
+				stand: `akut in ${n} Provinzen`
+			};
+		}
+	},
+	{
+		id: "wohnen",
+		titel: "Wohnungsnot beenden",
+		beschreibung: "Die Wohnungsnot ist in keiner Provinz akut.",
+		pruefe: (w) => {
+			const n = akutAnzahl(w, "p_wohnungsnot");
+			return {
+				erreicht: n === 0,
+				stand: n === 0 ? "in keiner Provinz akut" : `akut in ${n} Provinzen`
+			};
+		}
+	},
+	{
+		id: "aerzte",
+		titel: "Ärzte für alle Provinzen",
+		beschreibung: "Der Ärztemangel ist in keiner Provinz akut.",
+		pruefe: (w) => {
+			const n = akutAnzahl(w, "p_aerztemangel");
+			return {
+				erreicht: n === 0,
+				stand: n === 0 ? "in keiner Provinz akut" : `akut in ${n} Provinzen`
+			};
+		}
+	},
+	{
+		id: "strassen",
+		titel: "Keine abgehängte Provinz",
+		beschreibung: "Das Straßennetz liegt in jeder Provinz mindestens auf Stufe 45.",
+		pruefe: (w) => {
+			const m = minimum(w, "verkehrsnetz");
+			return {
+				erreicht: m >= 45,
+				stand: `schwächste Provinz: Stufe ${nf$1(m)}`
+			};
+		}
+	},
+	{
+		id: "mehrheit",
+		titel: "Regierungsmehrheit halten",
+		beschreibung: "Das Regierungslager hat am Ende mindestens 301 Sitze.",
+		pruefe: (w) => {
+			const s = stimmenSicht(w);
+			return {
+				erreicht: s.lager >= 301,
+				stand: `${s.lager} von 600 Sitzen`
+			};
+		}
+	},
+	{
+		id: "vertrauen60",
+		titel: "Vertrauen gewinnen",
+		beschreibung: "Das mittlere Vertrauen in die Regierung liegt am Ende bei mindestens 60.",
+		pruefe: (w) => {
+			const v = nationalAverage(NET, w.net, "vertrauen_regierung");
+			return {
+				erreicht: v >= 60,
+				stand: `jetzt ${nf$1(v)}`
+			};
+		}
+	}
+];
+function zielDef(id) {
+	return ZIELE.find((z) => z.id === id);
+}
+function zielStand(w) {
+	return (w.spiel?.ziele ?? []).flatMap((id) => {
+		const def = zielDef(id);
+		if (!def) return [];
+		return [{
+			def,
+			...def.pruefe(w)
+		}];
+	});
+}
+//#endregion
+//#region src/sim/wege.ts
+/**
+* Maßnahmen, die eine Größe in die gewünschte Richtung bewegen (`gewuenscht` +1 erhöhen, −1 senken),
+* nach Stärke sortiert. Ist die Größe selbst eine Maßnahme, gibt es keine Hebel.
+*/
+function hebel(zielId, gewuenscht, n = 4) {
+	const summe = /* @__PURE__ */ new Map();
+	for (const e1 of NET.edges) {
+		const von = NET.nodes[NET.index.get(e1.from)];
+		if (von.kind !== "massnahme") continue;
+		if (e1.to === zielId) summe.set(von.id, (summe.get(von.id) ?? 0) + e1.weight);
+		else for (const e2 of NET.edges) if (e2.from === e1.to && e2.to === zielId) summe.set(von.id, (summe.get(von.id) ?? 0) + e1.weight * e2.weight * .5);
+	}
+	return [...summe.entries()].map(([id, s]) => ({
+		node: NET.nodes[NET.index.get(id)],
+		staerke: Math.abs(s),
+		richtung: s * gewuenscht > 0 ? 1 : -1
+	})).filter((h) => h.staerke > 5e-4).sort((a, b) => b.staerke - a.staerke).slice(0, n);
+}
+//#endregion
+//#region src/sim/waehler.ts
+function launenWort(x) {
+	if (x >= 70) return "begeistert";
+	if (x >= 58) return "zufrieden";
+	if (x >= 45) return "gemischt";
+	if (x >= 33) return "verärgert";
+	return "wütend";
+}
+function vorMonaten(world, id, n) {
+	const s = world.net;
+	const i = NET.index.get(id);
+	if (i === void 0 || world.day < 30 * n) return null;
+	const slot = s.history[(s.month - n + s.history.length * 1e3) % s.history.length];
+	if (!slot) return null;
+	let sum = 0;
+	let w = 0;
+	for (let p = 0; p < 81; p++) {
+		sum += slot[i * 81 + p] * s.weights[p];
+		w += s.weights[p];
+	}
+	return w > 0 ? sum / w : null;
+}
+function abweichung(world, id) {
+	const node = NET.nodes[NET.index.get(id)];
+	const s0 = world.spiel?.start;
+	if (node.input) {
+		if (!s0) return 0;
+		if (id === "inflation") return world.economy.inflation - s0.inflation;
+		if (id === "arbeitslosigkeit") return world.economy.unemployment - s0.arbeitslosigkeit;
+		if (id === "wachstum") return world.economy.growth - s0.wachstum;
+		return 0;
+	}
+	return nationalAverage(NET, world.net, id) - startAverage(NET, world.net, id);
+}
+function waehlerLage(world) {
+	const lage = [];
+	for (const g of GRUPPEN) {
+		const node = NET.nodes[NET.index.get(g.id)];
+		const laune = nationalAverage(NET, world.net, g.id);
+		const frueher = vorMonaten(world, g.id, 3);
+		const mitWert = NET.edges.filter((e) => e.to === g.id).map((e) => ({
+			e,
+			wert: e.weight * abweichung(world, e.from)
+		}));
+		const bewegt = mitWert.filter((m) => Math.abs(m.wert) > .02).sort((a, b) => Math.abs(b.wert) - Math.abs(a.wert));
+		const veraendert = bewegt.length > 0;
+		const gruende = (veraendert ? bewegt : [...mitWert].sort((a, b) => Math.abs(b.e.weight) - Math.abs(a.e.weight)).map((m) => ({
+			...m,
+			wert: m.e.weight
+		}))).slice(0, 4).map((m) => ({
+			name: NET.nodes[NET.index.get(m.e.from)].name,
+			richtung: m.wert >= 0 ? 1 : -1,
+			text: m.e.why,
+			wert: Math.abs(m.wert)
+		}));
+		const forderungen = [];
+		for (const h of hebel(g.id, 1, 10)) {
+			NET.index.get(h.node.id);
+			const jetzt = nationalAverage(NET, world.net, h.node.id);
+			if (h.richtung > 0 && jetzt >= 92 || h.richtung < 0 && jetzt <= 8) continue;
+			forderungen.push({
+				massnahme: h.node.id,
+				name: h.node.name,
+				richtung: h.richtung,
+				stufe: Math.round(jetzt)
+			});
+			if (forderungen.length >= 3) break;
+		}
+		const anteil = g.gewicht / GRUPPEN_SUMME;
+		lage.push({
+			id: g.id,
+			name: node.name,
+			text: node.text,
+			anteil,
+			laune,
+			trend: frueher === null ? null : laune - frueher,
+			wort: launenWort(laune),
+			gruende,
+			veraendert,
+			forderungen,
+			beitrag: .25 * anteil * (laune - 50)
+		});
+	}
+	return lage.sort((a, b) => b.anteil - a.anteil);
+}
+//#endregion
+//#region src/sim/bilanz.ts
+function akuteProbleme(w) {
+	let n = 0;
+	for (const node of NET.nodes) {
+		if (node.kind !== "problem" || !node.threshold) continue;
+		const i = NET.index.get(node.id);
+		for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) {
+			n++;
+			break;
+		}
+	}
+	return n;
+}
+//#endregion
+//#region src/data/provinz_archetypen.ts
+const ARCHETYPEN = [
+	{
+		id: 1,
+		name: "Metropol-Industrie-Kern",
+		provinzen: [
+			6,
+			16,
+			34,
+			35,
+			41,
+			59
+		]
+	},
+	{
+		id: 2,
+		name: "Industrie- und Hafen-Gürtel (2. Reihe)",
+		provinzen: [
+			1,
+			10,
+			17,
+			22,
+			31,
+			33,
+			39,
+			54,
+			55,
+			67,
+			77,
+			81
+		]
+	},
+	{
+		id: 3,
+		name: "Tourismus-Küste",
+		provinzen: [
+			7,
+			9,
+			48,
+			50
+		]
+	},
+	{
+		id: 4,
+		name: "Anatolische Mittelstädte / Tiger",
+		provinzen: [
+			5,
+			11,
+			14,
+			19,
+			20,
+			24,
+			25,
+			26,
+			37,
+			38,
+			40,
+			58,
+			60,
+			66,
+			71,
+			78,
+			80
+		]
+	},
+	{
+		id: 5,
+		name: "Agrar-Steppe İç Ege/Zentralanatolien",
+		provinzen: [
+			3,
+			15,
+			32,
+			42,
+			43,
+			45,
+			51,
+			64,
+			68,
+			70
+		]
+	},
+	{
+		id: 6,
+		name: "Karadeniz-Fındık-Peripherie",
+		provinzen: [
+			8,
+			28,
+			52,
+			53,
+			57,
+			61,
+			74
+		]
+	},
+	{
+		id: 7,
+		name: "Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft",
+		provinzen: [
+			2,
+			21,
+			23,
+			27,
+			36,
+			44,
+			46,
+			47,
+			63,
+			65,
+			72,
+			73,
+			76,
+			79
+		]
+	},
+	{
+		id: 8,
+		name: "Ost-Anatolien peripher",
+		provinzen: [
+			4,
+			12,
+			13,
+			18,
+			29,
+			30,
+			49,
+			56,
+			62,
+			69,
+			75
+		]
+	}
+];
+/**
+* Delta-Matrix (RECHERCHE_PROVINZDATEN.md, Abschnitt 4): additive Punkte je
+* Politiknetz-Knoten, Index im Array = Archätyp-id − 1. Nur Knoten ohne echten
+* Provinz-Datenbeleg; `arbeitslosigkeit` bleibt absichtlich außen vor, denn dort
+* stehen echte Provinzwerte in provinzdaten.json (Empfehlung der Recherche).
+* Bei Doppelzeilen der Matrix („landflucht / p_landflucht“) tragen beide Knoten
+* dieselben Deltas, nur C1 unterscheidet sich (−15 / −20).
+*/
+const DELTAS = {
+	mieten: [
+		15,
+		4,
+		8,
+		2,
+		0,
+		-2,
+		-4,
+		-10
+	],
+	p_wohnungsnot: [
+		12,
+		4,
+		6,
+		2,
+		0,
+		-2,
+		-2,
+		-8
+	],
+	lebenshaltung: [
+		8,
+		3,
+		4,
+		0,
+		0,
+		0,
+		3,
+		3
+	],
+	abwanderung: [
+		-5,
+		0,
+		0,
+		3,
+		8,
+		10,
+		8,
+		12
+	],
+	p_abwanderung: [
+		-8,
+		-2,
+		-2,
+		2,
+		8,
+		10,
+		8,
+		15
+	],
+	landflucht: [
+		-15,
+		-5,
+		-3,
+		2,
+		8,
+		10,
+		8,
+		15
+	],
+	p_landflucht: [
+		-20,
+		-5,
+		-3,
+		2,
+		8,
+		10,
+		8,
+		15
+	],
+	p_wassermangel: [
+		8,
+		2,
+		5,
+		0,
+		15,
+		-10,
+		5,
+		0
+	],
+	wasserversorgung: [
+		-5,
+		0,
+		-3,
+		0,
+		-10,
+		5,
+		-5,
+		0
+	],
+	industrie: [
+		5,
+		8,
+		-3,
+		5,
+		2,
+		-5,
+		2,
+		-10
+	],
+	export: [
+		5,
+		8,
+		2,
+		3,
+		0,
+		-5,
+		2,
+		-10
+	],
+	logistik: [
+		10,
+		8,
+		3,
+		2,
+		0,
+		-3,
+		2,
+		-8
+	],
+	tourismus: [
+		5,
+		2,
+		20,
+		0,
+		-3,
+		3,
+		0,
+		-5
+	],
+	landwirtschaft_einkommen: [
+		-5,
+		2,
+		3,
+		2,
+		5,
+		5,
+		5,
+		0
+	],
+	jugendarbeitslosigkeit: [
+		3,
+		0,
+		3,
+		0,
+		3,
+		5,
+		15,
+		10
+	],
+	p_jugendarbeitslosigkeit: [
+		3,
+		0,
+		3,
+		0,
+		3,
+		5,
+		15,
+		10
+	],
+	p_armut: [
+		-3,
+		-2,
+		-2,
+		0,
+		3,
+		5,
+		10,
+		12
+	],
+	schattenwirtschaft: [
+		0,
+		0,
+		5,
+		2,
+		3,
+		5,
+		10,
+		8
+	],
+	p_migrationsdruck: [
+		3,
+		2,
+		3,
+		0,
+		0,
+		0,
+		15,
+		3
+	],
+	p_erdbebengefahr: [
+		5,
+		8,
+		5,
+		3,
+		-8,
+		-3,
+		8,
+		3
+	],
+	erdbebenvorsorge: [
+		3,
+		0,
+		0,
+		0,
+		0,
+		0,
+		-8,
+		-3
+	],
+	stromversorgung: [
+		-5,
+		0,
+		2,
+		0,
+		0,
+		2,
+		0,
+		-3
+	],
+	p_aerztemangel: [
+		-8,
+		-3,
+		0,
+		0,
+		3,
+		5,
+		8,
+		10
+	],
+	ungleichheit: [
+		10,
+		3,
+		3,
+		0,
+		0,
+		0,
+		5,
+		3
+	],
+	terrorgefahr: [
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		10,
+		5
+	],
+	p_luftverschmutzung: [
+		10,
+		6,
+		-3,
+		2,
+		0,
+		-3,
+		2,
+		-3
+	]
+};
+/**
+* Ausreißer-Overrides: zusätzliche Punkte je Provinz und Knoten, auf das
+* Archätyp-Delta addiert. Nur füllen, wenn ein Fall in kalibrierung/provinz_profile.csv
+* markiert ist (derzeit keine Markierung — die Matrix allein trägt, vgl.
+* RECHERCHE_PROVINZDATEN.md, Abschnitt 4: Gaziantep-Industrie, İstanbul-Miete wären
+* die ersten Kandidaten).
+*/
+const AUSREISSER = {};
+/**
+* Die Archätyp-Schicht, fertig für createNet: additive Punkte je Knoten
+* (Index = Kfz-Kennziffer − 1), über der Echtdaten-Schicht aus sim/regional.ts.
+*/
+const ARCHETYP_DELTAS = (() => {
+	const out = {};
+	for (const [knoten, deltas] of Object.entries(DELTAS)) {
+		const arr = new Array(81).fill(0);
+		for (const a of ARCHETYPEN) {
+			const d = deltas[a.id - 1] ?? 0;
+			for (const plaka of a.provinzen) arr[plaka - 1] = d;
+		}
+		out[knoten] = arr;
+	}
+	for (const [plaka, jeKnoten] of Object.entries(AUSREISSER)) {
+		const p = Number(plaka) - 1;
+		for (const [knoten, d] of Object.entries(jeKnoten)) (out[knoten] ??= new Array(81).fill(0))[p] = (out[knoten][p] ?? 0) + d;
+	}
+	return out;
+})();
+//#endregion
+//#region src/data/diaspora.ts
+const DIASPORA_LAENDER = [
+	{
+		land: "deutschland",
+		lagerModifikatorPp: 15,
+		anteilWaehler: .44
+	},
+	{
+		land: "frankreich",
+		lagerModifikatorPp: 14,
+		anteilWaehler: .12,
+		proKurdischStark: true
+	},
+	{
+		land: "niederlande",
+		lagerModifikatorPp: 15,
+		anteilWaehler: .08
+	},
+	{
+		land: "belgien",
+		lagerModifikatorPp: 22,
+		anteilWaehler: .04
+	},
+	{
+		land: "oesterreich",
+		lagerModifikatorPp: 21,
+		anteilWaehler: .03
+	},
+	{
+		land: "anglosphaere",
+		lagerModifikatorPp: -15,
+		anteilWaehler: .09
+	}
+];
+/** Grundparameter der Diaspora-Wählergruppe (Recherche 6.1, kalibriert auf 2023). */
+const DIASPORA_PROFIL = {
+	/** Registrierte Auslandswähler 2023 (YSK): 3.416.098 (1. Tur) / 3.423.759 (Stichwahl) */
+	registrierteWaehler: 342e4,
+	/** Anteil an der Gesamtwählerschaft (64,1 Mio.) */
+	anteilWählerschaft: .053,
+	/** Baseline-Wahlbeteiligung Ausland 2018/2023: ~50 % (Korridor 45–55 %; Inland ~88 %) */
+	beteiligung: .5,
+	beteiligungKorridor: {
+		min: .45,
+		max: .55
+	},
+	/** Effektive Auslandsstimmen 2023: ~1,8 Mio. von ~55,8 Mio. (1. Tur) */
+	anteilStimmen: .033,
+	/**
+	* Lager-Verteilung im Ausland (Parlamentswahl 2023, SWP 2024A31: AKP+MHP 62–69 % in Westeuropa).
+	* Summe muss 100 ergeben.
+	*/
+	lagerVerteilung: {
+		regierung: 62,
+		mitteLinks: 26,
+		proKurdisch: 8,
+		sonstige: 4
+	},
+	/** Regierungslager-Plus Ausland gesamt vs. Inland, Präsidentschaft (Stichwahl 2023: 59,7 % vs. 52,2 %) */
+	lagerModifikatorInlandPp: 7,
+	/**
+	* Diaspora stimmt nur bei Präsidentschafts-, Parlamentswahlen und Referenden ab —
+	* bei Kommunalwahlen ist sie inaktiv (Anadolu Ajansı, 31.03.2024).
+	*/
+	nurNationaleWahlen: true,
+	/** Generationendrift: pro Legislaturperiode schrumpft das Regierungslager-Plus (Richtung belegt, Tempo unverifiziert) */
+	generationendriftPpProLegislatur: {
+		min: -2,
+		max: -1
+	},
+	/** Einbürgerungswelle im Gastland (StARModG 2024): Doppelstaatler bleiben wahlberechtigt, Bindung driftet Richtung Inlandsniveau */
+	einbuergerungsDriftPpProJahr: .5,
+	/** Dauerhaftes Polster durch regierungsnahe türkische Medien in der Diaspora (Karaahmetoğlu-Analyse, KAS 2023) */
+	medienPolsterPp: 3,
+	/** Mobilisierungsmultiplikator durch Konsulate, Moscheenetz (~900 Gemeinden in DE) und Vorfeldorganisation (~30.000 Aktive, Selbstauskunft) */
+	mobilisierungsMultiplikator: 1.5
+};
+//#endregion
+//#region src/sim/wahlkampf.ts
+const WAHLKAMPF = {
+	/** Tage vor dem Wahltag, ab denen die Phase beginnt (acht Wochen) */
+	beginnTage: 56,
+	/** Aktionspunkte je Kampagnenwoche */
+	apProWoche: 10,
+	/** Länge der Kampagnenwoche in Tagen */
+	wocheTage: 7,
+	/** Während der Phase lädt sich die Aufmerksamkeit schneller auf (Faktor auf die Tages-Regeneration, Anzeige in der Wahlkampf-Zentrale) */
+	aufmerksamkeitFaktor: 1.5,
+	/** Reisekosten: nah/fern (Regionen im Umkreis der Hauptstadt gegenüber entfernten) */
+	reiseApNah: 1,
+	reiseApFern: 2,
+	/** Grundwirkung eines Provinzbesuchs auf das lokale Vertrauen */
+	reiseVertrauen: 2.2,
+	/** Bonus je akutem Problem vor Ort (Chance: Der Besuch nimmt den Druck auf) */
+	reiseProblemBonus: .7,
+	/** Verstärkung, wenn ein brennendes Problem den Archätyp der Provinz prägt */
+	archetypFaktor: 1.5,
+	/** Grundrisiko eines missglückten Besuchs; steigt mit der Zahl brennender Probleme vor Ort */
+	reiseRisiko: .15,
+	reiseRisikoJeProblem: .1,
+	/** Anteil der Wirkung eines missglückten Besuchs (negativ) */
+	reiseRueckschlag: .6,
+	/** Abnehmender Ertrag: Faktor je bereits geleistetem Besuch derselben Provinz */
+	reiseAbnutzung: .5,
+	/** Wirkung auf die Gruppe, die zum Archätyp der Provinz passt (Anteil an reiseVertrauen) */
+	reiseGruppenAnteil: .65,
+	/** Auslandstour: Kosten und der heimische Fernseheffekt der Bilder voller Hallen im Ausland */
+	tourAp: 3,
+	tourVertrauen: 1.2,
+	tourNationalisten: 1,
+	/** Abnehmender Ertrag wiederholter Touren in dasselbe Land */
+	tourAbnutzung: .5,
+	/** Versprechen: Kosten, Grundbeifall der Zielgruppen, Abnutzung je weiterem Versprechen */
+	versprechenAp: 1,
+	versprechenBeifall: 1.6,
+	versprechenAbnutzung: .25,
+	/** Vertrauens-Bonus eines Versprechens (mit Glaubwürdigkeit gewichtet) */
+	versprechenVertrauen: .3,
+	/** Monate nach der Wahl, in denen ein Versprechen als Zusage fällig wird */
+	versprechenFristMonate: 12,
+	/** TV-Duell: Tage vor der Wahl, Vorbereitungskosten, Wirkungsrahmen */
+	duellTageVorher: 14,
+	duellAp: 2,
+	duellVorbereitetBonus: 6,
+	duellUnvorbereitetMalus: 4,
+	duellSigma: 3,
+	/** Übertrag des Punkteabstands ins Duell auf die Wechselwähler (Prozentpunkte je Punkt) */
+	duellUebertrag: .4,
+	duellMax: 5,
+	/** Anteil des Duell-Effekts, der dauerhaft in die schwankenden Gruppen des Netzes fließt */
+	duellNetzAnteil: .5,
+	/** Gegner-Angriffe je Woche: Basis, Zuschlag je akutem Problem-Block, Deckel je Woche und insgesamt */
+	angriffBasis: .45,
+	angriffJeLast: 2.6,
+	angriffBasisOhneLast: .5,
+	angriffDeckelWoche: 1.5,
+	angriffDeckelGesamt: 6,
+	/** Ab dieser Stärke berichtet die Zeitung über einen Angriff (Eilmeldung im Framing der Cluster) */
+	angriffZeitungAb: 1,
+	/** Länge des Umfrage-Tickers */
+	tickerLaenge: 8
+};
+/** Schwierigkeits-Faktor für die Gegner-Stärke; spiegelt `haerte` aus SCHWIERIGKEITEN (sim/spiel.ts), ohne das Modul zu laden. */
+function gegnerHaerte(w) {
+	const s = w.spiel?.schwierigkeit;
+	return s === "hart" ? 1.2 : s === "entspannt" ? .9 : 1;
+}
+/** Der Zustand des laufenden Wahlkampfs (undefined außerhalb der Phase). */
+function wahlkampfVon(w) {
+	return w.spiel?.wahlkampf;
+}
+[
+	["deutschland", "Deutschland"],
+	["belgien", "Belgien"],
+	["frankreich", "Frankreich"],
+	["niederlande", "Niederlande"]
+].map(([land, name]) => {
+	const profil = DIASPORA_LAENDER.find((l) => l.land === land);
+	return {
+		land,
+		name,
+		modifikatorPp: profil.lagerModifikatorPp,
+		anteilWaehler: profil.anteilWaehler
+	};
+});
+/** Der Diaspora-Block bei der Wahl: registrierte Auslandswähler × Beteiligung × Lager-Modifikator (Recherche 6.1). */
+function diasporaBlock(w, inlandZustimmung) {
+	const touren = w.spiel?.wahlkampf?.touren ?? [];
+	const beteiligungPlus = touren.reduce((s, t) => s + t.beteiligungPlus, 0);
+	const lagerPlus = touren.reduce((s, t) => s + t.lagerPlus, 0);
+	const p = DIASPORA_PROFIL;
+	const beteiligung = clamp(p.beteiligung + beteiligungPlus / 100, p.beteiligungKorridor.min, .75);
+	const effektivAnteil = p.anteilStimmen * (beteiligung / p.beteiligung);
+	const lagerAnteil = clamp(inlandZustimmung + p.lagerModifikatorInlandPp + p.medienPolsterPp + lagerPlus, 0, 100);
+	return {
+		beitrag: effektivAnteil * (lagerAnteil - inlandZustimmung),
+		beteiligung,
+		lagerAnteil,
+		effektivAnteil
+	};
+}
+/** Die größte Oppositionsfraktion außerhalb des Regierungslagers. */
+function gegnerPartei(w) {
+	const eigene = w.player?.partei.kurz;
+	const lager = /* @__PURE__ */ new Set([eigene, ...w.spiel?.lager ?? []]);
+	let best = "";
+	let sitze = -1;
+	for (const [p, s] of Object.entries(w.parliament?.seats ?? {})) {
+		if (lager.has(p)) continue;
+		if (s > sitze) {
+			best = p;
+			sitze = s;
+		}
+	}
+	return best || "CHP";
+}
+/** Die wahre Stärke des Gegners (intern): das, was nicht beim Präsidenten liegt, gewichtet mit der Schwierigkeit. */
+function gegnerStaerkeWahr(w) {
+	return clamp(100 - (w.spiel?.umfrage.zustimmung ?? 50) + 6 * (gegnerHaerte(w) - 1), 0, 100);
+}
+/** Das sichtbare Profil des Gegners: Der Spieler sieht die Stärke nur gespiegelt durch seine letzte Umfrage (mit deren Bias). */
+function gegnerProfil(w) {
+	const k = wahlkampfVon(w);
+	const partei = gegnerPartei(w);
+	const f = figur(w, "opposition");
+	const letzte = k?.ticker[k.ticker.length - 1];
+	return {
+		name: f ? `${f.rolle} ${f.name}` : "Der Kandidat der Opposition",
+		partei,
+		parteiName: PARTEI_NAME[partei] ?? partei,
+		staerkeSicht: letzte ? Math.round((100 - letzte.wert) * 10) / 10 : null,
+		...letzte ? {
+			institut: letzte.institut,
+			hausBias: letzte.hausBias
+		} : {}
+	};
+}
+function duellSzene(w, effekt, vorbereitet) {
+	const g = gegnerProfil(w);
+	const sw = schwachstelle(w);
+	const name = g.name.replace(/^Oppositionsführer /, "");
+	if (effekt >= 2.5) return `${name} verheddert sich bei den Zahlen${sw ? ` zu ${sw.name}` : ""}; der Präsident bleibt ruhig und setzt den Punkt des Abends. Die Kommentare sind einhellig: ein klarer Sieg.`;
+	if (effekt >= .5) return `Ein Abend ohne K.-o.-Schlag: Der Präsident punktet bei der Bilanz, ${name} beim Ton. Leichter Vorteil für das Amt.`;
+	if (effekt > -.5) return `Neunzig Minuten Paradeduell: Beide bleiben in ihren Rollen, keiner kippt die Waage. Die Zuschauer schalten zufrieden ab — und wählen wie gehabt weiter.`;
+	if (effekt > -2.5) return `${name} kommt besser vorbereitet, als es aussah, und drückt den Präsidenten bei ${sw ? sw.name : "der Bilanz"} in die Defensive. ${vorbereitet ? "Ohne die Proben wäre es schlimmer geworden." : "Die fehlende Vorbereitung zeigt sich in jeder zweiten Antwort."}`;
+	return `Ein Desaster im freien Empfang: ${name} serviert die Schwachstellen der Regierung Satz für Satz${sw ? ` — ${sw.name} zuerst` : ""}, und der Präsident findet keinen Ausweg. ${vorbereitet ? "Auch die Vorbereitung rettet den Abend nicht mehr." : "Unvorbereitet in ein Duell zu gehen, hat seinen Preis."}`;
+}
+function duellAustragen(w, rng) {
+	const sp = w.spiel;
+	const k = sp.wahlkampf;
+	const vorbereitet = k.duell.vorbereitet > 0;
+	const spielerWert = sp.umfrage.zustimmung + (vorbereitet ? WAHLKAMPF.duellVorbereitetBonus : -WAHLKAMPF.duellUnvorbereitetMalus) + rng.normal(WAHLKAMPF.duellSigma);
+	const gegnerWert = gegnerStaerkeWahr(w) + rng.normal(WAHLKAMPF.duellSigma);
+	const effekt = Math.round(clamp((spielerWert - gegnerWert) * WAHLKAMPF.duellUebertrag, -WAHLKAMPF.duellMax, WAHLKAMPF.duellMax) * 10) / 10;
+	k.duell.tag = w.day;
+	k.duell.effekt = effekt;
+	k.duell.szene = duellSzene(w, effekt, vorbereitet);
+	for (const g of GRUPPEN) {
+		const laune = nationalAverage(NET, w.net, g.id);
+		if (laune >= 45 && laune < 58) wirke(w, g.id, effekt * WAHLKAMPF.duellNetzAnteil);
+	}
+	sp.hinweise.push({
+		id: `wahlkampf-duell-${w.day}`,
+		titel: `TV-Duell: ${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte`,
+		szene: "wahlnacht",
+		text: [k.duell.szene, `Das Duell verschiebt die Wechselwähler um ${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte. ${vorbereitet ? "Die Vorbereitung hat sich bezahlt gemacht." : "Vorbereitung hätte den Ausgang womöglich gedreht."}`]
+	});
+	addLog(w, "ereignis", `TV-Duell ${effekt >= 0 ? "gewonnen" : "verloren"} (${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte).`, k.duell.szene);
+}
+/** Die größte echte Schwachstelle: das akute Problem mit der größten betroffenen Bevölkerung. */
+function schwachstelle(w) {
+	let worst = null;
+	for (const node of NET.nodes) {
+		if (node.kind !== "problem" || !node.threshold) continue;
+		const i = NET.index.get(node.id);
+		let last = 0;
+		let n = 0;
+		for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) {
+			last += w.net.weights[p];
+			n++;
+		}
+		if (last > 0 && (worst === null || last > worst.last)) worst = {
+			id: node.id,
+			name: node.name,
+			last,
+			provinzen: n
+		};
+	}
+	return worst;
+}
+function tickerWoche(w, rng) {
+	const sp = w.spiel;
+	const k = sp.wahlkampf;
+	const wocheIndex = Math.round((w.day - k.beginn) / WAHLKAMPF.wocheTage);
+	const institut = UMFRAGE_INSTITUTE[wocheIndex % UMFRAGE_INSTITUTE.length];
+	const wert = umfrageMessung(sp.umfrage.zustimmung, rng, { institutId: institut.id });
+	k.ticker.push({
+		tag: w.day,
+		institutId: institut.id,
+		institut: institut.name,
+		wert: Math.round(wert * 10) / 10,
+		hausBias: institut.hausBias
+	});
+	if (k.ticker.length > WAHLKAMPF.tickerLaenge) k.ticker.shift();
+}
+function angriffWoche(w) {
+	const k = w.spiel.wahlkampf;
+	const g = gegnerProfil(w);
+	const sw = schwachstelle(w);
+	let staerke = (sw ? WAHLKAMPF.angriffBasis + WAHLKAMPF.angriffJeLast * sw.last : WAHLKAMPF.angriffBasis * WAHLKAMPF.angriffBasisOhneLast) * gegnerHaerte(w);
+	staerke = Math.min(staerke, WAHLKAMPF.angriffDeckelWoche);
+	staerke = Math.max(0, Math.min(staerke, WAHLKAMPF.angriffDeckelGesamt + k.angriffe));
+	if (staerke <= 0) return;
+	k.angriffe = Math.round((k.angriffe - staerke) * 100) / 100;
+	const thema = sw ? sw.name : "die Bilanz der Regierung";
+	k.angriffeLog.push({
+		tag: w.day,
+		thema,
+		staerke: Math.round(staerke * 100) / 100
+	});
+	if (k.angriffeLog.length > 12) k.angriffeLog.shift();
+	addLog(w, "ereignis", `${g.name} greift an: ${thema}.`, sw ? `Die Lage in ${sw.provinzen} ${sw.provinzen === 1 ? "Provinz" : "Provinzen"} gibt der Attacke Nahrung: −${fmt(staerke)} Prozentpunkte bis zur Wahl.` : `Ohne echte Schwachstelle verpufft der Angriff weitgehend: −${fmt(staerke)} Prozentpunkte.`);
+	if (staerke >= WAHLKAMPF.angriffZeitungAb && sw) zeitungEreignis(w, {
+		art: "krise",
+		titel: `Wahlkampf: Angriff auf die Regierung`,
+		fakt: `${g.name} (${g.parteiName}) macht ${sw.name} zum Hauptvorwurf — in ${sw.provinzen} ${sw.provinzen === 1 ? "Provinz" : "Provinzen"} ist die Lage akut.`,
+		wertung: -clamp(.3 + staerke * .3, 0, .8),
+		schluessel: ["greift an", sw.name]
+	});
+}
+/** Täglicher Haken aus der Spielschleife: beginnt die Phase, wechselt die Kampagnenwoche, trägt das Duell aus. */
+function wahlkampfTag(w, rng) {
+	const sp = w.spiel;
+	if (!sp || sp.ende) return;
+	const k = sp.wahlkampf;
+	if (!k) {
+		if (sp.wahltag - w.day > WAHLKAMPF.beginnTage) return;
+		sp.wahlkampf = {
+			amtszeit: sp.amtszeit,
+			ap: WAHLKAMPF.apProWoche,
+			beginn: w.day,
+			woche: w.day,
+			besuche: {},
+			reisen: [],
+			touren: [],
+			versprechen: [],
+			duell: { vorbereitet: 0 },
+			angriffe: 0,
+			angriffeLog: [],
+			ticker: []
+		};
+		sp.hinweise.push({
+			id: `wahlkampf-beginn-${w.day}`,
+			titel: "Der Wahlkampf beginnt",
+			szene: "anatolien",
+			text: [`Noch acht Wochen bis zur Wahl am ${formatDateDe(addDays(w.date, sp.wahltag - w.day))}. Das Land wird zur Bühne: Reisen in die Provinzen, Versprechen auf den Marktplätzen, Auslandstouren zur Diaspora — und am Ende das TV-Duell.`, `Jede Woche stehen ${WAHLKAMPF.apProWoche} Aktionspunkte bereit; die Aufmerksamkeit lädt sich in diesen Wochen anderthalbmal so schnell auf. Die Opposition fährt ihre eigenen Angriffe — sie trifft dort, wo echte Probleme brennen.`]
+		});
+		addLog(w, "ereignis", "Der Wahlkampf beginnt: acht Wochen bis zur Wahl.", `Jede Woche ${WAHLKAMPF.apProWoche} Aktionspunkte für Reisen, Versprechen, Auslandstouren und die Duell-Vorbereitung.`);
+		tickerWoche(w, rng);
+		return;
+	}
+	if (w.day - k.woche >= WAHLKAMPF.wocheTage) {
+		k.woche = w.day;
+		k.ap = WAHLKAMPF.apProWoche;
+		angriffWoche(w);
+		tickerWoche(w, rng);
+	}
+	if (k.duell.tag === void 0 && sp.wahltag - w.day <= WAHLKAMPF.duellTageVorher) duellAustragen(w, rng);
+}
+/** Die Kampagnen-Effekte auf das Wahlergebnis in Prozentpunkten, aufgeschlüsselt (Wechselwähler-/Gruppen-Rechnung). */
+function wahlEffekte(w) {
+	const sp = w.spiel;
+	const k = sp?.wahlkampf;
+	if (!sp || !k) return {
+		gesamt: 0,
+		teile: []
+	};
+	const teile = [];
+	if (k.duell.effekt !== void 0 && k.duell.effekt !== 0) teile.push({
+		name: "TV-Duell",
+		punkte: k.duell.effekt
+	});
+	if (k.angriffe !== 0) teile.push({
+		name: "Angriffe der Opposition",
+		punkte: k.angriffe
+	});
+	const dias = diasporaBlock(w, sp.umfrage.zustimmung);
+	if (Math.abs(dias.beitrag) >= .05) teile.push({
+		name: "Diaspora-Block",
+		punkte: Math.round(dias.beitrag * 100) / 100
+	});
+	return {
+		gesamt: Math.round(teile.reduce((s, t) => s + t.punkte, 0) * 100) / 100,
+		teile
+	};
+}
+//#endregion
+//#region src/sim/spiel.ts
+setzeKriegBruecke({ eskaliere: (w, landId) => {
+	const k = kriegMit(w, landId);
+	if (!k || k.phase !== "spannung") return false;
+	k.eskalation = Math.max(k.eskalation, KRIEG.drohkulisseAb + 2);
+	return true;
+} });
+setzeVermittlungBruecke({
+	oeffneEreignis: (w, vorlage, daten, rng) => {
+		const spiel = w.spiel;
+		if (!spiel) return;
+		if (spiel.ereignisse.some((e) => e.vorlage === vorlage)) return;
+		if (spiel.ereignisse.filter((e) => !e.vorlage.startsWith("start_")).length >= 3) return;
+		oeffne(w, vorlage, rng, {
+			provinzen: [],
+			staerke: 1,
+			daten
+		});
+	},
+	zeitung: (w, e) => zeitungEreignis(w, {
+		art: "krise",
+		...e
+	})
+});
+/** Die Schwierigkeit verändert nur drei Stellschrauben: das Einkommen an Kapital, die Regierungsmüdigkeit und die Häufigkeit und Härte von Ereignissen. */
+const SCHWIERIGKEITEN = {
+	entspannt: {
+		name: "Entspannt",
+		text: "Mehr Kapital, weniger Müdigkeit, weniger Krisen. Zum Kennenlernen.",
+		kapital: 1.25,
+		muedigkeit: .75,
+		ereignisse: .85,
+		haerte: .9
+	},
+	normal: {
+		name: "Normal",
+		text: "Das Spiel, wie es gemeint ist.",
+		kapital: 1,
+		muedigkeit: 1,
+		ereignisse: 1,
+		haerte: 1
+	},
+	hart: {
+		name: "Hart",
+		text: "Knappes Kapital, schnelle Müdigkeit, mehr und härtere Krisen. Fehler kosten die Wiederwahl.",
+		kapital: .8,
+		muedigkeit: 1.22,
+		ereignisse: 1.25,
+		haerte: 1.2
+	}
+};
+function schwierig(world) {
+	return SCHWIERIGKEITEN[world.spiel?.schwierigkeit ?? "normal"];
+}
+const SPIEL = {
+	startKapital: 60,
+	/** Kapital je Monat: Grundeinkommen, dazu Vertrauen und Mehrheit */
+	kapitalGrund: 3.5,
+	kapitalVertrauen: 5,
+	kapitalMehrheit: 1.5,
+	/** Verlust an Zustimmung je Monat im Amt (Regierungsmüdigkeit) */
+	muedigkeit: .3,
+	/** Gewicht der Probleme in der Zustimmung: Summe der Bevölkerungsanteile in Provinzen mit akutem Problem */
+	problemGewicht: 4,
+	/** Monate unter der Sturzschwelle bis zum Sturz */
+	sturzMonate: 6,
+	sturzSchwelle: 25,
+	amtszeitJahre: 5
+};
+function problemLast(w) {
+	let summe = 0;
+	for (const node of NET.nodes) {
+		if (node.kind !== "problem" || !node.threshold) continue;
+		const i = NET.index.get(node.id);
+		let anteil = 0;
+		for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) anteil += w.net.weights[p];
+		summe += anteil;
+	}
+	return summe;
+}
+/** Die Bestandteile der Zustimmung; jeder Teil steht für sich, damit die Oberfläche erklären kann, woher die Zahl kommt. */
+function zustimmungsTeile(w, monate) {
+	const s0 = w.spiel.start;
+	const e = w.economy;
+	const vertrauen = nationalAverage(NET, w.net, "vertrauen_regierung");
+	const gruppen = GRUPPEN.reduce((s, g) => s + g.gewicht * nationalAverage(NET, w.net, g.id), 0) / GRUPPEN_SUMME;
+	const wirtschaft = clamp(50 + .6 * (s0.inflation - e.inflation) - 3 * (e.unemployment - s0.arbeitslosigkeit) + 1.5 * (e.growth - s0.wachstum), 0, 100);
+	const probleme = SPIEL.problemGewicht * problemLast(w);
+	const muedigkeit = SPIEL.muedigkeit * schwierig(w).muedigkeit * monate;
+	return {
+		vertrauen,
+		gruppen,
+		wirtschaft,
+		probleme,
+		muedigkeit,
+		roh: .45 * vertrauen + .25 * gruppen + .3 * wirtschaft - probleme - muedigkeit
+	};
+}
+/** Zustimmung, wie sie sich aus dem Zustand ergäbe (ohne Startverschiebung). */
+function rohZustimmung(w, monate) {
+	return zustimmungsTeile(w, monate).roh;
+}
+function zielZustimmung(w) {
+	const x = rohZustimmung(w, w.day / 30.4) + w.spiel.kalibrierung;
+	return clamp(x > 50 ? 50 + .65 * (x - 50) : x, 0, 100);
+}
+function tageBis(von, bis) {
+	return Math.round((Date.parse(bis + "T00:00:00Z") - Date.parse(von + "T00:00:00Z")) / 864e5);
+}
+function zusagenAusProfil(profil) {
+	const out = [];
+	const neu = (id, von, text, faellig, massnahme) => {
+		const z = {
+			id,
+			von,
+			text,
+			faellig,
+			erfuellt: false,
+			gebrochen: false
+		};
+		if (massnahme) {
+			z.massnahme = massnahme;
+			z.richtung = 1;
+		}
+		out.push(z);
+	};
+	for (const v of profil.versprechen) if (v.includes("zwei Ministerien")) neu("z-ministerien", "YENİ", "Der YENİ Parti wurden zwei Ministerien zugesagt", 45);
+	else if (v.includes("Mitspracherecht")) neu("z-friedensprozess", "MHP", "Der MHP wurde ein Mitspracherecht beim Friedensprozess zugesagt", 60);
+	else if (v.includes("Rentenerhöhung")) neu("z-renten", "Wähler", "Rentenerhöhung in den ersten hundert Tagen versprochen", 100, "m_renten");
+	else if (v.includes("Vergaben")) neu("z-vergaben", "Wähler", "Offene Vergaben und Vermögenserklärungen versprochen", 150, "m_antikorruption");
+	return out;
+}
+/** Erzeugt die Spielschleife beim Amtsantritt und öffnet die drei Vorgänge des ersten Tages. */
+function initSpiel(world, profil, rng) {
+	aussenweltStart(world);
+	const start = {
+		inflation: world.published.inflation.value,
+		arbeitslosigkeit: world.economy.unemployment,
+		wachstum: world.economy.growth,
+		schulden: world.economy.debtRatio,
+		vertrauen: nationalAverage(NET, world.net, "vertrauen_regierung"),
+		akut: 0,
+		datum: world.date
+	};
+	const spiel = {
+		kapital: SPIEL.startKapital,
+		gesetze: [],
+		ereignisse: [],
+		zuletzt: {},
+		figuren: [],
+		zusagen: zusagenAusProfil(profil),
+		umfrage: {
+			zustimmung: profil.wahl.anteil,
+			verlauf: []
+		},
+		ziele: [],
+		ersterTagErledigt: false,
+		wahltag: tageBis(world.date, addDays(world.date, 365 * SPIEL.amtszeitJahre + 1)),
+		amtszeit: 1,
+		lager: profil.buendnis ? [profil.buendnis] : [],
+		tiefstand: 0,
+		chronik: [],
+		hinweise: [],
+		kalibrierung: 0,
+		verfassung: verfassungStart(),
+		start
+	};
+	world.spiel = spiel;
+	spiel.figuren = erzeugeFiguren(world, rng);
+	const gouverneur = figur(world, "zentralbank");
+	if (gouverneur) world.governor.name = gouverneur.name;
+	spiel.start.akut = akuteProbleme(world);
+	spiel.kalibrierung = profil.wahl.anteil - rohZustimmung(world, 0);
+	oeffne(world, "start_haushalt", rng);
+	oeffne(world, "start_partner", rng);
+	oeffne(world, "start_wiederaufbau", rng);
+	krisenAktualisieren(world);
+}
+function spielTick(world, rng) {
+	const spiel = world.spiel;
+	if (!spiel || spiel.ende) return;
+	gesetzeAbstimmen(world, rng);
+	verfassungsVorgangTag(world, rng);
+	haushaltszyklusTag(world, rng);
+	ereignisTag(world, rng);
+	krisenAktualisieren(world);
+	kriegTag(world, rng);
+	programmTag(world);
+	berichteTag(world);
+	verfassungTag(world);
+	wahlkampfTag(world, rng);
+	if (dayOfMonth(world.date) === 1) spielMonat(world, rng);
+	if (world.day >= spiel.wahltag) wahl(world, rng);
+}
+function kapitalEinkommen(world) {
+	const vertrauen = SPIEL.kapitalVertrauen * nationalAverage(NET, world.net, "vertrauen_regierung") / 100;
+	const mehrheit = stimmenSicht(world).lager >= REGELN.mehrheit ? SPIEL.kapitalMehrheit : 0;
+	const [j, m] = world.date.split("-").map(Number);
+	const naechste = m === 12 ? `${j + 1}-01-01` : `${j}-${String(m + 1).padStart(2, "0")}-01`;
+	const f = schwierig(world).kapital;
+	const legit = nationalAverage(NET, world.net, "legitimitaet");
+	const legitimitaet = Number.isFinite(legit) ? Math.max(-1, Math.min(1, (legit - 60) / 40)) : 0;
+	const unterhalt = unterhaltKosten(world).summe;
+	const verfassungAbzug = verfassungKapitalAbzug(world) * f;
+	const euAbzug = euKapitalAbzug(world) * f;
+	return {
+		grund: SPIEL.kapitalGrund * f,
+		vertrauen: vertrauen * f,
+		mehrheit: mehrheit * f,
+		legitimitaet: legitimitaet * f,
+		unterhalt: unterhalt + verfassungAbzug + euAbzug,
+		summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt - verfassungAbzug - euAbzug,
+		naechste,
+		grenze: REGELN.kapitalMax
+	};
+}
+function spielMonat(world, rng) {
+	const spiel = world.spiel;
+	spiel.kapital = Math.min(REGELN.kapitalMax, spiel.kapital + kapitalEinkommen(world).summe);
+	if (spiel.kapital < 0) {
+		const last = Math.min(1, -spiel.kapital / 12);
+		wirke(world, "legitimitaet", -.6 * last);
+		wirke(world, "vertrauen_regierung", -.25 * last);
+		if (!spiel.hinweise.some((h) => h.id.startsWith("pump-")) && world.day - (spiel.zuletzt.pump ?? -1e9) > 180) {
+			spiel.zuletzt.pump = world.day;
+			addLog(world, "ereignis", "Sie handeln auf Pump: Das Politische Kapital ist im Minus.", "Wer Rückhalt vorwegnimmt, zahlt mit Legitimität und Vertrauen, bis die monatliche Gutschrift das Konto ausgleicht.");
+		}
+	}
+	verhandlungMonat(world);
+	weltMonat(world);
+	abkommenMonat(world, rng);
+	vermittlungMonat(world, rng);
+	euMonat(world, rng);
+	kriegMonat(world, rng);
+	reichMonat(world, rng);
+	katastropheMonat(world, rng);
+	aussenweltMonat(world, rng);
+	ereignisMonat(world, rng);
+	const ziel = zielZustimmung(world);
+	spiel.umfrage.zustimmung = umfrageMonat(spiel.umfrage.zustimmung, ziel);
+	spiel.umfrage.verlauf.push({
+		monat: world.date.slice(0, 7),
+		wert: Math.round(spiel.umfrage.zustimmung * 10) / 10
+	});
+	if (spiel.umfrage.verlauf.length > 120) spiel.umfrage.verlauf.shift();
+	verlaufAufzeichnen(world);
+	if (spiel.umfrage.zustimmung < SPIEL.sturzSchwelle) spiel.tiefstand += 1;
+	else spiel.tiefstand = Math.max(0, spiel.tiefstand - 1);
+	if (spiel.tiefstand === 3) {
+		belastungEreignis(world, VERFASSUNG.sturzWarnung, "Die Warnung vor dem Sturz");
+		spiel.hinweise.push({
+			id: `warnung-${world.day}`,
+			titel: "Warnzeichen",
+			szene: "istanbul",
+			text: [`Die Zustimmung liegt seit drei Monaten unter ${SPIEL.sturzSchwelle} Prozent. Auf den Plätzen sammeln sich Menschen; ${anrede(figur(world, "stab"))} warnt vor Massenprotesten.`, "Wenn sich nichts ändert, droht das Ende der Amtszeit lange vor der nächsten Wahl."]
+		});
+		addLog(world, "ereignis", "Warnzeichen: Die Zustimmung bleibt sehr niedrig.", "Nach sechs Monaten unter der Schwelle droht der Sturz.");
+	}
+	if (spiel.tiefstand >= SPIEL.sturzMonate) {
+		beende(world, "sturz", "Massenproteste beenden die Amtszeit", `Nach Monaten unter ${SPIEL.sturzSchwelle} Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt.`);
+		return;
+	}
+	personenMonat(world);
+	figurenPruefen(world, rng);
+	zeitungMonat(world);
+}
+function figurenPruefen(world, rng) {
+	const spiel = world.spiel;
+	for (const f of spiel.figuren) if (f.amt === "partner" && f.partei && spiel.lager.includes(f.partei) && f.loyalitaet < 20) {
+		spiel.lager = spiel.lager.filter((p) => p !== f.partei);
+		const seats = world.parliament?.seats[f.partei] ?? 0;
+		addLog(world, "ereignis", `Die ${f.partei} verlässt das Regierungslager (${seats} Sitze).`, "Ohne die Partner wird jede Abstimmung schwerer; Zusagen zu brechen hat einen Preis.");
+		spiel.hinweise.push({
+			id: `bruch-${world.day}-${f.partei}`,
+			titel: "Bruch im Lager",
+			szene: "parlament",
+			text: [`Die ${f.partei} kündigt die Zusammenarbeit auf und verlässt das Regierungslager. Dem Lager fehlen damit ${seats} Sitze.`]
+		});
+		zeitungEreignis(world, {
+			art: "bruch",
+			titel: `${f.partei} verlässt das Lager`,
+			fakt: `Die ${f.partei} kündigt die Zusammenarbeit auf und verlässt das Regierungslager; dem Lager fehlen damit ${seats} Sitze.`,
+			wertung: -.9,
+			schluessel: [`verlässt das Regierungslager`]
+		});
+		f.loyalitaet = 30;
+	}
+	for (const f of spiel.figuren) {
+		if (!f.imAmt || !AEMTER[f.amt].regierungsamt || f.eigen?.kommissarisch || f.loyalitaet >= 12) continue;
+		if (rng.next() < .4) ausscheiden(world, f, "Rücktritt, weil ihm der Rückhalt fehlt");
+	}
+}
+function beende(world, art, titel, text, anteil) {
+	const spiel = world.spiel;
+	spiel.ende = {
+		tag: world.day,
+		datum: world.date,
+		art,
+		titel,
+		text,
+		...anteil !== void 0 ? { anteil } : {}
+	};
+	spiel.ereignisse = [];
+	spiel.gesetze = [];
+	addLog(world, "ereignis", titel, text);
+}
+function wahl(world, rng) {
+	const spiel = world.spiel;
+	const schuld = versprechensschuldMalus(world);
+	if (schuld.punkte > 0) {
+		spiel.chronik.push({
+			tag: world.day,
+			datum: world.date,
+			titel: "Die Versprechensschuld wird eingefordert",
+			ausgang: schuld.text
+		});
+		addLog(world, "ereignis", "Die Versprechensschuld wird eingefordert.", schuld.text);
+	}
+	const effekte = wahlEffekte(world);
+	const anteil = clamp(spiel.umfrage.zustimmung + effekte.gesamt + rng.normal(2.2) - schuld.punkte, 0, 100);
+	const effektText = effekte.teile.length > 0 ? ` Der Schlussspurt des Wahlkampfs brachte ${effekte.gesamt >= 0 ? "+" : "−"}${fmt(Math.abs(effekte.gesamt))} Prozentpunkte (${effekte.teile.map((t) => `${t.name} ${t.punkte >= 0 ? "+" : "−"}${fmt(Math.abs(t.punkte))}`).join(", ")}).` : "";
+	const name = world.player?.name ?? "Der Präsident";
+	const maxAmtszeit = verfassungAktiv(world, "amtszeit") === "wiederwahl_plus" ? 3 : 2;
+	if (anteil >= 50) {
+		if (spiel.amtszeit < maxAmtszeit) {
+			spiel.amtszeit += 1;
+			const letzte = spiel.amtszeit >= maxAmtszeit;
+			spiel.wahltag = world.day + 365 * SPIEL.amtszeitJahre + 1;
+			delete spiel.wahlkampf;
+			spiel.chronik.push({
+				tag: world.day,
+				datum: world.date,
+				titel: "Wiederwahl",
+				ausgang: `${name} wird mit ${fmt(anteil)} Prozent wiedergewählt.${effektText}`
+			});
+			addLog(world, "ereignis", `Wahlabend: ${name} wird mit ${fmt(anteil)} Prozent im Amt bestätigt.${effektText}`, letzte ? `Die Amtszeit ${spiel.amtszeit} ist die letzte; danach schreibt die Verfassung eine Pause vor.` : `Die Amtszeit ${spiel.amtszeit} beginnt; die Verfassung erlaubt eine weitere Wiederwahl.`);
+			spiel.hinweise.push({
+				id: `wahl-${world.day}`,
+				titel: "Wahlabend: Wiederwahl",
+				szene: "wahlnacht",
+				text: [`${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent. Die Amtszeit ${spiel.amtszeit} beginnt${letzte ? "; sie ist die letzte" : ""}.${effektText}`]
+			});
+			zeitungEreignis(world, {
+				art: "wahlsieg",
+				titel: "Wiederwahl",
+				fakt: `${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent der Stimmen.`,
+				wertung: 1,
+				schluessel: ["Wiederwahl"]
+			});
+		} else beende(world, "amtszeitende", `Ende der Amtszeit ${spiel.amtszeit}`, `Nach ${spiel.amtszeit === 2 ? "zwei" : "drei"} Amtszeiten endet die Zeit im Amt; die Verfassung erlaubt keine weitere.`, anteil);
+	} else beende(world, "abwahl", "Abgewählt", `Bei der Wahl am ${formatDateDe(world.date)} erhält ${name} nur ${fmt(anteil)} Prozent der Stimmen.${effektText}`, anteil);
+}
 //#endregion
 //#region src/sim/ereignisse-aussen.ts
 const GRENZE = [
@@ -16074,7 +23543,7 @@ const AUSSEN_VORLAGEN = [
 		titel: (_, ev) => `Zwischenfall an der Grenze zu ${GRENZ_NACHBAR[ev.provinzen[0] ?? 0] ?? "einem Nachbarn"}`,
 		text: (_, ev) => {
 			const nachbar = GRENZ_NACHBAR[ev.provinzen[0] ?? 0] ?? "dem Nachbarland";
-			return [`An der Grenze zu ${nachbar} bei ${namen(ev.provinzen)} fallen Schüsse; Grenzsoldaten melden Verletzte. Wer zuerst geschossen hat, ist unklar: ${nachbar} und die türkische Seite geben sich gegenseitig die Schuld.`];
+			return [`An der Grenze zu ${nachbar} bei ${namen$1(ev.provinzen)} fallen Schüsse; Grenzsoldaten melden Verletzte. Wer zuerst geschossen hat, ist unklar: ${nachbar} und die türkische Seite geben sich gegenseitig die Schuld.`];
 		},
 		warum: () => "Grenzzwischenfälle entscheiden sich an der Frage, ob man eine Lage beruhigt oder ausnutzt. Jede Reaktion ist auch ein Signal an die Nachbarn und an die Wähler.",
 		eroeffne: (w, ev) => {
@@ -16159,31 +23628,34 @@ const AUSSEN_VORLAGEN = [
 		szene: "bank",
 		frist: 12,
 		abkuehlung: 500,
-		chance: (w) => w.economy.riskPremium > 400 ? .2 : 0,
+		chance: (w) => iwfAktiv(w) ? 0 : w.economy.riskPremium > 400 || (w.economy.reservenNettoUsdMrd ?? 99) < DEVISEN.warnungUnter ? .2 : 0,
 		erzeuge: () => ({
 			provinzen: [],
 			staerke: 1
 		}),
 		titel: () => "Der IWF bietet ein Programm an",
-		text: (w) => [`Bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten Risikoaufschlag und ${nf$5(w.economy.usdTry)} Lira je Dollar bietet der Internationale Währungsfonds ein Kreditprogramm an. ${anrede(figur(w, "finanzen"))} wägt ab.`, "Der Preis wären Auflagen: Sparen, Reformen und Aufsicht durch Prüfer."],
-		warum: () => "Ein IWF-Programm bringt Geld und Vertrauen der Märkte und kostet politische Freiheit: Die Auflagen treffen meist die, die am wenigsten haben.",
-		optionen: () => [
-			opt("annehmen", "Das Programm annehmen", beschr(5, 0, "die Märkte beruhigen sich, die Auflagen kosten Zustimmung."), 5, (w) => {
-				w.economy.riskPremium = Math.max(150, w.economy.riskPremium - 60);
-				w.economy.credibility = clamp(w.economy.credibility + .05, .05, .95);
-				setFiscalImpulse(w, Math.min(w.economy.fiscalImpulse, -1));
-				wirke(w, "vertrauen_maerkte", 8);
+		text: (w) => {
+			const auflagen = iwfAuflagen(w);
+			return [`Bei ${nf$7(w.economy.riskPremium, 0)} Basispunkten Risikoaufschlag, ${nf$7(w.economy.usdTry)} Lira je Dollar und ${nf$7(w.economy.reservenNettoUsdMrd ?? 0)} Mrd. Dollar Netto-Reserven bietet der Internationale Währungsfonds ein Stand-by-Abkommen an. ${anrede(figur(w, "finanzen"))} wägt ab.`, `Devisen sofort und zwei Tranchen nach Reviews; dafür Auflagen: Leitzins mindestens ${nf$7(auflagen.zinsMindest)} % und Defizit höchstens ${nf$7(auflagen.defizitMax)} % des BIP, geprüft in drei Reviews. Wer die Auflagen reißt, verliert das Programm — und das Vertrauen der Märkte.`];
+		},
+		warum: () => "Ein IWF-Programm bringt Devisen und das Vertrauen der Märkte und kostet politische Freiheit: Die Auflagen binden Zins und Defizit, und sie treffen meist die, die am wenigsten haben.",
+		optionen: (w) => [
+			opt("annehmen", "Das Stand-by-Abkommen annehmen", beschr(5, 0, `Devisen-Zufluss und ruhigere Märkte gegen Auflagen (Zins ≥ ${nf$7(iwfAuflagen(w).zinsMindest)} %, Defizit ≤ ${nf$7(iwfAuflagen(w).defizitMax)} %) in drei Reviews.`), 5, (w) => {
+				iwfStarten(w);
 				wirke(w, "realeinkommen", -3);
 				wirke(w, "arbeitnehmer", -3);
 				wirke(w, "junge", -2);
-				return "Die Regierung nimmt das Programm an und verspricht Haushaltsdisziplin.";
+				return "Die Regierung unterschreibt das Stand-by-Abkommen: Devisen fließen, die Märkte beruhigen sich — und die Auflagen ticken.";
 			}),
 			opt("golf", "Kredite aus dem Golf suchen", beschr(4, 0, "Geld ohne Auflagen, aber mit politischen Gegenleistungen."), 4, (w) => {
 				w.economy.riskPremium = Math.max(150, w.economy.riskPremium - 30);
 				w.economy.credibility = clamp(w.economy.credibility + .01, .05, .95);
+				const e = w.economy;
+				if (e.reservenBruttoUsdMrd !== void 0) e.reservenBruttoUsdMrd += 4;
+				if (e.reservenNettoUsdMrd !== void 0) e.reservenNettoUsdMrd += 4;
 				wirke(w, "beziehungen_nahost", 4);
 				wirke(w, "beziehungen_usa", -1);
-				return "Golfstaaten stellen Kredite bereit; sie erwarten Entgegenkommen.";
+				return "Golfstaaten stellen 4 Mrd. Dollar bereit; sie erwarten Entgegenkommen.";
 			}),
 			opt("allein", "Den Weg allein gehen", beschr(0, 0, "keine Auflagen, aber auch keine Hilfe."), 0, (w) => {
 				w.economy.riskPremium += 20;
@@ -16213,7 +23685,7 @@ const AUSSEN_VORLAGEN = [
 			]) }
 		}),
 		titel: (_, ev) => `${ev.daten?.agentur} droht mit Herabstufung`,
-		text: (w, ev) => [`${ev.daten?.agentur} stellt die Bonität des Landes auf den Prüfstand: Schulden ${nf$5(w.economy.debtRatio)} % des BIP, Inflation ${nf$5(w.published.inflation.value)} %. Eine Herabstufung würde Kredite verteuern.`],
+		text: (w, ev) => [`${ev.daten?.agentur} stellt die Bonität des Landes auf den Prüfstand: Schulden ${nf$7(w.economy.debtRatio)} % des BIP, Inflation ${nf$7(w.published.inflation.value)} %. Eine Herabstufung würde Kredite verteuern.`],
 		warum: () => "Ratings entscheiden mit, was der Staat für Schulden zahlt. Sie folgen dem Vertrauen der Investoren und beeinflussen es zugleich.",
 		optionen: () => [
 			opt("fahrplan", "Einen Reformfahrplan vorlegen", beschr(3, 0, "beruhigt die Investoren, bindet die Regierung."), 3, (w) => {
@@ -16307,7 +23779,7 @@ const AUSSEN_VORLAGEN = [
 			]) }
 		}),
 		titel: (_, ev) => `Der Gasvertrag mit ${ev.daten?.land} läuft aus`,
-		text: (w, ev) => [`Der langfristige Liefervertrag für Erdgas mit Lieferanten aus ${ev.daten?.land} steht zur Verlängerung an. Die Energiepreise stehen bei Index ${nf$5(netz$1(w, "energiepreise"), 0)}, die Abhängigkeit von Importen bei ${nf$5(netz$1(w, "energieimporte"), 0)}.`],
+		text: (w, ev) => [`Der langfristige Liefervertrag für Erdgas mit Lieferanten aus ${ev.daten?.land} steht zur Verlängerung an. Die Energiepreise stehen bei Index ${nf$7(netz$1(w, "energiepreise"), 0)}, die Abhängigkeit von Importen bei ${nf$7(netz$1(w, "energieimporte"), 0)}.`],
 		warum: () => "Gasverträge binden über Jahre. Ein günstiger Preis ist eine Abhängigkeit, und jede Alternative kostet erst einmal mehr.",
 		optionen: (_, ev) => {
 			const bez = ev.daten?.land === "Russland" ? "beziehungen_russland" : "beziehungen_nahost";
@@ -16424,7 +23896,7 @@ const AUSSEN_VORLAGEN = [
 			staerke: .7 + .5 * rng.next()
 		}),
 		titel: () => "Eine Weltwirtschaftskrise erreicht die Türkei",
-		text: (w, ev) => [`Ein Einbruch an den Weltmärkten reißt die Nachfrage nach türkischen Waren ein: Bestellungen werden storniert, Touristen bleiben aus, Auslandskapital zieht ab. Das Wachstum liegt bei ${nf$5(w.economy.growth)} %, der Risikoaufschlag steigt auf ${nf$5(w.economy.riskPremium + 60 * ev.staerke, 0)} Basispunkte.`, `${anrede(figur(w, "finanzen"))} fragt, ob der Staat stützen oder sparen soll. Wer Kapital zurückgelegt hat, kann jetzt handeln.`],
+		text: (w, ev) => [`Ein Einbruch an den Weltmärkten reißt die Nachfrage nach türkischen Waren ein: Bestellungen werden storniert, Touristen bleiben aus, Auslandskapital zieht ab. Das Wachstum liegt bei ${nf$7(w.economy.growth)} %, der Risikoaufschlag steigt auf ${nf$7(w.economy.riskPremium + 60 * ev.staerke, 0)} Basispunkte.`, `${anrede(figur(w, "finanzen"))} fragt, ob der Staat stützen oder sparen soll. Wer Kapital zurückgelegt hat, kann jetzt handeln.`],
 		warum: () => "Krisen kommen von außen und treffen die, die am wenigsten Puffer haben. Ein Staat, der in guten Jahren Kapital und Vertrauen aufbaut, hat in schlechten Handlungsspielraum.",
 		eroeffne: (w, ev) => {
 			w.economy.riskPremium += 60 * ev.staerke;
@@ -16478,7 +23950,7 @@ const AUSSEN_VORLAGEN = [
 			staerke: .7 + .5 * rng.next()
 		}),
 		titel: () => "Eine neue Seuche breitet sich aus",
-		text: (w) => [`Ein neuer Erreger verbreitet sich schneller als jeder Winterinfekt: Krankenhäuser melden Überlastung, Schulen schließen, Flüge werden gestrichen. Die Gesundheitsversorgung steht bei Index ${nf$5(netz$1(w, "gesundheitsversorgung"), 0)}.`, "Der Ärzteverband fordert Maßnahmen; die Wirtschaft warnt vor einem Stillstand."],
+		text: (w) => [`Ein neuer Erreger verbreitet sich schneller als jeder Winterinfekt: Krankenhäuser melden Überlastung, Schulen schließen, Flüge werden gestrichen. Die Gesundheitsversorgung steht bei Index ${nf$7(netz$1(w, "gesundheitsversorgung"), 0)}.`, "Der Ärzteverband fordert Maßnahmen; die Wirtschaft warnt vor einem Stillstand."],
 		warum: () => "Seuchen zeigen, wie belastbar ein Gesundheitssystem und ein Staat sind. Beschränkungen schützen Leben und kosten Wirtschaft; beides zugleich lässt sich nicht maximieren.",
 		eroeffne: (w, ev) => {
 			wirke(w, "gesundheitsversorgung", -6 * ev.staerke);
@@ -16517,6 +23989,223 @@ const AUSSEN_VORLAGEN = [
 		}
 	}
 ];
+//#endregion
+//#region src/sim/ereignisse-krieg.ts
+const landName$1 = (ev) => {
+	try {
+		return land(String(ev.daten?.land ?? "")).name;
+	} catch {
+		return "Griechenland";
+	}
+};
+const vorgangId = (ev) => String(ev.daten?.vorgang ?? "");
+const offiziersvertrauen = (w) => nationalAverage(NET, w.net, "offiziersvertrauen");
+/** Öffnung ohne Übergabe (Text-Prüfung): den laufenden Vorgang nehmen, sonst den Standard-Spannungsfall. */
+const erzeugeKrieg = (w) => {
+	const k = aktiveKriege(w)[0];
+	return {
+		provinzen: [],
+		staerke: 1,
+		daten: {
+			land: k?.land ?? "GRC",
+			vorgang: k?.id ?? ""
+		}
+	};
+};
+const KRIEG_VORLAGEN = [
+	{
+		id: "krieg_drohkulisse",
+		szene: "istanbul",
+		frist: 12,
+		abkuehlung: 1,
+		chance: () => 0,
+		erzeuge: erzeugeKrieg,
+		titel: (_, ev) => `Drohkulisse: Die Lage mit ${landName$1(ev)} spitzt sich zu`,
+		text: (w, ev) => [`Aus den Zwischenfällen mit ${landName$1(ev)} ist eine Drohkulisse geworden. Der Generalstab legt Lagebilder vor, die Fraktionen warten auf eine Linie, die Kommentatoren riechen Blut.`, "Jetzt zählt jede Handlung: Bereitschaft zeigen, vermitteln lassen, die Lage beruhigen — oder ein Kriegsziel deklarieren, das die Preise aller Folgehandlungen festlegt. Das vollständige Dossier steht in der Welt-Ansicht."],
+		warum: () => "Die Eskalationsphase ist die Hauptspielfläche: Wer vorbereitet ist und eine konsistente Linie fährt, zahlt später den kleineren Preis; wer aussitzt, lässt den Gegner die Fakten setzen.",
+		optionen: () => [
+			opt("mobil", "Teilmobilmachung anordnen", "Kostet 8 Kapital und 0,3 % des BIP; die Stärke steigt, die Eskalation auch.", 8, (w, ev, rng) => fuehreKriegHandlungAus(w, vorgangId(ev), "mobil_teil", rng).text),
+			opt("vermittlung", "Vermittlung rufen", "Kostet 5 Kapital; bei Erfolg lässt die Eskalation deutlich nach.", 5, (w, ev, rng) => fuehreKriegHandlungAus(w, vorgangId(ev), "vermittlung", rng).text),
+			opt("deeskalation", "Die Lage beruhigen", "Kostet 4 Kapital; Nationalisten lesen es als Schwäche.", 4, (w, ev, rng) => fuehreKriegHandlungAus(w, vorgangId(ev), "deeskalation", rng).text)
+		],
+		standard: () => "Die Regierung entscheidet nicht; die Drohkulisse hält an und der Gegner setzt die Fakten."
+	},
+	{
+		id: "krieg_waffenruhe",
+		szene: "istanbul",
+		frist: 14,
+		abkuehlung: 1,
+		chance: () => 0,
+		erzeuge: erzeugeKrieg,
+		titel: (_, ev) => `${landName$1(ev)} bietet Waffenruhe an`,
+		text: (w, ev) => [`Über Vermittler lässt ${landName$1(ev)} ausrichten, es sei zu einer Waffenruhe bereit. Die Erschöpfung der Gegenseite scheint weit genug — oder es ist eine Falle, um Zeit zu gewinnen.`, "Nimmt die Regierung an, schweigen die Waffen und der Verhandlungstisch entscheidet über Gebiet, Reparationen, Garantien und Rückzug. Lehnt sie ab, liest die Heimatfront das als Härte — und die Gegenseite als Schwäche des Angebots."],
+		warum: () => "Eine Waffenruhe ist kein Frieden: Sie öffnet den Verhandlungstisch, ohne die Rechnung zu begleichen. Der Innenpreis des Friedens hängt auch davon ab, wie frei die Presse berichten darf.",
+		optionen: () => [opt("annehmen", "Waffenruhe annehmen", "Kostet nichts; die Waffen schweigen, der Verhandlungstisch öffnet sich.", 0, (w, ev) => waffenruheFuerAngebot(w, vorgangId(ev))), opt("ablehnen", "Ablehnen und weiterkämpfen", "Kostet nichts; die Heimatfront hält es aus (Uhr −3), der Krieg geht weiter.", 0, (w, ev) => {
+			const k = w.spiel?.kriege?.find((x) => x.id === vorgangId(ev));
+			if (!k) return "Das Angebot ist gegenstandslos geworden.";
+			k.gegnerAngebot = false;
+			k.uhr = Math.max(0, k.uhr - 3);
+			k.eskalation = Math.min(100, k.eskalation + 2);
+			return "Die Regierung lehnt die Waffenruhe ab; die Operationen gehen weiter.";
+		})],
+		standard: (w, ev) => {
+			const k = w.spiel?.kriege?.find((x) => x.id === vorgangId(ev));
+			if (k) {
+				k.gegnerAngebot = false;
+				k.uhr = Math.max(0, k.uhr - 3);
+			}
+			return "Ohne Antwort verfällt das Angebot; der Krieg geht weiter.";
+		}
+	},
+	{
+		id: "putschgeruechte",
+		szene: "istanbul",
+		frist: 12,
+		abkuehlung: 3650,
+		chance: () => 0,
+		erzeuge: erzeugeKrieg,
+		titel: () => "Putschgerüchte im Generalstab",
+		text: (w) => [`Nach der militärischen Schmach sprechen Offiziere offen über die Verantwortung der Regierung. Das Vertrauen im Offizierskorps liegt bei ${Math.round(offiziersvertrauen(w))} von 100 — zerbrochen.`, "In den Kasernen kursieren Namen. Der Geheimdienst legt Listen vor; die Frage ist, ob die Regierung die Führung diszipliniert oder einbindet, bevor andere die Initiative ergreifen."],
+		warum: () => "Gebietsabtretung und Niederlage sind die klassischen Putsch-Auslöser: Ein Offizierskorps, das die Regierung für den Schaden verantwortlich macht, braucht nur noch einen Anlass.",
+		optionen: () => [opt("ordnung", "Die Generäle zur Ordnung rufen", "Kostet 5 Kapital; Offiziersvertrauen −4, Legitimität −2, aber die Reihen schließen sich vorerst.", 5, (w) => {
+			wirke(w, "offiziersvertrauen", -4);
+			wirke(w, "legitimitaet", -2);
+			wirke(w, "nationalisten", 1);
+			return "Die Regierung rügt die lauten Generäle öffentlich; das Korps gehorcht — und merkt sich den Ton.";
+		}), opt("einbinden", "Die Offiziere einbinden", "Kostet 8 Kapital; Offiziersvertrauen +6, Nationalisten −2, Zustimmung −1.", 8, (w) => {
+			wirke(w, "offiziersvertrauen", 6);
+			wirke(w, "nationalisten", -2);
+			w.spiel.umfrage.zustimmung = Math.max(0, w.spiel.umfrage.zustimmung - 1);
+			return "Ein Sonderstab aus Offizieren soll die Schmach aufarbeiten; das Korps fühlt sich ernst genommen.";
+		})],
+		standard: (w) => {
+			wirke(w, "offiziersvertrauen", -6);
+			wirke(w, "legitimitaet", -3);
+			vertrauenAendern(w, -2);
+			return "Die Gerüchte wachsen unbeantwortet weiter; das Korps liest das Schweigen als Schwäche.";
+		}
+	}
+];
+//#endregion
+//#region src/sim/ereignisse-eu.ts
+const landId = (ev) => String(ev.daten?.land ?? "GRC");
+const kapitelId = (ev) => String(ev.daten?.kapitel ?? "k23");
+const landName = (ev) => {
+	try {
+		return land(landId(ev)).name;
+	} catch {
+		return "Griechenland";
+	}
+};
+const kapitelName = (ev) => {
+	const def = KAPITEL_NACH_ID.get(kapitelId(ev));
+	return def ? `Kapitel ${def.nummer} „${def.name}“` : "das Kapitel";
+};
+const EU_VORLAGEN = [{
+	id: "eu_veto",
+	szene: "istanbul",
+	frist: 21,
+	abkuehlung: 90,
+	chance: () => 0,
+	erzeuge: () => ({
+		provinzen: [],
+		staerke: .5,
+		daten: {
+			land: "GRC",
+			kapitel: "k23"
+		}
+	}),
+	titel: (_, ev) => `${landName(ev)} legt ein Veto gegen ${kapitelName(ev)} ein`,
+	text: (w, ev) => {
+		const zypern = landId(ev) === "CYP" ? ` ${zypernBewegung(w).text}` : "";
+		return [`Die Kriterien für ${kapitelName(ev)} wären erfüllt — doch im Rat der Europäischen Union legt ${landName(ev)} sein Veto ein. Erweiterung braucht Einstimmigkeit; ein einziges Mitglied genügt.${zypern}`, "Der Außenminister legt zwei Wege vor: ein sichtbares Zugeständnis, das den Konflikt entschärft und das Veto aufhebt — oder abwarten, bis sich die Lage dreht, was das Kapitel für ein Jahr blockiert."];
+	},
+	warum: () => "Dokumentiert: Griechenland und Zypern nutzen ihre Vetomacht gegen jeden EU-Schritt Richtung Ankara, solange die Streitpunkte offen sind (RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 2, Rote Linie 3; Dossier 17, Rote Linie 5).",
+	optionen: (_, ev) => [opt("zugestaendnis", "Zugeständnis anbieten", `Kostet ${EU_REGELN.pkVetoZugestaendnis} Kapital; entschärft den Konflikt und hebt das Veto — national gesinnte Wähler lesen es als Nachgeben.`, EU_REGELN.pkVetoZugestaendnis, (w) => vetoBeantworten(w, landId(ev), kapitelId(ev))), opt("abwarten", "Abwarten", `Kostet nichts; ${kapitelName(ev)} bleibt ein Jahr blockiert und Brüssel verliert etwas Vertrauen.`, 0, (w) => vetoAbwarten(w, landId(ev), kapitelId(ev)))],
+	standard: (w, ev) => vetoAbwarten(w, landId(ev), kapitelId(ev))
+}, {
+	id: "eu_zollunion",
+	szene: "istanbul",
+	frist: 30,
+	abkuehlung: 365,
+	chance: () => 0,
+	erzeuge: () => ({
+		provinzen: [],
+		staerke: .5
+	}),
+	titel: () => "Brüssel bietet das Mandat für das Zollunion-Update an",
+	text: () => [`Mit den geschlossenen Kapiteln ist die Türkei weit genug: Brüssel bietet das Mandat an, die Zollunion von 1995 zu modernisieren — Dienstleistungen, öffentliche Vergaben und Agrar kommen auf den Tisch.`, "Das Update ist ein echtes Zwischenziel mit einem echten Preis: Die Industrie und die Exporteure gewinnen Zugang, die Landwirtschaft verliert Schutzzölle und steht im Wettbewerb. Wer ablehnt, wartet Jahre auf das nächste Angebot."],
+	warum: () => `Das Mandat kommt mit ${EU_REGELN.zollunionKapitel} vorläufig geschlossenen Kapiteln in Reichweite (Spielparameter; RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 2: Griechenland und Zypern bremsten das Update bisher).`,
+	optionen: () => [opt("annehmen", "Das Mandat annehmen", `Export +, Industrie +, Investitionen +, Risikoaufschlag sinkt um ${nf$7(40, 0)} Punkte; die Landwirtschaft verliert Schutz (Einkommen −, Landwirte −).`, 0, (w) => zollunionAnnehmen(w)), opt("ablehnen", "Ablehnen", "Kein Preis heute; das Angebot vertagt sich um zwei Jahre und Brüssel verliert Vertrauen.", 0, (w) => zollunionAblehnen(w))],
+	standard: (w) => zollunionAblehnen(w)
+}];
+EU_VORLAGEN.map((v) => v.id);
+//#endregion
+//#region src/sim/ereignisse-vermittlung.ts
+/** Konflikt der Datenlage, mit Standardfall für die Text-Öffnung ohne Übergabe. */
+function konfliktVon(ev) {
+	return KONFLIKT_NACH_ID[String(ev.daten?.konflikt ?? "")] ?? KONFLIKTE[0];
+}
+function seiteName(ev) {
+	const def = konfliktVon(ev);
+	return ev.daten?.seite === "b" ? def.b.name : def.a.name;
+}
+function spoilerArt(ev) {
+	return SPOILER_ARTEN[String(ev.daten?.art ?? "provokation")] ?? SPOILER_ARTEN.provokation;
+}
+/** Öffnung ohne Übergabe (Text-Prüfung): den ersten Konflikt mit einer Standard-Provokation. */
+const erzeugeStandard = () => ({
+	provinzen: [],
+	staerke: 1,
+	daten: {
+		konflikt: KONFLIKTE[0].id,
+		art: "provokation",
+		seite: "a"
+	}
+});
+const VERMITTLUNG_VORLAGEN = [{
+	id: "vermittlung_spoiler",
+	szene: "istanbul",
+	frist: 10,
+	abkuehlung: 1,
+	chance: () => 0,
+	erzeuge: erzeugeStandard,
+	titel: (_, ev) => `Spoiler bei der Vermittlung: ${konfliktVon(ev).titel}`,
+	text: (w, ev) => {
+		const def = konfliktVon(ev);
+		const art = spoilerArt(ev);
+		const z = konfliktZustand(w, def.id);
+		return [art.text.replace("{seite}", seiteName(ev)), `Die Reife der Lage liegt bei ${Math.round(z.reif)} von 100: Wer die Annäherung fürchtet, hat jetzt das größte Interesse, sie zu beschädigen.`];
+	},
+	warum: () => "Spoiler sind der klassische Grund, warum Vermittlungen scheitern: Wer vom Konflikt profitiert, schlägt genau dann zu, wenn der Ausgleich näher rückt. Jede Antwort ist ein Signal — an die Spoiler, an die andere Seite und an die eigene Glaubwürdigkeit als Vermittler.",
+	optionen: (_, ev) => [
+		opt("verurteilen", "Öffentlich verurteilen", beschr(2, 0, "klare Kante gegen die Spoiler; die Beziehung zu der einen Seite leidet (−6), die andere fühlt sich geschützt."), 2, (w, ev2) => spoilerFolge(w, ev2, "verurteilen")),
+		opt("daempfen", "Diskret dämpfen", beschr(3, 0, "der Schaden bleibt klein, ohne dass jemand das Gesicht verliert — kostet Kapital."), 3, (w, ev2) => spoilerFolge(w, ev2, "daempfen")),
+		opt("ignorieren", "Ignorieren", beschr(0, 0, "kostet nichts; die Spoiler lesen es als Freibrief (Reif −)."), 0, (w, ev2) => spoilerFolge(w, ev2, "ignorieren"))
+	],
+	standard: (w, ev) => spoilerFolge(w, ev, "ignorieren")
+}, {
+	id: "vermittlung_verstoss",
+	szene: "istanbul",
+	frist: 12,
+	abkuehlung: 1,
+	chance: () => 0,
+	erzeuge: erzeugeStandard,
+	titel: (_, ev) => `Verstoß gegen die Vereinbarung: ${konfliktVon(ev).titel}`,
+	text: (w, ev) => {
+		const def = konfliktVon(ev);
+		const z = konfliktZustand(w, def.id);
+		return [`Die vereinbarte Umsetzung zwischen ${def.a.name} und ${def.b.name} ist gebrochen worden: Verletzungen an der Linie, blockierte Schritte, Schuldzuweisungen beider Seiten. Ankara garantiert die Vereinbarung — jetzt schaut die Welt auf den Garanten.`, z.garantie === "militaer" ? "Die militärische Garantie lässt zwei Wege: eingreifen und die Vereinbarung durchsetzen — oder den Gesichtsverlust der Garantiemacht hinnehmen." : "Die Garantie lässt Spielraum: dämpfen und die Vereinbarung retten — oder den Verstoß hinnehmen und die Bürgschaft verlieren."];
+	},
+	warum: () => "Eine Garantie kauft Verantwortung: Wer bürgt, wird am ersten Verstoß gemessen. Durchsetzen kostet Geld und Risiko, Dämpfen kostet Abschreckung, Hinnehmen kostet das Gesicht — und vielleicht die ganze Vermittlung.",
+	optionen: (w, ev) => {
+		const z = konfliktZustand(w, konfliktVon(ev).id);
+		const liste = [opt("daempfen", "Auf allen Kanälen dämpfen", beschr(4, 0, "die Garantie steht, aber beide Seiten lernen, dass Verstöße billig sind."), 4, (w2, ev2) => verstossFolge(w2, ev2, "daempfen")), opt("hinnehmen", "Den Verstoß hinnehmen", beschr(0, 0, "die Garantie bricht: Gesichtsverlust (Ansehen −6), die Lage fällt zurück."), 0, (w2, ev2) => verstossFolge(w2, ev2, "hinnehmen"))];
+		if (z.garantie === "militaer") liste.unshift(opt("eingreifen", "Eingreifen und die Garantie durchsetzen", beschr(0, .3, "teuer und riskant; die Garantie gilt, und alle rechnen künftig mit Ankara."), 0, (w2, ev2) => verstossFolge(w2, ev2, "eingreifen")));
+		return liste;
+	},
+	standard: (w, ev) => verstossFolge(w, ev, "hinnehmen")
+}];
 //#endregion
 //#region src/sim/ereignisse-reich.ts
 const staette = (ev) => ERBE_NACH_ID[String(ev.daten?.staette ?? "")] ?? ERBE[0];
@@ -17340,6 +25029,174 @@ const PERSONEN_VORLAGEN = [
 		}
 	}
 ];
+//#endregion
+//#region src/sim/ereignisse-verfassung.ts
+const paketNamen = (w) => {
+	const v = w.spiel?.verfassungsvorgang?.laufend;
+	if (!v) return "das Paket";
+	const namen = geaenderteArtikel(v.paket).map((x) => `${x.artikel.name}: ${x.variante.name}`);
+	return namen.length ? namen.join(", ") : "das Paket";
+};
+const VERFASSUNG_VORLAGEN = [
+	{
+		id: "verfassung_abstimmung",
+		szene: "parlament",
+		titel: () => "Verfassungspaket: Die Abstimmung steht an",
+		text: (w) => {
+			const v = w.spiel?.verfassungsvorgang?.laufend;
+			if (!v) return ["Die Große Nationalversammlung tritt zur Abstimmung über ein Verfassungspaket zusammen; der Vorgang selbst ist bereits abgeschlossen, die Stimmabgabe entfällt."];
+			const s = paketStimmen(w, v.paket, v.absprachen);
+			return [`Heute stimmt die Große Nationalversammlung über das Verfassungspaket ab: ${paketNamen(w)}.`, `Erwartet werden ${s.erwartet} Ja-Stimmen (Spanne ${s.tief} bis ${s.hoch}${v.absprachen ? `, darin ${v.absprachen} Absprachen` : ""}). Ab ${VERFASSUNG_REGELN.direkt} wird es direkt Gesetz; zwischen ${VERFASSUNG_REGELN.mehrheit} und ${VERFASSUNG_REGELN.direkt - 1} entscheidet das Volk; darunter ist es gescheitert, und ein Teil des Kapitals ist verbrannt.`];
+		},
+		warum: () => "Eine Verfassungsänderung braucht eine qualifizierte Mehrheit: Die Hürden entscheiden, ob das Volk mitreden muss.",
+		optionen: (w) => {
+			const v = w.spiel?.verfassungsvorgang?.laufend;
+			const s = v ? paketStimmen(w, v.paket, v.absprachen) : null;
+			return [{
+				id: "abstimmen",
+				label: "Zur Abstimmung bringen",
+				beschreibung: s ? `Auszählen lassen: erwartet ${s.erwartet} Ja (Spanne ${s.tief} bis ${s.hoch}).` : "Auszählen lassen; der abgeschlossene Vorgang wird aus der Tagesordnung genommen.",
+				pk: 0,
+				wirkung: (w, _ev, rng) => verfassungAbstimmen(w, rng).text
+			}, {
+				id: "zurueckziehen",
+				label: "Paket zurückziehen",
+				beschreibung: `Ein Teil des Kapitals kommt zurück; die Amtszeit hat ihre Verfassungsdebatte hinter sich.`,
+				pk: 0,
+				wirkung: (w) => zieheVerfassungZurueck(w).text
+			}];
+		},
+		standard: (w, _ev, rng) => verfassungAbstimmen(w, rng).text,
+		frist: 5,
+		abkuehlung: 3650,
+		wettbewerb: "aussitzen",
+		schwere: 2,
+		chance: () => 0,
+		erzeuge: () => ({
+			provinzen: [],
+			staerke: .6
+		})
+	},
+	{
+		id: "verfassung_aym",
+		szene: "parlament",
+		titel: () => "Verfassungsgericht: Die Entscheidung fällt",
+		text: (w) => {
+			const v = w.spiel?.verfassungsvorgang?.laufend;
+			if (!v) return ["Das Verfassungsgericht hätte über eine Anfechtung zu befinden; der Vorgang ist bereits abgeschlossen, das Verfahren wird eingestellt."];
+			const s = aymSicht(w, v.paket);
+			return [`Das Verfassungsgericht verkündet seine Entscheidung über die Anfechtung des Pakets: ${paketNamen(w)}.`, `Der Besetzungsstand — ${s.sitze.loyal} loyal, ${s.sitze.unabhaengig} unabhängig, ${s.sitze.reform} reformorientiert — lässt eine Kassation eher ${s.pKassation < .12 ? "unwahrscheinlich" : s.pKassation < .25 ? "möglich" : "wahrscheinlich"} erscheinen. Wird das Paket kassiert, ist es tot, und der Groll im Lager ist gewiss.`];
+		},
+		warum: () => "Die Kontrollinstanz entscheidet nach ihrem Besetzungsstand: Wer die Sitze prägt, prägt die Grenze der eigenen Macht.",
+		optionen: () => [{
+			id: "abwarten",
+			label: "Die Verkündung abwarten",
+			beschreibung: "Das Gericht entscheidet nach seinem Besetzungsstand; Einfluss hat jetzt niemand mehr.",
+			pk: 0,
+			wirkung: (w, _ev, rng) => aymEntscheiden(w, rng).text
+		}, {
+			id: "respektieren",
+			label: "Die Unabhängigkeit des Gerichts öffentlich betonen",
+			beschreibung: "Was auch kommt, die Regierung wird das Urteil achten: stärkt die Urteilsbefolgung im Land, bevor das Gericht entscheidet.",
+			pk: 0,
+			wirkung: (w, _ev, rng) => {
+				wirke(w, "urteilsbefolgung", 1);
+				return `Die Regierung kündigt an, jede Entscheidung zu achten. ${aymEntscheiden(w, rng).text}`;
+			}
+		}],
+		standard: (w, _ev, rng) => aymEntscheiden(w, rng).text,
+		frist: 5,
+		abkuehlung: 3650,
+		wettbewerb: "aussitzen",
+		schwere: 2,
+		chance: () => 0,
+		erzeuge: () => ({
+			provinzen: [],
+			staerke: .6
+		})
+	},
+	{
+		id: "verfassung_referendum",
+		szene: "wahlnacht",
+		titel: () => "Referendum-Nacht: Das Volk entscheidet",
+		text: (w) => {
+			if (!w.spiel?.verfassungsvorgang?.laufend) return ["Die Wahllokale hätten sich für eine Volksabstimmung öffnen sollen; der Vorgang ist bereits abgeschlossen, die Auszählung entfällt."];
+			const p = referendumPrognose(w);
+			if (!p) return ["Die Wahllokale schließen; der Vorgang ist bereits abgeschlossen."];
+			return [`Die Wahllokale schließen, die Auszählung beginnt: ${paketNamen(w)}.`, `Die letzte Erwartung lag bei etwa ${fmt(p.mitte)} Prozent Ja (Spanne ${fmt(p.tief)} bis ${fmt(p.hoch)}): Zustimmung ${fmt(p.zustimmung)}, Themen der Artikel ${p.salienz >= 0 ? "+" : ""}${fmt(p.salienz)}, Kampagne +${fmt(p.kampagne)}. Ab 50 Prozent tritt das Paket in Kraft; ein Nein kostet schweres Vertrauen und stärkt die Opposition.`];
+		},
+		warum: () => "Eine Volksabstimmung ist eine Wahl über die Regierung selbst: Ihre Zustimmung trägt das Ja-Lager, die Artikel und die Kampagne verschieben es.",
+		optionen: () => [{
+			id: "auszaehlen",
+			label: "Die Auszählung verfolgen",
+			beschreibung: "Das Ergebnis bindet: Ja setzt das Paket in Kraft, Nein beendet es mit einem schweren Vertrauensverlust.",
+			pk: 0,
+			wirkung: (w, _ev, rng) => referendumAuszaehlen(w, rng).text
+		}, {
+			id: "ansprache",
+			label: "Mit einer Ansprache in die Nacht gehen",
+			beschreibung: "Der Präsident ruft zur Einheit auf, bevor das Ergebnis feststeht: dämpft die Polarisierung, kostet nichts.",
+			pk: 0,
+			wirkung: (w, _ev, rng) => {
+				wirke(w, "polarisierung", -1);
+				return `Die Ansprache beschwört die Einheit des Landes. ${referendumAuszaehlen(w, rng).text}`;
+			}
+		}],
+		standard: (w, _ev, rng) => referendumAuszaehlen(w, rng).text,
+		frist: 3,
+		abkuehlung: 3650,
+		wettbewerb: "aussitzen",
+		schwere: 2.5,
+		chance: () => 0,
+		erzeuge: () => ({
+			provinzen: [],
+			staerke: .8
+		})
+	},
+	{
+		id: "verfassung_proteste",
+		szene: "istanbul",
+		titel: () => "Proteste gegen das Verfassungspaket",
+		text: (w) => [`Auf den Plätzen der großen Städte versammeln sich Menschen gegen die neue Verfassung: ${paketNamen(w)}.`, "Die Bilder gehen um die Welt; Straßburg und die EU lesen das Paket als Richtungsentscheidung zugunsten des Palasts, und die Märkte werden nervös. Wer die Spielregeln zu seinen Gunsten schreibt, zahlt mit Legitimität."],
+		warum: () => "Autoritäre Verfassungspakete erzeugen ihre Gegenreaktion: Straße, Ausland und Märkte antworten auf die Machtkonzentration.",
+		optionen: () => [{
+			id: "dialog",
+			label: "Dialog anbieten",
+			beschreibung: "Vertreter der Proteste empfangen: kostet Kapital, entspannt das Klima, gilt als Zeichen von Selbstsicherheit.",
+			pk: 3,
+			wirkung: (w) => {
+				vertrauenAendern(w, .5);
+				wirke(w, "polarisierung", -1);
+				return "Das Gespräch mit Vertretern der Proteste nimmt den Bildern die Schärfe; das Klima entspannt sich etwas.";
+			}
+		}, {
+			id: "polizei",
+			label: "Plätze polizeilich räumen lassen",
+			beschreibung: "Schnell ruhig — und schnell neue Bilder: Ausnahmerecht und Polarisierung wachsen.",
+			pk: 1,
+			wirkung: (w) => {
+				wirke(w, "ausnahmerecht", 1);
+				wirke(w, "polarisierung", 1);
+				wirke(w, "ansehen", -1);
+				return "Die Polizei räumt die Plätze; die Nacht ist ruhig, die Bilder sind es nicht.";
+			}
+		}],
+		standard: (w) => {
+			vertrauenAendern(w, -1);
+			wirke(w, "polarisierung", 1);
+			return "Die Proteste ziehen sich über Tage und verlieren sich erst allmählich; das Vertrauen hat gelitten.";
+		},
+		frist: 6,
+		abkuehlung: 300,
+		wettbewerb: "eskalieren",
+		schwere: 1.5,
+		chance: () => 0,
+		erzeuge: () => ({
+			provinzen: [],
+			staerke: .7
+		})
+	}
+];
 /** Die zweite Hälfte einer Amtszeit ist rauer: Krisen werden häufiger, je länger man regiert (Regierungsalter). Nur Krisen aus der Außenwelt und der Wirtschaft. */
 const ALTERSKRISEN = /* @__PURE__ */ new Set([
 	"weltwirtschaftskrise",
@@ -17400,13 +25257,13 @@ const ERDBEBEN = {
 			}
 		};
 	},
-	titel: (_, ev) => `Erdbeben in ${namen(ev.provinzen)}`,
+	titel: (_, ev) => `Erdbeben in ${namen$1(ev.provinzen)}`,
 	text: (w, ev) => {
 		const s = dk(ev, "schaden");
 		const wort = s < .3 ? "Schäden an einzelnen Gebäuden" : s < .6 ? "schwere Schäden in mehreren Stadtvierteln" : "eingestürzte Häuser und viele Menschen ohne Obdach";
-		return [`Ein Erdbeben der Stärke ${nf$5(dk(ev, "mag"))} erschüttert ${namen(ev.provinzen)} (${einwohner(ev.provinzen).toLocaleString("de-DE")} Einwohner). Gemeldet werden ${wort}.`, `${anrede(figur(w, "inneres"))} bittet um Ihre Anweisungen. Die Rettungskräfte sind unterwegs; die Frage ist, wie der Staat in den nächsten Wochen und Monaten auftritt.`];
+		return [`Ein Erdbeben der Stärke ${nf$7(dk(ev, "mag"))} erschüttert ${namen$1(ev.provinzen)} (${einwohner(ev.provinzen).toLocaleString("de-DE")} Einwohner). Gemeldet werden ${wort}.`, `${anrede(figur(w, "inneres"))} bittet um Ihre Anweisungen. Die Rettungskräfte sind unterwegs; die Frage ist, wie der Staat in den nächsten Wochen und Monaten auftritt.`];
 	},
-	warum: (_, ev) => `Wie schwer es trifft, hängt an Bauqualität und Erdbebenvorsorge der Provinz (hier ${nf$5(dk(ev, "vorsorge") * 100, 0)} von 100). Alte Häuser und schwache Bauaufsicht machen den Unterschied.`,
+	warum: (_, ev) => `Wie schwer es trifft, hängt an Bauqualität und Erdbebenvorsorge der Provinz (hier ${nf$7(dk(ev, "vorsorge") * 100, 0)} von 100). Alte Häuser und schwache Bauaufsicht machen den Unterschied.`,
 	eroeffne: (w, ev) => {
 		const s = dk(ev, "schaden");
 		wirke(w, "wohnungsbau", -10 * s, ev.provinzen);
@@ -17418,7 +25275,7 @@ const ERDBEBEN = {
 	optionen: (_, ev) => {
 		const s = dk(ev, "schaden");
 		return [
-			opt("fonds", "Notstand und Wiederaufbaufonds", `Kostet ${nf$5(.5 * s + .1)} % des BIP und 8 Kapital; schnelle Aufträge machen Korruption wahrscheinlicher.`, 8, (w) => {
+			opt("fonds", "Notstand und Wiederaufbaufonds", `Kostet ${nf$7(.5 * s + .1)} % des BIP und 8 Kapital; schnelle Aufträge machen Korruption wahrscheinlicher.`, 8, (w) => {
 				kosten(w, .5 * s + .1);
 				wirke(w, "wohnungsbau", 8 * s, ev.provinzen);
 				wirke(w, "p_wohnungsnot", -8 * s, ev.provinzen);
@@ -17426,12 +25283,12 @@ const ERDBEBEN = {
 				vertrauenAendern(w, 3.5 * s);
 				return "Ein Wiederaufbaufonds wird aufgelegt; die Aufträge laufen schnell, aber nicht überall sauber.";
 			}),
-			opt("nothilfe", "Nur Nothilfe und Zelte", `Kostet ${nf$5(.1 * s + .03)} % des BIP und 2 Kapital; der Wiederaufbau bleibt Sache der Provinz.`, 2, (w) => {
+			opt("nothilfe", "Nur Nothilfe und Zelte", `Kostet ${nf$7(.1 * s + .03)} % des BIP und 2 Kapital; der Wiederaufbau bleibt Sache der Provinz.`, 2, (w) => {
 				kosten(w, .1 * s + .03);
 				vertrauenAendern(w, -1 * s);
 				return "Der Staat leistet Nothilfe und überlässt den Wiederaufbau den Betroffenen und der Provinz.";
 			}),
-			opt("untersuchung", "Bauaufsicht und Bauunternehmer untersuchen", `Kostet 5 Kapital und ${nf$5(.15 * s + .05)} % des BIP; ehrlich, aber nicht schnell.`, 5, (w) => {
+			opt("untersuchung", "Bauaufsicht und Bauunternehmer untersuchen", `Kostet 5 Kapital und ${nf$7(.15 * s + .05)} % des BIP; ehrlich, aber nicht schnell.`, 5, (w) => {
 				kosten(w, .15 * s + .05);
 				wirke(w, "erdbebenvorsorge", 3);
 				wirke(w, "bauqualitaet", 2);
@@ -17463,7 +25320,7 @@ const DUERRE = {
 		};
 	},
 	titel: () => "Dürre",
-	text: (w, ev) => [`Seit Wochen fällt in ${namen(ev.provinzen)} kaum Regen. Die Getreideernte ist gefährdet, die Talsperren sind halb leer.`, `Der Bauernverband fordert Hilfe; in den Städten wird über Wasserrationierung geredet. ${anrede(figur(w, "finanzen"))} erinnert an die Haushaltslage.`],
+	text: (w, ev) => [`Seit Wochen fällt in ${namen$1(ev.provinzen)} kaum Regen. Die Getreideernte ist gefährdet, die Talsperren sind halb leer.`, `Der Bauernverband fordert Hilfe; in den Städten wird über Wasserrationierung geredet. ${anrede(figur(w, "finanzen"))} erinnert an die Haushaltslage.`],
 	warum: () => "Wasserversorgung, Bewässerung und Talsperren entscheiden, ob aus einer trockenen Saison eine Krise wird.",
 	eroeffne: (w, ev) => {
 		wirke(w, "ernte", -8 * ev.staerke, ev.provinzen);
@@ -17471,13 +25328,13 @@ const DUERRE = {
 		wirke(w, "landwirtschaft_einkommen", -6 * ev.staerke, ev.provinzen);
 	},
 	optionen: (_, ev) => [
-		opt("hilfe", "Soforthilfe für Landwirte", `Kostet ${nf$5(.12)} % des BIP und 3 Kapital.`, 3, (w) => {
+		opt("hilfe", "Soforthilfe für Landwirte", `Kostet ${nf$7(.12)} % des BIP und 3 Kapital.`, 3, (w) => {
 			kosten(w, .12);
 			wirke(w, "landwirtschaft_einkommen", 5 * ev.staerke, ev.provinzen);
 			wirke(w, "ernte", 3 * ev.staerke, ev.provinzen);
 			return "Landwirte erhalten Soforthilfe und Wassertransporte.";
 		}),
-		opt("import", "Getreide importieren", `Kostet ${nf$5(.08)} % des BIP und 2 Kapital; dämpft Preise, drückt aber die Erzeuger.`, 2, (w) => {
+		opt("import", "Getreide importieren", `Kostet ${nf$7(.08)} % des BIP und 2 Kapital; dämpft Preise, drückt aber die Erzeuger.`, 2, (w) => {
 			kosten(w, .08);
 			wirke(w, "lebensmittelpreise", -5 * ev.staerke, ev.provinzen);
 			wirke(w, "landwirtschaft_einkommen", -2 * ev.staerke, ev.provinzen);
@@ -17512,7 +25369,7 @@ const WAEHRUNG = {
 		staerke: 1
 	}),
 	titel: () => "Die Lira rutscht",
-	text: (w) => [`Die Lira verliert an den Märkten schnell an Wert (${nf$5(w.economy.usdTry)} je Dollar); der Risikoaufschlag liegt bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} und ${anrede(figur(w, "zentralbank"))} warten auf ein Signal. Die Zinsen legt die Zentralbank fest, nicht der Präsident.`],
+	text: (w) => [`Die Lira verliert an den Märkten schnell an Wert (${nf$7(w.economy.usdTry)} je Dollar); der Risikoaufschlag liegt bei ${nf$7(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} und ${anrede(figur(w, "zentralbank"))} warten auf ein Signal. Die Zinsen legt die Zentralbank fest, nicht der Präsident.`],
 	warum: () => "Die Währung reagiert auf Inflationsabstand, Zinsen, Risikoaufschlag und Vertrauen. Kurzfristige Eingriffe kaufen Zeit, lösen die Ursache aber nicht.",
 	optionen: () => [
 		opt("reserven", "Devisenreserven einsetzen", "Kostet 3 Kapital; stützt die Lira kurz, die Reserven sinken.", 3, (w) => {
@@ -17558,7 +25415,7 @@ const ENERGIE = {
 		staerke: 1
 	}),
 	titel: () => "Energiepreise steigen",
-	text: (w) => [`Der Energiepreis am Weltmarkt liegt ${nf$5((w.economy.oel ?? 100) - 100, 0)} Prozent über dem Normalstand. Die Türkei importiert den größten Teil ihrer Energie.`, "Strom-, Gas- und Benzinrechnungen steigen. Die Opposition spricht vom Winter der leeren Portemonnaies."],
+	text: (w) => [`Der Energiepreis am Weltmarkt liegt ${nf$7((w.economy.oel ?? 100) - 100, 0)} Prozent über dem Normalstand. Die Türkei importiert den größten Teil ihrer Energie.`, "Strom-, Gas- und Benzinrechnungen steigen. Die Opposition spricht vom Winter der leeren Portemonnaies."],
 	warum: () => "Energieimporte belasten Handelsbilanz, Lira und Inflation gleichzeitig; Subventionen dämpfen die Rechnung und kosten den Haushalt.",
 	eroeffne: (w) => {
 		wirke(w, "energiepreise", 6);
@@ -17600,7 +25457,7 @@ const HAUSHALT = {
 		staerke: 1
 	}),
 	titel: () => "Die Ratingagenturen drohen",
-	text: (w) => [`Mehrere Ratingagenturen kündigen eine Herabstufung an: Die Schuldenquote liegt bei ${nf$5(w.economy.debtRatio)} % des BIP, der Risikoaufschlag bei ${nf$5(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} verlangt ein Signal, dass der Haushalt gesteuert wird.`],
+	text: (w) => [`Mehrere Ratingagenturen kündigen eine Herabstufung an: Die Schuldenquote liegt bei ${nf$7(w.economy.debtRatio)} % des BIP, der Risikoaufschlag bei ${nf$7(w.economy.riskPremium, 0)} Basispunkten.`, `${anrede(figur(w, "finanzen"))} verlangt ein Signal, dass der Haushalt gesteuert wird.`],
 	warum: () => "Höhere Risikoaufschläge machen Kredite teurer; wer den Haushalt nicht im Griff hat, zahlt dafür mit Zinsen und einer schwachen Währung.",
 	optionen: () => [
 		opt("sparpaket", "Sparpaket", "Kostet 6 Kapital und Vertrauen; beruhigt die Märkte, der Finanzminister ist zufrieden.", 6, (w) => {
@@ -17715,7 +25572,7 @@ const STREIK = {
 		} : null;
 	},
 	titel: () => "Streikwelle",
-	text: (w, ev) => [`In ${namen(ev.provinzen)} legen Beschäftigte die Arbeit nieder. Die Löhne halten mit den Preisen nicht Schritt (Inflation ${nf$5(w.published.inflation.value)} %).`, "Die Gewerkschaften fordern einen Inflationsausgleich; die Unternehmen warnen vor Kosten und Entlassungen."],
+	text: (w, ev) => [`In ${namen$1(ev.provinzen)} legen Beschäftigte die Arbeit nieder. Die Löhne halten mit den Preisen nicht Schritt (Inflation ${nf$7(w.published.inflation.value)} %).`, "Die Gewerkschaften fordern einen Inflationsausgleich; die Unternehmen warnen vor Kosten und Entlassungen."],
 	warum: () => "Wenn Preise schneller steigen als Löhne, wächst die Streikbereitschaft. Lohnzugeständnisse dämpfen sie, treiben aber die Kosten der Betriebe und damit die Inflation.",
 	eroeffne: (w, ev) => {
 		wirke(w, "produktivitaet", -3 * ev.staerke, ev.provinzen);
@@ -17764,7 +25621,7 @@ const MIETE = {
 		} : null;
 	},
 	titel: () => "Mietproteste",
-	text: (_, ev) => [`In ${namen(ev.provinzen)} gehen Tausende Mieterinnen und Mieter auf die Straße: Die Mieten fressen die Einkommen auf.`, "Vermieter und Bauunternehmer warnen, dass Eingriffe den Neubau abwürgen."],
+	text: (_, ev) => [`In ${namen$1(ev.provinzen)} gehen Tausende Mieterinnen und Mieter auf die Straße: Die Mieten fressen die Einkommen auf.`, "Vermieter und Bauunternehmer warnen, dass Eingriffe den Neubau abwürgen."],
 	warum: () => "Hohe Mieten sind Angebot und Nachfrage in der Stadt; ein Deckel entlastet sofort, schmälert aber auf Dauer den Neubau.",
 	eroeffne: (w, ev) => {
 		wirke(w, "junge", -3 * ev.staerke, ev.provinzen);
@@ -17808,7 +25665,7 @@ const FLUECHTLINGE = {
 		staerke: .4 + .6 * rng.next()
 	}),
 	titel: () => "Neue Fluchtbewegung an der Grenze",
-	text: (w, ev) => [`An der Südgrenze kommen wieder mehr Menschen an, vor allem aus Syrien, und sie bleiben zuerst in ${namen([...new Set(ev.provinzen)])}. Die Provinzen sind ohnehin belastet.`, `${anrede(figur(w, "inneres"))} und ${anrede(figur(w, "aussen"))} sind sich nicht einig, was zu tun ist.`],
+	text: (w, ev) => [`An der Südgrenze kommen wieder mehr Menschen an, vor allem aus Syrien, und sie bleiben zuerst in ${namen$1([...new Set(ev.provinzen)])}. Die Provinzen sind ohnehin belastet.`, `${anrede(figur(w, "inneres"))} und ${anrede(figur(w, "aussen"))} sind sich nicht einig, was zu tun ist.`],
 	warum: () => "Migration verbindet Innen-, Außen- und Wirtschaftspolitik: Grenzschutz, Aufnahme, Integration und Verhandlungen mit der EU kosten jeweils etwas anderes.",
 	eroeffne: (w, ev) => {
 		wirke(w, "gefluechtete", 6 * ev.staerke, ev.provinzen);
@@ -17854,8 +25711,8 @@ const ANSCHLAG = {
 			staerke: 1
 		} : null;
 	},
-	titel: (_, ev) => `Anschlag in ${namen(ev.provinzen)}`,
-	text: (w, ev) => [`Ein Anschlag erschüttert ${namen(ev.provinzen)}. Die Behörden sprechen von einer organisierten Tat; die Lage ist noch unklar.`, `${anrede(figur(w, "inneres"))} verlangt weitreichende Befugnisse. Das Land wartet auf Ihre Worte.`],
+	titel: (_, ev) => `Anschlag in ${namen$1(ev.provinzen)}`,
+	text: (w, ev) => [`Ein Anschlag erschüttert ${namen$1(ev.provinzen)}. Die Behörden sprechen von einer organisierten Tat; die Lage ist noch unklar.`, `${anrede(figur(w, "inneres"))} verlangt weitreichende Befugnisse. Das Land wartet auf Ihre Worte.`],
 	warum: () => "Nach Anschlägen wächst der Ruf nach Härte. Mehr Befugnisse geben Sicherheit, kosten aber Freiheit und Vertrauen der Liberalen.",
 	eroeffne: (w) => {
 		wirke(w, "terrorgefahr", 4);
@@ -17892,7 +25749,7 @@ const WALDBRAND = {
 		} : null;
 	},
 	titel: () => "Waldbrände",
-	text: (_, ev) => [`In ${namen(ev.provinzen)} brennen Wälder; Dörfer werden geräumt, der Rauch hängt über den Küstenorten mitten in der Urlaubssaison.`],
+	text: (_, ev) => [`In ${namen$1(ev.provinzen)} brennen Wälder; Dörfer werden geräumt, der Rauch hängt über den Küstenorten mitten in der Urlaubssaison.`],
 	warum: () => "Hitze, Trockenheit und fehlende Löschkapazität treffen die Küste besonders hart: Tourismus und Luftqualität leiden mit.",
 	eroeffne: (w, ev) => {
 		wirke(w, "tourismus", -5 * ev.staerke, ev.provinzen);
@@ -17928,7 +25785,7 @@ const STROM = {
 		} : null;
 	},
 	titel: () => "Stromausfälle",
-	text: (_, ev) => [`In ${namen(ev.provinzen)} fällt tagelang wiederholt der Strom aus. Betriebe stehen still, Krankenhäuser laufen mit Notaggregaten.`],
+	text: (_, ev) => [`In ${namen$1(ev.provinzen)} fällt tagelang wiederholt der Strom aus. Betriebe stehen still, Krankenhäuser laufen mit Notaggregaten.`],
 	warum: () => "Netze, Speicher und Importe entscheiden, ob Spitzenlasten abgefangen werden.",
 	eroeffne: (w, ev) => {
 		wirke(w, "stromversorgung", -6 * ev.staerke, ev.provinzen);
@@ -17965,7 +25822,7 @@ const AERZTE = {
 		} : null;
 	},
 	titel: () => "Ärztinnen und Ärzte protestieren",
-	text: (_, ev) => [`In ${namen(ev.provinzen)} legen Ärztinnen und Ärzte aus Protest gegen Bezahlung und Arbeitsbedingungen die Arbeit nieder. Viele denken laut über das Ausland nach.`],
+	text: (_, ev) => [`In ${namen$1(ev.provinzen)} legen Ärztinnen und Ärzte aus Protest gegen Bezahlung und Arbeitsbedingungen die Arbeit nieder. Viele denken laut über das Ausland nach.`],
 	warum: () => "Ärztemangel entsteht, wenn Bezahlung und Bedingungen nicht mithalten. Er trifft zuerst die Provinzen abseits der Metropolen.",
 	eroeffne: (w, ev) => {
 		wirke(w, "wartezeiten", 5 * ev.staerke, ev.provinzen);
@@ -18170,7 +26027,7 @@ const START_HAUSHALT = {
 		staerke: 1
 	}),
 	titel: () => "Der erste Haushaltsentwurf",
-	text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Entwurf vor: Die Inflation liegt bei ${nf$5(w.published.inflation.value)} %, die Schulden bei ${nf$5(w.economy.debtRatio)} % des BIP. Die Märkte beobachten, ob der neue Präsident Disziplin hält.`, "Der Entwurf lässt Spielraum in beide Richtungen."],
+	text: (w) => [`${anrede(figur(w, "finanzen"))} legt den Entwurf vor: Die Inflation liegt bei ${nf$7(w.published.inflation.value)} %, die Schulden bei ${nf$7(w.economy.debtRatio)} % des BIP. Die Märkte beobachten, ob der neue Präsident Disziplin hält.`, "Der Entwurf lässt Spielraum in beide Richtungen."],
 	warum: () => "Mehr Ausgaben stützen kurz die Nachfrage und treiben Inflation und Schulden; Sparen beruhigt die Märkte und kostet Zustimmung.",
 	optionen: () => [
 		opt("sparen", "Sparkurs", "Kostet 3 Kapital; beruhigt die Märkte, der Finanzminister ist zufrieden.", 3, (w) => {
@@ -18296,15 +26153,37 @@ const VORLAGEN = [
 		],
 		standard: () => "Der Wiederaufbau läuft im bisherigen Tempo weiter."
 	},
+	...KATASTROPHE_VORLAGEN,
 	...INNEN_VORLAGEN,
 	...AUSSEN_VORLAGEN,
-	...LAENDER_VORLAGEN,
+	...INITIATIVE_VORLAGEN,
 	...REICH_VORLAGEN,
-	...PERSONEN_VORLAGEN
+	...PERSONEN_VORLAGEN,
+	...VERFASSUNG_VORLAGEN,
+	...KRIEG_VORLAGEN,
+	...EU_VORLAGEN,
+	...VERMITTLUNG_VORLAGEN
 ];
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */
 const EREIGNIS_MASSNAHMEN = {
 	erdbeben: ["m_bauaufsicht", "m_stadterneuerung"],
+	grossbeben: [
+		"m_afad_ausbau",
+		"m_gebaeudeverstaerkung",
+		"m_bauaufsicht",
+		"m_stadterneuerung"
+	],
+	katastrophe_flut: [
+		"m_afad_ausbau",
+		"m_staudaemme",
+		"m_regionalfoerderung"
+	],
+	katastrophe_waldbrand: ["m_afad_ausbau", "m_umweltauflagen"],
+	katastrophe_duerre: [
+		"m_bewaesserung",
+		"m_wasserleitungen",
+		"m_agrarsubventionen"
+	],
 	duerre: [
 		"m_bewaesserung",
 		"m_wasserleitungen",
@@ -18468,6 +26347,7 @@ const SCHWERE = {
 	fluechtlingswelle: 2,
 	waldbrand: 2,
 	land_fordert: 1.8,
+	land_drohkulisse: 2.2,
 	recht_haftrevolte: 1.8,
 	grippewelle: 1.6,
 	stromausfaelle: 1.6,
@@ -18538,7 +26418,10 @@ const ESKALATION_VORLAGEN = /* @__PURE__ */ new Set([
 	"bankenstress",
 	"pandemie",
 	"land_provokation",
-	"grenzzwischenfall"
+	"land_drohkulisse",
+	"grenzzwischenfall",
+	"grossbeben",
+	"katastrophe_flut"
 ]);
 /** Baut das offene Ereignis aus Vorlage und Erzeugung — gleichermaßen für präsentierte und für ausgesessene Vorgänge. */
 function baueEreignis(world, v, gen) {
@@ -18600,12 +26483,25 @@ function ereignisMonat(world, rng) {
 		});
 	}
 	if (!kandidaten.length) return;
+	const initiativeK = kandidaten.filter((k) => INITIATIVE_VORLAGE_IDS.has(k.v.id));
+	if (initiativeK.length > 1) {
+		initiativeK.sort((a, b) => Number(b.gen.daten?.gewicht ?? 0) - Number(a.gen.daten?.gewicht ?? 0) || VORLAGEN.indexOf(a.v) - VORLAGEN.indexOf(b.v));
+		const beste = initiativeK[0];
+		for (let i = kandidaten.length - 1; i >= 0; i--) if (INITIATIVE_VORLAGE_IDS.has(kandidaten[i].v.id) && kandidaten[i] !== beste) kandidaten.splice(i, 1);
+	}
+	if (!kandidaten.length) return;
 	const feste = kandidaten.filter((k) => TERMINE.has(k.v.id));
 	const rest = kandidaten.filter((k) => !TERMINE.has(k.v.id));
 	rest.sort((a, b) => dringlichkeit(world, b.v, b.gen.staerke ?? 1) - dringlichkeit(world, a.v, a.gen.staerke ?? 1) || VORLAGEN.indexOf(a.v) - VORLAGEN.indexOf(b.v));
 	const slots = EREIGNIS_WETTBEWERB.slots[grad];
 	const gewinner = [...feste, ...rest.slice(0, slots)];
 	const verlierer = rest.slice(slots);
+	let initiativeSchon = false;
+	for (let i = gewinner.length - 1; i >= 0; i--) {
+		if (!INITIATIVE_VORLAGE_IDS.has(gewinner[i].v.id)) continue;
+		if (initiativeSchon) verlierer.push(gewinner.splice(i, 1)[0]);
+		else initiativeSchon = true;
+	}
 	for (const k of gewinner) {
 		if (offenNormal() >= 3) {
 			verlierer.push(k);
@@ -18621,6 +26517,7 @@ function ereignisMonat(world, rng) {
 		});
 	}
 	for (const k of verlierer) {
+		if (INITIATIVE_VORLAGE_IDS.has(k.v.id)) continue;
 		const ev = baueEreignis(world, k.v, k.gen);
 		const titel = k.v.titel(world, ev);
 		if (k.v.wettbewerb === "aussitzen") {
@@ -18694,6 +26591,12 @@ setzeEinbringHaken((world, massnahmeId, text) => {
 		abschliessen(world, ev, v.titel(world, ev), `Selbst an der Ursache angesetzt. ${text}`);
 	}
 });
+setzeVerfassungsOeffner((w, vorlageId, rng) => {
+	oeffne(w, vorlageId, rng);
+});
+setzeKatastrophenOeffner((w, vorlageId, rng, params) => {
+	oeffne(w, vorlageId, rng, params);
+});
 const VORSCHAU_CACHE = /* @__PURE__ */ new Map();
 /**
 * Was eine Antwort sofort bewirkt: auf einer Kopie der Welt durchgerechnet, nichts davon geschieht wirklich.
@@ -18715,18 +26618,18 @@ function wirkungsVorschau(world, ev, optionId) {
 			const risiko0 = kopie.economy.riskPremium;
 			const fx0 = kopie.economy.usdTry;
 			const loyal0 = new Map(kopie.spiel.figuren.map((f) => [f.id, f.loyalitaet]));
-			o.wirkung(kopie, evK, new Rng(12345));
+			o.wirkung(kopie, evK, new Rng$1(12345));
 			for (const [id, ziel] of Object.entries(kopie.net.targets)) {
 				const jetzt = nationalAverage(NET, world.net, id);
 				const alt = world.net.targets[id];
 				if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(`${NET.nodes[NET.index.get(id)].name}: Stufe ${Math.round(jetzt)} auf ${Math.round(ziel)}`);
 			}
 			const ds = kopie.economy.debtRatio - schulden0;
-			if (Math.abs(ds) >= .04) zeilen.push(`Schulden ${ds > 0 ? "+" : "−"}${nf$5(Math.abs(ds), 2)} Prozentpunkte`);
+			if (Math.abs(ds) >= .04) zeilen.push(`Schulden ${ds > 0 ? "+" : "−"}${nf$7(Math.abs(ds), 2)} Prozentpunkte`);
 			const dr = kopie.economy.riskPremium - risiko0;
-			if (Math.abs(dr) >= 4) zeilen.push(`Risikoaufschlag ${dr > 0 ? "+" : "−"}${nf$5(Math.abs(dr), 0)} Punkte`);
+			if (Math.abs(dr) >= 4) zeilen.push(`Risikoaufschlag ${dr > 0 ? "+" : "−"}${nf$7(Math.abs(dr), 0)} Punkte`);
 			const df = (kopie.economy.usdTry / fx0 - 1) * 100;
-			if (Math.abs(df) >= .4) zeilen.push(`Lira ${df > 0 ? "schwächer" : "stärker"} um ${nf$5(Math.abs(df))} %`);
+			if (Math.abs(df) >= .4) zeilen.push(`Lira ${df > 0 ? "schwächer" : "stärker"} um ${nf$7(Math.abs(df))} %`);
 			for (const f of kopie.spiel.figuren) {
 				const d = f.loyalitaet - (loyal0.get(f.id) ?? f.loyalitaet);
 				if (Math.abs(d) >= 3) zeilen.push(`${f.rolle} ${f.name}: ${d > 0 ? "mehr" : "weniger"} Rückhalt`);
@@ -18741,7 +26644,7 @@ function wirkungsVorschau(world, ev, optionId) {
 				});
 			}
 			aenderungen.sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
-			for (const a of aenderungen.slice(0, 4)) zeilen.push(`${a.name} ${a.d > 0 ? "+" : "−"}${nf$5(Math.abs(a.d))}`);
+			for (const a of aenderungen.slice(0, 4)) zeilen.push(`${a.name} ${a.d > 0 ? "+" : "−"}${nf$7(Math.abs(a.d))}`);
 		}
 	} catch {}
 	const ergebnis = zeilen.slice(0, 6);
@@ -18789,954 +26692,943 @@ function ansicht(world, ev) {
 		...zusageAnsicht(world, ev, v)
 	};
 }
-AUFMERKSAMKEIT_KOSTEN.verhandlungGespraech, AUFMERKSAMKEIT_KOSTEN.zugestaendnis, AUFMERKSAMKEIT_KOSTEN.duldung, AUFMERKSAMKEIT_KOSTEN.koalition, AUFMERKSAMKEIT_KOSTEN.abwerben;
-const VERHANDLUNG = {
-	gespraechAbkuehlung: 30,
-	zugestaendnisAbkuehlung: 120,
-	duldungTage: 180,
-	koalitionZusageTage: 150,
-	duldungMin: 40,
-	koalitionMin: 55
+//#endregion
+//#region src/sim/krieg.ts
+/** Spielparameter, keine Tatsachen: alle Schwellen, Kosten und Faktoren des Konfliktvorgangs (Kalibrierung). */
+const KRIEG = {
+	/** Höchstens so viele aktive Konfliktvorgänge gleichzeitig (spannung bis waffenruhe) */
+	maxAktiv: 2,
+	/** Ab dieser Konflikt-Dimension eines Landes entsteht ein Spannungs-Vorgang (Monatsprüfung); knapp unter der Kriegsgefahr-Krise (75) */
+	anlageAb: 73,
+	/** Abkühlung, bevor mit demselben Land erneut eine Spannung entsteht (Tage) */
+	anlageAbkuehlung: 300,
+	/** Eskalation für den Übergang spannung → drohkulisse */
+	drohkulisseAb: 78,
+	/** Darunter löst sich eine Drohkulisse wieder zur Spannung auf */
+	drohkulisseAus: 45,
+	/** Darunter verfliegt eine Spannung ganz (Vorgang endet still) */
+	spannungAus: 22,
+	/** Ab dieser Eskalation schlägt der Gegner zu (defensiver Krieg ohne eigenen Beschluss) */
+	angriffAb: 95,
+	/** Tage bis zur Parlamentsabstimmung über den Einsatzbeschluss */
+	beschlussTage: 7,
+	/** Frontlage: Faktor und Wochen-Maximum der Bewegung */
+	frontFaktor: .16,
+	frontMaxDelta: 5,
+	/** Frontlage, ab der die eigene bzw. gegnerische Seite zusammenbricht */
+	zusammenbruchFront: 2,
+	siegFront: 96,
+	/** Erschöpfungsuhr: Basisabfluss je Woche, Treiber je Verlustpunkt, Gewinn-Dämpfung, Zusatzlast Vollmobilisierung */
+	uhrBasis: .5,
+	uhrVerlust: 1.6,
+	uhrGewinn: 1.1,
+	uhrVollLast: .35,
+	/** Uhr-Stand, bei dem eine Seite kapituliert (Anti-Aussitzen: nur erreichbar, wenn das Kriegsziel kontrolliert ist) */
+	kapitulation: 100,
+	/** Frontlage-Schwelle für die Halbkontrolle des Kriegsziels (Anti-Aussitzen-Floor) */
+	kontrolleFront: 34,
+	/** Gegner bietet Waffenruhe an, wenn seine Uhr darunter fällt */
+	angebotUhr: 35,
+	/** Kipppunkte der Frontlage für Hinweise (Klasse B) */
+	kippUnten: 35,
+	kippOben: 65,
+	/** Verlustpunkte je Woche je Frontpunkt Rückzug; Verschleiß auch im Stillstand */
+	verlustFaktor: .8,
+	verschleiss: .15,
+	/** Demobilisierung: Tage Auslauf und Sperre für erneute Mobilisierung (Vic3: 90 Tage) */
+	demobTage: 90,
+	/** Demobilisierungs-Rechnung je Monat im Auslauf, in % des BIP */
+	demobKostenMonat: .04,
+	/** Niederlage: Offiziersvertrauen unter dieser Marke nach Gebietsabtretung/Niederlage löst das Putsch-Risiko-Ereignis aus */
+	putschAb: 35
 };
-const pkGespraech = 1;
-const pkZugestaendnis = 3;
-const pkDuldung = (sitze) => 2 + Math.ceil(sitze / 40);
-const pkKoalition = (sitze) => 4 + Math.ceil(sitze / 30);
-const pkAbwerben = (sitze) => 5 + Math.ceil(sitze / 40);
-function eigene(world) {
-	return world.player?.partei.kurz ?? "";
-}
-function datumBis(world, tag) {
-	return formatDateDe(addDays(world.date, tag - world.day));
-}
-/** Alle Fraktionen außer der eigenen, mit Stand und möglichen Verhandlungsschritten. */
-function fraktionsUebersicht(world) {
-	const spiel = world.spiel;
-	const parl = world.parliament;
-	if (!spiel || !parl) return [];
-	const kapital = verfuegbar(spiel.kapital);
-	const out = [];
-	for (const [partei, sitze] of Object.entries(parl.seats)) {
-		if (partei === eigene(world) || sitze <= 0) continue;
-		const f = fraktion(world, partei);
-		const imLager = spiel.lager.includes(partei);
-		const duldet = f.duldungBis !== void 0 && f.duldungBis > world.day && !imLager;
-		const status = imLager ? "lager" : duldet ? "duldung" : "opposition";
-		const forderung = forderungVon(world, partei).text;
-		const aktionen = [];
-		{
-			const rest = (f.gespraech ?? -1e9) + VERHANDLUNG.gespraechAbkuehlung - world.day;
-			aktionen.push({
-				id: "gespraech",
-				label: "Gespräch führen",
-				pk: pkGespraech,
-				moeglich: rest <= 0 && kapital >= pkGespraech,
-				...rest > 0 ? { grund: `Erst in ${rest} Tagen wieder sinnvoll.` } : kapital < pkGespraech ? { grund: "Dafür fehlt Kapital." } : {},
-				hinweis: "Macht die Fraktion offener für Sie (+8)."
-			});
-		}
-		if (!imLager) {
-			{
-				const rest = (f.zugestaendnis ?? -1e9) + VERHANDLUNG.zugestaendnisAbkuehlung - world.day;
-				aktionen.push({
-					id: "zugestaendnis",
-					label: "Kontrollrechte zugestehen",
-					pk: pkZugestaendnis,
-					moeglich: rest <= 0 && kapital >= pkZugestaendnis,
-					...rest > 0 ? { grund: `Schon zugestanden; wieder möglich in ${rest} Tagen.` } : kapital < pkZugestaendnis ? { grund: "Dafür fehlt Kapital." } : {},
-					hinweis: "Untersuchungsausschuss, Redezeit, Einsicht: macht sie deutlich offener (+15) und entspannt das Klima."
-				});
-			}
-			{
-				const pk = pkDuldung(sitze);
-				const ja = Math.round(sitze * DULDUNG_QUOTE);
-				const grund = duldet ? `Läuft noch bis ${datumBis(world, f.duldungBis)}.` : f.bereitschaft < VERHANDLUNG.duldungMin ? `Sie ist ${bereitschaftWort(f.bereitschaft)}; erst Gespräche oder Zugeständnisse.` : kapital < pk ? "Dafür fehlt Kapital." : void 0;
-				aktionen.push({
-					id: "duldung",
-					label: "Duldung aushandeln",
-					pk,
-					moeglich: !grund,
-					...grund ? { grund } : {},
-					hinweis: `${VERHANDLUNG.duldungTage / 30} Monate lang etwa ${ja} Ja-Stimmen bei Gesetzen. Sie erwartet dafür ${forderung}.`
-				});
-			}
-			{
-				const pk = pkKoalition(sitze);
-				const grund = sitze < 10 ? "Zu klein für ein Bündnis." : f.bereitschaft < VERHANDLUNG.koalitionMin ? `Sie ist ${bereitschaftWort(f.bereitschaft)}; für ein Bündnis braucht sie mehr Vertrauen.` : kapital < pk ? "Dafür fehlt Kapital." : void 0;
-				aktionen.push({
-					id: "koalition",
-					label: "Ins Lager holen",
-					pk,
-					moeglich: !grund,
-					...grund ? { grund } : {},
-					hinweis: `Alle ${sitze} Sitze im Lager, dauerhaft. Sie erwartet ${forderung}; bei Bruch verlässt sie das Lager.`
-				});
-			}
-			if (sitze >= 20) {
-				const pk = pkAbwerben(sitze);
-				aktionen.push({
-					id: "abwerben",
-					label: "Abgeordnete abwerben",
-					pk,
-					moeglich: kapital >= pk,
-					...kapital < pk ? { grund: "Dafür fehlt Kapital." } : {},
-					hinweis: "Einzelne Abgeordnete wechseln zu Ihnen, wenn es gelingt. Die Fraktion vergisst das nicht."
-				});
-			}
-		}
-		out.push({
-			partei,
-			name: PARTEI_NAME[partei] ?? partei,
-			ausrichtung: AUSRICHTUNG[partei] ?? "",
-			sitze,
-			status,
-			...f.duldungBis !== void 0 && duldet ? { duldungBis: f.duldungBis } : {},
-			bereitschaft: f.bereitschaft,
-			wort: bereitschaftWort(f.bereitschaft),
-			forderung,
-			aktionen
-		});
-	}
-	return out.sort((a, b) => b.sitze - a.sitze);
-}
-/** Einmal im Monat: Duldungen laufen aus, die Stimmung kehrt langsam zum Ausgangswert zurück. */
-function verhandlungMonat(world) {
-	const spiel = world.spiel;
-	if (!spiel?.fraktionen) return;
-	for (const [partei, f] of Object.entries(spiel.fraktionen)) {
-		if (f.duldungBis !== void 0 && f.duldungBis <= world.day) {
-			delete f.duldungBis;
-			addLog(world, "ereignis", `Die Duldung durch die ${PARTEI_NAME[partei] ?? partei} endet.`, "Ihre Stimmen fehlen ab jetzt bei Gesetzen; eine neue Vereinbarung kostet erneut Kapital.");
-		}
-		const ziel = startBereitschaft(world, partei);
-		f.bereitschaft += Math.sign(ziel - f.bereitschaft) * Math.min(1, Math.abs(ziel - f.bereitschaft));
-	}
-}
-//#endregion
-//#region src/data/umfrage_institute.ts
-const UMFRAGE_INSTITUTE = [
-	{
-		id: "anker",
-		name: "Anker Stiftungsinstitut",
-		typ: "neutral_goldstandard",
-		hausBias: -.8,
-		sigma: 1.2,
-		stichprobe: 2700,
-		methode: "F2F",
-		fatTailP: .1,
-		stichprobeTransparent: true,
-		publikation: {
-			wennGuenstig: 1,
-			wennUnguenstig: 1
-		}
-	},
-	{
-		id: "kent",
-		name: "Kent Meinungsforschung",
-		typ: "oppo_codiert",
-		hausBias: -3,
-		sigma: 1.8,
-		stichprobe: 2e3,
-		methode: "F2F_CATI",
-		fatTailP: .1,
-		stichprobeTransparent: true,
-		publikation: {
-			wennGuenstig: .9,
-			wennUnguenstig: .6
-		}
-	},
-	{
-		id: "meridyen",
-		name: "Meridyen Araştırma",
-		typ: "regierungsnah",
-		hausBias: 2,
-		sigma: 1.5,
-		stichprobe: 3e3,
-		methode: "F2F",
-		fatTailP: .08,
-		stichprobeTransparent: true,
-		publikation: {
-			wennGuenstig: .95,
-			wennUnguenstig: .4
-		}
-	},
-	{
-		id: "denge",
-		name: "Denge Araştırma",
-		typ: "neutral_kommerziell",
-		hausBias: 0,
-		hausBiasInstabilitaet: 1.5,
-		sigma: 2,
-		stichprobe: 3500,
-		methode: "F2F",
-		fatTailP: .12,
-		stichprobeTransparent: true,
-		publikation: {
-			wennGuenstig: 1,
-			wennUnguenstig: 1
-		}
-	},
-	{
-		id: "yoruk",
-		name: "Yörük Saha",
-		typ: "oppo_militant",
-		hausBias: -5,
-		sigma: 2.2,
-		stichprobe: 2400,
-		methode: "CATI",
-		fatTailP: .15,
-		stichprobeTransparent: false,
-		publikation: {
-			wennGuenstig: .9,
-			wennUnguenstig: .6
-		}
-	},
-	{
-		id: "ekran",
-		name: "Ekran Onlinepanel",
-		typ: "online_grosspanel",
-		hausBias: 1.5,
-		sigma: 2.5,
-		stichprobe: 15e3,
-		methode: "online",
-		fatTailP: .15,
-		stichprobeTransparent: true,
-		publikation: {
-			wennGuenstig: .9,
-			wennUnguenstig: .7
-		}
-	}
-];
-/**
-* Der Fehler-Generator (Recherche B.4.1 und B.4.4): was zusätzlich zum Haus-Bias auf eine Prognose wirkt.
-* Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
-*/
-const FEHLER_GENERATOR = {
-	/**
-	* Angstklima: Bei hohem Repressionslevel verweigern Regierungswähler die Antwort stärker
-	* (~75 % der Verweigerer; Özkiraz-Eigenaussage via Grokipedia, C) → das Regierungslager
-	* wird unterschätzt. Kann in mutigen Phasen (2024-Muster) ins Plus kippen.
-	*/
-	angstklimaModifikator: {
-		mittelAb: 40,
-		hochAb: 75,
-		mittel: -1,
-		hoch: -2.5
-	},
-	/** Umfrage vor einem Großereignis: veraltet um 1–4 pp (Recherche B.3, Punkt 7) */
-	eventLagPp: {
-		min: 1,
-		max: 4
-	},
-	/** p=0,10 je Umfrage: zusätzlicher Offset 4–9 pp, zu 70 % gegen das Regierungslager (KONDA 2023: −5,8; AKAM/REMRES 2018: −8/−9) */
-	fatTail: {
-		p: .1,
-		offsetPp: {
-			min: 4,
-			max: 9
-		},
-		gegenRegierungP: .7
-	},
-	/** σ ohne Institutsangabe (Baseline n≈2.500) */
-	sigmaBasis: 1.8,
-	/** Präferenz ≠ Stimmabgabe: separates Turnout-Modul je Lager (2024: Beteiligung −6,6 pp, alle Prognosen daneben) */
-	turnoutModulPp: {
-		min: -3,
-		max: 3
-	},
-	/** Diaspora ist in keiner Inlands-Umfrage enthalten → strukturelle Unterschätzung des Regierungslagers bei nationalen Wahlen */
-	diasporaOffsetRegierungPp: 1.5,
-	/** Gesetzliches Publikationsverbot für Umfragen vor dem Wahltag (Wahlgesetz) */
-	publikationsverbotTage: 10
+const PHASEN_NAME = {
+	spannung: "Spannung",
+	drohkulisse: "Drohkulisse",
+	beschluss: "Einsatzbeschluss",
+	krieg: "Krieg",
+	waffenruhe: "Waffenruhe",
+	frieden: "Frieden",
+	beendet: "Beendet"
 };
-function umfrageInstitut(id) {
-	return UMFRAGE_INSTITUTE.find((i) => i.id === id);
-}
-//#endregion
-//#region src/sim/umfrage.ts
-/**
-* Eine einzelne publizierte Messung eines wahren Zustimmungswerts.
-* Verbraucht die Zufallsquelle — nur aufrufen, wenn eine Messung wirklich gezeigt wird.
-*/
-function umfrageMessung(wahrerWert, rng, optionen = {}) {
-	const institut = optionen.institutId ? umfrageInstitut(optionen.institutId) : void 0;
-	let wert = wahrerWert + (institut?.hausBias ?? 0);
-	const angst = optionen.angstklima ?? 0;
-	const mod = FEHLER_GENERATOR.angstklimaModifikator;
-	if (angst >= mod.hochAb) wert += mod.hoch;
-	else if (angst >= mod.mittelAb) wert += mod.mittel;
-	wert += rng.normal(institut?.sigma ?? FEHLER_GENERATOR.sigmaBasis);
-	const fatP = institut?.fatTailP ?? FEHLER_GENERATOR.fatTail.p;
-	if (rng.next() < fatP) {
-		const { min, max } = FEHLER_GENERATOR.fatTail.offsetPp;
-		const richtung = rng.next() < FEHLER_GENERATOR.fatTail.gegenRegierungP ? -1 : 1;
-		wert += richtung * rng.between(min, max);
+/** Civ6-Preisschild: Die Rahmung legt die Preise der Folgehandlungen fest (Parlament, Welt, Wähler). */
+const RAHMUNG = {
+	verteidigung: {
+		name: "Selbstverteidigung",
+		text: "Antwort auf einen Zwischenfall: Das Parlament trägt sie am ehesten, die Welt rechnet sie kaum an — wenn die Eskalation als Beleg taugt.",
+		stimmen: 30,
+		ansehen: -1,
+		uhrStart: 8,
+		nationalisten: 2
+	},
+	schutz: {
+		name: "Schutz von Minderheiten",
+		text: "Humanitär gerahmt: innen vermittelbar, außen umstritten.",
+		stimmen: 12,
+		ansehen: -3,
+		uhrStart: 0,
+		nationalisten: 1
+	},
+	beistand: {
+		name: "Vertragliche Beistandspflicht",
+		text: "Ein Bündnis verpflichtet: glaubwürdig nur mit einem laufenden Vertrag als Beleg.",
+		stimmen: 20,
+		ansehen: -1,
+		uhrStart: 4,
+		nationalisten: 1
+	},
+	revision: {
+		name: "Offene Revision",
+		text: "Der ungerahmte Angriff: innen der billigste Auftritt für Hardliner, außen der teuerste — Völkerrecht und Märkte rechnen hart ab.",
+		stimmen: -25,
+		ansehen: -6,
+		uhrStart: -10,
+		nationalisten: 4
 	}
-	return clamp(wert, 0, 100);
-}
+};
 /**
-* Monatliche Fortschreibung des Umfragestands in der Spielschleife.
-* Ohne Optionen: exakt das alte Verhalten (träge Annäherung an den Sollwert, kein Rauschen,
-* kein Verbrauch der Zufallsquelle). Mit institutId + rng: Messfehler gemäß Fehler-Generator.
+* Gegnerische Kriegsstärke je Land (Spielparameter, keine Tatsachen): grob aus Größe, Rüstung und
+* Regionaleigenschaften abgeleitet — bewusst als pauschale Tabelle, damit die Rechnung lesbar bleibt.
 */
-function umfrageMonat(zustimmung, ziel, rng, optionen = {}) {
-	const wert = zustimmung + .35 * (ziel - zustimmung);
-	if (!rng || !optionen.institutId) return wert;
-	return umfrageMessung(wert, rng, optionen);
+const GEGNER_STAERKE = {
+	USA: 82,
+	RUS: 74,
+	CHN: 88,
+	EU: 55,
+	GRC: 52,
+	IRN: 58,
+	SYR: 28,
+	IRQ: 36,
+	ARM: 26,
+	ISR: 64,
+	GEO: 22,
+	CYP: 14,
+	UKR: 40,
+	AZE: 34,
+	SAU: 48,
+	EGY: 46,
+	LBY: 20,
+	KAZ: 24
+};
+const GEGNER_GRUPPE = {
+	"Große Mächte": 78,
+	Nachbarn: 50,
+	"Verbündete und Partner": 40
+};
+/** Drittländer-Ausstrahlung bei Kriegsbeginn: Rivalen des Gegners rücken näher (Spielparameter). */
+const AUSSTRAHLUNG_RIVALEN = {
+	RUS: { UKR: 4 },
+	GRC: { CYP: 3 },
+	ISR: { SAU: 2 },
+	IRN: { SAU: 3 },
+	ARM: { AZE: 4 },
+	AZE: { ARM: 4 }
+};
+function kriege(w) {
+	const spiel = w.spiel;
+	if (!spiel) return [];
+	spiel.kriege ??= [];
+	return spiel.kriege;
 }
-//#endregion
-//#region src/sim/waehler-verlauf.ts
-const VERLAUF_MAX = 72;
-/** Wert eines Knotens im Landesdurchschnitt vor n Monaten, aus dem Gedächtnis des Netzes (13 Monate). */
-function frueherWert(world, id, n) {
-	const s = world.net;
+/** Vorgänge, die für die Obergrenze (2) und die Anzeige zählen. */
+function aktiveKriege(w) {
+	return kriege(w).filter((k) => k.phase !== "frieden" && k.phase !== "beendet");
+}
+function kriegMit(w, landId) {
+	return kriege(w).find((k) => k.land === landId && k.phase !== "beendet");
+}
+function kriegZu(w, kriegId) {
+	return kriege(w).find((k) => k.id === kriegId);
+}
+/** Früheste Demobilisierungs-Sperre aller Vorgänge (Tag); 0, wenn keine läuft. */
+function demobSperreBis(w) {
+	return kriege(w).reduce((s, k) => Math.max(s, k.demobSperreBis ?? 0), 0);
+}
+const DOKTRIN_PROFILE = {
+	doktrin_drohnen: {
+		name: "Drohnenverbund",
+		kern: [["modernisierung", 55], ["bereitschaft_luft", 55]],
+		stuetze: [["ruestungsautarkie", 55], ["truppenmoral", 50]]
+	},
+	doktrin_luftverteidigung: {
+		name: "Mehrschichtige Luftverteidigung",
+		kern: [["bereitschaft_luft", 58], ["abschreckung", 55]],
+		stuetze: [["ruestungsautarkie", 50], ["modernisierung", 45]]
+	},
+	doktrin_autonomie: {
+		name: "Strategische Autonomie",
+		kern: [["ruestungsautarkie", 58], ["bereitschaft_heer", 55]],
+		stuetze: [["modernisierung", 50], ["truppenmoral", 50]]
+	}
+};
+function knotenWert(w, id) {
+	return nationalAverage(NET, w.net, id);
+}
+function knotenName$1(id) {
 	const i = NET.index.get(id);
-	if (i === void 0 || s.month < n) return null;
-	const slot = s.history[(s.month - n + s.history.length * 1e3) % s.history.length];
-	if (!slot) return null;
-	let sum = 0;
-	for (let p = 0; p < 81; p++) sum += slot[i * 81 + p] * s.weights[p];
-	return Number.isFinite(sum) ? sum : null;
+	return i === void 0 ? id : NET.nodes[i].name;
 }
-function monatVor(datum, n) {
-	const [j, m] = datum.split("-").map(Number);
-	const idx = j * 12 + (m - 1) - n;
-	return `${Math.floor(idx / 12)}-${String(idx % 12 + 1).padStart(2, "0")}`;
-}
-/** Legt den Verlauf an und füllt ihn aus dem Gedächtnis des Netzes, falls er fehlt (ältere Spielstände). */
-function verlaufSichern(world) {
-	const spiel = world.spiel;
-	if (spiel.waehler && spiel.waehler.monate.length) return spiel.waehler;
-	const v = {
-		monate: [],
-		laune: {},
-		zustimmung: []
+/** Wie gut die gewählte Doktrin und die Vorbereitung zusammenpassen (UND-Paarung, kein Punktesammeln). */
+function doktrinPassung(w) {
+	const bestand = w.spiel?.reich?.bestand ?? {};
+	const doktrin = Object.keys(DOKTRIN_PROFILE).find((id) => bestand[id]) ?? null;
+	if (!doktrin) return {
+		doktrin: null,
+		name: null,
+		passung: 0,
+		konsistent: false,
+		faktor: 1,
+		fehlt: []
 	};
-	spiel.waehler = v;
-	const heute = world.date.slice(0, 7);
-	for (let n = Math.min(12, world.net.month); n >= 1; n--) {
-		const monat = monatVor(heute, n);
-		v.monate.push(monat);
-		for (const g of GRUPPEN) (v.laune[g.id] ??= []).push(frueherWert(world, g.id, n));
-		const eintrag = spiel.umfrage.verlauf.find((u) => u.monat === monat);
-		v.zustimmung.push(eintrag ? eintrag.wert : null);
-	}
-	return v;
-}
-/** Einmal im Monat: Stimmung aller Gruppen und die Zustimmung festhalten. */
-function verlaufAufzeichnen(world) {
-	const spiel = world.spiel;
-	if (!spiel) return;
-	const v = verlaufSichern(world);
-	const monat = world.date.slice(0, 7);
-	if (v.monate[v.monate.length - 1] === monat) return;
-	v.monate.push(monat);
-	for (const g of GRUPPEN) {
-		const reihe = v.laune[g.id] ??= [];
-		while (reihe.length < v.monate.length - 1) reihe.unshift(null);
-		reihe.push(nationalAverage(NET, world.net, g.id));
-	}
-	v.zustimmung.push(spiel.umfrage.zustimmung);
-	while (v.monate.length > VERLAUF_MAX) {
-		v.monate.shift();
-		v.zustimmung.shift();
-		for (const g of GRUPPEN) v.laune[g.id]?.shift();
-	}
-}
-//#endregion
-//#region src/sim/personen-monat.ts
-/** Die monatliche Wirkung des Ressorts: Bei Leistung über 0,5 bewegt es seine Größen zum Guten, darunter zum Schlechten. */
-function ressortWirkung(w, f) {
-	const d = AEMTER[f.amt];
-	if (!d.wirkung.length) return;
-	const faktor = 2 * (leistung(w, f) - .5);
-	for (const x of d.wirkung) wirke(w, x.id, x.d * faktor);
-}
-function auftragMonat(w, f) {
-	const e = eigenVon(w, f);
-	const a = e.auftrag;
-	if (!a || a.status !== "laeuft") return;
-	wirke(w, a.groesse, a.richtung * .6 * leistung(w, f));
-	if (w.day < a.frist) return;
-	const jetzt = wertVon(w, a.groesse);
-	const erreicht = (jetzt - a.vorher) * a.richtung >= a.delta - .3;
-	a.nachher = jetzt;
-	e.bilanz ??= {
-		erfuellt: 0,
-		verfehlt: 0
-	};
-	if (erreicht) {
-		a.status = "erfuellt";
-		e.bilanz.erfuellt++;
-		loyalitaetVerschieben(f, 8);
-		e.ehrgeiz = Math.min(100, e.ehrgeiz + 3);
-		wirke(w, "legitimitaet", .3);
-		merke(w, f, `Auftrag erfüllt: ${a.text}`);
-		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag erfüllt: ${a.text} (${nf$4(a.vorher, 0)} auf ${nf$4(jetzt, 0)}).`, "Wer liefert, wird loyaler; Erfolge im Ressort zahlen auf die Legitimität ein.");
-	} else {
-		a.status = "verfehlt";
-		e.bilanz.verfehlt++;
-		loyalitaetVerschieben(f, -5);
-		grollVerschieben(w, f, 8);
-		merke(w, f, `Auftrag verfehlt: ${a.text}`);
-		addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag verfehlt: ${a.text} (${nf$4(a.vorher, 0)} auf ${nf$4(jetzt, 0)}).`, "Ein verfehltes Ziel kostet Loyalität und macht Groll: Sie kann darauf hinweisen, dass Sie sie nicht unterstützt haben.");
-	}
-}
-function personenMonat(w) {
-	const sp = w.spiel;
-	if (!sp) return;
-	ergaenzeFiguren(w);
-	zusagenMonat(w);
-	ehemaligeMonat(w);
-	for (const f of sp.figuren) {
-		if (!f.imAmt || f.amt === "opposition") continue;
-		const e = eigenVon(w, f);
-		if (e.ehrgeiz >= 70 && f.loyalitaet < 50) grollVerschieben(w, f, 2);
-		else if (f.loyalitaet < 30) grollVerschieben(w, f, 1);
-		else grollVerschieben(w, f, -1);
-		if (e.groll >= 60) loyalitaetVerschieben(f, -.5);
-		if (AEMTER[f.amt].regierungsamt) {
-			ressortWirkung(w, f);
-			auftragMonat(w, f);
-		}
-	}
-}
-//#endregion
-//#region src/sim/ziele.ts
-function akutAnzahl(w, id) {
-	const i = NET.index.get(id);
-	const node = i === void 0 ? void 0 : NET.nodes[i];
-	if (i === void 0 || !node?.threshold) return 0;
-	let n = 0;
-	for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) n++;
-	return n;
-}
-function minimum(w, id) {
-	const i = NET.index.get(id);
-	if (i === void 0) return NaN;
-	let m = 100;
-	for (let p = 0; p < 81; p++) m = Math.min(m, w.net.values[i * 81 + p]);
-	return m;
-}
-const nf$1 = (x) => x.toLocaleString("de-DE", {
-	maximumFractionDigits: 1,
-	minimumFractionDigits: 1
-});
-const ZIELE = [
-	{
-		id: "inflation15",
-		titel: "Inflation unter 15 Prozent",
-		beschreibung: "Die veröffentlichte Inflation liegt zum Ende der Amtszeit unter 15 %.",
-		pruefe: (w) => ({
-			erreicht: w.published.inflation.value < 15,
-			stand: `jetzt ${nf$1(w.published.inflation.value)} %`
-		})
-	},
-	{
-		id: "arbeit8",
-		titel: "Arbeitslosigkeit unter 8 Prozent",
-		beschreibung: "Die Arbeitslosenquote liegt zum Ende unter 8 %.",
-		pruefe: (w) => ({
-			erreicht: w.economy.unemployment < 8,
-			stand: `jetzt ${nf$1(w.economy.unemployment)} %`
-		})
-	},
-	{
-		id: "schulden30",
-		titel: "Schuldenquote unter 30 Prozent",
-		beschreibung: "Die Staatsschulden liegen zum Ende unter 30 % des BIP.",
-		pruefe: (w) => ({
-			erreicht: w.economy.debtRatio < 30,
-			stand: `jetzt ${nf$1(w.economy.debtRatio)} %`
-		})
-	},
-	{
-		id: "wasserstrom",
-		titel: "Wasser und Strom sichern",
-		beschreibung: "Kein akuter Wassermangel und keine akuten Stromausfälle in irgendeiner Provinz.",
-		pruefe: (w) => {
-			const n = akutAnzahl(w, "p_wassermangel") + akutAnzahl(w, "p_stromausfaelle");
-			return {
-				erreicht: n === 0,
-				stand: n === 0 ? "in keiner Provinz akut" : `noch in ${n} Fällen akut`
-			};
-		}
-	},
-	{
-		id: "erdbeben",
-		titel: "Erdbebensicher bauen",
-		beschreibung: "Die Erdbebengefahr ist in höchstens 5 Provinzen akut.",
-		pruefe: (w) => {
-			const n = akutAnzahl(w, "p_erdbebengefahr");
-			return {
-				erreicht: n <= 5,
-				stand: `akut in ${n} Provinzen`
-			};
-		}
-	},
-	{
-		id: "wohnen",
-		titel: "Wohnungsnot beenden",
-		beschreibung: "Die Wohnungsnot ist in keiner Provinz akut.",
-		pruefe: (w) => {
-			const n = akutAnzahl(w, "p_wohnungsnot");
-			return {
-				erreicht: n === 0,
-				stand: n === 0 ? "in keiner Provinz akut" : `akut in ${n} Provinzen`
-			};
-		}
-	},
-	{
-		id: "aerzte",
-		titel: "Ärzte für alle Provinzen",
-		beschreibung: "Der Ärztemangel ist in keiner Provinz akut.",
-		pruefe: (w) => {
-			const n = akutAnzahl(w, "p_aerztemangel");
-			return {
-				erreicht: n === 0,
-				stand: n === 0 ? "in keiner Provinz akut" : `akut in ${n} Provinzen`
-			};
-		}
-	},
-	{
-		id: "strassen",
-		titel: "Keine abgehängte Provinz",
-		beschreibung: "Das Straßennetz liegt in jeder Provinz mindestens auf Stufe 45.",
-		pruefe: (w) => {
-			const m = minimum(w, "verkehrsnetz");
-			return {
-				erreicht: m >= 45,
-				stand: `schwächste Provinz: Stufe ${nf$1(m)}`
-			};
-		}
-	},
-	{
-		id: "mehrheit",
-		titel: "Regierungsmehrheit halten",
-		beschreibung: "Das Regierungslager hat am Ende mindestens 301 Sitze.",
-		pruefe: (w) => {
-			const s = stimmenSicht(w);
-			return {
-				erreicht: s.lager >= 301,
-				stand: `${s.lager} von 600 Sitzen`
-			};
-		}
-	},
-	{
-		id: "vertrauen60",
-		titel: "Vertrauen gewinnen",
-		beschreibung: "Das mittlere Vertrauen in die Regierung liegt am Ende bei mindestens 60.",
-		pruefe: (w) => {
-			const v = nationalAverage(NET, w.net, "vertrauen_regierung");
-			return {
-				erreicht: v >= 60,
-				stand: `jetzt ${nf$1(v)}`
-			};
-		}
-	}
-];
-function zielDef(id) {
-	return ZIELE.find((z) => z.id === id);
-}
-function zielStand(w) {
-	return (w.spiel?.ziele ?? []).flatMap((id) => {
-		const def = zielDef(id);
-		if (!def) return [];
-		return [{
-			def,
-			...def.pruefe(w)
-		}];
-	});
-}
-//#endregion
-//#region src/sim/bilanz.ts
-function akuteProbleme(w) {
-	let n = 0;
-	for (const node of NET.nodes) {
-		if (node.kind !== "problem" || !node.threshold) continue;
-		const i = NET.index.get(node.id);
-		for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) {
-			n++;
-			break;
-		}
-	}
-	return n;
-}
-//#endregion
-//#region src/sim/spiel.ts
-/** Die Schwierigkeit verändert nur drei Stellschrauben: das Einkommen an Kapital, die Regierungsmüdigkeit und die Häufigkeit und Härte von Ereignissen. */
-const SCHWIERIGKEITEN = {
-	entspannt: {
-		name: "Entspannt",
-		text: "Mehr Kapital, weniger Müdigkeit, weniger Krisen. Zum Kennenlernen.",
-		kapital: 1.25,
-		muedigkeit: .75,
-		ereignisse: .85,
-		haerte: .9
-	},
-	normal: {
-		name: "Normal",
-		text: "Das Spiel, wie es gemeint ist.",
-		kapital: 1,
-		muedigkeit: 1,
-		ereignisse: 1,
-		haerte: 1
-	},
-	hart: {
-		name: "Hart",
-		text: "Knappes Kapital, schnelle Müdigkeit, mehr und härtere Krisen. Fehler kosten die Wiederwahl.",
-		kapital: .8,
-		muedigkeit: 1.22,
-		ereignisse: 1.25,
-		haerte: 1.2
-	}
-};
-function schwierig(world) {
-	return SCHWIERIGKEITEN[world.spiel?.schwierigkeit ?? "normal"];
-}
-const SPIEL = {
-	startKapital: 60,
-	/** Kapital je Monat: Grundeinkommen, dazu Vertrauen und Mehrheit */
-	kapitalGrund: 3.5,
-	kapitalVertrauen: 5,
-	kapitalMehrheit: 1.5,
-	/** Verlust an Zustimmung je Monat im Amt (Regierungsmüdigkeit) */
-	muedigkeit: .3,
-	/** Gewicht der Probleme in der Zustimmung: Summe der Bevölkerungsanteile in Provinzen mit akutem Problem */
-	problemGewicht: 4,
-	/** Monate unter der Sturzschwelle bis zum Sturz */
-	sturzMonate: 6,
-	sturzSchwelle: 25,
-	amtszeitJahre: 5
-};
-function problemLast(w) {
-	let summe = 0;
-	for (const node of NET.nodes) {
-		if (node.kind !== "problem" || !node.threshold) continue;
-		const i = NET.index.get(node.id);
-		let anteil = 0;
-		for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) anteil += w.net.weights[p];
-		summe += anteil;
-	}
-	return summe;
-}
-/** Die Bestandteile der Zustimmung; jeder Teil steht für sich, damit die Oberfläche erklären kann, woher die Zahl kommt. */
-function zustimmungsTeile(w, monate) {
-	const s0 = w.spiel.start;
-	const e = w.economy;
-	const vertrauen = nationalAverage(NET, w.net, "vertrauen_regierung");
-	const gruppen = GRUPPEN.reduce((s, g) => s + g.gewicht * nationalAverage(NET, w.net, g.id), 0) / GRUPPEN_SUMME;
-	const wirtschaft = clamp(50 + .6 * (s0.inflation - e.inflation) - 3 * (e.unemployment - s0.arbeitslosigkeit) + 1.5 * (e.growth - s0.wachstum), 0, 100);
-	const probleme = SPIEL.problemGewicht * problemLast(w);
-	const muedigkeit = SPIEL.muedigkeit * schwierig(w).muedigkeit * monate;
+	const profil = DOKTRIN_PROFILE[doktrin];
+	const kernOk = profil.kern.filter(([id, min]) => knotenWert(w, id) >= min);
+	const stuetzeOk = profil.stuetze.filter(([id, min]) => knotenWert(w, id) >= min);
+	const passung = (kernOk.length * 2 + stuetzeOk.length) / (profil.kern.length * 2 + profil.stuetze.length);
+	const konsistent = kernOk.length === profil.kern.length;
+	const faktor = konsistent ? 1.18 + .12 * (stuetzeOk.length / profil.stuetze.length) : .72 + .38 * passung;
+	const fehlt = profil.kern.filter(([id, min]) => knotenWert(w, id) < min).map(([id, min]) => `${knotenName$1(id)} mindestens ${min}`);
 	return {
-		vertrauen,
-		gruppen,
-		wirtschaft,
-		probleme,
-		muedigkeit,
-		roh: .45 * vertrauen + .25 * gruppen + .3 * wirtschaft - probleme - muedigkeit
+		doktrin,
+		name: profil.name,
+		passung,
+		konsistent,
+		faktor,
+		fehlt
 	};
 }
-/** Zustimmung, wie sie sich aus dem Zustand ergäbe (ohne Startverschiebung). */
-function rohZustimmung(w, monate) {
-	return zustimmungsTeile(w, monate).roh;
+/** Laufende Beistands-Klauseln (Bündnisrückhalt wirkt auf die eigene Stärke, flag-basiert wie in Suzerain). */
+function beistandAnzahl(w) {
+	return alleLaufenden(w).filter((v) => v.gibt.includes("beistand")).length;
 }
-function zielZustimmung(w) {
-	const x = rohZustimmung(w, w.day / 30.4) + w.spiel.kalibrierung;
-	return clamp(x > 50 ? 50 + .65 * (x - 50) : x, 0, 100);
+/**
+* Die eigene Kriegsstärke: Bereitschaft der Teilstreitkräfte, getragen von Moral,
+* multipliziert mit Doktrin-Passung UND Mobilisierung (konsistente Vorbereitung zahlt
+* multiplikativ ein, gemischte verwässert), Nachschub aus Wirtschaftsverkehr (Logistik/Export)
+* und Bündnisrückhalt.
+*/
+function eigenStaerke(w, k) {
+	const b = knotenWert(w, "bereitschaft_heer") * .45 + knotenWert(w, "bereitschaft_luft") * .35 + knotenWert(w, "bereitschaft_see") * .2;
+	const moral = .65 + .35 * (knotenWert(w, "truppenmoral") / 100);
+	const dok = doktrinPassung(w).faktor;
+	const mob = [
+		.55,
+		.85,
+		1.08
+	][k.mobilmachung] + (k.bereit ? .06 : 0);
+	const nachschub = clamp(.72 + .0035 * (knotenWert(w, "logistik") - 50) + .0025 * (knotenWert(w, "export") - 50), .6, 1.1);
+	const allianz = 1 + Math.min(.15, .06 * beistandAnzahl(w));
+	return b * moral * dok * mob * nachschub * allianz;
 }
-function tageBis(von, bis) {
-	return Math.round((Date.parse(bis + "T00:00:00Z") - Date.parse(von + "T00:00:00Z")) / 864e5);
+/** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit). */
+function gegnerStaerke(w, landId) {
+	const l = land(landId);
+	const k = kriegMit(w, landId);
+	return (GEGNER_STAERKE[landId] ?? GEGNER_GRUPPE[l.gruppe] ?? 50) + (k ? k.eskalation * .08 : 0);
 }
-function zusagenAusProfil(profil) {
+/**
+* Medien-Faktor auf den innenpolitischen Preis des Friedens (Suzerain: PO −3 zensiert bis −8 frei).
+* Freie Presse macht Reparationen und Abtretungen sichtbar und damit teurer.
+*/
+function presseFaktor(w) {
+	return .55 + .9 * (knotenWert(w, "pressefreiheit") / 100);
+}
+/** Der Zustimmungsverlust (Umfragepunkte), den ein Friedenspreis von `basis` nach Presse-Lage kostet. */
+function poVerlustFuer(w, basis) {
+	return Math.round(basis * presseFaktor(w) * 10) / 10;
+}
+/** Die Härte eines Pakets aus Sicht des Gegners (negativ = Zugeständnis an ihn). */
+function paketHaerte(p) {
+	return p.gebiet * 1.1 + p.reparation * .7 + (p.garantien ? .15 : 0) + (p.rueckzug ? -.15 : 0);
+}
+/** Annahme-Aussicht eines Friedenspakets in Prozent (deterministisch; die Uhr beider Seiten treibt sie). */
+function paketAnnahme(w, k, p) {
+	const roh = 40 + (100 - k.uhrGegner) * .55 - (100 - k.uhr) * .25 + (k.front - 50) * .7 - paketHaerte(p) * 22;
+	return Math.round(clamp(roh, 5, 98));
+}
+const PAKETE = {
+	paket_sieg: {
+		name: "Siegerfrieden",
+		text: "Gebietsgewinn, Reparationen und Sicherheitsgarantien: der harte Schnitt — innen ein Triumph, außen ein Dauerstreit.",
+		paket: () => ({
+			gebiet: 1,
+			reparation: 1,
+			garantien: true,
+			rueckzug: false
+		})
+	},
+	paket_ausgewogen: {
+		name: "Ausgewogener Frieden",
+		text: "Status quo mit Sicherheitsgarantien und beiderseitigem Rückzug.",
+		paket: () => ({
+			gebiet: 0,
+			reparation: 0,
+			garantien: true,
+			rueckzug: true
+		})
+	},
+	paket_weiss: {
+		name: "Weißer Frieden",
+		text: "Rückzug ohne Bedingungen: Der billigste Ausstieg, innen schwer zu verkaufen, wenn der Krieg lange dauerte.",
+		paket: () => ({
+			gebiet: 0,
+			reparation: 0,
+			garantien: false,
+			rueckzug: true
+		})
+	},
+	paket_zugestaendnis: {
+		name: "Gekaufter Frieden",
+		text: "Gebietsabtretung und Reparationen: erkauft Ruhe um den Preis von Sturzgefahr, Putsch-Risiko und Abhängigkeit.",
+		paket: () => ({
+			gebiet: -1,
+			reparation: -1,
+			garantien: false,
+			rueckzug: true
+		})
+	}
+};
+const nf1 = (x) => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
+function demobGrund(w) {
+	const bis = demobSperreBis(w);
+	if (bis <= w.day) return void 0;
+	return `Die Demobilisierung läuft noch bis ${formatDateDe(addDays(w.date, bis - w.day))}; eine erneute Mobilisierung ist frühestens danach möglich (90-Tage-Rechnung).`;
+}
+/** Alle Handlungen, die der Konfliktvorgang in der aktuellen Phase anbietet — mit Preisen und ehrlichen Gründen. */
+function handlungenFuer(w, kriegId) {
+	const spiel = w.spiel;
+	const k = kriegZu(w, kriegId);
+	if (!spiel || !k) return [];
+	land(k.land);
+	const kapital = spiel.kapital;
 	const out = [];
-	const neu = (id, von, text, faellig, massnahme) => {
-		const z = {
+	const push = (id, label, pk, hinweis, grund) => {
+		let g = grund;
+		if (!g && !kannZahlen(kapital, pk)) g = "Dafür fehlt Politisches Kapital.";
+		out.push({
 			id,
-			von,
-			text,
-			faellig,
-			erfuellt: false,
-			gebrochen: false
-		};
-		if (massnahme) {
-			z.massnahme = massnahme;
-			z.richtung = 1;
-		}
-		out.push(z);
+			label,
+			pk,
+			moeglich: !g,
+			...g ? { grund: g } : {},
+			hinweis
+		});
 	};
-	for (const v of profil.versprechen) if (v.includes("zwei Ministerien")) neu("z-ministerien", "YENİ", "Der YENİ Parti wurden zwei Ministerien zugesagt", 45);
-	else if (v.includes("Mitspracherecht")) neu("z-friedensprozess", "MHP", "Der MHP wurde ein Mitspracherecht beim Friedensprozess zugesagt", 60);
-	else if (v.includes("Rentenerhöhung")) neu("z-renten", "Wähler", "Rentenerhöhung in den ersten hundert Tagen versprochen", 100, "m_renten");
-	else if (v.includes("Vergaben")) neu("z-vergaben", "Wähler", "Offene Vergaben und Vermögenserklärungen versprochen", 150, "m_antikorruption");
+	const demob = demobGrund(w);
+	const ph = k.phase;
+	if (ph === "spannung" || ph === "drohkulisse") {
+		if (!k.bereit) push("bereitschaft", "Truppen in Bereitschaft versetzen", 6, "Abschreckung +3, kleiner Stärkeschub; der Gegner liest es als Eskalation (+4).");
+		const signalRest = (k.signalZuletzt ?? -1e9) + 60 - w.day;
+		push("signal", "Abschreckungs-Signal senden", 3, "Manöver und scharfe Worte: Abschreckung +2, der Konflikt kühlt leicht (−3).", signalRest > 0 ? `Wieder glaubwürdig in ${signalRest} Tagen.` : void 0);
+		push("vermittlung", "Vermittlung rufen", 5, `Vermittler einschalten: Bei Erfolg Eskalation −18 und Konflikt −8; Aussicht hängt an Ansehen (${Math.round(knotenWert(w, "ansehen"))}) und Vertrauen (${Math.round(vertrauenZu(w, k.land))}).`);
+		if (!k.kriegszielDeklariert) for (const r of [
+			"verteidigung",
+			"schutz",
+			"beistand",
+			"revision"
+		]) {
+			const beleg = r === "beistand" && alleLaufenden(w).every((v) => v.land !== k.land) ? "Ohne laufenden Vertrag mit diesem Land wirkt die Beistands-Rahmung unglaubwürdig (Ansehen −3 zusätzlich)." : void 0;
+			push(`ziel_${r}`, `Kriegsziel deklarieren: ${RAHMUNG[r].name}`, 8, `${RAHMUNG[r].text} Legt die Preise aller Folgehandlungen fest (Parlament ${RAHMUNG[r].stimmen >= 0 ? "+" : ""}${RAHMUNG[r].stimmen} Stimmen, Ansehen ${RAHMUNG[r].ansehen}).`, beleg);
+		}
+		push("deeskalation", "Die Lage beruhigen", 4, "Konflikt −10, Eskalation −12; Nationalisten zu Hause lesen es als Schwäche (−1). Unter der Ruheschwelle endet der Vorgang.");
+		push("rueckzug", "Still zurückziehen", 6, "Der Vorgang endet: Konflikt −15, Vertrauen +4 — aber Ansehen −2 und Nationalisten −3.");
+	}
+	if (ph === "drohkulisse") {
+		if (k.mobilmachung === 0) push("mobil_teil", "Teilmobilmachung anordnen", 8, "Reserven einziehen: Stärke deutlich höher; kostet 0,3 % des BIP, Eskalation +8, Junge −1.", demob);
+		if (k.mobilmachung < 2) push("mobil_voll", "Vollmobilmachung anordnen", 14, "Der Staat stellt sich auf Krieg um: höchste Stärke; kostet 0,7 % des BIP, Eskalation +14, Junge −3, städtische Säkulare −2, die Uhr trägt die Last.", demob);
+		if (!k.kriegszielDeklariert) {} else {
+			const stimmen = stimmenSicht(w, {
+				massnahme: "m_verteidigung",
+				richtung: 1
+			}).erwartet + RAHMUNG[k.rahmung].stimmen;
+			push("beschluss", "Einsatzbeschluss ins Parlament einbringen", 10, `Abstimmung in ${KRIEG.beschlussTage} Tagen; erwartet werden etwa ${Math.round(stimmen)} von 301 nötigen Stimmen. Scheitert er, gilt das als Schwäche.`);
+			push("beschluss_erlass", "Einsatz per Erlass anordnen", 20, "Umgeht das Parlament: sofortiger Beschluss, doppelte Kosten, Vertrauen und Legitimität leiden (−3 / −2,5).");
+		}
+	}
+	if (ph === "beschluss" && k.beschluss?.weg === "parlament") {}
+	if (ph === "krieg") {
+		const rest = (k.verstaerkungZuletzt ?? -1e9) + 21 - w.day;
+		push("verstaerkung", "Reserven und Nachschub verstärken", 6, "Front-Schub +3 in der nächsten Woche; kostet 0,25 % des BIP. Der Präsident bestellt, der Generalstab führt.", rest > 0 ? `Wieder möglich in ${rest} Tagen.` : void 0);
+		push("waffenruhe", "Waffenruhe anbieten", 5, "Der Gegner nimmt an, wenn er erschöpft ist oder die Front verloren gibt; lehnt er ab, gilt das Angebot zu Hause als Schwäche (Uhr −3).");
+		if (k.mobilmachung < 2) push("mobil_voll", "Vollmobilmachung nachziehen", 14, "Auch mitten im Krieg möglich; teuer und spät.", demob);
+	}
+	if (ph === "waffenruhe") {
+		for (const [id, def] of Object.entries(PAKETE)) {
+			if (id === "paket_sieg" && k.front < 55) continue;
+			if (id === "paket_zugestaendnis" && k.front > 45) continue;
+			const aussicht = paketAnnahme(w, k, def.paket(k.front));
+			push(id, `Friedenspaket: ${def.name}`, 4, `${def.text} Annahme-Aussicht etwa ${aussicht} %. Der Innenpreis steht schon jetzt fest (freie Presse verteuert ihn).`);
+		}
+		push("weiterkaempfen", "Weiterkämpfen", 2, "Zurück an die Front: die Uhr verliert 5 Punkte, die Heimatfront ist irritiert.");
+	}
 	return out;
 }
-/** Erzeugt die Spielschleife beim Amtsantritt und öffnet die drei Vorgänge des ersten Tages. */
-function initSpiel(world, profil, rng) {
-	aussenweltStart(world);
-	const start = {
-		inflation: world.published.inflation.value,
-		arbeitslosigkeit: world.economy.unemployment,
-		wachstum: world.economy.growth,
-		schulden: world.economy.debtRatio,
-		vertrauen: nationalAverage(NET, world.net, "vertrauen_regierung"),
-		akut: 0,
-		datum: world.date
-	};
-	const spiel = {
-		kapital: SPIEL.startKapital,
-		gesetze: [],
-		ereignisse: [],
-		zuletzt: {},
-		figuren: [],
-		zusagen: zusagenAusProfil(profil),
-		umfrage: {
-			zustimmung: profil.wahl.anteil,
-			verlauf: []
-		},
-		ziele: [],
-		ersterTagErledigt: false,
-		wahltag: tageBis(world.date, addDays(world.date, 365 * SPIEL.amtszeitJahre + 1)),
-		amtszeit: 1,
-		lager: profil.buendnis ? [profil.buendnis] : [],
-		tiefstand: 0,
-		chronik: [],
-		hinweise: [],
-		kalibrierung: 0,
-		verfassung: verfassungStart(),
-		start
-	};
-	world.spiel = spiel;
-	spiel.figuren = erzeugeFiguren(world, rng);
-	const gouverneur = figur(world, "zentralbank");
-	if (gouverneur) world.governor.name = gouverneur.name;
-	spiel.start.akut = akuteProbleme(world);
-	spiel.kalibrierung = profil.wahl.anteil - rohZustimmung(world, 0);
-	oeffne(world, "start_haushalt", rng);
-	oeffne(world, "start_partner", rng);
-	oeffne(world, "start_wiederaufbau", rng);
-	krisenAktualisieren(world);
+function phaseSetzen(w, k, phase) {
+	k.phase = phase;
+	k.seit = w.day;
 }
-function spielTick(world, rng) {
-	const spiel = world.spiel;
-	if (!spiel || spiel.ende) return;
-	gesetzeAbstimmen(world, rng);
-	ereignisTag(world, rng);
-	krisenAktualisieren(world);
-	programmTag(world);
-	berichteTag(world);
-	verfassungTag(world);
-	if (dayOfMonth(world.date) === 1) spielMonat(world, rng);
-	if (world.day >= spiel.wahltag) wahl(world, rng);
-}
-function kapitalEinkommen(world) {
-	const vertrauen = SPIEL.kapitalVertrauen * nationalAverage(NET, world.net, "vertrauen_regierung") / 100;
-	const mehrheit = stimmenSicht(world).lager >= REGELN.mehrheit ? SPIEL.kapitalMehrheit : 0;
-	const [j, m] = world.date.split("-").map(Number);
-	const naechste = m === 12 ? `${j + 1}-01-01` : `${j}-${String(m + 1).padStart(2, "0")}-01`;
-	const f = schwierig(world).kapital;
-	const legit = nationalAverage(NET, world.net, "legitimitaet");
-	const legitimitaet = Number.isFinite(legit) ? Math.max(-1, Math.min(1, (legit - 60) / 40)) : 0;
-	const unterhalt = unterhaltKosten(world).summe;
-	return {
-		grund: SPIEL.kapitalGrund * f,
-		vertrauen: vertrauen * f,
-		mehrheit: mehrheit * f,
-		legitimitaet: legitimitaet * f,
-		unterhalt,
-		summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt,
-		naechste,
-		grenze: REGELN.kapitalMax
-	};
-}
-function spielMonat(world, rng) {
-	const spiel = world.spiel;
-	spiel.kapital = Math.min(REGELN.kapitalMax, spiel.kapital + kapitalEinkommen(world).summe);
-	if (spiel.kapital < 0) {
-		const last = Math.min(1, -spiel.kapital / 12);
-		wirke(world, "legitimitaet", -.6 * last);
-		wirke(world, "vertrauen_regierung", -.25 * last);
-		if (!spiel.hinweise.some((h) => h.id.startsWith("pump-")) && world.day - (spiel.zuletzt.pump ?? -1e9) > 180) {
-			spiel.zuletzt.pump = world.day;
-			addLog(world, "ereignis", "Sie handeln auf Pump: Das Politische Kapital ist im Minus.", "Wer Rückhalt vorwegnimmt, zahlt mit Legitimität und Vertrauen, bis die monatliche Gutschrift das Konto ausgleicht.");
-		}
-	}
-	verhandlungMonat(world);
-	weltMonat(world);
-	abkommenMonat(world, rng);
-	reichMonat(world, rng);
-	aussenweltMonat(world, rng);
-	ereignisMonat(world, rng);
-	const ziel = zielZustimmung(world);
-	spiel.umfrage.zustimmung = umfrageMonat(spiel.umfrage.zustimmung, ziel);
-	spiel.umfrage.verlauf.push({
-		monat: world.date.slice(0, 7),
-		wert: Math.round(spiel.umfrage.zustimmung * 10) / 10
+function hinweis(w, id, titel, text) {
+	w.spiel?.hinweise.push({
+		id,
+		titel,
+		szene: "istanbul",
+		text
 	});
-	if (spiel.umfrage.verlauf.length > 120) spiel.umfrage.verlauf.shift();
-	verlaufAufzeichnen(world);
-	if (spiel.umfrage.zustimmung < SPIEL.sturzSchwelle) spiel.tiefstand += 1;
-	else spiel.tiefstand = Math.max(0, spiel.tiefstand - 1);
-	if (spiel.tiefstand === 3) {
-		belastungEreignis(world, VERFASSUNG.sturzWarnung, "Die Warnung vor dem Sturz");
-		spiel.hinweise.push({
-			id: `warnung-${world.day}`,
-			titel: "Warnzeichen",
-			szene: "istanbul",
-			text: [`Die Zustimmung liegt seit drei Monaten unter ${SPIEL.sturzSchwelle} Prozent. Auf den Plätzen sammeln sich Menschen; ${anrede(figur(world, "stab"))} warnt vor Massenprotesten.`, "Wenn sich nichts ändert, droht das Ende der Amtszeit lange vor der nächsten Wahl."]
-		});
-		addLog(world, "ereignis", "Warnzeichen: Die Zustimmung bleibt sehr niedrig.", "Nach sechs Monaten unter der Schwelle droht der Sturz.");
+}
+/** Führt eine Handlung aus; was `handlungenFuer` als unmöglich meldet, wird nicht ausgeführt. */
+function fuehreKriegHandlungAus(w, kriegId, handlungId, rng) {
+	const spiel = w.spiel;
+	const k = kriegZu(w, kriegId);
+	if (!spiel) return {
+		ok: false,
+		text: "Ohne Spielschleife gibt es keinen Konfliktvorgang."
+	};
+	if (!k) return {
+		ok: false,
+		text: "Diesen Konfliktvorgang gibt es nicht (mehr)."
+	};
+	const sicht = handlungenFuer(w, kriegId).find((x) => x.id === handlungId);
+	if (!sicht) return {
+		ok: false,
+		text: "Diese Handlung gibt es in dieser Phase nicht."
+	};
+	if (!sicht.moeglich) return {
+		ok: false,
+		text: sicht.grund ?? "Das geht gerade nicht."
+	};
+	const pause = neuanfangGrund(w);
+	if (pause) return {
+		ok: false,
+		text: pause
+	};
+	if (!rng) {
+		rng = new Rng$1(w.rngState);
+		w.rngState = w.rngState + 1 | 0;
 	}
-	if (spiel.tiefstand >= SPIEL.sturzMonate) {
-		beende(world, "sturz", "Massenproteste beenden die Amtszeit", `Nach Monaten unter ${SPIEL.sturzSchwelle} Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt.`);
+	const l = land(k.land);
+	spiel.kapital -= sicht.pk;
+	verbrauche(w, AUFMERKSAMKEIT_KOSTEN.landAktion.entspannen, `${sicht.label}: ${l.name}`);
+	let text = "";
+	let why = `Kostet ${sicht.pk} Kapital.`;
+	switch (handlungId) {
+		case "bereitschaft":
+			k.bereit = true;
+			k.eskalation = clamp(k.eskalation + 4, 0, 100);
+			wirke(w, "abschreckung", 3);
+			landAendern(w, k.land, { konflikt: 2 }, "Truppen in Bereitschaft");
+			text = `Die Streitkräfte gehen in erhöhte Bereitschaft; ${l.name} registriert es.`;
+			why += " Abschreckung +3; der Gegner liest es als Eskalation.";
+			break;
+		case "signal":
+			k.signalZuletzt = w.day;
+			wirke(w, "abschreckung", 2);
+			landAendern(w, k.land, { konflikt: -3 }, "Abschreckungs-Signal aus Ankara");
+			k.eskalation = clamp(k.eskalation - 4, 0, 100);
+			text = `Manöver und scharfe Worte Richtung ${l.akk}: Die Drohkulisse bleibt, aber der Ton ist gesetzt.`;
+			break;
+		case "vermittlung": {
+			const aussicht = clamp(30 + (knotenWert(w, "ansehen") - 45) * .8 + (vertrauenZu(w, k.land) - 35) * .6 - (k.eskalation - 50) * .4, 5, 85);
+			if ((rng ? rng.next() * 100 : 50) < aussicht) {
+				k.eskalation = clamp(k.eskalation - 18, 0, 100);
+				landAendern(w, k.land, {
+					konflikt: -8,
+					vertrauen: 3
+				}, "Vermittlung nimmt Fahrt auf");
+				wirke(w, "ansehen", 2);
+				text = `Die Vermittlung mit ${l.dat} greift: Gesprächskanäle öffnen sich, die Eskalation lässt nach.`;
+				why += ` Aussicht lag bei ${Math.round(aussicht)} %; Ansehen +2.`;
+			} else {
+				landAendern(w, k.land, { vertrauen: -2 });
+				wirke(w, "ansehen", -1);
+				text = `Die Vermittlung mit ${l.dat} scheitert an den Vorbedingungen der Gegenseite.`;
+				why += ` Aussicht lag bei ${Math.round(aussicht)} %; Ansehen −1.`;
+			}
+			break;
+		}
+		case "ziel_verteidigung":
+		case "ziel_schutz":
+		case "ziel_beistand":
+		case "ziel_revision": {
+			const r = handlungId.slice(5);
+			k.rahmung = r;
+			k.kriegszielDeklariert = true;
+			k.eskalation = clamp(k.eskalation + 10, 0, 100);
+			let extra = 0;
+			if (r === "beistand" && alleLaufenden(w).every((v) => v.land !== k.land)) extra = -3;
+			if (r === "verteidigung" && k.eskalation < 60) extra = -2;
+			wirke(w, "ansehen", RAHMUNG[r].ansehen + extra);
+			wirke(w, "nationalisten", RAHMUNG[r].nationalisten);
+			if (r === "revision") {
+				wirke(w, "beziehungen_eu", -4);
+				landAendern(w, "EU", {
+					konflikt: 6,
+					vertrauen: -4
+				}, "Offene Revisionspolitik Ankaras");
+			}
+			text = `Die Regierung deklariert ihr Kriegsziel gegenüber ${l.dat}: ${RAHMUNG[r].name}.`;
+			why += ` Die Rahmung legt die Preise aller Folgehandlungen fest (Parlament ${RAHMUNG[r].stimmen >= 0 ? "+" : ""}${RAHMUNG[r].stimmen} Stimmen).${extra ? " Der Beleg ist dünn; das Ausland notiert es." : ""}`;
+			break;
+		}
+		case "deeskalation":
+			landAendern(w, k.land, { konflikt: -10 }, "Deeskalation aus Ankara");
+			k.eskalation = clamp(k.eskalation - 12, 0, 100);
+			wirke(w, "nationalisten", -1);
+			wirke(w, "staedtische_saekulare", 1);
+			text = `Ankara dämpft den Ton gegenüber ${l.dat}; die Spannung lässt nach.`;
+			why += " Nationalisten lesen es als Schwäche; die städtische Mitte atmet auf.";
+			break;
+		case "rueckzug":
+			landAendern(w, k.land, {
+				konflikt: -15,
+				vertrauen: 4
+			}, "Stiller Rückzug Ankaras");
+			wirke(w, "ansehen", -2);
+			wirke(w, "nationalisten", -3);
+			beendeVorgang(w, k, "rueckzug");
+			text = `Die Regierung zieht ihre Position gegenüber ${l.dat} still zurück; der Vorgang endet.`;
+			why += " Das Gesicht verliert mehr als die Lage: Ansehen −2, Nationalisten −3.";
+			break;
+		case "mobil_teil":
+		case "mobil_voll": {
+			const voll = handlungId === "mobil_voll";
+			k.mobilmachung = voll ? 2 : 1;
+			k.eskalation = clamp(k.eskalation + (voll ? 14 : 8), 0, 100);
+			kosten(w, voll ? .7 : .3);
+			wirke(w, "junge", voll ? -3 : -1);
+			wirke(w, "nationalisten", voll ? 2 : 1);
+			if (voll) {
+				wirke(w, "staedtische_saekulare", -2);
+				wirke(w, "konservative", 1);
+				k.uhr = clamp(k.uhr - 5, 0, 110);
+			}
+			belastungEreignis(w, VERFASSUNG.eskalation, voll ? "Vollmobilmachung" : "Teilmobilmachung");
+			text = voll ? "Die Vollmobilmachung wird angeordnet: Reserven, Materiel, Transportpläne — der Staat stellt sich auf Krieg um." : "Die Teilmobilmachung wird angeordnet: Ausgewählte Reserven und Verbände gehen in Bereitschaft.";
+			why += ` ${voll ? "0,7" : "0,3"} % des BIP als Zusatzlast; die Demobilisierung wird später erneut kosten (90-Tage-Rechnung).`;
+			break;
+		}
+		case "beschluss":
+			k.beschluss = {
+				weg: "parlament",
+				abstimmung: w.day + KRIEG.beschlussTage,
+				rahmung: k.rahmung
+			};
+			phaseSetzen(w, k, "beschluss");
+			text = `Der Einsatzbeschluss gegen ${l.akk} geht ins Parlament; die Abstimmung ist in ${KRIEG.beschlussTage} Tagen.`;
+			why += " Ohne Mehrheit gilt die Einbringung als Schwäche; Absprachen und Stimmung entscheiden.";
+			break;
+		case "beschluss_erlass":
+			vertrauenAendern(w, -3);
+			wirke(w, "legitimitaet", -2.5);
+			k.beschluss = {
+				weg: "erlass",
+				abstimmung: w.day,
+				rahmung: k.rahmung
+			};
+			text = `Per Erlass, am Parlament vorbei: Der Einsatz gegen ${l.akk} ist beschlossen.`;
+			why += " Doppelte Kosten, Vertrauen −3, Legitimität −2,5; das Parlament vergisst den Affront nicht.";
+			addLog(w, "entscheidung", text, why);
+			kriegsbeginn(w, k, "erlass");
+			return {
+				ok: true,
+				text,
+				why
+			};
+		case "verstaerkung":
+			k.verstaerkungZuletzt = w.day;
+			k.frontSchub = (k.frontSchub ?? 0) + 3;
+			kosten(w, .25);
+			text = "Reserven und Nachschub werden an die Front geordnet; der Generalstab verrechnet sie in der nächsten Woche.";
+			break;
+		case "waffenruhe":
+			if (k.uhrGegner <= 55 || k.front >= 62 || k.uhr <= 40) {
+				text = `${l.name} nimmt die Waffenruhe an; die Waffen schweigen, der Verhandlungstisch wartet.`;
+				addLog(w, "entscheidung", text, why);
+				waffenruheEintreten(w, k);
+				return {
+					ok: true,
+					text,
+					why
+				};
+			}
+			k.uhr = clamp(k.uhr - 3, 0, 110);
+			k.eskalation = clamp(k.eskalation + 2, 0, 100);
+			text = `${l.name} lehnt die Waffenruhe ab — die Gegenseite fühlt sich nicht erschöpft genug.`;
+			why += " Das Angebot gilt zu Hause als Schwäche (Uhr −3).";
+			break;
+		case "paket_sieg":
+		case "paket_ausgewogen":
+		case "paket_weiss":
+		case "paket_zugestaendnis": {
+			const p = PAKETE[handlungId].paket(k.front);
+			const aussicht = paketAnnahme(w, k, p);
+			if (aussicht >= 50) return friedenSchliessen(w, k, p, handlungId, rng);
+			k.eskalation = clamp(k.eskalation + 2, 0, 100);
+			text = `${l.name} weist das Paket zurück (Aussicht ${aussicht} %): Die Gegenseite fühlt sich noch nicht erschöpft genug. Die Waffenruhe hält vorerst.`;
+			why += " Ein verworfenes Paket kostet nichts als Zeit — aber die Uhr läuft auf beiden Seiten nicht rückwärts.";
+			break;
+		}
+		case "weiterkaempfen":
+			k.uhr = clamp(k.uhr - 5, 0, 110);
+			k.gegnerAngebot = false;
+			phaseSetzen(w, k, "krieg");
+			text = "Die Regierung befiehlt die Wiederaufnahme der Operationen; die Heimatfront reagiert irritiert (Uhr −5).";
+	}
+	addLog(w, "entscheidung", text, why);
+	return {
+		ok: true,
+		text,
+		why
+	};
+}
+/** Der Gegner kontrolliert das Kriegsziel, wenn die Front tief genug steht (Anti-Aussitzen-Schwelle). */
+function gegnerKontrolle(k) {
+	return k.front >= 50 ? 0 : clamp((50 - k.front) / (50 - KRIEG.kontrolleFront), 0, 1);
+}
+function eigenKontrolle(k) {
+	return k.front <= 50 ? 0 : clamp((k.front - 50) / (100 - KRIEG.kippOben - 1), 0, 1);
+}
+function waffenruheEintreten(w, k) {
+	const l = land(k.land);
+	phaseSetzen(w, k, "waffenruhe");
+	k.gegnerAngebot = false;
+	hinweis(w, `krieg-waffenruhe-${k.id}-${w.day}`, `Waffenruhe mit ${l.name}`, [`Die Waffen schweigen im Konflikt mit ${l.name}. Am Verhandlungstisch wartet die eigentliche Rechnung: Gebiet, Reparationen, Garantien, Rückzug.`, "Der Innenpreis des Friedens hängt auch von der Presse ab: Je freier die Medien, desto sichtbarer — und teurer — ist jede Nachgiebigkeit."]);
+	addLog(w, "ereignis", `Waffenruhe mit ${l.name}.`, "Die Waffenruhe hält, solange ein Friedenspaket oder die Rückkehr zum Krieg entschieden ist.");
+}
+/** Das Waffenruhe-Angebot des Gegners annehmen (Ereignis krieg_waffenruhe). */
+function waffenruheFuerAngebot(w, kriegId) {
+	const k = kriegZu(w, kriegId);
+	if (!k || k.phase !== "krieg") return "Das Angebot ist gegenstandslos geworden.";
+	waffenruheEintreten(w, k);
+	return `Die Waffenruhe mit ${land(k.land).name} tritt in Kraft; der Verhandlungstisch öffnet sich.`;
+}
+/** Niederlage oder Gebietsabtretung bei zerbrochenem Offiziersvertrauen: das Putsch-Risiko-Ereignis (einmal je Vorgang). */
+function pruefePutsch(w, k, rng) {
+	if (k.putsch || knotenWert(w, "offiziersvertrauen") >= KRIEG.putschAb) return;
+	k.putsch = true;
+	oeffne(w, "putschgeruechte", rng ?? new Rng$1(w.rngState), { daten: {
+		land: k.land,
+		vorgang: k.id
+	} });
+}
+function kriegsbeginn(w, k, weg) {
+	const l = land(k.land);
+	const rahmung = k.rahmung ?? "verteidigung";
+	phaseSetzen(w, k, "krieg");
+	k.woche = 0;
+	k.stagnation = 0;
+	k.front = clamp(50 + (eigenStaerke(w, k) - gegnerStaerke(w, k.land)) * .25, 25, 75);
+	k.frontVorher = k.front;
+	k.uhr = clamp(100 + RAHMUNG[rahmung].uhrStart, 0, 110);
+	k.uhrGegner = 100;
+	w.economy.riskPremium += weg === "angriff" ? 220 : rahmung === "revision" ? 200 : 150;
+	const spiel = w.spiel;
+	if (weg === "erlass" || rahmung === "revision") spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 1);
+	else spiel.umfrage.zustimmung = Math.min(100, spiel.umfrage.zustimmung + 2);
+	wirke(w, "nationalisten", 3);
+	wirke(w, "konservative", 1);
+	wirke(w, "staedtische_saekulare", rahmung === "verteidigung" ? .5 : -1.5);
+	wirke(w, "ansehen", RAHMUNG[rahmung].ansehen);
+	landAendern(w, k.land, {
+		vertrauen: -15,
+		konflikt: 10
+	}, "Krieg");
+	const z = weltZustand(w)[k.land];
+	z.konflikt = Math.max(z.konflikt, 85);
+	for (const [rivale, plus] of Object.entries(AUSSTRAHLUNG_RIVALEN[k.land] ?? {})) landAendern(w, rivale, { vertrauen: plus }, `Krieg zwischen der Türkei und ${l.dat}`);
+	for (const x of LAENDER) {
+		if (x.id === k.land) continue;
+		if (weltZustand(w)[x.id].konflikt >= 55) landAendern(w, x.id, { vertrauen: -2 }, "Sorge vor Ausweitung des Krieges");
+		else if (vertrauenZu(w, x.id) >= 60) landAendern(w, x.id, { vertrauen: -1 }, "Sorge über den Krieg Ankaras");
+	}
+	belastungEreignis(w, VERFASSUNG.eskalation, `Kriegsbeginn mit ${l.name}`);
+	const einstieg = weg === "angriff" ? `${l.name} schlägt zu: Ohne eigenen Beschluss steht die Türkei im Krieg — die Rahmung der Selbstverteidigung liegt auf der Hand.` : weg === "erlass" ? `Per Erlass beginnt der Einsatz gegen ${l.akk}; das Parlament wurde umgangen.` : `Mit dem Votum des Parlaments beginnt der Einsatz gegen ${l.akk}.`;
+	hinweis(w, `krieg-beginn-${k.id}-${w.day}`, `Krieg mit ${l.name}`, [einstieg, `Die Frontlage startet bei ${Math.round(k.front)} von 100. Der Präsident bestellt und verantwortet — geführt wird an der Front vom Generalstab; wöchentliche Lageberichte zeigen Trend und Erschöpfung.`]);
+	addLog(w, "ereignis", `Krieg mit ${l.name}: ${einstieg}`, `Rahmung „${RAHMUNG[rahmung].name}“, Märkte reagieren mit einem Risikoaufschlag.`);
+}
+function beschlussAbstimmen(w, k, rng) {
+	const spiel = w.spiel;
+	const l = land(k.land);
+	const b = k.beschluss;
+	const stimmen = stimmenSicht(w, {
+		massnahme: "m_verteidigung",
+		richtung: 1
+	});
+	const bonus = RAHMUNG[b.rahmung].stimmen + (k.eskalation >= 85 ? 15 : 0);
+	const ja = Math.min(600, Math.max(0, Math.round(stimmen.erwartet + bonus + rng.normal(6))));
+	const nein = 600 - ja;
+	delete k.beschluss;
+	if (ja >= 301) {
+		addLog(w, "entscheidung", `Das Parlament beschließt den Einsatz gegen ${l.akk} (${ja} zu ${nein}).`, `Rahmung „${RAHMUNG[b.rahmung].name}“${bonus ? ` (Bonus ${bonus >= 0 ? "+" : ""}${bonus})` : ""}.`);
+		kriegsbeginn(w, k, "parlament");
+	} else {
+		phaseSetzen(w, k, "drohkulisse");
+		k.eskalation = clamp(k.eskalation + 4, 0, 100);
+		vertrauenAendern(w, -1.2);
+		spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - .8);
+		addLog(w, "entscheidung", `Das Parlament lehnt den Einsatzbeschluss gegen ${l.akk} ab (${ja} zu ${nein}).`, "Die Regierung wirkt geschwächt; die Gegenseite liest es als Einladung, die Drohkulisse zu halten.");
+	}
+}
+function niederlage(w, k, rng) {
+	const spiel = w.spiel;
+	const l = land(k.land);
+	w.economy.riskPremium += 250;
+	kosten(w, 2);
+	const po = poVerlustFuer(w, 10);
+	spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - po);
+	vertrauenAendern(w, -po * .4);
+	wirke(w, "ansehen", -8);
+	wirke(w, "nationalisten", -8);
+	wirke(w, "staedtische_saekulare", -4);
+	wirke(w, "junge", -3);
+	wirke(w, "offiziersvertrauen", -14);
+	wirke(w, "truppenmoral", -6);
+	landAendern(w, k.land, {
+		vertrauen: -20,
+		konflikt: 20
+	}, "Krieg gewonnen gegen die Türkei");
+	const zz = weltZustand(w)[k.land];
+	zz.konflikt = clamp(Math.min(zz.konflikt, 60), 0, 100);
+	demobStarten(w, k);
+	phaseSetzen(w, k, "beendet");
+	k.ausgang = "niederlage";
+	hinweis(w, `krieg-niederlage-${k.id}-${w.day}`, `Niederlage gegen ${l.name}`, [`Der Einsatz gegen ${l.akk} ist verloren: Reparationen, ein Risikoaufschlag der Märkte und ein Land in Ernüchterung. Der Zustimmungsverlust fällt bei ${knotenWert(w, "pressefreiheit") >= 50 ? "freier" : "gelenkter"} Presse aus wie erwartet (${nf1(po)} Punkte).`, knotenWert(w, "offiziersvertrauen") < KRIEG.putschAb ? "Im Generalstab wird offen über die Verantwortung gesprochen; das Vertrauen der Offiziere ist zerbrochen." : "Die Offiziere tragen die Niederlage vorerst mit — das Vertrauen ist angeknackst, nicht zerbrochen."]);
+	spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: `Niederlage gegen ${l.name}`,
+		ausgang: "Der Krieg endet mit Reparationen und einem tiefen innenpolitischen Schaden."
+	});
+	addLog(w, "ereignis", `Niederlage gegen ${l.name}.`, `Reparationen (2 % des BIP), Märkte unter Druck, Zustimmung −${nf1(po)}.`);
+	pruefePutsch(w, k, rng);
+}
+function demobStarten(w, k) {
+	if (k.mobilmachung === 0) return;
+	k.mobilmachung = 0;
+	k.demobBis = w.day + KRIEG.demobTage;
+	k.demobSperreBis = w.day + KRIEG.demobTage;
+	hinweis(w, `krieg-demob-${k.id}-${w.day}`, "Demobilisierung", [`Die Reserven kommen über ${KRIEG.demobTage} Tage nach Hause; die Rechnung läuft mit (etwa ${KRIEG.demobKostenMonat} % des BIP je Monat).`, `Eine erneute Mobilisierung ist frühestens am ${formatDateDe(addDays(w.date, KRIEG.demobTage))} möglich.`]);
+}
+function friedenSchliessen(w, k, p, paketId, rng) {
+	const spiel = w.spiel;
+	const l = land(k.land);
+	phaseSetzen(w, k, "frieden");
+	k.ausgang = p.gebiet === 1 || p.reparation === 1 ? "sieg" : p.gebiet === -1 || p.reparation === -1 ? "frieden" : "weisser_frieden";
+	const teile = [];
+	let basis = 0;
+	if (p.gebiet === 1) {
+		wirke(w, "nationalisten", 6);
+		wirke(w, "konservative", 3);
+		const ansehen = k.rahmung === "verteidigung" ? -4 : k.rahmung === "revision" ? -6 : -3;
+		wirke(w, "ansehen", ansehen);
+		wirke(w, "beziehungen_eu", -3);
+		landAendern(w, k.land, {
+			konflikt: 25,
+			vertrauen: -10
+		}, "Gebietsabtretung an die Türkei");
+		teile.push(`Gebietsgewinn (Ansehen ${ansehen}: selbst der Siegerfrieden hat einen Weltpreis)`);
+		if (k.rahmung !== "verteidigung") basis += 3;
+	}
+	if (p.gebiet === -1) {
+		wirke(w, "offiziersvertrauen", -15);
+		wirke(w, "nationalisten", -10);
+		wirke(w, "konservative", -4);
+		basis += 8;
+		teile.push("Gebietsabtretung (Offiziersvertrauen −15: das Offizierskorps vergisst das nicht)");
+	}
+	if (p.reparation === 1) {
+		kosten(w, -.8);
+		wirke(w, "nationalisten", 2);
+		teile.push("Reparationen an die Türkei (Schuldenquote −0,8)");
+	}
+	if (p.reparation === -1) {
+		kosten(w, 1.2);
+		basis += 6;
+		landAendern(w, k.land, { handel: 10 }, "Gekaufter Frieden: wirtschaftliche Verflechtung als Pfand");
+		teile.push("Reparationen von der Türkei (1,2 % des BIP) — gekaufter Frieden schafft Abhängigkeit");
+	}
+	if (p.garantien) {
+		landAendern(w, k.land, {
+			konflikt: -15,
+			vertrauen: 5,
+			sicherheit: 6
+		}, "Sicherheitsgarantien");
+		teile.push("Sicherheitsgarantien an der Grenze");
+	}
+	if (p.rueckzug) {
+		landAendern(w, k.land, { konflikt: -10 }, "Gegenseitiger Truppenrückzug");
+		wirke(w, "truppenmoral", 2);
+		teile.push("beiderseitiger Rückzug");
+	}
+	if (k.ausgang === "weisser_frieden" && k.woche >= 10) basis += 2;
+	const po = poVerlustFuer(w, basis);
+	if (po > 0) {
+		spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - po);
+		vertrauenAendern(w, -po * .4);
+	}
+	k.friedenspreis = po;
+	w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 80);
+	wirke(w, "staedtische_saekulare", 2);
+	wirke(w, "junge", 2);
+	demobStarten(w, k);
+	const z = weltZustand(w)[k.land];
+	z.konflikt = Math.min(z.konflikt, 45);
+	spiel.chronik.push({
+		tag: w.day,
+		datum: w.date,
+		titel: `Frieden mit ${l.name}`,
+		ausgang: `${PAKETE[paketId].name}: ${teile.join("; ") || "weißer Frieden"}.`
+	});
+	hinweis(w, `krieg-frieden-${k.id}-${w.day}`, `Frieden mit ${l.name}`, [`Das Paket „${PAKETE[paketId].name}“ ist unterschrieben: ${teile.join("; ") || "Rückzug ohne Bedingungen"}.`, po > 0 ? `Der Innenpreis: Zustimmung −${nf1(po)} (bei ${knotenWert(w, "pressefreiheit") >= 50 ? "freier" : "gelenkter"} Presse; freie Presse verteuert jeden Frieden).` : "Innenpolitisch bleibt der Frieden nahezu preiswert."]);
+	const text = `Frieden mit ${l.name} („${PAKETE[paketId].name}“): ${teile.join("; ") || "weißer Frieden"}.`;
+	const why = po > 0 ? `Innenpreis: Zustimmung −${nf1(po)} (Presse-Faktor ${nf1(presseFaktor(w))}). Märkte atmen auf (−80 Risikopunkte).` : "Märkte atmen auf (−80 Risikopunkte).";
+	addLog(w, "entscheidung", text, why);
+	if (p.gebiet === -1) pruefePutsch(w, k, rng);
+	return {
+		ok: true,
+		text,
+		why
+	};
+}
+function beendeVorgang(w, k, ausgang) {
+	phaseSetzen(w, k, "beendet");
+	k.ausgang = ausgang;
+	addLog(w, "ereignis", `Der Konfliktvorgang mit ${land(k.land).name} endet (${ausgang === "rueckzug" ? "Rückzug" : ausgang}).`, "");
+}
+function kriegWoche(w, k, rng) {
+	const l = land(k.land);
+	k.woche += 1;
+	let delta = clamp((eigenStaerke(w, k) - gegnerStaerke(w, k.land)) * KRIEG.frontFaktor, -KRIEG.frontMaxDelta, KRIEG.frontMaxDelta);
+	if (k.frontSchub) {
+		delta += k.frontSchub;
+		delete k.frontSchub;
+	}
+	k.frontVorher = k.front;
+	k.front = clamp(k.front + delta, 0, 100);
+	const verlustWoche = delta < 0 ? Math.min(4, -delta * KRIEG.verlustFaktor) : KRIEG.verschleiss;
+	const gewinnWoche = delta > .5 ? delta * .6 : 0;
+	k.verluste = clamp(k.verluste + verlustWoche, 0, 100);
+	const wirtschaftsdruck = clamp((1.5 - w.economy.growth) * .3, -.45, .6);
+	k.uhr += -(KRIEG.uhrBasis + verlustWoche * KRIEG.uhrVerlust + (k.mobilmachung === 2 ? KRIEG.uhrVollLast : 0) + Math.max(0, wirtschaftsdruck)) + gewinnWoche * KRIEG.uhrGewinn + Math.min(0, wirtschaftsdruck);
+	k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust) + verlustWoche * KRIEG.uhrGewinn;
+	if (gegnerKontrolle(k) < .5) k.uhr = Math.max(0, k.uhr);
+	if (eigenKontrolle(k) < .5) k.uhrGegner = Math.max(0, k.uhrGegner);
+	if (Math.abs(k.front - k.frontVorher) < .5) k.stagnation = (k.stagnation ?? 0) + 1;
+	else k.stagnation = 0;
+	if (k.stagnation >= 2) wirke(w, "offiziersvertrauen", -.3);
+	if (delta >= 1) {
+		wirke(w, "nationalisten", .4);
+		wirke(w, "konservative", .2);
+		wirke(w, "truppenmoral", .2);
+	} else if (delta <= -1) {
+		wirke(w, "nationalisten", -.5);
+		wirke(w, "staedtische_saekulare", -.3);
+		wirke(w, "junge", -.2);
+		wirke(w, "truppenmoral", -.4);
+	}
+	if (k.front < 40) w.economy.riskPremium += 6;
+	else if (k.front > 62) w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 4);
+	if (k.frontVorher >= KRIEG.kippUnten && k.front < KRIEG.kippUnten) {
+		hinweis(w, `krieg-kipp-u-${k.id}-${k.woche}`, `Frontlage kippt: ${l.name}`, [`Die Lage im Konflikt mit ${l.name} verschlechtert sich: Front ${Math.round(k.front)} von 100, Trend fallend. Reserven, Nachschub oder der Weg an den Verhandlungstisch — der Spielraum wird enger.`]);
+		addLog(w, "ereignis", `Frontlage kippt gegen ${l.name} (${Math.round(k.front)}).`, "Die Heimatfront liest die Verlustmeldungen; die Uhr fällt schneller als die Front.");
+	}
+	if (k.frontVorher <= KRIEG.kippOben && k.front > KRIEG.kippOben) {
+		hinweis(w, `krieg-kipp-o-${k.id}-${k.woche}`, `Frontlage dreht: ${l.name}`, [`Die Lage im Konflikt mit ${l.name} verbessert sich deutlich: Front ${Math.round(k.front)} von 100, Trend steigend. Erfolg ist die beste Medizin für die Heimatfront — und die Versuchung, den Preis des Friedens hochzuschrauben.`]);
+		addLog(w, "ereignis", `Frontlage dreht gegen ${l.name} (${Math.round(k.front)}).`, "Der Generalstab meldet Geländegewinne; die Verhandlungsposition wächst.");
+	}
+	if (!k.gegnerAngebot && (k.uhrGegner <= KRIEG.angebotUhr || (k.stagnation ?? 0) >= 4 && k.uhr <= 55 || k.uhr <= 30) && rng.next() < .5) {
+		k.gegnerAngebot = true;
+		oeffne(w, "krieg_waffenruhe", rng, { daten: {
+			land: k.land,
+			vorgang: k.id
+		} });
+	}
+	if (k.front <= KRIEG.zusammenbruchFront || k.uhr <= -KRIEG.kapitulation) {
+		niederlage(w, k, rng);
 		return;
 	}
-	personenMonat(world);
-	figurenPruefen(world, rng);
-}
-function figurenPruefen(world, rng) {
-	const spiel = world.spiel;
-	for (const f of spiel.figuren) if (f.amt === "partner" && f.partei && spiel.lager.includes(f.partei) && f.loyalitaet < 20) {
-		spiel.lager = spiel.lager.filter((p) => p !== f.partei);
-		const seats = world.parliament?.seats[f.partei] ?? 0;
-		addLog(world, "ereignis", `Die ${f.partei} verlässt das Regierungslager (${seats} Sitze).`, "Ohne die Partner wird jede Abstimmung schwerer; Zusagen zu brechen hat einen Preis.");
-		spiel.hinweise.push({
-			id: `bruch-${world.day}-${f.partei}`,
-			titel: "Bruch im Lager",
-			szene: "parlament",
-			text: [`Die ${f.partei} kündigt die Zusammenarbeit auf und verlässt das Regierungslager. Dem Lager fehlen damit ${seats} Sitze.`]
-		});
-		f.loyalitaet = 30;
-	}
-	for (const f of spiel.figuren) {
-		if (!f.imAmt || !AEMTER[f.amt].regierungsamt || f.eigen?.kommissarisch || f.loyalitaet >= 12) continue;
-		if (rng.next() < .4) ausscheiden(world, f, "Rücktritt, weil ihm der Rückhalt fehlt");
+	if (k.front >= KRIEG.siegFront || k.uhrGegner <= -KRIEG.kapitulation) {
+		addLog(w, "ereignis", `${l.name} ist erschöpft und tritt den Rückzug an.`, "Die Gegenseite akzeptiert jedes Paket mit Gesichtswahrung; der Verhandlungstisch gehört Ihnen.");
+		waffenruheEintreten(w, k);
 	}
 }
-function beende(world, art, titel, text, anteil) {
-	const spiel = world.spiel;
-	spiel.ende = {
-		tag: world.day,
-		datum: world.date,
-		art,
-		titel,
-		text,
-		...anteil !== void 0 ? { anteil } : {}
-	};
-	spiel.ereignisse = [];
-	spiel.gesetze = [];
-	addLog(world, "ereignis", titel, text);
-}
-function wahl(world, rng) {
-	const spiel = world.spiel;
-	const anteil = clamp(spiel.umfrage.zustimmung + rng.normal(2.2), 0, 100);
-	const name = world.player?.name ?? "Der Präsident";
-	if (anteil >= 50) {
-		if (spiel.amtszeit === 1) {
-			spiel.amtszeit = 2;
-			spiel.wahltag = world.day + 365 * SPIEL.amtszeitJahre + 1;
-			spiel.chronik.push({
-				tag: world.day,
-				datum: world.date,
-				titel: "Wiederwahl",
-				ausgang: `${name} wird mit ${fmt(anteil)} Prozent wiedergewählt.`
-			});
-			addLog(world, "ereignis", `Wahlabend: ${name} wird mit ${fmt(anteil)} Prozent im Amt bestätigt.`, "Eine zweite Amtszeit ist die letzte; danach schreibt die Verfassung eine Pause vor.");
-			spiel.hinweise.push({
-				id: `wahl-${world.day}`,
-				titel: "Wahlabend: Wiederwahl",
-				szene: "wahlnacht",
-				text: [`${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent. Die zweite Amtszeit beginnt; sie ist die letzte.`]
-			});
-		} else beende(world, "amtszeitende", "Ende der zweiten Amtszeit", `Nach zwei Amtszeiten endet die Zeit im Amt; die Verfassung erlaubt keine weitere.`, anteil);
-	} else beende(world, "abwahl", "Abgewählt", `Bei der Wahl am ${formatDateDe(world.date)} erhält ${name} nur ${fmt(anteil)} Prozent der Stimmen.`, anteil);
-}
-//#endregion
-//#region src/sim/waehler.ts
-function launenWort(x) {
-	if (x >= 70) return "begeistert";
-	if (x >= 58) return "zufrieden";
-	if (x >= 45) return "gemischt";
-	if (x >= 33) return "verärgert";
-	return "wütend";
-}
-function vorMonaten(world, id, n) {
-	const s = world.net;
-	const i = NET.index.get(id);
-	if (i === void 0 || world.day < 30 * n) return null;
-	const slot = s.history[(s.month - n + s.history.length * 1e3) % s.history.length];
-	if (!slot) return null;
-	let sum = 0;
-	let w = 0;
-	for (let p = 0; p < 81; p++) {
-		sum += slot[i * 81 + p] * s.weights[p];
-		w += s.weights[p];
-	}
-	return w > 0 ? sum / w : null;
-}
-function abweichung(world, id) {
-	const node = NET.nodes[NET.index.get(id)];
-	const s0 = world.spiel?.start;
-	if (node.input) {
-		if (!s0) return 0;
-		if (id === "inflation") return world.economy.inflation - s0.inflation;
-		if (id === "arbeitslosigkeit") return world.economy.unemployment - s0.arbeitslosigkeit;
-		if (id === "wachstum") return world.economy.growth - s0.wachstum;
-		return 0;
-	}
-	return nationalAverage(NET, world.net, id) - startAverage(NET, world.net, id);
-}
-function waehlerLage(world) {
-	const lage = [];
-	for (const g of GRUPPEN) {
-		const node = NET.nodes[NET.index.get(g.id)];
-		const laune = nationalAverage(NET, world.net, g.id);
-		const frueher = vorMonaten(world, g.id, 3);
-		const mitWert = NET.edges.filter((e) => e.to === g.id).map((e) => ({
-			e,
-			wert: e.weight * abweichung(world, e.from)
-		}));
-		const bewegt = mitWert.filter((m) => Math.abs(m.wert) > .02).sort((a, b) => Math.abs(b.wert) - Math.abs(a.wert));
-		const veraendert = bewegt.length > 0;
-		const gruende = (veraendert ? bewegt : [...mitWert].sort((a, b) => Math.abs(b.e.weight) - Math.abs(a.e.weight)).map((m) => ({
-			...m,
-			wert: m.e.weight
-		}))).slice(0, 4).map((m) => ({
-			name: NET.nodes[NET.index.get(m.e.from)].name,
-			richtung: m.wert >= 0 ? 1 : -1,
-			text: m.e.why,
-			wert: Math.abs(m.wert)
-		}));
-		const forderungen = [];
-		for (const h of hebel(g.id, 1, 10)) {
-			NET.index.get(h.node.id);
-			const jetzt = nationalAverage(NET, world.net, h.node.id);
-			if (h.richtung > 0 && jetzt >= 92 || h.richtung < 0 && jetzt <= 8) continue;
-			forderungen.push({
-				massnahme: h.node.id,
-				name: h.node.name,
-				richtung: h.richtung,
-				stufe: Math.round(jetzt)
-			});
-			if (forderungen.length >= 3) break;
+/** Der tägliche Schritt des Konfliktvorgangs (aus dem Spieltick). */
+function kriegTag(w, rng) {
+	const spiel = w.spiel;
+	if (!spiel || spiel.ende) return;
+	for (const k of kriege(w)) {
+		if (k.phase === "spannung" || k.phase === "drohkulisse") {
+			const ziel = weltZustand(w)[k.land]?.konflikt ?? k.eskalation;
+			k.eskalation = clamp(k.eskalation + clamp((ziel - k.eskalation) * .06, -.8, .8), 0, 100);
 		}
-		const anteil = g.gewicht / GRUPPEN_SUMME;
-		lage.push({
-			id: g.id,
-			name: node.name,
-			text: node.text,
-			anteil,
-			laune,
-			trend: frueher === null ? null : laune - frueher,
-			wort: launenWort(laune),
-			gruende,
-			veraendert,
-			forderungen,
-			beitrag: .25 * anteil * (laune - 50)
-		});
+		switch (k.phase) {
+			case "spannung":
+				if (k.eskalation >= KRIEG.drohkulisseAb) {
+					phaseSetzen(w, k, "drohkulisse");
+					belastungEreignis(w, VERFASSUNG.eskalation, `Drohkulisse mit ${land(k.land).name}`);
+					addLog(w, "ereignis", `Die Lage mit ${land(k.land).name} spitzt sich zur Drohkulisse zu.`, "Jetzt zählt jede Handlung: Mobilisierung, Rahmung, Vermittlung — oder der teure Ausstieg.");
+					oeffne(w, "krieg_drohkulisse", rng, { daten: {
+						land: k.land,
+						vorgang: k.id
+					} });
+				} else if (k.eskalation <= KRIEG.spannungAus && (weltZustand(w)[k.land]?.konflikt ?? 100) < 45) beendeVorgang(w, k, "rueckzug");
+				break;
+			case "drohkulisse":
+				if (k.eskalation >= KRIEG.angriffAb && !k.beschluss) {
+					addLog(w, "ereignis", `${land(k.land).name} schlägt zu.`, "Die Drohkulisse kippt ohne eigenen Beschluss in den Krieg; die Selbstverteidigungs-Rahmung liegt auf der Hand.");
+					if (!k.rahmung) k.rahmung = "verteidigung";
+					kriegsbeginn(w, k, "angriff");
+				} else if (k.eskalation <= KRIEG.drohkulisseAus) {
+					phaseSetzen(w, k, "spannung");
+					addLog(w, "ereignis", `Die Drohkulisse mit ${land(k.land).name} löst sich auf.`, "Die Spannung bleibt; der Vorgang ist noch nicht vorbei.");
+				}
+				break;
+			case "beschluss":
+				if (k.beschluss && k.beschluss.weg === "parlament" && w.day >= k.beschluss.abstimmung) beschlussAbstimmen(w, k, rng);
+				break;
+			case "krieg":
+				if ((w.day - k.seit) % 7 === 0 && w.day > k.seit) kriegWoche(w, k, rng);
+				break;
+			case "frieden": if (w.day > k.seit + 30) phaseSetzen(w, k, "beendet");
+		}
+		if (k.demobBis !== void 0 && w.day >= k.demobBis) {
+			delete k.demobBis;
+			addLog(w, "ereignis", "Die Demobilisierung ist abgeschlossen.", "Die Reserven sind entlassen; die 90-Tage-Rechnung ist bezahlt. Eine erneute Mobilisierung ist wieder möglich.");
+		}
 	}
-	return lage.sort((a, b) => b.anteil - a.anteil);
+}
+/** Der monatliche Schritt: neue Spannungen aus der Konflikt-Dimension, Demobilisierungs-Rechnung. */
+function kriegMonat(w, rng) {
+	const spiel = w.spiel;
+	if (!spiel || spiel.ende) return;
+	for (const k of kriege(w)) if (k.demobBis !== void 0 && w.day < k.demobBis) {
+		kosten(w, KRIEG.demobKostenMonat);
+		addLog(w, "ereignis", `Demobilisierungs-Rechnung: ${KRIEG.demobKostenMonat} % des BIP.`, `Reserven nach Hause bringen kostet wie das Hochfahren; noch bis ${formatDateDe(addDays(w.date, k.demobBis - w.day))}.`);
+	}
+	if (aktiveKriege(w).length >= KRIEG.maxAktiv) return;
+	const z = weltZustand(w);
+	for (const l of LAENDER) {
+		if (aktiveKriege(w).length >= KRIEG.maxAktiv) break;
+		if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
+		if (kriegMit(w, l.id)) continue;
+		if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
+		spiel.zuletzt[`krieg-${l.id}`] = w.day;
+		const k = {
+			id: `kv-${l.id}-${w.day}`,
+			land: l.id,
+			phase: "spannung",
+			seit: w.day,
+			eskalation: z[l.id].konflikt,
+			mobilmachung: 0,
+			front: 50,
+			frontVorher: 50,
+			uhr: 100,
+			uhrGegner: 100,
+			woche: 0,
+			verluste: 0
+		};
+		kriege(w).push(k);
+		hinweis(w, `krieg-spannung-${k.id}`, `Spannung mit ${l.name}`, [`Der Konflikt mit ${l.name} hat eine Schwelle überschritten (${Math.round(z[l.id].konflikt)} von 100): Aus Zwischenfällen wird ein Vorgang, der eigene Entscheidungen verlangt.`, "Die Eskalationsphase ist die Hauptspielfläche: Bereitschaft, Signale, Vermittlung — oder die Deklaration eines Kriegsziels, das die Preise aller Folgehandlungen festlegt."]);
+		addLog(w, "ereignis", `Spannung mit ${l.name}: Der Konflikt wird zum Vorgang.`, "Das Dossier steht in der Welt-Ansicht beim Land; jede Handlung hat dort ihren Preis.");
+	}
 }
 //#endregion
 //#region src/sim/personen-api.ts
@@ -19803,8 +27695,12 @@ Ohne Aktion: "aktionen":[]. Mögliche Aktionen (Feld "art"):
 {"art":"ereignis","id":"<Ereignis-ID>","option":"<Options-ID>","grund":"…"}
 {"art":"zeit","tage":<1-90>,"grund":"…"}
 {"art":"vorhaben","id":"<Vorhaben-ID>","grund":"…"}  (ein Vorhaben des Reiches beginnen)
+{"art":"grossprojekt","text":"<freie Projektbeschreibung, z. B. ‚größter Hafen der Welt bei Mersin‘ oder ‚Autobahn bis China‘>","vergabe":"stammfirma|sparvergabe|ausschreibung","grund":"…"}  (freies Großprojekt: der Kern schätzt Kosten, Dauer und Wirkung als Bandbreiten; bei Grenzübertritt erst die Transit-Verhandlungen, dann der Beginn)
 {"art":"abkommen","land":"<Länder-ID>","bieten":["<Klausel-ID>",…],"verlangen":["<Klausel-ID>",…],"jahre":2|5|10,"grund":"…"}  (Vertrag anbieten; nur Klauseln, die es bei dem Land gibt)
 {"art":"vermittlung","id":"ukr_rus|arm_aze","grund":"…"}
+{"art":"verfassung","handlung":"einbringen","paket":{"amtszeit":"wiederwahl_plus|neuwahl_jetzt","wahlrecht":"fuenf|zehn","justiz":"acht_sieben|parlament_staerkt","notstand":"eng|weit","immunitaet":"aufgehoben"},"grund":"…"}  (Verfassungspaket einbringen; nur geänderte Artikel nennen; einmal je Amtszeit)
+{"art":"verfassung","handlung":"zurueckziehen|stimmen_kaufen|kampagne","grund":"…"}  (laufenden Verfassungsvorgang steuern)
+{"art":"krieg","land":"<Länder-ID>","handlung":"bereitschaft|signal|vermittlung|ziel_verteidigung|ziel_schutz|ziel_beistand|ziel_revision|deeskalation|rueckzug|mobil_teil|mobil_voll|beschluss|beschluss_erlass|verstaerkung|waffenruhe|paket_sieg|paket_ausgewogen|paket_weiss|paket_zugestaendnis|weiterkaempfen","grund":"…"}  (Konfliktvorgang; nur Handlungen, die das Dossier der Phase anbietet)
 
 MASSNAHMEN (ID: Name)
 ${MASSNAHMEN.map((n) => `${n.id}: ${n.name}`).join("\n")}
@@ -19868,6 +27764,11 @@ function zustandsText(w) {
 	if (ziele.length) z.push("Ziele: " + ziele.map((t) => `${t.def.titel} (${t.erreicht ? "erreicht" : t.stand})`).join("; "));
 	const wz = weltZustand(w);
 	z.push("Länder (Vertrauen/Konflikt): " + LAENDER.map((l) => `${l.id} ${haltungWort(w, l.id)} ${rund(dimensionZu(w, l.id, "vertrauen"))}/${rund(wz[l.id].konflikt)}`).join("; "));
+	const konflikte = aktiveKriege(w);
+	if (konflikte.length) z.push("Konfliktvorgänge: " + konflikte.map((k) => {
+		const hb = handlungenFuer(w, k.id).filter((x) => x.moeglich).map((x) => x.id).join("|");
+		return `${land(k.land).name} (${PHASEN_NAME[k.phase]}, Eskalation ${rund(k.eskalation)}${k.phase === "krieg" || k.phase === "waffenruhe" ? `, Front ${rund(k.front)}, Rückhalt ${rund(k.uhr)}` : ""}${k.rahmung ? `, Rahmung ${RAHMUNG[k.rahmung].name}` : ""}) — möglich: ${hb || "keine"}`;
+	}).join("; "));
 	const abweichend = POSTEN.filter((p) => stufeVon(w, p.id) !== 0).map((p) => `${p.id} ${stufeVon(w, p.id) > 0 ? "+" : ""}${stufeVon(w, p.id)}`);
 	z.push(`Haushaltsregler (Abweichung vom Plan): ${abweichend.length ? abweichend.join(", ") : "keine"}.`);
 	const rz = reichZustand(w);
@@ -19880,7 +27781,7 @@ function zustandsText(w) {
 	z.push(`Reich: Verwaltungskraft ${rund(vb.vorrat)} (${vb.netto >= 0 ? "+" : "−"}${nf(Math.abs(vb.netto))} je Monat), Baukapazität ${rund(bauKapazitaet(w))}. Fertig ${Object.keys(rz.bestand).length}. Laufend: ${laufendReich.length ? laufendReich.join(", ") : "keine"}. Sofort beginnbar: ${beginnbar.length ? beginnbar.join(", ") : "keine"}.`);
 	const vertraege = alleLaufenden(w);
 	z.push(vertraege.length ? "Verträge: " + vertraege.map((v) => `${v.land} bietet ${v.gibt.map((id) => klauselSicht(w, v.land, id)?.def.id ?? id).join("+") || "nichts"} / erhält ${v.will.join("+") || "nichts"} (${v.jahre} J., ${v.verstoesse} Verstöße)`).join("; ") : "Verträge: keine.");
-	const schritt = naechsterSchritt(w);
+	const schritt = naechsterSchritt$1(w);
 	if (schritt) z.push(`Nächster Programmschritt: ${schritt.schritt.titel} (${schritt.status === "bereit" ? "bereit" : "noch nicht bereit"}, ${schritt.schritt.kapital} Kapital)`);
 	z.push(umfeldKontext(w) || "Minister: " + spiel.figuren.filter((f) => f.imAmt && f.amt !== "opposition").map((f) => `${f.rolle} ${f.name} (${haltung(f)})`).join("; "));
 	const offen = spiel.ereignisse.filter((ev) => !ev.vorlage.startsWith("start_")).slice(0, 3);
@@ -19892,437 +27793,6 @@ function zustandsText(w) {
 	return z.join("\n");
 }
 //#endregion
-//#region src/data/provinz_archetypen.ts
-const ARCHETYPEN = [
-	{
-		id: 1,
-		name: "Metropol-Industrie-Kern",
-		provinzen: [
-			6,
-			16,
-			34,
-			35,
-			41,
-			59
-		]
-	},
-	{
-		id: 2,
-		name: "Industrie- und Hafen-Gürtel (2. Reihe)",
-		provinzen: [
-			1,
-			10,
-			17,
-			22,
-			31,
-			33,
-			39,
-			54,
-			55,
-			67,
-			77,
-			81
-		]
-	},
-	{
-		id: 3,
-		name: "Tourismus-Küste",
-		provinzen: [
-			7,
-			9,
-			48,
-			50
-		]
-	},
-	{
-		id: 4,
-		name: "Anatolische Mittelstädte / Tiger",
-		provinzen: [
-			5,
-			11,
-			14,
-			19,
-			20,
-			24,
-			25,
-			26,
-			37,
-			38,
-			40,
-			58,
-			60,
-			66,
-			71,
-			78,
-			80
-		]
-	},
-	{
-		id: 5,
-		name: "Agrar-Steppe İç Ege/Zentralanatolien",
-		provinzen: [
-			3,
-			15,
-			32,
-			42,
-			43,
-			45,
-			51,
-			64,
-			68,
-			70
-		]
-	},
-	{
-		id: 6,
-		name: "Karadeniz-Fındık-Peripherie",
-		provinzen: [
-			8,
-			28,
-			52,
-			53,
-			57,
-			61,
-			74
-		]
-	},
-	{
-		id: 7,
-		name: "Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft",
-		provinzen: [
-			2,
-			21,
-			23,
-			27,
-			36,
-			44,
-			46,
-			47,
-			63,
-			65,
-			72,
-			73,
-			76,
-			79
-		]
-	},
-	{
-		id: 8,
-		name: "Ost-Anatolien peripher",
-		provinzen: [
-			4,
-			12,
-			13,
-			18,
-			29,
-			30,
-			49,
-			56,
-			62,
-			69,
-			75
-		]
-	}
-];
-/**
-* Delta-Matrix (RECHERCHE_PROVINZDATEN.md, Abschnitt 4): additive Punkte je
-* Politiknetz-Knoten, Index im Array = Archätyp-id − 1. Nur Knoten ohne echten
-* Provinz-Datenbeleg; `arbeitslosigkeit` bleibt absichtlich außen vor, denn dort
-* stehen echte Provinzwerte in provinzdaten.json (Empfehlung der Recherche).
-* Bei Doppelzeilen der Matrix („landflucht / p_landflucht“) tragen beide Knoten
-* dieselben Deltas, nur C1 unterscheidet sich (−15 / −20).
-*/
-const DELTAS = {
-	mieten: [
-		15,
-		4,
-		8,
-		2,
-		0,
-		-2,
-		-4,
-		-10
-	],
-	p_wohnungsnot: [
-		12,
-		4,
-		6,
-		2,
-		0,
-		-2,
-		-2,
-		-8
-	],
-	lebenshaltung: [
-		8,
-		3,
-		4,
-		0,
-		0,
-		0,
-		3,
-		3
-	],
-	abwanderung: [
-		-5,
-		0,
-		0,
-		3,
-		8,
-		10,
-		8,
-		12
-	],
-	p_abwanderung: [
-		-8,
-		-2,
-		-2,
-		2,
-		8,
-		10,
-		8,
-		15
-	],
-	landflucht: [
-		-15,
-		-5,
-		-3,
-		2,
-		8,
-		10,
-		8,
-		15
-	],
-	p_landflucht: [
-		-20,
-		-5,
-		-3,
-		2,
-		8,
-		10,
-		8,
-		15
-	],
-	p_wassermangel: [
-		8,
-		2,
-		5,
-		0,
-		15,
-		-10,
-		5,
-		0
-	],
-	wasserversorgung: [
-		-5,
-		0,
-		-3,
-		0,
-		-10,
-		5,
-		-5,
-		0
-	],
-	industrie: [
-		5,
-		8,
-		-3,
-		5,
-		2,
-		-5,
-		2,
-		-10
-	],
-	export: [
-		5,
-		8,
-		2,
-		3,
-		0,
-		-5,
-		2,
-		-10
-	],
-	logistik: [
-		10,
-		8,
-		3,
-		2,
-		0,
-		-3,
-		2,
-		-8
-	],
-	tourismus: [
-		5,
-		2,
-		20,
-		0,
-		-3,
-		3,
-		0,
-		-5
-	],
-	landwirtschaft_einkommen: [
-		-5,
-		2,
-		3,
-		2,
-		5,
-		5,
-		5,
-		0
-	],
-	jugendarbeitslosigkeit: [
-		3,
-		0,
-		3,
-		0,
-		3,
-		5,
-		15,
-		10
-	],
-	p_jugendarbeitslosigkeit: [
-		3,
-		0,
-		3,
-		0,
-		3,
-		5,
-		15,
-		10
-	],
-	p_armut: [
-		-3,
-		-2,
-		-2,
-		0,
-		3,
-		5,
-		10,
-		12
-	],
-	schattenwirtschaft: [
-		0,
-		0,
-		5,
-		2,
-		3,
-		5,
-		10,
-		8
-	],
-	p_migrationsdruck: [
-		3,
-		2,
-		3,
-		0,
-		0,
-		0,
-		15,
-		3
-	],
-	p_erdbebengefahr: [
-		5,
-		8,
-		5,
-		3,
-		-8,
-		-3,
-		8,
-		3
-	],
-	erdbebenvorsorge: [
-		3,
-		0,
-		0,
-		0,
-		0,
-		0,
-		-8,
-		-3
-	],
-	stromversorgung: [
-		-5,
-		0,
-		2,
-		0,
-		0,
-		2,
-		0,
-		-3
-	],
-	p_aerztemangel: [
-		-8,
-		-3,
-		0,
-		0,
-		3,
-		5,
-		8,
-		10
-	],
-	ungleichheit: [
-		10,
-		3,
-		3,
-		0,
-		0,
-		0,
-		5,
-		3
-	],
-	terrorgefahr: [
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		10,
-		5
-	],
-	p_luftverschmutzung: [
-		10,
-		6,
-		-3,
-		2,
-		0,
-		-3,
-		2,
-		-3
-	]
-};
-/**
-* Ausreißer-Overrides: zusätzliche Punkte je Provinz und Knoten, auf das
-* Archätyp-Delta addiert. Nur füllen, wenn ein Fall in kalibrierung/provinz_profile.csv
-* markiert ist (derzeit keine Markierung — die Matrix allein trägt, vgl.
-* RECHERCHE_PROVINZDATEN.md, Abschnitt 4: Gaziantep-Industrie, İstanbul-Miete wären
-* die ersten Kandidaten).
-*/
-const AUSREISSER = {};
-/**
-* Die Archätyp-Schicht, fertig für createNet: additive Punkte je Knoten
-* (Index = Kfz-Kennziffer − 1), über der Echtdaten-Schicht aus sim/regional.ts.
-*/
-const ARCHETYP_DELTAS = (() => {
-	const out = {};
-	for (const [knoten, deltas] of Object.entries(DELTAS)) {
-		const arr = new Array(81).fill(0);
-		for (const a of ARCHETYPEN) {
-			const d = deltas[a.id - 1] ?? 0;
-			for (const plaka of a.provinzen) arr[plaka - 1] = d;
-		}
-		out[knoten] = arr;
-	}
-	for (const [plaka, jeKnoten] of Object.entries(AUSREISSER)) {
-		const p = Number(plaka) - 1;
-		for (const [knoten, d] of Object.entries(jeKnoten)) (out[knoten] ??= new Array(81).fill(0))[p] = (out[knoten][p] ?? 0) + d;
-	}
-	return out;
-})();
-//#endregion
 //#region src/sim/zentralbank.ts
 /** Wie empfänglich die Führung für Druck ist, je nach Haltung. */
 const EMPFAENGLICH = {
@@ -20330,6 +27800,8 @@ const EMPFAENGLICH = {
 	ausgewogen: .6,
 	gefuegig: 1
 };
+/** Prozentpunkte, um die eine voll empfängliche Bank ihren Beschluss je Einheit Druck verschiebt. */
+const DRUCK_PUNKTE = 2.5;
 function saetze(zeilen, max = 6) {
 	return zeilen.slice(0, max).map(kettenZeile);
 }
@@ -20360,7 +27832,7 @@ function zinssitzung(w) {
 		e.riskPremium += 3;
 	} else if (druck) {
 		const emp = EMPFAENGLICH[w.governor.stance] * (z.stufe === "A" ? .5 : 1);
-		const bias = druck.richtung * druck.staerke * emp * 3;
+		const bias = druck.richtung * druck.staerke * emp * DRUCK_PUNKTE;
 		neu = ppkDecision(e, w.governor.stance, bias).newRate;
 		abw = neu - regel.newRate;
 		if (abw === 0) begruendung = `Der Ausschuss bleibt bei seiner Linie: Die Gouverneurin lässt sich nicht beeinflussen. ${regel.why}`;
@@ -20450,6 +27922,7 @@ function createWorld(scenario, seed) {
 		log: [],
 		net: createNet(NET, economy, REGIONAL, WEIGHTS, ARCHETYP_DELTAS)
 	};
+	migriereDevisen(world);
 	addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + formatDateDe(scenario.dataDate) + ".");
 	return world;
 }
@@ -20482,7 +27955,7 @@ function syntheticHistory(e, startDate) {
 }
 /** Einen Tag fortschreiben. */
 function tick(world) {
-	const rng = new Rng(world.rngState);
+	const rng = new Rng$1(world.rngState);
 	world.day += 1;
 	world.date = addDays(world.date, 1);
 	const e = world.economy;
@@ -20509,6 +27982,7 @@ function tick(world) {
 		publishQuarterlyGrowth(world);
 		monthlyNet(world);
 		wirtschaftMonat(world);
+		devisenMonat(world);
 	}
 	if (dayOfMonth(world.date) === 3) publishInflation(world);
 	if (dayOfMonth(world.date) === 10) publishUnemployment(world);
@@ -20614,7 +28088,7 @@ const PROV_FOLD = PROVINZEN.map((p) => ({
 	name: fold(p.name),
 	region: p.region
 })).sort((a, b) => b.name.length - a.name.length);
-const REGION_NAMEN = {
+const REGION_NAMEN$1 = {
 	marmara: ["Marmara"],
 	aegaeis: ["Ege"],
 	ege: ["Ege"],
@@ -20634,7 +28108,7 @@ const REGION_NAMEN = {
 function ortAusText(t) {
 	const gefunden = /* @__PURE__ */ new Set();
 	for (const p of PROV_FOLD) if (new RegExp(`(^| )${p.name}( |$)`).test(t)) gefunden.add(p.plaka);
-	for (const [wort, regionen] of Object.entries(REGION_NAMEN)) if (new RegExp(`(^| )(im |in |am |der |den )?${wort}( |$)`).test(t) && !(wort === "osten" && gefunden.size)) {
+	for (const [wort, regionen] of Object.entries(REGION_NAMEN$1)) if (new RegExp(`(^| )(im |in |am |der |den )?${wort}( |$)`).test(t) && !(wort === "osten" && gefunden.size)) {
 		for (const p of PROVINZEN) if (regionen.includes(p.region)) gefunden.add(p.plaka);
 	}
 	return gefunden.size ? [...gefunden].sort((a, b) => a - b) : null;
@@ -20644,6 +28118,941 @@ NET.nodes.filter((n) => n.kind === "massnahme").map((n) => ({
 	name: fold(n.name),
 	schluessel: fold(n.name).split(" ").filter((w) => w.length >= 4 && !STOPP.has(w))
 }));
+//#endregion
+//#region src/sim/grossprojekt.ts
+function falte(s) {
+	return s.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/ı/g, "i").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+const woerter = (t) => t.split(" ").filter(Boolean);
+const hatWort = (tk, liste) => tk.some((w) => liste.includes(w));
+const hatPrefix = (tk, ...praefixe) => tk.some((t) => praefixe.some((p) => t.startsWith(p)));
+const PROV_FALTE = PROVINZEN.map((p) => ({
+	plaka: p.plaka,
+	name: falte(p.name),
+	region: p.region
+})).sort((a, b) => b.name.length - a.name.length);
+const REGION_NAMEN = {
+	marmara: ["Marmara"],
+	aegaeis: ["Ege"],
+	ege: ["Ege"],
+	mittelmeer: ["Akdeniz"],
+	akdeniz: ["Akdeniz"],
+	zentralanatolien: ["İç Anadolu"],
+	schwarzmeer: ["Karadeniz"],
+	karadeniz: ["Karadeniz"],
+	ostanatolien: ["Doğu Anadolu"],
+	suedostanatolien: ["Güneydoğu Anadolu"],
+	osten: ["Doğu Anadolu", "Güneydoğu Anadolu"],
+	westen: ["Marmara", "Ege"],
+	suedosten: ["Güneydoğu Anadolu"],
+	norden: ["Karadeniz"],
+	sueden: ["Akdeniz", "Güneydoğu Anadolu"]
+};
+const REGION_TITEL = {
+	Marmara: "Marmara",
+	Ege: "der Ägäis",
+	Akdeniz: "dem Mittelmeer",
+	"İç Anadolu": "Zentralanatolien",
+	Karadeniz: "dem Schwarzen Meer",
+	"Doğu Anadolu": "Ostanatolien",
+	"Güneydoğu Anadolu": "Südostanatolien"
+};
+/** Küstenprovinzen (Kfz-Kennziffern) — Häfen brauchen eine davon, und ihre Rivalen liegen hier. */
+const KUESTE = /* @__PURE__ */ new Set([
+	1,
+	7,
+	8,
+	9,
+	10,
+	17,
+	22,
+	31,
+	33,
+	34,
+	35,
+	39,
+	41,
+	48,
+	52,
+	53,
+	55,
+	57,
+	59,
+	61,
+	67,
+	74,
+	77,
+	81
+]);
+function orteAusText(t) {
+	const gefunden = /* @__PURE__ */ new Set();
+	let region = null;
+	for (const p of PROV_FALTE) if (new RegExp(`(^| )${p.name}( |$)`).test(t)) gefunden.add(p.plaka);
+	for (const [wort, regionen] of Object.entries(REGION_NAMEN)) if (new RegExp(`(^| )(im |in |am |der |den )?${wort}( |$)`).test(t) && !(wort === "osten" && gefunden.size)) {
+		region = regionen[0];
+		for (const p of PROVINZEN) if (regionen.includes(p.region)) gefunden.add(p.plaka);
+	}
+	return {
+		provinzen: [...gefunden].sort((a, b) => a - b),
+		region
+	};
+}
+const LAND_ALIAS = {
+	usa: "USA",
+	amerika: "USA",
+	washington: "USA",
+	eu: "EU",
+	europa: "EU",
+	bruessel: "EU",
+	russland: "RUS",
+	moskau: "RUS",
+	china: "CHN",
+	peking: "CHN",
+	aserbaidschan: "AZE",
+	baku: "AZE",
+	armenien: "ARM",
+	eriwan: "ARM",
+	georgien: "GEO",
+	tiflis: "GEO",
+	griechenland: "GRC",
+	athen: "GRC",
+	iran: "IRN",
+	teheran: "IRN",
+	syrien: "SYR",
+	damaskus: "SYR",
+	irak: "IRQ",
+	bagdad: "IRQ",
+	israel: "ISR",
+	jerusalem: "ISR",
+	ukraine: "UKR",
+	kiew: "UKR",
+	aegypten: "EGY",
+	kairo: "EGY",
+	saudi: "SAU",
+	riad: "SAU",
+	kasachstan: "KAZ",
+	astana: "KAZ",
+	libyen: "LBY",
+	tripolis: "LBY",
+	zypern: "CYP",
+	nikosia: "CYP"
+};
+/** Korridor-Schätzungen: Genanntes Ziel → vermutete Zwischenländer (Reihenfolge). Spielparameter, keine Geografie-Behauptung. */
+const KORRIDORE = {
+	CHN: [
+		"GEO",
+		"AZE",
+		"KAZ",
+		"CHN"
+	],
+	KAZ: [
+		"GEO",
+		"AZE",
+		"KAZ"
+	],
+	EGY: ["ISR", "EGY"],
+	LBY: [
+		"ISR",
+		"EGY",
+		"LBY"
+	],
+	SAU: [
+		"SYR",
+		"IRQ",
+		"SAU"
+	]
+};
+function laenderAusText(t, tk) {
+	const out = [];
+	for (const w of tk) {
+		const id = LAND_ALIAS[w];
+		if (id && !out.includes(id)) out.push(id);
+	}
+	for (const l of LAENDER) {
+		const f = falte(l.name);
+		if (f.length >= 6 && new RegExp(`(^| )${f}( |$)`).test(t) && !out.includes(l.id)) out.push(l.id);
+	}
+	return out;
+}
+const TYP_WOERTER = [
+	["schiene", [
+		"bahn",
+		"eisenbahn",
+		"schiene",
+		"schienen",
+		"gleis",
+		"gleise",
+		"hochgeschwindigkeit",
+		"metro",
+		"bagdadbahn",
+		"transsibirien"
+	]],
+	["strasse", [
+		"autobahn",
+		"autobahnen",
+		"strasse",
+		"fernstrasse",
+		"schnellstrasse",
+		"schnellweg",
+		"highway",
+		"bruecke",
+		"bruecken",
+		"tunnel"
+	]],
+	["hafen", [
+		"hafen",
+		"haefen",
+		"seehafen",
+		"containerhafen",
+		"tiefwasserhafen"
+	]],
+	["flughafen", [
+		"flughafen",
+		"flughaefen",
+		"airport",
+		"flugplatz"
+	]],
+	["kanal", [
+		"kanal",
+		"kanaele",
+		"wasserstrasse",
+		"suez"
+	]],
+	["stadt", [
+		"stadt",
+		"hauptstadt",
+		"megacity",
+		"satellitenstadt",
+		"planstadt",
+		"neustadt"
+	]],
+	["energie", [
+		"kraftwerk",
+		"atomkraft",
+		"kernkraft",
+		"reaktor",
+		"solar",
+		"solarpark",
+		"windpark",
+		"windkraft",
+		"staudamm",
+		"wasserkraft",
+		"pipeline"
+	]],
+	["prestige", [
+		"palast",
+		"denkmal",
+		"monument",
+		"statue",
+		"weltwunder",
+		"moschee",
+		"riesenrad",
+		"fernsehturm",
+		"olympiastadion",
+		"stadion"
+	]],
+	["wasser", [
+		"bewaesserung",
+		"entsalzung",
+		"wasserwerk",
+		"stausee"
+	]]
+];
+/** Was jenseits der Physik (und jeder Amtszeit) liegt: ehrliche Absage statt erfundener Rechnung. */
+const ABSURD = [
+	"mond",
+	"mars",
+	"venus",
+	"jupiter",
+	"weltraum",
+	"weltall",
+	"sonne",
+	"atlantis",
+	"zeitmaschine",
+	"teleport",
+	"schwebend",
+	"fliegende",
+	"unterwasser",
+	"hohlerde",
+	"narnia",
+	"hogwarts",
+	"wolkenstadt",
+	"regenbogen"
+];
+function typTreffer(t, tk) {
+	const treffer = [];
+	for (const [typ, liste] of TYP_WOERTER) {
+		let n = 0;
+		for (const wort of liste) if (new RegExp(`(^| )${wort}( |$)`).test(t)) n += 2;
+		else if (wort.length >= 4 && tk.some((x) => x.length > wort.length && x.length <= wort.length + 8 && x.includes(wort))) n += 1;
+		if (n > 0) treffer.push({
+			typ,
+			n
+		});
+	}
+	const max = Math.max(0, ...treffer.map((x) => x.n));
+	return treffer.filter((x) => x.n === max).map((x) => x.typ);
+}
+function istFriedensWunsch(t, tk) {
+	if (hatWort(tk, [
+		"frieden",
+		"friede",
+		"friedensvertrag",
+		"waffenstillstand",
+		"friedensschluss"
+	])) return true;
+	if (hatPrefix(tk, "vermittl", "schlicht") && hatWort(tk, [
+		"zwischen",
+		"krieg",
+		"streit"
+	])) return true;
+	if (hatWort(tk, ["krieg"]) && hatPrefix(tk, "beend", "stoppt", "stoppe")) return true;
+	return false;
+}
+/** Zerlegt eine freie Eingabe in Typ, Ort/Strecke, Maßstab und Merkmale — oder in Absage, Rückfrage, Friedens-Routing. */
+function interpretiere(text) {
+	const t = falte(text);
+	const tk = woerter(t);
+	if (tk.find((w) => ABSURD.includes(w))) return {
+		art: "absage",
+		grund: `„${text.trim()}“ — das liegt jenseits der Physik und jenseits jeder Amtszeit. Ich rechne ehrlich nur, was eine Regierung wirklich versuchen könnte; dafür gibt es weder Baukapazität noch einen Mond, der zur Türkei gehört.`,
+		alternativ: "Nah dran ist ein Prestige-Vorhaben im eigenen Land, etwa „Baue ein Denkmal in Ankara“ oder „Größte Moschee der Welt in Istanbul“ — das schätze ich gern. Auch ein Forschungsprogramm („Forschung erhöhen“) geht in diese Richtung."
+	};
+	if (istFriedensWunsch(t, tk)) {
+		const laender = laenderAusText(t, tk);
+		const paar = laender.length >= 2 ? [laender[0], laender[1]] : null;
+		const vermittlung = paar ? VERMITTLUNGEN.find((v) => v.a === paar[0] && v.b === paar[1] || v.a === paar[1] && v.b === paar[0]) : void 0;
+		return {
+			art: "frieden",
+			paar,
+			...vermittlung ? { vermittlungId: vermittlung.id } : {}
+		};
+	}
+	const typen = typTreffer(t, tk);
+	if (typen.length > 1) return {
+		art: "rueckfrage",
+		frage: `Meinen Sie ${typen.map((x) => PROJEKT_TYP_NAMEN[x]).join(" oder ")}? Nennen Sie eines davon genauer — beides zugleich schätze ich nicht, damit die Rechnung ehrlich bleibt.`
+	};
+	if (typen.length === 0) return {
+		art: "rueckfrage",
+		frage: "Was für ein Vorhaben meinen Sie: Schiene oder Straße, Hafen oder Flughafen, Kanal, Stadt, Energie, Wasser oder ein Prestigebau? Sagen Sie es in einem Satz, etwa „Baue eine Eisenbahn von Ankara nach Konya“."
+	};
+	const typ = typen[0];
+	const { provinzen, region } = orteAusText(t);
+	if (typ === "hafen" && !provinzen.length) return {
+		art: "rueckfrage",
+		frage: "Ein Hafen braucht einen Ort an der Küste — Mersin, İzmir, Trabzon, Hatay? Nennen Sie die Provinz, dann schätze ich das Vorhaben."
+	};
+	if (typ === "hafen" && provinzen.every((p) => !KUESTE.has(p))) return {
+		art: "rueckfrage",
+		frage: `In ${PROVINZEN[provinzen[0] - 1]?.name ?? "der Provinz"} liegt keine Küste; ein Seehafen geht dort nicht. Meinen Sie einen Hafen an der Küste (etwa Mersin) oder eine Binnenverbindung (Schiene, Straße)?`
+	};
+	if ((typ === "stadt" || typ === "kanal") && !provinzen.length) return {
+		art: "rueckfrage",
+		frage: typ === "stadt" ? "Wo soll die neue Stadt entstehen — Zentralanatolien, im Osten, an der Küste? Der Ort entscheidet über Preis und Wirkung." : "Wo soll der Kanal verlaufen? Nennen Sie die Provinz oder das Gewässer."
+	};
+	const genannt = laenderAusText(t, tk);
+	let transit = genannt;
+	let transitVermutet = [];
+	const zielMuster = t.match(/(?:bis|nach|richtung) (\w+)/);
+	if (genannt.length === 1 && zielMuster) {
+		const ziel = LAND_ALIAS[zielMuster[1]];
+		if (ziel === genannt[0] && KORRIDORE[ziel]) {
+			transitVermutet = KORRIDORE[ziel].filter((x) => x !== ziel);
+			transit = [...KORRIDORE[ziel]];
+		}
+	}
+	if (hatWort(tk, ["bagdadbahn"]) && !genannt.length) {
+		transit = ["SYR", "IRQ"];
+		transitVermutet = ["SYR", "IRQ"];
+	}
+	const superlativ = hatPrefix(tk, "groesst", "hoechst", "laengst", "schnellst", "tiefst") || hatWort(tk, ["weltrekord"]);
+	const weltWeit = /(der welt|aller zeiten|weltweit|weltgroesste)/.test(t);
+	let massstab;
+	if (superlativ && weltWeit) massstab = "weltgroesste";
+	else if (transit.length > 0 || hatWort(tk, [
+		"kontinental",
+		"interkontinental",
+		"eurasien",
+		"seidenstrasse"
+	])) massstab = "kontinental";
+	else if (hatWort(tk, ["national", "landesweit"]) || /(ganzes land|ganze tuerkei)/.test(t)) massstab = "national";
+	else if (hatWort(tk, [
+		"klein",
+		"kleine",
+		"kleiner",
+		"kleinen",
+		"bescheiden",
+		"lokal"
+	])) massstab = "klein";
+	else if (provinzen.length > 0) massstab = provinzen.length > 2 ? "national" : "regional";
+	else massstab = "national";
+	const merkmale = [];
+	if (hatWort(tk, ["bruecke", "bruecken"])) merkmale.push("Brücke");
+	if (hatWort(tk, ["tunnel"])) merkmale.push("Tunnel");
+	if (superlativ) merkmale.push("Rekordanspruch");
+	if (hatWort(tk, ["bagdadbahn"])) merkmale.push("Bagdadbahn");
+	const ortName = provinzen.length ? provinzen.length <= 2 ? provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p)).join("–") : region ? REGION_TITEL[region] ?? region : `${provinzen.length} Provinzen` : null;
+	return {
+		art: "projekt",
+		typ,
+		provinzen,
+		transit,
+		transitVermutet,
+		massstab,
+		merkmale,
+		ortName
+	};
+}
+const TYP_PARAM = {
+	schiene: {
+		bau: 1500,
+		monate: 40,
+		pk: 7,
+		schulden: .35,
+		verwaltung: 2,
+		unterhalt: .8,
+		ueberzugP: .6,
+		ueberzugBand: [.3, .6],
+		illusion: true,
+		bild: "bahn",
+		wirkung: [
+			{
+				knoten: "bahnnetz",
+				d: 5
+			},
+			{
+				knoten: "logistik",
+				d: 2
+			},
+			{
+				knoten: "stau",
+				d: -2
+			},
+			{
+				knoten: "wachstum_regional",
+				d: 2
+			}
+		]
+	},
+	strasse: {
+		bau: 1100,
+		monate: 32,
+		pk: 6,
+		schulden: .3,
+		verwaltung: 1.5,
+		unterhalt: .6,
+		ueberzugP: .45,
+		ueberzugBand: [.1, .3],
+		illusion: true,
+		bild: "bruecke",
+		wirkung: [
+			{
+				knoten: "verkehrsnetz",
+				d: 5
+			},
+			{
+				knoten: "logistik",
+				d: 2
+			},
+			{
+				knoten: "stau",
+				d: -2.5
+			},
+			{
+				knoten: "wachstum_regional",
+				d: 1.5
+			}
+		]
+	},
+	hafen: {
+		bau: 1300,
+		monate: 36,
+		pk: 7,
+		schulden: .4,
+		verwaltung: 2,
+		unterhalt: .8,
+		ueberzugP: .5,
+		ueberzugBand: [.2, .45],
+		illusion: true,
+		bild: "schiff",
+		wirkung: [
+			{
+				knoten: "logistik",
+				d: 5
+			},
+			{
+				knoten: "export",
+				d: 2.5
+			},
+			{
+				knoten: "wachstum_regional",
+				d: 2.5
+			},
+			{
+				knoten: "tourismus",
+				d: 1
+			}
+		],
+		nachbarLaender: [
+			{
+				land: "GRC",
+				dim: "handel",
+				d: -3
+			},
+			{
+				land: "GRC",
+				dim: "vertrauen",
+				d: -2
+			},
+			{
+				land: "GEO",
+				dim: "handel",
+				d: -2
+			},
+			{
+				land: "EGY",
+				dim: "handel",
+				d: -2
+			}
+		]
+	},
+	flughafen: {
+		bau: 1400,
+		monate: 34,
+		pk: 7,
+		schulden: .4,
+		verwaltung: 2,
+		unterhalt: .8,
+		ueberzugP: .5,
+		ueberzugBand: [.2, .45],
+		illusion: true,
+		bild: "flughafen",
+		wirkung: [
+			{
+				knoten: "tourismus",
+				d: 3
+			},
+			{
+				knoten: "logistik",
+				d: 3.5
+			},
+			{
+				knoten: "export",
+				d: 1.5
+			}
+		]
+	},
+	kanal: {
+		bau: 3200,
+		monate: 60,
+		pk: 12,
+		schulden: .9,
+		verwaltung: 3,
+		unterhalt: 1.2,
+		ueberzugP: .65,
+		ueberzugBand: [.3, .6],
+		illusion: true,
+		bild: "kanal",
+		wirkung: [
+			{
+				knoten: "logistik",
+				d: 6
+			},
+			{
+				knoten: "export",
+				d: 2
+			},
+			{
+				knoten: "ansehen",
+				d: 1.5
+			}
+		],
+		nachbarLaender: [{
+			land: "RUS",
+			dim: "vertrauen",
+			d: -4
+		}, {
+			land: "GRC",
+			dim: "handel",
+			d: -2
+		}]
+	},
+	stadt: {
+		bau: 3800,
+		monate: 72,
+		pk: 14,
+		schulden: 1.2,
+		verwaltung: 3.5,
+		unterhalt: 1.5,
+		ueberzugP: .55,
+		ueberzugBand: [.3, .6],
+		illusion: false,
+		bild: "stadt",
+		wirkung: [
+			{
+				knoten: "wachstum_regional",
+				d: 6
+			},
+			{
+				knoten: "landflucht",
+				d: -3
+			},
+			{
+				knoten: "mieten",
+				d: 2.5
+			},
+			{
+				knoten: "ungleichheit",
+				d: 1.5
+			}
+		]
+	},
+	energie: {
+		bau: 2e3,
+		monate: 48,
+		pk: 9,
+		schulden: .7,
+		verwaltung: 2.5,
+		unterhalt: 1,
+		ueberzugP: .55,
+		ueberzugBand: [.25, .55],
+		illusion: false,
+		bild: "reaktor",
+		wirkung: [
+			{
+				knoten: "stromversorgung",
+				d: 7
+			},
+			{
+				knoten: "energieimporte",
+				d: -4
+			},
+			{
+				knoten: "energiepreise",
+				d: -2
+			}
+		]
+	},
+	prestige: {
+		bau: 900,
+		monate: 24,
+		pk: 8,
+		schulden: .15,
+		verwaltung: 1.5,
+		unterhalt: .5,
+		ueberzugP: .8,
+		ueberzugBand: [.45, .7],
+		illusion: false,
+		bild: "kuppel",
+		wirkung: [
+			{
+				knoten: "ansehen",
+				d: 4
+			},
+			{
+				knoten: "tourismus",
+				d: 2
+			},
+			{
+				knoten: "identitaet",
+				d: 2.5
+			}
+		]
+	},
+	wasser: {
+		bau: 800,
+		monate: 24,
+		pk: 5,
+		schulden: .2,
+		verwaltung: 1,
+		unterhalt: .5,
+		ueberzugP: .4,
+		ueberzugBand: [.15, .35],
+		illusion: false,
+		bild: "damm",
+		wirkung: [{
+			knoten: "wasserversorgung",
+			d: 6
+		}, {
+			knoten: "duerre",
+			d: -4
+		}]
+	},
+	sonstig: {
+		bau: 1e3,
+		monate: 30,
+		pk: 6,
+		schulden: .3,
+		verwaltung: 1.5,
+		unterhalt: .6,
+		ueberzugP: .5,
+		ueberzugBand: [.2, .45],
+		illusion: false,
+		wirkung: [{
+			knoten: "ansehen",
+			d: 2
+		}, {
+			knoten: "wachstum_regional",
+			d: 2
+		}]
+	}
+};
+/** Maßstab → Faktor auf Kosten und Wirkungen (Spielparameter). */
+const MASSSTAB_FAKTOR = {
+	klein: .35,
+	regional: .7,
+	national: 1,
+	kontinental: 2.4,
+	weltgroesste: 3.2
+};
+/** Knoten, bei denen ein höherer Wert schlecht ist (für die Färbung der Wirkungszeilen). */
+const SCHLECHT_WENN_HOCH = /* @__PURE__ */ new Set([
+	"stau",
+	"mieten",
+	"ungleichheit",
+	"energieimporte",
+	"energiepreise",
+	"landflucht",
+	"duerre",
+	"korruption"
+]);
+const r1 = (x) => Math.round(x * 10) / 10;
+const band = (mitte, tiefF, hochF) => ({
+	tief: r1(mitte * tiefF),
+	mitte: r1(mitte),
+	hoch: r1(mitte * hochF)
+});
+const TYP_TITEL = {
+	schiene: "Bahn",
+	strasse: "Straße",
+	hafen: "Hafen",
+	flughafen: "Flughafen",
+	kanal: "Kanal",
+	stadt: "Neue Stadt",
+	energie: "Energieprojekt",
+	prestige: "Prestigebau",
+	wasser: "Wasserprojekt",
+	sonstig: "Großvorhaben"
+};
+const GROESSTE_TITEL = {
+	schiene: "Längste Bahn der Welt",
+	strasse: "Längste Straße der Welt",
+	hafen: "Größter Hafen der Welt",
+	flughafen: "Größter Flughafen der Welt",
+	kanal: "Größter Kanal der Welt",
+	stadt: "Größte neue Stadt der Welt",
+	energie: "Größtes Kraftwerk der Welt",
+	prestige: "Größtes Bauwerk der Welt",
+	wasser: "Größtes Wasserprojekt der Welt",
+	sonstig: "Größtes Vorhaben der Welt"
+};
+function projektName(d) {
+	if (d.merkmale.includes("Bagdadbahn")) return "Neue Bagdadbahn";
+	if (d.massstab === "weltgroesste") return GROESSTE_TITEL[d.typ];
+	if (d.transit.length) return `${TYP_TITEL[d.typ]} bis ${land(d.transit[d.transit.length - 1]).name}`;
+	if (d.ortName) return `${TYP_TITEL[d.typ]} ${d.ortName}`;
+	return `${TYP_TITEL[d.typ]} (landesweit)`;
+}
+/** Rivalen der Gravitation: Provinzen, die relativ abnehmen, weil der Ort gewinnt. */
+function rivalen(d) {
+	if (!d.provinzen.length) return [];
+	const ziel = new Set(d.provinzen);
+	if (d.typ === "hafen" || d.typ === "flughafen") return PROVINZEN.filter((p) => KUESTE.has(p.plaka) && p.grossstadt && !ziel.has(p.plaka)).sort((a, b) => b.bevoelkerung - a.bevoelkerung).slice(0, 3).map((p) => p.plaka);
+	const nuts = new Set(d.provinzen.map((p) => PROVINZEN[p - 1]?.nuts2));
+	return PROVINZEN.filter((p) => nuts.has(p.nuts2) && !ziel.has(p.plaka)).sort((a, b) => b.bevoelkerung - a.bevoelkerung).slice(0, 3).map((p) => p.plaka);
+}
+const knotenName = (id) => NET.nodes[NET.index.get(id) ?? -1]?.name ?? id;
+/** Das Schätzblatt: Kosten-, Zeit- und Wirkungsbänder, Risiken, Zweitrundeneffekte, Mentorin-Text. Rein rechnerisch, ohne Nebenwirkungen. */
+function schaetze(w, d, eingabe) {
+	const p = TYP_PARAM[d.typ];
+	const faktor = MASSSTAB_FAKTOR[d.massstab] + (d.massstab === "kontinental" ? .3 * d.transit.length : 0);
+	const regional = (d.massstab === "klein" || d.massstab === "regional") && d.provinzen.length > 0;
+	const ziel = regional ? d.provinzen : void 0;
+	const wo = regional ? ` in ${d.provinzen.length} ${d.provinzen.length === 1 ? "Provinz" : "Provinzen"}` : "";
+	const wirkungen = [];
+	for (const x of p.wirkung) {
+		const v = r1(x.d * Math.pow(faktor, .75));
+		if (Math.abs(v) < .3) continue;
+		const b = band(Math.abs(v), p.illusion ? .5 : .75, 1.25);
+		wirkungen.push({
+			name: knotenName(x.knoten),
+			richtung: x.d > 0 ? 1 : -1,
+			gut: SCHLECHT_WENN_HOCH.has(x.knoten) ? x.d < 0 : x.d > 0,
+			band: b,
+			wert: v,
+			vorlage: stuetze(x.knoten, v, ziel),
+			...wo ? { wo } : {}
+		});
+	}
+	const nachbarn = [];
+	const riv = rivalen(d);
+	if (riv.length && (d.typ === "hafen" || d.typ === "flughafen" || d.typ === "schiene" || d.typ === "strasse" || d.typ === "kanal")) {
+		const host = Math.abs(p.wirkung.find((x) => x.knoten === "wachstum_regional")?.d ?? 2) * Math.pow(faktor, .75);
+		const v = r1(Math.max(.4, host * .3));
+		const namen = riv.map((x) => PROVINZEN[x - 1]?.name ?? String(x));
+		wirkungen.push({
+			name: `Regionale Wirtschaft (${namen.join(", ")})`,
+			richtung: -1,
+			gut: false,
+			band: band(v, .8, 1.1),
+			wert: -v,
+			vorlage: stuetze("wachstum_regional", -v, riv),
+			wo: " rivalisierende Orte"
+		});
+		nachbarn.push({
+			name: namen.join(", "),
+			art: "provinz",
+			text: "Verkehr wandert zum neuen Ort — die Rivalen verlieren spürbar (Gravitation −0,8…−1,1)."
+		});
+	}
+	for (const n of p.nachbarLaender ?? []) {
+		const v = r1(n.d * Math.pow(faktor, .6));
+		if (Math.abs(v) < .4) continue;
+		wirkungen.push({
+			name: `${land(n.land).name}: ${{
+				handel: "Handel",
+				sicherheit: "Sicherheit",
+				vertrauen: "Vertrauen",
+				konflikt: "Konflikt"
+			}[n.dim]}`,
+			richtung: n.d > 0 ? 1 : -1,
+			gut: n.dim === "konflikt" ? n.d < 0 : n.d > 0,
+			band: band(Math.abs(v), .6, 1.3),
+			wert: v,
+			vorlage: {
+				t: "land",
+				land: n.land,
+				dim: n.dim,
+				d: v
+			}
+		});
+		if (!nachbarn.some((x) => x.name === land(n.land).name)) nachbarn.push({
+			name: land(n.land).name,
+			art: "land",
+			text: "Ein Korridor dieser Größe verschiebt Verkehre auch über die Grenze — Nachbarn ohne Anschluss nehmen ab und werden unzufrieden."
+		});
+	}
+	if (d.transit.length) {
+		for (const lId of d.transit) {
+			const v = r1(1.5 * Math.pow(faktor, .5));
+			wirkungen.push({
+				name: `${land(lId).name}: Handel`,
+				richtung: 1,
+				gut: true,
+				band: band(v, .5, 1.4),
+				wert: v,
+				vorlage: {
+					t: "land",
+					land: lId,
+					dim: "handel",
+					d: v
+				}
+			});
+		}
+		const ausserhalb = ["GRC", "IRN"].filter((x) => !d.transit.includes(x));
+		for (const lId of ausserhalb) wirkungen.push({
+			name: `${land(lId).name}: Vertrauen`,
+			richtung: -1,
+			gut: false,
+			band: band(1, .5, 1.5),
+			wert: -1,
+			vorlage: {
+				t: "land",
+				land: lId,
+				dim: "vertrauen",
+				d: -1
+			}
+		});
+		nachbarn.push({
+			name: ausserhalb.map((x) => land(x).name).join(", "),
+			art: "land",
+			text: "Wer keinen Anschluss an den Korridor hat, nimmt ab — und reagiert."
+		});
+	}
+	const ueberzugErwartung = (p.ueberzugBand[0] + p.ueberzugBand[1]) / 2;
+	const risiken = [{
+		name: "Kostenüberschreitung",
+		wert: `${Math.round(p.ueberzugP * 100)} % Wahrscheinlichkeit`,
+		text: `Erfahrungsgemäß wird es bei solchen Vorhaben um etwa ${Math.round(ueberzugErwartung * 100)} % teurer als geplant; die Überschreitung kommt mitten im Bau, nicht am Anfang.`
+	}, {
+		name: "Korruptionsanfälligkeit",
+		wert: faktor >= 2 ? "hoch" : faktor >= 1 ? "mittel" : "niedrig",
+		text: "Je größer die Vergabe-Oberfläche, desto größer die Versuchung; die Stammfirma baut schneller und näher — und nährere Aufträge nähren das Risiko."
+	}];
+	if (p.illusion) risiken.push({
+		name: "Verkehrsillusion",
+		wert: "25 bis 60 % der Planung",
+		text: "Prognosen solcher Projekte werden optimistisch präsentiert; was wirklich fährt und läuft, liegt erfahrungsgemäß darunter — rechnen Sie mit dem unteren Bandende."
+	});
+	if (d.transit.length) risiken.push({
+		name: "Veto auf der Strecke",
+		wert: `${d.transit.length} ${d.transit.length === 1 ? "Land" : "Länder"} am Tisch`,
+		text: "Jedes Transitland verhandelt ein eigenes Paket; ein einziges Nein macht die Strecke tot oder den Umweg spürbar teurer (Bagdadbahn-Regel)."
+	});
+	const transitSchritte = d.transit.map((lId) => ({
+		land: lId,
+		name: land(lId).name,
+		...d.transitVermutet.includes(lId) ? { vermutet: true } : {}
+	}));
+	const staerkste = [...wirkungen].filter((x) => x.gut).sort((a, b) => b.band.mitte - a.band.mitte)[0];
+	const mentorSaetze = [
+		`Ein Vorhaben dieser Art (${PROJEKT_TYP_NAMEN[d.typ].toLowerCase()}, ${MASSSTAB_NAMEN[d.massstab]}) bindet über Jahre Baukapazität und Verwaltungskraft; was es kostet und wie lange es dauert, lässt sich ehrlich nur als Band angeben.`,
+		staerkste ? `Es stärkt vor allem ${staerkste.name} spürbar${staerkste.wo ? ` ${staerkste.wo.trim()}` : ""}${p.illusion ? "; wie viel Verkehr wirklich kommt, liegt erfahrungsgemäß zwischen einem Viertel und gut der Hälfte der Prognose" : ""}.` : "Die Wirkung ist begrenzt und unsicher.",
+		nachbarn.length ? "Wo Verkehr und Wachstum hinwandern, fehlen sie anderswo: Rivalen im eigenen Land und Nachbarn ohne Anschluss nehmen ab — das ist der Zweitrundeneffekt, über den später verhandelt wird." : "",
+		"Überschreitungen sind bei solchen Vorhaben eher die Regel als die Ausnahme; die Wahl der Vergabe entscheidet, wie nah Korruption und loyale Firmen kommen.",
+		d.transit.length ? "Über die Grenze hinaus gilt die Bagdadbahn-Regel: Jedes Land auf der Strecke sitzt mit am Tisch, und ein einziges Nein macht den Umweg teurer oder die Strecke tot." : "",
+		d.massstab === "weltgroesste" ? "Ein Rekordanspruch ist ein Signal an alle Nachbarn — und die teuerste Form des Bauens, die es gibt." : ""
+	].filter(Boolean);
+	return {
+		eingabe,
+		typ: d.typ,
+		massstab: d.massstab,
+		klasse: d.massstab === "weltgroesste" || d.typ === "kanal" || d.typ === "stadt" || d.typ === "prestige" && d.massstab !== "klein" && d.massstab !== "regional" ? "wunder" : "grossprojekt",
+		name: projektName(d),
+		pk: band(p.pk * (.6 + .4 * faktor), .8, 1.3),
+		bau: band(p.bau * faktor, .85, 1 + p.ueberzugBand[1]),
+		monate: band(p.monate * Math.sqrt(faktor), .9, 1.35),
+		schulden: band(p.schulden * faktor, .8, 1.4),
+		verwaltung: Math.max(1, Math.round(p.verwaltung)),
+		unterhalt: r1(p.unterhalt * Math.min(faktor, 2)),
+		wirkungen,
+		risiken,
+		nachbarn,
+		...transitSchritte.length ? { transit: transitSchritte } : {},
+		ueberzugP: p.ueberzugP,
+		ueberzugBand: p.ueberzugBand,
+		mentor: mentorSaetze.join(" ")
+	};
+}
+/** Alle freien Vorhaben des Reichs (Entwürfe und Begonnene). */
+function freieEntwuerfe(w) {
+	return Object.entries(reichZustand(w).frei ?? {}).map(([id, eintrag]) => ({
+		id,
+		eintrag
+	}));
+}
+function friedensAntwort(w, d) {
+	if (d.vermittlungId) {
+		const sicht = vermittlungen(w).find((x) => x.def.id === d.vermittlungId);
+		const def = sicht.def;
+		return {
+			ok: false,
+			text: `Frieden wird nicht gebaut, sondern vermittelt. Dafür gibt es einen eigenen Weg: ${def.titel} — ${def.text} Die Aussicht liegt derzeit bei etwa ${sicht.aussicht} Prozent; der Versuch kostet ${def.pk} Kapital.${sicht.moeglich ? "" : ` Gerade blockiert: ${sicht.grund}`} Sie finden die Vermittlung in der Welt-Ansicht unter „Zwischen Dritten“.`,
+			why: "Routing statt Projekt: Die Vermittlungs-Mechanik rechnet Interessen, Vertrauen und Konfliktstand — ein Schätzblatt kann das nicht leisten."
+		};
+	}
+	if (d.paar) return {
+		ok: false,
+		text: `Zwischen ${land(d.paar[0]).name} und ${land(d.paar[1]).name} gibt es in diesem Spiel noch keine Vermittlungsmechanik. Gebaut sind die Wege Ukraine–Russland und Armenien–Aserbaidschan; für andere Paare bleiben Ihnen die üblichen Beziehungswege (Gipfel, Entschärfung, Verträge am Verhandlungstisch).`,
+		why: "Ehrlich statt vorgetäuscht: Ich führe nur aus, was der Kern rechnen kann."
+	};
+	return {
+		ok: false,
+		text: "Frieden ist kein Bauwerk, sondern eine Vermittlung zwischen zwei Parteien — nennen Sie beide, etwa „Frieden zwischen Ukraine und Russland“. Die Vermittlung finden Sie in der Welt-Ansicht unter „Zwischen Dritten“.",
+		why: "Routing statt Projekt."
+	};
+}
 //#endregion
 //#region src/ki/aktionen.ts
 const MAX_AKTIONEN = 3;
@@ -20763,6 +29172,26 @@ function pruefeForm(x) {
 			id: o.id.trim(),
 			...g
 		} : null;
+		case "grossprojekt": {
+			if (!istText(o.text)) return null;
+			const vergabe = o.vergabe === "stammfirma" || o.vergabe === "sparvergabe" || o.vergabe === "ausschreibung" ? o.vergabe : void 0;
+			return {
+				art: "grossprojekt",
+				text: o.text.trim().slice(0, 240),
+				...vergabe ? { vergabe } : {},
+				...g
+			};
+		}
+		case "verfassung": {
+			if (!istText(o.handlung)) return null;
+			const paket = o.paket && typeof o.paket === "object" ? Object.fromEntries(Object.entries(o.paket).filter(([, x]) => istText(x)).map(([k, x]) => [k.trim(), x.trim()]).slice(0, 8)) : void 0;
+			return {
+				art: "verfassung",
+				handlung: o.handlung.trim(),
+				...paket && Object.keys(paket).length ? { paket } : {},
+				...g
+			};
+		}
 		case "abkommen": {
 			if (!istText(o.land)) return null;
 			const liste = (x) => Array.isArray(x) ? x.filter(istText).map((t) => t.trim()).slice(0, 8) : [];
@@ -20779,6 +29208,12 @@ function pruefeForm(x) {
 		case "vermittlung": return istText(o.id) ? {
 			art: "vermittlung",
 			id: o.id.trim(),
+			...g
+		} : null;
+		case "krieg": return istText(o.land) && istText(o.handlung) ? {
+			art: "krieg",
+			land: o.land.trim(),
+			handlung: o.handlung.trim(),
 			...g
 		} : null;
 		case "zeit": {
@@ -20955,7 +29390,7 @@ function vorschau(w, a) {
 			};
 		}
 		case "programm": {
-			const s = naechsterSchritt(w);
+			const s = naechsterSchritt$1(w);
 			if (!s) return {
 				aktion: a,
 				titel: "Programmschritt",
@@ -21076,6 +29511,137 @@ function vorschau(w, a) {
 				hinweis: `Etwa ${v.kosten.monate} Monate Bauzeit. ${v.kehrseite}`
 			};
 		}
+		case "grossprojekt": {
+			const d = interpretiere(a.text);
+			if (d.art === "absage") return {
+				aktion: a,
+				titel: "Freies Großprojekt",
+				problem: d.grund
+			};
+			if (d.art === "rueckfrage") return {
+				aktion: a,
+				titel: "Freies Großprojekt",
+				problem: d.frage
+			};
+			if (d.art === "frieden") return {
+				aktion: a,
+				titel: "Vermittlung statt Bauvorhaben",
+				problem: friedensAntwort(w, d).text
+			};
+			const gefaltet = fold(a.text);
+			const vorhanden = freieEntwuerfe(w).find((x) => fold(x.eintrag.schaetzung.eingabe) === gefaltet);
+			if (vorhanden) {
+				const e = vorhanden.eintrag;
+				const titel = `Beginn: ${e.def.name}`;
+				if (e.stand === "begonnen") return {
+					aktion: a,
+					titel,
+					problem: "Es läuft bereits."
+				};
+				const offen = Object.entries(e.transit ?? {}).filter(([, st]) => st === "offen").map(([lId]) => lId);
+				if (offen.length) return {
+					aktion: a,
+					titel,
+					problem: `Die Durchfahrt ist noch nicht zugesagt: ${offen.join(", ")}. Die Verhandlungen laufen im Schätzblatt.`
+				};
+				const veto = Object.entries(e.transit ?? {}).filter(([, st]) => st === "veto").map(([lId]) => lId);
+				if (veto.length) return {
+					aktion: a,
+					titel,
+					problem: `${veto.join(", ")} verweigert die Durchfahrt; erst der Umweg im Schätzblatt macht die Strecke frei.`
+				};
+				return {
+					aktion: a,
+					titel,
+					kosten: e.def.kosten.pk,
+					hinweis: `Geschätzt ${e.schaetzung.monate.tief}–${e.schaetzung.monate.hoch} Monate; die Überschreitung kommt erfahrungsgemäß erst im Bau.`
+				};
+			}
+			const s = schaetze(w, d, a.text);
+			const transit = s.transit?.length ? ` Grenzübertritt über ${s.transit.map((x) => x.name).join(", ")}: erst die Verhandlungsserie, dann der Baubeginn.` : "";
+			return {
+				aktion: a,
+				titel: `Schätzung: ${s.name}`,
+				kosten: Math.round(s.pk.mitte),
+				hinweis: `Bandbreiten: Kapital ${s.pk.tief}–${s.pk.hoch}, Bau ${s.bau.tief}–${s.bau.hoch} Punkte, ${s.monate.tief}–${s.monate.hoch} Monate.${transit}`
+			};
+		}
+		case "verfassung": {
+			const v = verfassungsZustand(w).laufend;
+			if (a.handlung === "einbringen") {
+				if (!a.paket || !Object.keys(a.paket).length) return {
+					aktion: a,
+					titel: "Verfassungspaket einbringen",
+					problem: "Es fehlt das Paket: Artikel-Kennung auf Varianten-Kennung, zum Beispiel { wahlrecht: \"fuenf\" }."
+				};
+				const pr = pruefeVerfassung(w, a.paket);
+				const titel = `Verfassungspaket einbringen (${pr.geaendert} ${pr.geaendert === 1 ? "Artikel" : "Artikel"})`;
+				if (!pr.ok) return {
+					aktion: a,
+					titel,
+					problem: pr.grund ?? "So nicht möglich."
+				};
+				return {
+					aktion: a,
+					titel,
+					kosten: pr.pk,
+					hinweis: `Erwartet ${pr.stimmen.erwartet} Ja (Spanne ${pr.stimmen.tief} bis ${pr.stimmen.hoch}); ab ${VERFASSUNG_REGELN.direkt} direkt Gesetz, ab ${VERFASSUNG_REGELN.mehrheit} Volksabstimmung.`
+				};
+			}
+			if (a.handlung === "zurueckziehen") {
+				if (!v || v.phase !== "parlament") return {
+					aktion: a,
+					titel: "Verfassungspaket zurückziehen",
+					problem: "Es liegt kein Paket zur Abstimmung vor."
+				};
+				return {
+					aktion: a,
+					titel: "Verfassungspaket zurückziehen",
+					hinweis: "Ein Teil des Kapitals kommt zurück; die Amtszeit hat ihre Verfassungsdebatte hinter sich."
+				};
+			}
+			if (a.handlung === "stimmen_kaufen") {
+				if (!v || v.phase !== "parlament") return {
+					aktion: a,
+					titel: "Stimmen für das Verfassungspaket kaufen",
+					problem: "Es liegt kein Paket zur Abstimmung vor."
+				};
+				const sicht = paketStimmen(w, v.paket, v.absprachen);
+				const ziel = sicht.erwartet >= VERFASSUNG_REGELN.mehrheit ? VERFASSUNG_REGELN.direkt + VERFASSUNG_REGELN.stimmenPuffer : VERFASSUNG_REGELN.mehrheit + VERFASSUNG_REGELN.stimmenPuffer;
+				const noetig = Math.max(0, ziel - sicht.erwartet);
+				if (!noetig) return {
+					aktion: a,
+					titel: "Stimmen für das Verfassungspaket kaufen",
+					problem: "Die nächste Hürde gilt der Prognose nach als gesichert."
+				};
+				const kosten = Math.ceil(noetig * REGELN.kaufKostenProStimme * VERFASSUNG_REGELN.kaufFaktor);
+				return {
+					aktion: a,
+					titel: `${noetig} Stimmen für das Verfassungspaket sichern`,
+					kosten,
+					...kannZahlen(spiel.kapital, kosten) ? {} : { problem: "Dafür fehlt Kapital." }
+				};
+			}
+			if (a.handlung === "kampagne") {
+				if (!v || v.phase !== "kampagne") return {
+					aktion: a,
+					titel: "Referendum-Kampagne",
+					problem: "Es läuft gerade keine Kampagne zu einer Volksabstimmung."
+				};
+				const p = referendumPrognose(w);
+				return {
+					aktion: a,
+					titel: "Kampagnen-Impuls fürs Referendum",
+					kosten: VERFASSUNG_REGELN.kampagnePk,
+					...p ? { hinweis: `Erwartet etwa ${p.mitte.toLocaleString("de-DE", { maximumFractionDigits: 1 })} Prozent Ja.` } : {}
+				};
+			}
+			return {
+				aktion: a,
+				titel: `Verfassung: ${a.handlung}`,
+				problem: "Diese Handlung gibt es nicht (einbringen, zurueckziehen, stimmen_kaufen, kampagne)."
+			};
+		}
 		case "abkommen": {
 			const def = LAENDER.find((l) => l.id === a.land);
 			if (!def) return {
@@ -21133,10 +29699,43 @@ function vorschau(w, a) {
 				...v.moeglich ? {} : { problem: v.grund ?? "Geht gerade nicht." }
 			};
 		}
+		case "krieg": {
+			const def = LAENDER.find((l) => l.id === a.land);
+			if (!def) return {
+				aktion: a,
+				titel: a.land,
+				problem: `„${a.land}“ ist kein Land dieses Spiels.`
+			};
+			const k = kriegMit(w, def.id);
+			if (!k) return {
+				aktion: a,
+				titel: def.name,
+				problem: "Es gibt keinen aktiven Konfliktvorgang mit diesem Land."
+			};
+			const s = handlungenFuer(w, k.id).find((x) => x.id === a.handlung);
+			const titel = `${PHASEN_NAME[k.phase]} mit ${def.dat}: ${a.handlung}`;
+			if (!s) return {
+				aktion: a,
+				titel,
+				problem: "Diese Handlung gibt es in dieser Phase nicht."
+			};
+			return {
+				aktion: a,
+				titel: `${PHASEN_NAME[k.phase]} mit ${def.dat}: ${s.label}`,
+				kosten: s.pk,
+				hinweis: s.hinweis,
+				...s.moeglich ? {} : { problem: s.grund ?? "Geht gerade nicht." }
+			};
+		}
 		case "zeit": return {
 			aktion: a,
 			titel: `${a.tage} ${a.tage === 1 ? "Tag" : "Tage"} weiter`,
 			hinweis: "Die Zeit hält an, sobald ein Ereignis auf eine Entscheidung wartet."
+		};
+		case "verfassung": return {
+			aktion: a,
+			titel: "Verfassungspaket",
+			problem: "Der Verfassungsvorgang ist in diesem Stand noch nicht an die Ausführung angeschlossen."
 		};
 	}
 }
@@ -21683,7 +30282,7 @@ function applyProfile(world, profile) {
 }
 /** Amtsantritt nach der Wahl 2028: Profil übernehmen, Parlament wählen, erste Einträge. */
 function startAfterElection(world, profile) {
-	const rng = new Rng(world.rngState);
+	const rng = new Rng$1(world.rngState);
 	world.player = structuredClone(profile);
 	world.parliament = electParliament(profile, rng);
 	applyProfile(world, profile);

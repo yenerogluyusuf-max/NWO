@@ -3,6 +3,7 @@
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen; Tatsachen stehen mit Quelle im Text.
 
 import type { Dimension } from "./laender";
+import type { Angebot } from "./abkommen-typen";
 
 export type Bereich = "kultur" | "recht" | "militaer" | "infrastruktur" | "haushalt";
 
@@ -81,6 +82,127 @@ export const VERGABE_NAMEN: Record<Vergabe, string> = {
   ausschreibung: "Transparente Ausschreibung",
 };
 
+// ---------------------------------------------------------------------------
+// Freie Großprojekte (INF-4, GRO-01/02; GROSSPROJEKTE.md und PLANERWEITERUNG.md, Nachtrag §8)
+// Der Spieler tippt ein beliebiges Vorhaben; der Interpreter in sim/grossprojekt.ts zerlegt es,
+// die Schätzung rechnet mit dem 3-Ebenen-Modell (direkte Effekte, Zweitrundeneffekte, politische Folgen).
+// Alle Zahlen dazu sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
+
+export type ProjektTyp = "schiene" | "strasse" | "hafen" | "flughafen" | "kanal" | "stadt" | "energie" | "prestige" | "wasser" | "sonstig";
+
+export const PROJEKT_TYP_NAMEN: Record<ProjektTyp, string> = {
+  schiene: "Schiene",
+  strasse: "Straße",
+  hafen: "Hafen",
+  flughafen: "Flughafen",
+  kanal: "Kanal",
+  stadt: "Stadt",
+  energie: "Energie",
+  prestige: "Prestige",
+  wasser: "Wasser",
+  sonstig: "Vorhaben",
+};
+
+export type Massstab = "klein" | "regional" | "national" | "kontinental" | "weltgroesste";
+
+export const MASSSTAB_NAMEN: Record<Massstab, string> = {
+  klein: "klein",
+  regional: "regional",
+  national: "national",
+  kontinental: "kontinental",
+  weltgroesste: "größte der Welt",
+};
+
+/** Eine Schätzung als Band: Erwartungswert mit ehrlicher Unsicherheit nach unten und oben. */
+export interface Band {
+  tief: number;
+  mitte: number;
+  hoch: number;
+}
+
+/** Eine Wirkung der Schätzung: Richtung und Bandbreite; `vorlage` trägt Knoten/Land und den Mittelwert (mit Vorzeichen). */
+export interface WirkungsBand {
+  /** Anzeigename (Knoten- oder Ländername) */
+  name: string;
+  /** +1 steigt, −1 sinkt */
+  richtung: 1 | -1;
+  /** Ob das für das Land gut ist */
+  gut: boolean;
+  /** Bandbreite der Verschiebung in Punkten (Beträge) */
+  band: Band;
+  /** Mittlere Verschiebung mit Vorzeichen; bei der Annahme wird der verwirklichte Betrag im Band gezogen und mit diesem Vorzeichen versehen */
+  wert: number;
+  /** Effekt-Vorlage mit Mittelwert in `d`; bei der Annahme wird der verwirklichte Wert im Band gezogen */
+  vorlage: Effekt;
+  /** Ortsangabe in Worten, etwa „in 3 Provinzen“ */
+  wo?: string;
+}
+
+export interface RisikoZeile {
+  name: string;
+  /** Formulierte Größenordnung, etwa „hoch“ oder „25 bis 60 % der Planung“ */
+  wert: string;
+  text: string;
+}
+
+/** Zweitrundeneffekt: eine Nachbarprovinz oder ein Nachbarland, die/ das wirtschaftlich abnimmt. */
+export interface NachbarEffekt {
+  name: string;
+  art: "provinz" | "land";
+  text: string;
+}
+
+/** Ein Land auf der Strecke eines grenzüberschreitenden Vorhabens (Bagdadbahn-Logik). */
+export interface TransitSchritt {
+  land: string;
+  name: string;
+  /** Vom Interpreter ergänzt (Korridor-Schätzung), nicht vom Spieler genannt */
+  vermutet?: boolean;
+}
+
+/** Das Schätzblatt eines freien Großprojekts: Bänder statt Festpreise, Risiken, Mentorin-Text. */
+export interface Schaetzung {
+  eingabe: string;
+  typ: ProjektTyp;
+  massstab: Massstab;
+  klasse: Klasse;
+  name: string;
+  pk: Band;
+  /** Baupunkte insgesamt */
+  bau: Band;
+  monate: Band;
+  /** Prozentpunkte der Schuldenquote über die Bauzeit */
+  schulden: Band;
+  /** Verwaltungskraft je Monat im Bau */
+  verwaltung: number;
+  /** Verwaltungskraft je Monat im Bestand */
+  unterhalt: number;
+  wirkungen: WirkungsBand[];
+  risiken: RisikoZeile[];
+  nachbarn: NachbarEffekt[];
+  /** Grenzübertritte in Reihenfolge; leer/undefined = rein national */
+  transit?: TransitSchritt[];
+  /** Wahrscheinlichkeit, dass die Kostenüberschreitung im Bau eintritt (Spielparameter) */
+  ueberzugP: number;
+  /** Größe der Überschreitung als Anteil der Baukosten [tief, hoch] (Spielparameter) */
+  ueberzugBand: [number, number];
+  /** Mentorin-Text: erklärt Richtung und Bandbreite, nennt nie exakte Zahlen */
+  mentor: string;
+}
+
+export type TransitStand = "offen" | "zusage" | "veto" | "umgangen";
+
+/** Ein freies Großprojekt im Reich: Entwurf (Schätzblatt) oder begonnenes Vorhaben. */
+export interface FreiEintrag {
+  def: Vorhaben;
+  schaetzung: Schaetzung;
+  stand: "entwurf" | "begonnen";
+  /** Transitland → Verhandlungsstand; ein Veto zwingt zum Umweg oder zur Aufgabe */
+  transit?: Record<string, TransitStand>;
+  /** Gegenangebot eines Transitlandes, das der Spieler annehmen kann */
+  transitGegen?: Record<string, Angebot>;
+}
+
 /** Bilder der Wunder-Animation: einfache Silhouetten im Stil des Spiels. */
 export type WunderBild =
   | "tempel"
@@ -147,6 +269,8 @@ export interface Vorhaben {
   start?: { status: "fertig" | "im_bau"; zustand?: number; fortschritt?: number };
   /** Solange das gilt, ist das Vorhaben gesperrt (etwa ein blockiertes Rüstungsprogramm); Text erklärt es */
   sperre?: { solange: Voraussetzung; text: string };
+  /** Frei eingegebenes Großprojekt (INF-4): Kosten und Wirkungen sind Schätzungen; Überschreitungen möglich */
+  frei?: boolean;
 }
 
 export interface BestandEintrag {
@@ -171,6 +295,10 @@ export interface LaufEintrag {
   vergabeBis?: number;
   /** Zustand, mit dem das fertige Stück in den Bestand geht (Sparvergabe beginnt niedriger; sonst 90) */
   zustandFertig?: number;
+  /** Frei eingegebenes Großprojekt (INF-4): die Schätzung steht in ReichZustand.frei */
+  frei?: boolean;
+  /** Kostenüberschreitung freier Projekte: ob an der 35-%-Marke schon gewürfelt wurde */
+  ueberzugGeprueft?: boolean;
 }
 
 export interface StaetteZustand {
@@ -183,7 +311,7 @@ export interface ReichMeldung {
   tag: number;
   datum: string;
   text: string;
-  art: "fertig" | "verfall" | "verzug" | "freigeschaltet" | "gesperrt";
+  art: "fertig" | "verfall" | "verzug" | "freigeschaltet" | "gesperrt" | "ueberzug";
 }
 
 export interface ReichZustand {
@@ -202,4 +330,6 @@ export interface ReichZustand {
   bauGenutzt: number;
   /** Besetzung der Gerichte nach Lagern (Sitze): loyal zur Regierung, unabhängig, reformorientiert */
   sitze: Record<string, { loyal: number; unabhaengig: number; reform: number }>;
+  /** Frei eingegebene Großprojekte (INF-4): Entwürfe mit Schätzung und begonnene Vorhaben; fehlt in älteren Spielständen */
+  frei?: Record<string, FreiEintrag>;
 }

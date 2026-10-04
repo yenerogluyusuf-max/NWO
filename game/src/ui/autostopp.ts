@@ -18,9 +18,14 @@
 // | Hinweis `starthilfe` (sim/spiel.ts, nach der Zielwahl)           | B | Amtsantritt, einmalig |
 // | Hinweis `warnung-*` (Sturz-Warnung, sim/spiel.ts)                | B | Sturz-Schwelle gekreuzt |
 // | Hinweis `bruch-*` (Partner verlässt das Lager, sim/spiel.ts)     | B | Vertragsbruch |
-// | Hinweis `wahl-*` (Wiederwahl, sim/spiel.ts)                      | B | Wendepunkt der Partie |
+// | Hinweis `wahl-*` (Wahlabend: Wiederwahl, sim/spiel.ts)               | A | Der Wahlabend ist der Schlusspunkt der Amtszeit (INN-5) |
+// | Hinweis `wahlkampf-beginn-*` (Phasenbeginn, sim/wahlkampf.ts)        | B | Wendepunkt: Die Handlungsphase öffnet |
+// | Hinweis `wahlkampf-duell-*` (TV-Duell ausgetragen, sim/wahlkampf.ts) | B | Ausgang mit dauerhafter Wirkung auf die Wechselwähler |
 // | Hinweis `programm-*` (Schritt erreicht/Programm erfüllt, sim/programme.ts) | B | Fertigstellung |
 // | Hinweis `zusammenbruch-*` (sim/aufmerksamkeit.ts)                | B | Krisen-Eintritt mit Vertrauensverlust |
+// | Hinweis `eu-bericht-*` (EU-Fortschrittsbericht, sim/eu.ts)       | B | Jährliche Benotung, dauerhafter Befund |
+// | Hinweis `eu-screening-*`, `eu-visa-*`, `eu-perspektive-*` (sim/eu.ts) | B | Phasen-Wendepunkte des Beitrittsvorgangs |
+// | Ereignisse `eu_veto`, `eu_zollunion` (sim/ereignisse-eu.ts)      | A | Entscheidung mit Konsequenz (Zugeständnis/Stillstand, Update/Jahre vertagen) |
 // | Hinweis `pause-*` (ruhiger Tag, sim/aufmerksamkeit.ts)           | C | Routine-Folge der Belastung; die Sperre erklärt sich am Blocker (`neuanfangGrund`) |
 // | Feier, spiel.reich.feier (sim/reich.ts, UI: WunderFenster)       | B | Fertigstellung (Wunder/Großprojekt/Serie) |
 // | Abstimmung im Parlament (UI: AbstimmungsKarte)                   | C | Ergebnis ohne Entscheidung; die Karte hält schon bisher nicht an (unverändert) |
@@ -43,9 +48,14 @@ const HINWEIS_KLASSEN: [praefix: string, klasse: StoppKlasse][] = [
   ["starthilfe", "B"],
   ["warnung-", "B"],
   ["bruch-", "B"],
-  ["wahl-", "B"],
+  ["wahl-", "A"],
+  ["wahlkampf-", "B"],
   ["programm-", "B"],
   ["zusammenbruch-", "B"],
+  ["eu-bericht-", "B"],
+  ["eu-screening-", "B"],
+  ["eu-visa-", "B"],
+  ["eu-perspektive-", "B"],
 ];
 
 export function hinweisKlasse(id: string): StoppKlasse {
@@ -86,8 +96,9 @@ export interface HaltBewertung {
  */
 export function bewerteHalt(spiel: SpielZustand, geseheneEreignisse: ReadonlySet<string>): HaltBewertung {
   const umlaufHinweise = spiel.hinweise.filter((h) => hinweisKlasse(h.id) === "C");
+  const aHinweis = spiel.hinweise.some((h) => hinweisKlasse(h.id) === "A");
   const bHinweis = spiel.hinweise.some((h) => hinweisKlasse(h.id) === "B");
-  const a = !!spiel.ende || spiel.ereignisse.some((e) => !geseheneEreignisse.has(e.id));
+  const a = !!spiel.ende || aHinweis || spiel.ereignisse.some((e) => !geseheneEreignisse.has(e.id));
   const b = bHinweis || (spiel.reich?.feier.length ?? 0) > 0;
   return { halt: a || b, klasse: a ? "A" : b ? "B" : null, umlaufHinweise };
 }

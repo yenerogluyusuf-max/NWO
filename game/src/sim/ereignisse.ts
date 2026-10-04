@@ -23,11 +23,15 @@ import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingr
 import { REGELN, bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
 import { FORDERUNG, bereitschaftAendern, forderungVon } from "./fraktionen";
 import { INNEN_VORLAGEN } from "./ereignisse-innen";
+import { KATASTROPHE_VORLAGEN } from "./ereignisse-katastrophe";
+import { setzeKatastrophenOeffner } from "./katastrophe";
 import { INITIATIVE_VORLAGEN, INITIATIVE_VORLAGE_IDS } from "./initiative";
 import { schutzFuer } from "./programme";
 import { schwierig } from "./spiel";
 import { AUSSEN_VORLAGEN } from "./ereignisse-aussen";
 import { KRIEG_VORLAGEN } from "./ereignisse-krieg";
+import { EU_VORLAGEN } from "./ereignisse-eu";
+import { VERMITTLUNG_VORLAGEN } from "./ereignisse-vermittlung";
 import { REICH_VORLAGEN } from "./ereignisse-reich";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
 import { VERFASSUNG_VORLAGEN } from "./ereignisse-verfassung";
@@ -995,12 +999,17 @@ const START_WIEDERAUFBAU: Vorlage = {
 export const VORLAGEN: Vorlage[] = [
   ERDBEBEN, DUERRE, WAEHRUNG, ENERGIE, HAUSHALT, KORRUPTION, STREIK, MIETE, FLUECHTLINGE, ANSCHLAG, WALDBRAND, STROM, AERZTE, PREISDECKEL, MIETDECKEL, KOALITION,
   ZUSAGE, START_HAUSHALT, START_PARTNER, START_WIEDERAUFBAU,
-  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...KRIEG_VORLAGEN,
+  ...KATASTROPHE_VORLAGEN,
+  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...KRIEG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */
 const EREIGNIS_MASSNAHMEN: Record<string, string[]> = {
   erdbeben: ["m_bauaufsicht", "m_stadterneuerung"],
+  grossbeben: ["m_afad_ausbau", "m_gebaeudeverstaerkung", "m_bauaufsicht", "m_stadterneuerung"],
+  katastrophe_flut: ["m_afad_ausbau", "m_staudaemme", "m_regionalfoerderung"],
+  katastrophe_waldbrand: ["m_afad_ausbau", "m_umweltauflagen"],
+  katastrophe_duerre: ["m_bewaesserung", "m_wasserleitungen", "m_agrarsubventionen"],
   duerre: ["m_bewaesserung", "m_wasserleitungen", "m_agrarsubventionen"],
   energiepreisschock: ["m_energiesubventionen", "m_solar_wind", "m_speicher_smartgrid"],
   korruptionsaffaere: ["m_antikorruption", "m_justizreform"],
@@ -1143,7 +1152,7 @@ export function vorlage(id: string): Vorlage {
 export const MAX_OFFEN = 3;
 
 /** Vorlagen, deren Öffnen den Präsidenten sofort belastet (Eskalation im eigenen Land oder an den Grenzen). */
-const ESKALATION_VORLAGEN = new Set(["anschlag", "cyberangriff", "waehrungsrutsch", "weltwirtschaftskrise", "bankenstress", "pandemie", "land_provokation", "land_drohkulisse", "grenzzwischenfall"]);
+const ESKALATION_VORLAGEN = new Set(["anschlag", "cyberangriff", "waehrungsrutsch", "weltwirtschaftskrise", "bankenstress", "pandemie", "land_provokation", "land_drohkulisse", "grenzzwischenfall", "grossbeben", "katastrophe_flut"]);
 
 /** Was eine Vorlage bei Auslösung erzeugt (Ort, Stärke, Daten); Felder dürfen fehlen. */
 type Erzeugung = { provinzen?: number[]; staerke?: number; daten?: Record<string, number | string> };
@@ -1323,6 +1332,12 @@ setzeEinbringHaken((world, massnahmeId, text) => {
 // ohne den Ereignismotor importieren zu müssen (Importrichtung bleibt einseitig).
 setzeVerfassungsOeffner((w, vorlageId, rng) => {
   oeffne(w, vorlageId, rng);
+});
+
+// Das Katastrophen-Modul (sim/katastrophe.ts, INF-5) öffnet seine Lagen über denselben Weg;
+// es kommt garantiert auf den Tisch (Auto-Stopp A) und steht nie im Monats-Wettbewerb.
+setzeKatastrophenOeffner((w, vorlageId, rng, params) => {
+  oeffne(w, vorlageId, rng, params);
 });
 
 const VORSCHAU_CACHE = new Map<string, string[]>();

@@ -171,6 +171,60 @@
 .we-vermittlung-fuss { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .we-grund { font: italic 13.5px var(--serif); color: var(--seal); }
 
+/* Vermittlung zwischen Dritten (AUS-4): Konflikt-Auswahl, ZOPA-Band, Reif-Kurve, Garantien */
+.we-konflikte { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 10px 0 12px; }
+.we-konflikt { display: grid; gap: 3px; justify-items: start; padding: 9px 11px; text-align: left; background: rgba(251, 246, 230, 0.7); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; cursor: pointer; font: 13.5px/1.35 var(--serif); color: var(--ink); }
+.we-konflikt.on { border-color: var(--gold-2); box-shadow: 0 0 0 1.5px var(--gold-2); background: #fbf6e6; }
+.we-konflikt-kopf { display: flex; align-items: center; gap: 6px; }
+.we-konflikt b { font: 600 14.5px var(--display); }
+.we-konflikt-zahlen { font-size: 12.5px; color: var(--ink-soft); }
+.we-status { font: italic 12.5px var(--serif); color: var(--ink-soft); }
+.we-status.st-geeint { color: #2f8a6c; }
+.we-status.st-stabilisiert { color: #1f5a44; font-weight: 600; }
+.we-status.st-eingefroren { color: var(--seal); }
+
+.we-parteien { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@container (max-width: 620px) { .we-parteien { grid-template-columns: 1fr; } }
+.we-partei { padding: 9px 11px; background: rgba(255, 250, 235, 0.65); border: 1px solid rgba(90, 64, 40, 0.22); border-radius: 3px; font: 13.5px/1.4 var(--serif); }
+.we-partei b { font: 600 14.5px var(--display); }
+.we-partei-vertrauen { display: block; font-size: 12.5px; color: var(--ink-soft); margin: 1px 0 4px; }
+.we-partei i { display: block; margin-top: 5px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.we-partei ul { margin: 2px 0 0; padding-left: 1.15em; }
+.we-partei .we-rot li { color: #8e2a22; }
+
+.we-reif { display: grid; gap: 4px; }
+.we-reif-kurve { display: flex; align-items: flex-end; gap: 2px; height: 34px; padding: 3px 5px; background: rgba(90, 64, 40, 0.08); border-radius: 3px; }
+.we-reif-kurve i { flex: 1; min-width: 3px; background: linear-gradient(180deg, #265a62, #c9a257); border-radius: 1px 1px 0 0; }
+
+.we-zopa { padding: 9px 11px; border-radius: 3px; border: 1px solid rgba(90, 64, 40, 0.3); display: grid; gap: 6px; }
+.we-zopa.zopa-geschlossen { background: rgba(142, 42, 34, 0.07); border-color: rgba(142, 42, 34, 0.45); }
+.we-zopa.zopa-schmal { background: rgba(201, 162, 87, 0.1); }
+.we-zopa.zopa-breit { background: rgba(47, 138, 108, 0.09); border-color: rgba(47, 138, 108, 0.45); }
+.we-zopa-kopf { display: flex; justify-content: space-between; align-items: baseline; font: 600 14px var(--display); }
+.we-zopa-kopf b { text-transform: uppercase; letter-spacing: 0.05em; font-size: 12.5px; }
+.zopa-geschlossen .we-zopa-kopf b { color: #8e2a22; }
+.zopa-schmal .we-zopa-kopf b { color: #8a6d1f; }
+.zopa-breit .we-zopa-kopf b { color: #1f5a44; }
+.we-zopa-band { height: 14px; border-radius: 4px; background: rgba(90, 64, 40, 0.16); overflow: hidden; }
+.we-zopa-band i { display: block; height: 100%; background: linear-gradient(90deg, #8e2a22, #c9a257 45%, #2f8a6c); background-size: 200px 100%; border-radius: 4px; }
+.we-zopa-grund { margin: 0; font: italic 13px/1.4 var(--serif); color: var(--ink-soft); }
+.we-hebel { margin: 0; padding-left: 1.15em; font: 13.5px/1.45 var(--serif); display: grid; gap: 4px; }
+.we-hebel em { color: var(--ink-soft); }
+
+.we-handlungen, .we-garantien { display: grid; gap: 6px; }
+.we-handlungen > b, .we-garantien > b { font: 600 14px var(--display); }
+.we-handlungen-leiste { display: flex; gap: 8px; flex-wrap: wrap; }
+.we-hinweis { margin: 0; font: italic 13px/1.4 var(--serif); color: var(--ink-soft); }
+.we-garantien-leiste { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.we-garantie { padding: 9px 11px; background: rgba(255, 250, 235, 0.65); border: 1px solid rgba(90, 64, 40, 0.25); border-radius: 3px; display: grid; gap: 5px; font: 13px/1.4 var(--serif); align-content: start; }
+.we-garantie.aktiv { border-color: #2f8a6c; box-shadow: 0 0 0 1.5px rgba(47, 138, 108, 0.5); }
+.we-garantie.angeboten { border-color: var(--gold-2); box-shadow: 0 0 0 1.5px var(--gold-2); }
+.we-garantie > b { font: 600 14px var(--display); }
+.we-garantie p { margin: 0; }
+.we-garantie-preis { font-size: 12px; color: var(--ink-soft); }
+.we-garantie-risiko { font-style: italic; font-size: 12.5px; color: #8e2a22; }
+.we-angeboten { font: italic 13px var(--serif); color: #8a6d1f; }
+
 /* Popover auf der Karte */
 .we-pop { position: fixed; z-index: 60; padding: 12px 14px 14px; background: var(--paper-light); background-image: radial-gradient(ellipse at 20% 0%, rgba(255, 250, 235, 0.8), transparent 60%); color: var(--ink); border: 1px solid var(--gold-3); border-radius: 4px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(40, 28, 14, 0.75); outline: none; animation: wePop 0.16s ease-out; }
 @keyframes wePop { from { opacity: 0; transform: translateY(6px) scale(0.97); } to { opacity: 1; transform: none; } }
@@ -305,3 +359,28 @@
 .kd-handlungen {
   margin-top: 8px;
 }
+
+
+/* EU-Dossier (AUS-2) */
+.we-eu { display: grid; gap: 16px; }
+.we-eu-block { display: grid; gap: 6px; }
+.we-eu-block > b { font: 600 12px var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.we-eu-warn { padding: 10px 12px; border-left: 5px solid #c9863a; background: rgba(255, 248, 230, 0.75); border-radius: 3px; }
+.we-eu-aktion { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.we-eu-aktion .subtitle { flex: 1; min-width: 16em; margin: 0; }
+.we-eu-kapitel { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.we-eu-kap { background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 5px solid #9a8a72; border-radius: 3px; }
+.we-eu-kap.st-offen { border-left-color: var(--gold-3); }
+.we-eu-kap.st-abgeschlossen { border-left-color: #2f8a6c; }
+.we-eu-kap-kopf { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 10px; align-items: center; width: 100%; padding: 8px 12px; background: none; border: 0; cursor: pointer; text-align: left; font: inherit; }
+.we-eu-kap-nr { font: 700 15px var(--display); color: var(--ink-soft); }
+.we-eu-kap-name { display: grid; gap: 4px; }
+.we-eu-kap-name strong { font: 600 14.5px var(--serif); }
+.we-eu-kap-detail { display: grid; gap: 8px; padding: 4px 14px 12px 14px; border-top: 1px dashed rgba(90, 64, 40, 0.4); }
+.we-eu-kap-detail p { margin: 6px 0 0; }
+.we-eu-kap-spalten { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@container (max-width: 640px) { .we-eu-kap-spalten { grid-template-columns: 1fr; } }
+.we-eu-kap-spalten b { font: 600 11px var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.we-eu-berichte { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 14px/1.4 var(--serif); }
+.we-eu-berichte summary { cursor: pointer; font-weight: 600; }
+.we-eu-berichte details ul { margin: 6px 0 4px; padding-left: 1.3em; display: grid; gap: 3px; font-weight: 400; color: var(--ink-soft); }

@@ -10,6 +10,7 @@ import {
   bauplan,
   beginne,
   erhaltung,
+  laufBau,
   pausiere,
   reichZustand,
   verschiebe,
@@ -26,6 +27,7 @@ import { ERBE, KIRCHEN_DER_OFFENBARUNG, type Erbe } from "../data/erbe";
 import { VORTEILE } from "../data/reich";
 import { kapitalEinkommen } from "../sim/spiel";
 import { Groessen, type GroesseDef } from "./reich/Groessen";
+import { Schaetzblaetter } from "./reich/Schaetzblatt";
 import { VorhabenKarte } from "./reich/VorhabenKarte";
 import { WunderBild } from "./reich/WunderBild";
 
@@ -96,7 +98,8 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
       <h4>Im Bau <em>Reihenfolge = Vorrang bei der Baukapazität</em></h4>
       <ul className="rr-bauliste">
         {liste.map(({ l, v }) => {
-          const f = v.kosten.bau > 0 ? l.fortschritt / v.kosten.bau : 1;
+          const bauGesamt = laufBau(l, v);
+          const f = bauGesamt > 0 ? l.fortschritt / bauGesamt : 1;
           const rate = plan[l.id] ?? 0;
           const nr = z.laufend.findIndex((x) => x.id === l.id);
           return (
@@ -427,6 +430,8 @@ export function Reich({ world, bereich, refresh, onKarte }: { world: World; bere
       {bereich === "recht" && <Sitze world={world} />}
       <ImBau world={world} bereich={bereich} refresh={refresh} />
       <Baureihenfolge world={world} refresh={refresh} />
+
+      {bereich === "infrastruktur" && <Schaetzblaetter world={world} refresh={refresh} />}
 
       {bereich === "kultur" && <Staetten world={world} refresh={refresh} />}
 

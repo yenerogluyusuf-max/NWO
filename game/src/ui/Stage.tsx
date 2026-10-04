@@ -15,6 +15,7 @@ import { Politik } from "./politik/Politik";
 import { Beschlussbuch } from "./Beschlussbuch";
 import { VerfassungWerkstatt } from "./Verfassung";
 import { Waehler } from "./Waehler";
+import { WahlkampfZentrale } from "./Wahlkampf";
 import { Programme } from "./Programme";
 import { Welt } from "./Welt";
 import { vertrauenZu } from "../sim/laender";
@@ -58,8 +59,9 @@ import { LAENDERNAMEN, LAND_PINS, KARTENEBENEN, farbenFuerEbene, laenderFarben, 
 import { kurzVergleich } from "./vergleich";
 import { Zeitung } from "./Zeitung";
 import { zeitungGelesen } from "../sim/zeitung";
+import { Katastrophe } from "./Katastrophe";
 
-type Dossier = "schreibtisch" | "verfassung" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | null;
+type Dossier = "schreibtisch" | "verfassung" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "wahlkampf" | "katastrophe" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | null;
 
 /** Millisekunden je Tick und Tage je Tick: Pause, ruhig, zügig, schnell, bis zum nächsten Ereignis. */
 const SPEEDS = [0, 700, 200, 40, 14];
@@ -298,8 +300,23 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         { id: "netz", label: "Netz und Suche" },
       ],
     },
-    { kurz: "Wähler", titel: "Wähler", icon: "menge", tabs: [{ id: "waehler", label: "Wählerkoalition" }] },
+    {
+      kurz: "Wähler",
+      titel: "Wähler und Wahlkampf",
+      icon: "menge",
+      tabs: [
+        { id: "waehler", label: "Wählerkoalition" },
+        { id: "wahlkampf", label: "Wahlkampf" },
+      ],
+    },
     { kurz: "Welt", titel: "Die Welt", icon: "berg", tabs: [{ id: "welt", label: "Länder" }] },
+    {
+      kurz: "Katastrophe",
+      titel: "Katastrophen",
+      icon: "warnung",
+      badge: (spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length ?? 0) || undefined,
+      tabs: [{ id: "katastrophe", label: "Lage und Wiederaufbau" }],
+    },
     {
       kurz: "Reich",
       titel: "Das Reich",
@@ -336,8 +353,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.kurz === "Wirtschaft"));
 
   const offen = spiel?.ereignisse.find((e) => !spaeter.has(e.id));
-  // Nur Klasse B wird zum Banner-Fenster; C-Hinweise (Taxonomie) sind längst im Umlauf-Sammel-Hinweis
-  const hinweis = spiel?.hinweise.find((h) => hinweisKlasse(h.id) === "B");
+  // Klasse B (Wendepunkt) und A (etwa der Wahlabend, INN-5) werden zum Fenster; C-Hinweise sind längst im Umlauf
+  const hinweis = spiel?.hinweise.find((h) => hinweisKlasse(h.id) !== "C");
   const bilanz = spiel?.ende && !bilanzZu;
   const zielWahlOffen = !!spiel && !spiel.ersterTagErledigt && !intro && !standDerD;
 
@@ -480,7 +497,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
@@ -571,6 +588,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
+            {dossier === "wahlkampf" && <WahlkampfZentrale world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "katastrophe" && <Katastrophe world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "personen" && (
               <Personen
                 world={w}

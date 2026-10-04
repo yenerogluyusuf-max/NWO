@@ -22,6 +22,7 @@ export const TAB_ZWECK: Record<string, string> = {
   programme: "Regierungsprogramme: Ziele über mehrere Schritte, und jeder Schritt verlangt echte Politik.",
   beschluesse: "Was beschlossen ist und gerade umgesetzt wird: Zeitplan, Kosten und Beschlussbuch.",
   netz: "Der ganze Wirkungszusammenhang: jede Größe, jedes Problem und ihre Verbindungen, mit Suche.",
+  wahlkampf: "Die acht Wochen vor der Wahl: Reisen ins Land, Versprechen mit Preis, die Diaspora, das TV-Duell — und eine Opposition, die zuschlägt, wo es brennt.",
 };
 
 export function zweckVon(dossier: string | null, kurz: string | undefined): string | undefined {

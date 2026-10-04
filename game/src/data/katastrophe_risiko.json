@@ -1,0 +1,816 @@
+{
+ "stand": "30.09.2026",
+ "quelle": "kalibrierung/provinz_profile.csv (Spalten deprem_risiko_1_5, wasserstress_1_5, kueste, grenzland, hauptsektor)",
+ "provinzen": {
+  "1": {
+   "name": "Adana",
+   "region": "Akdeniz",
+   "bevoelkerung": 2283609,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 1,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "2": {
+   "name": "Adıyaman",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 617821,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "3": {
+   "name": "Afyonkarahisar",
+   "region": "Ege",
+   "bevoelkerung": 751808,
+   "deprem": 4,
+   "wasserstress": 4,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "4": {
+   "name": "Ağrı",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 491489,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "5": {
+   "name": "Amasya",
+   "region": "Karadeniz",
+   "bevoelkerung": 342242,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "6": {
+   "name": "Ankara",
+   "region": "İç Anadolu",
+   "bevoelkerung": 5910320,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "M"
+  },
+  "7": {
+   "name": "Antalya",
+   "region": "Akdeniz",
+   "bevoelkerung": 2777677,
+   "deprem": 4,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "T"
+  },
+  "8": {
+   "name": "Artvin",
+   "region": "Karadeniz",
+   "bevoelkerung": 167531,
+   "deprem": 3,
+   "wasserstress": 1,
+   "kueste": 1,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "9": {
+   "name": "Aydın",
+   "region": "Ege",
+   "bevoelkerung": 1172107,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "T"
+  },
+  "10": {
+   "name": "Balıkesir",
+   "region": "Marmara",
+   "bevoelkerung": 1284517,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "11": {
+   "name": "Bilecik",
+   "region": "Marmara",
+   "bevoelkerung": 228995,
+   "deprem": 5,
+   "wasserstress": 2,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "12": {
+   "name": "Bingöl",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 282299,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "13": {
+   "name": "Bitlis",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 360423,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "14": {
+   "name": "Bolu",
+   "region": "Karadeniz",
+   "bevoelkerung": 327173,
+   "deprem": 5,
+   "wasserstress": 2,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "15": {
+   "name": "Burdur",
+   "region": "Akdeniz",
+   "bevoelkerung": 277226,
+   "deprem": 4,
+   "wasserstress": 5,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "16": {
+   "name": "Bursa",
+   "region": "Marmara",
+   "bevoelkerung": 3263011,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "17": {
+   "name": "Çanakkale",
+   "region": "Marmara",
+   "bevoelkerung": 573976,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "18": {
+   "name": "Çankırı",
+   "region": "İç Anadolu",
+   "bevoelkerung": 200549,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "19": {
+   "name": "Çorum",
+   "region": "Karadeniz",
+   "bevoelkerung": 519590,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "20": {
+   "name": "Denizli",
+   "region": "Ege",
+   "bevoelkerung": 1060975,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "21": {
+   "name": "Diyarbakır",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 1852356,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "22": {
+   "name": "Edirne",
+   "region": "Marmara",
+   "bevoelkerung": 422438,
+   "deprem": 3,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "23": {
+   "name": "Elazığ",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 605678,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "24": {
+   "name": "Erzincan",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 239625,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "25": {
+   "name": "Erzurum",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 736877,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "26": {
+   "name": "Eskişehir",
+   "region": "İç Anadolu",
+   "bevoelkerung": 927956,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "27": {
+   "name": "Gaziantep",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 2222415,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "I"
+  },
+  "28": {
+   "name": "Giresun",
+   "region": "Karadeniz",
+   "bevoelkerung": 455074,
+   "deprem": 2,
+   "wasserstress": 2,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "29": {
+   "name": "Gümüşhane",
+   "region": "Karadeniz",
+   "bevoelkerung": 138807,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "30": {
+   "name": "Hakkari",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 279681,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "31": {
+   "name": "Hatay",
+   "region": "Akdeniz",
+   "bevoelkerung": 1577531,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 1,
+   "hauptsektor": "I"
+  },
+  "32": {
+   "name": "Isparta",
+   "region": "Akdeniz",
+   "bevoelkerung": 445303,
+   "deprem": 5,
+   "wasserstress": 5,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "33": {
+   "name": "Mersin",
+   "region": "Akdeniz",
+   "bevoelkerung": 1956428,
+   "deprem": 3,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "34": {
+   "name": "İstanbul",
+   "region": "Marmara",
+   "bevoelkerung": 15754053,
+   "deprem": 4,
+   "wasserstress": 5,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "M"
+  },
+  "35": {
+   "name": "İzmir",
+   "region": "Ege",
+   "bevoelkerung": 4504185,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "M"
+  },
+  "36": {
+   "name": "Kars",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 268991,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "37": {
+   "name": "Kastamonu",
+   "region": "Karadeniz",
+   "bevoelkerung": 379934,
+   "deprem": 3,
+   "wasserstress": 2,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "38": {
+   "name": "Kayseri",
+   "region": "İç Anadolu",
+   "bevoelkerung": 1458991,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "39": {
+   "name": "Kırklareli",
+   "region": "Marmara",
+   "bevoelkerung": 379595,
+   "deprem": 2,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "40": {
+   "name": "Kırşehir",
+   "region": "İç Anadolu",
+   "bevoelkerung": 242777,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "41": {
+   "name": "Kocaeli",
+   "region": "Marmara",
+   "bevoelkerung": 2161171,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "42": {
+   "name": "Konya",
+   "region": "İç Anadolu",
+   "bevoelkerung": 2343409,
+   "deprem": 3,
+   "wasserstress": 5,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "43": {
+   "name": "Kütahya",
+   "region": "Ege",
+   "bevoelkerung": 570478,
+   "deprem": 4,
+   "wasserstress": 4,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "44": {
+   "name": "Malatya",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 755854,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "45": {
+   "name": "Manisa",
+   "region": "Ege",
+   "bevoelkerung": 1477756,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "46": {
+   "name": "Kahramanmaraş",
+   "region": "Akdeniz",
+   "bevoelkerung": 1146278,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "I"
+  },
+  "47": {
+   "name": "Mardin",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 903576,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "48": {
+   "name": "Muğla",
+   "region": "Ege",
+   "bevoelkerung": 1099547,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "T"
+  },
+  "49": {
+   "name": "Muş",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 389127,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "50": {
+   "name": "Nevşehir",
+   "region": "İç Anadolu",
+   "bevoelkerung": 320150,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "T"
+  },
+  "51": {
+   "name": "Niğde",
+   "region": "İç Anadolu",
+   "bevoelkerung": 374492,
+   "deprem": 3,
+   "wasserstress": 5,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "52": {
+   "name": "Ordu",
+   "region": "Karadeniz",
+   "bevoelkerung": 768087,
+   "deprem": 3,
+   "wasserstress": 2,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "53": {
+   "name": "Rize",
+   "region": "Karadeniz",
+   "bevoelkerung": 346947,
+   "deprem": 3,
+   "wasserstress": 1,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "54": {
+   "name": "Sakarya",
+   "region": "Marmara",
+   "bevoelkerung": 1123693,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "55": {
+   "name": "Samsun",
+   "region": "Karadeniz",
+   "bevoelkerung": 1392403,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "56": {
+   "name": "Siirt",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 332369,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "57": {
+   "name": "Sinop",
+   "region": "Karadeniz",
+   "bevoelkerung": 225848,
+   "deprem": 3,
+   "wasserstress": 2,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "58": {
+   "name": "Sivas",
+   "region": "İç Anadolu",
+   "bevoelkerung": 631401,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "59": {
+   "name": "Tekirdağ",
+   "region": "Marmara",
+   "bevoelkerung": 1208441,
+   "deprem": 4,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "60": {
+   "name": "Tokat",
+   "region": "Karadeniz",
+   "bevoelkerung": 614141,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "61": {
+   "name": "Trabzon",
+   "region": "Karadeniz",
+   "bevoelkerung": 823323,
+   "deprem": 3,
+   "wasserstress": 2,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "62": {
+   "name": "Tunceli",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 85083,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "63": {
+   "name": "Şanlıurfa",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 2265800,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "64": {
+   "name": "Uşak",
+   "region": "Ege",
+   "bevoelkerung": 374405,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "65": {
+   "name": "Van",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 1112013,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "66": {
+   "name": "Yozgat",
+   "region": "İç Anadolu",
+   "bevoelkerung": 413208,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "67": {
+   "name": "Zonguldak",
+   "region": "Karadeniz",
+   "bevoelkerung": 585203,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "68": {
+   "name": "Aksaray",
+   "region": "İç Anadolu",
+   "bevoelkerung": 441136,
+   "deprem": 3,
+   "wasserstress": 5,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "69": {
+   "name": "Bayburt",
+   "region": "Karadeniz",
+   "bevoelkerung": 82836,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "70": {
+   "name": "Karaman",
+   "region": "İç Anadolu",
+   "bevoelkerung": 262355,
+   "deprem": 3,
+   "wasserstress": 5,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "71": {
+   "name": "Kırıkkale",
+   "region": "İç Anadolu",
+   "bevoelkerung": 282830,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "A"
+  },
+  "72": {
+   "name": "Batman",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 662626,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "73": {
+   "name": "Şırnak",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 573666,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "74": {
+   "name": "Bartın",
+   "region": "Karadeniz",
+   "bevoelkerung": 206663,
+   "deprem": 5,
+   "wasserstress": 2,
+   "kueste": 1,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "75": {
+   "name": "Ardahan",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 90392,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "76": {
+   "name": "Iğdır",
+   "region": "Doğu Anadolu",
+   "bevoelkerung": 205071,
+   "deprem": 4,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "77": {
+   "name": "Yalova",
+   "region": "Marmara",
+   "bevoelkerung": 311635,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "78": {
+   "name": "Karabük",
+   "region": "Karadeniz",
+   "bevoelkerung": 249614,
+   "deprem": 5,
+   "wasserstress": 2,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "79": {
+   "name": "Kilis",
+   "region": "Güneydoğu Anadolu",
+   "bevoelkerung": 157363,
+   "deprem": 3,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 1,
+   "hauptsektor": "A"
+  },
+  "80": {
+   "name": "Osmaniye",
+   "region": "Akdeniz",
+   "bevoelkerung": 564123,
+   "deprem": 5,
+   "wasserstress": 3,
+   "kueste": 0,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  },
+  "81": {
+   "name": "Düzce",
+   "region": "Karadeniz",
+   "bevoelkerung": 415622,
+   "deprem": 5,
+   "wasserstress": 4,
+   "kueste": 1,
+   "grenzland": 0,
+   "hauptsektor": "I"
+  }
+ }
+}

@@ -7,12 +7,13 @@ import { PARTY_COLORS } from "./Parliament";
 import { REGION_COLORS } from "./atlas/overlay";
 import INFRA from "../data/provinz_infra.json";
 import { vertrauenZu, weltZustand } from "../sim/laender";
+import { depremRisiko } from "../sim/katastrophe";
 import { ERBE } from "../data/erbe";
 import { STAETTEN_START } from "../data/reich";
 import type { World } from "../sim/types";
 import type { IconName } from "./icons";
 
-export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe";
+export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko";
 
 export const KARTENEBENEN: { id: Kartenebene; label: string; icon: IconName }[] = [
   { id: "gelaende", label: "Politisch", icon: "berg" },
@@ -22,6 +23,7 @@ export const KARTENEBENEN: { id: Kartenebene; label: string; icon: IconName }[] 
   { id: "arbeitslosigkeit", label: "Arbeitslosigkeit", icon: "koffer" },
   { id: "probleme", label: "Akute Probleme", icon: "warnung" },
   { id: "infrastruktur", label: "Infrastruktur", icon: "strasse" },
+  { id: "risiko", label: "Katastrophenrisiko", icon: "warnung" },
   { id: "rueckhalt", label: "Rückhalt", icon: "menge" },
   { id: "erbe", label: "Kulturerbe", icon: "kuppel" },
   { id: "welt", label: "Beziehungen", icon: "haende" },
@@ -241,6 +243,28 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
           untertitel: "Kilometer Straße je Quadratkilometer",
           verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: `${DICHTE_MIN.toLocaleString("de-DE", { maximumFractionDigits: 1 })}`, bisText: `${DICHTE_MAX.toLocaleString("de-DE", { maximumFractionDigits: 1 })}` },
           hinweis: "Beim Hineinzoomen erscheinen Bezirke, Straßen, Bahn, Krankenhäuser und Flughäfen. Quelle: OpenStreetMap.",
+        },
+      };
+    }
+
+    case "risiko": {
+      // INF-5: Katastrophenrisiko je Provinz — Erdbeben 1–5 aus kalibrierung/provinz_profile.csv
+      // (data/katastrophe_risiko.json), grob an den Bruchzonen der GEM Global Active Faults
+      PROVINZEN.forEach((p) => {
+        const risiko = depremRisiko(p.plaka);
+        out[p.plaka] = mix(PAPER, RED, 0.15 + 0.17 * risiko);
+      });
+      const gefaehrlich = PROVINZEN.filter((p) => depremRisiko(p.plaka) === 5)
+        .map((p) => p.name)
+        .slice(0, 8)
+        .join(", ");
+      return {
+        fill: out,
+        legende: {
+          titel: "Katastrophenrisiko",
+          untertitel: "Erdbeben-Gefährdung je Provinz (1–5)",
+          verlauf: { von: farbe.PAPER, bis: farbe.RED, vonText: "gering", bisText: "sehr hoch" },
+          hinweis: `Bruchzonen: Nordanatolische und Ostanatolische Verwerfung, westanatolische Graben. Höchstes Risiko u. a.: ${gefaehrlich}. Dazu saisonal: Sturzflut am Schwarzen Meer, Großbrände an Ägäis und Mittelmeer, Dürre im Konya-Becken. Quelle: provinz_profile.csv; Verwerfungen nach GEM Global Active Faults (CC BY-SA 4.0).`,
         },
       };
     }

@@ -742,12 +742,22 @@ g("wohnen", "bauwirtschaft", "Bauwirtschaft", 50, "Aufträge und Beschäftigung 
 g("wohnen", "bauqualitaet", "Bauqualität", 45, "Ob Gebäude nach Vorschrift gebaut sind.");
 g("wohnen", "erdbebenvorsorge", "Erdbebenvorsorge", 40, "Wie viele Gebäude erdbebensicher sind und wie gut der Katastrophenschutz vorbereitet ist.");
 
+// INF-5 (Katastrophen-Modul): Die Bereitschaft als eigene Größe. Start 45 — die Behörde (AFAD)
+// ist aufgebaut und geübt, aber 2023 haben Koordination, Lager und Frühwarnung versagt;
+// ein Mittelfeld-Wert, der in beide Richtungen regierbar ist (Spielparameter, keine Messung).
+g("sicherheit", "katastrophenschutz", "Katastrophenschutz (AFAD)", 45, "Wie gut Behörde, Rettungskräfte, Lager und Frühwarnung auf Beben, Fluten und Brände vorbereitet sind (AFAD).");
+
 m("wohnen", "m_sozialwohnungen", "Staatlicher Wohnungsbau", 50, 0.4, 24, "Wohnungen der staatlichen Wohnungsbaubehörde, günstig verkauft oder vermietet.");
 m("wohnen", "m_mietdeckel", "Mietpreisbremse", 30, 0.0, 1, "Obergrenze für Mieterhöhungen.");
 m("wohnen", "m_stadterneuerung", "Erdbebensichere Stadterneuerung", 40, 0.5, 36, "Abriss und Neubau gefährdeter Häuser.");
 m("wohnen", "m_bauaufsicht", "Bauaufsicht", 40, 0.05, 12, "Unabhängige Prüfung von Statik und Material.");
 m("wohnen", "m_baukredite", "Günstige Baukredite", 35, 0.3, 3, "Zinsverbilligte Kredite für Wohnungskäufer.");
 m("wohnen", "m_bauamnestie", "Bauamnestie", 15, -0.1, 2, "Nachträgliche Legalisierung illegaler Bauten gegen Gebühr.");
+// INF-5: lang und teuer, dafür die wirksamste Vorsorge am Bestand; wie jede Maßnahme regional wählbar
+m("wohnen", "m_gebaeudeverstaerkung", "Gebäude-Verstärkungsprogramm", 20, 0.6, 48, "Ertüchtigung tausender gefährdeter Altbauten — die teuerste und wirksamste Vorsorge am Bestand.");
+m("wohnen", "m_versicherungspflicht", "Katastrophen-Pflichtversicherung", 35, 0.05, 12, "Alle Gebäude gegen Beben und Flut versichert (DASK-Vorbild); der Staat haftet weniger mit.");
+m("sicherheit", "m_fruehwarnsystem", "Frühwarnsystem", 25, 0.15, 18, "Sensoren und Sekundenwarnungen für Beben und Sturzfluten, direkt auf die Geräte der Menschen.");
+m("sicherheit", "m_afad_ausbau", "Ausbau der Katastrophenbehörde (AFAD)", 40, 0.25, 24, "Personal, Materiallager und regionale Stützpunkte der Katastrophenbehörde.");
 
 p("wohnen", "p_wohnungsnot", "Wohnungsnot", 55, 60, "Mieten fressen die Einkommen, junge Familien finden keine Wohnung.");
 p("wohnen", "p_erdbebengefahr", "Erdbebengefahr", 55, 60, "Viele Gebäude würden ein starkes Beben nicht überstehen.");
@@ -778,6 +788,16 @@ e("mieten", "p_wohnungsnot", 0.1, 0, "Unbezahlbare Mieten werden zur Wohnungsnot
 e("bauqualitaet", "erdbebenvorsorge", 0.03, 12, "Gut gebaute Häuser halten Beben stand.");
 e("korruption", "bauqualitaet", -0.03, 6, "Wo geschmiert wird, wird gepfuscht.");
 e("erdbebenvorsorge", "p_erdbebengefahr", -0.1, 0, "Wenig Vorsorge heißt große Gefahr.");
+// INF-5: Die Bereitschaft wächst aus Behörde, Frühwarnung und Versicherung; sie wirkt zurück
+// auf Vorsorge (geübte Behörden halten den Bestand besser) und sichtbar aufs Vertrauen.
+e("m_afad_ausbau", "katastrophenschutz", 0.08, 24, "Mehr Personal, mehr Lager, schnellere Koordination im Ernstfall.");
+e("m_fruehwarnsystem", "katastrophenschutz", 0.05, 18, "Sekunden bis Minuten Warnung retten Leben.");
+e("m_versicherungspflicht", "katastrophenschutz", 0.03, 12, "Versicherte Schäden entlasten Behörde und Haushalt.");
+e("m_gebaeudeverstaerkung", "erdbebenvorsorge", 0.06, 48, "Ertüchtigte Altbauten halten Beben stand.");
+e("m_gebaeudeverstaerkung", "bauwirtschaft", 0.03, 12, "Ein jahrelanges Programm voller Aufträge.");
+e("m_versicherungspflicht", "unternehmer", -0.01, 6, "Die Pflicht kostet Eigentümer und Betriebe.");
+e("katastrophenschutz", "erdbebenvorsorge", 0.02, 12, "Geübte Behörden drücken auch die Vorsorge am Bestand voran.");
+e("katastrophenschutz", "vertrauen_regierung", 0.015, 6, "Sichtbare Vorsorge gibt den Menschen Sicherheit.");
 
 // ---------------------------------------------------------------------------
 // Sicherheit, Justiz und Rechtsstaat

@@ -10,13 +10,15 @@ import { addLog, fmt } from "./log";
 import { addDays, dayOfMonth, formatDateDe } from "./dates";
 import { clamp } from "./economy";
 import { aussenweltMonat, aussenweltStart } from "./aussenwelt";
-import { ereignisMonat, ereignisTag, oeffne } from "./ereignisse";
+import { ereignisMonat, ereignisTag, MAX_OFFEN, oeffne } from "./ereignisse";
 import { verhandlungMonat } from "./verhandeln";
 import { programmTag } from "./programme";
 import { berichteTag } from "./berichte";
 import { weltMonat } from "./laender";
 import { abkommenMonat } from "./abkommen";
+import { euKapitalAbzug, euMonat } from "./eu";
 import { setzeKriegBruecke } from "./initiative";
+import { setzeVermittlungBruecke, vermittlungMonat } from "./vermittlung";
 import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
 import { umfrageMonat } from "./umfrage";
 import { verlaufAufzeichnen } from "./waehler-verlauf";
@@ -28,6 +30,7 @@ import { gesetzeAbstimmen, REGELN, stimmenSicht, unterhaltKosten } from "./hande
 import { verfassungAktiv, verfassungKapitalAbzug, verfassungsVorgangTag } from "./verfassung";
 import { haushaltszyklusTag } from "./haushalt";
 import { krisenAktualisieren } from "./krisen";
+import { katastropheMonat, versprechensschuldMalus } from "./katastrophe";
 import { KRIEG, kriegMit, kriegMonat, kriegTag } from "./krieg";
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
@@ -38,6 +41,7 @@ import type { SpielZustand, Zusage } from "./spiel-typen";
 import { wirke } from "./wirkung";
 import { zeitungEreignis, zeitungMonat } from "./zeitung";
 import { VERFASSUNG, belastungEreignis, verfassungStart, verfassungTag } from "./aufmerksamkeit";
+import { wahlEffekte, wahlkampfTag } from "./wahlkampf";
 
 // AUS-1 ↔ MIL-1: Die Drohkulisse der Länder-Eigeninitiative übergibt an den Konfliktvorgang (sim/krieg.ts),
 // ohne ihn direkt zu importieren (Modul-Ladezyklus). Besteht mit dem Land schon eine Spannung, hebt sie auf
@@ -49,6 +53,21 @@ setzeKriegBruecke({
     k.eskalation = Math.max(k.eskalation, KRIEG.drohkulisseAb + 2);
     return true;
   },
+});
+
+// AUS-4: Die Vermittlung zwischen Drittstaaten öffnet ihre Spoiler- und Verstoß-Ereignisse über diese
+// Brücke (Modul-Ladezyklus: sim/vermittlung.ts importiert ereignisse.ts nicht) — die Auto-Stops der
+// Klasse A entstehen so im selben Ereignismotor wie alles andere. Die Obergrenze offener Vorgänge gilt.
+setzeVermittlungBruecke({
+  oeffneEreignis: (w, vorlage, daten, rng) => {
+    const spiel = w.spiel;
+    if (!spiel) return;
+    if (spiel.ereignisse.some((e) => e.vorlage === vorlage)) return;
+    const offen = spiel.ereignisse.filter((e) => !e.vorlage.startsWith("start_")).length;
+    if (offen >= MAX_OFFEN) return;
+    oeffne(w, vorlage, rng, { provinzen: [], staerke: 1, daten });
+  },
+  zeitung: (w, e) => zeitungEreignis(w, { art: "krise", ...e }),
 });
 
 /** Die Schwierigkeit verändert nur drei Stellschrauben: das Einkommen an Kapital, die Regierungsmüdigkeit und die Häufigkeit und Härte von Ereignissen. */
@@ -228,6 +247,8 @@ export function spielTick(world: World, rng: Rng): void {
   programmTag(world);
   berichteTag(world);
   verfassungTag(world);
+  // INN-5: Der Wahlkampf als Handlungsphase (Beginn acht Wochen vor der Wahl, Wochenbudget, TV-Duell)
+  wahlkampfTag(world);
   if (dayOfMonth(world.date) === 1) spielMonat(world, rng);
   if (world.day >= spiel.wahltag) wahl(world, rng);
 }
@@ -261,7 +282,9 @@ export function kapitalEinkommen(world: World): KapitalEinkommen {
   // REC-1: Demokratisierende Verfassungsartikel kosten laufend etwas Kapital — wer Kontrolle abgibt,
   // regiert mit weniger Druckmitteln (Spielparameter; die Legitimität gewinnt langfristig)
   const verfassungAbzug = verfassungKapitalAbzug(world) * f;
-  return { grund: SPIEL.kapitalGrund * f, vertrauen: vertrauen * f, mehrheit: mehrheit * f, legitimitaet: legitimitaet * f, unterhalt: unterhalt + verfassungAbzug, summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt - verfassungAbzug, naechste, grenze: REGELN.kapitalMax };
+  // AUS-2: Verhandelte EU-Kapitel kosten laufend Kapital (dieselbe REC-Logik: Reformen binden Rückhalt)
+  const euAbzug = euKapitalAbzug(world) * f;
+  return { grund: SPIEL.kapitalGrund * f, vertrauen: vertrauen * f, mehrheit: mehrheit * f, legitimitaet: legitimitaet * f, unterhalt: unterhalt + verfassungAbzug + euAbzug, summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt - verfassungAbzug - euAbzug, naechste, grenze: REGELN.kapitalMax };
 }
 
 function spielMonat(world: World, rng: Rng): void {
@@ -280,8 +303,14 @@ function spielMonat(world: World, rng: Rng): void {
   verhandlungMonat(world);
   weltMonat(world);
   abkommenMonat(world, rng);
+  // Die Vermittlung zwischen Drittstaaten (AUS-4): Reife-Dynamik, Konflikt-Index, Garantien, Spoiler
+  vermittlungMonat(world, rng);
+  // Der EU-Beitrittsvorgang (AUS-2): Screening, Kapitel, Vetos, Zollunion, Visa, Fortschrittsbericht
+  euMonat(world, rng);
   kriegMonat(world, rng);
   reichMonat(world, rng);
+  // Katastrophen (INF-5): Risiko-Layer würfelt je Zone; Hilfskette und Lieferfortschritt laufen
+  katastropheMonat(world, rng);
 
   // Eigeninitiative der Länder (AUS-1) läuft über ihre Vorlagen im Ereignis-Wettbewerb (sim/ereignisse.ts)
   aussenweltMonat(world, rng);
@@ -369,7 +398,17 @@ function beende(world: World, art: "wiederwahl" | "abwahl" | "sturz" | "amtszeit
 
 function wahl(world: World, rng: Rng): void {
   const spiel = world.spiel!;
-  const anteil = clamp(spiel.umfrage.zustimmung + rng.normal(2.2), 0, 100);
+  // INF-5 (Versprechensschuld): Unwucht zwischen öffentlicher Katastrophen-Zusage und Lieferung kostet am Wahltag Stimmen
+  const schuld = versprechensschuldMalus(world);
+  if (schuld.punkte > 0) {
+    spiel.chronik.push({ tag: world.day, datum: world.date, titel: "Die Versprechensschuld wird eingefordert", ausgang: schuld.text });
+    addLog(world, "ereignis", "Die Versprechensschuld wird eingefordert.", schuld.text);
+  }
+  // INN-5: Die Effekte des Wahlkampfs (TV-Duell, Gegner-Angriffe, Diaspora-Block) fließen in die Rechnung;
+  // Reisen und Versprechen wirken längst über das Netz auf die Zustimmung selbst
+  const effekte = wahlEffekte(world);
+  const anteil = clamp(spiel.umfrage.zustimmung + effekte.gesamt + rng.normal(2.2) - schuld.punkte, 0, 100);
+  const effektText = effekte.teile.length > 0 ? ` Der Schlussspurt des Wahlkampfs brachte ${effekte.gesamt >= 0 ? "+" : "−"}${fmt(Math.abs(effekte.gesamt))} Prozentpunkte (${effekte.teile.map((t) => `${t.name} ${t.punkte >= 0 ? "+" : "−"}${fmt(Math.abs(t.punkte))}`).join(", ")}).` : "";
   const name = world.player?.name ?? "Der Präsident";
   // Die Verfassung bestimmt die Zahl der Amtszeiten: Das Paket „Weitere Wiederwahl“ erlaubt eine dritte (REC-1)
   const maxAmtszeit = verfassungAktiv(world, "amtszeit") === "wiederwahl_plus" ? 3 : 2;
@@ -378,18 +417,20 @@ function wahl(world: World, rng: Rng): void {
       spiel.amtszeit += 1;
       const letzte = spiel.amtszeit >= maxAmtszeit;
       spiel.wahltag = world.day + 365 * SPIEL.amtszeitJahre + 1;
-      spiel.chronik.push({ tag: world.day, datum: world.date, titel: "Wiederwahl", ausgang: `${name} wird mit ${fmt(anteil)} Prozent wiedergewählt.` });
+      // Die Phase schließt; die Versprechen bleiben als Zusagen bestehen und werden zwölf Monate nach der Wahl fällig
+      delete spiel.wahlkampf;
+      spiel.chronik.push({ tag: world.day, datum: world.date, titel: "Wiederwahl", ausgang: `${name} wird mit ${fmt(anteil)} Prozent wiedergewählt.${effektText}` });
       addLog(
         world,
         "ereignis",
-        `Wahlabend: ${name} wird mit ${fmt(anteil)} Prozent im Amt bestätigt.`,
+        `Wahlabend: ${name} wird mit ${fmt(anteil)} Prozent im Amt bestätigt.${effektText}`,
         letzte ? `Die Amtszeit ${spiel.amtszeit} ist die letzte; danach schreibt die Verfassung eine Pause vor.` : `Die Amtszeit ${spiel.amtszeit} beginnt; die Verfassung erlaubt eine weitere Wiederwahl.`,
       );
       spiel.hinweise.push({
         id: `wahl-${world.day}`,
         titel: "Wahlabend: Wiederwahl",
         szene: "wahlnacht",
-        text: [`${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent. Die Amtszeit ${spiel.amtszeit} beginnt${letzte ? "; sie ist die letzte" : ""}.`],
+        text: [`${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent. Die Amtszeit ${spiel.amtszeit} beginnt${letzte ? "; sie ist die letzte" : ""}.${effektText}`],
       });
       // Wahlsieg: Großereignis für die Zeitung (Eilmeldung digital, Print im nächsten Monat)
       zeitungEreignis(world, {
@@ -403,6 +444,6 @@ function wahl(world: World, rng: Rng): void {
       beende(world, "amtszeitende", `Ende der Amtszeit ${spiel.amtszeit}`, `Nach ${spiel.amtszeit === 2 ? "zwei" : "drei"} Amtszeiten endet die Zeit im Amt; die Verfassung erlaubt keine weitere.`, anteil);
     }
   } else {
-    beende(world, "abwahl", "Abgewählt", `Bei der Wahl am ${formatDateDe(world.date)} erhält ${name} nur ${fmt(anteil)} Prozent der Stimmen.`, anteil);
+    beende(world, "abwahl", "Abgewählt", `Bei der Wahl am ${formatDateDe(world.date)} erhält ${name} nur ${fmt(anteil)} Prozent der Stimmen.${effektText}`, anteil);
   }
 }

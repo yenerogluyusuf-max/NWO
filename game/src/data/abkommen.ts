@@ -527,7 +527,7 @@ export const PROFILE: Record<string, LandProfil> = {
   USA: {
     hebel: -2, rot: [],
     hebelText: "Washington sitzt am längeren Hebel: Es liefert die Technik, die Ankara braucht.",
-    werte: { s400: 9, ruestung_kauf: 6, militaerzugang: 4, sanktionen_umgehung: 6, vermittlung_zusage: 2, gas_kauf: 5, investitionen_oeffnen: 2, w_ruestung: -5, w_sanktion: -6 },
+    werte: { s400: 9, ruestung_kauf: 6, militaerzugang: 4, sanktionen_umgehung: 6, vermittlung_zusage: 2, gas_kauf: 5, investitionen_oeffnen: 2, w_ruestung: -5, w_sanktion: -6, w_transit: -6 },
     texte: {
       w_ruestung: { label: "F-35, F110-Triebwerke und Ersatzteile freigeben", text: "Washington gibt die gesperrte Technik frei: F-35-Kampfjets (die Türkei will 40), F110-Triebwerke für das Kampfflugzeug KAAN, Ersatzteile für die F-16." },
       w_sanktion: { label: "CAATSA-Sanktionen aufheben", text: "Die Sanktionen gegen die türkische Rüstungsbehörde wegen des Kaufs der S-400 entfallen." },
@@ -538,7 +538,7 @@ export const PROFILE: Record<string, LandProfil> = {
   EU: {
     hebel: 0, rot: [],
     hebelText: "Brüssel ist der größte Handelspartner, aber ein Bündnis von 27: Jede Bewegung braucht Einstimmigkeit.",
-    werte: { reform_zusage: 9, zoll: 5, sanktionen_umgehung: 6, migration_zusage: 7, investitionen_oeffnen: 2, vermittlung_zusage: 1, w_zollunion: -5, w_visa: -7, w_ruestung: -4 },
+    werte: { reform_zusage: 9, zoll: 5, sanktionen_umgehung: 6, migration_zusage: 7, investitionen_oeffnen: 2, vermittlung_zusage: 1, w_zollunion: -5, w_visa: -7, w_ruestung: -4, w_transit: -4 },
     texte: {
       w_zollunion: { text: "Die Zollunion von 1995 wird modernisiert; Griechenland und Zypern blockieren bisher." },
       w_ruestung: { label: "SAFE-Teilnahme (europäische Rüstungsprogramme)", text: "Die Türkei darf an den gemeinsamen Rüstungsprogrammen der EU teilnehmen." },
@@ -548,7 +548,7 @@ export const PROFILE: Record<string, LandProfil> = {
   RUS: {
     hebel: 0, rot: [],
     hebelText: "Moskau braucht die Türkei als Tor nach Westen; Ankara braucht Moskaus Gas und Akkuyu.",
-    werte: { gas_kauf: 8, zoll: 3, meerengen: 4, vermittlung_zusage: 3, investitionen_oeffnen: 2, zahlungsweg: 7, transit: 5, w_preis: -6, w_aufschub: -4, w_akkuyu: -3, w_getreide: -2 },
+    werte: { gas_kauf: 8, zoll: 3, meerengen: 4, vermittlung_zusage: 3, investitionen_oeffnen: 2, zahlungsweg: 7, transit: 5, w_preis: -6, w_aufschub: -4, w_akkuyu: -3, w_getreide: -2, w_transit: -4 },
     texte: {
       gas_kauf: { label: "Gasverträge verlängern", text: "Die Gasverträge mit Russland laufen Ende 2026 aus; es geht um rund 22 Milliarden Kubikmeter im Jahr." },
       w_akkuyu: { text: "Block 1 von Akkuyu läuft seit Juni 2026 an; für die Blöcke 2 bis 4, die Brennstoff-Sicherung und den Zahlungsweg braucht es eine Einigung." }, // Teil V §5.2: „2 Mrd. $ stecken fest“ ist überholt
@@ -558,7 +558,7 @@ export const PROFILE: Record<string, LandProfil> = {
   GRC: {
     hebel: -1, rot: ["w_inseln"],
     hebelText: "Athen hat als EU- und NATO-Mitglied Rückhalt, den es im Streit mit Ankara nutzt.",
-    werte: { v_casus: 7, verzicht_bohrung: 6, migration_zusage: 6, vermittlung_zusage: 1, w_inseln: -99, w_seegrenze: -8, w_zollunion: -3 },
+    werte: { v_casus: 7, verzicht_bohrung: 6, migration_zusage: 6, vermittlung_zusage: 1, w_inseln: -99, w_seegrenze: -8, w_zollunion: -3, w_transit: -5 },
     rotText: { w_inseln: "Athen erklärt die Bewaffnung der Inseln zum Recht auf Selbstverteidigung; über den Status spricht es nicht." },
     texte: {
       v_casus: { text: "Der Parlamentsbeschluss von 1995 (Kriegsgrund bei zwölf Seemeilen) wird nicht mehr bekräftigt; Athen nennt das seit Jahren als Bedingung für Gespräche über die Seegrenzen." },
@@ -569,7 +569,7 @@ export const PROFILE: Record<string, LandProfil> = {
     hebel: 2, rot: [],
     // Teil V §5.3: hebel 0 → +2 — der kriegsgebeutelte Iran (Krieg seit 02/2026, Gasvertrag ausgelaufen 07/2026) braucht Ankara dringlicher
     hebelText: "Der kriegsgebeutelte Iran braucht Ankara dringlicher als umgekehrt: Markt, Zahlungswege und Vermittlung Richtung Waffenruhe.",
-    werte: { gas_kauf: 8, zoll: 4, visa: 3, vermittlung_zusage: 3, transit: 2, zahlungsweg: 8, w_pkk: -4, w_preis: -5 },
+    werte: { gas_kauf: 8, zoll: 4, visa: 3, vermittlung_zusage: 3, transit: 2, zahlungsweg: 8, w_pkk: -4, w_preis: -5, w_transit: -3 },
     texte: {
       gas_kauf: { label: "Gasvertrag verlängern", text: "Der Vertrag über etwa 9,6 Milliarden Kubikmeter im Jahr lief Ende Juli 2026 aus; ehemalige BOTAŞ-Manager halten eine automatische Verlängerung um fünf Jahre für möglich." },
       w_pkk: { label: "Vorgehen gegen PJAK", text: "Teheran geht gegen die kurdische Gruppe PJAK an der Grenze vor." },
@@ -579,7 +579,7 @@ export const PROFILE: Record<string, LandProfil> = {
   SYR: {
     hebel: 4, rot: [],
     hebelText: "Damaskus ist auf Ankara angewiesen: Wiederaufbau, Strom und Sicherheit hängen an der Türkei.",
-    werte: { bauauftraege: 8, ruestung_koop: 7, energie_lieferung: 6, kredit_hilfe: 6, visa: 2, w_rueckkehr: -5, w_pkk: -3, w_stuetzpunkt: -3 },
+    werte: { bauauftraege: 8, ruestung_koop: 7, energie_lieferung: 6, kredit_hilfe: 6, visa: 2, w_rueckkehr: -5, w_pkk: -3, w_stuetzpunkt: -3, w_transit: -2 },
     texte: {
       ruestung_koop: { label: "Ausbildungs- und Rüstungsabkommen", text: "Türkische Ausbilder und Systeme für die syrischen Streitkräfte." },
       energie_lieferung: { label: "Strom und Gas über die Kilis–Aleppo-Leitung", text: "Die Kilis–Aleppo-Leitung und Stromnetze werden ausgebaut; der Wiederaufbau braucht beides." },
@@ -591,7 +591,7 @@ export const PROFILE: Record<string, LandProfil> = {
     hebel: 2, rot: [],
     // Teil V §5.3: hebel 0 → +2 — die Schließung von Hormus macht Bagdad zum Bittsteller für den Nordkorridor über die Türkei
     hebelText: "Bagdad braucht Wasser aus der Türkei und, seit Hormus geschlossen ist, den Nordkorridor für sein Öl; Ankara braucht Ruhe an der Grenze und die Pipeline.",
-    werte: { wasser: 8, bauauftraege: 6, zoll: 3, transit: 4, kredit_hilfe: 3, w_pipeline: -3, w_pkk: -6 },
+    werte: { wasser: 8, bauauftraege: 6, zoll: 3, transit: 4, kredit_hilfe: 3, w_pipeline: -3, w_pkk: -6, w_transit: -2 },
     texte: {
       w_pipeline: { label: "Kirkuk–Ceyhan-Leitung", text: "Das Zwölfmonats-Protokoll vom 27. Juli 2026 wird verlängert; heute laufen rund 250.000 Barrel am Tag, das Ziel ist eine langfristige Einigung über deutlich mehr." }, // Datum geglättet (Teil V §5.2; vorher „August 2026“)
       transit: { label: "Entwicklungsstraße", text: "Die geplante Entwicklungsstraße von Basra zur türkischen Grenze verbindet Golf und Europa." },
@@ -623,7 +623,7 @@ export const PROFILE: Record<string, LandProfil> = {
   SAU: {
     hebel: -2, rot: [],
     hebelText: "Die Golfstaaten haben das Geld; Ankara braucht ihre Einlagen und Aufträge.",
-    werte: { ruestung_koop: 8, bauauftraege: 5, militaerzugang: 4, beistand: 7, w_swap: -4, w_investition_zusage: -5 },
+    werte: { ruestung_koop: 8, bauauftraege: 5, militaerzugang: 4, beistand: 7, w_swap: -4, w_investition_zusage: -5, w_transit: -3 },
     texte: {
       beistand: { label: "Beistandspakt von Mekka", text: "Am 7. August 2026 unterzeichneten Saudi-Arabien, Pakistan und die Türkei einen Beistandspakt mit Kollektivverteidigungsklausel; er läuft bereits und bindet Ankara im Ernstfall zur Hilfe." }, // Teil V §5.1 Nr. 3: liegt zum Spielstart als laufender Vertrag vor (START_VERTRAEGE in sim/laender.ts)
       ruestung_koop: { label: "KAAN und Luftabwehr", text: "Das Kampfflugzeug KAAN ist in Endverhandlung; dazu kommt Luftabwehr." },
@@ -633,7 +633,7 @@ export const PROFILE: Record<string, LandProfil> = {
     hebel: 1, rot: [],
     // Teil V §5.3: hebel 0 → +1 — die Sperre kostet Israel wenig, aber die Syrien-Frage macht Ankara für Jerusalem wichtiger
     hebelText: "Die Sperre hat den Handel auf null gedrückt; Syrien und der Friedensrat für Gaza machen Ankara für Jerusalem dennoch wichtig.",
-    werte: { ende_sperre: 9, zoll: 4, vermittlung_zusage: 3, w_luftraum: -2, w_zoll: -2 },
+    werte: { ende_sperre: 9, zoll: 4, vermittlung_zusage: 3, w_luftraum: -2, w_zoll: -2, w_transit: -4 },
     texte: {
       ende_sperre: { text: "Die Handels-, Hafen- und Luftraumsperre gilt seit dem 2. Mai 2024 und wurde im Februar 2026 um einen Zertifikats-Stopp verschärft; aserbaidschanisches Öl läuft als Grauzone weiter über Ceyhan. Ein Ende der Sperre ist der Preis für alles Weitere." }, // Teil V §5.2: Verschärfung 02/2026 und Ceyhan-Grauzone ergänzt
       vermittlung_zusage: { label: "Türkei im Friedensrat für Gaza", text: "Die Türkei ist Mitglied im Friedensrat für Gaza; Jerusalem will sie dort zurückhaltend sehen." },
@@ -642,7 +642,7 @@ export const PROFILE: Record<string, LandProfil> = {
   CHN: {
     hebel: 0, rot: [],
     hebelText: "China ist der größere Markt, die Türkei der Tor zum Westen: ein Handel unter Gleichen mit Schlagseite.",
-    werte: { investitionen_oeffnen: 6, transit: 5, zoll: 4, bauauftraege: 2, w_defizit: -5, w_werk: -5, w_swap: -4 },
+    werte: { investitionen_oeffnen: 6, transit: 5, zoll: 4, bauauftraege: 2, w_defizit: -5, w_werk: -5, w_swap: -4, w_transit: -3 },
     texte: {
       w_defizit: { label: "Handelsdefizit ausgleichen", text: "Das Handelsdefizit betrug 2025 rund 46,3 Milliarden US-Dollar; Ankara verlangt Ausgleich über Zölle, Quoten und Investitionen." },
       w_werk: { label: "Werk in der Türkei (BYD)", text: "Ein BYD-Werk in der Türkei wurde abgesagt; Ankara will eine neue Zusage." },
@@ -654,7 +654,7 @@ export const PROFILE: Record<string, LandProfil> = {
     hebel: 1, rot: [],
     // Teil V §5.3: hebel 0 → +1 — Ankaras Rolle bei den Sicherheitsgarantien (maritime Führung seit 07/2026) stärkt seine Hand
     hebelText: "Kiew braucht Ankaras Meerengen und Drohnen und die türkische Führung der maritimen Sicherheitsgarantien.",
-    werte: { ruestung_koop: 8, meerengen: 7, bauauftraege: 6, vermittlung_zusage: 4, seesicherheit: 4, w_getreide: -3, w_zoll: -3 },
+    werte: { ruestung_koop: 8, meerengen: 7, bauauftraege: 6, vermittlung_zusage: 4, seesicherheit: 4, w_getreide: -3, w_zoll: -3, w_transit: -3 },
     texte: {
       seesicherheit: { label: "Minenräumung im Schwarzen Meer (Maritime Component Command)", text: "Im April 2026 wurde ein gemeinsames Seekommando eingerichtet; die Minenräumung ist sein erster Auftrag." },
       vermittlung_zusage: { label: "Vermittlung: Gefangenenaustausch in Istanbul", text: "Ankara richtet Gespräche und den Austausch von Gefangenen in Istanbul aus." },
@@ -673,7 +673,7 @@ export const PROFILE: Record<string, LandProfil> = {
     hebel: 1, rot: [],
     // Teil V §5.3: hebel 0 → +1 — das IWF-Programm läuft Ende 2026 aus, die Suez-Einnahmen hinken: Kairo braucht die Partnerschaft
     hebelText: "Kairo war lange Gegenspieler; die Strategische Partnerschaft seit Februar 2026 trägt, aber Libyen und die Seegrenzen belasten.",
-    werte: { ruestung_koop: 7, zoll: 5, investitionen_oeffnen: 3, w_handelsziel: -4, w_libyen: -6, w_seegrenze: -5 },
+    werte: { ruestung_koop: 7, zoll: 5, investitionen_oeffnen: 3, w_handelsziel: -4, w_libyen: -6, w_seegrenze: -5, w_transit: -3 },
     texte: {
       w_handelsziel: { label: "Handel von 8 auf 15 Milliarden Dollar", text: "Die Strategische Partnerschaft vom Februar 2026 sieht vor, den Handel von 8 auf 15 Milliarden US-Dollar zu steigern, dazu gemeinsame Rüstungsproduktion." },
     },
@@ -681,7 +681,7 @@ export const PROFILE: Record<string, LandProfil> = {
   LBY: {
     hebel: 2, rot: [],
     hebelText: "Tripolis lehnt sich an Ankara an: Truppen, Ausbildung und Aufträge stützen die Regierung dort.",
-    werte: { ruestung_koop: 7, militaerzugang: 5, bauauftraege: 6, bohrung: 4, w_seegrenze: -2, w_stuetzpunkt: -3 },
+    werte: { ruestung_koop: 7, militaerzugang: 5, bauauftraege: 6, bohrung: 4, w_seegrenze: -2, w_stuetzpunkt: -3, w_transit: -3 },
     texte: {
       w_seegrenze: { label: "Seegrenz-Memorandum von 2019 bekräftigen", text: "Das Abkommen von 2019 über die Seegrenzen im östlichen Mittelmeer wird bekräftigt; Griechenland, Ägypten und Zypern lehnen es ab." },
     },
@@ -697,7 +697,7 @@ export const PROFILE: Record<string, LandProfil> = {
   CYP: {
     hebel: -1, rot: ["w_trnc"],
     hebelText: "Nikosia ist EU-Mitglied und nutzt den Rückhalt: Ohne Bewegung der Türkei gibt es keine Gefälligkeit.",
-    werte: { hafen_oeffnung: 9, verzicht_bohrung: 7, vermittlung_zusage: 3, w_direkthandel: -8, w_seegrenze: -6, w_trnc: -99, w_zollunion: -3 },
+    werte: { hafen_oeffnung: 9, verzicht_bohrung: 7, vermittlung_zusage: 3, w_direkthandel: -8, w_seegrenze: -6, w_trnc: -99, w_zollunion: -3, w_transit: -5 },
     rotText: { w_trnc: "Nikosia erkennt Nordzypern nicht an; jede Zwei-Staaten-Lösung verstößt aus seiner Sicht gegen die UN-Beschlüsse." },
     texte: {
       verzicht_bohrung: { label: "Keine Bohrungen in der zyprischen Wirtschaftszone", text: "Bohrschiffe bleiben aus dem Gebiet, das Zypern als seine ausschließliche Wirtschaftszone beansprucht." },

@@ -17,6 +17,8 @@ import { zinssitzung } from "./zentralbank";
 import { wirtschaftMonat } from "./wirtschaft-tick";
 import { migriereUmsetzung, umsetzungMonat } from "./umsetzung";
 import { devisenMonat, migriereDevisen } from "./devisen";
+import { migriereKatastrophen } from "./katastrophe";
+import { migriereWahlkampf } from "./wahlkampf";
 import { turkey2026 } from "./scenario";
 
 // Das Netz, das Protokoll und die Eingriffe liegen in eigenen Dateien; hier bleiben die Namen erreichbar.
@@ -270,6 +272,10 @@ export function load(json: string): World {
   migriereUmsetzung(NET, w.net);
   // Ältere Spielstände (WIR-2): die Devisen-Lage lädt mit den Startwerten des Szenarios
   migriereDevisen(w);
+  // Ältere Spielstände (INN-5): Es gab keinen Wahlkampf; ein Feld im Zeitfenster wird repariert, sonst beginnt die Phase beim ersten Tick
+  migriereWahlkampf(w);
+  // Ältere Spielstände (INF-5): Katastrophen-Feld anlegen; dynamische Wohnbau-Vorhaben erneut im Reich anmelden
+  migriereKatastrophen(w);
   return w;
 }
 

@@ -8,7 +8,7 @@ import { laufende } from "../../sim/abkommen";
 import { ISO_ZU_LAND, LAENDERNAMEN } from "../ebenen";
 import { Flagge } from "../art/Flaggen";
 
-export type WeltTab = "ueberblick" | "verhandeln" | "vertraege" | "handeln" | "konflikt";
+export type WeltTab = "ueberblick" | "verhandeln" | "vertraege" | "handeln" | "konflikt" | "beitritt";
 
 export interface LandAuswahl {
   iso: string;
