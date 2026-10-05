@@ -307,6 +307,8 @@ export interface LandZustand {
   initiativeZuletzt?: number;
   /** Tag, an dem eine Rote Linie dieses Landes zuletzt bedroht wurde (Veto am Verhandlungstisch, sim/abkommen.ts); fehlt in älteren Spielständen */
   rotBedroht?: number;
+  /** Konflikt-Anker aus Verträgen, Kurs der Führung und Sanktionen (sim/diplomatie.ts): Ziel des Konfliktwerts ohne Ereignisse, relativ zum Startwert */
+  anker?: number;
 }
 
 /**
@@ -528,16 +530,27 @@ export function fuehreAktionAus(w: World, id: string, aktion: AktionId): { ok: b
   return { ok: true, text, why };
 }
 
+/**
+ * Haken für das Weltmodell (sim/welt-modell.ts): Es registriert sich beim Laden und läuft am Ende jedes Monatsschritts der Länder.
+ * Kein Direktimport, damit kein Ladezyklus laender ↔ welt-modell entsteht; ohne Registrierung (isolierte Tests) läuft nur der Teil unten.
+ */
+let weltHaken: ((w: World) => void) | undefined;
+export function setzeWeltHaken(f: (w: World) => void): void {
+  weltHaken = f;
+}
+
 /** Einmal im Monat: Konflikte kühlen ab oder schwelen; zufriedene Länder werden warm. */
 export function weltMonat(w: World): void {
   if (!w.spiel) return;
   const z = weltZustand(w);
   for (const l of LAENDER) {
     const s = z[l.id]!;
-    s.konflikt = clamp(s.konflikt + Math.sign(l.start.konflikt - s.konflikt) * Math.min(1, Math.abs(l.start.konflikt - s.konflikt)), 0, 100);
+    const ziel = clamp(l.start.konflikt + (s.anker ?? 0), 0, 100);
+    s.konflikt = clamp(s.konflikt + Math.sign(ziel - s.konflikt) * Math.min(1, Math.abs(ziel - s.konflikt)), 0, 100);
     const stand = anliegenStand(w, l.id);
     const erfuellt = stand.filter((x) => x.erfuellt).length;
     if (erfuellt === stand.length) s.versatz = clamp(s.versatz + 0.8, -60, 60);
     else if (erfuellt === 0) s.versatz = clamp(s.versatz - 0.3, -60, 60);
   }
+  weltHaken?.(w);
 }

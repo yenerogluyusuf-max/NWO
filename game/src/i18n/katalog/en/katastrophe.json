@@ -1,0 +1,13 @@
+{
+ "katastrophe.erholt_chronik": "{ort} has recovered.",
+ "katastrophe.erholt_text": "The situation in {ort} has calmed; the region is back on its feet.",
+ "katastrophe.frist_chronik_text": "{ort}: After {monate, plural, one {# month} other {# months}} the acute emergency has subsided.",
+ "katastrophe.frist_chronik_titel": "{art} subsided",
+ "katastrophe.frist_text": "After {monate, plural, one {# month} other {# months}} the event no longer shapes everyday life in the region; what remains are the consequences for the country and its economy.",
+ "katastrophe.frist_text_zusage": "After {monate, plural, one {# month} other {# months}} the acute emergency is considered over. The public promise stands: {geliefert, number} of {bedarf, number} homes have been delivered, and the rest will continue to be measured.",
+ "katastrophe.frist_titel": "{art} in {ort}: The acute emergency has subsided.",
+ "katastrophe.kette_bewaeltigt": "Counts as overcome once 95 percent of the need has been delivered: so far {geliefert, number} of {bedarf, number} homes. At the latest after {frist, plural, one {# month} other {# months}} the acute emergency fades.",
+ "katastrophe.kette_duerre": "Counts as overcome once the situation has calmed: after {min, plural, one {# month} other {# months}} at the earliest, when the water shortage in the basin is back at its resting level; after {frist, plural, one {# month} other {# months}} at the latest.",
+ "katastrophe.kette_ohne_bedarf": "Counts as overcome once the situation has calmed, after {frist, plural, one {# month} other {# months}} at the latest.",
+ "katastrophe.zusage_unmoeglich": "No housing programme of its own is an option for this damage; a public promise could not be kept."
+}

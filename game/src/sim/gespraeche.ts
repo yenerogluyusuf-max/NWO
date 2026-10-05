@@ -186,7 +186,7 @@ export interface Schritt {
   eigenesRessort: boolean;
 }
 
-function schritteFuer(w: World, f: Figur, groesse: string, richtung: 1 | -1, n = 2): Schritt[] {
+export function schritteFuer(w: World, f: Figur, groesse: string, richtung: 1 | -1, n = 2): Schritt[] {
   const gi = NET.index.get(groesse);
   if (gi === undefined) return [];
   const eigene = new Set(amtDef(f).massnahmen);

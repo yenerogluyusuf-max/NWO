@@ -10,6 +10,7 @@ import { ausscheiden } from "./nachfolge";
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
 import type { Rng } from "./rng";
+import { t } from "../i18n";
 
 /** Mitglieder der Regierung, die im Amt sind und nicht nur kommissarisch führen. */
 function regierung(w: World): Figur[] {
@@ -103,7 +104,8 @@ const SKANDAL: Vorlage = {
   szene: "istanbul",
   frist: 15,
   abkuehlung: 240,
-  chance: (w) => (regierung(w).length ? (regierung(w).some((f) => f.loyalitaet < 40 || eigenVon(w, f).groll >= 45) ? 0.012 : 0.003) : 0),
+  // Grundrate auch ohne Streit (Messung vom 05.10.: person_*-Ereignisse brauchten Unmut und blieben aus): 0,007 je Monat, bei Unmut 0,012
+  chance: (w) => (regierung(w).length ? (regierung(w).some((f) => f.loyalitaet < 40 || eigenVon(w, f).groll >= 45) ? 0.012 : 0.007) : 0),
   erzeuge: (w, rng: Rng) => {
     const liste = regierung(w).filter((f) => VORWURF[f.amt]);
     if (!liste.length) return null;
@@ -185,7 +187,7 @@ const INTRIGE: Vorlage = {
   szene: "parlament",
   frist: 20,
   abkuehlung: 180,
-  chance: (w) => (regierung(w).some((f) => eigenVon(w, f).ehrgeiz >= 75 && f.loyalitaet < 55) ? 0.03 : 0),
+  chance: (w) => (regierung(w).some((f) => eigenVon(w, f).ehrgeiz >= 75 && f.loyalitaet < 55) ? 0.03 : regierung(w).some((f) => eigenVon(w, f).ehrgeiz >= 60 && f.loyalitaet < 65) ? 0.012 : 0),
   erzeuge: (w) => {
     const f = regierung(w).sort((a, b) => eigenVon(w, b).ehrgeiz - eigenVon(w, a).ehrgeiz)[0];
     return f ? { provinzen: [], staerke: 1, daten: { figur: f.id } } : null;
@@ -295,4 +297,46 @@ const LECK: Vorlage = {
   },
 };
 
-export const PERSONEN_VORLAGEN: Vorlage[] = [RUECKTRITT, SKANDAL, INTRIGE, LECK];
+// ---------------------------------------------------------------------------
+// Altersrücktritt: Wer lange im Amt ist, geht irgendwann von selbst (Grundrate; Alter und Gesundheit als Zustand der Figuren folgen später)
+
+const ALTER: Vorlage = {
+  id: "person_altersruecktritt",
+  szene: "istanbul",
+  frist: 25,
+  abkuehlung: 240,
+  // Erst nach drei Regierungsjahren und selten: etwa 0,005 je Monat, also alle paar Jahre einmal (Spielparameter)
+  chance: (w) => (regierung(w).length && w.day > 3 * 365 ? 0.005 : 0),
+  erzeuge: (w) => {
+    const rs = regierung(w);
+    if (!rs.length) return null;
+    const f = rs[Math.floor(hashZahl(`alter-${w.day}`) * rs.length)]!;
+    return { provinzen: [], staerke: 1, daten: { figur: f.id } };
+  },
+  titel: (w, ev) => t("takt.person.alter.titel", { wer: wer(figurVon(w, ev)) }),
+  text: (w, ev) => [t("takt.person.alter.text", { wer: wer(figurVon(w, ev)) })],
+  warum: () => t("takt.person.alter.warum"),
+  optionen: (w, ev) => [
+    opt("verabschieden", t("takt.person.alter.opt.verabschieden.label"), t("takt.person.alter.opt.verabschieden.beschr"), 0, (ww) => {
+      const g = figurVon(ww, ev);
+      if (g) ausscheiden(ww, g, t("takt.person.alter.grund"));
+      return t("takt.person.alter.opt.verabschieden.ausgang", { wer: wer(g) });
+    }),
+    opt("bitten", t("takt.person.alter.opt.bitten.label"), t("takt.person.alter.opt.bitten.beschr"), 2, (ww) => {
+      const g = figurVon(ww, ev);
+      if (g) {
+        loyalitaetVerschieben(g, 6);
+        grollVerschieben(ww, g, -5);
+        merke(ww, g, t("takt.person.alter.merke"));
+      }
+      return t("takt.person.alter.opt.bitten.ausgang", { wer: wer(g) });
+    }),
+  ],
+  standard: (w, ev) => {
+    const f = figurVon(w, ev);
+    if (f) ausscheiden(w, f, t("takt.person.alter.grund"));
+    return t("takt.person.alter.standard", { wer: wer(f) });
+  },
+};
+
+export const PERSONEN_VORLAGEN: Vorlage[] = [RUECKTRITT, SKANDAL, INTRIGE, LECK, ALTER];

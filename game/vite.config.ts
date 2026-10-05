@@ -37,7 +37,9 @@ function kiRelay(schluessel: Record<string, string>): Plugin {
         if (!/^application\/json/.test(kopf("content-type"))) return antwort(415, { error: { message: "Nur JSON." } });
         const a = anbieterDef(kopf("x-ki-anbieter"));
         if (!a || a.lokal) return antwort(400, { error: { message: "Unbekannter Anbieter." } });
-        const ziel = a.eigeneUrl ? endpunkt(a, kopf("x-ki-url")) : endpunkt(a);
+        // Der Schlüssel kann die Adresse bestimmen (MiMo: Token-Plan-Schlüssel gehören an eine andere Adresse als Pay-as-you-go)
+        const key = kopf("x-ki-schluessel") || schluessel[a.id] || "";
+        const ziel = a.eigeneUrl ? endpunkt(a, kopf("x-ki-url")) : endpunkt(a, undefined, key);
         let url: URL;
         try {
           url = new URL(ziel);
@@ -45,7 +47,6 @@ function kiRelay(schluessel: Record<string, string>): Plugin {
           return antwort(400, { error: { message: "Die Adresse des Dienstes ist ungültig." } });
         }
         if (url.protocol !== "https:" || istPrivaterHost(url.hostname)) return antwort(400, { error: { message: "Nur öffentliche https-Adressen." } });
-        const key = kopf("x-ki-schluessel") || schluessel[a.id] || "";
         if (!key) return antwort(503, { error: { message: `Für ${a.name} ist kein Schlüssel eingetragen.` } });
         const teile: Buffer[] = [];
         let groesse = 0;
@@ -66,7 +67,7 @@ function kiRelay(schluessel: Record<string, string>): Plugin {
               headers:
                 a.protokoll === "anthropic"
                   ? { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" }
-                  : { "content-type": "application/json", authorization: `Bearer ${key}` },
+                  : { "content-type": "application/json", authorization: `Bearer ${key}`, ...(a.auchApiKeyKopf ? { "api-key": key } : {}) },
               body: JSON.stringify(body),
             });
             res.statusCode = r.status;
@@ -88,5 +89,9 @@ export default defineConfig(({ mode }) => {
     const wert = a.envVar ? (env[a.envVar] || process.env[a.envVar] || "").trim() : "";
     if (wert) schluessel[a.id] = wert;
   }
-  return { plugins: [react(), kiRelay(schluessel)] };
+  return {
+    plugins: [react(), kiRelay(schluessel)],
+    // Tests laufen auch auf einem ausgelasteten Rechner (mehrere Läufe zugleich): großzügige Frist statt scheinbarer Fehler
+    test: { testTimeout: 60_000, hookTimeout: 60_000 },
+  };
 });

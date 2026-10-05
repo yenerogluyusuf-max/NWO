@@ -8,7 +8,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { createWorld, advance, load } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
-import { antworten, entscheide, ereignisMonat, oeffne, vorlage, VORLAGEN } from "../src/sim/ereignisse";
+import { antworten, entscheide, ereignisMonatSofort as ereignisMonat, oeffne, vorlage, VORLAGEN } from "../src/sim/ereignisse";
 import type { Vorlage } from "../src/sim/ereignis-hilfen";
 import { INITIATIVE_REGELN, INITIATIVE_VORLAGE_IDS, besterKandidat, initiativeKandidaten } from "../src/sim/initiative";
 import { laufende, schliesse, verhandle } from "../src/sim/abkommen";

@@ -1,0 +1,48 @@
+/* Parteikonfigurator und Szenariowahl im Prolog: ruhige Papierflächen, Schrift mindestens 12 px */
+.pk { display: grid; grid-template-columns: minmax(240px, 1.1fr) minmax(280px, 1.3fr) minmax(240px, 1fr); gap: 20px; align-items: start; text-align: left; }
+.pk h3 { margin: 0 0 8px; font: 600 14px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.pk-presets { display: grid; gap: 6px; max-height: 380px; overflow: auto; padding-right: 4px; }
+.pk-presets button { display: grid; gap: 2px; text-align: left; padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.35); border-left-width: 6px; background: rgba(255, 252, 244, 0.7); cursor: pointer; font-family: var(--sans, Inter, sans-serif); color: var(--ink, #2b1e12); }
+.pk-presets button strong { font: 600 14px/1.25 var(--display, Fraunces, serif); }
+.pk-presets button span { font-size: 12.5px; line-height: 1.35; color: var(--ink-soft, #5a4a38); }
+.pk-presets button:hover { background: #fffaf0; }
+.pk-presets button.on { background: #f3e2b8; border-color: #b98a34; }
+.pk-presets button:focus-visible { outline: 2px solid #8c2b1f; outline-offset: 1px; }
+.pk-achse { display: grid; gap: 4px; margin-bottom: 12px; font-family: var(--sans, Inter, sans-serif); }
+.pk-achse-name { font-size: 13px; font-weight: 600; }
+.pk-achse-reg { display: grid; grid-template-columns: minmax(70px, 0.9fr) 1.6fr minmax(70px, 0.9fr); align-items: center; gap: 8px; }
+.pk-achse-reg i { font-size: 12px; font-style: normal; color: var(--ink-soft, #5a4a38); line-height: 1.2; }
+.pk-achse-reg i:last-child { text-align: right; }
+.pk-achse input[type="range"] { width: 100%; accent-color: #8c2b1f; }
+.pk-felder { display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; margin-top: 8px; font: 12.5px var(--sans, Inter, sans-serif); }
+.pk-felder label { display: grid; gap: 3px; }
+.pk-felder input { padding: 6px 8px; font: 14px var(--sans, Inter, sans-serif); border: 1px solid rgba(90, 64, 40, 0.45); background: #fffdf6; }
+.pk-felder input[type="color"] { padding: 0; width: 44px; height: 32px; }
+.pk-felder input[aria-invalid="true"] { border-color: #8c2b1f; }
+.pk-hinweis { margin: 6px 0 0; font: 12.5px var(--sans, Inter, sans-serif); color: #8c2b1f; }
+.pk-vorschau dl { margin: 0 0 10px; display: grid; gap: 2px; font-family: var(--sans, Inter, sans-serif); }
+.pk-vorschau dt { margin-top: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft, #5a4a38); }
+.pk-vorschau dd { margin: 0; font-size: 13.5px; line-height: 1.4; }
+.pk-fussnote { margin: 0 0 10px; font: italic 12.5px/1.4 var(--serif, "EB Garamond", serif); color: var(--ink-soft, #5a4a38); }
+.pk-vorschau .primary { width: 100%; }
+@media (max-width: 1100px) { .pk { grid-template-columns: 1fr; } .pk-presets { max-height: 260px; } }
+
+.szenarien { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0 4px; }
+.szenarien button { display: grid; gap: 3px; text-align: left; padding: 10px 12px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 244, 0.75); cursor: pointer; font-family: var(--sans, Inter, sans-serif); color: var(--ink, #2b1e12); }
+.szenarien button strong { font: 600 15px/1.25 var(--display, Fraunces, serif); }
+.szenarien button span { font-size: 13px; line-height: 1.4; color: var(--ink-soft, #5a4a38); }
+.szenarien button.on { background: #f3e2b8; border-color: #b98a34; }
+.szenarien button[disabled] { opacity: 0.55; cursor: not-allowed; }
+.szenarien button em { font-size: 12.5px; color: #8c2b1f; font-style: normal; font-weight: 600; }
+.answer .folge { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.35; }
+.answer .folge.vorteil { color: #2f6b3c; }
+.answer .folge.preis { color: #8c2b1f; }
+@media (max-width: 800px) { .szenarien { grid-template-columns: 1fr; } }
+
+/* Breitere Karten für Szenariowahl und Konfigurator (die Standardkarte ist 580 px breit) */
+.prologue.mittel { width: min(780px, calc(100vw - 32px)); }
+.prologue.weit { width: min(1240px, calc(100vw - 32px)); right: 16px; }
+.prologue.mittel .vignette, .prologue.weit .vignette { max-height: 16vh; }
+.prologue.weit .pk-presets { max-height: min(46vh, 420px); }
+.prologue.weit h2 { font-size: 24px; margin-bottom: 4px; }
+.prologue.weit .story { margin: 4px 0 8px; }

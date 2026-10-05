@@ -15,7 +15,7 @@ import type { Vorlage } from "./ereignis-hilfen";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
 import type { KatastropheFall } from "./spiel-typen";
-import { eroeffnungEffekte, fallMit, schaetzung, soforthilfe, staerkeWort, zusageFestlegen, KATASTROPHE } from "./katastrophe";
+import { eroeffnungEffekte, fallMit, programmMoeglich, schaetzung, soforthilfe, staerkeWort, zusageFestlegen, KATASTROPHE } from "./katastrophe";
 
 function fallAus(w: World, ev: OffenesEreignis): KatastropheFall {
   const f = fallMit(w, String(ev.daten?.fall ?? ""));
@@ -55,7 +55,8 @@ const GROSSBEBEN: Vorlage = {
         return soforthilfe(ww, fall.id);
       }),
     ];
-    if (fall.wohnungen >= 500) {
+    // Ein Versprechen gibt es nur, wenn ein Wohnungsbau-Programm es einlösen könnte (Bedarf ab 1.000 Wohnungen); sonst wäre es eine Falle
+    if (programmMoeglich(fall)) {
       const zusage = (stufe: "klein" | "voll" | "gross") => {
         const wohnungen = Math.max(500, Math.round((fall.wohnungen * KATASTROPHE.zusageStufen[stufe]) / 500) * 500);
         return wohnungen;

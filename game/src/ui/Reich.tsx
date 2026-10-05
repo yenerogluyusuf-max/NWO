@@ -1,15 +1,17 @@
-// Das Reich: je Fachbereich der Bestand (Inventar), die Vorhaben (Projekte, Wunder, Reformen), der Bau in der Warteschlange und die Vorteile.
-// Kein Bereich wird nur in Geld gemessen: Jeder hat eigene Größen, und jedes Vorhaben nennt seine Kosten in Kapital, Bau und Verwaltungskraft.
+// Das Reich: je Fachbereich eine Akte mit klarer Gliederung. „Lage“ zeigt Größen, Ressourcen, das Dringendste und den Bau; „… pflegen“ den Bestand
+// mit Zustand, Folgen und Eingriff; „Neue Vorhaben“ das, was sich beginnen lässt, nach Art getrennt. Kein Bereich wird nur in Geld gemessen:
+// Jeder hat eigene Größen, und jedes Vorhaben nennt vorher Ausgangslage und erwartete Wirkung und hinterher Vorher und Nachher.
 
 import { useState } from "react";
 import type { World } from "../sim/types";
-import { BEREICH_NAMEN, KLASSEN_NAMEN, VERGABE_NAMEN, type Bereich, type Klasse, type Vergabe } from "../sim/reich-typen";
+import { BEREICH_NAMEN, VERGABE_NAMEN, type Bereich, type Vergabe } from "../sim/reich-typen";
 import {
   aktiveVorteile,
   bauKapazitaet,
   bauplan,
   beginne,
   erhaltung,
+  groessenWert,
   laufBau,
   pausiere,
   reichZustand,
@@ -17,9 +19,9 @@ import {
   verwaltungBilanz,
   vorhabenDef,
   vorhabenListe,
-  vorhabenSicht,
   VORZIEHEN_VERWALTUNG,
   warteschlange,
+  wirkungsVorschau,
   effektZeile,
   type VorhabenSicht,
 } from "../sim/reich";
@@ -30,6 +32,11 @@ import { Groessen, type GroesseDef } from "./reich/Groessen";
 import { Schaetzblaetter } from "./reich/Schaetzblatt";
 import { VorhabenKarte } from "./reich/VorhabenKarte";
 import { WunderBild } from "./reich/WunderBild";
+import { Neues } from "./reich/Neues";
+import { Lohnt, PflegeListe, Zeilen, lohnendste } from "./reich/Pflege";
+import { Verlauf } from "./reich/Verlauf";
+import { t, aktuelleLocale } from "../i18n";
+import "./reich/reich.css";
 
 const GROESSEN: Record<Bereich, GroesseDef[]> = {
   kultur: [{ id: "kulturerbe" }, { id: "identitaet" }, { id: "vielfalt" }, { id: "tourismus" }, { id: "ansehen" }],
@@ -50,14 +57,6 @@ const GROESSEN: Record<Bereich, GroesseDef[]> = {
   haushalt: [{ id: "legitimitaet" }, { id: "vertrauen_maerkte" }, { id: "vertrauen_regierung" }],
 };
 
-const EINLEITUNG: Record<Bereich, string> = {
-  kultur: "Das Erbe des Landes ist Inventar: 53 Stätten, in Ephesos, Antakya, Ani und überall. Sie verfallen ohne Pflege, und Besucher belasten sie. Wunder, Routen und Restaurierungen kosten Kapital, Bau und Verwaltung, kaum Geld, und sie bringen Ansehen, Zusammenhalt und Gäste.",
-  recht: "Reformen im Rechtssystem kosten Kapital, Stimmen und Zeit, nicht Geld. Sie bewegen die Unabhängigkeit der Justiz, die Kapazität der Gerichte und die Befolgung von Urteilen. Durchgriff bringt Rückhalt im Lager und kostet Legitimität: ein Zielkonflikt, keine Frage der Kasse.",
-  militaer: "Der Präsident bestellt und verantwortet, er kommandiert nicht. Programme haben einen Lebenszyklus vom Vertrag bis zur Einsatzbereitschaft; Lieferanten erwarten etwas dafür, und manches ist blockiert, bis eine Bedingung fällt. Doktrinen schließen einander aus.",
-  infrastruktur: "Was gebaut ist, steht im Bestand und braucht Pflege; was gebaut wird, teilt sich die Baukapazität des Landes. Große Projekte sind Wunder mit dauerhaften Vorteilen und mit Gegnern.",
-  haushalt: "Neben dem Haushalt gibt es drei knappe Größen: Verwaltungskraft, Baukapazität und Legitimität. Sonderrechte und Instrumente wirken schnell und haben Kehrseiten, die sich später zeigen.",
-};
-
 function Statistik({ world }: { world: World }) {
   const z = reichZustand(world);
   const vb = verwaltungBilanz(world);
@@ -66,23 +65,23 @@ function Statistik({ world }: { world: World }) {
   return (
     <div className="rr-ressourcen">
       <div className={`rr-ressource ${vb.vorrat < 15 ? "knapp" : ""}`} title="Verwaltungskraft: Sie bezahlt den laufenden Unterhalt aller Vorhaben. Ist der Vorrat leer, kommen Bauten nur zur Hälfte voran und die Legitimität leidet.">
-        <span>Verwaltungskraft</span>
+        <span>{t("reich.stat.verwaltung")}</span>
         <span className="rr-balken" aria-hidden>
           <i style={{ width: `${vb.vorrat}%` }} />
         </span>
         <b>{Math.round(vb.vorrat)}</b>
         <em className={vb.netto >= 0 ? "hoch" : "runter"}>
           {vb.netto >= 0 ? "+" : "−"}
-          {Math.abs(vb.netto).toLocaleString("de-DE", { maximumFractionDigits: 1 })} im Monat
+          {Math.abs(vb.netto).toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 })} {t("reich.stat.imMonat")}
         </em>
       </div>
       <div className="rr-ressource" title="Baukapazität: Baupunkte, die das Land je Monat aufbringt. Laufende Vorhaben teilen sie nach der Reihenfolge auf.">
-        <span>Baukapazität</span>
+        <span>{t("reich.stat.bau")}</span>
         <span className="rr-balken" aria-hidden>
           <i style={{ width: `${Math.min(100, (geplant / Math.max(1, cap)) * 100)}%` }} />
         </span>
         <b>{Math.round(cap)}</b>
-        <em>{Math.round(geplant)} von {Math.round(cap)} je Monat verplant</em>
+        <em>{t("reich.stat.verplant", { geplant: Math.round(geplant), cap: Math.round(cap) })}</em>
       </div>
     </div>
   );
@@ -95,7 +94,7 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
   if (!liste.length) return null;
   return (
     <section className="rr-abschnitt">
-      <h4>Im Bau <em>Reihenfolge = Vorrang bei der Baukapazität</em></h4>
+      <h4>{t("reich.bau.titel")} <em>{t("reich.bau.untertitel")}</em></h4>
       <ul className="rr-bauliste">
         {liste.map(({ l, v }) => {
           const bauGesamt = laufBau(l, v);
@@ -206,7 +205,8 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
   );
 }
 
-function Staetten({ world, refresh, onStaette }: { world: World; refresh: () => void; onStaette?: (id: string) => void }) {
+/** Eine Stätte mit Zustand, Folge und Eingriff: Zustand → Restaurieren → Wirkung. */
+function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () => void; nurSchlechte?: number }) {
   const z = reichZustand(world);
   const [serie, setSerie] = useState<string>("alle");
   const [rueckmeldung, setRueckmeldung] = useState<string | null>(null);
@@ -220,7 +220,10 @@ function Staetten({ world, refresh, onStaette }: { world: World; refresh: () => 
     { id: "vielvoelker", name: "Gemeinschaften" },
     { id: "welterbe", name: "Welterbe" },
   ];
-  const liste = ERBE.filter((e) => (serie === "alle" ? true : serie === "welterbe" ? e.unesco.status === "welterbe" : e.serien?.includes(serie as never))).sort((a, b) => (z.staetten[a.id]?.zustand ?? 0) - (z.staetten[b.id]?.zustand ?? 0));
+  const zustandVon = (e: Erbe) => z.staetten[e.id]?.zustand ?? 0;
+  const liste = ERBE.filter((e) => (nurSchlechte !== undefined ? true : serie === "alle" ? true : serie === "welterbe" ? e.unesco.status === "welterbe" : e.serien?.includes(serie as never)))
+    .sort((a, b) => zustandVon(a) - zustandVon(b))
+    .slice(0, nurSchlechte ?? ERBE.length);
   const sieben = KIRCHEN_DER_OFFENBARUNG.map((k) => z.staetten[k.id]?.zustand ?? 0);
   const restauriere = (e: Erbe) => {
     const r = beginne(world, `restaurierung_${e.id}`);
@@ -230,31 +233,38 @@ function Staetten({ world, refresh, onStaette }: { world: World; refresh: () => 
   return (
     <section className="rr-abschnitt">
       <h4>
-        Stätten <em>Erhaltung insgesamt {Math.round(erhaltung(world))}</em>
+        {nurSchlechte !== undefined ? "Am schlechtesten erhalten" : "Stätten"} <em>Erhaltung insgesamt {Math.round(erhaltung(world))}</em>
       </h4>
-      <div className="rr-filter" role="group" aria-label="Auswahl der Stätten">
-        {SERIEN.map((s) => (
-          <button key={s.id} type="button" className={serie === s.id ? "on" : ""} onClick={() => setSerie(s.id)} aria-pressed={serie === s.id}>
-            {s.name}
-          </button>
-        ))}
-      </div>
-      {serie === "kirchen7" && (
+      {nurSchlechte === undefined && (
+        <div className="rr-filter" role="group" aria-label="Auswahl der Stätten">
+          {SERIEN.map((s) => (
+            <button key={s.id} type="button" className={serie === s.id ? "on" : ""} onClick={() => setSerie(s.id)} aria-pressed={serie === s.id}>
+              {s.name}
+            </button>
+          ))}
+        </div>
+      )}
+      {serie === "kirchen7" && nurSchlechte === undefined && (
         <p className="rr-hinweis">
           Die sieben Gemeinden der Offenbarung liegen alle im Westen der Türkei. Die Kirchenroute der Sieben verlangt für jede Stätte mindestens Zustand 55; die schwächste steht bei {Math.round(Math.min(...sieben))}.
         </p>
       )}
       {rueckmeldung && <p className="rr-hinweis" role="status">{rueckmeldung}</p>}
-      <ul className="rr-staetten">
+      <ul className="rr-stabliste">
         {liste.map((e) => {
           const st = z.staetten[e.id]!;
-          const laeuft = z.laufend.some((l) => l.id === `restaurierung_${e.id}`);
+          const id = `restaurierung_${e.id}`;
+          const def = vorhabenDef(id);
+          const laeuft = z.laufend.some((l) => l.id === id);
+          const hub = def?.abschluss.find((x) => x.t === "staette");
+          const nach = hub && hub.t === "staette" ? Math.min(100, st.zustand + hub.d) : undefined;
+          const erbe = groessenWert(world, "kulturerbe", [e.plaka]);
+          const vor = def ? wirkungsVorschau(world, id) : null;
+          const folgen = (vor?.sofort ?? []).filter((x) => !x.text.startsWith(e.name));
           return (
             <li key={e.id} className={st.zustand < 40 ? "gefaehrdet" : ""}>
               <div className="rr-staette-kopf">
-                <button type="button" className="link rr-staette-name" onClick={() => onStaette?.(e.id)}>
-                  {e.name}
-                </button>
+                <strong className="rr-staette-name">{e.name}</strong>
                 {e.unesco.status === "welterbe" && <span className="rr-plakette" title={`Welterbe seit ${e.unesco.jahr}`}>Welterbe</span>}
                 {e.kirche7 && <span className="rr-plakette kirche" title="Eine der sieben Gemeinden der Offenbarung">Offenbarung</span>}
               </div>
@@ -266,9 +276,33 @@ function Staetten({ world, refresh, onStaette }: { world: World; refresh: () => 
                 </span>
                 <b>{Math.round(st.zustand)}</b>
               </div>
-              <button type="button" className="aktion-knopf" disabled={laeuft || st.zustand > 82} onClick={() => restauriere(e)} title={laeuft ? "Die Restaurierung läuft." : st.zustand > 82 ? "Schon in bestem Zustand." : `Restaurierung beginnen (${e.unesco.status === "welterbe" ? 3 : 2} Kapital)`}>
-                {laeuft ? "Läuft" : "Restaurieren"}
-              </button>
+              <p className="rp-satz">
+                {st.zustand < 30 ? "Verfällt: Teile sind einsturzgefährdet oder gehen verloren." : st.zustand < 50 ? "Schlecht erhalten: Besucher und Feuchtigkeit nagen an der Substanz." : st.zustand < 70 ? "Mäßig erhalten." : "Gut erhalten."}
+                {Number.isFinite(erbe) && <> Kulturerbe in dieser Provinz: <b>{Math.round(erbe)}</b> von 100.</>}
+              </p>
+              {laeuft ? (
+                <p className="rp-satz">Die Restaurierung läuft.</p>
+              ) : st.zustand > 82 ? (
+                <p className="rp-satz rp-nicht">Nicht nötig: schon in bestem Zustand.</p>
+              ) : (
+                def && (
+                  <div className="rp-eingriff">
+                    <p className="rp-satz">
+                      Restaurieren: Zustand {Math.round(st.zustand)} → {nach !== undefined ? Math.round(nach) : "?"}.
+                      {folgen.length > 0 ? " Dazu:" : ""}
+                    </p>
+                    <Zeilen zeilen={folgen} />
+                    <ul className="rr-kosten" aria-label="Kosten">
+                      <li><b>{def.kosten.pk}</b> Kapital</li>
+                      <li><b>{def.kosten.bau}</b> Baupunkte</li>
+                      <li><b>{def.kosten.monate}</b> Monate</li>
+                    </ul>
+                    <button type="button" className="aktion-knopf" onClick={() => restauriere(e)} title={`${def.kehrseite}`}>
+                      Restaurieren
+                    </button>
+                  </div>
+                )
+              )}
             </li>
           );
         })}
@@ -393,11 +427,82 @@ function VorteileListe({ world, bereich }: { world: World; bereich: Bereich }) {
   );
 }
 
-export function Reich({ world, bereich, refresh, onKarte }: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void }) {
-  const [filter, setFilter] = useState<Klasse | "alle">("alle");
+type Tab = "lage" | "bestand" | "neu";
+
+function tabsFuerBereich(bereich: Bereich): { id: Tab; label: string }[] {
+  switch (bereich) {
+    case "kultur":
+      return [{ id: "lage", label: t("reich.tab.lage") }, { id: "bestand", label: t("reich.tab.staetten") }, { id: "neu", label: t("reich.tab.neu") }];
+    case "infrastruktur":
+      return [{ id: "lage", label: t("reich.tab.lage") }, { id: "bestand", label: t("reich.tab.bauwerke") }, { id: "neu", label: t("reich.tab.neu") }];
+    case "militaer":
+      return [{ id: "lage", label: t("reich.tab.lage") }, { id: "bestand", label: t("reich.tab.ruestung") }, { id: "neu", label: t("reich.tab.beschaffung") }];
+    case "recht":
+      return [{ id: "lage", label: t("reich.tab.lage") }, { id: "neu", label: t("reich.tab.reformen") }];
+    case "haushalt":
+      return [{ id: "lage", label: t("reich.tab.lage") }, { id: "neu", label: t("reich.tab.sonderrechte") }];
+  }
+}
+
+/** Die Einrichtungen des Rechts, deren Zustand nichts bewegt: Man liest sie an den Größen ab, die sie prägen. */
+function Institutionen({ world }: { world: World }) {
+  const z = reichZustand(world);
+  const stuecke = Object.keys(z.bestand)
+    .map((id) => vorhabenDef(id))
+    .filter((v): v is NonNullable<typeof v> => !!v && v.bereich === "recht" && v.klasse === "institution");
+  if (!stuecke.length) return null;
+  return (
+    <section className="rr-abschnitt">
+      <h4>
+        Einrichtungen <em>Man liest sie an den Größen ab, die sie prägen</em>
+      </h4>
+      <ul className="rv-liste">
+        {stuecke.map((v) => {
+          const zeigt = wirkungsVorschau(world, v.id)?.zeigt ?? [];
+          return (
+            <li key={v.id} className="rv-eintrag">
+              <div className="rv-kopf">
+                <strong>{v.name}</strong>
+                {v.unterhalt ? <span className="rr-bau-info">Verwaltungskraft {v.unterhalt.toLocaleString("de-DE")} im Monat</span> : null}
+              </div>
+              <ul className="rr-wirkung-zeilen">
+                {zeigt.map((g) => (
+                  <li key={g.id} className={g.gut ? "rr-gut" : "rr-schlecht"}>
+                    {g.name}: {g.wert} von 100
+                  </li>
+                ))}
+              </ul>
+              <details className="rp-mehr">
+                <summary>Was das ist</summary>
+                <p className="rr-text">{v.text}</p>
+                <p className="rr-kehrseite"><b>Der Preis:</b> {v.kehrseite}</p>
+              </details>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Auf der Lage-Seite: wo Pflege am meisten bringt, mit Sprung in die Pflegeliste. Bei der Kultur sind es die am schlechtesten erhaltenen Stätten. */
+function Dringend({ world, bereich, refresh, zuPflege }: { world: World; bereich: Bereich; refresh: () => void; zuPflege: () => void }) {
+  if (bereich === "kultur") return <Staetten world={world} refresh={refresh} nurSchlechte={3} />;
+  return <Lohnt world={world} bereich={bereich} refresh={refresh} zuPflege={zuPflege} />;
+}
+
+export function Reich(props: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; /** Reiter, mit dem die Akte beginnt (eine Marke der Karte kann „Pflegen“ vorgeben) */ startTab?: Tab }) {
+  // Je Bereich eigener Zustand der Reiter: Beim Wechsel beginnt die Akte wieder bei der Lage (oder beim vorgegebenen Reiter)
+  return <ReichInnen key={`${props.bereich}:${props.startTab ?? ""}`} {...props} />;
+}
+
+function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; startTab?: Tab }) {
+  const tabs = tabsFuerBereich(bereich);
+  const [tab, setTab] = useState<Tab>(startTab && tabs.some((x) => x.id === startTab) ? startTab : "lage");
   const [ergebnisse, setErgebnisse] = useState<Record<string, { ok: boolean; text: string }>>({});
   if (!world.spiel) return <p>Ohne Spielschleife gibt es kein Reich.</p>;
   const z = reichZustand(world);
+  const kapitalJetzt = world.spiel.kapital;
   const liste = vorhabenListe(world, bereich);
 
   const beginneVorhaben = (id: string, vergabe: Vergabe = "ausschreibung") => {
@@ -406,95 +511,78 @@ export function Reich({ world, bereich, refresh, onKarte }: { world: World; bere
     refresh();
   };
 
-  // Institutionen mit Sitzen zeigt der Bereich Recht als eigenes Feld
-  const bestand = liste.filter((s) => s.status === "fertig" && !(bereich === "recht" && s.v.klasse === "institution" && s.v.start));
-  const offen = liste.filter((s) => s.status !== "fertig" && s.status !== "im_bau" && s.status !== "pausiert" && !(s.v.klasse === "restaurierung" && bereich === "kultur"));
-  const klassenVorhanden = Array.from(new Set(offen.map((s) => s.v.klasse)));
-  const sichtbar = offen.filter((s) => filter === "alle" || s.v.klasse === filter);
-  const sortiert = [...sichtbar].sort((a, b) => Number(b.bereit) - Number(a.bereit) || Number(a.status === "gesperrt") - Number(b.status === "gesperrt"));
+  // Pflege (Instandsetzung, Restaurierung) gehört in „pflegen“, nicht unter die neuen Vorhaben
+  const neu = liste.filter((s) => s.status !== "fertig" && s.status !== "im_bau" && s.status !== "pausiert" && (s.v.klasse !== "restaurierung" || !!s.v.vorlage));
+  const technik = bereich === "infrastruktur" || bereich === "militaer";
+  // Was fertig ist: Bei Technik steht es unter „pflegen“, die Einrichtungen des Rechts unter „Lage“, der Rest unter den neuen Vorhaben
+  const vollendet = technik ? [] : liste.filter((s) => s.status === "fertig" && s.v.klasse !== "restaurierung" && s.v.klasse !== "institution");
   const gross = (s: VorhabenSicht) => s.v.klasse === "wunder" || s.v.klasse === "grossprojekt" || s.v.klasse === "serie";
+  const bereitN = neu.filter((s) => s.status === "verfuegbar" && s.bereit).length;
+  const dringendN = bereich === "kultur" ? ERBE.filter((e) => (z.staetten[e.id]?.zustand ?? 100) < 45).length : technik ? lohnendste(world, bereich, 99, 1).length : 0;
+  const plakette = (id: Tab): number => (id === "neu" ? bereitN : id === "bestand" ? dringendN : 0);
 
   return (
     <div className="reich">
-      <header className="rr-kopf">
-        <h3>{BEREICH_NAMEN[bereich]}</h3>
-        <p className="subtitle">{EINLEITUNG[bereich]}</p>
-      </header>
-
-      <section className="rr-abschnitt">
-        <Statistik world={world} />
-        <Groessen world={world} liste={GROESSEN[bereich]} />
-      </section>
-
-      {bereich === "haushalt" && <Haushalt world={world} />}
-      {bereich === "recht" && <Sitze world={world} />}
-      <ImBau world={world} bereich={bereich} refresh={refresh} />
-      <Baureihenfolge world={world} refresh={refresh} />
-
-      {bereich === "infrastruktur" && <Schaetzblaetter world={world} refresh={refresh} />}
-
-      {bereich === "kultur" && <Staetten world={world} refresh={refresh} />}
-
-      {bestand.length > 0 && (
-        <section className="rr-abschnitt">
-          <h4>
-            Bestand <em>{bestand.length} {bestand.length === 1 ? "Stück" : "Stücke"}, ohne Pflege verfällt der Zustand</em>
-          </h4>
-          <div className="rr-raster">
-            {bestand.map((s) => (
-              <div key={s.v.id} className="rr-bestand">
-                <VorhabenKarte s={s} gross={gross(s)} onBeginne={beginneVorhaben} kapital={world.spiel!.kapital} {...(onKarte ? { onKarte } : {})} />
-                {liste.find((x) => x.v.id === `sanierung_${s.v.id.replace("infra_", "")}` && x.status === "verfuegbar") && (
-                  <button
-                    type="button"
-                    className="aktion-knopf rr-sanieren"
-                    onClick={() => beginneVorhaben(`sanierung_${s.v.id.replace("infra_", "")}`)}
-                    disabled={!!vorhabenSicht(world, `sanierung_${s.v.id.replace("infra_", "")}`)?.grund}
-                  >
-                    Sanieren (2 Kapital)
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <VorteileListe world={world} bereich={bereich} />
-
-      <section className="rr-abschnitt">
-        <h4>
-          Vorhaben <em>{sortiert.length} {sortiert.length === 1 ? "verfügbar" : "verfügbar oder gesperrt"}</em>
-        </h4>
-        {klassenVorhanden.length > 1 && (
-          <div className="rr-filter" role="group" aria-label="Art des Vorhabens">
-            <button type="button" className={filter === "alle" ? "on" : ""} onClick={() => setFilter("alle")}>Alle</button>
-            {klassenVorhanden.map((k) => (
-              <button key={k} type="button" className={filter === k ? "on" : ""} onClick={() => setFilter(k)} aria-pressed={filter === k}>
-                {KLASSEN_NAMEN[k]}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="rr-raster gross">
-          {sortiert.map((s) => (
-            <VorhabenKarte key={s.v.id} s={s} gross={gross(s)} onBeginne={beginneVorhaben} ergebnis={ergebnisse[s.v.id]} kapital={world.spiel!.kapital} {...(onKarte ? { onKarte } : {})} />
+      {tabs.length > 1 && (
+        <div className="rr-tabs" role="tablist" aria-label={`${BEREICH_NAMEN[bereich]}: Ansicht`}>
+          {tabs.map((t) => (
+            <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
+              {t.label}
+              {plakette(t.id) > 0 && <i className="rr-tab-zahl" title={t.id === "neu" ? "Sofort beginnbar" : bereich === "kultur" ? "Schlecht erhalten (unter 45)" : "Instandsetzen bringt hier spürbar etwas"}>{plakette(t.id)}</i>}
+            </button>
           ))}
         </div>
-        {sortiert.length === 0 && <p className="subtitle">Hier gibt es im Moment nichts, was sich beginnen ließe.</p>}
-      </section>
+      )}
 
-      {z.meldungen.length > 0 && (
-        <section className="rr-abschnitt">
-          <h4>Zuletzt</h4>
-          <ul className="rr-meldungen">
-            {[...z.meldungen].reverse().slice(0, 5).map((m, i) => (
-              <li key={`${m.tag}-${i}`} className={m.art}>
-                {m.text}
-              </li>
-            ))}
-          </ul>
-        </section>
+      {tab === "lage" && (
+        <>
+          <section className="rr-abschnitt">
+            <Statistik world={world} />
+            <Groessen world={world} liste={GROESSEN[bereich]} />
+          </section>
+          {(bereich === "kultur" || technik) && <Dringend world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
+          {bereich === "haushalt" && <Haushalt world={world} />}
+          {bereich === "recht" && <Sitze world={world} />}
+          {bereich === "recht" && <Institutionen world={world} />}
+          <ImBau world={world} bereich={bereich} refresh={refresh} />
+          <Baureihenfolge world={world} refresh={refresh} />
+          <Verlauf world={world} bereich={bereich} />
+          <VorteileListe world={world} bereich={bereich} />
+          {z.meldungen.length > 0 && (
+            <section className="rr-abschnitt">
+              <h4>Zuletzt</h4>
+              <ul className="rr-meldungen">
+                {[...z.meldungen].reverse().slice(0, 5).map((m, i) => (
+                  <li key={`${m.tag}-${i}`} className={m.art}>
+                    {m.text}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )}
+
+      {tab === "bestand" && bereich === "kultur" && <Staetten world={world} refresh={refresh} />}
+      {tab === "bestand" && technik && <PflegeListe world={world} bereich={bereich} refresh={refresh} />}
+
+      {tab === "neu" && (
+        <>
+          {bereich === "infrastruktur" && <Schaetzblaetter world={world} refresh={refresh} />}
+          <Neues world={world} liste={neu} alle={liste} onBeginne={beginneVorhaben} ergebnisse={ergebnisse} refresh={refresh} {...(onKarte ? { onKarte } : {})} />
+          {vollendet.length > 0 && (
+            <section className="rr-abschnitt">
+              <h4>
+                Vollendet <em>{vollendet.length} {vollendet.length === 1 ? "Vorhaben" : "Vorhaben"}</em>
+              </h4>
+              <div className="rr-raster gross">
+                {vollendet.map((s) => (
+                  <VorhabenKarte key={s.v.id} s={s} world={world} gross={gross(s)} onBeginne={beginneVorhaben} kapital={kapitalJetzt} {...(onKarte ? { onKarte } : {})} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-// Die Verfassungsreform als mehrstufiger Vorgang (REC-1): Hürden 301/360, Verfassungsgericht nach
+// Die Verfassungsreform als mehrstufiger Vorgang (REC-1): Hürden 360/400 (Art. 175), Verfassungsgericht nach
 // Sitze-Stand, Referendum als Mini-Wahl, Gegenreaktion, Einmaligkeit je Amtszeit, Sperrfristen,
 // Migration und Determinismus.
 
@@ -77,11 +77,12 @@ function einbringenMitZiel(w: World, paket: Record<string, string>, zielStimmen:
 // ---------------------------------------------------------------------------
 
 describe("Paket und Werkstatt", () => {
-  test("Katalog: fünf Artikel, je zwei bis drei Varianten, jeder mit genau einem Status quo", () => {
-    expect(ARTIKEL).toHaveLength(5);
+  test("Katalog: sechs Artikel, je zwei bis vier Varianten, jeder mit genau einem Status quo", () => {
+    // „Amtszeit und Wiederwahl“ kennt vier Varianten (wie bisher, weitere Wiederwahl, keine Begrenzung, vorgezogene Neuwahl); neu ist der Artikel „Länge der Amtszeit“
+    expect(ARTIKEL).toHaveLength(6);
     for (const a of ARTIKEL) {
       expect(a.varianten.length).toBeGreaterThanOrEqual(2);
-      expect(a.varianten.length).toBeLessThanOrEqual(3);
+      expect(a.varianten.length).toBeLessThanOrEqual(4);
       expect(a.varianten.filter((v) => v.statusQuo)).toHaveLength(1);
       expect(statusQuoVon(a.id)).toBeTruthy();
     }
@@ -135,17 +136,19 @@ describe("Paket und Werkstatt", () => {
 // ---------------------------------------------------------------------------
 
 describe("Hürden im Parlament", () => {
-  test("Ab 360 Ja-Stimmen wird das Paket direkt Gesetz", () => {
+  test("Ab 400 Ja-Stimmen wird das Paket direkt Gesetz (Art. 175: zwei Drittel)", () => {
+    expect(VERFASSUNG_REGELN.direkt).toBe(400);
     const w = neueWelt(5);
-    einbringenMitZiel(w, DEMOKRATISCH, 380);
+    einbringenMitZiel(w, DEMOKRATISCH, 420);
     const r = verfassungAbstimmen(w, new Rng(11));
     expect(r.ja).toBeGreaterThanOrEqual(VERFASSUNG_REGELN.direkt);
     expect(r.weg).toBe("direkt");
   });
 
-  test("Zwischen 301 und 359 führt nur das Referendum weiter", () => {
+  test("Zwischen 360 und 399 führt nur das Referendum weiter (Art. 175: drei Fünftel)", () => {
+    expect(VERFASSUNG_REGELN.mehrheit).toBe(360);
     const w = neueWelt(6);
-    einbringenMitZiel(w, DEMOKRATISCH, 330);
+    einbringenMitZiel(w, DEMOKRATISCH, 380);
     const r = verfassungAbstimmen(w, new Rng(11));
     expect(r.ja).toBeGreaterThanOrEqual(VERFASSUNG_REGELN.mehrheit);
     expect(r.ja).toBeLessThan(VERFASSUNG_REGELN.direkt);
@@ -155,11 +158,11 @@ describe("Hürden im Parlament", () => {
     expect(v?.phase === "kampagne" || v?.phase === "aym").toBe(true);
   });
 
-  test("Unter 301 scheitert das Paket: Kapital teilweise verbrannt, Vertrauen sinkt, Artikel zwölf Monate gesperrt", () => {
+  test("Unter 360 scheitert das Paket: Kapital teilweise verbrannt, Vertrauen sinkt, Artikel zwölf Monate gesperrt", () => {
     const w = neueWelt(7);
     const kapitalVorher = w.spiel!.kapital;
     const vertrauenVorher = nationalAverage(NET, w.net, "vertrauen_regierung");
-    const v = einbringenMitZiel(w, DEMOKRATISCH, 280);
+    const v = einbringenMitZiel(w, DEMOKRATISCH, 330);
     const r = verfassungAbstimmen(w, new Rng(11));
     expect(r.weg).toBe("gescheitert");
     const z = verfassungsZustand(w);
@@ -381,7 +384,7 @@ describe("Einmaligkeit und Verlauf des Vorgangs", () => {
 
   test("Der tägliche Lauf öffnet die Stufen-Ereignisse zum Termin (Auto-Stopp über den Ereignismotor)", () => {
     const w = neueWelt(21);
-    einbringenMitZiel(w, DEMOKRATISCH, 380);
+    einbringenMitZiel(w, DEMOKRATISCH, 420);
     advance(w, VERFASSUNG_REGELN.tageBisAbstimmung);
     const ev = w.spiel!.ereignisse.find((e) => e.vorlage === "verfassung_abstimmung");
     expect(ev).toBeDefined();

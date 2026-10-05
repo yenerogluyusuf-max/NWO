@@ -7,31 +7,49 @@ import { abwanderung, koalition, schritteFuerZustimmung, type GruppeKurz } from 
 import { zustimmungsBilanz } from "../sim/waehler";
 import { entscheidungsMarken, zustimmungsVerlauf } from "../sim/waehler-verlauf";
 import { formatDateDe } from "../sim/dates";
+import { angezeigteZustimmung, institutsReihe } from "../sim/medien";
+import { t } from "../i18n";
 import { GruppenDetail, type DossierZiel } from "./waehler/GruppenDetail";
 import { HilfeKarte } from "./waehler/HilfeKarte";
 import { Sparkline } from "./waehler/Sparkline";
+import { GesellschaftAkte } from "./gesellschaft/GesellschaftAkte";
 import { gewichtWort, nf, prozent, vz } from "./waehler/format";
+import "./politik/design.css";
 import "./waehler/waehler.css";
 
 const ROLLE_TEXT = { traeger: "Träger", schwankend: "Schwankend", gegner: "Abgewandt" } as const;
 
 function Barometer({ world }: { world: World }) {
   const bilanz = zustimmungsBilanz(world);
-  const verlauf = zustimmungsVerlauf(world);
+  const wahrVerlauf = zustimmungsVerlauf(world);
   const marken = entscheidungsMarken(world);
   const groesster = Math.max(1, ...bilanz.posten.map((p) => Math.abs(p.delta)));
-  const gut = bilanz.jetzt >= 50;
+  // Der Spieler sieht den Strom der Institute (Haus-Effekt, Angstklima, Rauschen); nur wer Rohdaten gekauft hat, sieht die Wahrheit (sim/medien.ts)
+  const zeig = angezeigteZustimmung(world);
+  const gut = zeig.wert >= 50;
+  const roh = zeig.quelle === "rohdaten";
+  const institute = institutsReihe(world);
+  const verlauf = roh ? wahrVerlauf : { monate: institute.map((x) => x.monat), werte: institute.map((x) => x.wert) };
+  const textArt =
+    zeig.quelle === "rohdaten"
+      ? t("medien.barometer.text_rohdaten", { datum: bilanz.wahlDatum, monate: bilanz.wahlIn, tendenz: nf(bilanz.tendenz, 0) })
+      : zeig.quelle === "institut"
+        ? t("medien.barometer.text_institut", { institut: zeig.institut ?? "", datum: bilanz.wahlDatum, monate: bilanz.wahlIn })
+        : t("medien.barometer.text_start", { datum: bilanz.wahlDatum });
   return (
     <section className="wa-barometer">
       <div className="wa-baro-zahl">
-        <span className="wa-baro-kopf">Wenn heute gewählt würde</span>
-        <strong className={gut ? "gut" : "schlecht"}>{nf(bilanz.jetzt, 0)} %</strong>
-        <span className="wa-baro-text">
-          Zustimmung, nötig sind 50. Die Wahl ist am {formatDateDe(bilanz.wahlDatum)}, in etwa {bilanz.wahlIn} Monaten; die Zahlen zeigen auf {nf(bilanz.tendenz, 0)} %.
-        </span>
+        <span className="wa-baro-kopf">{t("medien.barometer.kopf")}</span>
+        <strong className={gut ? "gut" : "schlecht"}>{nf(zeig.wert, 0)} %</strong>
+        <span className="wa-baro-text">{textArt}</span>
+        {zeig.verbot && !roh && <span className="wa-baro-text">{t("medien.barometer.verbot")}</span>}
       </div>
       <div className="wa-baro-linie">
-        <Sparkline monate={verlauf.monate} werte={verlauf.werte} marken={marken} ziel={bilanz.tendenz} hoehe={84} beschriftung="Zustimmung im Verlauf" einheit=" %" />
+        {verlauf.werte.length >= 2 ? (
+          <Sparkline monate={verlauf.monate} werte={verlauf.werte} marken={marken} {...(roh ? { ziel: bilanz.tendenz } : {})} hoehe={84} beschriftung={roh ? t("medien.barometer.verlauf_rohdaten") : t("medien.barometer.verlauf")} einheit=" %" />
+        ) : (
+          <p className="subtitle">{t("medien.barometer.leer")}</p>
+        )}
       </div>
       <details className="wa-bilanz">
         <summary>Woher die Zahl kommt, seit dem Amtsantritt</summary>
@@ -67,8 +85,7 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
     g ? (
       <li>
         <b>{was}</b> {satz(g)}
-        <button type="button" className="link" onClick={() => waehle(g.id)}>
-          {" "}
+        <button type="button" className="pd-btn quiet klein" onClick={() => waehle(g.id)}>
           Ansehen
         </button>
       </li>
@@ -97,8 +114,10 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
         {gruppe(k.gefaehrdet, "Am stärksten gefährdet:", (g) => `${g.name} strebt bei den heutigen Verhältnissen nach ${nf(g.ziel, 0)}, jetzt ${nf(g.laune, 0)}.`)}
       </ul>
       {wanderung.anteil >= 0.03 && wanderung.ziele.length > 0 && (
-        <div className="wa-wanderung">
-          <h4>Wohin Wähler abwandern</h4>
+        <details className="wa-wanderung wa-zu">
+          <summary>
+            Wohin Wähler abwandern <span className="pd-chip">{prozent(wanderung.anteil)} wechselten die Seite</span>
+          </summary>
           <p className="wa-unter">
             Bei den heutigen Stimmungen wechselten etwa {prozent(wanderung.anteil)} aller Wähler eher die Seite (Spielparameter, keine Messung). Sie gingen zu den Parteien, deren Forderungen ihnen am meisten nützten:
           </p>
@@ -117,10 +136,10 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
               </li>
             ))}
           </ul>
-        </div>
+        </details>
       )}
       {schritte.length > 0 && (
-        <details className="wa-schritte">
+        <details className="wa-schritte wa-zu">
           <summary>Die wirksamsten Schritte für Ihre Zustimmung bis zur Wahl</summary>
           <p className="wa-unter">Jede Maßnahme, rauf oder runter, um 20 Stufen durchgerechnet, ohne Rückwirkungen über die Wirtschaft (Preise, Schulden); wer dabei gewinnt und wer sich ärgert, steht dabei. Die Vorschau rechnet alles.</p>
           <ul className="wa-hilfen">
@@ -164,6 +183,7 @@ export function Waehler({ world, onMassnahme, onDossier }: { world: World; onMas
   const spiel = world.spiel;
   const k = useMemo(() => (spiel ? koalition(world) : null), [spiel ? world.date.slice(0, 7) : "", spiel?.gesetze.length, spiel ? Object.keys(world.net.targets).length : 0]); // eslint-disable-line react-hooks/exhaustive-deps
   const [gewaehlt, setGewaehlt] = useState<string | null>(null);
+  const [ansicht, setAnsicht] = useState<"koalition" | "gesellschaft">("koalition");
   const detailRef = useRef<HTMLDivElement>(null);
   const erster = useRef(true);
   const standard = k?.gefaehrdet?.id ?? k?.gewinnbar?.id ?? k?.gruppen[0]?.id ?? null;
@@ -177,8 +197,25 @@ export function Waehler({ world, onMassnahme, onDossier }: { world: World; onMas
     if (gewaehlt && window.matchMedia("(max-width: 900px)").matches) detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [gewaehlt]);
   if (!spiel || !k) return <p>Ohne Spielschleife gibt es keine Wählerkoalition.</p>;
+  const umschalter = (
+    <nav className="ges-reiter wa-umschalter" role="tablist" aria-label={t("ges.umschalter")}>
+      {(["koalition", "gesellschaft"] as const).map((a) => (
+        <button key={a} type="button" role="tab" aria-selected={ansicht === a} className={ansicht === a ? "on" : ""} onClick={() => setAnsicht(a)}>
+          {t(`ges.umschalter.${a}`)}
+        </button>
+      ))}
+    </nav>
+  );
+  if (ansicht === "gesellschaft")
+    return (
+      <div className="wa-root">
+        {umschalter}
+        <GesellschaftAkte world={world} />
+      </div>
+    );
   return (
-    <div className="waehler wa-root">
+    <div className="wa-root">
+      {umschalter}
       <Barometer world={world} />
       <KoalitionsBalken k={k} waehle={setGewaehlt} world={world} {...(onMassnahme ? { onMassnahme } : {})} />
       <div className="wa-haupt">

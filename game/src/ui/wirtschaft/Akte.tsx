@@ -6,6 +6,7 @@ import type { Handlung } from "../../sim/wirtschaft-kennzahlen";
 import { Lage } from "./Lage";
 import { Zentralbank } from "./Zentralbank";
 import { Haushalt } from "./Haushalt";
+import "../politik/design.css";
 import "./wirtschaft.css";
 
 export type Reiter = "lage" | "zentralbank" | "haushalt";

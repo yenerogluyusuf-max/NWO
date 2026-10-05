@@ -4,6 +4,7 @@
 
 import { Corners, Flourish } from "./art/Ornament";
 import type { KennzahlDelta, StandDerDinge as Stand } from "./standderdinge";
+import { t } from "../i18n";
 
 const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
 
@@ -11,16 +12,18 @@ function DeltaChip({ d }: { d: KennzahlDelta }) {
   const bewegt = Math.abs(d.delta) >= 0.05;
   const auf = d.delta > 0;
   const gut = bewegt && auf === d.gutWennAuf;
+  const label = d.id === "kapital" ? t("buehne.stat.kapital") : d.id === "zustimmung" ? t("buehne.stat.zustimmung") : t("buehne.stat.inflation");
+  const zuletztWert = d.id === "kapital" ? Math.floor(d.von) : nf(d.von);
   return (
     <li className={`sdd-delta${bewegt ? (gut ? " gut" : " schlecht") : ""}`}>
-      <span className="sdd-delta-label">{d.label}</span>
+      <span className="sdd-delta-label">{label}</span>
       <span className="sdd-delta-wert">
         {d.id === "kapital" ? Math.floor(d.nach) : nf(d.nach)}
         {d.einheit ? ` ${d.einheit}` : ""}
       </span>
       <span className="sdd-delta-diff">
         {bewegt ? `${auf ? "▲" : "▼"} ${nf(Math.abs(d.delta))}` : "± 0"}
-        <em> zuletzt {d.id === "kapital" ? Math.floor(d.von) : nf(d.von)}</em>
+        <em> {t("sdd.zuletzt", { wert: zuletztWert })}</em>
       </span>
     </li>
   );
@@ -32,14 +35,13 @@ export function StandDerDingeBlatt({ stand, onSchliessen }: { stand: Stand; onSc
       <article className="frame event-window sdd">
         <Corners />
         <div className="event-body sdd-body">
-          <p className="kicker">Stand der Dinge</p>
+          <p className="kicker">{t("sdd.kicker")}</p>
           <h2 id="sdd-titel">
-            {stand.datum} · {stand.amtszeit}. Amtszeit
+            {t("sdd.amtszeit", { datum: stand.datum, amtszeit: stand.amtszeit })}
           </h2>
           <Flourish width={180} />
           <p className="subtitle">
-            Willkommen zurück. Die Wahl ist {stand.monateBisWahl <= 1 ? "in Kürze" : `in ${stand.monateBisWahl} Monaten`}
-            {stand.vergleichDatum ? `; verglichen wird mit dem Beginn Ihrer letzten Sitzung (${stand.vergleichDatum})` : ""}.
+            {t("sdd.willkommen", { monate: stand.monateBisWahl, vergleichDatum: stand.vergleichDatum ?? undefined })}
           </p>
 
           {stand.deltas ? (
@@ -49,14 +51,14 @@ export function StandDerDingeBlatt({ stand, onSchliessen }: { stand: Stand; onSc
               ))}
             </ul>
           ) : (
-            <p className="sdd-notiz">Keine Vergleichsdaten aus der letzten Sitzung — sie entstehen ab jetzt bei jedem Speichern.</p>
+            <p className="sdd-notiz">{t("sdd.keineVergleichsdaten")}</p>
           )}
 
           <div className="sdd-spalten">
             <section>
-              <h3>Laufende Vorgänge</h3>
+              <h3>{t("sdd.vorgaenge")}</h3>
               {stand.vorgaenge.length === 0 ? (
-                <p className="sdd-notiz">Nichts läuft gerade. Der Beraterstab am Schreibtisch sagt, was sich lohnt.</p>
+                <p className="sdd-notiz">{t("sdd.vorgaengeLeer")}</p>
               ) : (
                 <ul className="sdd-liste">
                   {stand.vorgaenge.map((v) => (
@@ -69,9 +71,9 @@ export function StandDerDingeBlatt({ stand, onSchliessen }: { stand: Stand; onSc
               )}
             </section>
             <section>
-              <h3>Probleme</h3>
+              <h3>{t("sdd.probleme")}</h3>
               {stand.probleme.length === 0 ? (
-                <p className="sdd-notiz">Keine Warnung. Was sich ändert, steht zuerst am Schreibtisch.</p>
+                <p className="sdd-notiz">{t("sdd.problemeLeer")}</p>
               ) : (
                 <ul className="sdd-liste">
                   {stand.probleme.map((p) => (
@@ -86,16 +88,16 @@ export function StandDerDingeBlatt({ stand, onSchliessen }: { stand: Stand; onSc
           </div>
 
           <p className="sdd-zeile">
-            <span className="sdd-zeile-label">Agenda</span> {stand.agenda ?? "Kein fester Termin im Staatsjahr."}
+            <span className="sdd-zeile-label">{t("sdd.agenda")}</span> {stand.agenda ?? t("sdd.agendaLeer")}
           </p>
           <p className="sdd-zeile">
-            <span className="sdd-zeile-label">Dringendste Frist</span>{" "}
-            {stand.frist ? `${stand.frist.titel} — ${stand.frist.tage <= 0 ? "heute" : stand.frist.tage === 1 ? "morgen" : `in ${stand.frist.tage} Tagen`}` : "Keine offene Frist."}
+            <span className="sdd-zeile-label">{t("sdd.frist")}</span>{" "}
+            {stand.frist ? t("sdd.tageFrist", { titel: stand.frist.titel, tage: stand.frist.tage }) : t("sdd.keineFrist")}
           </p>
 
           <div className="event-actions">
             <button className="brass-button" onClick={onSchliessen}>
-              Zum Schreibtisch
+              {t("sdd.zumSchreibtisch")}
             </button>
           </div>
         </div>

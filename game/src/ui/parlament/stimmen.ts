@@ -6,6 +6,7 @@ import type { World } from "../../sim/types";
 import type { Gesetz } from "../../sim/spiel-typen";
 import { duldung, sachstimmen } from "../../sim/fraktionen";
 import { gesetzRichtung, stimmenSicht } from "../../sim/handeln";
+import { jaAnteilLager } from "../../sim/linie";
 import type { Fraktionslage, Parlamentslage } from "./lage";
 import { proportional, zufall } from "./geometrie";
 
@@ -33,6 +34,8 @@ function fuelle(z: Zaehler, frei: Record<string, number>, teilnehmer: Fraktionsl
 export interface Vorgabe {
   /** Parteien, deren Kernforderung das Gesetz erfüllt */
   sachParteien: string[];
+  /** Feste Stimmen des Lagers (kann bei Richtungsabweichung geringer als die Gesamtzahl der Lagersitze sein) */
+  lagerJa?: number;
   duldungJa: number;
   sachJa: number;
   /** Gekaufte Stimmen (Absprachen) */
@@ -56,11 +59,12 @@ export function verteileErwartung(lage: Parlamentslage, v: Vorgabe): Zaehler {
   const dulder = lage.fraktionen.filter((f) => f.rolle === "duldung");
   const sach = lage.fraktionen.filter((f) => f.rolle === "opposition" && v.sachParteien.includes(f.partei));
   const rest = lage.fraktionen.filter((f) => f.rolle === "opposition" && !v.sachParteien.includes(f.partei));
-  fuelle(z, frei, lager, "fest", lage.lager);
+  const lagerFest = v.lagerJa ?? lage.lager;
+  fuelle(z, frei, lager, "fest", lagerFest);
   fuelle(z, frei, dulder, "zusage", v.duldungJa);
   fuelle(z, frei, sach, "zusage", v.sachJa);
   fuelle(z, frei, rest, "zusage", v.absprachen);
-  const uebertritt = Math.max(0, v.erwartet - lage.lager - v.duldungJa - v.sachJa);
+  const uebertritt = Math.max(0, v.erwartet - lagerFest - v.duldungJa - v.sachJa);
   fuelle(z, frei, rest, "wackelig", uebertritt);
   fuelle(z, frei, rest, "offen", Math.max(0, v.hoch - v.erwartet));
   for (const f of lage.fraktionen) z[f.partei]!.nein = frei[f.partei] ?? 0;
@@ -117,7 +121,13 @@ export function vorgabeFuer(world: World, g: Gesetz | null): Vorgabe {
   const sicht = stimmenSicht(world, g ? { massnahme: g.massnahme, richtung } : undefined);
   const dul = duldung(world);
   const sach = sachstimmen(world, g?.massnahme, richtung);
-  return { sachParteien: sach.parteien, duldungJa: dul.ja, sachJa: sach.ja, absprachen: g?.absprachen ?? 0, erwartet: sicht.erwartet, niedrig: sicht.low, hoch: sicht.high };
+  let lagerJa = sicht.lager;
+  if (g && richtung !== 0) {
+    const parl = world.parliament?.seats ?? {};
+    const parteien = [world.player?.partei.kurz ?? "", ...(world.spiel?.lager ?? [])].filter(Boolean);
+    lagerJa = parteien.reduce((s, p) => s + Math.round((parl[p] ?? 0) * jaAnteilLager(world, p, g.massnahme, richtung)), 0);
+  }
+  return { sachParteien: sach.parteien, lagerJa, duldungJa: dul.ja, sachJa: sach.ja, absprachen: g?.absprachen ?? 0, erwartet: sicht.erwartet, niedrig: sicht.low, hoch: sicht.high };
 }
 
 export function zaehleZustaende(z: Zaehler): Record<Zustand, number> {

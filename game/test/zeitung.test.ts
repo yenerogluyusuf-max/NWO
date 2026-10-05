@@ -437,13 +437,13 @@ describe("Inhaltliche Leitplanken", () => {
 });
 
 describe("Oberfläche", () => {
-  test("die Frontseite lässt sich zeichnen: Masthead, Blätter-Reiter, Archiv und Regulierungs-Referenz", () => {
+  test("die Frontseite lässt sich zeichnen: Masthead, Blätter-Reiter, Archiv und Pressefreiheits-Hinweis", () => {
     const w = spiel(5);
     advance(w, tageZumErsten(w.date));
     const html = renderToStaticMarkup(createElement(Zeitung, { world: w }));
     expect(html).toContain("Ausgabe Nr.");
     expect(html).toContain("Archiv");
-    expect(html).toContain("Was Eingriffe kosten würden");
+    expect(html).toContain("Pressefreiheit");
     expect(html).toContain("Rang 159");
     expect(html).toContain("tablist");
     // Keine echte Blattzeile im UI-Text

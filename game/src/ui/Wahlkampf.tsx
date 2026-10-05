@@ -11,6 +11,7 @@ import {
   WAHLKAMPF,
   auslandstour,
   duellVorbereiten,
+  nachfolgerAuftritt,
   reise,
   reiseKosten,
   reiseVorschau,
@@ -18,12 +19,15 @@ import {
   verspreche,
   wahlkampfSicht,
   type AktionErgebnis,
+  type AuftrittArt,
   type TourLand,
 } from "../sim/wahlkampf";
+import { t } from "../i18n";
 import { GRUPPEN } from "../sim/gruppen";
 import { NET } from "../sim/modell";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { nf, prozent, vz } from "./waehler/format";
+import "./politik/design.css";
 import "./wahlkampf.css";
 
 const GRUPPEN_NAME = new Map(GRUPPEN.map((g) => [g.id, NET.nodes[NET.index.get(g.id)!]!.name]));
@@ -107,6 +111,13 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
         </div>
       </section>
 
+      {s.rolle === "nachfolger" && s.nachfolger && (
+        <section className="kampf-nachfolger" aria-label={t("enden.wk.ui.titel", { name: s.nachfolger.name })}>
+          <h3>{t("enden.wk.ui.titel", { name: s.nachfolger.name })}</h3>
+          <p className="kampf-unter">{t("enden.wk.ui.untertitel", { rolle: s.nachfolger.rolle, name: s.nachfolger.name, staerke: s.nachfolger.staerke })}</p>
+        </section>
+      )}
+
       {meldung && (
         <p className="kampf-meldung" role="status">
           {meldung}
@@ -157,6 +168,30 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
         </section>
 
         <div className="kampf-spalte">
+          {s.rolle === "nachfolger" && s.auftritte && (
+            <section className="kampf-auftritte" aria-label={t("enden.wk.ui.auftritte_titel")}>
+              <h3>{t("enden.wk.ui.auftritte_titel")}</h3>
+              <p className="kampf-unter">{t("enden.wk.ui.auftritte_text")}</p>
+              <ul className="kampf-tourliste">
+                {(["gemeinsam", "allein"] as AuftrittArt[]).map((art) => {
+                  const v = s.auftritte!.vorschau[art];
+                  return (
+                    <li key={art}>
+                      <div className="kampf-tour-text">
+                        <strong>{t(art === "gemeinsam" ? "enden.wk.ui.gemeinsam" : "enden.wk.ui.allein")}</strong>
+                        <span className={v.punkte >= 0 ? "gut" : "schlecht"}>{t("enden.wk.ui.kosten", { ap: v.ap, uebrig: v.uebrig, max: v.max, punkte: v.punkte })}</span>
+                      </div>
+                      <button className="pd-btn primary" disabled={s.ap < v.ap || v.uebrig <= 0} onClick={() => tue(() => nachfolgerAuftritt(world, art))}>
+                        {v.ap} AP
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="kampf-unter">{t("enden.wk.ui.bilanz", { punkte: s.auftritte.punkte })}</p>
+            </section>
+          )}
+
           <section className="kampf-touren" aria-label="Auslandstouren">
             <h3>Auslandstour: die Diaspora</h3>
             <p className="kampf-unter">
@@ -174,7 +209,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                         {touren.length > 0 ? ` · ${touren.length}× bereist${touren.some((x) => x.verbot) ? ", ein Auftrittsverbot" : ""}` : ""}
                       </span>
                     </div>
-                    <button className="aktion-knopf" disabled={s.ap < WAHLKAMPF.tourAp} onClick={() => tue((rng) => auslandstour(world, t.land as TourLand, rng))}>
+                    <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.tourAp} onClick={() => tue((rng) => auslandstour(world, t.land as TourLand, rng))}>
                       {WAHLKAMPF.tourAp} AP
                     </button>
                   </li>
@@ -184,17 +219,18 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           </section>
 
           <section className="kampf-duell" aria-label="TV-Duell">
-            <h3>Das TV-Duell</h3>
+            <h3>{s.rolle === "nachfolger" ? t("enden.wk.ui.duell_nachfolger") : "Das TV-Duell"}</h3>
             {s.duell.effekt === undefined ? (
               <>
                 <p className="kampf-unter">
-                  Am {s.duell.datum} stellen Sie sich {s.gegner.name} ({s.gegner.parteiName}). Die Vorbereitung kostet {WAHLKAMPF.duellAp} AP —
-                  unvorbereitet hineinzugehen ist das Risiko.
+                  {s.rolle === "nachfolger" && s.nachfolger
+                    ? t("enden.wk.ui.duell_text", { datum: s.duell.datum, name: s.nachfolger.name, gegner: s.gegner.name, partei: s.gegner.parteiName, ap: WAHLKAMPF.duellAp })
+                    : `Am ${s.duell.datum} stellen Sie sich ${s.gegner.name} (${s.gegner.parteiName}). Die Vorbereitung kostet ${WAHLKAMPF.duellAp} AP — unvorbereitet hineinzugehen ist das Risiko.`}
                 </p>
                 {s.duell.vorbereitet ? (
                   <p className="kampf-status gut">Vorbereitet: Aktenstudium, Probeduell, die harten Fragen zuerst.</p>
                 ) : (
-                  <button className="aktion-knopf" disabled={s.ap < WAHLKAMPF.duellAp} onClick={() => tue(() => duellVorbereiten(world))}>
+                  <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.duellAp} onClick={() => tue(() => duellVorbereiten(world))}>
                     Vorbereiten ({WAHLKAMPF.duellAp} AP)
                   </button>
                 )}
@@ -251,9 +287,9 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
         <section className="kampf-versprechen" aria-label="Wahlversprechen">
           <h3>Wahlversprechen</h3>
           <p className="kampf-unter">
-            Jedes Versprechen bringt jetzt Beifall — und wird zur Zusage, zwölf Monate nach der Wahl fällig. Ihre Glaubwürdigkeit liegt bei{" "}
-            {nf(s.glaubwuerdigkeit, 0)}; davon hängt ab, wie sehr man Ihnen glaubt (Wirkung ×{nf(s.glaubFaktor)}). Wer bricht, zahlt später den
-            Bruch-Preis des Zusagen-Systems.
+            {s.rolle === "nachfolger"
+              ? t("enden.wk.ui.versprechen_text", { glaub: Math.round(s.glaubwuerdigkeit), faktor: s.glaubFaktor })
+              : `Jedes Versprechen bringt jetzt Beifall — und wird zur Zusage, zwölf Monate nach der Wahl fällig. Ihre Glaubwürdigkeit liegt bei ${nf(s.glaubwuerdigkeit, 0)}; davon hängt ab, wie sehr man Ihnen glaubt (Wirkung ×${nf(s.glaubFaktor)}). Wer bricht, zahlt später den Bruch-Preis des Zusagen-Systems.`}
           </p>
           <ul className="kampf-vliste">
             {s.versprechen.map(({ def, gegeben }) => (
@@ -269,7 +305,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                 {gegeben ? (
                   <span className="kampf-v-gegeben">versprochen</span>
                 ) : (
-                  <button className="aktion-knopf" disabled={s.ap < WAHLKAMPF.versprechenAp} onClick={() => tue(() => verspreche(world, def.id))}>
+                  <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.versprechenAp} onClick={() => tue(() => verspreche(world, def.id))}>
                     {WAHLKAMPF.versprechenAp} AP
                   </button>
                 )}

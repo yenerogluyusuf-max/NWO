@@ -40,7 +40,8 @@ describe("Kapital lädt sich monatlich auf", () => {
     const k = kapitalEinkommen(w);
     // INN-1 (Vier-Preise-Regel): Die Summe zieht den laufenden Unterhalt der Maßnahmen ab —
     // Maßnahmen mit `unterhalt_monat` (Spielparameter, data/politiknetz.ts) zehren monatlich am Kapital.
-    expect(k.summe).toBeCloseTo(k.grund + k.vertrauen + k.mehrheit + k.legitimitaet - k.unterhalt, 6);
+    // Takt: Altlasten (überfällige Zusagen, akute Probleme) zehren am Kapital (sim/takt.ts)
+    expect(k.summe).toBeCloseTo(k.grund + k.vertrauen + k.mehrheit + k.legitimitaet + k.kabinett - k.unterhalt - k.altlast, 6);
     expect(k.summe).toBeGreaterThan(3);
     // bis zum nächsten Monatsersten laufen; Ereignisse ausschließen, die Kapital kosten könnten (sie kosten nur bei Antwort)
     w.spiel!.kapital = 10;

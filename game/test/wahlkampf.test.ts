@@ -45,7 +45,7 @@ function neu(seed = 6): World {
 }
 
 /** Versetzt die Partie ans Fenster des Wahlkampfs und startet die Phase. */
-function inDenWahlkampf(w: World, tageBisWahl = WAHLKAMPF.beginnTage): World {
+function inDenWahlkampf(w: World, tageBisWahl: number = WAHLKAMPF.beginnTage): World {
   w.spiel!.wahltag = w.day + tageBisWahl;
   advance(w, 1);
   expect(wahlkampfAktiv(w)).toBe(true);

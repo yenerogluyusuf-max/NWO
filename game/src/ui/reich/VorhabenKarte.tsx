@@ -1,8 +1,10 @@
-// Eine Karte für ein Vorhaben: Was es ist, was es kostet (Kapital, Bau, Verwaltung, Zeit), was verlangt wird, was es bringt und was es kostet, das nicht im Geld steckt.
+// Eine Karte für ein Vorhaben: Was es ist, was es kostet (Kapital, Bau, Verwaltung, Schulden, Zeit), was verlangt wird, was es bringt und was es kostet, das nicht im Geld steckt.
 // Beim Beginn wählt der Spieler die Bauvergabe (Stammfirma, Sparvergabe, transparente Ausschreibung); danach steht sie fest und erscheint als Plakette.
+// Großvorhaben nennen außerdem ihren Maßstab (Analogie aus der Wirklichkeit), das Risiko (Mehrkosten, ungewisser Durchbruch), die Konkurrenz und was schon während des Baus wirkt.
 
 import { useState } from "react";
-import { effektZeile, vergabeAngebot, type VorhabenSicht } from "../../sim/reich";
+import { effektZeile, vergabeAngebot, wirkungsVorschau, type VorhabenSicht } from "../../sim/reich";
+import type { World } from "../../sim/types";
 import { KLASSEN_NAMEN, VERGABE_NAMEN, type Vergabe } from "../../sim/reich-typen";
 import { NET } from "../../sim/modell";
 import { WunderBild } from "./WunderBild";
@@ -24,7 +26,8 @@ const VERGABE_TEXT: Record<Vergabe, string> = {
   ausschreibung: "Transparente Ausschreibung: Der Baubeginn verzögert sich um die Vergabephase; dafür kein Korruptionsrisiko, und Märkte, EU und Legitimität sehen es gern.",
 };
 
-function verlierer(v: string | undefined): string | null {
+/** Wer verliert: der Name der Gruppe aus dem Politiknetz, sonst der Text selbst. */
+export function verliererName(v: string | undefined): string | null {
   if (!v) return null;
   const n = NET.nodes[NET.index.get(v) ?? -1];
   return n ? n.name : v;
@@ -37,6 +40,7 @@ export function VorhabenKarte({
   gross = false,
   ergebnis,
   kapital,
+  world,
 }: {
   s: VorhabenSicht;
   onBeginne: (id: string, vergabe: Vergabe) => void;
@@ -46,18 +50,25 @@ export function VorhabenKarte({
   ergebnis?: { ok: boolean; text: string } | undefined;
   /** Politisches Kapital des Spielers, um unbezahlbare Vergaben auszugrauen */
   kapital?: number;
+  /** Mit der Welt zeigt die Karte zu jeder Wirkung die Ausgangslage („heute 58“) */
+  world?: World;
 }) {
   const v = s.v;
   // Ob die Vergabe-Wahl auf dieser Karte aufgeklappt ist
   const [vergabeWahl, setVergabeWahl] = useState(false);
   const zeigt = s.status === "verfuegbar" || s.status === "gesperrt" || s.status === "ausgeschlossen";
-  const gewinn = v.abschluss.map((e) => effektZeile(e)).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 6);
-  const dauer = (v.dauer ?? []).map((e) => effektZeile(e, "dauer")).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 4);
+  const vor = world ? wirkungsVorschau(world, v.id) : null;
+  const gewinn = (vor ? vor.sofort : v.abschluss.map((e) => effektZeile(e)).filter((x): x is NonNullable<typeof x> => !!x)).slice(0, 6);
+  const dauer = (vor ? vor.dauerhaft : (v.dauer ?? []).map((e) => effektZeile(e, "dauer")).filter((x): x is NonNullable<typeof x> => !!x)).slice(0, 5);
+  const waehrend = (vor ? vor.waehrendBau : (v.bauwirkung ?? []).map((e) => effektZeile(e, "dauer")).filter((x): x is NonNullable<typeof x> => !!x)).slice(0, 4);
+  const kapazitaet = vor?.kapazitaet ?? [];
+  const abgelesen = vor?.zeigt ?? [];
+  const risiko = vor?.risiko;
   const los = s.voraus.filter((x) => !x.erfuellt);
   const grund = !s.bereit ? "Voraussetzungen fehlen" : !s.bezahlbar ? "Dafür fehlt Kapital" : !s.verwaltungOk ? "Die Verwaltungskraft reicht nicht" : "";
-  const vl = verlierer(v.verlierer);
+  const vl = verliererName(v.verlierer);
   return (
-    <article className={`rr-karte klasse-${v.klasse} status-${s.status}${gross ? " gross" : ""}`}>
+    <article className={`rr-karte klasse-${v.klasse} status-${s.status}${gross ? " gross" : ""}${v.unrealistisch ? " unrealistisch" : ""}`}>
       {gross && v.bild && (
         <div className="rr-bild">
           <WunderBild
@@ -71,6 +82,16 @@ export function VorhabenKarte({
       )}
       <div className="rr-karte-kopf">
         <span className="rr-klasse">{KLASSEN_NAMEN[v.klasse]}</span>
+        {v.stufe !== undefined && v.stufe > 0 && v.thema && (
+          <span className="rr-plakette stufe" title="Stufe in einer Kette: höhere Stufen verlangen die niedrigeren">
+            Stufe {v.stufe}
+          </span>
+        )}
+        {v.unrealistisch && (
+          <span className="rr-plakette unrealistisch" title="Möglich, aber extrem schwierig und sehr teuer: Jahrzehnte, riesige Schulden, Vorstufen nötig, kaum Aussicht, es in einer Amtszeit zu vollenden.">
+            unrealistisch
+          </span>
+        )}
         {v.frei && (
           <span className="rr-plakette geschaetzt" title="Frei eingegebenes Vorhaben: Kosten und Wirkungen sind Schätzungen aus dem 3-Ebenen-Modell; Überschreitungen sind möglich.">
             geschätzt
@@ -135,7 +156,7 @@ export function VorhabenKarte({
             )}
             {v.kosten.bau > 0 && (
               <li title="Baupunkte insgesamt; die Baukapazität des Landes teilt sie auf">
-                <b>{v.kosten.bau}</b> Baupunkte
+                <b>{v.kosten.bau.toLocaleString("de-DE")}</b> Baupunkte
               </li>
             )}
             {(v.kosten.verwaltung ?? 0) > 0 && (
@@ -144,7 +165,7 @@ export function VorhabenKarte({
               </li>
             )}
             <li title="Frühestens so lange, auch mit viel Baukapazität">
-              <b>{v.kosten.monate}</b> {v.kosten.monate === 1 ? "Monat" : "Monate"}
+              <b>{v.kosten.monate >= 24 ? (v.kosten.monate / 12).toLocaleString("de-DE", { maximumFractionDigits: 1 }) : v.kosten.monate}</b> {v.kosten.monate >= 24 ? "Jahre" : v.kosten.monate === 1 ? "Monat" : "Monate"}
             </li>
             {v.kosten.schulden ? (
               <li title="Erhöht die Schuldenquote, verteilt über die Bauzeit">
@@ -164,13 +185,27 @@ export function VorhabenKarte({
         </>
       )}
 
-      {(gewinn.length > 0 || dauer.length > 0) && (
+      {(gewinn.length > 0 || dauer.length > 0 || waehrend.length > 0 || kapazitaet.length > 0 || abgelesen.length > 0) && (
         <div className="rr-wirkung">
-          {gewinn.length > 0 && <b className="rr-wirkung-kopf">{s.status === "fertig" ? "Hat gebracht" : "Bringt"}</b>}
+          {waehrend.length > 0 && (
+            <>
+              <b className="rr-wirkung-kopf">Schon während des Baus</b>
+              <ul>
+                {waehrend.map((z) => (
+                  <li key={z.text} className={z.gut ? "rr-gut" : "rr-schlecht"}>
+                    <span aria-hidden>{z.richtung > 0 ? "▲" : "▼"}</span> {z.text}
+                    {z.heute !== undefined && <small> (heute {z.heute})</small>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {gewinn.length > 0 && <b className="rr-wirkung-kopf">{s.status === "fertig" ? "Hat gebracht" : "Bringt bei Fertigstellung"}</b>}
           <ul>
             {gewinn.map((z) => (
               <li key={z.text} className={z.gut ? "rr-gut" : "rr-schlecht"}>
                 <span aria-hidden>{z.richtung > 0 ? "▲" : "▼"}</span> {z.text}
+                {z.heute !== undefined && <small> (heute {z.heute})</small>}
               </li>
             ))}
           </ul>
@@ -181,6 +216,28 @@ export function VorhabenKarte({
                 {dauer.map((z) => (
                   <li key={z.text} className={z.gut ? "rr-gut" : "rr-schlecht"}>
                     <span aria-hidden>{z.richtung > 0 ? "▲" : "▼"}</span> {z.text}
+                    {z.heute !== undefined && <small> (heute {z.heute})</small>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {kapazitaet.length > 0 && (
+            <ul>
+              {kapazitaet.map((t) => (
+                <li key={t} className="rr-gut">
+                  <span aria-hidden>▲</span> {t}
+                </li>
+              ))}
+            </ul>
+          )}
+          {abgelesen.length > 0 && (
+            <>
+              <b className="rr-wirkung-kopf">Daran sieht man es</b>
+              <ul>
+                {abgelesen.map((g) => (
+                  <li key={g.id} className={g.gut ? "rr-gut" : "rr-schlecht"}>
+                    {g.name}: {g.wert} von 100
                   </li>
                 ))}
               </ul>
@@ -188,10 +245,13 @@ export function VorhabenKarte({
           )}
         </div>
       )}
+      {risiko && zeigt && <p className="rr-risiko"><b>Risiko:</b> {risiko}</p>}
       <p className="rr-kehrseite">
         <b>Der Preis:</b> {v.kehrseite}
         {vl && <em> Es verliert: {vl}.</em>}
       </p>
+      {v.konkurrenz && zeigt && <p className="rr-konkurrenz"><b>Konkurrenz und Spionage:</b> {v.konkurrenz}</p>}
+      {v.anker && zeigt && <p className="rr-anker"><b>Maßstab:</b> {v.anker}</p>}
 
       {s.grund && (s.status === "gesperrt" || s.status === "ausgeschlossen") && <p className="rr-sperre">{s.grund}</p>}
       {ergebnis && <p className={`rr-ergebnis ${ergebnis.ok ? "ok" : "nein"}`}>{ergebnis.text}</p>}
@@ -223,7 +283,7 @@ export function VorhabenKarte({
                     {VERGABE_NAMEN[weg]}
                   </button>
                   <span className="rr-bau-info">
-                    {a.pk} Kapital · {a.bau} Baupunkte · {a.monate} {a.monate === 1 ? "Monat" : "Monate"}
+                    {a.pk} Kapital · {a.bau.toLocaleString("de-DE")} Baupunkte · {a.monate} {a.monate === 1 ? "Monat" : "Monate"}
                     {a.vorlauf > 0 ? ` + ${a.vorlauf} Monate Vergabephase` : ""}
                   </span>
                   <p className="rr-hinweis">{VERGABE_TEXT[weg]}</p>

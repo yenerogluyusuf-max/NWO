@@ -47,6 +47,16 @@ export interface Vorlage {
   wettbewerb?: "aussitzen" | "eskalieren";
   /** ZEI-1: Schwere der Standardfolge für die Dringlichkeit im Wettbewerb (1 = normal, höher = schlimmer). */
   schwere?: number;
+  /**
+   * Fester Kalendertag (1 bis 28), an dem der Vorgang öffnet, wenn er im Monat ausgelöst wurde (Saisonereignisse, Gedenktage).
+   * Fehlt er, würfelt der Takt (sim/ereignisse.ts, `plane`) den Eröffnungstag, damit nicht alles am Monatsersten kommt.
+   */
+  tag?: number;
+  /**
+   * Folgehaken: Was aus der gewählten Antwort später als eigenes Ereignis zurückkommt. Das Ereignis `vorlage` öffnet nach
+   * `nach[0]` bis `nach[1]` Tagen (deterministisch gewürfelt), wenn die Bedingung dann noch gilt (sim/ereignisse.ts, `folgenTag`).
+   */
+  folgen?: Record<string, { vorlage: string; nach: [number, number]; bedingung?: (w: World) => boolean }>;
   /** Wahrscheinlichkeit pro Monat, 0 = nicht möglich */
   chance: (w: World) => number;
   erzeuge: (w: World, rng: Rng) => { provinzen: number[]; staerke: number; daten?: Record<string, number | string> } | null;

@@ -4,7 +4,7 @@
 //   direkt  der Browser ruft den Anbieter selbst auf (Claude erlaubt das mit Kennzeichnung, ein lokaler Server sowieso)
 // Welche Anbieter es gibt, steht in anbieterliste.ts.
 
-import { ANBIETER, anbieterDef, endpunkt, schluesselWarnung, type AnbieterDef } from "./anbieterliste";
+import { ANBIETER, ablehnungsHinweis, anbieterDef, endpunkt, schluesselWarnung, type AnbieterDef } from "./anbieterliste";
 import type { KiAntwortRoh, KiKonfig, KiNachricht } from "./typen";
 
 export interface KiAnfrage {
@@ -141,8 +141,10 @@ function fehlerAus(status: number, text: string, w: Weg): KiFehler {
     detail = text.slice(0, 160);
   }
   if (status === 401 || status === 403) {
-    const warnung = schluesselWarnung(a.id, w.schluessel);
-    return new KiFehler(`${a.name} hat den Schlüssel abgelehnt. ${warnung ?? "Bitte in den KI-Einstellungen prüfen: Schlüssel und Anbieter müssen zusammenpassen."}`, "schluessel");
+    const warnung = schluesselWarnung(a.id, w.schluessel) ?? ablehnungsHinweis(a, w.schluessel);
+    // Die Antwort des Anbieters ist die beste Auskunft („Invalid API Key“ ist etwas anderes als „Kontingent erschöpft“)
+    const grund = detail ? ` (Antwort: „${detail.slice(0, 120)}“)` : "";
+    return new KiFehler(`${a.name} hat den Schlüssel abgelehnt${grund}. ${warnung ?? "Bitte in den KI-Einstellungen prüfen: Schlüssel und Anbieter müssen zusammenpassen."}`, "schluessel");
   }
   if (status === 429) return new KiFehler(`Bei ${a.name}: zu viele Anfragen oder das Kontingent ist erschöpft. Bitte später noch einmal.`, "limit");
   if (status === 404) return new KiFehler(`Bei ${a.name} wurde das Modell „${w.modell}“ oder die Adresse nicht gefunden${detail ? ` (${detail})` : ""}. Prüfen Sie den Modellnamen in Ihrem Konto.`, "konfig");
@@ -181,7 +183,7 @@ export async function rufeAuf(k: KiKonfig, a: KiAnfrage, holen: Holer = fetch): 
       };
     }
     const ueberServer = weg.modus !== "direkt";
-    const url = ueberServer ? "/api/ki/relay" : endpunkt(an, adresseFuer(k, an));
+    const url = ueberServer ? "/api/ki/relay" : endpunkt(an, adresseFuer(k, an), weg.schluessel);
     const kopf: Record<string, string> = { "content-type": "application/json" };
     if (ueberServer) {
       kopf["x-ki-anbieter"] = an.id;
@@ -194,6 +196,7 @@ export async function rufeAuf(k: KiKonfig, a: KiAnfrage, holen: Holer = fetch): 
       kopf["anthropic-dangerous-direct-browser-access"] = "true";
     } else if (weg.schluessel) {
       kopf["authorization"] = `Bearer ${weg.schluessel}`;
+      if (an.auchApiKeyKopf) kopf["api-key"] = weg.schluessel;
     }
     const antwort = await holen(url, { method: "POST", headers: kopf, body: JSON.stringify(body), signal: zeit.signal });
     const text = await antwort.text();

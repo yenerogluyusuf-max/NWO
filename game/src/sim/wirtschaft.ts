@@ -15,8 +15,14 @@ export const MAX_MONATE = 120;
 
 const netz = (w: World, id: string) => nationalAverage(NET, w.net, id);
 
-/** Das geplante Defizit in % des BIP: Grundlinie, eigener Impuls, Kosten der Maßnahmen und Mehrzinsen. */
+/** Das geplante Defizit in % des BIP: Grundlinie, eigener Impuls, Kosten der Maßnahmen, Mehrzinsen und der Konjunktursaldo (Stabilisatoren, Steuerbasis). */
 export function defizitJetzt(w: World): number {
+  const e = w.economy;
+  return e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (e.konjunkturSaldo ?? 0);
+}
+
+/** Das Defizit ohne Konjunktursaldo (konjunkturbereinigt): daran messen IWF-Auflagen, damit automatische Stabilisatoren in der Rezession kein Programm brechen. */
+export function defizitStrukturell(w: World): number {
   const e = w.economy;
   return e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0);
 }

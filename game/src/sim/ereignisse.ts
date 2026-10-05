@@ -20,6 +20,7 @@ import { addLog } from "./log";
 import { clamp } from "./economy";
 import { anrede, ersetze, figur, partnerFigur } from "./figuren";
 import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingriffe";
+import { interveniere } from "./devisen";
 import { REGELN, bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
 import { FORDERUNG, bereitschaftAendern, forderungVon } from "./fraktionen";
 import { INNEN_VORLAGEN } from "./ereignisse-innen";
@@ -31,10 +32,15 @@ import { schwierig } from "./spiel";
 import { AUSSEN_VORLAGEN } from "./ereignisse-aussen";
 import { KRIEG_VORLAGEN } from "./ereignisse-krieg";
 import { EU_VORLAGEN } from "./ereignisse-eu";
+import { WELT_VORLAGEN } from "./welt-ereignisse";
 import { VERMITTLUNG_VORLAGEN } from "./ereignisse-vermittlung";
 import { REICH_VORLAGEN } from "./ereignisse-reich";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
 import { VERFASSUNG_VORLAGEN } from "./ereignisse-verfassung";
+import { WAHL_VORLAGEN } from "./ereignisse-wahl";
+import { regierungsJahre } from "./amtszeit";
+import { dayOfMonth } from "./dates";
+import { SAISON_VORLAGEN } from "./ereignisse-saison";
 import { setzeVerfassungsOeffner } from "./verfassung";
 import { brecheZusage, loeseZusageEin, vertroesteZusage, zusageBezug, zusageVorhaben } from "./zusagen";
 import { skala, skalenArt } from "../data/skalen";
@@ -44,6 +50,8 @@ import { Rng } from "./rng";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
 import { kannZahlen } from "./kapital";
+import { momentaufnahme, rueckblickAnlegen } from "./berichte";
+import { t } from "../i18n";
 import { VERFASSUNG, belastungEreignis } from "./aufmerksamkeit";
 
 export type { Option, Vorlage, SzenenName } from "./ereignis-hilfen";
@@ -54,7 +62,8 @@ export const EREIGNIS_RATE = 1;
 const ALTERSKRISEN = new Set(["weltwirtschaftskrise", "pandemie", "waehrungsrutsch", "energiepreisschock", "haushaltsdruck", "bankenstress"]);
 function alterFaktor(world: World, id: string): number {
   if (!ALTERSKRISEN.has(id)) return 1;
-  const jahre = world.day / 365;
+  // Regierungsalter ab Beginn der Amtszeit, ein Teil früherer Amtszeiten geht mit (sim/amtszeit.ts)
+  const jahre = regierungsJahre(world);
   return 1 + Math.min(1.2, 0.18 * Math.max(0, jahre - 1.5));
 }
 
@@ -86,7 +95,9 @@ const ERDBEBEN: Vorlage = {
   szene: "anatolien",
   frist: 7,
   abkuehlung: 240,
-  chance: () => 0.028,
+  // Seit dem Katastrophen-Modul (sim/katastrophe.ts) löst allein der Risiko-Layer Beben aus: Er legt einen Fall an, dieser alte Würfel
+  // erzeugte keinen. Die Vorlage bleibt für ältere Spielstände mit offenem Ereignis.
+  chance: () => 0,
   erzeuge: (w, rng) => {
     const p = ziehe(rng, (pl) => (SEISMIC.has(pl) ? 1 : 0.05) * wertIn(w, "p_erdbebengefahr", [pl]) ** 2, 1);
     if (!p.length) return null;
@@ -152,7 +163,8 @@ const DUERRE: Vorlage = {
   szene: "anatolien",
   frist: 10,
   abkuehlung: 300,
-  chance: (w) => (sommer(w) ? 0.06 * (0.6 + nationalAverage(NET, w.net, "duerre") / 60) : 0),
+  // Nur noch der Risiko-Layer (sim/katastrophe.ts) löst Dürren aus, mit Fall und Abschluss; die Vorlage bleibt für ältere Spielstände.
+  chance: () => 0,
   erzeuge: (w, rng) => {
     const p = ziehe(rng, (pl) => wertIn(w, "p_wassermangel", [pl]) ** 3, 4);
     if (!p.length) return null;
@@ -216,12 +228,14 @@ const WAEHRUNG: Vorlage = {
   ],
   warum: () => "Die Währung reagiert auf Inflationsabstand, Zinsen, Risikoaufschlag und Vertrauen. Kurzfristige Eingriffe kaufen Zeit, lösen die Ursache aber nicht.",
   optionen: () => [
-    opt("reserven", "Devisenreserven einsetzen", "Kostet 3 Kapital; stützt die Lira kurz, die Reserven sinken.", 3, (w) => {
-      w.economy.usdTry *= 0.96;
-      w.economy.eurTry *= 0.96;
-      w.economy.riskPremium += 20;
-      w.economy.credibility = clamp(w.economy.credibility - 0.02, 0.05, 0.95);
-      return "Die Zentralbank verkauft Reserven; die Lira erholt sich kurz.";
+    opt("reserven", "Devisenreserven einsetzen", "Kostet 3 Kapital und bis zu 10 Mrd. Dollar Reserven; stützt die Lira um rund 4 Prozent über einige Wochen. Werden die Reserven knapp, kostet es Glaubwürdigkeit.", 3, (w) => {
+      // Über die Interventionsrechnung der Devisenlage (sim/devisen.ts): Reserven sinken wirklich, die Stütze verteilt sich über Wochen
+      const r = interveniere(w, 10);
+      if (!r.ok) {
+        w.economy.credibility = clamp(w.economy.credibility - 0.02, 0.05, 0.95);
+        return `${r.text} Der Versuch, die Lira zu stützen, scheitert an den leeren Kassen; die Märkte lesen das als Schwäche.`;
+      }
+      return `Die Zentralbank verkauft Reserven; die Lira erholt sich, solange sie reichen. ${r.text}`;
     }),
     opt("kapital", "Kapitalverkehr beschränken", "Kostet 6 Kapital; stützt die Lira stark, schreckt aber Investoren ab und fördert den Schwarzmarkt.", 6, (w) => {
       w.economy.usdTry *= 0.93;
@@ -587,7 +601,8 @@ const WALDBRAND: Vorlage = {
   szene: "anatolien",
   frist: 5,
   abkuehlung: 200,
-  chance: (w) => (monatVon(w) >= 7 && monatVon(w) <= 9 ? 0.09 : 0),
+  // Nur noch der Risiko-Layer (sim/katastrophe.ts) löst Großbrände aus, mit Fall und Abschluss; die Vorlage bleibt für ältere Spielstände.
+  chance: () => 0,
   erzeuge: (w, rng) => {
     const p = ziehe(rng, (pl) => (["Ege", "Akdeniz"].includes(PROVINZEN[pl - 1]?.region ?? "") ? 1 : 0.05), 2);
     return p.length ? { provinzen: p, staerke: 0.4 + 0.6 * rng.next() } : null;
@@ -1000,7 +1015,7 @@ export const VORLAGEN: Vorlage[] = [
   ERDBEBEN, DUERRE, WAEHRUNG, ENERGIE, HAUSHALT, KORRUPTION, STREIK, MIETE, FLUECHTLINGE, ANSCHLAG, WALDBRAND, STROM, AERZTE, PREISDECKEL, MIETDECKEL, KOALITION,
   ZUSAGE, START_HAUSHALT, START_PARTNER, START_WIEDERAUFBAU,
   ...KATASTROPHE_VORLAGEN,
-  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...KRIEG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN,
+  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...WAHL_VORLAGEN, ...KRIEG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN, ...WELT_VORLAGEN, ...SAISON_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */
@@ -1050,6 +1065,40 @@ const EREIGNIS_MASSNAHMEN: Record<string, string[]> = {
   infra_bauunfall: ["m_bauaufsicht", "m_instandhaltung"],
 };
 for (const v of VORLAGEN) if (EREIGNIS_MASSNAHMEN[v.id]) v.massnahmen = EREIGNIS_MASSNAHMEN[v.id]!;
+
+/**
+ * Gedächtnis (Takt): Welche Antwort später als eigenes Ereignis zurückkommt. Ein Folgehaken öffnet nach den genannten Tagen (gewürfelt), wenn
+ * seine Bedingung dann noch gilt; die Ursache steht in der Chronik der Antwort. Die Folgen sind schwelende Folgen der Entscheidung, keine
+ * neuen Zufälle: Ein Mietdeckel bremst den Neubau, ein Streikverbot nährt neue Proteste, eine eingefrorene Lohnrunde die nächste Streikwelle.
+ */
+const EREIGNIS_FOLGEN: Record<string, NonNullable<Vorlage["folgen"]>> = {
+  mietproteste: {
+    deckel: { vorlage: "mietdeckel_folgen", nach: [150, 330] },
+    raeumen: { vorlage: "studentenproteste", nach: [60, 180] },
+  },
+  mindestlohn: {
+    einfrieren: { vorlage: "streikwelle", nach: [90, 240], bedingung: (w) => nationalAverage(NET, w.net, "streikneigung") > 35 },
+    aussetzen: { vorlage: "streikwelle", nach: [90, 240], bedingung: (w) => nationalAverage(NET, w.net, "streikneigung") > 35 },
+    halten: { vorlage: "streikwelle", nach: [120, 300], bedingung: (w) => nationalAverage(NET, w.net, "streikneigung") > 40 },
+    kraeftig: { vorlage: "fabrikschliessungen", nach: [150, 360], bedingung: (w) => nationalAverage(NET, w.net, "kostendruck") > 45 },
+    trotzdem: { vorlage: "fabrikschliessungen", nach: [120, 300], bedingung: (w) => w.economy.unemployment > 8 },
+  },
+  haushaltsjahr: {
+    fortschreiben: { vorlage: "haushaltsdruck", nach: [120, 300], bedingung: (w) => w.economy.deficit > 4 },
+    wahlgeschenke: { vorlage: "haushaltsdruck", nach: [200, 400], bedingung: (w) => w.economy.deficit > 3.5 },
+  },
+  korruptionsaffaere: { abwiegeln: { vorlage: "pressekonflikt", nach: [60, 200] } },
+  streikwelle: { verbot: { vorlage: "streikwelle", nach: [120, 240], bedingung: (w) => nationalAverage(NET, w.net, "streikneigung") > 40 } },
+  studentenproteste: { raeumen: { vorlage: "pressekonflikt", nach: [60, 150] } },
+  pressekonflikt: { haerte: { vorlage: "studentenproteste", nach: [60, 180] } },
+  waehrungsrutsch: { ruhe: { vorlage: "bankenstress", nach: [90, 240], bedingung: (w) => w.economy.riskPremium > 450 } },
+  fluechtlingswelle: { grenze: { vorlage: "grenzzwischenfall", nach: [90, 240] } },
+  buergermeister_verfahren: { verwalter: { vorlage: "pressekonflikt", nach: [60, 180] } },
+};
+for (const v of VORLAGEN) {
+  const f = EREIGNIS_FOLGEN[v.id];
+  if (f && !v.folgen) v.folgen = f;
+}
 
 // ---------------------------------------------------------------------------
 // ZEI-1: Ereignis-Wettbewerb (VERBESSERUNGSPLAN_2026-09-30, Vorbild D4)
@@ -1151,6 +1200,31 @@ export function vorlage(id: string): Vorlage {
 
 export const MAX_OFFEN = 3;
 
+/**
+ * Takt der Ereignisse (alle Werte Spielparameter): Der Monatswettbewerb legt nur die Sieger fest; sie öffnen verteilt über den Monat
+ * (Messung vom 05.10.: 96 % der Entscheidungen öffneten am Monatsersten, 60 % der Zeit lagen in Lücken über 60 Tagen).
+ */
+export const TAKT = {
+  /** Der erste Eröffnungstag liegt 1 bis 6 Tage nach dem Monatsersten */
+  ersterVersatz: 6,
+  /** Abstand zwischen zwei Eröffnungen desselben Monats, in Tagen */
+  abstandMin: 6,
+  abstandMax: 8,
+  /** Spätester Eröffnungstag (Tage nach dem Monatsersten), damit alles im selben Monat bleibt */
+  letzterTag: 26,
+  /** Ist die Obergrenze offener Vorgänge erreicht, rückt ein geplanter Vorgang um diese Tage nach … */
+  verschiebungTage: 3,
+  /** … höchstens so oft, danach greift die Verliererbehandlung (ausgesessen oder gärt weiter) */
+  maxVerschiebungen: 4,
+  /** Fällige Zusagen öffnen höchstens eine je Tag und höchstens zwei gleichzeitig (Messung: bis zu 10 an einem Tag) */
+  zusageProTag: 1,
+  zusageGleichzeitig: 2,
+  /** … und zwischen zwei eingeforderten Zusagen liegen mindestens so viele Tage (Messung 05.10.: sonst zehn Zusagen an zehn Tagen hintereinander) */
+  zusageAbstand: 4,
+  /** Ein Folgehaken wartet höchstens so lange auf einen freien Platz, danach verfällt er */
+  folgeWartetTage: 30,
+} as const;
+
 /** Vorlagen, deren Öffnen den Präsidenten sofort belastet (Eskalation im eigenen Land oder an den Grenzen). */
 const ESKALATION_VORLAGEN = new Set(["anschlag", "cyberangriff", "waehrungsrutsch", "weltwirtschaftskrise", "bankenstress", "pandemie", "land_provokation", "land_drohkulisse", "grenzzwischenfall", "grossbeben", "katastrophe_flut"]);
 
@@ -1200,6 +1274,7 @@ export function ereignisMonat(world: World, rng: Rng): void {
   const schub = EREIGNIS_WETTBEWERB.eskalationsSchub[grad];
   const eskalation = spiel.eskalation ?? (spiel.eskalation = {});
   const offenNormal = () => spiel.ereignisse.filter((e) => !e.vorlage.startsWith("start_")).length;
+  const geplantNormal = () => (spiel.geplant ?? []).filter((g) => !TERMINE.has(g.vorlage)).length;
 
   // 1. Kandidaten sammeln: Chance, Abkühlung, Dichte und Obergrenze wie bisher; gärende Vorgänge kommen eher wieder
   const kandidaten: { v: Vorlage; gen: Erzeugung }[] = [];
@@ -1207,8 +1282,8 @@ export function ereignisMonat(world: World, rng: Rng): void {
     const u = rng.next();
     const basis = v.chance(world);
     if (basis <= 0) continue;
-    if (offenNormal() >= MAX_OFFEN) continue;
-    if (spiel.ereignisse.some((e) => e.vorlage === v.id)) continue;
+    if (offenNormal() + geplantNormal() >= MAX_OFFEN) continue;
+    if (spiel.ereignisse.some((e) => e.vorlage === v.id) || spiel.geplant?.some((g) => g.vorlage === v.id)) continue;
     if (world.day - (spiel.zuletzt[v.id] ?? -1e9) < v.abkuehlung) continue;
     const stufe = eskalation[v.id] ?? 0;
     const eskFaktor = stufe > 0 ? 1 + EREIGNIS_WETTBEWERB.chanceSchub * stufe * schub : 1;
@@ -1247,9 +1322,12 @@ export function ereignisMonat(world: World, rng: Rng): void {
     else initiativeSchon = true;
   }
 
+  // Takt: Die Sieger öffnen nicht alle am Monatsersten, sondern verteilt über den Monat (Prüfer 10: 97 % am Ersten); feste
+  // Kalendertage der Vorlage (Saison, Gedenktage) gelten, sonst würfelt der Takt mit mindestens sechs Tagen Abstand.
+  let versatz = Math.floor(rng.next() * TAKT.ersterVersatz);
   for (const k of gewinner) {
     // Die Obergrenze offener Vorgänge gilt auch für Sieger; wer nicht mehr passt, rutscht in die Verliererbehandlung
-    if (offenNormal() >= MAX_OFFEN) {
+    if (offenNormal() + geplantNormal() >= MAX_OFFEN && !TERMINE.has(k.v.id)) {
       verlierer.push(k);
       continue;
     }
@@ -1257,7 +1335,13 @@ export function ereignisMonat(world: World, rng: Rng): void {
     const stufe = eskalation[k.v.id] ?? 0;
     delete eskalation[k.v.id];
     const staerke = stufe > 0 ? (k.gen.staerke ?? 1) * (1 + EREIGNIS_WETTBEWERB.staerkeSchub * stufe * schub) : k.gen.staerke;
-    oeffne(world, k.v.id, rng, { provinzen: k.gen.provinzen ?? [], staerke: staerke ?? 1, ...(k.gen.daten ? { daten: k.gen.daten } : {}) });
+    let tag: number;
+    if (k.v.tag !== undefined) tag = world.day + (Math.min(28, Math.max(1, k.v.tag)) - dayOfMonth(world.date));
+    else {
+      tag = world.day + 1 + Math.min(TAKT.letzterTag, versatz);
+      versatz += TAKT.abstandMin + Math.floor(rng.next() * (TAKT.abstandMax - TAKT.abstandMin + 1));
+    }
+    (spiel.geplant ??= []).push({ vorlage: k.v.id, tag, provinzen: k.gen.provinzen ?? [], staerke: staerke ?? 1, ...(k.gen.daten ? { daten: k.gen.daten } : {}) });
   }
 
   // 3. Nicht präsentiert: je nach Ereignis-Typ ausgesessen (Standardfolge tritt ein) oder still eskaliert (gärt weiter).
@@ -1265,22 +1349,87 @@ export function ereignisMonat(world: World, rng: Rng): void {
   // ihr Treiber ist keine schwelende Lage, die gärt, sondern ein Interesse, das wieder anklopft.
   for (const k of verlierer) {
     if (INITIATIVE_VORLAGE_IDS.has(k.v.id)) continue;
-    const ev = baueEreignis(world, k.v, k.gen);
-    const titel = k.v.titel(world, ev);
-    if (k.v.wettbewerb === "aussitzen") {
-      // Der Vorgang läuft ohne Entscheidung schlecht aus: Es greift die Standardfolge, sonst nichts
-      const ausgang = k.v.standard(world, ev, rng);
-      spiel.zuletzt[k.v.id] = world.day;
-      delete eskalation[k.v.id];
-      spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Ausgesessen — der Vorgang kam nicht auf den Tisch: ${ausgang}` });
-      addLog(world, "ereignis", `Ausgesessen: ${titel}`, ausgang);
-    } else {
-      const stufe = Math.min(EREIGNIS_WETTBEWERB.maxStufe, (eskalation[k.v.id] ?? 0) + 1);
-      eskalation[k.v.id] = stufe;
-      spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Im Hintergrund gärt es weiter; der Vorgang kommt dringlicher zurück (Eskalation ${stufe} von ${EREIGNIS_WETTBEWERB.maxStufe}).` });
-      addLog(world, "ereignis", `Im Hintergrund: ${titel} gärt weiter.`, "Der Vorgang war für diesen Monat nicht dringlich genug; die Lage verschärft sich.");
-    }
+    verliererBehandeln(world, rng, k.v, k.gen);
   }
+}
+
+/**
+ * Nicht präsentiert: je nach Ereignis-Typ ausgesessen (Standardfolge tritt ein) oder still eskaliert (gärt weiter).
+ * Gilt für Verlierer des Monatswettbewerbs und für geplante Vorgänge, die wegen der Obergrenze nicht mehr öffnen konnten.
+ */
+function verliererBehandeln(world: World, rng: Rng, v: Vorlage, gen: Erzeugung): void {
+  const spiel = world.spiel!;
+  const eskalation = spiel.eskalation ?? (spiel.eskalation = {});
+  const ev = baueEreignis(world, v, gen);
+  const titel = v.titel(world, ev);
+  if (v.wettbewerb === "aussitzen") {
+    // Der Vorgang läuft ohne Entscheidung schlecht aus: Es greift die Standardfolge, sonst nichts
+    const ausgang = v.standard(world, ev, rng);
+    spiel.zuletzt[v.id] = world.day;
+    delete eskalation[v.id];
+    spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Ausgesessen — der Vorgang kam nicht auf den Tisch: ${ausgang}` });
+    addLog(world, "ereignis", `Ausgesessen: ${titel}`, ausgang);
+  } else {
+    const stufe = Math.min(EREIGNIS_WETTBEWERB.maxStufe, (eskalation[v.id] ?? 0) + 1);
+    eskalation[v.id] = stufe;
+    spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Im Hintergrund gärt es weiter; der Vorgang kommt dringlicher zurück (Eskalation ${stufe} von ${EREIGNIS_WETTBEWERB.maxStufe}).` });
+    addLog(world, "ereignis", `Im Hintergrund: ${titel} gärt weiter.`, "Der Vorgang war für diesen Monat nicht dringlich genug; die Lage verschärft sich.");
+  }
+}
+
+/** Für Tests und Werkzeuge: wie `ereignisMonat`, aber die geplanten Vorgänge des Monats öffnen sofort, ohne ihren gewürfelten Tag abzuwarten. */
+export function ereignisMonatSofort(world: World, rng: Rng): void {
+  ereignisMonat(world, rng);
+  const sp = world.spiel;
+  if (!sp?.geplant?.length) return;
+  for (const p of sp.geplant) p.tag = world.day;
+  geplanteOeffnen(world, rng);
+}
+
+/** Takt: Geplante Vorgänge öffnen an ihrem Tag; ist die Obergrenze erreicht, rücken sie nach oder werden wie Verlierer behandelt. */
+function geplanteOeffnen(world: World, rng: Rng): void {
+  const spiel = world.spiel!;
+  if (!spiel.geplant?.length) return;
+  const rest: NonNullable<typeof spiel.geplant> = [];
+  for (const p of spiel.geplant) {
+    if (p.tag > world.day) {
+      rest.push(p);
+      continue;
+    }
+    if (spiel.ereignisse.some((e) => e.vorlage === p.vorlage)) continue; // läuft schon: der Plan verfällt
+    const v = vorlage(p.vorlage);
+    const gen = { provinzen: p.provinzen, staerke: p.staerke, ...(p.daten ? { daten: p.daten } : {}) };
+    const offen = spiel.ereignisse.filter((e) => !e.vorlage.startsWith("start_")).length;
+    if (offen >= MAX_OFFEN && !TERMINE.has(p.vorlage)) {
+      const n = (p.verschoben ?? 0) + 1;
+      if (n >= TAKT.maxVerschiebungen) verliererBehandeln(world, rng, v, gen);
+      else rest.push({ ...p, tag: world.day + TAKT.verschiebungTage, verschoben: n });
+      continue;
+    }
+    oeffne(world, p.vorlage, rng, gen);
+  }
+  spiel.geplant = rest;
+}
+
+/** Folgehaken (Vorlage.folgen): Das Ereignis, das aus einer früheren Antwort entsteht, öffnet, sobald ein Platz frei ist. */
+function folgenOeffnen(world: World, rng: Rng): void {
+  const spiel = world.spiel!;
+  if (!spiel.folgen?.length) return;
+  const rest: NonNullable<typeof spiel.folgen> = [];
+  for (const f of spiel.folgen) {
+    if (f.tag > world.day) {
+      rest.push(f);
+      continue;
+    }
+    if (spiel.ereignisse.some((e) => e.vorlage === f.vorlage)) continue;
+    const offen = spiel.ereignisse.filter((e) => !e.vorlage.startsWith("start_")).length;
+    if (offen >= MAX_OFFEN) {
+      if (world.day - f.tag < TAKT.folgeWartetTage) rest.push(f);
+      continue;
+    }
+    oeffne(world, f.vorlage, rng);
+  }
+  spiel.folgen = rest;
 }
 
 /** Täglich: fällige Zusagen einfordern, Fristen abwarten. */
@@ -1292,11 +1441,22 @@ export function ereignisTag(world: World, rng: Rng): void {
     spiel.zusagen = spiel.zusagen.filter((z) => z.von !== "Fraktionen");
   }
   spiel.ereignisse = spiel.ereignisse.filter((e) => e.vorlage !== "zusage" || spiel.zusagen.some((z) => z.id === String(e.daten?.zusage)));
-  for (const z of spiel.zusagen) {
-    if (z.erfuellt || z.gebrochen || z.faellig > world.day) continue;
-    if (spiel.ereignisse.some((e) => e.vorlage === "zusage" && e.daten?.zusage === z.id)) continue;
+  // Fällige Zusagen kommen der Reihe nach (älteste zuerst), nicht alle am selben Tag
+  const offeneZusagen = spiel.ereignisse.filter((e) => e.vorlage === "zusage").length;
+  const faellige = spiel.zusagen
+    .filter((z) => !z.erfuellt && !z.gebrochen && z.faellig <= world.day && !spiel.ereignisse.some((e) => e.vorlage === "zusage" && e.daten?.zusage === z.id))
+    .sort((a, b) => a.faellig - b.faellig);
+  let neueZusagen = 0;
+  const g = (spiel.gegenkraft ??= {});
+  for (const z of faellige) {
+    if (offeneZusagen + neueZusagen >= TAKT.zusageGleichzeitig || neueZusagen >= TAKT.zusageProTag) break;
+    if (world.day - (g.zusageTag ?? -1e9) < TAKT.zusageAbstand) break;
     oeffne(world, "zusage", rng, { provinzen: [], staerke: 1, daten: { zusage: z.id } });
+    g.zusageTag = world.day;
+    neueZusagen++;
   }
+  geplanteOeffnen(world, rng);
+  folgenOeffnen(world, rng);
   for (const ev of [...spiel.ereignisse]) {
     if (ev.frist > world.day) continue;
     const v = vorlage(ev.vorlage);
@@ -1451,8 +1611,18 @@ export function entscheide(world: World, ereignisId: string, optionId: string, r
   if (!kannZahlen(spiel.kapital, o.pk)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${o.pk}, vorhanden ${Math.floor(spiel.kapital)}).` };
   spiel.kapital -= o.pk;
   const titel = v.titel(world, ev);
+  // Rückblick (sim/berichte.ts): Stand vor der Antwort festhalten, damit der Bericht nach 6, 12 und 24 Monaten zeigen kann, was davon blieb
+  const beobachten = ev.vorlage !== "zusage" && !ev.vorlage.startsWith("start_");
+  const vor = beobachten ? momentaufnahme(world) : undefined;
   const ausgang = o.wirkung(world, ev, rng);
+  if (vor) rueckblickAnlegen(world, "ereignis", t("takt.bericht.ereignis", { titel, antwort: o.label }), vor, momentaufnahme(world));
   abschliessen(world, ev, titel, `${o.label}. ${ausgang}`);
+  // Gedächtnis: Manche Antworten kommen später als eigenes Ereignis zurück (Vorlage.folgen)
+  const folge = v.folgen?.[optionId];
+  if (folge && (!folge.bedingung || folge.bedingung(world))) {
+    const [von, bis] = folge.nach;
+    (spiel.folgen ??= []).push({ vorlage: folge.vorlage, tag: world.day + von + Math.floor(rng.next() * (bis - von + 1)), aus: v.id, antwort: optionId });
+  }
   return { ok: true, text: ausgang };
 }
 

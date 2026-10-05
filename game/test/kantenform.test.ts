@@ -179,7 +179,8 @@ describe("Lineare Kanten bleiben bit-identisch", () => {
     // Katalog ohne die neuen Felder: das ist der Stand vor INN-1
     const knoten = NODES.map((n) => ({ ...n, traegheit: undefined }));
     const kanten = EDGES.map((e) => ({ ...e, form: undefined }));
-    const model = buildModel(knoten, kanten);
+    // Ohne die Gegenkräfte der Runde „Netz atmet“ (Gewöhnung, Sättigung) und ohne Zusammenspiele: nur der Kern wird verglichen
+    const model = buildModel(knoten, kanten, [], { gegenkraefte: false });
     const neu = createNet(model, ECO, REGIONAL, WEIGHTS);
     const alt = createNet(model, ECO, REGIONAL, WEIGHTS);
     // Schock, damit überhaupt etwas durch das Netz fließt
@@ -253,7 +254,9 @@ describe("Vier-Preise-Regel", () => {
 
   test("Zurücknehmen kostet mehr Kapital als Einführen (gleiche Stufenzahl)", () => {
     const w = createWorld(turkey2026, 7);
-    startAfterElection(w, schnellProfil());
+    const prof = schnellProfil();
+    prof.achsen = { wirtschaft: 0, gesellschaft: 0, national: 0, religion: 0, zentral: 0 };
+    startAfterElection(w, prof);
     // ±25 Stufen, damit die Rundung auf ganze Kapitalpunkte das Verhältnis nicht verzerrt
     // m_mindestlohn mit explizitem Exit-Preis 2
     const hoch = pruefeVorhaben(w, "m_mindestlohn", 75);

@@ -30,7 +30,7 @@ export function systemText(): string {
   const massnahmen = MASSNAHMEN.map((n) => `${n.id}: ${n.name}`).join("\n");
   const laender = LAENDER.map((l) => `${l.id}: ${l.name}`).join("; ");
   const posten = POSTEN.map((p) => `${p.id}: ${p.name} (${p.seite})`).join("\n");
-  const vorhaben = VORHABEN.map((v) => `${v.id}: ${v.name}`).join("\n");
+  const vorhaben = VORHABEN.filter((v) => !v.pflegt).map((v) => `${v.id}: ${v.name}`).join("\n");
   const klauselnJeLand = LAENDER.map((l) => {
     const werte = PROFILE[l.id]?.werte ?? {};
     const gibt = Object.keys(werte).filter((id) => KLAUSELN.find((k) => k.id === id)?.seite === "gibt");

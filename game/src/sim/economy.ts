@@ -79,6 +79,13 @@ export const PARAMS = {
   cdsReservenDruckMax: 150,
   /** Täglicher Verbrauch des Interventions-Puffers (fxPuffer) als Kursstütze (Anteil je Tag) */
   interventionsPufferProTag: 0.0005,
+  // Runde „Netz atmet“ (Spielparameter; wirken nur mit Politiknetz, sonst sind die Felder leer und die Terme 0):
+  /** Auslastung (Prozentpunkte je Monat) je Indexpunkt Abweichung des Sektorenindex (Industrie, Export, Mittelstand, Investitionen, Bau, Tourismus) */
+  sektorAufAuslastung: 0.012,
+  /** Halbe Staatsquoten-Elastizität: Entlastung des Haushalts in % des BIP je Prozentpunkt Überauslastung (automatische Stabilisatoren) */
+  stabilisatoren: 0.3,
+  /** Entlastung des Haushalts in % des BIP je Indexpunkt, den die Steuereinnahmen im Netz über dem Start liegen */
+  steuerbasisAufHaushalt: 0.03,
 } as const;
 
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
@@ -137,7 +144,10 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
     // WIR-2: Die Märkte preisen den Reservenbestand (0, wenn keine Devisen-Lage geführt wird;
     // adressiert KALIBRIERUNG_LOG §6.5 — der CDS hing 2024 strukturell zu hoch, weil Z8 keine Bestände kannte).
     PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0) +
-    AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100);
+    AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100) +
+    // Runde „Netz atmet“: Politische Schocks (klingen ab) und die Lage der Institutionen preisen die Märkte ein (0 ohne Netz)
+    (e.politikRisiko ?? 0) +
+    (e.institutionenRisiko ?? 0);
   return e.riskPremium + 0.02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
 
@@ -152,7 +162,9 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) +
     PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) +
     AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100) -
-    AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) +
+    AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1) +
+    // Runde „Netz atmet“: Die Realwirtschaft der Branchen wirkt auf die Auslastung (0 ohne Netz)
+    PARAMS.sektorAufAuslastung * (e.sektorIndex ?? 0) +
     rng.normal(0.25);
 
   // Z5: übermäßige Abwertung der letzten 12 Monate
@@ -166,7 +178,7 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.gapOnInflation * e.outputGap +
     PARAMS.fxPassThrough * excessDepreciation +
     e.costPush +
-    AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100);
+    AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1);
   const previousInflation = e.inflation;
   e.inflation += PARAMS.inflationSpeed * (anchor - e.inflation) + rng.normal(0.3);
   e.inflation = Math.max(-2, e.inflation);
@@ -194,13 +206,14 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
 
   // Z9: Arbeitslosigkeit folgt dem Wachstum
   e.unemployment +=
-    0.03 * (PARAMS.naturalUnemployment - e.unemployment) -
+    0.03 * (PARAMS.naturalUnemployment + (e.arbeitsmarktShift ?? 0) - e.unemployment) -
     PARAMS.okun * (e.growth - potential(e));
   e.unemployment = clamp(e.unemployment, 3, 30);
 
   // Z7: Defizite werden zu Schulden, nominales Wachstum senkt die Quote
   const nominalGrowth = (e.growth + e.inflation) / 100;
-  e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0)) / 12 - (e.debtRatio * nominalGrowth) / 12;
+  // Runde „Netz atmet“: Der Haushalt atmet mit der Konjunktur (konjunkturSaldo: + = Entlastung, 0 ohne Netz)
+  e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (e.konjunkturSaldo ?? 0)) / 12 - (e.debtRatio * nominalGrowth) / 12;
   // WIR-2 (KALIBRIERUNG_LOG §6.1): Der FX-/indexierte Anteil der Schulden schmilzt nicht mit der
   // Inflation, sondern folgt dem Kurs der letzten Monats — 2021–2024 blieb die reale Quote deshalb
   // bei ~30–40 %, während das reine Defizit-Modell sie wegschmelzen ließ.

@@ -50,13 +50,13 @@ describe("Überziehung des Politischen Kapitals", () => {
 
   test("Im Minus sinken Legitimität und Vertrauen, die Gutschrift gleicht das Konto aus", () => {
     const w = welt();
-    w.spiel!.kapital = -15;
+    w.spiel!.kapital = -18;
     const l0 = nationalAverage(NET, w.net, "legitimitaet");
     advance(w, 35);
     const l1 = nationalAverage(NET, w.net, "legitimitaet");
     expect(l1).toBeLessThan(l0);
-    // Die monatliche Gutschrift (etwa sieben) verkleinert das Minus
-    expect(w.spiel!.kapital).toBeGreaterThan(-15);
+    // Die monatliche Gutschrift verkleinert das Minus
+    expect(w.spiel!.kapital).toBeGreaterThan(-18);
     expect(w.spiel!.kapital).toBeLessThan(0 + 1);
   });
 });

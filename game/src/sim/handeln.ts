@@ -18,6 +18,8 @@ import { reagiereFiguren } from "./figuren";
 import { rabattFuer } from "./programme";
 import { beobachte } from "./berichte";
 import { bereitschaftAendern, duldung, sachstimmen } from "./fraktionen";
+import { jaAnteilLager, jaAnteilOpposition, linienFaktor, reagierePartner, reagiereStamm } from "./linie";
+import { t } from "../i18n";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { Gesetz, Weg } from "./spiel-typen";
@@ -108,6 +110,15 @@ function anteil(world: World, ort: number[] | null): number {
   return ort.reduce((s, p) => s + world.net.weights[p - 1]!, 0);
 }
 
+/**
+ * Umfang eines Vorhabens für den politischen Preis: ein fester Sockel (Abstimmung, Apparat) plus ein Teil, der mit dem
+ * Bevölkerungsanteil wächst. Ohne Sättigung: Das ganze Land kostet immer mehr als eine Region, und eine Region mehr als eine
+ * einzelne Provinz (Spielparameter; vorher zählte schon ein Drittel der Bevölkerung voll, die Region Marmara kostete so viel wie das Land).
+ */
+export function umfangFaktor(anteilBevoelkerung: number): number {
+  return 0.2 + 0.8 * Math.pow(Math.min(1, Math.max(0, anteilBevoelkerung)), 0.8);
+}
+
 function knotenIndex(id: string): number {
   const i = NET.index.get(id);
   const node = i === undefined ? undefined : NET.nodes[i];
@@ -183,7 +194,18 @@ export function stimmenSicht(world: World, gesetz?: { massnahme: string; richtun
   const zustimmung = world.spiel?.umfrage.zustimmung ?? 50;
   // Ein Teil der Opposition stimmt mit, wenn der Präsident im Land beliebt ist
   const uebertritt = clamp(0.04 + (0.22 * (zustimmung - 35)) / 40, 0.02, 0.3);
-  const erwartet = Math.min(600, lager + dul.ja + sach.ja + Math.round(gegner * uebertritt));
+  // Linie (sim/linie.ts): Was gegen die Linie einer Lagerpartei geht, stimmt ein Teil ihrer Sitze nicht mit; was zu einer Oppositionspartei
+  // passt, gewinnt einen Teil ihrer Stimmen. Ohne Angabe des Gesetzes bleibt die Rechnung wie früher (alle Lagersitze stimmen mit).
+  let lagerJa = lager;
+  let oppositionJa = 0;
+  if (gesetz && gesetz.richtung !== 0) {
+    lagerJa = parteien.reduce((s, p) => s + Math.round((parl.seats[p] ?? 0) * jaAnteilLager(world, p, gesetz.massnahme, gesetz.richtung)), 0);
+    for (const [partei, sitze] of Object.entries(parl.seats)) {
+      if (parteien.includes(partei) || dul.parteien.includes(partei) || sach.parteien.includes(partei)) continue;
+      oppositionJa += Math.round(sitze * jaAnteilOpposition(partei, gesetz.massnahme, gesetz.richtung));
+    }
+  }
+  const erwartet = Math.min(600, lagerJa + dul.ja + sach.ja + Math.round(gegner * uebertritt) + oppositionJa);
   // Ist der Präsident angespannt, streut die Schätzung breiter: Das Konto der Aufmerksamkeit wirkt auf die Vorschau
   const band = Math.round((8 + Math.round(gegner * 0.02)) * unsicherheitFaktor(world));
   return { lager, erwartet, low: erwartet - band, high: Math.min(600, erwartet + band), luecke: Math.max(0, REGELN.mehrheit - erwartet), duldung: dul.ja, duldungSitze: dul.sitze, sach: sach.ja, sachParteien: sach.parteien };
@@ -222,12 +244,14 @@ function pkKosten(world: World, id: string, delta: number, ort: number[] | null,
   const node = NET.nodes[knotenIndex(id)]!;
   const gewicht = GEWICHT_MASSNAHME[id] ?? GEWICHT_THEMA[node.theme] ?? 0.2;
   const share = anteil(world, ort);
-  const ortsfaktor = ort ? 0.35 + 0.65 * Math.min(1, share * 3) : 1;
+  const ortsfaktor = ort ? umfangFaktor(share) : 1;
   const rabatt = 1 - rabattFuer(world, node.theme);
   const preise = preisFaktoren(node);
   // Vier-Preise-Regel: Erhöhen zahlt den Einführungspreis, Senken den Exit-Preis
   const richtungsfaktor = preise.aendern * (delta >= 0 ? preise.einfuehren : preise.streichen);
-  const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * richtungsfaktor * (weg === "erlass" ? REGELN.erlassFaktor : 1);
+  // Linie der eigenen Partei: mit ihr billiger, gegen sie teurer (Kurswechsel)
+  const linie = linienFaktor(world, id, delta);
+  const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * richtungsfaktor * linie * (weg === "erlass" ? REGELN.erlassFaktor : 1);
   return Math.max(2, Math.round(basis));
 }
 
@@ -315,9 +339,19 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   const erlassOk = erlassMoeglich(id);
   const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass", ueberl) * krisenFaktor));
   const hinweise: string[] = [];
+  // Die Linie der Partei sichtbar machen: Der Preis steht im Kapital, die Reaktion der Partner folgt nach dem Beschluss (sim/linie.ts)
+  const linie = linienFaktor(world, id, aenderung);
+  if (linie <= 0.93) hinweise.push(t("linie.hinweis.mit", { prozent: Math.round((1 - linie) * 100) }));
+  else if (linie >= 1.12) hinweise.push(t("linie.hinweis.gegen", { prozent: Math.round((linie - 1) * 100) }));
   if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Dauer und Kapital steigen um ${Math.round((ueberl - 1) * 100)} %.`);
-  if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen, das kostet später Gegenleistungen.`);
+  if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen (${REGELN.kaufKostenProStimme} Kapital je Stimme, sofort bezahlt; danach schuldet niemand jemandem etwas).`);
   if (ort && share < 0.05) hinweise.push("Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, die vor Ort deutlich.");
+  if (ort) {
+    const prozent = share * 100;
+    hinweise.push(
+      `Umfang: ${prozent < 1 ? "unter 1" : Math.round(prozent).toLocaleString("de-DE")} Prozent der Bevölkerung betroffen. Der politische Preis liegt bei ${Math.round(umfangFaktor(share) * 100)} Prozent des landesweiten Preises, die Haushaltskosten folgen der Bevölkerung (${kostenBip.toLocaleString("de-DE", { maximumFractionDigits: 3 })} Prozent des BIP im Jahr).`,
+    );
+  }
   for (const k of krisen) {
     if (k.art === "teuer") hinweise.push(`${k.krise.name}: ${k.krise.wirkung}`);
   }
@@ -415,6 +449,9 @@ function wendeAn(world: World, id: string, level: number, provinzen: number[] | 
     }
   }
   reagiereFiguren(world, node.theme, id, richtung);
+  // Die Parteien des Lagers messen die Änderung an ihrer Linie
+  reagierePartner(world, id, richtung, Math.abs(target - vorher));
+  reagiereStamm(world, id, richtung, Math.abs(target - vorher));
 }
 
 /**

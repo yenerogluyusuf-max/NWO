@@ -149,7 +149,7 @@ describe("Tagesbriefing", () => {
   });
 
   test("Kalender: Die Ereignisvorlagen gibt es, und die Monatsrechnung trifft den ersten des Monats", () => {
-    for (const k of KALENDER) expect(() => vorlage(k.vorlage), k.vorlage).not.toThrow();
+    for (const k of KALENDER) if (!k.nurAnzeige) expect(() => vorlage(k.vorlage), k.vorlage).not.toThrow();
     const w = welt();
     w.date = "2028-06-05";
     expect(tageBisMonat(w, 10, 2028)).toEqual({ tage: 118, jahr: 2028 });

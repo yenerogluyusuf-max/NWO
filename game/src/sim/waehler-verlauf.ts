@@ -5,6 +5,7 @@ import { NET } from "./modell";
 import { PROVINCES, nationalAverage } from "./netz";
 import { GRUPPEN } from "./gruppen";
 import type { World } from "./types";
+import { gesellschaftMonat } from "./gesellschaft";
 
 export interface WaehlerVerlauf {
   /** Monat je Eintrag als „JJJJ-MM“ */
@@ -65,6 +66,8 @@ export function verlaufAufzeichnen(world: World): void {
     reihe.push(nationalAverage(NET, world.net, g.id));
   }
   v.zustimmung.push(spiel.umfrage.zustimmung);
+  // Gesellschaft (Milieus, Opposition, Straße, Rathäuser) im selben Monatstakt fortschreiben
+  gesellschaftMonat(world);
   while (v.monate.length > VERLAUF_MAX) {
     v.monate.shift();
     v.zustimmung.shift();

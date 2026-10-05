@@ -78,7 +78,8 @@ describe("Plausibilität", () => {
         for (let year = 0; year < 10; year++) {
           advance(w, 365);
           const e = w.economy;
-          for (const v of Object.values(e)) expect(Number.isFinite(v)).toBe(true);
+          // Zahlenfelder müssen endlich sein; die strukturierten Zusatzfelder (rating, marktSchockTag, …) sind keine Zahlen
+          for (const v of Object.values(e)) if (typeof v === "number") expect(Number.isFinite(v)).toBe(true);
           expect(e.inflation).toBeGreaterThan(-5);
           expect(e.inflation).toBeLessThan(250);
           expect(e.unemployment).toBeGreaterThanOrEqual(3);

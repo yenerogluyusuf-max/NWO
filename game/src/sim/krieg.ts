@@ -22,6 +22,19 @@ import { clamp } from "./economy";
 import { addDays, formatDateDe } from "./dates";
 import { LAENDER, land, landAendern, vertrauenZu, weltZustand } from "./laender";
 import { alleLaufenden } from "./abkommen";
+import {
+  GEGNER_GRUPPE,
+  GEGNER_STAERKE,
+  KOALITION,
+  koalitionAufloesen,
+  koalitionRufen,
+  koalitionWoche,
+  koalitionenBeiKriegsbeginn,
+  koalitionsFaktoren,
+  lastTeilung,
+  paketBlockade,
+} from "./pakte";
+import { akteurName as landNameVon } from "./welt-modell";
 import { stimmenSicht } from "./handeln";
 import { oeffne } from "./ereignisse";
 import { kosten } from "./ereignis-hilfen";
@@ -126,16 +139,7 @@ export const RAHMUNG: Record<KriegsRahmung, { name: string; text: string; stimme
   },
 };
 
-/**
- * Gegnerische Kriegsstärke je Land (Spielparameter, keine Tatsachen): grob aus Größe, Rüstung und
- * Regionaleigenschaften abgeleitet — bewusst als pauschale Tabelle, damit die Rechnung lesbar bleibt.
- */
-const GEGNER_STAERKE: Record<string, number> = {
-  USA: 82, RUS: 74, CHN: 88, EU: 55,
-  GRC: 52, IRN: 58, SYR: 28, IRQ: 36, ARM: 26, ISR: 64, GEO: 22, CYP: 14, UKR: 40,
-  AZE: 34, SAU: 48, EGY: 46, LBY: 20, KAZ: 24,
-};
-const GEGNER_GRUPPE: Record<string, number> = { "Große Mächte": 78, Nachbarn: 50, "Verbündete und Partner": 40 };
+// Die Stärketabellen (Gegner, Partner) stehen in sim/pakte.ts, damit Gegner und Koalitionspartner dieselbe Waage haben.
 
 /** Drittländer-Ausstrahlung bei Kriegsbeginn: Rivalen des Gegners rücken näher (Spielparameter). */
 const AUSSTRAHLUNG_RIVALEN: Record<string, Record<string, number>> = {
@@ -256,16 +260,12 @@ export function doktrinPassung(w: World): DoktrinPassung {
 // ---------------------------------------------------------------------------
 // Stärke und Lagebild
 
-/** Laufende Beistands-Klauseln (Bündnisrückhalt wirkt auf die eigene Stärke, flag-basiert wie in Suzerain). */
-function beistandAnzahl(w: World): number {
-  return alleLaufenden(w).filter((v) => v.gibt.includes("beistand")).length;
-}
-
 /**
  * Die eigene Kriegsstärke: Bereitschaft der Teilstreitkräfte, getragen von Moral,
  * multipliziert mit Doktrin-Passung UND Mobilisierung (konsistente Vorbereitung zahlt
  * multiplikativ ein, gemischte verwässert), Nachschub aus Wirtschaftsverkehr (Logistik/Export)
- * und Bündnisrückhalt.
+ * und die Koalition: Partner an der Seite der Türkei tragen je nach Waage, Einsatz und verbleibender Kampfkraft bei (sim/pakte.ts;
+ * ersetzt die frühere Pauschale „Beistands-Klausel gibt höchstens +15 Prozent“).
  */
 export function eigenStaerke(w: World, k: KriegVorgang): number {
   const b = knotenWert(w, "bereitschaft_heer") * 0.45 + knotenWert(w, "bereitschaft_luft") * 0.35 + knotenWert(w, "bereitschaft_see") * 0.2;
@@ -273,16 +273,16 @@ export function eigenStaerke(w: World, k: KriegVorgang): number {
   const dok = doktrinPassung(w).faktor;
   const mob = ([0.55, 0.85, 1.08] as const)[k.mobilmachung] + (k.bereit ? 0.06 : 0);
   const nachschub = clamp(0.72 + 0.0035 * (knotenWert(w, "logistik") - 50) + 0.0025 * (knotenWert(w, "export") - 50), 0.6, 1.1);
-  const allianz = 1 + Math.min(0.15, 0.06 * beistandAnzahl(w));
+  const allianz = 1 + koalitionsFaktoren(w, k).eigenPlus;
   return b * moral * dok * mob * nachschub * allianz;
 }
 
-/** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit). */
+/** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit) und mit seinen Koalitionspartnern. */
 export function gegnerStaerke(w: World, landId: string): number {
   const l = land(landId);
   const k = kriegMit(w, landId);
   const basis = GEGNER_STAERKE[landId] ?? GEGNER_GRUPPE[l.gruppe] ?? 50;
-  return basis + (k ? k.eskalation * 0.08 : 0);
+  return basis + (k ? k.eskalation * 0.08 + koalitionsFaktoren(w, k).gegnerPlus : 0);
 }
 
 /** Wie gut das Lagebild über den Gegner ist (LERNKONZEPT: ehrlich über Unsicherheit). */
@@ -316,7 +316,9 @@ function paketHaerte(p: FriedensPaket): number {
 
 /** Annahme-Aussicht eines Friedenspakets in Prozent (deterministisch; die Uhr beider Seiten treibt sie). */
 export function paketAnnahme(w: World, k: KriegVorgang, p: FriedensPaket): number {
-  const roh = 40 + (100 - k.uhrGegner) * 0.55 - (100 - k.uhr) * 0.25 + (k.front - 50) * 0.7 - paketHaerte(p) * 22;
+  const hart = p.gebiet === 1 || p.reparation === 1;
+  // Die Partner des Gegners blockieren harte Pakete, solange sie Kampfkraft haben (sim/pakte.ts)
+  const roh = 40 + (100 - k.uhrGegner) * 0.55 - (100 - k.uhr) * 0.25 + (k.front - 50) * 0.7 - paketHaerte(p) * 22 - paketBlockade(w, k, hart);
   return Math.round(clamp(roh, 5, 98));
 }
 
@@ -357,6 +359,7 @@ export type KriegHandlungId =
   | "beschluss"
   | "beschluss_erlass"
   | "verstaerkung"
+  | "koalition_rufen"
   | "waffenruhe"
   | keyof typeof PAKETE
   | "weiterkaempfen"
@@ -427,6 +430,18 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
   if (ph === "krieg") {
     const rest = (k.verstaerkungZuletzt ?? -1e9) + 21 - w.day;
     push("verstaerkung", "Reserven und Nachschub verstärken", 6, "Front-Schub +3 in der nächsten Woche; kostet 0,25 % des BIP. Der Präsident bestellt, der Generalstab führt.", rest > 0 ? `Wieder möglich in ${rest} Tagen.` : undefined);
+    const ko = k.koalition;
+    const zoegernde = ko ? ko.abwesend.filter((a) => a.seite === "eigen" && a.zoegert).length : 0;
+    const rufRest = (ko?.gerufen ?? -1e9) + KOALITION.rufTage - w.day;
+    if (zoegernde > 0 || (ko?.abwesend.some((a) => a.seite === "eigen") ?? false)) {
+      push(
+        "koalition_rufen",
+        "Bündnispartner um Beistand bitten",
+        6,
+        `Die Türkei bittet um Beistand: ${zoegernde} Staaten zögern noch und können mit der Bitte bewegt werden (Aufschlag ${KOALITION.rufBonus} Punkte in ihrer Rechnung). Wer ablehnt, nimmt es übel (Vertrauen −1,5).`,
+        rufRest > 0 ? `Die nächste Bitte ist in ${rufRest} Tagen glaubwürdig.` : zoegernde === 0 ? "Niemand zögert mehr: Die übrigen haben endgültig abgelehnt." : undefined,
+      );
+    }
     push("waffenruhe", "Waffenruhe anbieten", 5, "Der Gegner nimmt an, wenn er erschöpft ist oder die Front verloren gibt; lehnt er ab, gilt das Angebot zu Hause als Schwäche (Uhr −3).");
     if (k.mobilmachung < 2) push("mobil_voll", "Vollmobilmachung nachziehen", 14, "Auch mitten im Krieg möglich; teuer und spät.", demob);
   }
@@ -599,6 +614,17 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       text = "Reserven und Nachschub werden an die Front geordnet; der Generalstab verrechnet sie in der nächsten Woche.";
       break;
     }
+    case "koalition_rufen": {
+      const { neu, abgelehnt } = koalitionRufen(w, k);
+      if (neu.length > 0) {
+        text = `Ankara bittet die Partner um Beistand: ${neu.map((p) => `${landNameVon(p.id)}`).join(", ")} sagen${neu.length === 1 ? " zu" : " zu"}.`;
+        why += ` Die Zusagen tragen zur Stärke bei; ${abgelehnt.length ? `${abgelehnt.map(landNameVon).join(", ")} lehnen ab (Vertrauen −1,5).` : "niemand lehnt ab."}`;
+      } else {
+        text = "Die Bitte um Beistand verhallt: Kein Partner ist bereit, in den Krieg einzutreten.";
+        why += abgelehnt.length ? ` ${abgelehnt.map(landNameVon).join(", ")} nehmen die Bitte übel (Vertrauen −1,5).` : "";
+      }
+      break;
+    }
     case "waffenruhe": {
       if (k.uhrGegner <= 55 || k.front >= 62 || k.uhr <= 40) {
         text = `${l.name} nimmt die Waffenruhe an; die Waffen schweigen, der Verhandlungstisch wartet.`;
@@ -658,6 +684,61 @@ function waffenruheEintreten(w: World, k: KriegVorgang): void {
   addLog(w, "ereignis", `Waffenruhe mit ${l.name}.`, "Die Waffenruhe hält, solange ein Friedenspaket oder die Rückkehr zum Krieg entschieden ist.");
 }
 
+/**
+ * Beistandsruf: Ein Pakt-Partner der Türkei wurde angegriffen und die Türkei sagt militärischen Beistand zu (Ereignis krieg_beistandsruf).
+ * Es entsteht ein Konfliktvorgang in der Drohkulisse, die Rahmung „Beistand“ ist deklariert (der Pakt ist der Beleg), der Partner steht schon
+ * an der Seite der Türkei. Der Einsatzbeschluss bleibt Sache des Präsidenten und des Parlaments wie bei jedem Krieg (MIL-1).
+ */
+export function beistandVorgangGrund(w: World, gegnerId: string): string | undefined {
+  if (!w.spiel) return "Ohne Spielschleife gibt es keinen Konfliktvorgang.";
+  if (!LAENDER.some((l) => l.id === gegnerId)) return "Gegen diesen Angreifer gibt es keinen Konfliktvorgang; Beistand geht nur in Material und Diplomatie.";
+  if (kriegMit(w, gegnerId)) return `Mit ${land(gegnerId).name} läuft schon ein Konfliktvorgang.`;
+  if (aktiveKriege(w).length >= KRIEG.maxAktiv) return "Die Türkei führt schon zwei Konfliktvorgänge; ein dritter ist nicht zu tragen.";
+  return undefined;
+}
+
+export function eroeffneBeistandsVorgang(w: World, gegnerId: string, partner: string, paktId: string): Ergebnis {
+  const spiel = w.spiel;
+  const grund = beistandVorgangGrund(w, gegnerId);
+  if (!spiel || grund) return { ok: false, text: grund ?? "Ohne Spielschleife gibt es keinen Konfliktvorgang." };
+  const l = land(gegnerId);
+  const k: KriegVorgang = {
+    id: `kv-${gegnerId}-${w.day}`,
+    land: gegnerId,
+    phase: "drohkulisse",
+    seit: w.day,
+    eskalation: 85,
+    mobilmachung: 0,
+    rahmung: "beistand",
+    kriegszielDeklariert: true,
+    front: 50,
+    frontVorher: 50,
+    uhr: 100,
+    uhrGegner: 100,
+    woche: 0,
+    verluste: 0,
+    beistandFuer: { partner, pakt: paktId },
+    koalition: {
+      aggressor: "tuerkei",
+      partner: [{ id: partner, seite: "eigen", seit: w.day, grund: "Opfer des Angriffs, Beistand aus dem Pakt", pakt: paktId, pflicht: true, rest: 1, einsatz: 1 }],
+      abwesend: [],
+      bewertet: w.day,
+    },
+  };
+  kriege(w).push(k);
+  spiel.zuletzt[`krieg-${gegnerId}`] = w.day;
+  landAendern(w, gegnerId, { konflikt: 12, vertrauen: -8 }, `Die Türkei tritt dem Beistandsfall bei (${landNameVon(partner)})`);
+  wirke(w, "ansehen", RAHMUNG.beistand.ansehen);
+  wirke(w, "nationalisten", RAHMUNG.beistand.nationalisten);
+  phaseSetzen(w, k, "drohkulisse");
+  hinweis(w, `krieg-beistand-${k.id}`, `Beistand für ${landNameVon(partner)}`, [
+    `Die Türkei steht ${landNameVon(partner)} bei: Der Konfliktvorgang mit ${l.name} beginnt in der Drohkulisse, die Rahmung „Beistand“ ist deklariert (der Pakt ist der Beleg).`,
+    "Den Einsatzbeschluss braucht es trotzdem: Parlament oder Erlass, Mobilmachung und Vorbereitung entscheiden, wie teuer der Einsatz wird.",
+  ]);
+  addLog(w, "entscheidung", `Beistand für ${landNameVon(partner)}: Konfliktvorgang mit ${l.name}.`, "Rahmung „Beistand“, der Partner steht an der Seite der Türkei.");
+  return { ok: true, text: `Die Türkei sagt ${landNameVon(partner)} militärischen Beistand zu; der Konfliktvorgang mit ${l.name} beginnt.` };
+}
+
 /** Das Waffenruhe-Angebot des Gegners annehmen (Ereignis krieg_waffenruhe). */
 export function waffenruheFuerAngebot(w: World, kriegId: string): string {
   const k = kriegZu(w, kriegId);
@@ -679,6 +760,8 @@ function kriegsbeginn(w: World, k: KriegVorgang, weg: "parlament" | "erlass" | "
   phaseSetzen(w, k, "krieg");
   k.woche = 0;
   k.stagnation = 0;
+  // Koalitionen: Pakt-Pflicht nur für das Opfer, Eigeninteresse für alle (sim/pakte.ts); danach erst die Stärke rechnen
+  koalitionenBeiKriegsbeginn(w, k, weg);
   const staerkeDelta = eigenStaerke(w, k) - gegnerStaerke(w, k.land);
   k.front = clamp(50 + staerkeDelta * 0.25, 25, 75);
   k.frontVorher = k.front;
@@ -759,6 +842,7 @@ function niederlage(w: World, k: KriegVorgang, rng?: Rng): void {
   const zz = weltZustand(w)[k.land]!;
   zz.konflikt = clamp(Math.min(zz.konflikt, 60), 0, 100);
   demobStarten(w, k);
+  koalitionAufloesen(w, k, "niederlage");
   phaseSetzen(w, k, "beendet");
   k.ausgang = "niederlage";
   hinweis(w, `krieg-niederlage-${k.id}-${w.day}`, `Niederlage gegen ${l.name}`, [
@@ -838,6 +922,7 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     vertrauenAendern(w, -po * 0.4);
   }
   k.friedenspreis = po;
+  koalitionAufloesen(w, k, p.gebiet === 1 || p.reparation === 1 ? "sieg" : p.gebiet === -1 ? "zugestaendnis" : "frieden");
   // Erleichterung an den Märkten und bei den Kriegsmüden
   w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 80);
   wirke(w, "staedtische_saekulare", 2);
@@ -859,6 +944,7 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
 }
 
 function beendeVorgang(w: World, k: KriegVorgang, ausgang: KriegVorgang["ausgang"]): void {
+  koalitionAufloesen(w, k, "rueckzug");
   phaseSetzen(w, k, "beendet");
   k.ausgang = ausgang;
   addLog(w, "ereignis", `Der Konfliktvorgang mit ${land(k.land).name} endet (${ausgang === "rueckzug" ? "Rückzug" : ausgang}).`, "");
@@ -885,10 +971,13 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   const gewinnWoche = delta > 0.5 ? delta * 0.6 : 0;
   k.verluste = clamp(k.verluste + verlustWoche, 0, 100);
 
-  // Erschöpfungsuhren (Vic3-Wochen-Tabelle: Basis +, Verluste +, Gewinne −, Wirtschaftslage ±)
+  // Erschöpfungsuhren (Vic3-Wochen-Tabelle: Basis +, Verluste +, Gewinne −, Wirtschaftslage ±); Partner teilen die Last (sim/pakte.ts)
   const wirtschaftsdruck = clamp((1.5 - w.economy.growth) * 0.3, -0.45, 0.6);
-  k.uhr += -(KRIEG.uhrBasis + verlustWoche * KRIEG.uhrVerlust + (k.mobilmachung === 2 ? KRIEG.uhrVollLast : 0) + Math.max(0, wirtschaftsdruck)) + gewinnWoche * KRIEG.uhrGewinn + Math.min(0, wirtschaftsdruck);
-  k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust) + verlustWoche * KRIEG.uhrGewinn;
+  const last = lastTeilung(w, k);
+  k.uhr += -(KRIEG.uhrBasis + verlustWoche * KRIEG.uhrVerlust + (k.mobilmachung === 2 ? KRIEG.uhrVollLast : 0) + Math.max(0, wirtschaftsdruck)) * (1 - last.eigen) + gewinnWoche * KRIEG.uhrGewinn + Math.min(0, wirtschaftsdruck);
+  k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust) * (1 - last.gegner) + verlustWoche * KRIEG.uhrGewinn;
+  // Die Koalitionen altern: Zögernde werden geprüft, Partner verlieren Kampfkraft, Erschöpfte steigen aus
+  koalitionWoche(w, k);
   // Anti-Aussitzen: Keine Uhr fällt unter 0, solange die eigene Seite ihr Kriegsziel nicht zur Hälfte kontrolliert
   if (gegnerKontrolle(k) < 0.5) k.uhr = Math.max(0, k.uhr);
   if (eigenKontrolle(k) < 0.5) k.uhrGegner = Math.max(0, k.uhrGegner);

@@ -113,7 +113,8 @@ describe("Kataloge", () => {
       expect(VORTEILE.filter((v) => v.bereich === b).length, b).toBeGreaterThanOrEqual(1);
     }
     expect(VORHABEN.filter((v) => v.klasse === "wunder").length).toBeGreaterThanOrEqual(7);
-    expect(VORHABEN.filter((v) => v.klasse === "restaurierung" && v.bereich === "kultur")).toHaveLength(ERBE.length);
+    // eine Restaurierung je Stätte; die Vorlage für Programme in Regionen („reg_kultur“) ist keine einzelne Restaurierung
+    expect(VORHABEN.filter((v) => v.klasse === "restaurierung" && v.bereich === "kultur" && !v.vorlage)).toHaveLength(ERBE.length);
   });
 
   test("Startbestand steht (echte Bauwerke), Bauten laufen", () => {

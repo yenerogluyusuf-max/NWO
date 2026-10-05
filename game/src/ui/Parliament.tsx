@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { World } from "../sim/types";
 import { PARTY_COLORS, parlamentsLage, ROLLEN_WORT } from "./parlament/lage";
 import { Sitzplan } from "./parlament/Halbrund";
+import { REGELN } from "../sim/handeln";
+import { VERFASSUNG_REGELN } from "../sim/verfassung";
 
 export { PARTY_COLORS };
 
@@ -41,7 +43,7 @@ export function Parliament({ world }: { world: World }) {
           </li>
         ))}
       </ul>
-      <p className="footnote">600 Sitze. Gesetze brauchen 301 Stimmen, Verfassungsänderungen 360 mit Volksabstimmung oder 400 ohne.</p>
+      <p className="footnote">600 Sitze. Gesetze brauchen {REGELN.mehrheit} Stimmen, Verfassungsänderungen {VERFASSUNG_REGELN.mehrheit} mit Volksabstimmung oder {VERFASSUNG_REGELN.direkt} ohne.</p>
     </section>
   );
 }

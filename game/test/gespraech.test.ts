@@ -104,8 +104,8 @@ describe("Ehrlichkeit über das, was es nicht gibt", () => {
     ["Wir erklären Syrien den Krieg", /keinen aktiven Konfliktvorgang/],
     ["Truppen nach Syrien schicken", /keinen aktiven Konfliktvorgang/],
     ["Neuwahlen ausrufen", /nicht selbst/],
-    ["Kanal Istanbul bauen", /noch nicht/],
-    ["Bau einen neuen Flughafen in Istanbul", /noch nicht/],
+    ["Rede an die Nation halten", /noch keine eigene Handlung/],
+    ["Neues Kabinett ernennen", /Ein neues Kabinett bilden können Sie nicht/],
   ])("„%s“", (satz, muster) => {
     const w = neu();
     const r = befehl(satz as string, w);

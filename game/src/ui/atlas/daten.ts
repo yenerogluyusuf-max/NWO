@@ -1,7 +1,15 @@
-// Kartendaten der Landzerlegung: 81 Provinzen und die Länder ringsum in drei Detailstufen (tools/geodaten/karte_daten.py).
+// Kartendaten der Landzerlegung: 81 Provinzen und die Länder der ganzen Welt in drei Detailstufen (tools/geodaten/karte2/).
 // Grenzen sind je Stufe nur einmal vereinfacht, Nachbarn schließen daher ohne Lücke und Überlappung aneinander.
+//
+// Zwei Quellen je Stufe: karte-L*.bin (Kern: Türkei und Nachbarn, OSM-Küste) und karte-W*.bin (übrige Welt, Natural Earth); `fuegeZusammen` hängt die Welt-Stufe an.
+//
+// Besitzerwechsel (Vorbereitung für Annexion und Besatzung, Welle 2): Jede Fläche (`KFlaeche`) trägt einen Besitzerindex in `karte.json` → `besitzer`;
+// Füllung, Auswahl und Treffer lesen nur `porBesitzer[index]`. Eine Fläche wechselt den Besitzer, indem sie dort herausgenommen, in die Liste des neuen
+// Besitzers gelegt und ihr `besitzer`-Feld gesetzt wird (`uebertrageFlaechen`). Das gilt für ganze Länder wie für Regionen, sobald Regionen als eigene
+// Flächen vorliegen (Natural Earth Verwaltungsgebiete Stufe 1, gemeinfrei: Syrien 15, Irak 18, Griechenland 14, Zypern 5, Armenien 11, Georgien 12, Iran 31).
+// Grenzbögen (`bogen`) sind getrennt davon; ihr Typ (4 = Landesgrenze der Türkei, 5 = Grenze anderer Länder) muss nach dem Wechsel neu zugeordnet werden.
 
-import { lonLatToUv, WORLD_W, type AtlasScene, type Relief } from "./scene";
+import { lonLatToUv, type AtlasScene, type Relief } from "./scene";
 
 export interface KRing {
   uv: Float32Array;
@@ -44,6 +52,8 @@ export interface KBesitzer {
 
 export interface KarteMeta {
   quelle: string;
+  /** Länder außerhalb des Kerns: eine Datei je Detailstufe (gleiches Format), Besitzer wie in `besitzer` */
+  welt?: { stufen: string[] };
   /** Beschriftungsanker je Land: Länge, Breite, Abstand zur Grenze (Grad), dreifach hintereinander */
   anker?: Record<string, number[]>;
   besitzer: KBesitzer[];
@@ -71,7 +81,7 @@ function ringVon(relief: Relief, atlas: AtlasScene, a: Int32Array, o: number, n:
     const [u, v] = lonLatToUv(relief, a[o + 2 * i]! / 1e5, a[o + 2 * i + 1]! / 1e5);
     uv[2 * i] = u;
     uv[2 * i + 1] = v;
-    xyz[3 * i] = (u - 0.5) * WORLD_W;
+    xyz[3 * i] = (u - 0.5) * atlas.worldW;
     xyz[3 * i + 1] = atlas.heightAt(u, v) + 0.004;
     xyz[3 * i + 2] = (v - 0.5) * atlas.worldH;
     if (u < u0) u0 = u;
@@ -121,6 +131,35 @@ export async function ladeStufe(datei: string, relief: Relief, atlas: AtlasScene
   } catch {
     return null;
   }
+}
+
+/**
+ * Legt Flächen eines Besitzers einem anderen Besitzer zu (Annexion, Besatzung). Ohne `auswahl` wechseln alle Flächen von `von`.
+ * Liefert die Zahl der übertragenen Flächen. Die Grenzbögen bleiben unberührt (siehe Kopf der Datei).
+ */
+export function uebertrageFlaechen(stufe: KStufe, von: number, nach: number, auswahl?: (f: KFlaeche) => boolean): number {
+  const quelle = stufe.porBesitzer[von];
+  if (!quelle || von === nach) return 0;
+  const bleibt: KFlaeche[] = [];
+  const geht: KFlaeche[] = [];
+  for (const f of quelle) (!auswahl || auswahl(f) ? geht : bleibt).push(f);
+  if (!geht.length) return 0;
+  stufe.porBesitzer[von] = bleibt;
+  const ziel = (stufe.porBesitzer[nach] ??= []);
+  for (const f of geht) {
+    f.besitzer = nach;
+    ziel.push(f);
+  }
+  return geht.length;
+}
+
+/** Hängt die Flächen und Bögen einer Welt-Stufe an die Stufe der Landzerlegung an (die Besitzerindizes sind dieselben). */
+export function fuegeZusammen(ziel: KStufe, w: KStufe): void {
+  for (const f of w.flaechen) {
+    ziel.flaechen.push(f);
+    (ziel.porBesitzer[f.besitzer] ??= []).push(f);
+  }
+  for (const b of w.bogen) ziel.bogen.push(b);
 }
 
 /** Liegt der Punkt in der Fläche (Außenring und Löcher, gerade/ungerade Regel)? */

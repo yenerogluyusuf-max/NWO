@@ -6,7 +6,8 @@ import { addLog, fmt } from "./log";
 import { clamp } from "./economy";
 import { addMarke, wirtschaftZustand } from "./wirtschaft";
 import { programmZustand } from "./programme";
-import { figur, zentralbankGekraenkt } from "./figuren";
+import { figur, neuerName, zentralbankGekraenkt } from "./figuren";
+import { Rng } from "./rng";
 import { GESPRAECH_ABKUEHLUNG, sprichMitFigur } from "./gespraeche";
 import { entlasseSchnell } from "./nachfolge";
 import type { Figur } from "./spiel-typen";
@@ -14,6 +15,9 @@ import type { GovernorStance } from "./types";
 import type { World } from "./types";
 
 /** Die Zentralbankführung austauschen (Stufe B). */
+/** Platzhalter der Befehle und der Vorschau: „irgendeine neue Führung“, ohne Namen. */
+const GOUVERNEUR_PLATZHALTER = "eine neue, regierungsnahe Führung";
+
 export function replaceGovernor(world: World, stance: GovernorStance, name: string): void {
   // Ist die Bank gesetzlich geschützt, lässt sich die Führung nicht entlassen (auch nicht über Gespräch oder Befehl)
   if (world.spiel && wirtschaftZustand(world).zb.stufe === "A") {
@@ -28,10 +32,16 @@ export function replaceGovernor(world: World, stance: GovernorStance, name: stri
   e.usdTry *= 1 + jump;
   e.eurTry *= 1 + jump;
   e.riskPremium += stance === "gefuegig" ? 90 : 40;
-  world.governor = { name, stance };
   addMarke(world, "eingriff", `Neue Führung der Zentralbank (${stance === "gefuegig" ? "regierungsnah" : stance})`);
   const g = figur(world, "zentralbank");
-  if (g && name !== "eine neue, regierungsnahe Führung") g.name = name;
+  // Ohne genannten Namen trat früher niemand an: Die Figur behielt den Namen der entlassenen Führung. Jetzt bekommt die neue Führung einen
+  // eigenen Namen (aus einem Zufallsstrom, der den Spielstrom nicht berührt, damit die Vorschau und der echte Lauf gleich ernennen).
+  if (g && name === GOUVERNEUR_PLATZHALTER) {
+    const benutzt = new Set((world.spiel?.figuren ?? []).map((f) => f.name));
+    name = neuerName(new Rng(world.seed * 7 + world.day), benutzt, g.weiblich);
+  }
+  world.governor = { name, stance };
+  if (g) g.name = name;
   if (g) g.loyalitaet = stance === "gefuegig" ? 70 : 50;
   addLog(
     world,

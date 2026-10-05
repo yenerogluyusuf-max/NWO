@@ -1,0 +1,26 @@
+/* Porträt: Ruhe im Stillstand, feines Leben nur bei Effektstufe „mittel“ oder „hoch“ (ui/anim/effekte.ts setzt data-effekte am Dokument). */
+.portraet { display: block; overflow: visible; flex: none; }
+.portraet .pt-lid { transform-box: fill-box; transform-origin: 50% 0; transform: scaleY(var(--lid, 0)); }
+.portraet .pt-kopf { transform-box: fill-box; transform-origin: 50% 100%; }
+
+@keyframes pt-blinzeln {
+  0%, 92%, 100% { transform: scaleY(var(--lid, 0)); }
+  95% { transform: scaleY(1); }
+}
+@keyframes pt-neigen {
+  from { transform: rotate(-0.9deg); }
+  to { transform: rotate(1.1deg); }
+}
+
+html[data-effekte="mittel"] .portraet .pt-lid,
+html[data-effekte="hoch"] .portraet .pt-lid {
+  animation: pt-blinzeln 6.5s ease-in-out infinite;
+  animation-delay: var(--pt-d, 0s);
+}
+html[data-effekte="hoch"] .portraet .pt-kopf {
+  animation: pt-neigen 9s ease-in-out infinite alternate;
+  animation-delay: var(--pt-d, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .portraet .pt-lid, .portraet .pt-kopf { animation: none !important; }
+}

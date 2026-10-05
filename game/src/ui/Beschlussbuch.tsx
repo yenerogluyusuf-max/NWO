@@ -14,10 +14,23 @@ import { ParlamentKopf } from "./parlament/ParlamentKopf";
 import { zeigeImHalbrund } from "./parlament/abstimmung";
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { geaenderteArtikel, verfassungStand } from "../sim/verfassung";
+import type { Bericht } from "../sim/berichte";
+import { UmsetzungAkte } from "./politik/UmsetzungAkte";
+import "./politik/design.css";
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
-export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: World; refresh: () => void; teil?: "parlament" | "beschluesse" }) {
+export function Beschlussbuch({
+  world,
+  refresh,
+  teil = "parlament",
+  onBerichtOeffnen,
+}: {
+  world: World;
+  refresh: () => void;
+  teil?: "parlament" | "beschluesse";
+  onBerichtOeffnen?: (b: Bericht) => void;
+}) {
   const spiel = world.spiel;
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const fraktionen = fraktionsUebersicht(world);
@@ -72,7 +85,7 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
       {teil === "parlament" && spiel && (
         <>
           <ParlamentKopf world={world} />
-          <section className="paper par-lage">
+          <section className="par-lage">
             <p>
               Ihr Lager hat <strong>{sicht.lager}</strong> von 600 Sitzen ({teile}). Für ein Gesetz braucht es {REGELN.mehrheit}. Bei einer Abstimmung werden etwa <strong>{sicht.erwartet}</strong> Ja-Stimmen erwartet (Spanne {sicht.low}–{sicht.high}).
             </p>
@@ -87,9 +100,9 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
 
 
       {teil === "parlament" && spiel && fraktionen.length > 0 && (
-        <section className="paper">
+        <section className="par-block">
           <h3>Fraktionen und Verhandlungen</h3>
-          <p className="subtitle">Jede Fraktion will etwas. Wer ihr entgegenkommt, bekommt Stimmen: auf Zeit (Duldung) oder auf Dauer (Bündnis). Wer Zusagen bricht, verliert sie.</p>
+          <p className="pd-lead">Jede Fraktion will etwas. Wer ihr entgegenkommt, bekommt Stimmen: auf Zeit (Duldung) oder auf Dauer (Bündnis). Wer Zusagen bricht, verliert sie.</p>
           {antwort && (
             <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
               {antwort.text}
@@ -121,7 +134,7 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
                 </p>
                 <div className="fraktion-aktionen">
                   {f.aktionen.map((a) => (
-                    <button key={a.id} className={`aktion-knopf${a.id === "abwerben" ? " leise" : ""}`} disabled={!a.moeglich} onClick={() => verhandeln(f.partei, a.id)} title={a.moeglich ? a.hinweis : `${a.grund ?? ""} ${a.hinweis}`.trim()}>
+                    <button key={a.id} className={`pd-btn${a.id === "abwerben" ? " quiet" : ""}`} disabled={!a.moeglich} onClick={() => verhandeln(f.partei, a.id)} title={a.moeglich ? a.hinweis : `${a.grund ?? ""} ${a.hinweis}`.trim()}>
                       {a.label} <b>{a.pk}</b>
                     </button>
                   ))}
@@ -133,7 +146,7 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
       )}
 
       {teil === "parlament" && spiel && spiel.gesetze.length > 0 && (
-        <section className="paper">
+        <section className="par-block">
           <h3>Zur Abstimmung</h3>
           <ul className="gesetz-liste">
             {spiel.gesetze.map((g) => {
@@ -156,7 +169,7 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
                     <span>
                       erwartet <strong>{ja}</strong> Ja{g.absprachen > 0 ? ` (davon ${g.absprachen} durch Absprachen)` : ""} · nötig {REGELN.mehrheit}
                     </span>
-                    <button className="link" onClick={() => zeigeImHalbrund(g.id)} title="Die erwartete Abstimmung im Halbrund oben zeigen">
+                    <button className="pd-btn quiet klein" onClick={() => zeigeImHalbrund(g.id)} title="Die erwartete Abstimmung im Halbrund oben zeigen">
                       Im Halbrund zeigen
                     </button>
                     <span className={`stimmen-urteil urteil-${gs.urteil}`}>
@@ -171,7 +184,7 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
                   <div className="stimmen-steuerung">
                     {gs.noetig > 0 && gs.bezahlbar && (
                       <button
-                        className="aktion-knopf"
+                        className="pd-btn primary"
                         onClick={() => {
                           setAntwort(stimmenKaufen(world, g.id, gs.noetig));
                           refresh();
@@ -187,7 +200,7 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
                       </p>
                     )}
                     <button
-                      className="aktion-knopf leise"
+                      className="pd-btn quiet"
                       onClick={() => {
                         setAntwort(zieheGesetzZurueck(world, g.id));
                         refresh();
@@ -205,125 +218,7 @@ export function Beschlussbuch({ world, refresh, teil = "parlament" }: { world: W
       )}
 
       {teil === "beschluesse" && (
-        <>
-      {spiel?.verfassungsvorgang?.laufend && (
-        <section className="paper vf-tracking">
-          <h3>Der Verfassungsvorgang</h3>
-          <p>
-            {verfassungStand(world).zeile} Die Werkstatt und alle Schritte stehen im Parlament-Fenster, Reiter „Verfassung“.
-          </p>
-          <p className="subtitle">
-            Paket: {geaenderteArtikel(spiel.verfassungsvorgang.laufend.paket).map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ")}
-          </p>
-        </section>
-      )}
-      <section className="paper berichte">
-        <h3>Was Ihre Beschlüsse bewirkt haben</h3>
-        <p className="subtitle">Sechs und zwölf Monate nach einem Beschluss schaut das Spiel nach, was sich getan hat. Ein Gesetz ist noch keine Wirkung.</p>
-        {(spiel?.berichte?.length ?? 0) === 0 ? (
-          <p className="subtitle">
-            {(spiel?.beobachtungen?.length ?? 0) > 0
-              ? `Noch kein Bericht fällig. ${spiel!.beobachtungen!.length} ${spiel!.beobachtungen!.length === 1 ? "Beschluss wird" : "Beschlüsse werden"} beobachtet; der erste Bericht erscheint sechs Monate nach dem Beschluss.`
-              : "Sobald Sie ein Gesetz oder einen Erlass durchgebracht haben, wird seine Wirkung hier beobachtet."}
-          </p>
-        ) : (
-          <ul className="bericht-liste">
-            {[...(spiel!.berichte ?? [])].reverse().map((b, i) => (
-              <li key={`${b.tag}-${i}`} className={`bericht-${b.urteil}`}>
-                <div className="bericht-kopf">
-                  <strong>{b.titel}</strong>
-                  <span className={`bericht-urteil urteil-${b.urteil}`}>{b.urteil === "gut" ? "wirkt" : b.urteil === "schwach" ? "bisher schwach" : b.urteil === "gemischt" ? "gemischt" : "wirkt nicht"}</span>
-                </div>
-                <ul>
-                  {b.zeilen.map((z) => (
-                    <li key={z}>{z}</li>
-                  ))}
-                </ul>
-                <p className="subtitle">{b.hinweis}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      <section className="paper">
-        <h3>Die Rechnung</h3>
-        <div className="costbox big">
-          <div>
-            <span>Laufende Politikosten</span>
-            <strong>
-              {beschlossen >= 0 ? "" : "+"}
-              {nf(Math.abs(beschlossen))} % des BIP pro Jahr
-            </strong>
-            <em>{wirksam === 0 ? "beschlossen, wird noch umgesetzt" : `davon ${nf(Math.abs(wirksam))} % bereits wirksam`}</em>
-          </div>
-          <div>
-            <span>Beschlüsse im Buch</span>
-            <strong>{beschluesse.length}</strong>
-            <em>seit dem Amtsantritt</em>
-          </div>
-          <div>
-            <span>Laufende Umsetzungen</span>
-            <strong>{offen.length}</strong>
-            <em>Maßnahmen noch nicht wirksam</em>
-          </div>
-        </div>
-      </section>
-
-      {offen.length > 0 && (
-        <section className="paper">
-          <h3>In Umsetzung</h3>
-          <p className="subtitle">Ein Beschluss ist noch keine Wirkung. Diese Maßnahmen laufen noch:</p>
-          <ul className="offen-liste">
-            {offen.map((o) => (
-              <li key={o.id}>
-                <div className="offen-kopf">
-                  <strong>
-                    {o.name}
-                    {o.ort ? ` ${provinzenText(o.ort)}` : ""}
-                  </strong>
-                  <span className="subtitle">
-                    {Math.round(o.now)} → {Math.round(o.target)} · noch etwa {o.months} Monat{o.months === 1 ? "" : "e"}
-                  </span>
-                  <button
-                    className="link"
-                    onClick={() => {
-                      setPolicy(world, o.id.replace("@", ""), Math.round(o.now), o.ort ?? null);
-                      refresh();
-                    }}
-                    title="Auf den heutigen Stand zurückstellen"
-                  >
-                    stoppen
-                  </button>
-                </div>
-                <div className="impl-bar" aria-hidden="true">
-                  <div className="impl-now" style={{ width: `${Math.max(0, Math.min(100, o.now))}%` }} />
-                  <div className="impl-target" style={{ left: `${Math.max(0, Math.min(100, o.target))}%` }} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className="paper">
-        <h3>Beschlüsse</h3>
-        {beschluesse.length === 0 ? (
-          <p className="subtitle">Noch nichts beschlossen. Jede wirksame Maßnahme landet hier, mit Datum und Begründung.</p>
-        ) : (
-          <ul className="beschluss-liste">
-            {beschluesse.map((l, i) => (
-              <li key={i}>
-                <span className="when">{formatDateDe(l.date)}</span>
-                <div>
-                  <p>{l.text}</p>
-                  {l.why && <p className="chat-why">{l.why}</p>}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-        </>
+        <UmsetzungAkte world={world} refresh={refresh} offen={offen} beschlossen={beschlossen} wirksam={wirksam} {...(onBerichtOeffnen ? { onBerichtOeffnen } : {})} />
       )}
     </div>
   );

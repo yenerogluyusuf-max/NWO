@@ -6,29 +6,38 @@ import { NET } from "../sim/world";
 import type { NodeSpec, EdgeSpec } from "../data/politiknetz";
 import { wann } from "./lernen";
 
-const W = 1020;
-const COL_L = 132;
-const COL_R = W - 132;
-const BOX_W = 208;
-const ROW = 62;
+// Die Zeichnung ist bewusst schmal (W = 820), damit sie in der Spalte kaum verkleinert wird und die Schrift lesbar bleibt.
+const W = 820;
+const COL_L = 96;
+const COL_R = W - 96;
+const BOX_W = 170;
+const ROW = 68;
 const MAX = 8;
+const ZEICHEN = 15;
+/** Halbe Breite des mittleren Kastens (Pfeile enden und beginnen an seinem Rand) */
+const MITTE_HALB = 110;
 
+/** Bricht einen Namen in bis zu drei Zeilen; nichts wird abgeschnitten. */
 function lines(name: string): string[] {
-  if (name.length <= 17) return [name];
+  if (name.length <= ZEICHEN) return [name];
   const words = name.split(" ");
   const out = [""];
   for (const w of words) {
     const cur = out[out.length - 1]!;
-    if ((cur + " " + w).trim().length > 17 && cur) out.push(w);
+    if ((cur + " " + w).trim().length > ZEICHEN && cur) out.push(w);
     else out[out.length - 1] = (cur + " " + w).trim();
   }
-  return out.slice(0, 2);
+  // Mehr als drei Zeilen: den Rest an die dritte hängen, damit kein Wort fehlt
+  return out.length <= 3 ? out : [out[0]!, out[1]!, out.slice(2).join(" ")];
 }
 
+/** Kurzform für die Zeichnung („nach 3 Mon.“); die Langform steht im Tooltip der Linie. */
+const kurzWann = (lag: number) => `nach ${lag} Mon.`;
+
 function NodeBox({ node, x, y, main, onClick }: { node: NodeSpec; x: number; y: number; main?: boolean; onClick?: () => void }) {
-  const w = main ? 264 : BOX_W;
-  const h = main ? 74 : 48;
   const ls = lines(node.name);
+  const w = main ? MITTE_HALB * 2 : BOX_W;
+  const h = main ? (ls.length > 2 ? 100 : 78) : ls.length > 2 ? 66 : 50;
   const stroke = node.kind === "problem" ? "#8e2a22" : "#2a1f18";
   return (
     <g className={`ng-node kind-${node.kind}${main ? " main" : ""}`} transform={`translate(${x - w / 2} ${y - h / 2})`} onClick={onClick} role={onClick ? "button" : undefined}>
@@ -41,7 +50,7 @@ function NodeBox({ node, x, y, main, onClick }: { node: NodeSpec; x: number; y: 
       {node.kind === "massnahme" && <rect x="4" y="4" width={w - 8} height={h - 8} rx="1" fill="none" stroke={stroke} strokeOpacity="0.45" />}
       {node.kind === "problem" && <path d={`M${w - 18} 5 l8 13 h-16 Z`} fill="#8e2a22" />}
       {ls.map((l, i) => (
-        <text key={i} x={w / 2} y={h / 2 + (i - (ls.length - 1) / 2) * (main ? 21 : 17) + (main ? 7 : 6)} textAnchor="middle" className="ng-label">
+        <text key={i} x={w / 2} y={h / 2 + (i - (ls.length - 1) / 2) * (main ? 25 : 19) + (main ? 8 : 6)} textAnchor="middle" className="ng-label">
           {l}
         </text>
       ))}
@@ -76,7 +85,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
         <path d={d} fill="none" stroke={color} strokeWidth={width} strokeDasharray={lag > 0 ? "6 4" : undefined} markerEnd={`url(#ng-${weight > 0 ? "plus" : "minus"})`} />
         {lag > 0 && (
           <text x={bx} y={by - 5} textAnchor="middle" className="ng-lag">
-            {wann(lag)}
+            {kurzWann(lag)}
           </text>
         )}
       </g>
@@ -99,8 +108,8 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       </defs>
       <text x={COL_L} y="14" textAnchor="middle" className="ng-head">Ursachen</text>
       <text x={COL_R} y="14" textAnchor="middle" className="ng-head">Wirkungen</text>
-      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - 132, cy, e, `c${e.from}`, 0.3))}
-      {effects.map((e, i) => arrow(W / 2 + 132, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e, `e${e.to}`, 0.72))}
+      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - MITTE_HALB, cy, e, `c${e.from}`, 0.5))}
+      {effects.map((e, i) => arrow(W / 2 + MITTE_HALB, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e, `e${e.to}`, 0.5))}
       {causes.map((e, i) => (
         <NodeBox key={e.from} node={get(e.from)} x={COL_L} y={yAt(i, causes.length)} onClick={() => onSelect(e.from)} />
       ))}
@@ -109,7 +118,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       ))}
       {causes.length === 0 && (
         <g>
-          <path d={`M${COL_L + 40} ${cy} C${W / 4} ${cy} ${W / 4} ${cy} ${W / 2 - 132} ${cy}`} fill="none" stroke="#2a1f18" strokeWidth="1.5" strokeDasharray={node.input ? "5 3" : undefined} markerEnd="url(#ng-ink)" />
+          <path d={`M${COL_L + 40} ${cy} C${W / 4} ${cy} ${W / 4} ${cy} ${W / 2 - MITTE_HALB} ${cy}`} fill="none" stroke="#2a1f18" strokeWidth="1.5" strokeDasharray={node.input ? "5 3" : undefined} markerEnd="url(#ng-ink)" />
           <circle cx={COL_L} cy={cy} r="34" fill={node.input ? "#265a62" : "#8e2a22"} stroke="#2a1f18" />
           <circle cx={COL_L} cy={cy} r="27" fill="none" stroke="#f6dcc2" strokeOpacity="0.5" strokeDasharray="1 2" />
           <text x={COL_L} y={cy + 7} textAnchor="middle" className="ng-seal">{node.input ? "₺" : "§"}</text>

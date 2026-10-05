@@ -1,0 +1,205 @@
+/* Wahlabend und Umbildung: Vollbildfenster über der Karte. Klassen: wn- (Wahlnacht), ub- (Umbildung). Schriften mindestens 12 px. */
+
+.wn-layer, .ub-layer { position: absolute; inset: 0; z-index: 12; display: grid; place-items: center; padding: 18px; background: radial-gradient(ellipse at 50% 40%, rgba(14, 10, 20, 0.55), rgba(8, 6, 12, 0.86)); backdrop-filter: saturate(0.7) blur(1.5px); animation: fade 320ms ease both; }
+
+.wn, .ub { position: relative; display: flex; flex-direction: column; width: min(1240px, calc(100vw - 36px)); max-height: calc(100vh - 36px); background: var(--paper, #f4ead2); color: var(--ink, #2b1e12); animation: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+/* Kopfband: Bühnenbild der Wahlnacht und Titel */
+.wn-kopf { position: relative; flex: none; height: 148px; overflow: hidden; border-bottom: 3px double rgba(90, 64, 40, 0.5); }
+.wn-kopf .vignette { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wn-titel { position: absolute; left: 28px; bottom: 14px; right: 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; color: #f6ead0; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); }
+.wn-titel h2 { margin: 0; font: 600 34px/1.1 var(--display, Fraunces, serif); letter-spacing: 0.01em; }
+.wn-titel .wn-datum { font: 14px var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.92; }
+
+.wn-koerper { overflow: auto; padding: 18px 26px 4px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+@media (max-width: 960px) { .wn-koerper { grid-template-columns: minmax(0, 1fr); } }
+.wn-block { min-width: 0; }
+.wn-block h3 { margin: 0 0 8px; font: 700 13px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.wn-block.breit { grid-column: 1 / -1; }
+
+/* Auszählung */
+.wn-fortschritt { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; font: 600 15px var(--sans, Inter, sans-serif); }
+.wn-fortschritt .balken { flex: 1; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
+.wn-fortschritt .balken i { display: block; height: 100%; background: linear-gradient(90deg, #c69a4a, #8c6a2a); transition: width 700ms ease; }
+
+.wn-kandidaten { display: grid; gap: 10px; }
+.wn-kandidat { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; }
+.wn-kandidat .name { font: 600 17px/1.2 var(--serif, "EB Garamond", serif); }
+.wn-kandidat .name small { display: block; font: 13px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+.wn-kandidat .zahl { font: 600 24px/1 var(--display, Fraunces, serif); font-variant-numeric: tabular-nums; }
+.wn-kandidat .spur { grid-column: 1 / -1; position: relative; height: 12px; border-radius: 6px; background: rgba(90, 64, 40, 0.14); overflow: hidden; }
+.wn-kandidat .spur i { position: absolute; left: 0; top: 0; bottom: 0; transition: width 700ms ease; }
+.wn-kandidat .spur::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: rgba(43, 30, 18, 0.65); }
+.wn-kandidat.sieger .name::after { content: " ★"; color: #b2872f; }
+.wn-schwelle { margin: 6px 0 0; font: 13px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+
+.wn-runden { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.wn-runde { padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.3); background: rgba(255, 250, 235, 0.6); font: 14px/1.4 var(--sans, Inter, sans-serif); }
+.wn-runde b { display: block; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+
+/* Karte der Provinzen */
+.wn-karte svg { width: 100%; height: auto; display: block; background: radial-gradient(ellipse at 50% 50%, #e7dcc0, #d9cba6); border: 1px solid rgba(90, 64, 40, 0.35); }
+.wn-karte path { stroke: rgba(43, 30, 18, 0.55); stroke-width: 0.5; transition: fill 500ms ease, opacity 500ms ease; }
+.wn-legende { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; padding: 0; list-style: none; font: 13px var(--sans, Inter, sans-serif); }
+.wn-legende i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(43, 30, 18, 0.5); }
+
+/* Sitze */
+.wn-sitze { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.wn-sitze figure { margin: 0; text-align: center; }
+.wn-sitze svg { width: 100%; height: auto; }
+.wn-sitze figcaption { font: 13px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+.wn-sitze figcaption strong { display: block; font: 600 22px var(--display, Fraunces, serif); color: var(--ink, #2b1e12); }
+.wn-parteien { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 14px var(--sans, Inter, sans-serif); }
+.wn-parteien li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto auto; gap: 8px; align-items: baseline; }
+.wn-parteien .punkt { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(43, 30, 18, 0.45); }
+.wn-parteien .plus { color: #2e6b3f; font-weight: 600; }
+.wn-parteien .minus { color: #8c2b1f; font-weight: 600; }
+.wn-hinweis { margin: 8px 0 0; font: 13.5px/1.45 var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+
+/* Reaktionen und Einflüsse */
+.wn-reaktionen { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.wn-reaktionen li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; font: 15px/1.45 var(--serif, "EB Garamond", serif); }
+.wn-reaktionen .wer { font: 700 12px/1.6 var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft, #5a4a38); }
+.wn-reaktionen li.gut .wer { color: #2e6b3f; }
+.wn-reaktionen li.schlecht .wer { color: #8c2b1f; }
+.wn-einfluesse { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 14px var(--sans, Inter, sans-serif); }
+.wn-einfluesse li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted rgba(90, 64, 40, 0.35); }
+.wn-einfluesse .plus { color: #2e6b3f; font-weight: 600; }
+.wn-einfluesse .minus { color: #8c2b1f; font-weight: 600; }
+
+/* Rede */
+.wn-rede { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .wn-rede { grid-template-columns: minmax(0, 1fr); } }
+.wn-rede button { text-align: left; padding: 10px 12px; display: grid; gap: 4px; cursor: pointer; border: 1px solid rgba(90, 64, 40, 0.5); background: rgba(255, 250, 235, 0.75); color: inherit; font: 14px/1.4 var(--sans, Inter, sans-serif); }
+.wn-rede button:hover { background: rgba(236, 214, 150, 0.6); }
+.wn-rede button strong { font: 600 16px var(--serif, "EB Garamond", serif); }
+.wn-rede-ausgang { margin: 0; font: 16px/1.5 var(--serif, "EB Garamond", serif); font-style: italic; }
+
+.wn-fuss, .ub-fuss { flex: none; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 26px 16px; border-top: 1px solid rgba(90, 64, 40, 0.3); }
+.wn-fuss p, .ub-fuss p { margin: 0; font: 13.5px/1.4 var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); max-width: 70ch; }
+
+/* Umbildung: Kabinettstisch. Klassen ub-. Schriften mindestens 12 px, Inhalt scrollt, Fußleiste bleibt sichtbar. */
+.ub { width: min(1280px, calc(100vw - 270px)); }
+.ub-kopf { flex: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding: 16px 28px 6px; }
+.ub-kopf-text { min-width: 0; }
+.ub-kopf .kicker { margin: 0 0 3px; font: 700 13px var(--sans, Inter, sans-serif); letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.ub-kopf h2 { margin: 0 0 4px; font: 600 28px/1.15 var(--display, Fraunces, serif); overflow-wrap: anywhere; }
+.ub-einleitung { margin: 6px 0 0; font: 15.5px/1.45 var(--serif, "EB Garamond", serif); max-width: 78ch; }
+.ub-kopf-zaehler { flex: none; min-width: 150px; padding: 8px 14px; text-align: center; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 250, 235, 0.7); }
+.ub-zaehler-zahl { display: block; font: 600 36px/1 var(--display, Fraunces, serif); font-variant-numeric: tabular-nums; }
+.ub-zaehler-zahl small { font-size: 18px; color: var(--ink-soft, #5a4a38); }
+.ub-zaehler-text { display: block; margin-top: 2px; font: 12.5px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+.ub-zaehler-balken { display: block; height: 6px; margin-top: 6px; border-radius: 3px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
+.ub-zaehler-balken u { display: block; height: 100%; background: linear-gradient(90deg, #c69a4a, #8c6a2a); transition: width 400ms ease; }
+.ub-meldung { flex: none; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(236, 214, 150, 0.5); border-left: 4px solid #b2872f; font: 14px/1.45 var(--sans, Inter, sans-serif); }
+.ub-tauschhinweis { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(205, 220, 238, 0.7); border-left: 4px solid #2c4a7a; font: 14.5px/1.4 var(--sans, Inter, sans-serif); }
+.ub-tauschhinweis button { padding: 4px 12px; }
+
+.ub-koerper { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 26px 12px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+@media (max-width: 1080px) { .ub-koerper { grid-template-columns: minmax(0, 1fr); } }
+.ub-tisch { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); grid-auto-rows: min-content; gap: 14px; align-items: start; min-width: 0; }
+
+.ub-karte { position: relative; display: grid; gap: 8px; min-width: 0; padding: 12px; border: 1px solid rgba(90, 64, 40, 0.45); background: linear-gradient(rgba(255, 252, 240, 0.94), rgba(247, 238, 214, 0.84)); box-shadow: 0 2px 7px rgba(60, 40, 20, 0.2); animation: ub-ein 420ms ease-out both; animation-delay: calc(var(--i, 0) * 55ms); }
+.ub-karte.erledigt { background: linear-gradient(rgba(240, 246, 232, 0.94), rgba(226, 236, 212, 0.84)); }
+.ub-karte.entlassen { background: linear-gradient(rgba(250, 238, 232, 0.94), rgba(240, 220, 208, 0.84)); }
+.ub-karte.tauscht { outline: 3px solid #2c4a7a; outline-offset: 1px; }
+.ub-person { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 8px; }
+.ub-person .portraet { filter: drop-shadow(0 3px 5px rgba(40, 24, 10, 0.35)); }
+.ub-name { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+.ub-band { justify-self: start; max-width: 100%; padding: 2px 8px; font: 700 12px/1.3 var(--sans, Inter, sans-serif); letter-spacing: 0.05em; text-transform: uppercase; color: #fff8e6; overflow-wrap: anywhere; }
+.ub-name h3 { margin: 0; font: 600 18px/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
+.ub-abz { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+.ub-chip { display: inline-flex; align-items: center; gap: 3px; font: 700 12px/1.3 var(--sans, Inter, sans-serif); letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 7px; border: 1px solid currentColor; color: #2e6b3f; white-space: nowrap; }
+.ub-chip.warn { color: #8c2b1f; }
+.ub-chip.krone { color: #8a6a1c; }
+.ub-krone { color: #b2872f; flex: none; }
+.ub-will { margin: 0; text-align: center; min-height: 2.7em; font: italic 14.5px/1.4 var(--serif, "EB Garamond", serif); color: var(--ink-soft, #5a4a38); }
+.ub-werte { display: grid; gap: 5px; }
+.ub-wert { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 3px 6px; align-items: center; font: 12.5px var(--sans, Inter, sans-serif); }
+.ub-wert .ub-ikon { color: var(--ink-soft, #5a4a38); }
+.ub-wert-name { color: var(--ink-soft, #5a4a38); overflow-wrap: anywhere; }
+.ub-wert b { font-variant-numeric: tabular-nums; }
+.ub-wert i { grid-column: 1 / -1; display: block; height: 5px; border-radius: 3px; background: rgba(90, 64, 40, 0.16); overflow: hidden; }
+.ub-wert u { display: block; height: 100%; background: #8c6a2a; transition: width 400ms ease; }
+.ub-wert.loyal u { background: #3f6b45; }
+.ub-wert.kompetenz u { background: #2c4a7a; }
+.ub-wert.ehrgeiz u { background: #b2552a; }
+.ub-aktionen { display: flex; flex-wrap: wrap; gap: 6px; }
+.ub-akt { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 8px; font: 600 12.5px var(--sans, Inter, sans-serif); color: #f3e6c6; border: 1px solid rgba(43, 30, 18, 0.75); background: linear-gradient(#3d3024, #2a2018); cursor: pointer; }
+.ub-akt:hover:not(:disabled) { background: linear-gradient(#54402e, #3a2c20); }
+.ub-akt[aria-pressed="true"], .ub-akt[aria-expanded="true"] { background: linear-gradient(#c69a4a, #8c6a2a); color: #2b1e12; }
+.ub-akt:disabled { opacity: 0.45; cursor: default; }
+.ub-akt:focus-visible, .ub-parteichip:focus-visible, .ub-tauschknopf:focus-visible { outline: 2px solid #2c4a7a; outline-offset: 1px; }
+.ub-parteien { display: flex; flex-wrap: wrap; gap: 5px; }
+.ub-parteichip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; font: 600 12px/1.3 var(--sans, Inter, sans-serif); text-align: left; color: var(--ink, #2b1e12); border: 1px solid var(--pf, #8a7a64); background: rgba(255, 252, 240, 0.92); cursor: pointer; }
+.ub-parteichip i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--pf, #8a7a64); }
+.ub-parteichip:hover:not(:disabled) { background: rgba(236, 214, 150, 0.7); }
+.ub-parteichip:disabled { opacity: 0.45; cursor: default; }
+.ub-tauschknopf { position: absolute; inset: 0; display: grid; place-items: center; padding: 10px; text-align: center; font: 600 16px/1.3 var(--serif, "EB Garamond", serif); color: #fff8e6; background: rgba(34, 54, 88, 0.94); border: 2px dashed #f1d58f; cursor: pointer; z-index: 2; }
+.ub-tauschknopf:disabled { background: rgba(70, 70, 70, 0.7); cursor: default; }
+.ub-stempel { position: absolute; top: 8px; right: 8px; z-index: 1; transform: rotate(-10deg); padding: 3px 10px; font: 800 13px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.1em; text-transform: uppercase; color: #2e6b3f; border: 2.5px solid currentColor; background: rgba(255, 255, 255, 0.4); opacity: 0.92; pointer-events: none; animation: ub-stempel 360ms cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+.ub-stempel.ersetzt, .ub-stempel.versetzt { color: #2c4a7a; }
+.ub-stempel.entlassen { color: #8c2b1f; }
+
+/* Seitenleiste: Folgen, Partner, Kronprinzen, Zwischenbilanz */
+.ub-seite { display: grid; gap: 14px; min-width: 0; align-content: start; }
+.ub-seite h3 { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; font: 700 13px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.ub-folgen, .ub-partner, .ub-kronprinzen, .ub-bilanz { padding: 10px 12px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 250, 235, 0.72); }
+.ub-folgen ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.ub-folgen li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font: 13.5px/1.35 var(--sans, Inter, sans-serif); }
+.ub-folgen li span:last-child { display: grid; gap: 1px; }
+.ub-folgen small { color: var(--ink-soft, #5a4a38); font-size: 12.5px; overflow-wrap: anywhere; }
+.ub-pfeil { width: 18px; height: 18px; margin-top: 1px; background: #8a7a64; clip-path: polygon(10% 40%, 90% 40%, 90% 60%, 10% 60%); }
+.ub-pfeil.auf { background: #2e6b3f; clip-path: polygon(50% 8%, 94% 90%, 6% 90%); }
+.ub-pfeil.ab { background: #8c2b1f; clip-path: polygon(50% 92%, 94% 10%, 6% 10%); }
+.ub-partnerzeile { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 8px; align-items: baseline; font: 13.5px/1.4 var(--sans, Inter, sans-serif); }
+.ub-partnerzeile + .ub-partnerzeile { margin-top: 6px; }
+.ub-partnerzeile i { width: 10px; height: 10px; border-radius: 50%; }
+.ub-kronprinzen ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.ub-kronprinzen li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.ub-kronprinzen li span { display: grid; gap: 1px; font: 13.5px/1.3 var(--sans, Inter, sans-serif); }
+.ub-kronprinzen small { color: var(--ink-soft, #5a4a38); font-size: 12.5px; }
+.ub-bilanz summary { cursor: pointer; font: 600 14px var(--sans, Inter, sans-serif); }
+.ub-bilanz table { width: 100%; border-collapse: collapse; margin-top: 8px; font: 13px var(--sans, Inter, sans-serif); }
+.ub-bilanz td, .ub-bilanz th { padding: 3px 6px; border-bottom: 1px dotted rgba(90, 64, 40, 0.35); text-align: left; }
+.ub-bilanz ul { margin: 8px 0 0; padding-left: 18px; font: 13px/1.5 var(--sans, Inter, sans-serif); }
+
+/* Schublade mit den Kandidaten */
+.ub-schublade { position: absolute; top: 0; right: 0; bottom: 0; z-index: 4; width: min(460px, 94%); display: flex; flex-direction: column; background: var(--paper, #f4ead2); border-left: 3px double rgba(90, 64, 40, 0.6); box-shadow: -10px 0 24px rgba(30, 20, 10, 0.3); animation: ub-schublade 280ms ease-out both; }
+.ub-schublade header { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); }
+.ub-schublade h3 { margin: 0; font: 600 20px/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
+.ub-schublade-liste { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 12px 16px; display: grid; gap: 10px; align-content: start; }
+.ub-kandidat { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; padding: 10px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.85); }
+.ub-kandidat > button { grid-column: 1 / -1; justify-self: end; padding: 6px 14px; }
+.ub-kandidat-text { min-width: 0; display: grid; gap: 3px; font: 13.5px/1.4 var(--sans, Inter, sans-serif); }
+.ub-kandidat-text strong { font: 600 17px/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
+.ub-kandidat-text p { margin: 0; overflow-wrap: anywhere; }
+.ub-kandidat-text .herkunft { color: var(--ink-soft, #5a4a38); font-style: italic; }
+.ub-mini { display: flex; flex-wrap: wrap; gap: 6px; }
+.ub-mini span { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; font: 600 12.5px var(--sans, Inter, sans-serif); border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 255, 255, 0.6); }
+.ub-mini .ub-ikon { color: var(--ink-soft, #5a4a38); }
+.ub-schublade footer { flex: none; padding: 10px 16px; border-top: 1px solid rgba(90, 64, 40, 0.35); display: flex; justify-content: flex-end; }
+
+.ub-fuss-knoepfe { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+.ub { position: relative; }
+
+@keyframes ub-ein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes ub-stempel { from { opacity: 0; transform: rotate(-10deg) scale(2.3); } to { opacity: 0.92; transform: rotate(-10deg) scale(1); } }
+@keyframes ub-schublade { from { opacity: 0; transform: translateX(46px); } to { opacity: 1; transform: none; } }
+@keyframes ub-bogen { 0% { opacity: 0; transform: translateY(-18px) scale(0.78) rotate(-8deg); } 55% { opacity: 1; transform: translateY(3px) scale(1.06) rotate(2deg); } 100% { transform: none; } }
+.ub-karte.blitz .portraet { animation: ub-bogen 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+html[data-effekte="aus"] .ub-karte, html[data-effekte="aus"] .ub-stempel, html[data-effekte="aus"] .ub-schublade, html[data-effekte="aus"] .ub-karte.blitz .portraet { animation: none; }
+@media (prefers-reduced-motion: reduce) { .ub-karte, .ub-stempel, .ub-schublade, .ub-karte.blitz .portraet { animation: none; } }
+
+/* Nachtrag der Parlamentswahl (ältere Spielstände): Frage und Wahlabend ohne Präsidentenwahl */
+.pn { max-width: 640px; }
+.pn-heute { margin: 4px 0 14px; font: 600 15px var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.pn-antworten { display: flex; flex-direction: column; gap: 10px; }
+.pn-antworten button { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 10px 16px; }
+.pn-antworten button strong { font: 700 16px var(--serif, "EB Garamond", serif); }
+.pn-antworten button span { font: 14px/1.4 var(--serif, "EB Garamond", serif); opacity: 0.9; white-space: normal; }
+.pn-sicherung { margin: 14px 0 0; font: italic 14px var(--serif, "EB Garamond", serif); color: #6b5636; }
+.wn-parteienanteile { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.wn-parteienanteile .zeile { display: grid; grid-template-columns: 90px 1fr 56px; align-items: center; gap: 8px; font: 15px var(--serif, "EB Garamond", serif); }
+.wn-parteienanteile .zeile i { display: block; height: 10px; border-radius: 3px; }
+.wn-parteienanteile .zeile b { text-align: right; font-weight: 700; }

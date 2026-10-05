@@ -17,6 +17,7 @@
 // Harte Regel: eine Verfassungsfrage je Amtszeit. Gescheiterte Pakete sperren ihre Artikel für zwölf Monate.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { marktSchock } from "./maerkte";
 import { clamp } from "./economy";
 import { addDays, formatDateDe } from "./dates";
 import { addLog, fmt } from "./log";
@@ -27,6 +28,7 @@ import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
 import { bereitschaftAendern, duldung } from "./fraktionen";
 import { REGELN } from "./handeln";
 import { reichZustand } from "./reich";
+import { AEMTER, eigenVon, loyalitaetVerschieben } from "./personen";
 import { landAendern } from "./laender";
 import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, unsicherheitFaktor, verbrauche } from "./aufmerksamkeit";
@@ -39,9 +41,13 @@ import type { VerfassungsVorgang, VerfassungsZustand } from "./spiel-typen";
 // Spielparameter des Vorgangs
 
 export const VERFASSUNG_REGELN = {
-  /** Hürden der Parlamentsabstimmung (Spielparameter, an das Verfassungsreferendum-Design angelehnt) */
-  mehrheit: 301,
-  direkt: 360,
+  /**
+   * Hürden der Parlamentsabstimmung nach Art. 175 der Verfassung (tuerkei/INSTITUTIONEN.md, Abschnitt 3): 360 Stimmen (drei Fünftel) schicken die
+   * Änderung in die Volksabstimmung, ab 400 (zwei Drittel) gilt sie ohne Referendum. Früher standen hier 301/360; die Oberfläche (Parlamentskopf,
+   * Fußnote) und der Prolog nannten schon 360/400. Nicht abgebildet: die Einstiegshürde von 200 Antragstellern (zu prüfen, ob sie spielerisch zählt).
+   */
+  mehrheit: 360,
+  direkt: 400,
   /** Tage vom Einbringen bis zur Abstimmung (länger als ein Gesetz: das Land redet mit) */
   tageBisAbstimmung: 28,
   /** Tage bis zur Entscheidung des Verfassungsgerichts */
@@ -110,7 +116,7 @@ export interface VerfassungsArtikel {
 }
 
 /**
- * Der Katalog: fünf Artikel mit je zwei bis drei Varianten (Spielparameter; die Sachverhalte stehen in
+ * Der Katalog: sechs Artikel mit je zwei bis drei Varianten (Spielparameter; die Sachverhalte stehen in
  * data/reich/recht.ts und RECHERCHE_VERTIEFUNG_MACHT_KAPITAL.md, Abschnitt 14d).
  */
 export const ARTIKEL: VerfassungsArtikel[] = [
@@ -122,7 +128,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "unveraendert",
         name: "Wie bisher",
-        text: "Fünf Jahre, eine Wiederwahl — die Amtszeitfrage bleibt unangetastet.",
+        text: "Höchstens zwei Amtszeiten: eine Wiederwahl, dann ist Schluss — die Amtszeitfrage bleibt unangetastet.",
         statusQuo: true,
         autoritaer: 0,
         parteien: {},
@@ -142,6 +148,19 @@ export const ARTIKEL: VerfassungsArtikel[] = [
         ],
       },
       {
+        id: "unbegrenzt",
+        name: "Keine Begrenzung",
+        text: "Die Amtszeiten werden nicht mehr gezählt: Wer gewählt wird, regiert, solange er Wahlen gewinnt. Es gibt keine letzte Amtszeit und keinen Nachfolger, den das Lager küren müsste.",
+        autoritaer: 3,
+        parteien: { AKP: 2, MHP: 1, YRP: 1, CHP: -2, DEM: -2, "İYİ": -2, "YENİ": -2, Zafer: 0 },
+        waehler: { konservative: 3, nationalisten: 1, staedtische_saekulare: -6, junge: -3, minderheiten: -3, beamte: -1 },
+        effekte: [
+          { id: "polarisierung", d: 5 },
+          { id: "legitimitaet", d: -4 },
+          { id: "ansehen", d: -1 },
+        ],
+      },
+      {
         id: "neuwahl_jetzt",
         name: "Vorgezogene Neuwahl",
         text: "Mit dem Beschluss wird binnen zwei Monaten neu gewählt: Wer gewinnt, beginnt die Amtszeit von vorn.",
@@ -149,6 +168,44 @@ export const ARTIKEL: VerfassungsArtikel[] = [
         parteien: { CHP: 1, DEM: 1, "İYİ": 1, "YENİ": 1, AKP: -2, MHP: -2, YRP: -1, Zafer: 0 },
         waehler: { staedtische_saekulare: 1, junge: 1 },
         effekte: [{ id: "legitimitaet", d: 1 }],
+      },
+    ],
+  },
+  {
+    id: "amtszeitlaenge",
+    name: "Länge der Amtszeit",
+    frage: "Wie viele Jahre dauert eine Amtszeit?",
+    varianten: [
+      {
+        id: "jahre_5",
+        name: "Fünf Jahre",
+        text: "Wie bisher: Eine Amtszeit dauert fünf Jahre.",
+        statusQuo: true,
+        autoritaer: 0,
+        parteien: {},
+        waehler: {},
+        effekte: [],
+      },
+      {
+        id: "jahre_4",
+        name: "Vier Jahre",
+        text: "Kürzere Amtszeiten: Der Präsident muss sich öfter dem Urteil der Wähler stellen. Die neue Länge gilt ab der nächsten Amtszeit.",
+        autoritaer: -1,
+        parteien: { CHP: 2, DEM: 1, "YENİ": 1, "İYİ": 1, AKP: -1, MHP: -1, YRP: 0, Zafer: 0 },
+        waehler: { staedtische_saekulare: 2, junge: 1, konservative: -1 },
+        effekte: [{ id: "legitimitaet", d: 1 }],
+      },
+      {
+        id: "jahre_7",
+        name: "Sieben Jahre",
+        text: "Längere Amtszeiten: weniger Wahlen, mehr Zeit für große Vorhaben, weniger Kontrolle durch die Wähler. Die neue Länge gilt ab der nächsten Amtszeit.",
+        autoritaer: 1,
+        parteien: { AKP: 1, MHP: 1, YRP: 1, CHP: -2, DEM: -1, "İYİ": -1, "YENİ": -1, Zafer: 0 },
+        waehler: { konservative: 1, staedtische_saekulare: -2, junge: -1 },
+        effekte: [
+          { id: "polarisierung", d: 1 },
+          { id: "legitimitaet", d: -1 },
+        ],
       },
     ],
   },
@@ -820,7 +877,12 @@ function beschliessePaket(w: World, rng: Rng): void {
 
   // 1. Artikel in Kraft: beschlossene Varianten und ihre Langzeit-Effekte
   for (const x of geaendert) {
-    z.aktiv[x.artikel.id] = x.variante.id;
+    // Die vorgezogene Neuwahl ist eine Einmalwirkung: Sie darf eine gelockerte Amtszeitgrenze („weitere Wiederwahl“, „unbegrenzt“) nicht überschreiben
+    if (x.variante.id === "neuwahl_jetzt" && ["wiederwahl_plus", "unbegrenzt"].includes(z.aktiv.amtszeit ?? "")) {
+      // Grenze bleibt
+    } else {
+      z.aktiv[x.artikel.id] = x.variante.id;
+    }
     for (const e of x.variante.effekte) wirke(w, e.id, e.d);
     // Justiz-Artikel verschiebt die Besetzung des Gerichts (wirkt über sim/reich.ts auf die Unabhängigkeit)
     if (x.variante.sitze) {
@@ -832,9 +894,24 @@ function beschliessePaket(w: World, rng: Rng): void {
     }
   }
   // Sonderwirkung: vorgezogene Neuwahl stellt den Wahltermin
-  if (z.aktiv.amtszeit === "neuwahl_jetzt") {
+  if (geaendert.some((x) => x.variante.id === "neuwahl_jetzt")) {
     spiel.wahltag = Math.min(spiel.wahltag, w.day + 60);
     addLog(w, "ereignis", `Der Wahltermin rückt vor: In etwa zwei Monaten wird gewählt.`, "Wer die Amtszeit neu stellt, stellt sich dem Urteil — gewinnen heißt von vorn beginnen, verlieren heißt gehen.");
+  }
+
+  // Keine Begrenzung der Amtszeiten: Die Rivalen im Kabinett sehen ihre Chance schwinden (Groll, Loyalität), die Venedig-Kommission des Europarats
+  // äußert sich kritisch (Straßburg-Druck, Vertrauen der EU), und die Kür des Nachfolgers entfällt (sim/amtszeit.ts nimmt sie träge zurück)
+  if (geaendert.some((x) => x.variante.id === "unbegrenzt")) {
+    for (const f of spiel.figuren) {
+      if (!f.imAmt || !AEMTER[f.amt].regierungsamt || f.amt === "partner") continue;
+      const e = eigenVon(w, f);
+      if (e.ehrgeiz >= 60) {
+        e.groll = clamp(e.groll + 6, 0, 100);
+        loyalitaetVerschieben(f, -3);
+      }
+    }
+    wirke(w, "strassburg_druck", 3);
+    landAendern(w, "EU", { vertrauen: -3 }, "Stellungnahme der Venedig-Kommission zur unbegrenzten Amtszeit");
   }
 
   // 2. Gegenreaktion: autoritäre Pakete rufen Straße, Straßburg, EU und Märkte auf den Plan
@@ -843,8 +920,7 @@ function beschliessePaket(w: World, rng: Rng): void {
     wirke(w, "strassburg_druck", 4);
     wirke(w, "ansehen", -2);
     landAendern(w, "EU", { vertrauen: -4 }, "Verfassungspaket zugunsten des Palasts");
-    wirke(w, "vertrauen_maerkte", -3);
-    w.economy.riskPremium = clamp(w.economy.riskPremium + 40, 50, 2000);
+    marktSchock(w, "verfassung", geaendert.some((x) => x.variante.id === "unbegrenzt") ? 1.6 : 1);
   } else if (aut <= -2) {
     // Demokratisierende Pakete: Legitimität und Ansehen wachsen; das laufende Kapital-Konto trägt den Verzicht
     wirke(w, "legitimitaet", 2);

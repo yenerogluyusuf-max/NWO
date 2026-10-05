@@ -10,7 +10,11 @@ import type { World } from "./types";
 import { PROGRAMME, programmZustand } from "./programme";
 import { LAENDER, haltungWort, vertrauenZu, weltZustand } from "./laender";
 import { katastrophenBilanz } from "./katastrophe";
-import { waehlerLage } from "./waehler";
+import { waehlerLage, zustimmungsBilanz } from "./waehler";
+import { putschRisiko, amtsenthebungSitze } from "./enden";
+import { zusagenBilanz } from "./zusagen";
+import { kriege } from "./krieg";
+import { t } from "../i18n";
 import type { ChronikEintrag } from "./spiel-typen";
 
 export interface Bilanz {
@@ -57,7 +61,54 @@ function urteil(vorher: number, nachher: number, kleinerIstBesser: boolean, schw
   return (d < 0) === kleinerIstBesser ? "besser" : "schlechter";
 }
 
-export function erstelleBilanz(w: World): Bilanz {
+/** Warum die Laufbahn endete, in einem Satz (Ursachen aus den Daten); leer, wenn es keine zu nennen gibt. */
+function endeUrsache(w: World): string {
+  const ende = w.spiel?.ende;
+  if (!ende) return "";
+  const kosten = (): string[] =>
+    zustimmungsBilanz(w).posten.filter((p) => p.delta <= -1).sort((a, b) => a.delta - b.delta).slice(0, 2).map((p) => p.name);
+  switch (ende.art) {
+    case "abwahl":
+    case "sturz":
+    case "ruecktritt": {
+      const k = kosten();
+      const schluessel = { abwahl: "bilanz.ende.abwahl", sturz: "bilanz.ende.sturz", ruecktritt: "bilanz.ende.ruecktritt" }[ende.art];
+      return t(schluessel, { kosten: k, hatKosten: k.length ? "ja" : "nein" });
+    }
+    case "putsch":
+      return t("bilanz.ende.putsch", { ursachen: putschRisiko(w).teile.filter((x) => x.punkte > 0).sort((a, b) => b.punkte - a.punkte).slice(0, 3).map((x) => x.name) });
+    case "amtsenthebung":
+      return t("bilanz.ende.amtsenthebung", { gegen: amtsenthebungSitze(w).gegen });
+    case "tod":
+      return t("bilanz.ende.tod");
+    default:
+      return ende.nachfolge ? "" : t("bilanz.ende.amtszeitende");
+  }
+}
+
+/** Zusagen, Kriege, Verfassung, Reich und Wendepunkte als Sätze am Ende der Bilanz. */
+function vermaechtnisSaetze(w: World): string[] {
+  const sp = w.spiel!;
+  const out: string[] = [];
+  const z = zusagenBilanz(w);
+  if (z.gehalten + z.gebrochen + z.offen > 0) out.push(t("bilanz.zusagen", { gehalten: z.gehalten, gebrochen: z.gebrochen, offen: z.offen, glaub: Math.round(z.glaubwuerdigkeit) }));
+  const ks = kriege(w).filter((k) => k.phase !== "beendet");
+  if (ks.length) out.push(t("bilanz.kriege", { n: ks.length, liste: ks.map((k) => LAENDER.find((l) => l.id === k.land)?.name ?? k.land) }));
+  const hist = sp.verfassungsvorgang?.historie ?? [];
+  const geaendert = hist.filter((h) => h.ausgang.startsWith("Beschlossen")).flatMap((h) => h.artikel);
+  if (geaendert.length) out.push(t("bilanz.verfassung", { n: geaendert.length, artikel: geaendert }));
+  const fertig = Object.keys(sp.reich?.bestand ?? {}).length;
+  if (fertig > 0) out.push(t("bilanz.reich", { fertig }));
+  const wende = sp.chronik.filter((c) => !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel) && !c.ausgang.startsWith("Keine Entscheidung")).slice(-3).map((c) => c.titel);
+  if (wende.length) out.push(t("bilanz.wendepunkte", { liste: wende }));
+  return out;
+}
+
+/**
+ * Bilanz der Laufbahn. „ende“: das Geschichtsbuchkapitel am Spielende. „zwischen“: die Zwischenbilanz der abgelaufenen Amtszeit nach der Wiederwahl
+ * (Start der Laufbahn gegen heute; die Ziele der abgelaufenen Amtszeit stehen im Archiv).
+ */
+export function erstelleBilanz(w: World, modus: "ende" | "zwischen" = "ende"): Bilanz {
   const spiel = w.spiel!;
   const s0 = spiel.start;
   const e = w.economy;
@@ -69,7 +120,11 @@ export function erstelleBilanz(w: World): Bilanz {
   const abgelehnt = w.log.filter((l) => l.kind === "entscheidung" && l.text.startsWith("Das Parlament lehnt")).length;
   const entscheidungen = spiel.chronik.filter((c) => !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel)).length;
   const unentschieden = spiel.chronik.filter((c) => c.ausgang.startsWith("Keine Entscheidung")).length;
-  const ziele = zielStand(w).map((z) => ({ titel: z.def.titel, erreicht: z.erreicht, stand: z.stand }));
+  const archiv = spiel.zielArchiv ?? [];
+  const mehrere = archiv.length > 0 && modus === "ende" && spiel.ziele.length > 0;
+  const fruehere = archiv.flatMap((a) => a.ziele.map((z) => ({ titel: mehrere ? t("bilanz.ziele.amtszeit", { n: a.amtszeit, titel: z.titel }) : z.titel, erreicht: z.erreicht, stand: z.stand })));
+  const laufende = modus === "zwischen" ? [] : zielStand(w).map((z) => ({ titel: mehrere ? t("bilanz.ziele.amtszeit", { n: spiel.amtszeit, titel: z.def.titel }) : z.def.titel, erreicht: z.erreicht, stand: z.stand }));
+  const ziele = [...fruehere, ...laufende];
   const erreicht = ziele.filter((z) => z.erreicht).length;
 
   const absaetze: string[] = [];
@@ -94,6 +149,12 @@ export function erstelleBilanz(w: World): Bilanz {
       ? `Von den eigenen Zielen wurden ${erreicht} von ${ziele.length} erreicht. Das Land wird sich an diese Amtszeit so erinnern, wie es sie erlebt hat, nicht wie sie gemeint war.`
       : "Eigene Ziele hatte sich der Präsident nicht gesetzt.",
   );
+
+  // Warum es endete: Ursachen aus den Daten der Partie (Zustimmungsbilanz, Putschrisiko, Verfahren)
+  if (ende && modus === "ende") {
+    const u = endeUrsache(w);
+    if (u) absaetze.push(u);
+  }
 
   // Vermächtnis: Programme, Beziehungen zur Welt, Wählerschaft
   const pz = programmZustand(w);
@@ -123,12 +184,40 @@ export function erstelleBilanz(w: World): Bilanz {
   absaetze.push(
     `Ihre Wählerschaft am Ende: ${zufrieden.length ? `zufrieden waren ${zufrieden.join(", ")}` : "keine Gruppe war ausgesprochen zufrieden"}${veraergert.length ? `; verärgert waren ${veraergert.join(", ")}` : ""}.`,
   );
+  // Wahlen der Laufbahn: Ergebnis, Stichwahl, Lager im Parlament, Rede
+  const wahlen = spiel.wahl?.historie ?? [];
+  for (const e of wahlen) {
+    const r = e.runden[e.runden.length - 1]!;
+    const amt = r.anteile.amt ?? 0;
+    absaetze.push(
+      t(e.gewonnen ? "bilanz.wahl.gewonnen" : "bilanz.wahl.verloren", {
+        datum: e.datum,
+        anteil: Math.round(amt * 10) / 10,
+        gang: e.runden.length > 1 ? "stich" : "erst",
+        marge: e.marge,
+        sitze: e.parlament.lagerSitzeNachher,
+        vorher: e.parlament.lagerSitzeVorher,
+        letzte: e.letzteWahl ? "ja" : "nein",
+      }),
+    );
+  }
+  // Vermächtnis in Zahlen: Was die Zustimmung seit dem Amtsantritt am meisten gehoben und am meisten gekostet hat
+  if (modus === "ende" || spiel.amtszeit > 1) {
+    const zb = zustimmungsBilanz(w);
+    const hilfe = zb.posten.filter((p) => p.delta >= 1).sort((a, b) => b.delta - a.delta).slice(0, 2).map((p) => p.name);
+    const kosten = zb.posten.filter((p) => p.delta <= -1).sort((a, b) => a.delta - b.delta).slice(0, 2).map((p) => p.name);
+    if (hilfe.length || kosten.length) {
+      absaetze.push(t("bilanz.zustimmung", { hilfe, kosten, hatHilfe: hilfe.length ? "ja" : "nein", hatKosten: kosten.length ? "ja" : "nein", jetzt: Math.round(zb.jetzt) }));
+    }
+  }
+  if (modus === "ende" && ende?.nachfolge) absaetze.push(t(ende.nachfolge === "sieg" ? "bilanz.nachfolge.sieg" : "bilanz.nachfolge.niederlage", { name: spiel.nachfolge?.nachfolger?.name ?? "" }));
   // INF-5: Katastrophen der Amtszeit und die Versprechensschuld (mit der Mahnung als Referenz)
   const katSatz = katastrophenBilanz(w);
   if (katSatz) absaetze.push(katSatz);
+  if (modus === "ende") absaetze.push(...vermaechtnisSaetze(w));
 
   return {
-    titel: ende?.titel ?? "Bilanz der Amtszeit",
+    titel: modus === "zwischen" ? t("bilanz.zwischen.titel") : (ende?.titel ?? "Bilanz der Amtszeit"),
     absaetze,
     kennzahlen: [
       { name: "Inflation", start: `${nf(s0.inflation)} %`, ende: `${nf(w.published.inflation.value)} %`, urteil: urteil(s0.inflation, w.published.inflation.value, true, 1) },

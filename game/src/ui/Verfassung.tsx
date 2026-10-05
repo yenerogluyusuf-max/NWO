@@ -28,6 +28,7 @@ import {
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { kannZahlen } from "../sim/kapital";
 import type { Ergebnis } from "../sim/handeln";
+import "./politik/design.css";
 
 const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { maximumFractionDigits: d, minimumFractionDigits: d });
 
@@ -83,7 +84,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
     const aktivStufe = v.phase === "parlament" ? 0 : v.phase === "aym" ? 1 : 2;
     const prognose = v.phase === "kampagne" ? referendumPrognose(world) : null;
     return (
-      <div className="beschlussbuch">
+      <div className="beschlussbuch vf-akte">
         <section className="paper">
           <h3>Der Verfassungsvorgang läuft</h3>
           <p className="subtitle">{geaendert.map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ")}</p>
@@ -130,12 +131,12 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                 const noetig = Math.max(0, ziel - sicht.erwartet);
                 const kosten = Math.ceil(noetig * 0.5 * VERFASSUNG_REGELN.kaufFaktor);
                 return noetig > 0 ? (
-                  <button className="aktion-knopf" disabled={!kannZahlen(spiel.kapital, kosten)} onClick={() => tu(verfassungStimmenKaufen(world, noetig))} title="Absprachen mit Fraktionen; bei der Verfassungsfrage doppelt so teuer">
+                  <button className="pd-btn primary" disabled={!kannZahlen(spiel.kapital, kosten)} onClick={() => tu(verfassungStimmenKaufen(world, noetig))} title="Absprachen mit Fraktionen; bei der Verfassungsfrage doppelt so teuer">
                     Hürde sichern: +{noetig} Stimmen <b>{kosten}</b>
                   </button>
                 ) : null;
               })()}
-              <button className="aktion-knopf leise" onClick={() => tu(zieheVerfassungZurueck(world))} title="Gekaufte Stimmen sind verloren; ein Teil des Kapitals kommt zurück">
+              <button className="pd-btn quiet" onClick={() => tu(zieheVerfassungZurueck(world))} title="Gekaufte Stimmen sind verloren; ein Teil des Kapitals kommt zurück">
                 Zurückziehen
               </button>
             </div>
@@ -171,7 +172,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
             </p>
             <p className="subtitle">Die Auszählung streut wie eine Wahl; jede weitere Kampagnen-Welle wirkt schwächer. Ein Nein kostet schweres Vertrauen und stärkt die Opposition.</p>
             <div className="stimmen-steuerung">
-              <button className="aktion-knopf" onClick={() => tu(kampagnenImpuls(world))} title={`${VERFASSUNG_REGELN.kampagnePk} Kapital je Impuls, mit Abkühlzeit von einer Woche`}>
+              <button className="pd-btn" onClick={() => tu(kampagnenImpuls(world))} title={`${VERFASSUNG_REGELN.kampagnePk} Kapital je Impuls, mit Abkühlzeit von einer Woche`}>
                 Kampagnen-Impuls <b>{VERFASSUNG_REGELN.kampagnePk}</b>
               </button>
             </div>
@@ -186,7 +187,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
   const belegt = amtszeitBelegt(world);
   const aktivEintraege = Object.entries(z.aktiv);
   return (
-    <div className="beschlussbuch">
+    <div className="beschlussbuch vf-akte">
       <section className="paper">
         <h3>Die Verfassungs-Werkstatt</h3>
         <p className="subtitle">
@@ -262,7 +263,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                 ))}
               </ul>
               <button
-                className="aktion-knopf"
+                className="pd-btn primary"
                 disabled={!pr.ok}
                 title={pr.ok ? "Das Paket einbringen; die Abstimmung folgt in vier Wochen" : pr.grund}
                 onClick={() => tu(bringeVerfassungEin(world, paket))}

@@ -1,4 +1,8 @@
 // Entlassen und Ernennen als Prozess: Folgen der Entlassung, drei Kandidaten mit Profil, Kosten, Marktreaktion.
+//
+// Aufbau von oben nach unten: wer geht · was das kostet (Folgen) · wer folgen könnte (gleich aufgebaute Karten) · die Entscheidung.
+// Jede Kandidatenkarte hat dieselben Zeilen in derselben Reihenfolge (Gesicht, Marken, drei Balken, Stärke, Schwäche, Märkte, Fuß mit
+// Kosten und Knopf); die Karten einer Reihe sind gleich hoch, der Knopf sitzt immer am Fuß.
 
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
@@ -7,8 +11,8 @@ import { entlasse, entlassungsFolgen, ernenneNachfolger, kandidatenFuer, KOMMISS
 import { kannZahlen } from "../../sim/kapital";
 import { AEMTER, ehrgeizWort } from "../../sim/personen";
 import { LAGER_NAMEN, STIL_NAMEN } from "../../sim/personen-typen";
-import { Cameo } from "../art/Cameo";
-import { Balken, LAGER_FARBE, Marke, Portraet } from "./bausteine";
+import { Icon } from "../icons";
+import { Balken, Gesicht, Marke, Portraet } from "./bausteine";
 
 export interface WechselMeldung {
   ok: boolean;
@@ -26,7 +30,8 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
   const spiel = world.spiel!;
   const d = AEMTER[figur.amt];
   const k = kandidaten.find((x) => x.id === gewaehlt);
-  const pk = k ? (modus === "entlassen" ? k.pk : Math.max(1, k.pk - 1)) : modus === "entlassen" ? KOMMISSARISCH_PK : 0;
+  const kostenVon = (pk: number) => (modus === "entlassen" ? pk : Math.max(1, pk - 1));
+  const pk = k ? kostenVon(k.pk) : modus === "entlassen" ? KOMMISSARISCH_PK : 0;
 
   function ausfuehren(kommissarisch: boolean) {
     const r = modus === "nachfolge" ? ernenneNachfolger(world, figur.amt, gewaehlt ?? "") : entlasse(world, figur.amt, kommissarisch ? null : gewaehlt);
@@ -39,57 +44,84 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
   }
 
   return (
-    <div className="pe-szene">
+    <div className="pe-szene pe-nachfolge">
       <div className="pe-szenenkopf">
-        <Portraet w={world} f={figur} size={52} />
+        <Portraet w={world} f={figur} size={110} />
         <div>
           <h3>{modus === "entlassen" ? `${figur.rolle} ${figur.name} entlassen` : `Nachfolge für ${d.ressort}`}</h3>
-          <div className="pe-rolle">{modus === "entlassen" ? "Wer soll das Amt übernehmen?" : `${figur.name} führt das Amt nur kommissarisch.`}</div>
+          <div className="pe-rolle">{modus === "entlassen" ? "Erst die Folgen prüfen, dann den Nachfolger wählen." : `${figur.name} führt das Amt nur kommissarisch.`}</div>
         </div>
-        <div className="pe-termine">Kapital: {Math.floor(spiel.kapital)}</div>
+        <div className="pe-termine">
+          Kapital: <b>{Math.floor(spiel.kapital)}</b>
+        </div>
       </div>
 
       {modus === "entlassen" && (
-        <div className="pe-warn" role="note">
-          <strong>Folgen der Entlassung</strong>
+        <section className="pe-folgenkasten" aria-label="Folgen der Entlassung">
+          <h4>
+            <Icon name="warnung" size={16} />
+            Folgen der Entlassung
+          </h4>
           <ul>
             {folgen.map((f) => (
               <li key={f}>{f}</li>
             ))}
           </ul>
-        </div>
+        </section>
       )}
 
+      <h4 className="pe-abschnitt">
+        {modus === "entlassen" ? "Wer soll das Amt übernehmen?" : "Wen ernennen Sie?"} <small>{kandidaten.length} Kandidaten · einen wählen</small>
+      </h4>
       <div className="pe-kandidaten">
-        {kandidaten.map((c) => (
-          <div key={c.id} className={`pe-kandidat${gewaehlt === c.id ? " on" : ""}`}>
-            <header>
-              <Cameo seed={c.name} size={44} figure={c.weiblich ? "f" : "m"} tint={LAGER_FARBE[c.lager]} />
-              <div>
-                <strong>{c.name}</strong>
-                <em>{c.herkunft}</em>
+        {kandidaten.map((c) => {
+          const kosten = kostenVon(c.pk);
+          const leistbar = kannZahlen(spiel.kapital, kosten);
+          const an = gewaehlt === c.id;
+          return (
+            <article key={c.id} className={`pe-kandidat${an ? " on" : ""}`} aria-label={c.name}>
+              <header>
+                <Gesicht name={c.name} weiblich={c.weiblich} lager={c.lager} size={100} rolle={figur.amt} />
+                <div>
+                  <strong>{c.name}</strong>
+                  <em>{c.herkunft}</em>
+                </div>
+              </header>
+              <div className="pe-marken">
+                <Marke>{STIL_NAMEN[c.stil]}</Marke>
+                <Marke art="gold">{LAGER_NAMEN[c.lager]}</Marke>
               </div>
-            </header>
-            <div className="pe-marken">
-              <Marke>{STIL_NAMEN[c.stil]}</Marke>
-              <Marke art="gold">{LAGER_NAMEN[c.lager]}</Marke>
-            </div>
-            <Balken label="Fähigkeit" wert={c.faehigkeit} wort={String(c.faehigkeit)} klein />
-            <Balken label="Ehrgeiz" wert={c.ehrgeiz} ton={c.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(c.ehrgeiz)} klein hinweis="Hoher Ehrgeiz: gefährlich, wenn er übergangen wird" />
-            <Balken label="Gesinnung gegenüber Ihnen" wert={c.loyalitaet} wort={String(c.loyalitaet)} klein />
-            <p className="pe-plus">+ {c.staerke}</p>
-            <p className="pe-minus">− {c.schwaeche}</p>
-            {c.markt !== 0 && (
-              <p className={c.markt < 0 ? "pe-plus" : "pe-minus"}>
-                Märkte: Risikoaufschlag {c.markt < 0 ? "" : "+"}
-                {c.markt} Punkte
+              <div className="pe-werte-spalte">
+                <Balken label="Fähigkeit" wert={c.faehigkeit} wort={String(c.faehigkeit)} klein />
+                <Balken label="Ehrgeiz" wert={c.ehrgeiz} ton={c.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(c.ehrgeiz)} klein {...(c.ehrgeiz >= 75 ? { zeile: "Gefährlich, wenn er übergangen wird." } : {})} />
+                <Balken label="Gesinnung Ihnen gegenüber" wert={c.loyalitaet} wort={String(c.loyalitaet)} klein />
+              </div>
+              <p className="pe-plus">
+                <b>+</b> {c.staerke}
               </p>
-            )}
-            <button className="pe-aktion haupt" disabled={!kannZahlen(spiel.kapital, modus === "entlassen" ? c.pk : Math.max(1, c.pk - 1))} onClick={() => setGewaehlt(c.id)}>
-              {gewaehlt === c.id ? "Ausgewählt" : "Auswählen"} <b>{modus === "entlassen" ? c.pk : Math.max(1, c.pk - 1)}</b>
-            </button>
-          </div>
-        ))}
+              <p className="pe-minus">
+                <b>−</b> {c.schwaeche}
+              </p>
+              <p className={c.markt === 0 ? "pe-markt leer" : c.markt < 0 ? "pe-markt pe-plus" : "pe-markt pe-minus"}>
+                {c.markt !== 0 && (
+                  <>
+                    Märkte: Risikoaufschlag {c.markt < 0 ? "" : "+"}
+                    {c.markt} Punkte
+                  </>
+                )}
+              </p>
+              <footer className="pe-kfuss">
+                <span className={`pe-kosten${leistbar ? "" : " knapp"}`} title={leistbar ? "Politisches Kapital, das die Ernennung kostet" : "Dafür reicht Ihr Kapital nicht"}>
+                  {kosten} Kapital
+                </span>
+                <button className={`pe-aktion ${an ? "haupt" : ""}`} disabled={!leistbar} aria-pressed={an} onClick={() => setGewaehlt(c.id)}>
+                  {an && <Icon name="haken" size={16} />}
+                  {an ? "Ausgewählt" : "Auswählen"}
+                </button>
+              </footer>
+            </article>
+          );
+        })}
       </div>
 
       {fehler && (
@@ -97,19 +129,34 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
           {fehler}
         </p>
       )}
-      <div className="pe-aktionen">
-        <button className="pe-aktion haupt" disabled={!k || !kannZahlen(spiel.kapital, pk)} onClick={() => ausfuehren(false)}>
-          {modus === "entlassen" ? "Entlassen und ernennen" : "Ernennen"}
-          {k ? ` (${pk} Kapital)` : ""}
-        </button>
-        {modus === "entlassen" && (
-          <button className="pe-aktion" disabled={!kannZahlen(spiel.kapital, KOMMISSARISCH_PK)} onClick={() => ausfuehren(true)} title="Ein Staatssekretär führt das Amt, bis Sie sich entschieden haben; er leistet weniger.">
-            Nur entlassen, kommissarisch besetzen <b>{KOMMISSARISCH_PK}</b>
+
+      <div className="pe-entscheidung">
+        <p className={`pe-gewaehlt${k ? "" : " leer"}`} role="status">
+          {k ? (
+            <>
+              Gewählt: <strong>{k.name}</strong> · {pk} Kapital
+            </>
+          ) : modus === "entlassen" ? (
+            "Noch niemand gewählt. Sie können auch nur entlassen und das Amt kommissarisch besetzen."
+          ) : (
+            "Noch niemand gewählt."
+          )}
+        </p>
+        <div className="pe-wege">
+          <button className="pe-aktion haupt" disabled={!k || !kannZahlen(spiel.kapital, pk)} onClick={() => ausfuehren(false)} title={k ? undefined : "Wählen Sie zuerst einen Kandidaten"}>
+            {modus === "entlassen" ? "Entlassen und ernennen" : "Ernennen"}
+            {k && <b>{pk}</b>}
           </button>
-        )}
-        <button className="pe-aktion leise" onClick={() => onFertig()}>
-          Abbrechen
-        </button>
+          {modus === "entlassen" && (
+            <button className="pe-aktion" disabled={!kannZahlen(spiel.kapital, KOMMISSARISCH_PK)} onClick={() => ausfuehren(true)} title="Ein Staatssekretär führt das Amt, bis Sie sich entschieden haben; er leistet weniger.">
+              Nur entlassen, kommissarisch besetzen
+              <b>{KOMMISSARISCH_PK}</b>
+            </button>
+          )}
+          <button className="pe-aktion leise pe-abbruch" onClick={() => onFertig()}>
+            Abbrechen
+          </button>
+        </div>
       </div>
     </div>
   );

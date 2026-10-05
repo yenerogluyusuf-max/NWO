@@ -1,0 +1,13 @@
+{
+ "katastrophe.erholt_chronik": "{ort} toparlandı.",
+ "katastrophe.erholt_text": "{ort} bölgesinde durum sakinleşti; bölge yeniden kendi ayakları üzerinde duruyor.",
+ "katastrophe.frist_chronik_text": "{ort}: {monate} ay sonra acil durum sona erdi.",
+ "katastrophe.frist_chronik_titel": "{art} sona erdi",
+ "katastrophe.frist_text": "{monate} ay sonra olay bölgenin gündelik yaşamını artık belirlemiyor; geriye ülke ve ekonomi üzerindeki etkileri kaldı.",
+ "katastrophe.frist_text_zusage": "{monate} ay sonra acil durum sona ermiş sayılıyor. Kamuoyuna verilen söz geçerliliğini koruyor: {bedarf, number} konuttan {geliefert, number} tanesi teslim edildi, kalanı ölçülmeye devam edecek.",
+ "katastrophe.frist_titel": "{ort} bölgesindeki {art}: Acil durum sona erdi.",
+ "katastrophe.kette_bewaeltigt": "İhtiyacın yüzde 95'i teslim edildiğinde tamamlanmış sayılır: şimdiye dek {bedarf, number} konuttan {geliefert, number} tanesi. En geç {frist} ay sonra acil durum sona erer.",
+ "katastrophe.kette_duerre": "Durum sakinleştiğinde tamamlanmış sayılır: en erken {min} ay sonra ve havzadaki su sıkıntısı yeniden olağan düzeye döndüğünde; en geç {frist} ay sonra.",
+ "katastrophe.kette_ohne_bedarf": "Durum sakinleştiğinde tamamlanmış sayılır, en geç {frist} ay sonra.",
+ "katastrophe.zusage_unmoeglich": "Bu hasar için ayrı bir konut programı söz konusu değil; kamuoyuna verilecek bir söz yerine getirilemezdi."
+}

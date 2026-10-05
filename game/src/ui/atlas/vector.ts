@@ -5,13 +5,17 @@
 // Gezeichnet wird nur, wenn sich Kamera, Farben oder Auswahl ändern; unsichtbare Linien werden übersprungen,
 // winzige je nach Zoom ausgelassen.
 
+import { dauerFaktor } from "../anim/effekte";
+import { DAUER } from "../anim/dauer";
+import { sanftInOut } from "../anim/easing";
 import water from "../../data/gewaesser.json";
-import { lonLatToUv, WORLD_W, type AtlasScene, type Relief } from "./scene";
+import { lonLatToUv, type AtlasScene, type Relief } from "./scene";
 import { NATION_COLOR, REGION_COLORS } from "./overlay";
-import { imPunkt, ladeMeta, ladeStufe, type KBesitzer, type KFlaeche, type KStufe } from "./daten";
+import { fuegeZusammen, imPunkt, ladeMeta, ladeStufe, type KBesitzer, type KFlaeche, type KStufe } from "./daten";
 import { PROVINZEN } from "../../sim/regional";
 import { Beschriftung } from "./beschriftung";
 import type { Kartenebene } from "../ebenen";
+import { BRUCHLINIEN, TAKTIK_FRONTEN, MEGAPROJEKTE_DETAILS } from "./karten-features";
 
 export interface BezirkInfo {
   name: string;
@@ -72,6 +76,19 @@ const COUNTRY_COLORS: Record<string, string> = {
   SAU: "#6d9a52", KWT: "#8aa0a0", TKM: "#a0a86a", KAZ: "#6fa3c0", CYP: "#b9a07e", CYN: "#b9a07e",
 };
 
+/** Landesfarbe: die ausgewählten Nachbarn haben feste Töne, alle übrigen Länder der Welt einen ruhigen, aus dem Kürzel abgeleiteten Ton. */
+function landFarbe(iso: string): string {
+  const fest = COUNTRY_COLORS[iso];
+  if (fest) return fest;
+  let h = 2166136261;
+  for (let i = 0; i < iso.length; i++) h = Math.imul(h ^ iso.charCodeAt(i), 16777619);
+  const ton = (h >>> 0) % 360;
+  return `hsl(${ton}, 32%, 48%)`;
+}
+
+/** Längengrade des Kerns: Die Schwellen für Straßen, Bezirke und Einrichtungen sind in „Bildpunkten je Kernbreite“ geeicht (31 Grad = eine Einheit). */
+const KERN_GRAD = 31;
+
 const REGION_OF = new Map(PROVINZEN.map((p) => [p.plaka, p.region]));
 
 function shapeOf(r: Relief, atlas: AtlasScene, pts: number[][]): Shape {
@@ -86,7 +103,7 @@ function shapeOf(r: Relief, atlas: AtlasScene, pts: number[][]): Shape {
     const [u, v] = lonLatToUv(r, pts[i]![0]!, pts[i]![1]!);
     uv[2 * i] = u;
     uv[2 * i + 1] = v;
-    xyz[3 * i] = (u - 0.5) * WORLD_W;
+    xyz[3 * i] = (u - 0.5) * atlas.worldW;
     xyz[3 * i + 1] = atlas.heightAt(u, v) + 0.004;
     xyz[3 * i + 2] = (v - 0.5) * atlas.worldH;
     if (u < u0) u0 = u;
@@ -122,7 +139,7 @@ function linesFrom(r: Relief, atlas: AtlasScene, buf: ArrayBuffer): Lines {
     let v1 = -9;
     for (let j = 0; j < n; j++) {
       const [u, v] = lonLatToUv(r, a[i + 1 + 2 * j]! / 1e5, a[i + 2 + 2 * j]! / 1e5);
-      xyz[3 * p] = (u - 0.5) * WORLD_W;
+      xyz[3 * p] = (u - 0.5) * atlas.worldW;
       xyz[3 * p + 1] = atlas.heightAt(u, v) + 0.003;
       xyz[3 * p + 2] = (v - 0.5) * atlas.worldH;
       p++;
@@ -234,9 +251,18 @@ export class VectorLayer {
     });
     this.bisGrenzen = meta.stufen.slice(0, 2).map((x) => x.bis);
     this.beschriftung.setLaender(this.laender(), meta.anker ?? {});
+    const weltDateien = meta.welt?.stufen ?? [];
+    const weltCache = new Map<string, Promise<KStufe | null>>();
     for (let i = 0; i < meta.stufen.length; i++) {
       const st = await ladeStufe(meta.stufen[i]!.datei, this.relief, this.atlas, meta.besitzer.length);
       if (!st) continue;
+      // Die Länder der übrigen Welt (außerhalb des Kerns) kommen als eigene, gröbere Dateien dazu und gehören zu denselben Besitzern
+      const wDatei = weltDateien[i];
+      if (wDatei) {
+        if (!weltCache.has(wDatei)) weltCache.set(wDatei, ladeStufe(wDatei, this.relief, this.atlas, meta.besitzer.length));
+        const w = await weltCache.get(wDatei)!;
+        if (w) fuegeZusammen(st, w);
+      }
       this.stufen[i] = st;
       performance.mark(`karte-L${i}-geladen`);
       this.geladen = true;
@@ -352,9 +378,35 @@ export class VectorLayer {
     return this.bezirke !== null;
   }
 
+  /** Alter Stand der Farben während einer Überblendung (Ebenenwechsel) und deren Startzeit */
+  private vorher: Pick<VectorStyle, "fill" | "fillAlpha" | "laender" | "ebene"> | null = null;
+  private blendStart = 0;
+  /** Eigenschaften, die das Bild der Vektorebene ändern; Hervorhebungen (Hover, Auswahl) zeichnet die Effektschicht (fx.ts) */
+  private static readonly ZEICHNEND: (keyof VectorStyle)[] = ["fill", "fillAlpha", "hoverBezirk", "ebene", "laender"];
+
   setStyle(s: Partial<VectorStyle>): void {
-    this.style = { ...this.style, ...s };
-    this.dirty = true;
+    const alt = this.style;
+    const neu = { ...alt, ...s };
+    const aender = VectorLayer.ZEICHNEND.some((k) => alt[k] !== neu[k]);
+    // Farben der Fläche wechseln: sanft überblenden, wenn Effekte an sind (Ebenenwechsel statt Sprung)
+    const farbWechsel = (["fill", "fillAlpha", "laender", "ebene"] as const).some((k) => alt[k] !== neu[k]);
+    if (farbWechsel && this.geladen && dauerFaktor() > 0) {
+      this.vorher = { ...(alt.fill ? { fill: alt.fill } : {}), ...(alt.fillAlpha !== undefined ? { fillAlpha: alt.fillAlpha } : {}), ...(alt.laender ? { laender: alt.laender } : {}), ebene: alt.ebene };
+      this.blendStart = performance.now();
+    }
+    this.style = neu;
+    if (aender) this.dirty = true;
+  }
+
+  /** Wie weit die Überblendung ist (1 = fertig). */
+  private blendFaktor(): number {
+    if (!this.vorher) return 1;
+    const t = (performance.now() - this.blendStart) / (DAUER.blende * dauerFaktor() || 1);
+    if (t >= 1 || dauerFaktor() === 0) {
+      this.vorher = null;
+      return 1;
+    }
+    return sanftInOut(t);
   }
 
   markDirty(): void {
@@ -376,7 +428,7 @@ export class VectorLayer {
   /** Detailstufe für die aktuelle Kamera: fein genug, dass Tippen an der Küste stimmt, aber mindestens die mittlere */
   private pickStufe(): KStufe | null {
     const b = this.atlas.viewBounds();
-    const pxGrad = this.cssW / Math.max(0.02, b.u1 - b.u0 - 0.08) / (this.relief.lon1 - this.relief.lon0);
+    const pxGrad = this.cssW / Math.max(0.0005, b.u1 - b.u0 - 2 * b.ru) / (this.relief.lon1 - this.relief.lon0);
     const wunsch = pxGrad < this.bisGrenzen[1]! ? 1 : 2;
     return this.stufen[wunsch] ?? this.stufen[1] ?? this.stufen[2] ?? this.stufen[0] ?? null;
   }
@@ -404,7 +456,7 @@ export class VectorLayer {
   private bStufe(pxGrad?: number): KStufe | null {
     if (pxGrad === undefined) {
       const b = this.atlas.viewBounds();
-      pxGrad = this.cssW / Math.max(0.02, b.u1 - b.u0 - 0.08) / (this.relief.lon1 - this.relief.lon0);
+      pxGrad = this.cssW / Math.max(0.0005, b.u1 - b.u0 - 2 * b.ru) / (this.relief.lon1 - this.relief.lon0);
     }
     return pxGrad < this.bisGrenzen[1]! ? (this.bStufen[1] ?? this.bStufen[2] ?? null) : (this.bStufen[2] ?? this.bStufen[1] ?? null);
   }
@@ -421,13 +473,18 @@ export class VectorLayer {
   // -------------------------------------------------------------------------
   // Zeichnen
 
-  private pathXyz(xyz: Float32Array, from: number, n: number, close: boolean): void {
-    const { ctx, m } = this;
+  private pathXyz(xyz: Float32Array, from: number, n: number, close: boolean, kontext?: CanvasRenderingContext2D): void {
+    const { m } = this;
+    const ctx = kontext ?? this.ctx;
     const W = this.cssW;
     const H = this.cssH;
     let pen = false;
     let lx = 0;
     let ly = 0;
+    // Anfang des Teilpfads: geschlossen wird mit einer Linie dorthin statt mit closePath() — closePath kostet bei großen Pfaden mit tausenden
+    // Ringen (Länder der Welt) mehr als alles andere zusammen (gemessen: 42 ms gegen 2 ms je Bild); gefüllt und mit runden Ecken gezeichnet ist das gleich.
+    let sx = 0;
+    let sy = 0;
     for (let i = 0; i < n; i++) {
       const o = 3 * (from + i);
       const x = xyz[o]!;
@@ -444,6 +501,8 @@ export class VectorLayer {
       const Y = (1 - cy) * 0.5 * H;
       if (!pen) {
         ctx.moveTo(X, Y);
+        sx = X;
+        sy = Y;
         pen = true;
       } else {
         // Punkte, die weniger als einen halben Bildpunkt auseinanderliegen, tragen nichts bei
@@ -453,7 +512,7 @@ export class VectorLayer {
       lx = X;
       ly = Y;
     }
-    if (close && pen) ctx.closePath();
+    if (close && pen) ctx.lineTo(sx, sy);
   }
 
   private inView(bb: ArrayLike<number>, o: number, b: { u0: number; u1: number; v0: number; v1: number }, ppu: number, minPx: number): boolean {
@@ -473,11 +532,72 @@ export class VectorLayer {
     }
   }
 
-  private flaechenPfad(fl: KFlaeche[], b: { u0: number; u1: number; v0: number; v1: number }): void {
+  private flaechenPfad(fl: KFlaeche[], b: { u0: number; u1: number; v0: number; v1: number }, kontext?: CanvasRenderingContext2D): void {
     for (const f of fl) {
       if (f.bb[2] < b.u0 || f.bb[0] > b.u1 || f.bb[3] < b.v0 || f.bb[1] > b.v1) continue;
-      for (const r of f.ringe) this.pathXyz(r.xyz, 0, r.n, true);
+      for (const r of f.ringe) this.pathXyz(r.xyz, 0, r.n, true, kontext);
     }
+  }
+
+  /** Letzte gewählte Detailstufe und Sichtgrenzen: Die Effektschicht (fx.ts) baut ihre Pfade mit denselben Daten und derselben Matrix. */
+  private letzteKarte: KStufe | null = null;
+  private letzteB: { u0: number; u1: number; v0: number; v1: number } | null = null;
+
+  /**
+   * Baut den Pfad einer Provinz (Kfz-Kennziffer), eines Landes (ISO-Kürzel) oder eines Besitzers (Index) auf einem fremden Zeichenfläche-Kontext.
+   * Gibt falsch zurück, wenn es nichts zu zeichnen gibt (Daten fehlen oder die Fläche liegt außerhalb des Bildes).
+   */
+  fxPfad(ctx: CanvasRenderingContext2D, art: "provinz" | "land" | "besitzer", id: number | string): boolean {
+    const karte = this.letzteKarte;
+    const b = this.letzteB;
+    if (!karte || !b) return false;
+    let fl: KFlaeche[] | undefined;
+    if (art === "provinz") fl = karte.porBesitzer[(id as number) - 1];
+    else if (art === "land") {
+      const i = this.landIndex.get(id as string);
+      fl = i === undefined ? undefined : karte.porBesitzer[i];
+    } else fl = karte.porBesitzer[id as number];
+    if (!fl?.length) return false;
+    this.flaechenPfad(fl, b, ctx);
+    return true;
+  }
+
+  /** Pfad für beliebige Flächen (etwa die Auswahl einer Tinten-Animation). */
+  fxPfadFlaechen(ctx: CanvasRenderingContext2D, fl: KFlaeche[]): boolean {
+    const b = this.letzteB;
+    if (!b || !fl.length) return false;
+    this.flaechenPfad(fl, b, ctx);
+    return true;
+  }
+
+  /** Zugriff auf die Detailstufen (für den Besitzerwechsel) und auf die Besitzerliste. */
+  stufenZugriff(): (KStufe | null)[] {
+    return this.stufen;
+  }
+  besitzerEintrag(i: number): KBesitzer | undefined {
+    return this.besitzer[i];
+  }
+  /** Füllfarbe eines Besitzers: Landesfarbe, in der Beziehungsebene die der Beziehung; Provinzen der Türkei in der Nationalfarbe. */
+  besitzerFarbe(i: number): string | undefined {
+    const e = this.besitzer[i];
+    if (!e) return undefined;
+    if (e.k === "p" || e.k === "t") return NATION_COLOR;
+    const iso = e.iso;
+    if (!iso) return undefined;
+    return this.style.laender ? this.style.laender[iso] : landFarbe(iso);
+  }
+
+  /** Größe der Pfadlinie für die aktuelle Vergrößerung (wie in draw): Linien der Effektschicht passen sich der Karte an. */
+  fxLinienFaktor(): number {
+    const b = this.atlas.viewBounds();
+    const ppuR = this.cssW / Math.max(0.0005, b.u1 - b.u0 - 2 * b.ru);
+    const pxGrad = ppuR / (this.relief.lon1 - this.relief.lon0);
+    return Math.min(2.4, Math.max(0.85, (pxGrad * KERN_GRAD) / 4200));
+  }
+
+  /** Aktuelle Matrix der Vektorebene (für die Effektschicht). */
+  fxMatrixAktuell(): void {
+    this.m = this.atlas.matrix();
   }
 
   private bogenPfad(st: KStufe, typen: number[], b: { u0: number; u1: number; v0: number; v1: number }): void {
@@ -502,8 +622,10 @@ export class VectorLayer {
     const W = this.cssW;
     const H = this.cssH;
     const b = atlas.viewBounds();
-    const ppu = W / Math.max(0.02, b.u1 - b.u0 - 0.08);
-    const pxGrad = ppu / (this.relief.lon1 - this.relief.lon0);
+    // Pixel je Rahmen-Einheit (für Größenprüfungen) und je Grad Länge; die Schwellen weiter unten sind für den Kern (31 Grad = 1) geeicht
+    const ppuR = W / Math.max(0.0005, b.u1 - b.u0 - 2 * b.ru);
+    const pxGrad = ppuR / (this.relief.lon1 - this.relief.lon0);
+    const ppu = pxGrad * KERN_GRAD;
     const st = this.style;
     const ebene = st.ebene;
     const infra = ebene === "infrastruktur";
@@ -513,6 +635,8 @@ export class VectorLayer {
     while (nr < 2 && !this.stufen[nr]) nr++;
     this.stufeNr = nr;
     const karte = this.stufen[nr] ?? null;
+    this.letzteKarte = karte;
+    this.letzteB = b;
     // Ausbaustufe der Straßen: nur bei Bedarf laden
     const stufe = infra ? (ppu > 9000 ? 3 : ppu > 5000 ? 2 : ppu > 3000 ? 1 : 0) : ppu > 7000 ? 1 : -1;
     if (stufe >= 0 || infra || ppu > 3500) this.ladeInfrastruktur(Math.max(0, stufe));
@@ -523,6 +647,9 @@ export class VectorLayer {
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     const z = Math.min(2.4, Math.max(0.85, ppu / 4200));
+    // Überblendung beim Ebenenwechsel: solange sie läuft, zeichnet jedes Bild neu
+    const blend = this.blendFaktor();
+    if (blend < 1) this.dirty = true;
 
     // Die übrigen Länder: erst ein ruhiger Grauton, darüber ihre Landesfarbe (in der Ebene „Welt“ die Farbe der Beziehung)
     if (karte) {
@@ -530,16 +657,23 @@ export class VectorLayer {
       for (const i of this.fremd) this.flaechenPfad(karte.porBesitzer[i]!, b);
       ctx.fillStyle = "rgba(70, 68, 60, 0.30)";
       ctx.fill("evenodd");
-      for (const i of this.fremd) {
-        const iso = this.besitzer[i]!.iso!;
-        const col = st.laender ? st.laender[iso] : COUNTRY_COLORS[iso];
-        if (!col) continue;
-        ctx.beginPath();
-        this.flaechenPfad(karte.porBesitzer[i]!, b);
-        ctx.globalAlpha = st.laender ? 0.62 : 0.26;
-        ctx.fillStyle = col;
-        ctx.fill("evenodd");
-      }
+      const fremdPass = (laender: Record<string, string> | undefined, faktor: number) => {
+        for (const i of this.fremd) {
+          const iso = this.besitzer[i]!.iso!;
+          const col = laender ? laender[iso] : landFarbe(iso);
+          if (!col) continue;
+          ctx.beginPath();
+          this.flaechenPfad(karte.porBesitzer[i]!, b);
+          ctx.globalAlpha = (laender ? 0.62 : 0.26) * faktor;
+          ctx.fillStyle = col;
+          ctx.fill("evenodd");
+        }
+      };
+      // Ebenenwechsel: alte und neue Farben überblenden (Effekte an), sonst ein Durchgang
+      if (blend < 1 && this.vorher) {
+        fremdPass(this.vorher.laender, 1 - blend);
+        fremdPass(st.laender, blend);
+      } else fremdPass(st.laender, 1);
       ctx.globalAlpha = 1;
       ctx.beginPath();
       this.bogenPfad(karte, [5], b);
@@ -553,32 +687,42 @@ export class VectorLayer {
     const bst = this.bStufe(pxGrad);
     const bezirkFill = infra && this.bezirke !== null && bst !== null && ppu > 3200;
     if (karte) {
-      for (let plaka = 1; plaka <= 81; plaka++) {
-        const fl = karte.porBesitzer[plaka - 1]!;
-        if (!fl.length) continue;
-        let col: string | undefined;
-        let alpha: number;
-        if (political) {
-          col = NATION_COLOR;
-          // in der Ebene „Beziehungen“ tritt die Türkei zurück, damit die Farben der Länder ringsum lesbar bleiben
-          alpha = st.laender ? 0.3 : 0.5;
-        } else {
-          col = st.fill![plaka];
-          alpha = st.fillAlpha ?? 0.62;
-        }
-        if (bezirkFill) alpha = 0;
-        if (!col || alpha <= 0) continue;
-        ctx.beginPath();
-        this.flaechenPfad(fl, b);
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = col;
-        ctx.fill("evenodd");
-        if (political) {
-          ctx.globalAlpha = st.laender ? 0.08 : 0.2;
-          ctx.fillStyle = REGION_COLORS[REGION_OF.get(plaka) ?? ""] ?? col;
+      const provPass = (fillRec: Record<number, string> | undefined, fillAlpha: number | undefined, laender: Record<string, string> | undefined, bezirkAus: boolean, faktor: number) => {
+        const political = fillRec === undefined;
+        for (let plaka = 1; plaka <= 81; plaka++) {
+          const fl = karte.porBesitzer[plaka - 1]!;
+          if (!fl.length) continue;
+          let col: string | undefined;
+          let alpha: number;
+          if (political) {
+            col = NATION_COLOR;
+            // in der Ebene „Beziehungen“ tritt die Türkei zurück, damit die Farben der Länder ringsum lesbar bleiben
+            alpha = laender ? 0.3 : 0.5;
+          } else {
+            col = fillRec![plaka];
+            alpha = fillAlpha ?? 0.62;
+          }
+          if (bezirkAus) alpha = 0;
+          alpha *= faktor;
+          if (!col || alpha <= 0) continue;
+          ctx.beginPath();
+          this.flaechenPfad(fl, b);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = col;
           ctx.fill("evenodd");
+          if (political) {
+            ctx.globalAlpha = (laender ? 0.08 : 0.2) * faktor;
+            ctx.fillStyle = REGION_COLORS[REGION_OF.get(plaka) ?? ""] ?? col;
+            ctx.fill("evenodd");
+          }
         }
-      }
+      };
+      if (blend < 1 && this.vorher) {
+        const v = this.vorher;
+        const vorherBezirk = v.ebene === "infrastruktur" && this.bezirke !== null && bst !== null && ppu > 3200;
+        provPass(v.fill, v.fillAlpha, v.laender, vorherBezirk, 1 - blend);
+        provPass(st.fill, st.fillAlpha, st.laender, bezirkFill, blend);
+      } else provPass(st.fill, st.fillAlpha, st.laender, bezirkFill, 1);
     }
     ctx.globalAlpha = 1;
 
@@ -605,7 +749,7 @@ export class VectorLayer {
 
     // Seen und Flüsse
     ctx.beginPath();
-    for (const s of this.lakes) if (this.inView(s.bb, 0, b, ppu, 2)) this.pathXyz(s.xyz, 0, s.n, true);
+    for (const s of this.lakes) if (this.inView(s.bb, 0, b, ppuR, 2)) this.pathXyz(s.xyz, 0, s.n, true);
     ctx.fillStyle = "rgba(38, 78, 100, 0.95)";
     ctx.fill();
     ctx.strokeStyle = "rgba(170, 200, 205, 0.7)";
@@ -618,7 +762,7 @@ export class VectorLayer {
         ctx.beginPath();
         let any = false;
         for (const r of this.rivers) {
-          if (r.rank !== rank || r.unstet !== gestrichelt || !this.inView(r.shape.bb, 0, b, ppu, 3)) continue;
+          if (r.rank !== rank || r.unstet !== gestrichelt || !this.inView(r.shape.bb, 0, b, ppuR, 3)) continue;
           this.pathXyz(r.shape.xyz, 0, r.shape.n, false);
           any = true;
         }
@@ -648,7 +792,7 @@ export class VectorLayer {
     }
 
     // Straßen und Bahn
-    this.drawVerkehr(b, ppu, z, infra);
+    this.drawVerkehr(b, ppu, ppuR, z, infra);
 
     // Landesgrenze: roter Farbsaum nach innen, dunkle Linie darüber
     if (karte) {
@@ -671,53 +815,16 @@ export class VectorLayer {
       ctx.stroke();
     }
 
-    // Auswahl und Hover
-    const markiere = (plaka: number | undefined, fill: string, sSchwarz: number, sGold: number) => {
-      if (!plaka || !karte) return;
-      const fl = karte.porBesitzer[plaka - 1];
-      if (!fl?.length) return;
-      ctx.beginPath();
-      this.flaechenPfad(fl, b);
-      ctx.fillStyle = fill;
-      ctx.fill("evenodd");
-      if (sSchwarz > 0) {
-        ctx.strokeStyle = "rgba(30, 20, 12, 0.9)";
-        ctx.lineWidth = sSchwarz * z;
-        ctx.stroke();
-      }
-      ctx.strokeStyle = "rgba(241, 213, 143, 1)";
-      ctx.lineWidth = sGold * z;
-      ctx.stroke();
-    };
-    if (st.hover && st.hover !== st.selected) markiere(st.hover, "rgba(255, 246, 220, 0.2)", 0, 1.8);
-    markiere(st.selected, "rgba(255, 240, 200, 0.16)", 4.2, 2.0);
-    if (st.landAuswahl && karte) {
-      const i = this.landIndex.get(st.landAuswahl);
-      if (i !== undefined) {
-        ctx.beginPath();
-        this.flaechenPfad(karte.porBesitzer[i]!, b);
-        ctx.fillStyle = "rgba(255, 240, 200, 0.16)";
-        ctx.fill("evenodd");
-        ctx.strokeStyle = "rgba(30, 20, 12, 0.9)";
-        ctx.lineWidth = 4.2 * z;
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(241, 213, 143, 1)";
-        ctx.lineWidth = 2.0 * z;
-        ctx.stroke();
-      }
-    }
-    if (st.hoverLand && karte && st.hoverLand !== st.landAuswahl) {
-      const i = this.landIndex.get(st.hoverLand);
-      if (i !== undefined) {
-        ctx.beginPath();
-        this.flaechenPfad(karte.porBesitzer[i]!, b);
-        ctx.fillStyle = "rgba(255, 246, 220, 0.2)";
-        ctx.fill("evenodd");
-        ctx.strokeStyle = "rgba(241, 213, 143, 0.95)";
-        ctx.lineWidth = 1.8 * z;
-        ctx.stroke();
-      }
-    }
+    // Seismische Verwerfungslinien (Bruchlinien bei Katastrophenrisiko / Probleme)
+    this.drawBruchlinien(z, st.ebene);
+
+    // Taktische Frontabschnitte & Pufferzonen (HOI4-Stil)
+    this.drawFrontlinien(z, st.ebene);
+
+    // Megaprojekte (Kanal Istanbul, Çanakkale-, Osmangazi-Brücke, Atatürk-Staudamm)
+    this.drawMegaprojekte(z);
+
+    // Hervorhebung von Provinz und Land (Hover, Auswahl) zeichnet die Effektschicht (fx.ts): weich, ohne die Vektorebene neu zu zeichnen
     if (st.hoverBezirk !== undefined && bst) {
       const fl = bst.porBesitzer[st.hoverBezirk];
       if (fl?.length) {
@@ -738,7 +845,7 @@ export class VectorLayer {
     this.zeiten = { flaechen: tNamen - tStart, namen: tEnde - tNamen, bilder: this.zeiten.bilder + 1 };
   }
 
-  private drawVerkehr(b: { u0: number; u1: number; v0: number; v1: number }, ppu: number, z: number, infra: boolean): void {
+  private drawVerkehr(b: { u0: number; u1: number; v0: number; v1: number }, ppu: number, ppuR: number, z: number, infra: boolean): void {
     const { ctx } = this;
     // Ab welcher Vergrößerung welche Klasse sichtbar wird; in der Infrastruktur-Ebene früher und dichter.
     const ab = infra ? [1400, 2800, 5200, 9000] : [4800, 7500, 12000, Infinity];
@@ -759,7 +866,7 @@ export class VectorLayer {
       const s = stile[t]!;
       if (ppu < ab[t]! || !this.tiers[t]) continue;
       ctx.beginPath();
-      this.drawLines(this.tiers[t]!, b, ppu, s.minPx);
+      this.drawLines(this.tiers[t]!, b, ppuR, s.minPx);
       if (ppu > 3500) {
         ctx.strokeStyle = s.casing;
         ctx.lineWidth = (s.w + 1.4) * zz * wsk;
@@ -771,7 +878,7 @@ export class VectorLayer {
     }
     if (this.rail && ppu > (infra ? 1800 : 6500)) {
       ctx.beginPath();
-      this.drawLines(this.rail, b, ppu, 3);
+      this.drawLines(this.rail, b, ppuR, 3);
       ctx.strokeStyle = "rgba(24,18,14,0.92)";
       ctx.lineWidth = 2.0 * z;
       ctx.stroke();
@@ -873,6 +980,126 @@ export class VectorLayer {
         zeige(pk.staudamm.filter((k) => k[2] !== ""), "staudamm", r * 0.8);
       }
     }
+  }
+
+  private drawBruchlinien(z: number, ebene: Kartenebene): void {
+    if (ebene !== "risiko" && ebene !== "probleme") return;
+    const { ctx, atlas, relief } = this;
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    for (const f of BRUCHLINIEN) {
+      const coords: { x: number; y: number; sichtbar: boolean }[] = [];
+      for (const [lon, lat] of f.punkte) {
+        const [u, v] = lonLatToUv(relief, lon, lat);
+        coords.push(atlas.project(u, v));
+      }
+      if (coords.length < 2 || !coords.some((c) => c.sichtbar)) continue;
+
+      // Seismischer Warnglanz / Glow
+      ctx.beginPath();
+      coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+      ctx.strokeStyle = f.typ === "hauptverwerfung" ? "rgba(224, 76, 56, 0.45)" : "rgba(235, 140, 50, 0.35)";
+      ctx.lineWidth = (f.typ === "hauptverwerfung" ? 5.5 : 3.5) * z;
+      ctx.stroke();
+
+      // Scharfe Bruchlinie
+      ctx.beginPath();
+      coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+      ctx.strokeStyle = f.typ === "hauptverwerfung" ? "#a81e14" : "#b85c18";
+      ctx.lineWidth = (f.typ === "hauptverwerfung" ? 2.0 : 1.4) * z;
+      ctx.setLineDash(f.typ === "hauptverwerfung" ? [6 * z, 3.5 * z] : [4 * z, 3 * z]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  }
+
+  private drawFrontlinien(z: number, ebene: Kartenebene): void {
+    if (ebene !== "welt" && ebene !== "probleme" && ebene !== "gelaende") return;
+    const { ctx, atlas, relief } = this;
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    for (const front of TAKTIK_FRONTEN) {
+      const coords: { x: number; y: number; sichtbar: boolean }[] = [];
+      for (const [lon, lat] of front.punkte) {
+        const [u, v] = lonLatToUv(relief, lon, lat);
+        coords.push(atlas.project(u, v));
+      }
+      if (coords.length < 2 || !coords.some((c) => c.sichtbar)) continue;
+
+      // Front-Glow
+      ctx.beginPath();
+      coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+      const farbeGlow = front.status === "aktiv" ? "rgba(235, 55, 35, 0.35)" : front.status === "befestigt" ? "rgba(220, 160, 30, 0.3)" : "rgba(60, 150, 230, 0.25)";
+      ctx.strokeStyle = farbeGlow;
+      ctx.lineWidth = 6 * z;
+      ctx.stroke();
+
+      // Taktische gestrichelte Frontlinie
+      ctx.beginPath();
+      coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+      const farbeKern = front.status === "aktiv" ? "#c92416" : front.status === "befestigt" ? "#c47f16" : "#246eb5";
+      ctx.strokeStyle = farbeKern;
+      ctx.lineWidth = 2.4 * z;
+      ctx.setLineDash([7 * z, 4.5 * z]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  }
+
+  private drawMegaprojekte(z: number): void {
+    const { ctx, atlas, relief } = this;
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    for (const m of MEGAPROJEKTE_DETAILS) {
+      if (!m.trasse || m.trasse.length < 2) continue;
+      const coords: { x: number; y: number; sichtbar: boolean }[] = [];
+      for (const [lon, lat] of m.trasse) {
+        const [u, v] = lonLatToUv(relief, lon, lat);
+        coords.push(atlas.project(u, v));
+      }
+      if (coords.length < 2 || !coords.some((c) => c.sichtbar)) continue;
+
+      if (m.typ === "wasserstrasse") {
+        // Kanal Istanbul
+        ctx.beginPath();
+        coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+        ctx.strokeStyle = "rgba(240, 226, 196, 0.9)";
+        ctx.lineWidth = 5.5 * z;
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(32, 98, 142, 0.98)";
+        ctx.lineWidth = 3.6 * z;
+        ctx.stroke();
+      } else if (m.typ === "haengebruecke") {
+        // Çanakkale 1915 / Osmangazi
+        ctx.beginPath();
+        coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+        ctx.strokeStyle = "#e84a38";
+        ctx.lineWidth = 2.8 * z;
+        ctx.stroke();
+        for (const pt of coords) {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 2.8 * z, 0, Math.PI * 2);
+          ctx.fillStyle = "#2a1e12";
+          ctx.fill();
+        }
+      } else if (m.typ === "staudamm") {
+        // Atatürk-Staudamm
+        ctx.beginPath();
+        coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+        ctx.strokeStyle = "rgba(230, 235, 238, 0.95)";
+        ctx.lineWidth = 4.2 * z;
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(42, 60, 70, 0.9)";
+        ctx.lineWidth = 1.6 * z;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
   }
 }
 

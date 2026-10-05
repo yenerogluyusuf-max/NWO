@@ -18,14 +18,15 @@
 // keine Tatsachenbehauptungen; Todeszahlen bleiben in der Größenordnung der Anker.
 
 import { NET } from "./modell";
-import { nationalAverage } from "./netz";
+import { nationalAverage, PROVINCES } from "./netz";
 import { PROVINZEN } from "./regional";
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
+import { t } from "../i18n";
 import { clamp } from "./economy";
 import { hashWert } from "./aufmerksamkeit";
 import { addDays, formatDateDe } from "./dates";
-import { beginne, laufBau, registriereVorhaben, vorhabenDef, reichZustand } from "./reich";
+import { beginne, laufBau, registriereVorhaben, vorhabenDef, reichZustand, warteschlange } from "./reich";
 import type { Vergabe, Vorhaben } from "./reich-typen";
 import type { Rng } from "./rng";
 import type { World } from "./types";
@@ -53,11 +54,24 @@ export const KATASTROPHE = {
   flutToteBasis: 0.00011,
   /** Waldbrand: wenige Tote, großer Flächen- und Wirtschaftsschaden */
   brandToteBasis: 0.000006,
+  /**
+   * Zorn über zu wenig Hilfe (Messung 05.10.: bis zu 86.607 Tote ließen die Zustimmung nicht fallen, nur der kurze Rallye-Effekt blieb):
+   * Ab so vielen Toten wächst der Unmut je Zehnerpotenz, solange die Hilfe hinter dem Schaden zurückbleibt …
+   */
+  zornTote: 2000,
+  /** … um so viel Vertrauen je Monat und Zehnerpotenz, bei null Hilfe (Spielparameter) … */
+  zornJeStufe: 0.25,
+  /** … im Zeitfenster von so vielen Tagen nach dem Ereignis (vorher trägt der Zusammenhalt, nachher ist der Fall meist geschlossen) */
+  zornVonTag: 30,
+  zornBisTag: 270,
   brandWohnungenBasis: 0.00002,
-  /** Monatschancen der leichten Typen (saisonal) */
-  flutChance: 0.022,
-  brandChance: 0.03,
-  duerreChance: 0.012,
+  /**
+   * Monatschancen der leichten Typen (saisonal). Seit die alten Einzelvorlagen (Überschwemmung, Waldbrand, Dürre) abgeschaltet sind,
+   * tragen sie allein die Häufigkeit; Kalibrierung gemessen über 24 Seeds × 5 Jahre (vorher zusammen etwa 0,26 / 0,19 / 0,25 je Jahr).
+   */
+  flutChance: 0.06,
+  brandChance: 0.06,
+  duerreChance: 0.04,
   /** Abkühlung je Art in Monaten; und: keine neue Lage, solange eine andere frisch ist (Tage) */
   abkuehlung: { erdbeben: 36, flut: 12, waldbrand: 12, duerre: 18 },
   sperrTage: 30,
@@ -74,6 +88,15 @@ export const KATASTROPHE = {
   privatQuote: 0.004,
   privatDeckel: 0.25,
   privatNachTagen: 90,
+  /** Untergrenze für ein eigenes Wohnungsbau-Programm (verbliebener Bedarf in Wohnungen); darunter bleibt nur die Erholung vor Ort */
+  wiederaufbauMin: 1000,
+  /** Kleine Schäden (unter der Programmgrenze) und Brandschäden beheben Eigentümer, Versicherung und Behörde ohne Deckel: Anteil des Bedarfs je Monat (Größenordnung zwei Jahre) */
+  privatQuoteKlein: 0.05,
+  /** Frist in Monaten, nach der eine akute Lage als abgeklungen gilt, auch ohne volle Lieferung; offene Versprechen bleiben in der Versprechensschuld */
+  fristMonate: { erdbeben: 60, flut: 24, waldbrand: 12, duerre: 18 },
+  /** Dürre: frühestens nach so vielen Monaten und wenn der Wassermangel im Becken bis auf die Toleranz (Punkte) zur Ruhelage zurückgekehrt ist */
+  duerreMindestMonate: 6,
+  duerreToleranz: 3,
   /** Versprechensschuld: Stufen der öffentlichen Zusage (Anteil der zerstörten Wohnungen) */
   zusageStufen: { klein: 0.6, voll: 1.0, gross: 1.4 },
   /** Wahl-Malus je Punkt Unwucht (versprochen vs. geliefert), skaliert mit der Stärke der Lage */
@@ -159,6 +182,65 @@ export function migriereKatastrophen(w: World): void {
 
 export function fallMit(w: World, id: string): KatastropheFall | undefined {
   return w.spiel?.katastrophen?.faelle.find((f) => f.id === id);
+}
+
+/** Kommt ein eigenes Wohnungsbau-Programm in Frage? Nur Erdbeben und Fluten mit genug verbliebenem Bedarf. */
+export function programmMoeglich(fall: KatastropheFall): boolean {
+  return (fall.art === "erdbeben" || fall.art === "flut") && fall.wohnungen - fall.privatGeliefert >= KATASTROPHE.wiederaufbauMin;
+}
+
+/** Läuft das Wohnungsbau-Programm des Falls noch (angemeldet, nicht fertig)? */
+function programmLaeuft(fall: KatastropheFall, reich: ReturnType<typeof reichZustand> | null): boolean {
+  return !!fall.wohnbau && !!reich?.laufend.some((l) => l.id === fall.wohnbau!.id);
+}
+
+/** Vom Wohnungsbau-Programm gelieferte Wohnungen, auch ohne öffentliche Zusage, aus dem Stand im Reich gerechnet. */
+function programmLieferung(fall: KatastropheFall, reich: ReturnType<typeof reichZustand> | null): number {
+  if (!fall.wohnbau || !reich) return 0;
+  if (reich.bestand[fall.wohnbau.id]) return Math.max(fall.wohnbau.bedarf, fall.zusage?.wohnungen ?? 0);
+  const lauf = reich.laufend.find((l) => l.id === fall.wohnbau!.id);
+  const def = vorhabenDef(fall.wohnbau.id);
+  return lauf && def ? Math.round((lauf.fortschritt / laufBau(lauf, def)) * fall.wohnbau.bedarf) : 0;
+}
+
+/** Ruhelage eines Knotens in den Provinzen (Bevölkerungsgewicht), das Gegenstück zu `wertIn`. */
+function ruheIn(w: World, id: string, provinzen: number[]): number {
+  const i = NET.index.get(id);
+  if (i === undefined) return NaN;
+  let summe = 0;
+  let gewicht = 0;
+  for (const plaka of provinzen) {
+    const g = w.net.weights[plaka - 1]!;
+    summe += w.net.start[i * PROVINCES + plaka - 1]! * g;
+    gewicht += g;
+  }
+  return gewicht > 0 ? summe / gewicht : NaN;
+}
+
+export type Abschluss = "geliefert" | "erholt" | "frist";
+
+/**
+ * Wann gilt ein Fall als abgeschlossen? (1) Der Bedarf an Wohnungen ist zu 95 % gedeckt, durch Programm oder Erholung vor Ort;
+ * (2) die Dürre ist abgeklungen (Mindestdauer und Wassermangel zurück an der Ruhelage); (3) die Frist der Art ist verstrichen.
+ * Solange das Programm oder die Übergangsversorgung läuft, schließt nichts. Versprechen bleiben auch nach dem Abschluss in der
+ * Versprechensschuld (`versprechensLage` zählt jeden Fall mit Zusage).
+ */
+export function abschlussPruefen(w: World, fall: KatastropheFall): Abschluss | null {
+  const reich = w.spiel?.reich ? reichZustand(w) : null;
+  if (programmLaeuft(fall, reich)) return null;
+  if (fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day) return null;
+  const monate = (w.day - fall.tag) / 30.4;
+  const bedarf = fall.zusage?.wohnungen ?? fall.wohnungen;
+  const geliefert = (fall.zusage ? fall.zusage.geliefert : programmLieferung(fall, reich)) + fall.privatGeliefert;
+  if (bedarf > 0 && geliefert >= bedarf * 0.95) return fall.wohnbau ? "geliefert" : "erholt";
+  if (fall.art === "duerre") {
+    const wert = wertIn(w, "p_wassermangel", fall.provinzen);
+    const ruhe = ruheIn(w, "p_wassermangel", fall.provinzen);
+    const abgeklungen = Number.isFinite(wert) && Number.isFinite(ruhe) ? wert <= ruhe + KATASTROPHE.duerreToleranz : monate >= 12;
+    if (monate >= KATASTROPHE.duerreMindestMonate && abgeklungen) return "erholt";
+  }
+  if (monate >= KATASTROPHE.fristMonate[fall.art]) return "frist";
+  return null;
 }
 
 /** Die AFAD-Bereitschaft: Stand der Netz-Größe „katastrophenschutz" (0–100). */
@@ -441,6 +523,8 @@ export function zusageFestlegen(w: World, fallId: string, stufe: keyof typeof KA
   const fall = fallMit(w, fallId);
   if (!fall || fall.wohnungen <= 0) return "Es gibt keinen zerstörten Wohnbestand, für den man versprechen könnte.";
   if (fall.zusage) return "Das öffentliche Versprechen steht bereits.";
+  // Ein Versprechen, das kein Programm einlösen kann, wäre eine Falle mit garantiertem Wahlmalus
+  if (!programmMoeglich(fall)) return t("katastrophe.zusage_unmoeglich");
   const wohnungen = Math.max(500, Math.round((fall.wohnungen * KATASTROPHE.zusageStufen[stufe]) / 500) * 500);
   fall.zusage = { wohnungen, geliefert: 0 };
   const zustimmung = stufe === "gross" ? 2.5 : stufe === "voll" ? 1.5 : 0.5;
@@ -501,7 +585,7 @@ export function beginneWiederaufbau(w: World, fallId: string, vergabe: Vergabe):
   if (fall.art === "duerre" || fall.art === "waldbrand") return { ok: false, text: "Hier geht es nicht um zerstörte Wohnungen — Hilfe läuft über Sofort- und Übergangsversorgung." };
   if (fall.wohnbau) return { ok: false, text: "Das Wohnungsbau-Programm läuft bereits." };
   const bedarf = Math.max(fall.zusage?.wohnungen ?? 0, fall.wohnungen - fall.privatGeliefert);
-  if (bedarf < 1000) return { ok: false, text: "Der verbliebene Bedarf ist zu klein für ein eigenes Programm." };
+  if (bedarf < KATASTROPHE.wiederaufbauMin) return { ok: false, text: "Der verbliebene Bedarf ist zu klein für ein eigenes Programm." };
   const versicherung = nationalAverage(NET, w.net, "m_versicherungspflicht") / 100;
   const p = {
     id: `kat_wohnbau_${fall.id}`,
@@ -639,29 +723,76 @@ export function katastropheMonat(w: World, rng: Rng): void {
       wirke(w, "p_wohnungsnot", -0.6, fall.provinzen);
       if (w.day - fall.tag === 60) vertrauenAendern(w, 0.4);
     }
-    // 3. Lieferfortschritt des Wohnungsbau-Programms (geliefert X von Y Wohnungen)
+    // 3. Lieferfortschritt des Wohnungsbau-Programms (geliefert X von Y Wohnungen); die Zusage zieht mit, soweit es eine gibt
     if (fall.zusage && fall.wohnbau && reich) {
-      const def = vorhabenDef(fall.wohnbau.id);
-      const lauf = reich.laufend.find((l) => l.id === fall.wohnbau!.id);
-      if (lauf && def) {
-        fall.zusage.geliefert = Math.min(fall.zusage.wohnungen, Math.round((lauf.fortschritt / laufBau(lauf, def)) * fall.wohnbau.bedarf));
-      } else if (reich.bestand[fall.wohnbau.id]) {
-        fall.zusage.geliefert = fall.zusage.wohnungen;
-      }
+      const lieferung = programmLieferung(fall, reich);
+      if (lieferung > 0) fall.zusage.geliefert = Math.min(fall.zusage.wohnungen, lieferung);
     }
-    // 4. Private Erholung ohne (oder neben) dem Programm, gedeckelt
-    if (fall.wohnungen > 0 && w.day - fall.tag >= KATASTROPHE.privatNachTagen && fall.privatGeliefert < fall.wohnungen * KATASTROPHE.privatDeckel) {
-      fall.privatGeliefert = Math.min(fall.wohnungen * KATASTROPHE.privatDeckel, fall.privatGeliefert + fall.wohnungen * KATASTROPHE.privatQuote);
+    // 4. Private Erholung ohne (oder neben) dem Programm: bei großen Schäden gedeckelt (der Staat muss bauen), bei kleinen und bei
+    //    Bränden ohne Deckel und schneller, weil dort kein Programm in Frage kommt
+    const kleinfall = fall.art === "waldbrand" || fall.wohnungen < KATASTROPHE.wiederaufbauMin;
+    const deckel = fall.wohnungen * (kleinfall ? 1 : KATASTROPHE.privatDeckel);
+    const quote = kleinfall ? KATASTROPHE.privatQuoteKlein : KATASTROPHE.privatQuote;
+    if (fall.wohnungen > 0 && w.day - fall.tag >= KATASTROPHE.privatNachTagen && fall.privatGeliefert < deckel) {
+      fall.privatGeliefert = Math.min(deckel, fall.privatGeliefert + fall.wohnungen * quote);
     }
-    // 5. Bewältigt: geliefert nahe dem Bedarf oder nach langem Verlauf
-    const bedarf = fall.zusage?.wohnungen ?? fall.wohnungen;
-    const geliefert = (fall.zusage?.geliefert ?? 0) + fall.privatGeliefert;
-    if (bedarf > 0 && geliefert >= bedarf * 0.95 && (!fall.wohnbau || !reich?.laufend.some((l) => l.id === fall.wohnbau!.id))) {
-      fall.bewaeltigt = w.day;
-      addLog(w, "ereignis", `${ART_NAMEN[fall.art]} in ${namenVon(fall.provinzen)}: Die Lage gilt als bewältigt.`, `${nf(Math.round(geliefert))} von ${nf(bedarf)} Wohnungen sind wieder fertig; die Region steht wieder auf eigenen Beinen.`);
-      w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `${ART_NAMEN[fall.art]} bewältigt`, ausgang: `${namenVon(fall.provinzen)} steht wieder: ${nf(Math.round(geliefert))} von ${nf(bedarf)} Wohnungen geliefert.` });
-    }
+    // 4b. Zorn über zu wenig Hilfe: je mehr Tote, desto weniger verzeiht das Land eine schleppende Antwort
+    zornMonat(w, fall, reich);
+    // 5. Abgeschlossen: Bedarf gedeckt, Dürre abgeklungen oder Frist verstrichen
+    const ausgang = abschlussPruefen(w, fall);
+    if (ausgang) schliesse(w, fall, ausgang);
   }
+}
+
+/**
+ * Hilfsstand eines Falls (0 bis 1): Soforthilfe und Übergangsversorgung zählen als Anfang, der Rest ist der gedeckte Wohnungsbedarf.
+ * Fälle ohne Wohnungsbedarf (Dürre, kleine Brände) gelten als versorgt.
+ */
+export function hilfsStand(w: World, fall: KatastropheFall, reich: ReturnType<typeof reichZustand> | null): number {
+  if (fall.wohnungen <= 0) return 1;
+  const geliefert = (fall.zusage ? fall.zusage.geliefert : reich ? programmLieferung(fall, reich) : 0) + fall.privatGeliefert;
+  const deckung = clamp(geliefert / fall.wohnungen, 0, 1);
+  const anfang = (fall.hilfe.soforthilfe ? 0.25 : 0) + (fall.hilfe.uebergangBis !== undefined ? 0.15 : 0);
+  return clamp(anfang + 0.6 * deckung, 0, 1);
+}
+
+export function zornMonat(w: World, fall: KatastropheFall, reich: ReturnType<typeof reichZustand> | null): void {
+  const alter = w.day - fall.tag;
+  if (fall.tote < KATASTROPHE.zornTote || alter < KATASTROPHE.zornVonTag || alter > KATASTROPHE.zornBisTag) return;
+  const stufe = Math.log10(fall.tote / KATASTROPHE.zornTote);
+  const zorn = KATASTROPHE.zornJeStufe * stufe * (1 - hilfsStand(w, fall, reich));
+  if (zorn < 0.01) return;
+  vertrauenAendern(w, -zorn);
+  wirke(w, "legitimitaet", -0.4 * zorn);
+  wirke(w, "vertrauen_regierung", -2 * zorn, fall.provinzen);
+}
+
+/** Schließt einen Fall und schreibt Protokoll und Chronik. */
+function schliesse(w: World, fall: KatastropheFall, ausgang: Abschluss): void {
+  const bedarf = fall.zusage?.wohnungen ?? fall.wohnungen;
+  const reich = w.spiel?.reich ? reichZustand(w) : null;
+  const geliefert = Math.round((fall.zusage ? fall.zusage.geliefert : programmLieferung(fall, reich)) + fall.privatGeliefert);
+  const ort = namenVon(fall.provinzen);
+  fall.bewaeltigt = w.day;
+  if (ausgang === "frist") {
+    const monate = Math.round((w.day - fall.tag) / 30.4);
+    const mitZusage = !!fall.zusage && geliefert < bedarf * 0.95;
+    addLog(
+      w,
+      "ereignis",
+      t("katastrophe.frist_titel", { art: ART_NAMEN[fall.art], ort }),
+      t(mitZusage ? "katastrophe.frist_text_zusage" : "katastrophe.frist_text", { monate, geliefert, bedarf }),
+    );
+    w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: t("katastrophe.frist_chronik_titel", { art: ART_NAMEN[fall.art] }), ausgang: t("katastrophe.frist_chronik_text", { ort, monate }) });
+    return;
+  }
+  if (bedarf > 0) {
+    addLog(w, "ereignis", `${ART_NAMEN[fall.art]} in ${ort}: Die Lage gilt als bewältigt.`, `${nf(geliefert)} von ${nf(bedarf)} Wohnungen sind wieder fertig; die Region steht wieder auf eigenen Beinen.`);
+    w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `${ART_NAMEN[fall.art]} bewältigt`, ausgang: `${ort} steht wieder: ${nf(geliefert)} von ${nf(bedarf)} Wohnungen geliefert.` });
+    return;
+  }
+  addLog(w, "ereignis", `${ART_NAMEN[fall.art]} in ${ort}: Die Lage gilt als bewältigt.`, t("katastrophe.erholt_text", { ort }));
+  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `${ART_NAMEN[fall.art]} bewältigt`, ausgang: t("katastrophe.erholt_chronik", { ort }) });
 }
 
 // ---------------------------------------------------------------------------
@@ -691,7 +822,7 @@ export function fallSicht(w: World, fall: KatastropheFall): FallSicht {
       ? `Die Bereitschaft (Stand ${fall.bereitschaft}) hat nach Modellrechnung etwa ${nf(v.tote)} Todesopfer${v.wohnungen > 0 ? ` und ${nf(v.wohnungen)} zerstörte Wohnungen` : ""} verhindert (Bandbreite ±25 %, Referenz: Bereitschaft 20).`
       : `Die Bereitschaft stand bei ${fall.bereitschaft} von 100 — eine bessere Vorsorge hätte die Opferzahlen spürbar gedrückt.`;
   const uebergangAktiv = fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day;
-  const wiederaufbauMoeglich = (fall.art === "erdbeben" || fall.art === "flut") && !fall.wohnbau && fall.wohnungen - fall.privatGeliefert >= 1000;
+  const wiederaufbauMoeglich = !fall.wohnbau && programmMoeglich(fall);
   return {
     fall,
     titel: `${ART_NAMEN[fall.art]} in ${namenVon(fall.provinzen)}`,
@@ -715,4 +846,269 @@ export function dossier(w: World): { bereitschaft: number; sichten: FallSicht[];
   const z = katastrophenZustand(w);
   const sichten = [...z.faelle].sort((a, b) => b.tag - a.tag).map((f) => fallSicht(w, f));
   return { bereitschaft: Math.round(bereitschaft(w)), sichten, versprechen: versprechensLage(w) };
+}
+
+// ---------------------------------------------------------------------------
+// Auskünfte für die Krisenstab-Ansicht (ui/katastrophe/*)
+// Reine Lesefunktionen: Sie ändern nichts am Spielzustand und benutzen dieselben Spielparameter wie die Mechanik oben.
+
+/** Um wie viel Prozent die Bereitschaft die Opferzahlen gegenüber einer Lage ohne Vorsorge (Stand 0) drückt. */
+export function bereitSenkung(stand: number): number {
+  return Math.round(KATASTROPHE.bereitWirkung * clamp(stand, 0, 100) * 10) / 10;
+}
+
+/** Um wie viel Prozent die Opferzahlen gegenüber der Referenz-Bereitschaft (Stand 20) niedriger (positiv) oder höher (negativ) ausfallen. */
+export function bereitGegenReferenz(stand: number): number {
+  return Math.round((1 - bereitFaktor(clamp(stand, 0, 100)) / bereitFaktor(KATASTROPHE.bereitReferenz)) * 1000) / 10;
+}
+
+const MONATSNAMEN = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+export interface RisikoGebiet {
+  plaka: number;
+  name: string;
+  /** Erdbeben-Risiko 1–5 (nur bei Beben) */
+  risiko?: number;
+  bevoelkerung: number;
+}
+
+export interface RisikoSicht {
+  id: string;
+  art: KatastrophenArt;
+  titel: string;
+  /** Gefährdete Provinzen, die am stärksten gefährdeten zuerst */
+  gebiet: RisikoGebiet[];
+  bevoelkerung: number;
+  /** Ungefähre Wahrscheinlichkeit, dass sich die Lage in den nächsten zwölf Monaten ereignet (0 bis 1; Spielparameter) */
+  jahresChance: number;
+  saison: string;
+  /** Monate seit dem letzten Fall dieser Art (undefined: noch nie) und Monate, bis die Abkühlzeit endet */
+  letzteVor?: number;
+  freiIn: number;
+  /** Eine Kennzahl, die das Risiko trägt (Vorsorge im Gebiet bzw. Wassermangel) */
+  kennzahl?: { name: string; wert: number; gut: "hoch" | "niedrig" };
+}
+
+function letzterFall(w: World, art: KatastrophenArt): KatastropheFall | undefined {
+  return [...(w.spiel?.katastrophen?.faelle ?? [])].filter((f) => f.art === art).sort((a, b) => b.tag - a.tag)[0];
+}
+
+/** Überlebenswahrscheinlichkeit über die nächsten zwölf Monate, mit Saison und Abkühlzeit wie in `geplanterAusloeser`. */
+function jahresChance(w: World, art: KatastrophenArt, pMonat: (monatszahl: number) => number): number {
+  const letzter = letzterFall(w, art);
+  const aktuell = monatszahl(w);
+  let ueberlebt = 1;
+  for (let k = 1; k <= 12; k++) {
+    const vergangen = letzter ? (w.day + k * 30.4 - letzter.tag) / 30.4 : Infinity;
+    if (vergangen < KATASTROPHE.abkuehlung[art]) continue;
+    ueberlebt *= 1 - clamp(pMonat(((aktuell - 1 + k) % 12) + 1), 0, 1);
+  }
+  return Math.round((1 - ueberlebt) * 1000) / 1000;
+}
+
+function gebietListe(plakas: number[], mitRisiko: boolean): RisikoGebiet[] {
+  const gewicht = (g: RisikoGebiet) => (mitRisiko ? (g.risiko ?? 1) ** 2 : 1) * g.bevoelkerung;
+  return plakas
+    .map((p) => ({
+      plaka: p,
+      name: PROVINZEN[p - 1]?.name ?? String(p),
+      bevoelkerung: PROVINZEN[p - 1]?.bevoelkerung ?? 0,
+      ...(mitRisiko ? { risiko: depremRisiko(p) } : {}),
+    }))
+    .sort((a, b) => gewicht(b) - gewicht(a));
+}
+
+const saisonText = (von: number, bis: number): string => `${MONATSNAMEN[von - 1]} bis ${MONATSNAMEN[bis - 1]}`;
+
+/** Die Gefährdungslage des Landes: je Bruchzone und je leichter Gefahr eine Zeile (Chance, Saison, Abkühlzeit, tragende Kennzahl). */
+export function risikoUebersicht(w: World): RisikoSicht[] {
+  const out: RisikoSicht[] = [];
+  const abk = (art: KatastrophenArt) => {
+    const letzter = letzterFall(w, art);
+    const seit = letzter ? Math.round(((w.day - letzter.tag) / 30.4) * 10) / 10 : undefined;
+    return { ...(seit !== undefined ? { letzteVor: seit } : {}), freiIn: seit === undefined ? 0 : Math.max(0, Math.ceil(KATASTROPHE.abkuehlung[art] - seit)) };
+  };
+  const summe = (g: RisikoGebiet[]) => g.reduce((s, x) => s + x.bevoelkerung, 0);
+
+  for (const zone of ["kaf", "daf", "baf"] as BebenZone[]) {
+    const gebiet = gebietListe(ZONEN[zone], true);
+    const hoch = gebiet.filter((g) => (g.risiko ?? 0) >= 4).map((g) => g.plaka);
+    const ziel = hoch.length ? hoch : gebiet.map((g) => g.plaka);
+    const vorsorge = (wertIn(w, "erdbebenvorsorge", ziel) + wertIn(w, "bauqualitaet", ziel)) / 2;
+    out.push({
+      id: `beben-${zone}`,
+      art: "erdbeben",
+      titel: `Erdbeben: ${ZONEN_NAMEN[zone]}`,
+      gebiet,
+      bevoelkerung: summe(gebiet),
+      jahresChance: jahresChance(w, "erdbeben", () => KATASTROPHE.bebenChance[zone]),
+      saison: "ganzjährig",
+      ...abk("erdbeben"),
+      ...(Number.isFinite(vorsorge) ? { kennzahl: { name: "Vorsorge in den Hochrisiko-Provinzen", wert: Math.round(vorsorge), gut: "hoch" as const } } : {}),
+    });
+  }
+  const flut = gebietListe(FLUT_GEBIET, false);
+  out.push({
+    id: "flut",
+    art: "flut",
+    titel: "Sturzflut am Schwarzen Meer",
+    gebiet: flut,
+    bevoelkerung: summe(flut),
+    jahresChance: jahresChance(w, "flut", (m) => (m >= 8 && m <= 11 ? KATASTROPHE.flutChance : 0)),
+    saison: saisonText(8, 11),
+    ...abk("flut"),
+  });
+  const brand = gebietListe(BRAND_GEBIET, false);
+  out.push({
+    id: "waldbrand",
+    art: "waldbrand",
+    titel: "Großbrand an Ägäis und Mittelmeer",
+    gebiet: brand,
+    bevoelkerung: summe(brand),
+    jahresChance: jahresChance(w, "waldbrand", (m) => (m >= 6 && m <= 9 ? KATASTROPHE.brandChance : 0)),
+    saison: saisonText(6, 9),
+    ...abk("waldbrand"),
+  });
+  const duerre = gebietListe(DUERRE_BECKEN, false);
+  const mangel = wertIn(w, "p_wassermangel", DUERRE_BECKEN);
+  out.push({
+    id: "duerre",
+    art: "duerre",
+    titel: "Dürre im Konya-Becken",
+    gebiet: duerre,
+    bevoelkerung: summe(duerre),
+    jahresChance: jahresChance(w, "duerre", (m) => (m >= 5 && m <= 9 ? KATASTROPHE.duerreChance * (0.5 + (Number.isFinite(mangel) ? mangel / 60 : 0.5)) : 0)),
+    saison: saisonText(5, 9),
+    ...abk("duerre"),
+    ...(Number.isFinite(mangel) ? { kennzahl: { name: "Wassermangel im Becken", wert: Math.round(mangel), gut: "niedrig" as const } } : {}),
+  });
+  return out;
+}
+
+export interface SzenarioZeile {
+  name: string;
+  stand: number;
+  tote: number;
+  verletzte: number;
+  obdachlos: number;
+  wohnungen: number;
+}
+
+/**
+ * „Was wäre, wenn …“: der Schaden einer Lage bei verschiedenen Bereitschaftsständen. Rechnet mit `schadenBerechnen` für den heutigen Stand
+ * und skaliert für die übrigen Stände mit dem Bereitschafts-Faktor (alle Opferzahlen sind in diesem Modell proportional dazu).
+ * Dürre fordert keine direkten Opfer und liefert nur Nullen.
+ */
+export function szenario(w: World, art: KatastrophenArt, provinzen: number[], staerke: number, staende: { name: string; stand: number }[]): SzenarioZeile[] {
+  const heute = schadenBerechnen(w, art, provinzen, staerke);
+  const fHeute = bereitFaktor(bereitschaft(w));
+  return staende.map(({ name, stand }) => {
+    const f = bereitFaktor(clamp(stand, 0, 100)) / fHeute;
+    return {
+      name,
+      stand,
+      tote: Math.round(heute.tote * f),
+      verletzte: Math.round(heute.verletzte * f),
+      obdachlos: Math.round(heute.obdachlos * f),
+      wohnungen: Math.round(heute.wohnungen * f),
+    };
+  });
+}
+
+export type KettenStatus = "erledigt" | "laeuft" | "offen" | "gesperrt" | "entfaellt";
+
+export interface KettenStufe {
+  id: "nothilfe" | "uebergang" | "wiederaufbau" | "bewaeltigt";
+  name: string;
+  status: KettenStatus;
+  /** Ein Satz zum Stand */
+  detail: string;
+  /** 0 bis 1, wo es einen Fortschritt gibt */
+  fortschritt?: number;
+}
+
+/** Die Hilfskette eines Falls als Stufen mit Stand: Nothilfe, Übergangsversorgung, Wiederaufbau, Bewältigung. */
+export function hilfsketteSicht(w: World, fall: KatastropheFall): KettenStufe[] {
+  const ketten: KettenStufe[] = [];
+  const kostenMonat = nf(KATASTROPHE.uebergangKosten * fall.staerke, 3);
+
+  ketten.push({
+    id: "nothilfe",
+    name: "Nothilfe",
+    status: fall.hilfe.soforthilfe ? "erledigt" : "offen",
+    detail: fall.hilfe.soforthilfe ? "Rettung, Zelte und Feldlazarette sind geleistet." : "Rettung, Zelte und Feldlazarette stehen aus; ohne Hilfe bleibt die Schadenslage länger im Nebel.",
+  });
+
+  const uebergangAktiv = fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day;
+  const uebergangVorbei = fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis <= w.day;
+  const monate = Math.round(KATASTROPHE.uebergangTage / 30);
+  ketten.push({
+    id: "uebergang",
+    name: "Übergangsversorgung",
+    status: uebergangAktiv ? "laeuft" : uebergangVorbei ? "erledigt" : fall.hilfe.soforthilfe ? "offen" : "gesperrt",
+    detail: uebergangAktiv
+      ? (() => {
+          const rest = Math.max(1, Math.round((fall.hilfe.uebergangBis! - w.day) / 30));
+          return `Noch ${rest} ${rest === 1 ? "Monat" : "Monate"}, etwa ${kostenMonat} % des BIP je Monat.`;
+        })()
+      : uebergangVorbei
+        ? "Ausgelaufen: Container, Heizung und Mietzuschüsse sind beendet."
+        : fall.hilfe.soforthilfe
+          ? `Container, Heizung und Mietzuschüsse: etwa ${kostenMonat} % des BIP je Monat über ${monate} Monate.`
+          : "Erst nach der Nothilfe möglich.",
+    ...(uebergangAktiv ? { fortschritt: clamp(1 - (fall.hilfe.uebergangBis! - w.day) / KATASTROPHE.uebergangTage, 0, 1) } : {}),
+  });
+
+  const reich = w.spiel?.reich ? reichZustand(w) : null;
+  const lauf = fall.wohnbau && reich ? reich.laufend.find((l) => l.id === fall.wohnbau!.id) : undefined;
+  const def = fall.wohnbau ? vorhabenDef(fall.wohnbau.id) : undefined;
+  const fertig = !!fall.wohnbau && !!reich?.bestand[fall.wohnbau.id];
+  const braucht = (fall.art === "erdbeben" || fall.art === "flut") && fall.wohnungen > 0;
+  if (!braucht) {
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "entfaellt", detail: "Kein zerstörter Wohnbestand: Hier hilft die Versorgung, ein Bauprogramm gibt es nicht." });
+  } else if (fertig) {
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "erledigt", detail: "Das Wohnungsbau-Programm ist fertiggestellt.", fortschritt: 1 });
+  } else if (lauf && def) {
+    const eintrag = warteschlange(w).find((e) => e.id === lauf.id);
+    const anteil = clamp(lauf.fortschritt / laufBau(lauf, def), 0, 1);
+    ketten.push({
+      id: "wiederaufbau",
+      name: "Wiederaufbau",
+      status: "laeuft",
+      detail: `Im Bau zu ${Math.round(anteil * 100)} Prozent${eintrag ? `, Position ${eintrag.position} der Baureihenfolge${eintrag.fertigIn !== undefined ? `, fertig in etwa ${eintrag.fertigIn} Monaten` : ""}` : ""}.`,
+      fortschritt: anteil,
+    });
+  } else if (fall.wohnbau) {
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "laeuft", detail: "Das Programm ist angemeldet und wartet in der Baureihenfolge." });
+  } else if (fall.wohnungen - fall.privatGeliefert >= KATASTROPHE.wiederaufbauMin) {
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "offen", detail: `Noch nicht angemeldet: Bedarf etwa ${nf(Math.round(fall.wohnungen - fall.privatGeliefert))} Wohnungen. Das Programm bindet Baukapazität und verdrängt, was hinten steht.` });
+  } else {
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "entfaellt", detail: "Der verbliebene Bedarf ist zu klein für ein eigenes Programm." });
+  }
+
+  const bedarf = fall.zusage?.wohnungen ?? fall.wohnungen;
+  const geliefert = (fall.zusage ? fall.zusage.geliefert : programmLieferung(fall, reich)) + fall.privatGeliefert;
+  const frist = KATASTROPHE.fristMonate[fall.art];
+  if (fall.bewaeltigt) {
+    ketten.push({ id: "bewaeltigt", name: "Bewältigt", status: "erledigt", detail: "Die Region steht wieder auf eigenen Beinen.", fortschritt: 1 });
+  } else if (bedarf > 0) {
+    ketten.push({
+      id: "bewaeltigt",
+      name: "Bewältigt",
+      status: "offen",
+      detail: t("katastrophe.kette_bewaeltigt", { geliefert: Math.round(geliefert), bedarf, frist }),
+      fortschritt: clamp(geliefert / bedarf, 0, 1),
+    });
+  } else {
+    // Dürre und Brände ohne zerstörten Wohnbestand: Die Lage klingt ab
+    const monate = clamp((w.day - fall.tag) / 30.4 / frist, 0, 1);
+    ketten.push({
+      id: "bewaeltigt",
+      name: "Bewältigt",
+      status: "offen",
+      detail: t(fall.art === "duerre" ? "katastrophe.kette_duerre" : "katastrophe.kette_ohne_bedarf", { min: KATASTROPHE.duerreMindestMonate, frist }),
+      fortschritt: monate,
+    });
+  }
+  return ketten;
 }

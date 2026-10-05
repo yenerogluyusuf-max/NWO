@@ -1,0 +1,9 @@
+{
+ "effekte.aus": "Off",
+ "effekte.gruppe": "Map effects",
+ "effekte.hinweis": "Motion on the map: High shows all movement and lighting, Medium only calm transitions, Off no motion. Click to cycle.",
+ "effekte.hoch": "High",
+ "effekte.kurz": "Map motion",
+ "effekte.mittel": "Medium",
+ "effekte.titel": "Effects"
+}

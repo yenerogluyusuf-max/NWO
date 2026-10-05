@@ -1,0 +1,35 @@
+/* Vermächtnis: Rückblick auf die Laufbahn in Kapiteln (Papierfarben des Bilanzfensters) */
+.vm { display: flex; flex-direction: column; gap: 18px; color: var(--ink, #2b1e12); }
+.vm-kopf { text-align: center; }
+.vm-kicker { margin: 0 0 2px; font: 700 12.5px var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.vm-kopf h2 { margin: 0 0 6px; font: 600 30px var(--display, Fraunces, serif); }
+.vm-zeitraum { margin: 0; font: 500 15px var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.vm-ende { margin: 6px 0 0; font: 700 15px var(--serif, "EB Garamond", serif); color: var(--seal, #8c2b1f); }
+.vm-spalten { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px 22px; }
+.vm-kap h3 { margin: 0 0 6px; padding-bottom: 3px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); font: 700 17px var(--serif, "EB Garamond", serif); }
+.vm-kap ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.vm-kap li { font: 15px/1.45 var(--serif, "EB Garamond", serif); }
+.vm-kap li strong { display: block; font-weight: 700; }
+.vm-kap li span { display: block; font-size: 14px; color: #5a4a38; }
+.vm-kap li.gewonnen { border-left: 3px solid #b4832a; padding-left: 8px; }
+.vm-kap li.verloren { border-left: 3px solid var(--seal, #8c2b1f); padding-left: 8px; }
+.vm-text { margin: 4px 0 8px; font: 15px/1.5 var(--serif, "EB Garamond", serif); }
+.vm-breit { grid-column: 1 / -1; }
+.vm-kurve { width: 100%; height: auto; max-height: 190px; }
+.vm-linie { stroke: #265a62; stroke-width: 2; }
+.vm-grenze { stroke-width: 1; stroke-dasharray: 4 4; }
+.vm-grenze.sieg { stroke: #b4832a; }
+.vm-grenze.sturz { stroke: var(--seal, #8c2b1f); }
+.vm-achse { font: 12px var(--sans, Inter, sans-serif); fill: #6b5636; }
+.vm-wahl { stroke: #fff; stroke-width: 1.5; }
+.vm-wahl.gewonnen { fill: #b4832a; }
+.vm-wahl.verloren { fill: var(--seal, #8c2b1f); }
+.vm-tabelle { border-collapse: collapse; width: 100%; font: 15px var(--serif, "EB Garamond", serif); }
+.vm-tabelle th { text-align: left; font-weight: 600; padding: 3px 10px 3px 0; }
+.vm-tabelle td { padding: 3px 8px; }
+.vm-tabelle .urteil-besser { color: #265a62; font-weight: 700; }
+.vm-tabelle .urteil-schlechter { color: var(--seal, #8c2b1f); font-weight: 700; }
+.vm-wende em { display: block; font-size: 14px; color: #5a4a38; }
+.vm-epilog { padding: 12px 16px; background: rgba(120, 90, 50, 0.08); border-left: 4px solid #b4832a; border-radius: 4px; }
+
+.bilanz-hinweis { margin: 14px 0 0; text-align: center; font: italic 14px var(--serif, "EB Garamond", serif); color: #6b5636; }

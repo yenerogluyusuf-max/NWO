@@ -1,0 +1,177 @@
+/* Krisenstab: Lage, laufende Fälle, Versprechen, Chronik. Papier und Messing wie die übrigen Akten.
+   Alle Klassen beginnen mit kr-, damit nichts mit den Stilen anderer Ansichten kollidiert. */
+
+.kr { display: grid; gap: 16px; }
+.kr h3, .kr h4 { font-family: var(--display); font-weight: 600; margin: 0; color: var(--ink); }
+.kr h3 { font-size: 20px; }
+.kr h4 { font-size: 16.5px; }
+.kr p { margin: 0; }
+.kr-klein { font-size: 13.5px; color: var(--ink-soft); font-style: italic; line-height: 1.4; }
+
+/* Kopfleiste: Kennzahlen und Reiter */
+.kr-kopf { display: grid; gap: 10px; }
+.kr-merker { display: flex; flex-wrap: wrap; gap: 8px; }
+.kr-merker span { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 11px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 999px; background: rgba(255, 252, 240, 0.7); font: 14px var(--serif); color: var(--ink-soft); white-space: nowrap; }
+.kr-merker b { font: 700 16px var(--display); color: var(--ink); }
+.kr-merker .warn b { color: var(--seal); }
+.kr-tabs { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); }
+.kr .kr-tabs button { border: none; background: none; box-shadow: none; border-radius: 0; padding: 8px 16px; margin-bottom: -1px; font: 600 16px var(--display); color: var(--ink-soft); border-bottom: 3px solid transparent; white-space: nowrap; cursor: pointer; }
+.kr .kr-tabs button:hover { color: var(--ink); border-color: transparent transparent rgba(142, 42, 34, 0.35) transparent; }
+.kr .kr-tabs button.on { color: var(--seal); border-bottom-color: var(--seal); }
+.kr-tabs .anzahl { display: inline-block; min-width: 20px; margin-left: 6px; padding: 0 6px; border-radius: 10px; background: var(--seal); color: #fbeee0; font: 700 12px/20px var(--sans); text-align: center; }
+.kr-status { padding: 9px 14px; border-left: 4px solid var(--gold-2); background: rgba(255, 252, 240, 0.85); font: 15px var(--serif); }
+.kr-status.warn { border-left-color: var(--seal); }
+
+/* Knöpfe */
+.kr .kr-knopf { display: inline-flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 8px; padding: 8px 14px; border-radius: 3px; border: 1px solid rgba(90, 64, 40, 0.55); background: rgba(255, 252, 240, 0.85); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset; font: 600 14.5px/1.25 var(--serif); color: var(--ink); text-shadow: none; text-align: center; cursor: pointer; }
+.kr .kr-knopf:hover:not(:disabled) { border-color: var(--seal); filter: none; transform: none; }
+.kr .kr-knopf.haupt { border: 1px solid #7c5823; background: linear-gradient(180deg, #f7e2a4, #d8b262 55%, #b88c43); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 1px 2px rgba(60, 40, 10, 0.3); color: #2b1e12; }
+.kr .kr-knopf em { font: italic 13px var(--serif); opacity: 0.85; }
+.kr .kr-knopf:disabled { opacity: 0.5; cursor: default; }
+.kr .kr-link { border: none; background: none; box-shadow: none; padding: 0; color: var(--teal); text-decoration: underline; text-underline-offset: 3px; font: 15px var(--serif); cursor: pointer; }
+.kr .kr-link:hover { color: var(--seal); border: none; }
+.kr-aktionen { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.kr-chip { display: inline-block; padding: 2px 9px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 2px; background: rgba(255, 252, 240, 0.85); font: 600 12.5px var(--sans); letter-spacing: 0.02em; color: var(--ink-soft); white-space: nowrap; }
+
+/* Balken */
+.kr-balken { height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.16); overflow: hidden; }
+.kr-balken.gross { height: 13px; border-radius: 6px; }
+.kr-balken i { display: block; height: 100%; background: linear-gradient(90deg, #c9a257, #265a62); }
+
+/* Bereitschaft */
+.kr-bereit { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 28px; align-items: center; padding: 18px 22px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.75); }
+.kr-bereit-zahl { display: grid; justify-items: center; line-height: 1; }
+.kr-bereit-zahl b { font: 600 84px/1 var(--display); color: var(--teal); }
+.kr-bereit-zahl span { margin-top: 4px; font: 600 12px var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+.kr-bereit-text { display: grid; gap: 10px; }
+.kr-skala { position: relative; height: 14px; margin: 6px 0 30px; border-radius: 7px; background: rgba(90, 64, 40, 0.16); }
+.kr-skala .fuell { position: absolute; inset: 0 auto 0 0; border-radius: 7px; background: linear-gradient(90deg, #c9a257, #265a62); }
+.kr-skala .marke { position: absolute; top: -4px; width: 0; height: 22px; border-left: 2px solid var(--ink); }
+.kr-skala .marke em { position: absolute; top: 24px; left: 0; transform: translateX(-50%); font: 600 12px var(--sans); color: var(--ink-soft); white-space: nowrap; font-style: normal; }
+.kr-skala .marke.ref { border-left-style: dashed; border-color: var(--seal); }
+.kr-skala .marke.ref em { color: var(--seal); }
+.kr-skala .marke.heute em { color: var(--ink); }
+
+/* Abschnitte */
+.kr-abschnitt { display: grid; gap: 10px; }
+.kr-gefahren { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; }
+.kr-gefahr { display: grid; gap: 8px; padding: 12px 16px; border: 1px solid rgba(90, 64, 40, 0.35); background: rgba(255, 252, 240, 0.7); align-content: start; }
+.kr-gefahr-kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.kr-chance { display: grid; justify-items: end; font: 700 19px/1.1 var(--display); white-space: nowrap; color: var(--ink-soft); }
+.kr-chance small { font: 12px var(--sans); color: var(--ink-soft); font-weight: 400; }
+.kr-chance.hoch { color: var(--seal); }
+.kr-chance.mittel { color: var(--gold-3); }
+.kr-gefahr .kr-balken i { background: linear-gradient(90deg, #c9a257, var(--seal)); }
+.kr-gebiet { font-size: 14.5px; line-height: 1.4; }
+.kr-gebiet span { color: var(--ink-soft); }
+.kr-gefahr-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 13.5px var(--serif); color: var(--ink-soft); }
+.kr-gefahr-meta .gut { color: var(--teal); font-weight: 600; }
+.kr-gefahr-meta .schlecht { color: var(--seal); font-weight: 600; }
+
+/* Hebel der Vorsorge */
+.kr-hebel-raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 14px; align-items: stretch; }
+.kr-hebel { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.8); }
+.kr-hebel header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.kr-hebel-text { font-size: 14.5px; color: var(--ink-soft); line-height: 1.4; }
+.kr-hebel-stufen { position: relative; }
+.kr-hebel-stufen .ziel { position: absolute; top: -4px; width: 0; height: 16px; border-left: 2px dashed var(--seal); }
+.kr-hebel-schritt { font-size: 15px; }
+.kr-wirkung { margin: 0; padding: 0 0 0 18px; display: grid; gap: 4px; font-size: 14px; line-height: 1.4; color: var(--ink); }
+.kr-preis { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-top: 6px; border-top: 1px dotted rgba(90, 64, 40, 0.45); font: 14px var(--serif); color: var(--ink-soft); }
+.kr-preis b { font: 700 16px var(--display); color: var(--ink); }
+.kr-umsetzung { font-size: 14px; font-style: italic; color: var(--teal); }
+.kr-warn { font-size: 14px; color: var(--seal); }
+.kr-hebel .kr-aktionen { margin-top: auto; padding-top: 4px; }
+
+/* Szenario */
+.kr-szenario { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.7); }
+.kr-szenario-wahl { display: flex; flex-wrap: wrap; gap: 12px 20px; }
+.kr-szenario-wahl label { display: grid; gap: 3px; font: 600 12px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.kr-szenario-wahl select { min-width: 190px; padding: 6px 10px; font: 16px var(--serif); color: var(--ink); background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 3px; text-transform: none; letter-spacing: 0; }
+.kr-szenario-tabelle { width: 100%; border-collapse: collapse; font: 16px var(--serif); }
+.kr-szenario-tabelle th, .kr-szenario-tabelle td { padding: 7px 12px; text-align: right; border-bottom: 1px solid rgba(90, 64, 40, 0.22); font-variant-numeric: tabular-nums; }
+.kr-szenario-tabelle thead th { font: 600 12px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.kr-szenario-tabelle th:first-child, .kr-szenario-tabelle td:first-child { text-align: left; }
+.kr-szenario-tabelle tbody th { font-weight: 600; }
+.kr-szenario-tabelle tbody th small { font-weight: 400; color: var(--ink-soft); }
+.kr-szenario-tabelle tr.heute { background: rgba(241, 213, 143, 0.38); }
+
+/* Fälle */
+.kr-faelle { display: grid; gap: 18px; }
+.kr-fall { display: grid; gap: 14px; padding: 18px 22px; border: 1px solid rgba(90, 64, 40, 0.4); border-left: 6px solid var(--seal); background: rgba(255, 252, 240, 0.8); }
+.kr-fall.art-flut { border-left-color: var(--teal); }
+.kr-fall.art-waldbrand { border-left-color: #b5651d; }
+.kr-fall.art-duerre { border-left-color: var(--gold-3); }
+.kr-fall-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; align-items: flex-end; }
+.kr-art { font: 600 12.5px var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal); }
+.kr-fall h3 { font-size: 24px; margin: 2px 0; }
+.kr-datum { font: italic 15px var(--serif); color: var(--ink-soft); }
+.kr-nebel { font: italic 14.5px var(--serif); color: var(--ink-soft); max-width: 36ch; text-align: right; }
+.kr-nebel.nebel-unsicher, .kr-nebel.nebel-vermutet { color: var(--seal); }
+.kr-zahlen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.kr-zahl { display: grid; align-content: start; gap: 2px; padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.3); background: rgba(247, 240, 222, 0.8); }
+.kr-zahl dt { font: 600 11.5px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.kr-zahl dd { margin: 0; font: 600 34px/1.1 var(--display); color: var(--ink); font-variant-numeric: tabular-nums; }
+.kr-zahl dd.unklar { font: italic 17px/1.3 var(--serif); color: var(--ink-soft); }
+.kr-zahl small { font: italic 13px/1.3 var(--serif); color: var(--teal); }
+
+/* Hilfskette */
+.kr-kette { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 20px; }
+.kr-stufe { display: grid; align-content: start; gap: 4px; min-width: 0; }
+.kr-stufe-kopf { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.kr-stufe:not(:last-child) .kr-stufe-kopf::after { content: ""; flex: 1; height: 2px; margin-right: -20px; background: rgba(90, 64, 40, 0.28); }
+.kr-marke { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(90, 64, 40, 0.5); background: #f7f0de; font: 700 16px var(--display); color: var(--ink-soft); }
+.kr-stufe-nr { font: 600 11.5px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.kr-stufe h4 { font-size: 17px; }
+.kr-stufe-status { font: 600 13px var(--sans); text-transform: lowercase; color: var(--ink-soft); }
+.kr-stufe-text { font-size: 14.5px; line-height: 1.4; color: var(--ink); }
+.kr-stufe .kr-balken { margin-top: 4px; }
+.kr-stufe-aktion { margin-top: 8px; display: grid; gap: 8px; }
+.kr-stufe-aktion .kr-knopf { width: 100%; }
+.kr-stufe.st-erledigt .kr-marke { background: var(--teal); border-color: var(--teal); color: #fbf5e6; }
+.kr-stufe.st-erledigt .kr-stufe-status { color: var(--teal); }
+.kr-stufe.st-laeuft .kr-marke { background: var(--gold-1); border-color: var(--gold-3); color: #4a3510; }
+.kr-stufe.st-laeuft .kr-stufe-status { color: var(--gold-3); }
+.kr-stufe.st-offen .kr-marke { border-color: var(--seal); color: var(--seal); background: #fbeee0; }
+.kr-stufe.st-offen .kr-stufe-status { color: var(--seal); }
+.kr-stufe.st-gesperrt, .kr-stufe.st-entfaellt { opacity: 0.65; }
+.kr-vergabe { display: grid; gap: 8px; }
+.kr-vergabe fieldset { margin: 0; padding: 6px 10px 8px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 3px; }
+.kr-vergabe legend { padding: 0 4px; font: 600 11.5px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.kr-vergabe label { display: block; font-size: 14px; margin: 2px 0; }
+
+.kr-versprechen { display: grid; gap: 6px; padding-top: 8px; border-top: 1px dotted rgba(90, 64, 40, 0.45); }
+.kr-versprechen h4 { font-size: 15px; letter-spacing: 0.04em; }
+.kr-fuss { display: flex; flex-wrap: wrap; gap: 6px 22px; padding-top: 6px; border-top: 1px dotted rgba(90, 64, 40, 0.45); }
+
+/* Versprechen und Chronik */
+.kr-versprechen-seite { display: grid; gap: 16px; }
+.kr-versprechen-liste { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; }
+.kr-versprechen-liste li { display: grid; gap: 8px; padding: 14px 18px; border: 1px solid rgba(90, 64, 40, 0.4); border-left: 6px solid var(--gold-2); background: rgba(255, 252, 240, 0.8); }
+.kr-versprechen-liste li.stand-ok { border-left-color: var(--teal); }
+.kr-versprechen-liste li.stand-offen { border-left-color: var(--seal); }
+.kr-versprechen-kopf { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.kr-wahltag { display: grid; gap: 10px; padding: 14px 18px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(247, 240, 222, 0.85); }
+.kr-wahltag.malus { border-color: var(--seal); background: #fbeee0; }
+.kr-chronik { width: 100%; border-collapse: collapse; font: 15.5px var(--serif); }
+.kr-chronik th, .kr-chronik td { padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(90, 64, 40, 0.22); }
+.kr-chronik thead th { font: 600 12px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.kr-chronik .zahl { text-align: right; font-variant-numeric: tabular-nums; }
+.kr-leer { display: grid; justify-items: start; gap: 10px; padding: 22px 26px; border: 1px dashed rgba(90, 64, 40, 0.45); background: rgba(255, 252, 240, 0.6); max-width: 70ch; }
+.kr-leer p { color: var(--ink-soft); }
+
+/* Schmale Akte: Stufenband und Zahlen stapeln sich */
+@container (max-width: 880px) {
+  .kr-zahlen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kr-kette { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+  .kr-stufe:nth-child(2) .kr-stufe-kopf::after { display: none; }
+  .kr-gefahren, .kr-versprechen-liste { grid-template-columns: minmax(0, 1fr); }
+  .kr-bereit { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .kr-nebel { text-align: left; max-width: none; }
+}
+@container (max-width: 560px) {
+  .kr-zahlen, .kr-kette { grid-template-columns: minmax(0, 1fr); }
+  .kr-stufe .kr-stufe-kopf::after { display: none; }
+  .kr-hebel-raster { grid-template-columns: minmax(0, 1fr); }
+}

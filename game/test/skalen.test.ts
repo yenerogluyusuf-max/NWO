@@ -8,7 +8,7 @@ const MASSNAHMEN = NET.nodes.filter((n) => n.kind === "massnahme");
 
 describe("Skalen", () => {
   test("Alle Maßnahmen haben eine Skala mit mindestens drei Stufen", () => {
-    expect(MASSNAHMEN.length).toBe(113); // 103 + zehn Energie-Maßnahmen (RECHERCHE_ENERGIE.md, Abschnitt 6.4)
+    expect(MASSNAHMEN.length).toBe(117); // 103 + 10 Energie + 4 Katastrophenschutz-Maßnahmen
     for (const n of MASSNAHMEN) {
       const s = skala(n.id, n.start);
       expect(s.stufen.length, n.id).toBeGreaterThanOrEqual(3);

@@ -13,6 +13,11 @@ export interface CameoProps {
   figure?: "f" | "m";
   glasses?: boolean;
   ring?: "messing" | "tinte" | "keiner";
+  /**
+   * Mehr Gesichter aus demselben Samen: zusätzliche Frisuren, graues Haar, Schnurr- und Vollbart (nur bei Männern).
+   * Ohne dieses Flag bleibt jedes Bildnis, wie es war (etwa der Präsident in der Kopfleiste).
+   */
+  vielfalt?: boolean;
 }
 
 function hash(s: string): number {
@@ -45,15 +50,36 @@ const HAIR_F = [
   "M26 46 C28 27 46 15 63 19 C74 21 80 30 78 40 C72 33 63 31 56 34 C48 37 43 44 42 52 C41 62 45 72 50 80 C44 88 34 92 26 92 C30 84 30 76 27 70 C23 62 24 54 26 46 Z",
 ];
 
+// Nur mit `vielfalt`: weitere Frisuren (an die vorhandenen angehängt, damit die Auswahl der alten gleich bleibt)
+const HAIR_M_PLUS = [
+  // voll, lockig, länger im Nacken
+  "M27 42 C30 26 47 16 63 20 C74 22 80 30 78 40 C73 34 65 31 58 33 C49 34 43 40 42 48 C41 56 43 64 46 72 C40 76 34 80 30 84 C25 74 24 56 27 42 Z",
+  // kurz, hohe Stirn, Seitenscheitel
+  "M31 40 C36 28 50 20 63 23 C70 25 75 30 76.5 36 C71 33 66 33 62 36 C56 34 48 35 42 41 C40 48 40 54 41 60 C36 61 33 65 33 70 C28 62 27 50 31 40 Z",
+];
+const HAIR_F_PLUS = [
+  // Bob, kinnlang
+  "M25 46 C27 27 46 15 63 19 C74 21 80 30 78 40 C72 33 63 31 56 34 C48 37 43 44 42 52 C41 60 44 68 49 74 C42 80 33 80 27 76 C30 70 29 64 26 60 C22 56 23 50 25 46 Z",
+  // Pferdeschwanz
+  "M27 44 C30 28 47 17 63 20 C73 22 79 30 78 39 C71 33 62 31 55 34 C47 36 42 42 41 50 C40 57 41 62 43 66 C37 68 32 66 29 60 C25 56 25 50 27 44 Z M26 58 C18 62 14 74 17 86 C22 82 26 76 29 68 Z",
+];
+// Bart im Profil: Schnurrbart über der Lippe, Vollbart an Kinn und Wange
+const BART_SCHNURR = "M82.8 62.9 C80 62.4 75.5 63.6 71.5 65.8 C73.5 67.8 78.5 68 82 66.7 C82.6 65.4 82.8 64.2 82.8 62.9 Z";
+const BART_VOLL =
+  "M82.8 62.9 C80 62.4 75.5 63.6 71.5 65.8 C69 66.5 66 68 63.5 71 C59 74 55 72 52 66 C51 74 54 83 61 88 C68 92.5 75 91 79.5 85.5 C83 81 83.5 76 81 72.5 C82.2 70.6 82.8 68.8 82.5 66.7 C82.6 65.4 82.8 64.2 82.8 62.9 Z";
+
 const GLASSES = "M70 47 C71 44 78 44 79.5 47 C79 51 72 52 70 47 Z M70 47 L50 45";
 
-export function Cameo({ seed, size = 64, tint = "#8e2a22", figure, glasses, ring = "messing" }: CameoProps) {
+export function Cameo({ seed, size = 64, tint = "#8e2a22", figure, glasses, ring = "messing", vielfalt = false }: CameoProps) {
   const id = useId().replace(/:/g, "");
   const h = hash(seed);
   const fig = figure ?? (h % 2 === 0 ? "m" : "f");
-  const hairs = fig === "m" ? HAIR_M : HAIR_F;
+  const hairs = vielfalt ? (fig === "m" ? [...HAIR_M, ...HAIR_M_PLUS] : [...HAIR_F, ...HAIR_F_PLUS]) : fig === "m" ? HAIR_M : HAIR_F;
   const hair = hairs[(h >>> 3) % hairs.length]!;
   const withGlasses = glasses ?? (h >>> 7) % 4 === 0;
+  // Alter und Bart aus anderen Bits des Samens: etwa jede dritte Person grau, etwa jeder dritte Mann mit Bart
+  const haarFarbe = vielfalt && (h >>> 11) % 3 === 0 ? "#5d554c" : "#0f0a07";
+  const bartArt = vielfalt && fig === "m" ? [null, null, BART_SCHNURR, BART_VOLL, null, BART_SCHNURR][(h >>> 14) % 6] : null;
 
   return (
     <svg className="cameo" width={size} height={size * 1.18} viewBox="-12 -8 124 144" aria-hidden>
@@ -89,7 +115,8 @@ export function Cameo({ seed, size = 64, tint = "#8e2a22", figure, glasses, ring
         <rect x="-10" y="-10" width="120" height="150" fill={`url(#g${id})`} />
         <rect x="-10" y="-10" width="120" height="150" fill={`url(#h${id})`} />
         <path d={HEAD} fill="#231913" />
-        <path d={hair} fill="#0f0a07" />
+        <path d={hair} fill={haarFarbe} />
+        {bartArt && <path d={bartArt} fill={haarFarbe} stroke="#e9d6ac" strokeWidth="0.7" strokeOpacity="0.4" strokeLinejoin="round" />}
         {/* Lichtkante an Stirn und Nase, damit es nicht flach wirkt */}
         <path d="M64 23 C72 26 77 33 77 42 C77 45 78 47 79 49 L85 58" fill="none" stroke="#e9d6ac" strokeWidth="0.9" strokeOpacity="0.55" strokeLinecap="round" />
         {fig === "m" ? (

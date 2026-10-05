@@ -59,10 +59,10 @@ def anlieger(arc):
     """Zellen, an deren Rand der Bogen liegt (leer: der Bogen liegt im Inneren einer Zelle, also eine Bezirksgrenze)."""
     c = arc.coords
     n = len(c)
-    idx = sorted({1, n // 2, n - 2}) if n > 3 else [n // 2]
+    # Kurze Bögen über ihren Mittelpunkt einordnen: ihre Endpunkte berühren oft ein Nachbarland (sonst würde ein Bogen am Rand des Ausschnitts zur Landesgrenze)
+    proben = [Point(c[i]) for i in sorted({1, n // 2, n - 2})] if n > 3 else [arc.interpolate(0.5, normalized=True)]
     mengen = []
-    for i in idx:
-        p = Point(c[max(0, min(n - 1, i))])
+    for p in proben:
         hit = baum.query(p.buffer(4e-7), predicate="intersects")
         mengen.append({poly_key[int(j)] for j in hit if polys_rand[int(j)].distance(p) < 1.5e-6})
     m = set.intersection(*mengen) if mengen else set()

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="leder" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a3a2c"/>
+      <stop offset="0.55" stop-color="#2b221b"/>
+      <stop offset="1" stop-color="#1b1510"/>
+    </linearGradient>
+    <linearGradient id="messing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1d28a"/>
+      <stop offset="0.5" stop-color="#c69a4a"/>
+      <stop offset="1" stop-color="#8a6426"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="190" fill="url(#leder)"/>
+  <rect x="100" y="100" width="824" height="824" rx="190" fill="none" stroke="#c69a4a" stroke-opacity="0.45" stroke-width="6"/>
+  <circle cx="512" cy="512" r="300" fill="none" stroke="url(#messing)" stroke-width="22"/>
+  <circle cx="512" cy="512" r="262" fill="none" stroke="#c69a4a" stroke-opacity="0.55" stroke-width="5" stroke-dasharray="3 14"/>
+  <circle cx="470" cy="512" r="150" fill="url(#messing)"/>
+  <circle cx="513" cy="512" r="122" fill="#2b221b"/>
+  <path d="M640 462 l22 60 64 2-51 39 18 62-53-37-53 37 18-62-51-39 64-2Z" fill="url(#messing)"/>
+</svg>

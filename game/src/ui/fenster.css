@@ -1,0 +1,57 @@
+/* Fenstergröße der Akten: eine einzige Regel für alle Ansichten (Nutzerurteil 04.10.: „egal worauf ich klicke, ist mir zu klein“).
+   Früher zogen mehrere Regeln Platz für das Provinzblatt ab (politik.css: 100vw − 518 px), dadurch waren Politik und Schreibtisch
+   deutlich schmaler als die Zeitung. Jetzt gilt: Die Akte nutzt den Bildschirm bis auf einen schmalen Rand; die Karte bleibt am Rand sichtbar.
+   Diese Datei wird nach den übrigen Stilen geladen und gilt ab Tablet-Breite; auf dem Handy bleiben die bisherigen Regeln. */
+
+@media (min-width: 721px) {
+  /* Die Hinweiszeile („10 akute Probleme“ …) steht hinter einer offenen Akte nicht im Weg: Sie erscheint wieder beim Schließen */
+  .stage:has(.dossier) .alerts { display: none; }
+
+  .stage .dossier.frame,
+  .stage .dossier.frame.wide,
+  .stage .dossier.frame.po-breit {
+    top: 66px;
+    left: 92px;
+    right: auto;
+    width: min(1760px, calc(100vw - 92px - 18px)) !important;
+    max-width: none !important;
+    height: auto;
+    min-height: min(calc(100vh - 66px - 18px), 680px);
+    max-height: calc(100vh - 66px - 18px) !important;
+  }
+
+  /* „Netz“ nutzt schon die ganze Breite */
+  .stage .dossier.frame.full {
+    top: 66px;
+    left: 92px;
+    right: 18px;
+    width: auto !important;
+    min-height: min(calc(100vh - 66px - 18px), 680px);
+    max-height: calc(100vh - 66px - 18px) !important;
+  }
+
+  /* Die Leiste beginnt unter der Hinweisleiste („10 akute Probleme“ …, Höhe 74 bis 112 px) und überlappt sie nie; die Akte steht rechts daneben */
+  .stage .dossier-menu { top: 104px; }
+}
+
+/* Sehr niedrige Fenster (Laptop mit Seitenleiste): jeder Pixel zählt */
+@media (min-width: 721px) and (max-height: 640px) {
+  .stage .dossier.frame,
+  .stage .dossier.frame.full {
+    top: 60px;
+    min-height: 0;
+    max-height: calc(100vh - 60px - 10px) !important;
+  }
+  .stage .dossier-menu { top: 96px; gap: 5px; }
+}
+
+/* Sichern-Knopf in der Kopfleiste: Erfolg grün-golden (kurz), Fehler deutlich rot und bleibend, bis ein Sichern gelingt */
+.hud-speichern.frisch { border-color: rgba(150, 200, 120, 0.95); color: #e4f5d6; background: linear-gradient(180deg, #3d5530, #22331b); }
+.hud-speichern.fehler { border-color: #e0705c; color: #ffe9e3; background: linear-gradient(180deg, #86301f, #52160d); box-shadow: 0 0 0 1px rgba(224, 112, 92, 0.5), 0 2px 8px rgba(0, 0, 0, 0.5); }
+.hud-speichern.fehler:hover { background: linear-gradient(180deg, #9c3924, #5e1a10); }
+
+/* Linsenwahl, schlankere Kopfleiste und lesbare Menübeschriftung (04.10.): Die Leiste links nutzt jetzt 12 px statt 10,5 px */
+@media (min-width: 721px) {
+  .stage .dossier-menu button { width: 76px; }
+  .stage .dossier-menu .menu-kurz { font-size: 12px; letter-spacing: 0; }
+}

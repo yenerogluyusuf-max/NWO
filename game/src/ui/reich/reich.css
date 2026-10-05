@@ -1,0 +1,117 @@
+/* Die Akten des Reiches: Reiter, Pflegekarten, Stätten, Verlauf. Die Karten und Raster der Vorhaben stehen in styles.css (.rr-*). */
+
+.reich { container-type: inline-size; }
+
+/* Reiter innerhalb einer Akte */
+.rr-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 12px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); }
+.rr-tabs button {
+  position: relative; padding: 7px 16px; cursor: pointer; font: 600 15px var(--serif); color: var(--ink-soft);
+  background: transparent; border: 1px solid transparent; border-bottom: none; border-radius: 3px 3px 0 0; margin-bottom: -1px;
+}
+.rr-tabs button:hover { color: var(--ink); background: rgba(255, 250, 235, 0.55); }
+.rr-tabs button.on { color: var(--ink); background: #fbf4df; border-color: rgba(90, 64, 40, 0.45); box-shadow: inset 0 2px 0 var(--seal); }
+.rr-tab-zahl {
+  display: inline-block; margin-left: 7px; min-width: 18px; padding: 0 5px; border-radius: 9px; font: 700 11px/18px var(--sans); font-style: normal;
+  text-align: center; background: var(--seal); color: #fbeee0;
+}
+
+/* Arten der Vorhaben */
+.rr-art > h4 { border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 4px; }
+
+/* Pflegekarten (Bauwerke, Rüstung) */
+.rp-liste { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); align-items: start; }
+.rp-karte {
+  display: flex; flex-direction: column; gap: 6px; padding: 11px 14px 12px; min-width: 0;
+  background: linear-gradient(180deg, rgba(255, 251, 238, 0.96), rgba(244, 233, 205, 0.96)); border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 3px;
+}
+.rp-karte.dringend { border-color: var(--seal); box-shadow: inset 3px 0 0 var(--seal); }
+.rp-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 10px; }
+.rp-kopf h4 { margin: 0; font: 600 17px/1.25 var(--display); overflow-wrap: anywhere; }
+.rp-wort { font: italic 13.5px var(--serif); color: var(--ink-soft); }
+.rp-block { display: flex; flex-direction: column; gap: 3px; padding-top: 5px; border-top: 1px dotted rgba(90, 64, 40, 0.35); }
+.rp-eingriff { background: rgba(255, 250, 232, 0.7); margin: 2px -6px 0; padding: 7px 6px 4px; border-top-style: solid; }
+.rp-satz { margin: 0; font-size: 14px; line-height: 1.4; }
+.rp-satz.rp-nicht { color: #6a3a2a; font-style: italic; }
+.rp-leer { margin: 0; font: italic 13.5px var(--serif); color: var(--ink-soft); }
+.rp-reihe { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 3px; }
+.rp-mehr summary { cursor: pointer; font: 600 13px var(--serif); color: var(--ink-soft); }
+.rp-mehr[open] summary { margin-bottom: 4px; }
+.rr-wirkung-zeilen small, .rr-wirkung li small { font-size: 11px; opacity: 0.8; }
+.rp-karte .rr-wirkung-zeilen, .rv-eintrag .rr-wirkung-zeilen, .rr-stabliste .rr-wirkung-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.rp-karte .rr-wirkung-zeilen li, .rv-eintrag .rr-wirkung-zeilen li, .rr-stabliste .rr-wirkung-zeilen li { padding: 1px 8px; font-size: 12.5px; border-radius: 3px; border: 1px solid transparent; }
+.rp-karte .rr-wirkung-zeilen li.rr-gut, .rv-eintrag .rr-wirkung-zeilen li.rr-gut, .rr-stabliste .rr-wirkung-zeilen li.rr-gut { background: rgba(60, 130, 104, 0.14); border-color: rgba(60, 130, 104, 0.4); color: #1b4c3a; }
+.rp-karte .rr-wirkung-zeilen li.rr-schlecht, .rv-eintrag .rr-wirkung-zeilen li.rr-schlecht, .rr-stabliste .rr-wirkung-zeilen li.rr-schlecht { background: rgba(142, 42, 34, 0.1); border-color: rgba(142, 42, 34, 0.35); color: #7a2a20; }
+
+/* Stätten: eine eigene Listenklasse, weil die ältere Regel `.rr-staetten li` in styles.css auch alle verschachtelten Listen träfe */
+.rr-stabliste { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); align-items: start; }
+.rr-stabliste > li {
+  display: flex; flex-direction: column; gap: 5px; padding: 10px 13px 11px; min-width: 0;
+  background: linear-gradient(180deg, rgba(255, 251, 238, 0.96), rgba(244, 233, 205, 0.96)); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 3px;
+}
+.rr-stabliste > li.gefaehrdet { border-color: var(--seal); box-shadow: inset 3px 0 0 var(--seal); }
+.rr-stabliste .rr-kosten { list-style: none; margin: 2px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.rr-stabliste .rr-kosten li { padding: 1px 9px; font-size: 12.5px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: #f6ecd0; }
+.rr-stabliste .aktion-knopf { align-self: flex-start; }
+.rr-staette-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.rr-staette-name { font: 600 16px/1.25 var(--display); overflow-wrap: anywhere; }
+.rr-staette-ort { font: italic 13px/1.35 var(--serif); color: var(--ink-soft); }
+
+/* Zuletzt fertig, Einrichtungen, Lohnt sich */
+.rv-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rv-eintrag { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; background: rgba(255, 250, 235, 0.6); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 3px solid #3f8a8f; border-radius: 2px; min-width: 0; }
+.rv-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; }
+.rv-kopf strong { overflow-wrap: anywhere; }
+.rv-zustand { margin: 2px 0; font: 600 14px var(--serif); }
+.rv-tabelle { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 13.5px; }
+.rv-tabelle th, .rv-tabelle td { padding: 2px 8px; text-align: right; border-bottom: 1px solid rgba(90, 64, 40, 0.15); font-variant-numeric: tabular-nums; }
+.rv-tabelle th:first-child, .rv-tabelle thead th { text-align: left; font-weight: 600; }
+.rv-tabelle thead th { font: 600 11px var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.rv-tabelle thead th:not(:first-child) { text-align: right; }
+
+@container (max-width: 640px) {
+  .rr-tabs button { padding: 6px 11px; font-size: 14px; }
+  .rp-liste, .rr-stabliste { grid-template-columns: 1fr; }
+}
+
+/* Neue Vorhaben: Themenleiste, Weg der Stufen, Technologiefelder, das Unrealistische */
+.rr-themen { position: sticky; top: -1px; z-index: 3; margin: 0 -2px 8px; padding: 6px 2px 8px; background: linear-gradient(180deg, #f7efd8 85%, rgba(247, 239, 216, 0)); }
+.rr-themen button b { margin-left: 4px; font: 700 11px var(--sans); color: var(--seal); }
+.rr-teiler { margin: 18px 0 2px; padding-top: 10px; border-top: 2px solid rgba(90, 64, 40, 0.4); font: 600 20px var(--display); }
+.rr-feld { margin: 10px 0 4px; }
+.rr-feld h5 { margin: 6px 0 6px; font: 600 15px var(--display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--seal); border-bottom: 1px dotted rgba(90, 64, 40, 0.4); padding-bottom: 3px; }
+.rr-thema > h4 { border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 4px; }
+
+.rr-weg { list-style: none; margin: 4px 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 4px; align-items: stretch; counter-reset: weg; }
+.rr-weg li { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; font-size: 13px; line-height: 1.25; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 999px; background: #f6ecd0; min-width: 0; }
+.rr-weg li + li::before { content: "→"; margin-left: -10px; margin-right: 4px; color: var(--ink-soft); }
+.rr-weg .weg-stufe { display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; font: 700 11px var(--sans); background: rgba(90, 64, 40, 0.18); color: var(--ink); }
+.rr-weg .weg-name { overflow-wrap: anywhere; }
+.rr-weg em { font: italic 11.5px var(--serif); color: var(--ink-soft); white-space: nowrap; }
+.rr-weg li.weg-fertig { background: rgba(60, 130, 104, 0.18); border-color: rgba(60, 130, 104, 0.55); }
+.rr-weg li.weg-fertig .weg-stufe { background: #2f7a5e; color: #fff; }
+.rr-weg li.weg-bau { background: rgba(201, 154, 60, 0.28); border-color: #b8893a; }
+.rr-weg li.weg-bereit { border-color: var(--seal); background: #fbf1d3; }
+.rr-weg li.weg-zu { opacity: 0.8; }
+
+.rr-plakette.stufe { background: rgba(90, 64, 40, 0.14); color: var(--ink); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 10.5px; }
+.rr-plakette.unrealistisch { background: rgba(142, 42, 34, 0.14); color: var(--seal); border-color: rgba(142, 42, 34, 0.5); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 10.5px; }
+.rr-karte.unrealistisch { border-color: rgba(142, 42, 34, 0.55); }
+.rr-utopie > h4 { color: var(--seal); }
+.rr-risiko, .rr-konkurrenz, .rr-anker { margin: 3px 0 0; font-size: 13px; line-height: 1.35; }
+.rr-risiko { padding: 4px 8px; background: rgba(142, 42, 34, 0.08); border-left: 3px solid var(--seal); color: #6a2a20; }
+.rr-risiko b, .rr-konkurrenz b, .rr-anker b { color: var(--seal); }
+.rr-konkurrenz { color: #4a3a2a; }
+.rr-anker { font-style: italic; color: var(--ink-soft); }
+
+/* Programme für Regionen */
+.rg-karte { gap: 6px; }
+.rg-wo { display: flex; flex-direction: column; gap: 3px; }
+.rg-preisschild { margin: 2px 0; padding: 4px 8px; font: 600 13.5px/1.4 var(--serif); background: rgba(255, 250, 232, 0.8); border-left: 3px solid #3f8a8f; }
+.rg-angelegt ul { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
+.rg-angelegt li.fertig { color: #1f5a44; }
+.rg-karte .ortwahl { position: relative; }
+.rg-karte .ortwahl .pop { position: absolute; z-index: 20; }
+
+@container (max-width: 700px) {
+  .rr-weg li { border-radius: 10px; }
+}

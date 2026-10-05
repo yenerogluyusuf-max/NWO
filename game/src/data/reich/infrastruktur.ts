@@ -4,7 +4,7 @@
 
 import type { Vorhaben } from "../../sim/reich-typen";
 import type { VorteilDef } from "./typen";
-import { ERDBEBENGEBIET, stoss, stuetze } from "./bau";
+import { ERDBEBENGEBIET, instandsetzung, stoss, stuetze } from "./bau";
 
 const ohne = { abschluss: [] as never[] };
 
@@ -368,23 +368,22 @@ const ZUKUNFT: Vorhaben[] = [
   },
 ];
 
-/** Sanierung je Bestandsstück: Wartung ist ein Vorhaben mit Baukapazität, nicht mit Geld. */
-const sanierung = (b: Vorhaben): Vorhaben => ({
-  id: `sanierung_${b.id.replace("infra_", "")}`,
-  bereich: "infrastruktur",
-  klasse: "restaurierung",
-  name: `Sanierung: ${b.name}`,
-  text: `Wartung und Erneuerung von ${b.name}: Der Zustand steigt, und der Nutzen der Anlage bleibt erhalten.`,
-  ...(b.ort ? { ort: b.ort } : {}),
-  ...(b.provinzen ? { provinzen: b.provinzen } : {}),
-  voraus: [{ art: "bestand", id: b.id }],
-  kosten: { pk: 2, bau: 150, monate: 8, verwaltung: 0.6 },
-  abschluss: [{ t: "bestand", id: b.id, d: 26 }],
-  kehrseite: "Bindet Baukapazität, die dann für Neubauten fehlt.",
-  quelle: "Spielvorhaben",
-});
+/** Instandsetzung je Bestandsstück (frühere Kennung „sanierung_…“ bleibt, damit ältere Spielstände weiterlaufen). Hebt auch den Zustand der Anlagen im Land. */
+export const sanierung = (b: Vorhaben): Vorhaben =>
+  instandsetzung(b, {
+    id: `sanierung_${b.id.replace("infra_", "")}`,
+    bau: 150,
+    monate: 8,
+    hub: 26,
+    stoesse: [stoss("wartungszustand", b.provinzen && b.provinzen.length < 20 ? 6 : 2.5, b.provinzen)],
+    kehrseite: "Bindet Baukapazität, die dann für Neubauten fehlt.",
+  });
 
-export const INFRA_VORHABEN: Vorhaben[] = [...BESTAND, ...ZUKUNFT, ...BESTAND.filter((b) => b.start?.status === "fertig").map(sanierung)];
+/** Alles, was gebaut sein kann und dann etwas bewegt, lässt sich instand setzen: der Startbestand ebenso wie später Gebautes. Ausnahmen: Missionen und Abkommen (`ohnePflege`) und Vorlagen. */
+export const INSTANDZUSETZEN = (v: Vorhaben): boolean =>
+  ["grossprojekt", "wunder", "ausbau", "forschung"].includes(v.klasse) && !v.ohnePflege && !v.vorlage && (v.dauer ?? []).some((e) => e.t === "knoten");
+
+export const INFRA_VORHABEN: Vorhaben[] = [...BESTAND, ...ZUKUNFT, ...[...BESTAND, ...ZUKUNFT].filter(INSTANDZUSETZEN).map(sanierung)];
 
 export const INFRA_VORTEILE: VorteilDef[] = [
   {

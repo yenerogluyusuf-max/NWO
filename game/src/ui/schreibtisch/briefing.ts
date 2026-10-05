@@ -2,6 +2,7 @@
 // Alles wird aus dem Weltzustand berechnet; nichts davon ist Text auf Vorrat. Jeder Eintrag führt zu einer Entscheidung
 // (eine Akte, eine Maßnahme, ein Gespräch), damit der Schreibtisch nie nur Anzeige ist.
 
+import { aussenTermine } from "../../sim/diplomatie";
 import { NET } from "../../sim/modell";
 import { nationalAverage } from "../../sim/netz";
 import { formatDateDe, addDays } from "../../sim/dates";
@@ -20,11 +21,14 @@ import { ERBE_NACH_ID } from "../../data/erbe";
 import { haltungWort, dimensionZu } from "../../sim/laender";
 import { LAENDER, aktionenFuer } from "../../sim/laender";
 import type { Theme } from "../../data/politiknetz";
+import { naechsteSitzung } from "../../sim/zentralbank";
+import { akteurName, weltModell } from "../../sim/welt-modell";
+import { t } from "../../i18n";
 import type { World } from "../../sim/types";
 
 /** Wohin ein Eintrag führt. Die Bühne übersetzt das in ein Fenster. */
 export type Ziel =
-  | { art: "akte"; akte: "wirtschaft" | "entscheidungen" | "parlament" | "waehler" | "welt" | "personen" | "chronik" | "programme" | "beschluesse" | "bereiche" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" }
+  | { art: "akte"; akte: "wirtschaft" | "entscheidungen" | "parlament" | "waehler" | "welt" | "personen" | "chronik" | "programme" | "beschluesse" | "bereiche" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | "wirkungsbericht" }
   | { art: "politik"; theme?: Theme; massnahme?: { id: string; level?: number; ort?: number[] | null } }
   | { art: "ereignis"; id: string }
   | { art: "land"; id: string };
@@ -87,6 +91,8 @@ export interface Termin {
   datum: string;
   text: string;
   ziel?: Ziel;
+  /** Kalenderhinweis ohne Entscheidung: weicht beim Kürzen des Terminblatts den Terminen mit Entscheidung */
+  weich?: true;
 }
 
 /** Das Belastungs-/Aufmerksamkeitskonto des Präsidenten für die dezente Doppelanzeige. */
@@ -122,10 +128,22 @@ const monateBis = (tage: number) => Math.max(0, Math.round(tage / 30.4));
 const MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 
 /** Fester Kalender des Staatsjahres: Monat, ab welchem Jahr, und die Ereignisvorlage, die dort entsteht (siehe `ereignisse-innen.ts`). */
-export const KALENDER: { id: string; vorlage: string; monat: number; abJahr: number; nurJahr?: number; text: (jahr: number) => string; ziel?: Ziel }[] = [
+export const KALENDER: { id: string; vorlage: string; monat: number; abJahr: number; nurJahr?: number; text: (jahr: number) => string; ziel?: Ziel; /** Nur ein Hinweis im Terminblatt: keine Ereignisvorlage dahinter */ nurAnzeige?: true; /** Zählt nicht als „nächster fester Termin“ der Agenda und weicht beim Kürzen des Terminblatts den harten Terminen */ weich?: true }[] = [
   { id: "haushalt", vorlage: "haushaltsjahr", monat: 10, abJahr: 2028, text: (j) => `Haushaltsentwurf für ${j + 1} vom Finanzminister`, ziel: { art: "akte", akte: "entscheidungen" } },
   { id: "mindestlohn", vorlage: "mindestlohn", monat: 12, abJahr: 2026, text: (j) => `Mindestlohn für ${j + 1} wird festgelegt`, ziel: { art: "politik", theme: "arbeit" } },
   { id: "kommunal", vorlage: "kommunalwahl", monat: 3, abJahr: 2029, nurJahr: 2029, text: () => "Kommunalwahlen: der erste Stimmungstest", ziel: { art: "akte", akte: "waehler" } },
+  // Takt (sim/ereignisse-saison.ts): das Jahr hat Termine auch zwischen Januar und Juni; alle Texte über die Übersetzungsschicht
+  { id: "jahresbilanz", vorlage: "saison_jahresbilanz", monat: 1, abJahr: 2029, text: () => t("takt.kalender.jahresbilanz") , weich: true },
+  { id: "inflationsbericht-f", vorlage: "saison_inflationsbericht", monat: 2, abJahr: 2029, text: () => t("takt.kalender.inflationsbericht"), ziel: { art: "akte", akte: "wirtschaft" } , weich: true },
+  { id: "rechnungshof", vorlage: "saison_rechnungshof", monat: 3, abJahr: 2029, text: () => t("takt.kalender.rechnungshof") , weich: true },
+  { id: "souveraenitaetstag", vorlage: "saison_souveraenitaetstag", monat: 4, abJahr: 2029, text: () => t("takt.kalender.souveraenitaetstag") , weich: true },
+  { id: "jugendtag", vorlage: "saison_jugendtag", monat: 5, abJahr: 2029, text: () => t("takt.kalender.jugendtag") , weich: true },
+  { id: "inflationsbericht-m", vorlage: "saison_inflationsbericht", monat: 5, abJahr: 2029, text: () => t("takt.kalender.inflationsbericht"), ziel: { art: "akte", akte: "wirtschaft" } , weich: true },
+  { id: "sommerpause", vorlage: "saison_sommerpause", monat: 6, abJahr: 2029, text: () => t("takt.kalender.sommerpause"), ziel: { art: "akte", akte: "parlament" } , weich: true },
+  { id: "unesco", vorlage: "kalender_unesco", monat: 7, abJahr: 2028, text: () => t("takt.kalender.unesco") , nurAnzeige: true, weich: true },
+  { id: "militaerrat", vorlage: "mil_militaerrat", monat: 8, abJahr: 2028, text: () => t("takt.kalender.militaerrat") , weich: true },
+  { id: "ovp", vorlage: "kalender_ovp", monat: 9, abJahr: 2028, text: () => t("takt.kalender.ovp"), ziel: { art: "akte", akte: "wirtschaft" } , nurAnzeige: true, weich: true },
+  { id: "eubericht", vorlage: "kalender_eubericht", monat: 11, abJahr: 2028, text: () => t("takt.kalender.eubericht"), ziel: { art: "land", id: "EU" } , nurAnzeige: true, weich: true },
 ];
 
 /** Tage von heute bis zum ersten Tag des nächsten Auftretens von Monat/Jahr (mindestens ab `abJahr`), nie in der Vergangenheit. */
@@ -172,7 +190,11 @@ export function kennzahlen(world: World): Kennzahl[] {
       id: "kapital",
       label: "Politisches Kapital",
       wert: `${Math.floor(spiel.kapital)}`,
-      zusatz: `${einkommen.summe >= 0 ? "+" : "−"}${nf(Math.abs(einkommen.summe))} im Monat${einkommen.unterhalt > 0 ? ` (davon −${nf(einkommen.unterhalt)} Unterhalt laufender Maßnahmen)` : ""}`,
+      zusatz: `${einkommen.summe >= 0 ? "+" : "−"}${nf(Math.abs(einkommen.summe))} im Monat${
+        einkommen.unterhalt > 0 || einkommen.altlast >= 0.05
+          ? ` (davon ${[einkommen.unterhalt > 0 ? `−${nf(einkommen.unterhalt)} Unterhalt laufender Maßnahmen` : "", einkommen.altlast >= 0.05 ? t("takt.briefing.altlast", { x: nf(einkommen.altlast) }) : ""].filter(Boolean).join(", ")})`
+          : ""
+      }${spiel.kapital > 100 ? ` · ${t("takt.briefing.verfall", { x: nf((spiel.kapital - 100) * 0.3, 0) })}` : ""}`,
       trend: "gleich",
       ton: spiel.kapital < 0 ? "schlecht" : spiel.kapital < 8 ? "schlecht" : "neutral",
       ziel: { art: "akte", akte: "bereiche" },
@@ -402,9 +424,28 @@ export function termine(world: World): Termin[] {
     if (!r) continue;
     // Kommunalwahlen und ähnliche Einmaltermine nur, solange sie nicht stattgefunden haben
     if (k.nurJahr !== undefined && (spiel.zuletzt[k.vorlage] ?? -1) >= 0) continue;
-    out.push({ id: k.id, tage: r.tage, datum: `${MONATE[k.monat - 1]} ${r.jahr}`, text: k.text(r.jahr), ...(k.ziel ? { ziel: k.ziel } : {}) });
+    out.push({ id: k.id, tage: r.tage, datum: `${MONATE[k.monat - 1]} ${r.jahr}`, text: k.text(r.jahr), ...(k.ziel ? { ziel: k.ziel } : {}), ...(k.weich ? { weich: true as const } : {}) });
   }
-  return out.filter((t) => t.tage >= 0).sort((a, b) => a.tage - b.tage).slice(0, 8);
+  // Zinssitzungen der Zentralbank (heute stand der Termin nur in der Wirtschaftsakte)
+  const zins = naechsteSitzung(world);
+  if (zins) out.push({ id: "zins", tage: zins.tage, datum: formatDateDe(zins.datum), text: t("takt.kalender.zinssitzung"), ziel: { art: "akte", akte: "wirtschaft" }, weich: true });
+  // Wahlen in anderen Ländern (Weltmodell): die zwei nächsten innerhalb eines Jahres, nur Hauptakteure
+  const haupt = new Set(LAENDER.map((l) => l.id));
+  const fremd = Object.entries(weltModell(world).laender)
+    .filter(([id, e]) => haupt.has(id) && e.wahl && e.wahl.tag - world.day >= 0 && e.wahl.tag - world.day <= 365)
+    .sort((a, b) => a[1].wahl!.tag - b[1].wahl!.tag)
+    .slice(0, 2);
+  for (const [id, e] of fremd) {
+    const tage = e.wahl!.tag - world.day;
+    out.push({ id: `wahl-${id}`, tage, datum: formatDateDe(addDays(world.date, tage)), text: t("takt.kalender.auslandswahl", { land: akteurName(id) }), ziel: { art: "land", id }, weich: true });
+  }
+  // Außenkalender (sim/diplomatie.ts): Gipfel und Generalversammlung als Kalenderhinweise
+  for (const a of aussenTermine(world)) out.push({ id: a.id, tage: a.tage, datum: formatDateDe(a.datum), text: a.text, ziel: { art: "akte", akte: "welt" }, weich: true });
+  // Termine mit Entscheidung (Wahl, Abstimmungen, Zusagen, Haushalt) werden nie von Kalenderhinweisen verdrängt
+  const alle = out.filter((x) => x.tage >= 0).sort((a, b) => a.tage - b.tage);
+  const hart = alle.filter((x) => !x.weich).slice(0, 8);
+  const weich = alle.filter((x) => x.weich).slice(0, Math.max(3, 10 - hart.length));
+  return [...hart, ...weich].sort((a, b) => a.tage - b.tage);
 }
 
 /** Der Beraterstab: konkrete Vorschläge, jeder aus dem Weltzustand gerechnet. */

@@ -1,0 +1,13 @@
+{
+ "width": 8192,
+ "height": 4864,
+ "lon0": -180.0,
+ "lon1": 180.0,
+ "lat0": -61.60639637138627,
+ "lat1": 79.17133464081945,
+ "projection": "web-mercator",
+ "zoom": 5,
+ "hoehe": "8 Bit, byte = round(255 * sqrt(clip(h, 0, 8900) / 8900)); Meer = 0",
+ "kueste": "8 Bit, byte = round(128 + 4 * Abstand in Punkten), positiv an Land",
+ "quelle": "Gelände: AWS Terrain Tiles (Terrarium, Zoom 5), aus SRTM, GMTED, ETOPO1 u. a.; https://registry.opendata.aws/terrain-tiles/. Küste: Natural Earth 10m (gemeinfrei)"
+}

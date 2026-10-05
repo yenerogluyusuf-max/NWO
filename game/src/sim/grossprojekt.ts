@@ -419,7 +419,14 @@ const MASSSTAB_FAKTOR: Record<Massstab, number> = { klein: 0.35, regional: 0.7, 
 const SCHLECHT_WENN_HOCH = new Set(["stau", "mieten", "ungleichheit", "energieimporte", "energiepreise", "landflucht", "duerre", "korruption"]);
 
 const r1 = (x: number) => Math.round(x * 10) / 10;
-const band = (mitte: number, tiefF: number, hochF: number): Band => ({ tief: r1(mitte * tiefF), mitte: r1(mitte), hoch: r1(mitte * hochF) });
+const band = (mitte: number, tiefF: number, hochF: number): Band => {
+  const m = r1(mitte);
+  let t = r1(mitte * tiefF);
+  let h = r1(mitte * hochF);
+  if (t >= m && m > 0) t = Math.max(0, Math.round((m - 0.1) * 10) / 10);
+  if (h <= m && m > 0) h = Math.round((m + 0.1) * 10) / 10;
+  return { tief: t, mitte: m, hoch: h };
+};
 const bandText = (b: Band): string => `${b.tief.toLocaleString("de-DE")} bis ${b.hoch.toLocaleString("de-DE")}`;
 
 const TYP_TITEL: Record<ProjektTyp, string> = {
@@ -686,7 +693,7 @@ export function beginneFrei(w: World, id: string, vergabe: Vergabe = "ausschreib
   if (!e) return { ok: false, text: "Dieses freie Vorhaben liegt nicht vor." };
   if (e.stand === "begonnen") return { ok: false, text: `„${e.def.name}“ wurde bereits begonnen.` };
   const offen = Object.entries(e.transit ?? {}).filter(([, s]) => s === "offen");
-  if (offen.length) return { ok: false, text: `Erst fehlen die Zusagen auf der Strecke: ${offen.map(([lId]) => land(lId).name).join(", ")}. Jedes Transitland verhandeln Sie im Schätzblatt.` };
+  if (offen.length) return { ok: false, text: `Erst fehlen die Zusagen auf der Strecke: ${offen.map(([lId]) => land(lId).name).join(", ")}. Jedes Transitland und seine Durchfahrt verhandeln Sie im Schätzblatt.` };
   const veto = Object.entries(e.transit ?? {}).filter(([, s]) => s === "veto");
   if (veto.length) return { ok: false, text: `${veto.map(([lId]) => land(lId).name).join(", ")} verweigert die Durchfahrt. Wählen Sie im Schätzblatt den Umweg — oder verwerfen Sie das Vorhaben.` };
 

@@ -269,7 +269,8 @@ describe("IWF-Stand-by mit drei Review-Raten", () => {
     expect(z.iwf!.rate).toBe(2);
     expect(z.iwf!.bestanden).toBe(1);
     // Tranche geflossen (der laufende Saldo aus Leistungsbilanz und Flüssen schmälert den Zuwachs etwas)
-    expect(w.economy.reservenBruttoUsdMrd!).toBeGreaterThan(brutto0 + DEVISEN.iwf.trancheUsdMrd - 2.5);
+    // (Toleranz 3,5 statt 2,5: Eine Katastrophe des Risiko-Layers im Sommer 2028 drückt Risikoaufschlag und Zuflüsse etwas; sie tritt seit der Reparatur der Naturkatastrophen häufiger ein.)
+    expect(w.economy.reservenBruttoUsdMrd!).toBeGreaterThan(brutto0 + DEVISEN.iwf.trancheUsdMrd - 3.5);
     expect(w.economy.reservenBruttoUsdMrd!).toBeLessThan(brutto0 + DEVISEN.iwf.trancheUsdMrd + 0.5);
 
     bisTag(w, 310);

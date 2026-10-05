@@ -26,7 +26,9 @@ import { PARTEI_NAME } from "./fraktionen";
 import { figur } from "./figuren";
 import { zusagenBilanz } from "./zusagen";
 import { zeitungEreignis } from "./zeitung";
-import type { Rng } from "./rng";
+import { maxAmtszeiten } from "./amtszeit";
+import { t } from "../i18n";
+import { Rng } from "./rng";
 import type { World } from "./types";
 import type { AuslandsTour, WahlkampfZustand } from "./spiel-typen";
 
@@ -92,6 +94,18 @@ export const WAHLKAMPF = {
   angriffZeitungAb: 1.0,
   /** Länge des Umfrage-Tickers */
   tickerLaenge: 8,
+  /** Letzte Amtszeit: Der Präsident wirbt für den Nachfolger des Lagers. Anteil seiner Wirkung, der auf Reisen und Versprechen übergeht */
+  nachfolgerUebertrag: 0.7,
+  /** Auftritte für den Nachfolger: Kosten in Aktionspunkten, Höchstzahl je Art, Abnutzung je weiterem Auftritt derselben Art, Deckel je Auftritt in Prozentpunkten */
+  auftrittGemeinsamAp: 2,
+  auftrittAlleinAp: 1,
+  auftrittGemeinsamMax: 2,
+  auftrittAlleinMax: 3,
+  auftrittAbnutzung: 0.7,
+  auftrittGemeinsamDeckel: 1.2,
+  auftrittAlleinDeckel: 0.8,
+  /** TV-Duell des Nachfolgers: Gewicht seiner eigenen Strahlkraft gegenüber der Zustimmung des Präsidenten */
+  nachfolgerDuellStaerke: 0.6,
 } as const;
 
 /** Schwierigkeits-Faktor für die Gegner-Stärke; spiegelt `haerte` aus SCHWIERIGKEITEN (sim/spiel.ts), ohne das Modul zu laden. */
@@ -107,6 +121,18 @@ function gegnerHaerte(w: World): number {
 export function wahlkampfAktiv(w: World): boolean {
   const sp = w.spiel;
   return !!sp && !sp.ende && sp.wahlkampf !== undefined;
+}
+
+/** Wer kämpft: der Präsident für sich oder, in der letzten Amtszeit, für den Nachfolger des Lagers. */
+export function wahlkampfRolle(w: World): "amt" | "nachfolger" {
+  return w.spiel?.wahlkampf?.rolle ?? "amt";
+}
+
+/** Der Nachfolger, für den geworben wird (nur im Nachfolger-Wahlkampf und nach der Kür). */
+export function nachfolgerImWahlkampf(w: World): { name: string; rolle: string; staerke: number } | undefined {
+  if (wahlkampfRolle(w) !== "nachfolger") return undefined;
+  const n = w.spiel?.nachfolge?.nachfolger;
+  return n ? { name: n.name, rolle: n.rolle, staerke: n.staerke } : undefined;
 }
 
 /** Der Zustand des laufenden Wahlkampfs (undefined außerhalb der Phase). */
@@ -194,7 +220,8 @@ export function reise(w: World, plaka: number, rng: Rng): AktionErgebnis {
 
   const vorschau = reiseVorschau(w, plaka);
   const missglueckt = vorschau.probleme.length > 0 && rng.next() < vorschau.risiko;
-  const effekt = (missglueckt ? -WAHLKAMPF.reiseRueckschlag : 1) * vorschau.staerke * vorschau.abnutzung;
+  const uebertrag = k.rolle === "nachfolger" ? WAHLKAMPF.nachfolgerUebertrag : 1;
+  const effekt = (missglueckt ? -WAHLKAMPF.reiseRueckschlag : 1) * vorschau.staerke * vorschau.abnutzung * uebertrag;
 
   k.ap -= kosten;
   k.besuche[String(plaka)] = (k.besuche[String(plaka)] ?? 0) + 1;
@@ -347,15 +374,17 @@ export function verspreche(w: World, id: string): AktionErgebnis {
   if (k.ap < WAHLKAMPF.versprechenAp) return { ok: false, text: `Ein Versprechen kostet ${WAHLKAMPF.versprechenAp} Aktionspunkt; das Wochenbudget steht bei ${fmt(k.ap)}.` };
 
   const { faktor, glaubwuerdigkeit } = versprechenGlaube(w);
-  const beifall = WAHLKAMPF.versprechenBeifall * faktor;
+  const nachfolgerRolle = k.rolle === "nachfolger";
+  const beifall = WAHLKAMPF.versprechenBeifall * faktor * (nachfolgerRolle ? WAHLKAMPF.nachfolgerUebertrag : 1);
   for (const g of def.zielgruppen) wirke(w, g, beifall);
   for (const g of def.verlierer ?? []) wirke(w, g, -beifall * 0.5);
   wirke(w, "vertrauen_regierung", WAHLKAMPF.versprechenVertrauen * glaubwuerdigkeit);
 
   k.ap -= WAHLKAMPF.versprechenAp;
   k.versprechen.push(id);
-  // Das Versprechen wird zur Zusage: Frist zwölf Monate nach der Wahl; das Zusagen-System bucht Halten und Brechen
-  sp.zusagen.push({
+  // Das Versprechen wird zur Zusage: Frist zwölf Monate nach der Wahl; das Zusagen-System bucht Halten und Brechen.
+  // Im Nachfolger-Wahlkampf verspricht der Nachfolger, nicht der Präsident: Seine Amtszeit endet mit der Wahl, es entsteht keine Zusage.
+  if (!nachfolgerRolle) sp.zusagen.push({
     id: `z-wahl-${id}`,
     von: "Wähler",
     text: `Im Wahlkampf versprochen: ${def.titel}`,
@@ -368,6 +397,46 @@ export function verspreche(w: World, id: string): AktionErgebnis {
 
   const text = `Versprochen: ${def.titel}. Beifall der Zielgruppen ${faktor >= 0.8 ? "ist groß" : faktor >= 0.5 ? "fällt spürbar aus" : "bleibt mager — die Glaubwürdigkeit ist angeschlagen"}; die Zusage wird ${formatDateDe(addDays(w.date, sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4) - w.day))} fällig.`;
   addLog(w, "entscheidung", `Wahlversprechen: ${def.titel} (${WAHLKAMPF.versprechenAp} AP).`, text);
+  return { ok: true, text };
+}
+
+// ---------------------------------------------------------------------------
+// Auftritte für den Nachfolger (nur in der letzten Amtszeit)
+
+export type AuftrittArt = "gemeinsam" | "allein";
+
+/** Was der nächste Auftritt dieser Art brächte (Prozentpunkte am Wahltag, nach Abnutzung und Deckel) und was er kostet. */
+export function auftrittVorschau(w: World, art: AuftrittArt): { punkte: number; ap: number; uebrig: number; max: number } {
+  const sp = w.spiel;
+  const k = sp?.wahlkampf;
+  const n = nachfolgerImWahlkampf(w);
+  const max = art === "gemeinsam" ? WAHLKAMPF.auftrittGemeinsamMax : WAHLKAMPF.auftrittAlleinMax;
+  const ap = art === "gemeinsam" ? WAHLKAMPF.auftrittGemeinsamAp : WAHLKAMPF.auftrittAlleinAp;
+  const gemacht = k?.nachfolgerAuftritte?.[art] ?? 0;
+  if (!sp || !n) return { punkte: 0, ap, uebrig: 0, max };
+  // Gemeinsam: Die Beliebtheit des Präsidenten färbt ab (auch ins Negative). Allein: Die Strahlkraft des Nachfolgers selbst zählt.
+  const roh = art === "gemeinsam" ? (sp.umfrage.zustimmung - 50) / 25 : (n.staerke - 55) / 40;
+  const deckel = art === "gemeinsam" ? WAHLKAMPF.auftrittGemeinsamDeckel : WAHLKAMPF.auftrittAlleinDeckel;
+  const punkte = Math.round(clamp(roh, -deckel, deckel) * Math.pow(WAHLKAMPF.auftrittAbnutzung, gemacht) * 100) / 100;
+  return { punkte, ap, uebrig: Math.max(0, max - gemacht), max };
+}
+
+/** Ein Auftritt für den Nachfolger: gemeinsam mit dem Präsidenten oder der Nachfolger allein. */
+export function nachfolgerAuftritt(w: World, art: AuftrittArt): AktionErgebnis {
+  const sp = w.spiel;
+  const k = sp?.wahlkampf;
+  if (!sp || sp.ende || !k) return { ok: false, text: t("enden.wk.auftritt.kein_wahlkampf") };
+  const n = nachfolgerImWahlkampf(w);
+  if (k.rolle !== "nachfolger" || !n) return { ok: false, text: t("enden.wk.auftritt.kein_nachfolger") };
+  const a = (k.nachfolgerAuftritte ??= { gemeinsam: 0, allein: 0, punkte: 0 });
+  const v = auftrittVorschau(w, art);
+  if (v.uebrig <= 0) return { ok: false, text: t("enden.wk.auftritt.max", { n: v.max }) };
+  if (k.ap < v.ap) return { ok: false, text: t("enden.wk.auftritt.zu_wenig", { kosten: v.ap, ap: fmt(k.ap) }) };
+  k.ap -= v.ap;
+  a[art] += 1;
+  a.punkte = Math.round((a.punkte + v.punkte) * 100) / 100;
+  const text = t(`enden.wk.auftritt.${art}.${v.punkte >= 0 ? "gut" : "schlecht"}`, { name: n.name });
+  addLog(w, "entscheidung", t(`enden.wk.auftritt.${art}.log`, { name: n.name, ap: v.ap }), t("enden.wk.auftritt.ergebnis", { text, punkte: v.punkte }));
   return { ok: true, text };
 }
 
@@ -439,6 +508,14 @@ export function duellVorbereiten(w: World): AktionErgebnis {
   return { ok: true, text };
 }
 
+/** Die Szene des Duells, wenn der Nachfolger antritt (Texte über die Übersetzungsschicht). */
+function duellSzeneNachfolger(w: World, effekt: number, name: string): string {
+  const g = gegnerProfil(w);
+  const gegner = g.name.replace(/^Oppositionsführer /, "");
+  const stufe = effekt >= 2.5 ? "klar" : effekt >= 0.5 ? "vorn" : effekt > -0.5 ? "gleich" : effekt > -2.5 ? "hinten" : "desaster";
+  return t(`enden.duell.nachfolger.${stufe}`, { name, gegner });
+}
+
 function duellSzene(w: World, effekt: number, vorbereitet: boolean): string {
   const g = gegnerProfil(w);
   const sw = schwachstelle(w);
@@ -454,12 +531,15 @@ function duellAustragen(w: World, rng: Rng): void {
   const sp = w.spiel!;
   const k = sp.wahlkampf!;
   const vorbereitet = k.duell.vorbereitet > 0;
-  const spielerWert = sp.umfrage.zustimmung + (vorbereitet ? WAHLKAMPF.duellVorbereitetBonus : -WAHLKAMPF.duellUnvorbereitetMalus) + rng.normal(WAHLKAMPF.duellSigma);
+  const nachfolger = nachfolgerImWahlkampf(w);
+  // Im Nachfolger-Wahlkampf tritt der Nachfolger an: seine eigene Strahlkraft trägt, die Zustimmung des Präsidenten wirkt nur teilweise
+  const basisWert = nachfolger ? WAHLKAMPF.nachfolgerDuellStaerke * nachfolger.staerke + (1 - WAHLKAMPF.nachfolgerDuellStaerke) * sp.umfrage.zustimmung : sp.umfrage.zustimmung;
+  const spielerWert = basisWert + (vorbereitet ? WAHLKAMPF.duellVorbereitetBonus : -WAHLKAMPF.duellUnvorbereitetMalus) + rng.normal(WAHLKAMPF.duellSigma);
   const gegnerWert = gegnerStaerkeWahr(w) + rng.normal(WAHLKAMPF.duellSigma);
   const effekt = Math.round(clamp((spielerWert - gegnerWert) * WAHLKAMPF.duellUebertrag, -WAHLKAMPF.duellMax, WAHLKAMPF.duellMax) * 10) / 10;
   k.duell.tag = w.day;
   k.duell.effekt = effekt;
-  k.duell.szene = duellSzene(w, effekt, vorbereitet);
+  k.duell.szene = nachfolger ? duellSzeneNachfolger(w, effekt, nachfolger.name) : duellSzene(w, effekt, vorbereitet);
   // Effekt auf die Wechselwähler: die schwankenden Gruppen (Laune zwischen den Schwellen) kippen ein Stück
   for (const g of GRUPPEN) {
     const laune = nationalAverage(NET, w.net, g.id);
@@ -565,20 +645,29 @@ export function wahlkampfTag(w: World): void {
   if (!k) {
     if (sp.wahltag - w.day > WAHLKAMPF.beginnTage) return;
     // Phasenbeginn: acht Wochen vor der Wahl (nur die nationale Präsidentschaftswahl — Kommunalwahlen bleiben unberührt)
-    sp.wahlkampf = { amtszeit: sp.amtszeit, ap: WAHLKAMPF.apProWoche, beginn: w.day, woche: w.day, besuche: {}, reisen: [], touren: [], versprechen: [], duell: { vorbereitet: 0 }, angriffe: 0, angriffeLog: [], ticker: [] };
+    sp.wahlkampf = { amtszeit: sp.amtszeit, ap: WAHLKAMPF.apProWoche, beginn: w.day, woche: w.day, besuche: {}, reisen: [], touren: [], versprechen: [], duell: { vorbereitet: 0 }, angriffe: 0, angriffeLog: [], ticker: [], rolle: sp.amtszeit >= maxAmtszeiten(w) ? "nachfolger" : "amt", nachfolgerAuftritte: { gemeinsam: 0, allein: 0, punkte: 0 } };
+    const nachfolgerKampf = sp.wahlkampf.rolle === "nachfolger";
+    const wahlDatum = formatDateDe(addDays(w.date, sp.wahltag - w.day));
     sp.hinweise.push({
       id: `wahlkampf-beginn-${w.day}`,
-      titel: "Der Wahlkampf beginnt",
+      titel: nachfolgerKampf ? t("enden.wk.beginn.titel") : "Der Wahlkampf beginnt",
       szene: "anatolien",
-      text: [
-        `Noch acht Wochen bis zur Wahl am ${formatDateDe(addDays(w.date, sp.wahltag - w.day))}. Das Land wird zur Bühne: Reisen in die Provinzen, Versprechen auf den Marktplätzen, Auslandstouren zur Diaspora — und am Ende das TV-Duell.`,
-        `Jede Woche stehen ${WAHLKAMPF.apProWoche} Aktionspunkte bereit; die Aufmerksamkeit lädt sich in diesen Wochen anderthalbmal so schnell auf. Die Opposition fährt ihre eigenen Angriffe — sie trifft dort, wo echte Probleme brennen.`,
-      ],
+      text: nachfolgerKampf
+        ? [
+            t("enden.wk.beginn.text1", { datum: wahlDatum, name: sp.nachfolge?.nachfolger?.name ?? t("wahl.nachfolger_offen") }),
+            t("enden.wk.beginn.text2", { ap: WAHLKAMPF.apProWoche }),
+          ]
+        : [
+          `Noch acht Wochen bis zur Wahl am ${formatDateDe(addDays(w.date, sp.wahltag - w.day))}. Das Land wird zur Bühne: Reisen in die Provinzen, Versprechen auf den Marktplätzen, Auslandstouren zur Diaspora — und am Ende das TV-Duell.`,
+          `Jede Woche stehen ${WAHLKAMPF.apProWoche} Aktionspunkte bereit; die Aufmerksamkeit lädt sich in diesen Wochen anderthalbmal so schnell auf. Die Opposition fährt ihre eigenen Angriffe — sie trifft dort, wo echte Probleme brennen.`,
+          ],
     });
     addLog(w, "ereignis", "Der Wahlkampf beginnt: acht Wochen bis zur Wahl.", `Jede Woche ${WAHLKAMPF.apProWoche} Aktionspunkte für Reisen, Versprechen, Auslandstouren und die Duell-Vorbereitung.`);
     tickerWoche(w, wahlkampfRng(w));
     return;
   }
+  // Die Verfassung hebt die Amtszeitgrenze mitten im Wahlkampf auf: Der Präsident darf antreten und kämpft wieder für sich
+  if (k.rolle === "nachfolger" && sp.amtszeit < maxAmtszeiten(w)) k.rolle = "amt";
   if (w.day - k.woche >= WAHLKAMPF.wocheTage) {
     k.woche = w.day;
     k.ap = WAHLKAMPF.apProWoche;
@@ -606,6 +695,7 @@ export function wahlEffekte(w: World): { gesamt: number; teile: WahlEffekt[] } {
   if (k.angriffe !== 0) teile.push({ name: "Angriffe der Opposition", punkte: k.angriffe });
   const dias = diasporaBlock(w, sp.umfrage.zustimmung);
   if (Math.abs(dias.beitrag) >= 0.05) teile.push({ name: "Diaspora-Block", punkte: Math.round(dias.beitrag * 100) / 100 });
+  if (k.nachfolgerAuftritte && k.nachfolgerAuftritte.punkte !== 0) teile.push({ name: t("enden.wk.effekt.auftritte"), punkte: k.nachfolgerAuftritte.punkte });
   return { gesamt: Math.round(teile.reduce((s, t) => s + t.punkte, 0) * 100) / 100, teile };
 }
 
@@ -634,6 +724,11 @@ export interface WahlkampfSicht {
   ticker: WahlkampfZustand["ticker"];
   diaspora: { beitrag: number; beteiligung: number; lagerAnteil: number; touren: number };
   effekte: { gesamt: number; teile: WahlEffekt[] };
+  /** Wer kämpft, und für wen (im Nachfolger-Wahlkampf: Name, Rolle und Strahlkraft des Nachfolgers) */
+  rolle: "amt" | "nachfolger";
+  nachfolger?: { name: string; rolle: string; staerke: number };
+  /** Auftritte für den Nachfolger: bisherige Zahl, Vorschau des nächsten Auftritts je Art (nur im Nachfolger-Wahlkampf) */
+  auftritte?: { gemeinsam: number; allein: number; punkte: number; vorschau: Record<AuftrittArt, { punkte: number; ap: number; uebrig: number; max: number }> };
 }
 
 /** Alles, was die Wahlkampf-Zentrale zeigt, in einem Aufruf. */
@@ -669,7 +764,14 @@ export function wahlkampfSicht(w: World): WahlkampfSicht {
     ticker: k?.ticker ?? [],
     diaspora: { beitrag: Math.round(dias.beitrag * 100) / 100, beteiligung: dias.beteiligung, lagerAnteil: Math.round(dias.lagerAnteil * 10) / 10, touren: k?.touren.length ?? 0 },
     effekte: wahlEffekte(w),
+    rolle: k?.rolle ?? "amt",
   };
+  const nachf = nachfolgerImWahlkampf(w);
+  if (nachf) basis.nachfolger = nachf;
+  if (k?.rolle === "nachfolger") {
+    const a = k.nachfolgerAuftritte ?? { gemeinsam: 0, allein: 0, punkte: 0 };
+    basis.auftritte = { ...a, vorschau: { gemeinsam: auftrittVorschau(w, "gemeinsam"), allein: auftrittVorschau(w, "allein") } };
+  }
   if (!k && tageBisWahl > 0) basis.beginntIn = Math.max(0, tageBisWahl - WAHLKAMPF.beginnTage);
   return basis;
 }
@@ -695,6 +797,8 @@ export function migriereWahlkampf(w: World): void {
   if (!Array.isArray(k.versprechen)) k.versprechen = [];
   if (typeof k.duell !== "object" || k.duell === null) k.duell = { vorbereitet: 0 };
   if (!zahl(k.duell.vorbereitet)) k.duell.vorbereitet = 0;
+  if (k.rolle !== "amt" && k.rolle !== "nachfolger") k.rolle = sp.amtszeit >= maxAmtszeiten(w) ? "nachfolger" : "amt";
+  if (k.nachfolgerAuftritte !== undefined && (typeof k.nachfolgerAuftritte !== "object" || !zahl(k.nachfolgerAuftritte.punkte))) k.nachfolgerAuftritte = { gemeinsam: 0, allein: 0, punkte: 0 };
   if (!zahl(k.angriffe)) k.angriffe = 0;
   k.angriffe = clamp(k.angriffe, -WAHLKAMPF.angriffDeckelGesamt, 0);
   if (!Array.isArray(k.angriffeLog)) k.angriffeLog = [];

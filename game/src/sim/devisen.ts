@@ -24,7 +24,7 @@ import { NET } from "./modell";
 import { nationalAverage, startAverage } from "./netz";
 import { addLog, fmt } from "./log";
 import { wirke } from "./wirkung";
-import { addMarke, defizitJetzt, wirtschaftZustand } from "./wirtschaft";
+import { addMarke, defizitJetzt, defizitStrukturell, wirtschaftZustand } from "./wirtschaft";
 import { Rng } from "./rng";
 
 /** Spielparameter der Devisen-Lage (Kalibrierung, keine Messwerte). */
@@ -39,6 +39,8 @@ export const DEVISEN = {
   oelAufLb: -0.05,
   /** Prozentpunkte Leistungsbilanz je Indexpunkt Tourismus über dem Start */
   tourismusAufLb: 0.03,
+  /** Runde „Netz atmet“ (Spielparameter): Prozentpunkte Leistungsbilanz je Indexpunkt Sektorenindex (Industrie, Export, Mittelstand, Investitionen, Bau, Tourismus) */
+  sektorAufLb: 0.02,
   /** J-Kurve: Prozentpunkte je Prozent Abwertung der letzten 6 Monate (Importe werden sofort teurer) */
   jKurveKurz: 0.04,
   /** J-Kurve: Prozentpunkte je Prozent Abwertung der Monate 7–12 (Wettbewerbsfähigkeit wirkt verzögert) */
@@ -151,11 +153,14 @@ export function leistungsbilanzZerlegung(w: World): LbZerlegung {
   const zeilen: LbTreiber[] = [{ name: "Sonstige Leistungsbilanz", wert: DEVISEN.lbBasis, text: "Warenhandel ohne Energie, Dienste ohne Tourismus, Transfers (pauschal)." }];
   const eu = DEVISEN.euAufLb * ((e.euNachfrage ?? 100) - 100);
   zeilen.push({ name: "Nachfrage aus der EU", wert: eu, text: "Die EU ist der wichtigste Handelspartner; ihre Nachfrage trägt die Exporte." });
-  const oel = DEVISEN.oelAufLb * ((e.oel ?? 100) - 100);
-  zeilen.push({ name: "Energie-Importrechnung", wert: oel, text: "Öl und Gas werden in Dollar bezahlt; der Preis treibt die Importrechnung (Hormuz-Zuschlag)." });
+  // Runde „Netz atmet“: Die Importabhängigkeit (Politiknetz) bestimmt, wie hart der Ölpreis die Rechnung trifft (Faktor 1 ohne Netz)
+  const oel = DEVISEN.oelAufLb * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1);
+  zeilen.push({ name: "Energie-Importrechnung", wert: oel, text: "Öl und Gas werden in Dollar bezahlt; der Preis treibt die Importrechnung (Hormuz-Zuschlag), je nach Importabhängigkeit." });
   const startTourismus = w.spiel ? startAverage(NET, w.net, "tourismus") : 65;
   const tourismus = w.spiel ? DEVISEN.tourismusAufLb * (nationalAverage(NET, w.net, "tourismus") - startTourismus) : 0;
   zeilen.push({ name: "Tourismus", wert: tourismus, text: "Gäste bringen Devisen; eine schwache Lira macht den Urlaub billiger." });
+  // Runde „Netz atmet“: Die Realwirtschaft der Branchen trägt die Exportseite (0 ohne Netz)
+  zeilen.push({ name: "Branchen (Industrie, Export, Mittelstand)", wert: DEVISEN.sektorAufLb * (e.sektorIndex ?? 0), text: "Läuft die Industrie, wachsen Exporte und Vorleistungen; leidet der Mittelstand, schrumpft die Basis." });
   // J-Kurve: Die Abwertung der jüngsten sechs Monate verteuert Importe sofort (negativ),
   // die der Monate 7–12 stärkt inzwischen die Wettbewerbsfähigkeit (positiv).
   const h = w.history;
@@ -430,7 +435,7 @@ export function iwfReview(w: World): void {
   if (!spiel || !z || !p || w.day < p.naechsteReview) return;
   const e = w.economy;
   const zinsOk = e.policyRate >= p.zinsMindest;
-  const defizitOk = defizitJetzt(w) <= p.defizitMax;
+  const defizitOk = defizitStrukturell(w) <= p.defizitMax;
   if (zinsOk && defizitOk) {
     p.bestanden += 1;
     e.riskPremium = Math.max(50, e.riskPremium + DEVISEN.iwf.risikoReview);
@@ -463,7 +468,7 @@ export function iwfReview(w: World): void {
   } else {
     const fehl: string[] = [];
     if (!zinsOk) fehl.push(`der Leitzins liegt bei ${fmt(e.policyRate)} % statt mindestens ${fmt(p.zinsMindest)} %`);
-    if (!defizitOk) fehl.push(`das Defizit liegt bei ${fmt(defizitJetzt(w))} % statt höchstens ${fmt(p.defizitMax)} %`);
+    if (!defizitOk) fehl.push(`das Defizit liegt bei ${fmt(defizitStrukturell(w))} % statt höchstens ${fmt(p.defizitMax)} %`);
     iwfBruch(w, `Die Review scheitert: ${fehl.join(" und ")}.`);
   }
 }
@@ -494,7 +499,7 @@ export function iwfSicht(w: World): IwfSicht | null {
   const p = w.spiel?.wirtschaft?.devisen?.iwf;
   if (!p) return null;
   const e = w.economy;
-  const defizit = defizitJetzt(w);
+  const defizit = defizitStrukturell(w);
   const zinsOk = e.policyRate >= p.zinsMindest;
   const defizitOk = defizit <= p.defizitMax;
   const tage = Math.max(0, p.naechsteReview - w.day);

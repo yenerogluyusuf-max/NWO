@@ -39,7 +39,7 @@
 .wi-akte .wi-zeile.on { background: #fbf6e6; border-color: var(--seal); box-shadow: 0 0 0 1px var(--seal); }
 .wi-zeile-name { font-size: 14.5px; line-height: 1.2; }
 .wi-zeile-wert { font: 600 15px var(--serif); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
-.wi-zeile-wert small { font: 400 11px var(--sans); color: var(--ink-soft); margin-left: 3px; }
+.wi-zeile-wert small { font: 400 12px var(--sans); color: var(--ink-soft); margin-left: 3px; }
 .wi-zeile-spark { display: block; height: 24px; }
 .wi-spark { display: block; overflow: visible; }
 
@@ -59,7 +59,7 @@
 .wi-diagramm { position: relative; width: 100%; min-width: 0; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; padding: 6px 4px 6px; touch-action: pan-y; }
 .wi-diagramm svg { display: block; overflow: visible; }
 .wi-gitter { stroke: rgba(120, 90, 50, 0.2); stroke-width: 1; }
-.wi-achse { font: 11px var(--sans); fill: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.wi-achse { font: 12px var(--sans); fill: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .wi-verlauf { fill: none; stroke: var(--teal); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
 .wi-punkt { fill: var(--teal); stroke: #fbf6e6; stroke-width: 1.5; }
 .wi-wert { font: 600 12px var(--sans); fill: var(--ink); paint-order: stroke; stroke: #fbf6e6; stroke-width: 3px; }
@@ -70,10 +70,10 @@
 .wi-linie { stroke-width: 1.2; stroke-dasharray: 2 4; }
 .wi-linie-ziel { stroke: var(--teal); }
 .wi-linie-grenze { stroke: var(--gold-3); }
-.wi-linien-text { font: 11px var(--sans); fill: var(--gold-3); paint-order: stroke; stroke: #fbf6e6; stroke-width: 3px; }
+.wi-linien-text { font: 12px var(--sans); fill: var(--gold-3); paint-order: stroke; stroke: #fbf6e6; stroke-width: 3px; }
 .wi-start { stroke: rgba(90, 64, 40, 0.5); stroke-width: 1; stroke-dasharray: 3 3; }
 .wi-jetzt { stroke: rgba(90, 64, 40, 0.4); stroke-width: 1; }
-.wi-start-text { font: italic 11px var(--serif); fill: var(--ink-soft); }
+.wi-start-text { font: italic 12px var(--serif); fill: var(--ink-soft); }
 .wi-kreuz { stroke: rgba(42, 31, 24, 0.5); stroke-width: 1; }
 .wi-marke { stroke-width: 1; }
 .wi-m-zins { fill: var(--teal); stroke: #fbf6e6; }
@@ -105,7 +105,7 @@
 .wi-balken .wi-hoch { background: var(--gold-2); }
 .wi-balken .wi-runter { background: var(--teal); }
 .wi-treiber-wert { font: 600 13px var(--sans); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
-.wi-treiber-wert small { font: 400 11px var(--sans); color: var(--ink-soft); }
+.wi-treiber-wert small { font: 400 12px var(--sans); color: var(--ink-soft); }
 .wi-treiber-text { grid-column: 1 / -1; color: var(--ink-soft); font-size: 12.5px; line-height: 1.35; }
 
 /* Handlungen ------------------------------------------------------------- */
@@ -130,7 +130,7 @@
 .wi-kette.wi-ebene-3 { margin-left: 36px; padding-left: 12px; border-left: 2px solid rgba(90, 64, 40, 0.2); }
 .wi-kette li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 0 6px; align-items: baseline; }
 .wi-kette li small { grid-column: 2; color: var(--ink-soft); font-size: 12.5px; line-height: 1.35; }
-.wi-pfeil { font-size: 11px; text-align: center; }
+.wi-pfeil { font-size: 12px; text-align: center; }
 .wi-nach { color: var(--ink-soft); font-style: italic; font-size: 13px; }
 
 /* Karten (Zentralbank, Haushalt) ---------------------------------------- */
@@ -147,7 +147,7 @@
 .wi-zahlen > div, .wi-kennziffer { display: grid; gap: 2px; }
 .wi-zahlen dt, .wi-kennziffer dt { font: 12px var(--sans); color: var(--ink-soft); }
 .wi-zahlen dd, .wi-kennziffer dd { margin: 0; font: 600 18px var(--serif); font-variant-numeric: tabular-nums; }
-.wi-kennziffer dd small { font: 400 11.5px var(--sans); color: var(--ink-soft); }
+.wi-kennziffer dd small { font: 400 12px var(--sans); color: var(--ink-soft); }
 .wi-kennziffern { margin: 6px 0 8px; }
 
 .wi-optionen { display: grid; gap: 8px; margin: 8px 0 4px; }
@@ -189,7 +189,7 @@
 .wi-wirkung { width: 100%; border-collapse: collapse; margin: 8px 0 6px; font-size: 14px; }
 .wi-wirkung caption { text-align: left; font: italic 13px var(--serif); color: var(--ink-soft); padding-bottom: 4px; }
 .wi-wirkung th, .wi-wirkung td { text-align: left; padding: 5px 6px; border-bottom: 1px solid rgba(120, 90, 50, 0.18); font-variant-numeric: tabular-nums; }
-.wi-wirkung thead th { font: 600 11.5px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); }
+.wi-wirkung thead th { font: 600 12px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); }
 .wi-wirkung tbody th { font-weight: 500; }
 .wi-wirkung tbody td:last-child { font-weight: 600; white-space: nowrap; }
 .wi-wirkung tfoot td { border: none; font: 12px var(--sans); color: var(--ink-soft); padding-top: 6px; }
@@ -219,7 +219,7 @@
 .wi-posten-zeile.on { border-color: var(--seal); box-shadow: 0 0 0 1px var(--seal); background: #fff; }
 .wi-posten-kopf { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
 .wi-posten-kopf b { font: 600 15.5px var(--display); }
-.wi-posten-art { font: 600 11px var(--sans); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+.wi-posten-art { font: 600 12px var(--sans); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
 .wi-posten-text { font-size: 13.5px; color: var(--ink-soft); line-height: 1.4; }
 .wi-posten-stand { font: 500 12.5px var(--sans); color: var(--seal); }
 .wi-regler { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
@@ -257,3 +257,161 @@
 @media (prefers-reduced-motion: reduce) {
   .wi-akte * { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Gestaltung der Akte (wie politik/design.css) ----------
+   Die Regeln stehen mit .dossier davor, damit sie die allgemeinen Stile der Seite übertreffen. Größere Schrift (nichts unter 12 px),
+   dunklere Zweittexte, Karten ohne Doppelrahmen, Zahlen groß in Inter. */
+
+.dossier .wi-akte { gap: 26px; }
+.dossier .wi-akte h3 { font: 600 26px/1.2 var(--display); }
+.dossier .wi-akte h3 small { font: 16px var(--serif); color: var(--pd-soft); }
+.dossier .wi-akte h4 { margin-bottom: 8px; font: 650 19px/1.25 var(--display); }
+.dossier .wi-akte .kicker { margin: 0 0 4px; font: 700 12px/1.2 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; font-variant: normal; color: var(--pd-soft); }
+.dossier .wi-hinweis { margin: 4px 0 12px; font: 16px/1.5 var(--serif); color: var(--pd-soft); }
+.dossier .wi-grund { font: 15px var(--serif); font-style: normal; color: #8a2d26; }
+.dossier .wi-gut { color: #1d5a3d; }
+.dossier .wi-schlecht { color: #8a2d26; }
+.dossier .wi-neutral { color: var(--pd-soft); }
+
+/* Reiter */
+.dossier .wi-reiter { gap: 8px; border-bottom: 1px solid var(--pd-line-strong); }
+.dossier .wi-akte .wi-reiter button { gap: 1px; padding: 10px 20px 9px; margin-bottom: -1px; border: none; border-bottom: 3px solid transparent; border-radius: 6px 6px 0 0; background: transparent; transition: background 140ms ease; }
+.dossier .wi-reiter button b { font: 650 20px var(--display); color: var(--pd-soft); }
+.dossier .wi-reiter button span { font: 14px var(--serif); color: var(--pd-faint); }
+.dossier .wi-akte .wi-reiter button:hover { background: rgba(255, 251, 238, 0.85); }
+.dossier .wi-akte .wi-reiter button:focus-visible { outline: 2px solid var(--gold-2); outline-offset: -2px; }
+.dossier .wi-akte .wi-reiter button.on { background: rgba(255, 251, 238, 0.9); border: none; border-bottom: 3px solid var(--seal); }
+.dossier .wi-reiter button.on b { color: var(--pd-ink); }
+
+/* Lage: Liste und Detail */
+.dossier .wi-lage { grid-template-columns: minmax(250px, 310px) minmax(0, 1fr); gap: 36px; }
+.dossier .wi-liste { gap: 20px; max-height: calc(100vh - 290px); }
+.dossier .wi-liste h4 { margin: 0 0 6px; font: 700 12px/1.3 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--pd-soft); }
+.dossier .wi-liste ul { gap: 3px; }
+.dossier .wi-akte .wi-zeile { grid-template-columns: minmax(0, 1fr) auto 56px; gap: 10px; padding: 9px 12px; border-radius: 6px; transition: background 120ms ease, border-color 120ms ease; }
+.dossier .wi-akte .wi-zeile:hover { background: rgba(255, 251, 238, 0.9); border-color: var(--pd-line); }
+.dossier .wi-akte .wi-zeile:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
+.dossier .wi-akte .wi-zeile.on { background: linear-gradient(180deg, #fbf0c9, #f1dc9a); border-color: rgba(167, 122, 20, 0.75); box-shadow: 0 3px 8px rgba(80, 56, 20, 0.2); }
+.dossier .wi-zeile-name { font: 16.5px/1.25 var(--serif); }
+.dossier .wi-zeile-wert { font: 700 16px var(--sans); }
+.dossier .wi-zeile-wert small { font: 500 12.5px var(--sans); color: var(--pd-soft); }
+
+.dossier .wi-detail { gap: 20px; }
+.dossier .wi-kopf { gap: 8px 18px; }
+.dossier .wi-gross { font: 700 46px/1.05 var(--sans); letter-spacing: -0.02em; }
+.dossier .wi-gross small { font: 600 18px var(--sans); color: var(--pd-soft); letter-spacing: 0; }
+.dossier .wi-chips { gap: 8px; }
+.dossier .wi-chip { padding: 0 12px; border-radius: 999px; font: 700 13px/24px var(--sans); background: rgba(255, 253, 246, 0.85); }
+.dossier .wi-gemessen { font: 15px var(--serif); color: var(--pd-soft); }
+.dossier .wi-erklaerung { font: 17px/1.55 var(--serif); max-width: 70ch; }
+.dossier .wi-block { gap: 8px; padding-top: 18px; border-top: 1px solid var(--pd-line-strong); }
+
+/* Diagramm */
+.dossier .wi-diagramm { padding: 14px 12px 8px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card-hell); box-shadow: var(--pd-schatten); }
+.dossier .wi-achse { font: 600 12.5px var(--sans); fill: #55442f; }
+.dossier .wi-wert { font: 700 13.5px var(--sans); }
+.dossier .wi-linien-text { font: 600 12.5px var(--sans); fill: #6f4f0c; }
+.dossier .wi-start-text { font: 13.5px var(--serif); fill: #55442f; }
+.dossier .wi-tip { width: 250px; padding: 10px 14px; border-radius: 6px; font: 14px/1.4 var(--serif); box-shadow: var(--pd-schatten-hoch); }
+.dossier .wi-tip b { font: 650 15px var(--display); }
+.dossier .wi-tip em { font: 13px var(--serif); color: var(--pd-soft); }
+.dossier .wi-legende { gap: 6px 18px; padding: 10px 12px 2px; font: 600 13px var(--sans); color: var(--pd-soft); }
+
+/* Treiber und Handlungen */
+.dossier .wi-treiber { gap: 14px; margin-top: 6px; }
+.dossier .wi-treiber li { grid-template-columns: minmax(0, 1.2fr) minmax(90px, 1fr) minmax(0, 1.05fr); gap: 4px 16px; }
+.dossier .wi-treiber-name { font: 16.5px/1.3 var(--serif); }
+.dossier .wi-balken { height: 10px; border-radius: 5px; }
+.dossier .wi-treiber-wert { font: 700 14.5px var(--sans); }
+.dossier .wi-treiber-wert small { font: 500 12.5px var(--sans); color: var(--pd-soft); }
+.dossier .wi-treiber-text { font: 15px/1.4 var(--serif); color: var(--pd-soft); }
+.dossier .wi-handlungen { gap: 10px; }
+.dossier .wi-akte button.wi-handlung { padding: 10px 18px; border-radius: 4px; font: 600 15.5px/1.3 var(--serif); }
+.dossier .wi-akte button.wi-haupt { font: 700 16px var(--serif); padding: 11px 22px; }
+.dossier .wi-akte button.wi-wenn { padding: 5px 14px; font: 600 14px var(--sans); border-radius: 999px; }
+.dossier .wi-marken { gap: 8px; font: 16px/1.4 var(--serif); }
+.dossier .wi-wann { font: 700 13px var(--sans); color: var(--pd-soft); }
+
+/* Folgeketten */
+.dossier .wi-kette { gap: 8px; }
+.dossier .wi-kette li small { font: 15px/1.4 var(--serif); color: var(--pd-soft); }
+.dossier .wi-nach { font: 14.5px var(--serif); font-style: normal; color: var(--pd-soft); }
+
+/* Karten: Zentralbank und Haushalt */
+.dossier .wi-zb, .dossier .wi-hh { gap: 22px; }
+.dossier .wi-karte { padding: 22px 26px 24px; border: 1px solid var(--pd-line); outline: none; border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .wi-stufe { padding: 8px 16px; border-width: 1.5px; border-radius: 6px; font: 700 12px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; background: rgba(255, 253, 246, 0.8); }
+.dossier .wi-stufe b { font: 650 17px var(--display); letter-spacing: 0; text-transform: none; }
+.dossier .wi-zahlen, .dossier .wi-kennziffern { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin: 14px 0 0; }
+.dossier .wi-zahlen dt, .dossier .wi-kennziffer dt { font: 700 12px/1.3 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--pd-soft); }
+.dossier .wi-zahlen dd, .dossier .wi-kennziffer dd { font: 700 26px/1.15 var(--sans); letter-spacing: -0.01em; }
+.dossier .wi-kennziffer dd small { font: 600 14px var(--sans); color: var(--pd-soft); letter-spacing: 0; }
+
+.dossier .wi-optionen { gap: 12px; margin: 12px 0 6px; }
+.dossier .wi-option { grid-template-columns: 26px minmax(0, 1fr); gap: 3px 12px; padding: 16px 18px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card-hell); transition: border-color 140ms ease, box-shadow 140ms ease; }
+.dossier .wi-option:hover { border-color: var(--gold-3); }
+.dossier .wi-option.on { border-color: rgba(38, 90, 98, 0.7); box-shadow: 0 0 0 3px rgba(38, 90, 98, 0.14); background: #fff; }
+.dossier .wi-option-kopf strong { font: 650 18px var(--display); }
+.dossier .wi-beschluss { font: 700 14px var(--sans); }
+.dossier .wi-option-text { font: 16px/1.45 var(--serif); color: var(--pd-soft); }
+.dossier .wi-kosten { font: 600 14px var(--sans); color: #8a2d26; }
+.dossier .wi-vorschau { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--pd-line-strong); }
+.dossier .wi-akte .wi-metriken button { padding: 5px 14px; border-radius: 999px; font: 600 14px var(--sans); }
+
+.dossier .wi-haltungen, .dossier .wi-wechsel { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 12px; }
+.dossier .wi-haltung, .dossier .wi-wechsel-karte { gap: 6px; padding: 16px 18px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card-hell); font: 16px/1.4 var(--serif); box-shadow: var(--pd-schatten); }
+.dossier .wi-haltung.jetzt { border-color: rgba(38, 90, 98, 0.7); box-shadow: 0 0 0 3px rgba(38, 90, 98, 0.14); }
+.dossier .wi-haltung em { font: 15px var(--serif); font-style: normal; color: var(--pd-soft); }
+.dossier .wi-haltung b, .dossier .wi-wechsel-karte b { font: 650 18px var(--display); }
+.dossier .wi-haltung b small, .dossier .wi-wechsel-karte b small { font: 500 13px var(--sans); color: var(--pd-soft); }
+
+.dossier .wi-sitzungen { gap: 6px; }
+.dossier .wi-akte button.wi-sitzung { padding: 11px 16px; border-radius: 6px; font: 16px var(--serif); }
+.dossier .wi-beschluss-gross { font: 700 16px var(--sans); }
+.dossier .wi-sitzung-text { padding: 10px 16px 14px; font: 16px/1.5 var(--serif); }
+
+.dossier .wi-wirkung { margin: 12px 0 8px; font: 16px var(--serif); }
+.dossier .wi-wirkung caption { font: 15px/1.4 var(--serif); font-style: normal; color: var(--pd-soft); padding-bottom: 6px; }
+.dossier .wi-wirkung th, .dossier .wi-wirkung td { padding: 8px 10px; border-bottom: 1px solid var(--pd-line); }
+.dossier .wi-wirkung thead th { font: 700 12px var(--sans); letter-spacing: 0.1em; color: var(--pd-soft); }
+.dossier .wi-wirkung tfoot td { font: 14px var(--serif); color: var(--pd-soft); }
+
+.dossier .wi-bestaetigung { padding: 18px 22px 14px; border: 1px solid var(--pd-line-strong); outline: none; border-radius: 8px; box-shadow: var(--pd-schatten-hoch); }
+
+/* Haushalt */
+.dossier .wi-plan { gap: 12px 44px; margin-top: 12px; }
+.dossier .wi-plan-liste { gap: 9px; }
+.dossier .wi-plan-liste li { grid-template-columns: minmax(0, 1.25fr) minmax(50px, 1fr) 58px 52px; gap: 10px; font: 16px var(--serif); }
+.dossier .wi-plan-balken { height: 9px; border-radius: 5px; }
+.dossier .wi-plan-wert { font: 700 14.5px var(--sans); }
+.dossier .wi-plan-live { font: 700 13px var(--sans); }
+.dossier .wi-mehr { color: #8a2d26; }
+.dossier .wi-weniger { color: #1d5a3d; }
+.dossier .wi-quelle { font: 14px/1.5 var(--serif); color: var(--pd-soft); }
+.dossier .wi-posten { gap: 12px; }
+.dossier .wi-posten-zeile { gap: 8px; padding: 16px 18px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card-hell); }
+.dossier .wi-posten-zeile.on { border-color: rgba(38, 90, 98, 0.7); box-shadow: 0 0 0 3px rgba(38, 90, 98, 0.14); background: #fff; }
+.dossier .wi-posten-kopf b { font: 650 18px var(--display); }
+.dossier .wi-posten-art { font: 700 12px var(--sans); letter-spacing: 0.1em; color: var(--pd-soft); }
+.dossier .wi-posten-text { font: 15.5px/1.45 var(--serif); color: var(--pd-soft); }
+.dossier .wi-posten-stand { font: 600 14px var(--sans); color: #8a2d26; }
+.dossier .wi-regler-seite { font: 14px var(--serif); font-style: normal; color: var(--pd-soft); }
+.dossier .wi-akte button.wi-stufe-knopf { width: 46px; height: 38px; font: 700 14.5px var(--sans); }
+.dossier .wi-hh-vorschau { margin-top: 20px; padding: 18px 22px; border: 1px solid rgba(38, 90, 98, 0.55); border-radius: 8px; background: var(--pd-card-hell); box-shadow: var(--pd-schatten-hoch); }
+.dossier .wi-verteilung { gap: 6px; font: 16px var(--serif); }
+.dossier .wi-kehrseite { font: 16px/1.5 var(--serif); }
+.dossier .wi-dauer .wi-chip { font-size: 13px; }
+
+@container (max-width: 760px) {
+  .dossier .wi-lage { grid-template-columns: minmax(0, 1fr); }
+  .dossier .wi-liste { max-height: none; position: static; }
+}
+@media (max-width: 1000px) {
+  .dossier .wi-lage { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .dossier .wi-liste { max-height: none; position: static; }
+  .dossier .wi-plan { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dossier .wi-akte .wi-reiter button, .dossier .wi-akte .wi-zeile, .dossier .wi-option { transition: none; }
+}
+.dossier .wi-kennziffer .wi-chip { justify-self: start; }

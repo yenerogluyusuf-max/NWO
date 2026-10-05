@@ -1,0 +1,9 @@
+{
+ "effekte.aus": "Kapalı",
+ "effekte.gruppe": "Harita efektleri",
+ "effekte.hinweis": "Haritadaki hareket: Yüksek tüm hareketleri ve ışıkları, Orta yalnızca sakin geçişleri gösterir, Kapalı hiç hareket göstermez. Tıklamak sıradaki seçeneğe geçer.",
+ "effekte.hoch": "Yüksek",
+ "effekte.kurz": "Harita hareketi",
+ "effekte.mittel": "Orta",
+ "effekte.titel": "Efektler"
+}

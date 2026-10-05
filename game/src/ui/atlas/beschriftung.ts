@@ -5,6 +5,48 @@
 
 import { lonLatToUv, type AtlasScene, type Relief } from "./scene";
 import type { KBesitzer } from "./daten";
+import { aktuelleSprache } from "../../i18n";
+import { landName } from "../ebenen";
+
+const MEERE_NAMEN: Record<string, { tr: string; en: string }> = {
+  "Schwarzes Meer": { tr: "Karadeniz", en: "Black Sea" },
+  "Mittelmeer": { tr: "Akdeniz", en: "Mediterranean Sea" },
+  "Ägäis": { tr: "Ege Denizi", en: "Aegean Sea" },
+  "Marmarameer": { tr: "Marmara Denizi", en: "Sea of Marmara" },
+  "Levantinisches Meer": { tr: "Levant Denizi", en: "Levantine Sea" },
+  "Libysches Meer": { tr: "Libya Denizi", en: "Libyan Sea" },
+  "Kretisches Meer": { tr: "Girit Denizi", en: "Cretan Sea" },
+  "Ionisches Meer": { tr: "İyon Denizi", en: "Ionian Sea" },
+  "Kaspisches Meer": { tr: "Hazar Denizi", en: "Caspian Sea" },
+  "Asowsches Meer": { tr: "Azak Denizi", en: "Sea of Azov" },
+  "Golf von Iskenderun": { tr: "İskenderun Körfezi", en: "Gulf of Iskenderun" },
+  "Golf von Antalya": { tr: "Antalya Körfezi", en: "Gulf of Antalya" },
+  "Bosporus": { tr: "İstanbul Boğazı", en: "Bosphorus" },
+  "Dardanellen": { tr: "Çanakkale Boğazı", en: "Dardanelles" },
+};
+
+const GEBIRGE_NAMEN: Record<string, { tr: string; en: string }> = {
+  "Taurusgebirge": { tr: "Toros Dağları", en: "Taurus Mountains" },
+  "Pontisches Gebirge": { tr: "Doğu Karadeniz Dağları", en: "Pontic Mountains" },
+  "Kaukasus": { tr: "Kafkas Dağları", en: "Caucasus" },
+  "Zagrosgebirge": { tr: "Zagros Dağları", en: "Zagros Mountains" },
+  "Antitaurus": { tr: "Aladağlar", en: "Anti-Taurus" },
+  "Rhodopen": { tr: "Rodop Dağları", en: "Rhodope Mountains" },
+  "Balkangebirge": { tr: "Balkan Dağları", en: "Balkan Mountains" },
+  "Pindos": { tr: "Pindus Dağları", en: "Pindus" },
+  "Anatolisches Hochland": { tr: "Anadolu Platosu", en: "Anatolian Plateau" },
+  "Ostanatolien": { tr: "Doğu Anadolu", en: "Eastern Anatolia" },
+};
+
+function uebersetzeMeer(name: string, sprache: "de" | "tr" | "en"): string {
+  if (sprache === "de") return name;
+  return MEERE_NAMEN[name]?.[sprache] ?? name;
+}
+
+function uebersetzeGebirge(name: string, sprache: "de" | "tr" | "en"): string {
+  if (sprache === "de") return name;
+  return GEBIRGE_NAMEN[name]?.[sprache] ?? name;
+}
 
 interface Ort { n: string; lon: number; lat: number; pop: number; k: "h" | "s" | "o"; mz: number; l: string }
 interface Gipfel { n: string; lon: number; lat: number; ele: number; mz: number }
@@ -166,9 +208,12 @@ export class Beschriftung {
     const pxKm = pxGrad / 90;
     const imBild = (r: Rect) => r.x >= 96 && r.x + r.w <= W - 18 && r.y >= 74 && r.y + r.h <= H - 64;
 
+    const sprache = aktuelleSprache();
+
     // Meere
     for (const m of d.meere) {
-      if (o.ausgeblendet?.has(m.n.toLowerCase())) continue;
+      const meerName = uebersetzeMeer(m.n, sprache);
+      if (o.ausgeblendet?.has(m.n.toLowerCase()) || o.ausgeblendet?.has(meerName.toLowerCase())) continue;
       const bereich: Record<number, [number, number]> = { 1: [0, 300], 2: [0, 340], 3: [45, 520], 4: [110, 1200], 5: [170, 1400] };
       const [a, b] = bereich[m.gr] ?? [0, 400];
       if (pxGrad < a || pxGrad > b) continue;
@@ -179,21 +224,22 @@ export class Beschriftung {
       const groesse = basis * Math.max(0.85, Math.min(2.1, Math.pow(pxGrad / 75, 0.55)));
       const font = `italic 400 ${groesse.toFixed(1)}px ${SERIF}`;
       const gap = groesse * (m.gr <= 2 ? 0.34 : 0.2);
-      const br = this.gesperrt(m.n, font, gap, false);
+      const br = this.gesperrt(meerName, font, gap, false);
       const alpha = fuenfer(Math.min((pxGrad - a) / 25 + 0.3, (b - pxGrad) / (b * 0.25)));
       const cos = Math.cos(m.rot);
       const sin = Math.abs(Math.sin(m.rot));
       const rect = { x: p.x - (br * cos + groesse * sin) / 2, y: p.y - (br * sin + groesse * cos) / 2, w: br * cos + groesse * sin, h: br * sin + groesse * cos };
-      if (!imBild(rect) || !platziereHinten(rect, "meer", m.n)) continue;
+      if (!imBild(rect) || !platziereHinten(rect, "meer", meerName)) continue;
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(m.rot);
-      this.gesperrt(m.n, font, gap, true, `rgba(206, 228, 232, ${0.78 * alpha})`, `rgba(8, 20, 30, ${0.4 * alpha})`, Math.max(2, groesse * 0.08));
+      this.gesperrt(meerName, font, gap, true, `rgba(206, 228, 232, ${0.78 * alpha})`, `rgba(8, 20, 30, ${0.4 * alpha})`, Math.max(2, groesse * 0.08));
       ctx.restore();
     }
 
     // Gebirge
     for (const m of d.gebirge) {
+      const gebirgeName = uebersetzeGebirge(m.n, sprache);
       const [a, b] = m.gr === 1 ? [30, 200] : [80, 330];
       if (pxGrad < a || pxGrad > b) continue;
       const uv = this.uv.get(m)!;
@@ -202,16 +248,17 @@ export class Beschriftung {
       const groesse = (m.gr === 1 ? 19 : 14) * Math.max(0.85, Math.min(1.9, Math.pow(pxGrad / 75, 0.5)));
       const font = `italic 600 ${groesse.toFixed(1)}px ${SERIF}`;
       const gap = groesse * 0.3;
-      const br = this.gesperrt(m.n.toLocaleUpperCase("de"), font, gap, false);
+      const gebirgeUpper = gebirgeName.toLocaleUpperCase(sprache === "tr" ? "tr" : "de");
+      const br = this.gesperrt(gebirgeUpper, font, gap, false);
       const alpha = fuenfer(Math.min((pxGrad - a) / 20 + 0.2, (b - pxGrad) / 40));
       const cos = Math.cos(m.rot);
       const sin = Math.abs(Math.sin(m.rot));
       const rect = { x: p.x - (br * cos + groesse * sin) / 2, y: p.y - (br * sin + groesse * cos) / 2, w: br * cos + groesse * sin, h: br * sin + groesse * cos };
-      if (!imBild(rect) || !platziereHinten(rect, "gebirge", m.n)) continue;
+      if (!imBild(rect) || !platziereHinten(rect, "gebirge", gebirgeName)) continue;
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(m.rot);
-      this.gesperrt(m.n.toLocaleUpperCase("de"), font, gap, true, `rgba(244, 226, 196, ${0.5 * alpha})`, `rgba(46, 26, 12, ${0.4 * alpha})`, Math.max(2, groesse * 0.1));
+      this.gesperrt(gebirgeUpper, font, gap, true, `rgba(244, 226, 196, ${0.5 * alpha})`, `rgba(46, 26, 12, ${0.4 * alpha})`, Math.max(2, groesse * 0.1));
       ctx.restore();
     }
 
@@ -220,8 +267,9 @@ export class Beschriftung {
       { name: "Türkiye", tr: true, flaeche: 780000, anker: this.anker.TUR ?? [], lon: 34.3, lat: 39.1 },
     ];
     for (const l of this.laender) {
-      if (!l.iso || !l.name || l.iso === "HRV" || l.iso === "HUN" || l.iso === "CYN") continue;
-      laenderListe.push({ name: l.name, tr: false, flaeche: l.flaeche ?? 10000, anker: this.anker[l.iso] ?? [], lon: l.lon ?? 0, lat: l.lat ?? 0 });
+      if (!l.iso || !l.name || l.iso === "CYN") continue;
+      const lName = landName(l.iso) ?? l.name;
+      laenderListe.push({ name: lName, tr: false, flaeche: l.flaeche ?? 10000, anker: this.anker[l.iso] ?? [], lon: l.lon ?? 0, lat: l.lat ?? 0 });
     }
     for (const l of laenderListe) {
       const wurzel = Math.sqrt(l.flaeche) * pxKm;
@@ -230,7 +278,7 @@ export class Beschriftung {
       const alpha = fuenfer((330 - groesse) / 160) * (l.tr ? fuenfer((185 - pxGrad) / 65) : fuenfer((320 - pxGrad) / 110));
       if (alpha <= 0.02) continue;
       if (wurzel < 55) continue;
-      const text = l.tr ? l.name.toLocaleUpperCase("tr") : l.name.toLocaleUpperCase("de");
+      const text = l.tr ? l.name.toLocaleUpperCase("tr") : l.name.toLocaleUpperCase(sprache === "tr" ? "tr" : "de");
       const fest = Math.max(1, Math.min(2, groesse / 30));
       // Ankerpunkte vom größten Abstand zur Grenze an durchprobieren: Der Name muss in den sichtbaren Landesteil und ins Bild passen
       const punkte = l.anker.length ? l.anker : [l.lon, l.lat, 0.4];
@@ -278,16 +326,19 @@ export class Beschriftung {
 
     // Städte
     for (const s of d.orte) {
-      if (pxGrad < s.mz) continue;
+      // Rangordnung: Ankara als einzige große Hauptstadt, fremde Hauptstädte klein und ab dem Überblick (sie stehen sonst vor den Orten der Türkei)
+      const hauptstadt = s.k === "h";
+      const eigene = hauptstadt && s.l === "TUR";
+      const fremde = hauptstadt && !eigene;
+      if (pxGrad < (fremde ? Math.min(s.mz, 24) : s.mz)) continue;
       if (o.ausgeblendet?.has(s.n.toLowerCase())) continue;
       const uv = this.uv.get(s)!;
       const p = atlas.project(uv[0], uv[1]);
       if (!p.sichtbar || !sichtbar(p.x, p.y, 10) || p.y < 62) continue;
-      const hauptstadt = s.k === "h";
-      const px = hauptstadt ? 14.5 : s.pop >= 500_000 ? 13 : s.pop >= 100_000 ? 12 : 11;
-      const font = schrift(px, hauptstadt ? 700 : s.pop >= 100_000 ? 600 : 500);
+      const px = eigene ? 14.5 : fremde ? 11.5 : s.pop >= 500_000 ? 13 : s.pop >= 100_000 ? 12 : 11;
+      const font = schrift(px, eigene ? 700 : fremde ? 600 : s.pop >= 100_000 ? 600 : 500);
       const br = this.breite(font, s.n);
-      const r = hauptstadt ? 5 : s.pop >= 500_000 ? 4 : s.pop >= 100_000 ? 3.3 : 2.5;
+      const r = eigene ? 5 : fremde ? 3.4 : s.pop >= 500_000 ? 4 : s.pop >= 100_000 ? 3.3 : 2.5;
       const varianten: [number, number, "left" | "right" | "center", number][] = [
         [p.x + r + 4, p.y, "left", 0],
         [p.x - r - 4, p.y, "right", 0],
@@ -296,7 +347,7 @@ export class Beschriftung {
       ];
       const rects = varianten.map(([tx, ty, ausr]) => ({ x: ausr === "left" ? tx - 2 : ausr === "right" ? tx - br - 2 : tx - br / 2 - 2, y: ty - px * 0.62, w: br + 4, h: px * 1.24 }));
       const punktRect = { x: p.x - r - 2, y: p.y - r - 2, w: 2 * r + 4, h: 2 * r + 4 };
-      const prio = (hauptstadt ? 1000 : 0) + Math.log10(Math.max(1000, s.pop)) * 60 + (s.l === "TUR" ? 4 : 0);
+      const prio = (eigene ? 1000 : fremde ? 250 : 0) + Math.log10(Math.max(1000, s.pop)) * 60 + (s.l === "TUR" ? 4 : 0);
       kand.push({
         prio,
         rects: [punktRect, ...rects],
@@ -321,7 +372,7 @@ export class Beschriftung {
             ctx.lineTo(p.x - r - 1, p.y);
             ctx.closePath();
           } else ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-          ctx.fillStyle = hauptstadt ? "#f3d68c" : s.pop >= 500_000 ? "#efc9b6" : "#f4ead2";
+          ctx.fillStyle = eigene ? "#f3d68c" : fremde ? "#d9c89c" : s.pop >= 500_000 ? "#efc9b6" : "#f4ead2";
           ctx.fill();
           ctx.lineWidth = 1.6;
           ctx.strokeStyle = "rgba(24, 14, 8, 0.95)";
@@ -333,7 +384,7 @@ export class Beschriftung {
           ctx.lineWidth = 3.2;
           ctx.strokeStyle = halo;
           ctx.strokeText(s.n, tx, ty);
-          ctx.fillStyle = hauptstadt ? "#ffe9a8" : "#f6ecd6";
+          ctx.fillStyle = eigene ? "#ffe9a8" : fremde ? "#ebdcb8" : "#f6ecd6";
           ctx.fillText(s.n, tx, ty);
         },
       });

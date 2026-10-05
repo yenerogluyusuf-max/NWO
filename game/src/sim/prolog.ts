@@ -9,6 +9,12 @@ import { PARTEI_NAME, forderungVon, fraktion, waehlePartner } from "./fraktionen
 import { partnerFigur } from "./figuren";
 import { PROVINCES } from "./netz";
 import { PROVINZEN, WEIGHTS, type ProvinceData } from "./regional";
+import { t } from "../i18n";
+import { KLASSISCHE_VOREINSTELLUNGEN, NULL_ACHSEN, PARTEI_ACHSEN, type Achsen } from "../data/linien";
+import { STARTSZENARIO_NACH_ID, type StartszenarioId } from "../data/startszenarien";
+import { naeheZuPartei, parteiAchsen, quellenAusAchsen, setzeLinie, voreinstellungAlsAngabe, type ParteiAngabe } from "./linie";
+import { wendeBiografieAn } from "./biografie";
+import { profilFuerSzenario, wendeStartszenarioAn } from "./start-szenario";
 
 export type GroupId =
   | "rentner"
@@ -20,8 +26,24 @@ export type GroupId =
   | "konservative"
   | "staedtische_saekulare";
 
+/** Aussehen der Spielfigur (erstes Blatt des Prologs); das Porträt (ui/art/Portraet.tsx) zeichnet daraus das Gesicht. Alle Werte sind Zeichenparameter. */
+export interface Aussehen {
+  geschlecht: "f" | "m";
+  /** Alter bei der Wahlnacht in Jahren (40 bis 66) */
+  alter: number;
+  /** Nummer der Gesichtsform (Teil des Samens: Kopfform, Augen, Nase, Hautton) */
+  gesicht: number;
+  /** Nummer der Frisur (0 bis 18, wird auf die Liste des Geschlechts gefaltet) */
+  haare: number;
+  brille: boolean;
+  bart: "keiner" | "stoppel" | "schnurr" | "kinn" | "voll";
+  kopftuch: boolean;
+}
+
 export interface PlayerProfile {
   name: string;
+  /** Aussehen der Spielfigur; fehlt bei älteren Spielständen und Testprofilen, dann wählt der Name das Gesicht */
+  aussehen?: Aussehen;
   heimat: string;
   /** Kfz-Kennziffer der Heimatprovinz */
   heimatPlaka: number;
@@ -36,11 +58,26 @@ export interface PlayerProfile {
   buendnis?: string;
   versprechen: string[];
   wahl: { runde: 1 | 2; anteil: number };
+  /** Linie der Partei auf den fünf Achsen (data/linien.ts); fehlt bei älteren Spielständen und Testprofilen, dann gilt die Linie nach Kürzel */
+  achsen?: Achsen;
+  /** Wie die Geschichte beginnt (data/startszenarien.ts); fehlt: Neugründung */
+  startszenario?: StartszenarioId;
+  /** Wie die Wahlnacht verlief; jeder Ausgang hat Vorteil und Preis (sim/biografie.ts) */
+  wahlStil?: "knapp" | "klar" | "erste";
+  /** Bündnis mit einer Partei außerhalb der klassischen Muster: Sie bekommt eine Zusage (Muster z-start-*) */
+  buendnisZusage?: { partei: string };
+  /** Saldo der Stammwählerschaft in Punkten Zustimmung (sim/linie.ts, reagiereStamm): wächst mit Linientreue, sinkt mit dem Bruch der Linie */
+  stammSaldo?: number;
 }
 
 export interface Answer {
   label: string;
   text: string;
+  /** Kennung des gezeichneten Wappens der Antwort (ui/prolog/Wappen.tsx): Stadt, Beruf, Motiv, Partei:KÜRZEL … */
+  symbol?: string;
+  /** Vorteil und Preis, die diese Antwort mitbringt (Anzeige; die Wirkung steht in sim/biografie.ts) */
+  vorteil?: string;
+  preis?: string;
   apply: (p: PlayerProfile) => void;
 }
 
@@ -50,108 +87,185 @@ export interface Station {
   story: string;
   question: string;
   answers: Answer[];
+  /** Die Parteistation ist ein Konfigurator (ui/prolog/Parteikonfigurator.tsx); `answers` sind die klassischen Muster für Zufallsstart und Tests */
+  modus?: "konfigurator";
+  /**
+   * Antworten je nach bisherigem Profil (Bündnisse hängen von der Linie der Partei ab); ohne Angabe gelten `answers`.
+   * `erweitert` (die Oberfläche): auch die klassischen Muster sehen alle nahen Parteien; ohne es (Zufallsstart, Tests) bleiben ihre vier festen Antworten,
+   * damit gesetzte Zufallswerte dieselbe Wahl treffen wie früher.
+   */
+  dynamisch?: (p: PlayerProfile, erweitert?: boolean) => Answer[];
+  /** Station entfällt (das Szenario legt sie fest); `auto` trägt dann ihre Wirkung ein */
+  ueberspringen?: (p: PlayerProfile) => boolean;
+  auto?: (p: PlayerProfile) => void;
 }
+
+/** Die Antworten einer Station für ein Profil (dynamisch oder fest). */
+export const antwortenFuer = (st: Station, p: PlayerProfile, erweitert = false): Answer[] => st.dynamisch?.(p, erweitert) ?? st.answers;
 
 const near = (p: PlayerProfile, g: GroupId, d: number) => {
   p.naehe[g] = (p.naehe[g] ?? 0) + d;
 };
 
+/** Eines der vier klassischen Muster der eigenen Partei: Name und Text aus dem Katalog, Linie und Gruppennähe aus data/linien.ts und sim/linie.ts. */
+function klassisch(id: string): Answer {
+  const v = KLASSISCHE_VOREINSTELLUNGEN.find((x) => x.id === id)!;
+  return {
+    symbol: `partei:${v.kurz}`,
+    get label() {
+      return t(`linie.preset.${id}.name`);
+    },
+    get text() {
+      return t(`linie.preset.${id}.text`);
+    },
+    apply: (p) => setzeLinie(p, voreinstellungAlsAngabe(v, t(`linie.preset.${id}.name`))),
+  };
+}
+
+/** Bündnis mit einer Partei der Szene: Wahl der Antworten nach Nähe der Linie (die klassischen Muster behalten ihre vier festen Antworten). */
+const BUENDNIS_NAME: Record<string, string> = { AKP: "AKP", "YENİ": "YENİ Parti", CHP: "CHP", MHP: "MHP", "İYİ": "İYİ Parti", DEM: "DEM Parti", Zafer: "Zafer Partisi", YRP: "Yeniden Refah" };
+function buendnisAntworten(p: PlayerProfile, feste: Answer[], erweitert = false): Answer[] {
+  const kurz = p.partei.kurz;
+  const klassisch = KLASSISCHE_VOREINSTELLUNGEN.some((v) => v.kurz === kurz);
+  if (!kurz || (klassisch && !erweitert)) return feste;
+  const achsen = p.achsen ?? parteiAchsen(kurz) ?? NULL_ACHSEN;
+  const parteien = Object.keys(PARTEI_ACHSEN)
+    .map((k) => ({ k, nah: naeheZuPartei(achsen, k), a: PARTEI_ACHSEN[k]! }))
+    .sort((x, y) => y.nah - x.nah);
+  // Klassische Muster behalten ihre zwei festen Bündnisse (YENİ, MHP) und sehen dazu die übrigen nahen Parteien
+  const schon = klassisch ? new Set(["YENİ", "MHP"]) : new Set<string>();
+  const kandidaten = parteien.filter((x) => x.nah >= (klassisch ? 1 : 0) && !schon.has(x.k)).slice(0, klassisch ? 2 : 4);
+  if (!klassisch && kandidaten.length < 2) kandidaten.splice(0, kandidaten.length, ...parteien.slice(0, 2));
+  const aus: Answer[] = kandidaten.map((c) => ({
+    symbol: `partei:${c.k}`,
+    get label() {
+      return t("prolog.buendnis.label", { partei: BUENDNIS_NAME[c.k] ?? c.k });
+    },
+    get text() {
+      return t("prolog.buendnis.text", { partei: BUENDNIS_NAME[c.k] ?? c.k, naehe: c.nah >= 1 ? "nah" : c.nah === 0 ? "mittel" : "fern" });
+    },
+    apply: (q) => {
+      q.buendnis = c.k;
+      q.buendnisZusage = { partei: c.k };
+      q.versprechen.push(t("prolog.buendnis.versprechen", { partei: BUENDNIS_NAME[c.k] ?? c.k }));
+    },
+  }));
+  return klassisch ? [...feste.slice(0, 2), ...aus, ...feste.slice(2)] : [...aus, ...feste.slice(2)];
+}
+
+/**
+ * Eine Antwort mit Texten aus dem Katalog (`prolog.st.<station>.<antwort>.label` und `.text`). Die Texte entstehen beim Lesen, damit ein Wechsel
+ * der Sprache (und die Tests in jeder Sprache) greift. `symbol` ist die Kennung des gezeichneten Wappens (ui/prolog/Wappen.tsx).
+ * Hat die Antwort ein Merkmal der Biografie (sim/biografie.ts FOLGEN), liefert `folge` dessen Schlüssel und `vorteil`/`preis` die Katalogtexte.
+ */
+function antwort(station: string, id: string, symbol: string, apply: (p: PlayerProfile) => void, folge?: string): Answer {
+  const k = `prolog.st.${station}.${id}`;
+  const a: Answer = {
+    symbol,
+    apply,
+    get label() {
+      return t(`${k}.label`);
+    },
+    get text() {
+      return t(`${k}.text`);
+    },
+  };
+  if (folge) {
+    Object.defineProperties(a, {
+      vorteil: { get: () => t(`biografie.${folge}.vorteil`), enumerable: true },
+      preis: { get: () => t(`biografie.${folge}.preis`), enumerable: true },
+    });
+  }
+  return a;
+}
+
+/** Eine Station mit Titel, Geschichte und Frage aus dem Katalog (`prolog.st.<id>.title|story|question`). */
+function station(id: string, rest: Omit<Station, "id" | "title" | "story" | "question">): Station {
+  return {
+    id,
+    get title() {
+      return t(`prolog.st.${id}.title`);
+    },
+    get story() {
+      return t(`prolog.st.${id}.story`);
+    },
+    get question() {
+      return t(`prolog.st.${id}.question`);
+    },
+    ...rest,
+  } as Station;
+}
+
 export const STATIONS: Station[] = [
-  {
-    id: "kindheit",
-    title: "Kindheit",
-    story: "Jede Karriere beginnt irgendwo. Deine beginnt in einer Küche, in der abends über Politik gestritten wurde.",
-    question: "Wo bist du aufgewachsen?",
+  station("kindheit", {
     answers: [
-      { label: "İzmir", text: "Eine Großstadt am Meer, weltoffen und laut.", apply: (p) => { p.heimat = "İzmir"; p.heimatPlaka = 35; near(p, "staedtische_saekulare", 3); } },
-      { label: "Konya", text: "Eine Stadt in Zentralanatolien, fromm, fleißig, stolz.", apply: (p) => { p.heimat = "Konya"; p.heimatPlaka = 42; near(p, "konservative", 3); } },
-      { label: "Diyarbakır", text: "Eine alte Stadt im Südosten, mit vielen Sprachen und vielen Wunden.", apply: (p) => { p.heimat = "Diyarbakır"; p.heimatPlaka = 21; near(p, "junge", 1); } },
-      { label: "Trabzon", text: "Eine Hafenstadt am Schwarzen Meer, Fußball, Tee und Dickköpfe.", apply: (p) => { p.heimat = "Trabzon"; p.heimatPlaka = 61; near(p, "arbeitnehmer", 2); } },
+      antwort("kindheit", "izmir", "stadt_izmir", (p) => { p.heimat = "İzmir"; p.heimatPlaka = 35; near(p, "staedtische_saekulare", 3); }),
+      antwort("kindheit", "konya", "stadt_konya", (p) => { p.heimat = "Konya"; p.heimatPlaka = 42; near(p, "konservative", 3); }),
+      antwort("kindheit", "diyarbakir", "stadt_diyarbakir", (p) => { p.heimat = "Diyarbakır"; p.heimatPlaka = 21; near(p, "junge", 1); }),
+      antwort("kindheit", "trabzon", "stadt_trabzon", (p) => { p.heimat = "Trabzon"; p.heimatPlaka = 61; near(p, "arbeitnehmer", 2); }),
     ],
-  },
-  {
-    id: "jugend",
-    title: "Jugend",
-    story: "Mit siebzehn hattest du Meinungen zu allem und Erfahrung mit nichts.",
-    question: "Was hat dich geprägt?",
+  }),
+  station("jugend", {
     answers: [
-      { label: "Die Studentenbewegung", text: "Flugblätter, Nachtdiskussionen, eine Festnahme, über die du heute schmunzelst.", apply: (p) => { p.jugend = "Studentenbewegung"; near(p, "junge", 3); near(p, "staedtische_saekulare", 2); } },
-      { label: "Der Familienbetrieb", text: "Du hast gelernt, was eine Lohnabrechnung ist, bevor du wählen durftest.", apply: (p) => { p.jugend = "Familienbetrieb"; near(p, "unternehmer", 3); } },
-      { label: "Die Moscheegemeinde", text: "Jugendgruppe, Ferienlager, ein Imam, der dir das Zuhören beibrachte.", apply: (p) => { p.jugend = "Moscheegemeinde"; near(p, "konservative", 3); } },
-      { label: "Der Sportverein", text: "Kapitän der Jugendmannschaft. Du weißt, wie man eine Kabine zusammenhält.", apply: (p) => { p.jugend = "Sportverein"; near(p, "arbeitnehmer", 2); near(p, "junge", 1); } },
+      antwort("jugend", "studenten", "jugend_studenten", (p) => { p.jugend = "Studentenbewegung"; near(p, "junge", 3); near(p, "staedtische_saekulare", 2); }, "studentenbewegung"),
+      antwort("jugend", "betrieb", "jugend_betrieb", (p) => { p.jugend = "Familienbetrieb"; near(p, "unternehmer", 3); }, "familienbetrieb"),
+      antwort("jugend", "moschee", "jugend_moschee", (p) => { p.jugend = "Moscheegemeinde"; near(p, "konservative", 3); }, "moscheegemeinde"),
+      antwort("jugend", "sport", "jugend_sport", (p) => { p.jugend = "Sportverein"; near(p, "arbeitnehmer", 2); near(p, "junge", 1); }, "sportverein"),
     ],
-  },
-  {
-    id: "beruf",
-    title: "Beruf",
-    story: "Bevor du Reden hieltest, hast du gearbeitet. Die Leute wissen das; deine Gegner auch.",
-    question: "Womit hast du dein Geld verdient?",
+  }),
+  station("beruf", {
     answers: [
-      { label: "Anwältin oder Anwalt", text: "Verträge, Gerichte, Mandanten, die dir heute noch Gefallen schulden.", apply: (p) => { p.beruf = "Anwalt"; near(p, "staedtische_saekulare", 1); } },
-      { label: "Ärztin oder Arzt", text: "Nachtdienste in einer Provinzklinik. Du weißt, was im Gesundheitswesen fehlt.", apply: (p) => { p.beruf = "Arzt"; near(p, "rentner", 2); } },
-      { label: "Unternehmerin oder Unternehmer", text: "Eine Firma mit dreihundert Beschäftigten. Und ein Steuerbescheid, den die Presse gern hätte.", apply: (p) => { p.beruf = "Unternehmer"; near(p, "unternehmer", 3); near(p, "arbeitnehmer", -1); } },
-      { label: "Ökonomin oder Ökonom", text: "Zehn Jahre bei einer Bank, dann an der Universität. Du verstehst Zinsen; die Wähler weniger.", apply: (p) => { p.beruf = "Ökonom"; near(p, "unternehmer", 1); near(p, "staedtische_saekulare", 1); } },
+      antwort("beruf", "anwalt", "beruf_anwalt", (p) => { p.beruf = "Anwalt"; near(p, "staedtische_saekulare", 1); }, "anwalt"),
+      antwort("beruf", "arzt", "beruf_arzt", (p) => { p.beruf = "Arzt"; near(p, "rentner", 2); }, "arzt"),
+      antwort("beruf", "unternehmer", "beruf_unternehmer", (p) => { p.beruf = "Unternehmer"; near(p, "unternehmer", 3); near(p, "arbeitnehmer", -1); }, "unternehmer"),
+      antwort("beruf", "oekonom", "beruf_oekonom", (p) => { p.beruf = "Ökonom"; near(p, "unternehmer", 1); near(p, "staedtische_saekulare", 1); }, "oekonom"),
     ],
-  },
-  {
-    id: "liebe",
-    title: "Liebe",
-    story: "Es gibt Menschen, die man trifft, und Menschen, die einem zustoßen.",
-    question: "Wie hast du deine Partnerin oder deinen Partner kennengelernt?",
+  }),
+  station("liebe", {
     answers: [
-      { label: "Im Hörsaal", text: "Sie war schlauer als du und hat es dich jeden Tag wissen lassen. Heute ist sie Richterin.", apply: (p) => { p.partner = "Richterin, eigene Karriere, eigene Meinung"; } },
-      { label: "Auf einer Hochzeit", text: "Die Familien haben nachgeholfen. Er führt heute das Bauunternehmen seines Vaters.", apply: (p) => { p.partner = "Bauunternehmer, Aufträge vom Staat möglich"; near(p, "unternehmer", 1); } },
-      { label: "Bei einer Demonstration", text: "Ihr wurdet zusammen vom Wasserwerfer getroffen. Sie ist heute Journalistin.", apply: (p) => { p.partner = "Journalistin, kritisch, gut vernetzt"; near(p, "staedtische_saekulare", 1); } },
-      { label: "Im Krankenhaus", text: "Er war Krankenpfleger, du warst Patient. Er hält dich bis heute auf dem Boden.", apply: (p) => { p.partner = "Krankenpfleger, bodenständig, meidet Kameras"; near(p, "arbeitnehmer", 1); } },
+      antwort("liebe", "hoersaal", "liebe_hoersaal", (p) => { p.partner = "Richterin, eigene Karriere, eigene Meinung"; }, "richterin"),
+      antwort("liebe", "hochzeit", "liebe_hochzeit", (p) => { p.partner = "Bauunternehmer, Aufträge vom Staat möglich"; near(p, "unternehmer", 1); }, "bauunternehmer"),
+      antwort("liebe", "demo", "liebe_demo", (p) => { p.partner = "Journalistin, kritisch, gut vernetzt"; near(p, "staedtische_saekulare", 1); }, "journalistin"),
+      antwort("liebe", "klinik", "liebe_klinik", (p) => { p.partner = "Krankenpfleger, bodenständig, meidet Kameras"; near(p, "arbeitnehmer", 1); }, "krankenpfleger"),
     ],
-  },
-  {
-    id: "politik",
-    title: "Der Weg in die Politik",
-    story: "Niemand geht in die Politik, weil er einen ruhigen Abend sucht.",
-    question: "Was hat dich in die Politik gebracht?",
+  }),
+  station("politik", {
     answers: [
-      { label: "Ein Unglück", text: "Ein Haus in deiner Heimatstadt stürzte ein. Der Bauunternehmer kam mit einer Geldstrafe davon.", apply: (p) => { p.motiv = "Unglück und Wut über Pfusch"; near(p, "rentner", 1); near(p, "staedtische_saekulare", 1); } },
-      { label: "Wut über Korruption", text: "Du hast gesehen, wie Aufträge verteilt werden. Und wer sie bekommt.", apply: (p) => { p.motiv = "Korruption"; near(p, "junge", 2); } },
-      { label: "Ein Mentor", text: "Ein alter Bürgermeister nahm dich mit auf Wahlkampftour. Er ist heute dein schärfster Kritiker.", apply: (p) => { p.motiv = "Mentor"; near(p, "konservative", 1); } },
-      { label: "Ehrgeiz", text: "Du wolltest es einfach. Wenigstens bist du ehrlich zu dir.", apply: (p) => { p.motiv = "Ehrgeiz"; } },
+      antwort("politik", "unglueck", "motiv_unglueck", (p) => { p.motiv = "Unglück und Wut über Pfusch"; near(p, "rentner", 1); near(p, "staedtische_saekulare", 1); }, "unglueck"),
+      antwort("politik", "korruption", "motiv_korruption", (p) => { p.motiv = "Korruption"; near(p, "junge", 2); }, "korruption"),
+      antwort("politik", "mentor", "motiv_mentor", (p) => { p.motiv = "Mentor"; near(p, "konservative", 1); }, "mentor"),
+      antwort("politik", "ehrgeiz", "motiv_ehrgeiz", (p) => { p.motiv = "Ehrgeiz"; }, "ehrgeiz"),
     ],
-  },
-  {
-    id: "partei",
-    title: "Die eigene Partei",
-    story: "Die alten Parteien waren dir zu eng, zu müde oder zu sehr mit sich selbst beschäftigt. Also hast du eine neue gegründet.",
-    question: "Wofür steht deine Partei?",
+  }),
+  station("partei", {
+    modus: "konfigurator",
     answers: [
-      { label: "Aufbruch der Mitte", text: "Wirtschaft, Rechtsstaat, weniger Streit. Für alle, die müde sind vom Kulturkampf.", apply: (p) => { p.partei = { name: "Aufbruchspartei", kurz: "AP", farbe: "#2f5d62" }; near(p, "unternehmer", 3); near(p, "staedtische_saekulare", 3); near(p, "junge", 2); } },
-      { label: "Soziale Gerechtigkeit", text: "Löhne, Renten, Wohnungen. Für alle, denen am Monatsende das Geld fehlt.", apply: (p) => { p.partei = { name: "Partei der Gerechtigkeit", kurz: "PG", farbe: "#a8325e" }; near(p, "arbeitnehmer", 4); near(p, "rentner", 3); near(p, "unternehmer", -2); } },
-      { label: "Werte und Wohlstand", text: "Familie, Glaube, ehrliche Arbeit. Konservativ, aber sauber.", apply: (p) => { p.partei = { name: "Partei der Werte", kurz: "PW", farbe: "#2e6b3f" }; near(p, "konservative", 4); near(p, "landwirte", 2); near(p, "staedtische_saekulare", -2); } },
-      { label: "Die Regionen", text: "Mehr Geld und mehr Rechte für die Provinzen, weniger Ankara.", apply: (p) => { p.partei = { name: "Partei der Regionen", kurz: "PR", farbe: "#556b2f" }; near(p, "landwirte", 4); near(p, "junge", 1); } },
+      klassisch("mitte"),
+      klassisch("gerechtigkeit"),
+      klassisch("werte"),
+      klassisch("regionen"),
     ],
-  },
-  {
-    id: "wahlkampf",
-    title: "Der Wahlkampf 2028",
-    story: "Achtzehn Monate Kundgebungen, schlechter Tee, gute Umfragen und eine Frage, die dir jeder Berater stellt.",
-    question: "Gehst du ein Wahlbündnis ein, und was versprichst du?",
+    ueberspringen: (p) => !!STARTSZENARIO_NACH_ID[p.startszenario ?? "neugruendung"].partei,
+  }),
+  station("wahlkampf", {
+    dynamisch: (p, erweitert) => buendnisAntworten(p, STATIONS.find((s) => s.id === "wahlkampf")!.answers, erweitert),
+    ueberspringen: (p) => !!STARTSZENARIO_NACH_ID[p.startszenario ?? "neugruendung"].buendnis,
     answers: [
-      { label: "Bündnis mit der YENİ Parti", text: "Stark gegen die Regierung, aber ihr Vorsitz erwartet Ministerien.", apply: (p) => { p.buendnis = "YENİ"; p.versprechen.push("Der YENİ Parti wurden zwei Ministerien zugesagt."); } },
-      { label: "Bündnis mit der MHP", text: "Die Nationalisten bringen Stimmen in Anatolien und wollen ein hartes Wort in Sicherheitsfragen.", apply: (p) => { p.buendnis = "MHP"; p.versprechen.push("Der MHP wurde ein Mitspracherecht beim Friedensprozess zugesagt."); near(p, "konservative", 2); } },
-      { label: "Allein, mit einem großen Versprechen", text: "Kein Bündnis. Dafür das Versprechen: Renten rauf in den ersten hundert Tagen.", apply: (p) => { p.versprechen.push("Rentenerhöhung in den ersten hundert Tagen versprochen."); near(p, "rentner", 3); } },
-      { label: "Allein, mit einem harten Versprechen", text: "Kein Bündnis. Dafür: Jede große Vergabe wird öffentlich, jeder Minister legt sein Vermögen offen.", apply: (p) => { p.versprechen.push("Offene Vergaben und Vermögenserklärungen aller Minister versprochen."); near(p, "junge", 2); near(p, "staedtische_saekulare", 2); } },
+      antwort("wahlkampf", "yeni", "partei:YENİ", (p) => { p.buendnis = "YENİ"; p.versprechen.push("Der YENİ Parti wurden zwei Ministerien zugesagt."); }),
+      antwort("wahlkampf", "mhp", "partei:MHP", (p) => { p.buendnis = "MHP"; p.versprechen.push("Der MHP wurde ein Mitspracherecht beim Friedensprozess zugesagt."); near(p, "konservative", 2); }),
+      antwort("wahlkampf", "allein_gross", "kampf_allein_gross", (p) => { p.versprechen.push("Rentenerhöhung in den ersten hundert Tagen versprochen."); near(p, "rentner", 3); }),
+      antwort("wahlkampf", "allein_hart", "kampf_allein_hart", (p) => { p.versprechen.push("Offene Vergaben und Vermögenserklärungen aller Minister versprochen."); near(p, "junge", 2); near(p, "staedtische_saekulare", 2); }),
     ],
-  },
-  {
-    id: "wahlnacht",
-    title: "Die Wahlnacht",
-    story: "Es ist kurz nach Mitternacht. Die Hochrechnungen schwanken, dein Telefon glüht, deine Familie schläft auf dem Sofa.",
-    question: "Wie hast du gewonnen?",
+  }),
+  station("wahlnacht", {
+    // Keine Antwort ist strikt besser: Jede hat einen Vorteil und einen Preis (sim/biografie.ts, Schlüssel „wahl:…“)
+    ueberspringen: (p) => !!STARTSZENARIO_NACH_ID[p.startszenario ?? "neugruendung"].wahl,
     answers: [
-      { label: "Knapp in der Stichwahl", text: "50,6 Prozent. Die Hälfte des Landes hat dich nicht gewollt, und sie sagt es laut.", apply: (p) => { p.wahl = { runde: 2, anteil: 50.6 }; } },
-      { label: "Deutlich in der Stichwahl", text: "54 Prozent. Ein klarer Auftrag, aber nach zwei Wahlgängen.", apply: (p) => { p.wahl = { runde: 2, anteil: 54 }; } },
-      { label: "Im ersten Wahlgang", text: "51,2 Prozent schon in der ersten Runde. Niemand hatte damit gerechnet, du auch nicht.", apply: (p) => { p.wahl = { runde: 1, anteil: 51.2 }; } },
+      antwort("wahlnacht", "knapp", "nacht_knapp", (p) => { p.wahl = { runde: 2, anteil: 50.6 }; p.wahlStil = "knapp"; }, "wahl_knapp"),
+      antwort("wahlnacht", "klar", "nacht_klar", (p) => { p.wahl = { runde: 2, anteil: 54 }; p.wahlStil = "klar"; }, "wahl_klar"),
+      antwort("wahlnacht", "erste", "nacht_erste", (p) => { p.wahl = { runde: 1, anteil: 51.2 }; p.wahlStil = "erste"; }, "wahl_erste"),
     ],
-  },
+  }),
 ];
 
 export function emptyProfile(): PlayerProfile {
@@ -167,6 +281,7 @@ export function emptyProfile(): PlayerProfile {
     naehe: {},
     versprechen: [],
     wahl: { runde: 2, anteil: 51 },
+    startszenario: "neugruendung",
   };
 }
 
@@ -193,6 +308,14 @@ const SOURCES: Record<string, Record<string, number>> = {
   PW: { AKP: 0.5, MHP: 0.2, YRP: 0.15, İYİ: 0.1, Andere: 0.05 },
   PR: { DEM: 0.25, AKP: 0.25, YENİ: 0.2, MHP: 0.1, Andere: 0.2 },
 };
+
+/** Aus welchen Parteien eine Partei ihre Stimmen zieht: die klassischen Muster von Hand, jede andere Linie nach Nähe auf den Achsen. */
+function quellenFuer(eigene: string, achsen?: Achsen): Record<string, number> {
+  const fest = SOURCES[eigene];
+  if (fest) return fest;
+  const a = achsen ?? parteiAchsen(eigene);
+  return a ? quellenAusAchsen(a, POLLS) : { Andere: 1 };
+}
 
 export interface Parliament {
   /** Landesweite Stimmenanteile in % */
@@ -245,24 +368,28 @@ const NAT_2023 = (["AKP", "CHP", "MHP", "İYİ", "YSP"] as const).reduce(
  */
 export function electParliament(profile: PlayerProfile, rng: Rng): Parliament {
   const own = profile.partei.kurz || "EIGENE";
-  const parties = [...Object.keys(POLLS), own];
+  // Eine Partei der Szene (Regierungspartei übernehmen) tritt mit ihrem Umfrageanteil an; nur eine neue Partei zieht Stimmen von anderen
+  const bestehend = own in POLLS;
+  const parties = bestehend ? Object.keys(POLLS) : [...Object.keys(POLLS), own];
   const gain = rng.between(15, 30);
-  const sources = SOURCES[own] ?? { Andere: 1 };
+  const sources = quellenFuer(own, profile.achsen);
   const swing: Record<string, number> = {};
   for (const party of Object.keys(POLLS)) swing[party] = POLLS[party]! > 5 ? rng.between(-5, 5) : rng.between(-1, 1);
-  swing[own] = rng.between(-3, 3);
+  if (!bestehend) swing[own] = rng.between(-3, 3);
 
   const local: Record<string, number>[] = PROVINZEN.map((p) => {
     const sh: Record<string, number> = {};
     for (const party of Object.keys(POLLS)) sh[party] = Math.max(0.2, (POLLS[party]! + swing[party]!) * regionalRatio(party, p));
-    let ownShare = 0;
-    for (const [src, w] of Object.entries(sources)) {
-      const take = Math.min(sh[src]! * 0.8, (gain + swing[own]!) * w * regionalRatio(src, p));
-      sh[src] = sh[src]! - take;
-      ownShare += take;
+    if (!bestehend) {
+      let ownShare = 0;
+      for (const [src, w] of Object.entries(sources)) {
+        const take = Math.min(sh[src]! * 0.8, (gain + swing[own]!) * w * regionalRatio(src, p));
+        sh[src] = sh[src]! - take;
+        ownShare += take;
+      }
+      if (p.plaka === profile.heimatPlaka) ownShare += 8;
+      sh[own] = ownShare;
     }
-    if (p.plaka === profile.heimatPlaka) ownShare += 8;
-    sh[own] = ownShare;
     for (const party of parties) sh[party] = Math.max(0.1, sh[party]! + rng.between(-1, 1));
     const total = parties.reduce((s, k) => s + sh[k]!, 0);
     for (const party of parties) sh[party] = (sh[party]! / total) * 100;
@@ -280,6 +407,12 @@ export function electParliament(profile: PlayerProfile, rng: Rng): Parliament {
         (!!profile.buendnis && (party === own || party === profile.buendnis) && allianceShare >= 7)),
   );
 
+  const { seats, byProvince } = verteileSitze(local, eligible);
+  return { shares, seats, byProvince };
+}
+
+/** D'Hondt je Provinz (Wahlkreis): Die Sitze jeder Provinz gehen an die zugelassenen Parteien nach ihren örtlichen Stimmen. */
+export function verteileSitze(local: Record<string, number>[], eligible: string[]): { seats: Record<string, number>; byProvince: Record<number, Record<string, number>> } {
   const seats: Record<string, number> = Object.fromEntries(eligible.map((p) => [p, 0]));
   const byProvince: Record<number, Record<string, number>> = {};
   PROVINZEN.forEach((p, i) => {
@@ -289,7 +422,7 @@ export function electParliament(profile: PlayerProfile, rng: Rng): Parliament {
       let best = eligible[0]!;
       let bestQ = -1;
       for (const party of eligible) {
-        const q = sh[party]! / (got[party]! + 1);
+        const q = (sh[party] ?? 0) / (got[party]! + 1);
         if (q > bestQ) {
           bestQ = q;
           best = party;
@@ -300,7 +433,41 @@ export function electParliament(profile: PlayerProfile, rng: Rng): Parliament {
     }
     byProvince[p.plaka] = got;
   });
-  return { shares, seats, byProvince };
+  return { seats, byProvince };
+}
+
+/**
+ * Örtliche Stimmenanteile aller Parteien bei gegebenen Landesanteilen: Jede Partei folgt dem Muster ihrer Hochburgen
+ * von 2023 (regionalRatio; die eigene Partei dem Muster ihrer Quellparteien), danach wird jede Provinz auf 100 Prozent gebracht
+ * und der Landesschnitt jeder Partei auf ihren Landesanteil nachgezogen. Für die Parlamentswahl nach dem Start (sim/wahl.ts).
+ */
+export function lokaleAnteile(shares: Record<string, number>, eigene: string): Record<string, number>[] {
+  const parteien = Object.keys(shares);
+  const quelle = eigene in POLLS ? undefined : quellenFuer(eigene);
+  const ratio = (party: string, p: ProvinceData): number => {
+    if (party === eigene && quelle) {
+      let summe = 0;
+      let gewicht = 0;
+      for (const [src, w] of Object.entries(quelle)) {
+        summe += w * regionalRatio(src, p);
+        gewicht += w;
+      }
+      return gewicht > 0 ? summe / gewicht : 1;
+    }
+    return regionalRatio(party, p);
+  };
+  let local: Record<string, number>[] = PROVINZEN.map((p) => Object.fromEntries(parteien.map((k) => [k, Math.max(0.05, (shares[k] ?? 0) * ratio(k, p))])));
+  // Zwei Durchgänge: Landesschnitt je Partei auf den Sollwert, dann jede Provinz auf 100
+  for (let durchgang = 0; durchgang < 2; durchgang++) {
+    const schnitt: Record<string, number> = {};
+    for (const k of parteien) schnitt[k] = local.reduce((s, sh, i) => s + sh[k]! * WEIGHTS[i]!, 0);
+    local = local.map((sh) => {
+      const neu = Object.fromEntries(parteien.map((k) => [k, schnitt[k]! > 0 ? sh[k]! * ((shares[k] ?? 0) / schnitt[k]!) : sh[k]!]));
+      const total = parteien.reduce((s, k) => s + neu[k]!, 0);
+      return Object.fromEntries(parteien.map((k) => [k, total > 0 ? (neu[k]! / total) * 100 : 0]));
+    });
+  }
+  return local;
 }
 
 /** Wirkung des Prologs auf den Weltzustand. */
@@ -311,6 +478,8 @@ export function applyProfile(world: World, profile: PlayerProfile): void {
     for (let p = 0; p < PROVINCES; p++) {
       const k = i * PROVINCES + p;
       world.net.values[k] = Math.min(100, Math.max(0, world.net.values[k]! + d));
+      // Die Nähe bleibt: Auch der Ruhewert, zu dem die Stimmung zurückkehrt, verschiebt sich (früher klang sie auf den Mittelwert ab)
+      world.net.start[k] = Math.min(100, Math.max(0, world.net.start[k]! + d));
     }
   }
   // Heimatbonus: In der Heimatprovinz ist man beliebter
@@ -324,8 +493,11 @@ export function applyProfile(world: World, profile: PlayerProfile): void {
 }
 
 /** Amtsantritt nach der Wahl 2028: Profil übernehmen, Parlament wählen, erste Einträge. */
-export function startAfterElection(world: World, profile: PlayerProfile): void {
+export function startAfterElection(world: World, eingabe: PlayerProfile): void {
   const rng = new Rng(world.rngState);
+  // Ein vorgegebenes Szenario legt Partei, Bündnis, Wahl und Erbe fest (data/startszenarien.ts)
+  const profile = profilFuerSzenario(eingabe);
+  const szenario = STARTSZENARIO_NACH_ID[profile.startszenario ?? "neugruendung"];
   world.player = structuredClone(profile);
   world.parliament = electParliament(profile, rng);
   applyProfile(world, profile);
@@ -334,7 +506,7 @@ export function startAfterElection(world: World, profile: PlayerProfile): void {
   const ownSeats = world.parliament.seats[own] ?? 0;
   const allySeats = profile.buendnis ? (world.parliament.seats[profile.buendnis] ?? 0) : 0;
   // Das Spiel beginnt mit einer Regierungsmehrheit: Reicht das eigene Lager nicht, kommen Partner nach Nähe und Größe hinzu
-  let weitere = waehlePartner(world.parliament.seats, own, profile.buendnis);
+  let weitere = waehlePartner(world.parliament.seats, own, profile.buendnis, profile.achsen);
   // Ein Riese im Lager ließe kaum eine Opposition übrig: Er duldet die Regierung zunächst nur, statt ihr anzugehören
   const duldender = weitere.find((p) => (world.parliament!.seats[p] ?? 0) >= 200 && ownSeats + allySeats + weitere.reduce((n, q) => n + (world.parliament!.seats[q] ?? 0), 0) > 520);
   if (duldender) weitere = weitere.filter((p) => p !== duldender);
@@ -346,7 +518,9 @@ export function startAfterElection(world: World, profile: PlayerProfile): void {
     date: world.date,
     kind: "ereignis",
     text:
-      `${profile.name} gewinnt die Präsidentschaftswahl ${profile.wahl.runde === 1 ? "im ersten Wahlgang" : "in der Stichwahl"} ` +
+      szenario.id !== "neugruendung"
+        ? t(`start.log.${szenario.id}`, { name: profile.name, partei: profile.partei.name, eigene: ownSeats, bloc })
+        : `${profile.name} gewinnt die Präsidentschaftswahl ${profile.wahl.runde === 1 ? "im ersten Wahlgang" : "in der Stichwahl"} ` +
       `mit ${profile.wahl.anteil.toLocaleString("de-DE")} %. Die ${profile.partei.name} erhält ${ownSeats} von 600 Sitzen` +
       (partnerNamen.length
         ? `; zusammen mit ${partnerNamen.length === 1 ? "dem Bündnispartner" : "den Bündnispartnern"} ${partnerNamen.join(" und ")} hat das Regierungslager ${bloc} Sitze.`
@@ -382,13 +556,34 @@ export function startAfterElection(world: World, profile: PlayerProfile): void {
     const forderung = forderungVon(world, duldender);
     world.spiel.zusagen.push({ id: `z-duldung-${duldender}`, von: duldender, text: `Die ${PARTEI_NAME[duldender] ?? duldender} erwartet für ihre Duldung ${forderung.text}`, faellig: 200, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
   }
+  // Bündnis mit einer Partei außerhalb der klassischen Muster: Sie erwartet ihre Kernforderung (Muster z-start-*)
+  const bz = profile.buendnisZusage;
+  if (bz && world.spiel && !world.spiel.zusagen.some((z) => z.id === `z-start-${bz.partei}`)) {
+    const forderung = forderungVon(world, bz.partei);
+    const name = PARTEI_NAME[bz.partei] ?? bz.partei;
+    world.spiel.zusagen.push({ id: `z-start-${bz.partei}`, von: bz.partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 90, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
+  }
+  // Szenario (Wahltag, Krise) und Biografie (Beruf, Jugend, Motiv, Partner, Wahlnacht) wirken auf Figuren, Kapital und Lage
+  wendeStartszenarioAn(world, profile);
+  wendeBiografieAn(world, profile);
   world.rngState = rng.state;
 }
 
-/** Ein vollständiges Profil ohne Prolog: für den Schnellstart und Tests. `waehle(n)` gibt den Index der Antwort bei n Möglichkeiten. */
-export function schnellProfil(name = "Deniz Aydın", waehle: (n: number) => number = () => 0): PlayerProfile {
+/**
+ * Ein vollständiges Profil ohne Prolog: für den Schnellstart und Tests. `waehle(n)` gibt den Index der Antwort bei n Möglichkeiten.
+ * Mit `linie` bekommt die Partei diese Linie (Voreinstellung oder frei) statt eines der vier klassischen Muster; der Zufallsstrom bleibt
+ * derselbe, damit zwei Linien mit denselben Zufallswerten dieselbe Lebensgeschichte haben (gepaarter Vergleich).
+ */
+export function schnellProfil(name = "Deniz Aydın", waehle: (n: number) => number = () => 0, linie?: ParteiAngabe, szenario?: StartszenarioId): PlayerProfile {
   const p = emptyProfile();
   p.name = name;
-  for (const st of STATIONS) st.answers[Math.min(st.answers.length - 1, waehle(st.answers.length))]!.apply(p);
+  if (szenario) p.startszenario = szenario;
+  for (const st of STATIONS) {
+    if (st.ueberspringen?.(p)) continue;
+    const antworten = antwortenFuer(st, p);
+    const i = Math.min(antworten.length - 1, waehle(antworten.length));
+    if (linie && st.modus === "konfigurator") setzeLinie(p, linie);
+    else antworten[i]!.apply(p);
+  }
   return p;
 }

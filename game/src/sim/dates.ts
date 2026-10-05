@@ -1,5 +1,7 @@
 // Datumsrechnung in UTC, damit Zeitzonen die Simulation nicht verändern.
 
+import { datum } from "../i18n";
+
 const DAY_MS = 86_400_000;
 
 export function addDays(isoDate: string, days: number): string {
@@ -30,15 +32,12 @@ export function previousMonth(month: string, back = 1): string {
   return `${y}-${String(m).padStart(2, "0")}`;
 }
 
-const MONTHS_DE = [
-  "Januar", "Februar", "März", "April", "Mai", "Juni",
-  "Juli", "August", "September", "Oktober", "November", "Dezember",
-];
-
+// Anzeige in der Sprache des Spiels (Deutsch, Türkisch, Englisch); die Namen der Funktionen bleiben, damit die vielen Aufrufer unverändert gelten.
+// Ohne Fenster (Tests, Werkzeuge) ist die Sprache immer Deutsch, die Ausgabe also wie bisher: „5. Mai 2030“.
 export function formatDateDe(isoDate: string): string {
-  return `${dayOfMonth(isoDate)}. ${MONTHS_DE[monthNumber(isoDate) - 1]} ${isoDate.slice(0, 4)}`;
+  return datum(isoDate, "lang");
 }
 
 export function formatMonthDe(month: string): string {
-  return `${MONTHS_DE[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`;
+  return datum(`${month.slice(0, 7)}-01`, "monat");
 }

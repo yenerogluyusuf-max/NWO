@@ -5,13 +5,49 @@
 // Verzögerung. Der Zustand besteht nur aus flachen Zahlenlisten, damit er als
 // JSON gespeichert und für die Vorschau schnell kopiert werden kann.
 
-import type { EdgeSpec, FormSpec, NodeSpec } from "../data/politiknetz";
+import type { EdgeSpec, FormSpec, NodeSpec, SynergieSpec } from "../data/politiknetz";
 import type { EconomyState } from "./types";
 import { potential } from "./economy";
 
 export const PROVINCES = 81;
 export const MAX_LAG = 12;
 const SLOTS = MAX_LAG + 1;
+
+/**
+ * Gegenkräfte des Netzes (Runde „Das Netz atmet“, 05.10.2026). Alle Werte sind Spielparameter, keine Messwerte.
+ *
+ *  - Gewöhnung (`anteil`, `tempo`): Verbindungen in Stimmungsknoten (Gruppen, Vertrauen, Legitimität) messen die Abweichung der Quelle
+ *    nicht nur vom Start, sondern zum Teil von einem langsam mitwandernden Bezugswert. Wer sich an eine dauerhaft niedrige Inflation
+ *    oder einen hohen Mindestlohn gewöhnt hat, wird dadurch nicht dauerhaft immer zufriedener; wer eine Veränderung erlebt, spürt sie voll.
+ *  - Sättigung (`saettigung`): Je weiter ein Stimmungsknoten von der Mitte (50) entfernt ist, desto schwerer wird der nächste Schritt nach
+ *    außen. Rückwege zur Mitte bleiben ungebremst.
+ */
+export const GEGENKRAEFTE = {
+  /** Anteil der Quellabweichung, der vom wandernden Bezugswert statt vom festen Start gemessen wird (0 = alte Rechnung, 1 = nur Bezugswert) */
+  anteil: 0.8,
+  /** Monatliche Annäherung des Bezugswerts an den aktuellen Wert (0,035 = Halbwertszeit etwa zwanzig Monate) */
+  tempo: 0.035,
+  /** Stärke der Sättigung der Stimmungsknoten (0 = keine; bei 0,7 wirkt ein Schub am Rand nur noch zu 30 %) */
+  saettigung: 0.7,
+  /** Stärke der Sättigung aller übrigen Größen und Probleme (Abstand zum Startwert gemessen an der Strecke bis zum Rand) */
+  saettigungGroessen: 0.5,
+};
+
+/** Stimmungsknoten: die Gruppen sowie das Vertrauen in die Regierung und ihre Legitimität (dort wirken Gewöhnung und die Sättigung zur Mitte). */
+const STIMMUNG_IDS = new Set(["vertrauen_regierung", "legitimitaet"]);
+export const istStimmungsknoten = (node: NodeSpec): boolean => node.kind === "gruppe" || STIMMUNG_IDS.has(node.id);
+
+/**
+ * Quellen, an die man sich gewöhnt: die Alltagsökonomie. Teuerung, Einkommen, Armut und die Transfers, die sie lindern, werden nach einer
+ * Weile als normal erlebt, auch wenn sie besser sind als zu Beginn. Funktionierende Dienste (Wasser, Gesundheit, Wohnen, Sicherheit,
+ * Justiz) und gelöste Probleme bleiben dagegen spürbar, solange sie funktionieren: Wer sie schafft, wird dafür belohnt, und wer bloß die
+ * Lage sich von selbst bessern lässt (etwa die Inflation), kaum noch.
+ */
+export const GEWOEHNUNG_QUELLEN = new Set([
+  "inflation", "lebenshaltung", "realeinkommen", "armut", "p_armut", "lebensmittelpreise", "energiepreise", "mieten", "arbeitslosigkeit", "leitzins",
+  "abwertung", "wachstum", "m_mindestlohn", "m_kindergeld", "m_sozialhilfe", "m_renten", "m_arbeitslosengeld", "m_energiesubventionen", "m_preiskontrollen",
+  "m_einkommensteuer", "m_mwst", "m_kraftstoffsteuer", "m_fruehrente", "m_zuzahlungen", "streikneigung", "protestdruck", "polarisierung",
+]);
 
 /**
  * Die Kantenformel (Democracy 4: `Ziel, f(x), Inertia`) — ausgewertet auf dem Index 0–100.
@@ -70,6 +106,11 @@ export interface NetState {
   umsetzung?: Record<string, number>;
   /** Punkte je Monat, mit denen die Umsetzung fortschreitet (beim Beschluss festgelegt) */
   umsetzungTempo?: Record<string, number>;
+  /**
+   * Gewöhnung: wandernder Bezugswert je Quellknoten (Schlüssel = Knoten-Kennung, Werte je Provinz), nur für Quellen von Verbindungen in
+   * Stimmungsknoten. Fehlt in älteren Spielständen und entsteht beim ersten Monat mit dem Startwert als Bezug.
+   */
+  bezug?: Record<string, number[]>;
 }
 
 export interface NetModel {
@@ -82,9 +123,22 @@ export interface NetModel {
   edgeLag: Int32Array;
   /** Kantenformel je Verbindung; null = linear (schneller Pfad, bisheriges Verhalten) */
   edgeForm: (FormSpec | null)[];
+  /** 1, wenn die Verbindung in einen Stimmungsknoten führt (Gewöhnung wirkt) */
+  edgeGewoehnung: Uint8Array;
+  /** Knoten, die Quelle mindestens einer Verbindung in einen Stimmungsknoten sind (brauchen einen Bezugswert) */
+  bezugQuellen: Int32Array;
+  /** Sättigung je Knoten: 0 = keine, 1 = Stimmungsknoten (Abstand zur Mitte 50), 2 = übrige Größen und Probleme (Abstand zum Startwert) */
+  stimmung: Uint8Array;
+  /** Zusammenspiel zweier Maßnahmen auf einen Zielknoten (Index statt Name) */
+  synergien: { spec: SynergieSpec; a: number; b: number; to: number }[];
 }
 
-export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[]): NetModel {
+export interface ModellOptionen {
+  /** Gewöhnung und Sättigung der Stimmungsknoten (Standard: an). Aus nur für Vergleichsrechnungen mit der Rechnung vor der Runde „Netz atmet“. */
+  gegenkraefte?: boolean;
+}
+
+export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[], synergien: SynergieSpec[] = [], optionen: ModellOptionen = {}): NetModel {
   const index = new Map(nodes.map((n, i) => [n.id, i]));
   for (const e of edges) {
     if (!index.has(e.from)) throw new Error(`Politiknetz: unbekannter Knoten „${e.from}“`);
@@ -100,12 +154,34 @@ export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[]): NetModel {
     }
     for (const n of nodes) if (n.traegheit !== undefined && n.traegheit <= 0) throw new Error(`Politiknetz: traegheit muss positiv sein bei „${n.id}“`);
   }
+  const gegen = optionen.gegenkraefte !== false;
+  const stimmung = Uint8Array.from(nodes.map((n) => (!gegen || n.input || n.kind === "massnahme" ? 0 : istStimmungsknoten(n) ? 1 : 2)));
+  const edgeTo = Int32Array.from(edges.map((e) => index.get(e.to)!));
+  const edgeFrom = Int32Array.from(edges.map((e) => index.get(e.from)!));
+  const edgeGewoehnung = Uint8Array.from(edges.map((_, j) => (stimmung[edgeTo[j]!] === 1 && GEWOEHNUNG_QUELLEN.has(nodes[edgeFrom[j]!]!.id) ? 1 : 0)));
+  const quellen = new Set<number>();
+  edgeFrom.forEach((f, j) => {
+    if (edgeGewoehnung[j]) quellen.add(f);
+  });
+  const syn = synergien.map((spec) => {
+    const a = index.get(spec.a);
+    const b = index.get(spec.b);
+    const to = index.get(spec.to);
+    if (a === undefined || b === undefined || to === undefined) throw new Error(`Politiknetz: unbekannter Knoten im Zusammenspiel „${spec.id}“`);
+    if (nodes[a]!.kind !== "massnahme" || nodes[b]!.kind !== "massnahme") throw new Error(`Politiknetz: Zusammenspiel „${spec.id}“ verlangt zwei Maßnahmen`);
+    if (spec.lag < 0 || spec.lag > MAX_LAG) throw new Error(`Politiknetz: Verzögerung außerhalb 0–12 im Zusammenspiel „${spec.id}“`);
+    return { spec, a, b, to };
+  });
   return {
     nodes,
     edges,
     index,
-    edgeFrom: Int32Array.from(edges.map((e) => index.get(e.from)!)),
-    edgeTo: Int32Array.from(edges.map((e) => index.get(e.to)!)),
+    edgeGewoehnung,
+    bezugQuellen: Int32Array.from([...quellen].sort((x, y) => x - y)),
+    stimmung,
+    synergien: syn,
+    edgeFrom,
+    edgeTo,
     edgeWeight: Float64Array.from(edges.map((e) => e.weight)),
     edgeLag: Int32Array.from(edges.map((e) => e.lag)),
     edgeForm: edges.map((e) => (e.form && e.form.typ !== "linear" ? e.form : null)),
@@ -161,7 +237,7 @@ function inputValue(input: NonNullable<NodeSpec["input"]>, e: EconomyState, fact
     case "abwertung":
       return e.fxChange12;
     case "defizit":
-      return 50 + (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0)) * 5;
+      return 50 + (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (e.konjunkturSaldo ?? 0)) * 5;
     case "schulden":
       return e.debtRatio;
   }
@@ -225,6 +301,10 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
   // Stand ihrer Umsetzung (Faktor umsetzung/100); fehlt der Eintrag, wirkt sie voll.
   // Beides wirkt zusammen: erst der Umsetzungsfaktor, dann die Verzögerung der Kante.
   const um = s.umsetzung;
+  // Gewöhnung (siehe GEGENKRAEFTE): Quellen von Verbindungen in Stimmungsknoten haben einen wandernden Bezugswert; ältere Spielstände
+  // beginnen mit dem Startwert als Bezug (dann zählt der erste Monat wie bisher).
+  const gewAnteil = GEGENKRAEFTE.anteil;
+  if (model.bezugQuellen.length > 0) s.bezug ??= {};
   for (let j = 0; j < model.edgeFrom.length; j++) {
     const from = model.edgeFrom[j]!;
     const to = model.edgeTo[j]!;
@@ -233,6 +313,26 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
     const fo = from * PROVINCES;
     const to0 = to * PROVINCES;
     const form = model.edgeForm[j];
+    if (model.edgeGewoehnung[j] === 1) {
+      const quellId = model.nodes[from]!.id;
+      let ref = s.bezug![quellId];
+      if (!ref || ref.length !== PROVINCES) {
+        ref = s.start.slice(fo, fo + PROVINCES);
+        s.bezug![quellId] = ref;
+      }
+      if (form === null) {
+        for (let p = 0; p < PROVINCES; p++) {
+          const basis = (1 - gewAnteil) * s.start[fo + p]! + gewAnteil * ref[p]!;
+          delta[to0 + p] = delta[to0 + p]! + w * (past[fo + p]! - basis);
+        }
+      } else {
+        for (let p = 0; p < PROVINCES; p++) {
+          const basis = (1 - gewAnteil) * formWert(form, s.start[fo + p]!) + gewAnteil * formWert(form, ref[p]!);
+          delta[to0 + p] = delta[to0 + p]! + w * (formWert(form, past[fo + p]!) - basis);
+        }
+      }
+      continue;
+    }
     if (form === null) {
       // Linear: bisheriges Verhalten, bit-identisch
       for (let p = 0; p < PROVINCES; p++) {
@@ -246,16 +346,59 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
     }
   }
 
+  // Zusammenspiel zweier Maßnahmen (Synergie oder Gegenspiel): wirkt nur, wenn beide in die Richtung bewegt sind, die der Eintrag verlangt;
+  // die Stärke richtet sich nach der kleineren Abweichung (die schwächere Maßnahme bestimmt, wie viel zusammenkommt).
+  for (const sy of model.synergien) {
+    const past = s.history[(s.month - sy.spec.lag + SLOTS * 1000) % SLOTS]!;
+    const fa = um ? (um[model.nodes[sy.a]!.id] ?? 100) / 100 : 1;
+    const fb = um ? (um[model.nodes[sy.b]!.id] ?? 100) / 100 : 1;
+    const gegen = sy.spec.modus === "gegen";
+    for (let p = 0; p < PROVINCES; p++) {
+      const da = (past[sy.a * PROVINCES + p]! - s.start[sy.a * PROVINCES + p]!) * fa;
+      const db = (past[sy.b * PROVINCES + p]! - s.start[sy.b * PROVINCES + p]!) * fb;
+      let gemeinsam = 0;
+      if (gegen) {
+        if (da > 0 && db < 0) gemeinsam = Math.min(da, -db);
+        else if (da < 0 && db > 0) gemeinsam = -Math.min(-da, db);
+      } else if (da > 0 && db > 0) gemeinsam = Math.min(da, db);
+      else if (da < 0 && db < 0) gemeinsam = -Math.min(-da, -db);
+      if (gemeinsam !== 0) delta[sy.to * PROVINCES + p] = delta[sy.to * PROVINCES + p]! + sy.spec.weight * gemeinsam;
+    }
+  }
+
   model.nodes.forEach((node, i) => {
     if (node.input || node.kind === "massnahme") return;
     const o = i * PROVINCES;
     const ruecklauf = decayVon(node);
+    const art = model.stimmung[i]!;
     for (let p = 0; p < PROVINCES; p++) {
       const k = o + p;
-      const next = v[k]! + delta[k]! - ruecklauf * (v[k]! - s.start[k]!);
+      let schub = delta[k]!;
+      if (art === 1) {
+        // Sättigung: Ein Schub nach außen (weg von 50) wird gebremst, je weiter der Knoten schon draußen ist; Rückwege bleiben frei.
+        const x = (v[k]! - 50) / 50;
+        if (schub * x > 0) schub *= 1 - GEGENKRAEFTE.saettigung * x * x;
+      } else if (art === 2) {
+        // Dasselbe für alle übrigen Größen, gemessen am Abstand zum Startwert im Verhältnis zur Strecke bis zum Rand
+        const d = v[k]! - s.start[k]!;
+        const strecke = d > 0 ? 100 - s.start[k]! : s.start[k]!;
+        const x = strecke > 1 ? d / strecke : 0;
+        if (schub * x > 0) schub *= 1 - GEGENKRAEFTE.saettigungGroessen * x * x;
+      }
+      const next = v[k]! + schub - ruecklauf * (v[k]! - s.start[k]!);
       v[k] = clampIndex(next);
     }
   });
+
+  // Gewöhnung: Die Bezugswerte folgen den neuen Werten ihrer Quellen langsam
+  if (s.bezug) {
+    for (const i of model.bezugQuellen) {
+      const ref = s.bezug[model.nodes[i]!.id];
+      if (!ref) continue;
+      const o = i * PROVINCES;
+      for (let p = 0; p < PROVINCES; p++) ref[p] = ref[p]! + GEGENKRAEFTE.tempo * (v[o + p]! - ref[p]!);
+    }
+  }
 
   s.month += 1;
   s.history[s.month % SLOTS] = v.slice();

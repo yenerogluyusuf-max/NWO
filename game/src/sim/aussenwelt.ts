@@ -4,6 +4,7 @@
 // Die Wirkung auf Inflation, Wachstum und Risikoaufschlag steht in economy.ts (AUSSEN).
 
 import { addLog } from "./log";
+import { startWerte, weltModell } from "./welt-modell";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 
@@ -14,6 +15,12 @@ export const AUSSENWELT = {
   rauschen: { oel: 3.5, eu: 1.2, weltzins: 1.0 },
   /** Wahrscheinlichkeit eines Schocks pro Monat */
   schockChance: { oel: 0.035, eu: 0.02, weltzins: 0.015 },
+  /**
+   * Runde „Netz atmet“ (Spielparameter): Die EU-Nachfrage und das Weltzinsniveau folgen dem Weltmodell (sim/welt-modell.ts, nur lesend).
+   * Indexpunkte je Prozentpunkt Abweichung des Wachstums der EU bzw. der Inflation der USA von ihrem Trend.
+   */
+  euAufWachstum: 7,
+  weltzinsAufInflationUSA: 4,
 } as const;
 
 export function aussenweltStart(world: World): void {
@@ -27,10 +34,20 @@ export function aussenweltStart(world: World): void {
 export function aussenweltMonat(world: World, rng: Rng): void {
   const e = world.economy;
   aussenweltStart(world);
-  const schritt = (wert: number, sd: number) => wert + AUSSENWELT.rueckkehr * (100 - wert) + rng.normal(sd);
+  // Die Ruhelage der EU-Nachfrage und des Weltzinses richtet sich nach der Lage der EU und der USA im Weltmodell (ohne Modell: 100 wie bisher)
+  let euZiel = 100;
+  let zinsZiel = 100;
+  if (world.spiel) {
+    const m = weltModell(world);
+    const eu = m.laender["EU"];
+    const usa = m.laender["USA"];
+    if (eu) euZiel = 100 + AUSSENWELT.euAufWachstum * (eu.wachstum - startWerte("EU").wachstumTrend);
+    if (usa) zinsZiel = 100 + AUSSENWELT.weltzinsAufInflationUSA * (usa.inflation - startWerte("USA").inflationTrend);
+  }
+  const schritt = (wert: number, sd: number, ziel = 100) => wert + AUSSENWELT.rueckkehr * (ziel - wert) + rng.normal(sd);
   e.oel = Math.max(40, schritt(e.oel!, AUSSENWELT.rauschen.oel));
-  e.euNachfrage = Math.max(60, schritt(e.euNachfrage!, AUSSENWELT.rauschen.eu));
-  e.weltzins = Math.max(60, schritt(e.weltzins!, AUSSENWELT.rauschen.weltzins));
+  e.euNachfrage = Math.max(60, schritt(e.euNachfrage!, AUSSENWELT.rauschen.eu, Math.min(125, Math.max(75, euZiel))));
+  e.weltzins = Math.max(60, schritt(e.weltzins!, AUSSENWELT.rauschen.weltzins, Math.min(130, Math.max(80, zinsZiel))));
 
   if (rng.next() < AUSSENWELT.schockChance.oel) {
     const richtung = rng.next() < 0.7 ? 1 : -1;

@@ -194,6 +194,31 @@ describe("Runde mit Ersatz-Anbieter", () => {
     await expect(rufeAuf({ ...STANDARD_KONFIG, art: "anthropic" }, { system: "s", nachrichten: [{ rolle: "user", text: "x" }], maxTokens: 10 }, async () => antwort(200, {}))).rejects.toMatchObject({ art: "konfig" });
   });
 
+  test("MiMo: Die Schlüsselart bestimmt die Adresse, die Ablehnung nennt Antwort und Hinweis", async () => {
+    const mimo = anbieterDef("mimo")!;
+    expect(endpunkt(mimo, undefined, "sk-abc")).toBe("https://api.xiaomimimo.com/v1/chat/completions");
+    expect(endpunkt(mimo, undefined, "tp-abc")).toBe("https://token-plan-cn.xiaomimimo.com/v1/chat/completions");
+    expect(endpunkt(mimo, undefined, "ttp-abc")).toBe("https://token-plan-cn.xiaomimimo.com/v1/chat/completions");
+    expect(endpunkt(mimo)).toBe("https://api.xiaomimimo.com/v1/chat/completions");
+    const a = { system: "s", nachrichten: [{ rolle: "user" as const, text: "x" }], maxTokens: 10 };
+    const gesehen: { url: string; kopf: Record<string, string> }[] = [];
+    const holen: Holer = async (url, init) => {
+      gesehen.push({ url, kopf: init.headers as Record<string, string> });
+      return antwort(401, { error: { message: "Invalid API Key", type: "invalid_key" } });
+    };
+    // Ohne Entwicklungsserver (kein Relay) geht der Aufruf direkt: Adresse und beide Kopfzeilen müssen stimmen
+    const direkt = (schluessel: string) => rufeAuf({ ...STANDARD_KONFIG, art: "mimo", schluessel: { mimo: schluessel } }, a, async (u, i) => (u === "/api/ki/status" ? antwort(404, {}) : holen(u, i)));
+    await expect(direkt("tp-geheim")).rejects.toThrow(/Invalid API Key.*tp-.*token-plan-cn\.xiaomimimo\.com/s);
+    expect(gesehen[0]!.url).toBe("https://token-plan-cn.xiaomimimo.com/v1/chat/completions");
+    expect(gesehen[0]!.kopf["api-key"]).toBe("tp-geheim");
+    expect(gesehen[0]!.kopf["authorization"]).toBe("Bearer tp-geheim");
+    await expect(direkt("sk-geheim")).rejects.toThrow(/Invalid API Key.*sk-/s);
+    expect(gesehen[1]!.url).toBe("https://api.xiaomimimo.com/v1/chat/completions");
+    await expect(direkt("xyz-geheim")).rejects.toThrow(/beginnt mit „xyz“/);
+    // Der Schlüssel selbst steht nie in der Meldung
+    for (const s of ["tp-geheim", "sk-geheim", "xyz-geheim"]) await expect(direkt(s)).rejects.not.toThrow(/geheim/);
+  });
+
   test("Fehlerarten: abgelehnter Schlüssel, Limit, Serverfehler, kein Netz", async () => {
     const a = { system: "s", nachrichten: [{ rolle: "user" as const, text: "x" }], maxTokens: 10 };
     await expect(rufeAuf(mitSchluessel, a, async () => antwort(401, { error: { message: "invalid x-api-key" } }))).rejects.toMatchObject({ art: "schluessel" });

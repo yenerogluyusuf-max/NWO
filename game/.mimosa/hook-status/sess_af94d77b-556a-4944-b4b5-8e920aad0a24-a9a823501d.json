@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "mimosa-hook-status/v1",
+  "recordedAt": "2026-10-05T17:13:25.814Z",
+  "sessionId": "sess_af94d77b-556a-4944-b4b5-8e920aad0a24",
+  "event": "PostToolUse",
+  "toolName": "Edit",
+  "file": "/Users/yusufyeneroglu/Desktop/Staatsraeson/KI_PROJEKTE_UND_KARTE_2026-10-05.md",
+  "outcome": "clear",
+  "coverage": "complete",
+  "findingCount": 0,
+  "durationMs": 3,
+  "hostState": "hook_complete",
+  "reportHint": ".mimosa/reports/"
+}

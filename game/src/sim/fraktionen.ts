@@ -6,6 +6,8 @@ import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import type { World } from "./types";
 import type { Fraktion } from "./spiel-typen";
+import type { Achsen } from "../data/linien";
+import { naeheZuPartei, parteiAchsen, spielerAchsen } from "./linie";
 
 export interface Forderung {
   massnahme: string;
@@ -110,9 +112,20 @@ const NAEHE: Record<string, Record<string, number>> = {
   PR: { AKP: -1, "YENİ": 1, CHP: 1, MHP: 0, "İYİ": 0, DEM: 1, Zafer: -1, YRP: 0 },
 };
 
+/**
+ * Politische Nähe einer Partei zur eigenen Partei des Spielers, −2 (fern) bis +2 (nah). Die vier klassischen Muster behalten ihre von Hand
+ * gesetzte Tabelle (Kalibrierung), jede andere Linie rechnet die Nähe aus dem Abstand auf den fünf Achsen (sim/linie.ts).
+ */
+export function parteiNaehe(world: World, partei: string): number {
+  const kurz = world.player?.partei.kurz ?? "";
+  const fest = NAEHE[kurz]?.[partei];
+  if (fest !== undefined) return fest;
+  return world.player ? naeheZuPartei(spielerAchsen(world), partei) : 0;
+}
+
 /** Ausgangsbereitschaft einer Fraktion, mit dem Präsidenten zusammenzuarbeiten (0 bis 100). */
 export function startBereitschaft(world: World, partei: string): number {
-  const nah = NAEHE[world.player?.partei.kurz ?? ""]?.[partei] ?? 0;
+  const nah = parteiNaehe(world, partei);
   const zustimmung = world.spiel?.umfrage.zustimmung ?? 50;
   return clamp(Math.round(42 + 12 * nah + 0.35 * (zustimmung - 50)), 10, 90);
 }
@@ -184,8 +197,9 @@ export const REGIERUNGSMEHRHEIT_ZIEL = 316;
  * Wer außer dem eigenen Bündnispartner noch ins Lager gehört, damit das Spiel mit einer Regierungsmehrheit beginnt.
  * Gewählt wird nach politischer Nähe und Größe; wer der eigenen Partei fern steht („−2“), wird nur gewählt, wenn nichts anderes bleibt.
  */
-export function waehlePartner(seats: Record<string, number>, eigene: string, buendnis: string | undefined): string[] {
-  const nah = NAEHE[eigene] ?? {};
+export function waehlePartner(seats: Record<string, number>, eigene: string, buendnis: string | undefined, achsen?: Achsen): string[] {
+  const eigeneAchsen = achsen ?? parteiAchsen(eigene);
+  const nah: Record<string, number> = NAEHE[eigene] ?? (eigeneAchsen ? Object.fromEntries(Object.keys(seats).map((p) => [p, naeheZuPartei(eigeneAchsen, p)])) : {});
   const grund = (seats[eigene] ?? 0) + (buendnis ? (seats[buendnis] ?? 0) : 0);
   if (grund >= REGIERUNGSMEHRHEIT_ZIEL) return [];
   const kandidaten = Object.keys(seats).filter((p) => p !== eigene && p !== buendnis && (seats[p] ?? 0) >= 15 && (nah[p] ?? 0) > -2);

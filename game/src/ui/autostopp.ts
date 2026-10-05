@@ -27,6 +27,9 @@
 // | Hinweis `eu-screening-*`, `eu-visa-*`, `eu-perspektive-*` (sim/eu.ts) | B | Phasen-Wendepunkte des Beitrittsvorgangs |
 // | Ereignisse `eu_veto`, `eu_zollunion` (sim/ereignisse-eu.ts)      | A | Entscheidung mit Konsequenz (Zugeständnis/Stillstand, Update/Jahre vertagen) |
 // | Hinweis `pause-*` (ruhiger Tag, sim/aufmerksamkeit.ts)           | C | Routine-Folge der Belastung; die Sperre erklärt sich am Blocker (`neuanfangGrund`) |
+// | Hinweis `vermittlung-kipp-*` (Verhandlungsfenster öffnet/schließt, sim/vermittlung.ts) | C | Lagemeldung ohne Entscheidung heute; mehrere Konfliktpaare melden sich monatlich, jede Pause wäre Dauerunterbrechung |
+// | Hinweis `krieg-kipp-*` (Frontlage kippt/dreht, sim/krieg.ts)     | C | Zustandsmeldung eines laufenden Vorgangs; Beginn, Waffenruhe, Frieden und Niederlage bleiben B |
+// | Hinweis `krieg-koalition-beitritt-*` (Partner tritt in einen laufenden Krieg ein, sim/pakte.ts) | C | Zustandsmeldung mitten im Krieg; Bildung und Auflösung einer Koalition bleiben B |
 // | Feier, spiel.reich.feier (sim/reich.ts, UI: WunderFenster)       | B | Fertigstellung (Wunder/Großprojekt/Serie) |
 // | Abstimmung im Parlament (UI: AbstimmungsKarte)                   | C | Ergebnis ohne Entscheidung; die Karte hält schon bisher nicht an (unverändert) |
 // | Monatsumfrage (spiel.umfrage.verlauf)                            | C | Regelmäßige Messung; erscheint als Umlauf-Eintrag |
@@ -45,6 +48,12 @@ export type StoppKlasse = "A" | "B" | "C";
 const HINWEIS_KLASSEN: [praefix: string, klasse: StoppKlasse][] = [
   ["pause-", "C"],
   ["zeitung-", "C"],
+  ["vermittlung-kipp-", "C"],
+  ["krieg-kipp-", "C"],
+  ["krieg-koalition-beitritt-", "C"],
+  ["gesellschaft-opp-", "C"],
+  ["gesellschaft-warn-", "B"],
+  ["gesellschaft-massen-", "B"],
   ["starthilfe", "B"],
   ["warnung-", "B"],
   ["bruch-", "B"],

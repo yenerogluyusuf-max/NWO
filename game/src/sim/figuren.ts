@@ -125,6 +125,11 @@ function aendere(world: World, f: Figur | undefined, delta: number, grund?: stri
   }
 }
 
+/** Loyalität einer Figur ändern, mit Hinweis im Protokoll bei Überschreiten einer Viertelgrenze (für die Parteilinie, sim/linie.ts). */
+export function figurLoyalitaetAendern(world: World, f: Figur | undefined, delta: number, grund?: string): void {
+  aendere(world, f, delta, grund);
+}
+
 /** Figuren reagieren auf eine Änderung: erhöht (+1) oder gesenkt (−1). */
 export function reagiereFiguren(world: World, theme: string, massnahme: string, richtung: number): void {
   const spiel = world.spiel;

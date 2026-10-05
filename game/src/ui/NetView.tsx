@@ -18,6 +18,8 @@ import { betroffene } from "../sim/wege";
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { kabinettReaktion } from "../sim/figuren";
 import { Handlungsfeld } from "./Handlungsfeld";
+import { zusammenspielFuer } from "../sim/synergien";
+import { t } from "../i18n";
 
 const KIND_LABEL: Record<NodeSpec["kind"], string> = {
   massnahme: "Maßnahme",
@@ -147,6 +149,105 @@ export function NetView({
   const kannBezahlen = !spiel || !pr ? true : effektivWeg === "erlass" ? pr.erlass.bezahlbar : pr.gesetz.bezahlbar;
   const aktuellePk = pr ? (effektivWeg === "erlass" ? pr.erlass.pk : pr.gesetz.pk) : 0;
 
+  // Folgen und Preis (Schritt „Was folgt daraus?“) stehen unter dem Bild links; die Entscheidung bleibt rechts
+  const zeigeKosten = Math.abs(node.cost ?? 0) >= 0.05;
+  const einnahme = (node.cost ?? 0) < 0;
+  const gruppen = istMassnahme && aendert ? betroffene(node.id, sliderValue > now ? 1 : -1) : null;
+  const folgenPanel =
+    istMassnahme && pr
+      ? (() => {
+          const steigt = sliderValue >= now;
+          const folgen = NET.edges
+            .filter((e) => e.from === node.id)
+            .sort((x, y) => Math.abs(y.weight) - Math.abs(x.weight))
+            .slice(0, 5)
+            .map((e) => ({ id: e.to, name: nameOf(e.to), hoch: e.weight * (steigt ? 1 : -1) > 0, lag: e.lag }));
+          const kabinett = kabinettReaktion(world, node.id, steigt ? 1 : -1);
+          return (
+            <section className="pd-folgen" aria-label="Was folgt daraus?">
+              <h3>Was folgt daraus?</h3>
+              <div className="pd-folgen-raster">
+                <div className="pd-folgen-spalte">
+                  <h4>Wirkungen im Land</h4>
+                  <ul className="pd-wirkungen" aria-label="Folgen im Land">
+                    {folgen.map((f) => (
+                      <li key={f.id} className={f.hoch ? "hoch" : "runter"}>
+                        <span className="pd-richtung" aria-hidden>
+                          {f.hoch ? "▲" : "▼"}
+                        </span>
+                        <span className="pd-w-name">{f.name}</span>
+                        <em>{wann(f.lag)}</em>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="pd-folgen-spalte">
+                  <h4>Preis und Gegenspieler</h4>
+                  <dl className="pd-preisliste">
+                    <div>
+                      <dt>Haushalt</dt>
+                      <dd>
+                        {zeigeKosten ? (
+                          <>
+                            {einnahme ? "Einnahmen" : "Kosten"} heute {nfc(Math.abs(((node.cost ?? 0) * now) / 100))} % des BIP, bei dieser Wahl {nfc(Math.abs(((node.cost ?? 0) * sliderValue) / 100))} %
+                            {Math.abs(pr.kostenBip) >= 0.0005 && (
+                              <>
+                                {" "}
+                                (<span className={pr.kostenBip > 0 ? "minus" : "plus"}>{pr.kostenBip > 0 ? `${nfc(pr.kostenBip)} % Mehrkosten` : `${nfc(-pr.kostenBip)} % Mehreinnahmen`}</span> im Jahr)
+                              </>
+                            )}
+                            .
+                          </>
+                        ) : (
+                          <>Kein eigener Posten. Der Preis dieser Maßnahme ist politisch, nicht finanziell.</>
+                        )}
+                      </dd>
+                    </div>
+                    {spiel && pu && (
+                      <div>
+                        <dt>Preise</dt>
+                        <dd>
+                          Einführen (+10 Stufen) kostet {pu.einfuehren10} Kapital, Zurücknehmen (−10) {pu.streichen10}
+                          {pu.faktorStreichen > pu.faktorEinfuehren && <> (Exit-Preis: das {(pu.faktorStreichen / pu.faktorEinfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 })}-Fache)</>}
+                          {pu.unterhaltMonat > 0 && <> · Unterhalt etwa {pu.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe</>}.
+                        </dd>
+                      </div>
+                    )}
+                    <div>
+                      <dt>Dauer</dt>
+                      <dd>
+                        etwa {pr.monate} Monat{pr.monate === 1 ? "" : "e"} bis zur vollen Wirkung
+                        {spiel && pr.ueberlast > 1 ? `; die Verwaltung ist überlastet (${pr.offen} Vorhaben laufen), alles dauert ${Math.round((pr.ueberlast - 1) * 100)} % länger` : ""}
+                      </dd>
+                    </div>
+                    {kabinett.map((k) => (
+                      <div key={k.wer}>
+                        <dt>Im Kabinett</dt>
+                        <dd>
+                          {k.wer}: {k.text}
+                        </dd>
+                      </div>
+                    ))}
+                    {gruppen && gruppen.gewinner.length > 0 && (
+                      <div className="gut">
+                        <dt>Profitieren</dt>
+                        <dd>{gruppen.gewinner.join(", ")}</dd>
+                      </div>
+                    )}
+                    {gruppen && gruppen.verlierer.length > 0 && (
+                      <div className="schlecht">
+                        <dt>Verlieren</dt>
+                        <dd>{gruppen.verlierer.join(", ")}</dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
+              </div>
+            </section>
+          );
+        })()
+      : null;
+
   return (
     <div className={`netview${eingebettet ? " po-eingebettet" : ""}`}>
       {eingebettet ? (
@@ -169,6 +270,12 @@ export function NetView({
           <p className="valueline">
             {istMassnahme && ort ? `Stufe ${provinzenText(ort)}` : "Landesdurchschnitt"} <strong>{nf(now)}</strong>
             {!node.input && (
+              <span className="pd-wertleiste" aria-hidden>
+                <i style={{ width: `${Math.max(0, Math.min(100, now))}%` }} />
+                <b style={{ left: `${Math.max(0, Math.min(100, start))}%` }} title="beim Amtsantritt" />
+              </span>
+            )}
+            {!node.input && (
               <span className="subtitle">
                 {" "}
                 (Index 0–100; {istMassnahme && ort ? `im Land ${nf(nationalAverage(NET, world.net, node.id))}, ` : ""}beim Amtsantritt {nf(start)})
@@ -185,6 +292,7 @@ export function NetView({
           <Erklaerung node={node} world={world} onSelect={select} />
 
           <NetGraph nodeId={node.id} onSelect={select} />
+          {folgenPanel}
         </div>
 
         <aside className="net-side">
@@ -219,9 +327,6 @@ export function NetView({
                   setVorschau(null);
                   setRueckmeldung(null);
                 };
-                const zeigeKosten = Math.abs(node.cost ?? 0) >= 0.05;
-                const einnahme = (node.cost ?? 0) < 0;
-                const gruppen = aendert ? betroffene(node.id, sliderValue > now ? 1 : -1) : null;
                 return (
                   <>
                     <div className="schritt">
@@ -301,85 +406,6 @@ export function NetView({
                         </div>
                       )}
                     </div>
-
-                    <div className="schritt">
-                      <h4>
-                        <span className="nr">3</span> Was folgt daraus?
-                      </h4>
-                      {(() => {
-                        const steigt = sliderValue >= now;
-                        const folgen = NET.edges
-                          .filter((e) => e.from === node.id)
-                          .sort((x, y) => Math.abs(y.weight) - Math.abs(x.weight))
-                          .slice(0, 5)
-                          .map((e) => ({ id: e.to, name: nameOf(e.to), hoch: e.weight * (steigt ? 1 : -1) > 0, lag: e.lag }));
-                        const kabinett = kabinettReaktion(world, node.id, steigt ? 1 : -1);
-                        return (
-                          <>
-                            <ul className="folgen" aria-label="Folgen im Land">
-                              {folgen.map((f) => (
-                                <li key={f.id} className={f.hoch ? "hoch" : "runter"}>
-                                  <span aria-hidden>{f.hoch ? "▲" : "▼"}</span> {f.name}
-                                  <em>{wann(f.lag)}</em>
-                                </li>
-                              ))}
-                            </ul>
-                            {gruppen && (gruppen.gewinner.length > 0 || gruppen.verlierer.length > 0) && (
-                              <p className="betroffene">
-                                {gruppen.gewinner.length > 0 && (
-                                  <span>
-                                    <b>Profitieren:</b> {gruppen.gewinner.join(", ")}
-                                  </span>
-                                )}
-                                {gruppen.verlierer.length > 0 && (
-                                  <span>
-                                    <b>Verlieren:</b> {gruppen.verlierer.join(", ")}
-                                  </span>
-                                )}
-                              </p>
-                            )}
-                            {kabinett.length > 0 && (
-                              <p className="betroffene">
-                                {kabinett.map((k) => (
-                                  <span key={k.wer}>
-                                    <b>Im Kabinett:</b> {k.wer}: {k.text}
-                                  </span>
-                                ))}
-                              </p>
-                            )}
-                            <p className="betroffene">
-                              <span>
-                                <b>Dauer:</b> etwa {pr.monate} Monat{pr.monate === 1 ? "" : "e"} bis zur vollen Wirkung
-                                {spiel && pr.ueberlast > 1 ? `; die Verwaltung ist überlastet (${pr.offen} Vorhaben laufen), alles dauert ${Math.round((pr.ueberlast - 1) * 100)} % länger` : ""}
-                              </span>
-                            </p>
-                          </>
-                        );
-                      })()}
-                      {zeigeKosten ? (
-                        <p className="haushaltszeile">
-                          <b>Haushalt:</b> {einnahme ? "Einnahmen" : "Kosten"} heute {nfc(Math.abs(((node.cost ?? 0) * now) / 100))} % des BIP, bei dieser Wahl {nfc(Math.abs(((node.cost ?? 0) * sliderValue) / 100))} %
-                          {Math.abs(pr.kostenBip) >= 0.0005 && (
-                            <>
-                              {" "}
-                              (<span className={pr.kostenBip > 0 ? "minus" : "plus"}>{pr.kostenBip > 0 ? `${nfc(pr.kostenBip)} % Mehrkosten` : `${nfc(-pr.kostenBip)} % Mehreinnahmen`}</span> im Jahr)
-                            </>
-                          )}
-                          .
-                        </p>
-                      ) : (
-                        <p className="haushaltszeile">
-                          <b>Haushalt:</b> kein eigener Posten. Der Preis dieser Maßnahme ist politisch, nicht finanziell.
-                        </p>
-                      )}
-                      {spiel && pu && (
-                        <p className="haushaltszeile">
-                          <b>Preise:</b> Einführen (+10 Stufen) kostet {pu.einfuehren10} Kapital, Zurücknehmen (−10) {pu.streichen10}
-                          {pu.faktorStreichen > pu.faktorEinfuehren && <> (Exit-Preis: das {(pu.faktorStreichen / pu.faktorEinfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 })}-Fache)</>}
-                          {pu.unterhaltMonat > 0 && <> · Unterhalt etwa {pu.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe</>}.
-                        </p>
-                      )}
-                    </div>
                   </>
                 );
               })()}
@@ -387,7 +413,7 @@ export function NetView({
               {spiel && (
                 <div className="schritt">
                   <h4>
-                    <span className="nr">4</span> Auf welchem Weg?
+                    <span className="nr">3</span> Auf welchem Weg?
                   </h4>
                   <div className="weg-wahl" role="radiogroup" aria-label="Weg">
                     <button role="radio" aria-checked={effektivWeg === "gesetz"} className={`weg-karte${effektivWeg === "gesetz" ? " on" : ""}`} onClick={() => setWeg("gesetz")}>
@@ -519,6 +545,29 @@ export function NetView({
                   </li>
                 ))}
               </ul>
+              {node.kind === "massnahme" && zusammenspielFuer(node.id).length > 0 && (
+                <>
+                  <h3>{t("netz.ui.zusammenspiel")}</h3>
+                  <ul>
+                    {zusammenspielFuer(node.id).map((z) => (
+                      <li key={z.id}>
+                        {t("netz.ui.mit")}{" "}
+                        <button className="link" onClick={() => select(z.partner)}>
+                          {nameOf(z.partner)}
+                        </button>
+                        {": "}
+                        <button className="link" onClick={() => select(z.ziel)}>
+                          {nameOf(z.ziel)}
+                        </button>{" "}
+                        <span className={z.weight > 0 ? "plus" : "minus"}>{z.weight > 0 ? `↑ ${t("netz.ui.erhoeht")}` : `↓ ${t("netz.ui.senkt")}`}</span>
+                        <span className="subtitle"> · {wann(z.lag)}</span>
+                        <div className="why">{z.why}</div>
+                        <div className="subtitle">{z.modus === "gegen" ? t("netz.ui.zusammenspiel_gegen") : t("netz.ui.zusammenspiel_gleich")}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           </div>
         </aside>

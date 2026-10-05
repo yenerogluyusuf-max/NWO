@@ -2,13 +2,18 @@
 // Jeden Monat — und bei Großereignissen sofort — erscheint eine Ausgabe mit zwei bis drei Blättern
 // aus verschiedenen Medien-Clustern (data/medien.ts): dieselbe Realität in verschiedenen Framings.
 //   - regierungsnahe Blätter feiern Erfolge und schreiben Misserfolge klein (Eigentümer-Empfindlichkeit
-//     steuert die Stärke des Drehs),
-//   - oppositionsnahe dramatisieren und verschweigen Erfolge eher,
-//   - unabhängige berichten nüchtern.
+//     steuert die Stärke des Drehs), zitieren Amtsträger und messen am Amtsantritt,
+//   - oppositionsnahe dramatisieren und fragen nach Kosten und Verlierern,
+//   - unabhängige berichten nüchtern, nennen Vormonat, Trend und die Unsicherheit.
 // Die Wahrheit liegt nur in den internen Werten (RECHERCHE_MEDIEN_UMFRAGEN.md, A.5.4).
 //
-// Artikel sind regelbasierte Bausteine aus dem Weltzustand — KEINE KI. KI-Text kommt später (KI-2);
-// die Schnittstelle dafür ist `textQuelle: "regel" | "ki"` an jedem Artikel.
+// Stoff einer Ausgabe: Chronik (Entscheidungen, Programme, Skandale), Gesetze, Wirkungsberichte,
+// die Wirtschaftszahlen (nur veröffentlichte Werte), die akuten Probleme des Landes, das Ausland,
+// die Umfrage des Monats — jede Zahl im Text stammt aus dem Weltzustand. Rubriken, zu denen der
+// Weltzustand nichts hergibt, entfallen; es gibt keine Füllsätze.
+//
+// Artikel sind regelbasierte Bausteine aus dem Weltzustand (data/zeitung_texte.ts) — KEINE KI.
+// KI-Text kommt später (KI-2); die Schnittstelle dafür ist `textQuelle: "regel" | "ki"` an jedem Artikel.
 //
 // Umfragen: Das Zeitungs-Modul ist der Consumer für die TODOs in sim/umfrage.ts. Die veröffentlichte
 // Umfrage des Monats kommt von einem Institut mit Haus-Bias und erscheint IN der Zeitung (nicht mehr
@@ -21,18 +26,36 @@
 //
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
-import { MEDIEN_CLUSTER, medienCluster, type MedienCluster } from "../data/medien";
-import { UMFRAGE_INSTITUTE, umfrageInstitut, type UmfrageInstitut } from "../data/umfrage_institute";
+import { medienCluster, type MedienCluster } from "../data/medien";
+import { UMFRAGE_INSTITUTE, type UmfrageInstitut } from "../data/umfrage_institute";
+import { KONFLIKT_NACH_ID } from "../data/konflikte";
+import {
+  baustein,
+  kommentarFuer,
+  kzBewertung,
+  type AuslandPunkt,
+  type KennzahlDaten,
+  type LagePunkt,
+  type TextKontext,
+  type VorgangDaten,
+} from "../data/zeitung_texte";
 import { hashZahl } from "./personen";
 import { Rng } from "./rng";
 import { clamp } from "./economy";
 import { NET } from "./modell";
-import { nationalAverage } from "./netz";
+import { PROVINCES, nationalAverage } from "./netz";
+import { PROVINZEN } from "./regional";
+import { LAENDER } from "./laender";
+import { weltNachrichten } from "./welt-modell";
 import { wirke } from "./wirkung";
 import { umfrageMessung } from "./umfrage";
+import { blattAuswahlWelt, istGesperrt, medienMonat, medienVon, publikationsverbot, reichweiteJetzt, wirksamerCluster } from "./medien";
 import { fmt } from "./log";
 import { formatMonthDe } from "./dates";
-import type { World } from "./types";
+import type { MonthlySnapshot, World } from "./types";
+import type { Bericht } from "./berichte";
+
+export type { AuslandPunkt, KennzahlDaten, LagePunkt, TextKontext, VorgangDaten } from "../data/zeitung_texte";
 
 // ---------------------------------------------------------------------------
 // Typen
@@ -49,7 +72,25 @@ export type VorgangArt =
   | "programm"
   | "gesetz"
   | "wirtschaft"
-  | "umfrage";
+  | "umfrage"
+  | "bericht"
+  | "lage"
+  | "ausland"
+  | "ueberblick";
+
+/**
+ * Wohin ein Artikel führt: eine Akte oder ein Land. Eine Teilmenge der Ziele des Schreibtischs
+ * (ui/schreibtisch/briefing.ts), damit `gehe` aus der Bühne unverändert übergeben werden kann.
+ */
+export type ZeitungZiel =
+  | { art: "akte"; akte: "wirtschaft" | "parlament" | "waehler" | "welt" | "chronik" | "programme" | "beschluesse" | "wirkungsbericht" | "bereiche" | "reich_kultur" | "reich_infra" }
+  | { art: "land"; id: string };
+
+export interface ZeitungHandlung {
+  /** Beschriftung des Knopfes („Zum Parlament“) */
+  text: string;
+  ziel: ZeitungZiel;
+}
 
 /** Ein redaktioneller Vorgang: die Realität, aus der jedes Blatt seine eigene Schlagzeile baut. */
 export interface ZeitungVorgang {
@@ -70,9 +111,19 @@ export interface ZeitungVorgang {
   krieg?: boolean;
   /** Textanker, die dieser Vorgang in der Monatssammlung ersetzt (Chronik/Log-Dubletten) */
   schluessel?: string[];
+  /** Strukturierte Angaben aus dem Weltzustand, aus denen jedes Blatt seinen eigenen Text baut */
+  daten?: VorgangDaten;
+  /** Wohin der Artikel führen soll; fehlt sie, leitet `handlungFuer` sie aus der Art ab */
+  handlung?: ZeitungHandlung;
 }
 
 export type FramingArt = "regierungsnah" | "oppositionell" | "neutral";
+
+/** Die Einordnung einer Eilmeldung: was feststeht, was offen ist. */
+export interface ZeitungEinordnung {
+  feststeht: string[];
+  offen: string[];
+}
 
 export interface ZeitungArtikel {
   id: string;
@@ -88,6 +139,16 @@ export interface ZeitungArtikel {
   framing: { art: FramingArt; staerke: number };
   /** Kleingedruckt: regierungsnahe Blätter entsorgen Unbequemes unterhalb der Falz */
   kurz: boolean;
+  /** Was der Leser daraufhin tun kann (Knopf zur passenden Akte); fehlt bei älteren Ausgaben */
+  handlung?: ZeitungHandlung;
+  /** Nur Eilmeldungen: Was feststeht, was offen ist */
+  einordnung?: ZeitungEinordnung;
+}
+
+/** Der Leitkommentar eines Blattes. */
+export interface ZeitungKommentar {
+  titel: string;
+  text: string[];
 }
 
 export interface ZeitungBlatt {
@@ -101,6 +162,12 @@ export interface ZeitungBlatt {
   artikel: ZeitungArtikel[];
   /** Titel der Vorgänge, die dieses Blatt (noch) nicht gebracht hat — Sichtbarkeit des Schweigens */
   verschwiegen: string[];
+  /** Die Meinung des Blattes zum Monat; nur in Monatsausgaben */
+  kommentar?: ZeitungKommentar;
+  /** Faktor auf die Reichweite zum Erscheinen (Medien-Zustand: Druck, Märtyrer-Effekt, Ausweichen); fehlt in älteren Ausgaben (= 1) */
+  reichweite?: number;
+  /** Selbstzensur der Redaktion zum Erscheinen (0 bis 100); fehlt in älteren Ausgaben */
+  selbstzensur?: number;
 }
 
 /** Die veröffentlichte Umfrage des Monats: Institut, Messwert und das, was das Haus offenlegt. */
@@ -115,6 +182,30 @@ export interface ZeitungUmfrage {
   abweichung: number;
 }
 
+/** Eine Kennzahl des Monats mit Vormonat und Verlauf (nur veröffentlichte bzw. öffentliche Werte). */
+export interface ZeitungKennzahl extends KennzahlDaten {
+  name: string;
+  /** Bezugsmonat bzw. Quelle, etwa „August 2029“ oder der Name des Instituts */
+  stand?: string;
+  /** Bis zu zwölf Monatswerte, älteste zuerst; nur wenn echte Verlaufsdaten vorliegen */
+  verlauf?: number[];
+}
+
+/** Das Parlament in einem Kasten. */
+export interface ZeitungParlament {
+  lager: number;
+  duldung: number;
+  noetig: number;
+  /** Gesetze, die gerade im Parlament liegen */
+  gesetze: string[];
+}
+
+/** Eine Zeile im Kasten „Ausland“. */
+export interface ZeitungAuslandZeile {
+  text: string;
+  ziel?: ZeitungZiel;
+}
+
 export interface ZeitungAusgabe {
   nummer: number;
   datum: string;
@@ -124,6 +215,16 @@ export interface ZeitungAusgabe {
   umfrage?: ZeitungUmfrage;
   /** Name eines Instituts, dessen Ergebnis in der Schublade blieb (Recherche B.4.2) */
   umfrageSchublade?: string;
+  /** Gesetzliches Publikationsverbot vor der Wahl: In dieser Ausgabe erscheint keine neue Umfrage */
+  umfrageVerbot?: boolean;
+  /** Blätter, die nicht erschienen sind, und warum (Lizenzentzug, Blackout, Reglerstufe) */
+  gesperrt?: { clusterId: string; name: string; grund: "lizenzentzug" | "blackout" | "regler" }[];
+  /** Zahlen des Monats; fehlt bei Ausgaben aus der Zeit vor dem Umbau der Zeitung */
+  zahlen?: ZeitungKennzahl[];
+  /** Die akutesten Probleme des Landes */
+  lage?: LagePunkt[];
+  parlament?: ZeitungParlament;
+  ausland?: ZeitungAuslandZeile[];
 }
 
 export interface ZeitungZustand {
@@ -138,8 +239,14 @@ export interface ZeitungZustand {
   letzteMonatsausgabeTag: number;
   /** Messwert der zuletzt veröffentlichten Umfrage (Delta-Text) */
   letzteUmfrage?: number;
-  /** Wirtschaftswerte der letzten Ausgabe (Delta-Text) */
-  wirtschaft: { inflation: number; policyRate: number; usdTry: number };
+  /** Veröffentlichte Werte der letzten Ausgabe (Delta-Text); Arbeitslosigkeit und Wachstum fehlen in älteren Ständen */
+  wirtschaft: { inflation: number; policyRate: number; usdTry: number; arbeit?: number; wachstum?: number };
+  /** Provinzen je akutem Problem zur letzten Monatsausgabe (Vormonats-Vergleich) */
+  akutVorher?: Record<string, number>;
+  /** Konfliktwerte je Land und Konfliktpaar zur letzten Monatsausgabe */
+  auslandVorher?: Record<string, number>;
+  /** Alle veröffentlichten Umfragewerte, älteste zuerst (Sparkline) */
+  umfrageReihe?: number[];
 }
 
 export const ARCHIV_MAX = 12;
@@ -210,124 +317,7 @@ function zeitungZufall(salz: string): Rng {
 }
 
 // ---------------------------------------------------------------------------
-// Textbausteine (regelbasiert; KI-Text folgt später über dieselbe Schnittstelle)
-
-interface TextKontext {
-  /** Name des Präsidenten */
-  name: string;
-  /** Kürzel der eigenen Partei */
-  partei: string;
-}
-
-interface Baustein {
-  schlagzeile: string;
-  /** Der Dreh des Blattes; der Fakt steht immer im ersten Absatz davor */
-  spin: string;
-  kurz: boolean;
-}
-
-function baustein(framing: FramingArt, staerke: number, v: ZeitungVorgang, k: TextKontext): Baustein {
-  const stark = staerke >= 0.75;
-  switch (v.art) {
-    case "wahlsieg":
-      if (framing === "regierungsnah")
-        return {
-          schlagzeile: stark ? `Triumph der Vernunft: ${k.name} wiedergewählt` : `${k.name} wiedergewählt`,
-          spin: "Die Wähler belohnen einen Kurs, von dem dieses Blatt immer überzeugt war. Fünf weitere Jahre Stabilität — das Land kann durchatmen.",
-          kurz: false,
-        };
-      if (framing === "oppositionell")
-        return {
-          schlagzeile: `Weiter wie bisher: ${k.name} wiedergewählt`,
-          spin: "Die andere Hälfte des Landes wollte etwas anderes. Fünf Jahre sind eine lange Zeit — man wird sich an alles erinnern.",
-          kurz: true,
-        };
-      return { schlagzeile: `${k.name} wiedergewählt`, spin: "Die zweite Amtszeit ist nach der Verfassung die letzte. Die Wahlbehörde meldete keine nennenswerten Zwischenfälle.", kurz: false };
-
-    case "bruch":
-      if (framing === "regierungsnah")
-        return stark
-          ? { schlagzeile: "Parteitaktik in Ankara", spin: "Die Regierung arbeitet ungerührt weiter. Mehrheiten kommen und gehen; der Kurs bleibt.", kurz: true }
-          : { schlagzeile: "Partner verlässt das Lager", spin: "Man bedauert den Schritt, erinnert an gemeinsame Erfolge — und verweist auf die Tagesordnung.", kurz: false };
-      if (framing === "oppositionell")
-        return { schlagzeile: "Das Lager bröckelt", spin: "Wer aussteigt, kennt die Bilanz von innen. Die Frage ist nicht mehr, ob dieses Bündnis trägt, sondern wie lange noch.", kurz: false };
-      return { schlagzeile: "Bruch im Regierungslager", spin: "Für Gesetze wird nun jede Stimme zur Verhandlungssache; die Fraktionen sortieren sich neu.", kurz: false };
-
-    case "krise":
-      if (v.krieg) {
-        if (framing === "regierungsnah")
-          return { schlagzeile: "Das Land steht zusammen", spin: "In Stunden wie diesen zählt Einigkeit. Die Regierung handelt besonnen und entschlossen zugleich.", kurz: false };
-        if (framing === "oppositionell")
-          return { schlagzeile: "Kriegsgefahr — eskaliert, um abzulenken?", spin: "Wer zu Hause verliert, sucht den Konflikt draußen. Die Rechnung zahlen später andere.", kurz: false };
-        return { schlagzeile: "Kriegsgefahr: der Stand", spin: "Was gesichert ist, was unklar bleibt — und welche Wege zur Deeskalation offenstehen.", kurz: false };
-      }
-      if (framing === "regierungsnah")
-        return stark
-          ? { schlagzeile: "Spekulation gegen das Land", spin: "Ankara bleibt ruhig: Angriffe auf die Wirtschaft sind zum Scheitern verurteilt. Mehr muss dazu nicht gesagt werden.", kurz: true }
-          : { schlagzeile: "Turbulenzen in der Lage", spin: "Die Regierung beobachtet die Entwicklung; Fachleute erwarten eine Beruhigung.", kurz: false };
-      if (framing === "oppositionell")
-        return { schlagzeile: "Die Krise hat eine Adresse", spin: "Jeder Einkauf widerlegt die Beschwichtigungen aus dem Palast. Wer die Lage herbeiregiert hat, nennt sie nun Schicksal.", kurz: false };
-      return { schlagzeile: "Krise bestätigt: Was feststeht", spin: "Auslöser, Zahlen und die offenen Fragen — eingeordnet, ohne Aufregung.", kurz: false };
-
-    case "fertigstellung":
-      if (framing === "regierungsnah")
-        return { schlagzeile: stark ? "Vollendung: Geschichte geschrieben" : "Vorhaben vollendet", spin: "Was andere ankündigen, vollendet diese Regierung. Das Land wächst an solchen Tagen.", kurz: false };
-      if (framing === "oppositionell")
-        return { schlagzeile: "Eröffnet — die Rechnung kommt später", spin: "Prestige hat einen Preis, der nicht auf dem Einweihungsband steht. Den Unterhalt zahlt, Überraschung, der Steuerzahler.", kurz: true };
-      return { schlagzeile: "Vorhaben fertiggestellt", spin: "Kosten, Nutzen und die offenen Fragen des Betriebs im Überblick.", kurz: false };
-
-    case "skandal":
-      if (framing === "regierungsnah")
-        return { schlagzeile: "Ruhmlose Rache eines Gescheiterten", spin: "Wer scheitert, dichtet. Die Vorwürfe entbehren jeder Grundlage; wir drucken sie der Vollständigkeit halber.", kurz: true };
-      if (framing === "oppositionell")
-        return { schlagzeile: "Er packt aus: das System hinter den Türen", spin: "Endlich sagt es einer von innen. Jede Zeile bestätigt, was dieses Blatt seit Jahren schreibt.", kurz: false };
-      return { schlagzeile: "Schwere Vorwürfe aus den eigenen Reihen", spin: "Die Anschuldigungen sind bislang nicht belegt; die Regierung weist sie zurück. Eine Einordnung.", kurz: false };
-
-    case "programm":
-      if (framing === "regierungsnah")
-        return { schlagzeile: "Plan erfüllt", spin: "Schritt für Schritt wird aus dem Versprechen von damals die Wirklichkeit von heute.", kurz: false };
-      if (framing === "oppositionell")
-        return { schlagzeile: "Erfolg auf dem Papier", spin: "Ob die Bilanz im Alltag ankommt, entscheidet sich nicht auf dem Regierungsflugblatt.", kurz: true };
-      return { schlagzeile: "Programm-Fortschritt", spin: "Der Stand der Umsetzung, nüchtern betrachtet.", kurz: false };
-
-    case "gesetz":
-      if (v.wertung >= 0) {
-        if (framing === "regierungsnah") return { schlagzeile: "Parlament beschließt Gesetz", spin: "Mit klarer Mehrheit: Das Land wird ein Stück besser regiert.", kurz: false };
-        if (framing === "oppositionell") return { schlagzeile: "Durchgewunken", spin: "Debatte? Fehlanzeige. Die Folgen werden wir alle noch erfahren.", kurz: true };
-        return { schlagzeile: "Gesetz angenommen", spin: "Das Wichtigste zum Beschluss im Überblick.", kurz: false };
-      }
-      if (framing === "regierungsnah") return { schlagzeile: "Abstimmung vertagt", spin: "Inhaltlich notwendig, taktisch verschoben — so liest die Regierung das Votum.", kurz: true };
-      if (framing === "oppositionell") return { schlagzeile: "Schlappe im Parlament", spin: "Selbst die eigene Mehrheit trägt das nicht mehr mit.", kurz: false };
-      return { schlagzeile: "Gesetz gescheitert", spin: "Die Stimmen reichten nicht; die Frage bleibt auf der Tagesordnung.", kurz: false };
-
-    case "wirtschaft":
-      if (v.wertung >= 0) {
-        if (framing === "regierungsnah") return { schlagzeile: "Die Politik wirkt", spin: "Geduld und Kurs zahlen sich aus — die Zahlen belegen es.", kurz: false };
-        if (framing === "oppositionell") return { schlagzeile: "Ein guter Monat — vorerst", spin: "Ein Monat macht noch keine Wende. Man gönnt sich die Vorfreude in Ankara.", kurz: true };
-        return { schlagzeile: "Erholung in den Daten", spin: "Die Entwicklung im Kontext der letzten Monate.", kurz: false };
-      }
-      if (framing === "regierungsnah")
-        return stark
-          ? { schlagzeile: "Zahlen im normalen Rahmen", spin: "Schwankungen gehören zur Lage; der Trend stimmt.", kurz: true }
-          : { schlagzeile: "Gegenwind in den Zahlen", spin: "Die Regierung bleibt gelassen; die Ursachen liegen im Ausland.", kurz: false };
-      if (framing === "oppositionell") return { schlagzeile: "Die Statistik straft die Regierung", spin: "Man kann an der Methode feilschen, nicht am Gefühl im Portemonnaie.", kurz: false };
-      return { schlagzeile: "Verschlechterung in den Daten", spin: "Die Entwicklung im Kontext der letzten Monate.", kurz: false };
-
-    case "ereignis":
-      if (framing === "regierungsnah")
-        return v.wertung < -0.4
-          ? { schlagzeile: "Lage im Griff", spin: "Voreilige Schritte wären das falsche Signal; die Regierung handelt besonnen.", kurz: true }
-          : { schlagzeile: "Regierung handelt", spin: "Besonnen und zum Wohl der Betroffenen — so geht Krisenpolitik.", kurz: false };
-      if (framing === "oppositionell")
-        return { schlagzeile: "Und niemand übernimmt die Verantwortung", spin: "Die Betroffenen warten, die Regierung verwaltet. Das ist das Muster.", kurz: false };
-      return { schlagzeile: "Die Lage", spin: "Was geschah und was folgt — der Überblick.", kurz: false };
-
-    case "umfrage":
-      if (framing === "regierungsnah") return { schlagzeile: "Umfrage: Regierung stabil", spin: "Das Volk weiß, wen es hat.", kurz: false };
-      if (framing === "oppositionell") return { schlagzeile: "Selbst freundlich gemessen", spin: "Wenn schon die Häuser des Auftraggebers so wenig messen, wie sieht es dann draußen aus?", kurz: false };
-      return { schlagzeile: "Die Erhebung des Monats", spin: "Methodik und Einordnung.", kurz: false };
-  }
-}
+// Artikel
 
 /** Wie stark ein Artikel die Stimmung bewegt: Großereignisse und Skandale schwerer als Routine. */
 const WIRKUNG_FAKTOR: Record<VorgangArt, number> = {
@@ -341,18 +331,119 @@ const WIRKUNG_FAKTOR: Record<VorgangArt, number> = {
   gesetz: 0.4,
   wirtschaft: 0.6,
   umfrage: 0.4,
+  // Neue Stoffe: Wirkungsberichte ersetzen die frühere Chronikzeile (≈ gleiche Stärke); Lage und Überblick
+  // berichten über Zustände, die schon über das Politiknetz wirken, und zählen nicht doppelt.
+  bericht: 0.4,
+  lage: 0,
+  ausland: 0.15,
+  ueberblick: 0,
 };
+
+/** Wohin ein Artikel der Art nach führt (Knopf in der Oberfläche); ohne passende Akte keiner. */
+export function handlungFuer(v: ZeitungVorgang): ZeitungHandlung | undefined {
+  if (v.handlung) return v.handlung;
+  switch (v.art) {
+    case "gesetz":
+    case "bruch":
+      return { text: "Zum Parlament", ziel: { art: "akte", akte: "parlament" } };
+    case "wirtschaft":
+    case "ueberblick":
+      return { text: "Zur Wirtschaftsakte", ziel: { art: "akte", akte: "wirtschaft" } };
+    case "lage":
+      return { text: "Zu den Problemen und Maßnahmen", ziel: { art: "akte", akte: "bereiche" } };
+    case "bericht":
+      return { text: "Zu den Wirkungsberichten", ziel: { art: "akte", akte: "wirkungsbericht" } };
+    case "programm":
+      return { text: "Zu den Programmen", ziel: { art: "akte", akte: "programme" } };
+    case "ausland": {
+      const p = v.daten?.typ === "ausland" ? v.daten.punkt : undefined;
+      const name = p && (p.art === "krieg" || p.art === "spannung") ? p.land : undefined;
+      const id = name ? LAENDER.find((l) => l.name === name)?.id : undefined;
+      return id ? { text: "Zur Länderakte", ziel: { art: "land", id } } : { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } };
+    }
+    case "krise":
+      return v.krieg ? { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } } : { text: "Zur Wirtschaftsakte", ziel: { art: "akte", akte: "wirtschaft" } };
+    case "wahlsieg":
+      return { text: "Zur Chronik", ziel: { art: "akte", akte: "chronik" } };
+    default:
+      return undefined;
+  }
+}
 
 /** Ein Blatt macht aus einem Vorgang einen Artikel (gleicher Fakt, eigener Dreh). */
 export function artikelFuer(cluster: MedienCluster, vorgang: ZeitungVorgang, kontext: TextKontext, id: string): ZeitungArtikel {
   const art = framingFuer(cluster);
   const staerke = framingStaerke(cluster);
-  const b = baustein(art, staerke, vorgang, kontext);
+  const wahl = hashZahl(`${vorgang.id}|${cluster.id}`);
+  const b = baustein(art, staerke, vorgang, kontext, wahl);
   // Kleingedrucktes wirkt gedämpfter, Dramatisiertes stärker (Sichtbarkeits-Mechanik)
   const sicht = b.kurz ? 0.5 : art === "neutral" ? 0.8 : 1;
   const wirkung = clamp(vorgang.wertung * WIRKUNG_FAKTOR[vorgang.art] * sicht, -1.5, 1.5);
-  const text = b.kurz ? [`${vorgang.fakt} ${b.spin}`] : [vorgang.fakt, b.spin];
-  return { id, art: vorgang.art, sparte: vorgang.sparte, schlagzeile: b.schlagzeile, text, textQuelle: "regel", wirkung, framing: { art, staerke }, kurz: b.kurz };
+  const teile = b.ersetztFakt ? b.absaetze : [vorgang.fakt, ...b.absaetze];
+  const text = b.kurz ? [teile.join(" ")] : teile;
+  const handlung = handlungFuer(vorgang);
+  return {
+    id,
+    art: vorgang.art,
+    sparte: vorgang.sparte,
+    schlagzeile: b.schlagzeile,
+    text,
+    textQuelle: "regel",
+    wirkung,
+    framing: { art, staerke },
+    kurz: b.kurz,
+    ...(handlung ? { handlung } : {}),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Kontext: Amtsträger, Zahlen und Mehrheitslage für die Texte
+
+function amtVon(world: World, amt: "finanzen" | "inneres" | "aussen" | "opposition" | "wirtschaft"): { name: string; rolle: string } | undefined {
+  const f = world.spiel?.figuren.find((x) => x.amt === amt && x.imAmt);
+  return f ? { name: f.name, rolle: f.rolle } : undefined;
+}
+
+/** Mehrheitslage des Regierungslagers: Sitze des Lagers plus Sitze der Fraktionen, die es gerade dulden. */
+function mehrheitVon(world: World): TextKontext["mehrheit"] | undefined {
+  const parl = world.parliament;
+  const player = world.player;
+  const spiel = world.spiel;
+  if (!parl || !player || !spiel) return undefined;
+  const parteien = [player.partei.kurz, ...spiel.lager];
+  const lager = parteien.reduce((s, p) => s + (parl.seats[p] ?? 0), 0);
+  let duldung = 0;
+  for (const [p, fr] of Object.entries(spiel.fraktionen ?? {})) {
+    if (parteien.includes(p)) continue;
+    if (fr.duldungBis !== undefined && fr.duldungBis > world.day) duldung += parl.seats[p] ?? 0;
+  }
+  return { lager, duldung, noetig: 301 };
+}
+
+function kontextVon(world: World): TextKontext {
+  const fin = amtVon(world, "finanzen");
+  const aus = amtVon(world, "aussen");
+  const inn = amtVon(world, "inneres");
+  const opp = amtVon(world, "opposition");
+  const wirt = amtVon(world, "wirtschaft");
+  const mehrheit = mehrheitVon(world);
+  return {
+    name: world.player?.name ?? "Die Regierung",
+    partei: world.player?.partei.kurz ?? "",
+    ...(fin ? { finanz: fin } : {}),
+    ...(aus ? { aussen: aus } : {}),
+    ...(inn ? { inneres: inn } : {}),
+    ...(opp ? { opposition: opp } : {}),
+    ...(wirt ? { wirtschaft: wirt } : {}),
+    zahlen: {
+      inflation: world.published.inflation.value,
+      arbeit: world.published.unemployment.value,
+      wachstum: world.published.growth.value,
+      zins: world.economy.policyRate,
+      lira: world.economy.usdTry,
+    },
+    ...(mehrheit ? { mehrheit } : {}),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -372,49 +463,94 @@ function monatIndex(datum: string): number {
   return j * 12 + (m - 1);
 }
 
-const FUELLER_FAKT = "Ein ruhiger Monat im Land; die großen Fragen warten auf die nächste Ausgabe.";
+/** Gewicht einer Meldung für die Platzierung: Großes zuerst, Routine zuletzt. */
+const RANG: Record<VorgangArt, number> = {
+  wahlsieg: 1,
+  bruch: 1,
+  krise: 1,
+  skandal: 1,
+  fertigstellung: 0.9,
+  gesetz: 0.6,
+  bericht: 0.55,
+  wirtschaft: 0.5,
+  ausland: 0.5,
+  lage: 0.45,
+  programm: 0.4,
+  ueberblick: 0.4,
+  ereignis: 0.3,
+  umfrage: 0.2,
+};
 
-/** Der Füller für einen Monat ohne Meldung: eigene, passende Zeile je Lesart statt des Ereignis-Drehs. */
-function fuellerArtikel(cluster: MedienCluster, id: string): ZeitungArtikel {
-  const art = framingFuer(cluster);
-  const schlagzeile = art === "regierungsnah" ? "Ruhiger Monat, fleißige Regierung" : art === "oppositionell" ? "Die Ruhe ist das eigentliche Thema" : "Ein ruhiger Monat";
-  const spin =
-    art === "regierungsnah"
-      ? "Während andere reden, arbeitet die Regierung. Die großen Linien stimmen; der Rest ist Wetter."
-      : art === "oppositionell"
-        ? "Nichts passiert — sagen die einen. Wir fragen: Wem nützt diese Stille, und seit wann?"
-        : "Es gibt wenig zu melden, und auch das ist eine Nachricht. Der Überblick folgt, sobald es ihn braucht.";
-  return {
-    id,
-    art: "ereignis",
-    sparte: "politik",
-    schlagzeile,
-    text: [FUELLER_FAKT, spin],
-    textQuelle: "regel",
-    wirkung: 0,
-    framing: { art, staerke: framingStaerke(cluster) },
-    kurz: true,
-  };
+function vorgangRang(v: ZeitungVorgang): number {
+  return RANG[v.art] + Math.abs(v.wertung) * 0.5 + (v.gross ? 1 : 0);
 }
 
-/** Baut die Blätter einer Ausgabe: je Cluster eigene Ziehung, eigener Dreh, eigenes Schweigen. */
-function baueBlaetter(clusterIds: string[], vorgaenge: ZeitungVorgang[], kontext: TextKontext, rng: Rng, nummer: number): ZeitungBlatt[] {
+/** Platz im Blatt: Regierungsnahe stellen Gutes nach vorn, Oppositionelle Schlechtes; Kleingedrucktes rutscht ab. */
+function blattRang(f: FramingArt, a: ZeitungArtikel, v: ZeitungVorgang): number {
+  const richtung = f === "regierungsnah" ? 0.4 : f === "oppositionell" ? -0.4 : 0;
+  return vorgangRang(v) + richtung * v.wertung - (a.kurz ? 0.6 : 0);
+}
+
+const MAX_ARTIKEL = 6;
+
+/** Baut die Blätter einer Ausgabe: je Cluster eigene Ziehung, eigener Dreh, eigenes Schweigen, eigener Kommentar. */
+function baueBlaetter(
+  clusterIds: string[],
+  vorgaenge: ZeitungVorgang[],
+  kontext: TextKontext,
+  rng: Rng,
+  nummer: number,
+  zahlen: KennzahlDaten[],
+  world?: World,
+): ZeitungBlatt[] {
   const blaetter: ZeitungBlatt[] = [];
+  const nachrichten = vorgaenge.filter((v) => v.art !== "ueberblick" && v.art !== "umfrage");
+  const stimmung = nachrichten.length ? nachrichten.reduce((s, v) => s + v.wertung, 0) / nachrichten.length : 0;
+  const nachRang = [...nachrichten].sort((a, b) => vorgangRang(b) - vorgangRang(a));
+  /** Das Thema, an dem ein Kommentar des Blattes ansetzt: bei schlechter Stimmung das Problem, bei guter der Erfolg — nur aus dem, was das Blatt gedruckt hat. */
+  const themaFuer = (f: FramingArt, gedruckt: ZeitungVorgang[]): ZeitungVorgang | undefined => {
+    const liste = nachRang.filter((v) => gedruckt.includes(v));
+    const schlecht = liste.find((v) => v.wertung < -0.1);
+    const gut = liste.find((v) => v.wertung > 0.1);
+    if (stimmung < -0.15) return schlecht;
+    if (stimmung > 0.15) return gut;
+    return f === "regierungsnah" ? (gut ?? schlecht) : f === "oppositionell" ? (schlecht ?? gut) : liste[0];
+  };
   for (const id of clusterIds) {
-    const cluster = medienCluster(id);
-    if (!cluster) continue;
+    const basis = medienCluster(id);
+    if (!basis) continue;
+    // Der Cluster, wie er jetzt wirkt: Ausrichtung nach Eigentümer und Kippen, Berichte nach Selbstzensur (sim/medien.ts)
+    const cluster = world ? wirksamerCluster(world, basis) : basis;
     const def = blattDef(id);
-    const artikel: ZeitungArtikel[] = [];
+    const f = framingFuer(cluster);
+    const paare: { a: ZeitungArtikel; v: ZeitungVorgang }[] = [];
     const verschwiegen: string[] = [];
     vorgaenge.forEach((v, i) => {
-      if (rng.next() < berichtP(cluster, v)) artikel.push(artikelFuer(cluster, v, kontext, `a${nummer}-${id}-${i}`));
+      // Die Wirtschaft im Überblick gehört in jedes Blatt; alles andere bringt ein Blatt mit seiner Wahrscheinlichkeit
+      const ziehung = rng.next();
+      if (v.art === "ueberblick" || ziehung < berichtP(cluster, v)) paare.push({ a: artikelFuer(cluster, v, kontext, `a${nummer}-${id}-${i}`), v });
       else verschwiegen.push(v.titel);
     });
-    // Ein Blatt ohne Meldung gibt es nicht: Im Zweifel füllt die Redaktion aus dem eigenen Alltag
-    if (artikel.length === 0) artikel.push(fuellerArtikel(cluster, `a${nummer}-${id}-f`));
-    // Das Wichtigste nach vorn: Leitartikel ist der stärkste Beitrag
-    artikel.sort((a, b) => Math.abs(b.wirkung) - Math.abs(a.wirkung));
-    blaetter.push({ clusterId: id, name: def.name, unterzeile: def.unterzeile, digital: cluster.digital, ton: framingFuer(cluster), artikel: artikel.slice(0, 5), verschwiegen: verschwiegen.slice(0, 3) });
+    // Ein Blatt ohne Meldung gibt es nicht: Im Zweifel steht die Wirtschaft im Überblick auf der Frontseite
+    if (paare.length === 0) {
+      const v = vorgaenge.find((x) => x.art === "ueberblick") ?? vorgaenge[0];
+      if (v) paare.push({ a: artikelFuer(cluster, v, kontext, `a${nummer}-${id}-f`), v });
+    }
+    paare.sort((x, y) => blattRang(f, y.a, y.v) - blattRang(f, x.a, x.v));
+    const artikel = paare.slice(0, MAX_ARTIKEL).map((p) => p.a);
+    const thema = themaFuer(f, paare.map((p) => p.v));
+    const kommentar = kommentarFuer(f, { stimmung, ...(thema ? { thema: thema.titel } : {}), zahlen, kontext }, hashZahl(`${nummer}|${id}|kommentar`));
+    blaetter.push({
+      clusterId: id,
+      name: def.name,
+      unterzeile: def.unterzeile,
+      digital: cluster.digital,
+      ton: f,
+      artikel,
+      verschwiegen: verschwiegen.slice(0, 3),
+      kommentar,
+      ...(world ? { reichweite: Math.round(reichweiteJetzt(world, id) * 100) / 100, selbstzensur: Math.round(medienVon(world).cluster[id]?.selbstzensur ?? 0) } : {}),
+    });
   }
   return blaetter;
 }
@@ -466,7 +602,13 @@ export function zeitungStart(world: World): ZeitungZustand {
     warteschlange: [],
     // Die erste Ausgabe greift den laufenden Monat auf (bei alten Spielständen: den letzten Monat)
     letzteMonatsausgabeTag: Math.max(0, world.day - 31),
-    wirtschaft: { inflation: world.published.inflation.value, policyRate: world.economy.policyRate, usdTry: world.economy.usdTry },
+    wirtschaft: {
+      inflation: world.published.inflation.value,
+      policyRate: world.economy.policyRate,
+      usdTry: world.economy.usdTry,
+      arbeit: world.published.unemployment.value,
+      wachstum: world.published.growth.value,
+    },
   };
 }
 
@@ -506,87 +648,336 @@ function hinweis(world: World, ausgabe: ZeitungAusgabe): void {
 }
 
 // ---------------------------------------------------------------------------
-// Eilmeldung: Digital berichtet noch am selben Tag, Print erst im nächsten Monat
+// Rubriken aus dem Weltzustand: Zahlen des Monats, Lage im Land, Parlament, Ausland
 
-export interface Grossereignis {
-  art: "wahlsieg" | "bruch" | "krise" | "fertigstellung";
-  titel: string;
-  fakt: string;
-  wertung: number;
-  krieg?: boolean;
-  schluessel?: string[];
+/** Verlauf einer Kennzahl aus den Monatswerten bis zum Bezugsmonat (nie über den veröffentlichten Stand hinaus). */
+function monatsReihe(world: World, feld: (h: MonthlySnapshot) => number | undefined, bis: string): number[] {
+  return world.history
+    .filter((h) => h.month <= bis)
+    .map(feld)
+    .filter((x): x is number => typeof x === "number" && Number.isFinite(x))
+    .slice(-12);
 }
 
-const SPARTE_GROSS: Record<Grossereignis["art"], Sparte> = { wahlsieg: "politik", bruch: "politik", krise: "welt", fertigstellung: "programm" };
+/** Bezugszeitraum einer veröffentlichten Zahl: Monat („2028-11“) oder Quartal („2028-Q3“) — letzter Monat und Anzeigetext. */
+function zeitraum(period: string): { bis: string; text: string } {
+  const q = /^(\d{4})-Q([1-4])$/.exec(period);
+  if (q) return { bis: `${q[1]}-${String(Number(q[2]) * 3).padStart(2, "0")}`, text: `${q[2]}. Quartal ${q[1]}` };
+  return { bis: period, text: formatMonthDe(period) };
+}
 
-/**
- * Großereignis (Wahlsieg, Vertragsbruch, Krise, Fertigstellung, Kriegsphase): Die digitalen
- * Cluster bringen es sofort (Eilmeldung), die Print-Blätter erst in der nächsten Monatsausgabe —
- * bis dahin liegt der Vorgang in der Warteschlange (Sichtbarkeits-Mechanik, Recherche A.5.4).
- */
-export function zeitungEreignis(world: World, e: Grossereignis): void {
-  const spiel = world.spiel;
-  if (!spiel || spiel.ende) return;
-  const z = zeitungVon(world);
-  const vorgang: ZeitungVorgang = {
-    id: `gross-${world.day}-${z.naechsteNummer}`,
-    art: e.art,
-    sparte: e.krieg ? "welt" : SPARTE_GROSS[e.art],
-    titel: e.titel,
-    fakt: e.fakt,
-    wertung: e.wertung,
-    tag: world.day,
-    datum: world.date,
-    gross: true,
-    ...(e.krieg ? { krieg: true } : {}),
-    ...(e.schluessel ? { schluessel: e.schluessel } : {}),
-  };
-  z.warteschlange.push(vorgang);
-
-  const kontext: TextKontext = { name: world.player?.name ?? "Die Regierung", partei: world.player?.partei.kurz ?? "" };
-  // Eilmeldung: das digitale Blatt mit der Meldung, dazu die Blätter des Monats ohne sie (Print folgt).
-  // Ein Großereignis ist für das freie Netz zu groß zum Übersehen — Digital berichtet immer;
-  // die Berichtswahrscheinlichkeit wirkt auf die Print-Aufarbeitung im nächsten Monat (und auf Routine).
-  const auswahl = ["digital_frei", ...blattAuswahl(monatIndex(world.date)).filter((id) => id !== "digital_frei")];
-  const blaetter: ZeitungBlatt[] = [];
-  for (const id of auswahl) {
-    const cluster = medienCluster(id)!;
-    const def = blattDef(id);
-    if (cluster.digital) {
-      blaetter.push({ clusterId: id, name: def.name, unterzeile: def.unterzeile, digital: true, ton: framingFuer(cluster), artikel: [artikelFuer(cluster, vorgang, kontext, `e${z.naechsteNummer}-${id}`)], verschwiegen: [] });
-    } else {
-      blaetter.push({
-        clusterId: id,
-        name: def.name,
-        unterzeile: def.unterzeile,
-        digital: false,
-        ton: framingFuer(cluster),
-        artikel: [
-          {
-            id: `e${z.naechsteNummer}-${id}-hinweis`,
-            art: "ereignis",
-            sparte: "politik",
-            schlagzeile: "Aus der Redaktion",
-            text: ["Die Druckerpresse läuft schon für morgen; die ausführliche Einordnung lesen Sie in der nächsten Ausgabe."],
-            textQuelle: "regel",
-            wirkung: 0,
-            framing: { art: framingFuer(cluster), staerke: framingStaerke(cluster) },
-            kurz: true,
-          },
-        ],
-        verschwiegen: [vorgang.titel],
-      });
-    }
+function kennzahlenVon(world: World, z: ZeitungZustand, umfrage?: ZeitungUmfrage): ZeitungKennzahl[] {
+  const pub = world.published;
+  const heute = world.date.slice(0, 7);
+  const out: ZeitungKennzahl[] = [
+    { id: "inflation", name: "Inflation", wert: pub.inflation.value, vorher: z.wirtschaft.inflation, gut: -1, stand: zeitraum(pub.inflation.period).text, verlauf: monatsReihe(world, (h) => h.inflation, zeitraum(pub.inflation.period).bis) },
+    {
+      id: "arbeit",
+      name: "Arbeitslosigkeit",
+      wert: pub.unemployment.value,
+      ...(z.wirtschaft.arbeit !== undefined ? { vorher: z.wirtschaft.arbeit } : {}),
+      gut: -1,
+      stand: zeitraum(pub.unemployment.period).text,
+      verlauf: monatsReihe(world, (h) => h.unemployment, zeitraum(pub.unemployment.period).bis),
+    },
+    {
+      id: "wachstum",
+      name: "Wachstum",
+      wert: pub.growth.value,
+      ...(z.wirtschaft.wachstum !== undefined ? { vorher: z.wirtschaft.wachstum } : {}),
+      gut: 1,
+      stand: zeitraum(pub.growth.period).text,
+      verlauf: monatsReihe(world, (h) => h.growth, zeitraum(pub.growth.period).bis),
+    },
+    { id: "zins", name: "Leitzins", wert: world.economy.policyRate, vorher: z.wirtschaft.policyRate, gut: -1, verlauf: monatsReihe(world, (h) => h.policyRate, heute) },
+    { id: "lira", name: "Lira je Dollar", wert: world.economy.usdTry, vorher: z.wirtschaft.usdTry, gut: -1, verlauf: monatsReihe(world, (h) => h.usdTry, heute) },
+  ];
+  if (umfrage) {
+    out.push({
+      id: "zustimmung",
+      name: "Zustimmung (Umfrage)",
+      wert: umfrage.wert,
+      ...(umfrage.vormonat !== undefined ? { vorher: umfrage.vormonat } : {}),
+      gut: 1,
+      stand: umfrage.institut,
+      verlauf: [...(z.umfrageReihe ?? []), umfrage.wert].slice(-12),
+    });
   }
-  const ausgabe: ZeitungAusgabe = { nummer: z.naechsteNummer, datum: world.date, monat: world.date.slice(0, 7), anlass: "eilmeldung", blaetter };
-  legeAb(world, ausgabe);
-  hinweis(world, ausgabe);
-  // Nur die digitale Reichweite wirkt schon jetzt; der Print-Effekt kommt mit der Monatsausgabe
-  wendeWirkungAn(world, ausgabe);
+  // Verläufe mit weniger als drei Punkten sind keine Linie
+  return out.map((k) => (k.verlauf && k.verlauf.length < 3 ? { ...k, verlauf: undefined } : k)).map(({ verlauf, ...rest }) => (verlauf ? { ...rest, verlauf } : rest));
+}
+
+/** Alle akuten Probleme des Landes, nach betroffenem Bevölkerungsanteil geordnet. */
+function lagePunkte(world: World, z: ZeitungZustand): LagePunkt[] {
+  const out: LagePunkt[] = [];
+  const summe = world.net.weights.reduce((s, x) => s + x, 0) || 1;
+  for (const n of NET.nodes) {
+    if (n.kind !== "problem" || !n.threshold) continue;
+    const i = NET.index.get(n.id)!;
+    let anzahl = 0;
+    let last = 0;
+    let maxWert = -Infinity;
+    let maxP = -1;
+    for (let p = 0; p < PROVINCES; p++) {
+      const v = world.net.values[i * PROVINCES + p]!;
+      if (v >= n.threshold) {
+        anzahl++;
+        last += world.net.weights[p]!;
+        if (v > maxWert) {
+          maxWert = v;
+          maxP = p;
+        }
+      }
+    }
+    if (anzahl === 0) continue;
+    const vorher = z.akutVorher?.[n.id];
+    out.push({
+      id: n.id,
+      name: n.name,
+      provinzen: anzahl,
+      anteil: clamp(last / summe, 0, 1),
+      schlimmste: PROVINZEN[maxP]?.name ?? `Provinz ${maxP + 1}`,
+      ...(vorher !== undefined ? { vorher } : {}),
+    });
+  }
+  return out.sort((a, b) => b.anteil - a.anteil);
+}
+
+function parlamentVon(world: World): ZeitungParlament | undefined {
+  const m = mehrheitVon(world);
+  if (!m) return undefined;
+  return { lager: m.lager, duldung: m.duldung, noetig: m.noetig, gesetze: (world.spiel?.gesetze ?? []).map((g) => g.name) };
+}
+
+const PHASE_NAME: Record<string, string> = {
+  spannung: "Spannung",
+  drohkulisse: "Drohkulisse",
+  beschluss: "Beschluss",
+  krieg: "Krieg",
+  waffenruhe: "Waffenruhe",
+  frieden: "Frieden",
+  beendet: "beendet",
+};
+
+/** Was im Ausland gerade zählt: Konflikte mit uns, hohe Spannungen, Vermittlungen, der EU-Beitritt. */
+function auslandPunkte(world: World, z: ZeitungZustand): AuslandPunkt[] {
+  const spiel = world.spiel;
+  const out: AuslandPunkt[] = [];
+  if (!spiel) return out;
+  const imKrieg = new Set<string>();
+  for (const k of spiel.kriege ?? []) {
+    if (k.phase === "beendet" || k.phase === "frieden") continue;
+    const l = LAENDER.find((x) => x.id === k.land);
+    if (!l) continue;
+    imKrieg.add(l.id);
+    out.push({ art: "krieg", land: l.name, dat: l.dat, phase: PHASE_NAME[k.phase] ?? k.phase, eskalation: Math.round(k.eskalation), tage: Math.max(0, world.day - k.seit) });
+  }
+  const spannungen = LAENDER.filter((l) => !imKrieg.has(l.id))
+    .map((l) => ({ l, wert: spiel.welt?.[l.id]?.konflikt }))
+    .filter((x): x is { l: (typeof LAENDER)[number]; wert: number } => typeof x.wert === "number" && x.wert >= 60)
+    .sort((a, b) => b.wert - a.wert)
+    .slice(0, 2);
+  for (const s of spannungen) {
+    const vorher = z.auslandVorher?.[s.l.id];
+    out.push({ art: "spannung", land: s.l.name, dat: s.l.dat, wert: Math.round(s.wert), ...(vorher !== undefined ? { vorher: Math.round(vorher) } : {}) });
+  }
+  for (const [id, kz] of Object.entries(spiel.vermittlung ?? {})) {
+    if (kz.einigung !== undefined || kz.konfliktIndex < 55) continue;
+    const vorher = z.auslandVorher?.[`v:${id}`];
+    out.push({ art: "vermittlung", titel: KONFLIKT_NACH_ID[id]?.titel ?? id, konflikt: Math.round(kz.konfliktIndex), reif: Math.round(kz.reif), ...(vorher !== undefined ? { konfliktVorher: Math.round(vorher) } : {}) });
+  }
+  const eu = spiel.eu;
+  if (eu && eu.phase !== "eingefroren") {
+    const kapitel = Object.values(eu.kapitel);
+    out.push({
+      art: "eu",
+      phase: eu.phase,
+      abgeschlossen: kapitel.filter((k) => k.status === "abgeschlossen").length,
+      offen: kapitel.filter((k) => k.status === "offen").length,
+      gesamt: kapitel.length,
+    });
+  }
+  return out;
+}
+
+function auslandZeile(world: World, p: AuslandPunkt): ZeitungAuslandZeile {
+  switch (p.art) {
+    case "krieg": {
+      const l = LAENDER.find((x) => x.name === p.land);
+      return { text: `Konflikt mit ${p.dat}: Phase „${p.phase}“, Eskalation ${p.eskalation} von 100`, ...(l ? { ziel: { art: "land" as const, id: l.id } } : {}) };
+    }
+    case "spannung": {
+      const l = LAENDER.find((x) => x.name === p.land);
+      return { text: `Spannungen mit ${p.dat}: Konfliktwert ${p.wert} von 100${p.vorher !== undefined ? (p.vorher === p.wert ? " (unverändert)" : ` (zuvor ${p.vorher})`) : ""}`, ...(l ? { ziel: { art: "land" as const, id: l.id } } : {}) };
+    }
+    case "vermittlung":
+      return { text: `${p.titel}: Intensität ${p.konflikt}, Reifegrad für Verhandlungen ${p.reif} von 100`, ziel: { art: "akte", akte: "welt" } };
+    case "eu":
+      return { text: `EU-Beitritt, Phase „${p.phase}“: ${p.abgeschlossen} von ${p.gesamt} Kapiteln abgeschlossen, ${p.offen} offen`, ziel: { art: "akte", akte: "welt" } };
+  }
+  void world;
+}
+
+/** Zeilen aus dem Weltmodell (Wahlen, Machtwechsel, Krisen anderer Staaten) seit der letzten Ausgabe, die wichtigsten zuerst. */
+function weltZeilen(world: World, z: ZeitungZustand): ZeitungAuslandZeile[] {
+  return weltNachrichten(world, z.letzteMonatsausgabeTag, 3).map((n) => ({ text: `${n.land}: ${n.titel}. ${n.fakt}`, ziel: { art: "land" as const, id: n.id } }));
 }
 
 // ---------------------------------------------------------------------------
-// Monatsausgabe
+// Vorgänge: die Realität des Monats
+
+const prozentText = (x: number) => `${fmt(x)} Prozent`;
+
+function ueberblickVorgang(world: World, zahlen: ZeitungKennzahl[]): ZeitungVorgang {
+  const k = zahlen.filter((x) => x.id !== "zustimmung");
+  const get = (id: ZeitungKennzahl["id"]) => k.find((x) => x.id === id);
+  const infl = get("inflation");
+  const arbeit = get("arbeit");
+  const wachstum = get("wachstum");
+  const teile = [
+    infl ? `Inflation ${prozentText(infl.wert)}` : "",
+    arbeit ? `Arbeitslosigkeit ${prozentText(arbeit.wert)}` : "",
+    wachstum ? `Wachstum ${prozentText(wachstum.wert)}` : "",
+  ].filter(Boolean);
+  const fakt = `${teile.join(", ")}; der Leitzins liegt bei ${prozentText(world.economy.policyRate)}, ein Dollar kostet ${fmt(world.economy.usdTry)} Lira.`;
+  const mittel = k.length ? k.reduce((s, x) => s + kzBewertung(x), 0) / k.length : 0;
+  return {
+    id: `ueberblick-${world.day}`,
+    art: "ueberblick",
+    sparte: "wirtschaft",
+    titel: "Die Wirtschaft im Überblick",
+    fakt,
+    wertung: clamp(mittel * 0.4, -0.6, 0.6),
+    tag: world.day,
+    datum: world.date,
+    daten: { typ: "ueberblick", zahlen: k.map(({ id, wert, vorher, gut }) => ({ id, wert, gut, ...(vorher !== undefined ? { vorher } : {}) })) },
+  };
+}
+
+/** Die größten Wirtschaftsbewegungen seit der letzten Ausgabe (veröffentlichte Werte, nie die verdeckten). */
+function wirtschaftVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
+  const kandidaten: { titel: string; fakt: string; wertung: number; schwere: number; daten: VorgangDaten }[] = [];
+  const infl = world.published.inflation;
+  const dInfl = infl.value - z.wirtschaft.inflation;
+  const startInfl = world.spiel?.start.inflation;
+  if (Math.abs(dInfl) >= 0.75) {
+    kandidaten.push({
+      titel: dInfl > 0 ? "Teuerung zieht an" : "Teuerung lässt nach",
+      fakt: `Die Inflation liegt bei ${fmt(infl.value)} Prozent zum Vorjahr (zuletzt ${fmt(z.wirtschaft.inflation)}), Stand ${formatMonthDe(infl.period)}.`,
+      wertung: dInfl > 0 ? -0.7 : 0.55,
+      schwere: Math.abs(dInfl),
+      daten: { typ: "kennzahl", kennzahl: "inflation", wert: infl.value, vorher: z.wirtschaft.inflation, ...(startInfl !== undefined ? { start: startInfl } : {}), stand: formatMonthDe(infl.period) },
+    });
+  }
+  const dZins = world.economy.policyRate - z.wirtschaft.policyRate;
+  if (Math.abs(dZins) >= 0.5) {
+    kandidaten.push({
+      titel: dZins > 0 ? "Zentralbank verschärft den Zins" : "Zentralbank senkt den Zins",
+      fakt: `Der Leitzins steht bei ${fmt(world.economy.policyRate)} Prozent (zuvor ${fmt(z.wirtschaft.policyRate)}).`,
+      wertung: dZins > 0 ? -0.35 : 0.25,
+      schwere: Math.abs(dZins) * 1.5,
+      daten: { typ: "kennzahl", kennzahl: "zins", wert: world.economy.policyRate, vorher: z.wirtschaft.policyRate },
+    });
+  }
+  const dLira = (world.economy.usdTry / z.wirtschaft.usdTry - 1) * 100;
+  if (Math.abs(dLira) >= 2) {
+    kandidaten.push({
+      titel: dLira > 0 ? "Lira gibt nach" : "Lira erholt sich",
+      fakt: `Der Dollar kostet ${fmt(world.economy.usdTry)} Lira; das sind ${fmt(Math.abs(dLira))} Prozent ${dLira > 0 ? "mehr" : "weniger"} als vor einem Monat.`,
+      wertung: dLira > 0 ? -0.6 : 0.4,
+      schwere: Math.abs(dLira) / 2,
+      daten: { typ: "kennzahl", kennzahl: "lira", wert: world.economy.usdTry, vorher: z.wirtschaft.usdTry },
+    });
+  }
+  kandidaten.sort((a, b) => b.schwere - a.schwere);
+  return kandidaten.slice(0, 2).map((k, i) => ({ id: `wirt-${world.day}-${i}`, art: "wirtschaft" as const, sparte: "wirtschaft" as const, titel: k.titel, fakt: k.fakt, wertung: k.wertung, tag: world.day, datum: world.date, daten: k.daten }));
+}
+
+/** Eine akute Lage als Vorgang: das Problem mit der größten Bewegung zum Vormonat, sonst reihum eines der drei größten. */
+function lageVorgang(world: World, punkte: LagePunkt[]): ZeitungVorgang | null {
+  if (!punkte.length) return null;
+  const mitDelta = punkte.filter((p) => p.vorher !== undefined).map((p) => ({ p, d: p.provinzen - p.vorher! }));
+  const bewegt = [...mitDelta].filter((x) => Math.abs(x.d) >= 2).sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
+  const fokus = bewegt?.p ?? punkte[monatIndex(world.date) % Math.min(3, punkte.length)]!;
+  const gebessert = mitDelta.filter((x) => x.d <= -2 && x.p.id !== fokus.id).sort((a, b) => a.d - b.d).map((x) => x.p).slice(0, 2);
+  const gebessertFokus = bewegt && bewegt.d <= -2 ? [fokus, ...gebessert] : gebessert;
+  const weitere = punkte.filter((p) => p.id !== fokus.id).slice(0, 2);
+  const verschlechtert = bewegt !== undefined && bewegt.d >= 2;
+  const verbessert = bewegt !== undefined && bewegt.d <= -2;
+  const vergleich = fokus.vorher !== undefined ? ` (Vormonat ${fokus.vorher})` : "";
+  const wertung = clamp(-(0.15 + 0.5 * fokus.anteil) - (verschlechtert ? 0.15 : 0) + (verbessert ? 0.45 : 0), -0.8, 0.3);
+  return {
+    id: `lage-${world.day}`,
+    art: "lage",
+    sparte: "ereignis",
+    titel: `${fokus.name} in ${fokus.provinzen} ${fokus.provinzen === 1 ? "Provinz" : "Provinzen"} akut`,
+    fakt: `${fokus.name} ist in ${fokus.provinzen} ${fokus.provinzen === 1 ? "Provinz" : "Provinzen"} akut${vergleich}; dort leben ${Math.round(fokus.anteil * 100)} Prozent der Bevölkerung, am stärksten betroffen ist ${fokus.schlimmste}.`,
+    wertung,
+    tag: world.day,
+    datum: world.date,
+    daten: { typ: "lage", fokus, weitere, gebessert: gebessertFokus },
+  };
+}
+
+/** Ein Ausland-Vorgang: ein laufender Konflikt immer, sonst nur, was sich seit dem Vormonat spürbar bewegt hat. */
+function auslandVorgang(world: World, punkte: AuslandPunkt[]): ZeitungVorgang | null {
+  const krieg = punkte.find((p) => p.art === "krieg");
+  const vermittlung = punkte.find((p) => p.art === "vermittlung" && (p.konfliktVorher === undefined || Math.abs(p.konflikt - p.konfliktVorher) >= 5));
+  const spannung = punkte.find((p) => p.art === "spannung" && (p.vorher === undefined || Math.abs(p.wert - p.vorher) >= 5 || p.wert >= 75));
+  const p = krieg ?? vermittlung ?? spannung;
+  if (!p) return null;
+  const zeile = auslandZeile(world, p).text;
+  const wertung = p.art === "krieg" ? -0.5 : p.art === "spannung" ? (p.vorher !== undefined && p.wert < p.vorher ? 0.2 : -0.3) : p.art === "vermittlung" ? 0.1 : 0.2;
+  const titel = p.art === "krieg" || p.art === "spannung" ? `Lage gegenüber ${p.dat}` : p.art === "vermittlung" ? p.titel : "EU-Beitritt";
+  return { id: `ausland-${world.day}`, art: "ausland", sparte: "welt", titel, fakt: `${zeile}.`, wertung, tag: world.day, datum: world.date, daten: { typ: "ausland", punkt: p } };
+}
+
+/** Wirkungsberichte, die seit der letzten Ausgabe erschienen sind, als Vorgänge mit Zahlen statt roher Logzeile. */
+function berichtVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
+  const out: ZeitungVorgang[] = [];
+  (world.spiel?.berichte ?? []).forEach((r, i) => {
+    if (r.tag <= z.letzteMonatsausgabeTag || r.tag >= world.day) return;
+    out.push(berichtZuVorgang(r, i));
+  });
+  // Die zwei mit der deutlichsten Bewegung
+  return out.sort((a, b) => Math.abs(b.wertung) - Math.abs(a.wertung)).slice(0, 2);
+}
+
+const ZAHL = "([\\d.]+(?:,\\d+)?)";
+const num = (s: string): number => Number(s.replace(/\./g, "").replace(",", "."));
+
+/** Zerlegt die Textzeilen eines Wirkungsberichts in Zahlen; was nicht passt, bleibt als Rohzeile erhalten. */
+export function berichtZuVorgang(r: Bericht, index: number): ZeitungVorgang {
+  const t = new RegExp(`^(.*?): Stufe (\\d+) auf (\\d+), (\\d+) Monate danach$`).exec(r.titel);
+  const name = t?.[1] ?? r.titel;
+  const von = t ? Number(t[2]) : 0;
+  const auf = t ? Number(t[3]) : 0;
+  const veraenderungen: { name: string; von: number; auf: number }[] = [];
+  const akut: { name: string; von: number; auf: number }[] = [];
+  const roh: string[] = [];
+  for (const zeile of r.zeilen) {
+    const a = new RegExp(`^(.+?): ${ZAHL} auf ${ZAHL} \\([+−-]${ZAHL}\\)$`).exec(zeile);
+    const b = /^(.+?): akut in (\d+) auf (\d+) Provinzen$/.exec(zeile);
+    if (a) veraenderungen.push({ name: a[1]!, von: num(a[2]!), auf: num(a[3]!) });
+    else if (b) akut.push({ name: b[1]!, von: Number(b[2]), auf: Number(b[3]) });
+    else roh.push(zeile);
+  }
+  veraenderungen.sort((x, y) => Math.abs(y.auf - y.von) - Math.abs(x.auf - x.von));
+  const rest = /noch etwa (\d+) Monat/.exec(r.hinweis);
+  const wertung = r.urteil === "gut" ? 0.4 : r.urteil === "keine" ? -0.35 : r.urteil === "gemischt" ? 0 : -0.1;
+  return {
+    id: `bericht-${r.tag}-${index}`,
+    art: "bericht",
+    sparte: "programm",
+    titel: `Wirkungsprüfung: ${name}`,
+    // Was sich nicht in Zahlen zerlegen ließ (anderes Zeilenformat), bleibt im Fakt stehen — es geht nichts verloren
+    fakt: `Amtliche Wirkungsprüfung ${r.monate} Monate nach dem Beschluss „${name}“ (Stufe ${von} auf ${auf}).${!veraenderungen.length && !akut.length && roh.length ? ` ${roh.join("; ")}.` : ""}`,
+    wertung,
+    tag: r.tag,
+    datum: r.datum,
+    daten: { typ: "bericht", name, monate: r.monate, urteil: r.urteil, von, auf, veraenderungen, akut, ...(rest ? { rest: Number(rest[1]) } : {}) },
+  };
+}
 
 /** Chronik-Einträge des Monats als Vorgänge (Ereignisse, Skandale, Programme) — ohne das, was die Eilmeldung schon griff. */
 function chronikVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
@@ -597,27 +988,48 @@ function chronikVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
     if (c.tag <= z.letzteMonatsausgabeTag || c.tag >= world.day) continue;
     if (gesperrt.some((s) => c.titel.includes(s) || c.ausgang.includes(s))) continue;
     if (/^(Der Präsident wirkt|Die Lage beruhigt|Überlastung)/.test(c.titel)) continue; // Verfassung ist intern
+    if (c.titel.startsWith("Wirkungsbericht:")) continue; // erscheint mit Zahlen über spiel.berichte
     let art: VorgangArt = "ereignis";
     let sparte: Sparte = "ereignis";
     let wertung = c.ausgang.startsWith("Keine Entscheidung") || c.ausgang.startsWith("Ausgesessen") ? -0.55 : -0.15;
+    let daten: VorgangDaten | undefined;
+    const programm = /^(Schritt erreicht|Programm erfüllt): (.+)$/.exec(c.titel);
     if (c.titel.includes("packt aus")) {
       art = "skandal";
       sparte = "politik";
       wertung = -0.9;
-    } else if (/^(Schritt erreicht|Programm erfüllt)/.test(c.titel)) {
+    } else if (programm) {
       art = "programm";
       sparte = "programm";
       wertung = 0.5;
-    } else if (c.titel.startsWith("Wirkungsbericht:")) {
-      art = "programm";
-      sparte = "programm";
-      wertung = c.ausgang.includes("Es wirkt.") ? 0.4 : c.ausgang.includes("Keine Wirkung") ? -0.35 : 0;
+      daten = { typ: "programm", schritt: programm[2]!, erfuellt: programm[1] === "Programm erfüllt" };
+    } else if (/^Haushaltsgesetz/.test(c.titel)) {
+      const ja = c.ausgang.includes("angenommen") && !c.ausgang.includes("abgelehnt");
+      art = "gesetz";
+      sparte = "politik";
+      wertung = ja ? 0.3 : -0.5;
+      daten = { typ: "gesetz", name: c.titel, ja };
+    } else if (/^(Verfassung|Referendum)/.test(c.titel)) {
+      sparte = "politik";
+      wertung = /in Kraft|angenommen|zulässt|lässt das Paket zu/.test(`${c.titel} ${c.ausgang}`) ? 0.3 : /gescheitert|kassiert|verloren|tot/.test(`${c.titel} ${c.ausgang}`) ? -0.6 : 0;
+    } else if (/^(EU-|Kapitel \d|Zollunion)/.test(c.titel)) {
+      sparte = "welt";
+      wertung = /geschlossen|modernisiert|angekündigt/.test(c.titel) ? 0.3 : 0.1;
+    } else if (/^(Frieden mit|Niederlage gegen)/.test(c.titel)) {
+      sparte = "welt";
+      wertung = c.titel.startsWith("Frieden") ? 0.5 : -0.9;
+    } else if (/bewältigt$/.test(c.titel)) {
+      wertung = 0.4;
     } else if (c.titel === "Zusammenbruch") {
       wertung = -0.6;
     }
-    out.push({ id: `chronik-${c.tag}-${out.length}`, art, sparte, titel: c.titel, fakt: `${c.titel}: ${c.ausgang}`, wertung, tag: c.tag, datum: c.datum });
+    out.push({ id: `chronik-${c.tag}-${out.length}`, art, sparte, titel: c.titel, fakt: `${c.titel}: ${c.ausgang}`, wertung, tag: c.tag, datum: c.datum, ...(daten ? { daten } : {}) });
   }
-  return out.slice(-3);
+  // Die vier folgenreichsten, in zeitlicher Reihenfolge
+  return [...out]
+    .sort((a, b) => Math.abs(b.wertung) - Math.abs(a.wertung) || b.tag - a.tag)
+    .slice(0, 4)
+    .sort((a, b) => a.tag - b.tag);
 }
 
 /** Beschlossene und gescheiterte Gesetze des Monats aus dem Protokoll. */
@@ -638,44 +1050,10 @@ function gesetzVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
       wertung: ja ? 0.3 : -0.5,
       tag: l.day,
       datum: l.date,
+      daten: { typ: "gesetz", name: m[1]!, ja: !!ja },
     });
   }
   return out.slice(-2);
-}
-
-/** Die größten Wirtschaftsbewegungen seit der letzten Ausgabe (veröffentlichte Werte, nie die verdeckten). */
-function wirtschaftVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
-  const kandidaten: { titel: string; fakt: string; wertung: number; schwere: number }[] = [];
-  const infl = world.published.inflation;
-  const dInfl = infl.value - z.wirtschaft.inflation;
-  if (Math.abs(dInfl) >= 0.75) {
-    kandidaten.push({
-      titel: dInfl > 0 ? "Teuerung zieht an" : "Teuerung lässt nach",
-      fakt: `Die Inflation liegt bei ${fmt(infl.value)} Prozent zum Vorjahr (zuletzt ${fmt(z.wirtschaft.inflation)}), Stand ${formatMonthDe(infl.period)}.`,
-      wertung: dInfl > 0 ? -0.7 : 0.55,
-      schwere: Math.abs(dInfl),
-    });
-  }
-  const dZins = world.economy.policyRate - z.wirtschaft.policyRate;
-  if (Math.abs(dZins) >= 0.5) {
-    kandidaten.push({
-      titel: dZins > 0 ? "Zentralbank verschärft den Zins" : "Zentralbank senkt den Zins",
-      fakt: `Der Leitzins steht bei ${fmt(world.economy.policyRate)} Prozent (zuvor ${fmt(z.wirtschaft.policyRate)}).`,
-      wertung: dZins > 0 ? -0.35 : 0.25,
-      schwere: Math.abs(dZins) * 1.5,
-    });
-  }
-  const dLira = (world.economy.usdTry / z.wirtschaft.usdTry - 1) * 100;
-  if (Math.abs(dLira) >= 2) {
-    kandidaten.push({
-      titel: dLira > 0 ? "Lira gibt nach" : "Lira erholt sich",
-      fakt: `Der Dollar kostet ${fmt(world.economy.usdTry)} Lira; das sind ${fmt(Math.abs(dLira))} Prozent ${dLira > 0 ? "mehr" : "weniger"} als vor einem Monat.`,
-      wertung: dLira > 0 ? -0.6 : 0.4,
-      schwere: Math.abs(dLira) / 2,
-    });
-  }
-  kandidaten.sort((a, b) => b.schwere - a.schwere);
-  return kandidaten.slice(0, 2).map((k, i) => ({ id: `wirt-${world.day}-${i}`, art: "wirtschaft" as const, sparte: "wirtschaft" as const, titel: k.titel, fakt: k.fakt, wertung: k.wertung, tag: world.day, datum: world.date }));
 }
 
 /** Repressionsklima für die Umfrage-Messung: aus der Pressefreiheit abgeleitet (Recherche B.3). */
@@ -691,48 +1069,272 @@ export function zeitungMonat(world: World): void {
   const z = zeitungVon(world);
   const monat = world.date.slice(0, 7);
   if (z.archiv.some((a) => a.anlass === "monatlich" && a.monat === monat)) return;
-  const kontext: TextKontext = { name: world.player?.name ?? "Die Regierung", partei: world.player?.partei.kurz ?? "" };
+  const kontext = kontextVon(world);
   const rng = zeitungZufall(`${world.seed}|zeitung|${monat}`);
+  // Der Zustand der Medien (Lizenzen aus den Reglern, Selbstzensur, Reichweite) wird fortgeschrieben, bevor die Ausgabe entsteht
+  medienMonat(world);
 
   // Print holt auf, was Digital schon brachte (nur was VOR heute geschah — nicht das, was heute passiert)
   const printNachhol = z.warteschlange.filter((v) => v.tag < world.day);
   z.warteschlange = z.warteschlange.filter((v) => v.tag >= world.day);
 
-  const vorgaenge: ZeitungVorgang[] = [...printNachhol, ...chronikVorgaenge(world, z), ...gesetzVorgaenge(world, z), ...wirtschaftVorgaenge(world, z)];
-
   // Die Umfrage des Monats: ein Institut mit Haus-Bias misst, und manchmal bleibt die Zahl in der Schublade
-  const ergebnis = monatsUmfrage(spiel.umfrage.zustimmung, angstklimaVon(world), rng, z.letzteUmfrage);
+  // Vor der Wahl gilt das Publikationsverbot (Wahlgesetz, `publikationsverbotTage` in data/umfrage_institute.ts): keine neue Zahl, auch nicht aus der Schublade
+  const verbot = publikationsverbot(world);
+  const ergebnis: UmfrageErgebnis = verbot ? {} : monatsUmfrage(spiel.umfrage.zustimmung, angstklimaVon(world), rng, z.letzteUmfrage);
+
+  const zahlen = kennzahlenVon(world, z, ergebnis.umfrage);
+  const lage = lagePunkte(world, z);
+  const ausland = auslandPunkte(world, z);
+
+  const vorgaenge: ZeitungVorgang[] = [
+    ...printNachhol,
+    ...chronikVorgaenge(world, z),
+    ...berichtVorgaenge(world, z),
+    ...gesetzVorgaenge(world, z),
+    ...wirtschaftVorgaenge(world, z),
+  ];
+  const lv = lageVorgang(world, lage);
+  if (lv) vorgaenge.push(lv);
+  const av = auslandVorgang(world, ausland);
+  if (av) vorgaenge.push(av);
+
   if (ergebnis.umfrage) {
     z.letzteUmfrage = ergebnis.umfrage.wert;
     const u = ergebnis.umfrage;
-    const delta = u.vormonat !== undefined ? u.wert - u.vormonat : 0;
+    const delta = u.vormonat !== undefined ? u.wert - u.vormonat : undefined;
     const stich = u.stichprobe !== undefined ? `Stichprobe ${u.stichprobe.toLocaleString("de-DE")}, Methode ${u.methode}` : `Methode ${u.methode}, Stichprobe nicht offengelegt`;
     vorgaenge.push({
       id: `umfrage-${world.day}`,
       art: "umfrage",
       sparte: "umfrage",
       titel: `${u.institut}: ${fmt(u.wert)} Prozent`,
-      fakt: `${u.institut} misst der Regierung ${fmt(u.wert)} Prozent Zustimmung${u.vormonat !== undefined ? ` (${delta >= 0 ? "+" : "−"}${fmt(Math.abs(delta))} zum Vormonat)` : ""}; ${stich}.`,
-      wertung: delta > 1 ? 0.4 : delta < -1 ? -0.5 : 0.05,
+      fakt: `${u.institut} misst der Regierung ${fmt(u.wert)} Prozent Zustimmung${delta !== undefined ? ` (${delta >= 0 ? "+" : "−"}${fmt(Math.abs(delta))} zum Vormonat)` : ""}; ${stich}.`,
+      wertung: delta === undefined ? 0.05 : delta > 1 ? 0.4 : delta < -1 ? -0.5 : 0.05,
       tag: world.day,
       datum: world.date,
+      daten: { typ: "umfrage", institut: u.institut, wert: u.wert, ...(delta !== undefined ? { delta } : {}), ...(u.stichprobe !== undefined ? { stichprobe: u.stichprobe } : {}) },
     });
   }
+  const ueb = ueberblickVorgang(world, zahlen);
+  vorgaenge.push(ueb);
 
-  const blaetter = baueBlaetter(blattAuswahl(monatIndex(world.date)), vorgaenge, kontext, rng, z.naechsteNummer);
+  // Gesperrte Blätter erscheinen nicht; ein Ersatz aus derselben Richtung oder das Netz springt ein, sonst fehlt die Stimme
+  const auswahl = blattAuswahlWelt(world, blattAuswahl(monatIndex(world.date)));
+  const blaetter = baueBlaetter(auswahl.ids, vorgaenge, kontext, rng, z.naechsteNummer, zahlen, world);
   const ausgabe: ZeitungAusgabe = {
     nummer: z.naechsteNummer,
     datum: world.date,
     monat,
     anlass: "monatlich",
     blaetter,
+    zahlen,
+    lage: lage.slice(0, 3),
+    ...(parlamentVon(world) ? { parlament: parlamentVon(world)! } : {}),
+    ...(ausland.length || weltZeilen(world, z).length ? { ausland: [...ausland.map((p) => auslandZeile(world, p)), ...weltZeilen(world, z)] } : {}),
     ...(ergebnis.umfrage ? { umfrage: ergebnis.umfrage } : {}),
     ...(ergebnis.schublade ? { umfrageSchublade: ergebnis.schublade } : {}),
+    ...(verbot ? { umfrageVerbot: true } : {}),
+    ...(auswahl.gesperrt.length ? { gesperrt: auswahl.gesperrt.map((g) => ({ clusterId: g.id, name: blattDef(g.id).name, grund: g.grund })) } : {}),
   };
   legeAb(world, ausgabe);
   hinweis(world, ausgabe);
   z.letzteMonatsausgabeTag = world.day;
-  z.wirtschaft = { inflation: world.published.inflation.value, policyRate: world.economy.policyRate, usdTry: world.economy.usdTry };
+  z.wirtschaft = {
+    inflation: world.published.inflation.value,
+    policyRate: world.economy.policyRate,
+    usdTry: world.economy.usdTry,
+    arbeit: world.published.unemployment.value,
+    wachstum: world.published.growth.value,
+  };
+  z.akutVorher = Object.fromEntries(lage.map((p) => [p.id, p.provinzen]));
+  z.auslandVorher = Object.fromEntries([
+    ...ausland.flatMap((p) => (p.art === "spannung" ? [[LAENDER.find((l) => l.name === p.land)?.id ?? p.land, p.wert] as [string, number]] : [])),
+    ...Object.entries(spiel.vermittlung ?? {}).map(([id, kz]) => [`v:${id}`, kz.konfliktIndex] as [string, number]),
+  ]);
+  if (ergebnis.umfrage) z.umfrageReihe = [...(z.umfrageReihe ?? []), ergebnis.umfrage.wert].slice(-24);
+  wendeWirkungAn(world, ausgabe);
+}
+
+// ---------------------------------------------------------------------------
+// Eilmeldung: Digital berichtet noch am selben Tag, Print erst im nächsten Monat
+
+export interface Grossereignis {
+  art: "wahlsieg" | "bruch" | "krise" | "fertigstellung";
+  titel: string;
+  fakt: string;
+  wertung: number;
+  krieg?: boolean;
+  schluessel?: string[];
+}
+
+const SPARTE_GROSS: Record<Grossereignis["art"], Sparte> = { wahlsieg: "politik", bruch: "politik", krise: "welt", fertigstellung: "programm" };
+
+const nz = (x: number) => Math.round(x).toLocaleString("de-DE");
+
+/**
+ * Die Einordnung einer Eilmeldung aus dem Weltzustand zum Zeitpunkt des Ereignisses: Was feststeht, was offen ist,
+ * und wohin der Leser jetzt gehen kann. Nur Angaben, die der Weltzustand hergibt — keine Platzhalter.
+ */
+function eilEinordnung(world: World, e: Grossereignis): { feststeht: string[]; offen: string[]; handlung?: ZeitungHandlung } {
+  const spiel = world.spiel!;
+  const text = `${e.titel} ${e.fakt}`;
+  const feststeht: string[] = [];
+  const offen: string[] = [];
+  const land = LAENDER.find((l) => text.includes(l.name) || text.includes(l.dat) || text.includes(l.akk));
+  const mehrheit = mehrheitVon(world);
+
+  if (e.krieg || /Kriegsgefahr|Konflikt/.test(e.titel)) {
+    const krieg = (spiel.kriege ?? []).find((k) => k.phase !== "beendet" && (!land || k.land === land.id));
+    if (krieg) {
+      const l = LAENDER.find((x) => x.id === krieg.land);
+      feststeht.push(`Der Konfliktvorgang mit ${l?.dat ?? krieg.land} steht in der Phase „${PHASE_NAME[krieg.phase] ?? krieg.phase}“; die Eskalation liegt bei ${nz(krieg.eskalation)} von 100, die Mobilmachung auf Stufe ${krieg.mobilmachung}.`);
+    } else if (land) {
+      const w = spiel.welt?.[land.id];
+      if (w) feststeht.push(`Der Konfliktwert gegenüber ${land.dat} liegt bei ${nz(w.konflikt)} von 100.`);
+    }
+    if (land) {
+      const verhaeltnis = nationalAverage(NET, world.net, land.knoten);
+      if (Number.isFinite(verhaeltnis)) offen.push(`Ob Gespräche möglich werden, hängt auch vom Verhältnis ab: Es steht im Politiknetz bei ${nz(verhaeltnis)} von 100.`);
+    }
+    offen.push("Ob die Lage eskaliert oder sich beruhigt, entscheiden die nächsten Wochen und das, was Ankara bis dahin tut.");
+    return { feststeht, offen, handlung: land ? { text: `Zur Länderakte ${land.name}`, ziel: { art: "land", id: land.id } } : { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } } };
+  }
+
+  if (e.art === "bruch") {
+    if (mehrheit) feststeht.push(`Dem Regierungslager bleiben ${mehrheit.lager} von 600 Sitzen${mehrheit.duldung > 0 ? `, dazu ${mehrheit.duldung} geduldete` : ""}; für Gesetze braucht es ${mehrheit.noetig} Stimmen.`);
+    const partei = Object.keys(world.parliament?.seats ?? {}).find((p) => text.includes(p));
+    const fr = partei ? spiel.fraktionen?.[partei] : undefined;
+    if (partei && fr) offen.push(`Die ${partei} hält ${nz(world.parliament!.seats[partei] ?? 0)} Sitze; ihre Bereitschaft zur Zusammenarbeit steht bei ${nz(fr.bereitschaft)} von 100.`);
+    return { feststeht, offen, handlung: { text: "Zum Parlament", ziel: { art: "akte", akte: "parlament" } } };
+  }
+
+  if (e.art === "wahlsieg") {
+    feststeht.push(`Die Amtszeit ${spiel.amtszeit} beginnt.`);
+    if (mehrheit) offen.push(`Das Parlament bleibt, wie es ist: Das Lager hält ${mehrheit.lager} von 600 Sitzen.`);
+    return { feststeht, offen, handlung: { text: "Zur Chronik", ziel: { art: "akte", akte: "chronik" } } };
+  }
+
+  if (e.art === "fertigstellung") {
+    offen.push("Wirkung und Unterhalt zeigen sich im Bestand des Reichs.");
+    const kultur = /Kirche|Moschee|Museum|Stätte|Wunder|Kultur|Palast|Denkmal|Theater|Bibliothek|Oper/.test(e.titel);
+    return { feststeht, offen, handlung: { text: kultur ? "Zum Reich: Kultur und Erbe" : "Zum Reich: Infrastruktur", ziel: { art: "akte", akte: kultur ? "reich_kultur" : "reich_infra" } } };
+  }
+
+  if (/EU|Reformpaket|Screening|Kapitel|Zollunion|Visa/.test(text)) {
+    const eu = spiel.eu;
+    if (eu) {
+      const kapitel = Object.values(eu.kapitel);
+      feststeht.push(`Der Beitrittsvorgang steht in der Phase „${eu.phase}“; ${kapitel.filter((k) => k.status === "abgeschlossen").length} von ${kapitel.length} Kapiteln sind vorläufig abgeschlossen.`);
+    }
+    offen.push("Jedes Kapitel braucht den Konsens der Mitgliedstaaten; ein Veto kann den Fortschritt anhalten.");
+    return { feststeht, offen, handlung: { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } } };
+  }
+
+  if (/Wahlkampf/.test(e.titel)) return { feststeht, offen, handlung: { text: "Zu den Wählern", ziel: { art: "akte", akte: "waehler" } } };
+
+  if (/Lira|Währung|Zins|Inflation|Schulden|Kapital|Wirtschaft|Rezession|Zahlungs|Risiko|Krise/.test(e.titel)) {
+    feststeht.push(`Der Dollar kostet ${fmt(world.economy.usdTry)} Lira, der Leitzins liegt bei ${prozentText(world.economy.policyRate)}, die Inflation bei ${prozentText(world.published.inflation.value)}.`);
+    feststeht.push(`Der Risikoaufschlag beträgt ${nz(world.economy.riskPremium)} Basispunkte, die Staatsverschuldung ${prozentText(world.economy.debtRatio)} des BIP.`);
+    offen.push("Ob die Zentralbank gegensteuert, entscheidet der Geldpolitische Ausschuss bei seiner nächsten Sitzung.");
+    return { feststeht, offen, handlung: { text: "Zur Wirtschaftsakte", ziel: { art: "akte", akte: "wirtschaft" } } };
+  }
+
+  return { feststeht, offen, handlung: { text: "Zur Chronik", ziel: { art: "akte", akte: "chronik" } } };
+}
+
+/**
+ * Großereignis (Wahlsieg, Vertragsbruch, Krise, Fertigstellung, Kriegsphase): Die digitalen
+ * Cluster bringen es sofort (Eilmeldung), die Print-Blätter erst in der nächsten Monatsausgabe —
+ * bis dahin liegt der Vorgang in der Warteschlange (Sichtbarkeits-Mechanik, Recherche A.5.4).
+ */
+export function zeitungEreignis(world: World, e: Grossereignis): void {
+  const spiel = world.spiel;
+  if (!spiel || spiel.ende) return;
+  const z = zeitungVon(world);
+  const einordnung = eilEinordnung(world, e);
+  const vorgang: ZeitungVorgang = {
+    id: `gross-${world.day}-${z.naechsteNummer}`,
+    art: e.art,
+    sparte: e.krieg ? "welt" : SPARTE_GROSS[e.art],
+    titel: e.titel,
+    fakt: e.fakt,
+    wertung: e.wertung,
+    tag: world.day,
+    datum: world.date,
+    gross: true,
+    ...(e.krieg ? { krieg: true } : {}),
+    ...(e.schluessel ? { schluessel: e.schluessel } : {}),
+    daten: { typ: "eil", feststeht: einordnung.feststeht, offen: einordnung.offen },
+    ...(einordnung.handlung ? { handlung: einordnung.handlung } : {}),
+  };
+  z.warteschlange.push(vorgang);
+
+  const kontext = kontextVon(world);
+  // Eilmeldung: das digitale Blatt mit der Meldung, dazu die Blätter des Monats ohne sie (Print folgt).
+  // Ein Großereignis ist für das freie Netz zu groß zum Übersehen — Digital berichtet immer;
+  // die Berichtswahrscheinlichkeit wirkt auf die Print-Aufarbeitung im nächsten Monat (und auf Routine).
+  const eilBasis = ["digital_frei", ...blattAuswahl(monatIndex(world.date)).filter((id) => id !== "digital_frei")];
+  const eilAuswahl = blattAuswahlWelt(world, eilBasis);
+  const auswahl = eilAuswahl.ids;
+  const netzName = blattDef("digital_frei").name;
+  const blaetter: ZeitungBlatt[] = [];
+  for (const id of auswahl) {
+    const cluster = wirksamerCluster(world, medienCluster(id)!);
+    const def = blattDef(id);
+    if (cluster.digital) {
+      // Die Einordnung steht in der Eilmeldung im eigenen Kasten; der Text wiederholt sie nicht (die Warteschlange behält sie für den Print)
+      const artikel = artikelFuer(cluster, { ...vorgang, daten: undefined }, kontext, `e${z.naechsteNummer}-${id}`);
+      const mitEinordnung: ZeitungArtikel = einordnung.feststeht.length || einordnung.offen.length ? { ...artikel, einordnung: { feststeht: einordnung.feststeht, offen: einordnung.offen } } : artikel;
+      blaetter.push({ clusterId: id, name: def.name, unterzeile: def.unterzeile, digital: true, ton: framingFuer(cluster), artikel: [mitEinordnung], verschwiegen: [], reichweite: Math.round(reichweiteJetzt(world, id) * 100) / 100 });
+    } else {
+      blaetter.push({
+        clusterId: id,
+        name: def.name,
+        unterzeile: def.unterzeile,
+        digital: false,
+        ton: framingFuer(cluster),
+        artikel: [
+          {
+            id: `e${z.naechsteNummer}-${id}-hinweis`,
+            art: "ereignis",
+            sparte: "politik",
+            schlagzeile: "Aus der Redaktion",
+            text: [
+              istGesperrt(world, "digital_frei")
+                ? `Die Druckerpresse läuft schon für morgen. Zu „${vorgang.titel}“ erscheint die ausführliche Einordnung in der nächsten Monatsausgabe; im Netz ist ${netzName} gesperrt.`
+                : `Die Druckerpresse läuft schon für morgen. Zu „${vorgang.titel}“ erscheint die ausführliche Einordnung in der nächsten Monatsausgabe; bis dahin berichtet ${netzName} im Netz.`,
+            ],
+            textQuelle: "regel",
+            wirkung: 0,
+            framing: { art: framingFuer(cluster), staerke: framingStaerke(cluster) },
+            kurz: true,
+          },
+        ],
+        verschwiegen: [vorgang.titel],
+        reichweite: Math.round(reichweiteJetzt(world, id) * 100) / 100,
+      });
+    }
+  }
+  const zahlen = kennzahlenVon(world, z);
+  const lage = lagePunkte(world, z);
+  const ausland = auslandPunkte(world, z);
+  const parl = parlamentVon(world);
+  const ausgabe: ZeitungAusgabe = {
+    nummer: z.naechsteNummer,
+    datum: world.date,
+    monat: world.date.slice(0, 7),
+    anlass: "eilmeldung",
+    blaetter,
+    ...(eilAuswahl.gesperrt.length ? { gesperrt: eilAuswahl.gesperrt.map((g) => ({ clusterId: g.id, name: blattDef(g.id).name, grund: g.grund })) } : {}),
+    zahlen,
+    lage: lage.slice(0, 3),
+    ...(parl ? { parlament: parl } : {}),
+    ...(ausland.length || weltZeilen(world, z).length ? { ausland: [...ausland.map((p) => auslandZeile(world, p)), ...weltZeilen(world, z)] } : {}),
+  };
+  legeAb(world, ausgabe);
+  hinweis(world, ausgabe);
+  // Nur die digitale Reichweite wirkt schon jetzt; der Print-Effekt kommt mit der Monatsausgabe
   wendeWirkungAn(world, ausgabe);
 }
 
@@ -773,7 +1375,7 @@ export function berechneWirkung(ausgabe: ZeitungAusgabe): Map<string, number> {
     for (const artikel of blatt.artikel) {
       if (artikel.wirkung === 0) continue;
       for (const [segment, gruppen] of Object.entries(SEGMENT_GRUPPEN)) {
-        const reichweite = cluster.reichweiteSegmente[segment as keyof MedienCluster["reichweiteSegmente"]];
+        const reichweite = cluster.reichweiteSegmente[segment as keyof MedienCluster["reichweiteSegmente"]] * (blatt.reichweite ?? 1);
         if (reichweite <= 0) continue;
         for (const [gruppe, anteil] of gruppen) {
           const d = WIRKUNG_GRUNDZUG * artikel.wirkung * reichweite * anteil;

@@ -128,3 +128,17 @@ describe("Sammel-Hinweis", () => {
     expect(liste[UMLAUF_LIMIT - 1]!.id).toBe(`u-${UMLAUF_LIMIT + 4}`);
   });
 });
+
+describe("Lagemeldungen laufender Vorgänge halten die Zeit nicht an", () => {
+  test("Verhandlungsfenster und Frontlage sind Umlauf (C); echte Wendepunkte bleiben B", async () => {
+    const { hinweisKlasse } = await import("../src/ui/autostopp");
+    expect(hinweisKlasse("vermittlung-kipp-israel_iran-3-812")).toBe("C");
+    expect(hinweisKlasse("krieg-kipp-u-k1-12")).toBe("C");
+    expect(hinweisKlasse("krieg-kipp-o-k1-13")).toBe("C");
+    expect(hinweisKlasse("krieg-koalition-beitritt-k1-14")).toBe("C");
+    expect(hinweisKlasse("krieg-koalition-k1-14")).toBe("B");
+    expect(hinweisKlasse("krieg-beistand-k1-14")).toBe("B");
+    for (const id of ["krieg-beginn-k1-5", "krieg-frieden-k1-9", "krieg-waffenruhe-k1-7", "krieg-niederlage-k1-4", "krieg-spannung-k1"]) expect(hinweisKlasse(id)).toBe("B");
+    expect(hinweisKlasse("wahl-2033")).toBe("A");
+  });
+});

@@ -2,6 +2,7 @@
 //   krieg_drohkulisse — die Eskalation verlangt eine Entscheidung (Phasenwechsel)
 //   krieg_waffenruhe  — der Gegner bietet mitten im Krieg Waffenruhe an (Suzerain-Lücke gefüllt)
 //   putschgeruechte   — nach Niederlage oder Gebietsabtretung bei zerbrochenem Offiziersvertrauen
+//   krieg_beistandsruf — ein Pakt-Partner der Türkei wird angegriffen: Beistand leisten, nur Material oder verweigern (sim/pakte.ts)
 // Alle drei werden nur vom Kriegsmotor geöffnet (chance 0) und führen dieselben Handlungen aus
 // wie Dossier, Parser und KI — der Kern bleibt die einzige Wahrheitsquelle.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
@@ -11,7 +12,9 @@ import { land } from "./laender";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { opt } from "./ereignis-hilfen";
-import { aktiveKriege, fuehreKriegHandlungAus, waffenruheFuerAngebot } from "./krieg";
+import { aktiveKriege, beistandVorgangGrund, eroeffneBeistandsVorgang, fuehreKriegHandlungAus, waffenruheFuerAngebot } from "./krieg";
+import { KLAUSEL_NAME, allePakte, beistandMaterial, beistandVerweigern } from "./pakte";
+import { akteurName } from "./welt-modell";
 import type { Vorlage } from "./ereignis-hilfen";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
@@ -122,4 +125,50 @@ const PUTSCHGERUECHTE: Vorlage = {
   },
 };
 
-export const KRIEG_VORLAGEN: Vorlage[] = [KRIEG_DROHKULISSE, KRIEG_WAFFENRUHE, PUTSCHGERUECHTE];
+const ruf = (ev: OffenesEreignis) => ({
+  partner: String(ev.daten?.partner ?? "SAU"),
+  gegner: String(ev.daten?.gegner ?? "IRN"),
+  pakt: String(ev.daten?.pakt ?? "mekka"),
+});
+
+const KRIEG_BEISTANDSRUF: Vorlage = {
+  id: "krieg_beistandsruf",
+  szene: "istanbul",
+  frist: 20,
+  abkuehlung: 1,
+  chance: () => 0,
+  wettbewerb: "aussitzen",
+  schwere: 1.2,
+  erzeuge: () => ({ provinzen: [], staerke: 0.5, daten: { partner: "SAU", gegner: "IRN", pakt: "mekka", krieg: "" } }),
+  titel: (_, ev) => `Beistandsruf: ${akteurName(ruf(ev).partner)} wird angegriffen`,
+  text: (w, ev) => {
+    const r = ruf(ev);
+    const p = allePakte(w).find((x) => x.id === r.pakt);
+    return [
+      `${akteurName(r.gegner)} hat ${akteurName(r.partner)} angegriffen. ${akteurName(r.partner)} beruft sich auf ${p ? `den Pakt „${p.name}“ (${KLAUSEL_NAME[p.klausel]})` : "die Zusage der Türkei"} und fordert Beistand.`,
+      p ? `Die Klausel im Wortlaut: ${p.text}` : "Der Generalstab legt Lagebilder vor, das Außenministerium rät zur Vorsicht.",
+      "Wer jetzt zusagt, bindet die Türkei in einen Krieg; wer schweigt oder ablehnt, riskiert das Vertrauen des Partners, den Vertrag und das Ansehen als Bündnispartner. Material und Diplomatie sind der Mittelweg.",
+    ];
+  },
+  warum: () => "Pakte verpflichten nur im Ernstfall — und der Ernstfall prüft, ob die Zusage mehr war als ein Papier. Das Weltmodell lässt Staaten gegeneinander in den Krieg gehen; trifft es einen Pakt-Partner, wird aus der Klausel eine Entscheidung.",
+  optionen: (w, ev) => {
+    const r = ruf(ev);
+    const out = [];
+    if (!beistandVorgangGrund(w, r.gegner)) {
+      out.push(
+        opt("truppen", "Militärischen Beistand zusagen", `Kostet 10 Kapital. Es beginnt ein Konfliktvorgang mit ${akteurName(r.gegner)} in der Drohkulisse, die Rahmung „Beistand“ ist deklariert und ${akteurName(r.partner)} steht an der Seite der Türkei. Den Einsatzbeschluss braucht es trotzdem.`, 10, (w2) => eroeffneBeistandsVorgang(w2, r.gegner, r.partner, r.pakt).text),
+      );
+    }
+    out.push(
+      opt("material", "Material und Diplomatie", `Kostet 4 Kapital und etwa 0,2 % des BIP. ${akteurName(r.partner)} bekommt Waffen, Geld und einen Fürsprecher; Truppen bleiben zu Hause. Das Vertrauen steigt, die Pflicht ist halb erfüllt.`, 4, (w2) => beistandMaterial(w2, r.partner, r.pakt)),
+      opt("verweigern", "Beistand ablehnen", `Kostet nichts. ${akteurName(r.partner)} verliert Vertrauen und Sicherheit in die Türkei (−10/−8), das Ansehen sinkt, und ein Vertrag mit Beistandsklausel zählt einen Verstoß.`, 0, (w2) => beistandVerweigern(w2, r.partner, r.pakt, false)),
+    );
+    return out;
+  },
+  standard: (w, ev) => {
+    const r = ruf(ev);
+    return beistandVerweigern(w, r.partner, r.pakt, true);
+  },
+};
+
+export const KRIEG_VORLAGEN: Vorlage[] = [KRIEG_DROHKULISSE, KRIEG_WAFFENRUHE, PUTSCHGERUECHTE, KRIEG_BEISTANDSRUF];

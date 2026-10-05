@@ -34,6 +34,10 @@ export interface AnbieterDef {
   temperatur: number | null;
   /** Der Spieler trägt die Adresse selbst ein */
   eigeneUrl?: boolean;
+  /** Schlüsselarten, die eine eigene Adresse brauchen (etwa der Token Plan von MiMo): Der Anfang des Schlüssels entscheidet */
+  schluesselBasen?: { praefix: string; basis: string; art: string }[];
+  /** Der Anbieter erwartet den Schlüssel in der Kopfzeile `api-key`; das Spiel sendet sie zusätzlich zu `Authorization` */
+  auchApiKeyKopf?: boolean;
   /** Läuft auf diesem Rechner, braucht keinen Schlüssel */
   lokal?: boolean;
   /** Ein Satz: wofür der Anbieter steht und woran man den Schlüssel erkennt */
@@ -75,7 +79,13 @@ export const ANBIETER: AnbieterDef[] = [
     // Ohne Denkphase kommt die Antwort schneller und kostet weniger; nur so gilt auch die Temperatur
     extra: { thinking: { type: "disabled" } },
     temperatur: 0.3,
-    hinweis: "Schlüssel aus der MiMo-Plattform (api.xiaomimimo.com). Das Denken ist abgeschaltet, damit die Antworten schnell kommen.",
+    // Laut Dokumentation der Plattform: Pay-as-you-go-Schlüssel (sk-…) an api.xiaomimimo.com, Token-Plan-Schlüssel (tp-… einzeln, ttp-… Team) an token-plan-cn.xiaomimimo.com
+    schluesselBasen: [
+      { praefix: "tp-", basis: "https://token-plan-cn.xiaomimimo.com/v1", art: "Token Plan" },
+      { praefix: "ttp-", basis: "https://token-plan-cn.xiaomimimo.com/v1", art: "Token Plan (Team)" },
+    ],
+    auchApiKeyKopf: true,
+    hinweis: "Schlüssel aus der MiMo-Plattform: sk-… (Pay-as-you-go) oder tp-… (Token Plan); das Spiel wählt die passende Adresse selbst. Das Denken ist abgeschaltet, damit die Antworten schnell kommen.",
   },
   {
     id: "deepseek",
@@ -204,10 +214,29 @@ export function schluesselWarnung(anbieterId: string, schluessel: string): strin
   return null;
 }
 
-/** Das Ziel einer Anfrage: Adresse des Endpunkts für Anbieter und Adresse. */
-export function endpunkt(a: AnbieterDef, eigeneUrl?: string): string {
-  const basis = (a.eigeneUrl ? (eigeneUrl && eigeneUrl.trim() ? eigeneUrl.trim() : a.basis) : a.basis).replace(/\/+$/, "");
+/** Die Schlüsselart eines Anbieters mit eigener Adresse (etwa „Token Plan“ bei MiMo), sonst `undefined`. */
+export function schluesselArt(a: AnbieterDef, schluessel?: string): { praefix: string; basis: string; art: string } | undefined {
+  const s = (schluessel ?? "").trim();
+  if (!s || !a.schluesselBasen) return undefined;
+  // Längster Anfang zuerst, damit „ttp-“ nicht von einem kürzeren Muster verdeckt wird
+  return [...a.schluesselBasen].sort((x, y) => y.praefix.length - x.praefix.length).find((b) => s.startsWith(b.praefix));
+}
+
+/** Das Ziel einer Anfrage: Adresse des Endpunkts für Anbieter, Adresse und (wo die Schlüsselart die Adresse bestimmt) Schlüssel. */
+export function endpunkt(a: AnbieterDef, eigeneUrl?: string, schluessel?: string): string {
+  const art = a.eigeneUrl ? undefined : schluesselArt(a, schluessel);
+  const basis = (art ? art.basis : a.eigeneUrl ? (eigeneUrl && eigeneUrl.trim() ? eigeneUrl.trim() : a.basis) : a.basis).replace(/\/+$/, "");
   return `${basis}${a.protokoll === "anthropic" ? "/messages" : "/chat/completions"}`;
+}
+
+/** Was bei einer Ablehnung des Schlüssels (401/403) zu prüfen ist, soweit sich das am Anfang des Schlüssels erkennen lässt. */
+export function ablehnungsHinweis(a: AnbieterDef, schluessel: string): string | null {
+  const s = schluessel.trim();
+  if (a.id !== "mimo" || !s) return null;
+  const art = schluesselArt(a, s);
+  if (art) return `Der Schlüssel beginnt mit „${art.praefix}“ (${art.art}); das Spiel nutzt dafür ${new URL(art.basis).host}. Ist das Abonnement aktiv, und wurde der Schlüssel unter „Subscription Details“ erzeugt?`;
+  if (s.startsWith("sk-")) return "Der Schlüssel beginnt mit „sk-“ (Pay-as-you-go, api.xiaomimimo.com). Prüfen Sie in der MiMo-Plattform, ob er noch gültig ist und Guthaben da ist; Token-Plan-Schlüssel beginnen mit „tp-“.";
+  return `MiMo-Schlüssel beginnen mit „sk-“ (Pay-as-you-go) oder „tp-“ (Token Plan). Dieser beginnt mit „${s.slice(0, 3)}“.`;
 }
 
 /** Ob ein Host nach einem privaten oder lokalen Ziel aussieht; der Entwicklungsserver leitet dorthin nichts weiter. */

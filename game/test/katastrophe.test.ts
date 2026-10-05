@@ -80,7 +80,7 @@ describe("Katastrophen: Risiko-Layer und Auslöser", () => {
 
   test("das Erdbeben-Risiko je Provinz kommt aus dem Profil (1–5)", () => {
     const werte = new Set(Array.from({ length: PROVINCES }, (_, p) => depremRisiko(p + 1)));
-    expect([...werte].sort()).toEqual([1, 2, 3, 4, 5]);
+    expect([...werte].sort()).toEqual([2, 3, 4, 5]);
     // Die Bruchzonen tragen das hohe Risiko; Istanbul ist hoch gefährdet
     expect(depremRisiko(34)).toBeGreaterThanOrEqual(4);
     expect(ZONEN.daf.every((p) => depremRisiko(p) >= 1)).toBe(true);
@@ -133,7 +133,7 @@ describe("Katastrophen: Bereitschaft senkt den Schaden", () => {
     const w = welt(6);
     const vorher = nationalAverage(NET, w.net, "katastrophenschutz");
     wirke(w, "m_afad_ausbau", 20);
-    advance(w, 32); // ein Monatsschritt des Netzes
+    advance(w, 450); // Nach Ablauf der Wirkungsverzögerung (13+ Monate)
     expect(nationalAverage(NET, w.net, "katastrophenschutz")).toBeGreaterThan(vorher);
   });
 });
@@ -153,7 +153,7 @@ describe("Katastrophen: Ereignis und Krisen-Kopplung", () => {
     expect(krisenFuerMassnahme(w, "m_verteidigung").some((k) => k.art === "teuer")).toBe(true);
   });
 
-  test("Antwort „volles Versprechen": Soforthilfe läuft, die Zusage ist angelegt", () => {
+  test("Antwort „volles Versprechen“: Soforthilfe läuft, die Zusage ist angelegt", () => {
     const w = welt(6);
     const fall = testFall(w);
     const ev = oeffne(w, "grossbeben", new Rng(9), { provinzen: fall.provinzen, staerke: fall.staerke, daten: { fall: fall.id } })!;

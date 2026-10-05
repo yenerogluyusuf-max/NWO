@@ -1,10 +1,12 @@
 /* Die Welt: Länderliste, Länderakte, Verhandlungstisch, Verträge, Vermittlung, Karten-Popover. Präfix .we- */
 
 .we { container-type: inline-size; display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
-@container (min-width: 700px) { .we { grid-template-columns: minmax(200px, 250px) minmax(0, 1fr); } .we-liste { position: sticky; top: 0; max-height: 100%; } }
+@container (min-width: 700px) { .we { grid-template-columns: minmax(210px, 270px) minmax(0, 1fr); } .we-liste { position: sticky; top: 0; max-height: calc(100vh - 215px); } }
 
 /* Liste */
-.we-liste { display: flex; flex-direction: column; gap: 12px; }
+.we-liste { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.we-liste-rumpf { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgba(90, 64, 40, 0.45) transparent; }
+@container (max-width: 699px) { .we-liste-rumpf { max-height: 260px; } }
 .we-gruppe > b { display: block; margin-bottom: 5px; font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 .we-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 @container (min-width: 700px) { .we-gruppe ul { grid-template-columns: 1fr; } }
@@ -104,7 +106,7 @@
 .we-gruende { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font: 13.5px/1.35 var(--serif); }
 .we-gruende li { display: grid; grid-template-columns: 14px 1fr auto; gap: 6px; align-items: baseline; }
 
-.we-leiste { position: sticky; bottom: -1px; z-index: 2; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; justify-content: space-between; padding: 10px 12px; margin: 0 -2px; border-top: 1.5px solid rgba(90, 64, 40, 0.45); background: linear-gradient(180deg, #f3e9cf, #ecdfbc); box-shadow: 0 -8px 14px -8px rgba(60, 40, 16, 0.3); }
+.we-leiste { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; justify-content: space-between; padding: 10px 12px; margin: 0 -2px; border-top: 1.5px solid rgba(90, 64, 40, 0.45); background: linear-gradient(180deg, #f3e9cf, #ecdfbc); box-shadow: 0 -8px 14px -8px rgba(60, 40, 16, 0.3); }
 .we-leiste-stimmung { display: flex; align-items: center; gap: 10px; min-width: 9em; font: 600 13.5px var(--display); }
 .we-leiste-stimmung .we-waage { width: 74px; }
 .we-laufzeit { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -257,6 +259,8 @@
   .we.schmal .we-eintrag .flagge { grid-row: auto; }
   .we.schmal .we-vertragszahl { right: -2px; top: -4px; }
   .we.schmal .we-vermittlung-zeichen { grid-row: auto; }
+  .we.schmal .we-modus, .we.schmal .we-suche, .we.schmal .we-chips, .we.schmal .we-liste-hinweis { display: none; }
+  .we.schmal .we-liste { gap: 0; }
 }
 
 
@@ -384,3 +388,131 @@
 .we-eu-berichte { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 14px/1.4 var(--serif); }
 .we-eu-berichte summary { cursor: pointer; font-weight: 600; }
 .we-eu-berichte details ul { margin: 6px 0 4px; padding-left: 1.3em; display: grid; gap: 3px; font-weight: 400; color: var(--ink-soft); }
+
+
+/* ======================================================================================================================
+   Weltmodell: Ansichten, Filter, Lage, Wahl, Dienst, Blöcke (Präfix .we-)
+   ====================================================================================================================== */
+
+/* Das Fenster blendet unten aus; die Länderansicht hat eine feste Leiste und braucht den Rand frei */
+.dossier-body:has(.we) { -webkit-mask-image: none; mask-image: none; padding-bottom: 0; }
+
+.we-modus { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 3px; overflow: hidden; flex: none; }
+.dossier .we-modus button { padding: 6px 2px; border: none; border-radius: 0; background: rgba(90, 64, 40, 0.07); font: 600 12.5px var(--display); color: var(--ink); cursor: pointer; box-shadow: none; text-shadow: none; }
+.dossier .we-modus button + button { border-left: 1px solid rgba(90, 64, 40, 0.3); }
+.dossier .we-modus button.on { background: var(--paper-light); color: var(--seal); box-shadow: inset 0 -2px 0 var(--seal); }
+.we-suche { flex: none; }
+.we-suche input { width: 100%; box-sizing: border-box; padding: 6px 9px; font: 14px var(--serif); color: var(--ink); background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.38); border-radius: 3px; }
+.we-suche input:focus-visible { outline: 2px solid var(--seal); outline-offset: 1px; }
+.we-chips { display: flex; flex-wrap: wrap; gap: 4px; flex: none; }
+.dossier .we-chips button { padding: 3px 9px; border: 1px solid rgba(90, 64, 40, 0.38); border-radius: 12px; background: rgba(251, 246, 230, 0.8); font: 600 12px var(--sans); color: var(--ink); cursor: pointer; box-shadow: none; text-shadow: none; }
+.dossier .we-chips button.on { background: var(--seal); border-color: var(--seal); color: #fbeee0; }
+.we-liste-hinweis { margin: 0; }
+.we-hinweis { font: italic 13px/1.4 var(--serif); color: var(--ink-soft); }
+.we-block-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.dossier .we-eintrag.block { grid-template-columns: 44px 1fr; }
+.we-block-kurz { grid-row: 1 / 3; display: grid; place-items: center; width: 40px; height: 28px; border-radius: 3px; background: var(--leather-1); color: var(--gold-1); font: 700 11px var(--display); letter-spacing: 0.03em; }
+
+.we-chip { display: inline-block; padding: 0 8px; border-radius: 3px; background: rgba(90, 64, 40, 0.13); color: var(--ink); font: 600 12px/1.7 var(--sans); white-space: nowrap; }
+.we-chip.gut { background: rgba(38, 90, 98, 0.16); color: var(--teal); }
+.we-chip.schlecht { background: rgba(142, 42, 34, 0.14); color: var(--seal); }
+.dossier .we-chip.block { cursor: pointer; border: 1px solid rgba(90, 64, 40, 0.3); box-shadow: none; text-shadow: none; padding: 0 8px; }
+.we-mitglied { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 0; }
+.we-datum { font: 600 12px var(--sans); color: var(--ink-soft); white-space: nowrap; }
+
+/* Lage */
+.we-lage { display: grid; gap: 12px; }
+.we-krise { margin: 0; padding: 7px 12px; border-left: 4px solid var(--seal); background: rgba(142, 42, 34, 0.1); font: 600 14px var(--serif); color: var(--seal); }
+.we-zahlen-raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.we-zahl { display: grid; gap: 1px; padding: 8px 10px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.28); border-radius: 3px; }
+.we-zahl-label { font: 600 10.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-zahl strong { font: 650 20px var(--display); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
+.we-zahl strong em { font: italic 13px var(--serif); color: var(--ink-soft); }
+.we-zahl small { font: 11px var(--sans); color: var(--ink-soft); }
+.we-zahl small.param { color: #8a6d1f; }
+.we-linie { width: 100%; height: 24px; color: var(--teal); }
+.we-linie.leer { height: auto; font: italic 11.5px var(--serif); color: var(--ink-soft); }
+.we-balken-raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px 20px; }
+.we-lagebalken { display: grid; gap: 3px; }
+.we-lagebalken > span { display: flex; justify-content: space-between; font: 600 13.5px var(--serif); }
+.we-lagebalken em { font: italic 13px var(--serif); color: var(--ink-soft); }
+.we-lagebalken > i { display: block; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.16); position: relative; overflow: hidden; }
+.we-lagebalken > i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--teal); border-radius: 4px; }
+.we-lagebalken.schlecht > i::after { background: var(--seal); }
+.we-regierung { margin: 0; font: 14.5px/1.45 var(--serif); }
+.we-regierung .we-linie { display: inline-block; width: 90px; height: 16px; vertical-align: middle; }
+.we-wahl { padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.32); border-left: 5px solid var(--gold-3, #a57a34); background: rgba(255, 250, 235, 0.7); border-radius: 3px; }
+.we-wahl > b { display: block; font: 650 15px var(--display); }
+.we-wahl > b em { font: italic 14px var(--serif); font-weight: 400; color: var(--ink-soft); }
+.we-wahl ul { margin: 6px 0; padding-left: 18px; font: 14.5px/1.5 var(--serif); }
+.we-haltung-chip { display: inline-block; padding: 0 8px; border-radius: 3px; font: 600 12.5px/1.7 var(--sans); background: rgba(90, 64, 40, 0.14); }
+.we-haltung-chip.k1 { background: rgba(38, 90, 98, 0.18); color: var(--teal); }
+.we-haltung-chip.k-1 { background: rgba(142, 42, 34, 0.16); color: var(--seal); }
+.we-letzte-wahl { margin: 0; font: 14px/1.45 var(--serif); color: var(--ink-soft); }
+.we-geaendert > b, .we-dienst-laufend > b, .we-dienst-fremd > b, .we-dienst-bericht > b { display: block; margin-bottom: 6px; font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-geaendert ul, .we-dienst-laufend ul, .we-dienst-fremd ul, .we-dienst-bericht ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font: 14.5px/1.4 var(--serif); }
+.we-geaendert li { padding-left: 10px; border-left: 2px solid rgba(90, 64, 40, 0.3); }
+.we-eu-position ul { list-style: none; margin: 4px 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.we-eu-position li { display: inline-flex; gap: 8px; align-items: baseline; padding: 3px 10px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; background: #fbf6e6; font: 13.5px var(--serif); }
+.we-eu-position li.stimme-dafuer b { color: var(--teal); }
+.we-eu-position li.stimme-dagegen b { color: var(--seal); }
+.we-eu-position > b { font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-zum-tisch-zeile { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.we-zum-tisch-zeile .we-zum-tisch { margin-top: 0; }
+
+/* Dienst */
+.we-dienst { display: grid; gap: 14px; }
+.we-dienst-kopf h3 { margin: 0 0 4px; font: 600 24px var(--display); }
+.we-dienst-kapazitaet { display: grid; gap: 8px; }
+.we-dienst-abwehr { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.we-dienst-ziel { display: grid; gap: 6px; padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.32); background: rgba(255, 250, 235, 0.6); border-radius: 3px; }
+.we-dienst-ziel label { font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-ziel-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.we-ziel-zeile select { padding: 6px 9px; font: 15px var(--serif); color: var(--ink); background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.38); border-radius: 3px; min-width: 220px; }
+.we-dienst-wahl { margin: 0; font: 14.5px/1.45 var(--serif); }
+.we-ops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; align-items: stretch; }
+.we-op { display: flex; flex-direction: column; gap: 7px; padding: 12px 14px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.34); border-radius: 3px; }
+.we-op.gesperrt { opacity: 0.8; }
+.we-op-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px; }
+.we-op-kopf strong { flex: 1 1 100%; font: 650 16px var(--display); }
+.we-op p { margin: 0; font: 14px/1.4 var(--serif); color: var(--ink); }
+.we-op-aussicht { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 14px var(--serif); }
+.we-op-aussicht b.aus-gering, .we-op-aussicht b.risiko-sehr-hoch, .we-op-aussicht b.risiko-hoch { color: var(--seal); }
+.we-op-aussicht b.aus-gut, .we-op-aussicht b.risiko-gering { color: var(--teal); }
+.we-faktoren { margin: 0; padding-left: 18px; font: 13px/1.4 var(--serif); color: var(--ink-soft); }
+.we-lager { display: grid; gap: 3px; font: 14px var(--serif); }
+.we-op-fuss { margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.we-dienst-bericht li { padding: 8px 12px; border-left: 4px solid rgba(90, 64, 40, 0.35); background: rgba(255, 250, 235, 0.55); }
+.we-dienst-bericht li.ausgang-erfolg { border-left-color: var(--teal); }
+.we-dienst-bericht li.ausgang-fehlschlag { border-left-color: #8a6d1f; }
+.we-dienst-bericht li.ausgang-aufgedeckt { border-left-color: var(--seal); }
+.we-chip.ausgang-erfolg { background: rgba(38, 90, 98, 0.16); color: var(--teal); }
+.we-chip.ausgang-aufgedeckt { background: rgba(142, 42, 34, 0.14); color: var(--seal); }
+.we-chip.ausgang-fehlschlag { background: rgba(198, 154, 74, 0.28); color: #8a6d1f; }
+
+/* Blöcke und EU-Rat */
+.we-block { display: grid; gap: 12px; }
+.we-block-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.we-block-kopf h3 { margin: 0; font: 600 24px var(--display); }
+.we-block-text, .we-block-regel { margin: 0; font: 15px/1.5 var(--serif); }
+.we-block-gruppe > b { display: block; margin-bottom: 5px; font: 600 11px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.we-block-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 5px; }
+.dossier .we-block-land, .dossier .we-rat-land { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 9px; text-align: left; cursor: pointer; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; font: 600 14px var(--display); color: var(--ink); box-shadow: none; text-shadow: none; }
+.dossier .we-block-land:hover, .dossier .we-rat-land:hover { background: #f4e8c6; }
+.we-block-aktionen { display: grid; gap: 8px; }
+.we-block-aktion { display: grid; gap: 4px; padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.3); background: rgba(255, 250, 235, 0.6); border-radius: 3px; font: 14px/1.4 var(--serif); }
+.we-block-aktion .aktion-knopf { justify-self: start; }
+.we-rat h4 { margin: 6px 0 2px; font: 600 18px var(--display); }
+.we-rat-themen { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.dossier .we-rat-themen button { padding: 4px 11px; border: 1px solid rgba(90, 64, 40, 0.38); border-radius: 12px; background: rgba(251, 246, 230, 0.8); font: 600 12.5px var(--sans); color: var(--ink); cursor: pointer; box-shadow: none; text-shadow: none; }
+.dossier .we-rat-themen button.on { background: var(--seal); border-color: var(--seal); color: #fbeee0; }
+.we-rat-ergebnis { margin: 4px 0 8px; font: 14.5px/1.6 var(--serif); }
+.we-rat-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.we-rat-liste li { display: grid; grid-template-columns: minmax(150px, 190px) 90px minmax(140px, auto) 1fr; gap: 6px 12px; align-items: center; padding: 4px 0; border-bottom: 1px dotted rgba(90, 64, 40, 0.25); }
+@container (max-width: 760px) { .we-rat-liste li { grid-template-columns: 1fr 80px; } .we-rat-liste li em { grid-column: 1 / -1; } .we-rat-wort { grid-column: 1 / -1; } }
+.we-rat-balken { display: block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgba(142, 42, 34, 0.4), rgba(90, 64, 40, 0.15) 50%, rgba(38, 90, 98, 0.4)); position: relative; }
+.we-rat-balken i { position: absolute; top: -3px; left: var(--p); width: 3px; height: 14px; background: var(--ink); transform: translateX(-1px); border-radius: 1px; }
+.we-rat-wort { font: 13.5px var(--serif); }
+.we-rat-liste li.stimme-dafuer .we-rat-wort b { color: var(--teal); }
+.we-rat-liste li.stimme-dagegen .we-rat-wort b { color: var(--seal); }
+.we-rat-liste li em { font: italic 13px/1.35 var(--serif); color: var(--ink-soft); }

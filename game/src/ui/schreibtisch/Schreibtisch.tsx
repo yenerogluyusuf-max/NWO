@@ -1,100 +1,128 @@
-// Der Schreibtisch: das Tagesbriefing. Oben die Lage in sechs Zahlen, links was fällig ist und was der Beraterstab rät,
-// rechts Warnungen, Termine, Ziele und die Randnotiz der Mentorin. Jede Zeile führt zu einer Entscheidung: Ein Knopf öffnet die
-// passende Akte oder handelt gleich (Gespräch führen, Vorhaben einbringen). Die Rechnung steht in briefing.ts.
+// Der Schreibtisch: nur das Wichtigste und Aktuellste. Oben die Lage in vier Zahlen und der Zustand des Präsidenten, darunter die
+// Unterschriftenmappe — höchstens fünf Vorlagen, jede von dem Minister vorgelegt, der dafür zuständig ist, mit Empfehlung und Folgen —,
+// daneben Fristen und die dringendsten Warnungen. Alles andere liegt eine Ebene tiefer: im Posteingang der Minister (Ministerrat),
+// in „Heute“ (Politik), in der Zeitung und im aufklappbaren Bereich „Weiteres“. Die Rechnung steht in briefing.ts und sim/ministerfluss.ts.
 
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
-import { formatDateDe } from "../../sim/dates";
-import { bringeEin } from "../../sim/handeln";
-import { verhandle } from "../../sim/verhandeln";
-import { vorschlaege } from "../../sim/vorschlaege";
+import { addDays, formatDateDe } from "../../sim/dates";
 import { zielStand } from "../../sim/ziele";
-import { Rng } from "../../sim/rng";
 import { mentorNotes } from "../mentor";
 import { Cameo } from "../art/Cameo";
-import { Icon, type IconName } from "../icons";
-import { briefing, type Faellig, type Kennzahl, type Knopf, type Ziel } from "./briefing";
+import { Icon } from "../icons";
+import { Mappe } from "../minister/Mappe";
+import { schreibtischMappe } from "../../sim/ministerfluss";
+import { faellig, kennzahlen, termine, verfassungSicht, warnungen as berechneWarnungen, type Kennzahl, type Ziel } from "./briefing";
+import type { VorlagenZiel } from "../../sim/ministerfluss-typen";
 import type { UmlaufEintrag } from "../autostopp";
+import "../politik/design.css";
 import "./schreibtisch.css";
-
-const ART_ICON: Record<Faellig["art"], IconName> = { ereignis: "warnung", gesetz: "waage", zusage: "haende", schritt: "ziel", duldung: "parlament" };
 
 const TREND: Record<Kennzahl["trend"], string> = { auf: "▲", ab: "▼", gleich: "" };
 
-const TUEREN: { label: string; ziel: Ziel; icon: IconName }[] = [
-  { label: "Die Zeitung", ziel: { art: "akte", akte: "zeitung" }, icon: "zeitung" },
-  { label: "Bereiche der Politik", ziel: { art: "politik" }, icon: "netz" },
-  { label: "Programme", ziel: { art: "akte", akte: "programme" }, icon: "ziel" },
-  { label: "Parlament", ziel: { art: "akte", akte: "parlament" }, icon: "waage" },
-  { label: "Wähler", ziel: { art: "akte", akte: "waehler" }, icon: "menge" },
-  { label: "Welt", ziel: { art: "akte", akte: "welt" }, icon: "berg" },
-  { label: "Reich", ziel: { art: "akte", akte: "reich_kultur" }, icon: "tempel" },
-  { label: "Wirtschaft", ziel: { art: "akte", akte: "wirtschaft" }, icon: "akte" },
-  { label: "Personen", ziel: { art: "akte", akte: "personen" }, icon: "person" },
-];
+/** Die vier Zahlen, die der Präsident jeden Morgen braucht; Arbeitslosigkeit und Probleme stehen in „Heute“ und in der Wirtschaft. */
+const KENNZAHLEN = new Set(["zustimmung", "kapital", "mehrheit", "preise"]);
 
-export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World; refresh: () => void; onGehe: (z: Ziel) => void; umlauf?: UmlaufEintrag[] }) {
+export function Schreibtisch({
+  world,
+  refresh,
+  onGehe,
+  umlauf,
+  onKarte,
+  onPosteingang,
+}: {
+  world: World;
+  refresh: () => void;
+  onGehe: (z: Ziel) => void;
+  umlauf?: UmlaufEintrag[];
+  /** Springt zur Karte (Ebene „Probleme“); fehlt der Aufruf, gibt es den Knopf nicht */
+  onKarte?: (problemId?: string) => void;
+  /** Öffnet den Posteingang der Minister; ohne Angabe öffnet sich der Ministerrat */
+  onPosteingang?: () => void;
+}) {
   const spiel = world.spiel;
-  const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const [notiz, setNotiz] = useState<number | null>(null);
-  const [weitere, setWeitere] = useState(false);
 
   // Die Rechnungen sind aufwendig: nur neu, wenn sich Tag, Kapital, Gesetze, Ereignisse, Zusagen oder das Lager ändern
   const schluessel = `${world.day}|${Math.floor(spiel?.kapital ?? 0)}|${Math.round(spiel?.verfassung?.aufmerksamkeit ?? 0)}|${Math.round(spiel?.verfassung?.belastung ?? 0)}|${spiel?.gesetze.length ?? 0}|${spiel?.ereignisse.length ?? 0}|${spiel?.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length ?? 0}|${spiel?.lager.length ?? 0}|${Object.keys(world.net.targets).length}`;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const b = useMemo(() => briefing(world, spiel ? vorschlaege(world, 3) : []), [schluessel]);
+  // Der Schreibtisch braucht vom Tagesbriefing nur Zahlen, Fristen und Warnungen; die Empfehlungen des Stabs sind die Vorlagen der Minister
+  const b = useMemo(() => {
+    if (!world.spiel) return null;
+    const tage = world.spiel.wahltag - world.day;
+    return {
+      datum: formatDateDe(world.date),
+      amtszeit: { nummer: world.spiel.amtszeit, wahltag: formatDateDe(addDays(world.date, tage)), monateBisWahl: Math.max(0, Math.round(tage / 30.4)) },
+      kennzahlen: kennzahlen(world),
+      verfassung: verfassungSicht(world),
+      faellig: faellig(world),
+      warnungen: berechneWarnungen(world),
+      termine: termine(world),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schluessel]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const notizen = useMemo(() => mentorNotes(world), [schluessel]);
   const ziele = zielStand(world);
   const geschah = [...world.log].reverse().filter((l) => l.kind !== "statistik").slice(0, 4);
 
-  function tue(k: Knopf) {
-    if (k.art === "gehe") return onGehe(k.ziel);
-    if (k.art === "einbringen") {
-      const v = k.vorschlag;
-      setAntwort(bringeEin(world, v.massnahme, v.ziel, v.ort, "gesetz"));
-    } else {
-      setAntwort(verhandle(world, k.partei, "gespraech", new Rng(world.rngState ^ world.day)));
-      world.rngState = (world.rngState + 1) | 0;
-    }
-    refresh();
-  }
+  if (!spiel || !b) return <p>Ohne Spielschleife gibt es kein Briefing.</p>;
 
-  if (!spiel) return <p>Ohne Spielschleife gibt es kein Briefing.</p>;
+  const mappe = schreibtischMappe(world, 5);
+  const dringend = mappe.mappe.filter((v) => v.frist !== undefined && v.frist <= 7).length;
+  const posteingang = onPosteingang ?? (() => onGehe({ art: "akte", akte: "personen" }));
+  // Vorlagen führen zu denselben Zielen wie die übrigen Einträge; die Karte ist ein Sonderfall der Bühne
+  const gehe = (z: VorlagenZiel) => {
+    if (z.art === "karte") return onKarte?.(z.problemId);
+    onGehe(z as Ziel);
+  };
 
-  const dringend = b.faellig.filter((f) => f.dringend).length;
+  // Fristen: Abstimmungen, auslaufende Duldungen, Programmschritte und feste Termine; Ereignisse und Zusagen liegen als Vorlagen in der Mappe
+  const fristen = [
+    ...b.faellig
+      .filter((f) => f.art === "gesetz" || f.art === "duldung" || f.art === "schritt")
+      .map((f) => ({ id: f.id, text: f.titel, wann: f.tage === undefined ? "bereit" : f.tage <= 0 ? "heute" : `in ${f.tage} T`, tage: f.tage ?? 0, dringend: f.dringend, ziel: f.knopf.art === "gehe" ? f.knopf.ziel : undefined })),
+    ...b.termine
+      .filter((t) => !t.id.startsWith("g-") && !t.id.startsWith("z-"))
+      .map((t) => ({ id: `t-${t.id}`, text: t.text, wann: t.datum, tage: t.tage, dringend: false, ziel: t.ziel })),
+  ]
+    .sort((a, c) => a.tage - c.tage)
+    .slice(0, 5);
+
   const [erste, ...weitereNotizen] = notizen;
+  const warnungen = b.warnungen.slice(0, 2);
+  const weitereWarnungen = b.warnungen.slice(2);
 
   return (
     <div className="sk">
       <header className="sk-kopf">
-        <div>
-          <p className="kicker">Tagesbriefing</p>
+        <div className="sk-titel">
+          <p className="pd-ueber">Tagesbriefing</p>
           <h3>{b.datum}</h3>
-          <p className="subtitle">
+          <p className="pd-lead">
             {b.amtszeit.nummer}. Amtszeit · Wahl {b.amtszeit.monateBisWahl <= 1 ? "in Kürze" : `in ${b.amtszeit.monateBisWahl} Monaten`} ({b.amtszeit.wahltag})
-            {dringend > 0 ? ` · ${dringend === 1 ? "eine dringende Sache" : `${dringend} dringende Sachen`}` : ""}
+            {dringend > 0 ? ` · ${dringend === 1 ? "eine Vorlage mit Frist diese Woche" : `${dringend} Vorlagen mit Frist diese Woche`}` : ""}
           </p>
         </div>
+        <ul className="sk-kennzahlen vier" aria-label="Lage in einem Blick">
+          {b.kennzahlen
+            .filter((k) => KENNZAHLEN.has(k.id))
+            .map((k) => (
+              <li key={k.id}>
+                <button className={`sk-kz ton-${k.ton}`} onClick={() => onGehe(k.ziel)} title={`${k.label}: Akte öffnen`}>
+                  <span className="sk-kz-label">{k.label}</span>
+                  <span className="sk-kz-wert">
+                    {k.wert}
+                    {k.trend !== "gleich" && <em className={`sk-trend ton-${k.ton}`}>{TREND[k.trend]}</em>}
+                  </span>
+                  <span className="sk-kz-zusatz">{k.zusatz}</span>
+                </button>
+              </li>
+            ))}
+        </ul>
       </header>
 
-      <ul className="sk-kennzahlen" aria-label="Lage in einem Blick">
-        {b.kennzahlen.map((k) => (
-          <li key={k.id}>
-            <button className={`sk-kz ton-${k.ton}`} onClick={() => onGehe(k.ziel)} title={`${k.label}: Akte öffnen`}>
-              <span className="sk-kz-label">{k.label}</span>
-              <span className="sk-kz-wert">
-                {k.wert}
-                {k.trend !== "gleich" && <em className={`sk-trend ton-${k.ton}`}>{TREND[k.trend]}</em>}
-              </span>
-              <span className="sk-kz-zusatz">{k.zusatz}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
       {b.verfassung && (
-        <div className={`sk-verfassung stufe-${b.verfassung.stufe}`} tabIndex={0} aria-label={`Zustand des Präsidenten: Aufmerksamkeit ${b.verfassung.aufmerksamkeit} von 100, Belastung ${b.verfassung.belastung} von 100, ${b.verfassung.stufeName}`}>
+        <div className={`sk-verfassung kompakt stufe-${b.verfassung.stufe}`} tabIndex={0} aria-label={`Zustand des Präsidenten: Aufmerksamkeit ${b.verfassung.aufmerksamkeit} von 100, Belastung ${b.verfassung.belastung} von 100, ${b.verfassung.stufeName}`}>
           <div className="sk-vf-zeilen">
             <div className="sk-vf-zeile">
               <span className="sk-vf-label">Aufmerksamkeit</span>
@@ -119,7 +147,7 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
             <strong>Der Zustand des Präsidenten</strong>
             <p>
               Jede Amtshandlung — Gesetz, Erlass, Gespräch, Verhandlung, Entscheidung im Reich — verbraucht Aufmerksamkeit; sie lädt sich täglich um 3 auf. Unter 20 wächst die
-              Belastung, über 60 baut sie ab. {b.verfassung.fluss}
+              Belastung, über 60 baut sie ab. {b.verfassung.fluss} Wer einen Minister mit dem Vorhaben beauftragt, spart den größten Teil.
             </p>
             {b.verfassung.treiber.length > 0 ? <p>Was die Belastung treibt: {b.verfassung.treiber.join("; ")}.</p> : <p>Kein Vorgang treibt die Belastung gerade nennenswert.</p>}
             {b.verfassung.stufe >= 1 && <p>Angespannt streuen Stimmenschätzungen breiter und Einbringungen verzögern sich mitunter; ab 70 erzwingt der Stab ruhige Tage, über 85 über Wochen droht der Zusammenbruch.</p>}
@@ -127,33 +155,28 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
         </div>
       )}
 
-      {antwort && (
-        <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
-          {antwort.text}
-          {antwort.why && <em> {antwort.why}</em>}
-        </p>
-      )}
-
       <div className="sk-spalten">
         <div className="sk-haupt">
           <section className="sk-block">
-            <h4>Fällig</h4>
-            {b.faellig.length === 0 ? (
-              <p className="sk-leer">Nichts wartet auf Sie. Nutzen Sie die Zeit: Die Empfehlungen unten sagen, wo es sich lohnt.</p>
+            <h4>
+              Unterschriftenmappe <span className="pd-chip">das Wichtigste, nach Rang</span>
+            </h4>
+            <Mappe world={world} refresh={refresh} max={5} onGehe={gehe} onPosteingang={posteingang} {...(onKarte ? { onKarte } : {})} />
+          </section>
+        </div>
+
+        <aside className="sk-seite">
+          <section className="sk-block">
+            <h4>Fristen und Termine</h4>
+            {fristen.length === 0 ? (
+              <p className="pd-leise">Keine Frist in Sicht.</p>
             ) : (
-              <ul className="sk-faellig">
-                {b.faellig.map((f) => (
-                  <li key={f.id} className={f.dringend ? "dringend" : ""}>
-                    <span className="sk-icon" aria-hidden>
-                      <Icon name={ART_ICON[f.art]} size={18} />
-                    </span>
-                    <span className="sk-faellig-text">
-                      <strong>{f.titel}</strong>
-                      <em>{f.unter}</em>
-                    </span>
-                    {f.tage !== undefined && <span className={`sk-frist${f.dringend ? " rot" : ""}`}>{f.tage <= 0 ? "heute" : `${f.tage} T`}</span>}
-                    <button className="aktion-knopf" onClick={() => tue(f.knopf)}>
-                      {f.knopf.label}
+              <ul className="sk-termine">
+                {fristen.map((t) => (
+                  <li key={t.id}>
+                    <button className={`sk-termin${t.dringend ? " dringend" : ""}`} disabled={!t.ziel} onClick={() => t.ziel && onGehe(t.ziel)}>
+                      <span className="sk-datum">{t.wann}</span>
+                      <span>{t.text}</span>
                     </button>
                   </li>
                 ))}
@@ -161,43 +184,11 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
             )}
           </section>
 
-          <section className="sk-block">
-            <h4>Der Beraterstab rät</h4>
-            {b.empfehlungen.length === 0 ? (
-              <p className="sk-leer">Der Stab hat im Moment keinen Rat: Die Lage ist ruhig, das Kapital arbeitet, die Mehrheit steht.</p>
-            ) : (
-              <ol className="sk-rat">
-                {b.empfehlungen.map((e) => (
-                  <li key={e.id}>
-                    <p className="sk-rat-kopf">
-                      <span>{e.rat}</span>
-                      {e.wer && <em> · {e.wer}</em>}
-                    </p>
-                    <strong className="sk-rat-titel">{e.titel}</strong>
-                    <p className="sk-rat-text">{e.text}</p>
-                    {e.kosten && <p className="sk-rat-kosten">Kosten und Folgen: {e.kosten}</p>}
-                    <div className="fraktion-aktionen">
-                      {e.knoepfe.map((k, i) => (
-                        <button key={i} className="aktion-knopf" onClick={() => tue(k)}>
-                          {k.label}
-                        </button>
-                      ))}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-        </div>
-
-        <aside className="sk-seite">
-          <section className="sk-block">
-            <h4>Warnungen</h4>
-            {b.warnungen.length === 0 ? (
-              <p className="sk-leer">Keine Warnung. Was sich ändert, steht hier zuerst.</p>
-            ) : (
+          {warnungen.length > 0 && (
+            <section className="sk-block">
+              <h4>Warnungen</h4>
               <ul className="sk-warnungen">
-                {b.warnungen.slice(0, 6).map((x) => (
+                {warnungen.map((x) => (
                   <li key={x.id} className={`stufe-${x.stufe}`}>
                     <button className="sk-warnung" onClick={() => onGehe(x.ziel)} title="Ansehen und handeln">
                       <span className={`sk-punkt ${x.stufe}`} role="img" aria-label={x.stufe === "rot" ? "dringend" : "Achtung"} />
@@ -209,23 +200,26 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
                   </li>
                 ))}
               </ul>
-            )}
-          </section>
+            </section>
+          )}
 
-          <section className="sk-block">
-            <h4>Termine</h4>
-            <ul className="sk-termine">
-              {b.termine.map((t) => (
-                <li key={t.id}>
-                  <button className="sk-termin" disabled={!t.ziel} onClick={() => t.ziel && onGehe(t.ziel)}>
-                    <span className="sk-datum">{t.datum}</span>
-                    <span>{t.text}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {erste && (
+            <section className="sk-block sk-mentor-zeile">
+              <Cameo seed="Defne Arslan" figure="f" glasses size={32} tint="#265a62" />
+              <div>
+                <p>{erste.short}</p>
+                {notiz === 0 ? <p className="mehr">{erste.more}</p> : <button className="pd-btn quiet klein" onClick={() => setNotiz(0)}>Mehr erklären</button>}
+              </div>
+            </section>
+          )}
+        </aside>
+      </div>
 
+      <details className="sk-mehr">
+        <summary>
+          Weiteres <span className="pd-chip">Ziele, Zeitung, Umlauf, Chronik</span>
+        </summary>
+        <div className="sk-mehr-inhalt">
           {ziele.length > 0 && (
             <section className="sk-block">
               <h4>Ihre Ziele</h4>
@@ -243,35 +237,42 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
             </section>
           )}
 
-          <section className="sk-block sk-mentor">
-            <div className="sk-mentor-kopf">
-              <Cameo seed="Defne Arslan" figure="f" glasses size={40} tint="#265a62" />
-              <div>
-                <strong>Prof. Dr. Defne Arslan</strong>
-                <span>Mentorin · neutral</span>
+          {weitereWarnungen.length > 0 && (
+            <section className="sk-block">
+              <h4>Weitere Warnungen</h4>
+              <ul className="sk-warnungen">
+                {weitereWarnungen.map((x) => (
+                  <li key={x.id} className={`stufe-${x.stufe}`}>
+                    <button className="sk-warnung" onClick={() => onGehe(x.ziel)}>
+                      <span className={`sk-punkt ${x.stufe}`} aria-hidden />
+                      <span>
+                        <strong>{x.text}</strong>
+                        <em>{x.warum}</em>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {weitereNotizen.length > 0 && (
+            <section className="sk-block sk-mentor">
+              <div className="sk-mentor-kopf">
+                <Cameo seed="Defne Arslan" figure="f" glasses size={36} tint="#265a62" />
+                <div>
+                  <strong>Prof. Dr. Defne Arslan</strong>
+                  <span>Mentorin · neutral</span>
+                </div>
               </div>
-            </div>
-            {erste && (
-              <div className="sk-note">
-                <p>{erste.short}</p>
-                {notiz === 0 ? <p className="mehr">{erste.more}</p> : <button className="link" onClick={() => setNotiz(0)}>Mehr erklären</button>}
-              </div>
-            )}
-            {weitereNotizen.length > 0 && (
-              <>
-                {weitere &&
-                  weitereNotizen.map((n, i) => (
-                    <div key={i} className="sk-note">
-                      <p>{n.short}</p>
-                      {notiz === i + 1 ? <p className="mehr">{n.more}</p> : <button className="link" onClick={() => setNotiz(i + 1)}>Mehr erklären</button>}
-                    </div>
-                  ))}
-                <button className="link" onClick={() => setWeitere(!weitere)}>
-                  {weitere ? "Weniger Hinweise" : `${weitereNotizen.length} weitere ${weitereNotizen.length === 1 ? "Hinweis" : "Hinweise"}`}
-                </button>
-              </>
-            )}
-          </section>
+              {weitereNotizen.map((n, i) => (
+                <div key={i} className="sk-note">
+                  <p>{n.short}</p>
+                  {notiz === i + 1 ? <p className="mehr">{n.more}</p> : <button className="pd-btn quiet klein" onClick={() => setNotiz(i + 1)}>Mehr erklären</button>}
+                </div>
+              ))}
+            </section>
+          )}
 
           <section className="sk-block sk-zeitung">
             <h4>
@@ -281,7 +282,7 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
             {spiel.zeitung?.archiv.length ? (
               (() => {
                 const a = spiel.zeitung.archiv[spiel.zeitung.archiv.length - 1]!;
-                const lead = a.blaetter.find((b) => b.artikel.length > 0);
+                const lead = a.blaetter.find((bl) => bl.artikel.length > 0);
                 return (
                   <button className="sk-zeitung-teaser" onClick={() => onGehe({ art: "akte", akte: "zeitung" })} title="Ausgabe lesen">
                     <span className="sk-zeitung-mast">
@@ -289,22 +290,19 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
                       {a.anlass === "eilmeldung" ? " · EIL" : ""}
                     </span>
                     <strong>{lead?.artikel[0]?.schlagzeile ?? ""}</strong>
-                    <em>
-                      {formatDateDe(a.datum)}
-                      {a.blaetter.length > 1 ? ` — daneben ${a.blaetter.length - 1} ${a.blaetter.length === 2 ? "weiteres Blatt" : "weitere Blätter"}, dieselbe Lage, anders erzählt` : ""}
-                    </em>
+                    <em>{formatDateDe(a.datum)}</em>
                   </button>
                 );
               })()
             ) : (
-              <p className="sk-leer">Die erste Ausgabe erscheint am Monatsersten: dieselbe Lage in mehreren Blättern — je nachdem, wem die Druckerpresse gehört.</p>
+              <p className="pd-leise">Die erste Ausgabe erscheint am Monatsersten.</p>
             )}
           </section>
 
           {umlauf && umlauf.length > 0 && (
             <section className="sk-block">
               <h4>Im Umlauf</h4>
-              <p className="sk-leer">Routine ohne Entscheidung, seit dem letzten Halt gesammelt — nichts davon verlangt eine Antwort.</p>
+              <p className="pd-leise">Routine ohne Entscheidung, seit dem letzten Halt gesammelt — nichts davon verlangt eine Antwort.</p>
               <ul className="sk-log">
                 {[...umlauf].reverse().map((u) => (
                   <li key={u.id}>
@@ -330,21 +328,23 @@ export function Schreibtisch({ world, refresh, onGehe, umlauf }: { world: World;
                   </li>
                 ))}
               </ul>
-              <button className="link" onClick={() => onGehe({ art: "akte", akte: "chronik" })}>
+              <button className="pd-btn quiet" onClick={() => onGehe({ art: "akte", akte: "chronik" })}>
                 Ganze Chronik
               </button>
             </section>
           )}
-        </aside>
-      </div>
+        </div>
+      </details>
 
-      <nav className="sk-tueren" aria-label="Schnellzugriff">
-        {TUEREN.map((t) => (
-          <button key={t.label} onClick={() => onGehe(t.ziel)}>
-            <Icon name={t.icon} size={18} />
-            <span>{t.label}</span>
-          </button>
-        ))}
+      <nav className="sk-tueren" aria-label="Weiter zu">
+        <button className="pd-btn" onClick={posteingang}>
+          <Icon name="person" size={18} />
+          <span>Alle Vorlagen und Befehle</span>
+        </button>
+        <button className="pd-btn" onClick={() => onGehe({ art: "akte", akte: "bereiche" })}>
+          <Icon name="netz" size={18} />
+          <span>Heute: Was jetzt ansteht</span>
+        </button>
       </nav>
     </div>
   );

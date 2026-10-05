@@ -10,6 +10,7 @@ import { HilfeKarte } from "./HilfeKarte";
 import { Kette } from "./Kette";
 import { Sparkline } from "./Sparkline";
 import { anzeigeName, monatText, nf, prozent, vz } from "./format";
+import "../politik/design.css";
 
 export type DossierZiel = "schreibtisch" | "gespraech" | "parlament" | "programme";
 
@@ -43,7 +44,7 @@ function PraeferenzListe({ titel, liste, richtung, onMassnahme }: { titel: strin
           {liste.map((p) => (
             <li key={p.id}>
               <div className="wa-pref-zeile">
-                <button type="button" className="link" onClick={() => onMassnahme?.(p.id, richtung)} title="Die Maßnahme ansehen und einstellen">
+                <button type="button" className="pd-btn quiet klein" onClick={() => onMassnahme?.(p.id, richtung)} title="Die Maßnahme ansehen und einstellen">
                   {p.name}
                 </button>
                 <StufenMesser stufe={p.stufe} seitStart={p.seitStart} />
@@ -128,8 +129,10 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
       </section>
 
       {d.sorgen.length > 0 && (
-        <section className="wa-abschnitt">
-          <h4>Worauf sie achten</h4>
+        <details className="wa-abschnitt wa-zu">
+          <summary>
+            <h4>Worauf sie achten</h4>
+          </summary>
           <ul className="wa-sorgen">
             {d.sorgen.map((s) => (
               <li key={s.id} className={s.wirkt > 0 ? "gut" : s.wirkt < 0 ? "schlecht" : ""} title={s.text}>
@@ -146,11 +149,13 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
               </li>
             ))}
           </ul>
-        </section>
+        </details>
       )}
 
-      <section className="wa-abschnitt">
-        <h4>Wohin sie wechseln würden</h4>
+      <details className="wa-abschnitt wa-zu">
+        <summary>
+          <h4>Wohin sie wechseln würden</h4>
+        </summary>
         {w.neigung < 0.04 ? (
           <p className="wa-leer">Bei dieser Stimmung denkt kaum jemand in der Gruppe an einen Wechsel.</p>
         ) : (
@@ -179,7 +184,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
         <p className="wa-unter">
           Die Wechselneigung ist ein Spielparameter, keine Messung: Sie wächst, je weiter die Stimmung unter {SCHWELLE_TRAEGER} fällt. Die Nähe zu einer Partei ergibt sich daraus, was sie fordert und was der Gruppe nützen würde.
         </p>
-      </section>
+      </details>
 
       <section className="wa-abschnitt">
         <h4>Was jetzt helfen würde</h4>
@@ -198,8 +203,10 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
       </section>
 
       {d.regionen.spanne >= 1.5 && (
-        <section className="wa-abschnitt">
-          <h4>Wo die Stimmung anders ist</h4>
+        <details className="wa-abschnitt wa-zu">
+          <summary>
+            <h4>Wo die Stimmung anders ist</h4>
+          </summary>
           <ul className="wa-regionen">
             {d.regionen.regionen.map((r) => (
               <li key={r.region}>
@@ -217,7 +224,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
               Am zufriedensten in {d.regionen.beste.name} ({nf(d.regionen.beste.laune, 0)}), am unzufriedensten in {d.regionen.schlechteste.name} ({nf(d.regionen.schlechteste.laune, 0)}).
             </p>
           )}
-        </section>
+        </details>
       )}
 
       {(d.handlungen.zusagen.length > 0 || d.handlungen.ereignisse.length > 0 || d.handlungen.berichte.length > 0) && (
@@ -227,7 +234,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
             {d.handlungen.zusagen.map((z) => (
               <li key={z.id}>
                 <b>Zusage an {z.von}</b> {z.text}: {knotenName(z.massnahme)}, fällig in {Math.max(0, z.faellig - world.day)} Tagen.
-                <button type="button" className="link" onClick={() => onMassnahme?.(z.massnahme, z.richtung >= 0 ? 1 : -1)}>
+                <button type="button" className="pd-btn quiet klein" onClick={() => onMassnahme?.(z.massnahme, z.richtung >= 0 ? 1 : -1)}>
                   {" "}
                   Jetzt einlösen
                 </button>
@@ -237,7 +244,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
               <li key={e.id}>
                 <b>Offenes Ereignis</b> {e.titel}: Die Ursache lässt sich mit „{knotenName(e.massnahme)}“ regeln.
                 {onDossier && (
-                  <button type="button" className="link" onClick={() => onDossier("schreibtisch")}>
+                  <button type="button" className="pd-btn quiet klein" onClick={() => onDossier("schreibtisch")}>
                     {" "}
                     Am Schreibtisch entscheiden
                   </button>
@@ -255,13 +262,13 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
 
       {onDossier && (
         <div className="wa-aktionen">
-          <button type="button" className="aktion-knopf" onClick={() => onDossier("gespraech")}>
+          <button type="button" className="pd-btn" onClick={() => onDossier("gespraech")}>
             Im Gespräch beraten lassen
           </button>
-          <button type="button" className="aktion-knopf" onClick={() => onDossier("parlament")}>
+          <button type="button" className="pd-btn" onClick={() => onDossier("parlament")}>
             Zum Parlament
           </button>
-          <button type="button" className="aktion-knopf" onClick={() => onDossier("programme")}>
+          <button type="button" className="pd-btn" onClick={() => onDossier("programme")}>
             Regierungsprogramm
           </button>
         </div>

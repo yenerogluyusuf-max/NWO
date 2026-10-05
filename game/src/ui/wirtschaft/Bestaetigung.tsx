@@ -19,7 +19,7 @@ export function Bestaetigung({ name, titel, children, knopf = "Unterzeichnen", o
           <span>{knopf}</span>
         </button>
       </div>
-      <button className="link" onClick={onNein}>
+      <button className="pd-btn quiet" onClick={onNein}>
         Verwerfen
       </button>
     </div>

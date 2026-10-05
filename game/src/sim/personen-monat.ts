@@ -8,6 +8,7 @@ import { ergaenzeFiguren } from "./figuren";
 import { AEMTER, eigenVon, grollVerschieben, leistung, loyalitaetVerschieben, merke, wertVon, nf } from "./personen";
 import { zusagenMonat } from "./zusagen";
 import { ehemaligeMonat } from "./nachfolge";
+import { ministerflussMonat } from "./ministerfluss-monat";
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
 
@@ -68,4 +69,6 @@ export function personenMonat(w: World): void {
       auftragMonat(w, f);
     }
   }
+  // Befehle an die Minister laufen weiter, Vorlagen verfallen sichtbar (sim/ministerfluss.ts)
+  ministerflussMonat(w);
 }

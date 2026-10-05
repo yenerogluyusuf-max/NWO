@@ -34,7 +34,7 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
   return (
     <div className="pe-szene">
       <div className="pe-szenenkopf">
-        <Portraet w={world} f={figur} size={52} />
+        <Portraet w={world} f={figur} size={120} />
         <div>
           <h3>Gespräch mit {sprecher}</h3>
           <div className="pe-rolle">

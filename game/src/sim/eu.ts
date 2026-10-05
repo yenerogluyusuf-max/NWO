@@ -380,6 +380,16 @@ export const VETO_LAENDER: VetoLand[] = [
   { land: "CYP", konfliktAb: 60, text: "Zypern nutzt seine Vetomacht: kein EU-Schritt ohne Bewegung in der Zypernfrage." },
 ];
 
+/**
+ * Haken für die weiteren Mitgliedstaaten (sim/welt-bloecke.ts): Verweigert ein Staat im Rat die Einstimmigkeit, bleibt das Kapitel zu.
+ * Registriert sich beim Laden des Weltmodells; ohne Registrierung gilt nur die Veto-Logik von Griechenland und Zypern.
+ */
+export type RatPruefung = (w: World, kapitelId: string) => { blockiert: boolean; text: string } | null;
+let ratPruefung: RatPruefung | undefined;
+export function setzeRatPruefung(f: RatPruefung): void {
+  ratPruefung = f;
+}
+
 /** Ein aktives Veto gegen die Eröffnung, oder null. Nach einer beantworteten Veto-Krise ruht das Mitglied ein Jahr. */
 export function vetoGegen(w: World): VetoLand | null {
   const ruhe = w.spiel?.eu?.vetoRuhe ?? {};
@@ -807,6 +817,8 @@ export function euMonat(w: World, rng: Rng): void {
         }
         continue;
       }
+      // Einstimmigkeit im Rat: Weitere Mitgliedstaaten können die Eröffnung verweigern (Weltmodell)
+      if (ratPruefung?.(w, def.id)?.blockiert) continue;
       oeffneKapitel(w, def);
       if (offeneKapitel(z).length >= EU_REGELN.parallelMax) break;
     }

@@ -32,15 +32,34 @@ function gruppen(w: World): { titel: string; liste: Figur[] }[] {
 const NAME = (id: string) => NET.nodes[NET.index.get(id) ?? -1]?.name ?? id;
 const datum = (w: World, tag: number) => formatDateDe(addDays(w.spiel!.start.datum, tag));
 
-export function Umfeld({ world, refresh }: { world: World; refresh: () => void }) {
+export function Umfeld({
+  world,
+  refresh,
+  initialPersonId,
+  initialModus,
+}: {
+  world: World;
+  refresh: () => void;
+  initialPersonId?: string | null;
+  initialModus?: "detail" | "gespraech" | "entlassen" | "nachfolge";
+}) {
   const spiel = world.spiel!;
-  const [auswahl, setAuswahl] = useState<string | null>(null);
-  const [modus, setModus] = useState<"detail" | "gespraech" | "entlassen" | "nachfolge">("detail");
+  const [auswahl, setAuswahl] = useState<string | null>(initialPersonId ?? null);
+  const [modus, setModus] = useState<"detail" | "gespraech" | "entlassen" | "nachfolge">(initialModus ?? "detail");
   const [meldung, setMeldung] = useState<WechselMeldung | null>(null);
+
+  const detailRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (initialPersonId) {
+      setAuswahl(initialPersonId);
+      if (initialModus) setModus(initialModus);
+      // Aus dem Kabinett kommend beginnt die Ansicht bei der gewählten Person, nicht mitten in der Liste
+      requestAnimationFrame(() => detailRef.current?.scrollIntoView({ block: "start" }));
+    }
+  }, [initialPersonId, initialModus]);
   const f = spiel.figuren.find((x) => x.id === auswahl);
   const gr = gruppen(world);
   const zusagenAlle = zusagenSicht(world);
-  const detailRef = useRef<HTMLDivElement>(null);
   // Beim Wechsel in eine Szene springt die Ansicht an ihren Anfang
   const erster = useRef(true);
   useEffect(() => {
@@ -151,7 +170,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
         </p>
       )}
       <div className="pe-kopfzeile">
-        <Portraet w={world} f={f} size={78} />
+        <Portraet w={world} f={f} size={140} />
         <div>
           <h3>{f.name}</h3>
           <div className="pe-rolle">{f.rolle}</div>

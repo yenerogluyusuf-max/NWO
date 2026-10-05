@@ -1,0 +1,15 @@
+/* Fehlergrenze: ruhige Papierkarte statt leerem Fenster */
+.fehlergrenze { display: grid; place-items: center; padding: 28px; min-height: 260px; }
+.fehlergrenze.gross { position: fixed; inset: 0; z-index: 1000; background: radial-gradient(ellipse at 50% 40%, rgba(20, 12, 6, 0.82), rgba(10, 6, 3, 0.96)); }
+.fehlergrenze-karte {
+  max-width: 640px; width: 100%; padding: 24px 28px 22px; background: var(--paper, #f4ead2); color: var(--ink, #2b1e12);
+  border: 1px solid rgba(90, 64, 40, 0.5); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); border-left: 5px solid var(--seal, #8c2b1f);
+}
+.fehlergrenze-kicker { margin: 0 0 4px; font: 700 12px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.fehlergrenze-karte h3 { margin: 0 0 8px; font: 600 24px/1.2 var(--display, Fraunces, serif); }
+.fehlergrenze-text { margin: 0 0 12px; font: 16px/1.5 var(--serif, "EB Garamond", serif); }
+.fehlergrenze-text code { display: block; margin-top: 8px; padding: 8px 10px; background: rgba(90, 64, 40, 0.1); font: 13px/1.4 ui-monospace, Menlo, monospace; white-space: pre-wrap; word-break: break-word; }
+.fehlergrenze details { margin: 0 0 14px; font: 13px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+.fehlergrenze pre { margin: 8px 0 0; padding: 8px 10px; max-height: 160px; overflow: auto; background: rgba(90, 64, 40, 0.08); font: 12px/1.4 ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+.fehlergrenze-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; }
+.fehlergrenze-knoepfe button { padding: 8px 16px; }

@@ -203,6 +203,7 @@ describe("Ins Reich: Entwurf, Annahme, Verwirklichung", () => {
       beginneFrei(w, e.id);
       const z = reichZustand(w);
       const lauf = z.laufend.find((l) => l.id === e.id)!;
+      delete lauf.vergabeBis;
       const def = vorhabenDef(e.id)!;
       const bauVorher = laufBau(lauf, def);
       lauf.fortschritt = Math.ceil(bauVorher * 0.36);

@@ -30,6 +30,54 @@ export interface KriegBeschluss {
   rahmung: KriegsRahmung;
 }
 
+/**
+ * Wer an der Seite der Türkei oder des Gegners kämpft (sim/pakte.ts): Die Koalition ersetzt die frühere Pauschale
+ * „Beistands-Klausel gibt höchstens +15 Prozent“. Pflicht entsteht nur aus Pakten (Klausel „kollektiv“ oder „beistand“) und nur, wenn ein
+ * Mitglied ANGEGRIFFEN wird; wer selbst angreift, löst keinen Bündnisfall aus (und sitzt der Pakt mit beiden Streitparteien am Tisch,
+ * spaltet der Krieg den Pakt, statt ihn zu verpflichten). Alle Zahlen sind Spielparameter.
+ */
+export interface KoalitionsPartner {
+  /** Akteur-Kennung (Hauptakteur oder weiterer Staat) */
+  id: string;
+  seite: "eigen" | "gegner";
+  /** Tag des Beitritts */
+  seit: number;
+  /** Warum er mitmacht, in einem Satz */
+  grund: string;
+  /** Pakt, aus dem die Pflicht stammt (Institutions-Kennung oder „bilateral-<Land>“) */
+  pakt?: string;
+  /** Ob eine Beistandspflicht bestand (sonst reines Eigeninteresse) */
+  pflicht: boolean;
+  /** Verbleibende Kampfkraft 0 bis 1; sinkt, wenn die Seite verliert, der Partner steigt bei 0 aus */
+  rest: number;
+  /** Einsatzgrad 0,4 bis 1: wie voll der Partner mitmacht */
+  einsatz: number;
+}
+
+export interface KoalitionsAbwesender {
+  id: string;
+  seite: "eigen" | "gegner";
+  /** Ob eine Pflicht bestand und nicht erfüllt wurde (kostet die Türkei Vertrauen, falls sie die Seite ist) */
+  pflicht: boolean;
+  grund: string;
+  /** Punkte der letzten Bewertung (für die Anzeige „zögert“: zwischen Zögerschwelle und Beitrittsschwelle) */
+  punkte: number;
+  /** Ob er noch zögert (wird weiter geprüft) oder endgültig draußen bleibt */
+  zoegert: boolean;
+}
+
+export interface KriegKoalition {
+  /** Wer zuerst angriff: die Türkei (Beschluss, Erlass) oder der Gegner (Schlag aus der Drohkulisse) */
+  aggressor: "tuerkei" | "gegner";
+  partner: KoalitionsPartner[];
+  abwesend: KoalitionsAbwesender[];
+  /** Pakt, der durch den Krieg zwischen zwei Mitgliedern gespalten wurde (keine automatische Pflicht) */
+  spaltung?: string;
+  /** Tag der letzten Bewertung und der letzten Bitte um Beistand (Abkühlung) */
+  bewertet: number;
+  gerufen?: number;
+}
+
 /** Kriegs-Klauseln des Friedenspakets (schrittweiser Frieden, RECHERCHE_SUZERAIN_KRIEGSMATRIX.md §9.1 Zustand 5/6). */
 export interface FriedensPaket {
   /** 1 = Gebiet an die Türkei (Sieglage), −1 = Gebietsabtretung der Türkei (Niederlage), 0 = Status quo */
@@ -88,4 +136,14 @@ export interface KriegVorgang {
   ausgang?: KriegsAusgang;
   /** Putsch-Risiko-Ereignis wurde nach einer Niederlage bereits ausgelöst */
   putsch?: boolean;
+  /** Koalitionen beider Seiten (sim/pakte.ts); ältere Spielstände haben das Feld nicht, es entsteht beim ersten Zugriff */
+  koalition?: KriegKoalition;
+  /** Der Vorgang entstand aus einem Beistandsruf eines Pakt-Partners (Pakt und Partner, für Anzeige und Beleg der Rahmung „beistand“) */
+  beistandFuer?: { partner: string; pakt: string };
 }
+
+// Gebietsübertragung (Welle 2, noch nicht gebaut): Der Hebel liegt in sim/krieg.ts, Funktion `friedenSchliessen`: Dort steht heute
+// `p.gebiet` (+1 Gewinn, −1 Abtretung) und ändert nur Beziehungswerte und Stimmung. Sobald Regionen anderer Länder als Daten existieren,
+// ersetzt das Paket das Feld `gebiet` durch eine Liste der Regionen (Kriegsziele, die der Vorgang vorher festlegt); `friedenSchliessen`
+// überträgt dann den Besitzer jeder Region und startet die Integrationsphase. Diese Typen und `paketAnnahme` (Härte des Pakets)
+// bleiben die Schnittstelle; die Koalitionspartner (`koalition`) verhandeln am Friedenstisch mit und dürfen eigene Regionen als Ziel haben.

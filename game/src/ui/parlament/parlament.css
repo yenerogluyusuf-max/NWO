@@ -24,8 +24,7 @@
 
 /* Ansicht wählen */
 .par-ansicht { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
-.par-ansicht .aktion-knopf { border-radius: 14px; padding: 3px 13px 4px; font: 500 14px var(--serif); }
-.par-ansicht .aktion-knopf.on { color: var(--paper-light); background: var(--ink); border-color: var(--ink); }
+/* (die Reiter der Ansicht stehen unten im Abschnitt „Gestaltung der Akte“) */
 
 /* Erwartetes Verhalten */
 .par-zustaende { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font: 14px var(--serif); }
@@ -70,7 +69,7 @@
 .par-letzte h4 { margin: 0 0 4px; font: 600 13px var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
 .par-letzte ul { list-style: none; margin: 0; padding: 0; display: grid; }
 .par-letzte li { display: grid; grid-template-columns: 118px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(60, 40, 20, 0.14); }
-.par-l-stempel { justify-self: start; padding: 1px 8px; font: 700 10.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 3px; transform: rotate(-2deg); }
+.par-l-stempel { justify-self: start; padding: 1px 8px; font: 700 12px var(--display); letter-spacing: 0.1em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 3px; transform: rotate(-2deg); }
 .par-letzte li.ja .par-l-stempel { color: #1e6a4f; }
 .par-letzte li.nein .par-l-stempel { color: var(--seal); }
 .par-l-name { display: grid; line-height: 1.25; font: 15px var(--serif); }
@@ -85,14 +84,14 @@
   box-shadow: 0 0 0 1px #0b0806, 0 18px 40px rgba(0, 0, 0, 0.55);
 }
 .par-karte-huelle.fertig .par-karte { animation: none; }
-.par-karte-kopf { font: 600 11px var(--display); letter-spacing: 0.2em; text-transform: uppercase; color: #d9b46a; }
+.par-karte-kopf { font: 600 12px var(--display); letter-spacing: 0.2em; text-transform: uppercase; color: #d9b46a; }
 .par-karte-titel { font: 600 21px/1.2 var(--display); color: #f8e9c2; }
 .par-karte-unter { font: italic 13.5px/1.3 var(--serif); color: #cdb98f; }
 .par-karte .par-sitzplan { margin-top: 8px; max-width: 420px; }
 .par-zaehler { display: flex; gap: 12px; justify-content: center; }
 .par-zaehler span { display: grid; justify-items: center; line-height: 1; }
 .par-zaehler b { font: 650 clamp(18px, 6.2cqw, 32px)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
-.par-zaehler i { margin-top: 3px; font: 600 clamp(9px, 2.4cqw, 11px) var(--display); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.85; }
+.par-zaehler i { margin-top: 3px; font: 600 clamp(9px, 2.4cqw, 12px) var(--display); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.85; }
 .par-zaehler .ja { color: #7fd1a6; }
 .par-zaehler .nein { color: #e0705f; }
 .par-balken { position: relative; display: flex; width: 100%; max-width: 420px; height: 8px; margin-top: 8px; border-radius: 4px; background: rgba(240, 228, 198, 0.13); }
@@ -123,3 +122,114 @@
   .par-karte, .par-stempel { animation: none; }
   .par-sitz { transition: none; }
 }
+
+
+/* ---------- Gestaltung der Akte (wie politik/design.css) ---------- */
+
+.par-kopf { display: grid; gap: 22px; }
+.par-kopf .pd-seitenkopf h3 { font-size: 32px; }
+.par-spalten { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+.par-links { display: grid; gap: 10px; min-width: 0; }
+.par-rechts { min-width: 0; }
+.par-sitzplan { margin-top: 0; }
+.par-mitte-inhalt span { font-style: normal; color: var(--pd-soft); }
+.par-mitte-inhalt strong.gut { color: #1d5a3d; }
+.par-mitte-inhalt strong.schlecht { color: #8a2d26; }
+
+/* Reiter der Ansicht */
+.par-ansicht { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 4px; }
+.dossier .par-ansicht .pd-btn { border-radius: 999px; padding: 5px 16px; font: 600 14.5px var(--serif); }
+.dossier .par-ansicht .pd-btn.on { color: #fbf3df; border-color: #2a1f18; background: linear-gradient(180deg, #4a3a2c, #2b221b); text-shadow: none; box-shadow: 0 2px 6px rgba(40, 26, 10, 0.3); }
+
+/* Legende und Erwartung */
+.par-zustaende { gap: 6px 18px; font: 15px var(--serif); }
+.par-zustaende b { font: 700 14px var(--sans); }
+.par-lesart { max-width: 46em; margin-top: 8px; font: 16px/1.5 var(--serif); font-style: normal; color: var(--pd-soft); text-align: center; }
+.par-bilanz { max-width: 100%; margin: 14px 0 0; }
+.par-lager-balken { height: 12px; border-radius: 6px; }
+.par-lager-zeile { gap: 6px 18px; margin-top: 8px; font: 15.5px var(--serif); }
+.par-lager-zeile b { font: 700 14.5px var(--sans); }
+.par-lager-zeile .par-marke { font-style: normal; color: var(--pd-soft); }
+.par-lager-balken .lager, .par-lager-zeile .lager { background: var(--pd-teal); }
+
+/* Fraktionsliste als Tabelle */
+.par-fraktionen { margin: 0; border: 1px solid var(--pd-line); border-radius: 8px; overflow: hidden; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.par-fraktionen li { grid-template-columns: 14px minmax(0, 1.5fr) minmax(40px, 1fr) 48px 62px; gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--pd-line); font: 17px var(--serif); }
+.par-fraktionen li:last-child { border-bottom: none; }
+.par-fraktionen li.on { background: rgba(251, 240, 201, 0.7); }
+.par-fraktionen li.leise { opacity: 0.6; }
+.par-name em { font: 700 12px/1.3 var(--sans); font-style: normal; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pd-soft); }
+.rolle-lager .par-name em, .rolle-eigene .par-name em { color: #1d4c54; }
+.rolle-opposition .par-name em { color: #8a2d26; }
+.par-stark { height: 8px; }
+.par-fraktionen b { font: 700 17px var(--sans); }
+.par-anteil { font: 600 14px var(--sans); color: var(--pd-soft); }
+
+/* Letzte Abstimmungen */
+.par-letzte { margin-top: 0; padding-top: 4px; border-top: 1px solid var(--pd-line-strong); }
+.par-letzte h4 { margin: 14px 0 8px; font: 650 20px var(--display); letter-spacing: 0; text-transform: none; color: var(--pd-ink); }
+.par-letzte li { grid-template-columns: 132px minmax(0, 1fr) auto; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--pd-line); }
+.par-l-stempel { padding: 0 10px; font: 700 12px/22px var(--sans); letter-spacing: 0.08em; transform: none; border-width: 1.5px; border-radius: 999px; text-align: center; }
+.par-letzte li.ja .par-l-stempel { color: #1d5a3d; background: rgba(60, 138, 99, 0.1); }
+.par-letzte li.nein .par-l-stempel { color: #8a2d26; background: rgba(168, 58, 50, 0.08); }
+.par-l-name { font: 17px/1.3 var(--serif); }
+.par-l-name em { font: 14.5px var(--serif); font-style: normal; color: var(--pd-soft); }
+
+/* Lagetext, Fraktionen und Abstimmungen (Beschlussbuch) */
+.dossier .par-lage { padding: 14px 18px; border: 1px solid var(--pd-line); border-left: 4px solid var(--pd-teal); border-radius: 0 6px 6px 0; background: rgba(38, 90, 98, 0.07); }
+.dossier .par-lage p { margin: 0; font: 17px/1.5 var(--serif); }
+.dossier .par-lage p + p { margin-top: 6px; }
+.dossier .par-lage .weg-warnung { color: #8a2d26; font-style: normal; }
+.dossier .par-lage .subtitle { color: var(--pd-soft); font-size: 16px; }
+.dossier .par-block { display: grid; gap: 14px; }
+.dossier .par-block > h3 { margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--pd-line-strong); font: 650 24px/1.2 var(--display); }
+.dossier .par-block > .pd-lead { margin: -4px 0 0; }
+
+.dossier .fraktion-liste { grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 18px; margin: 0; }
+.dossier .fraktion { position: relative; display: grid; gap: 12px; align-content: start; padding: 18px 20px 16px; border: 1px solid var(--pd-line); border-left: 4px solid #b9954a; border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .fraktion.status-lager { border-left-color: var(--pd-teal); }
+.dossier .fraktion.status-duldung { border-left-color: #cf9f1a; }
+.dossier .fraktion.status-opposition { border-left-color: var(--pd-bad); }
+.dossier .fraktion-kopf { gap: 8px 12px; }
+.dossier .fraktion-kopf strong { font: 650 20px var(--display); }
+.dossier .fraktion-sitze { font: 600 14px var(--sans); color: var(--pd-soft); }
+.dossier .fraktion-status { margin-left: auto; padding: 0 10px; border: 1px solid var(--pd-line-strong); border-radius: 999px; font: 700 12px/22px var(--sans); letter-spacing: 0.08em; color: var(--pd-soft); background: rgba(90, 64, 40, 0.07); white-space: nowrap; }
+.dossier .fraktion.status-lager .fraktion-status { color: #1d4c54; border-color: rgba(38, 90, 98, 0.5); background: rgba(38, 90, 98, 0.1); }
+.dossier .fraktion.status-duldung .fraktion-status { color: #6f4f0c; border-color: rgba(167, 122, 20, 0.55); background: rgba(214, 170, 70, 0.22); }
+.dossier .fraktion.status-opposition .fraktion-status { color: #8a2d26; border-color: rgba(168, 58, 50, 0.45); background: rgba(168, 58, 50, 0.08); }
+.dossier .fraktion-info { gap: 6px 18px; }
+.dossier .fraktion-info .subtitle { margin: 0; font: 16px/1.4 var(--serif); color: var(--pd-soft); }
+.dossier .fraktion-info .bereit em { font: 600 14px var(--serif); font-style: normal; color: var(--pd-soft); }
+.dossier .fraktion-will { font: 17px/1.45 var(--serif); }
+.dossier .fraktion-will b { margin-right: 10px; font: 700 12px var(--sans); letter-spacing: 0.14em; color: var(--pd-soft); }
+.dossier .fraktion-aktionen { gap: 10px; margin-top: 2px; }
+
+.dossier .gesetz-liste { gap: 18px; margin: 0; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
+.dossier .gesetz-liste > li { display: grid; gap: 12px; align-content: start; padding: 18px 20px 16px; border: 1px solid var(--pd-line); border-left: 4px solid var(--gold-3); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .gesetz-liste .offen-kopf strong { display: block; font: 650 20px/1.25 var(--display); }
+.dossier .gesetz-liste .offen-kopf .subtitle { margin: 2px 0 0; font: 15.5px/1.4 var(--serif); color: var(--pd-soft); }
+.dossier .stimmen-bar { height: 12px; margin: 4px 0; border-radius: 6px; background: rgba(90, 64, 40, 0.16); }
+.dossier .stimmen-ja { background: linear-gradient(90deg, #265a62, #3d7f88); }
+.dossier .stimmen-marke { top: -5px; bottom: -5px; background: var(--seal); }
+.dossier .stimmen-zeile { gap: 6px 16px; font: 16px/1.4 var(--serif); color: var(--pd-ink); }
+.dossier .stimmen-zeile strong { font: 700 17px var(--sans); }
+.dossier .stimmen-urteil { padding: 0 10px; border: 1px solid var(--pd-line-strong); border-radius: 999px; font: 700 12.5px/22px var(--sans); white-space: nowrap; }
+.dossier .stimmen-urteil.urteil-sicher { color: #1d5a3d; border-color: rgba(60, 138, 99, 0.5); background: rgba(60, 138, 99, 0.12); }
+.dossier .stimmen-urteil.urteil-knapp { color: #6f4f0c; border-color: rgba(167, 122, 20, 0.55); background: rgba(214, 170, 70, 0.2); }
+.dossier .stimmen-urteil.urteil-verloren { color: #8a2d26; border-color: rgba(168, 58, 50, 0.45); background: rgba(168, 58, 50, 0.09); }
+.dossier .stimmen-sach { font: 15.5px/1.4 var(--serif); font-style: normal; color: #1d4c54; }
+.dossier .stimmen-steuerung { gap: 10px; margin-top: 2px; }
+.dossier .stimmen-steuerung .weg-warnung { font: 15.5px/1.4 var(--serif); font-style: normal; color: #8a2d26; }
+
+@container (max-width: 900px) {
+  .par-spalten { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+@media (max-width: 1100px) {
+  .par-spalten { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+
+/* Die Zahlen stehen schon im Kopf: unter dem Balken bleibt nur die Marke der Mehrheit */
+.par-lager-zeile span:not(.par-marke) { display: none; }
+.par-lager-zeile { justify-content: flex-end; }
+.par-rechts { display: grid; gap: 22px; align-content: start; }
+.par-letzte { border-top: none; padding-top: 0; }

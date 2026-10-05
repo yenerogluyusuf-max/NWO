@@ -8,7 +8,7 @@
 // Entscheidung in Punkten vorwegnehmen (ohne Verzögerungen und Deckelungen; die Oberfläche nennt das „langfristig“).
 
 import { NET } from "./modell";
-import { PROVINCES, nationalAverage, startAverage, decayVon } from "./netz";
+import { GEGENKRAEFTE, GEWOEHNUNG_QUELLEN, PROVINCES, nationalAverage, startAverage, decayVon, istStimmungsknoten } from "./netz";
 import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
 import { hebel } from "./wege";
 import { FORDERUNGEN, PARTEI_NAME } from "./fraktionen";
@@ -59,6 +59,33 @@ export function abweichungVomStart(world: World, id: string): number {
   return nationalAverage(NET, world.net, id) - startAverage(NET, world.net, id);
 }
 
+/**
+ * Die wirksame Abweichung des Auslösers einer Verbindung. Führt sie in einen Stimmungsknoten (Gruppe, Vertrauen, Legitimität), zählt sie
+ * gegenüber einem Mischwert aus Start und wandernder Gewöhnung (sim/netz.ts, GEGENKRAEFTE): Wer sich an eine Dauerlage gewöhnt hat, spürt
+ * weniger davon. Fehlt der Bezugswert (älterer Spielstand, erster Monat), gilt der Start.
+ */
+export function abweichungWirksam(world: World, von: string, nach: string): number {
+  const dev = abweichungVomStart(world, von);
+  if (!istStimmungsknoten(knoten(nach)) || !GEWOEHNUNG_QUELLEN.has(von)) return dev;
+  const ref = world.net.bezug?.[von];
+  if (!ref) return dev;
+  const i = NET.index.get(von)!;
+  let refMittel = 0;
+  let startMittel = 0;
+  for (let p = 0; p < PROVINCES; p++) {
+    refMittel += ref[p]! * world.net.weights[p]!;
+    startMittel += world.net.start[i * PROVINCES + p]! * world.net.weights[p]!;
+  }
+  const a = GEGENKRAEFTE.anteil;
+  const basis = (1 - a) * startMittel + a * refMittel;
+  return nationalAverage(NET, world.net, von) - basis;
+}
+
+/** Wie viel von einer Dauerlage `monate` Monate nach ihrem Beginn noch wirkt (Gewöhnung): (1 − Anteil) + Anteil · (1 − Tempo)^Monate. */
+export function gewoehnungsFaktor(monate: number): number {
+  return 1 - GEGENKRAEFTE.anteil + GEGENKRAEFTE.anteil * Math.pow(1 - GEGENKRAEFTE.tempo, Math.max(0, monate));
+}
+
 function abweichungVor(world: World, id: string, monate: number): number | null {
   const v = vorMonaten(world, id, monate);
   return v === null ? null : v - startAverage(NET, world.net, id);
@@ -87,7 +114,7 @@ export function treiber(world: World, id: string, monate = 3): Treiber[] {
   const out: Treiber[] = [];
   for (const e of EIN.get(id) ?? []) {
     const von = knoten(e.from);
-    const abw = abweichungVom(world, e.from);
+    const abw = abweichungWirksam(world, e.from, id);
     const frueher = abweichungVor(world, e.from, monate);
     const beitrag = (e.weight * abw) / decay;
     out.push({
@@ -146,6 +173,9 @@ export function kette(world: World, id: string, tiefe = 2, breite = 3, schwelle 
   });
 }
 
+/** Horizont (Monate), auf den das Gleichgewicht der Vorwegnahme die Gewöhnung der Stimmung anrechnet. */
+const GEWOEHNUNG_HORIZONT = 36;
+
 /** Wohin sich die Größe bei den heutigen Verhältnissen entwickelt (Gleichgewicht), und wie weit sie davon entfernt ist. */
 export function tendenz(world: World, id: string): { jetzt: number; ziel: number; abstand: number } {
   const jetzt = nationalAverage(NET, world.net, id);
@@ -182,11 +212,14 @@ function erreichbar(start: string): string[] {
 export function gleichgewicht(start: string, delta: number): Map<string, number> {
   const liste = erreichbar(start);
   const shift = new Map<string, number>([[start, delta]]);
+  // Gewöhnung: In Stimmungsknoten zählt eine Dauerlage nach drei Jahren nur noch zum Teil (gewoehnungsFaktor)
+  const gew = gewoehnungsFaktor(GEWOEHNUNG_HORIZONT);
   for (let runde = 0; runde < 10; runde++) {
     for (const k of liste) {
       const decay = decayVon(knoten(k)) > 0 ? decayVon(knoten(k)) : 0.1;
+      const stimmung = istStimmungsknoten(knoten(k));
       let s = 0;
-      for (const e of EIN.get(k) ?? []) s += e.weight * (shift.get(e.from) ?? 0);
+      for (const e of EIN.get(k) ?? []) s += (stimmung && GEWOEHNUNG_QUELLEN.has(e.from) ? gew : 1) * e.weight * (shift.get(e.from) ?? 0);
       shift.set(k, Math.max(-60, Math.min(60, s / decay)));
     }
   }
@@ -212,10 +245,11 @@ export function wirkungNach(start: string, delta: number, monate: number[], daue
     for (const k of liste) {
       const decay = decayVon(knoten(k)) > 0 ? decayVon(knoten(k)) : 0.1;
       let zufluss = 0;
+      const faktor = istStimmungsknoten(knoten(k)) ? gewoehnungsFaktor(t - 1) : 1;
       for (const e of EIN.get(k) ?? []) {
         const zurueck = t - 1 - e.lag;
         const quelle = zurueck < 0 ? 0 : (hist[zurueck]!.get(e.from) ?? 0);
-        zufluss += e.weight * quelle;
+        zufluss += (GEWOEHNUNG_QUELLEN.has(e.from) ? faktor : 1) * e.weight * quelle;
       }
       const v = prev.get(k) ?? 0;
       jetzt.set(k, v + zufluss - decay * v);

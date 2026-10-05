@@ -1,0 +1,138 @@
+/* Marken auf der Karte: Formen, Tafel beim Überfahren, Namenszug aus der Nähe, Legende.
+   Silhouetten: Bauvorhaben Kreis (Kupfer), Wunder Raute (Gold), Kulturerbe Torbogen (Bronze, Farbe nach Zustand),
+   Ereignis Tropfen (Rot), Frist Kalenderblatt (Orange), Krise Dreieck (Gelb). Schriften: Nebentext mindestens 12 px. */
+
+.atlas-labels .ort.ort-bau, .atlas-labels .ort.ort-wunder, .atlas-labels .ort.ort-erbe,
+.atlas-labels .marke.marke-ereignis, .atlas-labels .marke.marke-frist, .atlas-labels .marke.marke-krise {
+  background: transparent; border: 0; border-radius: 0; box-shadow: none; overflow: visible; filter: none;
+}
+.atlas-labels .ort.ort-bau, .atlas-labels .ort.ort-wunder { width: 30px; height: 30px; }
+.atlas-labels .ort.ort-erbe { width: 26px; height: 26px; }
+.atlas-labels .marke.marke-ereignis, .atlas-labels .marke.marke-frist { width: 30px; height: 30px; font-size: 15px; }
+.atlas-labels .marke.marke-krise { width: 28px; height: 28px; font-size: 14px; }
+.atlas-labels .ort-bau::before, .atlas-labels .ort-bau::after { content: none; }
+
+.ort-form { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 2.5px rgba(0, 0, 0, 0.55)); }
+.atlas-labels .ort:hover .ort-form, .atlas-labels .ort:focus-visible .ort-form,
+.atlas-labels .marke:hover .ort-form, .atlas-labels .marke:focus-visible .ort-form { filter: drop-shadow(0 2px 2.5px rgba(0, 0, 0, 0.55)) brightness(1.18); }
+.atlas-labels .ort:focus-visible, .atlas-labels .marke:focus-visible { outline: 2px solid #f6e3b0; outline-offset: 3px; border-radius: 6px; }
+.atlas-labels .ort > svg:not(.ort-form), .atlas-labels .marke > .marke-glyph { position: relative; z-index: 1; }
+
+/* Bauvorhaben: dunkler Grund, Kupferring, heller Kran */
+.form-bau .f-rand { fill: #120d0a; }
+.form-bau .f-spur { stroke: rgba(240, 214, 160, 0.22); }
+.form-bau .f-fort { stroke: #e8923a; }
+.form-bau .f-grund { fill: #3d2b19; }
+.form-bau .f-kran { stroke: #f2d9a5; }
+.form-bau .f-haken { stroke: #f2d9a5; }
+.lage-pausiert .form-bau .f-fort { stroke: #b9a07a; }
+.lage-pausiert .form-bau .f-kran { stroke: #bfae90; }
+.form-bau .f-ausleger { transform-box: view-box; transform-origin: 12px 10.4px; }
+html:not([data-effekte="aus"]) .lage-imBau .form-bau .f-ausleger { animation: kran-wiegen 3.8s ease-in-out infinite alternate; }
+@keyframes kran-wiegen { from { transform: rotate(-5deg); } to { transform: rotate(6deg); } }
+
+/* Wunder: goldene Raute mit Tempel */
+.form-wunder .f-rand { fill: #2a1d0f; stroke: #f6e3b0; stroke-width: 1.2; }
+.form-wunder .f-gold { fill: #d8aa4c; }
+.form-wunder .f-glanz { fill: rgba(255, 244, 205, 0.5); }
+.atlas-labels .ort-wunder { color: #3a2812; }
+.lage-verfallen.ort-wunder .form-wunder .f-gold { fill: #a98a52; }
+.lage-gefahr.ort-wunder .form-wunder .f-gold { fill: #8c6a44; }
+
+/* Kulturerbe: bronzener Torbogen, Füllung nach Zustand (grün gut, rot in Gefahr) */
+.form-erbe .f-rand { fill: #2a1d0f; stroke: #d9b774; stroke-width: 1.2; }
+.form-erbe .f-erbe { fill: hsl(calc(var(--z, 55) * 1.05), 44%, 34%); }
+.form-erbe .f-sockel { stroke: #d9b774; }
+.atlas-labels .ort-erbe { color: #fff3d6; }
+.atlas-labels .ort-erbe > svg:not(.ort-form) { translate: 0 2px; }
+.lage-gefahr .form-erbe, .lage-gefahr.ort-wunder .form-wunder { animation: gefahr-puls 1.9s ease-in-out infinite; }
+html[data-effekte="aus"] .lage-gefahr .form-erbe, html[data-effekte="aus"] .lage-gefahr.ort-wunder .form-wunder { animation: none; }
+@keyframes gefahr-puls { 0%, 100% { filter: drop-shadow(0 0 0 rgba(214, 70, 50, 0)) drop-shadow(0 2px 2.5px rgba(0, 0, 0, 0.55)); } 50% { filter: drop-shadow(0 0 6px rgba(214, 70, 50, 0.95)) drop-shadow(0 2px 2.5px rgba(0, 0, 0, 0.55)); } }
+
+/* Ereignis-Marken (Meldungen der Spielschleife): Tropfen, Kalenderblatt, Dreieck mit Ausrufezeichen */
+.form-ereignis .f-rand { fill: #1b0c09; stroke: #f6e3b0; stroke-width: 1; }
+.form-ereignis .f-ereignis { fill: #a8322a; }
+.form-frist .f-rand { fill: #1b110a; stroke: #f6e3b0; stroke-width: 1; }
+.form-frist .f-frist { fill: #f3e2bf; }
+.form-frist .f-band { fill: #c25a1e; }
+.form-frist .f-ring { stroke: #f6e3b0; }
+.form-krise .f-rand { fill: #1b150a; stroke: #f6e3b0; stroke-width: 1; }
+.form-krise .f-krise { fill: #d9a82f; }
+.atlas-labels .marke.marke-ereignis, .atlas-labels .marke.marke-krise { color: #fff3e0; }
+.atlas-labels .marke.marke-krise { color: #2a1d08; }
+.atlas-labels .marke.marke-frist { color: #4a2208; }
+.atlas-labels .marke.marke-ereignis > .marke-glyph { translate: 0 -2px; font-weight: 800; }
+.atlas-labels .marke.marke-frist > .marke-glyph { translate: 0 3px; font-weight: 800; }
+.atlas-labels .marke.marke-krise > .marke-glyph { translate: 0 3px; font-weight: 800; }
+html:not([data-effekte="aus"]) .atlas-labels .marke.marke-ereignis .ort-form { animation: marke-ring 2.4s ease-in-out infinite; }
+html:not([data-effekte="aus"]) .atlas-labels .marke.marke-frist .ort-form { animation: marke-ring 1.2s ease-in-out infinite; }
+@keyframes marke-ring { 0%, 100% { filter: drop-shadow(0 0 0 rgba(224, 90, 60, 0)) drop-shadow(0 2px 2.5px rgba(0, 0, 0, 0.55)); } 50% { filter: drop-shadow(0 0 6px rgba(224, 90, 60, 0.95)) drop-shadow(0 2px 2.5px rgba(0, 0, 0, 0.55)); } }
+
+/* Gedränge: Zahl der verdeckten Marken an der obersten */
+.ort-mehr { position: absolute; right: -7px; top: -7px; min-width: 15px; height: 15px; padding: 0 3px; box-sizing: border-box; border-radius: 8px; z-index: 2;
+  background: #f6e3b0; color: #2b1e12; font: 700 11px/15px var(--sans, Inter, sans-serif); text-align: center; border: 1px solid #2b1e12; display: none; }
+.ort-mehr[data-mehr]:not([data-mehr=""])::before { content: "+" attr(data-mehr); }
+.ort-mehr[data-mehr]:not([data-mehr=""]) { display: block; }
+
+/* Namenszug aus der Nähe */
+.ort-name { position: absolute; left: calc(100% + 6px); top: 50%; translate: 0 -50%; display: none; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 600 12.5px var(--serif); color: #f6ecd6; text-shadow: 0 0 3px #1a110a, 0 0 3px #1a110a, 0 1px 2px #000; pointer-events: none; text-align: left; }
+.atlas-labels.nah .ort-name { display: block; }
+.atlas-labels .marke .ort-name { font-variant: small-caps; letter-spacing: 0.04em; }
+
+/* Tafel: sofort beim Überfahren und beim Tastaturfokus, kein Warten */
+.ort-tafel { position: absolute; z-index: 20; display: none; width: 252px; padding: 8px 11px 9px; text-align: left; white-space: normal; color: #2a1f18; cursor: pointer;
+  background: rgba(244, 236, 214, 0.98); border: 1.5px solid #2a1f18; outline: 2px double rgba(42, 31, 24, 0.5); outline-offset: 2px; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+  font: 400 13px/1.35 var(--serif); pointer-events: none; filter: none; }
+.atlas-labels .ort:hover .ort-tafel, .atlas-labels .ort:focus-visible .ort-tafel,
+.atlas-labels .marke:hover .ort-tafel, .atlas-labels .marke:focus-visible .ort-tafel { display: grid; gap: 2px; }
+.atlas-labels [data-tafel^="o"] .ort-tafel { bottom: calc(100% + 11px); top: auto; }
+.atlas-labels [data-tafel^="u"] .ort-tafel { top: calc(100% + 11px); bottom: auto; }
+.atlas-labels [data-tafel$="m"] .ort-tafel { left: 50%; right: auto; translate: -50% 0; }
+.atlas-labels [data-tafel$="l"] .ort-tafel { left: -8px; right: auto; translate: 0 0; }
+.atlas-labels [data-tafel$="r"] .ort-tafel { right: -8px; left: auto; translate: 0 0; }
+.atlas-labels .ort:not([data-tafel]) .ort-tafel, .atlas-labels .marke:not([data-tafel]) .ort-tafel { bottom: calc(100% + 11px); left: 50%; translate: -50% 0; }
+.ort-tafel-art { font: 700 12px var(--serif); font-variant: small-caps; letter-spacing: 0.06em; color: #8c2b1f; }
+.ort-tafel strong { font: 700 15.5px/1.2 var(--display); color: #2a1f18; }
+.ort-tafel-ort { font-style: italic; color: #5a4a38; }
+.ort-tafel-zeile { font-weight: 600; }
+.ort-tafel-rest { color: #5a4a38; }
+.ort-tafel-next { margin-top: 3px; padding-top: 4px; border-top: 1px solid rgba(90, 64, 40, 0.35); }
+.ort-tafel-next b { font-weight: 700; color: #8c2b1f; }
+.ort-tafel-klick { margin-top: 2px; font-size: 12px; color: #6b5a44; font-style: italic; }
+
+/* Legende unten rechts über der Plakette (zusammen mit dem Effekte-Schalter) */
+.karten-werkzeuge { position: absolute; z-index: 6; right: 20px; bottom: 20px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: none; max-width: min(320px, calc(100vw - 120px)); }
+.karten-werkzeuge > * { pointer-events: auto; }
+.stage:has(.cartouche) .karten-werkzeuge { bottom: 92px; }
+.marken-legende { width: 100%; padding: 6px 10px 7px; text-align: left; color: #2a1f18; background: rgba(244, 236, 214, 0.95); border: 1.5px solid #2a1f18;
+  outline: 2px double rgba(42, 31, 24, 0.5); outline-offset: 2px; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28); }
+.marken-legende:not(.offen) { width: auto; padding: 3px 9px; }
+.marken-legende-kopf { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; color: inherit; font: inherit; text-align: left; }
+.marken-legende-kopf:focus-visible { outline: 2px solid #8c2b1f; outline-offset: 2px; }
+.marken-legende-titel { font: 700 13px var(--serif); font-variant: small-caps; letter-spacing: 0.06em; }
+.marken-legende-kopf i { font: 700 14px var(--sans, Inter, sans-serif); font-style: normal; width: 18px; height: 18px; line-height: 16px; text-align: center; border: 1px solid #2a1f18; border-radius: 50%; }
+.marken-legende-liste { list-style: none; margin: 7px 0 0; padding: 0; display: grid; gap: 5px; }
+.marken-legende-liste li { display: grid; grid-template-columns: 26px 1fr; align-items: center; gap: 8px; font: 400 12.5px/1.3 var(--serif); }
+.marken-legende-hinweis { margin: 7px 0 0; padding-top: 5px; border-top: 1px solid rgba(90, 64, 40, 0.35); font: italic 12px/1.3 var(--serif); color: #5a4a38; }
+.mz { position: relative; width: 26px; height: 26px; display: grid; place-items: center; }
+.mz .ort-form { filter: none; }
+.mz > svg:not(.ort-form) { position: relative; z-index: 1; color: #fff3d6; }
+.mz-wunder > svg:not(.ort-form) { color: #3a2812; }
+.mz-erbe > svg:not(.ort-form) { translate: 0 2px; }
+.mz-erbe { --z: 82; }
+.mz > b { position: relative; z-index: 1; font: 800 14px var(--display); }
+.mz-ereignis > b { color: #fff3e0; translate: 0 -2px; }
+.mz-frist > b { color: #4a2208; translate: 0 3px; }
+.mz-krise > b { color: #2a1d08; translate: 0 3px; }
+@media (max-width: 1100px) { .karten-werkzeuge { right: 10px; } }
+@media (max-width: 720px) { .karten-werkzeuge { display: none; } }
+
+/* Megaprojekte: Hervorhebung durch goldenen Glanz */
+.atlas-labels .ort.ort-mega {
+  filter: drop-shadow(0 0 5px rgba(224, 168, 64, 0.65)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+.atlas-labels .ort.ort-mega:hover,
+.atlas-labels .ort.ort-mega:focus-visible {
+  filter: drop-shadow(0 0 10px rgba(245, 195, 80, 0.95)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+}

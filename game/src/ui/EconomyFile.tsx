@@ -3,6 +3,6 @@
 import type { World } from "../sim/types";
 import { WirtschaftAkte } from "./wirtschaft/Akte";
 
-export function EconomyFile({ world, onGeaendert }: { world: World; onGeaendert?: () => void }) {
-  return <WirtschaftAkte world={world} start="lage" onGeaendert={onGeaendert} />;
+export function EconomyFile({ world, onGeaendert, start = "lage" }: { world: World; onGeaendert?: () => void; start?: "lage" | "haushalt" }) {
+  return <WirtschaftAkte world={world} start={start} onGeaendert={onGeaendert} />;
 }

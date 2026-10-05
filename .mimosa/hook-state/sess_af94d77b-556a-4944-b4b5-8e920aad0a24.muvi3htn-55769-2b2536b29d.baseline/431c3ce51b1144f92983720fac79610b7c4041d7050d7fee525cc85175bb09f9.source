@@ -1,0 +1,216 @@
+// Laufende Fälle: je Katastrophe eine Karte mit den Zahlen der Schadenslage, der Hilfskette als Stufenband
+// und den Handlungen, die das Spiel jetzt erlaubt (Soforthilfe, Übergangsversorgung, Wiederaufbau mit Vergabe).
+
+import { useState } from "react";
+import type { World } from "../../sim/types";
+import type { KatastropheFall } from "../../sim/spiel-typen";
+import type { Vergabe } from "../../sim/reich-typen";
+import { VERGABE_NAMEN } from "../../sim/reich-typen";
+import { kannZahlen } from "../../sim/kapital";
+import { formatDateDe } from "../../sim/dates";
+import {
+  ART_NAMEN,
+  beginneWiederaufbau,
+  fallSicht,
+  hilfsketteSicht,
+  namenVon,
+  schaetzung,
+  soforthilfe,
+  staerkeWort,
+  starteUebergang,
+  type FallSicht,
+} from "../../sim/katastrophe";
+import type { Ziel } from "../schreibtisch/briefing";
+import { Hilfskette } from "./Hilfskette";
+import { nf } from "./daten";
+
+/** Kosten der Handlungen in Politischem Kapital (Spielparameter, wie im Ereignis). */
+export const PK_SOFORTHILFE = 3;
+export const PK_UEBERGANG = 2;
+
+const NEBEL_TEXT: Record<string, string> = {
+  unsicher: "Erste Stunden: Die Lage ist unklar, Zahlen sind ungesichert.",
+  vermutet: "Erste Tage: Schäden werden vermutet, Bandbreiten statt genauer Zahlen.",
+  bekannt: "Die Schadenslage ist aufgeklärt.",
+};
+
+interface Zahl {
+  name: string;
+  wert: number;
+  /** Was die Bereitschaft nach Modellrechnung verhindert hat (nur wo das Modell eine Zahl hat) */
+  verhindert?: number;
+}
+
+function Kennzahlen({ w, fall, nebelBekannt }: { w: World; fall: KatastropheFall; nebelBekannt: boolean }) {
+  const zahlen: Zahl[] = [
+    { name: "Todesopfer", wert: fall.tote, verhindert: fall.verhindert.tote },
+    { name: "Verletzte", wert: fall.verletzte },
+    { name: "Ohne Obdach", wert: fall.obdachlos },
+    { name: "Zerstörte Wohnungen", wert: fall.wohnungen, verhindert: fall.verhindert.wohnungen },
+  ];
+  return (
+    <dl className="kr-zahlen">
+      {zahlen.map((z) => {
+        const text = schaetzung(w, fall, z.wert);
+        const lang = !/^[\d.]+$/.test(text);
+        return (
+          <div key={z.name} className="kr-zahl">
+            <dt>{z.name}</dt>
+            <dd className={lang ? "unklar" : ""}>{text}</dd>
+            {nebelBekannt && z.verhindert !== undefined && z.verhindert > 0 && <small>Vorsorge hat etwa {nf(z.verhindert)} verhindert</small>}
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sicht: FallSicht; refresh: () => void; melde: (m: string) => void; onGehe?: (z: Ziel) => void }) {
+  const fall = sicht.fall;
+  const spiel = w.spiel!;
+  const [vergabe, setVergabe] = useState<Vergabe>("ausschreibung");
+  const kette = hilfsketteSicht(w, fall);
+  const stufe = (id: string) => kette.find((s) => s.id === id);
+  const zusage = fall.zusage;
+  const geliefert = Math.round((zusage?.geliefert ?? 0) + fall.privatGeliefert);
+  const quote = zusage ? Math.min(1, geliefert / zusage.wohnungen) : 0;
+
+  /** Eine Handlung gegen Kapital; scheitert sie (Ergebnis „nicht ok“), kommt das Kapital zurück. */
+  const handle = (pk: number, f: () => { ok: boolean; text: string } | string) => {
+    if (!kannZahlen(spiel.kapital, pk)) {
+      melde(`Dafür fehlt Politisches Kapital (${pk} nötig, vorhanden ${Math.floor(spiel.kapital)}).`);
+      return;
+    }
+    spiel.kapital -= pk;
+    const r = f();
+    if (typeof r !== "string" && !r.ok) spiel.kapital += pk;
+    melde(typeof r === "string" ? r : r.text);
+    refresh();
+  };
+
+  const nothilfe = stufe("nothilfe");
+  const uebergang = stufe("uebergang");
+  const aufbau = stufe("wiederaufbau");
+
+  const aktionen = {
+    nothilfe:
+      nothilfe?.status === "offen" && !fall.bewaeltigt ? (
+        <button type="button" className="kr-knopf haupt" disabled={!kannZahlen(spiel.kapital, PK_SOFORTHILFE)} onClick={() => handle(PK_SOFORTHILFE, () => soforthilfe(w, fall.id))}>
+          Soforthilfe anordnen <em>{PK_SOFORTHILFE} Kapital</em>
+        </button>
+      ) : undefined,
+    uebergang:
+      uebergang?.status === "offen" && !fall.bewaeltigt ? (
+        <button type="button" className="kr-knopf haupt" disabled={!kannZahlen(spiel.kapital, PK_UEBERGANG)} onClick={() => handle(PK_UEBERGANG, () => starteUebergang(w, fall.id))}>
+          Übergangsversorgung einrichten <em>{PK_UEBERGANG} Kapital</em>
+        </button>
+      ) : undefined,
+    wiederaufbau:
+      aufbau?.status === "offen" && sicht.wiederaufbau.moeglich && !fall.bewaeltigt ? (
+        <div className="kr-vergabe">
+          <fieldset>
+            <legend>Vergabe der Bauaufträge</legend>
+            {(Object.keys(VERGABE_NAMEN) as Vergabe[]).map((v) => (
+              <label key={v}>
+                <input type="radio" name={`vergabe-${fall.id}`} checked={vergabe === v} onChange={() => setVergabe(v)} /> {VERGABE_NAMEN[v]}
+              </label>
+            ))}
+          </fieldset>
+          <button
+            type="button"
+            className="kr-knopf haupt"
+            onClick={() => {
+              const r = beginneWiederaufbau(w, fall.id, vergabe);
+              melde(r.text);
+              refresh();
+            }}
+          >
+            Wohnungsbau-Programm beginnen
+          </button>
+        </div>
+      ) : aufbau?.status === "laeuft" && onGehe ? (
+        <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "akte", akte: "reich_infra" })}>
+          Baureihenfolge im Reich ansehen
+        </button>
+      ) : undefined,
+  };
+
+  return (
+    <article className={`kr-fall art-${fall.art}`}>
+      <header className="kr-fall-kopf">
+        <div>
+          <p className="kr-art">{ART_NAMEN[fall.art]}</p>
+          <h3>{namenVon(fall.provinzen)}</h3>
+          <p className="kr-datum">
+            {formatDateDe(fall.datum)} · {staerkeWort(fall.staerke)}
+            {fall.bewaeltigt ? " · bewältigt" : ""}
+          </p>
+        </div>
+        <p className={`kr-nebel nebel-${sicht.nebel}`}>{NEBEL_TEXT[sicht.nebel]}</p>
+      </header>
+
+      <Kennzahlen w={w} fall={fall} nebelBekannt={sicht.nebel === "bekannt"} />
+      {sicht.nebel === "bekannt" && (fall.verhindert.tote > 0 || fall.verhindert.wohnungen > 0) && (
+        <p className="kr-klein">
+          Bereitschaft {fall.bereitschaft} von 100 beim Eintreten. Gegenüber der Referenz 20 verhindert das nach Modellrechnung etwa {nf(fall.verhindert.tote)} Todesopfer
+          {fall.verhindert.wohnungen > 0 ? ` und ${nf(fall.verhindert.wohnungen)} zerstörte Wohnungen` : ""} (Bandbreite ±25 %).
+        </p>
+      )}
+
+      <Hilfskette stufen={kette} aktionen={aktionen} />
+
+      {(zusage || fall.wohnungen > 0) && (
+        <section className="kr-versprechen">
+          <h4>Versprechen</h4>
+          {zusage ? (
+            <>
+              <div className="kr-balken gross" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(quote * 100)}>
+                <i style={{ width: `${Math.round(quote * 100)}%` }} />
+              </div>
+              <p>
+                Geliefert {nf(geliefert)} von {nf(zusage.wohnungen)} versprochenen Wohnungen ({nf(quote * 100)} Prozent)
+                {fall.privatGeliefert > 0 ? `, davon ${nf(Math.round(fall.privatGeliefert))} durch private Erholung` : ""}.
+              </p>
+            </>
+          ) : (
+            <p className="kr-klein">Kein öffentliches Versprechen abgegeben: Es kann am Wahltag auch nicht gebrochen werden.</p>
+          )}
+        </section>
+      )}
+
+      {onGehe && (
+        <footer className="kr-fuss">
+          <button type="button" className="kr-link" onClick={() => onGehe({ art: "akte", akte: "zeitung" })}>
+            Berichte der Presse lesen
+          </button>
+          <button type="button" className="kr-link" onClick={() => onGehe({ art: "akte", akte: "waehler" })}>
+            Stimmung der Wählergruppen
+          </button>
+        </footer>
+      )}
+    </article>
+  );
+}
+
+export function Faelle({ world, refresh, melde, onGehe, zurLage }: { world: World; refresh: () => void; melde: (m: string) => void; onGehe?: (z: Ziel) => void; zurLage: () => void }) {
+  const z = world.spiel?.katastrophen;
+  const aktive = (z?.faelle ?? []).filter((f) => !f.bewaeltigt).sort((a, b) => b.tag - a.tag);
+  if (aktive.length === 0) {
+    return (
+      <div className="kr-leer">
+        <h3>Keine laufenden Fälle</h3>
+        <p>Im Moment gibt es keine Katastrophe, die Ihre Entscheidung braucht. Die beste Zeit für Vorsorge ist jetzt: Sie senkt Opferzahlen und Schäden, wenn es geschieht.</p>
+        <button type="button" className="kr-knopf haupt" onClick={zurLage}>
+          Zur Lage und Vorsorge
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="kr-faelle">
+      {aktive.map((f) => (
+        <FallKarte key={f.id} w={world} sicht={fallSicht(world, f)} refresh={refresh} melde={melde} {...(onGehe ? { onGehe } : {})} />
+      ))}
+    </div>
+  );
+}

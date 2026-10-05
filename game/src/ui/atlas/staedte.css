@@ -1,0 +1,68 @@
+/* Städte als Kartenobjekte (Banner im Stil von Civilization): Punkt, Banner mit Größenzeichen, Streifen in der Farbe der Bürgermeisterpartei,
+   Statussymbole und Hauptstadtstern; darüber ab mittlerer Zoomstufe die gezeichnete Stadtfigur. Beschriftung mindestens 13 px. */
+
+.atlas-labels button.city {
+  position: absolute; left: 0; top: 0; display: block; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: center;
+  pointer-events: auto; cursor: pointer; min-width: 32px; min-height: 32px; will-change: transform; overflow: visible; transform-origin: 50% 6px; gap: 0;
+}
+.atlas-labels button.city:focus-visible { outline: 2px solid #f6e3b0; outline-offset: 3px; border-radius: 3px; }
+.atlas-labels button.city:hover, .atlas-labels button.city:focus-visible { z-index: 6; }
+.atlas.passive .atlas-labels button.city { pointer-events: none; }
+
+/* Innen: Punkt und Banner untereinander, Figur schwebt darüber; skaliert wird nur dieser Teil (die Tafel bleibt in Lesegröße) */
+.city-innen { display: grid; justify-items: center; gap: 3px; transform-origin: 50% 6px; position: relative; }
+.city-figur { position: absolute; left: 50%; bottom: calc(100% - 3px); translate: -50% 0; pointer-events: none; opacity: 0; transition: opacity 180ms ease; width: 58px; height: 44px; }
+.city-metropole .city-figur { width: 64px; height: 48px; }
+.city-hauptstadt .city-figur { width: 72px; height: 54px; }
+.city-figur-svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 1.5px 1.5px rgba(30, 18, 8, 0.45)); }
+.atlas-labels.figuren-stadt .city-stadt .city-figur, .atlas-labels.figuren-metropole .city-metropole .city-figur, .atlas-labels.figuren-hauptstadt .city-hauptstadt .city-figur { opacity: 1; }
+.atlas-labels .city:hover .city-figur-svg, .atlas-labels .city:focus-visible .city-figur-svg { filter: drop-shadow(0 1.5px 1.5px rgba(30, 18, 8, 0.45)) brightness(1.08); }
+
+.atlas-labels .city .city-banner {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 3px; white-space: nowrap; border-radius: 2px;
+  font: 600 13.5px/1.25 var(--serif); letter-spacing: 0.02em; color: #f6ecd6; text-shadow: 0 1px 0 #000;
+  background: linear-gradient(180deg, #44352a, #231a13); box-shadow: 0 0 0 1px #c69a4a, 0 0 0 2px #120d0a, 0 3px 6px rgba(0, 0, 0, 0.45);
+}
+.atlas-labels .city-stadt .city-banner { font-size: 13px; }
+.atlas-labels .city-hauptstadt .city-banner { font-size: 14.5px; font-weight: 700; }
+.atlas-labels .city .city-banner i.stadt-streifen { width: 5px; align-self: stretch; margin: -2px 2px -2px 0; border-radius: 1px 0 0 1px; }
+.atlas-labels .city .city-banner b.stadt-stern { color: var(--gold-1); font-size: 12px; margin-left: -1px; }
+.atlas-labels .city .city-banner .stadt-groesse {
+  min-width: 20px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 9px; font: 700 11.5px/16px var(--sans, Inter, sans-serif); text-align: center; letter-spacing: 0;
+  background: #f1dfae; color: #2b1e12; border: 1px solid #120d0a; text-shadow: none;
+}
+.atlas-labels .city.selected .city-banner { background: linear-gradient(180deg, #f7e2a4, #c89a4a); color: #2b1e12; text-shadow: none; box-shadow: 0 0 0 1px #6a4a1c, 0 0 0 2px #120d0a, 0 3px 6px rgba(0, 0, 0, 0.45); }
+.atlas-labels .city.selected .stadt-groesse { background: #2b1e12; color: #f6e3b0; }
+.atlas-labels .city:hover .city-banner, .atlas-labels .city:focus-visible .city-banner { filter: brightness(1.12); }
+
+/* Statussymbole im Banner */
+.city-status { display: inline-flex; gap: 2px; margin-left: 1px; }
+.city-status > span { position: relative; display: inline-grid; place-items: center; width: 17px; height: 17px; }
+.city-status > span svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.city-status > span b { position: relative; font: 800 10px/1 var(--display); }
+.city-status .cs-ereignis b { color: #fff3e0; translate: 0 -1px; }
+.city-status .cs-frist b { color: #4a2208; translate: 0 1px; }
+.city-status .cs-krise b { color: #2a1d08; translate: 0 1px; }
+
+/* Tafel beim Überfahren: sofort, kein Warten (Aufbau wie die Tafeln der Marken) */
+.city-tafel { position: absolute; z-index: 20; display: none; width: 262px; padding: 8px 11px 9px; text-align: left; white-space: normal; color: #2a1f18; pointer-events: none;
+  background: rgba(244, 236, 214, 0.98); border: 1.5px solid #2a1f18; outline: 2px double rgba(42, 31, 24, 0.5); outline-offset: 2px; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+  font: 400 13px/1.35 var(--serif); text-shadow: none; letter-spacing: 0; }
+.atlas-labels .city:hover .city-tafel, .atlas-labels .city:focus-visible .city-tafel { display: grid; gap: 2px; }
+.atlas-labels .city[data-tafel^="o"] .city-tafel { bottom: calc(100% + 2px); top: auto; }
+.atlas-labels .city[data-tafel^="u"] .city-tafel { top: calc(100% + 8px); bottom: auto; }
+.atlas-labels .city[data-tafel$="m"] .city-tafel { left: 50%; right: auto; translate: -50% 0; }
+.atlas-labels .city[data-tafel$="l"] .city-tafel { left: -8px; right: auto; translate: 0 0; }
+.atlas-labels .city[data-tafel$="r"] .city-tafel { right: -8px; left: auto; translate: 0 0; }
+.atlas-labels .city:not([data-tafel]) .city-tafel { bottom: calc(100% + 2px); left: 50%; translate: -50% 0; }
+.city-tafel-art { font: 700 12px var(--serif); font-variant: small-caps; letter-spacing: 0.06em; color: #8c2b1f; }
+.city-tafel strong { font: 700 16px/1.2 var(--display); color: #2a1f18; display: flex; align-items: center; gap: 7px; }
+.city-tafel strong i { width: 6px; height: 16px; border-radius: 1px; flex: none; }
+.city-tafel-zeile { color: #3e3226; }
+.city-tafel-lage { font-weight: 600; }
+.city-tafel-klick { margin-top: 3px; padding-top: 4px; border-top: 1px solid rgba(90, 64, 40, 0.35); font-size: 12px; color: #6b5a44; font-style: italic; }
+
+/* Alte Marker: weit herausgezoomt zeigt der Punkt die Stadt, kein zweites Quadrat im Banner */
+.atlas-labels.far .city .city-banner::before { display: none; }
+html[data-effekte="hoch"] .atlas-labels .city-banner { animation: none; }
+@media (prefers-reduced-motion: reduce) { .city-figur { transition: none; } }

@@ -6,7 +6,7 @@
 import { reichMonat } from "./reich";
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES } from "./netz";
-import { addLog, fmt } from "./log";
+import { addLog } from "./log";
 import { addDays, dayOfMonth, formatDateDe } from "./dates";
 import { clamp } from "./economy";
 import { aussenweltMonat, aussenweltStart } from "./aussenwelt";
@@ -14,6 +14,7 @@ import { ereignisMonat, ereignisTag, MAX_OFFEN, oeffne } from "./ereignisse";
 import { verhandlungMonat } from "./verhandeln";
 import { programmTag } from "./programme";
 import { berichteTag } from "./berichte";
+import { altlast, taktMonat } from "./takt";
 import { weltMonat } from "./laender";
 import { abkommenMonat } from "./abkommen";
 import { euKapitalAbzug, euMonat } from "./eu";
@@ -30,18 +31,23 @@ import { gesetzeAbstimmen, REGELN, stimmenSicht, unterhaltKosten } from "./hande
 import { verfassungAktiv, verfassungKapitalAbzug, verfassungsVorgangTag } from "./verfassung";
 import { haushaltszyklusTag } from "./haushalt";
 import { krisenAktualisieren } from "./krisen";
-import { katastropheMonat, versprechensschuldMalus } from "./katastrophe";
+import { katastropheMonat } from "./katastrophe";
 import { KRIEG, kriegMit, kriegMonat, kriegTag } from "./krieg";
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
 import { Rng } from "./rng";
 import type { PlayerProfile } from "./prolog";
 import type { World } from "./types";
-import type { SpielZustand, Zusage } from "./spiel-typen";
+import type { EndeArt, SpielZustand, Zusage } from "./spiel-typen";
 import { wirke } from "./wirkung";
 import { zeitungEreignis, zeitungMonat } from "./zeitung";
 import { VERFASSUNG, belastungEreignis, verfassungStart, verfassungTag } from "./aufmerksamkeit";
-import { wahlEffekte, wahlkampfTag } from "./wahlkampf";
+import { wahlkampfTag } from "./wahlkampf";
+import { wahlTick } from "./wahl";
+import { amtszeitMonat, muedigkeitsMonate } from "./amtszeit";
+import { endenMonat } from "./enden";
+import { dauerherrscherMonat } from "./dauerherrscher";
+import { kabinettStatus } from "./kabinett";
 
 // AUS-1 ↔ MIL-1: Die Drohkulisse der Länder-Eigeninitiative übergibt an den Konfliktvorgang (sim/krieg.ts),
 // ohne ihn direkt zu importieren (Modul-Ladezyklus). Besteht mit dem Land schon eine Spannung, hebt sie auf
@@ -123,7 +129,8 @@ export function zustimmungsTeile(w: World, monate: number): { vertrauen: number;
   const gruppen = GRUPPEN.reduce((s, g) => s + g.gewicht * nationalAverage(NET, w.net, g.id), 0) / GRUPPEN_SUMME;
   const wirtschaft = clamp(50 + 0.6 * (s0.inflation - e.inflation) - 3 * (e.unemployment - s0.arbeitslosigkeit) + 1.5 * (e.growth - s0.wachstum), 0, 100);
   const probleme = SPIEL.problemGewicht * problemLast(w);
-  const muedigkeit = SPIEL.muedigkeit * schwierig(w).muedigkeit * monate;
+  // Die Müdigkeit zählt ab dem Beginn der Amtszeit; ein Teil des Verschleißes früherer Amtszeiten geht mit (sim/amtszeit.ts)
+  const muedigkeit = SPIEL.muedigkeit * schwierig(w).muedigkeit * muedigkeitsMonate(w, monate);
   return { vertrauen, gruppen, wirtschaft, probleme, muedigkeit, roh: 0.45 * vertrauen + 0.25 * gruppen + 0.3 * wirtschaft - probleme - muedigkeit };
 }
 
@@ -250,7 +257,8 @@ export function spielTick(world: World, rng: Rng): void {
   // INN-5: Der Wahlkampf als Handlungsphase (Beginn acht Wochen vor der Wahl, Wochenbudget, TV-Duell)
   wahlkampfTag(world);
   if (dayOfMonth(world.date) === 1) spielMonat(world, rng);
-  if (world.day >= spiel.wahltag) wahl(world, rng);
+  // Wahltag und Stichwahl (sim/wahl.ts): erster Wahlgang mit Parlamentswahl, gegebenenfalls Stichwahl nach 14 Tagen, dann die Folgen
+  wahlTick(world, rng);
 }
 
 /** Was das Politische Kapital jeden Monat (am Monatsersten) wieder auflädt, aufgeschlüsselt. */
@@ -260,8 +268,12 @@ export interface KapitalEinkommen {
   mehrheit: number;
   /** Legitimität der Regierung: über 60 ein Zuschlag, darunter ein Abschlag (höchstens ±1) */
   legitimitaet: number;
+  /** Democracy-4-Mechanik: Beitrag des Ministerrats aus Loyalität, Fähigkeit und Disziplin der 7 Ressorts */
+  kabinett: number;
   /** Laufender Unterhalt der Maßnahmen mit `unterhalt_monat` (Abzug, positiv angegeben) */
   unterhalt: number;
+  /** Altlasten: überfällige Zusagen und akute Probleme zehren am Kapital (Abzug, positiv angegeben; sim/takt.ts) */
+  altlast: number;
   summe: number;
   /** Datum der nächsten Gutschrift */
   naechste: string;
@@ -277,6 +289,8 @@ export function kapitalEinkommen(world: World): KapitalEinkommen {
   const f = schwierig(world).kapital;
   const legit = nationalAverage(NET, world.net, "legitimitaet");
   const legitimitaet = Number.isFinite(legit) ? Math.max(-1, Math.min(1, (legit - 60) / 40)) : 0;
+  // Democracy-4-Mechanik: Die 7 Minister erzeugen das Politische Kapital der Regierung
+  const kabinett = world.spiel?.figuren?.length ? kabinettStatus(world).kapitalSumme * f : 0;
   // Vier-Preise-Regel: Maßnahmen mit Unterhaltspreis zehren monatlich am Kapital, anteilig zur Stufe
   const unterhalt = unterhaltKosten(world).summe;
   // REC-1: Demokratisierende Verfassungsartikel kosten laufend etwas Kapital — wer Kontrolle abgibt,
@@ -284,12 +298,27 @@ export function kapitalEinkommen(world: World): KapitalEinkommen {
   const verfassungAbzug = verfassungKapitalAbzug(world) * f;
   // AUS-2: Verhandelte EU-Kapitel kosten laufend Kapital (dieselbe REC-Logik: Reformen binden Rückhalt)
   const euAbzug = euKapitalAbzug(world) * f;
-  return { grund: SPIEL.kapitalGrund * f, vertrauen: vertrauen * f, mehrheit: mehrheit * f, legitimitaet: legitimitaet * f, unterhalt: unterhalt + verfassungAbzug + euAbzug, summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f - unterhalt - verfassungAbzug - euAbzug, naechste, grenze: REGELN.kapitalMax };
+  // Gegenkraft (sim/takt.ts): Wer Zusagen schleifen lässt und Probleme liegen lässt, regiert mit weniger Rückhalt
+  const altlastAbzug = altlast(world);
+  return {
+    grund: SPIEL.kapitalGrund * f,
+    vertrauen: vertrauen * f,
+    mehrheit: mehrheit * f,
+    legitimitaet: legitimitaet * f,
+    kabinett,
+    unterhalt: unterhalt + verfassungAbzug + euAbzug,
+    altlast: altlastAbzug,
+    summe: (SPIEL.kapitalGrund + vertrauen + mehrheit + legitimitaet) * f + kabinett - unterhalt - verfassungAbzug - euAbzug - altlastAbzug,
+    naechste,
+    grenze: REGELN.kapitalMax,
+  };
 }
 
 function spielMonat(world: World, rng: Rng): void {
   const spiel = world.spiel!;
   spiel.kapital = Math.min(REGELN.kapitalMax, spiel.kapital + kapitalEinkommen(world).summe);
+  // Gegenkräfte und Rückblicke (sim/takt.ts): Kapital über der Schwelle verfällt, überfällige Zusagen haben Folgen, das Lager wird auf Dauerschwäche geprüft
+  taktMonat(world);
   // Rückhalt auf Pump: Wer im Minus steht, zahlt monatlich mit Legitimität und Vertrauen, bis die Gutschriften das Konto ausgleichen
   if (spiel.kapital < 0) {
     const last = Math.min(1, -spiel.kapital / 12);
@@ -348,6 +377,12 @@ function spielMonat(world: World, rng: Rng): void {
 
   personenMonat(world);
   figurenPruefen(world, rng);
+  // Amtszeit (sim/amtszeit.ts): ältere Stände nachholen, Umbildungsfenster schließen, in der letzten Amtszeit die Nachfolge
+  amtszeitMonat(world, rng);
+  // Vorzeitige Enden (sim/enden.ts): Putschrisiko mit Warnstufen, Amtsenthebung nach AY 105, Gesundheit, Rücktrittsforderung
+  endenMonat(world, rng);
+  // Langzeitfolgen der Dauerherrschaft ab der dritten Amtszeit (sim/dauerherrscher.ts)
+  dauerherrscherMonat(world);
   // Die Zeitung (UI-1): Monatsausgabe mit den Blättern der Cluster, Umfrage eines Instituts und
   // der leichten Wirkung auf die Wählergruppen. Eilmeldungen von heute bringt Print erst nächsten Monat.
   zeitungMonat(world);
@@ -388,62 +423,10 @@ function figurenPruefen(world: World, rng: Rng): void {
 // ---------------------------------------------------------------------------
 // Wahl und Ende
 
-function beende(world: World, art: "wiederwahl" | "abwahl" | "sturz" | "amtszeitende", titel: string, text: string, anteil?: number): void {
+export function beende(world: World, art: EndeArt, titel: string, text: string, anteil?: number, nachfolge?: "sieg" | "niederlage"): void {
   const spiel = world.spiel!;
-  spiel.ende = { tag: world.day, datum: world.date, art, titel, text, ...(anteil !== undefined ? { anteil } : {}) };
+  spiel.ende = { tag: world.day, datum: world.date, art, titel, text, ...(anteil !== undefined ? { anteil } : {}), ...(nachfolge ? { nachfolge } : {}) };
   spiel.ereignisse = [];
   spiel.gesetze = [];
   addLog(world, "ereignis", titel, text);
-}
-
-function wahl(world: World, rng: Rng): void {
-  const spiel = world.spiel!;
-  // INF-5 (Versprechensschuld): Unwucht zwischen öffentlicher Katastrophen-Zusage und Lieferung kostet am Wahltag Stimmen
-  const schuld = versprechensschuldMalus(world);
-  if (schuld.punkte > 0) {
-    spiel.chronik.push({ tag: world.day, datum: world.date, titel: "Die Versprechensschuld wird eingefordert", ausgang: schuld.text });
-    addLog(world, "ereignis", "Die Versprechensschuld wird eingefordert.", schuld.text);
-  }
-  // INN-5: Die Effekte des Wahlkampfs (TV-Duell, Gegner-Angriffe, Diaspora-Block) fließen in die Rechnung;
-  // Reisen und Versprechen wirken längst über das Netz auf die Zustimmung selbst
-  const effekte = wahlEffekte(world);
-  const anteil = clamp(spiel.umfrage.zustimmung + effekte.gesamt + rng.normal(2.2) - schuld.punkte, 0, 100);
-  const effektText = effekte.teile.length > 0 ? ` Der Schlussspurt des Wahlkampfs brachte ${effekte.gesamt >= 0 ? "+" : "−"}${fmt(Math.abs(effekte.gesamt))} Prozentpunkte (${effekte.teile.map((t) => `${t.name} ${t.punkte >= 0 ? "+" : "−"}${fmt(Math.abs(t.punkte))}`).join(", ")}).` : "";
-  const name = world.player?.name ?? "Der Präsident";
-  // Die Verfassung bestimmt die Zahl der Amtszeiten: Das Paket „Weitere Wiederwahl“ erlaubt eine dritte (REC-1)
-  const maxAmtszeit = verfassungAktiv(world, "amtszeit") === "wiederwahl_plus" ? 3 : 2;
-  if (anteil >= 50) {
-    if (spiel.amtszeit < maxAmtszeit) {
-      spiel.amtszeit += 1;
-      const letzte = spiel.amtszeit >= maxAmtszeit;
-      spiel.wahltag = world.day + 365 * SPIEL.amtszeitJahre + 1;
-      // Die Phase schließt; die Versprechen bleiben als Zusagen bestehen und werden zwölf Monate nach der Wahl fällig
-      delete spiel.wahlkampf;
-      spiel.chronik.push({ tag: world.day, datum: world.date, titel: "Wiederwahl", ausgang: `${name} wird mit ${fmt(anteil)} Prozent wiedergewählt.${effektText}` });
-      addLog(
-        world,
-        "ereignis",
-        `Wahlabend: ${name} wird mit ${fmt(anteil)} Prozent im Amt bestätigt.${effektText}`,
-        letzte ? `Die Amtszeit ${spiel.amtszeit} ist die letzte; danach schreibt die Verfassung eine Pause vor.` : `Die Amtszeit ${spiel.amtszeit} beginnt; die Verfassung erlaubt eine weitere Wiederwahl.`,
-      );
-      spiel.hinweise.push({
-        id: `wahl-${world.day}`,
-        titel: "Wahlabend: Wiederwahl",
-        szene: "wahlnacht",
-        text: [`${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent. Die Amtszeit ${spiel.amtszeit} beginnt${letzte ? "; sie ist die letzte" : ""}.${effektText}`],
-      });
-      // Wahlsieg: Großereignis für die Zeitung (Eilmeldung digital, Print im nächsten Monat)
-      zeitungEreignis(world, {
-        art: "wahlsieg",
-        titel: "Wiederwahl",
-        fakt: `${name} gewinnt die Präsidentschaftswahl mit ${fmt(anteil)} Prozent der Stimmen.`,
-        wertung: 1,
-        schluessel: ["Wiederwahl"],
-      });
-    } else {
-      beende(world, "amtszeitende", `Ende der Amtszeit ${spiel.amtszeit}`, `Nach ${spiel.amtszeit === 2 ? "zwei" : "drei"} Amtszeiten endet die Zeit im Amt; die Verfassung erlaubt keine weitere.`, anteil);
-    }
-  } else {
-    beende(world, "abwahl", "Abgewählt", `Bei der Wahl am ${formatDateDe(world.date)} erhält ${name} nur ${fmt(anteil)} Prozent der Stimmen.${effektText}`, anteil);
-  }
 }

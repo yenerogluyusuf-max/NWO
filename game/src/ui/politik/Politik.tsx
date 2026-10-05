@@ -1,6 +1,6 @@
 // Politik nach Bereichen: links alle Themenfelder mit Ampel, rechts der gewählte Bereich mit Lage, akuten Problemen, Vorschlägen
 // und allen Maßnahmen. Jede Zeile führt zu einer Entscheidung: Ein Klick öffnet die Maßnahme mit Stufen, Folgen, Kosten und Weg.
-// Ohne Auswahl zeigt die Ansicht alle Bereiche als Kacheln („Überblick“).
+// Ohne Auswahl zeigt die Ansicht alle Bereiche als Kacheln („Überblick“). Gestaltung: politik/design.css (Klassen .pd-).
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { World } from "../../sim/types";
@@ -14,13 +14,16 @@ import type { Theme } from "../../data/politiknetz";
 import type { Vorschlag } from "../../sim/vorschlaege";
 import { NetView } from "../NetView";
 import { VorschlagKarte } from "./VorschlagKarte";
+import { Emblem, Medaille, embleme } from "./embleme";
 import { EINHEIT, alleBereiche, alleVorschlaege, bereichStand, vorschlaegeIn, type Ampel, type BereichKurz, type LageZeile } from "./bereiche";
 import "./politik.css";
+import "./design.css";
 
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 const nc = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
 const AMPEL_WORT: Record<Ampel, string> = { gruen: "ruhig", gelb: "Achtung", rot: "angespannt" };
+const AMPEL_PILL: Record<Ampel, string> = { gruen: "gut", gelb: "warn", rot: "schlecht" };
 
 /** Was geöffnet ist: ein Knoten des Netzes (Maßnahme, Größe, Problem) mit voreingestellter Stufe und Ort. */
 export interface Offen {
@@ -178,7 +181,9 @@ export function Politik({
         </button>
         {kurz.map((k) => (
           <button key={k.theme} className={`po-rail-eintrag${bereich === k.theme ? " on" : ""}`} onClick={() => { setBereich(k.theme); setAlleLage(false); setAntwort(null); }} aria-current={bereich === k.theme ? "page" : undefined}>
-            <AmpelPunkt ampel={k.ampel} klein />
+            <span className={`pd-ring ${k.ampel}`} role="img" aria-label={`Lage: ${AMPEL_WORT[k.ampel]}`} title={`Lage: ${AMPEL_WORT[k.ampel]}`}>
+              <Emblem name={embleme(k.theme)} size={16} />
+            </span>
             <span className="po-rail-name">{k.name}</span>
             {k.akut > 0 && <span className="po-rail-akut" title={`${k.akut} akute Probleme`}>{k.akut}</span>}
           </button>
@@ -211,56 +216,84 @@ export function Politik({
 
 function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle: (t: Theme) => void; onOpen?: (ziel: "bereiche") => void }) {
   const angespannt = kurz.filter((k) => k.ampel === "rot").sort((a, b) => b.akut - a.akut);
+  const zahl = (a: Ampel) => kurz.filter((k) => k.ampel === a).length;
+  const akutGesamt = kurz.reduce((n, k) => n + k.akut, 0);
+  // Angespannte Bereiche zuerst, dann nach Zahl der akuten Probleme; innerhalb gleicher Lage bleibt die feste Reihenfolge
+  const rang: Record<Ampel, number> = { rot: 0, gelb: 1, gruen: 2 };
+  const sortiert = kurz.map((k, i) => ({ k, i })).sort((a, b) => rang[a.k.ampel] - rang[b.k.ampel] || b.k.akut - a.k.akut || a.i - b.i).map((x) => x.k);
   return (
     <>
-      <header className="po-kopf">
-        <h3>Alle Bereiche</h3>
-      </header>
-      <p className="po-hinweis">
-        {angespannt.length > 0 ? (
-          <>
-            <strong>Angespannt:</strong>{" "}
-            {angespannt.map((k, i) => (
-              <span key={k.theme}>
-                {i > 0 && " · "}
-                <button className="link" onClick={() => onWaehle(k.theme)}>
-                  {k.name}
+      <header className="pd-seitenkopf">
+        <div>
+          <p className="pd-ueber">Politik</p>
+          <h3>Alle Bereiche</h3>
+          <p className="pd-lead">
+            {angespannt.length > 0 ? (
+              <>
+                Am dringendsten:{" "}
+                {angespannt.slice(0, 3).map((k, i) => (
+                  <span key={k.theme}>
+                    {i > 0 && (i === Math.min(3, angespannt.length) - 1 ? " und " : ", ")}
+                    <button className="pd-btn quiet" onClick={() => onWaehle(k.theme)}>
+                      {k.name}
+                    </button>
+                  </span>
+                ))}
+                .{" "}
+              </>
+            ) : (
+              <>Kein Bereich ist angespannt. </>
+            )}
+            {onOpen && (
+              <>
+                Die Vorhaben mit der größten Wirkung stehen unter{" "}
+                <button className="pd-btn quiet" onClick={() => onOpen("bereiche")}>
+                  Heute
                 </button>
-                {k.akut > 0 && ` (${k.akut} akut)`}
-              </span>
-            ))}
-            .
-          </>
-        ) : (
-          <>Kein Bereich ist angespannt.</>
-        )}{" "}
-        {onOpen && (
-          <>
-            Die Vorhaben mit der größten Wirkung stehen unter{" "}
-            <button className="link" onClick={() => onOpen("bereiche")}>
-              Heute
-            </button>
-            .
-          </>
-        )}
-      </p>
-      <div className="po-kacheln">
-        {kurz.map((k) => (
-          <button key={k.theme} className={`po-kachel po-r-${k.ampel}`} onClick={() => onWaehle(k.theme)}>
-            <span className="po-kachel-kopf">
-              <AmpelPunkt ampel={k.ampel} />
+                .
+              </>
+            )}
+          </p>
+        </div>
+        <ul className="pd-zaehler" aria-label="Lage der Bereiche">
+          <li className={zahl("rot") > 0 ? "hell rot" : ""}>
+            <b>{zahl("rot")}</b>
+            <span>angespannt</span>
+          </li>
+          <li>
+            <b>{zahl("gelb")}</b>
+            <span>Achtung</span>
+          </li>
+          <li>
+            <b>{zahl("gruen")}</b>
+            <span>ruhig</span>
+          </li>
+          <li>
+            <b>{akutGesamt}</b>
+            <span>akute Probleme</span>
+          </li>
+        </ul>
+      </header>
+      <div className="pd-kacheln">
+        {sortiert.map((k) => (
+          <button key={k.theme} className={`pd-kachel ${k.ampel}`} onClick={() => onWaehle(k.theme)}>
+            <span className="pd-kachel-kopf">
+              <Medaille name={embleme(k.theme)} groesse="klein" />
               <strong>{k.name}</strong>
             </span>
-            <span className="po-kachel-text">{k.text}</span>
-            <span className="po-kachel-stand" title={k.ampelGrund}>
-              {AMPEL_WORT[k.ampel]}
-              {k.akut > 0 ? ` · ${k.akut} akut` : ""}
-              {k.laufend > 0 ? ` · ${k.laufend} ${k.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}` : ""}
+            <span className="pd-kachel-stand" title={k.ampelGrund}>
+              <span className={`pd-pill ${AMPEL_PILL[k.ampel]}`}>{AMPEL_WORT[k.ampel]}</span>
+              {k.akut > 0 && <span className="pd-chip schlecht">{k.akut} akut</span>}
+              {k.laufend > 0 && <span className="pd-chip" title={`${k.laufend} ${k.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}`}>{k.laufend} im Gang</span>}
             </span>
-            <ul className="po-signale">
+            <span className="pd-kachel-text">{k.text}</span>
+            <ul className="pd-signale">
               {k.signale.map((s) => (
                 <li key={s.id}>
-                  <span>{s.name}</span>
+                  <span className="pd-signal-name">{s.name}</span>
+                  <span className={`pd-mini b-${s.bewertung}`} aria-hidden>
+                    <i style={{ width: `${Math.max(0, Math.min(100, s.jetzt))}%` }} />
+                  </span>
                   <strong>
                     {Math.round(s.jetzt)} <Trend z={s} />
                   </strong>
@@ -308,34 +341,48 @@ function BereichSeite({
   const lageSortiert = [...stand.lage].sort((a, b) => Number(b.bewertung === "schlecht") - Number(a.bewertung === "schlecht") || Math.abs(b.delta) - Math.abs(a.delta));
   const lageSicht = alleLage ? lageSortiert : lageSortiert.slice(0, 6);
   const kapital = world.spiel?.kapital;
+  // Laufende Maßnahmen zuerst: Sie brauchen Aufmerksamkeit, der Rest ist Vorrat
+  const massnahmen = [...stand.massnahmen].sort((a, b) => Number(Boolean(b.imParlament || b.ziel !== undefined || b.umsetzung)) - Number(Boolean(a.imParlament || a.ziel !== undefined || a.umsetzung)));
 
   return (
     <>
-      <header className="po-kopf">
-        <div className="po-titelzeile">
-          <AmpelPunkt ampel={stand.ampel} />
+      <header className="pd-bereich-kopf">
+        <Medaille name={embleme(kurz.theme)} groesse="gross" />
+        <div className="pd-bereich-titel">
+          <p className="pd-ueber">Bereich</p>
           <h3>{stand.name}</h3>
-          <span className={`po-lagewort po-l-${stand.ampel}`} title={stand.ampelGrund}>
-            {AMPEL_WORT[stand.ampel]}
-          </span>
+          <p className="pd-lead">{stand.text}</p>
         </div>
-        <p className="subtitle">{stand.text}</p>
-        <p className="po-kennzeile">
-          {stand.probleme.length > 0 ? <span className="schlecht">{stand.probleme.length} akut</span> : <span>kein akutes Problem</span>}
-          <span>{stand.laufend > 0 ? `${stand.laufend} ${stand.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}` : "kein Vorhaben unterwegs"}</span>
-          {stand.besser + stand.schlechter > 0 && (
-            <span>
-              {stand.besser} besser, {stand.schlechter} schlechter seit dem Amtsantritt
-            </span>
-          )}
-          {kapital !== undefined && (
-            <span>
-              Kapital <b>{Math.floor(kapital)}</b>
-            </span>
-          )}
-        </p>
-        <p className="po-grund">{stand.ampelGrund}</p>
+        <span className={`pd-pill gross ${AMPEL_PILL[stand.ampel]}`} title={stand.ampelGrund}>
+          {AMPEL_WORT[stand.ampel]}
+        </span>
       </header>
+
+      <ul className="pd-kennzahlen" aria-label="Kennzahlen des Bereichs">
+        <li className={stand.probleme.length > 0 ? "rot" : ""}>
+          <b>{stand.probleme.length}</b>
+          <span>{stand.probleme.length === 1 ? "akutes Problem" : "akute Probleme"}</span>
+        </li>
+        <li>
+          <b>{stand.laufend}</b>
+          <span>{stand.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}</span>
+        </li>
+        {stand.besser + stand.schlechter > 0 && (
+          <li>
+            <b>
+              <span className="gut">{stand.besser} ▲</span> <span className="schlecht">{stand.schlechter} ▼</span>
+            </b>
+            <span>besser / schlechter seit dem Amtsantritt</span>
+          </li>
+        )}
+        {kapital !== undefined && (
+          <li>
+            <b>{Math.floor(kapital)}</b>
+            <span>Kapital verfügbar</span>
+          </li>
+        )}
+      </ul>
+      <p className="pd-grund">{stand.ampelGrund}</p>
 
       {antwort && (
         <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
@@ -345,29 +392,37 @@ function BereichSeite({
       )}
 
       {stand.probleme.length > 0 && (
-        <section className="po-block">
+        <section className="pd-block">
           <h4>Akute Probleme</h4>
-          <ul className="po-probleme">
+          <ul className="pd-probleme">
             {stand.probleme.map((p) => {
               const orte = p.provinzen;
               const hebel = handlungsHebel(mittel, p.id, -1, 2);
               return (
-                <li key={p.id}>
-                  <div className="po-problem-kopf">
-                    <button className="link" onClick={() => oeffne({ id: p.id })}>
-                      <strong>{p.name}</strong>
+                <li key={p.id} className="pd-problem">
+                  <div className="pd-problem-kopf">
+                    <button className="pd-titelknopf" onClick={() => oeffne({ id: p.id })}>
+                      {p.name}
                     </button>
-                    <span>
-                      in {orte.length} {orte.length === 1 ? "Provinz" : "Provinzen"}, betrifft {Math.round(p.last * 100)} % der Menschen
+                    <span className="pd-chip">
+                      {orte.length} {orte.length === 1 ? "Provinz" : "Provinzen"}
                     </span>
+                    <span className="pd-chip schlecht">betrifft {Math.round(p.last * 100)} % der Menschen</span>
                   </div>
-                  <div className="po-hebel">
-                    {hebel.length === 0 && <span className="subtitle">Alle Hebel sind schon weit ausgebaut.</span>}
-                    {hebel.map((h) => (
-                      <button key={`${h.massnahme}-${h.richtung}`} className="aktion-knopf" onClick={() => stelle(h.massnahme, h.richtung, orte.length > 0 && orte.length <= 50 ? orte : null)} title={`wirkt ${h.wirkung}`}>
-                        {h.name} {tunWort(h.massnahme, h.richtung)}
-                      </button>
-                    ))}
+                  <span className="pd-balken schmal" role="img" aria-label={`${Math.round(p.last * 100)} Prozent der Menschen`}>
+                    <i style={{ width: `${Math.round(p.last * 100)}%` }} />
+                  </span>
+                  <div className="pd-hebel">
+                    <span className="pd-hebel-label">Hebel</span>
+                    {hebel.length === 0 && <span className="pd-leise">Alle Hebel sind schon weit ausgebaut.</span>}
+                    <div className="pd-hebel-knoepfe">
+                      {hebel.map((h) => (
+                        <button key={`${h.massnahme}-${h.richtung}`} className="pd-btn" onClick={() => stelle(h.massnahme, h.richtung, orte.length > 0 && orte.length <= 50 ? orte : null)} title={`wirkt ${h.wirkung}`}>
+                          <span aria-hidden className="pd-pfeil">{h.richtung > 0 ? "▲" : "▼"}</span>
+                          {h.name} {tunWort(h.massnahme, h.richtung)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </li>
               );
@@ -376,7 +431,7 @@ function BereichSeite({
         </section>
       )}
 
-      <section className="po-block">
+      <section className="pd-block">
         <h4>Lage</h4>
         <ul className="po-lageliste">
           {lageSicht.map((z) => (
@@ -384,20 +439,20 @@ function BereichSeite({
           ))}
         </ul>
         {lageSortiert.length > 6 && (
-          <button className="link" onClick={() => setAlleLage(!alleLage)}>
+          <button className="pd-btn quiet" onClick={() => setAlleLage(!alleLage)}>
             {alleLage ? "Weniger anzeigen" : `Alle ${lageSortiert.length} Größen anzeigen`}
           </button>
         )}
-        <p className="po-legende">Balken: Index 0 bis 100, der Strich zeigt den Stand beim Amtsantritt. ▲ ▼ zeigen die Veränderung seit damals, grün ist besser, rot schlechter.</p>
+        <p className="pd-legende">Balken: Index 0 bis 100, der Strich zeigt den Stand beim Amtsantritt. ▲ ▼ zeigen die Veränderung seit damals, grün ist besser, rot schlechter.</p>
         {(kurz.theme === "wirtschaft" || kurz.theme === "haushalt") && onOpen && (
-          <p className="po-legende">
-            Inflation, Zins, Lira und Zentralbank: <button className="link" onClick={() => onOpen("wirtschaft")}>Wirtschaft ansehen</button>
+          <p className="pd-legende">
+            Inflation, Zins, Lira und Zentralbank: <button className="pd-btn quiet" onClick={() => onOpen("wirtschaft")}>Wirtschaft ansehen</button>
           </p>
         )}
       </section>
 
       {vorschlaege.length > 0 && (
-        <section className="po-block">
+        <section className="pd-block">
           <h4>Was hier jetzt hilft</h4>
           <ol className="vorschlag-liste">
             {vorschlaege.map((v) => (
@@ -407,49 +462,67 @@ function BereichSeite({
         </section>
       )}
 
-      <section className="po-block">
+      <section className="pd-block">
         <h4>Maßnahmen</h4>
-        <p className="subtitle">Jede Maßnahme lässt sich in Stufen einstellen; danach zeigt das Spiel Folgen, Kosten, die Mehrheit und den Weg (Gesetz oder Erlass).</p>
-        <ul className="po-massnahmen">
-          {stand.massnahmen.map((m) => (
-            <li key={m.id} className={m.imParlament || m.ziel !== undefined || m.umsetzung !== undefined ? "laeuft" : ""}>
-              <div className="po-m-text">
-                <strong>
-                  {m.name}
+        <p className="pd-legende ohne-rand">Jede Maßnahme lässt sich in Stufen einstellen; danach zeigt das Spiel Folgen, Kosten, die Mehrheit und den Weg (Gesetz oder Erlass).</p>
+        <ul className="pd-massnahmen">
+          {massnahmen.map((m) => {
+            const laeuft = Boolean(m.imParlament || m.ziel !== undefined || m.umsetzung);
+            const pos = Math.max(0, Math.min(100, m.jetzt));
+            return (
+              <li key={m.id} className={`pd-m${laeuft ? " laeuft" : ""}`}>
+                <div className="pd-m-haupt">
+                  <div className="pd-m-kopf">
+                    <strong>{m.name}</strong>
+                    {m.umsetzung && (
+                      <span className="pd-pill teal" title="Die Stufe ist beschlossen; die Verwaltung setzt sie um. Erst der umgesetzte Anteil wirkt.">
+                        wirkt noch an
+                      </span>
+                    )}
+                    {m.imParlament && <span className="pd-pill warn">im Parlament</span>}
+                    {m.blocker && <BlockerBadge blocker={m.blocker} />}
+                  </div>
+                  <p className="pd-m-beschr">{m.text}</p>
                   {m.umsetzung && (
-                    <span className="po-u-badge" title="Die Stufe ist beschlossen; die Verwaltung setzt sie um. Erst der umgesetzte Anteil wirkt.">
-                      wirkt noch an
-                    </span>
+                    <p className="pd-m-umsetzung">
+                      <span className="pd-balken schmal" role="img" aria-label={`Umsetzung ${Math.round(m.umsetzung.stand)} Prozent`}>
+                        <i style={{ width: `${m.umsetzung.stand}%` }} />
+                      </span>
+                      <span>
+                        Umsetzung {Math.round(m.umsetzung.stand)} % · volle Wirkung in etwa {m.umsetzung.rest} {m.umsetzung.rest === 1 ? "Monat" : "Monaten"}
+                      </span>
+                    </p>
                   )}
-                  {m.blocker && <BlockerBadge blocker={m.blocker} />}
-                </strong>
-                <span className="po-m-stand">
-                  {m.stufe}
-                  {m.ziel !== undefined && <em> → Umsetzung läuft auf {Math.round(m.ziel)}</em>}
-                  {m.imParlament && <em> · im Parlament: Stufe {Math.round(m.imParlament.stufe)}, Abstimmung in {m.imParlament.tage} Tagen</em>}
-                </span>
-                {m.umsetzung && (
-                  <span className="po-umsetzung">
-                    <span className="po-u-balken" aria-hidden>
-                      <i style={{ width: `${m.umsetzung.stand}%` }} />
-                    </span>
-                    <span className="po-u-text">
-                      Umsetzung {Math.round(m.umsetzung.stand)} % · volle Wirkung in etwa {m.umsetzung.rest} {m.umsetzung.rest === 1 ? "Monat" : "Monaten"}
-                    </span>
+                  {m.imParlament && (
+                    <p className="pd-m-umsetzung">
+                      <span>Stufe {Math.round(m.imParlament.stufe)} liegt im Parlament, Abstimmung in {m.imParlament.tage} Tagen.</span>
+                    </p>
+                  )}
+                </div>
+                <div className="pd-m-stufe">
+                  <span className="pd-m-stufentext">{m.stufe}</span>
+                  <span className="pd-skala" aria-hidden>
+                    <i style={{ width: `${pos}%` }} />
+                    {m.ziel !== undefined && <b style={{ left: `${Math.max(0, Math.min(100, m.ziel))}%` }} title="beschlossenes Ziel" />}
                   </span>
-                )}
-                <span className="po-m-beschr">{m.text}</span>
-                {m.kosten > 0 && (
-                  <span className="po-m-kosten">
-                    Haushalt: {m.einnahme ? "Einnahmen" : "Kosten"} heute {nc(m.kosten)} % des BIP
-                  </span>
-                )}
-              </div>
-              <button className="aktion-knopf" onClick={() => oeffne({ id: m.id })}>
-                Ändern
-              </button>
-            </li>
-          ))}
+                  {m.ziel !== undefined && <small>Umsetzung läuft auf {Math.round(m.ziel)}</small>}
+                </div>
+                <div className="pd-m-kosten">
+                  {m.kosten > 0 ? (
+                    <>
+                      <b>{nc(m.kosten)} %</b>
+                      <small>{m.einnahme ? "Einnahmen" : "Kosten"} des BIP</small>
+                    </>
+                  ) : (
+                    <small>kein eigener Haushaltsposten</small>
+                  )}
+                </div>
+                <button className="pd-btn" onClick={() => oeffne({ id: m.id })}>
+                  Ändern
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </section>
     </>

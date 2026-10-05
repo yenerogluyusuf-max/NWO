@@ -4,9 +4,9 @@
 
 import type { Vorhaben } from "../../sim/reich-typen";
 import type { VorteilDef } from "./typen";
-import { stoss, stuetze } from "./bau";
+import { instandsetzung, stoss, stuetze } from "./bau";
 
-export const MILITAER_VORHABEN: Vorhaben[] = [
+const MILITAER_BASIS: Vorhaben[] = [
   // ---- Bestand am Spielbeginn
   {
     id: "mil_drohnen",
@@ -272,6 +272,21 @@ export const MILITAER_VORHABEN: Vorhaben[] = [
     quelle: "Spielvorhaben",
   },
 ];
+
+/** Rüstungsbestand mit Wirkung auf Größen wird gewartet oder verfällt (Startbestand ebenso wie später Beschafftes); wer wartet, bindet Werften und Techniker. */
+export const MIL_PFLEGBAR = (b: Vorhaben): boolean =>
+  ["grossprojekt", "beschaffung", "wunder", "ausbau", "forschung"].includes(b.klasse) && !b.ohnePflege && (b.dauer ?? []).some((e) => e.t === "knoten");
+
+export const militaerInstandsetzung = (b: Vorhaben): Vorhaben =>
+  instandsetzung(b, {
+    id: `instandsetzung_${b.id}`,
+    bau: 120,
+    monate: 8,
+    hub: 22,
+    kehrseite: "Bindet Werften und Techniker, die dann für Neubeschaffung fehlen.",
+  });
+
+export const MILITAER_VORHABEN: Vorhaben[] = [...MILITAER_BASIS, ...MILITAER_BASIS.filter(MIL_PFLEGBAR).map(militaerInstandsetzung)];
 
 export const MILITAER_VORTEILE: VorteilDef[] = [
   {

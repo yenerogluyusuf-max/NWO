@@ -278,6 +278,10 @@ const PILGERWELLE: Vorlage = {
 
 // ---------------------------------------------------------------------------
 // Recht
+//
+// Bewusst nur das Verfassungsgericht hat ein Besetzungs-Ereignis. Der Richter- und Staatsanwaltsrat (HSK, Sitzmodell 13) verschiebt sich über das
+// Reform-Vorhaben `recht_hsk` und den Verfassungsartikel zum Richterrat; ein eigenes Besetzungs-Drama steht für die Welle „Lebendige Gegenüber“
+// an (SPIEL_DURCHDACHT_2026-10-05.md, Welle 4). `besetze` kann den HSK bereits.
 
 const ERNENNUNG: Vorlage = {
   id: "recht_ernennung",
@@ -319,8 +323,14 @@ const ERNENNUNG: Vorlage = {
   ],
   standard: (w) => {
     const s = reichZustand(w).sitze.aym!;
-    s.loyal += 1;
-    s.unabhaengig = Math.max(0, s.unabhaengig - 1);
+    // Der Sitz wird frei und neu besetzt, die Zahl der Richter bleibt gleich: Wer ausscheidet, kommt aus den Unabhängigen, sonst aus den
+    // Reformorientierten (früher wuchs das Gericht auf 16 Sitze, wenn keine Unabhängigen mehr saßen). Sitzt nur noch das eigene Lager im Gericht,
+    // ersetzt ein Loyaler den anderen.
+    const geht = s.unabhaengig > 0 ? "unabhaengig" : s.reform > 0 ? "reform" : null;
+    if (geht) {
+      s[geht] -= 1;
+      s.loyal += 1;
+    }
     return "Der Präsident lässt die Frist verstreichen; der Sitz geht an den Kandidaten seines Umfelds.";
   },
 };

@@ -9,7 +9,7 @@ import { createWorld, advance, NET } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, type PlayerProfile } from "../src/sim/prolog";
 import { waehleZiele, type Schwierigkeit } from "../src/sim/spiel";
-import { EREIGNIS_WETTBEWERB, MAX_OFFEN, VORLAGEN, ereignisMonat, vorlage } from "../src/sim/ereignisse";
+import { EREIGNIS_WETTBEWERB, MAX_OFFEN, VORLAGEN, ereignisMonatSofort as ereignisMonat, vorlage } from "../src/sim/ereignisse";
 import type { Vorlage } from "../src/sim/ereignisse";
 import { nationalAverage } from "../src/sim/netz";
 import { Rng } from "../src/sim/rng";

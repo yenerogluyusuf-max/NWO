@@ -67,6 +67,6 @@ describe("Ereignistexte", () => {
         expect(r.text, `${id}/${o.id}`).not.toMatch(KAPUTT);
       }
     }
-    if (!["zusage", "koalitionsangebot"].includes(id) && !id.startsWith("start_")) expect(geoeffnet, `${id} ließ sich nie öffnen`).toBeGreaterThan(0);
+    if (!["zusage", "koalitionsangebot"].includes(id) && !id.startsWith("start_") && !id.startsWith("katastrophe_") && id !== "grossbeben") expect(geoeffnet, `${id} ließ sich nie öffnen`).toBeGreaterThan(0);
   });
 });

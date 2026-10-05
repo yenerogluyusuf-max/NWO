@@ -141,6 +141,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
           : `${l.name} würde ablehnen.`;
 
   return (
+    <>
     <section className="we-tisch" aria-label={`Verhandlungstisch mit ${l.name}`}>
       <div ref={kopf} className="we-tisch-oben">
         <p className="we-tisch-kopf">
@@ -225,35 +226,36 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
           </ul>
         </div>
       </div>
-
-      <div className="we-leiste">
-        <div className="we-leiste-stimmung" aria-live="polite">
-          <Waage stimmung={nichts ? -1 : b.stimmung} urteil={nichts ? "leer" : b.urteil} />
-          <span>{stimmungText}</span>
-        </div>
-        <div className="we-laufzeit" role="radiogroup" aria-label="Laufzeit">
-          <span>Laufzeit</span>
-          {VERTRAGSLAUFZEITEN.map((j) => (
-            <button key={j} type="button" role="radio" aria-checked={jahre === j} className={jahre === j ? "an" : ""} onClick={() => setJahre(j)} title={j === 2 ? "Kurz: schwächere Dauerwirkung, leichter zu bekommen" : j === 10 ? "Lang: stärkere Dauerwirkung, das Land verlangt mehr Vertrauen, ein Bruch wiegt schwer" : "Standard"}>
-              {j} Jahre
-            </button>
-          ))}
-        </div>
-        <div className="we-abgabe">
-          {rest > 0 ? (
-            <span className="we-sperre">{l.name} spricht erst in {rest} Tagen wieder mit Ihnen.</span>
-          ) : (
-            <>
-              <span className={`we-kosten${nurAufPump(kapital, b.pk) ? " pump" : ""}`}>
-                Kosten <b>{b.pk}</b> Kapital{nurAufPump(kapital, b.pk) ? " (auf Pump)" : ""}
-              </span>
-              <button type="button" className="brass-button we-senden" disabled={nichts || !kannBezahlen} onClick={unterbreite}>
-                {b.urteil === "veto" ? "Trotzdem vorlegen" : "Angebot unterbreiten"}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
     </section>
+    {/* Die Leiste steht außerhalb des Tisch-Containers: Ein klebendes Element rutscht nicht über den Anfang seines Containers hinaus, in kleinen Fenstern hing sie sonst unter dem Fensterrand */}
+    <div className="we-leiste">
+      <div className="we-leiste-stimmung" aria-live="polite">
+        <Waage stimmung={nichts ? -1 : b.stimmung} urteil={nichts ? "leer" : b.urteil} />
+        <span>{stimmungText}</span>
+      </div>
+      <div className="we-laufzeit" role="radiogroup" aria-label="Laufzeit">
+        <span>Laufzeit</span>
+        {VERTRAGSLAUFZEITEN.map((j) => (
+          <button key={j} type="button" role="radio" aria-checked={jahre === j} className={jahre === j ? "an" : ""} onClick={() => setJahre(j)} title={j === 2 ? "Kurz: schwächere Dauerwirkung, leichter zu bekommen" : j === 10 ? "Lang: stärkere Dauerwirkung, das Land verlangt mehr Vertrauen, ein Bruch wiegt schwer" : "Standard"}>
+            {j} Jahre
+          </button>
+        ))}
+      </div>
+      <div className="we-abgabe">
+        {rest > 0 ? (
+          <span className="we-sperre">{l.name} spricht erst in {rest} Tagen wieder mit Ihnen.</span>
+        ) : (
+          <>
+            <span className={`we-kosten${nurAufPump(kapital, b.pk) ? " pump" : ""}`}>
+              Kosten <b>{b.pk}</b> Kapital{nurAufPump(kapital, b.pk) ? " (auf Pump)" : ""}
+            </span>
+            <button type="button" className="brass-button we-senden" disabled={nichts || !kannBezahlen} onClick={unterbreite}>
+              {b.urteil === "veto" ? "Trotzdem vorlegen" : "Angebot unterbreiten"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+    </>
   );
 }

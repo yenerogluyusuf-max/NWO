@@ -234,7 +234,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             {v.zyklus.modus === "entwurf" ? "In den Entwurf übernehmen (kostenlos)" : `Nachtragshaushalt beschließen (${v.kapital} Kapital)`} <span aria-hidden>→</span>
           </button>
         )}
-        <button className="link" onClick={() => { setSel(null); setEntwurf(null); }}>
+        <button className="pd-btn quiet" onClick={() => { setSel(null); setEntwurf(null); }}>
           Verwerfen
         </button>
       </div>

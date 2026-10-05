@@ -1,18 +1,31 @@
 // Personen und Zusagen: Wer um den Präsidenten steht (Profil, Sorgen, Ressort, Gespräche, Wechsel im Amt) und was versprochen wurde.
 // Die Regeln stehen in sim/personen.ts, gespraeche.ts, nachfolge.ts und zusagen.ts; hier nur die Ansicht.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { World } from "../sim/types";
+import type { VorlagenZiel } from "../sim/ministerfluss-typen";
 import { zusagenBilanz, zusagenSicht } from "../sim/zusagen";
 import { termineInfo } from "../sim/gespraeche";
 import { AEMTER, eigenVon } from "../sim/personen";
+import { Icon } from "./icons";
 import { Umfeld } from "./personen/Umfeld";
+import { MinisterratSaal } from "./personen/MinisterratSaal";
 import { ZusagenAnsicht } from "./personen/ZusagenAnsicht";
 import "./personen/personen.css";
 
-export function Personen({ world, refresh, onMassnahme }: { world: World; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void }) {
+export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte }: { world: World; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void }) {
   const spiel = world.spiel;
-  const [tab, setTab] = useState<"umfeld" | "zusagen">("umfeld");
+  const [tab, setTab] = useState<"kabinett" | "umfeld" | "zusagen">("kabinett");
+  const [gewaehltePerson, setGewaehltePerson] = useState<{ id: string; modus?: "gespraech" | "entlassen" } | null>(null);
+  const wurzel = useRef<HTMLDivElement>(null);
+  // Wer im Kabinett nach unten gescrollt hat und dann in eine andere Ansicht wechselt, sieht deren Anfang, nicht ihre Mitte
+  useEffect(() => {
+    // Kommt der Spieler mit einer gewählten Person aus dem Kabinett, springt das Umfeld selbst an deren Szene
+    if (tab === "umfeld" && gewaehltePerson) return;
+    const fenster = wurzel.current?.closest(".dossier-body");
+    if (fenster instanceof HTMLElement) fenster.scrollTo({ top: 0 });
+  }, [tab, gewaehltePerson]);
+
   if (!spiel) return <p>In dieser Partie gibt es kein Umfeld.</p>;
   const neu = () => refresh?.();
   const bilanz = zusagenBilanz(world);
@@ -22,8 +35,14 @@ export function Personen({ world, refresh, onMassnahme }: { world: World; refres
   const regierung = spiel.figuren.filter((f) => f.imAmt && AEMTER[f.amt].regierungsamt);
   const auftraege = regierung.filter((f) => eigenVon(world, f).auftrag?.status === "laeuft").length;
   const gefahr = spiel.figuren.filter((f) => f.imAmt && f.amt !== "opposition" && f.loyalitaet < 25).length;
+
+  function waehleAusKabinett(id: string, modus?: "gespraech" | "entlassen") {
+    setGewaehltePerson({ id, modus });
+    setTab("umfeld");
+  }
+
   return (
-    <div className="pe">
+    <div className="pe" ref={wurzel}>
       <div className="pe-kopf">
         <div className={`pe-chip${termine.belegt >= termine.max ? " warn" : ""}`}>
           <b>Termine (30 Tage)</b>
@@ -50,8 +69,12 @@ export function Personen({ world, refresh, onMassnahme }: { world: World; refres
       </div>
 
       <div className="pe-tabs" role="tablist" aria-label="Personen und Zusagen">
+        <button role="tab" aria-selected={tab === "kabinett"} className={tab === "kabinett" ? "on" : ""} onClick={() => setTab("kabinett")}>
+          <Icon name="kuppel" size={16} />
+          Ministerrat
+        </button>
         <button role="tab" aria-selected={tab === "umfeld"} className={tab === "umfeld" ? "on" : ""} onClick={() => setTab("umfeld")}>
-          Umfeld
+          Gespräche & Umfeld
         </button>
         <button role="tab" aria-selected={tab === "zusagen"} className={tab === "zusagen" ? "on" : ""} onClick={() => setTab("zusagen")}>
           Zusagen{offen.length > 0 && <span className="pe-zahl">{offen.length}</span>}
@@ -66,11 +89,19 @@ export function Personen({ world, refresh, onMassnahme }: { world: World; refres
         </p>
       )}
 
+      {tab === "kabinett" && (
+        <MinisterratSaal world={world} refresh={neu} onWaehlePerson={waehleAusKabinett} {...(onGeheVorlage ? { onGeheVorlage } : {})} {...(onKarte ? { onKarte } : {})} />
+      )}
       {tab === "umfeld" && (
         <section className="paper">
           <h3>Ihr Umfeld</h3>
           <p className="subtitle">Wer Ihnen folgt, hängt an Ihren Entscheidungen. Jede Person hat ein Ressort, einen Stil und einen Ehrgeiz; Gespräche haben Folgen, die später wiederkehren.</p>
-          <Umfeld world={world} refresh={neu} />
+          <Umfeld
+            world={world}
+            refresh={neu}
+            initialPersonId={gewaehltePerson?.id}
+            initialModus={gewaehltePerson?.modus}
+          />
         </section>
       )}
       {tab === "zusagen" && <ZusagenAnsicht world={world} refresh={neu} {...(onMassnahme ? { onMassnahme } : {})} />}

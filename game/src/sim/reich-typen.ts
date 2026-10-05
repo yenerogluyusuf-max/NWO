@@ -25,7 +25,8 @@ export type Klasse =
   | "beschaffung"
   | "institution"
   | "doktrin"
-  | "sonderrecht";
+  | "sonderrecht"
+  | "forschung";
 
 export const KLASSEN_NAMEN: Record<Klasse, string> = {
   wunder: "Wunder",
@@ -38,7 +39,31 @@ export const KLASSEN_NAMEN: Record<Klasse, string> = {
   institution: "Institution",
   doktrin: "Doktrin",
   sonderrecht: "Sonderrecht",
+  forschung: "Forschung",
 };
+
+/** Themen der Ansicht „Neue Vorhaben“ (Vorhaben.thema), in der Reihenfolge der Anzeige. */
+export const THEMEN: { id: string; titel: string; satz: string }[] = [
+  { id: "regional", titel: "Programme für Regionen", satz: "Dasselbe Programm für eine Provinz, eine Region oder das ganze Land: Preis, Dauer und Wirkung folgen dem Umfang, und dasselbe Vorhaben legt man am selben Ort nur einmal an." },
+  { id: "verkehr", titel: "Verkehr und Welt", satz: "Wege nach Zentralasien und China, Häfen und Megaverbindungen: Jede Stufe verlangt die vorige und Partner entlang der Strecke." },
+  { id: "energie", titel: "Energie und Wasser", satz: "Stromverbund, Atom, Fusion und Wasserumleitungen: erst Forschung und Verträge, dann Anlagen." },
+  { id: "stadt", titel: "Städte", satz: "Von neuen Stadtteilen bis zur neuen Hauptstadt: Wohnraum schaffen kostet Wald, Wasser und Vertrauen." },
+  { id: "raumfahrt", titel: "Raumfahrt", satz: "Von der Behörde bis zum Mars: Jede Stufe baut auf der vorigen auf, und keine ist billig." },
+  { id: "ki", titel: "Künstliche Intelligenz", satz: "Strategie, Rechenzentren, Chips und Anwendungen: abhängig von Strom, Köpfen und Lieferanten." },
+  { id: "technologie", titel: "Technologie", satz: "Sehr große Investitionen in Meer, Luft, Biologie, Chips, Batterien, Quanten, Robotik und Werkstoffe: lange Laufzeit, ungewisse Durchbrüche, Konkurrenz und Spionage, später Ertrag mit Nebenwirkungen." },
+];
+
+/** Technologiefelder (Vorhaben.feld) in der Reihenfolge der Anzeige. */
+export const FELDER: { id: string; titel: string }[] = [
+  { id: "meer", titel: "Meerestechnologie" },
+  { id: "luft", titel: "Luftfahrttechnik" },
+  { id: "bio", titel: "Biotechnologie" },
+  { id: "chips", titel: "Halbleiter und Chips" },
+  { id: "energietech", titel: "Batterien und Wasserstoff" },
+  { id: "quanten", titel: "Quantentechnologie" },
+  { id: "robotik", titel: "Robotik" },
+  { id: "nano", titel: "Nanomaterialien" },
+];
 
 /** Was ein Vorhaben oder ein Vorteil in der Welt bewegt. Nichts davon ist nur Geld. */
 export type Effekt =
@@ -63,6 +88,8 @@ export type Voraussetzung =
   | { art: "nicht-bestand"; id: string; text: string }
   | { art: "staetten"; ids: string[]; min: number; text: string }
   | { art: "staette-max"; id: string; max: number; text: string }
+  /** Ein Bestandsstück ist höchstens so gut erhalten (Pflege lohnt erst, wenn der Zustand nachgelassen hat) */
+  | { art: "bestand-max"; id: string; max: number; text: string }
   | { art: "knoten"; id: string; min?: number; max?: number }
   | { art: "massnahme"; id: string; min?: number; max?: number }
   | { art: "land"; land: string; dim: Dimension; min?: number; max?: number }
@@ -271,6 +298,44 @@ export interface Vorhaben {
   sperre?: { solange: Voraussetzung; text: string };
   /** Frei eingegebenes Großprojekt (INF-4): Kosten und Wirkungen sind Schätzungen; Überschreitungen möglich */
   frei?: boolean;
+  /** Größen, an denen man den Zustand eines Bestandsstücks ohne Zustandswirkung ablesen kann (etwa die Belegung der Haftanstalten) */
+  zeigt?: string[];
+  /** Dieses Vorhaben pflegt ein Bestandsstück (Instandsetzung): Kennung des gepflegten Stücks */
+  pflegt?: string;
+  /** Gruppe in „Neue Vorhaben“ (etwa „verkehr“, „energie“, „stadt“, „raumfahrt“, „ki“) */
+  thema?: string;
+  /** Stufe in einer Kette (1 = Einstieg); höhere Stufen verlangen die niedrigeren als Voraussetzung */
+  stufe?: number;
+  /** Möglich, aber extrem schwierig und sehr teuer: Prestigeprojekte über Jahrzehnte, keine Abkürzung zum Sieg */
+  unrealistisch?: boolean;
+  /** Maßstab des Preises in Worten („Spielparameter, Analogie zu …“); keine erfundene Genauigkeit */
+  anker?: string;
+  /** Wirkt jeden Monat, solange gebaut wird: Aufbruch und Arbeit, aber auch Lasten */
+  bauwirkung?: Effekt[];
+  /** Kostenüberschreitung im Bau: Wahrscheinlichkeit, Größe als Anteil der Baupunkte und Marken des Baufortschritts (Standard 35 %); gewürfelt wird aus Spielstand und Vorhaben, ohne den Zufallsstrom des Spiels anzuzapfen */
+  ueberzug?: { p: number; band: [number, number]; an?: number[] };
+  /** Kein Bestandsstück, das man pflegen könnte (eine Mission, ein Abkommen) */
+  ohnePflege?: boolean;
+  /** Vorlage für Vorhaben in gewählten Provinzen: Die Werte gelten für das ganze Land, der Spieler wählt den Ort */
+  vorlage?: Vorlage;
+  /** Instanz einer Vorlage (für gewählte Provinzen angelegt): Kennung der Vorlage */
+  instanzVon?: string;
+  /** Technologiefeld innerhalb des Themas „technologie“ (siehe FELDER) */
+  feld?: string;
+  /** Konkurrenz und Spionage: was andere Staaten tun, die dasselbe wollen oder mitlesen */
+  konkurrenz?: string;
+  /** Ungewisser Durchbruch: Bei dieser Marke des Baufortschritts fällt der Wurf (deterministisch aus Spielstand und Vorhaben); trifft er, scheitert das Vorhaben, und das Geld ist verloren. `folge` sind die Wirkungen des Scheiterns (Standard: Ansehen und Legitimität sinken). */
+  scheitern?: { p: number; an: number; folge?: Effekt[] };
+}
+
+/** Eine Vorlage für Vorhaben, die der Spieler für einzelne Provinzen, eine Region oder das ganze Land anlegt (Wohnungsbau, Schulen, Wasser …). */
+export interface Vorlage {
+  /** Maßnahme des Politiknetzes; nach ihr fragt die Ortswahl „wo es akut ist“ */
+  massnahme: string;
+  /** Wonach Kosten und Dauer skalieren: nach der Bevölkerung der Provinzen (Standard) oder nach der Zahl der Stätten dort */
+  nach?: "bevoelkerung" | "staetten";
+  /** Kurzer Name für Meldungen und Chips („Wohnungsbau“) */
+  kurz: string;
 }
 
 export interface BestandEintrag {
@@ -299,6 +364,39 @@ export interface LaufEintrag {
   frei?: boolean;
   /** Kostenüberschreitung freier Projekte: ob an der 35-%-Marke schon gewürfelt wurde */
   ueberzugGeprueft?: boolean;
+  /** Ausgangslage beim Beginn: Größe → Wert (Landes- oder Provinzdurchschnitt), damit nach der Fertigstellung Vorher und Nachher stehen */
+  vorher?: Record<string, number>;
+  /** Bei Pflege und Restaurierung: Zustand des Stücks beim Beginn */
+  zustandVorher?: number;
+  /** Bei Vorhaben mit Kostenüberschreitung (Katalog): wie viele Marken schon geprüft sind */
+  ueberzugN?: number;
+  /** Bei Vorhaben mit ungewissem Durchbruch: ob der Wurf schon gefallen ist */
+  durchbruchGeprueft?: boolean;
+}
+
+/** Ein Vorhaben, das aus einer Vorlage für gewählte Provinzen angelegt wurde; die Definition steht im Spielstand. */
+export interface RegionalEintrag {
+  vorlage: string;
+  provinzen: number[];
+  def: Vorhaben;
+  /** Die Instandsetzung für das fertige Stück */
+  pflege?: Vorhaben;
+  angelegt: string;
+}
+
+/** Ein abgeschlossener Eingriff mit Vorher und Nachher: Bau, Instandsetzung oder Restaurierung. */
+export interface Eingriff {
+  id: string;
+  name: string;
+  tag: number;
+  datum: string;
+  art: "bau" | "pflege";
+  /** Größe → Wert beim Beginn */
+  vorher: Record<string, number>;
+  /** Größe → Wert am Tag der Fertigstellung (die Stöße des Abschlusses sind eingerechnet, die Dauerwirkung baut sich danach auf) */
+  nachher: Record<string, number>;
+  /** Bei Pflege und Restaurierung: Zustand des Stücks vorher und nachher */
+  zustand?: { vorher: number; nachher: number };
 }
 
 export interface StaetteZustand {
@@ -311,7 +409,7 @@ export interface ReichMeldung {
   tag: number;
   datum: string;
   text: string;
-  art: "fertig" | "verfall" | "verzug" | "freigeschaltet" | "gesperrt" | "ueberzug";
+  art: "fertig" | "verfall" | "verzug" | "freigeschaltet" | "gesperrt" | "ueberzug" | "gescheitert";
 }
 
 export interface ReichZustand {
@@ -332,4 +430,8 @@ export interface ReichZustand {
   sitze: Record<string, { loyal: number; unabhaengig: number; reform: number }>;
   /** Frei eingegebene Großprojekte (INF-4): Entwürfe mit Schätzung und begonnene Vorhaben; fehlt in älteren Spielständen */
   frei?: Record<string, FreiEintrag>;
+  /** Abgeschlossene Eingriffe mit Vorher und Nachher, neueste zuletzt; fehlt in älteren Spielständen */
+  verlauf?: Eingriff[];
+  /** Für Provinzen angelegte Vorhaben (aus Vorlagen); fehlt in älteren Spielständen */
+  regional?: Record<string, RegionalEintrag>;
 }

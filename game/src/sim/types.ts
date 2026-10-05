@@ -54,6 +54,26 @@ export interface EconomyState {
   oel?: number;
   euNachfrage?: number;
   weltzins?: number;
+  // Runde „Netz atmet“ (sim/maerkte.ts, aus dem Politiknetz): Alle Felder fehlen in älteren Spielständen und in Lernfall-Replays; die Zuschläge in
+  // economy.ts sind dann neutral (0 bzw. 1).
+  /** Aufschlag auf den Risikoaufschlag aus politischen Schocks (Basispunkte); klingt monatlich ab (sim/maerkte.ts, marktSchock) */
+  politikRisiko?: number;
+  /** Aufschlag auf den Risikoaufschlag aus der Lage der Institutionen (Justiz, Rechtssicherheit, Presse, Marktvertrauen), Basispunkte */
+  institutionenRisiko?: number;
+  /** Sektorenindex der Realwirtschaft: mittlere Abweichung von Industrie, Export, Mittelstand, Investitionen, Bau und Tourismus vom Start (Indexpunkte) */
+  sektorIndex?: number;
+  /** Faktor auf die Wirkung des Ölpreises nach Importabhängigkeit (1 = Start) */
+  energieFaktor?: number;
+  /** Konjunkturabhängiger Haushaltssaldo gegenüber dem Plan in % des BIP je Jahr (+ = Entlastung, − = Mehrbelastung) */
+  konjunkturSaldo?: number;
+  /** Verschiebung der natürlichen Arbeitslosigkeit durch die Lage am Arbeitsmarkt des Netzes (Prozentpunkte) */
+  arbeitsmarktShift?: number;
+  /** Rating als Bestand mit Ausblick (sim/maerkte.ts) */
+  rating?: { stufe: number; ausblick: -1 | 0 | 1; seit: number; bezug: number; zaehler: number; tendenz: number };
+  /** Letzter Tag je Art politischer Marktschocks (verhindert, dass dieselbe Art den Markt täglich neu erschreckt) */
+  marktSchockTag?: Record<string, number>;
+  /** Stufe der Verschlechterung je Wachposten (Notstand, Justiz, Presse, Rechtssicherheit; 0 bis 3), damit Überschreitungen einmal als Marktschock gelesen werden */
+  institutionenVormonat?: Record<string, number>;
   // WIR-2 (Außenwirtschaft minimal, sim/devisen.ts): die Devisen-Lage als zweite, nicht druckbare Währung.
   // Alle vier fehlen in älteren Spielständen und in Lernfall-Replays; die Zuschläge in economy.ts sind dann neutral (0).
   /** Leistungsbilanz-Saldo in % des BIP (laufendes Jahr); Start aus currentAccountPctGdp */

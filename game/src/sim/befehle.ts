@@ -450,7 +450,7 @@ function statusFrage(t: string, tk: string[], w: World, rng: Rng): ChatAntwort |
     const k = kapitalEinkommen(w);
     return {
       ok: true,
-      text: `Sie haben ${nf(spiel.kapital, 0)} Politisches Kapital. Am ${formatDateDe(k.naechste)} kommen etwa ${nf(k.summe)} dazu (Grundeinkommen ${nf(k.grund)}, Vertrauen ${nf(k.vertrauen)}${k.mehrheit > 0 ? `, Mehrheit ${nf(k.mehrheit)}` : ", Mehrheit 0, weil dem Lager Sitze fehlen"}). Mehr als ${k.grenze} sammeln sich nicht an.`,
+      text: `Sie haben ${nf(spiel.kapital, 0)} Politisches Kapital. Am ${formatDateDe(k.naechste)} kommen etwa ${nf(k.summe)} dazu (Grundeinkommen ${nf(k.grund)}, Vertrauen ${nf(k.vertrauen)}${k.mehrheit > 0 ? `, Mehrheit ${nf(k.mehrheit)}` : ", Mehrheit 0, weil dem Lager Sitze fehlen"}${k.kabinett ? `, Ministerrat ${k.kabinett > 0 ? "+" : ""}${nf(k.kabinett)}` : ""}). Mehr als ${k.grenze} sammeln sich nicht an.`,
       why: "Ja, es lädt sich auf, aber langsam: jeden Monatsersten. Jede Änderung, jede Verhandlung und jede Antwort auf ein Ereignis kostet Kapital; wer alles auf einmal will, steht am Monatsende leer da.",
     };
   }
@@ -1094,6 +1094,35 @@ export function befehl(text: string, w: World): ChatAntwort {
 
   const kriegAntwort = kriegBefehl(t, tk, w);
   if (kriegAntwort) return kriegAntwort;
+
+  if (siehtNachGrossprojekt(text)) {
+    const er = entwirf(w, text);
+    if (er.art === "entwurf") {
+      return {
+        ok: true,
+        text: schaetzKurz(er.eintrag.schaetzung),
+        why: er.eintrag.schaetzung.mentor,
+      };
+    }
+    const d = er.deutung;
+    if (d.art === "absage") {
+      return {
+        ok: false,
+        text: d.grund,
+        why: d.alternativ,
+      };
+    }
+    if (d.art === "frieden") {
+      return friedensAntwort(w, d);
+    }
+    if (d.art === "rueckfrage") {
+      return {
+        ok: false,
+        text: d.frage,
+        why: "Mehrdeutiges klären: Schiene oder Straße, Hafen oder Flughafen.",
+      };
+    }
+  }
 
   const laenderAntwort = laenderBefehl(t, tk, w);
   if (laenderAntwort) return laenderAntwort;

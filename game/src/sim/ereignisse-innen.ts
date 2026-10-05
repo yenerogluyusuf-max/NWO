@@ -10,17 +10,79 @@
 // m_preiswahrheit, m_heimische_kohle (politiknetz.ts).
 
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
+import { marktSchock } from "./maerkte";
+import { medienEntspannung, medienHaerte, medienVerfahren } from "./medien";
+import { kommunalwahlDurchfuehren, kommunalwahlFaellig, kommunenVon, istLagerPartei, setzeZwangsverwalter } from "./kommunen";
 import { schreibeHaushaltFort } from "./haushalt";
 import { setPolicy } from "./handeln";
 import { anrede, figur, loyalitaetAendern, zufallsName } from "./figuren";
 import { BANKEN, KOHLEFIRMEN, TEXTILFIRMEN, ZEITUNGEN, waehle } from "./akteure";
 import { PROZ_STADT, akutIn, beschr, jahrVon, kosten, monatVon, namen, netz, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
-import type { Vorlage } from "./ereignis-hilfen";
+import type { Option, Vorlage } from "./ereignis-hilfen";
+import { t } from "../i18n";
+import type { World } from "./types";
 
 const KOHLE = [67, 43, 45, 74]; // Zonguldak, Kütahya, Manisa, Bartın
 const SCHWARZMEER = [53, 61, 8, 28, 52, 55, 57, 67, 74, 37];
 const TEXTIL = [16, 20, 59, 64, 46]; // Bursa, Denizli, Tekirdağ, Uşak, Kahramanmaraş
 const AGRAR = [42, 63, 1, 33, 21, 47]; // Konya, Şanlıurfa, Adana, Mersin, Diyarbakır, Mardin
+
+/** Lage zum Jahresende: Teuerung (ab 12 % Inflation), Rezession (Wachstum unter 0,5 % oder Arbeitslosigkeit deutlich über dem Start), sonst ruhiger Aufschwung. */
+function mindestlohnLage(w: World): string {
+  if (w.economy.inflation >= 12) return "teuerung";
+  if (w.economy.growth < 0.5 || w.economy.unemployment > (w.spiel?.start.arbeitslosigkeit ?? 9) + 1.5) return "rezession";
+  return "ruhe";
+}
+
+function mindestlohnRuhe(): Option[] {
+  const k = (s: string) => `takt.var.mindestlohn.ruhe.${s}`;
+  return [
+    opt("reallohn", t(k("reallohn.label")), t(k("reallohn.beschr")), 2, (ww) => {
+      setPolicy(ww, "m_mindestlohn", Math.min(100, netz(ww, "m_mindestlohn") + 10));
+      wirke(ww, "arbeitnehmer", 2.5);
+      wirke(ww, "unternehmer", -1.5);
+      wirke(ww, "kostendruck", 1);
+      return t(k("reallohn.ausgang"));
+    }),
+    opt("stabil", t(k("stabil.label")), t(k("stabil.beschr")), 1, (ww) => {
+      setPolicy(ww, "m_mindestlohn", Math.min(100, netz(ww, "m_mindestlohn") + 5));
+      wirke(ww, "arbeitnehmer", 1);
+      return t(k("stabil.ausgang"));
+    }),
+    opt("aussetzen", t(k("aussetzen.label")), t(k("aussetzen.beschr")), 0, (ww) => {
+      wirke(ww, "arbeitnehmer", -2.5);
+      wirke(ww, "streikneigung", 2.5);
+      wirke(ww, "unternehmer", 1.5);
+      return t(k("aussetzen.ausgang"));
+    }),
+  ];
+}
+
+function mindestlohnRezession(): Option[] {
+  const k = (s: string) => `takt.var.mindestlohn.rezession.${s}`;
+  return [
+    opt("halten", t(k("halten.label")), t(k("halten.beschr")), 1, (ww) => {
+      wirke(ww, "arbeitnehmer", -1);
+      wirke(ww, "streikneigung", 1.5);
+      wirke(ww, "unternehmer", 1);
+      return t(k("halten.ausgang"));
+    }),
+    opt("entlasten", t(k("entlasten.label")), t(k("entlasten.beschr")), 2, (ww) => {
+      kosten(ww, 0.15);
+      wirke(ww, "unternehmer", 2.5);
+      wirke(ww, "mittelstand", 1.5);
+      wirke(ww, "arbeitnehmer", -0.5);
+      return t(k("entlasten.ausgang"));
+    }),
+    opt("trotzdem", t(k("trotzdem.label")), t(k("trotzdem.beschr")), 3, (ww) => {
+      setPolicy(ww, "m_mindestlohn", Math.min(100, netz(ww, "m_mindestlohn") + 8));
+      wirke(ww, "arbeitnehmer", 2.5);
+      wirke(ww, "unternehmer", -3);
+      wirke(ww, "arbeitslosigkeit", 1);
+      return t(k("trotzdem.ausgang"));
+    }),
+  ];
+}
 
 const MINDESTLOHN: Vorlage = {
   id: "mindestlohn",
@@ -28,13 +90,16 @@ const MINDESTLOHN: Vorlage = {
   frist: 25,
   abkuehlung: 300,
   chance: (w) => (monatVon(w) === 12 ? 0.95 : 0),
-  erzeuge: () => ({ provinzen: [], staerke: 1 }),
+  // Takt (Variantenpool): Die Lage des Landes bestimmt, welche Frage das Jahresende stellt: Teuerung, ruhiger Aufschwung oder Rezession
+  erzeuge: (w) => ({ provinzen: [], staerke: 1, daten: { variante: mindestlohnLage(w) } }),
   titel: () => "Der Mindestlohn für das neue Jahr",
-  text: (w) => [
+  text: (w, ev) => ev.daten?.variante === "ruhe" ? [t("takt.var.mindestlohn.ruhe.text", { inflation: nf(w.published.inflation.value), wachstum: nf(w.economy.growth) })]
+    : ev.daten?.variante === "rezession" ? [t("takt.var.mindestlohn.rezession.text", { wachstum: nf(w.economy.growth), arbeitslos: nf(w.economy.unemployment) })]
+    : [
     `Die Mindestlohnkommission legt zum Jahresende fest, was ab Januar gilt. Die Gewerkschaften verlangen einen Ausgleich für die Teuerung (Inflation ${nf(w.published.inflation.value)} %), die Arbeitgeber warnen vor Kosten, die kleine Betriebe nicht tragen können.`,
   ],
-  warum: () => "Der Mindestlohn ist der wichtigste Preis am Arbeitsmarkt: Er schützt die Ärmsten und stützt die Nachfrage, kostet aber Betriebe Spielraum und kann die Preise treiben.",
-  optionen: () => [
+  warum: (_, ev) => ev.daten?.variante === "ruhe" ? t("takt.var.mindestlohn.ruhe.warum") : ev.daten?.variante === "rezession" ? t("takt.var.mindestlohn.rezession.warum") : "Der Mindestlohn ist der wichtigste Preis am Arbeitsmarkt: Er schützt die Ärmsten und stützt die Nachfrage, kostet aber Betriebe Spielraum und kann die Preise treiben.",
+  optionen: (_, ev) => ev.daten?.variante === "ruhe" ? mindestlohnRuhe() : ev.daten?.variante === "rezession" ? mindestlohnRezession() : [
     opt("kraeftig", "Kräftig anheben", beschr(3, 0, "die Beschäftigten gewinnen, kleine Betriebe und die Preise stehen unter Druck."), 3, (ww) => {
       setPolicy(ww, "m_mindestlohn", Math.min(100, netz(ww, "m_mindestlohn") + 15));
       wirke(ww, "arbeitnehmer", 3);
@@ -61,6 +126,14 @@ const MINDESTLOHN: Vorlage = {
   },
 };
 
+/** Lage im Oktober: Sparzwang (Defizit ab 4,5 % des BIP), Wahljahr (Wahl binnen etwa 13 Monaten) oder ruhiges Jahr. */
+function haushaltLage(w: World): string {
+  if (w.economy.deficit >= 4.5) return "defizit";
+  const bisWahl = (w.spiel?.wahltag ?? 1e9) - w.day;
+  if (bisWahl >= 0 && bisWahl <= 400) return "wahljahr";
+  return "ruhe";
+}
+
 const HAUSHALTSJAHR: Vorlage = {
   id: "haushaltsjahr",
   szene: "bank",
@@ -68,14 +141,36 @@ const HAUSHALTSJAHR: Vorlage = {
   abkuehlung: 300,
   // WIR-3: Das Haushaltsfenster öffnet jedes Jahr zuverlässig (Auto-Stopp Klasse A über das Ereignis)
   chance: (w) => (monatVon(w) === 10 && jahrVon(w) >= 2028 ? 1 : 0),
-  erzeuge: () => ({ provinzen: [], staerke: 1 }),
+  // Takt (Variantenpool): Sparzwang, Wahljahr oder ruhiges Jahr geben dem Haushaltsfenster jeweils eine eigene Frage
+  erzeuge: (w) => ({ provinzen: [], staerke: 1, daten: { variante: haushaltLage(w) } }),
   titel: () => "Das Haushaltsfenster öffnet",
-  text: (w) => [
+  text: (w, ev) => [
     `${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf für das nächste Jahr vor. Die Schulden liegen bei ${nf(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf(w.published.inflation.value)} %.`,
+    ...(ev.daten?.variante === "defizit" ? [t("takt.var.haushaltsjahr.defizit.text", { defizit: nf(w.economy.deficit) })] : ev.daten?.variante === "wahljahr" ? [t("takt.var.haushaltsjahr.wahljahr.text")] : []),
     "Vier Wochen lang stellen Sie die Regler des Haushalts kostenlos; danach geht der Entwurf als Haushaltsgesetz ins Parlament. Wer nichts einbringt, fährt mit dem Vorjahr weiter — die Posten laufen mit der Inflation automatisch mit.",
   ],
   warum: () => "Der Haushalt ist der größte parlamentarische Akt des Jahres: Einmal im Oktober werden alle Regler gemeinsam entschieden. Außerhalb des Fensters kostet jede Änderung als Nachtragshaushalt das Doppelte und etwas Legitimität.",
-  optionen: () => [
+  optionen: (_, ev) => [
+    ...(ev.daten?.variante === "defizit"
+      ? [
+          opt("sparpaket", t("takt.var.haushaltsjahr.defizit.sparpaket.label"), t("takt.var.haushaltsjahr.defizit.sparpaket.beschr"), 2, (w) => {
+            kosten(w, -0.4);
+            wirke(w, "arbeitnehmer", -1.5);
+            wirke(w, "vertrauen_maerkte", 1.5);
+            return t("takt.var.haushaltsjahr.defizit.sparpaket.ausgang");
+          }),
+        ]
+      : ev.daten?.variante === "wahljahr"
+        ? [
+            opt("wahlgeschenke", t("takt.var.haushaltsjahr.wahljahr.wahlgeschenke.label"), t("takt.var.haushaltsjahr.wahljahr.wahlgeschenke.beschr"), 2, (w) => {
+              kosten(w, 0.3);
+              wirke(w, "rentner", 2.5);
+              wirke(w, "arbeitnehmer", 2);
+              wirke(w, "vertrauen_maerkte", -1.2);
+              return t("takt.var.haushaltsjahr.wahljahr.wahlgeschenke.ausgang");
+            }),
+          ]
+        : []),
     opt("entwurf", "Den Entwurf selbst vorbereiten", beschr(0, 0, "die Regler in der Haushaltsakte sind jetzt kostenlos; das Gesetz braucht eine Mehrheit."), 0, () => "Das Fenster ist offen: Regler in der Haushaltsakte stellen — Pakete des Finanzministeriums lassen sich übernehmen — und das Haushaltsgesetz einbringen."),
     opt("fortschreiben", "Den Vorjahrshaushalt fortschreiben", beschr(0, 0, "keine Änderung, kein Risiko im Parlament."), 0, (w) => {
       schreibeHaushaltFort(w);
@@ -142,7 +237,8 @@ const UEBERSCHWEMMUNG: Vorlage = {
   szene: "anatolien",
   frist: 6,
   abkuehlung: 240,
-  chance: (w) => (monatVon(w) >= 8 && monatVon(w) <= 11 ? 0.07 : 0.004),
+  // Nur noch der Risiko-Layer (sim/katastrophe.ts, Sturzflut) löst Fluten aus, mit Fall und Abschluss; die Vorlage bleibt für ältere Spielstände.
+  chance: () => 0,
   erzeuge: (w, rng) => {
     const p = ziehe(rng, (pl) => (SCHWARZMEER.includes(pl) ? 1 : 0), 2);
     return p.length ? { provinzen: p, staerke: 0.4 + 0.6 * rng.next() } : null;
@@ -267,7 +363,12 @@ const PRESSE: Vorlage = {
   szene: "istanbul",
   frist: 8,
   abkuehlung: 400,
-  chance: (w) => (netz(w, "pressefreiheit") < 55 ? 0.02 : 0.006),
+  // Laufende Verfahren gegen Journalisten (Eingriff „Anzeige gegen Journalisten“, sim/medien.ts) machen den Konflikt wahrscheinlicher
+  chance: (w) => (netz(w, "pressefreiheit") < 55 ? 0.02 : 0.006) + 0.008 * medienVerfahren(w),
+  // Runde „Netz atmet“: Festnahmen von Journalisten erschrecken die Anleger (sim/maerkte.ts)
+  eroeffne: (w) => {
+    marktSchock(w, "presse", 0.8);
+  },
   erzeuge: (w, rng) => ({ provinzen: [], staerke: 1, daten: { blatt: waehle(rng, ZEITUNGEN), chef: zufallsName(w, rng) } }),
   titel: (_, ev) => `Festnahmen bei der Zeitung ${ev.daten?.blatt}`,
   text: (_, ev) => [
@@ -280,8 +381,10 @@ const PRESSE: Vorlage = {
       wirke(w, "ansehen", 2);
       wirke(w, "beziehungen_eu", 2);
       wirke(w, "polarisierung", -1);
+      marktSchock(w, "presse", -0.6);
+      medienEntspannung(w);
       loyalitaetAendern(w, "inneres", -4, "Die Innenministerin sieht ihre Sicherheitskräfte im Stich gelassen.");
-      return "Die Journalisten kommen frei; die Verfahren werden überprüft.";
+      return "Die Journalisten kommen frei; die Verfahren werden überprüft, und die Redaktionen trauen sich wieder.";
     }),
     opt("justiz", "Der Justiz ihren Lauf lassen", beschr(1, 0, "kein Eingriff, aber auch kein Signal."), 1, (w) => {
       wirke(w, "ansehen", -1);
@@ -293,8 +396,10 @@ const PRESSE: Vorlage = {
       wirke(w, "beziehungen_eu", -4);
       wirke(w, "ansehen", -3);
       wirke(w, "konservative", 2);
+      marktSchock(w, "presse", 1);
+      medienHaerte(w);
       loyalitaetAendern(w, "inneres", 3);
-      return "Die Medienaufsicht wird ausgeweitet.";
+      return "Die Medienaufsicht wird ausgeweitet: Strafen und Verfahren treffen vor allem die kritischen Blätter, die Redaktionen lassen mehr weg.";
     }),
   ],
   standard: (w) => {
@@ -517,12 +622,19 @@ const KAYYUM: Vorlage = {
   frist: 10,
   abkuehlung: 400,
   chance: (w) => 0.006 + Math.max(0, netz(w, "polarisierung") - 50) * 0.0008,
+  // Runde „Netz atmet“: Ein Verfahren gegen eine Stadtspitze der Opposition verunsichert die Anleger (sim/maerkte.ts)
+  eroeffne: (w) => {
+    marktSchock(w, "verhaftung", 0.6);
+  },
   erzeuge: (w, rng) => {
     const p = ziehe(rng, (pl) => (PROZ_STADT.has(pl) ? 1 : 0), 1);
     if (!p.length) return null;
     // Die stärkste Fraktion außerhalb des Lagers stellt das Stadtoberhaupt
     const seats = Object.entries(w.parliament?.seats ?? {}).filter(([k]) => k !== w.player?.partei.kurz && !(w.spiel?.lager ?? []).includes(k)).sort((a, b) => b[1] - a[1]);
-    return { provinzen: p, staerke: 1, daten: { name: zufallsName(w, rng), partei: seats[0]?.[0] ?? "Opposition" } };
+    // Das Rathaus vor Ort (sim/kommunen.ts): Gehört es dem Lager, sucht die Justiz sich kein Ziel dort
+    const rathaus = w.spiel ? kommunenVon(w).rathaus[String(p[0])] : undefined;
+    if (rathaus && istLagerPartei(w, rathaus.partei)) return null;
+    return { provinzen: p, staerke: 1, daten: { name: zufallsName(w, rng), partei: rathaus?.partei ?? seats[0]?.[0] ?? "Opposition" } };
   },
   titel: (_, ev) => `Verfahren gegen das Rathaus von ${namen(ev.provinzen)}`,
   text: (_, ev) => [
@@ -536,13 +648,16 @@ const KAYYUM: Vorlage = {
       loyalitaetAendern(w, "inneres", -2);
       return "Das Verfahren läuft ohne Eingriff der Regierung.";
     }),
-    opt("verwalter", "Einen Zwangsverwalter einsetzen", beschr(3, 0, "Kontrolle über die Stadt, Streit im ganzen Land."), 3, (w) => {
+    opt("verwalter", "Einen Zwangsverwalter einsetzen", beschr(3, 0, "Kontrolle über die Stadt, Streit im ganzen Land."), 3, (w, ev) => {
       wirke(w, "polarisierung", 5);
       wirke(w, "justizvertrauen", -4);
       wirke(w, "ansehen", -3);
       wirke(w, "beziehungen_eu", -2);
       wirke(w, "staedtische_saekulare", -4);
       wirke(w, "konservative", 1);
+      marktSchock(w, "verhaftung", 1.4);
+      // Ortszustand mit Folgen bis zur nächsten Kommunalwahl (sim/kommunen.ts)
+      for (const pl of ev.provinzen) setzeZwangsverwalter(w, pl);
       return "Ein Zwangsverwalter übernimmt die Geschäfte der Stadt.";
     }),
     opt("dialog", "Das Gespräch mit der Stadtspitze suchen", beschr(2, 0, "entspannt die Lage, ohne den Vorwurf auszuräumen."), 2, (w) => {
@@ -631,7 +746,8 @@ const KOMMUNALWAHL: Vorlage = {
   szene: "wahlnacht",
   frist: 25,
   abkuehlung: 3000,
-  chance: (w) => (jahrVon(w) === 2029 && monatVon(w) === 3 ? 1 : 0),
+  // Alle fünf Jahre (sim/kommunen.ts): 25.03.2029, dann Ende März 2034, 2039 …
+  chance: (w) => (kommunalwahlFaellig(w) ? 1 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
   titel: () => "Kommunalwahlen",
   text: (w) => [
@@ -639,37 +755,24 @@ const KOMMUNALWAHL: Vorlage = {
   ],
   warum: () => "Kommunalwahlen zeigen, ob die Menschen dem Präsidenten zutrauen, ihre Stadt zu verwalten, und sie sind die Generalprobe für die nächste Präsidentschaftswahl.",
   optionen: (w) => {
-    const ergebnis = (ww: typeof w): string => {
-      const z = ww.spiel!.umfrage.zustimmung;
-      if (z >= 52) {
-        vertrauenAendern(ww, 2);
-        return "Das Lager gewinnt viele Rathäuser; der Rückenwind trägt.";
-      }
-      if (z <= 42) {
-        vertrauenAendern(ww, -2);
-        return "Das Lager verliert Städte; die Opposition feiert.";
-      }
-      return "Das Ergebnis ist gemischt: Gewinne auf dem Land, Verluste in den Städten.";
-    };
+    // Ergebnis je Provinz aus dem Vertrauen vor Ort, Amtsbonus und Zwangsverwaltung (sim/kommunen.ts); der Wahlkampf gibt einen Zuschlag
+    const ergebnis = (ww: typeof w, bonus = 0): string => kommunalwahlDurchfuehren(ww, bonus).text;
     return [
       opt("reisen", "Selbst durchs Land reisen", beschr(4, 0, "bringt Stimmen und Schlagzeilen, mobilisiert auch die Gegner."), 4, (ww) => {
         vertrauenAendern(ww, 2);
         wirke(ww, "polarisierung", 2);
-        return `Der Präsident führt Wahlkampf. ${ergebnis(ww)}`;
+        return `Der Präsident führt Wahlkampf. ${ergebnis(ww, 3)}`;
       }),
       opt("projekte", "Lokale Projekte vorziehen", beschr(3, 0.1, "Straßen und Schulen vor dem Wahltag."), 3, (ww) => {
         kosten(ww, 0.1);
         wirke(ww, "verkehrsnetz", 2);
         vertrauenAendern(ww, 1.5);
-        return `Projekte in den Provinzen werden vorgezogen. ${ergebnis(ww)}`;
+        return `Projekte in den Provinzen werden vorgezogen. ${ergebnis(ww, 2)}`;
       }),
       opt("sachlich", "Sachlich bleiben", beschr(0, 0, "keine Hilfe, kein Schaden."), 0, (ww) => `Der Präsident hält sich im Wahlkampf zurück. ${ergebnis(ww)}`),
     ];
   },
-  standard: (w) => {
-    const z = w.spiel!.umfrage.zustimmung;
-    return z >= 52 ? "Das Lager gewinnt viele Rathäuser." : z <= 42 ? "Das Lager verliert Städte." : "Das Ergebnis ist gemischt.";
-  },
+  standard: (w) => kommunalwahlDurchfuehren(w, 0).text,
 };
 
 export const INNEN_VORLAGEN: Vorlage[] = [

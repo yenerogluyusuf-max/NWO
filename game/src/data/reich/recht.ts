@@ -5,7 +5,7 @@ import type { Vorhaben } from "../../sim/reich-typen";
 import type { VorteilDef } from "./typen";
 import { stoss, stuetze } from "./bau";
 
-const inst = (id: string, name: string, text: string, kehrseite: string, zustand: number, unterhalt: number): Vorhaben => ({
+const inst = (id: string, name: string, text: string, kehrseite: string, zustand: number, unterhalt: number, zeigt: string[]): Vorhaben => ({
   id,
   bereich: "recht",
   klasse: "institution",
@@ -16,6 +16,7 @@ const inst = (id: string, name: string, text: string, kehrseite: string, zustand
   abschluss: [],
   unterhalt,
   kehrseite,
+  zeigt,
   bild: "gericht",
   quelle: "RECHERCHE_KONKURRENZ_FACHBEREICHE.md, Abschnitt 2",
   start: { status: "fertig", zustand },
@@ -29,6 +30,7 @@ export const RECHT_VORHABEN: Vorhaben[] = [
     "Wer die Sitze besetzt, prägt das Gericht: Jede Ernennung ist eine Entscheidung zwischen Loyalität und Unabhängigkeit.",
     62,
     0.3,
+    ["justiz_unabhaengigkeit", "urteilsbefolgung"],
   ),
   inst(
     "recht_hsk",
@@ -37,6 +39,7 @@ export const RECHT_VORHABEN: Vorhaben[] = [
     "Der Rat hält die Justiz in der Hand: Wer ihn kontrolliert, kontrolliert die Karrieren, und wer ihn freigibt, verliert Steuerbarkeit.",
     60,
     0.3,
+    ["justiz_unabhaengigkeit", "justiz_effizienz"],
   ),
   inst(
     "recht_vollzug",
@@ -45,6 +48,7 @@ export const RECHT_VORHABEN: Vorhaben[] = [
     "Überfüllte Anstalten schaden dem Ruf der Justiz und der Wiedereingliederung; neue Plätze allein lösen es nicht.",
     45,
     0.6,
+    ["haftueberfuellung"],
   ),
   inst(
     "recht_anwaltskammern",
@@ -53,6 +57,7 @@ export const RECHT_VORHABEN: Vorhaben[] = [
     "Freie Anwälte sind unbequem: Wer sie spaltet, gewinnt Einfluss und verliert an Legitimität.",
     65,
     0.1,
+    ["anwaltsautonomie"],
   ),
   {
     id: "recht_digitale_justiz",

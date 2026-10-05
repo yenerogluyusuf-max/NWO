@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { World } from "../../sim/types";
 import { REGELN, stimmenSicht } from "../../sim/handeln";
+import { VERFASSUNG_REGELN } from "../../sim/verfassung";
 import { formatDateDe } from "../../sim/dates";
 import { parlamentsLage, ROLLEN_WORT } from "./lage";
 import { amAnsichtBeobachten, letzteAbstimmungen, spieleAbstimmungAb } from "./abstimmung";
 import { FARBEN_PAPIER, Sitzplan, zustandFarbe } from "./Halbrund";
 import { verteileErwartung, vorgabeFuer, zaehleZustaende, zustandJeSitz, ZUSTAENDE, type Zustand } from "./stimmen";
+import "../politik/design.css";
 import "./parlament.css";
 
 const ZUSTAND_KURZ: Record<Zustand, string> = { fest: "Lager", zusage: "Zusage", wackelig: "wackelig", offen: "offen", nein: "Nein" };
@@ -56,25 +58,48 @@ export function ParlamentKopf({ world }: { world: World }) {
   const jaSumme = berechnet ? berechnet.zahlen.fest + berechnet.zahlen.zusage + berechnet.zahlen.wackelig : 0;
 
   return (
-    <section ref={kopf} className="paper par-kopf">
-      <h3>Das Parlament</h3>
-      <p className="subtitle">
-        {zahl(lage.gesamt)} Sitze. Gesetze brauchen {REGELN.mehrheit} Stimmen, Verfassungsänderungen 360 mit Volksabstimmung oder 400 ohne.
-      </p>
+    <section ref={kopf} className="par-kopf">
+      <header className="pd-seitenkopf">
+        <div>
+          <p className="pd-ueber">Parlament</p>
+          <h3>Das Parlament</h3>
+          <p className="pd-lead">
+            {zahl(lage.gesamt)} Sitze. Gesetze brauchen {REGELN.mehrheit} Stimmen, Verfassungsänderungen {VERFASSUNG_REGELN.mehrheit} mit Volksabstimmung oder {VERFASSUNG_REGELN.direkt} ohne.
+          </p>
+        </div>
+        <ul className="pd-zaehler" aria-label="Lage im Parlament">
+          <li className={lage.lager >= REGELN.mehrheit ? "" : "rot"}>
+            <b>{zahl(lage.lager)}</b>
+            <span>{fehlt > 0 ? `Lager, es fehlen ${fehlt}` : "Lager, Mehrheit steht"}</span>
+          </li>
+          {lage.duldung > 0 && (
+            <li>
+              <b>{zahl(lage.duldung)}</b>
+              <span>dulden</span>
+            </li>
+          )}
+          <li>
+            <b>{zahl(lage.opposition)}</b>
+            <span>Opposition</span>
+          </li>
+        </ul>
+      </header>
 
       {gesetze.length > 0 && (
         <div className="par-ansicht" role="tablist" aria-label="Ansicht des Halbrunds">
-          <button role="tab" aria-selected={!g} className={`aktion-knopf${!g ? " on" : ""}`} onClick={() => setAnsicht("sitze")}>
+          <button role="tab" aria-selected={!g} className={`pd-btn${!g ? " on" : ""}`} onClick={() => setAnsicht("sitze")}>
             Sitzverteilung
           </button>
           {gesetze.map((x) => (
-            <button key={x.id} role="tab" aria-selected={g?.id === x.id} className={`aktion-knopf${g?.id === x.id ? " on" : ""}`} onClick={() => setAnsicht(x.id)} title="So wird die Abstimmung nach heutigem Stand ausgehen">
+            <button key={x.id} role="tab" aria-selected={g?.id === x.id} className={`pd-btn${g?.id === x.id ? " on" : ""}`} onClick={() => setAnsicht(x.id)} title="So wird die Abstimmung nach heutigem Stand ausgehen">
               {x.name}
             </button>
           ))}
         </div>
       )}
 
+      <div className="par-spalten">
+        <div className="par-links">
       <Sitzplan
         lage={lage}
         modus={erwartung ? "erwartung" : "partei"}
@@ -150,6 +175,8 @@ export function ParlamentKopf({ world }: { world: World }) {
         </div>
       </div>
 
+        </div>
+        <div className="par-rechts">
       <ul className="par-fraktionen">
         {lage.fraktionen.map((f) => (
           <li
@@ -172,6 +199,7 @@ export function ParlamentKopf({ world }: { world: World }) {
         ))}
       </ul>
 
+
       {letzte.length > 0 && (
         <div className="par-letzte">
           <h4>Letzte Abstimmungen</h4>
@@ -185,7 +213,7 @@ export function ParlamentKopf({ world }: { world: World }) {
                     {formatDateDe(a.datum)} · {a.ja} zu {a.nein}
                   </em>
                 </span>
-                <button className="link" onClick={() => spieleAbstimmungAb(a)} title="Die Abstimmung noch einmal im Halbrund zeigen">
+                <button className="pd-btn quiet klein" onClick={() => spieleAbstimmungAb(a)} title="Die Abstimmung noch einmal im Halbrund zeigen">
                   Ansehen
                 </button>
               </li>
@@ -193,6 +221,8 @@ export function ParlamentKopf({ world }: { world: World }) {
           </ul>
         </div>
       )}
+        </div>
+      </div>
     </section>
   );
 }

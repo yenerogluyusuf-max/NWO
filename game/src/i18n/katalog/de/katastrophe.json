@@ -1,0 +1,13 @@
+{
+ "katastrophe.erholt_chronik": "{ort} hat sich erholt.",
+ "katastrophe.erholt_text": "Die Lage in {ort} hat sich beruhigt; die Region steht wieder auf eigenen Beinen.",
+ "katastrophe.frist_chronik_text": "{ort}: Nach {monate, plural, one {# Monat} other {# Monaten}} ist die akute Lage abgeklungen.",
+ "katastrophe.frist_chronik_titel": "{art} abgeklungen",
+ "katastrophe.frist_text": "Nach {monate, plural, one {# Monat} other {# Monaten}} bestimmt der Fall den Alltag der Region nicht mehr; geblieben sind die Folgen für Land und Wirtschaft.",
+ "katastrophe.frist_text_zusage": "Nach {monate, plural, one {# Monat} other {# Monaten}} gilt die akute Lage als abgeklungen. Das öffentliche Versprechen bleibt bestehen: {geliefert, number} von {bedarf, number} Wohnungen sind geliefert, der Rest wird weiter gemessen.",
+ "katastrophe.frist_titel": "{art} in {ort}: Die akute Lage ist abgeklungen.",
+ "katastrophe.kette_bewaeltigt": "Gilt als bewältigt, sobald 95 Prozent des Bedarfs geliefert sind: bisher {geliefert, number} von {bedarf, number} Wohnungen. Spätestens nach {frist, plural, one {# Monat} other {# Monaten}} klingt die akute Lage ab.",
+ "katastrophe.kette_duerre": "Gilt als bewältigt, sobald sich die Lage beruhigt hat: frühestens nach {min, plural, one {# Monat} other {# Monaten}}, wenn der Wassermangel im Becken wieder an der Ruhelage liegt; spätestens nach {frist, plural, one {# Monat} other {# Monaten}}.",
+ "katastrophe.kette_ohne_bedarf": "Gilt als bewältigt, sobald sich die Lage beruhigt hat, spätestens nach {frist, plural, one {# Monat} other {# Monaten}}.",
+ "katastrophe.zusage_unmoeglich": "Für diesen Schaden kommt kein eigenes Wohnungsbau-Programm in Frage; ein öffentliches Versprechen ließe sich nicht einlösen."
+}

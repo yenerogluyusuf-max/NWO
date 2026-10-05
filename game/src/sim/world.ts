@@ -17,6 +17,7 @@ import { zinssitzung } from "./zentralbank";
 import { wirtschaftMonat } from "./wirtschaft-tick";
 import { migriereUmsetzung, umsetzungMonat } from "./umsetzung";
 import { devisenMonat, migriereDevisen } from "./devisen";
+import { koppleNetzAnWirtschaft } from "./maerkte";
 import { migriereKatastrophen } from "./katastrophe";
 import { migriereWahlkampf } from "./wahlkampf";
 import { turkey2026 } from "./scenario";
@@ -160,6 +161,8 @@ function monthlyNet(world: World): void {
   e.costPush = clamp(COUPLING.costPush * cost, -5, 5);
   const prod = nationalAverage(NET, world.net, "produktivitaet") - startAverage(NET, world.net, "produktivitaet");
   e.potentialShift = clamp(COUPLING.productivity * prod, -2, 2);
+  // Runde „Netz atmet“: Institutionen, Branchen, Importabhängigkeit, Konjunktursaldo, politische Marktschocks und Rating (sim/maerkte.ts)
+  koppleNetzAnWirtschaft(world);
 }
 
 export function advance(world: World, days: number): void {
@@ -245,6 +248,9 @@ export function bereinigeZahlen(world: World): void {
   const eco = world.economy as unknown as Record<string, unknown>;
   for (const [k, v] of Object.entries(eco)) if ((v === null || typeof v !== "object") && !zahl(v) && start[k] !== undefined) eco[k] = start[k];
   for (const k of ["fxChange12", "policyCost", "costPush", "potentialShift"]) if (!zahl(eco[k])) eco[k] = 0;
+  // Runde „Netz atmet“: optionale Zahlenfelder, die nur gesetzt sein müssen, wenn sie schon da sind (null aus NaN wird zurückgesetzt)
+  for (const k of ["politikRisiko", "institutionenRisiko", "sektorIndex", "konjunkturSaldo", "arbeitsmarktShift"]) if (k in eco && !zahl(eco[k])) eco[k] = 0;
+  if ("energieFaktor" in eco && !zahl(eco["energieFaktor"])) eco["energieFaktor"] = 1;
   const s = world.spiel;
   if (s) {
     if (!zahl(s.kapital)) s.kapital = 30;

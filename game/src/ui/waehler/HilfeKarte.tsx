@@ -73,10 +73,10 @@ export function HilfeKarte({ h, world, ziel, onMassnahme }: { h: Hilfe; world: W
         {!h.moeglich && h.grund ? ` · ${h.grund}` : ""}
       </p>
       <div className="wa-hilfe-knoepfe">
-        <button type="button" className="aktion-knopf" onClick={() => onMassnahme?.(h.massnahme, h.richtung)}>
+        <button type="button" className="pd-btn primary" onClick={() => onMassnahme?.(h.massnahme, h.richtung)}>
           Einstellen und einbringen
         </button>
-        <button type="button" className="aktion-knopf" onClick={rechne} disabled={vor.laeuft}>
+        <button type="button" className="pd-btn" onClick={rechne} disabled={vor.laeuft}>
           {vor.laeuft ? "Rechne …" : "Vorschau in zwölf Monaten"}
         </button>
       </div>

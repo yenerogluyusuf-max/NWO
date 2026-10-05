@@ -7,6 +7,9 @@ import { initiativeGegen } from "../../sim/initiative";
 import { laufende } from "../../sim/abkommen";
 import { ISO_ZU_LAND, LAENDERNAMEN } from "../ebenen";
 import { Flagge } from "../art/Flaggen";
+import { WEITERE_NACH_ID } from "../../data/welt-weitere";
+import { beziehungZurTuerkei } from "../../sim/welt-modell";
+import { haltungWortAlle, wahlSicht } from "../../sim/welt-sicht";
 
 export type WeltTab = "ueberblick" | "verhandeln" | "vertraege" | "handeln" | "konflikt" | "beitritt";
 
@@ -38,6 +41,54 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
   const oben = Math.max(56, Math.min(auswahl.y - 24, window.innerHeight - 330));
   const name = LAENDERNAMEN[auswahl.iso] ?? auswahl.iso;
   const sondertext = SONDERTEXTE[auswahl.iso];
+
+  // Weitere Staaten (EU-Mitglieder, BRICS, Golf …) haben eine eigene Karte im Weltmodell
+  const weiterer = WEITERE_NACH_ID.get(auswahl.iso);
+  if (weiterer && world.spiel) {
+    const b = beziehungZurTuerkei(world, weiterer.id);
+    const wahl = wahlSicht(world, weiterer.id);
+    return (
+      <div className="we-pop" ref={ref} tabIndex={-1} style={{ left: links, top: oben, width: breite }} role="dialog" aria-label={weiterer.name}>
+        <button type="button" className="we-pop-zu" onClick={onClose} aria-label="Schließen">
+          ×
+        </button>
+        <div className="we-pop-kopf">
+          <Flagge id={weiterer.id} breite={44} titel={weiterer.name} />
+          <div>
+            <strong>{weiterer.name}</strong>
+            <span className={`we-ton ton-${b.vertrauen >= 55 ? "gut" : b.vertrauen >= 35 ? "mittel" : "schlecht"}`}>
+              {haltungWortAlle(world, weiterer.id)}
+              {b.konflikt >= 65 ? " · Streit" : ""}
+            </span>
+          </div>
+        </div>
+        <div className="we-pop-werte">
+          {(["handel", "sicherheit", "vertrauen", "konflikt"] as const).map((d) => (
+            <div key={d} className={`we-pop-wert dim-${d}`}>
+              <span>{{ handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" }[d]}</span>
+              <span className="we-balken" aria-hidden>
+                <i style={{ width: `${b[d]}%` }} />
+              </span>
+              <b>{Math.round(b[d])}</b>
+            </div>
+          ))}
+        </div>
+        {wahl && (
+          <p className="we-pop-text">
+            {wahl.art} am {wahl.datumDe}.
+          </p>
+        )}
+        <div className="we-pop-knoepfe">
+          <button type="button" className="brass-button" onClick={() => onOeffne(weiterer.id, "ueberblick")}>
+            Länderakte
+          </button>
+          <button type="button" className="aktion-knopf" onClick={() => onOeffne(weiterer.id, "handeln")}>
+            Gesten
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!landId || !world.spiel) {
     return (

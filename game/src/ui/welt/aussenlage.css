@@ -1,0 +1,67 @@
+/* Akte Außenlage: gleiche Sprache wie die Wirtschaftsakte (Papier, Tinte, Messing) */
+.al { display: grid; gap: 16px; padding: 4px 2px 24px; color: var(--ink, #2b1e12); }
+.al-kopf h2 { margin: 0; font: 600 26px/1.2 var(--display, Fraunces, serif); }
+.al-kopf p { margin: 4px 0 10px; font: italic 15px/1.4 var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.al-reiter { display: flex; gap: 6px; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
+.al-reiter button { padding: 8px 16px; border: 0; background: none; font: 600 14px var(--sans, Inter, sans-serif); color: #6b5640; cursor: pointer; border-bottom: 3px solid transparent; }
+.al-reiter button.on { color: #2b1e12; border-bottom-color: #b98a34; }
+.al-warn { border-left: 4px solid #8c2b1f; background: rgba(140, 43, 31, 0.07); padding: 10px 14px; }
+.al-warn h3 { margin: 0 0 6px; font: 700 13px var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: #8c2b1f; }
+.al-warn ul { margin: 0; padding-left: 18px; font: 15px/1.45 var(--serif, "EB Garamond", serif); }
+.al-warn li.ernst { font-weight: 600; }
+.al-zahlen { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.al-zahl { display: grid; gap: 2px; padding: 10px 12px; background: #fbf5e6; border: 1px solid rgba(90, 64, 40, 0.25); }
+.al-zahl-name { font: 700 12px var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: #6b5640; }
+.al-zahl strong { font: 600 26px/1.1 var(--display, Fraunces, serif); }
+.al-zahl-text { font: 13px/1.35 var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.al-linie { color: #2c4a7a; display: block; }
+.al-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.al-karte { padding: 12px 14px; background: #fbf5e6; border: 1px solid rgba(90, 64, 40, 0.25); font: 15px/1.45 var(--serif, "EB Garamond", serif); }
+.al-karte h3, .al-fuehrungen h3, .al-verlauf h3 { margin: 0 0 8px; font: 700 13px var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: #6b5640; }
+.al-karte p { margin: 4px 0; }
+.al-gross { font: 600 20px var(--display, Fraunces, serif); }
+.al-mix { display: flex; height: 16px; overflow: hidden; border-radius: 3px; border: 1px solid rgba(43, 30, 18, 0.3); }
+.al-mix span { display: block; height: 100%; }
+.al-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 8px 0; padding: 0; list-style: none; font: 13px var(--sans, Inter, sans-serif); }
+.al-legende i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; }
+.al-chip { padding: 1px 8px; border-radius: 999px; font: 600 12px var(--sans, Inter, sans-serif); }
+.al-chip.h-offen { background: #dbe8d6; color: #2f6b45; }
+.al-chip.h-gestoert { background: #f2e2bd; color: #8a5a10; }
+.al-chip.h-geschlossen { background: #f0cfc9; color: #8c2b1f; }
+.al-zeile { display: grid; grid-template-columns: 110px 1fr 34px; align-items: center; gap: 8px; margin: 4px 0; font: 13px var(--sans, Inter, sans-serif); }
+.al-balken { display: block; height: 7px; background: rgba(90, 64, 40, 0.15); border-radius: 4px; overflow: hidden; }
+.al-balken b { display: block; height: 100%; }
+.al-balken.ton-gut b { background: #2f6b45; }
+.al-balken.ton-mittel b { background: #b98a34; }
+.al-balken.ton-schlecht b { background: #8c2b1f; }
+.al-phasen { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; padding: 0; list-style: none; counter-reset: ph; font: 12px var(--sans, Inter, sans-serif); }
+.al-phasen li { padding: 3px 8px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 999px; color: #6b5640; }
+.al-phasen li.fertig { background: #dbe8d6; color: #2f6b45; border-color: #2f6b45; }
+.al-phasen li.jetzt { background: #f2e2bd; color: #2b1e12; border-color: #b98a34; font-weight: 700; }
+.al-klein { font: 13px/1.4 var(--sans, Inter, sans-serif); color: #6b5640; }
+.al-koepfe { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.al-kopfkarte { display: grid; justify-items: center; gap: 4px; padding: 10px; background: #fbf5e6; border: 1px solid rgba(90, 64, 40, 0.25); font: 14px var(--serif, "EB Garamond", serif); }
+.al-kopfkarte .al-zeile { grid-template-columns: 70px 1fr; width: 100%; }
+.al-instr-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.al-instrument { display: grid; gap: 8px; align-content: start; padding: 12px 14px; background: #fbf5e6; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 4px solid #b98a34; }
+.al-instrument.gesperrt { opacity: 0.7; border-left-color: #8a7a64; }
+.al-instrument h4 { margin: 0; font: 600 18px var(--display, Fraunces, serif); }
+.al-instrument p { margin: 0; font: 14px/1.4 var(--serif, "EB Garamond", serif); }
+.al-feld { display: grid; gap: 3px; font: 600 12px var(--sans, Inter, sans-serif); color: #6b5640; }
+.al-feld select { padding: 5px 8px; font: 14px var(--sans, Inter, sans-serif); }
+.al-folgen { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 13px/1.35 var(--sans, Inter, sans-serif); }
+.al-folgen li { padding: 3px 8px; border-radius: 3px; background: rgba(90, 64, 40, 0.07); }
+.al-folgen li.gut { background: rgba(47, 107, 69, 0.12); color: #234f33; }
+.al-folgen li.schlecht { background: rgba(140, 43, 31, 0.1); color: #6e2117; }
+.al-instr-fuss { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 13px var(--sans, Inter, sans-serif); }
+.al-antwort { padding: 8px 12px; border-left: 4px solid #2f6b45; background: rgba(47, 107, 69, 0.08); font: 15px var(--serif, "EB Garamond", serif); }
+.al-antwort.nein { border-left-color: #8c2b1f; background: rgba(140, 43, 31, 0.08); }
+.al-antwort span { color: #5a4a38; font-style: italic; }
+.al-diagramme { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+.al-diagramm { margin: 0; padding: 10px; background: #fbf5e6; border: 1px solid rgba(90, 64, 40, 0.25); }
+.al-diagramm figcaption { font: 700 13px var(--sans, Inter, sans-serif); margin-bottom: 4px; }
+.al-diagramm figcaption span { font-weight: 400; color: #6b5640; }
+.al-berichte { padding-left: 18px; font: 15px/1.45 var(--serif, "EB Garamond", serif); }
+.al-berichte ul { padding-left: 16px; font: 13px var(--sans, Inter, sans-serif); }
+.al-berichte li.gut { color: #2f6b45; }
+.al-berichte li.schlecht { color: #8c2b1f; }

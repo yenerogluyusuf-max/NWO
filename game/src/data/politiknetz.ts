@@ -105,6 +105,25 @@ export interface EdgeSpec {
   form?: FormSpec;
 }
 
+/**
+ * Das Zusammenspiel zweier Maßnahmen auf einen Zielknoten (Synergie oder Gegenspiel). Es wirkt zusätzlich zu den Einzelverbindungen,
+ * aber nur, wenn beide Maßnahmen in die vom Modus verlangte Richtung bewegt sind; die Stärke folgt der kleineren Abweichung.
+ *   gleich  beide über (oder beide unter) ihrem Startwert
+ *   gegen   die erste über, die zweite unter ihrem Startwert (oder umgekehrt)
+ * `weight` darf negativ sein (das Zusammenspiel schadet). Alle Werte sind Spielparameter.
+ */
+export interface SynergieSpec {
+  id: string;
+  a: string;
+  b: string;
+  to: string;
+  weight: number;
+  /** Verzögerung in Monaten (0–12) */
+  lag: number;
+  modus: "gleich" | "gegen";
+  why: string;
+}
+
 const N: NodeSpec[] = [];
 const E: EdgeSpec[] = [];
 
@@ -210,7 +229,7 @@ e("m_zoelle", "industrie", 0.02, 6, "Zölle schützen heimische Hersteller vor K
 e("m_zoelle", "kostendruck", 0.03, 3, "Importierte Vorprodukte werden teurer.");
 e("m_zoelle", "export", -0.02, 9, "Handelspartner reagieren, und geschützte Firmen werden träger.");
 e("export", "industrie", 0.05, 2, "Exportaufträge lasten Fabriken aus.");
-e("industrie", "arbeitsplaetze_industrie", 0.05, 3, "Mehr Produktion braucht mehr Beschäftigte.");
+e("industrie", "arbeitsplaetze_industrie", 0.09, 3, "Mehr Produktion braucht mehr Beschäftigte, und Fabriken stellen ein, wenn die Aufträge laufen.");
 // Kantenformel (Spielparameter): Jede weitere Anzeigenkampagne bringt weniger Gäste — irgendwann kennt jeder das Plakat.
 ef("m_tourismuswerbung", "tourismus", 0.04, 6, "Werbung bringt mehr Gäste.", { typ: "saettigung", k: 2 });
 e("m_investitionsanreize", "investitionen", 0.05, 9, "Steuervorteile senken die Kosten einer Investition.");
@@ -349,7 +368,7 @@ e("armut", "p_armut", 0.1, 0, "Wachsende Armut wird zum Problem.");
 e("jugendarbeitslosigkeit", "p_jugendarbeitslosigkeit", 0.1, 0, "Ohne Arbeit und Ausbildung fehlen Perspektiven.");
 e("p_streiks", "industrie", -0.03, 0, "Streiks legen die Produktion lahm.");
 e("sozialkassen", "vertrauen_maerkte", 0.01, 6, "Löchrige Sozialkassen belasten am Ende den Haushalt.");
-e("industrie", "arbeitsplaetze_industrie", 0.04, 3, "Fabriken stellen ein, wenn die Aufträge laufen.");
+// (Die frühere zweite Kante industrie → arbeitsplaetze_industrie, Gewicht 0,04, steht jetzt gemeinsam mit der ersten bei 0,09.)
 
 // ---------------------------------------------------------------------------
 // Gesundheit
@@ -1418,6 +1437,9 @@ ee("ausnahmerecht", "staedtische_saekulare", -0.04, 1, "Freiheitsrechte sind ihn
 ee("ausnahmerecht", "beziehungen_eu", -0.03, 3, "Brüssel misst Notstandsrecht an den Kopenhagener Kriterien.");
 ee("ausnahmerecht", "legitimitaet", -0.04, 3, "Wer per Ausnahmerecht regiert, verliert Rückhalt bei den Regeln.");
 ee("ausnahmerecht", "konservative", 0.02, 1, "Ein Teil der Wähler mag Härte in der Krise.");
+// Die Autonomie der Anwaltschaft hatte Ausgänge, aber keinen Eingang und keinen Hebel. Spielparameter (Gewichte klein, keine Messwerte):
+ee("ausnahmerecht", "anwaltsautonomie", -0.03, 6, "Unter Notstandsrecht geraten Anwälte und ihre Kammern unter Druck.");
+ee("justiz_unabhaengigkeit", "anwaltsautonomie", 0.02, 6, "Wo Gerichte frei entscheiden, können Anwälte frei auftreten.");
 ee("anwaltsautonomie", "justizvertrauen", 0.02, 6, "Freie Anwälte gehören zu fairen Verfahren.");
 ee("anwaltsautonomie", "zivilgesellschaft", 0.02, 6, "Anwaltskammern sind ein Stück Zivilgesellschaft.");
 ee("strassburg_druck", "beziehungen_eu", -0.02, 6, "Offene Urteile belasten das Verhältnis zu Europa.");
@@ -1614,6 +1636,136 @@ ee("leitzins", "junge", -0.008, 3, "Wohnung und Ausbildung auf Kredit werden teu
 ee("leitzins", "arbeitnehmer", -0.005, 6, "Wenn Betriebe weniger investieren, sind Jobs gefährdet.");
 ee("abwertung", "mittelstand", -0.012, 2, "Importabhängige Betriebe zahlen mehr für Vorprodukte.");
 ee("zinslast", "vertrauen_maerkte", -0.015, 3, "Wer viel für Zinsen ausgibt, hat weniger Spielraum: Anleger werden nervös.");
+
+// ---------------------------------------------------------------------------
+// Das Netz atmet (Runde „Netz“, 05.10.2026; Konzept SPIEL_DURCHDACHT_2026-10-05.md, Welle 3). Alle Gewichte sind Spielparameter, keine Messwerte.
+// Die neuen Größen stehen am Ende der Liste (ältere Spielstände ergänzen sie in sim/world.ts, migriereNetz). Die Texte stehen auch im Katalog
+// (src/i18n/katalog/*/netz.json, Schlüssel netz.knoten.*, netz.kante.*, netz.synergie.*); sim/modell.ts setzt sie je nach Sprache ein.
+
+g("gesellschaft", "protestdruck", "Protestdruck", 30, "Wie stark Unmut auf die Straße drängt: Demonstrationen, Besetzungen, Kundgebungen. Teuerung, Streikbereitschaft und Polarisierung heizen ihn an, Ausnahmerecht dämpft ihn kurz und nährt ihn danach.", 0.08);
+g("wirtschaft", "lohn_preis", "Lohn-Preis-Spirale", 40, "Wie stark steigende Preise und Löhne einander hochtreiben: Tarifforderungen folgen der Teuerung, Betriebe geben höhere Kosten weiter.", 0.05, 1.5);
+g("wirtschaft", "ueberhitzung", "Überhitzung der Wirtschaft", 40, "Wenn Kredit und Nachfrage schneller wachsen, als die Wirtschaft tragen kann: Mieten und Preise steigen, später folgt die Korrektur.", 0.06);
+
+e("wachstum", "steuereinnahmen", 0.04, 1, "Wachstum füllt die Kassen: mehr Umsätze, mehr Löhne, mehr Steuern.");
+e("wachstum", "investitionen", 0.02, 3, "Wer Aufträge sieht, investiert.");
+e("wachstum", "gruendungen", 0.015, 6, "In guten Zeiten wagen mehr Menschen den Schritt in die Selbständigkeit.");
+e("wachstum", "unternehmer", 0.02, 1, "Volle Auftragsbücher heben die Stimmung der Betriebe.");
+e("wachstum", "vertrauen_regierung", 0.015, 3, "Wer wächst, dem trauen die Menschen mehr zu.");
+e("arbeitslosigkeit", "steuereinnahmen", -0.05, 1, "Wo Arbeit fehlt, fehlen Lohn- und Verbrauchsteuern.");
+e("arbeitslosigkeit", "sozialkassen", -0.04, 2, "Mehr Arbeitslose zahlen weniger ein und beziehen mehr.");
+e("arbeitslosigkeit", "vertrauen_regierung", -0.025, 1, "Ohne Arbeit schwindet das Vertrauen in die, die regieren.");
+e("energiepreise", "industrie", -0.03, 2, "Teure Energie verteuert jede Fertigung.");
+e("energiepreise", "export", -0.02, 3, "Wer teurer produziert, verliert auf dem Weltmarkt.");
+e("energiepreise", "mittelstand", -0.015, 3, "Kleine Betriebe können Energiepreise kaum weitergeben.");
+e("p_migrationsdruck", "mieten", 0.02, 3, "Mehr Zuzug in die Städte treibt die Mieten.");
+e("gefluechtete", "p_wohnungsnot", 0.015, 6, "Zusätzliche Haushalte verschärfen den Mangel an Wohnungen.");
+e("p_migrationsdruck", "arbeitnehmer", -0.01, 1, "Beschäftigte fürchten Konkurrenz um Arbeit und Wohnung.");
+e("p_migrationsdruck", "arme", -0.01, 1, "Die Ärmsten konkurrieren um dieselben Wohnungen und Jobs.");
+e("polarisierung", "kriminalitaet", 0.015, 6, "Ein gespaltenes Land hat mehr Gewalt auf der Straße.");
+e("polarisierung", "terrorgefahr", 0.01, 6, "Verhärtete Fronten nähren Radikalisierung.");
+e("polarisierung", "tourismus", -0.01, 3, "Gäste meiden Länder, in denen es auf den Straßen gärt.");
+e("lebenserwartung", "sozialkassen", -0.015, 12, "Wer länger lebt, bezieht länger Rente und braucht mehr Pflege.");
+e("lebenserwartung", "rentenniveau", -0.01, 12, "Mehr Rentenjahre verdünnen das Rentenniveau.");
+e("geburtenrate", "fachkraefte", 0.02, 12, "Heute geborene Kinder sind in zwei Jahrzehnten die Fachkräfte.");
+e("klimaschutz", "ansehen", 0.01, 6, "Klimaschutz verbessert das Ansehen in der Welt.");
+e("klimaschutz", "beziehungen_eu", 0.01, 6, "Die EU belohnt Klimapolitik in Verhandlungen.");
+e("steuereinnahmen", "vertrauen_maerkte", 0.01, 6, "Solide Einnahmen beruhigen die Anleger.");
+e("arbeitsplaetze_industrie", "arbeitnehmer", 0.02, 1, "Sichere Industriejobs heben die Stimmung der Beschäftigten.");
+e("produktivitaet", "realeinkommen", 0.02, 12, "Was pro Stunde mehr entsteht, kann irgendwann als Lohn ankommen.");
+e("produktivitaet", "industrie", 0.02, 12, "Produktivere Fabriken liefern mehr und billiger.");
+e("wartezeiten", "vertrauen_regierung", -0.01, 3, "Lange Wartezeiten beim Arzt zehren am Vertrauen.");
+e("vertrauen_regierung", "legitimitaet", 0.02, 6, "Wer Vertrauen genießt, gilt auch als rechtmäßig im Amt.");
+e("streikneigung", "protestdruck", 0.05, 1, "Wer streiken will, geht auch auf die Straße.");
+e("polarisierung", "protestdruck", 0.04, 1, "In einem gespaltenen Land wird jede Kundgebung zum Lagerstreit.");
+e("lebenshaltung", "protestdruck", 0.04, 1, "Wenn der Alltag unbezahlbar wird, wächst der Unmut.");
+e("legitimitaet", "protestdruck", -0.03, 3, "Wer die Regierung nicht für rechtmäßig hält, geht eher auf die Straße.");
+e("vertrauen_regierung", "protestdruck", -0.03, 1, "Schwindendes Vertrauen lässt den Unmut wachsen.");
+e("ausnahmerecht", "protestdruck", -0.05, 0, "Kurzfristig schüchtern Verbote und Sonderbefugnisse ein.");
+e("m_notstand", "protestdruck", 0.04, 12, "Ein dauerhafter Ausnahmezustand staut Unmut auf, der später mit Wucht ausbricht.");
+e("m_versammlungsfreiheit", "protestdruck", -0.02, 6, "Wer demonstrieren darf, staut nicht auf: Das Ventil entlastet.");
+e("m_medienaufsicht", "protestdruck", 0.02, 6, "Gelenkte Medien nähren den Verdacht und den Zorn.");
+ef("protestdruck", "ansehen", -0.03, 3, "Bilder von Protesten und ihrer Niederschlagung gehen um die Welt.", { typ: "umkehr", exponent: 2 });
+ef("protestdruck", "legitimitaet", -0.03, 3, "Lang anhaltender Protest nagt an der Rechtmäßigkeit der Regierung.", { typ: "umkehr", exponent: 2 });
+ef("protestdruck", "vertrauen_regierung", -0.03, 1, "Ein Land auf der Straße traut seiner Regierung weniger.", { typ: "umkehr", exponent: 2 });
+ef("protestdruck", "tourismus", -0.02, 3, "Unruhe schreckt Reisende ab.", { typ: "umkehr", exponent: 2 });
+ef("protestdruck", "investitionen", -0.015, 6, "Wer Unruhe fürchtet, verschiebt Investitionen.", { typ: "umkehr", exponent: 2 });
+ef("protestdruck", "vertrauen_maerkte", -0.02, 3, "Anleger wollen Ruhe, nicht Straßenschlachten.", { typ: "umkehr", exponent: 2 });
+e("arbeitnehmer", "streikneigung", -0.04, 1, "Unzufriedene Beschäftigte streiken eher.");
+e("arbeitnehmer", "protestdruck", -0.03, 1, "Wütende Beschäftigte tragen den Unmut auf die Straße.");
+e("arme", "streikneigung", -0.03, 1, "Wer nichts zu verlieren hat, ist leichter zu mobilisieren.");
+e("arme", "kriminalitaet", -0.02, 6, "Not und Perspektivlosigkeit begünstigen Straftaten.");
+e("arme", "protestdruck", -0.03, 1, "Verzweiflung sucht ein Ventil.");
+e("junge", "protestdruck", -0.04, 1, "Junge Menschen gehen schneller auf die Straße.");
+e("junge", "abwanderung", -0.03, 3, "Wer sich nicht gehört fühlt, plant den Weggang.");
+e("minderheiten", "terrorgefahr", -0.03, 6, "Ausgrenzung und Perspektivlosigkeit begünstigen Radikalisierung am Rand.");
+e("minderheiten", "polarisierung", -0.02, 1, "Gekränkte Minderheiten verhärten die Fronten.");
+e("minderheiten", "protestdruck", -0.02, 1, "Fehlende Rechte treiben Menschen auf die Straße.");
+e("nationalisten", "polarisierung", -0.03, 1, "Enttäuschte Nationalisten heizen den Streit an.");
+e("nationalisten", "protestdruck", -0.02, 1, "Kundgebungen der Nationalisten füllen die Plätze.");
+e("konservative", "polarisierung", -0.02, 1, "Wenn sich Konservative übergangen fühlen, wächst der Kulturkampf.");
+e("konservative", "vertrauen_regierung", 0.01, 3, "Zufriedene Konservative tragen die Regierung.");
+e("staedtische_saekulare", "protestdruck", -0.03, 1, "Die Städte sind der Ort, an dem Protest sichtbar wird.");
+e("staedtische_saekulare", "abwanderung", -0.02, 3, "Wer sich im eigenen Land fremd fühlt, wandert aus.");
+e("staedtische_saekulare", "zivilgesellschaft", 0.015, 3, "Zufriedene Städter tragen Vereine, Initiativen und Medien.");
+e("unternehmer", "investitionen", 0.03, 3, "Die Stimmung der Unternehmer entscheidet über ihre Investitionen.");
+e("unternehmer", "gruendungen", 0.02, 6, "Zuversichtliche Unternehmer ermutigen Nachahmer.");
+e("landwirte", "landflucht", -0.02, 6, "Wer als Bauer verzweifelt, gibt den Hof auf.");
+e("landwirte", "protestdruck", -0.02, 1, "Bauernproteste blockieren Straßen und Märkte.");
+e("rentner", "vertrauen_regierung", 0.015, 1, "Rentner sind die verlässlichste Wählerschaft: Ihre Zufriedenheit zählt.");
+e("rentner", "legitimitaet", 0.01, 6, "Zufriedene Ältere stützen das Amt über Jahre.");
+e("beamte", "vertrauen_regierung", 0.01, 3, "Der Staatsapparat trägt, wer ihn gut behandelt.");
+e("beamte", "legitimitaet", 0.01, 6, "Zufriedene Beamte setzen Beschlüsse zuverlässig um.");
+e("m_mindestlohn", "lohn_preis", 0.05, 1, "Kräftige Mindestlohnerhöhungen ziehen die ganze Lohnskala nach oben.");
+e("inflation", "lohn_preis", 0.02, 1, "Wer die Teuerung spürt, fordert mehr Lohn.");
+e("streikneigung", "lohn_preis", 0.03, 3, "Streikdrohungen setzen höhere Abschlüsse durch.");
+e("m_gewerkschaftsrechte", "lohn_preis", 0.02, 6, "Starke Gewerkschaften verhandeln Löhne nach oben.");
+e("lohn_preis", "kostendruck", 0.06, 1, "Höhere Lohnkosten geben die Betriebe als Preise weiter.");
+e("lohn_preis", "lebenshaltung", 0.03, 1, "Die Spirale macht den Alltag spürbar teurer.");
+e("lohn_preis", "realeinkommen", 0.015, 3, "Ein Teil der höheren Löhne bleibt als Kaufkraft übrig.");
+e("lohn_preis", "mittelstand", -0.02, 3, "Kleine Betriebe tragen höhere Löhne am schwersten.");
+ef("m_mindestlohn", "informelle_arbeit", 0.03, 3, "Wo der Mindestlohn zu hoch liegt, weichen Betriebe in Schwarzarbeit aus.", { typ: "umkehr", exponent: 2 });
+ef("m_mindestlohn", "jugendarbeitslosigkeit", 0.025, 6, "Berufseinsteiger ohne Erfahrung werden zuerst nicht mehr eingestellt.", { typ: "umkehr", exponent: 2 });
+ef("m_mindestlohn", "mittelstand", -0.04, 3, "Der Mittelstand zahlt den Mindestlohn aus der eigenen Kasse.", { typ: "umkehr", exponent: 2 });
+e("m_preiskontrollen", "mittelstand", -0.03, 3, "Gedeckelte Preise drücken die Margen kleiner Betriebe.");
+e("m_preiskontrollen", "investitionen", -0.02, 6, "Wer seine Preise gedeckelt sieht, investiert nicht in die Produktion.");
+e("wachstum", "ueberhitzung", 0.03, 3, "Wachstum über dem Potenzial heizt die Wirtschaft auf.");
+e("kredite", "ueberhitzung", 0.05, 3, "Billiges Geld kurbelt Nachfrage an, die das Angebot übersteigt.");
+e("m_baukredite", "ueberhitzung", 0.02, 6, "Baukredite befeuern Nachfrage und Bodenpreise.");
+e("leitzins", "ueberhitzung", -0.03, 4, "Hohe Zinsen kühlen die Wirtschaft ab.");
+e("ueberhitzung", "kostendruck", 0.04, 1, "Eine heiße Wirtschaft treibt Löhne und Preise.");
+e("ueberhitzung", "mieten", 0.04, 3, "Boomstädte erleben steigende Mieten.");
+e("ueberhitzung", "vertrauen_maerkte", -0.02, 6, "Anleger wissen, dass auf die Überhitzung die Korrektur folgt.");
+e("ueberhitzung", "investitionen", -0.02, 12, "Nach der Überhitzung bleiben Fehlinvestitionen und Zurückhaltung.");
+
+/** Das Zusammenspiel zweier Maßnahmen (Synergie oder Gegenspiel), das die Summe der Einzelwirkungen übersteigt oder mindert. */
+export const SYNERGIEN: SynergieSpec[] = [
+  { id: "mietdeckel_baukredite", a: "m_mietdeckel", b: "m_baukredite", to: "wohnungsbau", weight: 0.04, lag: 6, modus: "gleich", why: "Ein Mietdeckel allein bremst den Neubau; zusammen mit Baukrediten bleibt Bauen rentabel." },
+  { id: "preiskontrollen_zoelle", a: "m_preiskontrollen", b: "m_zoelle", to: "schattenwirtschaft", weight: 0.05, lag: 3, modus: "gleich", why: "Preiskontrollen plus Zölle schaffen Mangel und Schmuggel: Ein Schwarzmarkt entsteht." },
+  { id: "mindestlohn_gewerkschaften", a: "m_mindestlohn", b: "m_gewerkschaftsrechte", to: "lohn_preis", weight: 0.04, lag: 3, modus: "gleich", why: "Hoher Mindestlohn und starke Gewerkschaften verstärken einander: Lohnforderungen laufen den Preisen hinterher." },
+  { id: "mindestlohn_kmu", a: "m_mindestlohn", b: "m_kmu", to: "mittelstand", weight: 0.03, lag: 3, modus: "gleich", why: "Der Mittelstand verkraftet höhere Löhne leichter, wenn er zugleich gefördert wird." },
+  { id: "steuern_doppelt", a: "m_einkommensteuer", b: "m_mwst", to: "arbeitnehmer", weight: -0.03, lag: 1, modus: "gleich", why: "Höhere Einkommensteuer und höhere Mehrwertsteuer zusammen treffen Beschäftigte doppelt." },
+  { id: "renten_fruehrente", a: "m_renten", b: "m_fruehrente", to: "sozialkassen", weight: -0.04, lag: 6, modus: "gleich", why: "Höhere Renten bei früherem Rentenbeginn belasten die Kassen mehr als die Summe der Teile." },
+  { id: "wind_netz", a: "m_solar_wind", b: "m_netzausbau", to: "erneuerbare", weight: 0.05, lag: 6, modus: "gleich", why: "Wind und Sonne brauchen Netze: Erst zusammen kommt der Strom an." },
+  { id: "wind_speicher", a: "m_solar_wind", b: "m_speicher_smartgrid", to: "stromversorgung", weight: 0.04, lag: 12, modus: "gleich", why: "Speicher machen schwankenden Strom verlässlich." },
+  { id: "gas_hub", a: "m_gasfoerderung", b: "m_gashub", to: "energieimporte", weight: -0.04, lag: 12, modus: "gleich", why: "Eigenes Gas und ein Handelsplatz senken die Abhängigkeit gemeinsam." },
+  { id: "wasser_saatgut", a: "m_bewaesserung", b: "m_saatgut", to: "ernte", weight: 0.04, lag: 6, modus: "gleich", why: "Wasser und widerstandsfähiges Saatgut tragen die Ernte gemeinsam durch trockene Jahre." },
+  { id: "damm_leitungen", a: "m_staudaemme", b: "m_wasserleitungen", to: "wasserversorgung", weight: 0.04, lag: 12, modus: "gleich", why: "Ein Stausee nützt erst, wenn Leitungen das Wasser verteilen." },
+  { id: "klinik_gehalt", a: "m_krankenhausbau", b: "m_aerztegehalt", to: "gesundheitsversorgung", weight: 0.04, lag: 12, modus: "gleich", why: "Neue Kliniken brauchen Ärztinnen und Ärzte, die bleiben." },
+  { id: "uni_lehrer", a: "m_unigruendungen", b: "m_lehrergehaelter", to: "bildungsqualitaet", weight: -0.03, lag: 12, modus: "gegen", why: "Mehr Hochschulen bei sinkenden Lehrergehältern saugen die Schulen leer." },
+  { id: "forschung_freiheit", a: "m_forschung", b: "m_wissenschaftsfreiheit", to: "produktivitaet", weight: 0.03, lag: 12, modus: "gleich", why: "Forschungsgelder wirken nur, wo Wissenschaft frei arbeiten darf." },
+  { id: "fachkraefte_industrie", a: "m_fachkraefteprogramm", b: "m_industrie_modernisierung", to: "industrie", weight: 0.03, lag: 12, modus: "gleich", why: "Neue Anlagen brauchen Fachkräfte, die sie bedienen." },
+  { id: "polizei_technik", a: "m_polizei", b: "m_polizeitechnik", to: "kriminalitaet", weight: -0.03, lag: 6, modus: "gleich", why: "Mehr Polizei wirkt besser mit moderner Technik." },
+  { id: "medien_netz", a: "m_medienaufsicht", b: "m_internetsperren", to: "pressefreiheit", weight: -0.04, lag: 3, modus: "gleich", why: "Medienaufsicht plus Netzsperren ersticken die Öffentlichkeit gemeinsam." },
+  { id: "notstand_medien", a: "m_notstand", b: "m_medienaufsicht", to: "zivilgesellschaft", weight: -0.03, lag: 3, modus: "gleich", why: "Notstand und Medienkontrolle zusammen lähmen die Zivilgesellschaft." },
+  { id: "justiz_richterrat", a: "m_justizreform", b: "m_richterrat", to: "justiz_unabhaengigkeit", weight: 0.03, lag: 6, modus: "gleich", why: "Eine Justizreform wirkt dauerhaft, wenn auch der Richterrat unabhängig ist." },
+  { id: "richter_haft", a: "m_richterstellen", b: "m_haftvermeidung", to: "haftueberfuellung", weight: -0.04, lag: 6, modus: "gleich", why: "Mehr Richterstellen und weniger Untersuchungshaft entlasten die Gefängnisse gemeinsam." },
+  { id: "anreize_steuer", a: "m_investitionsanreize", b: "m_koerperschaftsteuer", to: "investitionen", weight: 0.03, lag: 9, modus: "gegen", why: "Anreize und niedrigere Gewinnsteuern zusammen locken Investoren." },
+  { id: "export_handel", a: "m_exportfoerderung", b: "m_handelssysteme", to: "export", weight: 0.03, lag: 12, modus: "gleich", why: "Exportförderung wirkt, wenn digitale Handelssysteme Zoll und Papier verkürzen." },
+  { id: "eu_reform", a: "m_eu_annaeherung", b: "m_justizreform", to: "beziehungen_eu", weight: 0.04, lag: 12, modus: "gleich", why: "Annäherung an die EU ist nur glaubwürdig mit Reformen im Rechtsstaat." },
+  { id: "frieden_rechte", a: "m_friedensprozess", b: "m_minderheitenrechte", to: "terrorgefahr", weight: -0.03, lag: 12, modus: "gleich", why: "Frieden hält, wenn Rechte folgen." },
+  { id: "afad_warnung", a: "m_afad_ausbau", b: "m_fruehwarnsystem", to: "katastrophenschutz", weight: 0.04, lag: 6, modus: "gleich", why: "Frühwarnung rettet nur, wenn Rettungskräfte bereitstehen." },
+  { id: "verstaerkung_aufsicht", a: "m_gebaeudeverstaerkung", b: "m_bauaufsicht", to: "erdbebenvorsorge", weight: 0.04, lag: 12, modus: "gleich", why: "Verstärkte Häuser brauchen Kontrolle am Bau." },
+];
 
 export const NODES: NodeSpec[] = N;
 export const EDGES: EdgeSpec[] = E;

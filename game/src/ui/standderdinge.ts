@@ -98,7 +98,7 @@ function deltas(w: World, vorsitzung: KennzahlenSnapshot): KennzahlDelta[] {
 export function standDerDinge(w: World, vorsitzung: KennzahlenSnapshot | null): StandDerDinge {
   const spiel = w.spiel!;
   const wahltage = Math.max(0, spiel.wahltag - w.day);
-  const agendaTermin = termine(w).find((t) => t.id === "wahl" || KALENDER.some((k) => k.id === t.id));
+  const agendaTermin = termine(w).find((t) => t.id === "wahl" || KALENDER.some((k) => k.id === t.id && !k.weich));
   const f = faellig(w)[0];
   return {
     datum: formatDateDe(w.date),

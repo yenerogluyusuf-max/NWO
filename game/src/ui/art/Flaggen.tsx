@@ -2,6 +2,7 @@
 // Sie stehen für die Länder des Spiels (Kennung wie in sim/laender.ts) und die Türkei; unbekannte Kennungen zeigen ein neutrales Schild.
 
 import type { ReactNode } from "react";
+import { FARBEN_WEITERE, FLAGGEN_WEITERE } from "./FlaggenWeitere";
 
 /** Regelmäßiger fünfzackiger Stern. */
 function Stern({ cx, cy, r, fill, rot = 0 }: { cx: number; cy: number; r: number; fill: string; rot?: number }) {
@@ -277,7 +278,7 @@ export const hatFlagge = (id: string): boolean => id in FLAGGEN;
  * `titel` ist der zugängliche Name; ohne ihn ist die Flagge reine Dekoration.
  */
 export function Flagge({ id, breite = 36, rund = false, titel, className }: { id: string; breite?: number; rund?: boolean; titel?: string; className?: string }) {
-  const zeichne = FLAGGEN[id];
+  const zeichne = FLAGGEN[id] ?? FLAGGEN_WEITERE[id];
   const hoehe = rund ? breite : Math.round((breite * 2) / 3);
   const a11y = titel ? { role: "img", "aria-label": titel } : { "aria-hidden": true as const };
   const klip = `flagge-klip-${id}-${rund ? "r" : "e"}`;
@@ -301,4 +302,4 @@ export const FLAGGENFARBEN: Record<string, [string, string]> = {
   EGY: ["#CE1126", "#000000"], LBY: ["#E70013", "#239E46"], KAZ: ["#00AFCA", "#FEC50C"], CYP: ["#D57800", "#4E5B31"],
 };
 
-export const flaggenFarben = (id: string): [string, string] => FLAGGENFARBEN[id] ?? ["#8c7d69", "#f3e6c6"];
+export const flaggenFarben = (id: string): [string, string] => FLAGGENFARBEN[id] ?? FARBEN_WEITERE[id] ?? ["#8c7d69", "#f3e6c6"];

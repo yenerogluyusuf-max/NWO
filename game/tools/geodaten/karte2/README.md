@@ -17,6 +17,9 @@ Diese Skripte erzeugen alles unter `public/data/karte/`. Sie laufen in einem bel
 | 10 | `10_orte_osm.py` | OSM-Auszug Türkei (`turkey.osm.pbf`, Geofabrik, ODbL) | `osm_orte.json` |
 | 11 | `11_orte.py` | `osm_orte.json`, Natural Earth Orte, Seen, Flüsse | `orte.json` |
 | 12 | `12_wasser.py` | Natural Earth Flüsse und Seen (`ne_10m_rivers_lake_centerlines`, `ne_10m_rivers_europe`, `ne_10m_lakes`, `ne_10m_lakes_europe`) | `wasser.json` |
+| 13 | `13_welt_laender.py` | `zellen.pkl`, Natural Earth 10m Länder (ganze Welt), `karte.json`, `welt.json` | `karte-W0.bin`, `karte-W1.bin` (Länder außerhalb des Ausschnitts), erweiterte `karte.json` |
+| 14 | `14_randbogen_entfernen.py` | `karte-L*.bin`, `karte-W*.bin` | dieselben Dateien ohne Grenzbögen am Rand des Ausschnitts |
+| – | `../welt_gelaende.py` | AWS Terrain Tiles Zoom 5, Natural Earth Länder und Seen | `welt-hoehe.bin.gz`, `welt-kueste.bin.gz`, `welt.json` (Basisrelief der ganzen Welt) |
 
 Die Schritte 1 bis 2 sind im Kopf der jeweiligen Datei beschrieben; Schritt 1 lädt keine Daten, die Zip-Datei wird vorher von Hand geholt.
 Voraussetzungen: `pip install shapely numpy scipy pillow pyshp osmium`.
@@ -29,3 +32,8 @@ Besitzer in `karte-L*.bin`: Index in `karte.json` → `besitzer` (0–80 Provinz
 Detailstufen: L0 Toleranz 0,008° (bis 60 Bildpunkte je Längengrad), L1 0,0025° (bis 200), L2 0,0007°; Bezirke B1 und B2 wie L1 und L2.
 Alle Grenzen werden aus einem gemeinsamen Netz von Bögen einmal vereinfacht, deshalb schließen Nachbarn ohne Lücke aneinander;
 `test/karte.test.ts` prüft Überlappungsfreiheit, bekannte Orte und das Distanzfeld.
+
+**Welt-Rahmen.** Seit Oktober 2026 reicht die Karte über die ganze Welt. Die Zerlegung der Schritte 1 bis 12 gilt weiter innerhalb des Rechtecks ROI;
+alle übrigen Länder kommen aus Schritt 13 unter demselben Besitzerindex (Länder, die über das ROI hinausreichen, haben also Flächen in `karte-L*.bin` und `karte-W*.bin`).
+Detailstufe L(k) und W(k) gehören zusammen; Stufe L2 benutzt W1. Das Basisrelief der Welt (`welt_gelaende.py`) liegt unter der feineren Kernhöhe (`relief-z8.bin`, unverändert).
+Kurze Grenzbögen am ROI-Rand werden in Schritt 14 entfernt (und in 06/13 nicht mehr erzeugt).

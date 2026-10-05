@@ -2,6 +2,7 @@
 // Wie in ereignisse-innen.ts sind Wahrscheinlichkeiten und Wirkungen Platzhalter der Kalibrierung; Zahlen im Text
 // stammen aus dem Weltzustand. Namen von Staaten kommen nur vor, wo der Sachverhalt sie ohnehin bedingt.
 
+import { ratingAendere, ratingDruck } from "./maerkte";
 import { wirke, vertrauenAendern } from "./wirkung";
 import { setFiscalImpulse } from "./eingriffe";
 import { clamp } from "./economy";
@@ -164,6 +165,7 @@ const RATING: Vorlage = {
   optionen: () => [
     opt("fahrplan", "Einen Reformfahrplan vorlegen", beschr(3, 0, "beruhigt die Investoren, bindet die Regierung."), 3, (w) => {
       wirke(w, "vertrauen_maerkte", 4);
+      ratingDruck(w, -4);
       setFiscalImpulse(w, Math.min(w.economy.fiscalImpulse, 0));
       loyalitaetAendern(w, "finanzen", 4);
       return "Ein mehrjähriger Reformfahrplan wird vorgelegt.";
@@ -175,14 +177,16 @@ const RATING: Vorlage = {
     }),
     opt("zurueckweisen", "Die Kritik zurückweisen", beschr(0, 0, "populär im Inland, teuer an den Märkten."), 0, (w) => {
       w.economy.riskPremium += 20;
+      ratingDruck(w, 5);
       wirke(w, "vertrauen_maerkte", -3);
       wirke(w, "konservative", 1);
       return "Die Regierung weist die Kritik als ungerechtfertigt zurück.";
     }),
   ],
   standard: (w) => {
-    w.economy.riskPremium += 25;
-    wirke(w, "vertrauen_maerkte", -4);
+    // Runde „Netz atmet“: Die Herabstufung ist jetzt ein Zustand (sim/maerkte.ts): Stufe, Aufschlag und Vertrauen folgen daraus
+    ratingAendere(w, -1);
+    wirke(w, "vertrauen_maerkte", -2);
     return "Die Agentur stuft das Land herab; Kredite werden teurer.";
   },
 };

@@ -129,7 +129,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
       </nav>
 
       <article className="wi-detail" id="wi-detail" aria-live="polite">
-        <button className="link wi-zurueck" onClick={() => document.querySelector(".wi-liste")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+        <button className="pd-btn quiet wi-zurueck" onClick={() => document.querySelector(".wi-liste")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
           ↑ Alle Kennzahlen
         </button>
         <header>

@@ -1,8 +1,13 @@
-/* Die Zeitung (UI-1): gedruckte Frontseite auf Papier — Masthead mit Doppellinie,
-   mehrspaltiger Satz wie in einer Tageszeitung, Blätter als Registerkarten.
-   Töne der Blätter: Siegelrot (regierungsnah), Petrol (unabhängig), Tinte (oppositionell). */
+/* Die Zeitung (UI-1): gedruckte Titelseite auf Papier — Masthead mit Doppellinie, Leitartikel, mehrspaltiger Satz
+   wie in einer Tageszeitung, Kästen für Zahlen, Lage, Parlament, Ausland und Umfrage, Kommentar, Blätter als
+   Registerkarten. Töne der Blätter: Siegelrot (regierungsnah), Petrol (unabhängig), Tinte (oppositionell).
 
-.zt { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 20px; align-items: start; }
+   Das Layout richtet sich nach der Breite des FENSTERS (Container-Abfragen), nicht des Bildschirms: Die Akte kann
+   schmal links neben der Karte stehen oder fast das ganze Bild füllen. */
+
+.zt-huelle { container: zt / inline-size; min-width: 0; }
+.zt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.zt-haupt { min-width: 0; }
 
 /* --- Blatt-Auswahl als Registerkarten ------------------------------------ */
 .zt-blaetter { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: -1px; position: relative; z-index: 1; }
@@ -19,7 +24,7 @@
 .zt-blatt-tab.ton-neutral.on strong { color: var(--teal); }
 .zt-blatt-tab:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
 
-/* --- Masthead ------------------------------------------------------------- */
+/* --- Seite und Masthead ----------------------------------------------------- */
 .zt-seite {
   border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 0 3px 3px 3px;
   background:
@@ -27,9 +32,10 @@
     repeating-linear-gradient(0deg, rgba(120, 90, 50, 0.03) 0 1px, transparent 1px 3px),
     var(--paper-light);
   box-shadow: var(--shadow);
-  padding: 14px 22px 18px;
+  padding: 14px 22px 20px;
+  min-width: 0;
 }
-.zt-masthead { text-align: center; margin-bottom: 10px; }
+.zt-masthead { text-align: center; margin-bottom: 12px; }
 .zt-zeile-oben {
   display: flex; justify-content: space-between; gap: 12px; margin: 0 0 2px;
   font-size: 12px; color: var(--ink-soft); font-variant: small-caps; letter-spacing: 0.05em;
@@ -47,8 +53,16 @@
   border-top: 0.75px solid var(--ink); border-bottom: 2.5px solid var(--ink); padding: 2px 1px;
 }
 
-/* --- Artikel -------------------------------------------------------------- */
-.zt-lead { margin: 4px 0 8px; }
+/* --- Körper: Text links, Kästen rechts -------------------------------------- */
+.zt-koerper { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px 26px; align-items: start; }
+.zt-text { min-width: 0; }
+.zt-kaesten { display: grid; gap: 14px; align-content: start; min-width: 0; }
+
+/* Kurze Seite (etwa die Eilmeldung): die Kästen liegen als Raster unter dem Text */
+.zt-koerper.unten .zt-kaesten { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px 18px; }
+
+/* --- Artikel ---------------------------------------------------------------- */
+.zt-lead { margin: 4px 0 10px; }
 .zt-sparte {
   font-variant: small-caps; letter-spacing: 0.07em; font-size: 12px; font-weight: 600;
   color: var(--seal); margin: 0 0 2px;
@@ -61,24 +75,100 @@
   font-family: var(--display); font-size: 40px; font-weight: 700; line-height: 0.9;
   float: left; padding: 2px 7px 0 0; color: var(--ink);
 }
-.zt-spalten { columns: 2 240px; column-gap: 26px; column-rule: 0.75px solid rgba(90, 64, 40, 0.35); margin-top: 6px; }
-.zt-spalten article { break-inside: avoid; margin-bottom: 12px; }
-.zt-spalten article.zt-kurz { opacity: 0.82; }
+.zt-spalten { columns: 2 230px; column-gap: 26px; column-rule: 0.75px solid rgba(90, 64, 40, 0.35); margin-top: 10px; padding-top: 10px; border-top: 0.75px solid rgba(90, 64, 40, 0.4); }
+.zt-spalten article { break-inside: avoid; margin-bottom: 14px; }
+.zt-spalten article.zt-kurz { opacity: 0.85; }
 .zt-spalten article.zt-kurz .zt-schlagzeile { font-size: 15.5px; }
 .zt-verschwiegen {
   break-inside: avoid; font-size: 12.5px; color: var(--ink-soft); border-top: 0.75px dashed rgba(90, 64, 40, 0.5);
-  padding-top: 6px; margin: 4px 0 0;
+  padding-top: 6px; margin: 10px 0 0;
 }
 
-/* --- Umfrage-Kasten -------------------------------------------------------- */
-.zt-umfrage {
-  break-inside: avoid; border: 1.5px solid var(--ink); padding: 10px 14px; margin: 0 0 12px;
-  background: rgba(255, 250, 235, 0.55); box-shadow: 3px 3px 0 rgba(42, 31, 24, 0.18);
+/* Der Knopf einer Meldung: führt zur passenden Akte */
+.zt .zt-gehe, .zt .zt-zeile-link {
+  display: inline-block; padding: 0 !important; margin: 2px 0 0; cursor: pointer;
+  border: none !important; border-bottom: 1px dotted var(--seal) !important; border-radius: 0 !important;
+  background: none !important; box-shadow: none !important; text-shadow: none !important;
+  color: var(--seal); font: 600 13px var(--serif); text-align: left;
 }
-.zt-umfrage h5, .zt-regulierung h5, .zt-archiv h5 {
+.zt .zt-gehe:hover, .zt .zt-zeile-link:hover { border-bottom-style: solid !important; color: #6d1e18; }
+.zt .zt-gehe:focus-visible, .zt .zt-zeile-link:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.zt .zt-gehe.gross { font-size: 14.5px; margin-top: 6px; }
+.zt .zt-zeile-link { color: var(--ink); font-weight: 500; border-bottom-color: rgba(90, 64, 40, 0.45) !important; }
+
+/* Eilmeldung: Was feststeht, was offen ist */
+.zt-einordnung {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 22px; margin: 10px 0 4px;
+  padding: 10px 14px; border-left: 3px solid var(--seal); background: rgba(142, 42, 34, 0.06);
+}
+.zt-einordnung h5 { font-family: var(--display); font-size: 14px; font-weight: 650; margin: 0 0 4px; font-variant: small-caps; letter-spacing: 0.06em; color: var(--seal); }
+.zt-einordnung ul { margin: 0; padding-left: 16px; display: grid; gap: 4px; font-size: 14px; line-height: 1.4; }
+
+/* --- Kommentar ---------------------------------------------------------------- */
+.zt-kommentar {
+  margin: 14px 0 0; padding: 10px 16px 6px; border-top: 3px double var(--ink); border-left: 3px solid var(--ink-soft);
+  background: rgba(220, 205, 171, 0.28);
+}
+.zt-kommentar.ton-regierungsnah { border-left-color: var(--seal); }
+.zt-kommentar.ton-neutral { border-left-color: var(--teal); }
+.zt-kommentar .zt-schlagzeile { font-size: 19px; font-style: italic; }
+.zt-kommentar .zt-artikel-text { font-style: italic; }
+
+/* --- Kästen ------------------------------------------------------------------- */
+.zt-kasten, .zt-umfrage {
+  break-inside: avoid; border: 1.5px solid var(--ink); padding: 10px 14px 12px; margin: 0;
+  background: rgba(255, 250, 235, 0.55); box-shadow: 3px 3px 0 rgba(42, 31, 24, 0.18); min-width: 0;
+}
+.zt-kasten h5, .zt-umfrage h5, .zt-regulierung h5, .zt-archiv h5 {
   font-family: var(--display); font-size: 15px; font-weight: 650; margin: 0 0 6px;
   font-variant: small-caps; letter-spacing: 0.05em;
 }
+.zt-kasten ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.zt-kasten li { font-size: 14px; line-height: 1.3; }
+
+/* Zahlen des Monats */
+.zt-zahlen li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name wert" "delta spark";
+  column-gap: 10px; row-gap: 1px; align-items: end; padding-bottom: 7px; border-bottom: 0.5px dashed rgba(90, 64, 40, 0.4);
+}
+.zt-zahlen li:last-child { border-bottom: none; padding-bottom: 0; }
+.zt-zahl-name { grid-area: name; font-size: 13.5px; }
+.zt-zahl-name small { display: block; font-size: 11px; color: var(--ink-soft); font-variant: small-caps; letter-spacing: 0.04em; }
+.zt-zahl-wert { grid-area: wert; font-family: var(--display); font-weight: 650; font-size: 20px; text-align: right; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.zt-zahl-delta { grid-area: delta; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.zt-zahl-delta.gut { color: #33622f; }
+.zt-zahl-delta.schlecht { color: var(--seal); }
+.zt-spark { grid-area: spark; justify-self: end; overflow: visible; }
+.zt-spark path { fill: none; stroke: var(--ink-soft); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.zt-spark circle { fill: var(--ink-soft); }
+.zt-spark.gut path { stroke: #33622f; }
+.zt-spark.gut circle { fill: #33622f; }
+.zt-spark.schlecht path { stroke: var(--seal); }
+.zt-spark.schlecht circle { fill: var(--seal); }
+
+/* Lage im Land */
+.zt-lage li { display: grid; grid-template-columns: minmax(0, 1fr) auto; row-gap: 3px; column-gap: 8px; }
+.zt-lage-name { font-weight: 600; }
+.zt-lage-zahl { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+.zt-lage-zahl em { font-style: normal; }
+.zt-lage-zahl em.schlecht { color: var(--seal); }
+.zt-lage-zahl em.gut { color: #33622f; }
+.zt-balken { grid-column: 1 / -1; display: block; height: 5px; background: rgba(90, 64, 40, 0.18); border-radius: 2px; overflow: hidden; }
+.zt-balken i { display: block; height: 100%; background: var(--seal); }
+.zt-lage-ort { grid-column: 1 / -1; font-size: 12px; color: var(--ink-soft); }
+
+/* Parlament */
+.zt-parl-zeile { margin: 0 0 6px; font-size: 14px; }
+.zt-sitze { position: relative; display: flex; height: 12px; background: rgba(90, 64, 40, 0.18); border-radius: 2px; margin: 4px 0 8px; }
+.zt-sitze i { display: block; height: 100%; }
+.zt-sitze i.lager { background: var(--teal); border-radius: 2px 0 0 2px; }
+.zt-sitze i.duldung { background: #7fa6ac; }
+.zt-sitze b { position: absolute; top: -3px; width: 2px; height: 18px; background: var(--ink); }
+.zt-parl-meta { margin: 0 0 5px; font-size: 12.5px; color: var(--ink-soft); }
+.zt-parlament .zt-gehe, .zt-lage .zt-gehe { margin-top: 6px; }
+
+/* Umfrage */
+.zt-umfrage h5 { margin-bottom: 6px; }
 .zt-umfrage-institut { font-style: italic; color: var(--ink-soft); margin: 0; font-size: 13px; }
 .zt-umfrage-wert { font-family: var(--display); font-size: 34px; font-weight: 700; margin: 2px 0; }
 .zt-umfrage-prozent { font-size: 16px; font-weight: 500; }
@@ -88,10 +178,10 @@
 .zt-umfrage-meta { font-size: 12px; color: var(--ink-soft); margin: 0; }
 .zt-umfrage.schublade p:last-child { margin: 0; font-size: 13.5px; }
 
-/* --- Rand: Archiv und Regulierungs-Referenz -------------------------------- */
-.zt-rand { display: flex; flex-direction: column; gap: 16px; }
+/* --- Rand: Archiv und Regulierungs-Referenz ---------------------------------- */
+.zt-rand { display: grid; gap: 16px; align-content: start; min-width: 0; }
 .zt-archiv ul, .zt-regulierung ul { list-style: none; margin: 0; padding: 0; }
-.zt-archiv li + li { margin-top: 3px; }
+.zt-archiv ul { display: grid; gap: 4px; }
 .zt-archiv button {
   display: grid; grid-template-columns: auto 1fr; column-gap: 8px; width: 100%; text-align: left;
   border: 1px solid rgba(90, 64, 40, 0.4) !important; background: linear-gradient(180deg, #fbf5e6, #eee1c3) !important;
@@ -102,17 +192,128 @@
 .zt-archiv-nr { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
 .zt-archiv-nr em { font-style: normal; color: var(--seal); font-size: 10.5px; margin-left: 4px; letter-spacing: 0.08em; }
 .zt-archiv-datum { font-size: 12px; color: var(--ink-soft); text-align: right; }
-.zt-archiv-lead { grid-column: 1 / -1; font-size: 12.5px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zt-archiv-lead {
+  grid-column: 1 / -1; font-size: 12.5px; font-style: italic; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.zt-marke { display: inline-block; width: 0; height: 0; margin-right: 6px; vertical-align: 1px; border-left: 4px solid transparent; border-right: 4px solid transparent; }
+.zt-marke.auf { border-bottom: 7px solid #33622f; }
+.zt-marke.ab { border-top: 7px solid var(--seal); }
 .zt-regulierung { border-top: 2px solid var(--ink); padding-top: 8px; }
 .zt-reg-hinweis { font-size: 12px; color: var(--ink-soft); margin: 0 0 8px; }
 .zt-regulierung li {
-  display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font-size: 12.5px;
   padding: 3px 0; border-bottom: 0.5px dashed rgba(90, 64, 40, 0.4);
 }
-.zt-reg-preis { color: var(--seal); white-space: nowrap; }
+.zt-reg-preis { color: var(--seal); }
 
-/* Schmale Fenster: Rand unter die Seite */
-@media (max-width: 1100px) {
-  .zt { grid-template-columns: 1fr; }
-  .zt-blattname { font-size: 34px; }
+/* --- Breite des Fensters ------------------------------------------------------- */
+/* Ab etwa 760 px stehen Text und Kästen nebeneinander */
+@container zt (min-width: 760px) {
+  .zt-koerper.mit-kasten { grid-template-columns: minmax(0, 1fr) 250px; }
 }
+/* Ab etwa 1040 px steht das Archiv neben der Seite; sonst darunter, als Raster */
+@container zt (min-width: 1040px) {
+  .zt { grid-template-columns: minmax(0, 1fr) 240px; }
+}
+@container zt (max-width: 1039px) {
+  .zt-archiv ul { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .zt-rand { grid-template-columns: minmax(0, 1fr); }
+}
+/* Sehr schmal: kleinerer Titel, einspaltiger Satz */
+@container zt (max-width: 620px) {
+  .zt-blattname { font-size: 32px; }
+  .zt-lead .zt-schlagzeile { font-size: 25px; }
+  .zt-spalten { columns: 1; }
+  .zt-seite { padding: 12px 14px 16px; }
+}
+
+/* Niedrige Fenster (Laptop): Titelkopf und Leitartikel sparen Höhe, damit schon der erste Blick Inhalt zeigt */
+@media (max-height: 760px) {
+  .zt-blattname { font-size: 34px; margin-top: 3px; }
+  .zt-unterzeile { display: none; }
+  .zt-masthead { margin-bottom: 8px; }
+  .zt-seite { padding-top: 10px; }
+  .zt-lead .zt-schlagzeile { font-size: 26px; }
+  .zt-blatt-tab { padding: 5px 12px 3px !important; min-width: 118px; }
+}
+
+/* --- Reiter Ausgaben | Medien --------------------------------------------- */
+.zt-reiter { display: flex; gap: 6px; margin: 0 0 12px; border-bottom: 1px solid rgba(90, 64, 40, 0.4); }
+.zt-reiter button {
+  padding: 7px 16px 6px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-bottom: none !important; border-radius: 4px 4px 0 0 !important;
+  background: linear-gradient(180deg, #e6d8b8, #dccdab) !important; box-shadow: none !important; font: 600 14px/1.2 var(--sans, Inter, sans-serif) !important; color: var(--ink-soft); cursor: pointer;
+}
+.zt-reiter button.on { background: linear-gradient(180deg, #fbf5e6, #f3ead2) !important; color: var(--ink); margin-bottom: -1px; }
+.zt-reiter button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.zt-gesperrt { margin: 0 0 8px; padding: 6px 10px; font-size: 13px; border-left: 3px solid var(--seal); background: rgba(140, 43, 31, 0.07); color: var(--ink); }
+
+/* --- Medien: Zustand der Cluster, Eingriffe, Wahrnehmung ------------------- */
+.md { display: grid; gap: 18px; min-width: 0; font-size: 14px; color: var(--ink); }
+.md h3 { margin: 0 0 2px; font: 600 24px/1.2 var(--display); }
+.md h4 { margin: 0 0 6px; font: 600 18px/1.25 var(--display); }
+.md h5 { margin: 10px 0 6px; font: 700 12.5px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: var(--seal); }
+.md-hinweis { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.md-warn { margin: 6px 0 0; padding: 5px 9px; font-size: 13px; border-left: 3px solid var(--seal); background: rgba(140, 43, 31, 0.07); }
+.md-grund { font-size: 12.5px; color: var(--seal); }
+.md-kopf { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@container zt (min-width: 720px) { .md-kopf { grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); } }
+.md-rsf, .md-wahrnehmung, .md-regler, .md-verlauf, .md-aktionen, .md-tableau { padding: 12px 14px; border: 1px solid rgba(90, 64, 40, 0.35); background: var(--paper-light); border-radius: 3px; }
+.md-rsf h5 { margin-top: 0; }
+.md-rsf p { margin: 0 0 4px; }
+.md-rsf-linie { width: 100%; height: 70px; }
+.md-rsf-linie path { fill: none; stroke: var(--seal); stroke-width: 2; }
+.md-rsf-linie circle { fill: var(--seal); }
+.md-meldung { margin: 0; padding: 8px 12px; border-left: 3px solid var(--teal); background: rgba(38, 90, 98, 0.08); font-size: 14px; }
+.md-meldung.fehler { border-left-color: var(--seal); background: rgba(140, 43, 31, 0.08); }
+.md-wahrnehmung h5 { margin-top: 0; }
+.md-wahrnehmung p { margin: 0 0 4px; }
+
+.md-karten { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.md-karte {
+  display: grid; gap: 6px; width: 100%; text-align: left; padding: 10px 12px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-radius: 3px !important;
+  background: linear-gradient(180deg, #fbf5e6, #f3ead2) !important; box-shadow: none !important; cursor: pointer; color: var(--ink);
+}
+.md-karte.on { outline: 2px solid var(--teal); outline-offset: 0; }
+.md-karte:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.md-karte-kopf { display: grid; gap: 0; }
+.md-karte-kopf strong { font: 600 16px/1.2 var(--display); }
+.md-karte-kopf em { font-size: 12.5px; color: var(--ink-soft); }
+.md-marken { display: flex; flex-wrap: wrap; gap: 5px; }
+.md-lizenz, .md-eigentuemer, .md-tag { font-size: 12px; padding: 1px 7px; border-radius: 999px; border: 1px solid rgba(90, 64, 40, 0.4); }
+.md-lizenz.frei { color: var(--teal); border-color: var(--teal); }
+.md-lizenz.gedraengt { color: #8a5a12; border-color: #8a5a12; }
+.md-lizenz.gesperrt { color: #fff; background: var(--seal); border-color: var(--seal); }
+.md-tag { color: var(--seal); border-color: var(--seal); }
+.md-balken { display: grid; gap: 1px; }
+.md-balken-kopf { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-soft); }
+.md-balken-kopf strong { color: var(--ink); }
+.md-balken-spur { position: relative; display: block; height: 7px; background: rgba(90, 64, 40, 0.15); border-radius: 4px; }
+.md-balken-spur b { display: block; height: 100%; background: var(--ink-soft); border-radius: 4px; }
+.md-balken-spur.gut b { background: var(--teal); }
+.md-balken-spur u { position: absolute; top: -2px; width: 2px; height: 11px; background: var(--seal); text-decoration: none; }
+
+.md-aktionen-liste { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+.md-aktion { display: grid; gap: 4px; align-content: start; padding: 10px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 3px; background: linear-gradient(180deg, #fbf5e6, #f3ead2); }
+.md-aktion.gesperrt { opacity: 0.8; }
+.md-aktion-kopf { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.md-aktion-kopf strong { font: 600 15.5px/1.2 var(--display); }
+.md-kosten { font-size: 12.5px; color: var(--seal); white-space: nowrap; }
+.md-aktion p { margin: 0; font-size: 13.5px; }
+.md-vorschau { list-style: disc; margin: 2px 0 0 18px; padding: 0; font-size: 12.5px; color: var(--ink-soft); }
+.md-aktion-fuss { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 4px; }
+
+.md-regler ul, .md-verlauf ul { list-style: none; margin: 0; padding: 0; }
+.md-regler li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-bottom: 1px dotted rgba(90, 64, 40, 0.35); }
+.md-verlauf li { display: grid; grid-template-columns: 110px minmax(0, 1fr) 52px; gap: 10px; padding: 4px 0; border-bottom: 1px dotted rgba(90, 64, 40, 0.35); font-size: 13.5px; }
+.md-wann { color: var(--ink-soft); font-size: 12.5px; }
+.md-rsf-delta { text-align: right; font-weight: 600; }
+.md-rsf-delta.minus { color: var(--seal); }
+.md-rsf-delta.plus { color: var(--teal); }
+
+.zt .zt-medien-knopf {
+  all: unset; cursor: pointer; font: 600 13px/1.3 var(--sans, Inter, sans-serif); color: var(--seal); border-bottom: 1px dashed currentColor; padding: 1px 0;
+}
+.zt .zt-medien-knopf:hover { border-bottom-style: solid; color: #6d1e18; }
+.zt .zt-medien-knopf:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.zt-blattstand { margin: 4px 0 0; font-size: 12.5px; font-style: italic; color: var(--seal); text-align: center; }

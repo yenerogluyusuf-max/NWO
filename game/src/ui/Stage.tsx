@@ -18,7 +18,7 @@ import { Waehler } from "./Waehler";
 import { WahlkampfZentrale } from "./Wahlkampf";
 import { Programme } from "./Programme";
 import { Welt } from "./Welt";
-import { vertrauenZu } from "../sim/laender";
+import { beziehungZurTuerkei } from "../sim/welt-modell";
 import { LandPopover, type LandAuswahl, type WeltTab } from "./welt/LandPopover";
 import { EconomyFile } from "./EconomyFile";
 import { NetView } from "./NetView";
@@ -36,32 +36,77 @@ import { Reich } from "./Reich";
 import { WunderFenster } from "./reich/WunderFenster";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
 import { istAbstimmung } from "./parlament/abstimmung";
-import { quittiereFeier, vorhabenDef } from "../sim/reich";
+import { quittiereFeier, reichZustand, vorhabenDef } from "../sim/reich";
 import { ERBE } from "../data/erbe";
-import { VORHABEN } from "../data/reich";
+import { kartenOrte } from "../sim/reich";
 import type { KartenOrt } from "./atlas/AtlasMap";
 import { Meldungen, type Meldung } from "./Meldungen";
 import { bewerteHalt, hinweisKlasse, sammleUmlauf, type UmlaufEintrag } from "./autostopp";
 import { ZielWahl } from "./ZielWahl";
+import { Effekte } from "./Effekte";
+import { MarkenLegende } from "./atlas/MarkenLegende";
+import { ereignisMarkenText, reichMarken } from "./atlas/marken";
+import { stadtInfos } from "./atlas/staedte";
+import { provinceLonLat } from "./atlas/overlay";
 import { BilanzFenster } from "./BilanzFenster";
-import { Kartenlegende } from "./Kartenlegende";
+import { Wahlabend } from "./wahl/Wahlabend";
+import { Umbildung } from "./wahl/Umbildung";
+import { rede, wahlabend, wahlabendQuittieren } from "../sim/wahl";
+import { maxAmtszeiten, umbildungAbschliessen, umbildungBehalten, umbildungEntlassen, umbildungErsetzen, umbildungPartner, umbildungSicht, umbildungVersetzen, waehleZieleAmtszeit, type UmbildungErgebnis } from "../sim/amtszeit";
+import { zieleAngebot } from "../sim/ziele";
+import { erstelleBilanz } from "../sim/bilanz";
+import { Plakette } from "./Kartenlegende";
+import { LinsenWahl } from "./linsen/LinsenWahl";
 import { ProvinceCard } from "./ProvinceCard";
 import { ansicht, entscheide, vorlage } from "../sim/ereignisse";
 import { stimmenSicht, stufeIn } from "../sim/handeln";
 import { kapitalEinkommen, waehleZiele } from "../sim/spiel";
 import { naechsterSchritt } from "../sim/programme";
 import { Rng } from "../sim/rng";
-import { speichere, sitzungBegonnen, vorsitzungSnapshot } from "./speicher";
+import { beiSpeicherfehler, letzterSpeicherfehler, speichere, speichereWarten, sitzungBegonnen, vorsitzungSnapshot } from "./speicher";
 import { standDerDinge, type StandDerDinge } from "./standderdinge";
 import { StandDerDingeBlatt } from "./StandDerDingeBlatt";
 import { PARTEI_NAME } from "../sim/fraktionen";
-import { LAENDERNAMEN, LAND_PINS, KARTENEBENEN, farbenFuerEbene, laenderFarben, type Kartenebene } from "./ebenen";
+import { LAENDERNAMEN, LAND_PINS, farbenFuerEbene, laenderFarben, landName, type Kartenebene } from "./ebenen";
+import { t, aktuelleLocale } from "../i18n";
 import { kurzVergleich } from "./vergleich";
 import { Zeitung } from "./Zeitung";
 import { zeitungGelesen } from "../sim/zeitung";
 import { Katastrophe } from "./Katastrophe";
+import { SpeicherDossier } from "./SpeicherDossier";
+import { Fehlergrenze } from "./Fehlergrenze";
+import type { VorlagenZiel } from "../sim/ministerfluss-typen";
+import { WirkungsberichtDossier } from "./politik/WirkungsberichtDossier";
+import type { Bericht } from "../sim/berichte";
+import { SprachWahl } from "./SprachWahl";
 
-type Dossier = "schreibtisch" | "verfassung" | "politik" | "bereiche" | "gespraech" | "wirtschaft" | "netz" | "entscheidungen" | "parlament" | "personen" | "chronik" | "beschluesse" | "waehler" | "wahlkampf" | "katastrophe" | "programme" | "welt" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | null;
+type Dossier =
+  | "schreibtisch"
+  | "verfassung"
+  | "politik"
+  | "bereiche"
+  | "gespraech"
+  | "wirtschaft"
+  | "netz"
+  | "entscheidungen"
+  | "parlament"
+  | "personen"
+  | "chronik"
+  | "beschluesse"
+  | "waehler"
+  | "wahlkampf"
+  | "katastrophe"
+  | "programme"
+  | "welt"
+  | "reich_kultur"
+  | "reich_recht"
+  | "reich_militaer"
+  | "reich_infra"
+  | "reich_haushalt"
+  | "zeitung"
+  | "speicher"
+  | "wirkungsbericht"
+  | null;
 
 /** Millisekunden je Tick und Tage je Tick: Pause, ruhig, zügig, schnell, bis zum nächsten Ereignis. */
 const SPEEDS = [0, 700, 200, 40, 14];
@@ -74,7 +119,8 @@ const GEO_LABELS: { text: string; lon: number; lat: number; kind: "meer" | "land
   { text: "Ägäis", lon: 25.0, lat: 38.4, kind: "meer" },
 ];
 
-const METROS = PROVINCE_FC.features.filter((f) => PROVINZEN[f.properties.plaka - 1]?.grossstadt).map((f) => f.properties.plaka);
+/** Alle 81 Provinzen erscheinen als Stadtbanner auf der Karte (ui/atlas/staedte.ts): bei Gedränge bleibt die Stadt mit dem höheren Rang */
+const ALLE_PROVINZEN = PROVINCE_FC.features.map((f) => f.properties.plaka);
 
 export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu: () => void; geladen?: boolean }) {
   const world = useRef<World>(initial);
@@ -97,6 +143,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const [netOrt, setNetOrt] = useState<number[] | null>(null);
   const [selected, setSelected] = useState<number | undefined>(undefined);
   /** Kamerafahrt der Karte, etwa zu einem fertigen Wunder */
+  /** Reiter der Reich-Akte, den eine Marke der Karte vorgibt (sonst beginnt die Akte bei der Lage) */
+  const [reichStart, setReichStart] = useState<"lage" | "bestand" | "neu" | undefined>(undefined);
   const [kamera, setKamera] = useState<{ lon: number; lat: number; d: number } | undefined>(undefined);
   const [bilanzZu, setBilanzZu] = useState(false);
   /** Umlauf (Klasse C der Auto-Stopp-Taxonomie): gesammelt statt unterbrechend; `umlaufNeu` zählt Ungelesenes für den Zähler am Schreibtisch. */
@@ -143,6 +191,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     const schritt = TAGE_JE_TICK[speed]!;
     const startTag = world.current.day;
     const id = setInterval(() => {
+      try {
       const wd = world.current;
       const before = wd.log.length;
       let halt = false;
@@ -182,6 +231,12 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         melde({ titel: "Ein halbes Jahr ohne Zwischenfall.", text: "Das Vorspulen hält an; die Lage bleibt Ihre Sache.", ton: "ereignis" });
       } else if (wd.day % 30 === 0) sichere();
       refresh();
+      } catch (e) {
+        // Ein Fehler im Spieltakt darf das Spiel nicht beenden: Zeit anhalten, sichern (der Stand vor dem Fehler), Hinweis mit Ursache
+        console.error("Fehler im Spieltakt:", e);
+        setSpeed(0);
+        melde({ titel: "Die Zeit wurde angehalten: Fehler im Spielablauf", text: e instanceof Error ? e.message : String(e), ton: "markt" });
+      }
     }, ms);
     return () => clearInterval(id);
   }, [speed, refresh, melde, sichere, umlaufPush]);
@@ -198,6 +253,41 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     sitzungMarkiert.current = true;
     if (geladen) sitzungBegonnen(world.current);
   }, [geladen]);
+
+  // Fehler außerhalb der Anzeige (Zeitgeber, Versprechen) erscheinen als Meldung statt still zu verpuffen
+  useEffect(() => {
+    const zeige = (text: string) => {
+      console.error("Unbehandelter Fehler:", text);
+      melde({ titel: "Interner Fehler (das Spiel läuft weiter)", text: text.slice(0, 200), ton: "markt" });
+    };
+    const bei = (e: ErrorEvent) => {
+      if (/getBoundingClientRect|ResizeObserver/.test(e.message)) return;
+      zeige(e.message);
+    };
+    const beiVersprechen = (e: PromiseRejectionEvent) => zeige(e.reason instanceof Error ? e.reason.message : String(e.reason));
+    window.addEventListener("error", bei);
+    window.addEventListener("unhandledrejection", beiVersprechen);
+    return () => {
+      window.removeEventListener("error", bei);
+      window.removeEventListener("unhandledrejection", beiVersprechen);
+    };
+  }, [melde]);
+
+  // Sichern beim Beenden: Die App ruft vor dem Schließen `window.__sichereJetzt()` auf; ein Browser sichert beim Verstecken des Tabs.
+  useEffect(() => {
+    const w = window as unknown as { __sichereJetzt?: () => Promise<unknown> };
+    w.__sichereJetzt = () => speichereWarten(world.current);
+    const beiVerstecken = () => {
+      if (document.visibilityState === "hidden") void speichereWarten(world.current);
+    };
+    document.addEventListener("visibilitychange", beiVerstecken);
+    window.addEventListener("pagehide", beiVerstecken);
+    return () => {
+      delete w.__sichereJetzt;
+      document.removeEventListener("visibilitychange", beiVerstecken);
+      window.removeEventListener("pagehide", beiVerstecken);
+    };
+  }, []);
 
   // Leertaste: Pause und Weiter
   useEffect(() => {
@@ -220,11 +310,18 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       if (!plaka) continue;
       const v = vorlage(e.vorlage);
       const tage = Math.max(0, e.frist - w.day);
-      out.push({ id: e.id, plaka, art: tage <= 5 ? "frist" : "ereignis", text: `${v.titel(w, e)}: Frist in ${tage} Tagen` });
+      out.push({ id: e.id, plaka, art: tage <= 5 ? "frist" : "ereignis", text: ereignisMarkenText(v.titel(w, e), tage) });
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spiel?.ereignisse.length, w.day]);
+
+  // Tafel, Größenzeichen und Statussymbole der Stadtbanner: ändert sich mit Netz, Ereignissen und laufenden Vorhaben
+  const stadtInfo = useMemo(
+    () => stadtInfos(w, marken),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [marken, w.net.month, spiel?.reich?.laufend.length, w.day - (w.day % 10)],
+  );
 
   const laenderKarte = useMemo(
     () => (ebene === "welt" ? laenderFarben(w) : undefined),
@@ -235,8 +332,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     () =>
       spiel
         ? LAND_PINS.map((p) => {
-            const v = vertrauenZu(w, p.id);
-            return { ...p, name: p.id === "EU" ? "Europäische Union" : (LAENDERNAMEN[p.iso] ?? p.iso), ton: (v >= 55 ? "gut" : v >= 35 ? "mittel" : "schlecht") as "gut" | "mittel" | "schlecht" };
+            const v = beziehungZurTuerkei(w, p.id).vertrauen;
+            return { ...p, name: p.id === "EU" ? landName("EU") : landName(p.iso), ton: (v >= 55 ? "gut" : v >= 35 ? "mittel" : "schlecht") as "gut" | "mittel" | "schlecht" };
           })
         : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -246,25 +343,22 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const [weltTab, setWeltTab] = useState<WeltTab | undefined>(undefined);
   const [landAuswahl, setLandAuswahl] = useState<LandAuswahl | null>(null);
 
+  const geoLabels = useMemo(
+    () => [
+      { text: t("karte.meer.schwarz"), lon: 34.6, lat: 43.1, kind: "meer" as const },
+      { text: t("karte.meer.mittel"), lon: 31.0, lat: 34.6, kind: "meer" as const },
+      { text: t("karte.meer.aegaeis"), lon: 25.0, lat: 38.4, kind: "meer" as const },
+    ],
+    [],
+  );
+
   // Marken für Wunder und Bauvorhaben immer, für Stätten in der Kartenebene „Kulturerbe“
-  const orte = useMemo<KartenOrt[]>(() => {
-    const z = spiel?.reich;
-    if (!z) return [];
-    const out: KartenOrt[] = [];
-    if (ebene === "erbe") {
-      for (const e of ERBE) {
-        const zustand = z.staetten[e.id]?.zustand ?? 0;
-        out.push({ id: `erbe:${e.id}`, lon: e.lon, lat: e.lat, art: "erbe", text: `${e.name}, ${e.ort} (Zustand ${Math.round(zustand)})`, zustand, dmax: 15 });
-      }
-    }
-    for (const v of VORHABEN) {
-      if (!v.ort || !["wunder", "grossprojekt", "serie"].includes(v.klasse)) continue;
-      if (z.bestand[v.id]) out.push({ id: `v:${v.id}`, lon: v.ort.lon, lat: v.ort.lat, art: "wunder", text: `${v.name} (fertig)` });
-      else if (z.laufend.some((l) => l.id === v.id)) out.push({ id: `v:${v.id}`, lon: v.ort.lon, lat: v.ort.lat, art: "bau", text: `${v.name} (im Bau)` });
-    }
-    return out;
+  // Marken der Reich-Akten (Bauvorhaben, Wunder, Kulturerbe) mit allem, was die Tafel beim Überfahren zeigt: ui/atlas/marken.ts
+  const orte = useMemo<KartenOrt[]>(
+    () => reichMarken(w, ebene),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ebene, spiel?.reich, spiel?.reich?.laufend.length, w.day - (w.day % 30)]);
+    [ebene, spiel?.reich, spiel?.reich?.laufend.length, w.day - (w.day % 10)],
+  );
 
   const { fill, legende } = useMemo(
     () => farbenFuerEbene(w, ebene, problemId, netNode),
@@ -281,84 +375,129 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const zustimmung = spiel?.umfrage.zustimmung ?? trust;
   const zVor = spiel && spiel.umfrage.verlauf.length > 3 ? spiel.umfrage.verlauf[spiel.umfrage.verlauf.length - 4]!.wert : undefined;
 
-  // Das Menü ordnet nach dem, was man tut. Mehrere Ansichten derselben Sache liegen als Reiter in einem Fenster.
-  // badge = wartende Entscheidungen (rot, Klasse A), umlauf = gesammelte Routine (ruhig, Klasse C)
+  // Schlankes Hauptmenü in 4 Kern-Ressorts: Kanzlei, Innenpolitik, Finanzen & Aufbau, Außenpolitik
+  // Die Leiste folgt dem, was ein Präsident sucht: acht Ressorts, in jedem höchstens sechs Ansichten. Jede Ansicht steht dort, wo man sie erwartet.
   const menue: { kurz: string; titel: string; icon: IconName; badge?: number; umlauf?: number; tabs: { id: Exclude<Dossier, null>; label: string }[] }[] = [
-    { kurz: "Schreibtisch", titel: "Schreibtisch", icon: "feder", badge: (spiel?.ereignisse.length ?? 0) || undefined, umlauf: umlaufNeu || undefined, tabs: [{ id: "schreibtisch", label: "Schreibtisch" }] },
-    // Die Zeitung (UI-1): weiche Anzeige ohne Pause — das ruhige Badge zählt ungelesene Ausgaben (Klasse C)
-    { kurz: "Zeitung", titel: "Zeitung", icon: "zeitung", umlauf: (spiel?.zeitung?.ungelesen ?? 0) || undefined, tabs: [{ id: "zeitung", label: "Frontseite" }] },
-    { kurz: "Gespräch", titel: "Gespräch", icon: "sprechblase", tabs: [{ id: "gespraech", label: "Gespräch" }] },
     {
-      kurz: "Politik",
-      titel: "Politik",
+      kurz: t("buehne.menu.kanzlei"),
+      titel: t("buehne.menu.kanzleiTitel"),
+      icon: "feder",
+      badge: (spiel?.ereignisse.length ?? 0) || undefined,
+      umlauf: umlaufNeu || (spiel?.zeitung?.ungelesen ?? 0) || undefined,
+      tabs: [
+        { id: "schreibtisch", label: t("buehne.tab.schreibtisch") },
+        { id: "zeitung", label: t("buehne.tab.zeitung") },
+        { id: "gespraech", label: t("buehne.tab.gespraech") },
+        { id: "personen", label: t("buehne.tab.personen") },
+        { id: "chronik", label: t("buehne.tab.chronik") },
+        { id: "speicher", label: t("buehne.tab.speicher") },
+      ],
+    },
+    {
+      kurz: t("buehne.menu.politik"),
+      titel: t("buehne.menu.politikTitel"),
       icon: "netz",
       tabs: [
-        { id: "politik", label: "Bereiche" },
-        { id: "bereiche", label: "Heute" },
-        { id: "programme", label: "Programme" },
-        { id: "beschluesse", label: "Umsetzung" },
-        { id: "netz", label: "Netz und Suche" },
+        { id: "politik", label: t("buehne.tab.bereiche") },
+        { id: "bereiche", label: t("buehne.tab.heute") },
+        { id: "programme", label: t("buehne.tab.programme") },
+        { id: "beschluesse", label: t("buehne.tab.beschluesse") },
+        { id: "wirkungsbericht", label: t("buehne.tab.wirkungsbericht") },
+        { id: "netz", label: t("buehne.tab.netz") },
       ],
     },
     {
-      kurz: "Wähler",
-      titel: "Wähler und Wahlkampf",
-      icon: "menge",
-      tabs: [
-        { id: "waehler", label: "Wählerkoalition" },
-        { id: "wahlkampf", label: "Wahlkampf" },
-      ],
-    },
-    { kurz: "Welt", titel: "Die Welt", icon: "berg", tabs: [{ id: "welt", label: "Länder" }] },
-    {
-      kurz: "Katastrophe",
-      titel: "Katastrophen",
-      icon: "warnung",
-      badge: (spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length ?? 0) || undefined,
-      tabs: [{ id: "katastrophe", label: "Lage und Wiederaufbau" }],
-    },
-    {
-      kurz: "Reich",
-      titel: "Das Reich",
-      icon: "tempel",
-      badge: (spiel?.reich?.laufend.length ?? 0) || undefined,
-      tabs: [
-        { id: "reich_kultur", label: "Kultur und Erbe" },
-        { id: "reich_recht", label: "Recht" },
-        { id: "reich_militaer", label: "Streitkräfte" },
-        { id: "reich_infra", label: "Infrastruktur" },
-        { id: "reich_haushalt", label: "Verwaltung" },
-      ],
-    },
-    {
-      kurz: "Parlament",
-      titel: "Parlament",
+      kurz: t("buehne.menu.parlament"),
+      titel: t("buehne.menu.parlamentTitel"),
       icon: "waage",
       badge: (spiel?.gesetze.length ?? 0) + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
       tabs: [
-        { id: "parlament", label: "Fraktionen und Abstimmung" },
-        { id: "verfassung", label: "Verfassung" },
+        { id: "parlament", label: t("buehne.tab.parlament") },
+        { id: "verfassung", label: t("buehne.tab.verfassung") },
+        { id: "reich_recht", label: t("buehne.tab.recht") },
       ],
     },
     {
-      kurz: "Wirtschaft",
-      titel: "Wirtschaft",
-      icon: "akte",
-      // Die Akte hat eigene Reiter (Lage, Zentralbank, Haushalt); „entscheidungen“ bleibt als Einstieg für Zinssitzung und Erlasse
-      tabs: [{ id: "wirtschaft", label: "Wirtschaft" }],
+      kurz: t("buehne.menu.waehler"),
+      titel: t("buehne.menu.waehlerTitel"),
+      icon: "menge",
+      tabs: [
+        { id: "waehler", label: t("buehne.tab.waehler") },
+        { id: "wahlkampf", label: t("buehne.tab.wahlkampf") },
+      ],
     },
-    { kurz: "Personen", titel: "Personen und Zusagen", icon: "person", tabs: [{ id: "personen", label: "Personen und Zusagen" }] },
-    { kurz: "Chronik", titel: "Chronik und Umfragen", icon: "buch", tabs: [{ id: "chronik", label: "Chronik und Umfragen" }] },
+    {
+      kurz: t("buehne.menu.wirtschaft"),
+      titel: t("buehne.menu.wirtschaftTitel"),
+      icon: "bank",
+      // Die Akte hat eigene Reiter (Lage, Zentralbank, Haushalt); „entscheidungen“ bleibt als Einstieg für Zinssitzung und Erlasse
+      tabs: [
+        { id: "wirtschaft", label: t("buehne.tab.wirtschaft") },
+        { id: "reich_haushalt", label: t("buehne.tab.haushalt") },
+      ],
+    },
+    {
+      kurz: t("buehne.menu.reich"),
+      titel: t("buehne.menu.reichTitel"),
+      icon: "tempel",
+      badge: (spiel?.reich?.laufend.length ?? 0) || undefined,
+      tabs: [
+        { id: "reich_infra", label: t("buehne.tab.infra") },
+        { id: "reich_kultur", label: t("buehne.tab.kultur") },
+        { id: "reich_militaer", label: t("buehne.tab.militaer") },
+      ],
+    },
+    {
+      kurz: t("buehne.menu.krisen"),
+      titel: t("buehne.menu.krisenTitel"),
+      icon: "warnung",
+      badge: (spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length ?? 0) || undefined,
+      tabs: [{ id: "katastrophe", label: t("buehne.tab.katastrophe") }],
+    },
+    {
+      kurz: t("buehne.menu.welt"),
+      titel: t("buehne.menu.weltTitel"),
+      icon: "berg",
+      tabs: [{ id: "welt", label: t("buehne.tab.welt") }],
+    },
   ];
-  const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.kurz === "Wirtschaft"));
+  const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.tabs.some((t) => t.id === "wirtschaft")));
 
+  /** Mit welchem Reiter die Wirtschaftsakte öffnet (das Ereignisfenster springt in den Haushalt) */
+  const [wirtschaftStart, setWirtschaftStart] = useState<"lage" | "haushalt">("lage");
+  const [umbSpaeterBis, setUmbSpaeterBis] = useState<number | null>(null);
+  const [umbMeldung, setUmbMeldung] = useState<string | undefined>(undefined);
   const offen = spiel?.ereignisse.find((e) => !spaeter.has(e.id));
+  // Ereigniskamera: Ein Ereignis mit Provinzen lässt die Kamera hinfliegen und einen Ring auf der Karte laufen; Beben zittern (nur Effekte „hoch“)
+  const ereignisKarte = useMemo(() => {
+    if (!offen || offen.provinzen.length === 0) return undefined;
+    const v = offen.vorlage;
+    const art = /beben/.test(v) ? "beben" : /anschlag|terror/.test(v) ? "anschlag" : /krieg|putsch/.test(v) ? "krieg" : "ereignis";
+    const kamera = art !== "ereignis" || /flut|brand|duerre|ueberschwemm|katastrophe|erdrutsch/.test(v);
+    const ll = provinceLonLat(offen.provinzen[0]!);
+    if (!ll) return undefined;
+    return { id: offen.id, lon: ll[0], lat: ll[1], art, d: offen.provinzen.length > 1 ? 8.5 : 6.5, kamera } as const;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offen?.id]);
   // Klasse B (Wendepunkt) und A (etwa der Wahlabend, INN-5) werden zum Fenster; C-Hinweise sind längst im Umlauf
-  const hinweis = spiel?.hinweise.find((h) => hinweisKlasse(h.id) !== "C");
-  const bilanz = spiel?.ende && !bilanzZu;
+  // Der Wahlabend hat eine eigene Ansicht (ui/wahl/Wahlabend.tsx): sein Hinweis erscheint nicht noch einmal als Fenster
+  const hinweis = spiel?.hinweise.find((h) => hinweisKlasse(h.id) !== "C" && h.id !== spiel.wahl?.abend);
+  const wahlErg = spiel ? wahlabend(w) : undefined;
+  const bilanz = spiel?.ende && !bilanzZu && !wahlErg;
   const zielWahlOffen = !!spiel && !spiel.ersterTagErledigt && !intro && !standDerD;
+  // Neue Amtszeit: Umbildungsfenster und Zielwahl (sim/amtszeit.ts); „Später" blendet das Umbildungsfenster nur bis zum Ende seiner Frist aus
+  const umbSicht = spiel ? umbildungSicht(w) : null;
+  const umbOffen = !!umbSicht?.offen && umbSpaeterBis !== spiel?.umbildung?.bis;
+  const neueZiele = !!spiel?.zielwahl?.offen;
+  const blockiert = !!wahlErg || umbOffen || neueZiele;
 
   const beendeZeit = () => setSpeed(0);
+  /** Eine Aktion im Umbildungsfenster: Text merken, sichern, neu zeichnen */
+  const umbAktion = (r: UmbildungErgebnis) => {
+    setUmbMeldung(r.text);
+    if (r.ok) sichere(true);
+    refresh();
+  };
   const oeffneDossier = (d: Dossier) => {
     if (d === "politik") setPolitikStart(null);
     if (d === "schreibtisch") umlaufGelesen();
@@ -366,6 +505,72 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     setDossier(d);
     if (d) beendeZeit();
   };
+  const [aktiverBericht, setAktiverBericht] = useState<Bericht | null>(null);
+
+  /** Zustand des Sichern-Knopfs: ruhig, gerade gesichert (kurz) oder Fehler (bleibt, bis ein Sichern gelingt) */
+  const [sicherStatus, setSicherStatus] = useState<"ruhig" | "frisch" | "fehler">(() => (letzterSpeicherfehler() ? "fehler" : "ruhig"));
+  const [sicherGrund, setSicherGrund] = useState<string | null>(() => letzterSpeicherfehler());
+  const frischTimer = useRef<number | undefined>(undefined);
+
+  // Scheitert ein automatisches Sichern, sieht der Spieler es sofort am Knopf (früher verschwand der Fehler still)
+  useEffect(() => {
+    return beiSpeicherfehler((grund) => {
+      setSicherGrund(grund);
+      if (grund) {
+        setSicherStatus("fehler");
+        melde({ titel: "Spielstand NICHT gesichert", text: grund, ton: "markt" });
+      } else {
+        setSicherStatus((s) => (s === "fehler" ? "ruhig" : s));
+      }
+    });
+  }, [melde]);
+
+  const schnellSichern = useCallback(async () => {
+    const r = await speichereWarten(world.current);
+    window.clearTimeout(frischTimer.current);
+    if (r.ok) {
+      const datum = formatDateDe(world.current.date);
+      const zustimmung = Math.round(world.current.spiel?.umfrage.zustimmung ?? 0);
+      setSicherGrund(null);
+      setSicherStatus("frisch");
+      frischTimer.current = window.setTimeout(() => setSicherStatus("ruhig"), 2600);
+      melde({ titel: "Spielstand gesichert", text: `${datum} · ${zustimmung} % Zustimmung (${r.wo})`, ton: "ereignis" });
+    } else {
+      setSicherGrund(r.grund);
+      setSicherStatus("fehler");
+      melde({ titel: "Spielstand NICHT gesichert", text: r.grund, ton: "markt" });
+    }
+  }, [melde]);
+
+  // Tastenkürzel Cmd+S / Ctrl+S zum Schnellspeichern
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void schnellSichern();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [schnellSichern]);
+
+  /** Ein Klick auf die Meldung „Wirkungsbericht: <Maßnahme>, <n> Monate danach“ öffnet genau diesen Bericht (nicht den ersten mit ähnlichem Namen). */
+  const oeffneBerichtAusMeldung = useCallback((m: Meldung) => {
+    const berichte = world.current.spiel?.berichte ?? [];
+    const treffer = /^Wirkungsbericht:\s*(.+),\s*(\d+) Monate danach$/.exec(m.titel.trim());
+    const name = treffer?.[1]?.trim();
+    const monate = treffer ? Number(treffer[2]) : undefined;
+    const gefunden =
+      [...berichte].reverse().find((b) => name !== undefined && monate !== undefined && (b.name ?? "") === name && b.monate === monate) ??
+      [...berichte].reverse().find((b) => name !== undefined && (b.name ?? b.titel).includes(name)) ??
+      berichte[berichte.length - 1];
+    if (gefunden) {
+      setAktiverBericht(gefunden);
+      setDossier("wirkungsbericht");
+      setSpeed(0);
+    }
+  }, []);
+
   /** Wohin ein Eintrag des Schreibtischs führt: eine Akte, ein Bereich oder eine Maßnahme der Politik, ein Ereignis oder ein Land. */
   const gehe = (z: Ziel) => {
     switch (z.art) {
@@ -392,21 +597,36 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     }
   };
 
+  /** Verweise aus den Vorlagen der Minister: eine Akte, ein Land oder die Problemkarte */
+  const geheVorlage = (z: VorlagenZiel) => {
+    if (z.art === "karte") {
+      setEbene("probleme");
+      setProblemId(z.problemId ?? null);
+      setDossier(null);
+      beendeZeit();
+    } else gehe(z as Ziel);
+  };
+  const zeigeKarte = (problemId?: string) => geheVorlage({ art: "karte", ...(problemId ? { problemId } : {}) });
+
   return (
     <div className="stage">
       <AtlasMap
         className="stage-map"
+        sparsam={!!dossier}
         fill={fill}
         fillAlpha={ebene === "wahl" ? 0.56 : 0.62}
         selected={selected}
-        labels={METROS}
-        geoLabels={GEO_LABELS}
+        labels={ALLE_PROVINZEN}
+        stadtInfo={stadtInfo}
+        geoLabels={geoLabels}
         onSelect={(p) => setSelected(p)}
         orte={orte}
-        onOrt={(id) => {
+        onOrt={(id, ort) => {
+          // Klick auf eine Marke: die Akte des Reiches öffnen, im Reiter, den die Tafel genannt hat (Lage oder Pflegen)
+          setReichStart(ort?.klickTab);
           if (id.startsWith("erbe:")) setDossier("reich_kultur");
           else {
-            const b = vorhabenDef(id.slice(2))?.bereich;
+            const b = vorhabenDef(id.slice(2))?.bereich ?? reichZustand(w).regional?.[id.slice(2)]?.def.bereich ?? reichZustand(w).frei?.[id.slice(2)]?.def.bereich;
             setDossier(b === "kultur" ? "reich_kultur" : b === "recht" ? "reich_recht" : b === "militaer" ? "reich_militaer" : b === "haushalt" ? "reich_haushalt" : "reich_infra");
           }
           beendeZeit();
@@ -427,6 +647,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         onLand={(iso, pos) => setLandAuswahl({ iso, x: pos?.x ?? window.innerWidth / 2, y: pos?.y ?? window.innerHeight / 2 })}
         {...(ebene === "welt" ? { laenderFarben: laenderKarte } : {})}
         ebene={ebene}
+        datum={w.date}
+        {...(ereignisKarte ? { ereignis: ereignisKarte } : {})}
         {...(kamera ? { camera: kamera } : {})}
       />
 
@@ -437,9 +659,9 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             <Cameo seed={w.player?.name ?? "Staatspräsident"} size={46} tint={w.player?.partei.farbe} ring="keiner" />
           </div>
           <div className="leader-text">
-            <div className="hud-name">{w.player?.name ?? "Staatspräsident"}</div>
-            <div className="hud-sub">
-              <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> {w.player?.partei.name ?? "Staatsräson"} · Staatsoberhaupt
+            <div className="hud-name" title={w.player?.name ?? "Staatspräsident"}>{w.player?.name ?? "Staatspräsident"}</div>
+            <div className="hud-sub" title={`${w.player?.partei.name ?? "Staatsräson"} · ${t("buehne.staatsoberhaupt")}`}>
+              <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> <span className="hud-partei">{w.player?.partei.name ?? "Staatsräson"} · {t("buehne.staatsoberhaupt")}</span>
             </div>
           </div>
         </div>
@@ -459,30 +681,41 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              className={`hud-speichern${sicherStatus === "fehler" ? " fehler" : sicherStatus === "frisch" ? " frisch" : ""}`}
+              onClick={() => void schnellSichern()}
+              title={sicherStatus === "fehler" ? `Nicht gesichert: ${sicherGrund ?? "Unbekannter Fehler"}` : "Zwischenstand sichern (Cmd+S / Strg+S)"}
+              aria-label={sicherStatus === "fehler" ? "Spielstand nicht gesichert, erneut versuchen" : "Zwischenstand sichern"}
+            >
+              <Icon name={sicherStatus === "fehler" ? "warnung" : "siegel"} size={14} />
+              <span>{sicherStatus === "fehler" ? t("buehne.nichtGesichert") : sicherStatus === "frisch" ? t("buehne.gesichert") : t("buehne.sichern")}</span>
+            </button>
+            <SprachWahl className="hud-sprache" kurz />
           </div>
         </div>
         <div className="hud-right">
           {spiel && (
             <Stat
               icon="haende"
-              label="Zustimmung"
+              label={t("buehne.stat.zustimmung")}
               value={`${Math.round(zustimmung)} %`}
               trend={zVor !== undefined ? zustimmung - zVor : undefined}
               warn={zustimmung < 40}
               tip={`Wie viele Wähler Sie heute wieder wählen würden. Die nächste Wahl ist in ${Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4))} Monaten; ab 50 Prozent gewinnen Sie.`}
             />
           )}
-          {spiel && <Stat icon="siegel" label="Kapital" value={`${Math.floor(spiel.kapital)}`} warn={spiel.kapital < 5} tip={kapitalTip(w)} />}
-          <Stat icon="preis" label="Inflation" value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} trend={trend(w, "inflation")} tip={`Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung. ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
-          <Stat icon="lira" label="Lira je $" value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} trend={trend(w, "usdTry")} tip={`Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer. ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
-          <Stat icon="bank" label="Leitzins" value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
-          <Stat icon="parlament" label="Sitze" value={`${bloc}/600`} warn={bloc < 301} tip={`Ihr Lager${stimmen && stimmen.duldungSitze > 0 ? ` (${stimmen.lager}) und die Fraktionen, die es zurzeit dulden (${stimmen.duldungSitze})` : ""} im Parlament. Gesetze brauchen 301 Stimmen; ein Verfassungspaket wird ab 360 Stimmen direkt Gesetz, zwischen 301 und 359 entscheidet eine Volksabstimmung.`} />
+          {spiel && <Stat icon="siegel" label={t("buehne.stat.kapitalKurz")} value={`${Math.floor(spiel.kapital)}`} warn={spiel.kapital < 5} tip={kapitalTip(w)} />}
+          <Stat icon="preis" label={t("buehne.stat.inflation")} value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} trend={trend(w, "inflation")} tip={`Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung. ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
+          <Stat icon="lira" label={t("buehne.stat.lira")} value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} trend={trend(w, "usdTry")} tip={`Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer. ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
+          <Stat icon="bank" label={t("buehne.stat.leitzins")} value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
+          <Stat icon="parlament" label={t("buehne.stat.sitze")} value={`${bloc}/600`} warn={bloc < 301} tip={`Ihr Lager${stimmen && stimmen.duldungSitze > 0 ? ` (${stimmen.lager}) und die Fraktionen, die es zurzeit dulden (${stimmen.duldungSitze})` : ""} im Parlament. Gesetze brauchen 301 Stimmen; ein Verfassungspaket wird ab 360 Stimmen direkt Gesetz, zwischen 301 und 359 entscheidet eine Volksabstimmung.`} />
         </div>
       </header>
 
       <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} onZins={() => { setErlassStart(undefined); oeffneDossier("entscheidungen"); }} />
 
-      <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} />
+      <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} onOeffne={oeffneBerichtAusMeldung} />
       <AbstimmungsKarte world={w} />
 
       <nav className="dossier-menu" aria-label="Akten">
@@ -497,7 +730,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
@@ -515,10 +748,34 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             </button>
           </header>
           <div className="dossier-body">
+            <Fehlergrenze titel={gruppe?.titel ?? "Akte"} onZu={() => setDossier(null)} zuruecksetzen={dossier}>
             {zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
-            {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} />}
-            {dossier === "zeitung" && <Zeitung world={w} />}
+            {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} />}
+            {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "speicher" && (
+              <SpeicherDossier
+                world={w}
+                onLaden={(nw) => {
+                  world.current = nw;
+                  refresh();
+                  sichere(true);
+                }}
+                onGespeichert={(msg) => melde({ titel: msg, ton: "ereignis" })}
+                onClose={() => setDossier(null)}
+              />
+            )}
+            {dossier === "wirkungsbericht" && (
+              <WirkungsberichtDossier
+                world={w}
+                gewaehlterBericht={aktiverBericht}
+                onMassnahmeOeffnen={(mid) => {
+                  setPolitikStart({ offen: { id: mid } });
+                  setDossier("politik");
+                }}
+                onClose={() => setDossier(null)}
+              />
+            )}
             {dossier === "politik" && (
               <Politik
                 key={politikStart ? `${politikStart.theme ?? ""}|${politikStart.offen?.id ?? ""}|${politikStart.offen?.level ?? ""}|${politikStart.offen?.ort?.join(",") ?? ""}` : "politik"}
@@ -539,6 +796,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               <Bereiche
                 world={w}
                 refresh={() => { refresh(); sichere(true); }}
+                onGehe={geheVorlage}
+                onKarte={zeigeKarte}
                 onBereiche={() => { setPolitikStart(null); setDossier("politik"); }}
                 onVorhaben={(v) => {
                   setPolitikStart({ offen: { id: v.massnahme, level: v.ziel, ort: v.ort } });
@@ -546,8 +805,18 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
-            {dossier === "wirtschaft" && <EconomyFile world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
-            {(dossier === "parlament" || dossier === "beschluesse") && <Beschlussbuch teil={dossier === "parlament" ? "parlament" : "beschluesse"} world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "wirtschaft" && <EconomyFile key={wirtschaftStart} world={w} start={wirtschaftStart} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {(dossier === "parlament" || dossier === "beschluesse") && (
+              <Beschlussbuch
+                teil={dossier === "parlament" ? "parlament" : "beschluesse"}
+                world={w}
+                refresh={() => { refresh(); sichere(true); }}
+                onBerichtOeffnen={(b) => {
+                  setAktiverBericht(b);
+                  setDossier("wirkungsbericht");
+                }}
+              />
+            )}
             {dossier === "verfassung" && <VerfassungWerkstatt world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "programme" && (
               <Programme
@@ -589,11 +858,13 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               />
             )}
             {dossier === "wahlkampf" && <WahlkampfZentrale world={w} refresh={() => { refresh(); sichere(true); }} />}
-            {dossier === "katastrophe" && <Katastrophe world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "katastrophe" && <Katastrophe world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "personen" && (
               <Personen
                 world={w}
                 refresh={() => { refresh(); sichere(true); }}
+                onGeheVorlage={geheVorlage}
+                onKarte={zeigeKarte}
                 onMassnahme={(id, richtung) => {
                   setNetTheme(null);
                   setNetOrt(null);
@@ -609,6 +880,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 bereich={({ reich_kultur: "kultur", reich_recht: "recht", reich_militaer: "militaer", reich_infra: "infrastruktur", reich_haushalt: "haushalt" } as const)[dossier as "reich_kultur"]}
                 refresh={() => { refresh(); sichere(true); }}
                 onKarte={(o) => { setKamera({ ...o, d: 4.6 }); setDossier(null); }}
+                {...(reichStart ? { startTab: reichStart } : {})}
               />
             )}
             {dossier === "netz" && (
@@ -637,32 +909,27 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
+            </Fehlergrenze>
           </div>
         </section>
       )}
 
-      <nav className="mapmodes" aria-label="Kartenebenen">
-        <div className="mapmode-buttons">
-          {KARTENEBENEN.filter((m) => m.id !== "netz").map((m) => (
-            <button key={m.id} className={ebene === m.id ? "on" : ""} onClick={() => setEbene(m.id)} title={m.label} aria-pressed={ebene === m.id}>
-              <Icon name={m.icon} />
-            </button>
-          ))}
-        </div>
-        <div className="mapmode-caption">
-          <span className="mapmode-kicker">Kartenebene</span>
-          <span className="mapmode-name">{ebene === "netz" ? NET.nodes[NET.index.get(netNode)!]!.name : KARTENEBENEN.find((m) => m.id === ebene)?.label}</span>
-        </div>
-      </nav>
-
-      <Kartenlegende
+      <LinsenWahl
         world={w}
         ebene={ebene}
-        legende={legende}
+        netName={ebene === "netz" ? NET.nodes[NET.index.get(netNode)!]!.name : undefined}
         problemId={problemId}
+        legende={legende}
+        onEbene={(e) => setEbene(e)}
         onProblem={(id) => setProblemId(id)}
+        gesperrt={!!dossier || !!bilanz || !!standDerD || !!intro || zielWahlOffen || !!hinweis || !!offen || !!spiel?.reich?.feier[0] || !!landAuswahl}
       />
+      <Plakette world={w} ebene={ebene} />
       <img className="compass" src="/ui/kompass.png" alt="" />
+      <div className="karten-werkzeuge">
+        <MarkenLegende />
+        <Effekte />
+      </div>
 
       {selected && (
         <ProvinceCard
@@ -673,6 +940,60 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             setNetTheme("infrastruktur");
             setNetOrt([p]);
             setDossier("netz");
+          }}
+        />
+      )}
+
+      {wahlErg && !standDerD && !intro && !zielWahlOffen && (
+        <Wahlabend
+          key={wahlErg.id}
+          ergebnis={wahlErg}
+          onRede={(ton) => {
+            const r = rede(w, ton);
+            if (r.ok) {
+              sichere(true);
+              refresh();
+            }
+            return r.text;
+          }}
+          onSchliessen={() => {
+            wahlabendQuittieren(w);
+            sichere(true);
+            refresh();
+          }}
+        />
+      )}
+
+      {!wahlErg && umbOffen && umbSicht && spiel && !standDerD && !intro && !zielWahlOffen && (
+        <Umbildung
+          sicht={umbSicht}
+          kapital={spiel.kapital}
+          {...(umbMeldung ? { meldung: umbMeldung } : {})}
+          zwischenbilanz={erstelleBilanz(w, "zwischen")}
+          {...(spiel.nachfolge?.aspiranten ? { aspiranten: spiel.nachfolge.aspiranten } : {})}
+          onBehalten={(amt) => umbAktion(umbildungBehalten(w, amt))}
+          onErsetzen={(amt, id) => umbAktion(umbildungErsetzen(w, amt, id))}
+          onEntlassen={(amt) => umbAktion(umbildungEntlassen(w, amt))}
+          onVersetzen={(a, b) => umbAktion(umbildungVersetzen(w, a, b))}
+          onPartner={(amt, partei) => umbAktion(umbildungPartner(w, amt, partei))}
+          onFertig={() => {
+            umbildungAbschliessen(w);
+            setUmbMeldung(undefined);
+            sichere(true);
+            refresh();
+          }}
+          onSpaeter={() => setUmbSpaeterBis(spiel.umbildung?.bis ?? null)}
+        />
+      )}
+
+      {!wahlErg && !umbOffen && neueZiele && spiel && !standDerD && !intro && !zielWahlOffen && (
+        <ZielWahl
+          modus="amtszeit"
+          angebot={zieleAngebot(w, spiel.amtszeit >= maxAmtszeiten(w))}
+          onFertig={(ids) => {
+            waehleZieleAmtszeit(w, ids);
+            sichere(true);
+            refresh();
           }}
         />
       )}
@@ -710,7 +1031,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         />
       )}
 
-      {!bilanz && !standDerD && !intro && !zielWahlOffen && hinweis && (
+      {!bilanz && !blockiert && !standDerD && !intro && !zielWahlOffen && hinweis && (
         <EventWindow
           key={hinweis.id}
           event={{
@@ -750,7 +1071,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         />
       )}
 
-      {!bilanz && !standDerD && !intro && !zielWahlOffen && !hinweis && !offen && spiel?.reich?.feier[0] && (
+      {!bilanz && !blockiert && !standDerD && !intro && !zielWahlOffen && !hinweis && !offen && spiel?.reich?.feier[0] && (
         <WunderFenster
           key={spiel.reich.feier[0]}
           id={spiel.reich.feier[0]}
@@ -760,13 +1081,20 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         />
       )}
 
-      {!bilanz && !standDerD && !intro && !zielWahlOffen && !hinweis && offen && spiel && (
+      {!bilanz && !blockiert && !standDerD && !intro && !zielWahlOffen && !hinweis && offen && spiel && (
         <EreignisFenster
           key={offen.id}
           ansicht={ansicht(w, offen)}
           datum={formatDateDe(w.date)}
           kapital={spiel.kapital}
           naechsteGutschrift={formatDateDe(kapitalEinkommen(w).naechste)}
+          world={w}
+          onAkte={(ziel) => {
+            // Akte ansehen, ohne zu entscheiden: das Ereignis bleibt offen, die Frist läuft
+            setSpaeter((s) => new Set(s).add(offen.id));
+            if (ziel.dossier === "wirtschaft") setWirtschaftStart(ziel.start);
+            oeffneDossier(ziel.dossier);
+          }}
           onMassnahme={(m) => {
             // Das Ereignis bleibt offen (die Frist läuft); der Spieler sieht sich das Gesetz an oder regelt die Ursache selbst
             setSpaeter((s) => new Set(s).add(offen.id));
@@ -782,6 +1110,11 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               w.rngState = (w.rngState + 1) | 0;
               sichere(true);
               melde({ titel: r.text, ton: "ereignis" });
+              // Den Haushalt selbst vorbereiten: gleich in die Haushaltsakte mit den Reglern
+              if (offen.vorlage === "haushaltsjahr" && optionId === "entwurf") {
+                setWirtschaftStart("haushalt");
+                oeffneDossier("wirtschaft");
+              }
             }
             refresh();
           }}
@@ -916,7 +1249,7 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
   return (
     <div className="alerts" aria-label="Hinweise">
       {items.map((a) => (
-        <button key={`${a.id}-${a.count ?? 0}`} className={`alert tone-${a.tone}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
+        <button key={`${a.id}-${a.count ?? 0}`} className={`alert tone-${a.tone}${a.count !== undefined || a.tone !== "rot" ? " kompakt" : ""}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
           <span className="alert-punkt">
             <Icon name={a.icon} size={15} />
           </span>
@@ -942,22 +1275,30 @@ function startEvent(w: World): GameEvent {
     id: "amtsuebergabe",
     scene: "parlament",
     date: formatDateDe(w.date),
-    title: "Amtsübergabe in Ankara",
+    title: t("amtsuebergabe.titel"),
     text: (
       <>
         <p>
-          Um neun Uhr legt {p?.name ?? "das neue Staatsoberhaupt"} im Parlament den Amtseid ab. Die {p?.partei.name ?? "eigene Partei"} stellt {seats} der 600 Abgeordneten.
+          {t("amtsuebergabe.absatz1", {
+            name: p?.name ?? t("buehne.staatsoberhaupt"),
+            partei: p?.partei.name ?? own ?? "",
+            sitze: seats,
+          })}
           {partner.length > 0
-            ? ` Mit ${partner.join(", ")} steht das Regierungslager bei ${sicht.lager} Sitzen: ${sicht.lager >= 301 ? "Gesetze haben eine Mehrheit, solange die Partner mitgehen. Sie erwarten dafür ihre Forderungen erfüllt." : "eine Mehrheit fehlt noch."}`
+            ? " " +
+              (sicht.lager >= 301
+                ? t("amtsuebergabe.mehrheit_ja", { partner: partner.join(", "), sitze: sicht.lager })
+                : t("amtsuebergabe.mehrheit_nein", { partner: partner.join(", "), sitze: sicht.lager }))
             : ""}
         </p>
         <p>
-          Auf dem Schreibtisch liegen das Morgenbriefing, die Zusagen aus dem Wahlkampf und der nächste Schritt für Ihr Programm. Die Inflation liegt bei{" "}
-          {w.published.inflation.value.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %, die Wahl in etwa fünf Jahren. Wählen Sie gleich Ihre Ziele.
+          {t("amtsuebergabe.absatz2", {
+            inflation: w.published.inflation.value.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 }),
+          })}
         </p>
       </>
     ),
-    why: "Die Wirtschaftsdaten stammen vom 25. September 2026. Die Wahl 2028 ist erfunden, das Land und seine Regeln sind echt.",
-    actions: [{ label: "An die Arbeit", primary: true }],
+    why: t("amtsuebergabe.warum"),
+    actions: [{ label: t("amtsuebergabe.aktion"), primary: true }],
   };
 }

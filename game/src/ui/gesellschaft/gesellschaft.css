@@ -1,0 +1,67 @@
+/* Akte „Gesellschaft“: Papier, Tinte, Messing wie die übrigen Akten; Schrift mindestens 12 px */
+.ges-akte { display: grid; gap: 14px; color: var(--ink, #2b1e12); }
+.ges-zweck { margin: 0; font: italic 15px/1.45 var(--serif, "EB Garamond", serif); color: #5a4a38; border-left: 3px solid #b98a34; padding-left: 10px; }
+.ges-reiter { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
+.ges-reiter button { border: 0; background: none; padding: 8px 14px; font: 600 15px var(--display, Fraunces, serif); color: #5a4a38; cursor: pointer; border-bottom: 3px solid transparent; display: inline-flex; gap: 6px; align-items: center; }
+.ges-reiter button.on { color: #2b1e12; border-bottom-color: #b98a34; }
+.ges-reiter .zahl { background: #8c2b1f; color: #fff; border-radius: 999px; padding: 0 7px; font: 700 12px var(--sans, Inter, sans-serif); }
+.ges-meldung { margin: 0; padding: 8px 12px; background: rgba(185, 138, 52, 0.15); border-left: 3px solid #b98a34; font: 14px/1.4 var(--sans, Inter, sans-serif); }
+.ges-h { margin: 8px 0 2px; font: 600 18px var(--display, Fraunces, serif); }
+.ges-unter { margin: 2px 0; font: 14px/1.45 var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.ges-kicker { margin: 0; font: 700 12px var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: #8c2b1f; }
+.ges-kennzahlen { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.ges-kennzahl { background: #fbf4e2; border: 1px solid rgba(90, 64, 40, 0.25); padding: 10px 12px; display: grid; gap: 4px; }
+.ges-kennzahl header { display: flex; justify-content: space-between; align-items: baseline; font: 700 12px var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: #5a4a38; }
+.ges-kennzahl header strong { font: 600 22px var(--display, Fraunces, serif); letter-spacing: 0; text-transform: none; color: #2b1e12; }
+.ges-kennzahl p { margin: 0; font: 13px/1.35 var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.ges-milieus { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.ges-milieu { background: #fbf4e2; border: 1px solid rgba(90, 64, 40, 0.25); padding: 10px 12px; display: grid; gap: 6px; }
+.ges-milieu header { display: flex; justify-content: space-between; font: 600 16px var(--display, Fraunces, serif); }
+.ges-trend { font: 600 12px var(--sans, Inter, sans-serif); padding: 2px 8px; border-radius: 999px; background: #eee3c8; }
+.ges-trend.steigt { background: #f3d6cf; color: #8c2b1f; }
+.ges-trend.faellt { background: #d9e8dc; color: #2f5d42; }
+.ges-zeile { display: grid; grid-template-columns: 110px 1fr 34px; gap: 8px; align-items: center; font: 13px var(--sans, Inter, sans-serif); }
+.ges-zeile.breit { grid-template-columns: 130px 1fr 40px; max-width: 520px; }
+.ges-zeile em { font-style: normal; font-weight: 700; text-align: right; }
+.ges-balken { display: block; height: 7px; background: rgba(90, 64, 40, 0.15); border-radius: 4px; overflow: hidden; }
+.ges-balken b { display: block; height: 100%; background: #2f5d62; }
+.ges-balken.schlecht b { background: #a8442f; }
+.ges-ursache { margin: 0; font: 12px var(--sans, Inter, sans-serif); color: #6b5a46; }
+.ges-opp-kopf { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: #fbf4e2; border: 1px solid rgba(90, 64, 40, 0.25); padding: 14px; }
+.ges-opp-kopf h3 { margin: 2px 0; font: 600 24px var(--display, Fraunces, serif); }
+.ges-marken { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 8px 0 0; padding: 0; }
+.ges-marken li { font: 600 12px var(--sans, Inter, sans-serif); background: #eee3c8; padding: 3px 9px; border-radius: 999px; }
+.ges-marken li.warn { background: #f3d6cf; color: #8c2b1f; }
+.ges-instrumente { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.ges-instrument { background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 4px solid #b98a34; padding: 10px 12px; display: grid; gap: 6px; align-content: start; }
+.ges-instrument.gesperrt { opacity: 0.75; border-left-color: #a99a80; }
+.ges-instrument header { display: flex; flex-direction: column; gap: 2px; font: 600 15px var(--display, Fraunces, serif); }
+.ges-instrument header > :not(:first-child) { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
+.ges-instrument ul { margin: 0; padding-left: 18px; font: 13px/1.4 var(--serif, "EB Garamond", serif); }
+.ges-preis { font: 600 12px var(--sans, Inter, sans-serif); color: #6b5a46; white-space: nowrap; }
+.ges-vorschau { margin: 0; font: 600 12px var(--sans, Inter, sans-serif); color: #2f5d62; }
+.ges-instrument button { justify-self: start; }
+.ges-chronik { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 4px; font: 14px/1.4 var(--serif, "EB Garamond", serif); }
+.ges-chronik time { font: 600 12px var(--sans, Inter, sans-serif); color: #6b5a46; margin-right: 6px; }
+.ges-chronik .leer, .ges-leer { color: #6b5a46; font-style: italic; }
+.ges-strasse { display: grid; gap: 12px; }
+.ges-bewegung { background: #fbf4e2; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 5px solid #b98a34; padding: 12px 14px; display: grid; gap: 10px; }
+.ges-bewegung.phase-massen { border-left-color: #8c2b1f; }
+.ges-bewegung.phase-abklingend { border-left-color: #2f5d62; }
+.ges-bewegung h3 { margin: 2px 0; font: 600 20px var(--display, Fraunces, serif); }
+.ges-drei { display: grid; gap: 6px; max-width: 560px; }
+.ges-antworten { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.ges-antwort { text-align: left; display: grid; gap: 3px; padding: 9px 11px; background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 4px; cursor: pointer; font: 13px var(--sans, Inter, sans-serif); color: #2b1e12; }
+.ges-antwort:hover:not(:disabled) { border-color: #b98a34; box-shadow: 0 2px 6px rgba(60, 40, 20, 0.15); }
+.ges-antwort:disabled { opacity: 0.6; cursor: not-allowed; }
+.ges-antwort strong { font: 600 15px var(--display, Fraunces, serif); }
+.ges-antwort.a-polizei strong, .ges-antwort.a-verbot strong { color: #8c2b1f; }
+.ges-folgen { color: #6b5a46; font-size: 12px; line-height: 1.35; }
+.ges-region h4 { margin: 10px 0 4px; font: 600 15px var(--display, Fraunces, serif); }
+.ges-rathaeuser { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+.ges-rathaus { display: grid; grid-template-columns: 1fr auto; gap: 2px 6px; padding: 6px 8px; background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.25); font: 13px var(--sans, Inter, sans-serif); }
+.ges-rathaus.lager { border-left: 4px solid #2f5d62; }
+.ges-rathaus.verwalter { border-left: 4px solid #8c2b1f; background: #f8e6df; }
+.ges-rathaus .name { font-weight: 600; }
+.ges-rathaus .partei { color: #6b5a46; }
+.ges-rathaus button { grid-column: 1 / -1; justify-self: start; font: 600 12px var(--sans, Inter, sans-serif); border: 1px solid rgba(90, 64, 40, 0.35); background: #f3ead2; padding: 3px 8px; border-radius: 3px; cursor: pointer; }

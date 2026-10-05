@@ -253,3 +253,18 @@ Anlass: Forderungen des Projektinhabers vom 30.09. („keine Vorteile, kein Inve
 - **Arbeitsweise:** Größere Blöcke laufen parallel als getrennte Stränge mit festem Dateieigentum; Stand jedes Zwischenschritts liegt auf GitHub (Zweig `claude/weiter-b91y4u`), Commits nur auf ausdrücklichen Wunsch.
 
 Fortschreibung der Ansichten: [Block T2](#t2-aufbau-der-ansichten-30092026), Wirtschaft ([WIRTSCHAFTSAKTE.md](WIRTSCHAFTSAKTE.md)), Personen und Zusagen ([PERSONEN.md](PERSONEN.md)).
+
+
+## N. Nachtrag 05.10.2026 (Richtungsvorgaben des Projektinhabers)
+
+Anlass: Wiedereinstieg am 04./05.10.2026 mit Rückmeldungen aus dem laufenden Spiel (Stand Juni 2033) und Zeitungs-/Berichtsfragen. Die folgenden Punkte stammen vom Projektinhaber und gelten vor älteren Aussagen in diesem Dokument. Ausarbeitung: [KARTE_KONZEPT_2026-10-04.md](KARTE_KONZEPT_2026-10-04.md), [SPRACHEN_KONZEPT_2026-10-04.md](SPRACHEN_KONZEPT_2026-10-04.md), [SPIEL_DURCHDACHT_2026-10-05.md](SPIEL_DURCHDACHT_2026-10-05.md), [FOKUS_FORSCHUNG_KRIEG_KONZEPT_2026-10-05.md](FOKUS_FORSCHUNG_KRIEG_KONZEPT_2026-10-05.md).
+
+- **Das Spiel wird in jeder Facette durchdacht.** Wahl, Kabinett, Parlament, Opposition, Medien, Wirtschaft, Außen, Land, Spielfluss gelten als Systeme mit Zustand, Gedächtnis und Rückwirkung; Entscheidungen müssen sich gegenseitig beeinflussen (Kopplungsmessung: keine Kante führt heute in eine Maßnahme).
+- **Eine Wahl hat Folgen:** Parlamentswahl am selben Tag, Stichwahl, Kabinettsumbildung, neue Ziele in der zweiten Amtszeit, Nachfolge in der letzten.
+- **Das ganze Spektrum ist spielbar** (extrem links bis stark rechts, demokratisch bis autoritär): Start, Partei und Maßnahmen ohne Wertung, jede Richtung mit Preis und realistischen Reaktionen (Märkte, Armee, Justiz, Ausland, Straße, Putschrisiko). Der Start ist frei konfigurierbar (Partei nach Achsen, Szenarien).
+- **Krieg wie bei HOI4** (ersetzt „Verlauf abstrakt“ aus Zeile 56): operative Führungsebene mit Regionen, Verbänden, Fronten, Befehlen, Nachschub, Luft und See, Generälen, Besatzung, Annexion und Friedenskonferenz; keine Gefechtsmikrosteuerung, Delegation an den Generalstab möglich.
+- **Bäume wie bei Civ 6 und HOI4:** Fokusbaum „Agenda“, Forschungsbaum „Wissen“ mit Eureka, Doktrinen und Fertigung (Details im Konzept; Prüfung der Machbarkeit am 05.10.: ja).
+- **Animationen wie bei Civ 6:** Karte, Baumansichten, Abschlussszenen, Diplomatie.
+- **Karte größer und Länder sichtbar:** Weltkarte mit allen Akteuren, Kernausschnitt Türkei hochaufgelöst.
+- **Dreisprachig:** Deutsch, Türkisch, Englisch vollständig spielbar; Sprachwechsel sichert und lädt neu; neue Texte laufen ab sofort über die Übersetzungsschicht.
+- **Nie wieder Spielstandverlust:** Die Sicherungsregeln aus dem Vorfall vom 04.10. (Höchststand, rollierende Sicherungen, kein Neubau über eine laufende App) gelten für jede Arbeit.

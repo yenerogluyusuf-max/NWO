@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { advance, createWorld } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
-import { ladeSpielstand, speichere, sitzungBegonnen, snapshotVon, vorsitzungSnapshot } from "../src/ui/speicher";
+import { ladeSpielstand, speichere, speichereWarten, sitzungBegonnen, snapshotVon, vorsitzungSnapshot } from "../src/ui/speicher";
 import { standDerDinge } from "../src/ui/standderdinge";
 import type { World } from "../src/sim/types";
 
@@ -46,7 +46,7 @@ describe("Sitzungs-Snapshot", () => {
     expect(s!.datum).toBe(w.date);
   });
 
-  test("Autospeichern führt die Vergleichsbasis weiter, sitzungBegonnen setzt sie neu", () => {
+  test("Autospeichern führt die Vergleichsbasis weiter, sitzungBegonnen setzt sie neu", async () => {
     const w = neu();
     speichere(w);
     const basis = vorsitzungSnapshot()!;
@@ -59,8 +59,9 @@ describe("Sitzungs-Snapshot", () => {
     // Neue Sitzung: der jetzige Stand wird zur Basis
     sitzungBegonnen(w);
     expect(vorsitzungSnapshot()!.kapital).toBeCloseTo(99, 6);
-    // … und die Welt bleibt ladbar
-    expect(ladeSpielstand()!.day).toBe(w.day);
+    // … und die Welt bleibt ladbar (das Laden ist asynchron: erst warten, bis der Stand geschrieben ist)
+    await speichereWarten(w);
+    expect((await ladeSpielstand())!.day).toBe(w.day);
   });
 
   test("alter Spielstand ohne Snapshot: keine Vergleichsdaten, nichts bricht, die Basis entsteht beim nächsten Speichern", () => {
