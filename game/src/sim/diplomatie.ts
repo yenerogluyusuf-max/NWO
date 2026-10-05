@@ -612,6 +612,11 @@ export function fuehreInstrumentAus(w: World, id: InstrumentId, landId?: string,
   return { ok: true, text, why };
 }
 
+/** Verschiebt Anteile am Gasbezug (Ereignis „Gasvertrag“: Verlängern stärkt den Lieferanten, Diversifizieren das Flüssiggas). */
+export function lieferanteilVerschieben(w: World, ziel: Lieferant, d: number): void {
+  verschiebeAnteil(aussenZustand(w), ziel, d);
+}
+
 function verschiebeAnteil(a: AussenZustand, ziel: Lieferant, d: number): void {
   const an = a.energie.anteile;
   const quelle: Lieferant = ziel === "RUS" ? "LNG" : an.RUS >= an.LNG ? "RUS" : "LNG";

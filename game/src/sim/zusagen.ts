@@ -8,11 +8,13 @@ import { wirke, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { addDays } from "./dates";
 import { kannZahlen } from "./kapital";
-import { bereitschaftAendern } from "./fraktionen";
+import { PARTEI_NAME, bereitschaftAendern } from "./fraktionen";
 import { REGELN, bringeEin, pruefeVorhaben, stufeIn } from "./handeln";
 import { LAENDER, landAendern } from "./laender";
 import { skala, skalenArt } from "../data/skalen";
 import { grollVerschieben, loyalitaetVerschieben, merke } from "./personen";
+import { istMinisterienZusage, ministerienAnPartei, ressortNamen } from "./ressortvergabe";
+import { t } from "../i18n";
 import type { World } from "./types";
 import type { Figur, Zusage } from "./spiel-typen";
 
@@ -241,6 +243,15 @@ export function loeseZusageEin(w: World, z: Zusage): { ok: boolean; text: string
     }
     // Das Gesetz liegt jetzt im Parlament; die Zusage gilt als erfüllt, sobald es beschlossen ist
     z.faellig = w.day + REGELN.tageBisAbstimmung + 15;
+  } else if (istMinisterienZusage(z)) {
+    // Zugesagte Ministerien werden wirklich übergeben: neue Minister aus der Partei
+    const vergeben = ministerienAnPartei(w, z.von, 2);
+    if (vergeben.length === 0) return { ok: false, text: t("ressort.zusage.keins") };
+    z.erfuellt = true;
+    bereitschaftAendern(w, z.von, 10);
+    zusageAbschluss(w, z, "erfuellt");
+    if (f) loyalitaetVerschieben(f, 12);
+    return { ok: true, text: t("ressort.zusage.ok", { partei: PARTEI_NAME[z.von] ?? z.von, ressorts: ressortNamen(vergeben) }) };
   } else {
     z.erfuellt = true;
     bereitschaftAendern(w, z.von, 10);

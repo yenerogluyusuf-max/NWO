@@ -42,6 +42,7 @@ import { kannZahlen } from "./kapital";
 import { VERFASSUNG, AUFMERKSAMKEIT_KOSTEN, belastungEreignis, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { Rng } from "./rng";
 import type { World } from "./types";
+import { t } from "../i18n";
 import type { FriedensPaket, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
 
 /** Spielparameter, keine Tatsachen: alle Schwellen, Kosten und Faktoren des Konfliktvorgangs (Kalibrierung). */
@@ -325,7 +326,7 @@ export function paketAnnahme(w: World, k: KriegVorgang, p: FriedensPaket): numbe
 export const PAKETE: Record<string, { name: string; text: string; paket: (front: number) => FriedensPaket }> = {
   paket_sieg: {
     name: "Siegerfrieden",
-    text: "Gebietsgewinn, Reparationen und Sicherheitsgarantien: der harte Schnitt — innen ein Triumph, außen ein Dauerstreit.",
+    get text() { return t("wort.krieg.paket_sieg"); },
     paket: () => ({ gebiet: 1, reparation: 1, garantien: true, rueckzug: false }),
   },
   paket_ausgewogen: {
@@ -340,7 +341,7 @@ export const PAKETE: Record<string, { name: string; text: string; paket: (front:
   },
   paket_zugestaendnis: {
     name: "Gekaufter Frieden",
-    text: "Gebietsabtretung und Reparationen: erkauft Ruhe um den Preis von Sturzgefahr, Putsch-Risiko und Abhängigkeit.",
+    get text() { return t("wort.krieg.paket_zugestaendnis"); },
     paket: () => ({ gebiet: -1, reparation: -1, garantien: false, rueckzug: true }),
   },
 };
@@ -678,7 +679,7 @@ function waffenruheEintreten(w: World, k: KriegVorgang): void {
   phaseSetzen(w, k, "waffenruhe");
   k.gegnerAngebot = false;
   hinweis(w, `krieg-waffenruhe-${k.id}-${w.day}`, `Waffenruhe mit ${l.name}`, [
-    `Die Waffen schweigen im Konflikt mit ${l.name}. Am Verhandlungstisch wartet die eigentliche Rechnung: Gebiet, Reparationen, Garantien, Rückzug.`,
+    `Die Waffen schweigen im Konflikt mit ${l.name}. Am Verhandlungstisch wartet die eigentliche Rechnung: Grenzzone, Reparationen, Garantien, Rückzug.`,
     "Der Innenpreis des Friedens hängt auch von der Presse ab: Je freier die Medien, desto sichtbarer — und teurer — ist jede Nachgiebigkeit.",
   ]);
   addLog(w, "ereignis", `Waffenruhe mit ${l.name}.`, "Die Waffenruhe hält, solange ein Friedenspaket oder die Rückkehr zum Krieg entschieden ist.");
@@ -882,8 +883,8 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     const ansehen = k.rahmung === "verteidigung" ? -4 : k.rahmung === "revision" ? -6 : -3;
     wirke(w, "ansehen", ansehen);
     wirke(w, "beziehungen_eu", -3);
-    landAendern(w, k.land, { konflikt: 25, vertrauen: -10 }, "Gebietsabtretung an die Türkei");
-    teile.push(`Gebietsgewinn (Ansehen ${ansehen}: selbst der Siegerfrieden hat einen Weltpreis)`);
+    landAendern(w, k.land, { konflikt: 25, vertrauen: -10 }, t("wort.krieg.grund_pufferzone"));
+    teile.push(t("wort.krieg.teil_pufferzone", { ansehen }));
     if (k.rahmung !== "verteidigung") basis += 3;
   }
   if (p.gebiet === -1) {
@@ -891,7 +892,7 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     wirke(w, "nationalisten", -10);
     wirke(w, "konservative", -4);
     basis += 8;
-    teile.push("Gebietsabtretung (Offiziersvertrauen −15: das Offizierskorps vergisst das nicht)");
+    teile.push(t("wort.krieg.teil_zugestaendnis"));
   }
   if (p.reparation === 1) {
     kosten(w, -0.8);

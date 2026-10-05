@@ -15,6 +15,8 @@ import { medienEntspannung, medienHaerte, medienVerfahren } from "./medien";
 import { kommunalwahlDurchfuehren, kommunalwahlFaellig, kommunenVon, istLagerPartei, setzeZwangsverwalter } from "./kommunen";
 import { schreibeHaushaltFort } from "./haushalt";
 import { setPolicy } from "./handeln";
+import { stufeIn } from "./handeln";
+import { beginne, beginneRegional } from "./reich";
 import { anrede, figur, loyalitaetAendern, zufallsName } from "./figuren";
 import { BANKEN, KOHLEFIRMEN, TEXTILFIRMEN, ZEITUNGEN, waehle } from "./akteure";
 import { PROZ_STADT, akutIn, beschr, jahrVon, kosten, monatVon, namen, netz, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
@@ -426,10 +428,12 @@ const BAUAMNESTIE: Vorlage = {
       kosten(w, -0.1);
       vertrauenAendern(w, 2);
       wirke(w, "steuereinnahmen", 2);
-      wirke(w, "bauqualitaet", -4);
-      wirke(w, "erdbebenvorsorge", -4);
       loyalitaetAendern(w, "partner", 8);
-      return "Die Bauamnestie wird beschlossen.";
+      // Die Amnestie gilt als Maßnahme fort, auf der Stufe, die ihr Text beschreibt (data/skalen.ts: 45 = „Legalisierung
+      // gegen Gebühr, ohne Prüfung der Statik“). Bauqualität und Erdbebenvorsorge sinken über die Kanten der Maßnahme
+      // (data/politiknetz.ts), daher hier kein zusätzlicher Sofortabzug: sonst zählte derselbe Schaden doppelt.
+      setPolicy(w, "m_bauamnestie", Math.max(45, stufeIn(w, "m_bauamnestie", null)));
+      return t("wort.bauamnestie.ausgang");
     }),
     opt("statik", "Nur mit Statiknachweis", beschr(3, 0, "ein Kompromiss, der die Baupolitik schützt und den Partner nur halb zufrieden stellt."), 3, (w) => {
       wirke(w, "steuereinnahmen", 1);
@@ -685,10 +689,18 @@ const TOURISMUS: Vorlage = {
   warum: () => "Gute Jahre sind die Zeit, in der man Infrastruktur baut, nicht nur feiert: Die Saison von heute entscheidet über die von übermorgen.",
   optionen: () => [
     opt("ausbauen", "In Küsteninfrastruktur investieren", beschr(3, 0.2, "sichert die Zukunft der Saison."), 3, (w) => {
+      // Ein echtes Bauvorhaben in den Küstenprovinzen (Antalya, Muğla, İzmir); das Kapital des Ereignisses trägt die Vergabe
+      w.spiel!.kapital += 3;
+      const r = beginneRegional(w, "reg_strassen", [7, 48, 35]);
+      if (r.ok) {
+        wirke(w, "tourismus", 1);
+        return t("wort.kueste.begonnen");
+      }
+      w.spiel!.kapital -= 3;
       kosten(w, 0.2);
       wirke(w, "tourismus", 3);
       wirke(w, "verkehrsnetz", 2);
-      return "Flughäfen, Straßen und Kläranlagen an der Küste werden ausgebaut.";
+      return t("wort.kueste.ohne_bau", { grund: r.text });
     }),
     opt("abgabe", "Eine Abgabe auf Übernachtungen erheben", beschr(1, -0.15, "bringt Geld, dämpft die Nachfrage ein wenig."), 1, (w) => {
       kosten(w, -0.15);
@@ -718,13 +730,15 @@ const KANAL: Vorlage = {
   warum: () => "Großprojekte binden Geld, Kapital und Aufmerksamkeit über Jahre. Sie versprechen Wachstum, und manche halten es, andere hinterlassen vor allem Schulden.",
   optionen: () => [
     opt("bauen", "Bauen", beschr(6, 1.0, "Aufträge und Schlagzeilen, dazu Schulden und Umweltrisiken."), 6, (w) => {
-      kosten(w, 1.0);
-      wirke(w, "bauwirtschaft", 6, [34]);
-      wirke(w, "klimaschutz", -3);
-      wirke(w, "vertrauen_maerkte", -2);
       wirke(w, "konservative", 2);
       wirke(w, "staedtische_saekulare", -3);
-      return "Der Bau des Kanals wird beschlossen.";
+      // Der Kanal wird ein echtes Bauvorhaben (data/reich/infrastruktur.ts): Kosten, Bauzeit und Folgen trägt das Vorhaben
+      w.spiel!.kapital += 6;
+      const r = beginne(w, "infra_kanal_istanbul");
+      if (r.ok) return t("wort.kanal.begonnen");
+      w.spiel!.kapital -= 6;
+      wirke(w, "bauwirtschaft", 3, [34]);
+      return t("wort.kanal.ohne_bau", { grund: r.text });
     }),
     opt("nahverkehr", "Stattdessen Metro und Nahverkehr ausbauen", beschr(3, 0.3, "spürbar im Alltag, weniger eindrucksvoll auf Fotos."), 3, (w) => {
       kosten(w, 0.3);

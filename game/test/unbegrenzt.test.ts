@@ -462,7 +462,10 @@ describe("Mehrere Wahlen ohne Grenze", () => {
     expect(sp.wahltag - w.day).toBeLessThan(365 * 7.1 + 2);
   });
 
-  const SEEDS = LANG ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : [1, 2];
+  // Kurzlauf mit sechs Seeds: Der klare Bot gewinnt rund 70 % der Wahlen (Messung 05.10.2026, 12 Seeds über 40 Jahre),
+  // zwei Wahlen in Folge also nur etwa jede zweite Partie. Mit zwei Seeds hing der Test an einem Münzwurf (beide
+  // verloren in etwa jedem vierten Stand); mit sechs bei knapp 2 %.
+  const SEEDS = LANG ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : [1, 2, 3, 4, 5, 6];
   const JAHRE = LANG ? 40 : 16;
   const laeufe: Lang[] = [];
   test(`Läufe mit klarem Bot (${SEEDS.length} Seeds, bis ${JAHRE} Jahre): Wahl 3 und 4 kommen vor, ohne Amtszeitende`, { timeout: LANG ? 3_600_000 : 300_000 }, () => {

@@ -66,7 +66,7 @@ const KRIEG_WAFFENRUHE: Vorlage = {
   titel: (_, ev) => `${landName(ev)} bietet Waffenruhe an`,
   text: (w, ev) => [
     `Über Vermittler lässt ${landName(ev)} ausrichten, es sei zu einer Waffenruhe bereit. Die Erschöpfung der Gegenseite scheint weit genug — oder es ist eine Falle, um Zeit zu gewinnen.`,
-    "Nimmt die Regierung an, schweigen die Waffen und der Verhandlungstisch entscheidet über Gebiet, Reparationen, Garantien und Rückzug. Lehnt sie ab, liest die Heimatfront das als Härte — und die Gegenseite als Schwäche des Angebots.",
+    "Nimmt die Regierung an, schweigen die Waffen und der Verhandlungstisch entscheidet über Grenzzone, Reparationen, Garantien und Rückzug. Lehnt sie ab, liest die Heimatfront das als Härte — und die Gegenseite als Schwäche des Angebots.",
   ],
   warum: () => "Eine Waffenruhe ist kein Frieden: Sie öffnet den Verhandlungstisch, ohne die Rechnung zu begleichen. Der Innenpreis des Friedens hängt auch davon ab, wie frei die Presse berichten darf.",
   optionen: () => [
@@ -102,7 +102,7 @@ const PUTSCHGERUECHTE: Vorlage = {
     `Nach der militärischen Schmach sprechen Offiziere offen über die Verantwortung der Regierung. Das Vertrauen im Offizierskorps liegt bei ${Math.round(offiziersvertrauen(w))} von 100 — zerbrochen.`,
     "In den Kasernen kursieren Namen. Der Geheimdienst legt Listen vor; die Frage ist, ob die Regierung die Führung diszipliniert oder einbindet, bevor andere die Initiative ergreifen.",
   ],
-  warum: () => "Gebietsabtretung und Niederlage sind die klassischen Putsch-Auslöser: Ein Offizierskorps, das die Regierung für den Schaden verantwortlich macht, braucht nur noch einen Anlass.",
+  warum: () => "Grenzzugeständnisse und Niederlage sind die klassischen Putsch-Auslöser: Ein Offizierskorps, das die Regierung für den Schaden verantwortlich macht, braucht nur noch einen Anlass.",
   optionen: () => [
     opt("ordnung", "Die Generäle zur Ordnung rufen", "Kostet 5 Kapital; Offiziersvertrauen −4, Legitimität −2, aber die Reihen schließen sich vorerst.", 5, (w) => {
       wirke(w, "offiziersvertrauen", -4);

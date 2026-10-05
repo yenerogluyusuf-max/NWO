@@ -80,7 +80,7 @@ export interface KriegKoalition {
 
 /** Kriegs-Klauseln des Friedenspakets (schrittweiser Frieden, RECHERCHE_SUZERAIN_KRIEGSMATRIX.md §9.1 Zustand 5/6). */
 export interface FriedensPaket {
-  /** 1 = Gebiet an die Türkei (Sieglage), −1 = Gebietsabtretung der Türkei (Niederlage), 0 = Status quo */
+  /** 1 = Pufferzone unter türkischer Kontrolle (Sieglage, kein Besitzerwechsel), −1 = Grenzzugeständnisse der Türkei (Niederlage), 0 = Status quo */
   gebiet: -1 | 0 | 1;
   /** 1 = Reparationen an die Türkei, −1 = Reparationen von der Türkei, 0 = keine */
   reparation: -1 | 0 | 1;
@@ -143,7 +143,8 @@ export interface KriegVorgang {
 }
 
 // Gebietsübertragung (Welle 2, noch nicht gebaut): Der Hebel liegt in sim/krieg.ts, Funktion `friedenSchliessen`: Dort steht heute
-// `p.gebiet` (+1 Gewinn, −1 Abtretung) und ändert nur Beziehungswerte und Stimmung. Sobald Regionen anderer Länder als Daten existieren,
+// `p.gebiet` (+1 Pufferzone unter türkischer Kontrolle, −1 Grenzzugeständnisse) und ändert nur Beziehungswerte und Stimmung;
+// die Texte sagen das ehrlich (kein Besitzerwechsel, Katalog `wort.krieg.*`, Stand 05.10.2026). Sobald Regionen anderer Länder als Daten existieren,
 // ersetzt das Paket das Feld `gebiet` durch eine Liste der Regionen (Kriegsziele, die der Vorgang vorher festlegt); `friedenSchliessen`
 // überträgt dann den Besitzer jeder Region und startet die Integrationsphase. Diese Typen und `paketAnnahme` (Härte des Pakets)
 // bleiben die Schnittstelle; die Koalitionspartner (`koalition`) verhandeln am Friedenstisch mit und dürfen eigene Regionen als Ziel haben.

@@ -79,6 +79,7 @@ import type { VorlagenZiel } from "../sim/ministerfluss-typen";
 import { WirkungsberichtDossier } from "./politik/WirkungsberichtDossier";
 import type { Bericht } from "../sim/berichte";
 import { SprachWahl } from "./SprachWahl";
+import { kapitalErklaerung, mehrheitsSicht } from "./akte/lage";
 
 type Dossier =
   | "schreibtisch"
@@ -371,55 +372,57 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const stimmen = spiel ? stimmenSicht(w) : null;
   // Die Mehrheit zählt das Lager und die Fraktionen, die es gerade dulden
   const bloc = stimmen ? stimmen.lager + stimmen.duldungSitze : (own ? (w.parliament?.seats[own] ?? 0) : 0);
+  // Mehrheit getrennt nach Lager, Duldung und Opposition; nie eine Gesamtzahl wie „600/600“
+  const mehr = mehrheitsSicht(w);
+  const [hudExtra, setHudExtra] = useState<Set<HudExtra>>(ladeHudExtra);
+  const wechsleHudExtra = (x: HudExtra) =>
+    setHudExtra((alt) => {
+      const neu = new Set(alt);
+      if (neu.has(x)) neu.delete(x);
+      else neu.add(x);
+      try {
+        localStorage.setItem(HUD_SCHLUESSEL, JSON.stringify([...neu]));
+      } catch {
+        /* nur für diese Sitzung */
+      }
+      return neu;
+    });
   const trust = nationalAverage(NET, w.net, "vertrauen_regierung");
   const zustimmung = spiel?.umfrage.zustimmung ?? trust;
   const zVor = spiel && spiel.umfrage.verlauf.length > 3 ? spiel.umfrage.verlauf[spiel.umfrage.verlauf.length - 4]!.wert : undefined;
 
-  // Schlankes Hauptmenü in 4 Kern-Ressorts: Kanzlei, Innenpolitik, Finanzen & Aufbau, Außenpolitik
-  // Die Leiste folgt dem, was ein Präsident sucht: acht Ressorts, in jedem höchstens sechs Ansichten. Jede Ansicht steht dort, wo man sie erwartet.
+  // Navigation in drei Ebenen (VISION_IM_DETAIL 0.2): die Karte liegt immer darunter, der Schreibtisch ist die Zentrale des Tages,
+  // dazu neun Akten nach einem Muster. Die alten Ansichten sind umgezogen, nicht neu gebaut; ihre Kennungen bleiben, damit alle Sprünge gelten.
   const menue: { kurz: string; titel: string; icon: IconName; badge?: number; umlauf?: number; tabs: { id: Exclude<Dossier, null>; label: string }[] }[] = [
     {
-      kurz: t("buehne.menu.kanzlei"),
-      titel: t("buehne.menu.kanzleiTitel"),
+      kurz: t("nav.schreibtisch"),
+      titel: t("nav.schreibtischTitel"),
       icon: "feder",
       badge: (spiel?.ereignisse.length ?? 0) || undefined,
-      umlauf: umlaufNeu || (spiel?.zeitung?.ungelesen ?? 0) || undefined,
+      umlauf: umlaufNeu || undefined,
       tabs: [
         { id: "schreibtisch", label: t("buehne.tab.schreibtisch") },
-        { id: "zeitung", label: t("buehne.tab.zeitung") },
-        { id: "gespraech", label: t("buehne.tab.gespraech") },
-        { id: "personen", label: t("buehne.tab.personen") },
+        { id: "bereiche", label: t("buehne.tab.heute") },
+        { id: "politik", label: t("nav.tab.probleme") },
         { id: "chronik", label: t("buehne.tab.chronik") },
+        { id: "wirkungsbericht", label: t("buehne.tab.wirkungsbericht") },
+        { id: "netz", label: t("nav.tab.warum") },
         { id: "speicher", label: t("buehne.tab.speicher") },
       ],
     },
     {
-      kurz: t("buehne.menu.politik"),
-      titel: t("buehne.menu.politikTitel"),
-      icon: "netz",
+      kurz: t("nav.wirtschaft"),
+      titel: t("nav.wirtschaftTitel"),
+      icon: "bank",
+      // „entscheidungen“ bleibt als Einstieg für Zinssitzung und Erlasse
       tabs: [
-        { id: "politik", label: t("buehne.tab.bereiche") },
-        { id: "bereiche", label: t("buehne.tab.heute") },
-        { id: "programme", label: t("buehne.tab.programme") },
-        { id: "beschluesse", label: t("buehne.tab.beschluesse") },
-        { id: "wirkungsbericht", label: t("buehne.tab.wirkungsbericht") },
-        { id: "netz", label: t("buehne.tab.netz") },
+        { id: "wirtschaft", label: t("buehne.tab.wirtschaft") },
+        { id: "reich_haushalt", label: t("buehne.tab.haushalt") },
       ],
     },
     {
-      kurz: t("buehne.menu.parlament"),
-      titel: t("buehne.menu.parlamentTitel"),
-      icon: "waage",
-      badge: (spiel?.gesetze.length ?? 0) + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
-      tabs: [
-        { id: "parlament", label: t("buehne.tab.parlament") },
-        { id: "verfassung", label: t("buehne.tab.verfassung") },
-        { id: "reich_recht", label: t("buehne.tab.recht") },
-      ],
-    },
-    {
-      kurz: t("buehne.menu.waehler"),
-      titel: t("buehne.menu.waehlerTitel"),
+      kurz: t("nav.gesellschaft"),
+      titel: t("nav.gesellschaftTitel"),
       icon: "menge",
       tabs: [
         { id: "waehler", label: t("buehne.tab.waehler") },
@@ -427,38 +430,61 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       ],
     },
     {
-      kurz: t("buehne.menu.wirtschaft"),
-      titel: t("buehne.menu.wirtschaftTitel"),
-      icon: "bank",
-      // Die Akte hat eigene Reiter (Lage, Zentralbank, Haushalt); „entscheidungen“ bleibt als Einstieg für Zinssitzung und Erlasse
+      kurz: t("nav.recht"),
+      titel: t("nav.rechtTitel"),
+      icon: "waage",
+      badge: (spiel?.gesetze.length ?? 0) + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
       tabs: [
-        { id: "wirtschaft", label: t("buehne.tab.wirtschaft") },
-        { id: "reich_haushalt", label: t("buehne.tab.haushalt") },
+        { id: "parlament", label: t("buehne.tab.parlament") },
+        { id: "beschluesse", label: t("buehne.tab.beschluesse") },
+        { id: "verfassung", label: t("buehne.tab.verfassung") },
+        { id: "reich_recht", label: t("buehne.tab.recht") },
       ],
     },
     {
-      kurz: t("buehne.menu.reich"),
-      titel: t("buehne.menu.reichTitel"),
-      icon: "tempel",
-      badge: (spiel?.reich?.laufend.length ?? 0) || undefined,
+      kurz: t("nav.regierung"),
+      titel: t("nav.regierungTitel"),
+      icon: "person",
+      tabs: [
+        { id: "personen", label: t("buehne.tab.personen") },
+        { id: "gespraech", label: t("buehne.tab.gespraech") },
+      ],
+    },
+    {
+      kurz: t("nav.sicherheit"),
+      titel: t("nav.sicherheitTitel"),
+      icon: "siegel",
+      tabs: [{ id: "reich_militaer", label: t("buehne.tab.militaer") }],
+    },
+    {
+      kurz: t("nav.aussen"),
+      titel: t("nav.aussenTitel"),
+      icon: "berg",
+      tabs: [{ id: "welt", label: t("buehne.tab.welt") }],
+    },
+    {
+      kurz: t("nav.land"),
+      titel: t("nav.landTitel"),
+      icon: "karte",
+      badge: (spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length ?? 0) + (spiel?.reich?.laufend.length ?? 0) || undefined,
       tabs: [
         { id: "reich_infra", label: t("buehne.tab.infra") },
         { id: "reich_kultur", label: t("buehne.tab.kultur") },
-        { id: "reich_militaer", label: t("buehne.tab.militaer") },
+        { id: "katastrophe", label: t("buehne.tab.katastrophe") },
       ],
     },
     {
-      kurz: t("buehne.menu.krisen"),
-      titel: t("buehne.menu.krisenTitel"),
-      icon: "warnung",
-      badge: (spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length ?? 0) || undefined,
-      tabs: [{ id: "katastrophe", label: t("buehne.tab.katastrophe") }],
+      kurz: t("nav.wissen"),
+      titel: t("nav.wissenTitel"),
+      icon: "buch",
+      tabs: [{ id: "programme", label: t("buehne.tab.programme") }],
     },
     {
-      kurz: t("buehne.menu.welt"),
-      titel: t("buehne.menu.weltTitel"),
-      icon: "berg",
-      tabs: [{ id: "welt", label: t("buehne.tab.welt") }],
+      kurz: t("nav.medien"),
+      titel: t("nav.medienTitel"),
+      icon: "zeitung",
+      umlauf: (spiel?.zeitung?.ungelesen ?? 0) || undefined,
+      tabs: [{ id: "zeitung", label: t("buehne.tab.zeitung") }],
     },
   ];
   const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.tabs.some((t) => t.id === "wirtschaft")));
@@ -705,11 +731,27 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               tip={`Wie viele Wähler Sie heute wieder wählen würden. Die nächste Wahl ist in ${Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4))} Monaten; ab 50 Prozent gewinnen Sie.`}
             />
           )}
-          {spiel && <Stat icon="siegel" label={t("buehne.stat.kapitalKurz")} value={`${Math.floor(spiel.kapital)}`} warn={spiel.kapital < 5} tip={kapitalTip(w)} />}
-          <Stat icon="preis" label={t("buehne.stat.inflation")} value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} trend={trend(w, "inflation")} tip={`Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung. ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
-          <Stat icon="lira" label={t("buehne.stat.lira")} value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} trend={trend(w, "usdTry")} tip={`Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer. ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
-          <Stat icon="bank" label={t("buehne.stat.leitzins")} value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
-          <Stat icon="parlament" label={t("buehne.stat.sitze")} value={`${bloc}/600`} warn={bloc < 301} tip={`Ihr Lager${stimmen && stimmen.duldungSitze > 0 ? ` (${stimmen.lager}) und die Fraktionen, die es zurzeit dulden (${stimmen.duldungSitze})` : ""} im Parlament. Gesetze brauchen 301 Stimmen; ein Verfassungspaket wird ab 360 Stimmen direkt Gesetz, zwischen 301 und 359 entscheidet eine Volksabstimmung.`} />
+          {spiel && <Stat icon="siegel" label={t("buehne.stat.kapitalKurz")} value={`${Math.floor(spiel.kapital)}`} warn={spiel.kapital < 5} tip={kapitalErklaerung(w)} />}
+          {mehr.vorhanden && (
+            <Stat
+              icon="parlament"
+              label={t("nav.mehrheit.titel")}
+              value={mehr.geduldet > 0 ? `${mehr.lager} + ${mehr.geduldet}` : `${mehr.lager}`}
+              warn={!mehr.steht}
+              tip={t("nav.mehrheit.hinweis", { lager: mehr.lager, geduldet: mehr.geduldet, opp: mehr.opposition, schwelle: mehr.schwelle })}
+              unter={mehr.steht ? `${t("nav.mehrheit.schwelle", { n: mehr.schwelle })} · ${t("nav.mehrheit.steht")}` : `${t("nav.mehrheit.schwelle", { n: mehr.schwelle })} · ${t("nav.mehrheit.fehlt", { n: mehr.fehlt })}`}
+            />
+          )}
+          {hudExtra.has("inflation") && (
+  <Stat icon="preis" label={t("buehne.stat.inflation")} value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} trend={trend(w, "inflation")} tip={`Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung. ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
+          )}
+          {hudExtra.has("lira") && (
+  <Stat icon="lira" label={t("buehne.stat.lira")} value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} trend={trend(w, "usdTry")} tip={`Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer. ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
+          )}
+          {hudExtra.has("leitzins") && (
+  <Stat icon="bank" label={t("buehne.stat.leitzins")} value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
+          )}
+          <HudWahl gewaehlt={hudExtra} onWechsel={wechsleHudExtra} />
         </div>
       </header>
 
@@ -718,7 +760,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} onOeffne={oeffneBerichtAusMeldung} />
       <AbstimmungsKarte world={w} />
 
-      <nav className="dossier-menu" aria-label="Akten">
+      <nav className="dossier-menu" aria-label={t("nav.aria")}>
         {menue.map((m) => (
           <button key={m.kurz} className={gruppe === m ? "on" : ""} onClick={() => oeffneDossier(gruppe === m ? null : m.tabs[0]!.id)} aria-label={m.titel} title={m.titel}>
             <Icon name={m.icon} />
@@ -749,7 +791,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           </header>
           <div className="dossier-body">
             <Fehlergrenze titel={gruppe?.titel ?? "Akte"} onZu={() => setDossier(null)} zuruecksetzen={dossier}>
-            {zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
+            {dossier !== "wirtschaft" && zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
             {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} />}
             {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
@@ -1125,7 +1167,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   );
 }
 
-function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; label: string; value: string; warn?: boolean; trend?: number; tip: string }) {
+function Stat({ icon, label, value, warn, trend: t, tip, unter }: { icon: IconName; label: string; value: string; warn?: boolean; trend?: number; tip: string; unter?: string }) {
   return (
     <div className={`stat${warn ? " warn" : ""}`} tabIndex={0}>
       <Icon name={icon} />
@@ -1140,6 +1182,7 @@ function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; lab
           )}
         </div>
         <div className="stat-label">{label}</div>
+        {unter && <div className="stat-unter">{unter}</div>}
       </div>
       <div className="tip" role="tooltip">
         <strong>{label}</strong>
@@ -1154,13 +1197,42 @@ function Stat({ icon, label, value, warn, trend: t, tip }: { icon: IconName; lab
   );
 }
 
-/** Was das Kapital kostet, wie es wieder aufgeladen wird und wann. */
-function kapitalTip(w: World): string {
-  const k = kapitalEinkommen(w);
-  const z = (x: number) => x.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const teile = [`Grundeinkommen ${z(k.grund)}`, `Vertrauen ${z(k.vertrauen)}`, k.mehrheit > 0 ? `Mehrheit ${z(k.mehrheit)}` : "Mehrheit 0 (dem Lager fehlen Sitze)", ...(Math.abs(k.legitimitaet) >= 0.05 ? [`Legitimität ${k.legitimitaet > 0 ? "+" : "−"}${z(Math.abs(k.legitimitaet))}`] : [])].join(" + ");
-  return `Politisches Kapital ist kein Geld, sondern Rückhalt: Gefolgschaft, Aufmerksamkeit und Spielraum. Gesetze, Erlasse, Verhandlungen und Antworten auf Ereignisse verbrauchen davon. Es lädt sich jeden Monatsersten auf, und Sie dürfen bis 20 ins Minus gehen (auf Pump, gegen Legitimität und Vertrauen), zurzeit um ${z(k.summe)} (${teile}). Nächste Gutschrift: ${formatDateDe(k.naechste)}. Höchstens ${k.grenze}.`;
+type HudExtra = "inflation" | "lira" | "leitzins";
+const HUD_EXTRAS: HudExtra[] = ["inflation", "lira", "leitzins"];
+const HUD_SCHLUESSEL = "staatsraeson-hud-extra";
+
+function ladeHudExtra(): Set<HudExtra> {
+  try {
+    const roh = localStorage.getItem(HUD_SCHLUESSEL);
+    if (roh) return new Set((JSON.parse(roh) as string[]).filter((x): x is HudExtra => (HUD_EXTRAS as string[]).includes(x)));
+  } catch {
+    /* ohne Speicher: alle zeigen */
+  }
+  return new Set(HUD_EXTRAS);
 }
+
+/** Wahl der zusätzlichen Werte in der Kopfleiste (Zustimmung, Kapital und Mehrheit stehen fest). */
+function HudWahl({ gewaehlt, onWechsel }: { gewaehlt: Set<HudExtra>; onWechsel: (x: HudExtra) => void }) {
+  const [offen, setOffen] = useState(false);
+  const name: Record<HudExtra, string> = { inflation: t("buehne.stat.inflation"), lira: t("buehne.stat.lira"), leitzins: t("buehne.stat.leitzins") };
+  return (
+    <div className="hud-wahl">
+      <button type="button" className="hud-wahl-knopf" aria-expanded={offen} title={t("nav.hud.mehrHinweis")} onClick={() => setOffen((o) => !o)}>
+        {t("nav.hud.mehr")}
+      </button>
+      {offen && (
+        <div className="hud-wahl-tafel" role="group" aria-label={t("nav.hud.mehrHinweis")}>
+          {HUD_EXTRAS.map((x) => (
+            <label key={x}>
+              <input type="checkbox" checked={gewaehlt.has(x)} onChange={() => onWechsel(x)} /> {name[x]}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 /** Veränderung zum Vormonat aus der Monatsgeschichte. */
 function trend(w: World, key: "inflation" | "usdTry" | "policyRate"): number | undefined {

@@ -22,7 +22,7 @@ import { anrede, ersetze, figur, partnerFigur } from "./figuren";
 import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingriffe";
 import { interveniere } from "./devisen";
 import { REGELN, bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
-import { FORDERUNG, bereitschaftAendern, forderungVon } from "./fraktionen";
+import { FORDERUNG, PARTEI_NAME, bereitschaftAendern, forderungVon } from "./fraktionen";
 import { INNEN_VORLAGEN } from "./ereignisse-innen";
 import { KATASTROPHE_VORLAGEN } from "./ereignisse-katastrophe";
 import { setzeKatastrophenOeffner } from "./katastrophe";
@@ -42,7 +42,8 @@ import { regierungsJahre } from "./amtszeit";
 import { dayOfMonth } from "./dates";
 import { SAISON_VORLAGEN } from "./ereignisse-saison";
 import { setzeVerfassungsOeffner } from "./verfassung";
-import { brecheZusage, loeseZusageEin, vertroesteZusage, zusageBezug, zusageVorhaben } from "./zusagen";
+import { brecheZusage, loeseZusageEin, vertroesteZusage, zusageAbschluss, zusageBezug, zusageVorhaben } from "./zusagen";
+import { istMinisterienZusage, ministerienAnPartei, naechsteRessorts, ressortNamen } from "./ressortvergabe";
 import { skala, skalenArt } from "../data/skalen";
 import { PROZ_STADT, akutIn, dk, einwohner, kosten, monatVon, namen, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
 import type { Option, SzenenName, Vorlage } from "./ereignis-hilfen";
@@ -444,7 +445,9 @@ const STREIK: Vorlage = {
       wirke(w, "polarisierung", 6);
       wirke(w, "rechtssicherheit", -4);
       wirke(w, "arbeitnehmer", -6);
-      return "Die Streiks werden verboten; die Gewerkschaften sprechen von einem Angriff auf ihre Rechte.";
+      // Das Verbot ist Recht, kein Augenblick: Gewerkschaftsrechte sinken dauerhaft (Spielparameter: 25 Stufen)
+      setPolicy(w, "m_gewerkschaftsrechte", Math.max(0, stufeIn(w, "m_gewerkschaftsrechte", null) - 25));
+      return t("wort.streikverbot.ausgang");
     }),
     opt("vermitteln", "Vermitteln", "Kostet 3 Kapital; ein Kompromiss, den keiner feiert.", 3, (w) => {
       wirke(w, "streikneigung", -4 * ev.staerke, ev.provinzen);
@@ -581,7 +584,9 @@ const ANSCHLAG: Vorlage = {
       wirke(w, "rechtssicherheit", -2);
       wirke(w, "konservative", 3);
       wirke(w, "staedtische_saekulare", -2);
-      return "Ein Sicherheitspaket wird beschlossen.";
+      // Das Paket gilt fort: mehr Personal und Befugnisse für Polizei und Gendarmerie (Spielparameter: 15 Stufen)
+      setPolicy(w, "m_polizei", Math.min(100, stufeIn(w, "m_polizei", null) + 15));
+      return t("wort.sicherheitspaket.ausgang");
     }),
     opt("besonnen", "Besonnenheit und Ermittlung", "Kostet 2 Kapital; würdevoll, aber angreifbar.", 2, (w) => {
       vertrauenAendern(w, 1.5);
@@ -943,34 +948,66 @@ const START_PARTNER: Vorlage = {
       ? [`Der Vorsitz der ${w.player.buendnis} erinnert an den Wahlkampf: ${(w.player.versprechen[0] ?? "Es gibt Zusagen").replace(/\.$/, "")}. Sie erwartet Ihre Antwort noch in der ersten Woche.`]
       : ["Die Opposition fordert vom neuen Präsidenten, seine Wahlversprechen in den ersten hundert Tagen einzulösen, und kündigt eine genaue Zählung an."],
   warum: () => "Zusagen sind Kapital: Wer sie hält, wird ernst genommen; wer sie bricht, bezahlt später.",
-  optionen: (w) =>
-    w.player?.buendnis
-      ? [
-          opt("grosszuegig", "Großzügig sein", "Kostet 4 Kapital; das Lager hält.", 4, (ww) => {
-            const f = ww.spiel?.figuren.find((x) => x.amt === "partner");
-            if (f) f.loyalitaet = Math.min(100, f.loyalitaet + 12);
-            return `Die ${ww.player?.buendnis} erhält Zusagen und bleibt im Lager.`;
-          }),
-          opt("knapp", "Knapp anbieten", "Kostet 1 Kapital; die Partei murrt.", 1, (ww) => {
-            const f = ww.spiel?.figuren.find((x) => x.amt === "partner");
-            if (f) f.loyalitaet = Math.min(100, f.loyalitaet + 3);
-            return "Das Angebot fällt knapp aus.";
-          }),
-          opt("vertagen", "Vertagen", "Kostet nichts; die Geduld sinkt.", 0, (ww) => {
-            const f = ww.spiel?.figuren.find((x) => x.amt === "partner");
-            if (f) f.loyalitaet = Math.max(0, f.loyalitaet - 10);
-            return "Die Antwort wird vertagt.";
-          }),
-        ]
-      : [
+  optionen: (w) => {
+    const partei = w.player?.buendnis;
+    if (!partei) return START_OPPOSITION_OPTIONEN();
+    const z = w.spiel?.zusagen.find((x) => istMinisterienZusage(x) && !x.erfuellt && !x.gebrochen);
+    const partner = (ww: World, d: number) => {
+      const f = ww.spiel?.figuren.find((x) => x.amt === "partner");
+      if (f) f.loyalitaet = clamp(f.loyalitaet + d, 0, 100);
+    };
+    if (z) {
+      // Die Zusage „zwei Ministerien“: Wer großzügig ist, gibt die Ressorts wirklich ab (sim/ressortvergabe.ts)
+      const zwei = ressortNamen(naechsteRessorts(w, z.von, 2));
+      const eins = ressortNamen(naechsteRessorts(w, z.von, 1));
+      return [
+        opt("grosszuegig", t("wort.partner.zwei.titel"), t("wort.partner.zwei.text", { ressorts: zwei, partei: PARTEI_NAME[z.von] ?? z.von }), 4, (ww) => {
+          const vergeben = ministerienAnPartei(ww, z.von, 2);
+          if (vergeben.length >= 2) {
+            z.erfuellt = true;
+            zusageAbschluss(ww, z, "erfuellt");
+          }
+          partner(ww, 12);
+          return t("wort.partner.zwei.ausgang", { partei: PARTEI_NAME[z.von] ?? z.von, ressorts: ressortNamen(vergeben) });
+        }),
+        opt("knapp", t("wort.partner.eins.titel"), t("wort.partner.eins.text", { ressorts: eins, partei: PARTEI_NAME[z.von] ?? z.von }), 2, (ww) => {
+          const vergeben = ministerienAnPartei(ww, z.von, 1);
+          z.faellig = ww.day + 90;
+          partner(ww, 3);
+          return t("wort.partner.eins.ausgang", { partei: PARTEI_NAME[z.von] ?? z.von, ressorts: ressortNamen(vergeben) });
+        }),
+        opt("vertagen", t("wort.partner.vertagen.titel"), t("wort.partner.vertagen.text"), 0, (ww) => {
+          partner(ww, -10);
+          return t("wort.partner.vertagen.ausgang");
+        }),
+      ];
+    }
+    // Andere Bündniszusagen: ehrlich, was die Antwort tut (Zuwendung, keine Erfüllung der konkreten Forderung)
+    return [
+      opt("grosszuegig", t("wort.partner.zuwendung.titel"), t("wort.partner.zuwendung.text"), 4, (ww) => {
+        partner(ww, 12);
+        return t("wort.partner.zuwendung.ausgang", { partei: PARTEI_NAME[partei] ?? partei });
+      }),
+      opt("knapp", "Knapp anbieten", "Kostet 1 Kapital; die Partei murrt.", 1, (ww) => {
+        partner(ww, 3);
+        return "Das Angebot fällt knapp aus.";
+      }),
+      opt("vertagen", "Vertagen", "Kostet nichts; die Geduld sinkt.", 0, (ww) => {
+        partner(ww, -10);
+        return "Die Antwort wird vertagt.";
+      }),
+    ];
+  },
+  standard: () => "Die Forderung bleibt unbeantwortet.",
+};
+
+const START_OPPOSITION_OPTIONEN = (): Option[] => [
           opt("liste", "Eine Liste der Versprechen veröffentlichen", "Kostet 2 Kapital; schafft Transparenz und Druck.", 2, (ww) => {
             vertrauenAendern(ww, 1);
             return "Der Präsident veröffentlicht seine Zusagen und stellt sich der Zählung.";
           }),
           opt("abwarten", "Abwarten", "Kostet nichts.", 0, () => "Der Präsident lässt die Forderung unbeantwortet."),
-        ],
-  standard: () => "Die Forderung bleibt unbeantwortet.",
-};
+        ];
 
 const ERDBEBEN_REGION = [31, 46, 2, 44, 27, 80, 1, 21, 63, 79, 23];
 

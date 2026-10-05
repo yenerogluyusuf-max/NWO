@@ -25,6 +25,7 @@ import { oeffne } from "./ereignisse";
 import { SPIEL } from "./spiel";
 import { DAUER, dauerStufe, dauerherrscherBeginn } from "./dauerherrscher";
 import { parlamentNachtragPruefen } from "./wahl";
+import { ministeriumAnPartei } from "./ressortvergabe";
 import { t } from "../i18n";
 import type { World } from "./types";
 import type { Aspirant, AmtszeitStart, Figur, NachfolgeZustand, UmbildungZustand } from "./spiel-typen";
@@ -396,17 +397,14 @@ export function umbildungPartner(w: World, amt: Figur["amt"], partei: string): U
   if (!u || !f || !anspruch || !MINISTER.includes(amt)) return { ok: false, text: t("umbildung.fehler.kein_fenster") };
   if (!kannZahlen(sp.kapital, AMTSZEIT.partnerPk)) return { ok: false, text: t("umbildung.fehler.kapital", { pk: AMTSZEIT.partnerPk, vorhanden: Math.floor(sp.kapital) }) };
   sp.kapital -= AMTSZEIT.partnerPk;
-  const rng = new Rng((w.seed ^ 0x6b3d ^ Math.imul(w.day, 2654435761)) | 0);
-  const benutzt = new Set(sp.figuren.map((x) => x.name));
-  const alt = `${f.rolle} ${f.name}`;
-  besetzeNeu(w, f, { name: neuerName(rng, benutzt, f.weiblich), loyalitaet: 62, faehigkeit: 55, ehrgeiz: 60, lager: "partei", notiz: t("umbildung.erinnerung.partner", { partei: PARTEI_NAME[partei] ?? partei }) });
-  f.partei = partei;
+  const r = ministeriumAnPartei(w, amt, partei);
+  if (!r.ok) {
+    sp.kapital += AMTSZEIT.partnerPk;
+    return r;
+  }
   u.partnerVergeben ??= {};
   u.partnerVergeben[partei] = (u.partnerVergeben[partei] ?? 0) + 1;
   u.entschieden[amt] = "ersetzt";
-  const pf = sp.figuren.find((x) => x.amt === "partner" && x.partei === partei);
-  if (pf) loyalitaetVerschieben(pf, 8);
-  addLog(w, "entscheidung", t("umbildung.log.partner", { alt, partei: PARTEI_NAME[partei] ?? partei, neu: f.name }), t("umbildung.log.partner_warum"));
   return { ok: true, text: t("umbildung.ok.partner", { partei: PARTEI_NAME[partei] ?? partei, ressort: AEMTER[amt].ressort }) };
 }
 

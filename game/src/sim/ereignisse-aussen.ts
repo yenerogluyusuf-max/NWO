@@ -12,6 +12,11 @@ import { CYBER_ZIELE, GRENZ_NACHBAR, NATO_BEWERBER, waehle } from "./akteure";
 import { dk } from "./ereignis-hilfen";
 import { beschr, kosten, monatVon, namen, netz, nf, opt, ziehe, zusageAnlegen } from "./ereignis-hilfen";
 import type { Vorlage } from "./ereignis-hilfen";
+import { lieferanteilVerschieben } from "./diplomatie";
+import { t } from "../i18n";
+
+/** Lieferland im Ereignistext zu Lieferant im Energiemodell */
+const LIEFERANT: Record<string, "RUS" | "AZE" | "IRN"> = { Russland: "RUS", Aserbaidschan: "AZE", Iran: "IRN" };
 
 const GRENZE = [31, 79, 27, 63, 47, 73, 30, 65, 76, 36, 75, 8]; // Hatay, Kilis, Gaziantep, Şanlıurfa, Mardin, Şırnak, Hakkari, Van, Iğdır, Kars, Ardahan, Artvin
 
@@ -258,7 +263,9 @@ const GASVERTRAG: Vorlage = {
       wirke(w, "energieimporte", 2);
       wirke(w, bez, 4);
       wirke(w, "beziehungen_eu", -3);
-      return "Der Vertrag wird langfristig verlängert.";
+      // Spielparameter: Die Verlängerung bindet 4 Punkte mehr des Gasbezugs an den Lieferanten (sim/diplomatie.ts)
+      lieferanteilVerschieben(w, LIEFERANT[ev.daten?.land ?? ""] ?? "RUS", 4);
+      return t("wort.gas.verlaengert", { land: ev.daten?.land ?? "" });
     }),
     opt("diversifizieren", "Neue Lieferanten und Flüssiggas erschließen", beschr(4, 0.2, "teurer heute, unabhängiger morgen."), 4, (w) => {
       kosten(w, 0.2);
@@ -266,9 +273,11 @@ const GASVERTRAG: Vorlage = {
       wirke(w, "energieimporte", -3);
       wirke(w, "beziehungen_eu", 2);
       wirke(w, bez, -2);
-      return "Neue Lieferanten und Flüssiggas-Terminals werden erschlossen.";
+      // Spielparameter: 6 Punkte des Gasbezugs wandern zum Flüssiggas
+      lieferanteilVerschieben(w, "LNG", 6);
+      return t("wort.gas.diversifiziert");
     }),
-    opt("kurz", "Nur kurz verlängern", beschr(1, 0, "kauft Zeit, ohne Weichen zu stellen."), 1, () => "Der Vertrag wird um ein Jahr verlängert."),
+    opt("kurz", "Nur kurz verlängern", beschr(1, 0, "kauft Zeit, ohne Weichen zu stellen."), 1, () => t("wort.gas.kurz")),
   ];
   },
   standard: (w) => {
@@ -296,11 +305,11 @@ const GASFUND: Vorlage = {
       wirke(w, "klimaschutz", -2);
       return "Die Erschließung beginnt.";
     }),
-    opt("fonds", "Einen Staatsfonds gründen", beschr(4, -0.4, "Einnahmen für kommende Jahre, wenig für heute."), 4, (w) => {
+    opt("fonds", t("wort.fonds.titel"), beschr(4, -0.4, "Einnahmen für kommende Jahre, wenig für heute."), 4, (w) => {
       kosten(w, -0.4);
       wirke(w, "vertrauen_maerkte", 3);
       wirke(w, "energieimporte", -2);
-      return "Ein Staatsfonds legt die künftigen Einnahmen an.";
+      return t("wort.fonds.ausgang");
     }),
     opt("senken", "Die Energiepreise sofort senken", beschr(2, 0.2, "populär und teuer."), 2, (w) => {
       kosten(w, 0.2);
@@ -327,11 +336,11 @@ const CYBER: Vorlage = {
     wirke(w, "vertrauen_maerkte", -2);
   },
   optionen: () => [
-    opt("behoerde", "Notfallplan und eine Cyberbehörde", beschr(4, 0.1, "schützt künftig, kostet jetzt."), 4, (w) => {
+    opt("behoerde", t("wort.cyber.titel"), beschr(4, 0.1, "schützt künftig, kostet jetzt."), 4, (w) => {
       kosten(w, 0.1);
       wirke(w, "stromversorgung", 4);
       wirke(w, "vertrauen_maerkte", 3);
-      return "Ein Notfallplan wird beschlossen, eine Cyberbehörde aufgebaut.";
+      return t("wort.cyber.ausgang");
     }),
     opt("beschuldigen", "Öffentlich einen Staat beschuldigen", beschr(2, 0, "das Land rückt zusammen, die Beweislage bleibt dünn."), 2, (w) => {
       vertrauenAendern(w, 1);

@@ -103,9 +103,15 @@ const gesamtSitze = (w: World): number => Object.values(w.parliament?.seats ?? {
 // ---------------------------------------------------------------------------
 // Alter der Spielfigur
 
-/** Das Alter beim Amtsantritt: aus dem Seed abgeleitet, damit jede Partie ihre Figur hat und der Wert beim Laden gleich bleibt. */
+/**
+ * Das Alter beim Amtsantritt. Maßgeblich ist das im Prolog gewählte Alter (Aussehen der Spielfigur, Stand Wahlnacht = Amtsantritt);
+ * es überschreibt auch einen früher aus dem Seed gewürfelten Wert, denn der Spieler hat sein Alter gewählt. Nur ältere Stände ohne
+ * gewähltes Alter behalten den gespeicherten bzw. aus dem Seed abgeleiteten Wert.
+ */
 export function startAlter(w: World): number {
   const z = endenZustand(w);
+  const gewaehlt = w.player?.aussehen?.alter;
+  if (typeof gewaehlt === "number" && Number.isFinite(gewaehlt)) return (z.startAlter = gewaehlt);
   return (z.startAlter ??= ENDEN.startAlterMin + Math.floor(hashZahl(`${w.seed}|alter`) * ENDEN.startAlterSpanne));
 }
 

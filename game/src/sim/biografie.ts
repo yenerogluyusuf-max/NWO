@@ -1,5 +1,6 @@
 // Die Biografie wirkt: Beruf, Jugend, Motiv und Partner aus dem Prolog sind keine Anzeige, sondern verschieben Figuren, Gegner und Kapital
-// (jedes Merkmal hat einen Vorteil und einen Preis); die Wahlnacht ebenso. Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
+// (jedes Merkmal hat einen Vorteil und einen Preis); die Wahlnacht ebenso. Jede Wirkung braucht einen erzählerischen Grund, der im
+// Katalogtext steht (etwa: wer Wirtschaft kennt, wählt fürs Ressort besser aus); Wirkungen ohne Zusammenhang gibt es nicht. Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
 // Die Merkmale werden aus den Texten des Profils abgeleitet, damit auch Spielstände und Testprofile ohne neue Felder funktionieren.
 
 import { NET } from "./modell";
@@ -36,7 +37,7 @@ const F = (id: string, vorteil: Wirkung[], preis: Wirkung[]): Folge => ({ id, vo
 export const FOLGEN: Record<string, Folge> = {
   // Beruf
   anwalt: F("anwalt", [{ art: "faehigkeit", amt: "justiz", delta: 10 }, { art: "kapital", delta: 3 }], [{ art: "ehrgeiz", amt: "opposition", delta: 5 }]),
-  arzt: F("arzt", [{ art: "loyalitaet", amt: "stab", delta: 6 }], [{ art: "faehigkeit", amt: "finanzen", delta: -6 }]),
+  arzt: F("arzt", [{ art: "loyalitaet", amt: "stab", delta: 6 }], [{ art: "ehrgeiz", amt: "finanzen", delta: 6 }]),
   unternehmer: F("unternehmer", [{ art: "faehigkeit", amt: "wirtschaft", delta: 10 }], [{ art: "ehrgeiz", amt: "opposition", delta: 5 }, { art: "knoten", id: "vertrauen_regierung", delta: -1 }]),
   oekonom: F("oekonom", [{ art: "faehigkeit", amt: "finanzen", delta: 10 }, { art: "loyalitaet", amt: "zentralbank", delta: 5 }], [{ art: "knoten", id: "arbeitnehmer", delta: -1 }]),
   // Jugend
@@ -53,7 +54,7 @@ export const FOLGEN: Record<string, Folge> = {
   richterin: F("richterin", [{ art: "loyalitaet", amt: "justiz", delta: 4 }], [{ art: "knoten", id: "polarisierung", delta: 1 }]),
   bauunternehmer: F("bauunternehmer", [{ art: "loyalitaet", amt: "wirtschaft", delta: 4 }, { art: "kapital", delta: 3 }], [{ art: "ehrgeiz", amt: "opposition", delta: 3 }]),
   journalistin: F("journalistin", [{ art: "knoten", id: "legitimitaet", delta: 1 }], [{ art: "loyalitaet", amt: "inneres", delta: -3 }]),
-  krankenpfleger: F("krankenpfleger", [{ art: "loyalitaet", amt: "stab", delta: 3 }], [{ art: "faehigkeit", amt: "wirtschaft", delta: -3 }]),
+  krankenpfleger: F("krankenpfleger", [{ art: "loyalitaet", amt: "stab", delta: 3 }], [{ art: "ehrgeiz", amt: "opposition", delta: 3 }]),
   // Wahlnacht (Vorteil und Preis je Ausgang; keine Antwort ist strikt besser)
   "wahl:knapp": F("wahl_knapp", [{ art: "partnerLoyalitaet", delta: 6 }, { art: "kapital", delta: 8 }], [{ art: "knoten", id: "legitimitaet", delta: -4 }, { art: "knoten", id: "polarisierung", delta: 4 }]),
   "wahl:klar": F("wahl_klar", [{ art: "knoten", id: "legitimitaet", delta: 3 }, { art: "knoten", id: "polarisierung", delta: -1 }], [{ art: "partnerLoyalitaet", delta: -5 }]),

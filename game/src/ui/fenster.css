@@ -55,3 +55,15 @@
   .stage .dossier-menu button { width: 76px; }
   .stage .dossier-menu .menu-kurz { font-size: 12px; letter-spacing: 0; }
 }
+
+/* Navigation Stufe 1: Mehrheit mit Unterzeile, wählbare Zusatzwerte, drei Startfragen am Schreibtisch */
+.stat .stat-unter { font: 11.5px/1.2 var(--sans, Inter, sans-serif); color: #cdb88c; letter-spacing: 0.02em; white-space: nowrap; }
+.hud-wahl { position: relative; align-self: center; }
+.hud-wahl-knopf { padding: 4px 9px; border: 1px solid rgba(214, 168, 72, 0.4); border-radius: 6px; background: rgba(24, 16, 10, 0.6); color: #cdb88c; font: 600 12px var(--sans, Inter, sans-serif); cursor: pointer; }
+.hud-wahl-tafel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; display: grid; gap: 6px; padding: 10px 12px; min-width: 170px; background: #241a12; border: 1px solid rgba(214, 168, 72, 0.4); border-radius: 6px; color: #f3e6c6; font: 13px var(--sans, Inter, sans-serif); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); }
+.hud-wahl-tafel label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.sk-fragen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 4px 0 14px; }
+.sk-frage { padding: 10px 12px; background: rgba(255, 252, 244, 0.85); border: 1px solid rgba(90, 64, 40, 0.22); border-left: 4px solid #8c2b1f; border-radius: 4px; }
+.sk-frage b { display: block; font: 600 13px/1.3 var(--sans, Inter, sans-serif); letter-spacing: 0.04em; color: #8c2b1f; margin-bottom: 4px; }
+.sk-frage p { margin: 0; font: 14.5px/1.45 var(--serif, "EB Garamond", serif); color: var(--ink, #2b1e12); }
+@media (max-width: 1100px) { .sk-fragen { grid-template-columns: 1fr; } }

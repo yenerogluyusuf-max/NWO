@@ -17,6 +17,7 @@ import type { VorlagenZiel } from "../../sim/ministerfluss-typen";
 import type { UmlaufEintrag } from "../autostopp";
 import "../politik/design.css";
 import "./schreibtisch.css";
+import { DreiFragen } from "./DreiFragen";
 
 const TREND: Record<Kennzahl["trend"], string> = { auf: "▲", ab: "▼", gleich: "" };
 
@@ -120,6 +121,7 @@ export function Schreibtisch({
             ))}
         </ul>
       </header>
+      <DreiFragen world={world} />
 
       {b.verfassung && (
         <div className={`sk-verfassung kompakt stufe-${b.verfassung.stufe}`} tabIndex={0} aria-label={`Zustand des Präsidenten: Aufmerksamkeit ${b.verfassung.aufmerksamkeit} von 100, Belastung ${b.verfassung.belastung} von 100, ${b.verfassung.stufeName}`}>
