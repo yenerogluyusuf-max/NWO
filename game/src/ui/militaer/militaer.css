@@ -1,0 +1,71 @@
+/* Die Streitkräfte: Lage oben, Karten je Gattung, Zeitstrahl der Vorhaben, Zielräume. Papierton wie die Akten des Reiches. */
+
+.streitkraefte { container-type: inline-size; display: flex; flex-direction: column; gap: 14px; }
+.sk-hilfe { margin: 0; font: italic 14px/1.4 var(--serif); color: var(--ink-soft); }
+.sk-leer { margin: 0; font: italic 13.5px var(--serif); color: var(--ink-soft); }
+.sk-klein { font-size: 13px; color: var(--ink-soft); }
+
+.sk-lage {
+  display: grid; gap: 12px 18px; grid-template-columns: minmax(120px, auto) 1fr auto; align-items: center; padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(255, 251, 238, 0.96), rgba(244, 233, 205, 0.96)); border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 3px;
+}
+@container (max-width: 640px) { .sk-lage { grid-template-columns: 1fr; } }
+.sk-gesamt { display: flex; flex-direction: column; gap: 2px; }
+.sk-gesamt span { font: 600 13px var(--serif); color: var(--ink-soft); }
+.sk-gesamt strong { font: 700 34px/1 var(--display); color: var(--ink); }
+.sk-gesamt small { font-size: 12px; color: var(--ink-soft); max-width: 24ch; }
+.sk-teile { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sk-teile li { display: grid; grid-template-columns: 9.5em 1fr 3em; gap: 8px; align-items: center; font-size: 14px; }
+.sk-teile b { text-align: right; font-variant-numeric: tabular-nums; }
+.sk-balken { position: relative; height: 9px; border-radius: 5px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.sk-balken-wert { position: absolute; inset: 0 auto 0 0; background: var(--seal); border-radius: 5px; }
+.sk-balken-marke { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: rgba(40, 28, 16, 0.6); }
+.sk-rahmen { display: grid; grid-template-columns: auto auto; gap: 3px 10px; margin: 0; font-size: 13.5px; }
+.sk-rahmen dt { color: var(--ink-soft); }
+.sk-rahmen dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+
+.sk-meldung { margin: 0; padding: 7px 10px; border-left: 3px solid var(--seal); background: rgba(255, 250, 232, 0.8); font-size: 14px; }
+
+.sk-abschnitt > h4 { margin: 0 0 6px; font: 600 16px var(--display); border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 4px; }
+.sk-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); align-items: start; }
+.sk-karte {
+  display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; min-width: 0;
+  background: rgba(255, 251, 238, 0.92); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 3px;
+}
+.sk-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 10px; }
+.sk-kopf h4 { margin: 0; font: 600 16px/1.25 var(--display); }
+.sk-zahl { font: 700 18px var(--serif); font-variant-numeric: tabular-nums; }
+.sk-reihe { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13.5px; }
+.sk-plus { color: #2f5a2a; }
+.sk-minus { color: #7a2f22; }
+.sk-gen { display: inline-flex; gap: 3px; }
+.sk-gen i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(90, 64, 40, 0.6); }
+.sk-gen i.voll { background: var(--seal); border-color: var(--seal); }
+.sk-gen i.heim { background: rgba(90, 64, 40, 0.25); }
+
+.sk-instrumente { display: flex; flex-wrap: wrap; gap: 4px; }
+.sk-instrumente button, .sk-vorschau button, .sk-ziele button {
+  padding: 4px 10px; cursor: pointer; font: 600 13px var(--serif); color: var(--ink);
+  background: rgba(255, 250, 235, 0.7); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 3px;
+}
+.sk-instrumente button:hover, .sk-ziele button:hover:not(:disabled) { background: #fbf4df; }
+.sk-instrumente button.on, .sk-ziele button.on { background: #fbf4df; box-shadow: inset 0 -2px 0 var(--seal); }
+.sk-vorschau { display: flex; flex-direction: column; gap: 3px; padding: 7px 8px; background: rgba(255, 250, 232, 0.8); border-top: 1px dotted rgba(90, 64, 40, 0.4); }
+.sk-vorschau p { margin: 0; font-size: 13.5px; line-height: 1.35; }
+.sk-warnung { color: #6a4a1a; }
+.sk-nicht { color: #7a2f22; font-style: italic; }
+.sk-los { background: var(--seal) !important; color: #fbeee0 !important; border-color: var(--seal) !important; }
+.sk-los:disabled { opacity: 0.45; cursor: not-allowed; }
+.sk-quelle { margin: 0; font-size: 11.5px; color: var(--ink-soft); opacity: 0.85; }
+
+.sk-zeitstrahl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.sk-zeitstrahl li { display: flex; flex-direction: column; gap: 3px; }
+.sk-fortschritt { height: 6px; border-radius: 3px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.sk-fortschritt span { display: block; height: 100%; background: rgba(90, 64, 40, 0.65); }
+.sk-zeitstrahl li.gestoppt .sk-fortschritt span { background: #7a2f22; }
+
+.sk-krieg { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-top: 1px dotted rgba(90, 64, 40, 0.35); }
+.sk-ziele { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
+.sk-ziele button { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+.sk-ziele button span { font: 400 12.5px var(--serif); color: var(--ink-soft); }
+.sk-ziele button:disabled { cursor: default; }

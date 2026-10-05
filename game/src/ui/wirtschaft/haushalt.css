@@ -1,0 +1,32 @@
+/* Ressortetats wie in Democracy: Bilanz oben, je Ressort eine Zeile mit Minister, Betrag, Regler, Wirkung und Wunsch */
+.hh-bilanz-zahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px 14px; margin: 10px 0 6px; }
+.hh-bilanz-zahlen div { border-left: 3px solid rgba(90, 64, 40, 0.35); padding-left: 8px; }
+.hh-bilanz-zahlen dt { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b5338; }
+.hh-bilanz-zahlen dd { margin: 0; font: 600 20px/1.2 var(--serif, Georgia, serif); color: #2b1e12; }
+.hh-bilanz-zahlen .hh-warn { border-left-color: #8e2a22; }
+.hh-bilanz-zahlen .hh-warn dd { color: #8e2a22; }
+.hh-gruppe { margin-top: 14px; }
+.hh-gruppe > h4 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: #6b5338; border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
+.hh-liste { list-style: none; margin: 0; padding: 0; }
+.hh-zeile { padding: 8px 6px; border-bottom: 1px dashed rgba(90, 64, 40, 0.2); }
+.hh-zeile.on { background: rgba(214, 168, 72, 0.12); }
+.hh-kopf { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; }
+.hh-minister { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; display: inline-block; background: rgba(90, 64, 40, 0.1); }
+.hh-name { min-width: 0; display: flex; flex-direction: column; }
+.hh-text { font-size: 12.5px; color: #6b5338; }
+.hh-betrag { text-align: right; font-size: 14px; white-space: nowrap; }
+.hh-betrag s { color: #8a7458; }
+.hh-regler { display: grid; grid-template-columns: auto 1fr auto 2.5em; gap: 8px; align-items: center; margin: 6px 0 2px 50px; }
+.hh-regler input[type="range"] { width: 100%; accent-color: #8e2a22; }
+.hh-rand { font-size: 12px; color: #6b5338; }
+.hh-stufe { font: 600 13px/1 var(--sans, Inter, sans-serif); text-align: right; }
+.hh-wirkung { margin: 2px 0 0 50px; font-size: 13px; color: #3d2c1b; }
+.hh-wunsch { margin: 2px 0 0 50px; font-size: 12.5px; color: #8e2a22; font-style: italic; }
+.hh-wunsch.erfuellt { color: #4c5a3a; }
+.hh-zeile .wi-hh-vorschau { margin: 8px 0 0 50px; }
+.hh-tiefe summary, .hh-plan summary { cursor: pointer; font-weight: 600; }
+@media (max-width: 560px) {
+  .hh-kopf { grid-template-columns: 36px 1fr; }
+  .hh-betrag { grid-column: 1 / -1; text-align: left; }
+  .hh-regler, .hh-wirkung, .hh-wunsch, .hh-zeile .wi-hh-vorschau { margin-left: 0; }
+}

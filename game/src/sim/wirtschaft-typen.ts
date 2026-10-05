@@ -77,6 +77,12 @@ export interface HaushaltZustand {
   zyklusJahr?: number;
   /** Wie der letzte Zyklus ausging (für die Anzeige) */
   letztesErgebnis?: "angenommen" | "gescheitert" | "fortgeschrieben";
+  /** Ressortetats (05.10.2026): Fassung der Posten-Kennungen; fehlt = alte Bündel (soziales, gesundheit_bildung, sicherheit) */
+  fassung?: number;
+  /** Wie weit jede Stufe schon wirkt (nähert sich der Stufe über die Reifezeit des Ressorts: Ausbildung, Bau, Beschaffung) */
+  wirksam?: Record<string, number>;
+  /** Der Mehraufwand der Renten durch Alterung, der schon im Ausgabenimpuls steckt (% des BIP) */
+  demografie?: number;
 }
 
 /** WIR-3: Der Haushaltsentwurf auf dem Weg durchs Parlament (Mehrheitslogik wie bei Gesetzen). */

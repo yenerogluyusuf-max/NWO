@@ -425,7 +425,7 @@ describe("Haushaltsregler im Gespräch", () => {
     expect(v.hinweis).toMatch(/Defizit/);
     const e = fuehreAus(w, a);
     expect(e.ok, e.text).toBe(true);
-    expect(zustandsText(w)).toMatch(/Haushaltsregler[^\n]*soziales \+1/);
+    expect(zustandsText(w)).toMatch(/Haushaltsregler[^\n]*sozialhilfe \+1/);
     // dieselbe Stufe noch einmal: keine Änderung
     expect(vorschau(w, a).problem).toMatch(/schon auf dieser Stufe/);
     // erfundene Posten und fehlende Stufe

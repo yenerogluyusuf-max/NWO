@@ -25,7 +25,9 @@ export type OptionAktion =
   | { art: "befehl"; entwurf: BefehlEntwurf }
   | { art: "kenntnis" }
   | { art: "spaeter"; tage: number }
-  | { art: "nichts" };
+  | { art: "nichts" }
+  /** Bitte eines Ministers bei Überlast eines Netzes (sim/infrastruktur.ts) */
+  | import("./infrastruktur").InfraAktion;
 
 /** Eine Größe mit Stand heute, Stand ohne Eingriff und Stand mit Eingriff nach einigen Monaten (Politiknetz bei sonst unveränderter Wirtschaftslage). */
 export interface NutzenZeile {

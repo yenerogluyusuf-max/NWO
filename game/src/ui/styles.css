@@ -714,7 +714,8 @@ button.link { border: none !important; background: none !important; box-shadow: 
 
 .menu-badge { position: absolute; right: -6px; top: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--seal); color: #fbeee0; font: 700 11px/18px var(--sans); text-align: center; box-shadow: 0 0 0 1.5px var(--gold-2), 0 2px 4px rgba(0, 0, 0, 0.5); }
 /* Umlauf-Zähler (Klasse C): ruhig statt alarmierend, links oben, damit er den roten Entscheidungs-Badge nicht verdrängt */
-.menu-badge.ruhig { right: auto; left: -6px; background: var(--ink-soft); color: #f3ead6; box-shadow: 0 0 0 1.5px rgba(198, 154, 74, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4); }
+/* Der Umlauf-Zähler sitzt innen links oben, damit er nicht auf den Knopf darüber ragt */
+.menu-badge.ruhig { right: auto; left: 4px; top: 4px; background: var(--ink-soft); color: #f3ead6; box-shadow: 0 0 0 1.5px rgba(198, 154, 74, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4); }
 .dossier-menu button { overflow: visible; }
 
 /* Meldungen unter der Datumsplakette */
@@ -1793,4 +1794,9 @@ html[data-effekte="aus"] .atlas-labels .ort-form, html[data-effekte="aus"] .atla
 @media (prefers-reduced-motion: reduce) {
   .atlas-labels .marke, .atlas-labels .ort, .atlas-labels .city-banner, .atlas-labels .ort-form, .atlas-labels .f-ausleger { animation: none !important; }
   html .atlas-labels .ort:hover, html .atlas-labels .marke:hover { scale: 1; transition: none; }
+}
+
+/* Schmale Bildschirme (Telefon): Ein offenes Fenster bekommt die ganze Breite; das Aktenmenü läge sonst darüber und kehrt beim Schließen zurück. */
+@media (max-width: 640px) {
+  .stage:has(.dossier) .dossier-menu { display: none; }
 }

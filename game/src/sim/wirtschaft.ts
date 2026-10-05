@@ -64,7 +64,7 @@ function neuerZentralbankZustand(): ZentralbankZustand {
 export const MARKTZINS_START = turkey2026.economy.policyRate.value + turkey2026.economy.riskPremium.value / 100;
 
 function neuerHaushaltZustand(): HaushaltZustand {
-  return { stufen: {}, zinssatz: ZINSSATZ_START, marktStart: MARKTZINS_START, aenderungen: [] };
+  return { stufen: {}, zinssatz: ZINSSATZ_START, marktStart: MARKTZINS_START, aenderungen: [], fassung: 2, wirksam: {} };
 }
 
 function neuerZustand(w: World): WirtschaftZustand {
@@ -86,7 +86,36 @@ export function wirtschaftZustand(w: World): WirtschaftZustand {
 }
 
 export const zbZustand = (w: World): ZentralbankZustand => wirtschaftZustand(w).zb;
-export const haushaltZustand = (w: World): HaushaltZustand => wirtschaftZustand(w).haushalt;
+export const haushaltZustand = (w: World): HaushaltZustand => migriereHaushalt(wirtschaftZustand(w).haushalt);
+
+/** Wie die alten Bündel-Posten auf die Ressorts verteilt werden: je Stufe alt so viele Stufen neu (der Ausgabenimpuls bleibt gleich). */
+export const ALTE_POSTEN: Record<string, Record<string, number>> = {
+  soziales: { rentenniveau: 1, sozialhilfe: 1 },
+  gesundheit_bildung: { gesundheit: 1, bildung: 1 },
+  sicherheit: { verteidigung: 1, innere_sicherheit: 2 },
+};
+
+function verteile(r: Record<string, number> | undefined): void {
+  if (!r) return;
+  for (const [alt, ziel] of Object.entries(ALTE_POSTEN)) {
+    const s = r[alt];
+    if (s === undefined) continue;
+    delete r[alt];
+    if (!s) continue;
+    for (const [neu, faktor] of Object.entries(ziel)) r[neu] = (r[neu] ?? 0) + s * faktor;
+  }
+}
+
+/** Migration der Ressortetats: alte Stufen, Entwurf und Gesetz auf die neuen Ressorts abbilden; die Wirkung gilt als schon gereift. */
+export function migriereHaushalt(z: HaushaltZustand): HaushaltZustand {
+  if (z.fassung === 2) return z;
+  verteile(z.stufen);
+  verteile(z.entwurf);
+  if (z.gesetz) verteile(z.gesetz.schritte);
+  z.wirksam ??= { ...z.stufen };
+  z.fassung = 2;
+  return z;
+}
 
 /** Eine Marke auf der Zeitachse setzen (Zinsentscheid, Haushalt, Eingriff). */
 export function addMarke(w: World, art: Marke["art"], text: string): void {

@@ -1,0 +1,59 @@
+/* Die Netze des Landes (ui/infrastruktur/Netze.tsx): Auslastung als Balken, Engpässe, Ausbau und Programme. */
+
+.nz { container-type: inline-size; display: flex; flex-direction: column; gap: 8px; }
+.nz-zweck { margin: 0; font: italic 15px/1.45 var(--serif); color: var(--ink-soft); }
+.nz-etat, .nz-quelle, .nz-leer { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+.nz-vergabe { font: 600 13.5px var(--serif); }
+.nz-vergabe select { font: inherit; margin-left: 4px; }
+.nz-meldung { margin: 0; padding: 6px 10px; border-radius: 3px; font-size: 14px; }
+.nz-meldung.ok { background: rgba(74, 140, 92, 0.14); }
+.nz-meldung.nein { background: rgba(150, 44, 36, 0.12); }
+
+.nz-liste, .nz-pakete { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.nz-netz { border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; background: rgba(255, 251, 238, 0.7); }
+.nz-netz.auf { background: rgba(255, 251, 238, 0.96); }
+.nz-kopf {
+  display: grid; grid-template-columns: minmax(110px, 1.1fr) minmax(90px, 2fr) 54px; gap: 4px 10px; align-items: center;
+  width: 100%; padding: 7px 10px; background: transparent; border: none; cursor: pointer; text-align: left; font: inherit; color: var(--ink);
+}
+.nz-zusatz { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-soft); min-height: 0; }
+.nz-zusatz:empty { display: none; }
+.nz-name { font: 600 15px var(--serif); }
+.nz-wert { font: 700 14px var(--sans); text-align: right; }
+
+.nz-balken { position: relative; display: block; height: 9px; border-radius: 5px; background: rgba(90, 64, 40, 0.14); overflow: visible; }
+.nz-balken i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: rgb(74, 140, 92); }
+.nz-balken.nz-mittel i { background: rgb(214, 168, 72); }
+.nz-balken.nz-schlecht i { background: rgb(150, 44, 36); }
+.nz-balken b { position: absolute; top: -2px; bottom: -2px; width: 1px; background: rgba(60, 40, 20, 0.45); }
+.nz-balken b.nz-voll { width: 2px; background: rgba(120, 30, 24, 0.7); }
+.nz-balken u { position: absolute; top: -4px; width: 0; height: 0; border: 4px solid transparent; border-top-color: var(--ink); transform: translateX(-4px); }
+span.nz-gut, td.nz-gut { color: rgb(48, 104, 64); }
+span.nz-mittel, td.nz-mittel { color: rgb(140, 100, 30); }
+span.nz-schlecht, td.nz-schlecht { color: rgb(150, 44, 36); }
+
+.nz-auf { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 6px; }
+.nz-tabelle { width: 100%; border-collapse: collapse; font-size: 14px; }
+.nz-tabelle th { text-align: left; font-weight: 600; padding: 4px 6px 4px 0; white-space: nowrap; }
+.nz-tabelle td { padding: 4px 6px; vertical-align: middle; }
+.nz-tabelle tr + tr { border-top: 1px dotted rgba(90, 64, 40, 0.3); }
+.nz-knopf {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; margin: 2px 6px 2px 0; padding: 4px 10px; cursor: pointer;
+  font: 600 13px var(--serif); color: var(--ink); background: #fbf4df; border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 3px;
+}
+.nz-knopf small { font: 400 11.5px var(--sans); color: var(--ink-soft); }
+.nz-knopf:disabled { opacity: 0.5; cursor: default; }
+.nz-knopf:not(:disabled):hover { background: #fff8e6; border-color: var(--seal); }
+
+.nz-titel { margin: 10px 0 2px; font: 600 16px var(--display); border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
+.nz-paket { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; background: rgba(255, 251, 238, 0.7); }
+.nz-paket > span { font-size: 13.5px; }
+.nz-paket-preis { color: var(--ink-soft); }
+.nz-paket .nz-knopf { align-self: flex-start; }
+.nz-zeile { font-size: 13.5px; }
+
+@container (max-width: 420px) {
+  .nz-kopf { grid-template-columns: 1fr 54px; }
+  .nz-kopf .nz-balken { grid-column: 1 / -1; grid-row: 2; }
+  .nz-tabelle th { white-space: normal; }
+}

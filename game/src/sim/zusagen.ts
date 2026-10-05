@@ -15,6 +15,7 @@ import { skala, skalenArt } from "../data/skalen";
 import { grollVerschieben, loyalitaetVerschieben, merke } from "./personen";
 import { istMinisterienZusage, ministerienAnPartei, ressortNamen } from "./ressortvergabe";
 import { t } from "../i18n";
+import { vorgaengeMonat, vorgaengeSchritt } from "./vorgaenge";
 import type { World } from "./types";
 import type { Figur, Zusage } from "./spiel-typen";
 
@@ -210,6 +211,9 @@ export function zusagenMonat(w: World): void {
   zusagenPflege(w);
   nachbuchen(w);
   glaubwuerdigkeitMonat(w);
+  // Vorgänge (sim/vorgaenge.ts): fehlende anlegen, dann den Monatsschritt rechnen
+  vorgaengeMonat(w);
+  vorgaengeSchritt(w);
 }
 
 // ---------------------------------------------------------------------------

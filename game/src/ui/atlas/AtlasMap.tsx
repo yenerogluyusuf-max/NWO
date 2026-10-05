@@ -22,6 +22,7 @@ import { stadtArt, type StadtInfo } from "./staedte";
 import { MarkenForm } from "./MarkenForm";
 import { t } from "../../i18n";
 import type { Kartenebene } from "../ebenen";
+import type { KartenMarke } from "../gueter/linsen";
 
 export interface KartenOrt {
   id: string;
@@ -71,10 +72,16 @@ export interface AtlasMapProps {
   laenderPins?: { id: string; iso: string; lon: number; lat: number; name: string; ton: "gut" | "mittel" | "schlecht"; /** Rang bei Gedränge: höhere Flaggen bleiben, überdeckte werden ausgeblendet */ rang?: number }[];
   /** Klick auf eine Reich-Marke; `ort` trägt den Reiter der Akte (`klickTab`) */
   onOrt?: (id: string, ort?: KartenOrt) => void;
+  /** Vorkommen und strategische Orte der Linsen „Ressourcen“ und „Strategische Orte“ (ui/gueter/linsen.ts): klein, unter den Städten */
+  fundorte?: KartenMarke[];
+  /** Klick auf eine solche Marke */
+  onFundort?: (m: KartenMarke) => void;
   /** Ereignis- und Krisenmarken an Provinzen */
   marken?: { id: string; plaka: number; art: "ereignis" | "frist" | "krise"; text: string }[];
   onMarke?: (id: string) => void;
   onHover?: (plaka: number | undefined) => void;
+  /** Zusatzzeilen unter dem Namen der Provinz im Zeiger (etwa Kapazität und Auslastung der Linse „Belastung“) */
+  hoverZeilen?: (plaka: number) => string[];
   /** Welche Provinzen als Städte erscheinen (Kfz-Kennziffern): Banner, Figur und Tafel */
   labels?: number[];
   /** Tafel, Größenzeichen, Statussymbole und Rang je Stadt (siehe staedte.ts); ohne sie zeigt die Karte nur Punkt und Name */
@@ -169,9 +176,12 @@ export function AtlasMap({
   marken = [],
   onMarke,
   orte = [],
+  fundorte = [],
+  onFundort,
   laenderPins = [],
   onOrt,
   onHover,
+  hoverZeilen,
   labels = [],
   stadtInfo,
   geoLabels = [],
@@ -629,6 +639,7 @@ export function AtlasMap({
     const reichMarken: { el: HTMLElement; x: number; y: number; rang: number; sichtbar: boolean }[] = [];
     const staedteEl: { el: HTMLElement; x: number; y: number; sichtbar: boolean }[] = [];
     const pins: { el: HTMLElement; x: number; y: number }[] = [];
+    const fundEl: { el: HTMLElement; x: number; y: number; rang: number }[] = [];
     for (const el of Array.from(layer.children) as HTMLElement[]) {
       let center: [number, number] | undefined;
       if (el.dataset.lon) center = lonLatToUv(c.relief, Number(el.dataset.lon), Number(el.dataset.lat));
@@ -638,6 +649,16 @@ export function AtlasMap({
       // Städte: Banner und Figur werden gesammelt und unten nach Rang platziert
       if (el.classList.contains("city")) {
         staedteEl.push({ el, x: p.x, y: p.y, sichtbar: p.sichtbar });
+        continue;
+      }
+      // Vorkommen und strategische Orte: klein, belegen keinen Platz (Städte gehen vor), bei Gedränge bleibt der höhere Rang
+      if (el.classList.contains("fund")) {
+        el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
+        const sicht = p.sichtbar && p.x > 0 && p.x < rect.width && p.y > 60 && p.y < rect.height;
+        const f = sicht ? ui(p.x, p.y, 8, 8) : 0;
+        el.style.opacity = f > 0.02 ? (f >= 0.98 ? "1" : f.toFixed(2)) : "0";
+        fundEl.push({ el, x: p.x, y: p.y, rang: Number(el.dataset.rang ?? 1) });
+        tafelLage(el, p.x, p.y, rect.width);
         continue;
       }
       const scale = el.dataset.plaka ? Math.min(1.5, Math.max(0.62, 11 / view.current.d)) : 1;
@@ -679,6 +700,15 @@ export function AtlasMap({
       }
       if (p.sichtbar && marke) belegt.push({ x: p.x - 16, y: p.y - 58, w: 32, h: 34 });
     }
+    const fundGesetzt: { x: number; y: number }[] = [];
+    for (const m of fundEl.filter((q) => q.el.style.opacity !== "0").sort((a, b) => b.rang - a.rang)) {
+      const frei = !fundGesetzt.some((q) => Math.hypot(q.x - m.x, q.y - m.y) < 14);
+      if (frei) fundGesetzt.push(m);
+      else m.el.style.opacity = "0";
+      m.el.style.pointerEvents = frei && Number(m.el.style.opacity) > 0.5 ? "auto" : "none";
+      m.el.tabIndex = frei ? 0 : -1;
+    }
+    for (const m of fundEl) if (m.el.style.opacity === "0") m.el.style.pointerEvents = "none";
     // Gedränge: Reich-Marken, die näher als 28 Bildpunkte beieinander liegen, fasst die mit dem höchsten Rang zusammen (Zahl der verdeckten)
     const behalten: { el: HTMLElement; x: number; y: number; mehr: number }[] = [];
     for (const m of reichMarken.filter((q) => q.sichtbar).sort((a, b) => b.rang - a.rang)) {
@@ -992,6 +1022,35 @@ export function AtlasMap({
             </button>
           );
         })}
+        {fundorte.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            data-lon={m.lon}
+            data-lat={m.lat}
+            data-rang={m.rang}
+            className={`fund fund-${m.form} fund-r${m.rang}`}
+            style={{ "--fund": m.farbe } as React.CSSProperties}
+            aria-label={`${m.artText}: ${m.titel}. ${m.text}`}
+            onPointerUp={(e) => {
+              e.stopPropagation();
+              drag.current = null;
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onFundort?.(m);
+            }}
+          >
+            <i className="fund-zeichen" aria-hidden />
+            <span className="ort-tafel" role="tooltip" aria-hidden>
+              <span className="ort-tafel-art">{m.artText}</span>
+              <strong>{m.titel}</strong>
+              <span className="ort-tafel-zeile">{m.text}</span>
+              {m.zusatz && <span className="ort-tafel-rest">{m.zusatz}</span>}
+              <span className="ort-tafel-klick">{m.klick}</span>
+            </span>
+          </button>
+        ))}
         {laenderPins.map((p) => (
           <button
             key={p.id}
@@ -1139,7 +1198,12 @@ export function AtlasMap({
           <span>{t("karte.bezirk.einrichtungen", { k: bezirk.info.krankenhaeuser, f: bezirk.info.flughaefen })}</span>
         </div>
       ) : (
-        (hover || landHover) && <div className="atlas-hover">{hover ? NAMES[hover] : landHover!.name}</div>
+        (hover || landHover) && (
+          <div className="atlas-hover" {...(hover && hoverZeilen ? { style: { top: 72, bottom: "auto", zIndex: 6, maxWidth: 360 } } : {})}>
+            {hover ? NAMES[hover] : landHover!.name}
+            {hover && hoverZeilen?.(hover).map((z) => <span key={z} style={{ display: "block", fontSize: "0.8em", lineHeight: 1.35, opacity: 0.9 }}>{z}</span>)}
+          </div>
+        )
       )}
     </div>
   );

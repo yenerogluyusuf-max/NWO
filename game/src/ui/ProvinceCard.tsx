@@ -1,6 +1,8 @@
 // Provinzblatt: Zahlen, Infrastruktur, Probleme, Bauvorhaben und der Weg, hier etwas zu tun.
 
 import { NET } from "../sim/world";
+import { offenerKonflikt, vorgaengeIn } from "../sim/vorgaenge";
+import { t } from "../i18n";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN, REGION_DE } from "../sim/regional";
 import { archetypName } from "../data/provinz_archetypen";
@@ -28,7 +30,7 @@ const WERTE: { id: string; label: string }[] = [
   { id: "internet", label: "Breitband" },
 ];
 
-export function ProvinceCard({ world, plaka, onClose, onBauen }: { world: World; plaka: number; onClose: () => void; onBauen: (plaka: number) => void }) {
+export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { world: World; plaka: number; onClose: () => void; onBauen: (plaka: number) => void; onVorgang?: (id: string) => void }) {
   const d = PROVINZEN[plaka - 1]!;
   const seats = world.parliament?.byProvince?.[plaka];
   const problems = NET.nodes
@@ -152,6 +154,21 @@ export function ProvinceCard({ world, plaka, onClose, onBauen }: { world: World;
               {projekte.map((p) => (
                 <li key={p.name}>
                   {p.name}: Stufe {nf(p.jetzt, 0)} → {nf(p.ziel, 0)}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {onVorgang && vorgaengeIn(world, plaka).length > 0 && (
+          <>
+            <h3 className="province-sub">{t("vorgang.sprung.karte")}</h3>
+            <ul className="province-projekte">
+              {vorgaengeIn(world, plaka).map((v) => (
+                <li key={v.id}>
+                  <button type="button" className="link" onClick={() => onVorgang(v.id)}>
+                    {t("vorgang.ui.titel", { ort: d.name })}: {offenerKonflikt(v) ? t("vorgang.ui.entscheiden") : t(`vorgang.ui.schritt.${v.schritt}`)}
+                  </button>
                 </li>
               ))}
             </ul>

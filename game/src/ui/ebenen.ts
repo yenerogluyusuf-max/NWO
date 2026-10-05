@@ -13,6 +13,8 @@ import { WEITERE } from "../data/welt-weitere";
 import { depremRisiko } from "../sim/katastrophe";
 import { ERBE } from "../data/erbe";
 import { STAETTEN_START } from "../data/reich";
+import { ressourcenFarben, strategieFarben } from "./gueter/linsen";
+import { belastungFarben } from "./infrastruktur/linse";
 import type { World } from "../sim/types";
 import type { IconName } from "./icons";
 import { t, aktuelleSprache } from "../i18n";
@@ -20,7 +22,7 @@ import { t, aktuelleSprache } from "../i18n";
 // Neue Ebene („Linse“) anlegen: Kennung in `Kartenebene`, Eintrag in KARTENEBENEN (Gruppe, Symbol, Kurzsatz), Färbung in
 // `farbenFuerEbene`, Verfügbarkeitsregel in ui/linsen/linsen.ts (`REGELN`). Geplant, aber noch ohne Daten und darum nicht
 // ausgeliefert: „Front und Besatzung“, „Bündnisse“, „Wahlkampf“, „Lage nach Beben“.
-export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko";
+export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko" | "ressourcen" | "strategie" | "belastung";
 
 export type LinsenGruppe = "land" | "wirtschaft" | "krisen" | "kultur" | "welt";
 
@@ -54,8 +56,11 @@ export const KARTENEBENEN: EbenenDef[] = [
   { id: "infrastruktur", label: "Infrastruktur", icon: "strasse", gruppe: "wirtschaft", kurz: "Straßennetz; beim Hineinzoomen Bahn, Krankenhäuser, Flughäfen." },
   { id: "probleme", label: "Akute Probleme", icon: "warnung", gruppe: "krisen", kurz: "Wo mehrere Probleme zugleich über der Schwelle liegen." },
   { id: "risiko", label: "Katastrophenrisiko", icon: "beben", gruppe: "krisen", kurz: "Erdbebengefährdung je Provinz, dazu Flut und Brand." },
+  { id: "ressourcen", label: "Ressourcen", icon: "berg", gruppe: "wirtschaft", kurz: "Belegte Vorkommen je Provinz: Bor, Erze, Kohle, Öl und Gas, Wasser, Kornkammern." },
+  { id: "belastung", label: "Belastung", icon: "kran", gruppe: "wirtschaft", kurz: "Wie voll Straßen, Bahn, Strom, Wasser, Wohnungen und Kliniken je Provinz sind; der Zeiger zeigt Kapazität und Bau." },
   { id: "erbe", label: "Kulturerbe", icon: "kuppel", gruppe: "kultur", kurz: "Erhaltungszustand der Stätten, dazu Wunder und Bauvorhaben." },
   { id: "welt", label: "Beziehungen", icon: "haende", gruppe: "welt", kurz: "Wie die Länder der Welt zur Türkei stehen; Klick öffnet die Länderkarte." },
+  { id: "strategie", label: "Strategische Orte", icon: "ziel", gruppe: "welt", kurz: "Meerengen, Pipelines, Häfen, Dämme und Inseln, die über Versorgung und Macht entscheiden." },
   { id: "netz", label: "Politiknetz", icon: "netz", kurz: "Ein Knoten des Politiknetzes je Provinz." },
 ];
 
@@ -198,6 +203,15 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
         },
       };
     }
+
+    case "belastung":
+      return belastungFarben(w);
+
+    case "ressourcen":
+      return ressourcenFarben();
+
+    case "strategie":
+      return strategieFarben();
 
     case "welt":
       return {

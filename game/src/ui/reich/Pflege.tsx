@@ -88,7 +88,7 @@ function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refr
   return (
     <article className={`rp-karte${s.dringlichkeit >= 8 ? " dringend" : ""}`}>
       <header className="rp-kopf">
-        <h4>{t(`vorhaben.${v.id}.name`, { defaultValue: v.name })}</h4>
+        <h4>{v.name}</h4>
         <span className="rp-wort">{zustandWort(s)}</span>
       </header>
       {v.ort && <p className="rr-ort">{v.ort.name}</p>}
@@ -191,7 +191,7 @@ export function Lohnt({ world, bereich, refresh, zuPflege }: { world: World; ber
           {liste.map((s) => (
             <li key={s.id} className="rv-eintrag">
               <div className="rv-kopf">
-                <strong>{t(`vorhaben.${s.v.id}.name`, { defaultValue: s.v.name })}</strong>
+                <strong>{s.v.name}</strong>
                 <span className="rr-bau-info">
                   {t("reich.pflege.zustand", { von: Math.round(s.zustand), nach: Math.round(s.nach?.zustand ?? s.zustand), defaultValue: `Zustand ${Math.round(s.zustand)} → ${Math.round(s.nach?.zustand ?? s.zustand)}` })}
                 </span>

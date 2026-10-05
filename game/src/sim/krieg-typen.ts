@@ -104,6 +104,8 @@ export interface KriegVorgang {
   bereit?: boolean;
   rahmung?: KriegsRahmung;
   kriegszielDeklariert?: boolean;
+  /** Gewählter Zielraum (data/streitkraefte.ts ZIELRAEUME); Vorstufe der Regionen mit Besitzerwechsel */
+  zielraum?: string;
   beschluss?: KriegBeschluss;
   /** Abstrakte Frontlage 0–100: 100 = die Türkei siegt, 0 = Zusammenbruch (kein Taktikspiel) */
   front: number;

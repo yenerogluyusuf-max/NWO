@@ -11,7 +11,7 @@ import { metricValue, prognoseReihen } from "../src/sim/forecast";
 import { alleMarken, defizitJetzt, verlauf, wirtschaftZustand, zbZustand, zinsausgabenJetzt } from "../src/sim/wirtschaft";
 import { KENNZAHLEN, aktuellerWert, kennzahl } from "../src/sim/wirtschaft-kennzahlen";
 import { aendereStufe, druckOptionen, druckWirkung, ernenneGouverneur, machDruck, naechsteSitzung, setzeVorgabe } from "../src/sim/zentralbank";
-import { PAKETE, POSTEN, haushaltMonat, impulsAusPosten, postenVorschau, setzePosten, stufeVon, wendePaketAn } from "../src/sim/haushalt";
+import { PAKETE, POSTEN, POSTEN_NACH_ID, haushaltMonat, impulsAusPosten, postenVorschau, setzePosten, stufeVon, wendePaketAn } from "../src/sim/haushalt";
 import { impulsKette, netzKette, zinsKette } from "../src/sim/folgen";
 import { ZINSSATZ_START } from "../src/data/haushaltsplan";
 import type { World } from "../src/sim/types";
@@ -241,7 +241,8 @@ describe("Haushalt", () => {
     const v = postenVorschau(w, "soziales", 2);
     expect(v.ok).toBe(true);
     expect(v.delta).toBe(2);
-    expect(v.defizitNachher).toBeCloseTo(v.defizitVorher - v.impuls, 6);
+    // Mehr Ausgaben vergrößern das Defizit (bis 05.10.2026 stand hier fälschlich „minus Impuls“)
+    expect(v.defizitNachher).toBeCloseTo(v.defizitVorher + v.impuls, 6);
     expect(v.zeilen.length).toBeGreaterThan(2);
     w.spiel!.kapital = -19;
     const teuer = postenVorschau(w, "soziales", -2);
@@ -250,14 +251,14 @@ describe("Haushalt", () => {
     expect(stufeVon(w, "soziales")).toBe(0);
   });
 
-  test("Kürzen in die unbeliebte Richtung kostet doppelt; Stufen bleiben zwischen −2 und +2", () => {
+  test("Kürzen in die unbeliebte Richtung kostet doppelt; Stufen bleiben in der Spanne des Ressorts", () => {
     const w = welt();
     const k0 = w.spiel!.kapital;
     expect(setzePosten(w, "personal", -1).ok).toBe(true);
     // Unbeliebt × 2, dazu WIR-3 Nachtrag außerhalb des Fensters × 2 = 4
     expect(w.spiel!.kapital).toBe(k0 - 4);
     expect(setzePosten(w, "personal", 9).ok).toBe(true);
-    expect(stufeVon(w, "personal")).toBe(2);
+    expect(stufeVon(w, "personal")).toBe(POSTEN_NACH_ID.personal!.max);
   });
 
   test("Pakete des Haushaltsjahres setzen mehrere Regler ohne Kapitalkosten", () => {

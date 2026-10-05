@@ -144,7 +144,9 @@ describe("Haushaltsgesetz im Parlament", () => {
     // Während das Gesetz im Parlament liegt, ist die Direktänderung blockiert
     expect(setzePosten(w, "personal", 1).ok).toBe(false);
 
-    const imp0 = w.economy.fiscalImpulse;
+    // Die Alterung verteuert die Renten jeden Monat ein wenig (Demografie-Aufschlag im Impuls); sie wird herausgerechnet
+    const ohneDemografie = () => w.economy.fiscalImpulse - (haushaltZustand(w).demografie ?? 0);
+    const imp0 = ohneDemografie();
     bis(w, 25); // Abstimmung nach 21 Tagen plus Puffer
     const z = haushaltZustand(w);
     expect(z.gesetz).toBeNull();
@@ -152,7 +154,7 @@ describe("Haushaltsgesetz im Parlament", () => {
     expect(z.letztesErgebnis).toBe("angenommen");
     expect(stufeVon(w, "investitionen")).toBe(2);
     expect(stufeVon(w, "einkommensteuer")).toBe(1);
-    expect(w.economy.fiscalImpulse).toBeCloseTo(imp0 + 0.8 - 0.3, 6);
+    expect(ohneDemografie()).toBeCloseTo(imp0 + 0.8 - 0.3, 6);
     expect(z.aenderungen.some((a) => a.text.includes("Haushaltsgesetz 2029"))).toBe(true);
   });
 

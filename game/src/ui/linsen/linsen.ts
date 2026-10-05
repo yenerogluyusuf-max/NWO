@@ -16,6 +16,7 @@ const REGELN: Partial<Record<Kartenebene, (w: World) => boolean>> = {
   rueckhalt: (w) => !!w.spiel,
   erbe: (w) => !!w.spiel,
   welt: (w) => !!w.spiel,
+  belastung: (w) => !!w.spiel,
 };
 
 /** Alle verfügbaren Linsen in der Reihenfolge der Tafel (Politiknetz gehört nicht dazu, es hat seinen eigenen Weg). */
@@ -26,8 +27,8 @@ export function linsenVerfuegbar(w: World): Kartenebene[] {
     .map((e) => e.id);
 }
 
-/** Tastenkürzel nach Platz in der Tafel: 1 bis 9, dann 0, dann B (für die elfte Linse, die Beziehungen). */
-export const LINSEN_TASTEN = "1234567890b";
+/** Tastenkürzel nach Platz in der Tafel: 1 bis 9, dann 0, dann R (Katastrophenrisiko), K (Kulturerbe), B (Beziehungen), S (Strategische Orte). */
+export const LINSEN_TASTEN = "1234567890rkbs";
 
 export interface Linse {
   id: Kartenebene;

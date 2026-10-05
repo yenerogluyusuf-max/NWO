@@ -13,7 +13,7 @@ import { MinisterratSaal } from "./personen/MinisterratSaal";
 import { ZusagenAnsicht } from "./personen/ZusagenAnsicht";
 import "./personen/personen.css";
 
-export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte }: { world: World; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void }) {
+export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, onVorgang }: { world: World; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void; onVorgang?: (id: string) => void }) {
   const spiel = world.spiel;
   const [tab, setTab] = useState<"kabinett" | "umfeld" | "zusagen">("kabinett");
   const [gewaehltePerson, setGewaehltePerson] = useState<{ id: string; modus?: "gespraech" | "entlassen" } | null>(null);
@@ -104,7 +104,7 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte }
           />
         </section>
       )}
-      {tab === "zusagen" && <ZusagenAnsicht world={world} refresh={neu} {...(onMassnahme ? { onMassnahme } : {})} />}
+      {tab === "zusagen" && <ZusagenAnsicht world={world} refresh={neu} {...(onMassnahme ? { onMassnahme } : {})} {...(onVorgang ? { onVorgang } : {})} />}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ressourcenMarken, strategieMarken } from "./gueter/linsen";
 import type { World } from "../sim/types";
 import { advance, NET } from "../sim/world";
 import { formatDateDe } from "../sim/dates";
@@ -33,6 +34,8 @@ import { Corners } from "./art/Ornament";
 import { EventWindow, type GameEvent } from "./EventWindow";
 import { EreignisFenster } from "./EreignisFenster";
 import { Reich } from "./Reich";
+import { Netze } from "./infrastruktur/Netze";
+import { Streitkraefte } from "./militaer/Streitkraefte";
 import { WunderFenster } from "./reich/WunderFenster";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
 import { istAbstimmung } from "./parlament/abstimmung";
@@ -67,6 +70,7 @@ import { beiSpeicherfehler, letzterSpeicherfehler, speichere, speichereWarten, s
 import { standDerDinge, type StandDerDinge } from "./standderdinge";
 import { StandDerDingeBlatt } from "./StandDerDingeBlatt";
 import { PARTEI_NAME } from "../sim/fraktionen";
+import { belastungZeilen } from "../sim/infrastruktur";
 import { LAENDERNAMEN, LAND_PINS, farbenFuerEbene, laenderFarben, landName, type Kartenebene } from "./ebenen";
 import { t, aktuelleLocale } from "../i18n";
 import { kurzVergleich } from "./vergleich";
@@ -80,6 +84,8 @@ import { WirkungsberichtDossier } from "./politik/WirkungsberichtDossier";
 import type { Bericht } from "../sim/berichte";
 import { SprachWahl } from "./SprachWahl";
 import { kapitalErklaerung, mehrheitsSicht } from "./akte/lage";
+import { AkteRahmen, type BereichId } from "./akte/Bereiche";
+import type { AktenReiterId } from "./akte/Akte";
 
 type Dossier =
   | "schreibtisch"
@@ -102,7 +108,9 @@ type Dossier =
   | "reich_kultur"
   | "reich_recht"
   | "reich_militaer"
+  | "streitkraefte"
   | "reich_infra"
+  | "netze"
   | "reich_haushalt"
   | "zeitung"
   | "speicher"
@@ -361,6 +369,9 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     [ebene, spiel?.reich, spiel?.reich?.laufend.length, w.day - (w.day % 10)],
   );
 
+  // Vorkommen und strategische Orte als kleine Marken unter den Städten, nur in ihrer Linse
+  const fundorte = useMemo(() => (ebene === "ressourcen" ? ressourcenMarken() : ebene === "strategie" ? strategieMarken() : []), [ebene]);
+
   const { fill, legende } = useMemo(
     () => farbenFuerEbene(w, ebene, problemId, netNode),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -393,7 +404,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
   // Navigation in drei Ebenen (VISION_IM_DETAIL 0.2): die Karte liegt immer darunter, der Schreibtisch ist die Zentrale des Tages,
   // dazu neun Akten nach einem Muster. Die alten Ansichten sind umgezogen, nicht neu gebaut; ihre Kennungen bleiben, damit alle Sprünge gelten.
-  const menue: { kurz: string; titel: string; icon: IconName; badge?: number; umlauf?: number; tabs: { id: Exclude<Dossier, null>; label: string }[] }[] = [
+  const menue: { kurz: string; titel: string; icon: IconName; badge?: number; umlauf?: number; tabs: { id: Exclude<Dossier, null>; label: string }[]; akte?: BereichId }[] = [
     {
       kurz: t("nav.schreibtisch"),
       titel: t("nav.schreibtischTitel"),
@@ -422,6 +433,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     },
     {
       kurz: t("nav.gesellschaft"),
+      akte: "gesellschaft",
       titel: t("nav.gesellschaftTitel"),
       icon: "menge",
       tabs: [
@@ -431,6 +443,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     },
     {
       kurz: t("nav.recht"),
+      akte: "recht",
       titel: t("nav.rechtTitel"),
       icon: "waage",
       badge: (spiel?.gesetze.length ?? 0) + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
@@ -443,6 +456,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     },
     {
       kurz: t("nav.regierung"),
+      akte: "regierung",
       titel: t("nav.regierungTitel"),
       icon: "person",
       tabs: [
@@ -452,35 +466,41 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     },
     {
       kurz: t("nav.sicherheit"),
+      akte: "sicherheit",
       titel: t("nav.sicherheitTitel"),
       icon: "siegel",
-      tabs: [{ id: "reich_militaer", label: t("buehne.tab.militaer") }],
+      tabs: [{ id: "streitkraefte", label: t("militaer.tab") }, { id: "reich_militaer", label: t("buehne.tab.militaer") }],
     },
     {
       kurz: t("nav.aussen"),
+      akte: "aussen",
       titel: t("nav.aussenTitel"),
       icon: "berg",
       tabs: [{ id: "welt", label: t("buehne.tab.welt") }],
     },
     {
       kurz: t("nav.land"),
+      akte: "land",
       titel: t("nav.landTitel"),
       icon: "karte",
       badge: (spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length ?? 0) + (spiel?.reich?.laufend.length ?? 0) || undefined,
       tabs: [
         { id: "reich_infra", label: t("buehne.tab.infra") },
+        { id: "netze", label: t("infra.tab") },
         { id: "reich_kultur", label: t("buehne.tab.kultur") },
         { id: "katastrophe", label: t("buehne.tab.katastrophe") },
       ],
     },
     {
       kurz: t("nav.wissen"),
+      akte: "wissen",
       titel: t("nav.wissenTitel"),
       icon: "buch",
       tabs: [{ id: "programme", label: t("buehne.tab.programme") }],
     },
     {
       kurz: t("nav.medien"),
+      akte: "medien",
       titel: t("nav.medienTitel"),
       icon: "zeitung",
       umlauf: (spiel?.zeitung?.ungelesen ?? 0) || undefined,
@@ -524,6 +544,20 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     if (r.ok) sichere(true);
     refresh();
   };
+  /** Reiter der Bereichsakte: Über die Leiste beginnt eine Akte bei der Lage, jeder andere Sprung landet in der gezielten Ansicht (Instrumente). */
+  const [akteReiter, setAkteReiter] = useState<AktenReiterId>("instrumente");
+  // Sprung zu einem Vorgang (Schreibtisch, Zusagen, Karte): die Land-Akte im Reiter „Vorgänge“ mit diesem Vorgang offen
+  const [vorgangStart, setVorgangStart] = useState<string | undefined>(undefined);
+  const zeigeVorgang = (id: string) => {
+    setVorgangStart(id);
+    setAkteReiter("vorgaenge");
+    setDossier("reich_infra");
+  };
+  const ueberLeiste = useRef(false);
+  useEffect(() => {
+    setAkteReiter(ueberLeiste.current ? "lage" : "instrumente");
+    ueberLeiste.current = false;
+  }, [dossier]);
   const oeffneDossier = (d: Dossier) => {
     if (d === "politik") setPolitikStart(null);
     if (d === "schreibtisch") umlaufGelesen();
@@ -671,8 +705,14 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         laenderPins={laenderPins}
         {...(landAuswahl ? { landAuswahl: landAuswahl.iso } : {})}
         onLand={(iso, pos) => setLandAuswahl({ iso, x: pos?.x ?? window.innerWidth / 2, y: pos?.y ?? window.innerHeight / 2 })}
+        fundorte={fundorte}
+        onFundort={(m) => {
+          if (m.plaka) setSelected(m.plaka);
+          else if (m.iso) setLandAuswahl({ iso: m.iso, x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        }}
         {...(ebene === "welt" ? { laenderFarben: laenderKarte } : {})}
         ebene={ebene}
+        {...(ebene === "belastung" ? { hoverZeilen: (p: number) => belastungZeilen(w, p) } : {})}
         datum={w.date}
         {...(ereignisKarte ? { ereignis: ereignisKarte } : {})}
         {...(kamera ? { camera: kamera } : {})}
@@ -762,7 +802,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
       <nav className="dossier-menu" aria-label={t("nav.aria")}>
         {menue.map((m) => (
-          <button key={m.kurz} className={gruppe === m ? "on" : ""} onClick={() => oeffneDossier(gruppe === m ? null : m.tabs[0]!.id)} aria-label={m.titel} title={m.titel}>
+          <button key={m.kurz} className={gruppe === m ? "on" : ""} onClick={() => { ueberLeiste.current = gruppe !== m; oeffneDossier(gruppe === m ? null : m.tabs[0]!.id); if (gruppe !== m && m.tabs[0]!.id === dossier) { ueberLeiste.current = false; setAkteReiter("lage"); } }} aria-label={m.titel} title={m.titel}>
             <Icon name={m.icon} />
             {m.badge !== undefined && <span className="menu-badge">{m.badge}</span>}
             {m.umlauf !== undefined && <span className="menu-badge ruhig" title="Umlauf: gesammelte Meldungen ohne Entscheidung">{m.umlauf}</span>}
@@ -776,7 +816,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
-            {gruppe && gruppe.tabs.length > 1 && (
+            {gruppe && !gruppe.akte && gruppe.tabs.length > 1 && (
               <div className="dossier-tabs" role="tablist" aria-label={`${gruppe.titel}: Ansicht`}>
                 {gruppe.tabs.map((t) => (
                   <button key={t.id} role="tab" aria-selected={dossier === t.id} className={dossier === t.id ? "on" : ""} onClick={() => { if (t.id === "politik") setPolitikStart(null); setDossier(t.id); }}>
@@ -791,8 +831,18 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           </header>
           <div className="dossier-body">
             <Fehlergrenze titel={gruppe?.titel ?? "Akte"} onZu={() => setDossier(null)} zuruecksetzen={dossier}>
-            {dossier !== "wirtschaft" && zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
-            {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} />}
+            <AkteRahmen
+              bereich={gruppe?.akte}
+              world={w}
+              tabs={gruppe?.tabs ?? []}
+              aktiverTab={dossier}
+              onTab={(id) => { if (id === "politik") setPolitikStart(null); setDossier(id as Exclude<Dossier, null>); }}
+              reiter={akteReiter}
+              onReiter={setAkteReiter}
+              vorgangStart={vorgangStart}
+            >
+            {dossier !== "wirtschaft" && !gruppe?.akte && zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
+            {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} onVorgang={zeigeVorgang} />}
             {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "speicher" && (
@@ -905,6 +955,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               <Personen
                 world={w}
                 refresh={() => { refresh(); sichere(true); }}
+                onVorgang={zeigeVorgang}
                 onGeheVorlage={geheVorlage}
                 onKarte={zeigeKarte}
                 onMassnahme={(id, richtung) => {
@@ -916,6 +967,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               />
             )}
             {dossier === "chronik" && <Chronik world={w} />}
+            {dossier === "netze" && <Netze world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "streitkraefte" && <Streitkraefte world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier?.startsWith("reich_") && (
               <Reich
                 world={w}
@@ -951,6 +1004,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
+            </AkteRahmen>
             </Fehlergrenze>
           </div>
         </section>
@@ -969,7 +1023,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       <Plakette world={w} ebene={ebene} />
       <img className="compass" src="/ui/kompass.png" alt="" />
       <div className="karten-werkzeuge">
-        <MarkenLegende />
+        <MarkenLegende fund={ebene === "ressourcen" || ebene === "strategie" ? ebene : undefined} />
         <Effekte />
       </div>
 
@@ -978,6 +1032,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           world={w}
           plaka={selected}
           onClose={() => setSelected(undefined)}
+          onVorgang={(id) => {
+            setSelected(undefined);
+            zeigeVorgang(id);
+          }}
           onBauen={(p) => {
             setNetTheme("infrastruktur");
             setNetOrt([p]);

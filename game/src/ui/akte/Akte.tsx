@@ -7,6 +7,8 @@
 import { useState, type ReactNode } from "react";
 import { t } from "../../i18n";
 import { Funke } from "./Kennzahl";
+import { VorgaengeReiter } from "./Vorgaenge";
+import type { World } from "../../sim/types";
 import "./akte.css";
 
 /** „vorgaenge“: Platz für politische Vorhaben vom Versprechen bis zur Rechenschaft (baut ein späterer Strang). */
@@ -41,8 +43,9 @@ export interface AkteProps {
   onReiter?: (id: AktenReiterId) => void;
 }
 
-/** Platzhalter des Reiters „Vorgänge“, bis der Vorgang gebaut ist. */
-export function VorgaengePlatz() {
+/** Reiter „Vorgänge“: mit Welt die Vorgangsliste (ui/akte/Vorgaenge.tsx), ohne Welt der Platzhalter. */
+export function VorgaengePlatz({ w, onGeaendert, start }: { w?: World; onGeaendert?: (() => void) | undefined; start?: string | undefined }) {
+  if (w) return <VorgaengeReiter key={start ?? ""} w={w} onGeaendert={onGeaendert} {...(start ? { start } : {})} />;
   return <p className="ak-leer">{t("akte.vorgaenge.platzhalter")}</p>;
 }
 

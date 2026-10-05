@@ -1,89 +1,159 @@
-// Der Haushalt als Entscheidung: der Plan für 2026 mit belegten Zahlen, die Regler des Nachtragshaushalts mit Vorschau (Kapital, Defizit, Folgen
-// über zwölf Monate) und die bisherigen Änderungen. Jede Änderung wirkt auf Nachfrage, Defizit, Schulden und die Politikfelder des Netzes.
+// Der Haushalt wie in Democracy: oben die Bilanz (Einnahmen, Ausgaben, Defizit, Schulden), darunter je Ressort ein Regler mit Betrag in Lira
+// und % des BIP, vorher → nachher, einer Wirkungszeile und dem Wunsch der zuständigen Ministerin oder des Ministers. Renten mit eigenen
+// Stellgrößen (Rentenniveau, Renteneintrittsalter). Im Oktober-Fenster gehen Änderungen kostenlos in den Entwurf, sonst sind sie ein Nachtrag.
+// Tiefe aufklappbar: Vorschau mit Folgen über zwölf Monate je Ressort, der Haushaltsplan 2026 mit Quellen.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
 import { impulsKette } from "../../sim/folgen";
 import { formatDateDe } from "../../sim/dates";
-import { KENNZAHLEN_NACH_ID, aktuellerWert, bewertung, startWert } from "../../sim/wirtschaft-kennzahlen";
+import { KENNZAHLEN_NACH_ID } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, defizitJetzt, haushaltZustand, startMonat, verlauf, zinsausgabenJetzt } from "../../sim/wirtschaft";
-import { HAUSHALT_ZYKLUS, PAKETE, POSTEN, bringeHaushaltsgesetzEin, haushaltsGesetzSicht, haushaltsStimmenKaufen, haushaltsfenster, impulsAusPosten, mrdJeStufe, paketInEntwurf, postenVorschau, setzeEntwurf, setzePosten, stufeVon, type PostenDef } from "../../sim/haushalt";
+import {
+  HAUSHALT_ZYKLUS,
+  PAKETE,
+  POSTEN,
+  POSTEN_NACH_ID,
+  bringeHaushaltsgesetzEin,
+  etatBip,
+  haushaltsGesetzSicht,
+  haushaltsStimmenKaufen,
+  haushaltsfenster,
+  impulsAusPosten,
+  inSpanne,
+  ministerWunsch,
+  mrdJeStufe,
+  paketInEntwurf,
+  postenId,
+  postenVorschau,
+  rentenSicht,
+  setzeEntwurf,
+  setzePosten,
+  stufeVon,
+  wirksamVon,
+  type PostenDef,
+  type PostenGruppe,
+} from "../../sim/haushalt";
+import { forschungsSicht } from "../../sim/wissensbasis";
+import { ministerFuer } from "../../sim/ministerfluss-kern";
 import { REGELN, stimmenSicht } from "../../sim/handeln";
 import { AUSGABEN_2026, PLAN_2026, STEUERN_2026 } from "../../data/haushaltsplan";
+import { t, zahl } from "../../i18n";
+import { useSprache } from "../../i18n/react";
+import { Portraet } from "../art/Portraet";
 import { Diagramm } from "./Diagramm";
 import { Folgen } from "./Folgen";
 import { Bestaetigung } from "./Bestaetigung";
 import { Wirkung } from "./Wirkung";
 import { berechneReihen } from "./prognose";
 import "./wirtschaft.css";
+import "./haushalt.css";
 
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
-const mrdText = (x: number) => Math.round(x).toLocaleString("de-DE");
-const bio = (mrd: number) => `${(mrd / 1000).toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Bio.`;
-const STUFEN = [-2, -1, 0, 1, 2];
+const nf = (x: number, d = 1) => zahl(x, d);
+const mrdText = (x: number) => zahl(Math.round(x), 0);
+const bio = (mrd: number) => zahl(mrd / 1000, 1);
 const vz = (x: number) => (x > 0 ? `+${x}` : x < 0 ? `−${Math.abs(x)}` : "0");
+const mrdAusBip = (bip: number) => bip * PLAN_2026.mrdProProzentBip;
 
-const METRIKEN: { id: Metric; kennzahl: string; label: string }[] = [
-  { id: "defizit", kennzahl: "defizit", label: "Defizit" },
-  { id: "debtRatio", kennzahl: "schulden", label: "Schulden" },
-  { id: "growth", kennzahl: "wachstum", label: "Wachstum" },
-  { id: "inflation", kennzahl: "inflation", label: "Inflation" },
-  { id: "unemployment", kennzahl: "arbeitslosigkeit", label: "Arbeitslosigkeit" },
-  { id: "riskPremium", kennzahl: "risiko", label: "Risikoaufschlag" },
+const METRIKEN: { id: Metric; kennzahl: string }[] = [
+  { id: "defizit", kennzahl: "defizit" },
+  { id: "debtRatio", kennzahl: "schulden" },
+  { id: "growth", kennzahl: "wachstum" },
+  { id: "inflation", kennzahl: "inflation" },
+  { id: "unemployment", kennzahl: "arbeitslosigkeit" },
+  { id: "riskPremium", kennzahl: "risiko" },
 ];
 
-/** Welche Zeile des Haushaltsplans ein Posten trifft und wie stark (Anteil der Änderung). */
-const PLAN_ZEILEN: Record<string, { zeile: string; anteil: number }[]> = {
-  soziales: [{ zeile: "uebertragungen", anteil: 1 }],
-  personal: [{ zeile: "personal", anteil: 1 }],
-  investitionen: [{ zeile: "investitionen", anteil: 1 }],
-  einkommensteuer: [{ zeile: "est", anteil: 1 }],
-  verbrauchsteuern: [
-    { zeile: "mwst", anteil: 0.58 },
-    { zeile: "oetv", anteil: 0.42 },
-  ],
-  unternehmensteuer: [{ zeile: "kst", anteil: 1 }],
-};
+const GRUPPEN: PostenGruppe[] = ["renten", "soziales", "dienste", "sicherheit", "wirtschaft", "staat", "steuern"];
 
-function Kennziffer({ world, id }: { world: World; id: string }) {
-  const k = KENNZAHLEN_NACH_ID[id]!;
-  const jetzt = aktuellerWert(world, id);
-  const b = bewertung(k, jetzt, startWert(world, id));
+const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
+
+/** Der Betrag eines Postens bei einer Stufe: Etat in Mrd. Lira und % des BIP, Renten in ihren eigenen Einheiten. */
+function betrag(world: World, p: PostenDef, stufe: number): string {
+  if (p.id === "rentenniveau") return t("haushalt.ui.wert.niveau", { wert: nf(rentenSicht(world, stufe).niveau, 0) });
+  if (p.id === "rentenalter") return t("haushalt.ui.wert.alter", { wert: nf(rentenSicht(world, undefined, stufe).alter, 0) });
+  const bip = etatBip(p, stufe);
+  if (bip === undefined) {
+    const mrd = stufe * mrdJeStufe(p);
+    return stufe === 0 ? t("haushalt.ui.wert.steuer_null") : t("haushalt.ui.wert.steuer", { mrd: `${mrd > 0 ? "+" : "−"}${mrdText(Math.abs(mrd))}` });
+  }
+  return t("haushalt.ui.wert.etat", { mrd: mrdText(mrdAusBip(bip)), bip: nf(bip, 1) });
+}
+
+function Minister({ world, p }: { world: World; p: PostenDef }) {
+  const f = ministerFuer(world, p.amt);
+  if (!f) return <span className="hh-minister leer" aria-hidden />;
   return (
-    <div className="wi-kennziffer">
-      <dt>{k.name}</dt>
-      <dd>
-        {nf(jetzt, k.stellen)} <small>{k.einheit}</small>
-      </dd>
-      {Number.isFinite(b.delta) && Math.abs(b.delta) >= 0.05 && (
-        <span className={`wi-chip ${b.gut === true ? "wi-gut" : b.gut === false ? "wi-schlecht" : "wi-neutral"}`}>
-          seit Start {b.delta > 0 ? "▲" : "▼"} {nf(Math.abs(b.delta), k.stellen === 0 ? 0 : 1)}
-        </span>
-      )}
-    </div>
+    <span className="hh-minister" title={`${f.name}, ${f.rolle}`}>
+      <Portraet seed={f.name} size={36} geschlecht={f.weiblich ? "f" : "m"} tint={TINT[p.amt] ?? "#7c5823"} rolle={p.amt} rahmen="keiner" lebendig={false} />
+    </span>
   );
 }
 
-function Regler({ p, stufe, entwurf, onWahl }: { p: PostenDef; stufe: number; entwurf: number | null; onWahl: (s: number) => void }) {
-  const [links, rechts] = p.seite === "ausgabe" ? ["kürzen", "ausbauen"] : ["senken", "anheben"];
+function Zeile({ world, p, aktiv, wert, plan, onWahl, children }: { world: World; p: PostenDef; aktiv: boolean; wert: number; plan: number; onWahl: (s: number) => void; children?: ReactNode }) {
+  const ist = stufeVon(world, p.id);
+  const wirksam = wirksamVon(world, p.id);
+  const f = ministerFuer(world, p.amt);
+  const wunsch = ministerWunsch(world, p.id);
+  const zeigt = aktiv ? wert : plan;
+  const anteil = ist !== 0 ? Math.round((wirksam / ist) * 100) : 100;
+  const forschung = p.id === "forschung" ? forschungsSicht(world, etatBip(p, zeigt) ?? 0) : null;
   return (
-    <div className="wi-regler" role="radiogroup" aria-label={`${p.name}: Stufe`}>
-      <span className="wi-regler-seite">{links}</span>
-      {STUFEN.map((s) => (
-        <button key={s} role="radio" aria-checked={(entwurf ?? stufe) === s} className={`wi-stufe-knopf${stufe === s ? " ist" : ""}${entwurf === s && entwurf !== stufe ? " entwurf" : ""}`} onClick={() => onWahl(s)} title={s === stufe ? "Jetzt" : `Auf Stufe ${vz(s)} stellen`}>
-          {vz(s)}
-        </button>
-      ))}
-      <span className="wi-regler-seite">{rechts}</span>
-    </div>
+    <li className={`hh-zeile${aktiv ? " on" : ""}`}>
+      <div className="hh-kopf">
+        <Minister world={world} p={p} />
+        <div className="hh-name">
+          <b>{p.name}</b>
+          <span className="hh-text">{p.text}</span>
+        </div>
+        <div className="hh-betrag">
+          {zeigt !== ist ? (
+            <>
+              <s>{betrag(world, p, ist)}</s> <span aria-hidden>→</span> <b>{betrag(world, p, zeigt)}</b>
+            </>
+          ) : (
+            <b>{betrag(world, p, ist)}</b>
+          )}
+        </div>
+      </div>
+      <div className="hh-regler">
+        <span className="hh-rand">{p.id === "rentenalter" ? t("haushalt.ui.regler.frueher") : p.seite === "ausgabe" ? t("haushalt.ui.regler.kuerzen") : t("haushalt.ui.regler.senken")}</span>
+        <input
+          type="range"
+          min={p.min}
+          max={p.max}
+          step={1}
+          value={zeigt}
+          aria-label={t("haushalt.ui.regler.aria", { posten: p.name })}
+          aria-valuetext={`${vz(zeigt)}: ${betrag(world, p, zeigt)}`}
+          onChange={(e) => onWahl(Number(e.target.value))}
+        />
+        <span className="hh-rand">{p.id === "rentenalter" ? t("haushalt.ui.regler.spaeter") : p.seite === "ausgabe" ? t("haushalt.ui.regler.ausbauen") : t("haushalt.ui.regler.anheben")}</span>
+        <span className="hh-stufe">{vz(zeigt)}</span>
+      </div>
+      <p className="hh-wirkung">
+        {p.wirkung}
+        {ist !== 0 && anteil < 95 && <> {t("haushalt.ui.reifung", { anteil, monate: p.reifeMonate })}</>}
+        {forschung && <> {t("haushalt.ui.forschung.grenze", { grenze: nf(forschung.grenze, 2), verpufft: nf(forschung.verpufft, 2) })}</>}
+        {zeigt > 2 && p.seite === "ausgabe" && p.id !== "forschung" && <> {t("haushalt.ui.abnehmend")}</>}
+      </p>
+      {f && p.seite === "ausgabe" && p.id !== "rentenalter" && (
+        <p className={`hh-wunsch${ist >= wunsch ? " erfuellt" : ""}`}>
+          {ist >= wunsch ? t("haushalt.ui.wunsch.erfuellt", { name: f.name }) : t("haushalt.ui.wunsch.offen", { name: f.name, stufe: vz(wunsch), betrag: betrag(world, p, wunsch) })}
+        </p>
+      )}
+      {children}
+    </li>
   );
 }
 
 export function Haushalt({ world, geaendert, posten }: { world: World; geaendert: () => void; posten?: string | undefined }) {
+  useSprache();
   const z = haushaltZustand(world);
-  const [sel, setSel] = useState<string | null>(posten ?? null);
-  const [entwurf, setEntwurf] = useState<number | null>(posten ? Math.max(-2, Math.min(2, stufeVon(world, posten) + 1)) : null);
+  const start = posten ? postenId(posten) : null;
+  const [sel, setSel] = useState<string | null>(start);
+  const [entwurf, setEntwurf] = useState<number | null>(start && POSTEN_NACH_ID[start] ? inSpanne(POSTEN_NACH_ID[start]!, stufeVon(world, start) + 1) : null);
   const [bestaetigt, setBestaetigt] = useState(false);
   const [gesetzBestaetigt, setGesetzBestaetigt] = useState(false);
   const [rueck, setRueck] = useState<{ ok: boolean; text: string; why?: string | undefined } | null>(null);
@@ -92,31 +162,34 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   const [rechnet, setRechnet] = useState(false);
   const [offen, setOffen] = useState<number | null>(null);
   const stand = Math.floor(world.day / 30);
-  const p = sel ? POSTEN.find((x) => x.id === sel) : undefined;
+  const p = sel ? POSTEN_NACH_ID[sel] : undefined;
   const v = p && entwurf !== null ? postenVorschau(world, p.id, entwurf) : null;
-  // WIR-3: Zyklus-Stand (Fenster, Entwurf, Gesetz im Parlament)
   const fenster = haushaltsfenster(world);
   const gesetzSicht = haushaltsGesetzSicht(world);
   const entwurfEintraege = Object.entries(z.entwurf ?? {}).filter(([id, s]) => (z.stufen[id] ?? 0) !== s);
   const stimmen = stimmenSicht(world);
 
+  // Die Vorschau über zwölf Monate rechnet erst, wenn der Regler kurz ruht
   useEffect(() => {
     if (!p || entwurf === null || entwurf === stufeVon(world, p.id)) {
       setReihen(null);
       return;
     }
     let aktiv = true;
-    setRechnet(true);
-    const aktion: Aktion = { art: "posten", id: p.id, stufe: entwurf };
-    berechneReihen(world, aktion, METRIKEN.map((m) => m.id), 12, 8)
-      .then((r) => {
-        if (!aktiv) return;
-        setReihen(r);
-        setRechnet(false);
-      })
-      .catch(() => aktiv && setRechnet(false));
+    const zeit = setTimeout(() => {
+      setRechnet(true);
+      const aktion: Aktion = { art: "posten", id: p.id, stufe: entwurf };
+      berechneReihen(world, aktion, METRIKEN.map((m) => m.id), 12, 8)
+        .then((r) => {
+          if (!aktiv) return;
+          setReihen(r);
+          setRechnet(false);
+        })
+        .catch(() => aktiv && setRechnet(false));
+    }, 300);
     return () => {
       aktiv = false;
+      clearTimeout(zeit);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel, entwurf, stand]);
@@ -125,24 +198,33 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
     if (posten) document.getElementById("wi-hh-regler")?.scrollIntoView({ block: "start" });
   }, [posten]);
 
-  // Der Plan mit den eigenen Änderungen: Milliarden Lira je Zeile
-  const aenderung = useMemo(() => {
-    const m: Record<string, number> = {};
+  // Die Bilanz: Haushaltsgesetz 2026 plus die eigenen Regler, Zinsen im Stand des Spiels
+  const bilanz = useMemo(() => {
+    let aus = 0;
+    let ein = 0;
     for (const q of POSTEN) {
-      const s = z.stufen[q.id] ?? 0;
-      if (!s) continue;
-      for (const t of PLAN_ZEILEN[q.id] ?? []) m[t.zeile] = (m[t.zeile] ?? 0) + s * mrdJeStufe(q) * t.anteil;
+      const st = z.stufen[q.id] ?? 0;
+      if (!st) continue;
+      if (q.seite === "ausgabe") aus += st * mrdJeStufe(q);
+      else ein += st * mrdJeStufe(q);
     }
-    return m;
-  }, [z.stufen]);
-  const zinsenJetzt = zinsausgabenJetzt(world) * PLAN_2026.mrdProProzentBip;
+    const zinsen = mrdAusBip(zinsausgabenJetzt(world));
+    return { ausgaben: PLAN_2026.ausgabenGesamt + aus + (zinsen - mrdAusBip(PLAN_2026.zinsenProzentBip)), einnahmen: PLAN_2026.einnahmenGesamt + ein, zinsen };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [z.stufen, stand]);
   const maxAus = Math.max(...AUSGABEN_2026.map((x) => x.mrd));
   const maxSt = Math.max(...STEUERN_2026.map((x) => x.mrd));
 
   const r = reihen?.find((x) => x.metric === metrik);
   const mk = METRIKEN.find((m) => m.id === metrik)!;
   const k = KENNZAHLEN_NACH_ID[mk.kennzahl]!;
-  const band = r ? { ohne: r.ohne, ...(r.mit.length ? { mit: r.mit, mitName: `Mit: ${p?.name ?? "Änderung"}` } : {}) } : undefined;
+  const band = r ? { ohne: r.ohne, ...(r.mit.length ? { mit: r.mit, mitName: t("haushalt.ui.vorschau.mit", { posten: p?.name ?? "" }) } : {}) } : undefined;
+
+  function waehle(id: string, s: number) {
+    setSel(id);
+    setEntwurf(s);
+    setBestaetigt(false);
+  }
 
   function beschliesse() {
     if (!p || entwurf === null) return;
@@ -157,51 +239,42 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
     geaendert();
   }
 
-  const vorschauBlock = (
-    p && v && entwurf !== null && entwurf !== stufeVon(world, p.id) && (
-      <div className="wi-hh-vorschau" aria-live="polite">
-        <h4>
-          {p.name}: Stufe {vz(stufeVon(world, p.id))} auf {vz(entwurf)}
-        </h4>
-        <dl className="wi-zahlen">
-          <div>
-            <dt>Kapital</dt>
-            <dd>{v.kapital}</dd>
-          </div>
-          <div>
-            <dt>Defizit</dt>
-            <dd>
-              {nf(v.defizitVorher, 2)} → {nf(v.defizitNachher, 2)} %
-            </dd>
-          </div>
-          <div>
-            <dt>Ausgabenimpuls</dt>
-            <dd>
-              {v.impuls >= 0 ? "+" : "−"}
-              {nf(Math.abs(v.impuls), 2)} % des BIP
-            </dd>
-          </div>
-          <div>
-            <dt>Jahr</dt>
-            <dd>
-              {v.delta > 0 ? "+" : "−"}
-              {mrdText(Math.abs(v.delta) * mrdJeStufe(p))} Mrd. Lira
-            </dd>
-          </div>
-        </dl>
-        <div className="wi-verteilung">
-          <span>
-            <b>Gewinner:</b> {p.gewinner}
-          </span>
-          <span>
-            <b>Verlierer:</b> {p.verlierer}
-          </span>
+  const vorschauBlock = p && v && entwurf !== null && entwurf !== stufeVon(world, p.id) && (
+    <div className="wi-hh-vorschau" aria-live="polite">
+      <dl className="wi-zahlen">
+        <div>
+          <dt>{t("haushalt.ui.vorschau.kapital")}</dt>
+          <dd>{v.kapital}</dd>
         </div>
-        <p className="wi-kehrseite">
-          <b>Kehrseite:</b> {p.kehrseite}
-        </p>
-        <Folgen titel="Was danach kommt" glieder={impulsKette(v.impuls)} />
-        <h4>Dauerhaft im Politiknetz</h4>
+        <div>
+          <dt>{t("haushalt.ui.vorschau.defizit")}</dt>
+          <dd>
+            {nf(v.defizitVorher, 2)} → {nf(v.defizitNachher, 2)} %
+          </dd>
+        </div>
+        <div>
+          <dt>{t("haushalt.ui.vorschau.jahr")}</dt>
+          <dd>
+            {v.impuls >= 0 ? "+" : "−"}
+            {t("haushalt.ui.vorschau.mrd", { mrd: mrdText(Math.abs(v.impuls) * PLAN_2026.mrdProProzentBip), bip: nf(Math.abs(v.impuls), 2) })}
+          </dd>
+        </div>
+      </dl>
+      <div className="wi-verteilung">
+        <span>
+          <b>{t("haushalt.ui.vorschau.gewinner")}</b> {p.gewinner}
+        </span>
+        <span>
+          <b>{t("haushalt.ui.vorschau.verlierer")}</b> {p.verlierer}
+        </span>
+      </div>
+      <p className="wi-kehrseite">
+        <b>{t("haushalt.ui.vorschau.kehrseite")}</b> {p.kehrseite}
+      </p>
+      <details className="hh-tiefe">
+        <summary>{t("haushalt.ui.vorschau.tiefe")}</summary>
+        <Folgen titel={t("haushalt.ui.vorschau.danach")} glieder={impulsKette(v.impuls)} />
+        <h4>{t("haushalt.ui.vorschau.netz")}</h4>
         <div className="wi-dauer">
           {v.zeilen.map((x) => (
             <span key={x.text} className={`wi-chip ${x.gut === true ? "wi-gut" : x.gut === false ? "wi-schlecht" : "wi-neutral"}`}>
@@ -209,37 +282,37 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             </span>
           ))}
         </div>
-        <Wirkung reihen={reihen} metriken={METRIKEN} rechnet={rechnet} />
-        <div className="wi-metriken" role="tablist" aria-label="Größe der Vorschau">
+        <Wirkung reihen={reihen} metriken={METRIKEN.map((m) => ({ ...m, label: KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl }))} rechnet={rechnet} />
+        <div className="wi-metriken" role="tablist" aria-label={t("haushalt.ui.vorschau.groesse")}>
           {METRIKEN.map((m) => (
             <button key={m.id} role="tab" aria-selected={metrik === m.id} className={metrik === m.id ? "on" : ""} onClick={() => setMetrik(m.id)}>
-              {m.label}
+              {KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl}
             </button>
           ))}
         </div>
         <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "haushalt" || m.art === "zins")} stellen={k.stellen} einheit={k.einheit} name={k.name} rechnet={rechnet} />
-        <p className="wi-hinweis">{v.zyklus.hinweis}</p>
-        {!v.ok && v.grund && <p className="wi-grund">{v.grund}</p>}
-        {bestaetigt ? (
-          <Bestaetigung name={world.player?.name ?? ""} titel={v.zyklus.modus === "entwurf" ? `Entwurf: ${p.name}` : `Nachtragshaushalt: ${p.name}`} knopf="Beschließen" onJa={beschliesse} onNein={() => setBestaetigt(false)}>
-            <p>
-              {p.name} von Stufe {vz(stufeVon(world, p.id))} auf {vz(entwurf)}.{" "}
-              {v.zyklus.modus === "entwurf"
-                ? "Kostenlos im Haushaltsfenster: Die Änderung geht in den Entwurf und wirkt, wenn das Haushaltsgesetz das Parlament passiert."
-                : `Nachtrag außerhalb des Fensters: Das kostet ${v.kapital} Kapital (doppelter Preis) und etwas Legitimität; das Defizit verändert sich von ${nf(v.defizitVorher, 2)} auf ${nf(v.defizitNachher, 2)} % des BIP.`}
-            </p>
-          </Bestaetigung>
-        ) : (
-          <button className="wi-handlung wi-haupt" disabled={!v.ok} onClick={() => setBestaetigt(true)}>
-            {v.zyklus.modus === "entwurf" ? "In den Entwurf übernehmen (kostenlos)" : `Nachtragshaushalt beschließen (${v.kapital} Kapital)`} <span aria-hidden>→</span>
-          </button>
-        )}
-        <button className="pd-btn quiet" onClick={() => { setSel(null); setEntwurf(null); }}>
-          Verwerfen
+      </details>
+      <p className="wi-hinweis">{v.zyklus.hinweis}</p>
+      {!v.ok && v.grund && <p className="wi-grund">{v.grund}</p>}
+      {bestaetigt ? (
+        <Bestaetigung name={world.player?.name ?? ""} titel={v.zyklus.modus === "entwurf" ? t("haushalt.ui.bestaetigung.entwurf", { posten: p.name }) : t("haushalt.ui.bestaetigung.nachtrag", { posten: p.name })} knopf={t("haushalt.ui.knopf.beschliessen")} onJa={beschliesse} onNein={() => setBestaetigt(false)}>
+          <p>
+            {p.name}: {betrag(world, p, stufeVon(world, p.id))} → {betrag(world, p, entwurf)}.{" "}
+            {v.zyklus.modus === "entwurf" ? t("haushalt.ui.bestaetigung.entwurf_text") : t("haushalt.ui.bestaetigung.nachtrag_text", { kapital: v.kapital, vorher: nf(v.defizitVorher, 2), nachher: nf(v.defizitNachher, 2) })}
+          </p>
+        </Bestaetigung>
+      ) : (
+        <button className="wi-handlung wi-haupt" disabled={!v.ok} onClick={() => setBestaetigt(true)}>
+          {v.zyklus.modus === "entwurf" ? t("haushalt.ui.knopf.entwurf") : t("haushalt.ui.knopf.nachtrag", { kapital: v.kapital })} <span aria-hidden>→</span>
         </button>
-      </div>
-    )
+      )}
+      <button className="pd-btn quiet" onClick={() => { setSel(null); setEntwurf(null); }}>
+        {t("haushalt.ui.knopf.verwerfen")}
+      </button>
+    </div>
   );
+
+  const defizit = defizitJetzt(world);
 
   return (
     <div className="wi-hh">
@@ -250,34 +323,135 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         </p>
       )}
 
-      <section className="wi-karte">
-        <p className="kicker">Der Haushalt</p>
-        <h3>Wie der Staat wirtschaftet</h3>
-        <dl className="wi-kennziffern">
-          <Kennziffer world={world} id="defizit" />
-          <Kennziffer world={world} id="schulden" />
-          <Kennziffer world={world} id="zinsausgaben" />
-          <Kennziffer world={world} id="risiko" />
+      <section className="wi-karte hh-bilanz">
+        <p className="kicker">{t("haushalt.ui.bilanz.kicker")}</p>
+        <h3>{defizit > 0 ? t("haushalt.ui.bilanz.titel_defizit", { defizit: nf(defizit, 1) }) : t("haushalt.ui.bilanz.titel_ueberschuss", { wert: nf(-defizit, 1) })}</h3>
+        <dl className="hh-bilanz-zahlen">
+          <div>
+            <dt>{t("haushalt.ui.bilanz.einnahmen")}</dt>
+            <dd>{t("haushalt.ui.bilanz.bio", { bio: bio(bilanz.einnahmen) })}</dd>
+          </div>
+          <div>
+            <dt>{t("haushalt.ui.bilanz.ausgaben")}</dt>
+            <dd>{t("haushalt.ui.bilanz.bio", { bio: bio(bilanz.ausgaben) })}</dd>
+          </div>
+          <div className={defizit > 3 ? "hh-warn" : ""}>
+            <dt>{t("haushalt.ui.bilanz.defizit")}</dt>
+            <dd>{nf(defizit, 1)} %</dd>
+          </div>
+          <div>
+            <dt>{t("haushalt.ui.bilanz.schulden")}</dt>
+            <dd>{nf(world.economy.debtRatio, 1)} %</dd>
+          </div>
+          <div>
+            <dt>{t("haushalt.ui.bilanz.zinsen")}</dt>
+            <dd>{nf(zinsausgabenJetzt(world), 1)} %</dd>
+          </div>
         </dl>
         <p className="wi-hinweis">
-          Das Defizit setzt sich zusammen aus der Grundlinie des Haushaltsgesetzes ({nf(world.economy.deficit)} %), Ihrem Ausgabenimpuls ({nf(world.economy.fiscalImpulse)} % des BIP: {nf(impulsAusPosten(world))} aus den Reglern unten, der Rest aus Beschlüssen und Ereignissen), den Kosten der beschlossenen Maßnahmen ({nf(world.economy.policyCost, 2)} %) und dem Mehr- oder Minderzins auf die Schuld ({nf(world.economy.zinsMehrlast ?? 0, 2)} %): zusammen <b>{nf(defizitJetzt(world), 2)} % des BIP</b>. Der Zinsdienst folgt den Marktzinsen nur langsam: Ein Zinsentscheid der Bank kommt beim Staat erst über Jahre an.
+          {t("haushalt.ui.bilanz.hinweis", { grund: nf(world.economy.deficit), regler: nf(impulsAusPosten(world)), impuls: nf(world.economy.fiscalImpulse), massnahmen: nf(world.economy.policyCost, 2), zins: nf(world.economy.zinsMehrlast ?? 0, 2) })}
         </p>
       </section>
 
-      <section className="wi-karte" id="wi-hh-plan">
-        <p className="kicker">Der Haushaltsplan 2026</p>
-        <h3>
-          {bio(PLAN_2026.ausgabenGesamt)} Lira Ausgaben, {bio(PLAN_2026.einnahmenGesamt)} Einnahmen
-        </h3>
-        <p className="wi-hinweis">
-          Das Haushaltsgesetz der Zentralregierung; das geplante Defizit beträgt rund {bio(PLAN_2026.defizit)} Lira ({nf(PLAN_2026.defizitProzentBip)} % des BIP). In der Spalte „Ihre Änderung“ steht, was Ihre Regler daraus machen, in Milliarden Lira im Jahr (Größenordnung).
-        </p>
+      <section className="wi-karte" id="wi-hh-zyklus">
+        <p className="kicker">{t("haushalt.ui.zyklus.kicker")}</p>
+        {fenster.offen ? (
+          <>
+            <h3>
+              {t("haushalt.ui.zyklus.offen", { tage: fenster.tageRest })}
+            </h3>
+            <p className="wi-hinweis">{t("haushalt.ui.zyklus.offen_text")}</p>
+            <h4>{t("haushalt.ui.zyklus.entwurf_fuer", { jahr: String(fenster.jahr + 1) })}</h4>
+            {entwurfEintraege.length === 0 ? (
+              <p className="wi-hinweis">{t("haushalt.ui.zyklus.entwurf_leer")}</p>
+            ) : (
+              <ul className="wi-marken">
+                {entwurfEintraege.map(([id, s]) => {
+                  const q = POSTEN_NACH_ID[id];
+                  if (!q) return null;
+                  return (
+                    <li key={id}>
+                      {q.name}: {betrag(world, q, z.stufen[id] ?? 0)} → <b>{betrag(world, q, s)}</b>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <div className="wi-metriken" role="group" aria-label={t("haushalt.ui.zyklus.pakete")}>
+              {Object.entries(PAKETE).map(([id, paket]) => (
+                <button key={id} onClick={() => { const r = paketInEntwurf(world, id); setRueck(r); geaendert(); }}>
+                  {t("haushalt.ui.zyklus.paket", { name: paket.name })}
+                </button>
+              ))}
+            </div>
+            {gesetzBestaetigt ? (
+              <Bestaetigung name={world.player?.name ?? ""} titel={t("haushalt.ui.zyklus.einbringen", { jahr: String(fenster.jahr + 1) })} knopf={t("haushalt.ui.knopf.einbringen")} onJa={() => { const r = bringeHaushaltsgesetzEin(world); setRueck(r); setGesetzBestaetigt(false); geaendert(); }} onNein={() => setGesetzBestaetigt(false)}>
+                <p>{t("haushalt.ui.zyklus.einbringen_text", { n: entwurfEintraege.length, tage: REGELN.tageBisAbstimmung, erwartet: stimmen.erwartet, noetig: REGELN.mehrheit })}</p>
+              </Bestaetigung>
+            ) : (
+              <button className="wi-handlung wi-haupt" disabled={entwurfEintraege.length === 0} onClick={() => setGesetzBestaetigt(true)}>
+                {t("haushalt.ui.zyklus.einbringen", { jahr: String(fenster.jahr + 1) })} <span aria-hidden>→</span>
+              </button>
+            )}
+          </>
+        ) : fenster.gesetzUnterwegs && gesetzSicht ? (
+          <>
+            <h3>{t("haushalt.ui.zyklus.parlament", { tage: gesetzSicht.tageBis })}</h3>
+            <p className="wi-hinweis">
+              {t("haushalt.ui.zyklus.parlament_text", { ja: gesetzSicht.ja, noetig: REGELN.mehrheit })}{" "}
+              {gesetzSicht.urteil === "sicher" ? t("haushalt.ui.zyklus.sicher") : gesetzSicht.luecke > 0 ? t("haushalt.ui.zyklus.luecke", { n: gesetzSicht.luecke }) : t("haushalt.ui.zyklus.knapp")}
+            </p>
+            {gesetzSicht.noetig > 0 && (
+              <button className="wi-handlung" disabled={!gesetzSicht.bezahlbar} title={gesetzSicht.bezahlbar ? "" : t("haushalt.ui.zyklus.kein_kapital")} onClick={() => { const r = haushaltsStimmenKaufen(world, gesetzSicht.noetig); setRueck(r); geaendert(); }}>
+                {t("haushalt.ui.zyklus.sichern", { n: gesetzSicht.noetig, kosten: gesetzSicht.kosten })} <span aria-hidden>→</span>
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <h3>{t("haushalt.ui.zyklus.naechstes", { jahr: fenster.naechsterStart.slice(0, 4), monate: fenster.monateBis })}</h3>
+            <p className="wi-hinweis">
+              {t("haushalt.ui.zyklus.geschlossen_text", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
+              {fenster.letztesErgebnis && <> {t(`haushalt.ui.zyklus.ergebnis.${fenster.letztesErgebnis}`)}</>}
+            </p>
+          </>
+        )}
+      </section>
+
+      <section className="wi-karte" id="wi-hh-regler">
+        <p className="kicker">{fenster.offen ? t("haushalt.ui.ressorts.kicker_entwurf") : t("haushalt.ui.ressorts.kicker_nachtrag")}</p>
+        <h3>{t("haushalt.ui.ressorts.titel")}</h3>
+        <p className="wi-hinweis">{fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}</p>
+        {GRUPPEN.map((g) => (
+          <div key={g} className="hh-gruppe">
+            <h4>{t(`haushalt.gruppe.${g}`)}</h4>
+            {g === "renten" && <p className="hh-text">{t("haushalt.ui.renten.etat", { etat: nf(rentenSicht(world).etat, 1), mrd: mrdText(mrdAusBip(rentenSicht(world).etat)) })}</p>}
+            <ul className="hh-liste">
+              {POSTEN.filter((q) => q.gruppe === g).map((q) => {
+                const aktiv = sel === q.id;
+                const plan = z.entwurf?.[q.id] ?? stufeVon(world, q.id);
+                return (
+                  <Zeile key={q.id} world={world} p={q} aktiv={aktiv} wert={aktiv && entwurf !== null ? entwurf : plan} plan={plan} onWahl={(s) => waehle(q.id, s)}>
+                    {aktiv && vorschauBlock}
+                  </Zeile>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </section>
+
+      <details className="wi-karte hh-plan" id="wi-hh-plan">
+        <summary>
+          <span className="kicker">{t("haushalt.ui.plan.kicker")}</span> {t("haushalt.ui.plan.titel", { aus: bio(PLAN_2026.ausgabenGesamt), ein: bio(PLAN_2026.einnahmenGesamt) })}
+        </summary>
+        <p className="wi-hinweis">{t("haushalt.ui.plan.hinweis", { defizit: bio(PLAN_2026.defizit), bip: nf(PLAN_2026.defizitProzentBip) })}</p>
         <div className="wi-plan">
           <div>
-            <h4>Ausgaben (Mrd. Lira)</h4>
+            <h4>{t("haushalt.ui.plan.ausgaben")}</h4>
             <ul className="wi-plan-liste">
               {AUSGABEN_2026.map((x) => {
-                const live = x.id === "zinsen" ? zinsenJetzt - x.mrd : aenderung[x.id] ?? 0;
+                const live = x.id === "zinsen" ? bilanz.zinsen - x.mrd : 0;
                 return (
                   <li key={x.id} title={x.text}>
                     <span className="wi-plan-name">{x.name}</span>
@@ -292,26 +466,23 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             </ul>
           </div>
           <div>
-            <h4>Steuern (Mrd. Lira)</h4>
+            <h4>{t("haushalt.ui.plan.steuern")}</h4>
             <ul className="wi-plan-liste">
-              {STEUERN_2026.map((x) => {
-                const live = aenderung[x.id] ?? 0;
-                return (
-                  <li key={x.id} title={x.text}>
-                    <span className="wi-plan-name">{x.name}</span>
-                    <span className="wi-plan-balken" aria-hidden>
-                      <i className="wi-steuer" style={{ width: `${(x.mrd / maxSt) * 100}%` }} />
-                    </span>
-                    <span className="wi-plan-wert">{mrdText(x.mrd)}</span>
-                    <span className={`wi-plan-live ${live > 5 ? "wi-weniger" : live < -5 ? "wi-mehr" : ""}`}>{Math.abs(live) >= 5 ? `${live > 0 ? "+" : "−"}${mrdText(Math.abs(live))}` : ""}</span>
-                  </li>
-                );
-              })}
+              {STEUERN_2026.map((x) => (
+                <li key={x.id} title={x.text}>
+                  <span className="wi-plan-name">{x.name}</span>
+                  <span className="wi-plan-balken" aria-hidden>
+                    <i className="wi-steuer" style={{ width: `${(x.mrd / maxSt) * 100}%` }} />
+                  </span>
+                  <span className="wi-plan-wert">{mrdText(x.mrd)}</span>
+                  <span className="wi-plan-live" />
+                </li>
+              ))}
             </ul>
           </div>
         </div>
         <p className="wi-quelle">
-          Quellen:{" "}
+          {t("haushalt.ui.plan.quellen")}{" "}
           {PLAN_2026.quellen.map((q, i) => (
             <span key={q.url}>
               {i > 0 && "; "}
@@ -320,139 +491,15 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
               </a>
             </span>
           ))}
-          . {PLAN_2026.hinweis} Die Zinsausgaben zeigen den Stand im Spiel ({nf(zinsausgabenJetzt(world))} % des BIP).
+          . {PLAN_2026.hinweis} {t("haushalt.ui.plan.ressorts_beleg")}
         </p>
-      </section>
-
-      <section className="wi-karte" id="wi-hh-zyklus">
-        <p className="kicker">Der Haushalts-Zyklus</p>
-        {fenster.offen ? (
-          <>
-            <h3>
-              Haushaltsfenster geöffnet <small>· noch {fenster.tageRest} {fenster.tageRest === 1 ? "Tag" : "Tage"}</small>
-            </h3>
-            <p className="wi-hinweis">
-              Bis zum 28. Oktober stellen Sie die Regler unten <b>kostenlos</b> — die Änderungen sammeln sich im Entwurf und gehen als <b>ein Haushaltsgesetz</b> durchs Parlament (Staatskalender: jährlich im Oktober, vier Wochen). Außerhalb des Fensters kostet jede Änderung als Nachtragshaushalt das Doppelte und etwas Legitimität.
-            </p>
-            <h4>Der Entwurf für {fenster.jahr + 1}</h4>
-            {entwurfEintraege.length === 0 ? (
-              <p className="wi-hinweis">Noch keine Änderung im Entwurf. Regler unten stellen oder ein Paket des Finanzministeriums übernehmen:</p>
-            ) : (
-              <ul className="wi-marken">
-                {entwurfEintraege.map(([id, s]) => {
-                  const q = POSTEN.find((x) => x.id === id)!;
-                  return (
-                    <li key={id}>
-                      {q.name}: Stufe {vz(z.stufen[id] ?? 0)} → <b>{vz(s)}</b>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            <div className="wi-metriken" role="tablist" aria-label="Pakete des Finanzministeriums">
-              {Object.entries(PAKETE).map(([id, paket]) => (
-                <button key={id} onClick={() => { const r = paketInEntwurf(world, id); setRueck(r); geaendert(); }}>
-                  Paket: {paket.name}
-                </button>
-              ))}
-            </div>
-            {gesetzBestaetigt ? (
-              <Bestaetigung name={world.player?.name ?? ""} titel={`Haushaltsgesetz ${fenster.jahr + 1} einbringen`} knopf="Einbringen" onJa={() => { const r = bringeHaushaltsgesetzEin(world); setRueck(r); setGesetzBestaetigt(false); geaendert(); }} onNein={() => setGesetzBestaetigt(false)}>
-                <p>
-                  Der Entwurf ({entwurfEintraege.length} {entwurfEintraege.length === 1 ? "Posten" : "Posten"}) geht als ein Gesetz ins Parlament; die Abstimmung ist in {REGELN.tageBisAbstimmung} Tagen. Erwartet werden {stimmen.erwartet} Ja-Stimmen, nötig sind {REGELN.mehrheit}. Scheitert der Haushalt, läuft der Vorjahrshaushalt inflationsausgeglichen weiter — und die Regierung verliert Legitimität.
-                </p>
-              </Bestaetigung>
-            ) : (
-              <button className="wi-handlung wi-haupt" disabled={entwurfEintraege.length === 0} onClick={() => setGesetzBestaetigt(true)}>
-                Haushaltsgesetz {fenster.jahr + 1} einbringen <span aria-hidden>→</span>
-              </button>
-            )}
-          </>
-        ) : fenster.gesetzUnterwegs && gesetzSicht ? (
-          <>
-            <h3>
-              Das Haushaltsgesetz liegt im Parlament <small>· Abstimmung in {gesetzSicht.tageBis} {gesetzSicht.tageBis === 1 ? "Tag" : "Tagen"}</small>
-            </h3>
-            <p className="wi-hinweis">
-              Erwartet werden <b>{gesetzSicht.ja} Ja-Stimmen</b>, nötig sind {REGELN.mehrheit}.{" "}
-              {gesetzSicht.urteil === "sicher" ? "Die Mehrheit steht voraussichtlich." : gesetzSicht.luecke > 0 ? `Es fehlen voraussichtlich ${gesetzSicht.luecke} Stimmen; wie bei jedem Gesetz lassen sich welche mit Kapital sichern.` : "Es wird knapp."}
-            </p>
-            {gesetzSicht.noetig > 0 && (
-              <button
-                className="wi-handlung"
-                disabled={!gesetzSicht.bezahlbar}
-                title={gesetzSicht.bezahlbar ? "" : "Es fehlt Politisches Kapital."}
-                onClick={() => { const r = haushaltsStimmenKaufen(world, gesetzSicht.noetig); setRueck(r); geaendert(); }}
-              >
-                {gesetzSicht.noetig} Stimmen sichern ({gesetzSicht.kosten} Kapital) <span aria-hidden>→</span>
-              </button>
-            )}
-          </>
-        ) : (
-          <>
-            <h3>
-              Nächstes Haushaltsfenster: Oktober {fenster.naechsterStart.slice(0, 4)} <small>· in {fenster.monateBis} {fenster.monateBis === 1 ? "Monat" : "Monaten"}</small>
-            </h3>
-            <p className="wi-hinweis">
-              Der Staatskalender sieht den Haushalt einmal jährlich vor: Im Oktober (vier Wochen) sind alle Regler-Änderungen kostenlos und gehen als ein Haushaltsgesetz durchs Parlament. Außerhalb des Fensters ist jede Änderung ein <b>Nachtragshaushalt</b>: doppelte Kapitalkosten und ein kleiner Legitimitäts-Abzug.
-              {fenster.letztesErgebnis === "angenommen" && " Der letzte Haushalt wurde vom Parlament angenommen."}
-              {fenster.letztesErgebnis === "gescheitert" && " Der letzte Haushalt scheiterte im Parlament; der Vorjahrshaushalt läuft weiter."}
-              {fenster.letztesErgebnis === "fortgeschrieben" && " Der letzte Haushalt wurde unverändert fortgeschrieben."}
-            </p>
-          </>
-        )}
-      </section>
-
-      <section className="wi-karte" id="wi-hh-regler">
-        <p className="kicker">{fenster.offen ? "Der Entwurf" : "Nachtragshaushalt"}</p>
-        <h3>Die Regler</h3>
-        <p className="wi-hinweis">
-          Jeder Posten hat fünf Stufen; eine Stufe entspricht etwa {nf(POSTEN[0]!.schritt)} % des BIP ({mrdText(mrdJeStufe(POSTEN[0]!))} Mrd. Lira) bei Ausgaben, {nf(POSTEN[6]!.schritt)} % ({mrdText(mrdJeStufe(POSTEN[6]!))} Mrd.) bei Steuern.{" "}
-          {fenster.offen
-            ? "Im geöffneten Haushaltsfenster sind Änderungen kostenlos und sammeln sich im Entwurf oben."
-            : `Außerhalb des Oktober-Fensters kostet jede Änderung als Nachtrag das ${HAUSHALT_ZYKLUS.nachtragFaktor}-fache an Kapital (in die unbeliebte Richtung nochmals doppelt) und etwas Legitimität.`}{" "}
-          Wählen Sie eine Stufe: Die Vorschau zeigt vorher, was daraus wird.
-        </p>
-        <ul className="wi-posten">
-          {POSTEN.map((q) => {
-            const st = stufeVon(world, q.id);
-            const aktiv = sel === q.id;
-            return (
-              <li key={q.id} className={`wi-posten-zeile${aktiv ? " on" : ""}`}>
-                <div className="wi-posten-kopf">
-                  <b>{q.name}</b>
-                  <span className="wi-posten-art">{q.seite === "ausgabe" ? "Ausgabe" : "Einnahme"}</span>
-                </div>
-                <span className="wi-posten-text">{q.text}</span>
-                <Regler
-                  p={q}
-                  stufe={st}
-                  entwurf={aktiv ? entwurf : null}
-                  onWahl={(s) => {
-                    setSel(q.id);
-                    setEntwurf(s);
-                    setBestaetigt(false);
-                  }}
-                />
-                {st !== 0 && (
-                  <span className="wi-posten-stand">
-                    Jetzt auf Stufe {vz(st)}: etwa {st > 0 ? "+" : "−"}
-                    {mrdText(Math.abs(st) * mrdJeStufe(q))} Mrd. Lira im Jahr.
-                  </span>
-                )}
-                {aktiv && vorschauBlock}
-              </li>
-            );
-          })}
-        </ul>
-
-      </section>
+      </details>
 
       <section className="wi-karte">
-        <p className="kicker">Bisherige Änderungen</p>
-        <h3>Was Sie beschlossen haben</h3>
+        <p className="kicker">{t("haushalt.ui.bisher.kicker")}</p>
+        <h3>{t("haushalt.ui.bisher.titel")}</h3>
         {z.aenderungen.length === 0 ? (
-          <p className="wi-hinweis">Noch keine Änderung am Haushalt.</p>
+          <p className="wi-hinweis">{t("haushalt.ui.bisher.leer")}</p>
         ) : (
           <ul className="wi-sitzungen">
             {[...z.aenderungen].reverse().map((a, i) => (
@@ -463,7 +510,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
                 </button>
                 {offen === i && (
                   <div className="wi-sitzung-text">
-                    <h4>Was danach kommt</h4>
+                    <h4>{t("haushalt.ui.vorschau.danach")}</h4>
                     <ul>
                       {a.folgen.map((f, n) => (
                         <li key={n}>{f}</li>

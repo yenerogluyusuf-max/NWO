@@ -136,3 +136,17 @@ html:not([data-effekte="aus"]) .atlas-labels .marke.marke-frist .ort-form { anim
 .atlas-labels .ort.ort-mega:focus-visible {
   filter: drop-shadow(0 0 10px rgba(245, 195, 80, 0.95)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
 }
+
+/* Vorkommen (Punkt) und strategische Orte (Raute) der Linsen „Ressourcen“ und „Strategische Orte“: klein und unter den Städten,
+   damit Städte sichtbar und klickbar bleiben; farbig mit dunklem Ring, damit man sie nicht für Stadtpunkte hält. Die Tafel erklärt sie. */
+.atlas-labels .fund { position: absolute; left: 0; top: 0; will-change: transform; width: 20px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+.fund-zeichen { display: block; width: 11px; height: 11px; border-radius: 50%; background: var(--fund); border: 2px solid #2a1f18; box-shadow: 0 0 0 1.5px #f6efdc, 0 1px 3px rgba(0, 0, 0, 0.45); box-sizing: border-box; }
+.fund-r2 .fund-zeichen { width: 13px; height: 13px; }
+.fund-r3 .fund-zeichen { width: 16px; height: 16px; }
+.fund-raute .fund-zeichen { border-radius: 2px; rotate: 45deg; }
+.fund-raute.fund-r3 .fund-zeichen { width: 14px; height: 14px; }
+.atlas-labels .fund:hover, .atlas-labels .fund:focus-visible { z-index: 30; }
+.atlas-labels .fund:hover .fund-zeichen, .atlas-labels .fund:focus-visible .fund-zeichen { box-shadow: 0 0 0 2.5px #f6efdc, 0 0 0 4px #2a1f18; }
+.atlas-labels .fund:hover .ort-tafel, .atlas-labels .fund:focus-visible .ort-tafel { display: grid; gap: 2px; }
+.atlas-labels .fund:not([data-tafel]) .ort-tafel { bottom: calc(100% + 11px); left: 50%; translate: -50% 0; }
+.mz.fund-muster { width: 26px; height: 26px; }

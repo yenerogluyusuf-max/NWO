@@ -1,0 +1,63 @@
+/* Vorgangsblatt und Vorgangsliste (ui/vorgang/VorgangBlatt.tsx, ui/akte/Vorgaenge.tsx) */
+.vg-reiter { display: grid; grid-template-columns: minmax(180px, 240px) 1fr; gap: 14px; align-items: start; }
+@media (max-width: 720px) { .vg-reiter { grid-template-columns: 1fr; } }
+.vg-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.vg-eintrag { width: 100%; text-align: left; display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line, rgba(0,0,0,.15)); background: transparent; color: inherit; border-radius: 4px; cursor: pointer; font: inherit; }
+.vg-eintrag.an { border-color: var(--brass, #a8823a); background: rgba(168,130,58,.08); }
+.vg-eintrag span { font-size: .85em; opacity: .8; }
+.vg-marke { font-style: normal; font-size: .75em; color: var(--warn, #a4472b); font-weight: 600; }
+.vg-balken { display: block; height: 3px; background: rgba(0,0,0,.1); margin-top: 4px; }
+.vg-balken s { display: block; height: 100%; background: var(--brass, #a8823a); text-decoration: none; }
+.vg-blatt { display: grid; gap: 14px; }
+.vg-kopf { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.vg-kopf h3 { margin: 0; }
+.vg-kicker { margin: 0; font-size: .75em; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.vg-unter { margin: 2px 0 0; opacity: .85; }
+.vg-stempel { border: 2px solid var(--warn, #a4472b); color: var(--warn, #a4472b); padding: 2px 8px; transform: rotate(-4deg); font-weight: 700; }
+.vg-entscheidung { border-left: 3px solid var(--brass, #a8823a); padding: 8px 12px; background: rgba(168,130,58,.06); }
+.vg-entscheidung h4 { margin: 0 0 4px; }
+.vg-frist { margin: 0 0 8px; font-size: .85em; opacity: .8; }
+.vg-satz { display: grid; gap: 4px; margin-bottom: 8px; font-size: .9em; }
+.vg-satz input { font: inherit; padding: 4px 6px; }
+.vg-wege { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.vg-weg { display: grid; gap: 4px; text-align: left; padding: 8px; border: 1px solid var(--line, rgba(0,0,0,.2)); background: transparent; color: inherit; border-radius: 4px; cursor: pointer; font: inherit; }
+.vg-weg:disabled { opacity: .45; cursor: not-allowed; }
+.vg-weg span { font-size: .85em; }
+.vg-weg i { font-size: .8em; opacity: .75; }
+.vg-meldung { margin: 8px 0 0; font-weight: 600; }
+.vg-zeitstrahl { list-style: none; display: flex; flex-wrap: wrap; gap: 0; margin: 0; padding: 0; }
+.vg-zeitstrahl li { flex: 1 1 90px; display: grid; justify-items: center; gap: 4px; font-size: .8em; position: relative; padding-top: 2px; }
+.vg-zeitstrahl li::before { content: ""; position: absolute; top: 8px; left: 0; right: 0; height: 2px; background: rgba(0,0,0,.15); z-index: 0; }
+.vg-zeitstrahl li.fertig::before, .vg-zeitstrahl li.jetzt::before { background: var(--brass, #a8823a); }
+.vg-punkt { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--brass, #a8823a); background: var(--paper, #f6f1e6); z-index: 1; }
+.vg-zeitstrahl li.fertig .vg-punkt { background: var(--brass, #a8823a); }
+.vg-zeitstrahl li.jetzt .vg-punkt { box-shadow: 0 0 0 3px rgba(168,130,58,.3); }
+.vg-zeitstrahl li.offen { opacity: .6; }
+.vg-raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.vg-raster h4, .vg-rechenschaft h4 { margin: 0 0 6px; }
+.vg-personen { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.vg-personen li { display: flex; gap: 10px; align-items: center; }
+.vg-personen li div, .vg-person-text { display: grid; }
+.vg-personen span { font-size: .85em; opacity: .8; }
+.vg-modell { margin: 0; font-size: .75em; text-transform: uppercase; letter-spacing: .05em; opacity: .7; }
+.vg-begruendung { margin: 6px 0 0; padding-left: 10px; border-left: 2px solid rgba(0,0,0,.2); font-style: italic; }
+.vg-rechenschaft table { border-collapse: collapse; width: 100%; max-width: 520px; font-variant-numeric: tabular-nums; }
+.vg-rechenschaft th, .vg-rechenschaft td { text-align: left; padding: 4px 8px; border-bottom: 1px solid rgba(0,0,0,.1); }
+.vg-rechenschaft td { text-align: right; }
+.vg-rechenschaft em { font-style: normal; font-size: .75em; opacity: .7; margin-left: 4px; }
+.vg-zuordnung { font-weight: 600; }
+.vg-rechenschaft h5 { margin: 10px 0 4px; }
+.vg-chronik ul { margin: 6px 0 0; padding-left: 18px; font-size: .9em; }
+.vg-chronik time { opacity: .7; margin-right: 4px; }
+.vg-gegen { display: flex; gap: 12px; align-items: center; margin: 4px 0 10px; }
+.vg-gegen blockquote { margin: 0; font-style: italic; }
+.vg-gegen cite { display: block; font-style: normal; font-size: .8em; opacity: .75; margin-top: 2px; }
+.vg-wappen { flex: none; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6em; font-weight: 700; border: 2px solid var(--brass, #a8823a); color: var(--brass, #a8823a); }
+.vg-zeitstrahl li small { font-size: .85em; opacity: .65; }
+.vg-zeitstrahl li.moment .vg-punkt { width: 18px; height: 18px; margin-top: -2px; }
+.vg-fortschritt { display: block; width: 70%; height: 3px; background: rgba(0,0,0,.1); }
+.vg-fortschritt s { display: block; height: 100%; background: var(--brass, #a8823a); text-decoration: none; }
+.vg-laeuft { margin: 0; font-style: italic; opacity: .85; }
+.vg-urteil { font-size: 1.25em; font-weight: 700; margin: 0 0 4px; }
+.vg-drei { margin: 0 0 8px; padding-left: 18px; }
+.vg-details summary { cursor: pointer; font-size: .9em; }

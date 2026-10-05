@@ -111,7 +111,7 @@ export interface LandEigen {
 }
 
 /** Eine verdeckte Operation des Dienstes oder eines fremden Dienstes gegen die Türkei (sim/welt-dienst.ts). */
-export type OpArt = "kandidat" | "desinfo" | "netz" | "cyber" | "gegen";
+export type OpArt = "kandidat" | "desinfo" | "netz" | "cyber" | "gegen" | "gruppen" | "cyberangriff";
 export interface Operation {
   id: number;
   art: OpArt;
@@ -152,6 +152,12 @@ export interface DienstZustand {
   /** Lagebild aus der Aufklärung: Tag und Wahrscheinlichkeit, dass die Amtsführung die nächste Wahl gewinnt */
   lagebild: Record<string, { tag: number; pAmtsfuehrung: number }>;
   zaehler: number;
+  /** Operationen im Inland (sim/welt-dienst.ts); ältere Spielstände haben das Feld nicht */
+  inland?: { id: number; art: string; start: number; ende: number }[];
+  /** Lagebild im Inland: Tag, Putschrisiko und Terrorgefahr zum Zeitpunkt der Aufklärung */
+  inlandLage?: { tag: number; putsch: number; terror: number };
+  /** Personenschutz des Präsidenten verstärkt bis zu diesem Tag */
+  schutzBis?: number;
 }
 
 export interface WeltModell {

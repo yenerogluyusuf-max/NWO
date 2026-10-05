@@ -18,6 +18,9 @@ import type { UmlaufEintrag } from "../autostopp";
 import "../politik/design.css";
 import "./schreibtisch.css";
 import { DreiFragen } from "./DreiFragen";
+import { offenerKonflikt, vorgaenge } from "../../sim/vorgaenge";
+import { PROVINZEN } from "../../sim/regional";
+import { t } from "../../i18n";
 
 const TREND: Record<Kennzahl["trend"], string> = { auf: "▲", ab: "▼", gleich: "" };
 
@@ -31,6 +34,7 @@ export function Schreibtisch({
   umlauf,
   onKarte,
   onPosteingang,
+  onVorgang,
 }: {
   world: World;
   refresh: () => void;
@@ -40,6 +44,8 @@ export function Schreibtisch({
   onKarte?: (problemId?: string) => void;
   /** Öffnet den Posteingang der Minister; ohne Angabe öffnet sich der Ministerrat */
   onPosteingang?: () => void;
+  /** Öffnet einen Vorgang in der Land-Akte (Reiter „Vorgänge“) */
+  onVorgang?: (id: string) => void;
 }) {
   const spiel = world.spiel;
   const [notiz, setNotiz] = useState<number | null>(null);
@@ -88,6 +94,12 @@ export function Schreibtisch({
   ]
     .sort((a, c) => a.tage - c.tage)
     .slice(0, 5);
+
+  // Laufende Vorgänge: wartende Entscheidungen zuerst, höchstens drei
+  const laufendeVorgaenge = vorgaenge(world)
+    .filter((v) => v.schritt !== "abgeschlossen" && v.schritt !== "aufgegeben")
+    .sort((a, c) => Number(!!offenerKonflikt(c)) - Number(!!offenerKonflikt(a)) || c.beschluss - a.beschluss)
+    .slice(0, 3);
 
   const [erste, ...weitereNotizen] = notizen;
   const warnungen = b.warnungen.slice(0, 2);
@@ -185,6 +197,22 @@ export function Schreibtisch({
               </ul>
             )}
           </section>
+
+          {onVorgang && laufendeVorgaenge.length > 0 && (
+            <section className="sk-block">
+              <h4>{t("vorgang.sprung.titel")}</h4>
+              <ul className="sk-termine">
+                {laufendeVorgaenge.map((v) => (
+                  <li key={v.id}>
+                    <button className={`sk-termin${offenerKonflikt(v) ? " dringend" : ""}`} onClick={() => onVorgang(v.id)} title={t("vorgang.sprung.zum")}>
+                      <span className="sk-datum">{offenerKonflikt(v) ? t("vorgang.ui.entscheiden") : t(`vorgang.ui.schritt.${v.schritt}`)}</span>
+                      <span>{t("vorgang.ui.titel", { ort: PROVINZEN[v.plaka - 1]?.name ?? String(v.plaka) })}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {warnungen.length > 0 && (
             <section className="sk-block">

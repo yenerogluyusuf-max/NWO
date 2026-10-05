@@ -56,3 +56,56 @@ export const PLAN_2026 = {
 
 /** Der Durchschnittszins auf die Schuld beim Start: Zinsausgaben (3,5 % des BIP) geteilt durch die Schuldenquote (23,8 % des BIP). */
 export const ZINSSATZ_START = (PLAN_2026.zinsenProzentBip / 23.8) * 100;
+
+// ---------------------------------------------------------------------------
+// Ressortetats (Haushalt wie in Democracy: ein Regler je Ressort). Das Haushaltsgesetz 2026 liegt hier nur nach ökonomischen Arten vor
+// (Personal, Übertragungen, Investitionen …), nicht nach Aufgaben. Wo sich ein Startanteil aus diesen Zeilen ableiten lässt, steht
+// „abgeleitet“; alle übrigen Startanteile, Schrittweiten, Spannen und Reifezeiten sind Spielparameter (zu prüfen gegen die funktionale
+// Gliederung, TÜİK COFOG / Muhasebat „fonksiyonel sınıflandırma“). Ein Etat steht in Prozent des BIP und gleicht die Inflation so von selbst aus.
+
+export interface RessortDaten {
+  id: string;
+  /** Etat beim Start in % des BIP */
+  startBip: number;
+  /** % des BIP je Reglerstufe; negativ, wenn eine höhere Stufe Ausgaben spart (Renteneintrittsalter) */
+  schritt: number;
+  /** Spanne des Reglers in Stufen (0 = Haushaltsgesetz 2026) */
+  min: number;
+  max: number;
+  /** Monate, bis eine Änderung voll wirkt (Ausbildung, Bau, Beschaffung); Spielparameter */
+  reifeMonate: number;
+  beleg: string;
+}
+
+const SPIEL = "Spielparameter, zu prüfen (funktionale Gliederung des Haushalts, TÜİK COFOG)";
+
+export const RESSORTS_2026: RessortDaten[] = [
+  { id: "rentenniveau", startBip: Math.round((2329 / PLAN_2026.mrdProProzentBip) * 10) / 10, schritt: 0.2, min: -5, max: 5, reifeMonate: 2, beleg: "abgeleitet: SGK-Zuschuss 2.329 Mrd. Lira im Haushaltsgesetz 2026 (Tez-Koop-İş); Stufenkosten Spielparameter" },
+  { id: "rentenalter", startBip: 0, schritt: -0.15, min: -3, max: 5, reifeMonate: 12, beleg: "Spielparameter; Gesetz Nr. 5510 hebt das Regelalter bis 2048 stufenweise auf 65 (zu prüfen)" },
+  { id: "sozialhilfe", startBip: 1, schritt: 0.2, min: -4, max: 8, reifeMonate: 3, beleg: SPIEL },
+  { id: "gesundheit", startBip: 1, schritt: 0.2, min: -4, max: 8, reifeMonate: 12, beleg: SPIEL },
+  { id: "bildung", startBip: 3, schritt: 0.2, min: -4, max: 10, reifeMonate: 36, beleg: SPIEL },
+  { id: "forschung", startBip: 0.4, schritt: 0.1, min: -3, max: 12, reifeMonate: 24, beleg: SPIEL },
+  { id: "verteidigung", startBip: 1.9, schritt: 0.2, min: -4, max: 12, reifeMonate: 12, beleg: SPIEL },
+  { id: "innere_sicherheit", startBip: 1, schritt: 0.1, min: -4, max: 8, reifeMonate: 6, beleg: SPIEL },
+  { id: "investitionen", startBip: Math.round((1312 / PLAN_2026.mrdProProzentBip) * 10) / 10, schritt: 0.4, min: -3, max: 6, reifeMonate: 9, beleg: "abgeleitet: Investitionsausgaben 1.312 Mrd. Lira im Haushaltsgesetz 2026 (Forbes Türkiye)" },
+  { id: "wohnen", startBip: 0.3, schritt: 0.1, min: -3, max: 8, reifeMonate: 18, beleg: SPIEL },
+  { id: "landwirtschaft", startBip: 0.5, schritt: 0.1, min: -4, max: 6, reifeMonate: 12, beleg: SPIEL },
+  { id: "umwelt_energie", startBip: 0.3, schritt: 0.1, min: -3, max: 8, reifeMonate: 24, beleg: SPIEL },
+  { id: "kultur", startBip: 0.2, schritt: 0.05, min: -3, max: 6, reifeMonate: 6, beleg: SPIEL },
+  { id: "personal", startBip: Math.round((5507 / PLAN_2026.mrdProProzentBip) * 10) / 10, schritt: 0.4, min: -4, max: 4, reifeMonate: 1, beleg: "abgeleitet: Personalausgaben 5.507 Mrd. Lira im Haushaltsgesetz 2026 (Forbes Türkiye); überschneidet sich mit den Fachressorts" },
+  { id: "subventionen", startBip: 0.8, schritt: 0.4, min: -2, max: 4, reifeMonate: 1, beleg: SPIEL },
+];
+
+export const RESSORT_NACH_ID: Record<string, RessortDaten> = Object.fromEntries(RESSORTS_2026.map((r) => [r.id, r]));
+
+/** Renten wie in Democracy: zwei Stellgrößen mit eigener Einheit. Startwerte sind Spielparameter (zu prüfen: OECD Pensions at a Glance, Gesetz Nr. 5510). */
+export const RENTE_START = {
+  /** Bruttorente in % des Durchschnittslohns */
+  niveauProzent: 60,
+  /** Prozentpunkte je Stufe */
+  niveauJeStufe: 2,
+  /** Durchschnittliches tatsächliches Renteneintrittsalter in Jahren */
+  alterJahre: 60,
+  alterJeStufe: 1,
+} as const;

@@ -28,6 +28,7 @@ import { betroffene } from "./wege";
 import { brecheFrei, loeseEin, vertroesteFrei, zusageVorhaben, zusagenSicht } from "./zusagen";
 import { AEMTER, eigenVon, figurNachId, grollVerschieben, HOCH_SCHLECHT, loyalitaetVerschieben, merke, nf, schlechtesteGroesse, sorgeText } from "./personen";
 import { addLog } from "./log";
+import { fuehreAus as fuehreInfraAus, infrastrukturBitte } from "./infrastruktur";
 import { befehleMonat, erteileBefehl } from "./minister-befehle";
 import { nutzenVorschau, zielGroessenVon } from "./ministerfluss-vorschau";
 import { KABINETT_AMT, amtBesetzt, flussZustand, kappeRecord, ministerFuer, ministerInfo, ressortFuerMassnahme, stabilerWert } from "./ministerfluss-kern";
@@ -379,6 +380,12 @@ function problemQuelle(w: World, n: number): Roh[] {
   return out;
 }
 
+/** Bitte bei Überlast eines Netzes (sim/infrastruktur.ts): höchstens eine je Monat, ausbauen, Alternative oder nichts tun. */
+function infrastrukturQuelle(w: World): Roh[] {
+  const b = infrastrukturBitte(w);
+  return b ? [basis(w, { ...b, art: "frage", quelle: "lage" })] : [];
+}
+
 function lageQuelle(w: World): Roh[] {
   const sp = w.spiel!;
   const out: Roh[] = [];
@@ -560,7 +567,7 @@ export interface VorlagenOptionen {
 function sammle(w: World, opt: VorlagenOptionen): Roh[] {
   if (!w.spiel || w.spiel.ende) return [];
   const z = flussZustand(w);
-  const alle: Roh[] = [...ereignisQuelle(w), ...kabinettQuelle(w), ...zusagenQuelle(w), ...personenQuelle(w, z), ...rueckmeldungenQuelle(w, z), ...problemQuelle(w, opt.probleme ?? 8), ...lageQuelle(w)];
+  const alle: Roh[] = [...ereignisQuelle(w), ...kabinettQuelle(w), ...zusagenQuelle(w), ...personenQuelle(w, z), ...rueckmeldungenQuelle(w, z), ...problemQuelle(w, opt.probleme ?? 8), ...lageQuelle(w), ...infrastrukturQuelle(w)];
   if (opt.ungefiltert) return alle;
   return alle.filter((v) => {
     if (z.erledigt[v.id]) return false;
@@ -683,6 +690,8 @@ function ausfuehren(w: World, a: OptionAktion): VorlagenAntwort {
     }
     case "befehl":
       return erteileBefehl(w, a.entwurf);
+    case "infrastruktur":
+      return fuehreInfraAus(w, a);
     case "kenntnis":
       return { ok: true, text: "Zur Kenntnis genommen." };
     case "spaeter":

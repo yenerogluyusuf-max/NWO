@@ -37,7 +37,32 @@ export function MarkenZeichen({ art, icon }: { art: MarkenArt; icon?: "kuppel" |
   );
 }
 
-export function MarkenLegende({ className }: { className?: string }) {
+/** Zeilen für die Marken der Linsen „Ressourcen“ und „Strategische Orte“ (kleine Punkte und Rauten unter den Städten) */
+function FundZeilen({ fund }: { fund: "ressourcen" | "strategie" }) {
+  const zeilen =
+    fund === "ressourcen"
+      ? [
+          { k: "fund-punkt fund-r3", farbe: "rgb(184,134,52)", text: t("fundorte.legende.vorkommen") },
+        ]
+      : [
+          { k: "fund-raute fund-r3", farbe: "rgb(150,44,36)", text: t("fundorte.legende.eigen") },
+          { k: "fund-raute fund-r3", farbe: "rgb(70,62,96)", text: t("fundorte.legende.fremd") },
+        ];
+  return (
+    <>
+      {zeilen.map((z) => (
+        <li key={z.text}>
+          <span className={`mz fund-muster ${z.k}`} style={{ "--fund": z.farbe } as React.CSSProperties} aria-hidden>
+            <i className="fund-zeichen" />
+          </span>
+          <span>{z.text}</span>
+        </li>
+      ))}
+    </>
+  );
+}
+
+export function MarkenLegende({ className, fund }: { className?: string; fund?: "ressourcen" | "strategie" | undefined }) {
   const [offen, setOffen] = useState(lesen);
   const umschalten = () => {
     const n = !offen;
@@ -57,6 +82,7 @@ export function MarkenLegende({ className }: { className?: string }) {
       {offen && (
         <>
           <ul className="marken-legende-liste">
+            {fund && <FundZeilen fund={fund} />}
             {ZEILEN.map((z) => (
               <li key={z.art}>
                 <MarkenZeichen art={z.art} {...(z.icon ? { icon: z.icon } : {})} />

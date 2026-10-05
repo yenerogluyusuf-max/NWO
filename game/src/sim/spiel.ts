@@ -4,12 +4,14 @@
 // Alle Zahlen sind Platzhalter der Kalibrierung.
 
 import { reichMonat } from "./reich";
+import { infrastrukturMonat } from "./infrastruktur";
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES } from "./netz";
 import { addLog } from "./log";
 import { addDays, dayOfMonth, formatDateDe } from "./dates";
 import { clamp } from "./economy";
 import { aussenweltMonat, aussenweltStart } from "./aussenwelt";
+import { gueterMonat } from "./gueter";
 import { ereignisMonat, ereignisTag, MAX_OFFEN, oeffne } from "./ereignisse";
 import { verhandlungMonat } from "./verhandeln";
 import { programmTag } from "./programme";
@@ -338,11 +340,15 @@ function spielMonat(world: World, rng: Rng): void {
   euMonat(world, rng);
   kriegMonat(world, rng);
   reichMonat(world, rng);
+  // Netze mit Auslastung (sim/infrastruktur.ts): fertige Ausbauten, Nachfrage, Überlast, die Bitte des Monats
+  infrastrukturMonat(world);
   // Katastrophen (INF-5): Risiko-Layer würfelt je Zone; Hilfskette und Lieferfortschritt laufen
   katastropheMonat(world, rng);
 
   // Eigeninitiative der Länder (AUS-1) läuft über ihre Vorlagen im Ereignis-Wettbewerb (sim/ereignisse.ts)
   aussenweltMonat(world, rng);
+  // Güterbilanz: Lager decken Einfuhrausfälle, Fehlmengen wirken auf Preise und Versorgung
+  gueterMonat(world);
   ereignisMonat(world, rng);
 
   // Umfrage: zieht zum Sollwert, träge. Der interne Wert bleibt die Wahrheit des Spiels

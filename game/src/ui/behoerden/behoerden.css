@@ -1,0 +1,84 @@
+/* Behörden-Ausbau und MİT: Akten-Hülle, Stufenbalken, Netzkarte. Farben aus den Akten (Papier, Oxblood, Messing). */
+
+.bh-instrument-block { margin-top: 18px; }
+.bh-untertitel { margin: 0 0 12px; font: italic 14px/1.45 var(--serif, "EB Garamond", serif); color: var(--ink-soft, #5a4a38); max-width: 64ch; }
+
+.bh-liste { display: grid; gap: 14px; }
+.bh-karte { border: 1px solid rgba(90, 64, 40, 0.22); border-top: 3px solid #8a7a64; border-radius: 4px; background: rgba(255, 252, 244, 0.7); padding: 14px 16px; color: var(--ink, #2b1e12); }
+.bh-kopf { display: flex; gap: 14px; align-items: flex-start; }
+.bh-kopf h4 { margin: 0; font: 600 19px/1.2 var(--display, Fraunces, serif); }
+.bh-leitung { display: block; font: 12px/1.3 var(--sans, Inter, sans-serif); color: #6b5a44; margin-top: 2px; }
+.bh-zweck { margin: 6px 0 0; font: 14px/1.45 var(--serif, "EB Garamond", serif); max-width: 62ch; }
+
+.bh-rueck { margin: 10px 0 0; padding: 8px 10px; border-radius: 3px; font: 14px/1.4 var(--serif, "EB Garamond", serif); background: rgba(63, 107, 75, 0.12); border-left: 3px solid #3f6b4b; }
+.bh-rueck.nein { background: rgba(140, 43, 31, 0.1); border-left-color: #8c2b1f; }
+.bh-rueck em { color: #6b5a44; font-style: italic; }
+
+.bh-achsen { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
+.bh-achse { border: 1px solid rgba(90, 64, 40, 0.16); border-radius: 3px; padding: 10px; background: rgba(255, 255, 250, 0.6); }
+.bh-achse.laeuft { border-style: dashed; border-color: #b98a34; }
+.bh-achse-kopf { display: flex; justify-content: space-between; align-items: baseline; }
+.bh-achse-kopf b { font: 600 15px var(--serif, "EB Garamond", serif); }
+.bh-achse-kopf span { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
+
+.bh-balken { display: flex; gap: 3px; margin: 7px 0; }
+.bh-stufe { flex: 1; height: 9px; border-radius: 2px; background: rgba(90, 64, 40, 0.14); border: 1px solid transparent; }
+.bh-stufe.an { background: #8c2b1f; }
+.bh-stufe.bau { background: repeating-linear-gradient(45deg, #b98a34, #b98a34 3px, transparent 3px, transparent 6px); }
+.bh-stufe.heute { border-color: #2b1e12; }
+
+.bh-wirkung { margin: 0 0 8px; font: 13px/1.4 var(--serif, "EB Garamond", serif); color: #4a3a28; min-height: 2.6em; }
+.bh-achse-fuss { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bh-preis { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
+.bh-hinweis { font: italic 12px/1.3 var(--sans, Inter, sans-serif); color: #8c2b1f; }
+.bh-kuerz { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
+
+.bh-fuss { margin-top: 12px; display: grid; gap: 10px; }
+.bh-unterhalt { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
+.bh-etat { display: block; font: 12px var(--sans, Inter, sans-serif); color: #4f5f3a; margin-bottom: 4px; }
+.bh-etat.knapp { color: #8a3b2a; }
+.bh-instrument { border-top: 1px dotted rgba(90, 64, 40, 0.3); padding-top: 10px; }
+.bh-instrument b { font: 600 14px var(--serif, "EB Garamond", serif); }
+.bh-instrument p { margin: 4px 0 8px; font: 13px/1.4 var(--serif, "EB Garamond", serif); }
+
+/* MİT */
+.mit-ansicht { display: grid; gap: 14px; }
+.mit-lage-zeile { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.mit-lagebalken { display: grid; gap: 4px; }
+.mit-lagebalken span { display: flex; justify-content: space-between; gap: 8px; font: 600 12px var(--sans, Inter, sans-serif); letter-spacing: 0.04em; text-transform: uppercase; color: #6b5a44; }
+.mit-lagebalken span em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--ink, #2b1e12); }
+.mit-lagebalken i { height: 10px; border-radius: 3px; background: rgba(90, 64, 40, 0.14); position: relative; overflow: hidden; }
+.mit-lagebalken i::after { content: ""; position: absolute; inset: 0; width: var(--w, 0%); background: #3f6b4b; }
+
+.mit-netzkarte h4, .mit-inland h4, .mit-laufend-aussen h4, .mit-bericht h4 { margin: 0 0 8px; font: 600 13px var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: #8c2b1f; }
+.mit-netze { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mit-netze li { display: flex; align-items: center; gap: 8px; font: 14px var(--serif, "EB Garamond", serif); }
+.mit-netz-balken { display: inline-flex; gap: 2px; margin-left: auto; }
+.mit-netz-balken i { width: 9px; height: 9px; border-radius: 2px; background: rgba(90, 64, 40, 0.16); }
+.mit-netz-balken i.an { background: #8c2b1f; }
+.mit-netze em { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; min-width: 7em; text-align: right; }
+
+.mit-inland-lage { margin: 0 0 8px; padding: 8px 10px; border-left: 3px solid #b98a34; background: rgba(185, 138, 52, 0.1); font: 14px/1.4 var(--serif, "EB Garamond", serif); }
+.mit-inland-ops { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.mit-inland-ops li { border: 1px solid rgba(90, 64, 40, 0.16); border-radius: 3px; padding: 10px; }
+.mit-inland-ops li.gesperrt { opacity: 0.6; }
+.mit-inland-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.mit-inland-kopf strong { font: 600 15px var(--serif, "EB Garamond", serif); }
+.mit-inland-ops p { margin: 4px 0 8px; font: 13px/1.4 var(--serif, "EB Garamond", serif); }
+.mit-leck { font: 12px var(--sans, Inter, sans-serif); color: #8c2b1f; }
+
+.mit-laufend { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 5px; font: 14px var(--serif, "EB Garamond", serif); }
+.mit-laufend li { display: flex; align-items: center; gap: 7px; }
+
+.mit-bericht ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mit-bericht li { padding-left: 10px; border-left: 3px solid rgba(90, 64, 40, 0.3); font: 13px/1.4 var(--serif, "EB Garamond", serif); }
+.mit-bericht li.ausgang-erfolg { border-left-color: #3f6b4b; }
+.mit-bericht li.ausgang-aufgedeckt { border-left-color: #8c2b1f; }
+.mit-bericht li.ausgang-fehlschlag { border-left-color: #b98a34; }
+.mit-bericht strong { font-weight: 600; }
+.mit-datum { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
+
+@media (max-width: 560px) {
+  .bh-kopf { flex-direction: column; }
+  .bh-achsen { grid-template-columns: 1fr; }
+}

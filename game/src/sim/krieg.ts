@@ -43,6 +43,8 @@ import { VERFASSUNG, AUFMERKSAMKEIT_KOSTEN, belastungEreignis, neuanfangGrund, v
 import { Rng } from "./rng";
 import type { World } from "./types";
 import { t } from "../i18n";
+import { bestandsFaktor, streitkraefteMonat } from "./streitkraefte";
+import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte";
 import type { FriedensPaket, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
 
 /** Spielparameter, keine Tatsachen: alle Schwellen, Kosten und Faktoren des Konfliktvorgangs (Kalibrierung). */
@@ -275,7 +277,8 @@ export function eigenStaerke(w: World, k: KriegVorgang): number {
   const mob = ([0.55, 0.85, 1.08] as const)[k.mobilmachung] + (k.bereit ? 0.06 : 0);
   const nachschub = clamp(0.72 + 0.0035 * (knotenWert(w, "logistik") - 50) + 0.0025 * (knotenWert(w, "export") - 50), 0.6, 1.1);
   const allianz = 1 + koalitionsFaktoren(w, k).eigenPlus;
-  return b * moral * dok * mob * nachschub * allianz;
+  // Bestand und Technik der Streitkräfte (sim/streitkraefte.ts; 1 = Stand 2026)
+  return b * moral * dok * mob * nachschub * allianz * bestandsFaktor(w);
 }
 
 /** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit) und mit seinen Koalitionspartnern. */
@@ -283,7 +286,9 @@ export function gegnerStaerke(w: World, landId: string): number {
   const l = land(landId);
   const k = kriegMit(w, landId);
   const basis = GEGNER_STAERKE[landId] ?? GEGNER_GRUPPE[l.gruppe] ?? 50;
-  return basis + (k ? k.eskalation * 0.08 + koalitionsFaktoren(w, k).gegnerPlus : 0);
+  // Der Zielraum bestimmt, wie viel Gegenwehr das Ziel kostet (Grenzstreifen leichter als ein tiefer Vorstoß)
+  const ziel = k ? zielraumVon(k) : STANDARD_ZIEL;
+  return (basis + (k ? k.eskalation * 0.08 + koalitionsFaktoren(w, k).gegnerPlus : 0)) * ziel.schwierigkeit;
 }
 
 /** Wie gut das Lagebild über den Gegner ist (LERNKONZEPT: ehrlich über Unsicherheit). */
@@ -886,6 +891,12 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     landAendern(w, k.land, { konflikt: 25, vertrauen: -10 }, t("wort.krieg.grund_pufferzone"));
     teile.push(t("wort.krieg.teil_pufferzone", { ansehen }));
     if (k.rahmung !== "verteidigung") basis += 3;
+    // Ein bedeutender Zielraum zählt innen mehr und kostet außen mehr (Bedeutung 1 bis 3, Standard 2)
+    const bed = zielraumVon(k).bedeutung - 2;
+    if (bed !== 0) {
+      wirke(w, "nationalisten", 2 * bed);
+      wirke(w, "ansehen", -1.5 * bed);
+    }
   }
   if (p.gebiet === -1) {
     wirke(w, "offiziersvertrauen", -15);
@@ -1091,6 +1102,7 @@ export function kriegTag(w: World, rng: Rng): void {
 export function kriegMonat(w: World, rng: Rng): void {
   const spiel = w.spiel;
   if (!spiel || spiel.ende) return;
+  streitkraefteMonat(w, aktiveKriege(w).some((k) => k.phase === "krieg"));
   // Demobilisierungs-Rechnung (Vic3: 90 Tage Auslauf mit laufenden Kosten)
   for (const k of kriege(w)) {
     if (k.demobBis !== undefined && w.day < k.demobBis) {
@@ -1130,4 +1142,36 @@ export function kriegMonat(w: World, rng: Rng): void {
     addLog(w, "ereignis", `Spannung mit ${l.name}: Der Konflikt wird zum Vorgang.`, "Das Dossier steht in der Welt-Ansicht beim Land; jede Handlung hat dort ihren Preis.");
     void rng;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Zielräume (Vorstufe der Regionen)
+
+/** Die Zielräume für ein Land; ohne Eintrag gibt es nur das allgemeine Ziel. */
+export function zielraeumeFuer(landId: string): Zielraum[] {
+  return ZIELRAEUME.filter((z) => z.land === landId);
+}
+
+/** Schwierigkeit und Bedeutung des gewählten Zielraums (Standard, wenn keiner gewählt ist). */
+export function zielraumVon(k: KriegVorgang): { schwierigkeit: number; bedeutung: number } {
+  const z = k.zielraum ? ZIELRAEUME.find((x) => x.id === k.zielraum) : undefined;
+  return z ?? STANDARD_ZIEL;
+}
+
+/** Den Zielraum festlegen: nur vor dem Waffengang und nach Ausrufen eines Kriegsziels sinnvoll; danach nur ein Wechsel mit Preis. */
+export function waehleZielraum(w: World, kriegId: string, zielId: string): Ergebnis {
+  const k = kriegZu(w, kriegId);
+  const z = ZIELRAEUME.find((x) => x.id === zielId);
+  if (!k || !z || z.land !== k.land) return { ok: false, text: t("militaer.ziel.ungueltig") };
+  if (k.phase === "frieden" || k.phase === "beendet") return { ok: false, text: t("militaer.ziel.vorbei") };
+  const wechsel = !!k.zielraum && k.zielraum !== zielId && k.phase === "krieg";
+  if (wechsel) {
+    if (!kannZahlen(w.spiel!.kapital, 4)) return { ok: false, text: t("militaer.grund.kapital") };
+    w.spiel!.kapital -= 4;
+    wirke(w, "truppenmoral", -2);
+  }
+  k.zielraum = zielId;
+  const text = t(wechsel ? "militaer.ziel.gewechselt" : "militaer.ziel.gesetzt", { ziel: t(`militaer.zielraum.${zielId}`) });
+  addLog(w, "entscheidung", text);
+  return { ok: true, text };
 }

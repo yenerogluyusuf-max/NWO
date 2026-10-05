@@ -11,12 +11,13 @@ import { BerichtListe, PersonenListe, berichteFuer } from "../akte/Bausteine";
 import { Lage } from "./Lage";
 import { Zentralbank } from "./Zentralbank";
 import { Haushalt } from "./Haushalt";
+import { Inventar } from "../gueter/Inventar";
 import "../politik/design.css";
 import "./wirtschaft.css";
 
 /** Ältere Einstiege (Stage, Ereignisfenster, Mentorin) sprechen noch von diesen drei Zielen. */
 export type Reiter = "lage" | "zentralbank" | "haushalt";
-type Instrument = "zentralbank" | "haushalt";
+type Instrument = "zentralbank" | "haushalt" | "inventar";
 type ZbAbschnitt = "sitzung" | "gouverneur" | "stufe" | "devisen";
 
 const nf = (x: number, d = 1) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -75,7 +76,7 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onG
   const instrumente = () => (
     <div className="ak-instrumente">
       <nav className="ak-unterreiter" role="tablist" aria-label={t("akte.wirtschaft.instrumente")}>
-        {(["zentralbank", "haushalt"] as const).map((id) => (
+        {(["zentralbank", "haushalt", "inventar"] as const).map((id) => (
           <button
             key={id}
             type="button"
@@ -85,7 +86,7 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onG
             onClick={() => {
               setInstrument(id);
               if (id === "zentralbank") setAbschnitt(undefined);
-              else setWahl(undefined);
+              else if (id === "haushalt") setWahl(undefined);
             }}
           >
             <b>{t(`akte.wirtschaft.instrument.${id}`)}</b>
@@ -93,7 +94,7 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onG
           </button>
         ))}
       </nav>
-      {instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} />}
+      {instrument === "inventar" ? <Inventar world={world} geaendert={geaendert} /> : instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} />}
     </div>
   );
 
@@ -124,7 +125,7 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onG
             ),
           },
           { id: "personen", text: t("akte.wirtschaft.personenText"), inhalt: () => <PersonenListe w={world} aemter={["finanzen", "wirtschaft", "zentralbank"]} /> },
-          { id: "vorgaenge", inhalt: () => <VorgaengePlatz /> },
+          { id: "vorgaenge", inhalt: () => <VorgaengePlatz w={world} onGeaendert={onGeaendert} /> },
         ]}
       />
     </div>

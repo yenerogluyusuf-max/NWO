@@ -1,5 +1,7 @@
 // Zusagen: Wem etwas versprochen wurde, bis wann, wie weit es ist, was Halten und Brechen bedeuten, und Handlungen dazu.
 
+import { t } from "../../i18n";
+import { vorgangZuZusage } from "../../sim/vorgaenge";
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { addDays, formatDateDe } from "../../sim/dates";
@@ -21,7 +23,7 @@ function Medaille({ world, s }: { world: World; s: ZusageSicht }) {
   );
 }
 
-export function ZusagenAnsicht({ world, refresh, onMassnahme }: { world: World; refresh: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void }) {
+export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { world: World; refresh: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onVorgang?: (id: string) => void }) {
   const spiel = world.spiel!;
   const [antwort, setAntwort] = useState<(ZusageAntwort & { id: string }) | null>(null);
   const [wirklich, setWirklich] = useState<string | null>(null);
@@ -121,6 +123,11 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme }: { world: World; 
                 {s.z.massnahme && onMassnahme && (
                   <button className="pe-aktion" onClick={() => onMassnahme(s.z.massnahme!, (s.z.richtung ?? 1) > 0 ? 1 : -1)}>
                     Maßnahme ansehen
+                  </button>
+                )}
+                {onVorgang && vorgangZuZusage(world, s.z.id) && (
+                  <button className="pe-aktion" onClick={() => onVorgang(vorgangZuZusage(world, s.z.id)!.id)}>
+                    {t("vorgang.sprung.zum")}
                   </button>
                 )}
                 <button className="pe-aktion" disabled={!s.vertroesten?.moeglich} title={s.vertroesten?.text} onClick={() => tu(s.z.id, () => vertroesteFrei(world, s.z))}>

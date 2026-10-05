@@ -500,6 +500,8 @@ export interface SpielZustand {
   eskalation?: Record<string, number>;
   figuren: Figur[];
   zusagen: Zusage[];
+  /** Politische Vorgänge vom Versprechen bis zur Rechenschaft (sim/vorgaenge.ts); ältere Spielstände legen sie beim ersten Monat an */
+  vorgaenge?: import("./vorgaenge").Vorgang[];
   umfrage: Umfrage;
   /** Kennungen der gewählten Ziele */
   ziele: string[];
@@ -564,6 +566,12 @@ export interface SpielZustand {
   krisen?: AktiveKrise[];
   /** Konfliktvorgänge (MIL-1 „Krieg als Vorgang“); ältere Spielstände haben das Feld nicht — kein Krieg-Feld = kein Konflikt, es wird beim ersten Zugriff angelegt */
   kriege?: import("./krieg-typen").KriegVorgang[];
+  /** Bestand der Streitkräfte (sim/streitkraefte.ts); ältere Spielstände legen ihn passend zu ihren Bereitschaftswerten beim ersten Zugriff an */
+  streitkraefte?: import("./streitkraefte").StreitkraefteZustand;
+  /** Netze mit Kapazität und Auslastung (sim/infrastruktur.ts); ältere Spielstände legen sie beim ersten Zugriff an */
+  infrastruktur?: import("./infrastruktur").InfrastrukturZustand;
+  /** Ausbaustufen der Behörden (sim/behoerden.ts); ältere Spielstände legen sie beim ersten Zugriff mit den Startstufen an */
+  behoerden?: import("./behoerden").BehoerdenZustand;
   /** Der EU-Beitrittsvorgang (AUS-2); ältere Spielstände legen ihn beim ersten Zugriff an (sim/eu.ts) */
   eu?: import("./eu").EuZustand;
   /** Die Zeitung (UI-1): Archiv, Warteschlange und Badge-Zähler; ältere Spielstände legen es beim ersten Monatsschritt an (sim/zeitung.ts) */

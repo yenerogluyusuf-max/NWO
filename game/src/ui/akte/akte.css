@@ -43,3 +43,37 @@
 .ak-link { margin-top: 6px; padding: 0; border: 0; background: none; font: 13px var(--sans, Inter, sans-serif); color: #8c2b1f; text-decoration: underline; cursor: pointer; }
 .ak-leer { font: italic 14px var(--serif, "EB Garamond", serif); color: #6b5a44; }
 @media (max-width: 1100px) { .ak-kopf { grid-template-columns: 1fr; } .ak-kernwerte { justify-content: flex-start; } }
+/* Bereichsakten: Lage als Raster aus Kennzahlkarten, darunter kurze Listen */
+.ak-lage { display: grid; gap: 4px; }
+.ak-lage-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.ak-lagekarte { display: grid; gap: 4px; padding: 10px 14px; background: rgba(255, 252, 244, 0.85); border: 1px solid rgba(90, 64, 40, 0.22); border-top: 3px solid #8a7a64; border-radius: 4px; color: var(--ink, #2b1e12); }
+.ak-lagekarte.gut { border-top-color: #3f6b4b; }
+.ak-lagekarte.mittel { border-top-color: #b98a34; }
+.ak-lagekarte.schlecht { border-top-color: #8c2b1f; }
+.ak-lagekarte strong { font: 600 24px/1.1 var(--display, Fraunces, serif); }
+.ak-lagekarte-hinweis { font: 13px/1.35 var(--sans, Inter, sans-serif); color: #6b5a44; }
+.ak-liste { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.ak-liste li { display: grid; gap: 2px; padding: 8px 12px; background: rgba(255, 252, 244, 0.85); border: 1px solid rgba(90, 64, 40, 0.18); border-left: 4px solid #8a7a64; border-radius: 4px; }
+.ak-liste li.gut { border-left-color: #3f6b4b; }
+.ak-liste li.mittel { border-left-color: #b98a34; }
+.ak-liste li.schlecht { border-left-color: #8c2b1f; }
+.ak-liste b { font: 600 15px/1.3 var(--serif, "EB Garamond", serif); }
+.ak-liste span { font: 13px/1.35 var(--sans, Inter, sans-serif); color: #6b5a44; }
+
+/* Lage-Urteil: ein Satz, eine Farbe, ein Knopf zum Handeln */
+.ak-urteil { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center; padding: 14px 18px; margin-bottom: 14px; border-left: 6px solid #8a7a52; background: rgba(255, 252, 244, 0.85); border-radius: 4px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.12); }
+.ak-urteil strong { grid-column: 1; font: 700 20px/1.2 var(--serif, Georgia, serif); color: #2b1e12; }
+.ak-urteil span { grid-column: 1; font-size: 14px; color: #4a3a28; }
+.ak-urteil-knopf { grid-column: 2; grid-row: 1 / span 2; padding: 9px 16px; border: 1px solid #8a5a1a; border-radius: 4px; background: linear-gradient(#e2bd6a, #b98a34); color: #2b1e12; font-weight: 700; cursor: pointer; }
+.ak-urteil-knopf:hover { filter: brightness(1.06); }
+.ak-urteil.ruhig { border-left-color: #2f6b4a; }
+.ak-urteil.gemischt { border-left-color: #b98a34; }
+.ak-urteil.angespannt { border-left-color: #b5651d; }
+.ak-urteil.kritisch { border-left-color: #8e2a1e; }
+.ak-urteil.kritisch strong { color: #8e2a1e; }
+.ak-mehr { margin: 6px 0 10px; }
+.ak-mehr > summary { cursor: pointer; font-size: 13px; color: #8e2a1e; padding: 4px 0; }
+@media (max-width: 760px) {
+  .ak-urteil { grid-template-columns: 1fr; }
+  .ak-urteil-knopf { grid-column: 1; grid-row: auto; justify-self: start; }
+}
