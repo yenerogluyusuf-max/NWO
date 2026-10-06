@@ -41,23 +41,23 @@ function BereitschaftKarte({ stand }: { stand: number }) {
       </div>
       <div className="kr-bereit-text">
         <h3>{t("ui.katastrophe.Lage.c509fe3")}</h3>
-        <div className="kr-skala" role="img" aria-label={`Bereitschaft ${stand} von 100, Referenz ${ref}`}>
+        <div className="kr-skala" role="img" aria-label={t("ui2.ui.katastrophe.Lage.a9ce597", { p0: stand, p1: ref })}>
           <i className="fuell" style={{ width: `${stand}%` }} />
           <span className="marke ref" style={{ left: `${ref}%` }}>
-            <em>Referenz {ref}</em>
+            <em>{t("ui2.ui.katastrophe.Lage.462275f", { p0: ref })}</em>
           </span>
           <span className="marke heute" style={{ left: `${stand}%` }}>
-            <em>heute {stand}</em>
+            <em>{t("ui2.ui.katastrophe.Lage.de86eb4", { p0: stand })}</em>
           </span>
         </div>
         <p>
-          Bei einer schweren Katastrophe sterben nach Modellrechnung etwa <strong>{nf(bereitSenkung(stand), 1)} Prozent</strong> weniger Menschen als ganz ohne Vorsorge
+          {t("ui2.ui.katastrophe.Lage.feedc23")} <strong>{t("ui2.ui.katastrophe.Lage.9844a1b", { p0: nf(bereitSenkung(stand), 1) })}</strong> {t("ui2.ui.katastrophe.Lage.fa0adca")}
           {gegen !== 0 ? (
             <>
-              ; gegenüber der Referenz {ref} sind es {gegen > 0 ? `${nf(gegen, 1)} Prozent weniger` : `${nf(-gegen, 1)} Prozent mehr`}.
+              {t("ui2.ui.katastrophe.Lage.7345c7c", { p0: ref })} {gegen > 0 ? t("ui2.ui.katastrophe.Lage.bc80ba0", { p0: nf(gegen, 1) }) : t("ui2.ui.katastrophe.Lage.bab09fd", { p0: nf(-gegen, 1) })}.
             </>
           ) : (
-            <>, genau wie bei der Referenz.</>
+            <>{t("ui2.ui.katastrophe.Lage.393af98")}</>
           )}
         </p>
         <p className="kr-klein">{t("ui.katastrophe.Lage.bd9b25d")}</p>
@@ -76,29 +76,29 @@ function Gefahr({ r }: { r: RisikoSicht }) {
         <h4>{r.titel}</h4>
         <span className={`kr-chance ${prozent >= 10 ? "hoch" : prozent >= 4 ? "mittel" : "niedrig"}`}>
           {r.jahresChance <= 0 ? "ruht" : `etwa ${nf(prozent, prozent < 10 ? 1 : 0)} %`}
-          <small>{r.jahresChance <= 0 ? "Ruhephase im Modell" : "in zwölf Monaten"}</small>
+          <small>{r.jahresChance <= 0 ? t("ui2.ui.katastrophe.Lage.9653262") : t("ui2.ui.katastrophe.Lage.85b9be6")}</small>
         </span>
       </div>
       <div className="kr-balken" aria-hidden>
         <i style={{ width: `${Math.min(100, (prozent / 30) * 100)}%` }} />
       </div>
       <p className="kr-gebiet">
-        <strong>{t("ui.katastrophe.Lage.e2323f3")}</strong> {gebietText(r.gebiet)} <span>({r.gebiet.length} Provinzen, {mio(r.bevoelkerung)} Einwohner)</span>
+        <strong>{t("ui.katastrophe.Lage.e2323f3")}</strong> {gebietText(r.gebiet)} <span>{t("ui2.ui.katastrophe.Lage.03a3385", { p0: r.gebiet.length, p1: mio(r.bevoelkerung) })}</span>
       </p>
       <p className="kr-gefahr-meta">
-        <span>Saison: {r.saison}</span>
+        <span>{t("ui2.ui.katastrophe.Lage.5c6f916", { p0: r.saison })}</span>
         {r.freiIn > 0 ? (
           <span>
-            Ruhephase nach dem letzten Fall (vor {nf(r.letzteVor ?? 0)} Monaten): noch {r.freiIn} {r.freiIn === 1 ? "Monat" : "Monate"}
+            {t("ui2.ui.katastrophe.Lage.f590363", { p0: nf(r.letzteVor ?? 0), p1: r.freiIn })} {r.freiIn === 1 ? t("ui2.ui.katastrophe.Lage.da13625") : t("ui2.ui.katastrophe.Lage.1c561ae")}
           </span>
         ) : r.letzteVor !== undefined ? (
-          <span>Letzter Fall vor {nf(r.letzteVor)} Monaten</span>
+          <span>{t("ui2.ui.katastrophe.Lage.f4ac116", { p0: nf(r.letzteVor) })}</span>
         ) : (
           <span>{t("ui.katastrophe.Lage.ce040f9")}</span>
         )}
         {r.kennzahl && (
           <span className={r.kennzahl.gut === "hoch" ? (r.kennzahl.wert >= 50 ? "gut" : "schlecht") : r.kennzahl.wert <= 40 ? "gut" : "schlecht"}>
-            {r.kennzahl.name}: {r.kennzahl.wert} von 100
+            {t("ui2.ui.katastrophe.Lage.96504fa", { p0: r.kennzahl.name, p1: r.kennzahl.wert })}
           </span>
         )}
       </p>
@@ -114,7 +114,7 @@ function HebelKarte({ h, w, refresh, melde, onGehe }: { h: HebelZeile; w: World;
     <article className="kr-hebel">
       <header>
         <h4>{h.name}</h4>
-        <span className="kr-chip">Stufe {h.stufe}</span>
+        <span className="kr-chip">{t("ui2.ui.katastrophe.Lage.875014d", { p0: h.stufe })}</span>
       </header>
       <p className="kr-hebel-text">{h.text}</p>
       <div className="kr-hebel-stufen" aria-hidden>
@@ -124,39 +124,39 @@ function HebelKarte({ h, w, refresh, melde, onGehe }: { h: HebelZeile; w: World;
         {!h.ausgeschoepft && <span className="ziel" style={{ left: `${h.ziel}%` }} />}
       </div>
       <p className="kr-hebel-schritt">
-        {h.ausgeschoepft ? "Ausgeschöpft: mehr ist kaum möglich." : (
+        {h.ausgeschoepft ? t("ui2.ui.katastrophe.Lage.4f775ff") : (
           <>
-            Nächster Schritt: Stufe {h.stufe} <span aria-hidden>→</span> <strong>{h.ziel}</strong>
+            {t("ui2.ui.katastrophe.Lage.4a5d07e", { p0: h.stufe })} <span aria-hidden>→</span> <strong>{h.ziel}</strong>
           </>
         )}
       </p>
       <ul className="kr-wirkung">
         {h.wirkung.map((x) => (
           <li key={x.auf}>
-            Wirkt auf <strong>{x.auf}</strong>
-            {x.lag > 0 ? ` nach etwa ${x.lag} ${x.lag === 1 ? "Monat" : "Monaten"}` : " sofort"}: {x.warum}
+            {t("ui2.ui.katastrophe.Lage.67e5184")} <strong>{x.auf}</strong>
+            {x.lag > 0 ? t("ui2.ui.katastrophe.Lage.7207a4e", { p0: x.lag, p1: x.lag === 1 ? "Monat" : "Monaten" }) : " sofort"}: {x.warum}
           </li>
         ))}
       </ul>
       {!h.ausgeschoepft && (
         <p className="kr-preis">
           <span>
-            <b>{h.pk}</b> Kapital
+            <b>{h.pk}</b> {t("ui2.ui.katastrophe.Lage.28d438e")}
           </span>
           <span>
-            <b>{nf(h.bip, h.bip < 0.1 ? 3 : 2)}</b> % des BIP im Jahr
+            <b>{nf(h.bip, h.bip < 0.1 ? 3 : 2)}</b> {t("ui2.ui.katastrophe.Lage.fb307c6")}
           </span>
           <span>
-            <b>{h.monate}</b> {h.monate === 1 ? "Monat" : "Monate"} bis zur vollen Wirkung
+            <b>{h.monate}</b> {h.monate === 1 ? t("ui2.ui.katastrophe.Lage.da13625") : t("ui2.ui.katastrophe.Lage.1c561ae")} {t("ui2.ui.katastrophe.Lage.2dd5af2")}
           </span>
         </p>
       )}
       {laeuft && (
         <p className="kr-umsetzung">
-          Beschlossen und in Umsetzung: {h.umsetzung} Prozent{h.restMonate ? `, noch etwa ${h.restMonate} ${h.restMonate === 1 ? "Monat" : "Monate"}` : ""}.
+          {t("ui2.ui.katastrophe.Lage.964a093", { p0: h.umsetzung })}{h.restMonate ? t("ui2.ui.katastrophe.Lage.829dd4a", { p0: h.restMonate, p1: h.restMonate === 1 ? "Monat" : "Monate" }) : ""}.
         </p>
       )}
-      {h.imParlament && <p className="kr-umsetzung">Ein Gesetzentwurf liegt im Parlament.</p>}
+      {h.imParlament && <p className="kr-umsetzung">{t("ui2.ui.katastrophe.Lage.4a67db6")}</p>}
       {!h.moeglich && h.grund && <p className="kr-warn">{h.grund}</p>}
       {!h.ausgeschoepft && (
         <div className="kr-aktionen">
@@ -164,18 +164,18 @@ function HebelKarte({ h, w, refresh, melde, onGehe }: { h: HebelZeile; w: World;
             type="button"
             className="kr-knopf haupt"
             disabled={!h.moeglich || !h.bezahlbar || h.imParlament}
-            title={!h.bezahlbar ? `Es fehlt Politisches Kapital (nötig ${h.pk}, vorhanden ${Math.floor(w.spiel?.kapital ?? 0)})` : undefined}
+            title={!h.bezahlbar ? t("ui2.ui.katastrophe.Lage.d5ee02f", { p0: h.pk, p1: Math.floor(w.spiel?.kapital ?? 0) }) : undefined}
             onClick={() => {
               const r = bringeEin(w, h.id, h.ziel, null, "gesetz");
               melde(r.why ? `${r.text} ${r.why}` : r.text);
               refresh();
             }}
           >
-            Als Gesetz einbringen <em>{h.pk} Kapital</em>
+            {t("ui2.ui.katastrophe.Lage.abaa171")} <em>{t("ui2.ui.katastrophe.Lage.87b52bd", { p0: h.pk })}</em>
           </button>
           {onGehe && (
             <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "politik", massnahme: { id: h.id, level: h.ziel } })}>
-              Im Politikfenster ansehen
+              {t("ui2.ui.katastrophe.Lage.d4cfbbf")}
             </button>
           )}
         </div>
@@ -223,7 +223,7 @@ function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
       <h3>{t("ui.katastrophe.Lage.18b8780")}</h3>
       <div className="kr-szenario-wahl">
         <label>
-          Gefahr
+          {t("ui2.ui.katastrophe.Lage.7a20fb8")}
           <select value={art} onChange={(e) => { setArt(e.target.value as KatastrophenArt); setPlaka(null); }}>
             {GEFAHREN.map((g) => (
               <option key={g.art} value={g.art}>
@@ -233,7 +233,7 @@ function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
           </select>
         </label>
         <label>
-          Provinz
+          {t("ui2.ui.katastrophe.Lage.d784889")}
           <select value={gewaehlt?.plaka ?? ""} onChange={(e) => setPlaka(Number(e.target.value))}>
             {provinzen.map((p) => (
               <option key={p.plaka} value={p.plaka}>
@@ -243,7 +243,7 @@ function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
           </select>
         </label>
         <label>
-          Stärke
+          {t("ui2.ui.katastrophe.Lage.7e752b5")}
           <select value={staerke} onChange={(e) => setStaerke(Number(e.target.value))}>
             {STAERKEN.map((s) => (
               <option key={s.wert} value={s.wert}>
@@ -258,8 +258,8 @@ function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
           <thead>
             <tr>
               <th scope="col">{t("ui.katastrophe.Lage.99cafe1")}</th>
-              <th scope="col">Todesopfer</th>
-              <th scope="col">Ohne Obdach</th>
+              <th scope="col">{t("ui2.ui.katastrophe.Lage.c99f806")}</th>
+              <th scope="col">{t("ui2.ui.katastrophe.Lage.5280572")}</th>
               <th scope="col">{t("ui.katastrophe.Lage.0bfc8c3")}</th>
             </tr>
           </thead>
@@ -278,8 +278,7 @@ function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
         </table>
       )}
       <p className="kr-klein">
-        Modellrechnung für {gewaehlt ? `${ART_NAMEN[art]} (${staerkeWort(STAERKEN.find((s) => s.wert === staerke)!.wert)}) allein in ${gewaehlt.name}` : "eine Provinz"}; bei mehreren betroffenen Provinzen
-        entsprechend mehr. Bandbreite ±25 %, alle Werte sind Spielparameter.
+        {t("ui2.ui.katastrophe.Lage.972ce58")} {gewaehlt ? t("ui2.ui.katastrophe.Lage.c2c3b3a", { p0: ART_NAMEN[art], p1: staerkeWort(STAERKEN.find((s) => s.wert === staerke)!.wert), p2: gewaehlt.name }) : t("ui2.ui.katastrophe.Lage.93cb618")}{t("ui2.ui.katastrophe.Lage.6abc46b")}
       </p>
     </section>
   );

@@ -31,6 +31,7 @@ import { t } from "../i18n";
 import { Rng } from "./rng";
 import type { World } from "./types";
 import type { AuslandsTour, WahlkampfZustand } from "./spiel-typen";
+import { t as tx } from "../i18n";
 
 export const WAHLKAMPF = {
   /** Tage vor dem Wahltag, ab denen die Phase beginnt (acht Wochen) */
@@ -212,11 +213,11 @@ export interface AktionErgebnis {
 export function reise(w: World, plaka: number, rng: Rng): AktionErgebnis {
   const sp = w.spiel;
   const k = sp?.wahlkampf;
-  if (!sp || sp.ende || !k) return { ok: false, text: "Es läuft kein Wahlkampf." };
+  if (!sp || sp.ende || !k) return { ok: false, text: tx("sim2.sim.wahlkampf.f25e0a2") };
   const provinz = PROVINZEN[plaka - 1];
   if (!provinz) return { ok: false, text: "Unbekannte Provinz." };
   const kosten = reiseKosten(plaka);
-  if (k.ap < kosten) return { ok: false, text: `Die Reise kostet ${kosten} Aktionspunkte; das Wochenbudget steht bei ${fmt(k.ap)}.` };
+  if (k.ap < kosten) return { ok: false, text: tx("sim2.sim.wahlkampf.09a4a0d", { p0: kosten, p1: fmt(k.ap) }) };
 
   const vorschau = reiseVorschau(w, plaka);
   const missglueckt = vorschau.probleme.length > 0 && rng.next() < vorschau.risiko;
@@ -235,17 +236,17 @@ export function reise(w: World, plaka: number, rng: Rng): AktionErgebnis {
   const wiederholt = (k.besuche[String(plaka)] ?? 0) > 1;
   let text: string;
   if (missglueckt) {
-    text = `Der Besuch in ${provinz.name} geht nach hinten los: ${vorschau.probleme[0]!} steht im Raum, die Bilder zeigen ein angespanntes Publikum.`;
+    text = tx("sim2.sim.wahlkampf.aec3c03", { p0: provinz.name, p1: vorschau.probleme[0]! });
   } else if (vorschau.probleme.length > 0) {
-    text = `Der Besuch in ${provinz.name} wird zum Thema ${vorschau.probleme[0]!} erwartet — das Podium nimmt den Druck auf${vorschau.relevant ? ", und weil die Lage die Provinz prägt, trägt es umso mehr" : ""}.`;
+    text = tx("sim2.sim.wahlkampf.f4336f4", { p0: provinz.name, p1: vorschau.probleme[0]!, p2: vorschau.relevant ? ", und weil die Lage die Provinz prägt, trägt es umso mehr" : "" });
   } else {
-    text = `Ein ruhiger Besuch in ${provinz.name}: volle Hallen, lokale Presse, ein Tag, der hängen bleibt.`;
+    text = tx("sim2.sim.wahlkampf.d077e0d", { p0: provinz.name });
   }
-  if (wiederholt) text += " Der wiederholte Besuch bringt spürbar weniger.";
+  if (wiederholt) text += tx("sim2.sim.wahlkampf.442999b");
   addLog(
     w,
     "entscheidung",
-    `Wahlkampfreise nach ${provinz.name} (${kosten} AP).`,
+    tx("sim2.sim.wahlkampf.63941c7", { p0: provinz.name, p1: kosten }),
     `${text} Lokales Vertrauen ${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))}.`,
   );
   return { ok: true, text };
@@ -273,10 +274,10 @@ export const TOUR_LAENDER: { land: TourLand; name: string; modifikatorPp: number
 export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis {
   const sp = w.spiel;
   const k = sp?.wahlkampf;
-  if (!sp || sp.ende || !k) return { ok: false, text: "Es läuft kein Wahlkampf." };
+  if (!sp || sp.ende || !k) return { ok: false, text: tx("sim2.sim.wahlkampf.f25e0a2") };
   const ziel = TOUR_LAENDER.find((t) => t.land === land);
   if (!ziel) return { ok: false, text: "Unbekanntes Zielland." };
-  if (k.ap < WAHLKAMPF.tourAp) return { ok: false, text: `Die Auslandstour kostet ${WAHLKAMPF.tourAp} Aktionspunkte; das Wochenbudget steht bei ${fmt(k.ap)}.` };
+  if (k.ap < WAHLKAMPF.tourAp) return { ok: false, text: tx("sim2.sim.wahlkampf.7f397a4", { p0: WAHLKAMPF.tourAp, p1: fmt(k.ap) }) };
 
   const bisher = k.touren.filter((t) => t.land === land).length;
   const abnutzung = Math.pow(WAHLKAMPF.tourAbnutzung, bisher);
@@ -289,9 +290,9 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
   if (verbot) {
     // Einreise-/Auftrittsverbot des Gastlands: Beziehung leidet, das Belagerungs-Narrativ heizt die Beteiligung an (2017-Muster)
     const beziehung = rng.between(DIASPORA_KAMPAGNE.beziehungGastland.min, DIASPORA_KAMPAGNE.beziehungGastland.max);
-    landAendern(w, "EU", { vertrauen: beziehung, konflikt: 4 }, `Auftrittsverbot im Wahlkampf: ${ziel.name}`);
+    landAendern(w, "EU", { vertrauen: beziehung, konflikt: 4 }, tx("sim2.sim.wahlkampf.08a765f", { p0: ziel.name }));
     beteiligungPlus += DIASPORA_KAMPAGNE.belagerungBeteiligungPp;
-    verbotText = ` ${ziel.name} untersagt den Auftritt — die Beziehungen zur EU leiden, doch die Bilder der Absage mobilisieren die eigenen Leute erst recht.`;
+    verbotText = tx("sim2.sim.wahlkampf.f7a815d", { p0: ziel.name });
   }
   beteiligungPlus = Math.round(beteiligungPlus * 10) / 10;
   lagerPlus = Math.round(lagerPlus * 10) / 10;
@@ -302,7 +303,7 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
   wirke(w, "vertrauen_regierung", WAHLKAMPF.tourVertrauen);
   wirke(w, "nationalisten", WAHLKAMPF.tourNationalisten);
 
-  const text = `Wahlkampf in ${ziel.name}: Halle voller Auslandstürken, Konsulate und Vereine mobilisieren (${beteiligungPlus >= 0 ? "+" : "−"}${fmt(Math.abs(beteiligungPlus))} Prozentpunkte Beteiligung, +${fmt(lagerPlus)} Lager-Anteil im Auslandsblock).${verbotText}`;
+  const text = tx("sim2.sim.wahlkampf.8f7e132", { p0: ziel.name, p1: beteiligungPlus >= 0 ? "+" : "−", p2: fmt(Math.abs(beteiligungPlus)), p3: fmt(lagerPlus), p4: verbotText });
   addLog(w, "entscheidung", `Auslandstour: ${ziel.name} (${WAHLKAMPF.tourAp} AP).`, text);
   return { ok: true, text };
 }
@@ -337,18 +338,18 @@ export interface VersprechenDef {
 
 /** Der Katalog der Wahlversprechen: zwölf Themen, die im Netz echte Maßnahmen sind. */
 export const VERSPRECHEN: VersprechenDef[] = [
-  { id: "v_mindestlohn", titel: "Mindestlohn deutlich erhöhen", text: "„Der Mindestlohn wird spürbar steigen, mehr als die Inflation frisst.“", massnahme: "m_mindestlohn", richtung: 1, zielgruppen: ["arbeitnehmer", "arme"], verlierer: ["unternehmer"] },
-  { id: "v_renten", titel: "Renten über der Inflation anpassen", text: "„Keine Rente, die kleiner wird, während alles teurer wird.“", massnahme: "m_renten", richtung: 1, zielgruppen: ["rentner"] },
-  { id: "v_mietdeckel", titel: "Miet-Deckel für die Städte", text: "„Die Mieten in den Großstädten werden gedeckelt, bis genug gebaut ist.“", massnahme: "m_mietdeckel", richtung: 1, zielgruppen: ["staedtische_saekulare", "arme"], verlierer: ["unternehmer"] },
-  { id: "v_mwst", titel: "Mehrwertsteuer senken", text: "„An der Kasse soll es jeder merken: Die Mehrwertsteuer kommt runter.“", massnahme: "m_mwst", richtung: -1, zielgruppen: ["arme", "arbeitnehmer", "landwirte"] },
-  { id: "v_energie", titel: "Energiepreise deckeln", text: "„Strom und Gas bleiben bezahlbar — der Staat trägt die Differenz.“", massnahme: "m_energiesubventionen", richtung: 1, zielgruppen: ["arme", "landwirte", "arbeitnehmer"] },
-  { id: "v_megaprojekt", titel: "Mega-Projekt: Brücken und Autobahnen", text: "„Wir bauen weiter: neue Autobahnen, neue Brücken, neue Rekorde.“", massnahme: "m_autobahnen", richtung: 1, zielgruppen: ["konservative", "unternehmer"], verlierer: ["staedtische_saekulare"] },
-  { id: "v_kindergeld", titel: "Kindergeld erhöhen", text: "„Familien mit Kindern bekommen mehr — jedes Kind zählt.“", massnahme: "m_kindergeld", richtung: 1, zielgruppen: ["konservative", "arme"] },
-  { id: "v_agrar", titel: "Agrarsubventionen ausbauen", text: "„Wer das Land bestellt, wird nicht allein gelassen: Diesel, Dünger, faire Preise.“", massnahme: "m_agrarsubventionen", richtung: 1, zielgruppen: ["landwirte"] },
-  { id: "v_wohnen", titel: "Staatlicher Wohnungsbau", text: "„Der Staat baut wieder selbst: bezahlbare Wohnungen in jeder Großstadt.“", massnahme: "m_sozialwohnungen", richtung: 1, zielgruppen: ["arme", "junge"] },
-  { id: "v_korruption", titel: "Offene Vergaben und saubere Verwaltung", text: "„Jede Vergabe öffentlich, jede Vermögenserklärung auf dem Tisch.“", massnahme: "m_antikorruption", richtung: 1, zielgruppen: ["staedtische_saekulare", "junge"] },
-  { id: "v_stipendien", titel: "Stipendien für alle Studierenden", text: "„Kein Studium scheitert am Geld: Stipendien für alle, die es brauchen.“", massnahme: "m_stipendien", richtung: 1, zielgruppen: ["junge"] },
-  { id: "v_sicherheit", titel: "Mehr Polizei auf den Straßen", text: "„Sicherheit ist die erste Pflicht des Staates: mehr Streifen, schneller vor Ort.“", massnahme: "m_polizei", richtung: 1, zielgruppen: ["nationalisten", "konservative"], verlierer: ["minderheiten"] },
+  { id: "v_mindestlohn", titel: tx("sim2.sim.wahlkampf.ab350d8"), text: tx("sim2.sim.wahlkampf.b69b504"), massnahme: "m_mindestlohn", richtung: 1, zielgruppen: ["arbeitnehmer", "arme"], verlierer: ["unternehmer"] },
+  { id: "v_renten", titel: tx("sim2.sim.wahlkampf.309421e"), text: tx("sim2.sim.wahlkampf.d6a5e75"), massnahme: "m_renten", richtung: 1, zielgruppen: ["rentner"] },
+  { id: "v_mietdeckel", titel: tx("sim2.sim.wahlkampf.d32b643"), text: tx("sim2.sim.wahlkampf.88b703d"), massnahme: "m_mietdeckel", richtung: 1, zielgruppen: ["staedtische_saekulare", "arme"], verlierer: ["unternehmer"] },
+  { id: "v_mwst", titel: "Mehrwertsteuer senken", text: tx("sim2.sim.wahlkampf.83c6d40"), massnahme: "m_mwst", richtung: -1, zielgruppen: ["arme", "arbeitnehmer", "landwirte"] },
+  { id: "v_energie", titel: "Energiepreise deckeln", text: tx("sim2.sim.wahlkampf.58a8fe9"), massnahme: "m_energiesubventionen", richtung: 1, zielgruppen: ["arme", "landwirte", "arbeitnehmer"] },
+  { id: "v_megaprojekt", titel: tx("sim2.sim.wahlkampf.7110a7a"), text: tx("sim2.sim.wahlkampf.1fe9b67"), massnahme: "m_autobahnen", richtung: 1, zielgruppen: ["konservative", "unternehmer"], verlierer: ["staedtische_saekulare"] },
+  { id: "v_kindergeld", titel: tx("sim2.sim.wahlkampf.1835bef"), text: tx("sim2.sim.wahlkampf.86b5726"), massnahme: "m_kindergeld", richtung: 1, zielgruppen: ["konservative", "arme"] },
+  { id: "v_agrar", titel: "Agrarsubventionen ausbauen", text: tx("sim2.sim.wahlkampf.140b806"), massnahme: "m_agrarsubventionen", richtung: 1, zielgruppen: ["landwirte"] },
+  { id: "v_wohnen", titel: "Staatlicher Wohnungsbau", text: tx("sim2.sim.wahlkampf.10adff1"), massnahme: "m_sozialwohnungen", richtung: 1, zielgruppen: ["arme", "junge"] },
+  { id: "v_korruption", titel: tx("sim2.sim.wahlkampf.c686cce"), text: tx("sim2.sim.wahlkampf.b87ccee"), massnahme: "m_antikorruption", richtung: 1, zielgruppen: ["staedtische_saekulare", "junge"] },
+  { id: "v_stipendien", titel: tx("sim2.sim.wahlkampf.d234195"), text: tx("sim2.sim.wahlkampf.af34ce0"), massnahme: "m_stipendien", richtung: 1, zielgruppen: ["junge"] },
+  { id: "v_sicherheit", titel: tx("sim2.sim.wahlkampf.07306a3"), text: tx("sim2.sim.wahlkampf.a39b57e"), massnahme: "m_polizei", richtung: 1, zielgruppen: ["nationalisten", "konservative"], verlierer: ["minderheiten"] },
 ];
 
 export function versprechenDef(id: string): VersprechenDef | undefined {
@@ -367,11 +368,11 @@ export function versprechenGlaube(w: World): { glaubwuerdigkeit: number; abnutzu
 export function verspreche(w: World, id: string): AktionErgebnis {
   const sp = w.spiel;
   const k = sp?.wahlkampf;
-  if (!sp || sp.ende || !k) return { ok: false, text: "Es läuft kein Wahlkampf." };
+  if (!sp || sp.ende || !k) return { ok: false, text: tx("sim2.sim.wahlkampf.f25e0a2") };
   const def = versprechenDef(id);
   if (!def) return { ok: false, text: "Unbekanntes Versprechen." };
-  if (k.versprechen.includes(id)) return { ok: false, text: "Dieses Versprechen ist schon gegeben." };
-  if (k.ap < WAHLKAMPF.versprechenAp) return { ok: false, text: `Ein Versprechen kostet ${WAHLKAMPF.versprechenAp} Aktionspunkt; das Wochenbudget steht bei ${fmt(k.ap)}.` };
+  if (k.versprechen.includes(id)) return { ok: false, text: tx("sim2.sim.wahlkampf.0785331") };
+  if (k.ap < WAHLKAMPF.versprechenAp) return { ok: false, text: tx("sim2.sim.wahlkampf.e5bc76a", { p0: WAHLKAMPF.versprechenAp, p1: fmt(k.ap) }) };
 
   const { faktor, glaubwuerdigkeit } = versprechenGlaube(w);
   const nachfolgerRolle = k.rolle === "nachfolger";
@@ -386,7 +387,7 @@ export function verspreche(w: World, id: string): AktionErgebnis {
   // Im Nachfolger-Wahlkampf verspricht der Nachfolger, nicht der Präsident: Seine Amtszeit endet mit der Wahl, es entsteht keine Zusage.
   if (!nachfolgerRolle) sp.zusagen.push({
     id: `z-wahl-${id}`,
-    von: "Wähler",
+    von: tx("sim2.sim.wahlkampf.dc43faf"),
     text: `Im Wahlkampf versprochen: ${def.titel}`,
     faellig: sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4),
     massnahme: def.massnahme,
@@ -395,7 +396,7 @@ export function verspreche(w: World, id: string): AktionErgebnis {
     gebrochen: false,
   });
 
-  const text = `Versprochen: ${def.titel}. Beifall der Zielgruppen ${faktor >= 0.8 ? "ist groß" : faktor >= 0.5 ? "fällt spürbar aus" : "bleibt mager — die Glaubwürdigkeit ist angeschlagen"}; die Zusage wird ${formatDateDe(addDays(w.date, sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4) - w.day))} fällig.`;
+  const text = tx("sim2.sim.wahlkampf.861854f", { p0: def.titel, p1: faktor >= 0.8 ? "ist groß" : faktor >= 0.5 ? "fällt spürbar aus" : "bleibt mager — die Glaubwürdigkeit ist angeschlagen", p2: formatDateDe(addDays(w.date, sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4) - w.day)) });
   addLog(w, "entscheidung", `Wahlversprechen: ${def.titel} (${WAHLKAMPF.versprechenAp} AP).`, text);
   return { ok: true, text };
 }
@@ -482,7 +483,7 @@ export function gegnerProfil(w: World): GegnerProfil {
   const f = figur(w, "opposition");
   const letzte = k?.ticker[k.ticker.length - 1];
   return {
-    name: f ? `${f.rolle} ${f.name}` : "Der Kandidat der Opposition",
+    name: f ? `${f.rolle} ${f.name}` : tx("sim2.sim.wahlkampf.0bbe99a"),
     partei,
     parteiName: PARTEI_NAME[partei] ?? partei,
     staerkeSicht: letzte ? Math.round((100 - letzte.wert) * 10) / 10 : null,
@@ -497,13 +498,13 @@ export function gegnerProfil(w: World): GegnerProfil {
 export function duellVorbereiten(w: World): AktionErgebnis {
   const sp = w.spiel;
   const k = sp?.wahlkampf;
-  if (!sp || sp.ende || !k) return { ok: false, text: "Es läuft kein Wahlkampf." };
-  if (k.duell.tag !== undefined) return { ok: false, text: "Das Duell ist schon ausgetragen." };
-  if (k.duell.vorbereitet > 0) return { ok: false, text: "Die Vorbereitung läuft schon: Akten, Proben, Frage-Antwort-Runden." };
-  if (k.ap < WAHLKAMPF.duellAp) return { ok: false, text: `Die Vorbereitung kostet ${WAHLKAMPF.duellAp} Aktionspunkte; das Wochenbudget steht bei ${fmt(k.ap)}.` };
+  if (!sp || sp.ende || !k) return { ok: false, text: tx("sim2.sim.wahlkampf.f25e0a2") };
+  if (k.duell.tag !== undefined) return { ok: false, text: tx("sim2.sim.wahlkampf.7d82e99") };
+  if (k.duell.vorbereitet > 0) return { ok: false, text: tx("sim2.sim.wahlkampf.d9fc1da") };
+  if (k.ap < WAHLKAMPF.duellAp) return { ok: false, text: tx("sim2.sim.wahlkampf.3d54c56", { p0: WAHLKAMPF.duellAp, p1: fmt(k.ap) }) };
   k.ap -= WAHLKAMPF.duellAp;
   k.duell.vorbereitet = 1;
-  const text = "Der Stab sperrt zwei Tage frei: Aktenstudium, Probeduell, die harten Fragen zuerst.";
+  const text = tx("sim2.sim.wahlkampf.f94dad3");
   addLog(w, "entscheidung", `TV-Duell: Vorbereitung (${WAHLKAMPF.duellAp} AP).`, text);
   return { ok: true, text };
 }
@@ -520,11 +521,11 @@ function duellSzene(w: World, effekt: number, vorbereitet: boolean): string {
   const g = gegnerProfil(w);
   const sw = schwachstelle(w);
   const name = g.name.replace(/^Oppositionsführer /, "");
-  if (effekt >= 2.5) return `${name} verheddert sich bei den Zahlen${sw ? ` zu ${sw.name}` : ""}; der Präsident bleibt ruhig und setzt den Punkt des Abends. Die Kommentare sind einhellig: ein klarer Sieg.`;
-  if (effekt >= 0.5) return `Ein Abend ohne K.-o.-Schlag: Der Präsident punktet bei der Bilanz, ${name} beim Ton. Leichter Vorteil für das Amt.`;
-  if (effekt > -0.5) return `Neunzig Minuten Paradeduell: Beide bleiben in ihren Rollen, keiner kippt die Waage. Die Zuschauer schalten zufrieden ab — und wählen wie gehabt weiter.`;
-  if (effekt > -2.5) return `${name} kommt besser vorbereitet, als es aussah, und drückt den Präsidenten bei ${sw ? sw.name : "der Bilanz"} in die Defensive. ${vorbereitet ? "Ohne die Proben wäre es schlimmer geworden." : "Die fehlende Vorbereitung zeigt sich in jeder zweiten Antwort."}`;
-  return `Ein Desaster im freien Empfang: ${name} serviert die Schwachstellen der Regierung Satz für Satz${sw ? ` — ${sw.name} zuerst` : ""}, und der Präsident findet keinen Ausweg. ${vorbereitet ? "Auch die Vorbereitung rettet den Abend nicht mehr." : "Unvorbereitet in ein Duell zu gehen, hat seinen Preis."}`;
+  if (effekt >= 2.5) return tx("sim2.sim.wahlkampf.0130b22", { p0: name, p1: sw ? ` zu ${sw.name}` : "" });
+  if (effekt >= 0.5) return tx("sim2.sim.wahlkampf.bed8297", { p0: name });
+  if (effekt > -0.5) return tx("sim2.sim.wahlkampf.8b28357");
+  if (effekt > -2.5) return tx("sim2.sim.wahlkampf.70d547e", { p0: name, p1: sw ? sw.name : "der Bilanz", p2: vorbereitet ? "Ohne die Proben wäre es schlimmer geworden." : "Die fehlende Vorbereitung zeigt sich in jeder zweiten Antwort." });
+  return tx("sim2.sim.wahlkampf.5f498a2", { p0: name, p1: sw ? ` — ${sw.name} zuerst` : "", p2: vorbereitet ? "Auch die Vorbereitung rettet den Abend nicht mehr." : "Unvorbereitet in ein Duell zu gehen, hat seinen Preis." });
 }
 
 function duellAustragen(w: World, rng: Rng): void {
@@ -551,7 +552,7 @@ function duellAustragen(w: World, rng: Rng): void {
     szene: "wahlnacht",
     text: [
       k.duell.szene,
-      `Das Duell verschiebt die Wechselwähler um ${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte. ${vorbereitet ? "Die Vorbereitung hat sich bezahlt gemacht." : "Vorbereitung hätte den Ausgang womöglich gedreht."}`,
+      tx("sim2.sim.wahlkampf.0724d47", { p0: effekt >= 0 ? "+" : "−", p1: fmt(Math.abs(effekt)), p2: vorbereitet ? "Die Vorbereitung hat sich bezahlt gemacht." : "Vorbereitung hätte den Ausgang womöglich gedreht." }),
     ],
   });
   addLog(w, "ereignis", `TV-Duell ${effekt >= 0 ? "gewonnen" : "verloren"} (${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte).`, k.duell.szene);
@@ -608,21 +609,21 @@ function angriffWoche(w: World): void {
   staerke = Math.max(0, Math.min(staerke, WAHLKAMPF.angriffDeckelGesamt + k.angriffe));
   if (staerke <= 0) return;
   k.angriffe = Math.round((k.angriffe - staerke) * 100) / 100;
-  const thema = sw ? sw.name : "die Bilanz der Regierung";
+  const thema = sw ? sw.name : tx("sim2.sim.wahlkampf.b07cd18");
   k.angriffeLog.push({ tag: w.day, thema, staerke: Math.round(staerke * 100) / 100 });
   if (k.angriffeLog.length > 12) k.angriffeLog.shift();
   addLog(
     w,
     "ereignis",
     `${g.name} greift an: ${thema}.`,
-    sw ? `Die Lage in ${sw.provinzen} ${sw.provinzen === 1 ? "Provinz" : "Provinzen"} gibt der Attacke Nahrung: −${fmt(staerke)} Prozentpunkte bis zur Wahl.` : `Ohne echte Schwachstelle verpufft der Angriff weitgehend: −${fmt(staerke)} Prozentpunkte.`,
+    sw ? tx("sim2.sim.wahlkampf.929fae7", { p0: sw.provinzen, p1: sw.provinzen === 1 ? "Provinz" : "Provinzen", p2: fmt(staerke) }) : tx("sim2.sim.wahlkampf.45109a2", { p0: fmt(staerke) }),
   );
   // Die Zeitung berichtet im Framing ihrer Cluster, wenn der Angriff trifft
   if (staerke >= WAHLKAMPF.angriffZeitungAb && sw) {
     zeitungEreignis(w, {
       art: "krise",
-      titel: `Wahlkampf: Angriff auf die Regierung`,
-      fakt: `${g.name} (${g.parteiName}) macht ${sw.name} zum Hauptvorwurf — in ${sw.provinzen} ${sw.provinzen === 1 ? "Provinz" : "Provinzen"} ist die Lage akut.`,
+      titel: tx("sim2.sim.wahlkampf.a660e48"),
+      fakt: tx("sim2.sim.wahlkampf.d55cd38", { p0: g.name, p1: g.parteiName, p2: sw.name, p3: sw.provinzen, p4: sw.provinzen === 1 ? "Provinz" : "Provinzen" }),
       wertung: -clamp(0.3 + staerke * 0.3, 0, 0.8),
       schluessel: ["greift an", sw.name],
     });
@@ -658,11 +659,11 @@ export function wahlkampfTag(w: World): void {
             t("enden.wk.beginn.text2", { ap: WAHLKAMPF.apProWoche }),
           ]
         : [
-          `Noch acht Wochen bis zur Wahl am ${formatDateDe(addDays(w.date, sp.wahltag - w.day))}. Das Land wird zur Bühne: Reisen in die Provinzen, Versprechen auf den Marktplätzen, Auslandstouren zur Diaspora — und am Ende das TV-Duell.`,
-          `Jede Woche stehen ${WAHLKAMPF.apProWoche} Aktionspunkte bereit; die Aufmerksamkeit lädt sich in diesen Wochen anderthalbmal so schnell auf. Die Opposition fährt ihre eigenen Angriffe — sie trifft dort, wo echte Probleme brennen.`,
+          tx("sim2.sim.wahlkampf.d05c1c9", { p0: formatDateDe(addDays(w.date, sp.wahltag - w.day)) }),
+          tx("sim2.sim.wahlkampf.e175baf", { p0: WAHLKAMPF.apProWoche }),
           ],
     });
-    addLog(w, "ereignis", "Der Wahlkampf beginnt: acht Wochen bis zur Wahl.", `Jede Woche ${WAHLKAMPF.apProWoche} Aktionspunkte für Reisen, Versprechen, Auslandstouren und die Duell-Vorbereitung.`);
+    addLog(w, "ereignis", tx("sim2.sim.wahlkampf.58b8cae"), tx("sim2.sim.wahlkampf.026a8d4", { p0: WAHLKAMPF.apProWoche }));
     tickerWoche(w, wahlkampfRng(w));
     return;
   }
@@ -692,7 +693,7 @@ export function wahlEffekte(w: World): { gesamt: number; teile: WahlEffekt[] } {
   if (!sp || !k) return { gesamt: 0, teile: [] };
   const teile: WahlEffekt[] = [];
   if (k.duell.effekt !== undefined && k.duell.effekt !== 0) teile.push({ name: "TV-Duell", punkte: k.duell.effekt });
-  if (k.angriffe !== 0) teile.push({ name: "Angriffe der Opposition", punkte: k.angriffe });
+  if (k.angriffe !== 0) teile.push({ name: tx("sim2.sim.wahlkampf.2e61132"), punkte: k.angriffe });
   const dias = diasporaBlock(w, sp.umfrage.zustimmung);
   if (Math.abs(dias.beitrag) >= 0.05) teile.push({ name: "Diaspora-Block", punkte: Math.round(dias.beitrag * 100) / 100 });
   if (k.nachfolgerAuftritte && k.nachfolgerAuftritte.punkte !== 0) teile.push({ name: t("enden.wk.effekt.auftritte"), punkte: k.nachfolgerAuftritte.punkte });

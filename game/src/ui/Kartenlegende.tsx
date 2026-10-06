@@ -48,14 +48,14 @@ export function LegendeKompakt({ world, ebene, legende, problemId, onProblem, me
   const hatDetails = !!legende.hinweis || probleme.length > 0 || (!!legende.eintraege && legende.eintraege.length > 4);
   const eintraege = legende.eintraege ?? [];
   return (
-    <aside className={`linsen-legende${mehr ? " mehr" : ""}`} aria-label={`Legende ${legende.titel}`}>
+    <aside className={`linsen-legende${mehr ? " mehr" : ""}`} aria-label={t("ui2.ui.Kartenlegende.72842be", { p0: legende.titel })}>
       <div className="linsen-legende-kopf">
         <div className="linsen-legende-titel">
           <strong>{legende.titel}</strong>
           {legende.untertitel && <span>{legende.untertitel}</span>}
         </div>
         {hatDetails && (
-          <button type="button" className="linsen-legende-mehr" onClick={() => setMehr((m) => !m)} aria-expanded={mehr} aria-label={mehr ? "Legende einklappen" : "Legende ausklappen"} title={mehr ? "Einklappen" : "Mehr zur Legende"}>
+          <button type="button" className="linsen-legende-mehr" onClick={() => setMehr((m) => !m)} aria-expanded={mehr} aria-label={mehr ? t("ui2.ui.Kartenlegende.e3b10f3") : t("ui2.ui.Kartenlegende.37ab0d3")} title={mehr ? t("ui2.ui.Kartenlegende.4244f9d") : t("ui2.ui.Kartenlegende.851c161")}>
             <Icon name="chevron" size={16} />
           </button>
         )}
@@ -105,7 +105,7 @@ export function LegendeKompakt({ world, ebene, legende, problemId, onProblem, me
         <ul className="legend-problems">
           <li>
             <button type="button" className={problemId === null ? "on" : ""} onClick={() => onProblem(null)}>
-              Alle zusammen
+              {t("ui2.ui.Kartenlegende.8597b6a")}
             </button>
           </li>
           {probleme.map((p) => (

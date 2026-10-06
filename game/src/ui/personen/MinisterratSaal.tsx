@@ -71,9 +71,9 @@ function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: M
       </header>
 
       <div className="mr-k-werte">
-        <Balken label={t("ui.personen.MinisterratSaal.87f6f23")} wert={m.loyalitaet} wort={`${Math.round(m.loyalitaet)} · ${wort}`} hinweis={`Loyalität ${Math.round(m.loyalitaet)} von 100`} />
-        {q !== undefined && <Balken label="Leistung im Ressort" wert={Math.min(100, q * 100)} wort={`${Math.round(q * 100)} · ${leistungWort(q)}`} hinweis="Aus Fähigkeit und Loyalität; Einarbeitung senkt, Zusatzmittel erhöhen" />}
-        <Balken label="Ehrgeiz" wert={m.ehrgeiz} ton={m.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(m.ehrgeiz)} {...(m.ehrgeiz >= 75 ? { zeile: "Gefährlich, wenn er übergangen wird." } : {})} />
+        <Balken label={t("ui.personen.MinisterratSaal.87f6f23")} wert={m.loyalitaet} wort={`${Math.round(m.loyalitaet)} · ${wort}`} hinweis={t("ui2.ui.personen.MinisterratSaal.5abc3cc", { p0: Math.round(m.loyalitaet) })} />
+        {q !== undefined && <Balken label={t("ui2.ui.personen.MinisterratSaal.98cd370")} wert={Math.min(100, q * 100)} wort={`${Math.round(q * 100)} · ${leistungWort(q)}`} hinweis={t("ui2.ui.personen.MinisterratSaal.9c9352b")} />}
+        <Balken label={t("ui2.ui.personen.MinisterratSaal.3cdcb44")} wert={m.ehrgeiz} ton={m.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(m.ehrgeiz)} {...(m.ehrgeiz >= 75 ? { zeile: t("ui2.ui.personen.MinisterratSaal.8ef008c") } : {})} />
       </div>
 
       <div className="mr-k-kapital">
@@ -85,13 +85,13 @@ function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: M
       </div>
 
       <div className="mr-sorge-box">
-        <span className="mr-sorge-label">Ressortsorge</span>
+        <span className="mr-sorge-label">{t("ui2.ui.personen.MinisterratSaal.945b79c")}</span>
         <span className="mr-sorge-wert">{m.sorge}</span>
       </div>
 
       <div className="mr-k-marken">
         <Marke art="gold">{m.lagerName}</Marke>
-        {m.kommissarisch && <Marke art="rot">kommissarisch</Marke>}
+        {m.kommissarisch && <Marke art="rot">{t("ui2.ui.personen.MinisterratSaal.5d54a5d")}</Marke>}
         {ruecktritt && <Marke art="rot">{t("ui.personen.MinisterratSaal.434c793")}</Marke>}
         {e && e.groll >= 40 && <Marke art="rot">{grollWort(e.groll)}</Marke>}
         {m.auftragStatus === "laeuft" && <Marke art="gruen">{t("ui.personen.MinisterratSaal.357a028")}</Marke>}
@@ -100,13 +100,13 @@ function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: M
       <footer className="mr-k-aktionen">
         {grund && <p className="mr-k-grund">{grund}</p>}
         <div className="mr-k-knoepfe">
-          <button className="pe-aktion" disabled={!!grund} onClick={() => onWaehlePerson(m.id, "gespraech")} title={grund ?? "Vertrauliches Gespräch unter vier Augen führen"}>
+          <button className="pe-aktion" disabled={!!grund} onClick={() => onWaehlePerson(m.id, "gespraech")} title={grund ?? t("ui2.ui.personen.MinisterratSaal.9b543c3")}>
             <Icon name="sprechblase" size={16} />
-            Gespräch
+            {t("ui2.ui.personen.MinisterratSaal.3cd76eb")}
           </button>
           <button className="pe-aktion leise" onClick={() => onWaehlePerson(m.id, "entlassen")} title={t("ui.personen.MinisterratSaal.a8bd79c")}>
             <Icon name="tausch" size={16} />
-            Umbilden
+            {t("ui2.ui.personen.MinisterratSaal.8f17473")}
           </button>
         </div>
       </footer>
@@ -136,7 +136,7 @@ export function MinisterratSaal({
       <div className="mr-kopfband">
         <div className="mr-status-info">
           <div className="mr-titel-zeile">
-            <h3>Der Ministerrat (Bakanlar Kurulu)</h3>
+            <h3>{t("ui2.ui.personen.MinisterratSaal.345ebc4")}</h3>
             <span className={`mr-disziplin-badge ${status.disziplin}`}>{status.disziplin.toUpperCase()}</span>
           </div>
           <p className="mr-disziplin-text">{status.disziplinText}</p>
@@ -152,13 +152,13 @@ export function MinisterratSaal({
           <div className="mr-kpi">
             <span className="mr-kpi-label">{t("ui.personen.MinisterratSaal.99fc71c")}</span>
             <strong className="mr-kpi-wert">{status.schnittLoyalitaet} %</strong>
-            <small>über {status.minister.length} Ressorts</small>
+            <small>{t("ui2.ui.personen.MinisterratSaal.4a7c557", { p0: status.minister.length })}</small>
           </div>
 
           <div className="mr-kpi">
-            <span className="mr-kpi-label">Kabinettssitzung</span>
-            <strong className="mr-kpi-wert">{status.sitzungMoeglich ? "beschlussfähig" : `in ${status.tageBisSitzung} Tagen`}</strong>
-            <small>{status.sitzungMoeglich ? "Beschlussvorlagen liegen unten vor" : "Regulärer Zyklus"}</small>
+            <span className="mr-kpi-label">{t("ui2.ui.personen.MinisterratSaal.a9fb3e7")}</span>
+            <strong className="mr-kpi-wert">{status.sitzungMoeglich ? t("ui2.ui.personen.MinisterratSaal.25b5b98") : t("ui2.ui.personen.MinisterratSaal.94acca5", { p0: status.tageBisSitzung })}</strong>
+            <small>{status.sitzungMoeglich ? t("ui2.ui.personen.MinisterratSaal.ee1c3c4") : t("ui2.ui.personen.MinisterratSaal.a944248")}</small>
           </div>
         </div>
       </div>

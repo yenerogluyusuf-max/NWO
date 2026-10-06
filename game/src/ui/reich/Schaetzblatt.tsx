@@ -12,6 +12,7 @@ import { beginneFrei, freieEntwuerfe, transitGegenAnnehmen, transitUmweg, transi
 import { land } from "../../sim/laender";
 
 import { t } from "../../i18n";
+import { t as tt } from "../../i18n";
 const fmt = (x: number): string => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
 const bandText = (b: Band): string => `${fmt(b.tief)} bis ${fmt(b.hoch)}`;
 
@@ -36,24 +37,24 @@ function TransitKette({ welt, id, eintrag, refresh, melde }: { welt: World; id: 
             <li key={tx.land} className={`rr-transit-schritt ${stand}`}>
               <span className="rr-transit-land">
                 {tx.name}
-                {tx.vermutet && <em title={t("ui.reich.Schaetzblatt.6cf7fa3")}> (vermuteter Korridor)</em>}
+                {tx.vermutet && <em title={t("ui.reich.Schaetzblatt.6cf7fa3")}> {tt("ui2.ui.reich.Schaetzblatt.a2ce305")}</em>}
               </span>
               <span className={`rr-plakette transit-${stand}`} title={{ offen: "Noch nicht verhandelt", zusage: "Durchfahrt zugesagt", veto: "Verweigert die Durchfahrt", umgangen: "Die Strecke umgeht das Land — teurer" }[stand]}>
                 {{ offen: "offen", zusage: "zugesagt", veto: "Veto", umgangen: "Umweg" }[stand]}
               </span>
               {stand === "offen" && (
                 <button type="button" className="aktion-knopf" onClick={() => tue(() => transitVerhandeln(welt, id, tx.land))} title={t("ui.reich.Schaetzblatt.cfe8b8e")}>
-                  Verhandeln
+                  {tt("ui2.ui.reich.Schaetzblatt.4e9e3f8")}
                 </button>
               )}
               {stand === "offen" && gegen && (
                 <button type="button" className="aktion-knopf" onClick={() => tue(() => transitGegenAnnehmen(welt, id, tx.land))} title={t("ui.reich.Schaetzblatt.97f17a9")}>
-                  Gegenangebot annehmen
+                  {tt("ui2.ui.reich.Schaetzblatt.824fbe5")}
                 </button>
               )}
               {stand === "veto" && (
-                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitUmweg(welt, id, tx.land))} title={`Das Veto steht. Der Umweg macht den Bau etwa ${Math.round((UMWEG_FAKTOR - 1) * 100)} % teurer und ein Viertel länger.`}>
-                  Umweg wählen (+{Math.round((UMWEG_FAKTOR - 1) * 100)} % Bau)
+                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitUmweg(welt, id, tx.land))} title={tt("ui2.ui.reich.Schaetzblatt.4b76ec4", { p0: Math.round((UMWEG_FAKTOR - 1) * 100) })}>
+                  {tt("ui2.ui.reich.Schaetzblatt.7cf5d64", { p0: Math.round((UMWEG_FAKTOR - 1) * 100) })}
                 </button>
               )}
             </li>
@@ -95,24 +96,24 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
       </div>
       <h4 className="rr-name">{s.name}</h4>
       <p className="rr-text">
-        Ihre Eingabe: „{s.eingabe}“ — {PROJEKT_TYP_NAMEN[s.typ]}, {MASSSTAB_NAMEN[s.massstab]}.
+        {tt("ui2.ui.reich.Schaetzblatt.888b919", { p0: s.eingabe, p1: PROJEKT_TYP_NAMEN[s.typ], p2: MASSSTAB_NAMEN[s.massstab] })}
       </p>
 
       <ul className="rr-kosten" aria-label={t("ui.reich.Schaetzblatt.6573ad3")}>
         <li title={t("ui.reich.Schaetzblatt.031fe90")}>
-          <b>{bandText(s.pk)}</b> Kapital
+          <b>{bandText(s.pk)}</b> {tt("ui2.ui.reich.Schaetzblatt.28d438e")}
         </li>
         <li title={t("ui.reich.Schaetzblatt.d33602a")}>
-          <b>{bandText(s.bau)}</b> Baupunkte
+          <b>{bandText(s.bau)}</b> {tt("ui2.ui.reich.Schaetzblatt.f4466ae")}
         </li>
         <li title={t("ui.reich.Schaetzblatt.afeadd0")}>
-          <b>{bandText(s.monate)}</b> Monate
+          <b>{bandText(s.monate)}</b> {tt("ui2.ui.reich.Schaetzblatt.1c561ae")}
         </li>
         <li title={t("ui.reich.Schaetzblatt.ce0bf09")}>
           <b>{bandText(s.schulden)}</b> % BIP
         </li>
-        <li title="Verwaltungskraft je Monat im Bau">
-          <b>{s.verwaltung}</b> Verwaltung/Monat
+        <li title={tt("ui2.ui.reich.Schaetzblatt.70cf379")}>
+          <b>{s.verwaltung}</b> {tt("ui2.ui.reich.Schaetzblatt.48ddb61")}
         </li>
       </ul>
 
@@ -132,7 +133,7 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
 
       {s.risiken.length > 0 && (
         <div className="rr-wirkung">
-          <b className="rr-wirkung-kopf">Risiken</b>
+          <b className="rr-wirkung-kopf">{tt("ui2.ui.reich.Schaetzblatt.bf36b8c")}</b>
           <ul>
             {s.risiken.map((r) => (
               <li key={r.name} className="rr-risiko" title={r.text}>
@@ -145,7 +146,7 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
 
       {s.nachbarn.length > 0 && (
         <div className="rr-wirkung">
-          <b className="rr-wirkung-kopf">Zweitrundeneffekt: Nachbarn nehmen ab</b>
+          <b className="rr-wirkung-kopf">{tt("ui2.ui.reich.Schaetzblatt.88423dd")}</b>
           <ul>
             {s.nachbarn.map((n) => (
               <li key={n.name} className="rr-schlecht" title={n.text}>
@@ -166,12 +167,12 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
 
       {!vergabeWahl && (
         <div className="rr-bau-knoepfe">
-          <button type="button" className="aktion-knopf rr-beginnen" disabled={transitOffen} onClick={() => setVergabeWahl(true)} title={transitOffen ? "Erst müssen alle Durchfahrten zugesagt oder umgangen sein." : "Die Bänder werden verwirklicht und das Vorhaben beginnt."}>
-            Annehmen und vergeben
-            {transitOffen && <small> (Transit offen)</small>}
+          <button type="button" className="aktion-knopf rr-beginnen" disabled={transitOffen} onClick={() => setVergabeWahl(true)} title={transitOffen ? tt("ui2.ui.reich.Schaetzblatt.87561fd") : tt("ui2.ui.reich.Schaetzblatt.de27dd9")}>
+            {tt("ui2.ui.reich.Schaetzblatt.922ea87")}
+            {transitOffen && <small> {tt("ui2.ui.reich.Schaetzblatt.0b091d0")}</small>}
           </button>
           <button type="button" className="link" onClick={verwerfen}>
-            Verwerfen
+            {tt("ui2.ui.reich.Schaetzblatt.24cc57b")}
           </button>
         </div>
       )}
@@ -184,12 +185,12 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
               const unbezahlbar = kapital + 1e-9 < a.pk;
               return (
                 <li key={weg}>
-                  <button type="button" className="aktion-knopf" disabled={unbezahlbar} onClick={() => annehmen(weg)} title={unbezahlbar ? `Dafür fehlt Kapital (${a.pk} nötig).` : undefined}>
+                  <button type="button" className="aktion-knopf" disabled={unbezahlbar} onClick={() => annehmen(weg)} title={unbezahlbar ? tt("ui2.ui.reich.Schaetzblatt.36325d8", { p0: a.pk }) : undefined}>
                     {VERGABE_NAMEN[weg]}
                   </button>
                   <span className="rr-bau-info">
-                    {a.pk} Kapital · {a.bau} Baupunkte · {a.monate} {a.monate === 1 ? "Monat" : "Monate"}
-                    {a.vorlauf > 0 ? ` + ${a.vorlauf} Monate Vergabephase` : ""} <em>{t("ui.reich.Schaetzblatt.73cad39")}</em>
+                    {tt("ui2.ui.reich.Schaetzblatt.632836b", { p0: a.pk, p1: a.bau, p2: a.monate })} {a.monate === 1 ? tt("ui2.ui.reich.Schaetzblatt.da13625") : tt("ui2.ui.reich.Schaetzblatt.1c561ae")}
+                    {a.vorlauf > 0 ? tt("ui2.ui.reich.Schaetzblatt.a3ec358", { p0: a.vorlauf }) : ""} <em>{t("ui.reich.Schaetzblatt.73cad39")}</em>
                   </span>
                 </li>
               );
@@ -212,7 +213,7 @@ export function Schaetzblaetter({ world, refresh }: { world: World; refresh: () 
   return (
     <section className="rr-abschnitt">
       <h4>
-        Freie Großprojekte <em>{entwuerfe.length} {entwuerfe.length === 1 ? "Schätzblatt" : "Schätzblätter"} — Bänder statt Festpreise; verhandelt wird an der Grenze wie im Land</em>
+        {tt("ui2.ui.reich.Schaetzblatt.9c6586f")} <em>{entwuerfe.length} {entwuerfe.length === 1 ? tt("ui2.ui.reich.Schaetzblatt.8dc9f00") : tt("ui2.ui.reich.Schaetzblatt.9ec947f")} {tt("ui2.ui.reich.Schaetzblatt.f33aa6c")}</em>
       </h4>
       <div className="rr-raster gross">
         {entwuerfe.map(({ id, eintrag }) => (

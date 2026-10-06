@@ -9,7 +9,7 @@ import { bringeEin, stufeIn } from "../../sim/handeln";
 import { aktiveKrisen, type KrisenSicht } from "../../sim/krisen";
 import { handlungsHebel } from "../../sim/wege";
 import { nationalAverage } from "../../sim/netz";
-import { tunWort } from "../../data/skalen";
+import { tunSatz } from "../../data/skalen";
 import type { Theme } from "../../data/politiknetz";
 import type { Vorschlag } from "../../sim/vorschlaege";
 import { NetView } from "../NetView";
@@ -20,6 +20,7 @@ import "./politik.css";
 import "./design.css";
 
 import { t } from "../../i18n";
+import { t as tx } from "../../i18n";
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 const nc = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
@@ -34,14 +35,14 @@ export interface Offen {
 }
 
 export function AmpelPunkt({ ampel, klein }: { ampel: Ampel; klein?: boolean }) {
-  return <span className={`po-ampel po-${ampel}${klein ? " klein" : ""}`} role="img" aria-label={`Lage: ${AMPEL_WORT[ampel]}`} title={`Lage: ${AMPEL_WORT[ampel]}`} />;
+  return <span className={`po-ampel po-${ampel}${klein ? " klein" : ""}`} role="img" aria-label={tx("ui2.ui.politik.Politik.2ddbf6f", { p0: AMPEL_WORT[ampel] })} title={tx("ui2.ui.politik.Politik.2ddbf6f", { p0: AMPEL_WORT[ampel] })} />;
 }
 
 /** Zustandszeile der aktiven Krisen (MIL-3): Name, Grund und die Restbedingung, an der sie enden. */
 export function KrisenBanner({ krisen }: { krisen: KrisenSicht[] }) {
   if (krisen.length === 0) return null;
   return (
-    <ul className="po-krisen" aria-label="Aktive Krisen">
+    <ul className="po-krisen" aria-label={tx("ui2.ui.politik.Politik.5de3954")}>
       {krisen.map((k) => (
         <li key={k.id}>
           <strong>{k.name}.</strong> {k.grund} <em>{k.bedingung}</em>
@@ -65,7 +66,7 @@ function BlockerBadge({ blocker }: { blocker: { art: "gesperrt" | "teuer"; fakto
 function Trend({ z }: { z: LageZeile }) {
   if (z.besser === null) return null;
   return (
-    <em className={`po-trend ${z.besser ? "gut" : "schlecht"}`} title={`Seit dem Amtsantritt ${z.delta > 0 ? "gestiegen" : "gesunken"} um ${nf(Math.abs(z.delta))}: ${z.besser ? "besser" : "schlechter"}`}>
+    <em className={`po-trend ${z.besser ? "gut" : "schlecht"}`} title={tx("ui2.ui.politik.Politik.bc7a271", { p0: z.delta > 0 ? "gestiegen" : "gesunken", p1: nf(Math.abs(z.delta)), p2: z.besser ? "besser" : "schlechter" })}>
       {z.delta > 0 ? "▲" : "▼"}
     </em>
   );
@@ -76,7 +77,7 @@ function LageBalken({ z, onKlick }: { z: LageZeile; onKlick: () => void }) {
   const start = Math.max(0, Math.min(100, z.start));
   return (
     <li>
-      <button className={`po-lage b-${z.bewertung}`} onClick={onKlick} title={`${z.name}: was Sie tun können ansehen`}>
+      <button className={`po-lage b-${z.bewertung}`} onClick={onKlick} title={tx("ui2.ui.politik.Politik.1f21571", { p0: z.name })}>
         <span className="po-lage-name">{z.name}</span>
         {z.input ? (
           <span className="po-lage-wert">
@@ -86,7 +87,7 @@ function LageBalken({ z, onKlick }: { z: LageZeile; onKlick: () => void }) {
           <>
             <span className="po-balken" aria-hidden>
               <i style={{ width: `${pos}%` }} />
-              <b style={{ left: `${start}%` }} title="beim Amtsantritt" />
+              <b style={{ left: `${start}%` }} title={tx("ui2.ui.politik.Politik.130b865")} />
             </span>
             <span className="po-lage-wert">
               {Math.round(z.jetzt)} <Trend z={z} />
@@ -182,11 +183,11 @@ export function Politik({
         </button>
         {kurz.map((k) => (
           <button key={k.theme} className={`po-rail-eintrag${bereich === k.theme ? " on" : ""}`} onClick={() => { setBereich(k.theme); setAlleLage(false); setAntwort(null); }} aria-current={bereich === k.theme ? "page" : undefined}>
-            <span className={`pd-ring ${k.ampel}`} role="img" aria-label={`Lage: ${AMPEL_WORT[k.ampel]}`} title={`Lage: ${AMPEL_WORT[k.ampel]}`}>
+            <span className={`pd-ring ${k.ampel}`} role="img" aria-label={tx("ui2.ui.politik.Politik.2ddbf6f", { p0: AMPEL_WORT[k.ampel] })} title={tx("ui2.ui.politik.Politik.2ddbf6f", { p0: AMPEL_WORT[k.ampel] })}>
               <Emblem name={embleme(k.theme)} size={16} />
             </span>
             <span className="po-rail-name">{k.name}</span>
-            {k.akut > 0 && <span className="po-rail-akut" title={`${k.akut} akute Probleme`}>{k.akut}</span>}
+            {k.akut > 0 && <span className="po-rail-akut" title={tx("ui2.ui.politik.Politik.3253986", { p0: k.akut })}>{k.akut}</span>}
           </button>
         ))}
       </nav>
@@ -226,15 +227,15 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
     <>
       <header className="pd-seitenkopf">
         <div>
-          <p className="pd-ueber">Politik</p>
-          <h3>Alle Bereiche</h3>
+          <p className="pd-ueber">{tx("ui2.ui.politik.Politik.df56d5e")}</p>
+          <h3>{tx("ui2.ui.politik.Politik.d66458f")}</h3>
           <p className="pd-lead">
             {angespannt.length > 0 ? (
               <>
-                Am dringendsten:{" "}
+                {tx("ui2.ui.politik.Politik.9c4163b")}{" "}
                 {angespannt.slice(0, 3).map((k, i) => (
                   <span key={k.theme}>
-                    {i > 0 && (i === Math.min(3, angespannt.length) - 1 ? " und " : ", ")}
+                    {i > 0 && (i === Math.min(3, angespannt.length) - 1 ? tx("ui2.ui.politik.Politik.e2e6180") : ", ")}
                     <button className="pd-btn quiet" onClick={() => onWaehle(k.theme)}>
                       {k.name}
                     </button>
@@ -243,13 +244,13 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
                 .{" "}
               </>
             ) : (
-              <>Kein Bereich ist angespannt. </>
+              <>{tx("ui2.ui.politik.Politik.ce216ee")} </>
             )}
             {onOpen && (
               <>
-                Die Vorhaben mit der größten Wirkung stehen unter{" "}
+                {tx("ui2.ui.politik.Politik.f4f01f0")}{" "}
                 <button className="pd-btn quiet" onClick={() => onOpen("bereiche")}>
-                  Heute
+                  {tx("ui2.ui.politik.Politik.1ab3309")}
                 </button>
                 .
               </>
@@ -263,7 +264,7 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
           </li>
           <li>
             <b>{zahl("gelb")}</b>
-            <span>Achtung</span>
+            <span>{tx("ui2.ui.politik.Politik.fe6ddf0")}</span>
           </li>
           <li>
             <b>{zahl("gruen")}</b>
@@ -271,7 +272,7 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
           </li>
           <li>
             <b>{akutGesamt}</b>
-            <span>akute Probleme</span>
+            <span>{tx("ui2.ui.politik.Politik.df425a2")}</span>
           </li>
         </ul>
       </header>
@@ -285,7 +286,7 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
             <span className="pd-kachel-stand" title={k.ampelGrund}>
               <span className={`pd-pill ${AMPEL_PILL[k.ampel]}`}>{AMPEL_WORT[k.ampel]}</span>
               {k.akut > 0 && <span className="pd-chip schlecht">{k.akut} akut</span>}
-              {k.laufend > 0 && <span className="pd-chip" title={`${k.laufend} ${k.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}`}>{k.laufend} im Gang</span>}
+              {k.laufend > 0 && <span className="pd-chip" title={`${k.laufend} ${k.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}`}>{tx("ui2.ui.politik.Politik.790441d", { p0: k.laufend })}</span>}
             </span>
             <span className="pd-kachel-text">{k.text}</span>
             <ul className="pd-signale">
@@ -350,7 +351,7 @@ function BereichSeite({
       <header className="pd-bereich-kopf">
         <Medaille name={embleme(kurz.theme)} groesse="gross" />
         <div className="pd-bereich-titel">
-          <p className="pd-ueber">Bereich</p>
+          <p className="pd-ueber">{tx("ui2.ui.politik.Politik.7a3ac9a")}</p>
           <h3>{stand.name}</h3>
           <p className="pd-lead">{stand.text}</p>
         </div>
@@ -362,11 +363,11 @@ function BereichSeite({
       <ul className="pd-kennzahlen" aria-label={t("ui.politik.Politik.b7f486b")}>
         <li className={stand.probleme.length > 0 ? "rot" : ""}>
           <b>{stand.probleme.length}</b>
-          <span>{stand.probleme.length === 1 ? "akutes Problem" : "akute Probleme"}</span>
+          <span>{stand.probleme.length === 1 ? tx("ui2.ui.politik.Politik.6944fe6") : tx("ui2.ui.politik.Politik.df425a2")}</span>
         </li>
         <li>
           <b>{stand.laufend}</b>
-          <span>{stand.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}</span>
+          <span>{stand.laufend === 1 ? tx("ui2.ui.politik.Politik.672ba95") : tx("ui2.ui.politik.Politik.870b084")}</span>
         </li>
         {stand.besser + stand.schlechter > 0 && (
           <li>
@@ -394,7 +395,7 @@ function BereichSeite({
 
       {stand.probleme.length > 0 && (
         <section className="pd-block">
-          <h4>Akute Probleme</h4>
+          <h4>{tx("ui2.ui.politik.Politik.45a7713")}</h4>
           <ul className="pd-probleme">
             {stand.probleme.map((p) => {
               const orte = p.provinzen;
@@ -406,21 +407,21 @@ function BereichSeite({
                       {p.name}
                     </button>
                     <span className="pd-chip">
-                      {orte.length} {orte.length === 1 ? "Provinz" : "Provinzen"}
+                      {orte.length} {orte.length === 1 ? tx("ui2.ui.politik.Politik.d784889") : tx("ui2.ui.politik.Politik.56d7381")}
                     </span>
-                    <span className="pd-chip schlecht">betrifft {Math.round(p.last * 100)} % der Menschen</span>
+                    <span className="pd-chip schlecht">{tx("ui2.ui.politik.Politik.99ae238", { p0: Math.round(p.last * 100) })}</span>
                   </div>
-                  <span className="pd-balken schmal" role="img" aria-label={`${Math.round(p.last * 100)} Prozent der Menschen`}>
+                  <span className="pd-balken schmal" role="img" aria-label={tx("ui2.ui.politik.Politik.94644df", { p0: Math.round(p.last * 100) })}>
                     <i style={{ width: `${Math.round(p.last * 100)}%` }} />
                   </span>
                   <div className="pd-hebel">
-                    <span className="pd-hebel-label">Hebel</span>
+                    <span className="pd-hebel-label">{tx("ui2.ui.politik.Politik.25bcfb4")}</span>
                     {hebel.length === 0 && <span className="pd-leise">{t("ui.politik.Politik.15854cd")}</span>}
                     <div className="pd-hebel-knoepfe">
                       {hebel.map((h) => (
                         <button key={`${h.massnahme}-${h.richtung}`} className="pd-btn" onClick={() => stelle(h.massnahme, h.richtung, orte.length > 0 && orte.length <= 50 ? orte : null)} title={`wirkt ${h.wirkung}`}>
                           <span aria-hidden className="pd-pfeil">{h.richtung > 0 ? "▲" : "▼"}</span>
-                          {h.name} {tunWort(h.massnahme, h.richtung)}
+                          {tunSatz(h.massnahme, h.richtung, h.name)}
                         </button>
                       ))}
                     </div>
@@ -441,20 +442,20 @@ function BereichSeite({
         </ul>
         {lageSortiert.length > 6 && (
           <button className="pd-btn quiet" onClick={() => setAlleLage(!alleLage)}>
-            {alleLage ? "Weniger anzeigen" : `Alle ${lageSortiert.length} Größen anzeigen`}
+            {alleLage ? tx("ui2.ui.politik.Politik.34a01ce") : tx("ui2.ui.politik.Politik.310ecfc", { p0: lageSortiert.length })}
           </button>
         )}
         <p className="pd-legende">{t("ui.politik.Politik.145affe")}</p>
         {(kurz.theme === "wirtschaft" || kurz.theme === "haushalt") && onOpen && (
           <p className="pd-legende">
-            Inflation, Zins, Lira und Zentralbank: <button className="pd-btn quiet" onClick={() => onOpen("wirtschaft")}>Wirtschaft ansehen</button>
+            {tx("ui2.ui.politik.Politik.7e5b474")} <button className="pd-btn quiet" onClick={() => onOpen("wirtschaft")}>{tx("ui2.ui.politik.Politik.6b38126")}</button>
           </p>
         )}
       </section>
 
       {vorschlaege.length > 0 && (
         <section className="pd-block">
-          <h4>Was hier jetzt hilft</h4>
+          <h4>{tx("ui2.ui.politik.Politik.d878de6")}</h4>
           <ol className="vorschlag-liste">
             {vorschlaege.map((v) => (
               <VorschlagKarte key={v.massnahme} v={v} onEinstellen={einstellen} onSofort={sofort} kompakt />
@@ -480,23 +481,23 @@ function BereichSeite({
                         {t("ui.politik.Politik.4d62df2")}
                       </span>
                     )}
-                    {m.imParlament && <span className="pd-pill warn">im Parlament</span>}
+                    {m.imParlament && <span className="pd-pill warn">{tx("ui2.ui.politik.Politik.07204cc")}</span>}
                     {m.blocker && <BlockerBadge blocker={m.blocker} />}
                   </div>
                   <p className="pd-m-beschr">{m.text}</p>
                   {m.umsetzung && (
                     <p className="pd-m-umsetzung">
-                      <span className="pd-balken schmal" role="img" aria-label={`Umsetzung ${Math.round(m.umsetzung.stand)} Prozent`}>
+                      <span className="pd-balken schmal" role="img" aria-label={tx("ui2.ui.politik.Politik.595d2f1", { p0: Math.round(m.umsetzung.stand) })}>
                         <i style={{ width: `${m.umsetzung.stand}%` }} />
                       </span>
                       <span>
-                        Umsetzung {Math.round(m.umsetzung.stand)} % · volle Wirkung in etwa {m.umsetzung.rest} {m.umsetzung.rest === 1 ? "Monat" : "Monaten"}
+                        {tx("ui2.ui.politik.Politik.2ba66c2", { p0: Math.round(m.umsetzung.stand), p1: m.umsetzung.rest })} {m.umsetzung.rest === 1 ? tx("ui2.ui.politik.Politik.da13625") : tx("ui2.ui.politik.Politik.3e846ba")}
                       </span>
                     </p>
                   )}
                   {m.imParlament && (
                     <p className="pd-m-umsetzung">
-                      <span>Stufe {Math.round(m.imParlament.stufe)} liegt im Parlament, Abstimmung in {m.imParlament.tage} Tagen.</span>
+                      <span>{tx("ui2.ui.politik.Politik.03bc1ef", { p0: Math.round(m.imParlament.stufe), p1: m.imParlament.tage })}</span>
                     </p>
                   )}
                 </div>
@@ -504,15 +505,15 @@ function BereichSeite({
                   <span className="pd-m-stufentext">{m.stufe}</span>
                   <span className="pd-skala" aria-hidden>
                     <i style={{ width: `${pos}%` }} />
-                    {m.ziel !== undefined && <b style={{ left: `${Math.max(0, Math.min(100, m.ziel))}%` }} title="beschlossenes Ziel" />}
+                    {m.ziel !== undefined && <b style={{ left: `${Math.max(0, Math.min(100, m.ziel))}%` }} title={tx("ui2.ui.politik.Politik.3759d2f")} />}
                   </span>
-                  {m.ziel !== undefined && <small>Umsetzung läuft auf {Math.round(m.ziel)}</small>}
+                  {m.ziel !== undefined && <small>{tx("ui2.ui.politik.Politik.70d45ec", { p0: Math.round(m.ziel) })}</small>}
                 </div>
                 <div className="pd-m-kosten">
                   {m.kosten > 0 ? (
                     <>
                       <b>{nc(m.kosten)} %</b>
-                      <small>{m.einnahme ? "Einnahmen" : "Kosten"} des BIP</small>
+                      <small>{m.einnahme ? tx("ui2.ui.politik.Politik.f8b133b") : tx("ui2.ui.politik.Politik.9bc1843")} {tx("ui2.ui.politik.Politik.1145673")}</small>
                     </>
                   ) : (
                     <small>{t("ui.politik.Politik.c00fcd3")}</small>

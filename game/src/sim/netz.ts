@@ -50,6 +50,14 @@ export const GEWOEHNUNG_QUELLEN = new Set([
 ]);
 
 /**
+ * Ziele, die jede Quelle ganz am Gewohnten messen (wandernder Bezugswert, Anteil 1): Protest entsteht aus Enttäuschung und Veränderung, nicht aus einem Niveau, an das sich das
+ * Land längst gewöhnt hat. Ohne das klebte der Protestdruck nach einigen Jahren guter Regierung dauerhaft bei null (und nach schlechter
+ * bei hundert) und hätte keine Wellen mehr (Messung 06.10.2026: acht von acht fleißigen Läufen ab dem fünften Jahr bei 0). Maßnahmen
+ * bleiben ausgenommen: Ein Ausnahmezustand staut Unmut auch dann auf, wenn er schon lange gilt.
+ */
+export const GEWOEHNUNG_ZIELE = new Set(["protestdruck"]);
+
+/**
  * Die Kantenformel (Democracy 4: `Ziel, f(x), Inertia`) — ausgewertet auf dem Index 0–100.
  * `linear` ist die Identität, sodass w · (F(x) − F(x₀)) für lineare Kanten exakt dem alten
  * Verhalten w · (x − x₀) entspricht. Alle Parameter sind Spielparameter, keine Messwerte.
@@ -124,6 +132,7 @@ export interface NetModel {
   /** Kantenformel je Verbindung; null = linear (schneller Pfad, bisheriges Verhalten) */
   edgeForm: (FormSpec | null)[];
   /** 1, wenn die Verbindung in einen Stimmungsknoten führt (Gewöhnung wirkt) */
+  /** Gewöhnung je Kante: 0 keine, 1 teilweise (GEGENKRAEFTE.anteil), 2 voll (GEWOEHNUNG_ZIELE) */
   edgeGewoehnung: Uint8Array;
   /** Knoten, die Quelle mindestens einer Verbindung in einen Stimmungsknoten sind (brauchen einen Bezugswert) */
   bezugQuellen: Int32Array;
@@ -158,7 +167,13 @@ export function buildModel(nodes: NodeSpec[], edges: EdgeSpec[], synergien: Syne
   const stimmung = Uint8Array.from(nodes.map((n) => (!gegen || n.input || n.kind === "massnahme" ? 0 : istStimmungsknoten(n) ? 1 : 2)));
   const edgeTo = Int32Array.from(edges.map((e) => index.get(e.to)!));
   const edgeFrom = Int32Array.from(edges.map((e) => index.get(e.from)!));
-  const edgeGewoehnung = Uint8Array.from(edges.map((_, j) => (stimmung[edgeTo[j]!] === 1 && GEWOEHNUNG_QUELLEN.has(nodes[edgeFrom[j]!]!.id) ? 1 : 0)));
+  const edgeGewoehnung = Uint8Array.from(
+    edges.map((_, j) => {
+      const von = nodes[edgeFrom[j]!]!;
+      if (stimmung[edgeTo[j]!] === 1 && GEWOEHNUNG_QUELLEN.has(von.id)) return 1;
+      return gegen && GEWOEHNUNG_ZIELE.has(nodes[edgeTo[j]!]!.id) && von.kind !== "massnahme" ? 2 : 0;
+    }),
+  );
   const quellen = new Set<number>();
   edgeFrom.forEach((f, j) => {
     if (edgeGewoehnung[j]) quellen.add(f);
@@ -303,7 +318,6 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
   const um = s.umsetzung;
   // Gewöhnung (siehe GEGENKRAEFTE): Quellen von Verbindungen in Stimmungsknoten haben einen wandernden Bezugswert; ältere Spielstände
   // beginnen mit dem Startwert als Bezug (dann zählt der erste Monat wie bisher).
-  const gewAnteil = GEGENKRAEFTE.anteil;
   if (model.bezugQuellen.length > 0) s.bezug ??= {};
   for (let j = 0; j < model.edgeFrom.length; j++) {
     const from = model.edgeFrom[j]!;
@@ -313,7 +327,9 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
     const fo = from * PROVINCES;
     const to0 = to * PROVINCES;
     const form = model.edgeForm[j];
-    if (model.edgeGewoehnung[j] === 1) {
+    if (model.edgeGewoehnung[j]! >= 1) {
+      // 2 = volle Gewöhnung (GEWOEHNUNG_ZIELE): nur die Abweichung vom Gewohnten zählt
+      const gewAnteil = model.edgeGewoehnung[j] === 2 ? 1 : GEGENKRAEFTE.anteil;
       const quellId = model.nodes[from]!.id;
       let ref = s.bezug![quellId];
       if (!ref || ref.length !== PROVINCES) {

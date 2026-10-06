@@ -50,18 +50,18 @@ export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; m
 
   return (
     <div className="ortwahl" ref={ref}>
-      <div className="seg" role="group" aria-label="Wo soll es gelten?">
+      <div className="seg" role="group" aria-label={t("ui2.ui.OrtWahl.bc756c1")}>
         <button className={istLand ? "on" : ""} onClick={() => { onChange(null); zu(); }} aria-pressed={istLand}>
-          Ganzes Land
+          {t("ui2.ui.OrtWahl.5258c51")}
         </button>
-        <button className={istAkut ? "on" : ""} disabled={!akut} onClick={() => { onChange(akut); zu(); }} aria-pressed={istAkut} title={akut ? "Provinzen, in denen ein verbundenes Problem akut ist" : "Zu dieser Maßnahme ist kein Problem akut"}>
-          Wo es akut ist{akut ? <b>{akut.length}</b> : null}
+        <button className={istAkut ? "on" : ""} disabled={!akut} onClick={() => { onChange(akut); zu(); }} aria-pressed={istAkut} title={akut ? t("ui2.ui.OrtWahl.f03b3fc") : t("ui2.ui.OrtWahl.17ee897")}>
+          {t("ui2.ui.OrtWahl.9053777")}{akut ? <b>{akut.length}</b> : null}
         </button>
         <button className={regionAktiv || menu === "region" ? "on" : ""} onClick={() => setMenu(menu === "region" ? null : "region")} aria-expanded={menu === "region"} aria-haspopup="listbox">
-          {regionAktiv ? (REGION_DE[regionAktiv] ?? regionAktiv).split(" (")[0] : "Region"} <span className="pf" aria-hidden>▾</span>
+          {regionAktiv ? (REGION_DE[regionAktiv] ?? regionAktiv).split(" (")[0] : t("ui2.ui.OrtWahl.0f21717")} <span className="pf" aria-hidden>▾</span>
         </button>
         <button className={einzeln || menu === "provinz" ? "on" : ""} onClick={() => setMenu(menu === "provinz" ? null : "provinz")} aria-expanded={menu === "provinz"} aria-haspopup="dialog">
-          {einzeln ? `${ort!.length} ${ort!.length === 1 ? "Provinz" : "Provinzen"}` : "Provinzen"} <span className="pf" aria-hidden>▾</span>
+          {einzeln ? `${ort!.length} ${ort!.length === 1 ? "Provinz" : "Provinzen"}` : t("ui2.ui.OrtWahl.56d7381")} <span className="pf" aria-hidden>▾</span>
         </button>
       </div>
 
@@ -84,7 +84,7 @@ export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; m
                 <i style={{ background: REGION_COLORS[r] }} />
                 <span className="pop-name">{REGION_DE[r]}</span>
                 <span className="pop-meta">
-                  {mitglieder.length} Provinzen · {(einwohner / 1_000_000).toLocaleString("de-DE", { maximumFractionDigits: 1 })} Mio.
+                  {t("ui2.ui.OrtWahl.e328e2f", { p0: mitglieder.length, p1: (einwohner / 1_000_000).toLocaleString("de-DE", { maximumFractionDigits: 1 }) })}
                 </span>
               </button>
             );
@@ -101,24 +101,24 @@ export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; m
                 <label className={gewaehlt.has(p.plaka) ? "on" : ""}>
                   <input type="checkbox" checked={gewaehlt.has(p.plaka)} onChange={() => umschalten(p.plaka)} />
                   <span>{p.name}</span>
-                  <em>{(p.bevoelkerung / 1000).toLocaleString("de-DE", { maximumFractionDigits: 0 })} Tsd.</em>
+                  <em>{t("ui2.ui.OrtWahl.008849e", { p0: (p.bevoelkerung / 1000).toLocaleString("de-DE", { maximumFractionDigits: 0 }) })}</em>
                 </label>
               </li>
             ))}
           </ul>
           <div className="pop-fuss">
-            <span>{gewaehlt.size} gewählt</span>
+            <span>{t("ui2.ui.OrtWahl.7f5a6ad", { p0: gewaehlt.size })}</span>
             <button className="link" onClick={() => onChange(null)}>
               {t("ui.OrtWahl.e65c673")}
             </button>
             <button className="link" onClick={zu}>
-              Fertig
+              {t("ui2.ui.OrtWahl.708ad54")}
             </button>
           </div>
         </div>
       )}
 
-      <p className="ort-text">{istLand ? "Die Maßnahme gilt im ganzen Land." : `Gilt nur ${provinzenText(ort)}.`}</p>
+      <p className="ort-text">{istLand ? t("ui2.ui.OrtWahl.bd7c4cf") : t("ui2.ui.OrtWahl.ba24c71", { p0: provinzenText(ort) })}</p>
       {!istLand && ort!.length <= 8 && (
         <ul className="ort-chips">
           {ort!.map((p) => (

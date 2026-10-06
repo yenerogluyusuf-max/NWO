@@ -1,3 +1,4 @@
+import { aktuelleLocale } from "../i18n";
 // Protokoll: Jede verbindliche Zustandsänderung wird festgehalten (Entwicklungsplan, Abschnitt 6).
 
 import type { LogEntry, LogKind, World } from "./types";
@@ -10,5 +11,5 @@ export function addLog(world: World, kind: LogKind, text: string, why?: string):
 
 /** Zahl mit einer Nachkommastelle im deutschen Format. */
 export function fmt(x: number): string {
-  return x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  return x.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 }

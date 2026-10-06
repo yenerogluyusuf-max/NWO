@@ -28,9 +28,9 @@ const nf = (x: number) => String(Math.round(x));
 /** Wort für die gegnerische Stärke, wenn das Lagebild nur eine grobe Einordnung hergibt. */
 function einordnung(eigen: number, gegner: number): string {
   const d = gegner - eigen;
-  if (d <= -15) return "deutlich schwächer als die eigenen Kräfte";
-  if (d <= 15) return "etwa ebenbürtig";
-  return "deutlich stärker als die eigenen Kräfte";
+  if (d <= -15) return t("krieg.d.schwaecher");
+  if (d <= 15) return t("krieg.d.ebenbuertig");
+  return t("krieg.d.staerker");
 }
 
 export function KriegDossier({ world, landId, refresh }: { world: World; landId: string; refresh: () => void }) {
@@ -47,17 +47,17 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
   const sperre = demobSperreBis(world);
 
   return (
-    <section className="kd" aria-label={`Konfliktvorgang mit ${l.name}`}>
+    <section className="kd" aria-label={t("krieg.d.aria", { land: l.name })}>
       <header className={`kd-kopf kd-phase-${k.phase}`}>
-        <b>Konfliktvorgang: {PHASEN_NAME[k.phase]}</b>
+        <b>{t("krieg.d.kopf", { phase: PHASEN_NAME[k.phase] })}</b>
         <span>
-          seit {formatDateDe(addDays(world.date, k.seit - world.day))}
-          {k.rahmung ? ` · Rahmung „${RAHMUNG[k.rahmung].name}“` : ""}
+          {t("krieg.d.seit", { datum: formatDateDe(addDays(world.date, k.seit - world.day)) })}
+          {k.rahmung ? ` · ${t("krieg.d.rahmung", { name: RAHMUNG[k.rahmung].name })}` : ""}
         </span>
       </header>
 
       <div className="kd-zeile" title={t("ui.welt.KriegDossier.c4f3a82")}>
-        <span>Eskalation</span>
+        <span>{t("krieg.d.eskalation")}</span>
         <span className="we-balken" aria-hidden>
           <i style={{ width: `${k.eskalation}%` }} />
         </span>
@@ -66,13 +66,13 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
 
       {imKrieg && (
         <>
-          <div className="kd-zeile" title={`Abstrakte Frontlage (100 = Sieg, 0 = Zusammenbruch), Woche ${k.woche}`}>
-            <span>Frontlage</span>
+          <div className="kd-zeile" title={t("krieg.d.front.titel", { woche: k.woche })}>
+            <span>{t("krieg.d.front")}</span>
             <span className="we-balken" aria-hidden>
               <i style={{ width: `${k.front}%` }} />
             </span>
             <b>
-              {nf(k.front)} <em className={`kd-trend kd-trend-${trend}`}>{trend === "steigend" ? "↑" : trend === "fallend" ? "↓" : "→"} {trend}</em>
+              {nf(k.front)} <em className={`kd-trend kd-trend-${trend}`}>{trend === "steigend" ? "↑" : trend === "fallend" ? "↓" : "→"} {t(`krieg.d.trend.${trend}`)}</em>
             </b>
           </div>
           <div className="kd-zeile" title={t("ui.welt.KriegDossier.fb1d897")}>
@@ -83,38 +83,39 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
             <b>{nf(k.uhr)}</b>
           </div>
           <p className="subtitle">
-            Woche {k.woche} · Verluste {nf(k.verluste)} · {k.mobilmachung === 2 ? "Vollmobilmachung" : k.mobilmachung === 1 ? "Teilmobilmachung" : "keine Mobilmachung"}
+            {t("krieg.d.woche", { woche: k.woche, verluste: nf(k.verluste), mobil: t(k.mobilmachung === 2 ? "krieg.k.x.voll" : k.mobilmachung === 1 ? "krieg.k.x.teil" : "krieg.d.keine_mobil") })}
+            {k.gefallene ? ` · ${t("krieg.d.gefallene", { zahl: k.gefallene })}` : ""}
           </p>
         </>
       )}
 
       <div className="kd-lagebild">
-        <b>Lagebild ({bild.stufe})</b>
+        <b>{t("krieg.d.lagebild", { stufe: t(`krieg.d.stufe.${bild.stufe}`) })}</b>
         <ul>
           <li>
-            Eigene Stärke: <b>{nf(eigen)}</b> <em>(bekannt)</em>
+            {t("krieg.d.eigen")} <b>{nf(eigen)}</b> <em>({t("krieg.d.stufe.bekannt")})</em>
           </li>
           <li>
-            Gegnerische Stärke:{" "}
+            {t("krieg.d.gegner")}{" "}
             {bild.stufe === "bekannt" ? (
               <>
-                <b>{nf(gegner)}</b> <em>(bekannt)</em>
+                <b>{nf(gegner)}</b> <em>({t("krieg.d.stufe.bekannt")})</em>
               </>
             ) : bild.stufe === "vermutet" ? (
               <>
                 <b>
                   {nf(gegner - 10)}–{nf(gegner + 10)}
                 </b>{" "}
-                <em>(vermutet)</em>
+                <em>({t("krieg.d.stufe.vermutet")})</em>
               </>
             ) : (
               <>
-                <b>unbekannt</b> <em>(unsicher: {einordnung(eigen, gegner)})</em>
+                <b>{t("krieg.d.unbekannt")}</b> <em>({t("krieg.d.stufe.unsicher")}: {einordnung(eigen, gegner)})</em>
               </>
             )}
           </li>
           <li>
-            Erschöpfung des Gegners: <em>{k.uhrGegner >= 70 ? "vermutlich gering" : k.uhrGegner >= 40 ? "vermutlich wachsend" : "vermutlich hoch"} (vermutet, nicht gemessen)</em>
+            {t("krieg.d.erschoepfung")} <em>{t(k.uhrGegner >= 70 ? "krieg.d.ersch.gering" : k.uhrGegner >= 40 ? "krieg.d.ersch.wachsend" : "krieg.d.ersch.hoch")} ({t("krieg.d.ersch.vermutet")})</em>
           </li>
         </ul>
         <p className="subtitle">{bild.text}</p>
@@ -122,14 +123,14 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
 
       {dok.doktrin && (
         <p className={`kd-doktrin ${dok.konsistent ? "ok" : "warn"}`}>
-          Doktrin „{dok.name}“: {dok.konsistent ? "konsistent (wirkt multiplikativ)" : `verwässert — es fehlt: ${dok.fehlt.join("; ")}`}
+          {t("krieg.d.doktrin", { name: dok.name ?? "" })} {dok.konsistent ? t("krieg.d.doktrin.ok") : t("krieg.d.doktrin.fehlt", { fehlt: dok.fehlt.join("; ") })}
         </p>
       )}
 
       <Schauplatz world={world} k={k} onTat={() => refresh()} />
       <Besatzung world={world} onTat={() => refresh()} nurLand={landId} />
 
-      {sperre > world.day && <p className="kd-demob">Demobilisierung bis {formatDateDe(addDays(world.date, sperre - world.day))}: erneute Mobilisierung frühestens danach (90-Tage-Rechnung).</p>}
+      {sperre > world.day && <p className="kd-demob">{t("krieg.d.demob", { datum: formatDateDe(addDays(world.date, sperre - world.day)) })}</p>}
 
       <ul className="we-aktionen kd-handlungen">
         {handlungen.map((h) => (

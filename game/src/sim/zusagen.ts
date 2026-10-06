@@ -86,19 +86,19 @@ export interface ZusageSicht {
 }
 
 function folgen(w: World, z: Zusage, bezug: ZusageBezug): { gehalten: string[]; gebrochen: string[] } {
-  const g: string[] = ["Glaubwürdigkeit: Legitimität und Vertrauen steigen leicht"];
-  const b: string[] = ["Glaubwürdigkeit: Legitimität und Vertrauen sinken deutlich"];
+  const g: string[] = [t("sim2.sim.zusagen.3d8ae54")];
+  const b: string[] = [t("sim2.sim.zusagen.1b1a60d")];
   if (bezug.art === "person") {
-    g.push(`${bezug.name}: Loyalität +12`);
-    b.push(`${bezug.name}: Loyalität −25`);
+    g.push(t("sim2.sim.zusagen.2f35bd0", { p0: bezug.name }));
+    b.push(t("sim2.sim.zusagen.5de0f5b", { p0: bezug.name }));
   }
   if (bezug.art === "fraktion" || bezug.art === "person") {
     g.push(`${z.von}: Bereitschaft zur Zusammenarbeit +10`);
-    b.push(`${z.von}: Bereitschaft −20 bis −25, ein Bruch im Lager wird wahrscheinlicher`);
+    b.push(t("sim2.sim.zusagen.d5fe1ee", { p0: z.von }));
   }
   if (bezug.art === "land") {
     g.push(`${bezug.name}: Vertrauen +6`);
-    b.push(`${bezug.name}: Vertrauen −12, mehr Konflikt`);
+    b.push(t("sim2.sim.zusagen.894fe81", { p0: bezug.name }));
   }
   return { gehalten: g, gebrochen: b };
 }
@@ -142,7 +142,7 @@ export function zusagenSicht(w: World): ZusageSicht[] {
         };
       }
       const noch = 2 - (z.vertroestet ?? 0);
-      s.vertroesten = noch > 0 ? { moeglich: kannZahlen(sp.kapital, 1), text: `Kostet 1 Kapital; drei Monate mehr. Danach ${noch === 2 ? "noch einmal möglich" : "ist Schluss"}. Die Geduld sinkt: Loyalität −8, Vertrauen −0,5.` } : { moeglich: false, text: "Schon zweimal vertröstet: jetzt zählt nur noch Halten oder Brechen." };
+      s.vertroesten = noch > 0 ? { moeglich: kannZahlen(sp.kapital, 1), text: t("sim2.sim.zusagen.5acb3a8", { p0: noch === 2 ? t("sim2.sim.zusagen.if27342b") : t("sim2.sim.zusagen.ie79b9ec") }) } : { moeglich: false, text: t("sim2.sim.zusagen.fe9241f") };
       return s;
     });
 }
@@ -231,19 +231,19 @@ export function loeseZusageEin(w: World, z: Zusage): { ok: boolean; text: string
       const gesperrt = v.pr.krisen.find((k) => k.art === "gesperrt");
       if (gesperrt) {
         z.faellig = w.day + 40;
-        return { ok: false, text: `Gerade nicht möglich — ${v.pr.grund}` };
+        return { ok: false, text: t("sim2.sim.zusagen.8e76d02", { p0: v.pr.grund }) };
       }
       z.erfuellt = true;
       bereitschaftAendern(w, z.von, 10);
       zusageAbschluss(w, z, "erfuellt");
-      return { ok: true, text: "Die Maßnahme steht schon dort, wo die Partei sie wollte; die Zusage gilt als erfüllt." };
+      return { ok: true, text: t("sim2.sim.zusagen.3acb1c7") };
     }
     // Die vereinbarte Zielstufe gilt, solange sie noch in die richtige Richtung führt
     const ziel = z.stufeZiel !== undefined && (z.stufeZiel - v.jetzt) * Math.sign(z.richtung ?? 1) > 0 ? z.stufeZiel : v.ziel;
     const r = bringeEin(w, v.id, ziel, null, "gesetz");
     if (!r.ok) {
       z.faellig = w.day + 40;
-      return { ok: false, text: `Die Zusage bleibt offen, es ist nichts bezahlt: ${r.text}` };
+      return { ok: false, text: t("sim2.sim.zusagen.88c1008", { p0: r.text }) };
     }
     // Das Gesetz liegt jetzt im Parlament; die Zusage gilt als erfüllt, sobald es beschlossen ist
     z.faellig = w.day + REGELN.tageBisAbstimmung + 15;
@@ -262,7 +262,7 @@ export function loeseZusageEin(w: World, z: Zusage): { ok: boolean; text: string
     zusageAbschluss(w, z, "erfuellt");
   }
   if (f) loyalitaetVerschieben(f, 12);
-  return { ok: true, text: "Die Zusage wird erfüllt." };
+  return { ok: true, text: t("sim2.sim.zusagen.121b6d0") };
 }
 
 /** Vertröstet: drei Monate mehr, die Geduld sinkt. Der Preis in Kapital wird vom Aufrufer gebucht (Ereignis oder Oberfläche). */
@@ -273,11 +273,11 @@ export function vertroesteZusage(w: World, z: Zusage): string {
   if (f) {
     loyalitaetVerschieben(f, -8);
     grollVerschieben(w, f, 4);
-    merke(w, f, `Auf ${z.text} vertröstet (${z.vertroestet}. Mal)`);
+    merke(w, f, t("sim2.sim.zusagen.ec4fc4f", { p0: z.text, p1: z.vertroestet }));
   }
   vertrauenAendern(w, -0.5);
   wirke(w, "legitimitaet", -0.2);
-  return "Die Zusage wird vertagt; die Geduld wird kürzer.";
+  return t("sim2.sim.zusagen.ac162c8");
 }
 
 /** Bricht die Zusage: Verbündete, Vertrauen und Glaubwürdigkeit leiden. */
@@ -291,8 +291,8 @@ export function brecheZusage(w: World, z: Zusage, verfall = false): string {
   }
   if (!verfall) vertrauenAendern(w, -1);
   zusageAbschluss(w, z, "gebrochen");
-  addLog(w, "entscheidung", `Zusage gebrochen: ${z.text}`, "Verbündete, Vertrauen und Glaubwürdigkeit leiden.");
-  return verfall ? "Die Zusage verfällt unbeantwortet; das wird als Bruch gewertet." : "Die Zusage wird gebrochen.";
+  addLog(w, "entscheidung", `Zusage gebrochen: ${z.text}`, t("sim2.sim.zusagen.4c39914"));
+  return verfall ? t("sim2.sim.zusagen.26feba7") : t("sim2.sim.zusagen.ad79f58");
 }
 
 // ---------------------------------------------------------------------------
@@ -307,29 +307,29 @@ export interface ZusageAntwort {
 /** Löst eine Zusage ein. Hängt sie an einem Gesetz, trägt das Gesetz die Kosten; sonst kostet es 4 Kapital. */
 export function loeseEin(w: World, z: Zusage): ZusageAntwort {
   const sp = w.spiel;
-  if (!sp || z.erfuellt || z.gebrochen) return { ok: false, text: "Diese Zusage ist schon erledigt." };
+  if (!sp || z.erfuellt || z.gebrochen) return { ok: false, text: t("sim2.sim.zusagen.fd45097") };
   const v = zusageVorhaben(w, z);
   const pk = v ? 0 : 4;
-  if (pk && !kannZahlen(sp.kapital, pk)) return { ok: false, text: `Die Zusage einzulösen kostet ${pk} Kapital; vorhanden sind ${Math.floor(sp.kapital)}.` };
+  if (pk && !kannZahlen(sp.kapital, pk)) return { ok: false, text: t("sim2.sim.zusagen.183af97", { p0: pk, p1: Math.floor(sp.kapital) }) };
   const r = loeseZusageEin(w, z);
   if (r.ok && pk) sp.kapital -= pk;
-  if (r.ok) addLog(w, "entscheidung", `Zusage eingelöst: ${z.text}`, v && v.pr.ok ? `Das Gesetz liegt im Parlament; die Zusage gilt als erfüllt, sobald es beschlossen ist.` : undefined);
-  return { ok: r.ok, text: r.text, ...(pk && r.ok ? { why: `Kostet ${pk} Kapital.` } : {}) };
+  if (r.ok) addLog(w, "entscheidung", t("sim2.sim.zusagen.1e43ef2", { p0: z.text }), v && v.pr.ok ? t("sim2.sim.zusagen.48aa7ed") : undefined);
+  return { ok: r.ok, text: r.text, ...(pk && r.ok ? { why: t("sim2.sim.zusagen.6ae7385", { p0: pk }) } : {}) };
 }
 
 /** Vertröstet gegen 1 Kapital, höchstens zweimal. */
 export function vertroesteFrei(w: World, z: Zusage): ZusageAntwort {
   const sp = w.spiel;
-  if (!sp || z.erfuellt || z.gebrochen) return { ok: false, text: "Diese Zusage ist schon erledigt." };
-  if ((z.vertroestet ?? 0) >= 2) return { ok: false, text: "Schon zweimal vertröstet: jetzt zählt nur noch Halten oder Brechen." };
-  if (!kannZahlen(sp.kapital, 1)) return { ok: false, text: "Für eine Vertröstung fehlt Kapital." };
+  if (!sp || z.erfuellt || z.gebrochen) return { ok: false, text: t("sim2.sim.zusagen.fd45097") };
+  if ((z.vertroestet ?? 0) >= 2) return { ok: false, text: t("sim2.sim.zusagen.fe9241f") };
+  if (!kannZahlen(sp.kapital, 1)) return { ok: false, text: t("sim2.sim.zusagen.6555b2b") };
   sp.kapital -= 1;
   const text = vertroesteZusage(w, z);
-  addLog(w, "entscheidung", `Zusage vertagt: ${z.text}`, "Die Geduld sinkt; nach zwei Vertröstungen bleibt nur Halten oder Brechen.");
-  return { ok: true, text, why: "Kostet 1 Kapital." };
+  addLog(w, "entscheidung", `Zusage vertagt: ${z.text}`, t("sim2.sim.zusagen.834013c"));
+  return { ok: true, text, why: t("sim2.sim.zusagen.347aa21") };
 }
 
 export function brecheFrei(w: World, z: Zusage): ZusageAntwort {
-  if (z.erfuellt || z.gebrochen) return { ok: false, text: "Diese Zusage ist schon erledigt." };
+  if (z.erfuellt || z.gebrochen) return { ok: false, text: t("sim2.sim.zusagen.fd45097") };
   return { ok: true, text: brecheZusage(w, z) };
 }

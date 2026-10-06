@@ -20,6 +20,7 @@ import {
   zielRegionen,
 } from "../src/sim/kriegsschauplatz";
 import { REGIONEN, SCHAUPLAETZE, ZIELRAUM_REGIONEN } from "../src/data/schauplaetze";
+import FLAECHEN from "../src/data/schauplatz-flaechen.json";
 import { ZIELRAEUME } from "../src/data/streitkraefte";
 import { streitkraefte } from "../src/sim/streitkraefte";
 import { weltZustand } from "../src/sim/laender";
@@ -72,6 +73,22 @@ describe("Daten der Schauplätze", () => {
     }
   });
 
+  test("jede Region hat eine Fläche aus der Karte, die ihren Ort umgibt (Annexion und Besetzung färben echtes Gebiet)", () => {
+    const fl = FLAECHEN as unknown as Record<string, [number, number][][]>;
+    for (const r of REGIONEN) {
+      const ringe = fl[r.id];
+      expect(ringe?.length, r.id).toBeGreaterThan(0);
+      const pts = ringe!.flat();
+      const lon = pts.map((p) => p[0]);
+      const lat = pts.map((p) => p[1]);
+      // Der Ort liegt in der Hülle seiner Fläche (Rahmen mit kleinem Spielraum für Küstenorte)
+      expect(r.lon, r.id).toBeGreaterThan(Math.min(...lon) - 0.15);
+      expect(r.lon, r.id).toBeLessThan(Math.max(...lon) + 0.15);
+      expect(r.lat, r.id).toBeGreaterThan(Math.min(...lat) - 0.15);
+      expect(r.lat, r.id).toBeLessThan(Math.max(...lat) + 0.15);
+    }
+  });
+
   test("jeder Zielraum hat Regionen seines Landes; Grenzprovinzen sind echte Kennziffern", () => {
     for (const z of ZIELRAEUME) {
       const ids = ZIELRAUM_REGIONEN[z.id];
@@ -83,7 +100,8 @@ describe("Daten der Schauplätze", () => {
   });
 
   test("gleiche Schlüssel und Platzhalter in Deutsch, Türkisch, Englisch", () => {
-    const platz = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");
+    // Türkische Fallendungen ({land|dat}) zählen als derselbe Platzhalter; Zahlenformate ({n, number}) ebenso
+    const platz = (s: string) => [...new Set([...s.matchAll(/\{(\w+)(?:\|\w+|, ?\w+[^}]*)?\}/g)].map((m) => m[1]))].sort().join(",");
     expect(Object.keys(tr).sort()).toEqual(Object.keys(de).sort());
     expect(Object.keys(en).sort()).toEqual(Object.keys(de).sort());
     for (const [k, v] of Object.entries(de)) {

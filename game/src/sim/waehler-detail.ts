@@ -20,6 +20,7 @@ import { vorlage } from "./ereignisse";
 import { verlaufVon } from "./waehler-verlauf";
 import type { EdgeSpec, NodeSpec } from "../data/politiknetz";
 import type { World } from "./types";
+import { t as tx } from "../i18n";
 
 const knoten = (id: string): NodeSpec => NET.nodes[NET.index.get(id)!]!;
 
@@ -36,12 +37,12 @@ export const rolleVon = (laune: number): Rolle => (laune >= SCHWELLE_TRAEGER ? "
 
 /** Was die Gruppe bei der nächsten Wahl täte, in einem Wort. */
 export function absichtWort(laune: number): string {
-  if (laune >= 70) return "würde Sie mit Überzeugung wählen";
-  if (laune >= SCHWELLE_TRAEGER) return "würde Sie wieder wählen";
-  if (laune >= 50) return "schwankt, mit leichter Neigung zu Ihnen";
-  if (laune >= SCHWELLE_SCHWANKEND) return "schwankt, mit leichter Neigung zu einer anderen Partei";
-  if (laune >= 33) return "würde eher wechseln";
-  return "wendet sich ab";
+  if (laune >= 70) return tx("absicht.ueberzeugt");
+  if (laune >= SCHWELLE_TRAEGER) return tx("absicht.wieder");
+  if (laune >= 50) return tx("absicht.schwanktZu");
+  if (laune >= SCHWELLE_SCHWANKEND) return tx("absicht.schwanktWeg");
+  if (laune >= 33) return tx("absicht.wechseln");
+  return tx("absicht.ab");
 }
 
 // ---------------------------------------------------------------------------

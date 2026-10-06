@@ -16,7 +16,7 @@ export function Zeilen({ zeilen, leer }: { zeilen: EffektZeile[]; leer?: string 
       {zeilen.map((z) => (
         <li key={z.text} className={z.gut ? "rr-gut" : "rr-schlecht"}>
           <span aria-hidden>{z.richtung > 0 ? "▲" : "▼"}</span> {z.text}
-          {z.heute !== undefined && <small> (heute {z.heute})</small>}
+          {z.heute !== undefined && <small> {t("ui2.ui.reich.Pflege.c74abd2", { p0: z.heute })}</small>}
         </li>
       ))}
     </ul>
@@ -60,7 +60,7 @@ export function zustandWort(s: PflegeStand): string {
 
 function Zustandsbalken({ zustand, bezug }: { zustand: number; bezug?: number | undefined }) {
   return (
-    <div className="rr-zustand" title={bezug !== undefined ? `Strich: Zustand zum Spielbeginn (${bezug}). Darüber bringt das Stück mehr als damals, darunter weniger.` : "Ohne Pflege verfällt der Zustand; er bestimmt, wie viel das Bauwerk bringt."}>
+    <div className="rr-zustand" title={bezug !== undefined ? t("ui2.ui.reich.Pflege.ab2b8b3", { p0: bezug }) : t("ui2.ui.reich.Pflege.c617cab")}>
       <span>{t("reich.pflege.zustandLabel", { defaultValue: "Zustand" })}</span>
       <span className="rr-balken" aria-hidden>
         <i style={{ width: `${Math.round(zustand)}%` }} className={zustand < 40 ? "schwach" : ""} />
@@ -95,19 +95,19 @@ function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refr
       <Zustandsbalken zustand={s.zustand} bezug={s.bezug} />
 
       <div className="rp-block">
-        <b className="rr-wirkung-kopf">{s.bezug !== undefined ? "Was es heute gegenüber dem Spielbeginn bringt" : "Was es heute bringt"}</b>
+        <b className="rr-wirkung-kopf">{s.bezug !== undefined ? t("ui2.ui.reich.Pflege.07ecb09") : t("ui2.ui.reich.Pflege.355f320")}</b>
         {s.wirkt ? (
-          <Zeilen zeilen={s.jetzt} leer={s.bezug !== undefined ? "Genau so viel wie zum Spielbeginn; das steckt schon in den Startwerten des Landes." : "Noch keine messbare Wirkung."} />
+          <Zeilen zeilen={s.jetzt} leer={s.bezug !== undefined ? t("ui2.ui.reich.Pflege.e8572b7") : t("ui2.ui.reich.Pflege.b6b8483")} />
         ) : (
           <p className="rp-leer">{t("ui.reich.Pflege.7e19d8e")}</p>
         )}
       </div>
 
       <div className="rp-block">
-        <b className="rr-wirkung-kopf">Ohne Pflege</b>
+        <b className="rr-wirkung-kopf">{t("ui2.ui.reich.Pflege.daa6a84")}</b>
         <p className="rp-satz">
-          Verfällt um etwa {s.verfall.proJahr.toLocaleString("de-DE", { maximumFractionDigits: 1 })} Punkte im Jahr, in fünf Jahren auf {Math.round(s.verfall.zustand)}.
-          {s.verfall.verlust.length === 0 ? " Das spürt man in dieser Amtszeit kaum." : " Dann fehlt:"}
+          {t("ui2.ui.reich.Pflege.db74de5", { p0: s.verfall.proJahr.toLocaleString("de-DE", { maximumFractionDigits: 1 }), p1: Math.round(s.verfall.zustand) })}
+          {s.verfall.verlust.length === 0 ? t("ui2.ui.reich.Pflege.ecbd4ce") : t("ui2.ui.reich.Pflege.3629295")}
         </p>
         <Zeilen zeilen={s.verfall.verlust} />
       </div>
@@ -117,32 +117,32 @@ function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refr
           <b className="rr-wirkung-kopf">{t("reich.pflege.instandsetzen", { defaultValue: "Instandsetzen" })}</b>
           {laeuft ? (
             <p className="rp-satz">
-              Läuft: {Math.round(p!.fortschritt * 100)} Prozent
-              {p!.status === "pausiert" ? ", ruht" : p!.restMonate ? `, noch etwa ${p!.restMonate} ${p!.restMonate === 1 ? "Monat" : "Monate"}` : ""}.
+              {t("ui2.ui.reich.Pflege.a59d1ee", { p0: Math.round(p!.fortschritt * 100) })}
+              {p!.status === "pausiert" ? ", ruht" : p!.restMonate ? t("ui2.ui.reich.Pflege.829dd4a", { p0: p!.restMonate, p1: p!.restMonate === 1 ? "Monat" : "Monate" }) : ""}.
             </p>
           ) : (
             <>
               {s.nach && (
                 <p className="rp-satz">
-                  Zustand {Math.round(s.zustand)} → {Math.round(s.nach.zustand)}.{" "}
-                  {gewinnt ? "Danach bringt es zusätzlich:" : "Danach bringt es kaum etwas Messbares mehr; es bremst nur den Verfall."}
+                  {t("ui2.ui.reich.Pflege.4fbb298", { p0: Math.round(s.zustand), p1: Math.round(s.nach.zustand) })}{" "}
+                  {gewinnt ? t("ui2.ui.reich.Pflege.bae2f2e") : t("ui2.ui.reich.Pflege.cc93d7c")}
                 </p>
               )}
               <Zeilen zeilen={s.nach?.gewinn ?? []} />
-              <ul className="rr-kosten" aria-label="Kosten">
-                <li><b>{pv.kosten.pk}</b> Kapital</li>
-                <li><b>{pv.kosten.bau}</b> Baupunkte</li>
-                <li><b>{pv.kosten.monate}</b> Monate</li>
-                {pv.kosten.verwaltung ? <li><b>{pv.kosten.verwaltung}</b> Verwaltung/Monat</li> : null}
+              <ul className="rr-kosten" aria-label={t("ui2.ui.reich.Pflege.9bc1843")}>
+                <li><b>{pv.kosten.pk}</b> {t("ui2.ui.reich.Pflege.28d438e")}</li>
+                <li><b>{pv.kosten.bau}</b> {t("ui2.ui.reich.Pflege.f4466ae")}</li>
+                <li><b>{pv.kosten.monate}</b> {t("ui2.ui.reich.Pflege.1c561ae")}</li>
+                {pv.kosten.verwaltung ? <li><b>{pv.kosten.verwaltung}</b> {t("ui2.ui.reich.Pflege.48ddb61")}</li> : null}
               </ul>
               {offen.length > 0 ? (
-                <p className="rp-satz rp-nicht">Nicht nötig: {offen.map((x) => x.text).join("; ")}.</p>
+                <p className="rp-satz rp-nicht">{t("ui2.ui.reich.Pflege.7c76cde", { p0: offen.map((x) => x.text).join("; ") })}</p>
               ) : (
                 <button type="button" className="aktion-knopf" onClick={los} disabled={!p!.bezahlbar || !p!.verwaltungOk} title={!p!.bezahlbar ? t("reich.pflege.fehltKapital", { defaultValue: "Dafür fehlt Kapital" }) : !p!.verwaltungOk ? t("reich.pflege.fehltVerwaltung", { defaultValue: "Die Verwaltungskraft reicht nicht" }) : undefined}>
                   {t("reich.pflege.instandsetzen", { defaultValue: "Instandsetzen" })}
                 </button>
               )}
-              <p className="rr-kehrseite"><b>Der Preis:</b> {pv.kehrseite}</p>
+              <p className="rr-kehrseite"><b>{t("ui2.ui.reich.Pflege.0289c3f")}</b> {pv.kehrseite}</p>
             </>
           )}
           {antwort && <p className={`rr-ergebnis ${antwort.ok ? "ok" : "nein"}`}>{antwort.text}</p>}
@@ -161,7 +161,7 @@ export function PflegeListe({ world, bereich, refresh }: { world: World; bereich
   return (
     <section className="rr-abschnitt">
       <h4>
-        Bestand <em>{stuecke.length} {stuecke.length === 1 ? "Stück" : "Stücke"}, das Dringendste zuerst</em>
+        {t("ui2.ui.reich.Pflege.6e8cf3e")} <em>{stuecke.length} {stuecke.length === 1 ? t("ui2.ui.reich.Pflege.26e1a92") : t("ui2.ui.reich.Pflege.cd3f30b")}{t("ui2.ui.reich.Pflege.3144bed")}</em>
       </h4>
       <p className="rr-hinweis">{t("ui.reich.Pflege.50d63b0")}</p>
       <div className="rp-liste">
@@ -185,7 +185,7 @@ export function Lohnt({ world, bereich, refresh, zuPflege }: { world: World; ber
         {t("reich.pflege.titel", { defaultValue: "Hier lohnt sich Pflege" })} <em>{t("reich.pflege.untertitel", { defaultValue: "wo Instandsetzen am meisten bewegt" })}</em>
       </h4>
       {liste.length === 0 ? (
-        <p className="rr-hinweis">Im Moment bewegt keine Instandsetzung viel; {verfaellt} {verfaellt === 1 ? "Stück liegt" : "Stücke liegen"} aber schon spürbar unter dem Zustand vom Spielbeginn.</p>
+        <p className="rr-hinweis">{t("ui2.ui.reich.Pflege.7692875", { p0: verfaellt })} {verfaellt === 1 ? t("ui2.ui.reich.Pflege.bdac2ad") : t("ui2.ui.reich.Pflege.65af42d")} {t("ui2.ui.reich.Pflege.ee79392")}</p>
       ) : (
         <ul className="rv-liste">
           {liste.map((s) => (

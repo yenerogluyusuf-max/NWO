@@ -8,6 +8,7 @@ import { eigenVon } from "../../sim/personen";
 import type { LagerArt } from "../../sim/personen-typen";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
+import { t as tx } from "../../i18n";
 
 export const LAGER_FARBE: Record<LagerArt, string> = {
   praesident: "#7c5823",
@@ -51,12 +52,12 @@ export function Balken({ label, wert, wort, ton, klein, hinweis, zeile }: { labe
   const breite = Math.max(0, Math.min(100, wert));
   const text = wort ?? String(Math.round(wert));
   const bar = (
-    <div className="pe-bar" role="img" aria-label={`${label ?? "Wert"} ${Math.round(wert)} von 100`}>
+    <div className="pe-bar" role="img" aria-label={tx("ui2.ui.personen.bausteine.7fd173e", { p0: label ?? "Wert", p1: Math.round(wert) })}>
       <i style={{ width: `${breite}%` }} />
     </div>
   );
   return (
-    <div className={`pe-balken ${t}${klein ? " klein" : ""}${label ? " mit-kopf" : ""}`} title={hinweis ?? `${Math.round(wert)} von 100`}>
+    <div className={`pe-balken ${t}${klein ? " klein" : ""}${label ? " mit-kopf" : ""}`} title={hinweis ?? tx("ui2.ui.personen.bausteine.4b66de7", { p0: Math.round(wert) })}>
       {label ? (
         <>
           <div className="pe-balken-kopf">

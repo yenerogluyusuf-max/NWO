@@ -126,9 +126,9 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
       <section className="paper" style={{ padding: "14px 18px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 19 }}>Aktueller Stand im Amt</h3>
+            <h3 style={{ margin: 0, fontSize: 19 }}>{t("ui2.ui.SpeicherDossier.094e08e")}</h3>
             <p className="subtitle" style={{ margin: "4px 0 0" }}>
-              {world.player?.name ?? "Staatsoberhaupt"} · {formatDateDe(world.date)} · {Math.round(world.spiel?.umfrage.zustimmung ?? 0)} % Zustimmung
+              {world.player?.name ?? t("ui2.ui.SpeicherDossier.2529e52")} {t("ui2.ui.SpeicherDossier.cc5363b", { p0: formatDateDe(world.date), p1: Math.round(world.spiel?.umfrage.zustimmung ?? 0) })}
             </p>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -137,13 +137,13 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
               className="brass-button"
               onClick={() => void schnell()}
             >
-              <Icon name="siegel" size={14} /> Schnellspeichern
+              <Icon name="siegel" size={14} /> {t("ui2.ui.SpeicherDossier.94873ec")}
             </button>
             <button type="button" className="leather-button" onClick={exportiere}>
-              <Icon name="buch" size={14} /> Als Datei sichern (.json)
+              <Icon name="buch" size={14} /> {t("ui2.ui.SpeicherDossier.60efef4")}
             </button>
             <button type="button" className="leather-button" onClick={() => dateiInput.current?.click()}>
-              <Icon name="feder" size={14} /> Datei laden
+              <Icon name="feder" size={14} /> {t("ui2.ui.SpeicherDossier.beeb850")}
             </button>
             <input
               ref={dateiInput}
@@ -167,8 +167,8 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
           {status
             ? status.text
             : auto
-              ? `Letzte Sicherung im Browser: ${formatDateDe(auto.datum)}${auto.gespeichert ? `, gesichert am ${new Date(auto.gespeichert).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} Uhr` : ""}.`
-              : "Noch nichts im Browser gesichert."}
+              ? t("ui2.ui.SpeicherDossier.933a58b", { p0: formatDateDe(auto.datum), p1: auto.gespeichert ? `, gesichert am ${new Date(auto.gespeichert).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} Uhr` : "" })
+              : t("ui2.ui.SpeicherDossier.a62015d")}
         </p>
         {importFehler && <p style={{ color: "var(--seal)", margin: "10px 0 0", fontStyle: "italic" }}>{importFehler}</p>}
       </section>
@@ -183,12 +183,12 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
             {frueher.map((r) => (
               <div key={r.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 12px", border: "1px solid rgba(120, 90, 50, 0.35)", background: "rgba(255, 250, 235, 0.75)" }}>
                 <span>
-                  <strong>{r.key === "hoechst" ? "Weitester Stand" : "Automatische Sicherung"}</strong> · {formatDateDe(r.info.datum)}
-                  {r.info.zustimmung !== undefined ? ` · ${Math.round(r.info.zustimmung)} % Zustimmung` : ""}
-                  {r.info.gespeichert ? ` · gesichert ${new Date(r.info.gespeichert).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} Uhr` : ""}
+                  <strong>{r.key === "hoechst" ? t("ui2.ui.SpeicherDossier.126ee5b") : t("ui2.ui.SpeicherDossier.e93ae2b")}</strong> · {formatDateDe(r.info.datum)}
+                  {r.info.zustimmung !== undefined ? t("ui2.ui.SpeicherDossier.6f8ded0", { p0: Math.round(r.info.zustimmung) }) : ""}
+                  {r.info.gespeichert ? t("ui2.ui.SpeicherDossier.9321161", { p0: new Date(r.info.gespeichert).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }) : ""}
                 </span>
                 <button type="button" className="leather-button" onClick={() => void ladeFrueher(r.key)}>
-                  Laden
+                  {t("ui2.ui.SpeicherDossier.32ee84b")}
                 </button>
               </div>
             ))}
@@ -197,7 +197,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
       )}
 
       <section className="paper" style={{ padding: "14px 18px" }}>
-        <h3 style={{ margin: "0 0 4px", fontSize: 18 }}>Feste Speicher-Slots (1 bis 5)</h3>
+        <h3 style={{ margin: "0 0 4px", fontSize: 18 }}>{t("ui2.ui.SpeicherDossier.34c2a77")}</h3>
         <p className="subtitle" style={{ margin: "0 0 14px" }}>
           {t("ui.SpeicherDossier.30a1a01")}
         </p>
@@ -221,11 +221,11 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
               >
                 <div>
                   <strong style={{ display: "block", fontSize: 15 }}>
-                    Slot {slotNum}: {info ? info.label : "Leer"}
+                    {t("ui2.ui.SpeicherDossier.217e0b1", { p0: slotNum })} {info ? info.label : t("ui2.ui.SpeicherDossier.eaf7d94")}
                   </strong>
                   {info ? (
                     <span style={{ fontSize: 13, color: "var(--ink-soft)", fontStyle: "italic" }}>
-                      {info.datum} · {info.name} ({Math.round(info.zustimmung ?? 0)} % Zustimmung)
+                      {t("ui2.ui.SpeicherDossier.a68cc16", { p0: info.datum, p1: info.name, p2: Math.round(info.zustimmung ?? 0) })}
                     </span>
                   ) : (
                     <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("ui.SpeicherDossier.e0f9ca5")}</span>
@@ -255,9 +255,9 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                     className="brass-button"
                     style={{ padding: "4px 10px", fontSize: 13 }}
                     onClick={() => void speichereIn(slotNum)}
-                    title={`Aktuellen Stand in Slot ${slotNum} sichern`}
+                    title={t("ui2.ui.SpeicherDossier.030022f", { p0: slotNum })}
                   >
-                    Sichern
+                    {t("ui2.ui.SpeicherDossier.9ed6503")}
                   </button>
                   {info && (
                     <>
@@ -266,9 +266,9 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                         className="leather-button"
                         style={{ padding: "4px 10px", fontSize: 13 }}
                         onClick={() => void ladeAus(slotNum)}
-                        title={`Spielstand aus Slot ${slotNum} laden`}
+                        title={t("ui2.ui.SpeicherDossier.1d688ae", { p0: slotNum })}
                       >
-                        Laden
+                        {t("ui2.ui.SpeicherDossier.32ee84b")}
                       </button>
                       <button
                         type="button"
@@ -281,7 +281,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                           padding: "0 4px",
                         }}
                         onClick={() => void loesche(slotNum)}
-                        title={`Slot ${slotNum} leeren`}
+                        title={t("ui2.ui.SpeicherDossier.82249a5", { p0: slotNum })}
                       >
                         ✕
                       </button>

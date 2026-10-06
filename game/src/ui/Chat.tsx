@@ -164,7 +164,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
         </span>
         <div className="gs-titel" title={t("ui.Chat.d6f7bb2")}>
           <strong>{t("ui.Chat.e276e84")}</strong>
-          <span className={`gs-status ${kiAktiv ? "an" : "aus"}`} title={kiAktiv ? `Das Sprachmodell versteht freie Sprache. Weg: ${MODUS_NAME[weg!.modus]}.` : "Ohne eingerichtete KI antwortet das Regelwerk."}>
+          <span className={`gs-status ${kiAktiv ? "an" : "aus"}`} title={kiAktiv ? t("ui2.ui.Chat.5f1db09", { p0: MODUS_NAME[weg!.modus] }) : t("ui2.ui.Chat.9c76a21")}>
             {statusText}
           </span>
         </div>
@@ -172,7 +172,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
             <path d="M4 7h9M17 7h3M4 17h3M11 17h9M13 4v6M7 14v6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
           </svg>
-          {einstellungen ? "Zurück zum Gespräch" : "KI einrichten"}
+          {einstellungen ? t("ui2.ui.Chat.a3c52d2") : t("ui2.ui.Chat.f4ebfe9")}
         </button>
       </header>
 
@@ -186,7 +186,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
             {zeilen.map((z, i) => (
               <div key={i} className={`gs-zeile ${z.rolle}`}>
                 <span className="gs-absender">
-                  {z.rolle === "spieler" ? "Sie" : "Präsidialamt"}
+                  {z.rolle === "spieler" ? t("ui2.ui.Chat.2190140") : t("ui2.ui.Chat.e276e84")}
                   {z.quelle && <em> · {z.quelle}</em>}
                 </span>
                 <div className="gs-blase">
@@ -200,7 +200,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
                       return (
                         <li key={j} className={v.erledigt ? (v.erledigt.ok ? "erledigt" : "fehler") : vs?.problem ? "gesperrt" : ""}>
                           <div className="gs-v-kopf">
-                            <strong>{vs?.titel ?? "Erledigt"}</strong>
+                            <strong>{vs?.titel ?? t("ui2.ui.Chat.adf9ae5")}</strong>
                             {vs?.kosten !== undefined && (
                               <b className="gs-kosten" title={t("ui.Chat.ae69ecb")}>
                                 {vs.kosten}
@@ -233,7 +233,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
                 <span className="gs-absender">{t("ui.Chat.e276e84")}</span>
                 <div className="gs-blase">
                   <p>
-                    Das Präsidialamt liest die Lage
+                    {t("ui2.ui.Chat.7ebbad2")}
                     <span className="punkte" aria-hidden>
                       <i />
                       <i />
@@ -247,7 +247,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
           </div>
 
           <div className="gs-fuss">
-            <div className="gs-beispiele" aria-label="Beispiele">
+            <div className="gs-beispiele" aria-label={t("ui2.ui.Chat.0977c45")}>
               {beispiele.map((b) => (
                 <button key={b} className="gs-chip" type="button" disabled={denkt} onClick={(e) => senden(e as unknown as React.FormEvent, b)}>
                   {b}
@@ -264,11 +264,11 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
                   wachse(e.target);
                 }}
                 onKeyDown={taste}
-                placeholder={kiAktiv ? "Schreiben Sie frei, was Sie wissen oder tun wollen …" : "Schreiben Sie, was geschehen soll …"}
-                aria-label="Anweisung"
+                placeholder={kiAktiv ? t("ui2.ui.Chat.17104e8") : t("ui2.ui.Chat.f5421d0")}
+                aria-label={t("ui2.ui.Chat.0bba292")}
                 disabled={denkt}
               />
-              <button type="submit" className="gs-senden" disabled={denkt || !text.trim()} aria-label="Senden">
+              <button type="submit" className="gs-senden" disabled={denkt || !text.trim()} aria-label={t("ui2.ui.Chat.452568f")}>
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
                   <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>

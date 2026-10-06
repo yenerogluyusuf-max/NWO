@@ -10,6 +10,7 @@ import { PROVINZEN } from "../../sim/regional";
 import { veraenderung, type Bericht, type BerichtGroesse, type Bewertung } from "../../sim/berichte";
 import "../bericht.css";
 import { t } from "../../i18n";
+import { t as tx } from "../../i18n";
 
 type Phase = NonNullable<Bericht["phase"]>;
 
@@ -113,8 +114,8 @@ function GroesseKarte({ g, tage }: { g: BerichtGroesse; tage: number[] }) {
         <div className="ba-karte-kopf">
           <strong>{g.name}</strong>
           {g.stimmung && <span className="ba-soll">{t("ui.politik.BerichtAkte.312da1f")}</span>}
-          {g.erwartet && <span className="ba-soll">soll {g.erwartet === "steigt" ? "steigen" : "sinken"}</span>}
-          <span className={`ba-bewertung bew-${g.bewertung}`}>{g.bewertung === "ruhig" && g.besser === false ? "leicht verschlechtert" : BEWERTUNG_WORT[g.bewertung]}</span>
+          {g.erwartet && <span className="ba-soll">{tx(g.erwartet === "steigt" ? "ui2.ui.politik.BerichtAkte.sollSteigen" : "ui2.ui.politik.BerichtAkte.sollSinken")}</span>}
+          <span className={`ba-bewertung bew-${g.bewertung}`}>{g.bewertung === "ruhig" && g.besser === false ? tx("ui2.ui.politik.BerichtAkte.52c9d3b") : BEWERTUNG_WORT[g.bewertung]}</span>
         </div>
         <p className="ba-zahlen">
           <span className="ba-von">{istProblem ? g.vorher : nf(g.vorher)}</span>
@@ -124,7 +125,7 @@ function GroesseKarte({ g, tage }: { g: BerichtGroesse; tage: number[] }) {
           <span className="ba-nach">{istProblem ? g.nachher : nf(g.nachher)}</span>
           <span className={`ba-delta ton-${tonVon(g)}`}>
             {Math.abs(g.delta) < 0.05
-              ? "unverändert"
+              ? tx("ui2.ui.politik.BerichtAkte.672d90e")
               : istProblem
                 ? `${Math.abs(g.delta)} ${Math.abs(g.delta) === 1 ? "Provinz" : "Provinzen"} ${g.delta < 0 ? "weniger" : "mehr"} akut`
                 : `${veraenderung(g.delta)} ${einheit}`}
@@ -132,27 +133,27 @@ function GroesseKarte({ g, tage }: { g: BerichtGroesse; tage: number[] }) {
         </p>
         {g.ursachen && g.ursachen.length > 0 && (
           <p className="ba-ursache">
-            Entgegen dem Modell dieser Maßnahme. Eine Ursache ist wahrscheinlich: <strong>{g.ursachen.join(", ")}</strong>.
+            {tx("ui2.ui.politik.BerichtAkte.b44a2e1")} <strong>{g.ursachen.join(", ")}</strong>.
           </p>
         )}
         {g.warum && (
           <p className="ba-warum">
             {g.warum}
-            {g.lag !== undefined && g.lag > 0 ? ` Wirkt frühestens nach etwa ${monateDativ(g.lag)}.` : ""}
+            {g.lag !== undefined && g.lag > 0 ? tx("ui2.ui.politik.BerichtAkte.6decb9f", { p0: monateDativ(g.lag) }) : ""}
           </p>
         )}
         {g.regionen && (
           <>
-            <ProvinzListe titel="Am stärksten verbessert:" liste={g.regionen.besser} />
-            <ProvinzListe titel="Am stärksten verschlechtert:" liste={g.regionen.schlechter} />
+            <ProvinzListe titel={tx("ui2.ui.politik.BerichtAkte.2258dd2")} liste={g.regionen.besser} />
+            <ProvinzListe titel={tx("ui2.ui.politik.BerichtAkte.4a5aa45")} liste={g.regionen.schlechter} />
           </>
         )}
-        {istProblem && g.entschaerft && <p className="ba-regionen"><span>Nicht mehr akut in:</span> {g.entschaerft.map((r) => r.name).join(", ")}</p>}
+        {istProblem && g.entschaerft && <p className="ba-regionen"><span>{tx("ui2.ui.politik.BerichtAkte.7d2e353")}</span> {g.entschaerft.map((r) => r.name).join(", ")}</p>}
         {istProblem && g.neuAkut && <p className="ba-regionen"><span>{t("ui.politik.BerichtAkte.cb5d427")}</span> {g.neuAkut.map((r) => r.name).join(", ")}</p>}
       </div>
       {g.verlauf && g.verlauf.length > 1 && (
         <div className="ba-karte-kurve">
-          <Kurve werte={g.verlauf} tage={tage} ton={tonVon(g)} titel={`Verlauf ${g.name}: ${nf(g.verlauf[0]!)} bis ${nf(g.verlauf[g.verlauf.length - 1]!)}`} />
+          <Kurve werte={g.verlauf} tage={tage} ton={tonVon(g)} titel={tx("ui2.ui.politik.BerichtAkte.c5e4dbe", { p0: g.name, p1: nf(g.verlauf[0]!), p2: nf(g.verlauf[g.verlauf.length - 1]!) })} />
           <span className="ba-kurve-legende">{t("ui.politik.BerichtAkte.06fe74f")}</span>
         </div>
       )}
@@ -170,11 +171,11 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
   return (
     <article className="ba-bericht" aria-label={b.titel}>
       <header className="ba-kopf">
-        <p className="ba-kicker">Amtliche Wirkungsüberprüfung · {monate(b.monate)} nach dem Beschluss</p>
+        <p className="ba-kicker">{tx("ui2.ui.politik.BerichtAkte.6ed7504", { p0: monate(b.monate) })}</p>
         <h3>{nameVon(b)}</h3>
         <p className="ba-unter">
-          {b.von !== undefined && b.auf !== undefined ? `Stufe ${Math.round(b.von)} auf ${Math.round(b.auf)}, ${ortText(b.ort)}` : b.titel}
-          {b.beschlussDatum ? ` · beschlossen am ${formatDateDe(b.beschlussDatum)}` : ""} · Bericht vom {formatDateDe(b.datum)}
+          {b.von !== undefined && b.auf !== undefined ? tx("ui2.ui.politik.BerichtAkte.6071450", { p0: Math.round(b.von), p1: Math.round(b.auf), p2: ortText(b.ort) }) : b.titel}
+          {b.beschlussDatum ? tx("ui2.ui.politik.BerichtAkte.dc108a5", { p0: formatDateDe(b.beschlussDatum) }) : ""} {tx("ui2.ui.politik.BerichtAkte.7cefde3", { p0: formatDateDe(b.datum) })}
         </p>
         {onGehe && b.massnahme && (
           <button type="button" className="ba-gehe" onClick={() => onGehe(b.massnahme)}>
@@ -183,7 +184,7 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
         )}
       </header>
 
-      <section className={`ba-urteil phase-${phase}`} aria-label="Urteil">
+      <section className={`ba-urteil phase-${phase}`} aria-label={tx("ui2.ui.politik.BerichtAkte.49ef13c")}>
         <p className="ba-urteil-wort">{PHASE_WORT[phase]}</p>
         {b.kurz && <p className="ba-urteil-kurz">{ohneUrteil(b.kurz)}</p>}
         {b.begruendung && b.begruendung.length > 0 ? (
@@ -197,13 +198,13 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
         )}
         {b.reife && b.reife.stand < 95 && (
           <div className="ba-reife">
-            <div className="ba-reife-balken" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={b.reife.stand} aria-label="Umsetzungsstand">
+            <div className="ba-reife-balken" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={b.reife.stand} aria-label={tx("ui2.ui.politik.BerichtAkte.3cd2659")}>
               <i style={{ width: `${Math.max(2, b.reife.stand)}%` }} />
             </div>
             <p>
-              Umsetzung {b.reife.stand} Prozent
-              {b.reife.restMonate ? ` · volle Wirkung in etwa ${monateDativ(b.reife.restMonate)}` : ""}
-              {b.reife.geplantMonate ? ` · geplante Dauer ${monate(b.reife.geplantMonate)}` : ""}
+              {tx("ui2.ui.politik.BerichtAkte.595d2f1", { p0: b.reife.stand })}
+              {b.reife.restMonate ? tx("ui2.ui.politik.BerichtAkte.09e00f9", { p0: monateDativ(b.reife.restMonate) }) : ""}
+              {b.reife.geplantMonate ? tx("ui2.ui.politik.BerichtAkte.fc53b7a", { p0: monate(b.reife.geplantMonate) }) : ""}
             </p>
           </div>
         )}
@@ -225,7 +226,7 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
           )}
           {bewegteProbleme.length > 0 && (
             <section>
-              <h4>Verbundene Probleme</h4>
+              <h4>{tx("ui2.ui.politik.BerichtAkte.e07bdba")}</h4>
               <p className="ba-erklaer">{t("ui.politik.BerichtAkte.266cc42")}</p>
               <ul className="ba-karten">
                 {bewegteProbleme.map((g) => (
@@ -236,11 +237,11 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
           )}
           {ruhigeProbleme.length > 0 && (
             <details className="ba-ruhig">
-              <summary>Weitere Probleme in der Nähe, unverändert ({ruhigeProbleme.length})</summary>
+              <summary>{tx("ui2.ui.politik.BerichtAkte.dcf80d9", { p0: ruhigeProbleme.length })}</summary>
               <ul>
                 {ruhigeProbleme.map((g) => (
                   <li key={g.id}>
-                    {g.name}: weiter in {g.nachher} {g.nachher === 1 ? "Provinz" : "Provinzen"} akut
+                    {tx("ui2.ui.politik.BerichtAkte.9a000e1", { p0: g.name, p1: g.nachher })} {g.nachher === 1 ? tx("ui2.ui.politik.BerichtAkte.d784889") : tx("ui2.ui.politik.BerichtAkte.56d7381")} akut
                   </li>
                 ))}
               </ul>
@@ -253,12 +254,12 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
             </p>
             {b.mitwirkend && b.mitwirkend.length > 0 && (
               <p>
-                Gleichzeitig wirkten auf dieselben Größen: <strong>{b.mitwirkend.map((m) => m.name).join(", ")}</strong>.
+                {tx("ui2.ui.politik.BerichtAkte.0db58de")} <strong>{b.mitwirkend.map((m) => m.name).join(", ")}</strong>.
               </p>
             )}
             {b.kosten && (
               <p>
-                Haushalt laut Beschluss: {b.kosten.bipProJahr >= 0 ? "Mehrbelastung" : "Entlastung"} von {nf2(Math.abs(b.kosten.bipProJahr))} Prozent des BIP je Jahr, sobald die Maßnahme voll umgesetzt ist.
+                {tx("ui2.ui.politik.BerichtAkte.13b5b0c")} {b.kosten.bipProJahr >= 0 ? tx("ui2.ui.politik.BerichtAkte.0511f96") : tx("ui2.ui.politik.BerichtAkte.aac7682")} {tx("ui2.ui.politik.BerichtAkte.9a1965a", { p0: nf2(Math.abs(b.kosten.bipProJahr)) })}
               </p>
             )}
           </section>
@@ -318,7 +319,7 @@ export function BerichtAkte({ world, start, onGehe }: { world: World; start?: Be
         <p className="subtitle">{t("ui.politik.BerichtAkte.846026c")}</p>
         {beobachtet.length > 0 ? (
           <>
-            <h4>Das wird beobachtet</h4>
+            <h4>{tx("ui2.ui.politik.BerichtAkte.d966a97")}</h4>
             <ul className="ba-beobachtet">
               {beobachtet.map(({ key, name, text, datum }) => (
                 <li key={key}>
@@ -340,7 +341,7 @@ export function BerichtAkte({ world, start, onGehe }: { world: World; start?: Be
 
   return (
     <div className="ba" ref={wurzel}>
-      <nav className="ba-liste" aria-label="Berichte">
+      <nav className="ba-liste" aria-label={tx("ui2.ui.politik.BerichtAkte.d96d05f")}>
         {gruppen.map((gruppe) => (
           <section key={gruppe[0]!.massnahme} className="ba-gruppe">
             <h4>{nameVon(gruppe[0]!)}</h4>
@@ -375,7 +376,7 @@ export function BerichtAkte({ world, start, onGehe }: { world: World; start?: Be
                 <li key={key}>
                   <span className="ba-bald-name">{name}</span>
                   <span className="ba-eintrag-datum">
-                    {m} Monate · {formatDateDe(datum)}
+                    {tx("ui2.ui.politik.BerichtAkte.143a27e", { p0: m, p1: formatDateDe(datum) })}
                   </span>
                 </li>
               ))}

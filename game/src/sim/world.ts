@@ -11,7 +11,8 @@ import { ARCHETYP_DELTAS } from "../data/provinz_archetypen";
 import { NET } from "./modell";
 import { addLog, fmt } from "./log";
 import { spielTick } from "./spiel";
-import { ergaenzeFiguren } from "./figuren";
+import { ergaenzeFiguren, lokalisiereFiguren } from "./figuren";
+import { lokalisiereBerichte } from "./berichte";
 import { migriereVerfassung } from "./aufmerksamkeit";
 import { zinssitzung } from "./zentralbank";
 import { wirtschaftMonat } from "./wirtschaft-tick";
@@ -271,6 +272,9 @@ export function load(json: string): World {
   bereinigeZahlen(w);
   // Ältere Spielstände: die neuen Ämter des Umfelds (Justiz, Streitkräfte, Wirtschaft) werden einmal ergänzt
   ergaenzeFiguren(w);
+  // Rollen und Ziele liegen als fertiger Text im Spielstand: in die aktuelle Sprache bringen
+  lokalisiereFiguren(w);
+  lokalisiereBerichte(w);
   // Ältere Spielstände: das Belastungs-/Aufmerksamkeitskonto lädt mit den Startwerten
   migriereVerfassung(w);
   // Ältere Spielstände (INN-2): Es gab keinen Umsetzungsstand; Beschlossenes gilt als voll

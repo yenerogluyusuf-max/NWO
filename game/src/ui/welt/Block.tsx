@@ -9,6 +9,7 @@ import { akteurName } from "../../sim/welt-modell";
 import { Flagge } from "../art/Flaggen";
 
 import { t } from "../../i18n";
+import { t as tx } from "../../i18n";
 const REGEL: Record<InstitutionDef["beschluss"], string> = {
   einstimmig: "Einstimmigkeit",
   mehrheit: "Mehrheit",
@@ -27,7 +28,7 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
       <p className="subtitle">
         {t("ui.welt.Block.ce1c53b")}
       </p>
-      <div className="we-rat-themen" role="tablist" aria-label="Thema">
+      <div className="we-rat-themen" role="tablist" aria-label={tx("ui2.ui.welt.Block.b2f1380")}>
         {(Object.keys(THEMA_NAME) as EuThema[]).map((t) => (
           <button key={t} type="button" role="tab" aria-selected={thema === t} className={thema === t ? "on" : ""} onClick={() => setThema(t)}>
             {THEMA_NAME[t]}
@@ -35,8 +36,8 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
         ))}
       </div>
       <p className="we-rat-ergebnis">
-        <span className="we-chip gut">dafür {e.dafuer}</span> <span className="we-chip">Enthaltung {e.enthaltung}</span> <span className="we-chip schlecht">dagegen {e.dagegen}</span>{" "}
-        <b>Einstimmigkeit: {e.einstimmig ? "nicht verweigert" : `blockiert (${e.blocker.map((b) => b.name).join(", ")})`}</b> · <b>Mehrheit: {e.mehrheit ? "erreicht" : "verfehlt"}</b>
+        <span className="we-chip gut">{tx("ui2.ui.welt.Block.c792cc1", { p0: e.dafuer })}</span> <span className="we-chip">{tx("ui2.ui.welt.Block.8fa9309", { p0: e.enthaltung })}</span> <span className="we-chip schlecht">{tx("ui2.ui.welt.Block.bc174d1", { p0: e.dagegen })}</span>{" "}
+        <b>{tx("ui2.ui.welt.Block.0133fce")} {e.einstimmig ? tx("ui2.ui.welt.Block.578b67d") : `blockiert (${e.blocker.map((b) => b.name).join(", ")})`}</b> · <b>{tx("ui2.ui.welt.Block.795ec1c")} {e.mehrheit ? "erreicht" : "verfehlt"}</b>
       </p>
       <ul className="we-rat-liste">
         {e.stimmen.map((s) => (
@@ -50,7 +51,7 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
             <span className="we-rat-wort">
               <b>{STIMME[s.stimme]}</b>
               {s.veto ? " · verweigert" : ""}
-              {s.konflikt ? " · Veto über Konfliktwerte" : ""}
+              {s.konflikt ? tx("ui2.ui.welt.Block.3212420") : ""}
             </span>
             <em>{s.grund}</em>
           </li>
@@ -83,16 +84,16 @@ export function Block({ world, id, refresh, onLand }: { world: World; id: string
     <div className="we-block">
       <header className="we-block-kopf">
         <h3>{def.name}</h3>
-        <span className={`we-chip ${tuerkei === "mitglied" ? "gut" : tuerkei === "keiner" ? "schlecht" : ""}`}>Türkei: {statusName}</span>
+        <span className={`we-chip ${tuerkei === "mitglied" ? "gut" : tuerkei === "keiner" ? "schlecht" : ""}`}>{tx("ui2.ui.welt.Block.59a6119", { p0: statusName })}</span>
       </header>
       <p className="we-block-text">{def.text}</p>
       <p className="we-block-regel">
-        <b>Beschlussregel:</b> {REGEL[def.beschluss]} · <b>{t("ui.welt.Block.051e2a4")}</b> {def.tuerkeiText}
+        <b>{tx("ui2.ui.welt.Block.c6e3c60")}</b> {REGEL[def.beschluss]} · <b>{t("ui.welt.Block.051e2a4")}</b> {def.tuerkeiText}
       </p>
       {gruppe("Mitglieder im Spiel", def.mitglieder)}
       {gruppe("Partner", def.partner)}
       {gruppe("Beobachter", def.beobachter)}
-      {def.weitereMitglieder > 0 && <p className="we-hinweis">Dazu {def.weitereMitglieder} weitere Mitglieder, die im Spiel keine eigenen Akteure sind.</p>}
+      {def.weitereMitglieder > 0 && <p className="we-hinweis">{tx("ui2.ui.welt.Block.81545bb", { p0: def.weitereMitglieder })}</p>}
 
       {aktionen.length > 0 && (
         <div className="we-block-aktionen">

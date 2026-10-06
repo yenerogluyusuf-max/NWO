@@ -27,6 +27,7 @@ import { GRUPPEN } from "../sim/gruppen";
 import { NET } from "../sim/modell";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { nf, prozent, vz } from "./waehler/format";
+import { t as tx } from "../i18n";
 import "./politik/design.css";
 import "./wahlkampf.css";
 
@@ -42,7 +43,7 @@ function handeln(w: World, aktion: (rng: Rng) => AktionErgebnis): AktionErgebnis
 
 function ApPunkte({ ap, max }: { ap: number; max: number }) {
   return (
-    <span className="kampf-ap" role="img" aria-label={`${nf(ap, 0)} von ${max} Aktionspunkten`}>
+    <span className="kampf-ap" role="img" aria-label={tx("ui2.ui.Wahlkampf.9336c8d", { p0: nf(ap, 0), p1: max })}>
       {Array.from({ length: max }, (_, i) => (
         <i key={i} className={i < Math.round(ap) ? "voll" : ""} />
       ))}
@@ -66,12 +67,12 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
         <section className="kampf-warte">
           <h3>{t("ui.Wahlkampf.2d60007")}</h3>
           <p>
-            Die Wahl ist in {Math.round(s.tageBisWahl / 30.4)} Monaten. Die heiße Phase beginnt acht Wochen vorher
-            {s.beginntIn !== undefined ? ` — in etwa ${Math.round(s.beginntIn / 30.4)} ${Math.round(s.beginntIn / 30.4) === 1 ? "Monat" : "Monaten"}` : ""}.
+            {tx("ui2.ui.Wahlkampf.75f5f5c", { p0: Math.round(s.tageBisWahl / 30.4) })}
+            {s.beginntIn !== undefined ? tx("ui2.ui.Wahlkampf.14d1f30", { p0: Math.round(s.beginntIn / 30.4), p1: Math.round(s.beginntIn / 30.4) === 1 ? "Monat" : "Monaten" }) : ""}.
           </p>
           <p className="kampf-unter">
-            Dann zählt jede Woche: Reisen in die Provinzen, Versprechen an die Wähler, Auslandstouren zur Diaspora und das TV-Duell gegen{" "}
-            {s.gegner.name}. Jede Woche stehen {WAHLKAMPF.apProWoche} Aktionspunkte bereit.
+            {tx("ui2.ui.Wahlkampf.921af9e")}{" "}
+            {tx("ui2.ui.Wahlkampf.c0b48fe", { p0: s.gegner.name, p1: WAHLKAMPF.apProWoche })}
           </p>
           <p className="kampf-unter">
             {t("ui.Wahlkampf.86c14a1")}
@@ -91,22 +92,22 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
       <section className="kampf-kopf" aria-label={t("ui.Wahlkampf.b95c4f8")}>
         <div className="kampf-kopf-block">
           <span className="kampf-kicker">{t("ui.Wahlkampf.7363869")}</span>
-          <strong>{s.tageBisWahl} {s.tageBisWahl === 1 ? "Tag" : "Tage"}</strong>
+          <strong>{s.tageBisWahl} {s.tageBisWahl === 1 ? tx("ui2.ui.Wahlkampf.982963c") : tx("ui2.ui.Wahlkampf.e94f59f")}</strong>
         </div>
         <div className="kampf-kopf-block">
-          <span className="kampf-kicker">Wochenbudget</span>
+          <span className="kampf-kicker">{tx("ui2.ui.Wahlkampf.33d606a")}</span>
           <ApPunkte ap={s.ap} max={s.apMax} />
-          <span className="kampf-klein">neues Budget in {s.resetIn} {s.resetIn === 1 ? "Tag" : "Tagen"}</span>
+          <span className="kampf-klein">{tx("ui2.ui.Wahlkampf.4204223", { p0: s.resetIn })} {s.resetIn === 1 ? tx("ui2.ui.Wahlkampf.982963c") : tx("ui2.ui.Wahlkampf.8c3427b")}</span>
         </div>
         <div className="kampf-kopf-block">
-          <span className="kampf-kicker">Aufmerksamkeit</span>
+          <span className="kampf-kicker">{tx("ui2.ui.Wahlkampf.97b7e24")}</span>
           <strong>×{nf(WAHLKAMPF.aufmerksamkeitFaktor)}</strong>
           <span className="kampf-klein">{t("ui.Wahlkampf.537a223")}</span>
         </div>
         <div className="kampf-kopf-block">
-          <span className="kampf-kicker">Schlussspurt bislang</span>
+          <span className="kampf-kicker">{tx("ui2.ui.Wahlkampf.7e090e3")}</span>
           <strong className={s.effekte.gesamt >= 0 ? "gut" : "schlecht"}>{vz(s.effekte.gesamt)}</strong>
-          <span className="kampf-klein">{s.effekte.teile.map((t) => `${t.name} ${vz(t.punkte)}`).join(" · ") || "noch keine Effekte"}</span>
+          <span className="kampf-klein">{s.effekte.teile.map((t) => `${t.name} ${vz(t.punkte)}`).join(" · ") || tx("ui2.ui.Wahlkampf.06d81f3")}</span>
         </div>
       </section>
 
@@ -124,11 +125,10 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
       )}
 
       <div className="kampf-grid">
-        <section className="kampf-reisen" aria-label="Reisen">
-          <h3>Reisen ins Land</h3>
+        <section className="kampf-reisen" aria-label={tx("ui2.ui.Wahlkampf.a1bd152")}>
+          <h3>{tx("ui2.ui.Wahlkampf.21e26aa")}</h3>
           <p className="kampf-unter">
-            {s.besuchte} von 81 Provinzen besucht. Brennende Probleme vor Ort sind Risiko und Chance zugleich; was den Archätyp der Provinz prägt,
-            trägt weiter. Wiederholte Besuche nutzen sich ab.
+            {tx("ui2.ui.Wahlkampf.af38990", { p0: s.besuchte })}
           </p>
           <div className="kampf-karte">
             <AtlasMap className="kampf-atlas" fill={fill} interactive={false} />
@@ -149,11 +149,11 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                         <button
                           className={`kampf-prov${n > 0 ? " besucht" : ""}${v.probleme.length > 0 ? " brennt" : ""}`}
                           disabled={s.ap < kosten}
-                          title={`${v.probleme.length > 0 ? `Brennt: ${v.probleme.join(", ")} — Risiko ${prozent(v.risiko, 0)}${v.relevant ? ", archätyp-relevant" : ""}. ` : ""}Erwartete Wirkung ${vz(v.staerke * v.abnutzung)} vor Ort${n > 0 ? ` (schon ${n}× besucht, abnehmender Ertrag)` : ""}`}
+                          title={tx("ui2.ui.Wahlkampf.a7fea85", { p0: v.probleme.length > 0 ? `Brennt: ${v.probleme.join(", ")} — Risiko ${prozent(v.risiko, 0)}${v.relevant ? ", archätyp-relevant" : ""}. ` : "", p1: vz(v.staerke * v.abnutzung), p2: n > 0 ? ` (schon ${n}× besucht, abnehmender Ertrag)` : "" })}
                           onClick={() => tue((rng) => reise(world, p.plaka, rng))}
                         >
                           <span className="kampf-prov-name">{p.name}</span>
-                          {v.probleme.length > 0 && <span className="kampf-prov-brand" aria-label={`${v.probleme.length} akute Probleme`}>!</span>}
+                          {v.probleme.length > 0 && <span className="kampf-prov-brand" aria-label={tx("ui2.ui.Wahlkampf.3253986", { p0: v.probleme.length })}>!</span>}
                           {n > 0 && <span className="kampf-prov-zahl">{n}×</span>}
                           <span className="kampf-prov-kosten">{kosten} AP</span>
                         </button>
@@ -191,10 +191,10 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
             </section>
           )}
 
-          <section className="kampf-touren" aria-label="Auslandstouren">
+          <section className="kampf-touren" aria-label={tx("ui2.ui.Wahlkampf.9744596")}>
             <h3>{t("ui.Wahlkampf.3a7a840")}</h3>
             <p className="kampf-unter">
-              Die Auslandstürken stimmen nur bei nationalen Wahlen ab — ihr Block liegt {s.diaspora.lagerAnteil > 0 ? `bei ${nf(s.diaspora.lagerAnteil)} % für Sie` : "fest"} (Beteiligung {prozent(s.diaspora.beteiligung, 0)}), Beitrag bislang {vz(s.diaspora.beitrag)} Punkte. Jede Tour ({WAHLKAMPF.tourAp} AP) mobilisiert — und riskiert ein Auftrittsverbot des Gastlands.
+              {tx("ui2.ui.Wahlkampf.83246dd")} {s.diaspora.lagerAnteil > 0 ? tx("ui2.ui.Wahlkampf.f38f63c", { p0: nf(s.diaspora.lagerAnteil) }) : "fest"} {tx("ui2.ui.Wahlkampf.8851220", { p0: prozent(s.diaspora.beteiligung, 0), p1: vz(s.diaspora.beitrag), p2: WAHLKAMPF.tourAp })}
             </p>
             <ul className="kampf-tourliste">
               {TOUR_LAENDER.map((t) => {
@@ -204,7 +204,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                     <div className="kampf-tour-text">
                       <strong>{t.name}</strong>
                       <span>
-                        Lager-Modifikator {t.modifikatorPp >= 0 ? "+" : "−"}{nf(Math.abs(t.modifikatorPp), 0)} pp · {prozent(t.anteilWaehler, 0)} der Auslandswähler
+                        Lager-Modifikator {t.modifikatorPp >= 0 ? "+" : "−"}{tx("ui2.ui.Wahlkampf.e34ddf2", { p0: nf(Math.abs(t.modifikatorPp), 0), p1: prozent(t.anteilWaehler, 0) })}
                         {touren.length > 0 ? ` · ${touren.length}× bereist${touren.some((x) => x.verbot) ? ", ein Auftrittsverbot" : ""}` : ""}
                       </span>
                     </div>
@@ -218,41 +218,41 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           </section>
 
           <section className="kampf-duell" aria-label="TV-Duell">
-            <h3>{s.rolle === "nachfolger" ? t("enden.wk.ui.duell_nachfolger") : "Das TV-Duell"}</h3>
+            <h3>{s.rolle === "nachfolger" ? t("enden.wk.ui.duell_nachfolger") : tx("ui2.ui.Wahlkampf.8235cca")}</h3>
             {s.duell.effekt === undefined ? (
               <>
                 <p className="kampf-unter">
                   {s.rolle === "nachfolger" && s.nachfolger
                     ? t("enden.wk.ui.duell_text", { datum: s.duell.datum, name: s.nachfolger.name, gegner: s.gegner.name, partei: s.gegner.parteiName, ap: WAHLKAMPF.duellAp })
-                    : `Am ${s.duell.datum} stellen Sie sich ${s.gegner.name} (${s.gegner.parteiName}). Die Vorbereitung kostet ${WAHLKAMPF.duellAp} AP — unvorbereitet hineinzugehen ist das Risiko.`}
+                    : tx("ui2.ui.Wahlkampf.db02503", { p0: s.duell.datum, p1: s.gegner.name, p2: s.gegner.parteiName, p3: WAHLKAMPF.duellAp })}
                 </p>
                 {s.duell.vorbereitet ? (
                   <p className="kampf-status gut">{t("ui.Wahlkampf.8ba73fa")}</p>
                 ) : (
                   <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.duellAp} onClick={() => tue(() => duellVorbereiten(world))}>
-                    Vorbereiten ({WAHLKAMPF.duellAp} AP)
+                    {tx("ui2.ui.Wahlkampf.2651068", { p0: WAHLKAMPF.duellAp })}
                   </button>
                 )}
               </>
             ) : (
               <>
                 <p className={`kampf-status ${s.duell.effekt >= 0 ? "gut" : "schlecht"}`}>
-                  Ausgang: {vz(s.duell.effekt)} Prozentpunkte auf die Wechselwähler.
+                  {tx("ui2.ui.Wahlkampf.74c11fe", { p0: vz(s.duell.effekt) })}
                 </p>
                 {s.duell.szene && <p className="kampf-unter">{s.duell.szene}</p>}
               </>
             )}
           </section>
 
-          <section className="kampf-gegner" aria-label="Die Gegenseite">
-            <h3>Die Gegenseite</h3>
+          <section className="kampf-gegner" aria-label={tx("ui2.ui.Wahlkampf.35d0259")}>
+            <h3>{tx("ui2.ui.Wahlkampf.35d0259")}</h3>
             <p className="kampf-gegner-profil">
               <strong>{s.gegner.name}</strong> ({s.gegner.parteiName})
             </p>
             <p className="kampf-unter">
               {s.gegner.staerkeSicht !== null
-                ? `Ihre Umfragen sehen die Gegenseite bei ${nf(s.gegner.staerkeSicht)} % — gemessen von ${s.gegner.institut} (Haus-Effekt ${vz(s.gegner.hausBias ?? 0)}: das Institut liegt systematisch daneben). Was Sie sehen, ist so gut wie Ihre Umfragen.`
-                : "Noch liegt keine Kampagnen-Umfrage vor; die erste erscheint mit dem Wochenrhythmus."}
+                ? tx("ui2.ui.Wahlkampf.1663da3", { p0: nf(s.gegner.staerkeSicht), p1: s.gegner.institut, p2: vz(s.gegner.hausBias ?? 0) })
+                : tx("ui2.ui.Wahlkampf.5819f97")}
             </p>
             {s.angriffeLog.length > 0 && (
               <ul className="kampf-angriffe">
@@ -264,7 +264,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                 ))}
               </ul>
             )}
-            <p className="kampf-unter">Ihre Angriffe treffen dort, wo echte Probleme rot stehen — insgesamt {vz(s.angriffe)} Prozentpunkte bislang.</p>
+            <p className="kampf-unter">{tx("ui2.ui.Wahlkampf.1963a80", { p0: vz(s.angriffe) })}</p>
           </section>
 
           <section className="kampf-ticker" aria-label="Umfrage-Ticker">
@@ -275,7 +275,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                   <strong>{nf(tk.wert)} %</strong>
                   <span>{tk.institut}</span>
                   <em title={t("ui.Wahlkampf.be569cb")}>
-                    Bias {vz(tk.hausBias)}
+                    {tx("ui2.ui.Wahlkampf.b55036a", { p0: vz(tk.hausBias) })}
                   </em>
                 </li>
               ))}
@@ -283,12 +283,12 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           </section>
         </div>
 
-        <section className="kampf-versprechen" aria-label="Wahlversprechen">
-          <h3>Wahlversprechen</h3>
+        <section className="kampf-versprechen" aria-label={tx("ui2.ui.Wahlkampf.aa05a80")}>
+          <h3>{tx("ui2.ui.Wahlkampf.aa05a80")}</h3>
           <p className="kampf-unter">
             {s.rolle === "nachfolger"
               ? t("enden.wk.ui.versprechen_text", { glaub: Math.round(s.glaubwuerdigkeit), faktor: s.glaubFaktor })
-              : `Jedes Versprechen bringt jetzt Beifall — und wird zur Zusage, zwölf Monate nach der Wahl fällig. Ihre Glaubwürdigkeit liegt bei ${nf(s.glaubwuerdigkeit, 0)}; davon hängt ab, wie sehr man Ihnen glaubt (Wirkung ×${nf(s.glaubFaktor)}). Wer bricht, zahlt später den Bruch-Preis des Zusagen-Systems.`}
+              : tx("ui2.ui.Wahlkampf.fdf71b5", { p0: nf(s.glaubwuerdigkeit, 0), p1: nf(s.glaubFaktor) })}
           </p>
           <ul className="kampf-vliste">
             {s.versprechen.map(({ def, gegeben }) => (
@@ -297,12 +297,12 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                   <strong>{def.titel}</strong>
                   <span>{def.text}</span>
                   <em>
-                    Beifall: {def.zielgruppen.map((g) => GRUPPEN_NAME.get(g) ?? g).join(", ")}
+                    {tx("ui2.ui.Wahlkampf.a781f62", { p0: def.zielgruppen.map((g) => GRUPPEN_NAME.get(g) ?? g).join(", ") })}
                     {def.verlierer?.length ? ` · verliert: ${def.verlierer.map((g) => GRUPPEN_NAME.get(g) ?? g).join(", ")}` : ""}
                   </em>
                 </div>
                 {gegeben ? (
-                  <span className="kampf-v-gegeben">versprochen</span>
+                  <span className="kampf-v-gegeben">{tx("ui2.ui.Wahlkampf.dfb8f52")}</span>
                 ) : (
                   <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.versprechenAp} onClick={() => tue(() => verspreche(world, def.id))}>
                     {WAHLKAMPF.versprechenAp} AP

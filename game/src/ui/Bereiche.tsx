@@ -44,15 +44,15 @@ export function Bereiche({
     <section className="vorschlaege mf">
       <header className="pd-seitenkopf">
         <div>
-          <p className="pd-ueber">Heute</p>
-          <h3>Was jetzt ansteht</h3>
+          <p className="pd-ueber">{t("ui2.ui.Bereiche.1ab3309")}</p>
+          <h3>{t("ui2.ui.Bereiche.eaecb68")}</h3>
           <p className="pd-lead">{t("ui.Bereiche.99f90d9")}</p>
         </div>
         {vs.length > 0 && (
           <ul className="pd-zaehler" aria-label={t("ui.Bereiche.7be6696")}>
             <li className="hell">
               <b>{vs.length}</b>
-              <span>{vs.length === 1 ? "Vorlage" : "Vorlagen"} nach Rang</span>
+              <span>{vs.length === 1 ? t("ui2.ui.Bereiche.4271557") : t("ui2.ui.Bereiche.ab41f3a")} {t("ui2.ui.Bereiche.4bd4d76")}</span>
             </li>
           </ul>
         )}
@@ -73,7 +73,7 @@ export function Bereiche({
       </ol>
       {onBereiche && (
         <p className="pd-legende">
-          Lieber selbst suchen? <button className="pd-btn quiet" onClick={onBereiche}>Alle Bereiche ansehen</button>
+          {t("ui2.ui.Bereiche.25bbb8b")} <button className="pd-btn quiet" onClick={onBereiche}>{t("ui2.ui.Bereiche.25e38e2")}</button>
         </p>
       )}
     </section>

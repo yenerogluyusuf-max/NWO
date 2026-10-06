@@ -25,6 +25,10 @@ import type { Kartenebene } from "../ebenen";
 import type { KartenMarke } from "../gueter/linsen";
 import type { KriegsKarte } from "../../sim/kriegsschauplatz";
 import type { KriegUv } from "./kriegsfx";
+import { t as tx } from "../../i18n";
+import SCHAUPLATZ_FLAECHEN_ROH from "../../data/schauplatz-flaechen.json";
+
+const SCHAUPLATZ_FLAECHEN = SCHAUPLATZ_FLAECHEN_ROH as unknown as Record<string, [number, number][][]>;
 
 export interface KartenOrt {
   id: string;
@@ -613,7 +617,10 @@ export function AtlasMap({
       regionen: krieg.regionen.map((r) => {
         const [u, v] = uv(r.lon, r.lat);
         const [u2] = uv(r.lon + 0.17 + 0.04 * r.wert, r.lat);
-        return { u, v, r: Math.abs(u2 - u), lage: r.lage, ...(r.form === "annexion" ? { annexion: true } : {}), name: t(`krieg.region.${r.id}`) };
+        // Echte Fläche aus der Karte (Gebiet um den Ort, an Grenze und Küste geschnitten; tools/geodaten/schauplatz_flaechen.py), sonst der Umkreis
+        const fl = SCHAUPLATZ_FLAECHEN[r.id];
+        const ringe = fl?.map((ring) => ring.map(([lo, la]) => uv(lo, la)));
+        return { u, v, r: Math.abs(u2 - u), lage: r.lage, ...(r.form === "annexion" ? { annexion: true } : {}), ...(ringe ? { ringe } : {}), name: t(`krieg.region.${r.id}`) };
       }),
       pfeile: krieg.pfeile.map((p) => ({ von: uv(p.von[0], p.von[1]), nach: uv(p.nach[0], p.nach[1]), seite: p.seite })),
       bedroht: krieg.bedroht.map((pl) => c.centers[pl]).filter((x): x is [number, number] => !!x),
@@ -1095,7 +1102,7 @@ export function AtlasMap({
             data-rang={p.rang ?? 0}
             className={`ort ort-land ton-${p.ton}`}
             title={p.name}
-            aria-label={`${p.name}: Länderkarte öffnen`}
+            aria-label={tx("ui2.ui.atlas.AtlasMap.16b4aa5", { p0: p.name })}
             onClick={(e) => {
               e.stopPropagation();
               onLand?.(p.iso, { x: e.clientX, y: e.clientY });
@@ -1221,7 +1228,7 @@ export function AtlasMap({
           );
         })}
       </div>
-      {!ready && !fehler && <div className="atlas-loading">Die Karte wird gezeichnet …</div>}
+      {!ready && !fehler && <div className="atlas-loading">{tx("ui2.ui.atlas.AtlasMap.895afa5")}</div>}
       {fehler && <div className="atlas-loading">{t("ui.atlas.AtlasMap.a1bc044")}</div>}
       {bezirk ? (
         <div className="atlas-hover bezirk" style={{ left: bezirk.x + 16, top: bezirk.y + 16 }}>

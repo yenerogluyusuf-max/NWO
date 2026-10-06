@@ -8,6 +8,7 @@ import type { World } from "../../sim/types";
 import { REGELN } from "../../sim/handeln";
 import { amAbstimmungBeobachten, baueVerlauf, leseAbstimmung, merkeGesetze, type Abstimmung } from "./abstimmung";
 import { FARBEN_DUNKEL, Sitzplan } from "./Halbrund";
+import { t as tx } from "../../i18n";
 import "./parlament.css";
 
 const DAUER = 2600;
@@ -116,11 +117,11 @@ function Karte({ world, eintrag, weitere, onZu }: { world: World; eintrag: Eintr
 
   return (
     <div className={`par-karte-huelle${fertig ? " fertig" : ""}`} role="status" aria-live="polite">
-      <button className="par-karte" onClick={tippen} aria-label={fertig ? "Abstimmung schließen" : "Abstimmung überspringen"}>
-        <span className="par-karte-kopf">Abstimmung im Parlament</span>
+      <button className="par-karte" onClick={tippen} aria-label={fertig ? tx("ui2.ui.parlament.AbstimmungsKarte.0f8f94e") : tx("ui2.ui.parlament.AbstimmungsKarte.6eef72a")}>
+        <span className="par-karte-kopf">{tx("ui2.ui.parlament.AbstimmungsKarte.9b849fa")}</span>
         <strong className="par-karte-titel">„{ab.name}“</strong>
         <span className="par-karte-unter">
-          {ab.angenommen ? `${ab.ort}${ab.stufe !== undefined ? ` · Stufe ${ab.stufe}` : ""}` : "Gesetzentwurf"} · {REGELN.mehrheit} Stimmen nötig
+          {ab.angenommen ? `${ab.ort}${ab.stufe !== undefined ? ` · Stufe ${ab.stufe}` : ""}` : tx("ui2.ui.parlament.AbstimmungsKarte.c9f8371")} {tx("ui2.ui.parlament.AbstimmungsKarte.af7a8b5", { p0: REGELN.mehrheit })}
         </span>
         <Sitzplan
           lage={verlauf.lage}
@@ -129,7 +130,7 @@ function Karte({ world, eintrag, weitere, onZu }: { world: World; eintrag: Eintr
           sichtbar={sichtbar}
           farben={FARBEN_DUNKEL}
           className="par-dunkel"
-          aria={`Abstimmung über ${ab.name}: ${ab.ja} Ja, ${ab.nein} Nein`}
+          aria={tx("ui2.ui.parlament.AbstimmungsKarte.bcc1ac7", { p0: ab.name, p1: ab.ja, p2: ab.nein })}
           mitte={
             <div className="par-zaehler">
               <span className="ja">
@@ -151,14 +152,14 @@ function Karte({ world, eintrag, weitere, onZu }: { world: World; eintrag: Eintr
         <span className="par-urteil-zeile">
           {fertig ? (
             <>
-              <span className={`par-stempel ${ab.angenommen ? "angenommen" : "abgelehnt"}`}>{ab.angenommen ? "Angenommen" : "Abgelehnt"}</span>
-              <span className="par-urteil-text">{ab.angenommen ? `${ab.ja} zu ${ab.nein}: ${ueber} Stimmen über der Mehrheit.` : `${ab.ja} zu ${ab.nein}: Es fehlten ${REGELN.mehrheit - ab.ja} Stimmen.`}</span>
+              <span className={`par-stempel ${ab.angenommen ? "angenommen" : "abgelehnt"}`}>{ab.angenommen ? tx("ui2.ui.parlament.AbstimmungsKarte.187cf38") : tx("ui2.ui.parlament.AbstimmungsKarte.110d6fe")}</span>
+              <span className="par-urteil-text">{ab.angenommen ? tx("ui2.ui.parlament.AbstimmungsKarte.23e9c6b", { p0: ab.ja, p1: ab.nein, p2: ueber }) : tx("ui2.ui.parlament.AbstimmungsKarte.825d029", { p0: ab.ja, p1: ab.nein, p2: REGELN.mehrheit - ab.ja })}</span>
             </>
           ) : (
-            <span className="par-urteil-text">Tippen überspringt.</span>
+            <span className="par-urteil-text">{tx("ui2.ui.parlament.AbstimmungsKarte.0d2974b")}</span>
           )}
         </span>
-        {weitere > 0 && <span className="par-weitere">Noch {weitere} {weitere === 1 ? "weitere Abstimmung" : "weitere Abstimmungen"}</span>}
+        {weitere > 0 && <span className="par-weitere">{tx("ui2.ui.parlament.AbstimmungsKarte.c6083e3", { p0: weitere })} {weitere === 1 ? tx("ui2.ui.parlament.AbstimmungsKarte.7f13802") : tx("ui2.ui.parlament.AbstimmungsKarte.cd20181")}</span>}
       </button>
     </div>
   );

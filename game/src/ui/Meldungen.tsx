@@ -47,7 +47,7 @@ export function Meldungen({
               {m.text && <em>{m.text}</em>}
               {istBericht && (
                 <span style={{ display: "block", marginTop: 4, font: "600 11.5px var(--sans)", color: "var(--gold-2)", letterSpacing: "0.02em" }}>
-                  Akte & Entwicklungen ansehen ➔
+                  {t("ui2.ui.Meldungen.36da8f4")}
                 </span>
               )}
             </span>

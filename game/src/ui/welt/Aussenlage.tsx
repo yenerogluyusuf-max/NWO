@@ -169,7 +169,7 @@ function Lage({ world, lage }: { world: World; lage: ReturnType<typeof aussenLag
             const k = dimensionZu(world, id, "konflikt");
             return (
               <div key={id} className="al-kopfkarte">
-                <Portraet seed={`${id}-fuehrung`} size={72} rolle="aussen" stimmung={v >= 55 ? "laechelnd" : k >= 65 ? "veraergert" : "ernst"} />
+                <Portraet seed={`${id}-fuehrung`} size={72} rolle={"aussen"} stimmung={v >= 55 ? "laechelnd" : k >= 65 ? "veraergert" : "ernst"} />
                 <strong>{akteurName(id)}</strong>
                 <div className="al-zeile">
                   <span>{t("aussen.ui.vertrauen")}</span>

@@ -54,6 +54,7 @@ import { fmt } from "./log";
 import { formatMonthDe } from "./dates";
 import type { MonthlySnapshot, World } from "./types";
 import type { Bericht } from "./berichte";
+import { t as tx } from "../i18n";
 
 export type { AuslandPunkt, KennzahlDaten, LagePunkt, TextKontext, VorgangDaten } from "../data/zeitung_texte";
 
@@ -261,16 +262,16 @@ interface BlattDef {
 
 const BLAETTER: Record<string, BlattDef> = {
   staatsrundfunk: { name: "Der Staatsbote", unterzeile: "Amtlich. Ausgewogen. Immer schon da." },
-  holding_kern: { name: "Neue Warte", unterzeile: "Unabhängig. Überparteilich. Eigentümernah." },
-  holding_breit: { name: "Tagespost", unterzeile: "Was das Land bewegt — und was der Aufsichtsrat bewegt." },
-  kommerz_konform: { name: "Abendkurier", unterzeile: "Große Gefühle, kleine Risiken." },
-  opposition_masse: { name: "Die Freie Stimme", unterzeile: "Unbequem seit der ersten Ausgabe." },
+  holding_kern: { name: "Neue Warte", unterzeile: tx("sim2.sim.zeitung.e737635") },
+  holding_breit: { name: "Tagespost", unterzeile: tx("sim2.sim.zeitung.2e7c9fc") },
+  kommerz_konform: { name: "Abendkurier", unterzeile: tx("sim2.sim.zeitung.5499cfb") },
+  opposition_masse: { name: "Die Freie Stimme", unterzeile: tx("sim2.sim.zeitung.29d96c9") },
   opposition_nische: { name: "Der Widerspruch", unterzeile: "Klein auflagestark an Haltung." },
-  digital_frei: { name: "Das Netzportal", unterzeile: "Schneller als jede Druckerpresse — und erreichbar, solange es geht." },
+  digital_frei: { name: "Das Netzportal", unterzeile: tx("sim2.sim.zeitung.6e4985a") },
 };
 
 export function blattDef(clusterId: string): BlattDef {
-  return BLAETTER[clusterId] ?? { name: "Der Anzeiger", unterzeile: "Erscheint unregelmäßig." };
+  return BLAETTER[clusterId] ?? { name: "Der Anzeiger", unterzeile: tx("sim2.sim.zeitung.52b082a") };
 }
 
 // ---------------------------------------------------------------------------
@@ -350,16 +351,16 @@ export function handlungFuer(v: ZeitungVorgang): ZeitungHandlung | undefined {
     case "ueberblick":
       return { text: "Zur Wirtschaftsakte", ziel: { art: "akte", akte: "wirtschaft" } };
     case "lage":
-      return { text: "Zu den Problemen und Maßnahmen", ziel: { art: "akte", akte: "bereiche" } };
+      return { text: tx("sim2.sim.zeitung.e6ec8c9"), ziel: { art: "akte", akte: "bereiche" } };
     case "bericht":
-      return { text: "Zu den Wirkungsberichten", ziel: { art: "akte", akte: "wirkungsbericht" } };
+      return { text: tx("sim2.sim.zeitung.5730ed2"), ziel: { art: "akte", akte: "wirkungsbericht" } };
     case "programm":
-      return { text: "Zu den Programmen", ziel: { art: "akte", akte: "programme" } };
+      return { text: tx("sim2.sim.zeitung.f5314df"), ziel: { art: "akte", akte: "programme" } };
     case "ausland": {
       const p = v.daten?.typ === "ausland" ? v.daten.punkt : undefined;
       const name = p && (p.art === "krieg" || p.art === "spannung") ? p.land : undefined;
       const id = name ? LAENDER.find((l) => l.name === name)?.id : undefined;
-      return id ? { text: "Zur Länderakte", ziel: { art: "land", id } } : { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } };
+      return id ? { text: tx("sim2.sim.zeitung.29516dc"), ziel: { art: "land", id } } : { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } };
     }
     case "krise":
       return v.krieg ? { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } } : { text: "Zur Wirtschaftsakte", ziel: { art: "akte", akte: "wirtschaft" } };
@@ -639,7 +640,7 @@ function hinweis(world: World, ausgabe: ZeitungAusgabe): void {
   spiel.hinweise.push({
     // Präfix „zeitung-": Klasse C der Auto-Stopp-Taxonomie — Umlauf, die Zeit läuft weiter
     id: `zeitung-${ausgabe.anlass === "eilmeldung" ? "eil-" : ""}${world.day}-${ausgabe.nummer}`,
-    titel: ausgabe.anlass === "eilmeldung" ? "Eilmeldung in der Zeitung" : "Die Zeitung: Neue Ausgabe",
+    titel: ausgabe.anlass === "eilmeldung" ? tx("sim2.sim.zeitung.8df18d7") : "Die Zeitung: Neue Ausgabe",
     szene: "istanbul",
     text: [
       `Ausgabe Nr. ${ausgabe.nummer}: ${ausgabe.blaetter.map((b) => b.name).join(", ")}.${lead ? ` Leitartikel: „${lead.schlagzeile}" (${ausgabe.blaetter[0]!.name}).` : ""}`,
@@ -804,16 +805,16 @@ function auslandZeile(world: World, p: AuslandPunkt): ZeitungAuslandZeile {
   switch (p.art) {
     case "krieg": {
       const l = LAENDER.find((x) => x.name === p.land);
-      return { text: `Konflikt mit ${p.dat}: Phase „${p.phase}“, Eskalation ${p.eskalation} von 100`, ...(l ? { ziel: { art: "land" as const, id: l.id } } : {}) };
+      return { text: tx("sim2.sim.zeitung.ad1846e", { p0: p.dat, p1: p.phase, p2: p.eskalation }), ...(l ? { ziel: { art: "land" as const, id: l.id } } : {}) };
     }
     case "spannung": {
       const l = LAENDER.find((x) => x.name === p.land);
-      return { text: `Spannungen mit ${p.dat}: Konfliktwert ${p.wert} von 100${p.vorher !== undefined ? (p.vorher === p.wert ? " (unverändert)" : ` (zuvor ${p.vorher})`) : ""}`, ...(l ? { ziel: { art: "land" as const, id: l.id } } : {}) };
+      return { text: tx("sim2.sim.zeitung.85b2eb9", { p0: p.dat, p1: p.wert, p2: p.vorher !== undefined ? (p.vorher === p.wert ? " (unverändert)" : ` (zuvor ${p.vorher})`) : "" }), ...(l ? { ziel: { art: "land" as const, id: l.id } } : {}) };
     }
     case "vermittlung":
-      return { text: `${p.titel}: Intensität ${p.konflikt}, Reifegrad für Verhandlungen ${p.reif} von 100`, ziel: { art: "akte", akte: "welt" } };
+      return { text: tx("sim2.sim.zeitung.19eb96d", { p0: p.titel, p1: p.konflikt, p2: p.reif }), ziel: { art: "akte", akte: "welt" } };
     case "eu":
-      return { text: `EU-Beitritt, Phase „${p.phase}“: ${p.abgeschlossen} von ${p.gesamt} Kapiteln abgeschlossen, ${p.offen} offen`, ziel: { art: "akte", akte: "welt" } };
+      return { text: tx("sim2.sim.zeitung.65ba3bc", { p0: p.phase, p1: p.abgeschlossen, p2: p.gesamt, p3: p.offen }), ziel: { art: "akte", akte: "welt" } };
   }
   void world;
 }
@@ -839,13 +840,13 @@ function ueberblickVorgang(world: World, zahlen: ZeitungKennzahl[]): ZeitungVorg
     arbeit ? `Arbeitslosigkeit ${prozentText(arbeit.wert)}` : "",
     wachstum ? `Wachstum ${prozentText(wachstum.wert)}` : "",
   ].filter(Boolean);
-  const fakt = `${teile.join(", ")}; der Leitzins liegt bei ${prozentText(world.economy.policyRate)}, ein Dollar kostet ${fmt(world.economy.usdTry)} Lira.`;
+  const fakt = tx("sim2.sim.zeitung.0828ab6", { p0: teile.join(", "), p1: prozentText(world.economy.policyRate), p2: fmt(world.economy.usdTry) });
   const mittel = k.length ? k.reduce((s, x) => s + kzBewertung(x), 0) / k.length : 0;
   return {
     id: `ueberblick-${world.day}`,
     art: "ueberblick",
     sparte: "wirtschaft",
-    titel: "Die Wirtschaft im Überblick",
+    titel: tx("sim2.sim.zeitung.55adf36"),
     fakt,
     wertung: clamp(mittel * 0.4, -0.6, 0.6),
     tag: world.day,
@@ -862,8 +863,8 @@ function wirtschaftVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] 
   const startInfl = world.spiel?.start.inflation;
   if (Math.abs(dInfl) >= 0.75) {
     kandidaten.push({
-      titel: dInfl > 0 ? "Teuerung zieht an" : "Teuerung lässt nach",
-      fakt: `Die Inflation liegt bei ${fmt(infl.value)} Prozent zum Vorjahr (zuletzt ${fmt(z.wirtschaft.inflation)}), Stand ${formatMonthDe(infl.period)}.`,
+      titel: dInfl > 0 ? "Teuerung zieht an" : tx("sim2.sim.zeitung.e5e20de"),
+      fakt: tx("sim2.sim.zeitung.c108bf2", { p0: fmt(infl.value), p1: fmt(z.wirtschaft.inflation), p2: formatMonthDe(infl.period) }),
       wertung: dInfl > 0 ? -0.7 : 0.55,
       schwere: Math.abs(dInfl),
       daten: { typ: "kennzahl", kennzahl: "inflation", wert: infl.value, vorher: z.wirtschaft.inflation, ...(startInfl !== undefined ? { start: startInfl } : {}), stand: formatMonthDe(infl.period) },
@@ -872,8 +873,8 @@ function wirtschaftVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] 
   const dZins = world.economy.policyRate - z.wirtschaft.policyRate;
   if (Math.abs(dZins) >= 0.5) {
     kandidaten.push({
-      titel: dZins > 0 ? "Zentralbank verschärft den Zins" : "Zentralbank senkt den Zins",
-      fakt: `Der Leitzins steht bei ${fmt(world.economy.policyRate)} Prozent (zuvor ${fmt(z.wirtschaft.policyRate)}).`,
+      titel: dZins > 0 ? tx("sim2.sim.zeitung.638fea9") : tx("sim2.sim.zeitung.e667661"),
+      fakt: tx("sim2.sim.zeitung.6d9e2ea", { p0: fmt(world.economy.policyRate), p1: fmt(z.wirtschaft.policyRate) }),
       wertung: dZins > 0 ? -0.35 : 0.25,
       schwere: Math.abs(dZins) * 1.5,
       daten: { typ: "kennzahl", kennzahl: "zins", wert: world.economy.policyRate, vorher: z.wirtschaft.policyRate },
@@ -882,8 +883,8 @@ function wirtschaftVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] 
   const dLira = (world.economy.usdTry / z.wirtschaft.usdTry - 1) * 100;
   if (Math.abs(dLira) >= 2) {
     kandidaten.push({
-      titel: dLira > 0 ? "Lira gibt nach" : "Lira erholt sich",
-      fakt: `Der Dollar kostet ${fmt(world.economy.usdTry)} Lira; das sind ${fmt(Math.abs(dLira))} Prozent ${dLira > 0 ? "mehr" : "weniger"} als vor einem Monat.`,
+      titel: dLira > 0 ? tx("sim2.sim.zeitung.a156552") : tx("sim2.sim.zeitung.ea8892d"),
+      fakt: tx("sim2.sim.zeitung.160b22e", { p0: fmt(world.economy.usdTry), p1: fmt(Math.abs(dLira)), p2: dLira > 0 ? "mehr" : "weniger" }),
       wertung: dLira > 0 ? -0.6 : 0.4,
       schwere: Math.abs(dLira) / 2,
       daten: { typ: "kennzahl", kennzahl: "lira", wert: world.economy.usdTry, vorher: z.wirtschaft.usdTry },
@@ -910,8 +911,8 @@ function lageVorgang(world: World, punkte: LagePunkt[]): ZeitungVorgang | null {
     id: `lage-${world.day}`,
     art: "lage",
     sparte: "ereignis",
-    titel: `${fokus.name} in ${fokus.provinzen} ${fokus.provinzen === 1 ? "Provinz" : "Provinzen"} akut`,
-    fakt: `${fokus.name} ist in ${fokus.provinzen} ${fokus.provinzen === 1 ? "Provinz" : "Provinzen"} akut${vergleich}; dort leben ${Math.round(fokus.anteil * 100)} Prozent der Bevölkerung, am stärksten betroffen ist ${fokus.schlimmste}.`,
+    titel: tx("sim2.sim.zeitung.0197449", { p0: fokus.name, p1: fokus.provinzen, p2: fokus.provinzen === 1 ? "Provinz" : "Provinzen" }),
+    fakt: tx("sim2.sim.zeitung.e1917c3", { p0: fokus.name, p1: fokus.provinzen, p2: fokus.provinzen === 1 ? "Provinz" : "Provinzen", p3: vergleich, p4: Math.round(fokus.anteil * 100), p5: fokus.schlimmste }),
     wertung,
     tag: world.day,
     datum: world.date,
@@ -928,7 +929,7 @@ function auslandVorgang(world: World, punkte: AuslandPunkt[]): ZeitungVorgang | 
   if (!p) return null;
   const zeile = auslandZeile(world, p).text;
   const wertung = p.art === "krieg" ? -0.5 : p.art === "spannung" ? (p.vorher !== undefined && p.wert < p.vorher ? 0.2 : -0.3) : p.art === "vermittlung" ? 0.1 : 0.2;
-  const titel = p.art === "krieg" || p.art === "spannung" ? `Lage gegenüber ${p.dat}` : p.art === "vermittlung" ? p.titel : "EU-Beitritt";
+  const titel = p.art === "krieg" || p.art === "spannung" ? tx("sim2.sim.zeitung.24b1640", { p0: p.dat }) : p.art === "vermittlung" ? p.titel : "EU-Beitritt";
   return { id: `ausland-${world.day}`, art: "ausland", sparte: "welt", titel, fakt: `${zeile}.`, wertung, tag: world.day, datum: world.date, daten: { typ: "ausland", punkt: p } };
 }
 
@@ -948,7 +949,7 @@ const num = (s: string): number => Number(s.replace(/\./g, "").replace(",", ".")
 
 /** Zerlegt die Textzeilen eines Wirkungsberichts in Zahlen; was nicht passt, bleibt als Rohzeile erhalten. */
 export function berichtZuVorgang(r: Bericht, index: number): ZeitungVorgang {
-  const t = new RegExp(`^(.*?): Stufe (\\d+) auf (\\d+), (\\d+) Monate danach$`).exec(r.titel);
+  const t = new RegExp(tx("sim2.sim.zeitung.d1d87fa")).exec(r.titel);
   const name = t?.[1] ?? r.titel;
   const von = t ? Number(t[2]) : 0;
   const auf = t ? Number(t[3]) : 0;
@@ -956,7 +957,7 @@ export function berichtZuVorgang(r: Bericht, index: number): ZeitungVorgang {
   const akut: { name: string; von: number; auf: number }[] = [];
   const roh: string[] = [];
   for (const zeile of r.zeilen) {
-    const a = new RegExp(`^(.+?): ${ZAHL} auf ${ZAHL} \\([+−-]${ZAHL}\\)$`).exec(zeile);
+    const a = new RegExp(tx("sim2.sim.zeitung.4fe013f", { p0: ZAHL, p1: ZAHL, p2: ZAHL })).exec(zeile);
     const b = /^(.+?): akut in (\d+) auf (\d+) Provinzen$/.exec(zeile);
     if (a) veraenderungen.push({ name: a[1]!, von: num(a[2]!), auf: num(a[3]!) });
     else if (b) akut.push({ name: b[1]!, von: Number(b[2]), auf: Number(b[3]) });
@@ -969,9 +970,9 @@ export function berichtZuVorgang(r: Bericht, index: number): ZeitungVorgang {
     id: `bericht-${r.tag}-${index}`,
     art: "bericht",
     sparte: "programm",
-    titel: `Wirkungsprüfung: ${name}`,
+    titel: tx("sim2.sim.zeitung.a3cd068", { p0: name }),
     // Was sich nicht in Zahlen zerlegen ließ (anderes Zeilenformat), bleibt im Fakt stehen — es geht nichts verloren
-    fakt: `Amtliche Wirkungsprüfung ${r.monate} Monate nach dem Beschluss „${name}“ (Stufe ${von} auf ${auf}).${!veraenderungen.length && !akut.length && roh.length ? ` ${roh.join("; ")}.` : ""}`,
+    fakt: tx("sim2.sim.zeitung.4c7f9a2", { p0: r.monate, p1: name, p2: von, p3: auf, p4: !veraenderungen.length && !akut.length && roh.length ? ` ${roh.join("; ")}.` : "" }),
     wertung,
     tag: r.tag,
     datum: r.datum,
@@ -1046,7 +1047,7 @@ function gesetzVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
       art: "gesetz",
       sparte: "politik",
       titel: m[1]!,
-      fakt: ja ? `Das Parlament nimmt „${m[1]}" mit Mehrheit an.` : `Das Parlament lehnt „${m[1]}" ab.`,
+      fakt: ja ? tx("sim2.sim.zeitung.065f3a1", { p0: m[1] }) : `Das Parlament lehnt „${m[1]}" ab.`,
       wertung: ja ? 0.3 : -0.5,
       tag: l.day,
       datum: l.date,
@@ -1103,13 +1104,13 @@ export function zeitungMonat(world: World): void {
     z.letzteUmfrage = ergebnis.umfrage.wert;
     const u = ergebnis.umfrage;
     const delta = u.vormonat !== undefined ? u.wert - u.vormonat : undefined;
-    const stich = u.stichprobe !== undefined ? `Stichprobe ${u.stichprobe.toLocaleString("de-DE")}, Methode ${u.methode}` : `Methode ${u.methode}, Stichprobe nicht offengelegt`;
+    const stich = u.stichprobe !== undefined ? `Stichprobe ${u.stichprobe.toLocaleString("de-DE")}, Methode ${u.methode}` : tx("sim2.sim.zeitung.e2cb800", { p0: u.methode });
     vorgaenge.push({
       id: `umfrage-${world.day}`,
       art: "umfrage",
       sparte: "umfrage",
-      titel: `${u.institut}: ${fmt(u.wert)} Prozent`,
-      fakt: `${u.institut} misst der Regierung ${fmt(u.wert)} Prozent Zustimmung${delta !== undefined ? ` (${delta >= 0 ? "+" : "−"}${fmt(Math.abs(delta))} zum Vormonat)` : ""}; ${stich}.`,
+      titel: tx("sim2.sim.zeitung.345c08a", { p0: u.institut, p1: fmt(u.wert) }),
+      fakt: tx("sim2.sim.zeitung.8477ef0", { p0: u.institut, p1: fmt(u.wert), p2: delta !== undefined ? ` (${delta >= 0 ? "+" : "−"}${fmt(Math.abs(delta))} zum Vormonat)` : "", p3: stich }),
       wertung: delta === undefined ? 0.05 : delta > 1 ? 0.4 : delta < -1 ? -0.5 : 0.05,
       tag: world.day,
       datum: world.date,
@@ -1188,55 +1189,55 @@ function eilEinordnung(world: World, e: Grossereignis): { feststeht: string[]; o
     const krieg = (spiel.kriege ?? []).find((k) => k.phase !== "beendet" && (!land || k.land === land.id));
     if (krieg) {
       const l = LAENDER.find((x) => x.id === krieg.land);
-      feststeht.push(`Der Konfliktvorgang mit ${l?.dat ?? krieg.land} steht in der Phase „${PHASE_NAME[krieg.phase] ?? krieg.phase}“; die Eskalation liegt bei ${nz(krieg.eskalation)} von 100, die Mobilmachung auf Stufe ${krieg.mobilmachung}.`);
+      feststeht.push(tx("sim2.sim.zeitung.2915b22", { p0: l?.dat ?? krieg.land, p1: PHASE_NAME[krieg.phase] ?? krieg.phase, p2: nz(krieg.eskalation), p3: krieg.mobilmachung }));
     } else if (land) {
       const w = spiel.welt?.[land.id];
-      if (w) feststeht.push(`Der Konfliktwert gegenüber ${land.dat} liegt bei ${nz(w.konflikt)} von 100.`);
+      if (w) feststeht.push(tx("sim2.sim.zeitung.46a4eb9", { p0: land.dat, p1: nz(w.konflikt) }));
     }
     if (land) {
       const verhaeltnis = nationalAverage(NET, world.net, land.knoten);
-      if (Number.isFinite(verhaeltnis)) offen.push(`Ob Gespräche möglich werden, hängt auch vom Verhältnis ab: Es steht im Politiknetz bei ${nz(verhaeltnis)} von 100.`);
+      if (Number.isFinite(verhaeltnis)) offen.push(tx("sim2.sim.zeitung.9aa0184", { p0: nz(verhaeltnis) }));
     }
-    offen.push("Ob die Lage eskaliert oder sich beruhigt, entscheiden die nächsten Wochen und das, was Ankara bis dahin tut.");
-    return { feststeht, offen, handlung: land ? { text: `Zur Länderakte ${land.name}`, ziel: { art: "land", id: land.id } } : { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } } };
+    offen.push(tx("sim2.sim.zeitung.c46005b"));
+    return { feststeht, offen, handlung: land ? { text: tx("sim2.sim.zeitung.ea372c4", { p0: land.name }), ziel: { art: "land", id: land.id } } : { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } } };
   }
 
   if (e.art === "bruch") {
-    if (mehrheit) feststeht.push(`Dem Regierungslager bleiben ${mehrheit.lager} von 600 Sitzen${mehrheit.duldung > 0 ? `, dazu ${mehrheit.duldung} geduldete` : ""}; für Gesetze braucht es ${mehrheit.noetig} Stimmen.`);
+    if (mehrheit) feststeht.push(tx("sim2.sim.zeitung.8701375", { p0: mehrheit.lager, p1: mehrheit.duldung > 0 ? `, dazu ${mehrheit.duldung} geduldete` : "", p2: mehrheit.noetig }));
     const partei = Object.keys(world.parliament?.seats ?? {}).find((p) => text.includes(p));
     const fr = partei ? spiel.fraktionen?.[partei] : undefined;
-    if (partei && fr) offen.push(`Die ${partei} hält ${nz(world.parliament!.seats[partei] ?? 0)} Sitze; ihre Bereitschaft zur Zusammenarbeit steht bei ${nz(fr.bereitschaft)} von 100.`);
+    if (partei && fr) offen.push(tx("sim2.sim.zeitung.baf205d", { p0: partei, p1: nz(world.parliament!.seats[partei] ?? 0), p2: nz(fr.bereitschaft) }));
     return { feststeht, offen, handlung: { text: "Zum Parlament", ziel: { art: "akte", akte: "parlament" } } };
   }
 
   if (e.art === "wahlsieg") {
     feststeht.push(`Die Amtszeit ${spiel.amtszeit} beginnt.`);
-    if (mehrheit) offen.push(`Das Parlament bleibt, wie es ist: Das Lager hält ${mehrheit.lager} von 600 Sitzen.`);
+    if (mehrheit) offen.push(tx("sim2.sim.zeitung.38c2703", { p0: mehrheit.lager }));
     return { feststeht, offen, handlung: { text: "Zur Chronik", ziel: { art: "akte", akte: "chronik" } } };
   }
 
   if (e.art === "fertigstellung") {
-    offen.push("Wirkung und Unterhalt zeigen sich im Bestand des Reichs.");
+    offen.push(tx("sim2.sim.zeitung.34b4235"));
     const kultur = /Kirche|Moschee|Museum|Stätte|Wunder|Kultur|Palast|Denkmal|Theater|Bibliothek|Oper/.test(e.titel);
-    return { feststeht, offen, handlung: { text: kultur ? "Zum Reich: Kultur und Erbe" : "Zum Reich: Infrastruktur", ziel: { art: "akte", akte: kultur ? "reich_kultur" : "reich_infra" } } };
+    return { feststeht, offen, handlung: { text: kultur ? tx("sim2.sim.zeitung.b89f9d7") : "Zum Reich: Infrastruktur", ziel: { art: "akte", akte: kultur ? "reich_kultur" : "reich_infra" } } };
   }
 
   if (/EU|Reformpaket|Screening|Kapitel|Zollunion|Visa/.test(text)) {
     const eu = spiel.eu;
     if (eu) {
       const kapitel = Object.values(eu.kapitel);
-      feststeht.push(`Der Beitrittsvorgang steht in der Phase „${eu.phase}“; ${kapitel.filter((k) => k.status === "abgeschlossen").length} von ${kapitel.length} Kapiteln sind vorläufig abgeschlossen.`);
+      feststeht.push(tx("sim2.sim.zeitung.06ed151", { p0: eu.phase, p1: kapitel.filter((k) => k.status === "abgeschlossen").length, p2: kapitel.length }));
     }
-    offen.push("Jedes Kapitel braucht den Konsens der Mitgliedstaaten; ein Veto kann den Fortschritt anhalten.");
+    offen.push(tx("sim2.sim.zeitung.e049e39"));
     return { feststeht, offen, handlung: { text: "Zur Weltkarte", ziel: { art: "akte", akte: "welt" } } };
   }
 
-  if (/Wahlkampf/.test(e.titel)) return { feststeht, offen, handlung: { text: "Zu den Wählern", ziel: { art: "akte", akte: "waehler" } } };
+  if (/Wahlkampf/.test(e.titel)) return { feststeht, offen, handlung: { text: tx("sim2.sim.zeitung.cf8beb6"), ziel: { art: "akte", akte: "waehler" } } };
 
   if (/Lira|Währung|Zins|Inflation|Schulden|Kapital|Wirtschaft|Rezession|Zahlungs|Risiko|Krise/.test(e.titel)) {
-    feststeht.push(`Der Dollar kostet ${fmt(world.economy.usdTry)} Lira, der Leitzins liegt bei ${prozentText(world.economy.policyRate)}, die Inflation bei ${prozentText(world.published.inflation.value)}.`);
-    feststeht.push(`Der Risikoaufschlag beträgt ${nz(world.economy.riskPremium)} Basispunkte, die Staatsverschuldung ${prozentText(world.economy.debtRatio)} des BIP.`);
-    offen.push("Ob die Zentralbank gegensteuert, entscheidet der Geldpolitische Ausschuss bei seiner nächsten Sitzung.");
+    feststeht.push(tx("sim2.sim.zeitung.735a6c9", { p0: fmt(world.economy.usdTry), p1: prozentText(world.economy.policyRate), p2: prozentText(world.published.inflation.value) }));
+    feststeht.push(tx("sim2.sim.zeitung.1b54558", { p0: nz(world.economy.riskPremium), p1: prozentText(world.economy.debtRatio) }));
+    offen.push(tx("sim2.sim.zeitung.0f7dad7"));
     return { feststeht, offen, handlung: { text: "Zur Wirtschaftsakte", ziel: { art: "akte", akte: "wirtschaft" } } };
   }
 
@@ -1299,11 +1300,11 @@ export function zeitungEreignis(world: World, e: Grossereignis): void {
             id: `e${z.naechsteNummer}-${id}-hinweis`,
             art: "ereignis",
             sparte: "politik",
-            schlagzeile: "Aus der Redaktion",
+            schlagzeile: tx("sim2.sim.zeitung.79f8d6e"),
             text: [
               istGesperrt(world, "digital_frei")
-                ? `Die Druckerpresse läuft schon für morgen. Zu „${vorgang.titel}“ erscheint die ausführliche Einordnung in der nächsten Monatsausgabe; im Netz ist ${netzName} gesperrt.`
-                : `Die Druckerpresse läuft schon für morgen. Zu „${vorgang.titel}“ erscheint die ausführliche Einordnung in der nächsten Monatsausgabe; bis dahin berichtet ${netzName} im Netz.`,
+                ? tx("sim2.sim.zeitung.a4a58e4", { p0: vorgang.titel, p1: netzName })
+                : tx("sim2.sim.zeitung.39cfbfe", { p0: vorgang.titel, p1: netzName }),
             ],
             textQuelle: "regel",
             wirkung: 0,

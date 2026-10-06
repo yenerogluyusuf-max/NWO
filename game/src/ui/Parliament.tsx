@@ -6,6 +6,7 @@ import { PARTY_COLORS, parlamentsLage, ROLLEN_WORT } from "./parlament/lage";
 import { Sitzplan } from "./parlament/Halbrund";
 import { REGELN } from "../sim/handeln";
 import { VERFASSUNG_REGELN } from "../sim/verfassung";
+import { t } from "../i18n";
 
 export { PARTY_COLORS };
 
@@ -17,12 +18,12 @@ export function Parliament({ world }: { world: World }) {
 
   return (
     <section className="paper parliament">
-      <h3>Parlament</h3>
+      <h3>{t("ui2.ui.Parliament.e9f977f")}</h3>
       <Sitzplan
         lage={lage}
         hervor={hervor}
         onHover={setHervor}
-        aria={`Sitzverteilung im Parlament: ${lage.fraktionen.map((f) => `${f.name} ${f.sitze}`).join(", ")}`}
+        aria={t("ui2.ui.Parliament.ba79e9a", { p0: lage.fraktionen.map((f) => `${f.name} ${f.sitze}`).join(", ") })}
         mitte={
           <div className="par-mitte-inhalt">
             <strong>{lage.lager}</strong>
@@ -43,7 +44,7 @@ export function Parliament({ world }: { world: World }) {
           </li>
         ))}
       </ul>
-      <p className="footnote">600 Sitze. Gesetze brauchen {REGELN.mehrheit} Stimmen, Verfassungsänderungen {VERFASSUNG_REGELN.mehrheit} mit Volksabstimmung oder {VERFASSUNG_REGELN.direkt} ohne.</p>
+      <p className="footnote">{t("ui2.ui.Parliament.92576e6", { p0: REGELN.mehrheit, p1: VERFASSUNG_REGELN.mehrheit, p2: VERFASSUNG_REGELN.direkt })}</p>
     </section>
   );
 }

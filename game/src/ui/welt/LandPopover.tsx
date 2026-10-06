@@ -76,7 +76,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
         </div>
         {wahl && (
           <p className="we-pop-text">
-            {wahl.art} am {wahl.datumDe}.
+            {t("ui2.ui.welt.LandPopover.f90ff2e", { p0: wahl.art, p1: wahl.datumDe })}
           </p>
         )}
         <div className="we-pop-knoepfe">
@@ -84,7 +84,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
             {t("ui.welt.LandPopover.d0f9bf7")}
           </button>
           <button type="button" className="aktion-knopf" onClick={() => onOeffne(weiterer.id, "handeln")}>
-            Gesten
+            {t("ui2.ui.welt.LandPopover.94297be")}
           </button>
         </div>
       </div>
@@ -104,7 +104,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
             <span>{t("ui.welt.LandPopover.f901420")}</span>
           </div>
         </div>
-        <p className="we-pop-text">{sondertext ?? `${name} spielt in dieser Amtszeit keine eigene Rolle am Verhandlungstisch; seine Lage wirkt über Handel und Region auf die Nachbarn.`}</p>
+        <p className="we-pop-text">{sondertext ?? t("ui2.ui.welt.LandPopover.ddc34c0", { p0: name })}</p>
       </div>
     );
   }
@@ -130,10 +130,10 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
           </span>
         </div>
       </div>
-      {mitglied && <p className="we-pop-text">{name} gehört zur Europäischen Union; Verhandlungen führt Ankara mit der Union.</p>}
+      {mitglied && <p className="we-pop-text">{t("ui2.ui.welt.LandPopover.01a9cc2", { p0: name })}</p>}
       {initiative && (
         <p className="we-pop-initiative" role="status">
-          {initiative.titel} — eine Entscheidung wartet.
+          {t("ui2.ui.welt.LandPopover.0a25308", { p0: initiative.titel })}
         </p>
       )}
       <div className="we-pop-werte">
@@ -154,10 +154,10 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
           </li>
         ))}
       </ul>
-      {laeuft > 0 && <p className="we-pop-text">{laeuft} laufende{laeuft === 1 ? "r Vertrag" : " Verträge"}.</p>}
+      {laeuft > 0 && <p className="we-pop-text">{laeuft} laufende{laeuft === 1 ? "r Vertrag" : t("ui2.ui.welt.LandPopover.4e7fe31")}.</p>}
       <div className="we-pop-knoepfe">
         <button type="button" className="brass-button" onClick={() => onOeffne(landId, "verhandeln")}>
-          Verhandeln
+          {t("ui2.ui.welt.LandPopover.4e9e3f8")}
         </button>
         <button type="button" className="aktion-knopf" onClick={() => onOeffne(landId, "ueberblick")}>
           {t("ui.welt.LandPopover.d0f9bf7")}

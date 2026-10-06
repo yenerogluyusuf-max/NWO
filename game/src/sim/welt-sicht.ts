@@ -8,6 +8,7 @@ import { haltungWort, LAENDER } from "./laender";
 import { AKTEUR_IDS, akteurName, beziehungZurTuerkei, eigenVon, haltungFuehrung, haltungWortVon, istHauptakteur, weltModell } from "./welt-modell";
 import { lagebildZu } from "./welt-dienst";
 import type { World } from "./types";
+import { t as tx } from "../i18n";
 
 export interface AkteurKurz {
   id: string;
@@ -17,15 +18,15 @@ export interface AkteurKurz {
   gruppe: string;
 }
 
-export const ANZEIGE_GRUPPEN = ["Große Mächte", "Nachbarn", "EU-Staaten", "Golf und Nahost", "Turkstaaten und Zentralasien", "Süden und Afrika"] as const;
+export const ANZEIGE_GRUPPEN = [tx("sim2.sim.welt-sicht.36d8358"), "Nachbarn", "EU-Staaten", tx("sim2.sim.welt-sicht.b34f67d"), tx("sim2.sim.welt-sicht.64ed00f"), tx("sim2.sim.welt-sicht.2b8b714")] as const;
 
 const GRUPPE_VON: Record<string, (typeof ANZEIGE_GRUPPEN)[number]> = {
-  USA: "Große Mächte", EU: "Große Mächte", RUS: "Große Mächte", CHN: "Große Mächte", IND: "Große Mächte", BRA: "Große Mächte", GBR: "Große Mächte",
+  USA: tx("sim2.sim.welt-sicht.36d8358"), EU: tx("sim2.sim.welt-sicht.36d8358"), RUS: tx("sim2.sim.welt-sicht.36d8358"), CHN: tx("sim2.sim.welt-sicht.36d8358"), IND: tx("sim2.sim.welt-sicht.36d8358"), BRA: tx("sim2.sim.welt-sicht.36d8358"), GBR: tx("sim2.sim.welt-sicht.36d8358"),
   GRC: "Nachbarn", IRN: "Nachbarn", SYR: "Nachbarn", IRQ: "Nachbarn", ARM: "Nachbarn", ISR: "Nachbarn", UKR: "Nachbarn", GEO: "Nachbarn", CYP: "Nachbarn", BGR: "Nachbarn", AZE: "Nachbarn",
   DEU: "EU-Staaten", FRA: "EU-Staaten", ITA: "EU-Staaten", ESP: "EU-Staaten", POL: "EU-Staaten", NLD: "EU-Staaten", ROU: "EU-Staaten", HUN: "EU-Staaten", AUT: "EU-Staaten", SWE: "EU-Staaten",
-  SAU: "Golf und Nahost", ARE: "Golf und Nahost", QAT: "Golf und Nahost", EGY: "Golf und Nahost", PAK: "Golf und Nahost", LBY: "Golf und Nahost",
-  KAZ: "Turkstaaten und Zentralasien", UZB: "Turkstaaten und Zentralasien", KGZ: "Turkstaaten und Zentralasien", TKM: "Turkstaaten und Zentralasien",
-  ZAF: "Süden und Afrika", ETH: "Süden und Afrika", IDN: "Süden und Afrika",
+  SAU: tx("sim2.sim.welt-sicht.b34f67d"), ARE: tx("sim2.sim.welt-sicht.b34f67d"), QAT: tx("sim2.sim.welt-sicht.b34f67d"), EGY: tx("sim2.sim.welt-sicht.b34f67d"), PAK: tx("sim2.sim.welt-sicht.b34f67d"), LBY: tx("sim2.sim.welt-sicht.b34f67d"),
+  KAZ: tx("sim2.sim.welt-sicht.64ed00f"), UZB: tx("sim2.sim.welt-sicht.64ed00f"), KGZ: tx("sim2.sim.welt-sicht.64ed00f"), TKM: tx("sim2.sim.welt-sicht.64ed00f"),
+  ZAF: tx("sim2.sim.welt-sicht.2b8b714"), ETH: tx("sim2.sim.welt-sicht.2b8b714"), IDN: tx("sim2.sim.welt-sicht.2b8b714"),
 };
 
 /** Alle Akteure in der Reihenfolge der Anzeigegruppen. */
@@ -87,7 +88,7 @@ export interface WahlSicht {
   offen: boolean;
 }
 
-const staerkeWort = (x: number): string => (x >= 58 ? "stärker als üblich" : x <= 42 ? "schwach" : "gleichauf");
+const staerkeWort = (x: number): string => (x >= 58 ? tx("sim2.sim.welt-sicht.b2bb223") : x <= 42 ? "schwach" : "gleichauf");
 
 export function wahlSicht(w: World, id: string): WahlSicht | null {
   const e = eigenVon(w, id);

@@ -39,6 +39,7 @@ import { kannZahlen } from "./kapital";
 import { formatDateDe } from "./dates";
 import type { Rng } from "./rng";
 import type { World } from "./types";
+import { t } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // Spielparameter des Vorgangs
@@ -164,138 +165,138 @@ const K = (id: string, text: string, knoten: string, art: "min" | "max", wert: n
  */
 export const KAPITEL: KapitelDef[] = [
   {
-    id: "k23", nummer: 23, name: "Justiz und Grundrechte", zypernBlockiert: true, jahre: 3,
-    text: "Der Kern des ganzen Prozesses: unabhängige Gerichte, befolgte Urteile, freie Medien.",
+    id: "k23", nummer: 23, name: t("sim2.sim.eu.098ad1f"), zypernBlockiert: true, jahre: 3,
+    text: t("sim2.sim.eu.4d0f899"),
     oeffnung: [
-      K("justiz", "Unabhängigkeit der Justiz mindestens 50", "justiz_unabhaengigkeit", "min", 50),
-      K("urteile", "Befolgung von Urteilen mindestens 48", "urteilsbefolgung", "min", 48),
+      K("justiz", t("sim2.sim.eu.6d9cb25"), "justiz_unabhaengigkeit", "min", 50),
+      K("urteile", t("sim2.sim.eu.b652d7e"), "urteilsbefolgung", "min", 48),
       K("presse", "Pressefreiheit mindestens 40", "pressefreiheit", "min", 40),
     ],
     schluss: [
-      K("justiz", "Unabhängigkeit der Justiz mindestens 62", "justiz_unabhaengigkeit", "min", 62),
-      K("urteile", "Befolgung von Urteilen mindestens 60", "urteilsbefolgung", "min", 60),
-      K("strassburg", "Druck aus Straßburg höchstens 35", "strassburg_druck", "max", 35),
+      K("justiz", t("sim2.sim.eu.f360b7f"), "justiz_unabhaengigkeit", "min", 62),
+      K("urteile", t("sim2.sim.eu.5cf1068"), "urteilsbefolgung", "min", 60),
+      K("strassburg", t("sim2.sim.eu.c9d21b0"), "strassburg_druck", "max", 35),
     ],
     nutzen: [
-      { knoten: "auslandskapital", d: 2, text: "Investoren prüfen zuerst die Gerichte" },
-      { knoten: "ansehen", d: 2, text: "Ein Rechtsstaat wird ernst genommen" },
+      { knoten: "auslandskapital", d: 2, text: t("sim2.sim.eu.7572a00") },
+      { knoten: "ansehen", d: 2, text: t("sim2.sim.eu.5db9cfd") },
     ],
   },
   {
-    id: "k24", nummer: 24, name: "Justiz, Freiheit und Sicherheit", zypernBlockiert: true, jahre: 3,
-    text: "Korruptionsbekämpfung, Grenzschutz und das Ende des Ausnahmerechts.",
+    id: "k24", nummer: 24, name: t("sim2.sim.eu.aface41"), zypernBlockiert: true, jahre: 3,
+    text: t("sim2.sim.eu.22cdf3f"),
     oeffnung: [
-      K("korruption", "Korruption höchstens 50", "korruption", "max", 50),
+      K("korruption", t("sim2.sim.eu.0a714eb"), "korruption", "max", 50),
       K("grenze", "Grenzschutz mindestens 55", "m_grenzschutz", "min", 55),
     ],
     schluss: [
-      K("korruption", "Korruption höchstens 40", "korruption", "max", 40),
+      K("korruption", t("sim2.sim.eu.cc03530"), "korruption", "max", 40),
       K("grenze", "Grenzschutz mindestens 65", "m_grenzschutz", "min", 65),
-      K("ausnahme", "Ausnahmerecht höchstens 15", "ausnahmerecht", "max", 15),
+      K("ausnahme", t("sim2.sim.eu.a95a02c"), "ausnahmerecht", "max", 15),
     ],
     nutzen: [
-      { knoten: "rechtssicherheit", d: 1.5, text: "Verlässliche Regeln statt Sonderbefugnisse" },
-      { knoten: "beziehungen_eu", d: 1.5, text: "Die Migrationszusammenarbeit trägt" },
+      { knoten: "rechtssicherheit", d: 1.5, text: t("sim2.sim.eu.56281a5") },
+      { knoten: "beziehungen_eu", d: 1.5, text: t("sim2.sim.eu.0bb230d") },
     ],
   },
   {
-    id: "k5", nummer: 5, name: "Öffentliches Auftragswesen", jahre: 2,
-    text: "Offene Vergaben statt Aufträge gegen Gefälligkeit.",
+    id: "k5", nummer: 5, name: t("sim2.sim.eu.397ac60"), jahre: 2,
+    text: t("sim2.sim.eu.e93dee2"),
     oeffnung: [
-      K("korruption", "Korruption höchstens 48", "korruption", "max", 48),
-      K("anti", "Korruptionsbekämpfung mindestens 40", "m_antikorruption", "min", 40),
+      K("korruption", t("sim2.sim.eu.783f1d9"), "korruption", "max", 48),
+      K("anti", t("sim2.sim.eu.dece126"), "m_antikorruption", "min", 40),
     ],
     schluss: [
-      K("korruption", "Korruption höchstens 38", "korruption", "max", 38),
-      K("anti", "Korruptionsbekämpfung mindestens 55", "m_antikorruption", "min", 55),
+      K("korruption", t("sim2.sim.eu.e772d8d"), "korruption", "max", 38),
+      K("anti", t("sim2.sim.eu.a399966"), "m_antikorruption", "min", 55),
     ],
     nutzen: [
-      { knoten: "auslandskapital", d: 1, text: "Vergaben, die man nicht kaufen muss, ziehen Geld an" },
+      { knoten: "auslandskapital", d: 1, text: t("sim2.sim.eu.f483d37") },
       { knoten: "mittelstand", d: 1, text: "Auch kleine Betriebe kommen zum Zug" },
     ],
   },
   {
     id: "k15", nummer: 15, name: "Energie", jahre: 2,
-    text: "Versorgungssicherheit und der Platz der Türkei als Drehkreuz zwischen Ost und West.",
+    text: t("sim2.sim.eu.1bee802"),
     oeffnung: [K("versorgung", "Energieversorgung mindestens 50", "energieversorgung", "min", 50)],
     schluss: [
       K("versorgung", "Energieversorgung mindestens 58", "energieversorgung", "min", 58),
-      K("sakarya", "Eigene Gasförderung (Sakarya) mindestens 40", "sakarya_gas", "min", 40),
+      K("sakarya", t("sim2.sim.eu.6a70322"), "sakarya_gas", "min", 40),
     ],
     nutzen: [
-      { knoten: "export", d: 1, text: "Transitgebühren und Verbundnetze" },
-      { knoten: "beziehungen_eu", d: 1, text: "Energie ist die stabilste Brücke nach Brüssel" },
+      { knoten: "export", d: 1, text: t("sim2.sim.eu.7683911") },
+      { knoten: "beziehungen_eu", d: 1, text: t("sim2.sim.eu.442a477") },
     ],
   },
   {
-    id: "k17", nummer: 17, name: "Wirtschafts- und Währungspolitik", jahre: 2,
-    text: "Glaubwürdige Finanzen: Was die Märkte und die Rechtssicherheit hergeben.",
+    id: "k17", nummer: 17, name: t("sim2.sim.eu.0c34658"), jahre: 2,
+    text: t("sim2.sim.eu.3109073"),
     oeffnung: [
-      K("maerkte", "Vertrauen der Märkte mindestens 48", "vertrauen_maerkte", "min", 48),
+      K("maerkte", t("sim2.sim.eu.ccea2f7"), "vertrauen_maerkte", "min", 48),
       K("recht", "Rechtssicherheit mindestens 45", "rechtssicherheit", "min", 45),
     ],
     schluss: [
-      K("maerkte", "Vertrauen der Märkte mindestens 58", "vertrauen_maerkte", "min", 58),
+      K("maerkte", t("sim2.sim.eu.6e7a0d9"), "vertrauen_maerkte", "min", 58),
       K("recht", "Rechtssicherheit mindestens 55", "rechtssicherheit", "min", 55),
     ],
     nutzen: [
       { knoten: "investitionen", d: 1.5, text: "Berechenbare Regeln machen Mut zum Bauen" },
-      { knoten: "auslandskapital", d: 1.5, text: "Geld folgt der Glaubwürdigkeit" },
+      { knoten: "auslandskapital", d: 1.5, text: t("sim2.sim.eu.cc4354f") },
     ],
   },
   {
-    id: "k12", nummer: 12, name: "Lebensmittelsicherheit und Veterinärwesen", jahre: 2,
-    text: "Standards vom Stall bis zum Teller — die Voraussetzung für Agrarexporte in die Union.",
-    oeffnung: [K("einkommen", "Einkommen der Landwirtschaft mindestens 40", "landwirtschaft_einkommen", "min", 40)],
+    id: "k12", nummer: 12, name: t("sim2.sim.eu.3e364eb"), jahre: 2,
+    text: t("sim2.sim.eu.8b3217a"),
+    oeffnung: [K("einkommen", t("sim2.sim.eu.fccaa51"), "landwirtschaft_einkommen", "min", 40)],
     schluss: [
-      K("forschung", "Agrarforschung und Hochtechnologie mindestens 45", "m_agrarforschung", "min", 45),
-      K("ernte", "Erträge mindestens 55", "ernte", "min", 55),
+      K("forschung", t("sim2.sim.eu.15d44fd"), "m_agrarforschung", "min", 45),
+      K("ernte", t("sim2.sim.eu.9b22068"), "ernte", "min", 55),
     ],
-    nutzen: [{ knoten: "export", d: 1, text: "Lebensmittel ohne Handelshemmnisse" }],
+    nutzen: [{ knoten: "export", d: 1, text: t("sim2.sim.eu.053c54c") }],
   },
   {
-    id: "k27", nummer: 27, name: "Umwelt und Klimawandel", jahre: 2,
-    text: "Grenzwerte und saubere Luft nach europäischem Vorbild — teuer für die Industrie.",
+    id: "k27", nummer: 27, name: t("sim2.sim.eu.e742817"), jahre: 2,
+    text: t("sim2.sim.eu.ff9665c"),
     oeffnung: [K("auflagen", "Umweltauflagen mindestens 40", "m_umweltauflagen", "min", 40)],
     schluss: [
       K("auflagen", "Umweltauflagen mindestens 55", "m_umweltauflagen", "min", 55),
-      K("luft", "Luftqualität mindestens 45", "luftqualitaet", "min", 45),
+      K("luft", t("sim2.sim.eu.20bdb8f"), "luftqualitaet", "min", 45),
     ],
-    nutzen: [{ knoten: "ansehen", d: 1, text: "Klimapolitik als Türöffner" }],
+    nutzen: [{ knoten: "ansehen", d: 1, text: t("sim2.sim.eu.175ed2e") }],
   },
   {
-    id: "k33", nummer: 33, name: "Finanz- und Haushaltsbestimmungen", jahre: 2,
-    text: "Ehrliche Kassen: Steuern, die ankommen, und ein Haushalt ohne graue Kanäle.",
+    id: "k33", nummer: 33, name: t("sim2.sim.eu.b7f92e1"), jahre: 2,
+    text: t("sim2.sim.eu.1657464"),
     oeffnung: [
       K("digital", "Digitale Verwaltung mindestens 40", "m_verwaltungsdigital", "min", 40),
       K("steuern", "Steuereinnahmen mindestens 50", "steuereinnahmen", "min", 50),
     ],
     schluss: [
       K("digital", "Digitale Verwaltung mindestens 55", "m_verwaltungsdigital", "min", 55),
-      K("schatten", "Schattenwirtschaft höchstens 40", "schattenwirtschaft", "max", 40),
+      K("schatten", t("sim2.sim.eu.96c7e6a"), "schattenwirtschaft", "max", 40),
     ],
     nutzen: [{ knoten: "vertrauen_maerkte", d: 1.5, text: "Solide Finanzen beruhigen Anleger" }],
   },
   {
-    id: "k11", nummer: 11, name: "Landwirtschaft und ländliche Entwicklung", jahre: 3,
-    text: "Der schwerste Brocken im Inland: marktnahe Stützung statt Preispolitik nach Gutsherrenart.",
-    oeffnung: [K("forschung", "Agrarforschung und Hochtechnologie mindestens 40", "m_agrarforschung", "min", 40)],
+    id: "k11", nummer: 11, name: t("sim2.sim.eu.033d3dc"), jahre: 3,
+    text: t("sim2.sim.eu.31b57cc"),
+    oeffnung: [K("forschung", t("sim2.sim.eu.182e2cc"), "m_agrarforschung", "min", 40)],
     schluss: [
-      K("einkommen", "Einkommen der Landwirtschaft mindestens 55", "landwirtschaft_einkommen", "min", 55),
-      K("subventionen", "Agrarsubventionen höchstens 50 (EU-konforme Stützung)", "m_agrarsubventionen", "max", 50),
+      K("einkommen", t("sim2.sim.eu.d28853d"), "landwirtschaft_einkommen", "min", 55),
+      K("subventionen", t("sim2.sim.eu.555cf32"), "m_agrarsubventionen", "max", 50),
     ],
-    nutzen: [{ knoten: "landwirtschaft_einkommen", d: 1, text: "Zugang zum Binnenmarkt trägt die Höfe" }],
+    nutzen: [{ knoten: "landwirtschaft_einkommen", d: 1, text: t("sim2.sim.eu.04a3344") }],
   },
   {
-    id: "k31", nummer: 31, name: "Außen-, Sicherheits- und Verteidigungspolitik", jahre: 2,
-    text: "Ausrichtung auf die gemeinsame Außenpolitik — Brüssel misst das am Verhältnis zu Moskau.",
+    id: "k31", nummer: 31, name: t("sim2.sim.eu.aae2259"), jahre: 2,
+    text: t("sim2.sim.eu.78ef0e3"),
     oeffnung: [K("ansehen", "Internationales Ansehen mindestens 50", "ansehen", "min", 50)],
     schluss: [
       K("ansehen", "Internationales Ansehen mindestens 55", "ansehen", "min", 55),
-      K("russland", "Beziehungen zu Russland höchstens 50 (Distanz zu Moskau)", "beziehungen_russland", "max", 50),
+      K("russland", t("sim2.sim.eu.eee9e31"), "beziehungen_russland", "max", 50),
     ],
     nutzen: [
-      { knoten: "beziehungen_eu", d: 2, text: "Wer auf einer Linie steht, dem traut man" },
+      { knoten: "beziehungen_eu", d: 2, text: t("sim2.sim.eu.9875a33") },
       { knoten: "abschreckung", d: 1, text: "Eingebunden statt allein" },
     ],
   },
@@ -357,13 +358,13 @@ export function zypernBewegung(w: World): { bewegt: boolean; text: string } {
   const z = weltZustand(w).CYP;
   if (!z) return { bewegt: true, text: "" };
   if (laufende(w, "CYP").some((v) => [...v.gibt, ...v.will].includes("hafen_oeffnung"))) {
-    return { bewegt: true, text: "Das Ankara-Protokoll ist umgesetzt: Häfen und Flughäfen stehen offen." };
+    return { bewegt: true, text: t("sim2.sim.eu.b5dbaa5") };
   }
-  if (z.konflikt <= 50) return { bewegt: true, text: `Der Konflikt mit Zypern ist gedämpft (${Math.round(z.konflikt)}).` };
-  if (vertrauenZu(w, "CYP") >= 45) return { bewegt: true, text: "Das Vertrauen trägt Gespräche über die Insel." };
+  if (z.konflikt <= 50) return { bewegt: true, text: t("sim2.sim.eu.2b0c2fd", { p0: Math.round(z.konflikt) }) };
+  if (vertrauenZu(w, "CYP") >= 45) return { bewegt: true, text: t("sim2.sim.eu.d63008a") };
   return {
     bewegt: false,
-    text: `Ohne Bewegung im Zypern-Dossier bleiben die Kapitel 23 und 24 blockiert (Konflikt ${Math.round(z.konflikt)} von 100): das Ankara-Protokoll umsetzen oder den Konflikt entschärfen.`,
+    text: t("sim2.sim.eu.7fb147d", { p0: Math.round(z.konflikt) }),
   };
 }
 
@@ -376,8 +377,8 @@ export interface VetoLand {
 
 /** Benannte Mitgliedstaaten mit Blockade-Macht: Griechenland und Zypern (Dossier 2, Rote Linie 3). */
 export const VETO_LAENDER: VetoLand[] = [
-  { land: "GRC", konfliktAb: 70, text: "Griechenland blockiert, solange der Konflikt in der Ägäis kocht." },
-  { land: "CYP", konfliktAb: 60, text: "Zypern nutzt seine Vetomacht: kein EU-Schritt ohne Bewegung in der Zypernfrage." },
+  { land: "GRC", konfliktAb: 70, text: t("sim2.sim.eu.aeeb728") },
+  { land: "CYP", konfliktAb: 60, text: t("sim2.sim.eu.975209e") },
 ];
 
 /**
@@ -423,10 +424,10 @@ export function euKapitalAbzug(w: World): number {
 }
 
 export const PHASEN_TEXT: Record<EuPhase, string> = {
-  eingefroren: "Die Beitrittsgespräche liegen seit 2018 auf Eis. Der Two-Track — Sicherheit, Energie, Migration — ersetzt keine Perspektive.",
-  screening: "Die Kommission nimmt den Stand des Landes Kapitel für Kapitel auf (Screening, zwölf Monate).",
-  verhandlung: "Kapitel-Verhandlungen: höchstens zwei parallel. Eröffnet wird, was die Kriterien erfüllt; geschlossen, was die Zeit und die Substanz trägt.",
-  perspektive: "Alle spielbaren Kapitel sind vorläufig geschlossen: Die Beitritts-Perspektive ist glaubwürdig — der Beitritt selbst bleibt ein Weg von Jahren.",
+  eingefroren: t("sim2.sim.eu.d96bd17"),
+  screening: t("sim2.sim.eu.c6ac757"),
+  verhandlung: t("sim2.sim.eu.1158a66"),
+  perspektive: t("sim2.sim.eu.4a2aa16"),
 };
 
 // ---------------------------------------------------------------------------
@@ -443,43 +444,43 @@ export function annaeherungSicht(w: World): AnnaeherungSicht {
   const z = euZustand(w);
   const annaeherung = nationalAverage(NET, w.net, "m_eu_annaeherung");
   const base: AnnaeherungSicht = { moeglich: true, annaeherung };
-  if (z.phase !== "eingefroren") return { ...base, moeglich: false, grund: "Der Prozess läuft bereits." };
+  if (z.phase !== "eingefroren") return { ...base, moeglich: false, grund: t("sim2.sim.eu.a87c88d") };
   if (annaeherung < 55)
     return {
       ...base,
       moeglich: false,
-      grund: `Ankündigung ohne Substanz macht Brüssel nicht mit: Die Maßnahme „Annäherung an die EU“ steht bei ${Math.round(annaeherung)} von mindestens 55.`,
+      grund: t("sim2.sim.eu.2157f8c", { p0: Math.round(annaeherung) }),
     };
-  if (!kannZahlen(w.spiel!.kapital, EU_REGELN.pkAnkuendigung)) return { ...base, moeglich: false, grund: "Dafür fehlt Kapital." };
+  if (!kannZahlen(w.spiel!.kapital, EU_REGELN.pkAnkuendigung)) return { ...base, moeglich: false, grund: t("sim2.sim.eu.2d06e23") };
   return base;
 }
 
 /** Der Einstieg: Der Präsident kündigt das Reformpaket an; Brüssel öffnet das Screening. */
 export function kuendigeReformAn(w: World): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es diesen Weg nicht." };
+  if (!spiel) return { ok: false, text: t("sim2.sim.eu.6035e32") };
   const sicht = annaeherungSicht(w);
-  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? "Das geht gerade nicht." };
+  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? t("sim2.sim.eu.dbc20ad") };
   const z = euZustand(w);
   spiel.kapital -= EU_REGELN.pkAnkuendigung;
   z.phase = "screening";
   z.reformSeit = w.day;
   z.screeningBis = w.day + EU_REGELN.screeningTage;
-  landAendern(w, "EU", { vertrauen: 6 }, "Ankara kündigt ein Reformpaket an");
+  landAendern(w, "EU", { vertrauen: 6 }, t("sim2.sim.eu.9e36794"));
   wirke(w, "staedtische_saekulare", 2);
   wirke(w, "nationalisten", -1);
   wirke(w, "beziehungen_eu", 2);
   zeitungEreignis(w, {
     art: "krise",
-    titel: "Reformpaket für Europa angekündigt",
-    fakt: `Ankara kündigt ein Reformpaket an: Brüssel öffnet das Screening der Beitrittskapitel, Abschluss erwartet ${formatDateDe(addTag(w, EU_REGELN.screeningTage))}.`,
+    titel: t("sim2.sim.eu.5209d12"),
+    fakt: t("sim2.sim.eu.b75154a", { p0: formatDateDe(addTag(w, EU_REGELN.screeningTage)) }),
     wertung: 0.6,
     schluessel: ["Reformpaket", "Screening"],
   });
-  const text = `Reformpaket angekündigt: Brüssel öffnet das Screening, das bis ${formatDateDe(addTag(w, EU_REGELN.screeningTage))} läuft.`;
-  const why = `Kostet ${EU_REGELN.pkAnkuendigung} Kapital. Die Ankündigung wirkt nur, weil die Annäherung an die EU schon bei ${Math.round(sicht.annaeherung)} steht; Nationalisten lesen das als Kotau, die städtisch Säkularen als Richtung.`;
+  const text = t("sim2.sim.eu.45f5c80", { p0: formatDateDe(addTag(w, EU_REGELN.screeningTage)) });
+  const why = t("sim2.sim.eu.86a31cc", { p0: EU_REGELN.pkAnkuendigung, p1: Math.round(sicht.annaeherung) });
   addLog(w, "entscheidung", text, why);
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "EU-Reformpaket angekündigt", ausgang: "Das Screening der Beitrittskapitel beginnt." });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.eu.da35033"), ausgang: t("sim2.sim.eu.42a0467") });
   return { ok: true, text, why };
 }
 
@@ -497,14 +498,14 @@ export function vetoBeantworten(w: World, landId: string, kapitelId: string): st
   const z = euZustand(w);
   const k = z.kapitel[kapitelId];
   const def = KAPITEL_NACH_ID.get(kapitelId);
-  if (!k || !def) return "Das Kapitel gibt es nicht.";
+  if (!k || !def) return t("sim2.sim.eu.3de5b51");
   (z.vetoRuhe ??= {})[landId] = w.day + EU_REGELN.vetoSperreTage;
-  landAendern(w, landId, { konflikt: -10, vertrauen: 5 }, "Zugeständnis zur Aufhebung des EU-Vetos");
+  landAendern(w, landId, { konflikt: -10, vertrauen: 5 }, t("sim2.sim.eu.da61f7d"));
   wirke(w, "nationalisten", landId === "CYP" ? -4 : -2);
   if (landId === "CYP") wirke(w, "staedtische_saekulare", 2);
-  landAendern(w, "EU", { vertrauen: 3 }, "Ankara gibt dem Veto-Mitglied nach");
+  landAendern(w, "EU", { vertrauen: 3 }, t("sim2.sim.eu.047a8f4"));
   oeffneKapitel(w, def);
-  return `Das Zugeständnis wirkt: ${landId === "CYP" ? "Nikosia" : "Athen"} hebt das Veto auf, Kapitel ${def.nummer} „${def.name}“ wird eröffnet.`;
+  return t("sim2.sim.eu.9f4abd7", { p0: landId === "CYP" ? "Nikosia" : "Athen", p1: def.nummer, p2: def.name });
 }
 
 /** Veto-Antwort „Abwarten": Das Kapitel bleibt ein Jahr blockiert. */
@@ -513,9 +514,9 @@ export function vetoAbwarten(w: World, landId: string, kapitelId: string): strin
   const k = z.kapitel[kapitelId];
   if (k) k.gesperrtBis = w.day + EU_REGELN.vetoSperreTage;
   (z.vetoRuhe ??= {})[landId] = w.day + EU_REGELN.vetoSperreTage;
-  landAendern(w, "EU", { vertrauen: -2 }, "Ein Veto blockiert ein Kapitel, Ankara wartet ab");
+  landAendern(w, "EU", { vertrauen: -2 }, t("sim2.sim.eu.043237b"));
   const def = KAPITEL_NACH_ID.get(kapitelId);
-  return `Kapitel ${def?.nummer ?? "?"} bleibt für ein Jahr blockiert; ${landId === "CYP" ? "Nikosia" : "Athen"} hält am Veto fest.`;
+  return t("sim2.sim.eu.1a3f18d", { p0: def?.nummer ?? "?", p1: landId === "CYP" ? "Nikosia" : "Athen" });
 }
 
 /** Zollunion-Antwort „Annehmen": Das Update wird vereinbart — mit echten Effekten in beide Richtungen. */
@@ -531,26 +532,26 @@ export function zollunionAnnehmen(w: World): string {
   // Landwirtschaft −: ohne die alten Schutzzölle stehen die Höfe im Wettbewerb
   wirke(w, "landwirtschaft_einkommen", -3);
   wirke(w, "landwirte", -3);
-  landAendern(w, "EU", { handel: 12, vertrauen: 6 }, "Die Zollunion wird modernisiert");
+  landAendern(w, "EU", { handel: 12, vertrauen: 6 }, t("sim2.sim.eu.c3f9768"));
   w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 40);
   zeitungEreignis(w, {
     art: "krise",
     titel: "Zollunion modernisiert",
-    fakt: "Ankara und Brüssel vereinbaren das Update der Zollunion von 1995: Dienstleistungen und Agrar kommen hinein, die Industrie gewinnt, die Landwirtschaft verliert Schutz.",
+    fakt: t("sim2.sim.eu.3beaade"),
     wertung: 0.8,
     schluessel: ["Zollunion"],
   });
   const spiel = w.spiel!;
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Zollunion modernisiert", ausgang: "Das Update der Zollunion von 1995 ist vereinbart: Handel +, Industrie +, Landwirtschaft im Wettbewerb." });
-  return "Die Zollunion wird modernisiert: Exporte und Investitionen gewinnen, die Landwirtschaft verliert ihren Schutz und spürt den Wettbewerb.";
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Zollunion modernisiert", ausgang: t("sim2.sim.eu.2406223") });
+  return t("sim2.sim.eu.b75efda");
 }
 
 /** Zollunion-Antwort „Ablehnen": Das Mandat vertagt sich um zwei Jahre. */
 export function zollunionAblehnen(w: World): string {
   const z = euZustand(w);
   z.zollunionSperreBis = w.day + EU_REGELN.zollunionSperreTage;
-  landAendern(w, "EU", { vertrauen: -3 }, "Ankara lehnt das Zollunion-Angebot ab");
-  return "Das Angebot vertagt sich; Brüssel registriert den Verzicht und kommt frühestens in zwei Jahren wieder.";
+  landAendern(w, "EU", { vertrauen: -3 }, t("sim2.sim.eu.983b4ab"));
+  return t("sim2.sim.eu.c978f0a");
 }
 
 // ---------------------------------------------------------------------------
@@ -565,15 +566,15 @@ function oeffneKapitel(w: World, def: KapitelDef): void {
   const k = z.kapitel[def.id]!;
   k.status = "offen";
   k.geoeffnet = w.day;
-  landAendern(w, "EU", { vertrauen: 3, handel: 2 }, `Kapitel ${def.nummer} „${def.name}“ eröffnet`);
+  landAendern(w, "EU", { vertrauen: 3, handel: 2 }, t("sim2.sim.eu.af7f279", { p0: def.nummer, p1: def.name }));
   wirke(w, "beziehungen_eu", 1);
   addLog(
     w,
     "ereignis",
-    `Beitrittskapitel ${def.nummer} „${def.name}“ eröffnet.`,
-    `${def.text} Vorläufiger Abschluss frühestens nach ${def.jahre} ${def.jahre === 1 ? "Jahr" : "Jahren"} — und nur mit erfüllten Schlusskriterien.`,
+    t("sim2.sim.eu.4a16ba4", { p0: def.nummer, p1: def.name }),
+    t("sim2.sim.eu.beb7ddc", { p0: def.text, p1: def.jahre, p2: def.jahre === 1 ? "Jahr" : "Jahren" }),
   );
-  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `Kapitel ${def.nummer} eröffnet`, ausgang: `„${def.name}“ wird verhandelt.` });
+  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.eu.77515fe", { p0: def.nummer }), ausgang: t("sim2.sim.eu.bb7d433", { p0: def.name }) });
 }
 
 function schliesseKapitel(w: World, def: KapitelDef): void {
@@ -582,7 +583,7 @@ function schliesseKapitel(w: World, def: KapitelDef): void {
   k.status = "abgeschlossen";
   k.geschlossen = w.day;
   for (const n of def.nutzen) wirke(w, n.knoten, n.d);
-  landAendern(w, "EU", { vertrauen: 5, handel: 3 }, `Kapitel ${def.nummer} „${def.name}“ vorläufig geschlossen`);
+  landAendern(w, "EU", { vertrauen: 5, handel: 3 }, t("sim2.sim.eu.c6d0403", { p0: def.nummer, p1: def.name }));
   w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 15);
   // Der Innenpreis der Reformen: Nationale Kreise lesen jeden Abschluss als Fremdbestimmung
   wirke(w, "nationalisten", -1);
@@ -590,21 +591,21 @@ function schliesseKapitel(w: World, def: KapitelDef): void {
   addLog(
     w,
     "ereignis",
-    `Kapitel ${def.nummer} „${def.name}“ vorläufig geschlossen.`,
-    `${def.nutzen.map((n) => n.text).join("; ")}. Der Risikoaufschlag der Märkte sinkt; national gesinnte Wähler lesen die Reform als Zugeständnis.`,
+    t("sim2.sim.eu.fd4cebe", { p0: def.nummer, p1: def.name }),
+    t("sim2.sim.eu.7e20316", { p0: def.nutzen.map((n) => n.text).join("; ") }),
   );
-  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `Kapitel ${def.nummer} geschlossen`, ausgang: `„${def.name}“ ist vorläufig erfüllt.` });
+  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `Kapitel ${def.nummer} geschlossen`, ausgang: t("sim2.sim.eu.d4a9da7", { p0: def.name }) });
   // Endgame: alle spielbaren Kapitel geschlossen → glaubwürdige Perspektive, ehrlich kein Beitritt
   if (KAPITEL.every((x) => z.kapitel[x.id]!.status === "abgeschlossen")) {
     z.phase = "perspektive";
     wirke(w, "ansehen", 5);
     wirke(w, "auslandskapital", 5);
-    landAendern(w, "EU", { vertrauen: 10, handel: 8 }, "Alle Kapitel geschlossen: die Perspektive wird glaubwürdig");
+    landAendern(w, "EU", { vertrauen: 10, handel: 8 }, t("sim2.sim.eu.70351de"));
     w.economy.riskPremium = Math.max(0, w.economy.riskPremium - 50);
     zeitungEreignis(w, {
       art: "wahlsieg",
       titel: "Beitritts-Perspektive erreicht",
-      fakt: "Alle verhandelten Kapitel sind vorläufig geschlossen. Brüssel nennt die Beitritts-Perspektive der Türkei erstmals glaubwürdig — der Beitritt selbst bleibt ein Weg von Jahren.",
+      fakt: t("sim2.sim.eu.2cc2591"),
       wertung: 1,
       schluessel: ["Beitritt"],
     });
@@ -613,11 +614,11 @@ function schliesseKapitel(w: World, def: KapitelDef): void {
       titel: "Beitritts-Perspektive",
       szene: "istanbul",
       text: [
-        "Alle zehn verhandelten Kapitel sind vorläufig geschlossen. Brüssel nennt die Beitritts-Perspektive erstmals glaubwürdig.",
-        "Ehrlich bleibt es dabei: Der Beitritt selbst ist ein Weg von Jahren — über diese Amtszeit hinaus. Was bleibt, ist glaubwürdig: Märkte beruhigen sich, Investitionen kommen, und das Land weiß, wohin es geht.",
+        t("sim2.sim.eu.1a58795"),
+        t("sim2.sim.eu.0d47075"),
       ],
     });
-    addLog(w, "ereignis", "Beitritts-Perspektive erreicht.", "Alle spielbaren Kapitel sind geschlossen; der Beitritt selbst bleibt ein Weg über diese Amtszeit hinaus.");
+    addLog(w, "ereignis", "Beitritts-Perspektive erreicht.", t("sim2.sim.eu.e3ac48e"));
   }
 }
 
@@ -625,12 +626,12 @@ function schliesseKapitel(w: World, def: KapitelDef): void {
 // Visaliberalisierung: separater Mini-Track mit sechs Kriterien
 
 export const VISA_KRITERIEN: Kriterium[] = [
-  K("pass", "Sichere Pässe und digitale Register (Digitale Verwaltung ≥ 50)", "m_verwaltungsdigital", "min", 50),
-  { id: "ruecknahme", text: "Rückübernahmeabkommen mit der EU in Kraft (Vertrag mit der Klausel „Migrationszusage“)", vertrag: { land: "EU", klausel: "migration_zusage" } },
+  K("pass", t("sim2.sim.eu.ce4bbcb"), "m_verwaltungsdigital", "min", 50),
+  { id: "ruecknahme", text: t("sim2.sim.eu.32dd58d"), vertrag: { land: "EU", klausel: "migration_zusage" } },
   K("grenze", "Wirksamer Grenzschutz (≥ 60)", "m_grenzschutz", "min", 60),
-  K("justiz", "Unabhängige Justiz (≥ 45)", "justiz_unabhaengigkeit", "min", 45),
-  K("daten", "Datenschutz und Rechtssicherheit bei der Datenweitergabe (Rechtssicherheit ≥ 48)", "rechtssicherheit", "min", 48),
-  K("migration", "Migrationsmanagement: Zahl der Geflüchteten ≤ 50", "gefluechtete", "max", 50),
+  K("justiz", t("sim2.sim.eu.7f7e3f9"), "justiz_unabhaengigkeit", "min", 45),
+  K("daten", t("sim2.sim.eu.f793c81"), "rechtssicherheit", "min", 48),
+  K("migration", t("sim2.sim.eu.27e77cb"), "gefluechtete", "max", 50),
 ];
 
 export function visaStand(w: World): { kriterien: KriteriumStand[]; erfuellt: number; gewaehrt: boolean } {
@@ -651,11 +652,11 @@ function visaPruefen(w: World): void {
   wirke(w, "unternehmer", 2);
   wirke(w, "tourismus", 2);
   wirke(w, "export", 1);
-  landAendern(w, "EU", { vertrauen: 5, handel: 3 }, "Visaliberalisierung für türkische Staatsbürger");
+  landAendern(w, "EU", { vertrauen: 5, handel: 3 }, t("sim2.sim.eu.577c1fb"));
   zeitungEreignis(w, {
     art: "krise",
-    titel: "Visafreiheit für Kurzaufenthalte",
-    fakt: "Brüssel gewährt die Visaliberalisierung: Alle sechs Kriterien — von Pass-Sicherheit bis Migrationsmanagement — sind erfüllt.",
+    titel: t("sim2.sim.eu.75037fc"),
+    fakt: t("sim2.sim.eu.a3eccb5"),
     wertung: 0.9,
     schluessel: ["Visafreiheit"],
   });
@@ -664,11 +665,11 @@ function visaPruefen(w: World): void {
     titel: "Visafreiheit",
     szene: "istanbul",
     text: [
-      "Brüssel gewährt die Visaliberalisierung für Kurzaufenthalte im Schengenraum — alle sechs Kriterien sind erfüllt.",
-      "Studierende, Unternehmer und Familien spüren es zuerst; Geschäftsreisen werden einfacher. Das war ein eigener Weg, unabhängig von den Kapiteln — und er ist gegangen.",
+      t("sim2.sim.eu.9f706ac"),
+      t("sim2.sim.eu.4ebe581"),
     ],
   });
-  addLog(w, "ereignis", "Visaliberalisierung gewährt.", "Alle sechs Kriterien erfüllt; Reisende und Wirtschaft profitieren sofort.");
+  addLog(w, "ereignis", t("sim2.sim.eu.63d000b"), t("sim2.sim.eu.61dc631"));
 }
 
 // ---------------------------------------------------------------------------
@@ -687,20 +688,20 @@ export function noteFuer(w: World, def: KapitelDef, z: EuZustand): EuNote {
 /** Der nächste Schritt für ein Kapitel, in einem Satz (Mentorin-Stil). */
 export function naechsterSchritt(w: World, def: KapitelDef, z: EuZustand): string {
   const k = z.kapitel[def.id]!;
-  if (k.status === "abgeschlossen") return "Vorläufig geschlossen — der Stand muss gehalten werden.";
-  if (def.zypernBlockiert && !zypernBewegung(w).bewegt) return "Blockiert durch die Zypernfrage: das Ankara-Protokoll umsetzen oder den Konflikt entschärfen.";
-  if (k.gesperrtBis && w.day < k.gesperrtBis) return `Durch ein Veto blockiert noch ${k.gesperrtBis - w.day} Tage; den Konflikt mit dem Veto-Mitglied entschärfen.`;
+  if (k.status === "abgeschlossen") return t("sim2.sim.eu.5977bf0");
+  if (def.zypernBlockiert && !zypernBewegung(w).bewegt) return t("sim2.sim.eu.c709ee0");
+  if (k.gesperrtBis && w.day < k.gesperrtBis) return t("sim2.sim.eu.384224d", { p0: k.gesperrtBis - w.day });
   const kriterien = k.status === "offen" ? def.schluss : def.oeffnung;
   const stand = kriterienStand(w, kriterien);
   const substanz = erfuelltMitSubstanz(stand);
-  if (substanz.alibi) return "Erfüllt — aber nur knapp: Brüssel prüft die Substanz; ohne Puffer über der Marke zählt es nicht.";
+  if (substanz.alibi) return t("sim2.sim.eu.1ccd068");
   const fehlend = stand.find((s) => !s.erfuellt);
-  if (fehlend) return `Fehlt: ${fehlend.kriterium.text} (jetzt ${Math.round(fehlend.jetzt)}).`;
+  if (fehlend) return t("sim2.sim.eu.4a6191b", { p0: fehlend.kriterium.text, p1: Math.round(fehlend.jetzt) });
   if (k.status === "offen") {
     const rest = Math.max(0, (k.geoeffnet ?? w.day) + def.jahre * 365 - w.day);
-    return rest > 0 ? `Kriterien erfüllt; die Verhandlung braucht noch etwa ${Math.ceil(rest / 365)} ${rest > 365 ? "Jahre" : "Jahr"}.` : "Reif für den vorläufigen Abschluss.";
+    return rest > 0 ? t("sim2.sim.eu.ae6516d", { p0: Math.ceil(rest / 365), p1: rest > 365 ? "Jahre" : "Jahr" }) : t("sim2.sim.eu.9dfd7b3");
   }
-  return "Bereit zur Eröffnung, sobald ein Verhandlungsplatz frei wird.";
+  return t("sim2.sim.eu.ce6438a");
 }
 
 function fortschrittsbericht(w: World): void {
@@ -724,28 +725,28 @@ function fortschrittsbericht(w: World): void {
       alibi.push(def.id);
       if (k.alibiJahr !== jahr) {
         k.alibiJahr = jahr;
-        landAendern(w, "EU", { vertrauen: -2 }, `Fortschrittsbericht: Alibi-Reform bei Kapitel ${def.nummer}`);
+        landAendern(w, "EU", { vertrauen: -2 }, t("sim2.sim.eu.f734417", { p0: def.nummer }));
         wirke(w, "ansehen", -0.5);
       }
     }
   }
 
   if (z.phase === "eingefroren") {
-    zeilen.push("Die Gespräche liegen auf Eis. Wer eine Perspektive will, kündigt ein Reformpaket an — mit Substanz, nicht mit Worten.");
+    zeilen.push(t("sim2.sim.eu.72ed0a0"));
   } else {
     zeilen.push(`Stand: ${PHASEN_TEXT[z.phase]}`);
     const offene = offeneKapitel(z).length;
     const fertige = KAPITEL.filter((x) => z.kapitel[x.id]!.status === "abgeschlossen").length;
-    zeilen.push(`${fertige} von ${KAPITEL.length} Kapiteln vorläufig geschlossen, ${offene} in Verhandlung (höchstens ${EU_REGELN.parallelMax} parallel).`);
+    zeilen.push(t("sim2.sim.eu.ed11a4b", { p0: fertige, p1: KAPITEL.length, p2: offene, p3: EU_REGELN.parallelMax }));
   }
   for (const def of KAPITEL) {
     const marke = alibi.includes(def.id) ? " (Alibi-Verdacht)" : blockiert.includes(def.id) ? " (blockiert: Zypernfrage)" : "";
     zeilen.push(`Kapitel ${def.nummer} „${def.name}“: ${noten[def.id]}${marke} — ${naechsterSchritt(w, def, z)}`);
   }
-  if (alibi.length) zeilen.push("Zur Alibi-Frage: Wer Kriterien nur auf den Punkt erfüllt, gewinnt kein Vertrauen. Brüssel zählt Substanz, nicht Schwellen.");
-  if (z.zollunion === "unveraendert" && z.phase === "verhandlung") zeilen.push(`Zollunion: Das Mandat für das Update kommt mit ${EU_REGELN.zollunionKapitel} geschlossenen Kapiteln in Reichweite.`);
+  if (alibi.length) zeilen.push(t("sim2.sim.eu.8250048"));
+  if (z.zollunion === "unveraendert" && z.phase === "verhandlung") zeilen.push(t("sim2.sim.eu.396ea89", { p0: EU_REGELN.zollunionKapitel }));
   const visa = visaStand(w);
-  if (!visa.gewaehrt) zeilen.push(`Visaliberalisierung: ${visa.erfuellt} von ${VISA_KRITERIEN.length} Kriterien erfüllt — ein eigener Weg, der nicht auf die Kapitel wartet.`);
+  if (!visa.gewaehrt) zeilen.push(t("sim2.sim.eu.640803d", { p0: visa.erfuellt, p1: VISA_KRITERIEN.length }));
 
   const bericht: EuBericht = { tag: w.day, datum: w.date, jahr, noten, alibi, blockiert, zeilen };
   z.berichte.push(bericht);
@@ -772,11 +773,11 @@ export function euMonat(w: World, rng: Rng): void {
   // 1. Screening endet: die Verhandlungsphase beginnt
   if (z.phase === "screening" && z.screeningBis !== undefined && w.day >= z.screeningBis) {
     z.phase = "verhandlung";
-    landAendern(w, "EU", { vertrauen: 4 }, "Das Screening ist abgeschlossen");
+    landAendern(w, "EU", { vertrauen: 4 }, t("sim2.sim.eu.095ab8d"));
     zeitungEreignis(w, {
       art: "krise",
       titel: "Screening abgeschlossen",
-      fakt: "Die Kommission hat die Bestandsaufnahme beendet: Die Kapitel-Verhandlungen mit der Türkei können beginnen — eröffnet wird, was die Kriterien trägt.",
+      fakt: t("sim2.sim.eu.62bf73e"),
       wertung: 0.7,
       schluessel: ["Screening", "Beitrittskapitel"],
     });
@@ -785,11 +786,11 @@ export function euMonat(w: World, rng: Rng): void {
       titel: "Screening abgeschlossen",
       szene: "istanbul",
       text: [
-        "Zwölf Monate Bestandsaufnahme sind vorbei: Die Kapitel-Verhandlungen beginnen.",
-        "Eröffnet wird, was die Öffnungskriterien erfüllt — messbar an Justiz, Presse, Korruption und Verwaltung. Höchstens zwei Kapitel laufen parallel; die Kapitel 23 und 24 hängen zusätzlich an der Zypernfrage.",
+        t("sim2.sim.eu.52a5329"),
+        t("sim2.sim.eu.3441958"),
       ],
     });
-    addLog(w, "ereignis", "Das Screening ist abgeschlossen; die Kapitel-Verhandlungen beginnen.", "Eröffnet wird, was die Kriterien erfüllt — höchstens zwei Kapitel parallel.");
+    addLog(w, "ereignis", t("sim2.sim.eu.691eb06"), t("sim2.sim.eu.532a0f2"));
   }
 
   // 2. Kapitel-Verhandlungen

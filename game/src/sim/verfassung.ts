@@ -36,6 +36,7 @@ import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { Ergebnis } from "./handeln";
 import type { VerfassungsVorgang, VerfassungsZustand } from "./spiel-typen";
+import { t } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // Spielparameter des Vorgangs
@@ -122,13 +123,13 @@ export interface VerfassungsArtikel {
 export const ARTIKEL: VerfassungsArtikel[] = [
   {
     id: "amtszeit",
-    name: "Amtszeit und Wiederwahl",
-    frage: "Wie lange regiert ein Präsident, und wie oft darf er wieder antreten?",
+    name: t("sim2.sim.verfassung.27ac921"),
+    frage: t("sim2.sim.verfassung.67f9e95"),
     varianten: [
       {
         id: "unveraendert",
         name: "Wie bisher",
-        text: "Höchstens zwei Amtszeiten: eine Wiederwahl, dann ist Schluss — die Amtszeitfrage bleibt unangetastet.",
+        text: t("sim2.sim.verfassung.33b4d1b"),
         statusQuo: true,
         autoritaer: 0,
         parteien: {},
@@ -138,7 +139,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "wiederwahl_plus",
         name: "Weitere Wiederwahl",
-        text: "Eine zusätzliche Wiederwahl wird möglich: Wer das Amt hält, kann ein drittes Mal antreten.",
+        text: t("sim2.sim.verfassung.dd395ec"),
         autoritaer: 2,
         parteien: { AKP: 2, MHP: 1, YRP: 1, CHP: -2, DEM: -2, "İYİ": -1, "YENİ": -1, Zafer: 0 },
         waehler: { konservative: 2, nationalisten: 1, staedtische_saekulare: -4, junge: -2, minderheiten: -2 },
@@ -150,7 +151,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "unbegrenzt",
         name: "Keine Begrenzung",
-        text: "Die Amtszeiten werden nicht mehr gezählt: Wer gewählt wird, regiert, solange er Wahlen gewinnt. Es gibt keine letzte Amtszeit und keinen Nachfolger, den das Lager küren müsste.",
+        text: t("sim2.sim.verfassung.596e909"),
         autoritaer: 3,
         parteien: { AKP: 2, MHP: 1, YRP: 1, CHP: -2, DEM: -2, "İYİ": -2, "YENİ": -2, Zafer: 0 },
         waehler: { konservative: 3, nationalisten: 1, staedtische_saekulare: -6, junge: -3, minderheiten: -3, beamte: -1 },
@@ -163,7 +164,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "neuwahl_jetzt",
         name: "Vorgezogene Neuwahl",
-        text: "Mit dem Beschluss wird binnen zwei Monaten neu gewählt: Wer gewinnt, beginnt die Amtszeit von vorn.",
+        text: t("sim2.sim.verfassung.e306390"),
         autoritaer: 0,
         parteien: { CHP: 1, DEM: 1, "İYİ": 1, "YENİ": 1, AKP: -2, MHP: -2, YRP: -1, Zafer: 0 },
         waehler: { staedtische_saekulare: 1, junge: 1 },
@@ -173,13 +174,13 @@ export const ARTIKEL: VerfassungsArtikel[] = [
   },
   {
     id: "amtszeitlaenge",
-    name: "Länge der Amtszeit",
-    frage: "Wie viele Jahre dauert eine Amtszeit?",
+    name: t("sim2.sim.verfassung.15692e8"),
+    frage: t("sim2.sim.verfassung.4fbe51e"),
     varianten: [
       {
         id: "jahre_5",
-        name: "Fünf Jahre",
-        text: "Wie bisher: Eine Amtszeit dauert fünf Jahre.",
+        name: t("sim2.sim.verfassung.7869fd7"),
+        text: t("sim2.sim.verfassung.d74a38b"),
         statusQuo: true,
         autoritaer: 0,
         parteien: {},
@@ -189,7 +190,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "jahre_4",
         name: "Vier Jahre",
-        text: "Kürzere Amtszeiten: Der Präsident muss sich öfter dem Urteil der Wähler stellen. Die neue Länge gilt ab der nächsten Amtszeit.",
+        text: t("sim2.sim.verfassung.b619f64"),
         autoritaer: -1,
         parteien: { CHP: 2, DEM: 1, "YENİ": 1, "İYİ": 1, AKP: -1, MHP: -1, YRP: 0, Zafer: 0 },
         waehler: { staedtische_saekulare: 2, junge: 1, konservative: -1 },
@@ -198,7 +199,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "jahre_7",
         name: "Sieben Jahre",
-        text: "Längere Amtszeiten: weniger Wahlen, mehr Zeit für große Vorhaben, weniger Kontrolle durch die Wähler. Die neue Länge gilt ab der nächsten Amtszeit.",
+        text: t("sim2.sim.verfassung.52f0d66"),
         autoritaer: 1,
         parteien: { AKP: 1, MHP: 1, YRP: 1, CHP: -2, DEM: -1, "İYİ": -1, "YENİ": -1, Zafer: 0 },
         waehler: { konservative: 1, staedtische_saekulare: -2, junge: -1 },
@@ -211,13 +212,13 @@ export const ARTIKEL: VerfassungsArtikel[] = [
   },
   {
     id: "wahlrecht",
-    name: "Wahlhürde",
-    frage: "Ab wie viel Prozent zieht eine Partei ins Parlament ein?",
+    name: t("sim2.sim.verfassung.7dfc985"),
+    frage: t("sim2.sim.verfassung.b4d3422"),
     varianten: [
       {
         id: "sieben",
-        name: "Sieben Prozent",
-        text: "Die Sperrklausel bleibt bei sieben Prozent.",
+        name: t("sim2.sim.verfassung.53612fb"),
+        text: t("sim2.sim.verfassung.03925a7"),
         statusQuo: true,
         autoritaer: 0,
         parteien: {},
@@ -226,8 +227,8 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "fuenf",
-        name: "Fünf Prozent",
-        text: "Kleinere Parteien kommen leichter hinein: Das Parlament bildet das Land breiter ab.",
+        name: t("sim2.sim.verfassung.875dbd8"),
+        text: t("sim2.sim.verfassung.2e2c70a"),
         autoritaer: -1,
         parteien: { DEM: 2, CHP: 1, "YENİ": 1, YRP: 1, Zafer: 1, "İYİ": 0, AKP: -1, MHP: -2 },
         waehler: { minderheiten: 4, staedtische_saekulare: 2, junge: 1, nationalisten: -2 },
@@ -239,8 +240,8 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "zehn",
-        name: "Zehn Prozent",
-        text: "Die höchste Hürde Europas: Kleine Parteien bleiben draußen, große Lager gewinnen ihre Sitze.",
+        name: t("sim2.sim.verfassung.03b8de9"),
+        text: t("sim2.sim.verfassung.47fdf5d"),
         autoritaer: 2,
         parteien: { MHP: 2, AKP: 1, Zafer: 1, CHP: -2, DEM: -2, "İYİ": -1, "YENİ": -1, YRP: -1 },
         waehler: { minderheiten: -5, staedtische_saekulare: -2, nationalisten: 2 },
@@ -254,13 +255,13 @@ export const ARTIKEL: VerfassungsArtikel[] = [
   },
   {
     id: "justiz",
-    name: "Besetzung des Verfassungsgerichts",
-    frage: "Wer bestimmt, was Verfassung ist — der Präsident oder das Parlament?",
+    name: t("sim2.sim.verfassung.4405a0f"),
+    frage: t("sim2.sim.verfassung.01900cc"),
     varianten: [
       {
         id: "zwoelf_drei",
-        name: "Zwölf plus drei",
-        text: "Wie bisher: Zwölf Mitglieder ernennt der Präsident, drei wählt das Parlament.",
+        name: t("sim2.sim.verfassung.23be689"),
+        text: t("sim2.sim.verfassung.f859c9c"),
         statusQuo: true,
         autoritaer: 0,
         parteien: {},
@@ -270,7 +271,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "acht_sieben",
         name: "Acht plus sieben",
-        text: "Acht ernennt der Präsident, sieben wählt das Parlament: Das Gericht wird unabhängiger vom Palast.",
+        text: t("sim2.sim.verfassung.445e6bd"),
         autoritaer: -1,
         parteien: { CHP: 2, "YENİ": 2, DEM: 1, "İYİ": 1, AKP: -2, MHP: -1, YRP: -1, Zafer: -1 },
         waehler: { staedtische_saekulare: 2, unternehmer: 1, beamte: 1, konservative: -1 },
@@ -282,8 +283,8 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "parlament_staerkt",
-        name: "Parlament wählt die Mehrheit",
-        text: "Acht der fünfzehn Mitglieder wählt das Parlament: Die Kontrolle der Kontrolle wandert ins Haus.",
+        name: t("sim2.sim.verfassung.f5a8c4c"),
+        text: t("sim2.sim.verfassung.39d0d66"),
         autoritaer: -2,
         parteien: { CHP: 2, "YENİ": 2, DEM: 2, "İYİ": 1, AKP: -2, MHP: -2, YRP: -2, Zafer: -1 },
         waehler: { staedtische_saekulare: 3, beamte: 1, unternehmer: 1, konservative: -2 },
@@ -299,12 +300,12 @@ export const ARTIKEL: VerfassungsArtikel[] = [
   {
     id: "notstand",
     name: "Notstandsartikel",
-    frage: "Wie weit reicht die Ausnahme, bevor sie zur Regel wird?",
+    frage: t("sim2.sim.verfassung.a84a8e5"),
     varianten: [
       {
         id: "eng",
         name: "Eng begrenzt",
-        text: "Ausnahmezustand nur mit Zustimmung des Parlaments und auf vier Monate begrenzt.",
+        text: t("sim2.sim.verfassung.83d1edf"),
         autoritaer: -1,
         parteien: { CHP: 2, DEM: 2, "YENİ": 1, "İYİ": 1, YRP: 0, AKP: -1, MHP: -2, Zafer: -2 },
         waehler: { staedtische_saekulare: 2, minderheiten: 2, nationalisten: -2, konservative: -1 },
@@ -317,7 +318,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "unveraendert",
         name: "Wie bisher",
-        text: "Die Notstandsregeln bleiben, wie sie sind.",
+        text: t("sim2.sim.verfassung.fef8003"),
         statusQuo: true,
         autoritaer: 0,
         parteien: {},
@@ -327,7 +328,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       {
         id: "weit",
         name: "Weit gefasst",
-        text: "Der Präsident regiert im Ausnahmezustand per Dekret am Parlament vorbei, und die Fristen fallen großzügig aus.",
+        text: t("sim2.sim.verfassung.9e00939"),
         autoritaer: 2,
         parteien: { MHP: 2, AKP: 1, Zafer: 1, YRP: 0, "İYİ": -1, CHP: -2, DEM: -2, "YENİ": -2 },
         waehler: { nationalisten: 2, konservative: 1, staedtische_saekulare: -4, minderheiten: -3, junge: -2 },
@@ -342,13 +343,13 @@ export const ARTIKEL: VerfassungsArtikel[] = [
   },
   {
     id: "immunitaet",
-    name: "Immunität der Abgeordneten",
-    frage: "Schützt das Mandat vor der Staatsanwaltschaft?",
+    name: t("sim2.sim.verfassung.ce66db1"),
+    frage: t("sim2.sim.verfassung.614efaa"),
     varianten: [
       {
         id: "unveraendert",
         name: "Wie bisher",
-        text: "Abgeordnete bleiben während des Mandats vor Ermittlungen geschützt.",
+        text: t("sim2.sim.verfassung.5a9395c"),
         statusQuo: true,
         autoritaer: 0,
         parteien: {},
@@ -357,8 +358,8 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "aufgehoben",
-        name: "Immunität aufgehoben",
-        text: "Ermittlungen gegen Abgeordnete werden sofort möglich — gegen Korruption wie gegen kritische Reden.",
+        name: t("sim2.sim.verfassung.475988a"),
+        text: t("sim2.sim.verfassung.51e3c47"),
         autoritaer: 1,
         parteien: { Zafer: 2, MHP: 1, AKP: 1, "İYİ": 1, YRP: 1, CHP: -1, "YENİ": -1, DEM: -2 },
         waehler: { nationalisten: 2, arme: 1, staedtische_saekulare: -1, minderheiten: -3 },
@@ -513,44 +514,44 @@ export function pruefeVerfassung(w: World, paketRoh: Record<string, string>): Ve
   const stimmen = paketStimmen(w, paket);
   const aut = autoritaerScore(paket);
   const hinweise: string[] = [];
-  if (stimmen.erwartet >= VERFASSUNG_REGELN.direkt) hinweise.push(`Ab ${VERFASSUNG_REGELN.direkt} Stimmen wird das Paket direkt Gesetz — keine Volksabstimmung nötig.`);
-  else if (stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit) hinweise.push(`Zwischen ${VERFASSUNG_REGELN.mehrheit} und ${VERFASSUNG_REGELN.direkt - 1} Stimmen entscheidet das Volk in einer Volksabstimmung.`);
-  else hinweise.push(`Unter ${VERFASSUNG_REGELN.mehrheit} Stimmen scheitert das Paket, und ein Teil des Kapitals ist verbrannt.`);
-  if (aut >= 2) hinweise.push("Das Paket zieht die Macht zum Palast: Proteste, Straßburg, die EU und die Märkte werden reagieren.");
-  if (aut <= -2) hinweise.push("Das Paket gibt Kontrolle ab: Es stärkt die Legitimität, kostet aber laufend etwas Politisches Kapital — wer weniger zwingen kann, muss mehr überzeugen.");
+  if (stimmen.erwartet >= VERFASSUNG_REGELN.direkt) hinweise.push(t("sim2.sim.verfassung.541581a", { p0: VERFASSUNG_REGELN.direkt }));
+  else if (stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit) hinweise.push(t("sim2.sim.verfassung.0f116e9", { p0: VERFASSUNG_REGELN.mehrheit, p1: VERFASSUNG_REGELN.direkt - 1 }));
+  else hinweise.push(t("sim2.sim.verfassung.1fb3b28", { p0: VERFASSUNG_REGELN.mehrheit }));
+  if (aut >= 2) hinweise.push(t("sim2.sim.verfassung.e816112"));
+  if (aut <= -2) hinweise.push(t("sim2.sim.verfassung.36d36d2"));
   const aym = aymSicht(w, paket);
   hinweise.push(
-    `Verfassungsgericht: Die Chance, dass es ein angefochtenes Paket kassiert, liegt nach seinem jetzigen Besetzungsstand eher ${aym.pKassation < 0.12 ? "niedrig" : aym.pKassation < 0.25 ? "im mittleren Bereich" : "hoch"}.`,
+    t("sim2.sim.verfassung.ca7e403", { p0: aym.pKassation < 0.12 ? t("sim2.sim.verfassung.i76ce50c") : aym.pKassation < 0.25 ? t("sim2.sim.verfassung.i743db5d") : t("sim2.sim.verfassung.i0e98fb6") }),
   );
   const base: VerfassungPruefung = { ok: true, pk, geaendert: geaendert.length, stimmen, autoritaer: aut, hinweise };
   const spiel = w.spiel;
-  if (!spiel) return { ...base, ok: false, grund: "Ohne Amtsantritt gibt es keine Verfassungsfrage." };
-  if (spiel.ende) return { ...base, ok: false, grund: "Die Amtszeit ist beendet." };
-  if (!geaendert.length) return { ...base, ok: false, grund: "Das Paket ändert nichts: Wählen Sie mindestens einen Artikel, der vom bisherigen Recht abweicht." };
+  if (!spiel) return { ...base, ok: false, grund: t("sim2.sim.verfassung.1dc1eb2") };
+  if (spiel.ende) return { ...base, ok: false, grund: t("sim2.sim.verfassung.56f5ccf") };
+  if (!geaendert.length) return { ...base, ok: false, grund: t("sim2.sim.verfassung.560c0ee") };
   const pause = neuanfangGrund(w);
   if (pause) return { ...base, ok: false, grund: pause };
   const z = verfassungsZustand(w);
-  if (z.laufend) return { ...base, ok: false, grund: "Es läuft bereits ein Verfassungsvorgang; erst sein Abschluss macht den Weg frei." };
+  if (z.laufend) return { ...base, ok: false, grund: t("sim2.sim.verfassung.0b90108") };
   if (amtszeitBelegt(w)) {
     return {
       ...base,
       ok: false,
-      grund: "Eine Verfassungsfrage je Amtszeit: Diese Amtszeit hatte ihre Debatte über die Spielregeln schon. Wer sie ständig neu verhandelt, entwertet alle Regeln — das trägt das Land nicht.",
+      grund: t("sim2.sim.verfassung.ec4f0af"),
     };
   }
   const gesperrt = geaendert.filter((x) => artikelSperre(w, x.artikel.id) > 0);
   if (gesperrt.length) {
     const rest = Math.max(...gesperrt.map((x) => artikelSperre(w, x.artikel.id) - w.day));
-    return { ...base, ok: false, grund: `Nach dem Scheitern des letzten Pakets ist ${gesperrt.map((x) => `„${x.artikel.name}“`).join(", ")} noch ${rest} Tage gesperrt; zwölf Monate trägt das Land dieselbe Frage nicht zweimal.` };
+    return { ...base, ok: false, grund: t("sim2.sim.verfassung.e6b674d", { p0: gesperrt.map((x) => `„${x.artikel.name}“`).join(", "), p1: rest }) };
   }
-  if (!kannZahlen(spiel.kapital, pk)) return { ...base, ok: false, grund: `Für dieses Paket fehlt Politisches Kapital (nötig ${pk}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  if (!kannZahlen(spiel.kapital, pk)) return { ...base, ok: false, grund: t("sim2.sim.verfassung.b59ea0f", { p0: pk, p1: Math.floor(spiel.kapital) }) };
   return base;
 }
 
 /** Das Paket einbringen: Kapital und Aufmerksamkeit fließen, die Abstimmung ist terminiert. */
 export function bringeVerfassungEin(w: World, paketRoh: Record<string, string>): Ergebnis {
   const pr = pruefeVerfassung(w, paketRoh);
-  if (!pr.ok) return { ok: false, text: pr.grund ?? "Nicht möglich." };
+  if (!pr.ok) return { ok: false, text: pr.grund ?? t("sim2.sim.verfassung.a87f6d4") };
   const spiel = w.spiel!;
   const z = verfassungsZustand(w);
   const paket = paketVervollstaendigen(paketRoh);
@@ -569,8 +570,8 @@ export function bringeVerfassungEin(w: World, paketRoh: Record<string, string>):
   z.amtszeitBelegt = spiel.amtszeit;
   const namen = geaenderteArtikel(paket).map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ");
   const datum = formatDateDe(addDays(w.date, VERFASSUNG_REGELN.tageBisAbstimmung));
-  const text = `Verfassungspaket eingebracht: ${namen}. Das Parlament stimmt am ${datum} ab.`;
-  const why = `${pr.pk} Kapital gezahlt. Erwartet werden ${pr.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.stimmen.tief} bis ${pr.stimmen.hoch}): Ab ${VERFASSUNG_REGELN.direkt} wird es direkt Gesetz, ab ${VERFASSUNG_REGELN.mehrheit} entscheidet eine Volksabstimmung, darunter scheitert es. Eine Verfassungsfrage je Amtszeit — diese ist es.`;
+  const text = t("sim2.sim.verfassung.c2f4d96", { p0: namen, p1: datum });
+  const why = t("sim2.sim.verfassung.d4e5840", { p0: pr.pk, p1: pr.stimmen.erwartet, p2: pr.stimmen.tief, p3: pr.stimmen.hoch, p4: VERFASSUNG_REGELN.direkt, p5: VERFASSUNG_REGELN.mehrheit });
   addLog(w, "entscheidung", text, why);
   spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungspaket eingebracht", ausgang: namen });
   return { ok: true, text, why };
@@ -581,14 +582,14 @@ export function zieheVerfassungZurueck(w: World): Ergebnis {
   const spiel = w.spiel;
   const z = spiel ? verfassungsZustand(w) : undefined;
   const v = z?.laufend;
-  if (!spiel || !z || !v || v.phase !== "parlament") return { ok: false, text: "Es liegt kein Paket mehr zur Abstimmung vor." };
+  if (!spiel || !z || !v || v.phase !== "parlament") return { ok: false, text: t("sim2.sim.verfassung.383199f") };
   const zurueck = Math.floor(v.pk * VERFASSUNG_REGELN.rueckzugAnteil);
   spiel.kapital = Math.min(REGELN.kapitalMax, spiel.kapital + zurueck);
-  z.historie.push({ tag: w.day, datum: w.date, ausgang: "Vor der Abstimmung zurückgezogen", artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name) });
+  z.historie.push({ tag: w.day, datum: w.date, ausgang: t("sim2.sim.verfassung.001d49c"), artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name) });
   delete z.laufend;
   // Freiwillig zurückgezogene Pakete sperren keine Artikel; die Amtszeit gilt gleichwohl als belegt
-  const text = "Das Verfassungspaket wird zurückgezogen.";
-  const why = `${zurueck} von ${v.pk} Kapital kommen zurück, die Absprachen sind verloren. Die Amtszeit hat ihre Verfassungsdebatte damit hinter sich.`;
+  const text = t("sim2.sim.verfassung.8ce3dc4");
+  const why = t("sim2.sim.verfassung.a37aea8", { p0: zurueck, p1: v.pk });
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }
@@ -597,14 +598,14 @@ export function zieheVerfassungZurueck(w: World): Ergebnis {
 export function verfassungStimmenKaufen(w: World, anzahl: number): Ergebnis {
   const spiel = w.spiel;
   const v = spiel ? verfassungsZustand(w).laufend : undefined;
-  if (!spiel || !v || v.phase !== "parlament") return { ok: false, text: "Es liegt kein Paket mehr zur Abstimmung vor." };
+  if (!spiel || !v || v.phase !== "parlament") return { ok: false, text: t("sim2.sim.verfassung.383199f") };
   const n = Math.max(1, Math.round(anzahl));
   const kosten = Math.ceil(n * REGELN.kaufKostenProStimme * VERFASSUNG_REGELN.kaufFaktor);
-  if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: `Für ${n} Stimmen fehlt Politisches Kapital (nötig ${kosten}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: t("sim2.sim.verfassung.98a6635", { p0: n, p1: kosten, p2: Math.floor(spiel.kapital) }) };
   spiel.kapital -= kosten;
   v.absprachen += n;
-  const text = `${n} Stimmen für das Verfassungspaket gesichert.`;
-  const why = `Kostet ${kosten} Kapital — bei der Verfassungsfrage verlangen die Fraktionen das Doppelte wie bei Gesetzen, weil jede Stimme die Spielregeln selbst betrifft.`;
+  const text = t("sim2.sim.verfassung.07e7935", { p0: n });
+  const why = t("sim2.sim.verfassung.10a7b56", { p0: kosten });
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }
@@ -625,7 +626,7 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
   const z = verfassungsZustand(w);
   const v = z.laufend;
   // Das Ereignis kann einen bereits abgeschlossenen Vorgang überholt haben: dann ist die Abstimmung hinfällig
-  if (!v) return { ja: 0, weg: "gescheitert", angefochten: false, text: "Der Vorgang ist bereits abgeschlossen; die Abstimmung entfällt." };
+  if (!v) return { ja: 0, weg: "gescheitert", angefochten: false, text: t("sim2.sim.verfassung.ef6c451") };
   const sicht = paketStimmen(w, v.paket, v.absprachen);
   const ja = Math.min(600, Math.max(0, sicht.erwartet + Math.round(rng.normal(6))));
   v.ja = ja;
@@ -638,16 +639,16 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
     vertrauenAendern(w, -2);
     spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 1.5);
     for (const x of geaenderteArtikel(v.paket)) z.sperren[x.artikel.id] = w.day + VERFASSUNG_REGELN.sperrTage;
-    z.historie.push({ tag: w.day, datum: w.date, ausgang: `Im Parlament gescheitert (${ja} zu ${nein})`, artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name) });
+    z.historie.push({ tag: w.day, datum: w.date, ausgang: t("sim2.sim.verfassung.8164822", { p0: ja, p1: nein }), artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name) });
     delete z.laufend;
-    const text = `Das Parlament lehnt das Verfassungspaket ab (${ja} zu ${nein}). Es fehlten ${VERFASSUNG_REGELN.mehrheit - ja} Stimmen zur ersten Hürde.`;
+    const text = t("sim2.sim.verfassung.d35a095", { p0: ja, p1: nein, p2: VERFASSUNG_REGELN.mehrheit - ja });
     addLog(
       w,
       "entscheidung",
       text,
-      `Von ${v.pk} Kapital sind ${v.pk - zurueck} verbrannt; die betroffenen Artikel sind zwölf Monate gesperrt. Wer die Spielregeln ändern will und scheitert, verliert im Land an Vertrauen.`,
+      t("sim2.sim.verfassung.2846d70", { p0: v.pk, p1: v.pk - zurueck }),
     );
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungspaket gescheitert", ausgang: `${ja} zu ${nein}: Die Hürde von ${VERFASSUNG_REGELN.mehrheit} blieb unerreicht.` });
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungspaket gescheitert", ausgang: t("sim2.sim.verfassung.241e38f", { p0: ja, p1: nein, p2: VERFASSUNG_REGELN.mehrheit }) });
     return { ja, weg: "gescheitert", angefochten: false, text };
   }
 
@@ -661,17 +662,17 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
   v.aymAngefochten = angefochten;
   const wegText =
     weg === "direkt"
-      ? `Mit ${ja} zu ${nein} überspringt das Paket die Hürde von ${VERFASSUNG_REGELN.direkt}: Es braucht keine Volksabstimmung.`
-      : `Mit ${ja} zu ${nein} liegt das Paket zwischen ${VERFASSUNG_REGELN.mehrheit} und ${VERFASSUNG_REGELN.direkt - 1}: Das Volk wird entscheiden.`;
+      ? t("sim2.sim.verfassung.a5a4432", { p0: ja, p1: nein, p2: VERFASSUNG_REGELN.direkt })
+      : t("sim2.sim.verfassung.47cf3c1", { p0: ja, p1: nein, p2: VERFASSUNG_REGELN.mehrheit, p3: VERFASSUNG_REGELN.direkt - 1 });
   if (angefochten) {
     v.phase = "aym";
     v.aymTag = w.day + VERFASSUNG_REGELN.aymTage;
-    addLog(w, "ereignis", `${wegText} Die Opposition zieht vor das Verfassungsgericht; die Entscheidung wird in ${VERFASSUNG_REGELN.aymTage} Tagen erwartet.`, "Wer im Parlament verliert, versucht es über die Kontrollinstanz — je nach Besetzung des Gerichts mit Aussicht.");
+    addLog(w, "ereignis", t("sim2.sim.verfassung.3442314", { p0: wegText, p1: VERFASSUNG_REGELN.aymTage }), t("sim2.sim.verfassung.5c40147"));
   } else {
-    addLog(w, "ereignis", `${wegText} Die Opposition verzichtet auf eine Anfechtung.`, "Ohne Gang vor das Verfassungsgericht geht es direkt weiter.");
+    addLog(w, "ereignis", t("sim2.sim.verfassung.84f127a", { p0: wegText }), t("sim2.sim.verfassung.1db54cb"));
     weiterNachAym(w, rng);
   }
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungspaket im Parlament angenommen", ausgang: `${ja} zu ${nein}${angefochten ? "; die Opposition fechtet an" : ""}` });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.8977bcd"), ausgang: `${ja} zu ${nein}${angefochten ? "; die Opposition fechtet an" : ""}` });
   return { ja, weg, angefochten, text: `${wegText}${angefochten ? " Die Opposition zieht vor das Verfassungsgericht." : ""}` };
 }
 
@@ -689,8 +690,8 @@ function weiterNachAym(w: World, rng: Rng): void {
   addLog(
     w,
     "ereignis",
-    `Die Kampagne zur Volksabstimmung beginnt; gewählt wird am ${datum}.`,
-    "Die Zustimmung zum Präsidenten trägt das Ja-Lager, die Artikel ziehen ihre Wählergruppen je Richtung — und Kapital in der Kampagne verschiebt die Mitte.",
+    t("sim2.sim.verfassung.48132c4", { p0: datum }),
+    t("sim2.sim.verfassung.5ba05f5"),
   );
 }
 
@@ -718,7 +719,7 @@ export function aymEntscheiden(w: World, rng: Rng): { kassiert: boolean; text: s
   const spiel = w.spiel!;
   const z = verfassungsZustand(w);
   const v = z.laufend;
-  if (!v) return { kassiert: false, text: "Der Vorgang ist bereits abgeschlossen; das Verfahren wird eingestellt." };
+  if (!v) return { kassiert: false, text: t("sim2.sim.verfassung.88495c8") };
   const sicht = aymSicht(w, v.paket);
   const kassiert = rng.next() < sicht.pKassation;
   if (kassiert) {
@@ -728,20 +729,20 @@ export function aymEntscheiden(w: World, rng: Rng): { kassiert: boolean; text: s
     wirke(w, "polarisierung", 2);
     vertrauenAendern(w, -1.5);
     spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 1);
-    const text = "Das Verfassungsgericht kassiert das Paket: zentrale Artikel verletzten die Verfassung. Das eingesetzte Kapital ist verloren.";
+    const text = t("sim2.sim.verfassung.7321505");
     addLog(
       w,
       "ereignis",
       text,
-      "Die Richter entscheiden nach ihrem Stand: Unabhängige und Reformorientierte trugen die Kassation. Der Groll im Lager ist groß, die Polarisierung wächst, und die Artikel sind zwölf Monate gesperrt.",
+      t("sim2.sim.verfassung.6704ca0"),
     );
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungsgericht kassiert das Paket", ausgang: "Die Kontrollinstanz hält die Regierung an die Regeln." });
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.851e8f9"), ausgang: t("sim2.sim.verfassung.3aa2806") });
     return { kassiert, text };
   }
-  addLog(w, "ereignis", "Das Verfassungsgericht lässt das Paket zu.", "Die Mehrheit der Richter sieht keinen Verfassungsverstoß; der Weg ist frei.");
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungsgericht lässt das Paket zu", ausgang: "Die Anfechtung der Opposition scheitert." });
+  addLog(w, "ereignis", t("sim2.sim.verfassung.37845af"), t("sim2.sim.verfassung.54f0f07"));
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.60bb5f0"), ausgang: t("sim2.sim.verfassung.94ebb26") });
   weiterNachAym(w, rng);
-  return { kassiert, text: "Das Verfassungsgericht lässt das Paket zu; der Weg ist frei." };
+  return { kassiert, text: t("sim2.sim.verfassung.d42e1dd") };
 }
 
 // ---------------------------------------------------------------------------
@@ -796,17 +797,17 @@ export function referendumPrognose(w: World): ReferendumPrognose | null {
 export function kampagnenImpuls(w: World): Ergebnis {
   const spiel = w.spiel;
   const v = spiel ? verfassungsZustand(w).laufend : undefined;
-  if (!spiel || !v || v.phase !== "kampagne") return { ok: false, text: "Es läuft gerade keine Kampagne zu einer Volksabstimmung." };
+  if (!spiel || !v || v.phase !== "kampagne") return { ok: false, text: t("sim2.sim.verfassung.0e117e2") };
   const rest = (v.kampagneZuletzt ?? -1e9) + VERFASSUNG_REGELN.kampagneAbkuehlung - w.day;
-  if (rest > 0) return { ok: false, text: `Der Wahlkampf braucht Abstand: der nächste Impuls ist in ${rest} ${rest === 1 ? "Tag" : "Tagen"} sinnvoll.` };
-  if (!kannZahlen(spiel.kapital, VERFASSUNG_REGELN.kampagnePk)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${VERFASSUNG_REGELN.kampagnePk}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  if (rest > 0) return { ok: false, text: t("sim2.sim.verfassung.747d89b", { p0: rest, p1: rest === 1 ? t("sim2.sim.verfassung.i982963c") : t("sim2.sim.verfassung.i8c3427b") }) };
+  if (!kannZahlen(spiel.kapital, VERFASSUNG_REGELN.kampagnePk)) return { ok: false, text: t("sim2.sim.verfassung.a128d4d", { p0: VERFASSUNG_REGELN.kampagnePk, p1: Math.floor(spiel.kapital) }) };
   spiel.kapital -= VERFASSUNG_REGELN.kampagnePk;
   v.kampagnenPk = (v.kampagnenPk ?? 0) + VERFASSUNG_REGELN.kampagnePk;
   v.kampagneZuletzt = w.day;
   verbrauche(w, AUFMERKSAMKEIT_KOSTEN.verfassungKampagne, "Referendum-Kampagne");
   const pr = referendumPrognose(w)!;
-  const text = `Kampagnen-Impuls: Auftritte, Plakate, Reisen ins Land. Erwarteter Ja-Anteil nun etwa ${fmt(pr.mitte)} Prozent.`;
-  const why = `${VERFASSUNG_REGELN.kampagnePk} Kapital; die Wirkung jeder weiteren Welle nimmt ab. Zustimmung, Artikel und Kampagne zusammen tragen das Ja-Lager.`;
+  const text = t("sim2.sim.verfassung.699731f", { p0: fmt(pr.mitte) });
+  const why = t("sim2.sim.verfassung.b106d2c", { p0: VERFASSUNG_REGELN.kampagnePk });
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }
@@ -816,17 +817,17 @@ export function referendumAuszaehlen(w: World, rng: Rng): { ja: boolean; anteil:
   const spiel = w.spiel!;
   const z = verfassungsZustand(w);
   const v = z.laufend;
-  if (!v) return { ja: false, anteil: 0, text: "Der Vorgang ist bereits abgeschlossen; die Abstimmung entfällt." };
+  if (!v) return { ja: false, anteil: 0, text: t("sim2.sim.verfassung.ef6c451") };
   const pr = referendumPrognose(w)!;
   const anteil = clamp(pr.mitte + rng.normal(VERFASSUNG_REGELN.referendumStreuung), 0, 100);
   if (anteil >= 50) {
-    const text = `Referendum-Nacht: ${fmt(anteil)} Prozent stimmen Ja. Das Paket ist beschlossen.`;
-    addLog(w, "ereignis", text, "Das Volk hat die Verfassungsänderung getragen; die Artikel treten in Kraft.");
+    const text = t("sim2.sim.verfassung.27790e0", { p0: fmt(anteil) });
+    addLog(w, "ereignis", text, t("sim2.sim.verfassung.f83303d"));
     beschliessePaket(w, rng);
     return { ja: true, anteil, text };
   }
   // Nein: schwerer Vertrauensverlust, gestärkte Opposition, Sperrfristen
-  z.historie.push({ tag: w.day, datum: w.date, ausgang: `Im Referendum abgelehnt (${fmt(anteil)} Prozent Ja)`, artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name) });
+  z.historie.push({ tag: w.day, datum: w.date, ausgang: t("sim2.sim.verfassung.d64cc12", { p0: fmt(anteil) }), artikel: geaenderteArtikel(v.paket).map((x) => x.artikel.name) });
   for (const x of geaenderteArtikel(v.paket)) z.sperren[x.artikel.id] = w.day + VERFASSUNG_REGELN.sperrTage;
   delete z.laufend;
   vertrauenAendern(w, -4);
@@ -836,19 +837,19 @@ export function referendumAuszaehlen(w: World, rng: Rng): { ja: boolean; anteil:
     if (partei === w.player?.partei.kurz || spiel.lager.includes(partei) || !sitze) continue;
     bereitschaftAendern(w, partei, -10);
   }
-  const text = `Referendum-Nacht: Nur ${fmt(anteil)} Prozent stimmen Ja. Das Volk lehnt das Paket ab.`;
+  const text = t("sim2.sim.verfassung.1c6adfb", { p0: fmt(anteil) });
   addLog(
     w,
     "ereignis",
     text,
-    "Eine verlorene Volksabstimmung ist ein Urteil über die Regierung selbst: Das Vertrauen fällt schwer, die Opposition geht gestärkt aus der Nacht, und die Artikel sind zwölf Monate gesperrt.",
+    t("sim2.sim.verfassung.27a6960"),
   );
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Referendum verloren", ausgang: `${fmt(anteil)} Prozent Ja — das Paket ist tot, die Opposition triumphiert.` });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Referendum verloren", ausgang: t("sim2.sim.verfassung.21ec61f", { p0: fmt(anteil) }) });
   spiel.hinweise.push({
     id: `referendum-nein-${w.day}`,
     titel: "Referendum-Nacht: Das Nein",
     szene: "wahlnacht",
-    text: [`${fmt(anteil)} Prozent Ja reichen nicht: Das Volk lehnt das Verfassungspaket ab.`, "Die Opposition feiert auf den Plätzen; die Regierung verliert schwer an Vertrauen. Zwölf Monate lang trägt das Land dieselbe Frage nicht noch einmal."],
+    text: [t("sim2.sim.verfassung.9ff3544", { p0: fmt(anteil) }), t("sim2.sim.verfassung.9da0ba8")],
   });
   return { ja: false, anteil, text };
 }
@@ -896,7 +897,7 @@ function beschliessePaket(w: World, rng: Rng): void {
   // Sonderwirkung: vorgezogene Neuwahl stellt den Wahltermin
   if (geaendert.some((x) => x.variante.id === "neuwahl_jetzt")) {
     spiel.wahltag = Math.min(spiel.wahltag, w.day + 60);
-    addLog(w, "ereignis", `Der Wahltermin rückt vor: In etwa zwei Monaten wird gewählt.`, "Wer die Amtszeit neu stellt, stellt sich dem Urteil — gewinnen heißt von vorn beginnen, verlieren heißt gehen.");
+    addLog(w, "ereignis", t("sim2.sim.verfassung.8ee9e3e"), t("sim2.sim.verfassung.b98881e"));
   }
 
   // Keine Begrenzung der Amtszeiten: Die Rivalen im Kabinett sehen ihre Chance schwinden (Groll, Loyalität), die Venedig-Kommission des Europarats
@@ -911,7 +912,7 @@ function beschliessePaket(w: World, rng: Rng): void {
       }
     }
     wirke(w, "strassburg_druck", 3);
-    landAendern(w, "EU", { vertrauen: -3 }, "Stellungnahme der Venedig-Kommission zur unbegrenzten Amtszeit");
+    landAendern(w, "EU", { vertrauen: -3 }, t("sim2.sim.verfassung.0fd5334"));
   }
 
   // 2. Gegenreaktion: autoritäre Pakete rufen Straße, Straßburg, EU und Märkte auf den Plan
@@ -919,34 +920,34 @@ function beschliessePaket(w: World, rng: Rng): void {
     oeffneVerfassungsEreignis(w, "verfassung_proteste", rng);
     wirke(w, "strassburg_druck", 4);
     wirke(w, "ansehen", -2);
-    landAendern(w, "EU", { vertrauen: -4 }, "Verfassungspaket zugunsten des Palasts");
+    landAendern(w, "EU", { vertrauen: -4 }, t("sim2.sim.verfassung.4efa7d1"));
     marktSchock(w, "verfassung", geaendert.some((x) => x.variante.id === "unbegrenzt") ? 1.6 : 1);
   } else if (aut <= -2) {
     // Demokratisierende Pakete: Legitimität und Ansehen wachsen; das laufende Kapital-Konto trägt den Verzicht
     wirke(w, "legitimitaet", 2);
     wirke(w, "ansehen", 2);
-    landAendern(w, "EU", { vertrauen: 3 }, "Verfassung stärkt die Kontrolle der Gewalt");
+    landAendern(w, "EU", { vertrauen: 3 }, t("sim2.sim.verfassung.73319dd"));
   }
 
-  z.historie.push({ tag: w.day, datum: w.date, ausgang: "Beschlossen und in Kraft", artikel: geaendert.map((x) => `${x.artikel.name}: ${x.variante.name}`) });
+  z.historie.push({ tag: w.day, datum: w.date, ausgang: t("sim2.sim.verfassung.ceac3d3"), artikel: geaendert.map((x) => `${x.artikel.name}: ${x.variante.name}`) });
   delete z.laufend;
   const namen = geaendert.map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ");
   addLog(
     w,
     "entscheidung",
-    `Die Verfassungsänderung tritt in Kraft: ${namen}.`,
+    t("sim2.sim.verfassung.a8ca1a3", { p0: namen }),
     aut >= 2
-      ? "Die Macht rückt zusammen — und die Antwort kommt: Proteste, Straßburg, die EU und die Märkte lesen das Paket als Richtungsentscheidung."
+      ? t("sim2.sim.verfassung.2c2972e")
       : aut <= -2
-        ? "Die Kontrolle wird stärker: Legitimität und Ansehen wachsen, aber wer weniger zwingen kann, regiert mit weniger Politischem Kapital im Monat."
-        : "Die Spielregeln des Landes stehen jetzt anders — jede Folge wirkt über Jahre.",
+        ? t("sim2.sim.verfassung.267a75b")
+        : t("sim2.sim.verfassung.e1299ec"),
   );
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungsänderung in Kraft", ausgang: namen });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.780e6c6"), ausgang: namen });
   spiel.hinweise.push({
     id: `verfassung-kraft-${w.day}`,
-    titel: "Verfassungsänderung in Kraft",
+    titel: t("sim2.sim.verfassung.780e6c6"),
     szene: "parlament",
-    text: [`Das Paket ist Verfassungsrecht: ${namen}.`, aut >= 2 ? "Die Straße, Straßburg und die Märkte antworten bereits; die Opposition wird das nicht vergessen." : "Das Land regiert ab heute nach anderen Regeln."],
+    text: [t("sim2.sim.verfassung.fe3d3d0", { p0: namen }), aut >= 2 ? t("sim2.sim.verfassung.af09795") : t("sim2.sim.verfassung.bb7c166")],
   });
 }
 
@@ -986,11 +987,11 @@ export function verfassungStand(w: World): { zeile: string; fristIn?: number; ph
   const z = spiel?.verfassungsvorgang;
   const v = z?.laufend;
   if (!spiel || !z || !v) {
-    if (amtszeitBelegt(w)) return { zeile: "Diese Amtszeit hat ihre Verfassungsdebatte hinter sich." };
+    if (amtszeitBelegt(w)) return { zeile: t("sim2.sim.verfassung.131a303") };
     const aktiv = Object.keys(z?.aktiv ?? {}).length;
-    return { zeile: aktiv ? "Kein laufender Vorgang; die zuletzt beschlossenen Artikel wirken weiter." : "Kein laufender Vorgang; die Werkstatt im Parlament schnürt ein Paket." };
+    return { zeile: aktiv ? t("sim2.sim.verfassung.bd70c06") : t("sim2.sim.verfassung.2738a17") };
   }
   const frist = v.phase === "parlament" ? v.abstimmung : v.phase === "aym" ? (v.aymTag ?? w.day) : (v.referendumTag ?? w.day);
-  const phase = v.phase === "parlament" ? "vor der Parlamentsabstimmung" : v.phase === "aym" ? "beim Verfassungsgericht" : "in der Referendum-Kampagne";
-  return { zeile: `Das Paket liegt ${phase}; der nächste Schritt ist in ${Math.max(0, frist - w.day)} Tagen.`, fristIn: Math.max(0, frist - w.day), phase: v.phase };
+  const phase = v.phase === "parlament" ? t("sim2.sim.verfassung.8c5c0f7") : v.phase === "aym" ? "beim Verfassungsgericht" : t("sim2.sim.verfassung.e81c871");
+  return { zeile: t("sim2.sim.verfassung.57d627e", { p0: phase, p1: Math.max(0, frist - w.day) }), fristIn: Math.max(0, frist - w.day), phase: v.phase };
 }

@@ -288,7 +288,7 @@ export function Schreibtisch({
               <div className="sk-mentor-kopf">
                 <Cameo seed="Defne Arslan" figure="f" glasses size={36} tint="#265a62" />
                 <div>
-                  <strong>Prof. Dr. Defne Arslan</strong>
+                  <strong>{t("ui2.ui.schreibtisch.Schreibtisch.5fe7cd9")}</strong>
                   <span>{t("sk.ui.mentorin")}</span>
                 </div>
               </div>

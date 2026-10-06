@@ -22,7 +22,7 @@ export function Verlauf({ world, bereich }: { world: World; bereich: Bereich }) 
   return (
     <section className="rr-abschnitt">
       <h4>
-        Zuletzt fertig <em>{t("ui.reich.Verlauf.1a8d4ba")}</em>
+        {t("ui2.ui.reich.Verlauf.719555b")} <em>{t("ui.reich.Verlauf.1a8d4ba")}</em>
       </h4>
       <ul className="rv-liste">
         {liste.map((e) => {
@@ -36,7 +36,7 @@ export function Verlauf({ world, bereich }: { world: World; bereich: Bereich }) 
               </div>
               {e.zustand && (
                 <p className="rv-zustand">
-                  Zustand {e.zustand.vorher} → {e.zustand.nachher}
+                  {t("ui2.ui.reich.Verlauf.c396097", { p0: e.zustand.vorher, p1: e.zustand.nachher })}
                 </p>
               )}
               {ids.length > 0 && (
@@ -44,9 +44,9 @@ export function Verlauf({ world, bereich }: { world: World; bereich: Bereich }) 
                   <thead>
                     <tr>
                       <th scope="col">{t("ui.reich.Verlauf.d9130ae")}</th>
-                      <th scope="col">Vorher</th>
-                      <th scope="col">Bei Fertigstellung</th>
-                      <th scope="col">Heute</th>
+                      <th scope="col">{t("ui2.ui.reich.Verlauf.60c78d2")}</th>
+                      <th scope="col">{t("ui2.ui.reich.Verlauf.69c4e94")}</th>
+                      <th scope="col">{t("ui2.ui.reich.Verlauf.1ab3309")}</th>
                     </tr>
                   </thead>
                   <tbody>

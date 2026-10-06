@@ -9,6 +9,7 @@ import { themeName } from "./politik/bereiche";
 import type { World } from "../sim/types";
 
 import { t } from "../i18n";
+import { t as tx } from "../i18n";
 const ARTEN: { id: NodeSpec["kind"]; titel: string }[] = [
   { id: "massnahme", titel: "Maßnahmen" },
   { id: "groesse", titel: "Größen" },
@@ -32,10 +33,10 @@ function Zeile({ node, world, gewaehlt, onSelect }: { node: NodeSpec; world: Wor
         {node.kind === "problem" ? (
           akut > 0 ? <b className="akut">{akut} akut</b> : <em>ruhig</em>
         ) : node.input ? (
-          <em>Modell</em>
+          <em>{tx("ui2.ui.NetNavigator.a2eae7c")}</em>
         ) : (
           <>
-            {laeuft && <i className="unterwegs" title={`Umsetzung läuft auf Stufe ${Math.round(ziel!)}`}>→ {Math.round(ziel!)}</i>}
+            {laeuft && <i className="unterwegs" title={tx("ui2.ui.NetNavigator.55d0711", { p0: Math.round(ziel!) })}>→ {Math.round(ziel!)}</i>}
             {Math.round(jetzt)}
             {Math.abs(d) >= 0.5 && <span className={d > 0 ? "auf" : "ab"}>{d > 0 ? "▲" : "▼"}</span>}
           </>
@@ -73,11 +74,11 @@ export function NetNavigator({ world, selectedId, onSelect }: { world: World; se
 
   return (
     <nav className="paper net-nav" aria-label={t("ui.NetNavigator.e1596b4")}>
-      <h2>Themen</h2>
+      <h2>{tx("ui2.ui.NetNavigator.d27f0ac")}</h2>
       <p className="subtitle">
-        {NET.nodes.length} Knoten · {NET.edges.length} Verbindungen
+        {tx("ui2.ui.NetNavigator.da94d52", { p0: NET.nodes.length, p1: NET.edges.length })}
       </p>
-      <input className="nav-suche" type="search" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder="Suchen: Wasser, Miete, Zins …" aria-label={t("ui.NetNavigator.206237c")} />
+      <input className="nav-suche" type="search" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={tx("ui2.ui.NetNavigator.50b9af6")} aria-label={t("ui.NetNavigator.206237c")} />
       <div className="nav-art" role="group" aria-label={t("ui.NetNavigator.cc81be7")}>
         {[{ id: "alle" as const, titel: "Alle" }, ...ARTEN.slice(0, 3)].map((a) => (
           <button key={a.id} className={art === a.id ? "on" : ""} onClick={() => setArt(a.id)}>
@@ -89,7 +90,7 @@ export function NetNavigator({ world, selectedId, onSelect }: { world: World; se
       {q ? (
         <div className="nav-treffer">
           <h4>
-            {treffer.length} {treffer.length === 1 ? "Treffer" : "Treffer"}
+            {treffer.length} {treffer.length === 1 ? tx("ui2.ui.NetNavigator.2404b90") : tx("ui2.ui.NetNavigator.2404b90")}
           </h4>
           {treffer.length === 0 && <p className="subtitle">{t("ui.NetNavigator.41e213c")}</p>}
           {ARTEN.map((a) => {

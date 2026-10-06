@@ -8,8 +8,10 @@ import { LAENDER, vertrauenZu } from "./laender";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
 import type { Erinnerung, FigurEigen, LagerArt, Stil } from "./personen-typen";
+import { aktuelleLocale, t as tx } from "../i18n";
+import { datenTexte } from "../i18n/daten";
 
-export const nf = (x: number, d = 1): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+export const nf = (x: number, d = 1): string => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
 /** Größen, bei denen ein höherer Wert schlechter ist. */
 export const HOCH_SCHLECHT = new Set([
@@ -95,6 +97,8 @@ export const AEMTER: Record<Figur["amt"], AmtDef> = {
     stile: ["machtbewusst", "eitel"], faehigkeit: [50, 72], ehrgeiz: [70, 95], lager: "opposition", regierungsamt: false, entlassbar: false,
   },
 };
+
+datenTexte("amt", Object.values(AEMTER), (a) => a.amt, ["ressort"]);
 
 export const amtDef = (f: Figur): AmtDef => AEMTER[f.amt];
 
@@ -184,35 +188,35 @@ export function ressortWirkungSicht(w: World, f: Figur): { id: string; name: str
 export function empfehlung(w: World, f: Figur): string | undefined {
   const e = eigenVon(w, f);
   if (f.amt === "opposition") return undefined;
-  if (e.kommissarisch) return "Eine kommissarische Leitung leistet weniger; ein Nachfolger bringt Rückhalt.";
-  if (f.loyalitaet < 25) return "Die Loyalität ist am Boden: Aussprache, Rückendeckung oder Anerkennung, sonst droht der Rücktritt. Kritik würde den Bruch beschleunigen.";
-  if (e.groll >= 40) return "Der Groll ist hoch: Rückendeckung oder ein Vertrauensgespräch beruhigen. Kritik oder Übergehen würde ihn steigern.";
-  if (e.ehrgeiz >= 75 && f.loyalitaet < 60) return "Ein ehrgeiziger Mensch, der nicht fest zu Ihnen steht: Verantwortung und Anerkennung binden ihn, Übergehen macht ihn zum Gegner.";
-  if (e.auftrag?.status === "laeuft") return "Ein Auftrag läuft: Anerkennung und Mittel verstärken die Wirkung, Kritik verschafft nur kurz mehr Einsatz.";
-  if (f.loyalitaet >= 60 && !e.auftrag) return `${f.weiblich ? "Sie folgt" : "Er folgt"} Ihnen: Ein Auftrag mit Frist bringt jetzt am meisten.`;
+  if (e.kommissarisch) return tx("person.rat.kommissarisch");
+  if (f.loyalitaet < 25) return tx("person.rat.loyalitaet");
+  if (e.groll >= 40) return tx("person.rat.groll");
+  if (e.ehrgeiz >= 75 && f.loyalitaet < 60) return tx("person.rat.ehrgeiz");
+  if (e.auftrag?.status === "laeuft") return tx("person.rat.auftrag");
+  if (f.loyalitaet >= 60 && !e.auftrag) return tx("person.rat.folgt", { g: f.weiblich ? "f" : "m" });
   return undefined;
 }
 
 export function leistungWort(q: number): string {
-  if (q >= 0.85) return "hervorragend";
-  if (q >= 0.7) return "gut";
-  if (q >= 0.55) return "solide";
-  if (q >= 0.4) return "schwach";
-  return "lähmend";
+  if (q >= 0.85) return tx("person.leistung.hervorragend");
+  if (q >= 0.7) return tx("person.leistung.gut");
+  if (q >= 0.55) return tx("person.leistung.solide");
+  if (q >= 0.4) return tx("person.leistung.schwach");
+  return tx("person.leistung.laehmend");
 }
 
 export function grollWort(g: number): string {
-  if (g >= 70) return "gekränkt";
-  if (g >= 40) return "verärgert";
-  if (g >= 15) return "gereizt";
-  return "gelassen";
+  if (g >= 70) return tx("person.groll.gekraenkt");
+  if (g >= 40) return tx("person.groll.veraergert");
+  if (g >= 15) return tx("person.groll.gereizt");
+  return tx("person.groll.gelassen");
 }
 
 export function ehrgeizWort(e: number): string {
-  if (e >= 75) return "will an die Spitze";
-  if (e >= 55) return "strebt nach mehr";
-  if (e >= 35) return "zufrieden mit seinem Amt";
-  return "an Ruhe interessiert";
+  if (e >= 75) return tx("person.ehrgeiz.spitze");
+  if (e >= 55) return tx("person.ehrgeiz.mehr");
+  if (e >= 35) return tx("person.ehrgeiz.zufrieden");
+  return tx("person.ehrgeiz.ruhe");
 }
 
 // ---------------------------------------------------------------------------
@@ -261,41 +265,44 @@ export function sorgeText(w: World, f: Figur): string {
   const sp = w.spiel!;
   switch (f.amt) {
     case "finanzen": {
-      if (e.riskPremium > 450) return `Der Risikoaufschlag liegt bei ${Math.round(e.riskPremium)} Punkten; jede weitere Belastung des Haushalts kostet an den Märkten doppelt.`;
-      if (e.deficit > 4.5) return `Das Defizit liegt bei ${nf(e.deficit)} % des BIP und die Schulden bei ${nf(e.debtRatio)} %; er sieht keinen Spielraum für neue Ausgaben.`;
-      return `Die Schulden liegen bei ${nf(e.debtRatio)} % des BIP, das Defizit bei ${nf(e.deficit)} %; er will, dass der Haushalt keine Überraschungen bringt.`;
+      const g = f.weiblich ? "f" : "m";
+      if (e.riskPremium > 450) return tx("person.sorge.finanzen.risiko", { r: Math.round(e.riskPremium) });
+      if (e.deficit > 4.5) return tx("person.sorge.finanzen.defizit", { d: nf(e.deficit), s: nf(e.debtRatio), g });
+      return tx("person.sorge.finanzen.schulden", { d: nf(e.deficit), s: nf(e.debtRatio), g });
     }
     case "inneres": {
       const k = wertVon(w, "kriminalitaet");
       const t = wertVon(w, "terrorgefahr");
-      return `Die Kriminalität steht bei ${Math.round(k)} von 100, die Terrorgefahr bei ${Math.round(t)}; sie fürchtet, dass ihre Kräfte für beides nicht reichen.`;
+      return tx("person.sorge.inneres", { k: Math.round(k), t: Math.round(t), g: f.weiblich === false ? "m" : "f" });
     }
     case "aussen": {
       const rang = LAENDER.map((l) => ({ l, v: vertrauenZu(w, l.id) })).sort((a, b) => a.v - b.v)[0];
-      return rang ? `Am schwierigsten ist das Verhältnis zu ${rang.l.dat} (Vertrauen ${Math.round(rang.v)} von 100); dort verliert er gerade Boden.` : "Er sorgt sich um die Bündnisse des Landes.";
+      const g = f.weiblich ? "f" : "m";
+      return rang ? tx("person.sorge.aussen", { land: { nom: rang.l.name, dat: rang.l.dat }, v: Math.round(rang.v), g }) : tx("person.sorge.aussenLeer", { g });
     }
     case "zentralbank":
-      return `Die Inflation liegt bei ${nf(e.inflation)} % (Ziel ${nf(e.inflationTarget)} %), der Leitzins bei ${nf(e.policyRate)} %; sie wacht darüber, dass ihre Unabhängigkeit nicht angetastet wird.`;
+      return tx("person.sorge.zentralbank", { i: nf(e.inflation), z: nf(e.inflationTarget), l: nf(e.policyRate), g: f.weiblich === false ? "m" : "f" });
     case "stab":
-      return `Die Zustimmung liegt bei ${nf(sp.umfrage.zustimmung)} %, ${sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length} Zusagen sind offen und ${sp.gesetze.length} Gesetze liegen im Parlament; sie zählt jeden Tag bis zur Wahl.`;
+      return tx("person.sorge.stab", { z: nf(sp.umfrage.zustimmung), o: sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length, n: sp.gesetze.length, g: f.weiblich === false ? "m" : "f" });
     case "justiz": {
       const h = wertVon(w, "haftueberfuellung");
       const u = wertVon(w, "justiz_unabhaengigkeit");
-      return `Die Haftanstalten sind zu ${Math.round(h)} von 100 überfüllt, die Unabhängigkeit der Justiz steht bei ${Math.round(u)}; sie will Verfahren beschleunigen, ohne dass es nach Einmischung aussieht.`;
+      return tx("person.sorge.justiz", { h: Math.round(h), u: Math.round(u), g: f.weiblich === false ? "m" : "f" });
     }
     case "generalstab": {
       const m = wertVon(w, "truppenmoral");
       const v = wertVon(w, "offiziersvertrauen");
-      return `Die Truppenmoral steht bei ${Math.round(m)}, das Vertrauen der Offiziere bei ${Math.round(v)}; ihn beschäftigen Ausrüstung, Beförderungen und wer sie entscheidet.`;
+      return tx("person.sorge.generalstab", { m: Math.round(m), v: Math.round(v), g: f.weiblich ? "f" : "m" });
     }
     case "wirtschaft":
-      return `Die Investitionen stehen bei ${Math.round(wertVon(w, "investitionen"))} von 100, das Wachstum bei ${nf(e.growth)} %; er will, dass sich das Land für Investoren nicht nach Willkür anfühlt.`;
+      return tx("person.sorge.wirtschaft", { i: Math.round(wertVon(w, "investitionen")), w: nf(e.growth), g: f.weiblich ? "f" : "m" });
     case "partner": {
       const offen = sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen && z.von === f.partei);
-      return offen.length ? `Er wartet auf ${offen.length === 1 ? "eine Zusage" : `${offen.length} Zusagen`}: ${offen[0]!.text.replace(/^Die [^ ]+ erwartet /, "")}` : `Er fragt, was seine Partei vom Bündnis hat.`;
+      const g = f.weiblich ? "f" : "m";
+      return offen.length ? tx("person.sorge.partner", { n: offen.length, text: offen[0]!.text.replace(/^Die [^ ]+ erwartet /, ""), g }) : tx("person.sorge.partnerLeer", { g });
     }
     case "opposition":
-      return `Die Polarisierung liegt bei ${Math.round(wertVon(w, "polarisierung"))} von 100; er sucht den Fehler, den er Ihnen vorhalten kann.`;
+      return tx("person.sorge.opposition", { p: Math.round(wertVon(w, "polarisierung")), g: f.weiblich ? "f" : "m" });
   }
 }
 

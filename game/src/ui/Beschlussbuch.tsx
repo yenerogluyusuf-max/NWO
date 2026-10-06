@@ -19,6 +19,7 @@ import { UmsetzungAkte } from "./politik/UmsetzungAkte";
 import "./politik/design.css";
 
 import { t } from "../i18n";
+import { t as tx } from "../i18n";
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
 export function Beschlussbuch({
@@ -88,10 +89,10 @@ export function Beschlussbuch({
           <ParlamentKopf world={world} />
           <section className="par-lage">
             <p>
-              Ihr Lager hat <strong>{sicht.lager}</strong> von 600 Sitzen ({teile}). Für ein Gesetz braucht es {REGELN.mehrheit}. Bei einer Abstimmung werden etwa <strong>{sicht.erwartet}</strong> Ja-Stimmen erwartet (Spanne {sicht.low}–{sicht.high}).
+              {tx("ui2.ui.Beschlussbuch.d2be9ba")} <strong>{sicht.lager}</strong> {tx("ui2.ui.Beschlussbuch.e711bb3", { p0: teile, p1: REGELN.mehrheit })} <strong>{sicht.erwartet}</strong> {tx("ui2.ui.Beschlussbuch.aeef1bf", { p0: sicht.low, p1: sicht.high })}
             </p>
             {sicht.luecke > 0 ? (
-              <p className="weg-warnung">Es fehlen etwa {sicht.luecke} Stimmen. Ohne Partner scheitern Gesetze: Verhandeln Sie unten mit den Fraktionen, das ist billiger als Stimmen zu kaufen.</p>
+              <p className="weg-warnung">{tx("ui2.ui.Beschlussbuch.d8d9742", { p0: sicht.luecke })}</p>
             ) : (
               <p className="subtitle">{t("ui.Beschlussbuch.3411c1e")}</p>
             )}
@@ -116,14 +117,14 @@ export function Beschlussbuch({
                 <div className="fraktion-kopf">
                   <i className="party-dot" style={{ background: PARTY_COLORS[f.partei] ?? "#777" }} />
                   <strong>{f.name}</strong>
-                  <span className="fraktion-sitze">{f.sitze} Sitze</span>
+                  <span className="fraktion-sitze">{tx("ui2.ui.Beschlussbuch.b9a0f7a", { p0: f.sitze })}</span>
                   <span className="fraktion-status">
-                    {f.status === "lager" ? "im Regierungslager" : f.status === "duldung" ? `duldet bis ${formatDateDe(addDays(world.date, (f.duldungBis ?? world.day) - world.day))}` : "Opposition"}
+                    {f.status === "lager" ? tx("ui2.ui.Beschlussbuch.357a160") : f.status === "duldung" ? tx("ui2.ui.Beschlussbuch.ca2716e", { p0: formatDateDe(addDays(world.date, (f.duldungBis ?? world.day) - world.day)) }) : tx("ui2.ui.Beschlussbuch.bcf3982")}
                   </span>
                 </div>
                 <p className="fraktion-info">
                   <span className="subtitle">{f.ausrichtung}</span>
-                  <span className="bereit" title={`Offenheit für Sie: ${Math.round(f.bereitschaft)} von 100`}>
+                  <span className="bereit" title={tx("ui2.ui.Beschlussbuch.56e5813", { p0: Math.round(f.bereitschaft) })}>
                     <span className="bereit-bar" aria-hidden>
                       <i style={{ width: `${f.bereitschaft}%` }} />
                     </span>
@@ -131,7 +132,7 @@ export function Beschlussbuch({
                   </span>
                 </p>
                 <p className="fraktion-will">
-                  <b>Will</b> {f.forderung}
+                  <b>{tx("ui2.ui.Beschlussbuch.3e3e580")}</b> {f.forderung}
                 </p>
                 <div className="fraktion-aktionen">
                   {f.aktionen.map((a) => (
@@ -148,7 +149,7 @@ export function Beschlussbuch({
 
       {teil === "parlament" && spiel && spiel.gesetze.length > 0 && (
         <section className="par-block">
-          <h3>Zur Abstimmung</h3>
+          <h3>{tx("ui2.ui.Beschlussbuch.cd38076")}</h3>
           <ul className="gesetz-liste">
             {spiel.gesetze.map((g) => {
               const gs = gesetzSicht(world, g);
@@ -159,27 +160,27 @@ export function Beschlussbuch({
                   <div className="offen-kopf">
                     <strong>{g.name}</strong>
                     <span className="subtitle">
-                      {provinzenText(g.provinzen)} · Stufe {g.stufe} · Abstimmung in {Math.max(0, g.abstimmung - world.day)} Tagen ({formatDateDe(addDays(world.date, g.abstimmung - world.day))})
+                      {tx("ui2.ui.Beschlussbuch.42b4e5e", { p0: provinzenText(g.provinzen), p1: g.stufe, p2: Math.max(0, g.abstimmung - world.day), p3: formatDateDe(addDays(world.date, g.abstimmung - world.day)) })}
                     </span>
                   </div>
-                  <div className="stimmen-bar" aria-label={`Erwartet ${ja} Ja-Stimmen, nötig ${REGELN.mehrheit}`}>
+                  <div className="stimmen-bar" aria-label={tx("ui2.ui.Beschlussbuch.4a67f56", { p0: ja, p1: REGELN.mehrheit })}>
                     <div className="stimmen-ja" style={{ width: `${Math.min(100, (ja / 600) * 100)}%` }} />
-                    <div className="stimmen-marke" style={{ left: `${(REGELN.mehrheit / 600) * 100}%` }} title="301: Mehrheit" />
+                    <div className="stimmen-marke" style={{ left: `${(REGELN.mehrheit / 600) * 100}%` }} title={tx("ui2.ui.Beschlussbuch.086dccd")} />
                   </div>
                   <div className="stimmen-zeile">
                     <span>
-                      erwartet <strong>{ja}</strong> Ja{g.absprachen > 0 ? ` (davon ${g.absprachen} durch Absprachen)` : ""} · nötig {REGELN.mehrheit}
+                      erwartet <strong>{ja}</strong> Ja{g.absprachen > 0 ? tx("ui2.ui.Beschlussbuch.3f16660", { p0: g.absprachen }) : ""} {tx("ui2.ui.Beschlussbuch.7591f1b", { p0: REGELN.mehrheit })}
                     </span>
                     <button className="pd-btn quiet klein" onClick={() => zeigeImHalbrund(g.id)} title={t("ui.Beschlussbuch.cdcd617")}>
-                      Im Halbrund zeigen
+                      {tx("ui2.ui.Beschlussbuch.4b870cf")}
                     </button>
                     <span className={`stimmen-urteil urteil-${gs.urteil}`}>
-                      {gs.urteil === "sicher" ? "Mehrheit steht" : gs.urteil === "knapp" ? `Knapp: es fehlen ${gs.luecke} Stimmen` : `Aussichtslos: es fehlen ${gs.luecke} Stimmen`}
+                      {gs.urteil === "sicher" ? tx("ui2.ui.Beschlussbuch.61a0cfe") : gs.urteil === "knapp" ? tx("ui2.ui.Beschlussbuch.0086e7c", { p0: gs.luecke }) : tx("ui2.ui.Beschlussbuch.464867b", { p0: gs.luecke })}
                     </span>
                   </div>
                   {gs.sachParteien.length > 0 && (
                     <p className="stimmen-sach">
-                      {gs.sachParteien.map((k) => PARTEI_NAME[k] ?? k).join(" und ")} stimm{gs.sachParteien.length === 1 ? "t" : "en"} mit, weil das Gesetz {gs.sachParteien.length === 1 ? "ihre" : "ihre"} Forderung erfüllt.
+                      {gs.sachParteien.map((k) => PARTEI_NAME[k] ?? k).join(" und ")} stimm{gs.sachParteien.length === 1 ? "t" : "en"} {tx("ui2.ui.Beschlussbuch.3ed93b4")} {gs.sachParteien.length === 1 ? "ihre" : "ihre"} {tx("ui2.ui.Beschlussbuch.6f9cc11")}
                     </p>
                   )}
                   <div className="stimmen-steuerung">
@@ -192,12 +193,12 @@ export function Beschlussbuch({
                         }}
                         title={t("ui.Beschlussbuch.3140c33")}
                       >
-                        Mehrheit sichern: +{gs.noetig} Stimmen <b>{gs.kosten}</b>
+                        {tx("ui2.ui.Beschlussbuch.bb20535", { p0: gs.noetig })} <b>{gs.kosten}</b>
                       </button>
                     )}
                     {gs.aussichtslos && (
                       <p className="weg-warnung">
-                        Stimmen zu kaufen würde {gs.kosten} Kapital kosten, Sie haben {Math.floor(spiel.kapital)}. Verhandeln Sie mit den Fraktionen oder ziehen Sie das Gesetz zurück.
+                        {tx("ui2.ui.Beschlussbuch.3bd8b02", { p0: gs.kosten, p1: Math.floor(spiel.kapital) })}
                       </p>
                     )}
                     <button
@@ -208,7 +209,7 @@ export function Beschlussbuch({
                       }}
                       title={t("ui.Beschlussbuch.81b4686")}
                     >
-                      Zurückziehen <b>+{zurueck}</b>
+                      {tx("ui2.ui.Beschlussbuch.dfaa501")} <b>+{zurueck}</b>
                     </button>
                   </div>
                 </li>

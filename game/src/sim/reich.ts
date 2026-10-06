@@ -23,6 +23,7 @@ import type { VorteilDef } from "../data/reich/typen";
 import { kannZahlen } from "./kapital";
 import { zeitungEreignis } from "./zeitung";
 import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, belastungSinken, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
+import { t as tx } from "../i18n";
 
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
 const VORTEIL_NACH_ID = new Map(VORTEILE.map((v) => [v.id, v]));
@@ -240,7 +241,7 @@ export function pruefeVoraus(w: World, v: Voraussetzung): VorausStand {
       const d = vorhabenDef(v.id);
       const da = !!z.bestand[v.id];
       const im = z.laufend.find((l) => l.id === v.id);
-      return ok(da, im && d ? im.fortschritt / laufBau(im, d) : 0, `„${d?.name ?? v.id}“ ist fertig`);
+      return ok(da, im && d ? im.fortschritt / laufBau(im, d) : 0, tx("sim2.sim.reich.fa311f9", { p0: d?.name ?? v.id }));
     }
     case "nicht-bestand":
       return ok(!z.bestand[v.id], 0, v.text);
@@ -250,41 +251,41 @@ export function pruefeVoraus(w: World, v: Voraussetzung): VorausStand {
     }
     case "staette-max": {
       const st = z.staetten[v.id]?.zustand ?? 0;
-      return ok(st <= v.max, 1 - (st - v.max) / 100, `${v.text} (jetzt ${Math.round(st)})`);
+      return ok(st <= v.max, 1 - (st - v.max) / 100, tx("sim2.sim.reich.92b84a9", { p0: v.text, p1: Math.round(st) }));
     }
     case "staetten": {
       const zustaende = v.ids.map((id) => ({ id, z: z.staetten[id]?.zustand ?? 0 }));
       const schwach = zustaende.reduce((a, b) => (b.z < a.z ? b : a));
       const erfuellt = zustaende.every((s) => s.z >= v.min);
       const f = zustaende.reduce((s, x) => s + Math.min(1, x.z / v.min), 0) / zustaende.length;
-      return ok(erfuellt, f, `${v.text} (schwächste: ${ERBE_NACH_ID[schwach.id]?.name ?? schwach.id}, Zustand ${Math.round(schwach.z)})`);
+      return ok(erfuellt, f, tx("sim2.sim.reich.0520700", { p0: v.text, p1: ERBE_NACH_ID[schwach.id]?.name ?? schwach.id, p2: Math.round(schwach.z) }));
     }
     case "knoten": {
       const jetzt = level(w, v.id);
       const gut = (v.min === undefined || jetzt >= v.min) && (v.max === undefined || jetzt <= v.max);
       const ziel = v.min ?? v.max!;
-      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, `${nodeName(v.id)} ${v.min !== undefined ? `mindestens ${v.min}` : `höchstens ${v.max}`} (jetzt ${Math.round(jetzt)})`);
+      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, tx("sim2.sim.reich.a07d8e3", { p0: nodeName(v.id), p1: v.min !== undefined ? `mindestens ${v.min}` : `höchstens ${v.max}`, p2: Math.round(jetzt) }));
     }
     case "massnahme": {
       const jetzt = level(w, v.id);
       const gut = (v.min === undefined || jetzt >= v.min - 0.5) && (v.max === undefined || jetzt <= v.max + 0.5);
       const ziel = v.min ?? v.max!;
-      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, `${nodeName(v.id)} ${v.min !== undefined ? `mindestens auf Stufe ${v.min}` : `höchstens auf Stufe ${v.max}`} (jetzt ${Math.round(jetzt)})`);
+      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, tx("sim2.sim.reich.a07d8e3", { p0: nodeName(v.id), p1: v.min !== undefined ? `mindestens auf Stufe ${v.min}` : `höchstens auf Stufe ${v.max}`, p2: Math.round(jetzt) }));
     }
     case "land": {
       const jetzt = dimensionZu(w, v.land, v.dim);
       const gut = (v.min === undefined || jetzt >= v.min) && (v.max === undefined || jetzt <= v.max);
       const namen = { handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" } as const;
       const ziel = v.min ?? v.max!;
-      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, `${namen[v.dim]} zu ${v.land} ${v.min !== undefined ? `mindestens ${v.min}` : `höchstens ${v.max}`} (jetzt ${Math.round(jetzt)})`);
+      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, tx("sim2.sim.reich.252b1c6", { p0: namen[v.dim], p1: v.land, p2: v.min !== undefined ? `mindestens ${v.min}` : `höchstens ${v.max}`, p3: Math.round(jetzt) }));
     }
     case "vorteil": {
       const d = vorteilDef(v.id);
-      return ok(aktiveVorteile(w).includes(v.id), 0, `Vorteil „${d?.name ?? v.id}“ ist aktiv`);
+      return ok(aktiveVorteile(w).includes(v.id), 0, tx("sim2.sim.reich.ec91c1c", { p0: d?.name ?? v.id }));
     }
     case "jahr": {
       const j = Number(w.date.slice(0, 4));
-      return ok(j >= v.min, 0, `Frühestens ab ${v.min}`);
+      return ok(j >= v.min, 0, tx("sim2.sim.reich.0fbeba1", { p0: v.min }));
     }
   }
 }
@@ -356,7 +357,7 @@ export function vorhabenSicht(w: World, id: string): VorhabenSicht | null {
   }
   if (v.ast) {
     const anderes = z.gewaehlt[v.ast];
-    if (anderes && anderes !== id) return { ...basis, status: "ausgeschlossen", grund: `Schließt sich mit „${vorhabenDef(anderes)?.name ?? anderes}“ aus.`, fortschritt: 0 };
+    if (anderes && anderes !== id) return { ...basis, status: "ausgeschlossen", grund: tx("sim2.sim.reich.9e4e338", { p0: vorhabenDef(anderes)?.name ?? anderes }), fortschritt: 0 };
   }
   return { ...basis, status: "verfuegbar", fortschritt: 0 };
 }
@@ -514,9 +515,9 @@ function effektZeileBasis(e: Effekt, zahl: (x: number) => string): EffektZeile |
     case "land":
       return { text: `${e.land}: ${{ handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" }[e.dim]} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.dim === "konflikt" ? e.d < 0 : e.d > 0 };
     case "kapital":
-      return { text: `Politisches Kapital ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
+      return { text: tx("sim2.sim.reich.e0bb30b", { p0: e.d > 0 ? "+" : "−", p1: zahl(e.d) }), richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
     case "schulden":
-      return { text: `Schulden ${e.d > 0 ? "+" : "−"}${zahl(e.d)} Prozentpunkte des BIP`, richtung: e.d > 0 ? 1 : -1, gut: e.d < 0 };
+      return { text: tx("sim2.sim.reich.33a280a", { p0: e.d > 0 ? "+" : "−", p1: zahl(e.d) }), richtung: e.d > 0 ? 1 : -1, gut: e.d < 0 };
     case "risiko":
       return { text: `Risikoaufschlag ${e.d > 0 ? "+" : "−"}${zahl(e.d)} Punkte`, richtung: e.d > 0 ? 1 : -1, gut: e.d < 0 };
     case "staette":
@@ -524,7 +525,7 @@ function effektZeileBasis(e: Effekt, zahl: (x: number) => string): EffektZeile |
     case "serie":
       return { text: `${e.serie === "alle" ? "Alle Stätten des Landes" : "Alle Stätten der Route"}: Zustand ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
     case "entferne":
-      return { text: `${vorhabenDef(e.id)?.name ?? e.id} verlässt den Bestand`, richtung: -1, gut: true };
+      return { text: tx("sim2.sim.reich.cb53e0d", { p0: vorhabenDef(e.id)?.name ?? e.id }), richtung: -1, gut: true };
     case "bestand":
       return { text: `${vorhabenDef(e.id)?.name ?? e.id}: Zustand ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
   }
@@ -675,8 +676,8 @@ export function vorschauFuer(w: World, v: Vorhaben): WirkungsVorschau {
   const waehrendBau = zeilen(v.bauwirkung, "dauer");
   const kapazitaet: string[] = [];
   const vz = (x: number) => `${x > 0 ? "+" : "−"}${Math.abs(x).toLocaleString("de-DE", { maximumFractionDigits: 1 })}`;
-  if (v.kapazitaet?.bau) kapazitaet.push(`Baukapazität ${vz(v.kapazitaet.bau)} Baupunkte im Monat`);
-  if (v.kapazitaet?.verwaltung) kapazitaet.push(`Verwaltungskraft ${vz(v.kapazitaet.verwaltung)} im Monat`);
+  if (v.kapazitaet?.bau) kapazitaet.push(tx("sim2.sim.reich.722ef6f", { p0: vz(v.kapazitaet.bau) }));
+  if (v.kapazitaet?.verwaltung) kapazitaet.push(tx("sim2.sim.reich.cf4af98", { p0: vz(v.kapazitaet.verwaltung) }));
   const zeigt = (v.zeigt ?? [])
     .map((gid) => {
       const node = NET.nodes[NET.index.get(gid) ?? -1];
@@ -687,8 +688,8 @@ export function vorschauFuer(w: World, v: Vorhaben): WirkungsVorschau {
   const u = v.ueberzug;
   const prozent = (x: number) => Math.round(x * 100);
   const teile: string[] = [];
-  if (u) teile.push(`Mit ${prozent(u.p)} Prozent Wahrscheinlichkeit wird es ${prozent(u.band[0])} bis ${prozent(u.band[1])} Prozent teurer und dauert entsprechend länger; bei Vorhaben dieser Art ist das eher die Regel.`);
-  if (v.scheitern) teile.push(`Der Durchbruch ist ungewiss: Mit ${prozent(v.scheitern.p)} Prozent Wahrscheinlichkeit scheitert es bei etwa ${prozent(v.scheitern.an)} Prozent des Baus, und das Geld ist verloren.`);
+  if (u) teile.push(tx("sim2.sim.reich.f47a87d", { p0: prozent(u.p), p1: prozent(u.band[0]), p2: prozent(u.band[1]) }));
+  if (v.scheitern) teile.push(tx("sim2.sim.reich.6fd8693", { p0: prozent(v.scheitern.p), p1: prozent(v.scheitern.an) }));
   const risiko = teile.length ? teile.join(" ") : undefined;
   return { sofort, dauerhaft, waehrendBau, kapazitaet, zeigt, ...(risiko ? { risiko } : {}), leer: !(sofort.length || dauerhaft.length || waehrendBau.length || kapazitaet.length || zeigt.length) };
 }
@@ -711,14 +712,14 @@ export function eingriffHeute(w: World, e: Eingriff): Record<string, number> {
 
 export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es kein Reich." };
-  if (spiel.ende) return { ok: false, text: "Die Amtszeit ist beendet." };
+  if (!spiel) return { ok: false, text: tx("sim2.sim.reich.186589c") };
+  if (spiel.ende) return { ok: false, text: tx("sim2.sim.reich.56f5ccf") };
   const s = vorhabenSicht(w, id);
-  if (!s) return { ok: false, text: "Dieses Vorhaben gibt es nicht." };
+  if (!s) return { ok: false, text: tx("sim2.sim.reich.155eff7") };
   const v = s.v;
-  if (s.status === "fertig") return { ok: false, text: `„${v.name}“ ist schon fertig.` };
-  if (s.status === "im_bau" || s.status === "pausiert") return { ok: false, text: `„${v.name}“ läuft bereits.` };
-  if (s.status === "gesperrt") return { ok: false, text: `„${v.name}“ ist gesperrt: ${s.grund}` };
+  if (s.status === "fertig") return { ok: false, text: tx("sim2.sim.reich.e37910c", { p0: v.name }) };
+  if (s.status === "im_bau" || s.status === "pausiert") return { ok: false, text: tx("sim2.sim.reich.3ca2751", { p0: v.name }) };
+  if (s.status === "gesperrt") return { ok: false, text: tx("sim2.sim.reich.e47e11c", { p0: v.name, p1: s.grund }) };
   if (s.status === "ausgeschlossen") return { ok: false, text: `„${v.name}“: ${s.grund}` };
   const fehlt = s.voraus.filter((x) => !x.erfuellt).map((x) => x.text);
   if (fehlt.length) return { ok: false, text: `Voraussetzungen fehlen: ${fehlt.join("; ")}.` };
@@ -727,16 +728,16 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
   // wer jede Durchfahrt hat (Bagdadbahn-Regel: ein offenes Land oder ein Veto hält die Strecke auf)
   if (v.frei) {
     const e = z.frei?.[id];
-    if (!e) return { ok: false, text: "Dieses freie Vorhaben liegt nicht vor." };
+    if (!e) return { ok: false, text: tx("sim2.sim.reich.38bf482") };
     const offen = Object.entries(e.transit ?? {}).filter(([, st]) => st === "offen").map(([lId]) => land(lId).name);
-    if (offen.length) return { ok: false, text: `Die Strecke ist noch nicht frei: ${offen.join(", ")} ${offen.length === 1 ? "hat" : "haben"} die Durchfahrt noch nicht zugesagt; verhandeln Sie im Schätzblatt.` };
+    if (offen.length) return { ok: false, text: tx("sim2.sim.reich.a973f01", { p0: offen.join(", "), p1: offen.length === 1 ? tx("sim2.sim.reich.i10e5866") : tx("sim2.sim.reich.ie7997e6") }) };
     const veto = Object.entries(e.transit ?? {}).filter(([, st]) => st === "veto").map(([lId]) => land(lId).name);
-    if (veto.length) return { ok: false, text: `${veto.join(", ")} verweigert die Durchfahrt; ohne den Umweg aus dem Schätzblatt ist die Strecke tot.` };
+    if (veto.length) return { ok: false, text: tx("sim2.sim.reich.20e3f08", { p0: veto.join(", ") }) };
   }
   // Die Vergabe steht ab dem Beginn fest und lässt sich nicht mehr ändern; sie legt Kosten und Bauzeit neu fest
   const angebot = vergabeAngebot(v, vergabe);
-  if (!kannZahlen(spiel.kapital, angebot.pk)) return { ok: false, text: `Dafür fehlt Kapital (${angebot.pk} nötig, ${Math.floor(spiel.kapital)} vorhanden).` };
-  if (!s.verwaltungOk) return { ok: false, text: "Die Verwaltungskraft reicht nicht für ein weiteres Vorhaben; erst laufende abschließen oder die Verwaltung stärken." };
+  if (!kannZahlen(spiel.kapital, angebot.pk)) return { ok: false, text: tx("sim2.sim.reich.15057c8", { p0: angebot.pk, p1: Math.floor(spiel.kapital) }) };
+  if (!s.verwaltungOk) return { ok: false, text: tx("sim2.sim.reich.15a4e3e") };
   const pause = neuanfangGrund(w);
   if (pause) return { ok: false, text: pause };
   spiel.kapital -= angebot.pk;
@@ -770,14 +771,14 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
   const cap = Math.max(1, Math.min(angebot.bau / Math.max(1, angebot.monate), bauKapazitaet(w)));
   const monate = angebot.vorlauf + Math.max(angebot.monate, Math.ceil(angebot.bau / cap));
   const weg = VERGABE_NAMEN[vergabe];
-  const text = `Beginn: ${v.name} (${weg}). Voraussichtlich ${monate} ${monate === 1 ? "Monat" : "Monate"} bis zur Fertigstellung.`;
+  const text = tx("sim2.sim.reich.894d8f1", { p0: v.name, p1: weg, p2: monate, p3: monate === 1 ? tx("sim2.sim.reich.ida13625") : tx("sim2.sim.reich.i1c561ae") });
   const preis =
     vergabe === "stammfirma"
-      ? "Schneller und teurer; die Nähe ohne Wettbewerb nährt das Korruptionsrisiko, die Unternehmer danken den Auftrag."
+      ? tx("sim2.sim.reich.ec71455")
       : vergabe === "sparvergabe"
-        ? "Günstiger und langsamer; das Ergebnis beginnt in schlechterem Zustand."
-        : "Die Vergabephase verzögert den Baubeginn; dafür entsteht kein Korruptionsrisiko, und Märkte, EU und Legitimität sehen die Transparenz gern.";
-  const why = `Kostet ${angebot.pk} Kapital${v.kosten.verwaltung ? ` und ${v.kosten.verwaltung} Verwaltungskraft je Monat` : ""}. ${preis} ${v.kehrseite}`;
+        ? tx("sim2.sim.reich.2e93551")
+        : tx("sim2.sim.reich.99507b2");
+  const why = tx("sim2.sim.reich.7b607a3", { p0: angebot.pk, p1: v.kosten.verwaltung ? ` und ${v.kosten.verwaltung} Verwaltungskraft je Monat` : "", p2: preis, p3: v.kehrseite });
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }
@@ -807,17 +808,17 @@ export function verschiebe(w: World, id: string, richtung: -1 | 1): VerschiebeEr
   const l = z.laufend;
   const i = l.findIndex((x) => x.id === id);
   const j = i + richtung;
-  if (i < 0 || j < 0 || j >= l.length) return { ok: false, grund: "An diesem Ende der Reihenfolge geht es nicht weiter." };
+  if (i < 0 || j < 0 || j >= l.length) return { ok: false, grund: tx("sim2.sim.reich.6fef49a") };
   const andere = l[j]!;
   if (richtung === -1) {
-    if (z.verwaltung < VORZIEHEN_VERWALTUNG) return { ok: false, grund: `Vorziehen kostet ${VORZIEHEN_VERWALTUNG} Verwaltungskraft; der Vorrat reicht nicht.` };
+    if (z.verwaltung < VORZIEHEN_VERWALTUNG) return { ok: false, grund: tx("sim2.sim.reich.8eb9ca2", { p0: VORZIEHEN_VERWALTUNG }) };
     z.verwaltung = clamp(z.verwaltung - VORZIEHEN_VERWALTUNG, 0, 100);
   }
   [l[i], l[j]] = [l[j]!, l[i]!];
   if (richtung === -1) {
     const eigener = vorhabenDef(id)?.name ?? id;
     const fremder = vorhabenDef(andere.id)?.name ?? andere.id;
-    addLog(w, "entscheidung", `„${eigener}“ in der Baureihenfolge vorgezogen.`, `Kostet ${VORZIEHEN_VERWALTUNG} Verwaltungskraft; verdrängt „${fremder}“.`);
+    addLog(w, "entscheidung", tx("sim2.sim.reich.8ccc10a", { p0: eigener }), tx("sim2.sim.reich.90b42c8", { p0: VORZIEHEN_VERWALTUNG, p1: fremder }));
     return { ok: true, kosten: VORZIEHEN_VERWALTUNG, verdrangt: [fremder] };
   }
   return { ok: true };
@@ -942,7 +943,7 @@ function schliesseAb(w: World, v: Vorhaben): void {
   const text = `Fertig: ${v.name}.${zusatz}`;
   meldung(w, "fertig", text);
   // Die Sparvergabe zeigt sich am Ende: Das Stück geht in schlechterem Zustand in den Bestand
-  const sparhinnweis = l?.zustandFertig !== undefined ? ` Die Sparvergabe zeigt sich: Der Zustand beginnt bei ${l.zustandFertig}.` : "";
+  const sparhinnweis = l?.zustandFertig !== undefined ? tx("sim2.sim.reich.3d76acf", { p0: l.zustandFertig }) : "";
   addLog(w, "entscheidung", text, `${v.kehrseite}${sparhinnweis}`);
   w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: v.name, ausgang: `Fertiggestellt (${v.klasse === "wunder" ? "Wunder" : v.klasse === "serie" ? "Themenroute" : "Vorhaben"}).` });
   // Fertigstellung: Großereignis für die Zeitung (Eilmeldung digital, Print im nächsten Monat)
@@ -950,7 +951,7 @@ function schliesseAb(w: World, v: Vorhaben): void {
     zeitungEreignis(w, {
       art: "fertigstellung",
       titel: v.name,
-      fakt: `${v.name} ist fertiggestellt — ${v.klasse === "wunder" ? "ein Wunder der Amtszeit" : v.klasse === "serie" ? "eine ganze Themenroute" : "ein Großprojekt der Amtszeit"}.`,
+      fakt: tx("sim2.sim.reich.29b9ef6", { p0: v.name, p1: v.klasse === "wunder" ? tx("sim2.sim.reich.ie4a201f") : v.klasse === "serie" ? tx("sim2.sim.reich.i3714903") : tx("sim2.sim.reich.iec5380a") }),
       wertung: 0.7,
       schluessel: [v.name],
     });
@@ -974,8 +975,8 @@ function ueberzugPruefen(w: World, l: LaufEintrag, v: Vorhaben): void {
     l.monate = Math.ceil(laufMonate(l, v) * (1 + frac));
     if (v.kosten.schulden && v.kosten.bau > 0) w.economy.debtRatio += (v.kosten.schulden * extra) / v.kosten.bau;
     wirke(w, "legitimitaet", -0.6);
-    meldung(w, "ueberzug", `Kostenüberschreitung bei „${v.name}“: Der Bau braucht etwa ${Math.round(frac * 100)} % mehr — Kosten und Zeit steigen.`);
-    addLog(w, "entscheidung", `Kostenüberschreitung: ${v.name}`, `Bei Vorhaben dieser Größe ist das eher Regel als Ausnahme (Spielparameter, kein Zufall des Tages: Der Ausgang steht mit dem Spielstand fest). ${v.anker ?? ""}`.trim());
+    meldung(w, "ueberzug", tx("sim2.sim.reich.f3c24ba", { p0: v.name, p1: Math.round(frac * 100) }));
+    addLog(w, "entscheidung", tx("sim2.sim.reich.a9dd8b7", { p0: v.name }), tx("sim2.sim.reich.fb08991", { p0: v.anker ?? "" }).trim());
   }
 }
 
@@ -989,10 +990,10 @@ function durchbruchPruefen(w: World, l: LaufEintrag, v: Vorhaben): boolean {
   z.laufend = z.laufend.filter((x) => x.id !== l.id);
   if (v.ast && z.gewaehlt[v.ast] === v.id) delete z.gewaehlt[v.ast];
   for (const e of sch.folge ?? [{ t: "knoten", id: "ansehen", d: -3 }, { t: "knoten", id: "legitimitaet", d: -2 }]) wendeEffekt(w, e);
-  const text = `Gescheitert: ${v.name}. Der Durchbruch blieb aus, das eingesetzte Kapital und die Baupunkte sind verloren.`;
+  const text = tx("sim2.sim.reich.de8c9b0", { p0: v.name });
   meldung(w, "gescheitert", text);
-  addLog(w, "entscheidung", text, `${v.konkurrenz ?? "Andere Staaten forschen am Gleichen und lesen mit."} Ein Neubeginn ist möglich, beginnt aber bei null (Spielparameter, Ausgang steht mit dem Spielstand fest).`);
-  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: v.name, ausgang: "Gescheitert: Der Durchbruch blieb aus." });
+  addLog(w, "entscheidung", text, tx("sim2.sim.reich.bef8ad2", { p0: v.konkurrenz ?? tx("sim2.sim.reich.i2d8493f") }));
+  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: v.name, ausgang: tx("sim2.sim.reich.57bb49d") });
   return true;
 }
 
@@ -1008,7 +1009,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
   const verzug = z.verwaltung <= 0 ? 0.5 : 1;
   if (verzug < 1 && z.laufend.length) {
     wirke(w, "legitimitaet", -0.4);
-    if (!z.meldungen.some((m) => m.art === "verzug" && w.day - m.tag < 60)) meldung(w, "verzug", "Die Verwaltungskraft ist aufgebraucht: Bauvorhaben kommen nur zur Hälfte voran, die Legitimität leidet.");
+    if (!z.meldungen.some((m) => m.art === "verzug" && w.day - m.tag < 60)) meldung(w, "verzug", tx("sim2.sim.reich.14e06a8"));
   }
 
   // 2. Bau
@@ -1042,8 +1043,8 @@ export function reichMonat(w: World, _rng?: Rng): void {
         l.bau = bau + extra;
         if (v.kosten.schulden) w.economy.debtRatio += v.kosten.schulden * frac;
         wirke(w, "legitimitaet", -0.6);
-        meldung(w, "ueberzug", `Kostenüberschreitung bei „${v.name}“: Der Bau braucht etwa ${Math.round(frac * 100)} % mehr — Kosten und Zeit steigen.`);
-        addLog(w, "entscheidung", `Kostenüberschreitung: ${v.name}`, `Die Schätzung war ein Band; die Verwirklichung liegt ${Math.round(frac * 100)} % über der ursprünglichen Ansage. Solche Überschreitungen sind bei Großprojekten eher Regel als Ausnahme (Spielparameter, keine Tatsachen).`);
+        meldung(w, "ueberzug", tx("sim2.sim.reich.f3c24ba", { p0: v.name, p1: Math.round(frac * 100) }));
+        addLog(w, "entscheidung", tx("sim2.sim.reich.a9dd8b7", { p0: v.name }), tx("sim2.sim.reich.1c2a9d2", { p0: Math.round(frac * 100) }));
       }
     }
     // Was schon während des Baus wirkt: Aufbruch und Arbeit, aber auch Lasten
@@ -1112,7 +1113,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
       addLog(w, "entscheidung", `Vorteil erreicht: ${d?.name ?? id}.`, d?.text);
     }
   }
-  for (const id of z.vorteile) if (!aktiv.includes(id)) meldung(w, "gesperrt", `Vorteil verloren: ${vorteilDef(id)?.name ?? id}. Die Voraussetzungen gelten nicht mehr.`);
+  for (const id of z.vorteile) if (!aktiv.includes(id)) meldung(w, "gesperrt", tx("sim2.sim.reich.1baf768", { p0: vorteilDef(id)?.name ?? id }));
   z.vorteile = aktiv;
 }
 
@@ -1190,13 +1191,13 @@ export type RegionalPlan = { ok: true; vorlage: Vorhaben; def: Vorhaben; pflege?
 /** Baut aus einer Vorlage das Vorhaben für die gewählten Provinzen (`null` oder leer = ganzes Land); legt noch nichts an. */
 export function regionalPlan(w: World, vorlageId: string, ort: number[] | null): RegionalPlan {
   const vorlage = vorhabenDef(vorlageId);
-  if (!vorlage?.vorlage) return { ok: false, grund: "Das ist keine Vorlage für Orte." };
+  if (!vorlage?.vorlage) return { ok: false, grund: tx("sim2.sim.reich.0b279d5") };
   const provinzen = ort && ort.length ? [...new Set(ort)].filter((p) => p >= 1 && p <= PROVINCES).sort((a, b) => a - b) : ALLE_PROVINZEN;
-  if (!provinzen.length) return { ok: false, grund: "Es ist kein Ort gewählt." };
+  if (!provinzen.length) return { ok: false, grund: tx("sim2.sim.reich.67ebc1d") };
   const nachStaetten = vorlage.vorlage.nach === "staetten";
   const staetten = nachStaetten ? ERBE.filter((e) => provinzen.includes(e.plaka)) : [];
   const name = ortKurz(provinzen);
-  if (nachStaetten && !staetten.length) return { ok: false, grund: `In ${name} gibt es keine Stätte im Katalog.` };
+  if (nachStaetten && !staetten.length) return { ok: false, grund: tx("sim2.sim.reich.c74baf9", { p0: name }) };
   const anteil = nachStaetten ? staetten.length / ERBE.length : regionalAnteil(w, provinzen);
   const f = regionalFaktoren(anteil, nachStaetten ? "staetten" : "bevoelkerung", nachStaetten ? staetten.length : undefined);
   const r1 = (x: number) => Math.round(x * 10) / 10;
@@ -1205,12 +1206,12 @@ export function regionalPlan(w: World, vorlageId: string, ort: number[] | null):
   const zentrum = [...provinzen].sort((a, b) => (PROVINZEN[b - 1]?.bevoelkerung ?? 0) - (PROVINZEN[a - 1]?.bevoelkerung ?? 0))[0]!;
   const mitte = (MITTEN as unknown as Record<string, [number, number]>)[String(zentrum)];
   const k = vorlage.kosten;
-  const umfang = nachStaetten ? `${staetten.length} ${staetten.length === 1 ? "Stätte" : "Stätten"}` : `${anteil < 0.01 ? "unter 1" : Math.round(anteil * 100)} Prozent der Bevölkerung`;
+  const umfang = nachStaetten ? `${staetten.length} ${staetten.length === 1 ? "Stätte" : "Stätten"}` : tx("sim2.sim.reich.4663bf6", { p0: anteil < 0.01 ? tx("sim2.sim.reich.ic57dc53") : Math.round(anteil * 100) });
   const def: Vorhaben = {
     ...rest,
     id: `${vorlage.id}@${ortSchluessel(provinzen)}`,
     name: `${vorlage.name}: ${name}`,
-    text: `${vorlage.text} Angelegt für ${name} (${umfang}).`,
+    text: tx("sim2.sim.reich.08fd920", { p0: vorlage.text, p1: name, p2: umfang }),
     provinzen,
     ...(mitte ? { ort: { lon: mitte[0], lat: mitte[1], plaka: zentrum, name: provinzen.length === 1 ? PROVINZEN[zentrum - 1]!.name : name } } : {}),
     kosten: {
@@ -1235,7 +1236,7 @@ export function regionalPlan(w: World, vorlageId: string, ort: number[] | null):
         monate: 6,
         hub: 26,
         stoesse: [stoss("wartungszustand", 3, provinzen)],
-        kehrseite: "Bindet Baukapazität, die dann für Neues fehlt.",
+        kehrseite: tx("sim2.sim.reich.b8828ce"),
       })
     : undefined;
   return { ok: true, vorlage, def, ...(pflege ? { pflege } : {}), provinzen, faktoren: f };
@@ -1251,7 +1252,7 @@ export function regionalKonflikt(w: World, vorlageId: string, provinzen: number[
     const gemeinsam = e.provinzen.filter((p) => provinzen.includes(p));
     if (!gemeinsam.length) continue;
     const namen = gemeinsam.slice(0, 4).map((p) => PROVINZEN[p - 1]?.name ?? String(p)).join(", ");
-    return `Dasselbe Programm gibt es dort schon („${e.def.name}“): Es überschneidet sich in ${namen}${gemeinsam.length > 4 ? " und weiteren" : ""}. Dasselbe Vorhaben legt man am selben Ort nur einmal an; wählen Sie andere Provinzen.`;
+    return tx("sim2.sim.reich.0c2aeb1", { p0: e.def.name, p1: namen, p2: gemeinsam.length > 4 ? tx("sim2.sim.reich.i3a83a16") : "" });
   }
   return null;
 }
@@ -1278,15 +1279,15 @@ export function regionalVorschau(w: World, vorlageId: string, ort: number[] | nu
   const plan = regionalPlan(w, vorlageId, ort);
   if (!plan.ok) return plan;
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, grund: "Ohne Spielschleife gibt es kein Reich." };
+  if (!spiel) return { ok: false, grund: tx("sim2.sim.reich.186589c") };
   const z = reichZustand(w);
   const f = plan.faktoren;
   const zahl = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2 });
   const umfang =
     f.art === "staetten"
-      ? `betrifft ${f.staetten} von ${ERBE.length} Stätten`
-      : `betrifft ${f.anteil < 0.01 ? "unter 1" : Math.round(f.anteil * 100)} Prozent der Bevölkerung`;
-  const preisschild = `${umfang} · Kapital ×${zahl(f.pk)} · Baupunkte ×${zahl(f.bau)} · Dauer ×${zahl(f.monate)}${plan.def.kosten.schulden ? ` · Schulden ×${zahl(f.schulden)}` : ""}`;
+      ? tx("sim2.sim.reich.6df8a5d", { p0: f.staetten, p1: ERBE.length })
+      : tx("sim2.sim.reich.ddc4399", { p0: f.anteil < 0.01 ? tx("sim2.sim.reich.ic57dc53") : Math.round(f.anteil * 100) });
+  const preisschild = tx("sim2.sim.reich.95a1430", { p0: umfang, p1: zahl(f.pk), p2: zahl(f.bau), p3: zahl(f.monate), p4: plan.def.kosten.schulden ? ` · Schulden ×${zahl(f.schulden)}` : "" });
   const konflikt = regionalKonflikt(w, vorlageId, plan.provinzen);
   const voraus = plan.def.voraus.map((x) => pruefeVoraus(w, x));
   return {
@@ -1306,7 +1307,7 @@ export function regionalVorschau(w: World, vorlageId: string, ort: number[] | nu
 
 /** Legt ein Vorhaben aus einer Vorlage für die gewählten Provinzen an und beginnt es. Dasselbe Vorhaben am selben Ort gibt es nur einmal. */
 export function beginneRegional(w: World, vorlageId: string, ort: number[] | null, vergabe: Vergabe = "ausschreibung"): { ok: boolean; text: string; why?: string; id?: string } {
-  if (!w.spiel) return { ok: false, text: "Ohne Spielschleife gibt es kein Reich." };
+  if (!w.spiel) return { ok: false, text: tx("sim2.sim.reich.186589c") };
   const plan = regionalPlan(w, vorlageId, ort);
   if (!plan.ok) return { ok: false, text: plan.grund };
   const konflikt = regionalKonflikt(w, vorlageId, plan.provinzen);
@@ -1346,7 +1347,7 @@ export function kartenOrte(w: World): ReichOrt[] {
     const lon = mitte ? mitte[0] : v.ort.lon;
     const lat = mitte ? mitte[1] : v.ort.lat;
     if (z.bestand[v.id]) out.push({ id: `v:${v.id}`, lon, lat, art: "wunder", text: `${v.name} (fertig)` });
-    else if (z.laufend.some((l) => l.id === v.id)) out.push({ id: `v:${v.id}`, lon, lat, art: "bau", text: `${v.name} (im Bau)` });
+    else if (z.laufend.some((l) => l.id === v.id)) out.push({ id: `v:${v.id}`, lon, lat, art: "bau", text: tx("sim2.sim.reich.5004c19", { p0: v.name }) });
   }
   return out;
 }

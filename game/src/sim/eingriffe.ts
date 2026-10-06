@@ -13,15 +13,16 @@ import { entlasseSchnell } from "./nachfolge";
 import type { Figur } from "./spiel-typen";
 import type { GovernorStance } from "./types";
 import type { World } from "./types";
+import { t } from "../i18n";
 
 /** Die Zentralbankführung austauschen (Stufe B). */
 /** Platzhalter der Befehle und der Vorschau: „irgendeine neue Führung“, ohne Namen. */
-const GOUVERNEUR_PLATZHALTER = "eine neue, regierungsnahe Führung";
+const GOUVERNEUR_PLATZHALTER = t("sim2.sim.eingriffe.54f843e");
 
 export function replaceGovernor(world: World, stance: GovernorStance, name: string): void {
   // Ist die Bank gesetzlich geschützt, lässt sich die Führung nicht entlassen (auch nicht über Gespräch oder Befehl)
   if (world.spiel && wirtschaftZustand(world).zb.stufe === "A") {
-    addLog(world, "entscheidung", "Die Führung der Zentralbank lässt sich nicht entlassen: Sie ist gesetzlich geschützt.", "Zuerst müsste das Zentralbankgesetz geändert werden.");
+    addLog(world, "entscheidung", t("sim2.sim.eingriffe.c4ee291"), t("sim2.sim.eingriffe.c17279a"));
     return;
   }
   if (world.spiel) programmZustand(world).zentralbankAngriff = world.day;
@@ -46,8 +47,8 @@ export function replaceGovernor(world: World, stance: GovernorStance, name: stri
   addLog(
     world,
     "entscheidung",
-    `Der Präsident entlässt die Zentralbankführung und ernennt ${name}.`,
-    `Märkte werten das als Eingriff in die Unabhängigkeit: Die Lira fällt um ${fmt(jump * 100)} %, der Risikoaufschlag steigt.`,
+    t("sim2.sim.eingriffe.465fc4d", { p0: name }),
+    t("sim2.sim.eingriffe.a6feb6b", { p0: fmt(jump * 100) }),
   );
 }
 
@@ -79,8 +80,8 @@ export function criticizeCentralBank(world: World): void {
   addLog(
     world,
     "entscheidung",
-    "Der Präsident kritisiert die Zinspolitik öffentlich.",
-    faktor > 1 ? "Wiederholte Kritik: Anleger fürchten dauerhaften politischen Druck; die Lira gibt deutlicher nach." : "Anleger fürchten politischen Druck; die Lira gibt leicht nach.",
+    t("sim2.sim.eingriffe.26e7eb4"),
+    faktor > 1 ? t("sim2.sim.eingriffe.31f7890") : t("sim2.sim.eingriffe.10c0f63"),
   );
   addMarke(world, "eingriff", "Öffentliche Kritik an der Zinspolitik");
   zentralbankGekraenkt(world, -6);
@@ -93,10 +94,10 @@ export function setFiscalImpulse(world: World, percentOfGdp: number): void {
   addLog(
     world,
     "entscheidung",
-    `Haushalt: zusätzlicher Impuls von ${fmt(before)} auf ${fmt(percentOfGdp)} % des BIP geändert.`,
+    t("sim2.sim.eingriffe.7d8016d", { p0: fmt(before), p1: fmt(percentOfGdp) }),
     percentOfGdp > before
-      ? "Mehr Ausgaben stützen die Nachfrage, erhöhen aber Defizit und Schulden."
-      : "Weniger Ausgaben dämpfen die Nachfrage und entlasten den Haushalt.",
+      ? t("sim2.sim.eingriffe.ca52626")
+      : t("sim2.sim.eingriffe.698861a"),
   );
   if (percentOfGdp !== before) addMarke(world, "haushalt", `Haushaltsimpuls ${fmt(before)} auf ${fmt(percentOfGdp)} % des BIP`);
 }

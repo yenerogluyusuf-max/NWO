@@ -4,6 +4,8 @@
 // Die Bedeutungssätze und die Provinzzuordnung sind Allgemeinwissen und vor einer Veröffentlichung zu belegen.
 // Welterbe: nur Stätten, die die Liste der UNESCO nennt (Stand Sardes 2025); „tentativ“ = Tentativliste.
 
+import { datenTexte } from "../i18n/daten";
+
 export type Bezug = "antik" | "fruehmenschlich" | "christlich" | "juedisch" | "armenisch" | "syrisch" | "islamisch" | "alevitisch" | "republik" | "natur";
 
 export interface Erbe {
@@ -84,6 +86,8 @@ export const ERBE: Erbe[] = [
   { id: "karahan_tepe", name: "Karahan Tepe", ort: "Şanlıurfa", plaka: 63, lat: 37.093, lon: 39.304, epoche: "frühmenschlich", bezug: ["fruehmenschlich"], unesco: N, satz: "Schwesterstätte von Göbekli Tepe (Taş-Tepeler-Projekt).", serien: ["tas_tepeler"] },
   { id: "kueltepe", name: "Kültepe-Kaniş", ort: "Kayseri", plaka: 38, lat: 38.85, lon: 35.633, epoche: "Bronzezeit", bezug: ["antik"], unesco: T, satz: "Assyrische Handelskolonie mit Keilschrifttafeln." },
 ];
+
+datenTexte("erbe", ERBE, (e) => e.id, ["name", "epoche", "satz"]);
 
 export const ERBE_NACH_ID: Record<string, Erbe> = Object.fromEntries(ERBE.map((e) => [e.id, e]));
 

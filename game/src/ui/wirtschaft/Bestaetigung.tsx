@@ -1,18 +1,19 @@
 // Große Entscheidungen brauchen eine Unterschrift: Der Text nennt, was geschieht, was es kostet und was danach kommt; das Siegel besiegelt es.
 
 import type { ReactNode } from "react";
+import { t } from "../../i18n";
 import "./wirtschaft.css";
 
 export function Bestaetigung({ name, titel, children, knopf = "Unterzeichnen", onJa, onNein }: { name: string; titel: string; children?: ReactNode; knopf?: string; onJa: () => void; onNein: () => void }) {
   return (
     <div className="wi-bestaetigung" role="group" aria-label={titel}>
-      <p className="kicker">Zur Unterschrift</p>
+      <p className="kicker">{t("ui2.ui.wirtschaft.Bestaetigung.c862ae1")}</p>
       <h4>{titel}</h4>
       {children}
       <div className="signature">
         <div className="signature-line">
           <span className="signature-name">{name}</span>
-          <span className="signature-caption">Unterschrift</span>
+          <span className="signature-caption">{t("ui2.ui.wirtschaft.Bestaetigung.ec7e044")}</span>
         </div>
         <button className="wax-seal" onClick={onJa}>
           <img src="/ui/siegel.png" alt="" />
@@ -20,7 +21,7 @@ export function Bestaetigung({ name, titel, children, knopf = "Unterzeichnen", o
         </button>
       </div>
       <button className="pd-btn quiet" onClick={onNein}>
-        Verwerfen
+        {t("ui2.ui.wirtschaft.Bestaetigung.24cc57b")}
       </button>
     </div>
   );

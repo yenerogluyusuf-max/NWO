@@ -36,7 +36,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
   return (
     <div className="we-dienst">
       <header className="we-dienst-kopf">
-        <h3>Der Dienst</h3>
+        <h3>{t("ui2.ui.welt.Dienst.e0f3da3")}</h3>
         <p className="subtitle">
           {t("ui.welt.Dienst.3515c0b")}
         </p>
@@ -45,14 +45,14 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
       <div className="we-dienst-kapazitaet">
         <div className="we-lagebalken">
           <span>
-            Dienstkapazität<em>{Math.round(sicht.kapazitaet)} von 100</em>
+            {t("ui2.ui.welt.Dienst.df4fa73")}<em>{t("ui2.ui.welt.Dienst.4b66de7", { p0: Math.round(sicht.kapazitaet) })}</em>
           </span>
           <i style={{ ["--w" as string]: `${sicht.kapazitaet}%` }} aria-hidden />
         </div>
         <div className="we-dienst-abwehr">
-          {sicht.abwehr > 0 ? <span className="we-chip gut">Gegenspionage aktiv: noch {sicht.abwehr} Monate</span> : <span className="we-chip">{t("ui.welt.Dienst.62d901a")}</span>}
+          {sicht.abwehr > 0 ? <span className="we-chip gut">{t("ui2.ui.welt.Dienst.b89a5d4", { p0: sicht.abwehr })}</span> : <span className="we-chip">{t("ui.welt.Dienst.62d901a")}</span>}
           <button type="button" className="aktion-knopf klein" onClick={gegen} disabled={kapitalOk < OP_DEFS.gegen.pk || sicht.kapazitaet < OP_DEFS.gegen.kap} title={OP_DEFS.gegen.text}>
-            Gegenspionage verstärken <b>{OP_DEFS.gegen.pk}</b>
+            {t("ui2.ui.welt.Dienst.c2f1952")} <b>{OP_DEFS.gegen.pk}</b>
           </button>
         </div>
       </div>
@@ -65,7 +65,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
       )}
 
       <section className="we-dienst-ziel">
-        <label htmlFor="we-ziel">Zielstaat</label>
+        <label htmlFor="we-ziel">{t("ui2.ui.welt.Dienst.7f3406b")}</label>
         <div className="we-ziel-zeile">
           <Flagge id={ziel} breite={34} />
           <select id="we-ziel" value={ziel} onChange={(e) => { setZiel(e.target.value); setAntwort(null); }}>
@@ -86,14 +86,14 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
         {wahl ? (
           <p className="we-dienst-wahl">
             <b>
-              {wahl.art} am {wahl.datumDe}
+              {t("ui2.ui.welt.Dienst.03d2e63", { p0: wahl.art, p1: wahl.datumDe })}
             </b>{" "}
-            (in {wahl.monate} Monaten). Amtsführung: {wahl.fuehrung.wort}
+            {t("ui2.ui.welt.Dienst.bd63467", { p0: wahl.monate, p1: wahl.fuehrung.wort })}
             {wahl.herausforderer ? `, Herausforderer: ${wahl.herausforderer.wort} (${wahl.herausforderer.staerke})` : ""}.{" "}
-            {wahl.lagebild ? `Aussicht der Amtsführung laut Aufklärung: etwa ${wahl.lagebild.prozent} Prozent.` : "Ohne Aufklärung ist die Aussicht unbekannt."}
+            {wahl.lagebild ? t("ui2.ui.welt.Dienst.dae5ff2", { p0: wahl.lagebild.prozent }) : t("ui2.ui.welt.Dienst.8b6c72f")}
           </p>
         ) : (
-          <p className="we-dienst-wahl we-hinweis">In {akteurName(ziel)} steht keine Wahl an, die sich beeinflussen ließe.</p>
+          <p className="we-dienst-wahl we-hinweis">{t("ui2.ui.welt.Dienst.afb73cc", { p0: akteurName(ziel) })}</p>
         )}
       </section>
 
@@ -102,17 +102,17 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
           <li key={o.def.art} className={`we-op${o.moeglich ? "" : " gesperrt"}`}>
             <div className="we-op-kopf">
               <strong>{o.def.name}</strong>
-              <span className="we-chip">Kapital {o.def.pk}</span>
-              <span className="we-chip">Kapazität {o.def.kap}</span>
-              <span className="we-chip">{o.def.monate} Monate</span>
+              <span className="we-chip">{t("ui2.ui.welt.Dienst.fd26502", { p0: o.def.pk })}</span>
+              <span className="we-chip">{t("ui2.ui.welt.Dienst.a85d312", { p0: o.def.kap })}</span>
+              <span className="we-chip">{t("ui2.ui.welt.Dienst.905dfe8", { p0: o.def.monate })}</span>
             </div>
             <p>{o.def.text}</p>
             <div className="we-op-aussicht">
               <span>
-                Erfolgsaussicht: <b className={`aus-${o.aussicht.wort}`}>{o.aussicht.wort}</b>
+                {t("ui2.ui.welt.Dienst.ee42fd2")} <b className={`aus-${o.aussicht.wort}`}>{o.aussicht.wort}</b>
               </span>
               <span>
-                Risiko der Aufdeckung: <b className={`risiko-${o.aussicht.aufWort.replace(" ", "-")}`}>{o.aussicht.aufWort}</b>
+                {t("ui2.ui.welt.Dienst.733a033")} <b className={`risiko-${o.aussicht.aufWort.replace(" ", "-")}`}>{o.aussicht.aufWort}</b>
               </span>
             </div>
             <ul className="we-faktoren">
@@ -121,7 +121,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
               ))}
             </ul>
             {o.lager && (
-              <div className="we-lager" role="radiogroup" aria-label="Wessen Lager">
+              <div className="we-lager" role="radiogroup" aria-label={t("ui2.ui.welt.Dienst.ec3f7e0")}>
                 {o.lager.map((l) => (
                   <label key={l.id}>
                     <input type="radio" name="we-lager" checked={lager === l.id} onChange={() => setLager(l.id)} /> {l.label}
@@ -131,7 +131,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
             )}
             <div className="we-op-fuss">
               <button type="button" className="aktion-knopf" disabled={!o.moeglich} onClick={() => anordnen(o.def.art)}>
-                Anordnen
+                {t("ui2.ui.welt.Dienst.d53a9d4")}
               </button>
               {!o.moeglich && <span className="we-hinweis">{o.grund}</span>}
             </div>
@@ -141,11 +141,11 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
 
       {sicht.laufend.length > 0 && (
         <section className="we-dienst-laufend">
-          <b>Laufende Operationen</b>
+          <b>{t("ui2.ui.welt.Dienst.b6d953d")}</b>
           <ul>
             {sicht.laufend.map((l) => (
               <li key={l.op.id}>
-                <Flagge id={l.ziel} breite={26} /> <strong>{l.name}</strong> gegen {akteurName(l.ziel)} — noch {Math.max(1, Math.round(l.restTage / 30))} Monate
+                <Flagge id={l.ziel} breite={26} /> <strong>{l.name}</strong> {t("ui2.ui.welt.Dienst.f6581a2", { p0: akteurName(l.ziel), p1: Math.max(1, Math.round(l.restTage / 30)) })}
               </li>
             ))}
           </ul>

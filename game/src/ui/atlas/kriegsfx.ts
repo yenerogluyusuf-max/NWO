@@ -12,6 +12,8 @@ export interface KriegUvRegion {
   r: number;
   lage: "gegner" | "umkaempft" | "eigen" | "besetzt";
   annexion?: boolean;
+  /** Fläche der Region als Ringe in Texturkoordinaten (aus der Karte); fehlt sie, gilt der Umkreis `r` */
+  ringe?: [number, number][][];
   name: string;
 }
 
@@ -40,19 +42,42 @@ function bodenKreis(atlas: AtlasScene, u: number, v: number, radius: number, sch
   return pts;
 }
 
+/** Die Ringe einer Region auf die Karte gebracht (jeder Punkt in seiner Bodenhöhe, damit Küsten deckungsgleich liegen); null, wenn ein Punkt außer Sicht liegt. */
+function bodenRinge(atlas: AtlasScene, ringe: [number, number][][]): Pt[][] | null {
+  const out: Pt[][] = [];
+  for (const ring of ringe) {
+    const pts: Pt[] = [];
+    for (const [ru, rv] of ring) {
+      const p = atlas.project(ru, rv);
+      if (!p.sichtbar) return null;
+      pts.push(p);
+    }
+    out.push(pts);
+  }
+  return out;
+}
+
+function pfadRinge(ctx: CanvasRenderingContext2D, ringe: Pt[][]): void {
+  ctx.beginPath();
+  for (const pts of ringe) {
+    pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
+    ctx.closePath();
+  }
+}
+
 function pfad(ctx: CanvasRenderingContext2D, pts: Pt[]): void {
   ctx.beginPath();
   pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
   ctx.closePath();
 }
 
-function schraffur(ctx: CanvasRenderingContext2D, pts: Pt[], farbe: string, abstand: number): void {
+function schraffur(ctx: CanvasRenderingContext2D, ringe: Pt[][], farbe: string, abstand: number): void {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
-  for (const p of pts) {
+  for (const p of ringe.flat()) {
     x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);
   }
   ctx.save();
-  pfad(ctx, pts);
+  pfadRinge(ctx, ringe);
   ctx.clip();
   ctx.beginPath();
   for (let x = x0 - (y1 - y0); x < x1; x += abstand) {
@@ -74,9 +99,10 @@ export function zeichneKrieg(ctx: CanvasRenderingContext2D, atlas: AtlasScene, l
 
   // 1. Regionen
   for (const r of lage.regionen) {
-    const pts = bodenKreis(atlas, r.u, r.v, r.r);
+    const kreis = r.ringe ? null : bodenKreis(atlas, r.u, r.v, r.r);
+    const pts = r.ringe ? bodenRinge(atlas, r.ringe) : kreis ? [kreis] : null;
     if (!pts) continue;
-    pfad(ctx, pts);
+    pfadRinge(ctx, pts);
     if (r.lage === "eigen") {
       ctx.fillStyle = "rgba(150, 38, 28, 0.34)";
       ctx.fill();
@@ -86,7 +112,11 @@ export function zeichneKrieg(ctx: CanvasRenderingContext2D, atlas: AtlasScene, l
     } else if (r.lage === "besetzt") {
       ctx.fillStyle = r.annexion ? "rgba(150, 38, 28, 0.42)" : "rgba(150, 38, 28, 0.16)";
       ctx.fill();
-      if (!r.annexion) schraffur(ctx, pts, "rgba(120, 28, 20, 0.55)", 6 * z);
+      if (!r.annexion) {
+        schraffur(ctx, pts, "rgba(120, 28, 20, 0.55)", 6 * z);
+        // Die Schraffur ersetzt den aktuellen Pfad: den Umriss neu legen, sonst würde das Linienraster gestrichelt nachgezogen
+        pfadRinge(ctx, pts);
+      }
       ctx.strokeStyle = "rgba(120, 28, 20, 0.8)";
       ctx.lineWidth = 1.3 * z;
       ctx.setLineDash([5 * z, 3 * z]);

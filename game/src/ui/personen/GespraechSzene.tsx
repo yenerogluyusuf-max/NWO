@@ -8,6 +8,7 @@ import { haltung } from "../../sim/figuren";
 import { Portraet } from "./bausteine";
 
 import { t } from "../../i18n";
+import { t as tx } from "../../i18n";
 export function GespraechSzene({ world, figur, refresh, onFertig }: { world: World; figur: Figur; refresh: () => void; onFertig: () => void }) {
   const [themaId, setThemaId] = useState<string | null>(null);
   const [ergebnis, setErgebnis] = useState<GespraechErgebnis | null>(null);
@@ -37,19 +38,19 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
       <div className="pe-szenenkopf">
         <Portraet w={world} f={figur} size={120} />
         <div>
-          <h3>Gespräch mit {sprecher}</h3>
+          <h3>{tx("ui2.ui.personen.GespraechSzene.a9ade49", { p0: sprecher })}</h3>
           <div className="pe-rolle">
             {figur.rolle} · {haltung(figur)}
           </div>
         </div>
         <div className="pe-termine">
-          Termine in 30 Tagen: {termine.belegt} von {termine.max}
+          {tx("ui2.ui.personen.GespraechSzene.f1372d0", { p0: termine.belegt, p1: termine.max })}
         </div>
       </div>
-      <div className="pe-schritte" aria-label="Schritte">
+      <div className="pe-schritte" aria-label={tx("ui2.ui.personen.GespraechSzene.7afff4b")}>
         <span className={schritt === 1 ? "on" : ""}>1 Thema</span>
         <span className={schritt === 2 ? "on" : ""}>2 Ansatz</span>
-        <span className={schritt === 3 ? "on" : ""}>3 Ergebnis</span>
+        <span className={schritt === 3 ? "on" : ""}>{tx("ui2.ui.personen.GespraechSzene.4a994ef")}</span>
       </div>
 
       {schritt === 1 && (
@@ -74,7 +75,7 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
       {schritt === 2 && thema && (
         <>
           <p className="subtitle">
-            Thema: <strong>{thema.titel}</strong>. Jeder Ansatz zeigt, was er kostet und bewirkt; Grau heißt: geht gerade nicht (der Grund steht dabei).
+            {tx("ui2.ui.personen.GespraechSzene.9bbed37")} <strong>{thema.titel}</strong>{tx("ui2.ui.personen.GespraechSzene.7d2478e")}
           </p>
           {fehler && (
             <p className="pe-rueck nein" role="alert">
@@ -86,7 +87,7 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
               <button key={a.ansatz} className="pe-ansatz" disabled={!!a.plan.grund} onClick={() => waehle(a.ansatz)} title={a.plan.grund ?? a.kurz}>
                 <header>
                   <strong>{a.label}</strong>
-                  <span className={`pe-kosten${a.plan.pk === 0 ? " frei" : ""}`}>{a.plan.pk === 0 ? "kostenlos" : `${a.plan.pk} Kapital`}</span>
+                  <span className={`pe-kosten${a.plan.pk === 0 ? " frei" : ""}`}>{a.plan.pk === 0 ? "kostenlos" : tx("ui2.ui.personen.GespraechSzene.87b52bd", { p0: a.plan.pk })}</span>
                 </header>
                 <p>{a.kurz}</p>
                 {a.plan.grund ? (
@@ -98,13 +99,13 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
                     ))}
                   </ul>
                 )}
-                {a.plan.aussicht && !a.plan.grund && <span className={`pe-aussicht ${a.plan.aussicht}`}>Aussicht: {a.plan.aussicht === "gut" ? "gut" : a.plan.aussicht === "offen" ? "offen" : "schlecht"}</span>}
+                {a.plan.aussicht && !a.plan.grund && <span className={`pe-aussicht ${a.plan.aussicht}`}>{tx("ui2.ui.personen.GespraechSzene.87a23b7")} {a.plan.aussicht === "gut" ? "gut" : a.plan.aussicht === "offen" ? "offen" : "schlecht"}</span>}
               </button>
             ))}
           </div>
           <div className="pe-aktionen">
             <button className="pe-aktion leise" onClick={() => setThemaId(null)}>
-              Anderes Thema
+              {tx("ui2.ui.personen.GespraechSzene.5b4319c")}
             </button>
             <button className="pe-aktion leise" onClick={onFertig}>
               {t("ui.personen.GespraechSzene.07af7cb")}
@@ -118,21 +119,21 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
           <div className="pe-dialog" aria-live="polite">
             {ergebnis.szene.map((z, i) => (
               <div key={i} className={`pe-blase ${z.wer}`}>
-                {z.wer !== "erzaehler" && <span className="pe-sprecher">{z.wer === "ich" ? "Sie" : sprecher}</span>}
+                {z.wer !== "erzaehler" && <span className="pe-sprecher">{z.wer === "ich" ? tx("ui2.ui.personen.GespraechSzene.2190140") : sprecher}</span>}
                 {z.text}
               </div>
             ))}
           </div>
           {ergebnis.hinweise.length > 0 && (
             <div className="pe-hinweise">
-              <h4>Was {figur.weiblich ? "sie" : "er"} Ihnen sagt</h4>
+              <h4>{tx("ui2.ui.personen.GespraechSzene.9f39c02")} {figur.weiblich ? "sie" : "er"} {tx("ui2.ui.personen.GespraechSzene.587e4d3")}</h4>
               {ergebnis.hinweise.map((h, i) => (
                 <p key={i}>{h}</p>
               ))}
             </div>
           )}
           <div className="pe-block">
-            <h4>Was daraus folgt{ergebnis.kosten > 0 ? ` (${ergebnis.kosten} Kapital)` : ""}</h4>
+            <h4>{tx("ui2.ui.personen.GespraechSzene.9990865")}{ergebnis.kosten > 0 ? tx("ui2.ui.personen.GespraechSzene.b9f930a", { p0: ergebnis.kosten }) : ""}</h4>
             <ul className="pe-folgen">
               {ergebnis.folgen.map((f, i) => (
                 <li key={i}>

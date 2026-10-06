@@ -49,7 +49,7 @@ export function VerlaufsDiagramm({ reihe }: { reihe: VerlaufsReihe }) {
           {nf(w[0]!, d)} → <strong>{nf(w[w.length - 1]!, d)}</strong> {reihe.einheit}
         </span>
       </figcaption>
-      <svg viewBox={`0 0 ${B} ${H}`} role="img" aria-label={`${reihe.name}: ${nf(w[0]!, d)} bis ${nf(w[w.length - 1]!, d)} ${reihe.einheit}`}>
+      <svg viewBox={`0 0 ${B} ${H}`} role="img" aria-label={t("ui2.ui.akte.Kennzahl.7939c78", { p0: reihe.name, p1: nf(w[0]!, d), p2: nf(w[w.length - 1]!, d), p3: reihe.einheit })}>
         <line x1={34} x2={B - 10} y1={y(max)} y2={y(max)} className="ak-gitter" />
         <line x1={34} x2={B - 10} y1={y(min)} y2={y(min)} className="ak-gitter" />
         <text x={30} y={y(max) + 4} textAnchor="end" className="ak-achse">{nf(max, d)}</text>

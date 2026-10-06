@@ -245,11 +245,14 @@ describe("Erschöpfungsuhr und Anti-Aussitzen", () => {
     const w = welt();
     const k = imKrieg(w);
     const vorher = nationalAverage(NET, w.net, "offiziersvertrauen");
-    // Zwei Stillstandswochen erzwingen: der Verstärkungs-Schub gleicht den Rückzug exakt aus
+    // Zwei Stillstandswochen erzwingen: der Verstärkungs-Schub gleicht den Rückzug exakt aus (Front über 50, damit der Gegenstoß
+    // nicht nach GEGNER_OFFENSIVE gedämpft wird)
+    k.front = 55;
     k.frontSchub = 5;
     k.seit = w.day - 6;
     advance(w, 1);
     expect(k.stagnation, "erste Stillstandswoche").toBe(1);
+    k.front = 55;
     k.frontSchub = 5;
     k.seit = w.day - 6;
     advance(w, 1);

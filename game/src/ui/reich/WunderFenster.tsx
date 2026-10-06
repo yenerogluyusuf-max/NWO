@@ -40,7 +40,7 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
             {t("ui.reich.WunderFenster.cd0618a")}
           </span>
           <span className="wunder-datum">{formatDateDe(datum)}</span>
-          <span className="wunder-klasse">{TITEL[v.klasse] ?? "Fertiggestellt"}</span>
+          <span className="wunder-klasse">{TITEL[v.klasse] ?? t("ui2.ui.reich.WunderFenster.32b1b72")}</span>
         </div>
         <div className="wunder-koerper">
           <h2 id={`wf-${id}`} className="wunder-titel">
@@ -73,13 +73,13 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
               </div>
             ))}
           <p className="wunder-kehrseite">
-            <b>Der Preis:</b> {v.kehrseite}
+            <b>{t("ui2.ui.reich.WunderFenster.0289c3f")}</b> {v.kehrseite}
             {verlierer && <em> Es verliert: {verlierer}.</em>}
           </p>
           <div className="wunder-knoepfe">
             {v.ort && onKarte && (
               <button className="leather-button" type="button" onClick={() => onKarte({ lon: v.ort!.lon, lat: v.ort!.lat })}>
-                <Icon name="berg" size={16} /> Auf der Karte zeigen
+                <Icon name="berg" size={16} /> {t("ui2.ui.reich.WunderFenster.dbbb7c3")}
               </button>
             )}
             <button ref={weiter} className="brass-button" type="button" onClick={onWeiter}>

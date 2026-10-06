@@ -49,21 +49,21 @@ export class Fehlergrenze extends Component<Props, State> {
     return (
       <div className={`fehlergrenze${gross ? " gross" : ""}`} role="alert">
         <div className="fehlergrenze-karte">
-          <p className="fehlergrenze-kicker">{gross ? "Das Spiel ist auf einen Fehler gestoßen" : "Diese Ansicht ist abgestürzt"}</p>
-          <h3>{titel ?? "Ansicht"}</h3>
+          <p className="fehlergrenze-kicker">{gross ? t("ui2.ui.Fehlergrenze.32d60c5") : t("ui2.ui.Fehlergrenze.1e5a3b9")}</p>
+          <h3>{titel ?? t("ui2.ui.Fehlergrenze.5c38879")}</h3>
           <p className="fehlergrenze-text">
-            {gross ? "Ihr letzter Stand ist gesichert (Sichern-Knopf in der Kopfleiste, Reiter Spielstand). " : "Das Spiel läuft weiter, nur diese Ansicht ist betroffen. "}
+            {gross ? t("ui2.ui.Fehlergrenze.3fa4f76") : t("ui2.ui.Fehlergrenze.50378fd")}
             <code>{fehler.message}</code>
           </p>
           {stapel && (
             <details>
-              <summary>Technische Angaben</summary>
+              <summary>{t("ui2.ui.Fehlergrenze.7cdeb23")}</summary>
               <pre>{stapel}</pre>
             </details>
           )}
           <div className="fehlergrenze-knoepfe">
             <button type="button" className="brass-button" onClick={() => this.setState({ fehler: null, stapel: "" })}>
-              Noch einmal versuchen
+              {t("ui2.ui.Fehlergrenze.f6f5ca2")}
             </button>
             {onZu && (
               <button type="button" className="leather-button" onClick={onZu}>
@@ -72,7 +72,7 @@ export class Fehlergrenze extends Component<Props, State> {
             )}
             {gross && (
               <button type="button" className="leather-button" onClick={() => window.location.reload()}>
-                Spiel neu laden
+                {t("ui2.ui.Fehlergrenze.6903d3e")}
               </button>
             )}
           </div>

@@ -44,10 +44,10 @@ export function VergleichBalken({ code, spiel }: { code: string; spiel?: { wert:
         <strong>{ind.name}</strong>
         <span>
           {ind.einheit}
-          {ind.besser ? ` · ${ind.besser === "niedriger" ? "niedriger" : "höher"} ist günstiger` : " · Wertung hängt vom Ziel ab"}
+          {ind.besser ? t("ui2.ui.VergleichBalken.1735eee", { p0: ind.besser === "niedriger" ? "niedriger" : "höher" }) : t("ui2.ui.VergleichBalken.d25423d")}
         </span>
       </p>
-      <ul className="vergleich-liste" aria-label={`Vergleich: ${ind.name}`}>
+      <ul className="vergleich-liste" aria-label={t("ui2.ui.VergleichBalken.56ce178", { p0: ind.name })}>
         {zeilen.map((z) => {
           const links = ((Math.min(0, z.wert) - min) / spanne) * 100;
           const breite = (Math.abs(z.wert) / spanne) * 100;
@@ -68,15 +68,15 @@ export function VergleichBalken({ code, spiel }: { code: string; spiel?: { wert:
       </ul>
       <p className="vergleich-platz">
         <strong>
-          Platz {ind.tur.rang} von {ind.tur.von}
+          {t("ui2.ui.VergleichBalken.4f98dc7", { p0: ind.tur.rang, p1: ind.tur.von })}
         </strong>{" "}
-        (Platz 1 = höchster Wert der Welt). {einordnung(ind)}
+        {t("ui2.ui.VergleichBalken.012046a", { p0: einordnung(ind) })}
       </p>
       <div className="vergleich-fuss">
         <button className="link" onClick={() => setAlle(!alle)}>
-          {alle ? "Nur die wichtigsten Länder" : "Alle Vergleichsländer zeigen"}
+          {alle ? t("ui2.ui.VergleichBalken.744d441") : t("ui2.ui.VergleichBalken.7cdd71c")}
         </button>
-        <span>Quelle: Weltbank ({VERGLEICH.abgerufen.slice(0, 4)} abgerufen); jeder Wert ist der letzte vorhandene des Landes, das Jahr steht daneben.</span>
+        <span>{t("ui2.ui.VergleichBalken.c403b4c", { p0: VERGLEICH.abgerufen.slice(0, 4) })}</span>
       </div>
     </div>
   );

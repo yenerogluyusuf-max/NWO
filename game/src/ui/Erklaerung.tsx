@@ -22,7 +22,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
   const eingang = node.input ? spielWert(world, node.input) : undefined;
 
   return (
-    <section className="erklaerung" aria-label={`Die Mentorin erklärt: ${node.name}`}>
+    <section className="erklaerung" aria-label={tx("ui2.ui.Erklaerung.8e99219", { p0: node.name })}>
       <header className="erklaerung-kopf">
         <Cameo seed="Defne Arslan" figure="f" glasses size={36} tint="#265a62" />
         <div>
@@ -73,7 +73,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
                     </ul>
                   </div>
                   <div>
-                    <span>Am niedrigsten</span>
+                    <span>{tx("ui2.ui.Erklaerung.c60c617")}</span>
                     <ul>
                       {e.orte.tief.map((o) => (
                         <li key={o.name}>
@@ -102,7 +102,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
               )}
               {e.begriffe.length > 0 && (
                 <details className="begriffe">
-                  <summary>Begriffe erklärt ({e.begriffe.length})</summary>
+                  <summary>{tx("ui2.ui.Erklaerung.21f2bd4", { p0: e.begriffe.length })}</summary>
                   <dl>
                     {e.begriffe.map((b) => (
                       <div key={b.begriff}>
@@ -116,7 +116,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
             </>
           )}
           <button className="link mehr-knopf" onClick={() => setMehr(!mehr)} aria-expanded={mehr}>
-            {mehr ? "Weniger anzeigen" : "Mehr erklären"}
+            {mehr ? tx("ui2.ui.Erklaerung.34a01ce") : tx("ui2.ui.Erklaerung.0105a20")}
           </button>
         </div>
       )}
@@ -138,13 +138,13 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
               <VergleichBalken code={aktuell.code} spiel={eingang} />
               {!node.input && (
                 <p className="welt-hinweis">
-                  Im Spiel ist „{node.name}“ ein Index von 0 bis 100. Der Vergleich zeigt die echte Größe dahinter, wie sie zuletzt gemessen wurde; er ändert sich mit deinem Spielstand nicht.
+                  {tx("ui2.ui.Erklaerung.22265ed", { p0: node.name })}
                 </p>
               )}
             </>
           ) : (
             <p className="subtitle">
-              Für „{node.name}“ hinterlegt das Spiel keinen internationalen Vergleich (Lücke). {node.input === "leitzins" ? "Leitzinsen liegen nicht in der Weltbank-Datenbank; die Bank für Internationalen Zahlungsausgleich veröffentlicht sie." : "Für Wohnen, Mieten und Erdbebenvorsorge fehlt eine vergleichbare internationale Statistik."}
+              {tx("ui2.ui.Erklaerung.7eb3571", { p0: node.name })} {node.input === "leitzins" ? tx("ui2.ui.Erklaerung.bbb2d54") : tx("ui2.ui.Erklaerung.84c0076")}
             </p>
           )}
         </div>
@@ -154,7 +154,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
         <div className="erklaerung-koerper">
           {e.hebel.length > 0 && (
             <>
-              <p className="lead">Diese Maßnahmen bewegen „{node.name}“ am stärksten (aus den Verbindungen des Netzes gerechnet):</p>
+              <p className="lead">{tx("ui2.ui.Erklaerung.dc43c99", { p0: node.name })}</p>
               <ul className="hebel">
                 {e.hebel.map((h) => {
                   const id = /„(.+?)“/.exec(h.text)?.[1];
@@ -176,14 +176,14 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
           {e.hebelHinweis && <p>{e.hebelHinweis}</p>}
           {e.treiber.length > 0 && (
             <>
-              <h4>Was treibt es an?</h4>
+              <h4>{tx("ui2.ui.Erklaerung.f74a9ea")}</h4>
               <ul className="wichtig">
                 {e.treiber.map((v) => (
                   <li key={v.id}>
                     <button className="link" onClick={() => onSelect(v.id)}>
                       {v.name}
                     </button>{" "}
-                    <span className={v.erhoeht ? "plus" : "minus"}>{v.erhoeht ? "erhöht es" : "senkt es"}</span> · <em>{v.wann}</em>
+                    <span className={v.erhoeht ? "plus" : "minus"}>{v.erhoeht ? tx("ui2.ui.Erklaerung.39d21fd") : "senkt es"}</span> · <em>{v.wann}</em>
                     <span className="warum">{v.warum}</span>
                   </li>
                 ))}
@@ -198,6 +198,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
 
 import { NET } from "../sim/modell";
 import { t } from "../i18n";
+import { t as tx } from "../i18n";
 function hebelId(name: string): string {
   return NET.nodes.find((n) => n.name === name)?.id ?? "";
 }

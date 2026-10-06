@@ -51,11 +51,11 @@ function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSich
         ) : (
           <>
             <span className="we-klausel-wert">
-              <em>{gibt ? `Wert für ${partner}` : `Preis für ${partner}`}</em>
-              {k.wert < -50 ? <b className="we-rot">Rote Linie</b> : <Punkte n={punkte(k.wert)} ton={gibt ? "gut" : "schlecht"} />}
+              <em>{gibt ? t("ui2.ui.welt.Verhandlungstisch.1fd9805", { p0: partner }) : t("ui2.ui.welt.Verhandlungstisch.223c198", { p0: partner })}</em>
+              {k.wert < -50 ? <b className="we-rot">{t("ui2.ui.welt.Verhandlungstisch.66d4eee")}</b> : <Punkte n={punkte(k.wert)} ton={gibt ? "gut" : "schlecht"} />}
             </span>
             {zeilen.length > 0 && (
-              <ul className="we-wirkung" aria-label="Wirkung im eigenen Land">
+              <ul className="we-wirkung" aria-label={t("ui2.ui.welt.Verhandlungstisch.dca5dc7")}>
                 {zeilen.map((z, i) => (
                   <li key={i} className={z.gut ? "we-gut" : "we-schlecht"}>
                     <span aria-hidden>{z.richtung > 0 ? "▲" : "▼"}</span> {z.text}
@@ -63,7 +63,7 @@ function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSich
                 ))}
               </ul>
             )}
-            {gewaehlt && <span className="we-kehrseite">Kehrseite: {k.def.kehrseite}</span>}
+            {gewaehlt && <span className="we-kehrseite">{t("ui2.ui.welt.Verhandlungstisch.c7e5524", { p0: k.def.kehrseite })}</span>}
           </>
         )}
       </button>
@@ -73,7 +73,7 @@ function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSich
 
 function Waage({ stimmung, urteil }: { stimmung: number; urteil: string }) {
   return (
-    <div className={`we-waage u-${urteil}`} role="img" aria-label={`Stimmung: ${STIMMUNG_WORT[stimmung as 0]}`}>
+    <div className={`we-waage u-${urteil}`} role="img" aria-label={t("ui2.ui.welt.Verhandlungstisch.f4522cf", { p0: STIMMUNG_WORT[stimmung as 0] })}>
       {[0, 1, 2, 3, 4].map((i) => (
         <i key={i} className={i <= stimmung ? "an" : ""} data-i={i} />
       ))}
@@ -143,16 +143,16 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
 
   return (
     <>
-    <section className="we-tisch" aria-label={`Verhandlungstisch mit ${l.name}`}>
+    <section className="we-tisch" aria-label={t("ui2.ui.welt.Verhandlungstisch.7e59256", { p0: l.name })}>
       <div ref={kopf} className="we-tisch-oben">
         <p className="we-tisch-kopf">
-          Stellen Sie ein Paket zusammen. Was {l.name} davon hält, sehen Sie sofort; erst das Angebot selbst kostet Kapital. In jeder Klausel steht, was sie im eigenen Land bewirkt und was sie kostet.
+          {t("ui2.ui.welt.Verhandlungstisch.7ca12d6", { p0: l.name })}
         </p>
 
         {antwort && (
           <div className={`we-antwort u-${antwort.urteil}`} role="status">
             <span className="we-stempel" aria-hidden>
-              {antwort.urteil === "zustimmung" ? "Einigung" : antwort.urteil === "gegenangebot" ? "Gegenangebot" : antwort.urteil === "veto" ? "Rote Linie" : antwort.urteil === "ablehnung" ? "Abgelehnt" : "Nicht möglich"}
+              {antwort.urteil === "zustimmung" ? t("ui2.ui.welt.Verhandlungstisch.942f46c") : antwort.urteil === "gegenangebot" ? t("ui2.ui.welt.Verhandlungstisch.8477453") : antwort.urteil === "veto" ? t("ui2.ui.welt.Verhandlungstisch.66d4eee") : antwort.urteil === "ablehnung" ? t("ui2.ui.welt.Verhandlungstisch.110d6fe") : t("ui2.ui.welt.Verhandlungstisch.e70aeb2")}
             </span>
             <p>
               <strong>{antwort.text}</strong> {antwort.why && <em>{antwort.why}</em>}
@@ -164,7 +164,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
                     <span>{g.text}</span>
                     <span className="we-gegen-knoepfe">
                       <button type="button" className="aktion-knopf" onClick={() => nimmAn(g.angebot)}>
-                        Annehmen
+                        {t("ui2.ui.welt.Verhandlungstisch.c1c1e04")}
                       </button>
                       <button type="button" className="link" onClick={() => { laden(g.angebot); setAntwort(null); }}>
                         {t("ui.welt.Verhandlungstisch.3f14ba3")}
@@ -208,7 +208,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
       <div className="we-spalten">
         <div className="we-spalte">
           <h4>
-            <Flagge id="TUR" breite={22} /> Wir bieten
+            <Flagge id="TUR" breite={22} /> {t("ui2.ui.welt.Verhandlungstisch.0f5c0dc")}
           </h4>
           <ul className="we-klauseln">
             {bietet.map((k) => (
@@ -218,7 +218,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
         </div>
         <div className="we-spalte">
           <h4>
-            <Flagge id={landId} breite={22} titel={l.name} /> Wir verlangen
+            <Flagge id={landId} breite={22} titel={l.name} /> {t("ui2.ui.welt.Verhandlungstisch.17fd837")}
           </h4>
           <ul className="we-klauseln">
             {verlangt.map((k) => (
@@ -234,24 +234,24 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
         <Waage stimmung={nichts ? -1 : b.stimmung} urteil={nichts ? "leer" : b.urteil} />
         <span>{stimmungText}</span>
       </div>
-      <div className="we-laufzeit" role="radiogroup" aria-label="Laufzeit">
-        <span>Laufzeit</span>
+      <div className="we-laufzeit" role="radiogroup" aria-label={t("ui2.ui.welt.Verhandlungstisch.f16dc6c")}>
+        <span>{t("ui2.ui.welt.Verhandlungstisch.f16dc6c")}</span>
         {VERTRAGSLAUFZEITEN.map((j) => (
-          <button key={j} type="button" role="radio" aria-checked={jahre === j} className={jahre === j ? "an" : ""} onClick={() => setJahre(j)} title={j === 2 ? "Kurz: schwächere Dauerwirkung, leichter zu bekommen" : j === 10 ? "Lang: stärkere Dauerwirkung, das Land verlangt mehr Vertrauen, ein Bruch wiegt schwer" : "Standard"}>
-            {j} Jahre
+          <button key={j} type="button" role="radio" aria-checked={jahre === j} className={jahre === j ? "an" : ""} onClick={() => setJahre(j)} title={j === 2 ? t("ui2.ui.welt.Verhandlungstisch.1e30fb0") : j === 10 ? t("ui2.ui.welt.Verhandlungstisch.a1424ff") : t("ui2.ui.welt.Verhandlungstisch.2dfa660")}>
+            {t("ui2.ui.welt.Verhandlungstisch.9bf247c", { p0: j })}
           </button>
         ))}
       </div>
       <div className="we-abgabe">
         {rest > 0 ? (
-          <span className="we-sperre">{l.name} spricht erst in {rest} Tagen wieder mit Ihnen.</span>
+          <span className="we-sperre">{t("ui2.ui.welt.Verhandlungstisch.c82e52f", { p0: l.name, p1: rest })}</span>
         ) : (
           <>
             <span className={`we-kosten${nurAufPump(kapital, b.pk) ? " pump" : ""}`}>
-              Kosten <b>{b.pk}</b> Kapital{nurAufPump(kapital, b.pk) ? " (auf Pump)" : ""}
+              {t("ui2.ui.welt.Verhandlungstisch.9bc1843")} <b>{b.pk}</b> {t("ui2.ui.welt.Verhandlungstisch.28d438e")}{nurAufPump(kapital, b.pk) ? t("ui2.ui.welt.Verhandlungstisch.398e48f") : ""}
             </span>
             <button type="button" className="brass-button we-senden" disabled={nichts || !kannBezahlen} onClick={unterbreite}>
-              {b.urteil === "veto" ? "Trotzdem vorlegen" : "Angebot unterbreiten"}
+              {b.urteil === "veto" ? t("ui2.ui.welt.Verhandlungstisch.8269976") : t("ui2.ui.welt.Verhandlungstisch.c496d92")}
             </button>
           </>
         )}

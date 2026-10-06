@@ -98,11 +98,11 @@ export function Umfeld({
                       </span>
                     </span>
                     <span className="pe-zeile" style={{ flexWrap: "wrap" }}>
-                      {e.kommissarisch && <Marke art="gold">kommissarisch</Marke>}
+                      {e.kommissarisch && <Marke art="gold">{t("ui2.ui.personen.Umfeld.5d54a5d")}</Marke>}
                       {e.auftrag?.status === "laeuft" && <Marke art="gruen">{t("ui.personen.Umfeld.357a028")}</Marke>}
                       {e.groll >= 40 && p.amt !== "opposition" && <Marke art="rot">{grollWort(e.groll)}</Marke>}
                       {p.loyalitaet < 25 && p.amt !== "opposition" && <Marke art="rot">{t("ui.personen.Umfeld.434c793")}</Marke>}
-                      {zus > 0 && <Marke art="gold">{zus === 1 ? "1 Zusage" : `${zus} Zusagen`}</Marke>}
+                      {zus > 0 && <Marke art="gold">{zus === 1 ? "1 Zusage" : t("ui2.ui.personen.Umfeld.4e66df4", { p0: zus })}</Marke>}
                     </span>
                   </span>
                 </button>
@@ -112,11 +112,11 @@ export function Umfeld({
         ))}
         {(spiel.ehemalige?.length ?? 0) > 0 && (
           <div className="pe-ehemalige">
-            <div className="pe-gruppe">Ausgeschieden</div>
+            <div className="pe-gruppe">{t("ui2.ui.personen.Umfeld.d9790e8")}</div>
             <ul>
               {[...spiel.ehemalige!].reverse().slice(0, 5).map((x) => (
                 <li key={`${x.name}-${x.ausgeschieden}`}>
-                  <strong>{x.name}</strong>, {x.rolle}: {x.grund} ({datum(world, x.ausgeschieden)}).{x.ausgepackt ? " Hat ausgepackt." : x.groll >= 55 && x.ehrgeiz >= 40 ? " Könnte reden." : ""}
+                  <strong>{x.name}</strong>, {x.rolle}: {x.grund} ({datum(world, x.ausgeschieden)}).{x.ausgepackt ? t("ui2.ui.personen.Umfeld.af920b2") : x.groll >= 55 && x.ehrgeiz >= 40 ? t("ui2.ui.personen.Umfeld.e180454") : ""}
                 </li>
               ))}
             </ul>
@@ -129,7 +129,7 @@ export function Umfeld({
         {f && (
           <>
             <button className="pe-zurueck" onClick={() => setAuswahl(null)}>
-              ← Alle Personen
+              {t("ui2.ui.personen.Umfeld.f62e55c")}
             </button>
             {modus === "gespraech" && <GespraechSzene key={`${f.id}-${world.day}`} world={world} figur={f} refresh={refresh} onFertig={() => setModus("detail")} />}
             {(modus === "entlassen" || modus === "nachfolge") && (
@@ -178,27 +178,27 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
           <div className="pe-marken">
             <Marke>{STIL_NAMEN[e.stil]}</Marke>
             <Marke art="gold">{LAGER_NAMEN[e.lager]}</Marke>
-            {e.kommissarisch && <Marke art="rot">kommissarisch</Marke>}
-            {e.einarbeitungBis !== undefined && e.einarbeitungBis > world.day && <Marke>arbeitet sich ein bis {datum(world, e.einarbeitungBis)}</Marke>}
-            {e.mittelBis !== undefined && e.mittelBis > world.day && <Marke art="gruen">Zusatzmittel bis {datum(world, e.mittelBis)}</Marke>}
-            {e.druckBis !== undefined && e.druckBis > world.day && <Marke art="rot">unter Druck</Marke>}
+            {e.kommissarisch && <Marke art="rot">{t("ui2.ui.personen.Umfeld.5d54a5d")}</Marke>}
+            {e.einarbeitungBis !== undefined && e.einarbeitungBis > world.day && <Marke>{t("ui2.ui.personen.Umfeld.31f3f5e", { p0: datum(world, e.einarbeitungBis) })}</Marke>}
+            {e.mittelBis !== undefined && e.mittelBis > world.day && <Marke art="gruen">{t("ui2.ui.personen.Umfeld.8038b75", { p0: datum(world, e.mittelBis) })}</Marke>}
+            {e.druckBis !== undefined && e.druckBis > world.day && <Marke art="rot">{t("ui2.ui.personen.Umfeld.43f31d1")}</Marke>}
           </div>
         </div>
       </div>
 
       <div className="pe-werte">
-        <Balken label={t("ui.personen.Umfeld.87f6f23")} wert={f.loyalitaet} wort={haltung(f)} hinweis={`Loyalität ${Math.round(f.loyalitaet)} von 100`} />
-        {f.amt !== "opposition" && <Balken label="Groll" wert={e.groll} ton={tonVon(e.groll, true)} wort={grollWort(e.groll)} hinweis="Aufgestauter Ärger: führt zu Durchstechereien und zum Bruch" />}
-        <Balken label="Ehrgeiz" wert={e.ehrgeiz} ton={e.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(e.ehrgeiz)} hinweis="Ehrgeizige sind gefährlich, wenn sie übergangen werden" />
-        {d.wirkung.length > 0 && <Balken label="Ressortleistung" wert={Math.min(100, q * 100)} wort={leistungWort(q)} hinweis="Aus Fähigkeit und Loyalität; Zusatzmittel und Druck erhöhen, Einarbeitung senkt" />}
+        <Balken label={t("ui.personen.Umfeld.87f6f23")} wert={f.loyalitaet} wort={haltung(f)} hinweis={t("ui2.ui.personen.Umfeld.5abc3cc", { p0: Math.round(f.loyalitaet) })} />
+        {f.amt !== "opposition" && <Balken label={t("ui2.ui.personen.Umfeld.3c20244")} wert={e.groll} ton={tonVon(e.groll, true)} wort={grollWort(e.groll)} hinweis={t("ui2.ui.personen.Umfeld.8e094b6")} />}
+        <Balken label={t("ui2.ui.personen.Umfeld.3cdcb44")} wert={e.ehrgeiz} ton={e.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(e.ehrgeiz)} hinweis={t("ui2.ui.personen.Umfeld.fb3dd93")} />
+        {d.wirkung.length > 0 && <Balken label={t("ui2.ui.personen.Umfeld.1f34211")} wert={Math.min(100, q * 100)} wort={leistungWort(q)} hinweis={t("ui2.ui.personen.Umfeld.6b665e0")} />}
       </div>
 
       <div className="pe-block">
-        <h4>Was {f.weiblich ? "sie" : "er"} will</h4>
+        <h4>{t("ui2.ui.personen.Umfeld.9f39c02")} {f.weiblich ? "sie" : "er"} will</h4>
         <p>{f.ziel}</p>
       </div>
       <div className="pe-block">
-        <h4>Was {f.weiblich ? "sie" : "er"} gerade umtreibt</h4>
+        <h4>{t("ui2.ui.personen.Umfeld.9f39c02")} {f.weiblich ? "sie" : "er"} {t("ui2.ui.personen.Umfeld.3bd0592")}</h4>
         <p>{sorgeText(world, f)}</p>
       </div>
 
@@ -206,7 +206,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
 
       {lage.length > 0 && (
         <div className="pe-block">
-          <h4>Lage im Ressort {d.ressort}</h4>
+          <h4>{t("ui2.ui.personen.Umfeld.696da9e", { p0: d.ressort })}</h4>
           <div className="pe-lage">
             {lage.map((l) => (
               <Balken key={l.id} label={l.name} wert={l.wert} ton={l.ton} wort={`${Math.round(l.wert)}${l.schlechtWennHoch ? " (hoch = schlecht)" : ""}`} klein />
@@ -217,35 +217,35 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
 
       {d.wirkung.length > 0 && (
         <div className="pe-block">
-          <h4>Was {f.weiblich ? "sie" : "er"} im Ressort bewirkt</h4>
+          <h4>{t("ui2.ui.personen.Umfeld.9f39c02")} {f.weiblich ? "sie" : "er"} {t("ui2.ui.personen.Umfeld.74d9e99")}</h4>
           <p>
             {ressortWirkungSicht(world, f)
               .map((x) => `${x.name} ${x.punkte >= 0 ? "+" : "−"}${nf(Math.abs(x.punkte), 1)}`)
               .join(", ")}{" "}
-            Punkte auf Dauer (Leistung {leistungWort(q)}). Wer nachlässt oder gegen Sie arbeitet, bremst das Ressort.
+            {t("ui2.ui.personen.Umfeld.4997875", { p0: leistungWort(q) })}
           </p>
         </div>
       )}
 
       {a && (
         <div className={`pe-auftrag ${a.status}`}>
-          <h4 style={{ margin: 0, font: "600 11px var(--display)", letterSpacing: "0.13em", textTransform: "uppercase", color: "var(--ink-soft)" }}>Auftrag</h4>
+          <h4 style={{ margin: 0, font: "600 11px var(--display)", letterSpacing: "0.13em", textTransform: "uppercase", color: "var(--ink-soft)" }}>{t("ui2.ui.personen.Umfeld.4ec1a90")}</h4>
           <div>
-            <strong>{a.text}</strong>: {NAME(a.groesse)} von {Math.round(a.vorher)} um mindestens {a.delta} Punkte {a.richtung > 0 ? "steigern" : "senken"}, bis {datum(world, a.frist)}.
+            <strong>{a.text}</strong>{t("ui2.ui.personen.Umfeld.6dca946", { p0: NAME(a.groesse), p1: Math.round(a.vorher), p2: a.delta })} {a.richtung > 0 ? t("ui2.ui.personen.Umfeld.538533a") : t("ui2.ui.personen.Umfeld.4550ae0")}{t("ui2.ui.personen.Umfeld.76822c8", { p0: datum(world, a.frist) })}
           </div>
-          {a.status === "laeuft" && auftragStand !== undefined && <Balken wert={auftragStand * 100} wort={`${Math.round(auftragStand * 100)} %`} ton={auftragStand >= 0.6 ? "gut" : auftragStand >= 0.25 ? "mittel" : "schlecht"} klein label={`Fortschritt (jetzt ${Math.round(wertVon(world, a.groesse))})`} />}
-          {a.status === "erfuellt" && <div>Erfüllt: {Math.round(a.vorher)} auf {Math.round(a.nachher ?? 0)}.</div>}
-          {a.status === "verfehlt" && <div>Verfehlt: {Math.round(a.vorher)} auf {Math.round(a.nachher ?? 0)}.</div>}
-          {e.bilanz && <div className="subtitle" style={{ margin: 0 }}>Bisher: {e.bilanz.erfuellt} erfüllt, {e.bilanz.verfehlt} verfehlt.</div>}
+          {a.status === "laeuft" && auftragStand !== undefined && <Balken wert={auftragStand * 100} wort={`${Math.round(auftragStand * 100)} %`} ton={auftragStand >= 0.6 ? "gut" : auftragStand >= 0.25 ? "mittel" : "schlecht"} klein label={t("ui2.ui.personen.Umfeld.b1ef968", { p0: Math.round(wertVon(world, a.groesse)) })} />}
+          {a.status === "erfuellt" && <div>{t("ui2.ui.personen.Umfeld.c1aa0a7", { p0: Math.round(a.vorher), p1: Math.round(a.nachher ?? 0) })}</div>}
+          {a.status === "verfehlt" && <div>{t("ui2.ui.personen.Umfeld.cffd6ad", { p0: Math.round(a.vorher), p1: Math.round(a.nachher ?? 0) })}</div>}
+          {e.bilanz && <div className="subtitle" style={{ margin: 0 }}>{t("ui2.ui.personen.Umfeld.fddaa27", { p0: e.bilanz.erfuellt, p1: e.bilanz.verfehlt })}</div>}
         </div>
       )}
 
       {zus.length > 0 && (
         <div className="pe-block">
-          <h4>Offene Zusagen</h4>
+          <h4>{t("ui2.ui.personen.Umfeld.9049d8e")}</h4>
           {zus.map((z) => (
             <p key={z.z.id}>
-              {z.z.text}: fällig {z.tage < 0 ? "seit" : "in"} {Math.abs(z.tage)} Tagen ({formatDateDe(z.datum)}).
+              {t("ui2.ui.personen.Umfeld.cd4f025", { p0: z.z.text })} {z.tage < 0 ? t("ui2.ui.personen.Umfeld.af1b471") : t("ui2.ui.personen.Umfeld.af10ef2")} {t("ui2.ui.personen.Umfeld.1c7f52e", { p0: Math.abs(z.tage), p1: formatDateDe(z.datum) })}
             </p>
           ))}
         </div>
@@ -253,7 +253,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
 
       <div className="pe-aktionen">
         {sprechbar(f) ? (
-          <button className="pe-aktion haupt" disabled={!!grund} title={grund ?? "Ein Gespräch: Thema und Ansatz wählen"} onClick={() => onModus("gespraech")}>
+          <button className="pe-aktion haupt" disabled={!!grund} title={grund ?? t("ui2.ui.personen.Umfeld.7e4fc7d")} onClick={() => onModus("gespraech")}>
             {t("ui.personen.Umfeld.9abd389")}
           </button>
         ) : (
@@ -261,12 +261,12 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
         )}
         {e.kommissarisch && (
           <button className="pe-aktion" disabled={!kannZahlen(spiel.kapital, 1)} onClick={() => onModus("nachfolge")}>
-            Nachfolger ernennen
+            {t("ui2.ui.personen.Umfeld.4f4a5d3")}
           </button>
         )}
         {d.entlassbar && !e.kommissarisch && (
           <button className="pe-aktion leise" onClick={() => onModus("entlassen")} title={t("ui.personen.Umfeld.592baca")}>
-            Entlassen …
+            {t("ui2.ui.personen.Umfeld.dd0f76f")}
           </button>
         )}
         {f.amt === "zentralbank" && <p className="subtitle" style={{ margin: 0 }}>{t("ui.personen.Umfeld.7920b3c")}</p>}
@@ -275,7 +275,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
 
       {erinnerungen(f).length > 0 && (
         <div className="pe-block">
-          <h4>Erinnerung</h4>
+          <h4>{t("ui2.ui.personen.Umfeld.d95298f")}</h4>
           <ul className="pe-erinnerung">
             {erinnerungen(f).slice(0, 6).map((x, i) => (
               <li key={i}>
@@ -287,7 +287,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
         </div>
       )}
       <p className="subtitle" style={{ margin: 0 }}>
-        Seit {datum(world, e.seit)} im Amt · Gespräche binden Termine: höchstens vier in dreißig Tagen · Aufträge laufen {Math.round(AUFTRAG_TAGE / 30)} Monate · {nf(f.loyalitaet, 0)} Loyalität
+        {t("ui2.ui.personen.Umfeld.4de8751", { p0: datum(world, e.seit), p1: Math.round(AUFTRAG_TAGE / 30), p2: nf(f.loyalitaet, 0) })}
       </p>
     </>
   );

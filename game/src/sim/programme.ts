@@ -10,6 +10,8 @@ import { clamp } from "./economy";
 import type { World } from "./types";
 import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
+import { t, zahl } from "../i18n";
+import { datenTexte } from "../i18n/daten";
 
 export type Bedingung =
   | { art: "massnahme"; id: string; min: number }
@@ -147,6 +149,9 @@ export const PROGRAMME: Programm[] = [
   },
 ];
 
+datenTexte("programm", PROGRAMME, (p) => p.id, ["titel", "leitbild"]);
+for (const p of PROGRAMME) datenTexte(`programm.${p.id}`, p.schritte, (x) => x.id, ["titel", "text", "ergebnis"]);
+
 const SCHRITT = new Map<string, { schritt: Schritt; programm: Programm }>();
 for (const p of PROGRAMME) for (const s of p.schritte) SCHRITT.set(s.id, { schritt: s, programm: p });
 
@@ -185,18 +190,18 @@ const name = (id: string): string => NET.nodes[NET.index.get(id)!]!.name;
 export function pruefeBedingung(w: World, b: Bedingung): BedingungsStand {
   switch (b.art) {
     case "keine":
-      return { bedingung: b, erfuellt: true, fortschritt: 1, text: "Keine Voraussetzung" };
+      return { bedingung: b, erfuellt: true, fortschritt: 1, text: t("bed.keine") };
     case "massnahme": {
       const jetzt = nationalAverage(NET, w.net, b.id);
       const start = startAverage(NET, w.net, b.id);
       const f = start >= b.min ? 1 : clamp((jetzt - start) / (b.min - start), 0, 1);
-      return { bedingung: b, erfuellt: jetzt >= b.min - 0.5, fortschritt: f, text: `${name(b.id)} mindestens auf Stufe ${b.min} (jetzt ${Math.round(jetzt)})` };
+      return { bedingung: b, erfuellt: jetzt >= b.min - 0.5, fortschritt: f, text: t("bed.massnahme", { name: name(b.id), min: b.min, jetzt: Math.round(jetzt) }) };
     }
     case "massnahme-max": {
       const jetzt = nationalAverage(NET, w.net, b.id);
       const start = startAverage(NET, w.net, b.id);
       const f = start <= b.max ? 1 : clamp((start - jetzt) / (start - b.max), 0, 1);
-      return { bedingung: b, erfuellt: jetzt <= b.max + 0.5, fortschritt: f, text: `${name(b.id)} höchstens auf Stufe ${b.max} (jetzt ${Math.round(jetzt)})` };
+      return { bedingung: b, erfuellt: jetzt <= b.max + 0.5, fortschritt: f, text: t("bed.massnahmeMax", { name: name(b.id), max: b.max, jetzt: Math.round(jetzt) }) };
     }
     case "groesse": {
       const jetzt = nationalAverage(NET, w.net, b.id);
@@ -204,22 +209,22 @@ export function pruefeBedingung(w: World, b: Bedingung): BedingungsStand {
       const start = startAverage(NET, w.net, b.id);
       const ziel = b.min ?? b.max!;
       const f = ok ? 1 : clamp(1 - Math.abs(ziel - jetzt) / Math.max(1, Math.abs(ziel - start)), 0, 1);
-      return { bedingung: b, erfuellt: ok, fortschritt: f, text: `${name(b.id)} ${b.min !== undefined ? `mindestens ${b.min}` : `höchstens ${b.max}`} (jetzt ${Math.round(jetzt)})` };
+      return { bedingung: b, erfuellt: ok, fortschritt: f, text: t(b.min !== undefined ? "bed.groesseMin" : "bed.groesseMax", { name: name(b.id), grenze: b.min ?? b.max!, jetzt: Math.round(jetzt) }) };
     }
     case "problem": {
       const n = anzahlAkut(w, b.id);
       const n0 = 81;
-      return { bedingung: b, erfuellt: n <= b.maxProvinzen, fortschritt: n <= b.maxProvinzen ? 1 : clamp(1 - (n - b.maxProvinzen) / Math.max(1, n0), 0, 1), text: `${name(b.id)} in höchstens ${b.maxProvinzen} Provinzen akut (jetzt ${n})` };
+      return { bedingung: b, erfuellt: n <= b.maxProvinzen, fortschritt: n <= b.maxProvinzen ? 1 : clamp(1 - (n - b.maxProvinzen) / Math.max(1, n0), 0, 1), text: t("bed.problem", { name: name(b.id), max: b.maxProvinzen, jetzt: n }) };
     }
     case "inflation": {
       const i = w.published.inflation.value;
       const start = w.spiel?.start.inflation ?? i;
-      return { bedingung: b, erfuellt: i <= b.max, fortschritt: i <= b.max ? 1 : clamp((start - i) / Math.max(1, start - b.max), 0, 1), text: `Inflation höchstens ${b.max} % (jetzt ${i.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %)` };
+      return { bedingung: b, erfuellt: i <= b.max, fortschritt: i <= b.max ? 1 : clamp((start - i) / Math.max(1, start - b.max), 0, 1), text: t("bed.inflation", { max: b.max, jetzt: zahl(Math.round(i * 10) / 10) }) };
     }
     case "ruhe-zentralbank": {
       const letzter = programmZustand(w).zentralbankAngriff;
       const seit = letzter === undefined ? w.day : w.day - letzter;
-      return { bedingung: b, erfuellt: seit >= b.tage, fortschritt: clamp(seit / b.tage, 0, 1), text: `${Math.round(b.tage / 30)} Monate ohne Angriff auf die Zentralbank (bisher ${Math.floor(seit / 30)})` };
+      return { bedingung: b, erfuellt: seit >= b.tage, fortschritt: clamp(seit / b.tage, 0, 1), text: t("bed.ruheZentralbank", { monate: Math.round(b.tage / 30), bisher: Math.floor(seit / 30) }) };
     }
   }
 }
@@ -261,19 +266,19 @@ export function schrittSicht(w: World, s: Schritt): SchrittSicht {
 export function starteSchritt(w: World, id: string): { ok: boolean; text: string; why?: string } {
   const eintrag = SCHRITT.get(id);
   const spiel = w.spiel;
-  if (!eintrag || !spiel) return { ok: false, text: "Diesen Schritt gibt es nicht." };
+  if (!eintrag || !spiel) return { ok: false, text: t("programm.fehler.unbekannt") };
   const sicht = schrittSicht(w, eintrag.schritt);
-  if (sicht.status !== "bereit") return { ok: false, text: sicht.status === "gesperrt" ? `Erst muss fertig sein: ${sicht.fehlt.join(", ")}.` : sicht.status === "offen" ? "Die Voraussetzungen sind noch nicht erfüllt." : "Dieser Schritt läuft oder ist schon fertig." };
+  if (sicht.status !== "bereit") return { ok: false, text: sicht.status === "gesperrt" ? t("programm.fehler.gesperrt", { liste: sicht.fehlt.join(", ") }) : sicht.status === "offen" ? t("programm.fehler.offen") : t("programm.fehler.laeuft") };
   const z = programmZustand(w);
-  if (z.laufend.length >= MAX_LAUFEND) return { ok: false, text: `Es können höchstens ${MAX_LAUFEND} Schritte gleichzeitig laufen.` };
-  if (!kannZahlen(spiel.kapital, eintrag.schritt.kapital)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${eintrag.schritt.kapital}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  if (z.laufend.length >= MAX_LAUFEND) return { ok: false, text: t("programm.fehler.maxLaufend", { n: MAX_LAUFEND }) };
+  if (!kannZahlen(spiel.kapital, eintrag.schritt.kapital)) return { ok: false, text: t("programm.fehler.kapital", { noetig: eintrag.schritt.kapital, da: Math.floor(spiel.kapital) }) };
   const pause = neuanfangGrund(w);
   if (pause) return { ok: false, text: pause };
   spiel.kapital -= eintrag.schritt.kapital;
   verbrauche(w, AUFMERKSAMKEIT_KOSTEN.programmSchritt, eintrag.schritt.titel);
   z.laufend.push({ schritt: id, start: w.day, ende: w.day + eintrag.schritt.tage });
-  const text = `Programm „${eintrag.programm.titel}“: ${eintrag.schritt.titel} beginnt.`;
-  const why = `Kostet ${eintrag.schritt.kapital} Kapital und dauert etwa ${Math.round(eintrag.schritt.tage / 30)} ${Math.round(eintrag.schritt.tage / 30) === 1 ? "Monat" : "Monate"}. Danach: ${eintrag.schritt.ergebnis}.`;
+  const text = t("programm.log.beginnt", { programm: eintrag.programm.titel, schritt: eintrag.schritt.titel });
+  const why = t("programm.log.kostet", { kapital: eintrag.schritt.kapital, monate: Math.round(eintrag.schritt.tage / 30), ergebnis: eintrag.schritt.ergebnis });
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }
@@ -294,10 +299,10 @@ export function programmTag(w: World): void {
     if (s.bonusKapital) spiel.kapital = Math.min(150, spiel.kapital + s.bonusKapital);
     if (s.rabatt) spiel.modifikatoren = { ...(spiel.modifikatoren ?? {}), [`rabatt:${s.rabatt.thema}`]: (spiel.modifikatoren?.[`rabatt:${s.rabatt.thema}`] ?? 0) + s.rabatt.anteil };
     if (s.schutz) spiel.modifikatoren = { ...(spiel.modifikatoren ?? {}), [`schutz:${s.schutz.ereignis}`]: s.schutz.faktor };
-    const titel = s.vermaechtnis ? `Programm erfüllt: ${e.programm.titel}` : `Schritt erreicht: ${s.titel}`;
+    const titel = s.vermaechtnis ? t("programm.log.erfuellt", { titel: e.programm.titel }) : t("programm.log.erreicht", { titel: s.titel });
     spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `${s.text} ${s.ergebnis}.` });
     addLog(w, "ereignis", titel, `${s.text} ${s.ergebnis}.`);
-    spiel.hinweise.push({ id: `programm-${s.id}-${w.day}`, titel, szene: "istanbul", text: [s.text, `Wirkung: ${s.ergebnis}.`] });
+    spiel.hinweise.push({ id: `programm-${s.id}-${w.day}`, titel, szene: "istanbul", text: [s.text, t("programm.log.wirkung", { ergebnis: s.ergebnis })] });
   }
 }
 

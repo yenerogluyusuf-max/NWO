@@ -18,7 +18,7 @@ function ParteiBlock({ seite, vertrauen, titel }: { seite: KonfliktSicht["def"][
     <div className="we-partei">
       <b>{seite.name}</b>
       <span className="we-partei-vertrauen" title={t("ui.welt.Vermittlung.9b946fb")}>
-        Vertrauen in Ankara: {Math.round(vertrauen)}
+        {t("ui2.ui.welt.Vermittlung.5278431", { p0: Math.round(vertrauen) })}
       </span>
       <i>{titel}</i>
       <ul>
@@ -26,7 +26,7 @@ function ParteiBlock({ seite, vertrauen, titel }: { seite: KonfliktSicht["def"][
           <li key={f}>{f}</li>
         ))}
       </ul>
-      <i>Rote Linien</i>
+      <i>{t("ui2.ui.welt.Vermittlung.35de898")}</i>
       <ul className="we-rot">
         {seite.roteLinien.map((r) => (
           <li key={r}>{r}</li>
@@ -48,13 +48,13 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
   };
   return (
     <section className="we-vermittlung">
-      <h3>Vermittlung zwischen Dritten</h3>
+      <h3>{t("ui2.ui.welt.Vermittlung.2798547")}</h3>
       <p className="subtitle">
         {t("ui.welt.Vermittlung.a018877")}
       </p>
 
       {/* Konflikt-Auswahl */}
-      <div className="we-konflikte" role="tablist" aria-label="Konflikte">
+      <div className="we-konflikte" role="tablist" aria-label={t("ui2.ui.welt.Vermittlung.e7fad87")}>
         {liste.map((k) => (
           <button
             key={k.def.id}
@@ -75,7 +75,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
             <b>{k.def.titel}</b>
             <span className={`we-status st-${k.status}`}>{STATUS_NAME[k.status]}</span>
             <span className="we-konflikt-zahlen">
-              Reif {Math.round(k.z.reif)} · Konflikt {Math.round(k.z.konfliktIndex)} · ZOPA {ZOPA_LABEL[k.zopa.stufe]}
+              {t("ui2.ui.welt.Vermittlung.63606da", { p0: Math.round(k.z.reif), p1: Math.round(k.z.konfliktIndex), p2: ZOPA_LABEL[k.zopa.stufe] })}
             </span>
           </button>
         ))}
@@ -91,14 +91,14 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
         <p>{s.def.text}</p>
 
         <div className="we-parteien">
-          <ParteiBlock seite={s.def.a} vertrauen={s.vertrauenA} titel="Kernforderungen" />
-          <ParteiBlock seite={s.def.b} vertrauen={s.vertrauenB} titel="Kernforderungen" />
+          <ParteiBlock seite={s.def.a} vertrauen={s.vertrauenA} titel={t("ui2.ui.welt.Vermittlung.727eda0")} />
+          <ParteiBlock seite={s.def.b} vertrauen={s.vertrauenB} titel={t("ui2.ui.welt.Vermittlung.727eda0")} />
         </div>
 
         {/* Reif-Kurve */}
-        <div className="we-reif" aria-label={`Reife der Lage ${Math.round(s.z.reif)} von 100`}>
+        <div className="we-reif" aria-label={t("ui2.ui.welt.Vermittlung.4ccf31c", { p0: Math.round(s.z.reif) })}>
           <div className="we-aussicht">
-            <span>Reife</span>
+            <span>{t("ui2.ui.welt.Vermittlung.8b40871")}</span>
             <span className="we-balken">
               <i style={{ width: `${s.z.reif}%` }} />
             </span>
@@ -119,7 +119,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
             <span>{t("ui.welt.Vermittlung.50a2ead")}</span>
             <b>{ZOPA_LABEL[s.zopa.stufe]}</b>
           </div>
-          <div className="we-zopa-band" aria-label={`Bandbreite ${s.zopa.breite} von 100`}>
+          <div className="we-zopa-band" aria-label={t("ui2.ui.welt.Vermittlung.d44ed47", { p0: s.zopa.breite })}>
             <i style={{ width: `${s.zopa.breite}%` }} />
           </div>
           {s.zopa.gruende.map((g) => (
@@ -138,8 +138,8 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
         </div>
 
         {/* Vermittlungsversuch */}
-        <div className="we-aussicht" aria-label={`Aussicht ${s.aussicht} Prozent`}>
-          <span>Aussicht{s.z.garantieAngebot ? ` (mit Garantie „${GARANTIEN[s.z.garantieAngebot].label}")` : ""}</span>
+        <div className="we-aussicht" aria-label={t("ui2.ui.welt.Vermittlung.3d6600b", { p0: s.aussicht })}>
+          <span>{t("ui2.ui.welt.Vermittlung.dbf3ace")}{s.z.garantieAngebot ? t("ui2.ui.welt.Vermittlung.40284ec", { p0: GARANTIEN[s.z.garantieAngebot].label }) : ""}</span>
           <span className="we-balken">
             <i style={{ width: `${s.aussicht}%` }} />
           </span>
@@ -153,7 +153,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
             title={s.grund}
             onClick={() => tue(() => vermittle(world, s.def.id, new Rng(world.day * 7919 + s.def.id.length * 104729)))}
           >
-            Vermitteln <b>{s.def.pk}</b>
+            {t("ui2.ui.welt.Vermittlung.ec20cb6")} <b>{s.def.pk}</b>
           </button>
           {s.grund && <span className="we-grund">{s.grund}</span>}
         </div>
@@ -166,7 +166,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
         {/* Handlungsleiste: Vorbereitung */}
         {s.z.einigung === undefined && (
           <div className="we-handlungen">
-            <b>Reife schaffen</b>
+            <b>{t("ui2.ui.welt.Vermittlung.7be846f")}</b>
             <div className="we-handlungen-leiste">
               {s.vorbereitungen.map((v) => (
                 <button
@@ -182,26 +182,26 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
               ))}
             </div>
             <p className="we-hinweis">
-              {s.vorbereitungen.find((v) => v.grund)?.grund ?? "Kanäle, Vertrauensmaßnahmen und die Gastgeberrolle lassen die Lage reifen — Spoiler können alles zurückwerfen."}
+              {s.vorbereitungen.find((v) => v.grund)?.grund ?? t("ui2.ui.welt.Vermittlung.6821fd1")}
             </p>
           </div>
         )}
 
         {/* Garantie-Baukasten */}
         <div className="we-garantien">
-          <b>Garantien</b>
+          <b>{t("ui2.ui.welt.Vermittlung.c51aac3")}</b>
           <div className="we-garantien-leiste">
             {s.garantien.map((g) => (
               <div key={g.def.id} className={`we-garantie${g.aktiv ? " aktiv" : ""}${g.angeboten ? " angeboten" : ""}`}>
                 <b>{g.def.label}</b>
                 <p>{g.def.text}</p>
                 <p className="we-garantie-preis">
-                  Angebot {g.def.pk} Kapital, Aufbau {g.def.bip.toLocaleString("de-DE")} % des BIP, danach {g.def.monatPk.toLocaleString("de-DE")} Kapital im Monat · Aussicht +{g.def.aussicht}
+                  {t("ui2.ui.welt.Vermittlung.633b9bc", { p0: g.def.pk, p1: g.def.bip.toLocaleString("de-DE"), p2: g.def.monatPk.toLocaleString("de-DE"), p3: g.def.aussicht })}
                 </p>
                 <p className="we-garantie-risiko">{g.def.risiko}</p>
                 {g.aktiv ? (
-                  <button type="button" className="aktion-knopf klein" title={s.z.konfliktIndex <= 25 ? "Geordnet beenden: ohne Gesichtsverlust" : "Mitten im Konflikt: Gesichtsverlust (Ansehen −2)"} onClick={() => tue(() => beendeGarantie(world, s.def.id))}>
-                    Garantie beenden
+                  <button type="button" className="aktion-knopf klein" title={s.z.konfliktIndex <= 25 ? t("ui2.ui.welt.Vermittlung.e6e4576") : t("ui2.ui.welt.Vermittlung.63b85c5")} onClick={() => tue(() => beendeGarantie(world, s.def.id))}>
+                    {t("ui2.ui.welt.Vermittlung.53a5aae")}
                   </button>
                 ) : g.angeboten ? (
                   <span className="we-angeboten">{t("ui.welt.Vermittlung.a044cfb")}</span>
@@ -213,7 +213,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
                     title={g.grund}
                     onClick={() => tue(() => bieteGarantie(world, s.def.id, g.def.id as GarantieArtId))}
                   >
-                    Anbieten <b>{g.def.pk}</b>
+                    {t("ui2.ui.welt.Vermittlung.c89b35b")} <b>{g.def.pk}</b>
                   </button>
                 )}
                 {g.grund && !g.aktiv && !g.angeboten && <span className="we-grund">{g.grund}</span>}

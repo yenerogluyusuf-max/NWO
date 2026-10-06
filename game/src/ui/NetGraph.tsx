@@ -7,6 +7,7 @@ import type { NodeSpec, EdgeSpec } from "../data/politiknetz";
 import { wann } from "./lernen";
 
 import { t } from "../i18n";
+import { t as tx } from "../i18n";
 // Die Zeichnung ist bewusst schmal (W = 820), damit sie in der Spalte kaum verkleinert wird und die Schrift lesbar bleibt.
 const W = 820;
 const COL_L = 96;
@@ -95,7 +96,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
 
   return (
     <div className="netgraph-block">
-    <svg className="netgraph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Ursachen und Wirkungen von ${node.name}`}>
+    <svg className="netgraph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={tx("ui2.ui.NetGraph.68b1b53", { p0: node.name })}>
       <defs>
         <marker id="ng-plus" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10 Z" fill="#265a62" />
@@ -107,8 +108,8 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
           <path d="M0 0 L10 5 L0 10 Z" fill="#2a1f18" />
         </marker>
       </defs>
-      <text x={COL_L} y="14" textAnchor="middle" className="ng-head">Ursachen</text>
-      <text x={COL_R} y="14" textAnchor="middle" className="ng-head">Wirkungen</text>
+      <text x={COL_L} y="14" textAnchor="middle" className="ng-head">{tx("ui2.ui.NetGraph.7757ec0")}</text>
+      <text x={COL_R} y="14" textAnchor="middle" className="ng-head">{tx("ui2.ui.NetGraph.1fac6b5")}</text>
       {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - MITTE_HALB, cy, e, `c${e.from}`, 0.5))}
       {effects.map((e, i) => arrow(W / 2 + MITTE_HALB, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e, `e${e.to}`, 0.5))}
       {causes.map((e, i) => (
@@ -123,7 +124,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
           <circle cx={COL_L} cy={cy} r="34" fill={node.input ? "#265a62" : "#8e2a22"} stroke="#2a1f18" />
           <circle cx={COL_L} cy={cy} r="27" fill="none" stroke="#f6dcc2" strokeOpacity="0.5" strokeDasharray="1 2" />
           <text x={COL_L} y={cy + 7} textAnchor="middle" className="ng-seal">{node.input ? "₺" : "§"}</text>
-          <text x={COL_L} y={cy + 56} textAnchor="middle" className="ng-empty">{node.input ? "aus dem Wirtschaftsmodell" : "Beschluss der Regierung"}</text>
+          <text x={COL_L} y={cy + 56} textAnchor="middle" className="ng-empty">{node.input ? tx("ui2.ui.NetGraph.ea70511") : tx("ui2.ui.NetGraph.daad2ce")}</text>
         </g>
       )}
       <NodeBox node={node} x={W / 2} y={cy} main />
@@ -139,7 +140,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       </li>
       <li>
         <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" /></svg>
-        <span>wirkt sofort</span>
+        <span>{tx("ui2.ui.NetGraph.f1b5273")}</span>
       </li>
       <li>
         <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" strokeDasharray="6 4" /></svg>

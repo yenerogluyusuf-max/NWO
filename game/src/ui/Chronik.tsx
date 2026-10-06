@@ -51,12 +51,12 @@ export function Chronik({ world }: { world: World }) {
   return (
     <div className="chronik-akte">
       <section className="paper">
-        <h3>Zustimmung</h3>
+        <h3>{t("ui2.ui.Chronik.043f72f")}</h3>
         <p className="subtitle">{kopf}</p>
         <Verlauf werte={werte} beschriftung={t("medien.chronik.verlauf")} />
       </section>
       <section className="paper">
-        <h3>Was geschah</h3>
+        <h3>{t("ui2.ui.Chronik.7be9d26")}</h3>
         {spiel.chronik.length === 0 && <p className="subtitle">{t("ui.Chronik.f33e781")}</p>}
         <ul className="chronik">
           {[...spiel.chronik].reverse().map((c, i) => (

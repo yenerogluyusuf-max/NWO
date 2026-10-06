@@ -36,6 +36,7 @@ import { Neues } from "./reich/Neues";
 import { Lohnt, PflegeListe, Zeilen, lohnendste } from "./reich/Pflege";
 import { Verlauf } from "./reich/Verlauf";
 import { t, aktuelleLocale } from "../i18n";
+import { t as tx } from "../i18n";
 import "./reich/reich.css";
 
 const GROESSEN: Record<Bereich, GroesseDef[]> = {
@@ -111,8 +112,8 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
               <div className="rr-bau-kopf">
                 <strong>{v.name}</strong>
                 <span className="rr-bau-info">
-                  Position {nr + 1} · {Math.round(f * 100)} % ·{" "}
-                  {l.pausiert ? "ruht" : rate > 0 ? `${rate.toLocaleString("de-DE", { maximumFractionDigits: 0 })} Baupunkte im Monat` : "wartet auf Baukapazität"}
+                  {tx("ui2.ui.Reich.5950cd8", { p0: nr + 1, p1: Math.round(f * 100) })}{" "}
+                  {l.pausiert ? "ruht" : rate > 0 ? tx("ui2.ui.Reich.d7fc5d0", { p0: rate.toLocaleString("de-DE", { maximumFractionDigits: 0 }) }) : tx("ui2.ui.Reich.6202407")}
                 </span>
               </div>
               <span className="rr-balken" aria-hidden>
@@ -120,7 +121,7 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
               </span>
               <div className="rr-bau-knoepfe">
                 <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, l.id, !l.pausiert); refresh(); }}>
-                  {l.pausiert ? "Weiter" : "Pausieren"}
+                  {l.pausiert ? tx("ui2.ui.Reich.aeff967") : tx("ui2.ui.Reich.95175c7")}
                 </button>
               </div>
             </li>
@@ -147,7 +148,7 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
   return (
     <section className="rr-abschnitt">
       <h4>
-        Baureihenfolge <em>öffentlich: Position 1 baut zuerst; vorziehen kostet {VORZIEHEN_VERWALTUNG} Verwaltungskraft je Position</em>
+        {tx("ui2.ui.Reich.bb4c8f7")} <em>{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })}</em>
       </h4>
       {hinweis && (
         <p className="rr-hinweis" role="status">
@@ -169,12 +170,12 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
                 : `wartet auf Baukapazität, Start ${monatsText(e.startIn)}${e.fertigIn !== undefined ? `, fertig ${monatsText(e.fertigIn)}` : ""}`;
           return (
             <li key={e.id} className={`rr-queue-eintrag${e.pausiert ? " ruht" : ""}`}>
-              <span className="rr-queue-pos" aria-label={`Position ${e.position}`}>
+              <span className="rr-queue-pos" aria-label={tx("ui2.ui.Reich.8af9b4d", { p0: e.position })}>
                 {e.position}
               </span>
               <div className="rr-bau-kopf">
                 <strong>{v.name}</strong>{" "}
-                <span className="rr-plakette" title={`Vergeben als: ${VERGABE_NAMEN[e.vergabe]}`}>
+                <span className="rr-plakette" title={tx("ui2.ui.Reich.0804578", { p0: VERGABE_NAMEN[e.vergabe] })}>
                   {VERGABE_NAMEN[e.vergabe]}
                 </span>
                 <span className="rr-bau-info">{zeit}</span>
@@ -185,7 +186,7 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
                   className="aktion-knopf"
                   disabled={e.position === 1}
                   onClick={() => rueckmeldung(e.id, -1)}
-                  title={verdrangt ? `Vorziehen: kostet ${VORZIEHEN_VERWALTUNG} Verwaltungskraft, verdrängt „${verdrangt}“` : "Steht schon vorn"}
+                  title={verdrangt ? tx("ui2.ui.Reich.f584365", { p0: VORZIEHEN_VERWALTUNG, p1: verdrangt }) : tx("ui2.ui.Reich.a1e5051")}
                 >
                   ▲
                 </button>
@@ -193,7 +194,7 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
                   ▼
                 </button>
                 <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, e.id, !e.pausiert); refresh(); }}>
-                  {e.pausiert ? "Weiter" : "Pausieren"}
+                  {e.pausiert ? tx("ui2.ui.Reich.aeff967") : tx("ui2.ui.Reich.95175c7")}
                 </button>
               </div>
             </li>
@@ -233,7 +234,7 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
   return (
     <section className="rr-abschnitt">
       <h4>
-        {nurSchlechte !== undefined ? "Am schlechtesten erhalten" : "Stätten"} <em>Erhaltung insgesamt {Math.round(erhaltung(world))}</em>
+        {nurSchlechte !== undefined ? tx("ui2.ui.Reich.fb453c1") : tx("ui2.ui.Reich.51ae0fa")} <em>{tx("ui2.ui.Reich.9219dc0", { p0: Math.round(erhaltung(world)) })}</em>
       </h4>
       {nurSchlechte === undefined && (
         <div className="rr-filter" role="group" aria-label={t("ui.Reich.4825f35")}>
@@ -246,7 +247,7 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
       )}
       {serie === "kirchen7" && nurSchlechte === undefined && (
         <p className="rr-hinweis">
-          Die sieben Gemeinden der Offenbarung liegen alle im Westen der Türkei. Die Kirchenroute der Sieben verlangt für jede Stätte mindestens Zustand 55; die schwächste steht bei {Math.round(Math.min(...sieben))}.
+          {tx("ui2.ui.Reich.171fd85", { p0: Math.round(Math.min(...sieben)) })}
         </p>
       )}
       {rueckmeldung && <p className="rr-hinweis" role="status">{rueckmeldung}</p>}
@@ -265,20 +266,20 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
             <li key={e.id} className={st.zustand < 40 ? "gefaehrdet" : ""}>
               <div className="rr-staette-kopf">
                 <strong className="rr-staette-name">{e.name}</strong>
-                {e.unesco.status === "welterbe" && <span className="rr-plakette" title={`Welterbe seit ${e.unesco.jahr}`}>Welterbe</span>}
-                {e.kirche7 && <span className="rr-plakette kirche" title={t("ui.Reich.b39ebe5")}>Offenbarung</span>}
+                {e.unesco.status === "welterbe" && <span className="rr-plakette" title={tx("ui2.ui.Reich.2e2e824", { p0: e.unesco.jahr })}>{tx("ui2.ui.Reich.8c5c22e")}</span>}
+                {e.kirche7 && <span className="rr-plakette kirche" title={t("ui.Reich.b39ebe5")}>{tx("ui2.ui.Reich.b2c752c")}</span>}
               </div>
               <span className="rr-staette-ort">{e.ort}: {e.satz}</span>
               <div className="rr-zustand">
-                <span>Zustand</span>
+                <span>{tx("ui2.ui.Reich.97574a9")}</span>
                 <span className="rr-balken" aria-hidden>
                   <i style={{ width: `${st.zustand}%` }} className={st.zustand < 40 ? "schwach" : ""} />
                 </span>
                 <b>{Math.round(st.zustand)}</b>
               </div>
               <p className="rp-satz">
-                {st.zustand < 30 ? "Verfällt: Teile sind einsturzgefährdet oder gehen verloren." : st.zustand < 50 ? "Schlecht erhalten: Besucher und Feuchtigkeit nagen an der Substanz." : st.zustand < 70 ? "Mäßig erhalten." : "Gut erhalten."}
-                {Number.isFinite(erbe) && <> Kulturerbe in dieser Provinz: <b>{Math.round(erbe)}</b> von 100.</>}
+                {st.zustand < 30 ? tx("ui2.ui.Reich.64becd1") : st.zustand < 50 ? tx("ui2.ui.Reich.628669a") : st.zustand < 70 ? tx("ui2.ui.Reich.8db82ca") : tx("ui2.ui.Reich.1ba54c0")}
+                {Number.isFinite(erbe) && <> {tx("ui2.ui.Reich.4bc0142")} <b>{Math.round(erbe)}</b> {tx("ui2.ui.Reich.97a6c71")}</>}
               </p>
               {laeuft ? (
                 <p className="rp-satz">{t("ui.Reich.b1cebac")}</p>
@@ -288,17 +289,17 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
                 def && (
                   <div className="rp-eingriff">
                     <p className="rp-satz">
-                      Restaurieren: Zustand {Math.round(st.zustand)} → {nach !== undefined ? Math.round(nach) : "?"}.
-                      {folgen.length > 0 ? " Dazu:" : ""}
+                      {tx("ui2.ui.Reich.b2936db", { p0: Math.round(st.zustand) })} {nach !== undefined ? Math.round(nach) : "?"}.
+                      {folgen.length > 0 ? tx("ui2.ui.Reich.2d8fdd0") : ""}
                     </p>
                     <Zeilen zeilen={folgen} />
-                    <ul className="rr-kosten" aria-label="Kosten">
-                      <li><b>{def.kosten.pk}</b> Kapital</li>
-                      <li><b>{def.kosten.bau}</b> Baupunkte</li>
-                      <li><b>{def.kosten.monate}</b> Monate</li>
+                    <ul className="rr-kosten" aria-label={tx("ui2.ui.Reich.9bc1843")}>
+                      <li><b>{def.kosten.pk}</b> {tx("ui2.ui.Reich.28d438e")}</li>
+                      <li><b>{def.kosten.bau}</b> {tx("ui2.ui.Reich.f4466ae")}</li>
+                      <li><b>{def.kosten.monate}</b> {tx("ui2.ui.Reich.1c561ae")}</li>
                     </ul>
                     <button type="button" className="aktion-knopf" onClick={() => restauriere(e)} title={`${def.kehrseite}`}>
-                      Restaurieren
+                      {tx("ui2.ui.Reich.e0e3ae0")}
                     </button>
                   </div>
                 )
@@ -318,7 +319,7 @@ function Sitze({ world }: { world: World }) {
   return (
     <section className="rr-abschnitt">
       <h4>
-        Besetzung der Gerichte <em>{t("ui.Reich.9e48137")}</em>
+        {tx("ui2.ui.Reich.f5c645d")} <em>{t("ui.Reich.9e48137")}</em>
       </h4>
       <div className="rr-sitzgruppen">
         {Object.entries(z.sitze).map(([key, s]) => {
@@ -331,13 +332,13 @@ function Sitze({ world }: { world: World }) {
           return (
             <div key={key} className="rr-sitzgruppe">
               <strong>{SITZ_NAMEN[key] ?? key}</strong>
-              <span className="rr-sitze" role="img" aria-label={`${n} Sitze: ${s.loyal} loyal, ${s.reform} reformorientiert, ${s.unabhaengig} unabhängig`}>
+              <span className="rr-sitze" role="img" aria-label={tx("ui2.ui.Reich.eeb0a0b", { p0: n, p1: s.loyal, p2: s.reform, p3: s.unabhaengig })}>
                 {punkte.map((p, i) => (
                   <i key={i} className={p} />
                 ))}
               </span>
               <span className="rr-sitz-legende">
-                <b className="loyal" /> {s.loyal} loyal zur Regierung <b className="reform" /> {s.reform} reformorientiert <b className="unabhaengig" /> {s.unabhaengig} unabhängig
+                <b className="loyal" /> {tx("ui2.ui.Reich.e20dbbc", { p0: s.loyal })} <b className="reform" /> {s.reform} reformorientiert <b className="unabhaengig" /> {tx("ui2.ui.Reich.da33253", { p0: s.unabhaengig })}
               </span>
             </div>
           );
@@ -356,35 +357,35 @@ function Haushalt({ world }: { world: World }) {
   return (
     <section className="rr-abschnitt">
       <h4>
-        Verwaltung und Haushalt <em>{t("ui.Reich.048ca62")}</em>
+        {tx("ui2.ui.Reich.c84da49")} <em>{t("ui.Reich.048ca62")}</em>
       </h4>
       <div className="rr-bilanz">
         <table>
-          <caption>Verwaltungskraft je Monat</caption>
+          <caption>{tx("ui2.ui.Reich.6435c5e")}</caption>
           <tbody>
-            <tr><th>Einkommen (Grundstock, Digitalisierung, Institutionen)</th><td className="hoch">+{z(vb.einkommen)}</td></tr>
-            <tr><th>Bauvorhaben</th><td className="runter">−{z(vb.bau)}</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.7d72e11")}</th><td className="hoch">+{z(vb.einkommen)}</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.04c459d")}</th><td className="runter">−{z(vb.bau)}</td></tr>
             <tr><th>{t("ui.Reich.17a76b2")}</th><td className="runter">−{z(vb.unterhalt)}</td></tr>
-            <tr className="summe"><th>Saldo</th><td className={vb.netto >= 0 ? "hoch" : "runter"}>{vb.netto >= 0 ? "+" : "−"}{z(Math.abs(vb.netto))}</td></tr>
+            <tr className="summe"><th>{tx("ui2.ui.Reich.8b0fcd0")}</th><td className={vb.netto >= 0 ? "hoch" : "runter"}>{vb.netto >= 0 ? "+" : "−"}{z(Math.abs(vb.netto))}</td></tr>
           </tbody>
         </table>
         <table>
           <caption>{t("ui.Reich.d1bbe69")}</caption>
           <tbody>
-            <tr><th>Grundeinkommen</th><td>{z(k.grund)}</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.4183cf9")}</th><td>{z(k.grund)}</td></tr>
             <tr><th>{t("ui.Reich.c8434a3")}</th><td>{z(k.vertrauen)}</td></tr>
-            <tr><th>Mehrheit im Parlament</th><td>{z(k.mehrheit)}</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.fb57aba")}</th><td>{z(k.mehrheit)}</td></tr>
             <tr><th>{t("ui.Reich.6121d6a")}</th><td className={k.legitimitaet >= 0 ? "hoch" : "runter"}>{k.legitimitaet >= 0 ? "+" : "−"}{z(Math.abs(k.legitimitaet))}</td></tr>
-            <tr className="summe"><th>Summe</th><td>{z(k.summe)}</td></tr>
+            <tr className="summe"><th>{tx("ui2.ui.Reich.2197d26")}</th><td>{z(k.summe)}</td></tr>
           </tbody>
         </table>
         <table>
           <caption>{t("ui.Reich.faad857")}</caption>
           <tbody>
-            <tr><th>Staatsschulden</th><td>{z(e.debtRatio)} % des BIP</td></tr>
-            <tr><th>Leitzins</th><td>{z(e.policyRate)} %</td></tr>
-            <tr><th>Lira je Dollar</th><td>{z(e.usdTry)}</td></tr>
-            <tr><th>Risikoaufschlag</th><td>{z(e.riskPremium, 0)} Punkte</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.b845c55")}</th><td>{tx("ui2.ui.Reich.ce96c4c", { p0: z(e.debtRatio) })}</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.484806d")}</th><td>{z(e.policyRate)} %</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.361bef7")}</th><td>{z(e.usdTry)}</td></tr>
+            <tr><th>{tx("ui2.ui.Reich.16cdef9")}</th><td>{tx("ui2.ui.Reich.43cbb60", { p0: z(e.riskPremium, 0) })}</td></tr>
           </tbody>
         </table>
       </div>
@@ -399,7 +400,7 @@ function VorteileListe({ world, bereich }: { world: World; bereich: Bereich }) {
   return (
     <section className="rr-abschnitt">
       <h4>
-        Vorteile <em>gelten, solange ihre Bedingungen gelten</em>
+        {tx("ui2.ui.Reich.b192857")} <em>{tx("ui2.ui.Reich.572a802")}</em>
       </h4>
       <ul className="rr-vorteile">
         {liste.map((v) => {
@@ -408,7 +409,7 @@ function VorteileListe({ world, bereich }: { world: World; bereich: Bereich }) {
             <li key={v.id} className={an ? "aktiv" : ""}>
               <div className="rr-vorteil-kopf">
                 <strong>{v.name}</strong>
-                <span className={`rr-status ${an ? "fertig" : ""}`}>{an ? "Aktiv" : "Noch nicht erreicht"}</span>
+                <span className={`rr-status ${an ? "fertig" : ""}`}>{an ? tx("ui2.ui.Reich.16a766c") : tx("ui2.ui.Reich.82a62ea")}</span>
               </div>
               <p>{v.text}</p>
               <ul className="rr-wirkung-zeilen">
@@ -418,7 +419,7 @@ function VorteileListe({ world, bereich }: { world: World; bereich: Bereich }) {
                   </li>
                 ))}
               </ul>
-              <p className="rr-kehrseite"><b>Der Preis:</b> {v.kehrseite}</p>
+              <p className="rr-kehrseite"><b>{tx("ui2.ui.Reich.0289c3f")}</b> {v.kehrseite}</p>
             </li>
           );
         })}
@@ -454,7 +455,7 @@ function Institutionen({ world }: { world: World }) {
   return (
     <section className="rr-abschnitt">
       <h4>
-        Einrichtungen <em>{t("ui.Reich.aaa550c")}</em>
+        {tx("ui2.ui.Reich.af5c59c")} <em>{t("ui.Reich.aaa550c")}</em>
       </h4>
       <ul className="rv-liste">
         {stuecke.map((v) => {
@@ -463,19 +464,19 @@ function Institutionen({ world }: { world: World }) {
             <li key={v.id} className="rv-eintrag">
               <div className="rv-kopf">
                 <strong>{v.name}</strong>
-                {v.unterhalt ? <span className="rr-bau-info">Verwaltungskraft {v.unterhalt.toLocaleString("de-DE")} im Monat</span> : null}
+                {v.unterhalt ? <span className="rr-bau-info">{tx("ui2.ui.Reich.cf4af98", { p0: v.unterhalt.toLocaleString("de-DE") })}</span> : null}
               </div>
               <ul className="rr-wirkung-zeilen">
                 {zeigt.map((g) => (
                   <li key={g.id} className={g.gut ? "rr-gut" : "rr-schlecht"}>
-                    {g.name}: {g.wert} von 100
+                    {tx("ui2.ui.Reich.96504fa", { p0: g.name, p1: g.wert })}
                   </li>
                 ))}
               </ul>
               <details className="rp-mehr">
                 <summary>{t("ui.Reich.0995a96")}</summary>
                 <p className="rr-text">{v.text}</p>
-                <p className="rr-kehrseite"><b>Der Preis:</b> {v.kehrseite}</p>
+                <p className="rr-kehrseite"><b>{tx("ui2.ui.Reich.0289c3f")}</b> {v.kehrseite}</p>
               </details>
             </li>
           );
@@ -528,7 +529,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
           {tabs.map((t) => (
             <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
               {t.label}
-              {plakette(t.id) > 0 && <i className="rr-tab-zahl" title={t.id === "neu" ? "Sofort beginnbar" : bereich === "kultur" ? "Schlecht erhalten (unter 45)" : "Instandsetzen bringt hier spürbar etwas"}>{plakette(t.id)}</i>}
+              {plakette(t.id) > 0 && <i className="rr-tab-zahl" title={t.id === "neu" ? tx("ui2.ui.Reich.9bd93be") : bereich === "kultur" ? tx("ui2.ui.Reich.23ee4a7") : tx("ui2.ui.Reich.7d7f2ba")}>{plakette(t.id)}</i>}
             </button>
           ))}
         </div>
@@ -550,7 +551,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
           <VorteileListe world={world} bereich={bereich} />
           {z.meldungen.length > 0 && (
             <section className="rr-abschnitt">
-              <h4>Zuletzt</h4>
+              <h4>{tx("ui2.ui.Reich.0326b65")}</h4>
               <ul className="rr-meldungen">
                 {[...z.meldungen].reverse().slice(0, 5).map((m, i) => (
                   <li key={`${m.tag}-${i}`} className={m.art}>
@@ -573,7 +574,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
           {vollendet.length > 0 && (
             <section className="rr-abschnitt">
               <h4>
-                Vollendet <em>{vollendet.length} {vollendet.length === 1 ? "Vorhaben" : "Vorhaben"}</em>
+                {tx("ui2.ui.Reich.8c37851")} <em>{vollendet.length} {vollendet.length === 1 ? tx("ui2.ui.Reich.d335b73") : tx("ui2.ui.Reich.d335b73")}</em>
               </h4>
               <div className="rr-raster gross">
                 {vollendet.map((s) => (

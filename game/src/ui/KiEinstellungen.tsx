@@ -54,9 +54,9 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
         <p>{t("ui.KiEinstellungen.9fa9290")}</p>
       </div>
 
-      <div className="gs-anbieter" role="radiogroup" aria-label="Anbieter">
+      <div className="gs-anbieter" role="radiogroup" aria-label={t("ui2.ui.KiEinstellungen.d062d4f")}>
         <button type="button" role="radio" aria-checked={konfig.art === "auto"} className={`gs-karte${konfig.art === "auto" ? " on" : ""}`} onClick={() => setze({ art: "auto" })}>
-          <strong>Automatisch</strong>
+          <strong>{t("ui2.ui.KiEinstellungen.95b5106")}</strong>
           <span>{t("ui.KiEinstellungen.6bc1728")}</span>
         </button>
         {ANBIETER.map((x) => {
@@ -65,13 +65,13 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
           return (
             <button key={x.id} type="button" role="radio" aria-checked={konfig.art === x.id} className={`gs-karte${konfig.art === x.id ? " on" : ""}`} onClick={() => setze({ art: x.id })}>
               <strong>{x.name}</strong>
-              <span>{x.lokal ? "kostenlos, lokal" : aufServer ? "Schlüssel auf dem Server" : hat ? "eingerichtet" : "kein Schlüssel"}</span>
+              <span>{x.lokal ? "kostenlos, lokal" : aufServer ? t("ui2.ui.KiEinstellungen.f91b0dd") : hat ? "eingerichtet" : t("ui2.ui.KiEinstellungen.3e7eda4")}</span>
               {(hat || aufServer || x.lokal) && <i className="gs-haken" aria-hidden />}
             </button>
           );
         })}
         <button type="button" role="radio" aria-checked={konfig.art === "aus"} className={`gs-karte${konfig.art === "aus" ? " on" : ""}`} onClick={() => setze({ art: "aus" })}>
-          <strong>Aus</strong>
+          <strong>{t("ui2.ui.KiEinstellungen.6997e3e")}</strong>
           <span>{t("ui.KiEinstellungen.b1a4bba")}</span>
         </button>
       </div>
@@ -88,7 +88,7 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
 
           {a.eigeneUrl && (
             <label className="gs-feld">
-              <span>Adresse</span>
+              <span>{t("ui2.ui.KiEinstellungen.522e146")}</span>
               <input
                 value={a.lokal ? konfig.lokalUrl : konfig.eigenUrl}
                 placeholder={a.lokal ? "http://127.0.0.1:18127/v1" : "https://…/v1"}
@@ -99,7 +99,7 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
           )}
 
           <label className="gs-feld">
-            <span>Modell</span>
+            <span>{t("ui2.ui.KiEinstellungen.a2eae7c")}</span>
             {a.modelle.length > 0 ? (
               <select value={modell || a.standardModell} onChange={(e) => setzeModell(a.id, e.target.value)}>
                 {a.modelle.map((m) => (
@@ -109,14 +109,14 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
                 ))}
               </select>
             ) : (
-              <input value={modell} placeholder={a.standardModell || a.modellBeispiel || "Modellname"} onChange={(e) => setzeModell(a.id, e.target.value)} spellCheck={false} />
+              <input value={modell} placeholder={a.standardModell || a.modellBeispiel || t("ui2.ui.KiEinstellungen.09f9374")} onChange={(e) => setzeModell(a.id, e.target.value)} spellCheck={false} />
             )}
           </label>
 
           {!a.lokal && (
             <label className="gs-feld">
               <span>{t("ui.KiEinstellungen.1ac8328")}</span>
-              <input type="password" autoComplete="off" spellCheck={false} placeholder={a.praefix ? `${a.praefix}…` : "Schlüssel einfügen"} value={schluessel} onChange={(e) => setzeSchluessel(a.id, e.target.value)} />
+              <input type="password" autoComplete="off" spellCheck={false} placeholder={a.praefix ? `${a.praefix}…` : t("ui2.ui.KiEinstellungen.17a8655")} value={schluessel} onChange={(e) => setzeSchluessel(a.id, e.target.value)} />
             </label>
           )}
           {warnung && (
@@ -125,14 +125,14 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
               {echter && echter !== a.id && (
                 <button type="button" className="link" onClick={() => aendere({ ...konfig, art: echter, schluessel: { ...konfig.schluessel, [echter]: schluessel, [a.id]: "" } })}>
                   {" "}
-                  Zu {anbieterDef(echter)?.name} verschieben
+                  {t("ui2.ui.KiEinstellungen.0407640", { p0: anbieterDef(echter)?.name })}
                 </button>
               )}
             </p>
           )}
           {!a.lokal && (
             <p className="gs-erkl klein">
-              Sicherer als der Browser: den Schlüssel in der Datei <code>game/.env.local</code> als <code>{a.envVar}=…</code> eintragen und den Entwicklungsserver neu starten; dann bleibt er auf dem Rechner und erreicht den Browser nie.
+              {t("ui2.ui.KiEinstellungen.1f3c2cb")} <code>game/.env.local</code> {t("ui2.ui.KiEinstellungen.d79673d")} <code>{a.envVar}=…</code> {t("ui2.ui.KiEinstellungen.cf79c19")}
             </p>
           )}
         </div>
@@ -144,16 +144,16 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
           <input type="number" min={1} max={2000} value={konfig.maxAufrufe} onChange={(e) => setze({ maxAufrufe: Math.max(1, Number(e.target.value) || 1) })} />
         </label>
         <p className="gs-erkl klein">
-          Bisher {zaehler.aufrufe} Aufrufe, {zaehler.tokensEin.toLocaleString("de-DE")} Token gesendet, {zaehler.tokensAus.toLocaleString("de-DE")} empfangen. Jede Frage sendet den Spielzustand mit (rund 2.000 bis 3.000 Token).
+          {t("ui2.ui.KiEinstellungen.421418f", { p0: zaehler.aufrufe, p1: zaehler.tokensEin.toLocaleString("de-DE"), p2: zaehler.tokensAus.toLocaleString("de-DE") })}
         </p>
       </div>
 
       <div className="gs-test">
         <button type="button" className="aktion-knopf" onClick={pruefe} disabled={test === "laeuft" || konfig.art === "aus"}>
-          {test === "laeuft" ? "Prüfe …" : "Verbindung testen"}
+          {test === "laeuft" ? t("ui2.ui.KiEinstellungen.85bec72") : t("ui2.ui.KiEinstellungen.e0cbe4f")}
         </button>
         <span className={`gs-testtext ${test && test !== "laeuft" ? (test.ok ? "ok" : "nein") : ""}`} role="status">
-          {test && test !== "laeuft" ? test.text : weg ? `Aktiv: ${weg.anbieter.name}, ${weg.modell}, ${MODUS_NAME[weg.modus]}.` : "Noch nicht eingerichtet."}
+          {test && test !== "laeuft" ? test.text : weg ? t("ui2.ui.KiEinstellungen.8b8b3ac", { p0: weg.anbieter.name, p1: weg.modell, p2: MODUS_NAME[weg.modus] }) : t("ui2.ui.KiEinstellungen.1752bfe")}
         </span>
       </div>
     </div>

@@ -41,7 +41,7 @@ function Chip({ id, jetzt, davor, label }: { id: string; jetzt: number; davor: n
   const klasse = b.gut === true ? "wi-gut" : b.gut === false ? "wi-schlecht" : "wi-neutral";
   const stellen = k.stellen === 0 ? 0 : Math.max(1, Math.min(2, k.stellen));
   return (
-    <span className={`wi-chip ${klasse}`} title={b.gut === null ? "Keine klare Wertung" : b.gut ? "Besser als zuvor" : "Schlechter als zuvor"}>
+    <span className={`wi-chip ${klasse}`} title={b.gut === null ? t("ui2.ui.wirtschaft.Lage.88c5296") : b.gut ? t("ui2.ui.wirtschaft.Lage.c1306e0") : t("ui2.ui.wirtschaft.Lage.ba5e0bd")}>
       {label} {b.delta > 0 ? "▲" : b.delta < 0 ? "▼" : "◆"} {zeichen(b.delta)}
       {nf(Math.abs(b.delta), stellen)}
     </span>
@@ -100,7 +100,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
 
   return (
     <div className="wi-lage">
-      <nav className="wi-liste" aria-label="Kennzahlen">
+      <nav className="wi-liste" aria-label={t("ui2.ui.wirtschaft.Lage.9a372e1")}>
         {GRUPPEN.map((gruppe) => (
           <section key={gruppe}>
             <h4>{gruppe}</h4>
@@ -131,17 +131,17 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
 
       <article className="wi-detail" id="wi-detail" aria-live="polite">
         <button className="pd-btn quiet wi-zurueck" onClick={() => document.querySelector(".wi-liste")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
-          ↑ Alle Kennzahlen
+          {t("ui2.ui.wirtschaft.Lage.0f15f3d")}
         </button>
         <header>
           <p className="kicker">{k.gruppe}</p>
           <h3>{k.name}</h3>
           <div className="wi-kopf">
             <strong className="wi-gross">
-              {nf(jetzt, k.stellen)} <small>{k.einheit === "Indexpunkte" ? "Indexpunkte" : k.einheit}</small>
+              {nf(jetzt, k.stellen)} <small>{k.einheit === "Indexpunkte" ? t("ui2.ui.wirtschaft.Lage.010dece") : k.einheit}</small>
             </strong>
             <span className="wi-chips">
-              <Chip id={k.id} jetzt={jetzt} davor={start} label="seit Amtsantritt" />
+              <Chip id={k.id} jetzt={jetzt} davor={start} label={t("ui2.ui.wirtschaft.Lage.6ac651e")} />
               <Chip id={k.id} jetzt={jetzt} davor={vor12} label={t("ui.wirtschaft.Lage.e4b97b0")} />
             </span>
           </div>
@@ -164,7 +164,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
         <p className="wi-erklaerung">{k.erklaerung}</p>
 
         <section className="wi-block">
-          <h4>Was bewegt diese Zahl?</h4>
+          <h4>{t("ui2.ui.wirtschaft.Lage.4f96076")}</h4>
           {treiber.kopf && <p className="wi-hinweis">{treiber.kopf}</p>}
           {treiber.zeilen.length === 0 ? (
             <p className="wi-hinweis">{t("ui.wirtschaft.Lage.1f43daf")}</p>
@@ -205,7 +205,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
                 </button>
                 {h.posten && h.stufe !== undefined && k.prognose && (
                   <button className={`wi-wenn${vorschau?.label === h.label ? " on" : ""}`} aria-pressed={vorschau?.label === h.label} onClick={() => setVorschau(vorschau?.label === h.label ? null : h)}>
-                    {vorschau?.label === h.label ? "Vorschau aus" : "Was wäre, wenn?"}
+                    {vorschau?.label === h.label ? t("ui2.ui.wirtschaft.Lage.8180db4") : t("ui2.ui.wirtschaft.Lage.cd1aa4e")}
                   </button>
                 )}
               </li>

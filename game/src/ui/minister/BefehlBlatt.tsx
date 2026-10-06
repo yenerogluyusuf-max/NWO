@@ -14,6 +14,7 @@ import "../politik/design.css";
 import "./ministerfluss.css";
 
 import { t } from "../../i18n";
+import { t as tx } from "../../i18n";
 const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
 const TYPEN: BefehlTyp[] = ["ziel", "vorhaben", "verhandeln"];
 
@@ -56,7 +57,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
       )}
       <div className="mf-befehle">
         <div className="mf-spalte">
-          <h4>Wem?</h4>
+          <h4>{tx("ui2.ui.minister.BefehlBlatt.0f1e1ef")}</h4>
           {minister.map((m) => {
             const busy = laufend.some((b) => b.figurId === m.id) || eigenVon(world, m).auftrag?.status === "laeuft";
             return (
@@ -68,7 +69,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
                   {m.rolle} {m.name}
                 </strong>
                 <span>
-                  {AEMTER[m.amt].ressort} · {haltung(m)} · Leistung {Math.round(leistung(world, m) * 100)} %{busy ? " · beschäftigt" : ""}
+                  {tx("ui2.ui.minister.BefehlBlatt.6a07606", { p0: AEMTER[m.amt].ressort, p1: haltung(m), p2: Math.round(leistung(world, m) * 100) })}{busy ? tx("ui2.ui.minister.BefehlBlatt.56a9086") : ""}
                 </span>
               </button>
             );
@@ -76,7 +77,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
         </div>
 
         <div className="mf-spalte">
-          <h4>{f ? `Befehl an ${f.name}` : "Welcher Befehl?"}</h4>
+          <h4>{f ? tx("ui2.ui.minister.BefehlBlatt.82780fc", { p0: f.name }) : tx("ui2.ui.minister.BefehlBlatt.772b07f")}</h4>
           {!f && <p className="mf-leer">{t("ui.minister.BefehlBlatt.752ae9b")}</p>}
           {f && angebote.length === 0 && <p className="mf-leer">{t("ui.minister.BefehlBlatt.d8e094a")}</p>}
           {f &&
@@ -106,15 +107,15 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
             <section className="mf-vorschau" aria-live="polite">
               <h5>{gewaehlt.titel}</h5>
               <div className="mf-kosten">
-                <span>{v.kosten.pk > 0 ? `${v.kosten.pk} Kapital` : "kein Kapital"}</span>
-                <span className="leise">{v.kosten.aufmerksamkeit} Aufmerksamkeit jetzt</span>
+                <span>{v.kosten.pk > 0 ? tx("ui2.ui.minister.BefehlBlatt.87b52bd", { p0: v.kosten.pk }) : tx("ui2.ui.minister.BefehlBlatt.088cc45")}</span>
+                <span className="leise">{tx("ui2.ui.minister.BefehlBlatt.8872e34", { p0: v.kosten.aufmerksamkeit })}</span>
                 <span className="leise">
-                  {v.dauerMonate} {v.dauerMonate === 1 ? "Monat" : "Monate"} bis zum Ergebnis
+                  {v.dauerMonate} {v.dauerMonate === 1 ? tx("ui2.ui.minister.BefehlBlatt.da13625") : tx("ui2.ui.minister.BefehlBlatt.1c561ae")} {tx("ui2.ui.minister.BefehlBlatt.9d08869")}
                 </span>
               </div>
               {v.erfolgschance !== undefined && (
                 <p className="mf-chance">
-                  Erfolgsaussicht: {v.chanceWort} ({Math.round(v.erfolgschance * 100)} Prozent)
+                  {tx("ui2.ui.minister.BefehlBlatt.1474af5", { p0: v.chanceWort, p1: Math.round(v.erfolgschance * 100) })}
                   <i aria-hidden>
                     <b style={{ width: `${Math.round(v.erfolgschance * 100)}%` }} />
                   </i>
@@ -134,7 +135,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
               )}
               {!v.moeglich && <p className="mf-grund">{v.grund}</p>}
               <button className="pd-btn primary" disabled={!v.moeglich} onClick={anordnen} style={{ justifySelf: "start" }}>
-                Anordnen
+                {tx("ui2.ui.minister.BefehlBlatt.d53a9d4")}
               </button>
             </section>
           )}
@@ -143,12 +144,12 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
 
       <section className="mf-abschnitt">
         <h4>
-          Was läuft{" "}
+          {tx("ui2.ui.minister.BefehlBlatt.c3d3664")}{" "}
           <span className="pd-chip">
-            {laufend.length} von höchstens {MAX_BEFEHLE} Befehlen
+            {tx("ui2.ui.minister.BefehlBlatt.8e57695", { p0: laufend.length, p1: MAX_BEFEHLE })}
           </span>{" "}
           <span className="pd-chip">
-            {auftraege.length} {auftraege.length === 1 ? "Auftrag" : "Aufträge"} mit Frist
+            {auftraege.length} {auftraege.length === 1 ? tx("ui2.ui.minister.BefehlBlatt.4ec1a90") : tx("ui2.ui.minister.BefehlBlatt.3d15f74")} {tx("ui2.ui.minister.BefehlBlatt.b52114e")}
           </span>
         </h4>
         {laufend.length + auftraege.length === 0 ? (
@@ -164,7 +165,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
                     <strong>
                       {m?.rolle} {m?.name}
                     </strong>
-                    <em>{BEFEHL_NAMEN[b.typ].label}: Ergebnis erwartet</em>
+                    <em>{tx("ui2.ui.minister.BefehlBlatt.cd5bd42", { p0: BEFEHL_NAMEN[b.typ].label })}</em>
                   </span>
                   <span className="frist">{formatDateDe(addDays(sp.start.datum, b.faellig))}</span>
                 </li>
@@ -179,9 +180,9 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
                     <strong>
                       {m.rolle} {m.name}
                     </strong>
-                    <em>Ziel: {a.text}</em>
+                    <em>{tx("ui2.ui.minister.BefehlBlatt.398f5f4", { p0: a.text })}</em>
                   </span>
-                  <span className="frist">bis {formatDateDe(addDays(sp.start.datum, a.frist))}</span>
+                  <span className="frist">{tx("ui2.ui.minister.BefehlBlatt.310a5c0", { p0: formatDateDe(addDays(sp.start.datum, a.frist)) })}</span>
                 </li>
               );
             })}

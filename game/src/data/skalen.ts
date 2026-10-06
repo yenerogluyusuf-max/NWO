@@ -5,6 +5,9 @@
 // Intern bleibt jede Maßnahme ein Index von 0 bis 100; die Skala übersetzt ihn in Worte. Die Zustände sind Spielmodell,
 // keine Behauptung über das echte Recht; jeder Text beschreibt, was sich im Land ändert.
 
+import { t } from "../i18n";
+import { datenTexte } from "../i18n/daten";
+
 export type SkalenArt = "regime" | "satz" | "menge";
 
 export interface SkalenStufe {
@@ -235,11 +238,14 @@ const REGIME: Record<string, SkalenStufe[]> = {
   ],
 };
 
+// Namen und Texte der benannten Zustände dreisprachig (Katalog daten_skalen.json; Deutsch bleibt hier die Quelle)
+for (const [id, stufen] of Object.entries(REGIME)) datenTexte(`skala.${id}`, stufen, (st) => String(st.w), ["name", "text"]);
+
 /** Sätze und Preise: senken oder anheben. */
 const SATZ = new Set(["m_einkommensteuer", "m_mwst", "m_koerperschaftsteuer", "m_kraftstoffsteuer", "m_immobiliensteuer", "m_zuzahlungen", "m_mindestlohn", "m_zoelle"]);
 
-const SATZ_NAMEN = ["Deutlich senken", "Senken", "Unverändert", "Anheben", "Deutlich anheben"];
-const MENGE_NAMEN = ["Stark zurückfahren", "Zurückfahren", "Wie heute", "Ausbauen", "Massiv ausbauen"];
+const SATZ_NAMEN = ["skala.satz.m2", "skala.satz.m1", "skala.satz.0", "skala.satz.p1", "skala.satz.p2"];
+const MENGE_NAMEN = ["skala.menge.m2", "skala.menge.m1", "skala.menge.0", "skala.menge.p1", "skala.menge.p2"];
 
 export function skalenArt(id: string): SkalenArt {
   return REGIME[id] ? "regime" : SATZ.has(id) ? "satz" : "menge";
@@ -251,16 +257,16 @@ export function skalenArt(id: string): SkalenArt {
  */
 export function skala(id: string, jetzt: number): Skala {
   const art = skalenArt(id);
-  if (art === "regime") return { art, frage: "Welche Ausrichtung?", stufen: REGIME[id]! };
+  if (art === "regime") return { art, frage: t("skala.frage.regime"), stufen: REGIME[id]! };
   const namen = art === "satz" ? SATZ_NAMEN : MENGE_NAMEN;
   const mitte = Math.round(jetzt);
   const stufen: SkalenStufe[] = [];
   for (let k = -2; k <= 2; k++) {
     const w = mitte + 20 * k;
     if (w < 0 || w > 100) continue;
-    stufen.push({ w, name: namen[k + 2]!, text: k === 0 ? `Stufe ${w}` : `Stufe ${w} (${k > 0 ? "+" : "−"}${Math.abs(20 * k)})` });
+    stufen.push({ w, name: t(namen[k + 2]!), text: k === 0 ? t("skala.stufe", { w }) : t("skala.stufeDelta", { w, d: `${k > 0 ? "+" : "−"}${Math.abs(20 * k)}` }) });
   }
-  return { art, frage: art === "satz" ? "Auf welchen Satz?" : "Wie viel?", stufen };
+  return { art, frage: t(art === "satz" ? "skala.frage.satz" : "skala.frage.menge"), stufen };
 }
 
 /** Welche Stufe entspricht dem Wert am ehesten, und wie nah ist er ihr? */
@@ -272,8 +278,10 @@ export function naechsteStufe(s: Skala, wert: number): { stufe: SkalenStufe; gen
 
 /** Das passende Verb für eine Richtung: Sätze werden erhöht oder gesenkt, Mengen ausgebaut oder zurückgefahren, Regelungen ausgeweitet oder eingeschränkt. */
 export function tunWort(id: string, richtung: 1 | -1): string {
-  const art = skalenArt(id);
-  if (art === "satz") return richtung > 0 ? "erhöhen" : "senken";
-  if (art === "menge") return richtung > 0 ? "ausbauen" : "zurückfahren";
-  return richtung > 0 ? "ausweiten" : "einschränken";
+  return t(`skala.tun.${skalenArt(id)}.${richtung > 0 ? "auf" : "ab"}`);
+}
+
+/** Maßnahme samt Verb in der Wortstellung der Sprache: „Lehrergehälter ausbauen“, „expand teachers' pay“, „Öğretmen maaşlarını artırmak“. */
+export function tunSatz(id: string, richtung: 1 | -1, name: string): string {
+  return t(`skala.tunSatz.${skalenArt(id)}.${richtung > 0 ? "auf" : "ab"}`, { name });
 }

@@ -90,6 +90,7 @@ import { SprachWahl } from "./SprachWahl";
 import { kapitalErklaerung, mehrheitsSicht } from "./akte/lage";
 import { AkteRahmen, type BereichId } from "./akte/Bereiche";
 import type { AktenReiterId } from "./akte/Akte";
+import { t as tx } from "../i18n";
 
 type Dossier =
   | "schreibtisch"
@@ -735,7 +736,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           <div className="leader-text">
             <div className="hud-name" title={w.player?.name ?? t("buehne.staatsoberhaupt")}>{w.player?.name ?? t("buehne.staatsoberhaupt")}</div>
             <div className="hud-sub" title={`${w.player?.partei.name ?? "Staatsräson"} · ${t("buehne.staatsoberhaupt")}`}>
-              <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> <span className="hud-partei">{w.player?.partei.name ?? "Staatsräson"} · {t("buehne.staatsoberhaupt")}</span>
+              <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> <span className="hud-partei">{w.player?.partei.name ?? tx("ui2.ui.Stage.b9592e1")} · {t("buehne.staatsoberhaupt")}</span>
             </div>
           </div>
         </div>
@@ -838,7 +839,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             </button>
           </header>
           <div className="dossier-body">
-            <Fehlergrenze titel={gruppe?.titel ?? "Akte"} onZu={() => setDossier(null)} zuruecksetzen={dossier}>
+            <Fehlergrenze titel={gruppe?.titel ?? tx("ui2.ui.Stage.de4742a")} onZu={() => setDossier(null)} zuruecksetzen={dossier}>
             <AkteRahmen
               bereich={gruppe?.akte}
               world={w}
@@ -1257,7 +1258,7 @@ function Stat({ icon, label, value, warn, trend: t, tip, unter }: { icon: IconNa
         <p>{tip}</p>
         {t !== undefined && Math.abs(t) > 0.05 && (
           <p className="tip-trend">
-            {t > 0 ? "Gestiegen" : "Gesunken"} zuletzt um {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
+            {t > 0 ? tx("ui2.ui.Stage.d470ec0") : tx("ui2.ui.Stage.e1fcf26")} zuletzt um {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
           </p>
         )}
       </div>

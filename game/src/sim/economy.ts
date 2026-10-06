@@ -3,6 +3,7 @@
 
 import type { EconomyState, GovernorStance, MonthlySnapshot } from "./types";
 import type { Rng } from "./rng";
+import { t } from "../i18n";
 
 export const PARAMS = {
   /** Neutraler Realzins in % */
@@ -247,10 +248,10 @@ export function ppkDecision(e: EconomyState, stance: GovernorStance, druck = 0):
   const newRate = Math.max(0, Math.round((e.policyRate + step) * 2) / 2);
 
   let why: string;
-  if (newRate > e.policyRate) why = "Die Inflation liegt deutlich über dem Ziel; der Ausschuss strafft.";
-  else if (newRate < e.policyRate && stance === "gefuegig") why = "Der Ausschuss senkt und verweist auf Wachstum und Beschäftigung.";
-  else if (newRate < e.policyRate) why = "Die Inflation sinkt; der Ausschuss lockert vorsichtig.";
-  else why = "Der Ausschuss hält den Zins und will die Wirkung früherer Entscheidungen abwarten.";
+  if (newRate > e.policyRate) why = t("sim2.sim.economy.0fbefd3");
+  else if (newRate < e.policyRate && stance === "gefuegig") why = t("sim2.sim.economy.a06609f");
+  else if (newRate < e.policyRate) why = t("sim2.sim.economy.484e1fd");
+  else why = t("sim2.sim.economy.9401f8e");
   return { newRate, why, target };
 }
 

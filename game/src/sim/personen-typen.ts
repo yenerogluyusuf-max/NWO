@@ -1,6 +1,8 @@
 // Typen der Personen: Profil, Aufträge, Erinnerung, Ehemalige. Alles reines JSON, es gehört zum Spielstand.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { datenTabelle } from "../i18n/daten";
+
 /** Wie eine Person auftritt und was sie antreibt. */
 export type Stil = "nuechtern" | "eitel" | "streng" | "loyal" | "vorsichtig" | "machtbewusst";
 
@@ -12,6 +14,7 @@ export const STIL_NAMEN: Record<Stil, string> = {
   vorsichtig: "vorsichtig",
   machtbewusst: "machtbewusst",
 };
+datenTabelle("stil", STIL_NAMEN);
 
 /** Wo eine Person ihren Rückhalt hat; wer sie entlässt, trifft auch dieses Lager. */
 export type LagerArt = "praesident" | "partei" | "apparat" | "markt" | "diplomatie" | "justiz" | "streitkraefte" | "opposition";
@@ -26,6 +29,7 @@ export const LAGER_NAMEN: Record<LagerArt, string> = {
   streitkraefte: "Streitkräfte",
   opposition: "Opposition",
 };
+datenTabelle("lager", LAGER_NAMEN);
 
 /** Ein Auftrag mit Frist: Die Person arbeitet an einer Größe des Ressorts; am Stichtag wird gemessen. */
 export interface Auftrag {

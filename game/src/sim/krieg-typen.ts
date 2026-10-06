@@ -157,6 +157,8 @@ export interface KriegVorgang {
   letzteWoche?: { eigen: number; gegner: number; region?: string };
   /** Türkische Grenzprovinzen (Plaka), auf die der Gegner gerade vorstößt */
   bedroht?: number[];
+  /** Gefallene bisher (sim/kriegspreis.ts); ältere Spielstände haben das Feld nicht und zählen ab der nächsten Woche */
+  gefallene?: number;
 }
 
 export type EinsatzWahl = "luft" | "boden" | "see" | "stellvertreter";

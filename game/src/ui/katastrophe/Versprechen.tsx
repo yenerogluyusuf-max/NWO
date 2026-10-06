@@ -14,7 +14,7 @@ export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel
   if (zeilen.length === 0) {
     return (
       <div className="kr-leer">
-        <h3>Noch nichts versprochen</h3>
+        <h3>{t("ui2.ui.katastrophe.Versprechen.13bff4b")}</h3>
         <p>
           {t("ui.katastrophe.Versprechen.4ad977f")}
         </p>
@@ -38,7 +38,7 @@ export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel
                 <i style={{ width: `${Math.round(z.quote * 100)}%` }} />
               </div>
               <p>
-                <strong>{nf(Math.round(z.geliefert))}</strong> von <strong>{nf(z.versprochen)}</strong> versprochenen Wohnungen geliefert ({nf(z.quote * 100)} Prozent).
+                <strong>{nf(Math.round(z.geliefert))}</strong> {t("ui2.ui.katastrophe.Versprechen.445584e")} <strong>{nf(z.versprochen)}</strong> {t("ui2.ui.katastrophe.Versprechen.3538c8c", { p0: nf(z.quote * 100) })}
               </p>
             </li>
           );
@@ -61,7 +61,7 @@ export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel
               {t("ui.katastrophe.Versprechen.0b6eb4d")}
             </button>
             <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "akte", akte: "reich_infra" })}>
-              Baureihenfolge im Reich
+              {t("ui2.ui.katastrophe.Versprechen.267bcfb")}
             </button>
           </div>
         )}
@@ -84,12 +84,12 @@ export function Chronik({ world }: { world: World }) {
     <table className="kr-chronik">
       <thead>
         <tr>
-          <th scope="col">Datum</th>
-          <th scope="col">Ereignis</th>
+          <th scope="col">{t("ui2.ui.katastrophe.Versprechen.df5c300")}</th>
+          <th scope="col">{t("ui2.ui.katastrophe.Versprechen.9cd7d14")}</th>
           <th scope="col" className="zahl">
-            Todesopfer
+            {t("ui2.ui.katastrophe.Versprechen.c99f806")}
           </th>
-          <th scope="col">Stand</th>
+          <th scope="col">{t("ui2.ui.katastrophe.Versprechen.726cea5")}</th>
         </tr>
       </thead>
       <tbody>
@@ -97,10 +97,10 @@ export function Chronik({ world }: { world: World }) {
           <tr key={f.id}>
             <td>{formatDateDe(f.datum)}</td>
             <td>
-              {ART_NAMEN[f.art]} in {namenVon(f.provinzen)}
+              {t("ui2.ui.katastrophe.Versprechen.37dfe5d", { p0: ART_NAMEN[f.art], p1: namenVon(f.provinzen) })}
             </td>
             <td className="zahl">{nf(f.tote)}</td>
-            <td>{f.bewaeltigt ? `bewältigt am ${formatDateDe(addDays(world.date, f.bewaeltigt - world.day))}` : "läuft"}</td>
+            <td>{f.bewaeltigt ? t("ui2.ui.katastrophe.Versprechen.725f2c1", { p0: formatDateDe(addDays(world.date, f.bewaeltigt - world.day)) }) : t("ui2.ui.katastrophe.Versprechen.bf66288")}</td>
           </tr>
         ))}
       </tbody>

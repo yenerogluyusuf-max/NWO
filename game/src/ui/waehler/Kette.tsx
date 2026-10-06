@@ -41,7 +41,7 @@ export function Kette({
               <span className="wa-kette-name">
                 <strong>{anzeigeName(g.name, g.art)}</strong>
                 <span className="wa-kette-zustand">
-                  {zustand(g)} · {g.beitrag >= 0 ? "hebt" : "drückt"} {eltern}
+                  {zustand(g)} · {g.beitrag >= 0 ? t("ui2.ui.waehler.Kette.hebt") : t("ui2.ui.waehler.Kette.bff7c97")} {eltern}
                 </span>
               </span>
               <span className="wa-kette-balken" aria-hidden>

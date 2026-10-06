@@ -29,6 +29,7 @@ import type { EuThema } from "../data/welt-weitere";
 import type { WeltTab } from "./welt/LandPopover";
 import { Aussenlage } from "./welt/Aussenlage";
 import { t } from "../i18n";
+import { t as tx } from "../i18n";
 import "./welt/welt.css";
 
 const DIM: { id: Dimension; label: string; text: string }[] = [
@@ -107,7 +108,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
             {vorgang ? ` · ⚔ ${PHASEN_NAME[vorgang.phase]}` : k >= 65 ? " · Streit" : ""}
           </span>
           {n > 0 && (
-            <b className="we-vertragszahl" title={`${n} laufende Verträge`}>
+            <b className="we-vertragszahl" title={tx("ui2.ui.Welt.f9ed63b", { p0: n })}>
               {n}
             </b>
           )}
@@ -119,7 +120,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
   return (
     <div className={`we${tab === "verhandeln" && modus === "laender" && haupt ? " schmal" : ""}`}>
       <nav className="we-liste" aria-label={t("ui.Welt.5f9089a")}>
-        <div className="we-modus" role="tablist" aria-label="Ansicht">
+        <div className="we-modus" role="tablist" aria-label={tx("ui2.ui.Welt.5c38879")}>
           {MODI.map((m) => (
             <button key={m.id} type="button" role="tab" aria-selected={modus === m.id} className={modus === m.id ? "on" : ""} onClick={() => setModus(m.id)}>
               {m.label}
@@ -153,7 +154,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                   })
                 : (
                   <div className="we-gruppe">
-                    <b>{sichtbar.length} {sichtbar.length === 1 ? "Staat" : "Staaten"}</b>
+                    <b>{sichtbar.length} {sichtbar.length === 1 ? tx("ui2.ui.Welt.1d0274d") : tx("ui2.ui.Welt.9c0333c")}</b>
                     <ul>{sichtbar.map(eintrag)}</ul>
                   </div>
                 )}
@@ -170,7 +171,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
         )}
         {modus === "aussen" && <p className="we-hinweis we-liste-hinweis">{t("aussen.ui.liste_hinweis")}</p>}
         {modus === "dienst" && <p className="we-hinweis we-liste-hinweis">{t("ui.Welt.37f315c")}</p>}
-        {modus === "vermittlung" && <p className="we-hinweis we-liste-hinweis">Konflikte zwischen Dritten, in denen Ankara vermitteln kann.</p>}
+        {modus === "vermittlung" && <p className="we-hinweis we-liste-hinweis">{tx("ui2.ui.Welt.be92f9d")}</p>}
       </nav>
 
       <div className="we-akte">
@@ -190,7 +191,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                   setTab("konflikt");
                 }}
               >
-                ⚔ {PHASEN_NAME[kv.phase]} mit {land(kv.land).name} — zum Dossier
+                {tx("ui2.ui.Welt.34760b0", { p0: PHASEN_NAME[kv.phase], p1: land(kv.land).name })}
               </button>
             ))}
           </div>
@@ -362,7 +363,7 @@ function WeitereAkte({
           {t("ui.Welt.8f96328")}
         </button>
         <button role="tab" type="button" aria-selected={tab === "handeln"} className={tab === "handeln" ? "on" : ""} onClick={() => onTab("handeln")}>
-          Gesten
+          {tx("ui2.ui.Welt.94297be")}
         </button>
       </div>
 
@@ -371,7 +372,7 @@ function WeitereAkte({
           <WeltLage world={world} id={id} onDienst={onDienst} />
           {wd.eu && (
             <div className="we-eu-position">
-              <b>Position im EU-Rat</b>
+              <b>{tx("ui2.ui.Welt.415b845")}</b>
               <ul>
                 {stimmen.map(({ t, s }) =>
                   s ? (
@@ -383,20 +384,20 @@ function WeitereAkte({
                 )}
               </ul>
               <button type="button" className="link" onClick={() => onBlock("eu")}>
-                Zum EU-Rat →
+                {tx("ui2.ui.Welt.a45d750")}
               </button>
             </div>
           )}
-          <p className="we-hinweis">Mit {akteurName(id)} gibt es keinen Verhandlungstisch mit Klauselverträgen: Gesten, der Weg über die Blöcke und, wo es eine Wahl gibt, der Dienst bleiben.</p>
+          <p className="we-hinweis">{tx("ui2.ui.Welt.a3f5878", { p0: akteurName(id) })}</p>
           <button type="button" className="aktion-knopf we-zum-tisch" onClick={() => onDienst(id)}>
-            Verdeckte Optionen gegen {akteurName(id)}
+            {tx("ui2.ui.Welt.8edbc59", { p0: akteurName(id) })}
           </button>
         </div>
       )}
 
       {tab === "handeln" && (
         <div className="we-gesten">
-          <p className="subtitle">Gesten kosten Kapital und wirken auf das Verhältnis zu {akteurName(id)}{wd.anker ? ` und ein Stück auch auf das zu ${akteurName(wd.anker.id)}` : ""}.</p>
+          <p className="subtitle">{tx("ui2.ui.Welt.746c8c5", { p0: akteurName(id) })}{wd.anker ? tx("ui2.ui.Welt.e54b787", { p0: akteurName(wd.anker.id) }) : ""}.</p>
           {antwort && (
             <p className={`we-rueck ${antwort.ok ? "ok" : "nein"}`} role="status">
               {antwort.text}
@@ -436,7 +437,7 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
     <div className="we-ueberblick">
       <WeltLage world={world} id={landId} onDienst={onDienst} />
       <div className="we-anliegen">
-        <b>Was {l.name} von der Türkei will</b>
+        <b>{tx("ui2.ui.Welt.5ff75db", { p0: l.name })}</b>
         <ul>
           {stand.map((s) => (
             <li key={s.anliegen.id} className={s.erfuellt ? "ok" : "offen"}>
@@ -462,10 +463,10 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
         </ul>
         <div className="we-zum-tisch-zeile">
           <button type="button" className="aktion-knopf we-zum-tisch" onClick={onVerhandeln}>
-            Zum Verhandlungstisch
+            {tx("ui2.ui.Welt.9dd195c")}
           </button>
           <button type="button" className="aktion-knopf we-zum-tisch" onClick={() => onDienst(landId)}>
-            Verdeckte Optionen
+            {tx("ui2.ui.Welt.d9c8900")}
           </button>
           {onRat && (
             <button type="button" className="aktion-knopf we-zum-tisch" onClick={onRat}>
@@ -479,7 +480,7 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
         <p className="subtitle">{t("ui.Welt.882f065")}</p>
       ) : (
         <div className="we-zahlen">
-          <b>Zum Vergleich (Weltbank, letzter Wert)</b>
+          <b>{tx("ui2.ui.Welt.e92d8d2")}</b>
           <table>
             <tbody>
               {zeilen.map(({ k, wert }) => (
@@ -489,7 +490,7 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
                     {nf(wert![0])} {k.einheit} <em>({wert![1]})</em>
                   </td>
                   <td className="we-tur">
-                    Türkei {nf(IND[k.key]!.tur.wert)} <em>({IND[k.key]!.tur.jahr})</em>
+                    {tx("ui2.ui.Welt.6153704", { p0: nf(IND[k.key]!.tur.wert) })} <em>({IND[k.key]!.tur.jahr})</em>
                   </td>
                 </tr>
               ))}
@@ -501,7 +502,7 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
 
       {(z.abkommen.length > 0 || z.erinnerung.length > 0) && (
         <div className="we-erinnerung">
-          <b>Erinnerung</b>
+          <b>{tx("ui2.ui.Welt.d95298f")}</b>
           <ul>
             {z.abkommen.slice(-4).map((a) => (
               <li key={a}>{a}</li>

@@ -1,0 +1,12 @@
+{
+ "daten.amt.finanzen.ressort": "Finance",
+ "daten.amt.inneres.ressort": "Interior",
+ "daten.amt.aussen.ressort": "Foreign Affairs",
+ "daten.amt.zentralbank.ressort": "Central Bank",
+ "daten.amt.stab.ressort": "Presidency",
+ "daten.amt.justiz.ressort": "Justice",
+ "daten.amt.generalstab.ressort": "Armed Forces",
+ "daten.amt.wirtschaft.ressort": "Economy",
+ "daten.amt.partner.ressort": "Coalition party",
+ "daten.amt.opposition.ressort": "Opposition"
+}

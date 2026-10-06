@@ -25,17 +25,17 @@ export function VorschlagKarte({
       <div className="vorschlag-kopf">
         <strong>{v.name}</strong>
         <span>
-          {v.zielName ? `von „${v.jetztName}“ zu „${v.zielName}“` : `${tunWort(v.massnahme, v.richtung)} von Stufe ${v.stufeJetzt} auf ${v.ziel}`} · {provinzenText(v.ort)}
+          {v.zielName ? t("ui2.ui.politik.VorschlagKarte.48d7c7b", { p0: v.jetztName, p1: v.zielName }) : t("ui2.ui.politik.VorschlagKarte.ae11a28", { p0: tunWort(v.massnahme, v.richtung), p1: v.stufeJetzt, p2: v.ziel })} · {provinzenText(v.ort)}
         </span>
       </div>
       {!kompakt && <p className="vorschlag-grund">{v.grund}</p>}
       <div className="vorschlag-preis">
-        <span>{v.pk} Kapital</span>
-        <span>{kfmt(v.kostenBip)} % BIP/Jahr</span>
+        <span>{t("ui2.ui.politik.VorschlagKarte.87b52bd", { p0: v.pk })}</span>
+        <span>{t("ui2.ui.politik.VorschlagKarte.ee0e2ff", { p0: kfmt(v.kostenBip) })}</span>
         <span>
-          etwa {v.monate} {v.monate === 1 ? "Monat" : "Monate"}
+          etwa {v.monate} {v.monate === 1 ? t("ui2.ui.politik.VorschlagKarte.da13625") : t("ui2.ui.politik.VorschlagKarte.1c561ae")}
         </span>
-        <span className={`stimmen-urteil urteil-${v.urteil}`}>{v.urteil === "sicher" ? "Mehrheit steht" : v.urteil === "knapp" ? "Mehrheit knapp" : "aussichtslos"}</span>
+        <span className={`stimmen-urteil urteil-${v.urteil}`}>{v.urteil === "sicher" ? t("ui2.ui.politik.VorschlagKarte.61a0cfe") : v.urteil === "knapp" ? t("ui2.ui.politik.VorschlagKarte.d6570c1") : "aussichtslos"}</span>
       </div>
       <div className="fraktion-aktionen">
         <button className="aktion-knopf" onClick={() => onEinstellen(v)}>
@@ -44,10 +44,10 @@ export function VorschlagKarte({
         <button
           className="aktion-knopf"
           disabled={!v.bezahlbar || v.urteil === "verloren"}
-          title={v.urteil === "verloren" ? "Ohne Mehrheit: erst im Parlament verhandeln" : !v.bezahlbar ? "Dafür fehlt Kapital" : "Als Gesetz einbringen"}
+          title={v.urteil === "verloren" ? t("ui2.ui.politik.VorschlagKarte.d99f486") : !v.bezahlbar ? t("ui2.ui.politik.VorschlagKarte.9fcc6e5") : t("ui2.ui.politik.VorschlagKarte.abaa171")}
           onClick={() => onSofort(v)}
         >
-          Sofort einbringen <b>{v.pk}</b>
+          {t("ui2.ui.politik.VorschlagKarte.266e656")} <b>{v.pk}</b>
         </button>
       </div>
     </li>

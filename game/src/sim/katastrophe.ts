@@ -154,7 +154,7 @@ const BRAND_GEBIET = PROVINZEN.filter((p) => (p.region === "Ege" || p.region ===
 /** Konya-Becken: geschlossenes Trockenbecken, Kopplung an p_wassermangel. */
 const DUERRE_BECKEN = PROVINZEN.filter((p) => p.region === "İç Anadolu" && (RISIKO[String(p.plaka)]?.wasserstress ?? 0) >= 4).map((p) => p.plaka);
 
-export const ART_NAMEN: Record<KatastrophenArt, string> = { erdbeben: "Erdbeben", flut: "Sturzflut", waldbrand: "Großbrand", duerre: "Dürre und Wassernot" };
+export const ART_NAMEN: Record<KatastrophenArt, string> = { erdbeben: "Erdbeben", flut: "Sturzflut", waldbrand: t("sim2.sim.katastrophe.7aab0fe"), duerre: t("sim2.sim.katastrophe.1772b13") };
 
 // ---------------------------------------------------------------------------
 // Zustand
@@ -498,7 +498,7 @@ export function eroeffnungEffekte(w: World, fall: KatastropheFall): void {
 /** Soforthilfe (schnell, teuer, kostet Aufmerksamkeit): Rettung, Zelte, Feldlazarette. */
 export function soforthilfe(w: World, fallId: string): string {
   const fall = fallMit(w, fallId);
-  if (!fall || fall.hilfe.soforthilfe) return "Die Soforthilfe läuft bereits.";
+  if (!fall || fall.hilfe.soforthilfe) return t("sim2.sim.katastrophe.3748b76");
   fall.hilfe.soforthilfe = true;
   const s = fall.staerke;
   const versicherung = nationalAverage(NET, w.net, "m_versicherungspflicht") / 100;
@@ -514,15 +514,15 @@ export function soforthilfe(w: World, fallId: string): string {
     wirke(w, "wasserversorgung", 3 * s, fall.provinzen);
   }
   vertrauenAendern(w, 1.5 * s);
-  addLog(w, "entscheidung", `Soforthilfe nach ${ART_NAMEN[fall.art]} in ${namenVon(fall.provinzen)} angelaufen.`, `Kostet ${nf(anteil, 2)} % des BIP${versicherung > 0.3 ? " — die Pflichtversicherung trägt einen spürbaren Anteil" : ""}. Rettung, Zelte und Feldlazarette sind unterwegs.`);
-  return "Rettungskräfte, Zelte und Feldlazarette sind unterwegs; die Schadenslage klärt sich schneller auf.";
+  addLog(w, "entscheidung", t("sim2.sim.katastrophe.3958aa4", { p0: ART_NAMEN[fall.art], p1: namenVon(fall.provinzen) }), t("sim2.sim.katastrophe.450339b", { p0: nf(anteil, 2), p1: versicherung > 0.3 ? t("sim2.sim.katastrophe.i8bdc911") : "" }));
+  return t("sim2.sim.katastrophe.d0dc370");
 }
 
 /** Höhe der öffentlichen Wohnungs-Zusage: mehr versprechen bringt Zustimmung jetzt — und Schuld später. */
 export function zusageFestlegen(w: World, fallId: string, stufe: keyof typeof KATASTROPHE.zusageStufen): string {
   const fall = fallMit(w, fallId);
-  if (!fall || fall.wohnungen <= 0) return "Es gibt keinen zerstörten Wohnbestand, für den man versprechen könnte.";
-  if (fall.zusage) return "Das öffentliche Versprechen steht bereits.";
+  if (!fall || fall.wohnungen <= 0) return t("sim2.sim.katastrophe.1b35126");
+  if (fall.zusage) return t("sim2.sim.katastrophe.fd0fcd3");
   // Ein Versprechen, das kein Programm einlösen kann, wäre eine Falle mit garantiertem Wahlmalus
   if (!programmMoeglich(fall)) return t("katastrophe.zusage_unmoeglich");
   const wohnungen = Math.max(500, Math.round((fall.wohnungen * KATASTROPHE.zusageStufen[stufe]) / 500) * 500);
@@ -534,22 +534,22 @@ export function zusageFestlegen(w: World, fallId: string, stufe: keyof typeof KA
   addLog(
     w,
     "entscheidung",
-    `Öffentliches Versprechen: ${nf(wohnungen)} neue Wohnungen für ${namenVon(fall.provinzen)}.`,
-    "Was heute Applaus bringt, wird später gemessen: Geliefert wird, was das Wohnungsbau-Programm und die private Erholung tatsächlich fertigstellen.",
+    t("sim2.sim.katastrophe.dee39ef", { p0: nf(wohnungen), p1: namenVon(fall.provinzen) }),
+    t("sim2.sim.katastrophe.6eba2ba"),
   );
-  return `Der Präsident verspricht öffentlich ${nf(wohnungen)} neue Wohnungen. Das Land wird es sich merken.`;
+  return t("sim2.sim.katastrophe.26ea2c7", { p0: nf(wohnungen) });
 }
 
 /** Übergangsversorgung (Container, Heizung, Mietzuschüsse) über Monate; läuft im Monatsschritt. */
 export function starteUebergang(w: World, fallId: string): { ok: boolean; text: string } {
   const fall = fallMit(w, fallId);
-  if (!fall) return { ok: false, text: "Diesen Fall gibt es nicht." };
-  if (fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day) return { ok: false, text: "Die Übergangsversorgung läuft bereits." };
-  if (!fall.hilfe.soforthilfe) return { ok: false, text: "Erst muss die Soforthilfe stehen." };
+  if (!fall) return { ok: false, text: t("sim2.sim.katastrophe.d799247") };
+  if (fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day) return { ok: false, text: t("sim2.sim.katastrophe.7179a4d") };
+  if (!fall.hilfe.soforthilfe) return { ok: false, text: t("sim2.sim.katastrophe.fc7a787") };
   fall.hilfe.uebergangBis = w.day + KATASTROPHE.uebergangTage;
   const bis = formatDateDe(addDays(w.date, KATASTROPHE.uebergangTage));
-  addLog(w, "entscheidung", `Übergangsversorgung für ${namenVon(fall.provinzen)} bis ${bis}.`, `Container, Heizung und Mietzuschüsse kosten rund ${nf(KATASTROPHE.uebergangKosten * fall.staerke, 2)} % des BIP je Monat.`);
-  return { ok: true, text: `Containerstädte, Heizung und Mietzuschüsse sind bis ${bis} gesichert.` };
+  addLog(w, "entscheidung", t("sim2.sim.katastrophe.f05a87c", { p0: namenVon(fall.provinzen), p1: bis }), t("sim2.sim.katastrophe.783ad62", { p0: nf(KATASTROPHE.uebergangKosten * fall.staerke, 2) }));
+  return { ok: true, text: t("sim2.sim.katastrophe.6d2b752", { p0: bis }) };
 }
 
 /** Das Wohnungsbau-Programm als dynamisches Reich-Vorhaben: Es konkurriert wie jedes Großprojekt um Baukapazität — und verdrängt, was hinten steht. */
@@ -560,7 +560,7 @@ function wohnbauVorhaben(fall: KatastropheFall, p: NonNullable<KatastropheFall["
     bereich: "infrastruktur",
     klasse: "grossprojekt",
     name: `Wohnungsbau-Programm ${wo}`,
-    text: `Neubau von ${nf(p.bedarf)} Wohnungen im Katastrophengebiet (${ART_NAMEN[fall.art]} vom ${formatDateDe(fall.datum)}). Läuft über die gewöhnliche Bauvergabe: Es bindet Baukapazität und Verwaltungskraft wie jedes andere Großvorhaben.`,
+    text: t("sim2.sim.katastrophe.d3d1336", { p0: nf(p.bedarf), p1: ART_NAMEN[fall.art], p2: formatDateDe(fall.datum) }),
     provinzen: fall.provinzen,
     voraus: [],
     kosten: { pk: 6, bau: p.bau, monate: p.monate, verwaltung: 2, schulden: p.schulden },
@@ -572,8 +572,8 @@ function wohnbauVorhaben(fall: KatastropheFall, p: NonNullable<KatastropheFall["
     ],
     dauer: [{ t: "knoten", id: "wohnungsbau", d: 2, provinzen: fall.provinzen }],
     unterhalt: 0.4,
-    kehrseite: "Verdrängt andere Bauvorhaben: Was hier zuerst baut, fehlt anderswo. Und jede Verzögerung wird als gebrochenes Versprechen gelesen.",
-    verlierer: "Übrige Bauprogramme des Landes",
+    kehrseite: t("sim2.sim.katastrophe.958ab70"),
+    verlierer: t("sim2.sim.katastrophe.168e5eb"),
     bild: "stadt",
   };
 }
@@ -581,11 +581,11 @@ function wohnbauVorhaben(fall: KatastropheFall, p: NonNullable<KatastropheFall["
 /** Meldet das Wohnungsbau-Programm an und beginnt es (Vergabe wie bei jedem Reich-Vorhaben wählbar). */
 export function beginneWiederaufbau(w: World, fallId: string, vergabe: Vergabe): { ok: boolean; text: string; why?: string } {
   const fall = fallMit(w, fallId);
-  if (!fall) return { ok: false, text: "Diesen Fall gibt es nicht." };
-  if (fall.art === "duerre" || fall.art === "waldbrand") return { ok: false, text: "Hier geht es nicht um zerstörte Wohnungen — Hilfe läuft über Sofort- und Übergangsversorgung." };
-  if (fall.wohnbau) return { ok: false, text: "Das Wohnungsbau-Programm läuft bereits." };
+  if (!fall) return { ok: false, text: t("sim2.sim.katastrophe.d799247") };
+  if (fall.art === "duerre" || fall.art === "waldbrand") return { ok: false, text: t("sim2.sim.katastrophe.691dc25") };
+  if (fall.wohnbau) return { ok: false, text: t("sim2.sim.katastrophe.c183dd1") };
   const bedarf = Math.max(fall.zusage?.wohnungen ?? 0, fall.wohnungen - fall.privatGeliefert);
-  if (bedarf < KATASTROPHE.wiederaufbauMin) return { ok: false, text: "Der verbliebene Bedarf ist zu klein für ein eigenes Programm." };
+  if (bedarf < KATASTROPHE.wiederaufbauMin) return { ok: false, text: t("sim2.sim.katastrophe.eceb504") };
   const versicherung = nationalAverage(NET, w.net, "m_versicherungspflicht") / 100;
   const p = {
     id: `kat_wohnbau_${fall.id}`,
@@ -602,7 +602,7 @@ export function beginneWiederaufbau(w: World, fallId: string, vergabe: Vergabe):
     fall.wohnbau = undefined;
     return r;
   }
-  addLog(w, "entscheidung", `Wohnungsbau-Programm für ${namenVon(fall.provinzen)} beschlossen (${nf(bedarf)} Wohnungen).`, `Es konkurriert mit allen anderen Bauvorhaben um die Baukapazität des Landes; Kosten rund ${nf(p.schulden, 2)} % des BIP über die Bauzeit.`);
+  addLog(w, "entscheidung", t("sim2.sim.katastrophe.0b43de0", { p0: namenVon(fall.provinzen), p1: nf(bedarf) }), t("sim2.sim.katastrophe.643d3a3", { p0: nf(p.schulden, 2) }));
   return r;
 }
 
@@ -621,8 +621,8 @@ export function nebelStufe(w: World, fall: KatastropheFall): NebelStufe {
 export function schaetzung(w: World, fall: KatastropheFall, wert: number): string {
   const stufe = nebelStufe(w, fall);
   if (stufe === "bekannt") return nf(wert);
-  if (stufe === "vermutet") return `${nf(Math.round(wert * 0.7))} bis ${nf(Math.round(wert * 1.35))} (vermutet)`;
-  return "noch unklar";
+  if (stufe === "vermutet") return t("sim2.sim.katastrophe.36e5aa0", { p0: nf(Math.round(wert * 0.7)), p1: nf(Math.round(wert * 1.35)) });
+  return t("sim2.sim.katastrophe.11a7406");
 }
 
 // ---------------------------------------------------------------------------
@@ -673,12 +673,12 @@ export function versprechensschuldMalus(w: World): { punkte: number; text: strin
     if (unwucht <= 0.05) continue;
     const anteil = unwucht * KATASTROPHE.malusBasis * (0.5 + 0.5 * fall.staerke) * (z.imBau ? 0.6 : 1);
     punkte += anteil;
-    teile.push(`${z.ort}: ${nf(z.geliefert)} von ${nf(z.versprochen)} versprochenen Wohnungen geliefert${z.imBau ? " (das Programm läuft noch)" : ""}`);
+    teile.push(t("sim2.sim.katastrophe.964fa4c", { p0: z.ort, p1: nf(z.geliefert), p2: nf(z.versprochen), p3: z.imBau ? t("sim2.sim.katastrophe.ifbe17e3") : "" }));
   }
   punkte = Math.min(KATASTROPHE.malusDeckel, punkte);
   const text =
     punkte > 0
-      ? `Die Versprechen nach ${teile.length === 1 ? "der Katastrophe" : "den Katastrophen"} holen die Regierung ein: ${teile.join("; ")}. Die Wähler erinnern sich — Zustimmung −${nf(punkte, 1)} Punkte.`
+      ? t("sim2.sim.katastrophe.938e54c", { p0: teile.length === 1 ? t("sim2.sim.katastrophe.i5d83581") : t("sim2.sim.katastrophe.i55d6236"), p1: teile.join("; "), p2: nf(punkte, 1) })
       : "";
   return { punkte: Math.round(punkte * 10) / 10, text };
 }
@@ -688,15 +688,15 @@ export function katastrophenBilanz(w: World): string | null {
   const z = w.spiel?.katastrophen;
   if (!z || !z.faelle.length) return null;
   const tote = z.faelle.reduce((s, f) => s + f.tote, 0);
-  const namen = z.faelle.map((f) => `${ART_NAMEN[f.art]} in ${namenVon(f.provinzen)} (${formatDateDe(f.datum)})`).join("; ");
+  const namen = z.faelle.map((f) => t("sim2.sim.katastrophe.4c60d78", { p0: ART_NAMEN[f.art], p1: namenVon(f.provinzen), p2: formatDateDe(f.datum) })).join("; ");
   const zeilen = versprechensLage(w);
   const offen = zeilen.filter((x) => x.quote < 0.95);
-  let satz = `Katastrophen der Amtszeit: ${namen}. Insgesamt ${nf(tote)} Todesopfer zu beklagen.`;
+  let satz = t("sim2.sim.katastrophe.01bd8e8", { p0: namen, p1: nf(tote) });
   if (zeilen.length) {
     const summe = (f: (x: VersprechenZeile) => number) => zeilen.reduce((s, x) => s + f(x), 0);
     satz += ` Von ${nf(summe((x) => x.versprochen))} versprochenen Wohnungen wurden ${nf(summe((x) => x.geliefert))} geliefert.`;
     // Die Mahnung bleibt die Referenz: 2023 waren 319.000 Wohnungen versprochen, 201.431 geliefert.
-    if (offen.length) satz += " Das Versprechen von damals — 319.000 versprochene, 201.431 gelieferte Wohnungen — holt jede Regierung ein, die mehr verspricht, als sie baut.";
+    if (offen.length) satz += t("sim2.sim.katastrophe.45d3580");
   }
   return satz;
 }
@@ -787,11 +787,11 @@ function schliesse(w: World, fall: KatastropheFall, ausgang: Abschluss): void {
     return;
   }
   if (bedarf > 0) {
-    addLog(w, "ereignis", `${ART_NAMEN[fall.art]} in ${ort}: Die Lage gilt als bewältigt.`, `${nf(geliefert)} von ${nf(bedarf)} Wohnungen sind wieder fertig; die Region steht wieder auf eigenen Beinen.`);
-    w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `${ART_NAMEN[fall.art]} bewältigt`, ausgang: `${ort} steht wieder: ${nf(geliefert)} von ${nf(bedarf)} Wohnungen geliefert.` });
+    addLog(w, "ereignis", t("sim2.sim.katastrophe.a51dedc", { p0: ART_NAMEN[fall.art], p1: ort }), t("sim2.sim.katastrophe.e520498", { p0: nf(geliefert), p1: nf(bedarf) }));
+    w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `${ART_NAMEN[fall.art]} bewältigt`, ausgang: t("sim2.sim.katastrophe.fb55f2f", { p0: ort, p1: nf(geliefert), p2: nf(bedarf) }) });
     return;
   }
-  addLog(w, "ereignis", `${ART_NAMEN[fall.art]} in ${ort}: Die Lage gilt als bewältigt.`, t("katastrophe.erholt_text", { ort }));
+  addLog(w, "ereignis", t("sim2.sim.katastrophe.a51dedc", { p0: ART_NAMEN[fall.art], p1: ort }), t("katastrophe.erholt_text", { ort }));
   w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: `${ART_NAMEN[fall.art]} bewältigt`, ausgang: t("katastrophe.erholt_chronik", { ort }) });
 }
 
@@ -819,8 +819,8 @@ export function fallSicht(w: World, fall: KatastropheFall): FallSicht {
   const v = fall.verhindert;
   const verhindertText =
     v.tote > 0 || v.wohnungen > 0
-      ? `Die Bereitschaft (Stand ${fall.bereitschaft}) hat nach Modellrechnung etwa ${nf(v.tote)} Todesopfer${v.wohnungen > 0 ? ` und ${nf(v.wohnungen)} zerstörte Wohnungen` : ""} verhindert (Bandbreite ±25 %, Referenz: Bereitschaft 20).`
-      : `Die Bereitschaft stand bei ${fall.bereitschaft} von 100 — eine bessere Vorsorge hätte die Opferzahlen spürbar gedrückt.`;
+      ? t("sim2.sim.katastrophe.9570cd5", { p0: fall.bereitschaft, p1: nf(v.tote), p2: v.wohnungen > 0 ? ` und ${nf(v.wohnungen)} zerstörte Wohnungen` : "" })
+      : t("sim2.sim.katastrophe.d0f972e", { p0: fall.bereitschaft });
   const uebergangAktiv = fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day;
   const wiederaufbauMoeglich = !fall.wohnbau && programmMoeglich(fall);
   return {
@@ -835,7 +835,7 @@ export function fallSicht(w: World, fall: KatastropheFall): FallSicht {
     },
     wiederaufbau: {
       moeglich: wiederaufbauMoeglich,
-      ...(wiederaufbauMoeglich ? {} : { grund: fall.wohnbau ? "Das Programm läuft bereits." : fall.art !== "erdbeben" && fall.art !== "flut" ? "Hier geht es nicht um zerstörte Wohnungen." : "Der verbliebene Bedarf ist zu klein für ein eigenes Programm." }),
+      ...(wiederaufbauMoeglich ? {} : { grund: fall.wohnbau ? t("sim2.sim.katastrophe.97611ef") : fall.art !== "erdbeben" && fall.art !== "flut" ? t("sim2.sim.katastrophe.1156aa8") : t("sim2.sim.katastrophe.eceb504") }),
       gestartet: !!fall.wohnbau,
     },
   };
@@ -862,7 +862,7 @@ export function bereitGegenReferenz(stand: number): number {
   return Math.round((1 - bereitFaktor(clamp(stand, 0, 100)) / bereitFaktor(KATASTROPHE.bereitReferenz)) * 1000) / 10;
 }
 
-const MONATSNAMEN = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const MONATSNAMEN = ["Januar", "Februar", t("sim2.sim.katastrophe.0b30c92"), "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 
 export interface RisikoGebiet {
   plaka: number;
@@ -944,14 +944,14 @@ export function risikoUebersicht(w: World): RisikoSicht[] {
       jahresChance: jahresChance(w, "erdbeben", () => KATASTROPHE.bebenChance[zone]),
       saison: "ganzjährig",
       ...abk("erdbeben"),
-      ...(Number.isFinite(vorsorge) ? { kennzahl: { name: "Vorsorge in den Hochrisiko-Provinzen", wert: Math.round(vorsorge), gut: "hoch" as const } } : {}),
+      ...(Number.isFinite(vorsorge) ? { kennzahl: { name: t("sim2.sim.katastrophe.b5d36d2"), wert: Math.round(vorsorge), gut: "hoch" as const } } : {}),
     });
   }
   const flut = gebietListe(FLUT_GEBIET, false);
   out.push({
     id: "flut",
     art: "flut",
-    titel: "Sturzflut am Schwarzen Meer",
+    titel: t("sim2.sim.katastrophe.8abf391"),
     gebiet: flut,
     bevoelkerung: summe(flut),
     jahresChance: jahresChance(w, "flut", (m) => (m >= 8 && m <= 11 ? KATASTROPHE.flutChance : 0)),
@@ -962,7 +962,7 @@ export function risikoUebersicht(w: World): RisikoSicht[] {
   out.push({
     id: "waldbrand",
     art: "waldbrand",
-    titel: "Großbrand an Ägäis und Mittelmeer",
+    titel: t("sim2.sim.katastrophe.e77a624"),
     gebiet: brand,
     bevoelkerung: summe(brand),
     jahresChance: jahresChance(w, "waldbrand", (m) => (m >= 6 && m <= 9 ? KATASTROPHE.brandChance : 0)),
@@ -974,13 +974,13 @@ export function risikoUebersicht(w: World): RisikoSicht[] {
   out.push({
     id: "duerre",
     art: "duerre",
-    titel: "Dürre im Konya-Becken",
+    titel: t("sim2.sim.katastrophe.d75ca58"),
     gebiet: duerre,
     bevoelkerung: summe(duerre),
     jahresChance: jahresChance(w, "duerre", (m) => (m >= 5 && m <= 9 ? KATASTROPHE.duerreChance * (0.5 + (Number.isFinite(mangel) ? mangel / 60 : 0.5)) : 0)),
     saison: saisonText(5, 9),
     ...abk("duerre"),
-    ...(Number.isFinite(mangel) ? { kennzahl: { name: "Wassermangel im Becken", wert: Math.round(mangel), gut: "niedrig" as const } } : {}),
+    ...(Number.isFinite(mangel) ? { kennzahl: { name: t("sim2.sim.katastrophe.0bf5028"), wert: Math.round(mangel), gut: "niedrig" as const } } : {}),
   });
   return out;
 }
@@ -1036,7 +1036,7 @@ export function hilfsketteSicht(w: World, fall: KatastropheFall): KettenStufe[] 
     id: "nothilfe",
     name: "Nothilfe",
     status: fall.hilfe.soforthilfe ? "erledigt" : "offen",
-    detail: fall.hilfe.soforthilfe ? "Rettung, Zelte und Feldlazarette sind geleistet." : "Rettung, Zelte und Feldlazarette stehen aus; ohne Hilfe bleibt die Schadenslage länger im Nebel.",
+    detail: fall.hilfe.soforthilfe ? t("sim2.sim.katastrophe.35bd090") : t("sim2.sim.katastrophe.3296c88"),
   });
 
   const uebergangAktiv = fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day;
@@ -1044,18 +1044,18 @@ export function hilfsketteSicht(w: World, fall: KatastropheFall): KettenStufe[] 
   const monate = Math.round(KATASTROPHE.uebergangTage / 30);
   ketten.push({
     id: "uebergang",
-    name: "Übergangsversorgung",
+    name: t("sim2.sim.katastrophe.1665d40"),
     status: uebergangAktiv ? "laeuft" : uebergangVorbei ? "erledigt" : fall.hilfe.soforthilfe ? "offen" : "gesperrt",
     detail: uebergangAktiv
       ? (() => {
           const rest = Math.max(1, Math.round((fall.hilfe.uebergangBis! - w.day) / 30));
-          return `Noch ${rest} ${rest === 1 ? "Monat" : "Monate"}, etwa ${kostenMonat} % des BIP je Monat.`;
+          return t("sim2.sim.katastrophe.edc495f", { p0: rest, p1: rest === 1 ? t("sim2.sim.katastrophe.ida13625") : t("sim2.sim.katastrophe.i1c561ae"), p2: kostenMonat });
         })()
       : uebergangVorbei
-        ? "Ausgelaufen: Container, Heizung und Mietzuschüsse sind beendet."
+        ? t("sim2.sim.katastrophe.f7299c5")
         : fall.hilfe.soforthilfe
-          ? `Container, Heizung und Mietzuschüsse: etwa ${kostenMonat} % des BIP je Monat über ${monate} Monate.`
-          : "Erst nach der Nothilfe möglich.",
+          ? t("sim2.sim.katastrophe.5fd5d02", { p0: kostenMonat, p1: monate })
+          : t("sim2.sim.katastrophe.4ab5191"),
     ...(uebergangAktiv ? { fortschritt: clamp(1 - (fall.hilfe.uebergangBis! - w.day) / KATASTROPHE.uebergangTage, 0, 1) } : {}),
   });
 
@@ -1065,9 +1065,9 @@ export function hilfsketteSicht(w: World, fall: KatastropheFall): KettenStufe[] 
   const fertig = !!fall.wohnbau && !!reich?.bestand[fall.wohnbau.id];
   const braucht = (fall.art === "erdbeben" || fall.art === "flut") && fall.wohnungen > 0;
   if (!braucht) {
-    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "entfaellt", detail: "Kein zerstörter Wohnbestand: Hier hilft die Versorgung, ein Bauprogramm gibt es nicht." });
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "entfaellt", detail: t("sim2.sim.katastrophe.d811384") });
   } else if (fertig) {
-    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "erledigt", detail: "Das Wohnungsbau-Programm ist fertiggestellt.", fortschritt: 1 });
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "erledigt", detail: t("sim2.sim.katastrophe.d036339"), fortschritt: 1 });
   } else if (lauf && def) {
     const eintrag = warteschlange(w).find((e) => e.id === lauf.id);
     const anteil = clamp(lauf.fortschritt / laufBau(lauf, def), 0, 1);
@@ -1075,26 +1075,26 @@ export function hilfsketteSicht(w: World, fall: KatastropheFall): KettenStufe[] 
       id: "wiederaufbau",
       name: "Wiederaufbau",
       status: "laeuft",
-      detail: `Im Bau zu ${Math.round(anteil * 100)} Prozent${eintrag ? `, Position ${eintrag.position} der Baureihenfolge${eintrag.fertigIn !== undefined ? `, fertig in etwa ${eintrag.fertigIn} Monaten` : ""}` : ""}.`,
+      detail: t("sim2.sim.katastrophe.412d3b4", { p0: Math.round(anteil * 100), p1: eintrag ? `, Position ${eintrag.position} der Baureihenfolge${eintrag.fertigIn !== undefined ? `, fertig in etwa ${eintrag.fertigIn} Monaten` : ""}` : "" }),
       fortschritt: anteil,
     });
   } else if (fall.wohnbau) {
-    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "laeuft", detail: "Das Programm ist angemeldet und wartet in der Baureihenfolge." });
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "laeuft", detail: t("sim2.sim.katastrophe.f2275ce") });
   } else if (fall.wohnungen - fall.privatGeliefert >= KATASTROPHE.wiederaufbauMin) {
-    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "offen", detail: `Noch nicht angemeldet: Bedarf etwa ${nf(Math.round(fall.wohnungen - fall.privatGeliefert))} Wohnungen. Das Programm bindet Baukapazität und verdrängt, was hinten steht.` });
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "offen", detail: t("sim2.sim.katastrophe.d7e6e19", { p0: nf(Math.round(fall.wohnungen - fall.privatGeliefert)) }) });
   } else {
-    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "entfaellt", detail: "Der verbliebene Bedarf ist zu klein für ein eigenes Programm." });
+    ketten.push({ id: "wiederaufbau", name: "Wiederaufbau", status: "entfaellt", detail: t("sim2.sim.katastrophe.eceb504") });
   }
 
   const bedarf = fall.zusage?.wohnungen ?? fall.wohnungen;
   const geliefert = (fall.zusage ? fall.zusage.geliefert : programmLieferung(fall, reich)) + fall.privatGeliefert;
   const frist = KATASTROPHE.fristMonate[fall.art];
   if (fall.bewaeltigt) {
-    ketten.push({ id: "bewaeltigt", name: "Bewältigt", status: "erledigt", detail: "Die Region steht wieder auf eigenen Beinen.", fortschritt: 1 });
+    ketten.push({ id: "bewaeltigt", name: t("sim2.sim.katastrophe.d8191b4"), status: "erledigt", detail: t("sim2.sim.katastrophe.5b91d3a"), fortschritt: 1 });
   } else if (bedarf > 0) {
     ketten.push({
       id: "bewaeltigt",
-      name: "Bewältigt",
+      name: t("sim2.sim.katastrophe.d8191b4"),
       status: "offen",
       detail: t("katastrophe.kette_bewaeltigt", { geliefert: Math.round(geliefert), bedarf, frist }),
       fortschritt: clamp(geliefert / bedarf, 0, 1),
@@ -1104,7 +1104,7 @@ export function hilfsketteSicht(w: World, fall: KatastropheFall): KettenStufe[] 
     const monate = clamp((w.day - fall.tag) / 30.4 / frist, 0, 1);
     ketten.push({
       id: "bewaeltigt",
-      name: "Bewältigt",
+      name: t("sim2.sim.katastrophe.d8191b4"),
       status: "offen",
       detail: t(fall.art === "duerre" ? "katastrophe.kette_duerre" : "katastrophe.kette_ohne_bedarf", { min: KATASTROPHE.duerreMindestMonate, frist }),
       fortschritt: monate,

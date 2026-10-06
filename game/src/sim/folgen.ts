@@ -3,6 +3,7 @@
 
 import { NET } from "./modell";
 import { PARAMS } from "./economy";
+import { t } from "../i18n";
 
 export interface Glied {
   /** Der Name einer Größe des Netzes („Kreditvergabe“, Pfeil folgt aus `richtung`) oder ein ganzer Satz des Wirtschaftsmodells */
@@ -99,11 +100,11 @@ export function zinsKette(delta: number): Glied[] {
   const s: 1 | -1 = delta > 0 ? 1 : -1;
   const lag = PARAMS.rateLagMonths;
   const modell: Glied[] = [
-    { text: s > 0 ? "Die Lira wird stärker: Anleger holen sich den höheren Zins" : "Die Lira wird schwächer: Anleger ziehen Geld ab", richtung: s, gut: s > 0, nach: 0, ebene: 1, warum: "Z4: Der Realzins zieht Kapital an oder weg, binnen Tagen." },
-    { text: s > 0 ? "Die Wirtschaft läuft kühler: Auslastung sinkt" : "Die Wirtschaft läuft heißer: Auslastung steigt", richtung: (-s) as 1 | -1, gut: null, nach: lag, ebene: 1, warum: `Z1: Der Zins wirkt auf Kredite und Nachfrage, nach etwa ${lag} Monaten.` },
-    { text: s > 0 ? "Die Inflation sinkt" : "Die Inflation steigt", richtung: (-s) as 1 | -1, gut: s > 0, nach: lag + 3, ebene: 2, warum: "Z2 und Z5: Weniger Auslastung und eine stärkere Lira bremsen die Preise." },
-    { text: s > 0 ? "Wachstum und Beschäftigung leiden" : "Wachstum und Beschäftigung profitieren", richtung: (-s) as 1 | -1, gut: s < 0, nach: lag + 2, ebene: 2, warum: "Z9: Die Arbeitslosigkeit folgt dem Wachstum mit Verzögerung." },
-    { text: s > 0 ? "Neue Staatsschulden werden teurer: Der Zinsdienst wächst langsam" : "Neue Staatsschulden werden billiger: Der Zinsdienst wächst langsamer", richtung: s, gut: s < 0, nach: 12, ebene: 2, warum: "Z7: Die Schuld wird erst bei Fälligkeit neu finanziert, deshalb kommt die Wirkung über Jahre." },
+    { text: s > 0 ? t("sim2.sim.folgen.3743889") : t("sim2.sim.folgen.1378c05"), richtung: s, gut: s > 0, nach: 0, ebene: 1, warum: t("sim2.sim.folgen.8f9be37") },
+    { text: s > 0 ? t("sim2.sim.folgen.755fbec") : t("sim2.sim.folgen.84baae9"), richtung: (-s) as 1 | -1, gut: null, nach: lag, ebene: 1, warum: t("sim2.sim.folgen.2d910c5", { p0: lag }) },
+    { text: s > 0 ? "Die Inflation sinkt" : "Die Inflation steigt", richtung: (-s) as 1 | -1, gut: s > 0, nach: lag + 3, ebene: 2, warum: t("sim2.sim.folgen.3fcef71") },
+    { text: s > 0 ? t("sim2.sim.folgen.b9bda4f") : t("sim2.sim.folgen.69156ae"), richtung: (-s) as 1 | -1, gut: s < 0, nach: lag + 2, ebene: 2, warum: t("sim2.sim.folgen.81a275c") },
+    { text: s > 0 ? t("sim2.sim.folgen.116f1dd") : t("sim2.sim.folgen.e5f6b56"), richtung: s, gut: s < 0, nach: 12, ebene: 2, warum: t("sim2.sim.folgen.d10fa97") },
   ];
   return [...modell, ...netzKette("leitzins", s, [3, 2, 1]).filter((g) => g.ebene <= 2)];
 }
@@ -113,11 +114,11 @@ export function impulsKette(delta: number): Glied[] {
   if (!delta) return [];
   const s: 1 | -1 = delta > 0 ? 1 : -1;
   return [
-    { text: s > 0 ? "Die Nachfrage steigt: Der Staat kauft und zahlt mehr" : "Die Nachfrage sinkt: Der Staat kauft und zahlt weniger", richtung: s, gut: null, nach: 1, ebene: 1, warum: "Z6: Ausgaben und Steuern wirken auf die Nachfrage." },
-    { text: s > 0 ? "Das Defizit wächst, die Schulden steigen" : "Das Defizit schrumpft, die Schulden wachsen langsamer", richtung: s, gut: s < 0, nach: 1, ebene: 1, warum: "Z7: Defizite werden zu Schulden." },
-    { text: s > 0 ? "Wachstum und Beschäftigung steigen" : "Wachstum und Beschäftigung sinken", richtung: s, gut: s > 0, nach: 3, ebene: 2, warum: "Z1 und Z9: Höhere Auslastung heißt mehr Produktion und Arbeit." },
-    { text: s > 0 ? "Die Inflation steigt" : "Die Inflation sinkt", richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: "Z2: Läuft die Wirtschaft heißer, steigen Preise und Löhne schneller." },
-    { text: s > 0 ? "Der Risikoaufschlag steigt: Anleger verlangen mehr für Staatsanleihen" : "Der Risikoaufschlag sinkt: Anleger verlangen weniger für Staatsanleihen", richtung: s, gut: s < 0, nach: 1, ebene: 2, warum: "Z8: Hohe Defizite machen Anleger nervös." },
+    { text: s > 0 ? t("sim2.sim.folgen.d79ba00") : t("sim2.sim.folgen.233d33e"), richtung: s, gut: null, nach: 1, ebene: 1, warum: t("sim2.sim.folgen.2144138") },
+    { text: s > 0 ? t("sim2.sim.folgen.53924dd") : t("sim2.sim.folgen.9e6a4e7"), richtung: s, gut: s < 0, nach: 1, ebene: 1, warum: t("sim2.sim.folgen.24bc0c3") },
+    { text: s > 0 ? t("sim2.sim.folgen.cd64fb0") : t("sim2.sim.folgen.69a8598"), richtung: s, gut: s > 0, nach: 3, ebene: 2, warum: t("sim2.sim.folgen.0bfc994") },
+    { text: s > 0 ? "Die Inflation steigt" : "Die Inflation sinkt", richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: t("sim2.sim.folgen.84b9b64") },
+    { text: s > 0 ? t("sim2.sim.folgen.0977aca") : t("sim2.sim.folgen.eb0115b"), richtung: s, gut: s < 0, nach: 1, ebene: 2, warum: t("sim2.sim.folgen.95daa75") },
     ...netzKette("defizit", s, [2, 1, 1]).filter((g) => g.ebene <= 2),
   ];
 }
@@ -127,9 +128,9 @@ export function glaubwuerdigkeitsKette(delta: number): Glied[] {
   if (!delta) return [];
   const s: 1 | -1 = delta < 0 ? 1 : -1; // 1 = Vertrauensverlust
   return [
-    { text: s > 0 ? "Die Lira gibt nach, der Risikoaufschlag steigt" : "Die Lira festigt sich, der Risikoaufschlag sinkt", richtung: s, gut: s < 0, nach: 0, ebene: 1, warum: "Z4 und Z8: Märkte reagieren binnen Tagen auf politischen Einfluss." },
-    { text: s > 0 ? "Die Inflationserwartungen steigen" : "Die Inflationserwartungen sinken", richtung: s, gut: s < 0, nach: 2, ebene: 1, warum: "Z3: Verliert die Bank Glaubwürdigkeit, verankern sich die Erwartungen schlechter." },
-    { text: s > 0 ? "Löhne und Preise ziehen vorsorglich an: Die Inflation verfestigt sich" : "Die Inflation lässt sich leichter senken", richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: "Z3: Erwartungen bestimmen, wie zäh die Inflation ist." },
+    { text: s > 0 ? t("sim2.sim.folgen.4d95e45") : t("sim2.sim.folgen.af6d37a"), richtung: s, gut: s < 0, nach: 0, ebene: 1, warum: t("sim2.sim.folgen.777be04") },
+    { text: s > 0 ? "Die Inflationserwartungen steigen" : "Die Inflationserwartungen sinken", richtung: s, gut: s < 0, nach: 2, ebene: 1, warum: t("sim2.sim.folgen.1bdeb08") },
+    { text: s > 0 ? t("sim2.sim.folgen.654202f") : t("sim2.sim.folgen.1246aa3"), richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: t("sim2.sim.folgen.6036af5") },
   ];
 }
 

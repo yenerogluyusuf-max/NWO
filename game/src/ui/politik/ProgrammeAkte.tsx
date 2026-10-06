@@ -109,20 +109,20 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
     <div className="pd-programme">
       <header className="pd-seitenkopf">
         <div>
-          <p className="pd-ueber">Regierungsprogramme</p>
+          <p className="pd-ueber">{t("ui2.ui.politik.ProgrammeAkte.a73447b")}</p>
           <h3>{t("ui.politik.ProgrammeAkte.66d15d8")}</h3>
           <p className="pd-lead">
-            Jeder Schritt verlangt echte Politik (eine Maßnahme auf einer Stufe, ein gelöstes Problem), kostet Kapital und Zeit und wirkt danach dauerhaft. Höchstens {MAX_LAUFEND} Schritte laufen gleichzeitig.
+            {t("ui2.ui.politik.ProgrammeAkte.b9bd96c", { p0: MAX_LAUFEND })}
           </p>
         </div>
         <ul className="pd-zaehler" aria-label={t("ui.politik.ProgrammeAkte.8b30d8b")}>
           <li>
             <b>{laufend.length}</b>
-            <span>von {MAX_LAUFEND} Plätzen belegt</span>
+            <span>{t("ui2.ui.politik.ProgrammeAkte.f3895b2", { p0: MAX_LAUFEND })}</span>
           </li>
           <li className={bereitGesamt > 0 ? "hell" : ""}>
             <b>{bereitGesamt}</b>
-            <span>{bereitGesamt === 1 ? "Schritt bereit" : "Schritte bereit"}</span>
+            <span>{bereitGesamt === 1 ? t("ui2.ui.politik.ProgrammeAkte.db0f51b") : t("ui2.ui.politik.ProgrammeAkte.e87c09b")}</span>
           </li>
           <li>
             <b>
@@ -141,19 +141,19 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
         </p>
       )}
 
-      <section className="pd-plaetze" aria-label="Laufende Schritte">
+      <section className="pd-plaetze" aria-label={t("ui2.ui.politik.ProgrammeAkte.5a1cdc8")}>
         {laufend.map(({ p, s, sicht }) => (
           <article key={s.id} className="pd-platz belegt">
             <Medaille name={EMBLEM[p.id] ?? "kultur"} groesse="klein" />
             <div className="pd-platz-text">
-              <p className="pd-ueber">Läuft · {p.titel}</p>
+              <p className="pd-ueber">{t("ui2.ui.politik.ProgrammeAkte.c10fa4e", { p0: p.titel })}</p>
               <strong>{s.titel}</strong>
-              <span className="pd-balken" role="img" aria-label={`${Math.round((sicht.lauf ?? 0) * 100)} Prozent`}>
+              <span className="pd-balken" role="img" aria-label={t("ui2.ui.politik.ProgrammeAkte.9844a1b", { p0: Math.round((sicht.lauf ?? 0) * 100) })}>
                 <i style={{ width: `${Math.round((sicht.lauf ?? 0) * 100)}%` }} />
               </span>
             </div>
             <span className="pd-platz-rest">
-              noch <b>{sicht.restTage ?? 0}</b> Tage
+              {t("ui2.ui.politik.ProgrammeAkte.4d05f58")} <b>{sicht.restTage ?? 0}</b> {t("ui2.ui.politik.ProgrammeAkte.e94f59f")}
             </span>
           </article>
         ))}
@@ -161,8 +161,8 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
           <article key={`frei-${k}`} className="pd-platz leer">
             <span className="pd-platz-punkt" aria-hidden />
             <div className="pd-platz-text">
-              <p className="pd-ueber">Platz frei</p>
-              <strong>{bereitGesamt > 0 ? "Ein bereiter Schritt kann hier laufen." : "Noch kein Schritt bereit."}</strong>
+              <p className="pd-ueber">{t("ui2.ui.politik.ProgrammeAkte.a0ced63")}</p>
+              <strong>{bereitGesamt > 0 ? t("ui2.ui.politik.ProgrammeAkte.cad5181") : t("ui2.ui.politik.ProgrammeAkte.7857a01")}</strong>
             </div>
           </article>
         ))}
@@ -179,7 +179,7 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
                   <h4>{a.p.titel}</h4>
                   <span className={`pd-pill ${LAGE_PILL[a.lage]}`}>{LAGE_WORT[a.lage]}</span>
                 </div>
-                <span className="pd-prog-zaehl" title={`${a.fertig} von ${a.p.schritte.length} Schritten erreicht`}>
+                <span className="pd-prog-zaehl" title={t("ui2.ui.politik.ProgrammeAkte.f84cf33", { p0: a.fertig, p1: a.p.schritte.length })}>
                   <b>{a.fertig}</b>
                   <small> / {a.p.schritte.length}</small>
                 </span>
@@ -199,7 +199,7 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
               {a.naechster && a.lage !== "erfuellt" && !offen && (
                 <SchrittBlatt
                   hervorgehoben
-                  titelZeile={a.lage === "laeuft" ? "Läuft gerade" : a.lage === "bereit" ? "Als Nächstes" : "Nächste Station"}
+                  titelZeile={a.lage === "laeuft" ? t("ui2.ui.politik.ProgrammeAkte.541a535") : a.lage === "bereit" ? t("ui2.ui.politik.ProgrammeAkte.e70edf6") : t("ui2.ui.politik.ProgrammeAkte.03670c0")}
                   x={a.sichten.indexOf(a.naechster) + 1}
                   s={a.naechster}
                   onStarte={starte}
@@ -208,12 +208,12 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
               )}
               {a.lage === "erfuellt" && (
                 <p className="pd-prog-fertig">
-                  Alle Schritte erreicht. {a.p.schritte.find((s) => s.vermaechtnis)?.ergebnis ?? ""}
+                  {t("ui2.ui.politik.ProgrammeAkte.6620f50")} {a.p.schritte.find((s) => s.vermaechtnis)?.ergebnis ?? ""}
                 </p>
               )}
 
               <button className="pd-btn quiet pd-alle" aria-expanded={offen} onClick={() => umschalten(a.p.id)}>
-                {offen ? "Schritte ausblenden" : `Alle ${a.p.schritte.length} Schritte ansehen`}
+                {offen ? t("ui2.ui.politik.ProgrammeAkte.69f86df") : t("ui2.ui.politik.ProgrammeAkte.ecab80e", { p0: a.p.schritte.length })}
               </button>
               {offen && (
                 <ol className="pd-schritte">
@@ -271,13 +271,13 @@ function SchrittBlatt({
       <p className="pd-schritt-text">{sch.text}</p>
 
       {s.status !== "fertig" && (s.fehlt.length > 0 || bedingungen.length > 0) && (
-        <ul className="pd-bedingungen" aria-label="Voraussetzungen">
+        <ul className="pd-bedingungen" aria-label={t("ui2.ui.politik.ProgrammeAkte.bc4e9f4")}>
           {s.fehlt.length > 0 && (
             <li className="offen">
               <span className="pd-zeichen" aria-hidden>
                 ○
               </span>
-              <span>Zuerst: {s.fehlt.join(", ")}</span>
+              <span>{t("ui2.ui.politik.ProgrammeAkte.6d452f3", { p0: s.fehlt.join(", ") })}</span>
             </li>
           )}
           {bedingungen.map((b) => {
@@ -302,32 +302,32 @@ function SchrittBlatt({
       )}
 
       <p className="pd-danach">
-        <b>Danach</b>
+        <b>{t("ui2.ui.politik.ProgrammeAkte.3371223")}</b>
         <span>{sch.ergebnis}</span>
       </p>
 
       {s.status === "laufend" && (
         <p className="pd-lauf">
-          <span className="pd-balken" role="img" aria-label={`${Math.round((s.lauf ?? 0) * 100)} Prozent`}>
+          <span className="pd-balken" role="img" aria-label={t("ui2.ui.politik.ProgrammeAkte.9844a1b", { p0: Math.round((s.lauf ?? 0) * 100) })}>
             <i style={{ width: `${Math.round((s.lauf ?? 0) * 100)}%` }} />
           </span>
-          <span>noch {s.restTage} Tage</span>
+          <span>{t("ui2.ui.politik.ProgrammeAkte.8fb92d8", { p0: s.restTage })}</span>
         </p>
       )}
 
       {s.status !== "fertig" && s.status !== "laufend" && (
         <footer className="pd-schritt-fuss">
-          <ul className="pd-preis" aria-label="Preis">
+          <ul className="pd-preis" aria-label={t("ui2.ui.politik.ProgrammeAkte.0272929")}>
             <li>
-              <b>{sch.kapital}</b> Kapital
+              <b>{sch.kapital}</b> {t("ui2.ui.politik.ProgrammeAkte.28d438e")}
             </li>
             <li>
               <b>{monateWort(sch.tage).split(" ")[0]}</b> {monateWort(sch.tage).split(" ")[1]}
             </li>
           </ul>
           {s.status === "bereit" && (
-            <button className="pd-btn primary" disabled={!s.bezahlbar} title={s.bezahlbar ? undefined : "Dafür fehlt Kapital"} onClick={() => onStarte(sch.id)}>
-              Umsetzen
+            <button className="pd-btn primary" disabled={!s.bezahlbar} title={s.bezahlbar ? undefined : t("ui2.ui.politik.ProgrammeAkte.9fcc6e5")} onClick={() => onStarte(sch.id)}>
+              {t("ui2.ui.politik.ProgrammeAkte.bb0350f")}
             </button>
           )}
         </footer>

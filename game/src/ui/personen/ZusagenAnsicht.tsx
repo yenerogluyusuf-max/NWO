@@ -7,6 +7,7 @@ import type { World } from "../../sim/types";
 import { addDays, formatDateDe } from "../../sim/dates";
 import { brecheFrei, loeseEin, vertroesteFrei, zusagenBilanz, zusagenSicht, zusageBezug, type ZusageAntwort, type ZusageSicht } from "../../sim/zusagen";
 import { Balken, Portraet, tonVon } from "./bausteine";
+import { t as tx } from "../../i18n";
 
 const DRING_TEXT: Record<ZusageSicht["dringlichkeit"], string> = { ruhig: "in Ruhe", bald: "bald fällig", dringend: "dringend", ueberfaellig: "überfällig" };
 
@@ -51,7 +52,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
           </div>
           <div>
             <p style={{ margin: 0 }}>
-              <strong>{bilanz.gehalten}</strong> gehalten, <strong>{bilanz.gebrochen}</strong> gebrochen, <strong>{bilanz.offen}</strong> offen, {bilanz.vertroestet}× vertröstet.
+              <strong>{bilanz.gehalten}</strong> {tx("ui2.ui.personen.ZusagenAnsicht.7207f39")} <strong>{bilanz.gebrochen}</strong> {tx("ui2.ui.personen.ZusagenAnsicht.e3b11fd")} <strong>{bilanz.offen}</strong> {tx("ui2.ui.personen.ZusagenAnsicht.a31cb8b", { p0: bilanz.vertroestet })}
             </p>
             <p className="subtitle" style={{ margin: "6px 0 0" }}>
               {t("ui.personen.ZusagenAnsicht.2334b05")}
@@ -61,7 +62,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
       </section>
 
       <section className="paper">
-        <h3>Offene Zusagen</h3>
+        <h3>{tx("ui2.ui.personen.ZusagenAnsicht.9049d8e")}</h3>
         {antwort && (
           <p className={`pe-rueck${antwort.ok ? "" : " nein"}`} role="status">
             {antwort.text}
@@ -77,11 +78,11 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                 <div>
                   <strong>{s.z.text}</strong>
                   <em>
-                    {s.bezug.art === "person" ? `${s.bezug.name} (${s.z.von})` : s.bezug.art === "fraktion" ? `Fraktion ${s.bezug.name}` : s.bezug.art === "land" ? `Land: ${s.bezug.name}` : s.bezug.name}
+                    {s.bezug.art === "person" ? `${s.bezug.name} (${s.z.von})` : s.bezug.art === "fraktion" ? tx("ui2.ui.personen.ZusagenAnsicht.bc3d909", { p0: s.bezug.name }) : s.bezug.art === "land" ? tx("ui2.ui.personen.ZusagenAnsicht.e568133", { p0: s.bezug.name }) : s.bezug.name}
                   </em>
                 </div>
                 <div className={`pe-frist ${s.dringlichkeit}`}>
-                  {s.tage < 0 ? `seit ${-s.tage} Tagen überfällig` : s.tage === 0 ? "heute fällig" : `in ${s.tage} Tagen`}
+                  {s.tage < 0 ? tx("ui2.ui.personen.ZusagenAnsicht.9e31426", { p0: -s.tage }) : s.tage === 0 ? tx("ui2.ui.personen.ZusagenAnsicht.342e0c3") : tx("ui2.ui.personen.ZusagenAnsicht.94acca5", { p0: s.tage })}
                   <small>
                     {formatDateDe(s.datum)} · {DRING_TEXT[s.dringlichkeit]}
                   </small>
@@ -92,15 +93,15 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                   <Balken
                     wert={s.fortschritt.anteil * 100}
                     ton={s.fortschritt.anteil >= 0.6 ? "gut" : s.fortschritt.anteil >= 0.2 ? "mittel" : "schlecht"}
-                    label={`${s.fortschritt.name}: von ${Math.round(s.fortschritt.start)} auf ${s.fortschritt.zielName ?? Math.round(s.fortschritt.ziel)} (jetzt ${Math.round(s.fortschritt.jetzt)})`}
-                    wort={s.fortschritt.imParlament ? "im Parlament" : `${Math.round(s.fortschritt.anteil * 100)} %`}
+                    label={tx("ui2.ui.personen.ZusagenAnsicht.c5c02b7", { p0: s.fortschritt.name, p1: Math.round(s.fortschritt.start), p2: s.fortschritt.zielName ?? Math.round(s.fortschritt.ziel), p3: Math.round(s.fortschritt.jetzt) })}
+                    wort={s.fortschritt.imParlament ? tx("ui2.ui.personen.ZusagenAnsicht.07204cc") : `${Math.round(s.fortschritt.anteil * 100)} %`}
                     klein
                   />
                 </div>
               )}
               <div className="pe-vorher">
                 <div className="gehalten">
-                  <h5>Wenn gehalten</h5>
+                  <h5>{tx("ui2.ui.personen.ZusagenAnsicht.70583e5")}</h5>
                   <ul>
                     {s.gehalten.map((x) => (
                       <li key={x}>{x}</li>
@@ -108,7 +109,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                   </ul>
                 </div>
                 <div className="gebrochen">
-                  <h5>Wenn gebrochen</h5>
+                  <h5>{tx("ui2.ui.personen.ZusagenAnsicht.37da164")}</h5>
                   <ul>
                     {s.gebrochen.map((x) => (
                       <li key={x}>{x}</li>
@@ -117,7 +118,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                 </div>
               </div>
               <div className="pe-aktionen">
-                <button className="pe-aktion haupt" onClick={() => tu(s.z.id, () => loeseEin(world, s.z))} disabled={s.fortschritt?.imParlament} title={s.fortschritt?.imParlament ? "Das Gesetz liegt schon im Parlament" : "Das verlangte Gesetz einbringen oder die Zusage einlösen"}>
+                <button className="pe-aktion haupt" onClick={() => tu(s.z.id, () => loeseEin(world, s.z))} disabled={s.fortschritt?.imParlament} title={s.fortschritt?.imParlament ? tx("ui2.ui.personen.ZusagenAnsicht.dc72b81") : tx("ui2.ui.personen.ZusagenAnsicht.67fe9f3")}>
                   {t("ui.personen.ZusagenAnsicht.104b3fd")}
                 </button>
                 {s.z.massnahme && onMassnahme && (
@@ -131,10 +132,10 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                   </button>
                 )}
                 <button className="pe-aktion" disabled={!s.vertroesten?.moeglich} title={s.vertroesten?.text} onClick={() => tu(s.z.id, () => vertroesteFrei(world, s.z))}>
-                  Vertrösten <b>1</b>
+                  {tx("ui2.ui.personen.ZusagenAnsicht.89ec4d1")} <b>1</b>
                 </button>
                 <button className="pe-aktion leise" onClick={() => (wirklich === s.z.id ? tu(s.z.id, () => brecheFrei(world, s.z)) : setWirklich(s.z.id))}>
-                  {wirklich === s.z.id ? "Wirklich brechen?" : "Brechen"}
+                  {wirklich === s.z.id ? tx("ui2.ui.personen.ZusagenAnsicht.e674097") : tx("ui2.ui.personen.ZusagenAnsicht.94c66b4")}
                 </button>
               </div>
               {s.vertroesten && <p className="subtitle" style={{ margin: 0 }}>{s.vertroesten.text}</p>}
@@ -145,7 +146,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
 
       {erledigt.length > 0 && (
         <section className="paper">
-          <h3>Erledigt</h3>
+          <h3>{tx("ui2.ui.personen.ZusagenAnsicht.adf9ae5")}</h3>
           <ul className="pe-erledigt">
             {erledigt.slice(0, 12).map((z) => {
               const b = zusageBezug(world, z);
@@ -153,7 +154,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                 <li key={z.id} className={z.erfuellt ? "erfuellt" : "gebrochen"}>
                   <span aria-hidden>{z.erfuellt ? "✓" : "✗"}</span>
                   <span>
-                    {z.erfuellt ? "Gehalten" : "Gebrochen"}: {z.text} <em>({b.name})</em>
+                    {z.erfuellt ? tx("ui2.ui.personen.ZusagenAnsicht.dd01a6f") : tx("ui2.ui.personen.ZusagenAnsicht.150a658")}: {z.text} <em>({b.name})</em>
                   </span>
                   {z.abgeschlossen !== undefined && <time>{formatDateDe(addDays(spiel.start.datum, z.abgeschlossen))}</time>}
                 </li>

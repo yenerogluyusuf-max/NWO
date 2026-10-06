@@ -387,6 +387,20 @@ export function aussenMonat(w: World, m: WeltModell): void {
   if (a.verlauf.length > 60) a.verlauf.shift();
 }
 
+/**
+ * Sanktion sofort verhängen (Angriffskrieg gegen ein EU- oder NATO-Mitglied, sim/kriegspreis.ts): dieselbe Sanktion wie aus der Monatsregel,
+ * nur ohne Vorlauf. Sie endet wie jede andere erst nach sechs Monaten Entspannung. Gibt zurück, ob sie neu ist.
+ */
+export function verhaengeSanktion(w: World, id: Sanktion["id"], von: string): boolean {
+  const a = aussenZustand(w);
+  if (a.sanktionen.some((s) => s.id === id)) return false;
+  a.sanktionen.push({ id, von, seit: w.day });
+  a.zaehler[id] = 0;
+  hinweis(w, `aussen-sanktion-${id}-${w.day}`, t("aussen.sanktion.titel", { land: akteurName(von) }), [t(`aussen.sanktion.text.${id}`)]);
+  addLog(w, "ereignis", t("aussen.sanktion.titel", { land: akteurName(von) }));
+  return true;
+}
+
 function sanktionsRegel(w: World, a: AussenZustand, id: Sanktion["id"], von: string, an: boolean, aus: boolean, monate: number): void {
   const k = `${id}`;
   const laeuft = a.sanktionen.find((s) => s.id === id);

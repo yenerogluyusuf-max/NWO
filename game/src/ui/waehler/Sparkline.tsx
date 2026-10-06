@@ -86,7 +86,7 @@ export function Sparkline({ monate, werte, marken = [], ziel, hoehe = 76, beschr
           <g key={`${m.monat}-${m.text}`} className="wa-spark-marke">
             <line x1={x(m.i)} x2={x(m.i)} y1={rand.o - 3} y2={H - rand.u} />
             <circle cx={x(m.i)} cy={rand.o - 3} r="3" />
-            <title>{`${monatText(m.monat)}: ${m.text} beschlossen`}</title>
+            <title>{t("ui2.ui.waehler.Sparkline.1fa4b9f", { p0: monatText(m.monat), p1: m.text })}</title>
           </g>
         ))}
         <path d={pfad.join(" ")} className="wa-spark-linie" />
@@ -94,7 +94,7 @@ export function Sparkline({ monate, werte, marken = [], ziel, hoehe = 76, beschr
           <g className="wa-spark-ziel">
             <line x1={x(letzter)} y1={y(lv)} x2={x(letzter)} y2={y(ziel)} />
             <path d={`M${x(letzter) - 4},${y(ziel)} L${x(letzter) + 4},${y(ziel)} L${x(letzter)},${y(ziel) + (ziel < lv ? 6 : -6)} Z`} />
-            <title>{`Strebt bei heutigen Verhältnissen nach ${nf(ziel, 0)}${einheit}`}</title>
+            <title>{t("ui2.ui.waehler.Sparkline.a44028c", { p0: nf(ziel, 0), p1: einheit })}</title>
           </g>
         )}
         {lv !== null && lv !== undefined && <circle cx={x(letzter)} cy={y(lv)} r="3.6" className="wa-spark-punkt" />}

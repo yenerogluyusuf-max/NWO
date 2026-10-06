@@ -8,6 +8,7 @@ import type { World } from "./types";
 import type { Fraktion } from "./spiel-typen";
 import type { Achsen } from "../data/linien";
 import { naeheZuPartei, parteiAchsen, spielerAchsen } from "./linie";
+import { t as tx } from "../i18n";
 
 export interface Forderung {
   massnahme: string;
@@ -16,67 +17,67 @@ export interface Forderung {
 
 /** Woran eine Fraktion ihre Unterstützung knüpft. */
 export const FORDERUNG: Record<string, Forderung> = {
-  AKP: { massnahme: "m_religioese_schulen", text: "mehr Rückhalt für religiöse Schulen" },
-  "YENİ": { massnahme: "m_wissenschaftsfreiheit", text: "mehr Wissenschaftsfreiheit" },
-  DEM: { massnahme: "m_friedensprozess", text: "Fortschritte im Friedensprozess" },
-  MHP: { massnahme: "m_verteidigung", text: "höhere Verteidigungsausgaben" },
-  "İYİ": { massnahme: "m_grenzschutz", text: "mehr Grenzschutz" },
-  CHP: { massnahme: "m_justizreform", text: "eine Justizreform" },
-  Zafer: { massnahme: "m_grenzschutz", text: "deutlich mehr Grenzschutz" },
-  YRP: { massnahme: "m_religionsbehoerde", text: "mehr Mittel für die Religionsbehörde" },
+  AKP: { massnahme: "m_religioese_schulen", text: tx("sim2.sim.fraktionen.3543d29") },
+  "YENİ": { massnahme: "m_wissenschaftsfreiheit", text: tx("sim2.sim.fraktionen.cfc7076") },
+  DEM: { massnahme: "m_friedensprozess", text: tx("sim2.sim.fraktionen.6fe6e59") },
+  MHP: { massnahme: "m_verteidigung", text: tx("sim2.sim.fraktionen.376fb7a") },
+  "İYİ": { massnahme: "m_grenzschutz", text: tx("sim2.sim.fraktionen.ef6358b") },
+  CHP: { massnahme: "m_justizreform", text: tx("sim2.sim.fraktionen.343b301") },
+  Zafer: { massnahme: "m_grenzschutz", text: tx("sim2.sim.fraktionen.a9899d2") },
+  YRP: { massnahme: "m_religionsbehoerde", text: tx("sim2.sim.fraktionen.9e08e9b") },
 };
 
 /** Was eine Fraktion je nach Lage fordern kann; nur Maßnahmen, die man erhöhen soll. Die Forderung wechselt alle paar Monate. */
 export const FORDERUNGEN: Record<string, Forderung[]> = {
   AKP: [
-    { massnahme: "m_religioese_schulen", text: "mehr Rückhalt für religiöse Schulen" },
-    { massnahme: "m_kindergeld", text: "ein höheres Kindergeld" },
-    { massnahme: "m_bauindustrie", text: "Aufträge und Förderung für die Bauindustrie" },
-    { massnahme: "m_agrarsubventionen", text: "höhere Agrarsubventionen" },
-    { massnahme: "m_autobahnen", text: "neue Autobahnen und Brücken" },
+    { massnahme: "m_religioese_schulen", text: tx("sim2.sim.fraktionen.3543d29") },
+    { massnahme: "m_kindergeld", text: tx("sim2.sim.fraktionen.670785c") },
+    { massnahme: "m_bauindustrie", text: tx("sim2.sim.fraktionen.4e574f1") },
+    { massnahme: "m_agrarsubventionen", text: tx("sim2.sim.fraktionen.b06158e") },
+    { massnahme: "m_autobahnen", text: tx("sim2.sim.fraktionen.2cbe56e") },
   ],
   "YENİ": [
-    { massnahme: "m_wissenschaftsfreiheit", text: "mehr Wissenschaftsfreiheit" },
-    { massnahme: "m_investitionsanreize", text: "Investitionsanreize für Unternehmen" },
-    { massnahme: "m_kmu", text: "Förderung für den Mittelstand" },
-    { massnahme: "m_verwaltungsdigital", text: "eine digitale Verwaltung" },
-    { massnahme: "m_forschung", text: "mehr Geld für Forschung" },
+    { massnahme: "m_wissenschaftsfreiheit", text: tx("sim2.sim.fraktionen.cfc7076") },
+    { massnahme: "m_investitionsanreize", text: tx("sim2.sim.fraktionen.8bfe9c5") },
+    { massnahme: "m_kmu", text: tx("sim2.sim.fraktionen.68762ed") },
+    { massnahme: "m_verwaltungsdigital", text: tx("sim2.sim.fraktionen.4f3b40a") },
+    { massnahme: "m_forschung", text: tx("sim2.sim.fraktionen.8fd2f54") },
   ],
   CHP: [
-    { massnahme: "m_justizreform", text: "eine Justizreform" },
-    { massnahme: "m_gewaltschutz", text: "besseren Schutz vor Gewalt gegen Frauen" },
-    { massnahme: "m_sozialwohnungen", text: "mehr Sozialwohnungen" },
-    { massnahme: "m_stipendien", text: "mehr Stipendien für Studierende" },
-    { massnahme: "m_mindestlohn", text: "einen höheren Mindestlohn" },
+    { massnahme: "m_justizreform", text: tx("sim2.sim.fraktionen.343b301") },
+    { massnahme: "m_gewaltschutz", text: tx("sim2.sim.fraktionen.a3f296e") },
+    { massnahme: "m_sozialwohnungen", text: tx("sim2.sim.fraktionen.1e48bb3") },
+    { massnahme: "m_stipendien", text: tx("sim2.sim.fraktionen.e93fc03") },
+    { massnahme: "m_mindestlohn", text: tx("sim2.sim.fraktionen.2d0ef4d") },
   ],
   MHP: [
-    { massnahme: "m_verteidigung", text: "höhere Verteidigungsausgaben" },
-    { massnahme: "m_ruestungsindustrie", text: "Ausbau der heimischen Rüstungsindustrie" },
-    { massnahme: "m_grenzschutz", text: "mehr Grenzschutz" },
-    { massnahme: "m_polizei", text: "eine stärkere Polizei" },
+    { massnahme: "m_verteidigung", text: tx("sim2.sim.fraktionen.376fb7a") },
+    { massnahme: "m_ruestungsindustrie", text: tx("sim2.sim.fraktionen.79663df") },
+    { massnahme: "m_grenzschutz", text: tx("sim2.sim.fraktionen.ef6358b") },
+    { massnahme: "m_polizei", text: tx("sim2.sim.fraktionen.0efdab8") },
   ],
   "İYİ": [
-    { massnahme: "m_grenzschutz", text: "mehr Grenzschutz" },
-    { massnahme: "m_rueckkehr", text: "Rückkehrprogramme für Geflüchtete" },
-    { massnahme: "m_kmu", text: "Entlastung für den Mittelstand" },
-    { massnahme: "m_polizei", text: "eine stärkere Polizei" },
+    { massnahme: "m_grenzschutz", text: tx("sim2.sim.fraktionen.ef6358b") },
+    { massnahme: "m_rueckkehr", text: tx("sim2.sim.fraktionen.5156ca3") },
+    { massnahme: "m_kmu", text: tx("sim2.sim.fraktionen.0afda48") },
+    { massnahme: "m_polizei", text: tx("sim2.sim.fraktionen.0efdab8") },
   ],
   DEM: [
-    { massnahme: "m_friedensprozess", text: "Fortschritte im Friedensprozess" },
-    { massnahme: "m_regionalfoerderung", text: "mehr Geld für die benachteiligten Regionen" },
-    { massnahme: "m_versammlungsfreiheit", text: "mehr Versammlungsfreiheit" },
-    { massnahme: "m_gewerkschaftsrechte", text: "stärkere Gewerkschaftsrechte" },
+    { massnahme: "m_friedensprozess", text: tx("sim2.sim.fraktionen.6fe6e59") },
+    { massnahme: "m_regionalfoerderung", text: tx("sim2.sim.fraktionen.337c810") },
+    { massnahme: "m_versammlungsfreiheit", text: tx("sim2.sim.fraktionen.4af8c05") },
+    { massnahme: "m_gewerkschaftsrechte", text: tx("sim2.sim.fraktionen.a0a6e3a") },
   ],
   Zafer: [
-    { massnahme: "m_grenzschutz", text: "deutlich mehr Grenzschutz" },
-    { massnahme: "m_rueckkehr", text: "konsequente Rückführungen" },
-    { massnahme: "m_polizei", text: "eine stärkere Polizei" },
+    { massnahme: "m_grenzschutz", text: tx("sim2.sim.fraktionen.a9899d2") },
+    { massnahme: "m_rueckkehr", text: tx("sim2.sim.fraktionen.66af97b") },
+    { massnahme: "m_polizei", text: tx("sim2.sim.fraktionen.0efdab8") },
   ],
   YRP: [
-    { massnahme: "m_religionsbehoerde", text: "mehr Mittel für die Religionsbehörde" },
-    { massnahme: "m_renten", text: "höhere Renten" },
-    { massnahme: "m_sozialhilfe", text: "höhere Sozialhilfe" },
-    { massnahme: "m_kindergeld", text: "ein höheres Kindergeld" },
+    { massnahme: "m_religionsbehoerde", text: tx("sim2.sim.fraktionen.9e08e9b") },
+    { massnahme: "m_renten", text: tx("sim2.sim.fraktionen.37f5337") },
+    { massnahme: "m_sozialhilfe", text: tx("sim2.sim.fraktionen.d2b74ea") },
+    { massnahme: "m_kindergeld", text: tx("sim2.sim.fraktionen.670785c") },
   ],
 };
 
@@ -95,10 +96,10 @@ export const PARTEI_NAME: Record<string, string> = {
 export const AUSRICHTUNG: Record<string, string> = {
   AKP: "national-konservativ, bisherige Regierungspartei",
   "YENİ": "liberal-zentristisch, wirtschaftsnah",
-  CHP: "sozialdemokratisch, säkular",
+  CHP: tx("sim2.sim.fraktionen.f51b631"),
   MHP: "nationalistisch, sicherheitsorientiert",
   "İYİ": "nationalistisch-liberal, grenzstreng",
-  DEM: "linksgerichtet, für die kurdischen Regionen",
+  DEM: tx("sim2.sim.fraktionen.0a7066e"),
   Zafer: "nationalistisch, migrationskritisch",
   YRP: "islamisch-konservativ, sozialpolitisch",
 };
@@ -263,7 +264,7 @@ const FORDERUNG_DAUER = 270;
 export function forderungVon(world: World, partei: string): Forderung {
   const spiel = world.spiel;
   const pool = FORDERUNGEN[partei];
-  if (!spiel || !pool?.length) return FORDERUNG[partei] ?? { massnahme: "m_justizreform", text: "ein Entgegenkommen" };
+  if (!spiel || !pool?.length) return FORDERUNG[partei] ?? { massnahme: "m_justizreform", text: tx("sim2.sim.fraktionen.57225f9") };
   const f = fraktion(world, partei);
   const stufe = (id: string) => nationalAverage(NET, world.net, id);
   const alt = f.forderung;

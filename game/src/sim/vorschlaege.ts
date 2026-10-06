@@ -8,6 +8,7 @@ import { clamp } from "./economy";
 import { hebel } from "./wege";
 import { pruefeVorhaben, stufeIn } from "./handeln";
 import { skala, skalenArt, tunWort } from "../data/skalen";
+import { t as tx } from "../i18n";
 import type { World } from "./types";
 
 export interface Vorschlag {
@@ -44,8 +45,8 @@ const hash = (t: string): number => {
 
 /** Maßnahmen, die ab einer Stufe mehr schaden als nützen; der Vorschlag hört davor auf und sagt es. */
 const GRENZEN: Record<string, { max: number; hinweis: string }> = {
-  m_mietdeckel: { max: 55, hinweis: "Über Stufe 60 bricht der Neubau ein." },
-  m_preiskontrollen: { max: 55, hinweis: "Über Stufe 60 verschwindet Ware in den Schwarzmarkt." },
+  m_mietdeckel: { max: 55, hinweis: "vorschlag.grenze.m_mietdeckel" },
+  m_preiskontrollen: { max: 55, hinweis: "vorschlag.grenze.m_preiskontrollen" },
 };
 
 interface AkutesProblem {
@@ -176,10 +177,10 @@ export function vorschlaege(world: World, n = 5): Vorschlag[] {
       bezahlbar: pr.gesetz.bezahlbar,
       urteil: luecke === 0 ? "sicher" : (spiel?.kapital ?? 0) - pr.gesetz.pk >= kosten ? "knapp" : "verloren",
       grund:
-        `${haupt.name} ist in ${haupt.provinzen.length} ${haupt.provinzen.length === 1 ? "Provinz" : "Provinzen"} akut; ${node.name} ${tunWort(id, richtung)} wirkt darauf.` +
-        (auch.length ? ` Hilft auch bei: ${auch.join(", ")}.` : "") +
-        (schadet.length ? ` Belastet: ${schadet.join(", ")}.` : "") +
-        (grenze ? ` Achtung: ${grenze.hinweis}` : ""),
+        tx("vorschlag.grund", { problem: haupt.name, n: haupt.provinzen.length, massnahme: node.name, tun: tunWort(id, richtung) }) +
+        (auch.length ? " " + tx("vorschlag.auch", { auch: auch.join(", ") }) : "") +
+        (schadet.length ? " " + tx("vorschlag.schadet", { schadet: schadet.join(", ") }) : "") +
+        (grenze ? " " + tx("vorschlag.grenze", { hinweis: tx(grenze.hinweis) }) : ""),
       punkte,
     });
   }

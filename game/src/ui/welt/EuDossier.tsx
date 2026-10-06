@@ -14,7 +14,7 @@ function KriteriumZeile({ s }: { s: KriteriumStand }) {
       <span aria-hidden>{s.erfuellt ? "✓" : "○"}</span>
       <span>
         {s.kriterium.text}
-        {s.kriterium.knoten && <em> (jetzt {Math.round(s.jetzt)})</em>}
+        {s.kriterium.knoten && <em> {t("ui2.ui.welt.EuDossier.33c118d", { p0: Math.round(s.jetzt) })}</em>}
       </span>
     </li>
   );
@@ -48,7 +48,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
             </button>
             <span className="subtitle">
               {anna.moeglich
-                ? `Startet das Screening (zwölf Monate). Die Annäherung an die EU steht bei ${Math.round(anna.annaeherung)} von nötig 55.`
+                ? t("ui2.ui.welt.EuDossier.6b8bfa2", { p0: Math.round(anna.annaeherung) })
                 : anna.grund}
             </span>
           </div>
@@ -59,8 +59,8 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
             {antwort.why && <em> {antwort.why}</em>}
           </p>
         )}
-        {z.phase === "screening" && z.screeningBis !== undefined && <p className="subtitle">Abschluss des Screenings erwartet: {formatDateDe(datumNachTagen(world.date, z.screeningBis - world.day))}.</p>}
-        {u.kapitalAbzug > 0 && <p className="subtitle">Innenpreis der Verhandlungen: {u.kapitalAbzug.toLocaleString("de-DE", { maximumFractionDigits: 2 })} Kapital im Monat (Reformen binden Rückhalt).</p>}
+        {z.phase === "screening" && z.screeningBis !== undefined && <p className="subtitle">{t("ui2.ui.welt.EuDossier.d4c40bd", { p0: formatDateDe(datumNachTagen(world.date, z.screeningBis - world.day)) })}</p>}
+        {u.kapitalAbzug > 0 && <p className="subtitle">{t("ui2.ui.welt.EuDossier.4724b63", { p0: u.kapitalAbzug.toLocaleString("de-DE", { maximumFractionDigits: 2 }) })}</p>}
       </section>
 
       {!u.zypern.bewegt && (
@@ -71,13 +71,13 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
       )}
       {u.veto && (
         <section className="we-eu-block we-eu-warn">
-          <b>Nationales Veto</b>
+          <b>{t("ui2.ui.welt.EuDossier.119a92d")}</b>
           <p className="subtitle">{u.veto.text}</p>
         </section>
       )}
 
       <section className="we-eu-block">
-        <b>Die Kapitel ({KAPITEL.length} von 35 — die übrigen laufen als Binnenmarkt-Technik im Hintergrund mit)</b>
+        <b>{t("ui2.ui.welt.EuDossier.4e56431", { p0: KAPITEL.length })}</b>
         <ul className="we-eu-kapitel">
           {u.kapitel.map((s) => (
             <li key={s.def.id} className={`we-eu-kap st-${s.zustand.status}`}>
@@ -90,7 +90,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
                   </span>
                 </span>
                 <span className={`we-status${s.zustand.status === "abgeschlossen" ? "" : s.blockiertZypern || s.alibi ? " st-gebrochen" : ""}`}>
-                  {s.blockiertZypern ? "Zypern" : s.alibi ? "Alibi-Verdacht" : statusWort[s.zustand.status]}
+                  {s.blockiertZypern ? t("ui2.ui.welt.EuDossier.85f5e53") : s.alibi ? "Alibi-Verdacht" : statusWort[s.zustand.status]}
                 </span>
               </button>
               {offen === s.def.id && (
@@ -102,12 +102,12 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
                       <ul className="we-anliegen">{s.oeffnung.map((x) => <KriteriumZeile key={x.kriterium.id} s={x} />)}</ul>
                     </div>
                     <div>
-                      <b>Schlusskriterien</b>
+                      <b>{t("ui2.ui.welt.EuDossier.543bd74")}</b>
                       <ul className="we-anliegen">{s.schluss.map((x) => <KriteriumZeile key={x.kriterium.id} s={x} />)}</ul>
                     </div>
                   </div>
                   <p className="subtitle">
-                    Verhandlungszeit: {s.def.jahre} Jahre. Nächster Schritt: {s.schritt}
+                    {t("ui2.ui.welt.EuDossier.db9720b", { p0: s.def.jahre, p1: s.schritt })}
                   </p>
                 </div>
               )}
@@ -117,30 +117,30 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
       </section>
 
       <section className="we-eu-block">
-        <b>Zollunion</b>
+        <b>{t("ui2.ui.welt.EuDossier.52c6027")}</b>
         <p className="subtitle">
           {z.zollunion === "modernisiert"
-            ? "Modernisiert: Dienstleistungen und Agrar sind Teil des Binnenmarkts; die Industrie gewann, die Landwirtschaft steht im Wettbewerb."
-            : "Die Zollunion von 1995 gilt unverändert. Das Mandat für das Update bietet Brüssel an, sobald drei Kapitel vorläufig geschlossen sind — Handel +, Industrie +, Landwirtschaft −."}
+            ? t("ui2.ui.welt.EuDossier.3676e06")
+            : t("ui2.ui.welt.EuDossier.f7bcef9")}
         </p>
       </section>
 
       <section className="we-eu-block">
-        <b>Visaliberalisierung {u.visa.gewaehrt ? "(gewährt)" : `(${u.visa.erfuellt} von ${VISA_KRITERIEN.length})`}</b>
+        <b>{t("ui2.ui.welt.EuDossier.a5305f3")} {u.visa.gewaehrt ? t("ui2.ui.welt.EuDossier.8284a64") : t("ui2.ui.welt.EuDossier.df7bffe", { p0: u.visa.erfuellt, p1: VISA_KRITERIEN.length })}</b>
         <p className="subtitle">{t("ui.welt.EuDossier.c7daf1f")}</p>
         <ul className="we-anliegen">{u.visa.kriterien.map((s) => <KriteriumZeile key={s.kriterium.id} s={s} />)}</ul>
       </section>
 
       {z.berichte.length > 0 && (
         <section className="we-eu-block">
-          <b>Fortschrittsberichte</b>
+          <b>{t("ui2.ui.welt.EuDossier.d061d41")}</b>
           <ul className="we-eu-berichte">
             {[...z.berichte].reverse().map((b) => (
               <li key={b.tag}>
                 <details>
                   <summary>
-                    Fortschrittsbericht {b.jahr}
-                    {b.alibi.length > 0 ? ` — Alibi-Verdacht bei ${b.alibi.length} ${b.alibi.length === 1 ? "Kapitel" : "Kapiteln"}` : ""}
+                    {t("ui2.ui.welt.EuDossier.f537a8f", { p0: b.jahr })}
+                    {b.alibi.length > 0 ? t("ui2.ui.welt.EuDossier.8779dae", { p0: b.alibi.length, p1: b.alibi.length === 1 ? "Kapitel" : "Kapiteln" }) : ""}
                   </summary>
                   <ul>
                     {b.zeilen.map((line, i) => (

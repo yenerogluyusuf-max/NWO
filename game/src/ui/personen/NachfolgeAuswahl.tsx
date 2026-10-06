@@ -49,11 +49,11 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
       <div className="pe-szenenkopf">
         <Portraet w={world} f={figur} size={110} />
         <div>
-          <h3>{modus === "entlassen" ? `${figur.rolle} ${figur.name} entlassen` : `Nachfolge für ${d.ressort}`}</h3>
-          <div className="pe-rolle">{modus === "entlassen" ? "Erst die Folgen prüfen, dann den Nachfolger wählen." : `${figur.name} führt das Amt nur kommissarisch.`}</div>
+          <h3>{modus === "entlassen" ? t("ui2.ui.personen.NachfolgeAuswahl.89a760e", { p0: figur.rolle, p1: figur.name }) : t("ui2.ui.personen.NachfolgeAuswahl.1e27475", { p0: d.ressort })}</h3>
+          <div className="pe-rolle">{modus === "entlassen" ? t("ui2.ui.personen.NachfolgeAuswahl.a78cf42") : t("ui2.ui.personen.NachfolgeAuswahl.6d596c3", { p0: figur.name })}</div>
         </div>
         <div className="pe-termine">
-          Kapital: <b>{Math.floor(spiel.kapital)}</b>
+          {t("ui2.ui.personen.NachfolgeAuswahl.d6f6874")} <b>{Math.floor(spiel.kapital)}</b>
         </div>
       </div>
 
@@ -61,7 +61,7 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
         <section className="pe-folgenkasten" aria-label={t("ui.personen.NachfolgeAuswahl.32e7bf5")}>
           <h4>
             <Icon name="warnung" size={16} />
-            Folgen der Entlassung
+            {t("ui2.ui.personen.NachfolgeAuswahl.32e7bf5")}
           </h4>
           <ul>
             {folgen.map((f) => (
@@ -72,7 +72,7 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
       )}
 
       <h4 className="pe-abschnitt">
-        {modus === "entlassen" ? "Wer soll das Amt übernehmen?" : "Wen ernennen Sie?"} <small>{kandidaten.length} Kandidaten · einen wählen</small>
+        {modus === "entlassen" ? t("ui2.ui.personen.NachfolgeAuswahl.f7df198") : t("ui2.ui.personen.NachfolgeAuswahl.b5d734a")} <small>{t("ui2.ui.personen.NachfolgeAuswahl.66f5f2c", { p0: kandidaten.length })}</small>
       </h4>
       <div className="pe-kandidaten">
         {kandidaten.map((c) => {
@@ -94,7 +94,7 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
               </div>
               <div className="pe-werte-spalte">
                 <Balken label={t("ui.personen.NachfolgeAuswahl.132b486")} wert={c.faehigkeit} wort={String(c.faehigkeit)} klein />
-                <Balken label="Ehrgeiz" wert={c.ehrgeiz} ton={c.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(c.ehrgeiz)} klein {...(c.ehrgeiz >= 75 ? { zeile: "Gefährlich, wenn er übergangen wird." } : {})} />
+                <Balken label={t("ui2.ui.personen.NachfolgeAuswahl.3cdcb44")} wert={c.ehrgeiz} ton={c.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(c.ehrgeiz)} klein {...(c.ehrgeiz >= 75 ? { zeile: t("ui2.ui.personen.NachfolgeAuswahl.8ef008c") } : {})} />
                 <Balken label={t("ui.personen.NachfolgeAuswahl.61ae3ec")} wert={c.loyalitaet} wort={String(c.loyalitaet)} klein />
               </div>
               <p className="pe-plus">
@@ -106,18 +106,18 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
               <p className={c.markt === 0 ? "pe-markt leer" : c.markt < 0 ? "pe-markt pe-plus" : "pe-markt pe-minus"}>
                 {c.markt !== 0 && (
                   <>
-                    Märkte: Risikoaufschlag {c.markt < 0 ? "" : "+"}
-                    {c.markt} Punkte
+                    {t("ui2.ui.personen.NachfolgeAuswahl.36b681d")} {c.markt < 0 ? "" : "+"}
+                    {t("ui2.ui.personen.NachfolgeAuswahl.43cbb60", { p0: c.markt })}
                   </>
                 )}
               </p>
               <footer className="pe-kfuss">
-                <span className={`pe-kosten${leistbar ? "" : " knapp"}`} title={leistbar ? "Politisches Kapital, das die Ernennung kostet" : "Dafür reicht Ihr Kapital nicht"}>
-                  {kosten} Kapital
+                <span className={`pe-kosten${leistbar ? "" : " knapp"}`} title={leistbar ? t("ui2.ui.personen.NachfolgeAuswahl.88f7262") : t("ui2.ui.personen.NachfolgeAuswahl.e33b3c9")}>
+                  {t("ui2.ui.personen.NachfolgeAuswahl.87b52bd", { p0: kosten })}
                 </span>
                 <button className={`pe-aktion ${an ? "haupt" : ""}`} disabled={!leistbar} aria-pressed={an} onClick={() => setGewaehlt(c.id)}>
                   {an && <Icon name="haken" size={16} />}
-                  {an ? "Ausgewählt" : "Auswählen"}
+                  {an ? t("ui2.ui.personen.NachfolgeAuswahl.d8b1159") : t("ui2.ui.personen.NachfolgeAuswahl.2ac692f")}
                 </button>
               </footer>
             </article>
@@ -135,22 +135,22 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
         <p className={`pe-gewaehlt${k ? "" : " leer"}`} role="status">
           {k ? (
             <>
-              Gewählt: <strong>{k.name}</strong> · {pk} Kapital
+              {t("ui2.ui.personen.NachfolgeAuswahl.4e9ce36")} <strong>{k.name}</strong> {t("ui2.ui.personen.NachfolgeAuswahl.c964f4f", { p0: pk })}
             </>
           ) : modus === "entlassen" ? (
-            "Noch niemand gewählt. Sie können auch nur entlassen und das Amt kommissarisch besetzen."
+            t("ui2.ui.personen.NachfolgeAuswahl.c34ed6d")
           ) : (
-            "Noch niemand gewählt."
+            t("ui2.ui.personen.NachfolgeAuswahl.b03212d")
           )}
         </p>
         <div className="pe-wege">
-          <button className="pe-aktion haupt" disabled={!k || !kannZahlen(spiel.kapital, pk)} onClick={() => ausfuehren(false)} title={k ? undefined : "Wählen Sie zuerst einen Kandidaten"}>
-            {modus === "entlassen" ? "Entlassen und ernennen" : "Ernennen"}
+          <button className="pe-aktion haupt" disabled={!k || !kannZahlen(spiel.kapital, pk)} onClick={() => ausfuehren(false)} title={k ? undefined : t("ui2.ui.personen.NachfolgeAuswahl.52162b0")}>
+            {modus === "entlassen" ? t("ui2.ui.personen.NachfolgeAuswahl.2757d5d") : t("ui2.ui.personen.NachfolgeAuswahl.32aebee")}
             {k && <b>{pk}</b>}
           </button>
           {modus === "entlassen" && (
             <button className="pe-aktion" disabled={!kannZahlen(spiel.kapital, KOMMISSARISCH_PK)} onClick={() => ausfuehren(true)} title={t("ui.personen.NachfolgeAuswahl.74c09bc")}>
-              Nur entlassen, kommissarisch besetzen
+              {t("ui2.ui.personen.NachfolgeAuswahl.785b204")}
               <b>{KOMMISSARISCH_PK}</b>
             </button>
           )}

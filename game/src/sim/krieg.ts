@@ -14,6 +14,7 @@
 //
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { wirke, vertrauenAendern } from "./wirkung";
@@ -42,7 +43,7 @@ import { kannZahlen } from "./kapital";
 import { VERFASSUNG, AUFMERKSAMKEIT_KOSTEN, belastungEreignis, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { Rng } from "./rng";
 import type { World } from "./types";
-import { t } from "../i18n";
+import { aktuelleSprache, t } from "../i18n";
 import { bestandsFaktor, streitkraefteMonat } from "./streitkraefte";
 import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte";
 import type { FriedensPaket, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
@@ -97,51 +98,64 @@ export const KRIEG = {
   putschAb: 35,
 } as const;
 
+/**
+ * Wie weit ein Gegner selbst auf türkisches Gebiet vorstoßen kann, als Faktor auf seine Gegenstöße unter Frontlage 50 (Spielparameter):
+ * Griechenland und Zypern verteidigen Inseln über das Meer hinweg; ein Vorstoß nach Anatolien liegt außerhalb ihrer Mittel. Je tiefer die Front fällt,
+ * desto weiter liegt das Ziel ihres Gegenstoßes im Landesinneren: Scheitert der Angriff, endet er eher im Patt und in der Erschöpfung
+ * als im Zusammenbruch der Front.
+ */
+export const GEGNER_OFFENSIVE: Record<string, number> = { GRC: 0.45, CYP: 0.2 };
+
 export const PHASEN_NAME: Record<KriegPhase, string> = {
-  spannung: "Spannung",
-  drohkulisse: "Drohkulisse",
-  beschluss: "Einsatzbeschluss",
-  krieg: "Krieg",
-  waffenruhe: "Waffenruhe",
-  frieden: "Frieden",
-  beendet: "Beendet",
+  get spannung() { return t("krieg.k.phase.spannung"); },
+  get drohkulisse() { return t("krieg.k.phase.drohkulisse"); },
+  get beschluss() { return t("krieg.k.phase.beschluss"); },
+  get krieg() { return t("krieg.k.phase.krieg"); },
+  get waffenruhe() { return t("krieg.k.phase.waffenruhe"); },
+  get frieden() { return t("krieg.k.phase.frieden"); },
+  get beendet() { return t("krieg.k.phase.beendet"); },
 };
 
 /** Civ6-Preisschild: Die Rahmung legt die Preise der Folgehandlungen fest (Parlament, Welt, Wähler). */
 export const RAHMUNG: Record<KriegsRahmung, { name: string; text: string; stimmen: number; ansehen: number; uhrStart: number; nationalisten: number }> = {
   verteidigung: {
-    name: "Selbstverteidigung",
-    text: "Antwort auf einen Zwischenfall: Das Parlament trägt sie am ehesten, die Welt rechnet sie kaum an — wenn die Eskalation als Beleg taugt.",
+    get name() { return t("krieg.k.rahmung.verteidigung.name"); },
+    get text() { return t("krieg.k.rahmung.verteidigung.text"); },
     stimmen: 30,
     ansehen: -1,
     uhrStart: 8,
     nationalisten: 2,
   },
   schutz: {
-    name: "Schutz von Minderheiten",
-    text: "Humanitär gerahmt: innen vermittelbar, außen umstritten.",
+    get name() { return t("krieg.k.rahmung.schutz.name"); },
+    get text() { return t("krieg.k.rahmung.schutz.text"); },
     stimmen: 12,
     ansehen: -3,
     uhrStart: 0,
     nationalisten: 1,
   },
   beistand: {
-    name: "Vertragliche Beistandspflicht",
-    text: "Ein Bündnis verpflichtet: glaubwürdig nur mit einem laufenden Vertrag als Beleg.",
+    get name() { return t("krieg.k.rahmung.beistand.name"); },
+    get text() { return t("krieg.k.rahmung.beistand.text"); },
     stimmen: 20,
     ansehen: -1,
     uhrStart: 4,
     nationalisten: 1,
   },
   revision: {
-    name: "Offene Revision",
-    text: "Der ungerahmte Angriff: innen der billigste Auftritt für Hardliner, außen der teuerste — Völkerrecht und Märkte rechnen hart ab.",
+    get name() { return t("krieg.k.rahmung.revision.name"); },
+    get text() { return t("krieg.k.rahmung.revision.text"); },
     stimmen: -25,
     ansehen: -6,
     uhrStart: -10,
     nationalisten: 4,
   },
 };
+
+/** Der Ländername für einen Satz: im Deutschen in der Fallform (Akkusativ, Dativ mit Artikel), in den übrigen Sprachen der Name. */
+function lf(l: { name: string; akk: string; dat: string }, fall: "akk" | "dat"): string {
+  return aktuelleSprache() === "de" ? l[fall] : l.name;
+}
 
 // Die Stärketabellen (Gegner, Partner) stehen in sim/pakte.ts, damit Gegner und Koalitionspartner dieselbe Waage haben.
 
@@ -190,7 +204,7 @@ interface DoktrinProfil {
 
 const DOKTRIN_PROFILE: Record<string, DoktrinProfil> = {
   doktrin_drohnen: {
-    name: "Drohnenverbund",
+    get name() { return t("krieg.k.doktrin.drohnen"); },
     kern: [
       ["modernisierung", 55],
       ["bereitschaft_luft", 55],
@@ -201,7 +215,7 @@ const DOKTRIN_PROFILE: Record<string, DoktrinProfil> = {
     ],
   },
   doktrin_luftverteidigung: {
-    name: "Mehrschichtige Luftverteidigung",
+    get name() { return t("krieg.k.doktrin.luftverteidigung"); },
     kern: [
       ["bereitschaft_luft", 58],
       ["abschreckung", 55],
@@ -212,7 +226,7 @@ const DOKTRIN_PROFILE: Record<string, DoktrinProfil> = {
     ],
   },
   doktrin_autonomie: {
-    name: "Strategische Autonomie",
+    get name() { return t("krieg.k.doktrin.autonomie"); },
     kern: [
       ["ruestungsautarkie", 58],
       ["bereitschaft_heer", 55],
@@ -257,7 +271,7 @@ export function doktrinPassung(w: World): DoktrinPassung {
   const passung = (kernOk.length * 2 + stuetzeOk.length) / (profil.kern.length * 2 + profil.stuetze.length);
   const konsistent = kernOk.length === profil.kern.length;
   const faktor = konsistent ? 1.18 + 0.12 * (stuetzeOk.length / profil.stuetze.length) : 0.72 + 0.38 * passung;
-  const fehlt = profil.kern.filter(([id, min]) => knotenWert(w, id) < min).map(([id, min]) => `${knotenName(id)} mindestens ${min}`);
+  const fehlt = profil.kern.filter(([id, min]) => knotenWert(w, id) < min).map(([id, min]) => t("krieg.k.doktrin.mindestens", { knoten: knotenName(id), min }));
   return { doktrin, name: profil.name, passung, konsistent, faktor, fehlt };
 }
 
@@ -298,9 +312,9 @@ export function gegnerStaerke(w: World, landId: string): number {
 /** Wie gut das Lagebild über den Gegner ist (LERNKONZEPT: ehrlich über Unsicherheit). */
 export function lagebild(w: World): { stufe: "bekannt" | "vermutet" | "unsicher"; text: string } {
   const a = knotenWert(w, "abschreckung");
-  if (a >= 60) return { stufe: "bekannt", text: "Das Lagebild des Generalstabs ist belastbar." };
-  if (a >= 40) return { stufe: "vermutet", text: "Das Lagebild ist lückenhaft; die Stärke des Gegners ist eine Schätzung (±10)." };
-  return { stufe: "unsicher", text: "Das Lagebild ist unsicher: Der Generalstab kann die Gegenstärke nur grob einordnen." };
+  if (a >= 60) return { stufe: "bekannt", text: t("krieg.k.lage.bekannt") };
+  if (a >= 40) return { stufe: "vermutet", text: t("krieg.k.lage.vermutet") };
+  return { stufe: "unsicher", text: t("krieg.k.lage.unsicher") };
 }
 
 // ---------------------------------------------------------------------------
@@ -334,22 +348,22 @@ export function paketAnnahme(w: World, k: KriegVorgang, p: FriedensPaket): numbe
 
 export const PAKETE: Record<string, { name: string; text: string; paket: (front: number) => FriedensPaket }> = {
   paket_sieg: {
-    name: "Siegerfrieden",
+    get name() { return t("krieg.k.paket.paket_sieg"); },
     get text() { return t("wort.krieg.paket_sieg"); },
     paket: () => ({ gebiet: 1, reparation: 1, garantien: true, rueckzug: false }),
   },
   paket_ausgewogen: {
-    name: "Ausgewogener Frieden",
-    text: "Status quo mit Sicherheitsgarantien und beiderseitigem Rückzug.",
+    get name() { return t("krieg.k.paket.paket_ausgewogen"); },
+    get text() { return t("krieg.k.paket.paket_ausgewogen.text"); },
     paket: () => ({ gebiet: 0, reparation: 0, garantien: true, rueckzug: true }),
   },
   paket_weiss: {
-    name: "Weißer Frieden",
-    text: "Rückzug ohne Bedingungen: Der billigste Ausstieg, innen schwer zu verkaufen, wenn der Krieg lange dauerte.",
+    get name() { return t("krieg.k.paket.paket_weiss"); },
+    get text() { return t("krieg.k.paket.paket_weiss.text"); },
     paket: () => ({ gebiet: 0, reparation: 0, garantien: false, rueckzug: true }),
   },
   paket_zugestaendnis: {
-    name: "Gekaufter Frieden",
+    get name() { return t("krieg.k.paket.paket_zugestaendnis"); },
     get text() { return t("wort.krieg.paket_zugestaendnis"); },
     paket: () => ({ gebiet: -1, reparation: -1, garantien: false, rueckzug: true }),
   },
@@ -385,12 +399,11 @@ export interface KriegHandlungSicht {
   hinweis: string;
 }
 
-const nf1 = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
 
 function demobGrund(w: World): string | undefined {
   const bis = demobSperreBis(w);
   if (bis <= w.day) return undefined;
-  return `Die Demobilisierung läuft noch bis ${formatDateDe(addDays(w.date, bis - w.day))}; eine erneute Mobilisierung ist frühestens danach möglich (90-Tage-Rechnung).`;
+  return t("krieg.k.demob.grund", { datum: formatDateDe(addDays(w.date, bis - w.day)) });
 }
 
 /** Alle Handlungen, die der Konfliktvorgang in der aktuellen Phase anbietet — mit Preisen und ehrlichen Gründen. */
@@ -403,35 +416,35 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
   const out: KriegHandlungSicht[] = [];
   const push = (id: KriegHandlungId, label: string, pk: number, hinweis: string, grund?: string) => {
     let g = grund;
-    if (!g && !kannZahlen(kapital, pk)) g = "Dafür fehlt Politisches Kapital.";
+    if (!g && !kannZahlen(kapital, pk)) g = t("krieg.k.kapital");
     out.push({ id, label, pk, moeglich: !g, ...(g ? { grund: g } : {}), hinweis });
   };
   const demob = demobGrund(w);
   const ph = k.phase;
 
   if (ph === "spannung" || ph === "drohkulisse") {
-    if (!k.bereit) push("bereitschaft", "Truppen in Bereitschaft versetzen", 6, "Abschreckung +3, kleiner Stärkeschub; der Gegner liest es als Eskalation (+4).");
+    if (!k.bereit) push("bereitschaft", t("krieg.k.h.bereitschaft"), 6, t("krieg.k.h.bereitschaft.hinweis"));
     const signalRest = (k.signalZuletzt ?? -1e9) + 60 - w.day;
-    push("signal", "Abschreckungs-Signal senden", 3, "Manöver und scharfe Worte: Abschreckung +2, der Konflikt kühlt leicht (−3).", signalRest > 0 ? `Wieder glaubwürdig in ${signalRest} Tagen.` : undefined);
-    push("vermittlung", "Vermittlung rufen", 5, `Vermittler einschalten: Bei Erfolg Eskalation −18 und Konflikt −8; Aussicht hängt an Ansehen (${Math.round(knotenWert(w, "ansehen"))}) und Vertrauen (${Math.round(vertrauenZu(w, k.land))}).`);
+    push("signal", t("krieg.k.h.signal"), 3, t("krieg.k.h.signal.hinweis"), signalRest > 0 ? t("krieg.k.h.signal.rest", { tage: signalRest }) : undefined);
+    push("vermittlung", t("krieg.k.h.vermittlung"), 5, t("krieg.k.h.vermittlung.hinweis", { ansehen: Math.round(knotenWert(w, "ansehen")), vertrauen: Math.round(vertrauenZu(w, k.land)) }));
     if (!k.kriegszielDeklariert) {
       for (const r of ["verteidigung", "schutz", "beistand", "revision"] as const) {
-        const beleg = r === "beistand" && alleLaufenden(w).every((v) => v.land !== k.land) ? "Ohne laufenden Vertrag mit diesem Land wirkt die Beistands-Rahmung unglaubwürdig (Ansehen −3 zusätzlich)." : undefined;
-        push(`ziel_${r}`, `Kriegsziel deklarieren: ${RAHMUNG[r].name}`, 8, `${RAHMUNG[r].text} Legt die Preise aller Folgehandlungen fest (Parlament ${RAHMUNG[r].stimmen >= 0 ? "+" : ""}${RAHMUNG[r].stimmen} Stimmen, Ansehen ${RAHMUNG[r].ansehen}).`, beleg);
+        const beleg = r === "beistand" && alleLaufenden(w).every((v) => v.land !== k.land) ? t("krieg.k.h.ziel.beleg") : undefined;
+        push(`ziel_${r}`, t("krieg.k.h.ziel", { rahmung: RAHMUNG[r].name }), 8, t("krieg.k.h.ziel.hinweis", { text: RAHMUNG[r].text, stimmen: `${RAHMUNG[r].stimmen >= 0 ? "+" : ""}${RAHMUNG[r].stimmen}`, ansehen: RAHMUNG[r].ansehen }), beleg);
       }
     }
-    push("deeskalation", "Die Lage beruhigen", 4, "Konflikt −10, Eskalation −12; Nationalisten zu Hause lesen es als Schwäche (−1). Unter der Ruheschwelle endet der Vorgang.");
-    push("rueckzug", "Still zurückziehen", 6, "Der Vorgang endet: Konflikt −15, Vertrauen +4 — aber Ansehen −2 und Nationalisten −3.");
+    push("deeskalation", t("krieg.k.h.deeskalation"), 4, t("krieg.k.h.deeskalation.hinweis"));
+    push("rueckzug", t("krieg.k.h.rueckzug"), 6, t("krieg.k.h.rueckzug.hinweis"));
   }
   if (ph === "drohkulisse") {
-    if (k.mobilmachung === 0) push("mobil_teil", "Teilmobilmachung anordnen", 8, "Reserven einziehen: Stärke deutlich höher; kostet 0,3 % des BIP, Eskalation +8, Junge −1.", demob);
-    if (k.mobilmachung < 2) push("mobil_voll", "Vollmobilmachung anordnen", 14, "Der Staat stellt sich auf Krieg um: höchste Stärke; kostet 0,7 % des BIP, Eskalation +14, Junge −3, städtische Säkulare −2, die Uhr trägt die Last.", demob);
+    if (k.mobilmachung === 0) push("mobil_teil", t("krieg.k.h.mobil_teil"), 8, t("krieg.k.h.mobil_teil.hinweis"), demob);
+    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_voll"), 14, t("krieg.k.h.mobil_voll.hinweis"), demob);
     if (!k.kriegszielDeklariert) {
       // Ohne deklariertes Kriegsziel kein Beschluss: Die Rahmung ist Pflicht (Civ6-Preisschild).
     } else {
       const stimmen = stimmenSicht(w, { massnahme: "m_verteidigung", richtung: 1 }).erwartet + RAHMUNG[k.rahmung!].stimmen;
-      push("beschluss", "Einsatzbeschluss ins Parlament einbringen", 10, `Abstimmung in ${KRIEG.beschlussTage} Tagen; erwartet werden etwa ${Math.round(stimmen)} von 301 nötigen Stimmen. Scheitert er, gilt das als Schwäche.`);
-      push("beschluss_erlass", "Einsatz per Erlass anordnen", 20, "Umgeht das Parlament: sofortiger Beschluss, doppelte Kosten, Vertrauen und Legitimität leiden (−3 / −2,5).");
+      push("beschluss", t("krieg.k.h.beschluss"), 10, t("krieg.k.h.beschluss.hinweis", { tage: KRIEG.beschlussTage, stimmen: Math.round(stimmen) }));
+      push("beschluss_erlass", t("krieg.k.h.erlass"), 20, t("krieg.k.h.erlass.hinweis"));
     }
   }
   if (ph === "beschluss" && k.beschluss?.weg === "parlament") {
@@ -439,21 +452,21 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
   }
   if (ph === "krieg") {
     const rest = (k.verstaerkungZuletzt ?? -1e9) + 21 - w.day;
-    push("verstaerkung", "Reserven und Nachschub verstärken", 6, "Front-Schub +3 in der nächsten Woche; kostet 0,25 % des BIP. Der Präsident bestellt, der Generalstab führt.", rest > 0 ? `Wieder möglich in ${rest} Tagen.` : undefined);
+    push("verstaerkung", t("krieg.k.h.verstaerkung"), 6, t("krieg.k.h.verstaerkung.hinweis"), rest > 0 ? t("krieg.k.h.wieder", { tage: rest }) : undefined);
     const ko = k.koalition;
     const zoegernde = ko ? ko.abwesend.filter((a) => a.seite === "eigen" && a.zoegert).length : 0;
     const rufRest = (ko?.gerufen ?? -1e9) + KOALITION.rufTage - w.day;
     if (zoegernde > 0 || (ko?.abwesend.some((a) => a.seite === "eigen") ?? false)) {
       push(
         "koalition_rufen",
-        "Bündnispartner um Beistand bitten",
+        t("krieg.k.h.koalition"),
         6,
-        `Die Türkei bittet um Beistand: ${zoegernde} Staaten zögern noch und können mit der Bitte bewegt werden (Aufschlag ${KOALITION.rufBonus} Punkte in ihrer Rechnung). Wer ablehnt, nimmt es übel (Vertrauen −1,5).`,
-        rufRest > 0 ? `Die nächste Bitte ist in ${rufRest} Tagen glaubwürdig.` : zoegernde === 0 ? "Niemand zögert mehr: Die übrigen haben endgültig abgelehnt." : undefined,
+        t("krieg.k.h.koalition.hinweis", { n: zoegernde, bonus: KOALITION.rufBonus }),
+        rufRest > 0 ? t("krieg.k.h.koalition.rest", { tage: rufRest }) : zoegernde === 0 ? t("krieg.k.h.koalition.niemand") : undefined,
       );
     }
-    push("waffenruhe", "Waffenruhe anbieten", 5, "Der Gegner nimmt an, wenn er erschöpft ist oder die Front verloren gibt; lehnt er ab, gilt das Angebot zu Hause als Schwäche (Uhr −3).");
-    if (k.mobilmachung < 2) push("mobil_voll", "Vollmobilmachung nachziehen", 14, "Auch mitten im Krieg möglich; teuer und spät.", demob);
+    push("waffenruhe", t("krieg.k.h.waffenruhe"), 5, t("krieg.k.h.waffenruhe.hinweis"));
+    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_nach"), 14, t("krieg.k.h.mobil_nach.hinweis"), demob);
   }
   if (ph === "waffenruhe") {
     for (const [id, def] of Object.entries(PAKETE)) {
@@ -461,9 +474,9 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
       if (id === "paket_zugestaendnis" && k.front > 45) continue;
       const p = def.paket(k.front);
       const aussicht = paketAnnahme(w, k, p);
-      push(id as KriegHandlungId, `Friedenspaket: ${def.name}`, 4, `${def.text} Annahme-Aussicht etwa ${aussicht} %. Der Innenpreis steht schon jetzt fest (freie Presse verteuert ihn).`);
+      push(id as KriegHandlungId, t("krieg.k.h.paket", { name: def.name }), 4, t("krieg.k.h.paket.hinweis", { text: def.text, aussicht }));
     }
-    push("weiterkaempfen", "Weiterkämpfen", 2, "Zurück an die Front: die Uhr verliert 5 Punkte, die Heimatfront ist irritiert.");
+    push("weiterkaempfen", t("krieg.k.h.weiter"), 2, t("krieg.k.h.weiter.hinweis"));
   }
   return out;
 }
@@ -490,11 +503,11 @@ function hinweis(w: World, id: string, titel: string, text: string[]): void {
 export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: KriegHandlungId, rng?: Rng): Ergebnis {
   const spiel = w.spiel;
   const k = kriegZu(w, kriegId);
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es keinen Konfliktvorgang." };
-  if (!k) return { ok: false, text: "Diesen Konfliktvorgang gibt es nicht (mehr)." };
+  if (!spiel) return { ok: false, text: t("krieg.k.x.keinspiel") };
+  if (!k) return { ok: false, text: t("krieg.k.x.weg") };
   const sicht = handlungenFuer(w, kriegId).find((x) => x.id === handlungId);
-  if (!sicht) return { ok: false, text: "Diese Handlung gibt es in dieser Phase nicht." };
-  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? "Das geht gerade nicht." };
+  if (!sicht) return { ok: false, text: t("krieg.k.x.phase") };
+  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? t("krieg.k.x.nicht") };
   const pause = neuanfangGrund(w);
   if (pause) return { ok: false, text: pause };
   // Ohne übergebenen Zufall: deterministisch aus dem Weltzustand würfeln (Oberfläche, Parser)
@@ -507,23 +520,23 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
   verbrauche(w, AUFMERKSAMKEIT_KOSTEN.landAktion.entspannen, `${sicht.label}: ${l.name}`);
 
   let text = "";
-  let why = `Kostet ${sicht.pk} Kapital.`;
+  let why = t("krieg.k.x.kostet", { pk: sicht.pk });
   switch (handlungId) {
     case "bereitschaft": {
       k.bereit = true;
       k.eskalation = clamp(k.eskalation + 4, 0, 100);
       wirke(w, "abschreckung", 3);
-      landAendern(w, k.land, { konflikt: 2 }, "Truppen in Bereitschaft");
-      text = `Die Streitkräfte gehen in erhöhte Bereitschaft; ${l.name} registriert es.`;
-      why += " Abschreckung +3; der Gegner liest es als Eskalation.";
+      landAendern(w, k.land, { konflikt: 2 }, t("krieg.k.h.bereitschaft"));
+      text = t("krieg.k.x.bereitschaft", { land: l.name });
+      why += " " + t("krieg.k.x.bereitschaft.warum");
       break;
     }
     case "signal": {
       k.signalZuletzt = w.day;
       wirke(w, "abschreckung", 2);
-      landAendern(w, k.land, { konflikt: -3 }, "Abschreckungs-Signal aus Ankara");
+      landAendern(w, k.land, { konflikt: -3 }, t("krieg.k.x.signal.notiz"));
       k.eskalation = clamp(k.eskalation - 4, 0, 100);
-      text = `Manöver und scharfe Worte Richtung ${l.akk}: Die Drohkulisse bleibt, aber der Ton ist gesetzt.`;
+      text = t("krieg.k.x.signal", { land: lf(l, "akk") });
       break;
     }
     case "vermittlung": {
@@ -531,15 +544,15 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       const zufall = rng ? rng.next() * 100 : 50;
       if (zufall < aussicht) {
         k.eskalation = clamp(k.eskalation - 18, 0, 100);
-        landAendern(w, k.land, { konflikt: -8, vertrauen: 3 }, "Vermittlung nimmt Fahrt auf");
+        landAendern(w, k.land, { konflikt: -8, vertrauen: 3 }, t("krieg.k.x.vermittlung.notiz"));
         wirke(w, "ansehen", 2);
-        text = `Die Vermittlung mit ${l.dat} greift: Gesprächskanäle öffnen sich, die Eskalation lässt nach.`;
-        why += ` Aussicht lag bei ${Math.round(aussicht)} %; Ansehen +2.`;
+        text = t("krieg.k.x.vermittlung.ok", { land: lf(l, "dat") });
+        why += " " + t("krieg.k.x.vermittlung.ok.warum", { aussicht: Math.round(aussicht) });
       } else {
         landAendern(w, k.land, { vertrauen: -2 });
         wirke(w, "ansehen", -1);
-        text = `Die Vermittlung mit ${l.dat} scheitert an den Vorbedingungen der Gegenseite.`;
-        why += ` Aussicht lag bei ${Math.round(aussicht)} %; Ansehen −1.`;
+        text = t("krieg.k.x.vermittlung.nein", { land: lf(l, "dat") });
+        why += " " + t("krieg.k.x.vermittlung.nein.warum", { aussicht: Math.round(aussicht) });
       }
       break;
     }
@@ -558,28 +571,28 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       wirke(w, "nationalisten", RAHMUNG[r].nationalisten);
       if (r === "revision") {
         wirke(w, "beziehungen_eu", -4);
-        landAendern(w, "EU", { konflikt: 6, vertrauen: -4 }, "Offene Revisionspolitik Ankaras");
+        landAendern(w, "EU", { konflikt: 6, vertrauen: -4 }, t("krieg.k.x.revision.notiz"));
       }
-      text = `Die Regierung deklariert ihr Kriegsziel gegenüber ${l.dat}: ${RAHMUNG[r].name}.`;
-      why += ` Die Rahmung legt die Preise aller Folgehandlungen fest (Parlament ${RAHMUNG[r].stimmen >= 0 ? "+" : ""}${RAHMUNG[r].stimmen} Stimmen).${extra ? " Der Beleg ist dünn; das Ausland notiert es." : ""}`;
+      text = t("krieg.k.x.ziel", { land: lf(l, "dat"), rahmung: RAHMUNG[r].name });
+      why += " " + t("krieg.k.x.ziel.warum", { stimmen: `${RAHMUNG[r].stimmen >= 0 ? "+" : ""}${RAHMUNG[r].stimmen}` }) + (extra ? " " + t("krieg.k.x.ziel.duenn") : "");
       break;
     }
     case "deeskalation": {
-      landAendern(w, k.land, { konflikt: -10 }, "Deeskalation aus Ankara");
+      landAendern(w, k.land, { konflikt: -10 }, t("krieg.k.x.deesk.notiz"));
       k.eskalation = clamp(k.eskalation - 12, 0, 100);
       wirke(w, "nationalisten", -1);
       wirke(w, "staedtische_saekulare", 1);
-      text = `Ankara dämpft den Ton gegenüber ${l.dat}; die Spannung lässt nach.`;
-      why += " Nationalisten lesen es als Schwäche; die städtische Mitte atmet auf.";
+      text = t("krieg.k.x.deesk", { land: lf(l, "dat") });
+      why += " " + t("krieg.k.x.deesk.warum");
       break;
     }
     case "rueckzug": {
-      landAendern(w, k.land, { konflikt: -15, vertrauen: 4 }, "Stiller Rückzug Ankaras");
+      landAendern(w, k.land, { konflikt: -15, vertrauen: 4 }, t("krieg.k.x.rueckzug.notiz"));
       wirke(w, "ansehen", -2);
       wirke(w, "nationalisten", -3);
       beendeVorgang(w, k, "rueckzug");
-      text = `Die Regierung zieht ihre Position gegenüber ${l.dat} still zurück; der Vorgang endet.`;
-      why += " Das Gesicht verliert mehr als die Lage: Ansehen −2, Nationalisten −3.";
+      text = t("krieg.k.x.rueckzug", { land: lf(l, "dat") });
+      why += " " + t("krieg.k.x.rueckzug.warum");
       break;
     }
     case "mobil_teil":
@@ -595,24 +608,24 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
         wirke(w, "konservative", 1);
         k.uhr = clamp(k.uhr - 5, 0, 110);
       }
-      belastungEreignis(w, VERFASSUNG.eskalation, voll ? "Vollmobilmachung" : "Teilmobilmachung");
-      text = voll ? "Die Vollmobilmachung wird angeordnet: Reserven, Materiel, Transportpläne — der Staat stellt sich auf Krieg um." : "Die Teilmobilmachung wird angeordnet: Ausgewählte Reserven und Verbände gehen in Bereitschaft.";
-      why += ` ${voll ? "0,7" : "0,3"} % des BIP als Zusatzlast; die Demobilisierung wird später erneut kosten (90-Tage-Rechnung).`;
+      belastungEreignis(w, VERFASSUNG.eskalation, t(voll ? "krieg.k.x.voll" : "krieg.k.x.teil"));
+      text = t(voll ? "krieg.k.x.voll.text" : "krieg.k.x.teil.text");
+      why += " " + t("krieg.k.x.mobil.warum", { bip: voll ? 0.7 : 0.3 });
       break;
     }
     case "beschluss": {
       k.beschluss = { weg: "parlament", abstimmung: w.day + KRIEG.beschlussTage, rahmung: k.rahmung! };
       phaseSetzen(w, k, "beschluss");
-      text = `Der Einsatzbeschluss gegen ${l.akk} geht ins Parlament; die Abstimmung ist in ${KRIEG.beschlussTage} Tagen.`;
-      why += " Ohne Mehrheit gilt die Einbringung als Schwäche; Absprachen und Stimmung entscheiden.";
+      text = t("krieg.k.x.beschluss", { land: lf(l, "akk"), tage: KRIEG.beschlussTage });
+      why += " " + t("krieg.k.x.beschluss.warum");
       break;
     }
     case "beschluss_erlass": {
       vertrauenAendern(w, -3);
       wirke(w, "legitimitaet", -2.5);
       k.beschluss = { weg: "erlass", abstimmung: w.day, rahmung: k.rahmung! };
-      text = `Per Erlass, am Parlament vorbei: Der Einsatz gegen ${l.akk} ist beschlossen.`;
-      why += " Doppelte Kosten, Vertrauen −3, Legitimität −2,5; das Parlament vergisst den Affront nicht.";
+      text = t("krieg.k.x.erlass", { land: lf(l, "akk") });
+      why += " " + t("krieg.k.x.erlass.warum");
       addLog(w, "entscheidung", text, why);
       kriegsbeginn(w, k, "erlass");
       return { ok: true, text, why };
@@ -621,31 +634,31 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       k.verstaerkungZuletzt = w.day;
       k.frontSchub = (k.frontSchub ?? 0) + 3;
       kosten(w, 0.25);
-      text = "Reserven und Nachschub werden an die Front geordnet; der Generalstab verrechnet sie in der nächsten Woche.";
+      text = t("krieg.k.x.verstaerkung");
       break;
     }
     case "koalition_rufen": {
       const { neu, abgelehnt } = koalitionRufen(w, k);
       if (neu.length > 0) {
-        text = `Ankara bittet die Partner um Beistand: ${neu.map((p) => `${landNameVon(p.id)}`).join(", ")} sagen${neu.length === 1 ? " zu" : " zu"}.`;
-        why += ` Die Zusagen tragen zur Stärke bei; ${abgelehnt.length ? `${abgelehnt.map(landNameVon).join(", ")} lehnen ab (Vertrauen −1,5).` : "niemand lehnt ab."}`;
+        text = t("krieg.k.x.koalition.ja", { laender: neu.map((p) => landNameVon(p.id)).join(", ") });
+        why += " " + t("krieg.k.x.koalition.ja.warum") + " " + (abgelehnt.length ? t("krieg.k.x.koalition.ab", { laender: abgelehnt.map(landNameVon).join(", ") }) : t("krieg.k.x.koalition.niemand"));
       } else {
-        text = "Die Bitte um Beistand verhallt: Kein Partner ist bereit, in den Krieg einzutreten.";
-        why += abgelehnt.length ? ` ${abgelehnt.map(landNameVon).join(", ")} nehmen die Bitte übel (Vertrauen −1,5).` : "";
+        text = t("krieg.k.x.koalition.nein");
+        why += abgelehnt.length ? " " + t("krieg.k.x.koalition.uebel", { laender: abgelehnt.map(landNameVon).join(", ") }) : "";
       }
       break;
     }
     case "waffenruhe": {
       if (k.uhrGegner <= 55 || k.front >= 62 || k.uhr <= 40) {
-        text = `${l.name} nimmt die Waffenruhe an; die Waffen schweigen, der Verhandlungstisch wartet.`;
+        text = t("krieg.k.x.waffenruhe.ja", { land: l.name });
         addLog(w, "entscheidung", text, why);
         waffenruheEintreten(w, k);
         return { ok: true, text, why };
       }
       k.uhr = clamp(k.uhr - 3, 0, 110);
       k.eskalation = clamp(k.eskalation + 2, 0, 100);
-      text = `${l.name} lehnt die Waffenruhe ab — die Gegenseite fühlt sich nicht erschöpft genug.`;
-      why += " Das Angebot gilt zu Hause als Schwäche (Uhr −3).";
+      text = t("krieg.k.x.waffenruhe.nein", { land: l.name });
+      why += " " + t("krieg.k.x.waffenruhe.nein.warum");
       break;
     }
     case "paket_sieg":
@@ -656,15 +669,15 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       const aussicht = paketAnnahme(w, k, p);
       if (aussicht >= 50) return friedenSchliessen(w, k, p, handlungId, rng);
       k.eskalation = clamp(k.eskalation + 2, 0, 100);
-      text = `${l.name} weist das Paket zurück (Aussicht ${aussicht} %): Die Gegenseite fühlt sich noch nicht erschöpft genug. Die Waffenruhe hält vorerst.`;
-      why += " Ein verworfenes Paket kostet nichts als Zeit — aber die Uhr läuft auf beiden Seiten nicht rückwärts.";
+      text = t("krieg.k.x.paket.nein", { land: l.name, aussicht });
+      why += " " + t("krieg.k.x.paket.nein.warum");
       break;
     }
     case "weiterkaempfen": {
       k.uhr = clamp(k.uhr - 5, 0, 110);
       k.gegnerAngebot = false;
       phaseSetzen(w, k, "krieg");
-      text = "Die Regierung befiehlt die Wiederaufnahme der Operationen; die Heimatfront reagiert irritiert (Uhr −5).";
+      text = t("krieg.k.x.weiter");
       break;
     }
   }
@@ -687,11 +700,8 @@ function waffenruheEintreten(w: World, k: KriegVorgang): void {
   const l = land(k.land);
   phaseSetzen(w, k, "waffenruhe");
   k.gegnerAngebot = false;
-  hinweis(w, `krieg-waffenruhe-${k.id}-${w.day}`, `Waffenruhe mit ${l.name}`, [
-    `Die Waffen schweigen im Konflikt mit ${l.name}. Am Verhandlungstisch wartet die eigentliche Rechnung: Grenzzone, Reparationen, Garantien, Rückzug.`,
-    "Der Innenpreis des Friedens hängt auch von der Presse ab: Je freier die Medien, desto sichtbarer — und teurer — ist jede Nachgiebigkeit.",
-  ]);
-  addLog(w, "ereignis", `Waffenruhe mit ${l.name}.`, "Die Waffenruhe hält, solange ein Friedenspaket oder die Rückkehr zum Krieg entschieden ist.");
+  hinweis(w, `krieg-waffenruhe-${k.id}-${w.day}`, t("krieg.k.wr.titel", { land: l.name }), [t("krieg.k.wr.text1", { land: l.name }), t("krieg.k.wr.text2")]);
+  addLog(w, "ereignis", t("krieg.k.wr.log", { land: l.name }), t("krieg.k.wr.warum"));
 }
 
 /**
@@ -700,17 +710,17 @@ function waffenruheEintreten(w: World, k: KriegVorgang): void {
  * an der Seite der Türkei. Der Einsatzbeschluss bleibt Sache des Präsidenten und des Parlaments wie bei jedem Krieg (MIL-1).
  */
 export function beistandVorgangGrund(w: World, gegnerId: string): string | undefined {
-  if (!w.spiel) return "Ohne Spielschleife gibt es keinen Konfliktvorgang.";
-  if (!LAENDER.some((l) => l.id === gegnerId)) return "Gegen diesen Angreifer gibt es keinen Konfliktvorgang; Beistand geht nur in Material und Diplomatie.";
-  if (kriegMit(w, gegnerId)) return `Mit ${land(gegnerId).name} läuft schon ein Konfliktvorgang.`;
-  if (aktiveKriege(w).length >= KRIEG.maxAktiv) return "Die Türkei führt schon zwei Konfliktvorgänge; ein dritter ist nicht zu tragen.";
+  if (!w.spiel) return t("krieg.k.x.keinspiel");
+  if (!LAENDER.some((l) => l.id === gegnerId)) return t("krieg.k.bs.kein");
+  if (kriegMit(w, gegnerId)) return t("krieg.k.bs.laeuft", { land: land(gegnerId).name });
+  if (aktiveKriege(w).length >= KRIEG.maxAktiv) return t("krieg.k.bs.zwei");
   return undefined;
 }
 
 export function eroeffneBeistandsVorgang(w: World, gegnerId: string, partner: string, paktId: string): Ergebnis {
   const spiel = w.spiel;
   const grund = beistandVorgangGrund(w, gegnerId);
-  if (!spiel || grund) return { ok: false, text: grund ?? "Ohne Spielschleife gibt es keinen Konfliktvorgang." };
+  if (!spiel || grund) return { ok: false, text: grund ?? t("krieg.k.x.keinspiel") };
   const l = land(gegnerId);
   const k: KriegVorgang = {
     id: `kv-${gegnerId}-${w.day}`,
@@ -730,31 +740,29 @@ export function eroeffneBeistandsVorgang(w: World, gegnerId: string, partner: st
     beistandFuer: { partner, pakt: paktId },
     koalition: {
       aggressor: "tuerkei",
-      partner: [{ id: partner, seite: "eigen", seit: w.day, grund: "Opfer des Angriffs, Beistand aus dem Pakt", pakt: paktId, pflicht: true, rest: 1, einsatz: 1 }],
+      partner: [{ id: partner, seite: "eigen", seit: w.day, grund: t("krieg.k.bs.grund"), pakt: paktId, pflicht: true, rest: 1, einsatz: 1 }],
       abwesend: [],
       bewertet: w.day,
     },
   };
   kriege(w).push(k);
   spiel.zuletzt[`krieg-${gegnerId}`] = w.day;
-  landAendern(w, gegnerId, { konflikt: 12, vertrauen: -8 }, `Die Türkei tritt dem Beistandsfall bei (${landNameVon(partner)})`);
+  landAendern(w, gegnerId, { konflikt: 12, vertrauen: -8 }, t("krieg.k.bs.notiz", { partner: landNameVon(partner) }));
   wirke(w, "ansehen", RAHMUNG.beistand.ansehen);
   wirke(w, "nationalisten", RAHMUNG.beistand.nationalisten);
   phaseSetzen(w, k, "drohkulisse");
-  hinweis(w, `krieg-beistand-${k.id}`, `Beistand für ${landNameVon(partner)}`, [
-    `Die Türkei steht ${landNameVon(partner)} bei: Der Konfliktvorgang mit ${l.name} beginnt in der Drohkulisse, die Rahmung „Beistand“ ist deklariert (der Pakt ist der Beleg).`,
-    "Den Einsatzbeschluss braucht es trotzdem: Parlament oder Erlass, Mobilmachung und Vorbereitung entscheiden, wie teuer der Einsatz wird.",
-  ]);
-  addLog(w, "entscheidung", `Beistand für ${landNameVon(partner)}: Konfliktvorgang mit ${l.name}.`, "Rahmung „Beistand“, der Partner steht an der Seite der Türkei.");
-  return { ok: true, text: `Die Türkei sagt ${landNameVon(partner)} militärischen Beistand zu; der Konfliktvorgang mit ${l.name} beginnt.` };
+  const pn = landNameVon(partner);
+  hinweis(w, `krieg-beistand-${k.id}`, t("krieg.k.bs.titel", { partner: pn }), [t("krieg.k.bs.text1", { partner: pn, land: l.name }), t("krieg.k.bs.text2")]);
+  addLog(w, "entscheidung", t("krieg.k.bs.log", { partner: pn, land: l.name }), t("krieg.k.bs.log.warum"));
+  return { ok: true, text: t("krieg.k.bs.ok", { partner: pn, land: l.name }) };
 }
 
 /** Das Waffenruhe-Angebot des Gegners annehmen (Ereignis krieg_waffenruhe). */
 export function waffenruheFuerAngebot(w: World, kriegId: string): string {
   const k = kriegZu(w, kriegId);
-  if (!k || k.phase !== "krieg") return "Das Angebot ist gegenstandslos geworden.";
+  if (!k || k.phase !== "krieg") return t("krieg.k.ang.weg");
   waffenruheEintreten(w, k);
-  return `Die Waffenruhe mit ${land(k.land).name} tritt in Kraft; der Verhandlungstisch öffnet sich.`;
+  return t("krieg.k.ang.ok", { land: land(k.land).name });
 }
 
 /** Niederlage oder Gebietsabtretung bei zerbrochenem Offiziersvertrauen: das Putsch-Risiko-Ereignis (einmal je Vorgang). */
@@ -789,29 +797,27 @@ function kriegsbeginn(w: World, k: KriegVorgang, weg: "parlament" | "erlass" | "
   wirke(w, "konservative", 1);
   wirke(w, "staedtische_saekulare", rahmung === "verteidigung" ? 0.5 : -1.5);
   wirke(w, "ansehen", RAHMUNG[rahmung].ansehen);
-  landAendern(w, k.land, { vertrauen: -15, konflikt: 10 }, "Krieg");
+  landAendern(w, k.land, { vertrauen: -15, konflikt: 10 }, t("krieg.k.phase.krieg"));
   const z = weltZustand(w)[k.land]!;
   z.konflikt = Math.max(z.konflikt, 85);
   // Drittländer-Ausstrahlung: Rivalen des Gegners rücken näher, Nervöse ziehen sich zurück
-  for (const [rivale, plus] of Object.entries(AUSSTRAHLUNG_RIVALEN[k.land] ?? {})) landAendern(w, rivale, { vertrauen: plus }, `Krieg zwischen der Türkei und ${l.dat}`);
+  for (const [rivale, plus] of Object.entries(AUSSTRAHLUNG_RIVALEN[k.land] ?? {})) landAendern(w, rivale, { vertrauen: plus }, t("krieg.k.beg.rivale", { land: lf(l, "dat") }));
   for (const x of LAENDER) {
     if (x.id === k.land) continue;
     const xx = weltZustand(w)[x.id]!;
-    if (xx.konflikt >= 55) landAendern(w, x.id, { vertrauen: -2 }, "Sorge vor Ausweitung des Krieges");
-    else if (vertrauenZu(w, x.id) >= 60) landAendern(w, x.id, { vertrauen: -1 }, "Sorge über den Krieg Ankaras");
+    if (xx.konflikt >= 55) landAendern(w, x.id, { vertrauen: -2 }, t("krieg.k.beg.ausweitung"));
+    else if (vertrauenZu(w, x.id) >= 60) landAendern(w, x.id, { vertrauen: -1 }, t("krieg.k.beg.sorge"));
   }
-  belastungEreignis(w, VERFASSUNG.eskalation, `Kriegsbeginn mit ${l.name}`);
+  kriegspreisBeginn(w, k);
+  belastungEreignis(w, VERFASSUNG.eskalation, t("krieg.k.beg.belastung", { land: l.name }));
   const einstieg =
     weg === "angriff"
-      ? `${l.name} schlägt zu: Ohne eigenen Beschluss steht die Türkei im Krieg — die Rahmung der Selbstverteidigung liegt auf der Hand.`
+      ? t("krieg.k.beg.angriff", { land: l.name })
       : weg === "erlass"
-        ? `Per Erlass beginnt der Einsatz gegen ${l.akk}; das Parlament wurde umgangen.`
-        : `Mit dem Votum des Parlaments beginnt der Einsatz gegen ${l.akk}.`;
-  hinweis(w, `krieg-beginn-${k.id}-${w.day}`, `Krieg mit ${l.name}`, [
-    einstieg,
-    `Die Frontlage startet bei ${Math.round(k.front)} von 100. Der Präsident bestellt und verantwortet — geführt wird an der Front vom Generalstab; wöchentliche Lageberichte zeigen Trend und Erschöpfung.`,
-  ]);
-  addLog(w, "ereignis", `Krieg mit ${l.name}: ${einstieg}`, `Rahmung „${RAHMUNG[rahmung].name}“, Märkte reagieren mit einem Risikoaufschlag.`);
+        ? t("krieg.k.beg.erlass", { land: lf(l, "akk") })
+        : t("krieg.k.beg.parlament", { land: lf(l, "akk") });
+  hinweis(w, `krieg-beginn-${k.id}-${w.day}`, t("krieg.k.beg.titel", { land: l.name }), [einstieg, t("krieg.k.beg.front", { front: Math.round(k.front) })]);
+  addLog(w, "ereignis", t("krieg.k.beg.log", { land: l.name, einstieg }), t("krieg.k.beg.log.warum", { rahmung: RAHMUNG[rahmung].name }));
 }
 
 function beschlussAbstimmen(w: World, k: KriegVorgang, rng: Rng): void {
@@ -824,14 +830,14 @@ function beschlussAbstimmen(w: World, k: KriegVorgang, rng: Rng): void {
   const nein = 600 - ja;
   delete k.beschluss;
   if (ja >= 301) {
-    addLog(w, "entscheidung", `Das Parlament beschließt den Einsatz gegen ${l.akk} (${ja} zu ${nein}).`, `Rahmung „${RAHMUNG[b.rahmung].name}“${bonus ? ` (Bonus ${bonus >= 0 ? "+" : ""}${bonus})` : ""}.`);
+    addLog(w, "entscheidung", t("krieg.k.bes.ja", { land: lf(l, "akk"), ja, nein }), t(bonus ? "krieg.k.bes.ja.bonus" : "krieg.k.bes.ja.warum", { rahmung: RAHMUNG[b.rahmung].name, bonus: `${bonus >= 0 ? "+" : ""}${bonus}` }));
     kriegsbeginn(w, k, "parlament");
   } else {
     phaseSetzen(w, k, "drohkulisse");
     k.eskalation = clamp(k.eskalation + 4, 0, 100);
     vertrauenAendern(w, -1.2);
     spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
-    addLog(w, "entscheidung", `Das Parlament lehnt den Einsatzbeschluss gegen ${l.akk} ab (${ja} zu ${nein}).`, "Die Regierung wirkt geschwächt; die Gegenseite liest es als Einladung, die Drohkulisse zu halten.");
+    addLog(w, "entscheidung", t("krieg.k.bes.nein", { land: lf(l, "akk"), ja, nein }), t("krieg.k.bes.nein.warum"));
   }
 }
 
@@ -850,7 +856,7 @@ function niederlage(w: World, k: KriegVorgang, rng?: Rng): void {
   wirke(w, "junge", -3);
   wirke(w, "offiziersvertrauen", -14);
   wirke(w, "truppenmoral", -6);
-  landAendern(w, k.land, { vertrauen: -20, konflikt: 20 }, "Krieg gewonnen gegen die Türkei");
+  landAendern(w, k.land, { vertrauen: -20, konflikt: 20 }, t("krieg.k.nl.notiz"));
   const zz = weltZustand(w)[k.land]!;
   zz.konflikt = clamp(Math.min(zz.konflikt, 60), 0, 100);
   demobStarten(w, k);
@@ -858,14 +864,13 @@ function niederlage(w: World, k: KriegVorgang, rng?: Rng): void {
   koalitionAufloesen(w, k, "niederlage");
   phaseSetzen(w, k, "beendet");
   k.ausgang = "niederlage";
-  hinweis(w, `krieg-niederlage-${k.id}-${w.day}`, `Niederlage gegen ${l.name}`, [
-    `Der Einsatz gegen ${l.akk} ist verloren: Reparationen, ein Risikoaufschlag der Märkte und ein Land in Ernüchterung. Der Zustimmungsverlust fällt bei ${knotenWert(w, "pressefreiheit") >= 50 ? "freier" : "gelenkter"} Presse aus wie erwartet (${nf1(po)} Punkte).`,
-    knotenWert(w, "offiziersvertrauen") < KRIEG.putschAb
-      ? "Im Generalstab wird offen über die Verantwortung gesprochen; das Vertrauen der Offiziere ist zerbrochen."
-      : "Die Offiziere tragen die Niederlage vorerst mit — das Vertrauen ist angeknackst, nicht zerbrochen.",
+  const frei = knotenWert(w, "pressefreiheit") >= 50;
+  hinweis(w, `krieg-niederlage-${k.id}-${w.day}`, t("krieg.k.nl.titel", { land: l.name }), [
+    t(frei ? "krieg.k.nl.text.frei" : "krieg.k.nl.text.gelenkt", { land: lf(l, "akk"), po: Math.round(po * 10) / 10 }),
+    t(knotenWert(w, "offiziersvertrauen") < KRIEG.putschAb ? "krieg.k.nl.offiziere.zerbrochen" : "krieg.k.nl.offiziere.angeknackst"),
   ]);
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: `Niederlage gegen ${l.name}`, ausgang: "Der Krieg endet mit Reparationen und einem tiefen innenpolitischen Schaden." });
-  addLog(w, "ereignis", `Niederlage gegen ${l.name}.`, `Reparationen (2 % des BIP), Märkte unter Druck, Zustimmung −${nf1(po)}.`);
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("krieg.k.nl.titel", { land: l.name }), ausgang: t("krieg.k.nl.chronik") });
+  addLog(w, "ereignis", t("krieg.k.nl.log", { land: l.name }), t("krieg.k.nl.log.warum", { po: Math.round(po * 10) / 10 }));
   // Gebietsabtretung und Niederlage sind der klassische Putsch-Auslöser (Suzerain: Estord und Narbel)
   pruefePutsch(w, k, rng);
 }
@@ -875,9 +880,9 @@ function demobStarten(w: World, k: KriegVorgang): void {
   k.mobilmachung = 0;
   k.demobBis = w.day + KRIEG.demobTage;
   k.demobSperreBis = w.day + KRIEG.demobTage;
-  hinweis(w, `krieg-demob-${k.id}-${w.day}`, "Demobilisierung", [
-    `Die Reserven kommen über ${KRIEG.demobTage} Tage nach Hause; die Rechnung läuft mit (etwa ${KRIEG.demobKostenMonat} % des BIP je Monat).`,
-    `Eine erneute Mobilisierung ist frühestens am ${formatDateDe(addDays(w.date, KRIEG.demobTage))} möglich.`,
+  hinweis(w, `krieg-demob-${k.id}-${w.day}`, t("krieg.k.demob.titel"), [
+    t("krieg.k.demob.text1", { tage: KRIEG.demobTage, bip: KRIEG.demobKostenMonat }),
+    t("krieg.k.demob.text2", { datum: formatDateDe(addDays(w.date, KRIEG.demobTage)) }),
   ]);
 }
 
@@ -918,23 +923,23 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
   if (p.reparation === 1) {
     kosten(w, -0.8);
     wirke(w, "nationalisten", 2);
-    teile.push("Reparationen an die Türkei (Schuldenquote −0,8)");
+    teile.push(t("krieg.k.fr.rep_an"));
   }
   if (p.reparation === -1) {
     kosten(w, 1.2);
     basis += 6;
     // Gekaufter Frieden erzeugt Abhängigkeit (Suzerain: Beatrice-Deal)
-    landAendern(w, k.land, { handel: 10 }, "Gekaufter Frieden: wirtschaftliche Verflechtung als Pfand");
-    teile.push("Reparationen von der Türkei (1,2 % des BIP) — gekaufter Frieden schafft Abhängigkeit");
+    landAendern(w, k.land, { handel: 10 }, t("krieg.k.fr.gekauft.notiz"));
+    teile.push(t("krieg.k.fr.rep_von"));
   }
   if (p.garantien) {
-    landAendern(w, k.land, { konflikt: -15, vertrauen: 5, sicherheit: 6 }, "Sicherheitsgarantien");
-    teile.push("Sicherheitsgarantien an der Grenze");
+    landAendern(w, k.land, { konflikt: -15, vertrauen: 5, sicherheit: 6 }, t("krieg.k.fr.garantien.notiz"));
+    teile.push(t("krieg.k.fr.garantien"));
   }
   if (p.rueckzug) {
-    landAendern(w, k.land, { konflikt: -10 }, "Gegenseitiger Truppenrückzug");
+    landAendern(w, k.land, { konflikt: -10 }, t("krieg.k.fr.rueckzug.notiz"));
     wirke(w, "truppenmoral", 2);
-    teile.push("beiderseitiger Rückzug");
+    teile.push(t("krieg.k.fr.rueckzug"));
   }
   if (k.ausgang === "weisser_frieden" && k.woche >= 10) basis += 2;
   // Innenpreis, presse-multipliziert (Suzerain: freie Presse verteuert den Frieden)
@@ -952,13 +957,16 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
   demobStarten(w, k);
   const z = weltZustand(w)[k.land]!;
   z.konflikt = Math.min(z.konflikt, 45);
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: `Frieden mit ${l.name}`, ausgang: `${PAKETE[paketId]!.name}: ${teile.join("; ") || "weißer Frieden"}.` });
-  hinweis(w, `krieg-frieden-${k.id}-${w.day}`, `Frieden mit ${l.name}`, [
-    `Das Paket „${PAKETE[paketId]!.name}“ ist unterschrieben: ${teile.join("; ") || "Rückzug ohne Bedingungen"}.`,
-    po > 0 ? `Der Innenpreis: Zustimmung −${nf1(po)} (bei ${knotenWert(w, "pressefreiheit") >= 50 ? "freier" : "gelenkter"} Presse; freie Presse verteuert jeden Frieden).` : "Innenpolitisch bleibt der Frieden nahezu preiswert.",
+  const paketName = PAKETE[paketId]!.name;
+  const inhalt = teile.join("; ") || t("krieg.k.fr.weiss");
+  const po1 = Math.round(po * 10) / 10;
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("krieg.k.fr.titel", { land: l.name }), ausgang: t("krieg.k.fr.chronik", { paket: paketName, inhalt }) });
+  hinweis(w, `krieg-frieden-${k.id}-${w.day}`, t("krieg.k.fr.titel", { land: l.name }), [
+    t("krieg.k.fr.text1", { paket: paketName, inhalt: teile.join("; ") || t("krieg.k.fr.ohne") }),
+    po > 0 ? t(knotenWert(w, "pressefreiheit") >= 50 ? "krieg.k.fr.preis.frei" : "krieg.k.fr.preis.gelenkt", { po: po1 }) : t("krieg.k.fr.preiswert"),
   ]);
-  const text = `Frieden mit ${l.name} („${PAKETE[paketId]!.name}“): ${teile.join("; ") || "weißer Frieden"}.`;
-  const why = po > 0 ? `Innenpreis: Zustimmung −${nf1(po)} (Presse-Faktor ${nf1(presseFaktor(w))}). Märkte atmen auf (−80 Risikopunkte).` : "Märkte atmen auf (−80 Risikopunkte).";
+  const text = t("krieg.k.fr.log", { land: l.name, paket: paketName, inhalt });
+  const why = po > 0 ? t("krieg.k.fr.log.warum", { po: po1, faktor: Math.round(presseFaktor(w) * 10) / 10 }) : t("krieg.k.fr.maerkte");
   addLog(w, "entscheidung", text, why);
   // Gebietsabtretung: Putsch-Risiko-Ereignis (Suzerain: Estord und Narbel)
   if (p.gebiet === -1) pruefePutsch(w, k, rng);
@@ -969,7 +977,7 @@ function beendeVorgang(w: World, k: KriegVorgang, ausgang: KriegVorgang["ausgang
   koalitionAufloesen(w, k, "rueckzug");
   phaseSetzen(w, k, "beendet");
   k.ausgang = ausgang;
-  addLog(w, "ereignis", `Der Konfliktvorgang mit ${land(k.land).name} endet (${ausgang === "rueckzug" ? "Rückzug" : ausgang}).`, "");
+  addLog(w, "ereignis", t("krieg.k.ende", { land: land(k.land).name, ausgang: ausgang === "rueckzug" ? t("krieg.k.ende.rueckzug") : String(ausgang) }), "");
 }
 
 // ---------------------------------------------------------------------------
@@ -984,6 +992,9 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   // Gelände der umkämpften Region, Reichweite der Einsatzart und Tempo (sim/kriegsschauplatz.ts)
   const sf = kriegsFaktoren(k);
   delta *= delta > 0 ? sf.vorstoss : sf.rueckschlag;
+  // Gegenstoß auf türkischen Boden: Wer sich auf Inseln verteidigt, kann das Festland kaum nehmen (Spielparameter GEGNER_OFFENSIVE)
+  const offensive = GEGNER_OFFENSIVE[k.land];
+  if (delta < 0 && k.front < 50 && offensive !== undefined) delta *= offensive * clamp((k.front - 10) / 40, 0.15, 1);
   if (k.frontSchub) {
     delta += k.frontSchub;
     delete k.frontSchub;
@@ -1003,6 +1014,8 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust + sf.druck) * (1 - last.gegner) + verlustWoche * KRIEG.uhrGewinn;
   // Verluste beider Bestände, Regionen, bedrohte Grenzprovinzen, Kriegslast im Gegnerland
   schauplatzWoche(w, k, delta);
+  // Der Preis der Woche: Müdigkeit, Gefallene, Dritte, Märkte (sim/kriegspreis.ts)
+  kriegspreisWoche(w, k, gegner);
   // Die Koalitionen altern: Zögernde werden geprüft, Partner verlieren Kampfkraft, Erschöpfte steigen aus
   koalitionWoche(w, k);
   // Anti-Aussitzen: Keine Uhr fällt unter 0, solange die eigene Seite ihr Kriegsziel nicht zur Hälfte kontrolliert
@@ -1031,12 +1044,12 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
 
   // Kipppunkte der Frontlage: Hinweis Klasse B (Wendepunkt)
   if (k.frontVorher >= KRIEG.kippUnten && k.front < KRIEG.kippUnten) {
-    hinweis(w, `krieg-kipp-u-${k.id}-${k.woche}`, `Frontlage kippt: ${l.name}`, [`Die Lage im Konflikt mit ${l.name} verschlechtert sich: Front ${Math.round(k.front)} von 100, Trend fallend. Reserven, Nachschub oder der Weg an den Verhandlungstisch — der Spielraum wird enger.`]);
-    addLog(w, "ereignis", `Frontlage kippt gegen ${l.name} (${Math.round(k.front)}).`, "Die Heimatfront liest die Verlustmeldungen; die Uhr fällt schneller als die Front.");
+    hinweis(w, `krieg-kipp-u-${k.id}-${k.woche}`, t("krieg.k.kipp.u.titel", { land: l.name }), [t("krieg.k.kipp.u.text", { land: l.name, front: Math.round(k.front) })]);
+    addLog(w, "ereignis", t("krieg.k.kipp.u.log", { land: l.name, front: Math.round(k.front) }), t("krieg.k.kipp.u.warum"));
   }
   if (k.frontVorher <= KRIEG.kippOben && k.front > KRIEG.kippOben) {
-    hinweis(w, `krieg-kipp-o-${k.id}-${k.woche}`, `Frontlage dreht: ${l.name}`, [`Die Lage im Konflikt mit ${l.name} verbessert sich deutlich: Front ${Math.round(k.front)} von 100, Trend steigend. Erfolg ist die beste Medizin für die Heimatfront — und die Versuchung, den Preis des Friedens hochzuschrauben.`]);
-    addLog(w, "ereignis", `Frontlage dreht gegen ${l.name} (${Math.round(k.front)}).`, "Der Generalstab meldet Geländegewinne; die Verhandlungsposition wächst.");
+    hinweis(w, `krieg-kipp-o-${k.id}-${k.woche}`, t("krieg.k.kipp.o.titel", { land: l.name }), [t("krieg.k.kipp.o.text", { land: l.name, front: Math.round(k.front) })]);
+    addLog(w, "ereignis", t("krieg.k.kipp.o.log", { land: l.name, front: Math.round(k.front) }), t("krieg.k.kipp.o.warum"));
   }
 
   // Waffenruhe-Angebot des Gegners (Suzerain-Lücke gefüllt: Friedensangebot mitten im Krieg)
@@ -1051,7 +1064,7 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
     return;
   }
   if (k.front >= KRIEG.siegFront || k.uhrGegner <= -KRIEG.kapitulation) {
-    addLog(w, "ereignis", `${l.name} ist erschöpft und tritt den Rückzug an.`, "Die Gegenseite akzeptiert jedes Paket mit Gesichtswahrung; der Verhandlungstisch gehört Ihnen.");
+    addLog(w, "ereignis", t("krieg.k.erschoepft", { land: l.name }), t("krieg.k.erschoepft.warum"));
     waffenruheEintreten(w, k);
   }
 }
@@ -1070,8 +1083,8 @@ export function kriegTag(w: World, rng: Rng): void {
       case "spannung": {
         if (k.eskalation >= KRIEG.drohkulisseAb) {
           phaseSetzen(w, k, "drohkulisse");
-          belastungEreignis(w, VERFASSUNG.eskalation, `Drohkulisse mit ${land(k.land).name}`);
-          addLog(w, "ereignis", `Die Lage mit ${land(k.land).name} spitzt sich zur Drohkulisse zu.`, "Jetzt zählt jede Handlung: Mobilisierung, Rahmung, Vermittlung — oder der teure Ausstieg.");
+          belastungEreignis(w, VERFASSUNG.eskalation, t("krieg.k.droh.belastung", { land: land(k.land).name }));
+          addLog(w, "ereignis", t("krieg.k.droh.log", { land: land(k.land).name }), t("krieg.k.droh.warum"));
           // Auto-Stopp Klasse A: Die Eskalation verlangt eine Entscheidung
           oeffne(w, "krieg_drohkulisse", rng, { daten: { land: k.land, vorgang: k.id } });
         } else if (k.eskalation <= KRIEG.spannungAus && (weltZustand(w)[k.land]?.konflikt ?? 100) < 45) {
@@ -1081,12 +1094,12 @@ export function kriegTag(w: World, rng: Rng): void {
       }
       case "drohkulisse": {
         if (k.eskalation >= KRIEG.angriffAb && !k.beschluss) {
-          addLog(w, "ereignis", `${land(k.land).name} schlägt zu.`, "Die Drohkulisse kippt ohne eigenen Beschluss in den Krieg; die Selbstverteidigungs-Rahmung liegt auf der Hand.");
+          addLog(w, "ereignis", t("krieg.k.droh.angriff", { land: land(k.land).name }), t("krieg.k.droh.angriff.warum"));
           if (!k.rahmung) k.rahmung = "verteidigung";
           kriegsbeginn(w, k, "angriff");
         } else if (k.eskalation <= KRIEG.drohkulisseAus) {
           phaseSetzen(w, k, "spannung");
-          addLog(w, "ereignis", `Die Drohkulisse mit ${land(k.land).name} löst sich auf.`, "Die Spannung bleibt; der Vorgang ist noch nicht vorbei.");
+          addLog(w, "ereignis", t("krieg.k.droh.aus", { land: land(k.land).name }), t("krieg.k.droh.aus.warum"));
         }
         break;
       }
@@ -1108,7 +1121,7 @@ export function kriegTag(w: World, rng: Rng): void {
     // Demobilisierung: Ende des Auslaufs
     if (k.demobBis !== undefined && w.day >= k.demobBis) {
       delete k.demobBis;
-      addLog(w, "ereignis", "Die Demobilisierung ist abgeschlossen.", "Die Reserven sind entlassen; die 90-Tage-Rechnung ist bezahlt. Eine erneute Mobilisierung ist wieder möglich.");
+      addLog(w, "ereignis", t("krieg.k.demob.fertig"), t("krieg.k.demob.fertig.warum"));
     }
   }
 }
@@ -1123,7 +1136,7 @@ export function kriegMonat(w: World, rng: Rng): void {
   for (const k of kriege(w)) {
     if (k.demobBis !== undefined && w.day < k.demobBis) {
       kosten(w, KRIEG.demobKostenMonat);
-      addLog(w, "ereignis", `Demobilisierungs-Rechnung: ${KRIEG.demobKostenMonat} % des BIP.`, `Reserven nach Hause bringen kostet wie das Hochfahren; noch bis ${formatDateDe(addDays(w.date, k.demobBis - w.day))}.`);
+      addLog(w, "ereignis", t("krieg.k.demob.rechnung", { bip: KRIEG.demobKostenMonat }), t("krieg.k.demob.rechnung.warum", { datum: formatDateDe(addDays(w.date, k.demobBis - w.day)) }));
     }
   }
   // Neue Spannungen entstehen aus der Konflikt-Dimension (Auslöser wie Grenzzwischenfälle treiben sie dorthin)
@@ -1151,11 +1164,8 @@ export function kriegMonat(w: World, rng: Rng): void {
       verluste: 0,
     };
     kriege(w).push(k);
-    hinweis(w, `krieg-spannung-${k.id}`, `Spannung mit ${l.name}`, [
-      `Der Konflikt mit ${l.name} hat eine Schwelle überschritten (${Math.round(z[l.id]!.konflikt)} von 100): Aus Zwischenfällen wird ein Vorgang, der eigene Entscheidungen verlangt.`,
-      "Die Eskalationsphase ist die Hauptspielfläche: Bereitschaft, Signale, Vermittlung — oder die Deklaration eines Kriegsziels, das die Preise aller Folgehandlungen festlegt.",
-    ]);
-    addLog(w, "ereignis", `Spannung mit ${l.name}: Der Konflikt wird zum Vorgang.`, "Das Dossier steht in der Welt-Ansicht beim Land; jede Handlung hat dort ihren Preis.");
+    hinweis(w, `krieg-spannung-${k.id}`, t("krieg.k.sp.titel", { land: l.name }), [t("krieg.k.sp.text1", { land: l.name, konflikt: Math.round(z[l.id]!.konflikt) }), t("krieg.k.sp.text2")]);
+    addLog(w, "ereignis", t("krieg.k.sp.log", { land: l.name }), t("krieg.k.sp.warum"));
     void rng;
   }
 }

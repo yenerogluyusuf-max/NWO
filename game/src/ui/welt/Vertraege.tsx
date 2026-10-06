@@ -33,22 +33,22 @@ function VertragKarte({ world, v, refresh }: { world: World; v: Vertrag; refresh
       <p className="we-vertrag-klauseln">
         {v.gibt.length > 0 && (
           <span>
-            <em>Wir bieten:</em> {v.gibt.map((id) => klauselSicht(world, v.land, id)?.label ?? id).join("; ")}.{" "}
+            <em>{t("ui2.ui.welt.Vertraege.365a479")}</em> {v.gibt.map((id) => klauselSicht(world, v.land, id)?.label ?? id).join("; ")}.{" "}
           </span>
         )}
         {v.will.length > 0 && (
           <span>
-            <em>Wir erhalten:</em> {v.will.map((id) => klauselSicht(world, v.land, id)?.label ?? id).join("; ")}.
+            <em>{t("ui2.ui.welt.Vertraege.ba3ee69")}</em> {v.will.map((id) => klauselSicht(world, v.land, id)?.label ?? id).join("; ")}.
           </span>
         )}
       </p>
-      <div className="we-fortschritt" aria-label={`${Math.round(fortschritt * 100)} Prozent der Laufzeit`}>
+      <div className="we-fortschritt" aria-label={t("ui2.ui.welt.Vertraege.b2a85c3", { p0: Math.round(fortschritt * 100) })}>
         <i style={{ width: `${Math.round((laeuft ? fortschritt : v.status === "ausgelaufen" ? 1 : fortschritt) * 100)}%` }} />
       </div>
       <p className="we-vertrag-daten">
-        {datum(world, v.seit)} bis {datum(world, v.ablauf)} · {v.jahre} Jahre
-        {laeuft && <> · nächste Prüfung {datum(world, v.letztePruefung + TAGE_JAHR)}</>}
-        {v.verstoesse > 0 && laeuft && <b className="we-schlecht"> · {v.verstoesse} Verstoß</b>}
+        {t("ui2.ui.welt.Vertraege.7273be5", { p0: datum(world, v.seit), p1: datum(world, v.ablauf), p2: v.jahre })}
+        {laeuft && <> {t("ui2.ui.welt.Vertraege.6bcee2e", { p0: datum(world, v.letztePruefung + TAGE_JAHR) })}</>}
+        {v.verstoesse > 0 && laeuft && <b className="we-schlecht"> {t("ui2.ui.welt.Vertraege.9d1b9b4", { p0: v.verstoesse })}</b>}
       </p>
       {laeuft && pflichten.length > 0 && (
         <ul className="we-pflichten" aria-label={t("ui.welt.Vertraege.a10a0ca")}>
@@ -70,7 +70,7 @@ function VertragKarte({ world, v, refresh }: { world: World; v: Vertrag; refresh
           ) : (
             <>
               <span className={frueh ? "we-schlecht" : ""}>
-                {frueh ? `Vor dem ${datum(world, fruehesterAusstieg(v))} gilt der Ausstieg als Bruch: Vertrauen und Ansehen sinken, das Land verhandelt später härter.` : "Ordentliche Kündigung: ein kleiner Verlust an Vertrauen, die Dauerwirkungen enden."}
+                {frueh ? t("ui2.ui.welt.Vertraege.2845193", { p0: datum(world, fruehesterAusstieg(v)) }) : t("ui2.ui.welt.Vertraege.669a6fa")}
               </span>
               <button
                 type="button"
@@ -100,13 +100,13 @@ export function Vertraege({ world, landId, refresh }: { world: World; landId: st
   const laufende = alle.filter((v) => v.status === "laeuft");
   const beendet = alle.filter((v) => v.status !== "laeuft");
   if (alle.length === 0) {
-    return <p className="we-leer">Mit {l.dat} gibt es noch keinen Vertrag. Am Verhandlungstisch stellen Sie einen zusammen.</p>;
+    return <p className="we-leer">{t("ui2.ui.welt.Vertraege.89d47b9", { p0: l.dat })}</p>;
   }
   return (
     <div className="we-vertraege">
       {laufende.length > 0 && (
         <>
-          <h4>Laufend</h4>
+          <h4>{t("ui2.ui.welt.Vertraege.430694f")}</h4>
           <ul>
             {laufende.map((v) => (
               <VertragKarte key={v.id} world={world} v={v} refresh={refresh} />
@@ -116,7 +116,7 @@ export function Vertraege({ world, landId, refresh }: { world: World; landId: st
       )}
       {beendet.length > 0 && (
         <>
-          <h4>Beendet</h4>
+          <h4>{t("ui2.ui.welt.Vertraege.f7c8259")}</h4>
           <ul>
             {beendet.map((v) => (
               <VertragKarte key={v.id} world={world} v={v} refresh={refresh} />

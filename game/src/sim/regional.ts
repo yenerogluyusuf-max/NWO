@@ -4,6 +4,7 @@
 
 import raw from "../data/provinzdaten.json";
 import type { RegionalStart } from "./netz";
+import { datenTabelle } from "../i18n/daten";
 
 export interface ProvinceData {
   plaka: number;
@@ -30,6 +31,8 @@ export const REGION_DE: Record<string, string> = {
   "Doğu Anadolu": "Ostanatolien (Doğu Anadolu)",
   "Güneydoğu Anadolu": "Südostanatolien (Güneydoğu Anadolu)",
 };
+
+datenTabelle("region", REGION_DE);
 
 export const PROVINZEN: ProvinceData[] = (raw as { provinzen: ProvinceData[] }).provinzen.sort((a, b) => a.plaka - b.plaka);
 

@@ -1,6 +1,7 @@
 // „Was danach kommt“: die Folgekette einer Entscheidung in Wörtern, mit Richtung, Verzögerung und Begründung.
 
 import type { Glied } from "../../sim/folgen";
+import { t } from "../../i18n";
 import "./wirtschaft.css";
 
 function Pfeil({ g }: { g: Glied }) {
@@ -25,8 +26,8 @@ export function Folgen({ glieder, titel, leer }: { glieder: Glied[]; titel?: str
               <Pfeil g={g} />
               <span className="wi-folge-text">
                 {g.text}
-                {g.nach > 0 && <em className="wi-nach"> nach etwa {g.nach} {g.nach === 1 ? "Monat" : "Monaten"}</em>}
-                {g.nach === 0 && !g.groesse && <em className="wi-nach"> binnen Tagen</em>}
+                {g.nach > 0 && <em className="wi-nach"> {t("ui2.ui.wirtschaft.Folgen.300f156", { p0: g.nach })} {g.nach === 1 ? t("ui2.ui.wirtschaft.Folgen.da13625") : t("ui2.ui.wirtschaft.Folgen.3e846ba")}</em>}
+                {g.nach === 0 && !g.groesse && <em className="wi-nach"> {t("ui2.ui.wirtschaft.Folgen.25e3f3e")}</em>}
               </span>
               {g.warum && <small>{g.warum}</small>}
             </li>

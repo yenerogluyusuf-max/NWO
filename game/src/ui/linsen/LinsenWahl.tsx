@@ -8,6 +8,7 @@ import { KARTENEBENEN, ebeneName, type Kartenebene, type Legende } from "../eben
 import { LINSEN_TASTEN, linseFuerTaste, linsenGruppen, tasteDarfWaehlen } from "./linsen";
 import type { World } from "../../sim/types";
 import { t } from "../../i18n";
+import { t as tx } from "../../i18n";
 import "./linsen.css";
 
 export interface LinsenWahlProps {
@@ -138,7 +139,7 @@ export function LinsenWahl({ world, ebene, netName, problemId, legende, onEbene,
                         <b>{l.name}</b>
                         <em>{l.kurz}</em>
                       </span>
-                      {l.taste && <kbd aria-label={`Taste ${l.taste}`}>{l.taste}</kbd>}
+                      {l.taste && <kbd aria-label={tx("ui2.ui.linsen.LinsenWahl.3e19eba", { p0: l.taste })}>{l.taste}</kbd>}
                       <i className="linsen-streifen" style={{ background: l.streifen }} aria-hidden />
                     </button>
                   ))}

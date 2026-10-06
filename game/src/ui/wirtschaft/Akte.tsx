@@ -101,7 +101,7 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onG
   return (
     <div className="wi-akte">
       <Akte
-        bereich="wirtschaft"
+        bereich={"wirtschaft"}
         zweck={t("akte.wirtschaft.zweck")}
         kernwerte={kernwerteWirtschaft(world)}
         aktiv={reiter}

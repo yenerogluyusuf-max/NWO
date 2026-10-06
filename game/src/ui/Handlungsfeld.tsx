@@ -5,7 +5,7 @@
 import { NET } from "../sim/modell";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { handlungsHebel, MAKRO_EINGRIFFE, type HandlungsHebel } from "../sim/wege";
-import { tunWort } from "../data/skalen";
+import { tunSatz } from "../data/skalen";
 import type { NodeSpec } from "../data/politiknetz";
 import type { World } from "../sim/types";
 
@@ -41,15 +41,15 @@ export function Handlungsfeld({
     <li key={`${h.massnahme}-${h.folge}`} className="hh-zeile">
       <div className="hh-text">
         <strong>
-          {h.name} {tunWort(h.massnahme, h.richtung)}
+          {tunSatz(h.massnahme, h.richtung, h.name)}
         </strong>
         <span>
-          wirkt {h.wirkung} · jetzt Stufe {Math.round(h.jetzt)}
+          {t("ui2.ui.Handlungsfeld.928f8c4", { p0: h.wirkung, p1: Math.round(h.jetzt) })}
           {zusatz ? ` · ${zusatz}` : ""}
         </span>
       </div>
       <button className="aktion-knopf" onClick={() => onStelle(h.massnahme, h.richtung, ort)} title={t("ui.Handlungsfeld.ba54e97")}>
-        Einstellen
+        {t("ui2.ui.Handlungsfeld.24b298d")}
       </button>
     </li>
   );
@@ -62,10 +62,10 @@ export function Handlungsfeld({
       <>
         <p className="subtitle">
           {orte.length > 0
-            ? `${node.name} ist in ${orte.length} ${orte.length === 1 ? "Provinz" : "Provinzen"} akut. Diese Vorhaben helfen am meisten; sie werden dort angesetzt, wo es brennt.`
-            : `${node.name} ist zurzeit nirgends akut. Diese Vorhaben halten es niedrig.`}
+            ? t("ui2.ui.Handlungsfeld.6550592", { p0: node.name, p1: orte.length, p2: orte.length === 1 ? "Provinz" : "Provinzen" })
+            : t("ui2.ui.Handlungsfeld.8ed19cd", { p0: node.name })}
         </p>
-        <b className="hh-kopf">Abhelfen</b>
+        <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.be55758")}</b>
         <ul className="hh-liste">{hebel.map((h) => zeile(h, orte.length > 0 && orte.length <= 50 ? orte : null, orte.length ? `${orte.length} ${orte.length === 1 ? "Provinz" : "Provinzen"}` : undefined))}</ul>
         {hebel.length === 0 && <p className="subtitle">{t("ui.Handlungsfeld.14f0951")}</p>}
       </>
@@ -75,7 +75,7 @@ export function Handlungsfeld({
     inhalt = (
       <>
         <p className="subtitle">{t("ui.Handlungsfeld.7de9cd7")}</p>
-        <b className="hh-kopf">Was sie wollen</b>
+        <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.3f10267")}</b>
         <ul className="hh-liste">{hebel.map((h) => zeile(h, null))}</ul>
       </>
     );
@@ -85,10 +85,10 @@ export function Handlungsfeld({
     const eingriffe = MAKRO_EINGRIFFE[node.id] ?? [];
     inhalt = (
       <>
-        <p className="subtitle">{node.input ? "Diese Zahl rechnet das Wirtschaftsmodell. Sie stellen sie nicht ein, aber Sie können an ihren Ursachen ansetzen." : "Diese Größe stellen Sie nicht selbst ein, aber Sie können an ihren Ursachen ansetzen."}</p>
+        <p className="subtitle">{node.input ? t("ui2.ui.Handlungsfeld.104f44b") : t("ui2.ui.Handlungsfeld.ab52d02")}</p>
         {eingriffe.length > 0 && (
           <>
-            <b className="hh-kopf">Direkt eingreifen</b>
+            <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.8b03b58")}</b>
             <ul className="hh-liste">
               {eingriffe.map((e) => (
                 <li key={e.option} className="hh-zeile">
@@ -97,7 +97,7 @@ export function Handlungsfeld({
                     <span>{e.wirkt}</span>
                   </div>
                   <button className="aktion-knopf" onClick={() => onEingriff?.(e.option)} title={t("ui.Handlungsfeld.dc1774b")}>
-                    Vorbereiten
+                    {t("ui2.ui.Handlungsfeld.aa11755")}
                   </button>
                 </li>
               ))}
@@ -106,13 +106,13 @@ export function Handlungsfeld({
         )}
         {senken.length > 0 && (
           <>
-            <b className="hh-kopf">Um „{node.name}“ zu senken</b>
+            <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.4f20a36", { p0: node.name })}</b>
             <ul className="hh-liste">{senken.map((h) => zeile(h, null))}</ul>
           </>
         )}
         {heben.length > 0 && (
           <>
-            <b className="hh-kopf">Um „{node.name}“ zu erhöhen</b>
+            <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.d25c677", { p0: node.name })}</b>
             <ul className="hh-liste">{heben.map((h) => zeile(h, null))}</ul>
           </>
         )}

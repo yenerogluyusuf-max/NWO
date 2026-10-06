@@ -46,9 +46,9 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
     <div className="pe" ref={wurzel}>
       <div className="pe-kopf">
         <div className={`pe-chip${termine.belegt >= termine.max ? " warn" : ""}`}>
-          <b>Termine (30 Tage)</b>
+          <b>{t("ui2.ui.Personen.b98ade3")}</b>
           <span>
-            {termine.belegt} von {termine.max}
+            {t("ui2.ui.Personen.34ba32f", { p0: termine.belegt, p1: termine.max })}
           </span>
           <em>{t("ui.Personen.eda230f")}</em>
         </div>
@@ -60,30 +60,30 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
         <div className="pe-chip">
           <b>{t("ui.Personen.3d15f74")}</b>
           <span>{auftraege}</span>
-          <em>laufen im Kabinett</em>
+          <em>{t("ui2.ui.Personen.813a51c")}</em>
         </div>
         <div className={`pe-chip${gefahr ? " warn" : ""}`}>
           <b>{t("ui.Personen.434c793")}</b>
           <span>{gefahr}</span>
-          <em>{gefahr ? "Loyalität unter 25" : "niemand"}</em>
+          <em>{gefahr ? t("ui2.ui.Personen.e287f48") : "niemand"}</em>
         </div>
       </div>
 
       <div className="pe-tabs" role="tablist" aria-label={t("ui.Personen.c98699e")}>
         <button role="tab" aria-selected={tab === "kabinett"} className={tab === "kabinett" ? "on" : ""} onClick={() => setTab("kabinett")}>
           <Icon name="kuppel" size={16} />
-          Ministerrat
+          {t("ui2.ui.Personen.7a193e6")}
         </button>
         <button role="tab" aria-selected={tab === "umfeld"} className={tab === "umfeld" ? "on" : ""} onClick={() => setTab("umfeld")}>
           {t("ui.Personen.51eda9e")}
         </button>
         <button role="tab" aria-selected={tab === "zusagen"} className={tab === "zusagen" ? "on" : ""} onClick={() => setTab("zusagen")}>
-          Zusagen{offen.length > 0 && <span className="pe-zahl">{offen.length}</span>}
+          {t("ui2.ui.Personen.526d7bc")}{offen.length > 0 && <span className="pe-zahl">{offen.length}</span>}
         </button>
       </div>
       {dringend > 0 && tab !== "zusagen" && (
         <p className="pe-rueck nein" role="status">
-          {dringend === 1 ? "Eine Zusage ist" : `${dringend} Zusagen sind`} bald fällig oder überfällig.{" "}
+          {dringend === 1 ? t("ui2.ui.Personen.224907b") : t("ui2.ui.Personen.b9ca9f8", { p0: dringend })} {t("ui2.ui.Personen.8d35745")}{" "}
           <button className="link" onClick={() => setTab("zusagen")}>
             {t("ui.Personen.030fbc4")}
           </button>
@@ -95,7 +95,7 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
       )}
       {tab === "umfeld" && (
         <section className="paper">
-          <h3>Ihr Umfeld</h3>
+          <h3>{t("ui2.ui.Personen.e098994")}</h3>
           <p className="subtitle">{t("ui.Personen.9d370c2")}</p>
           <Umfeld
             world={world}

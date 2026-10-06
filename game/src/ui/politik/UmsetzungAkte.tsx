@@ -67,26 +67,26 @@ export function UmsetzungAkte({
     <div className="pd-umsetzung">
       {spiel?.verfassungsvorgang?.laufend && (
         <section className="pd-hinweiskarte">
-          <p className="pd-ueber">Verfassungsvorgang</p>
-          <p>{verfassungStand(world).zeile} Die Werkstatt und alle Schritte stehen im Parlament-Fenster, Reiter „Verfassung“.</p>
-          <p className="pd-leise">Paket: {geaenderteArtikel(spiel.verfassungsvorgang.laufend.paket).map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ")}</p>
+          <p className="pd-ueber">{t("ui2.ui.politik.UmsetzungAkte.3e0a5c5")}</p>
+          <p>{t("ui2.ui.politik.UmsetzungAkte.0f41c01", { p0: verfassungStand(world).zeile })}</p>
+          <p className="pd-leise">{t("ui2.ui.politik.UmsetzungAkte.5418888", { p0: geaenderteArtikel(spiel.verfassungsvorgang.laufend.paket).map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ") })}</p>
         </section>
       )}
 
       <header className="pd-seitenkopf">
         <div>
-          <p className="pd-ueber">Umsetzung</p>
-          <h3>Von Beschluss zu Wirkung</h3>
+          <p className="pd-ueber">{t("ui2.ui.politik.UmsetzungAkte.d9c0cc7")}</p>
+          <h3>{t("ui2.ui.politik.UmsetzungAkte.7bb6605")}</h3>
           <p className="pd-lead">{t("ui.politik.UmsetzungAkte.2ea8b02")}</p>
         </div>
-        <ul className="pd-zaehler" aria-label="Die Rechnung">
+        <ul className="pd-zaehler" aria-label={t("ui2.ui.politik.UmsetzungAkte.426eea4")}>
           <li>
             <b>
               {beschlossen >= 0 ? "" : "+"}
               {nf(Math.abs(beschlossen))}
               <small> % BIP</small>
             </b>
-            <span>{wirksam === 0 ? "laufende Kosten im Jahr, noch nicht wirksam" : `laufende Kosten im Jahr, davon ${nf(Math.abs(wirksam))} % wirksam`}</span>
+            <span>{wirksam === 0 ? t("ui2.ui.politik.UmsetzungAkte.1e68ece") : t("ui2.ui.politik.UmsetzungAkte.b1c11a3", { p0: nf(Math.abs(wirksam)) })}</span>
           </li>
           <li>
             <b>{beschluesse.length}</b>
@@ -94,13 +94,13 @@ export function UmsetzungAkte({
           </li>
           <li className={offen.length > 0 ? "hell" : ""}>
             <b>{offen.length}</b>
-            <span>{offen.length === 1 ? "Umsetzung läuft" : "Umsetzungen laufen"}</span>
+            <span>{offen.length === 1 ? t("ui2.ui.politik.UmsetzungAkte.21675b8") : t("ui2.ui.politik.UmsetzungAkte.745b21d")}</span>
           </li>
         </ul>
       </header>
 
       <section className="pd-block">
-        <h4>In Umsetzung</h4>
+        <h4>{t("ui2.ui.politik.UmsetzungAkte.c348a5c")}</h4>
         {offen.length === 0 ? (
           <p className="pd-leise">{t("ui.politik.UmsetzungAkte.a6d211a")}</p>
         ) : (
@@ -120,24 +120,24 @@ export function UmsetzungAkte({
                     }}
                     title={t("ui.politik.UmsetzungAkte.9a5129a")}
                   >
-                    stoppen
+                    {t("ui2.ui.politik.UmsetzungAkte.d08e4cb")}
                   </button>
                 </div>
                 <div className="pd-um-zahlen">
                   <span>
-                    heute <b>{Math.round(o.now)}</b>
+                    {t("ui2.ui.politik.UmsetzungAkte.cedb067")} <b>{Math.round(o.now)}</b>
                   </span>
                   <span aria-hidden>→</span>
                   <span>
-                    Ziel <b>{Math.round(o.target)}</b>
+                    {t("ui2.ui.politik.UmsetzungAkte.44d1262")} <b>{Math.round(o.target)}</b>
                   </span>
                   <em>
-                    noch etwa {o.months} Monat{o.months === 1 ? "" : "e"}
+                    {t("ui2.ui.politik.UmsetzungAkte.2ff812a", { p0: o.months })}{o.months === 1 ? "" : "e"}
                   </em>
                 </div>
                 <span className="pd-skala breit" aria-hidden>
                   <i style={{ width: `${Math.max(0, Math.min(100, o.now))}%` }} />
-                  <b style={{ left: `${Math.max(0, Math.min(100, o.target))}%` }} title="Ziel" />
+                  <b style={{ left: `${Math.max(0, Math.min(100, o.target))}%` }} title={t("ui2.ui.politik.UmsetzungAkte.44d1262")} />
                 </span>
               </li>
             ))}
@@ -150,8 +150,8 @@ export function UmsetzungAkte({
         {berichte.length === 0 ? (
           <p className="pd-leise">
             {beobachtet > 0
-              ? `Noch kein Bericht fällig. ${beobachtet} ${beobachtet === 1 ? "Beschluss wird" : "Beschlüsse werden"} beobachtet; der erste Bericht erscheint sechs Monate nach dem Beschluss.`
-              : "Sobald Sie ein Gesetz oder einen Erlass durchgebracht haben, wird seine Wirkung hier beobachtet."}
+              ? t("ui2.ui.politik.UmsetzungAkte.b65a475", { p0: beobachtet, p1: beobachtet === 1 ? "Beschluss wird" : "Beschlüsse werden" })
+              : t("ui2.ui.politik.UmsetzungAkte.406517e")}
           </p>
         ) : (
           <ul className="pd-bericht-liste">
@@ -167,7 +167,7 @@ export function UmsetzungAkte({
                   <p className="pd-bericht-text">{text}</p>
                   <footer>
                     <span className="pd-leise">
-                      {b.monate} Monate nach dem Beschluss · {formatDateDe(b.datum)}
+                      {t("ui2.ui.politik.UmsetzungAkte.367b7c9", { p0: b.monate, p1: formatDateDe(b.datum) })}
                     </span>
                     {onBerichtOeffnen && (
                       <button className="pd-btn quiet klein" onClick={() => onBerichtOeffnen(b)}>
@@ -180,7 +180,7 @@ export function UmsetzungAkte({
             })}
           </ul>
         )}
-        {berichte.length > 6 && <p className="pd-legende">Weitere {berichte.length - 6} Berichte stehen im Reiter „Berichte“.</p>}
+        {berichte.length > 6 && <p className="pd-legende">{t("ui2.ui.politik.UmsetzungAkte.fbf11c6", { p0: berichte.length - 6 })}</p>}
       </section>
 
       <section className="pd-block">
@@ -202,7 +202,7 @@ export function UmsetzungAkte({
             </ol>
             {beschluesse.length > 10 && (
               <button className="pd-btn quiet" onClick={() => setAlleBeschluesse(!alleBeschluesse)}>
-                {alleBeschluesse ? "Weniger anzeigen" : `Alle ${beschluesse.length} Beschlüsse anzeigen`}
+                {alleBeschluesse ? t("ui2.ui.politik.UmsetzungAkte.34a01ce") : t("ui2.ui.politik.UmsetzungAkte.b4645e8", { p0: beschluesse.length })}
               </button>
             )}
           </>

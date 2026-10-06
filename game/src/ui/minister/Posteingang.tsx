@@ -51,13 +51,13 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
     <div className="mf">
       <div className="mf-ressorts" role="group" aria-label={t("ui.minister.Posteingang.31ce8a9")}>
         <button className={`mf-ressort${ressort === "alle" ? " on" : ""}`} onClick={() => setRessort("alle")} style={{ paddingLeft: 11 }}>
-          Alle <em className={alle.length ? "" : "null"}>{alle.length}</em>
+          {t("ui2.ui.minister.Posteingang.4c7a986")} <em className={alle.length ? "" : "null"}>{alle.length}</em>
         </button>
         {KABINETT_AMT.map((amt) => {
           const f = amtBesetzt(world, amt);
           const n = alle.filter((v) => v.amt === amt).length;
           return (
-            <button key={amt} className={`mf-ressort${ressort === amt ? " on" : ""}`} onClick={() => setRessort(amt)} title={f ? `${f.rolle} ${f.name}` : "Amt unbesetzt"}>
+            <button key={amt} className={`mf-ressort${ressort === amt ? " on" : ""}`} onClick={() => setRessort(amt)} title={f ? `${f.rolle} ${f.name}` : t("ui2.ui.minister.Posteingang.f30b991")}>
               {f ? <Zeichnung seed={f.name} size={36} geschlecht={f.weiblich ? "f" : "m"} tint={TINT[amt] ?? "#7c5823"} rolle={amt} rahmen="keiner" /> : null}
               {AEMTER[amt].ressort} <em className={n ? "" : "null"}>{n}</em>
             </button>
@@ -73,7 +73,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
       )}
 
       {sichtbar.length === 0 ? (
-        <p className="mf-leer">{ressort === "alle" ? "Nichts liegt vor. Die Minister melden sich, sobald sich die Lage ändert." : `Das ${AEMTER[ressort as Amt].ressort}ressort hat im Moment nichts vorzulegen.`}</p>
+        <p className="mf-leer">{ressort === "alle" ? t("ui2.ui.minister.Posteingang.5be9b5f") : t("ui2.ui.minister.Posteingang.5efa51c", { p0: AEMTER[ressort as Amt].ressort })}</p>
       ) : (
         <ol className="mf-liste">
           {sichtbar.map((v) => (

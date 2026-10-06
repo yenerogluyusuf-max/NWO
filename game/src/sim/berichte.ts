@@ -21,7 +21,7 @@ import { restMonate, umsetzungsStand } from "./umsetzung";
 import { addDays, dayOfMonth } from "./dates";
 import { addLog } from "./log";
 import { GRUPPEN } from "./gruppen";
-import { t, zahl } from "../i18n";
+import { aktuelleLocale, aktuelleSprache, t, zahl } from "../i18n";
 import type { World } from "./types";
 
 /** Monatliche Stichproben seit dem Beschluss; Index 0 ist der Tag des Beschlusses. */
@@ -141,6 +141,10 @@ export interface Bericht {
   mitwirkend?: { massnahme: string; name: string; tag: number }[];
   /** Planwert des Beschlusses: Mehr- oder Minderbelastung des Haushalts in Prozent des BIP je Jahr */
   kosten?: { bipProJahr: number };
+  /** Monate bis zur vollen Wirkung zum Berichtszeitpunkt (für die Übersetzung; fehlt in älteren Berichten) */
+  rest?: number;
+  /** Der Preis kam vor dem Nutzen (für die Übersetzung; fehlt in älteren Berichten) */
+  preisVorNutzen?: true;
 }
 
 const REGEL = { schwelle: 8, berichteNachMonaten: [6, 12, 24] };
@@ -206,18 +210,18 @@ function akutPlakas(world: World, id: string): number[] {
 
 const r1 = (x: number) => Math.round(x * 10) / 10;
 const r2 = (x: number) => Math.round(x * 100) / 100;
-const nf = (x: number) => x.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const nf = (x: number) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 /** Vorzeichenrichtige Veränderung mit einer Nachkommastelle; unter 0,05 ist es „unverändert“, nie „−0,0“. */
 export function veraenderung(d: number): string {
   const r = Math.round(Math.abs(d) * 10) / 10;
-  if (!Number.isFinite(r) || r === 0) return "unverändert";
+  if (!Number.isFinite(r) || r === 0) return t("bericht.unveraendert");
   return `${d > 0 ? "+" : "−"}${nf(r)}`;
 }
 
-const monateWort = (n: number) => `${n} ${n === 1 ? "Monat" : "Monate"}`;
+const monateWort = (n: number) => t("bericht.monate", { n });
 /** „in etwa 42 Monaten“: Dativ nach Präpositionen */
-const monateDativ = (n: number) => `${n} ${n === 1 ? "Monat" : "Monaten"}`;
+const monateDativ = (n: number) => t("bericht.monateDativ", { n });
 
 /** Beschlüsse anderer Maßnahmen im Zeitraum, in dem ihre Wirkung noch läuft (bis ein Jahr vor diesem Beschluss), jeweils der jüngste je Maßnahme. */
 function andereBeschluesse(world: World, b: Beobachtung): Beobachtung[] {
@@ -319,8 +323,8 @@ function regionenFuer(world: World, b: Beobachtung, id: string): BerichtGroesse[
 
 /** Ein Satzglied über eine Größe, grammatisch neutral (Namen wie „Beschäftigte“ oder „Reale Einkommen“ sind Mehrzahl). */
 function satzUeber(g: BerichtGroesse): string {
-  if (g.art === "problem") return `${g.name} in ${g.nachher} statt ${g.vorher} Provinzen akut`;
-  return `${g.name}${g.stimmung ? " (Stimmung)" : ""} ${veraenderung(g.delta)} Punkte, jetzt ${nf(g.nachher)}`;
+  if (g.art === "problem") return t("bericht.satz.problem", { name: g.name, nachher: g.nachher, vorher: g.vorher });
+  return t(g.stimmung ? "bericht.satz.stimmung" : "bericht.satz.groesse", { name: g.name, d: veraenderung(g.delta), jetzt: nf(g.nachher) });
 }
 
 function kurzfassung(phase: NonNullable<Bericht["phase"]>, groessen: BerichtGroesse[], reife: Bericht["reife"], maxLag: number, preisVorNutzen: boolean): string {
@@ -330,20 +334,83 @@ function kurzfassung(phase: NonNullable<Bericht["phase"]>, groessen: BerichtGroe
   const schlecht = mit("nebenwirkung", "gegenlaeufig");
   switch (phase) {
     case "zu_frueh":
-      if (preisVorNutzen && schlecht.length) return `Preis vor Nutzen: ${satzUeber(schlecht[0]!)}; die gewünschte Wirkung steht noch aus.`;
+      if (preisVorNutzen && schlecht.length) return t("bericht.kurz.preisVorNutzen", { satz: satzUeber(schlecht[0]!) });
       if (reife && reife.stand < FAST_FERTIG)
-        return `Umsetzung zu ${Math.round(reife.stand)} Prozent, noch keine Wirkung messbar${reife.restMonate ? `; volle Wirkung in etwa ${monateDativ(reife.restMonate)}` : ""}.`;
-      return reife && reife.stand < 100
-        ? `Fast umgesetzt; die Wirkung setzt erst nach bis zu ${monateDativ(maxLag)} ein, noch ist nichts messbar.`
-        : `Umgesetzt; die Wirkung setzt erst nach bis zu ${monateDativ(maxLag)} ein, noch ist nichts messbar.`;
+        return reife.restMonate ? t("bericht.kurz.umsetzungRest", { stand: Math.round(reife.stand), rest: monateDativ(reife.restMonate) }) : t("bericht.kurz.umsetzung", { stand: Math.round(reife.stand) });
+      return reife && reife.stand < 100 ? t("bericht.kurz.fast", { lag: monateDativ(maxLag) }) : t("bericht.kurz.umgesetzt", { lag: monateDativ(maxLag) });
     case "wirkt":
-      return `Wirkt: ${satzUeber(gut[0]!)}.`;
+      return t("bericht.kurz.wirkt", { satz: satzUeber(gut[0]!) });
     case "gemischt":
-      return `Gemischt: ${satzUeber(gut[0]!)}, aber ${satzUeber(schlecht[0]!)}.`;
+      return t("bericht.kurz.gemischt", { gut: satzUeber(gut[0]!), schlecht: satzUeber(schlecht[0]!) });
     case "gegenlaeufig":
-      return `Keine gewünschte Wirkung: ${satzUeber(schlecht[0]!)}.`;
+      return t("bericht.kurz.gegenlaeufig", { satz: satzUeber(schlecht[0]!) });
     case "schwach":
-      return "Bisher kaum Wirkung: Die erwarteten Größen haben sich nicht bewegt.";
+      return t("bericht.kurz.schwach");
+  }
+}
+
+function zeileGroesse(name: string, vorher: number, jetzt: number, d: number): string {
+  return Math.abs(d) < 0.05 ? t("bericht.zeile.unveraendert", { name, jetzt: nf(jetzt) }) : t("bericht.zeile.groesse", { name, vorher: nf(vorher), jetzt: nf(jetzt), d: veraenderung(d) });
+}
+
+function zeileProblem(name: string, vorher: number, jetzt: number): string {
+  return t("bericht.zeile.problem", { name, vorher, jetzt });
+}
+
+function titelVon(name: string, ort: number[] | null | undefined, von: number, auf: number, monate: number): string {
+  return ort ? t("bericht.titelOrt", { name, n: ort.length, von: Math.round(von), auf: Math.round(auf), monate }) : t("bericht.titel", { name, von: Math.round(von), auf: Math.round(auf), monate });
+}
+
+function hinweisVon(urteil: Bericht["urteil"], rb: number): string {
+  return (rb > 0 ? t("bericht.hinweis.rest", { rest: monateWort(rb) }) + " " : "") + t(`bericht.urteil.${urteil}`) + " " + t("bericht.hinweis.insgesamt");
+}
+
+/** Die Begründung des Urteils, Satz für Satz */
+function begruendungVon(phase: NonNullable<Bericht["phase"]>, groessen: BerichtGroesse[], reife: Bericht["reife"], mitwirkend: NonNullable<Bericht["mitwirkend"]>): string[] {
+  const begruendung: string[] = [];
+  if (reife && reife.stand < FAST_FERTIG)
+    begruendung.push(reife.restMonate ? t("bericht.beg.umsetzungRest", { stand: reife.stand, rest: monateDativ(reife.restMonate) }) : t("bericht.beg.umsetzung", { stand: reife.stand }));
+  const liste = (bew: Bewertung) => groessen.filter((g) => g.bewertung === bew);
+  if (liste("erwartet").length) begruendung.push(t("bericht.beg.erwartet", { liste: liste("erwartet").map(satzUeber).join("; ") }));
+  if (liste("nebenwirkung").length) begruendung.push(t("bericht.beg.preis", { liste: liste("nebenwirkung").map(satzUeber).join("; ") }));
+  if (liste("gegenlaeufig").length) begruendung.push(t("bericht.beg.gegen", { liste: liste("gegenlaeufig").map(satzUeber).join("; ") }));
+  if (liste("fremd").length) begruendung.push(t("bericht.beg.fremd", { liste: liste("fremd").map((g) => `${satzUeber(g)} (${(g.ursachen ?? []).join(", ")})`).join("; ") }));
+  if (liste("unerwartet").length) begruendung.push(t("bericht.beg.unerwartet", { liste: liste("unerwartet").map(satzUeber).join("; ") }));
+  const spaeter = liste("spaeter");
+  if (spaeter.length) begruendung.push(t("bericht.beg.spaeter", { liste: spaeter.map((g) => t("bericht.beg.verzoegerung", { name: g.name, lag: monateWort(g.lag ?? 0) })).join(", ") }));
+  if (phase === "schwach") begruendung.push(t("bericht.beg.schwach"));
+  if (mitwirkend.length) begruendung.push(t("bericht.beg.mitwirkend", { liste: mitwirkend.map((m) => m.name).join(", ") }));
+  return begruendung;
+}
+
+const knotenName = (id: string, sonst: string): string => {
+  const i = NET.index.get(id);
+  return i === undefined ? sonst : NET.nodes[i]!.name;
+};
+
+/**
+ * Berichte liegen mit fertigen Sätzen im Spielstand. Beim Laden in Türkisch oder Englisch werden Titel, Zeilen, Hinweis, Kurzfassung und
+ * Begründung aus den gespeicherten Zahlen neu gesetzt; Namen kommen aus dem (übersetzten) Politiknetz. Deutsch bleibt unverändert.
+ */
+export function lokalisiereBerichte(world: World): void {
+  if (aktuelleSprache() === "de") return;
+  for (const b of world.spiel?.berichte ?? []) {
+    if (b.name === undefined || b.von === undefined || b.auf === undefined || !b.groessen) continue;
+    const alterKurz = b.kurz ?? "";
+    const alterHinweis = b.hinweis;
+    b.name = knotenName(b.massnahme, b.name);
+    for (const g of b.groessen) g.name = knotenName(g.id, g.name);
+    for (const m of b.mitwirkend ?? []) m.name = knotenName(m.massnahme, m.name);
+    b.titel = titelVon(b.name, b.ort, b.von, b.auf, b.monate);
+    b.zeilen = b.groessen.filter((g) => g.art === "groesse" || g.delta !== 0).map((g) => (g.art === "problem" ? zeileProblem(g.name, g.vorher, g.nachher) : zeileGroesse(g.name, g.vorher, g.nachher, g.delta)));
+    const rb = b.rest ?? Number(/(\d+)/.exec(alterHinweis.split(".")[0] ?? "")?.[1] ?? 0);
+    b.hinweis = hinweisVon(b.urteil, /^(Die volle Wirkung|The full effect|Tam etki)/.test(alterHinweis) || b.rest !== undefined ? rb : 0);
+    if (b.phase) {
+      const maxLag = Math.max(0, ...zielKanten(b.massnahme).map((k) => k.lag));
+      const preisVorNutzen = b.preisVorNutzen ?? /^(Preis vor Nutzen|Price before benefit|Fayda öncesi bedel)/.test(alterKurz);
+      b.kurz = kurzfassung(b.phase, b.groessen, b.reife, maxLag, preisVorNutzen);
+      b.begruendung = begruendungVon(b.phase, b.groessen, b.reife, b.mitwirkend ?? []);
+    }
   }
 }
 
@@ -429,7 +496,7 @@ function bericht(world: World, b: Beobachtung, monate: number): Bericht {
       verlauf: reihe.werte,
       ...(regionen ? { regionen } : {}),
     });
-    zeilen.push(Math.abs(d) < 0.05 ? `${n.name}: unverändert bei ${nf(jetzt)}` : `${n.name}: ${nf(vorher)} auf ${nf(jetzt)} (${veraenderung(d)})`);
+    zeilen.push(zeileGroesse(n.name, vorher, jetzt, d));
   }
 
   const probleme: BerichtGroesse[] = [];
@@ -437,7 +504,7 @@ function bericht(world: World, b: Beobachtung, monate: number): Bericht {
     const jetzt = akutPlakas(world, pid);
     if (jetzt.length === vorher && vorher === 0) continue;
     const n = NET.nodes[NET.index.get(pid)!]!;
-    if (jetzt.length !== vorher) zeilen.push(`${n.name}: akut in ${vorher} auf ${jetzt.length} Provinzen`);
+    if (jetzt.length !== vorher) zeilen.push(zeileProblem(n.name, vorher, jetzt.length));
     if (jetzt.length < vorher) passtP++;
     else if (jetzt.length > vorher + 1) gegenP++;
     const reihe = reiheBis(world, b, "problem", pid, jetzt.length);
@@ -486,29 +553,7 @@ function bericht(world: World, b: Beobachtung, monate: number): Bericht {
   }
 
   const rb = rest ?? (neuer ? Math.max(0, (node.months ?? 1) - monate) : 0);
-  const orte = b.ort ? ` (nur in ${b.ort.length} ${b.ort.length === 1 ? "Provinz" : "Provinzen"})` : "";
-
-  // Die Begründung des Urteils, Satz für Satz
-  const begruendung: string[] = [];
-  if (reife && reife.stand < FAST_FERTIG)
-    begruendung.push(
-      `Die Umsetzung steht erst bei ${reife.stand} Prozent${reife.restMonate ? `; die volle Wirkung ist in etwa ${monateDativ(reife.restMonate)} erreicht` : ""}.`,
-    );
-  const liste = (bew: Bewertung) => groessen.filter((g) => g.bewertung === bew);
-  if (liste("erwartet").length) begruendung.push(`Wie beabsichtigt bewegten sich: ${liste("erwartet").map(satzUeber).join("; ")}.`);
-  if (liste("nebenwirkung").length) begruendung.push(`Der Preis ist eingetreten: ${liste("nebenwirkung").map(satzUeber).join("; ")}.`);
-  if (liste("gegenlaeufig").length) begruendung.push(`Entgegen der Erwartung und zum Schaden bewegten sich: ${liste("gegenlaeufig").map(satzUeber).join("; ")}.`);
-  if (liste("fremd").length)
-    begruendung.push(
-      `Wahrscheinlich anderen Beschlüssen zuzuschreiben, nicht dieser Maßnahme: ${liste("fremd").map((g) => `${satzUeber(g)} (${(g.ursachen ?? []).join(", ")})`).join("; ")}.`,
-    );
-  if (liste("unerwartet").length)
-    begruendung.push(`Besser als das Modell erwarten ließ: ${liste("unerwartet").map(satzUeber).join("; ")}. Das ist vermutlich nicht allein Verdienst dieser Maßnahme.`);
-  const spaeter = liste("spaeter");
-  if (spaeter.length)
-    begruendung.push(`Noch nicht fällig: ${spaeter.map((g) => `${g.name} (Verzögerung: ${monateWort(g.lag ?? 0)})`).join(", ")}.`);
-  if (phase === "schwach") begruendung.push("Die Maßnahme ist umgesetzt, aber die erwarteten Größen haben sich nicht bewegt.");
-  if (mitwirkend.length) begruendung.push(`Zeitgleich wirkten auch: ${mitwirkend.map((m) => m.name).join(", ")}. Ihre Folgen sind in den Zahlen enthalten.`);
+  const begruendung = begruendungVon(phase, groessen, reife, mitwirkend);
 
   const kurz = kurzfassung(phase, groessen, reife, maxLag, preisVorNutzen);
   const bewegteGroessen = groessen.filter((g) => g.art === "groesse" && Math.abs(g.delta) >= BEWEGT);
@@ -517,27 +562,17 @@ function bericht(world: World, b: Beobachtung, monate: number): Bericht {
   const anteil = b.ort ? b.ort.reduce((s, p) => s + (world.net.weights[p - 1] ?? 0), 0) : 1;
   const kosten = node.cost ? { bipProJahr: r2((anteil * (b.auf - b.von) * node.cost) / 100) } : undefined;
 
-  const urteilssatz =
-    urteil === "gut"
-      ? "Es wirkt in die gewünschte Richtung."
-      : urteil === "gemischt"
-        ? "Es wirkt, aber es hat seinen Preis: Anderes hat sich verschlechtert."
-        : urteil === "schwach"
-          ? "Bisher ist kaum etwas zu sehen."
-          : "Die Zahlen bewegen sich nicht in die gewünschte Richtung.";
-
   return {
     tag: world.day,
     datum: world.date,
     massnahme: b.id,
-    titel: `${b.name}${orte}: Stufe ${Math.round(b.von)} auf ${Math.round(b.auf)}, ${monate} Monate danach`,
+    titel: titelVon(b.name, b.ort, b.von, b.auf, monate),
     monate,
     urteil,
     zeilen,
-    hinweis:
-      (rb > 0 ? `Die volle Wirkung braucht noch etwa ${monateWort(rb)}. ` : "") +
-      urteilssatz +
-      " Die Zahlen zeigen die Veränderung insgesamt, nicht nur die dieser Maßnahme.",
+    hinweis: hinweisVon(urteil, rb),
+    rest: rb,
+    ...(preisVorNutzen ? { preisVorNutzen } : {}),
     name: b.name,
     von: b.von,
     auf: b.auf,

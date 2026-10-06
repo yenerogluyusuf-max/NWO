@@ -197,7 +197,7 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
           <g>
             <line x1={g.x(mi(startMonat))} x2={g.x(mi(startMonat))} y1={g.rand.t} y2={g.hoehe - g.rand.b} className="wi-start" />
             <text x={g.x(mi(startMonat)) + 4} y={g.rand.t + 9} className="wi-start-text">
-              Amtsantritt
+              {t("ui2.ui.wirtschaft.Diagramm.4fd8673")}
             </text>
           </g>
         )}
@@ -205,7 +205,7 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
           <g>
             <line x1={g.x(g.jetztI)} x2={g.x(g.jetztI)} y1={g.rand.t} y2={g.hoehe - g.rand.b} className="wi-jetzt" />
             <text x={g.x(g.jetztI) + 4} y={g.hoehe - g.rand.b - 5} className="wi-start-text">
-              heute
+              {t("ui2.ui.wirtschaft.Diagramm.cedb067")}
             </text>
           </g>
         )}
@@ -239,17 +239,17 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
           <b>{lang(hover)}</b>
           {tip.p && (
             <span>
-              {tip.p.jetzt ? "Heute" : "Verlauf"}: {nf(tip.p.wert)} {einheit}
+              {tip.p.jetzt ? t("ui2.ui.wirtschaft.Diagramm.1ab3309") : t("ui2.ui.wirtschaft.Diagramm.35bec7d")}: {nf(tip.p.wert)} {einheit}
             </span>
           )}
           {tip.b && (
             <span>
-              Prognose: {nf(tip.b.low)} bis {nf(tip.b.high)} {einheit}
+              {t("ui2.ui.wirtschaft.Diagramm.c096f6d", { p0: nf(tip.b.low), p1: nf(tip.b.high), p2: einheit })}
             </span>
           )}
           {tip.bm && (
             <span className="wi-tip-mit">
-              {band?.mitName ?? "Mit Vorhaben"}: {nf(tip.bm.low)} bis {nf(tip.bm.high)}
+              {band?.mitName ?? t("ui2.ui.wirtschaft.Diagramm.16372ae")}{t("ui2.ui.wirtschaft.Diagramm.7b8edbb", { p0: nf(tip.bm.low), p1: nf(tip.bm.high) })}
             </span>
           )}
           {tip.ms.slice(0, 3).map((k, n) => (
@@ -262,16 +262,16 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
 
       <div className="wi-legende">
         <span>
-          <i className="wi-leg-verlauf" /> Verlauf
+          <i className="wi-leg-verlauf" /> {t("ui2.ui.wirtschaft.Diagramm.35bec7d")}
         </span>
         {band && band.ohne.length > 0 && (
           <span>
-            <i className="wi-leg-band" /> Prognose ohne Änderung
+            <i className="wi-leg-band" /> {t("ui2.ui.wirtschaft.Diagramm.5b0c1d8")}
           </span>
         )}
         {band?.mit && band.mit.length > 0 && (
           <span>
-            <i className="wi-leg-band wi-leg-mit" /> {band.mitName ?? "Mit Ihrem Vorhaben"}
+            <i className="wi-leg-band wi-leg-mit" /> {band.mitName ?? t("ui2.ui.wirtschaft.Diagramm.6513f5a")}
           </span>
         )}
         {rechnet && <span className="wi-rechnet">{t("ui.wirtschaft.Diagramm.b2a60be")}</span>}

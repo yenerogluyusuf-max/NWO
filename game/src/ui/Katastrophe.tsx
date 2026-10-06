@@ -9,6 +9,7 @@ import type { Ziel } from "./schreibtisch/briefing";
 import { Lage } from "./katastrophe/Lage";
 import { Faelle } from "./katastrophe/Faelle";
 import { Chronik, Versprechen } from "./katastrophe/Versprechen";
+import { t } from "../i18n";
 import "./katastrophe.css";
 
 type Reiter = "lage" | "faelle" | "versprechen" | "chronik";
@@ -21,7 +22,7 @@ export function Katastrophe({ world, refresh, onGehe }: { world: World; refresh:
   const [reiterGewaehlt, setReiter] = useState<Reiter | null>(null);
   const [notiz, setNotiz] = useState<string | null>(null);
   const spiel = world.spiel;
-  if (!spiel) return <p>Ohne Spielschleife gibt es keinen Krisenstab.</p>;
+  if (!spiel) return <p>{t("ui2.ui.Katastrophe.616efb9")}</p>;
 
   const faelle = spiel.katastrophen?.faelle ?? [];
   const aktive = faelle.filter((f) => !f.bewaeltigt);
@@ -43,21 +44,21 @@ export function Katastrophe({ world, refresh, onGehe }: { world: World; refresh:
       <header className="kr-kopf">
         <div className="kr-merker">
           <span className={stand < 30 ? "warn" : ""}>
-            Bereitschaft <b>{stand}</b> von 100
+            {t("ui2.ui.Katastrophe.99cafe1")} <b>{stand}</b> {t("ui2.ui.Katastrophe.18df22a")}
           </span>
           <span className={aktive.length ? "warn" : ""}>
-            Laufende Fälle <b>{aktive.length}</b>
+            {t("ui2.ui.Katastrophe.e805c0a")} <b>{aktive.length}</b>
           </span>
           <span>
-            Politisches Kapital <b>{Math.floor(spiel.kapital)}</b>
+            {t("ui2.ui.Katastrophe.ae69ecb")} <b>{Math.floor(spiel.kapital)}</b>
           </span>
           {faelle.length > 0 && (
             <span>
-              Letzter Fall <b>{formatDateDe([...faelle].sort((a, b) => b.tag - a.tag)[0]!.datum)}</b>
+              {t("ui2.ui.Katastrophe.b06d65d")} <b>{formatDateDe([...faelle].sort((a, b) => b.tag - a.tag)[0]!.datum)}</b>
             </span>
           )}
         </div>
-        <div className="kr-tabs" role="tablist" aria-label="Krisenstab: Ansicht">
+        <div className="kr-tabs" role="tablist" aria-label={t("ui2.ui.Katastrophe.7eadd22")}>
           {reiterListe.map((r) => (
             <button key={r.id} type="button" role="tab" aria-selected={reiter === r.id} className={reiter === r.id ? "on" : ""} onClick={() => setReiter(r.id)}>
               {r.name}

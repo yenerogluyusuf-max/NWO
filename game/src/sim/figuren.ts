@@ -9,6 +9,7 @@ import { eigenVon, merke } from "./personen";
 import type { LagerArt, Stil } from "./personen-typen";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
+import { aktuelleSprache, t, tIn } from "../i18n";
 
 const VORNAMEN_F = ["Selin", "Derya", "Zeynep", "Nilay", "Melis", "Pınar", "Gizem", "Ebru", "Sevgi", "Nazlı", "Ilgın", "Damla", "Aylin", "Defne", "Hande"];
 const VORNAMEN_M = ["Kaan", "Barış", "Emre", "Tolga", "Volkan", "Onur", "Serkan", "Levent", "Murat", "Cengiz", "Orhan", "Taner", "Cem", "Burak", "Mert"];
@@ -24,19 +25,19 @@ interface RollenSpec {
 }
 
 const ROLLEN: RollenSpec[] = [
-  { id: "finanzen", amt: "finanzen", rolle: () => "Finanzminister", ziel: "Ein Haushalt ohne Überraschungen und Märkte, die dem Land vertrauen.", start: 62, weiblich: false },
-  { id: "inneres", amt: "inneres", rolle: () => "Innenministerin", ziel: "Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte.", start: 60, weiblich: true },
-  { id: "aussen", amt: "aussen", rolle: () => "Außenminister", ziel: "Verlässliche Partner und ein Land, das mit allen redet.", start: 58, weiblich: false },
-  { id: "zentralbank", amt: "zentralbank", rolle: () => "Gouverneurin der Zentralbank", ziel: "Preisstabilität, auch wenn sie unbeliebt macht.", start: 50, weiblich: true },
-  { id: "stab", amt: "stab", rolle: () => "Chefin des Präsidialamts", ziel: "Dass der Präsident seine Amtszeit übersteht und etwas hinterlässt.", start: 75, weiblich: true },
-  { id: "opposition", amt: "opposition", rolle: () => "Oppositionsführer", ziel: "Die Regierung vorführen und die nächste Wahl gewinnen.", start: 25, weiblich: false },
+  { id: "finanzen", amt: "finanzen", rolle: () => t("figur.rolle.finanzen"), ziel: "figur.ziel.finanzen", start: 62, weiblich: false },
+  { id: "inneres", amt: "inneres", rolle: () => t("figur.rolle.inneres"), ziel: "figur.ziel.inneres", start: 60, weiblich: true },
+  { id: "aussen", amt: "aussen", rolle: () => t("figur.rolle.aussen"), ziel: "figur.ziel.aussen", start: 58, weiblich: false },
+  { id: "zentralbank", amt: "zentralbank", rolle: () => t("figur.rolle.zentralbank"), ziel: "figur.ziel.zentralbank", start: 50, weiblich: true },
+  { id: "stab", amt: "stab", rolle: () => t("figur.rolle.stab"), ziel: "figur.ziel.stab", start: 75, weiblich: true },
+  { id: "opposition", amt: "opposition", rolle: () => t("figur.rolle.opposition"), ziel: "figur.ziel.opposition", start: 25, weiblich: false },
 ];
 
 /** Weitere Ämter, die das Umfeld seit dem Ausbau der Personen tragen: Justiz, Streitkräfte, Wirtschaft. Eigener Zufallsstrom, damit alte Partien gleich bleiben. */
 const ZUSATZ_ROLLEN: RollenSpec[] = [
-  { id: "justiz", amt: "justiz", rolle: () => "Justizministerin", ziel: "Verfahren beschleunigen, ohne dass es nach Einmischung aussieht.", start: 55, weiblich: true },
-  { id: "generalstab", amt: "generalstab", rolle: () => "Chef des Generalstabs", ziel: "Einsatzbereite Streitkräfte und eine Beförderungspraxis, die die Truppe versteht.", start: 52, weiblich: false },
-  { id: "wirtschaft", amt: "wirtschaft", rolle: () => "Wirtschaftsminister", ziel: "Ein Land, in dem sich Investieren lohnt und Gesetze nicht über Nacht wechseln.", start: 60, weiblich: false },
+  { id: "justiz", amt: "justiz", rolle: () => t("figur.rolle.justiz"), ziel: "figur.ziel.justiz", start: 55, weiblich: true },
+  { id: "generalstab", amt: "generalstab", rolle: () => t("figur.rolle.generalstab"), ziel: "figur.ziel.generalstab", start: 52, weiblich: false },
+  { id: "wirtschaft", amt: "wirtschaft", rolle: () => t("figur.rolle.wirtschaft"), ziel: "figur.ziel.wirtschaft", start: 60, weiblich: false },
 ];
 
 function name(rng: Rng, benutzt: Set<string>, weiblich?: boolean): string {
@@ -63,7 +64,7 @@ export function erzeugeFiguren(world: World, rng: Rng): Figur[] {
     weiblich: r.weiblich,
     rolle: r.rolle(world),
     amt: r.amt,
-    ziel: r.ziel,
+    ziel: t(r.ziel),
     loyalitaet: r.start,
     imAmt: true,
   }));
@@ -73,15 +74,16 @@ export function erzeugeFiguren(world: World, rng: Rng): Figur[] {
       id: "partner",
       name: name(rng, benutzt, false),
       weiblich: false,
-      rolle: `Vorsitz der ${partner}`,
+      rolle: t("wahl.ereignis.koalition.vorsitz", { partei: partner }),
       amt: "partner",
-      ziel: "Ministerien, Einfluss und die Zusagen aus dem Wahlkampf.",
+      ziel: t("figur.ziel.partner"),
       loyalitaet: 55,
       imAmt: true,
       partei: partner,
     });
   }
   figuren.push(...zusatzFiguren(world, figuren, new Rng((world.seed ^ 0x51ed) | 0)));
+  for (const f of figuren) lokalisiereFigur(f);
   return figuren;
 }
 
@@ -93,10 +95,44 @@ function zusatzFiguren(world: World, vorhanden: Figur[], rng: Rng): Figur[] {
     weiblich: r.weiblich,
     rolle: r.rolle(world),
     amt: r.amt,
-    ziel: r.ziel,
+    ziel: t(r.ziel),
     loyalitaet: r.start,
     imAmt: true,
   }));
+}
+
+/** Rollen und Ziele, die als fertiger Text im Spielstand liegen, in die aktuelle Sprache bringen (beim Laden und nach dem Anlegen). */
+export function lokalisiereFiguren(world: World): void {
+  if (aktuelleSprache() === "de") return;
+  const sp = world.spiel;
+  if (!sp) return;
+  for (const f of [...sp.figuren, ...(sp.ehemalige ?? [])]) lokalisiereFigur(f);
+}
+
+const VORSITZ = [/^Vorsitz der (.+)$/, /^Leader of the (.+)$/, /^(.+) genel başkanı$/];
+
+/** Eine Figur: Amtsbezeichnung aus dem Amt, Ziel nur, wenn es das bekannte Standardziel ist (in irgendeiner Sprache). */
+export function lokalisiereFigur(f: { amt: string; rolle: string; ziel?: string; partei?: string }): void {
+  if (aktuelleSprache() === "de") return;
+  if (f.amt === "partner") {
+    for (const re of VORSITZ) {
+      const m = re.exec(f.rolle);
+      if (m) {
+        f.rolle = t("wahl.ereignis.koalition.vorsitz", { partei: m[1]! });
+        break;
+      }
+    }
+  } else if (ROLLEN.some((r) => r.amt === f.amt) || ZUSATZ_ROLLEN.some((r) => r.amt === f.amt)) {
+    f.rolle = t(`figur.rolle.${f.amt}`);
+  }
+  if (f.ziel === undefined) return;
+  const key = `figur.ziel.${f.amt}`;
+  for (const s of ["de", "en", "tr"] as const) {
+    if (f.ziel === tIn(s, key)) {
+      f.ziel = t(key);
+      return;
+    }
+  }
 }
 
 /** Ältere Spielstände haben die neuen Ämter noch nicht: sie werden einmal ergänzt. */
@@ -121,7 +157,7 @@ function aendere(world: World, f: Figur | undefined, delta: number, grund?: stri
   const vorher = f.loyalitaet;
   f.loyalitaet = Math.min(100, Math.max(0, f.loyalitaet + delta));
   if (grund && Math.abs(delta) >= 3 && Math.floor(vorher / 25) !== Math.floor(f.loyalitaet / 25)) {
-    addLog(world, "ereignis", `${anrede(f)}: ${f.loyalitaet > vorher ? "die Stimmung bessert sich" : "die Stimmung kippt"}.`, grund);
+    addLog(world, "ereignis", t(f.loyalitaet > vorher ? "figur.log.bessert" : "figur.log.kippt", { wer: anrede(f) }), grund);
   }
 }
 
@@ -137,18 +173,18 @@ export function reagiereFiguren(world: World, theme: string, massnahme: string, 
   const node = NET.nodes[NET.index.get(massnahme) ?? -1];
   const kosten = node?.cost ?? 0;
   // Finanzminister: Ausgaben ärgern ihn, Sparen und Einnahmen freuen ihn
-  if (kosten > 0) aendere(world, figur(world, "finanzen"), -richtung * 1.5, "Der Finanzminister mag keine Ausgaben ohne Deckung.");
-  else if (kosten < 0) aendere(world, figur(world, "finanzen"), richtung * 1.0, "Mehr Einnahmen sind ihm recht.");
+  if (kosten > 0) aendere(world, figur(world, "finanzen"), -richtung * 1.5, t("figur.grund.finanzenAusgaben"));
+  else if (kosten < 0) aendere(world, figur(world, "finanzen"), richtung * 1.0, t("figur.grund.finanzenEinnahmen"));
   // Innenministerin: Sicherheit
-  if (theme === "sicherheit" || massnahme === "m_grenzschutz") aendere(world, figur(world, "inneres"), richtung * 2, "Die Innenministerin liest das als Rückhalt (oder Entzug) für die Sicherheitskräfte.");
+  if (theme === "sicherheit" || massnahme === "m_grenzschutz") aendere(world, figur(world, "inneres"), richtung * 2, t("figur.grund.inneres"));
   // Außenminister: Außenbeziehungen und Integration
-  if (theme === "aussen") aendere(world, figur(world, "aussen"), richtung * 1.5, "Der Außenminister misst das daran, was es den Gesprächen mit den Partnern bringt.");
+  if (theme === "aussen") aendere(world, figur(world, "aussen"), richtung * 1.5, t("figur.grund.aussen"));
   // Justizministerin: Gerichte und Ausnahmerecht
-  if (theme === "recht") aendere(world, figur(world, "justiz"), richtung * (massnahme === "m_notstand" ? -2 : 1.5), "Die Justizministerin misst das daran, ob die Gerichte gestärkt oder beschnitten werden.");
+  if (theme === "recht") aendere(world, figur(world, "justiz"), richtung * (massnahme === "m_notstand" ? -2 : 1.5), t("figur.grund.justiz"));
   // Generalstab: Verteidigung und Truppe
-  if (theme === "militaer") aendere(world, figur(world, "generalstab"), richtung * (massnahme === "m_offiziersauswahl" ? 0.5 : 2), "Der Chef des Generalstabs liest das als Rückhalt (oder Entzug) für die Truppe.");
+  if (theme === "militaer") aendere(world, figur(world, "generalstab"), richtung * (massnahme === "m_offiziersauswahl" ? 0.5 : 2), t("figur.grund.generalstab"));
   // Wirtschaftsminister: Förderung freut, Auflagen und Eingriffe ärgern
-  if (theme === "wirtschaft") aendere(world, figur(world, "wirtschaft"), richtung * (WIRTSCHAFT_EINGRIFF[massnahme] ?? 1.2), "Der Wirtschaftsminister misst das daran, was es Investoren und Betrieben bringt.");
+  if (theme === "wirtschaft") aendere(world, figur(world, "wirtschaft"), richtung * (WIRTSCHAFT_EINGRIFF[massnahme] ?? 1.2), t("figur.grund.wirtschaft"));
   // Opposition: ein Präsident, der viel durchsetzt, ärgert sie
   aendere(world, figur(world, "opposition"), -0.3);
 }
@@ -158,7 +194,7 @@ const WIRTSCHAFT_EINGRIFF: Record<string, number> = { m_mindestlohn: -1, m_preis
 
 /** Öffentliche Kritik an der Zentralbank verärgert die Gouverneurin. */
 export function zentralbankGekraenkt(world: World, delta: number): void {
-  aendere(world, figur(world, "zentralbank"), delta, "Die Gouverneurin nimmt Angriffe auf die Unabhängigkeit der Bank persönlich.");
+  aendere(world, figur(world, "zentralbank"), delta, t("figur.grund.zentralbank"));
 }
 
 /** Wer geht, merkt sich den Streit: Der Ehemalige kann später gegen den Präsidenten aussagen. */
@@ -212,19 +248,19 @@ export function ersetze(world: World, amt: Figur["amt"], rng: Rng): Figur | unde
   const neu = name(rng, benutzt, spec?.weiblich);
   const loyal = Math.round(50 + rng.between(-8, 16));
   const vorher = `${alt.rolle} ${alt.name}`;
-  ehemaligeMerken(world, alt, "im Zuge einer Affäre ausgeschieden", 60);
-  besetzeNeu(world, alt, { name: neu, loyalitaet: loyal, kommissarisch: true, notiz: `Kommissarisch eingesetzt nach dem Ausscheiden von ${vorher}` });
-  if (spec) alt.ziel = spec.ziel;
+  ehemaligeMerken(world, alt, t("figur.affaere"), 60);
+  besetzeNeu(world, alt, { name: neu, loyalitaet: loyal, kommissarisch: true, notiz: t("figur.kommissarisch", { vorher }) });
+  if (spec) alt.ziel = t(spec.ziel);
   return alt;
 }
 
 /** Wie gern die Figur dem Präsidenten noch folgt, in Worten. */
 export function haltung(f: Figur): string {
-  if (f.loyalitaet >= 75) return "loyal";
-  if (f.loyalitaet >= 55) return "verlässlich";
-  if (f.loyalitaet >= 35) return "distanziert";
-  if (f.loyalitaet >= 20) return "verärgert";
-  return "kurz vor dem Bruch";
+  if (f.loyalitaet >= 75) return t("figur.haltung.loyal");
+  if (f.loyalitaet >= 55) return t("figur.haltung.verlaesslich");
+  if (f.loyalitaet >= 35) return t("figur.haltung.distanziert");
+  if (f.loyalitaet >= 20) return t("figur.haltung.veraergert");
+  return t("figur.haltung.bruch");
 }
 
 /** Für Ereignisse und Handlungen des Spielers: die Loyalität einer Figur verschieben. */
@@ -236,7 +272,9 @@ export function loyalitaetAendern(world: World, amt: Figur["amt"], delta: number
 export function partnerFigur(world: World, partei: string, rolle: string, ziel: string, rng: Rng): Figur {
   const benutzt = new Set((world.spiel?.figuren ?? []).map((f) => f.name));
   const weiblich = rng.next() < 0.35;
-  return { id: `partner-${partei}`, name: name(rng, benutzt, weiblich), weiblich, rolle, amt: "partner", ziel, loyalitaet: 55, imAmt: true, partei };
+  const f: Figur = { id: `partner-${partei}`, name: name(rng, benutzt, weiblich), weiblich, rolle, amt: "partner", ziel, loyalitaet: 55, imAmt: true, partei };
+  lokalisiereFigur(f);
+  return f;
 }
 
 /** Ein neuer, noch nicht vergebener Name für Nebenfiguren in Ereignissen (Bürgermeister, Chefredakteure, Vorstände). */
@@ -253,20 +291,20 @@ export function kabinettReaktion(world: World, massnahme: string, richtung: 1 | 
   const out: { wer: string; text: string; mehr: boolean }[] = [];
   const kosten = node.cost ?? 0;
   const f = figur(world, "finanzen");
-  if (f && kosten > 0) out.push({ wer: `${f.rolle} ${f.name}`, text: richtung > 0 ? "verärgert: Ausgaben ohne Deckung" : "erleichtert: weniger Ausgaben", mehr: richtung < 0 });
-  else if (f && kosten < 0) out.push({ wer: `${f.rolle} ${f.name}`, text: richtung > 0 ? "zufrieden: mehr Einnahmen" : "verärgert: weniger Einnahmen", mehr: richtung > 0 });
+  if (f && kosten > 0) out.push({ wer: `${f.rolle} ${f.name}`, text: richtung > 0 ? t("figur.reaktion.ausgabenOhneDeckung") : t("figur.reaktion.wenigerAusgaben"), mehr: richtung < 0 });
+  else if (f && kosten < 0) out.push({ wer: `${f.rolle} ${f.name}`, text: richtung > 0 ? t("figur.reaktion.mehrEinnahmen") : t("figur.reaktion.wenigerEinnahmen"), mehr: richtung > 0 });
   const i = figur(world, "inneres");
-  if (i && (node.theme === "sicherheit" || massnahme === "m_grenzschutz")) out.push({ wer: `${i.rolle} ${i.name}`, text: richtung > 0 ? "sieht Rückhalt für die Sicherheitskräfte" : "sieht Rückhalt entzogen", mehr: richtung > 0 });
+  if (i && (node.theme === "sicherheit" || massnahme === "m_grenzschutz")) out.push({ wer: `${i.rolle} ${i.name}`, text: richtung > 0 ? t("figur.reaktion.sicherheitPlus") : t("figur.reaktion.sicherheitMinus"), mehr: richtung > 0 });
   const j = figur(world, "justiz");
-  if (j && node.theme === "recht") out.push({ wer: `${j.rolle} ${j.name}`, text: massnahme === "m_notstand" ? (richtung > 0 ? "sieht die Gerichte beschnitten" : "sieht die Gerichte gestärkt") : richtung > 0 ? "sieht die Gerichte gestärkt" : "sieht die Gerichte beschnitten", mehr: massnahme === "m_notstand" ? richtung < 0 : richtung > 0 });
+  if (j && node.theme === "recht") out.push({ wer: `${j.rolle} ${j.name}`, text: massnahme === "m_notstand" ? (richtung > 0 ? t("figur.reaktion.gerichteMinus") : t("figur.reaktion.gerichtePlus")) : richtung > 0 ? t("figur.reaktion.gerichtePlus") : t("figur.reaktion.gerichteMinus"), mehr: massnahme === "m_notstand" ? richtung < 0 : richtung > 0 });
   const gs = figur(world, "generalstab");
-  if (gs && node.theme === "militaer") out.push({ wer: `${gs.rolle} ${gs.name}`, text: richtung > 0 ? "sieht Rückhalt für die Truppe" : "sieht die Truppe im Stich gelassen", mehr: richtung > 0 });
+  if (gs && node.theme === "militaer") out.push({ wer: `${gs.rolle} ${gs.name}`, text: richtung > 0 ? t("figur.reaktion.truppePlus") : t("figur.reaktion.truppeMinus"), mehr: richtung > 0 });
   const wi = figur(world, "wirtschaft");
   if (wi && node.theme === "wirtschaft") {
     const f = WIRTSCHAFT_EINGRIFF[massnahme] ?? 1.2;
-    out.push({ wer: `${wi.rolle} ${wi.name}`, text: f * richtung > 0 ? "sieht Rückenwind für die Betriebe" : "sieht die Betriebe belastet", mehr: f * richtung > 0 });
+    out.push({ wer: `${wi.rolle} ${wi.name}`, text: f * richtung > 0 ? t("figur.reaktion.betriebePlus") : t("figur.reaktion.betriebeMinus"), mehr: f * richtung > 0 });
   }
   const a = figur(world, "aussen");
-  if (a && node.theme === "aussen") out.push({ wer: `${a.rolle} ${a.name}`, text: richtung > 0 ? "sieht Fortschritt in den Gesprächen mit den Partnern" : "sieht die Gespräche belastet", mehr: richtung > 0 });
+  if (a && node.theme === "aussen") out.push({ wer: `${a.rolle} ${a.name}`, text: richtung > 0 ? t("figur.reaktion.aussenPlus") : t("figur.reaktion.aussenMinus"), mehr: richtung > 0 });
   return out;
 }

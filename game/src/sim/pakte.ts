@@ -51,6 +51,7 @@ import type {
   PaktKlausel,
   PaktSicht,
 } from "./pakte-typen";
+import { t as tx } from "../i18n";
 
 export type { DrittKrieg, KoalitionenSicht, KoalitionsSicht, PaktDef, PaktKlausel, PaktSicht } from "./pakte-typen";
 
@@ -87,32 +88,32 @@ export function akteurStaerke(w: World, id: string): number {
 const KLAUSELN: Record<string, { klausel: PaktKlausel; text: string; quelle: string }> = {
   nato: {
     klausel: "kollektiv",
-    text: "Art. 5 des Nordatlantikvertrags: Der bewaffnete Angriff auf ein Mitglied gilt als Angriff auf alle; jedes Mitglied hilft in der Art, die es für nötig hält. Die Klausel greift nicht, wenn ein Mitglied selbst angreift.",
+    text: tx("sim2.sim.pakte.21a239f"),
     quelle: "Nordatlantikvertrag, Art. 5",
   },
   mekka: {
     klausel: "kollektiv",
-    text: "Kollektivverteidigungsklausel: Der Angriff auf einen gilt als Angriff auf alle (Pakt vom 7. August 2026).",
+    text: tx("sim2.sim.pakte.5b8b98a"),
     quelle: "Dossier 12; data/welt-institutionen.ts",
   },
   eu: {
     klausel: "beistand",
-    text: "Art. 42 Abs. 7 EUV: Wird ein Mitgliedstaat Opfer eines bewaffneten Angriffs auf seinem Hoheitsgebiet, schulden die übrigen Mitgliedstaaten Hilfe und Unterstützung mit allen in ihrer Macht stehenden Mitteln; besondere Verpflichtungen im Rahmen der NATO bleiben unberührt.",
+    text: tx("sim2.sim.pakte.9090acb"),
     quelle: "Vertrag über die Europäische Union, Art. 42 Abs. 7",
   },
   golf: {
     klausel: "beistand",
-    text: "Gemeinsames Verteidigungsabkommen des Kooperationsrats: Beistand unter den Mitgliedern; die Bindung im Ernstfall ist schwach (Spielparameter-Gewicht).",
+    text: tx("sim2.sim.pakte.770b33d"),
     quelle: "Golf-Kooperationsrat, Gemeinsames Verteidigungsabkommen (2000), öffentlich bekannt; Gewicht ist Spielparameter",
   },
   sco: {
     klausel: "konsultation",
-    text: "Sicherheitsorganisation mit Konsultationspflicht und gemeinsamen Übungen, ohne Beistandsklausel.",
+    text: tx("sim2.sim.pakte.e2fcbf9"),
     quelle: "Dossier B2; Mitgliederliste der SOZ",
   },
   ots: {
     klausel: "konsultation",
-    text: "Zusammenschluss der Turkstaaten ohne Verteidigungsverpflichtung; Absprachen im Konsens.",
+    text: tx("sim2.sim.pakte.9bf5c76"),
     quelle: "Dossiers 10, 16",
   },
 };
@@ -156,12 +157,12 @@ function bilateralePakte(w: World): PaktDef[] {
     if (!v.gibt.includes("beistand") || v.id.includes("mekka")) continue;
     out.push({
       id: `bilateral-${v.land}`,
-      name: `Beistandsklausel mit ${akteurDat(v.land)}`,
+      name: tx("sim2.sim.pakte.253aaef", { p0: akteurDat(v.land) }),
       kurz: `Klausel ${v.land}`,
       klausel: "beistand",
       mitglieder: [TUR, v.land],
       partner: [],
-      text: "Bilaterale Beistandsklausel aus einem laufenden Vertrag; sie bindet nur, solange der Vertrag läuft.",
+      text: tx("sim2.sim.pakte.f6ac897"),
       quelle: "Vertrag am Verhandlungstisch (sim/abkommen.ts)",
       bilateral: true,
     });
@@ -301,17 +302,17 @@ function bewerteFuer(w: World, pakte: PaktDef[], k: KriegVorgang, c: string, sei
   punkte += rauschenVon(w, k, c) + bonus;
   const grund =
     pflicht > 0.55
-      ? `Beistandspflicht aus dem Pakt „${paktName(w, pakt!)}“`
+      ? tx("sim2.sim.pakte.41c66bb", { p0: paktName(w, pakt!) })
       : pflicht > 0
-        ? `Beistandsklausel im Pakt „${paktName(w, pakt!)}“, die nur mit Gewicht greift`
+        ? tx("sim2.sim.pakte.c2253d6", { p0: paktName(w, pakt!) })
         : seite === "gegner"
           ? b >= 50
-            ? "Nähe zum Gegner"
+            ? tx("sim2.sim.pakte.06de800")
             : tr.vertrauen < 40
-              ? "Misstrauen gegenüber Ankara"
+              ? tx("sim2.sim.pakte.c0d52f6")
               : "Eigeninteresse"
           : tr.vertrauen >= 55
-            ? "Vertrauen in Ankara"
+            ? tx("sim2.sim.pakte.cacd02c")
             : "Eigeninteresse";
   return { id: c, seite, punkte, pflicht, ...(pakt ? { pakt } : {}), grund };
 }
@@ -341,8 +342,8 @@ function einsatzVon(punkte: number): number {
 }
 
 function beitrittWirkung(w: World, p: KoalitionsPartner): void {
-  if (p.seite === "gegner") beziehungAendern(w, p.id, { vertrauen: -6, konflikt: 8 }, `Tritt dem Krieg gegen die Türkei bei (${p.grund})`);
-  else beziehungAendern(w, p.id, { vertrauen: 3, sicherheit: 2 }, `Steht der Türkei im Krieg bei (${p.grund})`);
+  if (p.seite === "gegner") beziehungAendern(w, p.id, { vertrauen: -6, konflikt: 8 }, tx("sim2.sim.pakte.65f9f18", { p0: p.grund }));
+  else beziehungAendern(w, p.id, { vertrauen: 3, sicherheit: 2 }, tx("sim2.sim.pakte.e1d2602", { p0: p.grund }));
 }
 
 const koalitionVon = (_w: World, k: KriegVorgang): KriegKoalition | undefined => k.koalition;
@@ -381,14 +382,14 @@ export function koalitionAufbauen(w: World, k: KriegVorgang, aggressor: "tuerkei
       neu.push(partner);
       beitrittWirkung(w, partner);
     } else if (b.pflicht > 0.3 || b.punkte >= KOALITION.zoegernAb) {
-      abwesend.push({ id: b.id, seite: b.seite, pflicht: b.pflicht > 0.3, grund: b.pflicht > 0.3 ? `Verweigert den Beistand trotz Klausel im Pakt „${paktName(w, b.pakt!)}“` : b.grund, punkte: Math.round(b.punkte), zoegert: b.punkte >= KOALITION.zoegernAb });
+      abwesend.push({ id: b.id, seite: b.seite, pflicht: b.pflicht > 0.3, grund: b.pflicht > 0.3 ? tx("sim2.sim.pakte.6eca341", { p0: paktName(w, b.pakt!) }) : b.grund, punkte: Math.round(b.punkte), zoegert: b.punkte >= KOALITION.zoegernAb });
     }
   }
   ko.abwesend = abwesend;
   if (opts.erstmals) {
     // Wer die Pflicht gegenüber der Türkei nicht erfüllt, kostet Vertrauen (einmalig)
     for (const a of abwesend) {
-      if (a.seite === "eigen" && a.pflicht && !a.zoegert) beziehungAendern(w, a.id, { vertrauen: -4, sicherheit: -3 }, "Verweigert der Türkei den Beistand trotz Klausel");
+      if (a.seite === "eigen" && a.pflicht && !a.zoegert) beziehungAendern(w, a.id, { vertrauen: -4, sicherheit: -3 }, tx("sim2.sim.pakte.2257d18"));
     }
   }
   return neu;
@@ -468,18 +469,18 @@ export function koalitionenBeiKriegsbeginn(w: World, k: KriegVorgang, weg: "parl
   const zeilen: string[] = [];
   const eigen = ko.partner.filter((p) => p.seite === "eigen");
   const gegner = ko.partner.filter((p) => p.seite === "gegner");
-  if (aggressor === "gegner") zeilen.push(`${akteurName(k.land)} greift an: Für Pakt-Partner der Türkei ist der Bündnisfall eingetreten.`);
-  else if (ko.spaltung) zeilen.push(`Der Krieg trennt zwei Mitglieder des Pakts „${paktName(w, ko.spaltung)}“: Die Klausel verpflichtet niemanden, die Partner entscheiden nach eigenem Interesse.`);
-  else zeilen.push(`Die Türkei beginnt den Krieg: Der Bündnisfall greift für die Seite von ${akteurName(k.land)}, nicht für die Türkei.`);
-  if (eigen.length) zeilen.push(`An der Seite der Türkei: ${eigen.map((p) => `${akteurName(p.id)} (${p.grund})`).join("; ")}.`);
-  else zeilen.push("An der Seite der Türkei steht niemand; die Streitkräfte kämpfen allein.");
-  if (gegner.length) zeilen.push(`An der Seite von ${akteurName(k.land)}: ${gegner.map((p) => `${akteurName(p.id)} (${p.grund})`).join("; ")}.`);
+  if (aggressor === "gegner") zeilen.push(tx("sim2.sim.pakte.8817a14", { p0: akteurName(k.land) }));
+  else if (ko.spaltung) zeilen.push(tx("sim2.sim.pakte.68adee8", { p0: paktName(w, ko.spaltung) }));
+  else zeilen.push(tx("sim2.sim.pakte.1bed9d1", { p0: akteurName(k.land) }));
+  if (eigen.length) zeilen.push(tx("sim2.sim.pakte.15fdf42", { p0: eigen.map((p) => `${akteurName(p.id)} (${p.grund})`).join("; ") }));
+  else zeilen.push(tx("sim2.sim.pakte.72a604f"));
+  if (gegner.length) zeilen.push(tx("sim2.sim.pakte.f91450c", { p0: akteurName(k.land), p1: gegner.map((p) => `${akteurName(p.id)} (${p.grund})`).join("; ") }));
   const verweigert = ko.abwesend.filter((a) => a.seite === "eigen" && a.pflicht && !a.zoegert);
-  if (verweigert.length) zeilen.push(`Trotz Klausel verweigern den Beistand: ${verweigert.map((a) => akteurName(a.id)).join(", ")}. Das Vertrauen leidet.`);
+  if (verweigert.length) zeilen.push(tx("sim2.sim.pakte.0d33b02", { p0: verweigert.map((a) => akteurName(a.id)).join(", ") }));
   const zoegernde = ko.abwesend.filter((a) => a.zoegert);
-  if (zoegernde.length) zeilen.push(`Noch zögernd: ${zoegernde.slice(0, 5).map((a) => akteurName(a.id)).join(", ")}. Eine Bitte um Beistand kostet Kapital, kann sie aber bewegen.`);
-  w.spiel?.hinweise.push({ id: `krieg-koalition-${k.id}-${w.day}`, titel: `Koalitionen im Krieg mit ${akteurName(k.land)}`, szene: "istanbul", text: zeilen });
-  addLog(w, "ereignis", `Koalitionen im Krieg mit ${akteurName(k.land)}: ${eigen.length} Partner der Türkei, ${gegner.length} des Gegners.`, zeilen[0] ?? "");
+  if (zoegernde.length) zeilen.push(tx("sim2.sim.pakte.ac28270", { p0: zoegernde.slice(0, 5).map((a) => akteurName(a.id)).join(", ") }));
+  w.spiel?.hinweise.push({ id: `krieg-koalition-${k.id}-${w.day}`, titel: tx("sim2.sim.pakte.b584ee0", { p0: akteurName(k.land) }), szene: "istanbul", text: zeilen });
+  addLog(w, "ereignis", tx("sim2.sim.pakte.3dae73e", { p0: akteurName(k.land), p1: eigen.length, p2: gegner.length }), zeilen[0] ?? "");
 }
 
 /** Folgen für den Angreifer im Pakt: Der Bündnisfall greift nicht, das kostet Ansehen und Nähe zu den Pakt-Führern. */
@@ -495,7 +496,7 @@ function paktFolgenAngriff(w: World, k: KriegVorgang): void {
       wirke(w, "beziehungen_eu", -KOALITION.paktBeziehung * 0.7 * faktor);
     }
   }
-  addLog(w, "ereignis", `Der Bündnisfall greift nicht: Wer angreift, wird vom Pakt nicht gedeckt.`, `Ansehen −${(KOALITION.paktAnsehen * faktor).toLocaleString("de-DE", { maximumFractionDigits: 1 })} (Rahmung „${k.rahmung ?? "revision"}“).`);
+  addLog(w, "ereignis", tx("sim2.sim.pakte.69b60a2"), `Ansehen −${(KOALITION.paktAnsehen * faktor).toLocaleString("de-DE", { maximumFractionDigits: 1 })} (Rahmung „${k.rahmung ?? "revision"}“).`);
 }
 
 /** Wöchentlich: Zögernde prüfen, Kampfkraft der Partner abschmelzen, Aussteiger melden. */
@@ -518,11 +519,11 @@ export function koalitionWoche(w: World, k: KriegVorgang): void {
         const l = akteurName(k.land);
         w.spiel?.hinweise.push({
           id: `krieg-koalition-beitritt-${k.id}-${b.id}-${w.day}`,
-          titel: `${akteurName(b.id)} tritt dem Krieg bei`,
+          titel: tx("sim2.sim.pakte.1ce870d", { p0: akteurName(b.id) }),
           szene: "istanbul",
-          text: [`${akteurName(b.id)} stellt sich im Krieg mit ${l} an die Seite ${b.seite === "eigen" ? "der Türkei" : akteurDat(k.land)}: ${b.grund}.`],
+          text: [tx("sim2.sim.pakte.3aca98c", { p0: akteurName(b.id), p1: l, p2: b.seite === "eigen" ? "der Türkei" : akteurDat(k.land), p3: b.grund })],
         });
-        addLog(w, "ereignis", `${akteurName(b.id)} tritt dem Krieg bei (${b.seite === "eigen" ? "an der Seite der Türkei" : `gegen die Türkei, an der Seite ${akteurDat(k.land)}`}).`, b.grund);
+        addLog(w, "ereignis", tx("sim2.sim.pakte.b4356c2", { p0: akteurName(b.id), p1: b.seite === "eigen" ? "an der Seite der Türkei" : `gegen die Türkei, an der Seite ${akteurDat(k.land)}` }), b.grund);
       }
     }
   }
@@ -537,8 +538,8 @@ export function koalitionWoche(w: World, k: KriegVorgang): void {
     const e = eigenVon(w, p.id);
     if (p.rest <= KOALITION.aussteigenUnter || e.stabilitaet < 20) {
       ko.partner = ko.partner.filter((x) => x !== p);
-      ko.abwesend.push({ id: p.id, seite: p.seite, pflicht: false, grund: p.rest <= KOALITION.aussteigenUnter ? "Kampfkraft aufgebraucht, zieht sich zurück" : "Im Inneren am Ende, zieht sich zurück", punkte: 0, zoegert: false });
-      addLog(w, "ereignis", `${akteurName(p.id)} zieht sich aus dem Krieg zurück (${p.seite === "eigen" ? "an der Seite der Türkei" : "an der Seite des Gegners"}).`, p.rest <= KOALITION.aussteigenUnter ? "Die Kampfkraft ist aufgebraucht." : "Die Stabilität im Land bricht weg.");
+      ko.abwesend.push({ id: p.id, seite: p.seite, pflicht: false, grund: p.rest <= KOALITION.aussteigenUnter ? tx("sim2.sim.pakte.17bd3a6") : tx("sim2.sim.pakte.228bb55"), punkte: 0, zoegert: false });
+      addLog(w, "ereignis", tx("sim2.sim.pakte.0be664b", { p0: akteurName(p.id), p1: p.seite === "eigen" ? "an der Seite der Türkei" : "an der Seite des Gegners" }), p.rest <= KOALITION.aussteigenUnter ? tx("sim2.sim.pakte.faddc7f") : tx("sim2.sim.pakte.9f762f1"));
     }
   }
 }
@@ -563,9 +564,9 @@ export function koalitionAufloesen(w: World, k: KriegVorgang, wie: "sieg" | "fri
   for (const p of ko.partner) {
     if (p.seite !== "eigen") continue;
     const d = wie === "sieg" ? { vertrauen: 2 } : wie === "zugestaendnis" ? { vertrauen: -3 } : wie === "niederlage" ? { vertrauen: -2 } : wie === "rueckzug" ? { vertrauen: -1 } : { vertrauen: 1 };
-    beziehungAendern(w, p.id, d, wie === "zugestaendnis" ? "Die Türkei kauft den Frieden auf Kosten ihrer Partner" : "Ende der gemeinsamen Koalition");
+    beziehungAendern(w, p.id, d, wie === "zugestaendnis" ? tx("sim2.sim.pakte.234f280") : tx("sim2.sim.pakte.2d90c75"));
   }
-  addLog(w, "ereignis", `Die Koalitionen im Krieg mit ${akteurName(k.land)} lösen sich auf.`, `${ko.partner.length} Partner beider Seiten gehen auseinander.`);
+  addLog(w, "ereignis", tx("sim2.sim.pakte.5768795", { p0: akteurName(k.land) }), `${ko.partner.length} Partner beider Seiten gehen auseinander.`);
   ko.partner = [];
   ko.abwesend = [];
 }
@@ -648,8 +649,8 @@ interface KriegsPaarDef {
  * (Spielparameter-Entscheidung, hält das Weltmodell vor dem Weltkrieg). Die Schwellen sind Spielparameter.
  */
 export const KRIEGSPAARE: KriegsPaarDef[] = [
-  { a: "RUS", b: "UKR", schwelle: 65, vermittlung: "ukr_rus", angreifer: "a", seitText: "seit dem 24. Februar 2022", quelle: "Dossier Teil IV A2" },
-  { a: "IRN", b: "ISR", schwelle: 65, vermittlung: "isr_irn", beteiligte: [{ id: "USA", seite: "b", grund: "gemeinsamer Krieg gegen den Iran (Dossier 1/13)" }], seitText: "seit dem 28. Februar 2026", quelle: "Dossier Teil IV A1" },
+  { a: "RUS", b: "UKR", schwelle: 65, vermittlung: "ukr_rus", angreifer: "a", seitText: tx("sim2.sim.pakte.b782574"), quelle: "Dossier Teil IV A2" },
+  { a: "IRN", b: "ISR", schwelle: 65, vermittlung: "isr_irn", beteiligte: [{ id: "USA", seite: "b", grund: tx("sim2.sim.pakte.cbf299c") }], seitText: tx("sim2.sim.pakte.12b8613"), quelle: "Dossier Teil IV A1" },
   { a: "ARM", b: "AZE", schwelle: 62, vermittlung: "arm_aze", quelle: "Dossier Teil IV A3" },
   { a: "ISR", b: "SYR", schwelle: 68, quelle: "Dossier Teil IV B4" },
   { a: "IRN", b: "SAU", schwelle: 80, quelle: "Dossier Teil IV B3" },
@@ -868,15 +869,15 @@ function beendet(w: World, m: WeltModell, k: DrittKrieg, def: KriegsPaarDef, s: 
 }
 
 const AUSGANG_TEXT: Record<NonNullable<DrittKrieg["ausgang"]>, string> = {
-  einigung: "Eine Einigung beendet die Kämpfe",
-  erschoepfung: "Die Kämpfe ebben ab, beide Seiten sind erschöpft",
-  abklingen: "Die Lage beruhigt sich und die Kämpfe laufen aus",
+  einigung: tx("sim2.sim.pakte.77c579b"),
+  erschoepfung: tx("sim2.sim.pakte.8584799"),
+  abklingen: tx("sim2.sim.pakte.7d84b5c"),
 };
 
 function endeFolgen(w: World, m: WeltModell, k: DrittKrieg, def: KriegsPaarDef): void {
   if (k.ausgang === "erschoepfung") paarAendern(m, k.a, k.b, { spannung: -DRITTKRIEG.abkuehlen });
   const titel = `Waffenstillstand: ${kriegTitel(k)}`;
-  const fakt = `${AUSGANG_TEXT[k.ausgang!]} zwischen ${akteurDat(k.a)} und ${akteurDat(k.b)} (Intensität zuletzt ${k.intensitaet} von 100).`;
+  const fakt = tx("sim2.sim.pakte.1f5dab8", { p0: AUSGANG_TEXT[k.ausgang!], p1: akteurDat(k.a), p2: akteurDat(k.b), p3: k.intensitaet });
   weltNotiz(w, m, { art: "waffenstillstand", id: k.a, gegen: k.b, titel, fakt, wertung: 0.2, gewicht: istTuerkeinah(k) ? 0.85 : 0.45 });
   addLog(w, "ereignis", titel, fakt);
   // Ein Ende der Ausgangslage entlastet die Märkte einmalig (nur was über den Startwert hinausgeht, zählt sonst laufend)
@@ -889,7 +890,7 @@ const istTuerkeinah = (k: DrittKrieg): boolean => beteiligte(k).some((id) => NAH
 function kriegsmeldung(w: World, m: WeltModell, k: DrittKrieg): void {
   const wer = k.angreifer ? (k.angreifer === "a" ? k.a : k.b) : undefined;
   const titel = `Krieg: ${kriegTitel(k)}`;
-  const fakt = `Zwischen ${akteurDat(k.a)} und ${akteurDat(k.b)} brechen Kämpfe aus (Spannung ${Math.round(spannungVon(w, k.a, k.b))} von 100).${wer ? ` Der erste Schlag geht nach den Meldungen von ${akteurDat(wer)} aus.` : " Wer begonnen hat, ist unklar."}`;
+  const fakt = tx("sim2.sim.pakte.c574b1f", { p0: akteurDat(k.a), p1: akteurDat(k.b), p2: Math.round(spannungVon(w, k.a, k.b)), p3: wer ? ` Der erste Schlag geht nach den Meldungen von ${akteurDat(wer)} aus.` : " Wer begonnen hat, ist unklar." });
   weltNotiz(w, m, { art: "krieg", id: k.a, gegen: k.b, titel, fakt, wertung: -0.4, gewicht: istTuerkeinah(k) ? 0.95 : 0.6 });
   addLog(w, "ereignis", titel, fakt);
 }
@@ -916,12 +917,12 @@ function paktBeitritte(w: World, m: WeltModell, k: DrittKrieg, rng: () => number
         const pflicht = opfer ? PFLICHT[p.klausel] : 0;
         const punkte = KOALITION.pflicht * pflicht + KOALITION.bindung * Math.max(0, paarVon(w, c, haupt).buendnis) + KOALITION.feind * Math.max(0, -paarVon(w, c, gegen).buendnis) - KOALITION.krieg * e.krieg - (e.stabilitaet < 30 ? 15 : 0);
         if (punkte < DRITTKRIEG.beitrittAb || rng() >= DRITTKRIEG.beitrittChance) continue;
-        const grund = pflicht > 0 ? `Beistandspflicht im Pakt „${p.kurz}“ gegenüber ${akteurDat(haupt)}` : `Nähe zu ${akteurDat(haupt)} im Pakt „${p.kurz}“`;
+        const grund = pflicht > 0 ? tx("sim2.sim.pakte.b4da3c7", { p0: p.kurz, p1: akteurDat(haupt) }) : tx("sim2.sim.pakte.16ca323", { p0: akteurDat(haupt), p1: p.kurz });
         (seite === "a" ? k.seiteA : k.seiteB).push(c);
         k.beitritte.push({ id: c, seite, tag: w.day, grund, pakt: p.id });
         n++;
-        weltNotiz(w, m, { art: "beitritt", id: c, gegen: gegen, titel: `${akteurName(c)} tritt dem Krieg bei`, fakt: `${akteurName(c)} stellt sich im Krieg ${akteurDat(k.a)} und ${akteurDat(k.b)} an die Seite ${akteurDat(haupt)}: ${grund} (Intensität ${k.intensitaet} von 100).`, wertung: -0.3, gewicht: istTuerkeinah(k) ? 0.85 : 0.5 });
-        addLog(w, "ereignis", `${akteurName(c)} tritt dem Krieg bei (${kriegTitel(k)}).`, grund);
+        weltNotiz(w, m, { art: "beitritt", id: c, gegen: gegen, titel: tx("sim2.sim.pakte.1ce870d", { p0: akteurName(c) }), fakt: tx("sim2.sim.pakte.6ebdade", { p0: akteurName(c), p1: akteurDat(k.a), p2: akteurDat(k.b), p3: akteurDat(haupt), p4: grund, p5: k.intensitaet }), wertung: -0.3, gewicht: istTuerkeinah(k) ? 0.85 : 0.5 });
+        addLog(w, "ereignis", tx("sim2.sim.pakte.b4356c2", { p0: akteurName(c), p1: kriegTitel(k) }), grund);
         // Mehr Parteien machen die Einigung schwerer
         const vz = k.vermittlung ? w.spiel?.vermittlung?.[k.vermittlung] : undefined;
         if (vz) {
@@ -1003,16 +1004,16 @@ export function rufVermerken(w: World, krieg: string, pakt: string): void {
 /** Die Antwort auf den Beistandsruf: Material und Diplomatie statt Truppen. */
 export function beistandMaterial(w: World, partner: string, paktId: string): string {
   kosten(w, 0.2);
-  beziehungAendern(w, partner, { vertrauen: 5, sicherheit: 6 }, "Material und diplomatischer Beistand aus Ankara");
+  beziehungAendern(w, partner, { vertrauen: 5, sicherheit: 6 }, tx("sim2.sim.pakte.7b0030c"));
   wirke(w, "ansehen", 0.5);
   const p = allePakte(w).find((x) => x.id === paktId);
-  return `Ankara schickt Material und stellt sich diplomatisch an die Seite ${akteurDat(partner)}${p ? ` (Pakt „${p.kurz}“)` : ""}; Truppen bleiben zu Hause.`;
+  return tx("sim2.sim.pakte.d1f14bd", { p0: akteurDat(partner), p1: p ? ` (Pakt „${p.kurz}“)` : "" });
 }
 
 /** Die Antwort auf den Beistandsruf: Verweigern oder Schweigen kostet Vertrauen, Ansehen und womöglich den Vertrag. */
 export function beistandVerweigern(w: World, partner: string, paktId: string, schweigen: boolean): string {
   const faktor = schweigen ? 1.25 : 1;
-  beziehungAendern(w, partner, { vertrauen: -10 * faktor, sicherheit: -8 * faktor, konflikt: 3 }, "Die Türkei verweigert den Beistand");
+  beziehungAendern(w, partner, { vertrauen: -10 * faktor, sicherheit: -8 * faktor, konflikt: 3 }, tx("sim2.sim.pakte.5d2e038"));
   wirke(w, "ansehen", -1.5 * faktor);
   let vertragText = "";
   if (istHauptakteur(partner)) {
@@ -1022,17 +1023,17 @@ export function beistandVerweigern(w: World, partner: string, paktId: string, sc
       v.verstoesse += 1;
       if (v.verstoesse >= 2) {
         v.status = "gebrochen";
-        v.ende = "Beistand im Ernstfall verweigert";
+        v.ende = tx("sim2.sim.pakte.4fbb79c");
         const z = weltZustand(w)[partner]!;
         z.bruch = (z.bruch ?? 0) + 6;
-        landAendern(w, partner, { vertrauen: -12, konflikt: 6 }, "Der Vertrag ist gebrochen");
+        landAendern(w, partner, { vertrauen: -12, konflikt: 6 }, tx("sim2.sim.pakte.d221dae"));
         wirke(w, "ansehen", -2);
-        vertragText = " Der Vertrag mit der Beistandsklausel gilt nach dem zweiten Verstoß als gebrochen.";
-      } else vertragText = " Das zählt als Verstoß gegen den Vertrag mit der Beistandsklausel; beim zweiten Mal gilt er als gebrochen.";
+        vertragText = tx("sim2.sim.pakte.96207db");
+      } else vertragText = tx("sim2.sim.pakte.be9a82f");
     }
   }
   const p = allePakte(w).find((x) => x.id === paktId);
-  return `${schweigen ? "Ankara lässt den Ruf unbeantwortet" : "Ankara verweigert den Beistand"}${p ? ` im Pakt „${p.kurz}“` : ""}; ${akteurName(partner)} nimmt es als Bruch der Zusage.${vertragText}`;
+  return tx("sim2.sim.pakte.39269f9", { p0: schweigen ? "Ankara lässt den Ruf unbeantwortet" : "Ankara verweigert den Beistand", p1: p ? ` im Pakt „${p.kurz}“` : "", p2: akteurName(partner), p3: vertragText });
 }
 
 // ---------------------------------------------------------------------------

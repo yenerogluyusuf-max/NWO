@@ -26,6 +26,7 @@ import { addLog, fmt } from "./log";
 import { wirke } from "./wirkung";
 import { addMarke, defizitJetzt, defizitStrukturell, wirtschaftZustand } from "./wirtschaft";
 import { Rng } from "./rng";
+import { t } from "../i18n";
 
 /** Spielparameter der Devisen-Lage (Kalibrierung, keine Messwerte). */
 export const DEVISEN = {
@@ -150,17 +151,17 @@ export interface LbZerlegung {
 /** Die rechnerische Zielmarke der Leistungsbilanz und ihre Bausteine. */
 export function leistungsbilanzZerlegung(w: World): LbZerlegung {
   const e = w.economy;
-  const zeilen: LbTreiber[] = [{ name: "Sonstige Leistungsbilanz", wert: DEVISEN.lbBasis, text: "Warenhandel ohne Energie, Dienste ohne Tourismus, Transfers (pauschal)." }];
+  const zeilen: LbTreiber[] = [{ name: "Sonstige Leistungsbilanz", wert: DEVISEN.lbBasis, text: t("sim2.sim.devisen.ed77c98") }];
   const eu = DEVISEN.euAufLb * ((e.euNachfrage ?? 100) - 100);
-  zeilen.push({ name: "Nachfrage aus der EU", wert: eu, text: "Die EU ist der wichtigste Handelspartner; ihre Nachfrage trägt die Exporte." });
+  zeilen.push({ name: t("sim2.sim.devisen.cd1d645"), wert: eu, text: t("sim2.sim.devisen.c3759c9") });
   // Runde „Netz atmet“: Die Importabhängigkeit (Politiknetz) bestimmt, wie hart der Ölpreis die Rechnung trifft (Faktor 1 ohne Netz)
   const oel = DEVISEN.oelAufLb * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1);
-  zeilen.push({ name: "Energie-Importrechnung", wert: oel, text: "Öl und Gas werden in Dollar bezahlt; der Preis treibt die Importrechnung (Hormuz-Zuschlag), je nach Importabhängigkeit." });
+  zeilen.push({ name: "Energie-Importrechnung", wert: oel, text: t("sim2.sim.devisen.595efab") });
   const startTourismus = w.spiel ? startAverage(NET, w.net, "tourismus") : 65;
   const tourismus = w.spiel ? DEVISEN.tourismusAufLb * (nationalAverage(NET, w.net, "tourismus") - startTourismus) : 0;
-  zeilen.push({ name: "Tourismus", wert: tourismus, text: "Gäste bringen Devisen; eine schwache Lira macht den Urlaub billiger." });
+  zeilen.push({ name: "Tourismus", wert: tourismus, text: t("sim2.sim.devisen.7274b65") });
   // Runde „Netz atmet“: Die Realwirtschaft der Branchen trägt die Exportseite (0 ohne Netz)
-  zeilen.push({ name: "Branchen (Industrie, Export, Mittelstand)", wert: DEVISEN.sektorAufLb * (e.sektorIndex ?? 0), text: "Läuft die Industrie, wachsen Exporte und Vorleistungen; leidet der Mittelstand, schrumpft die Basis." });
+  zeilen.push({ name: "Branchen (Industrie, Export, Mittelstand)", wert: DEVISEN.sektorAufLb * (e.sektorIndex ?? 0), text: t("sim2.sim.devisen.3c2026e") });
   // J-Kurve: Die Abwertung der jüngsten sechs Monate verteuert Importe sofort (negativ),
   // die der Monate 7–12 stärkt inzwischen die Wettbewerbsfähigkeit (positiv).
   const h = w.history;
@@ -175,26 +176,26 @@ export function leistungsbilanzZerlegung(w: World): LbZerlegung {
     jLang = DEVISEN.jKurveLang * (vor6 / vor12 - 1) * 100;
     jKurve = jKurz + jLang;
   }
-  zeilen.push({ name: "Abwertung (J-Kurve)", wert: jKurve, text: "Erst verteuert eine schwache Lira die Importe (6 Monate), dann stützt sie Exporte und Tourismus." });
-  zeilen.push({ name: "Gold und Sonstiges", wert: DEVISEN.goldPauschal, text: "Gold-Importe der Haushalte als Inflationsschutz, pauschal angesetzt." });
+  zeilen.push({ name: "Abwertung (J-Kurve)", wert: jKurve, text: t("sim2.sim.devisen.d618d93") });
+  zeilen.push({ name: t("sim2.sim.devisen.a758755"), wert: DEVISEN.goldPauschal, text: t("sim2.sim.devisen.3fae889") });
   return { ziel: zeilen.reduce((s, z) => s + z.wert, 0), zeilen };
 }
 
 /** Kapitalflüsse in % des BIP je Jahr (positiv = Zufluss) und ihre Bausteine. */
 export function kapitalflussZerlegung(w: World): LbZerlegung {
   const e = w.economy;
-  const zeilen: LbTreiber[] = [{ name: "Basiszufluss", wert: DEVISEN.fluesseBasis, text: "Kredite, Direktinvestitionen und Portfolio-Zuflüsse in ruhiger Lage." }];
+  const zeilen: LbTreiber[] = [{ name: "Basiszufluss", wert: DEVISEN.fluesseBasis, text: t("sim2.sim.devisen.192642b") }];
   let auslandskapital = 0;
   if (w.spiel) {
     auslandskapital = DEVISEN.auslandskapitalAufFluss * (nationalAverage(NET, w.net, "auslandskapital") - startAverage(NET, w.net, "auslandskapital"));
   }
-  zeilen.push({ name: "Auslandskapital (Politiknetz)", wert: auslandskapital, text: "Investorenfreundliche Politik zieht Geld an; das Netz misst es." });
+  zeilen.push({ name: "Auslandskapital (Politiknetz)", wert: auslandskapital, text: t("sim2.sim.devisen.4a10e2e") });
   const risiko = DEVISEN.risikoAufFluss * Math.max(0, (e.riskPremium - 250) / 100);
-  zeilen.push({ name: "Risikoflucht", wert: risiko, text: "Je höher der Risikoaufschlag, desto schneller zieht sich Kapital zurück." });
+  zeilen.push({ name: "Risikoflucht", wert: risiko, text: t("sim2.sim.devisen.a1af1b2") });
   const weltzins = DEVISEN.weltzinsAufFluss * ((e.weltzins ?? 100) - 100);
-  zeilen.push({ name: "Weltzinsen", wert: weltzins, text: "Hohe Zinsen in den USA und Europa lassen Schwellenländer bluten." });
+  zeilen.push({ name: "Weltzinsen", wert: weltzins, text: t("sim2.sim.devisen.1e8107b") });
   if (w.spiel?.krisen?.some((k) => k.id === "zahlungsbilanz")) {
-    zeilen.push({ name: "Zahlungsbilanzkrise", wert: DEVISEN.kriseFlucht, text: "Wer die Reserven schwinden sieht, flüchtet zuerst." });
+    zeilen.push({ name: "Zahlungsbilanzkrise", wert: DEVISEN.kriseFlucht, text: t("sim2.sim.devisen.bde3ed0") });
   }
   return { ziel: zeilen.reduce((s, z) => s + z.wert, 0), zeilen };
 }
@@ -239,8 +240,8 @@ export function devisenMonat(w: World): void {
     addLog(
       w,
       "markt",
-      `Die Netto-Reserven der Zentralbank liegen nur noch bei ${nf(e.reservenNettoUsdMrd ?? 0)} Mrd. Dollar.`,
-      `Unter ${DEVISEN.druckAn} Mrd. verlangen die Märkte einen Zuschlag auf Kurs und Risikoaufschlag; unter ${DEVISEN.kriseAn} Mrd. droht die Zahlungsbilanzkrise. Devisen lassen sich nicht drucken: Kapital anziehen (Zins, Vertrauen), die Leistungsbilanz bessern — oder der IWF.`,
+      t("sim2.sim.devisen.6fb20e9", { p0: nf(e.reservenNettoUsdMrd ?? 0) }),
+      t("sim2.sim.devisen.86d775c", { p0: DEVISEN.druckAn, p1: DEVISEN.kriseAn }),
     );
   }
 
@@ -278,17 +279,17 @@ export function interventionsVorschau(w: World, usdMrd: number): InterventionsVo
     nettoNachher: netto - betrag,
     bruttoNachher: brutto - betrag,
   };
-  if (!w.spiel) return { ...base, grund: "Ohne Spielschleife gibt es keine Interventionen." };
-  if (betrag <= 0) return { ...base, grund: "Kein Betrag gewählt." };
-  if (brutto - betrag < 0) return { ...base, grund: `So viel ist nicht da: Die Bruttoreserven liegen bei ${nf(brutto)} Mrd. Dollar.` };
-  if (netto - betrag < DEVISEN.nettoBoden) return { ...base, grund: "Die Netto-Reserven sind längst verbraucht; der Markt würde einen Verkauf als Verzweiflung lesen." };
+  if (!w.spiel) return { ...base, grund: t("sim2.sim.devisen.6de774d") };
+  if (betrag <= 0) return { ...base, grund: t("sim2.sim.devisen.7c3ff89") };
+  if (brutto - betrag < 0) return { ...base, grund: t("sim2.sim.devisen.fa2c314", { p0: nf(brutto) }) };
+  if (netto - betrag < DEVISEN.nettoBoden) return { ...base, grund: t("sim2.sim.devisen.ec472b8") };
   const knapp = netto - betrag < DEVISEN.warnungUnter;
   return {
     ...base,
     ok: true,
     ...(knapp
       ? {
-          warnung: `Danach lägen die Netto-Reserven bei ${nf(netto - betrag)} Mrd. Dollar — unter der Marke von ${DEVISEN.warnungUnter} Mrd. Die Glättung wirkt Wochen, der Verkauf signalisiert Verbrauch: Glaubwürdigkeit und Risikoaufschlag reagieren.`,
+          warnung: t("sim2.sim.devisen.2d7853b", { p0: nf(netto - betrag), p1: DEVISEN.warnungUnter }),
         }
       : {}),
   };
@@ -301,7 +302,7 @@ export function interventionsVorschau(w: World, usdMrd: number): InterventionsVo
  */
 export function interveniere(w: World, usdMrd: number): { ok: boolean; text: string; why?: string } {
   const v = interventionsVorschau(w, usdMrd);
-  if (!v.ok) return { ok: false, text: v.grund ?? "Nicht möglich." };
+  if (!v.ok) return { ok: false, text: v.grund ?? t("sim2.sim.devisen.a87f6d4") };
   const e = w.economy;
   const betrag = v.usdMrd;
   e.reservenBruttoUsdMrd = (e.reservenBruttoUsdMrd ?? 0) - betrag;
@@ -318,10 +319,10 @@ export function interveniere(w: World, usdMrd: number): { ok: boolean; text: str
   }
   aktualisiereReservenDruck(e);
   const z = devisenZustand(w);
-  const text = `Devisenintervention: Die Zentralbank verkauft ${nf(betrag, 0)} Mrd. Dollar und stützt die Lira (etwa ${nf(glaettung * 100)} % Kursstütze über einige Wochen).`;
+  const text = t("sim2.sim.devisen.0947f5b", { p0: nf(betrag, 0), p1: nf(glaettung * 100) });
   const why = knapp
-    ? `Netto-Reserven danach ${nf(e.reservenNettoUsdMrd ?? 0)} Mrd. Dollar — unter ${DEVISEN.warnungUnter} Mrd.: Die Märkte lesen den Verkauf als Verbrauch; Glaubwürdigkeit und Risikoaufschlag verschlechtern sich. Die Stütze wirkt nur Wochen, die Reserven sind dauerhaft weg.`
-    : `Netto-Reserven danach ${nf(e.reservenNettoUsdMrd ?? 0)} Mrd. Dollar. Die Stütze wirkt einige Wochen; die Reserven sind dauerhaft verkauft.`;
+    ? t("sim2.sim.devisen.262f942", { p0: nf(e.reservenNettoUsdMrd ?? 0), p1: DEVISEN.warnungUnter })
+    : t("sim2.sim.devisen.eff293a", { p0: nf(e.reservenNettoUsdMrd ?? 0) });
   z.interventionen.push({ tag: w.day, datum: w.date, usdMrd: betrag, text });
   if (z.interventionen.length > 12) z.interventionen.shift();
   addLog(w, "entscheidung", text, why);
@@ -341,12 +342,12 @@ export function iwfAktiv(w: World): boolean {
 export function iwfAnfrageMoeglich(w: World): { moeglich: boolean; grund?: string } {
   const e = w.economy;
   if (!w.spiel) return { moeglich: false, grund: "Ohne Spielschleife." };
-  if (iwfAktiv(w)) return { moeglich: false, grund: "Ein Programm läuft bereits." };
+  if (iwfAktiv(w)) return { moeglich: false, grund: t("sim2.sim.devisen.9fad95d") };
   const z = w.spiel.wirtschaft?.devisen;
   const rest = (z?.iwfAbkuehlung ?? -1e9) - w.day;
-  if (rest > 0) return { moeglich: false, grund: `Nach dem letzten Programm frühestens in ${rest} Tagen wieder.` };
+  if (rest > 0) return { moeglich: false, grund: t("sim2.sim.devisen.9c24e51", { p0: rest }) };
   if (e.riskPremium < 300 && (e.reservenNettoUsdMrd ?? 99) >= DEVISEN.warnungUnter) {
-    return { moeglich: false, grund: "Der IWF verhandelt nur, wenn die Lage ernst ist (hoher Risikoaufschlag oder knappe Reserven)." };
+    return { moeglich: false, grund: t("sim2.sim.devisen.183fffc") };
   }
   return { moeglich: true };
 }
@@ -384,18 +385,18 @@ export function iwfStarten(w: World): void {
   aktualisiereReservenDruck(e);
   spiel.hinweise.push({
     id: `iwf-start-${w.day}`,
-    titel: "Stand-by-Abkommen mit dem IWF",
+    titel: t("sim2.sim.devisen.fdd4324"),
     szene: "bank",
     text: [
-      `Der IWF stellt sofort ${DEVISEN.iwf.sofortUsdMrd} Mrd. Dollar bereit; die Märkte lesen das Programm als Anker.`,
-      `Die Auflagen: Leitzins mindestens ${fmt(auflagen.zinsMindest)} % und Defizit höchstens ${fmt(auflagen.defizitMax)} % des BIP. Drei Reviews prüfen das im Abstand von etwa vier Monaten; wer die Auflagen reißt, verliert das Programm und das Vertrauen der Märkte.`,
+      t("sim2.sim.devisen.075f621", { p0: DEVISEN.iwf.sofortUsdMrd }),
+      t("sim2.sim.devisen.0217ab0", { p0: fmt(auflagen.zinsMindest), p1: fmt(auflagen.defizitMax) }),
     ],
   });
   addLog(
     w,
     "entscheidung",
-    `Stand-by-Abkommen mit dem IWF: ${DEVISEN.iwf.sofortUsdMrd} Mrd. Dollar sofort, zwei weitere Tranchen nach Reviews.`,
-    `Auflagen: Leitzins ≥ ${fmt(auflagen.zinsMindest)} %, Defizit ≤ ${fmt(auflagen.defizitMax)} % des BIP. Devisen-Zufluss und Rating-Stützung gegen politische Fesseln.`,
+    t("sim2.sim.devisen.ad5f4d3", { p0: DEVISEN.iwf.sofortUsdMrd }),
+    t("sim2.sim.devisen.fbfe77f", { p0: fmt(auflagen.zinsMindest), p1: fmt(auflagen.defizitMax) }),
   );
   addMarke(w, "eingriff", "Stand-by-Abkommen mit dem IWF");
 }
@@ -412,19 +413,19 @@ function iwfBruch(w: World, grund: string): void {
   wirke(w, "vertrauen_maerkte", -10);
   spiel.hinweise.push({
     id: `iwf-bruch-${w.day}`,
-    titel: "Das IWF-Programm ist gescheitert",
+    titel: t("sim2.sim.devisen.d515aec"),
     szene: "bank",
-    text: [`${grund} Der IWF friert die verbleibenden Tranchen ein; die Märkte beantworten den Bruch mit einem Sprung des Risikoaufschlags.`, "Wer den Anker wegwirft, zahlt den Preis zweimal: bei den Zinsen und beim Vertrauen."],
+    text: [t("sim2.sim.devisen.3e71250", { p0: grund }), t("sim2.sim.devisen.7a46abf")],
   });
-  addLog(w, "ereignis", `Das IWF-Programm ist gescheitert: ${grund}`, `Risikoaufschlag +${DEVISEN.iwf.risikoBruch}, Glaubwürdigkeit leidet, das Vertrauen der Märkte bricht ein.`);
+  addLog(w, "ereignis", t("sim2.sim.devisen.61d63c4", { p0: grund }), t("sim2.sim.devisen.c3f5a1b", { p0: DEVISEN.iwf.risikoBruch }));
 }
 
 /** Der Spieler kündigt das Programm vorzeitig — derselbe Preis wie ein verfehlter Review-Termin. */
 export function iwfKuendigen(w: World): { ok: boolean; text: string; why?: string } {
-  if (!w.spiel || !iwfAktiv(w)) return { ok: false, text: "Es läuft kein IWF-Programm." };
-  iwfBruch(w, "Die Regierung kündigt das Programm vorzeitig.");
-  const text = "Das Stand-by-Abkommen wird vorzeitig beendet.";
-  return { ok: true, text, why: `Die verbleibenden Tranchen entfallen; Risikoaufschlag +${DEVISEN.iwf.risikoBruch} Punkte, das Vertrauen der Märkte bricht ein.` };
+  if (!w.spiel || !iwfAktiv(w)) return { ok: false, text: t("sim2.sim.devisen.9c7b453") };
+  iwfBruch(w, t("sim2.sim.devisen.941a7f9"));
+  const text = t("sim2.sim.devisen.6731a0b");
+  return { ok: true, text, why: t("sim2.sim.devisen.1d9a7b2", { p0: DEVISEN.iwf.risikoBruch }) };
 }
 
 /** Die Review am Fälligkeitstag: Auflagen prüfen, Tranche zahlen oder das Programm brechen. */
@@ -446,11 +447,11 @@ export function iwfReview(w: World): void {
       wirke(w, "vertrauen_maerkte", 4);
       spiel.hinweise.push({
         id: `iwf-ende-${w.day}`,
-        titel: "Das IWF-Programm ist abgeschlossen",
+        titel: t("sim2.sim.devisen.1c7e2e6"),
         szene: "bank",
-        text: ["Alle Reviews sind bestanden; die letzte Tranche ist geflossen. Das Land steht wieder auf eigenen Beinen — die Märkte honorieren die gelieferte Disziplin."],
+        text: [t("sim2.sim.devisen.0639a4b")],
       });
-      addLog(w, "ereignis", "Das IWF-Programm endet nach drei bestandenen Reviews.", "Der Anker hat gehalten: Vertrauen und Glaubwürdigkeit steigen.");
+      addLog(w, "ereignis", t("sim2.sim.devisen.8edc30f"), t("sim2.sim.devisen.5e84345"));
     } else {
       p.rate += 1;
       p.naechsteReview = w.day + DEVISEN.iwf.reviewTage;
@@ -461,14 +462,14 @@ export function iwfReview(w: World): void {
       addLog(
         w,
         "ereignis",
-        `IWF-Review bestanden (${p.bestanden} von ${DEVISEN.iwf.reviews}): Die nächste Tranche von ${DEVISEN.iwf.trancheUsdMrd} Mrd. Dollar fließt.`,
-        "Die Prüfer bestätigen die Auflagen; die Märkte beruhigen sich weiter.",
+        t("sim2.sim.devisen.55a029d", { p0: p.bestanden, p1: DEVISEN.iwf.reviews, p2: DEVISEN.iwf.trancheUsdMrd }),
+        t("sim2.sim.devisen.14a3875"),
       );
     }
   } else {
     const fehl: string[] = [];
-    if (!zinsOk) fehl.push(`der Leitzins liegt bei ${fmt(e.policyRate)} % statt mindestens ${fmt(p.zinsMindest)} %`);
-    if (!defizitOk) fehl.push(`das Defizit liegt bei ${fmt(defizitStrukturell(w))} % statt höchstens ${fmt(p.defizitMax)} %`);
+    if (!zinsOk) fehl.push(t("sim2.sim.devisen.46241ea", { p0: fmt(e.policyRate), p1: fmt(p.zinsMindest) }));
+    if (!defizitOk) fehl.push(t("sim2.sim.devisen.250d8e6", { p0: fmt(defizitStrukturell(w)), p1: fmt(p.defizitMax) }));
     iwfBruch(w, `Die Review scheitert: ${fehl.join(" und ")}.`);
   }
 }
@@ -507,9 +508,9 @@ export function iwfSicht(w: World): IwfSicht | null {
   const spielraumZins = e.policyRate - p.zinsMindest;
   const spielraumDefizit = p.defizitMax - defizit;
   const teile: string[] = [];
-  teile.push(zinsOk ? `Zins ${fmt(spielraumZins)} Punkte über der Auflage` : `Zins ${fmt(-spielraumZins)} Punkte unter der Auflage`);
-  teile.push(defizitOk ? `Defizit ${fmt(spielraumDefizit)} Punkte unter der Obergrenze` : `Defizit ${fmt(-spielraumDefizit)} Punkte über der Obergrenze`);
-  const zeile = `Review ${p.rate} von ${DEVISEN.iwf.reviews} in ${tage} Tagen (${monate > 0 ? `−${monate} ${monate === 1 ? "Monat" : "Monate"} Spielraum` : "weniger als ein Monat Spielraum"}): ${teile.join(", ")}.`;
+  teile.push(zinsOk ? t("sim2.sim.devisen.8b04b06", { p0: fmt(spielraumZins) }) : t("sim2.sim.devisen.89b3059", { p0: fmt(-spielraumZins) }));
+  teile.push(defizitOk ? t("sim2.sim.devisen.f65141f", { p0: fmt(spielraumDefizit) }) : t("sim2.sim.devisen.22486a4", { p0: fmt(-spielraumDefizit) }));
+  const zeile = t("sim2.sim.devisen.8e66d18", { p0: p.rate, p1: DEVISEN.iwf.reviews, p2: tage, p3: monate > 0 ? `−${monate} ${monate === 1 ? "Monat" : "Monate"} Spielraum` : "weniger als ein Monat Spielraum", p4: teile.join(", ") });
   return {
     aktiv: true,
     rate: p.rate,

@@ -17,7 +17,7 @@ import { gewichtWort, nf, prozent, vz } from "./waehler/format";
 import "./politik/design.css";
 import "./waehler/waehler.css";
 
-const ROLLE_TEXT = { traeger: "Träger", schwankend: "Schwankend", gegner: "Abgewandt" } as const;
+const ROLLE_TEXT = { traeger: "wa.rolle.traeger", schwankend: "wa.rolle.schwankend", gegner: "wa.rolle.gegner" } as const;
 
 function Barometer({ world }: { world: World }) {
   const bilanz = zustimmungsBilanz(world);
@@ -79,7 +79,7 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
   const wanderung = useMemo(() => abwanderung(world), [signatur]); // eslint-disable-line react-hooks/exhaustive-deps
   const anzahl = (r: GruppeKurz["rolle"]) => {
     const n = k.gruppen.filter((g) => g.rolle === r).length;
-    return `${n} ${n === 1 ? "Gruppe" : "Gruppen"}`;
+    return t("wa.gruppen", { n });
   };
   const gruppe = (g: GruppeKurz | null, was: string, satz: (g: GruppeKurz) => string) =>
     g ? (
@@ -93,46 +93,46 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
   return (
     <section className="wa-koalition" aria-label={t("ui.Waehler.64eb6ca")}>
       <h3>{t("ui.Waehler.8ac7f95")}</h3>
-      <div className="wa-balken" role="img" aria-label={`Träger ${prozent(k.traeger)}, schwankend ${prozent(k.schwankend)}, abgewandt ${prozent(k.gegner)}`}>
+      <div className="wa-balken" role="img" aria-label={t("wa.balkenAria", { t: prozent(k.traeger), s: prozent(k.schwankend), g: prozent(k.gegner) })}>
         <span className="rolle-traeger" style={{ flexGrow: k.traeger }} />
         <span className="rolle-schwankend" style={{ flexGrow: k.schwankend }} />
         <span className="rolle-gegner" style={{ flexGrow: k.gegner }} />
       </div>
       <ul className="wa-legende">
         <li className="rolle-traeger">
-          <b>{prozent(k.traeger)}</b> tragen Sie <em>({anzahl("traeger")})</em>
+          <b>{prozent(k.traeger)}</b> {t("wa.legende.traeger")} <em>({anzahl("traeger")})</em>
         </li>
         <li className="rolle-schwankend">
-          <b>{prozent(k.schwankend)}</b> schwanken <em>({anzahl("schwankend")})</em>
+          <b>{prozent(k.schwankend)}</b> {t("wa.legende.schwankend")} <em>({anzahl("schwankend")})</em>
         </li>
         <li className="rolle-gegner">
-          <b>{prozent(k.gegner)}</b> haben sich abgewandt <em>({anzahl("gegner")})</em>
+          <b>{prozent(k.gegner)}</b> {t("wa.legende.gegner")} <em>({anzahl("gegner")})</em>
         </li>
       </ul>
       <ul className="wa-hinweise">
-        {gruppe(k.gewinnbar, "Am ehesten zu gewinnen:", (g) => `${g.name}. Läge sie bei 58, brächte das ${nf(g.potenzial, 1)} Punkte Zustimmung.`)}
-        {gruppe(k.gefaehrdet, "Am stärksten gefährdet:", (g) => `${g.name} strebt bei den heutigen Verhältnissen nach ${nf(g.ziel, 0)}, jetzt ${nf(g.laune, 0)}.`)}
+        {gruppe(k.gewinnbar, t("wa.gewinnbar.kopf"), (g) => t("wa.gewinnbar.satz", { name: g.name, p: nf(g.potenzial, 1) }))}
+        {gruppe(k.gefaehrdet, t("wa.gefaehrdet.kopf"), (g) => t("wa.gefaehrdet.satz", { name: g.name, ziel: nf(g.ziel, 0), jetzt: nf(g.laune, 0) }))}
       </ul>
       {wanderung.anteil >= 0.03 && wanderung.ziele.length > 0 && (
         <details className="wa-wanderung wa-zu">
           <summary>
-            Wohin Wähler abwandern <span className="pd-chip">{prozent(wanderung.anteil)} wechselten die Seite</span>
+            {t("wa.wanderung.kopf")} <span className="pd-chip">{t("wa.wanderung.chip", { p: prozent(wanderung.anteil) })}</span>
           </summary>
           <p className="wa-unter">
-            Bei den heutigen Stimmungen wechselten etwa {prozent(wanderung.anteil)} aller Wähler eher die Seite (Spielparameter, keine Messung). Sie gingen zu den Parteien, deren Forderungen ihnen am meisten nützten:
+            {t("wa.wanderung.text", { p: prozent(wanderung.anteil) })}
           </p>
           <ul className="wa-ziele">
             {wanderung.ziele.map((z) => (
               <li key={z.partei}>
                 <div className="wa-ziel-kopf">
                   <strong>{z.name}</strong>
-                  {z.imLager && <em>in Ihrem Lager</em>}
-                  <span>{prozent(z.anteil)} der Abwanderer</span>
+                  {z.imLager && <em>{t("wa.wanderung.imLager")}</em>}
+                  <span>{t("wa.wanderung.anteil", { p: prozent(z.anteil) })}</span>
                 </div>
                 <span className="wa-ziel-balken" aria-hidden>
                   <i style={{ width: `${Math.round(z.anteil * 100)}%` }} />
                 </span>
-                {z.herkunft.length > 0 && <em className="wa-ziel-passt">vor allem aus: {z.herkunft.join(", ")}</em>}
+                {z.herkunft.length > 0 && <em className="wa-ziel-passt">{t("wa.wanderung.herkunft", { liste: z.herkunft.join(", ") })}</em>}
               </li>
             ))}
           </ul>
@@ -160,12 +160,12 @@ function GruppenKarte({ g, aktiv, waehle }: { g: GruppeKurz; aktiv: boolean; wae
       <button type="button" className={`wa-gruppe rolle-${g.rolle}${aktiv ? " on" : ""}`} aria-pressed={aktiv} onClick={() => waehle(g.id)}>
         <span className="wa-g-kopf">
           <strong>{g.name}</strong>
-          <span className="wa-g-rolle">{ROLLE_TEXT[g.rolle]}</span>
+          <span className="wa-g-rolle">{t(ROLLE_TEXT[g.rolle])}</span>
         </span>
         <span className="wa-g-bar" aria-hidden>
           <i style={{ width: `${Math.max(0, Math.min(100, g.laune))}%` }} />
           <b className="ruhe" />
-          {Math.abs(abstand) >= 2 && <u className={abstand < 0 ? "fallend" : "steigend"} style={{ left: `${Math.max(0, Math.min(100, g.ziel))}%` }} title={`Strebt nach ${nf(g.ziel, 0)}`} />}
+          {Math.abs(abstand) >= 2 && <u className={abstand < 0 ? "fallend" : "steigend"} style={{ left: `${Math.max(0, Math.min(100, g.ziel))}%` }} title={t("wa.strebtNach", { ziel: nf(g.ziel, 0) })} />}
         </span>
         <span className="wa-g-fuss">
           <span>{gewichtWort(g.anteil)}</span>

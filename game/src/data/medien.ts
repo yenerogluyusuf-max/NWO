@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 // Die Medienlandschaft als sieben Cluster (RECHERCHE_MEDIEN_UMFRAGEN.md, Kapitel A.5).
 // Die Namen der Cluster sind erfunden und neutral; die realen Vorbilder (Turkuvaz/Kalyon, Demirören,
 // Doğuş, Ciner, TRT, Sözcü/Halk TV/TELE1, Medyascope/T24 u. a.) stehen nur in den Kommentaren.
@@ -69,7 +70,7 @@ export const MEDIEN_CLUSTER: MedienCluster[] = [
     // Vorbild: Turkuvaz Medya (Kalyon/Zirve): Sabah, ATV (9,49 % Sehanteil 2024), A Haber, Takvim;
     // Eigentümer über Bau-/Energieaufträge gebunden (MOM, 29.11.2021).
     id: "holding_kern",
-    name: "Bau- und Energieholding Medien",
+    name: t("sim2.data.medien.9dc5b8e"),
     ausrichtung: "loyalistisch",
     // Spielparameter: C2/C3 teilen in der Recherche den kombinierten „HAVUZ"-Wert; die Aufteilung 60/40 ist Kalibrierung.
     reichweiteSegmente: { laendlich_konservativ: 0.33, urban_alt: 0.24, urban_jung: 0.12, kurdistan: 0.21, akademisch: 0.06 },
@@ -125,7 +126,7 @@ export const MEDIEN_CLUSTER: MedienCluster[] = [
     // Vorbild: Cumhuriyet, BirGün, Evrensel, Yeniçağ, Karar — klein, aber meinungsführend; trugen 97 % der
     // BİK-Anzeigenstrafen (808 Tage 2020, 97 % auf fünf Blätter; bianet, 28.09.2021).
     id: "opposition_nische",
-    name: "Unabhängige Zeitungen",
+    name: t("sim2.data.medien.fab999f"),
     ausrichtung: "oppositionell_nische",
     // Spielparameter: C6 fehlt in Tabelle A.5.2 (dort in den Restsummen enthalten); kleine Werte sind Kalibrierung.
     reichweiteSegmente: { laendlich_konservativ: 0.01, urban_alt: 0.03, urban_jung: 0.04, kurdistan: 0.05, akademisch: 0.1 },
@@ -139,7 +140,7 @@ export const MEDIEN_CLUSTER: MedienCluster[] = [
     // Vorbild: Medyascope, T24, Diken, DW Türkçe, YouTube-Creator; immun gegen Eigner-Druck, aber verwundbar über
     // Google-Algorithmus (Jan. 2025: bis −80 % Traffic), RTÜK-Lizenzpflicht für YouTube (seit Dez. 2024), Kontosperrungen.
     id: "digital_frei",
-    name: "Digitale Nachrichtenkanäle",
+    name: t("sim2.data.medien.2d0d2c5"),
     ausrichtung: "unabhaengig_digital",
     reichweiteSegmente: { laendlich_konservativ: 0.02, urban_alt: 0.1, urban_jung: 0.4, kurdistan: 0.15, akademisch: 0.35 },
     eigentuemerEmpfindlichkeit: 0,
@@ -176,12 +177,12 @@ export interface RegulierungsPreise {
 
 export const REGULIERUNG_PREISE: RegulierungsPreise = {
   rtuek_geldstrafe: { referenz: "1–5 % Monatswerbeumsatz; 2025: ~4,5 Mio. €/Jahr gesamt", rsfMalus: 1 },
-  rtuek_programmstopp: { referenz: "2025: 54 Sanktionen auf News-Formate", rsfMalus: 0.5 },
-  blackout_10tage: { referenz: "Sözcü TV 10 Tage, Halk TV 10 Tage, TELE1 5 Tage (2025)", rsfMalus: 3, oppoMobilisierung: 2 },
-  bik_anzeigenstopp: { referenz: "808 Tage (2020), 97 % auf fünf Blätter; Limit 60 Tage umgangen", rsfMalus: 0.5 },
-  tck217a_verfahren: { referenz: "4.188 Ermittlungen in zwei Jahren; 83 Journalisten seit 2022", rsfMalus: 0.5 },
+  rtuek_programmstopp: { referenz: t("sim2.data.medien.9864588"), rsfMalus: 0.5 },
+  blackout_10tage: { referenz: t("sim2.data.medien.f732eca"), rsfMalus: 3, oppoMobilisierung: 2 },
+  bik_anzeigenstopp: { referenz: t("sim2.data.medien.27934a5"), rsfMalus: 0.5 },
+  tck217a_verfahren: { referenz: t("sim2.data.medien.3271253"), rsfMalus: 0.5 },
   lizenzentzug: { referenz: "Açık Radyo 2024; Drohkulisse 2025", rsfMalus: 8, einmalig: true },
-  kontosperrung: { referenz: ">700 X-Konten gesperrt (März 2025)", rsfMalus: 1 },
+  kontosperrung: { referenz: t("sim2.data.medien.89eb906"), rsfMalus: 1 },
 };
 
 /** Pressefreiheits-Index als lebender Jahreswert (Recherche, Vorgabenkapitel): Start 2028 = Rang 159, Score 29,4. */

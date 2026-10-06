@@ -30,9 +30,9 @@ export function Wirkung({ reihen, metriken, rechnet }: { reihen: PrognoseReihe[]
       <thead>
         <tr>
           <th scope="col">{t("ui.wirtschaft.Wirkung.d9130ae")}</th>
-          <th scope="col">Ohne</th>
-          <th scope="col">Mit</th>
-          <th scope="col">Wirkung</th>
+          <th scope="col">{t("ui2.ui.wirtschaft.Wirkung.f09dc50")}</th>
+          <th scope="col">{t("ui2.ui.wirtschaft.Wirkung.2262373")}</th>
+          <th scope="col">{t("ui2.ui.wirtschaft.Wirkung.3038433")}</th>
         </tr>
       </thead>
       <tbody>
@@ -43,7 +43,7 @@ export function Wirkung({ reihen, metriken, rechnet }: { reihen: PrognoseReihe[]
             <td>{nf(a.mid, k.stellen)}</td>
             <td className={gut === true ? "wi-gut" : gut === false ? "wi-schlecht" : "wi-neutral"}>
               {unklar ? (
-                <>◆ kaum Unterschied</>
+                <>{t("ui2.ui.wirtschaft.Wirkung.5acece3")}</>
               ) : (
                 <>
                   {delta > 0 ? "▲" : "▼"} {delta > 0 ? "+" : "−"}

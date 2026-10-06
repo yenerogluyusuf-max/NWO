@@ -10,6 +10,7 @@ import { VorhabenKarte } from "./VorhabenKarte";
 import { VorlageKarte } from "./Regional";
 
 import { t } from "../../i18n";
+import { t as tx } from "../../i18n";
 /** Reihenfolge und Erklärung der Arten für Vorhaben ohne Thema. */
 const ARTEN: { klasse: Klasse; titel: string; satz: string }[] = [
   { klasse: "wunder", titel: "Wunder", satz: "Einmalig, mit Siegesfeier und Gegnern; sie verändern das Land dauerhaft." },
@@ -107,7 +108,7 @@ export function Neues({
     return (
       <section key={t.id} className="rr-abschnitt rr-art rr-thema" aria-label={t.titel}>
         <h4>
-          {t.titel} <em>{items.length} {items.length === 1 ? "Vorhaben" : "Vorhaben"}</em>
+          {t.titel} <em>{items.length} {items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
         </h4>
         <p className="rr-hinweis">{t.satz}</p>
         {t.id !== "technologie" && verkettet.map((k) => <Weg key={k[0]!.v.id} kette={k} />)}
@@ -155,11 +156,11 @@ export function Neues({
       {aktiv === "alle" && (
         <>
           {themen.map((t) => themaAbschnitt(t, false))}
-          {klassenAbschnitte.length > 0 && <h3 className="rr-teiler">Weitere Vorhaben</h3>}
+          {klassenAbschnitte.length > 0 && <h3 className="rr-teiler">{tx("ui2.ui.reich.Neues.00d41fa")}</h3>}
           {klassenAbschnitte.map((a) => (
             <section key={a.klasse} className="rr-abschnitt rr-art" aria-label={KLASSEN_NAMEN[a.klasse]}>
               <h4>
-                {a.titel} <em>{a.items.length} {a.items.length === 1 ? "Vorhaben" : "Vorhaben"}</em>
+                {a.titel} <em>{a.items.length} {a.items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
               </h4>
               <p className="rr-hinweis">{a.satz}</p>
               <div className="rr-raster gross">{a.items.map(karte)}</div>
@@ -168,7 +169,7 @@ export function Neues({
           {utopien.length > 0 && (
             <section className="rr-abschnitt rr-art rr-utopie" aria-label={t("ui.reich.Neues.227530c")}>
               <h4>
-                Unrealistisch, aber möglich <em>{utopien.length} Vorhaben</em>
+                {tx("ui2.ui.reich.Neues.227530c")} <em>{tx("ui2.ui.reich.Neues.3e892ea", { p0: utopien.length })}</em>
               </h4>
               <p className="rr-hinweis">{UTOPIE_SATZ}</p>
               <div className="rr-raster gross">{sortiere(utopien).map(karte)}</div>
@@ -183,7 +184,7 @@ export function Neues({
         klassenAbschnitte.map((a) => (
           <section key={a.klasse} className="rr-abschnitt rr-art" aria-label={KLASSEN_NAMEN[a.klasse]}>
             <h4>
-              {a.titel} <em>{a.items.length} {a.items.length === 1 ? "Vorhaben" : "Vorhaben"}</em>
+              {a.titel} <em>{a.items.length} {a.items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
             </h4>
             <p className="rr-hinweis">{a.satz}</p>
             <div className="rr-raster gross">{a.items.map(karte)}</div>
@@ -193,7 +194,7 @@ export function Neues({
       {aktiv === "utopie" && (
         <section className="rr-abschnitt rr-art rr-utopie" aria-label={t("ui.reich.Neues.227530c")}>
           <h4>
-            Unrealistisch, aber möglich <em>{utopien.length} Vorhaben</em>
+            {tx("ui2.ui.reich.Neues.227530c")} <em>{tx("ui2.ui.reich.Neues.3e892ea", { p0: utopien.length })}</em>
           </h4>
           <p className="rr-hinweis">{UTOPIE_SATZ}</p>
           <div className="rr-raster gross">{sortiere(utopien).map(karte)}</div>

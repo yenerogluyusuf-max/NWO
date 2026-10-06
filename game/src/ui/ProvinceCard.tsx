@@ -60,37 +60,37 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
         </button>
       </header>
       <div className="province-body">
-        <p className="kicker">Provinz Nr. {plaka} · {REGION_DE[d.region] ?? d.region}</p>
-        <p className="kicker">Typ: {archetypName(plaka)}</p>
+        <p className="kicker">{t("ui2.ui.ProvinceCard.02eb006", { p0: plaka })} {REGION_DE[d.region] ?? d.region}</p>
+        <p className="kicker">{t("ui2.ui.ProvinceCard.961e167", { p0: archetypName(plaka) })}</p>
         <dl>
-          <dt>Einwohner</dt>
+          <dt>{t("ui2.ui.ProvinceCard.0102262")}</dt>
           <dd>{d.bevoelkerung.toLocaleString("de-DE")}</dd>
-          <dt>Wirtschaftskraft</dt>
-          <dd>{d.bipProKopf.toLocaleString("de-DE")} ₺ pro Kopf</dd>
-          <dt>Arbeitslosigkeit</dt>
+          <dt>{t("ui2.ui.ProvinceCard.2ef1990")}</dt>
+          <dd>{t("ui2.ui.ProvinceCard.62c34c2", { p0: d.bipProKopf.toLocaleString("de-DE") })}</dd>
+          <dt>{t("ui2.ui.ProvinceCard.1cd606b")}</dt>
           <dd>
-            {d.arbeitslosigkeit.toLocaleString("de-DE")} %{d.arbeitslosigkeitHerkunft === "geschaetzt" ? " (geschätzt)" : ""}
+            {d.arbeitslosigkeit.toLocaleString("de-DE")} %{d.arbeitslosigkeitHerkunft === "geschaetzt" ? t("ui2.ui.ProvinceCard.c31e5e0") : ""}
           </dd>
-          <dt>Rathaus seit 2024</dt>
+          <dt>{t("ui2.ui.ProvinceCard.336160c")}</dt>
           <dd>
             {d.buergermeister2024}
-            {d.grossstadt ? " · Großstadt" : ""}
+            {d.grossstadt ? t("ui2.ui.ProvinceCard.290242d") : ""}
           </dd>
-          <dt>Abgeordnete</dt>
+          <dt>{t("ui2.ui.ProvinceCard.dc59932")}</dt>
           <dd>{d.sitze}</dd>
         </dl>
 
         {inf && (
           <>
-            <h3 className="province-sub">Infrastruktur</h3>
+            <h3 className="province-sub">{t("ui2.ui.ProvinceCard.9d40c07")}</h3>
             <dl>
               <dt>{t("ui.ProvinceCard.e1ddaa6")}</dt>
               <dd>
                 {inf.strasse_km.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km · {nf(inf.strasse_dichte, 2)} je km²
-                <span className={`rel ${dichteRel! < 0.75 ? "dünn" : dichteRel! > 1.3 ? "dicht" : ""}`}> ({dichteRel! < 0.75 ? "dünn" : dichteRel! > 1.3 ? "dicht" : "durchschnittlich"})</span>
+                <span className={`rel ${dichteRel! < 0.75 ? "dünn" : dichteRel! > 1.3 ? "dicht" : ""}`}> ({dichteRel! < 0.75 ? t("ui2.ui.ProvinceCard.2086473") : dichteRel! > 1.3 ? t("ui2.ui.ProvinceCard.dicht") : t("ui2.ui.ProvinceCard.7b91940")})</span>
               </dd>
-              <dt>Bahnstrecken</dt>
-              <dd>{inf.schiene_km > 0 ? `${inf.schiene_km.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km` : "keine erfasst"}</dd>
+              <dt>{t("ui2.ui.ProvinceCard.b0ea2e1")}</dt>
+              <dd>{inf.schiene_km > 0 ? `${inf.schiene_km.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km` : t("ui2.ui.ProvinceCard.ade5c0b")}</dd>
               <dt>{t("ui.ProvinceCard.384ddc5")}</dt>
               <dd>
                 {inf.krankenhaeuser} ({nf(kh100k!, 1)} je 100.000 Einwohner)
@@ -114,7 +114,7 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
                 <span>{wt.label}</span>
                 <span className="bar" aria-hidden>
                   <i style={{ width: `${Math.max(2, Math.min(100, v))}%` }} className={v < land - 4 ? "schwach" : ""} />
-                  <b style={{ left: `${Math.max(0, Math.min(100, land))}%` }} title={`Landesmittel ${nf(land, 0)}`} />
+                  <b style={{ left: `${Math.max(0, Math.min(100, land))}%` }} title={t("ui2.ui.ProvinceCard.cfaa7c5", { p0: nf(land, 0) })} />
                 </span>
                 <em>{nf(v, 0)}</em>
               </li>
@@ -153,7 +153,7 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
             <ul className="province-projekte">
               {projekte.map((p) => (
                 <li key={p.name}>
-                  {p.name}: Stufe {nf(p.jetzt, 0)} → {nf(p.ziel, 0)}
+                  {t("ui2.ui.ProvinceCard.5f8ec3e", { p0: p.name, p1: nf(p.jetzt, 0), p2: nf(p.ziel, 0) })}
                 </li>
               ))}
             </ul>

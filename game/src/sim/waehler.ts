@@ -8,6 +8,7 @@ import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
 import { zielZustimmung, zustimmungsTeile } from "./spiel";
 import { addDays } from "./dates";
 import type { World } from "./types";
+import { t as tx } from "../i18n";
 
 export interface Grund {
   name: string;
@@ -47,11 +48,11 @@ export interface GruppenLage {
 }
 
 export function launenWort(x: number): string {
-  if (x >= 70) return "begeistert";
-  if (x >= 58) return "zufrieden";
-  if (x >= 45) return "gemischt";
-  if (x >= 33) return "verärgert";
-  return "wütend";
+  if (x >= 70) return tx("laune.begeistert");
+  if (x >= 58) return tx("laune.zufrieden");
+  if (x >= 45) return tx("laune.gemischt");
+  if (x >= 33) return tx("laune.veraergert");
+  return tx("laune.wuetend");
 }
 
 export function vorMonaten(world: World, id: string, n: number): number | null {
@@ -154,11 +155,11 @@ export function zustimmungsBilanz(world: World): { jetzt: number; tendenz: numbe
   const gruppen0 = GRUPPEN.reduce((s, g) => s + g.gewicht * startAverage(NET, world.net, g.id), 0) / GRUPPEN_SUMME;
   const probleme0 = 4 * problemLastStart(world);
   const posten: Bilanzposten[] = [
-    { name: "Vertrauen in die Regierung", delta: 0.45 * (t.vertrauen - vertrauen0), text: "Ob die Menschen der Regierung zutrauen, ihr Leben zu verbessern." },
-    { name: "Stimmung der Wählergruppen", delta: 0.25 * (t.gruppen - gruppen0), text: "Der gewichtete Durchschnitt aller Gruppen." },
-    { name: "Wirtschaftslage", delta: 0.3 * (t.wirtschaft - 50), text: "Inflation, Arbeitslosigkeit und Wachstum gegenüber dem Amtsantritt." },
-    { name: "Akute Probleme", delta: -(t.probleme - probleme0), text: "Je mehr Menschen in Provinzen mit akutem Problem leben, desto mehr kostet es." },
-    { name: "Regierungsmüdigkeit", delta: -t.muedigkeit, text: "Jeden Monat im Amt verliert eine Regierung etwas an Glanz." },
+    { name: tx("bilanz.vertrauen.name"), delta: 0.45 * (t.vertrauen - vertrauen0), text: tx("bilanz.vertrauen.text") },
+    { name: tx("bilanz.gruppen.name"), delta: 0.25 * (t.gruppen - gruppen0), text: tx("bilanz.gruppen.text") },
+    { name: tx("bilanz.wirtschaft.name"), delta: 0.3 * (t.wirtschaft - 50), text: tx("bilanz.wirtschaft.text") },
+    { name: tx("bilanz.probleme.name"), delta: -(t.probleme - probleme0), text: tx("bilanz.probleme.text") },
+    { name: tx("bilanz.muedigkeit.name"), delta: -t.muedigkeit, text: tx("bilanz.muedigkeit.text") },
   ];
   return {
     jetzt: spiel.umfrage.zustimmung,

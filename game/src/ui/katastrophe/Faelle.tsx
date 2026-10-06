@@ -58,7 +58,7 @@ function Kennzahlen({ w, fall, nebelBekannt }: { w: World; fall: KatastropheFall
           <div key={z.name} className="kr-zahl">
             <dt>{z.name}</dt>
             <dd className={lang ? "unklar" : ""}>{text}</dd>
-            {nebelBekannt && z.verhindert !== undefined && z.verhindert > 0 && <small>Vorsorge hat etwa {nf(z.verhindert)} verhindert</small>}
+            {nebelBekannt && z.verhindert !== undefined && z.verhindert > 0 && <small>{t("ui2.ui.katastrophe.Faelle.6d42a65", { p0: nf(z.verhindert) })}</small>}
           </div>
         );
       })}
@@ -97,13 +97,13 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
     nothilfe:
       nothilfe?.status === "offen" && !fall.bewaeltigt ? (
         <button type="button" className="kr-knopf haupt" disabled={!kannZahlen(spiel.kapital, PK_SOFORTHILFE)} onClick={() => handle(PK_SOFORTHILFE, () => soforthilfe(w, fall.id))}>
-          Soforthilfe anordnen <em>{PK_SOFORTHILFE} Kapital</em>
+          {t("ui2.ui.katastrophe.Faelle.62184bf")} <em>{t("ui2.ui.katastrophe.Faelle.87b52bd", { p0: PK_SOFORTHILFE })}</em>
         </button>
       ) : undefined,
     uebergang:
       uebergang?.status === "offen" && !fall.bewaeltigt ? (
         <button type="button" className="kr-knopf haupt" disabled={!kannZahlen(spiel.kapital, PK_UEBERGANG)} onClick={() => handle(PK_UEBERGANG, () => starteUebergang(w, fall.id))}>
-          Übergangsversorgung einrichten <em>{PK_UEBERGANG} Kapital</em>
+          {t("ui2.ui.katastrophe.Faelle.a4a08df")} <em>{t("ui2.ui.katastrophe.Faelle.87b52bd", { p0: PK_UEBERGANG })}</em>
         </button>
       ) : undefined,
     wiederaufbau:
@@ -126,12 +126,12 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
               refresh();
             }}
           >
-            Wohnungsbau-Programm beginnen
+            {t("ui2.ui.katastrophe.Faelle.b6b270e")}
           </button>
         </div>
       ) : aufbau?.status === "laeuft" && onGehe ? (
         <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "akte", akte: "reich_infra" })}>
-          Baureihenfolge im Reich ansehen
+          {t("ui2.ui.katastrophe.Faelle.1adca3c")}
         </button>
       ) : undefined,
   };
@@ -144,7 +144,7 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
           <h3>{namenVon(fall.provinzen)}</h3>
           <p className="kr-datum">
             {formatDateDe(fall.datum)} · {staerkeWort(fall.staerke)}
-            {fall.bewaeltigt ? " · bewältigt" : ""}
+            {fall.bewaeltigt ? t("ui2.ui.katastrophe.Faelle.9d17623") : ""}
           </p>
         </div>
         <p className={`kr-nebel nebel-${sicht.nebel}`}>{NEBEL_TEXT[sicht.nebel]}</p>
@@ -153,8 +153,8 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
       <Kennzahlen w={w} fall={fall} nebelBekannt={sicht.nebel === "bekannt"} />
       {sicht.nebel === "bekannt" && (fall.verhindert.tote > 0 || fall.verhindert.wohnungen > 0) && (
         <p className="kr-klein">
-          Bereitschaft {fall.bereitschaft} von 100 beim Eintreten. Gegenüber der Referenz 20 verhindert das nach Modellrechnung etwa {nf(fall.verhindert.tote)} Todesopfer
-          {fall.verhindert.wohnungen > 0 ? ` und ${nf(fall.verhindert.wohnungen)} zerstörte Wohnungen` : ""} (Bandbreite ±25 %).
+          {t("ui2.ui.katastrophe.Faelle.b355043", { p0: fall.bereitschaft, p1: nf(fall.verhindert.tote) })}
+          {fall.verhindert.wohnungen > 0 ? t("ui2.ui.katastrophe.Faelle.dd09a10", { p0: nf(fall.verhindert.wohnungen) }) : ""} (Bandbreite ±25 %).
         </p>
       )}
 
@@ -162,15 +162,15 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
 
       {(zusage || fall.wohnungen > 0) && (
         <section className="kr-versprechen">
-          <h4>Versprechen</h4>
+          <h4>{t("ui2.ui.katastrophe.Faelle.0658cc6")}</h4>
           {zusage ? (
             <>
               <div className="kr-balken gross" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(quote * 100)}>
                 <i style={{ width: `${Math.round(quote * 100)}%` }} />
               </div>
               <p>
-                Geliefert {nf(geliefert)} von {nf(zusage.wohnungen)} versprochenen Wohnungen ({nf(quote * 100)} Prozent)
-                {fall.privatGeliefert > 0 ? `, davon ${nf(Math.round(fall.privatGeliefert))} durch private Erholung` : ""}.
+                {t("ui2.ui.katastrophe.Faelle.8ae4550", { p0: nf(geliefert), p1: nf(zusage.wohnungen), p2: nf(quote * 100) })}
+                {fall.privatGeliefert > 0 ? t("ui2.ui.katastrophe.Faelle.6f4452a", { p0: nf(Math.round(fall.privatGeliefert)) }) : ""}.
               </p>
             </>
           ) : (

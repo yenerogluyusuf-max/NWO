@@ -60,14 +60,14 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
             {vor.preisschild}
           </p>
           <ul className="rr-kosten" aria-label={t("ui.reich.Regional.3a20748")}>
-            <li><b>{vor.def.kosten.pk.toLocaleString("de-DE")}</b> Kapital</li>
-            <li><b>{vor.def.kosten.bau.toLocaleString("de-DE")}</b> Baupunkte</li>
-            <li><b>{vor.def.kosten.monate}</b> Monate</li>
-            {vor.def.kosten.verwaltung ? <li><b>{vor.def.kosten.verwaltung.toLocaleString("de-DE")}</b> Verwaltung/Monat</li> : null}
+            <li><b>{vor.def.kosten.pk.toLocaleString("de-DE")}</b> {t("ui2.ui.reich.Regional.28d438e")}</li>
+            <li><b>{vor.def.kosten.bau.toLocaleString("de-DE")}</b> {t("ui2.ui.reich.Regional.f4466ae")}</li>
+            <li><b>{vor.def.kosten.monate}</b> {t("ui2.ui.reich.Regional.1c561ae")}</li>
+            {vor.def.kosten.verwaltung ? <li><b>{vor.def.kosten.verwaltung.toLocaleString("de-DE")}</b> {t("ui2.ui.reich.Regional.48ddb61")}</li> : null}
             {vor.def.kosten.schulden ? <li><b>{vor.def.kosten.schulden.toLocaleString("de-DE")}</b> % BIP</li> : null}
           </ul>
           {vor.voraus.length > 0 && (
-            <ul className="rr-voraus" aria-label="Voraussetzungen">
+            <ul className="rr-voraus" aria-label={t("ui2.ui.reich.Regional.bc4e9f4")}>
               {vor.voraus.map((x, i) => (
                 <li key={i} className={x.erfuellt ? "ok" : "offen"}>
                   <span aria-hidden>{x.erfuellt ? "✓" : "○"}</span> {x.text}
@@ -76,11 +76,11 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
             </ul>
           )}
           <div className="rr-wirkung">
-            <b className="rr-wirkung-kopf">Wirkung nur dort</b>
+            <b className="rr-wirkung-kopf">{t("ui2.ui.reich.Regional.ca81108")}</b>
             <Zeilen zeilen={vor.vorschau.sofort.slice(0, 6) as EffektZeile[]} />
             {vor.vorschau.dauerhaft.length > 0 && (
               <>
-                <b className="rr-wirkung-kopf">Dauerhaft</b>
+                <b className="rr-wirkung-kopf">{t("ui2.ui.reich.Regional.90053b7")}</b>
                 <Zeilen zeilen={vor.vorschau.dauerhaft.slice(0, 5)} />
               </>
             )}
@@ -90,25 +90,25 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
       )}
 
       <p className="rr-kehrseite">
-        <b>Der Preis:</b> {v.kehrseite}
+        <b>{t("ui2.ui.reich.Regional.0289c3f")}</b> {v.kehrseite}
         {v.verlierer && <em> Es verliert: {verliererName(v.verlierer)}.</em>}
       </p>
 
       <button type="button" className="aktion-knopf rr-beginnen" disabled={!!grund} onClick={anlegen} title={grund || undefined}>
-        Anlegen{vor.ok ? ` in ${vor.def.name.split(": ").slice(1).join(": ")}` : ""}
+        {t("ui2.ui.reich.Regional.846460c")}{vor.ok ? t("ui2.ui.reich.Regional.89cba7e", { p0: vor.def.name.split(": ").slice(1).join(": ") }) : ""}
       </button>
       {antwort && <p className={`rr-ergebnis ${antwort.ok ? "ok" : "nein"}`}>{antwort.text}</p>}
 
       {angelegt.length > 0 && (
         <div className="rg-angelegt">
-          <b className="rr-wirkung-kopf">Schon angelegt</b>
+          <b className="rr-wirkung-kopf">{t("ui2.ui.reich.Regional.597c344")}</b>
           <ul>
             {angelegt.map((e) => {
               const fertig = !!z.bestand[e.def.id];
               const l = z.laufend.find((x) => x.id === e.def.id);
               return (
                 <li key={e.def.id} className={fertig ? "fertig" : ""}>
-                  {e.def.name} <span className="rr-bau-info">{fertig ? "fertig" : l ? "im Bau" : "abgebrochen"}</span>
+                  {e.def.name} <span className="rr-bau-info">{fertig ? t("ui2.ui.reich.Regional.54e0d1a") : l ? t("ui2.ui.reich.Regional.e972436") : t("ui2.ui.reich.Regional.f59a934")}</span>
                 </li>
               );
             })}

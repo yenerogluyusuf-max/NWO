@@ -8,6 +8,7 @@ import type { Vorlage, VorlagenZiel } from "../../sim/ministerfluss-typen";
 import type { World } from "../../sim/types";
 import { BefehlBlatt } from "./BefehlBlatt";
 import { Posteingang } from "./Posteingang";
+import { t } from "../../i18n";
 import "../politik/design.css";
 import "./ministerfluss.css";
 
@@ -27,12 +28,12 @@ export function MinisterPult({ world, refresh, onGehe, onKarte, onEinstellen, st
   const laufend = world.spiel ? laufendeBefehle(world).length : 0;
   return (
     <div className="mf">
-      <div className="mf-reiter" role="tablist" aria-label="Minister">
+      <div className="mf-reiter" role="tablist" aria-label={t("ui2.ui.minister.MinisterPult.78e2eab")}>
         <button role="tab" aria-selected={reiter === "vorlagen"} className={`mf-reiter-knopf${reiter === "vorlagen" ? " on" : ""}`} onClick={() => setReiter("vorlagen")}>
-          Vorlagen der Minister{n > 0 && <em>{n}</em>}
+          {t("ui2.ui.minister.MinisterPult.d9b6200")}{n > 0 && <em>{n}</em>}
         </button>
         <button role="tab" aria-selected={reiter === "befehle"} className={`mf-reiter-knopf${reiter === "befehle" ? " on" : ""}`} onClick={() => setReiter("befehle")}>
-          Befehle erteilen{laufend > 0 && <em>{laufend}</em>}
+          {t("ui2.ui.minister.MinisterPult.f2dda66")}{laufend > 0 && <em>{laufend}</em>}
         </button>
       </div>
       {reiter === "vorlagen" ? <Posteingang world={world} refresh={refresh} {...(onGehe ? { onGehe } : {})} {...(onKarte ? { onKarte } : {})} {...(onEinstellen ? { onEinstellen } : {})} /> : <BefehlBlatt world={world} refresh={refresh} />}

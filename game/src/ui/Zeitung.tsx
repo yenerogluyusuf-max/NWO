@@ -26,6 +26,7 @@ import { MedienAkte } from "./MedienAkte";
 import { rsfSicht, startSelbstzensur } from "../sim/medien";
 import { medienCluster } from "../data/medien";
 import { t } from "../i18n";
+import { t as tx } from "../i18n";
 import "./zeitung.css";
 
 type Gehe = ((ziel: Ziel) => void) | undefined;
@@ -66,17 +67,17 @@ function Masthead({ ausgabe, blatt }: { ausgabe: ZeitungAusgabe; blatt: ZeitungB
       <p className="zt-zeile-oben">
         <span>{formatDateDe(ausgabe.datum)}</span>
         <span>
-          Ausgabe Nr. {ausgabe.nummer}
-          {ausgabe.anlass === "eilmeldung" && <em className="zt-eil">Eilmeldung</em>}
+          {tx("ui2.ui.Zeitung.34eb2ac", { p0: ausgabe.nummer })}
+          {ausgabe.anlass === "eilmeldung" && <em className="zt-eil">{tx("ui2.ui.Zeitung.758e887")}</em>}
         </span>
-        <span>{blatt.digital ? "Erscheint im Netz" : "Erscheint gedruckt"}</span>
+        <span>{blatt.digital ? tx("ui2.ui.Zeitung.be93d31") : tx("ui2.ui.Zeitung.ab31749")}</span>
       </p>
       <h3 className="zt-blattname">{blatt.name}</h3>
       <p className="zt-unterzeile">{blatt.unterzeile}</p>
       <p className="zt-zeile-unten">
         <span>{TON_NAME[blatt.ton]}</span>
         <Flourish width={180} />
-        <span>{blatt.digital ? "heute aktualisiert" : "Preis: eine Kleinigkeit"}</span>
+        <span>{blatt.digital ? tx("ui2.ui.Zeitung.5c03644") : tx("ui2.ui.Zeitung.52a9271")}</span>
       </p>
       <BlattStand blatt={blatt} />
     </header>
@@ -90,7 +91,7 @@ function Einordnung({ a }: { a: ZeitungArtikel }) {
     <div className="zt-einordnung" aria-label={t("ui.Zeitung.6019c8a")}>
       {e.feststeht.length > 0 && (
         <section>
-          <h5>Was feststeht</h5>
+          <h5>{tx("ui2.ui.Zeitung.ec4d075")}</h5>
           <ul>
             {e.feststeht.map((t, i) => (
               <li key={i}>{t}</li>
@@ -114,8 +115,8 @@ function Einordnung({ a }: { a: ZeitungArtikel }) {
 
 function Artikel({ a, lead, onGehe }: { a: ZeitungArtikel; lead?: boolean; onGehe: Gehe }) {
   return (
-    <article className={`${lead ? "zt-lead" : ""}${a.kurz ? " zt-kurz" : ""}`.trim()} aria-label={lead ? "Leitartikel" : undefined}>
-      <p className="zt-sparte">{SPARTE_NAME[a.sparte] ?? "Politik"}</p>
+    <article className={`${lead ? "zt-lead" : ""}${a.kurz ? " zt-kurz" : ""}`.trim()} aria-label={lead ? tx("ui2.ui.Zeitung.9956d08") : undefined}>
+      <p className="zt-sparte">{SPARTE_NAME[a.sparte] ?? tx("ui2.ui.Zeitung.df56d5e")}</p>
       {lead ? <h4 className="zt-schlagzeile">{a.schlagzeile}</h4> : <h5 className="zt-schlagzeile">{a.schlagzeile}</h5>}
       {a.text.map((t, i) => (
         <p key={i} className="zt-artikel-text">
@@ -142,7 +143,7 @@ function Sparkline({ werte, bewertung }: { werte: number[]; bewertung: "gut" | "
   const d = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
   const letzte = pts[pts.length - 1]!;
   return (
-    <svg className={`zt-spark ${bewertung}`} viewBox={`0 0 ${w} ${h}`} width={w} height={h} role="img" aria-label={`Verlauf der letzten ${werte.length} Werte`}>
+    <svg className={`zt-spark ${bewertung}`} viewBox={`0 0 ${w} ${h}`} width={w} height={h} role="img" aria-label={tx("ui2.ui.Zeitung.2b00659", { p0: werte.length })}>
       <path d={d} />
       <circle cx={letzte[0]} cy={letzte[1]} r="2.2" />
     </svg>
@@ -172,7 +173,7 @@ function Zahlenkasten({ zahlen, ton }: { zahlen: ZeitungKennzahl[]; ton: Framing
                 {k.stand && <small>{k.stand}</small>}
               </span>
               <span className="zt-zahl-wert">{wertText(k)}</span>
-              <span className={`zt-zahl-delta ${klasse}`} title={bewegt ? `Vormonat: ${nf(k.vorher!)}` : "unverändert zum Vormonat"}>
+              <span className={`zt-zahl-delta ${klasse}`} title={bewegt ? tx("ui2.ui.Zeitung.522ec91", { p0: nf(k.vorher!) }) : tx("ui2.ui.Zeitung.89d6477")}>
                 {bewegt ? `${d! > 0 ? "▲" : "▼"} ${nf(Math.abs(d!))}` : "—"}
               </span>
               {k.verlauf && <Sparkline werte={k.verlauf} bewertung={klasse === "gut" ? "gut" : klasse === "schlecht" ? "schlecht" : ""} />}
@@ -197,18 +198,18 @@ function Lagekasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe: Gehe
             <li key={p.id}>
               <span className="zt-lage-name">{p.name}</span>
               <span className="zt-lage-zahl">
-                {p.provinzen} {p.provinzen === 1 ? "Provinz" : "Provinzen"}
+                {p.provinzen} {p.provinzen === 1 ? tx("ui2.ui.Zeitung.d784889") : tx("ui2.ui.Zeitung.56d7381")}
                 {trend && (
-                  <em className={trend} title={`Vormonat: ${p.vorher}`}>
+                  <em className={trend} title={tx("ui2.ui.Zeitung.522ec91", { p0: p.vorher })}>
                     {p.provinzen > p.vorher! ? " ▲" : " ▼"}
                   </em>
                 )}
               </span>
-              <span className="zt-balken" role="img" aria-label={`${Math.round(p.anteil * 100)} Prozent der Bevölkerung betroffen`}>
+              <span className="zt-balken" role="img" aria-label={tx("ui2.ui.Zeitung.f66fc56", { p0: Math.round(p.anteil * 100) })}>
                 <i style={{ width: `${Math.max(4, Math.round(p.anteil * 100))}%` }} />
               </span>
               <span className="zt-lage-ort">
-                {Math.round(p.anteil * 100)} % der Bevölkerung · am stärksten {p.schlimmste}
+                {tx("ui2.ui.Zeitung.d98f48c", { p0: Math.round(p.anteil * 100), p1: p.schlimmste })}
               </span>
             </li>
           );
@@ -228,24 +229,24 @@ function Parlamentkasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe:
   if (!p) return null;
   const anteil = (n: number) => `${(n / 600) * 100}%`;
   return (
-    <aside className="zt-kasten zt-parlament" aria-label="Parlament">
-      <h5>Parlament</h5>
+    <aside className="zt-kasten zt-parlament" aria-label={tx("ui2.ui.Zeitung.e9f977f")}>
+      <h5>{tx("ui2.ui.Zeitung.e9f977f")}</h5>
       <p className="zt-parl-zeile">
-        Regierungslager <strong>{p.lager}</strong> von 600 Sitzen
+        {tx("ui2.ui.Zeitung.565f12f")} <strong>{p.lager}</strong> {tx("ui2.ui.Zeitung.291f7b8")}
         {p.duldung > 0 && <> · geduldet {p.duldung}</>}
       </p>
-      <div className="zt-sitze" role="img" aria-label={`Das Lager hält ${p.lager} Sitze, die Mehrheit liegt bei ${p.noetig}`}>
+      <div className="zt-sitze" role="img" aria-label={tx("ui2.ui.Zeitung.1005de4", { p0: p.lager, p1: p.noetig })}>
         <i className="lager" style={{ width: anteil(p.lager) }} />
         {p.duldung > 0 && <i className="duldung" style={{ width: anteil(p.duldung) }} />}
-        <b style={{ left: anteil(p.noetig) }} title={`Mehrheit: ${p.noetig}`} />
+        <b style={{ left: anteil(p.noetig) }} title={tx("ui2.ui.Zeitung.a382504", { p0: p.noetig })} />
       </div>
       <p className="zt-parl-meta">
-        Mehrheit ab {p.noetig}: {p.lager + p.duldung >= p.noetig ? `${p.lager + p.duldung - p.noetig + 1} Stimmen Spielraum` : `${p.noetig - p.lager - p.duldung} Stimmen fehlen`}.
+        {tx("ui2.ui.Zeitung.943d5a1", { p0: p.noetig })} {p.lager + p.duldung >= p.noetig ? tx("ui2.ui.Zeitung.c560ab3", { p0: p.lager + p.duldung - p.noetig + 1 }) : tx("ui2.ui.Zeitung.69238be", { p0: p.noetig - p.lager - p.duldung })}.
       </p>
       {p.gesetze.length > 0 && <p className="zt-parl-meta">Im Parlament: {p.gesetze.join(", ")}.</p>}
       {onGehe && (
         <button type="button" className="zt-gehe" onClick={() => onGehe({ art: "akte", akte: "parlament" })}>
-          Zum Parlament →
+          {tx("ui2.ui.Zeitung.d89d29d")}
         </button>
       )}
     </aside>
@@ -256,8 +257,8 @@ function Auslandkasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe: G
   const zeilen = ausgabe.ausland ?? [];
   if (!zeilen.length) return null;
   return (
-    <aside className="zt-kasten zt-ausland" aria-label="Ausland">
-      <h5>Ausland</h5>
+    <aside className="zt-kasten zt-ausland" aria-label={tx("ui2.ui.Zeitung.611350a")}>
+      <h5>{tx("ui2.ui.Zeitung.611350a")}</h5>
       <ul>
         {zeilen.slice(0, 5).map((z, i) => (
           <li key={i}>
@@ -289,7 +290,7 @@ function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
       <aside className="zt-umfrage schublade">
         <h5>{t("ui.Zeitung.b283308")}</h5>
         <p>
-          Erscheint nicht: {ausgabe.umfrageSchublade} hat gemessen und das Ergebnis in der Schublade gelassen. Man darf mutmaßen, warum.
+          {tx("ui2.ui.Zeitung.723651c", { p0: ausgabe.umfrageSchublade })}
         </p>
       </aside>
     ) : null;
@@ -301,7 +302,7 @@ function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
       <h5>{t("ui.Zeitung.b283308")}</h5>
       <p className="zt-umfrage-institut">{u.institut}</p>
       <p className="zt-umfrage-wert">
-        {nf(u.wert)} <span className="zt-umfrage-prozent">Prozent</span>
+        {nf(u.wert)} <span className="zt-umfrage-prozent">{tx("ui2.ui.Zeitung.25b4ac6")}</span>
         {delta !== undefined && Math.abs(delta) >= 0.05 && (
           <em className={delta >= 0 ? "auf" : "ab"}>
             {delta >= 0 ? "▲" : "▼"} {nf(Math.abs(delta))}
@@ -309,7 +310,7 @@ function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
         )}
       </p>
       <p className="zt-umfrage-meta">
-        Zustimmung zur Regierung{u.stichprobe !== undefined ? ` · ${u.stichprobe.toLocaleString("de-DE")} Befragte` : " · Stichprobe nicht offengelegt"} · Methode {u.methode}
+        {tx("ui2.ui.Zeitung.17826b8")}{u.stichprobe !== undefined ? ` · ${u.stichprobe.toLocaleString("de-DE")} Befragte` : tx("ui2.ui.Zeitung.8d2ffa3")} · Methode {u.methode}
       </p>
     </aside>
   );
@@ -319,8 +320,8 @@ function Kommentar({ blatt }: { blatt: ZeitungBlatt }) {
   const k = blatt.kommentar;
   if (!k) return null;
   return (
-    <aside className={`zt-kommentar ton-${blatt.ton}`} aria-label="Kommentar">
-      <p className="zt-sparte">Kommentar · {blatt.name}</p>
+    <aside className={`zt-kommentar ton-${blatt.ton}`} aria-label={tx("ui2.ui.Zeitung.19c85a8")}>
+      <p className="zt-sparte">{tx("ui2.ui.Zeitung.3f088a2", { p0: blatt.name })}</p>
       <h5 className="zt-schlagzeile">{k.titel}</h5>
       {k.text.map((t, i) => (
         <p key={i} className="zt-artikel-text">
@@ -363,7 +364,7 @@ function Frontseite({ ausgabe, blatt, onGehe }: { ausgabe: ZeitungAusgabe; blatt
           <Kommentar blatt={blatt} />
           {blatt.verschwiegen.length > 0 && (
             <p className="zt-verschwiegen">
-              <strong>Nicht in dieser Ausgabe:</strong> {blatt.verschwiegen.join(" · ")}
+              <strong>{tx("ui2.ui.Zeitung.d17ee42")}</strong> {blatt.verschwiegen.join(" · ")}
             </p>
           )}
         </div>
@@ -462,7 +463,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
 
         <aside className="zt-rand">
           <section className="zt-archiv" aria-label={t("ui.Zeitung.db0bb89")}>
-            <h5>Archiv</h5>
+            <h5>{tx("ui2.ui.Zeitung.d9431e3")}</h5>
             <ul>
               {[...archiv].reverse().map((a) => {
                 const i = archiv.indexOf(a);
@@ -483,7 +484,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
                       </span>
                       <span className="zt-archiv-datum">{formatDateDe(a.datum)}</span>
                       <span className="zt-archiv-lead">
-                        {kopf.stimmung && <i className={`zt-marke ${kopf.stimmung}`} aria-label={kopf.stimmung === "auf" ? "gute Nachricht" : "schlechte Nachricht"} />}
+                        {kopf.stimmung && <i className={`zt-marke ${kopf.stimmung}`} aria-label={kopf.stimmung === "auf" ? tx("ui2.ui.Zeitung.12cddce") : tx("ui2.ui.Zeitung.690d51c")} />}
                         {kopf.titel}
                       </span>
                     </button>
