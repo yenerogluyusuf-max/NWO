@@ -17,7 +17,7 @@ import { ressourcenFarben, strategieFarben } from "./gueter/linsen";
 import { belastungFarben } from "./infrastruktur/linse";
 import type { World } from "../sim/types";
 import type { IconName } from "./icons";
-import { t, aktuelleSprache } from "../i18n";
+import { t, aktuelleSprache, zahl } from "../i18n";
 
 // Neue Ebene („Linse“) anlegen: Kennung in `Kartenebene`, Eintrag in KARTENEBENEN (Gruppe, Symbol, Kurzsatz), Färbung in
 // `farbenFuerEbene`, Verfügbarkeitsregel in ui/linsen/linsen.ts (`REGELN`). Geplant, aber noch ohne Daten und darum nicht
@@ -80,12 +80,20 @@ export function ebeneName(id: Kartenebene, w: World): string {
 
 /** Kurzsatz der Ebene; die Wahlebene sagt ehrlich, dass sie den Stand zum Amtsantritt zeigt, und nennt die nächste Wahl. */
 export function ebeneKurz(id: Kartenebene, w: World): string {
-  const basis = KARTENEBENEN.find((e) => e.id === id)?.kurz ?? "";
+  const basis = t(`karte.kurz.${id}`);
   if (id !== "wahl") return basis;
   const spiel = w.spiel;
   if (!spiel) return basis;
   const monate = Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4));
-  return `Stärkste Partei je Provinz, Stand zum Amtsantritt. Nächste Wahl in ${monate} Monaten.`;
+  return t("karte.kurz.wahl_monate", { monate });
+}
+
+const REGION_KEY: Record<string, string> = { Marmara: "marmara", Ege: "ege", Akdeniz: "akdeniz", "İç Anadolu": "ic_anadolu", Karadeniz: "karadeniz", "Doğu Anadolu": "dogu_anadolu", "Güneydoğu Anadolu": "guneydogu_anadolu" };
+
+/** Name einer Großregion in der Sprache des Spiels (Schlüssel: türkischer Name aus den Provinzdaten). */
+export function regionName(name: string): string {
+  const k = REGION_KEY[name];
+  return k ? t(`karte.region.${k}`) : (REGION_DE[name] ?? name);
 }
 
 export interface Legende {
@@ -169,10 +177,10 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       return {
         fill: out,
         legende: {
-          titel: "Rückhalt der Regierung",
-          untertitel: "Vertrauen und Wahlstärke des Lagers",
-          verlauf: { von: farbe.RED, bis: farbe.TEAL, mitte: "rgb(244,236,214)", vonText: "wenig", bisText: "viel" },
-          hinweis: `Hochburgen: ${rang.slice(0, 3).map((x) => x.name).join(", ")}. Sorgenkinder: ${rang.slice(-3).reverse().map((x) => x.name).join(", ")}.`,
+          titel: t("karte.legende.rueckhalt.titel"),
+          untertitel: t("karte.legende.rueckhalt.unter"),
+          verlauf: { von: farbe.RED, bis: farbe.TEAL, mitte: "rgb(244,236,214)", vonText: t("karte.legende.wenig"), bisText: t("karte.legende.viel") },
+          hinweis: t("karte.legende.rueckhalt.hinweis", { hoch: rang.slice(0, 3).map((x) => x.name), sorge: rang.slice(-3).reverse().map((x) => x.name) }),
         },
       };
     }
@@ -196,10 +204,10 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       return {
         fill: out,
         legende: {
-          titel: "Kulturerbe",
-          untertitel: "Erhaltungszustand der Stätten je Provinz",
-          verlauf: { von: farbe.RED, bis: farbe.TEAL, mitte: "rgb(244,236,214)", vonText: "gefährdet", bisText: "gut erhalten" },
-          hinweis: "Die Marken zeigen Stätten, Wunder und Bauvorhaben; ein Klick öffnet das Reich.",
+          titel: t("karte.ebene.erbe"),
+          untertitel: t("karte.legende.erbe.unter"),
+          verlauf: { von: farbe.RED, bis: farbe.TEAL, mitte: "rgb(244,236,214)", vonText: t("karte.legende.erbe.von"), bisText: t("karte.legende.erbe.bis") },
+          hinweis: t("karte.legende.erbe.hinweis"),
         },
       };
     }
@@ -217,13 +225,13 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       return {
         fill: undefined,
         legende: {
-          titel: "Beziehungen zu den Nachbarn",
-          untertitel: "Klicken Sie ein Land an",
+          titel: t("karte.legende.welt.titel"),
+          untertitel: t("karte.legende.welt.unter"),
           eintraege: [
-            { farbe: BEZIEHUNG_FARBEN.gut, text: "Partner" },
-            { farbe: BEZIEHUNG_FARBEN.nuechtern, text: "Nüchtern" },
-            { farbe: BEZIEHUNG_FARBEN.kuehl, text: "Kühl oder angespannt" },
-            { farbe: BEZIEHUNG_FARBEN.schlecht, text: "Feindselig" },
+            { farbe: BEZIEHUNG_FARBEN.gut, text: t("karte.legende.welt.gut") },
+            { farbe: BEZIEHUNG_FARBEN.nuechtern, text: t("karte.legende.welt.nuechtern") },
+            { farbe: BEZIEHUNG_FARBEN.kuehl, text: t("karte.legende.welt.kuehl") },
+            { farbe: BEZIEHUNG_FARBEN.schlecht, text: t("karte.legende.welt.schlecht") },
           ],
         },
       };
@@ -232,7 +240,7 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       PROVINZEN.forEach((p) => (out[p.plaka] = REGION_COLORS[p.region] ?? "#999"));
       return {
         fill: out,
-        legende: { titel: "Die sieben Regionen", eintraege: Object.entries(REGION_COLORS).map(([name, c]) => ({ farbe: c, text: REGION_DE[name] ?? name })) },
+        legende: { titel: t("karte.legende.regionen.titel"), eintraege: Object.entries(REGION_COLORS).map(([name, c]) => ({ farbe: c, text: regionName(name) })) },
       };
     }
 
@@ -246,9 +254,9 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       const eintraege = Object.entries(w.parliament?.seats ?? {})
         .filter(([, n]) => n > 0)
         .sort((a, b) => b[1] - a[1])
-        .map(([k, n]) => ({ farbe: k === kurz ? w.player!.partei.farbe : (PARTY_COLORS[k] ?? "#999"), text: `${k === kurz ? w.player!.partei.name : k}: ${n} Sitze` }));
+        .map(([k, n]) => ({ farbe: k === kurz ? w.player!.partei.farbe : (PARTY_COLORS[k] ?? "#999"), text: t("karte.legende.wahl.sitze", { partei: k === kurz ? w.player!.partei.name : k, n }) }));
       // Die Sitzverteilung je Provinz ist der Stand zum Amtsantritt (sim/prolog.ts); sie ändert sich bis zur nächsten Wahl nicht
-      return { fill: out, legende: { titel: ebeneName("wahl", w), untertitel: "Stärkste Partei je Provinz, Stand zum Amtsantritt", eintraege } };
+      return { fill: out, legende: { titel: ebeneName("wahl", w), untertitel: t("karte.legende.wahl.unter"), eintraege } };
     }
 
     case "wirtschaft": {
@@ -259,9 +267,9 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       return {
         fill: out,
         legende: {
-          titel: "Wirtschaftskraft",
-          untertitel: "Wirtschaftsleistung je Einwohner",
-          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: `${Math.round(min / 1000)} Tsd. ₺`, bisText: `${Math.round(max / 1000)} Tsd. ₺` },
+          titel: t("karte.ebene.wirtschaft"),
+          untertitel: t("karte.legende.wirtschaft.unter"),
+          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: t("karte.legende.tsdLira", { n: Math.round(min / 1000) }), bisText: t("karte.legende.tsdLira", { n: Math.round(max / 1000) }) },
         },
       };
     }
@@ -272,9 +280,9 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       return {
         fill: out,
         legende: {
-          titel: "Arbeitslosigkeit",
-          untertitel: "Quote je Provinz (teils geschätzt)",
-          verlauf: { von: farbe.PAPER, bis: farbe.RED, vonText: "4 %", bisText: "14 %" },
+          titel: t("karte.ebene.arbeitslosigkeit"),
+          untertitel: t("karte.legende.arbeitslos.unter"),
+          verlauf: { von: farbe.PAPER, bis: farbe.RED, vonText: t("karte.legende.prozent", { p: 4 }), bisText: t("karte.legende.prozent", { p: 14 }) },
         },
       };
     }
@@ -289,12 +297,12 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       return {
         fill: out,
         legende: node
-          ? { titel: node.name, untertitel: "Akut in den rot gefärbten Provinzen", hinweis: node.text }
+          ? { titel: node.name, untertitel: t("karte.legende.probleme.akut"), hinweis: node.text }
           : {
-              titel: "Akute Probleme",
-              untertitel: "Anzahl gleichzeitiger Probleme je Provinz",
-              verlauf: { von: mix(PAPER, RED, 0.3), bis: mix(PAPER, RED, 1), vonText: "eines", bisText: "sechs und mehr" },
-              hinweis: "Wählen Sie in der Liste ein Problem, um zu sehen, wo genau es herrscht.",
+              titel: t("karte.ebene.probleme"),
+              untertitel: t("karte.legende.probleme.unter"),
+              verlauf: { von: mix(PAPER, RED, 0.3), bis: mix(PAPER, RED, 1), vonText: t("karte.legende.probleme.von"), bisText: t("karte.legende.probleme.bis") },
+              hinweis: t("karte.legende.probleme.hinweis"),
             },
       };
     }
@@ -307,10 +315,10 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       return {
         fill: out,
         legende: {
-          titel: "Straßennetz",
-          untertitel: "Kilometer Straße je Quadratkilometer",
-          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: `${DICHTE_MIN.toLocaleString("de-DE", { maximumFractionDigits: 1 })}`, bisText: `${DICHTE_MAX.toLocaleString("de-DE", { maximumFractionDigits: 1 })}` },
-          hinweis: "Beim Hineinzoomen erscheinen Bezirke, Straßen, Bahn, Krankenhäuser und Flughäfen. Quelle: OpenStreetMap.",
+          titel: t("karte.legende.strasse.titel"),
+          untertitel: t("karte.legende.strasse.unter"),
+          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: zahl(DICHTE_MIN, 1), bisText: zahl(DICHTE_MAX, 1) },
+          hinweis: t("karte.legende.strasse.hinweis"),
         },
       };
     }
@@ -324,15 +332,14 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       });
       const gefaehrlich = PROVINZEN.filter((p) => depremRisiko(p.plaka) === 5)
         .map((p) => p.name)
-        .slice(0, 8)
-        .join(", ");
+        .slice(0, 8);
       return {
         fill: out,
         legende: {
-          titel: "Katastrophenrisiko",
-          untertitel: "Erdbeben-Gefährdung je Provinz (1–5)",
-          verlauf: { von: farbe.PAPER, bis: farbe.RED, vonText: "gering", bisText: "sehr hoch" },
-          hinweis: `Bruchzonen: Nordanatolische und Ostanatolische Verwerfung, westanatolische Graben. Höchstes Risiko u. a.: ${gefaehrlich}. Dazu saisonal: Sturzflut am Schwarzen Meer, Großbrände an Ägäis und Mittelmeer, Dürre im Konya-Becken. Quelle: provinz_profile.csv; Verwerfungen nach GEM Global Active Faults (CC BY-SA 4.0).`,
+          titel: t("karte.ebene.risiko"),
+          untertitel: t("karte.legende.risiko.unter"),
+          verlauf: { von: farbe.PAPER, bis: farbe.RED, vonText: t("karte.legende.risiko.von"), bisText: t("karte.legende.risiko.bis") },
+          hinweis: t("karte.legende.risiko.hinweis", { orte: gefaehrlich }),
         },
       };
     }
@@ -350,8 +357,8 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
         fill: out,
         legende: {
           titel: node.name,
-          untertitel: node.kind === "problem" ? "Rot: akut" : "Wert je Provinz",
-          ...(node.kind === "problem" ? {} : { verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: min.toLocaleString("de-DE", { maximumFractionDigits: 0 }), bisText: max.toLocaleString("de-DE", { maximumFractionDigits: 0 }) } }),
+          untertitel: node.kind === "problem" ? t("karte.legende.netz.akut") : t("karte.legende.netz.wert"),
+          ...(node.kind === "problem" ? {} : { verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: zahl(min, 0), bisText: zahl(max, 0) } }),
           hinweis: node.text,
         },
       };

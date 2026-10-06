@@ -1,0 +1,49 @@
+/* Schauplatz und Besatzung: Papierton der Akten, Regionen als Kette mit Farbpunkt (eigen = Siegelrot, umkämpft = Ocker, Gegner = Grau). */
+
+.ks { container-type: inline-size; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; margin-top: 8px;
+  background: rgba(255, 251, 238, 0.92); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 3px; }
+.ks-kopf { display: flex; flex-direction: column; gap: 2px; }
+.ks-kopf b { font: 600 16px var(--display); }
+.ks-kopf span { font: 15px/1.4 var(--serif); }
+.ks-hilfe { margin: 0; font: italic 13.5px/1.4 var(--serif); color: var(--ink-soft); }
+.ks-quelle { margin: 0; font-size: 11.5px; color: var(--ink-soft); opacity: 0.85; }
+.ks-warn { margin: 0; padding: 5px 8px; border-left: 3px solid #a8742a; background: rgba(255, 244, 214, 0.8); font-size: 13.5px; }
+
+.ks-kette { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: stretch; }
+.ks-region { display: flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 12px; font-size: 13px;
+  border: 1px solid rgba(90, 64, 40, 0.35); background: rgba(255, 250, 235, 0.7); }
+.ks-region small { color: var(--ink-soft); font-size: 11.5px; }
+.ks-punkt { width: 9px; height: 9px; border-radius: 50%; background: #8a8378; flex: none; }
+.ks-eigen .ks-punkt { background: var(--seal); }
+.ks-eigen { border-color: rgba(140, 40, 30, 0.55); }
+.ks-umkaempft .ks-punkt { background: #c08a2c; animation: ks-puls 1.6s ease-in-out infinite; }
+.ks-umkaempft { border-color: #c08a2c; font-weight: 600; }
+@keyframes ks-puls { 50% { transform: scale(1.45); opacity: 0.7; } }
+@media (prefers-reduced-motion: reduce) { .ks-umkaempft .ks-punkt { animation: none; } }
+
+.ks-wahl h5 { margin: 4px 0 2px; font: 600 14px var(--display); }
+.ks-knoepfe { display: grid; gap: 5px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+.ks-knoepfe button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 5px 8px; text-align: left; cursor: pointer;
+  font: 600 13px var(--serif); color: var(--ink); background: rgba(255, 250, 235, 0.7); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 3px; }
+.ks-knoepfe button span { font-weight: 400; font-size: 12px; color: var(--ink-soft); }
+.ks-knoepfe button em { font-weight: 400; font-size: 11.5px; color: #7a2f22; }
+.ks-knoepfe button:hover:not(:disabled) { background: #fbf4df; }
+.ks-knoepfe button:disabled { color: var(--ink); }
+.ks-knoepfe button.on { background: #fbf4df; box-shadow: inset 0 -2px 0 var(--seal), 0 0 0 1px var(--seal); cursor: default; opacity: 1; }
+.ks-knoepfe button:disabled:not(.on) { opacity: 0.55; cursor: not-allowed; }
+
+.ks-vergleich { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-size: 13.5px; align-items: center; }
+.ks-vergleich dt { color: var(--ink-soft); }
+.ks-vergleich dd { margin: 0; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.ks-gut { color: #2f5a2a; }
+.ks-schlecht { color: #7a2f22; }
+.ks-mini { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
+.ks-mini i { width: 6px; background: rgba(90, 64, 40, 0.55); border-radius: 1px; }
+
+.ks-besetzt { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ks-besetzt > li { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; border-top: 1px dotted rgba(90, 64, 40, 0.35); }
+.ks-zeile { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font-size: 13.5px; }
+.ks-zeile:first-child { grid-template-columns: auto 1fr; }
+.ks-balken { height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.ks-balken i { display: block; height: 100%; background: rgba(90, 64, 40, 0.6); }
+.ks-balken i.hoch { background: #8c2a1e; }

@@ -21,6 +21,8 @@ import { addDays, formatDateDe } from "../../sim/dates";
 import { land } from "../../sim/laender";
 
 import { t } from "../../i18n";
+import { Schauplatz } from "../krieg/Schauplatz";
+import { Besatzung } from "../krieg/Besatzung";
 const nf = (x: number) => String(Math.round(x));
 
 /** Wort für die gegnerische Stärke, wenn das Lagebild nur eine grobe Einordnung hergibt. */
@@ -33,7 +35,7 @@ function einordnung(eigen: number, gegner: number): string {
 
 export function KriegDossier({ world, landId, refresh }: { world: World; landId: string; refresh: () => void }) {
   const k = kriegMit(world, landId);
-  if (!k) return null;
+  if (!k) return <Besatzung world={world} onTat={() => refresh()} nurLand={landId} />;
   const l = land(landId);
   const handlungen = handlungenFuer(world, k.id);
   const bild = lagebild(world);
@@ -123,6 +125,9 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
           Doktrin „{dok.name}“: {dok.konsistent ? "konsistent (wirkt multiplikativ)" : `verwässert — es fehlt: ${dok.fehlt.join("; ")}`}
         </p>
       )}
+
+      <Schauplatz world={world} k={k} onTat={() => refresh()} />
+      <Besatzung world={world} onTat={() => refresh()} nurLand={landId} />
 
       {sperre > world.day && <p className="kd-demob">Demobilisierung bis {formatDateDe(addDays(world.date, sperre - world.day))}: erneute Mobilisierung frühestens danach (90-Tage-Rechnung).</p>}
 

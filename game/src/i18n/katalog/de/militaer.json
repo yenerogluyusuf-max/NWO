@@ -99,5 +99,10 @@
  "militaer.zielraum.irq_berge": "Kandil- und Grenzberge",
  "militaer.zielraum.irq_tief": "Tiefer Vorstoß in den Nordirak",
  "militaer.zielraum.syr_grenzstreifen": "Grenzstreifen Nordsyrien",
- "militaer.zielraum.syr_tief": "Tiefer Vorstoß nach Syrien"
+ "militaer.zielraum.syr_tief": "Tiefer Vorstoß nach Syrien",
+ "militaer.zielraum.syr_maximal": "Ganz Nordsyrien bis Aleppo und Deir ez-Zor",
+ "militaer.zielraum.irq_maximal": "Nordirak bis Kirkuk und Sulaimaniya",
+ "militaer.zielraum.grc_maximal": "Inseln, Thrakien und Thessaloniki",
+ "militaer.zielraum.cyp_maximal": "Ganz Zypern",
+ "militaer.zielraum.arm_maximal": "Ganz Armenien bis Eriwan"
 }

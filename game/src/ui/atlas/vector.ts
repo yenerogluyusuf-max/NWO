@@ -1015,7 +1015,16 @@ export class VectorLayer {
     ctx.restore();
   }
 
+  /** Die festen Sicherheitslinien (karten-features.ts) weichen, solange ein Krieg seine eigene Front zeigt (kriegsfx.ts). */
+  private ohneTaktikFronten = false;
+  setTaktikFronten(an: boolean): void {
+    if (this.ohneTaktikFronten === !an) return;
+    this.ohneTaktikFronten = !an;
+    this.dirty = true;
+  }
+
   private drawFrontlinien(z: number, ebene: Kartenebene): void {
+    if (this.ohneTaktikFronten) return;
     if (ebene !== "welt" && ebene !== "probleme" && ebene !== "gelaende") return;
     const { ctx, atlas, relief } = this;
     ctx.save();

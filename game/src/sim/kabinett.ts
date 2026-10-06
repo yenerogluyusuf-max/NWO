@@ -111,11 +111,11 @@ export function berechneMinisterKapital(w: World, f: Figur): { beitrag: number; 
   // Runden auf eine Dezimalstelle
   beitrag = Math.round(clamp(beitrag, -0.3, 1.2) * 10) / 10;
 
-  let grund = `Leistung ${Math.round(q * 100)} %`;
-  if (loy < 30) grund += ", verweigert Kooperation";
-  else if (e.groll >= 50) grund += ", Reibungsverluste durch Groll";
-  else if (loy >= 75) grund += ", treuer Rückhalt";
-  if (e.kommissarisch) grund += " (kommissarisch)";
+  let grund = t("kab.grund.leistung", { p: Math.round(q * 100) });
+  if (loy < 30) grund += t("kab.grund.verweigert");
+  else if (e.groll >= 50) grund += t("kab.grund.groll");
+  else if (loy >= 75) grund += t("kab.grund.treu");
+  if (e.kommissarisch) grund += t("kab.grund.kommissarisch");
 
   return { beitrag, grund };
 }
@@ -123,7 +123,7 @@ export function berechneMinisterKapital(w: World, f: Figur): { beitrag: number; 
 /** Ermittelt die dringendste Sorge eines Ministers aus den Kennzahlen seines Fachbereichs */
 export function sorgeAusFach(w: World, f: Figur): string {
   const d = AEMTER[f.amt];
-  if (!d.fach.length) return "Keine akute Ressortkrise";
+  if (!d.fach.length) return t("kab.keineKrise");
   let schlimmsterWert = -1e9;
   let sorgeKnoten = d.fach[0]!;
 
@@ -140,7 +140,7 @@ export function sorgeAusFach(w: World, f: Figur): string {
 
   const name = NET.nodes[NET.index.get(sorgeKnoten) ?? -1]?.name ?? sorgeKnoten;
   const wert = Math.round(wertVon(w, sorgeKnoten));
-  return `${name} (${wert} Pkt.)`;
+  return t("kab.sorge", { name, wert });
 }
 
 /** Gibt den vollständigen Zustand des Ministerrats zurück */
@@ -186,17 +186,17 @@ export function kabinettStatus(w: World): KabinettStatus {
   const ruecktrittGefahr = minister.filter((m) => m.loyalitaet < 25);
 
   let disziplin: KabinettStatus["disziplin"] = "geschlossen";
-  let disziplinText = "Die Regierungsmannschaft zieht geschlossen an einem Strang.";
+  let disziplinText = t("kab.disziplin.geschlossen");
 
   if (ruecktrittGefahr.length >= 2 || schnittLoyalitaet < 35) {
     disziplin = "rebellisch";
-    disziplinText = "Offene Meuterei im Kabinett: Mehrere Minister drohen mit geschlossenem Rücktritt!";
+    disziplinText = t("kab.disziplin.rebellisch");
   } else if (ruecktrittGefahr.length === 1 || schnittLoyalitaet < 48) {
     disziplin = "gespalten";
-    disziplinText = "Tiefe Gräben im Ministerrat: Ressortstreitigkeiten lähmen den Reformkurs.";
+    disziplinText = t("kab.disziplin.gespalten");
   } else if (schnittLoyalitaet < 65) {
     disziplin = "geordnet";
-    disziplinText = "Geordnete Regierungsarbeit mit vereinzelten Meinungsverschiedenheiten.";
+    disziplinText = t("kab.disziplin.geordnet");
   }
 
   const letzteSitzung = spiel?.zuletzt?.kabinettssitzung ?? -999;
@@ -236,22 +236,22 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
 
   themen.push({
     id: "haushalt_prioritaet",
-    titel: "Haushaltskurs: Sparzwang vs. Wachstumsinvestitionen",
-    ressort: "Finanzen & Wirtschaft",
-    anlass: `${fin?.name ?? "Das Finanzministerium"} mahnt Haushaltsdisziplin und Inflationsbekämpfung an, während die Fachressorts zusätzliche Mittel fordern.`,
+    titel: t("kab.hh.titel"),
+    ressort: t("kab.hh.ressort"),
+    anlass: t("kab.hh.anlass", { wer: fin?.name ?? t("kab.fb.finanzministerium") }),
     dringlichkeit: w.economy.inflation > 20 || w.economy.deficit > 5 ? "hoch" : "normal",
     optionen: [
       {
         id: "sparen",
-        titel: "Strikter Sparkurs (Finanzministerium stützen)",
-        text: "Ausgabenstopp für Nebenressorts. Stärkt das Vertrauen der internationalen Finanzmärkte, verärgert jedoch Industrie und Militär.",
-        befuerworter: [fin?.name ?? "Finanzminister"].filter(Boolean),
-        gegner: [wirt?.name ?? "Wirtschaftsminister", gen?.name ?? "Chef des Generalstabs"].filter(Boolean),
+        titel: t("kab.hh.sparen.titel"),
+        text: t("kab.hh.sparen.text"),
+        befuerworter: [fin?.name ?? t("kab.fb.finanzminister")].filter(Boolean),
+        gegner: [wirt?.name ?? t("kab.fb.wirtschaftsminister"), gen?.name ?? t("kab.fb.generalstabschef")].filter(Boolean),
         kostenPk: 0,
         effekteText: [
-          `${fin?.name ?? "Finanzen"}: +12 Loyalität, Groll sinkt`,
-          `${wirt?.name ?? "Wirtschaft"} & ${gen?.name ?? "Generalstab"}: -8 Loyalität, +10 Groll`,
-          "Marktvertrauen +3 Pkt., Defizit sinkt um 0,6 % des BIP; Preis: die Nachfrage bremst",
+          t("kab.hh.sparen.e1", { name: fin?.name ?? t("kab.fb.finanzen") }),
+          t("kab.hh.sparen.e2", { a: wirt?.name ?? t("kab.fb.wirtschaft"), b: gen?.name ?? t("kab.fb.generalstab") }),
+          t("kab.hh.sparen.e3"),
         ],
         ausfuehren: (world) => {
           const fs = world.spiel?.figuren ?? [];
@@ -261,17 +261,17 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
           if (fFin) {
             loyalitaetVerschieben(fFin, 12);
             grollVerschieben(world, fFin, -15);
-            merke(world, fFin, "Präsident stützt den strikten Sparkurs im Kabinett.");
+            merke(world, fFin, t("kab.hh.sparen.m1"));
           }
           if (fWirt) {
             loyalitaetVerschieben(fWirt, -8);
             grollVerschieben(world, fWirt, 10);
-            merke(world, fWirt, "Kürzungen im Wirtschaftsetat verärgern die Industrie.");
+            merke(world, fWirt, t("kab.hh.sparen.m2"));
           }
           if (fGen) {
             loyalitaetVerschieben(fGen, -8);
             grollVerschieben(world, fGen, 10);
-            merke(world, fGen, "Verteidigungsetat gekürzt zugunsten der Schuldenbremse.");
+            merke(world, fGen, t("kab.hh.sparen.m3"));
           }
           wirke(world, "vertrauen_maerkte", 3);
           // Ausgabenstopp über den fiskalischen Impuls: Das Defizit sinkt, aber die Nachfrage fällt mit (Gegenrechnung über die Auslastung).
@@ -281,15 +281,15 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
       },
       {
         id: "investieren",
-        titel: "Wachstumsimpuls & Rüstungsmodernisierung",
-        text: "Kreditfinanzierte Mittel für heimische Industrieprojekte und Beschaffungen. Kurbelt die Konjunktur an, belastet aber Lira und Haushaltsdisziplin.",
-        befuerworter: [wirt?.name ?? "Wirtschaftsminister", gen?.name ?? "Chef des Generalstabs"].filter(Boolean),
-        gegner: [fin?.name ?? "Finanzminister"].filter(Boolean),
+        titel: t("kab.hh.invest.titel"),
+        text: t("kab.hh.invest.text"),
+        befuerworter: [wirt?.name ?? t("kab.fb.wirtschaftsminister"), gen?.name ?? t("kab.fb.generalstabschef")].filter(Boolean),
+        gegner: [fin?.name ?? t("kab.fb.finanzminister")].filter(Boolean),
         kostenPk: 2,
         effekteText: [
-          `${wirt?.name ?? "Wirtschaft"} & ${gen?.name ?? "Generalstab"}: +10 Loyalität`,
-          `${fin?.name ?? "Finanzen"}: -12 Loyalität, sammelt Groll`,
-          "Nachfrageimpuls von 0,4 % des BIP stützt das Wachstum; Preis: Defizit und Schulden steigen. Bereitschaft der Streitkräfte steigt",
+          t("kab.hh.invest.e1", { a: wirt?.name ?? t("kab.fb.wirtschaft"), b: gen?.name ?? t("kab.fb.generalstab") }),
+          t("kab.hh.invest.e2", { name: fin?.name ?? t("kab.fb.finanzen") }),
+          t("kab.hh.invest.e3"),
         ],
         ausfuehren: (world) => {
           const fs = world.spiel?.figuren ?? [];
@@ -299,15 +299,15 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
           if (fFin) {
             loyalitaetVerschieben(fFin, -12);
             grollVerschieben(world, fFin, 15);
-            merke(world, fFin, "Ausgabenrausch gegen das Votum des Finanzministeriums.");
+            merke(world, fFin, t("kab.hh.invest.m1"));
           }
           if (fWirt) {
             loyalitaetVerschieben(fWirt, 10);
-            merke(world, fWirt, "Präsident bewilligt Industriemittel im Kabinett.");
+            merke(world, fWirt, t("kab.hh.invest.m2"));
           }
           if (fGen) {
             loyalitaetVerschieben(fGen, 10);
-            merke(world, fGen, "Zusätzliche Rüstungsbudgets beschlossen.");
+            merke(world, fGen, t("kab.hh.invest.m3"));
           }
           wirke(world, "investitionen", 4);
           wirke(world, "bereitschaft_heer", 3);
@@ -318,14 +318,11 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
       },
       {
         id: "ausgleich",
-        titel: "Präsidialer Kompromiss (Gleichmäßige Deckelung)",
-        text: "Keine Einsparungen, aber auch keine Sonderbudgets. Hält den Kabinettsfrieden, löst jedoch keines der strukturellen Probleme.",
-        befuerworter: ["Präsidialamt (Stab)"].filter(Boolean),
+        titel: t("kab.hh.ausgleich.titel"),
+        text: t("kab.hh.ausgleich.text"),
+        befuerworter: [t("kab.fb.stab")].filter(Boolean),
         gegner: [],
-        effekteText: [
-          "Kabinettsstimmung bleibt stabil (keine nennenswerten Verluste)",
-          "Legitimität +1 Pkt. durch besonnenes Krisenmanagement",
-        ],
+        effekteText: [t("kab.hh.ausgleich.e1"), t("kab.hh.ausgleich.e2")],
         ausfuehren: (world) => {
           wirke(world, "legitimitaet", 1);
         },
@@ -336,21 +333,21 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
   // Thema 2: Innere Sicherheit vs. Rechtsstaat (Inneres vs. Justiz)
   themen.push({
     id: "sicherheit_justiz",
-    titel: "Sicherheitsdoktrin: Härte der Polizei vs. Rechtsstaatlichkeit",
-    ressort: "Inneres & Justiz",
-    anlass: `${inn?.name ?? "Das Innenministerium"} verlangt erweiterte Durchgriffsrechte bei Protesten, während ${jus?.name ?? "die Justiz"} vor Rügen des Verfassungsgerichts warnt.`,
+    titel: t("kab.si.titel"),
+    ressort: t("kab.si.ressort"),
+    anlass: t("kab.si.anlass", { inn: inn?.name ?? t("kab.fb.innenministerium"), jus: jus?.name ?? t("kab.fb.justiz") }),
     dringlichkeit: nationalAverage(NET, w.net, "kriminalitaet") > 50 || nationalAverage(NET, w.net, "polarisierung") > 60 ? "hoch" : "normal",
     optionen: [
       {
         id: "haerte",
-        titel: "Rückendeckung für den Sicherheitsapparat",
-        text: "Erweiterte Befugnisse für Polizei und Sicherheitskräfte. Senkt die Kriminalität, vertieft jedoch die gesellschaftliche Spaltung.",
-        befuerworter: [inn?.name ?? "Innenministerin"].filter(Boolean),
-        gegner: [jus?.name ?? "Justizministerin"].filter(Boolean),
+        titel: t("kab.si.haerte.titel"),
+        text: t("kab.si.haerte.text"),
+        befuerworter: [inn?.name ?? t("kab.fb.innenministerin")].filter(Boolean),
+        gegner: [jus?.name ?? t("kab.fb.justizministerin")].filter(Boolean),
         effekteText: [
-          `${inn?.name ?? "Inneres"}: +14 Loyalität (Sicherheitslager jubelt)`,
-          `${jus?.name ?? "Justiz"}: -12 Loyalität, +12 Groll (Rechtsstaatslager protestiert)`,
-          "Kriminalität -3 Pkt., Polarisierung +2 Pkt.",
+          t("kab.si.haerte.e1", { name: inn?.name ?? t("kab.fb.inneres") }),
+          t("kab.si.haerte.e2", { name: jus?.name ?? t("kab.fb.justizKurz") }),
+          t("kab.si.haerte.e3"),
         ],
         ausfuehren: (world) => {
           const fs = world.spiel?.figuren ?? [];
@@ -358,12 +355,12 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
           const fJus = fs.find((x) => x.amt === "justiz");
           if (fInn) {
             loyalitaetVerschieben(fInn, 14);
-            merke(world, fInn, "Präsident stärkt den Sicherheitskräften den Rücken.");
+            merke(world, fInn, t("kab.si.haerte.m1"));
           }
           if (fJus) {
             loyalitaetVerschieben(fJus, -12);
             grollVerschieben(world, fJus, 12);
-            merke(world, fJus, "Befugniserweiterung ignoriert rechtsstaatliche Bedenken.");
+            merke(world, fJus, t("kab.si.haerte.m2"));
           }
           wirke(world, "kriminalitaet", -3);
           wirke(world, "polarisierung", 2);
@@ -371,14 +368,14 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
       },
       {
         id: "rechtsstaat",
-        titel: "Priorität für Verfassungs- und Bürgerrechte",
-        text: "Justizaufsicht verschärfen und Übergriffe untersuchen lassen. Erhöht das internationale Ansehen, schwächt aber die Ministerin des Innern.",
-        befuerworter: [jus?.name ?? "Justizministerin"].filter(Boolean),
-        gegner: [inn?.name ?? "Innenministerin"].filter(Boolean),
+        titel: t("kab.si.recht.titel"),
+        text: t("kab.si.recht.text"),
+        befuerworter: [jus?.name ?? t("kab.fb.justizministerin")].filter(Boolean),
+        gegner: [inn?.name ?? t("kab.fb.innenministerin")].filter(Boolean),
         effekteText: [
-          `${jus?.name ?? "Justiz"}: +12 Loyalität, Justizunabhängigkeit steigt`,
-          `${inn?.name ?? "Inneres"}: -12 Loyalität, sammelt Groll`,
-          "Internationales Ansehen +2 Pkt.",
+          t("kab.si.recht.e1", { name: jus?.name ?? t("kab.fb.justizKurz") }),
+          t("kab.si.recht.e2", { name: inn?.name ?? t("kab.fb.inneres") }),
+          t("kab.si.recht.e3"),
         ],
         ausfuehren: (world) => {
           const fs = world.spiel?.figuren ?? [];
@@ -386,12 +383,12 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
           const fJus = fs.find((x) => x.amt === "justiz");
           if (fJus) {
             loyalitaetVerschieben(fJus, 12);
-            merke(world, fJus, "Rechtsstaatliche Leitplanken im Ministerrat verteidigt.");
+            merke(world, fJus, t("kab.si.recht.m1"));
           }
           if (fInn) {
             loyalitaetVerschieben(fInn, -12);
             grollVerschieben(world, fInn, 14);
-            merke(world, fInn, "Innenministerium fühlt sich von der Staatsführung im Stich gelassen.");
+            merke(world, fInn, t("kab.si.recht.m2"));
           }
           wirke(world, "justiz_unabhaengigkeit", 3);
           wirke(world, "ansehen", 2);
@@ -478,22 +475,18 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
   if (status.disziplin === "gespalten" || status.disziplin === "rebellisch") {
     themen.unshift({
       id: "vertrauenskrise",
-      titel: "Kabinettskrise: Koalitionsfrieden und Amtsdisziplin",
-      ressort: "Staatsführung & Präsidialamt",
-      anlass: "Die wachsende Zerrüttung im Ministerrat gefährdet die Regierungsfähigkeit. Mehrere Ressorts arbeiten gegeneinander.",
+      titel: t("kab.kr.titel"),
+      ressort: t("kab.kr.ressort"),
+      anlass: t("kab.kr.anlass"),
       dringlichkeit: "hoch",
       optionen: [
         {
           id: "machtwort",
-          titel: "Autoritäres Machtwort: Disziplin einfordern",
-          text: "Der Präsident stellt klar, dass Quertreiber unverzüglich entlassen werden. Bringt vorsichtige Minister auf Linie, provoziert jedoch stolze Figuren.",
-          befuerworter: ["Präsidialamt (Stab)"].filter(Boolean),
+          titel: t("kab.kr.machtwort.titel"),
+          text: t("kab.kr.machtwort.text"),
+          befuerworter: [t("kab.fb.stab")].filter(Boolean),
           gegner: status.ruecktrittGefahr.map((m) => m.name),
-          effekteText: [
-            "Loyale Minister gewinnen +6 Loyalität",
-            "Bereits rebellische Minister könnten endgültig brechen (-8 Loyalität)",
-            "Disziplin-Signal stärkt das Vertrauen in die Regierung (+2 Pkt.)",
-          ],
+          effekteText: [t("kab.kr.machtwort.e1"), t("kab.kr.machtwort.e2"), t("kab.kr.machtwort.e3")],
           ausfuehren: (world) => {
             const fs = world.spiel?.figuren ?? [];
             for (const f of fs) {
@@ -506,23 +499,19 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
         },
         {
           id: "ressort_zugestaendnis",
-          titel: "Ressort-Paket: Zusätzliche Mittel zur Befriedung",
-          text: "Kostet 5 Politisches Kapital. Der Präsident stellt allen Ministerien zusätzliche Handlungsbudgets bereit, um die Gemüter zu beruhigen.",
+          titel: t("kab.kr.paket.titel"),
+          text: t("kab.kr.paket.text"),
           befuerworter: status.minister.map((m) => m.name),
           gegner: [],
           kostenPk: 5,
-          effekteText: [
-            "Alle 7 Kabinettsminister gewinnen +8 Loyalität",
-            "Groll aller Minister sinkt um -15 Punkte",
-            "Kostet 5 Politisches Kapital",
-          ],
+          effekteText: [t("kab.kr.paket.e1"), t("kab.kr.paket.e2"), t("kab.kr.paket.e3")],
           ausfuehren: (world) => {
             const fs = world.spiel?.figuren ?? [];
             for (const f of fs) {
               if (!AEMTER[f.amt].regierungsamt) continue;
               loyalitaetVerschieben(f, 8);
               grollVerschieben(world, f, -15);
-              merke(world, f, "Präsident stellt Sonderbudget zur Kabinettsbefriedung bereit.");
+              merke(world, f, t("kab.kr.paket.m1"));
             }
             if (world.spiel) world.spiel.kapital = Math.max(-20, world.spiel.kapital - 5);
           },
@@ -541,14 +530,14 @@ export function halteKabinettssitzungAb(
   optionId: string
 ): { erfolg: boolean; text: string; effekteText: string[] } {
   const themen = bereiteKabinettssitzungVor(w);
-  const thema = themen.find((t) => t.id === themaId);
-  if (!thema) return { erfolg: false, text: "Thema nicht gefunden.", effekteText: [] };
+  const thema = themen.find((x) => x.id === themaId);
+  if (!thema) return { erfolg: false, text: t("kab.e.thema"), effekteText: [] };
 
   const opt = thema.optionen.find((o) => o.id === optionId);
-  if (!opt) return { erfolg: false, text: "Beschlussoption nicht gefunden.", effekteText: [] };
+  if (!opt) return { erfolg: false, text: t("kab.e.option"), effekteText: [] };
 
   if (opt.kostenPk && (w.spiel?.kapital ?? 0) + 20 < opt.kostenPk) {
-    return { erfolg: false, text: "Dafür reicht das Politische Kapital nicht aus.", effekteText: [] };
+    return { erfolg: false, text: t("kab.e.kapital"), effekteText: [] };
   }
 
   opt.ausfuehren(w);
@@ -561,13 +550,13 @@ export function halteKabinettssitzungAb(
   addLog(
     w,
     "entscheidung",
-    `Kabinettssitzung beschlossen: ${thema.titel} – „${opt.titel}“.`,
-    `Beschluss im Ministerrat: ${opt.effekteText.join("; ")}`
+    t("kab.log", { thema: thema.titel, option: opt.titel }),
+    t("kab.log.warum", { folgen: opt.effekteText.join("; ") })
   );
 
   return {
     erfolg: true,
-    text: `Der Ministerrat hat getagt: „${opt.titel}“ wurde als offizielle Regierungslinie beschlossen.`,
+    text: t("kab.ergebnis", { option: opt.titel }),
     effekteText: opt.effekteText,
   };
 }

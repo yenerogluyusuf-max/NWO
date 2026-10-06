@@ -142,6 +142,39 @@ export interface KriegVorgang {
   koalition?: KriegKoalition;
   /** Der Vorgang entstand aus einem Beistandsruf eines Pakt-Partners (Pakt und Partner, für Anzeige und Beleg der Rahmung „beistand“) */
   beistandFuer?: { partner: string; pakt: string };
+  /**
+   * Schauplatz (sim/kriegsschauplatz.ts, data/schauplaetze.ts): Einsatzart und Tempo als die zwei Entscheidungen der Kriegsführung,
+   * Lage jeder Region, Bestand des Gegners und die Verluste der letzten Woche. Ältere Spielstände haben die Felder nicht: Dann gilt
+   * „gemischt“ und „normal“ (alle Faktoren 1), der Gegnerbestand entsteht beim ersten Zugriff mit Stand 2026.
+   */
+  einsatz?: EinsatzWahl;
+  /** Tag der letzten Umstellung der Einsatzart (Abkühlung) */
+  einsatzSeit?: number;
+  tempo?: KriegsTempoWahl;
+  regionen?: Record<string, RegionLage>;
+  gegnerBestand?: Record<GegnerGattungId, { menge: number; generation: number }>;
+  /** Verluste der letzten Kriegswoche in Prozent des jeweiligen Bestands (Anzeige) */
+  letzteWoche?: { eigen: number; gegner: number; region?: string };
+  /** Türkische Grenzprovinzen (Plaka), auf die der Gegner gerade vorstößt */
+  bedroht?: number[];
+}
+
+export type EinsatzWahl = "luft" | "boden" | "see" | "stellvertreter";
+export type KriegsTempoWahl = "vorsichtig" | "normal" | "hart";
+export type GegnerGattungId = "heer" | "luft" | "luftabwehr" | "see" | "drohnen";
+/** Lage einer Region im Krieg: beim Gegner, umkämpft (die Front steht dort) oder unter türkischer Kontrolle */
+export type RegionLage = "gegner" | "umkaempft" | "eigen";
+
+/** Eine besetzte Region nach dem Frieden (sim/kriegsschauplatz.ts): Form, Widerstand, Kosten. */
+export interface BesatzungsGebiet {
+  region: string;
+  land: string;
+  seit: number;
+  form: "pufferzone" | "verwaltung" | "annexion";
+  /** 0 bis 100 */
+  widerstand: number;
+  /** Monate in Folge über der Aufstandsschwelle */
+  aufstand: number;
 }
 
 // Gebietsübertragung (Welle 2, noch nicht gebaut): Der Hebel liegt in sim/krieg.ts, Funktion `friedenSchliessen`: Dort steht heute

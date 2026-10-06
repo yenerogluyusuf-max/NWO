@@ -99,5 +99,10 @@
  "militaer.zielraum.irq_berge": "Kandil ve sınır dağları",
  "militaer.zielraum.irq_tief": "Kuzey Irak'ta derin harekât",
  "militaer.zielraum.syr_grenzstreifen": "Kuzey Suriye sınır şeridi",
- "militaer.zielraum.syr_tief": "Suriye'de derin harekât"
+ "militaer.zielraum.syr_tief": "Suriye'de derin harekât",
+ "militaer.zielraum.syr_maximal": "Halep ve Deyrizor'a kadar tüm Kuzey Suriye",
+ "militaer.zielraum.irq_maximal": "Kerkük ve Süleymaniye'ye kadar Kuzey Irak",
+ "militaer.zielraum.grc_maximal": "Adalar, Trakya ve Selanik",
+ "militaer.zielraum.cyp_maximal": "Kıbrıs'ın tamamı",
+ "militaer.zielraum.arm_maximal": "Erivan'a kadar tüm Ermenistan"
 }

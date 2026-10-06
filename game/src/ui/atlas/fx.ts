@@ -12,6 +12,7 @@ import type { KFlaeche } from "./daten";
 import { huelle } from "./tinte";
 import type { AtlasScene } from "./scene";
 import type { VectorLayer } from "./vector";
+import { zeichneKrieg, type KriegUv } from "./kriegsfx";
 
 export interface FxZiel {
   hover?: number;
@@ -70,6 +71,8 @@ export class FxLayer {
   private bebenLauf: { start: number; dauer: number; amp: number } | null = null;
   private letzteZeit = 0;
   private gezeichnet = false;
+  /** Lage laufender Kriege und Besatzungen (kriegsfx.ts); null = nichts zu zeigen */
+  private krieg: KriegUv | null = null;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -115,6 +118,12 @@ export class FxLayer {
       l.hover = l.hoverZiel;
       l.auswahl = l.auswahlZiel;
     }
+    this.gezeichnet = true;
+  }
+
+  /** Kriegslage setzen (Regionen, Front, Vorstöße); null blendet sie aus. */
+  setKrieg(k: KriegUv | null): void {
+    this.krieg = k;
     this.gezeichnet = true;
   }
 
@@ -169,6 +178,7 @@ export class FxLayer {
   /** Atmet eine Auswahl (ruhige Zierbewegung)? Dann reichen im Leerlauf wenige Bilder je Sekunde. */
   atmet(stufe: Effektstufe): boolean {
     if (!zierBewegung(stufe, true)) return false;
+    if (this.krieg?.aktiv) return true;
     for (const l of this.lichter.values()) if (l.auswahlZiel > 0) return true;
     return false;
   }
@@ -187,7 +197,7 @@ export class FxLayer {
     const ctx = this.ctx;
     const dt = this.letzteZeit ? Math.min(100, jetztMs - this.letzteZeit) : 16;
     this.letzteZeit = jetztMs;
-    const etwas = this.aktiv(stufe);
+    const etwas = this.aktiv(stufe) || !!this.krieg;
     if (!etwas && !this.gezeichnet) return;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.cssW, this.cssH);
@@ -210,6 +220,9 @@ export class FxLayer {
       if (l.hover >= 0.01) this.zeichneHover(l, z, stufe);
       if (l.auswahl >= 0.01) this.zeichneAuswahl(l, z, stufe, atem);
     }
+
+    // Kriegslage unter allem Übrigen (Regionen, Front, Vorstöße)
+    if (this.krieg) zeichneKrieg(ctx, this.atlas, this.krieg, jetztMs, z, zierBewegung(stufe, true));
 
     // Tinte (Besitzerwechsel)
     for (let i = this.tinten.length - 1; i >= 0; i--) {

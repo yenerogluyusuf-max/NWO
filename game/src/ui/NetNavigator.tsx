@@ -4,7 +4,8 @@
 import { useMemo, useState } from "react";
 import { NET } from "../sim/modell";
 import { activeProvinces, nationalAverage, startAverage } from "../sim/netz";
-import { THEME_NAMES, type NodeSpec, type Theme } from "../data/politiknetz";
+import { type NodeSpec, type Theme } from "../data/politiknetz";
+import { themeName } from "./politik/bereiche";
 import type { World } from "../sim/types";
 
 import { t } from "../i18n";
@@ -116,7 +117,7 @@ export function NetNavigator({ world, selectedId, onSelect }: { world: World; se
                 <span className="pfeil" aria-hidden>
                   {istOffen ? "▾" : "▸"}
                 </span>
-                <span className="nav-thema-name">{THEME_NAMES[t]}</span>
+                <span className="nav-thema-name">{themeName(t)}</span>
                 {akut > 0 && <span className="badge">{akut} akut</span>}
                 <span className="nav-anzahl">{knoten.length}</span>
               </button>

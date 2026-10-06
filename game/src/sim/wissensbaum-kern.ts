@@ -2,7 +2,7 @@
 // Gelesen vom Reich (Bautempo, Schulden), von der Güterbilanz (zusätzliche Produktion) und von den Streitkräften (Fertigungstempo).
 // Die Ansicht und die Entscheidungen stehen in sim/wissensbaum.ts. Alle Zahlen: Spielparameter in data/wissensbaum.ts.
 
-import { BAUM, LIZENZ, WERKE, ZWEIG_VON, type Lizenzgeber, type Traeger, type ZweigId } from "../data/wissensbaum";
+import { BAUM, LIZENZ, WERKE, WERK_VON, ZWEIG_VON, type Lizenzgeber, type Traeger, type ZweigId } from "../data/wissensbaum";
 import type { GutId } from "../data/gueter";
 import { bildungsUeberhang, forschungsRate, WISSEN } from "./wissensbasis";
 import type { World } from "./types";
@@ -25,6 +25,12 @@ export interface WissensbaumZustand {
   gemeldet: Lizenzgeber[];
   /** Was beim Anlegen schon stand: steckt in den Startwerten, zählt also nicht zusätzlich */
   start: string[];
+  /** Werk → gewählter Standort (Kfz-Kennziffer) und das beim Beginn festgestellte Tempo des Standorts */
+  standort?: Record<string, { plaka: number; tempo: number }>;
+  /** Knoten mit ausgelöstem Heureka und der Tag (für den Stempel) */
+  heureka?: { id: string; tag: number }[];
+  /** Ob die Heureka-Bedingungen schon einmal geprüft sind (beim ersten Mal still) */
+  heurekaGeprueft?: boolean;
 }
 
 /** Zustand des Wissensbaums; ältere Spielstände legen ihn beim ersten Zugriff an. Was zu Beginn schon steht, gilt als verbucht. */
@@ -48,6 +54,8 @@ export function baumZustand(w: World): WissensbaumZustand {
   z.durchbrueche ??= [];
   z.gemeldet ??= [];
   z.start ??= Object.keys(sp.reich?.bestand ?? {});
+  z.standort ??= {};
+  z.heureka ??= [];
   return z;
 }
 
@@ -78,6 +86,10 @@ export interface TempoTeile {
   lizenz: number;
   /** Träger des Werks */
   traeger: number;
+  /** Standort des Werks (Fachkräfte und Netze vor Ort) */
+  standort: number;
+  /** Heureka: Verwandtes ist schon gekonnt */
+  heureka: number;
   gesamt: number;
 }
 
@@ -108,8 +120,10 @@ export function tempoTeile(w: World, id: string): TempoTeile | null {
   const lizenz = lg ? (partnerGesperrt(w, lg) ? BAUM.gesperrtTempo : BAUM.lizenzTempo) : 1;
   const tr = z.traeger[id];
   const traeger = tr ? (tr.art === "ausland" && tr.partner && partnerGesperrt(w, tr.partner) ? BAUM.gesperrtTempo : BAUM.traeger[tr.art].tempo) : 1;
-  const gesamt = land.forschung * land.abwanderung * schwerpunkt * lizenz * traeger;
-  return { forschung: land.forschung, abwanderung: land.abwanderung, schwerpunkt, lizenz, traeger, gesamt };
+  const standort = z.standort?.[id]?.tempo ?? 1;
+  const heureka = z.heureka?.some((h) => h.id === id) ? BAUM.heurekaTempo : 1;
+  const gesamt = land.forschung * land.abwanderung * schwerpunkt * lizenz * traeger * standort * heureka;
+  return { forschung: land.forschung, abwanderung: land.abwanderung, schwerpunkt, lizenz, traeger, standort, heureka, gesamt };
 }
 
 export function forschungsTempo(w: World, id: string): number {
@@ -146,6 +160,13 @@ export function werkZusatz(w: World, gut: GutId): number {
   // Werke, die schon zu Beginn standen, stecken in den Startwerten; nur neu gebaute zählen zusätzlich
   for (const d of WERKE) if (d.gut?.id === gut && w.spiel.reich.bestand[d.id] && !start.includes(d.id)) s += d.gut.anteil * werkErtrag(w, d.id);
   return s;
+}
+
+/** Standort eines Werks (Kfz-Kennziffer): der gewählte, sonst der erste aus den Daten; `undefined` ohne Werk. Liest nur. */
+export function standortVon(w: World, id: string): number | undefined {
+  const d = WERK_VON[id];
+  if (!d) return undefined;
+  return w.spiel?.wissensbaum?.standort?.[id]?.plaka ?? d.standorte[0]?.plaka;
 }
 
 /** Lizenzgeber, die für einen Knoten in Frage kommen. */

@@ -4,7 +4,8 @@
 
 import { NET } from "../../sim/modell";
 import { nationalAverage, startAverage } from "../../sim/netz";
-import { THEME_NAMES, type NodeSpec, type Theme } from "../../data/politiknetz";
+import { type NodeSpec, type Theme } from "../../data/politiknetz";
+import { t } from "../../i18n";
 import { skala, naechsteStufe, skalenArt } from "../../data/skalen";
 import { akuteProbleme, vorschlaege, type Vorschlag } from "../../sim/vorschlaege";
 import { krisenFuerMassnahme } from "../../sim/krisen";
@@ -39,25 +40,19 @@ export const BEREICH_THEMEN: Theme[] = [
   "aussen",
 ];
 
-const TEXTE: Record<string, string> = {
-  wirtschaft: "Preise, Löhne, Investitionen und Handel: was Haushalte im Portemonnaie und Betriebe in der Bilanz spüren.",
-  haushalt: "Einnahmen, Ausgaben, Schulden und das Vertrauen der Märkte.",
-  arbeit: "Beschäftigung, Armut, Renten und Arbeitskämpfe.",
-  gesundheit: "Krankenhäuser, Ärzte, Wartezeiten und Medikamente.",
-  bildung: "Schulen, Hochschulen, Fachkräfte und die Frage, wer bleibt und wer geht.",
-  wohnen: "Mieten, Neubau, Bauqualität und Erdbebenvorsorge.",
-  energie: "Strom, Gas, erneuerbare Energie und die Abhängigkeit von Importen.",
-  landwirtschaft: "Wasser, Ernten, Preise und das Leben auf dem Land.",
-  infrastruktur: "Straßen, Bahn, Häfen, Netze und ihr Zustand.",
-  sicherheit: "Polizei, Kriminalität, Terror und Frieden im Innern.",
-  recht: "Justiz, Gerichte, Haft, Urteile und die Grenzen der Regierung.",
-  militaer: "Heer, Luftwaffe, Marine, Rüstung und Abschreckung.",
-  kultur: "Kulturerbe, Identität und Vielfalt: das Gedächtnis des Landes.",
-  gesellschaft: "Medien, Zusammenhalt, Gleichstellung und das Vertrauen in die Regierung.",
-  aussen: "Beziehungen zu Nachbarn und Mächten, Geflüchtete und internationales Ansehen.",
-};
+/** Name und Satz eines Bereichs in der Sprache des Spiels (Katalog ansichten.json). */
+export const themeName = (theme: Theme): string => t(`bereich.${theme}.name`);
+const bereichText = (theme: Theme): string => t(`bereich.${theme}.text`);
 
-export const BEREICHE: BereichDef[] = BEREICH_THEMEN.map((theme) => ({ theme, name: THEME_NAMES[theme], text: TEXTE[theme] ?? "" }));
+export const BEREICHE: BereichDef[] = BEREICH_THEMEN.map((theme) => ({
+  theme,
+  get name() {
+    return themeName(theme);
+  },
+  get text() {
+    return bereichText(theme);
+  },
+}));
 
 /** Größen, bei denen ein hoher Wert schlecht ist; alle anderen sind gut, wenn sie hoch sind. Neutrale stehen in NEUTRAL. */
 export const SCHLECHT_WENN_HOCH = new Set([
@@ -265,14 +260,14 @@ export function ampelFuer(probleme: ProblemZeile[], lage: LageZeile[]): { ampel:
   const schwer = probleme.filter((p) => p.last >= 0.3);
   if (probleme.length >= 3 || schwer.length > 0 || schlecht.length >= 2) {
     const teile: string[] = [];
-    if (probleme.length) teile.push(`${probleme.length} akute${probleme.length === 1 ? "s Problem" : " Probleme"}`);
-    if (schlecht.length) teile.push(`${schlecht.length} ${schlecht.length === 1 ? "Größe" : "Größen"} im schlechten Bereich`);
-    return { ampel: "rot", grund: `Angespannt: ${teile.join(", ")}.` };
+    if (probleme.length) teile.push(t("bereich.ampel.probleme", { n: probleme.length }));
+    if (schlecht.length) teile.push(t("bereich.ampel.schlecht", { n: schlecht.length }));
+    return { ampel: "rot", grund: t("bereich.ampel.rot", { teile }) };
   }
   if (probleme.length >= 1 || schlecht.length >= 1) {
-    return { ampel: "gelb", grund: probleme.length ? `${probleme.length} akutes Problem: ${probleme[0]!.name}.` : `${schlecht[0]!.name} steht im schlechten Bereich.` };
+    return { ampel: "gelb", grund: probleme.length ? t("bereich.ampel.gelbProblem", { name: probleme[0]!.name }) : t("bereich.ampel.gelbGroesse", { name: schlecht[0]!.name }) };
   }
-  return { ampel: "gruen", grund: "Kein akutes Problem, keine Größe im schlechten Bereich." };
+  return { ampel: "gruen", grund: t("bereich.ampel.gruen") };
 }
 
 export function bereichStand(world: World, theme: Theme): BereichStand {
@@ -281,8 +276,8 @@ export function bereichStand(world: World, theme: Theme): BereichStand {
   const { ampel, grund } = ampelFuer(probleme, lage);
   return {
     theme,
-    name: THEME_NAMES[theme],
-    text: TEXTE[theme] ?? "",
+    name: themeName(theme),
+    text: bereichText(theme),
     ampel,
     ampelGrund: grund,
     probleme,
@@ -321,8 +316,8 @@ export function bereichKurz(world: World, theme: Theme): BereichKurz {
     .slice(0, 3);
   return {
     theme,
-    name: THEME_NAMES[theme],
-    text: TEXTE[theme] ?? "",
+    name: themeName(theme),
+    text: bereichText(theme),
     ampel,
     ampelGrund: grund,
     akut: probleme.length,

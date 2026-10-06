@@ -403,6 +403,17 @@ export function vorhabenListe(w: World, bereich: string): VorhabenSicht[] {
 // ---------------------------------------------------------------------------
 // Wirkungen
 
+/**
+ * Ein Werk an einem anderen Standort als in den Daten (Wissensbaum): Was die Daten am eigenen Ort wirken lassen, wirkt am gewählten.
+ * Ohne Wahl oder beim Ort der Daten bleibt die Wirkung unverändert.
+ */
+function amOrt(w: World, v: Vorhaben, e: Effekt): Effekt {
+  if (e.t !== "knoten" || !e.provinzen?.length || !v.provinzen?.length) return e;
+  const pl = w.spiel?.wissensbaum?.standort?.[v.id]?.plaka;
+  if (pl === undefined || pl === v.ort?.plaka || !e.provinzen.every((p) => v.provinzen!.includes(p))) return e;
+  return { ...e, provinzen: [pl] };
+}
+
 export function wendeEffekt(w: World, e: Effekt, faktor = 1): void {
   const spiel = w.spiel;
   const z = spiel ? reichZustand(w) : null;
@@ -906,7 +917,7 @@ function schliesseAb(w: World, v: Vorhaben): void {
   z.laufend = z.laufend.filter((x) => x.id !== v.id);
   // Restaurierungen sind Arbeiten, keine Bauwerke: Sie lassen sich später wiederholen
   if (v.klasse !== "restaurierung") z.bestand[v.id] = { seit: w.date, zustand: l?.zustandFertig ?? 90 };
-  for (const e of v.abschluss) wendeEffekt(w, e);
+  for (const e of v.abschluss) wendeEffekt(w, amOrt(w, v, e));
   // Vorher und Nachher: Ausgangslage beim Beginn gegen den Stand am Tag der Fertigstellung (die Dauerwirkung baut sich danach auf)
   let zusatz = "";
   if (l?.vorher) {
@@ -1036,7 +1047,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
       }
     }
     // Was schon während des Baus wirkt: Aufbruch und Arbeit, aber auch Lasten
-    if (v.bauwirkung && aufnahme > 0) for (const e of v.bauwirkung) wendeEffekt(w, e);
+    if (v.bauwirkung && aufnahme > 0) for (const e of v.bauwirkung) wendeEffekt(w, amOrt(w, v, e));
     // Kostenüberschreitung der Katalogvorhaben: Marken des Baufortschritts, gewürfelt aus Spielstand und Vorhaben
     // (kein Zugriff auf den Zufallsstrom des Spiels, der Ausgang steht mit dem Spielstand fest)
     if (!l.frei && v.ueberzug && bau > 0) ueberzugPruefen(w, l, v);
@@ -1055,7 +1066,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
     // Was am Spielbeginn schon stand, steckt in den Startwerten des Netzes: Es wirkt nur nach seinem Zustand gegenüber dem Start
     // (verfällt es, sinkt der Nutzen; wird es instand gesetzt, steigt er). Neue Bauten wirken nach ihrem Zustand.
     const skala = zustandsSkala(v, b.zustand);
-    if (v.dauer) for (const e of v.dauer) wendeEffekt(w, e, skala);
+    if (v.dauer) for (const e of v.dauer) wendeEffekt(w, amOrt(w, v, e), skala);
     b.zustand = Math.max(15, b.zustand - verfallSatz(v) * pflege);
   }
 
@@ -1329,8 +1340,13 @@ export function kartenOrte(w: World): ReichOrt[] {
   const kandidaten = [...VORHABEN, ...Object.values(z.regional ?? {}).map((e) => e.def), ...Object.values(z.frei ?? {}).map((e) => e.def)];
   for (const v of kandidaten) {
     if (!v.ort || (!["wunder", "grossprojekt", "serie", "ausbau"].includes(v.klasse) && !v.instanzVon)) continue;
-    if (z.bestand[v.id]) out.push({ id: `v:${v.id}`, lon: v.ort.lon, lat: v.ort.lat, art: "wunder", text: `${v.name} (fertig)` });
-    else if (z.laufend.some((l) => l.id === v.id)) out.push({ id: `v:${v.id}`, lon: v.ort.lon, lat: v.ort.lat, art: "bau", text: `${v.name} (im Bau)` });
+    // Ein Werk an einem gewählten Standort steht auf der Karte dort (Mitte der Provinz)
+    const pl = w.spiel.wissensbaum?.standort?.[v.id]?.plaka;
+    const mitte = pl !== undefined && pl !== v.ort.plaka ? (MITTEN as unknown as Record<string, [number, number]>)[String(pl)] : undefined;
+    const lon = mitte ? mitte[0] : v.ort.lon;
+    const lat = mitte ? mitte[1] : v.ort.lat;
+    if (z.bestand[v.id]) out.push({ id: `v:${v.id}`, lon, lat, art: "wunder", text: `${v.name} (fertig)` });
+    else if (z.laufend.some((l) => l.id === v.id)) out.push({ id: `v:${v.id}`, lon, lat, art: "bau", text: `${v.name} (im Bau)` });
   }
   return out;
 }

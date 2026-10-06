@@ -82,6 +82,12 @@ export const ZIELRAEUME: Zielraum[] = [
   { id: "arm_korridor", land: "ARM", schwierigkeit: 0.9, bedeutung: 2 },
   { id: "irn_grenze", land: "IRN", schwierigkeit: 1.0, bedeutung: 1 },
   { id: "irn_tief", land: "IRN", schwierigkeit: 1.4, bedeutung: 3 },
+  // Maximalziele: der ganze Schauplatz (data/schauplaetze.ts ZIELRAUM_REGIONEN); teuer an Gegenwehr, Ansehen und Besatzung
+  { id: "syr_maximal", land: "SYR", schwierigkeit: 1.35, bedeutung: 3 },
+  { id: "irq_maximal", land: "IRQ", schwierigkeit: 1.5, bedeutung: 3 },
+  { id: "grc_maximal", land: "GRC", schwierigkeit: 1.7, bedeutung: 3 },
+  { id: "cyp_maximal", land: "CYP", schwierigkeit: 1.25, bedeutung: 3 },
+  { id: "arm_maximal", land: "ARM", schwierigkeit: 1.35, bedeutung: 3 },
 ];
 
 export const STANDARD_ZIEL = { schwierigkeit: 1, bedeutung: 2 };

@@ -14,6 +14,7 @@ import INFRA from "../data/provinz_infra.json";
 import MITTEN from "../data/reich/provinzmitten.json";
 import { ALTERNATIVEN, AUSBAUTEN, AUSBAU_NACH_ID, AUSLASTUNG_MAX, NETZE, NETZ_NACH_ID, PAKETE, SCHWELLE, START_GRENZEN, type AusbauDef, type NetzDef, type NetzId, type PaketDef } from "../data/infrastruktur-netze";
 import { instandsetzung, stoss } from "../data/reich/bau";
+import { STANDORT, WERKE } from "../data/wissensbaum";
 import { NET } from "./modell";
 import { PROVINCES } from "./netz";
 import { PROVINZEN, WEIGHTS } from "./regional";
@@ -317,12 +318,25 @@ function beantwortet(z: InfrastrukturZustand, netz: NetzId, provinzen: number[])
 }
 
 /**
- * Zusätzliche Last fertiger Werke auf die Netze (Spielparameter): Eine Chipfabrik braucht für Reinstwasser sehr viel Wasser; im Spiel
- * steigt die Wassernachfrage am Standort dauerhaft um einen Teil der Startnachfrage. Werke, die schon zu Beginn standen, stecken im Start.
+ * Zusätzliche Last fertiger Werke auf die Netze (Spielparameter, data/wissensbaum.ts): Jedes Werk braucht Strom, eine Chipfabrik für
+ * Reinstwasser zusätzlich sehr viel Wasser; im Spiel steigt die Nachfrage am Standort dauerhaft um einen Teil der Startnachfrage.
+ * Der Standort ist der im Wissensbaum gewählte, sonst der aus den Daten. Werke, die schon zu Beginn standen, stecken im Start.
  */
-export const WERK_LAST: Record<string, { netz: NetzId; provinzen: number[]; plus: number }> = {
-  ki_chipfab: { netz: "wasser", provinzen: [41], plus: 0.05 },
-};
+export const WERK_LAST: Record<string, { netz: NetzId; provinzen: number[]; plus: number }[]> = Object.fromEntries(
+  WERKE.filter((d) => d.standorte.length).map((d) => [
+    d.id,
+    [
+      { netz: "strom" as NetzId, provinzen: [d.standorte[0]!.plaka], plus: STANDORT.strom },
+      ...(d.wasser ? [{ netz: "wasser" as NetzId, provinzen: [d.standorte[0]!.plaka], plus: d.wasser }] : []),
+    ],
+  ]),
+);
+
+/** Die Last eines Werks am Standort (gewählt im Wissensbaum, sonst aus den Daten); für Anzeige und Monatsschritt. */
+export function werkLast(w: World, id: string): { netz: NetzId; provinzen: number[]; plus: number }[] {
+  const pl = w.spiel?.wissensbaum?.standort?.[id]?.plaka;
+  return (WERK_LAST[id] ?? []).map((l) => (pl === undefined ? l : { ...l, provinzen: [pl] }));
+}
 
 export function infrastrukturMonat(w: World): void {
   const sp = w.spiel;
@@ -344,12 +358,14 @@ export function infrastrukturMonat(w: World): void {
     }
     addLog(w, "entscheidung", t("infra.log.fertig", { name: reichName(w, id) }), t("infra.log.fertig.warum", { netz: t(`infra.netz.${e.netz}`) }));
   }
-  for (const [id, last] of Object.entries(WERK_LAST)) {
+  for (const id of Object.keys(WERK_LAST)) {
     if (!bestand[id] || (z.werkLast ??= {})[id] !== undefined) continue;
     z.werkLast[id] = w.day;
     if (sp.wissensbaum?.start.includes(id)) continue;
-    const s = z.netze[last.netz];
-    for (const pl of last.provinzen) if ((s.start[pl - 1] ?? 0) > 0) s.nachfrage[pl - 1] = Math.round(s.nachfrage[pl - 1]! * (1 + last.plus) * 10000) / 10000;
+    for (const last of werkLast(w, id)) {
+      const s = z.netze[last.netz];
+      for (const pl of last.provinzen) if ((s.start[pl - 1] ?? 0) > 0) s.nachfrage[pl - 1] = Math.round(s.nachfrage[pl - 1]! * (1 + last.plus) * 10000) / 10000;
+    }
   }
   rechneKapazitaet(w, z);
 

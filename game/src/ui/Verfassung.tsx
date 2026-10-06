@@ -31,15 +31,15 @@ import type { Ergebnis } from "../sim/handeln";
 import "./politik/design.css";
 
 import { t } from "../i18n";
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { maximumFractionDigits: d, minimumFractionDigits: d });
+const r1 = (x: number): number => Math.round(x * 10) / 10;
 
 /** Wohin eine Variante die Macht rückt, in einem Wort. */
 function richtungWort(autoritaer: number): string {
-  if (autoritaer >= 2) return "zieht die Macht deutlich zum Palast";
-  if (autoritaer === 1) return "stärkt die Exekutive";
-  if (autoritaer === -1) return "stärkt die Kontrolle";
-  if (autoritaer <= -2) return "gibt deutlich Kontrolle ab";
-  return "lässt die Gewichte, wie sie sind";
+  if (autoritaer >= 2) return t("vf.richtung.palast");
+  if (autoritaer === 1) return t("vf.richtung.exekutive");
+  if (autoritaer === -1) return t("vf.richtung.kontrolle");
+  if (autoritaer <= -2) return t("vf.richtung.abgabe");
+  return t("vf.richtung.gleich");
 }
 
 /** Wer im Parlament eine Variante trägt oder ablehnt (Qualität statt Scheingenauigkeit). */
@@ -47,9 +47,9 @@ function parteienText(parteien: Record<string, number>): string {
   const dafuer = Object.entries(parteien).filter(([, x]) => x >= 1).map(([p]) => PARTEI_NAME[p] ?? p);
   const dagegen = Object.entries(parteien).filter(([, x]) => x <= -1).map(([p]) => PARTEI_NAME[p] ?? p);
   const teile: string[] = [];
-  if (dafuer.length) teile.push(`dafür: ${dafuer.join(", ")}`);
-  if (dagegen.length) teile.push(`dagegen: ${dagegen.join(", ")}`);
-  return teile.length ? teile.join("; ") : "ohne klare Fronten im Parlament";
+  if (dafuer.length) teile.push(t("vf.dafuer", { l: dafuer }));
+  if (dagegen.length) teile.push(t("vf.dagegen", { l: dagegen }));
+  return teile.length ? teile.join("; ") : t("vf.ohneFronten");
 }
 
 export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh: () => void }) {
@@ -78,9 +78,9 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
     const sicht = paketStimmen(world, v.paket, v.absprachen);
     const geaendert = geaenderteArtikel(v.paket);
     const stufen = [
-      { id: "parlament", name: `Parlament (Hürden ${VERFASSUNG_REGELN.mehrheit}/${VERFASSUNG_REGELN.direkt})`, frist: v.abstimmung },
-      { id: "aym", name: "Verfassungsgericht", frist: v.aymTag },
-      { id: "kampagne", name: "Volksabstimmung", frist: v.referendumTag },
+      { id: "parlament", name: t("vf.stufe.parlament", { m: VERFASSUNG_REGELN.mehrheit, d: VERFASSUNG_REGELN.direkt }), frist: v.abstimmung },
+      { id: "aym", name: t("vf.stufe.aym"), frist: v.aymTag },
+      { id: "kampagne", name: t("vf.stufe.volk"), frist: v.referendumTag },
     ];
     const aktivStufe = v.phase === "parlament" ? 0 : v.phase === "aym" ? 1 : 2;
     const prognose = v.phase === "kampagne" ? referendumPrognose(world) : null;
@@ -93,8 +93,8 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
             {stufen.map((s, i) => (
               <li key={s.id} className={i < aktivStufe ? "vf-stufe erledigt" : i === aktivStufe ? "vf-stufe aktiv" : "vf-stufe"}>
                 <strong>{s.name}</strong>
-                {i === aktivStufe && s.frist !== undefined && <span> · in {Math.max(0, s.frist - world.day)} Tagen ({formatDateDe(addDays(world.date, s.frist - world.day))})</span>}
-                {i < aktivStufe && <span> · abgeschlossen</span>}
+                {i === aktivStufe && s.frist !== undefined && <span> · {t("vf.inTagen", { n: Math.max(0, s.frist - world.day), datum: formatDateDe(addDays(world.date, s.frist - world.day)) })}</span>}
+                {i < aktivStufe && <span> · {t("vf.abgeschlossen")}</span>}
               </li>
             ))}
           </ol>
@@ -108,23 +108,22 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
 
         {v.phase === "parlament" && (
           <section className="paper">
-            <h3>Parlamentsabstimmung am {formatDateDe(addDays(world.date, v.abstimmung - world.day))}</h3>
-            <div className="stimmen-bar" aria-label={`Erwartet ${sicht.erwartet} Ja-Stimmen`}>
+            <h3>{t("vf.abstimmungAm", { datum: formatDateDe(addDays(world.date, v.abstimmung - world.day)) })}</h3>
+            <div className="stimmen-bar" aria-label={t("vf.erwartetJa", { n: sicht.erwartet })}>
               <div className="stimmen-ja" style={{ width: `${Math.min(100, (sicht.erwartet / 600) * 100)}%` }} />
-              <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.mehrheit / 600) * 100}%` }} title={`${VERFASSUNG_REGELN.mehrheit}: Volksabstimmung nötig`} />
-              <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.direkt / 600) * 100}%` }} title={`${VERFASSUNG_REGELN.direkt}: direkt Gesetz`} />
+              <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.mehrheit / 600) * 100}%` }} title={t("vf.marke.volk", { n: VERFASSUNG_REGELN.mehrheit })} />
+              <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.direkt / 600) * 100}%` }} title={t("vf.marke.direkt", { n: VERFASSUNG_REGELN.direkt })} />
             </div>
             <p>
-              Erwartet werden <strong>{sicht.erwartet}</strong> Ja-Stimmen (Spanne {sicht.tief}–{sicht.hoch}
-              {v.absprachen ? `, darin ${v.absprachen} Absprachen` : ""}). Ab {VERFASSUNG_REGELN.direkt} wird das Paket direkt Gesetz, ab {VERFASSUNG_REGELN.mehrheit} entscheidet das Volk, darunter scheitert es.
+              {t("vf.erwartet", { n: sicht.erwartet, tief: sicht.tief, hoch: sicht.hoch, absprachen: v.absprachen ?? 0, direkt: VERFASSUNG_REGELN.direkt, mehrheit: VERFASSUNG_REGELN.mehrheit })}
             </p>
             <p className="subtitle">
               {sicht.lueckeMehrheit > 0
-                ? `Zur ersten Hürde fehlen erwartet ${sicht.lueckeMehrheit} Stimmen.`
+                ? t("vf.luecke.mehrheit", { n: sicht.lueckeMehrheit })
                 : sicht.lueckeDirekt > 0
-                  ? `Die erste Hürde steht; zur Direkt-Hürde fehlen erwartet ${sicht.lueckeDirekt} Stimmen.`
-                  : "Die Direkt-Hürde steht der Prognose nach."}{" "}
-              Absprachen kosten bei der Verfassungsfrage das Doppelte ({VERFASSUNG_REGELN.kaufFaktor}×).
+                  ? t("vf.luecke.direkt", { n: sicht.lueckeDirekt })
+                  : t("vf.luecke.keine")}{" "}
+              {t("vf.absprachenDoppelt", { f: VERFASSUNG_REGELN.kaufFaktor })}
             </p>
             <div className="stimmen-steuerung">
               {(() => {
@@ -133,7 +132,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                 const kosten = Math.ceil(noetig * 0.5 * VERFASSUNG_REGELN.kaufFaktor);
                 return noetig > 0 ? (
                   <button className="pd-btn primary" disabled={!kannZahlen(spiel.kapital, kosten)} onClick={() => tu(verfassungStimmenKaufen(world, noetig))} title={t("ui.Verfassung.d78021e")}>
-                    Hürde sichern: +{noetig} Stimmen <b>{kosten}</b>
+                    {t("vf.huerdeSichern", { n: noetig })} <b>{kosten}</b>
                   </button>
                 ) : null;
               })()}
@@ -146,13 +145,18 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
 
         {v.phase === "aym" && (
           <section className="paper">
-            <h3>Die Opposition hat angefochten</h3>
+            <h3>{t("vf.angefochten")}</h3>
             {(() => {
               const s = aymSicht(world, v.paket);
               return (
                 <p>
-                  Das Verfassungsgericht entscheidet in {Math.max(0, (v.aymTag ?? world.day) - world.day)} Tagen. Sein Stand — {s.sitze.loyal} loyal, {s.sitze.unabhaengig} unabhängig, {s.sitze.reform} reformorientiert — lässt eine Kassation eher{" "}
-                  {s.pKassation < 0.12 ? "unwahrscheinlich" : s.pKassation < 0.25 ? "möglich" : "wahrscheinlich"} erscheinen.
+                  {t("vf.aym", {
+                    n: Math.max(0, (v.aymTag ?? world.day) - world.day),
+                    loyal: s.sitze.loyal,
+                    unabhaengig: s.sitze.unabhaengig,
+                    reform: s.sitze.reform,
+                    p: s.pKassation < 0.12 ? "selten" : s.pKassation < 0.25 ? "moeglich" : "wahrscheinlich",
+                  })}
                 </p>
               );
             })()}
@@ -162,19 +166,18 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
 
         {v.phase === "kampagne" && prognose && (
           <section className="paper">
-            <h3>Kampagne bis {v.referendumTag ? formatDateDe(addDays(world.date, v.referendumTag - world.day)) : ""}</h3>
-            <div className="stimmen-bar" aria-label={`Erwartet ${nf(prognose.mitte)} Prozent Ja`}>
+            <h3>{t("vf.kampagneBis", { datum: v.referendumTag ? formatDateDe(addDays(world.date, v.referendumTag - world.day)) : "" })}</h3>
+            <div className="stimmen-bar" aria-label={t("vf.erwartetProzent", { p: r1(prognose.mitte) })}>
               <div className="stimmen-ja" style={{ width: `${prognose.mitte}%` }} />
-              <div className="stimmen-marke" style={{ left: "50%" }} title="50 %: Mehrheit" />
+              <div className="stimmen-marke" style={{ left: "50%" }} title={t("vf.marke.mehrheit")} />
             </div>
             <p>
-              Erwartet werden etwa <strong>{nf(prognose.mitte)} Prozent</strong> Ja (Spanne {nf(prognose.tief)}–{nf(prognose.hoch)}): Zustimmung {nf(prognose.zustimmung)}, Themen der Artikel {prognose.salienz >= 0 ? "+" : ""}
-              {nf(prognose.salienz)}, Kampagne +{nf(prognose.kampagne)}.
+              {t("vf.referendum", { mitte: r1(prognose.mitte), tief: r1(prognose.tief), hoch: r1(prognose.hoch), zustimmung: r1(prognose.zustimmung), salienz: `${prognose.salienz >= 0 ? "+" : ""}${t("vf.zahl", { x: r1(prognose.salienz) })}`, kampagne: r1(prognose.kampagne) })}
             </p>
             <p className="subtitle">{t("ui.Verfassung.73d21b7")}</p>
             <div className="stimmen-steuerung">
-              <button className="pd-btn" onClick={() => tu(kampagnenImpuls(world))} title={`${VERFASSUNG_REGELN.kampagnePk} Kapital je Impuls, mit Abkühlzeit von einer Woche`}>
-                Kampagnen-Impuls <b>{VERFASSUNG_REGELN.kampagnePk}</b>
+              <button className="pd-btn" onClick={() => tu(kampagnenImpuls(world))} title={t("vf.impulsTitel", { pk: VERFASSUNG_REGELN.kampagnePk })}>
+                {t("vf.impuls")} <b>{VERFASSUNG_REGELN.kampagnePk}</b>
               </button>
             </div>
           </section>
@@ -190,11 +193,8 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
   return (
     <div className="beschlussbuch vf-akte">
       <section className="paper">
-        <h3>Die Verfassungs-Werkstatt</h3>
-        <p className="subtitle">
-          Eine Verfassungsfrage je Amtszeit: Schnüren Sie ein Paket aus bis zu fünf Artikeln. Das Parlament braucht {VERFASSUNG_REGELN.mehrheit} Stimmen — dann entscheidet das Volk — oder {VERFASSUNG_REGELN.direkt} für den
-          direkten Beschluss; das Verfassungsgericht kann anfechtbar sein. Gescheiterte Artikel sind zwölf Monate gesperrt.
-        </p>
+        <h3>{t("vf.werkstatt")}</h3>
+        <p className="subtitle">{t("vf.werkstattText", { mehrheit: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
         {belegt && <p className="weg-warnung">{t("ui.Verfassung.f354624")}</p>}
         {antwort && (
           <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
@@ -211,8 +211,8 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
           <section className="paper vf-artikel" key={a.id}>
             <h3>
               {a.name}
-              {aktiv && <span className="vf-aktiv"> · beschlossen: {varianteDef(aktiv)?.name ?? aktiv}</span>}
-              {sperre > 0 && <span className="vf-sperre"> · gesperrt noch {sperre - world.day} Tage</span>}
+              {aktiv && <span className="vf-aktiv"> · {t("vf.beschlossen", { name: varianteDef(aktiv)?.name ?? aktiv })}</span>}
+              {sperre > 0 && <span className="vf-sperre"> · {t("vf.gesperrt", { n: sperre - world.day })}</span>}
             </h3>
             <p className="subtitle">{a.frage}</p>
             <ul className="vf-varianten">
@@ -231,8 +231,8 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                     </label>
                     <p>{x.text}</p>
                     <p className="subtitle">
-                      {x.statusQuo ? "Der bisherige Stand." : `${richtungWort(x.autoritaer)}; ${parteienText(x.parteien)}.`}
-                      {!x.statusQuo && !gewaehlt && delta !== 0 && ` Mit dieser Variante stünde das Paket erwartet bei etwa ${dNeu} Ja-Stimmen (${delta > 0 ? "+" : ""}${delta}).`}
+                      {x.statusQuo ? t("vf.statusQuo") : `${richtungWort(x.autoritaer)}; ${parteienText(x.parteien)}.`}
+                      {!x.statusQuo && !gewaehlt && delta !== 0 && ` ${t("vf.mitVariante", { n: dNeu, delta: `${delta > 0 ? "+" : ""}${delta}` })}`}
                     </p>
                   </li>
                 );
@@ -244,18 +244,16 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
 
       {pr && (
         <section className="paper">
-          <h3>Das Paket</h3>
+          <h3>{t("vf.paket")}</h3>
           {pr.geaendert > 0 ? (
             <>
               <p className="subtitle">{geaenderteArtikel(paket).map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ")}</p>
-              <div className="stimmen-bar" aria-label={`Erwartet ${pr.stimmen.erwartet} Ja-Stimmen`}>
+              <div className="stimmen-bar" aria-label={t("vf.erwartetJa", { n: pr.stimmen.erwartet })}>
                 <div className="stimmen-ja" style={{ width: `${Math.min(100, (pr.stimmen.erwartet / 600) * 100)}%` }} />
-                <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.mehrheit / 600) * 100}%` }} title={`${VERFASSUNG_REGELN.mehrheit}: Volksabstimmung nötig`} />
-                <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.direkt / 600) * 100}%` }} title={`${VERFASSUNG_REGELN.direkt}: direkt Gesetz`} />
+                <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.mehrheit / 600) * 100}%` }} title={t("vf.marke.volk", { n: VERFASSUNG_REGELN.mehrheit })} />
+                <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.direkt / 600) * 100}%` }} title={t("vf.marke.direkt", { n: VERFASSUNG_REGELN.direkt })} />
               </div>
-              <p>
-                Kosten: <strong>{pr.pk}</strong> Politisches Kapital · erwartet <strong>{pr.stimmen.erwartet}</strong> Ja-Stimmen (Spanne {pr.stimmen.tief}–{pr.stimmen.hoch}).
-              </p>
+              <p>{t("vf.kosten", { pk: pr.pk, n: pr.stimmen.erwartet, tief: pr.stimmen.tief, hoch: pr.stimmen.hoch })}</p>
               <ul className="vf-hinweise">
                 {pr.hinweise.map((h) => (
                   <li key={h} className="subtitle">
@@ -266,10 +264,10 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
               <button
                 className="pd-btn primary"
                 disabled={!pr.ok}
-                title={pr.ok ? "Das Paket einbringen; die Abstimmung folgt in vier Wochen" : pr.grund}
+                title={pr.ok ? t("vf.einbringenTitel") : pr.grund}
                 onClick={() => tu(bringeVerfassungEin(world, paket))}
               >
-                Paket einbringen <b>{pr.pk}</b>
+                {t("vf.einbringen")} <b>{pr.pk}</b>
               </button>
               {!pr.ok && <p className="weg-warnung">{pr.grund}</p>}
             </>
@@ -283,7 +281,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
         <section className="paper">
           <h3>{t("ui.Verfassung.e526422")}</h3>
           {aktivEintraege.length > 0 && (
-            <p className="subtitle">Beschlossen: {aktivEintraege.map(([id, vId]) => `„${artikelDef(id)?.name ?? id}: ${varianteDef(vId)?.name ?? vId}“`).join(", ")}.</p>
+            <p className="subtitle">{t("vf.beschlossenListe", { l: aktivEintraege.map(([id, vId]) => `„${artikelDef(id)?.name ?? id}: ${varianteDef(vId)?.name ?? vId}“`) })}</p>
           )}
           <ul className="beschluss-liste">
             {[...z.historie].reverse().map((h, i) => (

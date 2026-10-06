@@ -75,20 +75,50 @@ export interface WerkDef {
   militaer?: GattungId[];
   /** Heimische Firma als Träger: reale Institution, Fundstelle im Projekt */
   firma?: { name: string; quelle: string };
+  /** Wählbare Standorte (Kfz-Kennziffer); der erste ist der Ort aus den Vorhabendaten. Mit Hafen: Ausfuhr über See */
+  standorte: StandortDef[];
+  /** Zusätzliche Wassernachfrage am Standort als Anteil der Startnachfrage (Reinstwasser der Chipfertigung) */
+  wasser?: number;
+}
+
+export interface StandortDef {
+  plaka: number;
+  hafen?: boolean;
 }
 
 export const WERKE: WerkDef[] = [
   // Elektronik: Produktion 4 Mrd. $ bei 24 Mrd. $ Verbrauch (data/gueter.ts); eine Chipfabrik deckt einen Teil der Lücke
-  { id: "ki_chipfab", gut: { id: "elektronik", anteil: 0.75 }, militaer: ["drohnen", "raketen", "luftabwehr"], firma: { name: "ASELSAN", quelle: "RECHERCHE_GLM_2, Abschnitt 2.5 (Chipentwurf bei ASELSAN und TÜBİTAK BİLGEM)" } },
-  { id: "batt_zellfabrik", gut: { id: "elektronik", anteil: 0.2 } },
-  { id: "bio_impfstoffwerk", gut: { id: "medikamente", anteil: 0.2 } },
-  { id: "bio_medizintechnik", gut: { id: "medikamente", anteil: 0.12 } },
-  { id: "luft_triebwerke", militaer: ["kampfflugzeuge"], firma: { name: "TEI", quelle: "RECHERCHE_GLM_4, Firmentabelle (TEI: Triebwerke, Wartung, Teile)" } },
-  { id: "mil_kaan_motor", militaer: ["kampfflugzeuge"], firma: { name: "TEI", quelle: "RECHERCHE_GLM_4, Firmentabelle (TEI: Triebwerke, Wartung, Teile)" } },
-  { id: "ki_militaer", militaer: ["drohnen"], firma: { name: "Baykar", quelle: "RECHERCHE_GLM_4, Firmentabelle (Baykar: Drohnen)" } },
-  { id: "meer_uboote", militaer: ["marine"] },
-  { id: "mil_altay", militaer: ["panzer"] },
+  { id: "ki_chipfab", standorte: [{ plaka: 41, hafen: true }, { plaka: 34, hafen: true }, { plaka: 6 }, { plaka: 35, hafen: true }], wasser: 0.05, gut: { id: "elektronik", anteil: 0.75 }, militaer: ["drohnen", "raketen", "luftabwehr"], firma: { name: "ASELSAN", quelle: "RECHERCHE_GLM_2, Abschnitt 2.5 (Chipentwurf bei ASELSAN und TÜBİTAK BİLGEM)" } },
+  { id: "batt_zellfabrik", standorte: [{ plaka: 16, hafen: true }, { plaka: 41, hafen: true }, { plaka: 45 }], gut: { id: "elektronik", anteil: 0.2 } },
+  { id: "bio_impfstoffwerk", standorte: [{ plaka: 38 }, { plaka: 6 }, { plaka: 34, hafen: true }], gut: { id: "medikamente", anteil: 0.2 } },
+  { id: "bio_medizintechnik", standorte: [{ plaka: 35, hafen: true }, { plaka: 6 }, { plaka: 34, hafen: true }], gut: { id: "medikamente", anteil: 0.12 } },
+  { id: "luft_triebwerke", standorte: [{ plaka: 26 }, { plaka: 6 }], militaer: ["kampfflugzeuge"], firma: { name: "TEI", quelle: "RECHERCHE_GLM_4, Firmentabelle (TEI: Triebwerke, Wartung, Teile)" } },
+  { id: "mil_kaan_motor", standorte: [{ plaka: 26 }, { plaka: 6 }], militaer: ["kampfflugzeuge"], firma: { name: "TEI", quelle: "RECHERCHE_GLM_4, Firmentabelle (TEI: Triebwerke, Wartung, Teile)" } },
+  { id: "ki_militaer", standorte: [{ plaka: 34, hafen: true }, { plaka: 6 }], militaer: ["drohnen"], firma: { name: "Baykar", quelle: "RECHERCHE_GLM_4, Firmentabelle (Baykar: Drohnen)" } },
+  { id: "meer_uboote", standorte: [{ plaka: 41, hafen: true }, { plaka: 34, hafen: true }], militaer: ["marine"] },
+  { id: "mil_altay", standorte: [{ plaka: 54 }, { plaka: 6 }], militaer: ["panzer"] },
 ];
+
+// Standorte (Spielparameter, Plausibilität: bestehende Industrie- und Rüstungsstandorte; der erste ist der Ort aus den Vorhabendaten):
+// Kocaeli, İstanbul, İzmir und Bursa (Gemlik) mit Seehafen; Eskişehir (Triebwerke), Ankara (Rüstungs- und Hochschulstandort),
+// Sakarya (Fahrzeugbau), Kayseri und Manisa (Industrie im Binnenland).
+
+/** Spielparameter der Standortwahl */
+export const STANDORT = {
+  /** Fachkräfte vor Ort gegen das Landesmittel: Tempo = 1 + Gewicht · (vor Ort / Land − 1), begrenzt */
+  fachGewicht: 0.5,
+  tempoMin: 0.85,
+  tempoMax: 1.15,
+  /** Ab dieser Auslastung von Strom oder Wasser vor Ort bremst der Engpass den Bau */
+  ueberlast: 0.95,
+  ueberlastTempo: 0.9,
+  /** Bei Fertigstellung: Vertrauen in die Regierung und Industrie in der Provinz, Ausfuhr bei Seehafen */
+  vertrauen: 3,
+  industrie: 2,
+  hafenExport: 1,
+  /** Zusätzliche Stromnachfrage am Standort als Anteil der Startnachfrage (jedes Werk) */
+  strom: 0.03,
+};
 
 export const WERK_VON: Record<string, WerkDef> = Object.fromEntries(WERKE.map((w) => [w.id, w]));
 
@@ -125,4 +155,38 @@ export const BAUM = {
   } as Record<Traeger, { schulden: number; tempo: number; pk: number; generation: number }>,
   /** So viele Tage zeigt der Baum einen Durchbruch mit Stempel */
   durchbruchTage: 120,
+  /** Heureka: Tempo eines Knotens, dessen Bedingung erfüllt ist (Civ-6-Vorbild: dort 40 % Rabatt; hier als Tempo, Spielparameter) */
+  heurekaTempo: 1.3,
 };
+
+/**
+ * Heureka-Momente (Civ-6-Vorbild): Wer etwas Verwandtes schon kann, kommt beim Knoten schneller voran. Die Bedingung ist nie eine
+ * Voraussetzung des Knotens selbst, sondern eine Verbindung quer durch Politik und Baum („alles hängt zusammen“).
+ * Herkunft: Vorschläge aus data/forschung/katalog.ts (Gemini) und data/forschung/erweiterung.ts (GLM), auf die Kennungen des Spiels
+ * übertragen und geprüft; Vorschläge, deren Bedingung ohnehin Voraussetzung ist, sind ersetzt. Stufen sind Spielparameter.
+ */
+export interface HeurekaDef {
+  knoten: string;
+  bedingung: { art: "vorhaben"; id: string } | { art: "massnahme"; id: string; min: number };
+  herkunft: "gemini" | "glm" | "spiel";
+}
+
+export const HEUREKA: HeurekaDef[] = [
+  { knoten: "ki_sprachmodell", bedingung: { art: "massnahme", id: "m_forschung", min: 50 }, herkunft: "gemini" },
+  { knoten: "bio_genomik", bedingung: { art: "massnahme", id: "m_forschung", min: 60 }, herkunft: "glm" },
+  { knoten: "bio_impfstoffwerk", bedingung: { art: "massnahme", id: "m_krankenhausbau", min: 55 }, herkunft: "gemini" },
+  { knoten: "bio_saatgut", bedingung: { art: "massnahme", id: "m_agrarforschung", min: 50 }, herkunft: "glm" },
+  { knoten: "bio_gentherapie", bedingung: { art: "vorhaben", id: "bio_saatgut" }, herkunft: "spiel" },
+  { knoten: "batt_zellfabrik", bedingung: { art: "massnahme", id: "m_speicher_smartgrid", min: 55 }, herkunft: "glm" },
+  { knoten: "h2_elektrolyse", bedingung: { art: "massnahme", id: "m_solar_wind", min: 65 }, herkunft: "gemini" },
+  { knoten: "energie_fusion_testreaktor", bedingung: { art: "vorhaben", id: "energie_smr" }, herkunft: "spiel" },
+  { knoten: "luft_triebwerke", bedingung: { art: "vorhaben", id: "mil_huerjet" }, herkunft: "spiel" },
+  { knoten: "luft_regionalflugzeug", bedingung: { art: "massnahme", id: "m_ruestungsindustrie", min: 65 }, herkunft: "glm" },
+  { knoten: "luft_flugtaxi", bedingung: { art: "massnahme", id: "m_breitband", min: 60 }, herkunft: "glm" },
+  { knoten: "raum_traeger", bedingung: { art: "vorhaben", id: "mil_stahlkuppel" }, herkunft: "spiel" },
+  { knoten: "quanten_computer", bedingung: { art: "vorhaben", id: "chips_design" }, herkunft: "spiel" },
+  { knoten: "meer_uwdrohnen", bedingung: { art: "vorhaben", id: "ki_militaer" }, herkunft: "spiel" },
+  { knoten: "meer_tiefseebergbau", bedingung: { art: "vorhaben", id: "meer_tiefsee_gas" }, herkunft: "glm" },
+];
+
+export const HEUREKA_VON: Record<string, HeurekaDef> = Object.fromEntries(HEUREKA.map((h) => [h.knoten, h]));

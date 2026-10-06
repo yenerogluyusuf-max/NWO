@@ -62,7 +62,28 @@ function FundZeilen({ fund }: { fund: "ressourcen" | "strategie" }) {
   );
 }
 
-export function MarkenLegende({ className, fund }: { className?: string; fund?: "ressourcen" | "strategie" | undefined }) {
+/** Zeilen für die Kriegslage (kriegsfx.ts): genommen, umkämpft, beim Gegner, besetzt, Vorstoß */
+function KriegZeilen() {
+  const zeilen: [string, string][] = [
+    ["kl-eigen", "krieg.legende.eigen"],
+    ["kl-umkaempft", "krieg.legende.umkaempft"],
+    ["kl-gegner", "krieg.legende.gegner"],
+    ["kl-besetzt", "krieg.legende.besetzt"],
+    ["kl-pfeil", "krieg.legende.pfeil"],
+  ];
+  return (
+    <>
+      {zeilen.map(([k, key]) => (
+        <li key={key}>
+          <span className={`mz kl ${k}`} aria-hidden />
+          <span>{t(key)}</span>
+        </li>
+      ))}
+    </>
+  );
+}
+
+export function MarkenLegende({ className, fund, krieg }: { className?: string; fund?: "ressourcen" | "strategie" | undefined; krieg?: boolean }) {
   const [offen, setOffen] = useState(lesen);
   const umschalten = () => {
     const n = !offen;
@@ -82,6 +103,7 @@ export function MarkenLegende({ className, fund }: { className?: string; fund?: 
       {offen && (
         <>
           <ul className="marken-legende-liste">
+            {krieg && <KriegZeilen />}
             {fund && <FundZeilen fund={fund} />}
             {ZEILEN.map((z) => (
               <li key={z.art}>

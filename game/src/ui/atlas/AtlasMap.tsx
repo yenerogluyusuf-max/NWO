@@ -23,6 +23,8 @@ import { MarkenForm } from "./MarkenForm";
 import { t } from "../../i18n";
 import type { Kartenebene } from "../ebenen";
 import type { KartenMarke } from "../gueter/linsen";
+import type { KriegsKarte } from "../../sim/kriegsschauplatz";
+import type { KriegUv } from "./kriegsfx";
 
 export interface KartenOrt {
   id: string;
@@ -108,6 +110,8 @@ export interface AtlasMapProps {
   ereignis?: { id: string; lon: number; lat: number; art: "beben" | "anschlag" | "krieg" | "ereignis"; d?: number; kamera?: boolean };
   /** Die Karte liegt hinter einer offenen Akte: nur noch selten zeichnen (spart Rechenzeit; Eingaben wecken sie sofort) */
   sparsam?: boolean;
+  /** Lage laufender Kriege und Besatzungen (sim/kriegsschauplatz.ts `kriegsKarte`): Regionen, Front, Vorstöße in der Effektschicht */
+  krieg?: KriegsKarte | null;
 }
 
 const NAMES: Record<number, string> = Object.fromEntries(PROVINCE_FC.features.map((f) => [f.properties.plaka, f.properties.name]));
@@ -194,6 +198,7 @@ export function AtlasMap({
   sparsam = false,
   datum,
   ereignis,
+  krieg = null,
 }: AtlasMapProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -590,6 +595,34 @@ export function AtlasMap({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, marken]);
+
+  // Kriegslage: Regionen, Front und Vorstöße in Texturkoordinaten an die Effektschicht (Radius etwa 0,2 Längengrad um den Ort)
+  const kriegSig = krieg ? JSON.stringify(krieg) : "";
+  useEffect(() => {
+    const c = ctx.current;
+    const fx = fxRef.current;
+    if (!ready || !c || !fx) return;
+    c.vector.setTaktikFronten(!krieg?.aktiv);
+    if (!krieg) {
+      fx.setKrieg(null);
+      wecke(300);
+      return;
+    }
+    const uv = (lon: number, lat: number): [number, number] => lonLatToUv(c.relief, lon, lat) as [number, number];
+    const lage: KriegUv = {
+      regionen: krieg.regionen.map((r) => {
+        const [u, v] = uv(r.lon, r.lat);
+        const [u2] = uv(r.lon + 0.17 + 0.04 * r.wert, r.lat);
+        return { u, v, r: Math.abs(u2 - u), lage: r.lage, ...(r.form === "annexion" ? { annexion: true } : {}), name: t(`krieg.region.${r.id}`) };
+      }),
+      pfeile: krieg.pfeile.map((p) => ({ von: uv(p.von[0], p.von[1]), nach: uv(p.nach[0], p.nach[1]), seite: p.seite })),
+      bedroht: krieg.bedroht.map((pl) => c.centers[pl]).filter((x): x is [number, number] => !!x),
+      aktiv: krieg.aktiv,
+    };
+    fx.setKrieg(lage);
+    wecke(600);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, kriegSig]);
 
   // Tinten-Animation für Besitzerwechsel (Annexion, Besatzung): `animiereBesitzerwechsel` aus tinte.ts läuft über diese Karte
   useEffect(() => {

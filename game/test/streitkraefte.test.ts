@@ -183,7 +183,7 @@ describe("Krieg: Bestand und Zielraum", () => {
     for (const z of ZIELRAEUME) {
       expect(de[`militaer.zielraum.${z.id}` as keyof typeof de]).toBeTruthy();
       expect(z.schwierigkeit).toBeGreaterThanOrEqual(0.6);
-      expect(z.schwierigkeit).toBeLessThanOrEqual(1.4);
+      expect(z.schwierigkeit).toBeLessThanOrEqual(z.id.endsWith("_maximal") ? 1.8 : 1.4);
       expect([1, 2, 3]).toContain(z.bedeutung);
     }
   });

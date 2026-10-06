@@ -46,6 +46,7 @@ import { t } from "../i18n";
 import { bestandsFaktor, streitkraefteMonat } from "./streitkraefte";
 import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte";
 import type { FriedensPaket, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
+import { besatzungNachFrieden, eigenerBestandsFaktor, gegnerBestand, gegnerBestandsFaktor, kriegsFaktoren, kriegsschauplatzMonat, regionenSetzen, schauplatzWoche, zielGeaendert } from "./kriegsschauplatz";
 
 /** Spielparameter, keine Tatsachen: alle Schwellen, Kosten und Faktoren des Konfliktvorgangs (Kalibrierung). */
 export const KRIEG = {
@@ -277,8 +278,9 @@ export function eigenStaerke(w: World, k: KriegVorgang): number {
   const mob = ([0.55, 0.85, 1.08] as const)[k.mobilmachung] + (k.bereit ? 0.06 : 0);
   const nachschub = clamp(0.72 + 0.0035 * (knotenWert(w, "logistik") - 50) + 0.0025 * (knotenWert(w, "export") - 50), 0.6, 1.1);
   const allianz = 1 + koalitionsFaktoren(w, k).eigenPlus;
-  // Bestand und Technik der Streitkräfte (sim/streitkraefte.ts; 1 = Stand 2026)
-  return b * moral * dok * mob * nachschub * allianz * bestandsFaktor(w);
+  // Bestand und Technik der Streitkräfte (sim/streitkraefte.ts; 1 = Stand 2026); mit gewählter Einsatzart zählen ihre tragenden Gattungen,
+  // der Generationsabstand zum Gegner und die Munition (sim/kriegsschauplatz.ts)
+  return b * moral * dok * mob * nachschub * allianz * (eigenerBestandsFaktor(w, k) ?? bestandsFaktor(w));
 }
 
 /** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit) und mit seinen Koalitionspartnern. */
@@ -288,7 +290,9 @@ export function gegnerStaerke(w: World, landId: string): number {
   const basis = GEGNER_STAERKE[landId] ?? GEGNER_GRUPPE[l.gruppe] ?? 50;
   // Der Zielraum bestimmt, wie viel Gegenwehr das Ziel kostet (Grenzstreifen leichter als ein tiefer Vorstoß)
   const ziel = k ? zielraumVon(k) : STANDARD_ZIEL;
-  return (basis + (k ? k.eskalation * 0.08 + koalitionsFaktoren(w, k).gegnerPlus : 0)) * ziel.schwierigkeit;
+  // Sein Bestand (Menge und Generation der Gattungen, gegen die gekämpft wird) zehrt sich im Krieg auf (sim/kriegsschauplatz.ts)
+  const bestand = k ? gegnerBestandsFaktor(w, k) : 1;
+  return (basis + (k ? k.eskalation * 0.08 + koalitionsFaktoren(w, k).gegnerPlus : 0)) * ziel.schwierigkeit * bestand;
 }
 
 /** Wie gut das Lagebild über den Gegner ist (LERNKONZEPT: ehrlich über Unsicherheit). */
@@ -768,11 +772,13 @@ function kriegsbeginn(w: World, k: KriegVorgang, weg: "parlament" | "erlass" | "
   k.stagnation = 0;
   // Koalitionen: Pakt-Pflicht nur für das Opfer, Eigeninteresse für alle (sim/pakte.ts); danach erst die Stärke rechnen
   koalitionenBeiKriegsbeginn(w, k, weg);
+  gegnerBestand(w, k);
   const staerkeDelta = eigenStaerke(w, k) - gegnerStaerke(w, k.land);
   k.front = clamp(50 + staerkeDelta * 0.25, 25, 75);
   k.frontVorher = k.front;
   k.uhr = clamp(100 + RAHMUNG[rahmung].uhrStart, 0, 110);
   k.uhrGegner = 100;
+  regionenSetzen(w, k);
   // Märkte (Suzerain-Anker: CDS-/Öl-Sprung)
   w.economy.riskPremium += weg === "angriff" ? 220 : rahmung === "revision" ? 200 : 150;
   // Rally um die Flagge (Suzerain: Kriegsorder +2 PO) — nicht beim Erlass, nicht bei Revision
@@ -848,6 +854,7 @@ function niederlage(w: World, k: KriegVorgang, rng?: Rng): void {
   const zz = weltZustand(w)[k.land]!;
   zz.konflikt = clamp(Math.min(zz.konflikt, 60), 0, 100);
   demobStarten(w, k);
+  besatzungNachFrieden(w, k, -1);
   koalitionAufloesen(w, k, "niederlage");
   phaseSetzen(w, k, "beendet");
   k.ausgang = "niederlage";
@@ -898,6 +905,9 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
       wirke(w, "ansehen", -1.5 * bed);
     }
   }
+  // Was die Front hält, wird besetzt (Pufferzone, später Verwaltung, Annexion oder Rückgabe); sonst kehren die Regionen zurück
+  const besetzt = besatzungNachFrieden(w, k, p.gebiet);
+  if (besetzt.length) teile.push(t("krieg.besatzung.frieden_teil", { regionen: besetzt.join(", ") }));
   if (p.gebiet === -1) {
     wirke(w, "offiziersvertrauen", -15);
     wirke(w, "nationalisten", -10);
@@ -971,6 +981,9 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   const eigen = eigenStaerke(w, k);
   const gegner = gegnerStaerke(w, k.land);
   let delta = clamp((eigen - gegner) * KRIEG.frontFaktor, -KRIEG.frontMaxDelta, KRIEG.frontMaxDelta);
+  // Gelände der umkämpften Region, Reichweite der Einsatzart und Tempo (sim/kriegsschauplatz.ts)
+  const sf = kriegsFaktoren(k);
+  delta *= delta > 0 ? sf.vorstoss : sf.rueckschlag;
   if (k.frontSchub) {
     delta += k.frontSchub;
     delete k.frontSchub;
@@ -986,8 +999,10 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   // Erschöpfungsuhren (Vic3-Wochen-Tabelle: Basis +, Verluste +, Gewinne −, Wirtschaftslage ±); Partner teilen die Last (sim/pakte.ts)
   const wirtschaftsdruck = clamp((1.5 - w.economy.growth) * 0.3, -0.45, 0.6);
   const last = lastTeilung(w, k);
-  k.uhr += -(KRIEG.uhrBasis + verlustWoche * KRIEG.uhrVerlust + (k.mobilmachung === 2 ? KRIEG.uhrVollLast : 0) + Math.max(0, wirtschaftsdruck)) * (1 - last.eigen) + gewinnWoche * KRIEG.uhrGewinn + Math.min(0, wirtschaftsdruck);
-  k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust) * (1 - last.gegner) + verlustWoche * KRIEG.uhrGewinn;
+  k.uhr += -(KRIEG.uhrBasis + verlustWoche * KRIEG.uhrVerlust + (k.mobilmachung === 2 ? KRIEG.uhrVollLast : 0) + Math.max(0, wirtschaftsdruck)) * (1 - last.eigen) * sf.uhr + gewinnWoche * KRIEG.uhrGewinn + Math.min(0, wirtschaftsdruck);
+  k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust + sf.druck) * (1 - last.gegner) + verlustWoche * KRIEG.uhrGewinn;
+  // Verluste beider Bestände, Regionen, bedrohte Grenzprovinzen, Kriegslast im Gegnerland
+  schauplatzWoche(w, k, delta);
   // Die Koalitionen altern: Zögernde werden geprüft, Partner verlieren Kampfkraft, Erschöpfte steigen aus
   koalitionWoche(w, k);
   // Anti-Aussitzen: Keine Uhr fällt unter 0, solange die eigene Seite ihr Kriegsziel nicht zur Hälfte kontrolliert
@@ -1103,6 +1118,7 @@ export function kriegMonat(w: World, rng: Rng): void {
   const spiel = w.spiel;
   if (!spiel || spiel.ende) return;
   streitkraefteMonat(w, aktiveKriege(w).some((k) => k.phase === "krieg"));
+  kriegsschauplatzMonat(w, kriege(w));
   // Demobilisierungs-Rechnung (Vic3: 90 Tage Auslauf mit laufenden Kosten)
   for (const k of kriege(w)) {
     if (k.demobBis !== undefined && w.day < k.demobBis) {
@@ -1171,6 +1187,7 @@ export function waehleZielraum(w: World, kriegId: string, zielId: string): Ergeb
     wirke(w, "truppenmoral", -2);
   }
   k.zielraum = zielId;
+  zielGeaendert(w, k);
   const text = t(wechsel ? "militaer.ziel.gewechselt" : "militaer.ziel.gesetzt", { ziel: t(`militaer.zielraum.${zielId}`) });
   addLog(w, "entscheidung", text);
   return { ok: true, text };

@@ -209,6 +209,64 @@ export function bestandsFaktor(w: World): number {
   return clamp(0.55 + 0.45 * kampfkraftIndex(w, streitkraefte(w)), 0.5, 1.6);
 }
 
+/**
+ * Kampfkraft der Gattungen, die eine Einsatzart trägt (1 = Stand 2026), nach Gewicht: Menge relativ zum Start mal Generation.
+ * Munition zählt als Vorrat mit höchstens 1,2; leere Lager drücken stark (der Krieg verbraucht sie, sim/kriegsschauplatz.ts).
+ */
+export function einsatzIndex(w: World, traeger: Partial<Record<GattungId, number>>): number {
+  if (!w.spiel) return 1;
+  const z = streitkraefte(w);
+  let summe = 0;
+  let gew = 0;
+  for (const [id, g] of Object.entries(traeger) as [GattungId, number][]) {
+    const def = GATTUNG_NACH_ID[id];
+    const s = z.gattungen[id];
+    const menge = def.einheit === "tage" ? Math.min(1.2, s.menge / def.start) : s.menge / def.start;
+    summe += g * menge * (genFaktor(s.generation) / genFaktor(def.generation));
+    gew += g;
+  }
+  return gew > 0 ? summe / gew : 1;
+}
+
+/** Mittlere Generation der Gattungen einer Einsatzart. */
+export function einsatzGeneration(w: World, traeger: Partial<Record<GattungId, number>>): number {
+  if (!w.spiel) return 3;
+  const z = streitkraefte(w);
+  let s = 0;
+  let n = 0;
+  for (const [id, g] of Object.entries(traeger) as [GattungId, number][]) {
+    if (id === "munition" || id === "personal") continue;
+    s += g * z.gattungen[id].generation;
+    n += g;
+  }
+  return n > 0 ? s / n : 3;
+}
+
+/**
+ * Kriegsverluste: Die am stärksten tragende Gattung verliert den Anteil `anteil` (0 bis 1) ihres Bestands, die übrigen nach ihrem Gewicht
+ * weniger; Personal in Stück. Ersatz kommt nur über Beschaffung (Kauf, Fertigung) — mit Lieferzeit, Einfuhrabhängigkeit und Lizenzsperre.
+ */
+export function kriegsVerluste(w: World, traeger: Partial<Record<GattungId, number>>, anteil: number): void {
+  if (!w.spiel || anteil <= 0) return;
+  const z = streitkraefte(w);
+  const groesst = Math.max(...Object.values(traeger).map((x) => x ?? 0), 0.01);
+  for (const [id, g] of Object.entries(traeger) as [GattungId, number][]) {
+    if (id === "munition") continue;
+    const s = z.gattungen[id];
+    const def = GATTUNG_NACH_ID[id];
+    // Personal zählt Köpfe: Gefallene und Verwundete sind ein kleiner Teil dessen, was an Gerät verloren geht (Spielparameter)
+    const verlust = s.menge * anteil * (g / groesst) * (id === "personal" ? 0.1 : 1);
+    s.menge = def.einheit === "stueck" ? Math.max(0, Math.round(s.menge - verlust)) : Math.max(0, Math.round((s.menge - verlust) * 10) / 10);
+  }
+}
+
+/** Zusätzlicher Munitionsverbrauch (Gefechtstage), etwa bei hartem Tempo. */
+export function verbraucheMunition(w: World, tage: number): void {
+  if (!w.spiel || tage <= 0) return;
+  const m = streitkraefte(w).gattungen.munition;
+  m.menge = Math.max(0, Math.round((m.menge - tage) * 10) / 10);
+}
+
 const sanktioniert = (w: World, land: string | null): boolean => {
   if (!land) return false;
   const a = w.spiel?.weltmodell as unknown as { aussen?: { sanktionen?: { von: string }[] } } | undefined;

@@ -6,8 +6,9 @@ import { createWorld } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { VORHABEN } from "../src/data/reich";
-import { BAUM, LIZENZ, WERKE, ZWEIGE, ZWEIG_VON } from "../src/data/wissensbaum";
-import { baumSicht, beginneKnoten, kaufeLizenz, knotenSicht, militaerGueterFaktor, naechsterKnoten, setzeSchwerpunkt, wissensbaumMonat } from "../src/sim/wissensbaum";
+import { BAUM, HEUREKA, LIZENZ, STANDORT, WERKE, ZWEIGE, ZWEIG_VON } from "../src/data/wissensbaum";
+import { baumSicht, beginneKnoten, kaufeLizenz, knotenSicht, militaerGueterFaktor, naechsterKnoten, setzeSchwerpunkt, standortSichten, wissensbaumMonat } from "../src/sim/wissensbaum";
+import { werkLast } from "../src/sim/infrastruktur";
 import { baumZustand, forschungsTempo, kostenFaktor, landesTempo, partnerGesperrt, werkZusatz } from "../src/sim/wissensbaum-kern";
 import { reichMonat, reichZustand } from "../src/sim/reich";
 import { haushaltZustand } from "../src/sim/wirtschaft";
@@ -248,5 +249,106 @@ describe("Wissensbaum: alte Spielstände, Bot, Texte", () => {
           if ((x.art === "knoten" || x.art === "massnahme" || x.art === "bestand") && !ZWEIG_VON[x.id]) expect(t(`wissen.g.${x.id}`)).not.toMatch(/⟦|wissen\./);
       }
     }
+  });
+});
+
+describe("Wissensbaum: Standort, Heureka, Protokoll", () => {
+  test("Ein Werk lässt sich an einem anderen Standort bauen; Last, Ortswirkung und Fertigstellung folgen dorthin", () => {
+    const w = neu();
+    erfuelle(w, "ki_chipfab");
+    const orte = standortSichten(w, "ki_chipfab");
+    expect(orte.map((o) => o.plaka)).toEqual([41, 34, 6, 35]);
+    for (const o of orte) {
+      expect(o.tempo).toBeGreaterThanOrEqual(STANDORT.tempoMin * STANDORT.ueberlastTempo - 1e-9);
+      expect(o.tempo).toBeLessThanOrEqual(STANDORT.tempoMax);
+    }
+    expect(beginneKnoten(w, "ki_chipfab", { standort: 99 }).ok).toBe(false);
+    expect(beginneKnoten(w, "ki_chipfab", { standort: 6 }).ok).toBe(true);
+    const z = baumZustand(w);
+    expect(z.standort!.ki_chipfab!.plaka).toBe(6);
+    expect(knotenSicht(w, "ki_chipfab")!.standort).toBe(6);
+    expect(werkLast(w, "ki_chipfab").every((l) => l.provinzen[0] === 6)).toBe(true);
+    // Fertigstellung: Vertrauen in Ankara steigt, nicht in Kocaeli
+    const i = NET.index.get("vertrauen_regierung")!;
+    const ank = w.net.values[i * PROVINCES + 5]!;
+    const koc = w.net.values[i * PROVINCES + 40]!;
+    reichZustand(w).bestand.ki_chipfab = { seit: w.date, zustand: 90 };
+    wissensbaumMonat(w);
+    expect(w.net.values[i * PROVINCES + 5]!).toBeGreaterThan(ank);
+    expect(w.net.values[i * PROVINCES + 40]!).toBeCloseTo(koc, 6);
+  });
+
+  test("Mehr Fachkräfte vor Ort bauen schneller", () => {
+    const w = neu();
+    erfuelle(w, "luft_triebwerke");
+    const i = NET.index.get("fachkraefte")!;
+    w.net.values[i * PROVINCES + 25] = 40; // Eskişehir
+    w.net.values[i * PROVINCES + 5] = 80; // Ankara
+    const [esk, ank] = standortSichten(w, "luft_triebwerke");
+    expect(ank!.tempo).toBeGreaterThan(esk!.tempo);
+  });
+
+  test("Der Beginn steht einmal im Protokoll, in der Sprache des Spiels, ohne die deutsche Zeile des Reiches", () => {
+    const w = neu();
+    erfuelle(w, "nano_zentrum");
+    const vorher = w.log.length;
+    expect(beginneKnoten(w, "nano_zentrum").ok).toBe(true);
+    const neue = w.log.slice(vorher);
+    expect(neue.some((e) => e.text.startsWith("Beginn:"))).toBe(false);
+    expect(neue.filter((e) => e.kind === "entscheidung").length).toBe(1);
+  });
+
+  test("Heureka: Was zu Beginn erfüllt ist, gilt still; eine später erfüllte Bedingung beschleunigt den Knoten mit Meldung", () => {
+    const w = neu();
+    setze(w, "m_forschung", 30);
+    wissensbaumMonat(w);
+    const z = baumZustand(w);
+    expect(z.heurekaGeprueft).toBe(true);
+    expect(z.heureka!.some((h) => h.id === "bio_genomik")).toBe(false);
+    erfuelle(w, "bio_genomik");
+    setze(w, "m_forschung", 30);
+    setze(w, "m_forschung", 50);
+    expect(beginneKnoten(w, "bio_genomik").ok).toBe(true);
+    const ohne = forschungsTempo(w, "bio_genomik");
+    expect(knotenSicht(w, "bio_genomik")!.heureka!.erfuellt).toBe(false);
+    setze(w, "m_forschung", 65);
+    const vorher = w.log.length;
+    wissensbaumMonat(w);
+    expect(z.heureka!.some((h) => h.id === "bio_genomik" && h.tag === w.day)).toBe(true);
+    expect(forschungsTempo(w, "bio_genomik")).toBeCloseTo(ohne * BAUM.heurekaTempo, 6);
+    expect(w.log.slice(vorher).some((e) => e.text.includes(t("wissen.n.bio_genomik.name")))).toBe(true);
+    expect(knotenSicht(w, "bio_genomik")!.heureka!.frisch).toBe(true);
+  });
+
+  test("Jede Heureka-Bedingung ist ein Vorhaben oder eine Maßnahme des Spiels, nie Voraussetzung des eigenen Knotens, und hat Text", () => {
+    for (const h of HEUREKA) {
+      expect(ZWEIG_VON[h.knoten]).toBeDefined();
+      const v = VORHABEN.find((x) => x.id === h.knoten)!;
+      if (h.bedingung.art === "vorhaben") {
+        expect(VORHABEN.some((x) => x.id === h.bedingung.id)).toBe(true);
+        expect(v.voraus.some((x) => x.art === "bestand" && x.id === h.bedingung.id)).toBe(false);
+      } else {
+        expect(NET.index.has(h.bedingung.id)).toBe(true);
+        const vor = v.voraus.find((x) => x.art === "massnahme" && x.id === h.bedingung.id);
+        if (vor && vor.art === "massnahme") expect(h.bedingung.min).toBeGreaterThan(vor.min ?? 0);
+      }
+      const w = neu();
+      expect(knotenSicht(w, h.knoten)!.heureka!.text).not.toMatch(/⟦|wissen\./);
+    }
+  });
+
+  test("Ein Spielstand ohne Standorte und Heureka lädt und rechnet weiter", () => {
+    const w = neu();
+    erfuelle(w, "bio_impfstoffwerk");
+    beginneKnoten(w, "bio_impfstoffwerk");
+    const json = JSON.parse(JSON.stringify(w)) as World;
+    delete json.spiel!.wissensbaum!.standort;
+    delete json.spiel!.wissensbaum!.heureka;
+    delete json.spiel!.wissensbaum!.heurekaGeprueft;
+    expect(forschungsTempo(json, "bio_impfstoffwerk")).toBeGreaterThan(0);
+    wissensbaumMonat(json);
+    expect(json.spiel!.wissensbaum!.standort).toEqual({});
+    expect(Array.isArray(json.spiel!.wissensbaum!.heureka)).toBe(true);
+    expect(knotenSicht(json, "bio_impfstoffwerk")!.standort).toBe(38);
   });
 });

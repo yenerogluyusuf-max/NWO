@@ -1,3 +1,5 @@
+import { kriegsKarte } from "../sim/kriegsschauplatz";
+import { kriege } from "../sim/krieg";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ressourcenMarken, strategieMarken } from "./gueter/linsen";
 import type { World } from "../sim/types";
@@ -74,7 +76,7 @@ import { StandDerDingeBlatt } from "./StandDerDingeBlatt";
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { belastungZeilen } from "../sim/infrastruktur";
 import { LAENDERNAMEN, LAND_PINS, farbenFuerEbene, laenderFarben, landName, type Kartenebene } from "./ebenen";
-import { t, aktuelleLocale } from "../i18n";
+import { t, aktuelleLocale, zahl } from "../i18n";
 import { kurzVergleich } from "./vergleich";
 import { Zeitung } from "./Zeitung";
 import { zeitungGelesen } from "../sim/zeitung";
@@ -238,17 +240,17 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         sichere(true);
         // Beim nächsten Stopp ist lesbar, was der Umlauf gesammelt hat
         const n = umlaufZaehler.current;
-        if (n > 0) melde({ titel: `${n} ${n === 1 ? "Meldung" : "Meldungen"} im Umlauf`, text: "Routine ohne Entscheidung — gesammelt am Schreibtisch.", ton: "ereignis" });
+        if (n > 0) melde({ titel: t("st.umlauf.titel", { n }), text: t("st.umlauf.text"), ton: "ereignis" });
       } else if (speed === 4 && wd.day - startTag > 150) {
         setSpeed(0);
-        melde({ titel: "Ein halbes Jahr ohne Zwischenfall.", text: "Das Vorspulen hält an; die Lage bleibt Ihre Sache.", ton: "ereignis" });
+        melde({ titel: t("st.halbjahr.titel"), text: t("st.halbjahr.text"), ton: "ereignis" });
       } else if (wd.day % 30 === 0) sichere();
       refresh();
       } catch (e) {
         // Ein Fehler im Spieltakt darf das Spiel nicht beenden: Zeit anhalten, sichern (der Stand vor dem Fehler), Hinweis mit Ursache
         console.error("Fehler im Spieltakt:", e);
         setSpeed(0);
-        melde({ titel: "Die Zeit wurde angehalten: Fehler im Spielablauf", text: e instanceof Error ? e.message : String(e), ton: "markt" });
+        melde({ titel: t("st.fehler.takt"), text: e instanceof Error ? e.message : String(e), ton: "markt" });
       }
     }, ms);
     return () => clearInterval(id);
@@ -271,7 +273,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   useEffect(() => {
     const zeige = (text: string) => {
       console.error("Unbehandelter Fehler:", text);
-      melde({ titel: "Interner Fehler (das Spiel läuft weiter)", text: text.slice(0, 200), ton: "markt" });
+      melde({ titel: t("st.fehler.intern"), text: text.slice(0, 200), ton: "markt" });
     };
     const bei = (e: ErrorEvent) => {
       if (/getBoundingClientRect|ResizeObserver/.test(e.message)) return;
@@ -717,6 +719,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         }}
         {...(ebene === "welt" ? { laenderFarben: laenderKarte } : {})}
         ebene={ebene}
+        krieg={kriegsKarte(w, kriege(w), provinceLonLat)}
         {...(ebene === "belastung" ? { hoverZeilen: (p: number) => belastungZeilen(w, p) } : {})}
         datum={w.date}
         {...(ereignisKarte ? { ereignis: ereignisKarte } : {})}
@@ -730,7 +733,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             <Cameo seed={w.player?.name ?? "Staatspräsident"} size={46} tint={w.player?.partei.farbe} ring="keiner" />
           </div>
           <div className="leader-text">
-            <div className="hud-name" title={w.player?.name ?? "Staatspräsident"}>{w.player?.name ?? "Staatspräsident"}</div>
+            <div className="hud-name" title={w.player?.name ?? t("buehne.staatsoberhaupt")}>{w.player?.name ?? t("buehne.staatsoberhaupt")}</div>
             <div className="hud-sub" title={`${w.player?.partei.name ?? "Staatsräson"} · ${t("buehne.staatsoberhaupt")}`}>
               <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> <span className="hud-partei">{w.player?.partei.name ?? "Staatsräson"} · {t("buehne.staatsoberhaupt")}</span>
             </div>
@@ -739,14 +742,14 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         <div className="hud-center">
           <div className="datum">
             <span className="date-day">{formatDateDe(w.date)}</span>
-            <div className="speeds" role="group" aria-label="Spieltempo">
+            <div className="speeds" role="group" aria-label={t("st.tempo.gruppe")}>
               {[0, 1, 2, 3, 4].map((i) => (
                 <button
                   key={i}
                   className={i === speed ? "on" : ""}
                   onClick={() => setSpeed(i)}
-                  aria-label={i === 0 ? "Pause" : i === 4 ? "Bis zum nächsten Ereignis" : `Tempo ${i}`}
-                  title={i === 0 ? "Pause (Leertaste)" : i === 4 ? "Bis zum nächsten Ereignis" : `Tempo ${i}`}
+                  aria-label={i === 0 ? t("st.tempo.pause") : i === 4 ? t("st.tempo.bis") : t("st.tempo.n", { n: i })}
+                  title={i === 0 ? t("st.tempo.pauseTaste") : i === 4 ? t("st.tempo.bis") : t("st.tempo.n", { n: i })}
                 >
                   {i === 0 ? <span className="pause-glyph" /> : i === 4 ? <span className="skip-glyph" /> : Array.from({ length: i }, (_, k) => <span key={k} className="play-glyph" />)}
                 </button>
@@ -756,8 +759,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               type="button"
               className={`hud-speichern${sicherStatus === "fehler" ? " fehler" : sicherStatus === "frisch" ? " frisch" : ""}`}
               onClick={() => void schnellSichern()}
-              title={sicherStatus === "fehler" ? `Nicht gesichert: ${sicherGrund ?? "Unbekannter Fehler"}` : "Zwischenstand sichern (Cmd+S / Strg+S)"}
-              aria-label={sicherStatus === "fehler" ? "Spielstand nicht gesichert, erneut versuchen" : "Zwischenstand sichern"}
+              title={sicherStatus === "fehler" ? t("st.sichern.fehler", { grund: sicherGrund ?? t("st.sichern.unbekannt") }) : t("st.sichern.titel")}
+              aria-label={sicherStatus === "fehler" ? t("st.sichern.nochmal") : t("st.sichern.aria")}
             >
               <Icon name={sicherStatus === "fehler" ? "warnung" : "siegel"} size={14} />
               <span>{sicherStatus === "fehler" ? t("buehne.nichtGesichert") : sicherStatus === "frisch" ? t("buehne.gesichert") : t("buehne.sichern")}</span>
@@ -773,7 +776,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               value={`${Math.round(zustimmung)} %`}
               trend={zVor !== undefined ? zustimmung - zVor : undefined}
               warn={zustimmung < 40}
-              tip={`Wie viele Wähler Sie heute wieder wählen würden. Die nächste Wahl ist in ${Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4))} Monaten; ab 50 Prozent gewinnen Sie.`}
+              tip={t("st.zustimmung.tip", { n: Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4)) })}
             />
           )}
           {spiel && <Stat icon="siegel" label={t("buehne.stat.kapitalKurz")} value={`${Math.floor(spiel.kapital)}`} warn={spiel.kapital < 5} tip={kapitalErklaerung(w)} />}
@@ -788,13 +791,13 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             />
           )}
           {hudExtra.has("inflation") && (
-  <Stat icon="preis" label={t("buehne.stat.inflation")} value={`${inflation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`} trend={trend(w, "inflation")} tip={`Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung. ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
+  <Stat icon="preis" label={t("buehne.stat.inflation")} value={t("zb.prozent", { p: inflation })} trend={trend(w, "inflation")} tip={`${t("st.inflation.tip")} ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
           )}
           {hudExtra.has("lira") && (
-  <Stat icon="lira" label={t("buehne.stat.lira")} value={w.economy.usdTry.toLocaleString("de-DE", { maximumFractionDigits: 1 })} trend={trend(w, "usdTry")} tip={`Wechselkurs am Markt, täglich. Steigt er, werden Importe wie Energie teurer. ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
+  <Stat icon="lira" label={t("buehne.stat.lira")} value={zahl(w.economy.usdTry, 1)} trend={trend(w, "usdTry")} tip={`${t("st.lira.tip")} ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
           )}
           {hudExtra.has("leitzins") && (
-  <Stat icon="bank" label={t("buehne.stat.leitzins")} value={`${w.economy.policyRate.toLocaleString("de-DE")} %`} trend={trend(w, "policyRate")} tip="Setzt der Geldpolitische Ausschuss der Zentralbank, achtmal im Jahr." />
+  <Stat icon="bank" label={t("buehne.stat.leitzins")} value={t("zb.prozent", { p: w.economy.policyRate })} trend={trend(w, "policyRate")} tip={t("st.leitzins.tip")} />
           )}
           <HudWahl gewaehlt={hudExtra} onWechsel={wechsleHudExtra} />
         </div>
@@ -810,7 +813,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           <button key={m.kurz} className={gruppe === m ? "on" : ""} onClick={() => { ueberLeiste.current = gruppe !== m; oeffneDossier(gruppe === m ? null : m.tabs[0]!.id); if (gruppe !== m && m.tabs[0]!.id === dossier) { ueberLeiste.current = false; setAkteReiter("lage"); } }} aria-label={m.titel} title={m.titel}>
             <Icon name={m.icon} />
             {m.badge !== undefined && <span className="menu-badge">{m.badge}</span>}
-            {m.umlauf !== undefined && <span className="menu-badge ruhig" title="Umlauf: gesammelte Meldungen ohne Entscheidung">{m.umlauf}</span>}
+            {m.umlauf !== undefined && <span className="menu-badge ruhig" title={t("st.umlauf.badge")}>{m.umlauf}</span>}
             <span className="menu-kurz">{m.kurz}</span>
           </button>
         ))}
@@ -822,7 +825,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
             {gruppe && !gruppe.akte && gruppe.tabs.length > 1 && (
-              <div className="dossier-tabs" role="tablist" aria-label={`${gruppe.titel}: Ansicht`}>
+              <div className="dossier-tabs" role="tablist" aria-label={t("st.ansicht", { titel: gruppe.titel })}>
                 {gruppe.tabs.map((t) => (
                   <button key={t.id} role="tab" aria-selected={dossier === t.id} className={dossier === t.id ? "on" : ""} onClick={() => { if (t.id === "politik") setPolitikStart(null); setDossier(t.id); }}>
                     {t.label}
@@ -830,7 +833,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 ))}
               </div>
             )}
-            <button className="close" onClick={() => setDossier(null)} aria-label="Schließen">
+            <button className="close" onClick={() => setDossier(null)} aria-label={t("st.schliessen")}>
               ✕
             </button>
           </header>
@@ -1030,7 +1033,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       <Plakette world={w} ebene={ebene} />
       <img className="compass" src="/ui/kompass.png" alt="" />
       <div className="karten-werkzeuge">
-        <MarkenLegende fund={ebene === "ressourcen" || ebene === "strategie" ? ebene : undefined} />
+        <MarkenLegende fund={ebene === "ressourcen" || ebene === "strategie" ? ebene : undefined} krieg={!!kriegsKarte(w, kriege(w), provinceLonLat)} />
         <Effekte />
       </div>
 
@@ -1312,12 +1315,11 @@ function trend(w: World, key: "inflation" | "usdTry" | "policyRate"): number | u
 /** Hinweise unter der Kopfleiste, wie die Warnsymbole in Hearts of Iron. */
 function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onProgramm, onZins }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void; onParlament: () => void; onEreignis: () => void; onProgramm: () => void; onZins: () => void }) {
   const items: { id: string; tone: "rot" | "gelb" | "blau"; icon: IconName; label: string; kurz: string; text: string; count?: number; onClick?: () => void }[] = [];
-  const pl = (n: number, eins: string, viele: string) => `${n} ${n === 1 ? eins : viele}`;
   const spiel = world.spiel;
 
   const offen = spiel?.ereignisse.length ?? 0;
   if (offen > 0) {
-    items.push({ id: "ereignisse", tone: "rot", icon: "feder", label: "Wartende Entscheidungen", kurz: pl(offen, "Entscheidung", "Entscheidungen"), count: offen, text: spiel!.ereignisse.map((e) => vorlage(e.vorlage).titel(world, e)).join(" · "), onClick: onEreignis });
+    items.push({ id: "ereignisse", tone: "rot", icon: "feder", label: t("st.al.ereignisse"), kurz: t("st.al.ereignisseKurz", { n: offen }), count: offen, text: spiel!.ereignisse.map((e) => vorlage(e.vorlage).titel(world, e)).join(" · "), onClick: onEreignis });
   }
 
   const problems = NET.nodes.filter((n) => n.kind === "problem");
@@ -1334,38 +1336,38 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
       id: "probleme",
       tone: "rot",
       icon: "warnung",
-      label: "Akute Probleme",
-      kurz: pl(perProblem.length, "akutes Problem", "akute Probleme"),
+      label: t("st.al.probleme"),
+      kurz: t("st.al.problemeKurz", { n: perProblem.length }),
       count: perProblem.length,
-      text: perProblem.slice(0, 4).map((x) => `${x.name} in ${x.c} ${x.c === 1 ? "Provinz" : "Provinzen"}`).join(" · "),
+      text: perProblem.slice(0, 4).map((x) => t("st.al.problemZeile", { name: x.name, n: x.c })).join(" · "),
       onClick: onProblems,
     });
   }
 
   const zusagen = spiel?.zusagen.filter((z) => !z.erfuellt && !z.gebrochen) ?? [];
   if (zusagen.length) {
-    items.push({ id: "zusagen", tone: "gelb", icon: "haende", label: "Offene Zusagen", kurz: pl(zusagen.length, "Zusage", "Zusagen"), count: zusagen.length, text: zusagen.map((z) => z.text).join(" · "), onClick: onDesk });
+    items.push({ id: "zusagen", tone: "gelb", icon: "haende", label: t("st.al.zusagen"), kurz: t("st.al.zusagenKurz", { n: zusagen.length }), count: zusagen.length, text: zusagen.map((z) => z.text).join(" · "), onClick: onDesk });
   }
 
   const gesetze = spiel?.gesetze ?? [];
   if (gesetze.length) {
-    items.push({ id: "gesetze", tone: "gelb", icon: "waage", label: "Gesetze im Parlament", kurz: pl(gesetze.length, "Gesetz im Parlament", "Gesetze im Parlament"), count: gesetze.length, text: gesetze.map((g) => `${g.name}: Abstimmung in ${Math.max(0, g.abstimmung - world.day)} Tagen`).join(" · "), onClick: onParlament });
+    items.push({ id: "gesetze", tone: "gelb", icon: "waage", label: t("st.al.gesetze"), kurz: t("st.al.gesetzeKurz", { n: gesetze.length }), count: gesetze.length, text: gesetze.map((g) => t("st.al.gesetzZeile", { name: g.name, n: Math.max(0, g.abstimmung - world.day) })).join(" · "), onClick: onParlament });
   }
 
   const schritt = spiel ? naechsterSchritt(world) : null;
   if (schritt && schritt.status === "bereit") {
-    items.push({ id: "programm", tone: "gelb", icon: "ziel", label: "Programmschritt bereit", kurz: "Programmschritt bereit", text: `${schritt.schritt.titel}: die Voraussetzungen sind erfüllt, der Schritt kann beginnen.`, onClick: onProgramm });
+    items.push({ id: "programm", tone: "gelb", icon: "ziel", label: t("st.al.programm"), kurz: t("st.al.programm"), text: t("st.al.programmText", { titel: schritt.schritt.titel }), onClick: onProgramm });
   }
 
   const duldungen = Object.entries(spiel?.fraktionen ?? {}).filter(([k, f]) => f.duldungBis !== undefined && f.duldungBis > world.day && !(spiel?.lager ?? []).includes(k));
   const baldEnde = duldungen.filter(([, f]) => (f.duldungBis ?? 0) - world.day <= 45).sort((a, b) => (a[1].duldungBis ?? 0) - (b[1].duldungBis ?? 0))[0];
   if (baldEnde) {
     const tage = (baldEnde[1].duldungBis ?? 0) - world.day;
-    items.push({ id: "duldung", tone: "rot", icon: "parlament", label: "Duldung läuft aus", kurz: `Duldung endet in ${tage} Tagen`, text: `Die ${PARTEI_NAME[baldEnde[0]] ?? baldEnde[0]} duldet die Regierung nur noch ${tage} Tage. Danach fehlen ihre Stimmen, wenn Sie nicht neu verhandeln.`, onClick: onParlament });
+    items.push({ id: "duldung", tone: "rot", icon: "parlament", label: t("st.al.duldung"), kurz: t("st.al.duldungKurz", { n: tage }), text: t("st.al.duldungText", { partei: PARTEI_NAME[baldEnde[0]] ?? baldEnde[0], n: tage }), onClick: onParlament });
   }
 
   if (bloc < 301) {
-    items.push({ id: "mehrheit", tone: "rot", icon: "parlament", label: "Keine Mehrheit", kurz: "Keine Mehrheit", text: `Für Gesetze fehlen ${301 - bloc} Stimmen im Lager. Stimmen lassen sich kaufen, Partner bieten sich an.`, onClick: onParlament });
+    items.push({ id: "mehrheit", tone: "rot", icon: "parlament", label: t("st.al.mehrheit"), kurz: t("st.al.mehrheit"), text: t("st.al.mehrheitText", { n: 301 - bloc }), onClick: onParlament });
   }
 
   const next = world.ppkDays.find((d) => d >= world.day);
@@ -1375,16 +1377,16 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
       id: "ppk",
       tone: "blau",
       icon: "bank",
-      label: "Zinssitzung",
-      kurz: days === 0 ? "Zinssitzung heute" : `Zinssitzung in ${pl(days, "Tag", "Tagen")}`,
-      text: days === 0 ? "Der Geldpolitische Ausschuss tagt heute." : `Der Geldpolitische Ausschuss tagt in ${days} ${days === 1 ? "Tag" : "Tagen"}.`,
+      label: t("st.al.zins"),
+      kurz: t("st.al.zinsKurz", { n: days }),
+      text: t("st.al.zinsText", { n: days }),
       onClick: onZins,
     });
   }
 
   if (!items.length) return null;
   return (
-    <div className="alerts" aria-label="Hinweise">
+    <div className="alerts" aria-label={t("st.al.aria")}>
       {items.map((a) => (
         <button key={`${a.id}-${a.count ?? 0}`} className={`alert tone-${a.tone}${a.count !== undefined || a.tone !== "rot" ? " kompakt" : ""}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
           <span className="alert-punkt">

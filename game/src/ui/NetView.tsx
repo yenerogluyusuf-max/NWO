@@ -11,7 +11,8 @@ import { NetGraph } from "./NetGraph";
 import { NetNavigator } from "./NetNavigator";
 import { Erklaerung } from "./Erklaerung";
 import { OrtWahl } from "./OrtWahl";
-import { THEME_NAMES, type NodeSpec, type Theme } from "../data/politiknetz";
+import { type NodeSpec, type Theme } from "../data/politiknetz";
+import { themeName } from "./politik/bereiche";
 import { wann } from "./lernen";
 import { skala, naechsteStufe } from "../data/skalen";
 import { betroffene } from "../sim/wege";
@@ -263,7 +264,7 @@ export function NetView({
       <section className="paper net-detail">
         <div className="net-main">
           <p className="kind-label">
-            {KIND_LABEL[node.kind]} · {THEME_NAMES[node.theme]}
+            {KIND_LABEL[node.kind]} · {themeName(node.theme)}
           </p>
           <h2>{node.name}</h2>
           <p>{node.text}</p>

@@ -150,3 +150,11 @@ html:not([data-effekte="aus"]) .atlas-labels .marke.marke-frist .ort-form { anim
 .atlas-labels .fund:hover .ort-tafel, .atlas-labels .fund:focus-visible .ort-tafel { display: grid; gap: 2px; }
 .atlas-labels .fund:not([data-tafel]) .ort-tafel { bottom: calc(100% + 11px); left: 50%; translate: -50% 0; }
 .mz.fund-muster { width: 26px; height: 26px; }
+
+/* Legende der Kriegslage (kriegsfx.ts) */
+.mz.kl { width: 18px; height: 12px; border-radius: 6px; flex: none; }
+.kl-eigen { background: rgba(150, 38, 28, 0.4); border: 1.5px solid rgba(120, 28, 20, 0.85); }
+.kl-umkaempft { background: rgba(196, 140, 48, 0.3); border: 2px solid rgba(176, 112, 30, 0.9); }
+.kl-gegner { background: rgba(60, 56, 50, 0.08); border: 1px dashed rgba(60, 56, 50, 0.6); }
+.kl-besetzt { background: repeating-linear-gradient(45deg, rgba(150, 38, 28, 0.15) 0 3px, rgba(120, 28, 20, 0.55) 3px 4px); border: 1px dashed rgba(120, 28, 20, 0.8); }
+.kl-pfeil { height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, rgba(150, 38, 28, 0.9) 0 6px, transparent 6px 9px); }

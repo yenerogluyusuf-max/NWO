@@ -9,11 +9,13 @@
 // Das Tempo jedes Knotens hängt an Forschungsetat, Innovationsgrenze (Bildung über Jahre) und Abwanderung (sim/wissensbaum-kern.ts).
 // Fertige Werke stellen Güter her (sim/gueter.ts), heben die heimische Generation der Streitkräfte und beschleunigen ihre Fertigung.
 
-import { BAUM, RIVALEN, WERK_VON, ZWEIGE, ZWEIG_VON, type Lizenzgeber, type Traeger, type ZweigId } from "../data/wissensbaum";
+import { BAUM, HEUREKA, HEUREKA_VON, RIVALEN, STANDORT, WERK_VON, ZWEIGE, ZWEIG_VON, type Lizenzgeber, type Traeger, type ZweigId } from "../data/wissensbaum";
 import type { GattungId } from "../data/streitkraefte";
 import type { Voraussetzung } from "./reich-typen";
-import { beginne, reichZustand, vergabeAngebot, verwaltungBilanz, vorhabenSicht } from "./reich";
-import { baumZustand, landesTempo, lizenzgeber, partnerGesperrt, setzeSperrQuelle, tempoTeile, werkErtrag, werkZusatz, type TempoTeile } from "./wissensbaum-kern";
+import { beginne, groessenWert, reichZustand, vergabeAngebot, verwaltungBilanz, vorhabenSicht } from "./reich";
+import { baumZustand, landesTempo, lizenzgeber, partnerGesperrt, setzeSperrQuelle, standortVon, tempoTeile, werkErtrag, werkZusatz, type TempoTeile } from "./wissensbaum-kern";
+import { auslastung } from "./infrastruktur";
+import { PROVINZEN } from "./regional";
 import { aussenZustand } from "./diplomatie";
 import { aktiveKriege } from "./krieg";
 import { forschungsSicht, WISSEN, bildungsUeberhang } from "./wissensbasis";
@@ -57,6 +59,10 @@ export interface KnotenSicht {
   lizenz?: Lizenzgeber;
   traeger?: { art: Traeger; partner?: Lizenzgeber };
   werk: boolean;
+  /** Standort des Werks (gewählt oder aus den Daten), Kfz-Kennziffer */
+  standort?: number;
+  /** Heureka: Bedingung in einem Satz, ob sie erfüllt ist und ob der Moment schon ausgelöst wurde */
+  heureka?: { text: string; erfuellt: boolean; ausgeloest: boolean; frisch: boolean };
   tempo?: TempoTeile;
   /** Frischer Durchbruch: Stempel in der Ansicht */
   durchbruch: boolean;
@@ -207,6 +213,8 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
     ...(z.lizenzen[id] ? { lizenz: z.lizenzen[id] } : {}),
     ...(z.traeger[id] ? { traeger: z.traeger[id] } : {}),
     werk: !!WERK_VON[id],
+    ...(WERK_VON[id] ? { standort: standortVon(w, id)! } : {}),
+    ...(HEUREKA_VON[id] ? { heureka: heurekaSicht(w, id) } : {}),
     ...(zustand === "laeuft" ? { tempo: tempoTeile(w, id)! } : {}),
     durchbruch: !!frisch,
     wunder: v.klasse === "wunder",
@@ -283,6 +291,79 @@ export interface BeginnOptionen {
   /** Träger eines Werks; beim ausländischen Träger mit Partner */
   traeger?: Traeger;
   partner?: Lizenzgeber;
+  /** Standort eines Werks (Kfz-Kennziffer); ohne Angabe der erste aus den Daten */
+  standort?: number;
+}
+
+/** Ist die Heureka-Bedingung eines Knotens erfüllt? (Liest nur.) */
+export function heurekaErfuellt(w: World, id: string): boolean {
+  const h = HEUREKA_VON[id];
+  if (!h || !w.spiel) return false;
+  const b = h.bedingung;
+  if (b.art === "vorhaben") return !!w.spiel.reich?.bestand[b.id];
+  return NET.index.has(b.id) && nationalAverage(NET, w.net, b.id) >= b.min;
+}
+
+function heurekaSicht(w: World, id: string): NonNullable<KnotenSicht["heureka"]> {
+  const h = HEUREKA_VON[id]!;
+  const b = h.bedingung;
+  const text = b.art === "vorhaben" ? t("wissen.heureka.vorhaben", { name: knotenName(b.id) }) : t("wissen.heureka.massnahme", { was: groesseName(b.id), ziel: b.min });
+  const eintrag = w.spiel?.wissensbaum?.heureka?.find((x) => x.id === id);
+  return { text, erfuellt: heurekaErfuellt(w, id), ausgeloest: !!eintrag, frisch: !!eintrag && w.day - eintrag.tag <= BAUM.durchbruchTage };
+}
+
+/** Ein möglicher Standort eines Werks, wie die Ansicht ihn vergleicht. */
+export interface StandortSicht {
+  plaka: number;
+  name: string;
+  /** Auslastung von Strom und Wasser vor Ort (null, wo es keine Angabe gibt) */
+  strom: number | null;
+  wasser: number | null;
+  /** Braucht das Werk viel Wasser (Chipfertigung)? */
+  wasserIntensiv: boolean;
+  /** Fachkräfte vor Ort und im Landesmittel */
+  fach: number;
+  fachLand: number;
+  hafen: boolean;
+  /** Bautempo an diesem Standort */
+  tempo: number;
+  /** Bremst ein überlastetes Netz den Bau? */
+  engpass: boolean;
+}
+
+const r2 = (x: number): number => Math.round(x * 100) / 100;
+
+/** Die Standorte eines Werks im Vergleich (leer ohne Werk). */
+export function standortSichten(w: World, id: string): StandortSicht[] {
+  const d = WERK_VON[id];
+  if (!d || !w.spiel) return [];
+  const fachLand = groessenWert(w, "fachkraefte");
+  return d.standorte.map((o) => {
+    let strom: number | null = null;
+    let wasser: number | null = null;
+    try {
+      strom = auslastung(w, "strom", o.plaka);
+      wasser = auslastung(w, "wasser", o.plaka);
+    } catch {
+      /* ohne Netze (Werkzeuge) */
+    }
+    const fach = groessenWert(w, "fachkraefte", [o.plaka]);
+    const f = Number.isFinite(fach) && fachLand > 0 ? fach / fachLand : 1;
+    const engpass = (strom ?? 0) >= STANDORT.ueberlast || (!!d.wasser && (wasser ?? 0) >= STANDORT.ueberlast);
+    const tempo = r2(Math.min(STANDORT.tempoMax, Math.max(STANDORT.tempoMin, 1 + STANDORT.fachGewicht * (f - 1))) * (engpass ? STANDORT.ueberlastTempo : 1));
+    return {
+      plaka: o.plaka,
+      name: PROVINZEN[o.plaka - 1]?.name ?? String(o.plaka),
+      strom,
+      wasser,
+      wasserIntensiv: !!d.wasser,
+      fach: Math.round(Number.isFinite(fach) ? fach : fachLand),
+      fachLand: Math.round(fachLand),
+      hafen: !!o.hafen,
+      tempo,
+      engpass,
+    };
+  });
 }
 
 /** Was eine Wahl zusätzlich kostet (Kapital), und ob sie geht. */
@@ -304,6 +385,7 @@ export function beginnPreis(w: World, id: string, o: BeginnOptionen = {}): { pk:
     }
     pk += BAUM.traeger[o.traeger].pk;
   }
+  if (o.standort !== undefined && !WERK_VON[id]?.standorte.some((x) => x.plaka === o.standort)) return { pk, ok: false, grund: t("wissen.e.keinStandort") };
   if (!kannZahlen(w.spiel!.kapital, pk)) return { pk, ok: false, grund: t("wissen.e.kapital", { pk }) };
   return { pk, ok: true };
 }
@@ -323,11 +405,23 @@ export function beginneKnoten(w: World, id: string, o: BeginnOptionen = {}): Erg
   const preis = beginnPreis(w, id, o);
   if (!preis.ok) return { ok: false, text: preis.grund ?? "" };
   const extra = preis.pk - k.pk;
+  const logVorher = w.log.length;
   const r = beginne(w, id, "ausschreibung");
   if (!r.ok) return { ok: false, text: k.grund ?? t("wissen.e.nichtMoeglich") };
+  // Die Zeile des Reiches ist deutsch; der Baum schreibt seine eigene in der Sprache des Spiels
+  const i = w.log.findIndex((e, j) => j >= logVorher && e.text === r.text);
+  if (i >= 0) w.log.splice(i, 1);
   sp.kapital -= extra;
   const z = baumZustand(w);
   const name = knotenName(id);
+  let ort = "";
+  if (WERK_VON[id]) {
+    const so = standortSichten(w, id).find((x) => x.plaka === (o.standort ?? WERK_VON[id]!.standorte[0]!.plaka));
+    if (so) {
+      (z.standort ??= {})[id] = { plaka: so.plaka, tempo: so.tempo };
+      ort = ` ${t("wissen.e.standort", { ort: so.name })}`;
+    }
+  }
   if (o.lizenz) {
     z.lizenzen[id] = o.lizenz;
     rivalenReagieren(w, o.lizenz, t("wissen.e.lizenzGrund", { name }));
@@ -346,7 +440,7 @@ export function beginneKnoten(w: World, id: string, o: BeginnOptionen = {}): Erg
   }
   const weg = o.lizenz ? t("wissen.e.weg.lizenz", { land: t(`wissen.partner.${o.lizenz}`) }) : t("wissen.e.weg.selbst");
   const traeger = o.traeger ? ` ${t(`wissen.traeger.${o.traeger}.kurz`)}.` : "";
-  const text = t("wissen.e.begonnen", { name, weg, monate: k.monate }) + traeger;
+  const text = t("wissen.e.begonnen", { name, weg, monate: k.monate }) + traeger + ort;
   addLog(w, "entscheidung", text, o.lizenz ? t("wissen.e.lizenzWarum") : t("wissen.e.selbstWarum"));
   return { ok: true, text };
 }
@@ -422,9 +516,29 @@ export function wissensbaumMonat(w: World): void {
           if (s) s.heimGeneration = Math.min(5, Math.round((s.heimGeneration + plus) * 100) / 100);
         }
       }
-      addLog(w, "ereignis", t("wissen.durchbruch.log", { name: knotenName(id) }), werk ? t("wissen.durchbruch.werk") : t("wissen.durchbruch.wissen"));
+      // Das Werk am Standort: Arbeitsplätze und Vertrauen vor Ort, mit Seehafen mehr Ausfuhr (Netzlast: sim/infrastruktur.ts)
+      let ort = "";
+      if (werk && !z.start.includes(id)) {
+        const pl = standortVon(w, id)!;
+        wirke(w, "vertrauen_regierung", STANDORT.vertrauen, [pl]);
+        wirke(w, "industrie", STANDORT.industrie, [pl]);
+        if (werk.standorte.find((x) => x.plaka === pl)?.hafen) wirke(w, "export", STANDORT.hafenExport);
+        ort = ` ${t("wissen.durchbruch.ort", { ort: PROVINZEN[pl - 1]?.name ?? String(pl) })}`;
+      }
+      addLog(w, "ereignis", t("wissen.durchbruch.log", { name: knotenName(id) }) + ort, werk ? t("wissen.durchbruch.werk") : t("wissen.durchbruch.wissen"));
     }
   z.durchbrueche = z.durchbrueche.filter((x) => w.day - x.tag <= BAUM.durchbruchTage);
+  // Heureka: Ist die Bedingung erfüllt, solange der Knoten noch nicht fertig ist, geht es dort dauerhaft schneller (einmal je Knoten)
+  // Was beim ersten Blick schon erfüllt ist (Spielbeginn, alter Spielstand), gilt still: kein Stempel, keine Meldungsflut
+  const heureka = (z.heureka ??= []);
+  const still = !z.heurekaGeprueft;
+  z.heurekaGeprueft = true;
+  for (const h of HEUREKA) {
+    if (bestand[h.knoten] || heureka.some((x) => x.id === h.knoten) || !heurekaErfuellt(w, h.knoten)) continue;
+    heureka.push({ id: h.knoten, tag: still ? -100_000 : w.day });
+    if (still) continue;
+    addLog(w, "ereignis", t("wissen.heureka.log", { name: knotenName(h.knoten) }), t("wissen.heureka.warum", { bedingung: heurekaSicht(w, h.knoten).text, tempo: BAUM.heurekaTempo }));
+  }
   // Sperrt ein Lizenzgeber oder Partner, meldet die Akte es einmal; hebt er die Sperre auf, darf es wieder gemeldet werden
   const partner = new Set<Lizenzgeber>([...Object.values(z.lizenzen), ...Object.values(z.traeger).flatMap((x) => (x.partner ? [x.partner] : []))]);
   for (const p of partner) {

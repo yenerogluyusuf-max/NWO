@@ -5,12 +5,24 @@
 import { useMemo, useState } from "react";
 import { t } from "../../i18n";
 import { BAUM, WERK_VON, ZWEIGE, type Lizenzgeber, type Traeger, type ZweigId } from "../../data/wissensbaum";
-import { baumSicht, beginnPreis, beginneKnoten, kaufeLizenz, knotenName, setzeSchwerpunkt, type KnotenSicht } from "../../sim/wissensbaum";
+import { baumSicht, beginnPreis, beginneKnoten, kaufeLizenz, knotenName, setzeSchwerpunkt, standortSichten, type KnotenSicht } from "../../sim/wissensbaum";
+import type { TempoTeile } from "../../sim/wissensbaum-kern";
+import { PROVINZEN } from "../../sim/regional";
 import { partnerGesperrt } from "../../sim/wissensbaum-kern";
 import type { World } from "../../sim/types";
 import "./wissensbaum.css";
 
 const TRAEGER: Traeger[] = ["staat", "firma", "ausland"];
+const TEILE = ["forschung", "abwanderung", "schwerpunkt", "lizenz", "traeger", "standort", "heureka"] as const;
+
+/** Tempozeile: nur die Faktoren, die vom Normalfall abweichen. */
+function tempoText(tp: TempoTeile): string {
+  const teile = TEILE.filter((k) => {
+    const x = (tp as unknown as Record<string, number | undefined>)[k];
+    return x !== undefined && Math.abs(x - 1) >= 0.005;
+  }).map((k) => t(`wissen.ui.tempoTeil.${k}`, { x: (tp as unknown as Record<string, number>)[k]! }));
+  return teile.length ? `${t("wissen.ui.tempoGesamt", { gesamt: tp.gesamt })}: ${teile.join(" · ")}` : t("wissen.ui.tempoNurLand", { gesamt: tp.gesamt });
+}
 
 function Knoten({ k, auf, onWahl }: { k: KnotenSicht; auf: boolean; onWahl: () => void }) {
   return (
@@ -26,6 +38,7 @@ function Knoten({ k, auf, onWahl }: { k: KnotenSicht; auf: boolean; onWahl: () =
         <span className="wb-marke">{t(`wissen.ui.zustand.${k.zustand}`)}</span>
         {k.werk && <span className="wb-werk-marke">{t("wissen.ui.werk")}</span>}
         {k.lizenz && <span className="wb-lizenz-marke">{t(`wissen.partner.${k.lizenz}`)}</span>}
+        {k.heureka?.ausgeloest && k.zustand !== "fertig" && <span className="wb-heureka-marke">{t("wissen.ui.heureka")}</span>}
         {k.zustand === "gesperrt" && k.hindernis && <span className={`wb-hindernis wb-h-${k.hindernis}`}>{t(`wissen.ui.h.${k.hindernis}`)}</span>}
       </span>
       {k.zustand === "laeuft" && (
@@ -38,12 +51,14 @@ function Knoten({ k, auf, onWahl }: { k: KnotenSicht; auf: boolean; onWahl: () =
   );
 }
 
-function Detail({ w, k, onGetan, onZu }: { w: World; k: KnotenSicht; onGetan: (r: { ok: boolean; text: string }) => void; onZu: () => void }) {
+export function Detail({ w, k, onGetan, onZu }: { w: World; k: KnotenSicht; onGetan: (r: { ok: boolean; text: string }) => void; onZu: () => void }) {
   const werk = WERK_VON[k.id];
   const [traeger, setTraeger] = useState<Traeger>("staat");
   const [partner, setPartner] = useState<Lizenzgeber | undefined>(k.lizenzgeber[0]);
+  const orte = k.zustand === "moeglich" ? standortSichten(w, k.id) : [];
+  const [ort, setOrt] = useState<number | undefined>(werk?.standorte[0]?.plaka);
   const anderer = k.vorgaenger.filter((v) => !ZWEIGE.find((z) => z.id === k.zweig)!.knoten.includes(v));
-  const optTraeger = werk ? { traeger, ...(traeger === "ausland" && partner ? { partner } : {}) } : {};
+  const optTraeger = werk ? { traeger, ...(traeger === "ausland" && partner ? { partner } : {}), ...(ort !== undefined ? { standort: ort } : {}) } : {};
   const selbst = beginnPreis(w, k.id, optTraeger);
   return (
     <section className="wb-detail" aria-live="polite">
@@ -61,6 +76,12 @@ function Detail({ w, k, onGetan, onZu }: { w: World; k: KnotenSicht; onGetan: (r
           {k.zustand === "laeuft" && k.restMonate !== undefined ? t("wissen.ui.rest", { n: k.restMonate }) : t("wissen.ui.kosten", { pk: k.pk, monate: k.monate })}
         </p>
       )}
+      {k.heureka && k.zustand !== "fertig" && (
+        <p className={`wb-hinweis wb-heureka${k.heureka.ausgeloest ? " ja" : ""}`}>
+          {t("wissen.ui.heurekaZeile", { bedingung: k.heureka.text, tempo: BAUM.heurekaTempo })}{" "}
+          {k.heureka.ausgeloest ? <b>{t("wissen.ui.heurekaJa")}</b> : k.heureka.erfuellt ? <b>{t("wissen.ui.heurekaBereit")}</b> : null}
+        </p>
+      )}
       {k.ungewiss && k.zustand !== "fertig" && <p className="wb-hinweis">{t("wissen.ui.ungewiss")}</p>}
       {k.wunder && k.zustand !== "fertig" && <p className="wb-hinweis">{t("wissen.ui.wunder")}</p>}
       {werk && (
@@ -70,11 +91,10 @@ function Detail({ w, k, onGetan, onZu }: { w: World; k: KnotenSicht; onGetan: (r
         </p>
       )}
       {k.lizenz && <p className="wb-hinweis">{t("wissen.ui.mitLizenz", { land: t(`wissen.partner.${k.lizenz}`) })}{partnerGesperrt(w, k.lizenz) ? ` ${t("wissen.ui.gesperrtPartner", { land: t(`wissen.partner.${k.lizenz}`) })}` : ""}</p>}
+      {werk && k.zustand !== "moeglich" && k.standort !== undefined && <p className="wb-hinweis">{t("wissen.ui.standortIst", { ort: PROVINZEN[k.standort - 1]?.name ?? String(k.standort) })}</p>}
       {k.traeger && <p className="wb-hinweis">{t(`wissen.traeger.${k.traeger.art}.kurz`)}{k.traeger.partner ? ` (${t(`wissen.partner.${k.traeger.partner}`)})` : ""}</p>}
       {k.tempo && (
-        <p className="wb-tempozeile">
-          {t("wissen.ui.tempoZeile", { gesamt: k.tempo.gesamt, forschung: k.tempo.forschung, abwanderung: k.tempo.abwanderung, schwerpunkt: k.tempo.schwerpunkt, lizenz: k.tempo.lizenz, traeger: k.tempo.traeger })}
-        </p>
+        <p className="wb-tempozeile">{tempoText(k.tempo)}</p>
       )}
       <details className="wb-voraus" open={k.zustand === "gesperrt"}>
         <summary>{t("wissen.ui.voraus")}</summary>
@@ -90,6 +110,35 @@ function Detail({ w, k, onGetan, onZu }: { w: World; k: KnotenSicht; onGetan: (r
 
       {k.zustand === "moeglich" && (
         <div className="wb-wege">
+          {orte.length > 1 && (
+            <fieldset className="wb-traeger wb-standort">
+              <legend>{t("wissen.ui.standortWahl")}</legend>
+              {orte.map((o) => (
+                <label key={o.plaka} className={ort === o.plaka ? "auf" : ""}>
+                  <input type="radio" name={`ort-${k.id}`} checked={ort === o.plaka} onChange={() => setOrt(o.plaka)} />
+                  <span>
+                    <b>{o.name}</b>
+                    {o.hafen ? ` · ${t("wissen.ui.standortHafen")}` : ""} · {t("wissen.ui.standortTempo", { tempo: o.tempo })}
+                    <br />
+                    <small>
+                      {[
+                        o.strom !== null ? t("wissen.ui.standortStrom", { a: Math.round(o.strom * 100) }) : null,
+                        o.wasser !== null && o.wasserIntensiv ? t("wissen.ui.standortWasser", { a: Math.round(o.wasser * 100) }) : null,
+                        t("wissen.ui.standortFach", { fach: o.fach, land: o.fachLand }),
+                      ].filter(Boolean).join(" · ")}
+                    </small>
+                    {o.engpass && (
+                      <>
+                        <br />
+                        <small className="wb-engpass">{t("wissen.ui.standortEngpass")}</small>
+                      </>
+                    )}
+                  </span>
+                </label>
+              ))}
+              <p className="wb-hinweis">{t("wissen.ui.standortText")}</p>
+            </fieldset>
+          )}
           {werk && (
             <fieldset className="wb-traeger">
               <legend>{t("wissen.ui.traegerWahl")}</legend>
@@ -155,6 +204,7 @@ export function Wissensbaum({ world: w, onGeaendert }: { world: World; onGeaende
   const alle = sicht.zweige.flatMap((z) => z.knoten);
   const gewaehlt = wahl ? alle.find((k) => k.id === wahl) : undefined;
   const frisch = alle.find((k) => k.durchbruch && k.id !== stempelZu);
+  const heurekaFrisch = frisch ? undefined : alle.find((k) => k.heureka?.frisch && k.zustand !== "fertig" && `h:${k.id}` !== stempelZu);
   const getan = (r: { ok: boolean; text: string }) => {
     setMeldung(r);
     setStand((x) => x + 1);
@@ -207,6 +257,14 @@ export function Wissensbaum({ world: w, onGeaendert }: { world: World; onGeaende
           <span className="wb-stempel">{t("wissen.ui.durchbruch")}</span>
           <span className="wb-durchbruch-text">{t("wissen.ui.durchbruchText", { name: knotenName(frisch.id) })}</span>
           <button type="button" className="wb-zu" onClick={() => setStempelZu(frisch.id)} aria-label={t("wissen.ui.schliessen")}>×</button>
+        </div>
+      )}
+
+      {heurekaFrisch && (
+        <div className="wb-durchbruch wb-heureka-banner" role="status">
+          <span className="wb-stempel">{t("wissen.ui.heureka")}</span>
+          <span className="wb-durchbruch-text">{t("wissen.ui.heurekaText", { name: knotenName(heurekaFrisch.id) })}</span>
+          <button type="button" className="wb-zu" onClick={() => setStempelZu(`h:${heurekaFrisch.id}`)} aria-label={t("wissen.ui.schliessen")}>×</button>
         </div>
       )}
 

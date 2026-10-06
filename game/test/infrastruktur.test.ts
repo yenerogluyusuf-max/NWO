@@ -205,7 +205,7 @@ describe("Last der Werke", () => {
     w.spiel!.reich!.bestand.ki_chipfab = { ...Object.values(w.spiel!.reich!.bestand)[0]!, id: "ki_chipfab" } as never;
     advance(w, 30);
     const nach = z.netze.wasser.nachfrage[40]!;
-    expect(nach / vorher).toBeGreaterThan(1 + WERK_LAST.ki_chipfab!.plus * 0.8);
+    expect(nach / vorher).toBeGreaterThan(1 + WERK_LAST.ki_chipfab!.find((l) => l.netz === "wasser")!.plus * 0.8);
     advance(w, 30);
     // Nur einmal: danach wächst die Nachfrage nur noch mit dem Trend
     expect(z.netze.wasser.nachfrage[40]! / nach).toBeLessThan(1.02);

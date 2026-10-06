@@ -25,26 +25,26 @@ import { berechneReihen } from "./prognose";
 import "./wirtschaft.css";
 
 import { t } from "../../i18n";
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+import { zahl } from "../../i18n";
+const nf = (x: number, d = 1): string => zahl(x, d);
 
-const METRIKEN: { id: Metric; kennzahl: string; label: string }[] = [
-  { id: "policyRate", kennzahl: "leitzins", label: "Leitzins" },
-  { id: "inflation", kennzahl: "inflation", label: "Inflation" },
-  { id: "growth", kennzahl: "wachstum", label: "Wachstum" },
-  { id: "usdTry", kennzahl: "usd", label: "Lira je Dollar" },
-  { id: "unemployment", kennzahl: "arbeitslosigkeit", label: "Arbeitslosigkeit" },
+const METRIK_IDS: { id: Metric; kennzahl: string }[] = [
+  { id: "policyRate", kennzahl: "leitzins" },
+  { id: "inflation", kennzahl: "inflation" },
+  { id: "growth", kennzahl: "wachstum" },
+  { id: "usdTry", kennzahl: "usd" },
+  { id: "unemployment", kennzahl: "arbeitslosigkeit" },
 ];
+const metriken = (): { id: Metric; kennzahl: string; label: string }[] => METRIK_IDS.map((m) => ({ ...m, label: t(`zb.metrik.${m.id}`) }));
 
-const HALTUNGEN: { id: GovernorStance; name: string; text: string; folge: string }[] = [
-  { id: "vorsichtig", name: "Streng", text: "Eine erfahrene Hüterin der Preisstabilität: reagiert früh auf Inflation und lässt sich kaum beeinflussen.", folge: "Die Märkte belohnen es mit etwas Vertrauen; Zinsen bleiben hoch, Kredite teuer." },
-  { id: "ausgewogen", name: "Ausgewogen", text: "Eine Kraft aus dem Haus: wägt Inflation und Wachstum gleich, gibt Druck teilweise nach.", folge: "Ein Wechsel bleibt ein Eingriff; die Märkte beruhigt es nur zum Teil." },
-  { id: "gefuegig", name: "Gefügig", text: "Eine regierungsnahe Führung: senkt eher, verweist auf Wachstum und Beschäftigung und folgt Druck fast immer.", folge: "Die Märkte lesen es als Eingriff in die Unabhängigkeit: Lira fällt, Risikoaufschlag steigt, Glaubwürdigkeit leidet stark." },
-];
+const HALTUNG_IDS: GovernorStance[] = ["vorsichtig", "ausgewogen", "gefuegig"];
+const haltungen = (): { id: GovernorStance; name: string; text: string; folge: string }[] =>
+  HALTUNG_IDS.map((id) => ({ id, name: t(`zb.haltung.${id}.name`), text: t(`zb.haltung.${id}.text`), folge: t(`zb.haltung.${id}.folge`) }));
 
 /** Wie stark ein Wechsel der Unabhängigkeit die Glaubwürdigkeit bewegt (siehe `wendeStufeAn`). */
 const STUFEN_GLAUBWUERDIGKEIT: Record<string, number> = { "B>C": -0.18, "C>B": 0.06, "B>A": 0.08, "A>B": -0.06 };
 
-const HALTUNG_NAME: Record<GovernorStance, string> = { vorsichtig: "streng", ausgewogen: "ausgewogen", gefuegig: "gefügig" };
+const haltungName = (h: GovernorStance): string => t(`zb.haltung.${h}.klein`);
 
 function aktionFuer(o: DruckOption | undefined): Aktion | null {
   if (!o || o.id === "keiner" || !o.richtung || !o.weg) return null;
@@ -55,6 +55,8 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
   const z = zbZustand(world);
   const naechste = naechsteSitzung(world);
   const optionen = useMemo(() => druckOptionen(world), [world.day, world.spiel?.kapital, z.stufe, world.governor.stance]);
+  const METRIKEN = metriken();
+  const HALTUNGEN = haltungen();
   const [gewaehlt, setGewaehlt] = useState<DruckOption["id"]>("keiner");
   const [bestaetigt, setBestaetigt] = useState<string | null>(null);
   const [rueck, setRueck] = useState<{ ok: boolean; text: string; why?: string | undefined } | null>(null);
@@ -118,7 +120,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
   const r = reihen?.find((x) => x.metric === metrik);
   const mk = METRIKEN.find((m) => m.id === metrik)!;
   const k = KENNZAHLEN_NACH_ID[mk.kennzahl]!;
-  const band = r ? { ohne: r.ohne, ...(r.mit.length ? { mit: r.mit, mitName: modusC ? "Mit Ihrer Vorgabe" : `Mit: ${opt.label}` } : {}) } : undefined;
+  const band = r ? { ohne: r.ohne, ...(r.mit.length ? { mit: r.mit, mitName: modusC ? t("zb.mitVorgabe") : t("zb.mit", { name: opt.label }) } : {}) } : undefined;
   const lager = stimmenSicht(world).lager;
   const wechsel = stufenWechsel(z.stufe);
   const restGouv = (z.gouverneurGeaendert ?? -1e9) + 120 - world.day;
@@ -134,7 +136,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
   const iv = interventionsVorschau(world, betrag);
   const iwf = iwfSicht(world);
   const anfrage = iwfAnfrageMoeglich(world);
-  const druckText = (e.reservenDruck ?? 0) > 0 ? "Zuschlag aktiv (Märkte testen die Bank)" : netto < DEVISEN.druckAus ? "unter Beobachtung" : "ruhig";
+  const druckText = (e.reservenDruck ?? 0) > 0 ? t("zb.druck.zuschlag") : netto < DEVISEN.druckAus ? t("zb.druck.beobachtung") : t("zb.druck.ruhig");
 
   return (
     <div className="wi-zb">
@@ -148,40 +150,40 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
       <section className="wi-karte wi-bank">
         <div className="wi-bank-kopf">
           <div>
-            <p className="kicker">Die Zentralbank</p>
-            <h3>{gouv ? `${gouv.rolle} ${gouv.name}` : "Gouverneurin"}</h3>
+            <p className="kicker">{t("zb.kicker.bank")}</p>
+            <h3>{gouv ? `${gouv.rolle} ${gouv.name}` : t("zb.gouverneurin")}</h3>
             <p className="wi-hinweis">
-              Haltung: <b>{HALTUNG_NAME[world.governor.stance]}</b>
+              {t("zb.haltung")} <b>{haltungName(world.governor.stance)}</b>
               {gouv && (
                 <>
                   {" "}
-                  · Verhältnis zu Ihnen: <b>{figurHaltung(gouv)}</b>
+                  · {t("zb.verhaeltnis")} <b>{figurHaltung(gouv)}</b>
                 </>
               )}
             </p>
           </div>
           <div className={`wi-stufe wi-stufe-${z.stufe}`}>
-            <span>Stufe {z.stufe}</span>
+            <span>{t("zb.stufe", { s: z.stufe })}</span>
             <b>{STUFEN[z.stufe].name}</b>
           </div>
         </div>
         <p className="wi-hinweis">{STUFEN[z.stufe].text}</p>
         <dl className="wi-zahlen">
           <div>
-            <dt>Leitzins</dt>
-            <dd>{nf(e.policyRate)} %</dd>
+            <dt>{t("zb.metrik.policyRate")}</dt>
+            <dd>{t("zb.prozent", { p: e.policyRate })}</dd>
           </div>
           <div>
-            <dt>Realzins</dt>
-            <dd>{nf(e.policyRate - e.expectedInflation)} %</dd>
+            <dt>{t("zb.realzins")}</dt>
+            <dd>{t("zb.prozent", { p: e.policyRate - e.expectedInflation })}</dd>
           </div>
           <div>
             <dt>{t("ui.wirtschaft.Zentralbank.37e34e7")}</dt>
             <dd>{glaubwuerdigkeitWort(e.credibility)}</dd>
           </div>
           <div>
-            <dt>Risikoaufschlag</dt>
-            <dd>{nf(e.riskPremium, 0)} Punkte</dd>
+            <dt>{t("zb.risiko")}</dt>
+            <dd>{t("zb.punkte", { n: Math.round(e.riskPremium) })}</dd>
           </div>
         </dl>
       </section>
@@ -190,31 +192,32 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
         <p className="kicker">{t("ui.wirtschaft.Zentralbank.440cbd3")}</p>
         {naechste ? (
           <h3>
-            {formatDateDe(naechste.datum)} <small>· in {naechste.tage} {naechste.tage === 1 ? "Tag" : "Tagen"}</small>
+            {formatDateDe(naechste.datum)} <small>· {t("zb.inTagen", { n: naechste.tage })}</small>
           </h3>
         ) : (
           <h3>{t("ui.wirtschaft.Zentralbank.30c1276")}</h3>
         )}
         {!modusC && (
           <p className="wi-hinweis">
-            Ohne Ihr Zutun folgt die Bank ihrer Regel: Nach heutigem Stand {regel.newRate === e.policyRate ? <b>hält sie den Zins bei {nf(regel.newRate)} %</b> : <b>{regel.newRate > e.policyRate ? "erhöht" : "senkt"} sie den Zins von {nf(e.policyRate)} auf {nf(regel.newRate)} %</b>}. {regel.why} Die Lage kann sich bis dahin ändern.
+            {t("zb.regel")}{" "}
+            <b>{regel.newRate === e.policyRate ? t("zb.regel.haelt", { neu: regel.newRate }) : t(regel.newRate > e.policyRate ? "zb.regel.erhoeht" : "zb.regel.senkt", { alt: e.policyRate, neu: regel.newRate })}</b>. {regel.why} {t("zb.regel.lage")}
           </p>
         )}
         {z.druck && !modusC && (
           <p className="wi-hinweis wi-druck">
-            Für diese Sitzung liegt schon Druck an: {z.druck.richtung < 0 ? "Sie fordern eine Senkung" : "Sie stützen die strenge Linie"} ({z.druck.weg === "rede" ? "öffentlich" : "vertraulich"}).
+            {t("zb.druckLiegt", { was: z.druck.richtung < 0 ? "senkung" : "streng", wie: z.druck.weg === "rede" ? "rede" : "gespraech" })}
           </p>
         )}
 
         {modusC ? (
           <div className="wi-vorgabe">
-            <p className="wi-hinweis">Die Bank ist weisungsgebunden: Sie legen den Zins selbst fest. Jede Abweichung von der Regel ({nf(regel.newRate)} %) sehen die Märkte und werten sie als politischen Zins.</p>
+            <p className="wi-hinweis">{t("zb.weisung", { regel: regel.newRate })}</p>
             <label htmlFor="wi-vorgabe">
-              Leitzins für die nächste Sitzung: <b>{nf(vorgabeWert)} %</b>
+              {t("zb.vorgabeLabel")} <b>{t("zb.prozent", { p: vorgabeWert })}</b>
             </label>
             <input id="wi-vorgabe" type="range" min={0} max={60} step={0.5} value={vorgabeWert} onChange={(ev) => setVorgabe(Number(ev.target.value))} />
             <button className="wi-handlung" onClick={() => fuehre(() => setzeVorgabe(world, vorgabeWert))}>
-              Zins festlegen: {nf(vorgabeWert)} % <span aria-hidden>→</span>
+              {t("zb.festlegen", { p: vorgabeWert })} <span aria-hidden>→</span>
             </button>
           </div>
         ) : (
@@ -224,7 +227,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
                 <input type="radio" name="wi-druck" checked={gewaehlt === o.id} disabled={!o.moeglich} onChange={() => setGewaehlt(o.id)} />
                 <span className="wi-option-kopf">
                   <b>{o.label}</b>
-                  <span className={`wi-beschluss${o.abweichung < 0 ? " wi-schlecht" : o.abweichung > 0 ? " wi-neutral" : ""}`}>Bank: {nf(o.neu)} %</span>
+                  <span className={`wi-beschluss${o.abweichung < 0 ? " wi-schlecht" : o.abweichung > 0 ? " wi-neutral" : ""}`}>{t("zb.bank", { p: o.neu })}</span>
                 </span>
                 <span className="wi-option-text">{o.text}</span>
                 <span className="wi-kosten">{o.kosten.join(" · ")}</span>
@@ -235,8 +238,8 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
         )}
 
         <div className="wi-vorschau">
-          <h4>Was danach kommt{!modusC && opt.id !== "keiner" ? `: ${opt.label}` : ""}</h4>
-          <Folgen glieder={kette} leer={delta === 0 ? `Der Zins bliebe bei ${nf(e.policyRate)} %. Frühere Entscheidungen wirken weiter: Was die Bank in den letzten Monaten beschlossen hat, kommt erst mit Verzögerung bei Kredit, Nachfrage und Preisen an.` : undefined} />
+          <h4>{t("zb.danach")}{!modusC && opt.id !== "keiner" ? `: ${opt.label}` : ""}</h4>
+          <Folgen glieder={kette} leer={delta === 0 ? t("zb.bliebe", { p: e.policyRate }) : undefined} />
           <Wirkung reihen={reihen} metriken={METRIKEN} rechnet={rechnet} />
           <div className="wi-metriken" role="tablist" aria-label={t("ui.wirtschaft.Zentralbank.34b3ca6")}>
             {METRIKEN.map((m) => (
@@ -250,10 +253,10 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
 
         {!modusC && opt.id !== "keiner" && (
           bestaetigt === "druck" ? (
-            <Bestaetigung name={spielerName} titel={opt.label} knopf={opt.weg === "rede" ? "Rede halten" : "Gespräch führen"} onJa={() => fuehre(() => machDruck(world, opt.richtung!, opt.weg!))} onNein={() => setBestaetigt(null)}>
+            <Bestaetigung name={spielerName} titel={opt.label} knopf={opt.weg === "rede" ? t("zb.redeHalten") : t("zb.gespraechFuehren")} onJa={() => fuehre(() => machDruck(world, opt.richtung!, opt.weg!))} onNein={() => setBestaetigt(null)}>
               <p>{opt.text}</p>
               <p className="wi-hinweis">
-                {opt.abweichung !== 0 ? `Nach heutigem Stand beschließt die Bank ${nf(opt.neu)} % statt ${nf(regel.newRate)} %.` : "Nach heutigem Stand ändert das nichts am Beschluss: Die Gouverneurin bleibt bei ihrer Linie."} Kosten: {opt.kosten.join(", ")}.
+                {opt.abweichung !== 0 ? t("zb.beschliesst", { neu: opt.neu, regel: regel.newRate }) : t("zb.aendertNichts")} {t("zb.kosten", { l: opt.kosten })}
               </p>
             </Bestaetigung>
           ) : (
@@ -267,23 +270,23 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
       <section className="wi-karte" id="wi-zb-gouverneur">
         <p className="kicker">{t("ui.wirtschaft.Zentralbank.4e897df")}</p>
         <h3>{t("ui.wirtschaft.Zentralbank.6517018")}</h3>
-        <p className="wi-hinweis">Eine Neubesetzung ist ein Präsidialdekret: Sie kostet kein Kapital, aber Vertrauen der Märkte. Danach bleibt der Wechsel {120} Tage gesperrt.</p>
+        <p className="wi-hinweis">{t("zb.neubesetzung", { n: 120 })}</p>
         <div className="wi-haltungen">
           {HALTUNGEN.map((h) => {
-            const grund = z.stufe === "A" ? "Die Führung ist gesetzlich geschützt." : world.governor.stance === h.id ? "Hat die Bank schon." : restGouv > 0 ? `Wieder möglich in ${restGouv} Tagen.` : null;
+            const grund = z.stufe === "A" ? t("zb.geschuetzt") : world.governor.stance === h.id ? t("zb.schon") : restGouv > 0 ? t("zb.wiederIn", { n: restGouv }) : null;
             return (
               <div key={h.id} className={`wi-haltung${world.governor.stance === h.id ? " jetzt" : ""}`}>
                 <b>{h.name}</b>
                 <span>{h.text}</span>
                 <em>{h.folge}</em>
                 {bestaetigt === `g-${h.id}` ? (
-                  <Bestaetigung name={spielerName} titel={`Neue Führung: ${h.name.toLowerCase()}`} onJa={() => fuehre(() => ernenneGouverneur(world, h.id))} onNein={() => setBestaetigt(null)}>
+                  <Bestaetigung name={spielerName} titel={t("zb.neueFuehrung", { name: h.name })} onJa={() => fuehre(() => ernenneGouverneur(world, h.id))} onNein={() => setBestaetigt(null)}>
                     <p>{h.folge}</p>
                     <Folgen glieder={h.id === "gefuegig" ? glaubwuerdigkeitsKette(-0.18) : []} />
                   </Bestaetigung>
                 ) : (
                   <button disabled={!!grund} title={grund ?? ""} onClick={() => setBestaetigt(`g-${h.id}`)}>
-                    {world.governor.stance === h.id ? "Aktuelle Haltung" : `Einsetzen`}
+                    {world.governor.stance === h.id ? t("zb.aktuell") : t("zb.einsetzen")}
                   </button>
                 )}
               </div>
@@ -293,23 +296,23 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
       </section>
 
       <section className="wi-karte" id="wi-zb-stufe">
-        <p className="kicker">Das Zentralbankgesetz</p>
+        <p className="kicker">{t("zb.kicker.gesetz")}</p>
         <h3>{t("ui.wirtschaft.Zentralbank.bf2ad27")}</h3>
-        <p className="wi-hinweis">Die Unabhängigkeit ändert sich per Gesetz, Schritt für Schritt. Das braucht die Mehrheit im Regierungslager (jetzt {lager} von {REGELN.mehrheit} Stimmen), kostet Kapital, und die Märkte reagieren schon auf die Ankündigung.</p>
+        <p className="wi-hinweis">{t("zb.gesetzText", { lager, mehrheit: REGELN.mehrheit })}</p>
         <div className="wi-wechsel">
           {wechsel.map((w) => {
-            const grund = restStufe > 0 ? `Frühestens in ${restStufe} Tagen.` : lager < REGELN.mehrheit ? "Es fehlt die Mehrheit im Lager." : !kannZahlen(world.spiel?.kapital ?? 0, w.pk) ? "Es fehlt Kapital." : null;
+            const grund = restStufe > 0 ? t("zb.fruehestens", { n: restStufe }) : lager < REGELN.mehrheit ? t("zb.keineMehrheit") : !kannZahlen(world.spiel?.kapital ?? 0, w.pk) ? t("zb.keinKapital") : null;
             return (
               <div key={w.ziel} className="wi-wechsel-karte">
                 <b>
-                  {w.text} <small>(Stufe {w.ziel}: {STUFEN[w.ziel].name})</small>
+                  {w.text} <small>({t("zb.stufe", { s: w.ziel })}: {STUFEN[w.ziel].name})</small>
                 </b>
                 <span>{w.effekte}</span>
-                <span className="wi-kosten">Kostet {w.pk} Kapital</span>
+                <span className="wi-kosten">{t("zb.kostetPk", { pk: w.pk })}</span>
                 {bestaetigt === `s-${w.ziel}` ? (
-                  <Bestaetigung name={spielerName} titel={w.text} knopf="Gesetz unterzeichnen" onJa={() => fuehre(() => aendereStufe(world, w.ziel))} onNein={() => setBestaetigt(null)}>
+                  <Bestaetigung name={spielerName} titel={w.text} knopf={t("zb.unterzeichnen")} onJa={() => fuehre(() => aendereStufe(world, w.ziel))} onNein={() => setBestaetigt(null)}>
                     <p>{w.effekte}</p>
-                    <p className="wi-hinweis">Kostet {w.pk} Kapital.</p>
+                    <p className="wi-hinweis">{t("zb.kostetPk", { pk: w.pk })}.</p>
                     <Folgen glieder={glaubwuerdigkeitsKette(STUFEN_GLAUBWUERDIGKEIT[`${z.stufe}>${w.ziel}`] ?? 0)} />
                   </Bestaetigung>
                 ) : (
@@ -332,16 +335,16 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
         </p>
         <dl className="wi-zahlen">
           <div>
-            <dt>Netto-Reserven</dt>
-            <dd className={nettoKnapp ? "wi-schlecht" : ""}>{nf(netto)} Mrd. $</dd>
+            <dt>{t("zb.netto")}</dt>
+            <dd className={nettoKnapp ? "wi-schlecht" : ""}>{t("zb.mrdUsd", { x: netto })}</dd>
           </div>
           <div>
-            <dt>Brutto-Reserven</dt>
-            <dd>{nf(brutto)} Mrd. $</dd>
+            <dt>{t("zb.brutto")}</dt>
+            <dd>{t("zb.mrdUsd", { x: brutto })}</dd>
           </div>
           <div>
-            <dt>Leistungsbilanz</dt>
-            <dd>{nf(lb)} % des BIP</dd>
+            <dt>{t("zb.leistungsbilanz")}</dt>
+            <dd>{t("zb.bip", { p: lb })}</dd>
           </div>
           <div>
             <dt>{t("ui.wirtschaft.Zentralbank.1d70db1")}</dt>
@@ -350,56 +353,56 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
         </dl>
         {nettoKnapp && (
           <p className="wi-hinweis wi-warnung">
-            Ehrliche Warnung: Die Netto-Reserven liegen unter {DEVISEN.warnungUnter} Mrd. Dollar. Unter {DEVISEN.druckAn} Mrd. verlangen die Märkte einen Zuschlag auf Kurs und Risikoaufschlag, unter {DEVISEN.kriseAn} Mrd. droht die Zahlungsbilanzkrise.
+            {t("zb.warnung", { w: DEVISEN.warnungUnter, d: DEVISEN.druckAn, k: DEVISEN.kriseAn })}
           </p>
         )}
 
-        <h4>Intervention: Reserven gegen Abwertungsdruck verkaufen</h4>
+        <h4>{t("zb.intervention")}</h4>
         <p className="wi-hinweis">
           {t("ui.wirtschaft.Zentralbank.7c859d4")}
         </p>
         <div className="wi-metriken" role="tablist" aria-label={t("ui.wirtschaft.Zentralbank.c4908f0")}>
           {[2, 5, 10].map((b) => (
             <button key={b} role="tab" aria-selected={betrag === b} className={betrag === b ? "on" : ""} onClick={() => setBetrag(b)}>
-              {b} Mrd. $
+              {t("zb.mrdUsdGanz", { x: b })}
             </button>
           ))}
         </div>
         <p className="wi-hinweis">
-          Wirkung: etwa {nf(iv.glaettung)} % Kursstütze (davon {nf(iv.sofort)} % sofort), Netto-Reserven danach {nf(iv.nettoNachher)} Mrd. $.
+          {t("zb.wirkung", { g: iv.glaettung, s: iv.sofort, n: iv.nettoNachher })}
         </p>
         {iv.warnung && <p className="wi-grund">{iv.warnung}</p>}
         {bestaetigt === "intervention" ? (
-          <Bestaetigung name={spielerName} titel={`${betrag} Mrd. Dollar verkaufen`} knopf="Verkaufen" onJa={() => fuehre(() => interveniere(world, betrag))} onNein={() => setBestaetigt(null)}>
-            <p>Die Zentralbank verkauft {betrag} Mrd. Dollar aus den Reserven und stützt die Lira um etwa {nf(iv.glaettung)} % über einige Wochen.{iv.warnung ? ` ${iv.warnung}` : ""}</p>
+          <Bestaetigung name={spielerName} titel={t("zb.verkaufen", { n: betrag })} knopf={t("zb.verkaufenKnopf")} onJa={() => fuehre(() => interveniere(world, betrag))} onNein={() => setBestaetigt(null)}>
+            <p>{t("zb.verkauftText", { n: betrag, g: iv.glaettung })}{iv.warnung ? ` ${iv.warnung}` : ""}</p>
           </Bestaetigung>
         ) : (
           <button className="wi-handlung" disabled={!iv.ok} title={iv.grund ?? ""} onClick={() => setBestaetigt("intervention")}>
-            {betrag} Mrd. Dollar verkaufen <span aria-hidden>→</span>
+            {t("zb.verkaufen", { n: betrag })} <span aria-hidden>→</span>
           </button>
         )}
         {!iv.ok && iv.grund && <span className="wi-grund">{iv.grund}</span>}
 
-        <h4>Der IWF</h4>
+        <h4>{t("zb.iwf")}</h4>
         {iwf ? (
           <div className="wi-iwf">
             <p className="wi-hinweis">{iwf.zeile}</p>
             <div className="wi-dauer">
               <span className={`wi-chip ${iwf.zinsOk ? "wi-gut" : "wi-schlecht"}`}>
-                Leitzins {nf(iwf.zinsJetzt)} % (Auflage ≥ {nf(iwf.zinsMindest)} %)
+                {t("zb.iwfZins", { j: iwf.zinsJetzt, m: iwf.zinsMindest })}
               </span>
               <span className={`wi-chip ${iwf.defizitOk ? "wi-gut" : "wi-schlecht"}`}>
-                Defizit {nf(iwf.defizitJetzt)} % (Auflage ≤ {nf(iwf.defizitMax)} %)
+                {t("zb.iwfDefizit", { j: iwf.defizitJetzt, m: iwf.defizitMax })}
               </span>
-              <span className="wi-chip wi-neutral">{nf(iwf.mittelUsdMrd, 0)} Mrd. $ geflossen</span>
+              <span className="wi-chip wi-neutral">{t("zb.iwfGeflossen", { x: iwf.mittelUsdMrd })}</span>
             </div>
             {bestaetigt === "iwf-kuendigen" ? (
-              <Bestaetigung name={spielerName} titel="Das IWF-Programm vorzeitig beenden" knopf="Kündigen" onJa={() => fuehre(() => iwfKuendigen(world))} onNein={() => setBestaetigt(null)}>
-                <p>Die verbleibenden Tranchen entfallen. Die Märkte beantworten den Bruch: Risikoaufschlag +{DEVISEN.iwf.risikoBruch} Punkte, Glaubwürdigkeit und Vertrauen brechen ein.</p>
+              <Bestaetigung name={spielerName} titel={t("zb.iwfBeendenTitel")} knopf={t("zb.kuendigen")} onJa={() => fuehre(() => iwfKuendigen(world))} onNein={() => setBestaetigt(null)}>
+                <p>{t("zb.iwfBruch", { n: DEVISEN.iwf.risikoBruch })}</p>
               </Bestaetigung>
             ) : (
               <button className="wi-handlung" onClick={() => setBestaetigt("iwf-kuendigen")}>
-                Programm vorzeitig beenden
+                {t("zb.iwfBeenden")}
               </button>
             )}
           </div>
@@ -408,9 +411,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             <p className="wi-hinweis">{t("ui.wirtschaft.Zentralbank.88e14cd")}</p>
             <button className="wi-handlung" onClick={() => fuehre(() => {
               const ev = oeffne(world, "iwf_angebot", new Rng(world.rngState ^ Math.imul(world.day + 13, 0x9e3779b1)));
-              return ev ? { ok: true, text: "Der IWF legt ein Angebot auf den Tisch — entscheiden Sie im Ereignis-Fenster." } : { ok: false, text: "Der IWF zögert im Moment." };
+              return ev ? { ok: true, text: t("zb.iwfAngebot") } : { ok: false, text: t("zb.iwfZoegert") };
             })}>
-              Beim IWF anfragen <span aria-hidden>→</span>
+              {t("zb.iwfAnfragen")} <span aria-hidden>→</span>
             </button>
           </>
         ) : (
@@ -419,7 +422,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
 
         {dv.interventionen.length > 0 && (
           <>
-            <h4>Ihre Interventionen</h4>
+            <h4>{t("zb.interventionen")}</h4>
             <ul className="wi-marken">
               {[...dv.interventionen].reverse().slice(0, 5).map((x, i) => (
                 <li key={i}>
@@ -432,7 +435,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
       </section>
 
       <section className="wi-karte">
-        <p className="kicker">Die Sitzungen</p>
+        <p className="kicker">{t("zb.kicker.sitzungen")}</p>
         <h3>{t("ui.wirtschaft.Zentralbank.f0053e6")}</h3>
         {z.sitzungen.length === 0 ? (
           <p className="wi-hinweis">{t("ui.wirtschaft.Zentralbank.110c84c")}</p>
@@ -443,15 +446,15 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
                 <button className="wi-sitzung" aria-expanded={offen === i} onClick={() => setOffen(offen === i ? null : i)}>
                   <span className="wi-wann">{formatDateDe(s.datum)}</span>
                   <span className="wi-beschluss-gross">
-                    {nf(s.alt)} → <b>{nf(s.neu)} %</b>
+                    {nf(s.alt)} → <b>{t("zb.prozent", { p: s.neu })}</b>
                   </span>
-                  {s.abweichung !== 0 && <span className="wi-chip wi-schlecht">{s.stufe === "C" ? "auf Weisung" : "auf Druck"}: Regel {nf(s.regel)} %</span>}
-                  {s.abweichung === 0 && s.druck && <span className="wi-chip wi-gut">Druck abgewehrt</span>}
+                  {s.abweichung !== 0 && <span className="wi-chip wi-schlecht">{t(s.stufe === "C" ? "zb.aufWeisung" : "zb.aufDruck", { p: s.regel })}</span>}
+                  {s.abweichung === 0 && s.druck && <span className="wi-chip wi-gut">{t("zb.abgewehrt")}</span>}
                 </button>
                 {offen === i && (
                   <div className="wi-sitzung-text">
                     <p>{s.begruendung}</p>
-                    <h4>Was danach kommt</h4>
+                    <h4>{t("zb.danach")}</h4>
                     <ul>
                       {s.folgen.map((f, n) => (
                         <li key={n}>{f}</li>
@@ -465,7 +468,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
         )}
         {eingriffe.length > 0 && (
           <>
-            <h4>Ihre Eingriffe</h4>
+            <h4>{t("zb.eingriffe")}</h4>
             <ul className="wi-marken">
               {eingriffe.map((m, i) => (
                 <li key={i}>

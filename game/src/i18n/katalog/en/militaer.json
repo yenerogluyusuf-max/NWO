@@ -99,5 +99,10 @@
  "militaer.zielraum.irq_berge": "Qandil and border mountains",
  "militaer.zielraum.irq_tief": "Deep push into northern Iraq",
  "militaer.zielraum.syr_grenzstreifen": "Northern Syria border strip",
- "militaer.zielraum.syr_tief": "Deep push into Syria"
+ "militaer.zielraum.syr_tief": "Deep push into Syria",
+ "militaer.zielraum.syr_maximal": "All of northern Syria up to Aleppo and Deir ez-Zor",
+ "militaer.zielraum.irq_maximal": "Northern Iraq up to Kirkuk and Sulaymaniyah",
+ "militaer.zielraum.grc_maximal": "Islands, Thrace and Thessaloniki",
+ "militaer.zielraum.cyp_maximal": "All of Cyprus",
+ "militaer.zielraum.arm_maximal": "All of Armenia up to Yerevan"
 }

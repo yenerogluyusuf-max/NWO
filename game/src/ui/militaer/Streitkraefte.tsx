@@ -18,6 +18,8 @@ import {
 import { aktiveKriege, eigenStaerke, gegnerStaerke, waehleZielraum, zielraeumeFuer } from "../../sim/krieg";
 import { land } from "../../sim/laender";
 import type { GattungId } from "../../data/streitkraefte";
+import { Schauplatz } from "../krieg/Schauplatz";
+import { Besatzung } from "../krieg/Besatzung";
 import "./militaer.css";
 
 type Instrument = BeschaffungsArt | "ausmustern";
@@ -150,6 +152,7 @@ function Zielraeume({ world, onTat }: { world: World; onTat: (text: string) => v
               })}
             </ul>
             {k.phase === "krieg" && k.zielraum && <p className="sk-klein">{t("militaer.ui.ziel_wechsel")}</p>}
+            <Schauplatz world={world} k={k} onTat={onTat} />
           </div>
         );
       })}
@@ -245,6 +248,7 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
         </ol>
       </section>
       <Zielraeume world={world} onTat={onTat} />
+      <Besatzung world={world} onTat={onTat} />
     </div>
   );
 }

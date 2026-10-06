@@ -8,12 +8,14 @@ import { hebel, MAKRO_WEGE } from "../sim/wege";
 import type { World } from "../sim/types";
 import type { NodeSpec } from "../data/politiknetz";
 
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+import { t } from "../i18n";
 
 export interface Verbindung {
   id: string;
   name: string;
   erhoeht: boolean;
+  /** Verzögerung in Monaten (0 = sofort) */
+  lag: number;
   /** „sofort“ oder „nach 3 Monaten“ */
   wann: string;
   warum: string;
@@ -39,99 +41,61 @@ export interface Erklaerung {
 }
 
 export function wann(lag: number): string {
-  return lag === 0 ? "sofort" : lag === 1 ? "nach 1 Monat" : `nach ${lag} Monaten`;
+  return t("lernen.wann", { n: lag });
 }
 
-const KIND_ERKLAERT: Record<NodeSpec["kind"], string> = {
-  massnahme: "Eine Maßnahme ist ein Regler, den du beschließt: von Stufe 0 (gibt es nicht) bis 100 (so viel wie möglich).",
-  groesse: "Eine Größe beschreibt einen Zustand des Landes. Sie ändert sich durch deine Maßnahmen, die Wirtschaft und andere Größen.",
-  problem: "Ein Problem wird akut, wenn sein Wert in einer Provinz eine Schwelle erreicht. Dann belastet es das Vertrauen und die Wählergruppen dort.",
-  gruppe: "Eine Wählergruppe zeigt, wie zufrieden ein Teil der Bevölkerung mit deiner Politik ist. Ihre Stimmung bestimmt deine Zustimmung und damit die nächste Wahl.",
-};
+const KIND_ERKLAERT = (kind: NodeSpec["kind"]): string => t(`lernen.art.${kind}`);
 
-const BEGRIFFE: Record<string, Begriff> = {
-  index: { begriff: "Index von 0 bis 100", text: "Damit sich sehr verschiedene Dinge vergleichen lassen, rechnet das Spiel viele Größen als Zahl von 0 bis 100. Das ist kein Prozentwert, sondern eine Skala: höher heißt mehr von dem, was der Name sagt. „Mehr“ ist nicht immer besser: Mehr Armut ist schlecht, mehr Arbeitsplätze sind gut." },
-  durchschnitt: { begriff: "Landesdurchschnitt", text: "Der Mittelwert der 81 Provinzen, gewichtet nach Einwohnern: Istanbul zählt mehr als Tunceli. Der Durchschnitt versteckt Unterschiede; die Karte zeigt, wo sie liegen." },
-  verzoegerung: { begriff: "Verzögerung („nach 3 Monaten“)", text: "Politik wirkt nicht am selben Tag. „Nach 3 Monaten“ heißt: Erst drei Monate nach der Änderung kommt die Wirkung an. Deshalb sieht man das Ergebnis eines Beschlusses oft erst im nächsten Jahr. Gestrichelte Pfeile im Bild sind verzögert, durchgezogene wirken sofort." },
-  akut: { begriff: "Akut", text: "Ein Problem ist in einer Provinz akut, sobald sein Wert dort die Schwelle erreicht. Es bleibt akut, bis es acht Punkte unter die Schwelle fällt; so flackern Probleme nicht an und aus." },
-  traegheit: { begriff: "Trägheit", text: "Ohne neuen Anstoß kehren Größen langsam zu ihrem Ausgangswert zurück. Eine kurze Kampagne verpufft also, eine dauerhafte Politik bleibt." },
-  umsetzung: { begriff: "Umsetzung", text: "Ein Beschluss ist noch keine Wirkung. Der Regler wandert über mehrere Monate auf die neue Stufe, und erst der umgesetzte Anteil wirkt." },
-  realzins: { begriff: "Realzins", text: "Der Leitzins minus die erwartete Inflation. Er zeigt, was Sparen und Leihen wirklich kostet: Ist er hoch, lohnt Sparen mehr als Ausgeben." },
-};
+const BEGRIFF_IDS = ["index", "durchschnitt", "verzoegerung", "akut", "traegheit", "umsetzung", "realzins"] as const;
+const begriff = (id: string): Begriff => ({ begriff: t(`lernen.begriff.${id}.name`), text: t(`lernen.begriff.${id}.text`) });
 
 interface EingangInfo {
-  was: string[];
-  wichtig: string;
+  /** Zahl der Absätze unter „Was ist das?“ (Schlüssel lernen.e.<id>.was1 …) */
+  was: number;
   stand: (w: World) => string[];
   begriffe?: string[];
 }
 
+const r1 = (x: number): number => Math.round(x * 10) / 10;
+
 /** Die Größen des Wirtschaftsmodells behalten ihre eigene Einheit; sie haben eigene Erklärungen. */
 const EINGANG: Record<string, EingangInfo> = {
   inflation: {
-    was: [
-      "Die Inflation misst, wie stark die Preise gegenüber dem Vorjahr gestiegen sind. Bei 30 Prozent kostet, was vor einem Jahr 100 Lira kostete, heute 130 Lira.",
-      "Du kannst sie nicht einstellen. Sie ergibt sich aus Zinsen, Nachfrage, Erwartungen der Menschen, Energiepreisen und der Lira.",
-    ],
-    wichtig: "Hohe Inflation frisst Löhne und Ersparnisse auf, macht Kredite teuer und untergräbt das Vertrauen. Sie sinkt, wenn Zinsen hoch bleiben, der Staat nicht zu viel ausgibt und die Menschen der Zentralbank glauben.",
+    was: 2,
     stand: (w) => [
-      `Zuletzt veröffentlicht: ${nf(w.published.inflation.value)} Prozent (${w.published.inflation.period}). Das Zwischenziel der Zentralbank liegt bei ${nf(w.economy.inflationTarget)} Prozent, die Menschen erwarten ${nf(w.economy.expectedInflation)} Prozent.`,
-      "Statistiken erscheinen mit Verzögerung: Du steuerst mit Blick in den Rückspiegel.",
+      t("lernen.e.inflation.stand", { wert: r1(w.published.inflation.value), periode: w.published.inflation.period, ziel: r1(w.economy.inflationTarget), erwartet: r1(w.economy.expectedInflation) }),
+      t("lernen.e.inflation.stand2"),
     ],
     begriffe: ["realzins"],
   },
   arbeitslosigkeit: {
-    was: [
-      "Die Arbeitslosenquote ist der Anteil der Erwerbspersonen, die Arbeit suchen und keine finden.",
-      "Sie folgt dem Wachstum mit Verzögerung: Erst wenn die Wirtschaft über Monate wächst, werden neue Leute eingestellt.",
-    ],
-    wichtig: "Arbeitslosigkeit kostet Einkommen, Sicherheit und Selbstvertrauen. Sie färbt die Stimmung der Beschäftigten, der Jungen und der Städter.",
-    stand: (w) => [`Zuletzt veröffentlicht: ${nf(w.published.unemployment.value)} Prozent (${w.published.unemployment.period}). Im Modell pendelt sie langfristig um ${nf(9, 0)} Prozent (Platzhalter der Kalibrierung).`],
+    was: 2,
+    stand: (w) => [t("lernen.e.arbeitslosigkeit.stand", { wert: r1(w.published.unemployment.value), periode: w.published.unemployment.period, lang: 9 })],
   },
   wachstum: {
-    was: [
-      "Das Wachstum ist die Veränderung der gesamten Wirtschaftsleistung (BIP) gegenüber dem Vorjahr.",
-      "Im Politiknetz erscheint es als Index: 50 heißt, die Wirtschaft wächst genau in Höhe ihres Potenzials; darüber ist sie überhitzt, darunter lahmt sie.",
-    ],
-    wichtig: "Wachstum schafft Arbeit und Steuereinnahmen. Zu viel Wachstum auf Pump heizt die Inflation an.",
-    stand: (w) => [`Zuletzt veröffentlicht: ${nf(w.published.growth.value)} Prozent (${w.published.growth.period}). Das Potenzialwachstum im Modell liegt bei ${nf(w.economy.potentialGrowth)} Prozent.`],
+    was: 2,
+    stand: (w) => [t("lernen.e.wachstum.stand", { wert: r1(w.published.growth.value), periode: w.published.growth.period, potenzial: r1(w.economy.potentialGrowth) })],
   },
   leitzins: {
-    was: [
-      "Der Leitzins ist der Zins, zu dem sich Banken bei der Zentralbank Geld leihen. Er wirkt auf alle Kredite und auf die Lira.",
-      "Ihn legt der Geldpolitische Ausschuss der Zentralbank fest, nicht der Präsident. Ein Präsident, der eingreift, riskiert das Vertrauen der Märkte.",
-    ],
-    wichtig: "Ein hoher Zins bremst Nachfrage und Inflation und stützt die Lira, kostet aber Wachstum und Arbeitsplätze. Ein niedriger Zins tut das Gegenteil.",
-    stand: (w) => [`Aktuell ${nf(w.economy.policyRate)} Prozent; der Realzins liegt bei ${nf(w.economy.policyRate - w.economy.expectedInflation)} Prozent.`],
+    was: 2,
+    stand: (w) => [t("lernen.e.leitzins.stand", { zins: r1(w.economy.policyRate), real: r1(w.economy.policyRate - w.economy.expectedInflation) })],
     begriffe: ["realzins"],
   },
   abwertung: {
-    was: [
-      "Die Abwertung zeigt, wie viel mehr Lira man für einen US-Dollar zahlen muss als vor zwölf Monaten (in Prozent).",
-      "Wer 26 Prozent mehr Lira zahlen muss, dessen Lira ist gegenüber dem Dollar nur rund 21 Prozent weniger wert: Ein Kurs, der um ein Viertel steigt, senkt den Wert der Gegenseite um ein Fünftel.",
-    ],
-    wichtig: "Eine schwache Lira verteuert Importe, vor allem Energie, und treibt die Inflation. Exporteure und der Tourismus profitieren, wer Schulden in Dollar hat, verliert.",
+    was: 2,
     stand: (w) => {
       const x = w.economy.fxChange12;
       const verlust = (1 - 1 / (1 + x / 100)) * 100;
-      return [`In den letzten zwölf Monaten kostet der Dollar ${nf(x)} Prozent mehr Lira (heute ${nf(w.economy.usdTry)} Lira). Die Lira hat damit rund ${nf(verlust)} Prozent ihres Dollar-Werts verloren.`];
+      return [t("lernen.e.abwertung.stand", { x: r1(x), kurs: r1(w.economy.usdTry), verlust: r1(verlust) })];
     },
   },
   defizit: {
-    was: [
-      "Das Haushaltsdefizit ist der Betrag, um den der Staat mehr ausgibt, als er einnimmt, gemessen in Prozent der Wirtschaftsleistung.",
-      "Im Politiknetz erscheint es als Index: 50 heißt ausgeglichener Haushalt, jeder Punkt darüber entspricht 0,2 Prozentpunkten Defizit.",
-    ],
-    wichtig: "Jedes Defizit wird zu Schulden. Schulden kosten Zinsen; wer den Märkten zu viel schuldet, zahlt mit einem höheren Risikoaufschlag und einer schwächeren Lira.",
-    stand: (w) => [`Das geplante Defizit beträgt ${nf(w.economy.deficit + w.economy.fiscalImpulse + w.economy.policyCost)} Prozent der Wirtschaftsleistung (Grundlinie ${nf(w.economy.deficit)}, dein Ausgabenprogramm ${nf(w.economy.fiscalImpulse)}, Kosten deiner Maßnahmen ${nf(w.economy.policyCost)}).`],
+    was: 2,
+    stand: (w) => [t("lernen.e.defizit.stand", { gesamt: r1(w.economy.deficit + w.economy.fiscalImpulse + w.economy.policyCost), grund: r1(w.economy.deficit), programm: r1(w.economy.fiscalImpulse), kosten: r1(w.economy.policyCost) })],
   },
   schulden: {
-    was: [
-      "Die Schuldenquote ist der Schuldenberg des Staates im Verhältnis zur Wirtschaftsleistung eines Jahres.",
-      "Bei hoher Inflation schrumpft die Quote von allein, denn die Wirtschaftsleistung wächst in Lira mit den Preisen. Das ist kein Verdienst, sondern eine Nebenwirkung der Inflation.",
-    ],
-    wichtig: "Je höher die Quote, desto misstrauischer die Märkte und desto höher der Zins, den der Staat zahlen muss.",
-    stand: (w) => [`Aktuell ${nf(w.economy.debtRatio)} Prozent der Wirtschaftsleistung; der Risikoaufschlag liegt bei ${nf(w.economy.riskPremium, 0)} Basispunkten.`],
+    was: 2,
+    stand: (w) => [t("lernen.e.schulden.stand", { quote: r1(w.economy.debtRatio), aufschlag: Math.round(w.economy.riskPremium) })],
   },
 };
 
@@ -139,7 +103,7 @@ function verbindungen(id: string, richtung: "in" | "out", n = 3): Verbindung[] {
   const kanten = NET.edges.filter((e) => (richtung === "in" ? e.to === id : e.from === id)).sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight)).slice(0, n);
   return kanten.map((e) => {
     const andere = richtung === "in" ? e.from : e.to;
-    return { id: andere, name: NET.nodes[NET.index.get(andere)!]!.name, erhoeht: e.weight > 0, wann: wann(e.lag), warum: e.why };
+    return { id: andere, name: NET.nodes[NET.index.get(andere)!]!.name, erhoeht: e.weight > 0, lag: e.lag, wann: wann(e.lag), warum: e.why };
   });
 }
 
@@ -152,18 +116,24 @@ export function erklaere(node: NodeSpec, w: World): Erklaerung {
   const jetzt = nationalAverage(NET, w.net, node.id);
   const start = startAverage(NET, w.net, node.id);
   const begriffe: Begriff[] = [];
-  const nimm = (...ids: string[]) => ids.forEach((k) => BEGRIFFE[k] && !begriffe.includes(BEGRIFFE[k]!) && begriffe.push(BEGRIFFE[k]!));
+  const genommen = new Set<string>();
+  const nimm = (...ids: string[]) =>
+    ids.forEach((k) => {
+      if (!(BEGRIFF_IDS as readonly string[]).includes(k) || genommen.has(k)) return;
+      genommen.add(k);
+      begriffe.push(begriff(k));
+    });
 
   const wirkungen = verbindungen(node.id, "out");
   const treiber = verbindungen(node.id, "in");
-  if ([...wirkungen, ...treiber].some((v) => v.wann !== "sofort")) nimm("verzoegerung");
+  if ([...wirkungen, ...treiber].some((v) => v.lag > 0)) nimm("verzoegerung");
 
   // Größen des Wirtschaftsmodells
   if (node.input) {
     const info = EINGANG[node.input]!;
     nimm("durchschnitt", ...(info.begriffe ?? []));
     return {
-      was: [...info.was, info.wichtig],
+      was: [...Array.from({ length: info.was }, (_, i) => t(`lernen.e.${node.input}.was${i + 1}`)), t(`lernen.e.${node.input}.wichtig`)],
       stand: info.stand(w),
       wirkungen,
       treiber,
@@ -173,7 +143,7 @@ export function erklaere(node: NodeSpec, w: World): Erklaerung {
     };
   }
 
-  const was: string[] = [node.text, KIND_ERKLAERT[node.kind]];
+  const was: string[] = [node.text, KIND_ERKLAERT(node.kind)];
   const stand: string[] = [];
   let orte: Erklaerung["orte"];
   const werte = node.kind === "massnahme" ? [] : provinzWerte(w, node.id);
@@ -183,22 +153,22 @@ export function erklaere(node: NodeSpec, w: World): Erklaerung {
     const kosten = node.cost ?? 0;
     was.push(
       kosten === 0
-        ? "Die Maßnahme kostet den Haushalt praktisch nichts."
-        : `Bei voller Stufe kostet sie gegenüber Stufe 0 etwa ${nf(Math.abs(kosten), 2)} Prozent der Wirtschaftsleistung im Jahr${kosten < 0 ? " nicht, sie bringt diesen Betrag ein" : ""}. Sie wirkt erst nach etwa ${node.months ?? 1} ${(node.months ?? 1) === 1 ? "Monat" : "Monaten"}.`,
+        ? t("lernen.m.kostenlos")
+        : t(kosten < 0 ? "lernen.m.bringt" : "lernen.m.kostet", { p: Math.round(Math.abs(kosten) * 100) / 100, monate: node.months ?? 1 }),
     );
-    stand.push(`Aktuell steht sie im Landesdurchschnitt auf Stufe ${nf(jetzt, 0)}; beim Amtsantritt war es ${nf(start, 0)}.`);
+    stand.push(t("lernen.m.stand", { jetzt: Math.round(jetzt), start: Math.round(start) }));
     const ziel = w.net.targets[node.id];
-    if (ziel !== undefined && Math.abs(jetzt - ziel) > 1) stand.push(`Beschlossen ist Stufe ${nf(ziel, 0)}; die Umsetzung läuft noch.`);
+    if (ziel !== undefined && Math.abs(jetzt - ziel) > 1) stand.push(t("lernen.m.beschlossen", { ziel: Math.round(ziel) }));
   } else {
     nimm("index", "durchschnitt", "traegheit");
     const d = jetzt - start;
     stand.push(
-      `Im Landesdurchschnitt steht der Wert bei ${nf(jetzt)}; beim Amtsantritt waren es ${nf(start)}. ${Math.abs(d) < 0.3 ? "Er hat sich kaum bewegt." : d > 0 ? `Er ist um ${nf(d)} Punkte gestiegen.` : `Er ist um ${nf(-d)} Punkte gesunken.`}`,
+      `${t("lernen.g.stand", { jetzt: r1(jetzt), start: r1(start) })} ${Math.abs(d) < 0.3 ? t("lernen.g.kaum") : d > 0 ? t("lernen.g.gestiegen", { d: r1(d) }) : t("lernen.g.gesunken", { d: r1(-d) })}`,
     );
     if (node.kind === "problem") {
       nimm("akut");
       const akut = werte.filter((x) => x.wert >= (node.threshold ?? 60));
-      stand.push(akut.length === 0 ? `In keiner Provinz ist das Problem akut (Schwelle ${node.threshold}).` : `Akut ist es in ${akut.length} ${akut.length === 1 ? "Provinz" : "Provinzen"} (Schwelle ${node.threshold}), am stärksten in ${akut.slice(0, 3).map((x) => x.name).join(", ")}.`);
+      stand.push(akut.length === 0 ? t("lernen.p.keine", { schwelle: node.threshold ?? 60 }) : t("lernen.p.akut", { n: akut.length, schwelle: node.threshold ?? 60, orte: akut.slice(0, 3).map((x) => x.name) }));
     }
     orte = { hoch: werte.slice(0, 3), tief: werte.slice(-3).reverse() };
   }
@@ -207,14 +177,14 @@ export function erklaere(node: NodeSpec, w: World): Erklaerung {
   const hebelListe: Erklaerung["hebel"] = [];
   let hebelHinweis: string | undefined;
   if (node.kind === "massnahme") {
-    hebelHinweis = "Das ist selbst ein Regler. Was er bewirkt, steht unter „Wirkungen“; die Vorschau rechnet die nächsten zwölf Monate durch.";
+    hebelHinweis = t("lernen.h.regler");
   } else {
     const gewuenscht: 1 | -1 = node.kind === "problem" ? -1 : 1;
     for (const h of hebel(node.id, gewuenscht, 4)) {
       const kante = NET.edges.find((e) => e.from === h.node.id && e.to === node.id) ?? NET.edges.find((e) => e.from === h.node.id);
-      hebelListe.push({ text: `„${h.node.name}“ ${h.richtung > 0 ? "erhöhen" : "senken"}`, warum: kante?.why ?? h.node.text });
+      hebelListe.push({ text: t(h.richtung > 0 ? "lernen.h.erhoehen" : "lernen.h.senken", { name: h.node.name }), warum: kante?.why ?? h.node.text });
     }
-    if (!hebelListe.length) hebelHinweis = "Für diese Größe gibt es keinen direkten Regler. Sie folgt den Ursachen, die links im Bild stehen.";
+    if (!hebelListe.length) hebelHinweis = t("lernen.h.keiner");
   }
 
   return {
