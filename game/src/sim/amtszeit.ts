@@ -26,7 +26,7 @@ import { SPIEL } from "./spiel";
 import { DAUER, dauerStufe, dauerherrscherBeginn } from "./dauerherrscher";
 import { parlamentNachtragPruefen } from "./wahl";
 import { ministeriumAnPartei } from "./ressortvergabe";
-import { t } from "../i18n";
+import { msg, t, tIn } from "../i18n";
 import type { World } from "./types";
 import type { Aspirant, AmtszeitStart, Figur, NachfolgeZustand, UmbildungZustand } from "./spiel-typen";
 
@@ -417,7 +417,7 @@ export function umbildungAbschliessen(w: World): void {
   for (const p of partnerAnsprueche(w)) {
     const fehlt = p.anspruch - p.vergeben;
     if (fehlt <= 0) continue;
-    zusageAnlegen(w, { von: p.partei, text: t("umbildung.zusage", { partei: p.name, n: fehlt }), tage: 120 });
+    zusageAnlegen(w, { von: p.partei, text: tIn("de", "umbildung.zusage", { partei: p.name, n: fehlt }), msg: msg("umbildung.zusage", { partei: p.name, n: fehlt }), tage: 120 });
   }
   addLog(w, "ereignis", t("umbildung.log.abgeschlossen"), t("umbildung.log.abgeschlossen_warum"));
 }

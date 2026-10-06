@@ -9,7 +9,7 @@ import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
 import { impulsKette } from "../../sim/folgen";
 import { formatDateDe } from "../../sim/dates";
-import { KENNZAHLEN_NACH_ID } from "../../sim/wirtschaft-kennzahlen";
+import { KENNZAHLEN_NACH_ID, einheitName } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, defizitJetzt, haushaltZustand, startMonat, verlauf, zinsausgabenJetzt } from "../../sim/wirtschaft";
 import {
   HAUSHALT_ZYKLUS,
@@ -291,7 +291,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             </button>
           ))}
         </div>
-        <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "haushalt" || m.art === "zins")} stellen={k.stellen} einheit={k.einheit} name={k.name} rechnet={rechnet} />
+        <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "haushalt" || m.art === "zins")} stellen={k.stellen} einheit={einheitName(k.einheit)} name={k.name} rechnet={rechnet} />
       </details>
       <p className="wi-hinweis">{v.zyklus.hinweis}</p>
       {!v.ok && v.grund && <p className="wi-grund">{v.grund}</p>}

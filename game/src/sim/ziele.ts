@@ -8,7 +8,7 @@ import { LAENDER, vertrauenZu } from "./laender";
 import { alleLaufenden } from "./abkommen";
 import { aktiveKriege } from "./krieg";
 import { zusagenBilanz } from "./zusagen";
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 import type { World } from "./types";
 
 export interface ZielDef {
@@ -41,7 +41,7 @@ function minimum(w: World, id: string): number {
   return m;
 }
 
-const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const nf = (x: number) => x.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 
 export const ZIELE: ZielDef[] = [
   {
@@ -49,21 +49,21 @@ export const ZIELE: ZielDef[] = [
     titel: t("ziel.inflation15.titel"),
     beschreibung: t("ziel.inflation15.beschreibung"),
     bereich: "wirtschaft",
-    pruefe: (w) => ({ erreicht: w.published.inflation.value < 15, stand: `jetzt ${nf(w.published.inflation.value)} %` }),
+    pruefe: (w) => ({ erreicht: w.published.inflation.value < 15, stand: t("reste.ziel.jetztProzent", { wert: nf(w.published.inflation.value) }) }),
   },
   {
     id: "arbeit8",
     titel: t("ziel.arbeit8.titel"),
     beschreibung: t("ziel.arbeit8.beschreibung"),
     bereich: "wirtschaft",
-    pruefe: (w) => ({ erreicht: w.economy.unemployment < 8, stand: `jetzt ${nf(w.economy.unemployment)} %` }),
+    pruefe: (w) => ({ erreicht: w.economy.unemployment < 8, stand: t("reste.ziel.jetztProzent", { wert: nf(w.economy.unemployment) }) }),
   },
   {
     id: "schulden30",
     titel: t("ziel.schulden30.titel"),
     beschreibung: t("ziel.schulden30.beschreibung"),
     bereich: "wirtschaft",
-    pruefe: (w) => ({ erreicht: w.economy.debtRatio < 30, stand: `jetzt ${nf(w.economy.debtRatio)} %` }),
+    pruefe: (w) => ({ erreicht: w.economy.debtRatio < 30, stand: t("reste.ziel.jetztProzent", { wert: nf(w.economy.debtRatio) }) }),
   },
   {
     id: "wasserstrom",
@@ -72,7 +72,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "land",
     pruefe: (w) => {
       const n = akutAnzahl(w, "p_wassermangel") + akutAnzahl(w, "p_stromausfaelle");
-      return { erreicht: n === 0, stand: n === 0 ? "in keiner Provinz akut" : `noch in ${n} Fällen akut` };
+      return { erreicht: n === 0, stand: n === 0 ? t("reste.ziel.keine") : t("reste.ziel.nochFaelle", { n }) };
     },
   },
   {
@@ -82,7 +82,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "land",
     pruefe: (w) => {
       const n = akutAnzahl(w, "p_erdbebengefahr");
-      return { erreicht: n <= 5, stand: `akut in ${n} Provinzen` };
+      return { erreicht: n <= 5, stand: t("reste.ziel.akutIn", { n }) };
     },
   },
   {
@@ -92,7 +92,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "land",
     pruefe: (w) => {
       const n = akutAnzahl(w, "p_wohnungsnot");
-      return { erreicht: n === 0, stand: n === 0 ? "in keiner Provinz akut" : `akut in ${n} Provinzen` };
+      return { erreicht: n === 0, stand: n === 0 ? t("reste.ziel.keine") : t("reste.ziel.akutIn", { n }) };
     },
   },
   {
@@ -102,7 +102,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "land",
     pruefe: (w) => {
       const n = akutAnzahl(w, "p_aerztemangel");
-      return { erreicht: n === 0, stand: n === 0 ? "in keiner Provinz akut" : `akut in ${n} Provinzen` };
+      return { erreicht: n === 0, stand: n === 0 ? t("reste.ziel.keine") : t("reste.ziel.akutIn", { n }) };
     },
   },
   {
@@ -112,7 +112,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "land",
     pruefe: (w) => {
       const m = minimum(w, "verkehrsnetz");
-      return { erreicht: m >= 45, stand: `schwächste Provinz: Stufe ${nf(m)}` };
+      return { erreicht: m >= 45, stand: t("reste.ziel.schwaechste", { wert: nf(m) }) };
     },
   },
   {
@@ -123,7 +123,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "staat",
     pruefe: (w) => {
       const s = stimmenSicht(w);
-      return { erreicht: s.lager >= 301, stand: `${s.lager} von 600 Sitzen` };
+      return { erreicht: s.lager >= 301, stand: t("reste.ziel.sitze", { n: s.lager }) };
     },
   },
   {
@@ -133,7 +133,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "staat",
     pruefe: (w) => {
       const v = nationalAverage(NET, w.net, "vertrauen_regierung");
-      return { erreicht: v >= 60, stand: `jetzt ${nf(v)}` };
+      return { erreicht: v >= 60, stand: t("ziel.stand_jetzt", { wert: nf(v) }) };
     },
   },
 ];

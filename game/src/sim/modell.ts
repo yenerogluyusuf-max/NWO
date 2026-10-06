@@ -22,7 +22,14 @@ function lokalisiere(): void {
     n.name = hole(`netz.knoten.${n.id}.name`) ?? n.name;
     n.text = hole(`netz.knoten.${n.id}.text`) ?? n.text;
   }
-  for (const e of EDGES) e.why = hole(`netz.kante.${e.from}.${e.to}`) ?? e.why;
+  // Gibt es zwischen zwei Größen mehrere Kanten, trägt die zweite den Schlüssel `netz.kante.<von>.<nach>.2` und so fort
+  const zahl = new Map<string, number>();
+  for (const e of EDGES) {
+    const paar = `${e.from}.${e.to}`;
+    const n = (zahl.get(paar) ?? 0) + 1;
+    zahl.set(paar, n);
+    e.why = hole(`netz.kante.${paar}${n > 1 ? `.${n}` : ""}`) ?? e.why;
+  }
   for (const s of SYNERGIEN) s.why = hole(`netz.synergie.${s.id}`) ?? s.why;
 }
 

@@ -11,6 +11,7 @@ export interface GroesseDef {
   /** Höherer Wert ist schlechter (Überfüllung, Ausnahmerecht) */
   invers?: boolean;
   /** Kurzer Zusatz zum Namen, etwa der Anker aus der Wirklichkeit */
+  /** Katalogschlüssel eines Zusatzes mit Zahlen aus der Recherche */
   zusatz?: string;
 }
 
@@ -40,7 +41,7 @@ export function Groessen({ world, liste }: { world: World; liste: GroesseDef[] }
                 </em>
               )}
             </span>
-            {g.zusatz && <span className="rr-groesse-zusatz">{g.zusatz}</span>}
+            {g.zusatz && <span className="rr-groesse-zusatz">{t(g.zusatz)}</span>}
           </li>
         );
       })}

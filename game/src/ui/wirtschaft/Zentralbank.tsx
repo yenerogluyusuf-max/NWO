@@ -10,7 +10,7 @@ import { glaubwuerdigkeitsKette, zinsKette, type Glied } from "../../sim/folgen"
 import { REGELN, stimmenSicht } from "../../sim/handeln";
 import { kannZahlen } from "../../sim/kapital";
 import { formatDateDe, formatMonthDe } from "../../sim/dates";
-import { KENNZAHLEN_NACH_ID } from "../../sim/wirtschaft-kennzahlen";
+import { KENNZAHLEN_NACH_ID, einheitName } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, startMonat, verlauf, zbZustand } from "../../sim/wirtschaft";
 import { STUFEN, aendereStufe, druckOptionen, ernenneGouverneur, glaubwuerdigkeitWort, machDruck, naechsteSitzung, setzeVorgabe, stufenWechsel, type DruckOption } from "../../sim/zentralbank";
 import { DEVISEN, devisenZustand, interveniere, interventionsVorschau, iwfAnfrageMoeglich, iwfKuendigen, iwfSicht } from "../../sim/devisen";
@@ -248,7 +248,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
               </button>
             ))}
           </div>
-          <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "zins" || m.art === "eingriff")} stellen={k.stellen} einheit={k.einheit} name={k.name} rechnet={rechnet} />
+          <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "zins" || m.art === "eingriff")} stellen={k.stellen} einheit={einheitName(k.einheit)} name={k.name} rechnet={rechnet} />
         </div>
 
         {!modusC && opt.id !== "keiner" && (

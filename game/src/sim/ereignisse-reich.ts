@@ -6,6 +6,7 @@ import { wirke, vertrauenAendern } from "./wirkung";
 import { landAendern } from "./laender";
 import { clamp } from "./economy";
 import { beschr, kosten, monatVon, netz, opt, zusageAnlegen } from "./ereignis-hilfen";
+import { msg } from "../i18n";
 import type { Vorlage } from "./ereignis-hilfen";
 import { reichZustand, vorhabenDef } from "./reich";
 import { ERBE, ERBE_NACH_ID } from "../data/erbe";
@@ -112,7 +113,7 @@ const ERDBEBENSCHADEN: Vorlage = {
       return `Notdächer und Stützen sichern ${staette(ev).name}.`;
     }),
     opt("zusagen", "Den Wiederaufbau zusagen", beschr(1, 0, "ein Versprechen, das später eingefordert wird."), 1, (w) => {
-      zusageAnlegen(w, { von: `Denkmalbehörde von ${staette(ev).ort}`, text: `Der Wiederaufbau von ${staette(ev).name} wurde zugesagt`, tage: 300, massnahme: "m_denkmalschutz" });
+      zusageAnlegen(w, { von: `Denkmalbehörde von ${staette(ev).ort}`, text: `Der Wiederaufbau von ${staette(ev).name} wurde zugesagt`, msg: msg("zusage.erbe.wiederaufbau", { name: staette(ev).name }), tage: 300, massnahme: "m_denkmalschutz" });
       hebeStaette(w, staette(ev).id, 4);
       return `Der Wiederaufbau von ${staette(ev).name} ist zugesagt.`;
     }),

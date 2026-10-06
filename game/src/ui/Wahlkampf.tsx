@@ -68,7 +68,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           <h3>{t("ui.Wahlkampf.2d60007")}</h3>
           <p>
             {tx("ui2.ui.Wahlkampf.75f5f5c", { p0: Math.round(s.tageBisWahl / 30.4) })}
-            {s.beginntIn !== undefined ? tx("ui2.ui.Wahlkampf.14d1f30", { p0: Math.round(s.beginntIn / 30.4), p1: Math.round(s.beginntIn / 30.4) === 1 ? "Monat" : "Monaten" }) : ""}.
+            {s.beginntIn !== undefined ? tx("ui2.ui.Wahlkampf.14d1f30", { p0: Math.round(s.beginntIn / 30.4), p1: t("reste.monat", { n: Math.round(s.beginntIn / 30.4) }) }) : ""}.
           </p>
           <p className="kampf-unter">
             {tx("ui2.ui.Wahlkampf.921af9e")}{" "}

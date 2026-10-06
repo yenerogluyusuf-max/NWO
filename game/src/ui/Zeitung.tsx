@@ -31,7 +31,7 @@ import "./zeitung.css";
 
 type Gehe = ((ziel: Ziel) => void) | undefined;
 
-const TON_NAME: Record<FramingArt, string> = { regierungsnah: "regierungsnah", oppositionell: "oppositionell", neutral: "unabhängig" };
+const TON_NAME = (ton: FramingArt): string => t(`reste.zeitung.ton.${ton}`);
 
 const SPARTE_NAME: Record<string, string> = { politik: "Politik", wirtschaft: "Wirtschaft", ereignis: "Im Land", programm: "Umsetzung", welt: "Ausland", umfrage: "Meinungslage" };
 
@@ -75,7 +75,7 @@ function Masthead({ ausgabe, blatt }: { ausgabe: ZeitungAusgabe; blatt: ZeitungB
       <h3 className="zt-blattname">{blatt.name}</h3>
       <p className="zt-unterzeile">{blatt.unterzeile}</p>
       <p className="zt-zeile-unten">
-        <span>{TON_NAME[blatt.ton]}</span>
+        <span>{TON_NAME(blatt.ton)}</span>
         <Flourish width={180} />
         <span>{blatt.digital ? tx("ui2.ui.Zeitung.5c03644") : tx("ui2.ui.Zeitung.52a9271")}</span>
       </p>
@@ -448,7 +448,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
             {ausgabe.blaetter.map((b, i) => (
               <button key={b.clusterId} role="tab" aria-selected={b === blatt} className={`zt-blatt-tab ton-${b.ton}${b === blatt ? " on" : ""}`} onClick={() => setBlattIdx(i)}>
                 <strong>{b.name}</strong>
-                <span>{TON_NAME[b.ton]}</span>
+                <span>{TON_NAME(b.ton)}</span>
               </button>
             ))}
           </nav>

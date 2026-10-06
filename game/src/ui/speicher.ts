@@ -207,6 +207,17 @@ function reihe<T>(key: string, job: () => Promise<T>): Promise<T> {
   return dran;
 }
 
+/** Wartet, bis alle eingereihten Schreib- und Löschvorgänge erledigt sind (für Tests und das Beenden). */
+export async function speicherRuhe(): Promise<void> {
+  for (;;) {
+    const offen = [...schreibKette.values()];
+    await Promise.allSettled(offen);
+    if ([...schreibKette.values()].every((p, i) => p === offen[i]) && schreibKette.size === offen.length) break;
+  }
+  // Fortsetzungen der Aufrufer (Metadaten nach dem Schreiben) laufen noch zu Ende
+  await new Promise((r) => setTimeout(r, 0));
+}
+
 const grundVon = (e: unknown): string => (e instanceof Error ? (e.name && e.name !== "Error" ? `${e.name}: ${e.message}` : e.message) : String(e));
 
 async function schreibe(key: string, text: string): Promise<Ergebnis> {

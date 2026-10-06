@@ -10,6 +10,7 @@ import { amAbstimmungBeobachten, baueVerlauf, leseAbstimmung, merkeGesetze, type
 import { FARBEN_DUNKEL, Sitzplan } from "./Halbrund";
 import { t as tx } from "../../i18n";
 import "./parlament.css";
+import { massnahmenName } from "../../sim/gesetz-name";
 
 const DAUER = 2600;
 const HALTEN = 5200;
@@ -119,7 +120,7 @@ function Karte({ world, eintrag, weitere, onZu }: { world: World; eintrag: Eintr
     <div className={`par-karte-huelle${fertig ? " fertig" : ""}`} role="status" aria-live="polite">
       <button className="par-karte" onClick={tippen} aria-label={fertig ? tx("ui2.ui.parlament.AbstimmungsKarte.0f8f94e") : tx("ui2.ui.parlament.AbstimmungsKarte.6eef72a")}>
         <span className="par-karte-kopf">{tx("ui2.ui.parlament.AbstimmungsKarte.9b849fa")}</span>
-        <strong className="par-karte-titel">„{ab.name}“</strong>
+        <strong className="par-karte-titel">„{massnahmenName(ab.name)}“</strong>
         <span className="par-karte-unter">
           {ab.angenommen ? `${ab.ort}${ab.stufe !== undefined ? ` · Stufe ${ab.stufe}` : ""}` : tx("ui2.ui.parlament.AbstimmungsKarte.c9f8371")} {tx("ui2.ui.parlament.AbstimmungsKarte.af7a8b5", { p0: REGELN.mehrheit })}
         </span>

@@ -32,10 +32,10 @@ export function Katastrophe({ world, refresh, onGehe }: { world: World; refresh:
   const offeneVersprechen = versprechensLage(world).filter((z) => z.quote < 0.95).length;
 
   const reiterListe: { id: Reiter; name: string; anzahl?: number }[] = [
-    { id: "lage", name: "Lage und Vorsorge" },
-    { id: "faelle", name: "Laufende Fälle", ...(aktive.length ? { anzahl: aktive.length } : {}) },
-    { id: "versprechen", name: "Versprechen", ...(offeneVersprechen ? { anzahl: offeneVersprechen } : {}) },
-    { id: "chronik", name: "Chronik" },
+    { id: "lage", name: t("reste.kat.lage") },
+    { id: "faelle", name: t("reste.kat.faelle"), ...(aktive.length ? { anzahl: aktive.length } : {}) },
+    { id: "versprechen", name: t("reste.kat.versprechen"), ...(offeneVersprechen ? { anzahl: offeneVersprechen } : {}) },
+    { id: "chronik", name: t("reste.kat.chronik") },
   ];
   const warn = !!notiz && /fehlt|nicht möglich|nicht ok/i.test(notiz);
 

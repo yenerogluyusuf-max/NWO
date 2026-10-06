@@ -145,11 +145,11 @@ export function bereitschaftAendern(world: World, partei: string, delta: number)
 }
 
 export function bereitschaftWort(b: number): string {
-  if (b >= 70) return "aufgeschlossen";
-  if (b >= 55) return "gesprächsbereit";
-  if (b >= 40) return "abwägend";
-  if (b >= 25) return "reserviert";
-  return "ablehnend";
+  if (b >= 70) return tx("reste.bereitschaft.aufgeschlossen");
+  if (b >= 55) return tx("reste.bereitschaft.gespraechsbereit");
+  if (b >= 40) return tx("reste.bereitschaft.abwaegend");
+  if (b >= 25) return tx("reste.bereitschaft.reserviert");
+  return tx("reste.bereitschaft.ablehnend");
 }
 
 /** Anteil der Sitze einer duldenden Fraktion, der tatsächlich mitstimmt. */
@@ -275,5 +275,7 @@ export function forderungVon(world: World, partei: string): Forderung {
     const wahl = liste[hash(`${spiel.salz}|${partei}|${Math.floor(world.day / FORDERUNG_DAUER)}|${alt?.massnahme ?? ""}`) % liste.length]!;
     f.forderung = { massnahme: wahl.massnahme, text: wahl.text, seit: world.day };
   }
-  return { massnahme: f.forderung!.massnahme, text: f.forderung!.text };
+  // Der Wortlaut kommt aus dem Vorrat der aktuellen Sprache; gespeichert ist er in der Sprache, in der die Forderung entstand
+  const imVorrat = pool.find((e) => e.massnahme === f.forderung!.massnahme);
+  return { massnahme: f.forderung!.massnahme, text: imVorrat?.text ?? f.forderung!.text };
 }

@@ -8,7 +8,7 @@ import type { Linie } from "../../sim/wirtschaft-kennzahlen";
 import type { Band } from "../../sim/forecast";
 import "./wirtschaft.css";
 
-import { t } from "../../i18n";
+import { aktuelleLocale, t } from "../../i18n";
 export interface DiagrammBand {
   ohne: Band[];
   mit?: Band[];
@@ -29,10 +29,10 @@ interface Props {
   rechnet?: boolean | undefined;
 }
 
-const MONATE = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+const MONATE = (): string[] => Array.from({ length: 12 }, (_, m) => new Date(Date.UTC(2000, m, 1)).toLocaleDateString(aktuelleLocale(), { month: "short", timeZone: "UTC" }).replace(".", ""));
 const mi = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5, 7)) - 1;
-const kurz = (i: number) => `${MONATE[i % 12]} ${String(Math.floor(i / 12)).slice(2)}`;
-const lang = (i: number) => `${MONATE[i % 12]} ${Math.floor(i / 12)}`;
+const kurz = (i: number) => `${MONATE()[i % 12]} ${String(Math.floor(i / 12)).slice(2)}`;
+const lang = (i: number) => `${MONATE()[i % 12]} ${Math.floor(i / 12)}`;
 
 function niceTicks(min: number, max: number, n = 5): number[] {
   const span = max - min || 1;

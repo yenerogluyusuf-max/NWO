@@ -17,7 +17,7 @@ import type { World } from "./types";
 import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import type { Vertrag } from "./abkommen-typen";
-import { t } from "../i18n";
+import { msg, t, tIn } from "../i18n";
 
 export type Dimension = "handel" | "sicherheit" | "vertrauen" | "konflikt";
 export type AktionId = "gipfel" | "handel" | "ruestung" | "druck" | "entspannen" | "hilfe";
@@ -490,10 +490,10 @@ export function fuehreAktionAus(w: World, id: string, aktion: AktionId): { ok: b
       text = t("sim2.sim.laender.36a65b4", { p0: l.dat, p1: Math.round(z.handel) });
       why = t("sim2.sim.laender.6ae7385", { p0: def.pk });
       if (id === "EU") {
-        zusageAnlegen(w, { von: "EU-Kommission", text: t("sim2.sim.laender.836ef30"), tage: 240, massnahme: "m_justizreform" });
+        zusageAnlegen(w, { von: "EU-Kommission", text: tIn("de", "sim2.sim.laender.836ef30"), msg: msg("sim2.sim.laender.836ef30"), tage: 240, massnahme: "m_justizreform" });
         why += t("sim2.sim.laender.58b8573");
       } else if (id === "USA") {
-        zusageAnlegen(w, { von: "US-Regierung", text: t("sim2.sim.laender.2ee6296"), tage: 240, massnahme: "m_verteidigung" });
+        zusageAnlegen(w, { von: "US-Regierung", text: tIn("de", "sim2.sim.laender.2ee6296"), msg: msg("sim2.sim.laender.2ee6296"), tage: 240, massnahme: "m_verteidigung" });
         why += t("sim2.sim.laender.d30ee50");
       }
       break;

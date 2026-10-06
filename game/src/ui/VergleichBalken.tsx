@@ -19,7 +19,7 @@ export function VergleichBalken({ code, spiel }: { code: string; spiel?: { wert:
   const [alle, setAlle] = useState(false);
   if (!ind) return <p className="subtitle">{t("ui.VergleichBalken.fbd262a")}</p>;
 
-  const zeilen: Zeile[] = [{ id: "TUR", name: `Türkei (Weltbank)`, wert: ind.tur.wert, jahr: ind.tur.jahr, art: "tuerkei" }];
+  const zeilen: Zeile[] = [{ id: "TUR", name: t("vgl.tuerkeiWB"), wert: ind.tur.wert, jahr: ind.tur.jahr, art: "tuerkei" }];
   if (spiel) zeilen.push({ id: "SPIEL", name: spiel.text, wert: spiel.wert, art: "spiel" });
   const codes = alle ? Object.values(VERGLEICH.gruppen).flat() : WICHTIG;
   for (const c of codes) {
@@ -30,7 +30,7 @@ export function VergleichBalken({ code, spiel }: { code: string; spiel?: { wert:
     if (c === "UMC" && !alle) continue;
     zeilen.push({ id: c, name: VERGLEICH.aggregate[c] ?? c, wert: v[0], jahr: v[1], art: "aggregat" });
   }
-  zeilen.push({ id: "MED", name: "Median aller Länder", wert: ind.median, art: "aggregat" });
+  zeilen.push({ id: "MED", name: t("vgl.medianAlle"), wert: ind.median, art: "aggregat" });
   zeilen.sort((a, b) => b.wert - a.wert);
 
   const min = Math.min(0, ...zeilen.map((z) => z.wert));
@@ -44,7 +44,7 @@ export function VergleichBalken({ code, spiel }: { code: string; spiel?: { wert:
         <strong>{ind.name}</strong>
         <span>
           {ind.einheit}
-          {ind.besser ? t("ui2.ui.VergleichBalken.1735eee", { p0: ind.besser === "niedriger" ? "niedriger" : "höher" }) : t("ui2.ui.VergleichBalken.d25423d")}
+          {ind.besser ? t("ui2.ui.VergleichBalken.1735eee", { p0: ind.besser === "niedriger" ? t("vgl.besser.niedriger") : t("vgl.besser.hoeher") }) : t("ui2.ui.VergleichBalken.d25423d")}
         </span>
       </p>
       <ul className="vergleich-liste" aria-label={t("ui2.ui.VergleichBalken.56ce178", { p0: ind.name })}>

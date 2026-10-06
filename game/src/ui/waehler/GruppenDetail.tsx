@@ -13,6 +13,7 @@ import { anzeigeName, monatText, nf, prozent, vz } from "./format";
 import "../politik/design.css";
 
 import { t } from "../../i18n";
+import { zusageText, zusageVon } from "../../sim/zusagen";
 export type DossierZiel = "schreibtisch" | "gespraech" | "parlament" | "programme";
 
 interface Props {
@@ -232,7 +233,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
           <ul className="wa-tisch">
             {d.handlungen.zusagen.map((z) => (
               <li key={z.id}>
-                <b>{t("wd.zusageAn", { von: z.von })}</b> {t("wd.zusageText", { text: z.text, massnahme: knotenName(z.massnahme), tage: Math.max(0, z.faellig - world.day) })}
+                <b>{t("wd.zusageAn", { von: zusageVon(z.von) })}</b> {t("wd.zusageText", { text: zusageText(z), massnahme: knotenName(z.massnahme), tage: Math.max(0, z.faellig - world.day) })}
                 <button type="button" className="pd-btn quiet klein" onClick={() => onMassnahme?.(z.massnahme, z.richtung >= 0 ? 1 : -1)}>
                   {" "}
                   {t("wd.einloesen")}

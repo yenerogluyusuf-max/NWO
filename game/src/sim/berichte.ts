@@ -21,7 +21,7 @@ import { restMonate, umsetzungsStand } from "./umsetzung";
 import { addDays, dayOfMonth } from "./dates";
 import { addLog } from "./log";
 import { GRUPPEN } from "./gruppen";
-import { aktuelleLocale, aktuelleSprache, t, zahl } from "../i18n";
+import { aktuelleLocale, aktuelleSprache, katalogDe, t, zahl } from "../i18n";
 import type { World } from "./types";
 
 /** Monatliche Stichproben seit dem Beschluss; Index 0 ist der Tag des Beschlusses. */
@@ -395,7 +395,10 @@ const knotenName = (id: string, sonst: string): string => {
 export function lokalisiereBerichte(world: World): void {
   if (aktuelleSprache() === "de") return;
   for (const b of world.spiel?.berichte ?? []) {
-    if (b.name === undefined || b.von === undefined || b.auf === undefined || !b.groessen) continue;
+    if (b.name === undefined || b.von === undefined || b.auf === undefined || !b.groessen) {
+      lokalisiereAltbericht(b);
+      continue;
+    }
     const alterKurz = b.kurz ?? "";
     const alterHinweis = b.hinweis;
     b.name = knotenName(b.massnahme, b.name);
@@ -412,6 +415,51 @@ export function lokalisiereBerichte(world: World): void {
       b.begruendung = begruendungVon(b.phase, b.groessen, b.reife, b.mitwirkend ?? []);
     }
   }
+}
+
+/** Deutscher Name einer Größe aus dem Politiknetz → Kennung (für Berichte, die nur fertige deutsche Zeilen gespeichert haben). */
+let deNamen: Map<string, string> | null = null;
+function idAusDeutschemNamen(name: string): string | undefined {
+  if (!deNamen) {
+    deNamen = new Map();
+    for (const [k, v] of Object.entries(katalogDe())) {
+      const m = /^netz\.knoten\.(.+)\.name$/.exec(k);
+      if (m) deNamen.set(v, m[1]!);
+    }
+  }
+  return deNamen.get(name);
+}
+
+const zahlDe = (x: string): number => Number(x.replace(/\./g, "").replace(",", ".").replace("−", "-"));
+
+/**
+ * Ältere Berichte haben nur deutsche Sätze (Titel, Zeilen, Hinweis) und keine Einzelwerte. Für Türkisch und Englisch werden sie aus
+ * diesen Sätzen gelesen und neu gesetzt; was sich nicht lesen lässt, bleibt, wie es ist.
+ */
+function lokalisiereAltbericht(b: Bericht): void {
+  const ti = /^(.*?)(?: \(nur in (\d+) Provinzen?\))?: Stufe (\d+) auf (\d+), (\d+) Monate danach$/.exec(b.titel);
+  if (ti) {
+    const name = knotenName(b.massnahme, ti[1]!);
+    const [von, auf, monate] = [Number(ti[3]), Number(ti[4]), Number(ti[5])];
+    b.titel = ti[2] ? t("bericht.titelOrt", { name, n: Number(ti[2]), von, auf, monate }) : t("bericht.titel", { name, von, auf, monate });
+  }
+  b.zeilen = b.zeilen.map((z) => {
+    const g = /^(.+?): ([\d.,−-]+) auf ([\d.,−-]+) \([+−-]?[\d.,]+\)$/.exec(z);
+    if (g) {
+      const id = idAusDeutschemNamen(g[1]!);
+      const name = id ? knotenName(id, g[1]!) : g[1]!;
+      const [vorher, jetzt] = [zahlDe(g[2]!), zahlDe(g[3]!)];
+      return zeileGroesse(name, vorher, jetzt, jetzt - vorher);
+    }
+    const p = /^(.+?): akut in (\d+) auf (\d+) Provinzen$/.exec(z);
+    if (p) {
+      const id = idAusDeutschemNamen(p[1]!);
+      return zeileProblem(id ? knotenName(id, p[1]!) : p[1]!, Number(p[2]), Number(p[3]));
+    }
+    return z;
+  });
+  const rest = /^Die volle Wirkung braucht noch etwa (\d+) Monat/.exec(b.hinweis);
+  if (/^(Die volle Wirkung|Es wirkt|Bisher|Die Zahlen)/.test(b.hinweis)) b.hinweis = hinweisVon(b.urteil, rest ? Number(rest[1]) : 0);
 }
 
 function bericht(world: World, b: Beobachtung, monate: number): Bericht {

@@ -25,6 +25,7 @@ import { naechsteSitzung } from "../../sim/zentralbank";
 import { akteurName, weltModell } from "../../sim/welt-modell";
 import { t } from "../../i18n";
 import type { World } from "../../sim/types";
+import { zusageText, zusageVon } from "../../sim/zusagen";
 
 /** Wohin ein Eintrag führt. Die Bühne übersetzt das in ein Fenster. */
 export type Ziel =
@@ -295,7 +296,7 @@ export function faellig(world: World): Faellig[] {
     out.push({
       id: `z-${z.id}`,
       art: "zusage",
-      titel: t("sk.f.zusage.titel", { von: z.von, text: z.text }),
+      titel: t("sk.f.zusage.titel", { von: zusageVon(z.von), text: zusageText(z) }),
       tage,
       dringend: tage <= 20,
       unter: `${t("sk.f.zusage.unter", { wann: tageWort(tage) })}${z.massnahme ? t("sk.f.zusage.vorhaben") : ""}`,
@@ -415,7 +416,7 @@ export function termine(world: World): Termin[] {
   }
   for (const z of spiel.zusagen.filter((x) => !x.erfuellt && !x.gebrochen)) {
     const tg = Math.max(0, z.faellig - world.day);
-    out.push({ id: `z-${z.id}`, tage: tg, datum: formatDateDe(addDays(world.date, tg)), text: t("sk.t.zusage", { von: z.von }), ziel: { art: "akte", akte: "personen" } });
+    out.push({ id: `z-${z.id}`, tage: tg, datum: formatDateDe(addDays(world.date, tg)), text: t("sk.t.zusage", { von: zusageVon(z.von) }), ziel: { art: "akte", akte: "personen" } });
   }
   for (const k of KALENDER) {
     const r = tageBisMonat(world, k.monat, k.abJahr, k.nurJahr);

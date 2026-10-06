@@ -7,6 +7,7 @@ import { wirke } from "./wirkung";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
+import type { Msg } from "../i18n";
 
 export type SzenenName = "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht";
 
@@ -138,11 +139,12 @@ export function beschr(pk: number, bipProzent: number, folge: string): string {
 }
 
 /** Eine Zusage, die später fällig wird und dann als Ereignis eingefordert wird. */
-export function zusageAnlegen(w: World, z: { von: string; text: string; tage: number; massnahme?: string }): void {
+export function zusageAnlegen(w: World, z: { von: string; text: string; tage: number; massnahme?: string; msg?: Msg }): void {
   w.spiel?.zusagen.push({
     id: `z-${z.von}-${w.day}-${w.spiel.zusagen.length}`,
     von: z.von,
     text: z.text,
+    ...(z.msg ? { msg: z.msg } : {}),
     faellig: w.day + z.tage,
     ...(z.massnahme ? { massnahme: z.massnahme, richtung: 1 } : {}),
     erfuellt: false,

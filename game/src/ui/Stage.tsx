@@ -91,6 +91,7 @@ import { kapitalErklaerung, mehrheitsSicht } from "./akte/lage";
 import { AkteRahmen, type BereichId } from "./akte/Bereiche";
 import type { AktenReiterId } from "./akte/Akte";
 import { t as tx } from "../i18n";
+import { zusageText } from "../sim/zusagen";
 
 type Dossier =
   | "schreibtisch"
@@ -1347,7 +1348,7 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
 
   const zusagen = spiel?.zusagen.filter((z) => !z.erfuellt && !z.gebrochen) ?? [];
   if (zusagen.length) {
-    items.push({ id: "zusagen", tone: "gelb", icon: "haende", label: t("st.al.zusagen"), kurz: t("st.al.zusagenKurz", { n: zusagen.length }), count: zusagen.length, text: zusagen.map((z) => z.text).join(" · "), onClick: onDesk });
+    items.push({ id: "zusagen", tone: "gelb", icon: "haende", label: t("st.al.zusagen"), kurz: t("st.al.zusagenKurz", { n: zusagen.length }), count: zusagen.length, text: zusagen.map((z) => zusageText(z)).join(" · "), onClick: onDesk });
   }
 
   const gesetze = spiel?.gesetze ?? [];

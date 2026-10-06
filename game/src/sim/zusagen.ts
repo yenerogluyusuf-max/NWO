@@ -14,7 +14,7 @@ import { LAENDER, landAendern } from "./laender";
 import { skala, skalenArt } from "../data/skalen";
 import { grollVerschieben, loyalitaetVerschieben, merke } from "./personen";
 import { istMinisterienZusage, ministerienAnPartei, ressortNamen } from "./ressortvergabe";
-import { t } from "../i18n";
+import { rendere, t } from "../i18n";
 import { vorgaengeMonat, vorgaengeSchritt } from "./vorgaenge";
 import type { World } from "./types";
 import type { Figur, Zusage } from "./spiel-typen";
@@ -47,6 +47,29 @@ export function zusageVorhaben(w: World, z: { massnahme?: string; richtung?: num
 
 // ---------------------------------------------------------------------------
 // Bezug: wem die Zusage gilt
+
+// ---------------------------------------------------------------------------
+// Wortlaut in der aktuellen Sprache
+
+/** Die vier Zusagen des Wahlprogramms tragen feste Kennungen; so erscheinen auch ältere Spielstände übersetzt. */
+const START_ZUSAGEN = new Set(["z-ministerien", "z-friedensprozess", "z-renten", "z-vergaben"]);
+
+/** Text einer Zusage in der aktuellen Sprache: gespeicherte Meldung, sonst feste Kennung, sonst der deutsche Wortlaut. */
+export function zusageText(z: Pick<Zusage, "id" | "text" | "msg">): string {
+  if (z.msg) return rendere(z.msg);
+  if (START_ZUSAGEN.has(z.id)) return t(`zusage.start.${z.id}`);
+  return z.text;
+}
+
+/** Absender einer Zusage in der aktuellen Sprache; Parteikürzel und Namen bleiben, wie sie sind. */
+export function zusageVon(von: string): string {
+  if (von === "Wähler") return t("zusage.von.waehler");
+  if (von === "EU-Kommission") return t("zusage.von.eu");
+  if (von === "US-Regierung") return t("zusage.von.usa");
+  const d = /^Denkmalbehörde von (.+)$/.exec(von);
+  if (d) return t("zusage.von.denkmal", { ort: d[1] });
+  return von;
+}
 
 export interface ZusageBezug {
   art: "person" | "fraktion" | "land" | "sonst";
@@ -167,7 +190,7 @@ export function zusagenBilanz(w: World): ZusagenBilanz {
   const offen = zs.filter((z) => !z.erfuellt && !z.gebrochen).length;
   const vertroestet = zs.reduce((a, z) => a + (z.vertroestet ?? 0), 0);
   const g = clamp(60 + 8 * gehalten - 15 * gebrochen - 3 * vertroestet, 0, 100);
-  const wort = g >= 75 ? "verlässlich" : g >= 55 ? "ordentlich" : g >= 35 ? "angeschlagen" : "verspielt";
+  const wort = t(`reste.glaubwuerdig.${g >= 75 ? "verlaesslich" : g >= 55 ? "ordentlich" : g >= 35 ? "angeschlagen" : "verspielt"}`);
   return { gehalten, gebrochen, offen, vertroestet, glaubwuerdigkeit: g, wort };
 }
 

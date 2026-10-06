@@ -13,7 +13,7 @@ import { dk } from "./ereignis-hilfen";
 import { beschr, kosten, monatVon, namen, netz, nf, opt, ziehe, zusageAnlegen } from "./ereignis-hilfen";
 import type { Vorlage } from "./ereignis-hilfen";
 import { lieferanteilVerschieben } from "./diplomatie";
-import { t } from "../i18n";
+import { msg, t } from "../i18n";
 
 /** Lieferland im Ereignistext zu Lieferant im Energiemodell */
 const LIEFERANT: Record<string, "RUS" | "AZE" | "IRN"> = { Russland: "RUS", Aserbaidschan: "AZE", Iran: "IRN" };
@@ -88,7 +88,7 @@ const EU_ANGEBOT: Vorlage = {
       wirke(w, "export", 3);
       wirke(w, "auslandskapital", 3);
       wirke(w, "konservative", -1);
-      zusageAnlegen(w, { von: "EU-Kommission", text: "Der EU wurde eine Justizreform zugesagt", tage: 240, massnahme: "m_justizreform" });
+      zusageAnlegen(w, { von: "EU-Kommission", text: "Der EU wurde eine Justizreform zugesagt", msg: msg("zusage.eu.justizreform"), tage: 240, massnahme: "m_justizreform" });
       return "Die Türkei nimmt die Gespräche auf und sagt eine Justizreform zu.";
     }),
     opt("teilweise", "Nur über den Handel sprechen", beschr(2, 0, "ein Anfang, ohne Zusagen zum Rechtsstaat."), 2, (w) => {

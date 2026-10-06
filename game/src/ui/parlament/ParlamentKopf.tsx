@@ -12,6 +12,7 @@ import { verteileErwartung, vorgabeFuer, zaehleZustaende, zustandJeSitz, ZUSTAEN
 import { t } from "../../i18n";
 import "../politik/design.css";
 import "./parlament.css";
+import { gesetzName, massnahmenName } from "../../sim/gesetz-name";
 
 const ZUSTAND_KURZ: Record<Zustand, string> = { fest: "Lager", zusage: "Zusage", wackelig: "wackelig", offen: "offen", nein: "Nein" };
 const ZUSTAND_HILFE: Record<Zustand, string> = {
@@ -93,7 +94,7 @@ export function ParlamentKopf({ world }: { world: World }) {
           </button>
           {gesetze.map((x) => (
             <button key={x.id} role="tab" aria-selected={g?.id === x.id} className={`pd-btn${g?.id === x.id ? " on" : ""}`} onClick={() => setAnsicht(x.id)} title={t("ui2.ui.parlament.ParlamentKopf.a967b90")}>
-              {x.name}
+              {gesetzName(x)}
             </button>
           ))}
         </div>
@@ -144,7 +145,7 @@ export function ParlamentKopf({ world }: { world: World }) {
       ) : null}
       {erwartung && berechnet && (
         <p className="par-lesart">
-          {g ? `„${g.name}“: ` : ""}
+          {g ? `„${gesetzName(g)}“: ` : ""}
           {ja >= REGELN.mehrheit ? t("ui2.ui.parlament.ParlamentKopf.bca73c3", { p0: zahl(jaSumme), p1: REGELN.mehrheit }) : t("ui2.ui.parlament.ParlamentKopf.d61f1c9", { p0: REGELN.mehrheit - ja })}
           {berechnet.vorgabe.sachParteien.length > 0 ? t("ui2.ui.parlament.ParlamentKopf.4f5a383", { p0: berechnet.vorgabe.sachParteien.join(" und ") }) : ""}
         </p>
@@ -209,7 +210,7 @@ export function ParlamentKopf({ world }: { world: World }) {
               <li key={`${a.tag}-${a.name}`} className={a.angenommen ? "ja" : "nein"}>
                 <span className="par-l-stempel">{a.angenommen ? t("ui2.ui.parlament.ParlamentKopf.c2c80ce") : t("ui2.ui.parlament.ParlamentKopf.abgelehnt")}</span>
                 <span className="par-l-name">
-                  {a.name}
+                  {massnahmenName(a.name)}
                   <em>
                     {t("ui2.ui.parlament.ParlamentKopf.04b6c47", { p0: formatDateDe(a.datum), p1: a.ja, p2: a.nein })}
                   </em>

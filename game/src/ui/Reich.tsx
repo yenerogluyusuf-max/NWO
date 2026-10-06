@@ -43,10 +43,10 @@ const GROESSEN: Record<Bereich, GroesseDef[]> = {
   kultur: [{ id: "kulturerbe" }, { id: "identitaet" }, { id: "vielfalt" }, { id: "tourismus" }, { id: "ansehen" }],
   recht: [
     { id: "justiz_unabhaengigkeit" },
-    { id: "justiz_kapazitaet", zusatz: "17 Richter je 100.000 Einwohner, Schnitt 22" },
-    { id: "justiz_effizienz", zusatz: "Strafgerichte 228 Tage (2024)" },
+    { id: "justiz_kapazitaet", zusatz: "reste.reich.zusatz.richter" },
+    { id: "justiz_effizienz", zusatz: "reste.reich.zusatz.dauer" },
     { id: "urteilsbefolgung" },
-    { id: "haftueberfuellung", invers: true, zusatz: "etwa 142 Prozent Belegung" },
+    { id: "haftueberfuellung", invers: true, zusatz: "reste.reich.zusatz.belegung" },
     { id: "ausnahmerecht", invers: true },
     { id: "anwaltsautonomie" },
     { id: "strassburg_druck", invers: true },
@@ -113,7 +113,7 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
                 <strong>{v.name}</strong>
                 <span className="rr-bau-info">
                   {tx("ui2.ui.Reich.5950cd8", { p0: nr + 1, p1: Math.round(f * 100) })}{" "}
-                  {l.pausiert ? "ruht" : rate > 0 ? tx("ui2.ui.Reich.d7fc5d0", { p0: rate.toLocaleString("de-DE", { maximumFractionDigits: 0 }) }) : tx("ui2.ui.Reich.6202407")}
+                  {l.pausiert ? t("reste.reich.ruht") : rate > 0 ? tx("ui2.ui.Reich.d7fc5d0", { p0: rate.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 0 }) }) : tx("ui2.ui.Reich.6202407")}
                 </span>
               </div>
               <span className="rr-balken" aria-hidden>
@@ -137,11 +137,11 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
   const [hinweis, setHinweis] = useState<string | null>(null);
   if (!z.laufend.length) return null;
   const liste = warteschlange(world);
-  const monatsText = (m?: number) => (m === undefined ? "" : m <= 0 ? "jetzt" : `in etwa ${m} ${m === 1 ? "Monat" : "Monaten"}`);
+  const monatsText = (m?: number) => (m === undefined ? "" : m <= 0 ? t("reste.reich.jetzt") : t("reste.reich.inMonaten", { n: m }));
   const rueckmeldung = (id: string, richtung: -1 | 1) => {
     const r = verschiebe(world, id, richtung);
-    if (!r.ok) setHinweis(r.grund ?? "Das ging nicht.");
-    else if (r.verdrangt?.length) setHinweis(`„${vorhabenDef(id)?.name ?? id}“ vorgezogen (−${r.kosten} Verwaltungskraft). Verdrängt: ${r.verdrangt.join(", ")}.`);
+    if (!r.ok) setHinweis(r.grund ?? t("reste.reich.ging"));
+    else if (r.verdrangt?.length) setHinweis(t("reste.reich.vorgezogen", { name: vorhabenDef(id)?.name ?? id, kosten: r.kosten, liste: r.verdrangt.join(", ") }));
     else setHinweis(null);
     refresh();
   };
@@ -162,12 +162,12 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
           // Wer eine Position zurückfällt, wenn dieses Vorhaben vorgezogen wird
           const verdrangt = e.position > 1 ? (vorhabenDef(liste[e.position - 2]!.id)?.name ?? liste[e.position - 2]!.id) : null;
           const zeit = e.pausiert
-            ? "ruht"
+            ? t("reste.reich.ruht")
             : e.vergabePhase
-              ? `Vergabephase, Baubeginn ${monatsText(e.startIn)}${e.fertigIn !== undefined ? `, fertig ${monatsText(e.fertigIn)}` : ""}`
+              ? t("reste.reich.vergabe", { start: monatsText(e.startIn) }) + (e.fertigIn !== undefined ? t("reste.reich.fertigZusatz", { fertig: monatsText(e.fertigIn) }) : "")
               : e.rate > 0
-                ? `baut (${Math.round(e.rate)} Baupunkte im Monat), fertig ${monatsText(e.fertigIn)}`
-                : `wartet auf Baukapazität, Start ${monatsText(e.startIn)}${e.fertigIn !== undefined ? `, fertig ${monatsText(e.fertigIn)}` : ""}`;
+                ? t("reste.reich.baut", { rate: Math.round(e.rate), fertig: monatsText(e.fertigIn) })
+                : t("reste.reich.wartet", { start: monatsText(e.startIn) }) + (e.fertigIn !== undefined ? t("reste.reich.fertigZusatz", { fertig: monatsText(e.fertigIn) }) : "");
           return (
             <li key={e.id} className={`rr-queue-eintrag${e.pausiert ? " ruht" : ""}`}>
               <span className="rr-queue-pos" aria-label={tx("ui2.ui.Reich.8af9b4d", { p0: e.position })}>
@@ -312,7 +312,7 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
   );
 }
 
-const SITZ_NAMEN: Record<string, string> = { aym: "Verfassungsgericht", hsk: "Richter- und Staatsanwaltsrat" };
+const SITZ_NAMEN = (): Record<string, string> => ({ aym: t("reste.reich.aym"), hsk: t("reste.reich.hsk") });
 
 function Sitze({ world }: { world: World }) {
   const z = reichZustand(world);
@@ -331,7 +331,7 @@ function Sitze({ world }: { world: World }) {
           ];
           return (
             <div key={key} className="rr-sitzgruppe">
-              <strong>{SITZ_NAMEN[key] ?? key}</strong>
+              <strong>{SITZ_NAMEN()[key] ?? key}</strong>
               <span className="rr-sitze" role="img" aria-label={tx("ui2.ui.Reich.eeb0a0b", { p0: n, p1: s.loyal, p2: s.reform, p3: s.unabhaengig })}>
                 {punkte.map((p, i) => (
                   <i key={i} className={p} />
@@ -353,7 +353,7 @@ function Haushalt({ world }: { world: World }) {
   const vb = verwaltungBilanz(world);
   const k = kapitalEinkommen(world);
   const e = world.economy;
-  const z = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const z = (x: number, d = 1) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
   return (
     <section className="rr-abschnitt">
       <h4>

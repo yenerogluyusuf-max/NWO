@@ -27,6 +27,7 @@ import { BerichtListe, PersonenListe, berichteFuer } from "./Bausteine";
 import { mehrheitsSicht } from "./lage";
 import { BehoerdenInstrument } from "../behoerden/Instrument";
 import { laufendeVerfahren } from "../../sim/gesetzgebung";
+import { gesetzName } from "../../sim/gesetz-name";
 
 export type BereichId = "gesellschaft" | "recht" | "regierung" | "sicherheit" | "aussen" | "land" | "wissen" | "medien";
 
@@ -162,7 +163,7 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
       return [
         {
           kopf: t("akte.b.lage.gesetze"),
-          zeilen: sp.gesetze.map((g) => ({ titel: g.name, meta: t("akte.b.lage.abstimmungIn", { tage: Math.max(0, g.abstimmung - w.day) }) })),
+          zeilen: sp.gesetze.map((g) => ({ titel: gesetzName(g), meta: t("akte.b.lage.abstimmungIn", { tage: Math.max(0, g.abstimmung - w.day) }) })),
         },
         {
           kopf: t("gesetz.ui.beimGericht"),

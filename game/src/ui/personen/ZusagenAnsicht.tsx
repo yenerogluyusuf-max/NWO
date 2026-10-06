@@ -5,7 +5,7 @@ import { vorgangZuZusage } from "../../sim/vorgaenge";
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { addDays, formatDateDe } from "../../sim/dates";
-import { brecheFrei, loeseEin, vertroesteFrei, zusagenBilanz, zusagenSicht, zusageBezug, type ZusageAntwort, type ZusageSicht } from "../../sim/zusagen";
+import { brecheFrei, loeseEin, vertroesteFrei, zusagenBilanz, zusagenSicht, zusageBezug, zusageText, zusageVon, type ZusageAntwort, type ZusageSicht } from "../../sim/zusagen";
 import { Balken, Portraet, tonVon } from "./bausteine";
 import { t as tx } from "../../i18n";
 
@@ -76,9 +76,9 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
               <header>
                 <Medaille world={world} s={s} />
                 <div>
-                  <strong>{s.z.text}</strong>
+                  <strong>{zusageText(s.z)}</strong>
                   <em>
-                    {s.bezug.art === "person" ? `${s.bezug.name} (${s.z.von})` : s.bezug.art === "fraktion" ? tx("ui2.ui.personen.ZusagenAnsicht.bc3d909", { p0: s.bezug.name }) : s.bezug.art === "land" ? tx("ui2.ui.personen.ZusagenAnsicht.e568133", { p0: s.bezug.name }) : s.bezug.name}
+                    {s.bezug.art === "person" ? `${s.bezug.name} (${zusageVon(s.z.von)})` : s.bezug.art === "fraktion" ? tx("ui2.ui.personen.ZusagenAnsicht.bc3d909", { p0: s.bezug.name }) : s.bezug.art === "land" ? tx("ui2.ui.personen.ZusagenAnsicht.e568133", { p0: s.bezug.name }) : zusageVon(s.bezug.name)}
                   </em>
                 </div>
                 <div className={`pe-frist ${s.dringlichkeit}`}>
@@ -154,7 +154,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                 <li key={z.id} className={z.erfuellt ? "erfuellt" : "gebrochen"}>
                   <span aria-hidden>{z.erfuellt ? "✓" : "✗"}</span>
                   <span>
-                    {z.erfuellt ? tx("ui2.ui.personen.ZusagenAnsicht.dd01a6f") : tx("ui2.ui.personen.ZusagenAnsicht.150a658")}: {z.text} <em>({b.name})</em>
+                    {z.erfuellt ? tx("ui2.ui.personen.ZusagenAnsicht.dd01a6f") : tx("ui2.ui.personen.ZusagenAnsicht.150a658")}: {zusageText(z)} <em>({b.name})</em>
                   </span>
                   {z.abgeschlossen !== undefined && <time>{formatDateDe(addDays(spiel.start.datum, z.abgeschlossen))}</time>}
                 </li>

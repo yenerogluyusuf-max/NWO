@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Metric } from "../../sim/forecast";
-import { KENNZAHLEN, GRUPPEN, aktuellerWert, bewertung, kennzahl, startWert, wertVorMonaten, type Handlung } from "../../sim/wirtschaft-kennzahlen";
+import { KENNZAHLEN, GRUPPEN, aktuellerWert, bewertung, kennzahl, startWert, wertVorMonaten, type Handlung, gruppeName, einheitName } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, startMonat, verlauf } from "../../sim/wirtschaft";
 import { stufeVon } from "../../sim/haushalt";
 import { formatMonthDe } from "../../sim/dates";
@@ -103,7 +103,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
       <nav className="wi-liste" aria-label={t("ui2.ui.wirtschaft.Lage.9a372e1")}>
         {GRUPPEN.map((gruppe) => (
           <section key={gruppe}>
-            <h4>{gruppe}</h4>
+            <h4>{gruppeName(gruppe)}</h4>
             <ul>
               {KENNZAHLEN.filter((x) => x.gruppe === gruppe).map((x) => {
                 const w = aktuellerWert(world, x.id);
@@ -115,7 +115,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
                       <span className="wi-zeile-name">{x.name}</span>
                       <span className="wi-zeile-wert">
                         {nf(w, x.stellen)}
-                        <small>{x.einheit === "Indexpunkte" ? "" : x.einheit}</small>
+                        <small>{x.einheit === "Indexpunkte" ? "" : einheitName(x.einheit)}</small>
                       </span>
                       <span className={`wi-zeile-spark ${b.gut === true ? "wi-gut" : b.gut === false ? "wi-schlecht" : "wi-neutral"}`}>
                         <Sparkline werte={verlauf(world, x.id).slice(-24).map((p) => p.wert)} />
@@ -134,11 +134,11 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
           {t("ui2.ui.wirtschaft.Lage.0f15f3d")}
         </button>
         <header>
-          <p className="kicker">{k.gruppe}</p>
+          <p className="kicker">{gruppeName(k.gruppe)}</p>
           <h3>{k.name}</h3>
           <div className="wi-kopf">
             <strong className="wi-gross">
-              {nf(jetzt, k.stellen)} <small>{k.einheit === "Indexpunkte" ? t("ui2.ui.wirtschaft.Lage.010dece") : k.einheit}</small>
+              {nf(jetzt, k.stellen)} <small>{k.einheit === "Indexpunkte" ? t("ui2.ui.wirtschaft.Lage.010dece") : einheitName(k.einheit)}</small>
             </strong>
             <span className="wi-chips">
               <Chip id={k.id} jetzt={jetzt} davor={start} label={t("ui2.ui.wirtschaft.Lage.6ac651e")} />
@@ -156,7 +156,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
           linien={k.linien?.(world)}
           marken={marken}
           stellen={k.stellen}
-          einheit={k.einheit}
+          einheit={einheitName(k.einheit)}
           name={k.name}
           rechnet={rechnet}
         />
@@ -178,7 +178,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
                   </span>
                   <span className="wi-treiber-wert">
                     {z.wirkung >= 0 ? "+" : "−"}
-                    {nf(Math.abs(z.wirkung), Math.abs(z.wirkung) >= 10 ? 0 : 2)} <small>{z.einheit}</small>
+                    {nf(Math.abs(z.wirkung), Math.abs(z.wirkung) >= 10 ? 0 : 2)} <small>{einheitName(z.einheit)}</small>
                   </span>
                   <small className="wi-treiber-text">{z.text}</small>
                 </li>

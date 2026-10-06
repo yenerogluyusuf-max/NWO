@@ -20,6 +20,7 @@ import {
   speichere,
   speichereSlot,
   speichereWarten,
+  speicherRuhe,
   spielstandInfo,
   vorsitzungSnapshot,
   type Lager,
@@ -110,7 +111,7 @@ describe("Speichern und Laden im Browser", () => {
       stand.push(w.date);
       speichere(w); // wie die Entscheidungen im Spiel: ohne Warten
     }
-    await new Promise((r) => setTimeout(r, 80));
+    await speicherRuhe();
     expect((await ladeSpielstand())!.date).toBe(stand[4]);
     expect(spielstandInfo()!.datum).toBe(stand[4]);
   });
@@ -139,7 +140,7 @@ describe("Speichern und Laden im Browser", () => {
     sitzungBegonnen(w);
     expect(vorsitzungSnapshot()?.datum).toBe(w.date);
     loescheSpielstand();
-    await new Promise((r) => setTimeout(r, 10));
+    await speicherRuhe();
     expect(spielstandInfo()).toBeNull();
     expect(await ladeSpielstand()).toBeNull();
     expect(vorsitzungSnapshot()).toBeNull();
@@ -156,7 +157,7 @@ describe("Speichern und Laden im Browser", () => {
     const nackt = importiereSpielstandDatei(JSON.stringify(w))!; // älteres Format: nur die Welt
     expect(nackt.date).toBe(w.date);
     expect(vorsitzungSnapshot()?.datum).toBe(w.date);
-    await new Promise((r) => setTimeout(r, 40));
+    await speicherRuhe();
     expect((await ladeSpielstand())!.date).toBe(w.date);
     expect(importiereSpielstandDatei("{kein json")).toBeNull();
     expect(importiereSpielstandDatei('{"foo":1}')).toBeNull();
@@ -178,7 +179,7 @@ describe("Kein Fortschritt geht verloren", () => {
     // Jemand lädt die ältere Datei (Titelbild oder Reiter Spielstand): der automatische Stand wird dabei ersetzt
     const geladen = importiereSpielstandDatei(frueherDatei)!;
     expect(stand(geladen)).toBe(stand(alt));
-    await new Promise((r) => setTimeout(r, 120));
+    await speicherRuhe();
     expect((await ladeSpielstand())!.date).toBe(stand(alt));
     // … aber der weite Stand ist zurückholbar
     const liste = fruehereStaende();
@@ -196,7 +197,7 @@ describe("Kein Fortschritt geht verloren", () => {
     await speichereWarten(b);
     for (let i = 0; i < 6; i++) {
       importiereSpielstandDatei(JSON.stringify({ version: 1, gespeichert: "x", welt: a }));
-      await new Promise((r) => setTimeout(r, 60));
+      await speicherRuhe();
     }
     expect((await ladeRueck("hoechst"))!.date).toBe(stand(b));
   });
@@ -206,7 +207,7 @@ describe("Kein Fortschritt geht verloren", () => {
     advance(w, 500);
     await speichereWarten(w);
     loescheSpielstand();
-    await new Promise((r) => setTimeout(r, 100));
+    await speicherRuhe();
     expect(spielstandInfo()).toBeNull();
     const liste = fruehereStaende();
     expect(liste.length).toBeGreaterThan(0);

@@ -29,11 +29,7 @@ import { t } from "../../i18n";
 export const PK_SOFORTHILFE = 3;
 export const PK_UEBERGANG = 2;
 
-const NEBEL_TEXT: Record<string, string> = {
-  unsicher: "Erste Stunden: Die Lage ist unklar, Zahlen sind ungesichert.",
-  vermutet: "Erste Tage: Schäden werden vermutet, Bandbreiten statt genauer Zahlen.",
-  bekannt: "Die Schadenslage ist aufgeklärt.",
-};
+const NEBEL_TEXT = (nebel: string): string => t(`reste.kat.nebel.${nebel}`);
 
 interface Zahl {
   name: string;
@@ -147,7 +143,7 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
             {fall.bewaeltigt ? t("ui2.ui.katastrophe.Faelle.9d17623") : ""}
           </p>
         </div>
-        <p className={`kr-nebel nebel-${sicht.nebel}`}>{NEBEL_TEXT[sicht.nebel]}</p>
+        <p className={`kr-nebel nebel-${sicht.nebel}`}>{NEBEL_TEXT(sicht.nebel)}</p>
       </header>
 
       <Kennzahlen w={w} fall={fall} nebelBekannt={sicht.nebel === "bekannt"} />

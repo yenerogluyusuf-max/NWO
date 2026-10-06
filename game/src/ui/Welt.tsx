@@ -51,10 +51,10 @@ const IND = (daten as unknown as { indikatoren: Indikatoren }).indikatoren;
 const nf = (x: number) => x.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 const TABS: { id: WeltTab; label: string }[] = [
-  { id: "ueberblick", label: "Überblick" },
-  { id: "verhandeln", label: "Verhandlungstisch" },
-  { id: "vertraege", label: "Verträge" },
-  { id: "handeln", label: "Gesten" },
+  { id: "ueberblick", label: "reste.welt.ueberblick" },
+  { id: "verhandeln", label: "reste.welt.verhandeln" },
+  { id: "vertraege", label: "reste.welt.vertraege" },
+  { id: "handeln", label: "reste.welt.gesten" },
 ];
 
 type Modus = "aussen" | "laender" | "bloecke" | "dienst" | "vermittlung";
@@ -224,19 +224,19 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
               })}
             </div>
 
-            <div className="we-tabs" role="tablist" aria-label={`${l.name}: Ansicht`}>
+            <div className="we-tabs" role="tablist" aria-label={tx("reste.welt.ansicht", { name: l.name })}>
               {TABS.map((t) => {
                 const n = t.id === "vertraege" ? laufende(world, gewaehlt).length : 0;
                 return (
                   <button key={t.id} role="tab" type="button" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
-                    {t.label}
+                    {tx(t.label)}
                     {n > 0 && <b>{n}</b>}
                   </button>
                 );
               })}
               {kriegMit(world, gewaehlt) && (
                 <button role="tab" type="button" aria-selected={tab === "konflikt"} className={tab === "konflikt" ? "on" : ""} onClick={() => setTab("konflikt")}>
-                  ⚔ Konflikt
+                  ⚔ {tx("reste.welt.konflikt")}
                 </button>
               )}
               {gewaehlt === "EU" && (

@@ -3,6 +3,7 @@
 
 import daten from "../data/vergleich.json";
 import type { World } from "../sim/types";
+import { aktuelleLocale, aktuelleSprache, katalogVon, t } from "../i18n";
 
 export interface Indikator {
   name: string;
@@ -26,6 +27,26 @@ interface Datei {
 }
 
 export const VERGLEICH = daten as unknown as Datei;
+
+/**
+ * Namen und Einheiten der Indikatoren, Länder und Aggregate aus dem Katalog (`vgl.*`), soweit dort ein Eintrag steht; die deutschen
+ * Daten bleiben der Rückfall. Läuft einmal beim Laden des Moduls: Die Sprache wechselt nur durch Neuladen.
+ */
+function lokalisiere(): void {
+  const sprache = aktuelleSprache();
+  if (sprache === "de") return;
+  const kat = katalogVon(sprache);
+  const en = katalogVon("en");
+  const hole = (key: string): string | undefined => kat[key] ?? en[key];
+  for (const [c, ind] of Object.entries(VERGLEICH.indikatoren)) {
+    ind.name = hole(`vgl.ind.${c}.name`) ?? ind.name;
+    ind.einheit = hole(`vgl.ind.${c}.einheit`) ?? ind.einheit;
+  }
+  for (const c of Object.keys(VERGLEICH.laender)) VERGLEICH.laender[c] = hole(`vgl.land.${c}`) ?? VERGLEICH.laender[c]!;
+  for (const c of Object.keys(VERGLEICH.aggregate)) VERGLEICH.aggregate[c] = hole(`vgl.agg.${c}`) ?? VERGLEICH.aggregate[c]!;
+}
+
+lokalisiere();
 
 export function indikator(code: string): Indikator | undefined {
   return VERGLEICH.indikatoren[code];
@@ -126,17 +147,17 @@ export function spielWert(w: World, id: string): { wert: number; text: string } 
   const e = w.economy;
   switch (id) {
     case "inflation":
-      return { wert: w.published.inflation.value, text: "Türkei im Spiel (zuletzt veröffentlicht)" };
+      return { wert: w.published.inflation.value, text: t("vgl.spiel.veroeffentlicht") };
     case "arbeitslosigkeit":
-      return { wert: w.published.unemployment.value, text: "Türkei im Spiel (zuletzt veröffentlicht)" };
+      return { wert: w.published.unemployment.value, text: t("vgl.spiel.veroeffentlicht") };
     case "wachstum":
-      return { wert: w.published.growth.value, text: "Türkei im Spiel (zuletzt veröffentlicht)" };
+      return { wert: w.published.growth.value, text: t("vgl.spiel.veroeffentlicht") };
     case "schulden":
-      return { wert: e.debtRatio, text: "Türkei im Spiel (heute)" };
+      return { wert: e.debtRatio, text: t("vgl.spiel.heute") };
     case "defizit":
-      return { wert: -(e.deficit + e.fiscalImpulse + e.policyCost), text: "Türkei im Spiel (geplant)" };
+      return { wert: -(e.deficit + e.fiscalImpulse + e.policyCost), text: t("vgl.spiel.geplant") };
     case "abwertung":
-      return { wert: e.fxChange12, text: "Türkei im Spiel (letzte 12 Monate)" };
+      return { wert: e.fxChange12, text: t("vgl.spiel.zwoelf") };
     default:
       return undefined;
   }
@@ -144,23 +165,23 @@ export function spielWert(w: World, id: string): { wert: number; text: string } 
 
 export const nf = (x: number, d?: number): string => {
   const digits = d ?? (Math.abs(x) >= 1000 ? 0 : Math.abs(x) >= 100 ? 0 : Math.abs(x) >= 10 ? 1 : 2);
-  return x.toLocaleString("de-DE", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits });
 };
 
 /** Ein Satz zur Einordnung: wie viele Länder liegen darüber oder darunter? */
 export function einordnung(ind: Indikator): string {
-  const t = ind.tur;
-  const hoeher = t.rang - 1;
-  const niedriger = t.von - t.rang;
-  const halb = t.von / 2;
+  const tu = ind.tur;
+  const hoeher = tu.rang - 1;
+  const niedriger = tu.von - tu.rang;
+  const halb = tu.von / 2;
   let wort: string;
-  if (t.rang <= t.von * 0.1) wort = "unter den höchsten Werten der Welt";
-  else if (t.rang <= halb) wort = "in der oberen Hälfte";
-  else if (t.rang <= t.von * 0.9) wort = "in der unteren Hälfte";
-  else wort = "unter den niedrigsten Werten der Welt";
+  if (tu.rang <= tu.von * 0.1) wort = t("vgl.wort.hoechste");
+  else if (tu.rang <= halb) wort = t("vgl.wort.oben");
+  else if (tu.rang <= tu.von * 0.9) wort = t("vgl.wort.unten");
+  else wort = t("vgl.wort.niedrigste");
   const bewertung =
-    ind.besser === null ? "" : (ind.besser === "niedriger" && t.rang <= halb) || (ind.besser === "höher" && t.rang > halb) ? " Das ist ungünstig." : " Das ist günstig.";
-  return `Von ${t.von} Ländern haben ${hoeher} einen höheren und ${niedriger} einen niedrigeren Wert; die Türkei steht ${wort}.${bewertung}`;
+    ind.besser === null ? "" : (ind.besser === "niedriger" && tu.rang <= halb) || (ind.besser === "höher" && tu.rang > halb) ? t("vgl.bew.unguenstig") : t("vgl.bew.guenstig");
+  return t("vgl.einordnung", { von: tu.von, hoeher, niedriger, wort, bewertung });
 }
 
 /** Kurzform für Tooltips: einige bekannte Vergleichswerte mit Jahr. */
@@ -169,10 +190,10 @@ export function kurzVergleich(code: string): string | undefined {
   if (!ind) return undefined;
   const eu = ind.aggregate.EUU;
   const teile = [
-    `Deutschland ${nf(ind.laender.DEU?.[0] ?? NaN)}`,
+    `${VERGLEICH.laender.DEU} ${nf(ind.laender.DEU?.[0] ?? NaN)}`,
     eu ? `EU ${nf(eu[0])}` : undefined,
-    ind.laender.BRA ? `Brasilien ${nf(ind.laender.BRA[0])}` : undefined,
-    `Welt-Median ${nf(ind.median)}`,
+    ind.laender.BRA ? `${VERGLEICH.laender.BRA} ${nf(ind.laender.BRA[0])}` : undefined,
+    `${t("vgl.median")} ${nf(ind.median)}`,
   ].filter((x): x is string => !!x && !x.includes("NaN"));
-  return `Zum Vergleich (${ind.einheit}, Stand ${ind.tur.jahr}): Türkei ${nf(ind.tur.wert)}, ${teile.join(", ")}. Quelle: Weltbank.`;
+  return t("vgl.kurz", { einheit: ind.einheit, jahr: ind.tur.jahr, wert: nf(ind.tur.wert), teile: teile.join(", ") });
 }

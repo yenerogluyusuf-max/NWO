@@ -1,7 +1,7 @@
 // Die Vorschau in einer Tabelle: Was in zwölf Monaten mit und ohne die Entscheidung erwartet wird, Größe für Größe, mit Richtung und Wertung.
 
 import type { Metric, PrognoseReihe } from "../../sim/forecast";
-import { KENNZAHLEN_NACH_ID } from "../../sim/wirtschaft-kennzahlen";
+import { KENNZAHLEN_NACH_ID, einheitName } from "../../sim/wirtschaft-kennzahlen";
 import "./wirtschaft.css";
 
 import { t } from "../../i18n";
@@ -47,7 +47,7 @@ export function Wirkung({ reihen, metriken, rechnet }: { reihen: PrognoseReihe[]
               ) : (
                 <>
                   {delta > 0 ? "▲" : "▼"} {delta > 0 ? "+" : "−"}
-                  {nf(Math.abs(delta), Math.max(1, k.stellen))} {k.einheit === "Indexpunkte" ? "" : k.einheit}
+                  {nf(Math.abs(delta), Math.max(1, k.stellen))} {k.einheit === "Indexpunkte" ? "" : einheitName(k.einheit)}
                 </>
               )}
             </td>

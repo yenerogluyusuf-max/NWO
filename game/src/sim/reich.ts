@@ -1109,8 +1109,8 @@ export function reichMonat(w: World, _rng?: Rng): void {
   for (const id of aktiv) {
     if (!z.vorteile.includes(id)) {
       const d = vorteilDef(id);
-      meldung(w, "freigeschaltet", `Vorteil erreicht: ${d?.name ?? id}.`);
-      addLog(w, "entscheidung", `Vorteil erreicht: ${d?.name ?? id}.`, d?.text);
+      meldung(w, "freigeschaltet", tx("reste.reich.vorteil", { name: d?.name ?? id }));
+      addLog(w, "entscheidung", tx("reste.reich.vorteil", { name: d?.name ?? id }), d?.text);
     }
   }
   for (const id of z.vorteile) if (!aktiv.includes(id)) meldung(w, "gesperrt", tx("sim2.sim.reich.1baf768", { p0: vorteilDef(id)?.name ?? id }));

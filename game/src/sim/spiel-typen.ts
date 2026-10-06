@@ -2,6 +2,8 @@
 // Alles reines JSON, damit Speichern und Laden wie beim übrigen Weltzustand funktionieren.
 // Alle Zahlen dieser Schicht sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import type { Msg } from "../i18n";
+
 export type Weg = "gesetz" | "erlass";
 
 /** Ein Vorhaben auf dem Weg durch das Parlament. */
@@ -49,7 +51,10 @@ export interface Figur {
 export interface Zusage {
   id: string;
   von: string;
+  /** Deutscher Wortlaut (Rückfall und für Prüfungen am Text) */
   text: string;
+  /** Wortlaut als Meldung, damit die Zusage nach einem Sprachwechsel in der neuen Sprache erscheint */
+  msg?: Msg;
   faellig: number;
   /** Fordert eine Maßnahme in eine Richtung */
   massnahme?: string;

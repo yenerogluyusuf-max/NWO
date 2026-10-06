@@ -151,17 +151,17 @@ export interface LbZerlegung {
 /** Die rechnerische Zielmarke der Leistungsbilanz und ihre Bausteine. */
 export function leistungsbilanzZerlegung(w: World): LbZerlegung {
   const e = w.economy;
-  const zeilen: LbTreiber[] = [{ name: "Sonstige Leistungsbilanz", wert: DEVISEN.lbBasis, text: t("sim2.sim.devisen.ed77c98") }];
+  const zeilen: LbTreiber[] = [{ name: t("wk.dv.sonstige"), wert: DEVISEN.lbBasis, text: t("sim2.sim.devisen.ed77c98") }];
   const eu = DEVISEN.euAufLb * ((e.euNachfrage ?? 100) - 100);
   zeilen.push({ name: t("sim2.sim.devisen.cd1d645"), wert: eu, text: t("sim2.sim.devisen.c3759c9") });
   // Runde „Netz atmet“: Die Importabhängigkeit (Politiknetz) bestimmt, wie hart der Ölpreis die Rechnung trifft (Faktor 1 ohne Netz)
   const oel = DEVISEN.oelAufLb * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1);
-  zeilen.push({ name: "Energie-Importrechnung", wert: oel, text: t("sim2.sim.devisen.595efab") });
+  zeilen.push({ name: t("wk.dv.energie"), wert: oel, text: t("sim2.sim.devisen.595efab") });
   const startTourismus = w.spiel ? startAverage(NET, w.net, "tourismus") : 65;
   const tourismus = w.spiel ? DEVISEN.tourismusAufLb * (nationalAverage(NET, w.net, "tourismus") - startTourismus) : 0;
-  zeilen.push({ name: "Tourismus", wert: tourismus, text: t("sim2.sim.devisen.7274b65") });
+  zeilen.push({ name: t("wk.dv.tourismus"), wert: tourismus, text: t("sim2.sim.devisen.7274b65") });
   // Runde „Netz atmet“: Die Realwirtschaft der Branchen trägt die Exportseite (0 ohne Netz)
-  zeilen.push({ name: "Branchen (Industrie, Export, Mittelstand)", wert: DEVISEN.sektorAufLb * (e.sektorIndex ?? 0), text: t("sim2.sim.devisen.3c2026e") });
+  zeilen.push({ name: t("wk.dv.branchen"), wert: DEVISEN.sektorAufLb * (e.sektorIndex ?? 0), text: t("sim2.sim.devisen.3c2026e") });
   // J-Kurve: Die Abwertung der jüngsten sechs Monate verteuert Importe sofort (negativ),
   // die der Monate 7–12 stärkt inzwischen die Wettbewerbsfähigkeit (positiv).
   const h = w.history;
@@ -176,7 +176,7 @@ export function leistungsbilanzZerlegung(w: World): LbZerlegung {
     jLang = DEVISEN.jKurveLang * (vor6 / vor12 - 1) * 100;
     jKurve = jKurz + jLang;
   }
-  zeilen.push({ name: "Abwertung (J-Kurve)", wert: jKurve, text: t("sim2.sim.devisen.d618d93") });
+  zeilen.push({ name: t("wk.dv.jkurve"), wert: jKurve, text: t("sim2.sim.devisen.d618d93") });
   zeilen.push({ name: t("sim2.sim.devisen.a758755"), wert: DEVISEN.goldPauschal, text: t("sim2.sim.devisen.3fae889") });
   return { ziel: zeilen.reduce((s, z) => s + z.wert, 0), zeilen };
 }
@@ -184,18 +184,18 @@ export function leistungsbilanzZerlegung(w: World): LbZerlegung {
 /** Kapitalflüsse in % des BIP je Jahr (positiv = Zufluss) und ihre Bausteine. */
 export function kapitalflussZerlegung(w: World): LbZerlegung {
   const e = w.economy;
-  const zeilen: LbTreiber[] = [{ name: "Basiszufluss", wert: DEVISEN.fluesseBasis, text: t("sim2.sim.devisen.192642b") }];
+  const zeilen: LbTreiber[] = [{ name: t("wk.dv.basis"), wert: DEVISEN.fluesseBasis, text: t("sim2.sim.devisen.192642b") }];
   let auslandskapital = 0;
   if (w.spiel) {
     auslandskapital = DEVISEN.auslandskapitalAufFluss * (nationalAverage(NET, w.net, "auslandskapital") - startAverage(NET, w.net, "auslandskapital"));
   }
-  zeilen.push({ name: "Auslandskapital (Politiknetz)", wert: auslandskapital, text: t("sim2.sim.devisen.4a10e2e") });
+  zeilen.push({ name: t("wk.dv.auslandskapital"), wert: auslandskapital, text: t("sim2.sim.devisen.4a10e2e") });
   const risiko = DEVISEN.risikoAufFluss * Math.max(0, (e.riskPremium - 250) / 100);
-  zeilen.push({ name: "Risikoflucht", wert: risiko, text: t("sim2.sim.devisen.a1af1b2") });
+  zeilen.push({ name: t("wk.dv.risikoflucht"), wert: risiko, text: t("sim2.sim.devisen.a1af1b2") });
   const weltzins = DEVISEN.weltzinsAufFluss * ((e.weltzins ?? 100) - 100);
-  zeilen.push({ name: "Weltzinsen", wert: weltzins, text: t("sim2.sim.devisen.1e8107b") });
+  zeilen.push({ name: t("wk.dv.weltzinsen"), wert: weltzins, text: t("sim2.sim.devisen.1e8107b") });
   if (w.spiel?.krisen?.some((k) => k.id === "zahlungsbilanz")) {
-    zeilen.push({ name: "Zahlungsbilanzkrise", wert: DEVISEN.kriseFlucht, text: t("sim2.sim.devisen.bde3ed0") });
+    zeilen.push({ name: t("wk.dv.krise"), wert: DEVISEN.kriseFlucht, text: t("sim2.sim.devisen.bde3ed0") });
   }
   return { ziel: zeilen.reduce((s, z) => s + z.wert, 0), zeilen };
 }
