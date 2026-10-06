@@ -112,7 +112,7 @@ function GroesseKarte({ g, tage }: { g: BerichtGroesse; tage: number[] }) {
       <div className="ba-karte-text">
         <div className="ba-karte-kopf">
           <strong>{g.name}</strong>
-          {g.stimmung && <span className="ba-soll">Stimmung der Gruppe</span>}
+          {g.stimmung && <span className="ba-soll">{t("ui.politik.BerichtAkte.312da1f")}</span>}
           {g.erwartet && <span className="ba-soll">soll {g.erwartet === "steigt" ? "steigen" : "sinken"}</span>}
           <span className={`ba-bewertung bew-${g.bewertung}`}>{g.bewertung === "ruhig" && g.besser === false ? "leicht verschlechtert" : BEWERTUNG_WORT[g.bewertung]}</span>
         </div>
@@ -148,12 +148,12 @@ function GroesseKarte({ g, tage }: { g: BerichtGroesse; tage: number[] }) {
           </>
         )}
         {istProblem && g.entschaerft && <p className="ba-regionen"><span>Nicht mehr akut in:</span> {g.entschaerft.map((r) => r.name).join(", ")}</p>}
-        {istProblem && g.neuAkut && <p className="ba-regionen"><span>Neu akut in:</span> {g.neuAkut.map((r) => r.name).join(", ")}</p>}
+        {istProblem && g.neuAkut && <p className="ba-regionen"><span>{t("ui.politik.BerichtAkte.cb5d427")}</span> {g.neuAkut.map((r) => r.name).join(", ")}</p>}
       </div>
       {g.verlauf && g.verlauf.length > 1 && (
         <div className="ba-karte-kurve">
           <Kurve werte={g.verlauf} tage={tage} ton={tonVon(g)} titel={`Verlauf ${g.name}: ${nf(g.verlauf[0]!)} bis ${nf(g.verlauf[g.verlauf.length - 1]!)}`} />
-          <span className="ba-kurve-legende">Verlauf seit dem Beschluss</span>
+          <span className="ba-kurve-legende">{t("ui.politik.BerichtAkte.06fe74f")}</span>
         </div>
       )}
     </li>
@@ -178,7 +178,7 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
         </p>
         {onGehe && b.massnahme && (
           <button type="button" className="ba-gehe" onClick={() => onGehe(b.massnahme)}>
-            Maßnahme ansehen und nachjustieren
+            {t("ui.politik.BerichtAkte.21b3ac7")}
           </button>
         )}
       </header>
@@ -213,20 +213,20 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
         <>
           {direkt.length > 0 && (
             <section>
-              <h4>Woran die Maßnahme gemessen wird</h4>
-              <p className="ba-erklaer">Die stärksten Wirkungswege der Maßnahme im Politiknetz. Jede Karte sagt, was sich bewegen sollte, warum, und was sich bewegt hat.</p>
+              <h4>{t("ui.politik.BerichtAkte.abae981")}</h4>
+              <p className="ba-erklaer">{t("ui.politik.BerichtAkte.0c0e428")}</p>
               <ul className="ba-karten">
                 {direkt.map((g) => (
                   <GroesseKarte key={g.id} g={g} tage={tage} />
                 ))}
               </ul>
-              {b.regional === "einheitlich" && <p className="ba-erklaer">Die Wirkung ist in allen Provinzen gleich stark; regionale Unterschiede gibt es nicht.</p>}
+              {b.regional === "einheitlich" && <p className="ba-erklaer">{t("ui.politik.BerichtAkte.2c7b2d3")}</p>}
             </section>
           )}
           {bewegteProbleme.length > 0 && (
             <section>
               <h4>Verbundene Probleme</h4>
-              <p className="ba-erklaer">Probleme in der Nähe der Maßnahme: Zahl der Provinzen, in denen sie akut sind.</p>
+              <p className="ba-erklaer">{t("ui.politik.BerichtAkte.266cc42")}</p>
               <ul className="ba-karten">
                 {bewegteProbleme.map((g) => (
                   <GroesseKarte key={g.id} g={g} tage={tage} />
@@ -247,10 +247,9 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
             </details>
           )}
           <section className="ba-zurechnung">
-            <h4>Was der Bericht nicht sagen kann</h4>
+            <h4>{t("ui.politik.BerichtAkte.ca075ac")}</h4>
             <p>
-              Die Zahlen zeigen die Veränderung insgesamt. Das Spiel rechnet nicht aus, was ohne diese Maßnahme geschehen wäre; es nennt Ihnen, wohin sie wirken soll, wie lange das dauert und was sonst gleichzeitig wirkte.
-              Ereignisse, die Konjunktur und andere Beschlüsse wirken in denselben Größen.
+              {t("ui.politik.BerichtAkte.600d358")}
             </p>
             {b.mitwirkend && b.mitwirkend.length > 0 && (
               <p>
@@ -266,7 +265,7 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
         </>
       ) : (
         <section>
-          <h4>Gemessene Veränderungen</h4>
+          <h4>{t("ui.politik.BerichtAkte.3f02592")}</h4>
           <ul className="ba-alt">
             {b.zeilen.map((z) => (
               <li key={z}>{z}</li>
@@ -315,8 +314,8 @@ export function BerichtAkte({ world, start, onGehe }: { world: World; start?: Be
   if (!aktuell) {
     return (
       <div className="ba ba-leer">
-        <h3>Noch keine Wirkungsberichte</h3>
-        <p className="subtitle">Sechs, zwölf und vierundzwanzig Monate nach einem Beschluss schaut das Spiel nach, was sich getan hat. Ein Gesetz ist noch keine Wirkung.</p>
+        <h3>{t("ui.politik.BerichtAkte.70f6fd8")}</h3>
+        <p className="subtitle">{t("ui.politik.BerichtAkte.846026c")}</p>
         {beobachtet.length > 0 ? (
           <>
             <h4>Das wird beobachtet</h4>
@@ -333,7 +332,7 @@ export function BerichtAkte({ world, start, onGehe }: { world: World; start?: Be
             </ul>
           </>
         ) : (
-          <p className="subtitle">Sobald Sie ein Gesetz oder einen Erlass durchgebracht haben, wird seine Wirkung hier beobachtet.</p>
+          <p className="subtitle">{t("ui.politik.BerichtAkte.406517e")}</p>
         )}
       </div>
     );
@@ -370,7 +369,7 @@ export function BerichtAkte({ world, start, onGehe }: { world: World; start?: Be
         ))}
         {beobachtet.length > 0 && (
           <section className="ba-gruppe ba-bald">
-            <h4>Als Nächstes fällig</h4>
+            <h4>{t("ui.politik.BerichtAkte.ca9a16f")}</h4>
             <ul>
               {beobachtet.slice(0, 4).map(({ key, name, monate: m, datum }) => (
                 <li key={key}>

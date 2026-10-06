@@ -19,6 +19,7 @@ import { EINHEIT, alleBereiche, alleVorschlaege, bereichStand, vorschlaegeIn, ty
 import "./politik.css";
 import "./design.css";
 
+import { t } from "../../i18n";
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 const nc = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
@@ -175,9 +176,9 @@ export function Politik({
 
   return (
     <div className="po" ref={wurzel}>
-      <nav className="po-rail" aria-label="Bereiche der Politik">
+      <nav className="po-rail" aria-label={t("ui.politik.Politik.1100782")}>
         <button className={`po-rail-eintrag${bereich === null ? " on" : ""}`} onClick={() => setBereich(null)} aria-current={bereich === null ? "page" : undefined}>
-          <span className="po-rail-name">Überblick</span>
+          <span className="po-rail-name">{t("ui.politik.Politik.8f96328")}</span>
         </button>
         {kurz.map((k) => (
           <button key={k.theme} className={`po-rail-eintrag${bereich === k.theme ? " on" : ""}`} onClick={() => { setBereich(k.theme); setAlleLage(false); setAntwort(null); }} aria-current={bereich === k.theme ? "page" : undefined}>
@@ -255,7 +256,7 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
             )}
           </p>
         </div>
-        <ul className="pd-zaehler" aria-label="Lage der Bereiche">
+        <ul className="pd-zaehler" aria-label={t("ui.politik.Politik.8eec19c")}>
           <li className={zahl("rot") > 0 ? "hell rot" : ""}>
             <b>{zahl("rot")}</b>
             <span>angespannt</span>
@@ -358,7 +359,7 @@ function BereichSeite({
         </span>
       </header>
 
-      <ul className="pd-kennzahlen" aria-label="Kennzahlen des Bereichs">
+      <ul className="pd-kennzahlen" aria-label={t("ui.politik.Politik.b7f486b")}>
         <li className={stand.probleme.length > 0 ? "rot" : ""}>
           <b>{stand.probleme.length}</b>
           <span>{stand.probleme.length === 1 ? "akutes Problem" : "akute Probleme"}</span>
@@ -372,13 +373,13 @@ function BereichSeite({
             <b>
               <span className="gut">{stand.besser} ▲</span> <span className="schlecht">{stand.schlechter} ▼</span>
             </b>
-            <span>besser / schlechter seit dem Amtsantritt</span>
+            <span>{t("ui.politik.Politik.a31e13e")}</span>
           </li>
         )}
         {kapital !== undefined && (
           <li>
             <b>{Math.floor(kapital)}</b>
-            <span>Kapital verfügbar</span>
+            <span>{t("ui.politik.Politik.353f9d6")}</span>
           </li>
         )}
       </ul>
@@ -414,7 +415,7 @@ function BereichSeite({
                   </span>
                   <div className="pd-hebel">
                     <span className="pd-hebel-label">Hebel</span>
-                    {hebel.length === 0 && <span className="pd-leise">Alle Hebel sind schon weit ausgebaut.</span>}
+                    {hebel.length === 0 && <span className="pd-leise">{t("ui.politik.Politik.15854cd")}</span>}
                     <div className="pd-hebel-knoepfe">
                       {hebel.map((h) => (
                         <button key={`${h.massnahme}-${h.richtung}`} className="pd-btn" onClick={() => stelle(h.massnahme, h.richtung, orte.length > 0 && orte.length <= 50 ? orte : null)} title={`wirkt ${h.wirkung}`}>
@@ -432,7 +433,7 @@ function BereichSeite({
       )}
 
       <section className="pd-block">
-        <h4>Lage</h4>
+        <h4>{t("ui.politik.Politik.ffbcda4")}</h4>
         <ul className="po-lageliste">
           {lageSicht.map((z) => (
             <LageBalken key={z.id} z={z} onKlick={() => oeffne({ id: z.id })} />
@@ -443,7 +444,7 @@ function BereichSeite({
             {alleLage ? "Weniger anzeigen" : `Alle ${lageSortiert.length} Größen anzeigen`}
           </button>
         )}
-        <p className="pd-legende">Balken: Index 0 bis 100, der Strich zeigt den Stand beim Amtsantritt. ▲ ▼ zeigen die Veränderung seit damals, grün ist besser, rot schlechter.</p>
+        <p className="pd-legende">{t("ui.politik.Politik.145affe")}</p>
         {(kurz.theme === "wirtschaft" || kurz.theme === "haushalt") && onOpen && (
           <p className="pd-legende">
             Inflation, Zins, Lira und Zentralbank: <button className="pd-btn quiet" onClick={() => onOpen("wirtschaft")}>Wirtschaft ansehen</button>
@@ -463,8 +464,8 @@ function BereichSeite({
       )}
 
       <section className="pd-block">
-        <h4>Maßnahmen</h4>
-        <p className="pd-legende ohne-rand">Jede Maßnahme lässt sich in Stufen einstellen; danach zeigt das Spiel Folgen, Kosten, die Mehrheit und den Weg (Gesetz oder Erlass).</p>
+        <h4>{t("ui.politik.Politik.876a5f6")}</h4>
+        <p className="pd-legende ohne-rand">{t("ui.politik.Politik.626c180")}</p>
         <ul className="pd-massnahmen">
           {massnahmen.map((m) => {
             const laeuft = Boolean(m.imParlament || m.ziel !== undefined || m.umsetzung);
@@ -475,8 +476,8 @@ function BereichSeite({
                   <div className="pd-m-kopf">
                     <strong>{m.name}</strong>
                     {m.umsetzung && (
-                      <span className="pd-pill teal" title="Die Stufe ist beschlossen; die Verwaltung setzt sie um. Erst der umgesetzte Anteil wirkt.">
-                        wirkt noch an
+                      <span className="pd-pill teal" title={t("ui.politik.Politik.3fd852b")}>
+                        {t("ui.politik.Politik.4d62df2")}
                       </span>
                     )}
                     {m.imParlament && <span className="pd-pill warn">im Parlament</span>}
@@ -514,11 +515,11 @@ function BereichSeite({
                       <small>{m.einnahme ? "Einnahmen" : "Kosten"} des BIP</small>
                     </>
                   ) : (
-                    <small>kein eigener Haushaltsposten</small>
+                    <small>{t("ui.politik.Politik.c00fcd3")}</small>
                   )}
                 </div>
                 <button className="pd-btn" onClick={() => oeffne({ id: m.id })}>
-                  Ändern
+                  {t("ui.politik.Politik.e2398a5")}
                 </button>
               </li>
             );

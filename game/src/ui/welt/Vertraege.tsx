@@ -8,6 +8,7 @@ import { fruehesterAusstieg, klauselSicht, kuendige, vertragsName, type Vertrag 
 import { pruefeBedingung } from "../../sim/programme";
 import { addDays, formatDateDe } from "../../sim/dates";
 
+import { t } from "../../i18n";
 const TAGE_JAHR = 360;
 const datum = (w: World, tag: number) => formatDateDe(addDays(w.date, tag - w.day));
 
@@ -50,11 +51,11 @@ function VertragKarte({ world, v, refresh }: { world: World; v: Vertrag; refresh
         {v.verstoesse > 0 && laeuft && <b className="we-schlecht"> · {v.verstoesse} Verstoß</b>}
       </p>
       {laeuft && pflichten.length > 0 && (
-        <ul className="we-pflichten" aria-label="Pflichten der Türkei">
+        <ul className="we-pflichten" aria-label={t("ui.welt.Vertraege.a10a0ca")}>
           {pflichten.map(({ d, ok }) => (
             <li key={d.id} className={ok ? "we-gut" : "we-schlecht"}>
               <span aria-hidden>{ok ? "✓" : "✗"}</span> {d.pflichtText ?? d.label}
-              {!ok && <em> Bis zur nächsten Prüfung erfüllen, sonst zählt es als Verstoß.</em>}
+              {!ok && <em> {t("ui.welt.Vertraege.afbc01f")}</em>}
             </li>
           ))}
         </ul>
@@ -64,7 +65,7 @@ function VertragKarte({ world, v, refresh }: { world: World; v: Vertrag; refresh
         <div className="we-vertrag-aktion">
           {!frage ? (
             <button type="button" className="link" onClick={() => setFrage(true)}>
-              Kündigen …
+              {t("ui.welt.Vertraege.f9b86fb")}
             </button>
           ) : (
             <>
@@ -79,10 +80,10 @@ function VertragKarte({ world, v, refresh }: { world: World; v: Vertrag; refresh
                   refresh();
                 }}
               >
-                Ja, kündigen
+                {t("ui.welt.Vertraege.1aacd83")}
               </button>
               <button type="button" className="link" onClick={() => setFrage(false)}>
-                Doch nicht
+                {t("ui.welt.Vertraege.2ee8ff6")}
               </button>
             </>
           )}

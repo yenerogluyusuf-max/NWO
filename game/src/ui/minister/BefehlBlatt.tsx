@@ -13,6 +13,7 @@ import type { World } from "../../sim/types";
 import "../politik/design.css";
 import "./ministerfluss.css";
 
+import { t } from "../../i18n";
 const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
 const TYPEN: BefehlTyp[] = ["ziel", "vorhaben", "verhandeln"];
 
@@ -33,7 +34,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [f?.id, world.day, Math.floor(sp?.kapital ?? 0), laufend.length],
   );
-  if (!sp) return <p>Ohne Spielschleife gibt es keine Befehle.</p>;
+  if (!sp) return <p>{t("ui.minister.BefehlBlatt.128d3df")}</p>;
   const gewaehlt = wahl !== null ? angebote[wahl] : undefined;
   const v = gewaehlt ? befehlVorschau(world, gewaehlt.entwurf) : undefined;
   const auftraege = minister.filter((m) => eigenVon(world, m).auftrag?.status === "laeuft");
@@ -76,8 +77,8 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
 
         <div className="mf-spalte">
           <h4>{f ? `Befehl an ${f.name}` : "Welcher Befehl?"}</h4>
-          {!f && <p className="mf-leer">Wählen Sie links den Minister. Er führt aus, was Sie anordnen — mit Kosten, Dauer und der Chance, dass es gelingt. Wer Ihnen nicht mehr folgt, kann sich weigern.</p>}
-          {f && angebote.length === 0 && <p className="mf-leer">Diesem Amt können Sie nichts befehlen.</p>}
+          {!f && <p className="mf-leer">{t("ui.minister.BefehlBlatt.752ae9b")}</p>}
+          {f && angebote.length === 0 && <p className="mf-leer">{t("ui.minister.BefehlBlatt.d8e094a")}</p>}
           {f &&
             TYPEN.map((t) => {
               const liste = angebote.map((a, i) => ({ a, i })).filter((x) => x.a.entwurf.typ === t);
@@ -151,7 +152,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
           </span>
         </h4>
         {laufend.length + auftraege.length === 0 ? (
-          <p className="mf-leer">Im Moment arbeitet kein Minister an einem Befehl von Ihnen.</p>
+          <p className="mf-leer">{t("ui.minister.BefehlBlatt.12f57ec")}</p>
         ) : (
           <ul className="mf-laufend">
             {laufend.map((b) => {

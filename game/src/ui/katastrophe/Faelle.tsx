@@ -24,6 +24,7 @@ import type { Ziel } from "../schreibtisch/briefing";
 import { Hilfskette } from "./Hilfskette";
 import { nf } from "./daten";
 
+import { t } from "../../i18n";
 /** Kosten der Handlungen in Politischem Kapital (Spielparameter, wie im Ereignis). */
 export const PK_SOFORTHILFE = 3;
 export const PK_UEBERGANG = 2;
@@ -109,7 +110,7 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
       aufbau?.status === "offen" && sicht.wiederaufbau.moeglich && !fall.bewaeltigt ? (
         <div className="kr-vergabe">
           <fieldset>
-            <legend>Vergabe der Bauaufträge</legend>
+            <legend>{t("ui.katastrophe.Faelle.c76ef94")}</legend>
             {(Object.keys(VERGABE_NAMEN) as Vergabe[]).map((v) => (
               <label key={v}>
                 <input type="radio" name={`vergabe-${fall.id}`} checked={vergabe === v} onChange={() => setVergabe(v)} /> {VERGABE_NAMEN[v]}
@@ -173,7 +174,7 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
               </p>
             </>
           ) : (
-            <p className="kr-klein">Kein öffentliches Versprechen abgegeben: Es kann am Wahltag auch nicht gebrochen werden.</p>
+            <p className="kr-klein">{t("ui.katastrophe.Faelle.38cae67")}</p>
           )}
         </section>
       )}
@@ -181,10 +182,10 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
       {onGehe && (
         <footer className="kr-fuss">
           <button type="button" className="kr-link" onClick={() => onGehe({ art: "akte", akte: "zeitung" })}>
-            Berichte der Presse lesen
+            {t("ui.katastrophe.Faelle.854e05d")}
           </button>
           <button type="button" className="kr-link" onClick={() => onGehe({ art: "akte", akte: "waehler" })}>
-            Stimmung der Wählergruppen
+            {t("ui.katastrophe.Faelle.0b6eb4d")}
           </button>
         </footer>
       )}
@@ -198,10 +199,10 @@ export function Faelle({ world, refresh, melde, onGehe, zurLage }: { world: Worl
   if (aktive.length === 0) {
     return (
       <div className="kr-leer">
-        <h3>Keine laufenden Fälle</h3>
-        <p>Im Moment gibt es keine Katastrophe, die Ihre Entscheidung braucht. Die beste Zeit für Vorsorge ist jetzt: Sie senkt Opferzahlen und Schäden, wenn es geschieht.</p>
+        <h3>{t("ui.katastrophe.Faelle.a079334")}</h3>
+        <p>{t("ui.katastrophe.Faelle.93a65df")}</p>
         <button type="button" className="kr-knopf haupt" onClick={zurLage}>
-          Zur Lage und Vorsorge
+          {t("ui.katastrophe.Faelle.5199af5")}
         </button>
       </div>
     );

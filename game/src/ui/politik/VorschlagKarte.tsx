@@ -5,6 +5,7 @@ import { tunWort } from "../../data/skalen";
 import { provinzenText } from "../../sim/handeln";
 import type { Vorschlag } from "../../sim/vorschlaege";
 
+import { t } from "../../i18n";
 const kfmt = (x: number) => x.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export function VorschlagKarte({
@@ -38,7 +39,7 @@ export function VorschlagKarte({
       </div>
       <div className="fraktion-aktionen">
         <button className="aktion-knopf" onClick={() => onEinstellen(v)}>
-          Einstellen und ansehen
+          {t("ui.politik.VorschlagKarte.c568008")}
         </button>
         <button
           className="aktion-knopf"

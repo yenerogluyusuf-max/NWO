@@ -7,6 +7,7 @@ import { akuteOrte, provinzenText } from "../sim/handeln";
 import { REGION_COLORS } from "./atlas/overlay";
 import type { World } from "../sim/types";
 
+import { t } from "../i18n";
 const REGIONEN = Object.keys(REGION_DE);
 
 function useSchliessen(offen: boolean, zu: () => void) {
@@ -65,7 +66,7 @@ export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; m
       </div>
 
       {menu === "region" && (
-        <div className="pop" role="listbox" aria-label="Region wählen">
+        <div className="pop" role="listbox" aria-label={t("ui.OrtWahl.7cd7b6b")}>
           {REGIONEN.map((r) => {
             const mitglieder = PROVINZEN.filter((p) => p.region === r);
             const einwohner = mitglieder.reduce((s, p) => s + p.bevoelkerung, 0);
@@ -92,8 +93,8 @@ export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; m
       )}
 
       {menu === "provinz" && (
-        <div className="pop pop-provinz" role="dialog" aria-label="Provinzen wählen">
-          <input className="pop-suche" type="search" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Provinz suchen …" aria-label="Provinz suchen" autoFocus />
+        <div className="pop pop-provinz" role="dialog" aria-label={t("ui.OrtWahl.916fd5a")}>
+          <input className="pop-suche" type="search" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder={t("ui.OrtWahl.8431840")} aria-label={t("ui.OrtWahl.889df81")} autoFocus />
           <ul>
             {sichtbar.map((p) => (
               <li key={p.plaka}>
@@ -108,7 +109,7 @@ export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; m
           <div className="pop-fuss">
             <span>{gewaehlt.size} gewählt</span>
             <button className="link" onClick={() => onChange(null)}>
-              Auswahl löschen
+              {t("ui.OrtWahl.e65c673")}
             </button>
             <button className="link" onClick={zu}>
               Fertig
@@ -122,7 +123,7 @@ export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; m
         <ul className="ort-chips">
           {ort!.map((p) => (
             <li key={p}>
-              <button onClick={() => umschalten(p)} title="Aus der Auswahl nehmen">
+              <button onClick={() => umschalten(p)} title={t("ui.OrtWahl.5ef06de")}>
                 {PROVINZEN[p - 1]!.name} <span aria-hidden>✕</span>
               </button>
             </li>

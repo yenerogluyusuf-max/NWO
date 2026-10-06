@@ -10,6 +10,7 @@ import { NET } from "../../sim/modell";
 import { Medaille, type EmblemName } from "./embleme";
 import "./design.css";
 
+import { t } from "../../i18n";
 const EMBLEM: Record<string, EmblemName> = {
   erdbeben: "wiederaufbau",
   preise: "preise",
@@ -80,7 +81,7 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
     [world.day, spiel?.kapital, antwort],
   );
 
-  if (!spiel) return <p>Ohne Spielschleife gibt es keine Programme.</p>;
+  if (!spiel) return <p>{t("ui.politik.ProgrammeAkte.d7b492f")}</p>;
   const z = programmZustand(world);
   const laufend = z.laufend.map((l) => {
     const p = PROGRAMME.find((x) => x.schritte.some((s) => s.id === l.schritt))!;
@@ -109,12 +110,12 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
       <header className="pd-seitenkopf">
         <div>
           <p className="pd-ueber">Regierungsprogramme</p>
-          <h3>Pläne für Jahre</h3>
+          <h3>{t("ui.politik.ProgrammeAkte.66d15d8")}</h3>
           <p className="pd-lead">
             Jeder Schritt verlangt echte Politik (eine Maßnahme auf einer Stufe, ein gelöstes Problem), kostet Kapital und Zeit und wirkt danach dauerhaft. Höchstens {MAX_LAUFEND} Schritte laufen gleichzeitig.
           </p>
         </div>
-        <ul className="pd-zaehler" aria-label="Stand der Programme">
+        <ul className="pd-zaehler" aria-label={t("ui.politik.ProgrammeAkte.8b30d8b")}>
           <li>
             <b>{laufend.length}</b>
             <span>von {MAX_LAUFEND} Plätzen belegt</span>
@@ -128,7 +129,7 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
               {erfuellt}
               <small> / {PROGRAMME.length}</small>
             </b>
-            <span>Programme erfüllt</span>
+            <span>{t("ui.politik.ProgrammeAkte.9e13af5")}</span>
           </li>
         </ul>
       </header>
@@ -185,7 +186,7 @@ export function ProgrammeAkte({ world, refresh, onMassnahme }: { world: World; r
               </header>
               <p className="pd-prog-leitbild">{a.p.leitbild}</p>
 
-              <ol className="pd-pfad" aria-label="Stationen des Programms">
+              <ol className="pd-pfad" aria-label={t("ui.politik.ProgrammeAkte.d0af8bd")}>
                 {a.sichten.map((x, k) => (
                   <li key={x.schritt.id} className={x.status} style={x.status === "laufend" ? ({ "--fortschritt": `${Math.round((x.lauf ?? 0) * 360)}deg` } as React.CSSProperties) : undefined}>
                     <span className="pd-station" title={`${k + 1}. ${x.schritt.titel}: ${STATUS_WORT[x.status]}`}>

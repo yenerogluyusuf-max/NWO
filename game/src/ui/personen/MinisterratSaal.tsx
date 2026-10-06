@@ -17,6 +17,7 @@ import { Icon } from "../icons";
 import { MinisterPult } from "../minister/MinisterPult";
 import { Balken, Marke, Portraet } from "./bausteine";
 
+import { t } from "../../i18n";
 export type ZeilenTon = "gut" | "schlecht" | "neutral";
 
 // Größen, bei denen „mehr“ schlecht ist: Aus „+10 Groll“ wird eine Verschlechterung, aus „Groll sinkt“ eine Verbesserung.
@@ -70,14 +71,14 @@ function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: M
       </header>
 
       <div className="mr-k-werte">
-        <Balken label="Loyalität" wert={m.loyalitaet} wort={`${Math.round(m.loyalitaet)} · ${wort}`} hinweis={`Loyalität ${Math.round(m.loyalitaet)} von 100`} />
+        <Balken label={t("ui.personen.MinisterratSaal.87f6f23")} wert={m.loyalitaet} wort={`${Math.round(m.loyalitaet)} · ${wort}`} hinweis={`Loyalität ${Math.round(m.loyalitaet)} von 100`} />
         {q !== undefined && <Balken label="Leistung im Ressort" wert={Math.min(100, q * 100)} wort={`${Math.round(q * 100)} · ${leistungWort(q)}`} hinweis="Aus Fähigkeit und Loyalität; Einarbeitung senkt, Zusatzmittel erhöhen" />}
         <Balken label="Ehrgeiz" wert={m.ehrgeiz} ton={m.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(m.ehrgeiz)} {...(m.ehrgeiz >= 75 ? { zeile: "Gefährlich, wenn er übergangen wird." } : {})} />
       </div>
 
       <div className="mr-k-kapital">
         <div className="mr-kapital-feld">
-          <span className="mr-kapital-label">Kapital-Ertrag</span>
+          <span className="mr-kapital-label">{t("ui.personen.MinisterratSaal.840a839")}</span>
           <span className={`mr-kapital-wert ${kapitalTon}`}>{mitVorzeichen(m.kapitalBeitrag)} PK/Mt.</span>
         </div>
         <small className="mr-kapital-grund">{m.kapitalGrund}</small>
@@ -91,9 +92,9 @@ function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: M
       <div className="mr-k-marken">
         <Marke art="gold">{m.lagerName}</Marke>
         {m.kommissarisch && <Marke art="rot">kommissarisch</Marke>}
-        {ruecktritt && <Marke art="rot">Rücktrittsgefahr</Marke>}
+        {ruecktritt && <Marke art="rot">{t("ui.personen.MinisterratSaal.434c793")}</Marke>}
         {e && e.groll >= 40 && <Marke art="rot">{grollWort(e.groll)}</Marke>}
-        {m.auftragStatus === "laeuft" && <Marke art="gruen">Auftrag läuft</Marke>}
+        {m.auftragStatus === "laeuft" && <Marke art="gruen">{t("ui.personen.MinisterratSaal.357a028")}</Marke>}
       </div>
 
       <footer className="mr-k-aktionen">
@@ -103,7 +104,7 @@ function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: M
             <Icon name="sprechblase" size={16} />
             Gespräch
           </button>
-          <button className="pe-aktion leise" onClick={() => onWaehlePerson(m.id, "entlassen")} title="Entlassen und einen Nachfolger wählen; die Folgen sehen Sie vorher">
+          <button className="pe-aktion leise" onClick={() => onWaehlePerson(m.id, "entlassen")} title={t("ui.personen.MinisterratSaal.a8bd79c")}>
             <Icon name="tausch" size={16} />
             Umbilden
           </button>
@@ -143,13 +144,13 @@ export function MinisterratSaal({
 
         <div className="mr-kennzahlen">
           <div className="mr-kpi">
-            <span className="mr-kpi-label">Kapital-Ertrag</span>
+            <span className="mr-kpi-label">{t("ui.personen.MinisterratSaal.840a839")}</span>
             <strong className={`mr-kpi-wert ${status.kapitalSumme >= 6 ? "gut" : status.kapitalSumme < 2 ? "warn" : ""}`}>{mitVorzeichen(status.kapitalSumme)} PK</strong>
-            <small>monatlich durch das Kabinett</small>
+            <small>{t("ui.personen.MinisterratSaal.0207ed0")}</small>
           </div>
 
           <div className="mr-kpi">
-            <span className="mr-kpi-label">Schnitt Loyalität</span>
+            <span className="mr-kpi-label">{t("ui.personen.MinisterratSaal.99fc71c")}</span>
             <strong className="mr-kpi-wert">{status.schnittLoyalitaet} %</strong>
             <small>über {status.minister.length} Ressorts</small>
           </div>
@@ -163,7 +164,7 @@ export function MinisterratSaal({
       </div>
 
       {/* Vorlagen der Minister (auch die Beschlussvorlagen der Kabinettssitzung) und Befehle an die Minister */}
-      <section className="mr-pult" aria-label="Vorlagen und Befehle der Minister">
+      <section className="mr-pult" aria-label={t("ui.personen.MinisterratSaal.7efc7da")}>
         <MinisterPult world={world} refresh={refresh} {...(onGeheVorlage ? { onGehe: onGeheVorlage } : {})} {...(onKarte ? { onKarte } : {})} />
       </section>
 

@@ -41,20 +41,20 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
   return (
     <div className="pe-zusagen-seite" style={{ display: "grid", gap: 14 }}>
       <section className="paper">
-        <h3>Ihre Glaubwürdigkeit</h3>
+        <h3>{t("ui.personen.ZusagenAnsicht.e224469")}</h3>
         <div className="pe-bilanz">
           <div className="pe-gross">
             <strong>
               {Math.round(bilanz.glaubwuerdigkeit)} <small style={{ font: "italic 16px var(--serif)", color: "var(--ink-soft)" }}>{bilanz.wort}</small>
             </strong>
-            <Balken wert={bilanz.glaubwuerdigkeit} ton={tonVon(bilanz.glaubwuerdigkeit)} wort={bilanz.wort} label="Glaubwürdigkeit" />
+            <Balken wert={bilanz.glaubwuerdigkeit} ton={tonVon(bilanz.glaubwuerdigkeit)} wort={bilanz.wort} label={t("ui.personen.ZusagenAnsicht.e8d0e79")} />
           </div>
           <div>
             <p style={{ margin: 0 }}>
               <strong>{bilanz.gehalten}</strong> gehalten, <strong>{bilanz.gebrochen}</strong> gebrochen, <strong>{bilanz.offen}</strong> offen, {bilanz.vertroestet}× vertröstet.
             </p>
             <p className="subtitle" style={{ margin: "6px 0 0" }}>
-              Wer Zusagen hält, gewinnt Legitimität und Vertrauen und wird beim nächsten Mal ernster genommen; wer sie bricht, verliert beides, dazu Verbündete. Unter 40 sinkt die Legitimität jeden Monat, ab 80 steigt sie langsam.
+              {t("ui.personen.ZusagenAnsicht.2334b05")}
             </p>
           </div>
         </div>
@@ -68,7 +68,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
             {antwort.why && <em> {antwort.why}</em>}
           </p>
         )}
-        {sicht.length === 0 && <p className="pe-leer">Keine offenen Zusagen. Wer Versprechen macht (Wahlkampf, Bündnis, Verträge), findet sie hier.</p>}
+        {sicht.length === 0 && <p className="pe-leer">{t("ui.personen.ZusagenAnsicht.923a607")}</p>}
         <div className="pe-zusagen">
           {sicht.map((s) => (
             <article key={s.z.id} className={`pe-zusage ${s.dringlichkeit}`}>
@@ -118,11 +118,11 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
               </div>
               <div className="pe-aktionen">
                 <button className="pe-aktion haupt" onClick={() => tu(s.z.id, () => loeseEin(world, s.z))} disabled={s.fortschritt?.imParlament} title={s.fortschritt?.imParlament ? "Das Gesetz liegt schon im Parlament" : "Das verlangte Gesetz einbringen oder die Zusage einlösen"}>
-                  Jetzt einlösen
+                  {t("ui.personen.ZusagenAnsicht.104b3fd")}
                 </button>
                 {s.z.massnahme && onMassnahme && (
                   <button className="pe-aktion" onClick={() => onMassnahme(s.z.massnahme!, (s.z.richtung ?? 1) > 0 ? 1 : -1)}>
-                    Maßnahme ansehen
+                    {t("ui.personen.ZusagenAnsicht.0e1c234")}
                   </button>
                 )}
                 {onVorgang && vorgangZuZusage(world, s.z.id) && (

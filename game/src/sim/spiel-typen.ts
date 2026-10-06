@@ -20,6 +20,11 @@ export interface Gesetz {
   absprachen: number;
   /** +1 erhöht, −1 senkt die Maßnahme; Fraktionen stimmen für das, was sie wollen */
   richtung?: number;
+  /** Gesetzesvorhaben (data/gesetzesvorhaben.ts), aus dem der Entwurf stammt; ältere Spielstände und freie Entwürfe haben es nicht */
+  vorhaben?: string;
+  fassung?: import("../data/gesetzesvorhaben").FassungId;
+  /** Ja-Stimmen, die die Fassung zusätzlich holt (Kompromiss) oder kostet (scharf) */
+  stimmenBonus?: number;
 }
 
 export interface Figur {
@@ -572,6 +577,8 @@ export interface SpielZustand {
   infrastruktur?: import("./infrastruktur").InfrastrukturZustand;
   /** Ausbaustufen der Behörden (sim/behoerden.ts); ältere Spielstände legen sie beim ersten Zugriff mit den Startstufen an */
   behoerden?: import("./behoerden").BehoerdenZustand;
+  /** Gesetzesvorhaben: Ruhezeiten, Beschlüsse, Prüfungen des Verfassungsgerichts (sim/gesetzgebung.ts); ältere Spielstände legen es beim ersten Zugriff an */
+  gesetzgebung?: import("./gesetzgebung").GesetzgebungZustand;
   /** Der EU-Beitrittsvorgang (AUS-2); ältere Spielstände legen ihn beim ersten Zugriff an (sim/eu.ts) */
   eu?: import("./eu").EuZustand;
   /** Die Zeitung (UI-1): Archiv, Warteschlange und Badge-Zähler; ältere Spielstände legen es beim ersten Monatsschritt an (sim/zeitung.ts) */

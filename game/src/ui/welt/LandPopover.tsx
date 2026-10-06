@@ -11,6 +11,7 @@ import { WEITERE_NACH_ID } from "../../data/welt-weitere";
 import { beziehungZurTuerkei } from "../../sim/welt-modell";
 import { haltungWortAlle, wahlSicht } from "../../sim/welt-sicht";
 
+import { t } from "../../i18n";
 export type WeltTab = "ueberblick" | "verhandeln" | "vertraege" | "handeln" | "konflikt" | "beitritt";
 
 export interface LandAuswahl {
@@ -49,7 +50,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
     const wahl = wahlSicht(world, weiterer.id);
     return (
       <div className="we-pop" ref={ref} tabIndex={-1} style={{ left: links, top: oben, width: breite }} role="dialog" aria-label={weiterer.name}>
-        <button type="button" className="we-pop-zu" onClick={onClose} aria-label="Schließen">
+        <button type="button" className="we-pop-zu" onClick={onClose} aria-label={t("ui.welt.LandPopover.44424b1")}>
           ×
         </button>
         <div className="we-pop-kopf">
@@ -80,7 +81,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
         )}
         <div className="we-pop-knoepfe">
           <button type="button" className="brass-button" onClick={() => onOeffne(weiterer.id, "ueberblick")}>
-            Länderakte
+            {t("ui.welt.LandPopover.d0f9bf7")}
           </button>
           <button type="button" className="aktion-knopf" onClick={() => onOeffne(weiterer.id, "handeln")}>
             Gesten
@@ -93,14 +94,14 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
   if (!landId || !world.spiel) {
     return (
       <div className="we-pop" ref={ref} tabIndex={-1} style={{ left: links, top: oben, width: breite }} role="dialog" aria-label={name}>
-        <button type="button" className="we-pop-zu" onClick={onClose} aria-label="Schließen">
+        <button type="button" className="we-pop-zu" onClick={onClose} aria-label={t("ui.welt.LandPopover.44424b1")}>
           ×
         </button>
         <div className="we-pop-kopf">
           <Flagge id={auswahl.iso} breite={44} titel={name} />
           <div>
             <strong>{name}</strong>
-            <span>Kein eigener Gesprächspartner</span>
+            <span>{t("ui.welt.LandPopover.f901420")}</span>
           </div>
         </div>
         <p className="we-pop-text">{sondertext ?? `${name} spielt in dieser Amtszeit keine eigene Rolle am Verhandlungstisch; seine Lage wirkt über Handel und Region auf die Nachbarn.`}</p>
@@ -116,7 +117,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
   const initiative = initiativeGegen(world, landId);
   return (
     <div className="we-pop" ref={ref} tabIndex={-1} style={{ left: links, top: oben, width: breite }} role="dialog" aria-label={name}>
-      <button type="button" className="we-pop-zu" onClick={onClose} aria-label="Schließen">
+      <button type="button" className="we-pop-zu" onClick={onClose} aria-label={t("ui.welt.LandPopover.44424b1")}>
         ×
       </button>
       <div className="we-pop-kopf">
@@ -159,7 +160,7 @@ export function LandPopover({ auswahl, world, onClose, onOeffne }: { auswahl: La
           Verhandeln
         </button>
         <button type="button" className="aktion-knopf" onClick={() => onOeffne(landId, "ueberblick")}>
-          Länderakte
+          {t("ui.welt.LandPopover.d0f9bf7")}
         </button>
       </div>
     </div>

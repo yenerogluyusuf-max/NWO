@@ -52,7 +52,7 @@ function Barometer({ world }: { world: World }) {
         )}
       </div>
       <details className="wa-bilanz">
-        <summary>Woher die Zahl kommt, seit dem Amtsantritt</summary>
+        <summary>{t("ui.Waehler.95c4f24")}</summary>
         <ul>
           {bilanz.posten.map((p) => (
             <li key={p.name}>
@@ -86,13 +86,13 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
       <li>
         <b>{was}</b> {satz(g)}
         <button type="button" className="pd-btn quiet klein" onClick={() => waehle(g.id)}>
-          Ansehen
+          {t("ui.Waehler.97d7cee")}
         </button>
       </li>
     ) : null;
   return (
-    <section className="wa-koalition" aria-label="Ihre Wählerkoalition">
-      <h3>Ihre Koalition der Wähler</h3>
+    <section className="wa-koalition" aria-label={t("ui.Waehler.64eb6ca")}>
+      <h3>{t("ui.Waehler.8ac7f95")}</h3>
       <div className="wa-balken" role="img" aria-label={`Träger ${prozent(k.traeger)}, schwankend ${prozent(k.schwankend)}, abgewandt ${prozent(k.gegner)}`}>
         <span className="rolle-traeger" style={{ flexGrow: k.traeger }} />
         <span className="rolle-schwankend" style={{ flexGrow: k.schwankend }} />
@@ -140,8 +140,8 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
       )}
       {schritte.length > 0 && (
         <details className="wa-schritte wa-zu">
-          <summary>Die wirksamsten Schritte für Ihre Zustimmung bis zur Wahl</summary>
-          <p className="wa-unter">Jede Maßnahme, rauf oder runter, um 20 Stufen durchgerechnet, ohne Rückwirkungen über die Wirtschaft (Preise, Schulden); wer dabei gewinnt und wer sich ärgert, steht dabei. Die Vorschau rechnet alles.</p>
+          <summary>{t("ui.Waehler.35c9e56")}</summary>
+          <p className="wa-unter">{t("ui.Waehler.c2c1ff6")}</p>
           <ul className="wa-hilfen">
             {schritte.map((h) => (
               <HilfeKarte key={`${h.massnahme}${h.richtung}`} h={h} world={world} ziel={null} {...(onMassnahme ? { onMassnahme } : {})} />
@@ -196,7 +196,7 @@ export function Waehler({ world, onMassnahme, onDossier }: { world: World; onMas
     }
     if (gewaehlt && window.matchMedia("(max-width: 900px)").matches) detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [gewaehlt]);
-  if (!spiel || !k) return <p>Ohne Spielschleife gibt es keine Wählerkoalition.</p>;
+  if (!spiel || !k) return <p>{t("ui.Waehler.847ba01")}</p>;
   const umschalter = (
     <nav className="ges-reiter wa-umschalter" role="tablist" aria-label={t("ges.umschalter")}>
       {(["koalition", "gesellschaft"] as const).map((a) => (
@@ -219,9 +219,9 @@ export function Waehler({ world, onMassnahme, onDossier }: { world: World; onMas
       <Barometer world={world} />
       <KoalitionsBalken k={k} waehle={setGewaehlt} world={world} {...(onMassnahme ? { onMassnahme } : {})} />
       <div className="wa-haupt">
-        <nav className="wa-liste" aria-label="Wählergruppen">
-          <h3>Ihre Wähler</h3>
-          <p className="wa-unter">Wählen Sie eine Gruppe. Die Marke im Balken zeigt, wohin ihre Stimmung bei den heutigen Verhältnissen strebt.</p>
+        <nav className="wa-liste" aria-label={t("ui.Waehler.8fa6867")}>
+          <h3>{t("ui.Waehler.e984a34")}</h3>
+          <p className="wa-unter">{t("ui.Waehler.617465c")}</p>
           <ul>
             {k.gruppen.map((g) => (
               <GruppenKarte key={g.id} g={g} aktiv={g.id === aktuell} waehle={setGewaehlt} />

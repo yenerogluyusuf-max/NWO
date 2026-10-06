@@ -87,7 +87,7 @@ function Einordnung({ a }: { a: ZeitungArtikel }) {
   const e = a.einordnung;
   if (!e || (e.feststeht.length === 0 && e.offen.length === 0)) return null;
   return (
-    <div className="zt-einordnung" aria-label="Einordnung der Eilmeldung">
+    <div className="zt-einordnung" aria-label={t("ui.Zeitung.6019c8a")}>
       {e.feststeht.length > 0 && (
         <section>
           <h5>Was feststeht</h5>
@@ -100,7 +100,7 @@ function Einordnung({ a }: { a: ZeitungArtikel }) {
       )}
       {e.offen.length > 0 && (
         <section>
-          <h5>Was offen ist</h5>
+          <h5>{t("ui.Zeitung.fddeb73")}</h5>
           <ul>
             {e.offen.map((t, i) => (
               <li key={i}>{t}</li>
@@ -157,8 +157,8 @@ function Zahlenkasten({ zahlen, ton }: { zahlen: ZeitungKennzahl[]; ton: Framing
   // Die Lesart ordnet: Regierungsnahe stellen Günstiges nach vorn, Oppositionelle Ungünstiges; unabhängig bleibt in fester Reihenfolge
   const liste = ton === "neutral" ? zahlen : [...zahlen].sort((a, b) => (ton === "regierungsnah" ? kzBewertung(b) - kzBewertung(a) : kzBewertung(a) - kzBewertung(b)));
   return (
-    <aside className="zt-kasten zt-zahlen" aria-label="Zahlen des Monats">
-      <h5>Zahlen des Monats</h5>
+    <aside className="zt-kasten zt-zahlen" aria-label={t("ui.Zeitung.8357699")}>
+      <h5>{t("ui.Zeitung.8357699")}</h5>
       <ul>
         {liste.map((k) => {
           const d = k.vorher === undefined ? undefined : k.wert - k.vorher;
@@ -188,8 +188,8 @@ function Lagekasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe: Gehe
   const lage = ausgabe.lage ?? [];
   if (!lage.length) return null;
   return (
-    <aside className="zt-kasten zt-lage" aria-label="Lage im Land">
-      <h5>Lage im Land</h5>
+    <aside className="zt-kasten zt-lage" aria-label={t("ui.Zeitung.be6b02b")}>
+      <h5>{t("ui.Zeitung.be6b02b")}</h5>
       <ul>
         {lage.map((p) => {
           const trend = p.vorher === undefined ? "" : p.provinzen > p.vorher ? "schlecht" : p.provinzen < p.vorher ? "gut" : "";
@@ -216,7 +216,7 @@ function Lagekasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe: Gehe
       </ul>
       {onGehe && (
         <button type="button" className="zt-gehe" onClick={() => onGehe({ art: "akte", akte: "bereiche" })}>
-          Probleme und Maßnahmen →
+          {t("ui.Zeitung.0f54d8c")}
         </button>
       )}
     </aside>
@@ -287,7 +287,7 @@ function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
   if (!ausgabe.umfrage) {
     return ausgabe.umfrageSchublade ? (
       <aside className="zt-umfrage schublade">
-        <h5>Die Umfrage des Monats</h5>
+        <h5>{t("ui.Zeitung.b283308")}</h5>
         <p>
           Erscheint nicht: {ausgabe.umfrageSchublade} hat gemessen und das Ergebnis in der Schublade gelassen. Man darf mutmaßen, warum.
         </p>
@@ -297,8 +297,8 @@ function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
   const u = ausgabe.umfrage;
   const delta = u.vormonat !== undefined ? u.wert - u.vormonat : undefined;
   return (
-    <aside className="zt-umfrage" aria-label="Veröffentlichte Umfrage des Monats">
-      <h5>Die Umfrage des Monats</h5>
+    <aside className="zt-umfrage" aria-label={t("ui.Zeitung.36afc3a")}>
+      <h5>{t("ui.Zeitung.b283308")}</h5>
       <p className="zt-umfrage-institut">{u.institut}</p>
       <p className="zt-umfrage-wert">
         {nf(u.wert)} <span className="zt-umfrage-prozent">Prozent</span>
@@ -410,7 +410,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
     return ausgabe.blaetter[Math.min(blattIdx, ausgabe.blaetter.length - 1)];
   }, [ausgabe, blattIdx]);
 
-  if (!spiel) return <p>Ohne Spielschleife erscheint keine Zeitung.</p>;
+  if (!spiel) return <p>{t("ui.Zeitung.b1ebc59")}</p>;
   const reiter = (
     <nav className="zt-reiter" role="tablist" aria-label={t("medien.zeitung.reiter")}>
       <button type="button" role="tab" aria-selected={ansicht === "ausgaben"} className={ansicht === "ausgaben" ? "on" : ""} onClick={() => setAnsicht("ausgaben")}>
@@ -433,7 +433,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
       <div className="zt-huelle">
         {reiter}
         <div className="zt">
-          <p className="subtitle">Die erste Ausgabe erscheint am Monatsersten — gedruckt und, wo man es noch darf, im Netz.</p>
+          <p className="subtitle">{t("ui.Zeitung.48a6e01")}</p>
         </div>
       </div>
     );
@@ -443,7 +443,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
       {reiter}
       <div className="zt">
         <div className="zt-haupt">
-          <nav className="zt-blaetter" role="tablist" aria-label="Blatt wählen">
+          <nav className="zt-blaetter" role="tablist" aria-label={t("ui.Zeitung.6a8c814")}>
             {ausgabe.blaetter.map((b, i) => (
               <button key={b.clusterId} role="tab" aria-selected={b === blatt} className={`zt-blatt-tab ton-${b.ton}${b === blatt ? " on" : ""}`} onClick={() => setBlattIdx(i)}>
                 <strong>{b.name}</strong>
@@ -461,7 +461,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
         </div>
 
         <aside className="zt-rand">
-          <section className="zt-archiv" aria-label="Archiv der letzten Ausgaben">
+          <section className="zt-archiv" aria-label={t("ui.Zeitung.db0bb89")}>
             <h5>Archiv</h5>
             <ul>
               {[...archiv].reverse().map((a) => {

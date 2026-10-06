@@ -9,6 +9,7 @@ import { geaenderteArtikel, verfassungStand } from "../../sim/verfassung";
 import type { Bericht } from "../../sim/berichte";
 import "./design.css";
 
+import { t } from "../../i18n";
 export interface OffeneUmsetzung {
   id: string;
   name: string;
@@ -76,7 +77,7 @@ export function UmsetzungAkte({
         <div>
           <p className="pd-ueber">Umsetzung</p>
           <h3>Von Beschluss zu Wirkung</h3>
-          <p className="pd-lead">Ein Beschluss ist noch keine Wirkung: Erst die Verwaltung setzt ihn Monat für Monat um, und erst der umgesetzte Anteil wirkt.</p>
+          <p className="pd-lead">{t("ui.politik.UmsetzungAkte.2ea8b02")}</p>
         </div>
         <ul className="pd-zaehler" aria-label="Die Rechnung">
           <li>
@@ -89,7 +90,7 @@ export function UmsetzungAkte({
           </li>
           <li>
             <b>{beschluesse.length}</b>
-            <span>Beschlüsse seit dem Amtsantritt</span>
+            <span>{t("ui.politik.UmsetzungAkte.00c5907")}</span>
           </li>
           <li className={offen.length > 0 ? "hell" : ""}>
             <b>{offen.length}</b>
@@ -101,7 +102,7 @@ export function UmsetzungAkte({
       <section className="pd-block">
         <h4>In Umsetzung</h4>
         {offen.length === 0 ? (
-          <p className="pd-leise">Im Moment läuft keine Umsetzung. Was Sie beschließen, erscheint hier mit seinem Fortschritt.</p>
+          <p className="pd-leise">{t("ui.politik.UmsetzungAkte.a6d211a")}</p>
         ) : (
           <ul className="pd-um-liste">
             {offen.map((o) => (
@@ -117,7 +118,7 @@ export function UmsetzungAkte({
                       setPolicy(world, o.id.replace("@", ""), Math.round(o.now), o.ort ?? null);
                       refresh();
                     }}
-                    title="Auf den heutigen Stand zurückstellen"
+                    title={t("ui.politik.UmsetzungAkte.9a5129a")}
                   >
                     stoppen
                   </button>
@@ -145,7 +146,7 @@ export function UmsetzungAkte({
       </section>
 
       <section className="pd-block">
-        <h4>Was die Beschlüsse bewirkt haben</h4>
+        <h4>{t("ui.politik.UmsetzungAkte.daf599e")}</h4>
         {berichte.length === 0 ? (
           <p className="pd-leise">
             {beobachtet > 0
@@ -170,7 +171,7 @@ export function UmsetzungAkte({
                     </span>
                     {onBerichtOeffnen && (
                       <button className="pd-btn quiet klein" onClick={() => onBerichtOeffnen(b)}>
-                        Bericht und Verlauf ansehen
+                        {t("ui.politik.UmsetzungAkte.46af725")}
                       </button>
                     )}
                   </footer>
@@ -183,9 +184,9 @@ export function UmsetzungAkte({
       </section>
 
       <section className="pd-block">
-        <h4>Beschlüsse</h4>
+        <h4>{t("ui.politik.UmsetzungAkte.55a1fdc")}</h4>
         {beschluesse.length === 0 ? (
-          <p className="pd-leise">Noch nichts beschlossen. Jede wirksame Maßnahme landet hier, mit Datum und Begründung.</p>
+          <p className="pd-leise">{t("ui.politik.UmsetzungAkte.250c953")}</p>
         ) : (
           <>
             <ol className="pd-zeitleiste">

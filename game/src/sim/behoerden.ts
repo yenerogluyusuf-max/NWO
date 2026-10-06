@@ -45,7 +45,7 @@ export interface BehoerdenZustand {
   v: 1;
   stand: Record<BehoerdeId, BehoerdeStand>;
   /** Was die Behörden im laufenden Jahr aus dem Mehretat ihres Ressorts schon verbraucht haben (Prozent des BIP je Haushaltsregler); fehlt in älteren Spielständen */
-  etat?: { jahr: number; genutzt: Record<string, number> };
+  etat?: { jahr: number; genutzt: Record<string, number>; /** Was der Mehretat nicht trug und aufs Defizit ging (Prozent des BIP je Haushaltsregler); fehlt in älteren Spielständen */ defizit?: Record<string, number> };
 }
 
 /** Zustand der Behörden; ältere Spielstände legen ihn beim ersten Zugriff mit den Startstufen an, neue Behörden werden ergänzt. */
@@ -143,7 +143,11 @@ export const HAUSHALT_ETAT: EtatAnbindung = {
     const frei = etatSpielraum(w, ressort);
     const traegt = Math.min(frei, bip);
     if (traegt > 0) etatJahr(w)[id] = (etatJahr(w)[id] ?? 0) + traegt;
-    if (traegt < bip) kosten(w, bip - traegt);
+    if (traegt < bip) {
+      kosten(w, bip - traegt);
+      const d = (behoerden(w).etat!.defizit ??= {});
+      d[id] = (d[id] ?? 0) + (bip - traegt);
+    }
     return traegt >= bip - 1e-12;
   },
   faktor: (w, ressort) => {
@@ -377,6 +381,31 @@ export function behoerdenMonat(w: World): void {
 
 // ---------------------------------------------------------------------------
 // Sicht für die Oberfläche
+
+export interface BehoerdenVerbrauch {
+  /** Haushaltsregler, der die Behörden bezahlt */
+  posten: string;
+  /** Im laufenden Jahr aus dem Mehretat getragen (Prozent des BIP) */
+  ausEtat: number;
+  /** Im laufenden Jahr aufs Defizit gegangen (Prozent des BIP) */
+  aufsDefizit: number;
+  /** Noch freier Spielraum des Mehretats (Prozent des BIP) */
+  spielraum: number;
+}
+
+/** Was die Behörden im laufenden Jahr je Ressortetat verbraucht haben, nur Regler mit Behörden und mit Verbrauch oder Spielraum. */
+export function behoerdenVerbrauch(w: World): BehoerdenVerbrauch[] {
+  if (!w.spiel) return [];
+  const genutzt = etatJahr(w);
+  const defizit = behoerden(w).etat?.defizit ?? {};
+  const posten = [...new Set(BEHOERDEN.map((d) => etatPosten(d.ressort)).filter((x): x is string => !!x))];
+  return posten
+    .map((id) => {
+      const ressort = BEHOERDEN.find((d) => etatPosten(d.ressort) === id)!.ressort;
+      return { posten: id, ausEtat: genutzt[id] ?? 0, aufsDefizit: defizit[id] ?? 0, spielraum: etatSpielraum(w, ressort) };
+    })
+    .filter((x) => x.ausEtat > 1e-6 || x.aufsDefizit > 1e-6);
+}
 
 export interface BehoerdeSicht {
   id: BehoerdeId;

@@ -28,6 +28,7 @@ import { vertrauenZu } from "../src/sim/laender";
 import { amtszeitZeile } from "../src/ui/Chronik";
 import { Rng } from "../src/sim/rng";
 import { fuehreAus, infrastrukturBitte, type InfraAktion } from "../src/sim/infrastruktur";
+import { verwaltungBilanz } from "../src/sim/reich";
 import type { World } from "../src/sim/types";
 
 const AUS = process.env.ENDEN_AUS;
@@ -93,13 +94,16 @@ function klarerBot(w: World, rng: Rng, monat: number): void {
   if (sp.umbildung && !sp.umbildung.abgeschlossen) umbildungAbschliessen(w);
   if (sp.zielwahl?.offen) waehleZieleAmtszeit(w, []);
   if (wahlkampfAktiv(w) && (sp.wahlkampf?.ap ?? 0) >= 2) duellVorbereiten(w);
-  // Die Bitte des Monats um Infrastruktur (sim/infrastruktur.ts): ausbauen, sonst die günstigere Alternative, wenn Kapital übrig ist.
-  // Ein Bot, der Überlast nie beantwortet, verliert die zweite Wiederwahl fast immer (Messung 06.10.2026, zehn Seeds: Wahl 2 drei von zehn;
-  // mit dieser Antwort sechs von neun, Wahl 3 vier von sechs, Wahl 4 zwei von vier).
+  // Die Bitte des Monats um Infrastruktur (sim/infrastruktur.ts): ausbauen, wenn die Verwaltung den Bau trägt, sonst die günstigere
+  // Alternative, wenn Kapital übrig ist. Ein Bot, der Überlast nie beantwortet, verliert die zweite Wiederwahl fast immer (Messung 06.10.2026,
+  // zehn Seeds: Wahl 2 drei von zehn; mit Ausbau sechs von neun, Wahl 3 vier von sechs, Wahl 4 zwei von vier). Wer auch bei erschöpfter
+  // Verwaltung baut, bremst alle Bauten und kostet Legitimität (sim/reich.ts): Mit der Prüfung der Verwaltung gewinnt der Bot hier
+  // 12 von 14 statt 9 von 14 Wahlen (sechs Seeds, 16 Jahre, Messung 06.10.2026).
   const bitte = infrastrukturBitte(w);
   if (bitte) {
+    const vb = verwaltungBilanz(w);
     const o =
-      bitte.optionen.find((x) => x.id === "ausbau" && x.moeglich && sp.kapital > (x.kosten.pk ?? 0) + 10) ??
+      bitte.optionen.find((x) => x.id === "ausbau" && x.moeglich && vb.netto > 0 && vb.vorrat > 30 && sp.kapital > (x.kosten.pk ?? 0) + 10) ??
       bitte.optionen.find((x) => x.id === "alternative" && x.moeglich && sp.kapital > (x.kosten.pk ?? 0) + 10);
     if (o?.aktion.art === "infrastruktur") fuehreAus(w, o.aktion as InfraAktion);
   }
@@ -474,7 +478,7 @@ describe("Mehrere Wahlen ohne Grenze", () => {
   });
 
   // Kurzlauf mit sechs Seeds: Der klare Bot gewinnt rund 70 % der Wahlen (Messung 05.10.2026, 12 Seeds über 40 Jahre; 06.10.2026 mit Antwort
-  // auf die Infrastruktur-Bitten 21 von 30 über zehn Seeds und 26 Jahre),
+  // auf die Infrastruktur-Bitten 21 von 30 über zehn Seeds und 26 Jahre; mit Prüfung der Verwaltung 12 von 14 über sechs Seeds und 16 Jahre),
   // zwei Wahlen in Folge also nur etwa jede zweite Partie. Mit zwei Seeds hing der Test an einem Münzwurf (beide
   // verloren in etwa jedem vierten Stand); mit sechs bei knapp 2 %.
   const SEEDS = LANG ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : [1, 2, 3, 4, 5, 6];

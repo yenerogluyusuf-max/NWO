@@ -11,6 +11,7 @@ import { formatDateDe } from "../../sim/dates";
 import { Flagge } from "../art/Flaggen";
 import type { Operation } from "../../sim/welt-modell";
 
+import { t } from "../../i18n";
 const AUSGANG: Record<string, string> = { erfolg: "Erfolg", fehlschlag: "Fehlschlag", aufgedeckt: "Aufgedeckt", info: "Vermerk" };
 
 export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; refresh: () => void; ziel?: string; onLand: (id: string) => void }) {
@@ -37,8 +38,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
       <header className="we-dienst-kopf">
         <h3>Der Dienst</h3>
         <p className="subtitle">
-          Verdeckte Operationen sind Spielmechanik: Sie kosten Kapital und einen Teil der knappen Kapazität, gelingen nur selten sauber und können auffliegen. Die Welt erfährt nur, was
-          auffliegt; hier steht, was Sie angeordnet haben oder was aufgedeckt wurde.
+          {t("ui.welt.Dienst.3515c0b")}
         </p>
       </header>
 
@@ -50,7 +50,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
           <i style={{ ["--w" as string]: `${sicht.kapazitaet}%` }} aria-hidden />
         </div>
         <div className="we-dienst-abwehr">
-          {sicht.abwehr > 0 ? <span className="we-chip gut">Gegenspionage aktiv: noch {sicht.abwehr} Monate</span> : <span className="we-chip">Gegenspionage nicht verstärkt</span>}
+          {sicht.abwehr > 0 ? <span className="we-chip gut">Gegenspionage aktiv: noch {sicht.abwehr} Monate</span> : <span className="we-chip">{t("ui.welt.Dienst.62d901a")}</span>}
           <button type="button" className="aktion-knopf klein" onClick={gegen} disabled={kapitalOk < OP_DEFS.gegen.pk || sicht.kapazitaet < OP_DEFS.gegen.kap} title={OP_DEFS.gegen.text}>
             Gegenspionage verstärken <b>{OP_DEFS.gegen.pk}</b>
           </button>
@@ -80,7 +80,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
             ))}
           </select>
           <button type="button" className="link" onClick={() => onLand(ziel)}>
-            Länderakte öffnen →
+            {t("ui.welt.Dienst.09324d6")}
           </button>
         </div>
         {wahl ? (
@@ -154,7 +154,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
 
       {sicht.aufgedeckteFremde.length > 0 && (
         <section className="we-dienst-fremd">
-          <b>Aufgedeckte Operationen gegen die Türkei</b>
+          <b>{t("ui.welt.Dienst.4377a99")}</b>
           <ul>
             {sicht.aufgedeckteFremde.map((f, i) => (
               <li key={i}>
@@ -166,9 +166,9 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
       )}
 
       <section className="we-dienst-bericht">
-        <b>Bericht des Dienstes</b>
+        <b>{t("ui.welt.Dienst.84dfd2a")}</b>
         {sicht.bericht.length === 0 ? (
-          <p className="we-hinweis">Noch nichts angeordnet, noch nichts aufgedeckt.</p>
+          <p className="we-hinweis">{t("ui.welt.Dienst.5419971")}</p>
         ) : (
           <ul>
             {sicht.bericht.slice(0, 12).map((b, i) => (

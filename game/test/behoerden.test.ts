@@ -8,7 +8,7 @@ import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { weltModellMonat } from "../src/sim/welt-modell";
 import {
   behoerden, stand, mitStufen, ertrag, gewinn, vorschau, baueAus, kuerze, kuerzVorschau,
-  behoerdeSicht, behoerdenImBereich, behoerdenMonat, instrumentSicht, setzeInstrumentEin, etatSpielraum,
+  behoerdeSicht, behoerdenImBereich, behoerdenMonat, instrumentSicht, setzeInstrumentEin, etatSpielraum, behoerdenVerbrauch,
 } from "../src/sim/behoerden";
 import { haushaltZustand } from "../src/sim/wirtschaft";
 import { inlandOptionen, ordneInlandAn, dienst, dienstSicht, opsOptionen, lagebildQualitaet, praesidentenSchutz } from "../src/sim/welt-dienst";
@@ -230,5 +230,26 @@ describe("Behörden und Haushalt: Der Ressortetat bezahlt den Ausbau", () => {
     haushaltZustand(geladen).stufen.innere_sicherheit = 2;
     expect(baueAus(geladen, "polizei", "technik").ok).toBe(true);
     expect(geladen.spiel!.behoerden!.etat?.jahr).toBe(Number(geladen.date.slice(0, 4)));
+  });
+
+  test("Der Haushalt zeigt, was die Behörden je Ressort verbraucht haben: aus dem Mehretat und aufs Defizit", () => {
+    const mit = neu(54);
+    const ohne = neu(54);
+    expect(behoerdenVerbrauch(mit)).toEqual([]);
+    haushaltZustand(mit).stufen.innere_sicherheit = 3;
+    baueAus(mit, "polizei", "personal");
+    baueAus(ohne, "polizei", "personal");
+    const m = behoerdenVerbrauch(mit).find((x) => x.posten === "innere_sicherheit")!;
+    const o = behoerdenVerbrauch(ohne).find((x) => x.posten === "innere_sicherheit")!;
+    expect(m.ausEtat).toBeGreaterThan(0);
+    expect(m.aufsDefizit).toBeCloseTo(0, 9);
+    expect(o.ausEtat).toBe(0);
+    expect(o.aufsDefizit).toBeGreaterThan(0);
+    // Ein Spielstand mit Etat, aber ohne Defizitbuchung (vor dem 06.10.2026) lädt und bucht weiter
+    delete (ohne.spiel!.behoerden!.etat as { defizit?: unknown }).defizit;
+    const geladen = load(JSON.stringify(ohne));
+    expect(behoerdenVerbrauch(geladen).find((x) => x.posten === "innere_sicherheit")).toBeUndefined();
+    expect(baueAus(geladen, "grenzschutz", "technik").ok).toBe(true);
+    expect(behoerdenVerbrauch(geladen).find((x) => x.posten === "innere_sicherheit")!.aufsDefizit).toBeGreaterThan(0);
   });
 });

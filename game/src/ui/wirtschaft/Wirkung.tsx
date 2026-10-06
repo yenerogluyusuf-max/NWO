@@ -4,10 +4,11 @@ import type { Metric, PrognoseReihe } from "../../sim/forecast";
 import { KENNZAHLEN_NACH_ID } from "../../sim/wirtschaft-kennzahlen";
 import "./wirtschaft.css";
 
+import { t } from "../../i18n";
 const nf = (x: number, d: number) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
 
 export function Wirkung({ reihen, metriken, rechnet }: { reihen: PrognoseReihe[] | null; metriken: { id: Metric; kennzahl: string; label: string }[]; rechnet?: boolean }) {
-  if (!reihen) return rechnet ? <p className="wi-hinweis wi-rechnet">Die Kanzlei rechnet die nächsten zwölf Monate durch …</p> : null;
+  if (!reihen) return rechnet ? <p className="wi-hinweis wi-rechnet">{t("ui.wirtschaft.Wirkung.b2a60be")}</p> : null;
   const zeilen = metriken
     .map((m) => {
       const r = reihen.find((x) => x.metric === m.id);
@@ -25,10 +26,10 @@ export function Wirkung({ reihen, metriken, rechnet }: { reihen: PrognoseReihe[]
   if (!zeilen.length) return null;
   return (
     <table className="wi-wirkung">
-      <caption>In zwölf Monaten, verglichen mit „nichts tun“</caption>
+      <caption>{t("ui.wirtschaft.Wirkung.6ba7590")}</caption>
       <thead>
         <tr>
-          <th scope="col">Größe</th>
+          <th scope="col">{t("ui.wirtschaft.Wirkung.d9130ae")}</th>
           <th scope="col">Ohne</th>
           <th scope="col">Mit</th>
           <th scope="col">Wirkung</th>
@@ -55,7 +56,7 @@ export function Wirkung({ reihen, metriken, rechnet }: { reihen: PrognoseReihe[]
       </tbody>
       <tfoot>
         <tr>
-          <td colSpan={4}>Mittlere Erwartung aus mehreren Zufallsläufen. Die Bandbreite im Diagramm zeigt, wie unsicher das ist; die Wirklichkeit hält sich nicht an Modelle.</td>
+          <td colSpan={4}>{t("ui.wirtschaft.Wirkung.925fb24")}</td>
         </tr>
       </tfoot>
     </table>

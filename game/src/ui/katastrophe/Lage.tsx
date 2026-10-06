@@ -20,6 +20,7 @@ import {
 import type { Ziel } from "../schreibtisch/briefing";
 import { hebel, nf, type HebelZeile } from "./daten";
 
+import { t } from "../../i18n";
 const mio = (x: number) => `${nf(x / 1e6, 1)} Millionen`;
 
 function gebietText(g: RisikoGebiet[], n = 5): string {
@@ -33,13 +34,13 @@ function BereitschaftKarte({ stand }: { stand: number }) {
   const ref = KATASTROPHE.bereitReferenz;
   const gegen = bereitGegenReferenz(stand);
   return (
-    <section className="kr-bereit" aria-label="Bereitschaft des Katastrophenschutzes">
+    <section className="kr-bereit" aria-label={t("ui.katastrophe.Lage.6d149ed")}>
       <div className="kr-bereit-zahl">
         <b>{stand}</b>
-        <span>von 100</span>
+        <span>{t("ui.katastrophe.Lage.18df22a")}</span>
       </div>
       <div className="kr-bereit-text">
-        <h3>Bereitschaft des Katastrophenschutzes (AFAD)</h3>
+        <h3>{t("ui.katastrophe.Lage.c509fe3")}</h3>
         <div className="kr-skala" role="img" aria-label={`Bereitschaft ${stand} von 100, Referenz ${ref}`}>
           <i className="fuell" style={{ width: `${stand}%` }} />
           <span className="marke ref" style={{ left: `${ref}%` }}>
@@ -59,7 +60,7 @@ function BereitschaftKarte({ stand }: { stand: number }) {
             <>, genau wie bei der Referenz.</>
           )}
         </p>
-        <p className="kr-klein">Die Bereitschaft wächst mit dem Ausbau der Behörde, dem Frühwarnsystem, der Pflichtversicherung und der Gebäude-Verstärkung, jeweils mit Verzögerung.</p>
+        <p className="kr-klein">{t("ui.katastrophe.Lage.bd9b25d")}</p>
       </div>
     </section>
   );
@@ -82,7 +83,7 @@ function Gefahr({ r }: { r: RisikoSicht }) {
         <i style={{ width: `${Math.min(100, (prozent / 30) * 100)}%` }} />
       </div>
       <p className="kr-gebiet">
-        <strong>Gefährdet:</strong> {gebietText(r.gebiet)} <span>({r.gebiet.length} Provinzen, {mio(r.bevoelkerung)} Einwohner)</span>
+        <strong>{t("ui.katastrophe.Lage.e2323f3")}</strong> {gebietText(r.gebiet)} <span>({r.gebiet.length} Provinzen, {mio(r.bevoelkerung)} Einwohner)</span>
       </p>
       <p className="kr-gefahr-meta">
         <span>Saison: {r.saison}</span>
@@ -93,7 +94,7 @@ function Gefahr({ r }: { r: RisikoSicht }) {
         ) : r.letzteVor !== undefined ? (
           <span>Letzter Fall vor {nf(r.letzteVor)} Monaten</span>
         ) : (
-          <span>Noch kein Fall in dieser Partie</span>
+          <span>{t("ui.katastrophe.Lage.ce040f9")}</span>
         )}
         {r.kennzahl && (
           <span className={r.kennzahl.gut === "hoch" ? (r.kennzahl.wert >= 50 ? "gut" : "schlecht") : r.kennzahl.wert <= 40 ? "gut" : "schlecht"}>
@@ -219,7 +220,7 @@ function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
 
   return (
     <section className="kr-szenario">
-      <h3>Szenario: Was wäre, wenn …</h3>
+      <h3>{t("ui.katastrophe.Lage.18b8780")}</h3>
       <div className="kr-szenario-wahl">
         <label>
           Gefahr
@@ -256,10 +257,10 @@ function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
         <table className="kr-szenario-tabelle">
           <thead>
             <tr>
-              <th scope="col">Bereitschaft</th>
+              <th scope="col">{t("ui.katastrophe.Lage.99cafe1")}</th>
               <th scope="col">Todesopfer</th>
               <th scope="col">Ohne Obdach</th>
-              <th scope="col">Zerstörte Wohnungen</th>
+              <th scope="col">{t("ui.katastrophe.Lage.0bfc8c3")}</th>
             </tr>
           </thead>
           <tbody>
@@ -295,20 +296,19 @@ export function Lage({ world, refresh, melde, onGehe }: { world: World; refresh:
       <BereitschaftKarte stand={stand} />
 
       <section className="kr-abschnitt">
-        <h3>Gefährdung des Landes</h3>
+        <h3>{t("ui.katastrophe.Lage.1952bf9")}</h3>
         <ul className="kr-gefahren">
           {risiken.map((r) => (
             <Gefahr key={r.id} r={r} />
           ))}
         </ul>
         <p className="kr-klein">
-          Wahrscheinlichkeiten sind Spielparameter der Kalibrierung, keine Prognosen. Risikostufen der Provinzen: provinz_profile.csv; die Bruchzonen sind grob nach den
-          GEM Global Active Faults zugeordnet.
+          {t("ui.katastrophe.Lage.df5ce8d")}
         </p>
       </section>
 
       <section className="kr-abschnitt">
-        <h3>Vorsorge: Was Sie tun können</h3>
+        <h3>{t("ui.katastrophe.Lage.7338818")}</h3>
         <div className="kr-hebel-raster">
           {hebelListe.map((h) => (
             <HebelKarte key={h.id} h={h} w={world} refresh={refresh} melde={melde} {...(onGehe ? { onGehe } : {})} />

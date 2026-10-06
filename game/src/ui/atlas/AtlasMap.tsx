@@ -1189,7 +1189,7 @@ export function AtlasMap({
         })}
       </div>
       {!ready && !fehler && <div className="atlas-loading">Die Karte wird gezeichnet …</div>}
-      {fehler && <div className="atlas-loading">Die Karte konnte nicht geladen werden.</div>}
+      {fehler && <div className="atlas-loading">{t("ui.atlas.AtlasMap.a1bc044")}</div>}
       {bezirk ? (
         <div className="atlas-hover bezirk" style={{ left: bezirk.x + 16, top: bezirk.y + 16 }}>
           <strong>{bezirk.info.name}</strong>

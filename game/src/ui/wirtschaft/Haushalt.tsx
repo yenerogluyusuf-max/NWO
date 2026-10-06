@@ -3,6 +3,7 @@
 // Stellgrößen (Rentenniveau, Renteneintrittsalter). Im Oktober-Fenster gehen Änderungen kostenlos in den Entwurf, sonst sind sie ein Nachtrag.
 // Tiefe aufklappbar: Vorschau mit Folgen über zwölf Monate je Ressort, der Haushaltsplan 2026 mit Quellen.
 
+import { behoerdenVerbrauch } from "../../sim/behoerden";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
@@ -313,6 +314,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   );
 
   const defizit = defizitJetzt(world);
+  const verbrauch = behoerdenVerbrauch(world);
 
   return (
     <div className="wi-hh">
@@ -422,6 +424,13 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         <p className="kicker">{fenster.offen ? t("haushalt.ui.ressorts.kicker_entwurf") : t("haushalt.ui.ressorts.kicker_nachtrag")}</p>
         <h3>{t("haushalt.ui.ressorts.titel")}</h3>
         <p className="wi-hinweis">{fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}</p>
+        <p className="wi-hinweis hh-behoerden">
+          {verbrauch.length === 0
+            ? t("haushalt.ui.behoerden.keine")
+            : t("haushalt.ui.behoerden.satz", {
+                liste: verbrauch.map((x) => t("haushalt.ui.behoerden.posten", { posten: POSTEN_NACH_ID[x.posten]?.name ?? x.posten, etat: x.ausEtat, defizit: x.aufsDefizit > 0.0005 ? "ja" : "nein", d: x.aufsDefizit })),
+              })}
+        </p>
         {GRUPPEN.map((g) => (
           <div key={g} className="hh-gruppe">
             <h4>{t(`haushalt.gruppe.${g}`)}</h4>

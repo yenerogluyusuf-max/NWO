@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { VERGLEICH, einordnung, indikator, nf, type Indikator } from "./vergleich";
 
+import { t } from "../i18n";
 interface Zeile {
   id: string;
   name: string;
@@ -16,7 +17,7 @@ const WICHTIG = ["DEU", "FRA", "POL", "GRC", "BRA", "MEX", "IND", "RUS", "EGY", 
 export function VergleichBalken({ code, spiel }: { code: string; spiel?: { wert: number; text: string } | undefined }) {
   const ind: Indikator | undefined = indikator(code);
   const [alle, setAlle] = useState(false);
-  if (!ind) return <p className="subtitle">Für diese Größe ist kein internationaler Vergleich hinterlegt (Lücke).</p>;
+  if (!ind) return <p className="subtitle">{t("ui.VergleichBalken.fbd262a")}</p>;
 
   const zeilen: Zeile[] = [{ id: "TUR", name: `Türkei (Weltbank)`, wert: ind.tur.wert, jahr: ind.tur.jahr, art: "tuerkei" }];
   if (spiel) zeilen.push({ id: "SPIEL", name: spiel.text, wert: spiel.wert, art: "spiel" });

@@ -13,6 +13,7 @@ import { MinisterratSaal } from "./personen/MinisterratSaal";
 import { ZusagenAnsicht } from "./personen/ZusagenAnsicht";
 import "./personen/personen.css";
 
+import { t } from "../i18n";
 export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, onVorgang }: { world: World; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void; onVorgang?: (id: string) => void }) {
   const spiel = world.spiel;
   const [tab, setTab] = useState<"kabinett" | "umfeld" | "zusagen">("kabinett");
@@ -26,7 +27,7 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
     if (fenster instanceof HTMLElement) fenster.scrollTo({ top: 0 });
   }, [tab, gewaehltePerson]);
 
-  if (!spiel) return <p>In dieser Partie gibt es kein Umfeld.</p>;
+  if (!spiel) return <p>{t("ui.Personen.8c5dcf6")}</p>;
   const neu = () => refresh?.();
   const bilanz = zusagenBilanz(world);
   const offen = zusagenSicht(world);
@@ -49,32 +50,32 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
           <span>
             {termine.belegt} von {termine.max}
           </span>
-          <em>Ihre Zeit ist knapp</em>
+          <em>{t("ui.Personen.eda230f")}</em>
         </div>
         <div className={`pe-chip${bilanz.glaubwuerdigkeit >= 75 ? " gut" : bilanz.glaubwuerdigkeit < 40 ? " warn" : ""}`}>
-          <b>Glaubwürdigkeit</b>
+          <b>{t("ui.Personen.e8d0e79")}</b>
           <span>{Math.round(bilanz.glaubwuerdigkeit)}</span>
           <em>{bilanz.wort}</em>
         </div>
         <div className="pe-chip">
-          <b>Aufträge</b>
+          <b>{t("ui.Personen.3d15f74")}</b>
           <span>{auftraege}</span>
           <em>laufen im Kabinett</em>
         </div>
         <div className={`pe-chip${gefahr ? " warn" : ""}`}>
-          <b>Rücktrittsgefahr</b>
+          <b>{t("ui.Personen.434c793")}</b>
           <span>{gefahr}</span>
           <em>{gefahr ? "Loyalität unter 25" : "niemand"}</em>
         </div>
       </div>
 
-      <div className="pe-tabs" role="tablist" aria-label="Personen und Zusagen">
+      <div className="pe-tabs" role="tablist" aria-label={t("ui.Personen.c98699e")}>
         <button role="tab" aria-selected={tab === "kabinett"} className={tab === "kabinett" ? "on" : ""} onClick={() => setTab("kabinett")}>
           <Icon name="kuppel" size={16} />
           Ministerrat
         </button>
         <button role="tab" aria-selected={tab === "umfeld"} className={tab === "umfeld" ? "on" : ""} onClick={() => setTab("umfeld")}>
-          Gespräche & Umfeld
+          {t("ui.Personen.51eda9e")}
         </button>
         <button role="tab" aria-selected={tab === "zusagen"} className={tab === "zusagen" ? "on" : ""} onClick={() => setTab("zusagen")}>
           Zusagen{offen.length > 0 && <span className="pe-zahl">{offen.length}</span>}
@@ -84,7 +85,7 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
         <p className="pe-rueck nein" role="status">
           {dringend === 1 ? "Eine Zusage ist" : `${dringend} Zusagen sind`} bald fällig oder überfällig.{" "}
           <button className="link" onClick={() => setTab("zusagen")}>
-            Zu den Zusagen
+            {t("ui.Personen.030fbc4")}
           </button>
         </p>
       )}
@@ -95,7 +96,7 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
       {tab === "umfeld" && (
         <section className="paper">
           <h3>Ihr Umfeld</h3>
-          <p className="subtitle">Wer Ihnen folgt, hängt an Ihren Entscheidungen. Jede Person hat ein Ressort, einen Stil und einen Ehrgeiz; Gespräche haben Folgen, die später wiederkehren.</p>
+          <p className="subtitle">{t("ui.Personen.9d370c2")}</p>
           <Umfeld
             world={world}
             refresh={neu}

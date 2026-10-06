@@ -1,0 +1,52 @@
+/* Gesetzesvorhaben: Karten auf Papier, Preis und Lager auf einen Blick. Farben wie in den Akten. */
+.gv { display: grid; gap: 6px; }
+.gv-zweck { margin: 0 0 4px; font: italic 15px/1.45 var(--serif, "EB Garamond", serif); color: var(--ink-soft, #5a4a38); }
+.gv-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.gv-karte { display: grid; gap: 8px; align-content: start; padding: 12px 14px; background: rgba(255, 252, 244, 0.9); border: 1px solid rgba(90, 64, 40, 0.22); border-top: 3px solid #8a7a64; border-radius: 4px; color: var(--ink, #2b1e12); min-width: 0; }
+.gv-karte.laeuft { border-top-color: #b98a34; }
+.gv-karte header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.gv-karte h4 { margin: 0; font: 600 18px/1.2 var(--display, Fraunces, serif); }
+.gv-anlass { flex: none; padding: 1px 8px; border-radius: 10px; font: 600 11px/1.6 var(--sans, Inter, sans-serif); letter-spacing: 0.04em; text-transform: uppercase; background: rgba(90, 64, 40, 0.1); color: #5a4a38; }
+.gv-anlass.kalender, .gv-anlass.akut { background: rgba(140, 43, 31, 0.12); color: #8c2b1f; }
+.gv-anlass.linie { background: rgba(63, 107, 75, 0.14); color: #3f6b4b; }
+.gv-satz { margin: 0; font: 15px/1.45 var(--serif, "EB Garamond", serif); }
+.gv-lagerzeile { display: grid; gap: 4px; }
+.gv-lager { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.gv-lager-titel { flex: none; min-width: 58px; font: 600 11px/1.6 var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: #6b5a44; }
+.gv-lager ul { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.gv-lager li { padding: 1px 7px; border-radius: 3px; font: 13px/1.5 var(--sans, Inter, sans-serif); }
+.gv-lager.fuer li { background: rgba(63, 107, 75, 0.12); color: #2f5139; }
+.gv-lager.gegen li { background: rgba(140, 43, 31, 0.1); color: #7a2418; }
+.gv-lager li.partei, .gv-lager li.partner, .gv-lager li.eigene { font-weight: 600; }
+.gv-lager li.eigene { outline: 1px solid currentColor; }
+.gv-lager li em { margin-left: 4px; font: italic 11px var(--sans, Inter, sans-serif); opacity: 0.8; }
+.gv-fassungen { display: flex; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 4px; overflow: hidden; }
+.gv .gv-fassungen button { flex: 1; padding: 6px 4px; border: 0; border-right: 1px solid rgba(90, 64, 40, 0.2); background: transparent; font: 600 13px var(--sans, Inter, sans-serif); color: #5a4a38; cursor: pointer; }
+.gv .gv-fassungen button:last-child { border-right: 0; }
+.gv .gv-fassungen button.on { background: #2b1e12; color: #fbf6ea; }
+.gv .gv-fassungen button:hover:not(.on) { background: rgba(90, 64, 40, 0.08); }
+.gv-hinweis { margin: 0; font: italic 13px/1.4 var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.gv-preis { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 13px/1.4 var(--sans, Inter, sans-serif); color: #5a4a38; }
+.gv-preis b { color: var(--ink, #2b1e12); }
+.gv-mehrheit { display: grid; gap: 3px; font: 13px var(--sans, Inter, sans-serif); color: #5a4a38; }
+.gv-balken { position: relative; height: 8px; background: rgba(90, 64, 40, 0.14); border-radius: 4px; overflow: hidden; }
+.gv-balken span { position: absolute; inset: 0 auto 0 0; background: #8a7a64; transition: width 0.3s ease; }
+.gv-mehrheit.sicher .gv-balken span { background: #3f6b4b; }
+.gv-mehrheit.knapp .gv-balken span { background: #b98a34; }
+.gv-mehrheit.verloren .gv-balken span { background: #8c2b1f; }
+.gv-balken i { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #2b1e12; }
+.gv-mehrheit.sicher b { color: #3f6b4b; }
+.gv-mehrheit.knapp b { color: #8a6420; }
+.gv-mehrheit.verloren b { color: #8c2b1f; }
+.gv-risiko, .gv-grund, .gv-status { margin: 0; font: 13px/1.4 var(--sans, Inter, sans-serif); color: #7a2418; }
+.gv-status { color: #8a6420; font-weight: 600; }
+.gv-warnung { margin: 0; padding: 5px 9px; border-left: 3px solid #b98a34; background: rgba(185, 138, 52, 0.12); font: 13px/1.4 var(--sans, Inter, sans-serif); color: #6b4a14; }
+.gv-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; }
+.gv .gv-knopf { display: grid; gap: 1px; text-align: left; }
+.gv .gv-knopf small { font: 11px var(--sans, Inter, sans-serif); opacity: 0.8; text-shadow: none; }
+.gv .gv-knopf:disabled { opacity: 0.45; cursor: not-allowed; }
+.gv-antwort { margin: 0; padding: 6px 10px; border-left: 3px solid #3f6b4b; background: rgba(63, 107, 75, 0.08); font: 13px/1.4 var(--sans, Inter, sans-serif); }
+.gv-antwort.nein { border-left-color: #8c2b1f; background: rgba(140, 43, 31, 0.08); }
+.gv-mehr { margin-top: 10px; }
+.gv-mehr > .gv-raster { margin-top: 10px; }
+@media (max-width: 640px) { .gv-raster { grid-template-columns: 1fr; } .gv-karte { padding: 10px 12px; } }

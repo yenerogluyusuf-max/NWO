@@ -9,6 +9,7 @@ import type { VorhabenSicht } from "../../sim/reich";
 import { VorhabenKarte } from "./VorhabenKarte";
 import { VorlageKarte } from "./Regional";
 
+import { t } from "../../i18n";
 /** Reihenfolge und Erklärung der Arten für Vorhaben ohne Thema. */
 const ARTEN: { klasse: Klasse; titel: string; satz: string }[] = [
   { klasse: "wunder", titel: "Wunder", satz: "Einmalig, mit Siegesfeier und Gegnern; sie verändern das Land dauerhaft." },
@@ -47,7 +48,7 @@ function ketten(alle: VorhabenSicht[], thema: string): VorhabenSicht[][] {
 
 function Weg({ kette }: { kette: VorhabenSicht[] }) {
   return (
-    <ol className="rr-weg" aria-label="Weg der Stufen">
+    <ol className="rr-weg" aria-label={t("ui.reich.Neues.9e231f6")}>
       {kette.map((s) => (
         <li key={s.v.id} className={`weg-${s.status === "fertig" ? "fertig" : s.status === "im_bau" || s.status === "pausiert" ? "bau" : s.bereit && s.status === "verfuegbar" ? "bereit" : "zu"}`}>
           <span className="weg-stufe">{s.v.stufe ?? "·"}</span>
@@ -96,7 +97,7 @@ export function Neues({
   const utopien = liste.filter((s) => s.v.unrealistisch);
   const ohneThema = liste.filter((s) => !s.v.thema && !s.v.unrealistisch);
   const themen = THEMEN.map((t) => ({ ...t, items: liste.filter((s) => s.v.thema === t.id) })).filter((t) => t.items.length > 0);
-  if (!liste.length) return <p className="subtitle">Hier gibt es im Moment nichts, was sich beginnen ließe.</p>;
+  if (!liste.length) return <p className="subtitle">{t("ui.reich.Neues.e94e6ab")}</p>;
 
   const themaAbschnitt = (t: (typeof themen)[number], mitUtopie: boolean) => {
     const items = sortiere(t.items.filter((s) => mitUtopie || !s.v.unrealistisch));
@@ -142,7 +143,7 @@ export function Neues({
   return (
     <>
       {chips.length > 2 && (
-        <div className="rr-filter rr-themen" role="group" aria-label="Thema der Vorhaben">
+        <div className="rr-filter rr-themen" role="group" aria-label={t("ui.reich.Neues.e47e4da")}>
           {chips.map((c) => (
             <button key={c.id} type="button" className={aktiv === c.id ? "on" : ""} aria-pressed={aktiv === c.id} onClick={() => setAuswahl(c.id)}>
               {c.name} <b>{c.n}</b>
@@ -165,7 +166,7 @@ export function Neues({
             </section>
           ))}
           {utopien.length > 0 && (
-            <section className="rr-abschnitt rr-art rr-utopie" aria-label="Unrealistisch, aber möglich">
+            <section className="rr-abschnitt rr-art rr-utopie" aria-label={t("ui.reich.Neues.227530c")}>
               <h4>
                 Unrealistisch, aber möglich <em>{utopien.length} Vorhaben</em>
               </h4>
@@ -190,7 +191,7 @@ export function Neues({
         ))}
 
       {aktiv === "utopie" && (
-        <section className="rr-abschnitt rr-art rr-utopie" aria-label="Unrealistisch, aber möglich">
+        <section className="rr-abschnitt rr-art rr-utopie" aria-label={t("ui.reich.Neues.227530c")}>
           <h4>
             Unrealistisch, aber möglich <em>{utopien.length} Vorhaben</em>
           </h4>

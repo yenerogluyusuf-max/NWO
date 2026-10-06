@@ -7,6 +7,7 @@ import { activeProvinces, nationalAverage, startAverage } from "../sim/netz";
 import { THEME_NAMES, type NodeSpec, type Theme } from "../data/politiknetz";
 import type { World } from "../sim/types";
 
+import { t } from "../i18n";
 const ARTEN: { id: NodeSpec["kind"]; titel: string }[] = [
   { id: "massnahme", titel: "Maßnahmen" },
   { id: "groesse", titel: "Größen" },
@@ -70,13 +71,13 @@ export function NetNavigator({ world, selectedId, onSelect }: { world: World; se
     });
 
   return (
-    <nav className="paper net-nav" aria-label="Themen des Politiknetzes">
+    <nav className="paper net-nav" aria-label={t("ui.NetNavigator.e1596b4")}>
       <h2>Themen</h2>
       <p className="subtitle">
         {NET.nodes.length} Knoten · {NET.edges.length} Verbindungen
       </p>
-      <input className="nav-suche" type="search" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder="Suchen: Wasser, Miete, Zins …" aria-label="Im Politiknetz suchen" />
-      <div className="nav-art" role="group" aria-label="Art filtern">
+      <input className="nav-suche" type="search" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder="Suchen: Wasser, Miete, Zins …" aria-label={t("ui.NetNavigator.206237c")} />
+      <div className="nav-art" role="group" aria-label={t("ui.NetNavigator.cc81be7")}>
         {[{ id: "alle" as const, titel: "Alle" }, ...ARTEN.slice(0, 3)].map((a) => (
           <button key={a.id} className={art === a.id ? "on" : ""} onClick={() => setArt(a.id)}>
             {a.titel}
@@ -89,7 +90,7 @@ export function NetNavigator({ world, selectedId, onSelect }: { world: World; se
           <h4>
             {treffer.length} {treffer.length === 1 ? "Treffer" : "Treffer"}
           </h4>
-          {treffer.length === 0 && <p className="subtitle">Nichts gefunden. Versuche ein anderes Wort.</p>}
+          {treffer.length === 0 && <p className="subtitle">{t("ui.NetNavigator.41e213c")}</p>}
           {ARTEN.map((a) => {
             const liste = treffer.filter((n) => n.kind === a.id);
             if (!liste.length) return null;

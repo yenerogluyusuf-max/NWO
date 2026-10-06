@@ -10,13 +10,14 @@ import { Rng } from "../../sim/rng";
 import { Flagge } from "../art/Flaggen";
 import { kannZahlen } from "../../sim/kapital";
 
+import { t } from "../../i18n";
 const ZOPA_LABEL = { geschlossen: "geschlossen", schmal: "schmal", breit: "breit" } as const;
 
 function ParteiBlock({ seite, vertrauen, titel }: { seite: KonfliktSicht["def"]["a"]; vertrauen: number; titel: string }) {
   return (
     <div className="we-partei">
       <b>{seite.name}</b>
-      <span className="we-partei-vertrauen" title="Vertrauen in die Türkei als Vermittler">
+      <span className="we-partei-vertrauen" title={t("ui.welt.Vermittlung.9b946fb")}>
         Vertrauen in Ankara: {Math.round(vertrauen)}
       </span>
       <i>{titel}</i>
@@ -49,8 +50,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
     <section className="we-vermittlung">
       <h3>Vermittlung zwischen Dritten</h3>
       <p className="subtitle">
-        Kein Konkurrenzspiel lässt einen Staat zwischen zwei Dritten vermitteln. Ankara kann es: Es hat einen Draht zu beiden Seiten. Die Lage muss reifen — Schmerz des Patts gegen Schmerz des
-        Kompromisses —, Spoiler arbeiten dagegen, und eine Einigung hält nur, wer sie garantiert.
+        {t("ui.welt.Vermittlung.a018877")}
       </p>
 
       {/* Konflikt-Auswahl */}
@@ -105,7 +105,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
             <b>{Math.round(s.z.reif)}</b>
           </div>
           {s.z.reifVerlauf.length > 1 && (
-            <div className="we-reif-kurve" title="Reif-Verlauf der letzten Monate">
+            <div className="we-reif-kurve" title={t("ui.welt.Vermittlung.d0f5707")}>
               {s.z.reifVerlauf.map((p) => (
                 <i key={p.monat} style={{ height: `${Math.max(6, p.wert)}%` }} title={`${p.monat}: ${p.wert}`} />
               ))}
@@ -116,7 +116,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
         {/* ZOPA-Band */}
         <div className={`we-zopa zopa-${s.zopa.stufe}`}>
           <div className="we-zopa-kopf">
-            <span>Zone möglicher Einigung</span>
+            <span>{t("ui.welt.Vermittlung.50a2ead")}</span>
             <b>{ZOPA_LABEL[s.zopa.stufe]}</b>
           </div>
           <div className="we-zopa-band" aria-label={`Bandbreite ${s.zopa.breite} von 100`}>
@@ -204,7 +204,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
                     Garantie beenden
                   </button>
                 ) : g.angeboten ? (
-                  <span className="we-angeboten">Angeboten — wirkt beim nächsten Vermittlungsversuch</span>
+                  <span className="we-angeboten">{t("ui.welt.Vermittlung.a044cfb")}</span>
                 ) : (
                   <button
                     type="button"

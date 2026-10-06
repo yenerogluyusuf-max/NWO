@@ -7,6 +7,7 @@ import { ansaetzeFuer, fuehreGespraech, termineInfo, themenFuer, type AnsatzId, 
 import { haltung } from "../../sim/figuren";
 import { Portraet } from "./bausteine";
 
+import { t } from "../../i18n";
 export function GespraechSzene({ world, figur, refresh, onFertig }: { world: World; figur: Figur; refresh: () => void; onFertig: () => void }) {
   const [themaId, setThemaId] = useState<string | null>(null);
   const [ergebnis, setErgebnis] = useState<GespraechErgebnis | null>(null);
@@ -53,7 +54,7 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
 
       {schritt === 1 && (
         <>
-          <p className="subtitle">Worüber wollen Sie sprechen? Das Thema bestimmt, was ein Gespräch bewirken kann: Rat gibt es zu Lage und Zusagen, Aufträge zu messbaren Größen, Kritik nur mit Anlass.</p>
+          <p className="subtitle">{t("ui.personen.GespraechSzene.62dac02")}</p>
           <div className="pe-themen">
             {themen.map((t) => (
               <button key={t.id} className={`pe-thema${t.dringlich ? " dringend" : ""}`} onClick={() => setThemaId(t.id)}>
@@ -64,7 +65,7 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
           </div>
           <div className="pe-aktionen">
             <button className="pe-aktion leise" onClick={onFertig}>
-              Abbrechen
+              {t("ui.personen.GespraechSzene.07af7cb")}
             </button>
           </div>
         </>
@@ -106,7 +107,7 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
               Anderes Thema
             </button>
             <button className="pe-aktion leise" onClick={onFertig}>
-              Abbrechen
+              {t("ui.personen.GespraechSzene.07af7cb")}
             </button>
           </div>
         </>
@@ -141,12 +142,12 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
                   <span className={f.ton}>{f.text}</span>
                 </li>
               ))}
-              {ergebnis.folgen.length === 0 && <li className="neutral">Keine unmittelbaren Folgen.</li>}
+              {ergebnis.folgen.length === 0 && <li className="neutral">{t("ui.personen.GespraechSzene.9d3fbe7")}</li>}
             </ul>
           </div>
           <div className="pe-aktionen">
             <button className="pe-aktion haupt" onClick={onFertig}>
-              Zurück zur Person
+              {t("ui.personen.GespraechSzene.1ceb7f1")}
             </button>
           </div>
         </>

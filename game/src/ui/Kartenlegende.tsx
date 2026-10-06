@@ -7,7 +7,7 @@ import { PROVINCES } from "../sim/netz";
 import type { World } from "../sim/types";
 import type { Kartenebene, Legende } from "./ebenen";
 import { Icon } from "./icons";
-import { aktuelleSprache } from "../i18n";
+import { aktuelleSprache, t } from "../i18n";
 
 /** Schmuckplakette der Grundkarte; bei jeder eingefärbten Ebene übernimmt die Legende neben der Linsenwahl. */
 export function Plakette({ world, ebene }: { world: World; ebene: Kartenebene }) {
@@ -16,7 +16,7 @@ export function Plakette({ world, ebene }: { world: World; ebene: Kartenebene })
   const sub = s === "tr" ? `81 İl · ${world.date.slice(0, 4)}` : s === "en" ? `81 Provinces · ${world.date.slice(0, 4)}` : `81 Provinzen · Stand ${world.date.slice(0, 4)}`;
   return (
     <aside className="cartouche" aria-hidden>
-      <div className="cartouche-title" lang="tr">Türkiye</div>
+      <div className="cartouche-title" lang="tr">{t("ui.Kartenlegende.88f5f1e")}</div>
       <div className="cartouche-sub">{sub}</div>
     </aside>
   );
@@ -93,11 +93,11 @@ export function LegendeKompakt({ world, ebene, legende, problemId, onProblem, me
       {ebene === "probleme" && (
         <div className="linsen-legende-problem">
           {gewaehltesProblem ? (
-            <button type="button" className="on" onClick={() => onProblem(null)} title="Auswahl aufheben">
+            <button type="button" className="on" onClick={() => onProblem(null)} title={t("ui.Kartenlegende.b69fd36")}>
               {gewaehltesProblem.name} <b>{gewaehltesProblem.c}</b> <span aria-hidden>×</span>
             </button>
           ) : (
-            !mehr && probleme.length > 0 && <span className="hinweis">Aufklappen, um ein Problem zu wählen</span>
+            !mehr && probleme.length > 0 && <span className="hinweis">{t("ui.Kartenlegende.af626ad")}</span>
           )}
         </div>
       )}

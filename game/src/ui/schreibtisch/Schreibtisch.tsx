@@ -20,7 +20,7 @@ import "./schreibtisch.css";
 import { DreiFragen } from "./DreiFragen";
 import { offenerKonflikt, vorgaenge } from "../../sim/vorgaenge";
 import { PROVINZEN } from "../../sim/regional";
-import { t } from "../../i18n";
+import { rendere, t } from "../../i18n";
 
 const TREND: Record<Kennzahl["trend"], string> = { auf: "▲", ab: "▼", gleich: "" };
 
@@ -72,7 +72,7 @@ export function Schreibtisch({
   const ziele = zielStand(world);
   const geschah = [...world.log].reverse().filter((l) => l.kind !== "statistik").slice(0, 4);
 
-  if (!spiel || !b) return <p>Ohne Spielschleife gibt es kein Briefing.</p>;
+  if (!spiel || !b) return <p>{t("sk.ui.keinBriefing")}</p>;
 
   const mappe = schreibtischMappe(world, 5);
   const dringend = mappe.mappe.filter((v) => v.frist !== undefined && v.frist <= 7).length;
@@ -87,10 +87,10 @@ export function Schreibtisch({
   const fristen = [
     ...b.faellig
       .filter((f) => f.art === "gesetz" || f.art === "duldung" || f.art === "schritt")
-      .map((f) => ({ id: f.id, text: f.titel, wann: f.tage === undefined ? "bereit" : f.tage <= 0 ? "heute" : `in ${f.tage} T`, tage: f.tage ?? 0, dringend: f.dringend, ziel: f.knopf.art === "gehe" ? f.knopf.ziel : undefined })),
+      .map((f) => ({ id: f.id, text: f.titel, wann: f.tage === undefined ? t("sk.bereit") : t("sk.tageKurz", { n: Math.max(0, f.tage) }), tage: f.tage ?? 0, dringend: f.dringend, ziel: f.knopf.art === "gehe" ? f.knopf.ziel : undefined })),
     ...b.termine
-      .filter((t) => !t.id.startsWith("g-") && !t.id.startsWith("z-"))
-      .map((t) => ({ id: `t-${t.id}`, text: t.text, wann: t.datum, tage: t.tage, dringend: false, ziel: t.ziel })),
+      .filter((x) => !x.id.startsWith("g-") && !x.id.startsWith("z-"))
+      .map((x) => ({ id: `t-${x.id}`, text: x.text, wann: x.datum, tage: x.tage, dringend: false, ziel: x.ziel })),
   ]
     .sort((a, c) => a.tage - c.tage)
     .slice(0, 5);
@@ -109,19 +109,19 @@ export function Schreibtisch({
     <div className="sk">
       <header className="sk-kopf">
         <div className="sk-titel">
-          <p className="pd-ueber">Tagesbriefing</p>
+          <p className="pd-ueber">{t("sk.ui.ueber")}</p>
           <h3>{b.datum}</h3>
           <p className="pd-lead">
-            {b.amtszeit.nummer}. Amtszeit · Wahl {b.amtszeit.monateBisWahl <= 1 ? "in Kürze" : `in ${b.amtszeit.monateBisWahl} Monaten`} ({b.amtszeit.wahltag})
-            {dringend > 0 ? ` · ${dringend === 1 ? "eine Vorlage mit Frist diese Woche" : `${dringend} Vorlagen mit Frist diese Woche`}` : ""}
+            {t("sk.ui.amtszeit", { n: b.amtszeit.nummer, monate: b.amtszeit.monateBisWahl, wahltag: b.amtszeit.wahltag })}
+            {dringend > 0 ? t("sk.ui.dringend", { n: dringend }) : ""}
           </p>
         </div>
-        <ul className="sk-kennzahlen vier" aria-label="Lage in einem Blick">
+        <ul className="sk-kennzahlen vier" aria-label={t("sk.ui.lageAria")}>
           {b.kennzahlen
             .filter((k) => KENNZAHLEN.has(k.id))
             .map((k) => (
               <li key={k.id}>
-                <button className={`sk-kz ton-${k.ton}`} onClick={() => onGehe(k.ziel)} title={`${k.label}: Akte öffnen`}>
+                <button className={`sk-kz ton-${k.ton}`} onClick={() => onGehe(k.ziel)} title={t("sk.ui.akteOeffnen", { label: k.label })}>
                   <span className="sk-kz-label">{k.label}</span>
                   <span className="sk-kz-wert">
                     {k.wert}
@@ -136,17 +136,17 @@ export function Schreibtisch({
       <DreiFragen world={world} />
 
       {b.verfassung && (
-        <div className={`sk-verfassung kompakt stufe-${b.verfassung.stufe}`} tabIndex={0} aria-label={`Zustand des Präsidenten: Aufmerksamkeit ${b.verfassung.aufmerksamkeit} von 100, Belastung ${b.verfassung.belastung} von 100, ${b.verfassung.stufeName}`}>
+        <div className={`sk-verfassung kompakt stufe-${b.verfassung.stufe}`} tabIndex={0} aria-label={t("sk.ui.vfAria", { a: b.verfassung.aufmerksamkeit, b: b.verfassung.belastung, stufe: b.verfassung.stufeName })}>
           <div className="sk-vf-zeilen">
             <div className="sk-vf-zeile">
-              <span className="sk-vf-label">Aufmerksamkeit</span>
+              <span className="sk-vf-label">{t("sk.ui.aufmerksamkeit")}</span>
               <span className="sk-vf-balken" aria-hidden>
                 <i className="auf" style={{ width: `${b.verfassung.aufmerksamkeit}%` }} />
               </span>
               <span className="sk-vf-wert">{b.verfassung.aufmerksamkeit}</span>
             </div>
             <div className="sk-vf-zeile">
-              <span className="sk-vf-label">Belastung</span>
+              <span className="sk-vf-label">{t("sk.ui.belastung")}</span>
               <span className="sk-vf-balken" aria-hidden>
                 <i className="bel" style={{ width: `${b.verfassung.belastung}%` }} />
               </span>
@@ -155,16 +155,13 @@ export function Schreibtisch({
           </div>
           <span className="sk-vf-stufe">
             {b.verfassung.stufeName}
-            {b.verfassung.pauseBis ? ` · ruhige Tage bis ${b.verfassung.pauseBis}` : ""}
+            {b.verfassung.pauseBis ? t("sk.ui.ruhigBis", { datum: b.verfassung.pauseBis }) : ""}
           </span>
           <div className="tip" role="tooltip">
-            <strong>Der Zustand des Präsidenten</strong>
-            <p>
-              Jede Amtshandlung — Gesetz, Erlass, Gespräch, Verhandlung, Entscheidung im Reich — verbraucht Aufmerksamkeit; sie lädt sich täglich um 3 auf. Unter 20 wächst die
-              Belastung, über 60 baut sie ab. {b.verfassung.fluss} Wer einen Minister mit dem Vorhaben beauftragt, spart den größten Teil.
-            </p>
-            {b.verfassung.treiber.length > 0 ? <p>Was die Belastung treibt: {b.verfassung.treiber.join("; ")}.</p> : <p>Kein Vorgang treibt die Belastung gerade nennenswert.</p>}
-            {b.verfassung.stufe >= 1 && <p>Angespannt streuen Stimmenschätzungen breiter und Einbringungen verzögern sich mitunter; ab 70 erzwingt der Stab ruhige Tage, über 85 über Wochen droht der Zusammenbruch.</p>}
+            <strong>{t("sk.ui.vfTitel")}</strong>
+            <p>{t("sk.ui.vfText", { fluss: b.verfassung.fluss })}</p>
+            {b.verfassung.treiber.length > 0 ? <p>{t("sk.ui.vfTreiber", { liste: b.verfassung.treiber.join("; ") })}</p> : <p>{t("sk.ui.vfKeinTreiber")}</p>}
+            {b.verfassung.stufe >= 1 && <p>{t("sk.ui.vfAngespannt")}</p>}
           </div>
         </div>
       )}
@@ -173,7 +170,7 @@ export function Schreibtisch({
         <div className="sk-haupt">
           <section className="sk-block">
             <h4>
-              Unterschriftenmappe <span className="pd-chip">das Wichtigste, nach Rang</span>
+              {t("sk.ui.mappe")} <span className="pd-chip">{t("sk.ui.mappeChip")}</span>
             </h4>
             <Mappe world={world} refresh={refresh} max={5} onGehe={gehe} onPosteingang={posteingang} {...(onKarte ? { onKarte } : {})} />
           </section>
@@ -181,16 +178,16 @@ export function Schreibtisch({
 
         <aside className="sk-seite">
           <section className="sk-block">
-            <h4>Fristen und Termine</h4>
+            <h4>{t("sk.ui.fristen")}</h4>
             {fristen.length === 0 ? (
-              <p className="pd-leise">Keine Frist in Sicht.</p>
+              <p className="pd-leise">{t("sk.ui.keineFrist")}</p>
             ) : (
               <ul className="sk-termine">
-                {fristen.map((t) => (
-                  <li key={t.id}>
-                    <button className={`sk-termin${t.dringend ? " dringend" : ""}`} disabled={!t.ziel} onClick={() => t.ziel && onGehe(t.ziel)}>
-                      <span className="sk-datum">{t.wann}</span>
-                      <span>{t.text}</span>
+                {fristen.map((x) => (
+                  <li key={x.id}>
+                    <button className={`sk-termin${x.dringend ? " dringend" : ""}`} disabled={!x.ziel} onClick={() => x.ziel && onGehe(x.ziel)}>
+                      <span className="sk-datum">{x.wann}</span>
+                      <span>{x.text}</span>
                     </button>
                   </li>
                 ))}
@@ -216,12 +213,12 @@ export function Schreibtisch({
 
           {warnungen.length > 0 && (
             <section className="sk-block">
-              <h4>Warnungen</h4>
+              <h4>{t("sk.ui.warnungen")}</h4>
               <ul className="sk-warnungen">
                 {warnungen.map((x) => (
                   <li key={x.id} className={`stufe-${x.stufe}`}>
-                    <button className="sk-warnung" onClick={() => onGehe(x.ziel)} title="Ansehen und handeln">
-                      <span className={`sk-punkt ${x.stufe}`} role="img" aria-label={x.stufe === "rot" ? "dringend" : "Achtung"} />
+                    <button className="sk-warnung" onClick={() => onGehe(x.ziel)} title={t("sk.ui.ansehenHandeln")}>
+                      <span className={`sk-punkt ${x.stufe}`} role="img" aria-label={x.stufe === "rot" ? t("sk.ui.dringendAria") : t("sk.ui.achtungAria")} />
                       <span>
                         <strong>{x.text}</strong>
                         <em>{x.warum}</em>
@@ -238,7 +235,7 @@ export function Schreibtisch({
               <Cameo seed="Defne Arslan" figure="f" glasses size={32} tint="#265a62" />
               <div>
                 <p>{erste.short}</p>
-                {notiz === 0 ? <p className="mehr">{erste.more}</p> : <button className="pd-btn quiet klein" onClick={() => setNotiz(0)}>Mehr erklären</button>}
+                {notiz === 0 ? <p className="mehr">{erste.more}</p> : <button className="pd-btn quiet klein" onClick={() => setNotiz(0)}>{t("sk.ui.mehrErklaeren")}</button>}
               </div>
             </section>
           )}
@@ -247,12 +244,12 @@ export function Schreibtisch({
 
       <details className="sk-mehr">
         <summary>
-          Weiteres <span className="pd-chip">Ziele, Zeitung, Umlauf, Chronik</span>
+          {t("sk.ui.weiteres")} <span className="pd-chip">{t("sk.ui.weiteresChip")}</span>
         </summary>
         <div className="sk-mehr-inhalt">
           {ziele.length > 0 && (
             <section className="sk-block">
-              <h4>Ihre Ziele</h4>
+              <h4>{t("sk.ui.ziele")}</h4>
               <ul className="sk-ziele">
                 {ziele.map((z) => (
                   <li key={z.def.id} className={z.erreicht ? "ja" : "offen"}>
@@ -269,7 +266,7 @@ export function Schreibtisch({
 
           {weitereWarnungen.length > 0 && (
             <section className="sk-block">
-              <h4>Weitere Warnungen</h4>
+              <h4>{t("sk.ui.weitereWarnungen")}</h4>
               <ul className="sk-warnungen">
                 {weitereWarnungen.map((x) => (
                   <li key={x.id} className={`stufe-${x.stufe}`}>
@@ -292,13 +289,13 @@ export function Schreibtisch({
                 <Cameo seed="Defne Arslan" figure="f" glasses size={36} tint="#265a62" />
                 <div>
                   <strong>Prof. Dr. Defne Arslan</strong>
-                  <span>Mentorin · neutral</span>
+                  <span>{t("sk.ui.mentorin")}</span>
                 </div>
               </div>
               {weitereNotizen.map((n, i) => (
                 <div key={i} className="sk-note">
                   <p>{n.short}</p>
-                  {notiz === i + 1 ? <p className="mehr">{n.more}</p> : <button className="pd-btn quiet klein" onClick={() => setNotiz(i + 1)}>Mehr erklären</button>}
+                  {notiz === i + 1 ? <p className="mehr">{n.more}</p> : <button className="pd-btn quiet klein" onClick={() => setNotiz(i + 1)}>{t("sk.ui.mehrErklaeren")}</button>}
                 </div>
               ))}
             </section>
@@ -306,18 +303,18 @@ export function Schreibtisch({
 
           <section className="sk-block sk-zeitung">
             <h4>
-              Die Zeitung
-              {(spiel.zeitung?.ungelesen ?? 0) > 0 && <span className="sk-neue-ausgabe">Neue Ausgabe</span>}
+              {t("sk.ui.zeitung")}
+              {(spiel.zeitung?.ungelesen ?? 0) > 0 && <span className="sk-neue-ausgabe">{t("sk.ui.neueAusgabe")}</span>}
             </h4>
             {spiel.zeitung?.archiv.length ? (
               (() => {
                 const a = spiel.zeitung.archiv[spiel.zeitung.archiv.length - 1]!;
                 const lead = a.blaetter.find((bl) => bl.artikel.length > 0);
                 return (
-                  <button className="sk-zeitung-teaser" onClick={() => onGehe({ art: "akte", akte: "zeitung" })} title="Ausgabe lesen">
+                  <button className="sk-zeitung-teaser" onClick={() => onGehe({ art: "akte", akte: "zeitung" })} title={t("sk.ui.ausgabeLesen")}>
                     <span className="sk-zeitung-mast">
-                      {lead?.name ?? "Die Zeitung"} · Nr. {a.nummer}
-                      {a.anlass === "eilmeldung" ? " · EIL" : ""}
+                      {lead?.name ?? t("sk.ui.zeitung")} · {t("sk.ui.nummer", { n: a.nummer })}
+                      {a.anlass === "eilmeldung" ? ` · ${t("sk.ui.eil")}` : ""}
                     </span>
                     <strong>{lead?.artikel[0]?.schlagzeile ?? ""}</strong>
                     <em>{formatDateDe(a.datum)}</em>
@@ -325,14 +322,14 @@ export function Schreibtisch({
                 );
               })()
             ) : (
-              <p className="pd-leise">Die erste Ausgabe erscheint am Monatsersten.</p>
+              <p className="pd-leise">{t("sk.ui.ersteAusgabe")}</p>
             )}
           </section>
 
           {umlauf && umlauf.length > 0 && (
             <section className="sk-block">
-              <h4>Im Umlauf</h4>
-              <p className="pd-leise">Routine ohne Entscheidung, seit dem letzten Halt gesammelt — nichts davon verlangt eine Antwort.</p>
+              <h4>{t("sk.ui.umlauf")}</h4>
+              <p className="pd-leise">{t("sk.ui.umlaufText")}</p>
               <ul className="sk-log">
                 {[...umlauf].reverse().map((u) => (
                   <li key={u.id}>
@@ -349,31 +346,31 @@ export function Schreibtisch({
 
           {geschah.length > 0 && (
             <section className="sk-block">
-              <h4>Was zuletzt geschah</h4>
+              <h4>{t("sk.ui.zuletzt")}</h4>
               <ul className="sk-log">
                 {geschah.map((l, i) => (
                   <li key={`${l.day}-${i}`}>
                     <span className="sk-datum">{formatDateDe(l.date)}</span>
-                    <span>{l.text}</span>
+                    <span>{rendere(l.text)}</span>
                   </li>
                 ))}
               </ul>
               <button className="pd-btn quiet" onClick={() => onGehe({ art: "akte", akte: "chronik" })}>
-                Ganze Chronik
+                {t("sk.ui.chronik")}
               </button>
             </section>
           )}
         </div>
       </details>
 
-      <nav className="sk-tueren" aria-label="Weiter zu">
+      <nav className="sk-tueren" aria-label={t("sk.ui.weiterAria")}>
         <button className="pd-btn" onClick={posteingang}>
           <Icon name="person" size={18} />
-          <span>Alle Vorlagen und Befehle</span>
+          <span>{t("sk.ui.alleVorlagen")}</span>
         </button>
         <button className="pd-btn" onClick={() => onGehe({ art: "akte", akte: "bereiche" })}>
           <Icon name="netz" size={18} />
-          <span>Heute: Was jetzt ansteht</span>
+          <span>{t("sk.ui.heute")}</span>
         </button>
       </nav>
     </div>

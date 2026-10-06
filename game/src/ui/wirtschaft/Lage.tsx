@@ -15,6 +15,7 @@ import { berechneReihen } from "./prognose";
 import type { PrognoseReihe } from "../../sim/forecast";
 import "./wirtschaft.css";
 
+import { t } from "../../i18n";
 const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
 const zeichen = (x: number) => (x > 0 ? "+" : x < 0 ? "−" : "±");
 
@@ -141,7 +142,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
             </strong>
             <span className="wi-chips">
               <Chip id={k.id} jetzt={jetzt} davor={start} label="seit Amtsantritt" />
-              <Chip id={k.id} jetzt={jetzt} davor={vor12} label="zum Vorjahr" />
+              <Chip id={k.id} jetzt={jetzt} davor={vor12} label={t("ui.wirtschaft.Lage.e4b97b0")} />
             </span>
           </div>
           <p className="wi-gemessen">{k.gemessen(world)}</p>
@@ -166,7 +167,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
           <h4>Was bewegt diese Zahl?</h4>
           {treiber.kopf && <p className="wi-hinweis">{treiber.kopf}</p>}
           {treiber.zeilen.length === 0 ? (
-            <p className="wi-hinweis">Im Moment wirkt nichts Nennenswertes auf diese Größe: Sie steht in ihrer Ruhelage. Erst Ihre Entscheidungen und Ereignisse bringen Bewegung.</p>
+            <p className="wi-hinweis">{t("ui.wirtschaft.Lage.1f43daf")}</p>
           ) : (
             <ul className="wi-treiber">
               {treiber.zeilen.map((z) => (
@@ -188,14 +189,14 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
 
         {k.vergleichId && ZUORDNUNG[k.vergleichId] && (
           <section className="wi-block">
-            <h4>Im Vergleich mit anderen Ländern</h4>
+            <h4>{t("ui.wirtschaft.Lage.e0ee810")}</h4>
             <VergleichBalken code={ZUORDNUNG[k.vergleichId]![0]!} spiel={spielWert(world, k.vergleichId)} />
           </section>
         )}
-        {k.id === "leitzins" && <p className="wi-hinweis">Leitzinsen anderer Länder liegen nicht in der Weltbank-Datenbank (Lücke); die Bank für Internationalen Zahlungsausgleich veröffentlicht sie.</p>}
+        {k.id === "leitzins" && <p className="wi-hinweis">{t("ui.wirtschaft.Lage.9cc776f")}</p>}
 
         <section className="wi-block">
-          <h4>Was Sie tun können</h4>
+          <h4>{t("ui.wirtschaft.Lage.51a8bcf")}</h4>
           <ul className="wi-handlungen">
             {k.handlungen.map((h) => (
               <li key={h.label}>
@@ -210,12 +211,12 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
               </li>
             ))}
           </ul>
-          {vorschau && <p className="wi-hinweis">Das Diagramm zeigt die Prognose mit dieser Änderung (rot) gegen „nichts tun“ (petrol). Die Bandbreite zeigt, wie unsicher das ist.</p>}
+          {vorschau && <p className="wi-hinweis">{t("ui.wirtschaft.Lage.687148b")}</p>}
         </section>
 
         {letzteMarken.length > 0 && (
           <section className="wi-block">
-            <h4>Was zuletzt passiert ist</h4>
+            <h4>{t("ui.wirtschaft.Lage.5e13268")}</h4>
             <ul className="wi-marken">
               {letzteMarken.map((m, i) => (
                 <li key={i}>

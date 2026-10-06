@@ -99,7 +99,7 @@ function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refr
         {s.wirkt ? (
           <Zeilen zeilen={s.jetzt} leer={s.bezug !== undefined ? "Genau so viel wie zum Spielbeginn; das steckt schon in den Startwerten des Landes." : "Noch keine messbare Wirkung."} />
         ) : (
-          <p className="rp-leer">Der Zustand bewegt hier keine Größen im Land, nur Beziehungen zu anderen Ländern.</p>
+          <p className="rp-leer">{t("ui.reich.Pflege.7e19d8e")}</p>
         )}
       </div>
 
@@ -157,13 +157,13 @@ export function PflegeListe({ world, bereich, refresh }: { world: World; bereich
   const stuecke = pflegeIds(world, bereich)
     .map((id) => pflegeStand(world, id)!)
     .sort((a, b) => b.dringlichkeit - a.dringlichkeit || b.nutzen - a.nutzen);
-  if (!stuecke.length) return <p className="subtitle">Hier gibt es nichts, was sich pflegen ließe.</p>;
+  if (!stuecke.length) return <p className="subtitle">{t("ui.reich.Pflege.455356e")}</p>;
   return (
     <section className="rr-abschnitt">
       <h4>
         Bestand <em>{stuecke.length} {stuecke.length === 1 ? "Stück" : "Stücke"}, das Dringendste zuerst</em>
       </h4>
-      <p className="rr-hinweis">Was gebaut ist, verfällt ohne Pflege. Der Strich im Balken zeigt den Zustand zum Spielbeginn: Darüber bringt ein Stück mehr als damals, darunter weniger. Instandsetzen kostet Baukapazität, die dann für Neues fehlt.</p>
+      <p className="rr-hinweis">{t("ui.reich.Pflege.50d63b0")}</p>
       <div className="rp-liste">
         {stuecke.map((s) => (
           <PflegeKarte key={s.id} s={s} world={world} refresh={refresh} />

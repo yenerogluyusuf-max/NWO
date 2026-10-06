@@ -5,6 +5,7 @@
 
 import { reichMonat } from "./reich";
 import { infrastrukturMonat } from "./infrastruktur";
+import { gesetzgebungTag } from "./gesetzgebung";
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES } from "./netz";
 import { addLog } from "./log";
@@ -248,6 +249,7 @@ export function spielTick(world: World, rng: Rng): void {
   const spiel = world.spiel;
   if (!spiel || spiel.ende) return;
   gesetzeAbstimmen(world, rng);
+  gesetzgebungTag(world);
   verfassungsVorgangTag(world, rng);
   haushaltszyklusTag(world, rng);
   ereignisTag(world, rng);

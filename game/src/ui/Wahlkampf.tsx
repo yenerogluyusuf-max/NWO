@@ -64,7 +64,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
     return (
       <div className="kampf-root">
         <section className="kampf-warte">
-          <h3>Der Wahlkampf steht noch bevor</h3>
+          <h3>{t("ui.Wahlkampf.2d60007")}</h3>
           <p>
             Die Wahl ist in {Math.round(s.tageBisWahl / 30.4)} Monaten. Die heiße Phase beginnt acht Wochen vorher
             {s.beginntIn !== undefined ? ` — in etwa ${Math.round(s.beginntIn / 30.4)} ${Math.round(s.beginntIn / 30.4) === 1 ? "Monat" : "Monaten"}` : ""}.
@@ -74,8 +74,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
             {s.gegner.name}. Jede Woche stehen {WAHLKAMPF.apProWoche} Aktionspunkte bereit.
           </p>
           <p className="kampf-unter">
-            Was Sie bis dahin regieren, ist Ihr Programm: Die Opposition greift dort an, wo echte Probleme brennen — und Ihre Bilanz entscheidet
-            das Duell mit.
+            {t("ui.Wahlkampf.86c14a1")}
           </p>
         </section>
       </div>
@@ -89,9 +88,9 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
 
   return (
     <div className="kampf-root">
-      <section className="kampf-kopf" aria-label="Stand des Wahlkampfs">
+      <section className="kampf-kopf" aria-label={t("ui.Wahlkampf.b95c4f8")}>
         <div className="kampf-kopf-block">
-          <span className="kampf-kicker">Bis zur Wahl</span>
+          <span className="kampf-kicker">{t("ui.Wahlkampf.7363869")}</span>
           <strong>{s.tageBisWahl} {s.tageBisWahl === 1 ? "Tag" : "Tage"}</strong>
         </div>
         <div className="kampf-kopf-block">
@@ -102,7 +101,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
         <div className="kampf-kopf-block">
           <span className="kampf-kicker">Aufmerksamkeit</span>
           <strong>×{nf(WAHLKAMPF.aufmerksamkeitFaktor)}</strong>
-          <span className="kampf-klein">lädt sich im Wahlkampf schneller auf</span>
+          <span className="kampf-klein">{t("ui.Wahlkampf.537a223")}</span>
         </div>
         <div className="kampf-kopf-block">
           <span className="kampf-kicker">Schlussspurt bislang</span>
@@ -193,7 +192,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           )}
 
           <section className="kampf-touren" aria-label="Auslandstouren">
-            <h3>Auslandstour: die Diaspora</h3>
+            <h3>{t("ui.Wahlkampf.3a7a840")}</h3>
             <p className="kampf-unter">
               Die Auslandstürken stimmen nur bei nationalen Wahlen ab — ihr Block liegt {s.diaspora.lagerAnteil > 0 ? `bei ${nf(s.diaspora.lagerAnteil)} % für Sie` : "fest"} (Beteiligung {prozent(s.diaspora.beteiligung, 0)}), Beitrag bislang {vz(s.diaspora.beitrag)} Punkte. Jede Tour ({WAHLKAMPF.tourAp} AP) mobilisiert — und riskiert ein Auftrittsverbot des Gastlands.
             </p>
@@ -228,7 +227,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                     : `Am ${s.duell.datum} stellen Sie sich ${s.gegner.name} (${s.gegner.parteiName}). Die Vorbereitung kostet ${WAHLKAMPF.duellAp} AP — unvorbereitet hineinzugehen ist das Risiko.`}
                 </p>
                 {s.duell.vorbereitet ? (
-                  <p className="kampf-status gut">Vorbereitet: Aktenstudium, Probeduell, die harten Fragen zuerst.</p>
+                  <p className="kampf-status gut">{t("ui.Wahlkampf.8ba73fa")}</p>
                 ) : (
                   <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.duellAp} onClick={() => tue(() => duellVorbereiten(world))}>
                     Vorbereiten ({WAHLKAMPF.duellAp} AP)
@@ -271,12 +270,12 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           <section className="kampf-ticker" aria-label="Umfrage-Ticker">
             <h3>Umfrage-Ticker</h3>
             <ul>
-              {s.ticker.slice().reverse().map((t) => (
-                <li key={t.tag}>
-                  <strong>{nf(t.wert)} %</strong>
-                  <span>{t.institut}</span>
-                  <em title="Haus-Effekt: Dieses Institut misst systematisch zugunsten oder zuungunsten des Regierungslagers">
-                    Bias {vz(t.hausBias)}
+              {s.ticker.slice().reverse().map((tk) => (
+                <li key={tk.tag}>
+                  <strong>{nf(tk.wert)} %</strong>
+                  <span>{tk.institut}</span>
+                  <em title={t("ui.Wahlkampf.be569cb")}>
+                    Bias {vz(tk.hausBias)}
                   </em>
                 </li>
               ))}

@@ -18,6 +18,8 @@ import { fraktionsUebersicht, verhandle } from "../src/sim/verhandeln";
 import { waehleZiele, type Schwierigkeit } from "../src/sim/spiel";
 import { duellVorbereiten, wahlkampfAktiv } from "../src/sim/wahlkampf";
 import { Rng } from "../src/sim/rng";
+import { fuehreAus, infrastrukturBitte, type InfraAktion } from "../src/sim/infrastruktur";
+import { verwaltungBilanz } from "../src/sim/reich";
 import type { World } from "../src/sim/types";
 
 const AUS = process.env.SPIELBARKEIT_AUS;
@@ -55,6 +57,18 @@ const klug: Bot = (w, rng, monat) => {
   beantworte(w, rng);
   if (wahlkampfAktiv(w) && (w.spiel?.wahlkampf?.ap ?? 0) >= 2) {
     duellVorbereiten(w);
+  }
+  // Die Bitte des Monats um Infrastruktur wie in test/unbegrenzt.test.ts: ausbauen, wenn die Verwaltung den Bau trägt, sonst die Alternative,
+  // wenn Kapital übrig ist. Ohne die Prüfung der Verwaltung gewinnt der Kluge die erste Wahl nur in 17 von 24 Seeds, mit ihr in 19 von 24,
+  // ganz ohne Antwort in 20 von 24; die zweite Wahl mit ihr 19 von 19, ohne Antwort 19 von 20 (Messung 06.10.2026).
+  const bitte = infrastrukturBitte(w);
+  if (bitte) {
+    const sp = w.spiel!;
+    const vb = verwaltungBilanz(w);
+    const o =
+      bitte.optionen.find((x) => x.id === "ausbau" && x.moeglich && vb.netto > 0 && vb.vorrat > 30 && sp.kapital > (x.kosten.pk ?? 0) + 10) ??
+      bitte.optionen.find((x) => x.id === "alternative" && x.moeglich && sp.kapital > (x.kosten.pk ?? 0) + 10);
+    if (o?.aktion.art === "infrastruktur") fuehreAus(w, o.aktion as InfraAktion);
   }
   const id = KLUG[monat % KLUG.length]!;
   const ziel = Math.min(100, nationalAverage(NET, w.net, id) + 20);

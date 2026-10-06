@@ -20,6 +20,7 @@ import {
 import { addDays, formatDateDe } from "../../sim/dates";
 import { land } from "../../sim/laender";
 
+import { t } from "../../i18n";
 const nf = (x: number) => String(Math.round(x));
 
 /** Wort für die gegnerische Stärke, wenn das Lagebild nur eine grobe Einordnung hergibt. */
@@ -53,7 +54,7 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
         </span>
       </header>
 
-      <div className="kd-zeile" title="Treiber der Eskalation; folgt der Konflikt-Dimension">
+      <div className="kd-zeile" title={t("ui.welt.KriegDossier.c4f3a82")}>
         <span>Eskalation</span>
         <span className="we-balken" aria-hidden>
           <i style={{ width: `${k.eskalation}%` }} />
@@ -72,8 +73,8 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
               {nf(k.front)} <em className={`kd-trend kd-trend-${trend}`}>{trend === "steigend" ? "↑" : trend === "fallend" ? "↓" : "→"} {trend}</em>
             </b>
           </div>
-          <div className="kd-zeile" title="Rückhalt des Einsatzes im Land (Erschöpfungsuhr); Verluste, Dauer und Wirtschaftslage treiben sie">
-            <span>Rückhalt im Land</span>
+          <div className="kd-zeile" title={t("ui.welt.KriegDossier.fb1d897")}>
+            <span>{t("ui.welt.KriegDossier.7c1b834")}</span>
             <span className="we-balken" aria-hidden>
               <i style={{ width: `${Math.max(0, k.uhr)}%` }} />
             </span>
@@ -142,9 +143,9 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
             <span>{h.moeglich ? h.hinweis : h.grund}</span>
           </li>
         ))}
-        {handlungen.length === 0 && <li className="subtitle">In dieser Phase gibt es keine Handlung; der Vorgang folgt seiner eigenen Logik.</li>}
+        {handlungen.length === 0 && <li className="subtitle">{t("ui.welt.KriegDossier.c605cdb")}</li>}
       </ul>
-      {aktiveKriege(world).length >= KRIEG.maxAktiv && <p className="subtitle">Die Aufmerksamkeit des Staates ist ausgeschöpft: Zwei Konfliktvorgänge laufen bereits.</p>}
+      {aktiveKriege(world).length >= KRIEG.maxAktiv && <p className="subtitle">{t("ui.welt.KriegDossier.66712ad")}</p>}
     </section>
   );
 }

@@ -15,6 +15,7 @@ import { Balken, Marke, Portraet, tonVon } from "./bausteine";
 import { GespraechSzene } from "./GespraechSzene";
 import { NachfolgeAuswahl, type WechselMeldung } from "./NachfolgeAuswahl";
 
+import { t } from "../../i18n";
 const REIHENFOLGE: Figur["amt"][] = ["stab", "finanzen", "wirtschaft", "inneres", "aussen", "justiz", "generalstab"];
 
 function gruppen(w: World): { titel: string; liste: Figur[] }[] {
@@ -98,9 +99,9 @@ export function Umfeld({
                     </span>
                     <span className="pe-zeile" style={{ flexWrap: "wrap" }}>
                       {e.kommissarisch && <Marke art="gold">kommissarisch</Marke>}
-                      {e.auftrag?.status === "laeuft" && <Marke art="gruen">Auftrag läuft</Marke>}
+                      {e.auftrag?.status === "laeuft" && <Marke art="gruen">{t("ui.personen.Umfeld.357a028")}</Marke>}
                       {e.groll >= 40 && p.amt !== "opposition" && <Marke art="rot">{grollWort(e.groll)}</Marke>}
-                      {p.loyalitaet < 25 && p.amt !== "opposition" && <Marke art="rot">Rücktrittsgefahr</Marke>}
+                      {p.loyalitaet < 25 && p.amt !== "opposition" && <Marke art="rot">{t("ui.personen.Umfeld.434c793")}</Marke>}
                       {zus > 0 && <Marke art="gold">{zus === 1 ? "1 Zusage" : `${zus} Zusagen`}</Marke>}
                     </span>
                   </span>
@@ -124,7 +125,7 @@ export function Umfeld({
       </div>
 
       <div className="pe-detail" ref={detailRef}>
-        {!f && <p className="pe-leer">Wählen Sie eine Person: Sie sehen ihr Profil, ihre Sorgen und ihr Ressort und können mit ihr reden.</p>}
+        {!f && <p className="pe-leer">{t("ui.personen.Umfeld.bc8ab5f")}</p>}
         {f && (
           <>
             <button className="pe-zurueck" onClick={() => setAuswahl(null)}>
@@ -186,7 +187,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
       </div>
 
       <div className="pe-werte">
-        <Balken label="Loyalität" wert={f.loyalitaet} wort={haltung(f)} hinweis={`Loyalität ${Math.round(f.loyalitaet)} von 100`} />
+        <Balken label={t("ui.personen.Umfeld.87f6f23")} wert={f.loyalitaet} wort={haltung(f)} hinweis={`Loyalität ${Math.round(f.loyalitaet)} von 100`} />
         {f.amt !== "opposition" && <Balken label="Groll" wert={e.groll} ton={tonVon(e.groll, true)} wort={grollWort(e.groll)} hinweis="Aufgestauter Ärger: führt zu Durchstechereien und zum Bruch" />}
         <Balken label="Ehrgeiz" wert={e.ehrgeiz} ton={e.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(e.ehrgeiz)} hinweis="Ehrgeizige sind gefährlich, wenn sie übergangen werden" />
         {d.wirkung.length > 0 && <Balken label="Ressortleistung" wert={Math.min(100, q * 100)} wort={leistungWort(q)} hinweis="Aus Fähigkeit und Loyalität; Zusatzmittel und Druck erhöhen, Einarbeitung senkt" />}
@@ -253,10 +254,10 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
       <div className="pe-aktionen">
         {sprechbar(f) ? (
           <button className="pe-aktion haupt" disabled={!!grund} title={grund ?? "Ein Gespräch: Thema und Ansatz wählen"} onClick={() => onModus("gespraech")}>
-            Gespräch führen
+            {t("ui.personen.Umfeld.9abd389")}
           </button>
         ) : (
-          <p className="subtitle" style={{ margin: 0 }}>Mit dem Oppositionsführer verhandeln Sie über die Fraktionen im Parlament.</p>
+          <p className="subtitle" style={{ margin: 0 }}>{t("ui.personen.Umfeld.0b8e66a")}</p>
         )}
         {e.kommissarisch && (
           <button className="pe-aktion" disabled={!kannZahlen(spiel.kapital, 1)} onClick={() => onModus("nachfolge")}>
@@ -264,11 +265,11 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
           </button>
         )}
         {d.entlassbar && !e.kommissarisch && (
-          <button className="pe-aktion leise" onClick={() => onModus("entlassen")} title="Kandidaten ansehen, Folgen prüfen, dann entscheiden">
+          <button className="pe-aktion leise" onClick={() => onModus("entlassen")} title={t("ui.personen.Umfeld.592baca")}>
             Entlassen …
           </button>
         )}
-        {f.amt === "zentralbank" && <p className="subtitle" style={{ margin: 0 }}>Die Zentralbankführung tauschen Sie unter „Wirtschaft“ aus; das kostet Glaubwürdigkeit.</p>}
+        {f.amt === "zentralbank" && <p className="subtitle" style={{ margin: 0 }}>{t("ui.personen.Umfeld.7920b3c")}</p>}
       </div>
       {grund && sprechbar(f) && <p className="subtitle" style={{ margin: 0 }}>{grund}</p>}
 

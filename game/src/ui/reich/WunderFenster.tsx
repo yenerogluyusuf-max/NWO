@@ -10,6 +10,7 @@ import { formatDateDe } from "../../sim/dates";
 import { NET } from "../../sim/modell";
 import type { Vorhaben } from "../../sim/reich-typen";
 
+import { t } from "../../i18n";
 const TITEL: Record<string, string> = { wunder: "Ein Wunder ist vollendet", grossprojekt: "Ein Großprojekt ist eröffnet", serie: "Eine Route ist eröffnet", ausbau: "Der Ausbau ist fertig" };
 
 function verliererName(v: Vorhaben): string | null {
@@ -33,10 +34,10 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
     <div className="event-layer wunder-layer" role="dialog" aria-modal="true" aria-labelledby={`wf-${id}`}>
       <article className={`frame wunder-fenster${uebersprungen ? " uebersprungen" : ""}`}>
         <Corners />
-        <div className="wunder-bildrahmen" onClick={() => setUebersprungen(true)} title="Tippen überspringt die Bewegung">
+        <div className="wunder-bildrahmen" onClick={() => setUebersprungen(true)} title={t("ui.reich.WunderFenster.05f104d")}>
           <WunderBild art={v.bild ?? "stadt"} animiert />
           <span className="wunder-a-hinweis" aria-hidden="true">
-            Tippen überspringt
+            {t("ui.reich.WunderFenster.cd0618a")}
           </span>
           <span className="wunder-datum">{formatDateDe(datum)}</span>
           <span className="wunder-klasse">{TITEL[v.klasse] ?? "Fertiggestellt"}</span>
@@ -82,7 +83,7 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
               </button>
             )}
             <button ref={weiter} className="brass-button" type="button" onClick={onWeiter}>
-              Weiter
+              {t("ui.reich.WunderFenster.aeff967")}
             </button>
           </div>
         </div>

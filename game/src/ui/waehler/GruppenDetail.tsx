@@ -12,6 +12,7 @@ import { Sparkline } from "./Sparkline";
 import { anzeigeName, monatText, nf, prozent, vz } from "./format";
 import "../politik/design.css";
 
+import { t } from "../../i18n";
 export type DossierZiel = "schreibtisch" | "gespraech" | "parlament" | "programme";
 
 interface Props {
@@ -38,13 +39,13 @@ function PraeferenzListe({ titel, liste, richtung, onMassnahme }: { titel: strin
     <div className="wa-pref">
       <h5>{titel}</h5>
       {liste.length === 0 ? (
-        <p className="wa-leer">Nichts, was sie stark bewegt.</p>
+        <p className="wa-leer">{t("ui.waehler.GruppenDetail.2f73695")}</p>
       ) : (
         <ul>
           {liste.map((p) => (
             <li key={p.id}>
               <div className="wa-pref-zeile">
-                <button type="button" className="pd-btn quiet klein" onClick={() => onMassnahme?.(p.id, richtung)} title="Die Maßnahme ansehen und einstellen">
+                <button type="button" className="pd-btn quiet klein" onClick={() => onMassnahme?.(p.id, richtung)} title={t("ui.waehler.GruppenDetail.3c5dc86")}>
                   {p.name}
                 </button>
                 <StufenMesser stufe={p.stufe} seitStart={p.seitStart} />
@@ -86,7 +87,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
           <strong>{Math.round(k.laune)}</strong>
           <span>{d.wort}</span>
           {k.trend !== null && Math.abs(k.trend) >= 0.4 && (
-            <em title="Veränderung gegenüber vor drei Monaten">
+            <em title={t("ui.waehler.GruppenDetail.a260d8a")}>
               {k.trend > 0 ? "▲" : "▼"} {nf(Math.abs(k.trend))} in drei Monaten
             </em>
           )}
@@ -103,29 +104,29 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
           {Math.abs(ueberTag) < 2
             ? "Bei den heutigen Verhältnissen bleibt die Stimmung etwa hier."
             : `Bei den heutigen Verhältnissen strebt sie nach ${nf(d.tendenz.ziel, 0)} und ${ueberTag < 0 ? "fällt weiter" : "steigt weiter"}${ohneTreiber ? ": Die Stimmung nach der Wahl klingt ab" : ""}.`}{" "}
-          <span>Punkte auf der Linie sind Gesetze, die Sie durchgebracht haben.</span>
+          <span>{t("ui.waehler.GruppenDetail.060bd18")}</span>
         </p>
       </div>
 
       <section className="wa-abschnitt">
-        <h4>Warum sie so gestimmt sind</h4>
+        <h4>{t("ui.waehler.GruppenDetail.050c8a6")}</h4>
         <p className="wa-unter">
-          Was die Stimmung gegenüber dem Amtsantritt bewegt, in Punkten, und darunter, was wiederum diese Ursachen bewegt hat. Endet bei Ihren Entscheidungen und bei der Wirtschaft.
+          {t("ui.waehler.GruppenDetail.41851d6")}
         </p>
         {ohneTreiber ? (
-          <p className="wa-leer">Bisher hat sich nichts Wesentliches gegenüber dem Amtsantritt bewegt.</p>
+          <p className="wa-leer">{t("ui.waehler.GruppenDetail.59ee3ac")}</p>
         ) : (
           <Kette glieder={d.kette} eltern="die Stimmung" {...(onMassnahme ? { onMassnahme } : {})} />
         )}
       </section>
 
       <section className="wa-abschnitt">
-        <h4>Was sie wollen und was sie stört</h4>
+        <h4>{t("ui.waehler.GruppenDetail.4cd3541")}</h4>
         <div className="wa-pref-paar">
           <PraeferenzListe titel="Sie wünschen mehr von" liste={d.praeferenzen.will} richtung={1} {...(onMassnahme ? { onMassnahme } : {})} />
           <PraeferenzListe titel="Sie wünschen weniger von" liste={d.praeferenzen.hasst} richtung={-1} {...(onMassnahme ? { onMassnahme } : {})} />
         </div>
-        <p className="wa-unter">Die Marke im Balken zeigt die Stufe zu Beginn Ihrer Amtszeit.</p>
+        <p className="wa-unter">{t("ui.waehler.GruppenDetail.4cb8bf4")}</p>
       </section>
 
       {d.sorgen.length > 0 && (
@@ -154,10 +155,10 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
 
       <details className="wa-abschnitt wa-zu">
         <summary>
-          <h4>Wohin sie wechseln würden</h4>
+          <h4>{t("ui.waehler.GruppenDetail.9697ca8")}</h4>
         </summary>
         {w.neigung < 0.04 ? (
-          <p className="wa-leer">Bei dieser Stimmung denkt kaum jemand in der Gruppe an einen Wechsel.</p>
+          <p className="wa-leer">{t("ui.waehler.GruppenDetail.1f0c475")}</p>
         ) : (
           <>
             <div className="wa-neigung">
@@ -187,12 +188,12 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
       </details>
 
       <section className="wa-abschnitt">
-        <h4>Was jetzt helfen würde</h4>
+        <h4>{t("ui.waehler.GruppenDetail.6f22828")}</h4>
         <p className="wa-unter">
           Jeweils ein Schritt von 20 Stufen, gerechnet bis zur Wahl{d.hilfen[0] ? ` in ${d.hilfen[0].horizont} Monaten` : ""}. Die Zahlen rechnen das Politiknetz durch, ohne Rückwirkungen über die Wirtschaft; die Vorschau darunter rechnet alles.
         </p>
         {d.hilfen.length === 0 ? (
-          <p className="wa-leer">Keine einzelne Maßnahme, die dieser Gruppe spürbar hilft, ohne dass sie schon ausgereizt wäre.</p>
+          <p className="wa-leer">{t("ui.waehler.GruppenDetail.3107378")}</p>
         ) : (
           <ul className="wa-hilfen">
             {d.hilfen.map((h) => (
@@ -205,7 +206,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
       {d.regionen.spanne >= 1.5 && (
         <details className="wa-abschnitt wa-zu">
           <summary>
-            <h4>Wo die Stimmung anders ist</h4>
+            <h4>{t("ui.waehler.GruppenDetail.c917748")}</h4>
           </summary>
           <ul className="wa-regionen">
             {d.regionen.regionen.map((r) => (
@@ -229,7 +230,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
 
       {(d.handlungen.zusagen.length > 0 || d.handlungen.ereignisse.length > 0 || d.handlungen.berichte.length > 0) && (
         <section className="wa-abschnitt">
-          <h4>Was dazu schon auf dem Tisch liegt</h4>
+          <h4>{t("ui.waehler.GruppenDetail.862a8af")}</h4>
           <ul className="wa-tisch">
             {d.handlungen.zusagen.map((z) => (
               <li key={z.id}>
@@ -263,7 +264,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
       {onDossier && (
         <div className="wa-aktionen">
           <button type="button" className="pd-btn" onClick={() => onDossier("gespraech")}>
-            Im Gespräch beraten lassen
+            {t("ui.waehler.GruppenDetail.862e943")}
           </button>
           <button type="button" className="pd-btn" onClick={() => onDossier("parlament")}>
             Zum Parlament

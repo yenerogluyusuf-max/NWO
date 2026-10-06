@@ -3,6 +3,7 @@
 
 import { Icon, type IconName } from "./icons";
 
+import { t } from "../i18n";
 export interface Meldung {
   id: string;
   titel: string;
@@ -53,7 +54,7 @@ export function Meldungen({
             <button
               type="button"
               className="meldung-zu"
-              aria-label="Schließen"
+              aria-label={t("ui.Meldungen.44424b1")}
               onClick={(e) => {
                 e.stopPropagation();
                 onClose(m.id);

@@ -14,6 +14,7 @@ import { LAGER_NAMEN, STIL_NAMEN } from "../../sim/personen-typen";
 import { Icon } from "../icons";
 import { Balken, Gesicht, Marke, Portraet } from "./bausteine";
 
+import { t } from "../../i18n";
 export interface WechselMeldung {
   ok: boolean;
   text: string;
@@ -57,7 +58,7 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
       </div>
 
       {modus === "entlassen" && (
-        <section className="pe-folgenkasten" aria-label="Folgen der Entlassung">
+        <section className="pe-folgenkasten" aria-label={t("ui.personen.NachfolgeAuswahl.32e7bf5")}>
           <h4>
             <Icon name="warnung" size={16} />
             Folgen der Entlassung
@@ -92,9 +93,9 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
                 <Marke art="gold">{LAGER_NAMEN[c.lager]}</Marke>
               </div>
               <div className="pe-werte-spalte">
-                <Balken label="Fähigkeit" wert={c.faehigkeit} wort={String(c.faehigkeit)} klein />
+                <Balken label={t("ui.personen.NachfolgeAuswahl.132b486")} wert={c.faehigkeit} wort={String(c.faehigkeit)} klein />
                 <Balken label="Ehrgeiz" wert={c.ehrgeiz} ton={c.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(c.ehrgeiz)} klein {...(c.ehrgeiz >= 75 ? { zeile: "Gefährlich, wenn er übergangen wird." } : {})} />
-                <Balken label="Gesinnung Ihnen gegenüber" wert={c.loyalitaet} wort={String(c.loyalitaet)} klein />
+                <Balken label={t("ui.personen.NachfolgeAuswahl.61ae3ec")} wert={c.loyalitaet} wort={String(c.loyalitaet)} klein />
               </div>
               <p className="pe-plus">
                 <b>+</b> {c.staerke}
@@ -148,13 +149,13 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
             {k && <b>{pk}</b>}
           </button>
           {modus === "entlassen" && (
-            <button className="pe-aktion" disabled={!kannZahlen(spiel.kapital, KOMMISSARISCH_PK)} onClick={() => ausfuehren(true)} title="Ein Staatssekretär führt das Amt, bis Sie sich entschieden haben; er leistet weniger.">
+            <button className="pe-aktion" disabled={!kannZahlen(spiel.kapital, KOMMISSARISCH_PK)} onClick={() => ausfuehren(true)} title={t("ui.personen.NachfolgeAuswahl.74c09bc")}>
               Nur entlassen, kommissarisch besetzen
               <b>{KOMMISSARISCH_PK}</b>
             </button>
           )}
           <button className="pe-aktion leise pe-abbruch" onClick={() => onFertig()}>
-            Abbrechen
+            {t("ui.personen.NachfolgeAuswahl.07af7cb")}
           </button>
         </div>
       </div>

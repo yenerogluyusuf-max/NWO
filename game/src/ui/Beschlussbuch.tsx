@@ -18,6 +18,7 @@ import type { Bericht } from "../sim/berichte";
 import { UmsetzungAkte } from "./politik/UmsetzungAkte";
 import "./politik/design.css";
 
+import { t } from "../i18n";
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
 export function Beschlussbuch({
@@ -92,7 +93,7 @@ export function Beschlussbuch({
             {sicht.luecke > 0 ? (
               <p className="weg-warnung">Es fehlen etwa {sicht.luecke} Stimmen. Ohne Partner scheitern Gesetze: Verhandeln Sie unten mit den Fraktionen, das ist billiger als Stimmen zu kaufen.</p>
             ) : (
-              <p className="subtitle">Die Mehrheit steht, solange kein Partner das Lager verlässt.</p>
+              <p className="subtitle">{t("ui.Beschlussbuch.3411c1e")}</p>
             )}
           </section>
         </>
@@ -101,8 +102,8 @@ export function Beschlussbuch({
 
       {teil === "parlament" && spiel && fraktionen.length > 0 && (
         <section className="par-block">
-          <h3>Fraktionen und Verhandlungen</h3>
-          <p className="pd-lead">Jede Fraktion will etwas. Wer ihr entgegenkommt, bekommt Stimmen: auf Zeit (Duldung) oder auf Dauer (Bündnis). Wer Zusagen bricht, verliert sie.</p>
+          <h3>{t("ui.Beschlussbuch.da7a61a")}</h3>
+          <p className="pd-lead">{t("ui.Beschlussbuch.6701709")}</p>
           {antwort && (
             <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
               {antwort.text}
@@ -169,7 +170,7 @@ export function Beschlussbuch({
                     <span>
                       erwartet <strong>{ja}</strong> Ja{g.absprachen > 0 ? ` (davon ${g.absprachen} durch Absprachen)` : ""} · nötig {REGELN.mehrheit}
                     </span>
-                    <button className="pd-btn quiet klein" onClick={() => zeigeImHalbrund(g.id)} title="Die erwartete Abstimmung im Halbrund oben zeigen">
+                    <button className="pd-btn quiet klein" onClick={() => zeigeImHalbrund(g.id)} title={t("ui.Beschlussbuch.cdcd617")}>
                       Im Halbrund zeigen
                     </button>
                     <span className={`stimmen-urteil urteil-${gs.urteil}`}>
@@ -189,7 +190,7 @@ export function Beschlussbuch({
                           setAntwort(stimmenKaufen(world, g.id, gs.noetig));
                           refresh();
                         }}
-                        title="Absprachen mit Fraktionen; später wird eine Gegenleistung fällig"
+                        title={t("ui.Beschlussbuch.3140c33")}
                       >
                         Mehrheit sichern: +{gs.noetig} Stimmen <b>{gs.kosten}</b>
                       </button>
@@ -205,7 +206,7 @@ export function Beschlussbuch({
                         setAntwort(zieheGesetzZurueck(world, g.id));
                         refresh();
                       }}
-                      title="Gekaufte Stimmen sind verloren; ein Teil des Kapitals kommt zurück"
+                      title={t("ui.Beschlussbuch.81b4686")}
                     >
                       Zurückziehen <b>+{zurueck}</b>
                     </button>

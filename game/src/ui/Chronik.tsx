@@ -14,7 +14,7 @@ export function amtszeitZeile(world: World): string {
 }
 
 function Verlauf({ werte, beschriftung }: { werte: number[]; beschriftung: string }) {
-  if (werte.length < 2) return <p className="subtitle">Die erste Umfrage erscheint nach einem Monat im Amt.</p>;
+  if (werte.length < 2) return <p className="subtitle">{t("ui.Chronik.aaf6811")}</p>;
   const W = 520;
   const H = 120;
   const min = Math.min(...werte, 30);
@@ -57,7 +57,7 @@ export function Chronik({ world }: { world: World }) {
       </section>
       <section className="paper">
         <h3>Was geschah</h3>
-        {spiel.chronik.length === 0 && <p className="subtitle">Noch nichts, das eine Antwort verlangt hätte.</p>}
+        {spiel.chronik.length === 0 && <p className="subtitle">{t("ui.Chronik.f33e781")}</p>}
         <ul className="chronik">
           {[...spiel.chronik].reverse().map((c, i) => (
             <li key={i}>

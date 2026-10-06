@@ -30,6 +30,7 @@ import { kannZahlen } from "../sim/kapital";
 import type { Ergebnis } from "../sim/handeln";
 import "./politik/design.css";
 
+import { t } from "../i18n";
 const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { maximumFractionDigits: d, minimumFractionDigits: d });
 
 /** Wohin eine Variante die Macht rückt, in einem Wort. */
@@ -86,7 +87,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
     return (
       <div className="beschlussbuch vf-akte">
         <section className="paper">
-          <h3>Der Verfassungsvorgang läuft</h3>
+          <h3>{t("ui.Verfassung.cdb7a4e")}</h3>
           <p className="subtitle">{geaendert.map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ")}</p>
           <ol className="vf-stufen">
             {stufen.map((s, i) => (
@@ -131,13 +132,13 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                 const noetig = Math.max(0, ziel - sicht.erwartet);
                 const kosten = Math.ceil(noetig * 0.5 * VERFASSUNG_REGELN.kaufFaktor);
                 return noetig > 0 ? (
-                  <button className="pd-btn primary" disabled={!kannZahlen(spiel.kapital, kosten)} onClick={() => tu(verfassungStimmenKaufen(world, noetig))} title="Absprachen mit Fraktionen; bei der Verfassungsfrage doppelt so teuer">
+                  <button className="pd-btn primary" disabled={!kannZahlen(spiel.kapital, kosten)} onClick={() => tu(verfassungStimmenKaufen(world, noetig))} title={t("ui.Verfassung.d78021e")}>
                     Hürde sichern: +{noetig} Stimmen <b>{kosten}</b>
                   </button>
                 ) : null;
               })()}
-              <button className="pd-btn quiet" onClick={() => tu(zieheVerfassungZurueck(world))} title="Gekaufte Stimmen sind verloren; ein Teil des Kapitals kommt zurück">
-                Zurückziehen
+              <button className="pd-btn quiet" onClick={() => tu(zieheVerfassungZurueck(world))} title={t("ui.Verfassung.81b4686")}>
+                {t("ui.Verfassung.dfaa501")}
               </button>
             </div>
           </section>
@@ -155,7 +156,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                 </p>
               );
             })()}
-            <p className="subtitle">Kassiert das Gericht, ist das Paket tot, der Groll wächst und die Artikel sind zwölf Monate gesperrt. Lässt es zu, geht es weiter.</p>
+            <p className="subtitle">{t("ui.Verfassung.8ed538c")}</p>
           </section>
         )}
 
@@ -170,7 +171,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
               Erwartet werden etwa <strong>{nf(prognose.mitte)} Prozent</strong> Ja (Spanne {nf(prognose.tief)}–{nf(prognose.hoch)}): Zustimmung {nf(prognose.zustimmung)}, Themen der Artikel {prognose.salienz >= 0 ? "+" : ""}
               {nf(prognose.salienz)}, Kampagne +{nf(prognose.kampagne)}.
             </p>
-            <p className="subtitle">Die Auszählung streut wie eine Wahl; jede weitere Kampagnen-Welle wirkt schwächer. Ein Nein kostet schweres Vertrauen und stärkt die Opposition.</p>
+            <p className="subtitle">{t("ui.Verfassung.73d21b7")}</p>
             <div className="stimmen-steuerung">
               <button className="pd-btn" onClick={() => tu(kampagnenImpuls(world))} title={`${VERFASSUNG_REGELN.kampagnePk} Kapital je Impuls, mit Abkühlzeit von einer Woche`}>
                 Kampagnen-Impuls <b>{VERFASSUNG_REGELN.kampagnePk}</b>
@@ -194,7 +195,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
           Eine Verfassungsfrage je Amtszeit: Schnüren Sie ein Paket aus bis zu fünf Artikeln. Das Parlament braucht {VERFASSUNG_REGELN.mehrheit} Stimmen — dann entscheidet das Volk — oder {VERFASSUNG_REGELN.direkt} für den
           direkten Beschluss; das Verfassungsgericht kann anfechtbar sein. Gescheiterte Artikel sind zwölf Monate gesperrt.
         </p>
-        {belegt && <p className="weg-warnung">Diese Amtszeit hat ihre Verfassungsdebatte hinter sich: Erst nach einer Wiederwahl trägt das Land eine neue Frage.</p>}
+        {belegt && <p className="weg-warnung">{t("ui.Verfassung.f354624")}</p>}
         {antwort && (
           <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
             {antwort.text}
@@ -273,14 +274,14 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
               {!pr.ok && <p className="weg-warnung">{pr.grund}</p>}
             </>
           ) : (
-            <p className="subtitle">Noch ändert das Paket nichts: Wählen Sie mindestens einen Artikel, der vom bisherigen Recht abweicht.</p>
+            <p className="subtitle">{t("ui.Verfassung.4d3a1f3")}</p>
           )}
         </section>
       )}
 
       {(aktivEintraege.length > 0 || z.historie.length > 0) && (
         <section className="paper">
-          <h3>Verfassungsstand und Geschichte</h3>
+          <h3>{t("ui.Verfassung.e526422")}</h3>
           {aktivEintraege.length > 0 && (
             <p className="subtitle">Beschlossen: {aktivEintraege.map(([id, vId]) => `„${artikelDef(id)?.name ?? id}: ${varianteDef(vId)?.name ?? vId}“`).join(", ")}.</p>
           )}

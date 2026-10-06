@@ -7,6 +7,7 @@ import { ART_NAMEN, namenVon, versprechensLage, versprechensschuldMalus } from "
 import type { Ziel } from "../schreibtisch/briefing";
 import { nf } from "./daten";
 
+import { t } from "../../i18n";
 export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel) => void }) {
   const zeilen = versprechensLage(world);
   const malus = versprechensschuldMalus(world);
@@ -15,8 +16,7 @@ export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel
       <div className="kr-leer">
         <h3>Noch nichts versprochen</h3>
         <p>
-          Ein öffentliches Versprechen nach einer Katastrophe, etwa „Wir bauen Ihnen die Häuser wieder auf“, bringt Zustimmung sofort und wird später gemessen. Hier sehen Sie, ob Sie
-          halten, was Sie zugesagt haben.
+          {t("ui.katastrophe.Versprechen.4ad977f")}
         </p>
       </div>
     );
@@ -46,20 +46,19 @@ export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel
       </ul>
 
       <section className={`kr-wahltag ${malus.punkte > 0 ? "malus" : ""}`}>
-        <h3>Was das am Wahltag kostet</h3>
+        <h3>{t("ui.katastrophe.Versprechen.83f7113")}</h3>
         {malus.punkte > 0 ? (
           <p>{malus.text}</p>
         ) : (
-          <p>Bisher droht kein Abzug: Versprechen werden erst sechs Monate nach der Katastrophe gemessen, und was geliefert ist, zählt für Sie.</p>
+          <p>{t("ui.katastrophe.Versprechen.2161d75")}</p>
         )}
         <p className="kr-klein">
-          Zur Mahnung: Nach dem Beben von 2023 waren 319.000 Wohnungen versprochen; im Februar 2025 waren 201.431 übergeben. Wer mehr verspricht, als er baut, wird am Wahltag daran
-          gemessen.
+          {t("ui.katastrophe.Versprechen.9bd9c13")}
         </p>
         {onGehe && (
           <div className="kr-aktionen">
             <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "akte", akte: "waehler" })}>
-              Stimmung der Wählergruppen
+              {t("ui.katastrophe.Versprechen.0b6eb4d")}
             </button>
             <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "akte", akte: "reich_infra" })}>
               Baureihenfolge im Reich
@@ -76,8 +75,8 @@ export function Chronik({ world }: { world: World }) {
   if (faelle.length === 0) {
     return (
       <div className="kr-leer">
-        <h3>Keine Fälle in dieser Amtszeit</h3>
-        <p>Sobald eine Katastrophe eintritt, steht sie hier mit Datum, Opferzahl und dem Stand ihrer Bewältigung.</p>
+        <h3>{t("ui.katastrophe.Versprechen.9256116")}</h3>
+        <p>{t("ui.katastrophe.Versprechen.2b52f4f")}</p>
       </div>
     );
   }

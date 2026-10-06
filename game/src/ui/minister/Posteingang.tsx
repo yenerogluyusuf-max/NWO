@@ -13,6 +13,7 @@ import { VorlageKarte } from "./VorlageKarte";
 import "../politik/design.css";
 import "./ministerfluss.css";
 
+import { t } from "../../i18n";
 export interface PostfachProps {
   world: World;
   refresh: () => void;
@@ -48,7 +49,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
 
   return (
     <div className="mf">
-      <div className="mf-ressorts" role="group" aria-label="Ressort wählen">
+      <div className="mf-ressorts" role="group" aria-label={t("ui.minister.Posteingang.31ce8a9")}>
         <button className={`mf-ressort${ressort === "alle" ? " on" : ""}`} onClick={() => setRessort("alle")} style={{ paddingLeft: 11 }}>
           Alle <em className={alle.length ? "" : "null"}>{alle.length}</em>
         </button>
@@ -85,7 +86,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
 
       {(vertagt > 0 || z.verfallen.length > 0) && (
         <section className="mf-abschnitt">
-          <h4>Was nicht entschieden wurde</h4>
+          <h4>{t("ui.minister.Posteingang.e0a2eb3")}</h4>
           {vertagt > 0 && <p className="mf-leer">{vertagt === 1 ? "Eine Vorlage ist" : `${vertagt} Vorlagen sind`} vertagt und kommt zur Wiedervorlage zurück.</p>}
           {z.verfallen.length > 0 && (
             <ul className="mf-verfallen">

@@ -6,6 +6,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import "./fehlergrenze.css";
 
+import { t } from "../i18n";
 interface Props {
   children: ReactNode;
   /** Wie die Ansicht heißt, in der Meldung */
@@ -66,7 +67,7 @@ export class Fehlergrenze extends Component<Props, State> {
             </button>
             {onZu && (
               <button type="button" className="leather-button" onClick={onZu}>
-                Akte schließen
+                {t("ui.Fehlergrenze.220c6d7")}
               </button>
             )}
             {gross && (

@@ -9,6 +9,7 @@ import { VorlageKarte } from "./VorlageKarte";
 import "../politik/design.css";
 import "./ministerfluss.css";
 
+import { t } from "../../i18n";
 export interface MappeProps {
   world: World;
   refresh: () => void;
@@ -46,7 +47,7 @@ export function Mappe({ world, refresh, max = 5, onGehe, onKarte, onPosteingang,
         </p>
       )}
       {m.mappe.length === 0 ? (
-        <p className="mf-leer">Die Mappe ist leer: Kein Minister hat im Moment etwas, das Ihre Unterschrift braucht. Nutzen Sie die Zeit, oder sehen Sie im Posteingang nach.</p>
+        <p className="mf-leer">{t("ui.minister.Mappe.61fe21b")}</p>
       ) : (
         <ol className="mf-liste">
           {m.mappe.map((v, i) => (
@@ -58,11 +59,11 @@ export function Mappe({ world, refresh, max = 5, onGehe, onKarte, onPosteingang,
       )}
       {(m.weitere > 0 || m.verfallen > 0) && onPosteingang && (
         <p className="mf-leer">
-          {m.weitere > 0 ? `${m.weitere} weitere ${m.weitere === 1 ? "Vorlage liegt" : "Vorlagen liegen"} im Posteingang der Minister` : "Der Posteingang ist leer"}
-          {m.vertagt > 0 ? `, ${m.vertagt} vertagt` : ""}
-          {m.verfallen > 0 ? `, ${m.verfallen} verfallen` : ""}.{" "}
+          {m.weitere > 0 ? t("mf.weitere", { n: m.weitere }) : t("mf.posteingangLeer")}
+          {m.vertagt > 0 ? t("mf.vertagt", { n: m.vertagt }) : ""}
+          {m.verfallen > 0 ? t("mf.verfallen", { n: m.verfallen }) : ""}.{" "}
           <button className="pd-btn quiet" onClick={onPosteingang}>
-            Zum Posteingang
+            {t("mf.zumPosteingang")}
           </button>
         </p>
       )}

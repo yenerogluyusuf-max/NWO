@@ -9,6 +9,7 @@ import { tunWort } from "../data/skalen";
 import type { NodeSpec } from "../data/politiknetz";
 import type { World } from "../sim/types";
 
+import { t } from "../i18n";
 const EINGRIFF_NAME: Record<string, string> = {
   ausgaben: "Staatsausgaben erhöhen",
   sparen: "Staatsausgaben kürzen",
@@ -47,7 +48,7 @@ export function Handlungsfeld({
           {zusatz ? ` · ${zusatz}` : ""}
         </span>
       </div>
-      <button className="aktion-knopf" onClick={() => onStelle(h.massnahme, h.richtung, ort)} title="Die Maßnahme mit einer sinnvollen Voreinstellung öffnen">
+      <button className="aktion-knopf" onClick={() => onStelle(h.massnahme, h.richtung, ort)} title={t("ui.Handlungsfeld.ba54e97")}>
         Einstellen
       </button>
     </li>
@@ -66,14 +67,14 @@ export function Handlungsfeld({
         </p>
         <b className="hh-kopf">Abhelfen</b>
         <ul className="hh-liste">{hebel.map((h) => zeile(h, orte.length > 0 && orte.length <= 50 ? orte : null, orte.length ? `${orte.length} ${orte.length === 1 ? "Provinz" : "Provinzen"}` : undefined))}</ul>
-        {hebel.length === 0 && <p className="subtitle">Alle Vorhaben, die hier helfen, stehen schon weit ausgebaut.</p>}
+        {hebel.length === 0 && <p className="subtitle">{t("ui.Handlungsfeld.14f0951")}</p>}
       </>
     );
   } else if (node.kind === "gruppe") {
     const hebel = handlungsHebel(mittel, node.id, 1, 4);
     inhalt = (
       <>
-        <p className="subtitle">Diese Gruppe wird zufriedener, wenn Sie das hier tun. Andere Gruppen können dabei verlieren: Das steht bei jeder Maßnahme unter „Profitieren und Verlieren“.</p>
+        <p className="subtitle">{t("ui.Handlungsfeld.7de9cd7")}</p>
         <b className="hh-kopf">Was sie wollen</b>
         <ul className="hh-liste">{hebel.map((h) => zeile(h, null))}</ul>
       </>
@@ -95,7 +96,7 @@ export function Handlungsfeld({
                     <strong>{EINGRIFF_NAME[e.option]}</strong>
                     <span>{e.wirkt}</span>
                   </div>
-                  <button className="aktion-knopf" onClick={() => onEingriff?.(e.option)} title="Den Erlass vorbereiten und die Vorschau auf das nächste Jahr ansehen">
+                  <button className="aktion-knopf" onClick={() => onEingriff?.(e.option)} title={t("ui.Handlungsfeld.dc1774b")}>
                     Vorbereiten
                   </button>
                 </li>
@@ -115,14 +116,14 @@ export function Handlungsfeld({
             <ul className="hh-liste">{heben.map((h) => zeile(h, null))}</ul>
           </>
         )}
-        {senken.length === 0 && heben.length === 0 && eingriffe.length === 0 && <p className="subtitle">Für diese Größe gibt es keinen direkten Hebel; sie folgt den Größen, die auf sie wirken (unten unter „Ursachen“).</p>}
+        {senken.length === 0 && heben.length === 0 && eingriffe.length === 0 && <p className="subtitle">{t("ui.Handlungsfeld.9f94acf")}</p>}
       </>
     );
   }
 
   return (
     <div className="policy handlungsfeld">
-      <h4 className="hh-titel">Was Sie tun können</h4>
+      <h4 className="hh-titel">{t("ui.Handlungsfeld.51a8bcf")}</h4>
       {inhalt}
     </div>
   );

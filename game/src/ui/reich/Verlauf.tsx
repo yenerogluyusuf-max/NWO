@@ -8,6 +8,7 @@ import { eingriffHeute, reichZustand, vorhabenDef } from "../../sim/reich";
 import { NET } from "../../sim/modell";
 import { formatDateDe } from "../../sim/dates";
 
+import { t } from "../../i18n";
 const name = (id: string) => NET.nodes[NET.index.get(id) ?? -1]?.name ?? id;
 const zahl = (x: number) => Math.round(x).toLocaleString("de-DE");
 
@@ -21,7 +22,7 @@ export function Verlauf({ world, bereich }: { world: World; bereich: Bereich }) 
   return (
     <section className="rr-abschnitt">
       <h4>
-        Zuletzt fertig <em>Vorher, bei der Fertigstellung, heute</em>
+        Zuletzt fertig <em>{t("ui.reich.Verlauf.1a8d4ba")}</em>
       </h4>
       <ul className="rv-liste">
         {liste.map((e) => {
@@ -42,7 +43,7 @@ export function Verlauf({ world, bereich }: { world: World; bereich: Bereich }) 
                 <table className="rv-tabelle">
                   <thead>
                     <tr>
-                      <th scope="col">Größe</th>
+                      <th scope="col">{t("ui.reich.Verlauf.d9130ae")}</th>
                       <th scope="col">Vorher</th>
                       <th scope="col">Bei Fertigstellung</th>
                       <th scope="col">Heute</th>

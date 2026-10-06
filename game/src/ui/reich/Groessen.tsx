@@ -5,6 +5,7 @@ import { nationalAverage } from "../../sim/netz";
 import { vorMonaten } from "../../sim/waehler";
 import type { World } from "../../sim/types";
 
+import { t } from "../../i18n";
 export interface GroesseDef {
   id: string;
   /** Höherer Wert ist schlechter (Überfüllung, Ausnahmerecht) */
@@ -34,7 +35,7 @@ export function Groessen({ world, liste }: { world: World; liste: GroesseDef[] }
             <span className="rr-groesse-wert">
               {Math.round(jetzt)}
               {Math.abs(trend) >= 0.5 && (
-                <em className={trendGut ? "hoch" : "runter"} title="Veränderung seit drei Monaten">
+                <em className={trendGut ? "hoch" : "runter"} title={t("ui.reich.Groessen.e2a1f3b")}>
                   {trend > 0 ? "▲" : "▼"}
                 </em>
               )}

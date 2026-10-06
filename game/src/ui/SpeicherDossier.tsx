@@ -18,6 +18,7 @@ import {
 } from "./speicher";
 import { Icon } from "./icons";
 
+import { t } from "../i18n";
 interface Props {
   world: World;
   onLaden: (w: World) => void;
@@ -174,9 +175,9 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
 
       {frueher.length > 0 && (
         <section className="paper" style={{ padding: "14px 18px" }}>
-          <h3 style={{ margin: "0 0 4px", fontSize: 18 }}>Frühere Sicherungen</h3>
+          <h3 style={{ margin: "0 0 4px", fontSize: 18 }}>{t("ui.SpeicherDossier.408d35f")}</h3>
           <p className="subtitle" style={{ margin: "0 0 12px" }}>
-            Das Spiel hebt den weitesten Stand und die letzten automatischen Sicherungen auf. So bleibt nichts verloren, wenn Sie einen älteren Stand laden.
+            {t("ui.SpeicherDossier.fe43274")}
           </p>
           <div style={{ display: "grid", gap: 8 }}>
             {frueher.map((r) => (
@@ -198,7 +199,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
       <section className="paper" style={{ padding: "14px 18px" }}>
         <h3 style={{ margin: "0 0 4px", fontSize: 18 }}>Feste Speicher-Slots (1 bis 5)</h3>
         <p className="subtitle" style={{ margin: "0 0 14px" }}>
-          Legen Sie gezielte Meilensteine an — etwa vor Verfassungsreformen, schwierigen Wahlen oder Großprojekten.
+          {t("ui.SpeicherDossier.30a1a01")}
         </p>
 
         <div style={{ display: "grid", gap: 10 }}>
@@ -227,14 +228,14 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                       {info.datum} · {info.name} ({Math.round(info.zustimmung ?? 0)} % Zustimmung)
                     </span>
                   ) : (
-                    <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>Kein Spielstand</span>
+                    <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("ui.SpeicherDossier.e0f9ca5")}</span>
                   )}
                 </div>
 
                 <div>
                   <input
                     type="text"
-                    placeholder="Notiz zum Zwischenstand (optional)"
+                    placeholder={t("ui.SpeicherDossier.7b85853")}
                     value={slotNotiz[slotNum] ?? (info ? info.label : "")}
                     onChange={(e) => setSlotNotiz((n) => ({ ...n, [slotNum]: e.target.value }))}
                     style={{

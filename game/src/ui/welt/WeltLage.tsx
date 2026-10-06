@@ -7,8 +7,9 @@ import { wahlSicht, letzteWahl } from "../../sim/welt-sicht";
 import { addDays, formatDateDe } from "../../sim/dates";
 import type { Code } from "../../data/welt-daten";
 
+import { t } from "../../i18n";
 function Verlauf({ werte, einheit, titel }: { werte: number[]; einheit: string; titel: string }) {
-  if (werte.length < 3) return <span className="we-linie leer" title="Noch zu wenige Monate für einen Verlauf">noch kein Verlauf</span>;
+  if (werte.length < 3) return <span className="we-linie leer" title={t("ui.welt.WeltLage.a26a17b")}>{t("ui.welt.WeltLage.621f42c")}</span>;
   const min = Math.min(...werte);
   const max = Math.max(...werte);
   const spanne = max - min || 1;
@@ -53,7 +54,7 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
   const news = jungeNachrichten(world, id, 4);
   const h = l.herkunft as Record<Code, string>;
   return (
-    <section className="we-lage" aria-label="Lage des Staates">
+    <section className="we-lage" aria-label={t("ui.welt.WeltLage.40ff8af")}>
       {l.krise && (
         <p className="we-krise" role="status">
           {l.krise.name} — bis etwa {formatDateDe(addDays(world.date, l.krise.bisTag - world.day))}
@@ -64,11 +65,11 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
         <Zahl label="Inflation" wert={nf(l.inflation)} einheit="%" herkunft={h.inflation} verlauf={l.verlauf.map((v) => v[1])} gut="niedrig" />
         <Zahl label="Staatsschulden" wert={nf(l.schulden, 0)} einheit="% BIP" herkunft={h.schulden} gut="niedrig" />
         <Zahl label="Haushaltssaldo" wert={nf(l.defizit)} einheit="% BIP" herkunft={h.defizit} gut="hoch" />
-        <Zahl label="Rüstung" wert={nf(l.ruestung)} einheit="% BIP" herkunft={h.ruestung} />
+        <Zahl label={t("ui.welt.WeltLage.219669d")} wert={nf(l.ruestung)} einheit="% BIP" herkunft={h.ruestung} />
       </div>
       <div className="we-balken-raster">
-        <Balken label="Stabilität" wert={l.stabilitaet} wort={l.stabilitaetWort} schlecht={l.stabilitaet < 35} />
-        <Balken label="Rückhalt der Führung" wert={l.rueckhalt} schlecht={l.rueckhalt < 35} />
+        <Balken label={t("ui.welt.WeltLage.5f64955")} wert={l.stabilitaet} wort={l.stabilitaetWort} schlecht={l.stabilitaet < 35} />
+        <Balken label={t("ui.welt.WeltLage.1520bcc")} wert={l.rueckhalt} schlecht={l.rueckhalt < 35} />
         <Balken label="Bedrohungslage" wert={l.bedrohung} schlecht={l.bedrohung > 65} />
         {l.krieg >= 5 && <Balken label="Kriegsbelastung" wert={l.krieg} schlecht={l.krieg > 50} />}
       </div>
@@ -92,14 +93,14 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
                 Herausforderer: <span className={`we-haltung-chip k${wahl.herausforderer.kurs}`}>{wahl.herausforderer.wort}</span>, {wahl.herausforderer.staerke}
               </li>
             ) : wahl.monate > 5 ? (
-              <li className="we-hinweis">Die Lager stehen erst fünf Monate vor der Wahl fest.</li>
+              <li className="we-hinweis">{t("ui.welt.WeltLage.75f35d6")}</li>
             ) : null}
             <li>
               Aussicht der Amtsführung:{" "}
               {wahl.lagebild ? (
                 <b>etwa {wahl.lagebild.prozent} Prozent</b>
               ) : (
-                <span className="we-hinweis">unbekannt — ohne Aufklärung bleibt nur der Eindruck aus Rückhalt und Wirtschaft</span>
+                <span className="we-hinweis">{t("ui.welt.WeltLage.6ba8692")}</span>
               )}
               {wahl.lagebild && <span className="we-hinweis"> (Lagebild vor {wahl.lagebild.tage} Tagen)</span>}
             </li>
@@ -113,13 +114,13 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
       )}
       {letzte && (
         <p className="we-letzte-wahl">
-          <b>Letzte Wahl:</b> {letzte.fakt}
+          <b>{t("ui.welt.WeltLage.568b1e8")}</b> {letzte.fakt}
         </p>
       )}
 
       {news.length > 0 && (
         <div className="we-geaendert">
-          <b>Was sich zuletzt geändert hat</b>
+          <b>{t("ui.welt.WeltLage.1d6b531")}</b>
           <ul>
             {news.map((n, i) => (
               <li key={`${n.tag}-${i}`}>

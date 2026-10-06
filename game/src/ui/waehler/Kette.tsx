@@ -4,6 +4,7 @@
 import type { KettenGlied } from "../../sim/waehler-detail";
 import { anzeigeName, nf, vz } from "./format";
 
+import { t } from "../../i18n";
 function zustand(g: KettenGlied): string {
   const a = Math.abs(g.abweichung);
   if (a < 0.2) return "kaum verändert";
@@ -51,7 +52,7 @@ export function Kette({
             {tiefe === 0 && g.text && <em className="wa-kette-warum">{g.text}</em>}
             {g.art === "massnahme" && onMassnahme && (
               <button type="button" className="link wa-kette-link" onClick={() => onMassnahme(g.id, g.beitrag < 0 ? (g.abweichung > 0 ? -1 : 1) : g.abweichung >= 0 ? 1 : -1)}>
-                Maßnahme ansehen und einstellen
+                {t("ui.waehler.Kette.1ef7032")}
               </button>
             )}
             {g.kinder.length > 0 && <Kette glieder={g.kinder} eltern={g.name} {...(onMassnahme ? { onMassnahme } : {})} tiefe={tiefe + 1} />}

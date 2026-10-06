@@ -8,6 +8,7 @@ import { ANBIETER, anbieterDef, erkenneAnbieter, schluesselWarnung } from "../ki
 import type { KiKonfig } from "../ki/typen";
 import type { KiZaehler } from "../ki/einstellungen";
 
+import { t } from "../i18n";
 interface Props {
   konfig: KiKonfig;
   aendere: (k: KiKonfig) => void;
@@ -49,14 +50,14 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
   return (
     <div className="gs-einst">
       <div className="gs-einst-kopf">
-        <h4>Welche KI soll das Präsidialamt beraten?</h4>
-        <p>Sie können einen beliebigen Anbieter wählen. Der Schlüssel bleibt in diesem Browser; ohne Schlüssel antwortet das Regelwerk.</p>
+        <h4>{t("ui.KiEinstellungen.9e687e8")}</h4>
+        <p>{t("ui.KiEinstellungen.9fa9290")}</p>
       </div>
 
       <div className="gs-anbieter" role="radiogroup" aria-label="Anbieter">
         <button type="button" role="radio" aria-checked={konfig.art === "auto"} className={`gs-karte${konfig.art === "auto" ? " on" : ""}`} onClick={() => setze({ art: "auto" })}>
           <strong>Automatisch</strong>
-          <span>Nimmt, was eingerichtet ist</span>
+          <span>{t("ui.KiEinstellungen.6bc1728")}</span>
         </button>
         {ANBIETER.map((x) => {
           const hat = !!(konfig.schluessel[x.id] ?? "").trim();
@@ -71,13 +72,13 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
         })}
         <button type="button" role="radio" aria-checked={konfig.art === "aus"} className={`gs-karte${konfig.art === "aus" ? " on" : ""}`} onClick={() => setze({ art: "aus" })}>
           <strong>Aus</strong>
-          <span>Nur das Regelwerk</span>
+          <span>{t("ui.KiEinstellungen.b1a4bba")}</span>
         </button>
       </div>
 
       {konfig.art === "auto" && (
         <p className="gs-erkl">
-          Automatisch nimmt zuerst einen Schlüssel, den der Entwicklungsserver kennt, dann einen der Anbieter, für die Sie unten einen Schlüssel eingetragen haben. Tragen Sie ihn dazu bei dem passenden Anbieter ein: Wählen Sie ihn oben aus.
+          {t("ui.KiEinstellungen.a01ed8b")}
         </p>
       )}
 
@@ -114,7 +115,7 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
 
           {!a.lokal && (
             <label className="gs-feld">
-              <span>Schlüssel</span>
+              <span>{t("ui.KiEinstellungen.1ac8328")}</span>
               <input type="password" autoComplete="off" spellCheck={false} placeholder={a.praefix ? `${a.praefix}…` : "Schlüssel einfügen"} value={schluessel} onChange={(e) => setzeSchluessel(a.id, e.target.value)} />
             </label>
           )}
@@ -139,7 +140,7 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
 
       <div className="gs-budget">
         <label className="gs-feld schmal">
-          <span>Aufrufe je Sitzung höchstens</span>
+          <span>{t("ui.KiEinstellungen.b7a66fb")}</span>
           <input type="number" min={1} max={2000} value={konfig.maxAufrufe} onChange={(e) => setze({ maxAufrufe: Math.max(1, Number(e.target.value) || 1) })} />
         </label>
         <p className="gs-erkl klein">

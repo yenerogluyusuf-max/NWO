@@ -10,6 +10,7 @@ import { STIMMUNG_WORT, bewerte, heimWirkung, klauselnFuer, nimmGegenangebot, sp
 import { kannZahlen, nurAufPump } from "../../sim/kapital";
 import { Flagge } from "../art/Flaggen";
 
+import { t } from "../../i18n";
 const punkte = (wert: number) => Math.min(4, Math.max(1, Math.round(Math.abs(wert) / 2.5)));
 
 function Punkte({ n, ton }: { n: number; ton: "gut" | "schlecht" }) {
@@ -39,7 +40,7 @@ function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSich
         <span className="we-klausel-kopf">
           <strong>{k.label}</strong>
           {k.def.pk ? (
-            <b className="we-pk" title="Politischer Preis im eigenen Land, in Kapital">
+            <b className="we-pk" title={t("ui.welt.Verhandlungstisch.a663901")}>
               {k.def.pk}
             </b>
           ) : null}
@@ -166,7 +167,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
                         Annehmen
                       </button>
                       <button type="button" className="link" onClick={() => { laden(g.angebot); setAntwort(null); }}>
-                        In den Tisch übernehmen
+                        {t("ui.welt.Verhandlungstisch.3f14ba3")}
                       </button>
                     </span>
                   </li>
@@ -175,7 +176,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
             )}
             {antwort.urteil === "zustimmung" && vertraegeLaufen > 0 && onVertraege && (
               <button type="button" className="link" onClick={onVertraege}>
-                Zu den laufenden Verträgen
+                {t("ui.welt.Verhandlungstisch.2bfb449")}
               </button>
             )}
           </div>
@@ -191,7 +192,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
             </div>
           </div>
           {!nichts && (
-            <ul className="we-gruende" aria-label="Gründe der Gegenseite">
+            <ul className="we-gruende" aria-label={t("ui.welt.Verhandlungstisch.507600f")}>
               {b.gruende.slice(0, 8).map((g, i) => (
                 <li key={i} className={g.art === "plus" ? "we-gut" : g.art === "minus" ? "we-schlecht" : ""}>
                   <span aria-hidden>{g.art === "plus" ? "+" : g.art === "minus" ? "−" : "·"}</span>

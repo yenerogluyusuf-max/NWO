@@ -26,7 +26,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
       <header className="erklaerung-kopf">
         <Cameo seed="Defne Arslan" figure="f" glasses size={36} tint="#265a62" />
         <div>
-          <strong>Die Mentorin erklärt</strong>
+          <strong>{t("ui.Erklaerung.f45e424")}</strong>
           <span>{node.name}</span>
         </div>
         <div className="reiter" role="tablist">
@@ -49,7 +49,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
           <p className="lead">{e.was[0]}</p>
           {e.stand[0] && (
             <p className="stand">
-              <b>Wo steht das Land?</b> {e.stand[0]}
+              <b>{t("ui.Erklaerung.0ca5c4c")}</b> {e.stand[0]}
             </p>
           )}
           {mehr && (
@@ -63,7 +63,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
               {e.orte && (
                 <div className="orte">
                   <div>
-                    <span>Am höchsten</span>
+                    <span>{t("ui.Erklaerung.344fbb6")}</span>
                     <ul>
                       {e.orte.hoch.map((o) => (
                         <li key={o.name}>
@@ -86,7 +86,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
               )}
               {e.wirkungen.length > 0 && (
                 <>
-                  <h4>Warum ist das wichtig?</h4>
+                  <h4>{t("ui.Erklaerung.184fe65")}</h4>
                   <ul className="wichtig">
                     {e.wirkungen.map((v) => (
                       <li key={v.id}>
@@ -123,7 +123,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
 
       {reiter === "welt" && (
         <div className="erklaerung-koerper">
-          <p className="lead">Eine Zahl sagt erst im Vergleich etwas. Wie schneidet die Türkei gegenüber anderen Ländern ab?</p>
+          <p className="lead">{t("ui.Erklaerung.b90015a")}</p>
           {vergleiche.length > 1 && (
             <div className="welt-wahl">
               {vergleiche.map((v, i) => (
@@ -164,7 +164,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
                       <span>{h.warum}</span>
                       {id && (
                         <button className="link" onClick={() => onSelect(hebelId(id))}>
-                          Zur Maßnahme
+                          {t("ui.Erklaerung.a440712")}
                         </button>
                       )}
                     </li>
@@ -197,6 +197,7 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
 }
 
 import { NET } from "../sim/modell";
+import { t } from "../i18n";
 function hebelId(name: string): string {
   return NET.nodes.find((n) => n.name === name)?.id ?? "";
 }

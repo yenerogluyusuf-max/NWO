@@ -11,6 +11,7 @@ import { vergabeAngebot } from "../../sim/reich";
 import { beginneFrei, freieEntwuerfe, transitGegenAnnehmen, transitUmweg, transitVerhandeln, UMWEG_FAKTOR, verwerfeFrei } from "../../sim/grossprojekt";
 import { land } from "../../sim/laender";
 
+import { t } from "../../i18n";
 const fmt = (x: number): string => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
 const bandText = (b: Band): string => `${fmt(b.tief)} bis ${fmt(b.hoch)}`;
 
@@ -26,32 +27,32 @@ function TransitKette({ welt, id, eintrag, refresh, melde }: { welt: World; id: 
   };
   return (
     <div className="rr-transit">
-      <b className="rr-wirkung-kopf">Grenzübertritt — jedes Land verhandelt ein eigenes Paket am Verhandlungstisch</b>
+      <b className="rr-wirkung-kopf">{t("ui.reich.Schaetzblatt.a6dd7bf")}</b>
       <ul className="rr-transit-kette">
-        {s.transit.map((t) => {
-          const stand = eintrag.transit?.[t.land] ?? "offen";
-          const gegen = eintrag.transitGegen?.[t.land];
+        {s.transit.map((tx) => {
+          const stand = eintrag.transit?.[tx.land] ?? "offen";
+          const gegen = eintrag.transitGegen?.[tx.land];
           return (
-            <li key={t.land} className={`rr-transit-schritt ${stand}`}>
+            <li key={tx.land} className={`rr-transit-schritt ${stand}`}>
               <span className="rr-transit-land">
-                {t.name}
-                {t.vermutet && <em title="Vom Interpreter ergänzter Korridor, nicht von Ihnen genannt"> (vermuteter Korridor)</em>}
+                {tx.name}
+                {tx.vermutet && <em title={t("ui.reich.Schaetzblatt.6cf7fa3")}> (vermuteter Korridor)</em>}
               </span>
               <span className={`rr-plakette transit-${stand}`} title={{ offen: "Noch nicht verhandelt", zusage: "Durchfahrt zugesagt", veto: "Verweigert die Durchfahrt", umgangen: "Die Strecke umgeht das Land — teurer" }[stand]}>
                 {{ offen: "offen", zusage: "zugesagt", veto: "Veto", umgangen: "Umweg" }[stand]}
               </span>
               {stand === "offen" && (
-                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitVerhandeln(welt, id, t.land))} title="Paket am Verhandlungstisch: die Türkei bietet ihre besten Klauseln und verlangt die Durchfahrt. Kostet Kapital.">
+                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitVerhandeln(welt, id, tx.land))} title={t("ui.reich.Schaetzblatt.cfe8b8e")}>
                   Verhandeln
                 </button>
               )}
               {stand === "offen" && gegen && (
-                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitGegenAnnehmen(welt, id, t.land))} title="Das nachgebesserte Paket des Landes annehmen.">
+                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitGegenAnnehmen(welt, id, tx.land))} title={t("ui.reich.Schaetzblatt.97f17a9")}>
                   Gegenangebot annehmen
                 </button>
               )}
               {stand === "veto" && (
-                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitUmweg(welt, id, t.land))} title={`Das Veto steht. Der Umweg macht den Bau etwa ${Math.round((UMWEG_FAKTOR - 1) * 100)} % teurer und ein Viertel länger.`}>
+                <button type="button" className="aktion-knopf" onClick={() => tue(() => transitUmweg(welt, id, tx.land))} title={`Das Veto steht. Der Umweg macht den Bau etwa ${Math.round((UMWEG_FAKTOR - 1) * 100)} % teurer und ein Viertel länger.`}>
                   Umweg wählen (+{Math.round((UMWEG_FAKTOR - 1) * 100)} % Bau)
                 </button>
               )}
@@ -59,7 +60,7 @@ function TransitKette({ welt, id, eintrag, refresh, melde }: { welt: World; id: 
           );
         })}
       </ul>
-      <p className="rr-hinweis">Ein einziges Veto macht die Strecke tot — oder den Umweg teurer (Bagdadbahn-Regel).</p>
+      <p className="rr-hinweis">{t("ui.reich.Schaetzblatt.61033b9")}</p>
     </div>
   );
 }
@@ -87,9 +88,9 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
   return (
     <article className={`rr-karte klasse-${s.klasse} rr-schaetz`}>
       <div className="rr-karte-kopf">
-        <span className="rr-klasse">Freies Großprojekt</span>
-        <span className="rr-plakette geschaetzt" title="Kosten, Dauer und Wirkungen sind Schätzungen aus dem 3-Ebenen-Modell; die Überschreitung kommt erfahrungsgemäß erst im Bau.">
-          geschätzt
+        <span className="rr-klasse">{t("ui.reich.Schaetzblatt.6712edc")}</span>
+        <span className="rr-plakette geschaetzt" title={t("ui.reich.Schaetzblatt.8d30067")}>
+          {t("ui.reich.Schaetzblatt.59d1b61")}
         </span>
       </div>
       <h4 className="rr-name">{s.name}</h4>
@@ -97,17 +98,17 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
         Ihre Eingabe: „{s.eingabe}“ — {PROJEKT_TYP_NAMEN[s.typ]}, {MASSSTAB_NAMEN[s.massstab]}.
       </p>
 
-      <ul className="rr-kosten" aria-label="Geschätzte Kosten (Bandbreiten)">
-        <li title="Politisches Kapital beim Beginn (Bandbreite)">
+      <ul className="rr-kosten" aria-label={t("ui.reich.Schaetzblatt.6573ad3")}>
+        <li title={t("ui.reich.Schaetzblatt.031fe90")}>
           <b>{bandText(s.pk)}</b> Kapital
         </li>
-        <li title="Baupunkte insgesamt; die Überschreitung treibt das obere Ende">
+        <li title={t("ui.reich.Schaetzblatt.d33602a")}>
           <b>{bandText(s.bau)}</b> Baupunkte
         </li>
-        <li title="Bauzeit; die Vergabe und die Überschreitung wirken darauf">
+        <li title={t("ui.reich.Schaetzblatt.afeadd0")}>
           <b>{bandText(s.monate)}</b> Monate
         </li>
-        <li title="Schuldenquote über die Bauzeit">
+        <li title={t("ui.reich.Schaetzblatt.ce0bf09")}>
           <b>{bandText(s.schulden)}</b> % BIP
         </li>
         <li title="Verwaltungskraft je Monat im Bau">
@@ -117,7 +118,7 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
 
       {s.wirkungen.length > 0 && (
         <div className="rr-wirkung">
-          <b className="rr-wirkung-kopf">Wirkung (Richtung und Bandbreite, verwirklicht erst bei der Annahme)</b>
+          <b className="rr-wirkung-kopf">{t("ui.reich.Schaetzblatt.94a93c9")}</b>
           <ul>
             {s.wirkungen.slice(0, 8).map((wg) => (
               <li key={wg.name} className={wg.gut ? "rr-gut" : "rr-schlecht"}>
@@ -158,7 +159,7 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
       <TransitKette welt={welt} id={id} eintrag={eintrag} refresh={refresh} melde={setMeldung} />
 
       <blockquote className="rr-mentor">
-        <b>Die Mentorin erklärt:</b> {s.mentor}
+        <b>{t("ui.reich.Schaetzblatt.f9dde96")}</b> {s.mentor}
       </blockquote>
 
       {meldung && <p className="rr-ergebnis ok" role="status">{meldung}</p>}
@@ -176,7 +177,7 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
       )}
       {vergabeWahl && (
         <div className="rr-vergabe">
-          <b className="rr-wirkung-kopf">Wie wird der Auftrag vergeben? Die Wahl steht danach fest.</b>
+          <b className="rr-wirkung-kopf">{t("ui.reich.Schaetzblatt.1c4cddd")}</b>
           <ul>
             {VERGABE_REIHENFOLGE.map((weg) => {
               const a = vergabeAngebot(v, weg);
@@ -188,15 +189,15 @@ export function Schaetzblatt({ welt, id, eintrag, refresh }: { welt: World; id: 
                   </button>
                   <span className="rr-bau-info">
                     {a.pk} Kapital · {a.bau} Baupunkte · {a.monate} {a.monate === 1 ? "Monat" : "Monate"}
-                    {a.vorlauf > 0 ? ` + ${a.vorlauf} Monate Vergabephase` : ""} <em>(aus der Mitte der Bänder)</em>
+                    {a.vorlauf > 0 ? ` + ${a.vorlauf} Monate Vergabephase` : ""} <em>{t("ui.reich.Schaetzblatt.73cad39")}</em>
                   </span>
                 </li>
               );
             })}
           </ul>
-          <p className="rr-hinweis">Bei der Annahme fallen die Würfe: Wirkungen und Verkehre werden im Band verwirklicht; die Überschreitung entscheidet sich erst im Bau.</p>
+          <p className="rr-hinweis">{t("ui.reich.Schaetzblatt.753fd68")}</p>
           <button type="button" className="link" onClick={() => setVergabeWahl(false)}>
-            Zurück
+            {t("ui.reich.Schaetzblatt.4080624")}
           </button>
         </div>
       )}

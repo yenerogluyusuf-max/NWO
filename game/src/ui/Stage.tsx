@@ -38,6 +38,7 @@ import { Netze } from "./infrastruktur/Netze";
 import { Streitkraefte } from "./militaer/Streitkraefte";
 import { WunderFenster } from "./reich/WunderFenster";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
+import { Gesetzesvorhaben } from "./gesetze/Gesetzesvorhaben";
 import { istAbstimmung } from "./parlament/abstimmung";
 import { quittiereFeier, reichZustand, vorhabenDef } from "../sim/reich";
 import { ERBE } from "../data/erbe";
@@ -97,6 +98,7 @@ type Dossier =
   | "netz"
   | "entscheidungen"
   | "parlament"
+  | "gesetze"
   | "personen"
   | "chronik"
   | "beschluesse"
@@ -448,6 +450,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       icon: "waage",
       badge: (spiel?.gesetze.length ?? 0) + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
       tabs: [
+        { id: "gesetze", label: t("buehne.tab.gesetze") },
         { id: "parlament", label: t("buehne.tab.parlament") },
         { id: "beschluesse", label: t("buehne.tab.beschluesse") },
         { id: "verfassung", label: t("buehne.tab.verfassung") },
@@ -812,7 +815,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
@@ -898,6 +901,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               />
             )}
             {dossier === "wirtschaft" && <EconomyFile key={wirtschaftStart} world={w} start={wirtschaftStart} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "gesetze" && <Gesetzesvorhaben world={w} refresh={() => { refresh(); sichere(true); }} />}
             {(dossier === "parlament" || dossier === "beschluesse") && (
               <Beschlussbuch
                 teil={dossier === "parlament" ? "parlament" : "beschluesse"}

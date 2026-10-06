@@ -55,7 +55,7 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
       <Corners />
       <header className="dossier-head">
         <h2>{d.name}</h2>
-        <button className="close" onClick={onClose} aria-label="Schließen">
+        <button className="close" onClick={onClose} aria-label={t("ui.ProvinceCard.44424b1")}>
           ✕
         </button>
       </header>
@@ -84,27 +84,27 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
           <>
             <h3 className="province-sub">Infrastruktur</h3>
             <dl>
-              <dt>Straßennetz</dt>
+              <dt>{t("ui.ProvinceCard.e1ddaa6")}</dt>
               <dd>
                 {inf.strasse_km.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km · {nf(inf.strasse_dichte, 2)} je km²
                 <span className={`rel ${dichteRel! < 0.75 ? "dünn" : dichteRel! > 1.3 ? "dicht" : ""}`}> ({dichteRel! < 0.75 ? "dünn" : dichteRel! > 1.3 ? "dicht" : "durchschnittlich"})</span>
               </dd>
               <dt>Bahnstrecken</dt>
               <dd>{inf.schiene_km > 0 ? `${inf.schiene_km.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km` : "keine erfasst"}</dd>
-              <dt>Krankenhäuser</dt>
+              <dt>{t("ui.ProvinceCard.384ddc5")}</dt>
               <dd>
                 {inf.krankenhaeuser} ({nf(kh100k!, 1)} je 100.000 Einwohner)
               </dd>
-              <dt>Flughäfen · Kraftwerke</dt>
+              <dt>{t("ui.ProvinceCard.9fe8de3")}</dt>
               <dd>
                 {inf.flughaefen} · {inf.kraftwerke}
               </dd>
             </dl>
-            <p className="footnote">Quelle: OpenStreetMap. Erfasste Straßen und Einrichtungen, keine amtliche Zählung.</p>
+            <p className="footnote">{t("ui.ProvinceCard.5533cde")}</p>
           </>
         )}
 
-        <h3 className="province-sub">Lage im Spiel</h3>
+        <h3 className="province-sub">{t("ui.ProvinceCard.ec52eb3")}</h3>
         <ul className="province-werte">
           {WERTE.map((wt) => {
             const v = world.net.values[NET.index.get(wt.id)! * PROVINCES + plaka - 1]!;
@@ -176,9 +176,9 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
         )}
 
         <button className="brass-button province-bauen" onClick={() => onBauen(plaka)}>
-          Hier bauen oder fördern …
+          {t("ui.ProvinceCard.ed845b0")}
         </button>
-        <p className="footnote">Der Gouverneur wird vom Präsidenten ernannt.</p>
+        <p className="footnote">{t("ui.ProvinceCard.3ac9e40")}</p>
       </div>
     </aside>
   );

@@ -8,6 +8,7 @@ import type { Linie } from "../../sim/wirtschaft-kennzahlen";
 import type { Band } from "../../sim/forecast";
 import "./wirtschaft.css";
 
+import { t } from "../../i18n";
 export interface DiagrammBand {
   ohne: Band[];
   mit?: Band[];
@@ -273,7 +274,7 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
             <i className="wi-leg-band wi-leg-mit" /> {band.mitName ?? "Mit Ihrem Vorhaben"}
           </span>
         )}
-        {rechnet && <span className="wi-rechnet">Die Kanzlei rechnet die nächsten zwölf Monate durch …</span>}
+        {rechnet && <span className="wi-rechnet">{t("ui.wirtschaft.Diagramm.b2a60be")}</span>}
         {Array.from(vorhandeneArten).map((art) => (
           <span key={art}>
             <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>

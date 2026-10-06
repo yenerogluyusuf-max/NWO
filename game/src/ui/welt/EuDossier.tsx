@@ -7,6 +7,7 @@ import type { World } from "../../sim/types";
 import { KAPITEL, VISA_KRITERIEN, annaeherungSicht, euUebersicht, kuendigeReformAn, type KriteriumStand } from "../../sim/eu";
 import { formatDateDe } from "../../sim/dates";
 
+import { t } from "../../i18n";
 function KriteriumZeile({ s }: { s: KriteriumStand }) {
   return (
     <li className={s.erfuellt ? "ok" : "offen"}>
@@ -30,7 +31,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
   return (
     <div className="we-eu">
       <section className="we-eu-block">
-        <b>Der Weg nach Europa</b>
+        <b>{t("ui.welt.EuDossier.e9fdb97")}</b>
         <p className="subtitle">{u.phasenText}</p>
         {z.phase === "eingefroren" && (
           <div className="we-eu-aktion">
@@ -43,7 +44,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
                 refresh();
               }}
             >
-              Reformpaket ankündigen
+              {t("ui.welt.EuDossier.f0c42d3")}
             </button>
             <span className="subtitle">
               {anna.moeglich
@@ -97,7 +98,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
                   <p className="subtitle">{s.def.text}</p>
                   <div className="we-eu-kap-spalten">
                     <div>
-                      <b>Öffnungskriterien</b>
+                      <b>{t("ui.welt.EuDossier.8660386")}</b>
                       <ul className="we-anliegen">{s.oeffnung.map((x) => <KriteriumZeile key={x.kriterium.id} s={x} />)}</ul>
                     </div>
                     <div>
@@ -126,7 +127,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
 
       <section className="we-eu-block">
         <b>Visaliberalisierung {u.visa.gewaehrt ? "(gewährt)" : `(${u.visa.erfuellt} von ${VISA_KRITERIEN.length})`}</b>
-        <p className="subtitle">Ein eigener Weg, der nicht auf die Kapitel wartet: sechs Kriterien, dann reisen Bürger ohne Visum.</p>
+        <p className="subtitle">{t("ui.welt.EuDossier.c7daf1f")}</p>
         <ul className="we-anliegen">{u.visa.kriterien.map((s) => <KriteriumZeile key={s.kriterium.id} s={s} />)}</ul>
       </section>
 
@@ -150,7 +151,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
               </li>
             ))}
           </ul>
-          <p className="subtitle">Der nächste Bericht kommt im November.</p>
+          <p className="subtitle">{t("ui.welt.EuDossier.d69e835")}</p>
         </section>
       )}
     </div>

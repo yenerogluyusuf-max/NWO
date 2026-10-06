@@ -45,7 +45,7 @@ export function StandDerDingeBlatt({ stand, onSchliessen }: { stand: Stand; onSc
           </p>
 
           {stand.deltas ? (
-            <ul className="sdd-deltas" aria-label="Veränderung seit der letzten Sitzung">
+            <ul className="sdd-deltas" aria-label={t("sk.sdd.deltaAria")}>
               {stand.deltas.map((d) => (
                 <DeltaChip key={d.id} d={d} />
               ))}
@@ -78,7 +78,7 @@ export function StandDerDingeBlatt({ stand, onSchliessen }: { stand: Stand; onSc
                 <ul className="sdd-liste">
                   {stand.probleme.map((p) => (
                     <li key={p.id}>
-                      <span className={`sdd-ampel ${p.stufe}`} role="img" aria-label={p.stufe === "rot" ? "dringend" : "Achtung"} />
+                      <span className={`sdd-ampel ${p.stufe}`} role="img" aria-label={p.stufe === "rot" ? t("sk.ui.dringendAria") : t("sk.ui.achtungAria")} />
                       <strong>{p.text}</strong>
                     </li>
                   ))}

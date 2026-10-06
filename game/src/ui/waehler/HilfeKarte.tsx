@@ -8,6 +8,7 @@ import { berechneVorschau } from "../vorschau";
 import { tunWort } from "../../data/skalen";
 import { nf, vz } from "./format";
 
+import { t } from "../../i18n";
 interface Zeile {
   name: string;
   ohne: number;
@@ -74,19 +75,19 @@ export function HilfeKarte({ h, world, ziel, onMassnahme }: { h: Hilfe; world: W
       </p>
       <div className="wa-hilfe-knoepfe">
         <button type="button" className="pd-btn primary" onClick={() => onMassnahme?.(h.massnahme, h.richtung)}>
-          Einstellen und einbringen
+          {t("ui.waehler.HilfeKarte.fa37717")}
         </button>
         <button type="button" className="pd-btn" onClick={rechne} disabled={vor.laeuft}>
           {vor.laeuft ? "Rechne …" : "Vorschau in zwölf Monaten"}
         </button>
       </div>
       {vor.zeilen && (
-        <table className="wa-vorschau" aria-label="Vorschau in zwölf Monaten">
+        <table className="wa-vorschau" aria-label={t("ui.waehler.HilfeKarte.144ef13")}>
           <thead>
             <tr>
               <th />
               <th>ohne</th>
-              <th>mit der Maßnahme</th>
+              <th>{t("ui.waehler.HilfeKarte.8033433")}</th>
               <th>Unterschied</th>
             </tr>
           </thead>
@@ -104,7 +105,7 @@ export function HilfeKarte({ h, world, ziel, onMassnahme }: { h: Hilfe; world: W
               </tr>
             ))}
           </tbody>
-          <caption>Das ganze Modell mit Zufall und den Rückwirkungen über die Wirtschaft, acht Läufe; die Spanne zeigt, wie unsicher es ist.</caption>
+          <caption>{t("ui.waehler.HilfeKarte.2079c15")}</caption>
         </table>
       )}
       {vor.fehler && <p className="wa-leer schlecht">{vor.fehler}</p>}

@@ -25,6 +25,7 @@ import { VerlaufsDiagramm, type VerlaufsReihe } from "./Kennzahl";
 import { BerichtListe, PersonenListe, berichteFuer } from "./Bausteine";
 import { mehrheitsSicht } from "./lage";
 import { BehoerdenInstrument } from "../behoerden/Instrument";
+import { laufendeVerfahren } from "../../sim/gesetzgebung";
 
 export type BereichId = "gesellschaft" | "recht" | "regierung" | "sicherheit" | "aussen" | "land" | "wissen" | "medien";
 
@@ -161,6 +162,10 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
         {
           kopf: t("akte.b.lage.gesetze"),
           zeilen: sp.gesetze.map((g) => ({ titel: g.name, meta: t("akte.b.lage.abstimmungIn", { tage: Math.max(0, g.abstimmung - w.day) }) })),
+        },
+        {
+          kopf: t("gesetz.ui.beimGericht"),
+          zeilen: laufendeVerfahren(w).gericht.map((v) => ({ titel: v.titel, meta: t("gesetz.ui.urteilIn", { tage: v.tage, p: Math.round(v.p * 100) }), ton: (v.p >= 0.3 ? "schlecht" : "mittel") as LageZeile["ton"] })),
         },
       ];
     case "regierung":

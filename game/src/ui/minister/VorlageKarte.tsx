@@ -10,40 +10,43 @@ import { AEMTER } from "../../sim/personen";
 import "../politik/design.css";
 import "./ministerfluss.css";
 
-export const QUELLE_NAME: Record<VorlagenQuelle, string> = {
-  ereignis: "Ereignis",
-  kabinett: "Ministerrat",
-  lage: "Lagebericht",
-  problem: "Vorschlag",
-  zusage: "Zusage",
-  person: "Aussprache",
-  befehl: "Rückmeldung",
-  auftrag: "Rückmeldung",
+import { t } from "../../i18n";
+const QUELLE_SCHLUESSEL: Record<VorlagenQuelle, string> = {
+  ereignis: "ereignis",
+  kabinett: "kabinett",
+  lage: "lage",
+  problem: "problem",
+  zusage: "zusage",
+  person: "person",
+  befehl: "rueckmeldung",
+  auftrag: "rueckmeldung",
 };
+/** Name der Quelle einer Vorlage in der aktuellen Sprache */
+export const quelleName = (q: VorlagenQuelle): string => t(`mf.quelle.${QUELLE_SCHLUESSEL[q]}`);
 
 const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
 
-const nf = (x: number, d = 1): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
-const zahl = (n: NutzenZeile, x: number): string => (n.einheit === "Provinzen" ? String(Math.round(x)) : nf(x, 1));
+const nf = (x: number): string => t("mf.zahl1", { x });
+const zahl = (n: NutzenZeile, x: number): string => (n.einheit === "Provinzen" ? String(Math.round(x)) : nf(x));
 const istMeta = (o: VorlageOption): boolean => o.id === "spaeter" || o.id === "nichts" || o.id === "kenntnis";
 
 /** Beschriftung des Knopfes einer Option, nach dem, was er auslöst. */
 export function knopfText(o: VorlageOption): string {
   switch (o.aktion.art) {
     case "ereignis":
-      return "Beschließen";
+      return t("mf.knopf.beschliessen");
     case "kabinett":
-      return "Diesen Beschluss durchsetzen";
+      return t("mf.knopf.durchsetzen");
     case "massnahme":
-      return "Als Gesetz einbringen";
+      return t("mf.knopf.gesetz");
     case "zusage":
-      return o.aktion.weg === "einloesen" ? "Einlösen" : o.aktion.weg === "vertroesten" ? "Vertrösten" : "Zusage brechen";
+      return t(o.aktion.weg === "einloesen" ? "mf.knopf.einloesen" : o.aktion.weg === "vertroesten" ? "mf.knopf.vertroesten" : "mf.knopf.brechen");
     case "gespraech":
-      return "Gespräch führen";
+      return t("mf.knopf.gespraech");
     case "befehl":
-      return "Anordnen";
+      return t("mf.knopf.anordnen");
     case "kenntnis":
-      return "Zur Kenntnis";
+      return t("mf.knopf.kenntnis");
     default:
       return o.label;
   }
@@ -57,8 +60,8 @@ function Gesicht({ v, size = 84 }: { v: Vorlage; size?: number }) {
 function Kosten({ o }: { o: VorlageOption }) {
   return (
     <div className="mf-kosten">
-      <span>{o.kosten.pk > 0 ? `${o.kosten.pk} Kapital` : "kostenlos"}</span>
-      {o.kosten.aufmerksamkeit > 0 && <span className="leise">{o.kosten.aufmerksamkeit} Aufmerksamkeit</span>}
+      <span>{o.kosten.pk > 0 ? t("mf.kosten.kapital", { pk: o.kosten.pk }) : t("mf.kosten.frei")}</span>
+      {o.kosten.aufmerksamkeit > 0 && <span className="leise">{t("mf.kosten.aufmerksamkeit", { n: o.kosten.aufmerksamkeit })}</span>}
     </div>
   );
 }
@@ -70,19 +73,19 @@ function Nutzen({ zeilen }: { zeilen: NutzenZeile[] }) {
   return (
     <>
       <table className="mf-nutzen">
-        <caption>Erwarteter Verlauf in {monate} Monaten</caption>
+        <caption>{t("mf.nutzen.titel", { monate })}</caption>
         <thead>
           <tr>
-            <th>Größe</th>
-            <th>heute</th>
-            <th>ohne</th>
-            <th>mit</th>
+            <th>{t("ui.minister.VorlageKarte.d9130ae")}</th>
+            <th>{t("mf.nutzen.heute")}</th>
+            <th>{t("mf.nutzen.ohne")}</th>
+            <th>{t("ui.minister.VorlageKarte.5977a55")}</th>
           </tr>
         </thead>
         <tbody>
           {zeilen.map((n) => (
             <tr key={n.id}>
-              <td>{n.name}{n.einheit === "Provinzen" ? " (Provinzen mit akutem Problem)" : ""}</td>
+              <td>{n.name}{n.einheit === "Provinzen" ? t("mf.nutzen.provinzen") : ""}</td>
               <td>{zahl(n, n.jetzt)}</td>
               <td>{zahl(n, n.ohne)}</td>
               <td className={n.besser === true ? "besser" : n.besser === false ? "schlechter" : ""}>{zahl(n, n.mit)}</td>
@@ -90,7 +93,7 @@ function Nutzen({ zeilen }: { zeilen: NutzenZeile[] }) {
           ))}
         </tbody>
       </table>
-      <p className="mf-nutzen-fuss">{kaum ? `In ${monate} Monaten ist noch kaum ein Unterschied messbar: Die Wirkung kommt langsam. ` : ""}Rechnung des Politiknetzes bei sonst unveränderter Wirtschaftslage.</p>
+      <p className="mf-nutzen-fuss">{kaum ? t("mf.nutzen.kaum", { monate }) : ""}{t("mf.nutzen.fuss")}</p>
     </>
   );
 }
@@ -98,7 +101,7 @@ function Nutzen({ zeilen }: { zeilen: NutzenZeile[] }) {
 function Option({ v, o, empfohlen, band, onWaehle }: { v: Vorlage; o: VorlageOption; empfohlen: boolean; band: boolean; onWaehle: (o: VorlageOption) => void }) {
   return (
     <section className={`mf-option${empfohlen ? " empfohlen" : ""}`}>
-      {empfohlen && band && v.empfehlung && <span className="mf-band">Empfehlung{v.minister ? ` von ${v.minister.name}` : ""}</span>}
+      {empfohlen && band && v.empfehlung && <span className="mf-band">{v.minister ? t("mf.empfehlungVon", { name: v.minister.name }) : t("mf.empfehlung")}</span>}
       <h5>{o.label}</h5>
       {o.text && <p className="mf-text">{o.text}</p>}
       <Kosten o={o} />
@@ -114,13 +117,13 @@ function Option({ v, o, empfohlen, band, onWaehle }: { v: Vorlage; o: VorlageOpt
         <p className="mf-lager">
           {o.dafuer.length > 0 && (
             <span className="dafuer">
-              <b>Dafür</b>
+              <b>{t("ui.minister.VorlageKarte.b267e3a")}</b>
               {o.dafuer.join(", ")}.{" "}
             </span>
           )}
           {o.dagegen.length > 0 && (
             <span className="dagegen">
-              <b>Dagegen</b>
+              <b>{t("mf.dagegen")}</b>
               {o.dagegen.join(", ")}.
             </span>
           )}
@@ -136,8 +139,8 @@ function Option({ v, o, empfohlen, band, onWaehle }: { v: Vorlage; o: VorlageOpt
 
 function Frist({ v }: { v: Vorlage }) {
   if (v.frist === undefined) return null;
-  const t = v.frist;
-  return <span className={`mf-marke${t <= 7 ? " rot" : ""}`}>Frist {t <= 0 ? "heute" : t === 1 ? "morgen" : `in ${t} Tagen`}</span>;
+  const f = v.frist;
+  return <span className={`mf-marke${f <= 7 ? " rot" : ""}`}>{t("mf.frist", { wann: t("sk.tage", { n: Math.max(0, f) }) })}</span>;
 }
 
 export interface VorlageKarteProps {
@@ -164,7 +167,7 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
   return (
     <article className={`mf-karte art-${v.art} quelle-${v.quelle}${kompakt ? " kompakt" : ""}`}>
       {nummer !== undefined && (
-        <span className="mf-nummer" aria-label={`Rang ${nummer}`} title="Reihenfolge nach Rang">
+        <span className="mf-nummer" aria-label={t("mf.rang", { n: nummer })} title={t("ui.minister.VorlageKarte.f7024d7")}>
           {nummer}
         </span>
       )}
@@ -174,33 +177,33 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
           <strong>{v.minister ? `${v.minister.rolle} ${v.minister.name}` : AEMTER[v.amt].ressort}</strong>
           <span>
             {AEMTER[v.amt].ressort}
-            {v.minister ? ` · Loyalität ${v.minister.loyalitaet}` : ""}
+            {v.minister ? ` · ${t("mf.loyalitaet", { n: v.minister.loyalitaet })}` : ""}
           </span>
         </div>
         <div className="mf-marken">
-          <span className="mf-marke quelle">{QUELLE_NAME[v.quelle]}</span>
+          <span className="mf-marke quelle">{quelleName(v.quelle)}</span>
           <Frist v={v} />
         </div>
       </header>
       <h4 className="mf-titel">{v.titel}</h4>
       {!(kompakt && !auf && v.problem) &&
-        v.anlass.map((t, i) => (
+        v.anlass.map((a, i) => (
           <p key={i} className="mf-anlass">
-            {t}
+            {a}
           </p>
         ))}
       {v.problem && (kompakt && !auf ? (
         <p className="mf-problem">
-          <b>{v.problem.name}</b> ist in {v.problem.provinzen} {v.problem.provinzen === 1 ? "Provinz" : "Provinzen"} akut ({Math.round(v.problem.anteil * 100)} Prozent der Bevölkerung)
-          {v.problem.ortNamen.length ? `, vor allem in ${v.problem.ortNamen.slice(0, 3).join(", ")}` : ""}.
+          <b>{v.problem.name}</b> {t("mf.problem", { n: v.problem.provinzen, anteil: Math.round(v.problem.anteil * 100) })}
+          {v.problem.ortNamen.length ? t("mf.problemOrte", { orte: v.problem.ortNamen.slice(0, 3).join(", ") }) : ""}.
         </p>
       ) : (
         <p className="mf-problem">
-          <b>Wie schlimm und wo:</b> {v.problem.name} ist in {v.problem.provinzen} {v.problem.provinzen === 1 ? "Provinz" : "Provinzen"} akut ({Math.round(v.problem.anteil * 100)} Prozent der Bevölkerung)
-          {v.problem.ortNamen.length ? `, vor allem in ${v.problem.ortNamen.join(", ")}` : ""}.
+          <b>{t("ui.minister.VorlageKarte.dc0a13e")}</b> {v.problem.name} {t("mf.problem", { n: v.problem.provinzen, anteil: Math.round(v.problem.anteil * 100) })}
+          {v.problem.ortNamen.length ? t("mf.problemOrte", { orte: v.problem.ortNamen.join(", ") }) : ""}.
           {onKarte && (
             <button className="pd-btn quiet klein" onClick={() => onKarte(v.problem!.id)}>
-              Auf der Karte ansehen
+              {t("ui.minister.VorlageKarte.c9b2947")}
             </button>
           )}
         </p>
@@ -208,20 +211,20 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
       {v.empfehlung && (v.empfehlung.optionId ? (
         kompakt && !auf ? (
           <p className="mf-empf-zeile">
-            <b>Empfehlung</b>
-            {empf && empf.id !== "spaeter" ? `„${empf.label}“` : "Warten"}
+            <b>{t("mf.empfehlung")}</b>
+            {empf && empf.id !== "spaeter" ? t("mf.zitat", { text: empf.label }) : t("mf.warten")}
             {v.empfehlung.hinweis && <em>{v.empfehlung.hinweis}</em>}
           </p>
         ) : (
           <aside className="mf-empfehlung">
-            <strong>Empfehlung</strong>
+            <strong>{t("mf.empfehlung")}</strong>
             <p>{v.empfehlung.grund}</p>
             {v.empfehlung.hinweis && <p className="hinweis">{v.empfehlung.hinweis}</p>}
           </aside>
         )
       ) : (
         <aside className="mf-empfehlung still">
-          <strong>Keine Empfehlung</strong>
+          <strong>{t("ui.minister.VorlageKarte.35d0da0")}</strong>
           <p className="hinweis">{v.empfehlung.hinweis}</p>
         </aside>
       ))}
@@ -230,18 +233,18 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
         <div className="mf-schnell">
           {empf && empf.id !== "spaeter" && (
             <button className="pd-btn primary" disabled={!empf.moeglich} title={empf.grund} onClick={() => waehle(empf)}>
-              Empfehlung annehmen{empf.kosten.pk > 0 ? <b>{empf.kosten.pk}</b> : null}
+              {t("mf.annehmen")}{empf.kosten.pk > 0 ? <b>{empf.kosten.pk}</b> : null}
             </button>
           )}
           {!empf && echte.length === 1 && echte[0]!.aktion.art === "kenntnis" && (
-            <button className="pd-btn" onClick={() => waehle(echte[0]!)}>Zur Kenntnis</button>
+            <button className="pd-btn" onClick={() => waehle(echte[0]!)}>{t("mf.knopf.kenntnis")}</button>
           )}
           <button className="pd-btn quiet" onClick={() => setAuf(true)}>
-            {echte.length > 1 ? `Alle ${echte.length} Optionen` : "Folgen ansehen"}
+            {echte.length > 1 ? t("mf.alleOptionen", { n: echte.length }) : t("mf.folgenAnsehen")}
           </button>
           {meta.some((o) => o.id === "spaeter") && (
             <button className="pd-btn quiet" onClick={() => waehle(meta.find((o) => o.id === "spaeter")!)}>
-              Später
+              {t("ui.minister.VorlageKarte.a1ec84c")}
             </button>
           )}
         </div>
@@ -259,12 +262,12 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
         <footer className="mf-fuss">
           {onEinstellen && v.vorschlag && (
             <button className="pd-btn quiet" onClick={() => onEinstellen(v)}>
-              Einstellen und ansehen
+              {t("ui.minister.VorlageKarte.c568008")}
             </button>
           )}
           {onGehe && v.ziel && v.ziel.art !== "karte" && (
             <button className="pd-btn quiet" onClick={() => onGehe(v.ziel!)}>
-              {v.ziel.art === "politik" ? "Im Politiknetz ansehen" : "Zur Akte"}
+              {v.ziel.art === "politik" ? t("mf.imNetz") : t("mf.zurAkte")}
             </button>
           )}
           {meta
@@ -276,11 +279,11 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
             ))}
           {kompakt && (
             <button className="pd-btn quiet" onClick={() => setAuf(false)}>
-              Zuklappen
+              {t("mf.zuklappen")}
             </button>
           )}
-          <span className="rang" title="Rang der Vorlage aus Frist, Tragweite und Aktualität">
-            Rang {v.prioritaet}: {v.prioritaetGrund}
+          <span className="rang" title={t("ui.minister.VorlageKarte.b93a522")}>
+            {t("mf.rangGrund", { n: v.prioritaet, grund: v.prioritaetGrund })}
           </span>
         </footer>
       )}

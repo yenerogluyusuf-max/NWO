@@ -75,7 +75,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const [dienstZiel, setDienstZiel] = useState<string | undefined>(undefined);
   const alle = useMemo(() => akteurListe(), []);
-  if (!world.spiel) return <p>Ohne Spielschleife gibt es keine Außenpolitik.</p>;
+  if (!world.spiel) return <p>{t("ui.Welt.4f623c0")}</p>;
 
   const waehle = (id: string) => {
     setGewaehlt(id);
@@ -118,7 +118,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
 
   return (
     <div className={`we${tab === "verhandeln" && modus === "laender" && haupt ? " schmal" : ""}`}>
-      <nav className="we-liste" aria-label="Staaten und Blöcke">
+      <nav className="we-liste" aria-label={t("ui.Welt.5f9089a")}>
         <div className="we-modus" role="tablist" aria-label="Ansicht">
           {MODI.map((m) => (
             <button key={m.id} type="button" role="tab" aria-selected={modus === m.id} className={modus === m.id ? "on" : ""} onClick={() => setModus(m.id)}>
@@ -130,9 +130,9 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
         {modus === "laender" && (
           <>
             <div className="we-suche">
-              <input type="search" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder="Staat suchen …" aria-label="Staat suchen" />
+              <input type="search" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={t("ui.Welt.268aa0f")} aria-label={t("ui.Welt.7a93826")} />
             </div>
-            <div className="we-chips" role="group" aria-label="Gruppe">
+            <div className="we-chips" role="group" aria-label={t("ui.Welt.f4e8075")}>
               {GRUPPEN_FILTER.map((g) => (
                 <button key={g.id} type="button" className={filter === g.id ? "on" : ""} aria-pressed={filter === g.id} onClick={() => setFilter(g.id)}>
                   {g.label}
@@ -140,7 +140,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
               ))}
             </div>
             <div className="we-liste-rumpf">
-              {sichtbar.length === 0 && <p className="we-hinweis">Kein Staat passt zu dieser Suche.</p>}
+              {sichtbar.length === 0 && <p className="we-hinweis">{t("ui.Welt.b5f3c58")}</p>}
               {filter === "alle" && !suche.trim()
                 ? ANZEIGE_GRUPPEN.map((g) => {
                     const mitglieder = sichtbar.filter((a) => a.gruppe === g);
@@ -163,13 +163,13 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
         {modus === "bloecke" && (
           <div className="we-liste-rumpf">
             <div className="we-gruppe">
-              <b>Blöcke und Institutionen</b>
+              <b>{t("ui.Welt.d24bc84")}</b>
               <BlockListe world={world} gewaehlt={block} onWaehle={setBlock} />
             </div>
           </div>
         )}
         {modus === "aussen" && <p className="we-hinweis we-liste-hinweis">{t("aussen.ui.liste_hinweis")}</p>}
-        {modus === "dienst" && <p className="we-hinweis we-liste-hinweis">Verdeckte Operationen: Kapazität, Aufträge und der Bericht des Dienstes.</p>}
+        {modus === "dienst" && <p className="we-hinweis we-liste-hinweis">{t("ui.Welt.37f315c")}</p>}
         {modus === "vermittlung" && <p className="we-hinweis we-liste-hinweis">Konflikte zwischen Dritten, in denen Ankara vermitteln kann.</p>}
       </nav>
 
@@ -252,7 +252,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
             {tab === "beitritt" && gewaehlt === "EU" && <EuDossier world={world} refresh={refresh} />}
             {tab === "handeln" && (
               <div className="we-gesten">
-                <p className="subtitle">Einzelne Gesten kosten weniger als ein Vertrag und wirken schneller, aber nicht so lange. Große Vorhaben gehören an den Verhandlungstisch.</p>
+                <p className="subtitle">{t("ui.Welt.0d4ca65")}</p>
                 {antwort && (
                   <p className={`we-rueck ${antwort.ok ? "ok" : "nein"}`} role="status">
                     {antwort.text}
@@ -359,7 +359,7 @@ function WeitereAkte({
       </div>
       <div className="we-tabs" role="tablist" aria-label={`${wd.name}: Ansicht`}>
         <button role="tab" type="button" aria-selected={tab === "ueberblick"} className={tab === "ueberblick" ? "on" : ""} onClick={() => onTab("ueberblick")}>
-          Überblick
+          {t("ui.Welt.8f96328")}
         </button>
         <button role="tab" type="button" aria-selected={tab === "handeln"} className={tab === "handeln" ? "on" : ""} onClick={() => onTab("handeln")}>
           Gesten
@@ -469,14 +469,14 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
           </button>
           {onRat && (
             <button type="button" className="aktion-knopf we-zum-tisch" onClick={onRat}>
-              Zum EU-Rat der Mitgliedstaaten
+              {t("ui.Welt.e966efd")}
             </button>
           )}
         </div>
       </div>
 
       {!l.wdi || zeilen.length === 0 ? (
-        <p className="subtitle">Für dieses Land liegen keine Weltbank-Daten im Spiel vor.</p>
+        <p className="subtitle">{t("ui.Welt.882f065")}</p>
       ) : (
         <div className="we-zahlen">
           <b>Zum Vergleich (Weltbank, letzter Wert)</b>
@@ -495,7 +495,7 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
               ))}
             </tbody>
           </table>
-          {l.id === "EU" && <p className="subtitle">Als Maßstab dient Deutschland.</p>}
+          {l.id === "EU" && <p className="subtitle">{t("ui.Welt.c5a36bc")}</p>}
         </div>
       )}
 

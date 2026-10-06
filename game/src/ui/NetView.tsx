@@ -164,7 +164,7 @@ export function NetView({
             .map((e) => ({ id: e.to, name: nameOf(e.to), hoch: e.weight * (steigt ? 1 : -1) > 0, lag: e.lag }));
           const kabinett = kabinettReaktion(world, node.id, steigt ? 1 : -1);
           return (
-            <section className="pd-folgen" aria-label="Was folgt daraus?">
+            <section className="pd-folgen" aria-label={t("ui.NetView.6019d7e")}>
               <h3>Was folgt daraus?</h3>
               <div className="pd-folgen-raster">
                 <div className="pd-folgen-spalte">
@@ -182,7 +182,7 @@ export function NetView({
                   </ul>
                 </div>
                 <div className="pd-folgen-spalte">
-                  <h4>Preis und Gegenspieler</h4>
+                  <h4>{t("ui.NetView.bf40592")}</h4>
                   <dl className="pd-preisliste">
                     <div>
                       <dt>Haushalt</dt>
@@ -373,9 +373,9 @@ export function NetView({
                           </div>
                           <input type="range" min={0} max={100} value={sliderValue} aria-label={`Stufe von ${node.name}`} onChange={(ev) => wahl(Number(ev.target.value))} />
                           <div className="skala" aria-hidden>
-                            <span>0 gibt es nicht</span>
+                            <span>{t("ui.NetView.2ab5dc0")}</span>
                             <span>50</span>
-                            <span>100 so viel wie möglich</span>
+                            <span>{t("ui.NetView.ab3b29f")}</span>
                           </div>
                         </>
                       )}
@@ -417,7 +417,7 @@ export function NetView({
                   </h4>
                   <div className="weg-wahl" role="radiogroup" aria-label="Weg">
                     <button role="radio" aria-checked={effektivWeg === "gesetz"} className={`weg-karte${effektivWeg === "gesetz" ? " on" : ""}`} onClick={() => setWeg("gesetz")}>
-                      <strong>Gesetz</strong>
+                      <strong>{t("ui.NetView.17ae27b")}</strong>
                       <span className="wk-preis">{pr.gesetz.pk} Kapital</span>
                       <em>Abstimmung in {pr.gesetz.tage} Tagen. Erwartet {pr.gesetz.stimmen.erwartet} Ja-Stimmen, nötig 301.</em>
                       {pr.gesetz.stimmen.sachParteien.length > 0 && <span className="wk-urteil gut">Ihre Forderung erfüllt dieses Gesetz: {pr.gesetz.stimmen.sachParteien.map((k) => PARTEI_NAME[k] ?? k).join(", ")} stimmt mit.</span>}
@@ -461,7 +461,7 @@ export function NetView({
                     : "Beschließen"}
                 </button>
               </div>
-              {!aendert && !gesperrt && <p className="hinweiszeile">Ziehen Sie den Regler auf eine andere Stufe, dann können Sie die Folgen ansehen und das Vorhaben einbringen.</p>}
+              {!aendert && !gesperrt && <p className="hinweiszeile">{t("ui.NetView.3d01091")}</p>}
               {gesperrt && (
                 <p className="hinweiszeile warn">
                   <b>{gesperrt.krise.name}:</b> {gesperrt.krise.grund} {gesperrt.ausweg} <em>{gesperrt.krise.bedingung}</em>
@@ -474,7 +474,7 @@ export function NetView({
                     : `Dieses Gesetz hätte im Parlament keine Mehrheit. Verhandeln Sie zuerst mit den Fraktionen (Parlament und Beschlüsse) oder wählen Sie den Erlass, falls er möglich ist.`}
                 </p>
               )}
-              {aendert && !kannBezahlen && <p className="hinweiszeile warn">Dafür fehlt Politisches Kapital. Wählen Sie eine kleinere Änderung oder einen kleineren Ort.</p>}
+              {aendert && !kannBezahlen && <p className="hinweiszeile warn">{t("ui.NetView.8e5d078")}</p>}
               {rueckmeldung && (
                 <p className={`rueckmeldung ${rueckmeldung.ok ? "ok" : "nein"}`}>
                   {rueckmeldung.text}
@@ -516,7 +516,7 @@ export function NetView({
           <div className="links">
             <div>
               <h3>Ursachen</h3>
-              {node.input && <p className="subtitle">Kommt aus dem Wirtschaftsmodell.</p>}
+              {node.input && <p className="subtitle">{t("ui.NetView.6b26667")}</p>}
               {causes.length === 0 && !node.input && <p className="subtitle">Wird direkt entschieden.</p>}
               <ul>
                 {causes.map((e) => (

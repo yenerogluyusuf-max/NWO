@@ -64,7 +64,7 @@ function Statistik({ world }: { world: World }) {
   const geplant = Object.values(bauplan(world)).reduce((a, b) => a + b, 0);
   return (
     <div className="rr-ressourcen">
-      <div className={`rr-ressource ${vb.vorrat < 15 ? "knapp" : ""}`} title="Verwaltungskraft: Sie bezahlt den laufenden Unterhalt aller Vorhaben. Ist der Vorrat leer, kommen Bauten nur zur Hälfte voran und die Legitimität leidet.">
+      <div className={`rr-ressource ${vb.vorrat < 15 ? "knapp" : ""}`} title={t("ui.Reich.6284526")}>
         <span>{t("reich.stat.verwaltung")}</span>
         <span className="rr-balken" aria-hidden>
           <i style={{ width: `${vb.vorrat}%` }} />
@@ -75,7 +75,7 @@ function Statistik({ world }: { world: World }) {
           {Math.abs(vb.netto).toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 })} {t("reich.stat.imMonat")}
         </em>
       </div>
-      <div className="rr-ressource" title="Baukapazität: Baupunkte, die das Land je Monat aufbringt. Laufende Vorhaben teilen sie nach der Reihenfolge auf.">
+      <div className="rr-ressource" title={t("ui.Reich.d87daa9")}>
         <span>{t("reich.stat.bau")}</span>
         <span className="rr-balken" aria-hidden>
           <i style={{ width: `${Math.min(100, (geplant / Math.max(1, cap)) * 100)}%` }} />
@@ -189,7 +189,7 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
                 >
                   ▲
                 </button>
-                <button type="button" className="aktion-knopf" disabled={e.position === liste.length} onClick={() => rueckmeldung(e.id, 1)} title="Zurückstellen (kostenlos)">
+                <button type="button" className="aktion-knopf" disabled={e.position === liste.length} onClick={() => rueckmeldung(e.id, 1)} title={t("ui.Reich.df0cd3b")}>
                   ▼
                 </button>
                 <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, e.id, !e.pausiert); refresh(); }}>
@@ -200,7 +200,7 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
           );
         })}
       </ol>
-      <p className="rr-hinweis">Die Schätzungen gelten, solange Kapazität und Reihenfolge bleiben, wie sie sind. Vorziehen ist eine Entscheidung mit Preis: Es kostet Verwaltungskraft und verdrängt ehrlich das überholte Vorhaben.</p>
+      <p className="rr-hinweis">{t("ui.Reich.119c095")}</p>
     </section>
   );
 }
@@ -236,7 +236,7 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
         {nurSchlechte !== undefined ? "Am schlechtesten erhalten" : "Stätten"} <em>Erhaltung insgesamt {Math.round(erhaltung(world))}</em>
       </h4>
       {nurSchlechte === undefined && (
-        <div className="rr-filter" role="group" aria-label="Auswahl der Stätten">
+        <div className="rr-filter" role="group" aria-label={t("ui.Reich.4825f35")}>
           {SERIEN.map((s) => (
             <button key={s.id} type="button" className={serie === s.id ? "on" : ""} onClick={() => setSerie(s.id)} aria-pressed={serie === s.id}>
               {s.name}
@@ -266,7 +266,7 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
               <div className="rr-staette-kopf">
                 <strong className="rr-staette-name">{e.name}</strong>
                 {e.unesco.status === "welterbe" && <span className="rr-plakette" title={`Welterbe seit ${e.unesco.jahr}`}>Welterbe</span>}
-                {e.kirche7 && <span className="rr-plakette kirche" title="Eine der sieben Gemeinden der Offenbarung">Offenbarung</span>}
+                {e.kirche7 && <span className="rr-plakette kirche" title={t("ui.Reich.b39ebe5")}>Offenbarung</span>}
               </div>
               <span className="rr-staette-ort">{e.ort}: {e.satz}</span>
               <div className="rr-zustand">
@@ -281,9 +281,9 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
                 {Number.isFinite(erbe) && <> Kulturerbe in dieser Provinz: <b>{Math.round(erbe)}</b> von 100.</>}
               </p>
               {laeuft ? (
-                <p className="rp-satz">Die Restaurierung läuft.</p>
+                <p className="rp-satz">{t("ui.Reich.b1cebac")}</p>
               ) : st.zustand > 82 ? (
-                <p className="rp-satz rp-nicht">Nicht nötig: schon in bestem Zustand.</p>
+                <p className="rp-satz rp-nicht">{t("ui.Reich.27320b7")}</p>
               ) : (
                 def && (
                   <div className="rp-eingriff">
@@ -318,7 +318,7 @@ function Sitze({ world }: { world: World }) {
   return (
     <section className="rr-abschnitt">
       <h4>
-        Besetzung der Gerichte <em>Wer sitzt, prägt die Unabhängigkeit</em>
+        Besetzung der Gerichte <em>{t("ui.Reich.9e48137")}</em>
       </h4>
       <div className="rr-sitzgruppen">
         {Object.entries(z.sitze).map(([key, s]) => {
@@ -343,7 +343,7 @@ function Sitze({ world }: { world: World }) {
           );
         })}
       </div>
-      <p className="rr-hinweis">Freie Sitze werden durch Ernennungen neu besetzt; jede ist eine Entscheidung zwischen Loyalität und Unabhängigkeit. Das Verfassungsgericht hat 15 Mitglieder (12 vom Präsidenten ernannt, 3 vom Parlament gewählt), der Richterrat 13.</p>
+      <p className="rr-hinweis">{t("ui.Reich.baef25c")}</p>
     </section>
   );
 }
@@ -356,7 +356,7 @@ function Haushalt({ world }: { world: World }) {
   return (
     <section className="rr-abschnitt">
       <h4>
-        Verwaltung und Haushalt <em>Was knapp ist, ist selten nur Geld</em>
+        Verwaltung und Haushalt <em>{t("ui.Reich.048ca62")}</em>
       </h4>
       <div className="rr-bilanz">
         <table>
@@ -364,22 +364,22 @@ function Haushalt({ world }: { world: World }) {
           <tbody>
             <tr><th>Einkommen (Grundstock, Digitalisierung, Institutionen)</th><td className="hoch">+{z(vb.einkommen)}</td></tr>
             <tr><th>Bauvorhaben</th><td className="runter">−{z(vb.bau)}</td></tr>
-            <tr><th>Unterhalt des Bestands</th><td className="runter">−{z(vb.unterhalt)}</td></tr>
+            <tr><th>{t("ui.Reich.17a76b2")}</th><td className="runter">−{z(vb.unterhalt)}</td></tr>
             <tr className="summe"><th>Saldo</th><td className={vb.netto >= 0 ? "hoch" : "runter"}>{vb.netto >= 0 ? "+" : "−"}{z(Math.abs(vb.netto))}</td></tr>
           </tbody>
         </table>
         <table>
-          <caption>Politisches Kapital je Monat</caption>
+          <caption>{t("ui.Reich.d1bbe69")}</caption>
           <tbody>
             <tr><th>Grundeinkommen</th><td>{z(k.grund)}</td></tr>
-            <tr><th>Vertrauen der Bürger</th><td>{z(k.vertrauen)}</td></tr>
+            <tr><th>{t("ui.Reich.c8434a3")}</th><td>{z(k.vertrauen)}</td></tr>
             <tr><th>Mehrheit im Parlament</th><td>{z(k.mehrheit)}</td></tr>
-            <tr><th>Legitimität der Regierung</th><td className={k.legitimitaet >= 0 ? "hoch" : "runter"}>{k.legitimitaet >= 0 ? "+" : "−"}{z(Math.abs(k.legitimitaet))}</td></tr>
+            <tr><th>{t("ui.Reich.6121d6a")}</th><td className={k.legitimitaet >= 0 ? "hoch" : "runter"}>{k.legitimitaet >= 0 ? "+" : "−"}{z(Math.abs(k.legitimitaet))}</td></tr>
             <tr className="summe"><th>Summe</th><td>{z(k.summe)}</td></tr>
           </tbody>
         </table>
         <table>
-          <caption>Haushalt und Märkte</caption>
+          <caption>{t("ui.Reich.faad857")}</caption>
           <tbody>
             <tr><th>Staatsschulden</th><td>{z(e.debtRatio)} % des BIP</td></tr>
             <tr><th>Leitzins</th><td>{z(e.policyRate)} %</td></tr>
@@ -454,7 +454,7 @@ function Institutionen({ world }: { world: World }) {
   return (
     <section className="rr-abschnitt">
       <h4>
-        Einrichtungen <em>Man liest sie an den Größen ab, die sie prägen</em>
+        Einrichtungen <em>{t("ui.Reich.aaa550c")}</em>
       </h4>
       <ul className="rv-liste">
         {stuecke.map((v) => {
@@ -473,7 +473,7 @@ function Institutionen({ world }: { world: World }) {
                 ))}
               </ul>
               <details className="rp-mehr">
-                <summary>Was das ist</summary>
+                <summary>{t("ui.Reich.0995a96")}</summary>
                 <p className="rr-text">{v.text}</p>
                 <p className="rr-kehrseite"><b>Der Preis:</b> {v.kehrseite}</p>
               </details>
@@ -500,7 +500,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
   const tabs = tabsFuerBereich(bereich);
   const [tab, setTab] = useState<Tab>(startTab && tabs.some((x) => x.id === startTab) ? startTab : "lage");
   const [ergebnisse, setErgebnisse] = useState<Record<string, { ok: boolean; text: string }>>({});
-  if (!world.spiel) return <p>Ohne Spielschleife gibt es kein Reich.</p>;
+  if (!world.spiel) return <p>{t("ui.Reich.186589c")}</p>;
   const z = reichZustand(world);
   const kapitalJetzt = world.spiel.kapital;
   const liste = vorhabenListe(world, bereich);

@@ -6,6 +6,7 @@ import { NET } from "../sim/world";
 import type { NodeSpec, EdgeSpec } from "../data/politiknetz";
 import { wann } from "./lernen";
 
+import { t } from "../i18n";
 // Die Zeichnung ist bewusst schmal (W = 820), damit sie in der Spalte kaum verkleinert wird und die Schrift lesbar bleibt.
 const W = 820;
 const COL_L = 96;
@@ -127,10 +128,10 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       )}
       <NodeBox node={node} x={W / 2} y={cy} main />
     </svg>
-    <ul className="ng-legende" aria-label="Legende des Bildes">
+    <ul className="ng-legende" aria-label={t("ui.NetGraph.315742a")}>
       <li>
         <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#265a62" strokeWidth="2" /><path d="M26 1 L33 5 L26 9 Z" fill="#265a62" /></svg>
-        <span>erhöht</span>
+        <span>{t("ui.NetGraph.588d242")}</span>
       </li>
       <li>
         <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#8e2a22" strokeWidth="2" /><path d="M26 1 L33 5 L26 9 Z" fill="#8e2a22" /></svg>
@@ -142,9 +143,9 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       </li>
       <li>
         <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" strokeDasharray="6 4" /></svg>
-        <span>wirkt verzögert: „nach 3 Monaten“ heißt, die Wirkung kommt erst drei Monate nach der Änderung an</span>
+        <span>{t("ui.NetGraph.61dd3b6")}</span>
       </li>
-      <li className="hinweis">Dickere Linie = stärkere Wirkung. Über eine Linie fahren zeigt die Begründung.</li>
+      <li className="hinweis">{t("ui.NetGraph.927ad78")}</li>
     </ul>
     </div>
   );

@@ -9,6 +9,7 @@ import { KLASSEN_NAMEN, VERGABE_NAMEN, type Vergabe } from "../../sim/reich-type
 import { NET } from "../../sim/modell";
 import { WunderBild } from "./WunderBild";
 
+import { t } from "../../i18n";
 const STATUS_WORT: Record<VorhabenSicht["status"], string> = {
   fertig: "Fertig",
   im_bau: "Im Bau",
@@ -83,18 +84,18 @@ export function VorhabenKarte({
       <div className="rr-karte-kopf">
         <span className="rr-klasse">{KLASSEN_NAMEN[v.klasse]}</span>
         {v.stufe !== undefined && v.stufe > 0 && v.thema && (
-          <span className="rr-plakette stufe" title="Stufe in einer Kette: höhere Stufen verlangen die niedrigeren">
+          <span className="rr-plakette stufe" title={t("ui.reich.VorhabenKarte.bfa9ed8")}>
             Stufe {v.stufe}
           </span>
         )}
         {v.unrealistisch && (
-          <span className="rr-plakette unrealistisch" title="Möglich, aber extrem schwierig und sehr teuer: Jahrzehnte, riesige Schulden, Vorstufen nötig, kaum Aussicht, es in einer Amtszeit zu vollenden.">
+          <span className="rr-plakette unrealistisch" title={t("ui.reich.VorhabenKarte.bdb9458")}>
             unrealistisch
           </span>
         )}
         {v.frei && (
-          <span className="rr-plakette geschaetzt" title="Frei eingegebenes Vorhaben: Kosten und Wirkungen sind Schätzungen aus dem 3-Ebenen-Modell; Überschreitungen sind möglich.">
-            geschätzt
+          <span className="rr-plakette geschaetzt" title={t("ui.reich.VorhabenKarte.ecf3030")}>
+            {t("ui.reich.VorhabenKarte.59d1b61")}
           </span>
         )}
         {s.vergabe && (s.status === "im_bau" || s.status === "pausiert") && (
@@ -111,7 +112,7 @@ export function VorhabenKarte({
           {onKarte && <span> · </span>}
           {onKarte && (
             <button type="button" className="link" onClick={() => onKarte({ lon: v.ort!.lon, lat: v.ort!.lat })}>
-              auf der Karte
+              {t("ui.reich.VorhabenKarte.b92f3e9")}
             </button>
           )}
         </p>
@@ -119,7 +120,7 @@ export function VorhabenKarte({
       <p className="rr-text">{v.text}</p>
 
       {s.status === "fertig" && s.zustand !== undefined && (
-        <div className="rr-zustand" title="Ohne Pflege verfällt der Zustand; er bestimmt, wie viel das Bauwerk bringt.">
+        <div className="rr-zustand" title={t("ui.reich.VorhabenKarte.c617cab")}>
           <span>Zustand</span>
           <span className="rr-balken" aria-hidden>
             <i style={{ width: `${s.zustand}%` }} className={s.zustand < 40 ? "schwach" : ""} />
@@ -150,25 +151,25 @@ export function VorhabenKarte({
         <>
           <ul className="rr-kosten" aria-label="Kosten">
             {v.kosten.pk > 0 && (
-              <li title="Politisches Kapital beim Beginn">
+              <li title={t("ui.reich.VorhabenKarte.d7d018d")}>
                 <b>{v.kosten.pk}</b> Kapital
               </li>
             )}
             {v.kosten.bau > 0 && (
-              <li title="Baupunkte insgesamt; die Baukapazität des Landes teilt sie auf">
+              <li title={t("ui.reich.VorhabenKarte.b4e53a4")}>
                 <b>{v.kosten.bau.toLocaleString("de-DE")}</b> Baupunkte
               </li>
             )}
             {(v.kosten.verwaltung ?? 0) > 0 && (
-              <li title="Verwaltungskraft je Monat während des Baus">
+              <li title={t("ui.reich.VorhabenKarte.3a3e4ed")}>
                 <b>{v.kosten.verwaltung}</b> Verwaltung/Monat
               </li>
             )}
-            <li title="Frühestens so lange, auch mit viel Baukapazität">
+            <li title={t("ui.reich.VorhabenKarte.72e8bf0")}>
               <b>{v.kosten.monate >= 24 ? (v.kosten.monate / 12).toLocaleString("de-DE", { maximumFractionDigits: 1 }) : v.kosten.monate}</b> {v.kosten.monate >= 24 ? "Jahre" : v.kosten.monate === 1 ? "Monat" : "Monate"}
             </li>
             {v.kosten.schulden ? (
-              <li title="Erhöht die Schuldenquote, verteilt über die Bauzeit">
+              <li title={t("ui.reich.VorhabenKarte.64361a7")}>
                 <b>{v.kosten.schulden.toLocaleString("de-DE")}</b> % BIP
               </li>
             ) : null}
@@ -189,7 +190,7 @@ export function VorhabenKarte({
         <div className="rr-wirkung">
           {waehrend.length > 0 && (
             <>
-              <b className="rr-wirkung-kopf">Schon während des Baus</b>
+              <b className="rr-wirkung-kopf">{t("ui.reich.VorhabenKarte.2e75f12")}</b>
               <ul>
                 {waehrend.map((z) => (
                   <li key={z.text} className={z.gut ? "rr-gut" : "rr-schlecht"}>
@@ -250,8 +251,8 @@ export function VorhabenKarte({
         <b>Der Preis:</b> {v.kehrseite}
         {vl && <em> Es verliert: {vl}.</em>}
       </p>
-      {v.konkurrenz && zeigt && <p className="rr-konkurrenz"><b>Konkurrenz und Spionage:</b> {v.konkurrenz}</p>}
-      {v.anker && zeigt && <p className="rr-anker"><b>Maßstab:</b> {v.anker}</p>}
+      {v.konkurrenz && zeigt && <p className="rr-konkurrenz"><b>{t("ui.reich.VorhabenKarte.dea39ba")}</b> {v.konkurrenz}</p>}
+      {v.anker && zeigt && <p className="rr-anker"><b>{t("ui.reich.VorhabenKarte.ac9df63")}</b> {v.anker}</p>}
 
       {s.grund && (s.status === "gesperrt" || s.status === "ausgeschlossen") && <p className="rr-sperre">{s.grund}</p>}
       {ergebnis && <p className={`rr-ergebnis ${ergebnis.ok ? "ok" : "nein"}`}>{ergebnis.text}</p>}
@@ -263,7 +264,7 @@ export function VorhabenKarte({
       )}
       {zeigt && s.status === "verfuegbar" && vergabeWahl && (
         <div className="rr-vergabe">
-          <b className="rr-wirkung-kopf">Wie wird der Auftrag vergeben? Die Wahl steht danach fest.</b>
+          <b className="rr-wirkung-kopf">{t("ui.reich.VorhabenKarte.1c4cddd")}</b>
           <ul>
             {VERGABE_REIHENFOLGE.map((weg) => {
               const a = vergabeAngebot(v, weg);
@@ -291,9 +292,9 @@ export function VorhabenKarte({
               );
             })}
           </ul>
-          <p className="rr-hinweis">Die Wirkungen der Vergabe sind Spielparameter, keine Tatsachen.</p>
+          <p className="rr-hinweis">{t("ui.reich.VorhabenKarte.b72016d")}</p>
           <button type="button" className="link" onClick={() => setVergabeWahl(false)}>
-            Zurück
+            {t("ui.reich.VorhabenKarte.4080624")}
           </button>
         </div>
       )}

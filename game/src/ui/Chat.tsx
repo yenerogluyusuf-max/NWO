@@ -13,6 +13,7 @@ import { type KiAktion, type KiKonfig, type KiNachricht } from "../ki/typen";
 import { KiEinstellungen } from "./KiEinstellungen";
 import "./gespraech.css";
 
+import { t } from "../i18n";
 interface Vorschlag {
   aktion: KiAktion;
   /** Nach der Ausführung: was der Kern gemeldet hat */
@@ -161,8 +162,8 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
             <path d="M12 3 L20 7 V12 C20 16.5 16.5 19.8 12 21 C7.5 19.8 4 16.5 4 12 V7 Z M8.5 12 L11 14.5 L15.5 9.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
-        <div className="gs-titel" title="Lage, Rat und Vorschläge Ihres Stabes">
-          <strong>Präsidialamt</strong>
+        <div className="gs-titel" title={t("ui.Chat.d6f7bb2")}>
+          <strong>{t("ui.Chat.e276e84")}</strong>
           <span className={`gs-status ${kiAktiv ? "an" : "aus"}`} title={kiAktiv ? `Das Sprachmodell versteht freie Sprache. Weg: ${MODUS_NAME[weg!.modus]}.` : "Ohne eingerichtete KI antwortet das Regelwerk."}>
             {statusText}
           </span>
@@ -201,7 +202,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
                           <div className="gs-v-kopf">
                             <strong>{vs?.titel ?? "Erledigt"}</strong>
                             {vs?.kosten !== undefined && (
-                              <b className="gs-kosten" title="Politisches Kapital">
+                              <b className="gs-kosten" title={t("ui.Chat.ae69ecb")}>
                                 {vs.kosten}
                               </b>
                             )}
@@ -217,7 +218,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
                           )}
                           {!v.erledigt && (
                             <button type="button" className="gs-ausfuehren" disabled={!!vs?.problem} onClick={() => fuehre(i, j)}>
-                              Ausführen
+                              {t("ui.Chat.6ef39e4")}
                             </button>
                           )}
                         </li>
@@ -229,7 +230,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
             ))}
             {denkt && (
               <div className="gs-zeile spiel gs-denkt" role="status">
-                <span className="gs-absender">Präsidialamt</span>
+                <span className="gs-absender">{t("ui.Chat.e276e84")}</span>
                 <div className="gs-blase">
                   <p>
                     Das Präsidialamt liest die Lage
@@ -273,7 +274,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
                 </svg>
               </button>
             </form>
-            <p className="gs-tipp">Enter sendet, Umschalt und Enter macht eine neue Zeile. Was Kapital kostet, wird nie ohne Ihr Zeichen ausgeführt.</p>
+            <p className="gs-tipp">{t("ui.Chat.1332e4b")}</p>
           </div>
         </>
       )}

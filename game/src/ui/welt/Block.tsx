@@ -8,6 +8,7 @@ import type { EuThema } from "../../data/welt-weitere";
 import { akteurName } from "../../sim/welt-modell";
 import { Flagge } from "../art/Flaggen";
 
+import { t } from "../../i18n";
 const REGEL: Record<InstitutionDef["beschluss"], string> = {
   einstimmig: "Einstimmigkeit",
   mehrheit: "Mehrheit",
@@ -22,10 +23,9 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
   const e = ratErgebnis(world, thema);
   return (
     <section className="we-rat">
-      <h4>Der Rat der Mitgliedstaaten</h4>
+      <h4>{t("ui.welt.Block.e451af3")}</h4>
       <p className="subtitle">
-        Die Eröffnung eines Beitrittskapitels verlangt Einstimmigkeit, ein Handelsmandat eine qualifizierte Mehrheit. Im Spiel zählen die 13 Staaten, die als Akteure vorkommen (vereinfacht); die
-        übrigen folgen ihnen. Griechenland und Zypern üben ihr Veto über die Konfliktwerte aus, die anderen verweigern die Einstimmigkeit erst bei extremer Haltung.
+        {t("ui.welt.Block.ce1c53b")}
       </p>
       <div className="we-rat-themen" role="tablist" aria-label="Thema">
         {(Object.keys(THEMA_NAME) as EuThema[]).map((t) => (
@@ -87,7 +87,7 @@ export function Block({ world, id, refresh, onLand }: { world: World; id: string
       </header>
       <p className="we-block-text">{def.text}</p>
       <p className="we-block-regel">
-        <b>Beschlussregel:</b> {REGEL[def.beschluss]} · <b>Türkei:</b> {def.tuerkeiText}
+        <b>Beschlussregel:</b> {REGEL[def.beschluss]} · <b>{t("ui.welt.Block.051e2a4")}</b> {def.tuerkeiText}
       </p>
       {gruppe("Mitglieder im Spiel", def.mitglieder)}
       {gruppe("Partner", def.partner)}

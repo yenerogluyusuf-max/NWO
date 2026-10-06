@@ -11,6 +11,7 @@ import { OrtWahl } from "../OrtWahl";
 import { Zeilen } from "./Pflege";
 import { verliererName } from "./VorhabenKarte";
 
+import { t } from "../../i18n";
 export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben; refresh: () => void }) {
   const massnahme = v.vorlage!.massnahme;
   // Beginnt dort, wo es akut ist; gibt es keinen akuten Ort, gilt das ganze Land
@@ -41,7 +42,7 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
   return (
     <article className="rr-karte rg-karte klasse-grossprojekt">
       <div className="rr-karte-kopf">
-        <span className="rr-klasse">Programm für Regionen</span>
+        <span className="rr-klasse">{t("ui.reich.Regional.3887a19")}</span>
       </div>
       <h4 className="rr-name">{v.name}</h4>
       <p className="rr-text">{v.text}</p>
@@ -55,10 +56,10 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
         <p className="rr-sperre">{vor.grund}</p>
       ) : (
         <>
-          <p className="rg-preisschild" title="Der Umfang bestimmt den Preis: Das ganze Land kostet deutlich mehr als eine Region, eine Region mehr als eine Provinz.">
+          <p className="rg-preisschild" title={t("ui.reich.Regional.7796ba9")}>
             {vor.preisschild}
           </p>
-          <ul className="rr-kosten" aria-label="Kosten für diesen Ort">
+          <ul className="rr-kosten" aria-label={t("ui.reich.Regional.3a20748")}>
             <li><b>{vor.def.kosten.pk.toLocaleString("de-DE")}</b> Kapital</li>
             <li><b>{vor.def.kosten.bau.toLocaleString("de-DE")}</b> Baupunkte</li>
             <li><b>{vor.def.kosten.monate}</b> Monate</li>

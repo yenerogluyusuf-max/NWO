@@ -224,5 +224,8 @@
  "haushalt.ui.zyklus.sicher": "Die Mehrheit steht voraussichtlich.",
  "haushalt.ui.zyklus.sichern": "{n} Stimmen sichern ({kosten} Kapital)",
  "haushalt.zyklus.hinweis.entwurf": "Haushaltsfenster: kostenlos — die Änderung geht in den Entwurf und wirkt mit dem Haushaltsgesetz.",
- "haushalt.zyklus.hinweis.nachtrag": "Nachtragshaushalt außerhalb des Fensters: doppelte Kapitalkosten und ein kleiner Legitimitäts-Abzug. Nächstes Fenster: Oktober {jahr}."
+ "haushalt.zyklus.hinweis.nachtrag": "Nachtragshaushalt außerhalb des Fensters: doppelte Kapitalkosten und ein kleiner Legitimitäts-Abzug. Nächstes Fenster: Oktober {jahr}.",
+ "haushalt.ui.behoerden.satz": "Für ihre Behörden haben die Ressorts in diesem Jahr verbraucht: {liste, list}.",
+ "haushalt.ui.behoerden.posten": "{posten} {etat, prozent, 2} des BIP aus dem Mehretat{defizit, select, ja { und {d, prozent, 2} aufs Defizit} other {}}",
+ "haushalt.ui.behoerden.keine": "Die Behörden haben in diesem Jahr noch nichts aus den Ressortetats verbraucht."
 }

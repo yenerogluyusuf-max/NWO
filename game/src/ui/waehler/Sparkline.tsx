@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { Marke } from "../../sim/waehler-verlauf";
 import { monatText, nf } from "./format";
 
+import { t } from "../../i18n";
 export interface SparkProps {
   monate: string[];
   werte: (number | null)[];
@@ -42,7 +43,7 @@ export function Sparkline({ monate, werte, marken = [], ziel, hoehe = 76, beschr
     return (
       <div ref={ref}>
         <p className="wa-spark-leer" role="img" aria-label={beschriftung}>
-          Noch zu wenig Verlauf: Die Linie entsteht, sobald ein paar Monate vergangen sind.
+          {t("ui.waehler.Sparkline.30e1782")}
         </p>
       </div>
     );

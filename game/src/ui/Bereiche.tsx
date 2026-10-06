@@ -13,6 +13,7 @@ import "./politik/design.css";
 import "./minister/ministerfluss.css";
 import "./politik/politik.css";
 
+import { t } from "../i18n";
 export function Bereiche({
   world,
   onVorhaben,
@@ -45,10 +46,10 @@ export function Bereiche({
         <div>
           <p className="pd-ueber">Heute</p>
           <h3>Was jetzt ansteht</h3>
-          <p className="pd-lead">Nach Rang geordnet, aus Ihren akuten Problemen und den Sorgen der Ressorts berechnet. Was Sie hier nicht entscheiden, bleibt im Posteingang der Minister.</p>
+          <p className="pd-lead">{t("ui.Bereiche.99f90d9")}</p>
         </div>
         {vs.length > 0 && (
-          <ul className="pd-zaehler" aria-label="Zahl der Vorlagen">
+          <ul className="pd-zaehler" aria-label={t("ui.Bereiche.7be6696")}>
             <li className="hell">
               <b>{vs.length}</b>
               <span>{vs.length === 1 ? "Vorlage" : "Vorlagen"} nach Rang</span>
@@ -62,7 +63,7 @@ export function Bereiche({
           {antwort.why && <em>{antwort.why}</em>}
         </p>
       )}
-      {vs.length === 0 && <p className="mf-leer">Im Moment drängt nichts. Sehen Sie in den Bereichen nach, wo Sie etwas verbessern wollen.</p>}
+      {vs.length === 0 && <p className="mf-leer">{t("ui.Bereiche.d6f5489")}</p>}
       <ol className="mf-liste">
         {vs.map((v, i) => (
           <li key={v.id}>

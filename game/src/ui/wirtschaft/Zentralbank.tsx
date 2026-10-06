@@ -24,6 +24,7 @@ import { Wirkung } from "./Wirkung";
 import { berechneReihen } from "./prognose";
 import "./wirtschaft.css";
 
+import { t } from "../../i18n";
 const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
 
 const METRIKEN: { id: Metric; kennzahl: string; label: string }[] = [
@@ -175,7 +176,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             <dd>{nf(e.policyRate - e.expectedInflation)} %</dd>
           </div>
           <div>
-            <dt>Glaubwürdigkeit der Bank</dt>
+            <dt>{t("ui.wirtschaft.Zentralbank.37e34e7")}</dt>
             <dd>{glaubwuerdigkeitWort(e.credibility)}</dd>
           </div>
           <div>
@@ -186,13 +187,13 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
       </section>
 
       <section className="wi-karte" id="wi-zb-sitzung">
-        <p className="kicker">Nächste Zinssitzung</p>
+        <p className="kicker">{t("ui.wirtschaft.Zentralbank.440cbd3")}</p>
         {naechste ? (
           <h3>
             {formatDateDe(naechste.datum)} <small>· in {naechste.tage} {naechste.tage === 1 ? "Tag" : "Tagen"}</small>
           </h3>
         ) : (
-          <h3>Keine Sitzung mehr geplant</h3>
+          <h3>{t("ui.wirtschaft.Zentralbank.30c1276")}</h3>
         )}
         {!modusC && (
           <p className="wi-hinweis">
@@ -217,7 +218,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             </button>
           </div>
         ) : (
-          <div className="wi-optionen" role="radiogroup" aria-label="Was Sie vor der Sitzung tun">
+          <div className="wi-optionen" role="radiogroup" aria-label={t("ui.wirtschaft.Zentralbank.b761a72")}>
             {optionen.map((o) => (
               <label key={o.id} className={`wi-option${gewaehlt === o.id ? " on" : ""}${!o.moeglich ? " aus" : ""}`}>
                 <input type="radio" name="wi-druck" checked={gewaehlt === o.id} disabled={!o.moeglich} onChange={() => setGewaehlt(o.id)} />
@@ -237,7 +238,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
           <h4>Was danach kommt{!modusC && opt.id !== "keiner" ? `: ${opt.label}` : ""}</h4>
           <Folgen glieder={kette} leer={delta === 0 ? `Der Zins bliebe bei ${nf(e.policyRate)} %. Frühere Entscheidungen wirken weiter: Was die Bank in den letzten Monaten beschlossen hat, kommt erst mit Verzögerung bei Kredit, Nachfrage und Preisen an.` : undefined} />
           <Wirkung reihen={reihen} metriken={METRIKEN} rechnet={rechnet} />
-          <div className="wi-metriken" role="tablist" aria-label="Größe der Vorschau">
+          <div className="wi-metriken" role="tablist" aria-label={t("ui.wirtschaft.Zentralbank.34b3ca6")}>
             {METRIKEN.map((m) => (
               <button key={m.id} role="tab" aria-selected={metrik === m.id} className={metrik === m.id ? "on" : ""} onClick={() => setMetrik(m.id)}>
                 {m.label}
@@ -264,8 +265,8 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
       </section>
 
       <section className="wi-karte" id="wi-zb-gouverneur">
-        <p className="kicker">Die Führung der Bank</p>
-        <h3>Wer die Zinsen macht</h3>
+        <p className="kicker">{t("ui.wirtschaft.Zentralbank.4e897df")}</p>
+        <h3>{t("ui.wirtschaft.Zentralbank.6517018")}</h3>
         <p className="wi-hinweis">Eine Neubesetzung ist ein Präsidialdekret: Sie kostet kein Kapital, aber Vertrauen der Märkte. Danach bleibt der Wechsel {120} Tage gesperrt.</p>
         <div className="wi-haltungen">
           {HALTUNGEN.map((h) => {
@@ -293,7 +294,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
 
       <section className="wi-karte" id="wi-zb-stufe">
         <p className="kicker">Das Zentralbankgesetz</p>
-        <h3>Wie unabhängig ist die Bank?</h3>
+        <h3>{t("ui.wirtschaft.Zentralbank.bf2ad27")}</h3>
         <p className="wi-hinweis">Die Unabhängigkeit ändert sich per Gesetz, Schritt für Schritt. Das braucht die Mehrheit im Regierungslager (jetzt {lager} von {REGELN.mehrheit} Stimmen), kostet Kapital, und die Märkte reagieren schon auf die Ankündigung.</p>
         <div className="wi-wechsel">
           {wechsel.map((w) => {
@@ -313,7 +314,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
                   </Bestaetigung>
                 ) : (
                   <button disabled={!!grund} title={grund ?? ""} onClick={() => setBestaetigt(`s-${w.ziel}`)}>
-                    Gesetz einbringen
+                    {t("ui.wirtschaft.Zentralbank.e3fb7df")}
                   </button>
                 )}
                 {grund && <span className="wi-grund">{grund}</span>}
@@ -324,10 +325,10 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
       </section>
 
       <section className="wi-karte" id="wi-zb-devisen">
-        <p className="kicker">Die Devisen-Lage</p>
-        <h3>Reserven, die man nicht drucken kann</h3>
+        <p className="kicker">{t("ui.wirtschaft.Zentralbank.2c78621")}</p>
+        <h3>{t("ui.wirtschaft.Zentralbank.6d066c0")}</h3>
         <p className="wi-hinweis">
-          Devisen sind die zweite Staatswährung: Importe, Auslandsschulden und die Verteidigung der Lira werden in Dollar bezahlt. Die Zentralbank kann Lira schöpfen, aber keine Dollar. Was fehlt, muss hereingeholt werden — über die Leistungsbilanz, über Kapital, das Sie anziehen, oder über den IWF.
+          {t("ui.wirtschaft.Zentralbank.e661ba3")}
         </p>
         <dl className="wi-zahlen">
           <div>
@@ -343,7 +344,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             <dd>{nf(lb)} % des BIP</dd>
           </div>
           <div>
-            <dt>Druck der Märkte</dt>
+            <dt>{t("ui.wirtschaft.Zentralbank.1d70db1")}</dt>
             <dd>{druckText}</dd>
           </div>
         </dl>
@@ -355,9 +356,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
 
         <h4>Intervention: Reserven gegen Abwertungsdruck verkaufen</h4>
         <p className="wi-hinweis">
-          Ein Verkauf glättet den Kurs für einige Wochen — die Reserven sind danach dauerhaft weg. Bei knappen Reserven lesen die Märkte den Verkauf als Verbrauch: Dann kostet er zusätzlich Glaubwürdigkeit und Risikoaufschlag.
+          {t("ui.wirtschaft.Zentralbank.7c859d4")}
         </p>
-        <div className="wi-metriken" role="tablist" aria-label="Betrag der Intervention">
+        <div className="wi-metriken" role="tablist" aria-label={t("ui.wirtschaft.Zentralbank.c4908f0")}>
           {[2, 5, 10].map((b) => (
             <button key={b} role="tab" aria-selected={betrag === b} className={betrag === b ? "on" : ""} onClick={() => setBetrag(b)}>
               {b} Mrd. $
@@ -404,7 +405,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
           </div>
         ) : anfrage.moeglich ? (
           <>
-            <p className="wi-hinweis">Der IWF verhandelt, weil die Lage ernst ist: Stand-by mit Devisen sofort und Tranchen nach drei Reviews — gegen Auflagen zu Zins und Defizit. Das Angebot kommt als Ereignis auf den Tisch.</p>
+            <p className="wi-hinweis">{t("ui.wirtschaft.Zentralbank.88e14cd")}</p>
             <button className="wi-handlung" onClick={() => fuehre(() => {
               const ev = oeffne(world, "iwf_angebot", new Rng(world.rngState ^ Math.imul(world.day + 13, 0x9e3779b1)));
               return ev ? { ok: true, text: "Der IWF legt ein Angebot auf den Tisch — entscheiden Sie im Ereignis-Fenster." } : { ok: false, text: "Der IWF zögert im Moment." };
@@ -432,9 +433,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
 
       <section className="wi-karte">
         <p className="kicker">Die Sitzungen</p>
-        <h3>Was die Bank beschlossen hat</h3>
+        <h3>{t("ui.wirtschaft.Zentralbank.f0053e6")}</h3>
         {z.sitzungen.length === 0 ? (
-          <p className="wi-hinweis">Noch hat keine Sitzung stattgefunden.</p>
+          <p className="wi-hinweis">{t("ui.wirtschaft.Zentralbank.110c84c")}</p>
         ) : (
           <ul className="wi-sitzungen">
             {[...z.sitzungen].reverse().map((s, i) => (

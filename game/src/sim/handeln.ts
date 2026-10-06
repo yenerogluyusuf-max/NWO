@@ -571,7 +571,7 @@ export function gesetzRichtung(world: World, g: Gesetz): number {
 
 export function gesetzSicht(world: World, g: Gesetz): GesetzSicht {
   const sicht = stimmenSicht(world, { massnahme: g.massnahme, richtung: gesetzRichtung(world, g) });
-  const ja = sicht.erwartet + g.absprachen;
+  const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0)));
   const luecke = Math.max(0, REGELN.mehrheit - ja);
   const noetig = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? 0 : REGELN.mehrheit + STIMMEN_PUFFER - ja;
   const kosten = Math.ceil(noetig * REGELN.kaufKostenProStimme);
@@ -612,6 +612,12 @@ export function stimmenKaufen(world: World, gesetzId: string, anzahl: number): E
   return { ok: true, text, why };
 }
 
+/** Wird nach jeder Abstimmung aufgerufen (Folgen der Gesetzesvorhaben, sim/gesetzgebung.ts). */
+let nachAbstimmung: ((world: World, g: Gesetz, angenommen: boolean) => void) | null = null;
+export function setzeAbstimmungsHaken(fn: (world: World, g: Gesetz, angenommen: boolean) => void): void {
+  nachAbstimmung = fn;
+}
+
 export interface Abstimmung {
   gesetz: string;
   angenommen: boolean;
@@ -629,7 +635,7 @@ export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
   spiel.gesetze = spiel.gesetze.filter((g) => g.abstimmung > world.day);
   for (const g of faellig) {
     const sicht = stimmenSicht(world, { massnahme: g.massnahme, richtung: gesetzRichtung(world, g) });
-    const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + Math.round(rng.normal(6))));
+    const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0) + Math.round(rng.normal(6))));
     const nein = 600 - ja;
     const angenommen = ja >= REGELN.mehrheit;
     out.push({ gesetz: g.name, angenommen, ja, nein });
@@ -653,6 +659,7 @@ export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
         `Das eingesetzte Kapital (${g.pk}) ist verloren, die Regierung wirkt geschwächt. Es fehlten ${REGELN.mehrheit - ja} Stimmen; ein Rückzug vor der Abstimmung hätte ${Math.floor(g.pk * REGELN.rueckzugAnteil)} Kapital gerettet.`,
       );
     }
+    nachAbstimmung?.(world, g, angenommen);
   }
   return out;
 }

@@ -224,5 +224,8 @@
  "haushalt.ui.zyklus.sicher": "The majority looks safe.",
  "haushalt.ui.zyklus.sichern": "Secure {n} votes ({kosten} capital)",
  "haushalt.zyklus.hinweis.entwurf": "Budget window: free — the change goes into the draft and takes effect with the budget law.",
- "haushalt.zyklus.hinweis.nachtrag": "Supplementary budget outside the window: double capital cost and a small legitimacy penalty. Next window: October {jahr}."
+ "haushalt.zyklus.hinweis.nachtrag": "Supplementary budget outside the window: double capital cost and a small legitimacy penalty. Next window: October {jahr}.",
+ "haushalt.ui.behoerden.satz": "This year the departments have spent on their agencies: {liste, list}.",
+ "haushalt.ui.behoerden.posten": "{posten} {etat, prozent, 2} of GDP from the extra budget{defizit, select, ja { and {d, prozent, 2} on the deficit} other {}}",
+ "haushalt.ui.behoerden.keine": "The agencies have not yet spent anything from the departmental budgets this year."
 }
