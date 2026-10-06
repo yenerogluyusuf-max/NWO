@@ -116,7 +116,7 @@
  "gesetz.grund.keinErlass": "This needs a law: a decree may not regulate it.",
  "gesetz.grund.kapital": "Not enough political capital (needed {noetig}, available {da}).",
  "gesetz.eingebracht.text": "“{titel}” has been introduced. The vote is in {tage, plural, one {# day} other {# days}}.",
- "gesetz.erlass.text": "By presidential decree: “{titel}” applies immediately. The Constitutional Court rules in {tage} days.",
+ "gesetz.erlass.text": "By presidential decree: “{titel}” applies immediately. The {partei} files a challenge within the 60-day deadline; the Constitutional Court will rule in about {tage} days.",
  "gesetz.erlass.warum": "{pk} capital and some trust: governing past parliament is fast and vulnerable. The court strikes it down with a probability of about {p, prozent}.",
  "gesetz.folge.scharf": "“{titel}” passed in its hard-line version. Cheering: {fuer}. Resistance announced: {gegen}.",
  "gesetz.folge.kompromiss": "“{titel}” passed as a compromise. Satisfied: {fuer}. Grumbling: {gegen}.",
@@ -167,5 +167,8 @@
  "gesetz.ui.anlass.linie": "your line",
  "gesetz.ui.ruht": "rests {tage, plural, one {# day} other {# days}}",
  "gesetz.ui.partnerWarnung": "Against it in your own camp: {parteien, list}. A hard-line version costs their votes and their patience.",
- "gesetz.ui.leer": "Nothing in progress."
+ "gesetz.ui.leer": "Nothing in progress.",
+ "gesetz.erlass.unangefochten": "By presidential decree: “{titel}” applies immediately, and no one entitled to sue challenges it.",
+ "gesetz.erlass.unangefochtenWarum": "{pk} capital and some trust. Only the president, the two largest party groups or one fifth of the deputies may sue (Art. 150 of the Constitution); none of them opposes the decree. If parliament passes a law on the same matter, the decree lapses.",
+ "gesetz.ui.erlassUnangefochten": "No one entitled to sue is against it"
 }

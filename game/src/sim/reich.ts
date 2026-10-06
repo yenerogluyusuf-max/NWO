@@ -1,6 +1,7 @@
 // Das Reich: Vorhaben beginnen, bauen, im Bestand halten; Vorteile freischalten. Kern der Fachbereiche (FACHBEREICHE.md).
 // Der Kern ist die einzige Wahrheitsquelle: Oberfläche und Sprachmodell lesen `vorhabenSicht` und rufen `beginne` auf.
 
+import { forschungsTempo, kostenFaktor } from "./wissensbaum-kern";
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES, decayVon } from "./netz";
 import { wirke } from "./wirkung";
@@ -374,7 +375,7 @@ export function bauplan(w: World): Record<string, number> {
       continue;
     }
     const rest = Math.max(0, laufBau(l, v) - l.fortschritt);
-    const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)), cap, rest);
+    const aufnahme = Math.min((laufBau(l, v) / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id), cap, rest);
     out[l.id] = aufnahme * verzug;
     cap -= aufnahme;
   }
@@ -1008,7 +1009,8 @@ export function reichMonat(w: World, _rng?: Rng): void {
     if (!v) continue;
     const bau = laufBau(l, v);
     const rest = Math.max(0, bau - l.fortschritt);
-    const monatsMax = bau / Math.max(1, laufMonate(l, v));
+    // Knoten des Wissensbaums: Forschungsetat, Bildung (Innovationsgrenze), Abwanderung, Schwerpunkt, Lizenz und Träger ändern das Tempo
+    const monatsMax = (bau / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id);
     const aufnahme = Math.min(monatsMax, cap, rest) * verzug;
     l.fortschritt += aufnahme;
     cap -= aufnahme / verzug;
@@ -1040,7 +1042,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
     if (!l.frei && v.ueberzug && bau > 0) ueberzugPruefen(w, l, v);
     // Ungewisser Durchbruch: Bei der Marke fällt der Wurf; scheitert das Vorhaben, ist das Geld verloren
     if (v.scheitern && !l.durchbruchGeprueft && bau > 0 && l.fortschritt / laufBau(l, v) >= v.scheitern.an && durchbruchPruefen(w, l, v)) continue;
-    if (v.kosten.schulden && bau > 0) w.economy.debtRatio += (v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * aufnahme) / bau;
+    if (v.kosten.schulden && bau > 0) w.economy.debtRatio += (v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * kostenFaktor(w, l.id) * aufnahme) / bau;
     if (l.fortschritt >= bau - 1e-6) schliesseAb(w, v);
   }
   z.bauGenutzt = genutzt;

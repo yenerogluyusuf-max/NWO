@@ -4,6 +4,7 @@
 // Alle Zahlen sind Platzhalter der Kalibrierung.
 
 import { reichMonat } from "./reich";
+import { wissensbaumMonat } from "./wissensbaum";
 import { infrastrukturMonat } from "./infrastruktur";
 import { gesetzgebungTag } from "./gesetzgebung";
 import { NET } from "./modell";
@@ -342,6 +343,8 @@ function spielMonat(world: World, rng: Rng): void {
   euMonat(world, rng);
   kriegMonat(world, rng);
   reichMonat(world, rng);
+  // Wissensbaum: Durchbrüche verbuchen (Werke heben die Generation der Streitkräfte), Sperren von Lizenzgebern melden
+  wissensbaumMonat(world);
   // Netze mit Auslastung (sim/infrastruktur.ts): fertige Ausbauten, Nachfrage, Überlast, die Bitte des Monats
   infrastrukturMonat(world);
   // Katastrophen (INF-5): Risiko-Layer würfelt je Zone; Hilfskette und Lieferfortschritt laufen

@@ -13,7 +13,7 @@ import { VorlageKarte } from "./VorlageKarte";
 import "../politik/design.css";
 import "./ministerfluss.css";
 
-import { t } from "../../i18n";
+import { rendere, t } from "../../i18n";
 export interface PostfachProps {
   world: World;
   refresh: () => void;
@@ -87,7 +87,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
       {(vertagt > 0 || z.verfallen.length > 0) && (
         <section className="mf-abschnitt">
           <h4>{t("ui.minister.Posteingang.e0a2eb3")}</h4>
-          {vertagt > 0 && <p className="mf-leer">{vertagt === 1 ? "Eine Vorlage ist" : `${vertagt} Vorlagen sind`} vertagt und kommt zur Wiedervorlage zurück.</p>}
+          {vertagt > 0 && <p className="mf-leer">{t("mfl.ui.vertagt", { n: vertagt })}</p>}
           {z.verfallen.length > 0 && (
             <ul className="mf-verfallen">
               {[...z.verfallen]
@@ -96,7 +96,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
                 .map((x) => (
                   <li key={`${x.id}-${x.verfallen}`}>
                     <span>
-                      <strong>{x.titel}</strong> — verfallen: {x.grund}
+                      <strong>{rendere(x.titel)}</strong> — {t("mfl.ui.verfallen", { grund: rendere(x.grund) })}
                     </span>
                     <span>{formatDateDe(addDays(world.spiel!.start.datum, x.verfallen))}</span>
                   </li>

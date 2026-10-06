@@ -40,6 +40,22 @@ function nachWiederwahl(): World {
 
 const keine = () => {};
 
+/**
+ * Bis kurz nach dem ersten Wahlgang, mit der Zustimmung `ziel` am Wahltag: Wer fünf Jahre nichts entscheidet, verliert unterwegs
+ * Zustimmung (liegengelassene Bitten, sim/infrastruktur.ts); darum wird sie halbjährlich und einen Monat vor der Wahl auf den Zielwert gesetzt.
+ */
+function bisWahltagMit(w: World, ziel: number): void {
+  const anker = () => {
+    for (let i = 0; i < 3; i++) w.spiel!.kalibrierung += ziel - zielZustimmung(w);
+    w.spiel!.umfrage.zustimmung = ziel;
+  };
+  while (w.spiel!.wahltag - w.day > 30 && !w.spiel!.ende) {
+    advance(w, Math.min(180, w.spiel!.wahltag - w.day - 30));
+    anker();
+  }
+  advance(w, w.spiel!.wahltag - w.day + 1);
+}
+
 describe("Wahlabend", () => {
   test("Endstand: Kandidaten, Provinzkarte, Sitze vorher und nachher, Reaktionen, Rede", () => {
     const w = nachWiederwahl();
@@ -79,7 +95,7 @@ describe("Wahlabend", () => {
       w.spiel!.ereignisse = [];
       w.spiel!.umfrage.zustimmung = 48;
       w.spiel!.kalibrierung += 1;
-      advance(w, w.spiel!.wahltag - w.day + 1);
+      bisWahltagMit(w, 48);
       if (!w.spiel!.wahl?.stichwahl) continue;
       advance(w, 16);
       const e = w.spiel!.wahl!.historie[0]!;
@@ -97,7 +113,7 @@ describe("Wahlabend", () => {
     startAfterElection(w, schnellProfil());
     w.spiel!.kalibrierung += 38 - zielZustimmung(w);
     w.spiel!.umfrage.zustimmung = 38;
-    advance(w, w.spiel!.wahltag - w.day + 1);
+    bisWahltagMit(w, 38);
     if (w.spiel!.wahl?.stichwahl) advance(w, 16);
     const e = w.spiel!.wahl!.historie[0]!;
     expect(e.gewonnen).toBe(false);

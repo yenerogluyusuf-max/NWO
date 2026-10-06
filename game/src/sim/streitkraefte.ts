@@ -235,7 +235,7 @@ export function vorschauAusbau(w: World, gattung: GattungId, art: BeschaffungsAr
   const def = GATTUNG_NACH_ID[gattung];
   const s = z.gattungen[gattung];
   const etat = etatFaktor(w);
-  const gueter = gueterQuelle ? clamp(gueterQuelle(w, gattung), 0.2, 1) : 1;
+  const gueter = gueterQuelle ? clamp(gueterQuelle(w, gattung), 0.2, 1.3) : 1;
   const innov = innovationsGrenze(w);
   const belegt = z.laufend.filter((b) => !b.name).length;
   const kap = Math.max(1, Math.round(STREITKRAEFTE.kapazitaet * etat));

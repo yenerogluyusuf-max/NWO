@@ -136,5 +136,10 @@
  "infra.ui.paket.preis": "{n, number} il, {pk, number} sermaye (tek tek {einzeln, number}), yaklaşık {monate, number} ay; maliyet aşımı riski yüzde {risiko, number}.",
  "infra.ui.paket.start": "Programı kararlaştır",
  "infra.ui.leer": "Boş kapasite bakım masrafı getirir: yılda yaklaşık {x, number} puan borç oranı.",
- "infra.ui.zeile": "Şebekeler: en büyük darboğaz {ort|loc} {netz} (%{a, number}), {n, number} inşaatta"
+ "infra.ui.zeile": "Şebekeler: en büyük darboğaz {ort|loc} {netz} (%{a, number}), {n, number} inşaatta",
+ "infra.bitte.nichts.folge2": "Talebi bekletmek bakanlığı kırar; yerelde hükümete güven düşer ve bir yıl boyunca aşırı yük orada daha hızlı öfkeye dönüşür.",
+ "infra.log.ignoriert": "Talep bekletildi: {ort|loc} {netz}",
+ "infra.log.ignoriert.warum": "Süre karar verilmeden doldu. {name} kendini görmezden gelinmiş hissediyor, yerelde hükümete güven düşüyor ve yatırım ya da yönlendirme yapılana kadar aşırı yük bir yıl boyunca orada daha hızlı öfkeye dönüşüyor.",
+ "infra.log.ignoriert.warum_ohne": "Süre karar verilmeden doldu. Yerelde hükümete güven düşüyor ve yatırım ya da yönlendirme yapılana kadar aşırı yük bir yıl boyunca orada daha hızlı öfkeye dönüşüyor.",
+ "infra.ignoriert.merke": "{ort|loc} {netz} için talebim bekletildi"
 }

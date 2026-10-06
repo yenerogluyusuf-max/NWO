@@ -107,30 +107,45 @@ describe("Ablauf", () => {
     expect(z.ruhe[s.def.id]! - w.day).toBeLessThan(120);
   });
 
-  test("Erlass nur, wo das Recht ihn zulässt", () => {
+  test("Erlass nur, wo das Recht ihn zulässt (Art. 104 Abs. 17): nie bei Steuern, nie bei Grundrechten", () => {
     const w = neu();
     expect(bringeVorhabenEin(w, "gv_einkommensteuer", "kompromiss", "erlass").ok).toBe(false);
-    const r = bringeVorhabenEin(w, "gv_polizei", "kompromiss", "erlass");
-    expect(r.ok).toBe(true);
+    expect(bringeVorhabenEin(w, "gv_polizei", "kompromiss", "erlass").ok).toBe(false);
+    for (const v of GESETZESVORHABEN) if (v.grundrechte) expect(v.erlass, v.id).toBe("nein");
+    // Eine klagebefugte Seite (hier die größte Fraktion außerhalb des Lagers) lehnt ab: Normenkontrolle
+    expect(bringeVorhabenEin(w, "gv_energiepreisbremse", "kompromiss", "erlass").ok).toBe(true);
     expect(laufendeVerfahren(w).gericht).toHaveLength(1);
+  });
+
+  test("Klagen dürfen nur die beiden größten Fraktionen oder ein Fünftel der Abgeordneten (Art. 150); sonst bleibt der Erlass unangefochten", () => {
+    const w = neu();
+    const r = bringeVorhabenEin(w, "gv_preiswahrheit", "kompromiss", "erlass");
+    expect(r.ok).toBe(true);
+    expect(laufendeVerfahren(w).gericht).toHaveLength(0);
+    expect(r.text).toContain("niemand Klagebefugtes");
+    // Ohne Lager stehen alle Ablehner außerhalb: Dann klagt jemand
+    const w2 = neu();
+    w2.spiel!.lager = [];
+    expect(bringeVorhabenEin(w2, "gv_energiepreisbremse", "kompromiss", "erlass").ok).toBe(true);
+    expect(laufendeVerfahren(w2).gericht).toHaveLength(1);
   });
 
   test("Verfassungsgericht: hebt auf und setzt die alte Stufe zurück, oder bestätigt", () => {
     for (const p of [1, 0]) {
       const w = neu();
-      const vorher = vorhabenSicht(w, def("gv_netzinhalte")).stufe;
-      expect(bringeVorhabenEin(w, "gv_netzinhalte", "scharf", "erlass").ok).toBe(true);
+      const vorher = vorhabenSicht(w, def("gv_energiepreisbremse")).stufe;
+      expect(bringeVorhabenEin(w, "gv_energiepreisbremse", "scharf", "erlass").ok).toBe(true);
       const z = gesetzgebungVon(w);
       z.pruefungen[0]!.p = p;
       z.pruefungen[0]!.tag = w.day;
-      const ziel = w.net.targets.m_internetsperren;
+      const ziel = w.net.targets.m_energiesubventionen;
       gesetzgebungTag(w);
       expect(z.pruefungen).toHaveLength(0);
       if (p === 1) {
-        expect(w.net.targets.m_internetsperren).toBe(vorher);
+        expect(w.net.targets.m_energiesubventionen).toBe(vorher);
         expect(w.log.some((l) => l.text.startsWith("Das Verfassungsgericht hebt den Erlass"))).toBe(true);
       } else {
-        expect(w.net.targets.m_internetsperren).toBe(ziel);
+        expect(w.net.targets.m_energiesubventionen).toBe(ziel);
         expect(w.log.some((l) => l.text.includes("weist die Klage"))).toBe(true);
       }
     }
@@ -158,7 +173,7 @@ describe("Spielstände", () => {
 
   test("Spielstand mit laufender Prüfung übersteht Speichern und Laden", () => {
     const w = neu();
-    bringeVorhabenEin(w, "gv_rueckkehr", "kompromiss", "erlass");
+    bringeVorhabenEin(w, "gv_energiepreisbremse", "kompromiss", "erlass");
     const w2 = load(save(w));
     expect(laufendeVerfahren(w2).gericht).toHaveLength(1);
   });

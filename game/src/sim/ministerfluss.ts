@@ -16,11 +16,12 @@
 import { NET } from "./modell";
 import { PROVINZEN } from "./regional";
 import { Rng } from "./rng";
-import { tunWort } from "../data/skalen";
+import { skalenArt } from "../data/skalen";
+import { msg, rendere, t, type Msg } from "../i18n";
 import { kannZahlen, nurAufPump } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN } from "./aufmerksamkeit";
 import { antworten, vorlage as ereignisVorlage, wirkungsVorschau, entscheide } from "./ereignisse";
-import { EREIGNIS_BEZUG, ANSATZ_NAMEN, fuehreGespraech, planeGespraech, schritteFuer, type AnsatzId, type Schritt } from "./gespraeche";
+import { EREIGNIS_BEZUG, fuehreGespraech, planeGespraech, schritteFuer, type AnsatzId, type Schritt } from "./gespraeche";
 import { bereiteKabinettssitzungVor, halteKabinettssitzungAb, kabinettStatus } from "./kabinett";
 import { bringeEin, pruefeVorhaben, stufeIn } from "./handeln";
 import { akuteProbleme, vorschlaege, type Vorschlag } from "./vorschlaege";
@@ -43,13 +44,16 @@ export type { Vorlage, VorlageOption } from "./ministerfluss-typen";
 // ---------------------------------------------------------------------------
 // Bausteine
 
-const tageWort = (t: number): string => (t <= 0 ? "heute" : t === 1 ? "morgen" : `in ${t} Tagen`);
-const bip = (x: number): string => `${x.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} % BIP im Jahr`;
+// Texte stehen im Katalog (i18n/katalog/<sprache>/ministerfluss.json, Schlüssel `mfl.*`); Vorlagen werden bei jeder Anzeige neu gerechnet
+const tageWort = (n: number): string => t("mfl.tage", { n: Math.max(0, n) });
+const bip = (x: number): string => t("mfl.bip", { x });
 const kurzName = (f: Figur | undefined): string => (f ? `${f.rolle} ${f.name}` : "");
+const ressort = (amt: Amt): string => t(`mfl.ressort.${amt}`);
+const tunWort = (id: string, richtung: 1 | -1): string => t(`mfl.tun.${skalenArt(id) === "satz" ? "satz" : skalenArt(id) === "menge" ? "menge" : "regel"}.${richtung > 0 ? "plus" : "minus"}`);
 
-const SPAETER: VorlageOption = { id: "spaeter", label: "Später", text: "In 30 Tagen wieder vorlegen.", kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "spaeter", tage: 30 }, moeglich: true };
-const NICHTS: VorlageOption = { id: "nichts", label: "Nicht tun", text: "Der Vorschlag wird verworfen und kommt vorerst nicht wieder.", kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "nichts" }, moeglich: true };
-const KENNTNIS: VorlageOption = { id: "kenntnis", label: "Zur Kenntnis", text: "Abgelegt; es bleibt in der Chronik.", kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "kenntnis" }, moeglich: true };
+const SPAETER = (): VorlageOption => ({ id: "spaeter", label: t("mfl.spaeter.label"), text: t("mfl.spaeter.text"), kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "spaeter", tage: 30 }, moeglich: true });
+const NICHTS = (): VorlageOption => ({ id: "nichts", label: t("mfl.nichts.label"), text: t("mfl.nichts.text"), kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "nichts" }, moeglich: true });
+const KENNTNIS = (): VorlageOption => ({ id: "kenntnis", label: t("mfl.kenntnis.label"), text: t("mfl.kenntnis.text"), kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "kenntnis" }, moeglich: true });
 
 const istMeta = (o: VorlageOption): boolean => o.id === "spaeter" || o.id === "nichts" || o.id === "kenntnis";
 
@@ -64,9 +68,9 @@ function rang(frist: number | undefined, tragweite: number, alter: number, malus
   const akt = 1 - Math.min(1, Math.max(0, alter) / 90) * 0.6;
   const wert = Math.round(100 * (0.5 * dring + 0.35 * tragweite + 0.15 * akt) * malus);
   const teile = [
-    frist === undefined ? "ohne feste Frist" : `Frist ${tageWort(frist)}`,
-    tragweite >= 0.7 ? "große Tragweite" : tragweite >= 0.45 ? "mittlere Tragweite" : "geringe Tragweite",
-    alter <= 7 ? "neu auf dem Tisch" : alter > 60 ? "liegt schon länger" : "",
+    frist === undefined ? t("mfl.rang.ohneFrist") : t("mfl.rang.frist", { wann: tageWort(frist) }),
+    t(tragweite >= 0.7 ? "mfl.rang.gross" : tragweite >= 0.45 ? "mfl.rang.mittel" : "mfl.rang.gering"),
+    alter <= 7 ? t("mfl.rang.neu") : alter > 60 ? t("mfl.rang.alt") : "",
   ].filter(Boolean);
   return { wert, grund: teile.join(" · ") };
 }
@@ -86,25 +90,27 @@ function optionMassnahme(w: World, f: Figur | undefined, id: string, ziel: numbe
   const luecke = pr.gesetz.stimmen.luecke;
   const finanzen = amtBesetzt(w, "finanzen");
   const dafuer = [...(f ? [kurzName(f)] : []), ...b.gewinner.slice(0, 3)];
-  const dagegen = [...(finanzen && f?.amt !== "finanzen" && pr.kostenBip >= 0.25 ? [`${kurzName(finanzen)} (Haushalt)`] : []), ...b.verlierer.slice(0, 3)];
-  const stufe = opt.jetztName && opt.zielName ? `von „${opt.jetztName}“ zu „${opt.zielName}“` : `${tunWort(id, richtung)} von Stufe ${jetzt} auf ${ziel}`;
+  const dagegen = [...(finanzen && f?.amt !== "finanzen" && pr.kostenBip >= 0.25 ? [t("mfl.m.haushalt", { name: kurzName(finanzen) })] : []), ...b.verlierer.slice(0, 3)];
+  const stufe = opt.jetztName && opt.zielName ? t("mfl.m.stufeNamen", { von: opt.jetztName, zu: opt.zielName }) : t("mfl.m.stufe", { tun: tunWort(id, richtung), jetzt, ziel });
+  const geld = Math.abs(pr.kostenBip) >= 0.01 ? t(pr.kostenBip < 0 ? "mfl.m.bringt" : "mfl.m.kostet", { bip: bip(Math.abs(pr.kostenBip)) }) : "";
   return {
     id: `m:${id}:${ziel}`,
-    label: opt.label ?? `${node.name}: ${stufe}`,
-    ...(opt.wirkt ? { text: `Wirkt auf ${opt.wirkt}.` } : {}),
+    label: opt.label ?? t("mfl.m.label", { name: node.name, stufe }),
+    ...(opt.wirkt ? { text: t("mfl.m.wirkt", { auf: opt.wirkt }) } : {}),
     kosten: { pk: pr.gesetz.pk, aufmerksamkeit: AUFMERKSAMKEIT_KOSTEN.gesetz },
     folgen: [
-      `${node.name} ${stufe}${ort ? ` (nur in ${ort.length} ${ort.length === 1 ? "Provinz" : "Provinzen"})` : ""}.`,
-      `${pr.gesetz.pk} Kapital${Math.abs(pr.kostenBip) >= 0.01 ? `, ${pr.kostenBip < 0 ? "bringt" : "kostet"} ${bip(Math.abs(pr.kostenBip))}` : ""}; ${luecke > 0 ? `im Parlament fehlen etwa ${luecke} Stimmen` : "die Mehrheit steht"}.`,
-      `Etwa ${pr.monate} ${pr.monate === 1 ? "Monat" : "Monate"} bis zur vollen Wirkung.`,
-      ...(nurAufPump(w.spiel?.kapital ?? 0, pr.gesetz.pk) ? [`Achtung: Nur auf Pump bezahlbar (Kapital ${Math.floor(w.spiel?.kapital ?? 0)}): Wer im Minus steht, zahlt monatlich mit Legitimität und Vertrauen.`] : []),
+      ort ? t("mfl.m.folgeOrt", { name: node.name, stufe, n: ort.length }) : t("mfl.m.folge", { name: node.name, stufe }),
+      t("mfl.m.preis", { pk: pr.gesetz.pk, geld, mehrheit: luecke > 0 ? t("mfl.mehrheit.fehlt", { n: luecke }) : t("mfl.mehrheit.steht") }),
+      t("mfl.m.monate", { n: pr.monate }),
+      ...(nurAufPump(w.spiel?.kapital ?? 0, pr.gesetz.pk) ? [t("mfl.m.pump", { kapital: Math.floor(w.spiel?.kapital ?? 0) })] : []),
     ],
+    luecke,
     dafuer,
     dagegen,
     verlierer: b.verlierer.slice(0, 3),
     aktion: { art: "massnahme", id, ziel, ort },
     moeglich: pr.ok && pr.gesetz.bezahlbar && luecke < 120,
-    ...(!pr.ok ? { grund: pr.grund ?? "Das geht gerade nicht." } : !pr.gesetz.bezahlbar ? { grund: `Dafür fehlt Kapital (nötig ${pr.gesetz.pk}).` } : luecke >= 120 ? { grund: "Ohne Mehrheit aussichtslos: erst im Parlament verhandeln." } : {}),
+    ...(!pr.ok ? { grund: pr.grund ?? t("mfl.geht_nicht") } : !pr.gesetz.bezahlbar ? { grund: t("mfl.kapital_fehlt", { pk: pr.gesetz.pk }) } : luecke >= 120 ? { grund: t("mfl.m.aussichtslos") } : {}),
     ...(opt.eigen ? { eigenesRessort: true } : {}),
   };
 }
@@ -115,8 +121,8 @@ function optionGespraech(w: World, f: Figur, ansatz: AnsatzId, themaId = "person
   const grund = plan ? plan.grund : (p as { grund: string }).grund;
   return {
     id: `g:${ansatz}`,
-    label: ANSATZ_NAMEN[ansatz].label,
-    text: ANSATZ_NAMEN[ansatz].kurz,
+    label: t(`mfl.ansatz.${ansatz}.label`),
+    text: t(`mfl.ansatz.${ansatz}.kurz`),
     kosten: { pk: plan?.pk ?? 0, aufmerksamkeit: AUFMERKSAMKEIT_KOSTEN.gespraech },
     folgen: plan?.folgen ?? [],
     dafuer: [],
@@ -136,7 +142,7 @@ interface Roh extends Vorlage {
   empfehlungsArt?: "verdienst" | "parteilich";
 }
 
-function basis(w: World, a: { id: string; thema?: string; art: Vorlage["art"]; quelle: VorlagenQuelle; amt: Amt; titel: string; anlass: string[]; optionen: VorlageOption[]; frist?: number; tag: number; tragweite: number; malus?: number; ziel?: Vorlage["ziel"]; minister?: Figur; empfehlungsArt?: Roh["empfehlungsArt"] }): Roh {
+function basis(w: World, a: { id: string; thema?: string; art: Vorlage["art"]; quelle: VorlagenQuelle; amt: Amt; titel: string | Msg; anlass: string[]; optionen: VorlageOption[]; frist?: number; tag: number; tragweite: number; malus?: number; ziel?: Vorlage["ziel"]; minister?: Figur; empfehlungsArt?: Roh["empfehlungsArt"] }): Roh {
   const f = a.minister ?? ministerFuer(w, a.amt);
   const r = rang(a.frist, a.tragweite, w.day - a.tag, a.malus ?? 1);
   return {
@@ -146,7 +152,8 @@ function basis(w: World, a: { id: string; thema?: string; art: Vorlage["art"]; q
     quelle: a.quelle,
     amt: a.amt,
     ...(f ? { minister: ministerInfo(w, f) } : {}),
-    titel: a.titel,
+    titel: rendere(a.titel),
+    ...(typeof a.titel === "string" ? {} : { titelMsg: a.titel }),
     anlass: a.anlass,
     optionen: a.optionen,
     ...(a.frist !== undefined ? { frist: a.frist } : {}),
@@ -168,7 +175,7 @@ function ereignisQuelle(w: World): Roh[] {
     const optionen: VorlageOption[] = antworten(w, ev).map((o) => {
       const pk = o.anzeigePk ?? o.pk;
       const ok = kannZahlen(sp.kapital, pk);
-      return { id: o.id, label: o.label, text: o.beschreibung, kosten: { pk, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "ereignis", ereignisId: ev.id, optionId: o.id }, moeglich: ok, ...(ok ? {} : { grund: `Dafür fehlt Kapital (nötig ${pk}, vorhanden ${Math.floor(sp.kapital)}).` }) };
+      return { id: o.id, label: o.label, text: o.beschreibung, kosten: { pk, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "ereignis", ereignisId: ev.id, optionId: o.id }, moeglich: ok, ...(ok ? {} : { grund: t("mfl.kapital_fehlt_vorhanden", { pk, vorhanden: Math.floor(sp.kapital) }) }) };
     });
     out.push(
       basis(w, { id: `ereignis:${ev.id}`, art: "frage", quelle: "ereignis", amt, titel: v.titel(w, ev), anlass: v.text(w, ev), optionen, frist: Math.max(0, ev.frist - w.day), tag: ev.tag, tragweite: 0.55 + 0.4 * ev.staerke, ziel: { art: "ereignis", id: ev.id } }),
@@ -189,10 +196,10 @@ function kabinettQuelle(w: World): Roh[] {
   const status = kabinettStatus(w);
   const themen = bereiteKabinettssitzungVor(w);
   const bucket = Math.floor(w.day / 45);
-  return themen.map((t) => {
-    const amt = AMT_VON_RESSORT(t.ressort);
-    const warte = status.sitzungMoeglich ? undefined : `Die nächste Kabinettssitzung ist in ${status.tageBisSitzung} Tagen.`;
-    const optionen: VorlageOption[] = t.optionen.map((o) => {
+  return themen.map((th) => {
+    const amt = AMT_VON_RESSORT(th.ressort);
+    const warte = status.sitzungMoeglich ? undefined : t("mfl.kabinett.warte", { n: status.tageBisSitzung });
+    const optionen: VorlageOption[] = th.optionen.map((o) => {
       const pk = o.kostenPk ?? 0;
       const ok = !warte && kannZahlen(sp.kapital, pk);
       return {
@@ -204,13 +211,13 @@ function kabinettQuelle(w: World): Roh[] {
         dafuer: o.befuerworter,
         dagegen: o.gegner,
         verlierer: [],
-        aktion: { art: "kabinett", themaId: t.id, optionId: o.id } as OptionAktion,
+        aktion: { art: "kabinett", themaId: th.id, optionId: o.id } as OptionAktion,
         moeglich: ok,
-        ...(ok ? {} : { grund: warte ?? `Dafür fehlt Kapital (nötig ${pk}).` }),
+        ...(ok ? {} : { grund: warte ?? t("mfl.kapital_fehlt", { pk }) }),
       };
     });
     return {
-      ...basis(w, { id: `kabinett:${t.id}:${bucket}`, thema: `kabinett:${t.id}`, art: "frage", quelle: "kabinett", amt, titel: t.titel, anlass: [t.anlass], optionen: [...optionen, SPAETER], tag: w.day, tragweite: t.dringlichkeit === "hoch" ? 0.8 : 0.3, malus: warte ? 0.35 : 1, ziel: { art: "akte", akte: "personen" }, empfehlungsArt: "parteilich" }),
+      ...basis(w, { id: `kabinett:${th.id}:${bucket}`, thema: `kabinett:${th.id}`, art: "frage", quelle: "kabinett", amt, titel: th.titel, anlass: [th.anlass], optionen: [...optionen, SPAETER()], tag: w.day, tragweite: th.dringlichkeit === "hoch" ? 0.8 : 0.3, malus: warte ? 0.35 : 1, ziel: { art: "akte", akte: "personen" }, empfehlungsArt: "parteilich" }),
       ...(warte ? { wartet: warte } : {}),
     };
   });
@@ -228,27 +235,28 @@ function zusagenQuelle(w: World): Roh[] {
     const einlosPk = v ? 0 : 4;
     opt.push({
       id: "einloesen",
-      label: "Einlösen",
-      text: v ? `Bringt „${v.name}“ von Stufe ${Math.round(v.jetzt)} auf ${v.ziel} ein; das Gesetz trägt die Kosten.` : "Die Zusage wird erfüllt.",
+      label: t("mfl.z.einloesen.label"),
+      text: v ? t("mfl.z.einloesen.text", { name: v.name, jetzt: Math.round(v.jetzt), ziel: v.ziel }) : t("mfl.z.einloesen.erfuellt"),
       kosten: { pk: einlosPk, aufmerksamkeit: v ? AUFMERKSAMKEIT_KOSTEN.gesetz : 0 },
-      folgen: [...(v?.pr.ok ? [`${v.pr.gesetz.pk} Kapital im Gesetz, ${v.pr.gesetz.stimmen.luecke > 0 ? `im Parlament fehlen etwa ${v.pr.gesetz.stimmen.luecke} Stimmen` : "die Mehrheit steht"}.`] : []), "Wer Zusagen hält, wird beim nächsten Mal ernster genommen."],
+      folgen: [...(v?.pr.ok ? [t("mfl.z.einloesen.preis", { pk: v.pr.gesetz.pk, mehrheit: v.pr.gesetz.stimmen.luecke > 0 ? t("mfl.mehrheit.fehlt", { n: v.pr.gesetz.stimmen.luecke }) : t("mfl.mehrheit.steht") })] : []), t("mfl.z.einloesen.folge")],
+      ...(v?.pr.ok ? { luecke: v.pr.gesetz.stimmen.luecke } : {}),
       dafuer: [z.von],
       dagegen: [],
       verlierer: [],
       aktion: { art: "zusage", zusageId: z.id, weg: "einloesen" },
       moeglich: kannZahlen(sp.kapital, einlosPk),
-      ...(kannZahlen(sp.kapital, einlosPk) ? {} : { grund: `Dafür fehlen ${einlosPk} Kapital.` }),
+      ...(kannZahlen(sp.kapital, einlosPk) ? {} : { grund: t("mfl.kapital_fehlt", { pk: einlosPk }) }),
     });
-    if ((z.vertroestet ?? 0) < 2) opt.push({ id: "vertroesten", label: "Vertrösten", text: "Drei Monate mehr; die Geduld sinkt.", kosten: { pk: 1, aufmerksamkeit: 0 }, folgen: ["Loyalität der Gegenseite −8, Vertrauen −0,5.", "Nach zwei Vertröstungen bleibt nur Halten oder Brechen."], dafuer: [], dagegen: [z.von], verlierer: [], aktion: { art: "zusage", zusageId: z.id, weg: "vertroesten" }, moeglich: kannZahlen(sp.kapital, 1), ...(kannZahlen(sp.kapital, 1) ? {} : { grund: "Für eine Vertröstung fehlt Kapital." }) });
-    opt.push({ id: "brechen", label: "Brechen", text: "Verbündete, Vertrauen und Glaubwürdigkeit leiden.", kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: ["Bereitschaft der Gegenseite −25, Loyalität −25, Vertrauen −1."], dafuer: [], dagegen: [z.von], verlierer: [], aktion: { art: "zusage", zusageId: z.id, weg: "brechen" }, moeglich: true });
+    if ((z.vertroestet ?? 0) < 2) opt.push({ id: "vertroesten", label: t("mfl.z.vertroesten.label"), text: t("mfl.z.vertroesten.text"), kosten: { pk: 1, aufmerksamkeit: 0 }, folgen: [t("mfl.z.vertroesten.folge1"), t("mfl.z.vertroesten.folge2")], dafuer: [], dagegen: [z.von], verlierer: [], aktion: { art: "zusage", zusageId: z.id, weg: "vertroesten" }, moeglich: kannZahlen(sp.kapital, 1), ...(kannZahlen(sp.kapital, 1) ? {} : { grund: t("mfl.z.vertroesten.kapital") }) });
+    opt.push({ id: "brechen", label: t("mfl.z.brechen.label"), text: t("mfl.z.brechen.text"), kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [t("mfl.z.brechen.folge")], dafuer: [], dagegen: [z.von], verlierer: [], aktion: { art: "zusage", zusageId: z.id, weg: "brechen" }, moeglich: true });
     out.push(
       basis(w, {
         id: `zusage:${z.id}`,
         art: "frage",
         quelle: "zusage",
         amt: "stab",
-        titel: `Zusage an ${z.von}: ${z.text}`,
-        anlass: [`Fällig ${s.tage < 0 ? `seit ${Math.abs(s.tage)} Tagen` : tageWort(Math.max(0, s.tage))}.`],
+        titel: msg("mfl.z.titel", { von: z.von, text: z.text }),
+        anlass: [s.tage < 0 ? t("mfl.z.ueberfaellig", { n: Math.abs(s.tage) }) : t("mfl.z.faellig", { wann: tageWort(s.tage) })],
         optionen: opt,
         frist: Math.max(0, s.tage),
         tag: w.day - 20,
@@ -276,9 +284,9 @@ function personenQuelle(w: World, z = flussZustand(w)): Roh[] {
           art: "schweigen",
           quelle: "person",
           amt: f.amt,
-          titel: `${kurzName(f)} legt nichts mehr vor`,
-          anlass: [`Bei Loyalität ${Math.round(f.loyalitaet)} (${e.groll >= 40 ? "verärgert" : "distanziert"}) hält ${f.name} Zahlen und Vorschläge zurück. Was im ${AEMTER[f.amt].ressort}ressort geschieht, erfahren Sie nur noch aus der Zeitung.`, sorgeText(w, f)],
-          optionen: [optionGespraech(w, f, "vertrauen"), optionGespraech(w, f, "rueckendeckung"), optionGespraech(w, f, "belohnung"), NICHTS],
+          titel: msg("mfl.p.schweigt.titel", { name: kurzName(f) }),
+          anlass: [t("mfl.p.schweigt.anlass", { loy: Math.round(f.loyalitaet), stimmung: t(e.groll >= 40 ? "mfl.p.veraergert" : "mfl.p.distanziert"), name: f.name, ressort: ressort(f.amt) }), sorgeText(w, f)],
+          optionen: [optionGespraech(w, f, "vertrauen"), optionGespraech(w, f, "rueckendeckung"), optionGespraech(w, f, "belohnung"), NICHTS()],
           tag: w.day,
           tragweite: f.loyalitaet < 25 ? 0.85 : 0.55,
           ziel: { art: "akte", akte: "personen" },
@@ -293,9 +301,9 @@ function personenQuelle(w: World, z = flussZustand(w)): Roh[] {
           art: "frage",
           quelle: "person",
           amt: f.amt,
-          titel: `Groll im ${AEMTER[f.amt].ressort}ressort`,
-          anlass: [`${f.name} ist ${e.groll >= 70 ? "gekränkt" : "verärgert"} (Groll ${Math.round(e.groll)}) und lässt es das Ressort spüren. ${sorgeText(w, f)}`],
-          optionen: [optionGespraech(w, f, "vertrauen"), optionGespraech(w, f, "rueckendeckung"), optionGespraech(w, f, "belohnung"), SPAETER],
+          titel: msg("mfl.p.groll.titel", { ressort: f.amt }),
+          anlass: [t("mfl.p.groll.anlass", { name: f.name, stimmung: t(e.groll >= 70 ? "mfl.p.gekraenkt" : "mfl.p.veraergert"), groll: Math.round(e.groll), sorge: sorgeText(w, f) })],
+          optionen: [optionGespraech(w, f, "vertrauen"), optionGespraech(w, f, "rueckendeckung"), optionGespraech(w, f, "belohnung"), SPAETER()],
           tag: w.day,
           tragweite: 0.5,
           ziel: { art: "akte", akte: "personen" },
@@ -315,9 +323,9 @@ function personenQuelle(w: World, z = flussZustand(w)): Roh[] {
             art: "rueckmeldung",
             quelle: "auftrag",
             amt: f.amt,
-            titel: `${kurzName(f)}: Ziel ${ok ? "erreicht" : "verfehlt"}`,
-            anlass: [`${a.text}${a.nachher !== undefined ? ` — von ${nf(a.vorher, 0)} auf ${nf(a.nachher, 0)}` : ""}.`, ok ? "Wer liefert, wird loyaler. Anerkennung bindet, bringt aber Neid bei den anderen." : "Ein verfehltes Ziel kostet Loyalität und macht Groll. Eine Aussprache hilft, bevor sich der Ärger festsetzt."],
-            optionen: [KENNTNIS, optionGespraech(w, f, ok ? "belohnung" : "vertrauen")],
+            titel: msg(ok ? "mfl.a.erreicht" : "mfl.a.verfehlt", { name: kurzName(f) }),
+            anlass: [a.nachher !== undefined ? t("mfl.a.verlauf", { text: a.text, vorher: nf(a.vorher, 0), nachher: nf(a.nachher, 0) }) : t("mfl.a.satz", { text: a.text }), t(ok ? "mfl.a.ok" : "mfl.a.nicht")],
+            optionen: [KENNTNIS(), optionGespraech(w, f, ok ? "belohnung" : "vertrauen")],
             tag: a.frist,
             tragweite: 0.45,
             ziel: { art: "akte", akte: "personen" },
@@ -335,9 +343,9 @@ function rueckmeldungenQuelle(w: World, z = flussZustand(w)): Roh[] {
   for (const r of z.rueckmeldungen) {
     if (z.gelesen.includes(r.id)) continue;
     const f = figurNachId(w, r.figurId);
-    const optionen: VorlageOption[] = [KENNTNIS];
+    const optionen: VorlageOption[] = [KENNTNIS()];
     if (r.nachholen) {
-      const o = optionMassnahme(w, f, r.nachholen.massnahme, r.nachholen.ziel, r.nachholen.ort, { label: "Gesetz jetzt einbringen", eigen: true });
+      const o = optionMassnahme(w, f, r.nachholen.massnahme, r.nachholen.ziel, r.nachholen.ort, { label: t("mfl.r.nachholen"), eigen: true });
       if (o) optionen.unshift(o);
     }
     out.push(basis(w, { id: r.id, art: "rueckmeldung", quelle: "befehl", amt: r.amt, titel: r.titel, anlass: r.text, optionen, tag: r.tag, tragweite: r.ergebnis === "verweigert" ? 0.65 : 0.4, ziel: { art: "akte", akte: "personen" }, ...(f ? { minister: f } : {}) }));
@@ -364,9 +372,9 @@ function problemQuelle(w: World, n: number): Roh[] {
         art: "vorschlag",
         quelle: "problem",
         amt,
-        titel: `${v.problemName}: ${v.name}`,
+        titel: msg("mfl.problem.titel", { problem: v.problemName, name: v.name }),
         anlass: [v.grund],
-        optionen: [opt, SPAETER, NICHTS],
+        optionen: [opt, SPAETER(), NICHTS()],
         tag: w.day,
         tragweite: 0.3 + 0.6 * Math.min(1, last * 1.4),
         ziel: { art: "politik", massnahme: { id: v.massnahme, level: v.ziel, ort: v.ort } },
@@ -412,9 +420,9 @@ function lageQuelle(w: World): Roh[] {
         art: "frage",
         quelle: "lage",
         amt: f.amt,
-        titel: `${AEMTER[f.amt].ressort}: ${sg.name} steht schlecht`,
-        anlass: [`${sg.name} liegt bei ${Math.round(sg.wert)} von 100${sg.schlechtWennHoch ? " (hoch ist schlecht)" : ""}. ${f.name} legt ${optionen.length === 1 ? "einen Schritt" : `${optionen.length} Schritte`} vor.`, sorgeText(w, f)],
-        optionen: [...optionen, { id: `ziel:${sg.id}`, label: `Ziel setzen: ${sg.name} verbessern`, text: `${f.name} bekommt ${Math.round(180 / 30)} Monate Zeit, die Größe um mindestens 3 Punkte zu bewegen.`, kosten: { pk: 2, aufmerksamkeit: AUFMERKSAMKEIT_KOSTEN.gespraech }, folgen: [], dafuer: [kurzName(f)], dagegen: [], verlierer: [], aktion: { art: "befehl", entwurf: { typ: "ziel", figurId: f.id, groesse: sg.id } }, moeglich: true }, SPAETER, NICHTS],
+        titel: msg("mfl.lage.titel", { ressort: f.amt, groesse: sg.name }),
+        anlass: [t(sg.schlechtWennHoch ? "mfl.lage.anlassHoch" : "mfl.lage.anlass", { groesse: sg.name, wert: Math.round(sg.wert), name: f.name, n: optionen.length }), sorgeText(w, f)],
+        optionen: [...optionen, { id: `ziel:${sg.id}`, label: t("mfl.lage.ziel.label", { groesse: sg.name }), text: t("mfl.lage.ziel.text", { name: f.name, monate: Math.round(180 / 30) }), kosten: { pk: 2, aufmerksamkeit: AUFMERKSAMKEIT_KOSTEN.gespraech }, folgen: [], dafuer: [kurzName(f)], dagegen: [], verlierer: [], aktion: { art: "befehl", entwurf: { typ: "ziel", figurId: f.id, groesse: sg.id } }, moeglich: true }, SPAETER(), NICHTS()],
         tag: w.day,
         tragweite: 0.3 + 0.4 * (schlecht / 100),
         ziel: { art: "politik", massnahme: { id: schritte[0]!.id, level: schritte[0]!.nach } },
@@ -428,14 +436,8 @@ function lageQuelle(w: World): Roh[] {
 // ---------------------------------------------------------------------------
 // Empfehlung
 
-const STIL_GRUND: Record<string, string> = {
-  nuechtern: "nach den Zahlen die beste Wahl",
-  vorsichtig: "der sichere Weg mit dem geringsten Preis",
-  streng: "die klare Linie, die Ordnung schafft",
-  machtbewusst: "die kräftigste Antwort",
-  eitel: "die Lösung, die zeigt, was das Haus kann",
-  loyal: "der Weg, den Sie am leichtesten vertreten können",
-};
+const STILE = new Set(["nuechtern", "vorsichtig", "streng", "machtbewusst", "eitel", "loyal"]);
+const stilGrund = (stil: string): string => t(STILE.has(stil) ? `mfl.stil.${stil}` : "mfl.stil.sonst");
 
 const SCHLECHT_WENN_MEHR = /(groll|defizit|schulden|inflation|risiko|arbeitslos|kriminal|spannung|unruhe|verlust|belast|aufschlag|schwächer)/i;
 
@@ -463,7 +465,7 @@ function empfiehl(w: World, v: Roh): void {
   if (!kandidaten.some((o) => !istMeta(o))) return;
   if (m.loyalitaet < 40) {
     // Ohne Rückhalt keine Empfehlung: Der Minister hält sich zurück (leere Kennung = nur ein Hinweis)
-    v.empfehlung = { optionId: "", grund: "", von: m.name, hinweis: `${m.name} hält sich zurück (Loyalität ${Math.round(m.loyalitaet)}): Eine Empfehlung gibt es erst ab 40.` };
+    v.empfehlung = { optionId: "", grund: "", von: m.name, hinweis: t("mfl.e.zurueck", { name: m.name, loy: Math.round(m.loyalitaet) }) };
     return;
   }
   const maxPk = Math.max(1, ...v.optionen.filter((o) => !istMeta(o)).map((o) => o.kosten.pk));
@@ -477,7 +479,7 @@ function empfiehl(w: World, v: Roh): void {
       // Warten empfiehlt, wer vorsichtig ist, wenn das Vorhaben teuer ist oder die Mehrheit fehlt; der Machtbewusste nie
       const haupt = v.optionen.find((x) => !istMeta(x));
       const teuer = haupt ? Math.min(1, haupt.kosten.pk / 12) : 0;
-      const ohneMehrheit = haupt?.folgen.some((t) => /fehlen etwa/.test(t)) ? 0.15 : 0;
+      const ohneMehrheit = (haupt?.luecke ?? 0) > 0 ? 0.15 : 0;
       score = 0.35 + (e.stil === "vorsichtig" ? 0.4 * (0.4 + 0.6 * teuer) : 0) + ohneMehrheit + (e.stil === "machtbewusst" ? -0.25 : 0) + rausch;
     } else {
       let verdienst = 0.5;
@@ -514,19 +516,23 @@ function empfiehl(w: World, v: Roh): void {
   if (!beste) return;
   const o = beste.o;
   if (o.id === "spaeter") {
-    v.empfehlung = { optionId: "spaeter", grund: `${kurzName(m)} rät, noch zu warten: ${e.stil === "vorsichtig" ? "Das Vorhaben ist teuer, und er will erst sehen, wie sich die Lage entwickelt" : "Die Voraussetzungen sind noch nicht gut genug"}.`.replace("er will", m.weiblich ? "sie will" : "er will"), von: m.name };
+    v.empfehlung = { optionId: "spaeter", grund: t(e.stil === "vorsichtig" ? "mfl.e.warten.teuer" : "mfl.e.warten", { name: kurzName(m), weiblich: m.weiblich ? "ja" : "nein" }), von: m.name };
     return;
   }
   const eigenInteresse = !!o.eigenesRessort && (e.stil === "eitel" || e.ehrgeiz >= 65);
   const nutzen = o.nutzen?.find((n) => n.besser !== null);
   const hinweise: string[] = [];
-  if (eigenInteresse) hinweise.push("Auffällig: Die Empfehlung stärkt vor allem das eigene Ressort.");
-  if (e.faehigkeit < 50) hinweise.push(`${m.name} gilt als fachlich schwach: Rechnen Sie nach.`);
-  if (m.loyalitaet < 55) hinweise.push(`${m.name} ist distanziert (Loyalität ${Math.round(m.loyalitaet)}); die Empfehlung kann Eigeninteresse sein.`);
+  if (eigenInteresse) hinweise.push(t("mfl.e.eigen"));
+  if (e.faehigkeit < 50) hinweise.push(t("mfl.e.schwach", { name: m.name }));
+  if (m.loyalitaet < 55) hinweise.push(t("mfl.e.distanziert", { name: m.name, loy: Math.round(m.loyalitaet) }));
   const dez = (n: NonNullable<typeof nutzen>) => nf(n.ohne, n.einheit === "Provinzen" ? 0 : 1);
   v.empfehlung = {
     optionId: o.id,
-    grund: `${kurzName(m)} empfiehlt „${o.label}“: ${STIL_GRUND[e.stil] ?? "nach den Zahlen"}.${o.kosten.pk > 0 ? ` Es kostet ${o.kosten.pk} Kapital.` : ""}${nutzen ? ` ${nutzen.name}: ${dez(nutzen)} ohne, ${nf(nutzen.mit, nutzen.einheit === "Provinzen" ? 0 : 1)} mit Eingriff nach ${nutzen.monate} Monaten.` : ""}`,
+    grund: [
+      t("mfl.e.empfiehlt", { name: kurzName(m), option: o.label, grund: stilGrund(e.stil) }),
+      ...(o.kosten.pk > 0 ? [t("mfl.e.kostet", { pk: o.kosten.pk })] : []),
+      ...(nutzen ? [t("mfl.e.nutzen", { groesse: nutzen.name, ohne: dez(nutzen), mit: nf(nutzen.mit, nutzen.einheit === "Provinzen" ? 0 : 1), monate: nutzen.monate })] : []),
+    ].join(" "),
     von: m.name,
     ...(hinweise.length ? { hinweis: hinweise.join(" ") } : {}),
   };
@@ -681,7 +687,7 @@ function ausfuehren(w: World, a: OptionAktion): VorlagenAntwort {
       return bringeEin(w, a.id, a.ziel, a.ort, "gesetz");
     case "zusage": {
       const z = sp.zusagen.find((x) => x.id === a.zusageId);
-      if (!z) return { ok: false, text: "Diese Zusage gibt es nicht mehr." };
+      if (!z) return { ok: false, text: t("mfl.x.zusage_weg") };
       return a.weg === "einloesen" ? loeseEin(w, z) : a.weg === "vertroesten" ? vertroesteFrei(w, z) : brecheFrei(w, z);
     }
     case "gespraech": {
@@ -693,7 +699,7 @@ function ausfuehren(w: World, a: OptionAktion): VorlagenAntwort {
     case "infrastruktur":
       return fuehreInfraAus(w, a);
     case "kenntnis":
-      return { ok: true, text: "Zur Kenntnis genommen." };
+      return { ok: true, text: t("mfl.x.kenntnis") };
     case "spaeter":
     case "nichts":
       return { ok: true, text: "" };
@@ -703,27 +709,27 @@ function ausfuehren(w: World, a: OptionAktion): VorlagenAntwort {
 /** Der Präsident entscheidet: die gewählte Option der Vorlage wird über die Kernfunktionen ausgeführt und vermerkt. */
 export function entscheideVorlage(w: World, vorlageId: string, optionId: string): VorlagenAntwort {
   const sp = w.spiel;
-  if (!sp) return { ok: false, text: "Ohne Spielschleife gibt es keine Vorlagen." };
+  if (!sp) return { ok: false, text: t("mfl.x.kein_spiel") };
   const v = ministerVorlagen(w, { tiefe: 0 }).find((x) => x.id === vorlageId);
-  if (!v) return { ok: false, text: "Diese Vorlage liegt nicht mehr vor." };
+  if (!v) return { ok: false, text: t("mfl.x.vorlage_weg") };
   const o = v.optionen.find((x) => x.id === optionId);
-  if (!o) return { ok: false, text: "Diese Option gibt es nicht." };
-  if (!o.moeglich) return { ok: false, text: o.grund ?? "Das geht gerade nicht." };
+  if (!o) return { ok: false, text: t("mfl.x.option_weg") };
+  if (!o.moeglich) return { ok: false, text: o.grund ?? t("mfl.geht_nicht") };
   const z = flussZustand(w);
   const m = v.minister ? figurNachId(w, v.minister.id) : undefined;
 
   if (o.aktion.art === "spaeter") {
     z.vertagt[v.thema] = w.day + o.aktion.tage;
-    return { ok: true, text: `Wiedervorlage in ${o.aktion.tage} Tagen.` };
+    return { ok: true, text: t("mfl.x.wiedervorlage", { n: o.aktion.tage }) };
   }
   if (o.aktion.art === "nichts") {
     z.abgelehnt[v.thema] = w.day;
     if (m) {
-      merke(w, m, `Vorlage abgelehnt: ${v.titel}`);
+      merke(w, m, t("mfl.merke.abgelehnt", { titel: v.titel }));
       // Wer eine Empfehlung abgeben durfte und übergangen wird, ärgert sich — nur der Ehrgeizige merkt es
       if (v.empfehlung?.optionId && eigenVon(w, m).ehrgeiz >= 60) grollVerschieben(w, m, 1);
     }
-    return { ok: true, text: "Nicht weiterverfolgt." };
+    return { ok: true, text: t("mfl.x.nicht_weiter") };
   }
 
   const r = ausfuehren(w, o.aktion);
@@ -736,9 +742,9 @@ export function entscheideVorlage(w: World, vorlageId: string, optionId: string)
   if (m && v.empfehlung?.optionId && v.art !== "rueckmeldung") {
     if (v.empfehlung.optionId === o.id) loyalitaetVerschieben(m, 1);
     else if (eigenVon(w, m).ehrgeiz >= 60) grollVerschieben(w, m, 1.5);
-    merke(w, m, `Entscheidung zu „${v.titel}“: ${o.label}`);
+    merke(w, m, t("mfl.merke.entschieden", { titel: v.titel, option: o.label }));
   }
-  if (v.quelle !== "ereignis" && v.quelle !== "kabinett") addLog(w, "entscheidung", `Vorlage von ${m ? kurzName(m) : AEMTER[v.amt].ressort} entschieden: ${v.titel} — ${o.label}.`, r.text || undefined);
+  if (v.quelle !== "ereignis" && v.quelle !== "kabinett") addLog(w, "entscheidung", t("mfl.log.entschieden", { von: m ? kurzName(m) : ressort(v.amt), titel: v.titel, option: o.label }), r.text || undefined);
   return r;
 }
 
@@ -770,13 +776,13 @@ export function pflegeVorlagen(w: World): void {
     const thema = g.thema ?? id;
     if ((z.vertagt[thema] ?? 0) > w.day || z.abgelehnt[thema] !== undefined) continue;
     if (QUELLEN_MIT_VERFALL.includes(g.quelle)) {
-      z.verfallen.push({ id, titel: g.titel, amt: g.amt, quelle: g.quelle, seit: g.tag, verfallen: w.day, grund: g.quelle === "zusage" ? "Die Zusage ist erledigt oder verfallen." : g.quelle === "kabinett" ? "Die Kabinettssitzung hat das Thema nicht mehr aufgegriffen." : "Die Lage hat sich geändert; der Vorschlag trifft nicht mehr zu." });
+      z.verfallen.push({ id, titel: g.titel, amt: g.amt, quelle: g.quelle, seit: g.tag, verfallen: w.day, grund: msg(g.quelle === "zusage" ? "mfl.verfall.zusage" : g.quelle === "kabinett" ? "mfl.verfall.kabinett" : "mfl.verfall.lage") });
     }
     delete z.gesehen[id];
   }
   if (z.verfallen.length > 14) z.verfallen.splice(0, z.verfallen.length - 14);
   const oben = ministerVorlagen(w, { tiefe: 0 }).slice(0, 10);
-  for (const v of oben) if (!z.gesehen[v.id]) z.gesehen[v.id] = { titel: v.titel, amt: v.amt, quelle: v.quelle, tag: w.day, thema: v.thema };
+  for (const v of oben) if (!z.gesehen[v.id]) z.gesehen[v.id] = { titel: v.titelMsg ?? v.titel, amt: v.amt, quelle: v.quelle, tag: w.day, thema: v.thema };
   // Alte Wiedervorlagen und Ablehnungen aufräumen
   for (const [id, t] of Object.entries(z.vertagt)) if (t < w.day - 120) delete z.vertagt[id];
   for (const [id, t] of Object.entries(z.abgelehnt)) if (t < w.day - 180) delete z.abgelehnt[id];

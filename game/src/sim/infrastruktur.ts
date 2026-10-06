@@ -19,6 +19,7 @@ import { PROVINCES } from "./netz";
 import { PROVINZEN, WEIGHTS } from "./regional";
 import { wirke } from "./wirkung";
 import { addLog } from "./log";
+import { grollVerschieben, loyalitaetVerschieben, merke } from "./personen";
 import { kannZahlen } from "./kapital";
 import { verbrauche, AUFMERKSAMKEIT_KOSTEN } from "./aufmerksamkeit";
 import * as Haushalt from "./haushalt";
@@ -74,6 +75,10 @@ export interface InfrastrukturZustand {
   leerKosten: number;
   /** Zuletzt gemeldete Überlast je Netz (Tag), damit Meldungen nicht jeden Monat kommen */
   gemeldet: Record<string, number>;
+  /** Liegengelassene Bitten: „netz:plaka“ → Tag, bis zu dem die Überlast dort stärker in Ärger umschlägt */
+  vernachlaessigt?: Record<string, number>;
+  /** Werke, deren Last schon in der Nachfrage steckt (einmal beim Fertigwerden) */
+  werkLast?: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -173,6 +178,8 @@ export function infraZustand(w: World): InfrastrukturZustand {
   z.gebeten ??= {};
   z.gemeldet ??= {};
   z.leerKosten ??= 0;
+  z.vernachlaessigt ??= {};
+  z.werkLast ??= {};
   // Netze, die ein späterer Stand hinzufügt, legen sich einzeln an
   for (const n of NETZE) z.netze[n.id] ??= neuerStand(w, n);
   return z;
@@ -271,6 +278,52 @@ export function druck(a: number, start: number): number {
 /** Stärke, mit der der Druck die Knoten bewegt (Spielparameter, kalibriert am Mess-Tor: bremst spürbar, keine Dauerkrise); für Messläufe veränderbar. */
 export const INFRA_PARAMETER = { druck: 0.6 };
 
+/**
+ * Preis einer liegengelassenen Bitte (Spielparameter, am Mess-Tor so gesetzt, dass Nichtstun nicht besser abschneidet als eine
+ * geprüfte Antwort): Das Vertrauen vor Ort sinkt, das bittende Ressort ist gekränkt, und ein Jahr lang schlägt die Überlast dort
+ * stärker in Ärger um. Eine spätere Antwort (Ausbau oder Alternative) hebt den Aufschlag auf.
+ */
+export const IGNORIERT = { vertrauen: -5, landesweit: -0.5, loyalitaet: -3, groll: 4, druckFaktor: 2, dauer: 365 };
+
+/** Überlastdruck an einem Ort; nach einer liegengelassenen Bitte schlägt er dort stärker durch (Entlastung bleibt unverändert). */
+const ortsDruck = (z: InfrastrukturZustand, netz: NetzId, plaka: number, tag: number, d: number): number =>
+  d > 0 && (z.vernachlaessigt?.[`${netz}:${plaka}`] ?? -1) > tag ? d * IGNORIERT.druckFaktor : d;
+
+/** Die Frist einer Bitte ist ohne Antwort verstrichen (oder die Bitte wurde abgelehnt), und das Netz ist weiter überlastet. */
+function liegenGelassen(w: World, z: InfrastrukturZustand, b: Bitte): void {
+  const sp = w.spiel!;
+  (z.vernachlaessigt ??= {})[`${b.netz}:${b.plaka}`] = w.day + IGNORIERT.dauer;
+  // Vor Ort spürbar, landesweit als Nachricht „die Regierung lässt die Region im Stich“
+  if (b.plaka > 0) wirke(w, "vertrauen_regierung", IGNORIERT.vertrauen, [b.plaka]);
+  wirke(w, "vertrauen_regierung", IGNORIERT.landesweit);
+  const netz = t(`infra.netz.${b.netz}`);
+  const ort = ortName(b.plaka);
+  const m = sp.figuren.find((f) => f.imAmt && f.amt === AMT_FUER[b.netz]);
+  if (m) {
+    loyalitaetVerschieben(m, IGNORIERT.loyalitaet);
+    grollVerschieben(w, m, IGNORIERT.groll);
+    merke(w, m, t("infra.ignoriert.merke", { netz, ort }));
+  }
+  addLog(w, "ereignis", t("infra.log.ignoriert", { netz, ort }), t(m ? "infra.log.ignoriert.warum" : "infra.log.ignoriert.warum_ohne", { name: m?.name ?? "" }));
+}
+
+/** Eine Antwort auf den Engpass hebt den Aufschlag der liegengelassenen Bitte auf. */
+function beantwortet(z: InfrastrukturZustand, netz: NetzId, provinzen: number[]): void {
+  if (!z.vernachlaessigt) return;
+  for (const k of Object.keys(z.vernachlaessigt)) {
+    const [n, pl] = k.split(":");
+    if (n === netz && (!provinzen.length || provinzen.includes(Number(pl)))) delete z.vernachlaessigt[k];
+  }
+}
+
+/**
+ * Zusätzliche Last fertiger Werke auf die Netze (Spielparameter): Eine Chipfabrik braucht für Reinstwasser sehr viel Wasser; im Spiel
+ * steigt die Wassernachfrage am Standort dauerhaft um einen Teil der Startnachfrage. Werke, die schon zu Beginn standen, stecken im Start.
+ */
+export const WERK_LAST: Record<string, { netz: NetzId; provinzen: number[]; plus: number }> = {
+  ki_chipfab: { netz: "wasser", provinzen: [41], plus: 0.05 },
+};
+
 export function infrastrukturMonat(w: World): void {
   const sp = w.spiel;
   if (!sp || sp.ende) return;
@@ -290,6 +343,13 @@ export function infrastrukturMonat(w: World): void {
       s.induziert[p] = (s.induziert[p] ?? 0) + n.induziert * e.plus * Math.min(1.2, a);
     }
     addLog(w, "entscheidung", t("infra.log.fertig", { name: reichName(w, id) }), t("infra.log.fertig.warum", { netz: t(`infra.netz.${e.netz}`) }));
+  }
+  for (const [id, last] of Object.entries(WERK_LAST)) {
+    if (!bestand[id] || (z.werkLast ??= {})[id] !== undefined) continue;
+    z.werkLast[id] = w.day;
+    if (sp.wissensbaum?.start.includes(id)) continue;
+    const s = z.netze[last.netz];
+    for (const pl of last.provinzen) if ((s.start[pl - 1] ?? 0) > 0) s.nachfrage[pl - 1] = Math.round(s.nachfrage[pl - 1]! * (1 + last.plus) * 10000) / 10000;
   }
   rechneKapazitaet(w, z);
 
@@ -322,7 +382,7 @@ export function infrastrukturMonat(w: World): void {
   for (const n of NETZE) {
     const s = z.netze[n.id];
     if (istLand(n)) {
-      const d = druck(auslastung(w, n.id)!, s.start[0]!);
+      const d = ortsDruck(z, n.id, 0, w.day, druck(auslastung(w, n.id)!, s.start[0]!));
       if (Math.abs(d) > 0.02) for (const b of n.bremsen) wirke(w, b.knoten, b.d * d * INFRA_PARAMETER.druck);
       continue;
     }
@@ -331,7 +391,7 @@ export function infrastrukturMonat(w: World): void {
     for (let p = 1; p <= PROVINCES; p++) {
       const a = auslastung(w, n.id, p);
       if (a === null) continue;
-      const d = Math.round(druck(a, s.start[p - 1]!) * 50) / 50;
+      const d = Math.round(ortsDruck(z, n.id, p, w.day, druck(a, s.start[p - 1]!)) * 50) / 50;
       if (Math.abs(d) < 0.02) continue;
       const g = gruppen.get(d);
       if (g) g.push(p);
@@ -503,6 +563,7 @@ function lege(w: World, a: AusbauDef, provinzen: number[], def: Vorhaben, pflege
   z.ausbau[def.id] = { ausbau: a.id, netz: a.netz, provinzen, plus: a.plus, ...(paket ? { paket: paket.id } : {}) };
   for (const p of provinzen.length ? provinzen : [0]) z.gebeten[`infra:${a.netz}:${p}`] = w.day;
   if (z.bitte && z.bitte.netz === a.netz && (provinzen.includes(z.bitte.plaka) || !provinzen.length)) delete z.bitte;
+  beantwortet(z, a.netz, provinzen);
   return { ...b, id: def.id };
 }
 
@@ -581,6 +642,7 @@ export function alternative(w: World, netz: NetzId, plaka: number): { ok: boolea
   z.gebeten[`alt:${thema}`] = w.day;
   z.gebeten[thema] = w.day;
   if (z.bitte && z.bitte.netz === netz && z.bitte.plaka === plaka) delete z.bitte;
+  beantwortet(z, netz, plaka > 0 ? [plaka] : []);
   rechneKapazitaet(w, z);
   addLog(w, "entscheidung", t("infra.log.alternative", { was: t(`infra.alt.${netz}.name`), ort: ortName(plaka) }), t(`infra.alt.${netz}.text`));
   return { ok: true, text: t("infra.alt.ok", { was: t(`infra.alt.${netz}.name`), ort: ortName(plaka) }) };
@@ -606,8 +668,10 @@ function waehleBitte(w: World, z: InfrastrukturZustand): void {
   if (alt) {
     const a = auslastung(w, alt.netz, alt.plaka);
     if (a !== null && a >= SCHWELLE.ueberlast && w.day - alt.tag < 60) return;
+    if (a !== null && a >= SCHWELLE.ueberlast) liegenGelassen(w, z, alt);
     delete z.bitte;
   }
+  if (z.vernachlaessigt) for (const [k, bis] of Object.entries(z.vernachlaessigt)) if (bis <= w.day) delete z.vernachlaessigt[k];
   let best: { netz: NetzId; plaka: number; wert: number } | null = null;
   for (const n of NETZE) {
     for (const e of engpaesse(w, n.id, 6)) {
@@ -716,7 +780,7 @@ export function infrastrukturBitte(w: World): BitteEntwurf | null {
       id: "nichts",
       label: t("infra.bitte.nichts.label"),
       kosten: { pk: 0, aufmerksamkeit: 0 },
-      folgen: [t("infra.bitte.nichts.folge", { netz: netzName, ort, a: Math.round(ohne * 100) })],
+      folgen: [t("infra.bitte.nichts.folge", { netz: netzName, ort, a: Math.round(ohne * 100) }), t("infra.bitte.nichts.folge2")],
       nutzen: [zeile(b.netz, b.plaka, a, ohne, ohne, monate)],
       dafuer: [t("infra.bitte.nichts.dafuer")],
       dagegen: [t("infra.bitte.nichts.dagegen")],

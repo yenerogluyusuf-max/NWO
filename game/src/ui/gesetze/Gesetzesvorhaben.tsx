@@ -91,9 +91,9 @@ function Karte({ s, world, onGetan }: { s: VorhabenSicht; world: World; onGetan:
               {t("gesetz.ui.einbringen", { pk: f.pk })}
             </button>
             {f.erlass && (
-              <button type="button" className="gv-knopf" disabled={!f.moeglich || !f.erlass.bezahlbar} onClick={() => handle("erlass")} title={t("gesetz.ui.erlassRisiko", { p: Math.round(f.erlass.gerichtP * 100) })}>
+              <button type="button" className="gv-knopf" disabled={!f.moeglich || !f.erlass.bezahlbar} onClick={() => handle("erlass")} title={f.erlass.gerichtP > 0 ? t("gesetz.ui.erlassRisiko", { p: Math.round(f.erlass.gerichtP * 100) }) : t("gesetz.ui.erlassUnangefochten")}>
                 {t("gesetz.ui.erlass", { pk: f.erlass.pk })}
-                <small>{t("gesetz.ui.erlassRisiko", { p: Math.round(f.erlass.gerichtP * 100) })}</small>
+                <small>{f.erlass.gerichtP > 0 ? t("gesetz.ui.erlassRisiko", { p: Math.round(f.erlass.gerichtP * 100) }) : t("gesetz.ui.erlassUnangefochten")}</small>
               </button>
             )}
           </div>

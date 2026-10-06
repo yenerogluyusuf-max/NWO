@@ -37,6 +37,7 @@ import { Reich } from "./Reich";
 import { Netze } from "./infrastruktur/Netze";
 import { Streitkraefte } from "./militaer/Streitkraefte";
 import { WunderFenster } from "./reich/WunderFenster";
+import { Wissensbaum } from "./wissen/Wissensbaum";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
 import { Gesetzesvorhaben } from "./gesetze/Gesetzesvorhaben";
 import { istAbstimmung } from "./parlament/abstimmung";
@@ -106,6 +107,7 @@ type Dossier =
   | "wahlkampf"
   | "katastrophe"
   | "programme"
+  | "wissensbaum"
   | "welt"
   | "reich_kultur"
   | "reich_recht"
@@ -499,7 +501,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       akte: "wissen",
       titel: t("nav.wissenTitel"),
       icon: "buch",
-      tabs: [{ id: "programme", label: t("buehne.tab.programme") }],
+      tabs: [{ id: "wissensbaum", label: t("wissen.tab") }, { id: "programme", label: t("buehne.tab.programme") }],
     },
     {
       kurz: t("nav.medien"),
@@ -815,7 +817,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
@@ -972,6 +974,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             )}
             {dossier === "chronik" && <Chronik world={w} />}
             {dossier === "netze" && <Netze world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "wissensbaum" && <Wissensbaum world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "streitkraefte" && <Streitkraefte world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier?.startsWith("reich_") && (
               <Reich

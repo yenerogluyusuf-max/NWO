@@ -18,6 +18,8 @@ import {
   infrastrukturBitte,
   investiere,
   landesMittel,
+  IGNORIERT,
+  WERK_LAST,
   paketAngebot,
   starteProgramm,
 } from "../src/sim/infrastruktur";
@@ -157,6 +159,56 @@ describe("Bitte bei Überlast", () => {
         expect(infrastrukturBitte(w)).toBeNull();
       }
     }
+  });
+});
+
+describe("Liegengelassene Bitte", () => {
+  test("kostet Vertrauen vor Ort und Loyalität im Ressort, verstärkt ein Jahr den Druck; eine spätere Antwort hebt das auf", () => {
+    const w = spiel();
+    const sp = w.spiel!;
+    sp.kapital = 60;
+    let offen = sp.infrastruktur?.bitte;
+    for (let m = 0; m < 24 && !offen; m++) {
+      advance(w, 30);
+      offen = sp.infrastruktur?.bitte;
+    }
+    expect(offen).toBeDefined();
+    const b = offen!;
+    const ressort = sp.figuren.find((f) => f.imAmt && f.amt === infrastrukturBitte(w)!.amt);
+    const loyVorher = ressort?.loyalitaet ?? 0;
+    const logVorher = w.log.length;
+    // Keine Antwort: Die Frist von 60 Tagen verstreicht, und das Netz bleibt überlastet
+    const z = sp.infrastruktur!;
+    const p = b.plaka > 0 ? b.plaka - 1 : 0;
+    for (let d = 0; d < 75 && z.bitte?.id === b.id; d++) {
+      z.netze[b.netz].nachfrage[p] = 1.25 * z.netze[b.netz].kap[p]!;
+      advance(w, 1);
+    }
+    const k = `${b.netz}:${b.plaka}`;
+    expect(z.vernachlaessigt?.[k]).toBeGreaterThan(w.day + IGNORIERT.dauer - 40);
+    expect(w.log.slice(logVorher).some((l) => l.text.includes("liegen gelassen"))).toBe(true);
+    if (ressort) expect(ressort.loyalitaet).toBeLessThan(loyVorher);
+    // Später doch ausbauen: der Aufschlag fällt weg
+    const AUSBAU: Record<string, string> = { strasse: "autobahn", bahn: "bahn", hafen: "hafen", flughafen: "flughafen", strom: "kraftwerk", wasser: "wasser", internet: "glasfaser", wohnen: "wohnungen", kliniken: "klinik" };
+    sp.kapital = 80;
+    const r = investiere(w, AUSBAU[b.netz]!, b.plaka);
+    if (r.ok) expect(z.vernachlaessigt?.[k]).toBeUndefined();
+  });
+});
+
+describe("Last der Werke", () => {
+  test("eine fertige Chipfabrik hebt die Wassernachfrage in Kocaeli einmal an", () => {
+    const w = spiel();
+    advance(w, 30);
+    const z = infraZustand(w);
+    const vorher = z.netze.wasser.nachfrage[40]!;
+    w.spiel!.reich!.bestand.ki_chipfab = { ...Object.values(w.spiel!.reich!.bestand)[0]!, id: "ki_chipfab" } as never;
+    advance(w, 30);
+    const nach = z.netze.wasser.nachfrage[40]!;
+    expect(nach / vorher).toBeGreaterThan(1 + WERK_LAST.ki_chipfab!.plus * 0.8);
+    advance(w, 30);
+    // Nur einmal: danach wächst die Nachfrage nur noch mit dem Trend
+    expect(z.netze.wasser.nachfrage[40]! / nach).toBeLessThan(1.02);
   });
 });
 

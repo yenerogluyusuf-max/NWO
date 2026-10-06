@@ -7,7 +7,7 @@ import { startAfterElection, type PlayerProfile } from "../src/sim/prolog";
 import { PROVINCES } from "../src/sim/netz";
 import { entscheide } from "../src/sim/ereignisse";
 import { WAHL, hochrechnung, huerdeProzent, istLetzteWahl, kandidatenFeld, rede, stichwahlAnteile, wahlabend, wahlabendQuittieren } from "../src/sim/wahl";
-import { SPIEL } from "../src/sim/spiel";
+import { SPIEL, zielZustimmung } from "../src/sim/spiel";
 import { Rng } from "../src/sim/rng";
 import type { World } from "../src/sim/types";
 
@@ -34,13 +34,25 @@ function spiel(seed = 5): World {
 }
 
 /** Hebt oder senkt die Zustimmung dauerhaft auf einen Zielwert (über die Kalibrierung, damit sie nicht zurückläuft). */
+const ZIEL = new WeakMap<World, number>();
 function stelleZustimmung(w: World, wert: number): void {
   w.spiel!.umfrage.zustimmung = wert;
   w.spiel!.kalibrierung += wert - 51 + 4;
+  ZIEL.set(w, wert);
 }
 
-/** Läuft bis kurz nach dem ersten Wahlgang und lässt alle Ereignisse unbeantwortet verfallen. */
+/**
+ * Läuft bis kurz nach dem ersten Wahlgang und lässt alle Ereignisse unbeantwortet verfallen. Wer fünf Jahre nichts entscheidet, verliert
+ * unterwegs Zustimmung (liegengelassene Bitten, sim/infrastruktur.ts); damit die Tests die Wahl bei der gesetzten Zustimmung prüfen,
+ * wird sie halbjährlich und einen Monat vor dem Wahltag wieder auf den Zielwert gesetzt.
+ */
 function bisWahltag(w: World): void {
+  const ziel = ZIEL.get(w);
+  while (ziel !== undefined && w.spiel!.wahltag - w.day > 30 && !w.spiel!.ende) {
+    advance(w, Math.min(180, w.spiel!.wahltag - w.day - 30));
+    for (let i = 0; i < 3; i++) w.spiel!.kalibrierung += ziel - zielZustimmung(w);
+    w.spiel!.umfrage.zustimmung = ziel;
+  }
   advance(w, w.spiel!.wahltag - w.day + 1);
 }
 

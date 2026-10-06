@@ -116,7 +116,7 @@
  "gesetz.grund.keinErlass": "Das braucht ein Gesetz: Ein Erlass darf das nicht regeln.",
  "gesetz.grund.kapital": "Es fehlt Politisches Kapital (nötig {noetig}, vorhanden {da}).",
  "gesetz.eingebracht.text": "„{titel}“ ist eingebracht. Abgestimmt wird in {tage, plural, one {# Tag} other {# Tagen}}.",
- "gesetz.erlass.text": "Per Präsidialerlass: „{titel}“ gilt ab sofort. Das Verfassungsgericht entscheidet in {tage} Tagen.",
+ "gesetz.erlass.text": "Per Präsidialerlass: „{titel}“ gilt ab sofort. Die {partei} klagt binnen der Frist von 60 Tagen; das Verfassungsgericht entscheidet in etwa {tage} Tagen.",
  "gesetz.erlass.warum": "{pk} Kapital und etwas Vertrauen: Wer am Parlament vorbei regiert, wirkt schnell und angreifbar. Das Gericht hebt mit etwa {p, prozent} Wahrscheinlichkeit auf.",
  "gesetz.folge.scharf": "„{titel}“ in scharfer Fassung beschlossen. Jubel: {fuer}. Widerstand angekündigt: {gegen}.",
  "gesetz.folge.kompromiss": "„{titel}“ als Kompromiss beschlossen. Zufrieden: {fuer}. Murren: {gegen}.",
@@ -167,5 +167,8 @@
  "gesetz.ui.anlass.linie": "Ihre Linie",
  "gesetz.ui.ruht": "ruht {tage, plural, one {# Tag} other {# Tage}}",
  "gesetz.ui.partnerWarnung": "Im eigenen Lager dagegen: {parteien, list}. Eine scharfe Fassung kostet ihre Stimmen und ihre Geduld.",
- "gesetz.ui.leer": "Nichts in Arbeit."
+ "gesetz.ui.leer": "Nichts in Arbeit.",
+ "gesetz.erlass.unangefochten": "Per Präsidialerlass: „{titel}“ gilt ab sofort, und niemand Klagebefugtes ficht ihn an.",
+ "gesetz.erlass.unangefochtenWarum": "{pk} Kapital und etwas Vertrauen. Klagen dürften nur der Präsident, die beiden größten Fraktionen oder ein Fünftel der Abgeordneten (Art. 150 der Verfassung); keiner von ihnen lehnt den Erlass ab. Beschließt das Parlament ein Gesetz zum selben Gegenstand, ist der Erlass hinfällig.",
+ "gesetz.ui.erlassUnangefochten": "Keine klagebefugte Seite dagegen"
 }

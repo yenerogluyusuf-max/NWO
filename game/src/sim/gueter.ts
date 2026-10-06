@@ -17,6 +17,7 @@ import { aussenZustand, lieferanteilVerschieben } from "./diplomatie";
 import { addLog } from "./log";
 import { akteurName } from "./welt-modell";
 import { t } from "../i18n";
+import { werkZusatz } from "./wissensbaum-kern";
 import type { World } from "./types";
 
 export interface GueterZustand {
@@ -137,7 +138,8 @@ function hormusFaktor(w: World): number {
 }
 
 function sichtVon(w: World, z: GueterZustand, g: GutDef, aus: Set<string>, hormus: number): GutSicht {
-  const produktion = g.produktion * faktor(w, g.produktionTreiber);
+  // Neu gebaute Werke des Wissensbaums (Chipfabrik, Impfstoffwerk …) stellen zusätzlich her
+  const produktion = g.produktion * faktor(w, g.produktionTreiber) * (1 + werkZusatz(w, g.id));
   const verbrauch = g.verbrauch * faktor(w, g.verbrauchTreiber);
   const stopp = z.ausfuhrStopp.includes(g.id);
   const foerderung = (z.foerderungBis[g.id] ?? -1) >= w.day;

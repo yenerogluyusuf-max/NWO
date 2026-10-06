@@ -4,6 +4,7 @@
 // Alles reines JSON, es gehört zum Spielstand. Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachen.
 
 import type { Figur } from "./spiel-typen";
+import type { Msg } from "../i18n/typen";
 import type { AnsatzId } from "./gespraeche";
 import type { AktionId } from "./laender";
 import type { Vorschlag } from "./vorschlaege";
@@ -64,6 +65,8 @@ export interface VorlageOption {
   grund?: string;
   /** Ob die Option vor allem das eigene Ressort des vorlegenden Ministers stärkt */
   eigenesRessort?: boolean;
+  /** Bei Gesetzen: wie viele Stimmen im Parlament fehlen (für die Empfehlung, unabhängig von der Sprache der Folgen) */
+  luecke?: number;
 }
 
 export type VorlagenZiel =
@@ -94,6 +97,8 @@ export interface Vorlage {
   /** Wer vorlegt; fehlt, wenn das Amt unbesetzt ist */
   minister?: VorlageMinister;
   titel: string;
+  /** Der Titel als Meldung, wenn er im Spielstand landen kann (gesehen, verfallen): so folgt er einem Sprachwechsel */
+  titelMsg?: Msg;
   anlass: string[];
   optionen: VorlageOption[];
   empfehlung?: { optionId: string; grund: string; von: string; hinweis?: string };
@@ -155,12 +160,13 @@ export interface Rueckmeldung {
 
 export interface VerfalleneVorlage {
   id: string;
-  titel: string;
+  /** Meldung (seit dem Sprachwechsel) oder fertiger Text aus älteren Spielständen */
+  titel: string | Msg;
   amt: Amt;
   quelle: VorlagenQuelle;
   seit: number;
   verfallen: number;
-  grund: string;
+  grund: string | Msg;
 }
 
 export interface MinisterFlussZustand {
@@ -176,7 +182,7 @@ export interface MinisterFlussZustand {
   gelesen: string[];
   verfallen: VerfalleneVorlage[];
   /** Vorlagen, die zuletzt auf dem Tisch lagen; was daraus verschwindet, ohne dass entschieden wurde, verfällt sichtbar */
-  gesehen: Record<string, { titel: string; amt: Amt; quelle: VorlagenQuelle; tag: number; thema?: string }>;
+  gesehen: Record<string, { titel: string | Msg; amt: Amt; quelle: VorlagenQuelle; tag: number; thema?: string }>;
 }
 
 export function neuerMinisterFluss(): MinisterFlussZustand {

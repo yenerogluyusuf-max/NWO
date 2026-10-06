@@ -32,8 +32,12 @@ export const GESETZGEBUNG = {
   gerichtTage: 120,
   /** Ab dieser Übereinstimmung zählt eine Partei als dafür oder dagegen (−1 bis +1) */
   lagerSchwelle: 0.15,
-  /** Sitze, die die größte Oppositionsfraktion für eine Normenkontrolle braucht (Spielparameter; Antragsrecht nach Art. 150 zu prüfen) */
-  klageSitze: 20,
+  /** Mindestgröße einer Fraktion (Art. 95 Abs. 2 der Verfassung) */
+  fraktionSitze: 20,
+  /** Ein Fünftel der Abgeordneten darf gemeinsam auf Normenkontrolle klagen (Art. 150: ein Fünftel von 600) */
+  klageQuorum: 120,
+  /** Klagefrist ab Veröffentlichung (Art. 151); im Spiel klagt, wer klagen will, sofort */
+  klageFrist: 60,
   /** Vorhaben, die vorn auf dem Tisch liegen; der Rest ist aufklappbar */
   vorn: 6,
   /** Großstädte, in denen sich Rathäuser gegen kommunale Gesetze stellen */
@@ -171,16 +175,23 @@ export interface VorhabenSicht {
 const schritte = (v: GesetzesVorhaben) => v.schritte ?? STANDARD_SCHRITTE;
 const knotenDa = (id: string) => NET.index.get(id) !== undefined;
 
-/** Größte Oppositionsfraktion (für die Normenkontrolle) und ob sie das Vorhaben ablehnt. */
+/**
+ * Wer gegen ein Vorhaben auf Normenkontrolle klagt (Art. 150): eine der beiden größten Fraktionen, wenn sie außerhalb des Lagers steht
+ * und das Vorhaben ablehnt, sonst die ablehnenden Abgeordneten außerhalb des Lagers gemeinsam, wenn sie ein Fünftel der Sitze haben.
+ * Zurück kommt die Partei, die die Klage anführt.
+ */
 function klaeger(w: World, v: GesetzesVorhaben): string | undefined {
   const sitze = w.parliament?.seats ?? {};
   const eigene = w.player?.partei.kurz;
   const lager = new Set([eigene, ...(w.spiel?.lager ?? [])]);
-  const opp = Object.entries(sitze).filter(([p]) => !lager.has(p)).sort((a, b) => b[1] - a[1])[0];
-  if (!opp || opp[1] < GESETZGEBUNG.klageSitze) return undefined;
-  const achsen = parteiAchsen(opp[0]);
-  if (!achsen) return undefined;
-  return uebereinstimmung(achsen, v.massnahme, v.richtung) < 0 ? opp[0] : undefined;
+  const dagegen = (p: string): boolean => {
+    const achsen = parteiAchsen(p);
+    return !!achsen && uebereinstimmung(achsen, v.massnahme, v.richtung) < 0;
+  };
+  const fraktionen = Object.entries(sitze).filter(([, n]) => n >= GESETZGEBUNG.fraktionSitze).sort((a, b) => b[1] - a[1]);
+  for (const [p] of fraktionen.slice(0, 2)) if (!lager.has(p) && dagegen(p)) return p;
+  const gegner = Object.entries(sitze).filter(([p]) => !lager.has(p) && dagegen(p)).sort((a, b) => b[1] - a[1]);
+  return gegner.reduce((n, [, x]) => n + x, 0) >= GESETZGEBUNG.klageQuorum ? gegner[0]?.[0] : undefined;
 }
 
 /** Wie das Verfassungsgericht zu einem Vorhaben steht: je unabhängiger besetzt, desto eher hebt es auf; Grundrechte wiegen schwerer. */
@@ -259,7 +270,7 @@ export function vorhabenSicht(w: World, v: GesetzesVorhaben, akutListe?: Set<str
       moeglich: grund === undefined,
       ...(grund !== undefined ? { grund } : {}),
     };
-    if (v.erlass === "anfechtbar") fs.erlass = { pk: pr.erlass.pk, bezahlbar: kannZahlen(sp.kapital, pr.erlass.pk), gerichtP: gerichtWahrscheinlichkeit(w, v, f, "erlass") };
+    if (v.erlass === "anfechtbar" && !v.grundrechte) fs.erlass = { pk: pr.erlass.pk, bezahlbar: kannZahlen(sp.kapital, pr.erlass.pk), gerichtP: klaeger(w, v) ? gerichtWahrscheinlichkeit(w, v, f, "erlass") : 0 };
     fassungen[f] = fs;
   });
   // Rang: Kalender, akute Probleme, Linie der eigenen Partei
@@ -332,9 +343,10 @@ export function bringeVorhabenEin(w: World, vorhabenId: string, fassung: Fassung
     folgenNachBeschluss(w, v, fassung);
     z.beschlossen.push({ vorhaben: v.id, fassung, tag: w.day, weg: "erlass" });
     z.ruhe[v.id] = w.day + GESETZGEBUNG.ruheNachAnnahme;
-    z.pruefungen.push({ id: `aym-${w.day}-${v.id}`, vorhaben: v.id, fassung, massnahme: v.massnahme, alteStufe, weg: "erlass", tag: w.day + GESETZGEBUNG.gerichtTage, p: fs.erlass.gerichtP });
-    const text = t("gesetz.erlass.text", { titel, tage: GESETZGEBUNG.gerichtTage });
-    const why = t("gesetz.erlass.warum", { pk: fs.erlass.pk, p: Math.round(fs.erlass.gerichtP * 100) });
+    const k = klaeger(w, v);
+    if (k) z.pruefungen.push({ id: `aym-${w.day}-${v.id}`, vorhaben: v.id, fassung, massnahme: v.massnahme, alteStufe, weg: "erlass", tag: w.day + GESETZGEBUNG.gerichtTage, p: fs.erlass.gerichtP });
+    const text = k ? t("gesetz.erlass.text", { titel, tage: GESETZGEBUNG.gerichtTage, partei: PARTEI_NAME[k] ?? k }) : t("gesetz.erlass.unangefochten", { titel });
+    const why = k ? t("gesetz.erlass.warum", { pk: fs.erlass.pk, p: Math.round(fs.erlass.gerichtP * 100) }) : t("gesetz.erlass.unangefochtenWarum", { pk: fs.erlass.pk });
     addLog(w, "entscheidung", text, why);
     return { ok: true, text, why };
   }

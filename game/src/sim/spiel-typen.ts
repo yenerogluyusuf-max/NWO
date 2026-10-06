@@ -577,6 +577,8 @@ export interface SpielZustand {
   infrastruktur?: import("./infrastruktur").InfrastrukturZustand;
   /** Ausbaustufen der Behörden (sim/behoerden.ts); ältere Spielstände legen sie beim ersten Zugriff mit den Startstufen an */
   behoerden?: import("./behoerden").BehoerdenZustand;
+  /** Wissensbaum: Schwerpunkt, Lizenzen, Träger der Werke, Durchbrüche (sim/wissensbaum-kern.ts); ältere Spielstände legen ihn beim ersten Zugriff an */
+  wissensbaum?: import("./wissensbaum-kern").WissensbaumZustand;
   /** Gesetzesvorhaben: Ruhezeiten, Beschlüsse, Prüfungen des Verfassungsgerichts (sim/gesetzgebung.ts); ältere Spielstände legen es beim ersten Zugriff an */
   gesetzgebung?: import("./gesetzgebung").GesetzgebungZustand;
   /** Der EU-Beitrittsvorgang (AUS-2); ältere Spielstände legen ihn beim ersten Zugriff an (sim/eu.ts) */

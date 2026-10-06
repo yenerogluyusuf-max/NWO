@@ -136,5 +136,10 @@
  "infra.ui.paket.preis": "{n, number} Provinzen, {pk, number} Kapital (einzeln {einzeln, number}), etwa {monate, number} Monate; Risiko der Kostenüberschreitung {risiko, number} Prozent.",
  "infra.ui.paket.start": "Programm beschließen",
  "infra.ui.leer": "Leere Kapazität kostet Unterhalt: etwa {x, number} Punkte Schuldenquote im Jahr.",
- "infra.ui.zeile": "Netze: größter Engpass {netz} in {ort} ({a, number} %), {n, number} im Bau"
+ "infra.ui.zeile": "Netze: größter Engpass {netz} in {ort} ({a, number} %), {n, number} im Bau",
+ "infra.bitte.nichts.folge2": "Wer die Bitte liegen lässt, kränkt das Ressort; vor Ort sinkt das Vertrauen, und ein Jahr lang schlägt die Überlast dort stärker in Ärger um.",
+ "infra.log.ignoriert": "Bitte liegen gelassen: {netz} in {ort}",
+ "infra.log.ignoriert.warum": "Die Frist ist ohne Entscheidung verstrichen. {name} fühlt sich übergangen, vor Ort sinkt das Vertrauen in die Regierung, und die Überlast schlägt dort ein Jahr lang stärker in Ärger um, bis ausgebaut oder umgelenkt wird.",
+ "infra.log.ignoriert.warum_ohne": "Die Frist ist ohne Entscheidung verstrichen. Vor Ort sinkt das Vertrauen in die Regierung, und die Überlast schlägt dort ein Jahr lang stärker in Ärger um, bis ausgebaut oder umgelenkt wird.",
+ "infra.ignoriert.merke": "Meine Bitte zu {netz} in {ort} blieb liegen"
 }

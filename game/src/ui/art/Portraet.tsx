@@ -5,7 +5,7 @@
 // Als zweiter Weg zeigt das Porträt gemalte Rasterbilder aus public/ui/portraits/, wenn das Manifest passende kennt (portraet-bilder.ts).
 // Bewegung (Blinzeln, leichte Kopfneigung) steht nur im Stil und folgt der Effektstufe (ui/anim/effekte.ts) und „Bewegung reduzieren“.
 
-import { useId, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useId, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import "../anim/effekte"; // setzt `data-effekte` am Dokument
 import "./portraet.css";
 import { Hintergrund, kleidung, kleidungsart } from "./portraet-kleidung";
@@ -362,7 +362,7 @@ function GezeichnetesPortraet({ svgProps, props, a, uid, rahmenNodes, plakette, 
       {sat(50 - A * 0.96, ey - H * 0.06, A * 0.2, H * 0.17, 0.35)}
       {sat(50 + A * 0.98, ey - H * 0.04, A * 0.24, H * 0.22, 0.6)}
       {/* Augenhöhlen */}
-      {([-1, 1] as const).map((s) => sat(50 + s * ex, ey - 0.6, ew * 0.85, ew * 0.46, 0.42 + (s > 0 ? 0.08 : 0)))}
+      {([-1, 1] as const).map((s) => <Fragment key={s}>{sat(50 + s * ex, ey - 0.6, ew * 0.85, ew * 0.46, 0.42 + (s > 0 ? 0.08 : 0))}</Fragment>)}
       {/* Nasenschatten rechts, unter der Nase, unter der Unterlippe */}
       {sat(50 + nw * 0.95, ey + H * 0.1, 2.4, H * 0.1, 0.55, 8)}
       {sat(50, nb + 1.6, nw * 0.85, 1.7, 0.75)}

@@ -11,6 +11,7 @@ import { medienVon, rsfSicht, lizenzVon } from "../../sim/medien";
 import { MEDIEN_CLUSTER } from "../../data/medien";
 import { programmZustand, schrittMitProgramm } from "../../sim/programme";
 import { zielStand } from "../../sim/ziele";
+import { baumSicht, knotenName } from "../../sim/wissensbaum";
 import { alleLaufenden } from "../../sim/abkommen";
 import { aktiveKriege, PHASEN_NAME } from "../../sim/krieg";
 import { paktSicht } from "../../sim/pakte";
@@ -201,7 +202,14 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
       const z = programmZustand(w);
       const laufend = z.laufend.map((l) => ({ titel: schrittMitProgramm(l.schritt)?.schritt.titel ?? l.schritt, meta: t("akte.b.lage.fertigIn", { tage: Math.max(0, l.ende - w.day) }) }));
       const ziele = zielStand(w).map((x) => ({ titel: x.def.titel, meta: x.stand, ton: (x.erreicht ? "gut" : "mittel") as LageZeile["ton"] }));
+      const baum = baumSicht(w).zweige.flatMap((zw) => zw.knoten);
+      const forschung = [
+        ...baum.filter((k) => k.durchbruch).map((k) => ({ titel: knotenName(k.id), meta: t("wissen.ui.durchbruch"), ton: "gut" as LageZeile["ton"] })),
+        ...baum.filter((k) => k.zustand === "laeuft").map((k) => ({ titel: knotenName(k.id), meta: k.restMonate !== undefined ? t("wissen.ui.rest", { n: k.restMonate }) : t("wissen.ui.zustand.laeuft") })),
+        ...baum.filter((k) => k.zustand === "moeglich" && !k.grund).map((k) => ({ titel: knotenName(k.id), meta: t("wissen.ui.zustand.moeglich"), ton: "mittel" as LageZeile["ton"] })),
+      ];
       return [
+        { kopf: t("wissen.tab"), zeilen: forschung },
         { kopf: t("akte.b.lage.programme"), zeilen: laufend },
         { kopf: t("akte.b.lage.ziele"), zeilen: ziele },
       ];

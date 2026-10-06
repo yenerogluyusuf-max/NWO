@@ -136,5 +136,10 @@
  "infra.ui.paket.preis": "{n, number} provinces, {pk, number} capital (individually {einzeln, number}), about {monate, number} months; risk of cost overrun {risiko, number} percent.",
  "infra.ui.paket.start": "Decide programme",
  "infra.ui.leer": "Empty capacity costs upkeep: about {x, number} points of debt ratio per year.",
- "infra.ui.zeile": "Networks: biggest bottleneck {netz} in {ort} ({a, number}%), {n, number} under construction"
+ "infra.ui.zeile": "Networks: biggest bottleneck {netz} in {ort} ({a, number}%), {n, number} under construction",
+ "infra.bitte.nichts.folge2": "Leaving the request on the desk offends the ministry; trust in the government falls locally, and for a year the overload turns into anger there more quickly.",
+ "infra.log.ignoriert": "Request left on the desk: {netz} in {ort}",
+ "infra.log.ignoriert.warum": "The deadline passed without a decision. {name} feels passed over, trust in the government falls locally, and for a year the overload turns into anger there more quickly until capacity is added or demand is steered.",
+ "infra.log.ignoriert.warum_ohne": "The deadline passed without a decision. Trust in the government falls locally, and for a year the overload turns into anger there more quickly until capacity is added or demand is steered.",
+ "infra.ignoriert.merke": "My request on {netz} in {ort} was left lying"
 }

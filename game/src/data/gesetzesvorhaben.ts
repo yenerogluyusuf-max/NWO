@@ -4,13 +4,20 @@
 // Die Fassung bestimmt, wie weit: scharf (großer Schritt, hält die eigene Linie, weckt Widerstand), Kompromiss (mittlerer Schritt,
 // holt Stimmen der Opposition) oder verwässert (kleiner Schritt, leicht durchzubringen, enttäuscht die Befürworter).
 //
-// Recht (Rahmen, als Spielregel umgesetzt, nicht als Rechtssatz):
-// - Präsidialerlasse (Cumhurbaşkanlığı Kararnamesi) ersetzen seit 2018 die Notverordnungen mit Gesetzeskraft. Grundrechte, Strafnormen und
-//   Gegenstände, die die Verfassung dem Gesetz vorbehält (etwa Steuern), sind ausgeschlossen. Fundstelle: RECHERCHE_GESETZGEBUNG_TUERKEI_2026-10-05.md
-//   Abschnitt 5; dort als Art. 106 geführt, nach der Verfassung von 1982 in der Fassung von 2017 steht die Erlassbefugnis in Art. 104 Abs. 17 (zu prüfen).
-// - Gesetze und Erlasse kann das Verfassungsgericht (AYM) auf Antrag aufheben (Art. 150 und 151; Antragsberechtigte und Fristen zu prüfen).
-// Im Spiel: Erlass nur, wo `erlass` "anfechtbar" ist; Vorhaben mit `grundrechte` kippt das Gericht eher, und die größte Oppositionsfraktion
-// kann sie nach der Annahme vor das Gericht bringen.
+// Recht (Rahmen, als Spielregel umgesetzt, nicht als Rechtssatz). Quelle: Verfassung der Republik Türkei (1982) in der Fassung des
+// Gesetzes Nr. 6771 vom 21.01.2017, Text bei mevzuat.gov.tr (MevzuatMetin/1.5.2709), geprüft am 06.10.2026:
+// - Präsidialerlass (Cumhurbaşkanlığı kararnamesi), Art. 104 Abs. 17 (verbreitete Zählung; Absatz „Cumhurbaşkanı, yürütme yetkisine
+//   ilişkin konularda …“): nur in Angelegenheiten der Exekutive. Ausgeschlossen sind die Grundrechte, die Rechte und Pflichten der Person
+//   (Zweiter Teil, Kapitel 1 und 2) und die politischen Rechte (Kapitel 4), Gegenstände, die die Verfassung ausschließlich dem Gesetz
+//   vorbehält (etwa Steuern, Art. 73), und Gegenstände, die ein Gesetz ausdrücklich regelt. Bei Widerspruch gilt das Gesetz; beschließt
+//   die TBMM ein Gesetz zum selben Gegenstand, wird der Erlass hinfällig.
+// - Normenkontrolle (iptal davası), Art. 150: klagen dürfen der Präsident, die beiden Parteifraktionen mit den meisten Mitgliedern in der
+//   TBMM und mindestens ein Fünftel der Abgeordneten (120 von 600). Eine Fraktion braucht mindestens 20 Mitglieder (Art. 95 Abs. 2).
+// - Frist, Art. 151: 60 Tage ab Veröffentlichung im Resmî Gazete. Wirkung, Art. 153 Abs. 3: Die Aufhebung gilt ab Veröffentlichung des
+//   Urteils (das Gericht kann sie bis zu einem Jahr aufschieben) und wirkt nicht zurück.
+// Im Spiel: Erlass nur, wo `erlass` "anfechtbar" ist, nie bei `grundrechte`. Geklagt wird nur, wenn eine klagebefugte Seite außerhalb des
+// Regierungslagers das Vorhaben ablehnt (sim/gesetzgebung.ts, `klaeger`); sonst bleibt der Erlass unangefochten. Grundrechtsnahe Gesetze
+// bringt sie nach der Annahme vor das Gericht. Wie lange das Gericht braucht, ist ein Spielparameter (die Verfassung setzt dafür keine Frist).
 //
 // Alle Zahlen hier (Schritte, Protest, Wirkungen) sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachen.
 
@@ -89,9 +96,9 @@ export const GESETZESVORHABEN: readonly GesetzesVorhaben[] = [
   { id: "gv_wohnungsbau", massnahme: "m_sozialwohnungen", richtung: 1, fuer: ["arme", "junge", "bauwirtschaft"], gegen: ["finanzministerium", "umweltverbaende"], erlass: "anfechtbar", protest: 0, kommunal: true, baustein: "g_sozialwohnungen" },
   { id: "gv_bauamnestie", massnahme: "m_bauamnestie", richtung: 1, fuer: ["eigentuemer", "bauwirtschaft", "arme"], gegen: ["ingenieurkammern", "umweltverbaende", "staedtische_saekulare"], erlass: "nein", protest: 0.3, kommunal: true, baustein: "g_bauamnestie" },
   // Sicherheit und Freiheit
-  { id: "gv_polizei", massnahme: "m_polizei", richtung: 1, fuer: ["nationalisten", "konservative", "beamtengewerkschaften"], gegen: ["menschenrechtsvereine", "anwaltskammern", "minderheiten"], erlass: "anfechtbar", grundrechte: true, protest: 0.5, baustein: "g_polizei" },
+  { id: "gv_polizei", massnahme: "m_polizei", richtung: 1, fuer: ["nationalisten", "konservative", "beamtengewerkschaften"], gegen: ["menschenrechtsvereine", "anwaltskammern", "minderheiten"], erlass: "nein", grundrechte: true, protest: 0.5, baustein: "g_polizei" },
   { id: "gv_versammlung", massnahme: "m_versammlungsfreiheit", richtung: 1, fuer: ["studenten", "menschenrechtsvereine", "gewerkschaften"], gegen: ["nationalisten", "konservative"], erlass: "nein", protest: 0, baustein: "g_versammlungsfreiheit" },
-  { id: "gv_netzinhalte", massnahme: "m_internetsperren", richtung: 1, fuer: ["nationalisten", "konservative"], gegen: ["junge", "journalisten", "unternehmer", "eu"], erlass: "anfechtbar", grundrechte: true, protest: 0.6, baustein: "g_internetsperren" },
+  { id: "gv_netzinhalte", massnahme: "m_internetsperren", richtung: 1, fuer: ["nationalisten", "konservative"], gegen: ["junge", "journalisten", "unternehmer", "eu"], erlass: "nein", grundrechte: true, protest: 0.6, baustein: "g_internetsperren" },
   { id: "gv_medienaufsicht", massnahme: "m_medienaufsicht", richtung: 1, fuer: ["konservative", "nationalisten"], gegen: ["journalisten", "staedtische_saekulare", "eu"], erlass: "nein", grundrechte: true, protest: 0.4, baustein: "g_medienaufsicht" },
   { id: "gv_wehrdienst", massnahme: "m_wehrdienst", richtung: -1, schritte: [24, 14, 6], fuer: ["junge", "studenten"], gegen: ["generalstab", "veteranen", "nationalisten"], erlass: "nein", protest: 0 },
   // Recht und Staat
@@ -104,7 +111,7 @@ export const GESETZESVORHABEN: readonly GesetzesVorhaben[] = [
   { id: "gv_minderheiten", massnahme: "m_minderheitenrechte", richtung: 1, fuer: ["minderheiten", "kurdische_verbaende", "alevitische_verbaende", "eu"], gegen: ["nationalisten", "veteranen"], erlass: "nein", grundrechte: true, protest: 0.4 },
   // Frieden und Migration
   { id: "gv_friedensprozess", massnahme: "m_friedensprozess", richtung: 1, fuer: ["kurdische_verbaende", "minderheiten", "eu"], gegen: ["nationalisten", "veteranen", "generalstab"], erlass: "nein", protest: 0.5, baustein: "g_friedensprozess" },
-  { id: "gv_rueckkehr", massnahme: "m_rueckkehr", richtung: 1, fuer: ["nationalisten", "arbeitnehmer", "konservative"], gegen: ["menschenrechtsvereine", "arbeitgeber", "eu"], erlass: "anfechtbar", grundrechte: true, protest: 0.2, baustein: "g_rueckkehr" },
+  { id: "gv_rueckkehr", massnahme: "m_rueckkehr", richtung: 1, fuer: ["nationalisten", "arbeitnehmer", "konservative"], gegen: ["menschenrechtsvereine", "arbeitgeber", "eu"], erlass: "nein", grundrechte: true, protest: 0.2, baustein: "g_rueckkehr" },
 ];
 
 export const VORHABEN_NACH_ID = new Map(GESETZESVORHABEN.map((v) => [v.id, v]));

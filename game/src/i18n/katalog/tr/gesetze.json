@@ -116,7 +116,7 @@
  "gesetz.grund.keinErlass": "Bunun için kanun gerekir: Kararname bunu düzenleyemez.",
  "gesetz.grund.kapital": "Siyasi sermaye yetmiyor (gereken {noetig}, mevcut {da}).",
  "gesetz.eingebracht.text": "“{titel}” Meclis'e sunuldu. Oylama {tage, plural, one {# gün} other {# gün}} sonra.",
- "gesetz.erlass.text": "Cumhurbaşkanlığı kararnamesiyle: “{titel}” hemen yürürlükte. Anayasa Mahkemesi {tage} gün içinde karar verecek.",
+ "gesetz.erlass.text": "Cumhurbaşkanlığı kararnamesiyle: “{titel}” hemen yürürlükte. {partei} 60 günlük süre içinde dava açıyor; Anayasa Mahkemesi yaklaşık {tage} gün içinde karar verecek.",
  "gesetz.erlass.warum": "{pk} sermaye ve biraz güven: Meclis'i atlayarak yönetmek hızlıdır ama saldırıya açıktır. Mahkeme yaklaşık {p, prozent} ihtimalle iptal eder.",
  "gesetz.folge.scharf": "“{titel}” sert hâliyle kabul edildi. Sevinenler: {fuer}. Direniş ilan edenler: {gegen}.",
  "gesetz.folge.kompromiss": "“{titel}” uzlaşıyla kabul edildi. Memnun olanlar: {fuer}. Söylenenler: {gegen}.",
@@ -167,5 +167,8 @@
  "gesetz.ui.anlass.linie": "çizginiz",
  "gesetz.ui.ruht": "{tage, plural, one {# gün} other {# gün}} bekliyor",
  "gesetz.ui.partnerWarnung": "Kendi ittifakınızda karşı çıkanlar: {parteien, list}. Sert bir metin hem oylarına hem sabırlarına mal olur.",
- "gesetz.ui.leer": "Süren bir iş yok."
+ "gesetz.ui.leer": "Süren bir iş yok.",
+ "gesetz.erlass.unangefochten": "Cumhurbaşkanlığı kararnamesiyle: “{titel}” hemen yürürlükte ve dava açmaya yetkili kimse itiraz etmiyor.",
+ "gesetz.erlass.unangefochtenWarum": "{pk} sermaye ve biraz güven. Dava açma hakkı yalnızca Cumhurbaşkanına, en fazla üyeye sahip iki siyasi parti grubuna ve üye tamsayısının beşte birine aittir (Anayasa md. 150); hiçbiri kararnameye karşı değil. Meclis aynı konuda kanun çıkarırsa kararname hükümsüz hale gelir.",
+ "gesetz.ui.erlassUnangefochten": "Dava açmaya yetkili karşı taraf yok"
 }

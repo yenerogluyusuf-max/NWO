@@ -190,8 +190,15 @@ export function sachstimmen(world: World, massnahme: string | undefined, richtun
   return out;
 }
 
-/** Sitze, mit denen das Regierungslager ins Spiel startet: eine Mehrheit mit Puffer, damit ein einzelner Partner sie nicht sofort kippt. */
+/**
+ * Sitze, mit denen das Regierungslager ins Spiel startet: eine Mehrheit mit Puffer, damit ein einzelner Partner sie nicht sofort kippt.
+ * Maßstab ist die echte Lage: Cumhur İttifakı nach der Wahl 2023 mit 323 Sitzen (AKP 268, MHP 50, YRP 5; YSK, kesin sonuçlar,
+ * Resmî Gazete Juni 2023), im Sommer 2026 AKP 280 und MHP 46 (Sandalye dağılımı nach TBMM, berichtet von BirGün, 24.07.2026).
+ * Das Lager soll so knapp bleiben, dass abspringende Partner und Abweichler Gesetze kippen können (Spielparameter).
+ */
 export const REGIERUNGSMEHRHEIT_ZIEL = 316;
+/** Wie viele überzählige Sitze einen Punkt Nähe aufwiegen (früher 40; kleiner = knappere Lager) */
+const UEBERSCHUSS_SITZE = 12;
 
 /**
  * Wer außer dem eigenen Bündnispartner noch ins Lager gehört, damit das Spiel mit einer Regierungsmehrheit beginnt.
@@ -214,7 +221,8 @@ export function waehlePartner(seats: Record<string, number>, eigene: string, bue
   }
   const summe = (k: string[]) => k.reduce((s, p) => s + (seats[p] ?? 0), 0);
   const riese = (k: string[]) => k.some((p) => (seats[p] ?? 0) >= 200);
-  const wert = (k: string[], ziel: number) => k.reduce((s, p) => s + (nah[p] ?? 0) * 3, 0) - (grund + summe(k) - ziel) / 40 - 1.2 * (k.length - 1);
+  // Überschuss kostet: Wer genug Sitze hat, teilt Ämter nicht mit mehr Partnern als nötig (kleinste Gewinnkoalition; Spielparameter)
+  const wert = (k: string[], ziel: number) => k.reduce((s, p) => s + (nah[p] ?? 0) * 3, 0) - (grund + summe(k) - ziel) / UEBERSCHUSS_SITZE - 1.2 * (k.length - 1);
   // Erst eine Mehrheit mit Puffer suchen, dann knapper; ein Riese (eine Fraktion mit 200 Sitzen und mehr) kommt nur ins Lager, wenn es ohne keine Mehrheit gibt
   let ersatz: string[] | null = null;
   for (const ziel of [REGIERUNGSMEHRHEIT_ZIEL, 306]) {
