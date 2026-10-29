@@ -11,7 +11,7 @@ Die Einzelberichte mit allen Belegen (Datei:Zeile, Messwerte, Prioritäten, Aufw
 | 3 | [03_wirtschaft_statistik.md](analyse/2026-10-29/03_wirtschaft_statistik.md) | Wirtschaftliche Entwicklung, Statistik, Ländervergleich |
 | 4 | [04_welt_vertraege.md](analyse/2026-10-29/04_welt_vertraege.md) | Andere Länder als Akteure, Außenpolitik, Verträge, Krieg |
 | 5 | [05_recht_innenpolitik.md](analyse/2026-10-29/05_recht_innenpolitik.md) | Gesetzesweg, Verfassung, Gericht, Parlament, Opposition |
-| 6 | 06_spielfluss.md (folgt) | Spielschleife, Entscheidungen, Spannung, strategische Ebene |
+| 6 | [06_spielfluss.md](analyse/2026-10-29/06_spielfluss.md) | Spielschleife, Entscheidungen, Spannung, strategische Ebene |
 
 ---
 
@@ -24,6 +24,7 @@ W4 hat viel gebracht: Aktengerüst, Gesetzesvorhaben mit Fassungen und Verfassun
 3. **Es gibt zu wenig Widerstand.** Alle 32 Abstimmungen in ~20 Spieljahren angenommen; Nichtstun senkt die Inflation von 31,5 % auf 7,6 %; Hyperinflation kostet kein Wachstum; außenpolitisch untätig = USA-Vertrauen 100.
 4. **Die Welt lebt im Hintergrund, aber nicht gegenüber dem Spieler.** 0,84 Länderinitiativen pro Jahr, 11 von 18 Ländern melden sich nie.
 5. **Die Karte ist groß, zeigt aber kaum Folgen.** Nach 19 Monaten ändern sich 18 % der Bildpunkte, fast alles durch die Jahreszeit.
+6. **Es fehlt ein roter Faden.** Ziele, Fokusbaum, Programme und Unterschriftenmappe sind getrennte Systeme. Die Ziele haben keine Spielwirkung, drei sind schon beim Start erfüllt. Etwa die Hälfte aller Ereignisantworten ist nach 180 Tagen folgenlos; echte Zwickmühlen gibt es rund vier pro Jahr. Langfristige Planung wird belohnt („früh investieren, spät verteilen“ gewinnt 6 von 6), aber nirgends sichtbar.
 
 ## 2. Was nicht sauber funktioniert (P0, zuerst beheben)
 
@@ -60,6 +61,14 @@ W4 hat viel gebracht: Aktengerüst, Gesetzesvorhaben mit Fassungen und Verfassun
 - Vertrauensdrift ohne Obergrenze; F-35 ohne S-400; Iran/Russland kollabieren in fast jedem Lauf.
 - Viele Klauseln ohne die versprochene Wirkung (Swap, Meerengen, Vermittlungszusage).
 
+### 2.6 Spielfluss
+- Unterschriftenmappe empfiehlt Unausführbares: von 479 empfohlenen Einträgen in zwei Spieljahren ließen sich 77 ausführen; dieselben Einträge kommen wöchentlich wieder (`ministerfluss.ts:427`).
+- Mappe steht still: Plätze 1–4 im März 2029 wie am ersten Tag.
+- Ziel „Frieden an den Grenzen“ scheitert ohne Krieg (Spannungsphasen entstehen von selbst); drei Ziele sind beim Start schon erfüllt; „Inflation unter 15 %“ schafft auch der passive Bot.
+- Wirkungspfeile im Ereignisfenster werten falsch (steigende Korruption grün ▲) (`EreignisFenster.tsx:150`).
+- Pausen ohne Entscheidung (Hormus, Diaspora, Vorwarnung Opposition) halten die Zeit an und bieten nur „Verstanden“.
+- Zwei verschiedene Zustimmungswerte (Kopfleiste gegen Ereignistext).
+
 ## 3. Was fehlt (Spielweise und Funktionen)
 
 | Bereich | Fehlt vor allem |
@@ -69,6 +78,7 @@ W4 hat viel gebracht: Aktengerüst, Gesetzesvorhaben mit Fassungen und Verfassun
 | Wirtschaft/Statistik | BIP-Niveau und BIP/Kopf; Zerlegung über die Amtszeit; Statistikamt-Ansicht mit Aufschlüsselung, Provinz-Ranglisten, Export; echter Strukturwandel; Güterbilanz an Leistungsbilanz |
 | Ländervergleich | Vergleich auf Basis der laufenden Weltmodell-Werte statt Foto 2025; Rang, der sich bewegt; G20-Rang |
 | Andere Länder | Weltmodell als Treiber der Initiativen; Abkühlung je Land; Agenda/Persönlichkeit je Führung; Partner, die Verträge brechen; Verlängern/Nachverhandeln für den Spieler |
+| Spielfluss | Ziele mit Spielwirkung als roter Faden; Plan-Leiste mit Countdowns („wirkt ab 2031“); Abschlussszenen (Fokus fertig, Reform wirkt); Phasen der Amtszeit; folgenlose Routine-Ereignisse zu Meldungen herabstufen; Druck auf gehortetes Kapital |
 | Recht | Ein Gesetzesweg; Gericht nach Richtung; Ausnahmezustand als Vorgang; Parteiverbot/Boykott mit Sitzfolge; gewinnbare Kommunalwahl; Gesetze der Opposition als Dilemma |
 
 ## 4. Empfohlene Reihenfolge
@@ -78,9 +88,9 @@ W4 hat viel gebracht: Aktengerüst, Gesetzesvorhaben mit Fassungen und Verfassun
 3. **Widerstand kalibrieren:** Parlament, Inflationskosten, Vertrauensdrift, Kommunalwahl; danach Langpartie-Tests wieder als Tor.
 4. **Sichtbarkeit:** Karte als Rückmeldung jeder Entscheidung; Statistik- und Vergleichsansicht.
 5. **Lebendige Welt gegenüber dem Spieler:** Weltmodell → Initiativen, Länder-Agenden.
+6. **Roter Faden:** Ziele mit Wirkung, Plan-Leiste, Abschlussszenen, weniger aber schwerere Ereignisse.
 
 ## 5. Offene Punkte dieser Analyse
 
-- Bericht 6 (Spielfluss) folgt.
 - Vollständiger Testlauf am W4-Stand steht aus (erster Lauf unter Last abgebrochen; bis dahin rot: `reich-katalog`, `nachtrag`, `wahl`).
 - WebGL-Leistung auf echter Grafikkarte ungeprüft.
