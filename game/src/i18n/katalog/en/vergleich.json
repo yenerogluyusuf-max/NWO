@@ -124,10 +124,10 @@
  "vgl.bew.unguenstig": " That is unfavourable.",
  "vgl.bew.guenstig": " That is favourable.",
  "vgl.einordnung": "Of {von} countries, {hoeher} have a higher and {niedriger} a lower value; Türkiye stands {wort}.{bewertung}",
- "vgl.kurz": "For comparison ({einheit}, as of {jahr}): Türkiye {wert}, {teile}. Source: World Bank.",
+ "vgl.kurz": "For comparison ({einheit}, as of {jahr}): Türkiye {wert}, {teile}.",
  "vgl.median": "World median",
  "vgl.medianAlle": "Median of all countries",
- "vgl.tuerkeiWB": "Türkiye (World Bank)",
+ "vgl.tuerkeiWB": "Türkiye",
  "vgl.besser.hoeher": "higher",
  "vgl.besser.niedriger": "lower"
 }

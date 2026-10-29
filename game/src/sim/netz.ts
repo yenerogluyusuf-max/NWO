@@ -115,10 +115,22 @@ export interface NetState {
   /** Punkte je Monat, mit denen die Umsetzung fortschreitet (beim Beschluss festgelegt) */
   umsetzungTempo?: Record<string, number>;
   /**
+   * Stufe je Provinz beim Beschluss (wirksamer Stand): Die Rampe dämpft nur, was darüber hinaus geändert wurde. Fehlt in älteren
+   * Spielständen; dann dämpft sie wie früher die ganze Abweichung vom Start, bis die laufende Umsetzung fertig ist.
+   */
+  umsetzungBasis?: Record<string, number[]>;
+  /**
    * Gewöhnung: wandernder Bezugswert je Quellknoten (Schlüssel = Knoten-Kennung, Werte je Provinz), nur für Quellen von Verbindungen in
    * Stimmungsknoten. Fehlt in älteren Spielständen und entsteht beim ersten Monat mit dem Startwert als Bezug.
    */
   bezug?: Record<string, number[]>;
+}
+
+/** Abweichung einer Maßnahme vom Start, gedämpft durch die laufende Umsetzung: nur der Teil über der Bezugsstufe wird gedämpft. */
+function gedaempft(wert: number, start: number, f: number, basis: number | undefined): number {
+  if (f >= 1) return wert - start;
+  if (basis === undefined) return (wert - start) * f;
+  return basis - start + f * (wert - basis);
 }
 
 export interface NetModel {
@@ -322,11 +334,22 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
   for (let j = 0; j < model.edgeFrom.length; j++) {
     const from = model.edgeFrom[j]!;
     const to = model.edgeTo[j]!;
-    const w = model.edgeWeight[j]! * (um ? (um[model.nodes[from]!.id] ?? 100) / 100 : 1);
+    const fid = model.nodes[from]!.id;
+    const f = um ? (um[fid] ?? 100) / 100 : 1;
+    // Mit Bezugsstufe (umsetzungBasis) dämpft die Rampe nur die neue Änderung; ohne (ältere Stände) wie bisher die ganze Abweichung
+    const b = f < 1 ? s.umsetzungBasis?.[fid] : undefined;
+    const w = model.edgeWeight[j]! * (b ? 1 : f);
+    const korr = b ? model.edgeWeight[j]! * (1 - f) : 0;
     const past = s.history[(s.month - model.edgeLag[j]! + SLOTS * 1000) % SLOTS]!;
     const fo = from * PROVINCES;
     const to0 = to * PROVINCES;
     const form = model.edgeForm[j];
+    if (b) {
+      for (let p = 0; p < PROVINCES; p++) {
+        const x = form === null ? past[fo + p]! - b[p]! : formWert(form, past[fo + p]!) - formWert(form, b[p]!);
+        delta[to0 + p] = delta[to0 + p]! - korr * x;
+      }
+    }
     if (model.edgeGewoehnung[j]! >= 1) {
       // 2 = volle Gewöhnung (GEWOEHNUNG_ZIELE): nur die Abweichung vom Gewohnten zählt
       const gewAnteil = model.edgeGewoehnung[j] === 2 ? 1 : GEGENKRAEFTE.anteil;
@@ -368,10 +391,12 @@ export function stepNet(model: NetModel, s: NetState, e: EconomyState, regional:
     const past = s.history[(s.month - sy.spec.lag + SLOTS * 1000) % SLOTS]!;
     const fa = um ? (um[model.nodes[sy.a]!.id] ?? 100) / 100 : 1;
     const fb = um ? (um[model.nodes[sy.b]!.id] ?? 100) / 100 : 1;
+    const ba = fa < 1 ? s.umsetzungBasis?.[model.nodes[sy.a]!.id] : undefined;
+    const bb = fb < 1 ? s.umsetzungBasis?.[model.nodes[sy.b]!.id] : undefined;
     const gegen = sy.spec.modus === "gegen";
     for (let p = 0; p < PROVINCES; p++) {
-      const da = (past[sy.a * PROVINCES + p]! - s.start[sy.a * PROVINCES + p]!) * fa;
-      const db = (past[sy.b * PROVINCES + p]! - s.start[sy.b * PROVINCES + p]!) * fb;
+      const da = gedaempft(past[sy.a * PROVINCES + p]!, s.start[sy.a * PROVINCES + p]!, fa, ba?.[p]);
+      const db = gedaempft(past[sy.b * PROVINCES + p]!, s.start[sy.b * PROVINCES + p]!, fb, bb?.[p]);
       let gemeinsam = 0;
       if (gegen) {
         if (da > 0 && db < 0) gemeinsam = Math.min(da, -db);

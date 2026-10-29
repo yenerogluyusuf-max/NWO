@@ -301,9 +301,6 @@ export function Lage({ world, refresh, melde, onGehe }: { world: World; refresh:
             <Gefahr key={r.id} r={r} />
           ))}
         </ul>
-        <p className="kr-klein">
-          {t("ui.katastrophe.Lage.df5ce8d")}
-        </p>
       </section>
 
       <section className="kr-abschnitt">

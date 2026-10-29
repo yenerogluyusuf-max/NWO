@@ -178,3 +178,56 @@
 /* Eine einzige Option: nicht über die ganze Breite ziehen, der Knopf behält seine natürliche Größe */
 .mf-optionen > .mf-option:only-child { grid-column: 1 / -1; }
 .mf-optionen > .mf-option:only-child > .pd-btn { align-self: flex-start; min-width: 240px; }
+
+/* ---------- Kompakte Vorlage (06.10.): eine Entscheidung auf einen Blick ---------- */
+.mf-karte:not(.kompakt) { gap: 10px; padding: 16px 20px 14px; }
+.mf-karte:not(.kompakt) .mf-kopf { gap: 10px; }
+.mf-karte:not(.kompakt) .mf-wer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.mf-karte:not(.kompakt) .mf-wer strong { font-size: 16px; }
+.mf-karte:not(.kompakt) .mf-wer span { font-size: 14px; }
+.mf-karte:not(.kompakt) .mf-titel { font-size: 20px; }
+.mf-karte:not(.kompakt) .mf-anlass { font-size: 15.5px; line-height: 1.45; }
+.mf-mehr, .mf-rechnung { font: 14.5px/1.4 var(--serif); }
+.mf-mehr > summary, .mf-rechnung > summary { cursor: pointer; width: fit-content; font: 600 13.5px var(--sans); color: #1d4c54; list-style-position: inside; }
+.mf-mehr > summary:hover, .mf-rechnung > summary:hover { text-decoration: underline; }
+.mf-mehr[open] > summary, .mf-rechnung[open] > summary { margin-bottom: 6px; }
+.mf-rechnung { display: grid; gap: 6px; }
+.mf-rechnung[open] { padding: 8px 10px; border-radius: 6px; background: rgba(90, 64, 40, 0.05); }
+.mf-empf-zeile.still b { color: var(--pd-soft, #4c3b28); }
+.mf-karte:not(.kompakt) .mf-optionen { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; margin-top: 8px; }
+.mf-karte:not(.kompakt) .mf-option { gap: 7px; padding: 16px 14px 12px; }
+.mf-karte:not(.kompakt) .mf-option h5 { font-size: 16.5px; }
+.mf-karte:not(.kompakt) .mf-text { font-size: 14.5px; line-height: 1.4; }
+.mf-wirk { margin: 0; padding: 6px 9px; border-radius: 5px; border-left: 3px solid #8b7b66; background: rgba(90, 64, 40, 0.06); font: 14.5px/1.35 var(--serif); }
+.mf-wirk b { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.mf-wirk .leise { display: block; font-size: 13.5px; color: var(--pd-faint, #62503b); }
+.mf-wirk.besser { border-left-color: #3c8a63; background: rgba(60, 138, 99, 0.09); }
+.mf-wirk.besser b { color: #1d5a3d; }
+.mf-wirk.schlechter { border-left-color: var(--pd-bad, #a83a32); background: rgba(168, 58, 50, 0.08); }
+.mf-wirk.schlechter b { color: #8a2d26; }
+.mf-band { white-space: nowrap; max-width: calc(100% - 28px); overflow: hidden; text-overflow: ellipsis; }
+.dossier button.mf-sprung, button.mf-sprung { display: block; padding: 0; border: 0; background: none; box-shadow: none; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(138, 45, 38, 0.4); text-shadow: none; }
+.mf-karte:not(.kompakt) .mf-fuss { gap: 6px 12px; padding-top: 8px; }
+.mf-karte:not(.kompakt) .mf-fuss .rang { font-size: 13px; }
+/* Kopf in einer Zeile: kleines Porträt, Name, Ressort und Loyalität, Herkunft-Marke */
+.mf-karte .mf-wer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; }
+.mf-karte .mf-kopf { gap: 10px; }
+.mf-karte:not(.kompakt) .mf-titel { font-size: 18.5px; margin-top: -2px; }
+.mf-karte .mf-empf-zeile em { font-size: 14px; }
+/* Optionen: schmale Karten, Titel, Preis-Chips, eine Wirkzeile, Knopf */
+.mf-karte:not(.kompakt) .mf-option { gap: 8px; padding: 14px 12px 10px; }
+.mf-karte:not(.kompakt) .mf-option h5 { font-size: 16px; line-height: 1.25; }
+.mf-wirk .leise { display: inline; font-size: 13.5px; }
+.mf-wirk .name { color: var(--pd-soft, #4c3b28); }
+.mf-rechnung .mf-text { font-size: 14px; }
+.mf-karte:not(.kompakt) .mf-option > .pd-btn { padding-top: 6px; padding-bottom: 6px; }
+@media (max-width: 1000px) {
+  /* Schmale Karten bleiben nebeneinander, solange 200 px je Karte Platz haben */
+  .mf-karte:not(.kompakt) .mf-optionen { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+  .mf-karte .mf-kopf { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .mf-karte .mf-marken { grid-column: auto; justify-content: flex-end; }
+}
+@media (max-width: 640px) {
+  .mf-karte .mf-kopf { grid-template-columns: auto minmax(0, 1fr); }
+  .mf-karte .mf-marken { grid-column: 1 / -1; justify-content: flex-start; }
+}

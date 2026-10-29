@@ -227,5 +227,11 @@
  "haushalt.zyklus.hinweis.nachtrag": "Supplementary budget outside the window: double capital cost and a small legitimacy penalty. Next window: October {jahr}.",
  "haushalt.ui.behoerden.satz": "This year the departments have spent on their agencies: {liste, list}.",
  "haushalt.ui.behoerden.posten": "{posten} {etat, prozent, 2} of GDP from the extra budget{defizit, select, ja { and {d, prozent, 2} on the deficit} other {}}",
- "haushalt.ui.behoerden.keine": "The agencies have not yet spent anything from the departmental budgets this year."
+ "haushalt.ui.behoerden.keine": "The agencies have not yet spent anything from the departmental budgets this year.",
+ "haushalt.ui.gruppe_lage": "Balance and procedure",
+ "haushalt.ui.bilanz.kurz": "Debt {schulden} % · interest {zinsen} % of GDP",
+ "haushalt.ui.zyklus.marke_offen": "Window open · {n} in draft",
+ "haushalt.ui.kurz.vorher": "before {wert}",
+ "haushalt.ui.kurz.entwurf": "in draft",
+ "haushalt.ui.kurz.wunsch": "ministry wants {stufe}"
 }

@@ -36,6 +36,7 @@ import { WELT_VORLAGEN } from "./welt-ereignisse";
 import { VERMITTLUNG_VORLAGEN } from "./ereignisse-vermittlung";
 import { REICH_VORLAGEN } from "./ereignisse-reich";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
+import { MACHTKREIS_VORLAGEN } from "./ereignisse-machtkreis";
 import { VERFASSUNG_VORLAGEN } from "./ereignisse-verfassung";
 import { WAHL_VORLAGEN } from "./ereignisse-wahl";
 import { regierungsJahre } from "./amtszeit";
@@ -1052,7 +1053,7 @@ export const VORLAGEN: Vorlage[] = [
   ERDBEBEN, DUERRE, WAEHRUNG, ENERGIE, HAUSHALT, KORRUPTION, STREIK, MIETE, FLUECHTLINGE, ANSCHLAG, WALDBRAND, STROM, AERZTE, PREISDECKEL, MIETDECKEL, KOALITION,
   ZUSAGE, START_HAUSHALT, START_PARTNER, START_WIEDERAUFBAU,
   ...KATASTROPHE_VORLAGEN,
-  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...WAHL_VORLAGEN, ...KRIEG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN, ...WELT_VORLAGEN, ...SAISON_VORLAGEN,
+  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...MACHTKREIS_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...WAHL_VORLAGEN, ...KRIEG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN, ...WELT_VORLAGEN, ...SAISON_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */

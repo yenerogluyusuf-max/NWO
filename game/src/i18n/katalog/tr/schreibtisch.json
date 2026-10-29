@@ -220,5 +220,9 @@
  "mf.posteingangLeer": "Gelen kutusu boş",
  "mf.vertagt": ", {n} ertelendi",
  "mf.verfallen": ", {n} süresi doldu",
- "mf.zumPosteingang": "Gelen kutusuna git"
+ "mf.zumPosteingang": "Gelen kutusuna git",
+ "mf.wirk.zeit": "{monate} ay içinde · müdahalesiz {ohne}",
+ "mf.rechnung": "Hesabı göster",
+ "mf.lageMehr": "Durum hakkında daha fazla",
+ "mf.mehrheitFehlt": "{n} oy eksik."
 }

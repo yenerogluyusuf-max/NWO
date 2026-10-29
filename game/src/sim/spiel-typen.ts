@@ -586,10 +586,14 @@ export interface SpielZustand {
   behoerden?: import("./behoerden").BehoerdenZustand;
   /** Wissensbaum: Schwerpunkt, Lizenzen, Träger der Werke, Durchbrüche (sim/wissensbaum-kern.ts); ältere Spielstände legen ihn beim ersten Zugriff an */
   wissensbaum?: import("./wissensbaum-kern").WissensbaumZustand;
+  /** Fokusbaum: laufender Fokus, vollendete Foki, Bestand im Netz (sim/fokus.ts); ältere Spielstände legen ihn beim ersten Zugriff an */
+  fokus?: import("./fokus").FokusZustand;
   /** Gesetzesvorhaben: Ruhezeiten, Beschlüsse, Prüfungen des Verfassungsgerichts (sim/gesetzgebung.ts); ältere Spielstände legen es beim ersten Zugriff an */
   gesetzgebung?: import("./gesetzgebung").GesetzgebungZustand;
   /** Der EU-Beitrittsvorgang (AUS-2); ältere Spielstände legen ihn beim ersten Zugriff an (sim/eu.ts) */
   eu?: import("./eu").EuZustand;
+  /** Der Machtkreis: Nebenfiguren, Beziehungen, Geheimnisse, Angst, Nachfolgedruck (sim/machtkreis.ts); ältere Spielstände legen ihn beim ersten Zugriff an */
+  machtkreis?: import("./machtkreis").MachtkreisZustand;
   /** Die Zeitung (UI-1): Archiv, Warteschlange und Badge-Zähler; ältere Spielstände legen es beim ersten Monatsschritt an (sim/zeitung.ts) */
   zeitung?: import("./zeitung").ZeitungZustand;
   /** Der Wahlkampf (INN-5); ältere Spielstände haben das Feld nicht — die Phase beginnt beim ersten Tick im Zeitfenster vor der Wahl (sim/wahlkampf.ts) */

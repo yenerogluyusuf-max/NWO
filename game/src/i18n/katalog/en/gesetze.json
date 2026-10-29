@@ -170,5 +170,12 @@
  "gesetz.ui.leer": "Nothing in progress.",
  "gesetz.erlass.unangefochten": "By presidential decree: “{titel}” applies immediately, and no one entitled to sue challenges it.",
  "gesetz.erlass.unangefochtenWarum": "{pk} capital and some trust. Only the president, the two largest party groups or one fifth of the deputies may sue (Art. 150 of the Constitution); none of them opposes the decree. If parliament passes a law on the same matter, the decree lapses.",
- "gesetz.ui.erlassUnangefochten": "No one entitled to sue is against it"
+ "gesetz.ui.erlassUnangefochten": "No one entitled to sue is against it",
+ "gesetz.ui.anlass.fokus": "prepared by focus",
+ "gesetz.ui.weitere": "Further bills",
+ "gesetz.ui.kurz.parlament": "Vote in {tage} d",
+ "gesetz.ui.kurz.gericht": "Ruling in {tage} d",
+ "gesetz.ui.kurz.ruht": "on hold {tage} d",
+ "gesetz.ui.lage.parlament": "{titel}: vote in {tage} days, {ja} yes votes expected",
+ "gesetz.ui.lage.gericht": "{titel}: ruling in {tage} days, {p} % chance of annulment"
 }

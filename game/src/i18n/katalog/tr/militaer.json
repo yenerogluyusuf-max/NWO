@@ -104,5 +104,15 @@
  "militaer.zielraum.irq_maximal": "Kerkük ve Süleymaniye'ye kadar Kuzey Irak",
  "militaer.zielraum.grc_maximal": "Adalar, Trakya ve Selanik",
  "militaer.zielraum.cyp_maximal": "Kıbrıs'ın tamamı",
- "militaer.zielraum.arm_maximal": "Erivan'a kadar tüm Ermenistan"
+ "militaer.zielraum.arm_maximal": "Erivan'a kadar tüm Ermenistan",
+ "militaer.ui.preis_bip": "toplam GSYH %{bip}",
+ "militaer.ui.gen_kurz": "Nesil",
+ "militaer.ui.abhaengig_kurz": "bağımlı: {land}",
+ "militaer.ui.weniger": "2026 seviyesinin altında",
+ "militaer.ui.gruppe_lage": "Personel, projeler, harekât",
+ "militaer.ui.wehrdienst_kurz": "Askerlik süresi",
+ "militaer.ui.voll": "kapasite dolu",
+ "militaer.ui.ziel_keins_kurz": "savaş yok",
+ "militaer.ui.krieg_laeuft": "savaş sürüyor",
+ "militaer.ui.besetzt": "işgal altındaki bölgeler"
 }

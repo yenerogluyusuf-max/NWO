@@ -12,6 +12,7 @@ import { Zeilen } from "./Pflege";
 import { verliererName } from "./VorhabenKarte";
 
 import { t } from "../../i18n";
+import { ohneBeleg } from "../../i18n/ohne-beleg";
 export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben; refresh: () => void }) {
   const massnahme = v.vorlage!.massnahme;
   // Beginnt dort, wo es akut ist; gibt es keinen akuten Ort, gilt das ganze Land
@@ -45,7 +46,7 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
         <span className="rr-klasse">{t("ui.reich.Regional.3887a19")}</span>
       </div>
       <h4 className="rr-name">{v.name}</h4>
-      <p className="rr-text">{v.text}</p>
+      <p className="rr-text">{ohneBeleg(v.text)}</p>
 
       <div className="rg-wo">
         <b className="rr-wirkung-kopf">Wo?</b>

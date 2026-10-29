@@ -18,3 +18,33 @@
 .atlas-labels .ort-land.ton-gut { --ring: #3c8a63; }
 .atlas-labels .ort-land.ton-mittel { --ring: #c9a257; }
 .atlas-labels .ort-land.ton-schlecht { --ring: #a83a32; }
+
+/* Neubau-Linien: laufende Strecken-Vorhaben. Planlinie gestrichelt in Tinte, der Baufortschritt vergoldet
+   die Strecke von Ende zu Ende; pausiert oder in der Vergabephase liegt sie dunkler und still. */
+.atlas-neubau {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.atlas-neubau .nb-basis {
+  fill: none;
+  stroke: #6b4a2a;
+  stroke-width: 2.2;
+  stroke-dasharray: 7 7;
+  opacity: 0.5;
+}
+.atlas-neubau .nb-teil {
+  fill: none;
+  stroke: #d2a94a;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  opacity: 0.92;
+  filter: drop-shadow(0 0 2px rgba(210, 169, 74, 0.45));
+}
+.atlas-neubau .nb-teil.ruht {
+  stroke: #9c7a4a;
+  opacity: 0.55;
+}

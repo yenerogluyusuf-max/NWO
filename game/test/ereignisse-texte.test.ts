@@ -9,6 +9,8 @@ import { VORLAGEN, ansicht, oeffne, entscheide } from "../src/sim/ereignisse";
 import { Rng } from "../src/sim/rng";
 import { advance } from "../src/sim/world";
 import { weltZustand } from "../src/sim/laender";
+import { machtkreis, personen } from "../src/sim/machtkreis";
+import { eigenVon } from "../src/sim/personen";
 
 const KAPUTT = /undefined|NaN|\[object|\bnull\b|\$\{|Infinity/;
 
@@ -37,6 +39,27 @@ function welt(seed: number) {
   return w;
 }
 
+/**
+ * Die zwei Spätspiel-Fälle des Machtkreises brauchen eine erlebte Vorgeschichte, die der Texttest auf Zuruf herstellt:
+ * Für den Seitenwechsel ein Regierungsmitglied kurz vor dem Abfall (kaum Loyalität, Groll, Ehrgeiz),
+ * für den Putschzirkel ein vom Präsidenten aufgedecktes Geheimnis beim Generalstab.
+ */
+function machtkreisFaelle(w: ReturnType<typeof welt>): void {
+  const mk = machtkreis(w);
+  const kandidat = personen(w).find((p) => p.rolle === "finanzen" && p.figur) ?? personen(w).find((p) => p.figur && p.rolle !== "opposition");
+  if (kandidat?.figur) {
+    // personen(w) leitet die Objekte je Aufruf neu ab: Die Werte gehören in die Figur und ihr Eigenleben.
+    kandidat.figur.loyalitaet = 10;
+    const eigen = eigenVon(w, kandidat.figur);
+    eigen.groll = 60;
+    eigen.ehrgeiz = 70;
+  }
+  const stab = personen(w).find((p) => p.rolle === "generalstab" && p.figur) ?? kandidat;
+  if (stab) {
+    mk.geheimnisse.push({ id: "g-test-putsch", person: stab.schluessel, art: "putschzirkel", schwere: 2, aufgedeckt: true, oeffentlich: false, seit: w.day });
+  }
+}
+
 describe("Ereignistexte", () => {
   test.each(VORLAGEN.map((v) => v.id))("%s: lesbare Texte, benannte Akteure, fehlerfreie Antworten", (id) => {
     let geoeffnet = 0;
@@ -44,6 +67,7 @@ describe("Ereignistexte", () => {
       const w = welt(seed);
       if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w);
       if (id === "land_drohkulisse") weltZustand(w).GRC!.konflikt = 90; // Drohkulisse braucht Konflikt über der Schwelle 85
+      if (id === "kreis_seitenwechsel" || id === "kreis_putschzirkel") machtkreisFaelle(w);
       if (id === "zusage") w.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
       const ev = oeffne(w, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined);
       if (!ev) continue;
@@ -61,6 +85,7 @@ describe("Ereignistexte", () => {
         const w2 = welt(seed);
         if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w2);
         if (id === "land_drohkulisse") weltZustand(w2).GRC!.konflikt = 90;
+        if (id === "kreis_seitenwechsel" || id === "kreis_putschzirkel") machtkreisFaelle(w2);
         if (id === "zusage") w2.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w2.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
         const e2 = oeffne(w2, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined)!;
         const r = entscheide(w2, e2.id, o.id, new Rng(5));

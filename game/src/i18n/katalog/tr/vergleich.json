@@ -124,10 +124,10 @@
  "vgl.bew.unguenstig": " Bu olumsuz.",
  "vgl.bew.guenstig": " Bu olumlu.",
  "vgl.einordnung": "{von} ülkeden {hoeher} ülkenin değeri daha yüksek, {niedriger} ülkenin daha düşük; Türkiye {wort}.{bewertung}",
- "vgl.kurz": "Karşılaştırma için ({einheit}, {jahr} itibarıyla): Türkiye {wert}, {teile}. Kaynak: Dünya Bankası.",
+ "vgl.kurz": "Karşılaştırma için ({einheit}, {jahr} itibarıyla): Türkiye {wert}, {teile}.",
  "vgl.median": "Dünya medyanı",
  "vgl.medianAlle": "Tüm ülkelerin medyanı",
- "vgl.tuerkeiWB": "Türkiye (Dünya Bankası)",
+ "vgl.tuerkeiWB": "Türkiye",
  "vgl.besser.hoeher": "daha yüksek",
  "vgl.besser.niedriger": "daha düşük"
 }

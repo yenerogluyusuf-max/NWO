@@ -170,5 +170,12 @@
  "gesetz.ui.leer": "Süren bir iş yok.",
  "gesetz.erlass.unangefochten": "Cumhurbaşkanlığı kararnamesiyle: “{titel}” hemen yürürlükte ve dava açmaya yetkili kimse itiraz etmiyor.",
  "gesetz.erlass.unangefochtenWarum": "{pk} sermaye ve biraz güven. Dava açma hakkı yalnızca Cumhurbaşkanına, en fazla üyeye sahip iki siyasi parti grubuna ve üye tamsayısının beşte birine aittir (Anayasa md. 150); hiçbiri kararnameye karşı değil. Meclis aynı konuda kanun çıkarırsa kararname hükümsüz hale gelir.",
- "gesetz.ui.erlassUnangefochten": "Dava açmaya yetkili karşı taraf yok"
+ "gesetz.ui.erlassUnangefochten": "Dava açmaya yetkili karşı taraf yok",
+ "gesetz.ui.anlass.fokus": "odakla hazırlandı",
+ "gesetz.ui.weitere": "Diğer tasarılar",
+ "gesetz.ui.kurz.parlament": "{tage} gün sonra oylama",
+ "gesetz.ui.kurz.gericht": "{tage} gün sonra karar",
+ "gesetz.ui.kurz.ruht": "{tage} gün bekliyor",
+ "gesetz.ui.lage.parlament": "{titel}: {tage} gün sonra oylama, {ja} evet oyu bekleniyor",
+ "gesetz.ui.lage.gericht": "{titel}: {tage} gün sonra karar, iptal olasılığı %{p}"
 }

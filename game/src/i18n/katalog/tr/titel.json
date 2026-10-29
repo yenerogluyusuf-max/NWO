@@ -14,7 +14,7 @@
  "titel.frueher_hinweis": "Önceki bir otomatik kayıt. Oyun, bir yükleme hiçbir zaman ilerlemenize mal olmasın diye en ileri kaydı ve son yedekleri saklar.",
  "titel.kein_stand": "Henüz kayıtlı oyun yok",
  "titel.neu": "Yeni oyun",
- "titel.quellen": "Ekonomi verileri: {d, date} · Harita: Natural Earth, AWS Terrain ve OpenStreetMap",
+ "titel.quellen": "Ekonomi verileri: {d, date} · Harita: Natural Earth, AWS Terrain ve OpenStreetMap · Faylar: GEM Global Active Faults (CC BY-SA 4.0)",
  "titel.sicherung": "Yedek",
  "titel.sicherung_zeit": " ({z, time})",
  "titel.slot_text": "{label} · {d, date}",

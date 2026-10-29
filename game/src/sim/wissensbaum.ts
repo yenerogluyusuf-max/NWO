@@ -51,8 +51,10 @@ export interface KnotenSicht {
   hindernis?: "bildung" | "foerderung" | "vorgaenger" | "partner" | "knoten" | "kapital" | "verwaltung" | "sonst";
   /** Fehlen noch Hochschulen, Fachkräfte oder Bildungsqualität? */
   brauchtBildung: boolean;
-  /** Alle Voraussetzungen als Zeilen */
-  voraus: { text: string; erfuellt: boolean }[];
+  /** Alle Voraussetzungen als Zeilen, mit Sprungziel für die Ansicht */
+  voraus: { text: string; erfuellt: boolean; sprung?: Sprung }[];
+  /** Sprungziel des ersten Hindernisses (für den klickbaren Hinweis auf der Karte) */
+  sprung?: Sprung;
   /** Vorgänger im Baum (für Verbindungen) */
   vorgaenger: string[];
   lizenzgeber: Lizenzgeber[];
@@ -70,6 +72,35 @@ export interface KnotenSicht {
   wunder: boolean;
   /** Ungewisser Durchbruch (kann scheitern) */
   ungewiss: boolean;
+}
+
+/**
+ * Wohin eine fehlende Voraussetzung führt: zu einem anderen Knoten im Baum, zu einer Maßnahme im Politiknetz (mit Zielstufe),
+ * zum Bildungsetat im Haushalt, zu einer Größe im Netz, zur Außenlage, oder nur ein Hinweis (Kapital, Verwaltung).
+ */
+export type Sprung =
+  | { art: "knoten"; id: string }
+  | { art: "vorhaben"; id: string }
+  | { art: "massnahme"; id: string; ziel: number }
+  | { art: "bildung"; id: string }
+  | { art: "netz"; id: string }
+  | { art: "land"; land: string }
+  | { art: "kapital"; pk: number }
+  | { art: "verwaltung" };
+
+function sprungVon(v: Voraussetzung, jetzt: number | undefined): Sprung | undefined {
+  switch (v.art) {
+    case "bestand":
+      return ZWEIG_VON[v.id] ? { art: "knoten", id: v.id } : { art: "vorhaben", id: v.id };
+    case "massnahme":
+      return { art: "massnahme", id: v.id, ziel: v.min ?? v.max ?? Math.round(jetzt ?? 0) };
+    case "knoten":
+      return BILDUNG.has(v.id) ? { art: "bildung", id: v.id } : { art: "netz", id: v.id };
+    case "land":
+      return { art: "land", land: v.land };
+    default:
+      return undefined;
+  }
 }
 
 export interface ZweigSicht {
@@ -166,8 +197,11 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
   const angebot = vergabeAngebot(v, "ausschreibung");
   const voraus = v.voraus.map((x) => {
     const st = s.voraus.find((y) => y.voraus === x);
-    return { text: vorausZeile(x, jetztWert(w, x)), erfuellt: st?.erfuellt ?? false };
+    const j = jetztWert(w, x);
+    const sp = sprungVon(x, j);
+    return { text: vorausZeile(x, j), erfuellt: st?.erfuellt ?? false, ...(sp ? { sprung: sp } : {}) };
   });
+  let sprung: Sprung | undefined;
   const zustand: KnotenZustand = s.status === "fertig" ? "fertig" : s.status === "im_bau" || s.status === "pausiert" ? "laeuft" : s.bereit && s.status === "verfuegbar" ? "moeglich" : "gesperrt";
   let grund: string | undefined;
   let hindernis: KnotenSicht["hindernis"];
@@ -177,6 +211,7 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
       const g = grundZeile(erstes, jetztWert(w, erstes));
       grund = g.text;
       hindernis = g.art;
+      sprung = sprungVon(erstes, jetztWert(w, erstes));
     } else {
       grund = t("wissen.grund.sonst");
       hindernis = "sonst";
@@ -185,9 +220,11 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
     if (!kannZahlen(w.spiel!.kapital, angebot.pk)) {
       grund = t("wissen.grund.kapital", { pk: angebot.pk });
       hindernis = "kapital";
+      sprung = { art: "kapital", pk: angebot.pk };
     } else if (!s.verwaltungOk) {
       grund = t("wissen.grund.verwaltung");
       hindernis = "verwaltung";
+      sprung = { art: "verwaltung" };
     }
   }
   const frisch = z.durchbrueche.find((d) => d.id === id && w.day - d.tag <= BAUM.durchbruchTage);
@@ -202,6 +239,7 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
     monate: angebot.monate,
     ...(grund ? { grund } : {}),
     ...(hindernis ? { hindernis } : {}),
+    ...(sprung ? { sprung } : {}),
     voraus,
     // Wartet auf Bildung: Die Vorgänger stehen, aber Hochschulen, Fachkräfte oder Bildungsqualität reichen nicht
     brauchtBildung:

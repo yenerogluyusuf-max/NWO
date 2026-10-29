@@ -1,0 +1,18 @@
+{
+ "ub.stufe": "Kademe {stufe}/{max}",
+ "ub.filter": "Ara …",
+ "ub.keine": "Hiçbir şey bulunamadı.",
+ "ub.schliessen": "Ayrıntıları kapat",
+ "ub.stempel.ok": "Tamam",
+ "ub.stempel.nein": "Reddedildi",
+ "ub.preis.kapital": "{n} sermaye",
+ "ub.preis.bip": "GSYH %{bip, number, 3}",
+ "ub.preis.monate": "{n} ay",
+ "ub.zum_haushalt": "Bütçede bakanlık ödeneği",
+ "ub.behoerde.baut": "{achse} genişletiliyor, {monate} ay kaldı",
+ "ub.behoerde.gekuerzt": "Ödenek kesildi",
+ "ub.behoerde.instrument": "Özel araç hazır",
+ "ub.behoerde.knapp": "Ödenekte pay yok",
+ "ub.behoerde.zahl_bau": "genişletiliyor",
+ "ub.behoerde.zahl_knapp": "ödenek dar"
+}

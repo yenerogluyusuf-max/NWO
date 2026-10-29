@@ -127,7 +127,7 @@ export function drohkulisseUebergabe(w: World, u: DrohkulisseUebergabe): void {
     `Drohkulisse mit ${land(u.land).dat}: Die Lage bleibt an der Kriegsschwelle (Konflikt ${Math.round(u.konflikt)} von 100).`,
     eskaliert
       ? "Übergeben an den Konfliktvorgang: Die Spannung mit diesem Land hebt auf Drohkulisse-Niveau — das Dossier steht in der Welt-Ansicht."
-      : "Der Konfliktvorgang (sim/krieg.ts) greift die Lage bei der nächsten Monatsprüfung auf, solange der Konflikt über seiner Anlageschwelle steht; es gibt keinen automatischen Krieg.",
+      : "Der Konfliktvorgang greift die Lage bei der nächsten Monatsprüfung auf, solange der Konflikt über seiner Anlageschwelle steht; es gibt keinen automatischen Krieg.",
   );
 }
 

@@ -104,5 +104,15 @@
  "militaer.zielraum.irq_maximal": "Nordirak bis Kirkuk und Sulaimaniya",
  "militaer.zielraum.grc_maximal": "Inseln, Thrakien und Thessaloniki",
  "militaer.zielraum.cyp_maximal": "Ganz Zypern",
- "militaer.zielraum.arm_maximal": "Ganz Armenien bis Eriwan"
+ "militaer.zielraum.arm_maximal": "Ganz Armenien bis Eriwan",
+ "militaer.ui.preis_bip": "{bip} % BIP gesamt",
+ "militaer.ui.gen_kurz": "Generation",
+ "militaer.ui.abhaengig_kurz": "abhängig: {land}",
+ "militaer.ui.weniger": "unter Stand 2026",
+ "militaer.ui.gruppe_lage": "Personal, Vorhaben, Einsatz",
+ "militaer.ui.wehrdienst_kurz": "Dauer der Wehrpflicht",
+ "militaer.ui.voll": "ausgelastet",
+ "militaer.ui.ziel_keins_kurz": "kein Krieg",
+ "militaer.ui.krieg_laeuft": "Krieg läuft",
+ "militaer.ui.besetzt": "besetzte Gebiete"
 }

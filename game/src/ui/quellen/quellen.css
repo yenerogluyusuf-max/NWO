@@ -1,0 +1,77 @@
+/* Die Quellen-Akte: eine lesbare Liste in Gruppen, ruhige Farben der Akten. */
+
+.quellen-akte {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 4px 6px 18px;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.quellen-zweck {
+  font-family: var(--serif);
+  font-style: italic;
+  color: #cdb98f;
+  margin: 0;
+  font-size: 14px;
+}
+
+.quellen-hinweis {
+  color: #a89a80;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.quellen-kopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quellen-gemeldet {
+  color: #9cc49c;
+  font-size: 12.5px;
+}
+
+.quellen-gruppe h4 {
+  font-family: var(--display);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: #d8c69a;
+  margin: 10px 0 6px;
+  border-bottom: 1px solid rgba(198, 154, 74, 0.25);
+  padding-bottom: 4px;
+}
+
+.quellen-eintrag {
+  padding: 7px 0;
+  border-bottom: 1px dotted rgba(198, 154, 74, 0.14);
+}
+
+.quellen-name {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8d8ae;
+  text-decoration: none;
+}
+
+.quellen-name:hover {
+  color: #f3e6c6;
+  text-decoration: underline;
+}
+
+.quellen-zeile {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #a89a80;
+}
+
+.quellen-lizenz {
+  color: #cdb98f;
+  font-weight: 600;
+  margin-right: 6px;
+}

@@ -91,5 +91,7 @@
   "gueter.ampel.gruen": "Das Lager trägt über drei Monate ohne Einfuhr.",
   "gueter.ampel.gelb": "Ohne Einfuhr wird es binnen drei Monaten knapp.",
   "gueter.ampel.rot": "Ohne Einfuhr ist das Lager in weniger als einem Monat leer.",
-  "gueter.ampel.keine": "Die Einfuhr zählt hier kaum."
+  "gueter.ampel.keine": "Die Einfuhr zählt hier kaum.",
+  "gueter.zahl_knapp": "knapp",
+  "gueter.partner_titel": "Lieferländer, Abnehmer und Beispiel"
 }

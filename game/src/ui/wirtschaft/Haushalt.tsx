@@ -43,6 +43,7 @@ import { AUSGABEN_2026, PLAN_2026, STEUERN_2026 } from "../../data/haushaltsplan
 import { t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
 import { Portraet } from "../art/Portraet";
+import { Uebersicht, UbDetailKopf, type UbKachel } from "../akte/Uebersicht";
 import { Diagramm } from "./Diagramm";
 import { Folgen } from "./Folgen";
 import { Bestaetigung } from "./Bestaetigung";
@@ -101,11 +102,9 @@ function Zeile({ world, p, aktiv, wert, plan, onWahl, children }: { world: World
   const anteil = ist !== 0 ? Math.round((wirksam / ist) * 100) : 100;
   const forschung = p.id === "forschung" ? forschungsSicht(world, etatBip(p, zeigt) ?? 0) : null;
   return (
-    <li className={`hh-zeile${aktiv ? " on" : ""}`}>
+    <div className={`hh-zeile${aktiv ? " on" : ""}`}>
       <div className="hh-kopf">
-        <Minister world={world} p={p} />
         <div className="hh-name">
-          <b>{p.name}</b>
           <span className="hh-text">{p.text}</span>
         </div>
         <div className="hh-betrag">
@@ -145,7 +144,7 @@ function Zeile({ world, p, aktiv, wert, plan, onWahl, children }: { world: World
         </p>
       )}
       {children}
-    </li>
+    </div>
   );
 }
 
@@ -195,9 +194,6 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel, entwurf, stand]);
 
-  useEffect(() => {
-    if (posten) document.getElementById("wi-hh-regler")?.scrollIntoView({ block: "start" });
-  }, [posten]);
 
   // Die Bilanz: Haushaltsgesetz 2026 plus die eigenen Regler, Zinsen im Stand des Spiels
   const bilanz = useMemo(() => {
@@ -307,7 +303,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
           {v.zyklus.modus === "entwurf" ? t("haushalt.ui.knopf.entwurf") : t("haushalt.ui.knopf.nachtrag", { kapital: v.kapital })} <span aria-hidden>→</span>
         </button>
       )}
-      <button className="pd-btn quiet" onClick={() => { setSel(null); setEntwurf(null); }}>
+      <button className="pd-btn quiet" onClick={() => { setEntwurf(null); setBestaetigt(false); }}>
         {t("haushalt.ui.knopf.verwerfen")}
       </button>
     </div>
@@ -316,16 +312,78 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   const defizit = defizitJetzt(world);
   const verbrauch = behoerdenVerbrauch(world);
 
-  return (
-    <div className="wi-hh">
-      {rueck && (
-        <p className={`rueckmeldung ${rueck.ok ? "ok" : "nein"} wi-rueck`} role="status">
-          {rueck.text}
-          {rueck.why && <em> {rueck.why}</em>}
-        </p>
-      )}
+  const behoerdenSatz =
+    verbrauch.length === 0
+      ? t("haushalt.ui.behoerden.keine")
+      : t("haushalt.ui.behoerden.satz", {
+          liste: verbrauch.map((x) => t("haushalt.ui.behoerden.posten", { posten: POSTEN_NACH_ID[x.posten]?.name ?? x.posten, etat: x.ausEtat, defizit: x.aufsDefizit > 0.0005 ? "ja" : "nein", d: x.aufsDefizit })),
+        });
+  const kacheln: UbKachel[] = [
+    {
+      id: "_bilanz",
+      gruppe: t("haushalt.ui.gruppe_lage"),
+      titel: t("haushalt.ui.bilanz.kicker"),
+      wert: `${nf(defizit, 1)} %`,
+      wertLabel: t("haushalt.ui.bilanz.defizit"),
+      zeile: t("haushalt.ui.bilanz.kurz", { schulden: nf(world.economy.debtRatio, 1), zinsen: nf(zinsausgabenJetzt(world), 1) }),
+      ton: defizit > 3 ? "schlecht" : defizit > 1.5 ? "mittel" : "gut",
+    },
+    {
+      id: "_zyklus",
+      gruppe: t("haushalt.ui.gruppe_lage"),
+      titel: t("haushalt.ui.zyklus.kicker"),
+      zeile: fenster.offen
+        ? t("haushalt.ui.zyklus.offen", { tage: fenster.tageRest })
+        : fenster.gesetzUnterwegs && gesetzSicht
+          ? t("haushalt.ui.zyklus.parlament", { tage: gesetzSicht.tageBis })
+          : t("haushalt.ui.zyklus.naechstes", { jahr: fenster.naechsterStart.slice(0, 4), monate: fenster.monateBis }),
+      ...(fenster.offen
+        ? { marke: { text: t("haushalt.ui.zyklus.marke_offen", { n: entwurfEintraege.length }), ton: "aktiv" as const }, ton: "aktiv" as const }
+        : fenster.gesetzUnterwegs && gesetzSicht
+          ? { marke: { text: t(`gesetz.ui.urteil.${gesetzSicht.urteil === "sicher" ? "sicher" : gesetzSicht.luecke > 0 ? "verloren" : "knapp"}`), ton: gesetzSicht.urteil === "sicher" ? ("gut" as const) : ("mittel" as const) } }
+          : {}),
+    },
+    {
+      id: "_plan",
+      gruppe: t("haushalt.ui.gruppe_lage"),
+      titel: t("haushalt.ui.plan.kicker"),
+      zeile: t("haushalt.ui.plan.titel", { aus: bio(PLAN_2026.ausgabenGesamt), ein: bio(PLAN_2026.einnahmenGesamt) }),
+    },
+    {
+      id: "_bisher",
+      gruppe: t("haushalt.ui.gruppe_lage"),
+      titel: t("haushalt.ui.bisher.titel"),
+      wert: String(z.aenderungen.length),
+      zeile: z.aenderungen.length ? z.aenderungen[z.aenderungen.length - 1]!.text : t("haushalt.ui.bisher.leer"),
+    },
+    ...GRUPPEN.flatMap((g) =>
+      POSTEN.filter((q) => q.gruppe === g).map((q): UbKachel => {
+        const ist = stufeVon(world, q.id);
+        const plan = z.entwurf?.[q.id] ?? ist;
+        const f = ministerFuer(world, q.amt);
+        const wunsch = ministerWunsch(world, q.id);
+        const offenWunsch = !!f && q.seite === "ausgabe" && q.id !== "rentenalter" && ist < wunsch;
+        return {
+          id: q.id,
+          gruppe: t(`haushalt.gruppe.${g}`),
+          titel: q.name,
+          bild: f ? <Minister world={world} p={q} /> : undefined,
+          wert: betrag(world, q, plan),
+          wertLabel: plan !== ist ? t("haushalt.ui.kurz.vorher", { wert: betrag(world, q, ist) }) : vz(plan),
+          ...(plan !== ist
+            ? { marke: { text: t("haushalt.ui.kurz.entwurf"), ton: "aktiv" as const }, ton: "aktiv" as const }
+            : offenWunsch
+              ? { marke: { text: t("haushalt.ui.kurz.wunsch", { stufe: vz(wunsch) }), ton: "mittel" as const } }
+              : {}),
+        };
+      }),
+    ),
+  ];
+  const detail = (id: string) => {
+    if (id === "_bilanz")
+      return (
+        <div className="hh-im-detail">
 
-      <section className="wi-karte hh-bilanz">
         <p className="kicker">{t("haushalt.ui.bilanz.kicker")}</p>
         <h3>{defizit > 0 ? t("haushalt.ui.bilanz.titel_defizit", { defizit: nf(defizit, 1) }) : t("haushalt.ui.bilanz.titel_ueberschuss", { wert: nf(-defizit, 1) })}</h3>
         <dl className="hh-bilanz-zahlen">
@@ -353,9 +411,10 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         <p className="wi-hinweis">
           {t("haushalt.ui.bilanz.hinweis", { grund: nf(world.economy.deficit), regler: nf(impulsAusPosten(world)), impuls: nf(world.economy.fiscalImpulse), massnahmen: nf(world.economy.policyCost, 2), zins: nf(world.economy.zinsMehrlast ?? 0, 2) })}
         </p>
-      </section>
-
-      <section className="wi-karte" id="wi-hh-zyklus">
+                <p className="wi-hinweis hh-behoerden">{behoerdenSatz}</p>
+        </div>
+      );
+    if (id === "_zyklus") return <div className="hh-im-detail">
         <p className="kicker">{t("haushalt.ui.zyklus.kicker")}</p>
         {fenster.offen ? (
           <>
@@ -418,42 +477,12 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             </p>
           </>
         )}
-      </section>
+      </div>;
+    if (id === "_plan")
+      return (
+        <div className="hh-im-detail">
+          <UbDetailKopf titel={t("haushalt.ui.plan.kicker")} unter={t("haushalt.ui.plan.titel", { aus: bio(PLAN_2026.ausgabenGesamt), ein: bio(PLAN_2026.einnahmenGesamt) })} />
 
-      <section className="wi-karte" id="wi-hh-regler">
-        <p className="kicker">{fenster.offen ? t("haushalt.ui.ressorts.kicker_entwurf") : t("haushalt.ui.ressorts.kicker_nachtrag")}</p>
-        <h3>{t("haushalt.ui.ressorts.titel")}</h3>
-        <p className="wi-hinweis">{fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}</p>
-        <p className="wi-hinweis hh-behoerden">
-          {verbrauch.length === 0
-            ? t("haushalt.ui.behoerden.keine")
-            : t("haushalt.ui.behoerden.satz", {
-                liste: verbrauch.map((x) => t("haushalt.ui.behoerden.posten", { posten: POSTEN_NACH_ID[x.posten]?.name ?? x.posten, etat: x.ausEtat, defizit: x.aufsDefizit > 0.0005 ? "ja" : "nein", d: x.aufsDefizit })),
-              })}
-        </p>
-        {GRUPPEN.map((g) => (
-          <div key={g} className="hh-gruppe">
-            <h4>{t(`haushalt.gruppe.${g}`)}</h4>
-            {g === "renten" && <p className="hh-text">{t("haushalt.ui.renten.etat", { etat: nf(rentenSicht(world).etat, 1), mrd: mrdText(mrdAusBip(rentenSicht(world).etat)) })}</p>}
-            <ul className="hh-liste">
-              {POSTEN.filter((q) => q.gruppe === g).map((q) => {
-                const aktiv = sel === q.id;
-                const plan = z.entwurf?.[q.id] ?? stufeVon(world, q.id);
-                return (
-                  <Zeile key={q.id} world={world} p={q} aktiv={aktiv} wert={aktiv && entwurf !== null ? entwurf : plan} plan={plan} onWahl={(s) => waehle(q.id, s)}>
-                    {aktiv && vorschauBlock}
-                  </Zeile>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </section>
-
-      <details className="wi-karte hh-plan" id="wi-hh-plan">
-        <summary>
-          <span className="kicker">{t("haushalt.ui.plan.kicker")}</span> {t("haushalt.ui.plan.titel", { aus: bio(PLAN_2026.ausgabenGesamt), ein: bio(PLAN_2026.einnahmenGesamt) })}
-        </summary>
         <p className="wi-hinweis">{t("haushalt.ui.plan.hinweis", { defizit: bio(PLAN_2026.defizit), bip: nf(PLAN_2026.defizitProzentBip) })}</p>
         <div className="wi-plan">
           <div>
@@ -490,21 +519,9 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             </ul>
           </div>
         </div>
-        <p className="wi-quelle">
-          {t("haushalt.ui.plan.quellen")}{" "}
-          {PLAN_2026.quellen.map((q, i) => (
-            <span key={q.url}>
-              {i > 0 && "; "}
-              <a href={q.url} target="_blank" rel="noreferrer">
-                {q.name}
-              </a>
-            </span>
-          ))}
-          . {PLAN_2026.hinweis} {t("haushalt.ui.plan.ressorts_beleg")}
-        </p>
-      </details>
-
-      <section className="wi-karte">
+              </div>
+      );
+    if (id === "_bisher") return <div className="hh-im-detail">
         <p className="kicker">{t("haushalt.ui.bisher.kicker")}</p>
         <h3>{t("haushalt.ui.bisher.titel")}</h3>
         {z.aenderungen.length === 0 ? (
@@ -531,7 +548,61 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             ))}
           </ul>
         )}
-      </section>
+      </div>;
+    const q = POSTEN_NACH_ID[id];
+    if (!q) return null;
+    const aktiv = sel === q.id;
+    const plan = z.entwurf?.[q.id] ?? stufeVon(world, q.id);
+    return (
+      <div className="hh-im-detail">
+        <UbDetailKopf bild={<Minister world={world} p={q} />} titel={q.name} unter={t(`haushalt.gruppe.${q.gruppe}`)} />
+        {q.gruppe === "renten" && <p className="hh-text">{t("haushalt.ui.renten.etat", { etat: nf(rentenSicht(world).etat, 1), mrd: mrdText(mrdAusBip(rentenSicht(world).etat)) })}</p>}
+        <Zeile world={world} p={q} aktiv={aktiv} wert={aktiv && entwurf !== null ? entwurf : plan} plan={plan} onWahl={(s) => waehle(q.id, s)}>
+          {aktiv && vorschauBlock}
+        </Zeile>
+      </div>
+    );
+  };
+  const [blick, setBlick] = useState<string | null>(start);
+  return (
+    <div className="wi-hh">
+      {rueck && (
+        <p className={`rueckmeldung ${rueck.ok ? "ok" : "nein"} wi-rueck`} role="status">
+          {rueck.text}
+          {rueck.why && <em> {rueck.why}</em>}
+        </p>
+      )}
+      <Uebersicht
+        aria={t("haushalt.ui.ressorts.titel")}
+        dicht
+        sortiert={false}
+        lage={
+          <>
+            <b>{defizit > 0 ? t("haushalt.ui.bilanz.titel_defizit", { defizit: nf(defizit, 1) }) : t("haushalt.ui.bilanz.titel_ueberschuss", { wert: nf(-defizit, 1) })}</b>{" "}
+            {fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
+          </>
+        }
+        zahlen={[
+          { label: t("haushalt.ui.bilanz.defizit"), wert: `${nf(defizit, 1)} %`, ton: defizit > 3 ? "schlecht" : "neutral" },
+          { label: t("haushalt.ui.bilanz.schulden"), wert: `${nf(world.economy.debtRatio, 1)} %` },
+        ]}
+        kacheln={kacheln}
+        wahl={blick}
+        onWahl={(id) => {
+          setBlick(id);
+          if (id && POSTEN_NACH_ID[id]) {
+            if (sel !== id) {
+              setSel(id);
+              setEntwurf(null);
+              setBestaetigt(false);
+            }
+          } else {
+            setSel(null);
+            setEntwurf(null);
+          }
+        }}
+        detail={detail}
+      />
     </div>
   );
 }

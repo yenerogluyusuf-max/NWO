@@ -76,7 +76,6 @@ export function VergleichBalken({ code, spiel }: { code: string; spiel?: { wert:
         <button className="link" onClick={() => setAlle(!alle)}>
           {alle ? t("ui2.ui.VergleichBalken.744d441") : t("ui2.ui.VergleichBalken.7cdd71c")}
         </button>
-        <span>{t("ui2.ui.VergleichBalken.c403b4c", { p0: VERGLEICH.abgerufen.slice(0, 4) })}</span>
       </div>
     </div>
   );

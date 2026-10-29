@@ -227,5 +227,11 @@
  "haushalt.zyklus.hinweis.nachtrag": "Dönem dışında ek bütçe: iki kat sermaye maliyeti ve küçük bir meşruiyet kaybı. Sonraki dönem: Ekim {jahr}.",
  "haushalt.ui.behoerden.satz": "Bakanlıklar bu yıl kurumları için şunları harcadı: {liste, list}.",
  "haushalt.ui.behoerden.posten": "{posten} ek ödenekten GSYH'nin {etat, prozent, 2} kadarı{defizit, select, ja { ve açığa {d, prozent, 2}} other {}}",
- "haushalt.ui.behoerden.keine": "Kurumlar bu yıl bakanlık bütçelerinden henüz bir şey harcamadı."
+ "haushalt.ui.behoerden.keine": "Kurumlar bu yıl bakanlık bütçelerinden henüz bir şey harcamadı.",
+ "haushalt.ui.gruppe_lage": "Bilanço ve süreç",
+ "haushalt.ui.bilanz.kurz": "Borç %{schulden} · faiz GSYH'nin %{zinsen} kadarı",
+ "haushalt.ui.zyklus.marke_offen": "Pencere açık · taslakta {n}",
+ "haushalt.ui.kurz.vorher": "önceki {wert}",
+ "haushalt.ui.kurz.entwurf": "taslakta",
+ "haushalt.ui.kurz.wunsch": "bakanlık {stufe} istiyor"
 }

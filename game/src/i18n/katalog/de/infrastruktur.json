@@ -141,5 +141,12 @@
  "infra.log.ignoriert": "Bitte liegen gelassen: {netz} in {ort}",
  "infra.log.ignoriert.warum": "Die Frist ist ohne Entscheidung verstrichen. {name} fühlt sich übergangen, vor Ort sinkt das Vertrauen in die Regierung, und die Überlast schlägt dort ein Jahr lang stärker in Ärger um, bis ausgebaut oder umgelenkt wird.",
  "infra.log.ignoriert.warum_ohne": "Die Frist ist ohne Entscheidung verstrichen. Vor Ort sinkt das Vertrauen in die Regierung, und die Überlast schlägt dort ein Jahr lang stärker in Ärger um, bis ausgebaut oder umgelenkt wird.",
- "infra.ignoriert.merke": "Meine Bitte zu {netz} in {ort} blieb liegen"
+ "infra.ignoriert.merke": "Meine Bitte zu {netz} in {ort} blieb liegen",
+ "infra.ui.gruppe_netze": "Netze",
+ "infra.ui.auslastung_kurz": "Auslastung",
+ "infra.ui.ueberlastet": "überlastet",
+ "infra.ui.paket.kurz": "{n} Provinzen · {monate} Monate",
+ "infra.ui.engpaesse": "Engpässe nach Provinz",
+ "infra.ui.zahl_ueber": "Netze überlastet",
+ "infra.ui.zahl_laufend": "Ausbauten laufen"
 }

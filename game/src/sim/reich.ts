@@ -24,6 +24,7 @@ import { kannZahlen } from "./kapital";
 import { zeitungEreignis } from "./zeitung";
 import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, belastungSinken, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { t as tx } from "../i18n";
+import { ohneBeleg } from "../i18n/ohne-beleg";
 
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
 const VORTEIL_NACH_ID = new Map(VORTEILE.map((v) => [v.id, v]));
@@ -976,7 +977,7 @@ function ueberzugPruefen(w: World, l: LaufEintrag, v: Vorhaben): void {
     if (v.kosten.schulden && v.kosten.bau > 0) w.economy.debtRatio += (v.kosten.schulden * extra) / v.kosten.bau;
     wirke(w, "legitimitaet", -0.6);
     meldung(w, "ueberzug", tx("sim2.sim.reich.f3c24ba", { p0: v.name, p1: Math.round(frac * 100) }));
-    addLog(w, "entscheidung", tx("sim2.sim.reich.a9dd8b7", { p0: v.name }), tx("sim2.sim.reich.fb08991", { p0: v.anker ?? "" }).trim());
+    addLog(w, "entscheidung", tx("sim2.sim.reich.a9dd8b7", { p0: v.name }), tx("sim2.sim.reich.fb08991", { p0: ohneBeleg(v.anker ?? "") }).trim());
   }
 }
 

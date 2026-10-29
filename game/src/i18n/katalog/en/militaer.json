@@ -104,5 +104,15 @@
  "militaer.zielraum.irq_maximal": "Northern Iraq up to Kirkuk and Sulaymaniyah",
  "militaer.zielraum.grc_maximal": "Islands, Thrace and Thessaloniki",
  "militaer.zielraum.cyp_maximal": "All of Cyprus",
- "militaer.zielraum.arm_maximal": "All of Armenia up to Yerevan"
+ "militaer.zielraum.arm_maximal": "All of Armenia up to Yerevan",
+ "militaer.ui.preis_bip": "{bip} % of GDP total",
+ "militaer.ui.gen_kurz": "Generation",
+ "militaer.ui.abhaengig_kurz": "dependent: {land}",
+ "militaer.ui.weniger": "below 2026 level",
+ "militaer.ui.gruppe_lage": "Personnel, projects, operations",
+ "militaer.ui.wehrdienst_kurz": "Length of conscription",
+ "militaer.ui.voll": "at capacity",
+ "militaer.ui.ziel_keins_kurz": "no war",
+ "militaer.ui.krieg_laeuft": "war ongoing",
+ "militaer.ui.besetzt": "occupied areas"
 }

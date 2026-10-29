@@ -170,5 +170,12 @@
  "gesetz.ui.leer": "Nichts in Arbeit.",
  "gesetz.erlass.unangefochten": "Per Präsidialerlass: „{titel}“ gilt ab sofort, und niemand Klagebefugtes ficht ihn an.",
  "gesetz.erlass.unangefochtenWarum": "{pk} Kapital und etwas Vertrauen. Klagen dürften nur der Präsident, die beiden größten Fraktionen oder ein Fünftel der Abgeordneten (Art. 150 der Verfassung); keiner von ihnen lehnt den Erlass ab. Beschließt das Parlament ein Gesetz zum selben Gegenstand, ist der Erlass hinfällig.",
- "gesetz.ui.erlassUnangefochten": "Keine klagebefugte Seite dagegen"
+ "gesetz.ui.erlassUnangefochten": "Keine klagebefugte Seite dagegen",
+ "gesetz.ui.anlass.fokus": "vorbereitet durch Fokus",
+ "gesetz.ui.weitere": "Weitere Vorhaben",
+ "gesetz.ui.kurz.parlament": "Abstimmung in {tage} T.",
+ "gesetz.ui.kurz.gericht": "Urteil in {tage} T.",
+ "gesetz.ui.kurz.ruht": "ruht {tage} T.",
+ "gesetz.ui.lage.parlament": "{titel}: Abstimmung in {tage} Tagen, {ja} Ja-Stimmen erwartet",
+ "gesetz.ui.lage.gericht": "{titel}: Urteil in {tage} Tagen, Aufhebung zu {p} %"
 }

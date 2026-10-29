@@ -7,6 +7,7 @@ import { t } from "../../i18n";
 import { FASSUNGEN, type FassungId } from "../../data/gesetzesvorhaben";
 import { bringeVorhabenEin, gesetzesTisch, GESETZGEBUNG, laufendeVerfahren, type LagerEintrag, type VorhabenSicht } from "../../sim/gesetzgebung";
 import type { World } from "../../sim/types";
+import { Uebersicht, UbDetailKopf, UbRueck, type UbKachel } from "../akte/Uebersicht";
 import "./gesetze.css";
 
 function Lager({ titel, liste, art }: { titel: string; liste: LagerEintrag[]; art: "fuer" | "gegen" }) {
@@ -55,12 +56,8 @@ function Karte({ s, world, onGetan }: { s: VorhabenSicht; world: World; onGetan:
   const partnerGegen = s.lager.gegen.filter((e) => e.art === "partner").map((e) => e.name);
   const status = s.imParlament ? t("gesetz.ui.abstimmungIn", { tage: s.imParlament.tage }) : s.gericht ? t("gesetz.ui.urteilIn", { tage: s.gericht.tage, p: Math.round(s.gericht.p * 100) }) : s.ruhtTage ? t("gesetz.ui.ruht", { tage: s.ruhtTage }) : undefined;
   return (
-    <article className={`gv-karte${s.imParlament || s.gericht ? " laeuft" : ""}`}>
-      <header>
-        <h4>{s.titel}</h4>
-        {s.anlass && <span className={`gv-anlass ${s.anlass}`}>{t(`gesetz.ui.anlass.${s.anlass}`)}</span>}
-      </header>
-      <p className="gv-satz">{s.satz}</p>
+    <article className={`gv-karte gv-im-detail${s.imParlament || s.gericht ? " laeuft" : ""}`}>
+      <UbDetailKopf titel={s.titel} unter={s.anlass ? t(`gesetz.ui.anlass.${s.anlass}`) : undefined} text={s.satz} />
       <div className="gv-lagerzeile">
         <Lager titel={t("gesetz.ui.dafuer")} liste={s.lager.fuer} art="fuer" />
         <Lager titel={t("gesetz.ui.dagegen")} liste={s.lager.gegen} art="gegen" />
@@ -100,7 +97,7 @@ function Karte({ s, world, onGetan }: { s: VorhabenSicht; world: World; onGetan:
           {f.grund && <p className="gv-grund">{f.grund}</p>}
         </>
       )}
-      {antwort && <p className={`gv-antwort ${antwort.ok ? "ok" : "nein"}`}>{antwort.text}</p>}
+      <UbRueck antwort={antwort} />
     </article>
   );
 }
@@ -109,53 +106,51 @@ export function Gesetzesvorhaben({ world, refresh }: { world: World; refresh: ()
   const [, setZaehler] = useState(0);
   const tisch = gesetzesTisch(world);
   const verfahren = laufendeVerfahren(world);
-  const vorn = tisch.slice(0, GESETZGEBUNG.vorn);
-  const rest = tisch.slice(GESETZGEBUNG.vorn);
   const getan = () => {
     setZaehler((z) => z + 1);
     refresh();
   };
-  const karten = (liste: VorhabenSicht[]) => (
-    <div className="gv-raster">
-      {liste.map((s) => (
-        <Karte key={s.def.id} s={s} world={world} onGetan={getan} />
-      ))}
-    </div>
-  );
+  const kacheln: UbKachel[] = tisch.map((s, i): UbKachel => {
+    const f = s.fassungen.kompromiss;
+    const laeuft = s.imParlament ? t("gesetz.ui.kurz.parlament", { tage: s.imParlament.tage }) : s.gericht ? t("gesetz.ui.kurz.gericht", { tage: s.gericht.tage }) : s.ruhtTage ? t("gesetz.ui.kurz.ruht", { tage: s.ruhtTage }) : undefined;
+    return {
+      id: s.def.id,
+      gruppe: i < GESETZGEBUNG.vorn ? t("gesetz.ui.tisch") : t("gesetz.ui.weitere"),
+      titel: s.titel,
+      wert: t(`gesetz.ui.urteil.${f.urteil}`),
+      wertLabel: t("gesetz.ui.stimmen", { ja: f.ja }),
+      zeile: s.satz,
+      ...(laeuft
+        ? { marke: { text: laeuft, ton: "aktiv" as const } }
+        : s.anlass
+          ? { marke: { text: t(`gesetz.ui.anlass.${s.anlass}`), ton: "mittel" as const } }
+          : {}),
+      ton: laeuft ? "aktiv" : f.urteil === "sicher" ? "gut" : f.urteil === "knapp" ? "mittel" : "schlecht",
+    };
+  });
+  const lage =
+    verfahren.parlament.length + verfahren.gericht.length > 0
+      ? [
+          ...verfahren.parlament.map((v) => t("gesetz.ui.lage.parlament", { titel: v.titel, tage: v.tage, ja: v.ja })),
+          ...verfahren.gericht.map((v) => t("gesetz.ui.lage.gericht", { titel: v.titel, tage: v.tage, p: Math.round(v.p * 100) })),
+        ].join(" · ")
+      : t("gesetz.ui.zweck");
   return (
     <div className="gv">
-      <p className="gv-zweck">{t("gesetz.ui.zweck")}</p>
-      {(verfahren.parlament.length > 0 || verfahren.gericht.length > 0) && (
-        <section className="gv-verfahren">
-          <h3 className="ak-abschnitt">{t("gesetz.ui.laufend")}</h3>
-          <ul className="ak-liste">
-            {verfahren.parlament.map((v) => (
-              <li key={`p-${v.titel}`} className={v.urteil === "sicher" ? "gut" : v.urteil === "knapp" ? "mittel" : "schlecht"}>
-                <b>{v.titel}</b>
-                <span>
-                  {t("gesetz.ui.imParlament")} · {t("gesetz.ui.abstimmungIn", { tage: v.tage })} · {t("gesetz.ui.stimmen", { ja: v.ja })}
-                </span>
-              </li>
-            ))}
-            {verfahren.gericht.map((v) => (
-              <li key={`g-${v.titel}`} className={v.p >= 0.3 ? "schlecht" : "mittel"}>
-                <b>{v.titel}</b>
-                <span>
-                  {t("gesetz.ui.beimGericht")} · {t("gesetz.ui.urteilIn", { tage: v.tage, p: Math.round(v.p * 100) })}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <h3 className="ak-abschnitt">{t("gesetz.ui.tisch")}</h3>
-      {karten(vorn)}
-      {rest.length > 0 && (
-        <details className="ak-mehr gv-mehr">
-          <summary>{t("gesetz.ui.alle", { n: rest.length })}</summary>
-          {karten(rest)}
-        </details>
-      )}
+      <Uebersicht
+        aria={t("gesetz.ui.tisch")}
+        sortiert={false}
+        lage={lage}
+        zahlen={[
+          { label: t("gesetz.ui.imParlament"), wert: String(verfahren.parlament.length), ton: verfahren.parlament.length ? "aktiv" : "neutral" },
+          { label: t("gesetz.ui.beimGericht"), wert: String(verfahren.gericht.length), ton: verfahren.gericht.length ? "mittel" : "neutral" },
+        ]}
+        kacheln={kacheln}
+        detail={(id) => {
+          const s = tisch.find((x) => x.def.id === id);
+          return s ? <Karte key={id} s={s} world={world} onGetan={getan} /> : null;
+        }}
+      />
     </div>
   );
 }

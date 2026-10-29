@@ -1,0 +1,18 @@
+{
+ "ub.stufe": "Level {stufe} of {max}",
+ "ub.filter": "Search …",
+ "ub.keine": "Nothing found.",
+ "ub.schliessen": "Close details",
+ "ub.stempel.ok": "Done",
+ "ub.stempel.nein": "Refused",
+ "ub.preis.kapital": "{n} capital",
+ "ub.preis.bip": "{bip, number, 3} % of GDP",
+ "ub.preis.monate": "{n, plural, one {# month} other {# months}}",
+ "ub.zum_haushalt": "Ministry budget",
+ "ub.behoerde.baut": "Expanding {achse}, {monate} mo. left",
+ "ub.behoerde.gekuerzt": "Budget cut",
+ "ub.behoerde.instrument": "Special tool ready",
+ "ub.behoerde.knapp": "No budget headroom",
+ "ub.behoerde.zahl_bau": "expanding",
+ "ub.behoerde.zahl_knapp": "budget tight"
+}

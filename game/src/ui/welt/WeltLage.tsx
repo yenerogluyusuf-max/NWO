@@ -22,15 +22,14 @@ function Verlauf({ werte, einheit, titel }: { werte: number[]; einheit: string; 
   );
 }
 
-function Zahl({ label, wert, einheit, herkunft, verlauf, gut }: { label: string; wert: string; einheit: string; herkunft?: string; verlauf?: number[]; gut?: "hoch" | "niedrig" | null }) {
+function Zahl({ label, wert, einheit, verlauf, gut }: { label: string; wert: string; einheit: string; herkunft?: string; verlauf?: number[]; gut?: "hoch" | "niedrig" | null }) {
   return (
-    <div className={`we-zahl${gut ? ` gut-${gut}` : ""}`} title={herkunft ? t("ui2.ui.welt.WeltLage.81dcda0", { p0: herkunft }) : undefined}>
+    <div className={`we-zahl${gut ? ` gut-${gut}` : ""}`}>
       <span className="we-zahl-label">{label}</span>
       <strong>
         {wert} <em>{einheit}</em>
       </strong>
       {verlauf && <Verlauf werte={verlauf} einheit={einheit} titel={label} />}
-      {herkunft && <small className={herkunft === "Spielparameter" ? "param" : ""}>{herkunft}</small>}
     </div>
   );
 }

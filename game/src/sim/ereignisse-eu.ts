@@ -43,7 +43,7 @@ const EU_VETO: Vorlage = {
     ];
   },
   warum: () =>
-    "Dokumentiert: Griechenland und Zypern nutzen ihre Vetomacht gegen jeden EU-Schritt Richtung Ankara, solange die Streitpunkte offen sind (RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 2, Rote Linie 3; Dossier 17, Rote Linie 5).",
+    "Dokumentiert: Griechenland und Zypern nutzen ihre Vetomacht gegen jeden EU-Schritt Richtung Ankara, solange die Streitpunkte offen sind.",
   optionen: (_, ev) => [
     opt(
       "zugestaendnis",
@@ -70,7 +70,7 @@ const EU_ZOLLUNION: Vorlage = {
     "Das Update ist ein echtes Zwischenziel mit einem echten Preis: Die Industrie und die Exporteure gewinnen Zugang, die Landwirtschaft verliert Schutzzölle und steht im Wettbewerb. Wer ablehnt, wartet Jahre auf das nächste Angebot.",
   ],
   warum: () =>
-    `Das Mandat kommt mit ${EU_REGELN.zollunionKapitel} vorläufig geschlossenen Kapiteln in Reichweite (Spielparameter; RECHERCHE_REALWELT_LAENDERDOSSIERS.md, Dossier 2: Griechenland und Zypern bremsten das Update bisher).`,
+    `Das Mandat kommt mit ${EU_REGELN.zollunionKapitel} vorläufig geschlossenen Kapiteln in Reichweite.`,
   optionen: () => [
     opt(
       "annehmen",

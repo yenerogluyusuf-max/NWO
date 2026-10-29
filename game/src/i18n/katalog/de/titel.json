@@ -14,7 +14,7 @@
  "titel.frueher_hinweis": "Ein früherer automatischer Stand. Das Spiel hebt den weitesten Stand und die letzten Sicherungen auf, damit ein Ladevorgang nie Fortschritt kostet.",
  "titel.kein_stand": "Noch kein Spielstand vorhanden",
  "titel.neu": "Neues Spiel",
- "titel.quellen": "Wirtschaftsdaten vom {d, date} · Karte nach Natural Earth, AWS Terrain und OpenStreetMap",
+ "titel.quellen": "Wirtschaftsdaten vom {d, date} · Karte nach Natural Earth, AWS Terrain und OpenStreetMap · Verwerfungen: GEM Global Active Faults (CC BY-SA 4.0)",
  "titel.sicherung": "Sicherung",
  "titel.sicherung_zeit": " ({z, time} Uhr)",
  "titel.slot_text": "{label} · {d, date}",

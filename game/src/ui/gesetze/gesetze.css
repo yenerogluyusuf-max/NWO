@@ -50,3 +50,4 @@
 .gv-mehr { margin-top: 10px; }
 .gv-mehr > .gv-raster { margin-top: 10px; }
 @media (max-width: 640px) { .gv-raster { grid-template-columns: 1fr; } .gv-karte { padding: 10px 12px; } }
+.gv-karte.gv-im-detail { border: 0; padding: 0; background: none; box-shadow: none; display: grid; gap: 8px; }

@@ -141,5 +141,12 @@
  "infra.log.ignoriert": "Request left on the desk: {netz} in {ort}",
  "infra.log.ignoriert.warum": "The deadline passed without a decision. {name} feels passed over, trust in the government falls locally, and for a year the overload turns into anger there more quickly until capacity is added or demand is steered.",
  "infra.log.ignoriert.warum_ohne": "The deadline passed without a decision. Trust in the government falls locally, and for a year the overload turns into anger there more quickly until capacity is added or demand is steered.",
- "infra.ignoriert.merke": "My request on {netz} in {ort} was left lying"
+ "infra.ignoriert.merke": "My request on {netz} in {ort} was left lying",
+ "infra.ui.gruppe_netze": "Networks",
+ "infra.ui.auslastung_kurz": "load",
+ "infra.ui.ueberlastet": "overloaded",
+ "infra.ui.paket.kurz": "{n} provinces · {monate} months",
+ "infra.ui.engpaesse": "Bottlenecks by province",
+ "infra.ui.zahl_ueber": "networks overloaded",
+ "infra.ui.zahl_laufend": "expansions under way"
 }

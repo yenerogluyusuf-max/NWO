@@ -819,7 +819,7 @@ export function transitUmweg(w: World, id: string, landId: string): { ok: boolea
   e.def.kosten.monate = Math.max(1, Math.round(e.def.kosten.monate * 1.25));
   if (e.def.kosten.schulden) e.def.kosten.schulden = r1(e.def.kosten.schulden * 1.3);
   e.def.text += ` Umweg um ${land(landId).name}.`;
-  addLog(w, "entscheidung", `Umweg um ${land(landId).name}: ${e.def.name}`, `Das Veto steht; die Strecke umgeht das Land. Bau +${Math.round((UMWEG_FAKTOR - 1) * 100)} %, Zeit +25 %, Schulden +30 % (Spielparameter).`);
+  addLog(w, "entscheidung", `Umweg um ${land(landId).name}: ${e.def.name}`, `Das Veto steht; die Strecke umgeht das Land. Bau +${Math.round((UMWEG_FAKTOR - 1) * 100)} %, Zeit +25 %, Schulden +30 %.`);
   return { ok: true, text: `Umweg um ${land(landId).name}: Die Strecke bleibt möglich, wird aber spürbar teurer und länger (neu geschätzt: Bau ${bandText(e.schaetzung.bau)} Punkte, ${bandText(e.schaetzung.monate)} Monate).` };
 }
 

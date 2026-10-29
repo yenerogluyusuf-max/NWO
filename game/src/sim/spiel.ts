@@ -17,6 +17,7 @@ import { gueterMonat } from "./gueter";
 import { ereignisMonat, ereignisTag, MAX_OFFEN, oeffne } from "./ereignisse";
 import { verhandlungMonat } from "./verhandeln";
 import { programmTag } from "./programme";
+import { fokusMonat, fokusTag } from "./fokus";
 import { berichteTag } from "./berichte";
 import { altlast, taktMonat } from "./takt";
 import { weltMonat } from "./laender";
@@ -257,6 +258,7 @@ export function spielTick(world: World, rng: Rng): void {
   krisenAktualisieren(world);
   kriegTag(world, rng);
   programmTag(world);
+  fokusTag(world);
   berichteTag(world);
   verfassungTag(world);
   // INN-5: Der Wahlkampf als Handlungsphase (Beginn acht Wochen vor der Wahl, Wochenbudget, TV-Duell)
@@ -345,6 +347,8 @@ function spielMonat(world: World, rng: Rng): void {
   reichMonat(world, rng);
   // Wissensbaum: Durchbrüche verbuchen (Werke heben die Generation der Streitkräfte), Sperren von Lizenzgebern melden
   wissensbaumMonat(world);
+  // Fokusbaum: Bestand der vollendeten Foki halten
+  fokusMonat(world);
   // Netze mit Auslastung (sim/infrastruktur.ts): fertige Ausbauten, Nachfrage, Überlast, die Bitte des Monats
   infrastrukturMonat(world);
   // Katastrophen (INF-5): Risiko-Layer würfelt je Zone; Hilfskette und Lieferfortschritt laufen

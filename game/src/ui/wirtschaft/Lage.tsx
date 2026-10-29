@@ -193,7 +193,6 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
             <VergleichBalken code={ZUORDNUNG[k.vergleichId]![0]!} spiel={spielWert(world, k.vergleichId)} />
           </section>
         )}
-        {k.id === "leitzins" && <p className="wi-hinweis">{t("ui.wirtschaft.Lage.9cc776f")}</p>}
 
         <section className="wi-block">
           <h4>{t("ui.wirtschaft.Lage.51a8bcf")}</h4>

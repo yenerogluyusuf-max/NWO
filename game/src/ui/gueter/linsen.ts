@@ -128,7 +128,6 @@ export function ressourcenMarken(): KartenMarke[] {
       artText: t("fundorte.vorkommen.art", { gut: t(`gueter.gut.${v.gut}`), rang: t(`fundorte.rang.${v.rang}`) }),
       titel: t(`fundorte.vorkommen.${v.id}`),
       text: inland ? t("fundorte.vorkommen.inland") : t("fundorte.vorkommen.ausland", { land: landName(v.land ?? "") }),
-      zusatz: `${t("gueter.quelle")}: ${v.quelle}`,
       ...(inland ? { plaka: v.plaka } : v.land ? { iso: landIso(v.land) } : {}),
       klick: t(inland ? "fundorte.klick.provinz" : "fundorte.klick.land"),
     };

@@ -141,5 +141,12 @@
  "infra.log.ignoriert": "Talep bekletildi: {ort|loc} {netz}",
  "infra.log.ignoriert.warum": "Süre karar verilmeden doldu. {name} kendini görmezden gelinmiş hissediyor, yerelde hükümete güven düşüyor ve yatırım ya da yönlendirme yapılana kadar aşırı yük bir yıl boyunca orada daha hızlı öfkeye dönüşüyor.",
  "infra.log.ignoriert.warum_ohne": "Süre karar verilmeden doldu. Yerelde hükümete güven düşüyor ve yatırım ya da yönlendirme yapılana kadar aşırı yük bir yıl boyunca orada daha hızlı öfkeye dönüşüyor.",
- "infra.ignoriert.merke": "{ort|loc} {netz} için talebim bekletildi"
+ "infra.ignoriert.merke": "{ort|loc} {netz} için talebim bekletildi",
+ "infra.ui.gruppe_netze": "Ağlar",
+ "infra.ui.auslastung_kurz": "doluluk",
+ "infra.ui.ueberlastet": "aşırı yüklü",
+ "infra.ui.paket.kurz": "{n} il · {monate} ay",
+ "infra.ui.engpaesse": "İllere göre darboğazlar",
+ "infra.ui.zahl_ueber": "aşırı yüklü ağ",
+ "infra.ui.zahl_laufend": "süren genişletme"
 }

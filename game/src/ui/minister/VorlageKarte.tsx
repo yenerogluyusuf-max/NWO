@@ -30,6 +30,17 @@ const nf = (x: number): string => t("mf.zahl1", { x });
 const zahl = (n: NutzenZeile, x: number): string => (n.einheit === "Provinzen" ? String(Math.round(x)) : nf(x));
 const istMeta = (o: VorlageOption): boolean => o.id === "spaeter" || o.id === "nichts" || o.id === "kenntnis";
 
+/**
+ * Die Lage in einem Satz: der erste Satz des Anlasses, der eine Zahl trägt (höchstens die ersten zwei Sätze).
+ * Der Rest klappt unter „Mehr zur Lage“ auf; was die Wirkzeile ohnehin sagt („ohne Eingriff …“), steht so nicht doppelt da.
+ */
+export function lageSatz(text: string): { satz: string; rest: string } {
+  const saetze = text.split(/(?<=[.!?])\s+(?=[\p{Lu}\d„"])/u);
+  let n = 1;
+  if (!/\d/.test(saetze[0] ?? "") && saetze.length > 1 && /\d/.test(saetze[1]!)) n = 2;
+  return { satz: saetze.slice(0, n).join(" "), rest: saetze.slice(n).join(" ") };
+}
+
 /** Beschriftung des Knopfes einer Option, nach dem, was er auslöst. */
 export function knopfText(o: VorlageOption): string {
   switch (o.aktion.art) {
@@ -93,49 +104,103 @@ function Nutzen({ zeilen }: { zeilen: NutzenZeile[] }) {
           ))}
         </tbody>
       </table>
-      <p className="mf-nutzen-fuss">{kaum ? t("mf.nutzen.kaum", { monate }) : ""}{t("mf.nutzen.fuss")}</p>
+      {kaum && <p className="mf-nutzen-fuss">{t("mf.nutzen.kaum", { monate }).trim()}</p>}
     </>
   );
 }
 
-function Option({ v, o, empfohlen, band, onWaehle }: { v: Vorlage; o: VorlageOption; empfohlen: boolean; band: boolean; onWaehle: (o: VorlageOption) => void }) {
+/** Die eine Zeile, die zählt: die Leitgröße heute, mit Eingriff und ohne, farbig nach gut oder schlecht. */
+function Wirkzeile({ n }: { n: NutzenZeile }) {
+  const ton = n.besser === true ? "besser" : n.besser === false ? "schlechter" : "gleich";
+  return (
+    <p className={`mf-wirk ${ton}`}>
+      <span className="name">{n.name}{n.einheit === "Provinzen" ? t("mf.nutzen.provinzen") : ""}</span>{" "}
+      <b>{zahl(n, n.jetzt)} → {zahl(n, n.mit)}</b>{" "}
+      <span className="leise">{t("mf.wirk.zeit", { monate: n.monate, ohne: zahl(n, n.ohne) })}</span>
+    </p>
+  );
+}
+
+/** Knopf ohne Wiederholung: Wo der Knopf nur den Titel der Option nachspräche, heißt er schlicht „Beschließen“. */
+function knopfKurz(o: VorlageOption): string {
+  const k = knopfText(o);
+  return k === o.label ? t("mf.knopf.beschliessen") : k;
+}
+
+function Lager({ o }: { o: VorlageOption }) {
+  if (!o.dafuer.length && !o.dagegen.length) return null;
+  return (
+    <p className="mf-lager">
+      {o.dafuer.length > 0 && (
+        <span className="dafuer">
+          <b>{t("ui.minister.VorlageKarte.b267e3a")}</b>
+          {o.dafuer.join(", ")}.{" "}
+        </span>
+      )}
+      {o.dagegen.length > 0 && (
+        <span className="dagegen">
+          <b>{t("mf.dagegen")}</b>
+          {o.dagegen.join(", ")}.
+        </span>
+      )}
+    </p>
+  );
+}
+
+function Option({ v, o, empfohlen, band, onWaehle, onGehe }: { v: Vorlage; o: VorlageOption; empfohlen: boolean; band: boolean; onWaehle: (o: VorlageOption) => void; onGehe?: (z: VorlagenZiel) => void }) {
+  const leit = o.nutzen?.[0];
+  // Bei Maßnahmen wiederholen die Folgenzeilen Titel und Preis; sichtbar bleibt nur, ob die Mehrheit fehlt
+  const folgenSichtbar = o.aktion.art !== "massnahme" && !leit ? o.folgen.slice(0, 2) : [];
+  const rest = o.aktion.art === "massnahme" ? o.folgen.slice(1) : o.folgen.slice(folgenSichtbar.length);
+  // Ohne Wirkzeile trägt die Beschreibung die Aussage; mit ihr liegt sie unter „Rechnung zeigen“
+  const textSichtbar = !!o.text && !leit && folgenSichtbar.length === 0;
+  const hatMehr = !!o.nutzen?.length || rest.length > 0 || o.dafuer.length > 0 || o.dagegen.length > 0 || (!!o.text && !textSichtbar);
   return (
     <section className={`mf-option${empfohlen ? " empfohlen" : ""}`}>
-      {empfohlen && band && v.empfehlung && <span className="mf-band">{v.minister ? t("mf.empfehlungVon", { name: v.minister.name }) : t("mf.empfehlung")}</span>}
+      {empfohlen && band && v.empfehlung && (
+        <span className="mf-band" title={v.empfehlung.grund}>{v.minister ? t("mf.empfehlungVon", { name: kurz(v.minister.name) }) : t("mf.empfehlung")}</span>
+      )}
       <h5>{o.label}</h5>
-      {o.text && <p className="mf-text">{o.text}</p>}
+      {textSichtbar && <p className="mf-text">{o.text}</p>}
       <Kosten o={o} />
-      {o.folgen.length > 0 && (
+      {leit && <Wirkzeile n={leit} />}
+      {folgenSichtbar.length > 0 && (
         <ul className="mf-folgen">
-          {o.folgen.map((t, i) => (
-            <li key={i}>{t}</li>
+          {folgenSichtbar.map((z, i) => (
+            <li key={i}>{z}</li>
           ))}
         </ul>
       )}
-      {o.nutzen && <Nutzen zeilen={o.nutzen} />}
-      {(o.dafuer.length > 0 || o.dagegen.length > 0) && (
-        <p className="mf-lager">
-          {o.dafuer.length > 0 && (
-            <span className="dafuer">
-              <b>{t("ui.minister.VorlageKarte.b267e3a")}</b>
-              {o.dafuer.join(", ")}.{" "}
-            </span>
+      {(o.luecke ?? 0) > 0 && <p className="mf-grund">{t("mf.mehrheitFehlt", { n: o.luecke })}</p>}
+      {hatMehr && (
+        <details className="mf-rechnung">
+          <summary>{t("mf.rechnung")}</summary>
+          {o.text && !textSichtbar && <p className="mf-text">{o.text}</p>}
+          {rest.length > 0 && (
+            <ul className="mf-folgen">
+              {rest.map((z, i) => (
+                <li key={i}>{z}</li>
+              ))}
+            </ul>
           )}
-          {o.dagegen.length > 0 && (
-            <span className="dagegen">
-              <b>{t("mf.dagegen")}</b>
-              {o.dagegen.join(", ")}.
-            </span>
-          )}
-        </p>
+          {o.nutzen && <Nutzen zeilen={o.nutzen} />}
+          <Lager o={o} />
+        </details>
       )}
-      <button className={`pd-btn${empfohlen ? " primary" : ""}`} disabled={!o.moeglich} title={o.grund} onClick={() => onWaehle(o)}>
-        {knopfText(o)}
+      <button className={`pd-btn${empfohlen ? " primary" : ""}`} disabled={!o.moeglich} title={o.grund ?? o.label} onClick={() => onWaehle(o)}>
+        {knopfKurz(o)}
       </button>
-      {!o.moeglich && o.grund && <p className="mf-grund">{o.grund}</p>}
+      {!o.moeglich && o.grund && (onGehe && v.ziel && v.ziel.art !== "karte" ? (
+        <button className="mf-grund mf-sprung" onClick={() => onGehe(v.ziel!)}>{o.grund} <span aria-hidden>→</span></button>
+      ) : (
+        <p className="mf-grund">{o.grund}</p>
+      ))}
     </section>
   );
 }
+
+/** Nachname für das Siegel (Vor- und Nachname, ohne Titel) */
+const kurz = (name: string): string => name.split(" ").slice(-1)[0] ?? name;
 
 function Frist({ v }: { v: Vorlage }) {
   if (v.frist === undefined) return null;
@@ -163,6 +228,8 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
   const empf = v.empfehlung?.optionId ? v.optionen.find((o) => o.id === v.empfehlung!.optionId) : undefined;
   const zeigeAlle = !kompakt || auf;
   const waehle = (o: VorlageOption) => onEntscheide(v, o.id);
+  const lage = lageSatz(v.anlass[0] ?? "");
+  const mehrLage = [...(v.problem ? [] : [lage.rest]), ...v.anlass.slice(1)].filter((a) => a.trim());
 
   return (
     <article className={`mf-karte art-${v.art} quelle-${v.quelle}${kompakt ? " kompakt" : ""}`}>
@@ -172,26 +239,29 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
         </span>
       )}
       <header className="mf-kopf">
-        <Gesicht v={v} size={kompakt ? 56 : 84} />
+        <Gesicht v={v} size={kompakt ? 38 : 32} />
         <div className="mf-wer">
-          <strong>{v.minister ? `${v.minister.rolle} ${v.minister.name}` : AEMTER[v.amt].ressort}</strong>
+          <strong>{v.minister ? v.minister.name : AEMTER[v.amt].ressort}</strong>
           <span>
-            {AEMTER[v.amt].ressort}
+            {v.minister ? AEMTER[v.amt].ressort : ""}
             {v.minister ? ` · ${t("mf.loyalitaet", { n: v.minister.loyalitaet })}` : ""}
           </span>
         </div>
         <div className="mf-marken">
-          <span className="mf-marke quelle">{quelleName(v.quelle)}</span>
+          <span className="mf-marke quelle" title={t("mf.rangGrund", { n: v.prioritaet, grund: v.prioritaetGrund })}>{quelleName(v.quelle)}</span>
           <Frist v={v} />
         </div>
       </header>
       <h4 className="mf-titel">{v.titel}</h4>
-      {!(kompakt && !auf && v.problem) &&
-        v.anlass.map((a, i) => (
-          <p key={i} className="mf-anlass">
-            {a}
-          </p>
-        ))}
+      {!v.problem && lage.satz && <p className="mf-anlass">{lage.satz}</p>}
+      {!kompakt && mehrLage.length > 0 && (
+        <details className="mf-mehr">
+          <summary>{t("mf.lageMehr")}</summary>
+          {mehrLage.map((a, i) => (
+            <p key={i} className="mf-anlass">{a}</p>
+          ))}
+        </details>
+      )}
       {v.problem && (kompakt && !auf ? (
         <p className="mf-problem">
           <b>{v.problem.name}</b> {t("mf.problem", { n: v.problem.provinzen, anteil: Math.round(v.problem.anteil * 100) })}
@@ -216,17 +286,24 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
             {v.empfehlung.hinweis && <em>{v.empfehlung.hinweis}</em>}
           </p>
         ) : (
-          <aside className="mf-empfehlung">
-            <strong>{t("mf.empfehlung")}</strong>
-            <p>{v.empfehlung.grund}</p>
-            {v.empfehlung.hinweis && <p className="hinweis">{v.empfehlung.hinweis}</p>}
-          </aside>
+          // Die Empfehlung sitzt als Siegel an der Option; hier nur, was das Siegel nicht sagt
+          (v.empfehlung.hinweis || echte.length < 2 || empf?.id === "spaeter") && (
+            <p className="mf-empf-zeile" title={v.empfehlung.grund}>
+              {(echte.length < 2 || empf?.id === "spaeter") && (
+                <>
+                  <b>{t("mf.empfehlung")}</b>
+                  {empf && empf.id !== "spaeter" ? t("mf.zitat", { text: empf.label }) : t("mf.warten")}
+                </>
+              )}
+              {v.empfehlung.hinweis && <em>{v.empfehlung.hinweis}</em>}
+            </p>
+          )
         )
       ) : (
-        <aside className="mf-empfehlung still">
-          <strong>{t("ui.minister.VorlageKarte.35d0da0")}</strong>
-          <p className="hinweis">{v.empfehlung.hinweis}</p>
-        </aside>
+        <p className="mf-empf-zeile still">
+          <b>{t("ui.minister.VorlageKarte.35d0da0")}</b>
+          {v.empfehlung.hinweis}
+        </p>
       ))}
 
       {kompakt && !auf && (
@@ -253,12 +330,12 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
       {zeigeAlle && (
         <div className="mf-optionen">
           {echte.map((o) => (
-            <Option key={o.id} v={v} o={o} empfohlen={v.empfehlung?.optionId === o.id} band={echte.length > 1} onWaehle={waehle} />
+            <Option key={o.id} v={v} o={o} empfohlen={v.empfehlung?.optionId === o.id} band={echte.length > 1} onWaehle={waehle} onGehe={onGehe} />
           ))}
         </div>
       )}
 
-      {zeigeAlle && (
+      {zeigeAlle && (kompakt || (onEinstellen && v.vorschlag) || (onGehe && v.ziel && v.ziel.art !== "karte") || meta.some((o) => o.id !== "kenntnis")) && (
         <footer className="mf-fuss">
           {onEinstellen && v.vorschlag && (
             <button className="pd-btn quiet" onClick={() => onEinstellen(v)}>
@@ -282,9 +359,6 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
               {t("mf.zuklappen")}
             </button>
           )}
-          <span className="rang" title={t("ui.minister.VorlageKarte.b93a522")}>
-            {t("mf.rangGrund", { n: v.prioritaet, grund: v.prioritaetGrund })}
-          </span>
         </footer>
       )}
     </article>

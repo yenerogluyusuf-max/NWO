@@ -1,5 +1,5 @@
 // Ansicht der Streitkräfte (ui/militaer/Streitkraefte.tsx): rendert in drei Sprachen ohne offene Platzhalter oder fehlende Schlüssel,
-// zeigt Kampfkraft, alle Gattungen, laufende Vorhaben und im Krieg die Zielräume.
+// zeigt Kampfkraft, alle Gattungen als Kacheln, laufende Vorhaben und im Krieg die offene Detailleiste mit den Zielräumen.
 
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -27,8 +27,9 @@ describe("Streitkräfte-Ansicht", () => {
     const html = renderToStaticMarkup(createElement(Streitkraefte, { world: w, refresh: () => {} }));
     expect(html).not.toMatch(/\{\w+\}/);
     expect(html).not.toMatch(/militaer\.\w/);
-    expect(html).toContain("sk-karte");
-    expect((html.match(/class="sk-karte"/g) ?? []).length).toBe(8);
+    // Übersicht: acht Gattungen plus Wehrdienst, Vorhaben, Kriegsziel; im Krieg ist das Kriegsziel offen
+    expect((html.match(/class="ub-kachel/g) ?? []).length).toBeGreaterThanOrEqual(11);
+    expect(html).toContain("ub-detail");
     expect(html).toContain("sk-ziele");
     expect(html).toContain("KAAN");
   });

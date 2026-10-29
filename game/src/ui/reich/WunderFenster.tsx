@@ -11,6 +11,7 @@ import { NET } from "../../sim/modell";
 import type { Vorhaben } from "../../sim/reich-typen";
 
 import { t } from "../../i18n";
+import { ohneBeleg } from "../../i18n/ohne-beleg";
 const TITEL: Record<string, string> = { wunder: "Ein Wunder ist vollendet", grossprojekt: "Ein Großprojekt ist eröffnet", serie: "Eine Route ist eröffnet", ausbau: "Der Ausbau ist fertig" };
 
 function verliererName(v: Vorhaben): string | null {
@@ -48,7 +49,7 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
           </h2>
           {v.ort && <p className="wunder-ort">{v.ort.name}</p>}
           <Flourish />
-          <p className="wunder-text">{v.text}</p>
+          <p className="wunder-text">{ohneBeleg(v.text)}</p>
           {v.zitat && (
             <blockquote className="wunder-zitat">
               {v.zitat.text}

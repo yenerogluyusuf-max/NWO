@@ -12,6 +12,7 @@ import { naehere } from "../anim/zeitgeber";
 import { PROVINZEN } from "../../sim/regional";
 import { PARTY_COLORS } from "../Parliament";
 import { PROVINCE_FC, provinceCenters } from "./overlay";
+import type { NeubauLinie } from "./neubau";
 import { Icon } from "../icons";
 import { Flagge } from "../art/Flaggen";
 import "./karte.css";
@@ -94,6 +95,8 @@ export interface AtlasMapProps {
   stadtInfo?: Record<number, StadtInfo>;
   /** Freie Beschriftungen wie Meere und Nachbarländer */
   geoLabels?: { text: string; lon: number; lat: number; kind: "meer" | "land" }[];
+  /** Laufende Strecken-Vorhaben als Neubau-Linien (ui/atlas/neubau.ts): Planlinie mit vergoldetem Fortschritt */
+  neubau?: NeubauLinie[];
   className?: string;
   /** Ohne Bedienung, etwa als Hintergrund des Titelbilds */
   interactive?: boolean;
@@ -193,6 +196,7 @@ export function AtlasMap({
   labels = [],
   stadtInfo,
   geoLabels = [],
+  neubau = [],
   className,
   interactive = true,
   camera,
@@ -218,7 +222,11 @@ export function AtlasMap({
   const [bezirk, setBezirk] = useState<{ info: BezirkInfo; x: number; y: number } | undefined>(undefined);
   const styleRef = useRef({ fill, fillAlpha, hover, selected, ebene });
   const labelsRef = useRef(labels);
+  const neubauRef = useRef(neubau);
+  const neubauSvg = useRef<SVGSVGElement>(null);
+  const neubauSignatur = useRef("");
   labelsRef.current = labels;
+  neubauRef.current = neubau;
   const view = useRef({ u: 0.5, v: 0.5, d: 13 });
   /** Kamerafahrt mit Bogen: Start- und Zielpunkt, Beginn, Dauer und Höhe des Bogens */
   const flight = useRef<{ u0: number; v0: number; d0: number; u1: number; v1: number; d1: number; start: number; dauer: number; bogen: number } | null>(null);
@@ -834,6 +842,56 @@ export function AtlasMap({
     // Auch die Oberfläche belegt Platz: Namen der Karte (Belgrad, Tirana …) rücken nicht unter Kopfleiste und Aktenleiste
     for (const r of sperren) belegt.push({ x: r.x - 6, y: r.y - 6, w: r.w + 12, h: r.h + 12 });
     c.vector.setReserviert(belegt);
+    // Neubau-Linien: gestrichelte Planlinie über die Provinz-Mitten, der Fortschritt vergoldet sie von Ende zu Ende
+    const svg = neubauSvg.current;
+    if (svg) {
+      svg.setAttribute("viewBox", `0 0 ${Math.max(1, Math.round(rect.width))} ${Math.max(1, Math.round(rect.height))}`);
+      const liste = neubauRef.current ?? [];
+      const signatur = liste.map((l) => `${l.id}:${l.anteil.toFixed(3)}:${l.ruht ? 1 : 0}`).join("|");
+      if (signatur !== neubauSignatur.current) {
+        neubauSignatur.current = signatur;
+        svg.replaceChildren();
+        for (const linie of liste) {
+          for (const klasse of ["nb-basis", "nb-teil"]) {
+            const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            p.dataset.id = linie.id;
+            p.setAttribute("class", klasse + (linie.ruht ? " ruht" : ""));
+            svg.appendChild(p);
+          }
+        }
+      }
+      for (let i = 0; i < liste.length; i++) {
+        const linie = liste[i]!;
+        const basis = svg.children[i * 2] as SVGPathElement | undefined;
+        const teil = svg.children[i * 2 + 1] as SVGPathElement | undefined;
+        if (!basis || !teil) continue;
+        const punkte: string[] = [];
+        let sichtbar = true;
+        for (const plaka of linie.kette) {
+          const center = c.centers[plaka];
+          if (!center) {
+            sichtbar = false;
+            break;
+          }
+          const pr = c.atlas.project(center[0], center[1]);
+          if (!pr.sichtbar) {
+            sichtbar = false;
+            break;
+          }
+          punkte.push(`${pr.x.toFixed(1)},${pr.y.toFixed(1)}`);
+        }
+        if (!sichtbar) {
+          basis.setAttribute("d", "");
+          teil.setAttribute("d", "");
+          continue;
+        }
+        const d = `M${punkte.join(" L")}`;
+        basis.setAttribute("d", d);
+        teil.setAttribute("d", d);
+        const len = teil.getTotalLength();
+        teil.setAttribute("stroke-dasharray", linie.anteil > 0 ? `${(len * linie.anteil).toFixed(1)} ${(len + 12).toFixed(1)}` : `0 ${(len + 12).toFixed(1)}`);
+      }
+    }
   }
 
   function local(e: React.PointerEvent | React.WheelEvent): { x: number; y: number } {
@@ -1011,6 +1069,7 @@ export function AtlasMap({
       <canvas ref={vec} className="atlas-vector" />
       <canvas ref={fxCanvas} className="atlas-fx" aria-hidden />
       <div ref={labelLayer} className="atlas-labels" aria-hidden>
+        <svg ref={neubauSvg} className="atlas-neubau" aria-hidden />
         {(namenDa ? [] : geoLabels).map((g) => (
           <span key={g.text} data-lon={g.lon} data-lat={g.lat} className={`atlas-geo ${g.kind}`}>
             {g.text}

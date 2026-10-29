@@ -62,7 +62,7 @@ const MACHTWECHSEL: Vorlage = {
       "Der Außenminister legt drei Wege vor: sofort gratulieren und zu einem Besuch einladen, abwarten und den Kurs beobachten, oder gleich die eigenen Forderungen auf den Tisch legen.",
     ];
   },
-  warum: () => "Das Weltmodell lässt die Staaten nach ihren Amtszeiten wählen und gelegentlich auch außerhalb der Wahlen die Führung wechseln; Termine folgen den Verfassungen (data/welt-daten.ts).",
+  warum: () => "Das Weltmodell lässt die Staaten nach ihren Amtszeiten wählen und gelegentlich auch außerhalb der Wahlen die Führung wechseln; Termine folgen den Verfassungen.",
   optionen: (_, ev) => {
     const id = landId(ev);
     const k = kursVon(ev);
@@ -140,7 +140,7 @@ const KRISE: Vorlage = {
       `Für die Türkei hängt daran einiges: Handel, Sicherheit an der Grenze und die Frage, wer in ${akteurName(id)} Einfluss gewinnt, wenn niemand hilft. Der Stab schlägt vor, jetzt zu helfen, die Grenze zu sichern oder zuzusehen.`,
     ];
   },
-  warum: () => "Das Weltmodell lässt Staaten bei hoher Inflation, Schuldenlast und Instabilität in Krisen geraten; die Wahrscheinlichkeit folgt ihren Kennzahlen (sim/welt-modell.ts).",
+  warum: () => "Das Weltmodell lässt Staaten bei hoher Inflation, Schuldenlast und Instabilität in Krisen geraten; die Wahrscheinlichkeit folgt ihren Kennzahlen.",
   optionen: (_, ev) => {
     const id = landId(ev);
     return [
@@ -202,7 +202,7 @@ const EINFLUSS: Vorlage = {
       "Der Stab legt drei Antworten vor: den Dienst verstärken und still abfangen, den Vorgang öffentlich machen oder das Mediengesetz verschärfen. Wer nichts tut, zahlt mit Rückhalt.",
     ];
   },
-  warum: () => "Andere Staaten betreiben Einflussoperationen gegen die Türkei, vor allem in den Monaten vor einer Wahl und bei hoher Spannung; was aufgedeckt wird, legt das Spiel vor (sim/welt-dienst.ts, Spielparameter).",
+  warum: () => "Andere Staaten betreiben Einflussoperationen gegen die Türkei, vor allem in den Monaten vor einer Wahl und bei hoher Spannung; was aufgedeckt wird, legt das Spiel vor.",
   optionen: (_, ev) => {
     const von = landId(ev);
     const art = artVon(ev);

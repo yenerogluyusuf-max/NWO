@@ -1,0 +1,18 @@
+{
+ "ub.stufe": "Stufe {stufe} von {max}",
+ "ub.filter": "Suchen …",
+ "ub.keine": "Nichts gefunden.",
+ "ub.schliessen": "Einzelheiten schließen",
+ "ub.stempel.ok": "Erledigt",
+ "ub.stempel.nein": "Abgelehnt",
+ "ub.preis.kapital": "{n} Kapital",
+ "ub.preis.bip": "{bip, number, 3} % BIP",
+ "ub.preis.monate": "{n, plural, one {# Monat} other {# Monate}}",
+ "ub.zum_haushalt": "Ressortetat im Haushalt",
+ "ub.behoerde.baut": "Ausbau {achse}, noch {monate} Mon.",
+ "ub.behoerde.gekuerzt": "Etat gekürzt",
+ "ub.behoerde.instrument": "Sonderinstrument bereit",
+ "ub.behoerde.knapp": "Etat ohne Spielraum",
+ "ub.behoerde.zahl_bau": "im Ausbau",
+ "ub.behoerde.zahl_knapp": "Etat knapp"
+}

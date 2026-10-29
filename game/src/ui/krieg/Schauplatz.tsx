@@ -130,7 +130,6 @@ export function Schauplatz({ world, k, onTat }: { world: World; k: KriegVorgang;
           </>
         )}
       </dl>
-      <p className="ks-quelle">{t("krieg.ui.quelle")}</p>
     </section>
   );
 }

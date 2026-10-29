@@ -38,6 +38,7 @@ import { Verlauf } from "./reich/Verlauf";
 import { t, aktuelleLocale } from "../i18n";
 import { t as tx } from "../i18n";
 import "./reich/reich.css";
+import { ohneBeleg } from "../i18n/ohne-beleg";
 
 const GROESSEN: Record<Bereich, GroesseDef[]> = {
   kultur: [{ id: "kulturerbe" }, { id: "identitaet" }, { id: "vielfalt" }, { id: "tourismus" }, { id: "ansehen" }],
@@ -411,7 +412,7 @@ function VorteileListe({ world, bereich }: { world: World; bereich: Bereich }) {
                 <strong>{v.name}</strong>
                 <span className={`rr-status ${an ? "fertig" : ""}`}>{an ? tx("ui2.ui.Reich.16a766c") : tx("ui2.ui.Reich.82a62ea")}</span>
               </div>
-              <p>{v.text}</p>
+              <p>{ohneBeleg(v.text)}</p>
               <ul className="rr-wirkung-zeilen">
                 {v.dauer.map((e) => effektZeile(e, "dauer")).filter((z): z is NonNullable<typeof z> => !!z).map((z) => (
                   <li key={z.text} className={z.gut ? "rr-gut" : "rr-schlecht"}>
@@ -475,7 +476,7 @@ function Institutionen({ world }: { world: World }) {
               </ul>
               <details className="rp-mehr">
                 <summary>{t("ui.Reich.0995a96")}</summary>
-                <p className="rr-text">{v.text}</p>
+                <p className="rr-text">{ohneBeleg(v.text)}</p>
                 <p className="rr-kehrseite"><b>{tx("ui2.ui.Reich.0289c3f")}</b> {v.kehrseite}</p>
               </details>
             </li>

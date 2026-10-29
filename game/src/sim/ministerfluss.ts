@@ -33,7 +33,7 @@ import { fuehreAus as fuehreInfraAus, infrastrukturBitte } from "./infrastruktur
 import { befehleMonat, erteileBefehl } from "./minister-befehle";
 import { nutzenVorschau, zielGroessenVon } from "./ministerfluss-vorschau";
 import { KABINETT_AMT, amtBesetzt, flussZustand, kappeRecord, ministerFuer, ministerInfo, ressortFuerMassnahme, stabilerWert } from "./ministerfluss-kern";
-import type { Amt, OptionAktion, Vorlage, VorlageOption, VorlagenQuelle } from "./ministerfluss-typen";
+import type { Amt, NutzenZeile, OptionAktion, Vorlage, VorlageOption, VorlagenQuelle } from "./ministerfluss-typen";
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
 
@@ -140,6 +140,8 @@ function optionGespraech(w: World, f: Figur, ansatz: AnsatzId, themaId = "person
 interface Roh extends Vorlage {
   /** Wie die Empfehlung gebildet wird: nach Verdienst, oder parteilich für die Seite, auf der der Minister steht */
   empfehlungsArt?: "verdienst" | "parteilich";
+  /** Lagebericht: die Größe, um die es geht (für die Vorschau zuerst gerechnet) */
+  leitGroesse?: string;
 }
 
 function basis(w: World, a: { id: string; thema?: string; art: Vorlage["art"]; quelle: VorlagenQuelle; amt: Amt; titel: string | Msg; anlass: string[]; optionen: VorlageOption[]; frist?: number; tag: number; tragweite: number; malus?: number; ziel?: Vorlage["ziel"]; minister?: Figur; empfehlungsArt?: Roh["empfehlungsArt"] }): Roh {
@@ -428,6 +430,7 @@ function lageQuelle(w: World): Roh[] {
         ziel: { art: "politik", massnahme: { id: schritte[0]!.id, level: schritte[0]!.nach } },
         minister: f,
       }),
+      leitGroesse: sg.id,
     });
   }
   return out;
@@ -456,12 +459,25 @@ function zeilenGuete(zeilen: string[]): number {
   return gut + schlecht === 0 ? 0 : (gut - schlecht) / (gut + schlecht);
 }
 
+/** Verdienst aus der Vorschau, 0 bis 1: Die erste Zeile ist die Größe, um die es geht, und zählt doppelt. */
+export function nutzenVerdienst(nutzen: NutzenZeile[]): number {
+  let summe = 0;
+  let gewicht = 0;
+  nutzen.forEach((n, i) => {
+    const g = i === 0 ? 2 : 1;
+    summe += g * (n.besser === true ? 1 : n.besser === false ? -1 : 0);
+    gewicht += g;
+  });
+  return gewicht ? 0.5 + 0.5 * (summe / gewicht) : 0.5;
+}
+
 function empfiehl(w: World, v: Roh): void {
   const m = v.minister ? figurNachId(w, v.minister.id) : undefined;
   if (!m || v.art === "rueckmeldung" || v.art === "schweigen") return;
   const e = eigenVon(w, m);
   // Bei einem einzelnen Vorschlag lautet die Frage „jetzt oder später?“: Dann steht auch das Warten zur Wahl
-  const kandidaten = v.optionen.filter((o) => (!istMeta(o) || (v.art === "vorschlag" && o.id === "spaeter")) && o.moeglich !== false);
+  // Was laut eigener Vorschau die Leitgröße verschlechtert, empfiehlt kein Minister
+  const kandidaten = v.optionen.filter((o) => (!istMeta(o) || (v.art === "vorschlag" && o.id === "spaeter")) && o.moeglich !== false && o.nutzen?.[0]?.besser !== false);
   if (!kandidaten.some((o) => !istMeta(o))) return;
   if (m.loyalitaet < 40) {
     // Ohne Rückhalt keine Empfehlung: Der Minister hält sich zurück (leere Kennung = nur ein Hinweis)
@@ -484,8 +500,8 @@ function empfiehl(w: World, v: Roh): void {
     } else {
       let verdienst = 0.5;
       if (v.empfehlungsArt === "parteilich") verdienst = 0.5;
+      else if (o.nutzen?.length) verdienst = nutzenVerdienst(o.nutzen);
       else if (v.quelle === "lage") verdienst = 1 - (v.optionen.indexOf(o) / Math.max(1, kandidaten.length)) * 0.6;
-      else if (o.nutzen?.length) verdienst = 0.5 + 0.5 * (o.nutzen.reduce((sum, n) => sum + (n.besser === true ? 1 : n.besser === false ? -1 : 0), 0) / o.nutzen.length);
       else if (o.folgen.length) verdienst = 0.5 + 0.5 * zeilenGuete(o.folgen);
       const gewagt = o.kosten.pk / maxPk;
       const eigen = o.eigenesRessort ? 1 : 0;
@@ -520,7 +536,7 @@ function empfiehl(w: World, v: Roh): void {
     return;
   }
   const eigenInteresse = !!o.eigenesRessort && (e.stil === "eitel" || e.ehrgeiz >= 65);
-  const nutzen = o.nutzen?.find((n) => n.besser !== null);
+  const nutzen = o.nutzen?.[0]?.besser ? o.nutzen[0] : o.nutzen?.find((n) => n.besser === true);
   const hinweise: string[] = [];
   if (eigenInteresse) hinweise.push(t("mfl.e.eigen"));
   if (e.faehigkeit < 50) hinweise.push(t("mfl.e.schwach", { name: m.name }));
@@ -550,7 +566,7 @@ function reichere(w: World, v: Roh): void {
   }
   for (const o of v.optionen) {
     if (o.aktion.art !== "massnahme") continue;
-    const ids = [...(v.problem ? [v.problem.id] : []), ...zielGroessenVon(o.aktion.id, 3)];
+    const ids = [...(v.problem ? [v.problem.id] : []), ...(v.leitGroesse ? [v.leitGroesse] : []), ...zielGroessenVon(o.aktion.id, 3)];
     // Der Horizont folgt der Maßnahme: Was lange umgesetzt wird, zeigt erst später Wirkung (mindestens ein Jahr, höchstens drei)
     const bau = NET.nodes[NET.index.get(o.aktion.id) ?? -1]?.months ?? 6;
     const monate = Math.min(36, Math.max(12, Math.ceil(bau * 1.6)));
@@ -623,7 +639,7 @@ export function ministerVorlagen(w: World, opt: VorlagenOptionen = {}): Vorlage[
     if (i < tiefe) reichere(w, v);
     empfiehl(w, v);
   });
-  const ergebnis: Vorlage[] = rein.map(({ empfehlungsArt: _e, ...v }) => v);
+  const ergebnis: Vorlage[] = rein.map(({ empfehlungsArt: _e, leitGroesse: _l, ...v }) => v);
   cacheWelt = w;
   cacheSchluessel = schluessel;
   cacheErgebnis = ergebnis;

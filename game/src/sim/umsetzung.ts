@@ -55,6 +55,18 @@ export function starteUmsetzung(model: NetModel, net: NetState, id: string, aend
   net.umsetzung ??= {};
   net.umsetzungTempo ??= {};
   const bisher = net.umsetzung[id] ?? 100;
+  // Bezugsstufe: der bis jetzt wirksame Stand je Provinz. Die neue Rampe dämpft nur die Änderung darüber hinaus,
+  // das schon Erreichte wirkt weiter (sonst schaltete jeder Ausbau die Maßnahme für Monate ganz ab).
+  const prov = net.values.length / model.nodes.length;
+  const f = bisher / 100;
+  const alt = net.umsetzungBasis?.[id];
+  const basis = new Array<number>(prov);
+  for (let p = 0; p < prov; p++) {
+    const wert = net.values[i! * prov + p]!;
+    const b = alt?.[p] ?? (f < 1 ? net.start[i! * prov + p]! : wert);
+    basis[p] = f >= 1 ? wert : b + f * (wert - b);
+  }
+  (net.umsetzungBasis ??= {})[id] = basis;
   net.umsetzung[id] = Math.abs(aenderung) <= KLEINE_AENDERUNG ? Math.max(0, bisher - DAEMPFUNG_KLEINE_AENDERUNG) : 0;
   net.umsetzungTempo[id] = 100 / Math.max(1, effektiveMonate);
 }
@@ -73,6 +85,7 @@ export function umsetzungMonat(net: NetState): void {
     if (stand + tempo >= 100) {
       delete net.umsetzung[id];
       if (net.umsetzungTempo) delete net.umsetzungTempo[id];
+      if (net.umsetzungBasis) delete net.umsetzungBasis[id];
     } else {
       net.umsetzung[id] = stand + tempo;
     }

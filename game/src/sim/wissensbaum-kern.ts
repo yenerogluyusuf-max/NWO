@@ -90,6 +90,8 @@ export interface TempoTeile {
   standort: number;
   /** Heureka: Verwandtes ist schon gekonnt */
   heureka: number;
+  /** Fokusbaum (sim/fokus.ts): Foki der Agenda, die Forschung allgemein oder diesen Knoten tragen */
+  fokus: number;
   gesamt: number;
 }
 
@@ -122,8 +124,11 @@ export function tempoTeile(w: World, id: string): TempoTeile | null {
   const traeger = tr ? (tr.art === "ausland" && tr.partner && partnerGesperrt(w, tr.partner) ? BAUM.gesperrtTempo : BAUM.traeger[tr.art].tempo) : 1;
   const standort = z.standort?.[id]?.tempo ?? 1;
   const heureka = z.heureka?.some((h) => h.id === id) ? BAUM.heurekaTempo : 1;
-  const gesamt = land.forschung * land.abwanderung * schwerpunkt * lizenz * traeger * standort * heureka;
-  return { forschung: land.forschung, abwanderung: land.abwanderung, schwerpunkt, lizenz, traeger, standort, heureka, gesamt };
+  // Fokusbaum: Modifikatoren statt Import (sim/fokus.ts schreibt sie beim Abschluss eines Fokus)
+  const mod = w.spiel.modifikatoren ?? {};
+  const fokus = (1 + (mod["fokus:forschung"] ?? 0)) * (mod[`fokus:wissen:${id}`] ?? 1);
+  const gesamt = land.forschung * land.abwanderung * schwerpunkt * lizenz * traeger * standort * heureka * fokus;
+  return { forschung: land.forschung, abwanderung: land.abwanderung, schwerpunkt, lizenz, traeger, standort, heureka, fokus, gesamt };
 }
 
 export function forschungsTempo(w: World, id: string): number {

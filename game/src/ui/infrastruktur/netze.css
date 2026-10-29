@@ -57,3 +57,6 @@ span.nz-schlecht, td.nz-schlecht { color: rgb(150, 44, 36); }
   .nz-kopf .nz-balken { grid-column: 1 / -1; grid-row: 2; }
   .nz-tabelle th { white-space: normal; }
 }
+.ub-detail .nz-balken { display: block; }
+.ub-detail .nz-tabelle { width: 100%; }
+.ub-detail .nz-tabelle td:last-child { display: flex; flex-wrap: wrap; gap: 4px; }

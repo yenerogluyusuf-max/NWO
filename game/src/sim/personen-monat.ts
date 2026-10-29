@@ -9,6 +9,7 @@ import { AEMTER, eigenVon, grollVerschieben, leistung, loyalitaetVerschieben, me
 import { zusagenMonat } from "./zusagen";
 import { ehemaligeMonat } from "./nachfolge";
 import { ministerflussMonat } from "./ministerfluss-monat";
+import { machtkreisMonat } from "./machtkreis";
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
 
@@ -71,4 +72,6 @@ export function personenMonat(w: World): void {
   }
   // Befehle an die Minister laufen weiter, Vorlagen verfallen sichtbar (sim/ministerfluss.ts)
   ministerflussMonat(w);
+  // Was der Machtkreis von selbst tut: Rivalitäten, Angst, Nachfolgedruck, Untersuchungen (sim/machtkreis.ts)
+  machtkreisMonat(w);
 }

@@ -8,6 +8,7 @@ import { formatDateDe } from "../sim/dates";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN } from "../sim/regional";
 import { AtlasMap } from "./atlas/AtlasMap";
+import { neubauLinien } from "./atlas/neubau";
 import { PROVINCE_FC, REGION_COLORS } from "./atlas/overlay";
 import { Schreibtisch } from "./schreibtisch/Schreibtisch";
 import type { Ziel } from "./schreibtisch/briefing";
@@ -40,6 +41,7 @@ import { Netze } from "./infrastruktur/Netze";
 import { Streitkraefte } from "./militaer/Streitkraefte";
 import { WunderFenster } from "./reich/WunderFenster";
 import { Wissensbaum } from "./wissen/Wissensbaum";
+import { Fokusbaum } from "./fokus/Fokusbaum";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
 import { Gesetzesvorhaben } from "./gesetze/Gesetzesvorhaben";
 import { istAbstimmung } from "./parlament/abstimmung";
@@ -51,6 +53,7 @@ import { Meldungen, type Meldung } from "./Meldungen";
 import { bewerteHalt, hinweisKlasse, sammleUmlauf, type UmlaufEintrag } from "./autostopp";
 import { ZielWahl } from "./ZielWahl";
 import { Effekte } from "./Effekte";
+import { Kopfleiste, MehrheitsBalken, type KopfWert } from "./kopf/Kopfleiste";
 import { MarkenLegende } from "./atlas/MarkenLegende";
 import { ereignisMarkenText, reichMarken } from "./atlas/marken";
 import { stadtInfos } from "./atlas/staedte";
@@ -82,6 +85,8 @@ import { Zeitung } from "./Zeitung";
 import { zeitungGelesen } from "../sim/zeitung";
 import { Katastrophe } from "./Katastrophe";
 import { SpeicherDossier } from "./SpeicherDossier";
+import { Quellen } from "./quellen/Quellen";
+import { spieleMeldungsTon } from "./ton/ton";
 import { Fehlergrenze } from "./Fehlergrenze";
 import type { VorlagenZiel } from "../sim/ministerfluss-typen";
 import { WirkungsberichtDossier } from "./politik/WirkungsberichtDossier";
@@ -89,6 +94,7 @@ import type { Bericht } from "../sim/berichte";
 import { SprachWahl } from "./SprachWahl";
 import { kapitalErklaerung, mehrheitsSicht } from "./akte/lage";
 import { AkteRahmen, type BereichId } from "./akte/Bereiche";
+import { SprungKontext } from "./akte/Uebersicht";
 import type { AktenReiterId } from "./akte/Akte";
 import { t as tx } from "../i18n";
 import { zusageText } from "../sim/zusagen";
@@ -112,6 +118,7 @@ type Dossier =
   | "katastrophe"
   | "programme"
   | "wissensbaum"
+  | "fokusbaum"
   | "welt"
   | "reich_kultur"
   | "reich_recht"
@@ -121,6 +128,7 @@ type Dossier =
   | "netze"
   | "reich_haushalt"
   | "zeitung"
+  | "quellen"
   | "speicher"
   | "wirkungsbericht"
   | null;
@@ -183,6 +191,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
   const melde = useCallback((m: Omit<Meldung, "id">) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    spieleMeldungsTon(m.ton);
     setMeldungen((l) => [...l.slice(-2), { ...m, id }]);
     window.setTimeout(() => setMeldungen((l) => l.filter((x) => x.id !== id)), 8000);
   }, []);
@@ -410,6 +419,56 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const zustimmung = spiel?.umfrage.zustimmung ?? trust;
   const zVor = spiel && spiel.umfrage.verlauf.length > 3 ? spiel.umfrage.verlauf[spiel.umfrage.verlauf.length - 4]!.wert : undefined;
 
+  // Kennzahlen der Kopfleiste: fest Zustimmung, Kapital, Parlament; Inflation, Lira und Leitzins wählbar. Jede Zahl öffnet ihre Akte.
+  const kopfWerte: KopfWert[] = [];
+  if (spiel) {
+    kopfWerte.push({
+      id: "zustimmung",
+      icon: "haende",
+      name: t("buehne.stat.zustimmung"),
+      wert: `${Math.round(zustimmung)} %`,
+      ...(zVor !== undefined ? { trend: zustimmung - zVor } : {}),
+      steigenGut: true,
+      warn: zustimmung < 40,
+      tip: t("st.zustimmung.tip", { n: Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4)) }),
+      onKlick: () => oeffneDossier("waehler"),
+    });
+    kopfWerte.push({ id: "kapital", icon: "siegel", name: t("buehne.stat.kapitalKurz"), wert: `${Math.floor(spiel.kapital)}`, warn: spiel.kapital < 5, tip: kapitalErklaerung(w), onKlick: () => oeffneDossier("schreibtisch") });
+  }
+  if (mehr.vorhanden) {
+    const stimmen = mehr.lager + mehr.geduldet;
+    const gesamt = stimmen + mehr.opposition;
+    kopfWerte.push({
+      id: "parlament",
+      icon: "parlament",
+      name: t("kopf.parlament.name"),
+      wert: `${stimmen}`,
+      zusatz: `/${gesamt}`,
+      warn: !mehr.steht,
+      tip: mehr.steht
+        ? mehr.geduldet > 0
+          ? t("kopf.parlament.stehtGeduldet", { lager: mehr.lager, geduldet: mehr.geduldet, schwelle: mehr.schwelle, gesamt })
+          : t("kopf.parlament.steht", { lager: mehr.lager, schwelle: mehr.schwelle, gesamt })
+        : t("kopf.parlament.fehlt", { n: mehr.fehlt, schwelle: mehr.schwelle }),
+      tipZeile: t("kopf.parlament.zeile", { lager: mehr.lager, geduldet: mehr.geduldet, opp: mehr.opposition }),
+      bild: <MehrheitsBalken lager={mehr.lager} geduldet={mehr.geduldet} gesamt={gesamt} schwelle={mehr.schwelle} />,
+      onKlick: () => oeffneDossier("parlament"),
+    });
+  }
+  const zurWirtschaft = () => { setWirtschaftStart("lage"); oeffneDossier("wirtschaft"); };
+  if (hudExtra.has("inflation")) {
+    const tr = trend(w, "inflation");
+    kopfWerte.push({ id: "inflation", icon: "preis", name: t("buehne.stat.inflation"), wert: t("zb.prozent", { p: inflation }), ...(tr !== undefined ? { trend: tr } : {}), tip: `${t("st.inflation.tip")} ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`.trim(), onKlick: zurWirtschaft });
+  }
+  if (hudExtra.has("lira")) {
+    const tr = trend(w, "usdTry");
+    kopfWerte.push({ id: "lira", icon: "lira", name: t("buehne.stat.lira"), wert: zahl(w.economy.usdTry, 1), ...(tr !== undefined ? { trend: tr } : {}), tip: `${t("st.lira.tip")} ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`.trim(), onKlick: zurWirtschaft });
+  }
+  if (hudExtra.has("leitzins")) {
+    const tr = trend(w, "policyRate");
+    kopfWerte.push({ id: "leitzins", icon: "bank", name: t("buehne.stat.leitzins"), wert: t("zb.prozent", { p: w.economy.policyRate }), ...(tr !== undefined ? { trend: tr } : {}), tip: t("st.leitzins.tip"), onKlick: zurWirtschaft });
+  }
+
   // Navigation in drei Ebenen (VISION_IM_DETAIL 0.2): die Karte liegt immer darunter, der Schreibtisch ist die Zentrale des Tages,
   // dazu neun Akten nach einem Muster. Die alten Ansichten sind umgezogen, nicht neu gebaut; ihre Kennungen bleiben, damit alle Sprünge gelten.
   const menue: { kurz: string; titel: string; icon: IconName; badge?: number; umlauf?: number; tabs: { id: Exclude<Dossier, null>; label: string }[]; akte?: BereichId }[] = [
@@ -427,6 +486,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         { id: "wirkungsbericht", label: t("buehne.tab.wirkungsbericht") },
         { id: "netz", label: t("nav.tab.warum") },
         { id: "speicher", label: t("buehne.tab.speicher") },
+        { id: "quellen", label: t("quellen.tab") },
       ],
     },
     {
@@ -505,7 +565,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       akte: "wissen",
       titel: t("nav.wissenTitel"),
       icon: "buch",
-      tabs: [{ id: "wissensbaum", label: t("wissen.tab") }, { id: "programme", label: t("buehne.tab.programme") }],
+      tabs: [{ id: "fokusbaum", label: t("fokus.tab") }, { id: "wissensbaum", label: t("wissen.tab") }, { id: "programme", label: t("buehne.tab.programme") }],
     },
     {
       kurz: t("nav.medien"),
@@ -520,6 +580,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
   /** Mit welchem Reiter die Wirtschaftsakte öffnet (das Ereignisfenster springt in den Haushalt) */
   const [wirtschaftStart, setWirtschaftStart] = useState<"lage" | "haushalt">("lage");
+  // Sprung aus dem Wissensbaum zu einer Voraussetzung (Politiknetz, Bildungsetat, Außenlage) und der Rückweg zum Knoten
+  const [wirtschaftPosten, setWirtschaftPosten] = useState<string | undefined>(undefined);
+  const [wissensZurueck, setWissensZurueck] = useState<string | null>(null);
+  const [wissensStart, setWissensStart] = useState<string | null>(null);
   const [umbSpaeterBis, setUmbSpaeterBis] = useState<number | null>(null);
   const [umbMeldung, setUmbMeldung] = useState<string | undefined>(undefined);
   const offen = spiel?.ereignisse.find((e) => !spaeter.has(e.id));
@@ -565,6 +629,9 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const ueberLeiste = useRef(false);
   useEffect(() => {
     setAkteReiter(ueberLeiste.current ? "lage" : "instrumente");
+    if (dossier !== "wissensbaum") setWissensStart(null);
+    if (dossier !== "wirtschaft") setWirtschaftPosten(undefined);
+    if (!dossier) setWissensZurueck(null);
     ueberLeiste.current = false;
   }, [dossier]);
   const oeffneDossier = (d: Dossier) => {
@@ -687,6 +754,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         selected={selected}
         labels={ALLE_PROVINZEN}
         stadtInfo={stadtInfo}
+        neubau={neubauLinien(w)}
         geoLabels={geoLabels}
         onSelect={(p) => setSelected(p)}
         orte={orte}
@@ -728,82 +796,36 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         {...(kamera ? { camera: kamera } : {})}
       />
 
-      <header className="hud">
-        <div className="hud-bar" />
-        <div className="hud-left">
-          <div className="leader">
-            <Cameo seed={w.player?.name ?? "Staatspräsident"} size={46} tint={w.player?.partei.farbe} ring="keiner" />
-          </div>
-          <div className="leader-text">
-            <div className="hud-name" title={w.player?.name ?? t("buehne.staatsoberhaupt")}>{w.player?.name ?? t("buehne.staatsoberhaupt")}</div>
-            <div className="hud-sub" title={`${w.player?.partei.name ?? "Staatsräson"} · ${t("buehne.staatsoberhaupt")}`}>
-              <span className="party-dot" style={{ background: w.player?.partei.farbe }} /> <span className="hud-partei">{w.player?.partei.name ?? tx("ui2.ui.Stage.b9592e1")} · {t("buehne.staatsoberhaupt")}</span>
-            </div>
-          </div>
-        </div>
-        <div className="hud-center">
-          <div className="datum">
-            <span className="date-day">{formatDateDe(w.date)}</span>
-            <div className="speeds" role="group" aria-label={t("st.tempo.gruppe")}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <button
-                  key={i}
-                  className={i === speed ? "on" : ""}
-                  onClick={() => setSpeed(i)}
-                  aria-label={i === 0 ? t("st.tempo.pause") : i === 4 ? t("st.tempo.bis") : t("st.tempo.n", { n: i })}
-                  title={i === 0 ? t("st.tempo.pauseTaste") : i === 4 ? t("st.tempo.bis") : t("st.tempo.n", { n: i })}
-                >
-                  {i === 0 ? <span className="pause-glyph" /> : i === 4 ? <span className="skip-glyph" /> : Array.from({ length: i }, (_, k) => <span key={k} className="play-glyph" />)}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              className={`hud-speichern${sicherStatus === "fehler" ? " fehler" : sicherStatus === "frisch" ? " frisch" : ""}`}
-              onClick={() => void schnellSichern()}
-              title={sicherStatus === "fehler" ? t("st.sichern.fehler", { grund: sicherGrund ?? t("st.sichern.unbekannt") }) : t("st.sichern.titel")}
-              aria-label={sicherStatus === "fehler" ? t("st.sichern.nochmal") : t("st.sichern.aria")}
-            >
-              <Icon name={sicherStatus === "fehler" ? "warnung" : "siegel"} size={14} />
-              <span>{sicherStatus === "fehler" ? t("buehne.nichtGesichert") : sicherStatus === "frisch" ? t("buehne.gesichert") : t("buehne.sichern")}</span>
-            </button>
-            <SprachWahl className="hud-sprache" kurz />
-          </div>
-        </div>
-        <div className="hud-right">
-          {spiel && (
-            <Stat
-              icon="haende"
-              label={t("buehne.stat.zustimmung")}
-              value={`${Math.round(zustimmung)} %`}
-              trend={zVor !== undefined ? zustimmung - zVor : undefined}
-              warn={zustimmung < 40}
-              tip={t("st.zustimmung.tip", { n: Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4)) })}
-            />
-          )}
-          {spiel && <Stat icon="siegel" label={t("buehne.stat.kapitalKurz")} value={`${Math.floor(spiel.kapital)}`} warn={spiel.kapital < 5} tip={kapitalErklaerung(w)} />}
-          {mehr.vorhanden && (
-            <Stat
-              icon="parlament"
-              label={t("nav.mehrheit.titel")}
-              value={mehr.geduldet > 0 ? `${mehr.lager} + ${mehr.geduldet}` : `${mehr.lager}`}
-              warn={!mehr.steht}
-              tip={t("nav.mehrheit.hinweis", { lager: mehr.lager, geduldet: mehr.geduldet, opp: mehr.opposition, schwelle: mehr.schwelle })}
-              unter={mehr.steht ? `${t("nav.mehrheit.schwelle", { n: mehr.schwelle })} · ${t("nav.mehrheit.steht")}` : `${t("nav.mehrheit.schwelle", { n: mehr.schwelle })} · ${t("nav.mehrheit.fehlt", { n: mehr.fehlt })}`}
-            />
-          )}
-          {hudExtra.has("inflation") && (
-  <Stat icon="preis" label={t("buehne.stat.inflation")} value={t("zb.prozent", { p: inflation })} trend={trend(w, "inflation")} tip={`${t("st.inflation.tip")} ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`} />
-          )}
-          {hudExtra.has("lira") && (
-  <Stat icon="lira" label={t("buehne.stat.lira")} value={zahl(w.economy.usdTry, 1)} trend={trend(w, "usdTry")} tip={`${t("st.lira.tip")} ${kurzVergleich("PA.NUS.FCRF.ABW") ?? ""}`} />
-          )}
-          {hudExtra.has("leitzins") && (
-  <Stat icon="bank" label={t("buehne.stat.leitzins")} value={t("zb.prozent", { p: w.economy.policyRate })} trend={trend(w, "policyRate")} tip={t("st.leitzins.tip")} />
-          )}
-          <HudWahl gewaehlt={hudExtra} onWechsel={wechsleHudExtra} />
-        </div>
-      </header>
+      <Kopfleiste
+        name={w.player?.name ?? t("buehne.staatsoberhaupt")}
+        partei={w.player?.partei.name ?? tx("ui2.ui.Stage.b9592e1")}
+        {...(w.player?.partei.farbe ? { parteiFarbe: w.player.partei.farbe } : {})}
+        amt={t("buehne.staatsoberhaupt")}
+        datum={formatDateDe(w.date)}
+        tempo={speed}
+        onTempo={setSpeed}
+        werte={kopfWerte}
+        wahlbar={HUD_EXTRAS.map((id) => ({ id, name: t(`buehne.stat.${id}`) }))}
+        gewaehlt={hudExtra}
+        onWertWechsel={wechsleHudExtra}
+        sicherStatus={sicherStatus}
+        sicherGrund={sicherGrund}
+        onSichern={() => void schnellSichern()}
+        onSpielstaende={() => oeffneDossier("speicher")}
+        onHauptmenue={() => {
+          // Erst sichern, dann ohne Schnellstart neu laden: Die App beginnt im Titelbild, „Fortsetzen“ führt zurück
+          void speichereWarten(world.current).then((r) => {
+            if (!r.ok) {
+              setSicherGrund(r.grund);
+              setSicherStatus("fehler");
+              return;
+            }
+            const u = new URL(location.href);
+            u.searchParams.delete("schnellstart");
+            location.assign(u.toString());
+          });
+        }}
+      />
 
       <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} onZins={() => { setErlassStart(undefined); oeffneDossier("entscheidungen"); }} />
 
@@ -822,7 +844,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
@@ -840,7 +862,13 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             </button>
           </header>
           <div className="dossier-body">
+            {wissensZurueck && dossier !== "wissensbaum" && (
+              <button type="button" className="link wissen-zurueck" onClick={() => { setWissensStart(wissensZurueck); setWissensZurueck(null); setDossier("wissensbaum"); }}>
+                ← {t("wissen.civ.zurueck")}
+              </button>
+            )}
             <Fehlergrenze titel={gruppe?.titel ?? tx("ui2.ui.Stage.de4742a")} onZu={() => setDossier(null)} zuruecksetzen={dossier}>
+            <SprungKontext.Provider value={gehe}>
             <AkteRahmen
               bereich={gruppe?.akte}
               world={w}
@@ -855,6 +883,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} onVorgang={zeigeVorgang} />}
             {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "quellen" && <Quellen />}
             {dossier === "speicher" && (
               <SpeicherDossier
                 world={w}
@@ -907,7 +936,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
-            {dossier === "wirtschaft" && <EconomyFile key={wirtschaftStart} world={w} start={wirtschaftStart} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}`} world={w} start={wirtschaftStart} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "gesetze" && <Gesetzesvorhaben world={w} refresh={() => { refresh(); sichere(true); }} />}
             {(dossier === "parlament" || dossier === "beschluesse") && (
               <Beschlussbuch
@@ -979,7 +1008,33 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             )}
             {dossier === "chronik" && <Chronik world={w} />}
             {dossier === "netze" && <Netze world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
-            {dossier === "wissensbaum" && <Wissensbaum world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "fokusbaum" && <Fokusbaum world={w} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
+            {dossier === "wissensbaum" && (
+              <Wissensbaum
+                key={wissensStart ?? "baum"}
+                world={w}
+                start={wissensStart}
+                onGeaendert={() => { refresh(); sichere(true); }}
+                onAussen={(s, von) => {
+                  setWissensStart(null);
+                  setWissensZurueck(von);
+                  if (s.art === "massnahme" || s.art === "netz") {
+                    setNetTheme(null);
+                    setNetOrt(null);
+                    setNetVorhaben({ id: s.id, level: s.art === "massnahme" ? s.ziel : Math.round(stufeIn(w, s.id, null)) });
+                    setDossier("netz");
+                  } else if (s.art === "bildung") {
+                    setWirtschaftStart("haushalt");
+                    setWirtschaftPosten("bildung");
+                    setDossier("wirtschaft");
+                  } else if (s.art === "land") {
+                    setDossier("welt");
+                  } else if (s.art === "vorhaben") {
+                    setDossier("reich_infra");
+                  }
+                }}
+              />
+            )}
             {dossier === "streitkraefte" && <Streitkraefte world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier?.startsWith("reich_") && (
               <Reich
@@ -1017,6 +1072,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               />
             )}
             </AkteRahmen>
+            </SprungKontext.Provider>
             </Fehlergrenze>
           </div>
         </section>
@@ -1237,36 +1293,6 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   );
 }
 
-function Stat({ icon, label, value, warn, trend: t, tip, unter }: { icon: IconName; label: string; value: string; warn?: boolean; trend?: number; tip: string; unter?: string }) {
-  return (
-    <div className={`stat${warn ? " warn" : ""}`} tabIndex={0}>
-      <Icon name={icon} />
-      <div>
-        <div className="stat-value">
-          {value}
-          {t !== undefined && Math.abs(t) > 0.05 && (
-            <span className={`trend ${t > 0 ? "up" : "down"}`} aria-hidden>
-              {t > 0 ? "▲" : "▼"}
-              {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
-            </span>
-          )}
-        </div>
-        <div className="stat-label">{label}</div>
-        {unter && <div className="stat-unter">{unter}</div>}
-      </div>
-      <div className="tip" role="tooltip">
-        <strong>{label}</strong>
-        <p>{tip}</p>
-        {t !== undefined && Math.abs(t) > 0.05 && (
-          <p className="tip-trend">
-            {t > 0 ? tx("ui2.ui.Stage.d470ec0") : tx("ui2.ui.Stage.e1fcf26")} zuletzt um {Math.abs(t).toLocaleString("de-DE", { maximumFractionDigits: 1 })}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 type HudExtra = "inflation" | "lira" | "leitzins";
 const HUD_EXTRAS: HudExtra[] = ["inflation", "lira", "leitzins"];
 const HUD_SCHLUESSEL = "staatsraeson-hud-extra";
@@ -1274,35 +1300,13 @@ const HUD_SCHLUESSEL = "staatsraeson-hud-extra";
 function ladeHudExtra(): Set<HudExtra> {
   try {
     const roh = localStorage.getItem(HUD_SCHLUESSEL);
-    if (roh) return new Set((JSON.parse(roh) as string[]).filter((x): x is HudExtra => (HUD_EXTRAS as string[]).includes(x)));
+    // Höchstens zwei weitere Werte, damit die Leiste nie mehr als fünf Kennzahlen trägt
+    if (roh) return new Set((JSON.parse(roh) as string[]).filter((x): x is HudExtra => (HUD_EXTRAS as string[]).includes(x)).slice(0, 2));
   } catch {
-    /* ohne Speicher: alle zeigen */
+    /* ohne Speicher: Vorgabe */
   }
-  return new Set(HUD_EXTRAS);
+  return new Set<HudExtra>(["inflation", "lira"]);
 }
-
-/** Wahl der zusätzlichen Werte in der Kopfleiste (Zustimmung, Kapital und Mehrheit stehen fest). */
-function HudWahl({ gewaehlt, onWechsel }: { gewaehlt: Set<HudExtra>; onWechsel: (x: HudExtra) => void }) {
-  const [offen, setOffen] = useState(false);
-  const name: Record<HudExtra, string> = { inflation: t("buehne.stat.inflation"), lira: t("buehne.stat.lira"), leitzins: t("buehne.stat.leitzins") };
-  return (
-    <div className="hud-wahl">
-      <button type="button" className="hud-wahl-knopf" aria-expanded={offen} title={t("nav.hud.mehrHinweis")} onClick={() => setOffen((o) => !o)}>
-        {t("nav.hud.mehr")}
-      </button>
-      {offen && (
-        <div className="hud-wahl-tafel" role="group" aria-label={t("nav.hud.mehrHinweis")}>
-          {HUD_EXTRAS.map((x) => (
-            <label key={x}>
-              <input type="checkbox" checked={gewaehlt.has(x)} onChange={() => onWechsel(x)} /> {name[x]}
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 
 /** Veränderung zum Vormonat aus der Monatsgeschichte. */
 function trend(w: World, key: "inflation" | "usdTry" | "policyRate"): number | undefined {
@@ -1387,9 +1391,15 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
   }
 
   if (!items.length) return null;
+  // Höchstens vier sichtbar, Dringendes zuerst; der Rest steht hinter „+N weitere“
+  const rang = { rot: 0, gelb: 1, blau: 2 } as const;
+  const geordnet = [...items].sort((a, b) => rang[a.tone] - rang[b.tone]);
+  const sichtbar = geordnet.length > 4 ? geordnet.slice(0, 3) : geordnet;
+  const rest = geordnet.length > 4 ? geordnet.slice(3) : [];
   return (
-    <div className="alerts" aria-label={t("st.al.aria")}>
-      {items.map((a) => (
+    <div className="alerts kf-meldungen" role="group" aria-label={t("st.al.aria")}>
+      {rest.length > 0 && <AlertsRest rest={rest} />}
+      {sichtbar.map((a) => (
         <button key={`${a.id}-${a.count ?? 0}`} className={`alert tone-${a.tone}${a.count !== undefined || a.tone !== "rot" ? " kompakt" : ""}`} onClick={a.onClick} aria-label={`${a.label}: ${a.text}`}>
           <span className="alert-punkt">
             <Icon name={a.icon} size={15} />
@@ -1403,6 +1413,29 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
         </button>
       ))}
     </div>
+  );
+}
+
+/** Weitere Meldungen als aufklappbare Liste, damit unter der Kopfleiste keine Reihe unbeschrifteter Kreise entsteht. */
+function AlertsRest({ rest }: { rest: { id: string; tone: "rot" | "gelb" | "blau"; icon: IconName; label: string; kurz: string; text: string; onClick?: () => void }[] }) {
+  const [offen, setOffen] = useState(false);
+  return (
+    <span className="kf-mehr-wurzel">
+      <button type="button" className="alert kf-mehr tone-gelb" aria-expanded={offen} onClick={() => setOffen((o) => !o)} title={t("kopf.meldungen.mehrTitel")}>
+        {t("kopf.meldungen.mehr", { n: rest.length })}
+      </button>
+      {offen && (
+        <span className="tip kf-mehr-liste" role="menu" aria-label={t("kopf.meldungen.mehrTitel")}>
+          <strong>{t("kopf.meldungen.mehrTitel")}</strong>
+          {rest.map((a) => (
+            <button key={a.id} type="button" role="menuitem" className={`tone-${a.tone}`} onClick={() => { setOffen(false); a.onClick?.(); }} title={a.text}>
+              <span className="alert-punkt"><Icon name={a.icon} size={13} /></span>
+              {a.kurz}
+            </button>
+          ))}
+        </span>
+      )}
+    </span>
   );
 }
 

@@ -169,7 +169,7 @@ export interface VorhabenSicht {
   /** Rang auf dem Tisch (höher = dringender) */
   rang: number;
   /** Warum es vorn liegt (Kalender, akute Probleme, Linie) */
-  anlass?: "kalender" | "akut" | "linie";
+  anlass?: "kalender" | "akut" | "linie" | "fokus";
 }
 
 const schritte = (v: GesetzesVorhaben) => v.schritte ?? STANDARD_SCHRITTE;
@@ -206,6 +206,9 @@ export function gerichtWahrscheinlichkeit(w: World, v: GesetzesVorhaben, fassung
 /** Partner, die das Vorhaben ablehnen, springen bei scharfer Fassung teilweise ab; Kompromisse holen Oppositionsstimmen. */
 export const PARTNER_ABSPRUNG: Record<FassungId, number> = { scharf: 0.35, kompromiss: 0.12, verwaessert: 0 };
 
+/** Rang eines Vorhabens, das ein vollendeter Fokus vorbereitet hat (Spielparameter, gleich FOKUS.gesetzRang in data/fokusbaum.ts) */
+const FOKUS_RANG = 2.5;
+
 function stimmenBonusFuer(w: World, v: GesetzesVorhaben, fassung: FassungId): number {
   const sitze = w.parliament?.seats ?? {};
   const eigene = w.player?.partei.kurz;
@@ -225,7 +228,9 @@ function stimmenBonusFuer(w: World, v: GesetzesVorhaben, fassung: FassungId): nu
     if (a <= -GESETZGEBUNG.lagerSchwelle) absprung += s * PARTNER_ABSPRUNG[fassung] * Math.min(1, -a * 1.5);
   }
   const f = FASSUNG_WERTE[fassung];
-  return Math.round(opp * f.opposition) - Math.round(lagerSitze * f.lager) - Math.round(absprung);
+  // Fokusbaum (sim/fokus.ts): Ein vollendeter Fokus hat die Vorlage vorbereitet und das Lager eingebunden
+  const fokus = w.spiel?.modifikatoren?.[`fokus:gesetz:${v.id}`] ?? 0;
+  return Math.round(opp * f.opposition) - Math.round(lagerSitze * f.lager) - Math.round(absprung) + Math.round(fokus);
 }
 
 function urteilAus(ja: number): Urteil {
@@ -278,8 +283,9 @@ export function vorhabenSicht(w: World, v: GesetzesVorhaben, akutListe?: Set<str
   const kalender = v.kalender !== undefined && (monat === v.kalender || monat === ((v.kalender + 10) % 12) + 1);
   const akut = (akutListe ?? akuteVorhaben(w)).has(v.id);
   const linie = uebereinstimmung(spielerAchsen(w), v.massnahme, v.richtung);
-  const rang = (kalender ? 3 : 0) + (akut ? 1.5 : 0) + 2 * linie;
-  const anlass = kalender ? "kalender" : akut ? "akut" : linie > 0.3 ? "linie" : undefined;
+  const fokus = (w.spiel?.modifikatoren?.[`fokus:gesetz:${v.id}`] ?? 0) > 0;
+  const rang = (kalender ? 3 : 0) + (akut ? 1.5 : 0) + 2 * linie + (fokus ? FOKUS_RANG : 0);
+  const anlass = kalender ? "kalender" : fokus ? "fokus" : akut ? "akut" : linie > 0.3 ? "linie" : undefined;
   const sicht: VorhabenSicht = {
     def: v,
     titel: t(`gesetz.v.${v.id}.titel`),

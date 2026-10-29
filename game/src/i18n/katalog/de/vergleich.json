@@ -124,10 +124,10 @@
  "vgl.bew.unguenstig": " Das ist ungünstig.",
  "vgl.bew.guenstig": " Das ist günstig.",
  "vgl.einordnung": "Von {von} Ländern haben {hoeher} einen höheren und {niedriger} einen niedrigeren Wert; die Türkei steht {wort}.{bewertung}",
- "vgl.kurz": "Zum Vergleich ({einheit}, Stand {jahr}): Türkei {wert}, {teile}. Quelle: Weltbank.",
+ "vgl.kurz": "Zum Vergleich ({einheit}, Stand {jahr}): Türkei {wert}, {teile}.",
  "vgl.median": "Welt-Median",
  "vgl.medianAlle": "Median aller Länder",
- "vgl.tuerkeiWB": "Türkei (Weltbank)",
+ "vgl.tuerkeiWB": "Türkei",
  "vgl.besser.hoeher": "höher",
  "vgl.besser.niedriger": "niedriger"
 }

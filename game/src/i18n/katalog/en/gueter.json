@@ -91,5 +91,7 @@
   "gueter.ampel.gruen": "Stocks last more than three months without imports.",
   "gueter.ampel.gelb": "Without imports it gets tight within three months.",
   "gueter.ampel.rot": "Without imports stocks run out in under a month.",
-  "gueter.ampel.keine": "Imports hardly matter here."
+  "gueter.ampel.keine": "Imports hardly matter here.",
+  "gueter.zahl_knapp": "short",
+  "gueter.partner_titel": "Suppliers, buyers and example"
 }

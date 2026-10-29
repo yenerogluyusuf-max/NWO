@@ -11,12 +11,13 @@ import { Icon } from "./icons";
 import { Umfeld } from "./personen/Umfeld";
 import { MinisterratSaal } from "./personen/MinisterratSaal";
 import { ZusagenAnsicht } from "./personen/ZusagenAnsicht";
+import { Machtkreis } from "./personen/Machtkreis";
 import "./personen/personen.css";
 
 import { t } from "../i18n";
 export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, onVorgang }: { world: World; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void; onVorgang?: (id: string) => void }) {
   const spiel = world.spiel;
-  const [tab, setTab] = useState<"kabinett" | "umfeld" | "zusagen">("kabinett");
+  const [tab, setTab] = useState<"kabinett" | "umfeld" | "machtkreis" | "zusagen">("kabinett");
   const [gewaehltePerson, setGewaehltePerson] = useState<{ id: string; modus?: "gespraech" | "entlassen" } | null>(null);
   const wurzel = useRef<HTMLDivElement>(null);
   // Wer im Kabinett nach unten gescrollt hat und dann in eine andere Ansicht wechselt, sieht deren Anfang, nicht ihre Mitte
@@ -77,6 +78,9 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
         <button role="tab" aria-selected={tab === "umfeld"} className={tab === "umfeld" ? "on" : ""} onClick={() => setTab("umfeld")}>
           {t("ui.Personen.51eda9e")}
         </button>
+        <button role="tab" aria-selected={tab === "machtkreis"} className={tab === "machtkreis" ? "on" : ""} onClick={() => setTab("machtkreis")}>
+          {t("mk.ui.reiter")}
+        </button>
         <button role="tab" aria-selected={tab === "zusagen"} className={tab === "zusagen" ? "on" : ""} onClick={() => setTab("zusagen")}>
           {t("ui2.ui.Personen.526d7bc")}{offen.length > 0 && <span className="pe-zahl">{offen.length}</span>}
         </button>
@@ -105,6 +109,7 @@ export function Personen({ world, refresh, onMassnahme, onGeheVorlage, onKarte, 
           />
         </section>
       )}
+      {tab === "machtkreis" && <Machtkreis world={world} refresh={neu} />}
       {tab === "zusagen" && <ZusagenAnsicht world={world} refresh={neu} {...(onMassnahme ? { onMassnahme } : {})} {...(onVorgang ? { onVorgang } : {})} />}
     </div>
   );

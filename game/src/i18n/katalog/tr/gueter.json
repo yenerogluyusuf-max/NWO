@@ -91,5 +91,7 @@
   "gueter.ampel.gruen": "Stok ithalat olmadan üç aydan fazla yeter.",
   "gueter.ampel.gelb": "İthalat olmadan üç ay içinde sıkışır.",
   "gueter.ampel.rot": "İthalat olmadan stok bir aydan kısa sürede biter.",
-  "gueter.ampel.keine": "Burada ithalat pek önemli değil."
+  "gueter.ampel.keine": "Burada ithalat pek önemli değil.",
+  "gueter.zahl_knapp": "kritik",
+  "gueter.partner_titel": "Tedarikçiler, alıcılar ve örnek"
 }

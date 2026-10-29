@@ -2,7 +2,7 @@
 // Sicherheit, Außenpolitik, Land, Agenda, Medien. Lage, Verlauf und Personen entstehen hier aus den vorhandenen Daten (nur lesen);
 // die bisherigen Ansichten des Bereichs liegen unverändert im Reiter „Instrumente“ (Unterreiter), damit keine Funktion verloren geht.
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { aktuelleLocale, t } from "../../i18n";
 import { NET } from "../../sim/modell";
 import { nationalAverage } from "../../sim/netz";
@@ -12,6 +12,7 @@ import { MEDIEN_CLUSTER } from "../../data/medien";
 import { programmZustand, schrittMitProgramm } from "../../sim/programme";
 import { zielStand } from "../../sim/ziele";
 import { baumSicht, knotenName } from "../../sim/wissensbaum";
+import { fokusName, fokusUeberblick } from "../../sim/fokus";
 import { alleLaufenden } from "../../sim/abkommen";
 import { aktiveKriege, PHASEN_NAME } from "../../sim/krieg";
 import { paktSicht } from "../../sim/pakte";
@@ -26,6 +27,7 @@ import { VerlaufsDiagramm, type VerlaufsReihe } from "./Kennzahl";
 import { BerichtListe, PersonenListe, berichteFuer } from "./Bausteine";
 import { mehrheitsSicht } from "./lage";
 import { BehoerdenInstrument } from "../behoerden/Instrument";
+import { behoerdenImBereich } from "../../sim/behoerden";
 import { laufendeVerfahren } from "../../sim/gesetzgebung";
 import { gesetzName } from "../../sim/gesetz-name";
 
@@ -115,8 +117,8 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
       break;
     }
     case "wissen": {
-      const z = sp ? programmZustand(w) : undefined;
-      k.push({ label: t("akte.b.kern.programmeLaufend"), wert: nf(z?.laufend.length ?? 0) });
+      const fu = sp ? fokusUeberblick(w) : undefined;
+      k.push({ label: t("fokus.kern"), wert: nf(fu?.fertig ?? 0), hinweis: fu?.aktiv ? t("fokus.kern.laeuft", { name: fokusName(fu.aktiv.def.id) }) : t("fokus.kern.keiner"), ...(fu?.aktiv ? {} : { ton: "mittel" as const }) });
       const ziele = sp ? zielStand(w) : [];
       k.push(ziele.length ? { label: t("akte.b.kern.ziele"), wert: `${nf(ziele.filter((x) => x.erreicht).length)} / ${nf(ziele.length)}` } : { label: t("akte.b.kern.ziele"), wert: nf(0), hinweis: t("akte.b.kern.keineZiele"), ton: "mittel" });
       k.push(knotenKern(w, "hochschule", t("akte.b.kern.hochschule"), 60, 40));
@@ -209,7 +211,13 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
         ...baum.filter((k) => k.zustand === "laeuft").map((k) => ({ titel: knotenName(k.id), meta: k.restMonate !== undefined ? t("wissen.ui.rest", { n: k.restMonate }) : t("wissen.ui.zustand.laeuft") })),
         ...baum.filter((k) => k.zustand === "moeglich" && !k.grund).map((k) => ({ titel: knotenName(k.id), meta: t("wissen.ui.zustand.moeglich"), ton: "mittel" as LageZeile["ton"] })),
       ];
+      const fu = fokusUeberblick(w);
+      const fokus = [
+        ...(fu.aktiv ? [{ titel: fokusName(fu.aktiv.def.id), meta: t("fokus.ui.rest", { tage: fu.aktiv.restTage ?? 0 }) }] : [{ titel: fu.satz, meta: "", ton: "mittel" as LageZeile["ton"] }]),
+        ...(w.spiel?.fokus?.fertig ?? []).slice(-3).reverse().map((x) => ({ titel: fokusName(x.id), meta: t("fokus.ui.status.fertig"), ton: "gut" as LageZeile["ton"] })),
+      ];
       return [
+        { kopf: t("fokus.lage"), zeilen: fokus },
         { kopf: t("wissen.tab"), zeilen: forschung },
         { kopf: t("akte.b.lage.programme"), zeilen: laufend },
         { kopf: t("akte.b.lage.ziele"), zeilen: ziele },
@@ -397,19 +405,28 @@ export interface BereichsAkteProps {
 }
 
 export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, onReiter, vorgangStart, children }: BereichsAkteProps) {
+  // Die Behörden des Bereichs stehen als eigener Unterreiter, nicht unter jeder Ansicht (sonst wird jede Seite lang).
+  const [behoerdenOffen, setBehoerdenOffen] = useState(false);
+  useEffect(() => setBehoerdenOffen(false), [bereich]);
+  const hatBehoerden = !!world.spiel && behoerdenImBereich(bereich).length > 0;
+  const zeigeBehoerden = hatBehoerden && behoerdenOffen;
   const instrumente = () => (
     <div className="ak-instrumente">
-      {tabs.length > 1 && (
+      {tabs.length + (hatBehoerden ? 1 : 0) > 1 && (
         <nav className="ak-unterreiter" role="tablist" aria-label={t("akte.b.instrumente.aria")}>
           {tabs.map((tab) => (
-            <button key={tab.id} type="button" role="tab" aria-selected={aktiverTab === tab.id} className={aktiverTab === tab.id ? "on" : ""} onClick={() => onTab(tab.id)}>
+            <button key={tab.id} type="button" role="tab" aria-selected={!zeigeBehoerden && aktiverTab === tab.id} className={!zeigeBehoerden && aktiverTab === tab.id ? "on" : ""} onClick={() => { setBehoerdenOffen(false); onTab(tab.id); }}>
               <b>{tab.label}</b>
             </button>
           ))}
+          {hatBehoerden && (
+            <button type="button" role="tab" aria-selected={zeigeBehoerden} className={zeigeBehoerden ? "on" : ""} onClick={() => setBehoerdenOffen(true)}>
+              <b>{t("behoerden.ui.titel")}</b>
+            </button>
+          )}
         </nav>
       )}
-      {children}
-      <BehoerdenInstrument w={world} bereich={bereich} />
+      {zeigeBehoerden ? <BehoerdenInstrument w={world} bereich={bereich} /> : children}
     </div>
   );
   return (

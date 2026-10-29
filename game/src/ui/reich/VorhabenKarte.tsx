@@ -11,6 +11,7 @@ import { WunderBild } from "./WunderBild";
 
 import { t } from "../../i18n";
 import { t as tx } from "../../i18n";
+import { ohneBeleg } from "../../i18n/ohne-beleg";
 const STATUS_WORT: Record<VorhabenSicht["status"], string> = {
   fertig: "Fertig",
   im_bau: "Im Bau",
@@ -118,7 +119,7 @@ export function VorhabenKarte({
           )}
         </p>
       )}
-      <p className="rr-text">{v.text}</p>
+      <p className="rr-text">{ohneBeleg(v.text)}</p>
 
       {s.status === "fertig" && s.zustand !== undefined && (
         <div className="rr-zustand" title={t("ui.reich.VorhabenKarte.c617cab")}>
@@ -253,7 +254,7 @@ export function VorhabenKarte({
         {vl && <em> Es verliert: {vl}.</em>}
       </p>
       {v.konkurrenz && zeigt && <p className="rr-konkurrenz"><b>{t("ui.reich.VorhabenKarte.dea39ba")}</b> {v.konkurrenz}</p>}
-      {v.anker && zeigt && <p className="rr-anker"><b>{t("ui.reich.VorhabenKarte.ac9df63")}</b> {v.anker}</p>}
+      {v.anker && zeigt && <p className="rr-anker"><b>{t("ui.reich.VorhabenKarte.ac9df63")}</b> {ohneBeleg(v.anker)}</p>}
 
       {s.grund && (s.status === "gesperrt" || s.status === "ausgeschlossen") && <p className="rr-sperre">{s.grund}</p>}
       {ergebnis && <p className={`rr-ergebnis ${ergebnis.ok ? "ok" : "nein"}`}>{ergebnis.text}</p>}
@@ -293,13 +294,11 @@ export function VorhabenKarte({
               );
             })}
           </ul>
-          <p className="rr-hinweis">{t("ui.reich.VorhabenKarte.b72016d")}</p>
           <button type="button" className="link" onClick={() => setVergabeWahl(false)}>
             {t("ui.reich.VorhabenKarte.4080624")}
           </button>
         </div>
       )}
-      {v.quelle && <p className="rr-quelle">{tx("ui2.ui.reich.VorhabenKarte.71c3c7b", { p0: v.quelle })}</p>}
     </article>
   );
 }

@@ -36,11 +36,13 @@ export type IconName =
   | "karte"
   | "gebiete"
   | "beben"
-  | "chevron";
+  | "chevron"
+  | "ton";
 
 const PATHS: Record<IconName, string> = {
   berg: "M3 20 L9.5 8 L13 14 L15.5 10.5 L21 20 Z M8 10.8 L9.5 8 L11 10.6",
   urne: "M5 11 H19 V20 H5 Z M8 11 V6.5 L13.5 5 L15 10.8 M9 15 H15",
+  ton: "M4 10 H8 L13 5.5 V18.5 L8 14 H4 Z M16.5 9.5 A4.5 4.5 0 0 1 16.5 14.5 M18.6 7.2 A7.6 7.6 0 0 1 18.6 16.8",
   fabrik: "M3 20 V11 L8 14 V11 L13 14 V6 H16 V14 H21 V20 Z M6.5 17 H8.5 M11.5 17 H13.5 M16.5 17 H18.5",
   koffer: "M4 9 H20 V19 H4 Z M9 9 V6.5 H15 V9 M4 13.5 H20",
   warnung: "M12 4 L21 19.5 H3 Z M12 10 V14.5 M12 17 V17.2",

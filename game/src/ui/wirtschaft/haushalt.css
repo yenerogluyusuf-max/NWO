@@ -30,3 +30,12 @@
   .hh-betrag { grid-column: 1 / -1; text-align: left; }
   .hh-regler, .hh-wirkung, .hh-wunsch, .hh-zeile .wi-hh-vorschau { margin-left: 0; }
 }
+/* Haushalt in der Übersicht: Regler und Vorschau stehen in der Detailleiste */
+.hh-im-detail { display: grid; gap: 8px; }
+.hh-im-detail .hh-zeile { padding: 0; border: 0; background: none; }
+.hh-im-detail .hh-kopf { grid-template-columns: 1fr auto; }
+.hh-im-detail .hh-regler, .hh-im-detail .hh-wirkung, .hh-im-detail .hh-wunsch, .hh-im-detail .hh-zeile .wi-hh-vorschau { margin-left: 0; }
+.hh-im-detail .hh-regler { grid-template-columns: auto 1fr auto 2.2em; }
+.hh-im-detail .wi-plan { grid-template-columns: 1fr; }
+.hh-im-detail h3 { margin: 0 0 4px; font: 600 17px/1.25 var(--display, Fraunces, serif); }
+.ub-bild .hh-minister { width: 40px; height: 40px; }

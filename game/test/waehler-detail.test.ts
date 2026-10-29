@@ -61,8 +61,8 @@ describe("Ursachen", () => {
     const k = kette(w, "arbeitnehmer", 3);
     expect(k.length).toBeGreaterThan(0);
     const pruefe = (glieder: typeof k, tiefe: number) => {
-      expect(tiefe).toBeLessThanOrEqual(3);
       for (const g of glieder) {
+        expect(tiefe).toBeLessThanOrEqual(3);
         expect(Number.isFinite(g.beitrag)).toBe(true);
         if (g.art === "massnahme") expect(g.kinder).toHaveLength(0);
         pruefe(g.kinder, tiefe + 1);

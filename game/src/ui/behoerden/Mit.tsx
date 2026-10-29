@@ -4,7 +4,6 @@
 
 import { useState } from "react";
 import type { World } from "../../sim/types";
-import { BehoerdeKarte } from "./Behoerde";
 import { dienstSicht, lagebildQualitaet, praesidentenSchutz, inlandOptionen, ordneInlandAn, dienst, type InlandArt } from "../../sim/welt-dienst";
 import { akteurName } from "../../sim/welt-modell";
 import { Flagge } from "../art/Flaggen";
@@ -13,7 +12,8 @@ import { t } from "../../i18n";
 
 const AUSGANG: Record<string, string> = { erfolg: "✓", fehlschlag: "✗", aufgedeckt: "⚠", info: "·" };
 
-export function MitAnsicht({ w, refresh }: { w: World; refresh: () => void }) {
+/** Das Besondere des MİT in der Detailleiste: Lagebild, Netzkarte, Inland, laufende Operationen, Bericht (aufklappbar). */
+export function MitZusatz({ w, refresh }: { w: World; refresh: () => void }) {
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const sicht = dienstSicht(w);
   const lage = lagebildQualitaet(w);
@@ -27,8 +27,6 @@ export function MitAnsicht({ w, refresh }: { w: World; refresh: () => void }) {
 
   return (
     <div className="mit-ansicht">
-      <BehoerdeKarte w={w} id="mit" refresh={refresh} />
-
       <div className="mit-lage-zeile">
         <div className="mit-lagebalken">
           <span>
@@ -48,8 +46,8 @@ export function MitAnsicht({ w, refresh }: { w: World; refresh: () => void }) {
         </div>
       </div>
 
-      <section className="mit-netzkarte">
-        <h4>{t("behoerden.mit.ui.netzkarte")}</h4>
+      <details className="ub-mehr mit-netzkarte">
+        <summary>{t("behoerden.mit.ui.netzkarte")}</summary>
         {sicht.netze.length === 0 ? (
           <p className="bh-hinweis">{t("behoerden.mit.ui.netze_leer")}</p>
         ) : (
@@ -68,10 +66,10 @@ export function MitAnsicht({ w, refresh }: { w: World; refresh: () => void }) {
           </ul>
         )}
         <p className="bh-hinweis">{t("behoerden.mit.ui.ausland")}</p>
-      </section>
+      </details>
 
-      <section className="mit-inland">
-        <h4>{t("behoerden.mit.ui.inland")}</h4>
+      <details className="ub-mehr mit-inland" open>
+        <summary>{t("behoerden.mit.ui.inland")}</summary>
         {inlandLage && (
           <p className="mit-inland-lage">
             {t("behoerden.mit.ui.inlandlage", { monate: Math.max(1, Math.round((w.day - inlandLage.tag) / 30)), putsch: inlandLage.putsch, terror: inlandLage.terror })}
@@ -108,7 +106,7 @@ export function MitAnsicht({ w, refresh }: { w: World; refresh: () => void }) {
             ))}
           </ul>
         )}
-      </section>
+      </details>
 
       {sicht.laufend.length > 0 && (
         <section className="mit-laufend-aussen">
@@ -123,8 +121,8 @@ export function MitAnsicht({ w, refresh }: { w: World; refresh: () => void }) {
         </section>
       )}
 
-      <section className="mit-bericht">
-        <h4>{t("behoerden.mit.ui.bericht")}</h4>
+      <details className="ub-mehr mit-bericht">
+        <summary>{t("behoerden.mit.ui.bericht")}</summary>
         <ul>
           {sicht.bericht.slice(0, 8).map((b, i) => (
             <li key={`${b.tag}-${i}`} className={`ausgang-${b.ausgang}`}>
@@ -134,7 +132,7 @@ export function MitAnsicht({ w, refresh }: { w: World; refresh: () => void }) {
             </li>
           ))}
         </ul>
-      </section>
+      </details>
     </div>
   );
 }
