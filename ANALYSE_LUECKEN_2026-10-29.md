@@ -92,5 +92,5 @@ W4 hat viel gebracht: Aktengerüst, Gesetzesvorhaben mit Fassungen und Verfassun
 
 ## 5. Offene Punkte dieser Analyse
 
-- Vollständiger Testlauf am W4-Stand steht aus (erster Lauf unter Last abgebrochen; bis dahin rot: `reich-katalog`, `nachtrag`, `wahl`).
+- Testlauf am W4-Stand (ohne Last, 29.10.): **1.962 grün, 8 übersprungen, 1 rot** (148 Dateien, ~16 Min.); `tsc --noEmit` fehlerfrei. Der einzige rote Test ist `game/test/_extrakt.test.ts`: ein versehentlich eingechecktes Hilfsskript, das eine Datei im Mac-Scratchpad liest (`/private/tmp/claude-501/…/netzknoten.json`) — gehört nicht ins Repository. Die Ausfälle des ersten Laufs (`reich-katalog`, `nachtrag`, `wahl`) waren Zeitüberschreitungen unter Last.
 - WebGL-Leistung auf echter Grafikkarte ungeprüft.
