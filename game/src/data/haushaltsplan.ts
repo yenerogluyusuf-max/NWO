@@ -93,6 +93,9 @@ export const RESSORTS_2026: RessortDaten[] = [
   { id: "landwirtschaft", startBip: 0.5, schritt: 0.1, min: -4, max: 6, reifeMonate: 12, beleg: SPIEL },
   { id: "umwelt_energie", startBip: 0.3, schritt: 0.1, min: -3, max: 8, reifeMonate: 24, beleg: SPIEL },
   { id: "kultur", startBip: 0.2, schritt: 0.05, min: -3, max: 6, reifeMonate: 6, beleg: SPIEL },
+  // Neue Funktionsetats sind Teil des bestehenden Grundhaushalts, keine zusätzlichen Startausgaben.
+  { id: "justiz", startBip: 0.35, schritt: 0.05, min: -4, max: 8, reifeMonate: 12, beleg: SPIEL },
+  { id: "diplomatie", startBip: 0.15, schritt: 0.03, min: -4, max: 8, reifeMonate: 9, beleg: SPIEL },
   { id: "personal", startBip: Math.round((5507 / PLAN_2026.mrdProProzentBip) * 10) / 10, schritt: 0.4, min: -4, max: 4, reifeMonate: 1, beleg: "abgeleitet: Personalausgaben 5.507 Mrd. Lira im Haushaltsgesetz 2026 (Forbes Türkiye); überschneidet sich mit den Fachressorts" },
   { id: "subventionen", startBip: 0.8, schritt: 0.4, min: -2, max: 4, reifeMonate: 1, beleg: SPIEL },
 ];

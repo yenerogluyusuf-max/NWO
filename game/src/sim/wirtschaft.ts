@@ -1,3 +1,4 @@
+import { defizitQuote } from "./staatsgeld";
 // Die Wirtschaftsakte: Zustand, Verlauf der Kennzahlen und Marken auf der Zeitachse. Die Größen des Wirtschaftsmodells stehen schon in
 // `world.history` (Monatswerte); hier kommen weitere Größen dazu (Netzknoten, Defizit, Zinsausgaben), damit jede Zahl einen Verlauf hat.
 
@@ -18,13 +19,13 @@ const netz = (w: World, id: string) => nationalAverage(NET, w.net, id);
 /** Das geplante Defizit in % des BIP: Grundlinie, eigener Impuls, Kosten der Maßnahmen, Mehrzinsen und der Konjunktursaldo (Stabilisatoren, Steuerbasis). */
 export function defizitJetzt(w: World): number {
   const e = w.economy;
-  return e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (e.konjunkturSaldo ?? 0);
+  return defizitQuote(e);
 }
 
 /** Das Defizit ohne Konjunktursaldo (konjunkturbereinigt): daran messen IWF-Auflagen, damit automatische Stabilisatoren in der Rezession kein Programm brechen. */
 export function defizitStrukturell(w: World): number {
   const e = w.economy;
-  return e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0);
+  return defizitQuote(e, true);
 }
 
 /** Zinsausgaben des Staates in % des BIP: Schuldenquote mal Durchschnittszins. */

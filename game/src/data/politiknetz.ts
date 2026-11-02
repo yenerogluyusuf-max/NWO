@@ -466,7 +466,7 @@ g("infrastruktur", "wachstum_regional", "Regionale Entwicklung", 50, "Wirtschaft
 m("infrastruktur", "m_autobahnen", "Autobahn- und Brückenbau", 55, 0.5, 36, "Neue Autobahnen, Brücken und Tunnel.");
 // Preise (Spielparameter): Aus Garantieverträgen steigt man kaum aus — Vertragsstrafen und Klagen
 // der Betreiber machen das Zurücknehmen teuer; die Garantien kosten laufend Verwaltungsaufwand.
-m("infrastruktur", "m_oepp_garantien", "Garantien für Betreiberprojekte", 50, 0.3, 12, "Der Staat garantiert privaten Betreibern Mindesteinnahmen bei Autobahnen, Flughäfen und Kliniken.", { streichen: 2.5, unterhalt_monat: 0.1 });
+m("infrastruktur", "m_oepp_garantien", "Garantien für Betreiberprojekte", 50, 0.3, 12, "Der Staat garantiert privaten Betreibern Mindesteinnahmen bei Autobahnen, Flughäfen und Kliniken.", { streichen: 2.5 });
 m("infrastruktur", "m_bahn", "Bahnausbau", 40, 0.5, 48, "Schnellfahrstrecken und Güterbahn.");
 m("infrastruktur", "m_nahverkehr", "Nahverkehr", 40, 0.3, 24, "U-Bahnen, Straßenbahnen und Busse in den Städten.");
 m("infrastruktur", "m_breitband", "Breitbandausbau", 40, 0.2, 24, "Glasfaser und Mobilfunk bis ins Dorf.");
@@ -509,7 +509,7 @@ g("energie", "klimaschutz", "Klimaschutz", 35, "Wie stark die Emissionen sinken.
 
 // Preise (Spielparameter): Subventionen abbauen, nachdem sich Haushalte und Betriebe an billige
 // Energie gewöhnt haben, kostet Aufstandsrückhalt (Gelbwesten-Effekt); der Deckel kostet laufend Verwaltung.
-m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1.0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", { streichen: 2.5, unterhalt_monat: 0.1 });
+m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1.0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", { streichen: 2.5 });
 m("energie", "m_solar_wind", "Ausbau von Sonne und Wind", 45, 0.2, 24, "Ausschreibungen und Einspeisevergütungen.");
 m("energie", "m_kernkraft", "Kernkraft", 50, 0.2, 48, "Weitere Reaktoren neben dem ersten Kraftwerk.");
 m("energie", "m_gasfoerderung", "Heimische Gasförderung", 50, 0.2, 24, "Förderung aus Feldern im Schwarzen Meer.");
@@ -835,7 +835,7 @@ m("recht", "m_antikorruption", "Korruptionsbekämpfung", 35, 0.05, 12, "Unabhän
 m("sicherheit", "m_friedensprozess", "Friedensprozess", 55, 0.1, 12, "Politische Lösung mit Waffenabgabe und Wiedereingliederung.");
 // Preise (Spielparameter): Rüstung kürzen kostet doppelt — Generalstab, Rüstungsbetriebe und das
 // Lager der Nationalisten lesen jede Kürzung als Schwäche; der Apparat kostet laufend Verwaltung.
-m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1.0, 12, "Budget für Streitkräfte und Rüstungsindustrie.", { streichen: 2, unterhalt_monat: 0.1 });
+m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1.0, 12, "Budget für Streitkräfte und Rüstungsindustrie.", { streichen: 2 });
 m("militaer", "m_ruestungsindustrie", "Heimische Rüstungsindustrie", 60, 0.3, 24, "Drohnen, Panzer, Schiffe aus eigener Produktion.");
 
 p("sicherheit", "p_korruption", "Korruptionsskandale", 45, 60, "Vergaben und Ämter werden gekauft; die Presse berichtet.");
@@ -888,7 +888,7 @@ g("gesellschaft", "zivilgesellschaft", "Zivilgesellschaft", 40, "Vereine, Stiftu
 m("gesellschaft", "m_medienaufsicht", "Medienaufsicht", 65, 0.0, 3, "Strafen und Sendeverbote durch die Rundfunkaufsicht.", { einfuehren: 1.2, streichen: 2 });
 // Preise (Spielparameter): Sperr-Infrastruktur läuft vom ersten Tag an; sie abzuschalten kostet mehr,
 // als sie auszubauen kostete — und sie frisst laufend Verwaltungskraft (Provider-Aufsicht, Gerichte).
-m("gesellschaft", "m_internetsperren", "Internetsperren", 60, 0.0, 1, "Sperren von Seiten und Beiträgen, Drosselung sozialer Medien.", { einfuehren: 1.2, streichen: 1.8, unterhalt_monat: 0.15 });
+m("gesellschaft", "m_internetsperren", "Internetsperren", 60, 0.0, 1, "Sperren von Seiten und Beiträgen, Drosselung sozialer Medien.", { einfuehren: 1.2, streichen: 1.85 });
 m("gesellschaft", "m_staatsmedien", "Staatliche Medien und Werbung", 60, 0.1, 3, "Budget für Staatssender und staatliche Anzeigen.");
 m("gesellschaft", "m_religionsbehoerde", "Budget der Religionsbehörde", 60, 0.2, 6, "Moscheen, Imame, religiöse Bildung.");
 m("gesellschaft", "m_gewaltschutz", "Schutz vor Gewalt gegen Frauen", 35, 0.05, 12, "Frauenhäuser, Schutzanordnungen, Schulungen für Polizei.");

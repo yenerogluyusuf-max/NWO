@@ -5,12 +5,17 @@ import type { World } from "../sim/types";
 import { NET } from "../sim/world";
 import { nationalAverage, PROVINCES, policyCost, startAverage } from "../sim/netz";
 import { formatDateDe } from "../sim/dates";
-import { gesetzSicht, provinzenText, setPolicy, stimmenKaufen, stimmenSicht, zieheGesetzZurueck, REGELN } from "../sim/handeln";
+import { gesetzPrognose, provinzenText, setPolicy, stimmenKaufen, stimmenSicht, zieheGesetzZurueck, REGELN } from "../sim/handeln";
+import { AUFMERKSAMKEIT_KOSTEN } from "../sim/aufmerksamkeit";
+import { GesetzesPrognoseHinweis } from "./parlament/GesetzesPrognoseHinweis";
 import { fraktionsUebersicht, verhandle, type Verhandlung } from "../sim/verhandeln";
 import { Rng } from "../sim/rng";
 import { addDays } from "../sim/dates";
 import { PARTY_COLORS } from "./Parliament";
 import { ParlamentKopf } from "./parlament/ParlamentKopf";
+import { FraktionsAbkommen } from "./parlament/FraktionsAbkommen";
+import { VersorgungsTagesordnung } from "./gueter/VersorgungsMandat";
+import { RessortVerantwortung } from "./minister/RessortVerantwortung";
 import { zeigeImHalbrund } from "./parlament/abstimmung";
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { geaenderteArtikel, verfassungStand } from "../sim/verfassung";
@@ -87,6 +92,8 @@ export function Beschlussbuch({
       {teil === "parlament" && spiel && (
         <>
           <ParlamentKopf world={world} />
+          <RessortVerantwortung world={world} refresh={refresh}/>
+          <VersorgungsTagesordnung world={world} geaendert={refresh}/>
           <section className="par-lage">
             <p>
               {tx("ui2.ui.Beschlussbuch.d2be9ba")} <strong>{sicht.lager}</strong> {tx("ui2.ui.Beschlussbuch.e711bb3", { p0: teile, p1: REGELN.mehrheit })} <strong>{sicht.erwartet}</strong> {tx("ui2.ui.Beschlussbuch.aeef1bf", { p0: sicht.low, p1: sicht.high })}
@@ -135,12 +142,13 @@ export function Beschlussbuch({
                   <b>{tx("ui2.ui.Beschlussbuch.3e3e580")}</b> {f.forderung}
                 </p>
                 <div className="fraktion-aktionen">
-                  {f.aktionen.map((a) => (
+                  {f.aktionen.filter(a=>a.id!=="koalition"&&a.id!=="duldung").map((a) => (
                     <button key={a.id} className={`pd-btn${a.id === "abwerben" ? " quiet" : ""}`} disabled={!a.moeglich} onClick={() => verhandeln(f.partei, a.id)} title={a.moeglich ? a.hinweis : `${a.grund ?? ""} ${a.hinweis}`.trim()}>
                       {a.label} <b>{a.pk}</b>
                     </button>
                   ))}
                 </div>
+                <FraktionsAbkommen world={world} fraktion={f} onVerhandlung={art=>verhandeln(f.partei,art)}/>
               </li>
             ))}
           </ul>
@@ -152,7 +160,7 @@ export function Beschlussbuch({
           <h3>{tx("ui2.ui.Beschlussbuch.cd38076")}</h3>
           <ul className="gesetz-liste">
             {spiel.gesetze.map((g) => {
-              const gs = gesetzSicht(world, g);
+              const gs = gesetzPrognose(world, g);
               const ja = gs.ja;
               const zurueck = Math.floor(g.pk * REGELN.rueckzugAnteil);
               return (
@@ -183,10 +191,12 @@ export function Beschlussbuch({
                       {gs.sachParteien.map((k) => PARTEI_NAME[k] ?? k).join(" und ")} stimm{gs.sachParteien.length === 1 ? "t" : "en"} {tx("ui2.ui.Beschlussbuch.3ed93b4")} {gs.sachParteien.length === 1 ? "ihre" : "ihre"} {tx("ui2.ui.Beschlussbuch.6f9cc11")}
                     </p>
                   )}
+                  <GesetzesPrognoseHinweis prognose={gs}/>
                   <div className="stimmen-steuerung">
-                    {gs.noetig > 0 && gs.bezahlbar && (
+                    {gs.noetig > 0 && (
                       <button
                         className="pd-btn primary"
+                        disabled={!gs.bezahlbar}
                         onClick={() => {
                           setAntwort(stimmenKaufen(world, g.id, gs.noetig));
                           refresh();
@@ -196,7 +206,7 @@ export function Beschlussbuch({
                         {tx("ui2.ui.Beschlussbuch.bb20535", { p0: gs.noetig })} <b>{gs.kosten}</b>
                       </button>
                     )}
-                    {gs.aussichtslos && (
+                    {gs.noetig > 0 && !gs.bezahlbar && (
                       <p className="weg-warnung">
                         {tx("ui2.ui.Beschlussbuch.3bd8b02", { p0: gs.kosten, p1: Math.floor(spiel.kapital) })}
                       </p>
@@ -212,6 +222,7 @@ export function Beschlussbuch({
                       {tx("ui2.ui.Beschlussbuch.dfaa501")} <b>+{zurueck}</b>
                     </button>
                   </div>
+                  {gs.noetig > 0 && <p className="subtitle">{t("gp.aufmerksamkeit", { n: AUFMERKSAMKEIT_KOSTEN.stimmenkauf })}</p>}
                 </li>
               );
             })}

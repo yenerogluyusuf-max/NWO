@@ -1,6 +1,7 @@
 // Zustand der Wirtschaftsakte: Zentralbank (Zinssitzungen, Druck, Unabhängigkeit), Haushalt (Posten, Zinsdienst) und der Verlauf
 // weiterer Kennzahlen mit Ereignismarken. Alles reines JSON. Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung);
 // Tatsachen stehen mit Quelle in `data/haushaltsplan.ts`.
+import type { HaushaltsAbkommen, HaushaltsAbschluss, HaushaltsMonatsbericht, HaushaltsReifung } from "./haushaltsbericht";
 
 /** Stufe der Unabhängigkeit der Zentralbank (WIRTSCHAFTSMODELL.md, Abschnitt 5). */
 export type Unabhaengigkeit = "A" | "B" | "C";
@@ -59,6 +60,9 @@ export interface HaushaltAenderung {
 }
 
 export interface HaushaltZustand {
+  abschluesse?:HaushaltsAbschluss[];
+  monatsberichte?:HaushaltsMonatsbericht[];
+  reifungsbeleg?:HaushaltsReifung;
   /** Reglerstufe je Posten, −2 bis +2 (0 = Grundlinie des Haushaltsgesetzes) */
   stufen: Record<string, number>;
   /** Durchschnittszins auf die Staatsschuld in %, folgt dem Marktzins nur langsam (die Schuld wird erst bei Fälligkeit neu finanziert) */
@@ -87,6 +91,8 @@ export interface HaushaltZustand {
 
 /** WIR-3: Der Haushaltsentwurf auf dem Weg durchs Parlament (Mehrheitslogik wie bei Gesetzen). */
 export interface HaushaltsGesetz {
+  /** Nur ausdrücklich über die Haushaltsverhandlung geschlossene Abkommen. */
+  abkommen?:HaushaltsAbkommen[];
   /** Kalenderjahr des Oktobers, in dem eingebracht wurde (der Haushalt gilt fürs Folgejahr) */
   jahr: number;
   /** Zielstufen je Posten (der Entwurf beim Einbringen) */
@@ -124,6 +130,8 @@ export interface IwfProgramm {
 
 /** WIR-2: Zustand der Devisen-Lage (Interventionen, IWF-Programm); ältere Spielstände legen ihn beim ersten Zugriff an. */
 export interface DevisenZustand {
+  abgerechnetMonat?: string;
+  warenBeitragPct?: number;
   interventionen: InterventionEintrag[];
   iwf: IwfProgramm | null;
   /** Letzter Tag einer Warnung vor niedrigen Reserven (Spam-Bremse) */

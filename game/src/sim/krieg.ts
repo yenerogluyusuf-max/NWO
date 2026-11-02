@@ -14,6 +14,7 @@
 //
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { militaerVersorgung } from "./versorgung";
 import { kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
@@ -294,7 +295,7 @@ export function eigenStaerke(w: World, k: KriegVorgang): number {
   const allianz = 1 + koalitionsFaktoren(w, k).eigenPlus;
   // Bestand und Technik der Streitkräfte (sim/streitkraefte.ts; 1 = Stand 2026); mit gewählter Einsatzart zählen ihre tragenden Gattungen,
   // der Generationsabstand zum Gegner und die Munition (sim/kriegsschauplatz.ts)
-  return b * moral * dok * mob * nachschub * allianz * (eigenerBestandsFaktor(w, k) ?? bestandsFaktor(w));
+  return b * moral * dok * mob * nachschub * militaerVersorgung(w, k.land).faktor * allianz * (eigenerBestandsFaktor(w, k) ?? bestandsFaktor(w));
 }
 
 /** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit) und mit seinen Koalitionspartnern. */

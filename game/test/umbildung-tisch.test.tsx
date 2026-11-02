@@ -69,10 +69,10 @@ const html = (p: UmbildungProps) => renderToStaticMarkup(createElement(Umbildung
 describe("Kabinettstisch", () => {
   test("jede Ministerin und jeder Minister hat eine Porträtkarte mit drei Kennzahlen", () => {
     const h = html(props());
-    expect((h.match(/class="ub-karte[ "]/g) ?? []).length).toBe(7);
-    const tisch = h.slice(h.indexOf("ub-tisch"), h.indexOf("ub-seite"));
+    expect((h.match(/class="umb-karte[ "]/g) ?? []).length).toBe(7);
+    const tisch = h.slice(h.indexOf("umb-tisch"), h.indexOf("umb-seite"));
     expect((tisch.match(/class="portraet"/g) ?? []).length).toBe(7);
-    expect((tisch.match(/class="ub-wert /g) ?? []).length).toBe(21);
+    expect((tisch.match(/class="umb-wert /g) ?? []).length).toBe(21);
     expect(h).toContain("Loyalität");
     expect(h).toContain("Ehrgeiz");
     expect(h).not.toMatch(KAPUTT);
@@ -84,19 +84,19 @@ describe("Kabinettstisch", () => {
     expect(h).toContain("Kommissarisch");
     expect(h).toContain("Groll");
     expect(h).toContain("Kronprinz");
-    expect(h).toContain("ub-stempel behalten");
-    expect(h).toContain("ub-stempel ersetzt");
+    expect(h).toContain("umb-stempel behalten");
+    expect(h).toContain("umb-stempel ersetzt");
   });
 
   test("Aktionen: bestätigte Karten sperren Bestätigen; Partnerchips mit Partei; Fußleiste bleibt", () => {
     const h = html(props());
-    expect(h).toContain("ub-parteichip");
+    expect(h).toContain("umb-parteichip");
     expect(h).toContain("YENİ Parti");
-    expect(h).toContain("ub-fuss");
+    expect(h).toContain("umb-fuss");
     expect(h).toContain("Umbildung abschließen");
     expect(h).toContain("Später");
     // Der Partner MHP hat seinen Anspruch erfüllt: sein Chip ist gesperrt, der von YENİ nicht
-    const chips = h.match(/<button[^>]*ub-parteichip[^>]*>/g) ?? [];
+    const chips = h.match(/<button[^>]*umb-parteichip[^>]*>/g) ?? [];
     expect(chips.length).toBe(14);
     expect(chips.filter((c) => c.includes("disabled")).length).toBeGreaterThanOrEqual(7);
   });

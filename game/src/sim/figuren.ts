@@ -10,6 +10,7 @@ import type { LagerArt, Stil } from "./personen-typen";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
 import { aktuelleSprache, t, tIn } from "../i18n";
+import { aktiveParteivorsitzende } from "./koalitionslage";
 
 const VORNAMEN_F = ["Selin", "Derya", "Zeynep", "Nilay", "Melis", "Pınar", "Gizem", "Ebru", "Sevgi", "Nazlı", "Ilgın", "Damla", "Aylin", "Defne", "Hande"];
 const VORNAMEN_M = ["Kaan", "Barış", "Emre", "Tolga", "Volkan", "Onur", "Serkan", "Levent", "Murat", "Cengiz", "Orhan", "Taner", "Cem", "Burak", "Mert"];
@@ -269,12 +270,25 @@ export function loyalitaetAendern(world: World, amt: Figur["amt"], delta: number
 }
 
 /** Der Vorsitz einer Partnerpartei als Figur mit eigenem Namen. */
+export const PARTNER_START_LOYALITAET=55;
 export function partnerFigur(world: World, partei: string, rolle: string, ziel: string, rng: Rng): Figur {
   const benutzt = new Set((world.spiel?.figuren ?? []).map((f) => f.name));
   const weiblich = rng.next() < 0.35;
-  const f: Figur = { id: `partner-${partei}`, name: name(rng, benutzt, weiblich), weiblich, rolle, amt: "partner", ziel, loyalitaet: 55, imAmt: true, partei };
+  const f: Figur = { id: `partner-${partei}`, name: name(rng, benutzt, weiblich), weiblich, rolle, amt: "partner", ziel, loyalitaet: PARTNER_START_LOYALITAET, imAmt: true, partei };
   lokalisiereFigur(f);
   return f;
+}
+
+/** Ein Bündnis ersetzt keinen aktiven Vorsitz und setzt dessen Vorgeschichte nicht zurück. */
+export function sichereParteivorsitz(world: World, partei: string, rolle: string, ziel: string, rng: Rng): Figur | undefined {
+  const spiel = world.spiel;
+  if (!spiel) return;
+  const vorhanden = aktiveParteivorsitzende(world, partei)[0];
+  if (vorhanden) return vorhanden;
+  const neu = partnerFigur(world, partei, rolle, ziel, rng), basis = neu.id;
+  for (let n = 2; spiel.figuren.some(f => f.id === neu.id); n++) neu.id = `${basis}-${n}`;
+  spiel.figuren.push(neu);
+  return neu;
 }
 
 /** Ein neuer, noch nicht vergebener Name für Nebenfiguren in Ereignissen (Bürgermeister, Chefredakteure, Vorstände). */

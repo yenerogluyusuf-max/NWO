@@ -1,138 +1,182 @@
-/* Der Schreibtisch (schreibtisch/Schreibtisch.tsx). Klassen mit Präfix .sk-. Gestaltung wie politik/design.css.
-   Aufbau: Kopf mit Datum und vier Zahlen, der Zustand des Präsidenten als schmaler Streifen, links die Unterschriftenmappe,
-   rechts Fristen, Warnungen und der Zettel der Mentorin; alles Weitere hinter „Weiteres“. */
-
-.sk { display: grid; gap: 24px; min-width: 0; }
-
-/* Kopf: Datum links, vier Zahlen rechts */
-.sk-kopf { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 40px; }
-.sk-titel { min-width: 0; }
-.sk-kopf h3 { margin: 0; font: 600 34px/1.1 var(--display); letter-spacing: 0.002em; }
-.sk-kopf .pd-lead { margin-top: 6px; }
-.sk-kennzahlen { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
-.sk-kennzahlen li { display: flex; }
-.dossier button.sk-kz {
-  position: relative; display: grid; gap: 2px; align-content: start; width: 100%; min-width: 150px; max-width: 230px; text-align: left; padding: 14px 18px 12px; border-radius: 6px; cursor: pointer;
-  border: 1px solid var(--pd-line); background: var(--pd-card); box-shadow: var(--pd-schatten); color: var(--pd-ink); text-shadow: none;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+/* Regierungsschreibtisch: ruhige Papierflächen, dunkler Amtskopf, wenige klare Prioritäten.
+   Alle Layoutwechsel richten sich nach der Aktenbreite, auch im schmalen Fenster einer breiten Bühne. */
+.sk { --sd-ink:#203731; --sd-muted:#59665e; --sd-paper:#fcfaf3; --sd-line:#d7d6c8; --sd-red:#933d32; --sd-gold:#8b631c;
+  container:regierungsdesk / inline-size; min-width:0; display:grid; gap:24px; color:var(--sd-ink); font:400 14px/1.55 var(--sans); }
+.sk *, .sk *::before, .sk *::after { box-sizing:border-box; }
+.sk :is(h3,h4,h5,p,ul,ol) { margin-top:0; }
+.sk :is(button,a,strong,span,p,summary) { overflow-wrap:anywhere; }
+.sk :is(button,summary,a):focus-visible { outline:3px solid #287b83; outline-offset:3px; }
+.sk :is(.sd-kopf,.sd-panel,.sd-seite,.sd-block,.sd-arbeitsplatz,.sd-auswahlkarte) { min-width:0; }
+.sk .sd-kopf { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:30px 32px; border-radius:16px;
+  background:linear-gradient(118deg,#172f2a,#2c4940); color:#faf7e8; position:relative; border:1px solid #365449; box-shadow:0 10px 26px #223d2914; }
+.sk .sd-kicker { display:flex; flex-wrap:wrap; gap:4px 12px; color:#e0c98d; font-size:11px; font-weight:650; letter-spacing:.1em; text-transform:uppercase; margin-bottom:12px; }
+.sk .sd-kicker span { color:#c9d5c9; letter-spacing:.035em; }
+.sk .sd-kopf h3 { margin:0 0 10px; font:500 clamp(27px,4cqi,42px)/1.12 var(--display); color:#faf7e8; letter-spacing:-.02em; }
+.sk .sd-amtszeit { margin:0; color:#d2dcd2; max-width:65ch; font-size:12px; line-height:1.6; }
+.sk .sd-siegel { border:1px solid #bfaa7166; color:#d8bf80; border-radius:50%; width:76px; height:76px; flex:none; display:grid; place-items:center; box-shadow:0 0 0 8px #bca9700a; }
+.sk .sd-kennzahlen { list-style:none; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:-10px 0 0; padding:0; gap:1px; border:1px solid var(--sd-line); background:var(--sd-line); border-radius:12px; overflow:hidden; }
+.dossier .sk button.sd-kennzahl { display:flex; flex-direction:column; align-items:start; width:100%; height:100%; text-align:left; padding:16px 20px; color:var(--sd-ink); background:var(--sd-paper); border:0; border-radius:0; box-shadow:none; text-shadow:none; gap:5px; }
+.sk .sd-kennzahl > span { color:var(--sd-muted); font:600 11px/1.4 var(--sans); text-transform:uppercase; letter-spacing:.07em; }
+.sk .sd-kennzahl strong { font:650 27px/1.2 var(--sans); font-variant-numeric:tabular-nums; }
+.sk .sd-kennzahl em { font:500 17px var(--sans); margin-left:8px; }
+.sk .sd-kennzahl.ton-schlecht strong { color:var(--sd-red); }
+.sk .sd-kennzahl.ton-gut em { color:#2b7152; }
+.sk .sd-kennzahl small { color:var(--sd-muted); font:400 12px/1.45 var(--sans); }
+.dossier .sk button.sd-kennzahl:hover { background:#f0f2e8; }
+.sk .sd-abschnittskopf { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 16px; margin-bottom:12px; }
+.sk .sd-abschnittskopf h4 { margin:0; font:600 21px/1.2 var(--display); }
+.sk .sd-abschnittskopf > span { color:var(--sd-muted); font-size:12px; }
+.sk .sd-lagekarten { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.sk .sd-lagekarten > li { min-width:0; }
+.dossier .sk button.sd-lagekarte { display:flex; flex-direction:column; align-items:stretch; text-align:left; gap:12px; width:100%; height:100%; padding:18px;
+  background:var(--sd-paper); color:var(--sd-ink); border:1px solid var(--sd-line); border-top:3px solid #5c7e6a; border-radius:10px; box-shadow:0 3px 10px #263c2210; text-shadow:none; }
+.dossier .sk button.sd-lagekarte.ton-rot { border-top-color:var(--sd-red); }
+.dossier .sk button.sd-lagekarte.ton-gelb { border-top-color:#aa802c; }
+.sk .sd-lagekopf { display:flex; align-items:center; justify-content:space-between; gap:8px; font:600 11px/1.4 var(--sans); color:var(--sd-muted); }
+.sk .sd-nummer { font:500 22px/1 var(--display); color:#59665e; }
+.sk .sd-lagekarte.ton-rot .sd-lagekopf > span { color:var(--sd-red); }
+.sk .sd-lagekarte > strong { font:600 19px/1.3 var(--display); }
+.sk .sd-grund { font:400 12px/1.6 var(--sans); color:var(--sd-muted); }
+.sk .sd-oeffnen { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-top:auto; padding-top:12px; border-top:1px solid var(--sd-line); font:650 12px/1.4 var(--sans); }
+.dossier .sk button.sd-lagekarte:hover { border-color:#668577; background:#f4f5ec; }
+.sk .sd-layout { display:grid; grid-template-columns:minmax(0,1fr) 252px; gap:24px; align-items:start; }
+.sk .sd-bereiche { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; border-bottom:1px solid var(--sd-line); margin-bottom:0; }
+.dossier .sk .sd-bereiche button { display:flex; align-items:center; justify-content:center; gap:7px; min-height:52px; padding:12px 8px; border:0; border-bottom:3px solid transparent; border-radius:8px 8px 0 0;
+  background:transparent; box-shadow:none; text-shadow:none; color:var(--sd-muted); font:600 14px/1.4 var(--sans); }
+.sk .sd-bereiche button > span { font-size:10px; color:#59665e; }
+.dossier .sk .sd-bereiche button[aria-pressed=true] { background:var(--sd-paper); border-bottom-color:var(--sd-ink); color:var(--sd-ink); }
+.sk .sd-panel { border:1px solid var(--sd-line); border-top:0; border-radius:0 0 12px 12px; padding:24px; background:var(--sd-paper); }
+.sk .sd-panelkopf { margin-bottom:20px; }
+.sk .sd-panelkopf h4 { margin:0 0 6px; font:600 26px/1.2 var(--display); }
+.sk .sd-panelkopf p { font-size:13px; color:var(--sd-muted); max-width:65ch; margin:0; }
+.sk .sd-gruppen { display:flex; flex-wrap:wrap; gap:8px; padding-bottom:20px; }
+.dossier .sk .sd-gruppen button { display:flex; align-items:center; gap:8px; border:1px solid var(--sd-line); border-radius:8px; min-height:40px; padding:8px 12px; background:#f4f3eb; color:var(--sd-ink); text-shadow:none; box-shadow:none; font:550 12px/1.4 var(--sans); }
+.dossier .sk .sd-gruppen button[aria-pressed=true] { background:var(--sd-ink); border-color:var(--sd-ink); color:#faf8ee; }
+.sk .sd-gruppen button > span { border-radius:4px; padding:1px 5px; background:#ffffff24; font-variant-numeric:tabular-nums; }
+.sk .sd-auswahl { display:grid; gap:8px; margin:0 0 18px; }
+.dossier .sk button.sd-auswahlkarte { display:grid; gap:4px; width:100%; min-height:48px; text-align:left; padding:12px 16px; border:1px solid var(--sd-line); border-left:3px solid transparent; border-radius:8px; box-shadow:none; background:#f6f5ee; color:var(--sd-ink); text-shadow:none; }
+.dossier .sk button.sd-auswahlkarte:hover { background:#eff2e9; border-color:#7b9480; }
+.dossier .sk button.sd-auswahlkarte[aria-pressed=true] { background:#edf2e8; border-color:#657e68; border-left-color:#315b46; }
+.sk .sd-auswahlkarte strong { font:600 15px/1.4 var(--sans); }
+.sk .sd-auswahlkarte :is(span,small) { font:400 12px/1.5 var(--sans); color:var(--sd-muted); }
+.sk .sd-leer { padding:22px; border:1px dashed #c3c9b9; border-radius:8px; background:#f4f5ee; color:var(--sd-muted); font:400 14px/1.6 var(--sans); margin:8px 0 18px; }
+.sk .sd-seite { display:grid; gap:18px; }
+.sk .sd-seite h4 { margin:0 0 14px; display:flex; align-items:center; gap:8px; font:600 19px/1.3 var(--display); }
+.sk :is(.sd-kraft,.sd-kalender,.sd-details) { border:1px solid var(--sd-line); border-radius:10px; padding:16px; background:#f4f3ea; }
+.sk .sd-kraft > header { display:flex; flex-direction:column; align-items:start; gap:4px; }
+.sk .sd-kraft > header span { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--sd-muted); }
+.sk .sd-kraft > header b { font:600 19px/1.3 var(--display); }
+.sk .sd-kraft.stufe-2 { border-left:3px solid var(--sd-red); }
+.sk .sd-kraft.stufe-2 > header b { color:var(--sd-red); }
+.sk .sd-kraftwerte { display:grid; gap:10px; margin:14px 0; }
+.sk .sd-kraftwerte label { font-size:12px; display:grid; gap:5px 10px; grid-template-columns:minmax(0,1fr) auto; }
+.sk .sd-kraftwerte meter { width:100%; grid-column:1/-1; height:8px; accent-color:#4c7560; }
+.sk .sd-kraft p { font-size:12px; color:var(--sd-muted); }
+.sk .sd-kalender ol, .sk .sd-warnungen ul { padding:0; margin:0; list-style:none; }
+.sk .sd-kalender li + li { border-top:1px solid var(--sd-line); }
+.dossier .sk .sd-kalender button, .sk .sd-kalender li > div { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px; padding:13px 0; width:100%; border:0; border-radius:0; text-align:left; background:transparent; color:var(--sd-ink); text-shadow:none; box-shadow:none; font:500 13px/1.5 var(--sans); }
+.sk .sd-kalender time { grid-column:1/-1; font-size:11px; font-weight:650; color:var(--sd-gold); }
+.sk .sd-details > summary { cursor:pointer; font:600 14px/1.5 var(--sans); }
+.sk .sd-details > summary > span { margin-left:8px; font-size:12px; }
+.sk .sd-details[open] > summary { margin-bottom:16px; }
+.dossier .sk .sd-warnungen button { display:grid; gap:5px; text-align:left; width:100%; padding:13px 0; border:0; background:none; color:var(--sd-ink); box-shadow:none; text-shadow:none; }
+.sk .sd-warnungen strong { font:600 14px/1.4 var(--sans); }
+.sk .sd-warnungen button > span:last-child { font:400 12px/1.6 var(--sans); color:var(--sd-muted); }
+.sk .sd-warnungen li + li { border-top:1px solid var(--sd-line); }
+.sk .sd-warnungen .ton-rot .sd-etikett { color:var(--sd-red); }
+.sk .sd-mentorin > summary { display:flex; align-items:center; gap:10px; }
+.sk .sd-mentorin details { margin-top:14px; font-size:13px; }
+.sk .sd-mentorin details summary { cursor:pointer; font-weight:550; }
+.sk .sd-mentorin p { margin-top:10px; }
+.sk .sd-tueren { display:grid; gap:8px; }
+.dossier .sk .sd-tueren button { display:flex; align-items:center; gap:8px; padding:12px; border:1px solid var(--sd-line); border-radius:8px; color:var(--sd-ink); background:transparent; box-shadow:none; text-shadow:none; font:500 12px/1.5 var(--sans); text-align:left; }
+.sk .sd-tueren button > span:last-child { margin-left:auto; }
+.sk :is(.sd-arbeit,.sd-rueckblick) { display:grid; gap:28px; }
+.sk .sd-block > h4, .sk .sd-bericht h4 { font:600 21px/1.3 var(--display); margin-bottom:10px; }
+.sk .sd-hinweis { font-size:13px; color:var(--sd-muted); }
+.sk .sd-vorgaenge { list-style:none; padding:0; margin:0; }
+.sk .sd-vorgaenge li { padding:16px 0; border-bottom:1px solid var(--sd-line); display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+.sk .sd-vorgaenge li > div { flex:1 1 240px; min-width:0; }
+.sk .sd-vorgaenge h5 { font:600 16px/1.4 var(--sans); margin:6px 0; }
+.sk .sd-vorgaenge p { font-size:13px; margin-bottom:0; }
+.sk .sd-etikett { font:650 11px/1.5 var(--sans); letter-spacing:.04em; color:var(--sd-muted); text-transform:uppercase; }
+.sk .sd-links { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.sk .sd-bericht { display:flex; align-items:start; gap:18px; padding:22px; background:#edf1e6; border:1px solid #cbd4bf; border-radius:10px; }
+.sk .sd-bericht > svg { flex:none; }
+.sk .sd-bericht > div { min-width:0; }
+.sk .sd-bericht p { font-size:13px; }
+.sk .sd-verlauf { list-style:none; padding:0; margin:0; border-left:1px solid #c1cabc; }
+.sk .sd-verlauf li { padding:0 0 20px 18px; position:relative; }
+.sk .sd-verlauf li::before { content:''; width:7px; height:7px; background:#6b816b; border:2px solid var(--sd-paper); position:absolute; left:-4px; top:6px; border-radius:50%; box-sizing:content-box; }
+.sk .sd-verlauf time { font:600 11px/1.4 var(--sans); color:var(--sd-muted); }
+.sk .sd-verlauf p { font-size:13px; margin:5px 0 0; }
+.sk .sd-ziele { padding:0; list-style:none; }
+.sk .sd-ziele li { display:flex; align-items:start; gap:10px; padding:10px 0; }
+.sk .sd-ziele p { font-size:13px; margin:5px 0 0; }
+/* Bestehende Entscheidungskarten behalten ihre Regeln; auf dem Schreibtisch ruhigere Bedienelemente. */
+.dossier .sk .pd-btn { min-height:40px; border-radius:7px; border:1px solid #bdc6b5; background:#e8ede0; color:#243d31; box-shadow:none; text-shadow:none; font:600 12px/1.5 var(--sans); white-space:normal; }
+.dossier .sk .pd-btn.quiet { background:transparent; }
+.dossier .sk .pd-btn:disabled { opacity:.6; cursor:not-allowed; }
+.dossier .sk button:hover:not(:disabled) { filter:none; }
+.dossier .sk .pd-btn:hover:not(:disabled) { background:#dbe5d3; border-color:#70856c; }
+.sk .mf-liste { margin:0; }
+.sk .mf-liste > li { min-width:0; }
+/* Dieses Zeichen wird auch von VorlageKarte außerhalb des Schreibtischs verwendet. */
+.sk-icon { display:grid; place-items:center; width:46px; height:46px; border-radius:50%; color:var(--pd-soft); border:1.5px solid var(--pd-line-strong); background:rgba(255,252,240,.8); }
+.sk .sk-icon { width:36px; height:36px; color:var(--sd-ink); background:#f1f3e8; }
+@container regierungsdesk (max-width:850px) {
+  .sk .sd-layout { grid-template-columns:minmax(0,1fr); }
+  .sk .sd-seite { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .sk .sd-lagekarten { grid-template-columns:minmax(0,1fr); }
+  .dossier .sk button.sd-lagekarte { display:grid; grid-template-columns:1fr auto; gap:8px 16px; padding:16px 18px; }
+  .sk .sd-lagekopf { grid-column:1/-1; justify-content:start; gap:12px; }
+  .sk .sd-nummer { font-size:16px; }
+  .sk .sd-lagekarte > strong { grid-column:1/-1; }
+  .sk .sd-grund { grid-column:1/-1; }
+  .sk .sd-oeffnen { grid-column:1/-1; padding-top:8px; }
 }
-.dossier button.sk-kz::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 4px; border-radius: 0 0 4px 4px; background: #b9954a; }
-.dossier button.sk-kz.ton-gut::before { background: #3c8a63; }
-.dossier button.sk-kz.ton-schlecht::before { background: var(--pd-bad); }
-.dossier button.sk-kz:hover { transform: translateY(-2px); box-shadow: var(--pd-schatten-hoch); border-color: var(--gold-3); }
-.dossier button.sk-kz:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
-.sk-kz-label { font: 700 12px/1.2 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--pd-soft); }
-.sk-kz-wert { font: 700 28px/1.1 var(--sans); font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.01em; white-space: nowrap; }
-.sk-trend { margin-left: 6px; font-style: normal; font-size: 13px; vertical-align: 4px; }
-.sk-trend.ton-gut { color: #1f6b47; }
-.sk-trend.ton-schlecht { color: #9a2f28; }
-.sk-trend.ton-neutral { color: var(--pd-soft); }
-.sk-kz-zusatz { font: 14px/1.3 var(--serif); color: var(--pd-soft); }
-
-/* Zustand des Präsidenten: ein ruhiger Streifen mit zwei dünnen Balken */
-.sk-verfassung { position: relative; display: flex; align-items: center; gap: 24px; padding: 9px 16px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); }
-.sk-vf-zeilen { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 28px; flex: 1; min-width: 0; }
-.sk-vf-zeile { display: grid; grid-template-columns: 124px minmax(0, 1fr) 32px; gap: 10px; align-items: center; }
-.sk-vf-label { font: 700 12px var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--pd-soft); }
-.sk-vf-balken { height: 6px; border-radius: 3px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
-.sk-vf-balken i { display: block; height: 100%; border-radius: 3px; transition: width 200ms ease; }
-.sk-vf-balken i.auf { background: #3c8a63; }
-.sk-vf-balken i.bel { background: #cf9f1a; }
-.sk-verfassung.stufe-1 .sk-vf-balken i.bel { background: #b57a2e; }
-.sk-verfassung.stufe-2 .sk-vf-balken i.bel { background: var(--seal); }
-.sk-vf-wert { font: 700 14px var(--sans); font-variant-numeric: tabular-nums; text-align: right; }
-.sk-vf-stufe { font: 15px var(--serif); color: var(--pd-soft); white-space: nowrap; }
-.sk-verfassung.stufe-1 .sk-vf-stufe { color: #7a5812; font-weight: 600; }
-.sk-verfassung.stufe-2 .sk-vf-stufe { color: #8a2d26; font-weight: 600; }
-.sk-verfassung .tip { top: calc(100% + 10px); }
-.sk-verfassung:hover .tip, .sk-verfassung:focus-visible .tip { opacity: 1; transform: translate(-50%, 0); }
-.sk-verfassung:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
-
-/* Zwei Spalten */
-.sk-spalten { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr); gap: 36px; align-items: start; }
-.sk-haupt, .sk-seite { display: grid; gap: 28px; min-width: 0; align-content: start; }
-.sk-block > h4 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--pd-line-strong); font: 650 20px/1.2 var(--display); }
-.sk-block > h4 .pd-chip { font-weight: 600; }
-
-/* Fristen und Termine */
-.sk-termine, .sk-log, .sk-ziele { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.dossier button.sk-termin {
-  display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: baseline; width: 100%; text-align: left; padding: 8px 10px; border: 1px solid transparent; border-radius: 6px;
-  background: none; box-shadow: none; color: var(--pd-ink); text-shadow: none; font: 16px/1.35 var(--serif);
+@container regierungsdesk (max-width:480px) {
+  .sk .sd-kopf { padding:22px 18px; border-radius:10px; }
+  .sk .sd-siegel { display:none; }
+  .sk .sd-kennzahlen { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dossier .sk button.sd-kennzahl { padding:14px; }
+  .sk .sd-kennzahl strong { font-size:24px; }
+  .sk .sd-panel { padding:16px 12px; }
+  .sk .sd-seite { grid-template-columns:minmax(0,1fr); }
+  .sk .sd-bereiche button > span { display:none; }
+  .dossier .sk .sd-bereiche button { font-size:12px; padding:10px 4px; }
+  .sk .sd-gruppen { gap:6px; }
+  .dossier .sk .sd-gruppen button { flex:1 1 auto; justify-content:center; padding:8px; }
+  .sk .sd-bericht { padding:16px; gap:12px; }
+  .sk .sd-bericht > svg { display:none; }
 }
-.dossier button.sk-termin:hover:not(:disabled) { background: rgba(255, 251, 238, 0.9); border-color: var(--pd-line); }
-.dossier button.sk-termin:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
-.dossier button.sk-termin:disabled { opacity: 1; cursor: default; }
-.sk-datum { font: 700 13px/1.35 var(--sans); font-variant-numeric: tabular-nums; color: var(--pd-soft); }
-.dossier button.sk-termin.dringend .sk-datum { color: #8a2d26; }
+@media (prefers-reduced-motion:reduce) { .sk *, .sk *::before, .sk *::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
 
-/* Warnungen */
-.sk-warnungen { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.dossier button.sk-warnung {
-  display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 12px; align-items: start; width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--pd-line);
-  border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); color: var(--pd-ink); text-shadow: none; transition: border-color 140ms ease;
-}
-.dossier button.sk-warnung:hover { border-color: var(--gold-3); }
-.dossier button.sk-warnung:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
-.sk-warnung strong { display: block; font: 650 16.5px/1.3 var(--display); }
-.sk-warnung em { display: block; margin-top: 2px; font: 15px/1.4 var(--serif); font-style: normal; color: var(--pd-soft); }
-.sk-punkt { width: 12px; height: 12px; margin-top: 6px; border-radius: 50%; border: 1.5px solid rgba(42, 31, 24, 0.5); }
-.sk-punkt.rot { background: var(--pd-bad); }
-.sk-punkt.gelb { background: #d0a21e; }
+.sk .sd-kraft details summary, .sk .sd-berichtdetail > summary { cursor:pointer; font:600 12px/1.5 var(--sans); }
+.sk .sd-berichtdetail { margin-top:12px; }
+.sk .sd-berichtdetail[open] { margin-top:18px; }
+.sk .sd-berichtdetail[open] > summary { margin-bottom:18px; }
+.sk .sd-bericht:has(.sd-berichtdetail[open]) { display:block; }
+.sk .sd-bericht:has(.sd-berichtdetail[open]) > svg { display:none; }
 
-/* Der Zettel der Mentorin */
-.sk-mentor-zeile { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; padding: 14px 16px; border: 1px solid rgba(167, 122, 20, 0.35); border-radius: 6px; background: linear-gradient(180deg, #fbf6d8, #f3e9b8); box-shadow: var(--pd-schatten); }
-.sk-mentor-zeile p { margin: 0 0 4px; font: italic 16px/1.5 var(--serif); color: #2b3552; }
-.sk-mentor-zeile .mehr { font-size: 16.5px; }
-.sk-mentor { padding: 14px 16px 12px; border: 1px solid rgba(167, 122, 20, 0.35); border-radius: 6px; background: linear-gradient(180deg, #fbf6d8, #f3e9b8); box-shadow: var(--pd-schatten); }
-.sk-mentor-kopf { display: flex; gap: 12px; align-items: center; }
-.sk-mentor-kopf strong { display: block; font: 650 16px var(--display); }
-.sk-mentor-kopf span { font: 14.5px var(--serif); color: var(--pd-soft); }
-.sk-note { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(35, 48, 79, 0.28); font: italic 16px/1.5 var(--serif); color: #2b3552; }
-.sk-note p { margin: 0 0 4px; }
-.sk-note .mehr { font-size: 16.5px; color: #2b3552; }
+.sk [data-sd-detail] { scroll-margin-top:18px; border-radius:8px; }
+.sk [data-sd-detail]:focus, .sk .sd-panelkopf h4:focus { outline:2px solid #287b83; outline-offset:5px; }
+.dossier .sk button.sd-kennzahl:focus-visible { outline-offset:-3px; }
 
-/* Weiteres */
-.sk-mehr { padding-top: 6px; border-top: 1px solid var(--pd-line-strong); }
-.sk-mehr > summary { display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer; list-style: none; font: 650 18px var(--display); }
-.sk-mehr > summary::-webkit-details-marker { display: none; }
-.sk-mehr > summary::before { content: "▸"; display: inline-block; width: 16px; color: var(--gold-3); transition: transform 140ms ease; }
-.sk-mehr[open] > summary::before { transform: rotate(90deg); }
-.sk-mehr > summary:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
-.sk-mehr-inhalt { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 28px; margin-top: 14px; align-items: start; }
-.sk-ziele li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 4px 0; font: 16px/1.35 var(--serif); }
-.sk-ziele li.ja { color: #1d5a3d; }
-.sk-ziele em { display: block; font: 15px/1.35 var(--serif); font-style: normal; color: var(--pd-soft); }
-.sk-log li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; padding: 5px 0; font: 15.5px/1.4 var(--serif); }
-.sk-neue-ausgabe { padding: 0 10px; border: 1px solid var(--pd-bad); border-radius: 999px; font: 700 12px/20px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: #8a2d26; }
-.dossier button.sk-zeitung-teaser {
-  display: grid; gap: 3px; width: 100%; text-align: left; padding: 12px 16px; border: 1px solid var(--pd-line); border-radius: 6px; cursor: pointer;
-  background: linear-gradient(180deg, #fbf5e6, #f0e4c6); box-shadow: var(--pd-schatten); color: var(--pd-ink); text-shadow: none;
-}
-.dossier button.sk-zeitung-teaser:hover { border-color: var(--gold-3); }
-.sk-zeitung-mast { font: 700 12px var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pd-soft); }
-.sk-zeitung-teaser strong { font: 650 18px/1.25 var(--display); }
-.sk-zeitung-teaser em { font: 14.5px var(--serif); font-style: normal; color: var(--pd-soft); }
-
-/* Weiter zu */
-.sk-tueren { display: flex; flex-wrap: wrap; gap: 10px; }
-.dossier .sk-tueren .pd-btn { gap: 8px; }
-
-@media (max-width: 1100px) {
-  .sk-spalten { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .sk-vf-zeilen { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 760px) {
-  .sk-kopf h3 { font-size: 28px; }
-  .dossier button.sk-kz { min-width: 130px; padding: 12px 14px 10px; }
-  .sk-kz-wert { font-size: 24px; }
-  .sk-verfassung { flex-direction: column; align-items: stretch; gap: 6px; }
-  .sk-vf-stufe { white-space: normal; }
-  .dossier button.sk-termin, .sk-log li { grid-template-columns: 90px minmax(0, 1fr); gap: 10px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .dossier button.sk-kz, .sk-vf-balken i, .sk-mehr > summary::before { transition: none; }
+/* Die geöffnete Fachkarte gehört zur Arbeitsfläche, nicht zu einem zweiten Stapel Fenster. */
+.sk { --pd-ink:var(--sd-ink); --pd-soft:var(--sd-muted); --pd-card:var(--sd-paper); --pd-line:var(--sd-line); }
+.sk [data-sd-detail] > :is(.ra,.rp,.rn,.zw) { padding:0; margin:8px 0; border:0; border-radius:0; background:transparent; color:var(--sd-ink); }
+.sk .mf-karte { padding:14px 0 0; border:0; background:transparent; box-shadow:none; }
+.sk .mf-karte::before { display:none; }
+.sk :is(.mf-anlass,.mf-empf-zeile,.mf-text,.mf-folgen,.mf-lager,.mf-leer,.mf-rueckmeldung,.zw p) { font:400 14px/1.65 var(--sans); }
+.sk .mf-empf-zeile em { font:400 13px/1.6 var(--sans); }
+.sk :is(.mf-option,.zw-zusage,.ra-anliegen,.rn-karte) { box-shadow:none; background:#fafbf4; }
+.sk .mf-option.empfohlen { border-color:#65896d; box-shadow:0 0 0 2px #78916b16; }
+.sk .mf-kosten span { background:#f1ead5; border-color:#d0c49d; border-radius:5px; }
+.sk .mf-marke { border-radius:5px; white-space:normal; }
+@container regierungsdesk (max-width:480px) {
+  .sk .mf-kopf { grid-template-columns:auto minmax(0,1fr); }
+  .sk .mf-marken { grid-column:1/-1; justify-content:start; }
 }
 
-/* Platzhalter-Symbol einer Vorlage ohne Minister */
-.sk-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: var(--pd-soft); border: 1.5px solid var(--pd-line-strong); background: rgba(255, 252, 240, 0.8); }
+.sk .mf-optionen > .mf-option:only-child > .pd-btn { min-width:0; align-self:stretch; }

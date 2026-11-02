@@ -1,0 +1,16 @@
+{
+  "datum": "2026-10-30",
+  "umfang": "Verhandlungsoberfläche und nachvollziehbare politische Folgen",
+  "tests": {
+    "success": true,
+    "numPassedTests": 95,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "browser": "Nach erneuter Freigabe weiterhin durch gespeicherte/verwaltete Website-Sperre blockiert. Keine visuelle Prüfung.",
+  "automation": {
+    "id": "nwo-ber-nacht-verbessern",
+    "status": "ACTIVE",
+    "bis": "2026-10-31 08:00 Europe/Berlin"
+  }
+}

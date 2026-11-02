@@ -8,6 +8,8 @@ import { addDays, formatDateDe } from "../../sim/dates";
 import { brecheFrei, loeseEin, vertroesteFrei, zusagenBilanz, zusagenSicht, zusageBezug, zusageText, zusageVon, type ZusageAntwort, type ZusageSicht } from "../../sim/zusagen";
 import { Balken, Portraet, tonVon } from "./bausteine";
 import { t as tx } from "../../i18n";
+import { zusagenDruck } from "../../sim/zusagendruck";
+import { ZusagenDruck } from "./ZusagenDruck";
 
 const DRING_TEXT: Record<ZusageSicht["dringlichkeit"], string> = { ruhig: "in Ruhe", bald: "bald fällig", dringend: "dringend", ueberfaellig: "überfällig" };
 
@@ -30,6 +32,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
   const [wirklich, setWirklich] = useState<string | null>(null);
   const sicht = zusagenSicht(world);
   const bilanz = zusagenBilanz(world);
+  const druck = [...new Set(spiel.lager)].flatMap(p => { const d=zusagenDruck(world,p); return d?[d]:[]; });
   const erledigt = spiel.zusagen.filter((z) => z.erfuellt || z.gebrochen).sort((a, b) => (b.abgeschlossen ?? 0) - (a.abgeschlossen ?? 0));
 
   function tu(id: string, f: () => ZusageAntwort) {
@@ -70,6 +73,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
           </p>
         )}
         {sicht.length === 0 && <p className="pe-leer">{t("ui.personen.ZusagenAnsicht.923a607")}</p>}
+        {druck.map(d=><ZusagenDruck key={d.partei} lage={d}/>)}
         <div className="pe-zusagen">
           {sicht.map((s) => (
             <article key={s.z.id} className={`pe-zusage ${s.dringlichkeit}`}>
@@ -88,6 +92,12 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                   </small>
                 </div>
               </header>
+              {s.gesetz && (
+                <div className="pe-zusage-gesetz">
+                  <strong>{s.gesetz.titel}</strong>
+                  <p>{s.gesetz.text}</p>
+                </div>
+              )}
               {s.fortschritt && (
                 <div>
                   <Balken
@@ -118,8 +128,8 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                 </div>
               </div>
               <div className="pe-aktionen">
-                <button className="pe-aktion haupt" onClick={() => tu(s.z.id, () => loeseEin(world, s.z))} disabled={s.fortschritt?.imParlament} title={s.fortschritt?.imParlament ? tx("ui2.ui.personen.ZusagenAnsicht.dc72b81") : tx("ui2.ui.personen.ZusagenAnsicht.67fe9f3")}>
-                  {t("ui.personen.ZusagenAnsicht.104b3fd")}
+                <button className="pe-aktion haupt" onClick={() => tu(s.z.id, () => loeseEin(world, s.z))} disabled={s.gesetz?.gesperrt} title={s.gesetz ? s.gesetz.text : s.fortschritt?.imParlament ? tx("ui2.ui.personen.ZusagenAnsicht.dc72b81") : tx("ui2.ui.personen.ZusagenAnsicht.67fe9f3")}>
+                  {s.gesetz?.aktion ?? t("ui.personen.ZusagenAnsicht.104b3fd")}
                 </button>
                 {s.z.massnahme && onMassnahme && (
                   <button className="pe-aktion" onClick={() => onMassnahme(s.z.massnahme!, (s.z.richtung ?? 1) > 0 ? 1 : -1)}>

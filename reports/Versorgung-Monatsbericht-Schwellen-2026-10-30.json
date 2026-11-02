@@ -1,0 +1,18 @@
+{
+  "datum": "2026-10-30",
+  "umfang": "Grenzwerte der parlamentarischen Monatsreaktion und verständliche Rundung",
+  "tests": {
+    "success": true,
+    "numPassedTests": 73,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "build": true,
+  "typescript": true,
+  "browserGeprueft": false,
+  "veroeffentlicht": false,
+  "protokolle": [
+    "/private/tmp/nwo-monatsbericht-schwellen-20261030.json",
+    "/private/tmp/nwo-monatsbericht-schwellen-build-20261030.log"
+  ]
+}

@@ -1,0 +1,280 @@
+{
+  "title": "Schreibtisch: aktuelle politische Lage und feste Zusagenziele",
+  "createdAtUtc": "2026-10-31T02:09:42.527Z",
+  "before": {
+    "passed": 0,
+    "failed": 4,
+    "regressions": [
+      "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein ein inaktiver ehemaliger Vorsitz löst weder Warnung noch Mentor-Bruchhinweis aus",
+      "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein der gefährdetste aktive Vorsitz erhält Vorrang vor einem nur unzufriedenen Partner",
+      "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein der Zusagensprung verwendet das vereinbarte Landesziel statt weiterer zwanzig Punkte",
+      "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein die Terminzeile berücksichtigt Stimmenabsprachen und Duldungsende zum Votum"
+    ]
+  },
+  "verification": {
+    "distinctPassed": 33,
+    "newCases": 18,
+    "existingCases": 15,
+    "failed": 0,
+    "runs": [
+      {
+        "source": "final",
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "source": "mentor",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 20
+      },
+      {
+        "source": "neutral",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 17
+      }
+    ],
+    "tests": [
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Sechs Kennzahlen mit endlichen Werten, alle führen zu einer Akte",
+        "status": "passed",
+        "durationMs": 16.714458999999806
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Das Briefing eines frischen Spiels ist vollständig und ohne kaputte Zahlen",
+        "status": "passed",
+        "durationMs": 76.61329100000012
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Warnungen folgen dem Zustand: Pump, knappes Kapital, fehlende Mehrheit, Sturzgefahr",
+        "status": "passed",
+        "durationMs": 102.6067909999997
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Fälliges: Ereignis mit Frist, Gesetz mit Abstimmung und Zusage stehen nach Dringlichkeit geordnet da",
+        "status": "passed",
+        "durationMs": 6.26195800000005
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Fehlt die Mehrheit, rät das Fraktionsbüro zu einem Gespräch, und das Gespräch lässt sich wirklich führen",
+        "status": "passed",
+        "durationMs": 30.003791999999976
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Der Fachstab schlägt Vorhaben vor, die es im Netz gibt und die sich einbringen lassen",
+        "status": "passed",
+        "durationMs": 34.507416999999805
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Die Empfehlungen ändern sich mit der Lage: ein eingebrachtes Vorhaben verschwindet aus der Liste",
+        "status": "passed",
+        "durationMs": 58.30074999999988
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Termine: Wahl, Abstimmungen und der Kalender des Staatsjahres, aufsteigend nach Tagen",
+        "status": "passed",
+        "durationMs": 4.17712500000016
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Kalender: Die Ereignisvorlagen gibt es, und die Monatsrechnung trifft den ersten des Monats",
+        "status": "passed",
+        "durationMs": 3.909125000000131
+      },
+      {
+        "file": "test/schreibtisch-briefing.test.ts",
+        "name": "Tagesbriefing Über mehrere Jahre bleibt das Briefing stabil (keine Ausnahmen, keine kaputten Zahlen)",
+        "status": "passed",
+        "durationMs": 2326.433417
+      },
+      {
+        "file": "test/schreibtisch-katalog.test.ts",
+        "name": "Schreibtisch-Katalog rendert das Briefing auf tr ohne deutsche Satzbausteine",
+        "status": "passed",
+        "durationMs": 233.3754170000002
+      },
+      {
+        "file": "test/schreibtisch-katalog.test.ts",
+        "name": "Schreibtisch-Katalog rendert das Briefing auf en ohne deutsche Satzbausteine",
+        "status": "passed",
+        "durationMs": 192.8354159999999
+      },
+      {
+        "file": "test/schreibtisch-katalog.test.ts",
+        "name": "Schreibtisch-Katalog hat in allen Sprachen dieselben Schlüssel und Platzhalter",
+        "status": "passed",
+        "durationMs": 4.00754199999983
+      },
+      {
+        "file": "test/schreibtisch-katalog.test.ts",
+        "name": "Oberflächen-Katalog hat in allen Sprachen dieselben Schlüssel, ohne leere Texte und ohne Platzhalter",
+        "status": "passed",
+        "durationMs": 12.863958000000366
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein ein inaktiver ehemaliger Vorsitz löst weder Warnung noch Mentor-Bruchhinweis aus",
+        "status": "passed",
+        "durationMs": 50.48462500000005
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein der gefährdetste aktive Vorsitz erhält Vorrang vor einem nur unzufriedenen Partner",
+        "status": "passed",
+        "durationMs": 30.025583000000097
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein der Zusagensprung verwendet das vereinbarte Landesziel statt weiterer zwanzig Punkte",
+        "status": "passed",
+        "durationMs": 6.884667000000263
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein die Terminzeile berücksichtigt Stimmenabsprachen und Duldungsende zum Votum",
+        "status": "passed",
+        "durationMs": 6.221209000000272
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 19.9999 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 15.18404099999998
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 20 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 14.241457999999966
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 34.9999 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 16.455999999999676
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 35 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 16.009624999999687
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein ein echtes Gespräch entfernt die akute Bruchwarnung, aber lässt die Frühwarnung bestehen",
+        "status": "passed",
+        "durationMs": 62.84787499999993
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Opposition, eigene Partei und inaktive Personen erzeugen keine Koalitionsbruchwarnung",
+        "status": "passed",
+        "durationMs": 2.3365420000000086
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein gleicher Tag und gleiche Anzahlen dürfen andere Duldung, Frist und Zwangspause zeigen",
+        "status": "passed",
+        "durationMs": 49.16370800000004
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein gleiche Weltkennzahlen beim Laden verwechseln keine anderen Sitzverhältnisse und Vorsitzenden",
+        "status": "passed",
+        "durationMs": 61.733124999999745
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein ein festes niedrigeres Ziel bleibt auch nach späterem Umsetzungsfortschritt dasselbe",
+        "status": "passed",
+        "durationMs": 3.3972090000002026
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein die parlamentarische Frist wird nach einer geänderten Mehrheit sofort als dringend eingestuft",
+        "status": "passed",
+        "durationMs": 6.4538330000000315
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Lage und Mentorin folgen dem Sprachwechsel am selben Tag auf de",
+        "status": "passed",
+        "durationMs": 496.4748749999999
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Lage und Mentorin folgen dem Sprachwechsel am selben Tag auf en",
+        "status": "passed",
+        "durationMs": 261.53891699999986
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Lage und Mentorin folgen dem Sprachwechsel am selben Tag auf tr",
+        "status": "passed",
+        "durationMs": 236.4902920000004
+      },
+      {
+        "file": "test/takt.test.ts",
+        "name": "Kabinett, Mentorin und Kalender Mentorin: jede Notiz nur einmal, die dringendste zuerst",
+        "status": "passed",
+        "durationMs": 109.838708
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein wiederholtes Lesen der aktuellen Lage verändert weder laufende Zusagen noch Gesetze oder den Spielstand",
+        "status": "passed",
+        "durationMs": 154.50637500000016
+      }
+    ],
+    "note": "Die maschinenabhaengige Laufzeitgrenze wurde durch einen deterministischen Zustandsvergleich mit laufendem Gesetz und offener Zusage ersetzt. Der ersetzte Test wird nicht zusaetzlich gezaehlt."
+  },
+  "actualAction": {
+    "action": "verhandle: YENİ, gespraech",
+    "loyaltyBefore": 19,
+    "loyaltyAfter": 24,
+    "warningBefore": "rot",
+    "warningAfter": "gelb",
+    "sameSimulationDay": true,
+    "sameWorldObject": true
+  },
+  "build": {
+    "command": "npm run build",
+    "typescript": "passed",
+    "production": "passed",
+    "exitCode": 0,
+    "log": "/private/tmp/nwo-schreibtischlage-build-20261031.log",
+    "knownWarnings": [
+      "optionaler Import infrastrukturEtat",
+      "Paketgroessen"
+    ]
+  },
+  "limits": {
+    "browserVerified": false,
+    "screenshots": [],
+    "visualLayoutVerified": false,
+    "fullSuiteRun": false,
+    "localOnly": true,
+    "published": false,
+    "note": "SSR und Simulation ersetzen keine Browserpruefung. Prognosen beruecksichtigen bekannte Absprachen und Fristen, keine unbekannten spaeteren Monatsfolgen."
+  },
+  "sourceSha256": {
+    "src/ui/koalitionshinweis.ts": "d542a80734eb078e6d0411fb911c00449e2aba8a93991e95a5bf1e4f43b6da17",
+    "src/ui/mentor.ts": "a4c7ac43311b796608ac3c6efc7d32d7073f7f9fd1c7fe0bc782af6833433946",
+    "src/ui/schreibtisch/briefing.ts": "cb7d9d1a02e5491ab8c5589889f6d51ea6cf5427e757ac7a159dfc63a257e534",
+    "src/ui/schreibtisch/Schreibtisch.tsx": "0c4a122e53c03b9a4ed0973a8e614de1bfada9b4dab45ef80ba55038c8749243",
+    "test/schreibtisch-lage-aktuell.test.tsx": "4bb3e0979b5f62a778b7c85acab8b1763b09f0df8732b4ddc537f433a4150ca5",
+    "src/i18n/katalog/de/schreibtischlage.json": "e27c6cbfd814192c4baa28c3ed68a2a4be05be58ffb2bff9442cb8d494606686",
+    "src/i18n/katalog/en/schreibtischlage.json": "cb4b77a6c3db396c1600d3fed9a4ba019853f0cb3b82ce89c60911df4edd5710",
+    "src/i18n/katalog/tr/schreibtischlage.json": "2b0011aeda395cdccd09a86d4521288b298ada2cec1898983dc9b08938e12026"
+  }
+}

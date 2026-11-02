@@ -180,7 +180,7 @@ describe("Politisches Kapital und Parlament", () => {
 });
 
 describe("Verwaltungskapazität", () => {
-  test("Viele laufende Vorhaben verteuern und verlangsamen jedes weitere", () => {
+  test("Viele laufende Vorhaben verlangsamen jedes weitere ohne pauschalen Preisaufschlag", () => {
     const w = spiel();
     const start = pruefeVorhaben(w, "m_krankenhausbau", 80);
     expect(start.ueberlast).toBe(1);
@@ -189,7 +189,7 @@ describe("Verwaltungskapazität", () => {
     expect(offeneVorhaben(w)).toBeGreaterThan(REGELN.kapazitaet);
     expect(ueberlast(w, 1)).toBeGreaterThan(1.3);
     const spaeter = pruefeVorhaben(w, "m_krankenhausbau", 80);
-    expect(spaeter.gesetz.pk).toBeGreaterThan(start.gesetz.pk);
+    expect(spaeter.gesetz.pk).toBe(start.gesetz.pk);
     expect(spaeter.monate).toBeGreaterThan(start.monate);
   });
 });

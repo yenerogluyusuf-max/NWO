@@ -1,0 +1,12 @@
+{
+  "zd.titel": "Fristen gemeinsam im Blick",
+  "zd.nachSchritt": "Nach diesem Schritt bleiben diese Fristen",
+  "zd.summe": "Offene Erinnerungen vor der Monatsprüfung am {datum}: {n}. Falls sie unbeantwortet verfallen, sinkt die Loyalität des schwächsten Vorsitzes von {vor} auf {nach}.",
+  "zd.bruch": "Damit läge der Vorsitz unter 20. Dieser Partner könnte bei der Monatsprüfung {sitze} Regierungssitze entziehen; {rest} blieben.",
+  "zd.puffer": "Diese bekannten Verfälle allein unterschreiten die Bruchschwelle nicht. Andere politische Folgen können den verbleibenden Puffer aufbrauchen.",
+  "zd.schritt": "Zuerst „{zusage}“ bearbeiten: vor dem Tageswechsel zum {datum} erfüllen oder die Folgen einer Vertröstung prüfen. Ein Gespräch schließt die Erinnerung nicht.",
+  "zd.antworten": "Dringendste Erinnerung beantworten",
+  "zd.details": "Die {n} betroffenen Erinnerungen und ihre Fristen",
+  "zd.frist": "Verfall beim Tageswechsel zum {datum}",
+  "zd.grenze": "Bedingte Rechnung aus bereits geöffneten Erinnerungen, einschließlich eines Verfalls am Prüfungstag. Noch nicht geöffnete Erinnerungen, künftige Beschlüsse, Gespräche und sonstige Monatsfolgen sind nicht vorweggenommen. Heute wird dadurch nichts abgezogen."
+}

@@ -333,3 +333,17 @@
   .pe-blase { animation: none; }
   .pe-bar i { transition: none; }
 }
+
+/* Die Zusagenakte kann auch innerhalb eines breiten Fensters schmal sein. */
+.pe-zusagen-seite { container-type: inline-size; container-name: zusagenakte; min-width: 0; }
+.pe-zusage { min-width: 0; overflow-wrap: anywhere; }
+.pe-zusage-gesetz { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--teal) 25%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--teal) 6%, var(--paper-light)); }
+.pe-zusage-gesetz strong { font: 600 14px/1.4 var(--display); color: var(--teal); }
+.pe-zusage-gesetz p { margin: 4px 0 0; font: 14px/1.5 var(--serif); }
+@container zusagenakte (max-width: 600px) {
+  .pe-bilanz, .pe-vorher { grid-template-columns: minmax(0, 1fr); }
+  .pe-zusage header { grid-template-columns: auto minmax(0, 1fr); }
+  .pe-zusage header .pe-frist { grid-column: 1 / -1; text-align: left; }
+  .pe-zusage .pe-aktionen { flex-wrap: wrap; }
+  .pe-zusage .pe-aktion { white-space: normal; text-align: left; }
+}

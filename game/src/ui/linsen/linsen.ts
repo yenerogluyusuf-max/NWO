@@ -17,6 +17,7 @@ const REGELN: Partial<Record<Kartenebene, (w: World) => boolean>> = {
   erbe: (w) => !!w.spiel,
   welt: (w) => !!w.spiel,
   belastung: (w) => !!w.spiel,
+  versorgung: (w) => !!w.spiel,
 };
 
 /** Alle verfügbaren Linsen in der Reihenfolge der Tafel (Politiknetz gehört nicht dazu, es hat seinen eigenen Weg). */
@@ -28,7 +29,8 @@ export function linsenVerfuegbar(w: World): Kartenebene[] {
 }
 
 /** Tastenkürzel nach Platz in der Tafel: 1 bis 9, dann 0, dann R (Katastrophenrisiko), K (Kulturerbe), B (Beziehungen), S (Strategische Orte). */
-export const LINSEN_TASTEN = "1234567890rkbs";
+export const LINSEN_TASTEN = "123456789v0rkbs";
+const TASTE: Partial<Record<Kartenebene,string>> = {gelaende:"1",regionen:"2",wahl:"3",rueckhalt:"4",wirtschaft:"5",arbeitslosigkeit:"6",infrastruktur:"7",ressourcen:"8",belastung:"9",versorgung:"V",probleme:"0",risiko:"R",erbe:"K",welt:"B",strategie:"S"};
 
 export interface Linse {
   id: Kartenebene;
@@ -61,7 +63,6 @@ export function streifenFuer(w: World, id: Kartenebene, netKnoten = "p_wasserman
 /** Die Linsen der Tafel, gruppiert; leere Gruppen entfallen. Die Tastenfolge läuft über die Gruppen hinweg. */
 export function linsenGruppen(w: World, mitStreifen = true): { id: LinsenGruppe; label: string; linsen: Linse[] }[] {
   const frei = new Set(linsenVerfuegbar(w));
-  let platz = 0;
   const gruppen: { id: LinsenGruppe; label: string; linsen: Linse[] }[] = [];
   for (const g of LINSEN_GRUPPEN) {
     const linsen: Linse[] = [];
@@ -73,10 +74,9 @@ export function linsenGruppen(w: World, mitStreifen = true): { id: LinsenGruppe;
         kurz: ebeneKurz(e.id, w),
         icon: e.icon,
         gruppe: g.id,
-        taste: platz < LINSEN_TASTEN.length ? LINSEN_TASTEN[platz]!.toUpperCase() : null,
+        taste: TASTE[e.id] ?? null,
         streifen: mitStreifen ? streifenFuer(w, e.id) : "",
       });
-      platz++;
     }
     const gruppenLabelKey = `karte.gruppe.${g.id}`;
     const gruppenLabel = t(gruppenLabelKey);

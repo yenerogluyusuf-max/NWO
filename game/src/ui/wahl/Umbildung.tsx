@@ -53,7 +53,7 @@ function willSchluessel(m: Pick<UmbildungMinister, "groll" | "kommissarisch" | "
 // Kleine Sinnbilder für die drei Kennzahlen (Handschlag, Zahnrad, Flamme), 12 px
 function Sinnbild({ art }: { art: "loyal" | "kompetenz" | "ehrgeiz" }) {
   return (
-    <svg className="ub-ikon" width="14" height="14" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg className="umb-ikon" width="14" height="14" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       {art === "loyal" && <path d="M3 12l5 5 3-2 3 2 7-7M3 12l4-4 4 1 4-2 6 5M8 17l-2 2M11 15l-1.5 2" />}
       {art === "kompetenz" && (
         <>
@@ -68,9 +68,9 @@ function Sinnbild({ art }: { art: "loyal" | "kompetenz" | "ehrgeiz" }) {
 
 function Kennzahl({ art, name, wert }: { art: "loyal" | "kompetenz" | "ehrgeiz"; name: string; wert: number }) {
   return (
-    <div className={`ub-wert ${art}`} title={`${name}: ${wert}`}>
+    <div className={`umb-wert ${art}`} title={`${name}: ${wert}`}>
       <Sinnbild art={art} />
-      <span className="ub-wert-name">{name}</span>
+      <span className="umb-wert-name">{name}</span>
       <b>{wert}</b>
       <i aria-hidden>
         <u style={{ width: `${balken(wert)}%` }} />
@@ -81,7 +81,7 @@ function Kennzahl({ art, name, wert }: { art: "loyal" | "kompetenz" | "ehrgeiz";
 
 function Krone() {
   return (
-    <svg className="ub-krone" width="16" height="16" viewBox="0 0 24 24" aria-hidden fill="currentColor">
+    <svg className="umb-krone" width="16" height="16" viewBox="0 0 24 24" aria-hidden fill="currentColor">
       <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" />
     </svg>
   );
@@ -128,34 +128,34 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
   const tauscher = useMemo(() => sicht.minister.find((m) => m.amt === tausch) ?? null, [sicht.minister, tausch]);
 
   return (
-    <div className="ub-layer" role="dialog" aria-modal="true" aria-labelledby="ub-titel">
-      <article className="frame ub">
+    <div className="umb-layer" role="dialog" aria-modal="true" aria-labelledby="umb-titel">
+      <article className="frame umb">
         <Corners />
-        <header className="ub-kopf">
-          <div className="ub-kopf-text">
+        <header className="umb-kopf">
+          <div className="umb-kopf-text">
             <p className="kicker">{sicht.anlass === "nachgereicht" ? t("umbildung.ui.kicker_nachgereicht") : t("umbildung.ui.kicker")}</p>
-            <h2 id="ub-titel">{t("umbildung.ui.titel")}</h2>
+            <h2 id="umb-titel">{t("umbildung.ui.titel")}</h2>
             <Flourish width={150} />
-            <p className="ub-einleitung">{t("umbildung.ui.einleitung", { tage: sicht.tageBisEnde, rabatt: Math.round((1 - sicht.rabatt) * 100) })}</p>
+            <p className="umb-einleitung">{t("umbildung.ui.einleitung", { tage: sicht.tageBisEnde, rabatt: Math.round((1 - sicht.rabatt) * 100) })}</p>
           </div>
-          <div className="ub-kopf-zaehler" aria-live="polite">
-            <span className="ub-zaehler-zahl">
+          <div className="umb-kopf-zaehler" aria-live="polite">
+            <span className="umb-zaehler-zahl">
               {erledigt}
               <small> / {sicht.minister.length}</small>
             </span>
-            <span className="ub-zaehler-text">{t("umb2.zaehler", { n: erledigt, von: sicht.minister.length })}</span>
-            <i className="ub-zaehler-balken" aria-hidden>
+            <span className="umb-zaehler-text">{t("umb2.zaehler", { n: erledigt, von: sicht.minister.length })}</span>
+            <i className="umb-zaehler-balken" aria-hidden>
               <u style={{ width: `${(erledigt / Math.max(1, sicht.minister.length)) * 100}%` }} />
             </i>
           </div>
         </header>
         {meldung && (
-          <p className="ub-meldung" role="status">
+          <p className="umb-meldung" role="status">
             {meldung}
           </p>
         )}
         {tauscher && (
-          <p className="ub-tauschhinweis" role="status">
+          <p className="umb-tauschhinweis" role="status">
             <span>{t("umb2.tausch.hinweis", { name: tauscher.name })}</span>
             <button type="button" className="leather-button" onClick={() => setTausch(null)}>
               {t("umb2.tausch.abbrechen")}
@@ -163,8 +163,8 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
           </p>
         )}
 
-        <div className="ub-koerper">
-          <section className="ub-tisch" aria-label={t("umb2.tisch.aria")}>
+        <div className="umb-koerper">
+          <section className="umb-tisch" aria-label={t("umb2.tisch.aria")}>
             {sicht.minister.map((m, idx) => {
               const stim = stimmungVon(m);
               const farbe = RESSORT_FARBE[m.amt] ?? "#7c5823";
@@ -174,48 +174,48 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
                 <section
                   key={m.amt}
                   style={{ ["--i" as string]: idx }}
-                  className={`ub-karte${m.entschieden ? ` erledigt ${m.entschieden}` : ""}${ziel ? " tauschziel" : ""}${blitz.includes(m.amt) ? " blitz" : ""}${tausch === m.amt ? " tauscht" : ""}`}
+                  className={`umb-karte${m.entschieden ? ` erledigt ${m.entschieden}` : ""}${ziel ? " tauschziel" : ""}${blitz.includes(m.amt) ? " blitz" : ""}${tausch === m.amt ? " tauscht" : ""}`}
                 >
-                  <div className="ub-person">
+                  <div className="umb-person">
                     <Portraet seed={m.name} geschlecht={m.weiblich ? "f" : "m"} tint={farbe} rolle={m.amt} stimmung={stim} size={150} titel={t("umb2.portraet", { name: m.name })} />
-                    <div className="ub-name">
-                      <span className="ub-band" style={{ background: farbe }}>
+                    <div className="umb-name">
+                      <span className="umb-band" style={{ background: farbe }}>
                         {m.rolle}
                       </span>
                       <h3>{m.name}</h3>
-                      <div className="ub-abz">
-                        {m.kommissarisch && <span className="ub-chip warn">{t("umb2.abz.kommissarisch")}</span>}
+                      <div className="umb-abz">
+                        {m.kommissarisch && <span className="umb-chip warn">{t("umb2.abz.kommissarisch")}</span>}
                         {kronAmt.has(m.amt) && (
-                          <span className="ub-chip krone">
+                          <span className="umb-chip krone">
                             <Krone />
                             {t("umb2.abz.kronprinz")}
                           </span>
                         )}
-                        {rivale && <span className="ub-chip warn">{t("umb2.abz.rivale")}</span>}
-                        {m.groll >= 40 && <span className="ub-chip warn">{t("umb2.abz.groll")}</span>}
+                        {rivale && <span className="umb-chip warn">{t("umb2.abz.rivale")}</span>}
+                        {m.groll >= 40 && <span className="umb-chip warn">{t("umb2.abz.groll")}</span>}
                       </div>
                     </div>
                   </div>
-                  <p className="ub-will">{t(`umb2.will.${willSchluessel(m)}`)}</p>
-                  <div className="ub-werte">
+                  <p className="umb-will">{t(`umb2.will.${willSchluessel(m)}`)}</p>
+                  <div className="umb-werte">
                     <Kennzahl art="loyal" name={t("umbildung.ui.loyalitaet")} wert={m.loyalitaet} />
                     <Kennzahl art="kompetenz" name={t("umbildung.ui.faehigkeit")} wert={m.faehigkeit} />
                     <Kennzahl art="ehrgeiz" name={t("umbildung.ui.ehrgeiz")} wert={m.ehrgeiz} />
                   </div>
-                  <div className="ub-aktionen">
-                    <button type="button" className="ub-akt" disabled={!sicht.offen || !!m.entschieden} onClick={() => onBehalten(m.amt)} title={t("umbildung.ui.behalten")}>
+                  <div className="umb-aktionen">
+                    <button type="button" className="umb-akt" disabled={!sicht.offen || !!m.entschieden} onClick={() => onBehalten(m.amt)} title={t("umbildung.ui.behalten")}>
                       <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 12.5l5 5L20 6.5" />
                       </svg>
                       {t("umbildung.ui.behalten")}
                     </button>
-                    <button type="button" className="ub-akt" disabled={!sicht.offen} aria-expanded={schublade === m.amt} onClick={() => setSchublade(schublade === m.amt ? null : m.amt)} title={t("umbildung.ui.ersetzen")}>
+                    <button type="button" className="umb-akt" disabled={!sicht.offen} aria-expanded={schublade === m.amt} onClick={() => setSchublade(schublade === m.amt ? null : m.amt)} title={t("umbildung.ui.ersetzen")}>
                       <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 8h13l-3-3M20 16H7l3 3" />
                       </svg>
                       {t("umbildung.ui.ersetzen")}
                     </button>
-                    <button type="button" className="ub-akt" disabled={!sicht.offen || kapital < PREIS.versetzen} aria-pressed={tausch === m.amt} onClick={() => setTausch(tausch === m.amt ? null : m.amt)} title={`${t("umbildung.ui.versetzen")} (${PREIS.versetzen})`}>
+                    <button type="button" className="umb-akt" disabled={!sicht.offen || kapital < PREIS.versetzen} aria-pressed={tausch === m.amt} onClick={() => setTausch(tausch === m.amt ? null : m.amt)} title={`${t("umbildung.ui.versetzen")} (${PREIS.versetzen})`}>
                       <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M7 4L3 8l4 4M3 8h12M17 20l4-4-4-4M21 16H9" />
                       </svg>
@@ -223,12 +223,12 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
                     </button>
                   </div>
                   {anspruch.length > 0 && (
-                    <div className="ub-parteien">
+                    <div className="umb-parteien">
                       {anspruch.map((p) => (
                         <button
                           key={p.partei}
                           type="button"
-                          className="ub-parteichip"
+                          className="umb-parteichip"
                           style={{ ["--pf" as string]: PARTY_COLORS[p.partei] ?? "#8a7a64" }}
                           disabled={!sicht.offen || kapital < PREIS.partner || !!m.entschieden || p.vergeben >= p.anspruch}
                           onClick={() => onPartner(m.amt, p.partei)}
@@ -241,7 +241,7 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
                     </div>
                   )}
                   {ziel && (
-                    <button type="button" className="ub-tauschknopf" disabled={kapital < PREIS.versetzen} onClick={() => {
+                    <button type="button" className="umb-tauschknopf" disabled={kapital < PREIS.versetzen} onClick={() => {
                       const von = tauscher!.amt;
                       onVersetzen(von, m.amt);
                       blitzen(von, m.amt);
@@ -250,39 +250,39 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
                       {t("umb2.tausch.hierher", { pk: PREIS.versetzen })}
                     </button>
                   )}
-                  {m.entschieden && <span className={`ub-stempel ${m.entschieden}`}>{t(`umbildung.ui.entschieden.${m.entschieden}`)}</span>}
+                  {m.entschieden && <span className={`umb-stempel ${m.entschieden}`}>{t(`umbildung.ui.entschieden.${m.entschieden}`)}</span>}
                 </section>
               );
             })}
           </section>
 
-          <aside className="ub-seite">
-            <section className="ub-folgen" aria-label={t("umb2.folgen.titel")}>
+          <aside className="umb-seite">
+            <section className="umb-folgen" aria-label={t("umb2.folgen.titel")}>
               <h3>{t("umb2.folgen.titel")}</h3>
               <ul>
                 <li>
-                  <span className={`ub-pfeil ${pfKapital}`} aria-hidden />
+                  <span className={`umb-pfeil ${pfKapital}`} aria-hidden />
                   <span>
                     <b>{t("umb2.folgen.kapital")}</b>
                     <small>{Math.floor(kapital)}</small>
                   </span>
                 </li>
                 <li>
-                  <span className={`ub-pfeil ${pfLoyal}`} aria-hidden />
+                  <span className={`umb-pfeil ${pfLoyal}`} aria-hidden />
                   <span>
                     <b>{t("umb2.folgen.loyalitaet")}</b>
                     <small>{Math.round(loyalJetzt)}</small>
                   </span>
                 </li>
                 <li>
-                  <span className={`ub-pfeil ${anspruch.length === 0 ? "gleich" : offeneAnsprueche === 0 ? "auf" : "ab"}`} aria-hidden />
+                  <span className={`umb-pfeil ${anspruch.length === 0 ? "gleich" : offeneAnsprueche === 0 ? "auf" : "ab"}`} aria-hidden />
                   <span>
                     <b>{t("umb2.folgen.partner")}</b>
                     <small>{anspruch.length === 0 ? "–" : offeneAnsprueche === 0 ? t("umb2.folgen.partner_zufrieden") : t("umb2.folgen.partner_offen", { n: offeneAnsprueche })}</small>
                   </span>
                 </li>
                 <li>
-                  <span className={`ub-pfeil ${marktNervoes ? "ab" : "gleich"}`} aria-hidden />
+                  <span className={`umb-pfeil ${marktNervoes ? "ab" : "gleich"}`} aria-hidden />
                   <span>
                     <b>{t("umb2.folgen.markt")}</b>
                     <small>{marktNervoes ? t("umb2.folgen.markt_nervoes") : t("umb2.folgen.markt_ruhig")}</small>
@@ -292,9 +292,9 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
             </section>
 
             {anspruch.length > 0 && (
-              <section className="ub-partner" aria-label={t("umbildung.ui.partner_aria")}>
+              <section className="umb-partner" aria-label={t("umbildung.ui.partner_aria")}>
                 {anspruch.map((p) => (
-                  <div key={p.partei} className="ub-partnerzeile">
+                  <div key={p.partei} className="umb-partnerzeile">
                     <i style={{ background: PARTY_COLORS[p.partei] ?? "#8a7a64" }} aria-hidden />
                     <span>{t("umbildung.ui.partner_anspruch", { partei: p.name, sitze: p.sitze, anspruch: p.anspruch, vergeben: p.vergeben })}</span>
                   </div>
@@ -303,7 +303,7 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
             )}
 
             {aspiranten && aspiranten.length > 0 && (
-              <section className="ub-kronprinzen" aria-label={t("umbildung.ui.kronprinzen")}>
+              <section className="umb-kronprinzen" aria-label={t("umbildung.ui.kronprinzen")}>
                 <h3>
                   <Krone />
                   {t("umbildung.ui.kronprinzen")}
@@ -324,7 +324,7 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
             )}
 
             {zwischenbilanz && (
-              <details className="ub-bilanz">
+              <details className="umb-bilanz">
                 <summary>{t("umbildung.ui.zwischenbilanz")}</summary>
                 <table>
                   <tbody>
@@ -353,19 +353,20 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
         </div>
 
         {wahl && (
-          <aside className="ub-schublade" role="region" aria-label={t("umb2.schublade.titel", { rolle: wahl.rolle })}>
+          <aside className="umb-schublade" role="region" aria-label={t("umb2.schublade.titel", { rolle: wahl.rolle })}>
             <header>
               <h3>{t("umb2.schublade.titel", { rolle: wahl.rolle })}</h3>
               <button type="button" className="leather-button" onClick={() => setSchublade(null)}>
                 {t("umb2.schublade.zu")}
               </button>
             </header>
-            <div className="ub-schublade-liste">
+            {!!wahl.politischeFolgen?.length&&<details open><summary>{t('rp.fraktionen')}</summary><ul>{wahl.politischeFolgen.map(text=><li key={text}>{text}</li>)}</ul></details>}
+            <div className="umb-schublade-liste">
               {wahl.kandidaten.length === 0 && <p>{t("umb2.schublade.keine")}</p>}
               {wahl.kandidaten.map((k) => (
-                <article key={k.id} className="ub-kandidat">
+                <article key={k.id} className="umb-kandidat">
                   <Portraet seed={k.name} tint={RESSORT_FARBE[wahl.amt] ?? "#7c5823"} rolle={wahl.amt} stimmung={k.loyalitaet >= 60 ? "sicher" : k.ehrgeiz >= 65 ? "selbstgefaellig" : "neutral"} size={112} titel={t("umb2.portraet", { name: k.name })} />
-                  <div className="ub-kandidat-text">
+                  <div className="umb-kandidat-text">
                     <strong>{k.name}</strong>
                     <p className="herkunft">{k.herkunft}</p>
                     <p>
@@ -374,7 +375,7 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
                     <p>
                       <b>{t("umb2.schublade.schwaeche")}:</b> {k.schwaeche}
                     </p>
-                    <div className="ub-mini">
+                    <div className="umb-mini">
                       <span title={`${t("umbildung.ui.loyalitaet")}: ${k.loyalitaet}`}>
                         <Sinnbild art="loyal" />
                         {k.loyalitaet}
@@ -403,9 +404,9 @@ export function Umbildung({ sicht, kapital, meldung, zwischenbilanz, aspiranten,
           </aside>
         )}
 
-        <footer className="ub-fuss">
+        <footer className="umb-fuss">
           <p>{t("umbildung.ui.fuss", { n: erledigt, von: sicht.minister.length, kapital: Math.floor(kapital) })}</p>
-          <span className="ub-fuss-knoepfe">
+          <span className="umb-fuss-knoepfe">
             {onSpaeter && (
               <button type="button" className="leather-button" onClick={onSpaeter}>
                 {t("umbildung.ui.spaeter")}

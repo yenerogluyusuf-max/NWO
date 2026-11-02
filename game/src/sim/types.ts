@@ -106,6 +106,8 @@ export interface EconomyState {
   minimumWageNetTry?: number;
   /** Nominales BIP in Bio. Lira (aus OVP-Defizit abgeleitet) */
   bipTryTn?: number;
+  /** Fortschreibung der Geldbeträge im Spiel, getrennt nach realem BIP und Preisen. */
+  geldbasis?: import("./staatsgeld").Geldbasis;
 }
 
 /** Größen, die nicht im Szenario stehen, sondern abgeleitet werden. */
@@ -146,6 +148,8 @@ export interface Published {
 export type LogKind = "entscheidung" | "ereignis" | "statistik" | "markt";
 
 export interface LogEntry {
+  /** Strukturiertes Votum: bleibt nach Sprachwechsel und späteren Wahlen korrekt abspielbar. */
+  versorgungsvotum?: { programm: import("./versorgungspolitik").VersorgungsProgramm; stimmen: import("./versorgungsmehrheit").VersorgungsStimme[] };
   day: number;
   date: string;
   kind: LogKind;

@@ -2,9 +2,11 @@
 // Diese Zeile ist die Quelle; test/parlament.test.ts prüft, dass das Format hier noch gelesen wird.
 
 import type { LogEntry, World } from "../../sim/types";
-import { duldung, SACHSTIMMEN_QUOTE, sachstimmen } from "../../sim/fraktionen";
+import { duldung, SACHSTIMMEN_QUOTE, sachstimmen, PARTEI_NAME } from "../../sim/fraktionen";
 import { gesetzRichtung } from "../../sim/handeln";
-import { parlamentsLage, type Parlamentslage } from "./lage";
+import { parlamentsLage, PARTY_COLORS, type Parlamentslage, type Rolle } from "./lage";
+import type { VersorgungsStimme } from "../../sim/versorgungsmehrheit";
+import { t } from "../../i18n";
 import { streuwert } from "./geometrie";
 import { stimmzettel, verteileErgebnis } from "./stimmen";
 
@@ -18,6 +20,7 @@ export interface Abstimmung {
   /** „im ganzen Land“ oder die betroffenen Provinzen, wie im Protokoll */
   ort: string;
   stufe?: number;
+  fraktionen?: VersorgungsStimme[];
 }
 
 const ANGENOMMEN = /^Das Parlament nimmt „(.+?)“ (.*?) ?an \((\d+) zu (\d+)\)\.(?: Stufe (\d+)\.)?/;
@@ -27,7 +30,11 @@ export function istAbstimmung(text: string): boolean {
   return text.startsWith("Das Parlament nimmt „") || text.startsWith("Das Parlament lehnt „");
 }
 
-export function leseAbstimmung(l: Pick<LogEntry, "text" | "day" | "date">): Abstimmung | null {
+export function leseAbstimmung(l: Pick<LogEntry, "text" | "day" | "date" | "versorgungsvotum">): Abstimmung | null {
+  if (l.versorgungsvotum) {
+    const v=l.versorgungsvotum, ja=v.stimmen.reduce((s,f)=>s+f.ja,0), gesamt=v.stimmen.reduce((s,f)=>s+f.sitze,0);
+    return {name:t(`regierung.${v.programm}.titel`),ja,nein:gesamt-ja,angenommen:ja>=301,tag:l.day,datum:l.date,ort:t("mandat.kicker"),fraktionen:v.stimmen};
+  }
   const a = ANGENOMMEN.exec(l.text);
   if (a) return { name: a[1]!, ort: a[2]!, ja: Number(a[3]), nein: Number(a[4]), angenommen: true, tag: l.day, datum: l.date, ...(a[5] ? { stufe: Number(a[5]) } : {}) };
   const b = ABGELEHNT.exec(l.text);
@@ -63,11 +70,19 @@ export interface Verlauf {
 
 /** Stimmzettel für eine Abstimmung: Die Summe der Ja-Stimmen ist genau das Ergebnis der Simulation. */
 export function baueVerlauf(world: World, ab: Abstimmung, sachParteien: string[] = []): Verlauf | null {
-  const lage = parlamentsLage(world);
+  let lage = parlamentsLage(world);
+  if (ab.fraktionen) {
+    const gesamt=ab.fraktionen.reduce((s,f)=>s+f.sitze,0);
+    const rang:Record<Rolle,number>={eigene:0,lager:1,duldung:2,opposition:3};
+    const fraktionen=ab.fraktionen.map(f=>({partei:f.partei,name:PARTEI_NAME[f.partei]??f.partei,sitze:f.sitze,anteil:gesamt?f.sitze/gesamt*100:0,
+      rolle:(f.rolle==="koalition"?"lager":f.rolle) as Rolle,farbe:PARTY_COLORS[f.partei]??world.player?.partei.farbe??"#999"})).sort((a,b)=>rang[a.rolle]-rang[b.rolle]||b.sitze-a.sitze);
+    const summe=(rollen:Rolle[])=>fraktionen.filter(f=>rollen.includes(f.rolle)).reduce((s,f)=>s+f.sitze,0);
+    lage={fraktionen,gesamt,lager:summe(["eigene","lager"]),duldung:summe(["duldung"]),opposition:summe(["opposition"]),eigene:fraktionen.find(f=>f.rolle==="eigene")?.partei??"",hatLager:fraktionen.some(f=>f.rolle==="lager")};
+  }
   if (!lage) return null;
   const dul = duldung(world);
   const sachJa = lage.fraktionen.filter((f) => sachParteien.includes(f.partei)).reduce((s, f) => s + Math.round(f.sitze * SACHSTIMMEN_QUOTE), 0);
-  const jaJe = verteileErgebnis(lage, ab.ja, dul.ja, sachJa, sachParteien);
+  const jaJe = ab.fraktionen ? Object.fromEntries(ab.fraktionen.map(f=>[f.partei,f.ja])) : verteileErgebnis(lage, ab.ja, dul.ja, sachJa, sachParteien);
   const votum = stimmzettel(lage, jaJe, streuwert(`${ab.name}|${ab.tag}|${ab.ja}`));
   const jaKum: number[] = [];
   let z = 0;

@@ -1,6 +1,6 @@
 // Die acht Bereichsakten im Gerüst der Wirtschaftsakte (VISION_IM_DETAIL 0.2): Gesellschaft, Parlament und Recht, Regierung,
 // Sicherheit, Außenpolitik, Land, Agenda, Medien. Lage, Verlauf und Personen entstehen hier aus den vorhandenen Daten (nur lesen);
-// die bisherigen Ansichten des Bereichs liegen unverändert im Reiter „Instrumente“ (Unterreiter), damit keine Funktion verloren geht.
+// Die bisherigen Ansichten sind direkte fachliche Zugänge; interne Reiterkennungen bleiben für Sprünge kompatibel.
 
 import { useEffect, useState, type ReactNode } from "react";
 import { aktuelleLocale, t } from "../../i18n";
@@ -30,6 +30,8 @@ import { BehoerdenInstrument } from "../behoerden/Instrument";
 import { behoerdenImBereich } from "../../sim/behoerden";
 import { laufendeVerfahren } from "../../sim/gesetzgebung";
 import { gesetzName } from "../../sim/gesetz-name";
+import { formatDateDe } from "../../sim/dates";
+import { ZUGANG_ICON } from "./profil";
 
 export type BereichId = "gesellschaft" | "recht" | "regierung" | "sicherheit" | "aussen" | "land" | "wissen" | "medien";
 
@@ -281,7 +283,7 @@ function Zeilen({ zeilen }: { zeilen: LageZeile[] }) {
   );
 }
 
-function LageAnsicht({ w, b, onInstrumente }: { w: World; b: BereichId; onInstrumente: () => void }) {
+function LageAnsicht({ w, b, ziel, onInstrumente }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void }) {
   const gruppen = lageZeilen(w, b);
   const urteil = lageUrteil(w, b);
   // Die drei Kernwerte stehen schon im Kopf; die Lage zeigt ihre Begründungen nur aufgeklappt.
@@ -292,7 +294,7 @@ function LageAnsicht({ w, b, onInstrumente }: { w: World; b: BereichId; onInstru
         <strong>{t(`akte.b.urteil.${urteil.stufe}`)}</strong>
         <span>{urteil.satz}</span>
         <button type="button" className="ak-urteil-knopf" onClick={onInstrumente}>
-          {t("akte.b.lage.zuInstrumenten")}
+          {t("akneu.oeffnen",{ziel})}
         </button>
       </div>
       {hinweise.length > 0 && (
@@ -392,7 +394,7 @@ function VerlaufAnsicht({ w, b }: { w: World; b: BereichId }) {
 export interface BereichsAkteProps {
   bereich: BereichId;
   world: World;
-  /** Die bisherigen Ansichten des Bereichs (Kennung und Name), Unterreiter der Instrumente */
+  /** Bestehende Fachansichten des Bereichs, direkt in der Navigation erreichbar. */
   tabs: { id: string; label: string }[];
   aktiverTab: string;
   onTab: (id: string) => void;
@@ -405,39 +407,31 @@ export interface BereichsAkteProps {
 }
 
 export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, onReiter, vorgangStart, children }: BereichsAkteProps) {
-  // Die Behörden des Bereichs stehen als eigener Unterreiter, nicht unter jeder Ansicht (sonst wird jede Seite lang).
+  // Behörden sind ein eigener Fachzugang; die übrigen Ansichten behalten ihre Zuständigkeiten.
   const [behoerdenOffen, setBehoerdenOffen] = useState(false);
   useEffect(() => setBehoerdenOffen(false), [bereich]);
   const hatBehoerden = !!world.spiel && behoerdenImBereich(bereich).length > 0;
   const zeigeBehoerden = hatBehoerden && behoerdenOffen;
-  const instrumente = () => (
-    <div className="ak-instrumente">
-      {tabs.length + (hatBehoerden ? 1 : 0) > 1 && (
-        <nav className="ak-unterreiter" role="tablist" aria-label={t("akte.b.instrumente.aria")}>
-          {tabs.map((tab) => (
-            <button key={tab.id} type="button" role="tab" aria-selected={!zeigeBehoerden && aktiverTab === tab.id} className={!zeigeBehoerden && aktiverTab === tab.id ? "on" : ""} onClick={() => { setBehoerdenOffen(false); onTab(tab.id); }}>
-              <b>{tab.label}</b>
-            </button>
-          ))}
-          {hatBehoerden && (
-            <button type="button" role="tab" aria-selected={zeigeBehoerden} className={zeigeBehoerden ? "on" : ""} onClick={() => setBehoerdenOffen(true)}>
-              <b>{t("behoerden.ui.titel")}</b>
-            </button>
-          )}
-        </nav>
-      )}
-      {zeigeBehoerden ? <BehoerdenInstrument w={world} bereich={bereich} /> : children}
-    </div>
-  );
+  const instrumente = () => zeigeBehoerden ? <BehoerdenInstrument w={world} bereich={bereich} /> : children;
+  const zugaenge = {
+    aktiv: zeigeBehoerden ? "behoerden" : aktiverTab,
+    eintraege: [
+      ...tabs.map(tab => ({id:tab.id,label:tab.label,icon:ZUGANG_ICON[tab.id]??"akte" as const,
+        waehlen:()=>{setBehoerdenOffen(false);onTab(tab.id);}})),
+      ...(hatBehoerden?[{id:"behoerden",label:t("behoerden.ui.titel"),icon:"kuppel" as const,waehlen:()=>setBehoerdenOffen(true)}]:[]),
+    ],
+  };
   return (
     <Akte
       bereich={bereich}
+      datum={formatDateDe(world.date)}
+      zugaenge={zugaenge}
       zweck={t(`akte.b.${bereich}.zweck`)}
       kernwerte={kernwerteBereich(world, bereich)}
       aktiv={reiter}
       onReiter={onReiter}
       reiter={[
-        { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => <LageAnsicht w={world} b={bereich} onInstrumente={() => onReiter("instrumente")} /> },
+        { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} /> },
         { id: "instrumente", text: t("akte.b.reiter.instrumente"), inhalt: instrumente },
         { id: "verlauf", text: t("akte.b.reiter.verlauf"), inhalt: () => <VerlaufAnsicht w={world} b={bereich} /> },
         { id: "personen", text: t("akte.b.reiter.personen"), inhalt: () => <PersonenListe w={world} aemter={BEREICH_AEMTER[bereich]} /> },

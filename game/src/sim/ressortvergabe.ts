@@ -8,6 +8,7 @@ import { AEMTER, loyalitaetVerschieben } from "./personen";
 import { besetzeNeu, figur, neuerName } from "./figuren";
 import { PARTEI_NAME } from "./fraktionen";
 import { t } from "../i18n";
+import { aktiveParteivorsitzende } from "./koalitionslage";
 import type { World } from "./types";
 import type { Figur, Zusage } from "./spiel-typen";
 
@@ -28,8 +29,7 @@ export function ministeriumAnPartei(w: World, amt: Figur["amt"], partei: string)
   const name = PARTEI_NAME[partei] ?? partei;
   besetzeNeu(w, f, { name: neuerName(rng, benutzt, f.weiblich), loyalitaet: 62, faehigkeit: 55, ehrgeiz: 60, lager: "partei", notiz: t("umbildung.erinnerung.partner", { partei: name }) });
   f.partei = partei;
-  const pf = sp.figuren.find((x) => x.amt === "partner" && x.partei === partei) ?? sp.figuren.find((x) => x.amt === "partner" && !x.partei);
-  if (pf) loyalitaetVerschieben(pf, 8);
+  for(const pf of aktiveParteivorsitzende(w,partei)) loyalitaetVerschieben(pf, 8);
   addLog(w, "entscheidung", t("umbildung.log.partner", { alt, partei: name, neu: f.name }), t("umbildung.log.partner_warum"));
   return { ok: true, text: t("umbildung.ok.partner", { partei: name, ressort: AEMTER[amt].ressort }) };
 }

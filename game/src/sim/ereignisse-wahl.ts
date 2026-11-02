@@ -10,10 +10,10 @@
 // Alle werden nur von sim/wahl.ts und sim/amtszeit.ts geöffnet (chance 0). Alle Texte laufen über die Übersetzungsschicht.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { koalitionsAntwort } from "./koalitionsereignis";
 import { wirke } from "./wirkung";
 import { opt } from "./ereignis-hilfen";
-import { FORDERUNG, PARTEI_NAME, forderungVon } from "./fraktionen";
-import { partnerFigur } from "./figuren";
+import { FORDERUNG, PARTEI_NAME } from "./fraktionen";
 import { anfechtungAbschluss, stichwahlEntscheidung } from "./wahl";
 import { kronprinzen, kuereNachfolger, nachfolgeZustand } from "./amtszeit";
 import { amtsenthebungEinschwoeren, amtsenthebungZugestaendnisse, krankheitAbgeben, krankheitOffen, krankheitVerschweigen, putschEinbinden, putschEntlassen, ruecktrittDurchhalten, ruecktrittErklaeren } from "./enden";
@@ -75,13 +75,7 @@ const KOALITIONSRUNDE: Vorlage = {
       : [];
     return [
       ...kandidaten.map(([partei, sitze]) =>
-        opt(`koalition-${partei}`, t("wahl.ereignis.koalition.mit", { partei: PARTEI_NAME[partei] ?? partei, sitze }), t("wahl.ereignis.koalition.mit_beschr", { forderung: FORDERUNG[partei]!.text, pk: 4 }), 4, (ww, _e, rng) => {
-          const f = forderungVon(ww, partei);
-          ww.spiel!.lager.push(partei);
-          ww.spiel!.zusagen.push({ id: `z-wahl-koalition-${partei}-${ww.day}`, von: partei, text: t("wahl.ereignis.koalition.zusage", { partei: PARTEI_NAME[partei] ?? partei, forderung: f.text }), faellig: ww.day + 150, massnahme: f.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
-          ww.spiel!.figuren.push(partnerFigur(ww, partei, t("wahl.ereignis.koalition.vorsitz", { partei: PARTEI_NAME[partei] ?? partei }), f.text, rng));
-          return t("wahl.ereignis.koalition.ausgang", { partei: PARTEI_NAME[partei] ?? partei, sitze });
-        }),
+        koalitionsAntwort(w, partei, `koalition-${partei}`, t("wahl.ereignis.koalition.mit", { partei: PARTEI_NAME[partei] ?? partei, sitze }), "z-wahl-koalition"),
       ),
       opt("minderheit", t("wahl.ereignis.koalition.minderheit"), t("wahl.ereignis.koalition.minderheit_beschr"), 0, () => t("wahl.ereignis.koalition.minderheit_ausgang")),
       opt("vertagen", t("wahl.ereignis.koalition.vertagen"), t("wahl.ereignis.koalition.vertagen_beschr"), 0, () => t("wahl.ereignis.koalition.vertagen_ausgang")),

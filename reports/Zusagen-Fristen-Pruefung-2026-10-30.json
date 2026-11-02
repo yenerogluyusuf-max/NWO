@@ -1,0 +1,548 @@
+{
+  "createdAtUTC": "2026-10-30T19:59:33.282700+00:00",
+  "scope": "Einheitliche Zusagenfristen, ausreichender landesweiter Entwurf und gesperrte Erinnerungsantworten",
+  "distinctPassedTests": 81,
+  "newTests": 21,
+  "tests": [
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg zusage gewährt dieselbe Beratungszeit mit und ohne offene Erinnerung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg gesetz gewährt dieselbe Beratungszeit mit und ohne offene Erinnerung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg zusage verkürzt eine noch längere Zusagenfrist nicht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg gesetz verkürzt eine noch längere Zusagenfrist nicht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg verzögerte Einbringung rechnet mit dem wirklichen Votum einschließlich zwei Tagen Verzug",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg teil beseitigt weder Erinnerung noch bestehende Frist",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg regional beseitigt weder Erinnerung noch bestehende Frist",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg gegenlaeufig beseitigt weder Erinnerung noch bestehende Frist",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg ein Entwurf berücksichtigt nur die von ihm erfüllbaren Zusagen mehrerer Fraktionen",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg gescheiterte Einlösung wegen kapital schenkt keine Zeit und verändert keine Zusage",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg gescheiterte Einlösung wegen pause schenkt keine Zeit und verändert keine Zusage",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg gescheiterte Einlösung wegen entwurf schenkt keine Zeit und verändert keine Zusage",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg Erinnerungsantwort bleibt bei kapital offen und wird nicht als Entscheidung verbucht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg Erinnerungsantwort bleibt bei pause offen und wird nicht als Entscheidung verbucht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg Erinnerungsantwort bleibt bei entwurf offen und wird nicht als Entscheidung verbucht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg zulässige Erinnerungsantwort bucht den Gesetzespreis einmal und schließt genau einmal ab",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg Ministermappe übernimmt die konkrete Sperre der offenen Erinnerung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg unbeantwortete Zusage behält trotz Teilentwurf ihre echte Folge bis zur Monatsprüfung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg Frist und Hindernis stehen vor der Aktion in der Oberfläche auf de",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-ui-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg Frist und Hindernis stehen vor der Aktion in der Oberfläche auf en",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-ui-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-fristen.test.tsx",
+      "test": "Zusagenfristen folgen dem ausreichenden Entwurf statt dem Zugangsweg Frist und Hindernis stehen vor der Aktion in der Oberfläche auf tr",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-ui-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Einbringen lässt Loyalität und Bereitschaft unverändert und zeigt den tatsächlichen Abstimmungstermin",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Annahme bucht den zusätzlichen Zusagenbonus sofort und genau einmal, auch ohne Zusagenansicht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt ablehnen und erneutes Einbringen schenken keine Loyalität",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt zurueckziehen und erneutes Einbringen schenken keine Loyalität",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Teiländerung in Richtung 1 erfüllt das feste Ziel nicht und verschiebt es nicht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Teiländerung in Richtung -1 erfüllt das feste Ziel nicht und verschiebt es nicht",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt regionaler Beschluss genügt nicht für die landesweite Zusage",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Ansicht benennt unzureichenden Entwurf: teil",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Ansicht benennt unzureichenden Entwurf: regional",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Altzusage ohne Ziel erhält beim Beschluss denselben Schwellenwert wie in der Vorschau",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt bereits beschlossenes Ziel wird ohne neues Gesetz und zusätzliche Kosten anerkannt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt bestehender Rücknahmebeschluss verhindert falsche Erfüllung durch den noch höheren Istwert",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt mangelndes Kapital gibt keine Belohnung und markiert das Versprechen nicht als erfüllt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt erledigte alte Spielstände erhalten bei der allgemeinen Nachbuchung keine zweite Personenbelohnung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt benannte Regimestufen behalten nach Zwischenfortschritt das vereinbarte Ziel",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Regimevorschau benennt auch einen Zwischenstand ohne fehlende Zustandsnamen",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Fälligkeitserinnerung verspricht beim Einbringen keine Erfüllung und bucht keinen Bonus",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt tatsächlich erfüllte Zusage stabilisiert den Partner vor der Koalitionsprüfung am selben Tag",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Zusagenakte erklärt die Beschlussbedingung auf de",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Zusagenakte erklärt die Beschlussbedingung auf en",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-gesetz.test.tsx",
+      "test": "Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt Zusagenakte erklärt die Beschlussbedingung auf tr",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch zeigt nahe Frist, Fraktion, Rückhalt und Sitzverlust ohne den Spielstand zu ändern",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch akute Bruchgefahr steht vor einer früheren aber stabilen Zusage",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch ruhige ferne und erledigte Zusagen sowie Nichtfraktionen werden ausgeblendet",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Duldung und fehlender oder inaktiver Vorsitz werden nicht als akuter Koalitionsbruch ausgegeben",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch eigene Fraktion erhält Zusagenschritte ohne fälschlich angebotenen Bündnisbeitritt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Erinnerungsfrist ist vom eigentlichen Fälligkeitstag getrennt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch unzureichender Entwurf, unsichere Mehrheit und späte Abstimmung werden konkret benannt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch bekannte Duldung läuft in der angezeigten Abstimmungsprognose tatsächlich aus",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Einlösen nennt und bucht echte Kosten, Vorsitzreaktion und neue Fraktionsbereitschaft",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Einbringen nennt das spätere Votum und verspricht keine sofortige Rettung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Vertrösten warnt vor Loyalitätsverlust, nennt Frist und erledigt nur die passende Erinnerung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch direkte Erfüllung beseitigt die offene Erinnerung und kann nicht später erneut als Bruch gebucht werden",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch alte gespeicherte Erinnerung nach erfuellt wird vor ihrem Verfall bereinigt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch alte gespeicherte Erinnerung nach verschoben wird vor ihrem Verfall bereinigt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei kapital verändert nichts",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei loyalitaet verändert nichts",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei frist verändert nichts",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei abgeschlossen verändert nichts",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei partei verändert nichts",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei tag verändert nichts",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch ausgeschöpfte Vertröstungen und Kapitalgrenze bleiben sichtbare Sperren",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Koalitionsgespräch ist ohne Versorgungsbeschluss nutzbar und teilt seine Sperre über Zusagen hinweg",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch gleicher Tagesstand reagiert sofort auf Loyalität, Frist und Bearbeitung",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch vom Schreibtisch vorbereitete Hilfe verhindert den echten Monatsbruch",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Unterschriftenmappe nennt denselben tatsächlichen Gesetzespreis wie die Zusagenwache",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Unterschriftenmappe bietet laufenden Entwurf oder unbezahlbaren Antrag nicht als ausführbar an",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch bereits beschlossenes Ziel ist auch in der Unterschriftenmappe ohne neues Gesetz erfüllbar",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Mappe aktualisiert Frist und bereits beschlossenes Ziel auch bei gleicher Zusagen- und Zielanzahl",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Sprachkataloge haben gleiche Schlüssel und Platzhalter",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Schreibtischkarten und ausführbare Schritte auf de zeigen Kosten, Risiko und eindeutige Aktionen",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Schreibtischkarten und ausführbare Schritte auf en zeigen Kosten, Risiko und eindeutige Aktionen",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Schreibtischkarten und ausführbare Schritte auf tr zeigen Kosten, Risiko und eindeutige Aktionen",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+      "test": "Gefährdete Zusagen auf dem Regierungsschreibtisch Regierungsschreibtisch bindet die Karten ein; Zusagensprung öffnet direkt den richtigen Personenreiter",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ereignisse-texte.test.ts",
+      "test": "Ereignistexte zusage: lesbare Texte, benannte Akteure, fehlerfreie Antworten",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-integration-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+      "test": "Entscheiden läuft über die Kernfunktionen ein Ereignis wird über die Vorlage beantwortet und ist danach geschlossen",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-integration-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+      "test": "Entscheiden läuft über die Kernfunktionen was nicht bezahlbar ist, wird nicht ausgeführt und nicht als erledigt vermerkt",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-integration-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/takt.test.ts",
+      "test": "Takt: Eröffnungstage Fällige Zusagen kommen der Reihe nach: mit Mindestabstand, höchstens eine je Tag und zwei gleichzeitig",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-integration-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/takt.test.ts",
+      "test": "Gegenkräfte Altlasten zehren am Monatseinkommen: überfällige Zusagen verteuern das Regieren",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-integration-20261030.json"
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/takt.test.ts",
+      "test": "Gegenkräfte Eine Zusage, die ein Jahr überfällig ist, verfällt als Bruch",
+      "status": "passed",
+      "evidence": "/private/tmp/nwo-zusagen-fristen-integration-20261030.json"
+    }
+  ],
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "output": "\n> staatsraeson@0.1.0 build\n> tsc --noEmit && vite build\n\nvite v8.3.1 building client environment for production...\ntransforming...\n\u001b[33m[IMPORT_IS_UNDEFINED] \u001b[0mImport `infrastrukturEtat` will always be undefined because there is no matching export in 'src/sim/haushalt.ts'\n    \u001b[38;5;246m╭\u001b[0m\u001b[38;5;246m─\u001b[0m\u001b[38;5;246m[\u001b[0m src/sim/infrastruktur.ts:31:12 \u001b[38;5;246m]\u001b[0m\n    \u001b[38;5;246m│\u001b[0m\n \u001b[38;5;246m31 │\u001b[0m \u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mc\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mn\u001b[0m\u001b[38;5;249ms\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mf\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m=\u001b[0m\u001b[38;5;249m \u001b[0mh[\"infrastrukturEtat\"]\u001b[38;5;249m;\u001b[0m\n \u001b[38;5;240m   │\u001b[0m               ───────────┬──────────  \n \u001b[38;5;240m   │\u001b[0m                          ╰──────────── \n\u001b[38;5;246m────╯\u001b[0m\n\n\u001b[33m[IMPORT_IS_UNDEFINED] \u001b[0mImport `infrastrukturEtat` will always be undefined because there is no matching export in 'src/sim/haushalt.ts'\n    \u001b[38;5;246m╭\u001b[0m\u001b[38;5;246m─\u001b[0m\u001b[38;5;246m[\u001b[0m src/sim/infrastruktur.ts:31:12 \u001b[38;5;246m]\u001b[0m\n    \u001b[38;5;246m│\u001b[0m\n \u001b[38;5;246m31 │\u001b[0m \u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mc\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mn\u001b[0m\u001b[38;5;249ms\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mf\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m=\u001b[0m\u001b[38;5;249m \u001b[0mh[\"infrastrukturEtat\"]\u001b[38;5;249m;\u001b[0m\n \u001b[38;5;240m   │\u001b[0m               ───────────┬──────────  \n \u001b[38;5;240m   │\u001b[0m                          ╰──────────── \n\u001b[38;5;246m────╯\u001b[0m\n\n✓ 801 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                                                      0.46 kB │ gzip:     0.29 kB\ndist/assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2             10.25 kB\ndist/assets/eb-garamond-vietnamese-wght-normal-DvUmmjCN.woff2       10.95 kB\ndist/assets/inter-greek-ext-wght-normal-DlzME5K_.woff2              11.23 kB\ndist/assets/eb-garamond-greek-ext-wght-normal-CW-BywWH.woff2        11.48 kB\ndist/assets/fraunces-vietnamese-wght-normal-CnvboYUG.woff2          11.57 kB\ndist/assets/inter-cyrillic-wght-normal-DqGufNeO.woff2               18.74 kB\ndist/assets/inter-greek-wght-normal-CkhJZR-_.woff2                  18.99 kB\ndist/assets/eb-garamond-greek-wght-normal-DCPER7xl.woff2            19.86 kB\ndist/assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2           25.96 kB\ndist/assets/eb-garamond-cyrillic-wght-normal-DBa2mnKT.woff2         26.02 kB\ndist/assets/fraunces-latin-ext-wght-normal-Ca2vKHc0.woff2           33.58 kB\ndist/assets/eb-garamond-cyrillic-ext-wght-normal-Bt3rCdHq.woff2     33.94 kB\ndist/assets/fraunces-latin-wght-normal-ukD16Tqj.woff2               36.62 kB\ndist/assets/eb-garamond-latin-wght-normal-CRpggXlh.woff2            44.33 kB\ndist/assets/inter-latin-wght-normal-Dx4kXJAl.woff2                  48.25 kB\ndist/assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2              85.06 kB\ndist/assets/eb-garamond-latin-ext-wght-normal-B6IpcvL2.woff2       113.92 kB\ndist/assets/wirtschaft.worker-DYATlOUE.js                        4,565.27 kB\ndist/assets/forecast.worker-BS6Ig3oj.js                          4,565.33 kB\ndist/assets/index-HTs7pc7o.css                                     124.67 kB │ gzip:    25.28 kB\ndist/assets/App-i6XcycdR.css                                       485.26 kB │ gzip:    94.29 kB\ndist/assets/daten_region-DKAjHUj7.js                                 0.30 kB │ gzip:     0.15 kB\ndist/assets/anim-CojohX0n.js                                         0.32 kB │ gzip:     0.21 kB\ndist/assets/anim-0MACwjvM.js                                         0.39 kB │ gzip:     0.25 kB\ndist/assets/daten_region-DFbHglWe.js                                 0.40 kB │ gzip:     0.21 kB\ndist/assets/daten_amt-B2CYa4C6.js                                    0.45 kB │ gzip:     0.22 kB\ndist/assets/daten_amt-BfFC2LKT.js                                    0.46 kB │ gzip:     0.24 kB\ndist/assets/quellen-DvZXL_6G.js                                      0.52 kB │ gzip:     0.34 kB\ndist/assets/quellen-BAUlLXQ2.js                                      0.53 kB │ gzip:     0.35 kB\ndist/assets/daten_person-Cbd7U8Re.js                                 0.58 kB │ gzip:     0.30 kB\ndist/assets/daten_person-PzYEBZBR.js                                 0.62 kB │ gzip:     0.35 kB\ndist/assets/uebersicht-DKIEhstI.js                                   0.63 kB │ gzip:     0.37 kB\ndist/assets/uebersicht-CrTbN_WX.js                                   0.64 kB │ gzip:     0.39 kB\ndist/assets/fraktionsabkommen-DFy7rxEM.js                            1.20 kB │ gzip:     0.66 kB\ndist/assets/navigation-CjgucNuv.js                                   1.29 kB │ gzip:     0.56 kB\ndist/assets/kopf-DcfafYrn.js                                         1.29 kB │ gzip:     0.57 kB\ndist/assets/navigation-BJkpuaQU.js                                   1.30 kB │ gzip:     0.61 kB\ndist/assets/fraktionsabkommen-h1B1MrK_.js                            1.32 kB │ gzip:     0.72 kB\ndist/assets/kopf-C80JCLLO.js                                         1.35 kB │ gzip:     0.63 kB\ndist/assets/titel-LYPzquks.js                                        1.42 kB │ gzip:     0.70 kB\ndist/assets/katastrophe-CmZT1aSz.js                                  1.46 kB │ gzip:     0.62 kB\ndist/assets/titel-rzwXl-mv.js                                        1.47 kB │ gzip:     0.76 kB\ndist/assets/gesichter-Cqb3yOEB.js                                    1.61 kB │ gzip:     0.76 kB\ndist/assets/gesichter-BTini__O.js                                    1.67 kB │ gzip:     0.83 kB\ndist/assets/katastrophe-6qo1JjQc.js                                  1.72 kB │ gzip:     0.61 kB\ndist/assets/ereignis-DrPv6zYm.js                                     2.31 kB │ gzip:     1.00 kB\ndist/assets/ereignis-8MbPkKZ6.js                                     2.34 kB │ gzip:     1.07 kB\ndist/assets/zusagen-B838F3pW.js                                      3.05 kB │ gzip:     1.22 kB\ndist/assets/mehrheitswege-Cb8tT7sc.js                                3.10 kB │ gzip:     1.32 kB\ndist/assets/zusagen-Ck9Q1YlC.js                                      3.19 kB │ gzip:     1.30 kB\ndist/assets/mehrheitswege-DhL5vAqB.js                                3.29 kB │ gzip:     1.43 kB\ndist/assets/karte-Chy7kg2e.js                                        3.43 kB │ gzip:     1.38 kB\ndist/assets/karte-giGq_i21.js                                        3.58 kB │ gzip:     1.35 kB\ndist/assets/wort-BJO0yZ8p.js                                         3.61 kB │ gzip:     1.41 kB\ndist/assets/wort-C6itynWp.js                                         3.70 kB │ gzip:     1.54 kB\ndist/assets/mentor-D3lFkfVy.js                                       3.94 kB │ gzip:     1.76 kB\ndist/assets/daten_vorteil-c4KheAvJ.js                                4.01 kB │ gzip:     1.51 kB\ndist/assets/mentor-Cm7UY76_.js                                       4.02 kB │ gzip:     1.89 kB\ndist/assets/daten_vorteil-CEXjXVo2.js                                4.12 kB │ gzip:     1.64 kB\ndist/assets/markt-C3kMmzcS.js                                        4.13 kB │ gzip:     1.19 kB\ndist/assets/zusagenwache-DqLBuiwG.js                                 4.18 kB │ gzip:     1.81 kB\ndist/assets/zusagenwache-Dyf3ZUJN.js                                 4.36 kB │ gzip:     1.93 kB\ndist/assets/markt-Urawzi4l.js                                        4.42 kB │ gzip:     1.36 kB\ndist/assets/reste-B6HsAxHG.js                                        5.18 kB │ gzip:     2.08 kB\ndist/assets/reste-DQ0ktGxu.js                                        5.27 kB │ gzip:     2.21 kB\ndist/assets/kabinett-DYtCdDp8.js                                     5.92 kB │ gzip:     2.27 kB\ndist/assets/transport-Dj62U9zl.js                                    5.94 kB │ gzip:     2.30 kB\ndist/assets/versorgungspolitik-BRXKGbe1.js                           6.07 kB │ gzip:     2.53 kB\ndist/assets/versorgungspolitik-D1bqvTay.js                           6.24 kB │ gzip:     2.66 kB\ndist/assets/vergleich-Bi9ibA7O.js                                    6.24 kB │ gzip:     2.18 kB\ndist/assets/transport-Bo4nA2kk.js                                    6.32 kB │ gzip:     2.53 kB\ndist/assets/kabinett-DtfDzBZS.js                                     6.39 kB │ gzip:     2.51 kB\ndist/assets/vergleich-Cu5qN90v.js                                    6.57 kB │ gzip:     2.31 kB\ndist/assets/militaer-CQF1RyF4.js                                     6.61 kB │ gzip:     2.31 kB\ndist/assets/militaer-Cp7YQT4X.js                                     6.82 kB │ gzip:     2.44 kB\ndist/assets/versorgungsnachsorge-BU2gxRW6.js                         8.04 kB │ gzip:     3.28 kB\ndist/assets/versorgungsnachsorge-Fpu033ZE.js                         8.13 kB │ gzip:     3.41 kB\ndist/assets/ministerfluss-DMsZvEM5.js                                8.13 kB │ gzip:     3.07 kB\ndist/assets/ministerfluss-D-Wi0fnG.js                                8.17 kB │ gzip:     3.23 kB\ndist/assets/fundorte-CJUBmxrh.js                                     8.35 kB │ gzip:     3.01 kB\ndist/assets/versorgungsbericht-7ar5sVo9.js                           8.37 kB │ gzip:     3.35 kB\ndist/assets/gueter-Cq2M-3tG.js                                       8.54 kB │ gzip:     3.21 kB\ndist/assets/akte-BI94Rrko.js                                         8.54 kB │ gzip:     3.21 kB\ndist/assets/akte-rdD-77vv.js                                         8.61 kB │ gzip:     3.08 kB\ndist/assets/fundorte-CV4Do4sp.js                                     8.72 kB │ gzip:     3.20 kB\ndist/assets/vorgang-DNv8I_iH.js                                      8.72 kB │ gzip:     2.97 kB\ndist/assets/versorgungsbericht-7jpWeDvC.js                           8.75 kB │ gzip:     3.55 kB\ndist/assets/vorgang-9qSGPUim.js                                      8.77 kB │ gzip:     2.92 kB\ndist/assets/gueter-CoUPFUQi.js                                       8.82 kB │ gzip:     3.39 kB\ndist/assets/daten_erbe-BVIn_pyl.js                                   8.85 kB │ gzip:     2.71 kB\ndist/assets/daten_erbe-0dsRAl9j.js                                   8.95 kB │ gzip:     2.82 kB\ndist/assets/daten_programm-CgGbFNT3.js                              10.84 kB │ gzip:     3.07 kB\ndist/assets/daten_programm-DFm9vSZ6.js                              11.02 kB │ gzip:     3.24 kB\ndist/assets/gesellschaft-3f5YQFaq.js                                11.34 kB │ gzip:     3.88 kB\ndist/assets/versorgungsmandat-DJPpJd1d.js                           11.50 kB │ gzip:     4.24 kB\ndist/assets/versorgungsmandat-Cv6nlJQg.js                           11.74 kB │ gzip:     4.42 kB\ndist/assets/infrastruktur-DRI2blvV.js                               11.76 kB │ gzip:     3.98 kB\ndist/assets/gesellschaft-r3bSlPAL.js                                11.83 kB │ gzip:     4.11 kB\ndist/assets/infrastruktur-Cm3GVvhM.js                               12.12 kB │ gzip:     4.23 kB\ndist/assets/schreibtisch-CY-0-CzY.js                                12.69 kB │ gzip:     4.90 kB\ndist/assets/schreibtisch-B4bKOG03.js                                12.84 kB │ gzip:     5.14 kB\ndist/assets/medien-BL7RqQkW.js                                      12.85 kB │ gzip:     4.00 kB\ndist/assets/aussen-B0hwsvwY.js                                      12.88 kB │ gzip:     4.34 kB\ndist/assets/netz-B5LKuwO2.js                                        12.93 kB │ gzip:     4.47 kB\ndist/assets/medien-CpwkA0fz.js                                      12.96 kB │ gzip:     4.15 kB\ndist/assets/aussen-DxlrBFnE.js                                      13.52 kB │ gzip:     4.59 kB\ndist/assets/netz-BEctONh1.js                                        13.68 kB │ gzip:     4.83 kB\ndist/assets/kennzahlen-6jlMPoq7.js                                  13.96 kB │ gzip:     5.67 kB\ndist/assets/kennzahlen-DnywFqXG.js                                  14.49 kB │ gzip:     5.92 kB\ndist/assets/gesetze-BRQg4prJ.js                                     15.59 kB │ gzip:     5.49 kB\ndist/assets/gesetze-CcZrR7Wi.js                                     16.48 kB │ gzip:     5.75 kB\ndist/assets/behoerden-BgjBZDHJ.js                                   18.96 kB │ gzip:     5.51 kB\ndist/assets/simtexte-CgbBvK7x.js                                    19.00 kB │ gzip:     6.69 kB\ndist/assets/simtexte-LaDYMcpN.js                                    19.12 kB │ gzip:     6.51 kB\ndist/assets/haushalt-Dam6XhMZ.js                                    19.14 kB │ gzip:     5.82 kB\ndist/assets/haushalt-DRUx3bcv.js                                    20.06 kB │ gzip:     6.11 kB\ndist/assets/behoerden-ChDuE57O.js                                   20.35 kB │ gzip:     5.98 kB\ndist/assets/daten_skala-v8PbqU8f.js                                 20.52 kB │ gzip:     5.32 kB\ndist/assets/takt-BJe3bgD_.js                                        20.59 kB │ gzip:     5.78 kB\ndist/assets/daten_skala-D9MYK0nM.js                                 20.79 kB │ gzip:     5.57 kB\ndist/assets/buehne-ZiTfzpoN.js                                      21.15 kB │ gzip:     7.61 kB\ndist/assets/machtkreis-CCfkMfd3.js                                  21.19 kB │ gzip:     7.17 kB\ndist/assets/machtkreis-BIUMlgpe.js                                  21.31 kB │ gzip:     7.32 kB\ndist/assets/enden-BH255w8u.js                                       21.34 kB │ gzip:     6.84 kB\ndist/assets/wissen-BvrbTyPa.js                                      21.43 kB │ gzip:     7.18 kB\ndist/assets/takt-CYoh1nrp.js                                        21.61 kB │ gzip:     6.23 kB\ndist/assets/enden-D8rRX0ah.js                                       21.88 kB │ gzip:     7.33 kB\ndist/assets/wissen-Bl2grylZ.js                                      22.16 kB │ gzip:     7.50 kB\ndist/assets/buehne-BnyXkbAg.js                                      22.56 kB │ gzip:     8.26 kB\ndist/assets/prolog-1krIoDzl.js                                      22.97 kB │ gzip:     7.46 kB\ndist/assets/prolog-DR4m4Py1.js                                      23.20 kB │ gzip:     7.84 kB\ndist/assets/krieg-B9LGTVlc.js                                       29.22 kB │ gzip:     9.51 kB\ndist/assets/wahl-B_Ask9DE.js                                        29.46 kB │ gzip:     8.58 kB\ndist/assets/ansichten-qSzZzB4_.js                                   30.04 kB │ gzip:    10.85 kB\ndist/assets/wahl-e6qPb0mq.js                                        30.23 kB │ gzip:     9.11 kB\ndist/assets/krieg-D8-a2SmQ.js                                       30.41 kB │ gzip:     9.93 kB\ndist/assets/ansichten-BEt3xb6c.js                                   30.62 kB │ gzip:    10.69 kB\ndist/assets/oberflaeche-ObN3ULUj.js                                 33.46 kB │ gzip:    12.31 kB\ndist/assets/oberflaeche-BF7BSxS2.js                                 34.09 kB │ gzip:    12.81 kB\ndist/assets/netzknoten-DnqbdrQ9.js                                  39.85 kB │ gzip:    12.28 kB\ndist/assets/netzknoten-yOKH411X.js                                  41.66 kB │ gzip:    13.03 kB\ndist/assets/simtexte2-ajha72O9.js                                   44.77 kB │ gzip:    14.33 kB\ndist/assets/simtexte2-Exnaw5j3.js                                   44.78 kB │ gzip:    14.14 kB\ndist/assets/fokus-CW1B3H93.js                                       46.48 kB │ gzip:    15.04 kB\ndist/assets/fokus-BSXIvP0W.js                                       47.42 kB │ gzip:    15.49 kB\ndist/assets/simtexte3-B23EYCeV.js                                   63.27 kB │ gzip:    22.20 kB\ndist/assets/simtexte3-CpI6r6mf.js                                   64.59 kB │ gzip:    22.58 kB\ndist/assets/oberflaeche2-D2bE9hmJ.js                                65.67 kB │ gzip:    19.90 kB\ndist/assets/oberflaeche2-BB4qZohm.js                                66.66 kB │ gzip:    20.43 kB\ndist/assets/daten_vorhaben-sDx6FpDR.js                              73.22 kB │ gzip:    23.31 kB\ndist/assets/daten_vorhaben-CDHLnqHi.js                              75.40 kB │ gzip:    24.32 kB\ndist/assets/netzkanten-DkNVkbzT.js                                  83.23 kB │ gzip:    22.09 kB\ndist/assets/netzkanten-B2Qcm7NY.js                                  87.01 kB │ gzip:    22.67 kB\ndist/assets/index-DUIejBXB.js                                    1,298.65 kB │ gzip:   395.13 kB\ndist/assets/App-BiVLKGus.js                                      3,842.00 kB │ gzip: 1,147.91 kB\n\n\u001b[33m[IMPORT_IS_UNDEFINED] \u001b[0mImport `infrastrukturEtat` will always be undefined because there is no matching export in 'src/sim/haushalt.ts'\n    \u001b[38;5;246m╭\u001b[0m\u001b[38;5;246m─\u001b[0m\u001b[38;5;246m[\u001b[0m src/sim/infrastruktur.ts:31:12 \u001b[38;5;246m]\u001b[0m\n    \u001b[38;5;246m│\u001b[0m\n \u001b[38;5;246m31 │\u001b[0m \u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mc\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mn\u001b[0m\u001b[38;5;249ms\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mf\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m=\u001b[0m\u001b[38;5;249m \u001b[0mh[\"infrastrukturEtat\"]\u001b[38;5;249m;\u001b[0m\n \u001b[38;5;240m   │\u001b[0m               ───────────┬──────────  \n \u001b[38;5;240m   │\u001b[0m                          ╰──────────── \n\u001b[38;5;246m────╯\u001b[0m\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n✓ built in 1.18s\n",
+    "knownWarnings": [
+      "infrastrukturEtat export missing",
+      "chunk size"
+    ]
+  },
+  "sourceSha256": {
+    "src/sim/handeln.ts": "e3c458c9b910e35cccfbfe8787d9f8d2a3203cbf6a5d2889ddc46aaeef00cb36",
+    "src/sim/zusagen.ts": "55d880e6028ea6325d5a3925a851fedcc5fb1a3d307ff3d6cc41da40280e627d",
+    "src/sim/ereignis-hilfen.ts": "7a4a93fe23a4f4ab4ea768b7df96efad8d64112f5903d8c6e587f83942f1464a",
+    "src/sim/ereignisse.ts": "6622eef41009ff9e21a90b86fba1109848a08a2a2a4b25ff913c38aa9b6e192c",
+    "src/sim/ministerfluss.ts": "0e4786ce87b5d72be5f1de89b030ebf774a82ac76a8a4694a8390269bf91e11a",
+    "src/ui/EreignisFenster.tsx": "4084c6fc59ea0fdc6526695f8dc289befe300f4f0c17e75fd1eaf7be79ac5225",
+    "src/ui/schreibtisch/ZusagenWache.tsx": "bc7f3ba1d83df5a665660647451281c6df44d8ca8facbf282e296d444eeac883",
+    "test/zusagen-fristen.test.tsx": "03d14d311b8edf198980410cb894132c3c8076a899696f9f1f6b72791699a134",
+    "test/zusagen-gesetz.test.tsx": "79d9a8986bc7fce5a1de852e1690326ed01262766994bf4db0bd6c95bcb7ae32",
+    "test/zusagenwache.test.tsx": "e2053b3ad45915ff78aa45ce243af75427f1205dc908164ae8ef53f3e37776b4",
+    "src/i18n/katalog/de/zusagen.json": "007daaa08527384775157b014b8848beee344b7f00dabcc6513e03af3a7920a7",
+    "src/i18n/katalog/en/zusagen.json": "d2049398bcb4db7e1dd95a4c67ff6fcd94be59ad875fe0c4d16a89eb4159aedc",
+    "src/i18n/katalog/tr/zusagen.json": "f7713f9360b0694935afb89bfd1ccfb74aff09f1b43f930df6e6d9770c9f5b57"
+  },
+  "scenario": {
+    "initialDate": "2028-06-10",
+    "party": "YENİ",
+    "initialLoyalty": 30,
+    "initialGovernmentSeats": 320,
+    "partialBill": {
+      "reminderExpires": "2028-06-30",
+      "loyaltyAfterExpiry": 15,
+      "governmentSeatsAfter2028_07_01": 200
+    },
+    "sufficientBill": {
+      "pledgeDueDay": 36,
+      "pledgeFulfilled": false,
+      "governmentSeatsAfter2028_07_01": 320,
+      "note": "Bill deliberately rejected on July 1; grace period persists, no fulfilment bonus."
+    },
+    "delayedVote": {
+      "voteDay": 23,
+      "pledgeDueDay": 38
+    },
+    "laterExistingDeadline": 150
+  },
+  "translations": "DE/EN/TR: neue Schlüssel und Platzhalter geprüft",
+  "browserVerified": false,
+  "screenshotsCreated": false,
+  "notes": [
+    "Nur gezielte Tests, kein Volltest.",
+    "Drei anfängliche neue UI-Testfehler stammten aus einer Zustandsassertion nach dem vorhandenen, Fraktionsdefaults initialisierenden zusagenSicht. Die neue Schreibtischdarstellung ist separat zustandsneutral geprüft; die korrigierten drei Sprachtests bestehen.",
+    "Historische Fristen werden nicht rückwirkend aus fehlenden Belegen rekonstruiert."
+  ]
+}

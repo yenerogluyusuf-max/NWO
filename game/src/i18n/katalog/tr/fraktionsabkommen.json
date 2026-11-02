@@ -1,0 +1,22 @@
+{
+  "fa.titel": "{partei} ile işbirliği",
+  "fa.koalition": "Koalisyon kur",
+  "fa.duldung": "Süreli dış destek anlaşması",
+  "fa.preis": "Anlaşma halinde: {pk} siyasi sermaye · {aufmerksamkeit} dikkat",
+  "fa.unbefristet": "İttifakın sabit bir bitiş tarihi yoktur; koalisyon daha sonra yine bozulabilir.",
+  "fa.befristet": "Parti koalisyon dışında kalır. Bugün anlaşılırsa hükümeti {datum} tarihine kadar destekler.",
+  "fa.zusage": "{datum} tarihine kadar yerine getirilecek yeni bağlayıcı vaat: {forderung}.",
+  "fa.vorsitz": "Parti liderliğinin desteği",
+  "fa.bleibt": "{name}, {n} sadakat düzeyinde kalır. Yeni ittifak kişisel çatışmaları veya görüşme bekleme sürelerini sıfırlamaz.",
+  "fa.neu": "Yeni parti lideri {n} sadakatle başlar.",
+  "fa.bruch": "Zaten {grenze} altında: {datum} tarihindeki kontrolde yeniden ayrılma riski var. Yeni ittifak tek başına bu liderin desteğini sağlamlaştırmaz.",
+  "fa.stimmen": "Sandalye çoğunluğu her oylamayı garanti etmez. İlgili tasarının beklenen oylarını kontrol edin; tedarik tasarılarında maddeler de hesaba katılır.",
+  "fa.handeln": "{aktion} – {partei}",
+  "fa.pause": "{datum} tarihine kadar dinlenme molası nedeniyle yeni müzakereler yapılamaz.",
+  "fa.sitze": "Grubun {n} sandalyesinin tamamı hükümet koalisyonuna katılır.",
+  "fa.ausgang": "Bugünkü durum",
+  "fa.ziel": "Ülke genelindeki taahhüt",
+  "fa.stufe": "Düzey {n}",
+  "fa.zielFest": "Anlaşma imzalandığında bu hedef sabitlenir. Sonraki ilerlemeler veya meclis grubunun yeni talepleri, kararlaştırılan yükümlülüğü değiştirmez.",
+  "fa.zielBeschlossen": "Bu hedef zaten kabul edilmiş veya gerçekleştirilmiş. Yeni söz, başka bir tasarı sunmadan yerine getirilmiş olarak kaydedilebilir."
+}

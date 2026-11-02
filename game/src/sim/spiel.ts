@@ -1,8 +1,13 @@
+import { t } from "../i18n";
+import { initialisiereStaatsgeld } from "./staatsgeld";
+import { ressortNachsorgeTag } from "./ressortnachsorge";
+import { ressortAnliegenTag } from "./ressortanliegen";
 // Die Spielschleife: was jeden Tag und jeden Monat zusätzlich zur Wirtschaft geschieht.
 //   täglich   Abstimmungen im Parlament, Fristen von Ereignissen, Wahltag
 //   monatlich Politisches Kapital, Außenwelt, neue Ereignisse, Umfrage, Sturzgefahr, Loyalität der Figuren
 // Alle Zahlen sind Platzhalter der Kalibrierung.
 
+import { festeZusage } from "./zusagenfolgen";
 import { reichMonat } from "./reich";
 import { wissensbaumMonat } from "./wissensbaum";
 import { infrastrukturMonat } from "./infrastruktur";
@@ -33,8 +38,11 @@ import { personenMonat } from "./personen-monat";
 import { ausscheiden } from "./nachfolge";
 import { AEMTER } from "./personen";
 import { gesetzeAbstimmen, REGELN, stimmenSicht, unterhaltKosten } from "./handeln";
+import { versorgungsParlamentTag } from "./versorgungspolitik";
+import { drohtKoalitionsbruch, KOALITIONSBRUCH_LOYALITAET, regierungsSitze } from "./koalitionslage";
 import { verfassungAktiv, verfassungKapitalAbzug, verfassungsVorgangTag } from "./verfassung";
 import { haushaltszyklusTag } from "./haushalt";
+import { haushaltsMonatsabschluss } from "./haushaltsbericht";
 import { krisenAktualisieren } from "./krisen";
 import { katastropheMonat } from "./katastrophe";
 import { KRIEG, kriegMit, kriegMonat, kriegTag } from "./krieg";
@@ -195,7 +203,7 @@ export function initSpiel(world: World, profil: PlayerProfile, rng: Rng): void {
     ereignisse: [],
     zuletzt: {},
     figuren: [],
-    zusagen: zusagenAusProfil(profil),
+    zusagen: zusagenAusProfil(profil).map(z => festeZusage(world, z)),
     umfrage: { zustimmung: profil.wahl.anteil, verlauf: [] },
     ziele: [],
     ersterTagErledigt: false,
@@ -210,6 +218,7 @@ export function initSpiel(world: World, profil: PlayerProfile, rng: Rng): void {
     start,
   };
   world.spiel = spiel;
+  initialisiereStaatsgeld(world);
   spiel.figuren = erzeugeFiguren(world, rng);
   const gouverneur = figur(world, "zentralbank");
   if (gouverneur) world.governor.name = gouverneur.name;
@@ -235,7 +244,7 @@ export function waehleZiele(world: World, ids: string[], schwierigkeit?: Schwier
     titel: "So regieren Sie",
     szene: "istanbul",
     text: [
-      "Kapital ist Ihre knappe Währung. Es wächst jeden Monatsersten; Gesetze, Verhandlungen und Antworten auf Ereignisse kosten davon. Alles auf einmal geht nicht: Setzen Sie Prioritäten.",
+      t("sf.starthilfe"),
       "Ereignisse verlangen eine Antwort. Wer schweigt, bekommt die schlechtere Folge; wer kein Kapital hat, kann bewusst abwarten. Jede Antwort zeigt, was sie bewirkt.",
       "Unter „Politik“ steht, was bei Ihren akuten Problemen jetzt am meisten bringt. Ein Gesetz braucht 301 Stimmen; ohne sie verhandeln Sie im Parlament mit den Fraktionen.",
       "„Wähler“ zeigt, wer Sie trägt und was jede Gruppe will, „Die Welt“ die anderen Staaten und „Programme“ Ihren Plan für Jahre. In fünf Jahren wird gewählt.",
@@ -251,6 +260,7 @@ export function spielTick(world: World, rng: Rng): void {
   const spiel = world.spiel;
   if (!spiel || spiel.ende) return;
   gesetzeAbstimmen(world, rng);
+  versorgungsParlamentTag(world);
   gesetzgebungTag(world);
   verfassungsVorgangTag(world, rng);
   haushaltszyklusTag(world, rng);
@@ -263,9 +273,11 @@ export function spielTick(world: World, rng: Rng): void {
   verfassungTag(world);
   // INN-5: Der Wahlkampf als Handlungsphase (Beginn acht Wochen vor der Wahl, Wochenbudget, TV-Duell)
   wahlkampfTag(world);
+  ressortAnliegenTag(world);
   if (dayOfMonth(world.date) === 1) spielMonat(world, rng);
   // Wahltag und Stichwahl (sim/wahl.ts): erster Wahlgang mit Parlamentswahl, gegebenenfalls Stichwahl nach 14 Tagen, dann die Folgen
   wahlTick(world, rng);
+  ressortNachsorgeTag(world);
 }
 
 /** Was das Politische Kapital jeden Monat (am Monatsersten) wieder auflädt, aufgeschlüsselt. */
@@ -343,7 +355,6 @@ function spielMonat(world: World, rng: Rng): void {
   vermittlungMonat(world, rng);
   // Der EU-Beitrittsvorgang (AUS-2): Screening, Kapitel, Vetos, Zollunion, Visa, Fortschrittsbericht
   euMonat(world, rng);
-  kriegMonat(world, rng);
   reichMonat(world, rng);
   // Wissensbaum: Durchbrüche verbuchen (Werke heben die Generation der Streitkräfte), Sperren von Lizenzgebern melden
   wissensbaumMonat(world);
@@ -358,6 +369,7 @@ function spielMonat(world: World, rng: Rng): void {
   aussenweltMonat(world, rng);
   // Güterbilanz: Lager decken Einfuhrausfälle, Fehlmengen wirken auf Preise und Versorgung
   gueterMonat(world);
+  kriegMonat(world, rng);
   ereignisMonat(world, rng);
 
   // Umfrage: zieht zum Sollwert, träge. Der interne Wert bleibt die Wahrheit des Spiels
@@ -392,6 +404,8 @@ function spielMonat(world: World, rng: Rng): void {
 
   personenMonat(world);
   figurenPruefen(world, rng);
+  ressortNachsorgeTag(world);
+  haushaltsMonatsabschluss(world);
   // Amtszeit (sim/amtszeit.ts): ältere Stände nachholen, Umbildungsfenster schließen, in der letzten Amtszeit die Nachfolge
   amtszeitMonat(world, rng);
   // Vorzeitige Enden (sim/enden.ts): Putschrisiko mit Warnstufen, Amtsenthebung nach AY 105, Gesundheit, Rücktrittsforderung
@@ -405,11 +419,14 @@ function spielMonat(world: World, rng: Rng): void {
 
 function figurenPruefen(world: World, rng: Rng): void {
   const spiel = world.spiel!;
+  const sitzeVorher=regierungsSitze(world);
+  const austritte:{partei:string;name:string;loyalitaet:number;sitze:number}[]=[];
   // Partner verlassen das Lager, wenn die Loyalität kippt
   for (const f of spiel.figuren) {
-    if (f.amt === "partner" && f.partei && spiel.lager.includes(f.partei) && f.loyalitaet < 20) {
+    if (f.partei && drohtKoalitionsbruch(world,f)) {
       spiel.lager = spiel.lager.filter((p) => p !== f.partei);
       const seats = world.parliament?.seats[f.partei] ?? 0;
+      austritte.push({partei:f.partei,name:f.name,loyalitaet:f.loyalitaet,sitze:seats});
       addLog(world, "ereignis", `Die ${f.partei} verlässt das Regierungslager (${seats} Sitze).`, "Ohne die Partner wird jede Abstimmung schwerer; Zusagen zu brechen hat einen Preis.");
       spiel.hinweise.push({
         id: `bruch-${world.day}-${f.partei}`,
@@ -427,6 +444,10 @@ function figurenPruefen(world: World, rng: Rng): void {
       });
       f.loyalitaet = 30;
     }
+  }
+  const bericht=spiel.gueter?.regierung?.bericht;
+  if(austritte.length && bericht?.monat===world.date.slice(0,7)) {
+    bericht.koalition={datum:world.date,vorher:sitzeVorher,nachher:regierungsSitze(world),grenze:KOALITIONSBRUCH_LOYALITAET,austritte};
   }
   // Wer gar nichts mehr trägt, geht: Ein Regierungsmitglied mit Loyalität unter 12 tritt mit einiger Wahrscheinlichkeit zurück
   for (const f of spiel.figuren) {

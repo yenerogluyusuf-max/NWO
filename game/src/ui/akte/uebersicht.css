@@ -110,3 +110,16 @@
 .ub-kopf, .ub-fuss { justify-content: flex-start; }
 .ub-kopf .ub-wert { margin-left: auto; text-align: right; }
 .ub-kopf .ub-wert * { text-align: right; }
+
+/* Fachübersichten im neuen Bereichsrahmen: offene Flächen, lesbare Ziele und echte Inhaltsbreite. */
+.ak-akte .ub{font:14px/1.6 var(--sans,Inter,sans-serif);gap:18px;min-width:0}.ak-akte .ub-lage{background:var(--ak-hell);border:1px solid var(--ak-linie);border-left:3px solid var(--ak-akzent);padding:18px;border-radius:10px;flex-wrap:wrap}.ak-akte .ub-lage p{font:14px/1.65 var(--sans,Inter,sans-serif);flex:1 1 250px}.ak-akte .ub-zahlen{flex-wrap:wrap}.ak-akte .ub-zahl strong{font-size:26px}.ak-akte .ub-zahl small{font-size:11px}
+.ak-akte .ub-raster,.ak-akte .ub.dicht .ub-raster,.ak-akte .ub.mit-detail .ub-raster{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:12px}
+.ak-akte .ub-gruppe{gap:10px}.ak-akte .ub-gruppe-name{color:var(--ak-akzent);margin:8px 0 0;font-size:11px;letter-spacing:.09em}
+.ak-akte .ub-kachel{padding:16px;background:#fffdf7;border-color:var(--ak-linie);border-radius:10px;border-left-width:3px;transition:background .15s,border-color .15s}.ak-akte .ub-kachel:hover{box-shadow:none;background:var(--ak-hell)}.ak-akte .ub-kachel.gewaehlt{background:var(--ak-hell);border-color:var(--ak-akzent);box-shadow:0 0 0 1px var(--ak-akzent)}
+.ak-akte .ub-kachel.ton-gut{border-left-color:#46724d}.ak-akte .ub-kachel.ton-mittel{border-left-color:#a37b30}.ak-akte .ub-kachel.ton-schlecht{border-left-color:#a34b3e}.ak-akte .ub-kachel.ton-aktiv{border-left-color:var(--ak-akzent)}
+.ak-akte .ub-kopf{flex-wrap:wrap;gap:8px}.ak-akte .ub-titel{font:600 15px/1.4 var(--sans,Inter,sans-serif);display:block;overflow:visible}.ak-akte .ub-wert{font:500 20px/1.25 var(--display,Georgia,serif);max-width:100%;white-space:normal;overflow-wrap:anywhere}.ak-akte .ub-wert small{font-size:11px;line-height:1.5}.ak-akte .ub-zeile{white-space:normal;font-size:12px;line-height:1.6}.ak-akte .ub-bild{width:44px;height:44px}.ak-akte .ub-filter{padding:11px 13px;border-radius:7px;border-color:var(--ak-linie);font-size:14px;background:#fffdf7}
+.ak-akte .ub-detail{background:#fffdf7;border:1px solid var(--ak-linie);border-radius:12px;padding:22px;box-shadow:0 5px 18px #20372d0a;max-height:none;position:static;min-width:0}.ak-akte .ub-dkopf h4{font:500 26px/1.2 var(--display,Georgia,serif)}.ak-akte .ub-dunter,.ak-akte .ub-dtext{font-size:13px;line-height:1.6}.ak-akte .ub-zu{border:1px solid var(--ak-linie);border-radius:6px;min-width:32px;min-height:32px;text-decoration:none;background:#f2f4eb;position:static;justify-self:end}
+@container akteninhalt (max-width:980px){.ak-akte .ub.mit-detail .ub-flaeche{grid-template-columns:minmax(0,1fr)}.ak-akte .ub.mit-detail .ub-detail{grid-row:1;max-height:none;position:static;inset:auto;z-index:auto}}
+@media(prefers-reduced-motion:reduce){.ak-akte .ub-kachel{transition:none}}
+
+.ak-akte .ub-detail:focus-visible{outline:3px solid #b38e48;outline-offset:3px}

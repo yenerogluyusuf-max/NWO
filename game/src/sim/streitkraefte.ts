@@ -9,6 +9,7 @@
 // `setzeInnovationsQuelle` (Innovationsgrenze aus der Wissensbasis), `setzeGueterQuelle` (Engpässe bei Stahl, Chips, Triebwerken).
 // Fehlt eine Quelle, gilt ein Rückfall aus vorhandenen Größen.
 
+import { militaerVersorgung } from "./versorgung";
 import { GATTUNGEN, GATTUNG_NACH_ID, START_BESCHAFFUNGEN, type GattungId, type Teilstreitkraft } from "../data/streitkraefte";
 import { NET } from "./modell";
 import { nationalAverage, startAverage } from "./netz";
@@ -49,6 +50,7 @@ export interface Beschaffung {
   /** Nur Entwicklung: scheitert sie am Ende? (deterministisch beim Beginn bestimmt) */
   scheitert?: boolean;
   gestoppt?: boolean;
+  versorgungsVerzug?: number;
 }
 
 export interface StreitkraefteZustand {
@@ -293,7 +295,7 @@ export function vorschauAusbau(w: World, gattung: GattungId, art: BeschaffungsAr
   const def = GATTUNG_NACH_ID[gattung];
   const s = z.gattungen[gattung];
   const etat = etatFaktor(w);
-  const gueter = gueterQuelle ? clamp(gueterQuelle(w, gattung), 0.2, 1.3) : 1;
+  const gueter = gueterQuelle ? clamp(gueterQuelle(w, gattung), 0.2, 1.3) : Math.max(0.2, militaerVersorgung(w).material);
   const innov = innovationsGrenze(w);
   const belegt = z.laufend.filter((b) => !b.name).length;
   const kap = Math.max(1, Math.round(STREITKRAEFTE.kapazitaet * etat));
@@ -422,6 +424,10 @@ export function streitkraefteMonat(w: World, imKrieg: boolean): void {
       continue;
     }
     b.gestoppt = false;
+    // Laufende Fertigung und Modernisierung benötigen tatsächlich gelieferte Vorprodukte.
+    const materialVerzug = b.art === "produktion" || b.art === "modernisierung" ? Math.round(30 * (1 - militaerVersorgung(w).material)) : 0;
+    b.versorgungsVerzug = (b.versorgungsVerzug ?? 0) + materialVerzug;
+    b.fertig += materialVerzug;
     if (w.day < b.fertig) continue;
     liefere(w, z, b);
     z.laufend = z.laufend.filter((x) => x.id !== b.id);

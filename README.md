@@ -10,9 +10,12 @@ Der Titel des Spiels ist **Staatsräson** (englisch *Raison d'État*), vorbehalt
 
 ## Dokumente
 
+Für die weitere Entwicklung beginnt der aktuelle [Gesamtplan vom 2. November 2026](GESAMTPLAN_STAATSRAESON_2026-11-02.md) bei den vorhandenen Systemen und führt über Gestaltung, Integration und vollständige Prüfpartien zur ersten zusammenhängenden Kampagne. Er enthält 26 Kapitel, 55 priorisierte Arbeitspakete und konkrete Abnahmekriterien. Direkte Nutzerentscheidungen bleiben maßgeblich.
+
 | Dokument | Inhalt |
 |---|---|
 | [Entscheidungen](ENTSCHEIDUNGEN.md) | Entscheidungen des Projektinhabers. Sie gehen allen anderen Dokumenten vor. |
+| [Aktueller Gesamtplan](GESAMTPLAN_STAATSRAESON_2026-11-02.md) | Bestandsaufnahme, Zielbild, Oberfläche, Politik und Wirtschaft, Etappen, 55 Arbeitspakete und sechs vollständige Prüfpartien |
 | [Projektplan](PROJEKTPLAN.md) | Gesamtvision, Leitprinzipien, Fahrplan |
 | [Spieldesign](SPIELDESIGN.md) | Spielspaß, Oberfläche, Politiknetz, Bauprojekte, Kampagne |
 | [Entwicklungsplan](ENTWICKLUNGSPLAN.md) | Teststufen S0 und S1, Meilensteine, Arbeitspakete |

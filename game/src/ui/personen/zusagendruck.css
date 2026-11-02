@@ -1,0 +1,12 @@
+.zd { min-width:0; padding:13px 16px; border:1px solid #c7b790; border-left:3px solid #9d7d3f; border-radius:6px; background:color-mix(in srgb,var(--paper-light,#fbf6e6) 94%,#b58b3f); color:var(--ink,#302b24); overflow-wrap:anywhere; }
+.zd.zd-gefahr { border-left-color:#984b37; background:color-mix(in srgb,var(--paper-light,#fbf6e6) 94%,#984b37); }
+.zd header { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 14px; font:600 14px/1.4 var(--sans,Inter,sans-serif); }
+.zd header span { font-size:12px; color:var(--ink-soft,#685c4d); }
+.zd p { margin:7px 0; font:14px/1.5 var(--serif,serif); }
+.zd .zd-folge { font-weight:600; } .zd-gefahr .zd-folge { color:#8a3e2c; }
+.zd details { margin-top:9px; font:12px/1.5 var(--sans,Inter,sans-serif); }
+.zd summary { cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.zd ul { margin:8px 0; padding-left:18px; } .zd li { margin:6px 0; } .zd time { display:block; color:var(--ink-soft,#685c4d); }
+.zd .zd-hinweis { font-size:12px; color:var(--ink-soft,#685c4d); }
+.zd-handeln { display:inline-block; max-width:100%; min-height:36px; white-space:normal; padding:6px 10px; border:1px solid #a5906a; border-radius:4px; background:var(--paper-light,#fbf6e6); color:inherit; font:600 12px/1.5 var(--sans,Inter,sans-serif); cursor:pointer; }
+.zd-handeln:focus-visible,.zd summary:focus-visible { outline:2px solid var(--teal,#2f5d62); outline-offset:3px; }

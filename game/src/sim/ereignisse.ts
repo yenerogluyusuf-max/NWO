@@ -12,16 +12,18 @@
 // p_energiemangel, energie_importrechnung, energie_subventionslast, strompreis,
 // gasabhaengigkeit, sakarya_gas, strommix.
 
+import { koalitionsAntwort } from "./koalitionsereignis";
+import { aktuelleErinnerungsZusage, zusagenErinnerungsAntwort, zusagenErinnerungsAntworten } from "./zusagenantwort";
 import { NET } from "./modell";
 import { nationalAverage, PROVINCES } from "./netz";
 import { PROVINZEN, SEISMIC, BORDER } from "./regional";
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
-import { anrede, ersetze, figur, partnerFigur } from "./figuren";
+import { anrede, ersetze, figur } from "./figuren";
 import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingriffe";
 import { interveniere } from "./devisen";
-import { REGELN, bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
+import { bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
 import { FORDERUNG, PARTEI_NAME, bereitschaftAendern, forderungVon } from "./fraktionen";
 import { INNEN_VORLAGEN } from "./ereignisse-innen";
 import { KATASTROPHE_VORLAGEN } from "./ereignisse-katastrophe";
@@ -40,10 +42,10 @@ import { MACHTKREIS_VORLAGEN } from "./ereignisse-machtkreis";
 import { VERFASSUNG_VORLAGEN } from "./ereignisse-verfassung";
 import { WAHL_VORLAGEN } from "./ereignisse-wahl";
 import { regierungsJahre } from "./amtszeit";
-import { dayOfMonth } from "./dates";
+import { addDays, dayOfMonth, formatDateDe } from "./dates";
 import { SAISON_VORLAGEN } from "./ereignisse-saison";
 import { setzeVerfassungsOeffner } from "./verfassung";
-import { brecheZusage, loeseZusageEin, vertroesteZusage, zusageAbschluss, zusageBezug, zusageVorhaben } from "./zusagen";
+import { brecheZusage, zusageAbschluss, zusageBezug, zusageVorhaben, zusageText, zusageVon } from "./zusagen";
 import { istMinisterienZusage, ministerienAnPartei, naechsteRessorts, ressortNamen } from "./ressortvergabe";
 import { skala, skalenArt } from "../data/skalen";
 import { PROZ_STADT, akutIn, dk, einwohner, kosten, monatVon, namen, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
@@ -54,6 +56,7 @@ import type { OffenesEreignis } from "./spiel-typen";
 import { kannZahlen } from "./kapital";
 import { momentaufnahme, rueckblickAnlegen } from "./berichte";
 import { t } from "../i18n";
+import { aktiveParteivorsitzende } from "./koalitionslage";
 import { VERFASSUNG, belastungEreignis } from "./aufmerksamkeit";
 
 export type { Option, Vorlage, SzenenName } from "./ereignis-hilfen";
@@ -800,45 +803,16 @@ const ZUSAGE: Vorlage = {
   abkuehlung: 0,
   chance: () => 0,
   erzeuge: () => null,
-  titel: (w, ev) => `Zusage fällig: ${w.spiel?.zusagen.find((z) => z.id === String(ev.daten?.zusage))?.von ?? ""}`,
+  titel: (w, ev) => t("ze.titel", { wer: zusageVon(w.spiel?.zusagen.find(z=>z.id===String(ev.daten?.zusage))?.von??"") }),
   text: (w, ev) => {
-    const z = w.spiel?.zusagen.find((x) => x.id === String(ev.daten?.zusage));
-    const f = z ? w.spiel?.figuren.find((x) => x.partei === z.von) : undefined;
-    const bezug = z ? zusageBezug(w, z) : undefined;
-    if (!z) return ["Eine Zusage ist fällig."];
-    if (f) return [`${f.rolle} ${f.name} erinnert Sie an Ihr Versprechen: ${z.text}.`];
-    if (bezug?.art === "land") return [`${bezug.name} erinnert Sie an Ihr Versprechen: ${z.text}. Das Vertrauen dort hängt davon ab, ob Ankara Wort hält.`];
-    return [`Ihnen wird die Rechnung präsentiert: ${z.text}.`];
+    const z=w.spiel?.zusagen.find(z=>z.id===String(ev.daten?.zusage));
+    return z?[t("ze.text",{wer:zusageBezug(w,z).name,text:zusageText(z)}),t("ze.antwortFrist",{datum:formatDateDe(addDays(w.date,ev.frist-w.day))})]:[t("ze.veraltet")];
   },
-  warum: () => "Wer Zusagen bricht, verliert Verbündete und Glaubwürdigkeit; wer sie hält, zahlt mit Kapital oder Politik. Beides bleibt im Gedächtnis: Legitimität und Vertrauen im Land hängen davon ab.",
-  optionen: (w, ev) => {
-    const z = w.spiel?.zusagen.find((x) => x.id === String(ev.daten?.zusage));
-    return [
-      (() => {
-        const v = zusageVorhaben(w, z);
-        const beschreibung = v
-          ? v.pr.ok
-            ? `Bringt „${v.name}“ als Gesetz ein: ${v.zielName ? `von „${v.jetztName}“ zu „${v.zielName}“` : `Stufe ${Math.round(v.jetzt)} auf ${v.ziel}`}. Kostet ${v.pr.gesetz.pk} Kapital; ${v.pr.gesetz.stimmen.luecke === 0 ? "die Mehrheit steht" : `es fehlen etwa ${v.pr.gesetz.stimmen.luecke} Stimmen`}.`
-            : `„${v.name}“ steht schon auf dieser Stufe; die Zusage gilt damit als erfüllt.`
-          : "Kostet 4 Kapital; die Partei ist zufrieden.";
-        const o = opt("erfuellen", v ? "Das Gesetz einbringen" : "Zusage erfüllen", beschreibung, v ? 0 : 4, (ww) => {
-          if (!z) return "Die Zusage besteht nicht mehr.";
-          return loeseZusageEin(ww, z).text;
-        });
-        if (v?.pr.ok) o.anzeigePk = v.pr.gesetz.pk;
-        return o;
-      })(),
-      ...((z?.vertroestet ?? 0) < 2
-        ? [
-            opt("vertroesten", "Vertrösten", `Kostet 1 Kapital; die Partei wartet drei Monate.${(z?.vertroestet ?? 0) === 1 ? " Das ist die letzte Vertröstung." : " Sie können sie noch zweimal vertrösten."}`, 1, (ww) => (z ? vertroesteZusage(ww, z) : "Die Zusage besteht nicht mehr.")),
-          ]
-        : []),
-      opt("brechen", "Zusage brechen", "Kostet nichts, aber Verbündete und Glaubwürdigkeit.", 0, (ww) => (z ? brecheZusage(ww, z) : "Die Zusage besteht nicht mehr.")),
-    ];
-  },
+  warum: () => t("ze.warum"),
+  optionen: zusagenErinnerungsAntworten,
   standard: (w, ev) => {
-    const z = w.spiel?.zusagen.find((x) => x.id === String(ev.daten?.zusage));
-    return z ? brecheZusage(w, z, true) : "Die Zusage verfällt unbeantwortet; das wird als Bruch gewertet.";
+    const z=aktuelleErinnerungsZusage(w,ev);
+    return z?brecheZusage(w,z,true):t("ze.veraltet");
   },
 };
 
@@ -864,29 +838,13 @@ const KOALITION: Vorlage = {
   text: (w, ev) => {
     const f = forderungVon(w, String(ev.daten?.partei));
     return [
-      `Die ${ev.daten?.partei} (${ev.daten?.sitze} Sitze) signalisiert, Ihr Lager im Parlament zu stützen, wenn Sie ihr entgegenkommen.`,
+      `Die ${ev.daten?.partei} (${w.parliament?.seats[String(ev.daten?.partei)] ?? 0} Sitze) signalisiert, Ihr Lager im Parlament zu stützen, wenn Sie ihr entgegenkommen.`,
       `Ihr Preis: ${f?.text ?? "ein Entgegenkommen"}. Ohne Mehrheit bleiben Gesetze mühsam und teuer.`,
     ];
   },
   warum: () => "Ohne eigene Mehrheit braucht ein Präsident Partner. Jeder Partner hat eigene Wähler und einen Preis.",
-  optionen: (_, ev) => [
-    opt("zustimmen", "Auf das Angebot eingehen", "Kostet 4 Kapital; das Lager wächst, die Partei erwartet Gegenleistung.", 4, (w, _e, rng) => {
-      const partei = String(ev.daten?.partei);
-      const f = forderungVon(w, partei);
-      w.spiel!.lager.push(partei);
-      w.spiel!.zusagen.push({
-        id: `z-koalition-${partei}-${w.day}`,
-        von: partei,
-        text: `Die ${partei} erwartet ${f.text}`,
-        faellig: w.day + 150,
-        massnahme: f.massnahme,
-        richtung: 1,
-        erfuellt: false,
-        gebrochen: false,
-      });
-      w.spiel!.figuren.push(partnerFigur(w, partei, `Vorsitz der ${partei}`, f.text, rng));
-      return `Die ${partei} stützt fortan das Lager (+${ev.daten?.sitze} Sitze).`;
-    }),
+  optionen: (w, ev) => [
+    koalitionsAntwort(w, String(ev.daten?.partei), "zustimmen", t("ka.annehmen"), "z-koalition"),
     opt("ablehnen", "Ablehnen", "Kostet nichts; die Mehrheit bleibt schwer.", 0, () => "Das Angebot wird abgelehnt."),
   ],
   standard: () => "Das Angebot verfällt.",
@@ -952,10 +910,9 @@ const START_PARTNER: Vorlage = {
   optionen: (w) => {
     const partei = w.player?.buendnis;
     if (!partei) return START_OPPOSITION_OPTIONEN();
-    const z = w.spiel?.zusagen.find((x) => istMinisterienZusage(x) && !x.erfuellt && !x.gebrochen);
+    const z = w.spiel?.zusagen.find((x) => x.von===partei && istMinisterienZusage(x) && !x.erfuellt && !x.gebrochen);
     const partner = (ww: World, d: number) => {
-      const f = ww.spiel?.figuren.find((x) => x.amt === "partner");
-      if (f) f.loyalitaet = clamp(f.loyalitaet + d, 0, 100);
+      for(const f of aktiveParteivorsitzende(ww,partei)) f.loyalitaet = clamp(f.loyalitaet + d, 0, 100);
     };
     if (z) {
       // Die Zusage „zwei Ministerien“: Wer großzügig ist, gibt die Ressorts wirklich ab (sim/ressortvergabe.ts)
@@ -1214,7 +1171,7 @@ const VORLAGE_NACH_ID = new Map(VORLAGEN.map((v) => [v.id, v]));
 export function antworten(w: World, ev: OffenesEreignis): Option[] {
   const v = vorlage(ev.vorlage);
   const optionen = v.optionen(w, ev);
-  if (optionen.some((o) => (o.anzeigePk ?? o.pk) === 0)) return optionen;
+  if (optionen.some((o) => !o.sperre && (o.anzeigePk ?? o.pk) === 0)) return optionen;
   return [
     ...optionen,
     {
@@ -1478,7 +1435,7 @@ export function ereignisTag(world: World, rng: Rng): void {
   if (spiel.zusagen.some((z) => z.von === "Fraktionen")) {
     spiel.zusagen = spiel.zusagen.filter((z) => z.von !== "Fraktionen");
   }
-  spiel.ereignisse = spiel.ereignisse.filter((e) => e.vorlage !== "zusage" || spiel.zusagen.some((z) => z.id === String(e.daten?.zusage)));
+  spiel.ereignisse = spiel.ereignisse.filter((e) => e.vorlage !== "zusage" || spiel.zusagen.some((z) => z.id === String(e.daten?.zusage) && !z.erfuellt && !z.gebrochen && z.faellig <= world.day));
   // Fällige Zusagen kommen der Reihe nach (älteste zuerst), nicht alle am selben Tag
   const offeneZusagen = spiel.ereignisse.filter((e) => e.vorlage === "zusage").length;
   const faellige = spiel.zusagen
@@ -1517,11 +1474,10 @@ setzeEinbringHaken((world, massnahmeId, text) => {
   const spiel = world.spiel;
   if (!spiel) return;
   for (const ev of [...spiel.ereignisse]) {
-    if (ev.vorlage.startsWith("start_")) continue;
+    // Zusagen erledigt die Gesetzesabwicklung nur bei einem ausreichenden Entwurf/Beschluss.
+    if (ev.vorlage.startsWith("start_") || ev.vorlage === "zusage") continue;
     const v = vorlage(ev.vorlage);
-    const zusage = ev.vorlage === "zusage" ? spiel.zusagen.find((x) => x.id === String(ev.daten?.zusage)) : undefined;
-    if (!v.massnahmen?.includes(massnahmeId) && zusage?.massnahme !== massnahmeId) continue;
-    if (zusage) zusage.faellig = world.day + REGELN.tageBisAbstimmung + 15; // das Gesetz liegt im Parlament; die Zusage gilt, sobald es beschlossen ist
+    if (!v.massnahmen?.includes(massnahmeId)) continue;
     abschliessen(world, ev, v.titel(world, ev), `Selbst an der Ursache angesetzt. ${text}`);
   }
 });
@@ -1545,6 +1501,7 @@ const VORSCHAU_CACHE = new Map<string, string[]>();
  * Zeigt Maßnahmenänderungen, Haushalt und die Größen, die sich am stärksten bewegen.
  */
 export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: string): string[] {
+  if (ev.vorlage === "zusage") return zusagenErinnerungsAntwort(world, ev, optionId)?.sofortfolgen ?? [];
   const key = `${ev.id}|${optionId}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}`;
   const gemerkt = VORSCHAU_CACHE.get(key);
   if (gemerkt) return gemerkt;
@@ -1553,7 +1510,7 @@ export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: st
     const kopie = structuredClone(world);
     const evK = kopie.spiel!.ereignisse.find((e) => e.id === ev.id);
     const o = evK ? antworten(kopie, evK).find((x) => x.id === optionId) : undefined;
-    if (evK && o) {
+    if (evK && o && !o.sperre) {
       const vorher = new Map<string, number>();
       for (const n of NET.nodes) if (!n.input) vorher.set(n.id, nationalAverage(NET, world.net, n.id));
       const schulden0 = kopie.economy.debtRatio;
@@ -1618,7 +1575,7 @@ function zusageAnsicht(world: World, ev: OffenesEreignis, v: Vorlage): { massnah
   if (ev.vorlage === "zusage") {
     const z = world.spiel?.zusagen.find((x) => x.id === String(ev.daten?.zusage));
     const vorhaben = zusageVorhaben(world, z);
-    return { massnahmen: vorhaben ? [{ id: vorhaben.id, name: vorhaben.name, ziel: vorhaben.ziel }] : [], massnahmenText: "Das Gesetz vorher ansehen:" };
+    return { massnahmen: vorhaben ? [{ id: vorhaben.id, name: vorhaben.name, ziel: vorhaben.ziel }] : [], massnahmenText: t("ze.gesetzAnsehen") };
   }
   return { massnahmen: (v.massnahmen ?? []).map((id) => ({ id, name: NET.nodes[NET.index.get(id)!]!.name })), massnahmenText: "Oder an der Ursache ansetzen:" };
 }
@@ -1634,7 +1591,7 @@ export function ansicht(world: World, ev: OffenesEreignis): EreignisAnsicht {
     warum: v.warum(world, ev),
     frist: ev.frist,
     tageBisFrist: Math.max(0, ev.frist - world.day),
-    optionen: antworten(world, ev).map(({ wirkung: _w, ...rest }) => ({ ...rest, bezahlbar: kannZahlen(world.spiel?.kapital ?? 0, rest.anzeigePk ?? rest.pk), vorschau: wirkungsVorschau(world, ev, rest.id) })),
+    optionen: antworten(world, ev).map(({ wirkung: _w, ...rest }) => ({ ...rest, bezahlbar: kannZahlen(world.spiel?.kapital ?? 0, rest.anzeigePk ?? rest.pk), vorschau: rest.sperre ? [] : rest.sofortfolgen ?? wirkungsVorschau(world, ev, rest.id) })),
     ...zusageAnsicht(world, ev, v),
   };
 }
@@ -1646,7 +1603,9 @@ export function entscheide(world: World, ereignisId: string, optionId: string, r
   const v = vorlage(ev.vorlage);
   const o = antworten(world, ev).find((x) => x.id === optionId);
   if (!o) return { ok: false, text: "Diese Antwort gibt es nicht." };
-  if (!kannZahlen(spiel.kapital, o.pk)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${o.pk}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  if (o.sperre) return { ok: false, text: o.sperre };
+  const vollerPreis = o.anzeigePk ?? o.pk;
+  if (!kannZahlen(spiel.kapital, vollerPreis)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${vollerPreis}, vorhanden ${Math.floor(spiel.kapital)}).` };
   spiel.kapital -= o.pk;
   const titel = v.titel(world, ev);
   // Rückblick (sim/berichte.ts): Stand vor der Antwort festhalten, damit der Bericht nach 6, 12 und 24 Monaten zeigen kann, was davon blieb
@@ -1666,7 +1625,7 @@ export function entscheide(world: World, ereignisId: string, optionId: string, r
 
 /** Für Bots und Tests: die günstigste sinnvolle Antwort, die noch bezahlbar ist. */
 export function standardAntwort(world: World, ev: OffenesEreignis): string | null {
-  const opts = antworten(world, ev).filter((o) => (world.spiel?.kapital ?? 0) >= o.pk);
+  const opts = antworten(world, ev).filter((o) => !o.sperre && (world.spiel?.kapital ?? 0) >= (o.anzeigePk ?? o.pk));
   return opts.length ? opts[0]!.id : null;
 }
 

@@ -1,3 +1,4 @@
+import { initialisiereStaatsgeld, staatsgeldMonat } from "./staatsgeld";
 // Weltzustand, Zeit und Handlungen. Jede verbindliche Zustandsänderung wird
 // protokolliert (Entwicklungsplan, Abschnitt 6).
 
@@ -120,6 +121,7 @@ export function tick(world: World): void {
   // Realwirtschaft monatlich, jeweils am Monatsersten für den abgelaufenen Monat
   if (dayOfMonth(world.date) === 1) {
     monthlyUpdate(e, world.history, rng);
+    staatsgeldMonat(world);
     world.history.push({
       month: previousMonth(monthOf(world.date)),
       inflation: e.inflation,
@@ -137,7 +139,7 @@ export function tick(world: World): void {
     monthlyNet(world);
     wirtschaftMonat(world);
     // WIR-2: Leistungsbilanz, Reserven und IWF-Reviews (nur mit Spielschleife)
-    devisenMonat(world);
+
   }
 
   // Statistiken erscheinen mit Verzögerung (Wirtschaftsmodell, Abschnitt 2)
@@ -146,6 +148,8 @@ export function tick(world: World): void {
 
   // Spielschleife: Parlament, Ereignisse, Umfragen, Wahl (nur mit Amtsantritt)
   spielTick(world, rng);
+  // Warenlieferungen werden vor der Außenrechnung abgeschlossen.
+  if (dayOfMonth(world.date) === 1) devisenMonat(world);
 
   world.rngState = rng.state;
 }
@@ -270,6 +274,7 @@ export function load(json: string): World {
   const w = JSON.parse(json) as World;
   migriereNetz(w);
   bereinigeZahlen(w);
+  initialisiereStaatsgeld(w);
   // Ältere Spielstände: die neuen Ämter des Umfelds (Justiz, Streitkräfte, Wirtschaft) werden einmal ergänzt
   ergaenzeFiguren(w);
   // Rollen und Ziele liegen als fertiger Text im Spielstand: in die aktuelle Sprache bringen

@@ -1,6 +1,7 @@
 // Prolog und Start nach der Wahl 2028 (Spieldesign, Abschnitt 3).
 // Jede Antwort verändert einen konkreten Zustand; keine ist die beste.
 
+import { festeZusage } from "./zusagenfolgen";
 import type { World } from "./types";
 import { Rng } from "./rng";
 import { NET } from "./modell";
@@ -542,7 +543,7 @@ export function startAfterElection(world: World, eingabe: PlayerProfile): void {
     const name = PARTEI_NAME[partei] ?? partei;
     spiel.lager.push(partei);
     if (forderung) {
-      spiel.zusagen.push({ id: `z-start-${partei}`, von: partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 120 + 60 * i, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
+      spiel.zusagen.push(festeZusage(world, { id: `z-start-${partei}`, von: partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 120 + 60 * i, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
     }
     const figur = partnerFigur(world, partei, `Vorsitz der ${name}`, forderung?.text ?? "Einfluss und Ämter", rng);
     // Eine Fraktion, die allein fast so groß ist wie das übrige Lager, hat Gewicht und Ansprüche: Ihre Treue ist brüchig
@@ -554,14 +555,14 @@ export function startAfterElection(world: World, eingabe: PlayerProfile): void {
     f.duldungBis = world.day + 240;
     f.bereitschaft = Math.max(f.bereitschaft, 55);
     const forderung = forderungVon(world, duldender);
-    world.spiel.zusagen.push({ id: `z-duldung-${duldender}`, von: duldender, text: `Die ${PARTEI_NAME[duldender] ?? duldender} erwartet für ihre Duldung ${forderung.text}`, faellig: 200, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
+    world.spiel.zusagen.push(festeZusage(world, { id: `z-duldung-${duldender}`, von: duldender, text: `Die ${PARTEI_NAME[duldender] ?? duldender} erwartet für ihre Duldung ${forderung.text}`, faellig: 200, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
   }
   // Bündnis mit einer Partei außerhalb der klassischen Muster: Sie erwartet ihre Kernforderung (Muster z-start-*)
   const bz = profile.buendnisZusage;
   if (bz && world.spiel && !world.spiel.zusagen.some((z) => z.id === `z-start-${bz.partei}`)) {
     const forderung = forderungVon(world, bz.partei);
     const name = PARTEI_NAME[bz.partei] ?? bz.partei;
-    world.spiel.zusagen.push({ id: `z-start-${bz.partei}`, von: bz.partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 90, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false });
+    world.spiel.zusagen.push(festeZusage(world, { id: `z-start-${bz.partei}`, von: bz.partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 90, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
   }
   // Szenario (Wahltag, Krise) und Biografie (Beruf, Jugend, Motiv, Partner, Wahlnacht) wirken auf Figuren, Kapital und Lage
   wendeStartszenarioAn(world, profile);

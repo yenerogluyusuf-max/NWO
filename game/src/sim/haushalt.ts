@@ -1,3 +1,4 @@
+import { geldAusBip } from "./staatsgeld";
 // Der Haushalt als Entscheidung, wie in Democracy: ein Regler je Ressort (Renten, Bildung, Forschung, Verteidigung …) plus die drei großen
 // Steuern. Jede Stufe kostet sofort Geld (Ausgabenimpuls → Nachfrage, Defizit, Schulden, Inflation) und wirkt mit Verzug über die Politikfelder
 // des Netzes: Bildung braucht Jahre, bis Fachkräfte da sind, Infrastruktur und Rüstung brauchen Bau und Beschaffung. Mehr bringt immer weniger
@@ -13,6 +14,7 @@
 //     Wirtschaftsleistung und gleichen die Inflation damit automatisch aus (Legitimität leidet trotzdem).
 
 import type { World } from "./types";
+import { beginneHaushaltsBeleg, schliesseHaushaltsBeleg } from "./haushaltsbericht";
 import type { Rng } from "./rng";
 import { addLog, fmt } from "./log";
 import { addDays, dayOfMonth, monthNumber } from "./dates";
@@ -22,7 +24,7 @@ import { wirke } from "./wirkung";
 import { NET } from "./modell";
 import { impulsKette, istGut, kettenZeile } from "./folgen";
 import { ALTE_POSTEN, addMarke, defizitJetzt, haushaltZustand } from "./wirtschaft";
-import { REGELN, STIMMEN_PUFFER, stimmenSicht } from "./handeln";
+import { REGELN, stimmenPrognose, stimmenSicht } from "./handeln";
 import { bildungsUeberhang, innovationsGrenze, wirksameForschung, WISSEN } from "./wissensbasis";
 import { ministerFuer, stabilerWert } from "./ministerfluss-kern";
 import type { Amt } from "./ministerfluss-typen";
@@ -130,6 +132,10 @@ export const POSTEN: PostenDef[] = [
     sofort: [st("junge", 0.3), st("staedtische_saekulare", 0.3)], dauer: [s("erneuerbare", 0.6), s("luftqualitaet", 0.4), s("klimaschutz", 0.6), s("stromversorgung", 0.2)] }),
   posten({ id: "kultur", seite: "ausgabe", gruppe: "staat", amt: "stab", unbeliebt: -1,
     sofort: [st("konservative", 0.3), st("staedtische_saekulare", 0.3)], dauer: [s("kulturerbe", 0.6), s("identitaet", 0.3), s("tourismus", 0.3)] }),
+  posten({ id: "justiz", seite: "ausgabe", gruppe: "staat", amt: "justiz", unbeliebt: -1,
+    sofort: [st("beamte", 0.3)], dauer: [s("justizvertrauen", 0.6), s("rechtssicherheit", 0.3)] }),
+  posten({ id: "diplomatie", seite: "ausgabe", gruppe: "staat", amt: "aussen", unbeliebt: -1,
+    sofort: [], dauer: [s("ansehen", 0.5), s("beziehungen_eu", 0.15)] }),
   posten({ id: "personal", seite: "ausgabe", gruppe: "staat", amt: "finanzen", unbeliebt: -1, plan: "personal",
     sofort: [st("beamte", 3)], dauer: [s("aerzte", 1), s("kostendruck", 0.4), s("korruption", -0.3)] }),
   posten({ id: "subventionen", seite: "ausgabe", gruppe: "staat", amt: "wirtschaft", unbeliebt: -1,
@@ -179,7 +185,7 @@ export function impulsAusPosten(w: World): number {
 }
 
 /** Wie viele Milliarden Lira eine Stufe ungefähr bedeutet (Größenordnung, abgeleitet; negativ, wenn die Stufe spart). */
-export const mrdJeStufe = (p: PostenDef): number => Math.round(p.schritt * PLAN_2026.mrdProProzentBip);
+export const mrdJeStufe = (p: PostenDef, w?: World): number => w ? geldAusBip(w, p.schritt) : p.schritt * PLAN_2026.mrdProProzentBip;
 
 /** Etat eines Ressorts in % des BIP bei einer Stufe (Steuern: undefined). */
 export function etatBip(p: PostenDef, stufe: number): number | undefined {
@@ -341,7 +347,7 @@ export function setzePosten(w: World, idRoh: string, stufe: number, ohneKosten =
   if (ziel === 0) delete z.stufen[id];
   wende(w, p, v.delta);
   z.letzteAenderung = w.day;
-  const text = t("haushalt.beschluss.nachtrag", { posten: p.name, richtung: richtungsWort(p, v.delta), mrd: Math.round(Math.abs(v.delta * mrdJeStufe(p))).toLocaleString("de-DE") });
+  const text = t("haushalt.beschluss.nachtrag", { posten: p.name, richtung: richtungsWort(p, v.delta), mrd: Math.round(Math.abs(v.delta * mrdJeStufe(p, w))).toLocaleString("de-DE") });
   const folgen = [
     ...impulsKette(v.impuls).slice(0, 4).map(kettenZeile),
     ...v.zeilen.slice(0, 4).map((x) => `${x.text} ${x.richtung > 0 ? "▲" : "▼"} (${t("haushalt.dauerhaft")})`),
@@ -529,13 +535,7 @@ export function paketInEntwurf(w: World, id: string): Ergebnis {
 }
 
 /** Wie es um das eingebrachte Haushaltsgesetz steht (Mehrheitslogik wie bei Gesetzen). */
-export interface HaushaltsGesetzSicht {
-  ja: number;
-  luecke: number;
-  noetig: number;
-  kosten: number;
-  bezahlbar: boolean;
-  urteil: "sicher" | "knapp" | "verloren";
+export interface HaushaltsGesetzSicht extends ReturnType<typeof stimmenPrognose> {
   abstimmungTag: number;
   tageBis: number;
 }
@@ -544,21 +544,22 @@ export function haushaltsGesetzSicht(w: World): HaushaltsGesetzSicht | null {
   const z = haushaltZustand(w);
   const g = z.gesetz;
   if (!g) return null;
-  const sicht = stimmenSicht(w);
-  const ja = sicht.erwartet + g.absprachen;
-  const luecke = Math.max(0, REGELN.mehrheit - ja);
-  const noetig = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? 0 : REGELN.mehrheit + STIMMEN_PUFFER - ja;
-  const kosten = Math.ceil(noetig * REGELN.kaufKostenProStimme);
-  const kapital = w.spiel?.kapital ?? 0;
-  const bezahlbar = kannZahlen(kapital, kosten);
-  const urteil = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? "sicher" : luecke > 0 && !bezahlbar ? "verloren" : "knapp";
-  return { ja, luecke, noetig, kosten, bezahlbar, urteil, abstimmungTag: g.abstimmung, tageBis: Math.max(0, g.abstimmung - w.day) };
+  return { ...stimmenPrognose(w,g.abstimmung,g.absprachen), abstimmungTag:g.abstimmung,tageBis:Math.max(0,g.abstimmung-w.day) };
+}
+
+/** Derselbe Termin und dieselbe Rechnung bereits vor dem Einbringen des Entwurfs. */
+export function haushaltsEntwurfsSicht(w:World):HaushaltsGesetzSicht|null {
+  const z=haushaltZustand(w);
+  if(!haushaltsfenster(w).offen || !Object.entries(z.entwurf??{}).some(([id,n])=>n!==(z.stufen[id]??0)))return null;
+  const abstimmung=w.day+REGELN.tageBisAbstimmung;
+  return {...stimmenPrognose(w,abstimmung),abstimmungTag:abstimmung,tageBis:REGELN.tageBisAbstimmung};
 }
 
 /** Das Haushaltsgesetz (Summe der Entwurfs-Änderungen) ins Parlament einbringen. */
 export function bringeHaushaltsgesetzEin(w: World): Ergebnis {
   const spiel = w.spiel;
   if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es kein Parlament." };
+  if (spiel.ende) return { ok:false,text:t("hm.beendet") };
   const z = haushaltZustand(w);
   const fenster = haushaltsfenster(w);
   if (z.gesetz) return { ok: false, text: "Der Entwurf liegt schon im Parlament." };
@@ -570,9 +571,9 @@ export function bringeHaushaltsgesetzEin(w: World): Ergebnis {
   const jahr = Number(w.date.slice(0, 4));
   z.gesetz = { jahr, schritte: { ...entwurf }, eingebracht: w.day, abstimmung: w.day + REGELN.tageBisAbstimmung, absprachen: 0 };
   z.entwurf = {};
-  const sicht = stimmenSicht(w);
+  const sicht = haushaltsGesetzSicht(w)!;
   const text = `Haushaltsgesetz ${jahr + 1} eingebracht: ${aenderungen.length} ${aenderungen.length === 1 ? "Posten" : "Posten"} geändert; die Abstimmung ist in ${REGELN.tageBisAbstimmung} Tagen.`;
-  const why = `Erwartet werden ${sicht.erwartet} Ja-Stimmen (Spanne ${sicht.low} bis ${sicht.high}), nötig sind ${REGELN.mehrheit}. Fehlende Stimmen lassen sich wie bei jedem Gesetz mit Kapital sichern. Scheitert der Haushalt, läuft der Vorjahrshaushalt weiter — die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation von selbst aus —, aber die Regierung verliert Legitimität.`;
+  const why = t("hm.einbringenWarum",{ja:sicht.ja,datum:sicht.datum,noetig:REGELN.mehrheit});
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }
@@ -583,7 +584,9 @@ export function haushaltsStimmenKaufen(w: World, anzahl: number): Ergebnis {
   const z = haushaltZustand(w);
   const g = z.gesetz;
   if (!spiel || !g) return { ok: false, text: "Es liegt kein Haushaltsgesetz zur Abstimmung vor." };
-  const n = Math.max(1, Math.round(anzahl));
+  if (spiel.ende) return { ok:false,text:t("hm.beendet") };
+  if (!Number.isFinite(anzahl) || anzahl<1 || anzahl>600) return {ok:false,text:t("hm.anzahl")};
+  const n = Math.round(anzahl);
   const kosten = Math.ceil(n * REGELN.kaufKostenProStimme);
   if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: `Für ${n} Stimmen fehlt Politisches Kapital (nötig ${kosten}, vorhanden ${Math.floor(spiel.kapital)}).` };
   spiel.kapital -= kosten;
@@ -608,7 +611,7 @@ function wendeEntwurfAn(w: World, schritte: Record<string, number>, jahr: number
     else z.stufen[p.id] = ziel;
     wende(w, p, delta);
     angewendet += 1;
-    const mrd = Math.round(Math.abs(delta * mrdJeStufe(p)));
+    const mrd = Math.round(Math.abs(delta * mrdJeStufe(p, w)));
     const richtung = richtungsWort(p, delta);
     const impuls = delta * p.schritt * vorzeichen(p);
     const folgen = [
@@ -654,6 +657,7 @@ export function haushaltszyklusTag(w: World, rng: Rng): void {
   const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + Math.round(rng.normal(6))));
   const nein = 600 - ja;
   const angenommen = ja >= REGELN.mehrheit;
+  const beleg=beginneHaushaltsBeleg(w,g,ja);
   z.zyklusJahr = g.jahr;
   if (angenommen) {
     const n = wendeEntwurfAn(w, g.schritte, g.jahr);
@@ -674,6 +678,7 @@ export function haushaltszyklusTag(w: World, rng: Rng): void {
     );
     spiel.chronik.push({ tag: w.day, datum: w.date, titel: `Haushaltsgesetz ${g.jahr + 1}`, ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.` });
   }
+  schliesseHaushaltsBeleg(w,beleg);
 }
 
 /** Staatskalender-Markierung: die nächsten festen Haushaltstermine ab heute (Fenster, Abstimmung). */

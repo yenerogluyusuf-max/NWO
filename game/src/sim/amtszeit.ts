@@ -15,6 +15,7 @@ import { wirke } from "./wirkung";
 import { AEMTER, eigenVon, hashZahl, loyalitaetVerschieben, merke } from "./personen";
 import { besetzeNeu, figur, neuerName } from "./figuren";
 import { entlasse, kandidatenFuer } from "./nachfolge";
+import { ressortEntlassungsHinweise } from "./ressortpolitik";
 import { zielDef, zielStand } from "./ziele";
 import { zusageAnlegen } from "./ereignis-hilfen";
 import { kannZahlen } from "./kapital";
@@ -228,6 +229,7 @@ export interface UmbildungMinister {
   ehrgeiz: number;
   groll: number;
   kommissarisch: boolean;
+  politischeFolgen?:string[];
   entschieden?: "behalten" | "ersetzt" | "versetzt" | "entlassen";
   kandidaten: { id: string; name: string; herkunft: string; staerke: string; schwaeche: string; faehigkeit: number; ehrgeiz: number; loyalitaet: number; pk: number }[];
 }
@@ -285,6 +287,7 @@ export function umbildungSicht(w: World): UmbildungSicht | null {
         ehrgeiz: Math.round(e.ehrgeiz),
         groll: Math.round(e.groll),
         kommissarisch: !!e.kommissarisch,
+        politischeFolgen:ressortEntlassungsHinweise(w,f),
         ...(entschieden ? { entschieden } : {}),
         kandidaten: kandidatenFuer(w, f.amt).map((k) => ({ id: k.id, name: k.name, herkunft: k.herkunft, staerke: k.staerke, schwaeche: k.schwaeche, faehigkeit: k.faehigkeit, ehrgeiz: k.ehrgeiz, loyalitaet: k.loyalitaet, pk: Math.max(1, Math.round(k.pk * AMTSZEIT.kostenAnteil)) })),
       };
@@ -320,15 +323,12 @@ export function umbildungBehalten(w: World, amt: Figur["amt"]): UmbildungErgebni
 /** Das Amt neu besetzen (Kandidat aus dem Pool): die Kosten liegen im Fenster bei der Hälfte. */
 export function umbildungErsetzen(w: World, amt: Figur["amt"], kandidatId: string): UmbildungErgebnis {
   const u = fenster(w);
-  const sp = w.spiel!;
   if (!u || !MINISTER.includes(amt)) return { ok: false, text: t("umbildung.fehler.kein_fenster") };
   const k = kandidatenFuer(w, amt).find((x) => x.id === kandidatId);
   if (!k) return { ok: false, text: t("umbildung.fehler.kein_kandidat") };
   const rabatt = Math.floor(k.pk * (1 - AMTSZEIT.kostenAnteil));
-  sp.kapital += rabatt;
-  const r = entlasse(w, amt, kandidatId);
+  const r = entlasse(w, amt, kandidatId,rabatt);
   if (!r.ok) {
-    sp.kapital -= rabatt;
     return { ok: false, text: r.text };
   }
   u.entschieden[amt] = "ersetzt";
@@ -338,13 +338,10 @@ export function umbildungErsetzen(w: World, amt: Figur["amt"], kandidatId: strin
 /** Ein Regierungsmitglied wird kommissarisch ersetzt (ohne Kandidatenwahl, um Kapital zu sparen). */
 export function umbildungEntlassen(w: World, amt: Figur["amt"]): UmbildungErgebnis {
   const u = fenster(w);
-  const sp = w.spiel!;
   if (!u || !MINISTER.includes(amt)) return { ok: false, text: t("umbildung.fehler.kein_fenster") };
   const rabatt = 1;
-  sp.kapital += rabatt;
-  const r = entlasse(w, amt, null);
+  const r = entlasse(w, amt, null,rabatt);
   if (!r.ok) {
-    sp.kapital -= rabatt;
     return { ok: false, text: r.text };
   }
   u.entschieden[amt] = "entlassen";

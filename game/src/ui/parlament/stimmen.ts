@@ -5,7 +5,7 @@
 import type { World } from "../../sim/types";
 import type { Gesetz } from "../../sim/spiel-typen";
 import { duldung, sachstimmen } from "../../sim/fraktionen";
-import { gesetzRichtung, stimmenSicht } from "../../sim/handeln";
+import { gesetzRichtung, gesetzWeltAmVotum, stimmenSicht } from "../../sim/handeln";
 import { jaAnteilLager } from "../../sim/linie";
 import type { Fraktionslage, Parlamentslage } from "./lage";
 import { proportional, zufall } from "./geometrie";
@@ -40,6 +40,10 @@ export interface Vorgabe {
   sachJa: number;
   /** Gekaufte Stimmen (Absprachen) */
   absprachen: number;
+  /** Zusätzlicher Rückhalt oder Absprung durch Fassung und politische Unterstützung. */
+  bonus?: number;
+  /** Bekannte Fraktionsrollen zum Votum, auch wenn der übergebene Sitzplan noch von heute stammt. */
+  duldungsParteien?: string[];
   /** Erwartete Ja-Stimmen ohne Absprachen; der Rest über Lager, Duldung und Sachstimmen sind Übertritte */
   erwartet: number;
   /** Grenzen der Spanne der Schätzung (ohne Absprachen) */
@@ -56,17 +60,28 @@ export function verteileErwartung(lage: Parlamentslage, v: Vorgabe): Zaehler {
     frei[f.partei] = f.sitze;
   }
   const lager = lage.fraktionen.filter((f) => f.rolle === "eigene" || f.rolle === "lager");
-  const dulder = lage.fraktionen.filter((f) => f.rolle === "duldung");
-  const sach = lage.fraktionen.filter((f) => f.rolle === "opposition" && v.sachParteien.includes(f.partei));
-  const rest = lage.fraktionen.filter((f) => f.rolle === "opposition" && !v.sachParteien.includes(f.partei));
+  const opposition = lage.fraktionen.filter(f => f.rolle !== "eigene" && f.rolle !== "lager");
+  const duldet = (f: Fraktionslage) => v.duldungsParteien ? v.duldungsParteien.includes(f.partei) : f.rolle === "duldung";
+  const dulder = opposition.filter(duldet);
+  const sach = opposition.filter(f => !duldet(f) && v.sachParteien.includes(f.partei));
+  const rest = opposition.filter(f => !duldet(f) && !v.sachParteien.includes(f.partei));
   const lagerFest = v.lagerJa ?? lage.lager;
-  fuelle(z, frei, lager, "fest", lagerFest);
-  fuelle(z, frei, dulder, "zusage", v.duldungJa);
-  fuelle(z, frei, sach, "zusage", v.sachJa);
-  fuelle(z, frei, rest, "zusage", v.absprachen);
-  const uebertritt = Math.max(0, v.erwartet - lagerFest - v.duldungJa - v.sachJa);
-  fuelle(z, frei, rest, "wackelig", uebertritt);
-  fuelle(z, frei, rest, "offen", Math.max(0, v.hoch - v.erwartet));
+  const zusatz = v.absprachen + (v.bonus ?? 0);
+  const erwartet = Math.max(0, Math.min(lage.gesamt, Math.round(v.erwartet + zusatz)));
+  let budget = erwartet;
+  budget -= fuelle(z, frei, lager, "fest", Math.min(budget, lagerFest));
+  budget -= fuelle(z, frei, dulder, "zusage", Math.min(budget, v.duldungJa));
+  budget -= fuelle(z, frei, sach, "zusage", Math.min(budget, v.sachJa));
+  let absprachen = Math.max(0, Math.min(budget, v.absprachen));
+  const verteilt = fuelle(z, frei, rest, "zusage", absprachen);
+  absprachen -= verteilt; budget -= verteilt;
+  budget -= fuelle(z, frei, lage.fraktionen, "zusage", absprachen);
+  // Fassungseffekte und Übertritte sind eine Schätzung, keine individuelle Zusage.
+  budget -= fuelle(z, frei, rest, "wackelig", budget);
+  budget -= fuelle(z, frei, lage.fraktionen, "wackelig", budget);
+  const offen = Math.max(0, Math.min(lage.gesamt, Math.round(v.hoch + zusatz)) - erwartet);
+  const verteiltOffen = fuelle(z, frei, rest, "offen", offen);
+  fuelle(z, frei, lage.fraktionen, "offen", offen - verteiltOffen);
   for (const f of lage.fraktionen) z[f.partei]!.nein = frei[f.partei] ?? 0;
   return z;
 }
@@ -117,6 +132,7 @@ export function stimmzettel(lage: Parlamentslage, jaJe: Record<string, number>, 
 
 /** Was die Simulation für ein Gesetz erwartet, in der Form dieses Moduls. */
 export function vorgabeFuer(world: World, g: Gesetz | null): Vorgabe {
+  if (g) world = gesetzWeltAmVotum(world, g);
   const richtung = g ? gesetzRichtung(world, g) : 0;
   const sicht = stimmenSicht(world, g ? { massnahme: g.massnahme, richtung } : undefined);
   const dul = duldung(world);
@@ -127,7 +143,7 @@ export function vorgabeFuer(world: World, g: Gesetz | null): Vorgabe {
     const parteien = [world.player?.partei.kurz ?? "", ...(world.spiel?.lager ?? [])].filter(Boolean);
     lagerJa = parteien.reduce((s, p) => s + Math.round((parl[p] ?? 0) * jaAnteilLager(world, p, g.massnahme, richtung)), 0);
   }
-  return { sachParteien: sach.parteien, lagerJa, duldungJa: dul.ja, sachJa: sach.ja, absprachen: g?.absprachen ?? 0, erwartet: sicht.erwartet, niedrig: sicht.low, hoch: sicht.high };
+  return { sachParteien: sach.parteien, lagerJa, duldungJa: dul.ja, duldungsParteien: dul.parteien, sachJa: sach.ja, absprachen: g?.absprachen ?? 0, bonus:g?.stimmenBonus??0, erwartet: sicht.erwartet, niedrig: sicht.low, hoch: sicht.high };
 }
 
 export function zaehleZustaende(z: Zaehler): Record<Zustand, number> {

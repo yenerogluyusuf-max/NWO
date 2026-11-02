@@ -1,0 +1,1209 @@
+{
+  "recorded_at": "2026-11-02T14:11:00.905214+00:00",
+  "root": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung",
+  "scope": "Haushaltsbuch, Ministerantworten, politische Verantwortung, Forderungsmaßnahmen und Fachdetails",
+  "tests": {
+    "distinct_passed": 191,
+    "new": 25,
+    "method": "Letzter tatsächlich ausgeführter Status je Datei und Testname; übersprungene Fälle überschreiben keine Ausführung.",
+    "cases": [
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Postenvorschau am 2028-10-12 ist neutral und bucht beim Klick exakt den angegebenen Preis",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Postenvorschau am 2028-11-02 ist neutral und bucht beim Klick exakt den angegebenen Preis",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Entwurf kann ohne Nachtrag und ohne Persönlichkeitsbonus auf den heutigen Stand zurückgenommen werden",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "ein bereits laufendes Haushaltsgesetz sperrt den vermeintlich bezahlbaren Nachtrag vor dem Klick",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "unveränderter Entwurf wird nicht erneut als Änderung angeboten",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "geänderter Zustand kapital kann keinen alten Haushaltsklick buchen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "geänderter Zustand monat kann keinen alten Haushaltsklick buchen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "geänderter Zustand posten kann keinen alten Haushaltsklick buchen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "geänderter Zustand amtsende kann keinen alten Haushaltsklick buchen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Annahme des echten Haushaltsgesetzes erreicht die gemeinsam vorgerechnete Defizitsumme",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "leerer und bereits eingebrachter Entwurf liefern keine zweite Einbringkarte",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Haushaltsvorschau berücksichtigt Duldungsende und stellt Bedingungen vor die Einbringung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "bloßes Öffnen der Alternativen baut keine teure ausführliche Vorschau auf und führt nichts aus",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "eine ausgewählte Alternative baut genau ihren Inhalt auf, veraltete Auswahl keinen Ersatz",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Haushaltsbuch zeigt dieselben Ressorts in Desktopnavigation und schmaler Auswahl, baut nur das gewählte auf",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Haushaltsbuch fällt bei entfallenem Sprungziel auf den aktuellen Zyklus zurück, nicht auf eine Ausgabe",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Haushaltsarbeitsplatz, Entscheidungskarten und Katalog auf de",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Haushaltsarbeitsplatz, Entscheidungskarten und Katalog auf en",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Haushaltsarbeitsplatz, Entscheidungskarten und Katalog auf tr",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "Nachtrag nennt realen Preis und Legitimität; doppelte und veraltete Klicks buchen nichts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "Korrektur greift nicht auf beliebige Posten zu und überschreibt keine alte Entscheidung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "neuer Versorgungsauftrag zeigt reale Mehrheit, Kompromisse und Kosten; keine vorzeitige Aktivierung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "neue Sperre nach Vorschau verursacht keine Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "Gespräch bei gefährdetem Partner setzt reale Loyalität um, Zusage bleibt offen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "gespeicherte Belege und heutige Hilfe funktionieren nach Laden; keine Hilfe für alten Beschluss",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "Gegenmaßnahmen auf de erklären Preise, Votum und neue Auflagen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "Gegenmaßnahmen auf en erklären Preise, Votum und neue Auflagen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltshilfe.test.tsx",
+        "test": "Gegenmaßnahmen auf tr erklären Preise, Votum und neue Auflagen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum eine vor dem Votum auslaufende Duldung darf die Lücke nicht verdecken",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum die Vorschau bleibt auf 600 Stimmen begrenzt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum ungültige Absprache NaN bucht nichts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum ungültige Absprache 0 bucht nichts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum ungültige Absprache -5 bucht nichts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum ungültige Absprache Infinity bucht nichts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Duldung endet -1 Tage relativ zum Votum",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Duldung endet 0 Tage relativ zum Votum",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Duldung endet 1 Tage relativ zum Votum",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum mehrere Fristen werden geordnet, bereits beendete und Koalitionsduldungen ausgeschlossen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum überfällige Voten beleben keine alte Duldung wieder",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Entwurf und eingebrachtes Gesetz haben dieselbe Terminvorschau",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum leere und geschlossene Entwürfe zeigen keinen fiktiven Abstimmungstermin",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum einfach erreicht das angezeigte Ziel, bucht genau den Preis und stimmt nicht vorzeitig ab",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum puffer erreicht das angezeigte Ziel, bucht genau den Preis und stimmt nicht vorzeitig ab",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum einfache Mehrheit bleibt bezahlbar, wenn der größere Puffer den Überziehungsrahmen übersteigt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum duldung: Stimmen, Preis, Aufmerksamkeit, Bereitschaft und feste Zusage entsprechen dem wirklichen Abschluss",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum koalition: Stimmen, Preis, Aufmerksamkeit, Bereitschaft und feste Zusage entsprechen dem wirklichen Abschluss",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum neuer Vorsitz entsteht nur beim echten Abschluss; die Vorschau bleibt zustandsneutral",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum laufende Duldungen lassen sich erst nach Ablauf erneuern; ein Bündnis bleibt eine gesonderte Alternative",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum eine vor dem verschobenen Votum endende neue Duldung wird nicht als Stimmengewinn angeboten",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Angebote verwenden nur ausführbare Fraktionen und sortieren nach Restlücke und Preis",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum geänderte Bedingung kapital entwertet alte Abkommen ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum geänderte Bedingung sitze entwertet alte Abkommen ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum geänderte Bedingung termin entwertet alte Abkommen ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum geänderte Bedingung bereitschaft entwertet alte Abkommen ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum geänderte Bedingung rng entwertet alte Abkommen ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum ein Angebot verwendet seine geprüften Werte statt manipulierter Stimmen oder Preise",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum bereits gesicherter Puffer erzeugt keine weitere kostenpflichtige Absprache",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum vor dem Votum drohender Bruch ist trotz nomineller Mehrheit sichtbar; inaktive Vorsitzende zählen nicht",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum offene Zusagenerinnerungen werden beim neuen Bündnis mitgezählt und entwerten ältere Angebote",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum ohne laufendes Haushaltsgesetz und nach Amtsende wird nichts gebucht",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Speichern und Laden erhalten Terminprognose, Absprache und Vertragsfolgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum echtes Haushaltsvotum: ohne Hilfe scheitert der Entwurf, mit Puffer wird er bei gleicher Streuung beschlossen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Haushalts- und Vertragskarten auf de zeigen echte Fristen, Lücken, Preise und Zielzustände",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Haushalts- und Vertragskarten auf en zeigen echte Fristen, Lücken, Preise und Zielzustände",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum Haushalts- und Vertragskarten auf tr zeigen echte Fristen, Lücken, Preise und Zielzustände",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/haushaltsmehrheit.test.tsx",
+        "test": "Haushalt: Mehrheit zum Votum die eigentliche Haushaltsansicht enthält vor Einbringung und während Beratung dieselbe Prognose",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "anderweitiger Eingriff am selben Tag sperrt alte Ministerantwort vor jeder Buchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "entspannte Lage am selben Tag erzeugt keine unnötigen Ablehnungsfolgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Anliegen entsteht nach 30 Tagen ohne Öffnen der Akte, kein rückwirkender Altstand-Verfall",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "unbeantwortet: Ressort verschlechtert sich und Minister verliert Rückhalt, nur einmal",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "ehrgeiziger fähiger Minister lindert das Problem auf eigene Faust, kostet Geld und Legitimität",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "ehrgeiziger fachlich schwacher Alleingang verschlechtert statt zu heilen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Ablehnung hat sofort Beziehungskosten, Fristablauf bestraft nicht ein zweites Mal",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Gespräch führt echte Szene aus und verschiebt Sachfrist; kein kostenloser Ressorteffekt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "einmaliger Aufschub besitzt Preis, keine unendliche Fristverlängerung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Ablehnung kann vor Frist durch Gespräch korrigiert werden; alte Antworten buchen nichts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Ministerwechsel erledigt altes Anliegen ohne den Nachfolger zu bestrafen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "anderweitiger fachlicher Eingriff und Entspannung stoppen den angekündigten Verfall",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "vorhandenes Gespräch außerhalb der Karte zählt, fachliche Zusage bleibt offen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Annahme bringt echten Gesetzentwurf ein und zeigt dieselbe Mehrheit und Kosten",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "tatsächlicher Tageslauf führt fälliges Ressortanliegen ohne UI aus; Speichern/Laden bleibt stabil",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Ministerkarten und belegte Folgen auf de ohne Zustandsänderung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Ministerkarten und belegte Folgen auf en ohne Zustandsänderung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Ministerkarten und belegte Folgen auf tr ohne Zustandsänderung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "laufendes Haushaltsverfahren zählt als Bearbeitung des betroffenen Ressorts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "laufendes Versorgungsprogramm verhindert neue Vernachlässigungsanfrage im Wirtschaftsressort",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "Wirtschaftsminister schlägt reale Haushaltskorrektur vor; Preis und Legitimität landen im Rückblick",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Forderung erhält mehrere passende Maßnahmen samt Preis, Umsetzung und echter Votumsfrist",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Annahmevorschau gibt keinen Rückhalt beim Einbringen; echte Messforderung bleibt offen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "bedingte Annahme stimmt mit echter Abstimmungsabwicklung ohne andere Monatswirkungen überein",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Paket führt Fraktionsgespräch und Gesetz mit identischem Gesamtpreis atomar aus",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "duldung zeigt und erzeugt dieselben festen Zusatzversprechen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "koalition zeigt und erzeugt dieselben festen Zusatzversprechen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Stimmenabsprachen zeigen tatsächlichen Preis und buchen den Puffer nur einmal",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "laufendes Gesetz wird nicht dupliziert; Unterstützung kann später separat ausgehandelt werden",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "bekannte Duldung endet vor dem Votum und fehlt in der Prognose",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "kleinerer Eingriff mindert Preis und politischen Ausschlag, ohne geringere Wirkungszeit zu versprechen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "direkter Etatweg bezahlt Nachtrag und zeigt Minister- sowie Legitimitätsfolgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "unbezahlbares Paket verliert keine bereits bezahlte Teilverhandlung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Änderung von kapital entwertet Angebot ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Änderung von fraktion entwertet Angebot ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Änderung von forderung entwertet Angebot ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Änderung von minister entwertet Angebot ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Änderung von frist entwertet Angebot ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Änderung von datum entwertet Angebot ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Erfüllung, entfallene Vertretung und supersedierte Beobachtung sperren teure alte Wege",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Pause verhindert Paket, und fremde unpassende Maßnahme kann nicht eingeschleust werden",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "eingeschlagener Weg bleibt nach Speichern/Laden erhalten, Forderungsziel und Frist unverändert",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Kompromisssuche bleibt zustandsneutral und nennt höchstens vier tatsächlich vergleichbare Angebote",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Handlungs- und Kompromisskarten auf de sind verständlich, vollständig und zustandsneutral",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Handlungs- und Kompromisskarten auf en sind verständlich, vollständig und zustandsneutral",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Handlungs- und Kompromisskarten auf tr sind verständlich, vollständig und zustandsneutral",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "Haushaltsfenster sperrt den sofortigen Nachtrag und bucht keinen kostenlosen Ersatz",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "bereits wirksames Umsetzungsziel verhindert eine doppelt bezahlte gleichgerichtete Neueinbringung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "schwacher Partner bleibt trotz Vertrag ein sichtbares Risiko, Gespräch verbessert den tatsächlichen Rückhalt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortforderungswege.test.tsx",
+        "test": "erst neue Messung bewertet Forderung; Handlungsbeleg bleibt historisch und im Monatsformat lesbar",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Ressortversagen bucht aktive Koalitionsreaktion und Oppositionsanfrage genau einmal",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "hilfreicher Alleingang bleibt wegen fehlender Abstimmung politisch umstritten",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "mehrere aktive Vorsitzende reagieren, inaktiver Vorsitz und gleichnamiger Minister nicht",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "stuetzen: zustandsneutrale Vorschau entspricht sämtlichen tatsächlich gespeicherten Folgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "zurueckpfeifen: zustandsneutrale Vorschau entspricht sämtlichen tatsächlich gespeicherten Folgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "entlassen: zustandsneutrale Vorschau entspricht sämtlichen tatsächlich gespeicherten Folgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Stützen belohnt Minister und Partei, stärkt bei Misserfolg die Opposition und repariert keine Krise",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Zurückpfeifen unterbindet nächsten Alleingang für 60 Tage, lässt Sachprobleme aber bestehen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Entlassung verwendet echte Nachfolge und belastet Partner statt Vorsitz durch Nachfolger zu ersetzen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "tatsächlicher Amtswechsel mit derselben Figurenkennung macht alte Antwort ungültig",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Entlassung aus der Personenakte löst dieselben politischen Folgen einmal aus und zeigt sie vorher",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Umbildung kommissarisch bucht wirklichen Rabatt im Vorfallsbeleg und dieselben Partnerfolgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Umbildung kandidat bucht wirklichen Rabatt im Vorfallsbeleg und dieselben Partnerfolgen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "eine gesperrte Umbildung lässt Rabatt und Vorfall unverändert",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "echte Nachbesetzung übernimmt weder unbeantwortete Anfrage noch alte Vernachlässigungsfrist",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "neuer Bündnisstand entwertet Angebot; ehemalige Partner werden nicht wieder zur Koalition gerechnet",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "unbezahlbare oder durch Erholungspause gesperrte Reaktion bucht nichts",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "bekannte weitere Zusagenerinnerung wird in der Reaktionsvorschau weiter berücksichtigt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Werte werden tatsächlich begrenzt und extreme Vorschauen bleiben korrekt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "ohne parlamentarische Opposition wird keine fiktive Fraktion bestraft",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "späterer Vorfall ersetzt alte offene Antwort ohne damaligen Beleg umzuschreiben",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Speichern/Laden erhält Entscheidung und sperrt Wiederholung; alte Stände erhalten keine rückwirkenden Strafen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "verfehlter vorhandener Ressortauftrag löst denselben politischen Vorgang aus, ohne doppelte Fachstrafe",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "echte Monatsprüfung: Entlassung kann Partner kosten, Rückendeckung erhält die Mehrheit; Bericht bleibt historisch",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Karten, offene Handlungsoptionen und historischer Bericht auf de sind zustandsneutral",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Karten, offene Handlungsoptionen und historischer Bericht auf en sind zustandsneutral",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortpolitik.test.tsx",
+        "test": "Karten, offene Handlungsoptionen und historischer Bericht auf tr sind zustandsneutral",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Fachliche Navigation ohne zusätzliche Instrumente-Ebene direkte Zugänge ersetzen genau die Sammelrubrik; Auswertungen bleiben erreichbar",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Fachliche Navigation ohne zusätzliche Instrumente-Ebene ein Fachzugang öffnet das bestehende Ziel und den richtigen internen Bereich",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Fachliche Navigation ohne zusätzliche Instrumente-Ebene Einordnung verändert die zuvor gewählte Fachansicht nicht",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Fachliche Navigation ohne zusätzliche Instrumente-Ebene alte interne Zugänge funktionieren auch ohne neue Fachziele",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Fachliche Navigation ohne zusätzliche Instrumente-Ebene alle neun Bereiche haben eigene fachliche Namen und bekannte Symbole",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge nur der gewählte Inhalt wird aufgebaut, unbekannte Startauswahl fällt auf vorhandene Ansicht zurück",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Navigation, Inhaltsregion und Sprunglink sind korrekt verbunden",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge mehrere Akten haben unabhängige Navigations- und Inhaltskennungen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Wirtschaftseinstieg lage wählt genau einen passenden Zugang",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Wirtschaftseinstieg haushalt wählt genau einen passenden Zugang",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Wirtschaftseinstieg inventar wählt genau einen passenden Zugang",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Wirtschaftseinstieg zentralbank wählt genau einen passenden Zugang",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Parlament, Verfassung und Behörden sind direkt erreichbar, aktive Ansicht bleibt erhalten",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge die neue Navigation und Kopfzeile verändern keine Weltkonten",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Bereichsnamen, direkte Zugänge und Kontext sind vollständig übersetzt: de",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Bereichsnamen, direkte Zugänge und Kontext sind vollständig übersetzt: en",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/aktennavigation.test.tsx",
+        "test": "Bereichsarbeitsplatz und weiterhin gültige Sprünge Bereichsnamen, direkte Zugänge und Kontext sind vollständig übersetzt: tr",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Bilanz lässt das Behördenjahr 2027 unverändert und erklärt den angezeigten Verbrauch",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "Bilanz lässt das Behördenjahr 2028 unverändert und erklärt den angezeigten Verbrauch",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "ausgewählte Ministerantworten auf de zeigen Kosten und Frist ohne Buchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "ausgewählte Ministerantworten auf en zeigen Kosten und Frist ohne Buchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/ressortanliegen.test.tsx",
+        "test": "ausgewählte Ministerantworten auf tr zeigen Kosten und Frist ohne Buchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative Vorschauen initialisieren keine Konten, Fraktionen oder Transportdaten im Original",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative schutz: Vorschlag entspricht der echten neuen Vorlage; nur Initiative wird bezahlt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative energie: Vorschlag entspricht der echten neuen Vorlage; nur Initiative wird bezahlt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative netz: Vorschlag entspricht der echten neuen Vorlage; nur Initiative wird bezahlt",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative Duldung endet in 6 Tagen: Anzeige und Votumsstimmen verwenden dieselbe Grenze",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative Duldung endet in 7 Tagen: Anzeige und Votumsstimmen verwenden dieselbe Grenze",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative Duldung endet in 8 Tagen: Anzeige und Votumsstimmen verwenden dieselbe Grenze",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative ein abgelaufenes Paket vererbt weder Zusatzbudget, Klauseln noch historische Stimmen an den neuen Antrag",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative Ablehnung sperrt den neuen Antrag während der Pause und belastet kein weiteres Konto",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative politische Vorschau entspricht den gebuchten Reaktionen, Annahme=true",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative politische Vorschau entspricht den gebuchten Reaktionen, Annahme=false",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative veralteter Klick prüft fehlendes Kapital erneut, ohne Teilbuchung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidung vor der Versorgungsinitiative Partnerwechsel zeigt die jeweilige Sperre, ohne einen Vertrag anzulegen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Regierungskurs vor der verbindlichen Änderung zivil: Vorschau und echte unmittelbare Partei- und Personenfolgen stimmen überein",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Regierungskurs vor der verbindlichen Änderung militaer: Vorschau und echte unmittelbare Partei- und Personenfolgen stimmen überein",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Regierungskurs vor der verbindlichen Änderung gebundener Kurs zeigt den Grund und keine erfundenen unmittelbaren Reaktionen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Regierungskurs vor der verbindlichen Änderung aktuelle und durch den Kurs verschärfte Bruchgefahr nennt Datum, Person und Sitze",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge Kosten, Votum, Folgen und Fraktionen stehen vor der verbindlichen Handlung",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge geschlossene Vorgänge rendern keine unsichtbaren Verhandlungskarten",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge ein geöffneter abgeschlossener Vorgang trennt neuen Antrag und bisherigen Beschluss",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge laufendes Votum und aktives Programm öffnen vom Schreibtisch genau diesen Vorgang",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge Kursvorschau zeigt Regierungskompetenz und Kosten, ohne die Auswahl schon zu buchen",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge alle neuen Entscheidungen und Sperren sind übersetzt: de",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge alle neuen Entscheidungen und Sperren sind übersetzt: en",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/versorgungsentscheidung.test.tsx",
+        "test": "Entscheidungskarten und Aktenzugänge alle neuen Entscheidungen und Sperren sind übersetzt: tr",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Abschluss-2026-11-02.json"
+      },
+      {
+        "file": "game/test/entscheidungsoberflaeche.test.tsx",
+        "test": "geöffnete Fachübersicht verbindet genau ihren Eintrag mit einer benannten fokussierbaren Detailfläche",
+        "status": "passed",
+        "evidence": "Entscheidungsoberflaeche-Detailzugang-2026-11-02.json"
+      }
+    ]
+  },
+  "build": {
+    "status": "passed",
+    "includes_typecheck": true,
+    "evidence": "Entscheidungsoberflaeche-Build-2026-11-02.txt",
+    "sha256": "6e735b1ce507752279c8d90e1c44b4ebfd835e9ae10ed927fea3eb09b58db4b3",
+    "remaining_warnings": [
+      "infrastrukturEtat optional import",
+      "chunks larger than 500 kB"
+    ]
+  },
+  "visual_review": {
+    "browser": "not performed",
+    "screenshots": [],
+    "reason": "Previously denied access was neither retried nor bypassed."
+  },
+  "source_sha256": {
+    "game/src/sim/haushaltsentscheidung.ts": "a89e158de7280feb0edd32fd8e725de68917c693884c81a19a1af0d587c051e5",
+    "game/src/ui/entscheidungen/EntscheidungsKarte.tsx": "82a2a96208a57131630a8e00b88e374b9cdc5307c3234fd7ded10e3e7c2fa0c3",
+    "game/src/ui/entscheidungen/EntscheidungsWege.tsx": "89d2c6a0d47098877deb088254df2ed5d3679e60b1442efdd5a3c77db1f88872",
+    "game/src/ui/entscheidungen/entscheidung.css": "7804a6523159251344bd817927dc54ae1417bc8e35ae9596b121539bd3e49fdf",
+    "game/src/ui/wirtschaft/Haushalt.tsx": "d5e72f542c520c603d00180fe1e8939005e098b66de2c5217311678eb4a1849c",
+    "game/src/ui/wirtschaft/HaushaltsArbeitsplatz.tsx": "75c8fc6f3d0a77fde35401e75fe14a5d26810e29a4ffdbfa9dcb5c46c3d49d09",
+    "game/src/ui/wirtschaft/HaushaltsEntwurf.tsx": "1cc2f457897916e48ea2276614a7efcf73eb92c20a87af30bf53992a6c7cb898",
+    "game/src/ui/wirtschaft/HaushaltsGegenmassnahmen.tsx": "05ae1734c73e23939cd1f31329292a7fcedb4f760aae311004a428a5fe688794",
+    "game/src/ui/wirtschaft/HaushaltsMehrheit.tsx": "bb7b9fb12eb36a07a77ed862a84eaddeb899fbf8f4762024d58029c2bf395e4a",
+    "game/src/ui/wirtschaft/haushalt.css": "c6e087d63dec4270c88365d38ded74f50c4ccab0b2d3cf59da0e3c031122b603",
+    "game/src/ui/wirtschaft/haushaltshilfe.css": "fb718e0d03d23c4c75038c746c9751355c9b1fa99f428f85cf937b1c1393e65c",
+    "game/src/ui/wirtschaft/haushaltsmehrheit.css": "8c1b7273e60ed77261073fd250e37bd53f98bebfb94b1914d5c7a5d6b06bf7bc",
+    "game/src/ui/minister/RessortAnliegen.tsx": "af809928bc3cd93f2334dac0a5965df8357bae6ef51856fbf38a98d82ac49941",
+    "game/src/ui/minister/RessortVerantwortung.tsx": "6beb84252caeca864a19bf1328511541ba7946398721f749c3b99a170273bbd8",
+    "game/src/ui/minister/RessortForderungsWege.tsx": "05809e8e4af3e5a748ac6018b4c7f1732ecbeabec90138c941967eb4d7363541",
+    "game/src/ui/minister/ressortanliegen.css": "c985f7dfaa651f5a4f5409c7b10210d66b4ca966f7fc5d65c1237e9c6ae89cbe",
+    "game/src/ui/minister/ressortverantwortung.css": "152e74625f91e9dbd124b7ecfc68abaaadba4db0416ea4643c064362ed1ef014",
+    "game/src/ui/akte/Uebersicht.tsx": "a587c8d982355efdb495efd78599aafbec00b3fec06fab37c8589100de71e46b",
+    "game/src/ui/akte/uebersicht.css": "b118923f3ce7a1c334ceceafd8033f016099e3ec6c1b39ee3f0a7fd112a15b62",
+    "game/test/entscheidungsoberflaeche.test.tsx": "f2fc884e70a63d376ca9b4a9d203b29f3085ba85d3964b820ca55ed93ae33bd9",
+    "game/test/ressortanliegen.test.tsx": "056df46b519cd23e15fb62e6613daeb48eb30f305a3442517569e80a21da441e",
+    "game/test/haushaltshilfe.test.tsx": "cff6e096c8099bcf2942f53234321615ab1efe99d3e06ce82427381b266bd7da",
+    "GESAMTPLAN_STAATSRAESON_2026-11-02.md": "56fc63ab6c59fc62a9193a6b30b7b0806cc3c409d491532b53d52dc95917862d",
+    "VERSORGUNG_PARLAMENT_2026-10-30.md": "78b08639a29771d33f09138b4ad0763f4eebefb0696295a22aef71ff2e5204ba",
+    "game/src/i18n/katalog/de/entscheidungsoberflaeche.json": "78d02815dc8c3748fed66dd28dc5c1d450cb2934c97ea20a3934e8f42067ea54",
+    "game/src/i18n/katalog/en/entscheidungsoberflaeche.json": "3f60e0f055218aac8a6a75d1aefbe03ab258ae4e9048f7a75482ccf7d9dbbd0d",
+    "game/src/i18n/katalog/tr/entscheidungsoberflaeche.json": "42956833725481eea1bd11850330b70ecb9596a5377d9d09207fcaa6935f5882"
+  },
+  "evidence_sha256": {
+    "Entscheidungsoberflaeche-Erstlauf-2026-11-02.json": "388dddfa92cec739c5ff6a299fa9527f7871c91603544b9e75436abc527ea296",
+    "Entscheidungsoberflaeche-Korrektur-2026-11-02.json": "77d69b9867204177baf0148d44f53aa81b1aaf0e1b8c70f618b43f514aed42ce",
+    "Entscheidungsoberflaeche-Abschluss-2026-11-02.json": "090002e4aaf802aa88b8b69b14975b25e87772702ffb2a05be6fa2bcb267f44b",
+    "Entscheidungsoberflaeche-Detailzugang-2026-11-02.json": "89915f9d441d32ed59f474d91bd22439810bc35b917cada9e4be50dc3f202285"
+  },
+  "local_only": true
+}

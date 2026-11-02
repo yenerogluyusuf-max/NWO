@@ -23,6 +23,7 @@ import { land } from "../../sim/laender";
 import { t } from "../../i18n";
 import { Schauplatz } from "../krieg/Schauplatz";
 import { Besatzung } from "../krieg/Besatzung";
+import { VersorgungsLage } from "../gueter/VersorgungsLage";
 const nf = (x: number) => String(Math.round(x));
 
 /** Wort für die gegnerische Stärke, wenn das Lagebild nur eine grobe Einordnung hergibt. */
@@ -89,6 +90,7 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
         </>
       )}
 
+      {imKrieg && <VersorgungsLage world={world} geaendert={refresh} />}
       <div className="kd-lagebild">
         <b>{t("krieg.d.lagebild", { stufe: t(`krieg.d.stufe.${bild.stufe}`) })}</b>
         <ul>

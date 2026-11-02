@@ -1,0 +1,498 @@
+{
+  "subject": "Unterschriftenmappe: erneute Vorlage offener Zusagen und zutreffender historischer Ausgang",
+  "createdAtUtc": "2026-10-31T01:04:57.231876+00:00",
+  "localOnly": true,
+  "browserVerified": false,
+  "screenshotsCreated": false,
+  "fullApplicationTest": false,
+  "before": {
+    "passed": 0,
+    "failed": 2,
+    "report": "/private/tmp/nwo-mappenverlauf-vorher-20261031.json",
+    "cases": [
+      "Vertröstete Zusage bleibt dauerhaft ausgeblendet",
+      "Anderswo erfüllte Zusage wird als Verfall abgelegt"
+    ]
+  },
+  "verification": {
+    "uniquePassedTests": 77,
+    "newTests": 22,
+    "runs": [
+      {
+        "report": "/private/tmp/nwo-mappenverlauf-final-20261031.json",
+        "passed": 76,
+        "failed": 0
+      },
+      {
+        "report": "/private/tmp/nwo-mappenverlauf-abschluss-20261031.json",
+        "passed": 22,
+        "failed": 0
+      }
+    ],
+    "passedTests": [
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss-sprachen.test.ts",
+        "name": "Ministerfluss-Katalog hat in allen Sprachen dieselben Schlüssel und Platzhalter",
+        "durationMs": 7.59741699999995
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss-sprachen.test.ts",
+        "name": "Ministerfluss-Katalog Vorlagen auf Türkisch und Englisch ohne deutsche Bausteine aus dem Ministerfluss",
+        "durationMs": 1571.3679169999996
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss-sprachen.test.ts",
+        "name": "Ministerfluss-Katalog gesehene und verfallene Vorlagen liegen als Meldung im Spielstand; alte Texte bleiben lesbar",
+        "durationMs": 207.14416699999947
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand gleicher Zustand, gleiche Vorlagen: Kennung, Rang und Empfehlung sind deterministisch",
+        "durationMs": 790.5613750000002
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand jede Vorlage hat einen Rang, einen Grund und mindestens eine echte Option; Maßnahmen liegen nur einmal vor",
+        "durationMs": 204.6053750000001
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand keine erfundenen Platzhalter: kein Text ohne Inhalt, keine unaufgelösten Vorlagen",
+        "durationMs": 174.02520900000036
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand eine Frist schlägt Routine: ein offenes Ereignis mit kurzer Frist steht vor den Vorhaben gegen Probleme",
+        "durationMs": 185.47250000000076
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Die Unterschriftenmappe des Schreibtischs höchstens fünf Karten, der Rest liegt im Posteingang; nicht dreimal derselbe Minister",
+        "durationMs": 457.3397080000004
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Die Unterschriftenmappe des Schreibtischs Heute zeigt dieselben Vorlagen mit Minister, Folgen in Zahlen und Ort des Problems",
+        "durationMs": 140.3375420000002
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Die Qualität hängt am Minister ein Minister mit Loyalität unter 35 legt nichts mehr vor, sondern schweigt sichtbar",
+        "durationMs": 139.46083400000043
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Die Qualität hängt am Minister unter Loyalität 40 gibt es keine Empfehlung, nur den Hinweis",
+        "durationMs": 271.7011249999996
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Die Qualität hängt am Minister der Eitle empfiehlt, was sein Haus stärkt, und der Hinweis sagt es",
+        "durationMs": 416.18112500000007
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen ein Vorhaben aus „Heute“ wird als Gesetz eingebracht und verschwindet aus den Vorlagen",
+        "durationMs": 345.8055829999994
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen ein Ereignis wird über die Vorlage beantwortet und ist danach geschlossen",
+        "durationMs": 184.53654200000074
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen ein Beschluss im Ministerrat läuft über die Vorlage und hält die Sitzung ab",
+        "durationMs": 189.90949999999975
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen „Später“ vertagt für 30 Tage, danach kommt die Vorlage wieder; „Nicht tun“ verwirft sie",
+        "durationMs": 285.1774169999999
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen was nicht bezahlbar ist, wird nicht ausgeführt und nicht als erledigt vermerkt",
+        "durationMs": 137.0025829999995
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Verfall wird sichtbar und Altspielstände laden eine Vorlage, die ohne Entscheidung verschwindet, steht bei den verfallenen",
+        "durationMs": 183.89300000000003
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Verfall wird sichtbar und Altspielstände laden ein Spielstand ohne Ministerfluss lädt, rechnet Vorlagen und speichert den Zustand mit",
+        "durationMs": 284.42041699999936
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Der erwartete Nutzen in Zahlen die Vorschau ändert die Welt nicht und zeigt Stand heute, ohne und mit Eingriff",
+        "durationMs": 228.57874999999967
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Der erwartete Nutzen in Zahlen ohne Eingriff gibt es keine Vorschau, mit unbekannter Größe keine Zeile",
+        "durationMs": 97.57262499999979
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ministerfluss.test.ts",
+        "name": "Leistung die Vorlagen eines Spielstands mit Erfahrung entstehen schnell genug für die Oberfläche",
+        "durationMs": 214.95579199999975
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten eine vertröstete Zusage wird bei der neuen Frist wieder vorgelegt",
+        "durationMs": 135.03387499999985
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten eine außerhalb der Mappe erfüllte Zusage erscheint nicht als verfallen",
+        "durationMs": 114.27137499999981
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten zwei Vertröstungen ergeben getrennte Arbeitsschritte und lassen die dritte Frist sichtbar",
+        "durationMs": 113.7022909999996
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten eine alte Karte kann die Zusage nach einer Friständerung nicht noch einmal bezahlen",
+        "durationMs": 73.05545900000016
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten erledigte Altkennungen verstecken offene Zusagen nach Speichern und Laden nicht mehr",
+        "durationMs": 43.94870800000035
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten ein echtes Votum (angenommen=true) entscheidet über Erfüllung oder Wiedervorlage",
+        "durationMs": 101.81304200000022
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten ein echtes Votum (angenommen=false) entscheidet über Erfüllung oder Wiedervorlage",
+        "durationMs": 164.87075000000004
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten anderer Zugangsweg erfuellen erhält den zutreffenden Ausgang ohne Doppelbuchung",
+        "durationMs": 180.21787499999982
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten anderer Zugangsweg vertroesten erhält den zutreffenden Ausgang ohne Doppelbuchung",
+        "durationMs": 157.69504200000029
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten anderer Zugangsweg brechen erhält den zutreffenden Ausgang ohne Doppelbuchung",
+        "durationMs": 172.85595899999998
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten anderer Zugangsweg entfernen erhält den zutreffenden Ausgang ohne Doppelbuchung",
+        "durationMs": 187.4490840000003
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten normal eingebrachtes Gesetz erscheint als Beratung, nicht als verlorene Zusage",
+        "durationMs": 141.06025
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten direkte Entscheidung und spätere Mappenpflege erzeugen nur einen Rückblick",
+        "durationMs": 163.45404099999996
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten gescheiterte Einlösung bleibt offen und erzeugt keinen Erfolg im Rückblick",
+        "durationMs": 128.7107500000002
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten ein unzureichender Entwurf erhält die offene Zusagenkarte und wird nicht als ausreichende Beratung abgelegt",
+        "durationMs": 225.0069169999997
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten Frist- und Statusänderungen derselben Zusage ändern den UI-Pflegeschlüssel am selben Tag",
+        "durationMs": 4.9158330000000205
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten historische Frist und Status überstehen neue Vertröstung sowie Speichern/Laden",
+        "durationMs": 140.23129199999948
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten alte mehrdeutige Zusagenablage bleibt lesbar und wird nicht als bewiesener Bruch gezählt",
+        "durationMs": 62.626916000000165
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten der Rückblick unterscheidet historischen Ausgang und heutige Pflicht auf de",
+        "durationMs": 83.32008399999995
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten der Rückblick unterscheidet historischen Ausgang und heutige Pflicht auf en",
+        "durationMs": 262.70316600000024
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten der Rückblick unterscheidet historischen Ausgang und heutige Pflicht auf tr",
+        "durationMs": 265.79725000000053
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch zeigt nahe Frist, Fraktion, Rückhalt und Sitzverlust ohne den Spielstand zu ändern",
+        "durationMs": 81.23158299999977
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch akute Bruchgefahr steht vor einer früheren aber stabilen Zusage",
+        "durationMs": 103.83837499999981
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch ruhige ferne und erledigte Zusagen sowie Nichtfraktionen werden ausgeblendet",
+        "durationMs": 36.76249999999982
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Duldung und fehlender oder inaktiver Vorsitz werden nicht als akuter Koalitionsbruch ausgegeben",
+        "durationMs": 57.369292000000314
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch eigene Fraktion erhält Zusagenschritte ohne fälschlich angebotenen Bündnisbeitritt",
+        "durationMs": 112.60733399999981
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Erinnerungsfrist ist vom eigentlichen Fälligkeitstag getrennt",
+        "durationMs": 45.39045800000076
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch unzureichender Entwurf, unsichere Mehrheit und späte Abstimmung werden konkret benannt",
+        "durationMs": 39.415125000000444
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch bekannte Duldung läuft in der angezeigten Abstimmungsprognose tatsächlich aus",
+        "durationMs": 61.489165999999386
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Einlösen nennt und bucht echte Kosten, Vorsitzreaktion und neue Fraktionsbereitschaft",
+        "durationMs": 109.68224999999984
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Einbringen nennt das spätere Votum und verspricht keine sofortige Rettung",
+        "durationMs": 77.21187499999996
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Vertrösten warnt vor Loyalitätsverlust, nennt Frist und erledigt nur die passende Erinnerung",
+        "durationMs": 75.19858300000033
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch direkte Erfüllung beseitigt die offene Erinnerung und kann nicht später erneut als Bruch gebucht werden",
+        "durationMs": 99.891208
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch alte gespeicherte Erinnerung nach erfuellt wird vor ihrem Verfall bereinigt",
+        "durationMs": 47.034999999999854
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch alte gespeicherte Erinnerung nach verschoben wird vor ihrem Verfall bereinigt",
+        "durationMs": 37.116792000000714
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei kapital verändert nichts",
+        "durationMs": 118.21679200000017
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei loyalitaet verändert nichts",
+        "durationMs": 90.74024999999983
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei frist verändert nichts",
+        "durationMs": 88.56908299999941
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei abgeschlossen verändert nichts",
+        "durationMs": 68.04558300000008
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei partei verändert nichts",
+        "durationMs": 80.93029200000001
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch überholtes Zusagenangebot bei tag verändert nichts",
+        "durationMs": 82.67058299999917
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch ausgeschöpfte Vertröstungen und Kapitalgrenze bleiben sichtbare Sperren",
+        "durationMs": 71.75129199999992
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Koalitionsgespräch ist ohne Versorgungsbeschluss nutzbar und teilt seine Sperre über Zusagen hinweg",
+        "durationMs": 130.1836659999999
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch gleicher Tagesstand reagiert sofort auf Loyalität, Frist und Bearbeitung",
+        "durationMs": 120.51224999999977
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch vom Schreibtisch vorbereitete Hilfe verhindert den echten Monatsbruch",
+        "durationMs": 195.5647909999998
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Unterschriftenmappe nennt denselben tatsächlichen Gesetzespreis wie die Zusagenwache",
+        "durationMs": 142.8770829999994
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Unterschriftenmappe bietet laufenden Entwurf oder unbezahlbaren Antrag nicht als ausführbar an",
+        "durationMs": 124.8765000000003
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch bereits beschlossenes Ziel ist auch in der Unterschriftenmappe ohne neues Gesetz erfüllbar",
+        "durationMs": 70.66929199999959
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Mappe aktualisiert Frist und bereits beschlossenes Ziel auch bei gleicher Zusagen- und Zielanzahl",
+        "durationMs": 157.4485420000001
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Sprachkataloge haben gleiche Schlüssel und Platzhalter",
+        "durationMs": 2.4732500000000073
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Schreibtischkarten und ausführbare Schritte auf de zeigen Kosten, Risiko und eindeutige Aktionen",
+        "durationMs": 277.3771660000002
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Schreibtischkarten und ausführbare Schritte auf en zeigen Kosten, Risiko und eindeutige Aktionen",
+        "durationMs": 347.5115000000005
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Schreibtischkarten und ausführbare Schritte auf tr zeigen Kosten, Risiko und eindeutige Aktionen",
+        "durationMs": 319.3901250000008
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagenwache.test.tsx",
+        "name": "Gefährdete Zusagen auf dem Regierungsschreibtisch Regierungsschreibtisch bindet die Karten ein; Zusagensprung öffnet direkt den richtigen Personenreiter",
+        "durationMs": 419.96058300000004
+      },
+      {
+        "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-mappenverlauf.test.tsx",
+        "name": "Zusagen bleiben als Verpflichtungen in der Ministermappe erhalten eine nur im Posteingang vertagte Vorlage verschweigt ihre anderswo erfüllte Zusage nicht",
+        "durationMs": 215.87616699999944
+      }
+    ],
+    "typescript": "passed as part of production build",
+    "productionBuildExitCode": 0,
+    "buildLog": "/private/tmp/nwo-mappenverlauf-build-20261031.log",
+    "warnings": [
+      "Existing infrastrukturEtat export warning",
+      "Large chunks",
+      "Bundler timing advisory"
+    ],
+    "commentOnlyDocumentationEditAfterBuild": true
+  },
+  "demonstratedScenarios": [
+    {
+      "initialDay": 0,
+      "firstPostponement": {
+        "newDeadline": 90,
+        "returnsToFolderOnDay": 76
+      },
+      "secondPostponement": {
+        "day": 76,
+        "newDeadline": 166,
+        "returnsToFolderOnDay": 152
+      },
+      "thirdPostponementOffered": false,
+      "totalCapitalCost": 2,
+      "promiseStillUnfulfilled": true
+    },
+    {
+      "actualVote": "gesetzeAbstimmen with sufficient national pension bill",
+      "approved": "promise fulfilled; no further promise proposal",
+      "rejected": "promise remains open; proposal returns 14 days before its deadline",
+      "historicalEntry": "bill under debate; unchanged by later outcome",
+      "todayStatus": "derived separately from current promise"
+    },
+    {
+      "externalActionsRecorded": [
+        "fulfil",
+        "postpone",
+        "break",
+        "removed pledge",
+        "ordinary sufficient bill introduction"
+      ],
+      "noDuplicateRecordsOrPoliticalBooking": true,
+      "insufficientBill": "original promise proposal remains open, no fulfilment/debate archive fabricated"
+    },
+    {
+      "compatibility": [
+        "old completed unversioned proposal does not hide current promise",
+        "ambiguous legacy promise archive is labelled as older record, not proven breach",
+        "saved historical deadline does not follow later postponements",
+        "save/load preserves records"
+      ],
+      "staleCard": "old proposal ID cannot spend after deadline change",
+      "deferredWorkItem": "external fulfilment is still recorded and obsolete follow-up cleared"
+    },
+    {
+      "ui": [
+        "historical outcome beside current promise status",
+        "fulfilled items not counted as expired",
+        "record link remains visible for positive outcomes",
+        "same-day promise changes trigger bookkeeping",
+        "DE/EN/TR server-rendered output",
+        "narrow container layout at 460px"
+      ],
+      "visualConfirmation": false
+    }
+  ],
+  "sourceHashes": {
+    "src/sim/ministerfluss.ts": "a5f8ad96b56004d729c40c599b88d688a9ff982255493878c005168bd078ba7c",
+    "src/sim/ministerfluss-typen.ts": "dbdcbf211ee7ac65272f268662687dcc226e08774dbc621c22aa496bafb6f0ea",
+    "src/sim/ministerfluss-zusagen.ts": "a3eb2d7b7e52a7da0493cfeca3aa0b7c2aca1bb03119b3994e935f65de060f0a",
+    "src/ui/minister/Mappe.tsx": "4abf58d1b83dc1631ab8ba2d49c7c45f8caeae2ee29f691268bf86dd6bb18186",
+    "src/ui/minister/Posteingang.tsx": "374e183600f7efa1025cab7f1ae0d23512f519ef0606c46136975d4416b00283",
+    "src/ui/minister/VorlagenRueckblick.tsx": "1f25c70e753050fd65c55f113b96c455cfb5e03fcbbc43682a41211dbb66eea7",
+    "src/ui/minister/ministerfluss.css": "e6c958cc31f2bba51b7c309b9e196058c733f41156a15d3fb72f7d7e0cfea1b8",
+    "test/zusagen-mappenverlauf.test.tsx": "5ae5e847b2894264f1b531925ef52e882fd6f939e121f2c1aa562d6ec5597326",
+    "src/i18n/katalog/de/mappenrueckblick.json": "2e8f26886d288b0f9c3d00f0bc14c36d87b8e404b4057a4e8b59eefc91061b06",
+    "src/i18n/katalog/en/mappenrueckblick.json": "a06bf1f44b80ae590b709cc56a266e4344e9c4e7a1141438d3f30d416adcbf2d",
+    "src/i18n/katalog/tr/mappenrueckblick.json": "7746c777aa96c4a6582c1d45be1c83ffb59e667b6467a0b3f512f535d1224258"
+  }
+}

@@ -366,9 +366,16 @@ export function weltZustand(w: World): Record<string, LandZustand> {
 
 /** Das Vertrauen eines Landes: das Vertrauen im Politiknetz plus der Versatz für dieses Land. */
 export function vertrauenZu(w: World, id: string): number {
+  weltZustand(w);
+  return vertrauenSicht(w, id);
+}
+
+/** Dieselbe Beziehung für Vorschauen, ohne beim Öffnen einer Ansicht Altstände zu migrieren. */
+export function vertrauenSicht(w: World, id: string): number {
   const l = land(id);
-  const z = weltZustand(w)[id]!;
-  return clamp(nationalAverage(NET, w.net, l.knoten) + z.versatz, 0, 100);
+  const welt = w.spiel?.welt;
+  const versatz = welt?.[id]?.versatz ?? (welt ? 0 : clamp(l.start.vertrauen - startAverage(NET, w.net, l.knoten), -45, 45));
+  return clamp(nationalAverage(NET, w.net, l.knoten) + versatz, 0, 100);
 }
 
 export function dimensionZu(w: World, id: string, dim: Dimension): number {

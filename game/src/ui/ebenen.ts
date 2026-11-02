@@ -1,5 +1,6 @@
 // Kartenebenen: Wie die 81 Provinzen (und in der Nähe die Bezirke) eingefärbt werden und was die Legende sagt.
 
+import { HUB_PROVINZEN, regionaleDeckung } from "../sim/transport";
 import { NET } from "../sim/world";
 import { PROVINCES } from "../sim/netz";
 import { PROVINZEN, REGION_DE } from "../sim/regional";
@@ -22,7 +23,7 @@ import { t, aktuelleSprache, zahl } from "../i18n";
 // Neue Ebene („Linse“) anlegen: Kennung in `Kartenebene`, Eintrag in KARTENEBENEN (Gruppe, Symbol, Kurzsatz), Färbung in
 // `farbenFuerEbene`, Verfügbarkeitsregel in ui/linsen/linsen.ts (`REGELN`). Geplant, aber noch ohne Daten und darum nicht
 // ausgeliefert: „Front und Besatzung“, „Bündnisse“, „Wahlkampf“, „Lage nach Beben“.
-export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko" | "ressourcen" | "strategie" | "belastung";
+export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko" | "ressourcen" | "strategie" | "belastung" | "versorgung";
 
 export type LinsenGruppe = "land" | "wirtschaft" | "krisen" | "kultur" | "welt";
 
@@ -61,6 +62,7 @@ export const KARTENEBENEN: EbenenDef[] = [
   { id: "erbe", label: "Kulturerbe", icon: "kuppel", gruppe: "kultur", kurz: "Erhaltungszustand der Stätten, dazu Wunder und Bauvorhaben." },
   { id: "welt", label: "Beziehungen", icon: "haende", gruppe: "welt", kurz: "Wie die Länder der Welt zur Türkei stehen; Klick öffnet die Länderkarte." },
   { id: "strategie", label: "Strategische Orte", icon: "ziel", gruppe: "welt", kurz: "Meerengen, Pipelines, Häfen, Dämme und Inseln, die über Versorgung und Macht entscheiden." },
+  { id: "versorgung", label: "Versorgungswege", icon: "tausch", gruppe: "wirtschaft", kurz: "Regionale Warenströme und Frontdepots." },
   { id: "netz", label: "Politiknetz", icon: "netz", kurz: "Ein Knoten des Politiknetzes je Provinz." },
 ];
 
@@ -212,6 +214,10 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
       };
     }
 
+    case "versorgung": {
+      for (const [hub, provinzen] of Object.entries(HUB_PROVINZEN)) for(const p of provinzen) out[p]=regionaleDeckung(w,hub)<0.9?"#bc695c":"#638b76";
+      return {fill:out,legende:{titel:t("transport.titel"),hinweis:t("transport.einstieg")}};
+    }
     case "belastung":
       return belastungFarben(w);
 

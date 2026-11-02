@@ -12,6 +12,7 @@ import { ministerflussMonat } from "./ministerfluss-monat";
 import { machtkreisMonat } from "./machtkreis";
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
+import { erfasseRessortVorfall } from "./ressortpolitik";
 
 /** Die monatliche Wirkung des Ressorts: Bei Leistung über 0,5 bewegt es seine Größen zum Guten, darunter zum Schlechten. */
 function ressortWirkung(w: World, f: Figur): void {
@@ -43,10 +44,14 @@ function auftragMonat(w: World, f: Figur): void {
   } else {
     a.status = "verfehlt";
     e.bilanz.verfehlt++;
+    const loyVor=f.loyalitaet,grollVor=e.groll;
     loyalitaetVerschieben(f, -5);
     grollVerschieben(w, f, 8);
     merke(w, f, `Auftrag verfehlt: ${a.text}`);
     addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag verfehlt: ${a.text} (${nf(a.vorher, 0)} auf ${nf(jetzt, 0)}).`, "Ein verfehltes Ziel kostet Loyalität und macht Groll: Sie kann darauf hinweisen, dass Sie sie nicht unterstützt haben.");
+    const id=`ressortauftrag-${a.id}`;
+    erfasseRessortVorfall(w,{id,figur:f.id,name:f.name,amt:f.amt,amtsantritt:e.seit,groesse:a.groesse,vorher:a.vorher,seit:a.seit,frist:a.frist,status:'eskaliert',ende:w.day},
+      {id,tag:w.day,datum:w.date,name:f.name,amt:f.amt,groesse:a.groesse,art:'auftragVerfehlt',vorher:a.vorher,nachher:jetzt,loyalitaet:f.loyalitaet-loyVor,groll:e.groll-grollVor,bip:0,legitimitaet:0},false);
   }
 }
 

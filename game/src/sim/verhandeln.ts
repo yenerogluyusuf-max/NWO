@@ -7,13 +7,17 @@ import { addLog } from "./log";
 import { msg, t, tIn } from "../i18n";
 import { vertrauenAendern, wirke } from "./wirkung";
 import { addDays, formatDateDe } from "./dates";
-import { partnerFigur } from "./figuren";
+import { sichereParteivorsitz } from "./figuren";
 import { AUSRICHTUNG, DULDUNG_QUOTE, PARTEI_NAME, forderungVon, bereitschaftAendern, bereitschaftWort, fraktion, startBereitschaft } from "./fraktionen";
 import type { Ergebnis } from "./handeln";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import { kannZahlen, verfuegbar } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
+import { aktiverKoalitionsVorsitz } from "./koalitionslage";
+import { festeZusage, zusageStufen, zusageZielErreicht } from "./zusagenfolgen";
+import { NET } from "./modell";
+import { skala, skalenArt } from "../data/skalen";
 
 /** Aufmerksamkeit je Verhandlungsschritt: Das Gespräch ist Routine, der Pakt ein Vorgang. */
 const AUFMERKSAMKEIT: Record<Verhandlung, number> = {
@@ -62,6 +66,8 @@ export interface FraktionSicht {
   bereitschaft: number;
   wort: string;
   forderung: string;
+  zusagenziel?: { massnahme: string; name: string; stufeStart: number; stufeZiel: number; startName?: string; zielName?: string; bereitsBeschlossen: boolean };
+  vorsitz: {id:string;name:string;loyalitaet:number}[];
   aktionen: AktionSicht[];
 }
 
@@ -79,6 +85,7 @@ export function fraktionsUebersicht(world: World): FraktionSicht[] {
   const parl = world.parliament;
   if (!spiel || !parl) return [];
   const kapital = verfuegbar(spiel.kapital);
+  const pause=(spiel.verfassung?.pauseBis??0)>world.day?t("fa.pause",{datum:datumBis(world,spiel.verfassung!.pauseBis!)}):undefined;
   const out: FraktionSicht[] = [];
   for (const [partei, sitze] of Object.entries(parl.seats)) {
     if (partei === eigene(world) || sitze <= 0) continue;
@@ -86,7 +93,16 @@ export function fraktionsUebersicht(world: World): FraktionSicht[] {
     const imLager = spiel.lager.includes(partei);
     const duldet = f.duldungBis !== undefined && f.duldungBis > world.day && !imLager;
     const status: FraktionSicht["status"] = imLager ? "lager" : duldet ? "duldung" : "opposition";
-    const forderung = forderungVon(world, partei).text;
+    const verlangt = forderungVon(world, partei);
+    const forderung = verlangt.text;
+    const stufen = zusageStufen(world, { massnahme: verlangt.massnahme, richtung: 1 });
+    const namen = stufen && skalenArt(verlangt.massnahme) === "regime" ? skala(verlangt.massnahme, stufen.stufeStart).stufen : [];
+    const zusagenziel = stufen ? {
+      massnahme: verlangt.massnahme, name: NET.nodes[NET.index.get(verlangt.massnahme)!]!.name, ...stufen,
+      startName: namen.length ? namen.reduce((a, b) => Math.abs(a.w - stufen.stufeStart) <= Math.abs(b.w - stufen.stufeStart) ? a : b).name : undefined,
+      zielName: namen.find(s => s.w === stufen.stufeZiel)?.name,
+      bereitsBeschlossen: zusageZielErreicht({ ...stufen, richtung: 1 }, world.net.targets[verlangt.massnahme] ?? stufen.stufeStart),
+    } : undefined;
     const aktionen: AktionSicht[] = [];
 
     // Gespräch: für alle, auch für Partner
@@ -173,7 +189,9 @@ export function fraktionsUebersicht(world: World): FraktionSicht[] {
       bereitschaft: f.bereitschaft,
       wort: bereitschaftWort(f.bereitschaft),
       forderung,
-      aktionen,
+      zusagenziel,
+      vorsitz:spiel.figuren.filter(x=>x.amt==="partner"&&x.imAmt&&x.partei===partei).map(x=>({id:x.id,name:x.name,loyalitaet:x.loyalitaet})),
+      aktionen:pause?aktionen.map(a=>({...a,moeglich:false,grund:pause})):aktionen,
     });
   }
   return out.sort((a, b) => b.sitze - a.sitze);
@@ -195,19 +213,18 @@ export function verhandle(world: World, partei: string, aktion: Verhandlung, rng
 
   const name = sicht.name;
   const f = fraktion(world, partei);
-  const forderung = forderungVon(world, partei);
   const zusage = (tage: number) => {
     const p = { name, forderung: sicht.forderung };
-    spiel.zusagen.push({
+    spiel.zusagen.push(festeZusage(world, {
       id: `z-${aktion}-${partei}-${world.day}`,
       von: partei,
       text: tIn("de", "vh.zusage", p),
       msg: msg("vh.zusage", p),
       faellig: world.day + tage,
-      ...(forderung ? { massnahme: forderung.massnahme, richtung: 1 } : {}),
+      ...(sicht.zusagenziel ? { massnahme: sicht.zusagenziel.massnahme, richtung: 1, stufeStart: sicht.zusagenziel.stufeStart, stufeZiel: sicht.zusagenziel.stufeZiel } : {}),
       erfuellt: false,
       gebrochen: false,
-    });
+    }));
   };
 
   let text = "";
@@ -217,8 +234,8 @@ export function verhandle(world: World, partei: string, aktion: Verhandlung, rng
       spiel.kapital -= a.pk;
       f.gespraech = world.day;
       bereitschaftAendern(world, partei, 8);
-      const partner = spiel.figuren.find((x) => x.partei === partei);
-      if (partner) partner.loyalitaet = Math.min(100, partner.loyalitaet + 5);
+      for(const partner of spiel.figuren.filter(x=>x.partei===partei && aktiverKoalitionsVorsitz(world,x)))
+        partner.loyalitaet = Math.min(100, partner.loyalitaet + 5);
       text = t("vh.r.gespraech", { name, wort: bereitschaftWort(f.bereitschaft) });
       why = t("vh.r.gespraechWarum", { forderung: sicht.forderung });
       break;
@@ -247,9 +264,7 @@ export function verhandle(world: World, partei: string, aktion: Verhandlung, rng
       delete f.duldungBis;
       bereitschaftAendern(world, partei, 10);
       zusage(VERHANDLUNG.koalitionZusageTage);
-      if (!spiel.figuren.some((x) => x.id === `partner-${partei}`)) {
-        spiel.figuren.push(partnerFigur(world, partei, `Vorsitz der ${name}`, sicht.forderung, rng));
-      }
+      sichereParteivorsitz(world, partei, `Vorsitz der ${name}`, sicht.forderung, rng);
       text = t("vh.r.koal", { name, sitze: sicht.sitze });
       why = t("vh.r.koalWarum", { pk: a.pk, forderung: sicht.forderung });
       break;

@@ -1,0 +1,14 @@
+{
+  "gp.titel": "Majority before the vote",
+  "gp.heute": "Expected today",
+  "gp.votum": "Expected at the vote",
+  "gp.luecke": "Still {n} votes short of the 301 majority.",
+  "gp.mehrheit": "Expected votes reach the majority of 301.",
+  "gp.fristeffekt": "Known deadlines: {n} fewer expected yes votes.",
+  "gp.fraktion": "{partei} · {sitze} seats: support agreement ends on {datum}, before or on the vote.",
+  "gp.hilfe": "Consider a coalition or other parties in negotiations. Agreements can close the gap for this bill. A new support agreement is only available after the current one expires.",
+  "gp.grenze": "Based on today's political situation, agreements and bill wording, with known support deadlines included. Future events, coalition exits and voting variation may change the result.",
+  "gp.aufmerksamkeit": "An additional {n} attention per agreement.",
+  "gp.verteilung": "Seat colours illustrate the total forecast. Effects of bill wording and defections are estimates; the simulation does not identify individual MPs for them.",
+  "gp.wackelig": "Estimated defections and additional support from bill wording"
+}

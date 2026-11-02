@@ -1,0 +1,49 @@
+{
+  "datum": "2026-10-30",
+  "umfang": "Aktuelle Vollzugshindernisse und politische Lösungswege vor dem Votum; persistente Ausfallgründe; Koalitionszugehörigkeit bei Loyalitätsfolgen",
+  "tests": {
+    "success": true,
+    "numTotalTests": 88,
+    "numPassedTests": 88,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "dateien": [
+    {
+      "datei": "diplomatie.test.ts",
+      "status": "passed",
+      "anzahl": 19
+    },
+    {
+      "datei": "laender.test.ts",
+      "status": "passed",
+      "anzahl": 8
+    },
+    {
+      "datei": "transport.test.tsx",
+      "status": "passed",
+      "anzahl": 12
+    },
+    {
+      "datei": "versorgungsmandat.test.tsx",
+      "status": "passed",
+      "anzahl": 34
+    },
+    {
+      "datei": "versorgungspolitik.test.tsx",
+      "status": "passed",
+      "anzahl": 15
+    }
+  ],
+  "build": {
+    "erfolgreich": true,
+    "typescript": true,
+    "protokoll": "/private/tmp/nwo-versorgungs-hindernisse-build-20261030.log",
+    "bestehende_warnungen": [
+      "Optionaler Export infrastrukturEtat fehlt",
+      "Große Bundles"
+    ]
+  },
+  "browser": "Unveränderte Website-Sperre nicht erneut geprüft. Kein Sichttest und keine aktuellen Screenshots.",
+  "veroeffentlicht": false
+}

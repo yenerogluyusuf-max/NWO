@@ -1,0 +1,971 @@
+{
+  "createdAt": "2026-10-31T22:50:35.196166+00:00",
+  "scope": "Haushalts-Gegenmaßnahmen und eigenständige Ressortanliegen mit Handlungs-/Unterlassungsfolgen",
+  "localOnly": true,
+  "automationResumed": false,
+  "tests": {
+    "unique": 154,
+    "new": 30,
+    "passed": 154,
+    "failed": 0,
+    "fullApplicationSuite": false,
+    "deduplication": "Latest result by test file and full test name; 149-case regression plus 58-case final targeted run, 154 distinct cases.",
+    "cases": [
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Abkommen halten ihre tatsächlichen Kosten und konkreten Zusagen fest; Vorschau legt keine Belege an",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Annahme speichert reale Posten, Finanzierung und Ministerreaktion ohne erfundene Fraktionsbelohnung",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Ablehnung lässt die neue Duldungszusage verbindlich und den bisherigen Etat unverändert",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen ein höherer Forschungsetat erfüllt ein zugesagtes Forschungsgesetz nicht automatisch",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen bestehende andere Zusagen bleiben klar vom Preis der Haushaltsmehrheit getrennt",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Live-Nachsorge liest Erfüllung, Bruch und neue Frist, ohne den Beschlussbeleg umzuschreiben",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen der zusätzliche Reifungsschritt verbessert Verkehr; reine Vergleichsläufe buchen keine Waren oder politischen Folgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Kürzung des Agraransatzes zeigt einen negativen Reifungsbeitrag zur Ernte",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen neu bewilligter Etat ist vor der ersten Monatsabrechnung noch nicht wirksam",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen nachträglich geänderter Posten wird nicht mehr als Reifungsbeitrag des alten Beschlusses ausgegeben",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Monatsbericht verwendet gebuchte Waren und identische Belege in Wirtschafts- und Parlamentsbericht",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Monatsstände bleiben historisch, während heutige Zusagen und Parteien sich ändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen echter Tageslauf über den Monatswechsel hält einen Koalitionsaustritt nach dem Haushaltsvotum fest",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Votum am Monatsersten nach der Etatabrechnung erhält keine vorzeitige Reifungswirkung",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Speichern und Laden erhalten Beschluss, zugeordnete Verträge und Monatsbelege",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Altstand ohne Beleg wird nicht nachträglich mit erfundenen Haushaltsfolgen ergänzt",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf de erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf en erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf tr erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "Nachtrag nennt realen Preis und Legitimität; doppelte und veraltete Klicks buchen nichts",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "Korrektur greift nicht auf beliebige Posten zu und überschreibt keine alte Entscheidung",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "neuer Versorgungsauftrag zeigt reale Mehrheit, Kompromisse und Kosten; keine vorzeitige Aktivierung",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "neue Sperre nach Vorschau verursacht keine Teilbuchung",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "Gespräch bei gefährdetem Partner setzt reale Loyalität um, Zusage bleibt offen",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "gespeicherte Belege und heutige Hilfe funktionieren nach Laden; keine Hilfe für alten Beschluss",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "Gegenmaßnahmen auf de erklären Preise, Votum und neue Auflagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "Gegenmaßnahmen auf en erklären Preise, Votum und neue Auflagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltshilfe.test.tsx",
+        "name": "Gegenmaßnahmen auf tr erklären Preise, Votum und neue Auflagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Lage in einem Satz nimmt den ersten Satz mit Zahl",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Lage in einem Satz holt den Satz mit Zahl nach, wenn der erste ohne ist",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Lage in einem Satz hält bei einem Satz alles drin",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Knöpfe nach dem, was sie auslösen beschriftet jede Option über den Aktionstyp, ohne rohe Schlüssel",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Die Karte in beiden Modi kompakt: zugeklappt, mit Schwellenzeile, ohne doppelte Lage",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Die Karte in beiden Modi voll: Lage-Ausarbeitung und alle Optionen offen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Die Karte in beiden Modi die kompakte Karte zeigt den Minister mit Namen und Amt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Die Karte in beiden Modi rendert kompakt auf tr ohne kaputte Texte",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-karte.test.tsx",
+        "name": "Die Karte in beiden Modi rendert kompakt auf en ohne kaputte Texte",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-sprachen.test.ts",
+        "name": "Ministerfluss-Katalog hat in allen Sprachen dieselben Schlüssel und Platzhalter",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-sprachen.test.ts",
+        "name": "Ministerfluss-Katalog Vorlagen auf Türkisch und Englisch ohne deutsche Bausteine aus dem Ministerfluss",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss-sprachen.test.ts",
+        "name": "Ministerfluss-Katalog gesehene und verfallene Vorlagen liegen als Meldung im Spielstand; alte Texte bleiben lesbar",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand gleicher Zustand, gleiche Vorlagen: Kennung, Rang und Empfehlung sind deterministisch",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand jede Vorlage hat einen Rang, einen Grund und mindestens eine echte Option; Maßnahmen liegen nur einmal vor",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand keine erfundenen Platzhalter: kein Text ohne Inhalt, keine unaufgelösten Vorlagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Vorlagen entstehen aus dem Weltzustand eine Frist schlägt Routine: ein offenes Ereignis mit kurzer Frist steht vor den Vorhaben gegen Probleme",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Die Unterschriftenmappe des Schreibtischs höchstens fünf Karten, der Rest liegt im Posteingang; nicht dreimal derselbe Minister",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Die Unterschriftenmappe des Schreibtischs Heute zeigt dieselben Vorlagen mit Minister, Folgen in Zahlen und Ort des Problems",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Die Qualität hängt am Minister ein Minister mit Loyalität unter 35 legt nichts mehr vor, sondern schweigt sichtbar",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Die Qualität hängt am Minister unter Loyalität 40 gibt es keine Empfehlung, nur den Hinweis",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Die Qualität hängt am Minister der Eitle empfiehlt, was sein Haus stärkt, und der Hinweis sagt es",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen ein Vorhaben aus „Heute“ wird als Gesetz eingebracht und verschwindet aus den Vorlagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen ein Ereignis wird über die Vorlage beantwortet und ist danach geschlossen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen ein Beschluss im Ministerrat läuft über die Vorlage und hält die Sitzung ab",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen „Später“ vertagt für 30 Tage, danach kommt die Vorlage wieder; „Nicht tun“ verwirft sie",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Entscheiden läuft über die Kernfunktionen was nicht bezahlbar ist, wird nicht ausgeführt und nicht als erledigt vermerkt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Verfall wird sichtbar und Altspielstände laden eine Vorlage, die ohne Entscheidung verschwindet, steht bei den verfallenen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Verfall wird sichtbar und Altspielstände laden ein Spielstand ohne Ministerfluss lädt, rechnet Vorlagen und speichert den Zustand mit",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Der erwartete Nutzen in Zahlen die Vorschau ändert die Welt nicht und zeigt Stand heute, ohne und mit Eingriff",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Der erwartete Nutzen in Zahlen ohne Eingriff gibt es keine Vorschau, mit unbekannter Größe keine Zeile",
+        "status": "passed"
+      },
+      {
+        "file": "test/ministerfluss.test.ts",
+        "name": "Leistung die Vorlagen eines Spielstands mit Erfahrung entstehen schnell genug für die Oberfläche",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Personen: Profil und Umfeld Das Umfeld hat Regierung, Zentralbank und Opposition, jede Person ein Profil",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Personen: Profil und Umfeld Namen im Umfeld sind eindeutig",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Jede Kombination aus Person, Thema und Ansatz lässt sich planen und ohne Absturz ausführen",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Vertrauen aufbauen kostet Kapital, hebt die Loyalität und verbraucht den Termin",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Termine sind knapp: höchstens vier in dreißig Tagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Rat enthält Zahlen aus dem Weltzustand und ist bei geringer Loyalität verweigert",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Ein Auftrag läuft mit Frist und wird am Stichtag gemessen",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Kritik senkt Loyalität und erhöht Groll; ohne Anlass ist sie gesperrt",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Anerkennung gibt Mittel, kostet Kapital und macht Neid bei den anderen",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche Die Machtfrage kann zum Rücktritt führen: kommissarische Leitung und Ehemalige",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Gespräche ansaetzeFuer nennt für jeden Ansatz Kosten und Vorschau oder den Grund",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Ämter Regierungsämter haben eine Ressortwirkung mit gültigen Knoten",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Ältere Spielstände Ohne Profile und ohne die neuen Ämter lädt der Spielstand, ergänzt sie und läuft weiter",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Nachfolge Drei Kandidaten mit verschiedenen Namen und Profilen, stabil bei wiederholtem Aufruf",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Nachfolge Entlassung mit Kandidat: Amt neu besetzt, Kosten gebucht, Ehemaliger vermerkt, Lager verärgert, Märkte reagieren",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Nachfolge Kommissarische Leitung und spätere Ernennung; Ämter ohne Entlassung sind gesperrt",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Nachfolge Zu wenig Kapital: keine Entlassung",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Nachfolge Wer im Streit geht, kann später aussagen: Vertrauen und Legitimität sinken",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Ereignisse um Personen Rücktrittsdrohung: Zugeständnisse halten die Person, Annehmen bringt eine kommissarische Leitung",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Ereignisse um Personen Skandal, Intrige und Leck: jede Antwort läuft ohne Fehler durch und verändert das Umfeld",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Zusagen Die Ansicht nennt Bezug, Frist, Fortschritt und die Folgen von Halten und Brechen",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Zusagen Vertrösten kostet 1 Kapital und Geduld, höchstens zweimal; Brechen kostet Glaubwürdigkeit",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Zusagen Einlösen: Ohne Gesetz kostet es 4 Kapital, mit Gesetz trägt das Gesetz die Kosten; die Glaubwürdigkeit steigt",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Zusagen Zusagen, die andere Systeme erfüllen (Gesetz beschlossen), werden im Monat nachgebucht",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Lange Partie mit Personen Fünf Jahre ohne Zutun: alle Werte endlich, Namen eindeutig, keine kaputten Texte im Protokoll",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Spielverlauf mit Gesprächen und Wechseln Vier Jahre: Gespräche in allen Ansätzen, Aufträge, Wechsel; nichts wird unendlich, kein Text ist kaputt",
+        "status": "passed"
+      },
+      {
+        "file": "test/personen.test.ts",
+        "name": "Spielverlauf mit Gesprächen und Wechseln Schnittstellen: Hinweise, Ressortrat und Kontext für das Sprachmodell",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Anliegen entsteht nach 30 Tagen ohne Öffnen der Akte, kein rückwirkender Altstand-Verfall",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "unbeantwortet: Ressort verschlechtert sich und Minister verliert Rückhalt, nur einmal",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "ehrgeiziger fähiger Minister lindert das Problem auf eigene Faust, kostet Geld und Legitimität",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "ehrgeiziger fachlich schwacher Alleingang verschlechtert statt zu heilen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ablehnung hat sofort Beziehungskosten, Fristablauf bestraft nicht ein zweites Mal",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Gespräch führt echte Szene aus und verschiebt Sachfrist; kein kostenloser Ressorteffekt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "einmaliger Aufschub besitzt Preis, keine unendliche Fristverlängerung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ablehnung kann vor Frist durch Gespräch korrigiert werden; alte Antworten buchen nichts",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerwechsel erledigt altes Anliegen ohne den Nachfolger zu bestrafen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "anderweitiger fachlicher Eingriff und Entspannung stoppen den angekündigten Verfall",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "vorhandenes Gespräch außerhalb der Karte zählt, fachliche Zusage bleibt offen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Annahme bringt echten Gesetzentwurf ein und zeigt dieselbe Mehrheit und Kosten",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "tatsächlicher Tageslauf führt fälliges Ressortanliegen ohne UI aus; Speichern/Laden bleibt stabil",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerkarten und belegte Folgen auf de ohne Zustandsänderung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerkarten und belegte Folgen auf en ohne Zustandsänderung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerkarten und belegte Folgen auf tr ohne Zustandsänderung",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege gefährdete Mehrheit erhält ausführbare, unterschiedliche Kompromisse mit ehrlichen Fraktionsgewinnen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege Übernahme, spätere Abstimmung und gebuchte Parteifolgen entsprechen jedem angebotenen Weg",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege Loyalität und Bereitschaft zeigen tatsächliche begrenzte politische Kosten",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege keine erfundene Mehrheit bei unvereinbaren Forderungen und aufgebrauchtem Kapital",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege Gespräch allein sichert eine knappe Mehrheit ohne Klausel oder Fristverschiebung",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege Haushaltsdeckel wird atomar gegen Sozialausgleich getauscht",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von kapital wird ohne Teilbuchung verworfen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von sitze wird ohne Teilbuchung verworfen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von bereitschaft wird ohne Teilbuchung verworfen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von termin wird ohne Teilbuchung verworfen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von tag wird ohne Teilbuchung verworfen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von kurs wird ohne Teilbuchung verworfen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege manipulierter Klauselsatz und doppelte Gespräche werden nicht teilweise übernommen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege nach Fristablauf oder Abschluss gibt es keine nachträgliche Verhandlung",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege späte Klauseln berücksichtigen Beratungstage und die dadurch auslaufende Duldung",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege Einsatzgarantie und gebundene Gegenkurse werden nicht als vermeintliche Lösung angeboten",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege ungültig gewordene Garantie kann durch einen gültigen Weg entfernt werden",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege keine Verhandlung beseitigt eine Sanktion gegen den Energielieferanten",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege Vorschau initialisiert keine Fraktionen und zeigt keine fiktive Reaktion der eigenen Partei",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege beide Ansichten zeigen ausführbare Wege; Vorschau und Übernahme überstehen Speichern und Laden",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege vollständiger Katalog und verständliche Verhandlung in de",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege vollständiger Katalog und verständliche Verhandlung in en",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsberatung.test.tsx",
+        "name": "Konkrete Verhandlungswege vollständiger Katalog und verständliche Verhandlung in tr",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Schutzbeitrag entspricht separatem Monatslauf ohne Paket, einschließlich Sparen und Produktionsverlust",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Gasabkommen belegt tatsächlichen Zusatzimport und Vergleichswirkung; keine zweite Zahlung",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Sanktioniertes Abkommen erklärt Nullwirkung und behält den damaligen Grund",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Parlament und Vorlauf werden nicht als bereits wirksame Versorgung ausgegeben",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Wiederaufbauvergleich nutzt den Zustand vor den neuen Reparaturen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Verteilungskurs zivil vergleicht zivilen Bedarf und tatsächlichen Frontverbrauch mit ausgewogen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Verteilungskurs militaer vergleicht zivilen Bedarf und tatsächlichen Frontverbrauch mit ausgewogen",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Rückkehr zum ausgewogenen Kurs zeigt die Wirkung gegenüber dem zuvor gewählten Militärvorrang",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Erholung unter 90 Prozent bleibt Kritik; Kontrolle, Träger und tatsächliche Grenzen sind belegt",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Über 90 Prozent braucht zusätzlicher Rückhalt mehr als zwei Prozentpunkte Erholung: 0.91",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Über 90 Prozent braucht zusätzlicher Rückhalt mehr als zwei Prozentpunkte Erholung: 0.94",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Politische Schwellen statt Rundungsartefakte: 0.88 → 0.9",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Politische Schwellen statt Rundungsartefakte: 0.88 → 0.899999999999",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Politische Schwellen statt Rundungsartefakte: 0.88 → 0.900000000001",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Politische Schwellen statt Rundungsartefakte: 0.9 → 0.92",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Politische Schwellen statt Rundungsartefakte: 0.7 → 0.89996",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Politische Schwellen statt Rundungsartefakte: 0.9 → 0.920001",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Schwellenhinweise bleiben in jeder Sprache eindeutig: de",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Schwellenhinweise bleiben in jeder Sprache eindeutig: en",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Schwellenhinweise bleiben in jeder Sprache eindeutig: tr",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Gespeicherte Entscheidungen, politische Rollen und Bericht bleiben nach späteren Änderungen erhalten: de",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Gespeicherte Entscheidungen, politische Rollen und Bericht bleiben nach späteren Änderungen erhalten: en",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Gespeicherte Entscheidungen, politische Rollen und Bericht bleiben nach späteren Änderungen erhalten: tr",
+        "status": "passed"
+      },
+      {
+        "file": "test/versorgungsbericht.test.tsx",
+        "name": "Belegbarer Versorgungs-Monatsbericht Ältere Berichte erfinden keine Ursachen und behalten tatsächlich gespeicherte Folgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "anderweitiger Eingriff am selben Tag sperrt alte Ministerantwort vor jeder Buchung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "entspannte Lage am selben Tag erzeugt keine unnötigen Ablehnungsfolgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "laufendes Haushaltsverfahren zählt als Bearbeitung des betroffenen Ressorts",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "laufendes Versorgungsprogramm verhindert neue Vernachlässigungsanfrage im Wirtschaftsressort",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Wirtschaftsminister schlägt reale Haushaltskorrektur vor; Preis und Legitimität landen im Rückblick",
+        "status": "passed"
+      }
+    ]
+  },
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "typescript": "passed",
+    "productionBuild": "passed",
+    "warnings": [
+      "Existing undefined optional infrastrukturEtat export",
+      "Existing large bundle chunks"
+    ],
+    "logSha256": "5858051cfda2bcd67d0612e1aacd7825f1ede9b593ec18fcf2d96b5691be3710"
+  },
+  "verifiedExamples": [
+    {
+      "scenario": "Agrarkürzung zurücknehmen",
+      "capitalCost": 4,
+      "legitimacyChange": -0.4,
+      "deficitChange": "positive, actual delta asserted and recorded",
+      "historyImmutable": true
+    },
+    {
+      "scenario": "Schutzprogramm vorbereiten und abstimmen",
+      "expectedYesVotes": ">=301 in fixture",
+      "sameClausesAndCapitalAsPreview": true,
+      "noActivationBeforeVote": true,
+      "actualSupplyVote": "accepted"
+    },
+    {
+      "scenario": "Gefährdeten Partner sprechen",
+      "loyaltyBefore": 19,
+      "loyaltyAfter": 24,
+      "promisesUnchanged": true
+    },
+    {
+      "scenario": "Passiver Minister, unbeantwortete Frist",
+      "issueDeterioration": 1.5,
+      "loyaltyChange": -2,
+      "resentmentChange": 3,
+      "dailyTickWithoutUI": true
+    },
+    {
+      "scenario": "Fähiger ehrgeiziger Alleingang",
+      "issueImprovement": 1.2,
+      "gdpCostPercent": 0.01,
+      "legitimacyChange": -0.3,
+      "noLawBypass": true
+    },
+    {
+      "scenario": "Fachlich schwacher Alleingang",
+      "issueDeterioration": 0.8
+    },
+    {
+      "scenario": "Ablehnung",
+      "immediateLoyaltyChange": -3,
+      "immediateResentmentChange": 5,
+      "noDuplicateDeadlineRelationshipPenalty": true
+    },
+    {
+      "scenario": "Gespräch",
+      "actualDialogue": true,
+      "policyResponseDays": 21,
+      "noImmediateIssueRepair": true
+    },
+    {
+      "scenario": "Bereits erfolgte Bearbeitung oder Entspannung",
+      "sameDayStaleResponseNoBooking": true,
+      "ongoingBudgetAndSupplyProceedingsRecognized": true
+    }
+  ],
+  "browser": {
+    "verified": false,
+    "screenshots": [],
+    "existingRestrictionRetried": false,
+    "restrictionBypassed": false
+  },
+  "limitations": [
+    "No visual verification at wide or narrow widths; server-render checks only.",
+    "Long-term balance of new deadlines and escalation values has not been evaluated by extended playthroughs.",
+    "Budget corrective actions retain the existing game rules, including supplementary budget adjustments without a new vote."
+  ],
+  "sources": [
+    {
+      "file": "src/sim/haushaltshilfe.ts",
+      "sha256": "c57de83a266a2147ef40d84ba3d3671e7b0dc88fba063198464b4dc2febeb162"
+    },
+    {
+      "file": "src/sim/ressortanliegen.ts",
+      "sha256": "09c788c9b5ffeedca378454b5eab7399eca0ee67fef2fa070cd03c0828f99418"
+    },
+    {
+      "file": "src/sim/haushaltsbericht.ts",
+      "sha256": "3a79f0aa54c03150e9c5f594bb6f321be01dcb57dd3f52766be408a90bbbff83"
+    },
+    {
+      "file": "src/sim/ministerfluss.ts",
+      "sha256": "3b5452218cd7b565da2d9ca7deb46da135c014fa5875fc7a1a808dbba078dc84"
+    },
+    {
+      "file": "src/sim/ministerfluss-typen.ts",
+      "sha256": "2865502b41944ef624005d5b9b1e8e5f63480602e6a1e69846e522205f8b1266"
+    },
+    {
+      "file": "src/sim/spiel.ts",
+      "sha256": "04361583ec59ed4edbc1cd92fb1464f9c999130325532c9bcb8c7d9d0311af02"
+    },
+    {
+      "file": "src/ui/wirtschaft/HaushaltsGegenmassnahmen.tsx",
+      "sha256": "a3c1f444565329f16725459328f1fdf5c9371f68849e9530768ecf94f83280fb"
+    },
+    {
+      "file": "src/ui/wirtschaft/haushaltshilfe.css",
+      "sha256": "c934eadbf7c164688d0674d45608fbc18494da0358ab68027453614cc7157f20"
+    },
+    {
+      "file": "src/ui/wirtschaft/HaushaltsBericht.tsx",
+      "sha256": "68168e3bbf509db04ddb70f633ffa72709d37a1f3bb8940a0da8898aadede581"
+    },
+    {
+      "file": "src/ui/wirtschaft/Haushalt.tsx",
+      "sha256": "14f4d431eb232cb61a213600f83e1718f8c7b94be7a66bfe4f21c761aa4bc6d6"
+    },
+    {
+      "file": "src/ui/minister/RessortAnliegen.tsx",
+      "sha256": "2ee2f2411c42085e1472a2c114a90e0fd233d831540b4fa4fc917f8bf8b8bca4"
+    },
+    {
+      "file": "src/ui/minister/ressortanliegen.css",
+      "sha256": "b2fce377eb498838b00ba2c5c9f09779ef16ae40d30cd45f8ceb55e64b0a150c"
+    },
+    {
+      "file": "src/ui/minister/Mappe.tsx",
+      "sha256": "7283eeddecec506a1de8e55a65c3c5b5b0d6a1e47e24451545f1139dbda9d27e"
+    },
+    {
+      "file": "src/ui/minister/Posteingang.tsx",
+      "sha256": "6fc541ab1a62feaa5ec5627d30edf5b27f4afc1e103c611f5dd2049678bdaf4f"
+    },
+    {
+      "file": "src/ui/gueter/VersorgungsMonatsbericht.tsx",
+      "sha256": "23b86784cd4f77ea13274a8f6cde389f7676942928712b731de0d685839fe485"
+    },
+    {
+      "file": "src/ui/gueter/VersorgungsLage.tsx",
+      "sha256": "7f07d451613d92f925b1e4bb665e78af17c53432bac750d6593fce34d7409a8c"
+    },
+    {
+      "file": "src/ui/gueter/VersorgungsMandat.tsx",
+      "sha256": "4c3454ae3ad34cb291fb46b5f68923c03cd65ff960b9fbfa568e39f879a20ab7"
+    },
+    {
+      "file": "test/haushaltshilfe.test.tsx",
+      "sha256": "c46585f27733248bf78f1e5a68e266511050c138768a6cfc87bcc619ff806d80"
+    },
+    {
+      "file": "test/ressortanliegen.test.tsx",
+      "sha256": "edbe126401204154041630e38c0d84158b69d4c3ef7f3ed78aaca9c702de100c"
+    },
+    {
+      "file": "src/i18n/katalog/de/haushaltshilfe.json",
+      "sha256": "230ce8ae930fb5aa21de79247f44fed2dd13ad17104466dbb76a6b7ed0d9edb8"
+    },
+    {
+      "file": "src/i18n/katalog/de/ressortanliegen.json",
+      "sha256": "89bf1067b33e78549192d6d2864af4e78d7915b5bed86994295be378b587d601"
+    },
+    {
+      "file": "src/i18n/katalog/en/haushaltshilfe.json",
+      "sha256": "47896a1dd79dee5de4dd5555c92b270edde351104527218fefd98cc4d39e22d7"
+    },
+    {
+      "file": "src/i18n/katalog/en/ressortanliegen.json",
+      "sha256": "c7a7a76222004ec48efc7ee9a16b0840214224a6393c2cae43ab51bd99e7084a"
+    },
+    {
+      "file": "src/i18n/katalog/tr/haushaltshilfe.json",
+      "sha256": "81decf8039ea2c77432fa88a0fcc84448a52831a4d4a5fb53c7962ea153a5900"
+    },
+    {
+      "file": "src/i18n/katalog/tr/ressortanliegen.json",
+      "sha256": "77f4e8e210d5a0ced594e7f08dbcd7e150cff8c8905795d067ebee6af0a271f5"
+    }
+  ],
+  "projectReport": {
+    "file": "Spielentwicklung/VERSORGUNG_PARLAMENT_2026-10-30.md",
+    "sha256": "ed99383abfaab719cf0aafaaee1b6b8321c5931022732bbe3cb1aa875fa5738c"
+  }
+}

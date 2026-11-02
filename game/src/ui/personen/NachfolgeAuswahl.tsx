@@ -27,7 +27,8 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
   const [gewaehlt, setGewaehlt] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const kandidaten = useMemo(() => kandidatenFuer(world, figur.amt), [world, figur.amt, figur.name]);
-  const folgen = useMemo(() => (modus === "entlassen" ? entlassungsFolgen(world, figur.amt) : []), [world, figur.amt, modus, figur.name]);
+  // Fraktionen und Vorsitzloyalität ändern sich auch ohne Tag- oder Namenswechsel.
+  const folgen = modus === "entlassen" ? entlassungsFolgen(world, figur.amt) : [];
   const spiel = world.spiel!;
   const d = AEMTER[figur.amt];
   const k = kandidaten.find((x) => x.id === gewaehlt);

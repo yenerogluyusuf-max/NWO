@@ -55,7 +55,7 @@ export function kapitalErklaerung(w: World): string {
     .filter((p) => Math.abs(p.wert) >= 0.05)
     .map((p) => `${p.label} ${p.wert >= 0 ? "+" : "−"}${z(Math.abs(p.wert))}`)
     .join(", ");
-  return t("akte.kapital.erklaerung", { summe: z(k.summe), teile, naechste: k.naechste, grenze: k.grenze });
+  return t("sf.politikText") + " " + t("akte.kapital.erklaerung", { summe: z(k.summe), teile, naechste: k.naechste, grenze: k.grenze });
 }
 
 export interface StartFragen {

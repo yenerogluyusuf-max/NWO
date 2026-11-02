@@ -271,11 +271,12 @@ describe("Vier-Preise-Regel", () => {
     expect(hoch.hinweise.some((h) => h.startsWith("Exit-Preis"))).toBe(false);
   });
 
-  test("Unterhalt zehrt monatlich am Kapital, anteilig zur Stufe", () => {
+  test("Politische Dauerbelastung zehrt am Kapital, Leistungen am Haushalt", () => {
     const w = createWorld(turkey2026, 7);
     startAfterElection(w, schnellProfil());
     const u = unterhaltKosten(w);
-    expect(u.summe).toBeGreaterThan(0.2);
+    expect(u.summe).toBeGreaterThan(0);
+    expect(u.posten.some(p => ["m_oepp_garantien", "m_energiesubventionen", "m_verteidigung"].includes(p.id))).toBe(false);
     expect(u.posten.map((p) => p.id)).toContain("m_notstand");
     // Der Notstand steht beim Szenariostart auf 10: 0,3 · 10/100 = 0,03
     const notstand = u.posten.find((p) => p.id === "m_notstand")!;

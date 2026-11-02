@@ -26,6 +26,7 @@ import { addLog, fmt } from "./log";
 import { wirke } from "./wirkung";
 import { addMarke, defizitJetzt, defizitStrukturell, wirtschaftZustand } from "./wirtschaft";
 import { Rng } from "./rng";
+import { letzteVersorgung } from "./versorgung";
 import { t } from "../i18n";
 
 /** Spielparameter der Devisen-Lage (Kalibrierung, keine Messwerte). */
@@ -161,7 +162,10 @@ export function leistungsbilanzZerlegung(w: World): LbZerlegung {
   const tourismus = w.spiel ? DEVISEN.tourismusAufLb * (nationalAverage(NET, w.net, "tourismus") - startTourismus) : 0;
   zeilen.push({ name: t("wk.dv.tourismus"), wert: tourismus, text: t("sim2.sim.devisen.7274b65") });
   // Runde „Netz atmet“: Die Realwirtschaft der Branchen trägt die Exportseite (0 ohne Netz)
-  zeilen.push({ name: t("wk.dv.branchen"), wert: DEVISEN.sektorAufLb * (e.sektorIndex ?? 0), text: t("sim2.sim.devisen.3c2026e") });
+  const waren = letzteVersorgung(w);
+  zeilen.push(waren
+    ? { name: t("gueter.kette.handelsbeitrag"), wert: waren.handelsDeltaUsdMrd * 12 / bipUsdMrd(e) * 100, text: t("gueter.kette.handelsbeitragText", { monat: waren.monat }) }
+    : { name: t("wk.dv.branchen"), wert: DEVISEN.sektorAufLb * (e.sektorIndex ?? 0), text: t("sim2.sim.devisen.3c2026e") });
   // J-Kurve: Die Abwertung der jüngsten sechs Monate verteuert Importe sofort (negativ),
   // die der Monate 7–12 stärkt inzwischen die Wettbewerbsfähigkeit (positiv).
   const h = w.history;
@@ -222,9 +226,18 @@ export function devisenMonat(w: World): void {
   // Eigener, abgeleiteter Zufallsstrom: Die gemeinsame Folge (Lernfälle, Alttests) bleibt unberührt.
   const rng = new Rng(w.rngState ^ Math.imul(w.day + 7, 0x9e3779b1));
 
-  // Leistungsbilanz zieht zu ihrer Zielmarke
+  const z = devisenZustand(w);
+  const monat = w.date.slice(0, 7);
+  if (z.abgerechnetMonat === monat) return;
+  z.abgerechnetMonat = monat;
   const lb = leistungsbilanzZerlegung(w);
-  e.leistungsbilanzPctBip = (e.leistungsbilanzPctBip ?? lb.ziel) + DEVISEN.lbTempo * (lb.ziel - (e.leistungsbilanzPctBip ?? lb.ziel)) + rng.normal(0.04);
+  const bilanz = letzteVersorgung(w);
+  const waren = bilanz?.monat === monat ? bilanz.handelsDeltaUsdMrd * 12 / bipUsdMrd(e) * 100 : 0;
+  // Warenzahlungen vollständig im Liefermonat; nur die übrige Leistungsbilanz ist träge.
+  const bisher = (e.leistungsbilanzPctBip ?? lb.ziel) - (z.warenBeitragPct ?? 0);
+  const ziel = lb.ziel - (bilanz ? bilanz.handelsDeltaUsdMrd * 12 / bipUsdMrd(e) * 100 : 0);
+  e.leistungsbilanzPctBip = bisher + DEVISEN.lbTempo * (ziel - bisher) + rng.normal(0.04) + waren;
+  z.warenBeitragPct = waren;
 
   // Reserven um Saldo und Flüsse fortschreiben (Brutto und Netto parallel; der Abstand bleibt konstant)
   const fluesse = kapitalflussZerlegung(w);
@@ -234,7 +247,6 @@ export function devisenMonat(w: World): void {
   aktualisiereReservenDruck(e);
 
   // Ehrliche Warnung, wenn die Netto-Reserven knapp werden (mit Spam-Bremse)
-  const z = devisenZustand(w);
   if ((e.reservenNettoUsdMrd ?? 99) < DEVISEN.warnungUnter && w.day - (z.warnung ?? -1e9) > 90) {
     z.warnung = w.day;
     addLog(

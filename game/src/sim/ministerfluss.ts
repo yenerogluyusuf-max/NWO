@@ -17,7 +17,7 @@ import { NET } from "./modell";
 import { PROVINZEN } from "./regional";
 import { Rng } from "./rng";
 import { skalenArt } from "../data/skalen";
-import { msg, rendere, t, type Msg } from "../i18n";
+import { aktuelleSprache, msg, rendere, t, type Msg } from "../i18n";
 import { kannZahlen, nurAufPump } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN } from "./aufmerksamkeit";
 import { antworten, vorlage as ereignisVorlage, wirkungsVorschau, entscheide } from "./ereignisse";
@@ -26,6 +26,8 @@ import { bereiteKabinettssitzungVor, halteKabinettssitzungAb, kabinettStatus } f
 import { bringeEin, pruefeVorhaben, stufeIn } from "./handeln";
 import { akuteProbleme, vorschlaege, type Vorschlag } from "./vorschlaege";
 import { betroffene } from "./wege";
+import { zusagenSchrittPlan } from "./zusagenwarnung";
+import { geseheneZusage, zusagenAusgang, istVerfallen } from "./ministerfluss-zusagen";
 import { brecheFrei, loeseEin, vertroesteFrei, zusageVorhaben, zusagenSicht } from "./zusagen";
 import { AEMTER, eigenVon, figurNachId, grollVerschieben, HOCH_SCHLECHT, loyalitaetVerschieben, merke, nf, schlechtesteGroesse, sorgeText } from "./personen";
 import { addLog } from "./log";
@@ -176,8 +178,8 @@ function ereignisQuelle(w: World): Roh[] {
     const amt = bezug?.amt.find((a) => amtBesetzt(w, a)) ?? "stab";
     const optionen: VorlageOption[] = antworten(w, ev).map((o) => {
       const pk = o.anzeigePk ?? o.pk;
-      const ok = kannZahlen(sp.kapital, pk);
-      return { id: o.id, label: o.label, text: o.beschreibung, kosten: { pk, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "ereignis", ereignisId: ev.id, optionId: o.id }, moeglich: ok, ...(ok ? {} : { grund: t("mfl.kapital_fehlt_vorhanden", { pk, vorhanden: Math.floor(sp.kapital) }) }) };
+      const ok = !o.sperre && kannZahlen(sp.kapital, pk);
+      return { id: o.id, label: o.label, text: [o.beschreibung, ...(o.bedingungen ?? []), ...(o.warnung ? [o.warnung] : [])].join(" "), kosten: { pk, aufmerksamkeit: o.aufmerksamkeit ?? 0 }, folgen: o.sofortfolgen ?? [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "ereignis", ereignisId: ev.id, optionId: o.id }, moeglich: ok, ...(ok ? {} : { grund: o.sperre ?? t("mfl.kapital_fehlt_vorhanden", { pk, vorhanden: Math.floor(sp.kapital) }) }) };
     });
     out.push(
       basis(w, { id: `ereignis:${ev.id}`, art: "frage", quelle: "ereignis", amt, titel: v.titel(w, ev), anlass: v.text(w, ev), optionen, frist: Math.max(0, ev.frist - w.day), tag: ev.tag, tragweite: 0.55 + 0.4 * ev.staerke, ziel: { art: "ereignis", id: ev.id } }),
@@ -234,26 +236,29 @@ function zusagenQuelle(w: World): Roh[] {
     const z = s.z;
     const v = zusageVorhaben(w, z);
     const opt: VorlageOption[] = [];
-    const einlosPk = v ? 0 : 4;
+    const schritt = zusagenSchrittPlan(w,z.id,"einloesen")!;
+    const neuesGesetz = !!v && !v.erreicht && !v.gesetz;
+    const einlosPk = schritt.moeglich ? schritt.pk : neuesGesetz ? v.pr.gesetz.pk : v ? 0 : 4;
     opt.push({
       id: "einloesen",
-      label: t("mfl.z.einloesen.label"),
-      text: v ? t("mfl.z.einloesen.text", { name: v.name, jetzt: Math.round(v.jetzt), ziel: v.ziel }) : t("mfl.z.einloesen.erfuellt"),
-      kosten: { pk: einlosPk, aufmerksamkeit: v ? AUFMERKSAMKEIT_KOSTEN.gesetz : 0 },
-      folgen: [...(v?.pr.ok ? [t("mfl.z.einloesen.preis", { pk: v.pr.gesetz.pk, mehrheit: v.pr.gesetz.stimmen.luecke > 0 ? t("mfl.mehrheit.fehlt", { n: v.pr.gesetz.stimmen.luecke }) : t("mfl.mehrheit.steht") })] : []), t("mfl.z.einloesen.folge")],
-      ...(v?.pr.ok ? { luecke: v.pr.gesetz.stimmen.luecke } : {}),
+      label: v ? t(v.erreicht ? "zusage.gesetz.verbuchen" : "zusage.gesetz.aktion") : t("mfl.z.einloesen.label"),
+      text: v?.erreicht ? t("zusage.gesetz.bereit.text") : v?.gesetz ? t("zusage.gesetz.laeuft") : v ? t("mfl.z.einloesen.text", { name: v.name, jetzt: Math.round(v.jetzt), ziel: v.ziel }) : t("mfl.z.einloesen.erfuellt"),
+      kosten: { pk: einlosPk, aufmerksamkeit: neuesGesetz ? AUFMERKSAMKEIT_KOSTEN.gesetz : 0 },
+      folgen: [...(neuesGesetz && v.pr.ok ? [t("mfl.z.einloesen.preis", { pk: v.pr.gesetz.pk, mehrheit: v.pr.gesetz.stimmen.luecke > 0 ? t("mfl.mehrheit.fehlt", { n: v.pr.gesetz.stimmen.luecke }) : t("mfl.mehrheit.steht") })] : []), t(neuesGesetz || v?.gesetz ? "zusage.gesetz.belohnung" : "mfl.z.einloesen.folge")],
+      ...(neuesGesetz && v.pr.ok ? { luecke: v.pr.gesetz.stimmen.luecke } : {}),
       dafuer: [z.von],
       dagegen: [],
       verlierer: [],
       aktion: { art: "zusage", zusageId: z.id, weg: "einloesen" },
-      moeglich: kannZahlen(sp.kapital, einlosPk),
-      ...(kannZahlen(sp.kapital, einlosPk) ? {} : { grund: t("mfl.kapital_fehlt", { pk: einlosPk }) }),
+      moeglich: schritt.moeglich,
+      ...(!schritt.moeglich ? {grund:schritt.text} : {}),
     });
     if ((z.vertroestet ?? 0) < 2) opt.push({ id: "vertroesten", label: t("mfl.z.vertroesten.label"), text: t("mfl.z.vertroesten.text"), kosten: { pk: 1, aufmerksamkeit: 0 }, folgen: [t("mfl.z.vertroesten.folge1"), t("mfl.z.vertroesten.folge2")], dafuer: [], dagegen: [z.von], verlierer: [], aktion: { art: "zusage", zusageId: z.id, weg: "vertroesten" }, moeglich: kannZahlen(sp.kapital, 1), ...(kannZahlen(sp.kapital, 1) ? {} : { grund: t("mfl.z.vertroesten.kapital") }) });
     opt.push({ id: "brechen", label: t("mfl.z.brechen.label"), text: t("mfl.z.brechen.text"), kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [t("mfl.z.brechen.folge")], dafuer: [], dagegen: [z.von], verlierer: [], aktion: { art: "zusage", zusageId: z.id, weg: "brechen" }, moeglich: true });
     out.push(
       basis(w, {
-        id: `zusage:${z.id}`,
+        id: `zusage:${z.id}:frist:${z.faellig}:runde:${z.vertroestet??0}`,
+        thema: `zusage:${z.id}`,
         art: "frage",
         quelle: "zusage",
         amt: "stab",
@@ -403,6 +408,7 @@ function lageQuelle(w: World): Roh[] {
   for (const f of sp.figuren) {
     if (!f.imAmt || !AEMTER[f.amt].regierungsamt || f.loyalitaet < 35) continue;
     const e = eigenVon(w, f);
+    if (sp.ministerfluss?.ressortAnliegen?.some(a=>a.amt===f.amt&&["offen","besprochen","abgelehnt"].includes(a.status))) continue;
     const sg = schlechtesteGroesse(w, f);
     if (!sg || sg.ton !== "schlecht") continue;
     const richtung: 1 | -1 = HOCH_SCHLECHT.has(sg.id) ? -1 : 1;
@@ -561,7 +567,7 @@ function reichere(w: World, v: Roh): void {
   if (v.quelle === "ereignis") {
     const ev = w.spiel!.ereignisse.find((e) => `ereignis:${e.id}` === v.id);
     if (!ev) return;
-    for (const o of v.optionen) if (o.aktion.art === "ereignis") o.folgen = wirkungsVorschau(w, ev, o.aktion.optionId);
+    if (ev.vorlage !== "zusage") for (const o of v.optionen) if (o.aktion.art === "ereignis") o.folgen = wirkungsVorschau(w, ev, o.aktion.optionId);
     return;
   }
   for (const o of v.optionen) {
@@ -611,7 +617,17 @@ export function ministerflussSchluessel(w: World): string {
   if (!sp) return "-";
   const z = flussZustand(w);
   const loy = Math.round(sp.figuren.reduce((s, f) => s + (f.imAmt ? f.loyalitaet : 0), 0));
-  return `${w.day}|${Math.floor(sp.kapital)}|${sp.gesetze.length}|${sp.ereignisse.map((e) => e.id).join(",")}|${sp.zusagen.filter((x) => !x.erfuellt && !x.gebrochen).length}|${loy}|${Object.keys(z.erledigt).length}|${Object.keys(z.vertagt).length}|${Object.keys(z.abgelehnt).length}|${z.befehle.length}|${z.rueckmeldungen.length}|${z.gelesen.length}|${Object.keys(w.net.targets).length}`;
+  // Frist und Ziel können sich ändern, ohne dass die Anzahl der Zusagen oder Ziele wechselt.
+  const zusagen = sp.zusagen.filter(z=>!z.erfuellt&&!z.gebrochen);
+  const zusagenStand = JSON.stringify({zusagen,ende:sp.ende,pause:sp.verfassung?.pauseBis,krisen:sp.krisen,
+    ziele:[...new Set(zusagen.flatMap(z=>z.massnahme?[z.massnahme]:[]))].map(id=>[id,w.net.targets[id],w.net.ziele?.[id],stufeIn(w,id,null)])});
+  const buendnisStand = sp.ereignisse.some(e=>e.vorlage==="koalitionsangebot"||e.vorlage==="wahl_koalitionsrunde")
+    ? JSON.stringify({lager:sp.lager,sitze:w.parliament?.seats,figuren:sp.figuren.filter(f=>f.amt==="partner"),fraktionen:sp.fraktionen,
+      ziele:[...new Set(Object.values(sp.fraktionen??{}).flatMap(f=>f.forderung?[f.forderung.massnahme]:[]))].map(id=>[id,stufeIn(w,id,null),w.net.targets[id]])}) : "";
+  const erinnerungsStand = sp.ereignisse.some(e=>e.vorlage==="zusage")
+    ? JSON.stringify({ereignisse:sp.ereignisse.filter(e=>e.vorlage==="zusage"),figuren:sp.figuren,fraktionen:sp.fraktionen,gesetze:sp.gesetze,
+      lager:sp.lager,sitze:w.parliament?.seats,kapital:sp.kapital,verfassung:sp.verfassung,vertrauen:stufeIn(w,"vertrauen_regierung",null),legitimitaet:stufeIn(w,"legitimitaet",null)}) : "";
+  return `${JSON.stringify(z.ressortAnliegen)}|${erinnerungsStand}|${aktuelleSprache()}|${w.day}|${Math.floor(sp.kapital)}|${sp.gesetze.length}|${sp.ereignisse.map((e) => e.id).join(",")}|${sp.zusagen.filter((x) => !x.erfuellt && !x.gebrochen).length}|${loy}|${Object.keys(z.erledigt).length}|${Object.keys(z.vertagt).length}|${Object.keys(z.abgelehnt).length}|${z.befehle.length}|${z.rueckmeldungen.length}|${z.gelesen.length}|${Object.keys(w.net.targets).length}|${zusagenStand}|${buendnisStand}`;
 }
 
 /** Alle Vorlagen, die jetzt auf dem Tisch liegen, nach Rang. Die obersten bekommen die aufwendigen Vorschauen und die Empfehlung. */
@@ -647,7 +663,7 @@ export function ministerVorlagen(w: World, opt: VorlagenOptionen = {}): Vorlage[
 }
 
 /** Die Unterschriftenmappe des Schreibtischs: nur das Wichtigste und Aktuellste. */
-export function schreibtischMappe(w: World, max = 5): { mappe: Vorlage[]; weitere: number; proAmt: Partial<Record<Amt, number>>; vertagt: number; verfallen: number } {
+export function schreibtischMappe(w: World, max = 5): { mappe: Vorlage[]; weitere: number; proAmt: Partial<Record<Amt, number>>; vertagt: number; verfallen: number; rueckblick: number } {
   const alle = ministerVorlagen(w, { tiefe: max });
   // Was nicht entschieden werden kann (etwa bis zur nächsten Kabinettssitzung) und sehr Niedriges bleibt im Posteingang
   const kandidaten = alle.filter((v) => !v.wartet && v.prioritaet >= 30);
@@ -668,7 +684,7 @@ export function schreibtischMappe(w: World, max = 5): { mappe: Vorlage[]; weiter
   const proAmt: Partial<Record<Amt, number>> = {};
   for (const v of alle) if (!ids.has(v.id)) proAmt[v.amt] = (proAmt[v.amt] ?? 0) + 1;
   const z = flussZustand(w);
-  return { mappe, weitere: alle.length - mappe.length, proAmt, vertagt: Object.values(z.vertagt).filter((t) => t > w.day).length, verfallen: z.verfallen.length };
+  return { mappe, weitere: alle.length - mappe.length, proAmt, vertagt: Object.values(z.vertagt).filter((t) => t > w.day).length, verfallen: z.verfallen.filter(istVerfallen).length, rueckblick:z.verfallen.length };
 }
 
 /** „Heute“: die Vorhaben gegen akute Probleme und die Schritte der Ressorts, als Vorlagen mit Minister, Empfehlung und Folgen in Zahlen. */
@@ -748,8 +764,14 @@ export function entscheideVorlage(w: World, vorlageId: string, optionId: string)
     return { ok: true, text: t("mfl.x.nicht_weiter") };
   }
 
+  const zusageVorher=v.quelle==="zusage"?geseheneZusage(w,v.thema):undefined;
   const r = ausfuehren(w, o.aktion);
   if (!r.ok) return r;
+  if(zusageVorher){
+    z.verfallen.push({id:v.id,titel:v.titelMsg??v.titel,amt:v.amt,quelle:v.quelle,seit:v.tag,verfallen:w.day,...zusagenAusgang(w,zusageVorher.id,zusageVorher)});
+    if(z.verfallen.length>14)z.verfallen.splice(0,z.verfallen.length-14);
+    delete z.gesehen[v.id];
+  }
   z.erledigt[v.id] = { tag: w.day, text: o.label };
   if (v.art === "rueckmeldung") z.gelesen.push(v.id);
   kappeRecord(z.erledigt, 80, (x) => x.tag);
@@ -776,9 +798,9 @@ export function vertageVorlage(w: World, themaOderId: string, tage = 30): void {
 const QUELLEN_MIT_VERFALL: VorlagenQuelle[] = ["lage", "problem", "zusage", "person", "kabinett"];
 
 /**
- * Hält fest, was gerade auf dem Tisch liegt, und lässt sichtbar verfallen, was verschwand, ohne dass entschieden wurde (die Lage
- * hat sich geändert, die Frist ist verstrichen). Wird von der Oberfläche gerufen, wenn der Tisch angezeigt wird — nicht im Monatslauf,
- * damit die Simulation selbst nichts davon rechnen muss.
+ * Hält fest, was auf dem Tisch liegt und weshalb eine Vorlage verschwindet. Zusagen erhalten ihren tatsächlichen Ausgang;
+ * andere liegengebliebene Vorlagen verfallen wie bisher. Die Oberfläche pflegt die Ablage auch nach Zusagenänderungen am selben Tag.
+ * Keine politischen Folgen und keine zusätzliche Rechnung im Monatslauf.
  */
 export function pflegeVorlagen(w: World): void {
   if (!w.spiel || w.spiel.ende) return;
@@ -790,15 +812,25 @@ export function pflegeVorlagen(w: World): void {
       continue;
     }
     const thema = g.thema ?? id;
-    if ((z.vertagt[thema] ?? 0) > w.day || z.abgelehnt[thema] !== undefined) continue;
-    if (QUELLEN_MIT_VERFALL.includes(g.quelle)) {
-      z.verfallen.push({ id, titel: g.titel, amt: g.amt, quelle: g.quelle, seit: g.tag, verfallen: w.day, grund: msg(g.quelle === "zusage" ? "mfl.verfall.zusage" : g.quelle === "kabinett" ? "mfl.verfall.kabinett" : "mfl.verfall.lage") });
+    if(g.quelle==="zusage"){
+      const zusageId=g.zusage?.id??(g.thema??id).slice("zusage:".length);
+      const ausgang=zusagenAusgang(w,zusageId,g.zusage);
+      z.verfallen.push({id,titel:g.titel,amt:g.amt,quelle:g.quelle,seit:g.tag,verfallen:w.day,...ausgang});
+      if(["erfuellt","gebrochen","entfallen"].includes(ausgang.zusage!.status)){
+        delete z.vertagt[thema];delete z.abgelehnt[thema];
+      }
+    } else {
+      if ((z.vertagt[thema] ?? 0) > w.day || z.abgelehnt[thema] !== undefined) continue;
+      if (QUELLEN_MIT_VERFALL.includes(g.quelle)) {
+        z.verfallen.push({ id, titel: g.titel, amt: g.amt, quelle: g.quelle, seit: g.tag, verfallen: w.day, grund: msg(g.quelle === "kabinett" ? "mfl.verfall.kabinett" : "mfl.verfall.lage") });
+      }
     }
     delete z.gesehen[id];
   }
   if (z.verfallen.length > 14) z.verfallen.splice(0, z.verfallen.length - 14);
   const oben = ministerVorlagen(w, { tiefe: 0 }).slice(0, 10);
-  for (const v of oben) if (!z.gesehen[v.id]) z.gesehen[v.id] = { titel: v.titelMsg ?? v.titel, amt: v.amt, quelle: v.quelle, tag: w.day, thema: v.thema };
+  for (const v of oben) if (!z.gesehen[v.id]) z.gesehen[v.id] = { titel: v.titelMsg ?? v.titel, amt: v.amt, quelle: v.quelle, tag: w.day, thema: v.thema,
+    ...(v.quelle==="zusage"?{zusage:geseheneZusage(w,v.thema)}:{}) };
   // Alte Wiedervorlagen und Ablehnungen aufräumen
   for (const [id, t] of Object.entries(z.vertagt)) if (t < w.day - 120) delete z.vertagt[id];
   for (const [id, t] of Object.entries(z.abgelehnt)) if (t < w.day - 180) delete z.abgelehnt[id];

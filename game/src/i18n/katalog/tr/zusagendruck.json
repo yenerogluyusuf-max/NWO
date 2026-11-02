@@ -1,0 +1,12 @@
+{
+  "zd.titel": "Süreleri birlikte değerlendirin",
+  "zd.nachSchritt": "Bu adımdan sonra kalan süreler",
+  "zd.summe": "{datum} tarihindeki aylık koalisyon değerlendirmesine kadar süresi dolacak açık hatırlatma sayısı: {n}. Yanıtsız kalırlarsa en düşük sadakatli başkanın sadakati {vor} değerinden {nach} değerine iner.",
+  "zd.bruch": "Başkanın sadakati böylece 20 altında kalır. Bu ortak aylık değerlendirmede hükümetten {sitze} sandalye çekebilir; {rest} sandalye kalır.",
+  "zd.puffer": "Bilinen bu süre aşımları tek başına ayrılma eşiğini geçirmiyor. Diğer siyasi etkiler kalan payı tüketebilir.",
+  "zd.schritt": "Önce “{zusage}” sözünü ele alın: tarih {datum} olmadan sözü yerine getirin veya ertelemenin bedelini inceleyin. Görüşme yapmak hatırlatmayı kapatmaz.",
+  "zd.antworten": "En acil hatırlatmayı yanıtla",
+  "zd.details": "Etkilenen {n} hatırlatma ve süreleri",
+  "zd.frist": "Tarih {datum} olduğunda süresi dolar",
+  "zd.grenze": "Yalnızca açık hatırlatmalara dayanan koşullu hesap; değerlendirme günü süresi dolanlar da dahildir. Henüz açılmamış hatırlatmalar, gelecekteki oylamalar, görüşmeler ve diğer aylık etkiler öngörülmez. Bugün herhangi bir kesinti yapılmaz."
+}

@@ -112,20 +112,22 @@ export function Gesetzesvorhaben({ world, refresh }: { world: World; refresh: ()
   };
   const kacheln: UbKachel[] = tisch.map((s, i): UbKachel => {
     const f = s.fassungen.kompromiss;
+    const ja = s.imParlament?.ja ?? f.ja;
+    const urteil = s.imParlament?.urteil ?? f.urteil;
     const laeuft = s.imParlament ? t("gesetz.ui.kurz.parlament", { tage: s.imParlament.tage }) : s.gericht ? t("gesetz.ui.kurz.gericht", { tage: s.gericht.tage }) : s.ruhtTage ? t("gesetz.ui.kurz.ruht", { tage: s.ruhtTage }) : undefined;
     return {
       id: s.def.id,
       gruppe: i < GESETZGEBUNG.vorn ? t("gesetz.ui.tisch") : t("gesetz.ui.weitere"),
       titel: s.titel,
-      wert: t(`gesetz.ui.urteil.${f.urteil}`),
-      wertLabel: t("gesetz.ui.stimmen", { ja: f.ja }),
+      wert: t(`gesetz.ui.urteil.${urteil}`),
+      wertLabel: t("gesetz.ui.stimmen", { ja }),
       zeile: s.satz,
       ...(laeuft
         ? { marke: { text: laeuft, ton: "aktiv" as const } }
         : s.anlass
           ? { marke: { text: t(`gesetz.ui.anlass.${s.anlass}`), ton: "mittel" as const } }
           : {}),
-      ton: laeuft ? "aktiv" : f.urteil === "sicher" ? "gut" : f.urteil === "knapp" ? "mittel" : "schlecht",
+      ton: laeuft ? "aktiv" : urteil === "sicher" ? "gut" : urteil === "knapp" ? "mittel" : "schlecht",
     };
   });
   const lage =

@@ -12,7 +12,7 @@ import { Effekte } from "../Effekte";
 import { tonStatus, tonLabel, tonUm } from "../ton/ton";
 import "./kopf.css";
 
-export type KopfWertId = "zustimmung" | "kapital" | "parlament" | "inflation" | "lira" | "leitzins";
+export type KopfWertId = "zustimmung" | "kapital" | "haushalt" | "parlament" | "inflation" | "lira" | "leitzins";
 
 export type KopfWert = {
   id: KopfWertId;
@@ -33,7 +33,7 @@ export type KopfWert = {
   bild?: ReactNode;
 };
 
-/** Höchstens so viele wählbare Werte zusätzlich zu Zustimmung, Kapital und Parlament */
+/** Höchstens so viele wählbare Werte zusätzlich zu Zustimmung, Politik, Haushalt und Parlament */
 export const MAX_WAHL = 2;
 
 export type Wahlbar = { id: "inflation" | "lira" | "leitzins"; name: string };

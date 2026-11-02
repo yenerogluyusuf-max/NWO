@@ -1,3 +1,4 @@
+import type { VersorgungsProgramm } from "../../sim/versorgungspolitik";
 // Das Tagesbriefing des Schreibtischs: Lage in einem Blick, was fällig ist, wovor das Spiel warnt, was der Beraterstab rät, was ansteht.
 // Alles wird aus dem Weltzustand berechnet; nichts davon ist Text auf Vorrat. Jeder Eintrag führt zu einer Entscheidung
 // (eine Akte, eine Maßnahme, ein Gespräch), damit der Schreibtisch nie nur Anzeige ist.
@@ -7,7 +8,7 @@ import { NET } from "../../sim/modell";
 import { nationalAverage } from "../../sim/netz";
 import { formatDateDe, addDays } from "../../sim/dates";
 import { vorlage } from "../../sim/ereignisse";
-import { stimmenSicht, stufeIn, REGELN } from "../../sim/handeln";
+import { stimmenSicht, gesetzPrognose, stufeIn, REGELN } from "../../sim/handeln";
 import { kapitalEinkommen, SPIEL } from "../../sim/spiel";
 import { VERFASSUNG, belastungsTreiber, verfassungVon, type VerfassungsStufe } from "../../sim/aufmerksamkeit";
 import { fraktionsUebersicht } from "../../sim/verhandeln";
@@ -26,10 +27,14 @@ import { akteurName, weltModell } from "../../sim/welt-modell";
 import { t } from "../../i18n";
 import type { World } from "../../sim/types";
 import { zusageText, zusageVon } from "../../sim/zusagen";
+import { zusageZiel } from "../../sim/zusagenfolgen";
+import { koalitionsHinweis } from "../koalitionshinweis";
 
 /** Wohin ein Eintrag führt. Die Bühne übersetzt das in ein Fenster. */
 export type Ziel =
-  | { art: "akte"; akte: "wirtschaft" | "entscheidungen" | "parlament" | "waehler" | "welt" | "personen" | "chronik" | "programme" | "beschluesse" | "bereiche" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | "wirkungsbericht" }
+  | { art: "zusagen" }
+  | { art: "versorgung" }
+  | { art: "akte"; akte: "wirtschaft" | "entscheidungen" | "parlament" | "waehler" | "welt" | "personen" | "chronik" | "programme" | "beschluesse" | "bereiche" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | "wirkungsbericht"; start?: "haushalt" | "inventar"; programm?: VersorgungsProgramm }
   | { art: "politik"; theme?: Theme; massnahme?: { id: string; level?: number; ort?: number[] | null } }
   | { art: "ereignis"; id: string }
   | { art: "land"; id: string };
@@ -128,7 +133,7 @@ const monateBis = (tage: number) => Math.max(0, Math.round(tage / 30.4));
 
 /** Fester Kalender des Staatsjahres: Monat, ab welchem Jahr, und die Ereignisvorlage, die dort entsteht (siehe `ereignisse-innen.ts`). */
 export const KALENDER: { id: string; vorlage: string; monat: number; abJahr: number; nurJahr?: number; text: (jahr: number) => string; ziel?: Ziel; /** Nur ein Hinweis im Terminblatt: keine Ereignisvorlage dahinter */ nurAnzeige?: true; /** Zählt nicht als „nächster fester Termin“ der Agenda und weicht beim Kürzen des Terminblatts den harten Terminen */ weich?: true }[] = [
-  { id: "haushalt", vorlage: "haushaltsjahr", monat: 10, abJahr: 2028, text: (j) => t("sk.t.haushalt", { jahr: String(j + 1) }), ziel: { art: "akte", akte: "entscheidungen" } },
+  { id: "haushalt", vorlage: "haushaltsjahr", monat: 10, abJahr: 2028, text: (j) => t("sk.t.haushalt", { jahr: String(j + 1) }), ziel: { art: "akte", akte: "wirtschaft", start: "haushalt" } },
   { id: "mindestlohn", vorlage: "mindestlohn", monat: 12, abJahr: 2026, text: (j) => t("sk.t.mindestlohn", { jahr: String(j + 1) }), ziel: { art: "politik", theme: "arbeit" } },
   { id: "kommunal", vorlage: "kommunalwahl", monat: 3, abJahr: 2029, nurJahr: 2029, text: () => t("sk.t.kommunal"), ziel: { art: "akte", akte: "waehler" } },
   // Takt (sim/ereignisse-saison.ts): das Jahr hat Termine auch zwischen Januar und Juni; alle Texte über die Übersetzungsschicht
@@ -279,20 +284,19 @@ export function faellig(world: World): Faellig[] {
   }
   for (const g of spiel.gesetze) {
     const tage = Math.max(0, g.abstimmung - world.day);
-    const s = stimmenSicht(world, { massnahme: g.massnahme, richtung: g.richtung ?? 1 });
+    const s = gesetzPrognose(world,g);
     out.push({
       id: `g-${g.id}`,
       art: "gesetz",
       titel: t("sk.f.gesetz.titel", { name: g.name }),
       tage,
       dringend: tage <= 14 && s.luecke > 0,
-      unter: `${t("sk.f.gesetz.unter", { wann: tageWort(tage), ja: s.erwartet, noetig: REGELN.mehrheit })}${s.luecke > 0 ? t("sk.f.gesetz.fehlt", { n: s.luecke }) : ""}`,
+      unter: `${t("sk.f.gesetz.unter", { wann: tageWort(tage), ja: s.ja, noetig: REGELN.mehrheit })}${s.luecke > 0 ? t("sk.f.gesetz.fehlt", { n: s.luecke }) : ""}`,
       knopf: { art: "gehe", label: s.luecke > 0 ? t("sk.f.gesetz.suchen") : t("sk.f.ansehen"), ziel: { art: "akte", akte: "parlament" } },
     });
   }
   for (const z of spiel.zusagen.filter((x) => !x.erfuellt && !x.gebrochen)) {
     const tage = Math.max(0, z.faellig - world.day);
-    const richtung = (z.richtung ?? 1) >= 0 ? 1 : -1;
     out.push({
       id: `z-${z.id}`,
       art: "zusage",
@@ -301,7 +305,7 @@ export function faellig(world: World): Faellig[] {
       dringend: tage <= 20,
       unter: `${t("sk.f.zusage.unter", { wann: tageWort(tage) })}${z.massnahme ? t("sk.f.zusage.vorhaben") : ""}`,
       knopf: z.massnahme
-        ? { art: "gehe", label: t("sk.f.vorhabenAnsehen"), ziel: { art: "politik", massnahme: { id: z.massnahme, level: Math.max(0, Math.min(100, Math.round(stufeIn(world, z.massnahme, null)) + 20 * richtung)) } } }
+        ? { art: "gehe", label: t("sk.f.vorhabenAnsehen"), ziel: { art: "politik", massnahme: { id: z.massnahme, level: zusageZiel(z,stufeIn(world,z.massnahme,null)) } } }
         : { art: "gehe", label: t("sk.f.ansehen"), ziel: { art: "akte", akte: "personen" } },
     });
   }
@@ -378,9 +382,9 @@ export function warnungen(world: World): Warnung[] {
   if (verstimmt) {
     out.push({ id: `gruppe-${verstimmt.id}`, stufe: verstimmt.laune < 32 ? "rot" : "gelb", text: t("sk.w.gruppe.text", { name: verstimmt.name, s: Math.round(verstimmt.laune) }), warum: t("sk.w.gruppe.warum", { gruende: verstimmt.gruende.slice(0, 2).map((g) => g.name).join(", ") || t("sk.w.gruppe.lage") }), ziel: { art: "akte", akte: "waehler" } });
   }
-  const wackelig = spiel.figuren.find((f) => f.amt === "partner" && spiel.lager.includes(f.partei ?? "") && f.loyalitaet < 32);
+  const wackelig = koalitionsHinweis(world);
   if (wackelig) {
-    out.push({ id: "partner", stufe: "rot", text: t("sk.w.partner.text", { rolle: wackelig.rolle, name: wackelig.name }), warum: t("sk.w.partner.warum", { l: Math.round(wackelig.loyalitaet) }), ziel: { art: "akte", akte: "personen" } });
+    out.push({ id: "partner", stufe: wackelig.akut?"rot":"gelb", text: wackelig.text, warum: `${wackelig.warum} ${wackelig.hilfe}`, ziel: { art: "akte", akte: "personen" } });
   }
   for (const e of spiel.ereignisse) {
     const tage = e.frist - world.day;
@@ -611,7 +615,8 @@ export function empfehlungen(world: World, vorschlaege?: Vorschlag[]): Empfehlun
   return out.sort((a, b) => b.gewicht - a.gewicht).slice(0, 5);
 }
 
-export function briefing(world: World, vorschlaege?: Vorschlag[]): Briefing {
+/** Schlanke aktuelle Lage ohne Maßnahmenvorschauen; bei jeder Anzeige neu, weil Entscheidungen die Welt direkt ändern. */
+export function tageslage(world: World): Omit<Briefing,"empfehlungen"> {
   const spiel = world.spiel;
   const wahltage = spiel ? spiel.wahltag - world.day : 0;
   return {
@@ -621,7 +626,10 @@ export function briefing(world: World, vorschlaege?: Vorschlag[]): Briefing {
     verfassung: verfassungSicht(world),
     faellig: faellig(world),
     warnungen: warnungen(world),
-    empfehlungen: empfehlungen(world, vorschlaege),
     termine: termine(world),
   };
+}
+
+export function briefing(world: World, vorschlaege?: Vorschlag[]): Briefing {
+  return {...tageslage(world),empfehlungen:empfehlungen(world,vorschlaege)};
 }

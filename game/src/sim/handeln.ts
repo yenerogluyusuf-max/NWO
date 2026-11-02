@@ -8,6 +8,8 @@
 // Alle Werte sind Platzhalter der Kalibrierung.
 
 import { NET } from "./modell";
+import { erfuelleZusage, schliesseZusageErinnerung, zusageStufen, zusageZielErreicht } from "./zusagenfolgen";
+import { addDays, formatDateDe } from "./dates";
 import { nationalAverage, PROVINCES, startAverage } from "./netz";
 import type { NodeSpec } from "../data/politiknetz";
 import { addLog, fmt } from "./log";
@@ -17,7 +19,7 @@ import { vertrauenAendern } from "./wirkung";
 import { reagiereFiguren } from "./figuren";
 import { rabattFuer } from "./programme";
 import { beobachte } from "./berichte";
-import { bereitschaftAendern, duldung, sachstimmen } from "./fraktionen";
+import { duldung, sachstimmen } from "./fraktionen";
 import { jaAnteilLager, jaAnteilOpposition, linienFaktor, reagierePartner, reagiereStamm } from "./linie";
 import { t } from "../i18n";
 import type { Rng } from "./rng";
@@ -31,7 +33,7 @@ import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, hashWert, neuanfangGrund, stufeVon, 
 export const REGELN = {
   /** Gleichzeitig laufende Vorhaben, bevor die Verwaltung überlastet ist */
   kapazitaet: 8,
-  /** Zuschlag je Vorhaben über der Kapazität (Dauer und Kapital) */
+  /** Zuschlag je Vorhaben über der Kapazität (Umsetzungsdauer) */
   ueberlastStufe: 0.2,
   /** Tage vom Einbringen bis zur Abstimmung */
   tageBisAbstimmung: 21,
@@ -240,7 +242,7 @@ export interface Pruefung {
   preise: { einfuehren: number; aendern: number; streichen: number; unterhaltMonat: number; richtung: "einfuehren" | "streichen" };
 }
 
-function pkKosten(world: World, id: string, delta: number, ort: number[] | null, weg: Weg, ueberl: number): number {
+function pkKosten(world: World, id: string, delta: number, ort: number[] | null, weg: Weg): number {
   const node = NET.nodes[knotenIndex(id)]!;
   const gewicht = GEWICHT_MASSNAHME[id] ?? GEWICHT_THEMA[node.theme] ?? 0.2;
   const share = anteil(world, ort);
@@ -251,7 +253,7 @@ function pkKosten(world: World, id: string, delta: number, ort: number[] | null,
   const richtungsfaktor = preise.aendern * (delta >= 0 ? preise.einfuehren : preise.streichen);
   // Linie der eigenen Partei: mit ihr billiger, gegen sie teurer (Kurswechsel)
   const linie = linienFaktor(world, id, delta);
-  const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * ueberl * rabatt * richtungsfaktor * linie * (weg === "erlass" ? REGELN.erlassFaktor : 1);
+  const basis = Math.abs(delta) * gewicht * REGELN.kapitalFaktor * ortsfaktor * rabatt * richtungsfaktor * linie * (weg === "erlass" ? REGELN.erlassFaktor : 1);
   return Math.max(2, Math.round(basis));
 }
 
@@ -279,10 +281,9 @@ export function preisUebersicht(
 ): { einfuehren10: number; streichen10: number; unterhaltMonat: number; faktorEinfuehren: number; faktorStreichen: number } {
   const node = NET.nodes[knotenIndex(id)]!;
   const preise = preisFaktoren(node);
-  const ueberl = ueberlast(world);
   const krisenFaktor = world.spiel ? krisenFuerMassnahme(world, id).reduce((f, k) => (k.art === "teuer" ? f * k.faktor : f), 1) : 1;
-  const einfuehren10 = Math.max(2, Math.round(pkKosten(world, id, 10, ort, "gesetz", ueberl) * krisenFaktor));
-  const streichen10 = Math.max(2, Math.round(pkKosten(world, id, -10, ort, "gesetz", ueberl) * krisenFaktor));
+  const einfuehren10 = Math.max(2, Math.round(pkKosten(world, id, 10, ort, "gesetz") * krisenFaktor));
+  const streichen10 = Math.max(2, Math.round(pkKosten(world, id, -10, ort, "gesetz") * krisenFaktor));
   return { einfuehren10, streichen10, unterhaltMonat: preise.unterhaltMonat, faktorEinfuehren: preise.aendern * preise.einfuehren, faktorStreichen: preise.aendern * preise.streichen };
 }
 
@@ -335,15 +336,15 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   // Krisen-Blocker (MIL-3): gesperrte Vorhaben scheitern unten mit Begründung und Ausweg, verteuerte zahlen den Faktor
   const krisen = world.spiel ? krisenFuerMassnahme(world, id) : [];
   const krisenFaktor = krisen.reduce((f, k) => (k.art === "teuer" ? f * k.faktor : f), 1);
-  const pkGesetz = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "gesetz", ueberl) * krisenFaktor));
+  const pkGesetz = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "gesetz") * krisenFaktor));
   const erlassOk = erlassMoeglich(id);
-  const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass", ueberl) * krisenFaktor));
+  const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass") * krisenFaktor));
   const hinweise: string[] = [];
   // Die Linie der Partei sichtbar machen: Der Preis steht im Kapital, die Reaktion der Partner folgt nach dem Beschluss (sim/linie.ts)
   const linie = linienFaktor(world, id, aenderung);
   if (linie <= 0.93) hinweise.push(t("linie.hinweis.mit", { prozent: Math.round((1 - linie) * 100) }));
   else if (linie >= 1.12) hinweise.push(t("linie.hinweis.gegen", { prozent: Math.round((linie - 1) * 100) }));
-  if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Dauer und Kapital steigen um ${Math.round((ueberl - 1) * 100)} %.`);
+  if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Die Umsetzungsdauer steigt um ${Math.round((ueberl - 1) * 100)} %.`);
   if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen (${REGELN.kaufKostenProStimme} Kapital je Stimme, sofort bezahlt; danach schuldet niemand jemandem etwas).`);
   if (ort && share < 0.05) hinweise.push("Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, die vor Ort deutlich.");
   if (ort) {
@@ -363,7 +364,7 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
     hinweise.push(`Exit-Preis: Das Zurücknehmen kostet das ${f}-Fache des Einführens — Besitzstände, Apparate und Lager wehren sich.`);
   }
   if (preise.unterhaltMonat > 0) {
-    hinweise.push(`Laufender Unterhalt: etwa ${preise.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe, anteilig zur aktuellen Stufe.`);
+    hinweise.push(`Politische Dauerbelastung: etwa ${preise.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe, anteilig zur aktuellen Stufe.`);
   }
 
   const base: Pruefung = {
@@ -442,10 +443,11 @@ function wendeAn(world: World, id: string, level: number, provinzen: number[] | 
   // Zusagen an Fraktionen und Figuren, die diese Änderung verlangen
   const richtung = Math.sign(target - vorher);
   for (const z of world.spiel?.zusagen ?? []) {
-    if (!z.erfuellt && !z.gebrochen && z.massnahme === id && richtung === Math.sign(z.richtung ?? 0)) {
-      z.erfuellt = true;
-      bereitschaftAendern(world, z.von, 10);
-      addLog(world, "ereignis", `Zusage erfüllt: ${z.text}`, "Wer Zusagen hält, wird beim nächsten Mal ernster genommen.");
+    if (z.erfuellt || z.gebrochen || z.massnahme !== id || !z.richtung) continue;
+    Object.assign(z, zusageStufen(world, z));
+    // Eine Teiländerung oder ein regionaler Beschluss löst keine landesweite Zusage ein.
+    if (!ort && zusageZielErreicht(z, target) && erfuelleZusage(world, z)) {
+      addLog(world, "ereignis", `Zusage erfüllt: ${z.text}`, t("zusage.gesetz.beschlossen"));
     }
   }
   reagiereFiguren(world, node.theme, id, richtung);
@@ -536,6 +538,20 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     absprachen: 0,
     richtung: Math.sign(pr.aenderung),
   });
+  // Dieselbe Fristregel für jeden Zugangsweg, auch ohne bereits offene Erinnerung.
+  // Nur ein landesweiter Entwurf zum festen Zusagenziel begründet die Beratungszeit.
+  for (const z of spiel.zusagen) {
+    if (z.erfuellt || z.gebrochen || z.abgeschlossen !== undefined || z.massnahme !== id || !z.richtung) continue;
+    Object.assign(z, zusageStufen(world, z));
+    if (pr.provinzen?.length || !zusageZielErreicht(z, pr.stufe)) continue;
+    const vorher = z.faellig;
+    z.faellig = Math.max(vorher, tag + 15);
+    schliesseZusageErinnerung(world, z);
+    if (z.faellig !== vorher) addLog(world, "ereignis", t("zusage.gesetz.fristLog", {
+      zusage: z.text, datum: formatDateDe(addDays(world.date, z.faellig - world.day)),
+      votum: formatDateDe(addDays(world.date, tag - world.day)),
+    }));
+  }
   const tageBis = tag - world.day;
   const monate = pr.monate;
   const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
@@ -571,14 +587,45 @@ export function gesetzRichtung(world: World, g: Gesetz): number {
 
 export function gesetzSicht(world: World, g: Gesetz): GesetzSicht {
   const sicht = stimmenSicht(world, { massnahme: g.massnahme, richtung: gesetzRichtung(world, g) });
-  const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0)));
+  return mehrheitsSicht(world, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0), sicht.sachParteien);
+}
+
+function mehrheitsSicht(world: World, erwartet: number, sachParteien: string[]): GesetzSicht {
+  const ja = Math.min(600, Math.max(0, erwartet));
   const luecke = Math.max(0, REGELN.mehrheit - ja);
   const noetig = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? 0 : REGELN.mehrheit + STIMMEN_PUFFER - ja;
   const kosten = Math.ceil(noetig * REGELN.kaufKostenProStimme);
   const kapital = world.spiel?.kapital ?? 0;
   const bezahlbar = kannZahlen(kapital, kosten);
   const urteil = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? "sicher" : luecke > 0 && !bezahlbar ? "verloren" : "knapp";
-  return { ja, luecke, noetig, kosten, bezahlbar, aussichtslos: luecke > 0 && !bezahlbar, urteil, sachParteien: sicht.sachParteien };
+  return { ja, luecke, noetig, kosten, bezahlbar, aussichtslos: luecke > 0 && !bezahlbar, urteil, sachParteien };
+}
+
+/** Nur bekannte Fristen fortschreiben, keine künftigen Entscheidungen oder Monatsfolgen simulieren. */
+export function gesetzWeltAmVotum(world: World, g: Pick<Gesetz,"abstimmung">): World {
+  const day = Math.max(world.day, g.abstimmung);
+  return day === world.day ? world : { ...world, day, date: addDays(world.date, day - world.day) };
+}
+
+/** Gemeinsame Vorschau laufender Gesetze; tatsächliche Abstimmungen rechnen weiterhin am jeweiligen Spieltag. */
+export function gesetzPrognose(world: World, g: Gesetz) {
+  return stimmenPrognose(world,g.abstimmung,g.absprachen+(g.stimmenBonus??0),{massnahme:g.massnahme,richtung:gesetzRichtung(world,g)});
+}
+
+/** Auch Haushaltsgesetze verwenden dieselben Fristen, Grenzen und Preise; ohne inhaltliche Sachstimmen. */
+export function stimmenPrognose(world:World, abstimmung:number, zusatz=0, vorhaben?:{massnahme:string;richtung:number}) {
+  const stand = gesetzWeltAmVotum(world, {abstimmung});
+  const heute = stimmenSicht(world,vorhaben);
+  const basis = stimmenSicht(stand,vorhaben);
+  const votum = mehrheitsSicht(world,basis.erwartet+zusatz,basis.sachParteien);
+  const heuteJa = Math.min(600,Math.max(0,heute.erwartet+zusatz));
+  const auslaufend = duldung(world).parteien.flatMap(partei => {
+    const bis = world.spiel?.fraktionen?.[partei]?.duldungBis;
+    const sitze = world.parliament?.seats[partei] ?? 0;
+    return bis !== undefined && bis <= stand.day && sitze > 0
+      ? [{ partei, sitze, tag: bis, datum: addDays(world.date, bis - world.day) }] : [];
+  }).sort((a,b) => a.tag - b.tag || a.partei.localeCompare(b.partei));
+  return { ...votum, tag: stand.day, datum: stand.date, heuteJa, fristDelta: votum.ja - heuteJa, auslaufend };
 }
 
 /** Ein Gesetz vor der Abstimmung zurückziehen: ein Teil des Kapitals kommt zurück, gekaufte Stimmen sind verloren. */

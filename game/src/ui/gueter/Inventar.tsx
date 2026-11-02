@@ -1,9 +1,12 @@
+import type { VersorgungsProgramm } from "../../sim/versorgungspolitik";
 // Das Inventar des Landes: je Warengruppe Eigenversorgung, Lager, Ein- und Ausfuhr, Partner und ein Satz zur Lage.
 // Links die Gruppen mit Autarkiebalken, rechts die gewählte Gruppe mit ihren Instrumenten (sim/gueter.ts).
 
 import { useState } from "react";
 import type { World } from "../../sim/types";
-import { fuehreGutInstrumentAus, gueterSicht, gutInstrumente, type GutSicht } from "../../sim/gueter";
+import { fuehreGutInstrumentAus, gueterSicht, gueterZustand, gutInstrumente, type GutSicht } from "../../sim/gueter";
+import { VersorgungsLage } from "./VersorgungsLage";
+import { addDays, formatDateDe } from "../../sim/dates";
 import { akteurName } from "../../sim/welt-modell";
 import type { GutArt } from "../../data/gueter";
 import { t, zahl } from "../../i18n";
@@ -21,7 +24,7 @@ function ton(s: GutSicht): "gut" | "mittel" | "schlecht" {
   return "gut";
 }
 
-export function Inventar({ world, geaendert }: { world: World; geaendert: () => void }) {
+export function Inventar({ world, geaendert, programm }: { world: World; geaendert: () => void; programm?: VersorgungsProgramm }) {
   const sicht = gueterSicht(world);
   const [meldung, setMeldung] = useState<{ ok: boolean; text: string } | null>(null);
   if (!sicht.length) return <p className="wi-hinweis">{t("gueter.leer")}</p>;
@@ -32,7 +35,7 @@ export function Inventar({ world, geaendert }: { world: World; geaendert: () => 
       .filter((x) => x.def.art === art)
       .map((z): UbKachel => {
         const tn = ton(z);
-        const n = z.zusatz > 0 ? z.reichweiteJetzt : z.reichweiteTage;
+        const n = z.reichweiteTage;
         return {
           id: z.def.id,
           gruppe: t(`gueter.art.${art}`),
@@ -40,7 +43,7 @@ export function Inventar({ world, geaendert }: { world: World; geaendert: () => 
           wert: `${Math.round(z.autarkie)} %`,
           anteil: z.autarkie / 100,
           ton: tn,
-          ...(z.ampel !== "keine" ? { marke: { text: t("gueter.tage", { n: tage(n) }), ton: z.ampel === "rot" ? ("schlecht" as const) : z.ampel === "gelb" ? ("mittel" as const) : ("gut" as const) } } : {}),
+          ...(z.ampel !== "keine" ? { marke: { text: t("gueter.kette.reichweiteOhne", { n: tage(n) }), ton: z.ampel === "rot" ? ("schlecht" as const) : z.ampel === "gelb" ? ("mittel" as const) : ("gut" as const) } } : {}),
         };
       }),
   );
@@ -50,11 +53,38 @@ export function Inventar({ world, geaendert }: { world: World; geaendert: () => 
     const g = s.def;
     const einheit = g.einheit;
     const instrumente = gutInstrumente(world, g.id);
+    const z = gueterZustand(world);
+    const auftrag = z.auftraege?.find(o => o.gut === g.id);
+    const quelleTag = z.quelleAbTag?.[g.id];
+    const f = s.fluss;
     return (
       <div className="gi-detail">
         <UbDetailKopf titel={t(`gueter.gut.${g.id}`)} unter={`${t(`gueter.art.${g.art}`)} · ${Math.round(s.autarkie)} % ${t("gueter.autarkie")}`} />
         <p className={`gi-satz gi-${ton(s)}`}>{s.satz}</p>
         <UbRueck antwort={meldung} />
+        {g.id !== "ruestung" && <section className="vs-bilanz" aria-label={t("gueter.kette.vorschau")}>
+          <h4>{t("gueter.kette.vorschau")}</h4>
+          <p className="vs-hinweis">{t("gueter.kette.vorschauHinweis", { einheit })}</p>
+          <dl>
+            <div><dt>{t("gueter.kette.anfang")}</dt><dd>{menge(f.anfang)}</dd></div>
+            <div><dt>+ {t("gueter.produktion")}</dt><dd>{menge(f.produktion)}</dd></div>
+            <div><dt>+ {t("gueter.kette.lieferung")}</dt><dd>{menge(f.importiert)}</dd></div>
+            <div><dt>− {t("gueter.kette.zivilGeliefert")}</dt><dd>{menge(f.geliefert)} / {menge(f.bedarf)}</dd></div>
+            {f.militaerBedarf > 0 && <div><dt>− {t("gueter.kette.militaerGeliefert")}</dt><dd>{menge(f.militaerGeliefert)} / {menge(f.militaerBedarf)}</dd></div>}
+            <div><dt>− {t("gueter.ausfuhr")}</dt><dd>{menge(f.exportiert)}</dd></div>
+            {f.verlust > 0 && <div><dt>− {t("gueter.kette.ungenutzt")}</dt><dd>{menge(f.verlust)}</dd></div>}
+            <div className="vs-summe"><dt>= {t("gueter.kette.ende")}</dt><dd>{menge(f.ende)}</dd></div>
+          </dl>
+          {f.fehl > 0.001 && <p className="vs-warnung">{t("gueter.kette.fehl", { menge: menge(f.fehl), einheit })}</p>}
+          <p>{t("gueter.kette.rechnung", { import: zahl(f.importUsdMrd, 2), export: zahl(f.exportUsdMrd, 2) })}</p>
+          {f.produktionsFaktor < 0.999 && <p className="vs-warnung">{t("gueter.kette.vorprodukte", { n: zahl(f.produktionsFaktor * 100, 0) })}</p>}
+          {f.transport < 0.999 && <p className="vs-warnung">{t("gueter.kette.transport", { n: zahl(f.transport * 100, 0) })}</p>}
+          {f.hormus > 0 && <p className="vs-warnung">{t("gueter.kette.hormus", { n: zahl(f.hormus * 100, 0) })}</p>}
+          {f.wege.filter(l => l.grund !== "offen").map(l => <p className="vs-warnung" key={l.land}>{akteurName(l.land)} · {t(`gueter.kette.${l.grund}`)} · {zahl(l.anteil, 0)} %</p>)}
+          {auftrag && <p role="status">{t("gueter.kette.auftrag", { menge: menge(auftrag.rest), einheit, datum: formatDateDe(addDays(world.date, auftrag.abTag - world.day)) })}</p>}
+          {quelleTag !== undefined && quelleTag > world.day && <p role="status">{t("gueter.kette.quelleTermin", { datum: formatDateDe(addDays(world.date, quelleTag - world.day)) })}</p>}
+          {s.letzteBilanz && <details><summary>{t("gueter.kette.abgerechnet", { monat: z.bilanz!.monat })}</summary><p>{t("gueter.kette.beleg", { import: menge(s.letzteBilanz.importiert), export: menge(s.letzteBilanz.exportiert), ende: menge(s.letzteBilanz.ende), einheit })}</p></details>}
+        </section>}
         {g.id === "ruestung" ? (
           <p className="wi-hinweis">{t("gueter.ruestungHinweis")}</p>
         ) : (
@@ -67,7 +97,7 @@ export function Inventar({ world, geaendert }: { world: World; geaendert: () => 
             {s.ampel !== "keine" && (
               <div className={`gi-reichweite gi-ampel-${s.ampel}`}>
                 <dt>{t("gueter.reichweite")}</dt>
-                <dd>{tage(s.reichweiteTage)} <small>{t("gueter.tageEinheit")}</small>{s.zusatz > 0 && <small> · {t("gueter.reichweiteJetzt", { n: tage(s.reichweiteJetzt) })}</small>}</dd>
+                <dd>{tage(s.reichweiteTage)} <small>{t("gueter.tageEinheit")}</small>{s.zusatz > 0.005 && <small> · {t("gueter.reichweiteJetzt", { n: tage(s.reichweiteJetzt) })}</small>}</dd>
               </div>
             )}
             {s.blockiert > 0.005 && <div className="gi-aus-fall"><dt>{t("gueter.blockiert")}</dt><dd>{Math.round(s.blockiert * 100)} %</dd></div>}
@@ -94,7 +124,7 @@ export function Inventar({ world, geaendert }: { world: World; geaendert: () => 
               {g.lieferanten.length > 0 && (
                 <div>
                   <h4>{t("gueter.lieferanten")}</h4>
-                  <ul>{g.lieferanten.map((l) => <li key={l.land}>{akteurName(l.land)} <small>{l.anteil} %</small></li>)}</ul>
+                  <ul>{f.wege.map((l) => <li key={l.land}>{akteurName(l.land)} <small>{zahl(l.anteil, 0)} %{l.grund !== "offen" && ` · ${t(`gueter.kette.${l.grund}`)}`}</small></li>)}</ul>
                 </div>
               )}
               {g.kunden.length > 0 && (
@@ -117,6 +147,8 @@ export function Inventar({ world, geaendert }: { world: World; geaendert: () => 
   };
   return (
     <div className="gi-inventar">
+      <VersorgungsLage programm={programm} world={world} geaendert={geaendert} />
+      <details className="gi-waren-details"><summary>{t("regierung.warenDetails")}</summary>
       <Uebersicht
         aria={t("gueter.titel")}
         dicht
@@ -127,6 +159,7 @@ export function Inventar({ world, geaendert }: { world: World; geaendert: () => 
         start="getreide"
         detail={detail}
       />
+      </details>
     </div>
   );
 }

@@ -1,0 +1,22 @@
+{
+  "fa.titel": "Cooperation with {partei}",
+  "fa.koalition": "Form a coalition",
+  "fa.duldung": "Agree temporary backing",
+  "fa.preis": "On agreement: {pk} political capital · {aufmerksamkeit} attention",
+  "fa.unbefristet": "The alliance has no fixed expiry date; a later coalition breakdown remains possible.",
+  "fa.befristet": "The party stays outside the coalition. If agreed today, it backs the government until {datum}.",
+  "fa.zusage": "New binding promise due by {datum}: {forderung}.",
+  "fa.vorsitz": "Support from the party leadership",
+  "fa.bleibt": "{name} stays at {n} loyalty. The new alliance does not reset personal conflicts or talk cooldowns.",
+  "fa.neu": "A new party leader starts with {n} loyalty.",
+  "fa.bruch": "Already below {grenze}: another departure is possible at the review on {datum}. A new alliance alone does not stabilise this leader.",
+  "fa.stimmen": "A seat majority does not guarantee every vote. Check the expected votes for the specific bill; supply bills also account for their clauses.",
+  "fa.handeln": "{aktion} – {partei}",
+  "fa.pause": "New negotiations are blocked during the recovery break until {datum}.",
+  "fa.sitze": "All {n} faction seats will join the governing coalition.",
+  "fa.ausgang": "Current position",
+  "fa.ziel": "Nationwide commitment",
+  "fa.stufe": "Level {n}",
+  "fa.zielFest": "This target is fixed when the agreement is signed. Later progress or new faction demands do not change the agreed obligation.",
+  "fa.zielBeschlossen": "This target has already been adopted or reached. The new pledge can then be recorded as fulfilled without another bill."
+}

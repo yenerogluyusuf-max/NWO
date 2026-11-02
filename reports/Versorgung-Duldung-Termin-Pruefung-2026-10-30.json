@@ -1,0 +1,18 @@
+{
+  "datum": "2026-10-30",
+  "umfang": "Stimmenprognose mit bekannten Duldungsfristen, vorab sichtbaren Folgen später Klauseln und konkretem Auftragszeitplan",
+  "tests": {
+    "success": true,
+    "numPassedTests": 80,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "typescript": true,
+  "build": true,
+  "protokolle": [
+    "/private/tmp/nwo-duldung-termin-20261030.json",
+    "/private/tmp/nwo-duldung-termin-build-20261030.log"
+  ],
+  "browserGeprueft": false,
+  "veroeffentlicht": false
+}

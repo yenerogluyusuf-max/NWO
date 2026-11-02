@@ -1,0 +1,46 @@
+{
+  "erstellt": "2026-11-02T13:34:28.274900+00:00",
+  "thema": "Direkte fachliche Navigation und eigenständige Gestaltung der neun Bereichsakten",
+  "arbeitsverzeichnis": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung",
+  "pruefung": {
+    "erfolgreich": true,
+    "bestanden": 52,
+    "fehlgeschlagen": 0,
+    "uebersprungen": 2,
+    "neueFaelle": 17,
+    "ausgelassen": "Zwei optionale langfristige Spielstands-Simulationen; keine Simulationsänderung.",
+    "nachweis": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Bereichsdesign-Pruefung-2026-11-02.json"
+  },
+  "typescript": "bestanden, enthalten in npm --prefix game run build",
+  "produktionsbuild": {
+    "ergebnis": "bestanden",
+    "nachweis": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Bereichsdesign-Build-2026-11-02.txt",
+    "bekannteWarnungen": [
+      "Optionaler infrastrukturEtat-Import ohne Export",
+      "Große JavaScript-Pakete"
+    ]
+  },
+  "browserpruefung": false,
+  "screenshots": [],
+  "offen": [
+    "Visuelle Abnahme der neuen Bereichsoberflächen",
+    "Echte Tastaturbedienung",
+    "Gerenderte Prüfung breiter und schmaler Fenster"
+  ],
+  "nurLokal": true,
+  "sha256": {
+    "game/src/ui/akte/Akte.tsx": "063e214bed5c47702d92d8137bec0270304390e2479177954cd75b5fcf7ff1a4",
+    "game/src/ui/akte/profil.ts": "65c8ad407730d0ad4b90df9bc586d4343f3e4871d5c0226f6687d281b26521fa",
+    "game/src/ui/akte/Bereiche.tsx": "5ab44e5c9f8546d2f78c0308989a51f8508b356b9b5691d0be89af0596833530",
+    "game/src/ui/akte/akte.css": "aa481050737d013cefa65b2c7e269a69e65a75ce2a2a4c7f469be108aae5dcbc",
+    "game/src/ui/wirtschaft/Akte.tsx": "4cd8631bda4db44160ee4450b3ef821942a10fca84b7f411982697ba911bb0c1",
+    "game/src/ui/gueter/regierung.css": "7337d1bcafc571df07a674651bea783f466d18f742eb871ed8a8fb1568ccf061",
+    "game/src/ui/Stage.tsx": "773a98edf1dd5b1c6ac17f67ce1a7a4fa7236d548ac1f94f22c023f298fe123d",
+    "game/test/aktennavigation.test.tsx": "e1eb5834745e327ad512ebc43b277c1e54a4628b573bbb59ef550abb7d717e9a",
+    "GESAMTPLAN_STAATSRAESON_2026-11-02.md": "af3a8fdaab99c31a1a990ebe31943fa424faf4016898e6ec2bca07fa43d3fff1",
+    "VERSORGUNG_PARLAMENT_2026-10-30.md": "96b3b154949d12920fe49f0c2093f499fd4ab43ef9fe63a8bd2ee94e4e2c1f26",
+    "game/src/i18n/katalog/de/aktennavigation.json": "89fa6d070671bede4e14b28f746ad58110c6b207986d0ece24f6bcc2a0cec954",
+    "game/src/i18n/katalog/en/aktennavigation.json": "c98c04da2c4e8fbb3fb40865068bf5136451dba183d728764f9194dacc4c3117",
+    "game/src/i18n/katalog/tr/aktennavigation.json": "237ba17b009e02560c21d44080af5e8e975ddc2ef43e9afbca3473ac96079288"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-02",
+  "scope": "U03 – Versorgungspakete und Regierungskurs; direkter Schreibtischzugang",
+  "tests": {
+    "unique": 168,
+    "new": 25,
+    "failed": 0,
+    "proof": "Versorgung-Entscheidungskarten-Pruefung-2026-11-02.json"
+  },
+  "typecheck": "passed",
+  "build": "passed with existing optional infrastrukturEtat and chunk size warnings",
+  "browserVerified": false,
+  "screenshots": [],
+  "next": "Haushaltsentwurf und Gegenmaßnahmen mit demselben Entscheidungsmuster; spätere Minister-/Fraktionsansichten. Visuelle Abnahme offen.",
+  "files": {
+    "game/src/sim/versorgungsentscheidung.ts": "ab7ce7b9bb8b9269eb82e0170f885f991561dd97abf10408566aa62b6a51f933",
+    "game/src/sim/versorgungspolitik.ts": "55a4f31ef6f575a6c7c52862f1b93fcf6eb4028a32ba88200405702db1f66231",
+    "game/src/sim/versorgungsberatung.ts": "0cbb70f75fa3654a3fed1b2ef8402097fbbebf1ba29053429beae08f5d3e1c4c",
+    "game/src/ui/entscheidungen/EntscheidungsKarte.tsx": "847eef0caed49c07890e346512af9503719b741eaa72a0de507712526416ef1a",
+    "game/src/ui/entscheidungen/entscheidung.css": "ee6b9de4198606da748637c6533b058b9af1df99afede2fd26c5f7b42ff6648b",
+    "game/src/ui/gueter/VersorgungsVorschlag.tsx": "d485f990eeb198be03237d44c1bce289c714d00b6d144c05c4166f5d6c69a93a",
+    "game/src/ui/gueter/VersorgungsKursKarte.tsx": "3eaeed06f7beb6ea6e3723d0684106d4204054cea0e0017f6828da6149e92105",
+    "game/src/ui/gueter/VersorgungsProgrammKarte.tsx": "f34edda25d6f0edc79ae9a08d1afd42947f775046841732cd69672f96dad8bd6",
+    "game/src/ui/gueter/VersorgungsLage.tsx": "1bb5f69dd4517ed4d8c3021675fc99697bc6e121ebc276e8fdbfa3c2325d0e47",
+    "game/src/ui/gueter/VersorgungsMandat.tsx": "9c05c38af56a3614e8b4ca7843479468ec6a525b9935209bf4d9251b3352e9ba",
+    "game/src/ui/gueter/regierung.css": "3ad906ba3049d1e86cef617259a6fafb84a594b8de1276c89c1b9dfe47dbbd2a",
+    "game/src/ui/schreibtisch/briefing.ts": "0640d37b1f71e7a2ad9e4f79b34bd1e9742ed08bda8cbf58ec68f0b1f8494f5c",
+    "game/src/ui/schreibtisch/arbeitsplatz.ts": "381a78eeb43971572b615638aa431b2c191b08ac00eeed48d5f39f50b7742bf9",
+    "game/src/ui/Stage.tsx": "25e728d2fa8a9dcc8d24c61bf042bc4540d3646c3b2abf80050bad89de94627d",
+    "game/src/ui/EconomyFile.tsx": "2b79d30edacd90aa007e2b3788b1b0ba6fe9ba2866fc3826fd17e6276221b27c",
+    "game/src/ui/wirtschaft/Akte.tsx": "dad3f4548b3082e71e568b1e9f6faac6fba8789e7e7dca274af5baa512576111",
+    "game/src/ui/gueter/Inventar.tsx": "b98d874708ad6e2e91496e32fd0b074ef0e7ea358221b7fb661297c45d0ec5f7",
+    "game/test/versorgungsentscheidung.test.tsx": "bb8458b321f386f455ec1c5dc30717e339bce9e52bcc289f783520a0f99d39b8",
+    "game/src/i18n/katalog/de/versorgungsentscheidung.json": "29d91dd01aa28547cc1c2d5380398254c7ad86c9a57feac74af7957f8590fa9d",
+    "game/src/i18n/katalog/en/versorgungsentscheidung.json": "78db59a4cdaf1852d1eba49f04aee61baa88d3d42d9f559d3e8dcc9bf6bd6e36",
+    "game/src/i18n/katalog/tr/versorgungsentscheidung.json": "f088a9650fd2c679f33698ff7b49eb343124bcc136bbed7a99d4842acffe7d52"
+  }
+}

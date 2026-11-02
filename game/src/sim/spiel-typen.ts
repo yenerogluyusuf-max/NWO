@@ -580,6 +580,8 @@ export interface SpielZustand {
   besatzung?: import("./krieg-typen").BesatzungsGebiet[];
   /** Bestand der Streitkräfte (sim/streitkraefte.ts); ältere Spielstände legen ihn passend zu ihren Bereitschaftswerten beim ersten Zugriff an */
   streitkraefte?: import("./streitkraefte").StreitkraefteZustand;
+  gueter?: import("./gueter").GueterZustand;
+  transport?: import("./transport").TransportZustand;
   /** Netze mit Kapazität und Auslastung (sim/infrastruktur.ts); ältere Spielstände legen sie beim ersten Zugriff an */
   infrastruktur?: import("./infrastruktur").InfrastrukturZustand;
   /** Ausbaustufen der Behörden (sim/behoerden.ts); ältere Spielstände legen sie beim ersten Zugriff mit den Startstufen an */

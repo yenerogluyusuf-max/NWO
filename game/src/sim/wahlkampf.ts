@@ -9,6 +9,7 @@
 // (data/diaspora.ts: nurNationaleWahlen; Kommunalwahlen bleiben unberührt).
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { festeZusage } from "./zusagenfolgen";
 import { NET } from "./modell";
 import { PROVINCES, nationalAverage } from "./netz";
 import { clamp } from "./economy";
@@ -385,7 +386,7 @@ export function verspreche(w: World, id: string): AktionErgebnis {
   k.versprechen.push(id);
   // Das Versprechen wird zur Zusage: Frist zwölf Monate nach der Wahl; das Zusagen-System bucht Halten und Brechen.
   // Im Nachfolger-Wahlkampf verspricht der Nachfolger, nicht der Präsident: Seine Amtszeit endet mit der Wahl, es entsteht keine Zusage.
-  if (!nachfolgerRolle) sp.zusagen.push({
+  if (!nachfolgerRolle) sp.zusagen.push(festeZusage(w, {
     id: `z-wahl-${id}`,
     von: tx("sim2.sim.wahlkampf.dc43faf"),
     text: `Im Wahlkampf versprochen: ${def.titel}`,
@@ -394,7 +395,7 @@ export function verspreche(w: World, id: string): AktionErgebnis {
     richtung: def.richtung,
     erfuellt: false,
     gebrochen: false,
-  });
+  }));
 
   const text = tx("sim2.sim.wahlkampf.861854f", { p0: def.titel, p1: faktor >= 0.8 ? "ist groß" : faktor >= 0.5 ? "fällt spürbar aus" : "bleibt mager — die Glaubwürdigkeit ist angeschlagen", p2: formatDateDe(addDays(w.date, sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4) - w.day)) });
   addLog(w, "entscheidung", `Wahlversprechen: ${def.titel} (${WAHLKAMPF.versprechenAp} AP).`, text);

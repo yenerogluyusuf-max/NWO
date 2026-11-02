@@ -1,3 +1,6 @@
+import { geldAusBip, defizitQuote } from "../sim/staatsgeld";
+import type { VersorgungsProgramm } from "../sim/versorgungspolitik";
+import { TransportTafel, transportKartenDaten } from "./gueter/TransportKarte";
 import { kriegsKarte } from "../sim/kriegsschauplatz";
 import { kriege } from "../sim/krieg";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -151,6 +154,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const world = useRef<World>(initial);
   const [, setVersion] = useState(0);
   const [speed, setSpeed] = useState(0);
+  const [personenStart, setPersonenStart] = useState<"zusagen" | undefined>(undefined);
   const [dossier, setDossier] = useState<Dossier>(null);
   // Beim Laden gibt es kein Amtsübergabe-Intro, sondern das „Stand der Dinge“-Blatt (Re-Entry)
   const [intro, setIntro] = useState<GameEvent | null>(() => (geladen ? null : startEvent(initial)));
@@ -158,6 +162,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const [spaeter, setSpaeter] = useState<Set<string>>(() => new Set());
   const [meldungen, setMeldungen] = useState<Meldung[]>([]);
   const [ebene, setEbene] = useState<Kartenebene>("gelaende");
+  const [transportAuswahl, setTransportAuswahl] = useState<string | null>(null);
+  const [transportGas, setTransportGas] = useState(false);
   const [problemId, setProblemId] = useState<string | null>(null);
   const [netVorhaben, setNetVorhaben] = useState<{ id: string; level: number } | null>(null);
   const [erlassStart, setErlassStart] = useState<string | undefined>(undefined);
@@ -241,7 +247,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       const titel = new Set((s?.ereignisse ?? []).map((e) => vorlage(e.vorlage).titel(wd, e)));
       for (const l of wd.log.slice(before)) {
         // Abstimmungen zeigt die Abstimmungskarte, nicht der Meldungsstapel
-        if (l.kind === "statistik" || titel.has(l.text) || istAbstimmung(l.text)) continue;
+        if (l.kind === "statistik" || titel.has(l.text) || istAbstimmung(l.text) || l.versorgungsvotum) continue;
         const ton: Meldung["ton"] = l.kind === "markt" ? "markt" : l.text.includes("Zentralbank") ? "bank" : l.text.includes("Parlament") ? "parlament" : "ereignis";
         melde({ titel: l.text, ...(l.why ? { text: l.why } : {}), ton });
         umlaufPush({ datum: formatDateDe(l.date), titel: l.text, ...(l.why ? { text: l.why } : {}) });
@@ -434,6 +440,9 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       onKlick: () => oeffneDossier("waehler"),
     });
     kopfWerte.push({ id: "kapital", icon: "siegel", name: t("buehne.stat.kapitalKurz"), wert: `${Math.floor(spiel.kapital)}`, warn: spiel.kapital < 5, tip: kapitalErklaerung(w), onKlick: () => oeffneDossier("schreibtisch") });
+    kopfWerte.push({ id: "haushalt", icon: "muenze", name: t("sf.hud"), wert: `${zahl(defizitQuote(w.economy), 1)} %`, warn: defizitQuote(w.economy) > 3,
+      tip: t("sf.hudTip", { n: zahl(geldAusBip(w, defizitQuote(w.economy)), 0) }),
+      onKlick: () => { setWirtschaftProgramm(undefined); setWirtschaftStart("haushalt"); setWirtschaftPosten("_bilanz"); oeffneDossier("wirtschaft"); } });
   }
   if (mehr.vorhanden) {
     const stimmen = mehr.lager + mehr.geduldet;
@@ -455,7 +464,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       onKlick: () => oeffneDossier("parlament"),
     });
   }
-  const zurWirtschaft = () => { setWirtschaftStart("lage"); oeffneDossier("wirtschaft"); };
+  const zurWirtschaft = () => { setWirtschaftProgramm(undefined); setWirtschaftStart("lage"); oeffneDossier("wirtschaft"); };
   if (hudExtra.has("inflation")) {
     const tr = trend(w, "inflation");
     kopfWerte.push({ id: "inflation", icon: "preis", name: t("buehne.stat.inflation"), wert: t("zb.prozent", { p: inflation }), ...(tr !== undefined ? { trend: tr } : {}), tip: `${t("st.inflation.tip")} ${kurzVergleich("FP.CPI.TOTL.ZG") ?? ""}`.trim(), onKlick: zurWirtschaft });
@@ -514,7 +523,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       akte: "recht",
       titel: t("nav.rechtTitel"),
       icon: "waage",
-      badge: (spiel?.gesetze.length ?? 0) + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
+      badge: (spiel?.gesetze.length ?? 0) + Object.values(spiel?.gueter?.regierung?.vorlagen??{}).filter(v=>v?.status==="offen").length + (spiel?.verfassungsvorgang?.laufend ? 1 : 0) || undefined,
       tabs: [
         { id: "gesetze", label: t("buehne.tab.gesetze") },
         { id: "parlament", label: t("buehne.tab.parlament") },
@@ -579,8 +588,9 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.tabs.some((t) => t.id === "wirtschaft")));
 
   /** Mit welchem Reiter die Wirtschaftsakte öffnet (das Ereignisfenster springt in den Haushalt) */
-  const [wirtschaftStart, setWirtschaftStart] = useState<"lage" | "haushalt">("lage");
+  const [wirtschaftStart, setWirtschaftStart] = useState<"lage" | "haushalt" | "inventar">("lage");
   // Sprung aus dem Wissensbaum zu einer Voraussetzung (Politiknetz, Bildungsetat, Außenlage) und der Rückweg zum Knoten
+  const [wirtschaftProgramm, setWirtschaftProgramm] = useState<VersorgungsProgramm | undefined>();
   const [wirtschaftPosten, setWirtschaftPosten] = useState<string | undefined>(undefined);
   const [wissensZurueck, setWissensZurueck] = useState<string | null>(null);
   const [wissensStart, setWissensStart] = useState<string | null>(null);
@@ -635,6 +645,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     ueberLeiste.current = false;
   }, [dossier]);
   const oeffneDossier = (d: Dossier) => {
+    if (d === "personen") setPersonenStart(undefined);
     if (d === "politik") setPolitikStart(null);
     if (d === "schreibtisch") umlaufGelesen();
     if (d === "zeitung") zeitungGelesen(world.current); // Badge „Neue Ausgabe" erlischt beim Öffnen
@@ -707,10 +718,33 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     }
   }, []);
 
+  const waehleTransport = (id: string) => {
+    setTransportAuswahl(id);
+    beendeZeit();
+    const daten = transportKartenDaten(w, transportGas, id);
+    const knoten = daten.knoten.find(h => h.id === id);
+    const route = daten.routen.find(r => r.id === id);
+    const punkte = route?.punkte;
+    const lon = knoten?.lon ?? (punkte?.length ? punkte.reduce((s,p)=>s+p[0],0)/punkte.length : undefined);
+    const lat = knoten?.lat ?? (punkte?.length ? punkte.reduce((s,p)=>s+p[1],0)/punkte.length : undefined);
+    if(lon !== undefined && lat !== undefined) setKamera({lon:lon+(window.innerWidth>900?2:0),lat:lat-(window.innerWidth<=900?1:0),d:11});
+  };
+
   /** Wohin ein Eintrag des Schreibtischs führt: eine Akte, ein Bereich oder eine Maßnahme der Politik, ein Ereignis oder ein Land. */
   const gehe = (z: Ziel) => {
     switch (z.art) {
+      case "zusagen":
+        setPersonenStart("zusagen");
+        setDossier("personen");
+        beendeZeit();
+        break;
+      case "versorgung":
+        setDossier(null);
+        setEbene("versorgung");
+        beendeZeit();
+        break;
       case "akte":
+        if (z.akte === "wirtschaft") { setWirtschaftProgramm(z.programm); if (z.start) { setWirtschaftStart(z.start); setWirtschaftPosten(undefined); } }
         oeffneDossier(z.akte);
         break;
       case "politik":
@@ -752,12 +786,12 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         fill={fill}
         fillAlpha={ebene === "wahl" ? 0.56 : 0.62}
         selected={selected}
-        labels={ALLE_PROVINZEN}
+        labels={ebene === "versorgung" ? [] : ALLE_PROVINZEN}
         stadtInfo={stadtInfo}
         neubau={neubauLinien(w)}
         geoLabels={geoLabels}
         onSelect={(p) => setSelected(p)}
-        orte={orte}
+        orte={ebene === "versorgung" ? [] : orte}
         onOrt={(id, ort) => {
           // Klick auf eine Marke: die Akte des Reiches öffnen, im Reiter, den die Tafel genannt hat (Lage oder Pflegen)
           setReichStart(ort?.klickTab);
@@ -779,7 +813,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             if (plaka) { setSelected(plaka); setEbene("probleme"); }
           }
         }}
-        laenderPins={laenderPins}
+        laenderPins={ebene === "versorgung" ? [] : laenderPins}
         {...(landAuswahl ? { landAuswahl: landAuswahl.iso } : {})}
         onLand={(iso, pos) => setLandAuswahl({ iso, x: pos?.x ?? window.innerWidth / 2, y: pos?.y ?? window.innerHeight / 2 })}
         fundorte={fundorte}
@@ -790,6 +824,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         {...(ebene === "welt" ? { laenderFarben: laenderKarte } : {})}
         ebene={ebene}
         krieg={kriegsKarte(w, kriege(w), provinceLonLat)}
+        {...(ebene === "versorgung" ? { versorgung: transportKartenDaten(w, transportGas, transportAuswahl), onTransport: waehleTransport } : {})}
         {...(ebene === "belastung" ? { hoverZeilen: (p: number) => belastungZeilen(w, p) } : {})}
         datum={w.date}
         {...(ereignisKarte ? { ereignis: ereignisKarte } : {})}
@@ -844,8 +879,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       </nav>
 
       {dossier && (
-        <section className={`dossier frame${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
-          <Corners />
+        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+          {!gruppe?.akte && dossier !== "wirtschaft" && <Corners />}
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
             {gruppe && !gruppe.akte && gruppe.tabs.length > 1 && (
@@ -936,7 +971,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
-            {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}`} world={w} start={wirtschaftStart} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}-${wirtschaftProgramm ?? ""}`} programm={wirtschaftProgramm} world={w} start={wirtschaftStart} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "gesetze" && <Gesetzesvorhaben world={w} refresh={() => { refresh(); sichere(true); }} />}
             {(dossier === "parlament" || dossier === "beschluesse") && (
               <Beschlussbuch
@@ -993,6 +1028,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             {dossier === "katastrophe" && <Katastrophe world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "personen" && (
               <Personen
+                key={personenStart ?? "kabinett"}
+                initialTab={personenStart}
                 world={w}
                 refresh={() => { refresh(); sichere(true); }}
                 onVorgang={zeigeVorgang}
@@ -1024,7 +1061,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                     setNetVorhaben({ id: s.id, level: s.art === "massnahme" ? s.ziel : Math.round(stufeIn(w, s.id, null)) });
                     setDossier("netz");
                   } else if (s.art === "bildung") {
-                    setWirtschaftStart("haushalt");
+                    setWirtschaftProgramm(undefined); setWirtschaftStart("haushalt");
                     setWirtschaftPosten("bildung");
                     setDossier("wirtschaft");
                   } else if (s.art === "land") {
@@ -1083,14 +1120,16 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         ebene={ebene}
         netName={ebene === "netz" ? NET.nodes[NET.index.get(netNode)!]!.name : undefined}
         problemId={problemId}
-        legende={legende}
+        legende={ebene === "versorgung" ? undefined : legende}
         onEbene={(e) => setEbene(e)}
         onProblem={(id) => setProblemId(id)}
         gesperrt={!!dossier || !!bilanz || !!standDerD || !!intro || zielWahlOffen || !!hinweis || !!offen || !!spiel?.reich?.feier[0] || !!landAuswahl}
       />
+      {ebene === "versorgung" && !dossier && <SprungKontext.Provider value={gehe}><TransportTafel key={transportAuswahl} world={w} auswahl={transportAuswahl} onAuswahl={waehleTransport} gas={transportGas} onGas={setTransportGas}
+        refresh={()=>{refresh();sichere(true);}} onWirtschaft={()=>{setWirtschaftProgramm(undefined); setWirtschaftStart("inventar");oeffneDossier("wirtschaft");}} onClose={()=>setEbene("gelaende")} /></SprungKontext.Provider>}
       <Plakette world={w} ebene={ebene} />
       <img className="compass" src="/ui/kompass.png" alt="" />
-      <div className="karten-werkzeuge">
+      <div className="karten-werkzeuge" hidden={ebene === "versorgung"}>
         <MarkenLegende fund={ebene === "ressourcen" || ebene === "strategie" ? ebene : undefined} krieg={!!kriegsKarte(w, kriege(w), provinceLonLat)} />
         <Effekte />
       </div>
@@ -1260,7 +1299,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           onAkte={(ziel) => {
             // Akte ansehen, ohne zu entscheiden: das Ereignis bleibt offen, die Frist läuft
             setSpaeter((s) => new Set(s).add(offen.id));
-            if (ziel.dossier === "wirtschaft") setWirtschaftStart(ziel.start);
+            if (ziel.dossier === "wirtschaft") { setWirtschaftProgramm(undefined); setWirtschaftStart(ziel.start); }
             oeffneDossier(ziel.dossier);
           }}
           onMassnahme={(m) => {
@@ -1280,7 +1319,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               melde({ titel: r.text, ton: "ereignis" });
               // Den Haushalt selbst vorbereiten: gleich in die Haushaltsakte mit den Reglern
               if (offen.vorlage === "haushaltsjahr" && optionId === "entwurf") {
-                setWirtschaftStart("haushalt");
+                setWirtschaftProgramm(undefined); setWirtschaftStart("haushalt");
                 oeffneDossier("wirtschaft");
               }
             }
@@ -1355,7 +1394,7 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
     items.push({ id: "zusagen", tone: "gelb", icon: "haende", label: t("st.al.zusagen"), kurz: t("st.al.zusagenKurz", { n: zusagen.length }), count: zusagen.length, text: zusagen.map((z) => zusageText(z)).join(" · "), onClick: onDesk });
   }
 
-  const gesetze = spiel?.gesetze ?? [];
+  const gesetze = [...(spiel?.gesetze ?? []), ...Object.values(spiel?.gueter?.regierung?.vorlagen??{}).filter(v=>v?.status==="offen").map(v=>({name:t(`regierung.${v!.programm}.titel`),abstimmung:v!.abstimmung}))];
   if (gesetze.length) {
     items.push({ id: "gesetze", tone: "gelb", icon: "waage", label: t("st.al.gesetze"), kurz: t("st.al.gesetzeKurz", { n: gesetze.length }), count: gesetze.length, text: gesetze.map((g) => t("st.al.gesetzZeile", { name: g.name, n: Math.max(0, g.abstimmung - world.day) })).join(" · "), onClick: onParlament });
   }

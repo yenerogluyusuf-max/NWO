@@ -1,0 +1,24 @@
+
+> staatsraeson@0.1.0 test
+> vitest run --run test/entscheidungsoberflaeche.test.tsx test/ressortanliegen.test.tsx test/haushaltshilfe.test.tsx test/versorgungsentscheidung.test.tsx test/aktennavigation.test.tsx --reporter=default --reporter=json --outputFile=/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Entscheidungsoberflaeche-Abschluss-2026-11-02.json
+
+
+ RUN  v5.0.2 /Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game
+
+ ✓ test/aktennavigation.test.tsx (17 tests) 528ms
+ ✓ test/entscheidungsoberflaeche.test.tsx (21 tests) 1201ms
+ ✓ test/haushaltshilfe.test.tsx (9 tests) 1413ms
+   ✓ Gegenmaßnahmen auf en erklären Preise, Votum und neue Auflagen 301ms
+ ✓ test/versorgungsentscheidung.test.tsx (25 tests) 1293ms
+ ✓ test/ressortanliegen.test.tsx (24 tests) 1583ms
+
+ Test Files  5 passed (5)
+      Tests  96 passed (96)
+   Start at  15:06:04
+   Duration  3.68s (transform 49%, tests 38%, import 13%)
+
+  Transform  transforming modules took 7.80s · 49% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+JSON report written to /Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Entscheidungsoberflaeche-Abschluss-2026-11-02.json

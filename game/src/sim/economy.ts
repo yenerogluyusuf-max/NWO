@@ -1,3 +1,4 @@
+import { defizitQuote } from "./staatsgeld";
 // Wirtschaftsregeln nach WIRTSCHAFTSMODELL.md (Z1 bis Z9).
 // Alle Parameter sind Platzhalter für die Kalibrierung, keine Messwerte.
 
@@ -214,7 +215,7 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   // Z7: Defizite werden zu Schulden, nominales Wachstum senkt die Quote
   const nominalGrowth = (e.growth + e.inflation) / 100;
   // Runde „Netz atmet“: Der Haushalt atmet mit der Konjunktur (konjunkturSaldo: + = Entlastung, 0 ohne Netz)
-  e.debtRatio += (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (e.konjunkturSaldo ?? 0)) / 12 - (e.debtRatio * nominalGrowth) / 12;
+  e.debtRatio += (defizitQuote(e)) / 12 - (e.debtRatio * nominalGrowth) / 12;
   // WIR-2 (KALIBRIERUNG_LOG §6.1): Der FX-/indexierte Anteil der Schulden schmilzt nicht mit der
   // Inflation, sondern folgt dem Kurs der letzten Monats — 2021–2024 blieb die reale Quote deshalb
   // bei ~30–40 %, während das reine Defizit-Modell sie wegschmelzen ließ.

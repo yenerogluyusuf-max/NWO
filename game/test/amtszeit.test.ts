@@ -313,9 +313,13 @@ describe("Letzte Amtszeit: Nachfolge", () => {
   test("Die letzte Wahl: Der Nachfolger gewinnt oder verliert, das Ende nennt es", () => {
     const sieg = nachWiederwahl();
     kuereNachfolger(sieg, "offen");
+    // Geprüft wird der Wahlausgang des Nachfolgers. Fünf Jahre unregierter Krisen
+    // dürfen die erst am Wahltermin festgelegte Sieg-/Niederlagenlage nicht ersetzen.
+    advance(sieg, sieg.spiel!.wahltag - sieg.day - 1);
+    expect(sieg.spiel!.ende).toBeUndefined();
     sieg.spiel!.kalibrierung += 72 - zielZustimmung(sieg);
     sieg.spiel!.umfrage.zustimmung = 72;
-    advance(sieg, sieg.spiel!.wahltag - sieg.day + 1);
+    advance(sieg, 2);
     if (sieg.spiel!.wahl?.stichwahl) advance(sieg, 16);
     expect(sieg.spiel!.ende?.art).toBe("amtszeitende");
     expect(sieg.spiel!.ende?.nachfolge).toBe("sieg");
@@ -324,9 +328,11 @@ describe("Letzte Amtszeit: Nachfolge", () => {
 
     const niederlage = nachWiederwahl();
     kuereNachfolger(niederlage, "offen");
+    advance(niederlage, niederlage.spiel!.wahltag - niederlage.day - 1);
+    expect(niederlage.spiel!.ende).toBeUndefined();
     niederlage.spiel!.kalibrierung += 38 - zielZustimmung(niederlage);
     niederlage.spiel!.umfrage.zustimmung = 38;
-    advance(niederlage, niederlage.spiel!.wahltag - niederlage.day + 1);
+    advance(niederlage, 2);
     if (niederlage.spiel!.wahl?.stichwahl) advance(niederlage, 16);
     expect(niederlage.spiel!.ende?.art).toBe("abwahl");
     expect(niederlage.spiel!.ende?.nachfolge).toBe("niederlage");

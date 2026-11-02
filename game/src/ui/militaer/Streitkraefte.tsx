@@ -218,6 +218,7 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
                   <div className="sk-fortschritt">
                     <span style={{ width: `${anteil * 100}%` }} />
                   </div>
+                  {(b.versorgungsVerzug ?? 0) > 0 && <p className="sk-klein">{t("gueter.kette.bauVerzug", { tage: b.versorgungsVerzug })}</p>}
                 </li>
               );
             })}

@@ -1,0 +1,12 @@
+{
+  "ka.beendet": "In dieser Lage kann kein neues Bündnis geschlossen werden.",
+  "ka.eigene": "Mit der eigenen Partei ist kein zusätzliches Bündnis möglich.",
+  "ka.bereitsPartner": "Diese Partei gehört inzwischen bereits zur Koalition. Es entsteht kein zweiter Vertrag.",
+  "ka.keineFraktion": "Die Partei verfügt nicht mehr über die für dieses Angebot nötigen 15 Sitze.",
+  "ka.preis": "Einmalig 4 PK. Das Bündnis gilt ohne Befristung; persönliche Konflikte bleiben bestehen.",
+  "ka.annehmen": "Auf das Angebot eingehen",
+  "ka.mehrheit": "Heute kommen {sitze} Regierungssitze hinzu: {danach} insgesamt. Damit besteht eine Sitzmehrheit; einzelne Abstimmungen brauchen weiterhin Unterstützung.",
+  "ka.luecke": "Heute kommen {sitze} Regierungssitze hinzu: {danach} insgesamt. Zur Sitzmehrheit fehlen weiterhin {fehlen} Sitze.",
+  "ka.ziel": "Verbindliches Landesziel: {name} – {ziel}.",
+  "ka.bruch": "Vorsicht: Ein aktiver Vorsitz liegt bereits unter 20 Loyalität. Bei der Prüfung am {datum} droht der Verlust dieser {sitze} Sitze; {rest} bleiben. Prüfen Sie vor diesem Termin ein Fraktions- oder Vertrauensgespräch. Das Bündnis selbst erhöht die Loyalität nicht."
+}

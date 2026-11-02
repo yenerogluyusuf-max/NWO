@@ -1,0 +1,19 @@
+{
+  "ze.titel": "Zusage fällig: {wer}",
+  "ze.text": "Erinnerung von {wer}: {text}.",
+  "ze.antwortFrist": "Vor dem Tageswechsel zum {datum} antworten. Unbeantwortet verfällt die Zusage nach den bestehenden Regeln.",
+  "ze.warum": "Erfüllung, Vertröstung und Bruch wirken auf Rückhalt und Glaubwürdigkeit. Die Antwortkarten zeigen die sofortigen Folgen und die danach verbleibenden Fristen.",
+  "ze.veraltet": "Diese Erinnerung ist überholt oder die Zusage bereits abgeschlossen. Es wird nichts erneut gebucht.",
+  "ze.erfuellen": "Zusage erfüllen",
+  "ze.vertroesten": "Vertrösten",
+  "ze.brechen": "Zusage brechen",
+  "ze.vertroestenText": "Die Frist wird auf 90 Tage ab heute verschoben. Das kostet Rückhalt; die Zusage bleibt verbindlich.",
+  "ze.brechenText": "Die Zusage wird ausdrücklich aufgegeben. Das kostet mehr Loyalität als eine unbeantwortet verfallende Erinnerung.",
+  "ze.verbleibend": "Danach noch mögliche Vertröstungen: {n}.",
+  "ze.vertrauen": "Sofort: Regierungsvertrauen {vertrauen}, Legitimität {legitimitaet}.",
+  "ze.bereitschaft": "{partei}: Fraktionsbereitschaft {vor} → {nach}.",
+  "ze.person": "{name}: Loyalität {vor} → {nach}; Groll {groll}.",
+  "ze.akut": "Nach dieser Antwort liegt der schwächste aktive Vorsitz bei {n} Loyalität und damit unter 20. Ohne ausreichende Stabilisierung bis zur Monatsprüfung am {datum} droht der Verlust von {sitze} Regierungssitzen; {rest} bleiben. Weitere Monatsfolgen können den Rückhalt verändern.",
+  "ze.weitereFrist": "Weitere Erinnerung vor dem Tageswechsel zum {datum} bearbeiten. Diese bedingte Rechnung zieht heute nichts ab und nimmt andere Monatsfolgen nicht vorweg.",
+  "ze.gesetzAnsehen": "Das Gesetz vorher ansehen:"
+}

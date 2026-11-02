@@ -24,6 +24,7 @@ import { MarkenForm } from "./MarkenForm";
 import { t } from "../../i18n";
 import type { Kartenebene } from "../ebenen";
 import type { KartenMarke } from "../gueter/linsen";
+import type { TransportKartenDaten } from "../gueter/TransportKarte";
 import type { KriegsKarte } from "../../sim/kriegsschauplatz";
 import type { KriegUv } from "./kriegsfx";
 import { t as tx } from "../../i18n";
@@ -119,6 +120,8 @@ export interface AtlasMapProps {
   sparsam?: boolean;
   /** Lage laufender Kriege und Besatzungen (sim/kriegsschauplatz.ts `kriegsKarte`): Regionen, Front, Vorstöße in der Effektschicht */
   krieg?: KriegsKarte | null;
+  versorgung?: TransportKartenDaten;
+  onTransport?: (id: string) => void;
 }
 
 const NAMES: Record<number, string> = Object.fromEntries(PROVINCE_FC.features.map((f) => [f.properties.plaka, f.properties.name]));
@@ -207,6 +210,8 @@ export function AtlasMap({
   datum,
   ereignis,
   krieg = null,
+  versorgung,
+  onTransport,
 }: AtlasMapProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -224,6 +229,9 @@ export function AtlasMap({
   const labelsRef = useRef(labels);
   const neubauRef = useRef(neubau);
   const neubauSvg = useRef<SVGSVGElement>(null);
+  const transportSvg = useRef<SVGSVGElement>(null);
+  const transportRef = useRef(versorgung);
+  transportRef.current = versorgung;
   const neubauSignatur = useRef("");
   labelsRef.current = labels;
   neubauRef.current = neubau;
@@ -291,10 +299,12 @@ export function AtlasMap({
         ctx.current = { atlas, relief, vector, centers: provinceCenters(relief), kern };
         const dpr = Math.min(window.devicePixelRatio, 2);
         const size = () => {
+          const element = wrap.current;
+          if (disposed || !element) return;
           aktivBis.current = Math.max(aktivBis.current, performance.now() + 1500);
           labelsDirty.current = true;
           terrainDirty.current = true;
-          const r = wrap.current!.getBoundingClientRect();
+          const r = element.getBoundingClientRect();
           atlas.resize(r.width, r.height);
           vector.resize(Math.max(1, r.width), Math.max(1, r.height), dpr);
           fx.resize(Math.max(1, r.width), Math.max(1, r.height), dpr);
@@ -672,6 +682,29 @@ export function AtlasMap({
     const layer = labelLayer.current;
     if (!c || !layer) return;
     const rect = layer.getBoundingClientRect();
+    const trSvg = transportSvg.current;
+    const tr = transportRef.current;
+    if (trSvg && tr) {
+      trSvg.setAttribute("viewBox", `0 0 ${Math.max(1,rect.width)} ${Math.max(1,rect.height)}`);
+      for (const el of trSvg.querySelectorAll<SVGGElement>("[data-tr-route]")) {
+        const r = tr.routen.find(r=>r.id===el.dataset.trRoute);
+        const punkte = r?.punkte.map(([lon,lat])=>{const uv=lonLatToUv(c.relief,lon,lat);return c.atlas.project(uv[0],uv[1]);}) ?? [];
+        const d = punkte.length && punkte.every(p=>p.sichtbar) ? `M${punkte.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L")}` : "";
+        for(const path of el.querySelectorAll("path.tr-linie, path.tr-treffer")) path.setAttribute("d",d);
+        const sperre=el.querySelector<SVGGElement>(".tr-sperre");
+        if(sperre) {
+          const a=punkte[Math.max(0,Math.floor((punkte.length-1)/2))], b=punkte[Math.min(punkte.length-1,Math.floor((punkte.length-1)/2)+1)];
+          sperre.style.display=d&&a&&b?"":"none";
+          if(a&&b)sperre.setAttribute("transform",`translate(${(a.x+b.x)/2},${(a.y+b.y)/2})`);
+        }
+      }
+      for (const el of trSvg.querySelectorAll<SVGGElement>("[data-tr-knoten]")) {
+        const h=tr.knoten.find(h=>h.id===el.dataset.trKnoten); if(!h)continue;
+        const uv=lonLatToUv(c.relief,h.lon,h.lat); const p=c.atlas.project(uv[0],uv[1]);
+        el.setAttribute("transform",`translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`);
+        el.style.display=p.sichtbar?"":"none";
+      }
+    }
     const sperren = uiSperren(rect);
     /** Faktor 0 bis 1: Unter Kopfleiste, Aktenleiste, Hinweisen und Legende verschwindet ein Schild weich, statt abgeschnitten zu werden */
     const ui = (x: number, y: number, hb: number, hh: number) => (sperren.length ? smooth(0, 26, abstandZuSperren(sperren, x, y, hb, hh)) : 1);
@@ -1068,6 +1101,16 @@ export function AtlasMap({
       <canvas ref={canvas} className="atlas-canvas" />
       <canvas ref={vec} className="atlas-vector" />
       <canvas ref={fxCanvas} className="atlas-fx" aria-hidden />
+      {versorgung && <svg ref={transportSvg} className="atlas-transport" aria-label={t("transport.titel")}>
+        {versorgung.routen.map(r=><g key={r.id} data-tr-route={r.id}>
+          <path className={`tr-linie ${r.ton}${r.auswahl?" auswahl":""}`} aria-hidden="true" />
+          {r.ton==="rot"&&<g className="tr-sperre" aria-hidden="true"><circle r="7"/><path d="M-2.5 -2.5L2.5 2.5M-2.5 2.5L2.5 -2.5"/></g>}
+          <path className="tr-treffer" role="button" tabIndex={0} aria-label={r.name} onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();onTransport?.(r.id);}} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();onTransport?.(r.id);}}}><title>{r.name}</title></path>
+        </g>)}
+        {versorgung.knoten.map(h=><g key={h.id} data-tr-knoten={h.id} className={`tr-knoten ${h.ton}${h.depot?" depot":""}${h.auswahl?" auswahl":""}`} role="button" tabIndex={0} aria-label={h.name} onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();onTransport?.(h.id);}} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();onTransport?.(h.id);}}}>
+          <line className="tr-depotstiel" x1="0" y1="0" x2="0" y2={h.depot?19:0}/>{h.depot&&<circle className="tr-depotanker" r="4"/>}<rect x={-Math.max(35,h.name.length*3.4)} y={h.depot?19:-13} width={Math.max(70,h.name.length*6.8)} height={26} rx={h.depot?5:12}/><text y={h.depot?32:0}>{h.depot?"▣ ":""}{h.name}</text>
+        </g>)}
+      </svg>}
       <div ref={labelLayer} className="atlas-labels" aria-hidden>
         <svg ref={neubauSvg} className="atlas-neubau" aria-hidden />
         {(namenDa ? [] : geoLabels).map((g) => (

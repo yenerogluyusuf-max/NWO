@@ -65,7 +65,7 @@ export function EreignisFenster({
   const { zitat, rest } = zitatAus(ansicht.text);
   // Fristbalken: voll bei 30 und mehr Tagen, leer am letzten Tag
   const fristAnteil = Math.max(0, Math.min(1, ansicht.tageBisFrist / 30));
-  const knapp = !ansicht.optionen.some((o) => o.bezahlbar && o.pk > 0) && ansicht.optionen.some((o) => o.pk > 0);
+  const knapp = !ansicht.optionen.some((o) => o.bezahlbar && (o.anzeigePk ?? o.pk) > 0) && ansicht.optionen.some((o) => (o.anzeigePk ?? o.pk) > 0);
   const inflation = world ? world.published.inflation.value.toLocaleString("de-DE", { maximumFractionDigits: 1 }) : undefined;
 
   return (
@@ -136,7 +136,7 @@ export function EreignisFenster({
                       : undefined;
                 return (
                   <li key={o.id}>
-                    <button className="ev2-option" disabled={!o.bezahlbar} onClick={() => onWaehle(o.id)} title={o.bezahlbar ? undefined : t("ereignis.fehltKapital")}>
+                    <button className="ev2-option" disabled={!o.bezahlbar || !!o.sperre} onClick={() => onWaehle(o.id)} title={o.sperre ?? (o.bezahlbar ? undefined : t("ereignis.fehltKapital"))}>
                       <span className="ev2-option-kopf">
                         <strong>{o.label}</strong>
                         <span className={`ev2-preis${preis === 0 ? " frei" : ""}${pump ? " pump" : ""}`} title={pump ? t("ereignis.pumpTitel") : undefined}>
@@ -145,6 +145,9 @@ export function EreignisFenster({
                         </span>
                       </span>
                       <span className="ev2-option-text">{o.beschreibung}</span>
+                      {o.bedingungen?.length ? <span className="ev2-option-bedingungen">{o.bedingungen.map((text,i)=><span key={i}>{text}</span>)}</span> : null}
+                      {o.warnung && <span className="ev2-option-warnung">{o.warnung}</span>}
+                      {o.sperre && <span className="ev2-option-zusatz">{o.sperre}</span>}
                       {zusatz && <span className="ev2-option-zusatz">{zusatz}</span>}
                       {o.vorschau.length > 0 ? (
                         <span className="ev2-folgen" aria-label={t("ereignis.folgen")}>

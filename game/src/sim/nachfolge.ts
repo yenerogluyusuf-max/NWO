@@ -13,6 +13,8 @@ import { AEMTER, eigenVon, hashZahl, loyalitaetVerschieben } from "./personen";
 import type { Kandidat, LagerArt, Stil } from "./personen-typen";
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
+import { offeneRessortVorfaelle, ressortEntlassungStart, ressortEntlassungEnde, ressortEntlassungsHinweise } from "./ressortpolitik";
+import { neuanfangGrund } from "./aufmerksamkeit";
 
 interface Archetyp {
   key: "fach" | "vertrauter" | "ehrgeizig";
@@ -111,6 +113,7 @@ export function entlassungsFolgen(w: World, amt: Figur["amt"]): string[] {
   if (amt === "finanzen") out.push("Märkte: Risikoaufschlag +30 Punkte, Glaubwürdigkeit −0,03.");
   else if (amt === "wirtschaft") out.push("Märkte: Risikoaufschlag +10 Punkte.");
   out.push("Der Nachfolger arbeitet sich zwei Monate ein: Ressortleistung −25 %.");
+  out.push(...ressortEntlassungsHinweise(w,f));
   return out;
 }
 
@@ -153,7 +156,7 @@ function ernennen(w: World, f: Figur, k: Kandidat): void {
  * Entlässt die Amtsinhaberin und ernennt einen Kandidaten (`kandidatId`) oder setzt eine kommissarische Leitung ein (`null`).
  * Kostet die Ernennung in Kapital; die Folgen wirken sofort und später (Ehemalige, Lager, Märkte).
  */
-export function entlasse(w: World, amt: Figur["amt"], kandidatId: string | null): WechselErgebnis {
+export function entlasse(w: World, amt: Figur["amt"], kandidatId: string | null, rabatt = 0): WechselErgebnis {
   const sp = w.spiel;
   const f = figur(w, amt);
   const leer = (text: string): WechselErgebnis => ({ ok: false, text, folgen: [] });
@@ -161,8 +164,10 @@ export function entlasse(w: World, amt: Figur["amt"], kandidatId: string | null)
   if (!AEMTER[amt].entlassbar) return leer(amt === "zentralbank" ? "Die Zentralbankführung tauschen Sie unter Zentralbank und Haushalt aus." : "Dieses Amt lässt sich nicht durch eine Entlassung neu besetzen.");
   const k = kandidatId === null ? null : kandidatenFuer(w, amt).find((x) => x.id === kandidatId);
   if (kandidatId !== null && !k) return leer("Diesen Kandidaten gibt es nicht.");
-  const pk = k ? k.pk : KOMMISSARISCH_PK;
+  const pk = Math.max(1,(k ? k.pk : KOMMISSARISCH_PK)-Math.max(0,Number.isFinite(rabatt)?rabatt:0));
   if (!kannZahlen(sp.kapital, pk)) return leer(`Ein Wechsel im Amt kostet ${pk} Kapital; vorhanden sind ${Math.floor(sp.kapital)}.`);
+  if(offeneRessortVorfaelle(w).some(v=>v.figur===f.id)){const pause=neuanfangGrund(w);if(pause)return leer(pause);}
+  const ressortVorher=ressortEntlassungStart(w,f);
   sp.kapital -= pk;
   const alt = `${f.rolle} ${f.name}`;
   const folgen = entlassungsFolgen(w, amt);
@@ -180,6 +185,7 @@ export function entlasse(w: World, amt: Figur["amt"], kandidatId: string | null)
   const neu = `${f.rolle} ${f.name}`;
   const text = `Der Präsident entlässt ${alt} und ${k ? `ernennt ${neu}` : `setzt ${neu} kommissarisch ein`}.`;
   addLog(w, "entscheidung", text, amt === "finanzen" ? "Märkte reagieren nervös auf einen Wechsel im Finanzministerium." : "Ein Wechsel im Kabinett kostet Kapital und macht Feinde.");
+  ressortEntlassungEnde(w,f,ressortVorher);
   return { ok: true, text: `${alt} ist entlassen, ${neu} ${k ? "übernimmt" : "führt kommissarisch"}.`, why: `Kosten ${pk} Kapital.`, folgen };
 }
 

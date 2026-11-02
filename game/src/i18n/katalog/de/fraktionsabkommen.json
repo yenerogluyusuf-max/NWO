@@ -1,0 +1,22 @@
+{
+  "fa.titel": "Zusammenarbeit mit {partei}",
+  "fa.koalition": "Koalition schließen",
+  "fa.duldung": "Duldung vereinbaren",
+  "fa.preis": "Bei Abschluss: {pk} PK · {aufmerksamkeit} Aufmerksamkeit",
+  "fa.unbefristet": "Das Bündnis läuft ohne feste Befristung; ein späterer Koalitionsbruch bleibt möglich.",
+  "fa.befristet": "Die Partei bleibt außerhalb des Lagers. Bei heutigem Abschluss unterstützt sie die Regierung bis {datum}.",
+  "fa.zusage": "Neue verbindliche Zusage bis {datum}: {forderung}.",
+  "fa.vorsitz": "Rückhalt beim Parteivorsitz",
+  "fa.bleibt": "{name} bleibt bei {n} Loyalität. Das neue Bündnis setzt persönliche Konflikte und Gesprächssperren nicht zurück.",
+  "fa.neu": "Ein neuer Parteivorsitz startet mit {n} Loyalität.",
+  "fa.bruch": "Bereits unter {grenze}: Bei der Prüfung am {datum} droht erneut ein Austritt. Ein neues Bündnis allein stabilisiert diesen Vorsitz nicht.",
+  "fa.stimmen": "Die Sitzmehrheit ist keine Zusage für jede Abstimmung. Prüfen Sie die erwarteten Stimmen der konkreten Vorlage; Versorgungsvorlagen berücksichtigen außerdem ihre Klauseln.",
+  "fa.handeln": "{aktion} – {partei}",
+  "fa.pause": "Neue Verhandlungen sind während der Erholungspause bis {datum} gesperrt.",
+  "fa.sitze": "Alle {n} Fraktionssitze gehören anschließend zum Regierungslager.",
+  "fa.ausgang": "Heutiger Stand",
+  "fa.ziel": "Landesweit zugesagt",
+  "fa.stufe": "Stufe {n}",
+  "fa.zielFest": "Dieses Ziel wird beim Abschluss festgehalten. Spätere Fortschritte oder neue Fraktionsforderungen ändern die vereinbarte Verpflichtung nicht.",
+  "fa.zielBeschlossen": "Dieses Ziel ist bereits beschlossen oder erreicht. Die neue Zusage lässt sich anschließend ohne weiteren Entwurf als erfüllt verbuchen."
+}

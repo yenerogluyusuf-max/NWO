@@ -1,0 +1,105 @@
+{
+  "task": "Staatsgeld, politischer Spielraum und Verwaltung trennen",
+  "date": "2026-11-02",
+  "latestSuites": [
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/akte-lage.test.tsx",
+      "source": "Staatsfinanzen-Pruefung-2026-11-02.json",
+      "counts": 6
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/entscheidungsoberflaeche.test.tsx",
+      "source": "Staatsfinanzen-Pruefung-2026-11-02.json",
+      "counts": 22
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/haushalt-ressorts.test.ts",
+      "source": "Staatsfinanzen-Pruefung-2026-11-02.json",
+      "counts": 10
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/haushaltsbericht.test.tsx",
+      "source": "Staatsfinanzen-Pruefung-2026-11-02.json",
+      "counts": 19
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/haushaltszyklus.test.ts",
+      "source": "Staatsfinanzen-Pruefung-2026-11-02.json",
+      "counts": 12
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/kantenform.test.ts",
+      "source": "Staatsfinanzen-Anschluss-2026-11-02.json",
+      "counts": 23
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/spielschleife.test.ts",
+      "source": "Staatsfinanzen-Pruefung-2026-11-02.json",
+      "counts": 28
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/staatsfinanzen.test.tsx",
+      "source": "Staatsfinanzen-Anschluss-2026-11-02.json",
+      "counts": 29
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/haushaltshilfe.test.tsx",
+      "source": "Staatsfinanzen-Anschluss-2026-11-02.json",
+      "counts": 9
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/haushaltsmehrheit.test.tsx",
+      "source": "Staatsfinanzen-Anschluss-2026-11-02.json",
+      "counts": 38
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/netz-gegenkraefte.test.ts",
+      "source": "Staatsfinanzen-Anschluss-2026-11-02.json",
+      "counts": 35
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ressortanliegen.test.tsx",
+      "source": "Staatsfinanzen-Ressorts-2026-11-02.json",
+      "counts": 24
+    },
+    {
+      "file": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ressortforderungswege.test.tsx",
+      "source": "Staatsfinanzen-Ressorts-2026-11-02.json",
+      "counts": 29
+    }
+  ],
+  "results": {
+    "passed": 282,
+    "skipped": 2
+  },
+  "newTests": 29,
+  "typescript": "passed",
+  "productionBuild": "passed",
+  "buildLog": "Staatsfinanzen-Build-2026-11-02.txt",
+  "browserVerified": false,
+  "screenshots": [],
+  "knownBuildWarnings": [
+    "optional infrastrukturEtat export does not exist; existing investments fallback remains",
+    "large chunks"
+  ],
+  "notes": [
+    "Latest complete result per test file supersedes earlier results, including changed tests for intentionally removed political maintenance and overload price.",
+    "Two pre-existing optional long tests remain skipped.",
+    "No publication, branch transfer or savegame overwrite."
+  ],
+  "additionalCheck": {
+    "file": "Staatsfinanzen-Semantik-2026-11-02.json",
+    "reason": "After placing descriptions within definition-list values, repeat three language rendering checks only."
+  },
+  "sha256": {
+    "game/src/sim/staatsgeld.ts": "e6a1477745e285c54acc5dd645c75a2aef639a3e3dab7f3670dfaaf023b7f0cd",
+    "game/src/sim/staatsfinanzen.ts": "f7146fa4f1fde29f7c7cbdac5b526a1b1d8b3bf2301256f43e4f4602f84d4bbf",
+    "game/src/sim/handeln.ts": "59d79d776cb0ca2d1c9098a108f94c1f3c20fde68c78bebb209a69f1429f4ce2",
+    "game/src/sim/haushalt.ts": "d4186713ed517a68371e0835e0ac9a6e04370a8b012a468ce9f352a06b11423d",
+    "game/src/sim/haushaltsbericht.ts": "9e5eeae9b68a36a058e0f21f61878559cfcd3c894089a170823eb26cf76ebe68",
+    "game/src/sim/haushaltsentscheidung.ts": "6b39b0bdf1de00488c9629ed10e8b1258f5ba9101463a725036a364e232de3a5",
+    "game/src/ui/wirtschaft/Staatsfinanzen.tsx": "4aa8c0467274582881bc2b480fda96ea2dc6411fbfce8d0ce55ffd853f653f0d",
+    "game/src/ui/wirtschaft/staatsfinanzen.css": "002c6491965c9801819606eb855cd41295f7800f0edf189b965a3cc2a1182e78",
+    "game/test/staatsfinanzen.test.tsx": "9b8286323a22d9a49bdb65d4298a0de3b894f3ac16e1bcb74c85c466ca17dcef"
+  }
+}

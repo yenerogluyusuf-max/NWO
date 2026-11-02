@@ -1,0 +1,12 @@
+{
+  "zd.titel": "View deadlines together",
+  "zd.nachSchritt": "Deadlines remaining after this step",
+  "zd.summe": "Open reminders due by the coalition review on {datum}: {n}. If they expire unanswered, the weakest chair’s loyalty falls from {vor} to {nach}.",
+  "zd.bruch": "This would put the chair below 20. At the monthly review, this partner could withdraw {sitze} government seats, leaving {rest}.",
+  "zd.puffer": "These known expirations alone do not cross the breakup threshold. Other political effects can use up the remaining buffer.",
+  "zd.schritt": "Address “{zusage}” first: fulfil it or review the cost of postponing it before the day changes to {datum}. A conversation does not close the reminder.",
+  "zd.antworten": "Respond to the most urgent reminder",
+  "zd.details": "The {n} affected reminders and their deadlines",
+  "zd.frist": "Expires when the day changes to {datum}",
+  "zd.grenze": "Conditional calculation using already open reminders, including those expiring on review day. Unopened reminders, future votes, conversations and other monthly effects are not projected. Nothing is deducted today."
+}

@@ -166,7 +166,7 @@ describe("Umbildung", () => {
         onFertig: keine,
       }),
     );
-    expect((html.match(/class="ub-karte[\s"]/g) ?? []).length).toBe(7);
+    expect((html.match(/class="umb-karte[\s"]/g) ?? []).length).toBe(7);
     expect(html).toContain("Die Regierung neu aufstellen");
     expect(html).toContain("Im Amt bestätigen");
     expect(html).toContain("Zwischenbilanz der ersten Amtszeit");

@@ -1,0 +1,35 @@
+// Reproduzierbarer Simulationsnachweis; kein Browser- oder Screenshot-Test.
+import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
+import { createWorld, save, load } from "../Spielentwicklung/game/src/sim/world";
+import { turkey2026 } from "../Spielentwicklung/game/src/sim/scenario";
+import { schnellProfil, startAfterElection } from "../Spielentwicklung/game/src/sim/prolog";
+import { fraktion } from "../Spielentwicklung/game/src/sim/fraktionen";
+import { gueterSicht } from "../Spielentwicklung/game/src/sim/gueter";
+import { aussenZustand } from "../Spielentwicklung/game/src/sim/diplomatie";
+import { addDays } from "../Spielentwicklung/game/src/sim/dates";
+import { beschliesseVersorgungsProgramm, versorgungsParlamentTag } from "../Spielentwicklung/game/src/sim/versorgungspolitik";
+import { versorgungsMehrheitsWege, uebernehmeVersorgungsWeg } from "../Spielentwicklung/game/src/sim/versorgungsberatung";
+const w=createWorld(turkey2026,17);startAfterElection(w,schnellProfil());
+w.spiel!.ereignisse=[];w.spiel!.kapital=150;w.spiel!.lager=["YENİ"];
+w.parliament!.seats={[w.player!.partei.kurz]:130,"YENİ":120,CHP:200,MHP:80,DEM:70};
+for(const p of Object.keys(w.parliament!.seats)) fraktion(w,p).bereitschaft=50;
+aussenZustand(w).energie.hormus="offen";gueterSicht(w);
+assert.ok(beschliesseVersorgungsProgramm(w,"schutz").ok);
+const wege=versorgungsMehrheitsWege(w,"schutz");
+const ergebnisse=wege.map(p=>{
+  const k=load(save(w)),schuld=k.economy.debtRatio;
+  assert.ok(uebernehmeVersorgungsWeg(k,p).ok);
+  const v=k.spiel!.gueter!.regierung!.vorlagen!.schutz!;
+  const tage=v.abstimmung-k.day;k.day+=tage;k.date=addDays(k.date,tage);
+  versorgungsParlamentTag(k);
+  assert.equal(v.status,"angenommen");
+  assert.equal(v.stimmen!.reduce((s,f)=>s+f.ja,0),p.ja);
+  assert.deepEqual(v.reaktionen,p.reaktionen);
+  const {stand,...vorschlag}=p;
+  return {vorschlag,ergebnis:{status:v.status,stimmen:v.stimmen,reaktionen:v.reaktionen,kapital:k.spiel!.kapital,haushaltsbuchung:k.economy.debtRatio-schuld}};
+});
+const report={art:"Simulation mit echten Spielfunktionen; keine Browserprüfung",seed:17,sitze:w.parliament!.seats,koalition:w.spiel!.lager,vorher:wege[0]?.vorher,wege:ergebnisse};
+if(!process.argv[2]) throw new Error("Ausgabepfad fehlt");
+writeFileSync(process.argv[2],JSON.stringify(report,null,2)+"\n");
+console.log(JSON.stringify(ergebnisse.map(e=>({weg:e.vorschlag.schwerpunkt,vorher:e.vorschlag.vorher,ja:e.vorschlag.ja,klauseln:e.vorschlag.klauseln,pk:e.vorschlag.pk,bip:e.vorschlag.konditionen.bip,reaktionen:e.vorschlag.reaktionen})),null,2));

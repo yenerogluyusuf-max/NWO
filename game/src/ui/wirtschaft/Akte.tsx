@@ -1,9 +1,12 @@
-// Die Wirtschaftsakte, die Referenz des Akten-Gerüsts (ui/akte/): Lage, Instrumente (Zentralbank, Haushalt, Devisen), Verlauf, Personen.
+import type { VersorgungsProgramm } from "../../sim/versorgungspolitik";
+// Wirtschaftsarbeitsplatz: direkte Zugänge zu Haushalt, Versorgung und Zentralbank; Bilanz und Zuständige daneben.
 // Jede Kennzahl führt zu einer Entscheidung, jede Entscheidung zeigt ihre Folgen.
 
 import { useState } from "react";
 import { aktuelleLocale, t } from "../../i18n";
 import type { World } from "../../sim/types";
+import { formatDateDe } from "../../sim/dates";
+import { ZUGANG_ICON } from "../akte/profil";
 import type { Handlung } from "../../sim/wirtschaft-kennzahlen";
 import { Akte, VorgaengePlatz, type AktenReiterId, type Kernwert } from "../akte/Akte";
 import { VerlaufsDiagramm, type VerlaufsReihe } from "../akte/Kennzahl";
@@ -16,7 +19,7 @@ import "../politik/design.css";
 import "./wirtschaft.css";
 
 /** Ältere Einstiege (Stage, Ereignisfenster, Mentorin) sprechen noch von diesen drei Zielen. */
-export type Reiter = "lage" | "zentralbank" | "haushalt";
+export type Reiter = "lage" | "zentralbank" | "haushalt" | "inventar";
 type Instrument = "zentralbank" | "haushalt" | "inventar";
 type ZbAbschnitt = "sitzung" | "gouverneur" | "stufe" | "devisen";
 
@@ -55,9 +58,9 @@ export function kernwerteWirtschaft(w: World): Kernwert[] {
   ];
 }
 
-export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onGeaendert }: { world: World; start?: Reiter; zbAbschnitt?: ZbAbschnitt; posten?: string; onGeaendert?: (() => void) | undefined }) {
+export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, programm, onGeaendert }: { world: World; start?: Reiter; zbAbschnitt?: ZbAbschnitt; posten?: string; programm?: VersorgungsProgramm; onGeaendert?: (() => void) | undefined }) {
   const [reiter, setReiter] = useState<AktenReiterId>(start === "lage" ? "lage" : "instrumente");
-  const [instrument, setInstrument] = useState<Instrument>(start === "haushalt" ? "haushalt" : "zentralbank");
+  const [instrument, setInstrument] = useState<Instrument>(start === "inventar" ? "inventar" : start === "haushalt" ? "haushalt" : "zentralbank");
   const [abschnitt, setAbschnitt] = useState<ZbAbschnitt | undefined>(zbAbschnitt);
   const [wahl, setWahl] = useState(posten);
   const [, setVersion] = useState(0);
@@ -73,35 +76,18 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, onG
     setWahl(h.posten);
   }
 
-  const instrumente = () => (
-    <div className="ak-instrumente">
-      <nav className="ak-unterreiter" role="tablist" aria-label={t("akte.wirtschaft.instrumente")}>
-        {(["zentralbank", "haushalt", "inventar"] as const).map((id) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={instrument === id}
-            className={instrument === id ? "on" : ""}
-            onClick={() => {
-              setInstrument(id);
-              if (id === "zentralbank") setAbschnitt(undefined);
-              else if (id === "haushalt") setWahl(undefined);
-            }}
-          >
-            <b>{t(`akte.wirtschaft.instrument.${id}`)}</b>
-            <span>{t(`akte.wirtschaft.instrument.${id}Text`)}</span>
-          </button>
-        ))}
-      </nav>
-      {instrument === "inventar" ? <Inventar world={world} geaendert={geaendert} /> : instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} />}
-    </div>
-  );
+  const instrumente = () => instrument === "inventar" ? <Inventar programm={programm} world={world} geaendert={geaendert} /> : instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} />;
+  const zugaenge={aktiv:instrument,eintraege:(["haushalt","inventar","zentralbank"] as const).map(id=>({
+    id,label:t(`akte.wirtschaft.instrument.${id}`),text:t(`akte.wirtschaft.instrument.${id}Text`),icon:ZUGANG_ICON[id]!,
+    waehlen:()=>{setInstrument(id);if(id==="zentralbank")setAbschnitt(undefined);else if(id==="haushalt")setWahl(undefined);},
+  }))};
 
   return (
-    <div className="wi-akte">
+    <div className={`wi-akte${reiter === "instrumente" && instrument === "inventar" ? " wi-versorgung" : ""}`}>
       <Akte
         bereich={"wirtschaft"}
+        datum={formatDateDe(world.date)}
+        zugaenge={zugaenge}
         zweck={t("akte.wirtschaft.zweck")}
         kernwerte={kernwerteWirtschaft(world)}
         aktiv={reiter}

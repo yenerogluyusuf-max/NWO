@@ -1,9 +1,8 @@
-// Gemeinsames Muster aller Instrumente-Ansichten: oben ein Satz Lage mit ein, zwei Hauptzahlen, darunter ein Raster kompakter Kacheln
-// (Bild, Name, Kernwert, kleine Stufenleisten, Zustandsmarke, höchstens eine Zeile). Ein Klick öffnet die Detailleiste rechts
-// (am Handy als Blatt von unten) mit Beschreibung, Handlungen samt Preis und Rückmeldung. Die Übersicht passt ohne Scrollen auf den
-// Bildschirm; Einzelheiten stehen nur in der Leiste.
+// Gemeinsame Fachübersicht mit Lage, auswählbaren Einträgen und einer Detailfläche.
+// Im Bereichsrahmen wird das Detail bei wenig Platz oberhalb der Liste dargestellt.
+// Eine bewusste Auswahl führt den Fokus zum Detail; Schließen zurück zum auslösenden Eintrag.
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import type { Ziel } from "../schreibtisch/briefing";
 import { t } from "../../i18n";
 import "./uebersicht.css";
@@ -68,20 +67,21 @@ export function UbStufen({ stufe, max, bau, gross }: { stufe: number; max: numbe
   );
 }
 
-function Kachel({ k, gewaehlt, onWahl }: { k: UbKachel; gewaehlt: boolean; onWahl: () => void }) {
-  const taste = (e: KeyboardEvent) => {
+function Kachel({ k, gewaehlt, detailId, onWahl }: { k: UbKachel; gewaehlt: boolean; detailId: string; onWahl: (element: HTMLDivElement) => void }) {
+  const taste = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      onWahl();
+      onWahl(e.currentTarget);
     }
   };
   return (
     <div
       role="button"
       tabIndex={0}
-      aria-pressed={gewaehlt}
+      aria-expanded={gewaehlt}
+      aria-controls={gewaehlt ? detailId : undefined}
       className={`ub-kachel ton-${k.ton ?? "neutral"}${gewaehlt ? " gewaehlt" : ""}`}
-      onClick={onWahl}
+      onClick={e => onWahl(e.currentTarget)}
       onKeyDown={taste}
     >
       {k.bild && <span className="ub-bild">{k.bild}</span>}
@@ -145,6 +145,7 @@ export interface UebersichtProps {
 }
 
 export function Uebersicht({ lage, zahlen, kacheln, detail, start, dicht, fuss, aria, sortiert = true, wahl: wahlAussen, onWahl }: UebersichtProps) {
+  const detailId = useId();
   const [wahlInnen, setWahlInnen] = useState<string | null>(start ?? null);
   const gesteuert = wahlAussen !== undefined;
   const wahl = gesteuert ? wahlAussen : wahlInnen;
@@ -154,11 +155,17 @@ export function Uebersicht({ lage, zahlen, kacheln, detail, start, dicht, fuss, 
   };
   const [filter, setFilter] = useState("");
   const leiste = useRef<HTMLElement>(null);
+  const ausloeser = useRef<HTMLDivElement | null>(null);
+  const fokusAngefordert = useRef(false);
   useEffect(() => {
     if (start && !gesteuert) setWahlInnen(start);
   }, [start, gesteuert]);
   useEffect(() => {
-    if (wahl && leiste.current) leiste.current.scrollTop = 0;
+    if (wahl && leiste.current) {
+      leiste.current.scrollTop = 0;
+      if (fokusAngefordert.current) leiste.current.focus();
+    }
+    fokusAngefordert.current = false;
   }, [wahl]);
   const sichtbar = useMemo(() => {
     const f = filter.trim().toLocaleLowerCase();
@@ -208,7 +215,11 @@ export function Uebersicht({ lage, zahlen, kacheln, detail, start, dicht, fuss, 
               {g.name && <h4 className="ub-gruppe-name">{g.name}</h4>}
               <div className="ub-raster">
                 {g.kacheln.map((k) => (
-                  <Kachel key={k.id} k={k} gewaehlt={offen === k.id} onWahl={() => setWahl(offen === k.id ? null : k.id)} />
+                  <Kachel key={k.id} k={k} gewaehlt={offen === k.id} detailId={detailId} onWahl={element => {
+                    ausloeser.current = element;
+                    fokusAngefordert.current = offen !== k.id;
+                    setWahl(offen === k.id ? null : k.id);
+                  }} />
                 ))}
               </div>
             </section>
@@ -217,8 +228,8 @@ export function Uebersicht({ lage, zahlen, kacheln, detail, start, dicht, fuss, 
           {fuss}
         </div>
         {offen && (
-          <aside className="ub-detail" ref={leiste} aria-label={kacheln.find((k) => k.id === offen)?.titel}>
-            <button type="button" className="link ub-zu" onClick={() => setWahl(null)} aria-label={t("ub.schliessen")}>
+          <aside className="ub-detail" id={detailId} tabIndex={-1} ref={leiste} aria-label={kacheln.find((k) => k.id === offen)?.titel}>
+            <button type="button" className="link ub-zu" onClick={() => {setWahl(null);ausloeser.current?.focus();}} aria-label={t("ub.schliessen")}>
               ✕
             </button>
             {detail(offen)}

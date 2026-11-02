@@ -254,13 +254,11 @@ export function aussenMonat(w: World, m: WeltModell): void {
     a.energie.hormus = hormus;
   }
   const an = a.energie.anteile;
-  const rusRisiko = clamp((welt["RUS"]?.konflikt ?? 45) / 100 + (a.sanktionen.length ? 0.1 : 0), 0, 1);
-  const hormusF = hormus === "geschlossen" ? 0.6 : hormus === "gestoert" ? 0.3 : 0;
-  const heim = clamp((knoten(w, "sakarya_gas", 25) - 25) * 0.2, -3, 10);
-  a.energie.versorgung = r1(clamp(78 - 40 * (an.RUS / 100) * rusRisiko - 30 * (an.LNG / 100) * hormusF - 0.2 * Math.max(an.RUS, an.LNG, an.AZE) + heim, 0, 100));
+  const gas = w.spiel?.gueter?.bilanz?.waren.erdgas;
+  a.energie.versorgung = gas && gas.bedarf > 0 ? r1(100 * gas.geliefert / gas.bedarf) : 100;
   const maxAnteil = Math.max(an.RUS, an.LNG, an.AZE);
   a.basis ??= { versorgung: a.energie.versorgung, terror: 0, anteilMax: maxAnteil };
-  stoss(w, "energieversorgung", 0.05 * (startK(w, "energieversorgung", 55) + (a.energie.versorgung - a.basis.versorgung) - knoten(w, "energieversorgung", 55)));
+  // Physische Versorgung und Preise stammen aus gueterMonat; hier kein zweiter Versorgungsstoß.
   stoss(w, "gasabhaengigkeit", 0.05 * (startK(w, "gasabhaengigkeit", 70) + 1.5 * (maxAnteil - a.basis.anteilMax) - knoten(w, "gasabhaengigkeit", 70)));
   // Den Preis selbst trägt der Ölpreis der Außenwelt (sim/aussenwelt.ts); hier nur die Versorgung, sonst zählte Hormus doppelt
   const mon = Number(monat.slice(5, 7));

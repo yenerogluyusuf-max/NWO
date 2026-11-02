@@ -173,3 +173,7 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 .kf-wahl.gesperrt { opacity: 0.5; cursor: not-allowed; }
 .kf-abschnitt-schluss { padding: 6px 0 0; }
 .kf-eintrag-text small.kf-eintrag-hinweis { color: #b9a47a; font-style: italic; font-family: var(--serif); font-size: 12px; }
+
+/* Sechs Kennzahlen behalten auch bei schmalen Fenstern Platz und ein lesbares Etikett. */
+@media (min-width:641px) and (max-width:850px){.kf-zahl{padding:4px;gap:3px}.kf-zahl .icon{width:15px;height:15px}.kf-wann{padding:0 6px}.kf-datum{font-size:15px}.kf-wann{gap:5px}.kf-tempo button{width:22px}}
+@media (max-width:640px){.kf-zahl{flex:1;justify-content:center}.kf-kapital .kf-zahl-name,.kf-haushalt .kf-zahl-name{display:block;font-size:8px;letter-spacing:0}.kf-zahl .icon{display:none}.kf-zahl-wert{font-size:13px}}

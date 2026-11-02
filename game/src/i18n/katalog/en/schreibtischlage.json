@@ -1,0 +1,7 @@
+{
+  "sl.partner.akut": "Coalition break at risk: {name} ({partei})",
+  "sl.partner.frueh": "Secure support: {name} ({partei})",
+  "sl.partner.bruch": "Loyalty {loyalitaet}, below 20: without sufficient stabilisation, the monthly review on {datum} could cost {sitze} government seats; {rest} would remain. Other monthly effects can change support.",
+  "sl.partner.puffer": "Loyalty {loyalitaet}: dissatisfied, but currently not below the break threshold of 20. The next review is on {datum}. A later departure would cost {sitze} government seats; {rest} would remain.",
+  "sl.partner.hilfe": "In People and Promises, review outstanding commitments and the effects of a conversation. A conversation does not fulfil a promise."
+}

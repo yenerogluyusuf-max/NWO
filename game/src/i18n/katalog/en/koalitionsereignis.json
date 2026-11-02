@@ -1,0 +1,12 @@
+{
+  "ka.beendet": "A new coalition cannot be formed in this situation.",
+  "ka.eigene": "Your own party cannot form an additional coalition with itself.",
+  "ka.bereitsPartner": "This party has already joined the coalition. No second agreement will be created.",
+  "ka.keineFraktion": "The party no longer holds the 15 seats required for this offer.",
+  "ka.preis": "One payment of 4 political capital. The coalition has no fixed term; personal conflicts remain.",
+  "ka.annehmen": "Accept the offer",
+  "ka.mehrheit": "Add {sitze} government seats today, bringing the total to {danach}. This gives a seat majority; individual votes still need support.",
+  "ka.luecke": "Add {sitze} government seats today, bringing the total to {danach}. A seat majority still requires {fehlen} more seats.",
+  "ka.ziel": "Binding nationwide target: {name} – {ziel}.",
+  "ka.bruch": "Caution: an active chair already has loyalty below 20. At the review on {datum}, these {sitze} seats are at risk; {rest} would remain. Consider a faction or trust-building conversation before then. The coalition agreement itself does not raise loyalty."
+}

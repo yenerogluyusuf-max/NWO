@@ -7,6 +7,7 @@ import { realRate } from "../sim/economy";
 import { stimmenSicht } from "../sim/handeln";
 import { waehlerLage } from "../sim/waehler";
 import { t } from "../i18n";
+import { koalitionsHinweis } from "./koalitionshinweis";
 
 export interface Note {
   short: string;
@@ -102,11 +103,11 @@ export function mentorNotes(world: World): Note[] {
         more: t("mentor.waehler-verstimmt.more", { gruende: verstimmt.gruende.slice(0, 2).map((r) => `${r.name} (${r.text.replace(/\.$/, "")})`).join("; ") }),
       });
     }
-    const wackelig = sp.figuren.find((f) => f.amt === "partner" && sp.lager.includes(f.partei ?? "") && f.loyalitaet < 32);
+    const wackelig = koalitionsHinweis(world);
     if (wackelig) {
       add("partner-wackelt", 90, {
-        short: t("mentor.partner-wackelt.short", { rolle: wackelig.rolle, name: wackelig.name }),
-        more: t("mentor.partner-wackelt.more"),
+        short: wackelig.text,
+        more: `${wackelig.warum} ${wackelig.hilfe}`,
       });
     }
   }

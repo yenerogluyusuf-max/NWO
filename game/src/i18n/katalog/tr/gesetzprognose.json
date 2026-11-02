@@ -1,0 +1,14 @@
+{
+  "gp.titel": "Oylamaya kadar çoğunluk",
+  "gp.heute": "Bugün beklenen",
+  "gp.votum": "Oylamada beklenen",
+  "gp.luecke": "301 oy çoğunluğu için {n} oy daha gerekiyor.",
+  "gp.mehrheit": "Beklenen oylar 301 oy çoğunluğuna ulaşıyor.",
+  "gp.fristeffekt": "Bilinen süreler nedeniyle beklenen evet oyları {n} azalıyor.",
+  "gp.fraktion": "{partei} · {sitze} sandalye: dış destek {datum} tarihinde, oylamadan önce veya oylama günü sona eriyor.",
+  "gp.hilfe": "Görüşmelerde koalisyonu veya diğer partileri değerlendir. Anlaşmalar bu yasa için oy açığını kapatabilir. Yeni dış destek anlaşması ancak mevcut anlaşma sona erdikten sonra yapılabilir.",
+  "gp.grenze": "Bugünkü siyasi durum, anlaşmalar ve yasa metninin etkileri temel alınır; bilinen dış destek süreleri hesaba katılır. Gelecekteki olaylar, koalisyondan ayrılmalar ve oylamadaki değişkenlik sonucu değiştirebilir.",
+  "gp.aufmerksamkeit": "Her anlaşma ayrıca {n} dikkat gerektirir.",
+  "gp.verteilung": "Sandalye renkleri toplam tahmini gösterir. Yasa metninin etkileri ve saf değiştirmeler tahminidir; simülasyon bunlar için belirli milletvekilleri atamaz.",
+  "gp.wackelig": "Tahmini saf değiştirmeler ve yasa metninden kaynaklanan ek destek"
+}

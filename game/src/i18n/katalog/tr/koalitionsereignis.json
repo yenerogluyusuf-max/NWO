@@ -1,0 +1,12 @@
+{
+  "ka.beendet": "Bu durumda yeni bir koalisyon kurulamaz.",
+  "ka.eigene": "Kendi partinizle ek bir koalisyon kurulamaz.",
+  "ka.bereitsPartner": "Bu parti artık koalisyonda. İkinci bir anlaşma yapılmaz.",
+  "ka.keineFraktion": "Partinin artık bu teklif için gereken 15 sandalyesi yok.",
+  "ka.preis": "Bir defaya mahsus 4 siyasi sermaye. Koalisyon süresizdir; kişisel anlaşmazlıklar devam eder.",
+  "ka.annehmen": "Teklifi kabul et",
+  "ka.mehrheit": "Bugün hükümete {sitze} sandalye eklenir; toplam {danach} olur. Sandalye çoğunluğu sağlanır, ancak her oylama ayrıca destek gerektirir.",
+  "ka.luecke": "Bugün hükümete {sitze} sandalye eklenir; toplam {danach} olur. Çoğunluk için hâlâ {fehlen} sandalye gerekir.",
+  "ka.ziel": "Ülke genelinde bağlayıcı hedef: {name} – {ziel}.",
+  "ka.bruch": "Dikkat: görevdeki bir parti başkanının sadakati zaten 20 altında. {datum} tarihindeki değerlendirmede bu {sitze} sandalye kaybedilebilir; {rest} kalır. O tarihten önce meclis grubuyla veya güveni artırmak için görüşmeyi değerlendirin. Koalisyon anlaşması tek başına sadakati artırmaz."
+}

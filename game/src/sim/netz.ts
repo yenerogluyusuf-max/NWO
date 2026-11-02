@@ -1,3 +1,4 @@
+import { defizitQuote } from "./staatsgeld";
 // Rechenkern des Politiknetzes (Spieldesign, Abschnitt 5).
 //
 // Jeder Knoten hat einen Wert je Provinz. Eine Verbindung gibt pro Monat einen
@@ -264,7 +265,7 @@ function inputValue(input: NonNullable<NodeSpec["input"]>, e: EconomyState, fact
     case "abwertung":
       return e.fxChange12;
     case "defizit":
-      return 50 + (e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (e.konjunkturSaldo ?? 0)) * 5;
+      return 50 + (defizitQuote(e)) * 5;
     case "schulden":
       return e.debtRatio;
   }

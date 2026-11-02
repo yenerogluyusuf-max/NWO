@@ -269,3 +269,10 @@ Anlass: Wiedereinstieg am 04./05.10.2026 mit Rückmeldungen aus dem laufenden Sp
 - **Dreisprachig:** Deutsch, Türkisch, Englisch vollständig spielbar; Sprachwechsel sichert und lädt neu; neue Texte laufen ab sofort über die Übersetzungsschicht.
 - **Nie wieder Spielstandverlust:** Die Sicherungsregeln aus dem Vorfall vom 04.10. (Höchststand, rollierende Sicherungen, kein Neubau über eine laufende App) gelten für jede Arbeit.
 - **Leitbild (05.10. abends):** „Das Spiel wird ein Democracy 4, HOI 4 und Civ 6 in der Realität“, als Realismus verpackt in ein Spiel und ohne Überkomplizierung: Democracy 4 für Haushalt, Ressorts, Rentenniveau und Wählergruppen; HOI 4 für Streitkräfte, Ausbau, Kriegsziele, Bündnisse; Civ 6 für Karte, Ressourcen, strategische Orte, Bäume und Animationen; dazu Ausbau einzelner Behörden (MIT und andere) und Infrastruktur als Investition mit Belastung.
+
+
+## O. Präzisierung 02.11.2026: Staatsgeld ist kein politisches Kapital
+
+Der Projektinhaber verlangt einen nachvollziehbaren Staatshaushalt nach dem Vorbild von Democracy: Wirtschaftswachstum schafft Mittel, Investitionen und laufende Leistungen aller Ressorts verbrauchen Geld. Die frühere Begründung einer politischen Überziehung mit staatlicher Verschuldung wird damit ersetzt. PK bleiben eine politische Handlungsressource; sie bezahlen keine Leistungen. Aufmerksamkeit und Verwaltung begrenzen die gleichzeitige Umsetzung.
+
+Lokal umgesetzt: ein gemeinsamer Finanzierungsnachweis, gespeicherte reale/nominale Geldbasis, keine pauschale Verteuerung politischer Entscheidungen durch viele Vorhaben, keine laufende PK-Gebühr für Betreiber-Garantien/Energiesubventionen/Verteidigung, ergänzte Justiz-/Diplomatieetats sowie Geldbeträge vor Entscheidungen und in gespeicherten Monatsberichten. Details und verbleibende Grenzen im [Projektbericht](VERSORGUNG_PARLAMENT_2026-10-30.md#staatsgeld-politischer-spielraum-und-verwaltung-getrennt-2-november). Eine vollständige Neukalibrierung aller Bau-, Behörden- und Verfassungspreise ist damit nicht behauptet.

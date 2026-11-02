@@ -167,9 +167,20 @@ export interface VerfalleneVorlage {
   seit: number;
   verfallen: number;
   grund: string | Msg;
+  /** Zusagenausgang zum Zeitpunkt der Ablage; spätere Entscheidungen überschreiben ihn nicht. */
+  zusage?: { id: string; status: "erfuellt" | "gebrochen" | "beratung" | "vertroestet" | "offen" | "entfallen"; faellig?: string; abstimmung?: string };
 }
 
+export interface GeseheneZusage { id: string; faellig: number; vertroestet: number }
+
 export interface MinisterFlussZustand {
+  ressortTag?:number;
+  ressortNachsorgeTag?:number;
+  ressortNachsorge?:import("./ressortnachsorge").RessortNachsorge[];
+  ressortAnliegen?:import("./ressortanliegen").RessortAnliegen[];
+  ressortBeobachtung?:Partial<Record<Amt,import("./ressortanliegen").RessortBeobachtung>>;
+  ressortFolgen?:import("./ressortanliegen").RessortFolge[];
+  ressortVorfaelle?:import("./ressortpolitik").RessortVorfall[];
   /** Kennung → was entschieden wurde (Tag, Wahl); begrenzt */
   erledigt: Record<string, { tag: number; text: string }>;
   /** Kennung → Tag der Wiedervorlage */
@@ -180,9 +191,10 @@ export interface MinisterFlussZustand {
   rueckmeldungen: Rueckmeldung[];
   /** Gelesene Rückmeldungen und abgeschlossene Aufträge (Kennungen) */
   gelesen: string[];
+  /** Begrenzter Mappenrückblick, einschließlich genauer Zusagenausgänge; Feldname bleibt für alte Spielstände erhalten. */
   verfallen: VerfalleneVorlage[];
   /** Vorlagen, die zuletzt auf dem Tisch lagen; was daraus verschwindet, ohne dass entschieden wurde, verfällt sichtbar */
-  gesehen: Record<string, { titel: string | Msg; amt: Amt; quelle: VorlagenQuelle; tag: number; thema?: string }>;
+  gesehen: Record<string, { titel: string | Msg; amt: Amt; quelle: VorlagenQuelle; tag: number; thema?: string; zusage?: GeseheneZusage }>;
 }
 
 export function neuerMinisterFluss(): MinisterFlussZustand {

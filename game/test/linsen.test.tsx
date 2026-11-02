@@ -40,7 +40,7 @@ describe("Liste der Linsen", () => {
     }
     const w = welt();
     expect(linsenVerfuegbar(w)).not.toContain("netz");
-    expect(linsenVerfuegbar(w)).toHaveLength(14);
+    expect(linsenVerfuegbar(w)).toHaveLength(15);
   });
 
   test("Die Gruppen der Tafel folgen der Reihenfolge der Konzeption (Land, Wirtschaft, Krisen, Kultur, Welt)", () => {
@@ -77,6 +77,7 @@ describe("Tasten", () => {
     expect(linseFuerTaste(w, "s")).toBe("strategie");
     expect(linseFuerTaste(w, "b")).toBe("welt");
     expect(linseFuerTaste(w, "B")).toBe("welt");
+    expect(linseFuerTaste(w, "v")).toBe("versorgung");
     expect(linseFuerTaste(w, "x")).toBeNull();
   });
 
@@ -168,14 +169,14 @@ describe("Tafel als Markup", () => {
     expect(html).not.toContain('class="linsen-tafel"');
   });
 
-  test("Offen: alle vierzehn Linsen als beschriftete Kacheln, genau eine aktiv, jede mit Taste und Streifen", () => {
+  test("Offen: alle fünfzehn Linsen als beschriftete Kacheln, genau eine aktiv, jede mit Taste und Streifen", () => {
     const html = renderToStaticMarkup(<LinsenWahl {...props} ebene="probleme" offenStart />);
     expect(html).toContain('aria-expanded="true"');
     expect(html).toContain('role="dialog"');
-    expect((html.match(/class="linsen-kachel( on)?"/g) ?? []).length).toBe(14);
+    expect((html.match(/class="linsen-kachel( on)?"/g) ?? []).length).toBe(15);
     expect((html.match(/aria-pressed="true"/g) ?? []).length).toBe(1);
-    expect((html.match(/<kbd/g) ?? []).length).toBe(14);
-    expect((html.match(/linsen-streifen/g) ?? []).length).toBe(14);
+    expect((html.match(/<kbd/g) ?? []).length).toBe(15);
+    expect((html.match(/linsen-streifen/g) ?? []).length).toBe(15);
     for (const g of LINSEN_GRUPPEN) expect(html).toContain(g.label);
     for (const l of linsenGruppen(w).flatMap((x) => x.linsen)) expect(html).toContain(l.name);
     expect(html).toContain(`Wahlausgang ${w.spiel!.start.datum.slice(0, 4)}`);

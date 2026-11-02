@@ -17,7 +17,7 @@ import { PARTEI_NAME } from "./fraktionen";
 import { parteiAchsen, spielerAchsen, uebereinstimmung } from "./linie";
 import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, hashWert, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
-import { REGELN, STIMMEN_PUFFER, bringeEin, gesetzSicht, pruefeVorhaben, setPolicy, setzeAbstimmungsHaken, type Ergebnis } from "./handeln";
+import { REGELN, STIMMEN_PUFFER, bringeEin, gesetzPrognose, pruefeVorhaben, setPolicy, setzeAbstimmungsHaken, type Ergebnis } from "./handeln";
 import { istLagerPartei } from "./kommunen";
 import { vorschlaege } from "./vorschlaege";
 import type { Gesetz } from "./spiel-typen";
@@ -299,7 +299,7 @@ export function vorhabenSicht(w: World, v: GesetzesVorhaben, akutListe?: Set<str
     ...(anlass ? { anlass } : {}),
   };
   if (imParl) {
-    const gs = gesetzSicht(w, imParl);
+    const gs = gesetzPrognose(w, imParl);
     sicht.imParlament = { gesetzId: imParl.id, tage: Math.max(0, imParl.abstimmung - w.day), urteil: gs.urteil, ja: gs.ja };
   }
   if (ruhe !== undefined && ruhe > w.day) sicht.ruhtTage = ruhe - w.day;
@@ -466,7 +466,7 @@ export function laufendeVerfahren(w: World): { parlament: { titel: string; tage:
   const z = leseZustand(w);
   return {
     parlament: sp.gesetze.filter((g) => g.vorhaben).map((g) => {
-      const gs = gesetzSicht(w, g);
+      const gs = gesetzPrognose(w, g);
       return { titel: g.name, tage: Math.max(0, g.abstimmung - w.day), urteil: gs.urteil, ja: gs.ja };
     }),
     gericht: z.pruefungen.map((p) => ({ titel: t(`gesetz.v.${p.vorhaben}.titel`), tage: Math.max(0, p.tag - w.day), p: p.p, weg: p.weg })),

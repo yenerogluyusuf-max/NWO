@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { World } from "../../sim/types";
-import { REGELN, stimmenSicht } from "../../sim/handeln";
+import { REGELN, gesetzPrognose, gesetzWeltAmVotum, stimmenSicht } from "../../sim/handeln";
+import { GesetzesPrognoseHinweis } from "./GesetzesPrognoseHinweis";
 import { VERFASSUNG_REGELN } from "../../sim/verfassung";
 import { formatDateDe } from "../../sim/dates";
 import { parlamentsLage, ROLLEN_WORT } from "./lage";
@@ -26,7 +27,6 @@ const zahl = (x: number) => x.toLocaleString("de-DE");
 
 export function ParlamentKopf({ world }: { world: World }) {
   // Das Parlament ändert sich durch Verhandlungen mitten am Tag; die Rechnung ist klein, deshalb ohne Zwischenspeicher
-  const lage = parlamentsLage(world);
   const [ansicht, setAnsicht] = useState<string>("sitze");
   const [hervor, setHervor] = useState<string | null>(null);
   const kopf = useRef<HTMLElement>(null);
@@ -41,6 +41,8 @@ export function ParlamentKopf({ world }: { world: World }) {
   const gesetze = world.spiel?.gesetze ?? [];
   // Ein Gesetz, über das schon abgestimmt wurde, fällt zurück auf die Sitzverteilung
   const g = gesetze.find((x) => x.id === ansicht) ?? null;
+  const lage = parlamentsLage(g ? gesetzWeltAmVotum(world,g) : world);
+  const prognose = g ? gesetzPrognose(world,g) : null;
   const erwartung = g !== null;
   let berechnet: { vorgabe: ReturnType<typeof vorgabeFuer>; z: ReturnType<typeof verteileErwartung>; sitze: Zustand[]; zahlen: Record<Zustand, number> } | null = null;
   if (lage && erwartung) {
@@ -51,12 +53,12 @@ export function ParlamentKopf({ world }: { world: World }) {
   if (!lage) return null;
 
   const sicht = stimmenSicht(world);
-  const ja = g && berechnet ? berechnet.vorgabe.erwartet + g.absprachen : (berechnet?.vorgabe.erwartet ?? sicht.erwartet);
+  const ja = prognose?.ja ?? sicht.erwartet;
   const fehlt = REGELN.mehrheit - (lage.lager + lage.duldung);
   const letzte = letzteAbstimmungen(world, 5);
-  const zusatz = g?.absprachen ?? 0;
-  const spanneVon = (berechnet?.vorgabe.niedrig ?? sicht.low) + zusatz;
-  const spanneBis = (berechnet?.vorgabe.hoch ?? sicht.high) + zusatz;
+  const zusatz = (g?.absprachen ?? 0) + (g?.stimmenBonus ?? 0);
+  const spanneVon = Math.max(0,Math.min(lage.gesamt,(berechnet?.vorgabe.niedrig ?? sicht.low) + zusatz));
+  const spanneBis = Math.max(0,Math.min(lage.gesamt,(berechnet?.vorgabe.hoch ?? sicht.high) + zusatz));
   const jaSumme = berechnet ? berechnet.zahlen.fest + berechnet.zahlen.zusage + berechnet.zahlen.wackelig : 0;
 
   return (
@@ -100,6 +102,7 @@ export function ParlamentKopf({ world }: { world: World }) {
         </div>
       )}
 
+      {prognose && <GesetzesPrognoseHinweis prognose={prognose}/>}
       <div className="par-spalten">
         <div className="par-links">
       <Sitzplan
@@ -135,7 +138,7 @@ export function ParlamentKopf({ world }: { world: World }) {
       {erwartung && berechnet ? (
         <ul className="par-zustaende" aria-label={t("ui2.ui.parlament.ParlamentKopf.ea62b10")}>
           {ZUSTAENDE.map((k) => (
-            <li key={k} title={ZUSTAND_HILFE[k]}>
+            <li key={k} title={k === "wackelig" ? t("gp.wackelig") : ZUSTAND_HILFE[k]}>
               <i style={{ background: zustandFarbe(FARBEN_PAPIER, k) }} />
               <span>{ZUSTAND_KURZ[k]}</span>
               <b>{zahl(berechnet.zahlen[k])}</b>
@@ -150,6 +153,7 @@ export function ParlamentKopf({ world }: { world: World }) {
           {berechnet.vorgabe.sachParteien.length > 0 ? t("ui2.ui.parlament.ParlamentKopf.4f5a383", { p0: berechnet.vorgabe.sachParteien.join(" und ") }) : ""}
         </p>
       )}
+      {erwartung && <p className="par-lesart">{t("gp.verteilung")}</p>}
 
       <div className="par-bilanz" aria-label={t("ui2.ui.parlament.ParlamentKopf.db43ef7")}>
         <div className="par-lager-balken" aria-hidden="true">

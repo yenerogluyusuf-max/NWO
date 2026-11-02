@@ -1,10 +1,12 @@
+import { Staatsfinanzen } from "./Staatsfinanzen";
+import { geldAusBip } from "../../sim/staatsgeld";
 // Der Haushalt wie in Democracy: oben die Bilanz (Einnahmen, Ausgaben, Defizit, Schulden), darunter je Ressort ein Regler mit Betrag in Lira
 // und % des BIP, vorher → nachher, einer Wirkungszeile und dem Wunsch der zuständigen Ministerin oder des Ministers. Renten mit eigenen
 // Stellgrößen (Rentenniveau, Renteneintrittsalter). Im Oktober-Fenster gehen Änderungen kostenlos in den Entwurf, sonst sind sie ein Nachtrag.
 // Tiefe aufklappbar: Vorschau mit Folgen über zwölf Monate je Ressort, der Haushaltsplan 2026 mit Quellen.
 
 import { behoerdenVerbrauch } from "../../sim/behoerden";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
 import { impulsKette } from "../../sim/folgen";
@@ -16,21 +18,16 @@ import {
   PAKETE,
   POSTEN,
   POSTEN_NACH_ID,
-  bringeHaushaltsgesetzEin,
   etatBip,
   haushaltsGesetzSicht,
-  haushaltsStimmenKaufen,
+  haushaltsEntwurfsSicht,
   haushaltsfenster,
-  impulsAusPosten,
   inSpanne,
   ministerWunsch,
   mrdJeStufe,
   paketInEntwurf,
   postenId,
-  postenVorschau,
   rentenSicht,
-  setzeEntwurf,
-  setzePosten,
   stufeVon,
   wirksamVon,
   type PostenDef,
@@ -38,15 +35,20 @@ import {
 } from "../../sim/haushalt";
 import { forschungsSicht } from "../../sim/wissensbasis";
 import { ministerFuer } from "../../sim/ministerfluss-kern";
-import { REGELN, stimmenSicht } from "../../sim/handeln";
+import { REGELN } from "../../sim/handeln";
+import { HaushaltsMehrheit } from "./HaushaltsMehrheit";
+import { HaushaltsNachbericht } from "./HaushaltsBericht";
 import { AUSGABEN_2026, PLAN_2026, STEUERN_2026 } from "../../data/haushaltsplan";
 import { t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
 import { Portraet } from "../art/Portraet";
-import { Uebersicht, UbDetailKopf, type UbKachel } from "../akte/Uebersicht";
+import { UbDetailKopf, type UbKachel } from "../akte/Uebersicht";
 import { Diagramm } from "./Diagramm";
 import { Folgen } from "./Folgen";
-import { Bestaetigung } from "./Bestaetigung";
+import { EntscheidungsKarte } from "../entscheidungen/EntscheidungsKarte";
+import { HaushaltsArbeitsplatz } from "./HaushaltsArbeitsplatz";
+import { HaushaltsEntwurf } from "./HaushaltsEntwurf";
+import { haushaltsPostenEntscheidung, fuehreHaushaltsPostenAus } from "../../sim/haushaltsentscheidung";
 import { Wirkung } from "./Wirkung";
 import { berechneReihen } from "./prognose";
 import "./wirtschaft.css";
@@ -56,7 +58,7 @@ const nf = (x: number, d = 1) => zahl(x, d);
 const mrdText = (x: number) => zahl(Math.round(x), 0);
 const bio = (mrd: number) => zahl(mrd / 1000, 1);
 const vz = (x: number) => (x > 0 ? `+${x}` : x < 0 ? `−${Math.abs(x)}` : "0");
-const mrdAusBip = (bip: number) => bip * PLAN_2026.mrdProProzentBip;
+
 
 const METRIKEN: { id: Metric; kennzahl: string }[] = [
   { id: "defizit", kennzahl: "defizit" },
@@ -77,10 +79,10 @@ function betrag(world: World, p: PostenDef, stufe: number): string {
   if (p.id === "rentenalter") return t("haushalt.ui.wert.alter", { wert: nf(rentenSicht(world, undefined, stufe).alter, 0) });
   const bip = etatBip(p, stufe);
   if (bip === undefined) {
-    const mrd = stufe * mrdJeStufe(p);
+    const mrd = stufe * mrdJeStufe(p, world);
     return stufe === 0 ? t("haushalt.ui.wert.steuer_null") : t("haushalt.ui.wert.steuer", { mrd: `${mrd > 0 ? "+" : "−"}${mrdText(Math.abs(mrd))}` });
   }
-  return t("haushalt.ui.wert.etat", { mrd: mrdText(mrdAusBip(bip)), bip: nf(bip, 1) });
+  return t("haushalt.ui.wert.etat", { mrd: mrdText(geldAusBip(world, bip)), bip: nf(bip, 1) });
 }
 
 function Minister({ world, p }: { world: World; p: PostenDef }) {
@@ -150,29 +152,32 @@ function Zeile({ world, p, aktiv, wert, plan, onWahl, children }: { world: World
 
 export function Haushalt({ world, geaendert, posten }: { world: World; geaendert: () => void; posten?: string | undefined }) {
   useSprache();
+  const rueckRef=useRef<HTMLParagraphElement>(null);
   const z = haushaltZustand(world);
   const start = posten ? postenId(posten) : null;
   const [sel, setSel] = useState<string | null>(start);
   const [entwurf, setEntwurf] = useState<number | null>(start && POSTEN_NACH_ID[start] ? inSpanne(POSTEN_NACH_ID[start]!, stufeVon(world, start) + 1) : null);
-  const [bestaetigt, setBestaetigt] = useState(false);
-  const [gesetzBestaetigt, setGesetzBestaetigt] = useState(false);
   const [rueck, setRueck] = useState<{ ok: boolean; text: string; why?: string | undefined } | null>(null);
   const [metrik, setMetrik] = useState<Metric>("defizit");
   const [reihen, setReihen] = useState<PrognoseReihe[] | null>(null);
   const [rechnet, setRechnet] = useState(false);
+  const [prognoseOffen,setPrognoseOffen]=useState(false);
   const [offen, setOffen] = useState<number | null>(null);
   const stand = Math.floor(world.day / 30);
   const p = sel ? POSTEN_NACH_ID[sel] : undefined;
-  const v = p && entwurf !== null ? postenVorschau(world, p.id, entwurf) : null;
+  const entscheidung = p && entwurf !== null ? haushaltsPostenEntscheidung(world, p.id, entwurf) : null;
+  const v = entscheidung?.vorschau;
   const fenster = haushaltsfenster(world);
   const gesetzSicht = haushaltsGesetzSicht(world);
   const entwurfEintraege = Object.entries(z.entwurf ?? {}).filter(([id, s]) => (z.stufen[id] ?? 0) !== s);
-  const stimmen = stimmenSicht(world);
+  const entwurfsSicht = haushaltsEntwurfsSicht(world);
+  const mehrheit = gesetzSicht ?? entwurfsSicht;
 
   // Die Vorschau über zwölf Monate rechnet erst, wenn der Regler kurz ruht
   useEffect(() => {
-    if (!p || entwurf === null || entwurf === stufeVon(world, p.id)) {
-      setReihen(null);
+    setReihen(null);
+    setRechnet(false);
+    if (!prognoseOffen || !p || entwurf === null || entwurf === stufeVon(world, p.id)) {
       return;
     }
     let aktiv = true;
@@ -192,23 +197,9 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
       clearTimeout(zeit);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel, entwurf, stand]);
+  }, [sel, entwurf, stand, prognoseOffen]);
 
 
-  // Die Bilanz: Haushaltsgesetz 2026 plus die eigenen Regler, Zinsen im Stand des Spiels
-  const bilanz = useMemo(() => {
-    let aus = 0;
-    let ein = 0;
-    for (const q of POSTEN) {
-      const st = z.stufen[q.id] ?? 0;
-      if (!st) continue;
-      if (q.seite === "ausgabe") aus += st * mrdJeStufe(q);
-      else ein += st * mrdJeStufe(q);
-    }
-    const zinsen = mrdAusBip(zinsausgabenJetzt(world));
-    return { ausgaben: PLAN_2026.ausgabenGesamt + aus + (zinsen - mrdAusBip(PLAN_2026.zinsenProzentBip)), einnahmen: PLAN_2026.einnahmenGesamt + ein, zinsen };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [z.stufen, stand]);
   const maxAus = Math.max(...AUSGABEN_2026.map((x) => x.mrd));
   const maxSt = Math.max(...STEUERN_2026.map((x) => x.mrd));
 
@@ -220,43 +211,34 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   function waehle(id: string, s: number) {
     setSel(id);
     setEntwurf(s);
-    setBestaetigt(false);
   }
 
   function beschliesse() {
-    if (!p || entwurf === null) return;
-    // WIR-3: Im offenen Fenster geht die Änderung kostenlos in den Entwurf, sonst ist sie ein Nachtrag
-    const res = v?.zyklus.modus === "entwurf" ? setzeEntwurf(world, p.id, entwurf) : setzePosten(world, p.id, entwurf);
+    if (!entscheidung) return;
+    const res = fuehreHaushaltsPostenAus(world, entscheidung);
     setRueck(res);
-    setBestaetigt(false);
     if (res.ok) {
       setEntwurf(null);
       setSel(null);
+      setPrognoseOffen(false);
     }
     geaendert();
+    requestAnimationFrame(()=>rueckRef.current?.focus());
   }
 
-  const vorschauBlock = p && v && entwurf !== null && entwurf !== stufeVon(world, p.id) && (
-    <div className="wi-hh-vorschau" aria-live="polite">
-      <dl className="wi-zahlen">
-        <div>
-          <dt>{t("haushalt.ui.vorschau.kapital")}</dt>
-          <dd>{v.kapital}</dd>
-        </div>
-        <div>
-          <dt>{t("haushalt.ui.vorschau.defizit")}</dt>
-          <dd>
-            {nf(v.defizitVorher, 2)} → {nf(v.defizitNachher, 2)} %
-          </dd>
-        </div>
-        <div>
-          <dt>{t("haushalt.ui.vorschau.jahr")}</dt>
-          <dd>
-            {v.impuls >= 0 ? "+" : "−"}
-            {t("haushalt.ui.vorschau.mrd", { mrd: mrdText(Math.abs(v.impuls) * PLAN_2026.mrdProProzentBip), bip: nf(Math.abs(v.impuls), 2) })}
-          </dd>
-        </div>
-      </dl>
+  const vorschauBlock = p && v && entscheidung && entwurf !== null && entwurf !== (fenster.offen ? z.entwurf?.[p.id] ?? stufeVon(world,p.id) : stufeVon(world,p.id)) && (
+    <div className="wi-hh-vorschau">
+    <EntscheidungsKarte kicker={t(entscheidung.modus === "entwurf" ? "eo.entwurf" : "eo.nachtrag")} titel={p.name} einleitung={p.wirkung}
+      fakten={[
+        {label:t("eo.kapital"),wert:t("ve.pk",{n:entscheidung.pk})},
+        {label:t("haushalt.ui.vorschau.defizit"),wert:`${nf(v.defizitVorher,2)} → ${nf(v.defizitNachher,2)} %`,hinweis:entscheidung.modus==="entwurf"?t("eo.nachAnnahme"):t("eo.sofort")},
+        {label:t("sf.finanzwirkung"),wert:t("sf.betrag",{n:nf(entscheidung.finanzMrd,1)}),hinweis:t("sf.preisHinweis")},
+        {label:t("eo.befugnis"),wert:t(entscheidung.modus==="entwurf"?"eo.votum":"eo.regierung"),hinweis:t(entscheidung.modus==="entwurf"?"eo.entwurfNur":"eo.keinVotum")},
+      ]}
+      aktion={entscheidung.modus==="entwurf"?t(entscheidung.entfernen?"eo.entwurfEntfernen":"eo.entwurfAendern"):t("haushalt.ui.knopf.nachtrag",{kapital:entscheidung.pk})}
+      gesperrt={entscheidung.grund} hinweis={v.zyklus.hinweis} onAusfuehren={beschliesse}>
+      <p>{p.name}: {betrag(world,p,stufeVon(world,p.id))} → <b>{betrag(world,p,entwurf)}</b></p>
+      <p>{entscheidung.modus==="entwurf"?t("eo.entwurfWirkung"):t("eo.nachtragFolge",{leg:nf(entscheidung.legitimitaet,2),loy:nf(entscheidung.loyalitaet,2),monate:p.reifeMonate})}</p>
       <div className="wi-verteilung">
         <span>
           <b>{t("haushalt.ui.vorschau.gewinner")}</b> {p.gewinner}
@@ -268,7 +250,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
       <p className="wi-kehrseite">
         <b>{t("haushalt.ui.vorschau.kehrseite")}</b> {p.kehrseite}
       </p>
-      <details className="hh-tiefe">
+      <details className="hh-tiefe" onToggle={e=>setPrognoseOffen(e.currentTarget.open)}>
         <summary>{t("haushalt.ui.vorschau.tiefe")}</summary>
         <Folgen titel={t("haushalt.ui.vorschau.danach")} glieder={impulsKette(v.impuls)} />
         <h4>{t("haushalt.ui.vorschau.netz")}</h4>
@@ -280,45 +262,32 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
           ))}
         </div>
         <Wirkung reihen={reihen} metriken={METRIKEN.map((m) => ({ ...m, label: KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl }))} rechnet={rechnet} />
-        <div className="wi-metriken" role="tablist" aria-label={t("haushalt.ui.vorschau.groesse")}>
+        <div className="wi-metriken" role="group" aria-label={t("haushalt.ui.vorschau.groesse")}>
           {METRIKEN.map((m) => (
-            <button key={m.id} role="tab" aria-selected={metrik === m.id} className={metrik === m.id ? "on" : ""} onClick={() => setMetrik(m.id)}>
+            <button key={m.id} type="button" aria-pressed={metrik === m.id} className={metrik === m.id ? "on" : ""} onClick={() => setMetrik(m.id)}>
               {KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl}
             </button>
           ))}
         </div>
         <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "haushalt" || m.art === "zins")} stellen={k.stellen} einheit={einheitName(k.einheit)} name={k.name} rechnet={rechnet} />
       </details>
-      <p className="wi-hinweis">{v.zyklus.hinweis}</p>
-      {!v.ok && v.grund && <p className="wi-grund">{v.grund}</p>}
-      {bestaetigt ? (
-        <Bestaetigung name={world.player?.name ?? ""} titel={v.zyklus.modus === "entwurf" ? t("haushalt.ui.bestaetigung.entwurf", { posten: p.name }) : t("haushalt.ui.bestaetigung.nachtrag", { posten: p.name })} knopf={t("haushalt.ui.knopf.beschliessen")} onJa={beschliesse} onNein={() => setBestaetigt(false)}>
-          <p>
-            {p.name}: {betrag(world, p, stufeVon(world, p.id))} → {betrag(world, p, entwurf)}.{" "}
-            {v.zyklus.modus === "entwurf" ? t("haushalt.ui.bestaetigung.entwurf_text") : t("haushalt.ui.bestaetigung.nachtrag_text", { kapital: v.kapital, vorher: nf(v.defizitVorher, 2), nachher: nf(v.defizitNachher, 2) })}
-          </p>
-        </Bestaetigung>
-      ) : (
-        <button className="wi-handlung wi-haupt" disabled={!v.ok} onClick={() => setBestaetigt(true)}>
-          {v.zyklus.modus === "entwurf" ? t("haushalt.ui.knopf.entwurf") : t("haushalt.ui.knopf.nachtrag", { kapital: v.kapital })} <span aria-hidden>→</span>
-        </button>
-      )}
-      <button className="pd-btn quiet" onClick={() => { setEntwurf(null); setBestaetigt(false); }}>
-        {t("haushalt.ui.knopf.verwerfen")}
-      </button>
+    </EntscheidungsKarte>
+      <button type="button" className="pd-btn quiet" onClick={() => {setEntwurf(null);setPrognoseOffen(false);}}>{t("haushalt.ui.knopf.verwerfen")}</button>
     </div>
   );
 
   const defizit = defizitJetzt(world);
-  const verbrauch = behoerdenVerbrauch(world);
+  const behoerdenSatz = () => {
+    const verbrauch = behoerdenVerbrauch(structuredClone(world));
 
-  const behoerdenSatz =
-    verbrauch.length === 0
+    return verbrauch.length === 0
       ? t("haushalt.ui.behoerden.keine")
       : t("haushalt.ui.behoerden.satz", {
           liste: verbrauch.map((x) => t("haushalt.ui.behoerden.posten", { posten: POSTEN_NACH_ID[x.posten]?.name ?? x.posten, etat: x.ausEtat, defizit: x.aufsDefizit > 0.0005 ? "ja" : "nein", d: x.aufsDefizit })),
         });
+  };
   const kacheln: UbKachel[] = [
+    ...(z.abschluesse?.length?[{id:"_abschluss",gruppe:t("haushalt.ui.gruppe_lage"),titel:t("hb.titel"),zeile:t("hb.kachel"),wert:String(z.abschluesse.at(-1)!.ja),wertLabel:t("gp.votum")}]:[]),
     {
       id: "_bilanz",
       gruppe: t("haushalt.ui.gruppe_lage"),
@@ -332,7 +301,10 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
       id: "_zyklus",
       gruppe: t("haushalt.ui.gruppe_lage"),
       titel: t("haushalt.ui.zyklus.kicker"),
-      zeile: fenster.offen
+      ...(mehrheit ? { wert: String(mehrheit.ja), wertLabel: t("hm.kachelStimmen", { datum:formatDateDe(mehrheit.datum) }) } : {}),
+      zeile: mehrheit
+        ? `${mehrheit.luecke ? t("gp.luecke",{n:mehrheit.luecke}) : t("gp.mehrheit")}${mehrheit.auslaufend.length ? ` ${t("hm.kachelFristen",{n:mehrheit.auslaufend.length})}` : ""}`
+        : fenster.offen
         ? t("haushalt.ui.zyklus.offen", { tage: fenster.tageRest })
         : fenster.gesetzUnterwegs && gesetzSicht
           ? t("haushalt.ui.zyklus.parlament", { tage: gesetzSicht.tageBis })
@@ -340,7 +312,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
       ...(fenster.offen
         ? { marke: { text: t("haushalt.ui.zyklus.marke_offen", { n: entwurfEintraege.length }), ton: "aktiv" as const }, ton: "aktiv" as const }
         : fenster.gesetzUnterwegs && gesetzSicht
-          ? { marke: { text: t(`gesetz.ui.urteil.${gesetzSicht.urteil === "sicher" ? "sicher" : gesetzSicht.luecke > 0 ? "verloren" : "knapp"}`), ton: gesetzSicht.urteil === "sicher" ? ("gut" as const) : ("mittel" as const) } }
+          ? { marke: { text: t(`gesetz.ui.urteil.${gesetzSicht.urteil === "sicher" ? "sicher" : gesetzSicht.luecke > 0 ? "verloren" : "knapp"}`), ton: gesetzSicht.urteil === "sicher" ? ("gut" as const) : ("mittel" as const) }, ton:gesetzSicht.urteil==="sicher"?"gut" as const:gesetzSicht.luecke>0?"schlecht" as const:"mittel" as const }
           : {}),
     },
     {
@@ -384,36 +356,11 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
       return (
         <div className="hh-im-detail">
 
-        <p className="kicker">{t("haushalt.ui.bilanz.kicker")}</p>
-        <h3>{defizit > 0 ? t("haushalt.ui.bilanz.titel_defizit", { defizit: nf(defizit, 1) }) : t("haushalt.ui.bilanz.titel_ueberschuss", { wert: nf(-defizit, 1) })}</h3>
-        <dl className="hh-bilanz-zahlen">
-          <div>
-            <dt>{t("haushalt.ui.bilanz.einnahmen")}</dt>
-            <dd>{t("haushalt.ui.bilanz.bio", { bio: bio(bilanz.einnahmen) })}</dd>
-          </div>
-          <div>
-            <dt>{t("haushalt.ui.bilanz.ausgaben")}</dt>
-            <dd>{t("haushalt.ui.bilanz.bio", { bio: bio(bilanz.ausgaben) })}</dd>
-          </div>
-          <div className={defizit > 3 ? "hh-warn" : ""}>
-            <dt>{t("haushalt.ui.bilanz.defizit")}</dt>
-            <dd>{nf(defizit, 1)} %</dd>
-          </div>
-          <div>
-            <dt>{t("haushalt.ui.bilanz.schulden")}</dt>
-            <dd>{nf(world.economy.debtRatio, 1)} %</dd>
-          </div>
-          <div>
-            <dt>{t("haushalt.ui.bilanz.zinsen")}</dt>
-            <dd>{nf(zinsausgabenJetzt(world), 1)} %</dd>
-          </div>
-        </dl>
-        <p className="wi-hinweis">
-          {t("haushalt.ui.bilanz.hinweis", { grund: nf(world.economy.deficit), regler: nf(impulsAusPosten(world)), impuls: nf(world.economy.fiscalImpulse), massnahmen: nf(world.economy.policyCost, 2), zins: nf(world.economy.zinsMehrlast ?? 0, 2) })}
-        </p>
-                <p className="wi-hinweis hh-behoerden">{behoerdenSatz}</p>
+        <Staatsfinanzen world={world} details />
+        <p className="wi-hinweis hh-behoerden">{behoerdenSatz()}</p>
         </div>
       );
+    if (id === "_abschluss") return <HaushaltsNachbericht world={world} geaendert={geaendert}/>;
     if (id === "_zyklus") return <div className="hh-im-detail">
         <p className="kicker">{t("haushalt.ui.zyklus.kicker")}</p>
         {fenster.offen ? (
@@ -445,15 +392,9 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
                 </button>
               ))}
             </div>
-            {gesetzBestaetigt ? (
-              <Bestaetigung name={world.player?.name ?? ""} titel={t("haushalt.ui.zyklus.einbringen", { jahr: String(fenster.jahr + 1) })} knopf={t("haushalt.ui.knopf.einbringen")} onJa={() => { const r = bringeHaushaltsgesetzEin(world); setRueck(r); setGesetzBestaetigt(false); geaendert(); }} onNein={() => setGesetzBestaetigt(false)}>
-                <p>{t("haushalt.ui.zyklus.einbringen_text", { n: entwurfEintraege.length, tage: REGELN.tageBisAbstimmung, erwartet: stimmen.erwartet, noetig: REGELN.mehrheit })}</p>
-              </Bestaetigung>
-            ) : (
-              <button className="wi-handlung wi-haupt" disabled={entwurfEintraege.length === 0} onClick={() => setGesetzBestaetigt(true)}>
-                {t("haushalt.ui.zyklus.einbringen", { jahr: String(fenster.jahr + 1) })} <span aria-hidden>→</span>
-              </button>
-            )}
+            <p className="wi-hinweis">{t("eo.paketHinweis")}</p>
+            <HaushaltsEntwurf world={world} onErgebnis={r=>{setRueck(r);geaendert();requestAnimationFrame(()=>rueckRef.current?.focus());}}/>
+
           </>
         ) : fenster.gesetzUnterwegs && gesetzSicht ? (
           <>
@@ -462,11 +403,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
               {t("haushalt.ui.zyklus.parlament_text", { ja: gesetzSicht.ja, noetig: REGELN.mehrheit })}{" "}
               {gesetzSicht.urteil === "sicher" ? t("haushalt.ui.zyklus.sicher") : gesetzSicht.luecke > 0 ? t("haushalt.ui.zyklus.luecke", { n: gesetzSicht.luecke }) : t("haushalt.ui.zyklus.knapp")}
             </p>
-            {gesetzSicht.noetig > 0 && (
-              <button className="wi-handlung" disabled={!gesetzSicht.bezahlbar} title={gesetzSicht.bezahlbar ? "" : t("haushalt.ui.zyklus.kein_kapital")} onClick={() => { const r = haushaltsStimmenKaufen(world, gesetzSicht.noetig); setRueck(r); geaendert(); }}>
-                {t("haushalt.ui.zyklus.sichern", { n: gesetzSicht.noetig, kosten: gesetzSicht.kosten })} <span aria-hidden>→</span>
-              </button>
-            )}
+            <HaushaltsMehrheit world={world} geaendert={geaendert}/>
           </>
         ) : (
           <>
@@ -475,6 +412,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
               {t("haushalt.ui.zyklus.geschlossen_text", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
               {fenster.letztesErgebnis && <> {t(`haushalt.ui.zyklus.ergebnis.${fenster.letztesErgebnis}`)}</>}
             </p>
+            <HaushaltsNachbericht world={world} geaendert={geaendert}/>
           </>
         )}
       </div>;
@@ -489,7 +427,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             <h4>{t("haushalt.ui.plan.ausgaben")}</h4>
             <ul className="wi-plan-liste">
               {AUSGABEN_2026.map((x) => {
-                const live = x.id === "zinsen" ? bilanz.zinsen - x.mrd : 0;
+                const live = 0; // Der historische Plan bleibt eine unveränderte Referenz.
                 return (
                   <li key={x.id} title={x.text}>
                     <span className="wi-plan-name">{x.name}</span>
@@ -556,26 +494,24 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
     return (
       <div className="hh-im-detail">
         <UbDetailKopf bild={<Minister world={world} p={q} />} titel={q.name} unter={t(`haushalt.gruppe.${q.gruppe}`)} />
-        {q.gruppe === "renten" && <p className="hh-text">{t("haushalt.ui.renten.etat", { etat: nf(rentenSicht(world).etat, 1), mrd: mrdText(mrdAusBip(rentenSicht(world).etat)) })}</p>}
+        {q.gruppe === "renten" && <p className="hh-text">{t("haushalt.ui.renten.etat", { etat: nf(rentenSicht(world).etat, 1), mrd: mrdText(geldAusBip(world, rentenSicht(world).etat)) })}</p>}
         <Zeile world={world} p={q} aktiv={aktiv} wert={aktiv && entwurf !== null ? entwurf : plan} plan={plan} onWahl={(s) => waehle(q.id, s)}>
           {aktiv && vorschauBlock}
         </Zeile>
       </div>
     );
   };
-  const [blick, setBlick] = useState<string | null>(start);
+  const [blick, setBlick] = useState<string>(start ?? "_zyklus");
   return (
     <div className="wi-hh">
       {rueck && (
-        <p className={`rueckmeldung ${rueck.ok ? "ok" : "nein"} wi-rueck`} role="status">
+        <p className={`rueckmeldung ${rueck.ok ? "ok" : "nein"} wi-rueck`} role="status" ref={rueckRef} tabIndex={-1}>
           {rueck.text}
           {rueck.why && <em> {rueck.why}</em>}
         </p>
       )}
-      <Uebersicht
-        aria={t("haushalt.ui.ressorts.titel")}
-        dicht
-        sortiert={false}
+      {blick !== "_bilanz" && <Staatsfinanzen world={world} />}
+      <HaushaltsArbeitsplatz
         lage={
           <>
             <b>{defizit > 0 ? t("haushalt.ui.bilanz.titel_defizit", { defizit: nf(defizit, 1) }) : t("haushalt.ui.bilanz.titel_ueberschuss", { wert: nf(-defizit, 1) })}</b>{" "}
@@ -583,7 +519,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
           </>
         }
         zahlen={[
-          { label: t("haushalt.ui.bilanz.defizit"), wert: `${nf(defizit, 1)} %`, ton: defizit > 3 ? "schlecht" : "neutral" },
+          { label: t("haushalt.ui.bilanz.defizit"), wert: `${nf(defizit, 1)} %` },
           { label: t("haushalt.ui.bilanz.schulden"), wert: `${nf(world.economy.debtRatio, 1)} %` },
         ]}
         kacheln={kacheln}
@@ -594,11 +530,12 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             if (sel !== id) {
               setSel(id);
               setEntwurf(null);
-              setBestaetigt(false);
+              setPrognoseOffen(false);
             }
           } else {
             setSel(null);
             setEntwurf(null);
+            setPrognoseOffen(false);
           }
         }}
         detail={detail}

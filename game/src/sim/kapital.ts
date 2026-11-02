@@ -1,4 +1,4 @@
-// Politisches Kapital kann bis zu einer Grenze überzogen werden: Auch ein Staat gibt mehr aus, als er hat, und zahlt später zurück.
+// Politisches Kapital kann bis zu einer Grenze überzogen werden: Es misst politischen Spielraum, niemals Staatsgeld oder Staatsverschuldung.
 // Wer im Minus handelt, nimmt Rückhalt auf Pump: Jeden Monat unter null sinken Legitimität und Vertrauen, und die Gutschrift geht
 // zuerst in die Rückzahlung. Die Überziehung ist begrenzt, damit Kapital nie beliebig negativ wird.
 

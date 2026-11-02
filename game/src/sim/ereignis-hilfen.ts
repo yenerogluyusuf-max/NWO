@@ -1,5 +1,6 @@
 // Gemeinsame Typen und Hilfen aller Ereignisvorlagen (Vorlagen liegen in ereignisse*.ts).
 
+import { festeZusage } from "./zusagenfolgen";
 import { NET } from "./modell";
 import { PROVINCES, nationalAverage } from "./netz";
 import { PROVINZEN } from "./regional";
@@ -20,6 +21,14 @@ export interface Option {
   pk: number;
   /** Was die Oberfläche als Preis zeigt, wenn der Preis erst später anfällt (etwa der Preis eines Gesetzes) */
   anzeigePk?: number;
+  /** Inhaltliches Hindernis: sichtbar erklären und vor Ausführung erneut prüfen. */
+  sperre?: string;
+  /** Konkrete Bedingungen und Risiken zusätzlich zu Preis und Kurzbeschreibung. */
+  bedingungen?: string[];
+  warnung?: string;
+  /** Bereits mit der echten Handlung auf einer Kopie berechnete Sofortfolgen. */
+  sofortfolgen?: string[];
+  aufmerksamkeit?: number;
   /** Führt aus und liefert den Ausgang als Satz für Protokoll und Chronik */
   wirkung: (w: World, ev: OffenesEreignis, rng: Rng) => string;
 }
@@ -140,7 +149,7 @@ export function beschr(pk: number, bipProzent: number, folge: string): string {
 
 /** Eine Zusage, die später fällig wird und dann als Ereignis eingefordert wird. */
 export function zusageAnlegen(w: World, z: { von: string; text: string; tage: number; massnahme?: string; msg?: Msg }): void {
-  w.spiel?.zusagen.push({
+  w.spiel?.zusagen.push(festeZusage(w, {
     id: `z-${z.von}-${w.day}-${w.spiel.zusagen.length}`,
     von: z.von,
     text: z.text,
@@ -149,5 +158,5 @@ export function zusageAnlegen(w: World, z: { von: string; text: string; tage: nu
     ...(z.massnahme ? { massnahme: z.massnahme, richtung: 1 } : {}),
     erfuellt: false,
     gebrochen: false,
-  });
+  }));
 }

@@ -203,6 +203,20 @@
 .dossier .fraktion-will { font: 17px/1.45 var(--serif); }
 .dossier .fraktion-will b { margin-right: 10px; font: 700 12px var(--sans); letter-spacing: 0.14em; color: var(--pd-soft); }
 .dossier .fraktion-aktionen { gap: 10px; margin-top: 2px; }
+.dossier .fraktion{container:fraktionskarte / inline-size;min-width:0}
+.fraktion-abkommen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:5px;overflow-wrap:anywhere}
+.fraktion-abkommen>article{display:flex;flex-direction:column;gap:9px;padding:14px;border:1px solid #ccd5c0;border-radius:9px;background:#f6f7ed;color:#304a3b;min-width:0}
+.fraktion-abkommen h4{margin:0;font:600 21px/1.2 var(--display,Georgia,serif)}.fraktion-abkommen p{margin:0;font:12px/1.6 var(--sans,sans-serif)}
+.fraktion-abkommen .fa-preis{font-weight:600;color:#5e724d;font-variant-numeric:tabular-nums}.fraktion-abkommen .fa-hinweis{font-size:11px;color:#69795f}
+.fraktion-abkommen>.fa-hinweis{grid-column:1/-1}
+.fa-vorsitz{padding-top:10px;border-top:1px solid #d7decc;font:12px/1.6 var(--sans,sans-serif)}.fa-vorsitz p{margin-top:5px}
+.fa-ziel{grid-column:1/-1;padding:12px;border-left:3px solid #53765d;background:#eaf0e3;border-radius:0 6px 6px 0;font:12px/1.5 var(--sans,sans-serif)}
+.fa-ziel dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:8px 0}
+.fa-ziel dt{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#5e724d}.fa-ziel dd{margin:3px 0;font-weight:600}
+@container fraktionskarte (max-width:340px){.fa-ziel dl{grid-template-columns:minmax(0,1fr)}}
+.fraktion-abkommen .fa-warnung{background:#fff0df;border-left:3px solid #b2754b;padding:8px 10px;color:#855334;font-size:11px}
+.fraktion-abkommen .pd-btn{margin-top:auto;white-space:normal;justify-content:center}.fraktion-abkommen .pd-btn:focus-visible{outline:3px solid #b78a39;outline-offset:3px}
+@container fraktionskarte (max-width:520px){.fraktion-abkommen{grid-template-columns:minmax(0,1fr)}}
 
 .dossier .gesetz-liste { gap: 18px; margin: 0; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
 .dossier .gesetz-liste > li { display: grid; gap: 12px; align-content: start; padding: 18px 20px 16px; border: 1px solid var(--pd-line); border-left: 4px solid var(--gold-3); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }

@@ -24,6 +24,8 @@ import {
 } from "../src/sim/diplomatie";
 import "../src/sim/welt-ereignisse";
 import { platzhalter } from "../src/i18n";
+import { gueterMonat, gueterZustand } from "../src/sim/gueter";
+import type { KriegVorgang } from "../src/sim/krieg-typen";
 import type { World } from "../src/sim/types";
 
 function welt(seed = 6): World {
@@ -145,6 +147,9 @@ describe("Monatsschritt", () => {
     a.energie.anteile = { RUS: 70, AZE: 5, LNG: 25, IRN: 0, HEIM: 0 };
     weltZustand(w)["RUS"]!.konflikt = 100;
     w.date = "2029-10-05";
+    w.spiel!.kriege = [{ id: "lieferausfall", land: "RUS", phase: "krieg" } as KriegVorgang];
+    gueterZustand(w).lager.erdgas = 0;
+    gueterMonat(w);
     monat(w);
     expect(a.energie.versorgung).toBeLessThan(45);
     expect(w.spiel!.hinweise.some((h) => h.id.startsWith("aussen-winter-warn"))).toBe(true);

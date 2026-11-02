@@ -114,7 +114,7 @@ describe("Bilanz", () => {
     expect(gueterZustand(w).verlauf).toHaveLength(2);
   });
 
-  test("Krieg mit Russland: Getreideeinfuhr fällt aus, das Lager deckt zuerst, danach steigen die Lebensmittelpreise", () => {
+  test("Krieg mit Russland: Reserven puffern, danach wird zuerst die Ausfuhr gekürzt", () => {
     const w = welt();
     monat(w);
     krieg(w, "RUS");
@@ -124,42 +124,37 @@ describe("Bilanz", () => {
     expect(sicht(w, "getreide").lager).toBeLessThan((GUT_NACH_ID.get("getreide")!.verbrauch / 12) * 3);
     gueterZustand(w).lager.getreide = 0;
     monat(w);
-    expect(sicht(w, "getreide").fehlProzent).toBeGreaterThan(0);
-    expect(nationalAverage(NET, w.net, "lebensmittelpreise")).toBeGreaterThan(preis0);
-    expect(sicht(w, "getreide").satz).toMatch(/fehlen/);
+    const f = gueterZustand(w).bilanz!.waren.getreide!;
+    expect(f.exportiert).toBeLessThan(f.exportSoll);
+    expect(f.geliefert).toBeCloseTo(f.bedarf);
+    expect(nationalAverage(NET, w.net, "lebensmittelpreise")).toBeCloseTo(preis0);
   });
 
-  test("Hält ein Ausfall an, leitet der Handel binnen eines Jahres bis auf ein Drittel um", () => {
+  test("Ein Ausfall verschwindet ohne neue Lieferverträge nicht von selbst", () => {
     const w = welt();
     monat(w);
     krieg(w, "RUS");
     const anfang = sicht(w, "getreide").zusatz;
     for (let i = 0; i < 13; i++) monat(w);
-    expect(sicht(w, "getreide").zusatz).toBeCloseTo(anfang / 3, 5);
+    expect(sicht(w, "getreide").zusatz).toBeCloseTo(anfang, 5);
   });
 
-  test("Sanktionen und Hormus treffen die Einfuhr; Erdgas wirkt nur über das Außenmodul", () => {
+  test("Hormus trifft Energie; CAATSA trifft Elektronik, nicht die Gasversorgung", () => {
     const w = welt();
     const a = aussenZustand(w);
     a.energie.hormus = "offen";
     const oel0 = sicht(w, "erdoel").blockiert;
     a.energie.hormus = "geschlossen";
     expect(sicht(w, "erdoel").blockiert).toBeGreaterThan(oel0);
+    const gas = sicht(w, "erdgas").blockiert;
     a.sanktionen.push({ id: "caatsa", von: "USA", seit: w.day });
-    expect(sicht(w, "erdgas").blockiert).toBeGreaterThanOrEqual(0.16);
-    // Erdgas allein (Lager leer) verschiebt kein Netz
-    const w2 = welt();
-    monat(w2);
-    aussenZustand(w2).sanktionen.push({ id: "caatsa", von: "USA", seit: w2.day });
-    for (const g of GUETER) gueterZustand(w2).lager[g.id] = g.id === "erdgas" ? 0 : 1e9;
-    const vorher = Float64Array.from(w2.net.values);
-    monat(w2);
-    expect(Array.from(w2.net.values)).toEqual(Array.from(vorher));
+    expect(sicht(w, "erdgas").blockiert).toBeCloseTo(gas);
+    expect(sicht(w, "elektronik").blockiert).toBeGreaterThan(0);
   });
 });
 
 describe("Instrumente", () => {
-  test("Reserve anlegen kostet Kapital und BIP und füllt das Lager um einen Monatsbedarf", () => {
+  test("Reserveauftrag kostet Kapital und BIP; die Ware wird erst später geliefert", () => {
     const w = welt();
     const kap = w.spiel!.kapital;
     const schuld = w.economy.debtRatio;
@@ -168,7 +163,9 @@ describe("Instrumente", () => {
     expect(r.ok).toBe(true);
     expect(w.spiel!.kapital).toBeLessThan(kap);
     expect(w.economy.debtRatio).toBeGreaterThan(schuld);
-    expect(sicht(w, "getreide").lager).toBeCloseTo(lager + GUT_NACH_ID.get("getreide")!.verbrauch / 12, 5);
+    expect(sicht(w, "getreide").lager).toBeCloseTo(lager, 5);
+    expect(gueterZustand(w).auftraege?.[0]?.rest).toBeCloseTo(GUT_NACH_ID.get("getreide")!.verbrauch / 12);
+    expect(gueterZustand(w).auftraege?.[0]?.abTag).toBe(w.day + 30);
   });
 
   test("Ausfuhrstopp senkt Ausfuhr auf null und lässt sich aufheben; Quellenwechsel halbiert den Ausfall", () => {
@@ -180,6 +177,8 @@ describe("Instrumente", () => {
     krieg(w, "RUS");
     const b = sicht(w, "getreide").blockiert;
     expect(fuehreGutInstrumentAus(w, "getreide", "quelle").ok).toBe(true);
+    expect(sicht(w, "getreide").blockiert).toBeCloseTo(b, 5);
+    w.day += 30;
     expect(sicht(w, "getreide").blockiert).toBeCloseTo(b / 2, 5);
     expect(gutInstrumente(w, "getreide").some((i) => i.id === "quelle")).toBe(false);
   });
