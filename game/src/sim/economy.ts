@@ -46,20 +46,9 @@ export const PARAMS = {
   longRunTarget: 5,
   /** Monatliche Annäherung der Zwischenziele an das langfristige Ziel (ergibt etwa 24, 15, 9, 5) */
   targetGlide: 0.04,
-  /**
-   * ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
-   * lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
-   * Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
-   * Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
-   * Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
-   */
-  /**
-   * ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
-   * lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
-   * Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
-   * Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
-   * Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
-   */
+  /** Zusätzlicher laufender Finanzierungsbedarf aus Reformen und Haushalt nach Gegenfinanzierung.
+   * Spielparameter: 130 Basispunkte je BIP-Punkt oberhalb von 2. Der Grundhaushalt
+   * und Zinslasten werden nicht erneut als zusätzlicher Impuls angerechnet. */
   politiklastAufRisiko: 130,
   // WIR-2 (sim/devisen.ts): Bestands-Komponenten der Devisen-Lage. Alle vier wirken nur, wenn die
   // Devisen-Felder des EconomyState gefüllt sind; Lernfall-Replays (ohne Felder) bleiben unverändert.
@@ -112,6 +101,10 @@ export function realRate(e: EconomyState): number {
   return e.policyRate - e.expectedInflation;
 }
 
+/** Zusätzlicher laufender Primärbedarf: Reformkosten plus beschlossene Etat-/Steueränderungen.
+ * Zinsen und konjunkturelle Stabilisatoren werden nicht nochmals als neue Ausgabenpolitik bestraft. */
+export const finanzierungsMehrbedarf = (e: EconomyState): number => e.policyCost + e.fiscalImpulse;
+
 /** Z4: tägliche Veränderung des Wechselkurses (Anteil, z. B. 0,001 = 0,1 %). */
 export function dailyDepreciation(e: EconomyState, rng: Rng): number {
   // Kapitalströme preisen die erwartete Inflationsdifferenz, nicht den rückblickenden
@@ -142,7 +135,7 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
     200 * (1 - e.credibility) +
     // ZEI-4 (Spielparameter): Wer dauerhaft über die Verhältnisse ausgibt, zahlt einen Nachhaltigkeitsaufschlag,
     // auch wenn die Schuldenquote (Z7) bei hoher Inflation kaum steigt — die Märkte sehen die Politiklast.
-    PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 2) +
+    PARAMS.politiklastAufRisiko * Math.max(0, finanzierungsMehrbedarf(e) - 2) +
     // WIR-2: Die Märkte preisen den Reservenbestand (0, wenn keine Devisen-Lage geführt wird;
     // adressiert KALIBRIERUNG_LOG §6.5 — der CDS hing 2024 strukturell zu hoch, weil Z8 keine Bestände kannte).
     PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0) +
@@ -196,10 +189,10 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   const r = realRate(e);
   if (r > 1 && e.inflation < previousInflation) e.credibility += 0.01;
   if (r < 0) e.credibility -= 0.012;
-  // Z3/ZEI-4 (Fiskaldominanz): Dauerhafte Politiklast über etwa 2 % des BIP untergräbt die
-  // Glaubwürdigkeit auch bei straffer Bank — die Märkte fürchten, die Regierung lasse sich
-  // ihre Defizite eines Tages von der Bank finanzieren. Wirkt nur mit Politiknetz (policyCost).
-  if (e.policyCost > 1.75) e.credibility -= 0.045 * Math.min(2.5, e.policyCost - 1.75);
+  // Z3/ZEI-4: Ungedeckter laufender Mehrbedarf schwächt die Glaubwürdigkeit auch bei
+  // straffer Bank. Gegenfinanzierung aus dem Haushalt zählt, bloße Ausgabenziele nicht.
+  const mehrbedarf = finanzierungsMehrbedarf(e);
+  if (mehrbedarf > 1.75) e.credibility -= 0.045 * Math.min(2.5, mehrbedarf - 1.75);
   e.credibility = clamp(e.credibility, 0.05, 0.95);
 
   // Wachstum zum Vorjahr aus der Veränderung der Auslastung
@@ -235,12 +228,14 @@ export function ppkZiel(e: EconomyState, stance: GovernorStance): number {
 
 /**
  * Reaktionsregel des Geldpolitischen Ausschusses (angelehnt an Taylor 1993): Die Bank geht die halbe Strecke zum Zielzins, höchstens
- * fünf Punkte je Sitzung. `druck` ist die Verschiebung des Beschlusses in Prozentpunkten durch politischen Einfluss (Zentralbank-Modul);
+ * fünf Punkte je Sitzung im Normalfall. Bei stark negativem Realzins kann eine regelgebundene Führung
+ * bis zu 12,5 Punkte aufholen. Senkungen bleiben auf fünf Punkte begrenzt. Spielparameter, keine Prognose realer Banken.
+ * `druck` ist die Verschiebung des Beschlusses in Prozentpunkten durch politischen Einfluss (Zentralbank-Modul);
  * er kommt zur Regel hinzu und darf über die Höchstschrittweite hinausgehen. Ohne Einfluss bleibt es die reine Regel.
  */
 export function ppkDecision(e: EconomyState, stance: GovernorStance, druck = 0): { newRate: number; why: string; target: number } {
   const target = ppkZiel(e, stance);
-  const step = clamp((target - e.policyRate) * 0.5, -5, 5) + druck;
+  const step = clamp((target - e.policyRate) * 0.5, -5, ppkSchrittweite(e, stance)) + druck;
   const newRate = Math.max(0, Math.round((e.policyRate + step) * 2) / 2);
 
   let why: string;
@@ -249,6 +244,11 @@ export function ppkDecision(e: EconomyState, stance: GovernorStance, druck = 0):
   else if (newRate < e.policyRate) why = t("sim2.sim.economy.484e1fd");
   else why = t("sim2.sim.economy.9401f8e");
   return { newRate, why, target };
+}
+
+/** Aufholen einer stark hinter den Erwartungen liegenden Verzinsung; kein sprunghafter Inflationsschwellenwert. */
+export function ppkSchrittweite(e: EconomyState, stance: GovernorStance): number {
+  return stance === "gefuegig" ? 5 : 5 + Math.round(clamp((-realRate(e) - 15) / 3, 0, 7.5) * 2) / 2;
 }
 
 export function clamp(x: number, min: number, max: number): number {

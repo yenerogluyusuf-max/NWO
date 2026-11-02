@@ -196,18 +196,23 @@ export interface VerwaltungBilanz {
   bau: number;
   unterhalt: number;
   netto: number;
+  personal: number;
 }
 
 /** Verwaltungskraft: Vorrat und monatliche Bilanz. */
 export function verwaltungBilanz(w: World): VerwaltungBilanz {
   const z = reichZustand(w);
   let einkommen = 18 + 0.05 * level(w, "m_verwaltungsdigital");
+  // Bereits im Haushalt bezahlt. Nur gereifte Personalmittel schaffen zusätzliche Bearbeitungskapazität.
+  const h = w.spiel?.wirtschaft?.haushalt;
+  const personal = einkommen * 0.05 * clamp((h?.wirksam ?? h?.stufen)?.personal ?? 0, -4, 4);
+  einkommen += personal;
   for (const id of Object.keys(z.bestand)) einkommen += vorhabenDef(id)?.kapazitaet?.verwaltung ?? 0;
   let bau = 0;
   for (const l of z.laufend) if (!l.pausiert) bau += vorhabenDef(l.id)?.kosten.verwaltung ?? 0;
   let unterhalt = 0;
   for (const id of Object.keys(z.bestand)) unterhalt += vorhabenDef(id)?.unterhalt ?? 0;
-  return { vorrat: z.verwaltung, einkommen, bau, unterhalt, netto: einkommen - bau - unterhalt };
+  return { vorrat: z.verwaltung, einkommen, bau, unterhalt, netto: einkommen - bau - unterhalt, personal };
 }
 
 /** Mittlerer Erhaltungszustand aller Stätten, Welterbe doppelt gewichtet. */
@@ -364,6 +369,10 @@ export function vorhabenSicht(w: World, id: string): VorhabenSicht | null {
   return { ...basis, status: "verfuegbar", fortschritt: 0 };
 }
 
+/** Verwaltung bremst die verfügbare Leistung, nicht den Restauftrag. Sonst dauert der letzte Punkt beliebig lange. */
+export const monatsBauleistung = (rate: number, kapazitaet: number, rest: number, faktor: number): number =>
+  Math.min(Math.max(0, rate) * faktor, Math.max(0, kapazitaet) * faktor, Math.max(0, rest));
+
 /** Wie viele Baupunkte je Monat jedes laufende Vorhaben bei der jetzigen Reihenfolge und Kapazität bekommt. */
 export function bauplan(w: World): Record<string, number> {
   const z = reichZustand(w);
@@ -378,9 +387,9 @@ export function bauplan(w: World): Record<string, number> {
       continue;
     }
     const rest = Math.max(0, laufBau(l, v) - l.fortschritt);
-    const aufnahme = Math.min((laufBau(l, v) / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id), cap, rest);
-    out[l.id] = aufnahme * verzug;
-    cap -= aufnahme;
+    const aufnahme = monatsBauleistung((laufBau(l, v) / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id), cap, rest, verzug);
+    out[l.id] = aufnahme;
+    cap -= aufnahme / verzug;
   }
   return out;
 }
@@ -878,7 +887,7 @@ export function warteschlange(w: World): SchlangeEintrag[] {
       if (rest <= 0) continue;
       allesFertig = false;
       if ((vorlauf.get(l.id) ?? 0) >= m) continue; // die Vergabephase läuft noch
-      const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * tempo.get(l.id)!, frei, rest) * verzug;
+      const aufnahme = monatsBauleistung(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * tempo.get(l.id)!, frei, rest, verzug);
       if (aufnahme <= 0) continue;
       if (startIn[l.id] === undefined) startIn[l.id] = m - 1;
       rest -= aufnahme;
@@ -1029,7 +1038,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
     const rest = Math.max(0, bau - l.fortschritt);
     // Knoten des Wissensbaums: Forschungsetat, Bildung (Innovationsgrenze), Abwanderung, Schwerpunkt, Lizenz und Träger ändern das Tempo
     const monatsMax = (bau / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id);
-    const aufnahme = Math.min(monatsMax, cap, rest) * verzug;
+    const aufnahme = monatsBauleistung(monatsMax, cap, rest, verzug);
     l.fortschritt += aufnahme;
     cap -= aufnahme / verzug;
     genutzt += aufnahme;

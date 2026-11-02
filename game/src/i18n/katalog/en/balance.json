@@ -1,0 +1,14 @@
+{
+  "balance.finanzierung": "Additional funding requirement",
+  "balance.finanzierungRegel": "Reform costs plus the fiscal impulse after funding offsets: 130 basis points for each additional GDP point above 2. Interest and the base budget are not counted again here.",
+  "balance.fiskalstand": "Reforms and the budget together require an additional {wert}% of GDP per year. Taxes and savings count as funding offsets. This is not the total budget deficit.",
+  "balance.zinsschritt": "Catch-up phase: The bank can currently raise rates by up to {wert} percentage points per meeting because rates are far below inflation expectations. Higher rates take time to work; credit, investment and employment may suffer first.",
+  "balance.bautitel": "How to speed up construction",
+  "balance.baulage": "Administration: {vorrat} points available · monthly balance {saldo}. An exhausted reserve halves construction output. The balance is applied before the next construction step.",
+  "balance.personal": "Already included in monthly administrative capacity: {wert} points from the staffing budget already in effect.",
+  "balance.baupause": "Defer competing projects: The construction queue allows pauses with no new political-capital charge. Progress is preserved; paused projects deliver their benefits later.",
+  "balance.bauprioritaet": "Move a factory forward: 10 administration points per position. Other projects wait longer; this does not increase an exhausted administration’s capacity.",
+  "balance.baupersonal": "Increase staffing: Each budget step costs 0.4% of GDP per year and raises base administrative capacity by 5% after implementation begins. It needs funding and political approval. Research, education and digital administration help over the longer term.",
+  "balance.knappUnter": "just below {wert}",
+  "balance.knappUeber": "just above {wert}"
+}

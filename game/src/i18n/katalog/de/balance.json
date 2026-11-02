@@ -1,0 +1,14 @@
+{
+  "balance.finanzierung": "Zusätzlicher Finanzierungsbedarf",
+  "balance.finanzierungRegel": "Reformkosten plus Haushaltsimpuls nach Gegenfinanzierung: 130 Basispunkte je zusätzlichem BIP-Punkt über 2. Zinsen und Grundhaushalt werden hier nicht nochmals berechnet.",
+  "balance.fiskalstand": "Reformen und Haushalt benötigen zusammen zusätzlich {wert} % des BIP pro Jahr. Steuern und Einsparungen zählen zur Gegenfinanzierung. Dies ist nicht das gesamte Haushaltsdefizit.",
+  "balance.zinsschritt": "Aufholphase: Die Bank kann derzeit um bis zu {wert} Prozentpunkte je Sitzung erhöhen, weil der Leitzins weit unter den Inflationserwartungen liegt. Höhere Zinsen wirken verzögert; Kredite, Investitionen und Beschäftigung können zunächst leiden.",
+  "balance.bautitel": "Was den Bau beschleunigt",
+  "balance.baulage": "Verwaltung: {vorrat} Punkte verfügbar · monatliche Bilanz {saldo}. Bei erschöpftem Vorrat halbiert sich die Bauleistung. Die Bilanz wird vor dem nächsten Bauschritt gebucht.",
+  "balance.personal": "Im monatlichen Verwaltungszufluss enthalten: {wert} Punkte aus dem bereits wirksamen Personaletat.",
+  "balance.baupause": "Parallelprojekte zurückstellen: Die Baureihenfolge erlaubt Pausen ohne neuen Kapitalpreis. Fortschritt bleibt erhalten; die pausierten Vorhaben liefern ihre Wirkung entsprechend später.",
+  "balance.bauprioritaet": "Ein Werk vorziehen: 10 Verwaltungspunkte je Platz nach vorn. Andere Vorhaben warten länger; eine erschöpfte Verwaltung wird dadurch nicht leistungsfähiger.",
+  "balance.baupersonal": "Personaletat stärken: Jede Stufe kostet jährlich 0,4 % des BIP und erhöht nach Anlauf die Grundkapazität der Verwaltung um 5 %. Der Haushalt muss finanziert und politisch beschlossen werden. Forschung, Bildung und digitale Verwaltung helfen auf längere Sicht.",
+  "balance.knappUnter": "knapp unter {wert}",
+  "balance.knappUeber": "knapp über {wert}"
+}

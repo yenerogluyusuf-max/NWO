@@ -10,7 +10,7 @@ import { fraktionsUebersicht, verhandle } from '../src/sim/verhandeln';
 import { haushaltsfenster, setzeEntwurf, bringeHaushaltsgesetzEin, setzePosten } from '../src/sim/haushalt';
 import { ressortAntwortPlan, beantworteRessortAnliegen } from '../src/sim/ressortanliegen';
 import { fuehreAus, infrastrukturBitte, type InfraAktion } from '../src/sim/infrastruktur';
-import { verwaltungBilanz } from '../src/sim/reich';
+import { verwaltungBilanz, bauKapazitaet } from '../src/sim/reich';
 import { weltZustand } from '../src/sim/laender';
 import { kriege, kriegMonat, handlungenFuer, fuehreKriegHandlungAus } from '../src/sim/krieg';
 import { zivileVersorgungsDeckung } from '../src/sim/versorgungspolitik';
@@ -36,6 +36,8 @@ export function messung(w:World) {
  const f=staatsfinanzen(w),e=w.economy,b=w.spiel?.gueter?.bilanz;
  return {tag:w.day,datum:w.date,bip:f.bip,realBip:bipMrd(w,true),schulden:f.schuldenMrd,kasse:f.kasseMrd,quote:e.debtRatio,defizit:defizitJetzt(w),zins:e.zinsMehrlast,
   inflation:e.inflation,wachstum:e.growth,arbeitslosigkeit:e.unemployment,kurs:e.usdTry,reserven:e.reservenNettoUsdMrd,brutto:e.reservenBruttoUsdMrd,
+  geldpolitik:{zins:e.policyRate,erwartung:e.expectedInflation,glaubwuerdigkeit:e.credibility,produktionsluecke:e.outputGap,politikkosten:e.policyCost,haushaltsimpuls:e.fiscalImpulse},
+  verwaltung:verwaltungBilanz(w),baukapazitaet:bauKapazitaet(w),
   einnahmen:f.einnahmenMrd,ausgaben:f.ausgabenMrd,kapital:w.spiel!.kapital,zustimmung:w.spiel!.umfrage.zustimmung,
   versorgung:b?zivileVersorgungsDeckung(b):null,front:militaerVersorgung(w).treibstoff,
   lager:[...w.spiel!.lager],regierungssitze:w.spiel!.lager.reduce((s,p)=>s+(w.parliament?.seats[p]??0),0),
@@ -52,7 +54,8 @@ export function starteSzenario(szenario:Szenario,seed:number):World {
  if(['inflation','stabilisierung'].includes(szenario)) Object.assign(w.economy,{inflation:90,expectedInflation:85,credibility:0.25});
  return w;
 }
-export function regiere(w:World,szenario:Szenario,aktionen:Aktion[]):void {
+export interface RegierungsPlan { agenda?:[string,number][]; budgets?:Record<string,number>; minister?:boolean; neueInfrastruktur?:boolean; ereignisAntworten?:Record<string,string> }
+export function regiere(w:World,szenario:Szenario,aktionen:Aktion[],plan:RegierungsPlan={}):void {
  if(szenario==='passiv')return;
  const sp=w.spiel!,rng=new Rng(w.rngState^Math.imul(w.day+1,7919));
  const tue=(art:string,ziel:string,fn:()=>{ok:boolean;text:string})=>{
@@ -71,10 +74,12 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[]):void {
   if(ev.vorlage.startsWith('krieg_'))continue;
   const opts=antworten(w,ev).filter(o=>!o.sperre&&(o.anzeigePk??o.pk)<=sp.kapital);
   const bevorzugt=ev.vorlage==='zusage'?opts.find(o=>o.id==='erfuellen')??opts.find(o=>o.id==='vertroesten'):undefined;
-  const id=bevorzugt?.id??standardAntwort(w,ev);
+  const gewuenscht=plan.ereignisAntworten?.[ev.vorlage];
+  const id=opts.find(o=>o.id===gewuenscht)?.id??bevorzugt?.id??standardAntwort(w,ev);
   if(id)tue('ereignis',`${ev.vorlage}/${id}`,()=>entscheide(w,ev.id,id,rng));
  }
  for(const a of sp.ministerfluss?.ressortAnliegen??[]) {
+  if(plan.minister===false)break;
   if(!['offen','besprochen'].includes(a.status))continue;
   if(szenario==='bildungsstau'&&['bildung','bildungsqualitaet','fachkraefte','forschung','innovation'].includes(a.groesse))continue;
   // Ein gegensätzliches Ministerziel wird besprochen, aber nicht als heimliche Kehrtwende beschlossen.
@@ -105,8 +110,8 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[]):void {
   const bitte=infrastrukturBitte(w),vb=verwaltungBilanz(w);
   const o=bitte?.optionen.find(o=>o.moeglich&&o.id==='ausbau'&&vb.netto>0&&vb.vorrat>30&&sp.kapital>(o.kosten.pk??0)+15)
    ??bitte?.optionen.find(o=>o.moeglich&&o.id==='alternative'&&sp.kapital>(o.kosten.pk??0)+15);
-  if(o?.aktion.art==='infrastruktur')tue('infrastruktur',o.id,()=>fuehreAus(w,o.aktion as InfraAktion));
-  const liste=szenario==='rechtsstaat'?RECHT:szenario==='machtstaat'?MACHT:['industrie','bildungsstau','fabrikoffensive'].includes(szenario)?INDUSTRIE:BASIS;
+  if(plan.neueInfrastruktur!==false&&o?.aktion.art==='infrastruktur')tue('infrastruktur',o.id,()=>fuehreAus(w,o.aktion as InfraAktion));
+  const liste=plan.agenda??(szenario==='rechtsstaat'?RECHT:szenario==='machtstaat'?MACHT:['industrie','bildungsstau','fabrikoffensive'].includes(szenario)?INDUSTRIE:BASIS);
   const start=Math.floor(w.day/28)%liste.length;
   for(let j=0;j<liste.length;j++){
    const [id,ziel]=liste[(start+j)%liste.length]!;
@@ -120,7 +125,7 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[]):void {
    const p=gesetzPrognose(w,g),luecke=Math.max(0,309-p.ja);
    if(luecke>0&&luecke<100&&sp.kapital>luecke*0.15+15)tue('absprache',g.massnahme,()=>stimmenKaufen(w,g.id,luecke));
   }
-  const budgets:Record<string,number>=szenario==='rechtsstaat'?{justiz:3}:szenario==='machtstaat'?{justiz:-2}:szenario==='bildungsstau'?{bildung:-3,forschung:-2,investitionen:2}:['industrie','fabrikoffensive'].includes(szenario)?{bildung:2,forschung:2,investitionen:2}:szenario==='krieg'?{verteidigung:2}:{};
+  const budgets:Record<string,number>=plan.budgets??(szenario==='rechtsstaat'?{justiz:3}:szenario==='machtstaat'?{justiz:-2}:szenario==='bildungsstau'?{bildung:-3,forschung:-2,investitionen:2}:['industrie','fabrikoffensive'].includes(szenario)?{bildung:2,forschung:2,investitionen:2}:szenario==='krieg'?{verteidigung:2}:{});
   for(const [id,z]of Object.entries(budgets))if((sp.wirtschaft?.haushalt.stufen[id]??0)!==z){
    if(haushaltsfenster(w).offen)tue('etat-entwurf',`${id}/${z}`,()=>setzeEntwurf(w,id,z));
    else if(sp.kapital>18)tue('etat-nachtrag',`${id}/${z}`,()=>setzePosten(w,id,z));
@@ -134,7 +139,7 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[]):void {
   if(o)tue('krieg',o.id,()=>fuehreKriegHandlungAus(w,k.id,o.id,rng));
  }
 }
-export function spieleSzenario(szenario:Szenario,seed:number,jahre=5) {
+export function spieleSzenario(szenario:Szenario,seed:number,jahre=5,regierung=regiere) {
  const w=starteSzenario(szenario,seed),aktionen:Aktion[]=[],monate=[messung(w)],fehler:string[]=[];
  let rest=0,bilanzFehler=0,bipFehler=0,warenFehler=0;
  const fehlerMerken=(s:string)=>{if(!fehler.includes(s))fehler.push(s);};
@@ -143,7 +148,7 @@ export function spieleSzenario(szenario:Szenario,seed:number,jahre=5) {
    // Äußerer Angriff als Szenariobedingung; Phasen, Kosten und Front berechnet das echte Spiel.
    weltZustand(w).SYR!.konflikt=99;kriegMonat(w,new Rng(seed));
   }
-  if(w.day%7===0)regiere(w,szenario,aktionen);
+  if(w.day%7===0)regierung(w,szenario,aktionen);
   tick(w);
   const e=w.economy,f=staatsfinanzen(w);
   if(e.debtRatio< -1e-9)fehlerMerken('negative Bruttoschulden');

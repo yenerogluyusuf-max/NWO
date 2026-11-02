@@ -54,8 +54,8 @@ test('gereifter Forschungsetat aktualisiert den Termin am selben Tag ohne Fortsc
 test('erschöpfte Verwaltung gibt den ersten Abschluss innerhalb der tatsächlichen Rundungstoleranz an',()=>{
  const w=welt();reichZustand(w).verwaltung=0;
  const termin=warteschlange(w).find(k=>k.id==='chips_design')!.fertigIn!;
- // 19 Schritte zu je 5, danach Halbierung des Rests bis zur echten Abschlussgrenze.
- expect(termin).toBe(42);
+ // Halbe Leistung bedeutet doppelte Dauer; kein asymptotischer letzter Rest.
+ expect(termin).toBe(20);
 });
 for(const sprache of ['de','en','tr'] as const)test(`${sprache}: Pause und unbestimmter Termin erscheinen ohne erfundene Restdauer`,async()=>{
  await setzeSprache(sprache);const w=welt();reichZustand(w).laufend[0]!.pausiert=true;

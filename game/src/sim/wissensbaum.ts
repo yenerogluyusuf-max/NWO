@@ -133,8 +133,17 @@ const BILDUNG = new Set(["hochschule", "fachkraefte", "bildungsqualitaet"]);
 export const groesseName = (id: string): string => t(`wissen.g.${id}`);
 export const knotenName = (id: string): string => t(`wissen.n.${id}.name`);
 
+/** Eine gerundete Gleichheit darf eine noch nicht erreichte Grenze nicht als erfüllt erscheinen lassen. */
+function vorausAnzeige(v: Voraussetzung, jetzt: number | undefined): number | string {
+  if (jetzt === undefined) return 0;
+  const rund = Math.round(jetzt);
+  if ("min" in v && v.min !== undefined && jetzt < v.min && rund >= v.min) return t("balance.knappUnter", { wert: v.min });
+  if ("max" in v && v.max !== undefined && jetzt > v.max && rund <= v.max) return t("balance.knappUeber", { wert: v.max });
+  return rund;
+}
+
 function grundZeile(v: Voraussetzung, jetzt: number | undefined): { text: string; art: NonNullable<KnotenSicht["hindernis"]> } {
-  const j = jetzt === undefined ? 0 : Math.round(jetzt);
+  const j = vorausAnzeige(v, jetzt);
   switch (v.art) {
     case "bestand":
       return { text: t("wissen.grund.vorgaenger", { name: ZWEIG_VON[v.id] ? knotenName(v.id) : groesseName(v.id) }), art: "vorgaenger" };
@@ -155,7 +164,7 @@ function grundZeile(v: Voraussetzung, jetzt: number | undefined): { text: string
 
 /** Kurze Zeile für die Liste der Voraussetzungen (ohne Ratschlag). */
 function vorausZeile(v: Voraussetzung, jetzt: number | undefined): string {
-  const j = jetzt === undefined ? 0 : Math.round(jetzt);
+  const j = vorausAnzeige(v, jetzt);
   switch (v.art) {
     case "bestand":
       return t("wissen.v.bestand", { name: ZWEIG_VON[v.id] ? knotenName(v.id) : groesseName(v.id) });

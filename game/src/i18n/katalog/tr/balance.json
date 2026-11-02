@@ -1,0 +1,14 @@
+{
+  "balance.finanzierung": "Ek finansman ihtiyacı",
+  "balance.finanzierungRegel": "Reform maliyetleri ve finansman sonrası bütçe etkisi: GSYH’nin %2’sini aşan her ek yüzde puan için 130 baz puan. Faizler ve temel bütçe burada yeniden sayılmaz.",
+  "balance.fiskalstand": "Reformlar ve bütçe birlikte yılda GSYH’nin ek %{wert}’i kadar kaynak gerektiriyor. Vergiler ve tasarruflar finansmana sayılır. Bu, toplam bütçe açığı değildir.",
+  "balance.zinsschritt": "Arayı kapatma dönemi: Faiz, enflasyon beklentilerinin çok altında olduğu için banka şu anda toplantı başına en fazla {wert} yüzde puan artırabilir. Etki gecikmelidir; kredi, yatırım ve istihdam başlangıçta zarar görebilir.",
+  "balance.bautitel": "İnşaat nasıl hızlanır?",
+  "balance.baulage": "İdare: kullanılabilir {vorrat} puan · aylık bakiye {saldo}. Kaynak tükendiğinde inşaat üretimi yarıya iner. Bakiye, sonraki inşaat adımından önce işlenir.",
+  "balance.personal": "Aylık idari kapasiteye zaten dahil: yürürlüğe girmiş personel bütçesinden {wert} puan.",
+  "balance.baupause": "Rakip projeleri ertele: İnşaat sırasındaki projeleri yeni siyasi sermaye harcamadan duraklatabilirsin. İlerleme korunur; bu projelerin faydaları daha geç gelir.",
+  "balance.bauprioritaet": "Bir tesisi öne al: Her sıra için 10 idare puanı gerekir. Diğer projeler daha uzun bekler; kaynakları tükenmiş idarenin kapasitesi artmaz.",
+  "balance.baupersonal": "Personeli güçlendir: Her bütçe kademesi yılda GSYH’nin %0,4’üne mal olur ve uygulama başladıktan sonra temel idari kapasiteyi %5 artırır. Finansman ve siyasi onay gerekir. Araştırma, eğitim ve dijital idare daha uzun vadede yardımcı olur.",
+  "balance.knappUnter": "{wert} değerinin biraz altında",
+  "balance.knappUeber": "{wert} değerinin biraz üstünde"
+}

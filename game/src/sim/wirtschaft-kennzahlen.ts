@@ -2,7 +2,7 @@
 // Die Treiber stammen aus den Formeln des Wirtschaftsmodells (`economy.ts`) und den Verbindungen des Politiknetzes, nicht aus dem Kopf.
 
 import type { World } from "./types";
-import { AUSSEN, PARAMS, potential, ppkZiel, PPK_GEWICHTE, realRate } from "./economy";
+import { AUSSEN, PARAMS, potential, ppkZiel, PPK_GEWICHTE, realRate, finanzierungsMehrbedarf } from "./economy";
 import { DEVISEN, kapitalflussZerlegung, leistungsbilanzZerlegung } from "./devisen";
 import { NET } from "./modell";
 import { nationalAverage, startAverage, decayVon } from "./netz";
@@ -375,7 +375,7 @@ export const KENNZAHLEN: Kennzahl[] = [
         tr(t("wk.aa04b74"), 2.5 * Math.max(0, e.expectedInflation - 10), "Basispunkte", t("wk.6c080c8")),
         tr(t("wk.8d5f211"), 2 * Math.max(0, e.debtRatio - 40), "Basispunkte", t("wk.54f0d6c")),
         tr(t("wk.4da2d4a"), 200 * (1 - e.credibility), "Basispunkte", t("wk.a820cfe")),
-        tr(t("wk.c910b9b"), PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 2), "Basispunkte", t("wk.116fb7c")),
+        tr(t("balance.finanzierung"), PARAMS.politiklastAufRisiko * Math.max(0, finanzierungsMehrbedarf(e) - 2), "Basispunkte", t("balance.finanzierungRegel")),
         tr(t("wk.7d08ba6"), PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0), "Basispunkte", t("wk.438af1b")),
         tr(t("wk.15b8248"), AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100), "Basispunkte", t("wk.f74b9c3")),
       ];

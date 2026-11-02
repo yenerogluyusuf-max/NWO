@@ -1,0 +1,38 @@
+import { spieleSzenario, regiere, type RegierungsPlan, type Aktion } from './regierungs-stresstest';
+import { reichZustand, pausiere, verschiebe, verwaltungBilanz } from '../src/sim/reich';
+import type { World } from '../src/sim/types';
+
+export const STRATEGIEN=['geldpolitik','entlastung','konsolidierung','breite_subvention','industrie_bisher','industrie_fokus','industrie_verwaltung','stabilisierung_abgestimmt','industrie_finanziert'] as const;
+export type Strategie=typeof STRATEGIEN[number];
+const WERKE=['chips_design','batt_zellfabrik','robotik_offensive'];
+const PLAENE:Partial<Record<Strategie,RegierungsPlan>>={
+ stabilisierung_abgestimmt:{budgets:{sozialhilfe:3,subventionen:-1,unternehmensteuer:1},agenda:[['m_sozialhilfe',75],['m_antikorruption',75],['m_energieeffizienz',75]],neueInfrastruktur:false,ereignisAntworten:{waehrungsrutsch:'ruhe',iwf_angebot:'allein',mindestlohn:'mass',start_haushalt:'mitte'}},
+ industrie_finanziert:{neueInfrastruktur:false,budgets:{bildung:2,forschung:2,investitionen:2,personal:2,subventionen:-2,unternehmensteuer:2},agenda:[['m_verwaltungsdigital',90],['m_industrie_modernisierung',85],['m_bauindustrie',85],['m_fachkraefteprogramm',80],['m_forschung',75]]},
+ entlastung:{budgets:{sozialhilfe:3,subventionen:-1,unternehmensteuer:1},agenda:[['m_antikorruption',75],['m_verwaltungsdigital',65]],neueInfrastruktur:false},
+ konsolidierung:{budgets:{sozialhilfe:2,subventionen:-2,investitionen:-1,unternehmensteuer:2},agenda:[['m_antikorruption',75],['m_verwaltungsdigital',65]],neueInfrastruktur:false},
+ breite_subvention:{budgets:{subventionen:4,sozialhilfe:2},agenda:[['m_antikorruption',75],['m_verwaltungsdigital',65]],neueInfrastruktur:false},
+ industrie_fokus:{neueInfrastruktur:false},
+ industrie_verwaltung:{neueInfrastruktur:false,budgets:{bildung:2,forschung:2,investitionen:2,personal:2},agenda:[['m_verwaltungsdigital',90],['m_industrie_modernisierung',85],['m_bauindustrie',85],['m_fachkraefteprogramm',80],['m_forschung',75]]},
+};
+function priorisiere(w:World,aktionen:Aktion[]){
+ const z=reichZustand(w),ziel=WERKE.find(id=>z.laufend.some(l=>l.id===id));
+ if(!ziel)return;
+ // Nur bestehende Bedienaktionen: Zurückstellen bewahrt Fortschritt, kostet aber Zeit anderer Projekte.
+ for(const l of z.laufend){
+  const an=!WERKE.includes(l.id);
+  if(!!l.pausiert===an)continue;
+  const ok=pausiere(w,l.id,an);aktionen.push({tag:w.day,datum:w.date,art:'baupause',ziel:l.id,ok,text:an?'Vorhaben für Industriepriorität pausiert':'Industrievorhaben fortgesetzt',pk:0,schulden:0});
+ }
+ if(verwaltungBilanz(w).vorrat>30){
+  const r=verschiebe(w,ziel,-1);
+  if(r.ok)aktionen.push({tag:w.day,datum:w.date,art:'bauprioritaet',ziel,ok:true,text:`${r.kosten} Verwaltung; verdrängt ${r.verdrangt?.join(', ')}`,pk:0,schulden:0});
+ }
+}
+export function spieleStrategie(strategie:Strategie,seed:number,jahre=5){
+ const industrie=strategie.startsWith('industrie');
+ const r=spieleSzenario(industrie?'fabrikoffensive':'stabilisierung',seed,jahre,(w,s,a)=>{
+  if(industrie&&strategie!=='industrie_bisher')priorisiere(w,a);
+  regiere(w,s,a,PLAENE[strategie]);
+ });
+ return {...r,strategie};
+}

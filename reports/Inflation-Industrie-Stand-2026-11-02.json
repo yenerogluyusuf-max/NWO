@@ -1,0 +1,2228 @@
+{
+  "basisCommit": "45ce5e5e1c631b5aaff1a6119503c5337e402e1d",
+  "hinweis": "Automatisierte Tageskampagnen mit echten Aktionen und unveränderten politischen Spielenden. Keine Browserprüfung. Jüngster Lauf je Strategie und Seed; frühere Zwischenstände bleiben dokumentiert. Zwei Seeds je Strategie sind eine Stichprobe, keine vollständige Balanceabnahme.",
+  "tests": {
+    "eindeutig": 201,
+    "neu": 29,
+    "bestanden": 201,
+    "einzeln": [
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: geldpolitik",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: entlastung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: konsolidierung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: breite_subvention",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: industrie_bisher",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: industrie_fokus",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Gegenmassnahmen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: industrie_verwaltung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "Termin der Baureihenfolge berücksichtigt das tatsächliche Forschungstempo",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "Projektansicht berücksichtigt die Wartezeit hinter einem kapazitätsfüllenden Vorhaben",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "pausierte Forschung verspricht keine Fertigstellung in zehn Monaten",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "konstantes halbes Forschungstempo erreicht den angezeigten Abschluss im echten Baumonatslauf",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "gereifter Forschungsetat aktualisiert den Termin am selben Tag ohne Fortschritt zu schenken",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "erschöpfte Verwaltung gibt den ersten Abschluss innerhalb der tatsächlichen Rundungstoleranz an",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "de: Pause und unbestimmter Termin erscheinen ohne erfundene Restdauer",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "en: Pause und unbestimmter Termin erscheinen ohne erfundene Restdauer",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/industrie-termine.test.tsx",
+        "test": "tr: Pause und unbestimmter Termin erscheinen ohne erfundene Restdauer",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "voll gegenfinanzierte Reformen tragen keinen zusätzlichen Fiskaldominanzaufschlag",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "ungedeckte zusätzliche Etats tragen dieselbe Finanzierungsbelastung wie gleich teure Reformen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "erschöpfte Verwaltung halbiert die Leistung, nicht endlos den letzten Rest",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "gereifter Personaletat erweitert Verwaltung; der bloße Beschluss tut dies noch nicht",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "Zinsregel kann einen extrem negativen Realzins zügiger aufholen, ohne sofort auf den Zielzins zu springen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Inflation: Spitze im Herbst 2018, dann Rückgang auf einstellige bis niedrige zweistellige Werte",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Leitzins: 24 % bis Sommer 2019, dann Senkungszyklus (Vorgabe-Pfad)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) USD/TRY: Rücklauf vom Krisenhoch, 2019 seitwärts",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) CDS: Spitze in der Krise, dann deutliche Entspannung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Arbeitslosigkeit: steigt mit Lag auf 13–15 und bleibt erhöht",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Schuldenquote: bleibt im niedrigen dreißiger Bereich",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Leitzins: Senkungsserie 19 → 14 trotz steigender Inflation (Vorgabe-Pfad)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Taylor-Diagnose: Die Regel hätte im Zinsstreit deutlich gestrafft (Prüfstein Z3)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Inflation: beschleunigt über 36 % (12/2021) Richtung 80 %",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) USD/TRY: Lira-Sturz auf 13+, danach weiter Abwertung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) CDS: steigt über 500 Richtung Allzeithoch",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Glaubwürdigkeit: fällt im Zinsstreit deutlich",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Arbeitslosigkeit: fällt im Boom — Realwirtschaft entkoppelt vom Preiskanal",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Schuldenquote: struktureller Sonderfall (FX-Bewertung fehlt in Z7, siehe Log)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Inflation: Talsohle um die Wahl, dann Wiederanstieg auf 65–75 %",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Leitzins: Erkan-Wende 8,5 → 50 (Vorgabe-Pfad)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) USD/TRY: diskreter Sprung um ~25 % im Juni 2023, dann gemanagte Abwertung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) CDS: Wahl-Spitze ~700, dann Halbierung unter der orthodoxen Wende",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Arbeitslosigkeit: fällt trotz Straffung unter 10",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Schuldenquote: struktureller Sonderfall (FX-Bewertung fehlt in Z7, siehe Log)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Rahmenbedingungen des Harness Zeitreihen-CSV: 105 Monate und harte Anker unverändert",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Rahmenbedingungen des Harness Jeder Schock ist an ein Ereignis der Ereignis-CSV rückgebunden",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/lernfaelle.test.ts",
+        "test": "Rahmenbedingungen des Harness Replay ist deterministisch (gleicher Seed, gleiche Reihe)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: stabilisierung_abgestimmt",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Gegenmassnahmen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/balance-strategien.test.ts",
+        "test": "Gegenmaßnahmen: industrie_finanziert",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "gewöhnliche Zinssitzungen, gefügige Führung und Zinssenkungen behalten ihre Grenzen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "höhere Zinsen schenken weder sofort geringere Inflation noch Glaubwürdigkeit",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "ein wirklicher Personalnachtrag kostet Haushalt und Kapital vor der späteren Kapazitätswirkung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "Personalkürzung senkt die Bearbeitungskapazität und mehr Geld ist begrenzt wirksam",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "kleiner Rest verbraucht bei halber Leistung nur seine tatsächliche Kapazität",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "erschöpfte Verwaltung beendet ein fast fertiges Werk einmalig auch im wirklichen Monatslauf",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "Pausieren entlastet die Verwaltung und bewahrt Fortschritt",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-ui.test.tsx",
+        "test": "de: Krisenregel, Gegenfinanzierung und Bauhilfen sind verständlich ausgegeben",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-ui.test.tsx",
+        "test": "en: Krisenregel, Gegenfinanzierung und Bauhilfen sind verständlich ausgegeben",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-ui.test.tsx",
+        "test": "tr: Krisenregel, Gegenfinanzierung und Bauhilfen sind verständlich ausgegeben",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-ui.test.tsx",
+        "test": "normale Lage zeigt keine beschleunigte Krisenreaktion",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Erstattung über Restschuld erzeugt keine negativen Bruttoschulden",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Monatsüberschuss bleibt für das spätere Defizit erhalten",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "neue Front erhält keine Gratisversorgung aus einer früheren Friedensbilanz",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "zweite unversorgte Front verschwindet nicht aus der Gesamtversorgung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Erstattung bleibt nominal erhalten, spätere Ausgabe verbraucht erst Kasse und dann Kredit",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Kasse erhält keine Inflationsgewinne und übersteht Speichern/Laden; Altstand startet bei null",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "zehn Jahre Wechsel von Überschuss, Defizit, Wachstum und Rezession erhalten jeden Geldbetrag, Startquote 0",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "zehn Jahre Wechsel von Überschuss, Defizit, Wachstum und Rezession erhalten jeden Geldbetrag, Startquote 0.5",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "zehn Jahre Wechsel von Überschuss, Defizit, Wachstum und Rezession erhalten jeden Geldbetrag, Startquote 30",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "echter Tageswechsel bewahrt monatliche Überschüsse und verbucht sie nur einmal",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "laufende Behördenausgaben verwenden vorhandenes Guthaben ohne doppelte Nachfragewirkung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Schuldenprognose erklärt die Finanzierung aus Guthaben und ihre Komponenten addieren sich",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Ereignisvorschau zeigt Kassenentnahme und aktualisiert ihre Finanzierung am selben Tag",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "neuer Krieg übernimmt nicht die Verbrauchsbilanz des früheren Einsatzes",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "erste wirkliche Belieferung erhöht Kampfstärke; Lesen verbraucht keine Waren",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Waffenruhe zählt mit geringerem Bedarf; abgeschlossene Fronten verschwinden von der Karte",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Kassenbuch und neue Front erklären den wirklichen Stand (de)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Kassenbuch und neue Front erklären den wirklichen Stand (en)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "Kassenbuch und neue Front erklären den wirklichen Stand (tr)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/langzeit-regression.test.tsx",
+        "test": "alter Monatsbeleg behauptet keine nachträglich erhaltene Kasse",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Umfang bestimmt den Preis Das ganze Land kostet mehr als eine Region, eine Region mehr als eine Provinz: Kapital, Baupunkte, Dauer, Verwaltung, Schulden",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Umfang bestimmt den Preis Das Kapital folgt derselben Rechnung wie die Politik (`umfangFaktor` nach Bevölkerungsanteil)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Umfang bestimmt den Preis Das Preisschild nennt den Umfang: Bevölkerungsanteil und Faktoren",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Umfang bestimmt den Preis Auch kleinste Vorhaben haben einen Sockel, und mehr Provinzen kosten nie weniger",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Wirkung nur in den gewählten Provinzen Jede Wirkung auf Größen gilt nur dort; Bauwirkung ebenfalls",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Wirkung nur in den gewählten Provinzen Nach der Fertigstellung ist die Größe dort besser als im Vergleichslauf, anderswo nicht",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Mehrere Projekte, keine Dubletten Dasselbe Programm am selben Ort gibt es nur einmal; Überschneidungen werden benannt",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Mehrere Projekte, keine Dubletten Gleichzeitige Projekte in verschiedenen Regionen sind in „Im Bau“ und in der Baureihenfolge unterscheidbar (Name und Ort)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Mehrere Projekte, keine Dubletten Zwei Welten teilen sich keine angelegten Programme (die Anmeldung ist nur Sitzungsgedächtnis)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Mehrere Projekte, keine Dubletten Speichern und Laden: Die Definitionen stehen im Spielstand",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Mehrere Projekte, keine Dubletten Ohne Vorlage und ohne Ort geht nichts kaputt, und eine gescheiterte Anlage hinterlässt nichts",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Stätten und Karte Das Restaurierungsprogramm zählt die Stätten der Provinzen und kostet nach deren Zahl",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Stätten und Karte Das Programm hebt den Zustand der Stätten dort",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Stätten und Karte Auf der Karte erscheinen Baustellen und fertige Projekte am Ort",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Oberfläche Die Karte einer Vorlage fragt nach dem Ort, zeigt Preisschild und Wirkung nur dort und bietet das Anlegen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Oberfläche Jede Vorlage lässt sich anzeigen und anlegen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-regional.test.ts",
+        "test": "Oberfläche Die Liste „Neue Vorhaben“ zeigt die Programme für Regionen zuerst",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-ui.test.tsx",
+        "test": "Reich-Ansicht mit Bauvergabe und Baureihenfolge Baureihenfolge ist öffentlich: Positionen, Vergabe-Plaketten und Schätzungen stehen da",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-ui.test.tsx",
+        "test": "Reich-Ansicht mit Bauvergabe und Baureihenfolge Vorhabenkarte zeigt die Vergabe-Plakette und die Vergabephase eines laufenden Vorhabens",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-ui.test.tsx",
+        "test": "Reich-Ansicht mit Bauvergabe und Baureihenfolge Eine verfügbare Karte bietet den Beginn mit Vergabe-Wahl an",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Jedes Vorhaben hat eine benennbare Wirkung Die Vorschau ist für kein Vorhaben leer",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Jedes Vorhaben hat eine benennbare Wirkung Einrichtungen ohne Zustandswirkung zeigen die Größen, die sie prägen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Jedes Vorhaben hat eine benennbare Wirkung Die Vorschau nennt zu jeder Größe die Ausgangslage",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Technik heißt Instandsetzung, Stätten heißen Restaurierung; niemand sagt mehr „Sanierung“",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Jedes Bauwerk und jedes Rüstungsstück mit Wirkung lässt sich instand setzen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Alte Kennungen bleiben, damit laufende Instandsetzungen in älteren Spielständen weiterlaufen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Jedes Stück zeigt Zustand, Folge des Verfalls und die Wirkung der Pflege",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Ohne Pflege wird der Verlust sichtbar",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Instandsetzen wirkt: Zustand, Wartungszustand und Stromversorgung liegen danach über dem Vergleichslauf",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Nicht nötig, solange das Stück in bestem Zustand ist",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Winzigkeiten gelten nicht als Wirkung: Zum Spielbeginn steht der Bestand auf Null",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Die Lage nennt, wo Instandsetzen am meisten bewegt",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Pflege: ein Wort je Handlung, kein Stück ohne Eingriff Pflege ist deterministisch",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Jeder Eingriff hält Vorher und Nachher fest Ein Ausbau legt die Ausgangslage an und schließt mit einem Eintrag im Verlauf ab",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Jeder Eingriff hält Vorher und Nachher fest Restaurierungen von Stätten halten den Zustand vorher und nachher fest",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Jeder Eingriff hält Vorher und Nachher fest Ältere Spielstände ohne Ausgangslage schließen ohne Fehler ab",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Die Akten sind gegliedert und zeigen die Pflege Jede Akte beginnt mit der Lage und bietet getrennte Reiter an",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Die Akten sind gegliedert und zeigen die Pflege Das Recht zeigt Einrichtungen mit den Größen, die sie prägen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Die Akten sind gegliedert und zeigen die Pflege Die Pflegeliste nennt Zustand, Verfall und Instandsetzen und kommt ohne „Sanieren“ aus",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich-wirkung.test.ts",
+        "test": "Die Akten sind gegliedert und zeigen die Pflege Neue Vorhaben sind nach Art getrennt und enthalten keine Pflege",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Kataloge Kennungen sind eindeutig, Zahlen und Verweise stimmen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Kataloge Jeder Fachbereich hat Inhalt, Wunder und Vorteile",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Kataloge Startbestand steht (echte Bauwerke), Bauten laufen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Beginn kostet Kapital und legt einen Bau an; ohne Kapital geht es nicht",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Eine Restaurierung wird fertig, hebt den Zustand und lässt sich später wiederholen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Akkuyu wird fertig und hebt die Stromversorgung in Mersin",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Wunder-Serie: die Kirchenroute braucht alle sieben Stätten im Zustand 55",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Sperre: Die F-35 sind blockiert, solange die S-400 im Land stehen; Abgabe räumt sie",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Ausschließende Äste: nur eine Doktrin zugleich",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Zu viele Vorhaben: Die Verwaltungskraft sinkt, ohne sie kommen Bauten nur halb voran",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorhaben beginnen und bauen Baukapazität ist begrenzt und wächst mit der Bauindustrie",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorteile und Größen Vorteile gelten nur, solange ihre Bedingungen erfüllt sind",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorteile und Größen Stille Jahre: Der Startbestand verschiebt das Gleichgewicht nur durch Verfall, nichts geht ins Unendliche",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Vorteile und Größen Liste je Bereich liefert Sichten und übersteht Speichern und Laden",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Bauvergabe mit drei Optionen (INF-1) Stammfirma: schneller und teurer, und die Nähe ohne Wettbewerb nährt das Korruptionsrisiko",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Bauvergabe mit drei Optionen (INF-1) Sparvergabe: günstiger und langsamer, das Ergebnis beginnt in schlechterem Zustand",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Bauvergabe mit drei Optionen (INF-1) Transparente Ausschreibung: Vergabephase verzögert den Baubeginn, Märkte und EU sehen es gern",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Bauvergabe mit drei Optionen (INF-1) Ohne Angabe gilt die transparente Ausschreibung (Schnellstart und ältere Spielstände)",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Baureihenfolge mit Verdrängungspreis (INF-3) Die Warteschlange zeigt Positionen und ehrliche Schätzungen; Pausierte bekommen keine",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Baureihenfolge mit Verdrängungspreis (INF-3) Vorziehen kostet Verwaltungskraft und benennt das Verdrängte; Zurückstellen ist frei",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/reich.test.ts",
+        "test": "Baureihenfolge mit Verdrängungspreis (INF-3) Die Reihenfolge entscheidet, wer zuerst fertig wird",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Reproduzierbarkeit (M1) gleicher Seed ergibt denselben Verlauf",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Reproduzierbarkeit (M1) Speichern und Laden setzt den Verlauf exakt fort",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) eine gefügige Zentralbankführung bringt nach zwei Jahren mehr Inflation und eine schwächere Lira",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) der Eingriff lässt die Lira sofort fallen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) mehr Staatsausgaben erhöhen zuerst das Wachstum und später die Inflation",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) ohne Eingriff sinkt die Inflation über fünf Jahre",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Plausibilität zehn Jahre bleiben in plausiblen Grenzen, auch nach Eingriffen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Veröffentlichungen mit Verzögerung die Inflation des Vormonats erscheint am 3. des Folgemonats",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Folgen im Voraus die Vorschau zeigt für eine gefügige Führung eher höhere Inflation",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/sim.test.ts",
+        "test": "Folgen im Voraus die Vorschau verändert den Spielstand nicht",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Kennzahlen und Verläufe Jede Kennzahl hat einen endlichen Wert, einen Verlauf, eine gültige Prognosegröße und Treiber",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Kennzahlen und Verläufe Die Reihen wachsen monatlich, mit der Achse im Gleichschritt, und bleiben begrenzt",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Kennzahlen und Verläufe Ein Spielstand ohne Wirtschaftsakte legt sie beim Laden neu an und läuft weiter",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Kennzahlen und Verläufe Marken auf der Zeitachse: Eingriffe und Zinsentscheide erscheinen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Ohne Einfluss folgt die Bank ihrer Regel",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Eine gefügige Führung folgt dem Druck, eine strenge Führung kaum",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Druck wird auf der nächsten Sitzung verbraucht, weicht ab und kostet Glaubwürdigkeit und Märkte",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Öffentliche Kritik setzt die nächste Sitzung unter Druck und wirkt wiederholt stärker",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Weisungsgebunden legt der Präsident den Zins fest; das kostet die Glaubwürdigkeit",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Die Unabhängigkeit ändert sich stufenweise, kostet Kapital und braucht die Mehrheit; geschützt lässt sich die Führung nicht entlassen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Die Führung neu besetzen ändert die Haltung; eine strenge Führung beruhigt die Märkte teilweise",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Zinssitzungen Die Optionen vor der Sitzung nennen den Beschluss der Bank und die Kosten",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Haushalt Ein Posten ändert den Impuls, kostet Kapital und wirkt dauerhaft auf die Politikfelder",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Haushalt Steuern anheben senkt Impuls und Defizit, trifft Gruppen und kostet doppelt",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Haushalt Die Vorschau nennt Kapital, Defizit vorher und nachher; ohne Kapital geht es nicht",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Haushalt Kürzen in die unbeliebte Richtung kostet doppelt; Stufen bleiben in der Spanne des Ressorts",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Haushalt Pakete des Haushaltsjahres setzen mehrere Regler ohne Kapitalkosten",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Haushalt Jeder Posten nennt Gewinner, Verlierer, Kehrseite und wirkt auf bekannte Größen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Haushalt Zinsdienst: Steigende Marktzinsen verteuern die Staatsschuld langsam, sinkende entlasten",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Folgeketten und Prognose Die Kette einer Zinserhöhung nennt Währung, Auslastung, Inflation, Beschäftigung und Zinsdienst mit Verzögerung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Folgeketten und Prognose Aus dem Politiknetz: Ein höherer Leitzins verteuert Kredite und Wohnungsbau, jede Stufe mit Verzögerung",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Folgeketten und Prognose Ein Ausgabenimpuls stützt Nachfrage und Wachstum und vergrößert das Defizit",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Folgeketten und Prognose Das Prognoseband je Monat: mit mehr Investitionen wächst das Defizit",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Folgeketten und Prognose Kennzahl-Suche und Namen",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wirtschaft.test.ts",
+        "test": "Schutz der Bank gilt auf allen Wegen Auch der direkte Befehl entlässt die Führung nicht, solange die Bank gesetzlich geschützt ist",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum-ui.test.tsx",
+        "test": "Wissensbaum-Ansicht in drei Sprachen de: Standorte, Heureka und Tempozeile",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum-ui.test.tsx",
+        "test": "Wissensbaum-Ansicht in drei Sprachen tr: Standorte, Heureka und Tempozeile",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum-ui.test.tsx",
+        "test": "Wissensbaum-Ansicht in drei Sprachen en: Standorte, Heureka und Tempozeile",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Regression-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Aufbau Jeder Knoten ist ein vorhandenes Vorhaben, steht in genau einem Zweig, und Vorgänger liegen weiter links",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Aufbau Zu Beginn: Tempo 1, der Drohnenverbund steht, und jeder gesperrte Knoten nennt einen Grund",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Bildung öffnet, Forschung treibt, Abwanderung bremst Fehlen Hochschulen oder Fachkräfte, sagt der Grund „Bildung“; mit mehr Ingenieuren öffnet sich der Knoten",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Bildung öffnet, Forschung treibt, Abwanderung bremst Mehr Forschungsetat beschleunigt; ohne Bildung verpufft ein Teil, mit gehobener Innovationsgrenze trägt mehr",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Bildung öffnet, Forschung treibt, Abwanderung bremst Abwanderung: Bildung weit vor der Forschung senkt das Tempo",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Bildung öffnet, Forschung treibt, Abwanderung bremst Ein laufender Knoten kommt mit hohem Forschungsetat schneller voran als ohne",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Entscheidungen mit Preis Lizenz: kostet mehr Kapital, beschleunigt, der Lizenzgeber freut sich, sein Rivale nicht",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Entscheidungen mit Preis Lizenz nur von Anbietern, und nachkaufen geht nur bei laufendem Knoten",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Entscheidungen mit Preis Werk mit heimischer Firma: weniger Schulden, ein Kapital mehr; mit ausländischem Partner schneller",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Entscheidungen mit Preis Schwerpunkt: kostet Kapital, beschleunigt den Zweig, bremst die anderen, ein Jahr Sperre",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Werke wirken Eine fertige Chipfabrik stellt Elektronik her, hebt Drohnen eine halbe Generation und beschleunigt ihre Fertigung",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Werke wirken Was zu Beginn schon stand, zählt nicht zusätzlich",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: alte Spielstände, Bot, Texte Ein Spielstand ohne Wissensbaum legt ihn an und läuft weiter",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: alte Spielstände, Bot, Texte Der Bot findet einen nächsten Knoten, sobald einer möglich ist",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: alte Spielstände, Bot, Texte Jeder Knoten, Zweig und jede Größe der Voraussetzungen hat Text",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Standort, Heureka, Protokoll Ein Werk lässt sich an einem anderen Standort bauen; Last, Ortswirkung und Fertigstellung folgen dorthin",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Standort, Heureka, Protokoll Mehr Fachkräfte vor Ort bauen schneller",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Standort, Heureka, Protokoll Der Beginn steht einmal im Protokoll, in der Sprache des Spiels, ohne die deutsche Zeile des Reiches",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Standort, Heureka, Protokoll Heureka: Was zu Beginn erfüllt ist, gilt still; eine später erfüllte Bedingung beschleunigt den Knoten mit Meldung",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Standort, Heureka, Protokoll Jede Heureka-Bedingung ist ein Vorhaben oder eine Maßnahme des Spiels, nie Voraussetzung des eigenen Knotens, und hat Text",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/wissensbaum.test.ts",
+        "test": "Wissensbaum: Standort, Heureka, Protokoll Ein Spielstand ohne Standorte und Heureka lädt und rechnet weiter",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-balance.test.ts",
+        "test": "fehlender Personalposten in vorhandener Wirksamkeit bedeutet null, Altstand ohne Wirksamkeit nutzt den gespeicherten Etat",
+        "status": "passed",
+        "nachweis": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-ui.test.tsx",
+        "test": "de: fast erreichte Voraussetzungen versprechen keinen Baubeginn",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-ui.test.tsx",
+        "test": "en: fast erreichte Voraussetzungen versprechen keinen Baubeginn",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      },
+      {
+        "datei": "test/inflation-industrie-ui.test.tsx",
+        "test": "tr: fast erreichte Voraussetzungen versprechen keinen Baubeginn",
+        "status": "passed",
+        "nachweis": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json"
+      }
+    ]
+  },
+  "kampagnen": {
+    "anzahl": 18,
+    "tatsaechlicheSpieljahre": 66.12328767123287,
+    "aktionenErfolgreich": 2062,
+    "ergebnisse": [
+      {
+        "strategie": "geldpolitik",
+        "seed": 5,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 848,
+        "ende": {
+          "tag": 848,
+          "datum": "2030-10-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 38.34351312286578,
+        "wachstum": 0.7455522895002282,
+        "zustimmung": 21.240713817275537,
+        "defizit": 3.8329260900842526,
+        "glaubwuerdigkeit": 0.3900000000000001,
+        "verwaltung": {
+          "vorrat": 78.99999999999987,
+          "einkommen": 19.5,
+          "bau": 8.8,
+          "unterhalt": 9.6,
+          "netto": 1.0999999999999996,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 45 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "geldpolitik",
+        "seed": 17,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 787,
+        "ende": {
+          "tag": 787,
+          "datum": "2030-08-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 48.83438173062358,
+        "wachstum": -0.10233142546857543,
+        "zustimmung": 19.636131842324524,
+        "defizit": 1.6496410346063153,
+        "glaubwuerdigkeit": 0.33000000000000007,
+        "verwaltung": {
+          "vorrat": 98.4,
+          "einkommen": 19.5,
+          "bau": 7.6,
+          "unterhalt": 9.6,
+          "netto": 2.3000000000000007,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 45 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "entlastung",
+        "seed": 5,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 879,
+        "ende": {
+          "tag": 879,
+          "datum": "2030-11-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 41.82953823116695,
+        "wachstum": -0.4369922739614509,
+        "zustimmung": 19.553152354714367,
+        "defizit": 2.766478921490221,
+        "glaubwuerdigkeit": 0.33000000000000007,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 20.5,
+          "bau": 6.4,
+          "unterhalt": 10.2,
+          "netto": 3.9000000000000004,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 44 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "entlastung",
+        "seed": 17,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 726,
+        "ende": {
+          "tag": 726,
+          "datum": "2030-06-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 38.12482799636188,
+        "wachstum": -0.29991871183925145,
+        "zustimmung": 18.248545998728613,
+        "defizit": 2.3030193319907424,
+        "glaubwuerdigkeit": 0.42000000000000015,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 20.458333333333336,
+          "bau": 7.109999999999999,
+          "unterhalt": 10.2,
+          "netto": 3.148333333333337,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 45 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "konsolidierung",
+        "seed": 5,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 695,
+        "ende": {
+          "tag": 695,
+          "datum": "2030-05-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 57.98609766536411,
+        "wachstum": -1.467859461261968,
+        "zustimmung": 16.412498025699364,
+        "defizit": 1.0660562194490577,
+        "glaubwuerdigkeit": 0.26,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 20.416666666666668,
+          "bau": 7.6,
+          "unterhalt": 9.5,
+          "netto": 3.316666666666668,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 45 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "konsolidierung",
+        "seed": 17,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 634,
+        "ende": {
+          "tag": 634,
+          "datum": "2030-03-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 54.75835104924163,
+        "wachstum": -1.9963077805369607,
+        "zustimmung": 16.162148773099894,
+        "defizit": 1.107692938018217,
+        "glaubwuerdigkeit": 0.3400000000000001,
+        "verwaltung": {
+          "vorrat": 96.66000000000004,
+          "einkommen": 20.333333333333336,
+          "bau": 8.31,
+          "unterhalt": 9.5,
+          "netto": 2.523333333333335,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 45 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "breite_subvention",
+        "seed": 5,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 909,
+        "ende": {
+          "tag": 909,
+          "datum": "2030-12-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 37.707717844706536,
+        "wachstum": 1.8310254534431842,
+        "zustimmung": 19.96496902912513,
+        "defizit": 4.528281692575515,
+        "glaubwuerdigkeit": 0.3700000000000001,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 20.65625,
+          "bau": 6.4,
+          "unterhalt": 10.2,
+          "netto": 4.05625,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 44 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "breite_subvention",
+        "seed": 17,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 756,
+        "ende": {
+          "tag": 756,
+          "datum": "2030-07-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 37.713590096590295,
+        "wachstum": 0.05073658276046977,
+        "zustimmung": 20.507389085635783,
+        "defizit": 4.748834194028332,
+        "glaubwuerdigkeit": 0.3700000000000001,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 20.5,
+          "bau": 7.109999999999999,
+          "unterhalt": 10.2,
+          "netto": 3.1900000000000013,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 44 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_bisher",
+        "seed": 5,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 1825,
+        "ende": null,
+        "inflation": 14.105286084381921,
+        "wachstum": 7.380817210445657,
+        "zustimmung": 54.08038261636219,
+        "defizit": 3.2406609707408682,
+        "glaubwuerdigkeit": 0.7900000000000004,
+        "verwaltung": {
+          "vorrat": 0,
+          "einkommen": 19.5,
+          "bau": 14.51,
+          "unterhalt": 9.7,
+          "netto": -4.709999999999999,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "laeuft",
+            "fortschritt": 0.591838450113453,
+            "restMonate": 36
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "laeuft",
+            "fortschritt": 0.394550785269473,
+            "restMonate": 78
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "laeuft",
+            "fortschritt": 0.4694636360325522,
+            "restMonate": 47
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_bisher",
+        "seed": 17,
+        "horizontJahre": 5,
+        "tatsaechlicheTage": 1825,
+        "ende": null,
+        "inflation": 15.108228188344345,
+        "wachstum": 7.847800224881297,
+        "zustimmung": 38.23928239840424,
+        "defizit": 4.6646660647858535,
+        "glaubwuerdigkeit": 0.8600000000000003,
+        "verwaltung": {
+          "vorrat": 0,
+          "einkommen": 19.5,
+          "bau": 13.91,
+          "unterhalt": 9.7,
+          "netto": -4.109999999999999,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "laeuft",
+            "fortschritt": 0.4430808699486572,
+            "restMonate": 58
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "laeuft",
+            "fortschritt": 0.3438680373801979,
+            "restMonate": 88
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "laeuft",
+            "fortschritt": 0.558756622182358,
+            "restMonate": 39
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_fokus",
+        "seed": 5,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 2555,
+        "ende": null,
+        "inflation": 9.280178703862886,
+        "wachstum": 5.73803781103027,
+        "zustimmung": 59.83317854393273,
+        "defizit": 2.090962373866038,
+        "glaubwuerdigkeit": 0.95,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 19.5,
+          "bau": 2,
+          "unterhalt": 10.9,
+          "netto": 6.6,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "fertig",
+            "fortschritt": 1
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "laeuft",
+            "fortschritt": 0.02330617869119711,
+            "restMonate": 42
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "fertig",
+            "fortschritt": 1
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Gegenmassnahmen-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_fokus",
+        "seed": 17,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 1826,
+        "ende": {
+          "tag": 1826,
+          "datum": "2033-06-05",
+          "art": "abwahl",
+          "titel": "Abgewählt",
+          "text": "Bei der Wahl am 5. Juni 2033 erhält Deniz Aydın im ersten Wahlgang nur 25,9 Prozent der Stimmen; Kaan Kılıç gewinnt.",
+          "anteil": 25.9
+        },
+        "inflation": 16.811160004279976,
+        "wachstum": 7.524542088157501,
+        "zustimmung": 35.50317275273165,
+        "defizit": 4.129326075076075,
+        "glaubwuerdigkeit": 0.7900000000000004,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 19.5,
+          "bau": 5.6,
+          "unterhalt": 9.5,
+          "netto": 4.4,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "laeuft",
+            "fortschritt": 0.6531665236093334,
+            "restMonate": 18
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "laeuft",
+            "fortschritt": 0.5295523115634853,
+            "restMonate": 29
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "laeuft",
+            "fortschritt": 0.6730279524815844,
+            "restMonate": 15
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Gegenmassnahmen-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_verwaltung",
+        "seed": 5,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 1826,
+        "ende": {
+          "tag": 1826,
+          "datum": "2033-06-05",
+          "art": "abwahl",
+          "titel": "Abgewählt",
+          "text": "Bei der Wahl am 5. Juni 2033 erhält Deniz Aydın im ersten Wahlgang nur 33,0 Prozent der Stimmen; Onur Duran gewinnt.",
+          "anteil": 33
+        },
+        "inflation": 25.312941767489704,
+        "wachstum": 6.838384758974509,
+        "zustimmung": 44.92023335986657,
+        "defizit": 3.9384536817871014,
+        "glaubwuerdigkeit": 0.3162035785590279,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 22.641666666666666,
+          "bau": 3.6,
+          "unterhalt": 10.2,
+          "netto": 8.841666666666665,
+          "personal": 2.058333333333333
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "laeuft",
+            "fortschritt": 0.7329944549529027,
+            "restMonate": 12
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Stromversorgung zu niedrig: 48 von 58.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "laeuft",
+            "fortschritt": 0.6071435957430283,
+            "restMonate": 18
+          }
+        ],
+        "nachweis": "reports/Industrie-Personal-Abschluss-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_verwaltung",
+        "seed": 17,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 1826,
+        "ende": {
+          "tag": 1826,
+          "datum": "2033-06-05",
+          "art": "abwahl",
+          "titel": "Abgewählt",
+          "text": "Bei der Wahl am 5. Juni 2033 erhält Deniz Aydın im ersten Wahlgang nur 24,6 Prozent der Stimmen; Kaan Kılıç gewinnt.",
+          "anteil": 24.6
+        },
+        "inflation": 21.667733484285787,
+        "wachstum": 6.61721709646899,
+        "zustimmung": 33.93665396048439,
+        "defizit": 4.6839999330835775,
+        "glaubwuerdigkeit": 0.23624234297236688,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 22.55,
+          "bau": 5.6,
+          "unterhalt": 10.799999999999999,
+          "netto": 6.150000000000004,
+          "personal": 2.0500000000000003
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "laeuft",
+            "fortschritt": 0.36983012903427154,
+            "restMonate": 33
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "laeuft",
+            "fortschritt": 0.4008923351884902,
+            "restMonate": 35
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "laeuft",
+            "fortschritt": 0.4071286328980648,
+            "restMonate": 27
+          }
+        ],
+        "nachweis": "reports/Industrie-Personal-Abschluss-2026-11-02.json"
+      },
+      {
+        "strategie": "stabilisierung_abgestimmt",
+        "seed": 5,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 1826,
+        "ende": {
+          "tag": 1826,
+          "datum": "2033-06-05",
+          "art": "abwahl",
+          "titel": "Abgewählt",
+          "text": "Bei der Wahl am 5. Juni 2033 erhält Deniz Aydın im ersten Wahlgang nur 20,6 Prozent der Stimmen; Onur Duran gewinnt.",
+          "anteil": 20.6
+        },
+        "inflation": 12.434457725067361,
+        "wachstum": 5.585798867403579,
+        "zustimmung": 33.9925152201002,
+        "defizit": 3.442599359406401,
+        "glaubwuerdigkeit": 0.6700000000000004,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 19.5,
+          "bau": 0,
+          "unterhalt": 12.619999999999997,
+          "netto": 6.880000000000003,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 44 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Gegenmassnahmen-2026-11-02.json"
+      },
+      {
+        "strategie": "stabilisierung_abgestimmt",
+        "seed": 17,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 726,
+        "ende": {
+          "tag": 726,
+          "datum": "2030-06-01",
+          "art": "sturz",
+          "titel": "Massenproteste beenden die Amtszeit",
+          "text": "Nach Monaten unter 25 Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt."
+        },
+        "inflation": 38.93281144335225,
+        "wachstum": 0.31056659327996883,
+        "zustimmung": 21.409261293225256,
+        "defizit": 2.9538244235508637,
+        "glaubwuerdigkeit": 0.4500000000000002,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 19.5,
+          "bau": 6.4,
+          "unterhalt": 10.2,
+          "netto": 2.9000000000000004,
+          "personal": 0
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 45 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 45.",
+            "fortschritt": 0
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "gesperrt",
+            "grund": "Industriemodernisierung zu niedrig: Stufe 35 von 50.",
+            "fortschritt": 0
+          }
+        ],
+        "nachweis": "reports/Inflation-Industrie-Gegenmassnahmen-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_finanziert",
+        "seed": 5,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 1826,
+        "ende": {
+          "tag": 1826,
+          "datum": "2033-06-05",
+          "art": "abwahl",
+          "titel": "Abgewählt",
+          "text": "Bei der Wahl am 5. Juni 2033 erhält Deniz Aydın im ersten Wahlgang nur 37,0 Prozent der Stimmen; Onur Duran gewinnt.",
+          "anteil": 37
+        },
+        "inflation": 13.198720986100655,
+        "wachstum": 6.676600634749551,
+        "zustimmung": 44.9521359550937,
+        "defizit": 2.8037157662854266,
+        "glaubwuerdigkeit": 0.8900000000000005,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 22.55,
+          "bau": 5.6,
+          "unterhalt": 10.2,
+          "netto": 6.7500000000000036,
+          "personal": 2.0500000000000003
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "laeuft",
+            "fortschritt": 0.531257851941972,
+            "restMonate": 21
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "laeuft",
+            "fortschritt": 0.4985580146296047,
+            "restMonate": 25
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "laeuft",
+            "fortschritt": 0.45184144682733834,
+            "restMonate": 25
+          }
+        ],
+        "nachweis": "reports/Industrie-Personal-Abschluss-2026-11-02.json"
+      },
+      {
+        "strategie": "industrie_finanziert",
+        "seed": 17,
+        "horizontJahre": 7,
+        "tatsaechlicheTage": 1840,
+        "ende": {
+          "tag": 1840,
+          "datum": "2033-06-19",
+          "art": "abwahl",
+          "titel": "Abgewählt",
+          "text": "Bei der Wahl am 19. Juni 2033 erhält Deniz Aydın in der Stichwahl nur 45,5 Prozent der Stimmen; Kaan Kılıç gewinnt.",
+          "anteil": 45.5
+        },
+        "inflation": 8.762382043812547,
+        "wachstum": 7.078374224252446,
+        "zustimmung": 48.64640411251661,
+        "defizit": 1.7438579156837757,
+        "glaubwuerdigkeit": 0.9200000000000004,
+        "verwaltung": {
+          "vorrat": 100,
+          "einkommen": 22.55,
+          "bau": 4.2,
+          "unterhalt": 10.799999999999999,
+          "netto": 7.5500000000000025,
+          "personal": 2.0500000000000003
+        },
+        "werke": [
+          {
+            "id": "chips_design",
+            "zustand": "gesperrt",
+            "grund": "Zu wenige Ingenieure und Forscher: Hochschulen 46 von 46. Bildung und Hochschulen ausbauen; das wirkt erst nach Jahren.",
+            "fortschritt": 0
+          },
+          {
+            "id": "batt_zellfabrik",
+            "zustand": "laeuft",
+            "fortschritt": 0.41907344834604815,
+            "restMonate": 32
+          },
+          {
+            "id": "robotik_offensive",
+            "zustand": "laeuft",
+            "fortschritt": 0.36228661120620426,
+            "restMonate": 28
+          }
+        ],
+        "nachweis": "reports/Industrie-Personal-Abschluss-2026-11-02.json"
+      }
+    ]
+  },
+  "vergleichNach18Monaten": [
+    {
+      "strategie": "geldpolitik",
+      "seed": 5,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 77.83587780424486,
+        "wachstum": 2.726600733945915,
+        "zustimmung": 28.75286719299214
+      },
+      "nachher": {
+        "inflation": 61.54688091841144,
+        "wachstum": 1.5145571947732037,
+        "zustimmung": 30.81004202731027
+      }
+    },
+    {
+      "strategie": "geldpolitik",
+      "seed": 17,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 87.56650563212149,
+        "wachstum": 4.100563367688533,
+        "zustimmung": 25.408725479365188
+      },
+      "nachher": {
+        "inflation": 68.13700495185171,
+        "wachstum": 2.5652634844891384,
+        "zustimmung": 27.79459978957363
+      }
+    },
+    {
+      "strategie": "entlastung",
+      "seed": 5,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 76.58067923263603,
+        "wachstum": 5.739946085547331,
+        "zustimmung": 30.281901661106655
+      },
+      "nachher": {
+        "inflation": 59.52872824100697,
+        "wachstum": 4.394026722579248,
+        "zustimmung": 32.014927793770866
+      }
+    },
+    {
+      "strategie": "entlastung",
+      "seed": 17,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 81.23765004599103,
+        "wachstum": 3.903244134547694,
+        "zustimmung": 22.205965649783273
+      },
+      "nachher": {
+        "inflation": 54.99725563328752,
+        "wachstum": 2.7164247715488306,
+        "zustimmung": 25.49389094687278
+      }
+    },
+    {
+      "strategie": "konsolidierung",
+      "seed": 5,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 86.76559270413651,
+        "wachstum": 2.8132126359176257,
+        "zustimmung": 22.44590634409395
+      },
+      "nachher": {
+        "inflation": 67.76360314420266,
+        "wachstum": 1.3694405231659452,
+        "zustimmung": 24.720709447868824
+      }
+    },
+    {
+      "strategie": "konsolidierung",
+      "seed": 17,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 81.60108120529861,
+        "wachstum": 0.6125508755404074,
+        "zustimmung": 18.213993564747955
+      },
+      "nachher": {
+        "inflation": 64.11810381985576,
+        "wachstum": -0.7845671427981609,
+        "zustimmung": 20.209064271904325
+      }
+    },
+    {
+      "strategie": "breite_subvention",
+      "seed": 5,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 83.46330039479946,
+        "wachstum": 5.808684181210696,
+        "zustimmung": 29.832753202821692
+      },
+      "nachher": {
+        "inflation": 64.83055456721078,
+        "wachstum": 3.388564896314068,
+        "zustimmung": 32.32344300057307
+      }
+    },
+    {
+      "strategie": "breite_subvention",
+      "seed": 17,
+      "datum": "2029-12-01",
+      "vorher": {
+        "inflation": 76.82845605558221,
+        "wachstum": 4.554311235502224,
+        "zustimmung": 23.559069895134094
+      },
+      "nachher": {
+        "inflation": 54.1195113069555,
+        "wachstum": 2.5599198561621104,
+        "zustimmung": 26.371219594184474
+      }
+    }
+  ],
+  "belege": [
+    {
+      "datei": "reports/Inflation-Industrie-Strategien-Basis-2026-11-02.json",
+      "sha256": "929b3ae9ea0a90a2942073c0ee5a9c36c15fc3e773ca76a7a145d3fcf376e2b3"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Regression-2026-11-02.json",
+      "sha256": "f53162a3cadd4eb95fec296e78a34413f6d936308b0eb0517a3610e96f28af36"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Strategien-Nachher-2026-11-02.json",
+      "sha256": "ad70a38ad543f1f64585497375517b79289bcb9fe348d50eac5628628fae7f36"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Gegenmassnahmen-Pruefung-2026-11-02.json",
+      "sha256": "c216a7a72e0ed048599c719af2628ba05836afdb6502769b614f331b639d2632"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Basis-Pruefung-2026-11-02.json",
+      "sha256": "982b067e61249a199adaf1303744a17922c515a6245b085a61428727962c68af"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Build-2026-11-02.log",
+      "sha256": "30d8dc218b0d3a4ab153dab6ee79adc129751c7ab142d178757330224d632b22"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Gegenmassnahmen-2026-11-02.json",
+      "sha256": "c67d3d0f07a2499a49ec477ff86cf04732f84df2a03f935d97c4fa52c4021960"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Abschluss-Pruefung-2026-11-02.json",
+      "sha256": "7b6fd4e830ab4cb9813949d22f989943052d1de29a7f313462f7400e044e24c6"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Nachher-Pruefung-2026-11-02.json",
+      "sha256": "ed31e33aadfbdd254105f117ca5ed5f2727956bcda937b77b8cbfe5619c779e8"
+    },
+    {
+      "datei": "reports/Inflation-Industrie-Fehler-Vorher-2026-11-02.json",
+      "sha256": "719245584eefa067c935ddca80bd5302459e71d6afec835bce4a3dcf54636276"
+    },
+    {
+      "datei": "reports/Industrie-Personal-Abschluss-2026-11-02.json",
+      "sha256": "466402d71dfeed6f84d3e62410308e9f3506c6967848d5ee8c83f4e60aa4cafa"
+    },
+    {
+      "datei": "reports/Industrie-Schwellen-Pruefung-2026-11-02.json",
+      "sha256": "f7fb2b53b20b963733173cd2beb064cf626fc7219a5a78d5d551a9b417cdcfec"
+    }
+  ]
+}

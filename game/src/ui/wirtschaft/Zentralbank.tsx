@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
-import { ppkDecision } from "../../sim/economy";
+import { ppkDecision, ppkSchrittweite, finanzierungsMehrbedarf } from "../../sim/economy";
 import { figur, haltung as figurHaltung } from "../../sim/figuren";
 import { glaubwuerdigkeitsKette, zinsKette, type Glied } from "../../sim/folgen";
 import { REGELN, stimmenSicht } from "../../sim/handeln";
@@ -186,6 +186,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             <dd>{t("zb.punkte", { n: Math.round(e.riskPremium) })}</dd>
           </div>
         </dl>
+        <p className="wi-hinweis">{t("balance.fiskalstand", { wert: nf(finanzierungsMehrbedarf(e)) })}</p>
       </section>
 
       <section className="wi-karte" id="wi-zb-sitzung">
@@ -203,6 +204,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             <b>{regel.newRate === e.policyRate ? t("zb.regel.haelt", { neu: regel.newRate }) : t(regel.newRate > e.policyRate ? "zb.regel.erhoeht" : "zb.regel.senkt", { alt: e.policyRate, neu: regel.newRate })}</b>. {regel.why} {t("zb.regel.lage")}
           </p>
         )}
+        {!modusC && ppkSchrittweite(e, world.governor.stance) > 5 && <p className="wi-hinweis wi-druck">{t("balance.zinsschritt", { wert: nf(ppkSchrittweite(e, world.governor.stance)) })}</p>}
         {z.druck && !modusC && (
           <p className="wi-hinweis wi-druck">
             {t("zb.druckLiegt", { was: z.druck.richtung < 0 ? "senkung" : "streng", wie: z.druck.weg === "rede" ? "rede" : "gespraech" })}

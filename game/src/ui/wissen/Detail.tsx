@@ -9,6 +9,7 @@ import { partnerGesperrt, type TempoTeile } from "../../sim/wissensbaum-kern";
 import { bringeEin, pruefeVorhaben } from "../../sim/handeln";
 import { PROVINZEN } from "../../sim/regional";
 import type { World } from "../../sim/types";
+import { Bauhilfe } from "../reich/Bauhilfe";
 import { Symbol, knotenSymbol } from "./symbole";
 
 const TRAEGER: Traeger[] = ["staat", "firma", "ausland"];
@@ -134,7 +135,7 @@ export function Detail({
         </p>
       )}
 
-      {k.zustand === "laeuft" && <p className="wb-hinweis">{t("wissen.ui.terminRegel")}</p>}
+      {k.zustand === "laeuft" && <><p className="wb-hinweis">{t("wissen.ui.terminRegel")}</p><Bauhilfe world={w} /></>}
 
       {k.heureka && k.zustand !== "fertig" && (
         <p className={`wb-hinweis wb-heureka${k.heureka.ausgeloest ? " ja" : ""}`}>

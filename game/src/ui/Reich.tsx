@@ -38,6 +38,7 @@ import { Verlauf } from "./reich/Verlauf";
 import { t, aktuelleLocale } from "../i18n";
 import { t as tx } from "../i18n";
 import "./reich/reich.css";
+import { Bauhilfe } from "./reich/Bauhilfe";
 import { ohneBeleg } from "../i18n/ohne-beleg";
 
 const GROESSEN: Record<Bereich, GroesseDef[]> = {
@@ -360,6 +361,7 @@ function Haushalt({ world }: { world: World }) {
       <h4>
         {tx("ui2.ui.Reich.c84da49")} <em>{t("ui.Reich.048ca62")}</em>
       </h4>
+      <p>{t("balance.personal", { wert: z(vb.personal) })}</p>
       <div className="rr-bilanz">
         <table>
           <caption>{tx("ui2.ui.Reich.6435c5e")}</caption>
@@ -540,6 +542,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
         <>
           <section className="rr-abschnitt">
             <Statistik world={world} />
+            <Bauhilfe world={world} />
             <Groessen world={world} liste={GROESSEN[bereich]} />
           </section>
           {(bereich === "kultur" || technik) && <Dringend world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
