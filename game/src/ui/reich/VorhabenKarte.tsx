@@ -139,12 +139,12 @@ export function VorhabenKarte({
           <span>
             {tx("ui2.ui.reich.VorhabenKarte.9844a1b", { p0: Math.round(s.fortschritt * 100) })}
             {s.status === "pausiert"
-              ? ", ruht"
+              ? ` · ${t("wissen.ui.bauPause")}`
               : s.vergabePhase
                 ? tx("ui2.ui.reich.VorhabenKarte.783d302", { p0: s.vergabeMonate, p1: s.vergabeMonate === 1 ? "Monat" : "Monaten" })
-                : s.rate && s.rate > 0
+                : s.restMonate !== undefined
                   ? tx("ui2.ui.reich.VorhabenKarte.36e9b81", { p0: s.restMonate })
-                  : tx("ui2.ui.reich.VorhabenKarte.ac5a414")}
+                  : ` · ${t("wissen.ui.terminOffen")}`}
           </span>
         </div>
       )}

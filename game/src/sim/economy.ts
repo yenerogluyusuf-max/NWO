@@ -216,6 +216,7 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   // nur den Nenner; derselbe aufgezinst berechnete Monatsfaktor gilt in staatsgeldMonat.
   const rechnung = schuldenMonatsrechnung(e, history.at(-1)?.usdTry, PARAMS.fxSchuldAnteil);
   e.debtRatio = rechnung.nachherQuote;
+  e.kassenbestandMrd = rechnung.kasseNachherMrd;
   return rechnung;
 }
 

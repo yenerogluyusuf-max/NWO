@@ -1,3 +1,4 @@
+import { frontVersorgungsBeleg, militaerVersorgung } from "../../sim/versorgung";
 import { useState } from "react";
 import { HUBS, HUB_NACH_ID, HUB_PROVINZEN, transportLage, regionaleDeckung, transportAktion, TRANSPORT_AKTIONEN, type TransportAktion } from "../../sim/transport";
 import type { World } from "../../sim/types";
@@ -23,7 +24,7 @@ export function transportKartenDaten(w:World,gas:boolean,auswahl:string|null):Tr
       ton:r.faktor<0.01?"rot":r.faktor<0.8?"gelb":"gruen",auswahl:r.id===auswahl})),
     knoten:[...HUBS.map(h=>({...h,depot:false,ton:regionaleDeckung(w,h.id)<0.9?"rot":"gruen",auswahl:auswahl===h.id})),
       ...(!gas?l.depots.map(d=>({id:`front:${d.land}`,name:t("transport.frontName",{land:akteurName(d.land)}),lon:d.lon,lat:d.lat,depot:true,
-        ton:(w.spiel?.transport?.bilanz?.depots[d.land]?.deckung??1)<0.9?"rot":"gruen",auswahl:auswahl===`front:${d.land}`})):[])],
+        ton:!frontVersorgungsBeleg(w,d.land)?"gelb":militaerVersorgung(w,d.land).treibstoff<0.9?"rot":"gruen",auswahl:auswahl===`front:${d.land}`})):[])],
   };
 }
 
@@ -40,7 +41,7 @@ export function TransportTafel({world:w,auswahl,onAuswahl,gas,onGas,refresh,onWi
   const route=l.routen.find(r=>r.id===auswahl);
   const depot=l.depots.find(d=>`front:${d.land}`===auswahl);
   const hub=HUB_NACH_ID[auswahl??""];
-  const front=depot?b?.depots[depot.land]:undefined;
+  const front=depot?frontVersorgungsBeleg(w,depot.land):undefined;
   const detail=!!(route||depot||hub);
   const routen=l.routen.filter(r=>gas?r.art==="pipeline":r.art!=="pipeline");
   const kritisch=routen.filter(r=>r.faktor<0.8);
@@ -59,7 +60,7 @@ export function TransportTafel({world:w,auswahl,onAuswahl,gas,onGas,refresh,onWi
       {!pruefung.ok&&!auftrag&&<p className="tr-gesperrt-hinweis">{pruefung.text}</p>}
     </div>;
   };
-  const deckung=front?.deckung??1;
+  const deckung=depot?militaerVersorgung(w,depot.land).treibstoff:1;
   return <aside className={`tr-tafel${kompakt?" tr-kompakt":""}`} aria-label={t("transport.titel")}>
     <header className="tr-kopf">
       <div className="tr-emblem" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M6 6L18 12L6 18M6 6V18"/><circle cx="6" cy="6" r="2.4" fill="#183b36"/><circle cx="18" cy="12" r="2.4" fill="#183b36"/><circle cx="6" cy="18" r="2.4" fill="#183b36"/></svg></div>
@@ -78,8 +79,8 @@ export function TransportTafel({world:w,auswahl,onAuswahl,gas,onGas,refresh,onWi
           <div className="tr-uebersicht-hero"><span className="tr-kicker">{t("transport.netzLage")}</span><h3>{t(kritisch.length?"transport.netzGefaehrdet":"transport.netzStabil")}</h3><p>{t("transport.karteHinweis")}</p>
             <div className="tr-netz-zahlen"><div><strong>{routen.length}</strong><span>{t("transport.korridore")}</span></div><div className={kritisch.length?"tr-negativ":""}><strong>{kritisch.length}</strong><span>{t("transport.engpaesseKurz")}</span></div><div><strong>{l.depots.length}</strong><span>{t("transport.depots")}</span></div></div>
           </div>
-          {l.depots.length>0&&<section className="tr-abschnitt"><h4>{t("transport.depots")}</h4>{l.depots.map(d=>{const v=b?.depots[d.land]?.deckung;return <button className="tr-depotkarte" type="button" key={d.land} onClick={()=>onAuswahl(`front:${d.land}`)}>
-            <span className={`tr-statuspunkt ${(v??1)<0.9?"rot":"gruen"}`} aria-hidden="true"/><span><b>{akteurName(d.land)}</b><small>{t("transport.standortKurz",{ort:name(d.ort)})}</small></span><span className={(v??1)<0.9?"tr-negativ":""}><strong>{v===undefined?"—":zahl(v*100,0)}<small>%</small></strong><small>{t("transport.versorgt")}</small></span><i aria-hidden="true">›</i>
+          {l.depots.length>0&&<section className="tr-abschnitt"><h4>{t("transport.depots")}</h4>{l.depots.map(d=>{const v=frontVersorgungsBeleg(w,d.land)?.deckung;return <button className="tr-depotkarte" type="button" key={d.land} onClick={()=>onAuswahl(`front:${d.land}`)}>
+            <span className={`tr-statuspunkt ${v===undefined?"gelb":v<0.9?"rot":"gruen"}`} aria-hidden="true"/><span><b>{akteurName(d.land)}</b><small>{t("transport.standortKurz",{ort:name(d.ort)})}</small></span><span className={(v??1)<0.9?"tr-negativ":""}><strong>{v===undefined?"—":zahl(v*100,0)}<small>%</small></strong><small>{t("transport.versorgt")}</small></span><i aria-hidden="true">›</i>
           </button>;})}</section>}
           <section className="tr-abschnitt"><h4>{t("transport.engpaesse")}</h4>{!kritisch.length&&<p className="tr-leise">{t("transport.keinEngpass")}</p>}
             {kritisch.map(r=><button className="tr-routenzeile" type="button" key={r.id} onClick={()=>onAuswahl(r.id)}><span className={`tr-statuspunkt ${r.faktor<0.01?"rot":"gelb"}`} aria-hidden="true"/><span><b>{name(r.von)} <em>→</em> {name(r.nach,r.land)}</b><small>{t(`transport.grund.${r.grund}`)}</small></span><strong>{zahl(r.kapazitaet/r.kap*100,0)}<small>%</small></strong></button>)}
@@ -89,7 +90,7 @@ export function TransportTafel({world:w,auswahl,onAuswahl,gas,onGas,refresh,onWi
         {depot&&<section aria-label={t("transport.depot")}>
           <div className="tr-hero"><span className="tr-kicker">{t("transport.depotTyp")}</span><div className="tr-hero-titel"><h3>{akteurName(depot.land)}</h3><span className={`tr-status ${deckung<0.9?"rot":"gruen"}`}>{t(!front?"transport.ungeprueft":deckung<0.05?"regierung.keineLieferung":deckung<0.9?"transport.knapp":"transport.gesichert")}</span></div><p>{t("transport.standortKurz",{ort:name(depot.ort)})}</p></div>
           <div className={`tr-versorgungskarte ${deckung<0.9?"kritisch":""}`}>
-            {front ? <Pegel wert={deckung*100} label={t("transport.gedeckt")} ton={deckung<0.9?"rot":"gruen"}/> : <p>{t("regierung.lieferungUnbekannt")}</p>}
+            {front ? <Pegel wert={deckung*100} label={t("transport.gedeckt")} ton={deckung<0.9?"rot":"gruen"}/> : <p>{t("transport.frontErsteLieferung")}</p>}
             <div className="tr-kennzahlen"><div><strong>{zahl(depot.bestand,2)}<small> Mio. t</small></strong><span>{t("transport.vorratKurz")}</span></div><div><strong>{front?zahl(front.tage,0):"—"}<small> {t("transport.tage")}</small></strong><span>{t("transport.reichweiteKurz")}</span></div></div>
           </div>
           {front && <div className={`tr-folge ${deckung<0.9?"rot":""}`}><span aria-hidden="true">{deckung<0.9?"!":"✓"}</span><div><strong>{t("regierung.versorgungFaktor",{kraft:zahl((0.25+0.75*deckung)*100,0)})}</strong><p>{t(deckung<0.9?"transport.frontKurz":"transport.frontGut")}</p></div></div>}
@@ -99,7 +100,7 @@ export function TransportTafel({world:w,auswahl,onAuswahl,gas,onGas,refresh,onWi
           <div className="tr-hero"><span className="tr-kicker">{t(`transport.art.${route.art}`)}</span><h3 className="tr-route-titel">{name(route.von)}<span>↓</span>{name(route.nach,route.land)}</h3><span className={`tr-status ${route.faktor<0.01?"rot":route.faktor<0.8?"gelb":"gruen"}`}>{t(`transport.grund.${route.grund}`)}</span></div>
           <div className="tr-versorgungskarte"><Pegel wert={route.kapazitaet/route.kap*100} label={t("transport.kapazitaet")} ton={route.faktor<0.8?"rot":"gruen"}/><p className="tr-schaden">{t("transport.schaden")} <strong>{zahl(route.schaden*100,0)} %</strong></p></div>
           {route.grund==="feind"&&<p className="tr-folge-text">{t("transport.feindKurz")}</p>}
-          <h4>{t("transport.knotenPruefen")}</h4>{[route.von,route.nach].map(id=><button className="tr-routenzeile" key={id} type="button" onClick={()=>onAuswahl(id)}><span>{name(id,route.land)}</span><strong>{zahl((id.startsWith("front:")?(b?.depots[id.slice(6)]?.deckung??1):regionaleDeckung(w,id))*100,0)}<small>%</small></strong><i aria-hidden="true">›</i></button>)}
+          <h4>{t("transport.knotenPruefen")}</h4>{[route.von,route.nach].map(id=><button className="tr-routenzeile" key={id} type="button" onClick={()=>onAuswahl(id)}><span>{name(id,route.land)}</span><strong>{zahl((id.startsWith("front:")?(frontVersorgungsBeleg(w,id.slice(6))?.deckung??0):regionaleDeckung(w,id))*100,0)}<small>%</small></strong><i aria-hidden="true">›</i></button>)}
           <details className="tr-details"><summary>{t("transport.bilanzDetails")}</summary><p>{t("transport.frachtLetzterMonat")}: {route.waren.map(g=>t(`gueter.gut.${g}`)).join(", ")||"—"}</p><p>{t("transport.folgenRoute")}</p></details>
         </section>}
         {hub&&<section><div className="tr-hero"><span className="tr-kicker">{t("transport.regionTyp")}</span><h3>{hub.name}</h3><p>{t("transport.regionAnzahl",{n:HUB_PROVINZEN[hub.id]!.length})}</p></div>

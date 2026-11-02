@@ -332,6 +332,7 @@ export const KENNZAHLEN: Kennzahl[] = [
         zeilen: [
           tr(t("wk.ffa2726"), defizitJetzt(w) / 12, "Punkte je Monat", t("sf.schuldenFlussText")),
           tr(t("wk.fb293aa"), rechnung.vorherMrd / rechnung.bipNachherMrd * 100 - e.debtRatio, "Punkte je Monat", t("sf.schuldenBipText")),
+          ...((rechnung.kasseEntnahmeMrd ?? 0) > 0 ? [tr(t("sf.kasseEntnahme"), -rechnung.kasseEntnahmeMrd! / rechnung.bipNachherMrd * 100, "Punkte je Monat", t("sf.kasseRegel"))] : []),
           ...(rechnung.restUeberschussMrd > 0 ? [tr(t("sf.restUeberschuss"), rechnung.restUeberschussMrd / rechnung.bipNachherMrd * 100, "Punkte je Monat", t("sf.restText"))] : []),
         ],
       };

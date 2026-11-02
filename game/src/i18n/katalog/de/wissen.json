@@ -325,5 +325,8 @@
  "wissen.civ.weg.gesetz": "per Gesetz",
  "wissen.civ.anhebenWeg.erlass": "Gilt sofort; das Verfassungsgericht kann ihn prüfen.",
  "wissen.civ.anhebenWeg.gesetz": "Das Parlament stimmt ab; mit Mehrheit wird es Gesetz.",
- "wissen.civ.zurueck": "Zurück zum Wissensbaum"
+ "wissen.civ.zurueck": "Zurück zum Wissensbaum",
+ "wissen.ui.bauPause": "Bau pausiert",
+ "wissen.ui.terminOffen": "Termin derzeit offen",
+ "wissen.ui.terminRegel": "Schätzung bei heutigem Forschungs- und Bautempo, heutiger Verwaltung und unveränderter Reihenfolge. Wartezeiten und Vergabe sind enthalten; neue Krisen, Schwerpunktwechsel und Baurisiken können den Termin verändern."
 }

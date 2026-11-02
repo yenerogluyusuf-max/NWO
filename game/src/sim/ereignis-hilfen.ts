@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Gemeinsame Typen und Hilfen aller Ereignisvorlagen (Vorlagen liegen in ereignisse*.ts).
 
 import { festeZusage } from "./zusagenfolgen";
@@ -118,9 +119,9 @@ export const akutIn = (w: World, id: string): number[] => {
   return out;
 };
 
-/** Einmalige Kosten in % des BIP: erhöhen die Schulden und stützen kurz die Nachfrage. */
+/** Einmalige Kosten in % des BIP: nutzen Kasse, dann Kredit und stützen kurz die Nachfrage. */
 export function kosten(w: World, prozentBip: number): void {
-  w.economy.debtRatio += prozentBip;
+  bucheFinanzsaldo(w.economy, prozentBip);
   w.economy.outputGap += 0.08 * prozentBip;
 }
 

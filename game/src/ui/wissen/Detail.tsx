@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { t } from "../../i18n";
 import { BAUM, WERK_VON, ZWEIGE, type Lizenzgeber, type Traeger } from "../../data/wissensbaum";
-import { beginnPreis, beginneKnoten, kaufeLizenz, knotenName, standortSichten, type KnotenSicht, type Sprung } from "../../sim/wissensbaum";
+import { knotenTermin, beginnPreis, beginneKnoten, kaufeLizenz, knotenName, standortSichten, type KnotenSicht, type Sprung } from "../../sim/wissensbaum";
 import { partnerGesperrt, type TempoTeile } from "../../sim/wissensbaum-kern";
 import { bringeEin, pruefeVorhaben } from "../../sim/handeln";
 import { PROVINZEN } from "../../sim/regional";
@@ -129,10 +129,12 @@ export function Detail({
 
       {k.zustand !== "fertig" && (
         <p className="wb-kosten">
-          {k.zustand === "laeuft" && k.restMonate !== undefined ? t("wissen.ui.rest", { n: k.restMonate }) : t("wissen.ui.kosten", { pk: k.pk, monate: k.monate })}
+          {k.zustand === "laeuft" ? knotenTermin(k) : t("wissen.ui.kosten", { pk: k.pk, monate: k.monate })}
           {k.zustand === "laeuft" && <span className="wbf-prozent"> · {Math.round(k.fortschritt * 100)} %</span>}
         </p>
       )}
+
+      {k.zustand === "laeuft" && <p className="wb-hinweis">{t("wissen.ui.terminRegel")}</p>}
 
       {k.heureka && k.zustand !== "fertig" && (
         <p className={`wb-hinweis wb-heureka${k.heureka.ausgeloest ? " ja" : ""}`}>

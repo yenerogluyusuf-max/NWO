@@ -37,8 +37,12 @@ export interface SchuldenRechnung {
   vorherMrd: number;
   defizitMrd: number;
   wechselkursMrd: number;
-  /** Überschuss jenseits vollständiger Tilgung; keine negativen Bruttoschulden oder frei verfügbares Guthaben. */
+  /** Überschuss jenseits vollständiger Tilgung, wird im Kassenbestand erhalten. */
   restUeberschussMrd: number;
+  /** Optional für gespeicherte Abschlüsse vor Einführung des Kassenbestands. */
+  kasseVorherMrd?: number;
+  kasseEntnahmeMrd?: number;
+  kasseNachherMrd?: number;
   nachherMrd: number;
   vorherQuote: number;
   nachherQuote: number;
@@ -55,10 +59,13 @@ export function schuldenMonatsrechnung(e: EconomyState, vorherUsdTry = e.usdTry,
   const wechselkursMrd = positiv(vorherUsdTry) && positiv(e.usdTry)
     ? vorherMrd * Math.max(0, Math.min(1, fxAnteil)) * (e.usdTry / vorherUsdTry - 1) : 0;
   const defizitMrd = defizitQuote(e) * bipNachherMrd / 100 / 12;
-  const saldo = vorherMrd + wechselkursMrd + defizitMrd;
+  const kasseVorherMrd = kassenbestand(e);
+  const kasseEntnahmeMrd = Math.min(kasseVorherMrd, Math.max(0, defizitMrd));
+  const saldo = vorherMrd + wechselkursMrd + defizitMrd - kasseEntnahmeMrd;
   const nachherMrd = Math.max(0, saldo);
   return { bipVorherMrd, bipNachherMrd, vorherMrd, defizitMrd, wechselkursMrd,
-    restUeberschussMrd: Math.max(0, -saldo), nachherMrd,
+    restUeberschussMrd: Math.max(0, -saldo), nachherMrd, kasseVorherMrd, kasseEntnahmeMrd,
+    kasseNachherMrd: kasseVorherMrd - kasseEntnahmeMrd + Math.max(0, -saldo),
     vorherQuote: e.debtRatio, nachherQuote: nachherMrd / bipNachherMrd * 100 };
 }
 
@@ -96,3 +103,17 @@ export function bipMrd(w: World, real = false): number {
 }
 
 export const geldAusBip = (w: World, prozent: number): number => prozent * bipMrd(w) / 100;
+
+/** Unverzinste Kasse in nominalen Mrd. Lira; Altstände erhalten kein erfundenes Guthaben. */
+export const kassenbestand = (e: EconomyState): number => positiv(e.kassenbestandMrd) ? e.kassenbestandMrd : 0;
+
+/** Einmaliger Finanzierungssaldo: Guthaben vor neuen Krediten verwenden, Einnahmen zuerst tilgen.
+ * Nur Finanzierung, keine Nachfrage-/Vertrauenswirkung: diese bleibt beim jeweiligen Spielereignis.
+ * Politisches Kapital und der laufende Jahresetat bleiben getrennt. */
+export function bucheFinanzsaldo(e: EconomyState, prozentBip: number): void {
+  const bip = bipWertMrd(e), kasse = kassenbestand(e), betrag = prozentBip * bip / 100;
+  const entnahme = Math.min(kasse, Math.max(0, betrag));
+  const saldo = Math.max(0, e.debtRatio) * bip / 100 + betrag - entnahme;
+  e.debtRatio = Math.max(0, saldo) / bip * 100;
+  e.kassenbestandMrd = kasse - entnahme + Math.max(0, -saldo);
+}

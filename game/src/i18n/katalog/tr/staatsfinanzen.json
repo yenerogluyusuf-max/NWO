@@ -64,7 +64,7 @@
   "sf.schuldenNachher": "Aylık hesap sonrası borç stoku",
   "sf.restUeberschuss": "Borç tamamen ödendikten sonraki fazla",
   "sf.schuldenBelegText": "Kaydedilmiş aylık hesap: GSYH {vorher} → {nachher} milyar ₺. Büyüme ve fiyatlar borç oranını değiştirir; başlangıçtaki nominal borcu azaltmaz. Hesap günü dahil sonraki tekil kararlar güncel stokta yer alır, bu kayıtta değil.",
-  "sf.restText": "Brüt borç sıfırın altına düşemez. Tam geri ödemeyi aşan fazla burada gösterilir; oyun henüz bunun için kullanılabilir bir nakit hesabı tutmuyor.",
+  "sf.restText": "Tam geri ödemeden sonra kalan fazla, sonraki harcamalar için Hazinede kalır.",
   "sf.schuldenNochOffen": "İlk aylık hesap kapanışı henüz gerçekleşmedi. Eski kayıtlar için geçmiş hesap oluşturulmaz.",
   "sf.schuldenPrognose": "Gelecek ayın hesaplanan değişimi: mevcut bütçe, büyüme ve fiyatlarla ve sabit döviz kuruyla {wert} yüzde puan. Yeni olaylar öngörülmez.",
   "sf.schuldenFlussText": "Yıllık toplam açık oranının on ikide biri. Faiz zaten dahildir; tekrar eklenmez.",
@@ -72,5 +72,11 @@
   "sf.zinsGrund": "Temel bütçedeki faiz gideri",
   "sf.zinsAenderung": "Borç stoku ve ortalama faizden kaynaklanan değişim",
   "sf.zinsText": "Aylık kayıt, başlangıç faizinin yerine borç oranı ile kademeli ortalama faizin çarpımını koyar. Son kayıttan sonraki tekil giderler bir sonraki hesapta dikkate alınır.",
-  "sf.konjunkturDefizit": "Ekonomik faaliyet ve vergi tabanından gelen ek gelir açığı azaltır. Gelir kayıpları açığı artırır."
+  "sf.konjunkturDefizit": "Ekonomik faaliyet ve vergi tabanından gelen ek gelir açığı azaltır. Gelir kayıpları açığı artırır.",
+  "sf.kasseHeute": "Kullanılabilir Hazine nakdi: {betrag} milyar ₺",
+  "sf.kasseRegel": "Fazla önce borcu öder. Kalan nakit, yeni borçlanmadan önce sonraki giderleri karşılar. Bu nominal, faizsiz bakiye merkez bankasının döviz rezervlerinden ayrıdır.",
+  "sf.kasseEntnahme": "Hazine nakdinden finansman",
+  "sf.kasseBeleg": "Hesaplanan ayda Hazine nakdi: {vorher} → {nachher} milyar ₺.",
+  "sf.kasseAenderung": "Hazine nakdi {betrag} milyar ₺",
+  "sf.restAltText": "Bu eski hesap kapanışı fazlayı yalnızca gösteriyordu. O tarihte nakit bakiyesi kaydedilmediği için geriye dönük bir bakiye eklenmez."
 }

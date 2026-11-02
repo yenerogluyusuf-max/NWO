@@ -6,7 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { createPortal } from "react-dom";
 import { t } from "../../i18n";
 import { BAUM, WERK_VON, type ZweigId } from "../../data/wissensbaum";
-import { baumSicht, knotenName, setzeSchwerpunkt, type BaumSicht, type KnotenSicht, type Sprung } from "../../sim/wissensbaum";
+import { knotenTermin, baumSicht, knotenName, setzeSchwerpunkt, type BaumSicht, type KnotenSicht, type Sprung } from "../../sim/wissensbaum";
 import type { World } from "../../sim/types";
 import { Detail } from "./Wissensbaum";
 import { Symbol, knotenSymbol, zweigSymbol } from "./symbole";
@@ -350,12 +350,7 @@ export function BaumFenster({ world: w, start, onZu, onGeaendert, onAussen }: Ba
               const weiter = nachfolger.get(k.id) ?? [];
               const imPfad = pfad.has(k.id);
               const leise = !!ziel && k.id !== ziel && !imPfad;
-              const zeit =
-                k.zustand === "fertig"
-                  ? t("wissen.ui.zustand.fertig")
-                  : k.zustand === "laeuft" && k.restMonate !== undefined
-                    ? t("wissen.civ.inMonaten", { n: k.restMonate })
-                    : t("wissen.civ.dauer", { n: k.monate });
+              const zeit = knotenTermin(k);
               return (
                 <div
                   key={k.id}

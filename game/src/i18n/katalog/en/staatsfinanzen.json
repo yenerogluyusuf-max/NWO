@@ -64,7 +64,7 @@
   "sf.schuldenNachher": "Stock after monthly settlement",
   "sf.restUeberschuss": "Surplus after full repayment",
   "sf.schuldenBelegText": "Saved monthly settlement: GDP ₺{vorher} → {nachher} bn. Growth and prices change the debt ratio, not the nominal opening stock. Later individual decisions, including those on settlement day, affect the current stock but not this record.",
-  "sf.restText": "Gross debt cannot fall below zero. Any surplus beyond full repayment is shown here; the game does not yet maintain a spendable cash account for it.",
+  "sf.restText": "The surplus after full repayment remains in the treasury for later expenditure.",
   "sf.schuldenNochOffen": "The first monthly settlement is still pending. No past record is invented for older saves.",
   "sf.schuldenPrognose": "Calculated change next month: {wert} percentage points, with the current budget, growth and prices and an unchanged exchange rate. New events are not forecast.",
   "sf.schuldenFlussText": "One twelfth of the annual overall deficit ratio. Interest is already included and is not added again.",
@@ -72,5 +72,11 @@
   "sf.zinsGrund": "Interest in the baseline budget",
   "sf.zinsAenderung": "Change from debt stock and average interest rate",
   "sf.zinsText": "The monthly entry replaces baseline interest with the debt ratio times the smoothed average interest rate. Individual costs incurred since the last entry affect the next one.",
-  "sf.konjunkturDefizit": "Additional revenue from economic activity and the tax base reduces the deficit. Revenue shortfalls increase it."
+  "sf.konjunkturDefizit": "Additional revenue from economic activity and the tax base reduces the deficit. Revenue shortfalls increase it.",
+  "sf.kasseHeute": "Available treasury cash: {betrag} bn ₺",
+  "sf.kasseRegel": "Surpluses repay debt first. Remaining cash funds later expenditure before new borrowing. This nominal, non-interest-bearing balance is separate from central-bank foreign reserves.",
+  "sf.kasseEntnahme": "Financed from treasury cash",
+  "sf.kasseBeleg": "Treasury cash in the settled month: {vorher} → {nachher} bn ₺.",
+  "sf.kasseAenderung": "Treasury cash {betrag} bn ₺",
+  "sf.restAltText": "This older settlement only reported the surplus. No cash balance was saved at that time and none is credited retroactively."
 }

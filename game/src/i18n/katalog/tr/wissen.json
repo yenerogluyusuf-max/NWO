@@ -325,5 +325,8 @@
  "wissen.civ.weg.gesetz": "yasa ile",
  "wissen.civ.anhebenWeg.erlass": "Hemen geçerli olur; Anayasa Mahkemesi denetleyebilir.",
  "wissen.civ.anhebenWeg.gesetz": "Meclis oylar; çoğunlukla yasalaşır.",
- "wissen.civ.zurueck": "Bilgi Ağacına dön"
+ "wissen.civ.zurueck": "Bilgi Ağacına dön",
+ "wissen.ui.bauPause": "İnşaat duraklatıldı",
+ "wissen.ui.terminOffen": "Bitiş tarihi belirsiz",
+ "wissen.ui.terminRegel": "Mevcut araştırma ve inşaat hızı, idare ve değişmeyen sıraya göre tahmin. Bekleme ve ihale süreleri dahildir; yeni krizler, öncelik değişiklikleri ve inşaat riskleri tarihi değiştirebilir."
 }

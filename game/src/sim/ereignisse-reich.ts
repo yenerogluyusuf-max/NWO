@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Ereignisse der Fachbereiche: Kultur und Erbe, Recht, Streitkräfte, Infrastruktur (FACHBEREICHE.md).
 // Wie in den anderen Vorlagen sind Wahrscheinlichkeiten und Wirkungen Platzhalter der Kalibrierung; Zahlen im Text stammen
 // aus dem Weltzustand oder sind mit Quelle belegt (RECHERCHE_KONKURRENZ_FACHBEREICHE.md).
@@ -233,7 +234,7 @@ const HAGIA_SOPHIA: Vorlage = {
       return "Die Regierung öffnet feste Zeiten für Besucher aller Glaubensrichtungen.";
     }),
     opt("gebuehr", "Den Eintritt für Ausländer anheben", beschr(1, 0, "Einnahmen, weniger Gäste."), 1, (w) => {
-      w.economy.debtRatio -= 0.02;
+      bucheFinanzsaldo(w.economy, -0.02);
       wirke(w, "tourismus", -1, [34]);
       return "Der Eintritt für ausländische Gäste steigt; das bringt Einnahmen und dämpft den Andrang.";
     }),

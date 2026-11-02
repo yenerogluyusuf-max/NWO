@@ -1,5 +1,7 @@
 // Gemeinsame, gespeicherte Monatsbilanz für Waren, Außenhandel und Streitkräfte.
 // Nur Typen und lesende Ableitungen: keine zweite Buchhaltung und keine Initialisierung beim Lesen.
+import { GUETER } from "../data/gueter";
+import type { DepotBilanz } from "./transport";
 import type { GutId } from "../data/gueter";
 import type { World } from "./types";
 
@@ -60,12 +62,29 @@ export function produktionsVersorgung(w: World, id: GutId): number {
   return 1;
 }
 
+/** Bedarf ohne Bevorratung; Reserveaufbau ist keine schon erbrachte Versorgung. */
+export const frontMonatsverbrauch = (phase: string): number => GUETER.find(g => g.id === "erdoel")!.verbrauch / 12 * 0.12 * (phase === "waffenruhe" ? 0.35 : 1);
+
+/** Eine Bilanz gehört zum konkreten Einsatz, nicht zu jedem späteren Krieg mit demselben Land.
+ * Ältere gespeicherte Bilanzen ohne Einsatzkennung bleiben für den laufenden Einsatz lesbar. */
+export function frontVersorgungsBeleg(w: World, land: string): DepotBilanz | undefined {
+  const k = w.spiel?.kriege?.find(k => k.land === land && (k.phase === "krieg" || k.phase === "waffenruhe"));
+  const b = w.spiel?.transport?.bilanz?.depots[land];
+  return k && b && (!b.kriegId || b.kriegId === k.id) ? b : undefined;
+}
+
 export function militaerVersorgung(w: World, land?: string): { treibstoff: number; material: number; faktor: number; monat?: string } {
   const b = letzteVersorgung(w);
-  const oel = b?.waren.erdoel;
-  let treibstoff = oel && oel.militaerBedarf > 0 ? Math.min(1, oel.militaerGeliefert / oel.militaerBedarf) : 1;
-  const depots = Object.values(w.spiel?.transport?.bilanz?.depots ?? {}).filter(d => (!land || d.land === land) && w.spiel?.kriege?.some(k => k.land === d.land && (k.phase === "krieg" || k.phase === "waffenruhe")));
-  if (depots.length) treibstoff = depots.reduce((n,d)=>n+d.verbraucht,0)/Math.max(1e-9,depots.reduce((n,d)=>n+d.bedarf,0));
+  const fronten = (w.spiel?.kriege ?? []).filter(k => (!land || k.land === land) && (k.phase === "krieg" || k.phase === "waffenruhe"));
+  let verbraucht = 0, bedarf = 0;
+  for (const k of fronten) {
+    const beleg = frontVersorgungsBeleg(w, k.land);
+    bedarf += beleg?.bedarf ?? frontMonatsverbrauch(k.phase);
+    verbraucht += beleg?.verbraucht ?? 0;
+  }
+  // Eine neu eröffnete Front hat noch keinen gebuchten Verbrauch. Keine fiktive Vollversorgung
+  // aus einer Friedensbilanz oder dem Depot eines anderen Einsatzes; Monatsrechnung liefert real.
+  const treibstoff = bedarf > 0 ? Math.max(0, Math.min(1, verbraucht / bedarf)) : 1;
   const material = Math.min(warenDeckung(w, "stahl"), warenDeckung(w, "elektronik"), warenDeckung(w, "strom"));
   return { treibstoff, material, faktor: 0.25 + 0.75 * treibstoff, monat: b?.monat };
 }

@@ -35,16 +35,20 @@ export function Staatsfinanzen({ world, details = false }: { world: World; detai
       <section className="sf-schulden" aria-label={t("sf.schuldenTitel")}>
         <h4>{t("sf.schuldenTitel")}</h4>
         <p>{t("sf.schuldenHeute", { betrag: zahl(f.schuldenMrd, 1), quote: zahl(world.economy.debtRatio, 2) })}</p>
+        <p>{t("sf.kasseHeute", { betrag: zahl(f.kasseMrd, 2) })}</p>
+        <p>{t("sf.kasseRegel")}</p>
         {abschluss ? <details>
           <summary>{t("sf.schuldenAbschluss", { monat: formatMonthDe(abschluss.monat) })}</summary>
           <dl>{([
             ["sf.schuldenVorher", abschluss.vorherMrd], ["sf.schuldenFluss", abschluss.defizitMrd],
             ["sf.schuldenFx", abschluss.wechselkursMrd],
+            ...((abschluss.kasseEntnahmeMrd ?? 0) > 0 ? [["sf.kasseEntnahme", -abschluss.kasseEntnahmeMrd!] as const] : []),
             ...(abschluss.restUeberschussMrd > 0 ? [["sf.restUeberschuss", abschluss.restUeberschussMrd] as const] : []),
             ["sf.schuldenNachher", abschluss.nachherMrd],
           ] as const).map(([key, wert]) => <div key={key}><dt>{t(key)}</dt><dd>{t("sf.betrag", { n: zahl(wert, 2) })}</dd></div>)}</dl>
           <p>{t("sf.schuldenBelegText", { vorher: zahl(abschluss.bipVorherMrd, 1), nachher: zahl(abschluss.bipNachherMrd, 1) })}</p>
-          {abschluss.restUeberschussMrd > 0 && <p>{t("sf.restText")}</p>}
+          {abschluss.kasseNachherMrd !== undefined && <p>{t("sf.kasseBeleg", { vorher: zahl(abschluss.kasseVorherMrd ?? 0, 2), nachher: zahl(abschluss.kasseNachherMrd, 2) })}</p>}
+          {abschluss.restUeberschussMrd > 0 && <p>{t(abschluss.kasseNachherMrd === undefined ? "sf.restAltText" : "sf.restText")}</p>}
         </details> : <p>{t("sf.schuldenNochOffen")}</p>}
       </section>
       <dl className="sf-ressourcen">

@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Die übrigen Länder als Akteure: Jedes hat einen Steckbrief, vier Beziehungsdimensionen (Handel, Sicherheit, Vertrauen, Konflikt),
 // eigene Anliegen an die Türkei und Handlungen, die der Präsident ihm gegenüber wählen kann (AUSSENPOLITIK.md, Abschnitte 1 bis 4).
 // Das Vertrauen ist keine eigene Zahl, sondern das Vertrauen im Politiknetz (beziehungen_*) plus ein Versatz für dieses Land, damit
@@ -508,7 +509,7 @@ export function fuehreAktionAus(w: World, id: string, aktion: AktionId): { ok: b
     case "ruestung":
       landAendern(w, id, { sicherheit: 12, vertrauen: 4 }, t("sim2.sim.laender.87923f2"));
       wirke(w, "militaer", 2);
-      w.economy.debtRatio += 0.1;
+      bucheFinanzsaldo(w.economy, 0.1);
       for (const g of GEGENSPIELER[id] ?? []) landAendern(w, g, { vertrauen: -6 }, t("sim2.sim.laender.02724b5", { p0: l.dat }));
       text = t("sim2.sim.laender.be935a5", { p0: l.dat, p1: Math.round(z.sicherheit) });
       why = t("sim2.sim.laender.0e162e9", { p0: def.pk, p1: (GEGENSPIELER[id] ?? []).length ? ` ${(GEGENSPIELER[id] ?? []).map((g) => land(g).name).join(" und ")} sieht das mit Sorge.` : "" });
@@ -528,7 +529,7 @@ export function fuehreAktionAus(w: World, id: string, aktion: AktionId): { ok: b
       break;
     case "hilfe":
       landAendern(w, id, { vertrauen: 6, handel: 8, konflikt: -4 }, t("sim2.sim.laender.7ea86b6"));
-      w.economy.debtRatio += 0.1;
+      bucheFinanzsaldo(w.economy, 0.1);
       wirke(w, "bauwirtschaft", 1);
       text = t("sim2.sim.laender.40182d6", { p0: l.akk, p1: Math.round(vertrauenZu(w, id)) });
       why = t("sim2.sim.laender.56d3387", { p0: def.pk });

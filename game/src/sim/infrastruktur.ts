@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Infrastruktur als Bestand mit Belastung (KI_PROJEKTE_UND_KARTE_2026-10-05, Teil 2: Nutzung → Überlast → Bitte → Entscheidung → neue Nutzung).
 //
 // Neun Netze je Provinz (Häfen als ein Korridor für das ganze Land) mit Kapazität und Auslastung. Die Nachfrage wächst mit der Wirtschaft,
@@ -426,7 +427,7 @@ export function infrastrukturMonat(w: World): void {
     }
   }
   z.leerKosten = Math.round(leer * 0.004 * 10000) / 10000;
-  if (z.leerKosten > 0) w.economy.debtRatio += z.leerKosten;
+  if (z.leerKosten > 0) bucheFinanzsaldo(w.economy, z.leerKosten);
 
   // 4. Meldung bei neuer Überlast (je Netz höchstens alle sechs Monate) und die eine Bitte des Monats
   for (const n of NETZE) {

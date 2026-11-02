@@ -42,6 +42,7 @@ export interface KnotenSicht {
   /** 0 bis 1 */
   fortschritt: number;
   restMonate?: number;
+  pausiert?: boolean;
   /** Kapital und geplante Monate beim Beginn (transparente Ausschreibung) */
   pk: number;
   monate: number;
@@ -234,6 +235,7 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
     spalte: spalteVon(id, (x) => vorhabenSicht(w, x)?.v.voraus ?? []),
     zustand,
     fortschritt: s.fortschritt,
+    ...(s.status === "pausiert" ? { pausiert: true } : {}),
     ...(s.restMonate !== undefined ? { restMonate: s.restMonate } : {}),
     pk: angebot.pk,
     monate: angebot.monate,
@@ -601,3 +603,10 @@ export function naechsterKnoten(w: World): KnotenSicht | null {
   return moeglich[0] ?? null;
 }
 
+
+/** Gemeinsame Zeitangabe: Pause oder fehlende Schätzung sind kein versprochener Termin. */
+export function knotenTermin(k: KnotenSicht): string {
+  if (k.zustand === "fertig") return t("wissen.ui.zustand.fertig");
+  if (k.zustand === "laeuft") return k.pausiert ? t("wissen.ui.bauPause") : k.restMonate !== undefined ? t("wissen.civ.inMonaten", { n: k.restMonate }) : t("wissen.ui.terminOffen");
+  return t("wissen.civ.dauer", { n: k.monate });
+}

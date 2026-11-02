@@ -153,7 +153,10 @@ describe("Durchgehende Versorgung", () => {
     weltZustand(w).RUS!.konflikt = 90;
     kriegMonat(w, new Rng(4));
     const k = kriegMit(w, "RUS")!; k.phase = "krieg";
-    const normal = eigenStaerke(w, k);
+    const versorgt = load(save(w));
+    gueterMonat(versorgt);
+    const normal = eigenStaerke(versorgt, kriegMit(versorgt, "RUS")!);
+    expect(militaerVersorgung(versorgt, "RUS").treibstoff).toBeGreaterThan(0);
     gueterZustand(w).lager.erdoel = 0;
     gueterZustand(w).lager.elektronik = 0;
     aussenZustand(w).sanktionen.push({ id: "eu_handel", von: "CHN", seit: w.day });

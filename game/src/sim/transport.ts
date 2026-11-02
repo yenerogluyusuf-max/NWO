@@ -1,7 +1,7 @@
 import { FRONT_ZUGANG, HUBS, HUB_NACH_ID, HUB_GEWICHT, HUB_PROVINZEN, TRANSPORT_ROUTEN, type TransportRoute } from "../data/transport";
 import { GUETER, type GutDef, type GutId } from "../data/gueter";
 import type { World } from "./types";
-import type { WarenFluss } from "./versorgung";
+import { frontMonatsverbrauch, type WarenFluss } from "./versorgung";
 import { kosten } from "./ereignis-hilfen";
 import { kannZahlen } from "./kapital";
 import { addLog } from "./log";
@@ -10,7 +10,7 @@ import { t } from "../i18n";
 export type TransportAktion = "reparatur" | "umleitung" | "luftbruecke" | "depot";
 export interface TransportMassnahme { art: TransportAktion; ziel: string; ab: number; bis: number; pfad?: string[] }
 export interface FrontDepot { land: string; ort: string; lon: number; lat: number; bestand: number; zielTage: number }
-export interface DepotBilanz { land: string; anfang: number; geliefert: number; verbraucht: number; bedarf: number; ende: number; deckung: number; tage: number }
+export interface DepotBilanz { land: string; kriegId?: string; anfang: number; geliefert: number; verbraucht: number; bedarf: number; ende: number; deckung: number; tage: number }
 export interface RegionLieferung { bedarf: number; geliefert: number; ende: number }
 export interface RoutenLage extends TransportRoute { faktor: number; kapazitaet: number; belegt: number; schaden: number; bekaempft: boolean; grund: "offen" | "kampf" | "feind" | "schaden" | "ueberlast"; waren: GutId[] }
 export interface TransportBilanz { monat: string; routen: RoutenLage[]; regionen: Record<string, Partial<Record<GutId, RegionLieferung>>>; depots: Record<string, DepotBilanz>; regierungsReparaturen?: string[] }
@@ -22,7 +22,6 @@ export interface TransportPlan { zustand: TransportZustand; routen: RoutenLage[]
 const sum = (o: Record<string, number>) => Object.values(o).reduce((s,n)=>s+n,0);
 const clamp = (n: number) => Math.max(0,Math.min(1,n));
 const aktiv = (w: World) => (w.spiel?.kriege ?? []).filter(k=>k.phase === "krieg" || k.phase === "waffenruhe");
-const oelMonat = GUETER.find(g=>g.id === "erdoel")!.verbrauch / 12;
 const FRACHT: Partial<Record<GutId, number>> = { erdoel:12, erdgas:12, getreide:8, kohle:8, stahl:5, elektronik:2, medikamente:1, duenger:3 };
 const aktivAm = (w: World, a: TransportMassnahme) => a.ab <= w.day && a.bis > w.day;
 
@@ -43,7 +42,7 @@ export function frontBedarf(w: World): number {
   const z = w.spiel?.transport;
   return aktiv(w).reduce((s,k)=>{
     const d = z?.depots[k.land];
-    const n = oelMonat * 0.12 * (k.phase === "waffenruhe" ? 0.35 : 1);
+    const n = frontMonatsverbrauch(k.phase);
     const ziel = z?.massnahmen.some(a=>a.art === "depot" && a.ziel === k.land && aktivAm(w,a)) ? 30 : d?.zielTage ?? 15;
     return s + Math.max(0,n*(1+ziel/30)-(d?.bestand ?? 0));
   },0);
@@ -93,7 +92,7 @@ export function transportPlan(w: World): TransportPlan {
 export function transportLage(w: World): { routen: RoutenLage[]; depots: FrontDepot[] } {
   const p = transportPlan(w);
   for (const r of p.routen) { const alt = w.spiel?.transport?.bilanz?.routen.find(a=>a.id===r.id); if(alt) {r.belegt=alt.belegt; r.waren=alt.waren;} }
-  return {routen:p.routen,depots:Object.values(p.zustand.depots)};
+  return {routen:p.routen,depots:Object.values(p.zustand.depots).filter(d=>aktiv(w).some(k=>k.land===d.land))};
 }
 
 function erlaubt(r: RoutenLage, gut: GutId): boolean { return gut === "erdgas" ? r.art === "pipeline" : r.art !== "pipeline" && (gut === "erdoel" || (r.art !== "front" && r.art !== "luft")); }
@@ -151,9 +150,9 @@ export function regionalVerteilen(p: TransportPlan, g: GutDef, f: WarenFluss, pr
   };
   const zivil=HUBS.map(h=>({ziel:h.id,bedarf:f.bedarf*HUB_GEWICHT[h.id]!,geliefert:0,mil:false}));
   const mil=g.id === "erdoel" ? aktiv(w).map(k=>{
-    const d=z.depots[k.land]!; const bedarf=oelMonat*0.12*(k.phase==="waffenruhe"?0.35:1);
+    const d=z.depots[k.land]!; const bedarf=frontMonatsverbrauch(k.phase);
     if(z.massnahmen.some(a=>a.art==="depot" && a.ziel===k.land && a.ab<=w.day)) d.zielTage=30;
-    p.bilanz.depots[k.land]={land:k.land,anfang:d.bestand,geliefert:0,verbraucht:0,bedarf,ende:d.bestand,deckung:0,tage:0};
+    p.bilanz.depots[k.land]={land:k.land,kriegId:k.id,anfang:d.bestand,geliefert:0,verbraucht:0,bedarf,ende:d.bestand,deckung:0,tage:0};
     return {ziel:`front:${k.land}`,bedarf:Math.max(0,bedarf*(1+d.zielTage/30)-d.bestand),geliefert:0,mil:true};
   }) : [];
   // Viertelbedarfe verhindern, dass die erste Region sämtliche knappe Transportkapazität belegt.

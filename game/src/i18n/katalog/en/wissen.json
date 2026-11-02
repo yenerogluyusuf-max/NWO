@@ -325,5 +325,8 @@
  "wissen.civ.weg.gesetz": "by law",
  "wissen.civ.anhebenWeg.erlass": "Takes effect at once; the Constitutional Court can review it.",
  "wissen.civ.anhebenWeg.gesetz": "Parliament votes; with a majority it becomes law.",
- "wissen.civ.zurueck": "Back to the knowledge tree"
+ "wissen.civ.zurueck": "Back to the knowledge tree",
+ "wissen.ui.bauPause": "Construction paused",
+ "wissen.ui.terminOffen": "Completion date undetermined",
+ "wissen.ui.terminRegel": "Estimate using current research and construction speed, administration and queue order. Includes waiting and procurement; new crises, priority changes and construction risks may change the date."
 }

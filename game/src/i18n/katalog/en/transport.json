@@ -98,5 +98,6 @@
   "transport.feindKurz": "Enemy forces block the route. Repairs alone cannot reopen it.",
   "transport.regionAnzahl": "Supplying {n} provinces",
   "transport.bilanzKurz": "Supply ledger {monat} · live route status",
-  "transport.modellKurz": "About this map"
+  "transport.modellKurz": "About this map",
+  "transport.frontErsteLieferung": "No delivery has been settled for this operation yet. Until consumption is recorded, the supply factor is 25%. Deliveries are settled monthly; extra energy sources and supply protection take time."
 }

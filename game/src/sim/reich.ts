@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Das Reich: Vorhaben beginnen, bauen, im Bestand halten; Vorteile freischalten. Kern der Fachbereiche (FACHBEREICHE.md).
 // Der Kern ist die einzige Wahrheitsquelle: Oberfläche und Sprachmodell lesen `vorhabenSicht` und rufen `beginne` auf.
 
@@ -338,7 +339,7 @@ export function vorhabenSicht(w: World, id: string): VorhabenSicht | null {
     const bau = laufBau(lauf, v);
     const f = bau > 0 ? lauf.fortschritt / bau : 1;
     const rate = bauplan(w)[id] ?? 0;
-    const cap = Math.max(1, rate > 0 ? rate : Math.min(bau / Math.max(1, laufMonate(lauf, v)), bauKapazitaet(w)));
+    const termin = warteschlange(w).find(e => e.id === id);
     const phase = inVergabePhase(w, lauf);
     const vorlauf = phase ? Math.ceil((lauf.vergabeBis! - w.day) / 30) : 0;
     return {
@@ -346,7 +347,7 @@ export function vorhabenSicht(w: World, id: string): VorhabenSicht | null {
       status: lauf.pausiert ? "pausiert" : "im_bau",
       fortschritt: f,
       rate,
-      restMonate: vorlauf + Math.ceil((bau - lauf.fortschritt) / cap),
+      ...(termin?.fertigIn !== undefined ? { restMonate: termin.fertigIn } : {}),
       vergabe: laufVergabe(lauf),
       vergabePhase: phase,
       vergabeMonate: vorlauf,
@@ -430,7 +431,7 @@ export function wendeEffekt(w: World, e: Effekt, faktor = 1): void {
       if (spiel) spiel.kapital = clamp(spiel.kapital + e.d * faktor, 0, 150);
       break;
     case "schulden":
-      w.economy.debtRatio += e.d * faktor;
+      bucheFinanzsaldo(w.economy, e.d * faktor);
       break;
     case "risiko":
       w.economy.riskPremium = Math.max(0, w.economy.riskPremium + e.d * faktor);
@@ -846,7 +847,8 @@ export interface SchlangeEintrag {
 
 /**
  * Die Baureihenfolge als öffentliche Liste mit ehrlichen Schätzungen:
- * Monat für Monat nachgespielt, solange Kapazität und Reihenfolge bleiben, wie sie sind.
+ * Monat für Monat nachgespielt bei heutigem Tempo, Verwaltungsfaktor und Baukapazität.
+ * Fertige Vorgänger geben Kapazität frei. Künftige Krisen, Budgetänderungen und Baurisiken sind nicht vorweggenommen.
  */
 export function warteschlange(w: World): SchlangeEintrag[] {
   const z = reichZustand(w);
@@ -855,10 +857,12 @@ export function warteschlange(w: World): SchlangeEintrag[] {
   const verzug = z.verwaltung <= 0 ? 0.5 : 1;
   const ausstehend = new Map<string, number>();
   const vorlauf = new Map<string, number>();
+  const tempo = new Map<string, number>();
   for (const l of z.laufend) {
     const v = vorhabenDef(l.id);
     if (!v) continue;
     ausstehend.set(l.id, Math.max(0, laufBau(l, v) - l.fortschritt));
+    tempo.set(l.id, forschungsTempo(w, l.id));
     vorlauf.set(l.id, inVergabePhase(w, l) ? Math.ceil((l.vergabeBis! - w.day) / 30) : 0);
   }
   const startIn: Record<string, number | undefined> = {};
@@ -874,12 +878,13 @@ export function warteschlange(w: World): SchlangeEintrag[] {
       if (rest <= 0) continue;
       allesFertig = false;
       if ((vorlauf.get(l.id) ?? 0) >= m) continue; // die Vergabephase läuft noch
-      const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)), frei, rest) * verzug;
+      const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * tempo.get(l.id)!, frei, rest) * verzug;
       if (aufnahme <= 0) continue;
       if (startIn[l.id] === undefined) startIn[l.id] = m - 1;
       rest -= aufnahme;
       frei -= aufnahme / verzug;
-      ausstehend.set(l.id, rest);
+      // Wie im echten Monatslauf ist das Projekt innerhalb der Rundungstoleranz fertig.
+      ausstehend.set(l.id, rest <= 1e-6 ? 0 : rest);
       if (rest <= 1e-6) fertigIn[l.id] = m;
     }
     if (allesFertig) break;
@@ -974,7 +979,7 @@ function ueberzugPruefen(w: World, l: LaufEintrag, v: Vorhaben): void {
     const extra = Math.round(jetzt * frac);
     l.bau = jetzt + extra;
     l.monate = Math.ceil(laufMonate(l, v) * (1 + frac));
-    if (v.kosten.schulden && v.kosten.bau > 0) w.economy.debtRatio += (v.kosten.schulden * extra) / v.kosten.bau;
+    if (v.kosten.schulden && v.kosten.bau > 0) bucheFinanzsaldo(w.economy, (v.kosten.schulden * extra) / v.kosten.bau);
     wirke(w, "legitimitaet", -0.6);
     meldung(w, "ueberzug", tx("sim2.sim.reich.f3c24ba", { p0: v.name, p1: Math.round(frac * 100) }));
     addLog(w, "entscheidung", tx("sim2.sim.reich.a9dd8b7", { p0: v.name }), tx("sim2.sim.reich.fb08991", { p0: ohneBeleg(v.anker ?? "") }).trim());
@@ -1042,7 +1047,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
       if (ueberzug && frac > 0) {
         const extra = Math.round(bau * frac);
         l.bau = bau + extra;
-        if (v.kosten.schulden) w.economy.debtRatio += v.kosten.schulden * frac;
+        if (v.kosten.schulden) bucheFinanzsaldo(w.economy, v.kosten.schulden * frac);
         wirke(w, "legitimitaet", -0.6);
         meldung(w, "ueberzug", tx("sim2.sim.reich.f3c24ba", { p0: v.name, p1: Math.round(frac * 100) }));
         addLog(w, "entscheidung", tx("sim2.sim.reich.a9dd8b7", { p0: v.name }), tx("sim2.sim.reich.1c2a9d2", { p0: Math.round(frac * 100) }));
@@ -1055,7 +1060,7 @@ export function reichMonat(w: World, _rng?: Rng): void {
     if (!l.frei && v.ueberzug && bau > 0) ueberzugPruefen(w, l, v);
     // Ungewisser Durchbruch: Bei der Marke fällt der Wurf; scheitert das Vorhaben, ist das Geld verloren
     if (v.scheitern && !l.durchbruchGeprueft && bau > 0 && l.fortschritt / laufBau(l, v) >= v.scheitern.an && durchbruchPruefen(w, l, v)) continue;
-    if (v.kosten.schulden && bau > 0) w.economy.debtRatio += (v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * kostenFaktor(w, l.id) * aufnahme) / bau;
+    if (v.kosten.schulden && bau > 0) bucheFinanzsaldo(w.economy, (v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * kostenFaktor(w, l.id) * aufnahme) / bau);
     if (l.fortschritt >= bau - 1e-6) schliesseAb(w, v);
   }
   z.bauGenutzt = genutzt;

@@ -98,5 +98,6 @@
   "transport.feindKurz": "Düşman kuvvetleri yolu kesiyor. Onarım tek başına yolu açamaz.",
   "transport.regionAnzahl": "{n} ilin ikmal merkezi",
   "transport.bilanzKurz": "Mal hesabı {monat} · güncel güzergâh durumu",
-  "transport.modellKurz": "Bu harita hakkında"
+  "transport.modellKurz": "Bu harita hakkında",
+  "transport.frontErsteLieferung": "Bu operasyon için henüz teslimat hesaplanmadı. Tüketim kaydedilene kadar tedarik katsayısı %25’tir. Teslimatlar aylık hesaplanır; ek enerji kaynakları ve tedarik koruması zaman gerektirir."
 }

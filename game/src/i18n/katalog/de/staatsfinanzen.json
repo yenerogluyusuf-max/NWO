@@ -64,7 +64,7 @@
   "sf.schuldenNachher": "Bestand nach der Monatsrechnung",
   "sf.restUeberschuss": "Überschuss nach vollständiger Tilgung",
   "sf.schuldenBelegText": "Gespeicherte Monatsrechnung: BIP {vorher} → {nachher} Mrd. ₺. Wachstum und Preise ändern die Schuldenquote, nicht den nominalen Altbestand. Spätere Einzelbeschlüsse, auch am Abrechnungstag, sind im heutigen Bestand enthalten, aber nicht in diesem Beleg.",
-  "sf.restText": "Bruttoschulden können nicht unter null fallen. Ein darüber hinausgehender Überschuss wird hier ausgewiesen; das Spiel führt dafür noch kein verfügbares Guthabenkonto.",
+  "sf.restText": "Der Überschuss nach vollständiger Tilgung bleibt in der Staatskasse für spätere Ausgaben erhalten.",
   "sf.schuldenNochOffen": "Der erste Monatsabschluss steht noch aus. Für ältere Spielstände wird kein zurückliegender Beleg erfunden.",
   "sf.schuldenPrognose": "Rechnerische Änderung im nächsten Monat: {wert} Prozentpunkte, bei heutigem Haushalt, Wachstum und Preisen sowie unverändertem Wechselkurs. Keine Prognose neuer Ereignisse.",
   "sf.schuldenFlussText": "Ein Zwölftel der jährlichen Gesamtdefizitquote. Zinsen sind bereits enthalten und werden nicht nochmals aufgeschlagen.",
@@ -72,5 +72,11 @@
   "sf.zinsGrund": "Zinsdienst im Grundhaushalt",
   "sf.zinsAenderung": "Änderung durch Schuldenbestand und Durchschnittszins",
   "sf.zinsText": "Der Monatsansatz ersetzt den Zinsdienst des Starts durch Schuldenquote mal geglättetem Durchschnittszins. Seit der letzten Buchung entstandene Einzelkosten wirken beim nächsten Ansatz.",
-  "sf.konjunkturDefizit": "Zusätzliche Einnahmen aus Konjunktur und Steuerbasis mindern das Defizit. Negative Einnahmebeiträge erhöhen es."
+  "sf.konjunkturDefizit": "Zusätzliche Einnahmen aus Konjunktur und Steuerbasis mindern das Defizit. Negative Einnahmebeiträge erhöhen es.",
+  "sf.kasseHeute": "Verfügbare Staatskasse: {betrag} Mrd. ₺",
+  "sf.kasseRegel": "Überschüsse tilgen zuerst Schulden. Was übrig bleibt, finanziert spätere Ausgaben vor neuen Krediten. Dieses Guthaben ist nominal, unverzinst und getrennt von den Devisenreserven der Zentralbank.",
+  "sf.kasseEntnahme": "Finanzierung aus der Staatskasse",
+  "sf.kasseBeleg": "Staatskasse im abgerechneten Monat: {vorher} → {nachher} Mrd. ₺.",
+  "sf.kasseAenderung": "Staatskasse {betrag} Mrd. ₺",
+  "sf.restAltText": "Dieser ältere Abschluss hat den Überschuss nur ausgewiesen. Ein Kassenbestand wurde damals nicht gespeichert und wird nicht rückwirkend gutgeschrieben."
 }

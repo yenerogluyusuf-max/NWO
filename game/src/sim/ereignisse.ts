@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo, kassenbestand, bipWertMrd } from "./staatsgeld";
 // Ereignismotor: Ereignisse entstehen aus dem Zustand der Welt (Weltmodell, Abschnitt 7), nicht aus einem Drehbuch.
 // Jede Vorlage ist ein Muster mit Bedingung, Ort, Stärke und mindestens zwei Antworten, die etwas kosten.
 // Wer nichts entscheidet, bekommt nach der Frist die schlechtere Standardfolge.
@@ -334,7 +335,7 @@ const HAUSHALT: Vorlage = {
       return "Ein Sparpaket wird angekündigt; die Märkte atmen auf, das Land murrt.";
     }),
     opt("steuer", "Steuern anheben", "Kostet 6 Kapital; bringt Einnahmen, trifft die Haushalte.", 6, (w) => {
-      w.economy.debtRatio -= 0.6;
+      bucheFinanzsaldo(w.economy, -0.6);
       wirke(w, "steuereinnahmen", 4);
       wirke(w, "lebenshaltung", 3);
       vertrauenAendern(w, -2);
@@ -548,7 +549,7 @@ const FLUECHTLINGE: Vorlage = {
       return "Die Menschen werden aufgenommen; die Provinzen bekommen Unterstützung, die Stimmung bleibt gespalten.";
     }),
     opt("eu", "Mit der EU verhandeln", "Kostet 5 Kapital; wenn es klappt, zahlt die EU.", 5, (w) => {
-      w.economy.debtRatio -= 0.1;
+      bucheFinanzsaldo(w.economy, -0.1);
       wirke(w, "beziehungen_eu", 2);
       wirke(w, "gefluechtete", 3 * ev.staerke, ev.provinzen);
       return "Eine Vereinbarung mit der EU bringt Geld für die Grenzprovinzen.";
@@ -1502,7 +1503,7 @@ const VORSCHAU_CACHE = new Map<string, string[]>();
  */
 export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: string): string[] {
   if (ev.vorlage === "zusage") return zusagenErinnerungsAntwort(world, ev, optionId)?.sofortfolgen ?? [];
-  const key = `${ev.id}|${optionId}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}`;
+  const key = `${ev.id}|${optionId}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
   const gemerkt = VORSCHAU_CACHE.get(key);
   if (gemerkt) return gemerkt;
   const zeilen: string[] = [];
@@ -1514,6 +1515,7 @@ export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: st
       const vorher = new Map<string, number>();
       for (const n of NET.nodes) if (!n.input) vorher.set(n.id, nationalAverage(NET, world.net, n.id));
       const schulden0 = kopie.economy.debtRatio;
+      const kasse0 = kassenbestand(kopie.economy);
       const risiko0 = kopie.economy.riskPremium;
       const fx0 = kopie.economy.usdTry;
       const loyal0 = new Map(kopie.spiel!.figuren.map((f) => [f.id, f.loyalitaet]));
@@ -1527,6 +1529,8 @@ export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: st
       // 2. Haushalt und Märkte
       const ds = kopie.economy.debtRatio - schulden0;
       if (Math.abs(ds) >= 0.04) zeilen.push(`Schulden ${ds > 0 ? "+" : "−"}${nf(Math.abs(ds), 2)} Prozentpunkte`);
+      const dk = kassenbestand(kopie.economy) - kasse0;
+      if (Math.abs(dk) > 0.001) zeilen.push(t("sf.kasseAenderung", { betrag: `${dk > 0 ? "+" : "−"}${nf(Math.abs(dk), 2)}` }));
       const dr = kopie.economy.riskPremium - risiko0;
       if (Math.abs(dr) >= 4) zeilen.push(`Risikoaufschlag ${dr > 0 ? "+" : "−"}${nf(Math.abs(dr), 0)} Punkte`);
       const df = (kopie.economy.usdTry / fx0 - 1) * 100;

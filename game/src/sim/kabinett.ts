@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Der Ministerrat (Bakanlar Kurulu): Kollegialorgan der Regierung nach Vorbild von Democracy 4 und Suzerain.
 // Das Kabinett besteht aus den 7 Regierungsämtern (Finanzen, Inneres, Äußeres, Justiz, Generalstab, Wirtschaft, Stab).
 // Die Minister erzeugen das Politische Kapital der Regierung, tragen Ressortkonflikte aus und beraten in Kabinettssitzungen.
@@ -431,7 +432,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
               merke(world, fig, t("takt.kabinett.konflikt.mittel.merke", { groesse: g.name }));
             }
             wirke(world, g.id, 2.5 * richtung);
-            world.economy.debtRatio += 0.1;
+            bucheFinanzsaldo(world.economy, 0.1);
           },
         },
         {

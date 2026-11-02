@@ -98,5 +98,6 @@
   "transport.feindKurz": "Gegnerische Kräfte sperren den Weg. Eine Reparatur allein öffnet ihn nicht.",
   "transport.regionAnzahl": "Versorgung für {n} Provinzen",
   "transport.bilanzKurz": "Warenbilanz {monat} · Streckenlage aktuell",
-  "transport.modellKurz": "Über diese Karte"
+  "transport.modellKurz": "Über diese Karte",
+  "transport.frontErsteLieferung": "Für diesen Einsatz ist noch keine Lieferung abgerechnet. Bis zum ersten gebuchten Verbrauch beträgt der Versorgungsfaktor 25 %. Lieferungen werden monatlich abgerechnet; zusätzliche Energiequellen und Versorgungsschutz brauchen Vorlauf."
 }

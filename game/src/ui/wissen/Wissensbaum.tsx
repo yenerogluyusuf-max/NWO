@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { t } from "../../i18n";
-import { baumSicht, knotenName, type Sprung } from "../../sim/wissensbaum";
+import { knotenTermin, baumSicht, knotenName, type Sprung } from "../../sim/wissensbaum";
 import type { World } from "../../sim/types";
 import { BaumFenster } from "./BaumFenster";
 import { Symbol, knotenSymbol } from "./symbole";
@@ -74,7 +74,7 @@ export function Wissensbaum({
                       <Symbol name={knotenSymbol(k.id, k.zweig)} gross={16} />
                     </span>
                     <span className="wb-liste-name">{knotenName(k.id)}</span>
-                    <span className="wb-liste-rest">{k.restMonate !== undefined ? t("wissen.civ.inMonaten", { n: k.restMonate }) : ""}</span>
+                    <span className="wb-liste-rest">{knotenTermin(k)}</span>
                     <span className="wb-liste-balken">
                       <i style={{ width: `${Math.round(k.fortschritt * 100)}%` }} />
                     </span>

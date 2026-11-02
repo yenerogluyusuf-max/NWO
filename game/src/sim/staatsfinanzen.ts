@@ -2,7 +2,7 @@ import type { World } from "./types";
 import { PLAN_2026 } from "../data/haushaltsplan";
 import { POSTEN } from "./haushalt";
 import { migriereHaushalt } from "./wirtschaft";
-import { bipMrd, defizitQuote, geldbasis, zinsQuote } from "./staatsgeld";
+import { bipMrd, defizitQuote, geldbasis, zinsQuote, kassenbestand } from "./staatsgeld";
 
 export interface FinanzZeile { id: string; quote: number; mrd: number }
 
@@ -37,6 +37,8 @@ export function staatsfinanzen(w: World) {
     einnahmenMrd: summe(einnahmen), ausgabenMrd: summe(ausgaben),
     kreditMrd: defizitQuote(e) * bip / 100,
     schuldenMrd: e.debtRatio * bip / 100,
+    kasseMrd: kassenbestand(e),
+    nettoSchuldenMrd: e.debtRatio * bip / 100 - kassenbestand(e),
     realeEinnahmenMrd: summe(einnahmen) / basis.preise,
     realesWachstum: (basis.real - 1) * 100,
     preisAnstieg: (basis.preise - 1) * 100,

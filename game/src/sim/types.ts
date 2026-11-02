@@ -36,6 +36,8 @@ export interface EconomyState {
   riskPremium: number;
   /** Staatsschulden in % des BIP */
   debtRatio: number;
+  /** Verfügbarer nominaler Kassenbestand in Mrd. Lira; getrennt von Zentralbank-Devisenreserven. */
+  kassenbestandMrd?: number;
   /** Geplantes Haushaltsdefizit in % des BIP */
   deficit: number;
   /** Zusätzliche Ausgaben (+) oder Kürzungen (−) des Spielers in % des BIP */

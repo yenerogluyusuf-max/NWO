@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Die Außenlage der Türkei als Zustand mit Gedächtnis (Fork AUSSEN, 05.10.2026): Flucht, Energie, Terror, Friedensprozess, Sanktionen,
 // Diaspora und die Instrumente des Präsidenten (Staatsbesuch mit Tagesordnung, Botschafter, Sanktionen, Rückführung, Grenzsicherung,
 // Friedensschritt). Heute verpufften Gesten und Konfliktwerte fielen auf den Startwert zurück; hier werden Bestände geführt, die über
@@ -600,7 +601,7 @@ export function fuehreInstrumentAus(w: World, id: InstrumentId, landId?: string,
       break;
     case "rueckfuehrung":
       a.bis.rueckfuehrung = w.day + 365;
-      w.economy.debtRatio += 0.1;
+      bucheFinanzsaldo(w.economy, 0.1);
       landAendern(w, "SYR", { vertrauen: 4 });
       stoss(w, "nationalisten", 1);
       stoss(w, "ansehen", -0.5);

@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Das Weltmodell: Die Staaten spielen und entwickeln sich auch ohne die Türkei.
 //
 // 41 Akteure (18 Hauptakteure aus sim/laender.ts und 23 weitere Staaten aus data/welt-weitere.ts) haben je einen Eigenzustand:
@@ -1170,7 +1171,7 @@ export function fuehreGesteAus(w: World, id: string, aktion: AktionId): { ok: bo
       break;
     case "ruestung":
       beziehungAendern(w, id, { sicherheit: 12, vertrauen: 4 });
-      w.economy.debtRatio += 0.1;
+      bucheFinanzsaldo(w.economy, 0.1);
       text = `Rüstungsgeschäft mit ${dat}: Die Zusammenarbeit wächst (Sicherheit ${Math.round(e.tr!.sicherheit)}).`;
       why += " Etwa 0,1 % des BIP.";
       break;
@@ -1186,7 +1187,7 @@ export function fuehreGesteAus(w: World, id: string, aktion: AktionId): { ok: bo
       break;
     case "hilfe":
       beziehungAendern(w, id, { vertrauen: 6, handel: 8, konflikt: -4 });
-      w.economy.debtRatio += 0.1;
+      bucheFinanzsaldo(w.economy, 0.1);
       text = `Wirtschaftshilfe für ${akk}: Das Land rückt näher (Vertrauen ${Math.round(e.tr!.vertrauen)}).`;
       why += " Etwa 0,1 % des BIP.";
       break;

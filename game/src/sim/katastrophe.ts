@@ -1,3 +1,4 @@
+import { bucheFinanzsaldo } from "./staatsgeld";
 // Katastrophen-Modul (INF-5 aus VERBESSERUNGSPLAN_2026-09-30, Entscheidung Block D —
 // „Katastrophen als echtes Risiko"). Erdbeben steht im Zentrum; Flut, Dürre und Waldbrand
 // laufen leichtgewichtig über dieselbe Fall-Maschinerie.
@@ -503,7 +504,7 @@ export function soforthilfe(w: World, fallId: string): string {
   const s = fall.staerke;
   const versicherung = nationalAverage(NET, w.net, "m_versicherungspflicht") / 100;
   const anteil = (0.1 * s + 0.04) * (1 - KATASTROPHE.versicherungEntlastung * versicherung);
-  w.economy.debtRatio += anteil;
+  bucheFinanzsaldo(w.economy, anteil);
   w.economy.outputGap += 0.08 * anteil;
   if (fall.art === "erdbeben" || fall.art === "flut") {
     wirke(w, "p_wohnungsnot", -3 * s, fall.provinzen);
@@ -719,7 +720,7 @@ export function katastropheMonat(w: World, rng: Rng): void {
     // 2. Übergangsversorgung: Monatskosten, kleine Linderung vor Ort
     if (fall.hilfe.uebergangBis !== undefined && fall.hilfe.uebergangBis > w.day) {
       const kosten = KATASTROPHE.uebergangKosten * fall.staerke;
-      w.economy.debtRatio += kosten;
+      bucheFinanzsaldo(w.economy, kosten);
       wirke(w, "p_wohnungsnot", -0.6, fall.provinzen);
       if (w.day - fall.tag === 60) vertrauenAendern(w, 0.4);
     }
