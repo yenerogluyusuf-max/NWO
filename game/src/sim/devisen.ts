@@ -28,6 +28,8 @@ import { addMarke, defizitJetzt, defizitStrukturell, wirtschaftZustand } from ".
 import { Rng } from "./rng";
 import { letzteVersorgung } from "./versorgung";
 import { t } from "../i18n";
+import { bipUsdMrd } from "./staatsgeld";
+export { bipUsdMrd } from "./staatsgeld";
 
 /** Spielparameter der Devisen-Lage (Kalibrierung, keine Messwerte). */
 export const DEVISEN = {
@@ -130,11 +132,6 @@ export function migriereDevisen(w: World): void {
   e.reservenDruck ??= 0;
   e.fxPuffer ??= 0;
   aktualisiereReservenDruck(e);
-}
-
-/** Nominales BIP in Mrd. USD (abgeleitet aus dem Szenario-Feld bipTryTn und dem aktuellen Kurs). */
-export function bipUsdMrd(e: EconomyState): number {
-  return ((e.bipTryTn ?? 84) * 1000) / Math.max(1, e.usdTry);
 }
 
 /** Treiber der Leistungsbilanz in Prozentpunkten des BIP je Jahr (für Modell und „Warum?“-Zerlegung). */

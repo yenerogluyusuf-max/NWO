@@ -15,7 +15,7 @@ import { beginneAusbau, streitkraefte, streitkraefteMonat } from "../src/sim/str
 import { Rng } from "../src/sim/rng";
 import { Inventar } from "../src/ui/gueter/Inventar";
 import { KriegDossier } from "../src/ui/welt/KriegDossier";
-import { setzeSprache } from "../src/i18n";
+import { setzeSprache, t } from "../src/i18n";
 import type { KriegVorgang } from "../src/sim/krieg-typen";
 import type { World } from "../src/sim/types";
 
@@ -204,7 +204,14 @@ describe("Durchgehende Versorgung", () => {
     gueterMonat(w);
     for (const html of [renderToStaticMarkup(createElement(Inventar, { world: w, geaendert() {} })), renderToStaticMarkup(createElement(KriegDossier, { world: w, landId: "RUS", refresh() {} }))]) {
       expect(html).toContain("rg-lage");
-      expect(html).toContain('aria-pressed="true"');
+      // Der geltende Kurs ist gekennzeichnet; Vorschläge werden erst auf Wunsch geöffnet.
+      const kurse = html.match(/<fieldset class="rg-kurse">[\s\S]*?<\/fieldset>/)?.[0] ?? "";
+      const knoepfe = kurse.match(/<button\b[\s\S]*?<\/button>/g) ?? [];
+      expect(knoepfe).toHaveLength(3);
+      expect(knoepfe.filter(k => k.includes(t("regierung.aktuellerKurs")))).toHaveLength(1);
+      expect(knoepfe[0]).toContain(t("gueter.kette.ausgewogen"));
+      expect(knoepfe[0]).toContain(t("regierung.aktuellerKurs"));
+      for (const knopf of knoepfe) expect(knopf).toContain('aria-expanded="false"');
       expect(html).not.toMatch(/gueter\.kette\.|\{(?:monat|name|faktor|menge)\}/);
     }
   });

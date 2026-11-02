@@ -19,4 +19,11 @@ Der Abgleich erfolgt ohne Zurücksetzen oder Umschreiben bestehender Commits. De
 
 Diese Synchronisierung verändert keine Spielmechanik. Die neun im letzten Finanz-Abschlussnachweis festgehaltenen Quelldateien stimmen bei Beginn der Sicherung exakt mit ihren gespeicherten Prüfsummen überein. Der Nachweis dokumentiert 282 erfolgreiche gezielte Tests, zwei ausgelassene optionale Langtests sowie erfolgreiche TypeScript- und Produktionsprüfungen. Eine erneute Vollsuite ist allein wegen der zusätzlichen Dokumente nicht erforderlich.
 
-Die drei im Projektbericht festgehaltenen Finanzlücken bleiben offen: einheitliche aktuelle BIP-Basis in Devisen und Gütern, Anbindung der neuen Ressortbudgets an Behörden sowie konsistente Schuldenbestände und Geldströme. Synchronisierung bedeutet Sicherung des tatsächlichen Entwicklungsstands, keine Fertigstellung oder neue fachliche Abnahme. Die visuelle Browserprüfung der jüngsten Oberfläche bleibt ebenfalls offen; ältere Screenshots belegen sie nicht.
+Zum Zeitpunkt dieser ersten Synchronisierung blieben drei im Projektbericht festgehaltene Finanzlücken offen: einheitliche aktuelle BIP-Basis in Devisen und Gütern, Anbindung der neuen Ressortbudgets an Behörden sowie konsistente Schuldenbestände und Geldströme. Synchronisierung bedeutet Sicherung des tatsächlichen Entwicklungsstands, keine Fertigstellung oder neue fachliche Abnahme. Die visuelle Browserprüfung der jüngsten Oberfläche bleibt ebenfalls offen; ältere Screenshots belegen sie nicht.
+
+
+## Nachtrag: Finanzkorrektur auf Nutzerauftrag
+
+Im anschließenden Entwicklungsschritt sind die drei genannten Finanzlücken behoben und mit 242 unterschiedlichen gezielten Tests sowie TypeScript/Produktionsbuild geprüft. Der [Projektbericht](VERSORGUNG_PARLAMENT_2026-10-30.md#drei-finanzlücken-geschlossen-2-november) beschreibt Änderungen, Quellen, Altstandbehandlung und verbleibende Modellgrenzen. Der aktuelle Nachweis liegt unter `reports/Finanz-Konsistenz-Stand-2026-11-02.json`.
+
+Die neuen Änderungen und Nachweise werden gemeinsam auf `codex/spiel-konsistenz` und den GitHub-Standardzweig `claude/weiter-b91y4u` übertragen. Andere lokale Checkouts bleiben unangetastet. Die visuelle Abnahme bleibt offen.

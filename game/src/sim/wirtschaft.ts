@@ -1,4 +1,4 @@
-import { defizitQuote } from "./staatsgeld";
+import { defizitQuote, zinsQuote } from "./staatsgeld";
 // Die Wirtschaftsakte: Zustand, Verlauf der Kennzahlen und Marken auf der Zeitachse. Die Größen des Wirtschaftsmodells stehen schon in
 // `world.history` (Monatswerte); hier kommen weitere Größen dazu (Netzknoten, Defizit, Zinsausgaben), damit jede Zahl einen Verlauf hat.
 
@@ -28,11 +28,9 @@ export function defizitStrukturell(w: World): number {
   return defizitQuote(e, true);
 }
 
-/** Zinsausgaben des Staates in % des BIP: Schuldenquote mal Durchschnittszins. */
+/** Gebuchter Monatsansatz in % des BIP, identisch mit dem Zinsdienst im Haushalt. */
 export function zinsausgabenJetzt(w: World): number {
-  const z = w.spiel?.wirtschaft?.haushalt;
-  const satz = z ? z.zinssatz : ZINSSATZ_START;
-  return (w.economy.debtRatio * satz) / 100;
+  return zinsQuote(w.economy);
 }
 
 /** Größen, die nicht in `world.history` stehen und deshalb eigens aufgezeichnet werden. */

@@ -2,11 +2,12 @@ import { useState } from "react";
 import type { World } from "../../sim/types";
 import { staatsfinanzen } from "../../sim/staatsfinanzen";
 import { t, zahl } from "../../i18n";
-import { formatDateDe } from "../../sim/dates";
+import { formatDateDe, formatMonthDe } from "../../sim/dates";
 import "./staatsfinanzen.css";
 
 export function Staatsfinanzen({ world, details = false }: { world: World; details?: boolean }) {
   const f = staatsfinanzen(world);
+  const abschluss = world.economy.schuldenAbschluss;
   const [monatlich, setMonatlich] = useState(false);
   const betrag = (mrd: number) => t("sf.betrag", { n: zahl(mrd / (monatlich ? 12 : 1), 1) });
   return <section className="sf-finanzbuch" aria-label={t("sf.titel")}>
@@ -31,6 +32,21 @@ export function Staatsfinanzen({ world, details = false }: { world: World; detai
       </section>)}</div>
       <p>{t("sf.rechnungHinweis")}</p><p>{t("sf.anteileHinweis")}</p>
       <p>{t("sf.realEinnahmen", { betrag: betrag(f.realeEinnahmenMrd), datum: formatDateDe(f.basis.seit) })}</p>
+      <section className="sf-schulden" aria-label={t("sf.schuldenTitel")}>
+        <h4>{t("sf.schuldenTitel")}</h4>
+        <p>{t("sf.schuldenHeute", { betrag: zahl(f.schuldenMrd, 1), quote: zahl(world.economy.debtRatio, 2) })}</p>
+        {abschluss ? <details>
+          <summary>{t("sf.schuldenAbschluss", { monat: formatMonthDe(abschluss.monat) })}</summary>
+          <dl>{([
+            ["sf.schuldenVorher", abschluss.vorherMrd], ["sf.schuldenFluss", abschluss.defizitMrd],
+            ["sf.schuldenFx", abschluss.wechselkursMrd],
+            ...(abschluss.restUeberschussMrd > 0 ? [["sf.restUeberschuss", abschluss.restUeberschussMrd] as const] : []),
+            ["sf.schuldenNachher", abschluss.nachherMrd],
+          ] as const).map(([key, wert]) => <div key={key}><dt>{t(key)}</dt><dd>{t("sf.betrag", { n: zahl(wert, 2) })}</dd></div>)}</dl>
+          <p>{t("sf.schuldenBelegText", { vorher: zahl(abschluss.bipVorherMrd, 1), nachher: zahl(abschluss.bipNachherMrd, 1) })}</p>
+          {abschluss.restUeberschussMrd > 0 && <p>{t("sf.restText")}</p>}
+        </details> : <p>{t("sf.schuldenNochOffen")}</p>}
+      </section>
       <dl className="sf-ressourcen">
         <div><dt>{t("sf.geld")}</dt><dd>{t("sf.geldText")}</dd></div>
         <div><dt>{t("sf.politik")}</dt><dd>{t("sf.politikText")}</dd></div>

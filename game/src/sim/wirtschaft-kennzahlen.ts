@@ -9,7 +9,8 @@ import { nationalAverage, startAverage, decayVon } from "./netz";
 import { formatDateDe, formatMonthDe } from "./dates";
 import { defizitJetzt, haushaltZustand, startMonat, verlauf, wirtschaftZustand, zinsausgabenJetzt } from "./wirtschaft";
 import { istGut } from "./folgen";
-import { ZINSSATZ_START } from "../data/haushaltsplan";
+import { ZINSSATZ_START, PLAN_2026 } from "../data/haushaltsplan";
+import { bipUsdMrd, schuldenMonatsrechnung } from "./staatsgeld";
 import { aktuelleLocale, t } from "../i18n";
 
 export type Gruppe = "Preise und Geld" | "Wirtschaft und Arbeit" | "Staat und Märkte" | "Alltag der Menschen";
@@ -305,7 +306,8 @@ export const KENNZAHLEN: Kennzahl[] = [
           tr(t("wk.0dc0333"), e.deficit, "% des BIP", t("wk.c7493a6")),
           tr(t("wk.2530cf9"), e.fiscalImpulse, "% des BIP", t("wk.3a89504")),
           tr(t("wk.d92a6aa"), e.policyCost, "% des BIP", t("wk.1ec3e24")),
-          tr(t("wk.2672f2b"), e.zinsMehrlast ?? 0, "% des BIP", t("wk.8daf19a")),
+          tr(t("sf.zinsAenderung"), e.zinsMehrlast ?? 0, "% des BIP", t("sf.zinsText")),
+          tr(t("sf.zeile.konjunktur"), -(e.konjunkturSaldo ?? 0), "% des BIP", t("sf.konjunkturDefizit")),
         ],
       };
     },
@@ -323,13 +325,14 @@ export const KENNZAHLEN: Kennzahl[] = [
     linien: () => [{ wert: 60, text: t("wk.3bb76d9"), art: "grenze" }],
     treiber: (w) => {
       const e = w.economy;
-      const wachstum = (e.growth + e.inflation) / 100;
-      const flow = defizitJetzt(w) - e.debtRatio * wachstum;
+      const rechnung = schuldenMonatsrechnung(e);
+      const flow = rechnung.nachherQuote - rechnung.vorherQuote;
       return {
-        kopf: t("wk.t.schuldenKopf", { wert: `${flow >= 0 ? "+" : ""}${nf(flow)}` }),
+        kopf: t("sf.schuldenPrognose", { wert: `${flow >= 0 ? "+" : ""}${nf(flow)}` }),
         zeilen: [
-          tr(t("wk.ffa2726"), defizitJetzt(w), "Punkte im Jahr", t("wk.7731a2d")),
-          tr(t("wk.fb293aa"), -e.debtRatio * wachstum, "Punkte im Jahr", t("wk.5ec59b7")),
+          tr(t("wk.ffa2726"), defizitJetzt(w) / 12, "Punkte je Monat", t("sf.schuldenFlussText")),
+          tr(t("wk.fb293aa"), rechnung.vorherMrd / rechnung.bipNachherMrd * 100 - e.debtRatio, "Punkte je Monat", t("sf.schuldenBipText")),
+          ...(rechnung.restUeberschussMrd > 0 ? [tr(t("sf.restUeberschuss"), rechnung.restUeberschussMrd / rechnung.bipNachherMrd * 100, "Punkte je Monat", t("sf.restText"))] : []),
         ],
       };
     },
@@ -348,8 +351,8 @@ export const KENNZAHLEN: Kennzahl[] = [
       return {
         kopf: t("wk.t.zinsKopf", { zins: nf(z.zinssatz), start: nf(ZINSSATZ_START) }),
         zeilen: [
-          tr(t("wk.d97fee1"), (w.economy.debtRatio * ZINSSATZ_START) / 100, "% des BIP", t("wk.cb0a5ad")),
-          tr(t("wk.a0daf42"), w.economy.zinsMehrlast ?? 0, "% des BIP", t("wk.fee011d")),
+          tr(t("sf.zinsGrund"), PLAN_2026.zinsenProzentBip, "% des BIP", t("sf.zinsText")),
+          tr(t("sf.zinsAenderung"), w.economy.zinsMehrlast ?? 0, "% des BIP", t("sf.zinsText")),
         ],
       };
     },
@@ -412,7 +415,7 @@ export const KENNZAHLEN: Kennzahl[] = [
       const lb = leistungsbilanzZerlegung(w);
       const fl = kapitalflussZerlegung(w);
       const e = w.economy;
-      const monat = (((e.leistungsbilanzPctBip ?? 0) + fl.ziel) / 100 / 12) * (((e.bipTryTn ?? 84) * 1000) / Math.max(1, e.usdTry));
+      const monat = (((e.leistungsbilanzPctBip ?? 0) + fl.ziel) / 100 / 12) * bipUsdMrd(e);
       return {
         kopf: t("wk.t.reservenKopf", { wert: nf(monat) }),
         zeilen: [

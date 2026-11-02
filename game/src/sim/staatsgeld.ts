@@ -15,14 +15,62 @@ export interface Geldbasis {
 }
 
 const positiv = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x) && x > 0;
+const gueltigeBasis = (b: Geldbasis | undefined): b is Geldbasis => !!b
+  && positiv(b.basisBipMrd) && positiv(b.real) && positiv(b.preise) && positiv(b.basisBipMrd * b.real * b.preise)
+  && /^\d{4}-\d{2}-\d{2}$/.test(b.seit) && /^\d{4}-\d{2}$/.test(b.letzterMonat);
+const startBipMrd = (e: EconomyState): number => positiv(e.bipTryTn) ? e.bipTryTn * 1000 : PLAN_2026.mrdProProzentBip * 100;
+
+/** Gemeinsamer Geldwert, auch für Module, die nur EconomyState kennen. Lesen bucht nichts. */
+export function bipWertMrd(e: EconomyState, real = false): number {
+  const b = e.geldbasis;
+  return gueltigeBasis(b) ? b.basisBipMrd * b.real * (real ? 1 : b.preise) : startBipMrd(e);
+}
+
+export const bipUsdMrd = (e: EconomyState): number => bipWertMrd(e) / Math.max(1, e.usdTry);
+
+/** Jahresraten werden in denselben Monatsfaktor für Geldbeträge und Schuldenquoten übersetzt. */
+export const monatsfaktor = (rate: number): number => Math.pow(1 + Math.max(-99, Number.isFinite(rate) ? rate : 0) / 100, 1 / 12);
+
+export interface SchuldenRechnung {
+  bipVorherMrd: number;
+  bipNachherMrd: number;
+  vorherMrd: number;
+  defizitMrd: number;
+  wechselkursMrd: number;
+  /** Überschuss jenseits vollständiger Tilgung; keine negativen Bruttoschulden oder frei verfügbares Guthaben. */
+  restUeberschussMrd: number;
+  nachherMrd: number;
+  vorherQuote: number;
+  nachherQuote: number;
+}
+
+/** Bestandsrechnung: alter Bestand + Wechselkursbewertung + Gesamtdefizit (Zinsen bereits enthalten).
+ * Der Monatsfluss beträgt 1/12 der Jahresquote beim aktuellen Monats-BIP. Nur der vorhandene
+ * FX-Schuldenbestand wird umbewertet, neue Schulden nicht rückwirkend für den gesamten Monat.
+ * Ohne vorgegebenen Kursvergleich ist dies eine Rechnung bei unverändertem Wechselkurs. */
+export function schuldenMonatsrechnung(e: EconomyState, vorherUsdTry = e.usdTry, fxAnteil = 0): SchuldenRechnung {
+  const bipVorherMrd = bipWertMrd(e);
+  const bipNachherMrd = bipVorherMrd * monatsfaktor(e.growth) * monatsfaktor(e.inflation);
+  const vorherMrd = Math.max(0, e.debtRatio) * bipVorherMrd / 100;
+  const wechselkursMrd = positiv(vorherUsdTry) && positiv(e.usdTry)
+    ? vorherMrd * Math.max(0, Math.min(1, fxAnteil)) * (e.usdTry / vorherUsdTry - 1) : 0;
+  const defizitMrd = defizitQuote(e) * bipNachherMrd / 100 / 12;
+  const saldo = vorherMrd + wechselkursMrd + defizitMrd;
+  const nachherMrd = Math.max(0, saldo);
+  return { bipVorherMrd, bipNachherMrd, vorherMrd, defizitMrd, wechselkursMrd,
+    restUeberschussMrd: Math.max(0, -saldo), nachherMrd,
+    vorherQuote: e.debtRatio, nachherQuote: nachherMrd / bipNachherMrd * 100 };
+}
+
+/** Gebuchter Zinsdienst; Haushalt, Defizit und Kennzahl zeigen denselben Monatsansatz. */
+export const zinsQuote = (e: EconomyState): number => PLAN_2026.zinsenProzentBip + (e.zinsMehrlast ?? 0);
 
 /** Altstände starten ohne erfundene Wachstumsgewinne; vorhandene gültige Konten bleiben erhalten. */
 export function geldbasis(w: World): Geldbasis {
   const b = w.economy.geldbasis;
-  if (b && positiv(b.basisBipMrd) && positiv(b.real) && positiv(b.preise) && positiv(b.basisBipMrd * b.real * b.preise)
-    && /^\d{4}-\d{2}-\d{2}$/.test(b.seit) && /^\d{4}-\d{2}$/.test(b.letzterMonat)) return b;
+  if (gueltigeBasis(b)) return b;
   return {
-    basisBipMrd: positiv(w.economy.bipTryTn) ? w.economy.bipTryTn * 1000 : PLAN_2026.mrdProProzentBip * 100,
+    basisBipMrd: startBipMrd(w.economy),
     real: 1, preise: 1, seit: w.date, letzterMonat: w.date.slice(0, 7),
   };
 }
@@ -38,15 +86,13 @@ export function staatsgeldMonat(w: World): void {
   if (!w.spiel) return;
   const b = geldbasis(w), monat = w.date.slice(0, 7);
   if (monat <= b.letzterMonat) return;
-  const faktor = (rate: number) => Math.pow(1 + Math.max(-99, Number.isFinite(rate) ? rate : 0) / 100, 1 / 12);
-  const real = b.real * faktor(w.economy.growth), preise = b.preise * faktor(w.economy.inflation);
+  const real = b.real * monatsfaktor(w.economy.growth), preise = b.preise * monatsfaktor(w.economy.inflation);
   if (!positiv(b.basisBipMrd * real * preise)) return;
   w.economy.geldbasis = { ...b, real, preise, letzterMonat: monat };
 }
 
 export function bipMrd(w: World, real = false): number {
-  const b = geldbasis(w);
-  return b.basisBipMrd * b.real * (real ? 1 : b.preise);
+  return bipWertMrd(w.economy, real);
 }
 
 export const geldAusBip = (w: World, prozent: number): number => prozent * bipMrd(w) / 100;

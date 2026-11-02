@@ -806,3 +806,47 @@ Einordnung des Vorbilds: Die [offizielle Democracy-Dokumentation](https://www.de
 **Prüfgrenze:** Die Bilanzidentität der neuen Finanzanzeige ist geprüft, stellt aber allein keinen Nachweis der ökonomischen Realitätsnähe dar. Es fehlen insbesondere gemeinsame Invariantentests für Haushalt, Devisen, Waren, Behörden und Schuldendienst über mehrere Jahre. Browserabnahme und vollständige Referenzkampagnen bleiben offen. Die unveränderte Browser-Sperre wurde nicht erneut geprüft oder umgangen.
 
 Die drei Anschlusslücken erhalten Vorrang vor weiteren kosmetischen Erweiterungen des Finanzbuchs. Der frühere Umsetzungsbericht bleibt als damaliger Stand erhalten und wird durch diese konkreteren Befunde ergänzt.
+
+
+## Drei Finanzlücken geschlossen (2. November)
+
+**Nutzerauftrag:** Die drei Befunde aus der kritischen Anschlussprüfung beheben, die Änderungen testen und den aktiven lokalen Projektstand mit GitHub abgleichen. Die frühere Beschränkung auf ausschließlich lokale Arbeit ist für diese Sicherung ausdrücklich aufgehoben.
+
+### Gemeinsame BIP-Basis und Behördenfinanzierung
+
+Haushalt, Devisenflüsse, Reservekäufe und ihre Kennzahlen lesen jetzt dieselbe aktuelle nominale BIP-Basis. Reales Wachstum und Preissteigerungen werden getrennt monatlich aufgezinst; das historische Szenariofeld bleibt unverändert. Fehlt eine gültige Geldbasis, verwenden alle Leser denselben Ausgangswert. Lesen erzeugt keine rückwirkenden Buchungen. Ein Warenkauf behält bei größerem BIP seinen nominalen Dollarpreis und kostet entsprechend einen kleineren BIP-Anteil.
+
+Justizbehörde und diplomatischer Dienst greifen auf ihre eigenen Ressortetats zu. Das gilt für Ausbau, Unterhalt, Finanzierungsreserve und die Folgen von Kürzungen. Bereits im Personaletat verbrauchte Beträge bleiben dort historisch verbraucht; laufende Bauten werden weder erneut bezahlt noch erstattet. Nur der ungedeckte Teil neuer Ausgaben wird zusätzlich verschuldet. Bereits durch den Haushalt finanzierte Mittel erhöhen die Schulden nicht ein zweites Mal.
+
+### Schuldenrechnung und Zinsdienst
+
+Die alte lineare Schuldenquotenformel ist durch eine Bestandsrechnung ersetzt. Mit dem gemeinsamen monatlichen BIP-Faktor gilt:
+
+- Neues BIP = bisheriges BIP × Monatsfaktor des realen Wachstums × Monatsfaktor der Preise.
+- Alter Schuldenbestand = bisherige Quote × bisheriges BIP.
+- Neuer Bestand = alter Bestand + Wechselkursbewertung des vorhandenen Fremdwährungsanteils + Monatsdefizit einschließlich bereits gebuchter Zinsen.
+- Neue Quote = neuer Bestand / neues BIP. Bruttoschulden fallen nicht unter null; ein darüber hinausgehender Überschuss wird getrennt ausgewiesen.
+
+Der Defizitfluss beträgt ein Zwölftel der Jahresquote, bewertet am neuen Monats-BIP. Neu aufgenommenen Krediten wird keine rückwirkende Wechselkursänderung für den ganzen Monat zugerechnet. Wachstum und Inflation allein tilgen keine nominalen Schulden. Der Zinsansatz ersetzt nun den im Grundhaushalt enthaltenen Zinsdienst durch die aktuelle Schuldenquote mal geglättetem Durchschnittszins: So geht auch ein veränderter Schuldenbestand ein, nicht nur eine Zinsänderung. Defizit, Zinskennzahl und Finanzbuch zeigen dieselbe Buchung. Die Defizitzerlegung enthält jetzt auch den bereits gerechneten Konjunktursaldo.
+
+Die Finanzansicht zeigt den heutigen Schuldenbestand und einen aufklappbaren gespeicherten Monatsbeleg: Anfangsbestand, Defizit/Tilgung einschließlich Zinsen, Wechselkursbewertung und Endbestand samt damaligem BIP. Bestände werden beim Wechsel zwischen Jahres- und Monatsanzeige nicht durch zwölf geteilt. Spätere Einzelbeschlüsse ändern den heutigen Bestand, aber nicht den alten Beleg. Bei Altständen ohne Beleg wird keiner erfunden. Texte für DE/EN/TR und umbrechende Detailzeilen sind ergänzt.
+
+### Prüfung
+
+**242 unterschiedliche gezielte Tests bestanden, darunter 28 neue Finanztests. TypeScript und Produktionsbuild bestanden.** Maßgeblich ist je Testdatei der letzte Lauf, keine Addition wiederholter Prüfungen. Die Tests decken Haushalt, Behörden, Devisen, Güter, Versorgung, Haushaltsbericht/Gegenmaßnahmen, Spielschleife, historische Lernfälle und Makrosimulation ab. Die bestehenden historischen Korridore und Langzeit-Simulationsgrenzen wurden nicht aufgeweicht.
+
+Vor der Korrektur wurden vier Fehler reproduziert: falsche aktuelle Dollar-BIP-Basis, doppelte Finanzierung bei Justiz und Diplomatie sowie nominaler Schuldenverlust ohne Tilgung. Beispiel: BIP 100, Schulden 20, reales Jahreswachstum 12 %, Inflation 50 %, Defizit und Wechselkursänderung null. Vorher ergab die Rückrechnung 19,80463237 Schulden; jetzt bleiben es exakt 20.
+
+Weitere geprüfte Fälle: Rezession/Deflation, 200 % Inflation, Auf- und Abwertung, vollständige Tilgung, Zinsdienst bei null und verdoppelter Schuldenquote, tatsächlicher Reservekauf mit einmaliger Belastung, realer Monatswechsel, gespeicherter Beleg, spätere Einzelkosten, Laden/Weiterlaufen, Teilfinanzierung, Altverbrauch und Jahreswechsel der Behördenetats. Die historischen Lernfälle sowie mehrjährige Makroläufe bestehen die vorhandenen Prüfungen.
+
+Im ersten Nachlauf wurde ein falscher Warenbezeichner im neuen Test korrigiert. Drei bestehende Oberflächenprüfungen erwarteten noch eine dauerhaft geöffnete Kurswahl; sie prüfen jetzt die tatsächlich geltende Kursmarkierung und drei zunächst geschlossene Vorschläge. Die Spielbedienung wurde dafür nicht verändert.
+
+Nachweise im Repository: `reports/Finanz-Konsistenz-Vorher-2026-11-02.json`, `Finanz-Konsistenz-Pruefung-2026-11-02.json`, `Finanz-Konsistenz-Anschluss-2026-11-02.json`, `Finanz-Konsistenz-Abschluss-2026-11-02.json`; zusammengeführter Stand mit Quelldateiprüfsummen: `reports/Finanz-Konsistenz-Stand-2026-11-02.json`. Build: `reports/Finanz-Konsistenz-Build-2026-11-02.log`. Frühere fehlgeschlagene Läufe bleiben als nachvollziehbare Zwischenstände erhalten.
+
+### Fachliche Grundlage und verbleibende Grenzen
+
+Die Trennung von Defizitfluss, vorhandenem Schuldenstock und Wechselkursbewertung folgt dem [IWF-Leitfaden zu Schuldenpfaden mit lokaler und fremder Währung (2021)](https://www.imf.org/-/media/files/publications/tnm/2021/english/tnmea2021005.pdf). Die Unterscheidung von Transaktionen und anderen Bestandsänderungen entspricht dem [Government Finance Statistics Manual](https://www.imf.org/external/pubs/ft/gfs/manual/aboutgfs.htm). Diese Quellen begründen die Rechnungsstruktur, nicht die konkreten Spielparameter.
+
+Die vorhandene Inflation bleibt ein vereinfachter Preisindex, kein gemessener BIP-Deflator. Der Fremdwährungsanteil von 40 % und die Zinsanpassung bleiben vorhandene Kalibrierungsparameter; die Monatsbewertung verwendet keine täglichen Kredittranchen. Behördenverbrauch bleibt im bestehenden jährlichen BIP-Anteilskonto. Für Überschüsse nach vollständiger Tilgung gibt es weiterhin kein verfügbares Guthabenkonto. Eine vollständige Primärquellenprüfung aller Ressortanteile, langfristige Balance aller verbundenen Spielsysteme und ganze Referenzkampagnen sind damit nicht abgeschlossen.
+
+Die bekannten Build-Warnungen zum optionalen Infrastruktur-Export und zur Paketgröße bleiben bestehen. Keine Browserprüfung, keine neuen Screenshots oder visuelle Abnahme; der gesperrte Zugriff wurde weder erneut geprüft noch umgangen. Veröffentlichung erfolgt auf Nutzerauftrag auf den bestehenden Arbeits- und GitHub-Standardzweig, ohne Umschreiben der Historie.

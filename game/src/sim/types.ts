@@ -108,6 +108,8 @@ export interface EconomyState {
   bipTryTn?: number;
   /** Fortschreibung der Geldbeträge im Spiel, getrennt nach realem BIP und Preisen. */
   geldbasis?: import("./staatsgeld").Geldbasis;
+  /** Letzter abgeschlossener Makro-Monat. Spätere Einzelbeschlüsse ändern diesen Beleg nicht. */
+  schuldenAbschluss?: import("./staatsgeld").SchuldenRechnung & { monat: string; datum: string };
 }
 
 /** Größen, die nicht im Szenario stehen, sondern abgeleitet werden. */

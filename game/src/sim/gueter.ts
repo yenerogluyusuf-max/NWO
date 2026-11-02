@@ -16,6 +16,7 @@ import { transportPlan, regionalVerteilen, transportAbschluss, frontBedarf, HUB_
 import { produktionsVersorgung, WAREN_PREIS, type WarenFluss, type VersorgungsBilanz, type VersorgungsPrioritaet } from "./versorgung";
 import { regierungsProgramm, SCHUTZ_GUETER, energiePartnerGrund, beschliesseVersorgungsKurs, versorgungsPolitikAbschluss, type VersorgungsRegierung } from "./versorgungspolitik";
 import { versorgungsNachweis } from "./versorgungsbericht";
+import { bipUsdMrd } from "./staatsgeld";
 
 export interface GueterZustand {
   v: 1;
@@ -341,7 +342,7 @@ export function gutInstrumente(w: World, gut: GutId): InstrumentVorschau[] {
   const kap = w.spiel?.kapital ?? 0;
   const out: InstrumentVorschau[] = [];
   const reserveKosten = !g.lieferanten.length || RESERVE_KOSTEN[gut] === undefined ? undefined :
-    WAREN_PREIS[gut] > 0 ? g.verbrauch / 12 * WAREN_PREIS[gut] / (((w.economy.bipTryTn ?? 84) * 1000) / Math.max(1, w.economy.usdTry)) * 100 : RESERVE_KOSTEN[gut];
+    WAREN_PREIS[gut] > 0 ? g.verbrauch / 12 * WAREN_PREIS[gut] / bipUsdMrd(w.economy) * 100 : RESERVE_KOSTEN[gut];
   const offen = z.auftraege?.some(o => o.gut === gut && o.rest > 1e-8) ?? false;
   if (reserveKosten !== undefined) {
     out.push({ id: "reserve", moeglich: !offen && kannZahlen(kap, GUETER_REGELN.pkReserve), ...(offen ? { grund: t("gueter.kette.auftragOffen") } : {}), pk: GUETER_REGELN.pkReserve, bip: reserveKosten, wirkung: t("gueter.wirkung.reserve") });

@@ -120,8 +120,9 @@ export function tick(world: World): void {
 
   // Realwirtschaft monatlich, jeweils am Monatsersten für den abgelaufenen Monat
   if (dayOfMonth(world.date) === 1) {
-    monthlyUpdate(e, world.history, rng);
+    const schulden = monthlyUpdate(e, world.history, rng);
     staatsgeldMonat(world);
+    if (world.spiel) e.schuldenAbschluss = { ...schulden, monat: previousMonth(monthOf(world.date)), datum: world.date };
     world.history.push({
       month: previousMonth(monthOf(world.date)),
       inflation: e.inflation,

@@ -114,6 +114,8 @@ function etatJahr(w: World): Record<string, number> {
   const z = behoerden(w);
   const jahr = Number(w.date.slice(0, 4));
   if (!z.etat || z.etat.jahr !== jahr) z.etat = { jahr, genutzt: {} };
+  // Alte Justiz-/Diplomatieausgaben wurden aus "personal" bezahlt. Sie bleiben dort
+  // verbraucht; die neue Ressortzuordnung erstattet nichts und belastet laufende Bauten nicht erneut.
   return z.etat.genutzt;
 }
 

@@ -1,4 +1,4 @@
-import { defizitQuote } from "./staatsgeld";
+import { schuldenMonatsrechnung, type SchuldenRechnung } from "./staatsgeld";
 // Wirtschaftsregeln nach WIRTSCHAFTSMODELL.md (Z1 bis Z9).
 // Alle Parameter sind Platzhalter für die Kalibrierung, keine Messwerte.
 
@@ -154,7 +154,7 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
 }
 
 /** Monatliche Fortschreibung der Realwirtschaft (Z1, Z2, Z3, Z5, Z6, Z7, Z9). */
-export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: Rng): void {
+export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: Rng): SchuldenRechnung {
   const lagged = history[history.length - PARAMS.rateLagMonths];
   const laggedRealRate = clamp(lagged ? lagged.realRate : realRate(e), -PARAMS.rateTransmissionCap, PARAMS.rateTransmissionCap);
 
@@ -212,17 +212,11 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.okun * (e.growth - potential(e));
   e.unemployment = clamp(e.unemployment, 3, 30);
 
-  // Z7: Defizite werden zu Schulden, nominales Wachstum senkt die Quote
-  const nominalGrowth = (e.growth + e.inflation) / 100;
-  // Runde „Netz atmet“: Der Haushalt atmet mit der Konjunktur (konjunkturSaldo: + = Entlastung, 0 ohne Netz)
-  e.debtRatio += (defizitQuote(e)) / 12 - (e.debtRatio * nominalGrowth) / 12;
-  // WIR-2 (KALIBRIERUNG_LOG §6.1): Der FX-/indexierte Anteil der Schulden schmilzt nicht mit der
-  // Inflation, sondern folgt dem Kurs der letzten Monats — 2021–2024 blieb die reale Quote deshalb
-  // bei ~30–40 %, während das reine Defizit-Modell sie wegschmelzen ließ.
-  const vormonat = history[history.length - 1];
-  const fxMonat = vormonat ? e.usdTry / vormonat.usdTry - 1 : 0;
-  e.debtRatio += PARAMS.fxSchuldAnteil * e.debtRatio * fxMonat;
-  e.debtRatio = Math.max(0, e.debtRatio);
+  // Z7: Gesamtdefizit und FX-Bewertung verändern den Bestand. Wachstum/Preise ändern
+  // nur den Nenner; derselbe aufgezinst berechnete Monatsfaktor gilt in staatsgeldMonat.
+  const rechnung = schuldenMonatsrechnung(e, history.at(-1)?.usdTry, PARAMS.fxSchuldAnteil);
+  e.debtRatio = rechnung.nachherQuote;
+  return rechnung;
 }
 
 /** Gewichte der Reaktionsregel je Haltung der Führung. */

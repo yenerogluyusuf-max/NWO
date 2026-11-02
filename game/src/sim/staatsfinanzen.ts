@@ -2,7 +2,7 @@ import type { World } from "./types";
 import { PLAN_2026 } from "../data/haushaltsplan";
 import { POSTEN } from "./haushalt";
 import { migriereHaushalt } from "./wirtschaft";
-import { bipMrd, defizitQuote, geldbasis } from "./staatsgeld";
+import { bipMrd, defizitQuote, geldbasis, zinsQuote } from "./staatsgeld";
 
 export interface FinanzZeile { id: string; quote: number; mrd: number }
 
@@ -29,7 +29,7 @@ export function staatsfinanzen(w: World) {
     zeile("ressorts", ressorts),
     zeile("weitere", e.fiscalImpulse - ressorts + steuern),
     zeile("reformen", e.policyCost),
-    zeile("zinsen", PLAN_2026.zinsenProzentBip + (e.zinsMehrlast ?? 0)),
+    zeile("zinsen", zinsQuote(e)),
   ];
   const summe = (z: FinanzZeile[]) => z.reduce((s, p) => s + p.mrd, 0);
   return {

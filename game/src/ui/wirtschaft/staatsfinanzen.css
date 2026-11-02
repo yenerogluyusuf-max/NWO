@@ -25,5 +25,10 @@
 .sf-rechnung~p{font-size:12px;color:#526457}
 .sf-ressourcen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;border-top:1px solid #cdd8cf;padding-top:18px;margin:22px 0 0}
 .sf-ressourcen dt{font-weight:600;font-size:13px}.sf-ressourcen dd{font-size:12px;color:#526457;margin:5px 0 0}
+.sf-schulden{border:1px solid #cdd8cf;border-radius:9px;padding:16px;margin-top:20px;min-width:0}
+.sf-schulden h4{margin:0;font-size:14px}.sf-schulden p{font-size:12px;overflow-wrap:anywhere}
+.sf-schulden summary{cursor:pointer;padding:8px 0;font-weight:600;font-size:12px}.sf-schulden summary:focus-visible{outline:3px solid #a56821;outline-offset:3px}
+.sf-schulden dl{margin:10px 0}.sf-schulden dl>div{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 16px;padding:6px 0;border-bottom:1px solid #dee5df;font-size:12px}
+.sf-schulden dt{overflow-wrap:anywhere}.sf-schulden dd{margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 @container staatsgeld (max-width:580px){.sf-summen,.sf-rechnung,.sf-ressourcen{grid-template-columns:1fr}.sf-summen>div,.sf-summen>div:first-child{padding:12px;border-left:0;border-bottom:1px solid #d7e1d9}.sf-summen dd{font-size:24px}.sf-rechnung{gap:16px}.sf-ressourcen{gap:12px}}
 @container staatsgeld (max-width:330px){.sf-rechnung dl>div{flex-wrap:wrap;gap:3px}.sf-rechnung dd{width:100%;text-align:left}.sf-zeit{width:100%}.sf-zeit button{flex:1}}

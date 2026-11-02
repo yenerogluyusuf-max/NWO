@@ -429,7 +429,9 @@ export function haushaltMonat(w: World): void {
   const markt = e.policyRate + e.riskPremium / 100;
   const ziel = ZINSSATZ_START + 0.25 * (markt - z.marktStart);
   z.zinssatz = clamp(z.zinssatz + 0.06 * (ziel - z.zinssatz), 3, 60);
-  e.zinsMehrlast = (e.debtRatio / 100) * (z.zinssatz - ZINSSATZ_START);
+  // Der Grundhaushalt enthält bereits den Start-Zinsdienst. Nur die Differenz zum
+  // gesamten heutigen Zinsdienst wird ergänzt, einschließlich verändertem Schuldenbestand.
+  e.zinsMehrlast = (Math.max(0, e.debtRatio) / 100) * z.zinssatz - PLAN_2026.zinsenProzentBip;
 }
 
 /** Monatlicher Schub, der die Abwanderung je % des BIP Bildungsüberhang um `WISSEN.abwanderungJeProzent` Punkte verschiebt. */

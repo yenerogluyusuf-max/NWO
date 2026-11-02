@@ -92,7 +92,7 @@ export const BEHOERDEN: readonly BehoerdeDef[] = [
     instrument: { id: "schwerpunkt", achse: "technik", ab: 4, pk: 3, bip: 0.02, abkuehlung: 12, stoss: [w("kriminalitaet", -4), w("korruption", -1.5), w("pressefreiheit", -0.5)] },
   },
   {
-    id: "justiz", bereich: "recht", ressort: "justiz", posten: "personal",
+    id: "justiz", bereich: "recht", ressort: "justiz", posten: "justiz",
     start: { personal: 2, technik: 3, reichweite: 3 },
     wirkung: {
       personal: [w("justiz_kapazitaet", 5), w("justiz_effizienz", 2), w("haftueberfuellung", -1.5)],
@@ -147,7 +147,7 @@ export const BEHOERDEN: readonly BehoerdeDef[] = [
     instrument: { id: "brennpunkte", achse: "reichweite", ab: 4, pk: 2, bip: 0.02, abkuehlung: 12, stoss: [w("schulabbruch", -3), w("bildungsqualitaet", 2), w("junge", 1)] },
   },
   {
-    id: "diplomatie", bereich: "aussen", ressort: "aussen", posten: "personal",
+    id: "diplomatie", bereich: "aussen", ressort: "aussen", posten: "diplomatie",
     start: { personal: 3, technik: 3, reichweite: 4 },
     wirkung: {
       personal: [w("ansehen", 2)],
@@ -213,9 +213,9 @@ export const AUSBAU = {
 export const RESSORT_POSTEN: Record<string, string> = {
   praesidialamt: "innere_sicherheit",
   inneres: "innere_sicherheit",
-  justiz: "personal",
+  justiz: "justiz",
   finanzen: "personal",
   gesundheit: "gesundheit",
   bildung: "bildung",
-  aussen: "personal",
+  aussen: "diplomatie",
 };
