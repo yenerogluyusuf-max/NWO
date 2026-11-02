@@ -18,6 +18,7 @@ export interface HaushaltsAbkommen {
   vorher:number;nachher:number;bereitschaft:number;zusagen:Zusage[];
 }
 export interface HaushaltsStand {
+  sozial?:{armut:number;lebenshaltung:number;realeinkommen:number};
   defizit:number;impuls:number;schulden:number;wachstum:number;inflation:number;legitimitaet:number;zustimmung:number;
   /** Geldbeträge zum damaligen Stand; bei Altbelegen ausdrücklich unbekannt. */
   finanzen?: { einnahmenMrd:number;ausgabenMrd:number;kreditMrd:number;realEinnahmenMrd:number;preisbasis:string };
@@ -29,6 +30,7 @@ export interface HaushaltsZusage {
   z:Zusage;quelle:"haushalt"|"bestehend";status:"offen"|"erfuellt"|"gebrochen"|"unbekannt";datum:string;
 }
 export interface HaushaltsAbschluss {
+  krisenpaket?:HaushaltsGesetz["krisenpaket"];
   id:string;jahr:number;tag:number;datum:string;ja:number;angenommen:boolean;absprachen:number;
   posten:{id:string;vorher:number;ziel:number;danach:number;reifeMonate:number}[];
   abkommen:HaushaltsAbkommen[];zusagen:HaushaltsZusage[];vorher:HaushaltsStand;nachher:HaushaltsStand;
@@ -52,7 +54,7 @@ export interface HaushaltsMonatsbericht {
 
 export function haushaltsStand(w:World):HaushaltsStand {
   const sp=w.spiel!,e=w.economy,f=staatsfinanzen(w);
-  return {finanzen:{einnahmenMrd:f.einnahmenMrd,ausgabenMrd:f.ausgabenMrd,kreditMrd:f.kreditMrd,realEinnahmenMrd:f.realeEinnahmenMrd,preisbasis:f.basis.seit},defizit:defizitJetzt(w),impuls:e.fiscalImpulse,schulden:e.debtRatio,wachstum:e.growth,inflation:e.inflation,
+  return {sozial:{armut:nationalAverage(NET,w.net,"armut"),lebenshaltung:nationalAverage(NET,w.net,"lebenshaltung"),realeinkommen:nationalAverage(NET,w.net,"realeinkommen")},finanzen:{einnahmenMrd:f.einnahmenMrd,ausgabenMrd:f.ausgabenMrd,kreditMrd:f.kreditMrd,realEinnahmenMrd:f.realeEinnahmenMrd,preisbasis:f.basis.seit},defizit:defizitJetzt(w),impuls:e.fiscalImpulse,schulden:e.debtRatio,wachstum:e.growth,inflation:e.inflation,
     legitimitaet:nationalAverage(NET,w.net,"legitimitaet"),zustimmung:sp.umfrage.zustimmung,sitze:regierungsSitze(w),
     parteien:Object.entries(w.parliament?.seats??{}).filter(([p,s])=>s>0&&p!==w.player?.partei.kurz).map(([partei,sitze])=>({partei,sitze,
       rolle:sp.lager.includes(partei)?"koalition":(sp.fraktionen?.[partei]?.duldungBis??0)>w.day?"duldung":"opposition",
@@ -76,7 +78,7 @@ export function beginneHaushaltsBeleg(w:World,g:HaushaltsGesetz,ja:number):Haush
   for(const z of w.spiel!.zusagen)if(traeger.has(z.von)&&!z.erfuellt&&!z.gebrochen)ziele.set(z.id,z);
   const zusagen=zusagenStand(w,[...ziele.values()].map(z=>({z,quelle:zugesagt.has(z.id)?"haushalt":"bestehend",status:"offen",datum:addDays(w.date,z.faellig-w.day)})));
   const vorher=haushaltsStand(w),z=haushaltZustand(w);
-  return {id:`haushalt-${g.jahr}-${g.eingebracht}`,jahr:g.jahr,tag:w.day,datum:w.date,ja,angenommen:ja>=301,absprachen:g.absprachen,abkommen,zusagen,vorher,nachher:vorher,
+  return {id:`haushalt-${g.jahr}-${g.eingebracht}`,jahr:g.jahr,...(g.krisenpaket?{krisenpaket:g.krisenpaket}:{}),tag:w.day,datum:w.date,ja,angenommen:ja>=301,absprachen:g.absprachen,abkommen,zusagen,vorher,nachher:vorher,
     posten:Object.entries(g.schritte).flatMap(([id,n])=>{const p=POSTEN_NACH_ID[id];if(!p)return [];const v=z.stufen[p.id]??0,ziel=inSpanne(p,n);return ziel===v?[]:[{id:p.id,vorher:v,ziel,danach:v,reifeMonate:p.reifeMonate}];})};
 }
 

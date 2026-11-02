@@ -11,6 +11,7 @@ import type { Handlung } from "../../sim/wirtschaft-kennzahlen";
 import { Akte, VorgaengePlatz, type AktenReiterId, type Kernwert } from "../akte/Akte";
 import { VerlaufsDiagramm, type VerlaufsReihe } from "../akte/Kennzahl";
 import { BerichtListe, PersonenListe, berichteFuer } from "../akte/Bausteine";
+import { Krisenrat } from "./Krisenrat";
 import { Lage } from "./Lage";
 import { Zentralbank } from "./Zentralbank";
 import { Haushalt } from "./Haushalt";
@@ -20,7 +21,7 @@ import "./wirtschaft.css";
 
 /** Ältere Einstiege (Stage, Ereignisfenster, Mentorin) sprechen noch von diesen drei Zielen. */
 export type Reiter = "lage" | "zentralbank" | "haushalt" | "inventar";
-type Instrument = "zentralbank" | "haushalt" | "inventar";
+type Instrument = "krisenrat" | "zentralbank" | "haushalt" | "inventar";
 type ZbAbschnitt = "sitzung" | "gouverneur" | "stufe" | "devisen";
 
 const nf = (x: number, d = 1) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -76,9 +77,9 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, pro
     setWahl(h.posten);
   }
 
-  const instrumente = () => instrument === "inventar" ? <Inventar programm={programm} world={world} geaendert={geaendert} /> : instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} />;
-  const zugaenge={aktiv:instrument,eintraege:(["haushalt","inventar","zentralbank"] as const).map(id=>({
-    id,label:t(`akte.wirtschaft.instrument.${id}`),text:t(`akte.wirtschaft.instrument.${id}Text`),icon:ZUGANG_ICON[id]!,
+  const instrumente = () => instrument === "krisenrat" ? <Krisenrat world={world} geaendert={geaendert}/> : instrument === "inventar" ? <Inventar programm={programm} world={world} geaendert={geaendert} /> : instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} />;
+  const zugaenge={aktiv:instrument,eintraege:(["krisenrat","haushalt","inventar","zentralbank"] as const).map(id=>({
+    id,label:t(`akte.wirtschaft.instrument.${id}`),text:t(`akte.wirtschaft.instrument.${id}Text`),icon:id==="krisenrat"?"kuppel" as const:ZUGANG_ICON[id]!,
     waehlen:()=>{setInstrument(id);if(id==="zentralbank")setAbschnitt(undefined);else if(id==="haushalt")setWahl(undefined);},
   }))};
 

@@ -943,3 +943,7 @@ Dieser Plan dient als aktueller Einstieg für die weitere Entwicklung. Ältere D
 Jede größere Erweiterung beantwortet vor ihrer Umsetzung: Welche Regierungsentscheidung verbessert sie? Welche vorhandenen Zustände verwendet sie? Wie wird sie sichtbar? Wie wird ihr Ergebnis geprüft? Fehlt darauf eine konkrete Antwort, hat die Verbindung bestehender Systeme Vorrang.
 
 Der Umfang dieses Plans ist bewusst groß. Seine Ausführung bleibt in überprüfbaren Etappen organisiert. Die aktuelle Arbeit liefert die Fraktionshilfen und diesen Plan; sie behauptet nicht, sämtliche hier beschriebenen Ausbauschritte bereits umgesetzt zu haben.
+
+### Umsetzungsstand Nacht 2./3. November 2026
+
+Neuer Krisenrat verbindet soziale Nachtragspakete, bestehende Mehrheitsverhandlungen und Haushaltsnachsorge. Die Hauptnavigation unterscheidet Legislative und Exekutive und ordnet die Landesbereiche in drei Gruppen. Alle bisherigen Einstiege bleiben erhalten. Prüfung und verbleibende politische Grenzen stehen in [KRISENRAT_REGIERUNGSARBEIT_2026-11-03.md](KRISENRAT_REGIERUNGSARBEIT_2026-11-03.md). Die visuelle Abnahme und robuste Bewältigung der schwierigsten Inflationsverläufe sind weiterhin offen; eine bessere Sozialbilanz ist kein garantierter Wahlsieg.

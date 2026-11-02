@@ -1,3 +1,4 @@
+import { haushaltsTitel } from "../../sim/haushalt";
 import { RessortErholungsVerlauf } from "../minister/RessortErholung";
 import { RessortFolgen } from "../minister/RessortAnliegen";
 import { RessortPolitikVerlauf } from "../minister/RessortVerantwortung";
@@ -24,7 +25,7 @@ export function HaushaltsMonatsbericht({bericht:b,aktuell=false,world,geaendert}
   const partner=b.stand.parteien.filter(p=>p.rolle==="koalition"||a.abkommen.some(v=>v.partei===p.partei)||a.nachher.parteien.some(v=>v.partei===p.partei&&v.rolle==="koalition"));
   return <section className="hb" aria-label={t("hb.titel")}>
     <header className="hb-kopf"><small>{t(aktuell?"hb.heute":"hb.monat",{datum:formatDateDe(b.datum),monat:b.monat})}</small>
-      <h4>{t("hb.titel")}</h4><p>{t(a.angenommen?"hb.angenommen":"hb.abgelehnt",{jahr:a.jahr+1,datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja})}</p>
+      <h4>{t("hb.titel")}</h4><p>{a.krisenpaket?t(a.angenommen?"kp.angenommen":"kp.abgelehnt",{name:haushaltsTitel(a),datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja}):t(a.angenommen?"hb.angenommen":"hb.abgelehnt",{jahr:a.jahr+1,datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja})}</p>
     </header>
     <div className="hb-inhalt">
       <h5>{t("hb.sofort")}</h5>
@@ -66,6 +67,7 @@ export function HaushaltsMonatsbericht({bericht:b,aktuell=false,world,geaendert}
         {b.reifung.knoten.length>0&&<details><summary>{t("hb.treiber")}</summary><ul className="hb-liste">{b.reifung.knoten.map(k=><li key={k.id}><b>{knoten(k.id)}</b><span>{t("hb.punkte",{n:sign(k.delta,3)})}</span></li>)}</ul></details>}
         <p className="hb-hinweis">{t("hb.vergleichGrenze")}</p>
       </>:<p>{t(!a.angenommen?"hb.keineReifung":b.umsetzung.length>0&&b.umsetzung.every(p=>p.ersetzt)?"hb.ersetztAlle":"hb.wartet")}</p>}
+      {b.stand.sozial&&<section><h5>{t('kp.sozialBericht')}</h5><p>{t('kp.beobachtung')}</p><dl className="hb-zahlen">{(['armut','lebenshaltung','realeinkommen'] as const).map(id=><div key={id}><dt>{t(`kp.${id}`)}</dt><dd>{zahl(b.stand.sozial![id],1)} / 100</dd>{a.vorher.sozial&&<small>{t('kp.seitBeschluss',{n:sign(b.stand.sozial![id]-a.vorher.sozial[id])})}</small>}</div>)}</dl></section>}
       <h5>{t("hb.beobachtet")}</h5><p>{t("hb.beobachtungGrenze")}</p>
       <dl className="hb-zahlen"><div><dt>{t("hb.defizit")}</dt><dd>{t("hb.prozent",{n:zahl(b.stand.defizit,2)})}</dd></div>
         <div><dt>{t("hb.wachstum")}</dt><dd>{t("hb.prozent",{n:zahl(b.stand.wachstum,2)})}</dd></div>

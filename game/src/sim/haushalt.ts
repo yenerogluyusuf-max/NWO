@@ -599,7 +599,7 @@ export function haushaltsStimmenKaufen(w: World, anzahl: number): Ergebnis {
 }
 
 /** Wendet einen beschlossenen Entwurf an: Regler-Stufen, Nachfrage-Impuls und Sofortwirkungen je Posten. */
-function wendeEntwurfAn(w: World, schritte: Record<string, number>, jahr: number): number {
+function wendeEntwurfAn(w: World, schritte: Record<string, number>, jahr: number, paketTitel?: string): number {
   const z = haushaltZustand(w);
   let angewendet = 0;
   for (const [id, zielStufe] of Object.entries(schritte)) {
@@ -623,7 +623,7 @@ function wendeEntwurfAn(w: World, schritte: Record<string, number>, jahr: number
         return node ? `${node.name} ${Math.sign(x.d * delta) > 0 ? "▲" : "▼"} (dauerhaft)` : "";
       }).filter(Boolean),
     ];
-    z.aenderungen.push({ tag: w.day, datum: w.date, posten: p.name, text: t("haushalt.beschluss.gesetz", { jahr: String(jahr + 1), posten: p.name, richtung, mrd: mrd.toLocaleString("de-DE") }), folgen });
+    z.aenderungen.push({ tag: w.day, datum: w.date, posten: p.name, text: t(paketTitel?"kp.beschlussPosten":"haushalt.beschluss.gesetz", { name:paketTitel??"", jahr: String(jahr + 1), posten: p.name, richtung, mrd: mrd.toLocaleString("de-DE") }), folgen });
     z.letzteAenderung = w.day;
   }
   while (z.aenderungen.length > 12) z.aenderungen.shift();
@@ -660,25 +660,26 @@ export function haushaltszyklusTag(w: World, rng: Rng): void {
   const nein = 600 - ja;
   const angenommen = ja >= REGELN.mehrheit;
   const beleg=beginneHaushaltsBeleg(w,g,ja);
-  z.zyklusJahr = g.jahr;
+  if (!g.krisenpaket) z.zyklusJahr = g.jahr;
+  const titel = haushaltsTitel(g);
   if (angenommen) {
-    const n = wendeEntwurfAn(w, g.schritte, g.jahr);
-    z.letztesErgebnis = "angenommen";
-    const text = `Das Parlament nimmt das Haushaltsgesetz ${g.jahr + 1} an (${ja} zu ${nein}): ${n} ${n === 1 ? "Posten" : "Posten"} geändert.`;
+    const n = wendeEntwurfAn(w, g.schritte, g.jahr, g.krisenpaket?titel:undefined);
+    if (!g.krisenpaket) z.letztesErgebnis = "angenommen";
+    const text = `Das Parlament nimmt ${titel} an (${ja} zu ${nein}): ${n} ${n === 1 ? "Posten" : "Posten"} geändert.`;
     addLog(w, "entscheidung", text, `Das Defizit liegt jetzt bei ${fmt(defizitJetzt(w))} % des BIP. Die Änderungen wirken ab sofort; die Dauerwirkungen entfalten sich über die nächsten Monate.`);
-    addMarke(w, "haushalt", `Haushaltsgesetz ${g.jahr + 1} beschlossen`);
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel: `Haushaltsgesetz ${g.jahr + 1}`, ausgang: `Mit ${ja} zu ${nein} Stimmen angenommen.` });
+    addMarke(w, "haushalt", `${titel} beschlossen`);
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `Mit ${ja} zu ${nein} Stimmen angenommen.` });
   } else {
-    z.letztesErgebnis = "gescheitert";
+    if (!g.krisenpaket) z.letztesErgebnis = "gescheitert";
     wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.scheiternLegitimitaet);
     spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
     addLog(
       w,
       "entscheidung",
-      `Das Parlament lehnt das Haushaltsgesetz ${g.jahr + 1} ab (${ja} zu ${nein}).`,
+      `Das Parlament lehnt ${titel} ab (${ja} zu ${nein}).`,
       `Der Vorjahrshaushalt läuft weiter: Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation automatisch aus. Die Regierung wirkt geschwächt (Legitimität ${HAUSHALT_ZYKLUS.scheiternLegitimitaet}). Es fehlten ${REGELN.mehrheit - ja} Stimmen.`,
     );
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel: `Haushaltsgesetz ${g.jahr + 1}`, ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.` });
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.` });
   }
   schliesseHaushaltsBeleg(w,beleg);
 }
@@ -688,7 +689,7 @@ export function naechsteHaushaltstermine(w: World): { datum: string; text: strin
   const fenster = haushaltsfenster(w);
   const z = haushaltZustand(w);
   const out: { datum: string; text: string }[] = [];
-  if (z.gesetz) out.push({ datum: addDays(w.date, z.gesetz.abstimmung - w.day), text: `Abstimmung über das Haushaltsgesetz ${z.gesetz.jahr + 1}` });
+  if (z.gesetz) out.push({ datum: addDays(w.date, z.gesetz.abstimmung - w.day), text: `Abstimmung über ${haushaltsTitel(z.gesetz)}` });
   if (!fenster.kalenderOffen) out.push({ datum: fenster.naechsterStart, text: `Haushaltsfenster öffnet (Oktober, ${HAUSHALT_ZYKLUS.fensterTage} Tage)` });
   return out;
 }
@@ -706,4 +707,9 @@ export function schreibeHaushaltFort(w: World): void {
     `Der Haushalt ${jahr + 1} wird fortgeschrieben.`,
     "Die Posten bleiben unverändert und laufen mit der Inflation automatisch mit; wer später ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.",
   );
+}
+
+/** Gemeinsamer Name in Kalender, laufender Arbeit und gespeichertem Bericht. */
+export function haushaltsTitel(g: {jahr:number;krisenpaket?:string}):string {
+  return g.krisenpaket?t("kp.gesetz",{name:t(`kp.${g.krisenpaket}.titel`)}):t("sd.haushaltsgesetz",{jahr:g.jahr+1});
 }

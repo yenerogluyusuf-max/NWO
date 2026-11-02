@@ -17,6 +17,7 @@ import { Cameo } from '../art/Cameo';
 import { Mappe } from '../minister/Mappe';
 import { RessortAnliegenKarten } from '../minister/RessortAnliegen';
 import { RessortErholung } from '../minister/RessortErholung';
+import { Krisenrat } from '../wirtschaft/Krisenrat';
 import { ZusagenWache } from './ZusagenWache';
 import { DreiFragen } from './DreiFragen';
 import { tageslage, type Ziel } from './briefing';
@@ -101,6 +102,7 @@ export function SchreibtischRueckblick({world,onGehe,onPosteingang,umlauf}:{worl
 export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,onVorgang}:GemeinsameProps&{
   umlauf?:UmlaufEintrag[];onKarte?:(problemId?:string)=>void;onPosteingang?:()=>void;onVorgang?:(id:string)=>void;
 }) {
+  const [krisenOffen,setKrisenOffen]=useState(false);
   const [bereich,setBereich]=useState<Arbeitsbereich>('entscheiden');
   const [gruppe,setGruppe]=useState<ArbeitsGruppe>('vorlagen');
   const [auswahl,setAuswahl]=useState<Auswahl>({});
@@ -130,6 +132,7 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
   return <div className="sk">
     <header className="sd-kopf"><div><p className="sd-kicker">{t('sd.kicker')} <span>· {b.datum}</span></p><h3>{t('sd.titel')}</h3><p className="sd-amtszeit">{t('sk.ui.amtszeit',{n:b.amtszeit.nummer,monate:b.amtszeit.monateBisWahl,wahltag:b.amtszeit.wahltag})}</p></div><span className="sd-siegel" aria-hidden><Icon name="kuppel" size={42}/></span></header>
     <ul className="sd-kennzahlen" aria-label={t('sk.ui.lageAria')}>{b.kennzahlen.filter(k=>KENNZAHLEN.has(k.id)).map(k=><li key={k.id}><button type="button" className={`sd-kennzahl ton-${k.ton}`} onClick={()=>onGehe(k.ziel)} title={t('sk.ui.akteOeffnen',{label:k.label})}><span>{k.label}</span><strong>{k.wert}{k.trend!=='gleich'&&<em aria-hidden>{k.trend==='auf'?'↑':'↓'}</em>}</strong><small>{k.zusatz}</small></button></li>)}</ul>
+    <details className="sd-krisenrat" onToggle={e=>setKrisenOffen(e.currentTarget.open)}><summary><Icon name="kuppel" size={22}/>{t("kp.titel")}<small>{t("kp.einstieg")}</small></summary>{krisenOffen&&<Krisenrat world={world} geaendert={refresh}/>}</details>
     <section className="sd-prioritaeten" aria-label={t('sd.prioritaeten')}><div className="sd-abschnittskopf"><h4>{t('sd.prioritaeten')}</h4><span>{t('sd.prioritaetenText')}</span></div>
       {arbeit.highlights.length?<ol className="sd-lagekarten">{arbeit.highlights.map((p,i)=><li key={p.id}><button type="button" className={`sd-lagekarte ton-${p.ton}`} onClick={()=>springe(p.sprung)}><span className="sd-lagekopf"><b className="sd-nummer">0{i+1}</b><span>{p.tage===undefined?t(p.ton==='rot'?'sd.akut':p.ton==='gelb'?'sd.achtung':'sd.vorlage'):fristText(p.tage)}</span></span><strong>{p.titel}</strong><span className="sd-grund">{p.grund}</span><span className="sd-oeffnen">{t('sd.vorgangOeffnen')} <span aria-hidden>↗</span></span></button></li>)}</ol>:<p className="sd-leer">{t('sd.keinePrioritaet')}</p>}
     </section>

@@ -84,7 +84,7 @@ export function Akte({ bereich, zweck, kernwerte, reiter, start, aktiv, onReiter
       <header className="ak-kopf">
         <div className="ak-identitaet">
           <div className="ak-titelzeile"><span className="ak-bereichszeichen"><Icon name={profil.icon} size={28}/></span>
-            <div><div className="ak-metazeile"><span>{t("akneu.ressort")}</span>{datum&&<span>{datum}</span>}</div><h2>{profil.titel}</h2></div>
+            <div><div className="ak-metazeile"><span>{t(bereich==="recht"?"rn.gesetzgebung":bereich==="regierung"?"rn.vollzug":"akneu.ressort")}</span>{datum&&<span>{datum}</span>}</div><h2>{profil.titel}</h2></div>
           </div>
           <p className="ak-zweck">{zweck}</p>
         </div>

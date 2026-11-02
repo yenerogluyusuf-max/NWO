@@ -13,6 +13,7 @@ import { PROVINZEN } from "../sim/regional";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { neubauLinien } from "./atlas/neubau";
 import { PROVINCE_FC, REGION_COLORS } from "./atlas/overlay";
+import { RegierungsNavigation } from "./navigation/RegierungsNavigation";
 import { Schreibtisch } from "./schreibtisch/Schreibtisch";
 import type { Ziel } from "./schreibtisch/briefing";
 import { zweckVon } from "./politik/zweck";
@@ -867,16 +868,12 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} onOeffne={oeffneBerichtAusMeldung} />
       <AbstimmungsKarte world={w} />
 
-      <nav className="dossier-menu" aria-label={t("nav.aria")}>
-        {menue.map((m) => (
-          <button key={m.kurz} className={gruppe === m ? "on" : ""} onClick={() => { ueberLeiste.current = gruppe !== m; oeffneDossier(gruppe === m ? null : m.tabs[0]!.id); if (gruppe !== m && m.tabs[0]!.id === dossier) { ueberLeiste.current = false; setAkteReiter("lage"); } }} aria-label={m.titel} title={m.titel}>
-            <Icon name={m.icon} />
-            {m.badge !== undefined && <span className="menu-badge">{m.badge}</span>}
-            {m.umlauf !== undefined && <span className="menu-badge ruhig" title={t("st.umlauf.badge")}>{m.umlauf}</span>}
-            <span className="menu-kurz">{m.kurz}</span>
-          </button>
-        ))}
-      </nav>
+      <RegierungsNavigation eintraege={menue.map(m=>({...m,id:m.tabs[0]!.id}))} aktiv={gruppe?.tabs[0]!.id} onWaehlen={id=>{
+        const m=menue.find(m=>m.tabs[0]!.id===id);if(!m)return;
+        ueberLeiste.current=gruppe!==m;oeffneDossier(gruppe===m?null:m.tabs[0]!.id);
+        if(gruppe!==m&&m.tabs[0]!.id===dossier){ueberLeiste.current=false;setAkteReiter("lage");}
+      }}/>
+
 
       {dossier && (
         <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>

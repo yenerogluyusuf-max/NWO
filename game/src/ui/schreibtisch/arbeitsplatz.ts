@@ -1,4 +1,5 @@
 // Nur eine Lesesicht: Priorität und Navigation ändern weder Fristen noch politische Folgen.
+import { haushaltsTitel } from '../../sim/haushalt';
 import type { World } from '../../sim/types';
 import type { Amt, Vorlage } from '../../sim/ministerfluss-typen';
 import type { ZusagenWarnung } from '../../sim/zusagenwarnung';
@@ -81,7 +82,7 @@ export function regierungsVorgaenge(w:World):RegierungsVorgang[] {
   const g=w.spiel?.wirtschaft?.haushalt.gesetz;
   if(g) {
     const p=stimmenPrognose(structuredClone(w),g.abstimmung,g.absprachen);
-    out.push({id:'haushaltsgesetz',titel:t('sd.haushaltsgesetz',{jahr:g.jahr+1}),status:t('sd.beratung'),
+    out.push({id:'haushaltsgesetz',titel:haushaltsTitel(g),status:t('sd.beratung'),
       unter:t('sd.stimmen',{ja:p.ja,luecke:p.luecke}),tage:g.abstimmung-w.day,datum:p.datum,ziel:{art:'akte',akte:'wirtschaft',start:'haushalt'},votum:true});
   }
   const reg=w.spiel?.gueter?.regierung;

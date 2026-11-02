@@ -1,8 +1,10 @@
+import { krisenPaketPlan, bringeKrisenPaketEin, type KrisenPaket } from '../src/sim/krisenpaket';
+import { haushaltsMehrheitsPlan, haushaltsFraktionsWege, sichereHaushaltsMehrheit } from '../src/sim/haushaltsmehrheit';
 import { spieleSzenario, regiere, type RegierungsPlan, type Aktion } from './regierungs-stresstest';
 import { reichZustand, pausiere, verschiebe, verwaltungBilanz } from '../src/sim/reich';
 import type { World } from '../src/sim/types';
 
-export const STRATEGIEN=['geldpolitik','entlastung','konsolidierung','breite_subvention','industrie_bisher','industrie_fokus','industrie_verwaltung','stabilisierung_abgestimmt','industrie_finanziert'] as const;
+export const STRATEGIEN=['geldpolitik','entlastung','konsolidierung','breite_subvention','industrie_bisher','industrie_fokus','industrie_verwaltung','stabilisierung_abgestimmt','industrie_finanziert','sozial_entlastung','sozial_umschichten','sozial_dienste'] as const;
 export type Strategie=typeof STRATEGIEN[number];
 const WERKE=['chips_design','batt_zellfabrik','robotik_offensive'];
 const PLAENE:Partial<Record<Strategie,RegierungsPlan>>={
@@ -32,7 +34,21 @@ export function spieleStrategie(strategie:Strategie,seed:number,jahre=5){
  const industrie=strategie.startsWith('industrie');
  const r=spieleSzenario(industrie?'fabrikoffensive':'stabilisierung',seed,jahre,(w,s,a)=>{
   if(industrie&&strategie!=='industrie_bisher')priorisiere(w,a);
-  regiere(w,s,a,PLAENE[strategie]);
+  const sozial=strategie.startsWith('sozial_');
+  const tue=(art:string,ziel:string,fn:()=>{ok:boolean;text:string})=>{
+   const pk=w.spiel!.kapital,schuld=w.economy.debtRatio,r=fn();
+   a.push({tag:w.day,datum:w.date,art,ziel,ok:r.ok,text:r.text,pk:pk-w.spiel!.kapital,schulden:w.economy.debtRatio-schuld});
+  };
+  if(sozial&&w.day%28===0){
+   const id=strategie.slice(7) as KrisenPaket,p=krisenPaketPlan(w,id);
+   if(p?.moeglich&&w.spiel!.kapital>p.pk+12)tue('sozialnachtrag',id,()=>bringeKrisenPaketEin(w,p));
+  }
+  regiere(w,s,a,sozial?{...PLAENE.stabilisierung_abgestimmt,budgets:{}}:PLAENE[strategie]);
+  if(sozial&&w.spiel!.wirtschaft?.haushalt.gesetz){
+   const absprache=haushaltsMehrheitsPlan(w,'puffer');
+   const moeglich=[...(absprache?[absprache]:[]),...haushaltsFraktionsWege(w)].filter(p=>p.moeglich&&p.pk+8<w.spiel!.kapital&&p.nachher>=309).sort((a,b)=>a.pk-b.pk);
+   const p=moeglich[0];if(p)tue('haushaltsmehrheit',`${p.art}/${p.partei??'Absprache'}`,()=>sichereHaushaltsMehrheit(w,p));
+  }
  });
  return {...r,strategie};
 }

@@ -22,6 +22,9 @@ import { baumSicht, beginneKnoten, knotenSicht } from '../src/sim/wissensbaum';
 import { aendereStufe, ernenneGouverneur } from '../src/sim/zentralbank';
 import { zbZustand } from '../src/sim/wirtschaft';
 import { Rng } from '../src/sim/rng';
+import { regierungsSitze } from '../src/sim/koalitionslage';
+import { sozialeKrisenlage } from '../src/sim/krisenpaket';
+import { zustimmungsTeile } from '../src/sim/spiel';
 import type { World } from '../src/sim/types';
 
 export const SZENARIEN = ['referenz','passiv','rechtsstaat','machtstaat','industrie','bildungsstau','rezession','inflation','stabilisierung','krieg','fabrikoffensive'] as const;
@@ -34,13 +37,13 @@ const MESSWERTE = ['industrie','produktivitaet','investitionen','arbeitsplaetze_
 export interface Aktion { tag:number;datum:string;art:string;ziel:string;ok:boolean;text:string;pk:number;schulden:number }
 export function messung(w:World) {
  const f=staatsfinanzen(w),e=w.economy,b=w.spiel?.gueter?.bilanz;
- return {tag:w.day,datum:w.date,bip:f.bip,realBip:bipMrd(w,true),schulden:f.schuldenMrd,kasse:f.kasseMrd,quote:e.debtRatio,defizit:defizitJetzt(w),zins:e.zinsMehrlast,
+ return {sozial:sozialeKrisenlage(w),zustimmungsteile:zustimmungsTeile(w,w.day/30.4),tag:w.day,datum:w.date,bip:f.bip,realBip:bipMrd(w,true),schulden:f.schuldenMrd,kasse:f.kasseMrd,quote:e.debtRatio,defizit:defizitJetzt(w),zins:e.zinsMehrlast,
   inflation:e.inflation,wachstum:e.growth,arbeitslosigkeit:e.unemployment,kurs:e.usdTry,reserven:e.reservenNettoUsdMrd,brutto:e.reservenBruttoUsdMrd,
   geldpolitik:{zins:e.policyRate,erwartung:e.expectedInflation,glaubwuerdigkeit:e.credibility,produktionsluecke:e.outputGap,politikkosten:e.policyCost,haushaltsimpuls:e.fiscalImpulse},
   verwaltung:verwaltungBilanz(w),baukapazitaet:bauKapazitaet(w),
   einnahmen:f.einnahmenMrd,ausgaben:f.ausgabenMrd,kapital:w.spiel!.kapital,zustimmung:w.spiel!.umfrage.zustimmung,
   versorgung:b?zivileVersorgungsDeckung(b):null,front:militaerVersorgung(w).treibstoff,
-  lager:[...w.spiel!.lager],regierungssitze:w.spiel!.lager.reduce((s,p)=>s+(w.parliament?.seats[p]??0),0),
+  lager:[...w.spiel!.lager],regierungssitze:regierungsSitze(w),
   werte:Object.fromEntries(MESSWERTE.filter(id=>NET.index.has(id)).map(id=>[id,nationalAverage(NET,w.net,id)])),
   politik:Object.fromEntries([...BASIS,...INDUSTRIE,...RECHT,...MACHT].map(([id])=>[id,{beschlossen:w.net.targets[id],wirksam:nationalAverage(NET,w.net,id)}])),
   kriege:kriege(w).map(k=>({land:k.land,phase:k.phase,wochen:k.woche,front:k.front,gefallene:k.gefallene,demobBis:k.demobBis,ausgang:k.ausgang})),
@@ -83,7 +86,7 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[],plan:Regieru
   if(!['offen','besprochen'].includes(a.status))continue;
   if(szenario==='bildungsstau'&&['bildung','bildungsqualitaet','fachkraefte','forschung','innovation'].includes(a.groesse))continue;
   // Ein gegensätzliches Ministerziel wird besprochen, aber nicht als heimliche Kehrtwende beschlossen.
-  const agenda=szenario==='machtstaat'?MACHT:szenario==='rechtsstaat'?RECHT:[];
+  const agenda=plan.agenda??(szenario==='machtstaat'?MACHT:szenario==='rechtsstaat'?RECHT:[]);
   const v=a.vorschlag,kontra=v?.art==='gesetz'&&agenda.some(([id,z])=>id===v.id&&(z-nationalAverage(NET,w.net,id))*(v.ziel-nationalAverage(NET,w.net,id))<0);
   const p=ressortAntwortPlan(w,a.id,kontra?'reden':'umsetzen');
   if(p?.ok&&p.pk+8<sp.kapital)tue('minister',`${a.amt}/${p.art}`,()=>beantworteRessortAnliegen(w,p));
@@ -102,7 +105,7 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[],plan:Regieru
    const ges=f.aktionen.find(a=>a.id==='gespraech');
    if(ges?.moeglich&&sp.kapital>ges.pk+12&&f.status==='lager')tue('fraktion',`${f.partei}/gespraech`,()=>verhandle(w,f.partei,'gespraech',rng));
   }
-  const sitze=sp.lager.reduce((s,p)=>s+(w.parliament?.seats[p]??0),0);
+  const sitze=regierungsSitze(w);
   if(sitze<301)for(const f of fraktionsUebersicht(w)){
    const a=f.aktionen.find(a=>a.id==='koalition');
    if(f.status!=='lager'&&a?.moeglich&&sp.kapital>a.pk+15){tue('fraktion',`${f.partei}/koalition`,()=>verhandle(w,f.partei,'koalition',rng));break;}

@@ -91,6 +91,8 @@ export interface HaushaltZustand {
 
 /** WIR-3: Der Haushaltsentwurf auf dem Weg durchs Parlament (Mehrheitslogik wie bei Gesetzen). */
 export interface HaushaltsGesetz {
+  /** Zusätzlicher, parlamentarischer Sozialnachtrag; ersetzt nicht den jährlichen Oktoberhaushalt. */
+  krisenpaket?: "entlastung" | "umschichten" | "dienste";
   /** Nur ausdrücklich über die Haushaltsverhandlung geschlossene Abkommen. */
   abkommen?:HaushaltsAbkommen[];
   /** Kalenderjahr des Oktobers, in dem eingebracht wurde (der Haushalt gilt fürs Folgejahr) */
