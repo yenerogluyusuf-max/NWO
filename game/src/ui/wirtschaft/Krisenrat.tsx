@@ -12,6 +12,7 @@ import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
 import { ZusagenDruck } from '../personen/ZusagenDruck';
 import { UbVerweis } from '../akte/Uebersicht';
 import './krisenrat.css';
+import { KrisenGesetze } from './KrisenGesetze';
 
 const sign=(n:number)=>`${n>0?'+':''}${zahl(n,2)}`;
 export function Krisenrat({world,geaendert}:{world:World;geaendert:()=>void}) {
@@ -25,6 +26,7 @@ export function Krisenrat({world,geaendert}:{world:World;geaendert:()=>void}) {
     <ol className="kr-schritte"><li><b>01</b>{t('kp.schritt1')}</li><li><b>02</b>{t('kp.schritt2')}</li><li><b>03</b>{t('kp.schritt3')}</li></ol>
     <dl className="kr-lage"><div><dt>{t('kp.armut')}</dt><dd>{zahl(lage.armut,1)} / 100</dd></div><div><dt>{t('kp.zustimmung')}</dt><dd>{zahl(lage.zustimmung,1)} %</dd></div><div><dt>{t('kp.sitze')}</dt><dd>{lage.sitze} / 301</dd></div></dl>
     <p className={lage.tiefstand>0?'kr-warnung':'kr-hinweis'}>{t('kp.druck',{n:lage.tiefstand})}</p>
+    <KrisenGesetze world={world} geaendert={geaendert}/>
     {antwort&&<p role="status" className={`rueckmeldung ${antwort.ok?'ok':'nein'}`}>{antwort.text}</p>}
     {g?<><h4>{haushaltsTitel(g)}</h4><p>{t('kp.beratung')}</p><HaushaltsMehrheit world={world} geaendert={geaendert}/></>:<>
       <div className="kr-pakete" role="group" aria-label={t('kp.schritt1')}>{KRISENPAKETE.map((id,i)=><button type="button" key={id} aria-pressed={wahl===id} aria-controls={p&&wahl===id?detailId:undefined} onClick={()=>{setWahl(id);setAntwort(undefined);}}><span>0{i+1}</span><strong>{t(`kp.${id}.titel`)}</strong><small>{t(`kp.${id}.kurz`)}</small><em>{t('kp.pruefen')} →</em></button>)}</div>

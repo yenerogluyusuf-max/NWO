@@ -57,7 +57,7 @@ export function starteSzenario(szenario:Szenario,seed:number):World {
  if(['inflation','stabilisierung'].includes(szenario)) Object.assign(w.economy,{inflation:90,expectedInflation:85,credibility:0.25});
  return w;
 }
-export interface RegierungsPlan { agenda?:[string,number][]; budgets?:Record<string,number>; minister?:boolean; neueInfrastruktur?:boolean; ereignisAntworten?:Record<string,string> }
+export interface RegierungsPlan { agenda?:[string,number][]; ministerAgenda?:[string,number][]; budgets?:Record<string,number>; minister?:boolean; neueInfrastruktur?:boolean; ereignisAntworten?:Record<string,string> }
 export function regiere(w:World,szenario:Szenario,aktionen:Aktion[],plan:RegierungsPlan={}):void {
  if(szenario==='passiv')return;
  const sp=w.spiel!,rng=new Rng(w.rngState^Math.imul(w.day+1,7919));
@@ -86,7 +86,7 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[],plan:Regieru
   if(!['offen','besprochen'].includes(a.status))continue;
   if(szenario==='bildungsstau'&&['bildung','bildungsqualitaet','fachkraefte','forschung','innovation'].includes(a.groesse))continue;
   // Ein gegensätzliches Ministerziel wird besprochen, aber nicht als heimliche Kehrtwende beschlossen.
-  const agenda=plan.agenda??(szenario==='machtstaat'?MACHT:szenario==='rechtsstaat'?RECHT:[]);
+  const agenda=plan.ministerAgenda??plan.agenda??(szenario==='machtstaat'?MACHT:szenario==='rechtsstaat'?RECHT:[]);
   const v=a.vorschlag,kontra=v?.art==='gesetz'&&agenda.some(([id,z])=>id===v.id&&(z-nationalAverage(NET,w.net,id))*(v.ziel-nationalAverage(NET,w.net,id))<0);
   const p=ressortAntwortPlan(w,a.id,kontra?'reden':'umsetzen');
   if(p?.ok&&p.pk+8<sp.kapital)tue('minister',`${a.amt}/${p.art}`,()=>beantworteRessortAnliegen(w,p));

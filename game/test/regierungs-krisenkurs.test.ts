@@ -7,3 +7,8 @@ test('Testregierung zählt die eigene Partei mit und schließt bei 320 Sitzen ke
  expect(messung(w).regierungssitze).toBe(320);expect(w.spiel!.lager).toEqual(['YENİ']);
  expect(a.filter(a=>a.art==='fraktion'&&a.ziel.endsWith('/koalition'))).toEqual([]);
 });
+test('Ministerleitlinie erzeugt keine zweite automatische Gesetzesagenda',()=>{
+ const w=starteSzenario('stabilisierung',17);w.spiel!.ereignisse=[];w.spiel!.kapital=100;
+ const a:Aktion[]=[];regiere(w,'stabilisierung',a,{minister:false,agenda:[],ministerAgenda:[['m_mindestlohn',80]],budgets:{},neueInfrastruktur:false});
+ expect(a.filter(x=>x.art==='gesetz')).toEqual([]);
+});

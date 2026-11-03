@@ -11,3 +11,10 @@
 @container(max-width:340px){.kr-lage{grid-template-columns:1fr}}
 
 .kr-detail:focus-visible{outline:2px solid #477361;outline-offset:5px;border-radius:8px}
+.kr-alltag{margin:24px 0;padding:20px;border:1px solid #c8cec0;border-radius:10px;background:#fbfaf5;overflow-wrap:anywhere}
+.kr-alltag header>span{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#647768}.kr-alltag h4{font:600 24px/1.25 var(--serif);margin:6px 0 16px}
+.kr-alltag-zahlen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 14px}.kr-alltag-zahlen dt{font-size:12px;min-height:2.4em}.kr-alltag-zahlen dd{margin:6px 0;font-size:23px;font-variant-numeric:tabular-nums}.kr-alltag-zahlen dd small{font-size:11px;margin-left:5px;color:#657267}.kr-alltag-zahlen p{font-size:11px;line-height:1.5;margin:0;color:#617064}.kr-alltag-zahlen p.besser{color:#29634b}.kr-alltag-zahlen p.schlechter{color:#914631}
+.kr-gesetz-wahl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kr-gesetz-wahl button{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;border:1px solid #c5cec3;border-radius:7px;padding:13px;text-align:left;color:#244c3c;background:#f0f3eb;cursor:pointer}.kr-gesetz-wahl button[aria-pressed=true]{background:#254d3e;color:#faf7ee;border-color:#254d3e}.kr-gesetz-wahl small{font-size:12px;line-height:1.5}.kr-gesetz-wahl span{font-size:11px;margin-top:auto;padding-top:6px}.kr-gesetz-wahl button:focus-visible{outline:3px solid #9f7627;outline-offset:3px}
+.kr-umfang{display:flex;gap:14px;flex-wrap:wrap;padding:12px;margin:18px 0;border:1px solid #c5cec3;border-radius:6px}.kr-umfang legend{font-size:12px;padding:0 4px}.kr-umfang label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;min-height:30px}.kr-umfang input{accent-color:#254d3e}
+@container(max-width:620px){.kr-alltag{padding:15px}.kr-alltag-zahlen{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.kr-gesetz-wahl{grid-template-columns:1fr}.kr-alltag-zahlen dt{min-height:0}}
+@container(max-width:340px){.kr-alltag-zahlen{grid-template-columns:1fr}}

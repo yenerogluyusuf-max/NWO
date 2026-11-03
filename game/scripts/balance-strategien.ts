@@ -3,8 +3,11 @@ import { haushaltsMehrheitsPlan, haushaltsFraktionsWege, sichereHaushaltsMehrhei
 import { spieleSzenario, regiere, type RegierungsPlan, type Aktion } from './regierungs-stresstest';
 import { reichZustand, pausiere, verschiebe, verwaltungBilanz } from '../src/sim/reich';
 import type { World } from '../src/sim/types';
+import { krisenGesetzPlan, bringeKrisenGesetzEin, type KrisenGesetz } from '../src/sim/krisengesetze';
+import { nationalAverage } from '../src/sim/netz';
+import { NET } from '../src/sim/modell';
 
-export const STRATEGIEN=['geldpolitik','entlastung','konsolidierung','breite_subvention','industrie_bisher','industrie_fokus','industrie_verwaltung','stabilisierung_abgestimmt','industrie_finanziert','sozial_entlastung','sozial_umschichten','sozial_dienste'] as const;
+export const STRATEGIEN=['geldpolitik','entlastung','konsolidierung','breite_subvention','industrie_bisher','industrie_fokus','industrie_verwaltung','stabilisierung_abgestimmt','industrie_finanziert','sozial_entlastung','sozial_umschichten','sozial_dienste','sozial_lohn','sozial_arbeit'] as const;
 export type Strategie=typeof STRATEGIEN[number];
 const WERKE=['chips_design','batt_zellfabrik','robotik_offensive'];
 const PLAENE:Partial<Record<Strategie,RegierungsPlan>>={
@@ -40,10 +43,18 @@ export function spieleStrategie(strategie:Strategie,seed:number,jahre=5){
    a.push({tag:w.day,datum:w.date,art,ziel,ok:r.ok,text:r.text,pk:pk-w.spiel!.kapital,schulden:w.economy.debtRatio-schuld});
   };
   if(sozial&&w.day%28===0){
-   const id=strategie.slice(7) as KrisenPaket,p=krisenPaketPlan(w,id);
+   const id=['sozial_lohn','sozial_arbeit'].includes(strategie)?'entlastung':strategie.slice(7) as KrisenPaket,p=krisenPaketPlan(w,id);
    if(p?.moeglich&&w.spiel!.kapital>p.pk+12)tue('sozialnachtrag',id,()=>bringeKrisenPaketEin(w,p));
   }
-  regiere(w,s,a,sozial?{...PLAENE.stabilisierung_abgestimmt,budgets:{}}:PLAENE[strategie]);
+  const gesetze:KrisenGesetz[]=strategie==='sozial_lohn'?['m_mindestlohn']:strategie==='sozial_arbeit'?['m_arbeitslosengeld','m_ausbildung']:[];
+  if(w.day%28===0)for(const id of gesetze){
+   // Gleicher ausführbarer Weg wie im Krisenrat, mit zehn Stufen und einer PK-Reserve.
+   // Kein neuer Entwurf während laufender Umsetzung, kein geschenkter Beschluss.
+   if((w.net.targets[id]??nationalAverage(NET,w.net,id))>=75)continue;
+   const p=krisenGesetzPlan(w,id,10);
+   if(p?.moeglich&&w.spiel!.kapital>p.pk+12){tue('krisengesetz',`${id}/${p.ziel}`,()=>bringeKrisenGesetzEin(w,p));break;}
+  }
+  regiere(w,s,a,sozial?{...PLAENE.stabilisierung_abgestimmt,budgets:{},ministerAgenda:[...(PLAENE.stabilisierung_abgestimmt!.agenda??[]),...gesetze.map(id=>[id,75] as [string,number])]}:PLAENE[strategie]);
   if(sozial&&w.spiel!.wirtschaft?.haushalt.gesetz){
    const absprache=haushaltsMehrheitsPlan(w,'puffer');
    const moeglich=[...(absprache?[absprache]:[]),...haushaltsFraktionsWege(w)].filter(p=>p.moeglich&&p.pk+8<w.spiel!.kapital&&p.nachher>=309).sort((a,b)=>a.pk-b.pk);

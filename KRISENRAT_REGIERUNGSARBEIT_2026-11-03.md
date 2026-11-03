@@ -69,3 +69,34 @@ Nachweise: [Kampagnen](reports/Krisenpakete-Kampagnen-2026-11-03.json), [Prüfü
 ## Weiterarbeit
 
 Die Nachtarbeit ist bis **3. November 2026, 08:00 Uhr Europe/Berlin** aktiviert. Sinnvolle nächste Prüfungen: im härteren Inflationsszenario Beschäftigung, Realeinkommen und widersprüchliche Minister-/Ereignisentscheidungen gezielt auswerten; vorhandene Wahlkampfmöglichkeiten separat von der parlamentarischen Mehrheit testen; soziale Gegenmaßnahmen mit bezahlbarer Finanzierung vergleichen. Keine allgemeine Sieg-Garantie einbauen und erledigte Prüfungen nicht ohne neuen Anlass wiederholen. Die neue Navigation benötigt noch die tatsächliche visuelle Abnahme, sobald der freigegebene Zugriff technisch wieder möglich ist.
+
+## Anschluss: Lebenshaltung und gesetzliche Gegenmaßnahmen (3. November, 01:45 Uhr)
+
+Die Auswertung der schweren Verläufe zeigt, warum eine vorhandene Parlamentsmehrheit und ein Sozialnachtrag allein nicht genügen: Im harten Start sinken die Realeinkommen über viele Monate, während die Belastung durch Lebenshaltungskosten hoch bleibt. Der Krisenrat zeigt nun Lebenshaltung, Realeinkommen und Armut mit tatsächlichem Dreimonatsvergleich sowie Arbeitslosigkeit und Inflation. Die Indizes sind klar als Beobachtungen eingeordnet. Eine sinkende, weiterhin positive Inflationsrate bedeutet weiter steigende Preise; eine Verbesserung einzelner Indizes ist kein garantierter Wiederwahl-Erfolg.
+
+### Ausführbare Gesetzeswege
+
+Drei vorhandene Gesetze sind direkt erreichbar und einbringbar: Mindestlohn, Arbeitslosengeld und Berufsausbildung. Die Auswahl bietet zehn oder zwanzig zusätzliche Stufen (Grenze 100) und führt auf Wunsch in die freie Gesetzesbearbeitung. Die Karte zeigt den echten Einbringpreis, Aufmerksamkeit, zusätzliche jährliche Modellkosten in BIP-Anteilen und Geldbetrag, fehlende automatische Gegenfinanzierung und die Umsetzung nach Annahme. Bereits laufende Beratung zeigt ausschließlich den tatsächlich eingebrachten regionalen oder landesweiten Entwurf. Ein noch nicht umgesetztes Landesziel wird nicht durch wiederholte neue Hilfsentwürfe übersprungen oder zurückgesetzt.
+
+Die Vorschau führt die vorhandene Einbringhandlung auf einer Kopie aus. Dadurch sind Terminverschiebungen unter Belastung, zum Votum auslaufende Duldungen und verlängerte Zusagenfristen dieselben wie im Spiel. Bei Annahme erfüllbare Zusagen sowie tatsächliche persönliche Loyalitätsänderungen werden unter heutigen Bedingungen erklärt. Ein vorher drohender Monatsbruch wird getrennt gezeigt. Links führen zu parlamentarischen Absprachen, Haushalt und Zusagen. Veraltete Angebote, fehlendes Kapital, Erholungspause, Spielende und ausgeschöpfte Ziele buchen nichts. Erst das tatsächliche Votum entscheidet über Annahme und Umsetzung; die Vorschau ersetzt keine künftigen Ereignisse oder Monate.
+
+Die Kehrseiten stammen aus dem bestehenden Modell: Lohnerhöhungen können Kosten-/Preisdruck, Schattenwirtschaft und Jugend-Arbeitslosigkeit verstärken; Arbeitslosengeld entlastet Betroffene, belastet aber Sozialkassen und schafft keine Stellen; Berufsausbildung hat zusätzlich zur Umsetzung neun Monate Verzögerung bis zum Arbeitsmarkteffekt und zwölf bis zum Fachkräfteeffekt. Die Simulation, Zustimmungsformel und Niederlagenschwellen wurden hierfür nicht abgeschwächt.
+
+Die Gestaltung verwendet eine gemeinsame kompakte Kennzahlenfläche, drei auswählbare Handlungskarten und nur einen geöffneten Detailbereich. Kleinere Gesetzesschritte sind bewusst auswählbar; Fortschritts- und Beratungsstände ersetzen das Angebot, sobald es bereits läuft. Fokusführung, Radiogruppen, Schaltflächenzustände und Containerlayouts sind berücksichtigt. Texte liegen in DE/EN/TR vor.
+
+### Nachweise
+
+66 unterschiedliche gezielte Tests in vier Dateien bestanden, darunter 24 neue: 23 Gesetzes-/Vorschautests und ein Test des Szenariofahrers. Gezählt wird jeweils der jüngste Stand je Datei, nicht die Summe wiederholter Läufe. Zusätzlich bestehen zwei parametrisierte Kampagnentests mit vier vollständigen Tageskampagnen bis 5,1 Jahre oder tatsächlichem Regierungsende. TypeScript und Produktionsbuild bestanden. Die ersten Ablehnungs-Fixtures verwendeten versehentlich eine Fraktion, die den Mindestlohn inhaltlich unterstützt; korrigiert wurde der Testaufbau, nicht die demokratische Abstimmung.
+
+| Kurs | Startzufall | Tage | Ende | Inflation % | Zustimmung % | Armut | Realeinkommen |
+| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: |
+| Lohnkurs | 5 | 1826 | abwahl | 8.77 | 42.12 | 12.72 | 86.18 |
+| Lohnkurs | 17 | 726 | sturz | 42.24 | 18.64 | 48.02 | 37.50 |
+| Arbeitsmarktkurs | 5 | 1826 | abwahl | 11.15 | 36.97 | 12.70 | 71.24 |
+| Arbeitsmarktkurs | 17 | 787 | sturz | 36.15 | 20.67 | 43.73 | 27.33 |
+
+Die abschließenden vier Läufe umfassen 14.15 tatsächlich gespielte Jahre und 436 erfolgreiche Aktionen. Finanz-, Schulden- und Warenbilanz sowie endliche Zustände sind geprüft. Die bestehende Kaufkrafthilfe bei Startzufall 5 endete bei Armut 14,35, Realeinkommen 74,21 und Zustimmung 45,42; der neue Lohnkurs verbessert Armut/Einkommen auf 12,72/86,18, erreicht aber nur 42,12 Zustimmung und verliert ebenfalls die Wahl. Der harte Start endet im Lohnkurs bereits an Tag 726 und im Arbeitsmarktkurs an Tag 787, gegenüber 848 mit Kaufkrafthilfe allein. Mehr Gesetze sind kein allgemeines Erfolgsrezept: Finanzierung, politische Aufmerksamkeit und andere Krisenhandlungen konkurrieren miteinander.
+
+Dies sind ganze Regierungsläufe, keine isolierte Schätzung einer einzelnen Gesetzeswirkung. Eine erste Sondierung brachte dieselben Maßnahmen zusätzlich über die allgemeine Gesetzesagenda ein. Sie ist als Vorprüfung erhalten. Der endgültige Fahrer trennt die Ministerleitlinie von der normalen Gesetzesagenda; die zusätzlichen Gesetze werden ausschließlich über den neuen Krisenratsweg eingebracht. Minister können weiterhin eigenständig handeln. Vorhandene Wahlkampfaktionen wurden in diesen Läufen noch nicht aktiv getestet.
+
+Nachweise: `reports/Krisengesetze-Kampagnen-2026-11-03.json`, `Krisengesetze-Pruefung-2026-11-03.json`, letzte UI-Prüfung `Krisengesetze-UI-Abschluss-2026-11-03.json`, Build `Krisengesetze-Build-2026-11-03.log`. Vorprüfungen bleiben erhalten. Die bekannten Buildhinweise zu großen Paketen und dem optionalen Infrastruktur-Export bestehen weiter. Browserprüfung, aktuelle Screenshots und visuelle Abnahme bleiben offen.
