@@ -50,6 +50,8 @@ export interface Figur {
 
 export interface Zusage {
   id: string;
+  /** Thema und ursprüngliche Wahl; feste Identität auch nach Fristverlängerungen und weiteren Amtszeiten. */
+  wahlversprechen?: { thema: string; wahltag: number; amtszeit: number };
   von: string;
   /** Deutscher Wortlaut (Rückfall und für Prüfungen am Text) */
   text: string;

@@ -178,3 +178,20 @@
   .kampf-vliste, .dossier .kampf-vliste { grid-template-columns: minmax(0, 1fr); }
   .kampf-vliste li, .dossier .kampf-vliste li { flex-wrap: wrap; }
 }
+
+/* Erst das politische Versprechen wählen, dann eine einzige Verpflichtung prüfen. */
+.kampf-versprechen-auswahl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 14px 0; }
+.kampf-versprechen-auswahl button { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--pd-line); border-radius: 10px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink); text-align: left; cursor: pointer; min-width: 0; overflow-wrap: anywhere; font: 15px/1.4 var(--sans); }
+.kampf-versprechen-auswahl button[aria-pressed=true] { background: #254d3e; color: #fffaf0; border-color: #254d3e; }
+.kampf-versprechen-auswahl small { margin-top: auto; font-size: 12px; }
+.kampf-versprechen-auswahl span { font-size: 13px; }
+.kampf-versprechen-auswahl button:focus-visible { outline: 3px solid var(--pd-teal, #245648); outline-offset: 3px; }
+.kampf-versprechen-fakten { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 14px 0; margin: 0; }
+.kampf-versprechen-fakten dt { font: 600 12px/1.5 var(--sans); color: var(--pd-soft); }
+.kampf-versprechen-fakten dd { margin: 5px 0 0; font: 650 16px/1.5 var(--sans); }
+.kampf-versprechen-plan h5 { margin: 16px 0 4px; font: 650 16px var(--serif); }
+.kampf-verpflichtung { border-top: 1px solid var(--pd-line); margin-top: 16px; padding-top: 12px; }
+.kampf-verpflichtung summary { color: #245648; }
+.kampf-plan-links { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 12px 0; }
+@container wahlkampf (max-width: 760px) { .kampf-versprechen-auswahl { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@container wahlkampf (max-width: 420px) { .kampf-versprechen-auswahl, .kampf-versprechen-fakten { grid-template-columns: minmax(0,1fr); } }

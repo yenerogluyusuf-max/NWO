@@ -28,7 +28,8 @@ import { figur } from "./figuren";
 import { zusagenBilanz } from "./zusagen";
 import { zeitungEreignis } from "./zeitung";
 import { maxAmtszeiten } from "./amtszeit";
-import { t } from "../i18n";
+import { t, msg, tIn } from "../i18n";
+import { freieWahlzusageId, wahlversprechenThema } from "./wahlversprechen-bezug";
 import { Rng } from "./rng";
 import type { World } from "./types";
 import type { AuslandsTour, WahlkampfZustand } from "./spiel-typen";
@@ -413,7 +414,8 @@ export const VERSPRECHEN: VersprechenDef[] = [
 ];
 
 export function versprechenDef(id: string): VersprechenDef | undefined {
-  return VERSPRECHEN.find((v) => v.id === id);
+  const def = VERSPRECHEN.find((v) => v.id === id);
+  return def ? { ...def, titel: t(`wv.name.${id}`) } : undefined;
 }
 
 /** Faktor der Glaubwürdigkeit auf den sofortigen Beifall: Wer viel bricht, dem glaubt man weniger; und jedes weitere Versprechen nutzt sich ab. */
@@ -424,16 +426,45 @@ export function versprechenGlaube(w: World): { glaubwuerdigkeit: number; abnutzu
   return { glaubwuerdigkeit, abnutzung, faktor: glaubwuerdigkeit * abnutzung };
 }
 
+/** Leichtes, lesendes Angebot: neue Ziele liegen jenseits bereits beschlossener Fortschritte. */
+export function versprechenAngebot(w: World, id: string) {
+  const sp = w.spiel, k = sp?.wahlkampf, def = versprechenDef(id);
+  if (!sp || !k || !def) return;
+  const gegeben = k.versprechen.includes(id);
+  const bisher = sp.zusagen.filter(z => wahlversprechenThema(z) === id);
+  const eigene = gegeben ? [...bisher].reverse().find(z => z.wahlversprechen?.amtszeit === k.amtszeit)
+    ?? [...bisher].reverse().find(z => !z.wahlversprechen) : undefined;
+  const offen = bisher.find(z => !z.erfuellt && !z.gebrochen && z.abgeschlossen === undefined);
+  const aktuell = nationalAverage(NET, w.net, def.massnahme), beschlossen = w.net.targets[def.massnahme] ?? aktuell;
+  const basis = def.richtung > 0 ? Math.max(aktuell, beschlossen) : Math.min(aktuell, beschlossen);
+  const bestehend = eigene ?? offen;
+  const zusage = bestehend ? festeZusage(w, { ...bestehend, massnahme: bestehend.massnahme ?? def.massnahme, richtung: bestehend.richtung ?? def.richtung }) : festeZusage(w, {
+    id: freieWahlzusageId(sp.zusagen, id, k.amtszeit, sp.wahltag), von: "Wähler",
+    text: `Wahlversprechen: ${tIn("de", `wv.name.${id}`)}`, faellig: sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4),
+    massnahme: def.massnahme, richtung: def.richtung, stufeStart: basis, erfuellt: false, gebrochen: false,
+    wahlversprechen: { thema: id, wahltag: sp.wahltag, amtszeit: k.amtszeit },
+  });
+  const grund = sp.ende ? t("sim2.sim.wahlkampf.f25e0a2") : gegeben ? t("sim2.sim.wahlkampf.0785331")
+    : offen ? t("wv.offen") : (zusage.stufeZiel! - basis) * def.richtung <= 1e-6 ? t("wv.grenze")
+    : k.ap < WAHLKAMPF.versprechenAp ? t("sim2.sim.wahlkampf.e5bc76a", { p0: WAHLKAMPF.versprechenAp, p1: fmt(k.ap) }) : undefined;
+  const { faktor, glaubwuerdigkeit } = versprechenGlaube(w);
+  const beifall = WAHLKAMPF.versprechenBeifall * faktor * (k.rolle === "nachfolger" ? WAHLKAMPF.nachfolgerUebertrag : 1);
+  return { def, gegeben, bestehend: eigene ?? offen, zusage, aktuell, beschlossen, basis, grund, moeglich: !grund,
+    nachfolger: k.rolle === "nachfolger", ap: WAHLKAMPF.versprechenAp,
+    vertrauen: indexAenderung(w, "vertrauen_regierung", WAHLKAMPF.versprechenVertrauen * glaubwuerdigkeit),
+    gruppen: [...def.zielgruppen.map(id => ({id, delta: indexAenderung(w, id, beifall)})),
+      ...(def.verlierer ?? []).map(id => ({id, delta: indexAenderung(w, id, -beifall * .5)}))],
+  };
+}
+
 /** Ein Wahlversprechen geben: Beifall jetzt (mit Glaubwürdigkeit gewichtet), Zusage mit Frist zwölf Monate nach der Wahl. */
 export function verspreche(w: World, id: string): AktionErgebnis {
   const sp = w.spiel;
   const k = sp?.wahlkampf;
   if (!sp || sp.ende || !k) return { ok: false, text: tx("sim2.sim.wahlkampf.f25e0a2") };
-  const def = versprechenDef(id);
-  if (!def) return { ok: false, text: "Unbekanntes Versprechen." };
-  if (k.versprechen.includes(id)) return { ok: false, text: tx("sim2.sim.wahlkampf.0785331") };
-  if (k.ap < WAHLKAMPF.versprechenAp) return { ok: false, text: tx("sim2.sim.wahlkampf.e5bc76a", { p0: WAHLKAMPF.versprechenAp, p1: fmt(k.ap) }) };
-
+  const angebot = versprechenAngebot(w, id);
+  if (!angebot?.moeglich) return { ok: false, text: angebot?.grund ?? t("wv.unbekannt") };
+  const def = angebot.def;
   const { faktor, glaubwuerdigkeit } = versprechenGlaube(w);
   const nachfolgerRolle = k.rolle === "nachfolger";
   const beifall = WAHLKAMPF.versprechenBeifall * faktor * (nachfolgerRolle ? WAHLKAMPF.nachfolgerUebertrag : 1);
@@ -445,18 +476,14 @@ export function verspreche(w: World, id: string): AktionErgebnis {
   k.versprechen.push(id);
   // Das Versprechen wird zur Zusage: Frist zwölf Monate nach der Wahl; das Zusagen-System bucht Halten und Brechen.
   // Im Nachfolger-Wahlkampf verspricht der Nachfolger, nicht der Präsident: Seine Amtszeit endet mit der Wahl, es entsteht keine Zusage.
-  if (!nachfolgerRolle) sp.zusagen.push(festeZusage(w, {
-    id: `z-wahl-${id}`,
-    von: tx("sim2.sim.wahlkampf.dc43faf"),
-    text: `Im Wahlkampf versprochen: ${def.titel}`,
-    faellig: sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4),
-    massnahme: def.massnahme,
-    richtung: def.richtung,
-    erfuellt: false,
-    gebrochen: false,
-  }));
+  if (!nachfolgerRolle) sp.zusagen.push({ ...angebot.zusage,
+    text: tIn("de", `wv.zusage.${id}`, { ziel: angebot.zusage.stufeZiel! }),
+    msg: msg(`wv.zusage.${id}`, { ziel: angebot.zusage.stufeZiel! }),
+  });
 
-  const text = tx("sim2.sim.wahlkampf.861854f", { p0: def.titel, p1: faktor >= 0.8 ? "ist groß" : faktor >= 0.5 ? "fällt spürbar aus" : "bleibt mager — die Glaubwürdigkeit ist angeschlagen", p2: formatDateDe(addDays(w.date, sp.wahltag + Math.round(WAHLKAMPF.versprechenFristMonate * 30.4) - w.day)) });
+  const text = nachfolgerRolle ? t("wv.nachfolgerGebucht", { name: def.titel }) : t("wv.gebucht", {
+    name: def.titel, ziel: angebot.zusage.stufeZiel!, datum: formatDateDe(addDays(w.date, angebot.zusage.faellig - w.day)),
+  });
   addLog(w, "entscheidung", `Wahlversprechen: ${def.titel} (${WAHLKAMPF.versprechenAp} AP).`, text);
   return { ok: true, text };
 }
@@ -809,7 +836,7 @@ export function wahlkampfSicht(w: World): WahlkampfSicht {
     besuchte: k ? Object.keys(k.besuche).length : 0,
     reisen: k?.reisen ?? [],
     touren: k?.touren ?? [],
-    versprechen: VERSPRECHEN.map((def) => ({ def, gegeben: k?.versprechen.includes(def.id) ?? false })),
+    versprechen: VERSPRECHEN.map((def) => ({ def: versprechenDef(def.id)!, gegeben: k?.versprechen.includes(def.id) ?? false })),
     glaubwuerdigkeit: b.glaubwuerdigkeit,
     glaubFaktor: faktor,
     duell: {

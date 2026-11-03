@@ -17,7 +17,6 @@ import {
   tourVorschau,
   wahlkampfAktion,
   regionenMitProvinzen,
-  verspreche,
   wahlkampfSicht,
   type AktionErgebnis,
   type AuftrittArt,
@@ -25,7 +24,7 @@ import {
 } from "../sim/wahlkampf";
 import { t } from "../i18n";
 import { PROVINZEN } from "../sim/regional";
-import { GRUPPEN } from "../sim/gruppen";
+import { Wahlversprechen } from "./Wahlversprechen";
 import { NET } from "../sim/modell";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { nf, prozent, vz } from "./waehler/format";
@@ -33,7 +32,6 @@ import { t as tx } from "../i18n";
 import "./politik/design.css";
 import "./wahlkampf.css";
 
-const GRUPPEN_NAME = new Map(GRUPPEN.map((g) => [g.id, NET.nodes[NET.index.get(g.id)!]!.name]));
 
 function ApPunkte({ ap, max }: { ap: number; max: number }) {
   return (
@@ -247,27 +245,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
               ? t("enden.wk.ui.versprechen_text", { glaub: Math.round(s.glaubwuerdigkeit), faktor: s.glaubFaktor })
               : tx("ui2.ui.Wahlkampf.fdf71b5", { p0: nf(s.glaubwuerdigkeit, 0), p1: nf(s.glaubFaktor) })}
           </p>
-          <ul className="kampf-vliste">
-            {s.versprechen.map(({ def, gegeben }) => (
-              <li key={def.id} className={gegeben ? "gegeben" : ""}>
-                <div className="kampf-v-text">
-                  <strong>{def.titel}</strong>
-                  <span>{def.text}</span>
-                  <em>
-                    {tx("ui2.ui.Wahlkampf.a781f62", { p0: def.zielgruppen.map((g) => GRUPPEN_NAME.get(g) ?? g).join(", ") })}
-                    {def.verlierer?.length ? ` · verliert: ${def.verlierer.map((g) => GRUPPEN_NAME.get(g) ?? g).join(", ")}` : ""}
-                  </em>
-                </div>
-                {gegeben ? (
-                  <span className="kampf-v-gegeben">{tx("ui2.ui.Wahlkampf.dfb8f52")}</span>
-                ) : (
-                  <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.versprechenAp} onClick={() => tue(() => verspreche(world, def.id))}>
-                    {WAHLKAMPF.versprechenAp} AP
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
+          <Wahlversprechen world={world} tue={tue} />
         </section>
       </div>
     </div>

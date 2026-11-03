@@ -1,3 +1,4 @@
+import { wahlversprechenThema } from "./wahlversprechen-bezug";
 // Politische Vorgänge: ein Vorhaben vom Versprechen bis zur Rechenschaft an einer Stelle (externe Spielprüfung 05.10., Punkte 6 und 7).
 //
 // Ein Vorgang verbindet, was es schon gibt, statt es zu ersetzen:
@@ -235,7 +236,7 @@ export function vorgaengeAbgleichen(w: World): void {
   // ein zweiter Bau hier zählte dieselben Wohnungen doppelt. Ein Katastrophen-Vorgang entsteht nur ausdrücklich (starteVorgang).
   // Wahlversprechen „Staatlicher Wohnungsbau“: dort, wo die Wohnungsnot unter den Großstädten am größten ist
   for (const z of sp.zusagen) {
-    if (z.id !== "z-wahl-v_wohnen" || z.erfuellt || z.gebrochen || hat("wahlversprechen", z.id)) continue;
+    if (wahlversprechenThema(z) !== "v_wohnen" || z.erfuellt || z.gebrochen || hat("wahlversprechen", z.id)) continue;
     const kandidaten = PROVINZEN.filter((p) => p.grossstadt);
     const best = kandidaten.reduce((a, b) => (knotenIn(w, "p_wohnungsnot", b.plaka) > knotenIn(w, "p_wohnungsnot", a.plaka) ? b : a), kandidaten[0]!);
     starteVorgang(w, { ursprung: { art: "wahlversprechen", ref: z.id }, plaka: best.plaka, wohnungen: 10000 });

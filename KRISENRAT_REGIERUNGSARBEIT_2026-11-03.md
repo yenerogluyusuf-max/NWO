@@ -68,7 +68,7 @@ Nachweise: [Kampagnen](reports/Krisenpakete-Kampagnen-2026-11-03.json), [Prüfü
 
 ## Weiterarbeit
 
-Die Nachtarbeit ist bis **3. November 2026, 08:00 Uhr Europe/Berlin** aktiviert. Sinnvolle nächste Prüfungen: im härteren Inflationsszenario Beschäftigung, Realeinkommen und widersprüchliche Minister-/Ereignisentscheidungen gezielt auswerten; vorhandene Wahlkampfmöglichkeiten separat von der parlamentarischen Mehrheit testen; soziale Gegenmaßnahmen mit bezahlbarer Finanzierung vergleichen. Keine allgemeine Sieg-Garantie einbauen und erledigte Prüfungen nicht ohne neuen Anlass wiederholen. Die neue Navigation benötigt noch die tatsächliche visuelle Abnahme, sobald der freigegebene Zugriff technisch wieder möglich ist.
+Die Nachtarbeit war bis **3. November 2026, 08:00 Uhr Europe/Berlin** beauftragt. Die abgelaufene Automation wurde am Vormittag beendet; die anschließende Arbeit erfolgt auf das neue direkte „weiter“ des Nutzers. Sinnvolle nächste Prüfungen: im härteren Inflationsszenario Beschäftigung, Realeinkommen und widersprüchliche Minister-/Ereignisentscheidungen gezielt auswerten; vorhandene Wahlkampfmöglichkeiten separat von der parlamentarischen Mehrheit testen; soziale Gegenmaßnahmen mit bezahlbarer Finanzierung vergleichen. Keine allgemeine Sieg-Garantie einbauen und erledigte Prüfungen nicht ohne neuen Anlass wiederholen. Die neue Navigation benötigt noch die tatsächliche visuelle Abnahme, sobald der freigegebene Zugriff technisch wieder möglich ist.
 
 ## Anschluss: Lebenshaltung und gesetzliche Gegenmaßnahmen (3. November, 01:45 Uhr)
 
@@ -135,3 +135,31 @@ Der Vorlauf umfasst 1826 Tage; die drei Fortsetzungen jeweils 55 Tage. Es wurden
 Nachweise: `reports/Wahlkampf-Reisen-Vorpruefung-2026-11-03.json`, `Wahlkampf-Reisen-Pruefung-2026-11-03.json`, `Wahlkampf-Nachfolger-Regression-2026-11-03.json`, `Wahlkampf-Krisenlauf-2026-11-03.json`, `Wahlkampf-Krisenlauf-Pruefung-2026-11-03.json`, `Wahlkampf-Reisen-Build-2026-11-03.log`.
 
 Möglicher nächster gezielter Prüfpunkt aus der Codeinspektion, hier ausdrücklich noch nicht verändert: Wahlversprechen verwenden über mehrere Wahlkämpfe feste Zusagenkennungen (`z-wahl-…`), und die Angebotskarten erklären Zielstufe und Frist noch nicht vor dem Klick. Prüfen, ob ein erneut versprochenes Thema alte und neue Verpflichtungen verwechselt oder ein bereits ausgeschöpftes Ziel neuen Beifall auslöst. Keine Ausweitung um zusätzliche Versprechen nötig. Alternativ bleibt der harte Krisenverlauf vor der Wahl ein sinnvoller Prüfpunkt.
+
+
+## Anschluss: Verbindliche Wahlversprechen über mehrere Amtszeiten (3. November, vormittags)
+
+Drei Fehler wurden vor der Korrektur reproduziert: Dasselbe Thema erzeugte in einer späteren Kampagne wieder dieselbe Zusagenkennung; eine bereits ausgeschöpfte Politikstufe gab erneut Beifall; ein bereits beschlossener Fortschritt wurde beim neuen Ziel nicht berücksichtigt. Beispiel: Bei wirksamer Rente 50 und beschlossenem Ziel 80 versprach der alte Weg nur 70. Das neue Angebot baut auf dem weiter fortgeschrittenen wirksamen oder beschlossenen Stand auf und verlangt hier Ziel 100.
+
+### Verpflichtung und spätere Wirkung
+
+- Neue Zusagen speichern Thema, ursprünglichen Wahltag und Amtszeit. Eine erneute Verpflichtung erhält eine freie, eigene Kennung. Historischer Bruch, Erinnerung und neuer Beschluss bleiben getrennt. Bereits gespeicherte Kennungen und auch mehrdeutige alte Doppelbelege werden nicht rückwirkend umbenannt oder gelöscht. Wohnungsbauvorgänge erkennen sowohl alte als auch neue Kennungen und behalten ihre eigene Zuordnung.
+- Ein früheres noch offenes Thema kann nicht erneut für zusätzlichen Beifall versprochen werden. Erfüllte oder gebrochene Altzusagen verhindern einen neuen, weiterführenden Auftrag nicht. Bereits ausgeschöpfte Ziele sind gesperrt; fallende Ziele berücksichtigen die beschlossene Absenkung ebenso wie steigende Ziele den beschlossenen Ausbau.
+- Die Auswahl der zwölf vorhandenen Themen öffnet eine konkrete Verpflichtungskarte: wirksamer Stand, beschlossener Stand, festes Landesziel, Erfüllungsfrist und unmittelbare begrenzte Vertrauens-/Gruppenreaktionen. Dies sind Indexpunkte, keine garantierten Wahlstimmen.
+- Eine getrennte Gesetzesrechnung zeigt tatsächliches politisches Kapital, Aufmerksamkeit, jährliche Mehrbelastung bzw. Mindereinnahmen in BIP-Anteilen und Mrd. TRY, fehlende automatische Gegenfinanzierung und Umsetzungsdauer. Einbringung wird zur Vorschau auf einer Kopie ausgeführt. Daher stimmen Termin, bekannte Duldungsfristen, Stimmenlücke und gegebenenfalls verlängerte Beratungsfrist mit der echten Handlung überein.
+- Ein vorhandener Entwurf zeigt seine tatsächliche Fassung, Region und Stimmenprognose. Ein unzureichender oder regionaler Entwurf wird nicht als Erfüllung ausgewiesen. Ist Einbringung heute unmöglich, stehen der echte Grund und heutige Stimmen da; ein künftiger Abstimmungstermin wird nicht erfunden.
+- Persönliche Reaktionen auf den späteren Zielbeschluss werden unter heutigen Bedingungen gezeigt. Heutige akute Koalitionsgefahr und eine mögliche Gefahr nach Annahme haben getrennte Prüfungstermine. Eine Teilvorlage liefert keinen erfundenen Termin für die spätere Erfüllung. Die Vorschau nimmt keine späteren Monats- oder Ereignisfolgen vorweg.
+- Gesetzesbearbeitung, Parlament, Haushalt und Zusagenakte sind direkt verlinkt. Die Rede selbst bucht nur die bisherigen Kampagnenpunkte und politischen Reaktionen, kein Gesetz, keine zusätzliche Haushaltsausgabe und keine vorzeitige Loyalitätsbelohnung. Veraltete Angebote buchen nichts.
+- Die bestehende Nachfolgerrolle bleibt erhalten: Werbung erzeugt keine neue persönliche Verpflichtung in der endenden Amtszeit. Anzeige und Buchungsmeldung benennen diese Grenze nun ausdrücklich.
+
+Die neue Oberfläche verwendet eine Themenauswahl mit einer ausführlichen Karte, umbrechenden Links und Knöpfen, Fokusmarkierung und Containerlayouts (drei, zwei oder eine Spalte). Neue Texte und gespeicherte Zusagen sind in DE/EN/TR geprüft. Es fand keine Browserprüfung statt; aktuelle Screenshots und visuelle Abnahme bleiben offen.
+
+### Prüfung und belastbare Grenzen
+
+**83 unterschiedliche gezielte Tests bestanden, davon 23 neue**, ohne überlappende Durchläufe doppelt zu zählen: 23 Zusagenprüfungen, 20 bestehende Wahlkampftests, 21 bestehende Gesetzeszusagenprüfungen, 18 Reise-/Oberflächentests und eine gezielte Wohnungsbau-Regression. Die lesende Vorschau wurde zusätzlich gegen den vorher gespeicherten Zustand geprüft. TypeScript und Produktionsbuild bestanden. Bekannte Hinweise zu großen Paketen und optionalem Infrastruktur-Export bleiben bestehen.
+
+Ein echter Tageslauf bringt das neu versprochene Rentenziel ein und läuft durch die normale Spielschleife bis zum tatsächlichen Votum: Die neue Zusage wird am Abstimmungstag erfüllt, der alte Bruch bleibt unverändert. Für diesen gezielten Test wurden die spätere Amtszeit, ausreichendes Kapital und ein Parlament mit 600 eigenen Sitzen als Ausgangsfall gesetzt; das ist keine natürlich erspielte Mehrheit und kein neuer mehrjähriger Wahlkampfvergleich. Erinnerungsantworten, Speicherung, alte und neue Wohnungsbauvorgänge, Zielgrenzen, offene Altzusagen, Teil-/Regionalentwürfe, mangelndes Kapital und veraltete Angebote sind getrennt geprüft.
+
+Nachweise: `reports/Wahlversprechen-Stand-2026-11-03.json` fasst die jüngsten Ergebnisse samt Quellenprüfsummen zusammen. Die drei ursprünglich scheiternden Fehlerfälle bleiben in `Wahlversprechen-Vorpruefung-2026-11-03.json` erhalten. Ein späterer Testfehler verwendete eine numerische Vergleichsassertion für ein ISO-Datum; er wurde korrigiert, und die betroffene Datei ist vollständig bestanden. Dieser Zwischenstand ist ausdrücklich als `Wahlversprechen-Datumsassertion-*` erhalten. Erfolgreicher Build: `Wahlversprechen-Build-2026-11-03.log`.
+
+Der zuvor offene Prüfpunkt zu wiederholten Wahlversprechen ist damit bearbeitet. Der harte Inflationsverlauf vor der Wahl bleibt eine getrennte Balancefrage. Die neuen Karten schaffen weder zusätzliche Zustimmungsboni noch eine Wiederwahlgarantie.
