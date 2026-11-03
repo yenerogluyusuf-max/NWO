@@ -147,3 +147,34 @@
 .kampf-nachfolger { padding: 10px 14px; background: rgba(38, 90, 98, 0.08); border: 1px solid rgba(38, 90, 98, 0.35); border-left: 4px solid #265a62; border-radius: 6px; }
 .kampf-nachfolger h3 { margin: 0 0 4px; }
 .kampf-auftritte { padding-bottom: 4px; }
+
+/* Ein ausgewähltes Reiseziel statt 81 unmittelbarer Aktionsknöpfe. */
+.kampf-root { container: wahlkampf / inline-size; min-width: 0; }
+.kampf-reiseziel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 16px 0; font: 650 15px var(--sans); }
+.kampf-reiseziel select { min-width: 0; max-width: 100%; flex: 1 1 180px; padding: 10px 12px; border: 1px solid var(--pd-line-strong); border-radius: 8px; background: var(--pd-card-hell); color: var(--pd-ink); font: inherit; }
+.kampf-entscheid { min-width: 0; padding: 18px; border: 1px solid var(--pd-line); border-radius: 12px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink, #302d25); overflow-wrap: anywhere; }
+.kampf-entscheid header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--pd-line); padding-bottom: 12px; }
+.kampf-entscheid h4 { font: 650 21px/1.2 var(--display, var(--serif)); margin: 3px 0; }
+.kampf-entscheid header > strong { color: #245648; font: 750 15px var(--sans); }
+.kampf-entscheid p { font: 15px/1.5 var(--serif); margin: 10px 0; }
+.kampf-entscheid .kampf-hinweis { font: 13px/1.5 var(--sans); color: var(--pd-soft); }
+.kampf-ausgaenge { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.kampf-ausgaenge > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; background: rgba(38, 90, 98, .06); border-radius: 8px; }
+.kampf-ausgaenge span, .kampf-ausgaenge small { font: 12px/1.4 var(--sans); }
+.kampf-ausgaenge strong { font: 750 26px/1.2 var(--sans); font-variant-numeric: tabular-nums; }
+.kampf-tourplaene { display: grid; gap: 12px; }
+.kampf-entscheid summary { cursor: pointer; font: 650 13px/1.5 var(--sans); color: var(--pd-bad, #8a2d26); }
+.kampf-entscheid .pd-btn { white-space: normal; min-height: 42px; max-width: 100%; }
+.kampf-entscheid :is(button, summary):focus-visible, .kampf-reiseziel select:focus-visible { outline: 3px solid var(--pd-teal, #245648); outline-offset: 3px; }
+@container wahlkampf (max-width: 850px) {
+  .kampf-grid, .dossier .kampf-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+}
+@container wahlkampf (max-width: 420px) {
+  .kampf-karte, .dossier .kampf-karte { height: 200px; }
+  .kampf-entscheid, .dossier .kampf-spalte > section { padding: 12px; }
+  .kampf-ausgaenge { gap: 6px; }
+  .kampf-ausgaenge > div { padding: 8px; }
+  .kampf-entscheid .pd-btn { width: 100%; }
+  .kampf-vliste, .dossier .kampf-vliste { grid-template-columns: minmax(0, 1fr); }
+  .kampf-vliste li, .dossier .kampf-vliste li { flex-wrap: wrap; }
+}

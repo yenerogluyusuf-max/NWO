@@ -33,9 +33,8 @@ function priorisiere(w:World,aktionen:Aktion[]){
   if(r.ok)aktionen.push({tag:w.day,datum:w.date,art:'bauprioritaet',ziel,ok:true,text:`${r.kosten} Verwaltung; verdrängt ${r.verdrangt?.join(', ')}`,pk:0,schulden:0});
  }
 }
-export function spieleStrategie(strategie:Strategie,seed:number,jahre=5){
- const industrie=strategie.startsWith('industrie');
- const r=spieleSzenario(industrie?'fabrikoffensive':'stabilisierung',seed,jahre,(w,s,a)=>{
+export function regiereStrategie(w:World,s:Parameters<typeof regiere>[1],a:Aktion[],strategie:Strategie){
+  const industrie=strategie.startsWith('industrie');
   if(industrie&&strategie!=='industrie_bisher')priorisiere(w,a);
   const sozial=strategie.startsWith('sozial_');
   const tue=(art:string,ziel:string,fn:()=>{ok:boolean;text:string})=>{
@@ -60,6 +59,11 @@ export function spieleStrategie(strategie:Strategie,seed:number,jahre=5){
    const moeglich=[...(absprache?[absprache]:[]),...haushaltsFraktionsWege(w)].filter(p=>p.moeglich&&p.pk+8<w.spiel!.kapital&&p.nachher>=309).sort((a,b)=>a.pk-b.pk);
    const p=moeglich[0];if(p)tue('haushaltsmehrheit',`${p.art}/${p.partei??'Absprache'}`,()=>sichereHaushaltsMehrheit(w,p));
   }
+}
+export function spieleStrategie(strategie:Strategie,seed:number,jahre=5,beobachte?:(w:World)=>void){
+ const r=spieleSzenario(strategie.startsWith('industrie')?'fabrikoffensive':'stabilisierung',seed,jahre,(w,s,a)=>{
+  beobachte?.(w);
+  regiereStrategie(w,s,a,strategie);
  });
  return {...r,strategie};
 }

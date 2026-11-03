@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import type { World } from "../sim/types";
-import { Rng } from "../sim/rng";
+import type { Rng } from "../sim/rng";
 import {
   TOUR_LAENDER,
   WAHLKAMPF,
@@ -13,8 +13,9 @@ import {
   duellVorbereiten,
   nachfolgerAuftritt,
   reise,
-  reiseKosten,
-  reiseVorschau,
+  reiseWirkungVorschau,
+  tourVorschau,
+  wahlkampfAktion,
   regionenMitProvinzen,
   verspreche,
   wahlkampfSicht,
@@ -23,6 +24,7 @@ import {
   type TourLand,
 } from "../sim/wahlkampf";
 import { t } from "../i18n";
+import { PROVINZEN } from "../sim/regional";
 import { GRUPPEN } from "../sim/gruppen";
 import { NET } from "../sim/modell";
 import { AtlasMap } from "./atlas/AtlasMap";
@@ -32,14 +34,6 @@ import "./politik/design.css";
 import "./wahlkampf.css";
 
 const GRUPPEN_NAME = new Map(GRUPPEN.map((g) => [g.id, NET.nodes[NET.index.get(g.id)!]!.name]));
-
-/** Aktionen verbrauchen den Zufallsstrom wie Entscheidungen im Ereignisfenster (gleiche Regel wie `entscheide`). */
-function handeln(w: World, aktion: (rng: Rng) => AktionErgebnis): AktionErgebnis {
-  const rng = new Rng(w.rngState ^ w.day);
-  const r = aktion(rng);
-  if (r.ok) w.rngState = (w.rngState + 1) | 0;
-  return r;
-}
 
 function ApPunkte({ ap, max }: { ap: number; max: number }) {
   return (
@@ -53,10 +47,11 @@ function ApPunkte({ ap, max }: { ap: number; max: number }) {
 
 export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: () => void }) {
   const s = wahlkampfSicht(world);
+  const [provinz, setProvinz] = useState(6);
   const [meldung, setMeldung] = useState<string | null>(null);
 
   const tue = (aktion: (rng: Rng) => AktionErgebnis) => {
-    const r = handeln(world, aktion);
+    const r = wahlkampfAktion(world, aktion);
     setMeldung(r.text);
     if (r.ok) refresh();
   };
@@ -133,37 +128,15 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           <div className="kampf-karte">
             <AtlasMap className="kampf-atlas" fill={fill} interactive={false} />
           </div>
-          <div className="kampf-regionen">
-            {regionenMitProvinzen().map((r) => (
-              <details key={r.region}>
-                <summary>
-                  {r.name} <em>{r.provinzen.filter((p) => (besuche[String(p.plaka)] ?? 0) > 0).length}/{r.provinzen.length}</em>
-                </summary>
-                <ul className="kampf-provliste">
-                  {r.provinzen.map((p) => {
-                    const kosten = reiseKosten(p.plaka);
-                    const v = reiseVorschau(world, p.plaka);
-                    const n = besuche[String(p.plaka)] ?? 0;
-                    return (
-                      <li key={p.plaka}>
-                        <button
-                          className={`kampf-prov${n > 0 ? " besucht" : ""}${v.probleme.length > 0 ? " brennt" : ""}`}
-                          disabled={s.ap < kosten}
-                          title={tx("ui2.ui.Wahlkampf.a7fea85", { p0: v.probleme.length > 0 ? `Brennt: ${v.probleme.join(", ")} — Risiko ${prozent(v.risiko, 0)}${v.relevant ? ", archätyp-relevant" : ""}. ` : "", p1: vz(v.staerke * v.abnutzung), p2: n > 0 ? ` (schon ${n}× besucht, abnehmender Ertrag)` : "" })}
-                          onClick={() => tue((rng) => reise(world, p.plaka, rng))}
-                        >
-                          <span className="kampf-prov-name">{p.name}</span>
-                          {v.probleme.length > 0 && <span className="kampf-prov-brand" aria-label={tx("ui2.ui.Wahlkampf.3253986", { p0: v.probleme.length })}>!</span>}
-                          {n > 0 && <span className="kampf-prov-zahl">{n}×</span>}
-                          <span className="kampf-prov-kosten">{kosten} AP</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </details>
-            ))}
-          </div>
+          <label className="kampf-reiseziel">
+            <span>{t("wahlreise.auswahl")}</span>
+            <select value={provinz} onChange={e => setProvinz(Number(e.target.value))}>
+              {regionenMitProvinzen().map(r => <optgroup key={r.region} label={r.name}>
+                {r.provinzen.map(p => <option key={p.plaka} value={p.plaka}>{p.name} · {besuche[String(p.plaka)] ?? 0}×</option>)}
+              </optgroup>)}
+            </select>
+          </label>
+          <ReisePlan world={world} plaka={provinz} tue={tue} />
         </section>
 
         <div className="kampf-spalte">
@@ -196,25 +169,9 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
             <p className="kampf-unter">
               {tx("ui2.ui.Wahlkampf.83246dd")} {s.diaspora.lagerAnteil > 0 ? tx("ui2.ui.Wahlkampf.f38f63c", { p0: nf(s.diaspora.lagerAnteil) }) : "fest"} {tx("ui2.ui.Wahlkampf.8851220", { p0: prozent(s.diaspora.beteiligung, 0), p1: vz(s.diaspora.beitrag), p2: WAHLKAMPF.tourAp })}
             </p>
-            <ul className="kampf-tourliste">
-              {TOUR_LAENDER.map((t) => {
-                const touren = s.touren.filter((x) => x.land === t.land);
-                return (
-                  <li key={t.land}>
-                    <div className="kampf-tour-text">
-                      <strong>{t.name}</strong>
-                      <span>
-                        Lager-Modifikator {t.modifikatorPp >= 0 ? "+" : "−"}{tx("ui2.ui.Wahlkampf.e34ddf2", { p0: nf(Math.abs(t.modifikatorPp), 0), p1: prozent(t.anteilWaehler, 0) })}
-                        {touren.length > 0 ? ` · ${touren.length}× bereist${touren.some((x) => x.verbot) ? ", ein Auftrittsverbot" : ""}` : ""}
-                      </span>
-                    </div>
-                    <button className="pd-btn primary" disabled={s.ap < WAHLKAMPF.tourAp} onClick={() => tue((rng) => auslandstour(world, t.land as TourLand, rng))}>
-                      {WAHLKAMPF.tourAp} AP
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="kampf-tourplaene">
+              {TOUR_LAENDER.map(ziel => <TourPlan key={ziel.land} world={world} land={ziel.land} tue={tue} />)}
+            </div>
           </section>
 
           <section className="kampf-duell" aria-label="TV-Duell">
@@ -315,4 +272,37 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
       </div>
     </div>
   );
+}
+
+
+type ReisePlanProps = { world: World; tue: (aktion: (rng: Rng) => AktionErgebnis) => void };
+export function ReisePlan({ world, plaka, tue }: ReisePlanProps & { plaka: number }) {
+  const p = reiseWirkungVorschau(world, plaka), name = PROVINZEN[plaka - 1]!.name;
+  const gruppe = p.gruppe ? NET.nodes[NET.index.get(p.gruppe)!]!.name : "";
+  return <article className="kampf-entscheid" aria-label={t("wahlreise.plan", { name })}>
+    <header><div><span className="kampf-kicker">{t("wahlreise.vorOrt")}</span><h4>{name}</h4></div><strong>{p.kosten} AP</strong></header>
+    <div className="kampf-ausgaenge">
+      <div><span>{t("wahlreise.erfolg", { chance: prozent(1 - p.risiko, 0) })}</span><strong className="gut">{vz(p.erfolg)}</strong><small>{t("wahlreise.lokal")}</small></div>
+      <div><span>{t("wahlreise.risiko", { chance: prozent(p.risiko, 0) })}</span><strong className="schlecht">{p.risiko > 0 ? vz(p.rueckschlag) : "—"}</strong><small>{t("wahlreise.lokal")}</small></div>
+    </div>
+    {p.gruppe && <p>{t("wahlreise.gruppe", { name: gruppe, plus: vz(p.gruppenErfolg), minus: p.risiko > 0 ? vz(p.gruppenRueckschlag) : "—" })}</p>}
+    <p>{p.probleme.length ? t("wahlreise.probleme", { namen: p.probleme.join(", ") }) : t("wahlreise.ruhig")}</p>
+    <p className="kampf-hinweis">{t("wahlreise.wirkung", { anteil: prozent(p.abnutzung, 0) })}</p>
+    <button className="pd-btn primary" disabled={!world.spiel?.wahlkampf || !!world.spiel.ende || world.spiel.wahlkampf.ap < p.kosten} onClick={() => tue(rng => reise(world, plaka, rng))}>{t("wahlreise.start", { name, ap: p.kosten })}</button>
+  </article>;
+}
+
+export function TourPlan({ world, land, tue }: ReisePlanProps & { land: TourLand }) {
+  const p = tourVorschau(world, land), name = t(`wahlreise.land.${land}`);
+  const bereich = (min: number, max: number) => `${vz(min, 2)} … ${vz(max, 2)}`;
+  return <article className="kampf-entscheid" aria-label={t("wahlreise.plan", { name })}>
+    <header><h4>{name}</h4><strong>{p.kosten} AP</strong></header>
+    <p>{t("wahlreise.heimisch", { vertrauen: vz(p.vertrauen), nationalisten: vz(p.nationalisten) })}</p>
+    <p>{t("wahlreise.ausland", { beitrag: bereich(p.min.beitrag, p.max.beitrag), beteiligung: bereich(p.min.beteiligung, p.max.beteiligung) })}</p>
+    <details><summary>{t("wahlreise.verbot", { chance: prozent(p.risiko, 0) })}</summary>
+      <p>{t("wahlreise.diplomatie", { min: p.euMin, max: p.euMax, konflikt: p.konflikt, beitrag: bereich(p.verbotMin.beitrag, p.verbotMax.beitrag) })}</p>
+    </details>
+    <p className="kampf-hinweis">{t("wahlreise.wiederholung", { n: p.bisher, anteil: prozent(p.abnutzung, 0) })}</p>
+    <button className="pd-btn primary" disabled={!world.spiel?.wahlkampf || !!world.spiel.ende || world.spiel.wahlkampf.ap < p.kosten} onClick={() => tue(rng => auslandstour(world, land, rng))}>{t("wahlreise.start", { name, ap: p.kosten })}</button>
+  </article>;
 }

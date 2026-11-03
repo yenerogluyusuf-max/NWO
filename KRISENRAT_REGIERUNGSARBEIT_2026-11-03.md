@@ -100,3 +100,38 @@ Die abschließenden vier Läufe umfassen 14.15 tatsächlich gespielte Jahre und 
 Dies sind ganze Regierungsläufe, keine isolierte Schätzung einer einzelnen Gesetzeswirkung. Eine erste Sondierung brachte dieselben Maßnahmen zusätzlich über die allgemeine Gesetzesagenda ein. Sie ist als Vorprüfung erhalten. Der endgültige Fahrer trennt die Ministerleitlinie von der normalen Gesetzesagenda; die zusätzlichen Gesetze werden ausschließlich über den neuen Krisenratsweg eingebracht. Minister können weiterhin eigenständig handeln. Vorhandene Wahlkampfaktionen wurden in diesen Läufen noch nicht aktiv getestet.
 
 Nachweise: `reports/Krisengesetze-Kampagnen-2026-11-03.json`, `Krisengesetze-Pruefung-2026-11-03.json`, letzte UI-Prüfung `Krisengesetze-UI-Abschluss-2026-11-03.json`, Build `Krisengesetze-Build-2026-11-03.log`. Vorprüfungen bleiben erhalten. Die bekannten Buildhinweise zu großen Paketen und dem optionalen Infrastruktur-Export bestehen weiter. Browserprüfung, aktuelle Screenshots und visuelle Abnahme bleiben offen.
+
+## Anschluss: Wahlkampf nach der Krise (3. November, 02:45 Uhr)
+
+Der bestehende Wahlkampf wurde nun tatsächlich eingesetzt. Vorher wurden drei Fehlerfälle reproduziert: Bei der zweiten Tour nach Deutschland blieben der inländische Vertrauensgewinn bei +1,2 und der Nationalisten-Effekt bei +1,0, obwohl die Mobilisierung im Ausland bereits halbiert wurde. In einer Provinz mit sehr vielen akuten Problemen zeigte die Risikorechnung sogar 175 Prozent. Der Nachweis der zunächst fehlgeschlagenen Prüfungen ist erhalten.
+
+### Änderung im Spiel
+
+- Die vorhandene Halbierung je Wiederholung gilt nun auch für den heimischen Fernseheffekt und die zusätzliche Mobilisierung nach einem Auftrittsverbot. Verschiedene Länder haben weiterhin eigene Besuchszähler. Das diplomatische Risiko bleibt bestehen. Bereits gespeicherte Wirkungen werden nicht rückwirkend verändert.
+- Das Reiserisiko ist auf 100 Prozent begrenzt. Dies ändert bei zuvor über 100 Prozent liegendem Risiko nicht den tatsächlichen Ausgang, sondern macht die Wahrscheinlichkeit korrekt darstellbar.
+- Die Provinzliste mit 81 unmittelbaren Aktionsknöpfen wurde durch eine nach Regionen gruppierte Auswahl und einen sichtbaren Reiseplan ersetzt. Vor der Buchung stehen Kosten, Erfolgschance, Rückschlag, tatsächliche begrenzte Vertrauensänderung, betroffene lokale Gruppe und akute Probleme. Nachfolger-Übertrag und Wiederholungen sind eingerechnet. Die Karte bleibt als Reiseübersicht erhalten.
+- Auslandstouren zeigen ihre tatsächlichen begrenzten Inlandseffekte, den zusätzlichen Diaspora-Beitrag und die Beteiligungsänderung. Die Bereiche unterscheiden den Verlauf mit und ohne Auftrittsverbot und berücksichtigen die vorhandene Beteiligungsobergrenze. Die Rechnung gilt bei heutiger Zustimmung, nicht als garantierte Wahlprognose. EU-Vertrauensverlust und Konfliktfolgen sind vor dem Klick aufklappbar; das Risiko selbst steht sichtbar an der Karte.
+- Klare Trennung von lokalen Indexpunkten und landesweiten Wahlprozentpunkten. Ein Besuch beseitigt keine Ressortkrise. Kosten bleiben die bestehenden wöchentlichen Kampagnen-Aktionspunkte; keine neuen Staatsausgaben oder Mehrheiten werden erfunden.
+- Gemeinsamer Aktionszufall für UI und Simulationsfahrer, keine Zufallsverwendung durch Vorschauen. DE/EN/TR, native Auswahl, Fokusmarkierungen, umbrechende Aktionsknöpfe und Containerlayouts auch für schmale Akten. Keine Browserprüfung, neuen Screenshots oder visuelle Abnahme.
+
+### Tatsächlicher Vergleich
+
+Ein vollständiger Kaufkrafthilfe-Kurs mit Startzufall 5 wurde bis Tag 1826 gespielt. Der erste reguläre Regierungstermin während des Wahlkampfs, Tag 1771, wurde gespeichert und für drei Varianten identisch geladen. Alle Varianten behalten denselben Regierungskurs bei; sie verändern nur die echten Wahlkampfhandlungen. Die Kontrollvariante erreicht exakt denselben Endzustand wie der ungeteilte Lauf.
+
+| Wahlkampf ab Tag 1771 | Erfolgreiche Kampagnenaktionen | Zustimmung vor Ende | Kandidatenstimmen | Ausgang |
+| --- | ---: | ---: | ---: | --- |
+| Keine aktiven Handlungen | 0 | 45,42 % | 34,9 % | Abwahl, Tag 1826 |
+| Regionale Reisen + Duellvorbereitung | 61 | 45,50 % | 40,3 % | Abwahl, Tag 1826 |
+| Gemischt: regionale Reisen, Auslandstouren, Duellvorbereitung | 51 | 47,03 % | 39,0 % | Abwahl, Tag 1826 |
+
+Regionale Ziele werden nach sichtbaren Chancen, Wirkungen, Kosten und Bevölkerungsgewicht ausgewählt; der Fahrer liest keine künftigen Zufallswerte. Der gemischte Kurs nutzt höchstens eine Auslandstour pro Woche. Zwei Auftrittsverbote treten tatsächlich ein. Es werden in diesem Vergleich keine neuen Wahlversprechen gegeben. Der schwere Startzufall 17 wurde nicht erneut bis zum bereits bekannten Sturz vor der Kampagnenphase durchgespielt.
+
+Der Vorlauf umfasst 1826 Tage; die drei Fortsetzungen jeweils 55 Tage. Es wurden 151 erfolgreiche Regierungsaktionen im Vorlauf und insgesamt 121 erfolgreiche Handlungen in den Fortsetzungen ausgeführt, davon 112 Wahlkampfhandlungen. Der Kontrolllauf ist bewusst wiederholt, um die Speicher-/Fortsetzungsidentität zu prüfen. Finanzsaldo, Schuldenfortschreibung, Warenbilanzen und nichtnegative Kampagnenpunkte sind geprüft. Die unterschiedlichen zusätzlichen Handlungen verändern auch spätere Zufallspfade; der Vergleich isoliert daher nicht den Effekt einzelner Reisen oder des Duells. Keiner dieser Kurse garantiert eine Wiederwahl. Zustimmungsformel und Niederlagenschwellen wurden unverändert gelassen.
+
+### Prüfung und offene Anschlussfragen
+
+45 unterschiedliche gezielte Tests bestanden: 18 neue Reise-/Vorschau-/SSR-Tests, 20 bestehende Wahlkampftests, sechs gezielt ausgewählte Nachfolgertests und ein neuer tatsächlicher Kampagnenvergleich. Die übrigen 18 Tests der Nachfolgerdatei wurden bewusst übersprungen. TypeScript und Produktionsbuild bestanden; bekannte Hinweise zu großen Paketen und optionalem Infrastruktur-Export bleiben bestehen.
+
+Nachweise: `reports/Wahlkampf-Reisen-Vorpruefung-2026-11-03.json`, `Wahlkampf-Reisen-Pruefung-2026-11-03.json`, `Wahlkampf-Nachfolger-Regression-2026-11-03.json`, `Wahlkampf-Krisenlauf-2026-11-03.json`, `Wahlkampf-Krisenlauf-Pruefung-2026-11-03.json`, `Wahlkampf-Reisen-Build-2026-11-03.log`.
+
+Möglicher nächster gezielter Prüfpunkt aus der Codeinspektion, hier ausdrücklich noch nicht verändert: Wahlversprechen verwenden über mehrere Wahlkämpfe feste Zusagenkennungen (`z-wahl-…`), und die Angebotskarten erklären Zielstufe und Frist noch nicht vor dem Klick. Prüfen, ob ein erneut versprochenes Thema alte und neue Verpflichtungen verwechselt oder ein bereits ausgeschöpftes Ziel neuen Beifall auslöst. Keine Ausweitung um zusätzliche Versprechen nötig. Alternativ bleibt der harte Krisenverlauf vor der Wahl ein sinnvoller Prüfpunkt.

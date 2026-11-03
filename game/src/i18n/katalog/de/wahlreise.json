@@ -1,0 +1,22 @@
+{
+  "wahlreise.auswahl": "Reiseziel auswählen",
+  "wahlreise.plan": "Reiseplan: {name}",
+  "wahlreise.vorOrt": "Vor Ort überzeugen",
+  "wahlreise.erfolg": "Gelingt · {chance}",
+  "wahlreise.risiko": "Rückschlag · {chance}",
+  "wahlreise.lokal": "lokales Vertrauen · Indexpunkte",
+  "wahlreise.gruppe": "{name} vor Ort: {plus} bei Erfolg; {minus} bei einem Rückschlag.",
+  "wahlreise.probleme": "Unter Druck: {namen}. Je mehr akute Probleme, desto höher das Risiko.",
+  "wahlreise.ruhig": "Zurzeit keine akuten Probleme oberhalb der Warnschwelle.",
+  "wahlreise.wirkung": "Wirkung nach Wiederholungen: {anteil}. Die Reise verändert örtlichen Rückhalt, beseitigt aber keine Krise. Das sind keine landesweiten Wahlprozentpunkte; beim Nachfolger ist der geringere Übertrag bereits eingerechnet.",
+  "wahlreise.start": "{name} besuchen · {ap} AP",
+  "wahlreise.heimisch": "Im Inland: Vertrauen {vertrauen}, Nationalisten {nationalisten} Indexpunkte.",
+  "wahlreise.ausland": "Zusätzlicher Diaspora-Beitrag ohne Verbot: {beitrag} Wahlprozentpunkte; Auslandsbeteiligung {beteiligung} Prozentpunkte. Bei heutiger Zustimmung, nach geltenden Obergrenzen.",
+  "wahlreise.verbot": "Auftrittsverbot: {chance} Risiko · Folgen ansehen",
+  "wahlreise.diplomatie": "Bei Verbot: EU-Vertrauen {min} bis {max}, Konflikt +{konflikt} (jeweils an Indexgrenzen begrenzt). Der zusätzliche Diaspora-Beitrag liegt dann bei {beitrag} Wahlprozentpunkten. Dieses diplomatische Risiko bleibt auch bei Wiederholungen bestehen.",
+  "wahlreise.wiederholung": "Bisher {n} Touren · Wirkung {anteil}. Wiederholungen bringen im In- und Ausland weniger neuen Rückhalt. Die spätere Wahl hängt auch von Regierungsbilanz und weiteren Ereignissen ab.",
+  "wahlreise.land.deutschland": "Deutschland",
+  "wahlreise.land.belgien": "Belgien",
+  "wahlreise.land.frankreich": "Frankreich",
+  "wahlreise.land.niederlande": "Niederlande"
+}

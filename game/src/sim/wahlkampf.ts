@@ -198,7 +198,7 @@ export function reiseVorschau(w: World, plaka: number): { staerke: number; risik
   const staerke = (WAHLKAMPF.reiseVertrauen + WAHLKAMPF.reiseProblemBonus * probleme.length) * (relevant ? WAHLKAMPF.archetypFaktor : 1);
   return {
     staerke,
-    risiko: probleme.length > 0 ? WAHLKAMPF.reiseRisiko + WAHLKAMPF.reiseRisikoJeProblem * probleme.length : 0,
+    risiko: probleme.length > 0 ? clamp(WAHLKAMPF.reiseRisiko + WAHLKAMPF.reiseRisikoJeProblem * probleme.length, 0, 1) : 0,
     probleme: probleme.map((p) => p.name),
     relevant,
     abnutzung: Math.pow(WAHLKAMPF.reiseAbnutzung, besuche),
@@ -208,6 +208,41 @@ export function reiseVorschau(w: World, plaka: number): { staerke: number; risik
 export interface AktionErgebnis {
   ok: boolean;
   text: string;
+}
+
+/** Derselbe Aktionszufall für Oberfläche und reproduzierbare Kampagnen. Vorschauen würfeln nicht. */
+export function wahlkampfAktion(w: World, aktion: (rng: Rng) => AktionErgebnis): AktionErgebnis {
+  const r = aktion(new Rng(w.rngState ^ w.day));
+  if (r.ok) w.rngState = (w.rngState + 1) | 0;
+  return r;
+}
+
+/** Tatsächlicher, begrenzter Indexstoß; landesweit wie nationalAverage nach Bevölkerung gewichtet. */
+function indexAenderung(w: World, id: string, delta: number, plaka?: number): number {
+  const i = NET.index.get(id)!;
+  if (plaka !== undefined) {
+    const v = w.net.values[i * PROVINCES + plaka - 1]!;
+    return clamp(v + delta, 0, 100) - v;
+  }
+  let sum = 0, gewicht = 0;
+  for (let p = 0; p < PROVINCES; p++) {
+    const v = w.net.values[i * PROVINCES + p]!, g = w.net.weights[p]!;
+    sum += (clamp(v + delta, 0, 100) - v) * g; gewicht += g;
+  }
+  return sum / gewicht;
+}
+
+/** Beide Ausgänge einschließlich Nachfolger, Wiederholung und Indexgrenzen; kein garantierter Wahlertrag. */
+export function reiseWirkungVorschau(w: World, plaka: number) {
+  const v = reiseVorschau(w, plaka);
+  const effekt = v.staerke * v.abnutzung * (wahlkampfRolle(w) === "nachfolger" ? WAHLKAMPF.nachfolgerUebertrag : 1);
+  const gruppe = ARCHETYP_GRUPPE[archetypVon(plaka)?.id ?? 0];
+  return { ...v, kosten: reiseKosten(plaka), gruppe,
+    erfolg: indexAenderung(w, "vertrauen_regierung", effekt, plaka),
+    rueckschlag: indexAenderung(w, "vertrauen_regierung", -effekt * WAHLKAMPF.reiseRueckschlag, plaka),
+    gruppenErfolg: gruppe ? indexAenderung(w, gruppe, effekt * WAHLKAMPF.reiseGruppenAnteil, plaka) : 0,
+    gruppenRueckschlag: gruppe ? indexAenderung(w, gruppe, -effekt * WAHLKAMPF.reiseRueckschlag * WAHLKAMPF.reiseGruppenAnteil, plaka) : 0,
+  };
 }
 
 /** Eine Kampagnenreise in eine Provinz: lokale Zustimmung, Stärke und Risiko aus dem lokalen Problemstand. */
@@ -271,6 +306,33 @@ export const TOUR_LAENDER: { land: TourLand; name: string; modifikatorPp: number
   return { land, name, modifikatorPp: profil.lagerModifikatorPp, anteilWaehler: profil.anteilWaehler };
 });
 
+function tourWirkung(w: World, land: TourLand) {
+  const bisher = w.spiel?.wahlkampf?.touren.filter(t => t.land === land).length ?? 0;
+  const ziel = TOUR_LAENDER.find(t => t.land === land)!;
+  return { bisher, abnutzung: Math.pow(WAHLKAMPF.tourAbnutzung, bisher), reichweite: clamp(ziel.anteilWaehler / 0.17, 0.4, 2.6) };
+}
+
+/** Zusätzlich erreichbarer Diaspora-Beitrag bei HEUTIGER Zustimmung, einschließlich 75-%-Beteiligungsgrenze. */
+export function tourVorschau(w: World, land: TourLand) {
+  const { bisher, abnutzung, reichweite } = tourWirkung(w, land);
+  const zustimmung = w.spiel?.umfrage.zustimmung ?? 0;
+  const aktuell = diasporaBlock(w, zustimmung);
+  const runde = (x: number) => Math.round(x * 10) / 10;
+  const rand = (hoch: boolean, verbot: boolean) => {
+    const key = hoch ? "max" : "min";
+    const beteiligung = runde((DIASPORA_KAMPAGNE.beteiligungPlusPp[key] * reichweite + (verbot ? DIASPORA_KAMPAGNE.belagerungBeteiligungPp : 0)) * abnutzung);
+    const lager = runde(DIASPORA_KAMPAGNE.lagerPlusPp[key] * abnutzung);
+    const nach = diasporaBlock(w, zustimmung, beteiligung, lager);
+    return { beitrag: nach.beitrag - aktuell.beitrag, beteiligung: (nach.beteiligung - aktuell.beteiligung) * 100, lager: nach.lagerAnteil - aktuell.lagerAnteil };
+  };
+  return { bisher, abnutzung, kosten: WAHLKAMPF.tourAp, risiko: DIASPORA_KAMPAGNE.auftrittsverbotChance,
+    vertrauen: indexAenderung(w, "vertrauen_regierung", WAHLKAMPF.tourVertrauen * abnutzung),
+    nationalisten: indexAenderung(w, "nationalisten", WAHLKAMPF.tourNationalisten * abnutzung),
+    min: rand(false, false), max: rand(true, false), verbotMin: rand(false, true), verbotMax: rand(true, true),
+    euMin: DIASPORA_KAMPAGNE.beziehungGastland.min, euMax: DIASPORA_KAMPAGNE.beziehungGastland.max, konflikt: 4,
+  };
+}
+
 /** Eine Auslandstour zur Diaspora: Mobilisierung des Blocks, heimischer Fernseheffekt, Risiko eines Auftrittsverbots. */
 export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis {
   const sp = w.spiel;
@@ -280,10 +342,7 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
   if (!ziel) return { ok: false, text: "Unbekanntes Zielland." };
   if (k.ap < WAHLKAMPF.tourAp) return { ok: false, text: tx("sim2.sim.wahlkampf.7f397a4", { p0: WAHLKAMPF.tourAp, p1: fmt(k.ap) }) };
 
-  const bisher = k.touren.filter((t) => t.land === land).length;
-  const abnutzung = Math.pow(WAHLKAMPF.tourAbnutzung, bisher);
-  // Reichweite: Der Anteil des Landes an den Auslandswählern bestimmt, wie breit die Mobilisierung wirkt
-  const reichweite = clamp(ziel.anteilWaehler / 0.17, 0.4, 2.6);
+  const { abnutzung, reichweite } = tourWirkung(w, land);
   let beteiligungPlus = rng.between(DIASPORA_KAMPAGNE.beteiligungPlusPp.min, DIASPORA_KAMPAGNE.beteiligungPlusPp.max) * reichweite * abnutzung;
   let lagerPlus = rng.between(DIASPORA_KAMPAGNE.lagerPlusPp.min, DIASPORA_KAMPAGNE.lagerPlusPp.max) * abnutzung;
   const verbot = rng.next() < DIASPORA_KAMPAGNE.auftrittsverbotChance;
@@ -292,7 +351,7 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
     // Einreise-/Auftrittsverbot des Gastlands: Beziehung leidet, das Belagerungs-Narrativ heizt die Beteiligung an (2017-Muster)
     const beziehung = rng.between(DIASPORA_KAMPAGNE.beziehungGastland.min, DIASPORA_KAMPAGNE.beziehungGastland.max);
     landAendern(w, "EU", { vertrauen: beziehung, konflikt: 4 }, tx("sim2.sim.wahlkampf.08a765f", { p0: ziel.name }));
-    beteiligungPlus += DIASPORA_KAMPAGNE.belagerungBeteiligungPp;
+    beteiligungPlus += DIASPORA_KAMPAGNE.belagerungBeteiligungPp * abnutzung;
     verbotText = tx("sim2.sim.wahlkampf.f7a815d", { p0: ziel.name });
   }
   beteiligungPlus = Math.round(beteiligungPlus * 10) / 10;
@@ -301,8 +360,8 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
   k.ap -= WAHLKAMPF.tourAp;
   k.touren.push({ land, tag: w.day, beteiligungPlus, lagerPlus, verbot });
   // Heimischer Fernseheffekt: volle Hallen im Ausland sind auch im Inland Bilder
-  wirke(w, "vertrauen_regierung", WAHLKAMPF.tourVertrauen);
-  wirke(w, "nationalisten", WAHLKAMPF.tourNationalisten);
+  wirke(w, "vertrauen_regierung", WAHLKAMPF.tourVertrauen * abnutzung);
+  wirke(w, "nationalisten", WAHLKAMPF.tourNationalisten * abnutzung);
 
   const text = tx("sim2.sim.wahlkampf.8f7e132", { p0: ziel.name, p1: beteiligungPlus >= 0 ? "+" : "−", p2: fmt(Math.abs(beteiligungPlus)), p3: fmt(lagerPlus), p4: verbotText });
   addLog(w, "entscheidung", `Auslandstour: ${ziel.name} (${WAHLKAMPF.tourAp} AP).`, text);
@@ -310,10 +369,10 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
 }
 
 /** Der Diaspora-Block bei der Wahl: registrierte Auslandswähler × Beteiligung × Lager-Modifikator (Recherche 6.1). */
-export function diasporaBlock(w: World, inlandZustimmung: number): { beitrag: number; beteiligung: number; lagerAnteil: number; effektivAnteil: number } {
+export function diasporaBlock(w: World, inlandZustimmung: number, zusaetzlicheBeteiligung = 0, zusaetzlichesLager = 0): { beitrag: number; beteiligung: number; lagerAnteil: number; effektivAnteil: number } {
   const touren = w.spiel?.wahlkampf?.touren ?? [];
-  const beteiligungPlus = touren.reduce((s, t) => s + t.beteiligungPlus, 0);
-  const lagerPlus = touren.reduce((s, t) => s + t.lagerPlus, 0);
+  const beteiligungPlus = touren.reduce((s, t) => s + t.beteiligungPlus, zusaetzlicheBeteiligung);
+  const lagerPlus = touren.reduce((s, t) => s + t.lagerPlus, zusaetzlichesLager);
   const p = DIASPORA_PROFIL;
   const beteiligung = clamp(p.beteiligung + beteiligungPlus / 100, p.beteiligungKorridor.min, 0.75);
   const effektivAnteil = p.anteilStimmen * (beteiligung / p.beteiligung);
