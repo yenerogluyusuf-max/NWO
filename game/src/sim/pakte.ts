@@ -55,20 +55,18 @@ import { t as tx } from "../i18n";
 
 export type { DrittKrieg, KoalitionenSicht, KoalitionsSicht, PaktDef, PaktKlausel, PaktSicht } from "./pakte-typen";
 
+import { KRAFT } from "../data/kraefte";
+
 export const TUR = "TUR";
 
 // ---------------------------------------------------------------------------
 // Stärketabellen (aus sim/krieg.ts hierher gezogen, damit Gegner UND Partner dieselbe Waage haben)
 
 /**
- * Gegnerische Kriegsstärke je Land (Spielparameter, keine Tatsachen): grob aus Größe, Rüstung und
- * Regionaleigenschaften abgeleitet — bewusst als pauschale Tabelle, damit die Rechnung lesbar bleibt.
+ * Kriegsstärke je Land auf der gemeinsamen Skala (data/kraefte.ts): aus SIPRI-Ausgaben und aktiven Soldaten gerechnet,
+ * dieselbe Skala wie die Türkei; früher eine freie Tabelle, in der die Türkei schwächer als Griechenland und Iran war.
  */
-export const GEGNER_STAERKE: Record<string, number> = {
-  USA: 82, RUS: 74, CHN: 88, EU: 55,
-  GRC: 52, IRN: 58, SYR: 28, IRQ: 36, ARM: 26, ISR: 64, GEO: 22, CYP: 14, UKR: 40,
-  AZE: 34, SAU: 48, EGY: 46, LBY: 20, KAZ: 24,
-};
+export const GEGNER_STAERKE: Record<string, number> = KRAFT;
 export const GEGNER_GRUPPE: Record<string, number> = { "Große Mächte": 78, Nachbarn: 50, "Verbündete und Partner": 40 };
 
 /** Die Waage eines Partners oder Gegners auf der Skala 0 bis 100 (Hauptakteure aus der Tabelle, weitere aus Rüstung und Klasse). */
@@ -256,7 +254,8 @@ function bewerteFuer(w: World, pakte: PaktDef[], k: KriegVorgang, c: string, sei
   const L = k.land;
   const X = seite === "eigen" ? TUR : L;
   const Y = seite === "eigen" ? L : TUR;
-  const anteil = pflichtAnteile(aggressor, k.rahmung)[seite];
+  // Eine dünne Verteidigung (vor dem unmittelbaren Angriff erklärt) löst Bündnispflichten nur wie „Schutz“ aus
+  const anteil = pflichtAnteile(aggressor, k.rahmung === "verteidigung" && k.rahmungDuenn ? "schutz" : k.rahmung)[seite];
   let pflicht = 0;
   let pakt: string | undefined;
   for (const p of pakte) {
@@ -322,12 +321,19 @@ function paktName(w: World, id: string): string {
 }
 
 /** Alle Kandidaten bewerten und der besseren Seite zuordnen. */
+/**
+ * Wer nie selbst Kriegspartei wird (PRUEFUNG_GESAMT_2026-11-04): Die EU ist eine Organisation, kein Staat; ihre Mitglieder entscheiden
+ * einzeln. Österreich (Neutralitätsgesetz 1955), Irland, Malta (Verfassung Art. 1 Abs. 3) und die Schweiz sind neutral. Sanktionen,
+ * Erklärungen und Hilfe bleiben ihnen möglich; nur kämpfen sie nicht mit.
+ */
+export const KEINE_KRIEGSPARTEI = new Set(["EU", "AUT", "IRL", "MLT", "CHE"]);
+
 function bewerteAlle(w: World, k: KriegVorgang, aggressor: "tuerkei" | "gegner", bonus: number): { liste: Bewertung[]; spaltung: Set<string> } {
   const spaltung = new Set<string>();
   const liste: Bewertung[] = [];
   const pakte = allePakte(w);
   for (const c of AKTEUR_IDS) {
-    if (c === k.land) continue;
+    if (c === k.land || KEINE_KRIEGSPARTEI.has(c)) continue;
     const e = bewerteFuer(w, pakte, k, c, "eigen", aggressor, bonus, spaltung);
     const g = bewerteFuer(w, pakte, k, c, "gegner", aggressor, 0, spaltung);
     // Der Ruf der Türkei (bonus) gilt nur der eigenen Seite

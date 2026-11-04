@@ -33,6 +33,7 @@ import { gesetzName } from "../../sim/gesetz-name";
 import { formatDateDe } from "../../sim/dates";
 import { ZUGANG_ICON } from "./profil";
 import { Bildkarten } from "./Bildkarten";
+import { Konfliktlage } from "./Konfliktlage";
 
 /** Bereiche, deren Lage ihre Vorhaben als Bildkarten zeigt: Vorhabenbereich im Reich und der Reiter, in dem man sie beginnt. */
 const BILDKARTEN: Partial<Record<BereichId, { reich: string; tab: string }>> = {
@@ -290,7 +291,7 @@ function Zeilen({ zeilen }: { zeilen: LageZeile[] }) {
   );
 }
 
-function LageAnsicht({ w, b, ziel, onInstrumente, karten }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined }) {
+function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined; onKonflikt?: ((landId: string) => void) | undefined }) {
   const gruppen = lageZeilen(w, b);
   const urteil = lageUrteil(w, b);
   // Die drei Kernwerte stehen schon im Kopf; die Lage zeigt ihre Begründungen nur aufgeklappt.
@@ -317,6 +318,7 @@ function LageAnsicht({ w, b, ziel, onInstrumente, karten }: { w: World; b: Berei
           </ul>
         </details>
       )}
+      {b === "sicherheit" && onKonflikt && w.spiel && <Konfliktlage w={w} onKonflikt={onKonflikt} />}
       {karten && <Bildkarten w={w} reichBereich={karten.reich} ziel={karten.ziel} oeffnen={karten.oeffnen} />}
       {gruppen.filter((g) => g.zeilen.length > 0).map((g) => (
         <section key={g.kopf}>
@@ -414,11 +416,13 @@ export interface BereichsAkteProps {
   onReiter: (r: AktenReiterId) => void;
   /** Vorgang, den der Reiter „Vorgänge“ geöffnet zeigt (Sprung von Schreibtisch, Zusagen oder Karte) */
   vorgangStart?: string | undefined;
+  /** Sprung in das Konfliktdossier eines Landes (Akte Sicherheit) */
+  onKonflikt?: ((landId: string) => void) | undefined;
   /** Inhalt der aktiven Ansicht */
   children: ReactNode;
 }
 
-export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, onReiter, vorgangStart, children }: BereichsAkteProps) {
+export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, onReiter, vorgangStart, onKonflikt, children }: BereichsAkteProps) {
   // Behörden sind ein eigener Fachzugang; die übrigen Ansichten behalten ihre Zuständigkeiten.
   const [behoerdenOffen, setBehoerdenOffen] = useState(false);
   useEffect(() => setBehoerdenOffen(false), [bereich]);
@@ -446,7 +450,7 @@ export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, 
         { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => {
           const bk = BILDKARTEN[bereich], kartenTab = bk && tabs.find((tab) => tab.id === bk.tab);
           const karten = bk && kartenTab ? { reich: bk.reich, ziel: kartenTab.label, oeffnen: () => { setBehoerdenOffen(false); onTab(kartenTab.id); onReiter("instrumente"); } } : undefined;
-          return <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} />;
+          return <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} onKonflikt={onKonflikt} />;
         } },
         { id: "instrumente", text: t("akte.b.reiter.instrumente"), inhalt: instrumente },
         { id: "verlauf", text: t("akte.b.reiter.verlauf"), inhalt: () => <VerlaufAnsicht w={world} b={bereich} /> },

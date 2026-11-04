@@ -34,6 +34,8 @@ export interface EconomyState {
   eurTry: number;
   /** Risikoaufschlag (CDS 5 Jahre) in Basispunkten */
   riskPremium: number;
+  /** Anker der Finanzierungsbedingungen (bp): folgt dem Risikoaufschlag langsam; die Abweichung verteuert Kredite (economy.ts Z1) */
+  riskAnker?: number;
   /** Staatsschulden in % des BIP */
   debtRatio: number;
   /** Verfügbarer nominaler Kassenbestand in Mrd. Lira; getrennt von Zentralbank-Devisenreserven. */

@@ -33,5 +33,12 @@
  "gz.verwaltung_knapp": "İdari kapasite bugün başlamak için yetmiyor.",
  "gz.verlangt": "Gerekli: {was}",
  "gz.rest": "yaklaşık {n} ay kaldı",
- "gz.lage.ruhig": "{abschnitte} için kayıt yok."
+ "gz.lage.ruhig": "{abschnitte} için kayıt yok.",
+ "gz.konflikt.titel": "Çatışma durumu",
+ "gz.konflikt.ruhig": "Süren bir çatışma yok ve gergin bir ülke yok (gerginlik {ab} değerinden itibaren).",
+ "gz.konflikt.front": "Cephe {front} / 100",
+ "gz.konflikt.eskalation": "Tırmanma {wert} / 100",
+ "gz.konflikt.spannung": "Gerginlik {wert} / 100",
+ "gz.konflikt.krise": "kriz mümkün",
+ "gz.konflikt.oeffnen": "Çatışma dosyasını aç →"
 }

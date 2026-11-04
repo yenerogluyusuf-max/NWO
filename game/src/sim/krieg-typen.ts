@@ -20,7 +20,7 @@ export type KriegsRahmung = "verteidigung" | "schutz" | "beistand" | "revision";
 /** Mobilisierungsstufen: keine, teilweise, voll (Vic3: Hochfahren kostet, Runterfahren kostet noch einmal). */
 export type Mobilmachung = 0 | 1 | 2;
 
-export type KriegsAusgang = "sieg" | "niederlage" | "rueckzug" | "weisser_frieden" | "frieden";
+export type KriegsAusgang = "sieg" | "niederlage" | "rueckzug" | "weisser_frieden" | "frieden" | "eingefroren" | "nachgegeben";
 
 /** Ein eingebrachter Einsatzbeschluss, der auf die Abstimmung wartet (Weg „parlament“) oder sofort galt („erlass“). */
 export interface KriegBeschluss {
@@ -127,6 +127,12 @@ export interface KriegVorgang {
   signalZuletzt?: number;
   /** Der Gegner hat Waffenruhe angeboten (liegt als Ereignis auf dem Tisch) */
   gegnerAngebot?: boolean;
+  /** „Verteidigung“ erklärt, bevor ein Angriff unmittelbar bevorstand: zählt wie „Schutz“ (UN-Charta Art. 51 verlangt einen Angriff) */
+  rahmungDuenn?: boolean;
+  /** Ein Ultimatum wurde gestellt (je Vorgang nur eines) */
+  ultimatum?: boolean;
+  /** Friedenspaket, das der Gegner in der Waffenruhe selbst angeboten hat (er nimmt es sicher an) */
+  angebotPaket?: string;
   /** Waffenruhe-Wochen ohne nennenswerte Bewegung (für Angebote und Stagnationsfolgen) */
   stagnation?: number;
   /** Demobilisierung läuft bis zu diesem Tag (Vic3: 90 Tage Auslauf mit vollen Kosten) */

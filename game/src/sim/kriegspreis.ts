@@ -88,7 +88,7 @@ function westen(w: World, id: "EU" | "USA", d: number): void {
 /** Die Türkei ist Angreifer (nicht Selbstverteidigung nach einem Angriff). */
 function angreifer(k: KriegVorgang): boolean {
   if (k.koalition) return k.koalition.aggressor === "tuerkei";
-  return k.rahmung !== "verteidigung";
+  return k.rahmung !== "verteidigung" || !!k.rahmungDuenn;
 }
 
 /** Ein Wochenschritt des Kriegspreises (nach Front und Verlusten der Woche). */

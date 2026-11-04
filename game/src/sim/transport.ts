@@ -19,6 +19,8 @@ export interface TransportZustand {
   depots: Record<string, FrontDepot>; massnahmen: TransportMassnahme[]; bilanz?: TransportBilanz;
 }
 export interface TransportPlan { zustand: TransportZustand; routen: RoutenLage[]; bilanz: TransportBilanz; world: World }
+/** Laufende Instandsetzung der Frontwege durch die Pioniere je Monat (Spielparameter). */
+export const PIONIER_INSTANDSETZUNG = 0.1;
 const sum = (o: Record<string, number>) => Object.values(o).reduce((s,n)=>s+n,0);
 const clamp = (n: number) => Math.max(0,Math.min(1,n));
 const aktiv = (w: World) => (w.spiel?.kriege ?? []).filter(k=>k.phase === "krieg" || k.phase === "waffenruhe");
@@ -179,7 +181,10 @@ export function regionalVerteilen(p: TransportPlan, g: GutDef, f: WarenFluss, pr
 export function transportAbschluss(w: World,p:TransportPlan):void {
   const z=p.zustand;
   // Schäden überdauern einen Waffenstillstand; Reparaturen wirken einmal nach ihrer Bauzeit.
-  for(const r of p.routen) z.schaden[r.id]=Math.min(0.85,r.schaden + (r.bekaempft ? 0.15 : 0));
+  // Pioniere halten ihre Frontwege laufend instand (Spielparameter 0,10 je Monat): Früher verfiel jeder Frontweg unter Beschuss mit 15 %
+  // je Monat, bis nach rund fünf Monaten kein Nachschub mehr ankam, wenn niemand die Reparatur beauftragte. Jetzt netto 5 % je Monat;
+  // der beauftragte Wiederaufbau (−65 %) bleibt der starke Hebel.
+  for(const r of p.routen) z.schaden[r.id]=Math.max(0,Math.min(0.85,r.schaden + (r.bekaempft ? 0.15 : 0) - (r.art === "front" ? PIONIER_INSTANDSETZUNG : 0)));
   z.massnahmen=z.massnahmen.filter(a=>a.bis>w.day && !(a.art==="reparatur" && a.ab<=w.day));
   z.bilanz=p.bilanz; w.spiel!.transport=z;
 }

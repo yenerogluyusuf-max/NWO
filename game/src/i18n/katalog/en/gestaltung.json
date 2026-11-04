@@ -33,5 +33,12 @@
  "gz.verwaltung_knapp": "Administrative capacity is not sufficient to start today.",
  "gz.verlangt": "Requires: {was}",
  "gz.rest": "about {n, plural, one {# month} other {# months}} left",
- "gz.lage.ruhig": "No entries in {abschnitte}."
+ "gz.lage.ruhig": "No entries in {abschnitte}.",
+ "gz.konflikt.titel": "Conflict situation",
+ "gz.konflikt.ruhig": "No conflict is running and no country is tense (tension from {ab}).",
+ "gz.konflikt.front": "Front {front} / 100",
+ "gz.konflikt.eskalation": "Escalation {wert} / 100",
+ "gz.konflikt.spannung": "Tension {wert} / 100",
+ "gz.konflikt.krise": "crisis possible",
+ "gz.konflikt.oeffnen": "Open conflict dossier →"
 }

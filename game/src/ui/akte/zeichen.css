@@ -31,3 +31,11 @@
 .gz-knopf:hover { text-decoration: underline; }
 .gz-knopf:focus-visible { outline: 2px solid var(--seal, #8e2a22); outline-offset: 2px; border-radius: 3px; }
 .gz-mehr { justify-self: start; border: 0; background: none; padding: 2px 0; color: var(--seal, #8e2a22); font: 600 13.5px var(--sans); cursor: pointer; }
+
+/* Konfliktlage in der Akte Sicherheit */
+.gz-konflikte ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.gz-konflikt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 6px; background: #fffaf0; border: 1px solid #5a402833; border-left: 4px solid #b07a1f; }
+.gz-konflikt.krieg { border-left-color: #a23d3e; } .gz-konflikt.waffenruhe { border-left-color: #5b4a7a; } .gz-konflikt.angespannt { border-left-color: #c9a45a; }
+.gz-konflikt > div { display: grid; gap: 2px; min-width: 0; } .gz-konflikt strong { font: 600 15px var(--display, Georgia, serif); } .gz-konflikt span { font: 13px var(--sans); color: #5e6a61; }
+.gz-konflikt .gz-knopf { margin: 0; white-space: nowrap; }
+@media (max-width: 560px) { .gz-konflikt { flex-direction: column; align-items: flex-start; } }

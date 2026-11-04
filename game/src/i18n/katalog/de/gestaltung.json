@@ -33,5 +33,12 @@
  "gz.verwaltung_knapp": "Die Verwaltungskraft reicht heute nicht für den Beginn.",
  "gz.verlangt": "Verlangt: {was}",
  "gz.rest": "noch etwa {n, plural, one {# Monat} other {# Monate}}",
- "gz.lage.ruhig": "Keine Einträge in {abschnitte}."
+ "gz.lage.ruhig": "Keine Einträge in {abschnitte}.",
+ "gz.konflikt.titel": "Konfliktlage",
+ "gz.konflikt.ruhig": "Kein Konflikt läuft, und kein Land ist angespannt (Spannung ab {ab}).",
+ "gz.konflikt.front": "Front {front} / 100",
+ "gz.konflikt.eskalation": "Eskalation {wert} / 100",
+ "gz.konflikt.spannung": "Spannung {wert} / 100",
+ "gz.konflikt.krise": "Krise möglich",
+ "gz.konflikt.oeffnen": "Konfliktdossier öffnen →"
 }

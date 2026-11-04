@@ -13,6 +13,7 @@ import { createWorld, advance, load } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { weltZustand } from "../src/sim/laender";
+import { KRAFT } from "../src/data/kraefte";
 import {
   KRIEG,
   aktiveKriege,
@@ -235,7 +236,8 @@ describe("Wirkung der Koalitionen auf den Krieg", () => {
   test("Stärke des Gegners: Griechenlands EU-Partner erhöhen sie über den Tabellenwert plus Eskalation", () => {
     const { w, k } = inDenKrieg("GRC", "revision");
     expect(koalitionsFaktoren(w, k).gegnerPlus).toBeGreaterThan(0);
-    expect(gegnerStaerke(w, "GRC")).toBeGreaterThan(52 + k.eskalation * 0.08);
+    // Grundwert aus der gemeinsamen, belegten Kräfteskala (data/kraefte.ts) statt einer festen Zahl
+    expect(gegnerStaerke(w, "GRC")).toBeGreaterThan(KRAFT.GRC! + k.eskalation * 0.08);
   });
 
   test("Friedensannahme: Partner des Gegners blockieren harte Pakete stärker als weiche", () => {

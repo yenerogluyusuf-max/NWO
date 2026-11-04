@@ -79,11 +79,13 @@ export function militaerVersorgung(w: World, land?: string): { treibstoff: numbe
   let verbraucht = 0, bedarf = 0;
   for (const k of fronten) {
     const beleg = frontVersorgungsBeleg(w, k.land);
-    bedarf += beleg?.bedarf ?? frontMonatsverbrauch(k.phase);
-    verbraucht += beleg?.verbraucht ?? 0;
+    const soll = beleg?.bedarf ?? frontMonatsverbrauch(k.phase);
+    bedarf += soll;
+    // Eine neu eröffnete Front hat noch keinen gebuchten Verbrauch. Früher zählte das als Treibstoff 0 (Kampfkraft 25 % in den ersten
+    // Wochen jedes Krieges). Jetzt gilt bis zur ersten Monatsbuchung die tatsächliche Öldeckung des Landes: keine fiktive
+    // Vollversorgung, aber auch kein erfundenes Loch. Fehlt dem Land Öl (Sanktion, Blockade), fehlt es auch an der Front.
+    verbraucht += beleg ? beleg.verbraucht : soll * Math.max(0, Math.min(1, warenDeckung(w, "erdoel")));
   }
-  // Eine neu eröffnete Front hat noch keinen gebuchten Verbrauch. Keine fiktive Vollversorgung
-  // aus einer Friedensbilanz oder dem Depot eines anderen Einsatzes; Monatsrechnung liefert real.
   const treibstoff = bedarf > 0 ? Math.max(0, Math.min(1, verbraucht / bedarf)) : 1;
   const material = Math.min(warenDeckung(w, "stahl"), warenDeckung(w, "elektronik"), warenDeckung(w, "strom"));
   return { treibstoff, material, faktor: 0.25 + 0.75 * treibstoff, monat: b?.monat };

@@ -14,6 +14,7 @@
 //
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { KRAFT_TUERKEI, NORMALSTAND } from "../data/kraefte";
 import { militaerVersorgung } from "./versorgung";
 import { kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
 import { NET } from "./modell";
@@ -56,6 +57,11 @@ export const KRIEG = {
   maxAktiv: 2,
   /** Ab dieser Konflikt-Dimension eines Landes entsteht ein Spannungs-Vorgang (Monatsprüfung); knapp unter der Kriegsgefahr-Krise (75) */
   anlageAb: 73,
+  /** Waffenruhe (Spielparameter): nach so vielen Tagen macht der Gegner ein Gegenangebot; nach der Frist endet die Waffenruhe */
+  gegenangebotTage: 30,
+  waffenruheFrist: 120,
+  /** Ab dieser Eskalation steht ein Angriff unmittelbar bevor; erst dann ist die Rahmung „Verteidigung“ glaubhaft */
+  verteidigungGlaubhaftAb: 90,
   /** Abkühlung, bevor mit demselben Land erneut eine Spannung entsteht (Tage) */
   anlageAbkuehlung: 300,
   /** Eskalation für den Übergang spannung → drohkulisse */
@@ -295,7 +301,11 @@ export function eigenStaerke(w: World, k: KriegVorgang): number {
   const allianz = 1 + koalitionsFaktoren(w, k).eigenPlus;
   // Bestand und Technik der Streitkräfte (sim/streitkraefte.ts; 1 = Stand 2026); mit gewählter Einsatzart zählen ihre tragenden Gattungen,
   // der Generationsabstand zum Gegner und die Munition (sim/kriegsschauplatz.ts)
-  return b * moral * dok * mob * nachschub * militaerVersorgung(w, k.land).faktor * allianz * (eigenerBestandsFaktor(w, k) ?? bestandsFaktor(w));
+  // Gemeinsame Skala (data/kraefte.ts): Im Normalstand ist die Türkei so stark wie ihr belegter Grundwert; jeder Faktor wirkt als
+  // Abweichung vom Normalstand statt als Abschlag von 100.
+  const n = NORMALSTAND;
+  const relativ = (b / n.bereitschaft) * (moral / n.moral) * (mob / n.mobilmachung) * (nachschub / n.nachschub);
+  return KRAFT_TUERKEI * relativ * dok * militaerVersorgung(w, k.land).faktor * allianz * (eigenerBestandsFaktor(w, k) ?? bestandsFaktor(w));
 }
 
 /** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit) und mit seinen Koalitionspartnern. */
@@ -340,7 +350,9 @@ function paketHaerte(p: FriedensPaket): number {
 }
 
 /** Annahme-Aussicht eines Friedenspakets in Prozent (deterministisch; die Uhr beider Seiten treibt sie). */
-export function paketAnnahme(w: World, k: KriegVorgang, p: FriedensPaket): number {
+export function paketAnnahme(w: World, k: KriegVorgang, p: FriedensPaket, paketId?: string): number {
+  // Was der Gegner selbst angeboten hat, nimmt er an (Gegenangebot in der Waffenruhe)
+  if (paketId && k.angebotPaket === paketId) return 95;
   const hart = p.gebiet === 1 || p.reparation === 1;
   // Die Partner des Gegners blockieren harte Pakete, solange sie Kampfkraft haben (sim/pakte.ts)
   const roh = 40 + (100 - k.uhrGegner) * 0.55 - (100 - k.uhr) * 0.25 + (k.front - 50) * 0.7 - paketHaerte(p) * 22 - paketBlockade(w, k, hart);
@@ -370,6 +382,26 @@ export const PAKETE: Record<string, { name: string; text: string; paket: (front:
   },
 };
 
+/**
+ * Aussicht, dass der Gegner einem Ultimatum nachgibt (0 bis 0,6): Je klarer die Türkei überlegen ist (Stärke samt erwarteter
+ * Koalitionen), desto eher; gegen Ebenbürtige selten. Spielparameter; Vorbild sind Zwangsdiplomatie-Fälle wie die Krise um
+ * Öcalan 1998 (Syrien wies ihn aus) und Imia/Kardak 1996 (beide Seiten zogen sich zurück).
+ */
+export function ultimatumAussicht(w: World, k: KriegVorgang): number {
+  return clamp(0.1 + (eigenStaerke(w, k) - gegnerStaerke(w, k.land)) / 80, 0.05, 0.6);
+}
+
+/**
+ * Die Rahmung, wie sie tatsächlich zählt: Eine „Verteidigung“, die erklärt wurde, bevor der Gegner kurz vor dem Angriff stand
+ * (Eskalation unter KRIEG.verteidigungGlaubhaftAb), überzeugt weder Parlament noch Ausland mehr als „Schutz“. Früher brachte sie
+ * auch bei einem eigenen Angriff +30 Stimmen und eine längere Ausdauer (PRUEFUNG_GESAMT_2026-11-04).
+ */
+export function rahmungWerte(k: KriegVorgang): (typeof RAHMUNG)[KriegsRahmung] {
+  const r = k.rahmung ?? "verteidigung";
+  if (r === "verteidigung" && k.rahmungDuenn) return { ...RAHMUNG.verteidigung, stimmen: RAHMUNG.schutz.stimmen, uhrStart: RAHMUNG.schutz.uhrStart };
+  return RAHMUNG[r];
+}
+
 // ---------------------------------------------------------------------------
 // Handlungen des Präsidenten (bestellen und verantworten — nicht kommandieren)
 
@@ -379,6 +411,7 @@ export type KriegHandlungId =
   | "vermittlung"
   | `ziel_${KriegsRahmung}`
   | "deeskalation"
+  | "ultimatum"
   | "mobil_teil"
   | "mobil_voll"
   | "beschluss"
@@ -434,6 +467,7 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
         push(`ziel_${r}`, t("krieg.k.h.ziel", { rahmung: RAHMUNG[r].name }), 8, t("krieg.k.h.ziel.hinweis", { text: RAHMUNG[r].text, stimmen: `${RAHMUNG[r].stimmen >= 0 ? "+" : ""}${RAHMUNG[r].stimmen}`, ansehen: RAHMUNG[r].ansehen }), beleg);
       }
     }
+    push("ultimatum", t("krieg.k.h.ultimatum"), 6, t("krieg.k.h.ultimatum.hinweis", { land: l.name, aussicht: Math.round(ultimatumAussicht(w, k) * 100) }), k.ultimatum ? t("krieg.k.h.ultimatum.schon") : undefined);
     push("deeskalation", t("krieg.k.h.deeskalation"), 4, t("krieg.k.h.deeskalation.hinweis"));
     push("rueckzug", t("krieg.k.h.rueckzug"), 6, t("krieg.k.h.rueckzug.hinweis"));
   }
@@ -443,7 +477,7 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
     if (!k.kriegszielDeklariert) {
       // Ohne deklariertes Kriegsziel kein Beschluss: Die Rahmung ist Pflicht (Civ6-Preisschild).
     } else {
-      const stimmen = stimmenSicht(w, { massnahme: "m_verteidigung", richtung: 1 }).erwartet + RAHMUNG[k.rahmung!].stimmen;
+      const stimmen = stimmenSicht(w, { massnahme: "m_verteidigung", richtung: 1 }).erwartet + rahmungWerte(k).stimmen;
       push("beschluss", t("krieg.k.h.beschluss"), 10, t("krieg.k.h.beschluss.hinweis", { tage: KRIEG.beschlussTage, stimmen: Math.round(stimmen) }));
       push("beschluss_erlass", t("krieg.k.h.erlass"), 20, t("krieg.k.h.erlass.hinweis"));
     }
@@ -471,10 +505,11 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
   }
   if (ph === "waffenruhe") {
     for (const [id, def] of Object.entries(PAKETE)) {
-      if (id === "paket_sieg" && k.front < 55) continue;
-      if (id === "paket_zugestaendnis" && k.front > 45) continue;
+      const angeboten = k.angebotPaket === id;
+      if (!angeboten && id === "paket_sieg" && k.front < 55) continue;
+      if (!angeboten && id === "paket_zugestaendnis" && k.front > 45) continue;
       const p = def.paket(k.front);
-      const aussicht = paketAnnahme(w, k, p);
+      const aussicht = paketAnnahme(w, k, p, id);
       push(id as KriegHandlungId, t("krieg.k.h.paket", { name: def.name }), 4, t("krieg.k.h.paket.hinweis", { text: def.text, aussicht }));
     }
     push("weiterkaempfen", t("krieg.k.h.weiter"), 2, t("krieg.k.h.weiter.hinweis"));
@@ -557,17 +592,40 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       }
       break;
     }
+    case "ultimatum": {
+      // Zwangsdiplomatie: Gibt der Gegner nach, endet die Krise mit einem Prestigegewinn; sonst schaukelt sie sich auf
+      k.ultimatum = true;
+      w.economy.riskPremium += 20;
+      if (rng.next() < ultimatumAussicht(w, k)) {
+        landAendern(w, k.land, { konflikt: -15, vertrauen: -4 }, t("krieg.k.x.ultimatum.notiz"));
+        wirke(w, "ansehen", 1);
+        wirke(w, "nationalisten", 2);
+        text = t("krieg.k.x.ultimatum.ja", { land: l.name });
+        why += " " + t("krieg.k.x.ultimatum.ja.warum");
+        addLog(w, "entscheidung", text, why);
+        beendeVorgang(w, k, "nachgegeben");
+        return { ok: true, text, why };
+      }
+      k.eskalation = clamp(k.eskalation + 15, 0, 100);
+      landAendern(w, k.land, { konflikt: 8 }, t("krieg.k.x.ultimatum.notiz"));
+      wirke(w, "ansehen", -1);
+      text = t("krieg.k.x.ultimatum.nein", { land: l.name });
+      why += " " + t("krieg.k.x.ultimatum.nein.warum");
+      break;
+    }
     case "ziel_verteidigung":
     case "ziel_schutz":
     case "ziel_beistand":
     case "ziel_revision": {
       const r = handlungId.slice(5) as KriegsRahmung;
+      const vorher = k.eskalation;
       k.rahmung = r;
       k.kriegszielDeklariert = true;
       k.eskalation = clamp(k.eskalation + 10, 0, 100);
       let extra = 0;
       if (r === "beistand" && alleLaufenden(w).every((v) => v.land !== k.land)) extra = -3;
-      if (r === "verteidigung" && k.eskalation < 60) extra = -2;
+      // Selbstverteidigung verlangt einen unmittelbar bevorstehenden Angriff; sonst zählt sie nur wie „Schutz“ (rahmungWerte)
+      if (r === "verteidigung" && vorher < KRIEG.verteidigungGlaubhaftAb) { extra = -2; k.rahmungDuenn = true; } else delete k.rahmungDuenn;
       wirke(w, "ansehen", RAHMUNG[r].ansehen + extra);
       wirke(w, "nationalisten", RAHMUNG[r].nationalisten);
       if (r === "revision") {
@@ -667,7 +725,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
     case "paket_weiss":
     case "paket_zugestaendnis": {
       const p = PAKETE[handlungId]!.paket(k.front);
-      const aussicht = paketAnnahme(w, k, p);
+      const aussicht = paketAnnahme(w, k, p, handlungId);
       if (aussicht >= 50) return friedenSchliessen(w, k, p, handlungId, rng);
       k.eskalation = clamp(k.eskalation + 2, 0, 100);
       text = t("krieg.k.x.paket.nein", { land: l.name, aussicht });
@@ -677,6 +735,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
     case "weiterkaempfen": {
       k.uhr = clamp(k.uhr - 5, 0, 110);
       k.gegnerAngebot = false;
+      delete k.angebotPaket;
       phaseSetzen(w, k, "krieg");
       text = t("krieg.k.x.weiter");
       break;
@@ -785,7 +844,9 @@ function kriegsbeginn(w: World, k: KriegVorgang, weg: "parlament" | "erlass" | "
   const staerkeDelta = eigenStaerke(w, k) - gegnerStaerke(w, k.land);
   k.front = clamp(50 + staerkeDelta * 0.25, 25, 75);
   k.frontVorher = k.front;
-  k.uhr = clamp(100 + RAHMUNG[rahmung].uhrStart, 0, 110);
+  // Wer angegriffen wird, verteidigt sich glaubhaft, gleich was vorher erklärt war
+  if (weg === "angriff") delete k.rahmungDuenn;
+  k.uhr = clamp(100 + rahmungWerte(k).uhrStart, 0, 110);
   k.uhrGegner = 100;
   regionenSetzen(w, k);
   // Märkte (Suzerain-Anker: CDS-/Öl-Sprung)
@@ -826,7 +887,7 @@ function beschlussAbstimmen(w: World, k: KriegVorgang, rng: Rng): void {
   const l = land(k.land);
   const b = k.beschluss!;
   const stimmen = stimmenSicht(w, { massnahme: "m_verteidigung", richtung: 1 });
-  const bonus = RAHMUNG[b.rahmung].stimmen + (k.eskalation >= 85 ? 15 : 0);
+  const bonus = (b.rahmung === k.rahmung ? rahmungWerte(k) : RAHMUNG[b.rahmung]).stimmen + (k.eskalation >= 85 ? 15 : 0);
   const ja = Math.min(600, Math.max(0, Math.round(stimmen.erwartet + bonus + rng.normal(6))));
   const nein = 600 - ja;
   delete k.beschluss;
@@ -974,11 +1035,46 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
   return { ok: true, text, why };
 }
 
+/**
+ * Die Waffenruhe hat ein Ende (PRUEFUNG_GESAMT_2026-11-04): Früher konnte sie ohne Frist und ohne Gegenangebot ewig stehen,
+ * und der Spieler „parkte“ den Krieg kostenlos. Jetzt macht der Gegner nach KRIEG.gegenangebotTage ein Angebot, das zur Lage passt,
+ * und nach KRIEG.waffenruheFrist kippt die Lage: Wer im Vorteil ist und noch Kraft hat, greift wieder an; sonst friert der
+ * Konflikt ein (Vorbilder Zypern 1974, Korea 1953): keine Gebietsänderung, Demobilisierung, die Spannung mit dem Land bleibt.
+ */
+function waffenruheTag(w: World, k: KriegVorgang): void {
+  const l = land(k.land);
+  const tage = w.day - k.seit;
+  if (!k.angebotPaket && tage >= KRIEG.gegenangebotTage) {
+    // Siegt der Gegner, verlangt er Zugeständnisse; steht es offen, bietet er den weißen Frieden; verliert er, den ausgewogenen
+    k.angebotPaket = k.front < 40 ? "paket_zugestaendnis" : k.front < 60 ? "paket_weiss" : "paket_ausgewogen";
+    const name = PAKETE[k.angebotPaket]!.name;
+    hinweis(w, `krieg-gegenangebot-${k.id}`, t("krieg.k.wr.angebot.titel", { land: l.name }), [t("krieg.k.wr.angebot.text", { land: l.name, paket: name, tage: KRIEG.waffenruheFrist - tage })]);
+    addLog(w, "ereignis", t("krieg.k.wr.angebot.log", { land: l.name, paket: name }), t("krieg.k.wr.angebot.warum"));
+  }
+  if (tage < KRIEG.waffenruheFrist) return;
+  delete k.angebotPaket;
+  if (k.front < 40 && k.uhrGegner > 50) {
+    phaseSetzen(w, k, "krieg");
+    k.gegnerAngebot = false;
+    hinweis(w, `krieg-wr-bruch-${k.id}-${w.day}`, t("krieg.k.wr.bruch.titel", { land: l.name }), [t("krieg.k.wr.bruch.text", { land: l.name })]);
+    addLog(w, "ereignis", t("krieg.k.wr.bruch.log", { land: l.name }), t("krieg.k.wr.bruch.warum"));
+    return;
+  }
+  koalitionAufloesen(w, k, "frieden");
+  phaseSetzen(w, k, "frieden");
+  k.ausgang = "eingefroren";
+  demobStarten(w, k);
+  const z = weltZustand(w)[k.land];
+  if (z) z.konflikt = Math.max(z.konflikt, 60);
+  hinweis(w, `krieg-eingefroren-${k.id}`, t("krieg.k.wr.eingefroren.titel", { land: l.name }), [t("krieg.k.wr.eingefroren.text", { land: l.name })]);
+  addLog(w, "ereignis", t("krieg.k.wr.eingefroren.log", { land: l.name }), t("krieg.k.wr.eingefroren.warum"));
+}
+
 function beendeVorgang(w: World, k: KriegVorgang, ausgang: KriegVorgang["ausgang"]): void {
   koalitionAufloesen(w, k, "rueckzug");
   phaseSetzen(w, k, "beendet");
   k.ausgang = ausgang;
-  addLog(w, "ereignis", t("krieg.k.ende", { land: land(k.land).name, ausgang: ausgang === "rueckzug" ? t("krieg.k.ende.rueckzug") : String(ausgang) }), "");
+  addLog(w, "ereignis", t("krieg.k.ende", { land: land(k.land).name, ausgang: ausgang === "rueckzug" ? t("krieg.k.ende.rueckzug") : ausgang === "nachgegeben" ? t("krieg.k.ende.nachgegeben") : String(ausgang) }), "");
 }
 
 // ---------------------------------------------------------------------------
@@ -1112,6 +1208,10 @@ export function kriegTag(w: World, rng: Rng): void {
         if ((w.day - k.seit) % 7 === 0 && w.day > k.seit) kriegWoche(w, k, rng);
         break;
       }
+      case "waffenruhe": {
+        waffenruheTag(w, k);
+        break;
+      }
       case "frieden": {
         if (w.day > k.seit + 30) phaseSetzen(w, k, "beendet");
         break;
@@ -1140,7 +1240,8 @@ export function kriegMonat(w: World, rng: Rng): void {
       addLog(w, "ereignis", t("krieg.k.demob.rechnung", { bip: KRIEG.demobKostenMonat }), t("krieg.k.demob.rechnung.warum", { datum: formatDateDe(addDays(w.date, k.demobBis - w.day)) }));
     }
   }
-  // Neue Spannungen entstehen aus der Konflikt-Dimension (Auslöser wie Grenzzwischenfälle treiben sie dorthin)
+  // Neue Spannungen entstehen aus der Konflikt-Dimension; Zwischenfälle treiben sie dorthin
+  zwischenfaelle(w, rng);
   const aktiv = aktiveKriege(w);
   if (aktiv.length >= KRIEG.maxAktiv) return;
   const z = weltZustand(w);
@@ -1149,25 +1250,77 @@ export function kriegMonat(w: World, rng: Rng): void {
     if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
     if (kriegMit(w, l.id)) continue;
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
-    spiel.zuletzt[`krieg-${l.id}`] = w.day;
-    const k: KriegVorgang = {
-      id: `kv-${l.id}-${w.day}`,
-      land: l.id,
-      phase: "spannung",
-      seit: w.day,
-      eskalation: z[l.id]!.konflikt,
-      mobilmachung: 0,
-      front: 50,
-      frontVorher: 50,
-      uhr: 100,
-      uhrGegner: 100,
-      woche: 0,
-      verluste: 0,
-    };
-    kriege(w).push(k);
-    hinweis(w, `krieg-spannung-${k.id}`, t("krieg.k.sp.titel", { land: l.name }), [t("krieg.k.sp.text1", { land: l.name, konflikt: Math.round(z[l.id]!.konflikt) }), t("krieg.k.sp.text2")]);
-    addLog(w, "ereignis", t("krieg.k.sp.log", { land: l.name }), t("krieg.k.sp.warum"));
-    void rng;
+    vorgangAnlegen(w, l.id, z[l.id]!.konflikt);
+  }
+}
+
+/** Legt einen Spannungs-Vorgang an (Monatsprüfung oder vom Präsidenten eröffnete Krise). */
+function vorgangAnlegen(w: World, landId: string, eskalation: number): KriegVorgang {
+  const l = land(landId);
+  w.spiel!.zuletzt[`krieg-${l.id}`] = w.day;
+  const k: KriegVorgang = {
+    id: `kv-${l.id}-${w.day}`, land: l.id, phase: "spannung", seit: w.day, eskalation, mobilmachung: 0,
+    front: 50, frontVorher: 50, uhr: 100, uhrGegner: 100, woche: 0, verluste: 0,
+  };
+  kriege(w).push(k);
+  const konflikt = Math.round(weltZustand(w)[l.id]?.konflikt ?? eskalation);
+  hinweis(w, `krieg-spannung-${k.id}`, t("krieg.k.sp.titel", { land: l.name }), [t("krieg.k.sp.text1", { land: l.name, konflikt }), t("krieg.k.sp.text2")]);
+  addLog(w, "ereignis", t("krieg.k.sp.log", { land: l.name }), t("krieg.k.sp.warum"));
+  return k;
+}
+
+/** Ab diesem Konfliktwert kann der Präsident selbst eine Krise eröffnen (Spielparameter). */
+export const KRISE_AB = 55;
+export const KRISE_PK = 4;
+
+/** Warum der Präsident mit einem Land gerade keine Krise eröffnen kann (sonst undefined). */
+export function kriseGrund(w: World, landId: string): string | undefined {
+  const spiel = w.spiel;
+  if (!spiel || spiel.ende) return t("krieg.k.x.keinspiel");
+  if (kriegMit(w, landId)) return t("krieg.k.krise.schon");
+  if (aktiveKriege(w).length >= KRIEG.maxAktiv) return t("krieg.k.krise.zuviele", { n: KRIEG.maxAktiv });
+  const konflikt = weltZustand(w)[landId]?.konflikt ?? 0;
+  if (konflikt < KRISE_AB) return t("krieg.k.krise.zuruhig", { konflikt: Math.round(konflikt), ab: KRISE_AB });
+  if (!kannZahlen(spiel.kapital, KRISE_PK)) return t("krieg.k.kapital");
+  return undefined;
+}
+
+/**
+ * Der Präsident eröffnet selbst eine Krise (PRUEFUNG_GESAMT_2026-11-04: früher ging das nur über monatelanges „Druck“):
+ * Ein Spannungs-Vorgang entsteht sofort; Märkte und Ausland notieren es. Danach stehen Ultimatum, Rahmung, Mobilmachung und
+ * Beschluss offen, aber ebenso Vermittlung und Deeskalation.
+ */
+export function kriseEroeffnen(w: World, landId: string): Ergebnis {
+  const grund = kriseGrund(w, landId);
+  if (grund) return { ok: false, text: grund };
+  const spiel = w.spiel!;
+  const l = land(landId);
+  spiel.kapital -= KRISE_PK;
+  w.economy.riskPremium += 15;
+  wirke(w, "ansehen", -1);
+  landAendern(w, landId, { konflikt: 5, vertrauen: -3 }, t("krieg.k.krise.notiz"));
+  const k = vorgangAnlegen(w, landId, Math.max(weltZustand(w)[landId]!.konflikt, KRIEG.anlageAb));
+  const text = t("krieg.k.krise.ok", { land: l.name });
+  addLog(w, "entscheidung", text, t("krieg.k.krise.warum"));
+  void k;
+  return { ok: true, text, why: t("krieg.k.krise.warum") };
+}
+
+/**
+ * Zwischenfälle (Grenze, Luftraum, See): Bei angespannten Ländern verschärft sich die Lage manchmal von selbst, ohne Zutun des
+ * Präsidenten. Monatliche Wahrscheinlichkeit (Konflikt − 50) / 300, also bei Konflikt 72 rund 7 % (Spielparameter). Früher bewegten
+ * sich Konflikte ohne den Spieler nie (24 Monate ohne einen Vorgang, PRUEFUNG_GESAMT_2026-11-04).
+ */
+function zwischenfaelle(w: World, rng: Rng): void {
+  const z = weltZustand(w);
+  for (const l of LAENDER) {
+    const konflikt = z[l.id]?.konflikt ?? 0;
+    if (konflikt < 50 || kriegMit(w, l.id)) continue;
+    if (rng.next() >= (konflikt - 50) / 300) continue;
+    const plus = 4 + Math.round(rng.next() * 4);
+    landAendern(w, l.id, { konflikt: plus }, t("krieg.k.zwischenfall.notiz"));
+    hinweis(w, `krieg-zwischenfall-${l.id}-${w.day}`, t("krieg.k.zwischenfall.titel", { land: l.name }), [t("krieg.k.zwischenfall.text", { land: l.name, alt: Math.round(konflikt), neu: Math.round(konflikt + plus) })]);
+    addLog(w, "ereignis", t("krieg.k.zwischenfall.log", { land: l.name, plus }), t("krieg.k.zwischenfall.warum"));
   }
 }
 

@@ -93,15 +93,17 @@ describe("Regionale Transportwege",()=>{
     w.day+=21;monat(w);expect(w.spiel!.transport!.depots.SYR!.zielTage).toBe(30);
     expect(w.spiel!.transport!.bilanz!.depots.SYR!.geliefert).toBeGreaterThan(0);
   });
-  test("Kampf zerstört Strecken fortlaufend; Waffenruhe lässt Schäden stehen; Reparatur wirkt einmal",()=>{
+  test("Kampf zerstört Strecken fortlaufend, Pioniere halten dagegen; Reparatur wirkt einmal",()=>{
+    // Je Kampfmonat +15 % Schaden, die Pioniere setzen 10 % instand (PIONIER_INSTANDSETZUNG): netto 5 % je Monat
     const w=welt();const k=krieg(w);monat(w);monat(w);monat(w);
-    expect(w.spiel!.transport!.schaden["front-SYR-27"]).toBeCloseTo(0.45);
+    expect(w.spiel!.transport!.schaden["front-SYR-27"]).toBeCloseTo(0.15);
     k.phase="waffenruhe";
-    expect(transportLage(w).routen.find(r=>r.id==="front-SYR-27")!.schaden).toBeCloseTo(0.45);
+    expect(transportLage(w).routen.find(r=>r.id==="front-SYR-27")!.schaden).toBeCloseTo(0.15);
     expect(transportAktion(w,"reparatur","front-SYR-27").ok).toBe(true);
-    w.day+=13;expect(transportLage(w).routen.find(r=>r.id==="front-SYR-27")!.schaden).toBeCloseTo(0.45);
+    w.day+=13;expect(transportLage(w).routen.find(r=>r.id==="front-SYR-27")!.schaden).toBeCloseTo(0.15);
     w.day++;monat(w);expect(w.spiel!.transport!.schaden["front-SYR-27"]).toBe(0);
-    w.spiel!.transport!.schaden["front-SYR-27"]=0.2;monat(w);expect(w.spiel!.transport!.schaden["front-SYR-27"]).toBe(0.2);
+    // In der Waffenruhe wird nicht mehr gekämpft; die Pioniere bauen weiter ab
+    w.spiel!.transport!.schaden["front-SYR-27"]=0.2;monat(w);expect(w.spiel!.transport!.schaden["front-SYR-27"]).toBeCloseTo(0.1);
   });
   test("Reparatur öffnet keinen vom Gegner gesperrten Weg; Umleitung braucht echten Alternativpfad",()=>{
     const w=welt();krieg(w).bedroht=[27,63];monat(w);

@@ -244,6 +244,9 @@ describe("Erschöpfungsuhr und Anti-Aussitzen", () => {
   test("Stagnation über zwei Wochen untergräbt das Offiziersvertrauen", () => {
     const w = welt();
     const k = imKrieg(w);
+    // Klar unterlegen machen, damit der Rückzug genau das Wochen-Maximum erreicht (auf der gemeinsamen Kräfteskala ist die Türkei
+    // im Normalstand nicht mehr schwächer als Griechenland)
+    for (const id of ["bereitschaft_heer", "bereitschaft_luft", "bereitschaft_see"]) wirke(w, id, -55);
     const vorher = nationalAverage(NET, w.net, "offiziersvertrauen");
     // Zwei Stillstandswochen erzwingen: der Verstärkungs-Schub gleicht den Rückzug exakt aus (Front über 50, damit der Gegenstoß
     // nicht nach GEGNER_OFFENSIVE gedämpft wird)

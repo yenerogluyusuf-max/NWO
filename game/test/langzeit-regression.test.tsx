@@ -6,7 +6,10 @@ import { kosten } from '../src/sim/ereignis-hilfen';
 import { monthlyUpdate } from '../src/sim/economy';
 import { Rng } from '../src/sim/rng';
 import { gueterMonat } from '../src/sim/gueter';
-import { militaerVersorgung } from '../src/sim/versorgung';
+import { militaerVersorgung, warenDeckung } from '../src/sim/versorgung';
+// Seit PRUEFUNG_GESAMT_2026-11-04: Eine Front ohne eigene Buchung zählt mit der Öldeckung des Landes (früher 0, also 25 % Kampfkraft
+// in den ersten Wochen jedes Krieges). Geschützt bleibt: keine fremde oder alte Bilanz, kein Verbrauch beim Lesen.
+const landesdeckung=(w:Parameters<typeof warenDeckung>[0])=>Math.max(0,Math.min(1,warenDeckung(w,'erdoel')));
 import type { KriegVorgang } from '../src/sim/krieg-typen';
 function welt(){const w=createWorld(turkey2026,17);startAfterElection(w,schnellProfil());return w;}
 function front(w:ReturnType<typeof welt>,land='SYR'){
@@ -23,14 +26,14 @@ test('Monatsüberschuss bleibt für das spätere Defizit erhalten',()=>{
  monthlyUpdate(e,[],new Rng(1));
  expect(e.debtRatio).toBe(0);
 });
-test('neue Front erhält keine Gratisversorgung aus einer früheren Friedensbilanz',()=>{
+test('neue Front zählt mit der Landesdeckung, nicht mit einer früheren Friedensbilanz',()=>{
  const w=welt();gueterMonat(w);front(w);
- expect(militaerVersorgung(w,'SYR').treibstoff).toBe(0);
+ expect(militaerVersorgung(w,'SYR').treibstoff).toBeCloseTo(landesdeckung(w),9);
 });
-test('zweite unversorgte Front verschwindet nicht aus der Gesamtversorgung',()=>{
+test('zweite unbelieferte Front verschwindet nicht aus der Gesamtversorgung',()=>{
  const w=welt();front(w);gueterMonat(w);const alt=militaerVersorgung(w).treibstoff;front(w,'IRN');
- expect(militaerVersorgung(w,'IRN').treibstoff).toBe(0);
- expect(militaerVersorgung(w).treibstoff).toBeLessThan(alt);
+ expect(militaerVersorgung(w,'IRN').treibstoff).toBeCloseTo(landesdeckung(w),9);
+ expect(militaerVersorgung(w).treibstoff).toBeLessThanOrEqual(alt+1e-9);
 });
 
 import { afterEach } from 'vitest';
@@ -110,19 +113,21 @@ test('Ereignisvorschau zeigt Kassenentnahme und aktualisiert ihre Finanzierung a
 test('neuer Krieg übernimmt nicht die Verbrauchsbilanz des früheren Einsatzes',()=>{
  const w=welt(),k=front(w);gueterMonat(w);expect(militaerVersorgung(w,'SYR').treibstoff).toBeGreaterThan(0);
  k.phase='beendet';const neu=front(w);neu.id='zweiter-einsatz';
- expect(militaerVersorgung(w,'SYR').treibstoff).toBe(0);
+ // Die alte Bilanz gehört dem früheren Einsatz; der neue zählt bis zur eigenen Buchung mit der Landesdeckung
+ const alteBilanz=w.spiel!.transport!.bilanz!.depots.SYR!;alteBilanz.verbraucht=0;
+ expect(militaerVersorgung(w,'SYR').treibstoff).toBeCloseTo(landesdeckung(w),9);
  expect(load(save(w)).spiel!.transport!.bilanz!.depots.SYR!.kriegId).toBe(k.id);
 });
-test('erste wirkliche Belieferung erhöht Kampfstärke; Lesen verbraucht keine Waren',()=>{
- const w=welt(),k=front(w),leer=eigenStaerke(w,k),vorher=save(w);
- expect(militaerVersorgung(w,'SYR').faktor).toBe(0.25);expect(save(w)).toBe(vorher);
+test('vor der ersten Belieferung zählt die Landesdeckung; Lesen verbraucht keine Waren',()=>{
+ const w=welt(),k=front(w),vorher=save(w);
+ expect(militaerVersorgung(w,'SYR').faktor).toBeCloseTo(0.25+0.75*landesdeckung(w),9);expect(save(w)).toBe(vorher);
+ expect(eigenStaerke(w,k)).toBeGreaterThan(0);
  gueterMonat(w);expect(militaerVersorgung(w,'SYR').treibstoff).toBeGreaterThan(0);
- expect(eigenStaerke(w,k)).toBeGreaterThan(leer);
  const bezahlt=save(w);militaerVersorgung(w);gueterMonat(w);expect(save(w)).toBe(bezahlt);
 });
 test('Waffenruhe zählt mit geringerem Bedarf; abgeschlossene Fronten verschwinden von der Karte',()=>{
  const w=welt();front(w);gueterMonat(w);const k=front(w,'IRN');k.phase='waffenruhe';
- expect(militaerVersorgung(w).treibstoff).toBeCloseTo(1/1.35,6);
+ expect(militaerVersorgung(w).treibstoff).toBeCloseTo((1+0.35*landesdeckung(w))/1.35,6);
  k.phase='beendet';expect(militaerVersorgung(w).treibstoff).toBeCloseTo(1,6);
  expect(transportKartenDaten(w,false,null).knoten.some(k=>k.id==='front:IRN')).toBe(false);
 });

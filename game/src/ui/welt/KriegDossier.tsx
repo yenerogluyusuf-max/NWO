@@ -15,6 +15,10 @@ import {
   gegnerStaerke,
   handlungenFuer,
   kriegMit,
+  kriseEroeffnen,
+  kriseGrund,
+  KRISE_AB,
+  KRISE_PK,
   lagebild,
 } from "../../sim/krieg";
 import { addDays, formatDateDe } from "../../sim/dates";
@@ -36,7 +40,22 @@ function einordnung(eigen: number, gegner: number): string {
 
 export function KriegDossier({ world, landId, refresh }: { world: World; landId: string; refresh: () => void }) {
   const k = kriegMit(world, landId);
-  if (!k) return <Besatzung world={world} onTat={() => refresh()} nurLand={landId} />;
+  if (!k) {
+    // Ohne laufenden Vorgang: erklären, wie ein Konflikt entsteht, und die eigene Krise anbieten (PRUEFUNG_GESAMT_2026-11-04)
+    const grund = kriseGrund(world, landId);
+    return (
+      <section className="kd" aria-label={t("krieg.d.aria", { land: land(landId).name })}>
+        <p className="subtitle">{t("krieg.k.krise.erklaerung", { anlage: KRIEG.anlageAb, ab: KRISE_AB })}</p>
+        <div className="we-aktionen kd-handlungen">
+          <button type="button" className="aktion-knopf" disabled={!!grund} onClick={() => { kriseEroeffnen(world, landId); refresh(); }}>
+            {t("krieg.k.krise.knopf", { pk: KRISE_PK })}
+          </button>
+          {grund && <span>{grund}</span>}
+        </div>
+        <Besatzung world={world} onTat={() => refresh()} nurLand={landId} />
+      </section>
+    );
+  }
   const l = land(landId);
   const handlungen = handlungenFuer(world, k.id);
   const bild = lagebild(world);

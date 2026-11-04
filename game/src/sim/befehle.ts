@@ -732,7 +732,8 @@ function kriegBefehl(t: string, tk: string[], w: World): ChatAntwort | null {
   else if (hatPrefix(tk, "deeskal", "beruhig", "entspann", "entschaerf")) hid = "deeskalation";
   else if (hatPrefix(tk, "rueckzug", "zurueckzieh")) hid = "rueckzug";
   else if (hatPrefix(tk, "angriff", "einmarsch", "invasion", "angreif")) {
-    hid = k.kriegszielDeklariert ? "beschluss" : "ziel_verteidigung";
+    // Wer selbst angreifen will, verteidigt sich nicht: ohne erklärtes Ziel gilt die Rahmung „Schutz“, nicht „Verteidigung“
+    hid = k.kriegszielDeklariert ? "beschluss" : "ziel_schutz";
   }
   if (!hid) {
     return {

@@ -911,6 +911,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               reiter={akteReiter}
               onReiter={setAkteReiter}
               vorgangStart={vorgangStart}
+              onKonflikt={(id) => { setWeltStart(id); setWeltTab("konflikt"); setDossier("welt"); beendeZeit(); }}
             >
             {dossier !== "wirtschaft" && !gruppe?.akte && zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
             {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} onVorgang={zeigeVorgang} />}

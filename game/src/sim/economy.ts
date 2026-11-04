@@ -22,6 +22,14 @@ export const PARAMS = {
   rateTransmissionCap: 15,
   /** Z1: Verzögerung in Monaten */
   rateLagMonths: 6,
+  /**
+   * Z1 (Spielparameter): Ein Schock im Risikoaufschlag verteuert Kredite für Firmen und Haushalte wie ein höherer Zins.
+   * Übertragung 1:1 über denselben Zinskanal (rateOnGap). Gemessen wird gegen einen Anker, der dem Aufschlag mit 3 % je Monat folgt
+   * (rund drei Jahre): Ein dauerhaft hoher Aufschlag ist eingepreist, ein plötzlicher (Krieg, Sanktion) bremst. Ohne diesen Kanal
+   * wuchs die Wirtschaft im Krieg, obwohl der Aufschlag um 300 Basispunkte stieg (PRUEFUNG_GESAMT_2026-11-04).
+   */
+  riskOnRate: 1,
+  riskAnkerTempo: 0.03,
   /** Persistenz der Auslastung pro Monat */
   gapPersistence: 0.92,
   /** Z6: Wirkung zusätzlicher Staatsausgaben (% BIP) auf die Auslastung */
@@ -155,12 +163,16 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   e.outputGap =
     PARAMS.gapPersistence * e.outputGap -
     PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) +
-    PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) +
+    PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) -
+    PARAMS.rateOnGap * PARAMS.riskOnRate * Math.max(0, (e.riskPremium - (e.riskAnker ?? e.riskPremium)) / 100) +
     AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100) -
     AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1) +
     // Runde „Netz atmet“: Die Realwirtschaft der Branchen wirkt auf die Auslastung (0 ohne Netz)
     PARAMS.sektorAufAuslastung * (e.sektorIndex ?? 0) +
     rng.normal(0.25);
+
+  // Der Anker der Finanzierungsbedingungen passt sich langsam an (ältere Spielstände: Start beim heutigen Aufschlag)
+  e.riskAnker = (e.riskAnker ?? e.riskPremium) + PARAMS.riskAnkerTempo * (e.riskPremium - (e.riskAnker ?? e.riskPremium));
 
   // Z5: übermäßige Abwertung der letzten 12 Monate
   const yearAgo = history[history.length - 12];
