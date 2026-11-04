@@ -3,5 +3,7 @@
  "kraenkung.notiz.angriff": "Watched Türkiye attack {opfer}",
  "kraenkung.log": "Observers resent it: {zeugen} stand by {opfer}",
  "kraenkung.warum.sanktion": "Hitting a partner hits its friends too: protectors and allies lose trust.",
- "kraenkung.warum.angriff": "An attack offends the victim's protectors; they will remember."
+ "kraenkung.warum.angriff": "An attack offends the victim's protectors; they will remember.",
+ "karte2d.aria": "Map (simplified)",
+ "karte2d.hinweis": "Simplified map: this device shows no 3D graphics. Provinces and countries can be clicked."
 }

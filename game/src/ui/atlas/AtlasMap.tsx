@@ -19,6 +19,7 @@ import "./karte.css";
 import "./marken.css";
 import "./staedte.css";
 import { StadtFigur } from "./StadtFigur";
+import { Karte2D } from "./Karte2D";
 import { stadtArt, type StadtInfo } from "./staedte";
 import { MarkenForm } from "./MarkenForm";
 import { t } from "../../i18n";
@@ -1331,7 +1332,8 @@ export function AtlasMap({
         })}
       </div>
       {!ready && !fehler && <div className="atlas-loading">{tx("ui2.ui.atlas.AtlasMap.895afa5")}</div>}
-      {fehler && <div className="atlas-loading">{t("ui.atlas.AtlasMap.a1bc044")}</div>}
+      {/* Ohne WebGL: vereinfachte 2D-Karte statt einer leeren Fläche (Vorgabe S) */}
+      {fehler && <Karte2D fill={fill} fillAlpha={fillAlpha} selected={selected} onSelect={onSelect} laenderFarben={laenderFarben} onLand={onLand} />}
       {bezirk ? (
         <div className="atlas-hover bezirk" style={{ left: bezirk.x + 16, top: bezirk.y + 16 }}>
           <strong>{bezirk.info.name}</strong>
