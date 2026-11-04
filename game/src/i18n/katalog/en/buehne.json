@@ -17,7 +17,7 @@
 
   "buehne.stat.zustimmung": "Approval",
   "buehne.stat.kapital": "Political Capital",
-  "buehne.stat.kapitalKurz": "Politics",
+  "buehne.stat.kapitalKurz": "Capital",
   "buehne.stat.inflation": "Inflation",
   "buehne.stat.lira": "Lira per $",
   "buehne.stat.leitzins": "Policy Rate",
@@ -51,7 +51,7 @@
   "buehne.tab.chronik": "Chronicle",
   "buehne.tab.speicher": "Save Game",
   "buehne.tab.bereiche": "Areas",
-  "buehne.tab.heute": "Today",
+  "buehne.tab.heute": "Suggestions",
   "buehne.tab.programme": "Programs",
   "buehne.tab.beschluesse": "Implementation",
   "buehne.tab.wirkungsbericht": "Reports",

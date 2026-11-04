@@ -112,7 +112,7 @@ export function Akte({ bereich, zweck, kernwerte, reiter, start, aktiv, onReiter
           {kernwerte.slice(0, 3).map((k) => (
             <div key={k.label} className={`ak-kernwert${k.ton ? ` ${k.ton}` : ""}${k.anteil !== undefined ? " mit-ring" : ""}`} title={k.hinweis}>
               <dt className="ak-kernwert-label">{k.label}</dt>
-              <dd>{k.anteil !== undefined && <Messring anteil={k.anteil} />}<strong>{k.wert}</strong></dd>
+              <dd>{k.anteil !== undefined && <Messring anteil={k.anteil} />}<strong>{k.wert}</strong>{k.anteil !== undefined && <small className="ak-skala">/ 100</small>}</dd>
               {k.verlauf && k.verlauf.length > 1 && <Funke werte={k.verlauf} breite={96} hoehe={22} />}
             </div>
           ))}

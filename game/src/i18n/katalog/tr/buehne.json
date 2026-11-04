@@ -17,7 +17,7 @@
 
   "buehne.stat.zustimmung": "Halk Desteği",
   "buehne.stat.kapital": "Siyasi Sermaye",
-  "buehne.stat.kapitalKurz": "Siyaset",
+  "buehne.stat.kapitalKurz": "Sermaye",
   "buehne.stat.inflation": "Enflasyon",
   "buehne.stat.lira": "Dolar/TL",
   "buehne.stat.leitzins": "Politika Faizi",
@@ -51,7 +51,7 @@
   "buehne.tab.chronik": "Kronoloji",
   "buehne.tab.speicher": "Oyun Kaydı",
   "buehne.tab.bereiche": "Alanlar",
-  "buehne.tab.heute": "Gündem",
+  "buehne.tab.heute": "Öneriler",
   "buehne.tab.programme": "Programlar",
   "buehne.tab.beschluesse": "Uygulama",
   "buehne.tab.wirkungsbericht": "Raporlar",

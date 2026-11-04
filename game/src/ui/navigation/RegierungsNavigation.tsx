@@ -3,7 +3,7 @@ import { Icon, type IconName } from '../icons';
 import { t } from '../../i18n';
 import './navigation.css';
 export interface NavigationsEintrag {id:string;kurz:string;titel:string;icon:IconName;badge?:number;umlauf?:number}
-const GRUPPEN=[['regieren',['schreibtisch','gesetze','personen']],['land',['wirtschaft','waehler','reich_infra','fokusbaum']],['welt',['welt','streitkraefte','zeitung']]] as const;
+const GRUPPEN=[['regieren',['schreibtisch','politik','gesetze','personen']],['land',['wirtschaft','waehler','reich_infra','fokusbaum']],['welt',['welt','streitkraefte','zeitung']]] as const;
 export function navigationsGruppen<T extends NavigationsEintrag>(eintraege:T[]) {
   return GRUPPEN.map(([id,ids])=>({id,eintraege:ids.flatMap(z=>eintraege.filter(e=>e.id===z))}));
 }

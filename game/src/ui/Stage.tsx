@@ -491,13 +491,22 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       umlauf: umlaufNeu || undefined,
       tabs: [
         { id: "schreibtisch", label: t("buehne.tab.schreibtisch") },
-        { id: "bereiche", label: t("buehne.tab.heute") },
-        { id: "politik", label: t("nav.tab.probleme") },
         { id: "chronik", label: t("buehne.tab.chronik") },
         { id: "wirkungsbericht", label: t("buehne.tab.wirkungsbericht") },
-        { id: "netz", label: t("nav.tab.warum") },
         { id: "speicher", label: t("buehne.tab.speicher") },
         { id: "quellen", label: t("quellen.tab") },
+      ],
+    },
+    // Politik als eigene Gruppe (ENTSCHEIDUNGEN T2: „Politik › Bereiche“ ist der Hauptweg zu jeder Maßnahme). Früher war sie der dritte
+    // Reiter im Schreibtisch und kaum zu finden (PRUEFUNG_GESAMT_2026-11-04).
+    {
+      kurz: t("nav.politik"),
+      titel: t("nav.politikTitel"),
+      icon: "netz",
+      tabs: [
+        { id: "politik", label: t("nav.tab.probleme") },
+        { id: "bereiche", label: t("buehne.tab.heute") },
+        { id: "netz", label: t("nav.tab.warum") },
       ],
     },
     {
@@ -507,7 +516,6 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       // „entscheidungen“ bleibt als Einstieg für Zinssitzung und Erlasse
       tabs: [
         { id: "wirtschaft", label: t("buehne.tab.wirtschaft") },
-        { id: "reich_haushalt", label: t("buehne.tab.haushalt") },
       ],
     },
     {
@@ -542,6 +550,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       tabs: [
         { id: "personen", label: t("buehne.tab.personen") },
         { id: "gespraech", label: t("buehne.tab.gespraech") },
+        // „Verwaltung“ (Sonderrechte, Verwaltungskraft, Baukapazität) gehört zur Exekutive, nicht zur Wirtschaft (PRUEFUNG_GESAMT_2026-11-04)
+        { id: "reich_haushalt", label: t("buehne.tab.haushalt") },
       ],
     },
     {
@@ -920,7 +930,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               vorgangStart={vorgangStart}
               onKonflikt={(id) => { setWeltStart(id); setWeltTab("konflikt"); setDossier("welt"); beendeZeit(); }}
             >
-            {dossier !== "wirtschaft" && !gruppe?.akte && zweckVon(dossier, gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.kurz)}</p>}
+            {/* Zweckzeile je Reiter auch in den Bereichsakten (früher nur ohne Akte; 17 Texte blieben ungesehen, PRUEFUNG_GESAMT_2026-11-04) */}
+            {dossier !== "wirtschaft" && zweckVon(dossier, gruppe?.akte ? undefined : gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.akte ? undefined : gruppe?.kurz)}</p>}
             {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} onVorgang={zeigeVorgang} />}
             {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}

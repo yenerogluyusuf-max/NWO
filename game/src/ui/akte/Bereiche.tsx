@@ -292,7 +292,8 @@ function Zeilen({ zeilen }: { zeilen: LageZeile[] }) {
 }
 
 function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined; onKonflikt?: ((landId: string) => void) | undefined }) {
-  const gruppen = lageZeilen(w, b);
+  // Mit Konfliktlage (Sicherheit) stehen die laufenden Konflikte dort, nicht zusätzlich als Zeilenliste
+  const gruppen = lageZeilen(w, b).filter((g) => !(b === "sicherheit" && onKonflikt && w.spiel && g.kopf === t("akte.b.lage.konflikte")));
   const urteil = lageUrteil(w, b);
   // Die drei Kernwerte stehen schon im Kopf; die Lage zeigt ihre Begründungen nur aufgeklappt.
   const hinweise = kernwerteBereich(w, b).filter((k) => k.hinweis && k.wert !== "—");
@@ -455,7 +456,9 @@ export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, 
         { id: "instrumente", text: t("akte.b.reiter.instrumente"), inhalt: instrumente },
         { id: "verlauf", text: t("akte.b.reiter.verlauf"), inhalt: () => <VerlaufAnsicht w={world} b={bereich} /> },
         { id: "personen", text: t("akte.b.reiter.personen"), inhalt: () => <PersonenListe w={world} aemter={BEREICH_AEMTER[bereich]} /> },
-        { id: "vorgaenge", inhalt: () => <VorgaengePlatz w={world} start={vorgangStart} /> },
+        // Vorgänge (Wohnungsbau aus Zusagen und Katastrophen) nur in der Akte Land, wohin auch alle Sprünge führen. Früher stand dieselbe
+        // ungefilterte Liste in allen neun Akten unter vier Namen (PRUEFUNG_GESAMT_2026-11-04).
+        ...(bereich === "land" ? [{ id: "vorgaenge" as const, inhalt: () => <VorgaengePlatz w={world} start={vorgangStart} /> }] : []),
       ]}
     />
   );

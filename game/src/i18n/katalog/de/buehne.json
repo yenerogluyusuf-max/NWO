@@ -17,7 +17,7 @@
 
   "buehne.stat.zustimmung": "Zustimmung",
   "buehne.stat.kapital": "Politisches Kapital",
-  "buehne.stat.kapitalKurz": "Politik",
+  "buehne.stat.kapitalKurz": "Kapital",
   "buehne.stat.inflation": "Inflation",
   "buehne.stat.lira": "Lira je $",
   "buehne.stat.leitzins": "Leitzins",
@@ -51,7 +51,7 @@
   "buehne.tab.chronik": "Chronik",
   "buehne.tab.speicher": "Spielstand",
   "buehne.tab.bereiche": "Bereiche",
-  "buehne.tab.heute": "Heute",
+  "buehne.tab.heute": "Vorschläge",
   "buehne.tab.programme": "Programme",
   "buehne.tab.beschluesse": "Umsetzung",
   "buehne.tab.wirkungsbericht": "Berichte",

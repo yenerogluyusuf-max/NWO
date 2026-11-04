@@ -152,3 +152,6 @@
  .ak-inhalt .ub-detail{position:static;max-height:none}
 }
 @media(prefers-reduced-motion:reduce){.dossier.dossier--bereich{animation:none}}
+
+/* Skala an Kennzahlen 0–100 (PRUEFUNG_GESAMT_2026-11-04: Werte ohne Maßstab) */
+.ak-skala{font:500 11px var(--sans,Inter,sans-serif);color:#7a8079;margin-left:-4px;align-self:flex-end;padding-bottom:6px}
