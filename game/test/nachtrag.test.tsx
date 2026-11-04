@@ -7,6 +7,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { advance, createWorld, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, type PlayerProfile } from "../src/sim/prolog";
+import { zielZustimmung } from "../src/sim/spiel";
 import { NACHTRAG, parlamentNachtragAntwort, parlamentNachtragBeantwortet, parlamentNachtragFrage, parlamentNachtragPruefen, wahlabend } from "../src/sim/wahl";
 import { Wahlabend } from "../src/ui/wahl/Wahlabend";
 import { ParlamentNachtrag } from "../src/ui/wahl/ParlamentNachtrag";
@@ -35,6 +36,13 @@ function alterStand(seed = 5, monateNachWahl = 2): World {
   const sp = w.spiel!;
   sp.umfrage.zustimmung = 80;
   sp.kalibrierung += 33;
+  // Wie in wahl.test.ts: Die Zustimmung halbjährlich nachhalten, sonst trägt fünf Jahre Nichtstun (Proteste, Putschzirkel, liegengebliebene
+  // Bitten) einzelne Seeds unter die Wiederwahl, und der Test prüft den Nachtrag gar nicht.
+  while (sp.wahltag - w.day > 32 && !sp.ende) {
+    advance(w, Math.min(180, sp.wahltag - w.day - 32));
+    for (let i = 0; i < 3; i++) sp.kalibrierung += 80 - zielZustimmung(w);
+    sp.umfrage.zustimmung = 80;
+  }
   advance(w, sp.wahltag - w.day - 2);
   const parlament = JSON.parse(JSON.stringify(w.parliament));
   const lager = [...sp.lager];
