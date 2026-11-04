@@ -49,6 +49,7 @@ import { KRIEG, kriegMit, kriegMonat, kriegTag } from "./krieg";
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
 import { Rng } from "./rng";
+import { grosseZieleMonat } from "./grosseziele";
 import type { PlayerProfile } from "./prolog";
 import type { World } from "./types";
 import type { EndeArt, SpielZustand, Zusage } from "./spiel-typen";
@@ -405,6 +406,7 @@ function spielMonat(world: World, rng: Rng): void {
   personenMonat(world);
   figurenPruefen(world, rng);
   ueberlaeufer(world);
+  grosseZieleMonat(world);
   ressortNachsorgeTag(world);
   haushaltsMonatsabschluss(world);
   // Amtszeit (sim/amtszeit.ts): ältere Stände nachholen, Umbildungsfenster schließen, in der letzten Amtszeit die Nachfolge

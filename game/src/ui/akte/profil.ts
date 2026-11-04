@@ -20,5 +20,5 @@ export const ZUGANG_ICON:Record<string,IconName>={
   gesetze:"feder",parlament:"parlament",beschluesse:"buch",verfassung:"waage",reich_recht:"tempel",
   personen:"person",gespraech:"sprechblase",streitkraefte:"siegel",reich_militaer:"ziel",welt:"haende",
   reich_infra:"kran",netze:"netz",reich_kultur:"tempel",katastrophe:"beben",fokusbaum:"ziel",
-  wissensbaum:"buch",programme:"akte",zeitung:"zeitung",behoerden:"kuppel",
+  wissensbaum:"buch",programme:"akte",zeitung:"zeitung",behoerden:"kuppel",grosseziele:"tempel",
 };

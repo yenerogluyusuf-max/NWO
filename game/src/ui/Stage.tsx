@@ -39,6 +39,7 @@ import { Cameo } from "./art/Cameo";
 import type { Theme } from "../data/politiknetz";
 import { Corners } from "./art/Ornament";
 import { hinweisZiel } from "./hinweisziel";
+import { GrosseZiele } from "./grosseziele/GrosseZiele";
 import { EventWindow, type GameEvent } from "./EventWindow";
 import { EreignisFenster } from "./EreignisFenster";
 import { Reich } from "./Reich";
@@ -124,6 +125,7 @@ type Dossier =
   | "programme"
   | "wissensbaum"
   | "fokusbaum"
+  | "grosseziele"
   | "welt"
   | "reich_kultur"
   | "reich_recht"
@@ -586,7 +588,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       akte: "wissen",
       titel: t("nav.wissenTitel"),
       icon: "buch",
-      tabs: [{ id: "fokusbaum", label: t("fokus.tab") }, { id: "wissensbaum", label: t("wissen.tab") }, { id: "programme", label: t("buehne.tab.programme") }],
+      tabs: [{ id: "fokusbaum", label: t("fokus.tab") }, { id: "grosseziele", label: t("gz2.ui.tab") }, { id: "wissensbaum", label: t("wissen.tab") }, { id: "programme", label: t("buehne.tab.programme") }],
     },
     {
       kurz: t("nav.medien"),
@@ -893,7 +895,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
 
       {dossier && (
-        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "grosseziele" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           {/* Alle Akten im selben Leder- und Goldrahmen (GESTALTUNG_2026-11-04, G1) */}
           <Corners />
           <header className="dossier-head">
@@ -1063,6 +1065,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             {dossier === "chronik" && <Chronik world={w} />}
             {dossier === "netze" && <Netze world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "fokusbaum" && <Fokusbaum world={w} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
+            {dossier === "grosseziele" && <GrosseZiele world={w} geaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "wissensbaum" && (
               <Wissensbaum
                 key={wissensStart ?? "baum"}

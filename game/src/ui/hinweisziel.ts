@@ -10,6 +10,7 @@ export function hinweisZiel(id: string): Ziel | undefined {
   if (id.startsWith("aussen-") || id.startsWith("vermittlung-")) return { art: "akte", akte: "welt" };
   if (id.startsWith("putsch-") || id.startsWith("mit-")) return { art: "akte", akte: "personen" };
   if (id.startsWith("gesellschaft-")) return { art: "akte", akte: "waehler" };
+  if (id.startsWith("grossziel-")) return { art: "akte", akte: "grosseziele" };
   if (id.startsWith("amtsenthebung-") || id.startsWith("ueberlaeufer-")) return { art: "akte", akte: "parlament" };
   return undefined;
 }
