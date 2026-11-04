@@ -70,7 +70,9 @@ const VERKEHR: Vorhaben[] = [
       stoss("export", 1.5),
       stoss("logistik", 1),
     ],
-    dauer: [stuetze("logistik", 1.2), stuetze("export", 0.8)],
+    // Ein geltender Vertrag hält das Vertrauen der Partner, statt dass der Abschlussstoß in einem halben Jahr verfliegt
+    // (Spielparameter je Monat, ohne Beleg; Rückkehr der Länderdimensionen in sim/laender.ts)
+    dauer: [stuetze("logistik", 1.2), stuetze("export", 0.8), { t: "land", land: "KAZ", dim: "vertrauen", d: 0.2 }, { t: "land", land: "GEO", dim: "vertrauen", d: 0.1 }, { t: "land", land: "AZE", dim: "vertrauen", d: 0.1 }],
     kehrseite: "Jedes Land verlangt einen Preis: Gebühren, Quoten, Zusagen. Russland liest den Korridor als Umgehung, und Moskau wie Peking sind selten zugleich zufrieden.",
     verlierer: "Russland",
     anker: "Spielparameter; das Vorbild ist die Transkaspische Route, die seit 2022 stark an Bedeutung gewann.",
