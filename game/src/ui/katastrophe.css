@@ -37,7 +37,7 @@
 /* Balken */
 .kr-balken { height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.16); overflow: hidden; }
 .kr-balken.gross { height: 13px; border-radius: 6px; }
-.kr-balken i { display: block; height: 100%; background: linear-gradient(90deg, #c9a257, #265a62); }
+.kr-balken i { display: block; height: 100%; background: linear-gradient(90deg, #c9a257, #5d4231); }
 
 /* Bereitschaft */
 .kr-bereit { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 28px; align-items: center; padding: 18px 22px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.75); }
@@ -46,7 +46,7 @@
 .kr-bereit-zahl span { margin-top: 4px; font: 600 12px var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
 .kr-bereit-text { display: grid; gap: 10px; }
 .kr-skala { position: relative; height: 14px; margin: 6px 0 30px; border-radius: 7px; background: rgba(90, 64, 40, 0.16); }
-.kr-skala .fuell { position: absolute; inset: 0 auto 0 0; border-radius: 7px; background: linear-gradient(90deg, #c9a257, #265a62); }
+.kr-skala .fuell { position: absolute; inset: 0 auto 0 0; border-radius: 7px; background: linear-gradient(90deg, #c9a257, #5d4231); }
 .kr-skala .marke { position: absolute; top: -4px; width: 0; height: 22px; border-left: 2px solid var(--ink); }
 .kr-skala .marke em { position: absolute; top: 24px; left: 0; transform: translateX(-50%); font: 600 12px var(--sans); color: var(--ink-soft); white-space: nowrap; font-style: normal; }
 .kr-skala .marke.ref { border-left-style: dashed; border-color: var(--seal); }

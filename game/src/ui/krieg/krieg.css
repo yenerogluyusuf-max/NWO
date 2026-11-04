@@ -35,7 +35,7 @@
 .ks-vergleich { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-size: 13.5px; align-items: center; }
 .ks-vergleich dt { color: var(--ink-soft); }
 .ks-vergleich dd { margin: 0; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-.ks-gut { color: #2f5a2a; }
+.ks-gut { color: #574134; }
 .ks-schlecht { color: #7a2f22; }
 .ks-mini { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
 .ks-mini i { width: 6px; background: rgba(90, 64, 40, 0.55); border-radius: 1px; }

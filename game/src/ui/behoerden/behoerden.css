@@ -10,7 +10,7 @@
 .bh-leitung { display: block; font: 12px/1.3 var(--sans, Inter, sans-serif); color: #6b5a44; margin-top: 2px; }
 .bh-zweck { margin: 6px 0 0; font: 14px/1.45 var(--serif, "EB Garamond", serif); max-width: 62ch; }
 
-.bh-rueck { margin: 10px 0 0; padding: 8px 10px; border-radius: 3px; font: 14px/1.4 var(--serif, "EB Garamond", serif); background: rgba(63, 107, 75, 0.12); border-left: 3px solid #3f6b4b; }
+.bh-rueck { margin: 10px 0 0; padding: 8px 10px; border-radius: 3px; font: 14px/1.4 var(--serif, "EB Garamond", serif); background: rgba(63, 107, 75, 0.12); border-left: 3px solid #6d5446; }
 .bh-rueck.nein { background: rgba(140, 43, 31, 0.1); border-left-color: #8c2b1f; }
 .bh-rueck em { color: #6b5a44; font-style: italic; }
 
@@ -35,7 +35,7 @@
 
 .bh-fuss { margin-top: 12px; display: grid; gap: 10px; }
 .bh-unterhalt { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
-.bh-etat { display: block; font: 12px var(--sans, Inter, sans-serif); color: #4f5f3a; margin-bottom: 4px; }
+.bh-etat { display: block; font: 12px var(--sans, Inter, sans-serif); color: #624c3f; margin-bottom: 4px; }
 .bh-etat.knapp { color: #8a3b2a; }
 .bh-instrument { border-top: 1px dotted rgba(90, 64, 40, 0.3); padding-top: 10px; }
 .bh-instrument b { font: 600 14px var(--serif, "EB Garamond", serif); }
@@ -48,7 +48,7 @@
 .mit-lagebalken span { display: flex; justify-content: space-between; gap: 8px; font: 600 12px var(--sans, Inter, sans-serif); letter-spacing: 0.04em; text-transform: uppercase; color: #6b5a44; }
 .mit-lagebalken span em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--ink, #2b1e12); }
 .mit-lagebalken i { height: 10px; border-radius: 3px; background: rgba(90, 64, 40, 0.14); position: relative; overflow: hidden; }
-.mit-lagebalken i::after { content: ""; position: absolute; inset: 0; width: var(--w, 0%); background: #3f6b4b; }
+.mit-lagebalken i::after { content: ""; position: absolute; inset: 0; width: var(--w, 0%); background: #6d5446; }
 
 .mit-netzkarte h4, .mit-inland h4, .mit-laufend-aussen h4, .mit-bericht h4 { margin: 0 0 8px; font: 600 13px var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: #8c2b1f; }
 .mit-netze { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
@@ -72,7 +72,7 @@
 
 .mit-bericht ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .mit-bericht li { padding-left: 10px; border-left: 3px solid rgba(90, 64, 40, 0.3); font: 13px/1.4 var(--serif, "EB Garamond", serif); }
-.mit-bericht li.ausgang-erfolg { border-left-color: #3f6b4b; }
+.mit-bericht li.ausgang-erfolg { border-left-color: #6d5446; }
 .mit-bericht li.ausgang-aufgedeckt { border-left-color: #8c2b1f; }
 .mit-bericht li.ausgang-fehlschlag { border-left-color: #b98a34; }
 .mit-bericht strong { font-weight: 600; }

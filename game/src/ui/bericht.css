@@ -3,10 +3,10 @@
    Grün = wie beabsichtigt, gestrichelt = Stand beim Beschluss. Keine abgeschnittenen Namen: lange Titel brechen um. */
 
 .ba {
-  --ba-gut: #1f5a44;
+  --ba-gut: #553a2a;
   --ba-schlecht: #8e2a22;
   --ba-gemischt: #8a5d14;
-  --ba-frueh: #265a62;
+  --ba-frueh: #5d4231;
   --ba-still: #6a5a4a;
   container-type: inline-size;
   display: grid;

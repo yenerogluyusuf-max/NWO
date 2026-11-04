@@ -19,12 +19,12 @@
 .ges-milieu header { display: flex; justify-content: space-between; font: 600 16px var(--display, Fraunces, serif); }
 .ges-trend { font: 600 12px var(--sans, Inter, sans-serif); padding: 2px 8px; border-radius: 999px; background: #eee3c8; }
 .ges-trend.steigt { background: #f3d6cf; color: #8c2b1f; }
-.ges-trend.faellt { background: #d9e8dc; color: #2f5d42; }
+.ges-trend.faellt { background: #eae4d7; color: #5a4539; }
 .ges-zeile { display: grid; grid-template-columns: 110px 1fr 34px; gap: 8px; align-items: center; font: 13px var(--sans, Inter, sans-serif); }
 .ges-zeile.breit { grid-template-columns: 130px 1fr 40px; max-width: 520px; }
 .ges-zeile em { font-style: normal; font-weight: 700; text-align: right; }
 .ges-balken { display: block; height: 7px; background: rgba(90, 64, 40, 0.15); border-radius: 4px; overflow: hidden; }
-.ges-balken b { display: block; height: 100%; background: #2f5d62; }
+.ges-balken b { display: block; height: 100%; background: #5f4739; }
 .ges-balken.schlecht b { background: #a8442f; }
 .ges-ursache { margin: 0; font: 12px var(--sans, Inter, sans-serif); color: #6b5a46; }
 .ges-opp-kopf { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: #fbf4e2; border: 1px solid rgba(90, 64, 40, 0.25); padding: 14px; }
@@ -39,7 +39,7 @@
 .ges-instrument header > :not(:first-child) { font: 12px var(--sans, Inter, sans-serif); color: #6b5a44; }
 .ges-instrument ul { margin: 0; padding-left: 18px; font: 13px/1.4 var(--serif, "EB Garamond", serif); }
 .ges-preis { font: 600 12px var(--sans, Inter, sans-serif); color: #6b5a46; white-space: nowrap; }
-.ges-vorschau { margin: 0; font: 600 12px var(--sans, Inter, sans-serif); color: #2f5d62; }
+.ges-vorschau { margin: 0; font: 600 12px var(--sans, Inter, sans-serif); color: #5f4739; }
 .ges-instrument button { justify-self: start; }
 .ges-chronik { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 4px; font: 14px/1.4 var(--serif, "EB Garamond", serif); }
 .ges-chronik time { font: 600 12px var(--sans, Inter, sans-serif); color: #6b5a46; margin-right: 6px; }
@@ -47,7 +47,7 @@
 .ges-strasse { display: grid; gap: 12px; }
 .ges-bewegung { background: #fbf4e2; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 5px solid #b98a34; padding: 12px 14px; display: grid; gap: 10px; }
 .ges-bewegung.phase-massen { border-left-color: #8c2b1f; }
-.ges-bewegung.phase-abklingend { border-left-color: #2f5d62; }
+.ges-bewegung.phase-abklingend { border-left-color: #5f4739; }
 .ges-bewegung h3 { margin: 2px 0; font: 600 20px var(--display, Fraunces, serif); }
 .ges-drei { display: grid; gap: 6px; max-width: 560px; }
 .ges-antworten { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
@@ -60,7 +60,7 @@
 .ges-region h4 { margin: 10px 0 4px; font: 600 15px var(--display, Fraunces, serif); }
 .ges-rathaeuser { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
 .ges-rathaus { display: grid; grid-template-columns: 1fr auto; gap: 2px 6px; padding: 6px 8px; background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.25); font: 13px var(--sans, Inter, sans-serif); }
-.ges-rathaus.lager { border-left: 4px solid #2f5d62; }
+.ges-rathaus.lager { border-left: 4px solid #5f4739; }
 .ges-rathaus.verwalter { border-left: 4px solid #8c2b1f; background: #f8e6df; }
 .ges-rathaus .name { font-weight: 600; }
 .ges-rathaus .partei { color: #6b5a46; }

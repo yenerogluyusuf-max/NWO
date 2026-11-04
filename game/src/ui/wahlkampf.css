@@ -4,7 +4,7 @@
 .kampf-root h3 { margin: 0 0 6px; font: 700 17px var(--serif); }
 .kampf-unter { margin: 4px 0 8px; font-size: 13px; line-height: 1.45; color: #6b5636; }
 .kampf-klein { font-size: 12px; color: #8a744f; }
-.kampf-root .gut { color: #265a62; }
+.kampf-root .gut { color: #5d4231; }
 .kampf-root .schlecht { color: var(--seal); }
 
 /* Wartezustand außerhalb der Phase */
@@ -73,7 +73,7 @@
 .kampf-v-text { display: flex; flex-direction: column; gap: 2px; }
 .kampf-v-text span { font-size: 12.5px; color: #6b5636; font-style: italic; }
 .kampf-v-text em { font: 500 12px var(--sans); color: #8a744f; font-style: normal; }
-.kampf-v-gegeben { font: 600 12px var(--sans); color: #265a62; white-space: nowrap; }
+.kampf-v-gegeben { font: 600 12px var(--sans); color: #5d4231; white-space: nowrap; }
 
 @media (max-width: 1100px) {
   .kampf-grid { grid-template-columns: 1fr; }
@@ -85,7 +85,7 @@
 .dossier .kampf-root h3 { margin: 0 0 8px; font: 650 22px/1.25 var(--display); }
 .dossier .kampf-unter { margin: 4px 0 12px; font: 16px/1.5 var(--serif); color: var(--pd-soft); }
 .dossier .kampf-klein { font: 600 13px var(--sans); color: var(--pd-soft); }
-.dossier .kampf-root .gut { color: #1d5a3d; }
+.dossier .kampf-root .gut { color: #553828; }
 .dossier .kampf-root .schlecht { color: #8a2d26; }
 
 .dossier .kampf-warte { max-width: 760px; padding: 26px 30px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
@@ -136,7 +136,7 @@
 .dossier .kampf-v-text strong { font: 650 18px/1.25 var(--display); }
 .dossier .kampf-v-text span { font: 16px/1.45 var(--serif); font-style: normal; color: var(--pd-ink); }
 .dossier .kampf-v-text em { font: 600 13.5px/1.4 var(--sans); color: var(--pd-soft); }
-.dossier .kampf-v-gegeben { padding: 0 12px; border: 1px solid rgba(38, 90, 98, 0.5); border-radius: 999px; font: 700 12px/22px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: #1d4c54; background: rgba(38, 90, 98, 0.1); }
+.dossier .kampf-v-gegeben { padding: 0 12px; border: 1px solid rgba(38, 90, 98, 0.5); border-radius: 999px; font: 700 12px/22px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: #503627; background: rgba(38, 90, 98, 0.1); }
 
 @media (max-width: 1100px) {
   .dossier .kampf-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
@@ -144,7 +144,7 @@
 @media (prefers-reduced-motion: reduce) { .dossier .kampf-prov { transition: none; } }
 
 /* Nachfolger-Wahlkampf (letzte Amtszeit): Banner und Auftritte */
-.kampf-nachfolger { padding: 10px 14px; background: rgba(38, 90, 98, 0.08); border: 1px solid rgba(38, 90, 98, 0.35); border-left: 4px solid #265a62; border-radius: 6px; }
+.kampf-nachfolger { padding: 10px 14px; background: rgba(38, 90, 98, 0.08); border: 1px solid rgba(38, 90, 98, 0.35); border-left: 4px solid #5d4231; border-radius: 6px; }
 .kampf-nachfolger h3 { margin: 0 0 4px; }
 .kampf-auftritte { padding-bottom: 4px; }
 
@@ -155,7 +155,7 @@
 .kampf-entscheid { min-width: 0; padding: 18px; border: 1px solid var(--pd-line); border-radius: 12px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink, #302d25); overflow-wrap: anywhere; }
 .kampf-entscheid header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--pd-line); padding-bottom: 12px; }
 .kampf-entscheid h4 { font: 650 21px/1.2 var(--display, var(--serif)); margin: 3px 0; }
-.kampf-entscheid header > strong { color: #245648; font: 750 15px var(--sans); }
+.kampf-entscheid header > strong { color: #523b2e; font: 750 15px var(--sans); }
 .kampf-entscheid p { font: 15px/1.5 var(--serif); margin: 10px 0; }
 .kampf-entscheid .kampf-hinweis { font: 13px/1.5 var(--sans); color: var(--pd-soft); }
 .kampf-ausgaenge { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
@@ -165,7 +165,7 @@
 .kampf-tourplaene { display: grid; gap: 12px; }
 .kampf-entscheid summary { cursor: pointer; font: 650 13px/1.5 var(--sans); color: var(--pd-bad, #8a2d26); }
 .kampf-entscheid .pd-btn { white-space: normal; min-height: 42px; max-width: 100%; }
-.kampf-entscheid :is(button, summary):focus-visible, .kampf-reiseziel select:focus-visible { outline: 3px solid var(--pd-teal, #245648); outline-offset: 3px; }
+.kampf-entscheid :is(button, summary):focus-visible, .kampf-reiseziel select:focus-visible { outline: 3px solid var(--pd-teal, #523b2e); outline-offset: 3px; }
 @container wahlkampf (max-width: 850px) {
   .kampf-grid, .dossier .kampf-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
@@ -182,16 +182,16 @@
 /* Erst das politische Versprechen wählen, dann eine einzige Verpflichtung prüfen. */
 .kampf-versprechen-auswahl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 14px 0; }
 .kampf-versprechen-auswahl button { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--pd-line); border-radius: 10px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink); text-align: left; cursor: pointer; min-width: 0; overflow-wrap: anywhere; font: 15px/1.4 var(--sans); }
-.kampf-versprechen-auswahl button[aria-pressed=true] { background: #254d3e; color: #fffaf0; border-color: #254d3e; }
+.kampf-versprechen-auswahl button[aria-pressed=true] { background: #4b382d; color: #fffaf0; border-color: #4b382d; }
 .kampf-versprechen-auswahl small { margin-top: auto; font-size: 12px; }
 .kampf-versprechen-auswahl span { font-size: 13px; }
-.kampf-versprechen-auswahl button:focus-visible { outline: 3px solid var(--pd-teal, #245648); outline-offset: 3px; }
+.kampf-versprechen-auswahl button:focus-visible { outline: 3px solid var(--pd-teal, #523b2e); outline-offset: 3px; }
 .kampf-versprechen-fakten { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 14px 0; margin: 0; }
 .kampf-versprechen-fakten dt { font: 600 12px/1.5 var(--sans); color: var(--pd-soft); }
 .kampf-versprechen-fakten dd { margin: 5px 0 0; font: 650 16px/1.5 var(--sans); }
 .kampf-versprechen-plan h5 { margin: 16px 0 4px; font: 650 16px var(--serif); }
 .kampf-verpflichtung { border-top: 1px solid var(--pd-line); margin-top: 16px; padding-top: 12px; }
-.kampf-verpflichtung summary { color: #245648; }
+.kampf-verpflichtung summary { color: #523b2e; }
 .kampf-plan-links { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 12px 0; }
 @container wahlkampf (max-width: 760px) { .kampf-versprechen-auswahl { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @container wahlkampf (max-width: 420px) { .kampf-versprechen-auswahl, .kampf-versprechen-fakten { grid-template-columns: minmax(0,1fr); } }

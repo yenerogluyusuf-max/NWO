@@ -19,5 +19,5 @@
 .wi-hh .ub-wert { max-width:100%; flex-shrink:1; overflow-wrap:anywhere; }
 .wi-hh .ub-zeile { white-space:normal; overflow-wrap:anywhere; }
 @container (max-width:560px) { .hm-wege { grid-template-columns:minmax(0,1fr); }.hm-wege>article,.hm-fraktion { padding:12px; } }
-.hm-wege>.ek-entscheidung{margin:0}.hm-wege .ek-entscheidung>header h4{font-size:24px;margin:6px 0 9px}.hm-wege .ek-entscheidung>header{background:#eef1e8}.hm .ek-fakten dd{font-size:22px}
+.hm-wege>.ek-entscheidung{margin:0}.hm-wege .ek-entscheidung>header h4{font-size:24px;margin:6px 0 9px}.hm-wege .ek-entscheidung>header{background:#f2efe7}.hm .ek-fakten dd{font-size:22px}
 @container(max-width:1000px){.hm-wege{grid-template-columns:minmax(0,1fr)}}

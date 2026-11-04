@@ -6,7 +6,7 @@
 .par-prognose-zahlen div { display:grid; gap:3px; }
 .par-prognose-zahlen div span { font:13px/1.4 var(--sans); color:var(--pd-soft); }
 .par-prognose-zahlen strong { font:600 30px/1.1 var(--display); font-variant-numeric:tabular-nums; }
-.par-prognose .fehlt { color:#8a2d26; }.par-prognose .reicht { color:#1d5a3d; }
+.par-prognose .fehlt { color:#8a2d26; }.par-prognose .reicht { color:#553828; }
 .par-prognose-zahlen p { margin:0; font:15px/1.4 var(--serif); }
 .par-prognose-pfeil { color:var(--pd-soft); }
 .par-prognose-fristen { margin-top:12px; padding-top:12px; border-top:1px solid var(--pd-line); font:14px/1.5 var(--sans); }

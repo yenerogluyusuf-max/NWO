@@ -12,7 +12,7 @@
 .par-mitte { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); width: 38%; display: grid; justify-items: center; text-align: center; pointer-events: none; }
 .par-mitte-inhalt { display: grid; justify-items: center; line-height: 1.05; gap: 2px; }
 .par-mitte-inhalt strong { font: 650 clamp(16px, 8.2cqw, 56px)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
-.par-mitte-inhalt strong.gut { color: #1e6a4f; }
+.par-mitte-inhalt strong.gut { color: #63402b; }
 .par-mitte-inhalt strong.schlecht { color: var(--seal); }
 .par-mitte-inhalt span { display: grid; font: italic clamp(12px, 2.6cqw, 15px)/1.25 var(--serif); color: var(--ink-soft); }
 .par-mitte-inhalt span em { font-size: 0.92em; }
@@ -70,7 +70,7 @@
 .par-letzte ul { list-style: none; margin: 0; padding: 0; display: grid; }
 .par-letzte li { display: grid; grid-template-columns: 118px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(60, 40, 20, 0.14); }
 .par-l-stempel { justify-self: start; padding: 1px 8px; font: 700 12px var(--display); letter-spacing: 0.1em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 3px; transform: rotate(-2deg); }
-.par-letzte li.ja .par-l-stempel { color: #1e6a4f; }
+.par-letzte li.ja .par-l-stempel { color: #63402b; }
 .par-letzte li.nein .par-l-stempel { color: var(--seal); }
 .par-l-name { display: grid; line-height: 1.25; font: 15px var(--serif); }
 .par-l-name em { font-size: 13px; color: var(--ink-soft); }
@@ -133,7 +133,7 @@
 .par-rechts { min-width: 0; }
 .par-sitzplan { margin-top: 0; }
 .par-mitte-inhalt span { font-style: normal; color: var(--pd-soft); }
-.par-mitte-inhalt strong.gut { color: #1d5a3d; }
+.par-mitte-inhalt strong.gut { color: #553828; }
 .par-mitte-inhalt strong.schlecht { color: #8a2d26; }
 
 /* Reiter der Ansicht */
@@ -159,7 +159,7 @@
 .par-fraktionen li.on { background: rgba(251, 240, 201, 0.7); }
 .par-fraktionen li.leise { opacity: 0.6; }
 .par-name em { font: 700 12px/1.3 var(--sans); font-style: normal; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pd-soft); }
-.rolle-lager .par-name em, .rolle-eigene .par-name em { color: #1d4c54; }
+.rolle-lager .par-name em, .rolle-eigene .par-name em { color: #503627; }
 .rolle-opposition .par-name em { color: #8a2d26; }
 .par-stark { height: 8px; }
 .par-fraktionen b { font: 700 17px var(--sans); }
@@ -170,7 +170,7 @@
 .par-letzte h4 { margin: 14px 0 8px; font: 650 20px var(--display); letter-spacing: 0; text-transform: none; color: var(--pd-ink); }
 .par-letzte li { grid-template-columns: 132px minmax(0, 1fr) auto; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--pd-line); }
 .par-l-stempel { padding: 0 10px; font: 700 12px/22px var(--sans); letter-spacing: 0.08em; transform: none; border-width: 1.5px; border-radius: 999px; text-align: center; }
-.par-letzte li.ja .par-l-stempel { color: #1d5a3d; background: rgba(60, 138, 99, 0.1); }
+.par-letzte li.ja .par-l-stempel { color: #553828; background: rgba(60, 138, 99, 0.1); }
 .par-letzte li.nein .par-l-stempel { color: #8a2d26; background: rgba(168, 58, 50, 0.08); }
 .par-l-name { font: 17px/1.3 var(--serif); }
 .par-l-name em { font: 14.5px var(--serif); font-style: normal; color: var(--pd-soft); }
@@ -194,7 +194,7 @@
 .dossier .fraktion-kopf strong { font: 650 20px var(--display); }
 .dossier .fraktion-sitze { font: 600 14px var(--sans); color: var(--pd-soft); }
 .dossier .fraktion-status { margin-left: auto; padding: 0 10px; border: 1px solid var(--pd-line-strong); border-radius: 999px; font: 700 12px/22px var(--sans); letter-spacing: 0.08em; color: var(--pd-soft); background: rgba(90, 64, 40, 0.07); white-space: nowrap; }
-.dossier .fraktion.status-lager .fraktion-status { color: #1d4c54; border-color: rgba(38, 90, 98, 0.5); background: rgba(38, 90, 98, 0.1); }
+.dossier .fraktion.status-lager .fraktion-status { color: #503627; border-color: rgba(38, 90, 98, 0.5); background: rgba(38, 90, 98, 0.1); }
 .dossier .fraktion.status-duldung .fraktion-status { color: #6f4f0c; border-color: rgba(167, 122, 20, 0.55); background: rgba(214, 170, 70, 0.22); }
 .dossier .fraktion.status-opposition .fraktion-status { color: #8a2d26; border-color: rgba(168, 58, 50, 0.45); background: rgba(168, 58, 50, 0.08); }
 .dossier .fraktion-info { gap: 6px 18px; }
@@ -205,12 +205,12 @@
 .dossier .fraktion-aktionen { gap: 10px; margin-top: 2px; }
 .dossier .fraktion{container:fraktionskarte / inline-size;min-width:0}
 .fraktion-abkommen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:5px;overflow-wrap:anywhere}
-.fraktion-abkommen>article{display:flex;flex-direction:column;gap:9px;padding:14px;border:1px solid #ccd5c0;border-radius:9px;background:#f6f7ed;color:#304a3b;min-width:0}
+.fraktion-abkommen>article{display:flex;flex-direction:column;gap:9px;padding:14px;border:1px solid #ccd5c0;border-radius:9px;background:#f6f7ed;color:#4e3c32;min-width:0}
 .fraktion-abkommen h4{margin:0;font:600 21px/1.2 var(--display,Georgia,serif)}.fraktion-abkommen p{margin:0;font:12px/1.6 var(--sans,sans-serif)}
 .fraktion-abkommen .fa-preis{font-weight:600;color:#5e724d;font-variant-numeric:tabular-nums}.fraktion-abkommen .fa-hinweis{font-size:11px;color:#69795f}
 .fraktion-abkommen>.fa-hinweis{grid-column:1/-1}
 .fa-vorsitz{padding-top:10px;border-top:1px solid #d7decc;font:12px/1.6 var(--sans,sans-serif)}.fa-vorsitz p{margin-top:5px}
-.fa-ziel{grid-column:1/-1;padding:12px;border-left:3px solid #53765d;background:#eaf0e3;border-radius:0 6px 6px 0;font:12px/1.5 var(--sans,sans-serif)}
+.fa-ziel{grid-column:1/-1;padding:12px;border-left:3px solid #53765d;background:#f0ece3;border-radius:0 6px 6px 0;font:12px/1.5 var(--sans,sans-serif)}
 .fa-ziel dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:8px 0}
 .fa-ziel dt{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#5e724d}.fa-ziel dd{margin:3px 0;font-weight:600}
 @container fraktionskarte (max-width:340px){.fa-ziel dl{grid-template-columns:minmax(0,1fr)}}
@@ -223,15 +223,15 @@
 .dossier .gesetz-liste .offen-kopf strong { display: block; font: 650 20px/1.25 var(--display); }
 .dossier .gesetz-liste .offen-kopf .subtitle { margin: 2px 0 0; font: 15.5px/1.4 var(--serif); color: var(--pd-soft); }
 .dossier .stimmen-bar { height: 12px; margin: 4px 0; border-radius: 6px; background: rgba(90, 64, 40, 0.16); }
-.dossier .stimmen-ja { background: linear-gradient(90deg, #265a62, #3d7f88); }
+.dossier .stimmen-ja { background: linear-gradient(90deg, #5d4231, #3d7f88); }
 .dossier .stimmen-marke { top: -5px; bottom: -5px; background: var(--seal); }
 .dossier .stimmen-zeile { gap: 6px 16px; font: 16px/1.4 var(--serif); color: var(--pd-ink); }
 .dossier .stimmen-zeile strong { font: 700 17px var(--sans); }
 .dossier .stimmen-urteil { padding: 0 10px; border: 1px solid var(--pd-line-strong); border-radius: 999px; font: 700 12.5px/22px var(--sans); white-space: nowrap; }
-.dossier .stimmen-urteil.urteil-sicher { color: #1d5a3d; border-color: rgba(60, 138, 99, 0.5); background: rgba(60, 138, 99, 0.12); }
+.dossier .stimmen-urteil.urteil-sicher { color: #553828; border-color: rgba(60, 138, 99, 0.5); background: rgba(60, 138, 99, 0.12); }
 .dossier .stimmen-urteil.urteil-knapp { color: #6f4f0c; border-color: rgba(167, 122, 20, 0.55); background: rgba(214, 170, 70, 0.2); }
 .dossier .stimmen-urteil.urteil-verloren { color: #8a2d26; border-color: rgba(168, 58, 50, 0.45); background: rgba(168, 58, 50, 0.09); }
-.dossier .stimmen-sach { font: 15.5px/1.4 var(--serif); font-style: normal; color: #1d4c54; }
+.dossier .stimmen-sach { font: 15.5px/1.4 var(--serif); font-style: normal; color: #503627; }
 .dossier .stimmen-steuerung { gap: 10px; margin-top: 2px; }
 .dossier .stimmen-steuerung .weg-warnung { font: 15.5px/1.4 var(--serif); font-style: normal; color: #8a2d26; }
 

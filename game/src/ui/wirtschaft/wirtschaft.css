@@ -269,7 +269,7 @@
 .dossier .wi-akte .kicker { margin: 0 0 4px; font: 700 12px/1.2 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; font-variant: normal; color: var(--pd-soft); }
 .dossier .wi-hinweis { margin: 4px 0 12px; font: 16px/1.5 var(--serif); color: var(--pd-soft); }
 .dossier .wi-grund { font: 15px var(--serif); font-style: normal; color: #8a2d26; }
-.dossier .wi-gut { color: #1d5a3d; }
+.dossier .wi-gut { color: #553828; }
 .dossier .wi-schlecht { color: #8a2d26; }
 .dossier .wi-neutral { color: var(--pd-soft); }
 
@@ -386,7 +386,7 @@
 .dossier .wi-plan-wert { font: 700 14.5px var(--sans); }
 .dossier .wi-plan-live { font: 700 13px var(--sans); }
 .dossier .wi-mehr { color: #8a2d26; }
-.dossier .wi-weniger { color: #1d5a3d; }
+.dossier .wi-weniger { color: #553828; }
 .dossier .wi-quelle { font: 14px/1.5 var(--serif); color: var(--pd-soft); }
 .dossier .wi-posten { gap: 12px; }
 .dossier .wi-posten-zeile { gap: 8px; padding: 16px 18px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card-hell); }

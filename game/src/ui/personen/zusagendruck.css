@@ -9,4 +9,4 @@
 .zd ul { margin:8px 0; padding-left:18px; } .zd li { margin:6px 0; } .zd time { display:block; color:var(--ink-soft,#685c4d); }
 .zd .zd-hinweis { font-size:12px; color:var(--ink-soft,#685c4d); }
 .zd-handeln { display:inline-block; max-width:100%; min-height:36px; white-space:normal; padding:6px 10px; border:1px solid #a5906a; border-radius:4px; background:var(--paper-light,#fbf6e6); color:inherit; font:600 12px/1.5 var(--sans,Inter,sans-serif); cursor:pointer; }
-.zd-handeln:focus-visible,.zd summary:focus-visible { outline:2px solid var(--teal,#2f5d62); outline-offset:3px; }
+.zd-handeln:focus-visible,.zd summary:focus-visible { outline:2px solid var(--teal,#5f4739); outline-offset:3px; }

@@ -46,7 +46,7 @@
 }
 
 /* Sichern-Knopf in der Kopfleiste: Erfolg grün-golden (kurz), Fehler deutlich rot und bleibend, bis ein Sichern gelingt */
-.hud-speichern.frisch { border-color: rgba(150, 200, 120, 0.95); color: #e4f5d6; background: linear-gradient(180deg, #3d5530, #22331b); }
+.hud-speichern.frisch { border-color: rgba(150, 200, 120, 0.95); color: #f4ebd7; background: linear-gradient(180deg, #554236, #322720); }
 .hud-speichern.fehler { border-color: #e0705c; color: #ffe9e3; background: linear-gradient(180deg, #86301f, #52160d); box-shadow: 0 0 0 1px rgba(224, 112, 92, 0.5), 0 2px 8px rgba(0, 0, 0, 0.5); }
 .hud-speichern.fehler:hover { background: linear-gradient(180deg, #9c3924, #5e1a10); }
 

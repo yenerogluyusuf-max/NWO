@@ -1,12 +1,12 @@
 /* Politische Alternativen: Stimmen, Zugeständnisse und Preis auf derselben Karte. */
-.mw-beratung{margin:26px 0;color:#294538;overflow-wrap:anywhere}
+.mw-beratung{margin:26px 0;color:#46362d;overflow-wrap:anywhere}
 .mw-beratung *{box-sizing:border-box}
 .mw-kicker{font:600 10px var(--sans,sans-serif);letter-spacing:1.5px;text-transform:uppercase;color:#806943}
 .mw-beratung h5{font:500 26px/1.15 var(--display,Georgia,serif);margin:6px 0 8px}
 .mw-beratung>header>p,.mw-hinweis,.mw-leer{font:12px/1.65 var(--sans,sans-serif);color:#65715d}
 .mw-wege{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}
-.mw-weg{min-width:0;border:1px solid #c4cfb8;border-radius:12px;overflow:hidden;background:#fffdf6;box-shadow:0 3px 12px #233b2a07}
-.mw-weg>header{display:flex;gap:12px;align-items:center;padding:17px 18px;background:#e7eddf;border-bottom:1px solid #d4dcc9}
+.mw-weg{min-width:0;border:1px solid #c4cfb8;border-radius:12px;overflow:hidden;background:#fffdf6;box-shadow:0 3px 12px #3c2e2607}
+.mw-weg>header{display:flex;gap:12px;align-items:center;padding:17px 18px;background:#eee9de;border-bottom:1px solid #d4dcc9}
 .mw-nummer{font:400 26px var(--display,Georgia,serif);color:#8d794f;flex-shrink:0}
 .mw-weg h6{font:500 20px/1.25 var(--display,Georgia,serif);margin:0}
 .mw-weg>header>div:nth-child(2){flex:1;min-width:0}
@@ -20,24 +20,24 @@
 .mw-gewinne>p{margin:4px 0;font-weight:600}.mw-gewinne>p.rg-minus{font-size:11px;font-weight:400}
 .mw-schritte{list-style:none;margin:14px 0;padding:0;display:grid;gap:7px}
 .mw-schritte>li{display:flex;gap:9px;align-items:baseline}.mw-schritte>li>span{color:#7f895f;width:13px;flex-shrink:0}
-.mw-kosten{display:grid;grid-template-columns:1fr 1.4fr;gap:15px;padding:13px 0;margin:0;border-top:1px solid #dfe3d5;border-bottom:1px solid #dfe3d5}
+.mw-kosten{display:grid;grid-template-columns:1fr 1.4fr;gap:15px;padding:13px 0;margin:0;border-top:1px solid #e7e0d2;border-bottom:1px solid #e7e0d2}
 .mw-kosten dt{font-size:10px;color:#738067}.mw-kosten dd{margin:2px 0 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
 .mw-kosten small{display:block;font-size:10px;font-weight:400;color:#7d6b4b}
 .mw-zeit{font-size:11px;color:#647359;margin:12px 0}
 .mw-warnung{font:11px/1.65 var(--sans,sans-serif);padding:9px 11px;border-left:3px solid #bc9452;background:#f5ecd8;color:#79592f}
 .mw-unvollstaendig>header{background:#f1e9d8}.mw-unvollstaendig>header p{color:#875c30}
-.mw-politik{border:1px solid #d4dfc8;border-radius:8px;background:#eff3e7;padding:11px 12px;margin:14px 0;color:#506346}
+.mw-politik{border:1px solid #d4dfc8;border-radius:8px;background:#f3efe7;padding:11px 12px;margin:14px 0;color:#6c5445}
 .mw-politik.mw-konflikt{background:#f7eee0;border-color:#dfcda9;color:#7c5934}
 .mw-politik>b{font-size:11px}.mw-politik p{font-size:11px;margin:5px 0}
 .mw-politik small{display:block;font-size:11px}.mw-politik details{margin-top:9px;border-top:1px solid #8f8b6940;padding-top:9px}
 .mw-politik summary{cursor:pointer;font-size:11px}.mw-politik details>p{margin-top:9px}
 .mw-fraktionen{list-style:none;padding:0;margin:12px 0}
-.mw-fraktionen li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:10px 0;border-top:1px solid #8f8b6930;color:#425839}
+.mw-fraktionen li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:10px 0;border-top:1px solid #8f8b6930;color:#5d483b}
 .mw-fraktionen li>div>span{display:block;font-size:10px;color:#6d765e}.mw-fraktionen li>strong{font-variant-numeric:tabular-nums}
 .mw-fraktionen li>p{grid-column:1/-1;margin:0}.mw-zusagen{border-top:1px solid #8f8b6940;padding-top:7px}
 .mw-zusagen p{line-height:1.7}.mw-zusagen b{display:block;margin-top:8px}
-.rg-mandat .mw-uebernehmen{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;border:1px solid #31593d;border-radius:7px;background:#2f553f;color:#fff9e9;padding:11px 12px;font:600 12px/1.5 var(--sans,sans-serif);cursor:pointer;text-align:left;white-space:normal}
-.rg-mandat .mw-uebernehmen:hover{background:#1c3e2b}.mw-uebernehmen>span{font-weight:400;font-size:10px;flex-shrink:0}
+.rg-mandat .mw-uebernehmen{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;border:1px solid #584439;border-radius:7px;background:#554136;color:#fff9e9;padding:11px 12px;font:600 12px/1.5 var(--sans,sans-serif);cursor:pointer;text-align:left;white-space:normal}
+.rg-mandat .mw-uebernehmen:hover{background:#3c2c23}.mw-uebernehmen>span{font-weight:400;font-size:10px;flex-shrink:0}
 .mw-hinweis{margin:14px 0 0;font-size:11px}
 @container versorgungsmandat (min-width:1050px){.mw-wege{grid-template-columns:repeat(3,minmax(0,1fr))}.mw-weg{display:flex;flex-direction:column}.mw-weg-body{display:flex;flex-direction:column;flex:1}.mw-uebernehmen{margin-top:auto}}
 @container versorgungsmandat (max-width:420px){.mw-weg>header{padding:13px;gap:8px}.mw-nummer{display:none}.mw-weg h6{font-size:19px}.mw-weg-body{padding:13px}.mw-kosten{grid-template-columns:1fr;gap:8px}.mw-kosten>div{display:flex;justify-content:space-between;gap:9px}.mw-kosten dd{text-align:right}.mw-politik{padding:10px}.mw-ergebnis>b{font-size:31px}}

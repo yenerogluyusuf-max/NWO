@@ -50,7 +50,7 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 /* Mehrheit: Balken statt Doppeltext; Lager blaugrün, Duldung gold, Rest dunkel, Strich an der Schwelle */
 .kf-mehrheit { position: relative; display: flex; width: 64px; height: 6px; margin-top: 2px; border-radius: 3px; overflow: visible; background: rgba(0, 0, 0, 0.45); box-shadow: inset 0 0 0 1px rgba(217, 180, 106, 0.28); }
 .kf-mehrheit i { display: block; height: 100%; }
-.kf-mh-lager { background: linear-gradient(180deg, #6fb3b0, #2f7470); border-radius: 3px 0 0 3px; }
+.kf-mh-lager { background: linear-gradient(180deg, #6fb3b0, #6f4f3c); border-radius: 3px 0 0 3px; }
 .kf-mh-duldung { background: linear-gradient(180deg, #e3c27a, #a88437); }
 .kf-mh-schwelle { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #f4e6c4; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }
 .kf-parlament.warn .kf-mh-lager { background: linear-gradient(180deg, #d98a74, #8f3a2a); }

@@ -36,7 +36,7 @@
 .sk-kopf h4 { margin: 0; font: 600 16px/1.25 var(--display); }
 .sk-zahl { font: 700 18px var(--serif); font-variant-numeric: tabular-nums; }
 .sk-reihe { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13.5px; }
-.sk-plus { color: #2f5a2a; }
+.sk-plus { color: #574134; }
 .sk-minus { color: #7a2f22; }
 .sk-gen { display: inline-flex; gap: 3px; }
 .sk-gen i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(90, 64, 40, 0.6); }

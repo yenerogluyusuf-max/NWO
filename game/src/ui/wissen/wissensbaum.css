@@ -17,7 +17,7 @@
 .wb-oeffnen {
   display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; cursor: pointer;
   font: 600 15px var(--display); padding: 10px 16px; border-radius: 4px;
-  color: #f4e7c4; background: linear-gradient(180deg, #1f3554, #132238); border: 1px solid #b8964c;
+  color: #f4e7c4; background: linear-gradient(180deg, #503729, #35241a); border: 1px solid #b8964c;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25) inset, 0 2px 6px rgba(20, 30, 50, 0.3);
 }
 .wb-oeffnen:hover { border-color: #e2c27a; color: #fff6dc; }
@@ -43,10 +43,10 @@
 
 /* ---------- Baumfenster ---------- */
 .wbf {
-  --nacht: #0c1626; --nacht-2: #13223a; --nacht-3: #1b2f4d; --gold: #d4b062; --gold-hell: #f2d88e; --perg: #f1e6c8; --perg-leise: #a9b3c4;
-  --siegel: #b8463a; --blau-hell: #cfe0f4;
+  --nacht: #241811; --nacht-2: #37251a; --nacht-3: #493224; --gold: #d4b062; --gold-hell: #f2d88e; --perg: #f1e6c8; --perg-leise: #a9b3c4;
+  --siegel: #b8463a; --blau-hell: #f2e8d1;
   position: fixed; inset: 0; z-index: 4000; display: flex; flex-direction: column; color: var(--perg);
-  background: radial-gradient(ellipse at 30% 20%, #18304f 0%, var(--nacht) 60%, #070d18 100%);
+  background: radial-gradient(ellipse at 30% 20%, #4a3122 0%, var(--nacht) 60%, #170f0a 100%);
   font-family: var(--serif);
 }
 .wbf button { box-shadow: none; }
@@ -114,7 +114,7 @@
 .wbf-k {
   position: absolute; display: grid; grid-template-columns: 50px 1fr; grid-template-rows: 1fr auto; column-gap: 8px; padding: 8px 10px 9px 0;
   border-radius: 8px 6px 6px 8px; cursor: pointer; color: var(--perg);
-  background: linear-gradient(180deg, #213756, #172943); border: 1.5px solid #52698c;
+  background: linear-gradient(180deg, #52392b, #3f2b1f); border: 1.5px solid #52698c;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
   transition: transform 0.12s ease, box-shadow 0.15s ease, opacity 0.15s ease, border-color 0.15s;
 }
@@ -123,7 +123,7 @@
 .wbf-k-rund {
   grid-row: 1 / span 2; align-self: center; justify-self: center; margin-left: -18px;
   width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
-  color: var(--perg); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--bahn) 70%, #fff 10%), color-mix(in srgb, var(--bahn) 55%, #0b1424));
+  color: var(--perg); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--bahn) 70%, #fff 10%), color-mix(in srgb, var(--bahn) 55%, #22160f));
   border: 2px solid color-mix(in srgb, var(--bahn) 60%, #e9d9a6); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 .wbf-k-rund.klein { width: 26px; height: 26px; margin: 0; border-width: 1.5px; color: #fff; }
@@ -153,10 +153,10 @@
 .wbf-k-balken i { display: block; height: 100%; background: linear-gradient(90deg, #c99a3a, var(--gold-hell)); }
 .wbf-k-heureka {
   position: absolute; right: -7px; top: -8px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
-  color: #6f7f97; background: #0e1a2c; border: 1.5px solid #4c5d78;
+  color: #6f7f97; background: #291c13; border: 1.5px solid #4c5d78;
 }
-.wbf-k-heureka.bereit { color: #b7e4c4; border-color: #6fb487; background: linear-gradient(90deg, #1d4a35 50%, #0e1a2c 50%); }
-.wbf-k-heureka.ja { color: #10261b; background: #8fd4a6; border-color: #c8f0d4; }
+.wbf-k-heureka.bereit { color: #b7e4c4; border-color: #6fb487; background: linear-gradient(90deg, #473226 50%, #291c13 50%); }
+.wbf-k-heureka.ja { color: #241a14; background: #8fd4a6; border-color: #efe4c9; }
 .wbf-k-stempel {
   position: absolute; right: 8px; top: -11px; transform: rotate(6deg); font: 700 9.5px var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
   color: #f6d7cf; background: var(--siegel); border-radius: 3px; padding: 2px 6px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
@@ -166,10 +166,10 @@
 .wbf-k.z-fertig { background: linear-gradient(180deg, #3b3522, #2a2618); border-color: #a68f55; color: #e7dab4; }
 .wbf-k.z-fertig .wbf-k-rund { background: radial-gradient(circle at 35% 30%, #e8cf88, #9b7d3a); border-color: #f2e0a8; color: #2a2210; }
 .wbf-k.z-fertig .wbf-k-zeit { color: #d6c27f; }
-.wbf-k.z-laeuft { background: linear-gradient(180deg, #2a4670, #1e3556); border-color: var(--gold-hell); animation: wbf-puls 2.2s ease-in-out infinite; }
-.wbf-k.z-moeglich { background: linear-gradient(180deg, #2a4266, #1d3150); border-color: var(--blau-hell); box-shadow: 0 0 0 1px rgba(207, 224, 244, 0.25), 0 3px 12px rgba(120, 170, 230, 0.25); }
+.wbf-k.z-laeuft { background: linear-gradient(180deg, #6b4a37, #513728); border-color: var(--gold-hell); animation: wbf-puls 2.2s ease-in-out infinite; }
+.wbf-k.z-moeglich { background: linear-gradient(180deg, #624636, #4c3426); border-color: var(--blau-hell); box-shadow: 0 0 0 1px rgba(207, 224, 244, 0.25), 0 3px 12px rgba(120, 170, 230, 0.25); }
 .wbf-k.z-moeglich .wbf-k-zeit { color: var(--blau-hell); }
-.wbf-k.z-gesperrt { background: linear-gradient(180deg, #172233, #111a28); border-color: #2f3d52; color: #95a1b4; }
+.wbf-k.z-gesperrt { background: linear-gradient(180deg, #31241d, #261c15); border-color: #534035; color: #95a1b4; }
 .wbf-k.z-gesperrt .wbf-k-rund { filter: saturate(0.35) brightness(0.7); }
 .wbf-k.auf { outline: 2.5px solid var(--gold-hell); outline-offset: 2px; }
 .wbf-k.pfad { border-color: var(--gold-hell); box-shadow: 0 0 0 1px rgba(242, 216, 142, 0.4), 0 0 16px rgba(242, 216, 142, 0.35); }
@@ -195,7 +195,7 @@
 .wbf-bahnname span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .wbf-bahnname b { font: 600 14px/1.2 var(--display); }
 .wbf-bahnname small { font: 500 11.5px var(--sans); color: var(--perg-leise); }
-.wbf-bahnname em { font: 700 10px var(--sans); font-style: normal; letter-spacing: 0.08em; text-transform: uppercase; color: #10202f; background: var(--bahn); border-radius: 3px; padding: 1px 5px; align-self: flex-start; margin-top: 3px; }
+.wbf-bahnname em { font: 700 10px var(--sans); font-style: normal; letter-spacing: 0.08em; text-transform: uppercase; color: #2c1e16; background: var(--bahn); border-radius: 3px; padding: 1px 5px; align-self: flex-start; margin-top: 3px; }
 .wbf-bahnname:hover b { color: var(--gold-hell); }
 .wbf-bahnname.auf { border-left-width: 7px; }
 
@@ -205,9 +205,9 @@
 }
 .wbf-legende span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1.5px solid; }
 .wbf-legende .l-fertig::before { background: #3b3522; border-color: #a68f55; }
-.wbf-legende .l-laeuft::before { background: #2a4670; border-color: var(--gold-hell); }
-.wbf-legende .l-moeglich::before { background: #2a4266; border-color: var(--blau-hell); }
-.wbf-legende .l-gesperrt::before { background: #172233; border-color: #2f3d52; }
+.wbf-legende .l-laeuft::before { background: #6b4a37; border-color: var(--gold-hell); }
+.wbf-legende .l-moeglich::before { background: #624636; border-color: var(--blau-hell); }
+.wbf-legende .l-gesperrt::before { background: #31241d; border-color: #534035; }
 .wbf-legende .l-heureka::before, .wbf-legende .wbf-klein::before { display: none; }
 .wbf-legende .l-heureka { color: #b7e4c4; display: inline-flex; align-items: center; gap: 3px; }
 
@@ -235,7 +235,7 @@
 
 /* Leiste */
 .wbf-leiste {
-  flex: none; width: 380px; max-width: 42vw; overflow-y: auto; padding: 12px; background: linear-gradient(180deg, #0f1c31, #0b1525);
+  flex: none; width: 380px; max-width: 42vw; overflow-y: auto; padding: 12px; background: linear-gradient(180deg, #2e1e15, #231710);
   border-left: 1px solid rgba(212, 176, 98, 0.45); box-shadow: -4px 0 18px rgba(0, 0, 0, 0.4);
 }
 .wbf-leiste .wb-detail { display: flex; flex-direction: column; gap: 8px; color: var(--perg); }
@@ -283,7 +283,7 @@
 .wbf-leiste .wb-traeger label { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; padding: 3px 4px; border-radius: 3px; cursor: pointer; }
 .wbf-leiste .wb-traeger label.auf { background: rgba(212, 176, 98, 0.12); }
 .wbf-leiste .wb-traeger small { color: var(--perg-leise); font-size: 12px; }
-.wbf-leiste .wb-partner select { font: inherit; background: #13223a; color: var(--perg); border: 1px solid rgba(212, 176, 98, 0.4); }
+.wbf-leiste .wb-partner select { font: inherit; background: #37251a; color: var(--perg); border: 1px solid rgba(212, 176, 98, 0.4); }
 .wbf-leiste .wb-engpass { color: #f0a28a; }
 
 /* Effekte aus */

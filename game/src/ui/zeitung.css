@@ -136,13 +136,13 @@
 .zt-zahl-name small { display: block; font-size: 11px; color: var(--ink-soft); font-variant: small-caps; letter-spacing: 0.04em; }
 .zt-zahl-wert { grid-area: wert; font-family: var(--display); font-weight: 650; font-size: 20px; text-align: right; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .zt-zahl-delta { grid-area: delta; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.zt-zahl-delta.gut { color: #33622f; }
+.zt-zahl-delta.gut { color: #5f4739; }
 .zt-zahl-delta.schlecht { color: var(--seal); }
 .zt-spark { grid-area: spark; justify-self: end; overflow: visible; }
 .zt-spark path { fill: none; stroke: var(--ink-soft); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
 .zt-spark circle { fill: var(--ink-soft); }
-.zt-spark.gut path { stroke: #33622f; }
-.zt-spark.gut circle { fill: #33622f; }
+.zt-spark.gut path { stroke: #5f4739; }
+.zt-spark.gut circle { fill: #5f4739; }
 .zt-spark.schlecht path { stroke: var(--seal); }
 .zt-spark.schlecht circle { fill: var(--seal); }
 
@@ -152,7 +152,7 @@
 .zt-lage-zahl { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
 .zt-lage-zahl em { font-style: normal; }
 .zt-lage-zahl em.schlecht { color: var(--seal); }
-.zt-lage-zahl em.gut { color: #33622f; }
+.zt-lage-zahl em.gut { color: #5f4739; }
 .zt-balken { grid-column: 1 / -1; display: block; height: 5px; background: rgba(90, 64, 40, 0.18); border-radius: 2px; overflow: hidden; }
 .zt-balken i { display: block; height: 100%; background: var(--seal); }
 .zt-lage-ort { grid-column: 1 / -1; font-size: 12px; color: var(--ink-soft); }
@@ -173,7 +173,7 @@
 .zt-umfrage-wert { font-family: var(--display); font-size: 34px; font-weight: 700; margin: 2px 0; }
 .zt-umfrage-prozent { font-size: 16px; font-weight: 500; }
 .zt-umfrage-wert em { font-style: normal; font-size: 15px; margin-left: 8px; }
-.zt-umfrage-wert em.auf { color: #33622f; }
+.zt-umfrage-wert em.auf { color: #5f4739; }
 .zt-umfrage-wert em.ab { color: var(--seal); }
 .zt-umfrage-meta { font-size: 12px; color: var(--ink-soft); margin: 0; }
 .zt-umfrage.schublade p:last-child { margin: 0; font-size: 13.5px; }
@@ -197,7 +197,7 @@
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .zt-marke { display: inline-block; width: 0; height: 0; margin-right: 6px; vertical-align: 1px; border-left: 4px solid transparent; border-right: 4px solid transparent; }
-.zt-marke.auf { border-bottom: 7px solid #33622f; }
+.zt-marke.auf { border-bottom: 7px solid #5f4739; }
 .zt-marke.ab { border-top: 7px solid var(--seal); }
 .zt-regulierung { border-top: 2px solid var(--ink); padding-top: 8px; }
 .zt-reg-hinweis { font-size: 12px; color: var(--ink-soft); margin: 0 0 8px; }

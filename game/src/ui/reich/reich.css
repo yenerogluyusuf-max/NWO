@@ -39,7 +39,7 @@
 .rr-wirkung-zeilen small, .rr-wirkung li small { font-size: 11px; opacity: 0.8; }
 .rp-karte .rr-wirkung-zeilen, .rv-eintrag .rr-wirkung-zeilen, .rr-stabliste .rr-wirkung-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
 .rp-karte .rr-wirkung-zeilen li, .rv-eintrag .rr-wirkung-zeilen li, .rr-stabliste .rr-wirkung-zeilen li { padding: 1px 8px; font-size: 12.5px; border-radius: 3px; border: 1px solid transparent; }
-.rp-karte .rr-wirkung-zeilen li.rr-gut, .rv-eintrag .rr-wirkung-zeilen li.rr-gut, .rr-stabliste .rr-wirkung-zeilen li.rr-gut { background: rgba(60, 130, 104, 0.14); border-color: rgba(60, 130, 104, 0.4); color: #1b4c3a; }
+.rp-karte .rr-wirkung-zeilen li.rr-gut, .rv-eintrag .rr-wirkung-zeilen li.rr-gut, .rr-stabliste .rr-wirkung-zeilen li.rr-gut { background: rgba(60, 130, 104, 0.14); border-color: rgba(60, 130, 104, 0.4); color: #483124; }
 .rp-karte .rr-wirkung-zeilen li.rr-schlecht, .rv-eintrag .rr-wirkung-zeilen li.rr-schlecht, .rr-stabliste .rr-wirkung-zeilen li.rr-schlecht { background: rgba(142, 42, 34, 0.1); border-color: rgba(142, 42, 34, 0.35); color: #7a2a20; }
 
 /* Stätten: eine eigene Listenklasse, weil die ältere Regel `.rr-staetten li` in styles.css auch alle verschachtelten Listen träfe */
@@ -88,7 +88,7 @@
 .rr-weg .weg-name { overflow-wrap: anywhere; }
 .rr-weg em { font: italic 11.5px var(--serif); color: var(--ink-soft); white-space: nowrap; }
 .rr-weg li.weg-fertig { background: rgba(60, 130, 104, 0.18); border-color: rgba(60, 130, 104, 0.55); }
-.rr-weg li.weg-fertig .weg-stufe { background: #2f7a5e; color: #fff; }
+.rr-weg li.weg-fertig .weg-stufe { background: #74513d; color: #fff; }
 .rr-weg li.weg-bau { background: rgba(201, 154, 60, 0.28); border-color: #b8893a; }
 .rr-weg li.weg-bereit { border-color: var(--seal); background: #fbf1d3; }
 .rr-weg li.weg-zu { opacity: 0.8; }
@@ -108,7 +108,7 @@
 .rg-wo { display: flex; flex-direction: column; gap: 3px; }
 .rg-preisschild { margin: 2px 0; padding: 4px 8px; font: 600 13.5px/1.4 var(--serif); background: rgba(255, 250, 232, 0.8); border-left: 3px solid #3f8a8f; }
 .rg-angelegt ul { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
-.rg-angelegt li.fertig { color: #1f5a44; }
+.rg-angelegt li.fertig { color: #553a2a; }
 .rg-karte .ortwahl { position: relative; }
 .rg-karte .ortwahl .pop { position: absolute; z-index: 20; }
 

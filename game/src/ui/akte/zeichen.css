@@ -19,11 +19,11 @@
 .gz-karte.verlangt .gz-bild { filter: saturate(.55); }
 .gz-klasse { position: absolute; left: 9px; top: 9px; padding: 3px 7px; border-radius: 3px; background: #2a1f18d9; color: #f3e1b6; font: 600 10px var(--sans); letter-spacing: .1em; text-transform: uppercase; }
 .gz-stempel { position: absolute; right: 9px; bottom: 9px; padding: 2px 8px; border: 2px solid currentColor; border-radius: 3px; transform: rotate(-4deg); font: 700 11px var(--sans); letter-spacing: .05em; text-transform: uppercase; background: #fffaf0d9; }
-.gz-stempel.bau { color: #8a6418; } .gz-stempel.verlangt { color: #5b4a7a; } .gz-stempel.moeglich { color: #2f6b45; }
+.gz-stempel.bau { color: #8a6418; } .gz-stempel.verlangt { color: #5b4a7a; } .gz-stempel.moeglich { color: #674b3b; }
 .gz-inhalt { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 13px 13px; }
 .gz-inhalt h4 { margin: 0; font: 600 17px/1.2 var(--display, Georgia, serif); color: var(--ink, #2a1f18); hyphens: auto; overflow-wrap: break-word; }
 .gz-wirkung { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font: 600 12.5px/1.35 var(--sans); }
-.gz-wirkung .gut { color: #2f6b45; } .gz-wirkung .schlecht { color: #a23d3e; }
+.gz-wirkung .gut { color: #674b3b; } .gz-wirkung .schlecht { color: #a23d3e; }
 .gz-kehrseite { margin: 0; font: italic 13.5px/1.4 var(--serif); color: #6a4a3a; border-left: 2px solid var(--seal, #8e2a22); padding-left: 8px; }
 .gz-hinweis { margin: 0; font: 600 12.5px/1.35 var(--sans); color: #5b4a7a; }
 .gz-hinweis.knapp { color: #a23d3e; }

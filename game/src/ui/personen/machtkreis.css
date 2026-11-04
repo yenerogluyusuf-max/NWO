@@ -41,7 +41,7 @@
 .mk-block ul { margin: 0; padding: 0; display: grid; gap: 3px; }
 .mk-block li { list-style: none; padding-left: 9px; border-left: 3px solid rgba(90, 64, 40, 0.3); font: 13.5px/1.35 var(--serif); }
 .mk-block li.rivalen { border-left-color: #9b3b2f; }
-.mk-block li.verbuendet { border-left-color: #3f6b3a; }
+.mk-block li.verbuendet { border-left-color: #6a5244; }
 .mk-block li.familie, .mk-block li.geschaeft { border-left-color: #a87a2a; }
 .mk-block li small { color: var(--ink-soft); font-style: italic; }
 .mk-block p { margin: 0; font: 13.5px/1.35 var(--serif); }
@@ -60,7 +60,7 @@
 .mk-legende span { display: inline-flex; align-items: center; gap: 6px; }
 .mk-legende i { display: inline-block; width: 22px; height: 0; border-top: 3px solid; }
 .mk-legende i.rivalen { border-color: #9b3b2f; border-top-style: dashed; }
-.mk-legende i.verbuendet { border-color: #3f6b3a; }
+.mk-legende i.verbuendet { border-color: #6a5244; }
 .mk-legende i.familie { border-color: #a87a2a; border-top-style: dotted; }
 .mk-legende i.ring { width: 12px; height: 12px; border: 3px solid rgba(38, 90, 98, 0.7); border-radius: 50%; }
 .mk-verborgen { font-style: italic; }

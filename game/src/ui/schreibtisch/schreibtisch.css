@@ -1,14 +1,14 @@
 /* Regierungsschreibtisch: ruhige Papierflächen, dunkler Amtskopf, wenige klare Prioritäten.
    Alle Layoutwechsel richten sich nach der Aktenbreite, auch im schmalen Fenster einer breiten Bühne. */
-.sk { --sd-ink:#203731; --sd-muted:#59665e; --sd-paper:#fcfaf3; --sd-line:#d7d6c8; --sd-red:#933d32; --sd-gold:#8b631c;
+.sk { --sd-ink:#382b24; --sd-muted:#59665e; --sd-paper:#fcfaf3; --sd-line:#d7d6c8; --sd-red:#933d32; --sd-gold:#8b631c;
   container:regierungsdesk / inline-size; min-width:0; display:grid; gap:24px; color:var(--sd-ink); font:400 14px/1.55 var(--sans); }
 .sk *, .sk *::before, .sk *::after { box-sizing:border-box; }
 .sk :is(h3,h4,h5,p,ul,ol) { margin-top:0; }
 .sk :is(button,a,strong,span,p,summary) { overflow-wrap:anywhere; }
-.sk :is(button,summary,a):focus-visible { outline:3px solid #287b83; outline-offset:3px; }
+.sk :is(button,summary,a):focus-visible { outline:3px solid #7b5138; outline-offset:3px; }
 .sk :is(.sd-kopf,.sd-panel,.sd-seite,.sd-block,.sd-arbeitsplatz,.sd-auswahlkarte) { min-width:0; }
 .sk .sd-kopf { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:30px 32px; border-radius:16px;
-  background:linear-gradient(118deg,#172f2a,#2c4940); color:#faf7e8; position:relative; border:1px solid #365449; box-shadow:0 10px 26px #223d2914; }
+  background:linear-gradient(118deg,#2e221c,#4b3a30); color:#faf7e8; position:relative; border:1px solid #584439; box-shadow:0 10px 26px #3d2f2714; }
 .sk .sd-kicker { display:flex; flex-wrap:wrap; gap:4px 12px; color:#e0c98d; font-size:11px; font-weight:650; letter-spacing:.1em; text-transform:uppercase; margin-bottom:12px; }
 .sk .sd-kicker span { color:#c9d5c9; letter-spacing:.035em; }
 .sk .sd-kopf h3 { margin:0 0 10px; font:500 clamp(27px,4cqi,42px)/1.12 var(--display); color:#faf7e8; letter-spacing:-.02em; }
@@ -20,7 +20,7 @@
 .sk .sd-kennzahl strong { font:650 27px/1.2 var(--sans); font-variant-numeric:tabular-nums; }
 .sk .sd-kennzahl em { font:500 17px var(--sans); margin-left:8px; }
 .sk .sd-kennzahl.ton-schlecht strong { color:var(--sd-red); }
-.sk .sd-kennzahl.ton-gut em { color:#2b7152; }
+.sk .sd-kennzahl.ton-gut em { color:#6c4b38; }
 .sk .sd-kennzahl small { color:var(--sd-muted); font:400 12px/1.45 var(--sans); }
 .dossier .sk button.sd-kennzahl:hover { background:#f0f2e8; }
 .sk .sd-abschnittskopf { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 16px; margin-bottom:12px; }
@@ -29,7 +29,7 @@
 .sk .sd-lagekarten { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .sk .sd-lagekarten > li { min-width:0; }
 .dossier .sk button.sd-lagekarte { display:flex; flex-direction:column; align-items:stretch; text-align:left; gap:12px; width:100%; height:100%; padding:18px;
-  background:var(--sd-paper); color:var(--sd-ink); border:1px solid var(--sd-line); border-top:3px solid #5c7e6a; border-radius:10px; box-shadow:0 3px 10px #263c2210; text-shadow:none; }
+  background:var(--sd-paper); color:var(--sd-ink); border:1px solid var(--sd-line); border-top:3px solid #5c7e6a; border-radius:10px; box-shadow:0 3px 10px #3c2e2610; text-shadow:none; }
 .dossier .sk button.sd-lagekarte.ton-rot { border-top-color:var(--sd-red); }
 .dossier .sk button.sd-lagekarte.ton-gelb { border-top-color:#aa802c; }
 .sk .sd-lagekopf { display:flex; align-items:center; justify-content:space-between; gap:8px; font:600 11px/1.4 var(--sans); color:var(--sd-muted); }
@@ -55,8 +55,8 @@
 .sk .sd-gruppen button > span { border-radius:4px; padding:1px 5px; background:#ffffff24; font-variant-numeric:tabular-nums; }
 .sk .sd-auswahl { display:grid; gap:8px; margin:0 0 18px; }
 .dossier .sk button.sd-auswahlkarte { display:grid; gap:4px; width:100%; min-height:48px; text-align:left; padding:12px 16px; border:1px solid var(--sd-line); border-left:3px solid transparent; border-radius:8px; box-shadow:none; background:#f6f5ee; color:var(--sd-ink); text-shadow:none; }
-.dossier .sk button.sd-auswahlkarte:hover { background:#eff2e9; border-color:#7b9480; }
-.dossier .sk button.sd-auswahlkarte[aria-pressed=true] { background:#edf2e8; border-color:#657e68; border-left-color:#315b46; }
+.dossier .sk button.sd-auswahlkarte:hover { background:#f3f0e8; border-color:#7b9480; }
+.dossier .sk button.sd-auswahlkarte[aria-pressed=true] { background:#f2efe8; border-color:#657e68; border-left-color:#5a4539; }
 .sk .sd-auswahlkarte strong { font:600 15px/1.4 var(--sans); }
 .sk .sd-auswahlkarte :is(span,small) { font:400 12px/1.5 var(--sans); color:var(--sd-muted); }
 .sk .sd-leer { padding:22px; border:1px dashed #c3c9b9; border-radius:8px; background:#f4f5ee; color:var(--sd-muted); font:400 14px/1.6 var(--sans); margin:8px 0 18px; }
@@ -101,7 +101,7 @@
 .sk .sd-vorgaenge p { font-size:13px; margin-bottom:0; }
 .sk .sd-etikett { font:650 11px/1.5 var(--sans); letter-spacing:.04em; color:var(--sd-muted); text-transform:uppercase; }
 .sk .sd-links { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
-.sk .sd-bericht { display:flex; align-items:start; gap:18px; padding:22px; background:#edf1e6; border:1px solid #cbd4bf; border-radius:10px; }
+.sk .sd-bericht { display:flex; align-items:start; gap:18px; padding:22px; background:#f1eee6; border:1px solid #cbd4bf; border-radius:10px; }
 .sk .sd-bericht > svg { flex:none; }
 .sk .sd-bericht > div { min-width:0; }
 .sk .sd-bericht p { font-size:13px; }
@@ -114,11 +114,11 @@
 .sk .sd-ziele li { display:flex; align-items:start; gap:10px; padding:10px 0; }
 .sk .sd-ziele p { font-size:13px; margin:5px 0 0; }
 /* Bestehende Entscheidungskarten behalten ihre Regeln; auf dem Schreibtisch ruhigere Bedienelemente. */
-.dossier .sk .pd-btn { min-height:40px; border-radius:7px; border:1px solid #bdc6b5; background:#e8ede0; color:#243d31; box-shadow:none; text-shadow:none; font:600 12px/1.5 var(--sans); white-space:normal; }
+.dossier .sk .pd-btn { min-height:40px; border-radius:7px; border:1px solid #bdc6b5; background:#eee9df; color:#3e3028; box-shadow:none; text-shadow:none; font:600 12px/1.5 var(--sans); white-space:normal; }
 .dossier .sk .pd-btn.quiet { background:transparent; }
 .dossier .sk .pd-btn:disabled { opacity:.6; cursor:not-allowed; }
 .dossier .sk button:hover:not(:disabled) { filter:none; }
-.dossier .sk .pd-btn:hover:not(:disabled) { background:#dbe5d3; border-color:#70856c; }
+.dossier .sk .pd-btn:hover:not(:disabled) { background:#e7e0d2; border-color:#70856c; }
 .sk .mf-liste { margin:0; }
 .sk .mf-liste > li { min-width:0; }
 /* Dieses Zeichen wird auch von VorlageKarte außerhalb des Schreibtischs verwendet. */
@@ -160,7 +160,7 @@
 .sk .sd-bericht:has(.sd-berichtdetail[open]) > svg { display:none; }
 
 .sk [data-sd-detail] { scroll-margin-top:18px; border-radius:8px; }
-.sk [data-sd-detail]:focus, .sk .sd-panelkopf h4:focus { outline:2px solid #287b83; outline-offset:5px; }
+.sk [data-sd-detail]:focus, .sk .sd-panelkopf h4:focus { outline:2px solid #7b5138; outline-offset:5px; }
 .dossier .sk button.sd-kennzahl:focus-visible { outline-offset:-3px; }
 
 /* Die geöffnete Fachkarte gehört zur Arbeitsfläche, nicht zu einem zweiten Stapel Fenster. */

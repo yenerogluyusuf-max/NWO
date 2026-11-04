@@ -52,7 +52,7 @@
 .wn-parteien { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 14px var(--sans, Inter, sans-serif); }
 .wn-parteien li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto auto; gap: 8px; align-items: baseline; }
 .wn-parteien .punkt { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(43, 30, 18, 0.45); }
-.wn-parteien .plus { color: #2e6b3f; font-weight: 600; }
+.wn-parteien .plus { color: #674a3a; font-weight: 600; }
 .wn-parteien .minus { color: #8c2b1f; font-weight: 600; }
 .wn-hinweis { margin: 8px 0 0; font: 13.5px/1.45 var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
 
@@ -60,11 +60,11 @@
 .wn-reaktionen { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
 .wn-reaktionen li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; font: 15px/1.45 var(--serif, "EB Garamond", serif); }
 .wn-reaktionen .wer { font: 700 12px/1.6 var(--sans, Inter, sans-serif); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft, #5a4a38); }
-.wn-reaktionen li.gut .wer { color: #2e6b3f; }
+.wn-reaktionen li.gut .wer { color: #674a3a; }
 .wn-reaktionen li.schlecht .wer { color: #8c2b1f; }
 .wn-einfluesse { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 14px var(--sans, Inter, sans-serif); }
 .wn-einfluesse li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted rgba(90, 64, 40, 0.35); }
-.wn-einfluesse .plus { color: #2e6b3f; font-weight: 600; }
+.wn-einfluesse .plus { color: #674a3a; font-weight: 600; }
 .wn-einfluesse .minus { color: #8c2b1f; font-weight: 600; }
 
 /* Rede */
@@ -92,7 +92,7 @@
 .umb-zaehler-balken { display: block; height: 6px; margin-top: 6px; border-radius: 3px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
 .umb-zaehler-balken u { display: block; height: 100%; background: linear-gradient(90deg, #c69a4a, #8c6a2a); transition: width 400ms ease; }
 .umb-meldung { flex: none; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(236, 214, 150, 0.5); border-left: 4px solid #b2872f; font: 14px/1.45 var(--sans, Inter, sans-serif); }
-.umb-tauschhinweis { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(205, 220, 238, 0.7); border-left: 4px solid #2c4a7a; font: 14.5px/1.4 var(--sans, Inter, sans-serif); }
+.umb-tauschhinweis { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(205, 220, 238, 0.7); border-left: 4px solid #74503a; font: 14.5px/1.4 var(--sans, Inter, sans-serif); }
 .umb-tauschhinweis button { padding: 4px 12px; }
 
 .umb-koerper { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 26px 12px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
@@ -102,14 +102,14 @@
 .umb-karte { position: relative; display: grid; gap: 8px; min-width: 0; padding: 12px; border: 1px solid rgba(90, 64, 40, 0.45); background: linear-gradient(rgba(255, 252, 240, 0.94), rgba(247, 238, 214, 0.84)); box-shadow: 0 2px 7px rgba(60, 40, 20, 0.2); animation: umb-ein 420ms ease-out both; animation-delay: calc(var(--i, 0) * 55ms); }
 .umb-karte.erledigt { background: linear-gradient(rgba(240, 246, 232, 0.94), rgba(226, 236, 212, 0.84)); }
 .umb-karte.entlassen { background: linear-gradient(rgba(250, 238, 232, 0.94), rgba(240, 220, 208, 0.84)); }
-.umb-karte.tauscht { outline: 3px solid #2c4a7a; outline-offset: 1px; }
+.umb-karte.tauscht { outline: 3px solid #74503a; outline-offset: 1px; }
 .umb-person { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 8px; }
 .umb-person .portraet { filter: drop-shadow(0 3px 5px rgba(40, 24, 10, 0.35)); }
 .umb-name { display: grid; justify-items: center; gap: 4px; min-width: 0; }
 .umb-band { justify-self: start; max-width: 100%; padding: 2px 8px; font: 700 12px/1.3 var(--sans, Inter, sans-serif); letter-spacing: 0.05em; text-transform: uppercase; color: #fff8e6; overflow-wrap: anywhere; }
 .umb-name h3 { margin: 0; font: 600 18px/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
 .umb-abz { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
-.umb-chip { display: inline-flex; align-items: center; gap: 3px; font: 700 12px/1.3 var(--sans, Inter, sans-serif); letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 7px; border: 1px solid currentColor; color: #2e6b3f; white-space: nowrap; }
+.umb-chip { display: inline-flex; align-items: center; gap: 3px; font: 700 12px/1.3 var(--sans, Inter, sans-serif); letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 7px; border: 1px solid currentColor; color: #674a3a; white-space: nowrap; }
 .umb-chip.warn { color: #8c2b1f; }
 .umb-chip.krone { color: #8a6a1c; }
 .umb-krone { color: #b2872f; flex: none; }
@@ -121,15 +121,15 @@
 .umb-wert b { font-variant-numeric: tabular-nums; }
 .umb-wert i { grid-column: 1 / -1; display: block; height: 5px; border-radius: 3px; background: rgba(90, 64, 40, 0.16); overflow: hidden; }
 .umb-wert u { display: block; height: 100%; background: #8c6a2a; transition: width 400ms ease; }
-.umb-wert.loyal u { background: #3f6b45; }
-.umb-wert.kompetenz u { background: #2c4a7a; }
+.umb-wert.loyal u { background: #6d5446; }
+.umb-wert.kompetenz u { background: #74503a; }
 .umb-wert.ehrgeiz u { background: #b2552a; }
 .umb-aktionen { display: flex; flex-wrap: wrap; gap: 6px; }
 .umb-akt { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 8px; font: 600 12.5px var(--sans, Inter, sans-serif); color: #f3e6c6; border: 1px solid rgba(43, 30, 18, 0.75); background: linear-gradient(#3d3024, #2a2018); cursor: pointer; }
 .umb-akt:hover:not(:disabled) { background: linear-gradient(#54402e, #3a2c20); }
 .umb-akt[aria-pressed="true"], .umb-akt[aria-expanded="true"] { background: linear-gradient(#c69a4a, #8c6a2a); color: #2b1e12; }
 .umb-akt:disabled { opacity: 0.45; cursor: default; }
-.umb-akt:focus-visible, .umb-parteichip:focus-visible, .umb-tauschknopf:focus-visible { outline: 2px solid #2c4a7a; outline-offset: 1px; }
+.umb-akt:focus-visible, .umb-parteichip:focus-visible, .umb-tauschknopf:focus-visible { outline: 2px solid #74503a; outline-offset: 1px; }
 .umb-parteien { display: flex; flex-wrap: wrap; gap: 5px; }
 .umb-parteichip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; font: 600 12px/1.3 var(--sans, Inter, sans-serif); text-align: left; color: var(--ink, #2b1e12); border: 1px solid var(--pf, #8a7a64); background: rgba(255, 252, 240, 0.92); cursor: pointer; }
 .umb-parteichip i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--pf, #8a7a64); }
@@ -137,8 +137,8 @@
 .umb-parteichip:disabled { opacity: 0.45; cursor: default; }
 .umb-tauschknopf { position: absolute; inset: 0; display: grid; place-items: center; padding: 10px; text-align: center; font: 600 16px/1.3 var(--serif, "EB Garamond", serif); color: #fff8e6; background: rgba(34, 54, 88, 0.94); border: 2px dashed #f1d58f; cursor: pointer; z-index: 2; }
 .umb-tauschknopf:disabled { background: rgba(70, 70, 70, 0.7); cursor: default; }
-.umb-stempel { position: absolute; top: 8px; right: 8px; z-index: 1; transform: rotate(-10deg); padding: 3px 10px; font: 800 13px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.1em; text-transform: uppercase; color: #2e6b3f; border: 2.5px solid currentColor; background: rgba(255, 255, 255, 0.4); opacity: 0.92; pointer-events: none; animation: umb-stempel 360ms cubic-bezier(0.2, 1.3, 0.4, 1) both; }
-.umb-stempel.ersetzt, .umb-stempel.versetzt { color: #2c4a7a; }
+.umb-stempel { position: absolute; top: 8px; right: 8px; z-index: 1; transform: rotate(-10deg); padding: 3px 10px; font: 800 13px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.1em; text-transform: uppercase; color: #674a3a; border: 2.5px solid currentColor; background: rgba(255, 255, 255, 0.4); opacity: 0.92; pointer-events: none; animation: umb-stempel 360ms cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+.umb-stempel.ersetzt, .umb-stempel.versetzt { color: #74503a; }
 .umb-stempel.entlassen { color: #8c2b1f; }
 
 /* Seitenleiste: Folgen, Partner, Kronprinzen, Zwischenbilanz */
@@ -150,7 +150,7 @@
 .umb-folgen li span:last-child { display: grid; gap: 1px; }
 .umb-folgen small { color: var(--ink-soft, #5a4a38); font-size: 12.5px; overflow-wrap: anywhere; }
 .umb-pfeil { width: 18px; height: 18px; margin-top: 1px; background: #8a7a64; clip-path: polygon(10% 40%, 90% 40%, 90% 60%, 10% 60%); }
-.umb-pfeil.auf { background: #2e6b3f; clip-path: polygon(50% 8%, 94% 90%, 6% 90%); }
+.umb-pfeil.auf { background: #674a3a; clip-path: polygon(50% 8%, 94% 90%, 6% 90%); }
 .umb-pfeil.ab { background: #8c2b1f; clip-path: polygon(50% 92%, 94% 10%, 6% 10%); }
 .umb-partnerzeile { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 8px; align-items: baseline; font: 13.5px/1.4 var(--sans, Inter, sans-serif); }
 .umb-partnerzeile + .umb-partnerzeile { margin-top: 6px; }
