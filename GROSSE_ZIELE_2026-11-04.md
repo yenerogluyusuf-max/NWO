@@ -70,3 +70,15 @@ Utopien auch kontrafaktisch, Chance als Wort und Band, Scheitern abgestuft, etwa
 3. Wie hart ist ein gescheiterter Versuch: Sperrfrist und Ansehensverlust, oder meist ein Teilerfolg?
 4. Wie viele große Ziele gleichzeitig: eines je Amtszeit, wenige (etwa drei) oder beliebig viele?
 5. Welche Bereiche zuerst?
+
+## 8. Umgesetzt (4. November)
+
+Im Spiel unter **Forschung & Ziele → Große Ziele** (`game/src/sim/grosseziele.ts`, `game/src/ui/grosseziele/GrosseZiele.tsx`):
+
+- **Ziele mit Stufen:** sechs Ziele mit je drei Stufen, die letzte jeweils die Utopie. Union der Turkstaaten (Freihandel → gemeinsamer Markt → gemeinsame Währung), Ordnung im Nahen Osten (Konferenz → Sicherheitspakt → Organisation), Logistikdrehscheibe Eurasien (Mittlerer Korridor → Entwicklungsstraße Irak → Weltdrehkreuz Istanbul), EU-Vollmitgliedschaft (Verhandlungen → Kapitel → Beitritt), Kornkammer des Nahen Ostens (Ernährungssouveränität → Netto-Export → Kornkammer), Seemacht und Weltwerft (Werften → Mittelmeer → Weltwerft).
+- **Schwelle und Chance:** Die Schwelle prüft echte Spielwerte (Vertrauen der Partner, Netzgrößen, Spannung mit Nachbarn). Die Chance liegt zwischen 3 und 85 % und erscheint als Wort und Band mit den wichtigsten Gründen dafür und dagegen.
+- **Wege:** Gipfel, Fonds und Kampagne sind je ein Knopf mit Preis und Abkühlung. „Botschaft ausbauen“ hat drei Stufen und hebt Vertrauen, Handel und Chance.
+- **Versuch:** Er gelingt, gelingt nur abgeschwächt mit halber Wirkung (die nächste Stufe wird schwerer) oder scheitert mit einem Jahr Sperrfrist, Ansehensverlust und Vertrauensverlust bei den Partnern. Gegenspieler reagieren auf jeden Erfolg.
+- **Begrenzung:** höchstens drei Ziele gleichzeitig.
+
+**Offen:** weitere Ziele aus Abschnitt 3 (Technologie, Innen, Energie, Kultur, UN-Sicherheitsrat), Großprojekte für Landwirtschaft, See, Handel und Logistik im Reich (Q.4) sowie Ziele, die der Fokusbaum vorbereitet.

@@ -85,3 +85,36 @@ Fehlt oder widersprüchlich (Stand 04.11.2026, Websuche): F-35-Gespräche ohne E
 4. **Ordnung:** Gruppe „Politik“, Konflikte in Sicherheit, eine Vorgangsliste, eindeutige Namen, Zweckzeilen.
 5. **Preise schärfen und Putsch erreichbar machen.**
 6. Danach die großen Ziele ([GROSSE_ZIELE_2026-11-04.md](GROSSE_ZIELE_2026-11-04.md)).
+
+## 8. Umsetzung (4. November, auf Auftrag „mache alles“)
+
+Alle sechs Punkte aus Abschnitt 7 sind umgesetzt, jeweils mit eigenen Tests. Gemessen wurde mit denselben Verläufen wie in der Prüfung (Seed 6, Schnellprofil).
+
+| Befund | Vorher | Nachher | Wo |
+|---|---|---|---|
+| Iran greift an, NATO hilft | Niederlage in 14 Wochen (Front 35 → 0) | Front 58 → 99 in 9 Wochen | `data/kraefte.ts` (SIPRI-Ausgaben und Personal, gemeinsame Skala), `krieg.ts` |
+| Kampfkraft in den ersten Wochen | 25 % (Treibstoff 0) | Öldeckung des Landes | `versorgung.ts` |
+| Frontwege unter Beschuss | nach rund 5 Monaten ohne Nachschub | netto 5 % Schaden je Monat (Pioniere) | `transport.ts` |
+| Waffenruhe | endlos, kostenloses Parken | Gegenangebot nach 30 Tagen, nach 120 Tagen Wiederaufnahme oder eingefroren | `krieg.ts` |
+| Eigener Einstieg | nur monatelanges „Druck“ | Ultimatum, „Krise eröffnen“, Zwischenfälle auch ohne Spieler | `krieg.ts`, `KriegDossier.tsx` |
+| „Verteidigung“ bei eigenem Angriff | +30 Stimmen | zählt wie „Schutz“ (UN-Charta Art. 51) | `krieg.ts`, `befehle.ts` |
+| Neutrale und EU als Kriegspartei | Österreich, „EU“ kämpften | nie | `pakte.ts` |
+| Wachstum im Krieg gegen Griechenland | 2,30 → 3,40 % | 2,30 → 1,73 % | Kreditkanal des Risikoaufschlags (`economy.ts`), Sanktionslast |
+| Sanktionen gegen die Türkei | Lira 61,72 gegen 61,84, Reserven unberührt | Reserven 11,5 → 3,0 Mrd. $, Aufschlag +60 bp, Wachstum −0,4 | `diplomatie.ts`, `devisen.ts`, `economy.ts` |
+| Türkei sanktioniert Russland | Reserven steigen, keine Folgen | Gegensanktion, Wachstum 1,9 → −1,8 %, Inflation +2,8 Punkte | Gegensanktion, Energiemangel (`gueter.ts`, `economy.ts`) |
+| CAATSA | fehlte im Start; Klausel wirkungslos | gilt seit 12/2020; Vertrag hebt sie auf | `diplomatie.ts`, `abkommen.ts` |
+| Warnungen | keine zu Protest, Putsch, Opposition, Groll, Ausschuss, Nachschub | alle mit Sprung zur Lösung; Hinweisfenster mit „Zur Akte“ | `briefing.ts`, `hinweisziel.ts` |
+| Navigation | Politik versteckt; Krieg nur unter Außen; neunmal Vorgänge | Gruppe „Politik“; Konfliktlage in Sicherheit; Vorgänge nur in Land; klare Namen | `Stage.tsx`, `Bereiche.tsx`, Kataloge |
+| Preise | Koalition retten 1 PK; Protestantworten ohne Wirkung | nach Fraktionsgröße bzw. Bewegungsgröße; Zustimmung reagiert; echte Zugeständnisse | `gespraeche.ts`, `bewegungen.ts` |
+| Putsch | unerreichbar | Putschzirkel zählt, Stufe 3 ab 68, Generalstabschef tritt nicht selbst zurück; Überläufer bei Zustimmung < 35 | `enden.ts`, `spiel.ts` |
+| Große Ziele | fehlten | sechs Ziele mit Stufen bis zur Utopie (siehe GROSSE_ZIELE) | `grosseziele.ts`, `GrosseZiele.tsx` |
+
+**Noch offen:**
+
+- **Krieg:** Verbände, Generäle und Delegation an den Generalstab (HOI4-Anspruch aus Abschnitt N). Gewonnene Kurzkriege stützen das Wachstum über die Kriegsausgaben.
+- **Kräfteskala:** Saudi-Arabien liegt wegen hoher Rüstungsimporte über der Türkei; ohne Quelle für einen Korrekturfaktor bleibt das so.
+- **Energie:** Ersatzbeschaffung am Weltmarkt (Spot-LNG zum Aufpreis) gibt es nur über „Quelle wechseln“.
+- **Navigation:** eigener Zugang „Medienpolitik“ und das Gespräch in der Kopfleiste.
+- **Gestaltung:** eigene Kopfmotive für Gesellschaft, Medien, Regierung und Wissen.
+- **Aktualität:** F-35-Gespräche und US-Bankensanktionen (Iran) als Daten.
+- **Bestehende Fehlschläge:** 13 Tests (Spielbarkeit, unbegrenzte Amtszeiten, Programme, Vorschaumodell, Wahlnachtrag, Katastrophe, Transitabkommen, Vorgang-Sprung) scheitern bereits im Stand vor dieser Arbeit (geprüft in einer Kopie von `5512005`). Sie sind Balancefragen und eine eigene Aufgabe.
