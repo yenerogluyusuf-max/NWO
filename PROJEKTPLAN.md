@@ -15,6 +15,8 @@ Der Projektplan beschreibt die Gesamtvision. Die weitere Planung ist in mehreren
 - [Entscheidungen](ENTSCHEIDUNGEN.md): Entscheidungen des Projektinhabers aus den Fragerunden. Sie gehen allen anderen Dokumenten vor.
 - [Referenzanalyse](REFERENZANALYSE.md): belegte Mechaniken aus Civilization VI und VII, Hearts of Iron IV, Suzerain und Democracy 4; daraus abgeleitete eigene Designentscheidungen mit Quellen.
 - [Spieldesign](SPIELDESIGN.md): Spielstart, Zeitablauf, Bedienung, freie Anweisungen, institutionelle Prozesse und drei durchgängige Beispielszenarien.
+- [Gesamtprüfung 2026-11-04](PRUEFUNG_GESAMT_2026-11-04.md): Krieg, Sanktionen, Konflikte, Auffindbarkeit und Aktualität durchgespielt, mit Befunden und Reihenfolge zum Beheben.
+- [Große Ziele 2026-11-04](GROSSE_ZIELE_2026-11-04.md): Konzept für utopische Ziele mit Schwelle, Chance, Wegen und Versuch (Vorgabe Q).
 - [Gestaltung 2026-11-04](GESTALTUNG_2026-11-04.md): Bestandsaufnahme der Oberfläche (zwei Bildsprachen, Möglichkeiten als Text) und Stufenplan G1–G6 für eine schönere, einheitliche Gestaltung nach Vorgabe P.
 - [Entwicklungsplan](ENTWICKLUNGSPLAN.md): begrenzter erster Prototyp, Abhängigkeiten, Arbeitspakete, Datenmodell und überprüfbare Meilensteine.
 - [Lernkonzept](LERNKONZEPT.md): wie man im Spiel lernt, die Mentorin, der Lernstoff und das Lern-Tor.

@@ -150,6 +150,8 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 
 ## 10. Nächste Schritte (Stand 04.11.2026)
 
+**Neu:** Die Gesamtprüfung [PRUEFUNG_GESAMT_2026-11-04.md](PRUEFUNG_GESAMT_2026-11-04.md) legt die Reihenfolge fest: (1) Krieg glaubwürdig machen, (2) Sanktionen mit Wirkung, (3) Warnen und hinführen, (4) Ordnung der Navigation, (5) Preise schärfen und Putsch erreichbar, (6) große Ziele nach [GROSSE_ZIELE_2026-11-04.md](GROSSE_ZIELE_2026-11-04.md).
+
 Die Liste in Abschnitt 9 ist großteils umgesetzt (Parlament, Ereignisse, Speichern, Kabinett, KI-Befehle, Agenda). Laufend gilt:
 
 1. **Gestaltung nach Vorgabe P** ([ENTSCHEIDUNGEN.md](ENTSCHEIDUNGEN.md#p-vorgabe-04112026-das-spiel-muss-schöner-werden)): Bestandsaufnahme liegt in [GESTALTUNG_2026-11-04.md](GESTALTUNG_2026-11-04.md) (acht Befunde B1–B8, Stufen G1–G6); G1–G3 sind im Spiel umgesetzt (Abschnitt 6 dort): Rahmen für alle Akten, Zeichensprache, Bildkarten in Sicherheit und Land. Als Nächstes: eigene Kopfmotive für Gesellschaft, Medien, Regierung, Wissen; Bildkarten für Kultur, Recht, Wissensbaum; dann G4 (Entscheidungskarten).

@@ -293,4 +293,11 @@ Der Projektinhaber: Man spielt die Türkei und soll **verschiedene Wege einschla
 
 4. **Großprojekte in allen Bereichen:** Technologie, Außenpolitik, Innenpolitik, Landwirtschaft, See und Schifffahrt, Handel und vor allem **Logistik**. Die Türkei verbindet geografisch die Kontinente und ist dafür ein natürliches Logistikland.
 
+Antworten des Projektinhabers auf die Fragen in [GROSSE_ZIELE_2026-11-04.md](GROSSE_ZIELE_2026-11-04.md) (4. November):
+
+5. **Utopie:** Auch Kontrafaktisches darf Ziel sein (etwa gemeinsame Währung der Turkstaaten, Nahost-Union). Je utopischer, desto höher die Schwelle und desto geringer die Chance; keine Verbote.
+6. **Anzeige der Chance:** als Wort und Band (z. B. „aussichtsreich, etwa 40–60 %“) mit den wichtigsten Gründen dafür und dagegen, keine genaue Prozentzahl.
+7. **Scheitern abgestuft:** Erfolg, Teilerfolg (abgeschwächte Fassung) oder echtes Scheitern mit Sperrfrist und Ansehensverlust.
+8. **Gleichzeitig:** wenige große Ziele, etwa drei.
+
 Das schärft Abschnitt N (ganzes Spektrum, Bäume wie Civ 6/HOI4) und die Regel „Wege statt Verbote“.
