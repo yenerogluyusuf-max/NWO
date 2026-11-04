@@ -25,6 +25,7 @@ import { Rng } from "./rng";
 import { addDays } from "./dates";
 import { t } from "../i18n";
 import { DIASPORA_DOEVIZ, DIASPORA_EREIGNISSE } from "../data/diaspora";
+import { KRAFT } from "../data/kraefte";
 import type { World } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -82,6 +83,8 @@ export interface AussenZustand {
   besuche: Record<string, number>;
   abberufen: string[];
   eigeneSanktionen: string[];
+  /** Länder, die auf eine türkische Sanktion mit einer Gegensanktion geantwortet haben */
+  gegenSanktionen?: string[];
   berichte: AussenBericht[];
   verlauf: AussenVerlauf[];
   letzterAnschlag?: { tag: number; taeter: Taeter };
@@ -139,7 +142,9 @@ export function aussenZustand(w: World): AussenZustand {
     energie: { anteile: { ...AUSSEN.anteileStart }, hormus: "gestoert", versorgung: 55 },
     terror: { is: 35, pkk: 40, links: 20 },
     friedens: { phase: 1, fortschritt: 0, rueckschlaege: 0 },
-    sanktionen: [],
+    // CAATSA gilt seit dem 14.12.2020 (US-Sanktionen gegen die Rüstungsbehörde SSB wegen S-400) und ist im Oktober 2026 nicht
+    // aufgehoben (Turkish Minute 15.10.2026; RECHERCHE_REALWELT_LAENDERDOSSIERS.md). Früher begann das Spiel ohne diese Sanktion.
+    sanktionen: [{ id: "caatsa", von: "USA", seit: w.day - tageSeit(w.date, "2020-12-14") }],
     zaehler: {},
     diaspora: { vertrauen: 50, flussMrd: 0, mobilisierung: 0 },
     bis: {},
@@ -159,6 +164,57 @@ export function aussenZustand(w: World): AussenZustand {
   a.zaehler ??= {};
   a.diaspora ??= { vertrauen: 50, flussMrd: 0, mobilisierung: 0 };
   return a;
+}
+
+function tageSeit(heute: string, damals: string): number {
+  return Math.round((Date.parse(heute) - Date.parse(damals)) / 86400000);
+}
+
+/**
+ * Sanktionslast auf die Wirtschaft (PRUEFUNG_GESAMT_2026-11-04): Früher wirkten Sanktionen nur über kleine Stöße auf einzelne
+ * Netzgrößen; Lira, Risikoaufschlag und Nachfrage blieben fast unberührt. Jetzt trägt jede laufende Sanktion einen Aufschlag am
+ * Markt (Basispunkte) und einen Ausfall der Auslandsnachfrage (Indexpunkte im Kanal der EU-Nachfrage, economy.ts Z1).
+ * Spielparameter: Eine breite Handelsmaßnahme kostet ein Viertel der Nachfrage aus dem betroffenen Markt (Handelsgewicht ×25);
+ * gezielte Rüstungssanktionen wirken vor allem über die Märkte. Das Handelsgewicht ist ein Spielparameter (EU 0,4; die
+ * TÜİK-Primärzahl ist eine offene Lücke der Recherche).
+ */
+export const SANKTION_LAST = {
+  caatsa: { risiko: 25, nachfrage: 0 },
+  eu_handel: { risiko: 80, nachfrage: 25 * (0.4) },
+  /** Eigene Sanktion: Absatz im sanktionierten Land fällt weg (Handelsgewicht ×25), die Märkte notieren es leicht */
+  eigeneJeHandel: 25,
+  eigeneRisiko: 5,
+  /** Gegensanktion: der Partner sperrt seinerseits (Vorbild: Russland nach dem Abschuss im November 2015, Tourismus und Lebensmittel) */
+  gegenJeHandel: 25,
+  /** Ab dieser Stärke (gemeinsame Skala) antwortet ein Partner mit einer Gegensanktion; Spielparameter */
+  gegenAbStaerke: 30,
+  /** Monatliche Aussicht, dass der Partner unter einer türkischen Sanktion einlenkt (Spielparameter) */
+  einlenkenJeMonat: 0.05,
+} as const;
+
+function sanktionsLastBerechnen(a: AussenZustand): { risiko: number; nachfrage: number } {
+  let risiko = 0, nachfrage = 0;
+  for (const s of a.sanktionen) { risiko += SANKTION_LAST[s.id].risiko; nachfrage += SANKTION_LAST[s.id].nachfrage; }
+  for (const id of a.eigeneSanktionen) { nachfrage += (HANDEL_GEWICHT[id] ?? 0.02) * SANKTION_LAST.eigeneJeHandel; risiko += SANKTION_LAST.eigeneRisiko; }
+  for (const id of a.gegenSanktionen ?? []) nachfrage += (HANDEL_GEWICHT[id] ?? 0.02) * SANKTION_LAST.gegenJeHandel;
+  return { risiko, nachfrage };
+}
+
+/** Läuft ein Krieg, in dem die Türkei ein EU-Mitglied angreift? Dann enden die EU-Handelsmaßnahmen nicht. */
+function kriegGegenEuMitglied(w: World): boolean {
+  return (w.spiel?.kriege ?? []).some((k) => (k.phase === "krieg" || k.phase === "waffenruhe") && ["GRC", "CYP"].includes(k.land) && (k.koalition ? k.koalition.aggressor === "tuerkei" : k.rahmung !== "verteidigung" || !!k.rahmungDuenn));
+}
+
+/** Wie man eine Sanktion gegen die Türkei loswird: Bedingung und Stand des Zählers (für die Lage-Karte). */
+export interface SanktionsStand { id: Sanktion["id"]; von: string; seit: number; bedingung: string; zaehler: number; noetig: number; wege: string }
+export function sanktionsStaende(w: World): SanktionsStand[] {
+  const a = aussenZustand(w);
+  return a.sanktionen.map((s) => ({
+    id: s.id, von: s.von, seit: s.seit,
+    bedingung: t(s.id === "caatsa" ? "aussen.sanktion.bedingung.caatsa" : kriegGegenEuMitglied(w) ? "aussen.sanktion.bedingung.eu_krieg" : "aussen.sanktion.bedingung.eu_handel"),
+    zaehler: a.zaehler[`${s.id}_aus`] ?? 0, noetig: 6,
+    wege: t(`aussen.sanktion.wege.${s.id}`),
+  }));
 }
 
 function aktiv(w: World, a: AussenZustand, k: keyof AussenZustand["bis"]): boolean {
@@ -313,7 +369,7 @@ export function aussenMonat(w: World, m: WeltModell): void {
   // 7. Sanktionen gegen die Türkei: entstehen nach anhaltendem Konflikt, enden nach anhaltender Entspannung
   sanktionsRegel(w, a, "caatsa", "USA", (welt["USA"]?.konflikt ?? 45) >= 70, (welt["USA"]?.konflikt ?? 45) < 50, 3);
   const euRegel = (welt["EU"]?.konflikt ?? 45) >= 75 || (knoten(w, "pressefreiheit", 30) < 12 && knoten(w, "justiz_unabhaengigkeit", 30) < 20);
-  sanktionsRegel(w, a, "eu_handel", "EU", euRegel, (welt["EU"]?.konflikt ?? 45) < 60 && knoten(w, "pressefreiheit", 30) >= 15, 6);
+  sanktionsRegel(w, a, "eu_handel", "EU", euRegel, (welt["EU"]?.konflikt ?? 45) < 60 && knoten(w, "pressefreiheit", 30) >= 15 && !kriegGegenEuMitglied(w), 6);
   for (const s of a.sanktionen) {
     if (s.id === "caatsa") {
       stoss(w, "modernisierung", -0.15);
@@ -326,6 +382,18 @@ export function aussenMonat(w: World, m: WeltModell): void {
     }
   }
   for (const id of a.eigeneSanktionen) stoss(w, "export", -0.05 * (HANDEL_GEWICHT[id] ?? 0.02) * 10);
+  // Unter einer türkischen Sanktion lenkt der Partner manchmal ein (Forderung erfüllt): Die Sanktion endet, die Türkei gewinnt Ansehen
+  for (const id of [...a.eigeneSanktionen]) {
+    if (rng.next() >= SANKTION_LAST.einlenkenJeMonat) continue;
+    a.eigeneSanktionen = a.eigeneSanktionen.filter((x) => x !== id);
+    a.gegenSanktionen = (a.gegenSanktionen ?? []).filter((x) => x !== id);
+    landAendern(w, id, { konflikt: -8, handel: 6 }, t("aussen.notiz.eingelenkt"));
+    stoss(w, "ansehen", 0.8);
+    hinweis(w, `aussen-eingelenkt-${id}-${w.day}`, t("aussen.sanktion.eingelenkt_titel", { land: akteurName(id) }), [t("aussen.sanktion.eingelenkt", { land: akteurName(id) })]);
+    addLog(w, "ereignis", t("aussen.sanktion.eingelenkt_titel", { land: akteurName(id) }), t("aussen.sanktion.eingelenkt", { land: akteurName(id) }));
+  }
+  // Die Last aller Sanktionen auf Märkte und Nachfrage (economy.ts liest sie täglich bzw. monatlich)
+  w.economy.sanktionsLast = sanktionsLastBerechnen(a);
 
   // 8. Partner können Verträge brechen (heute brach nur die Türkei)
   for (const v of alleLaufenden(w)) {
@@ -594,9 +662,18 @@ export function fuehreInstrumentAus(w: World, id: InstrumentId, landId?: string,
       a.eigeneSanktionen.push(landId!);
       landAendern(w, landId!, { handel: -15, konflikt: 10, vertrauen: -8 }, t("aussen.notiz.sanktion"));
       stoss(w, "export", -0.3);
+      // Wer stark genug ist, antwortet mit einer Gegensanktion (Vorbild Russland 2015); kleinere Partner schlucken es
+      if ((KRAFT[landId!] ?? 20) >= SANKTION_LAST.gegenAbStaerke && !(a.gegenSanktionen ?? []).includes(landId!)) {
+        (a.gegenSanktionen ??= []).push(landId!);
+        hinweis(w, `aussen-gegensanktion-${landId}-${w.day}`, t("aussen.sanktion.gegen_titel", { land: akteurName(landId!) }), [t("aussen.sanktion.gegen", { land: akteurName(landId!) })]);
+        addLog(w, "ereignis", t("aussen.sanktion.gegen_titel", { land: akteurName(landId!) }), t("aussen.sanktion.gegen", { land: akteurName(landId!) }));
+      }
+      w.economy.sanktionsLast = sanktionsLastBerechnen(a);
       break;
     case "sanktion_aufheben":
       a.eigeneSanktionen = a.eigeneSanktionen.filter((x) => x !== landId);
+      a.gegenSanktionen = (a.gegenSanktionen ?? []).filter((x) => x !== landId);
+      w.economy.sanktionsLast = sanktionsLastBerechnen(a);
       landAendern(w, landId!, { handel: 6, konflikt: -5 }, t("aussen.notiz.sanktion_ende"));
       break;
     case "rueckfuehrung":

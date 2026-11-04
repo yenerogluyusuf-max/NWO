@@ -36,6 +36,10 @@ export interface EconomyState {
   riskPremium: number;
   /** Anker der Finanzierungsbedingungen (bp): folgt dem Risikoaufschlag langsam; die Abweichung verteuert Kredite (economy.ts Z1) */
   riskAnker?: number;
+  /** Last laufender Sanktionen (sim/diplomatie.ts): Aufschlag am Markt in bp, Ausfall der Auslandsnachfrage in Indexpunkten */
+  sanktionsLast?: { risiko: number; nachfrage: number };
+  /** Anteil fehlender Energie (Öl und Gas, 0 bis 1) im letzten Liefermonat (sim/gueter.ts) */
+  energieMangel?: number;
   /** Staatsschulden in % des BIP */
   debtRatio: number;
   /** Verfügbarer nominaler Kassenbestand in Mrd. Lira; getrennt von Zentralbank-Devisenreserven. */

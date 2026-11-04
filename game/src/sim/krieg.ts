@@ -1240,8 +1240,10 @@ export function kriegMonat(w: World, rng: Rng): void {
       addLog(w, "ereignis", t("krieg.k.demob.rechnung", { bip: KRIEG.demobKostenMonat }), t("krieg.k.demob.rechnung.warum", { datum: formatDateDe(addDays(w.date, k.demobBis - w.day)) }));
     }
   }
-  // Neue Spannungen entstehen aus der Konflikt-Dimension; Zwischenfälle treiben sie dorthin
-  zwischenfaelle(w, rng);
+  // Neue Spannungen entstehen aus der Konflikt-Dimension; Zwischenfälle treiben sie dorthin. Eigener, abgeleiteter Zufallsstrom:
+  // Die gemeinsame Folge (übrige Ereignisse, Alttests) bleibt unberührt.
+  zwischenfaelle(w, new Rng((w.rngState ^ Math.imul(w.day + 13, 0x9e3779b1)) | 0));
+  void rng;
   const aktiv = aktiveKriege(w);
   if (aktiv.length >= KRIEG.maxAktiv) return;
   const z = weltZustand(w);

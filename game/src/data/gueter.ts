@@ -135,7 +135,9 @@ export const GUETER: GutDef[] = [
     kunden: ["GEO", "BGR"],
     produktionTreiber: [{ knoten: "sakarya_gas", elastizitaet: 1 }],
     verbrauchTreiber: [{ knoten: "industrie", elastizitaet: 0.4 }],
-    engpass: [{ knoten: "energiepreise", jeProzent: 0.4 }, { knoten: "energieversorgung", jeProzent: -0.4 }],
+    // Kostendruck (Spielparameter, PRUEFUNG_GESAMT_2026-11-04): Fehlt Energie, steigen die Kosten der Betriebe sofort; früher kam
+    // ein Gasengpass von 27 % kaum in der Inflation an
+    engpass: [{ knoten: "energiepreise", jeProzent: 0.4 }, { knoten: "energieversorgung", jeProzent: -0.4 }, { knoten: "kostendruck", jeProzent: 0.12 }],
     hormusAnteil: 0.1,
     quelle: "BOTAŞ: Verbrauch 2024 56,39 Mrd. m³ (plus 9,5 %; über Presse, gegen EPDK-Sektorbericht prüfen), 2025 Rekord rund 60 Mrd. m³ (RECHERCHE_ENERGIE.md); Lagerkapazität Silivri und Tuz Gölü: Lücke; Lieferanten 2025 Russland 36, Aserbaidschan 20, USA 16, Iran 13, Algerien 8 Prozent (Ember; Algerien fehlt im Weltmodell und zählt zur übrigen Welt); Sakarya-Feld in der ersten Phase.",
   },
@@ -146,7 +148,7 @@ export const GUETER: GutDef[] = [
     kunden: ["EU"],
     produktionTreiber: [{ knoten: "energieversorgung", elastizitaet: 0.2 }],
     verbrauchTreiber: [{ knoten: "industrie", elastizitaet: 0.3 }],
-    engpass: [{ knoten: "energiepreise", jeProzent: 0.35 }, { knoten: "lebenshaltung", jeProzent: 0.1 }],
+    engpass: [{ knoten: "energiepreise", jeProzent: 0.35 }, { knoten: "lebenshaltung", jeProzent: 0.1 }, { knoten: "kostendruck", jeProzent: 0.12 }],
     hormusAnteil: 0.15,
     quelle: "EPDK/IEA: Bedarf rund eine Million Barrel je Tag; eigene Förderung (Batman, Şırnak-Gabar) rund ein Zehntel; Rohöl 2024 zu über der Hälfte aus Russland; Raffinerieprodukte werden auch ausgeführt. Lager: Pflichtvorrat nach IEA-Regel 90 Tage Nettoeinfuhr (Türkei ist IEA-Mitglied); die Angabe „rund 10 Tage“ (worldometers) ist schwach belegt und nicht übernommen.",
     pruefen: true,

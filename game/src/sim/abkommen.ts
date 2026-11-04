@@ -15,6 +15,9 @@ import { wirke, vertrauenAendern } from "./wirkung";
 import { clamp } from "./economy";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
+// Ringimport mit sim/diplomatie.ts: beide rufen einander nur zur Laufzeit in Funktionen auf, nie beim Laden des Moduls
+import { aussenZustand } from "./diplomatie";
+import { t } from "../i18n";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { Angebot, Vertrag } from "./abkommen-typen";
@@ -74,6 +77,8 @@ export function klauselnFuer(w: World, landId: string): KlauselSicht[] {
     // Handelssperre (Stand 30.09.2026: Israel seit 05/2024): Handels-Klauseln bleiben gesperrt, bis „ende_sperre“ vereinbart ist
     else if (weltZustand(w)[landId]!.handelssperre && SPERRE_KLAUSELN.includes(id)) gesperrt = "Die Handels-, Hafen- und Luftraumsperre blockiert das; erst muss sie per Vertrag enden („Handels- und Häfensperre aufheben“).";
     else if (def.mindestens && dimensionZu(w, landId, def.mindestens.dim) < def.mindestens.wert) gesperrt = def.mindestens.text;
+    // „Sanktionen aufheben“ gibt es nur, wo dieser Partner wirklich eine Sanktion gegen die Türkei verhängt hat (früher auch ohne)
+    else if (id === "w_sanktion" && !aussenZustand(w).sanktionen.some((x) => x.von === landId)) gesperrt = t("aussen.sanktion.klausel_keine");
     out.push({ def, label: o?.label ?? def.label, text: o?.text ?? def.text, wert, rot, ...(rot && p.rotText?.[id] ? { rotText: p.rotText[id] } : {}), ...(gesperrt ? { gesperrt } : {}) });
   }
   return out;
@@ -274,6 +279,15 @@ export function schliesse(w: World, a: Angebot): Vertrag {
   z.vertraege.push(v);
   // „ende_sperre“ beendet eine bestehende Handelssperre des Landes (Stand 30.09.2026: Israel); danach sind Handelsaktionen und -klauseln frei
   if (a.gibt.includes("ende_sperre")) z.handelssperre = false;
+  // „Sanktionen aufheben“ hebt die Sanktion dieses Partners tatsächlich auf (früher wirkten nur Netzstützen, die Sanktion blieb)
+  if (a.will.includes("w_sanktion")) {
+    const az = aussenZustand(w);
+    const weg = az.sanktionen.filter((x) => x.von === a.land);
+    if (weg.length) {
+      az.sanktionen = az.sanktionen.filter((x) => x.von !== a.land);
+      addLog(w, "entscheidung", t("aussen.sanktion.vertrag_aufgehoben", { land: l.name }), t("aussen.sanktion.vertrag_aufgehoben.warum"));
+    }
+  }
   landAendern(w, a.land, { vertrauen: 3, konflikt: -3 }, `Vertrag über ${nameKlauseln(w, a.land, [...a.gibt, ...a.will])}`);
   for (const id of [...a.gibt, ...a.will]) {
     const def = KLAUSEL_NACH_ID[id];

@@ -312,6 +312,10 @@ export function gueterMonat(w: World): void {
   // Außenakte und Warenakte zeigen denselben physischen Gasversorgungsgrad.
   const gas = bilanz.waren.erdgas;
   if (gas && gas.bedarf > 0) aussenZustand(w).energie.versorgung = Math.round(gas.geliefert / gas.bedarf * 100);
+  // Energiemangel für die Volkswirtschaft (economy.ts Z1/Z2): Anteil des fehlenden Öls und Gases am Bedarf, je zur Hälfte gewichtet.
+  // Früher sparte ein Mangel nur Einfuhren; Preise und Produktion blieben fast unberührt (PRUEFUNG_GESAMT_2026-11-04).
+  const fehlAnteil = (id: "erdoel" | "erdgas") => { const f = bilanz.waren[id]; return f && f.bedarf > 0 ? Math.max(0, 1 - f.geliefert / f.bedarf) : 0; };
+  w.economy.energieMangel = 0.5 * fehlAnteil("erdoel") + 0.5 * fehlAnteil("erdgas");
   z.verlauf.push({ monat, autarkie: Object.fromEntries(sicht.map(s => [s.def.id, Math.round(s.autarkie)])) });
   if (z.verlauf.length > 24) z.verlauf.splice(0, z.verlauf.length - 24);
 }

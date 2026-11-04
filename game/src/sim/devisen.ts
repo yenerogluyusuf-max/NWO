@@ -150,7 +150,8 @@ export interface LbZerlegung {
 export function leistungsbilanzZerlegung(w: World): LbZerlegung {
   const e = w.economy;
   const zeilen: LbTreiber[] = [{ name: t("wk.dv.sonstige"), wert: DEVISEN.lbBasis, text: t("sim2.sim.devisen.ed77c98") }];
-  const eu = DEVISEN.euAufLb * ((e.euNachfrage ?? 100) - 100);
+  // Sanktionen (eigene, gegnerische und Gegensanktionen) kosten Ausfuhr über denselben Kanal wie die EU-Nachfrage (sim/diplomatie.ts)
+  const eu = DEVISEN.euAufLb * ((e.euNachfrage ?? 100) - 100 - (e.sanktionsLast?.nachfrage ?? 0));
   zeilen.push({ name: t("sim2.sim.devisen.cd1d645"), wert: eu, text: t("sim2.sim.devisen.c3759c9") });
   // Runde „Netz atmet“: Die Importabhängigkeit (Politiknetz) bestimmt, wie hart der Ölpreis die Rechnung trifft (Faktor 1 ohne Netz)
   const oel = DEVISEN.oelAufLb * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1);

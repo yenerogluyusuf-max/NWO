@@ -198,5 +198,22 @@
  "aussen.winter.text": "Supply falls short (security {v}): industry is throttled, households freeze, the government loses trust.",
  "aussen.winter.titel": "Gas shortage in winter",
  "aussen.winter.warn": "The energy minister warns: with supply security at {v}, gas will not last a cold January. Storage, LNG contracts or a state visit to a supplier would help.",
- "aussen.winter.warn_titel": "Gas for the winter"
+ "aussen.winter.warn_titel": "Gas for the winter",
+ "aussen.sanktion.bedingung.caatsa": "Ends when relations with the USA have been relaxed for six months in a row (conflict below 50) or a treaty agrees to lift it.",
+ "aussen.sanktion.bedingung.eu_handel": "Ends after six months in a row in which the dispute with the EU has cooled (conflict below 60) and press freedom reaches at least 15.",
+ "aussen.sanktion.bedingung.eu_krieg": "It stays as long as the war against an EU member continues.",
+ "aussen.sanktion.wege.caatsa": "Ways: relax relations with the USA and hold a summit; at the negotiating table agree on “lift sanctions”, for example in return for storing the S-400.",
+ "aussen.sanktion.wege.eu_handel": "Ways: end a war against an EU member, strengthen rule of law and press freedom, summit with the EU, negotiating table.",
+ "aussen.ui.zaehler": "Relaxation {n} of {noetig} months",
+ "aussen.ui.eigene_sanktionen": "Sanctions by Türkiye",
+ "aussen.ui.gegensanktion": "responds with counter-sanction",
+ "aussen.ui.sanktion_last": "Market burden about +{risiko} basis points, foreign demand −{nachfrage} index points",
+ "aussen.notiz.eingelenkt": "Gave in under the sanction",
+ "aussen.sanktion.eingelenkt_titel": "{land} gives in",
+ "aussen.sanktion.eingelenkt": "Under the pressure of the Turkish sanction {land} meets the demand. The sanction ends; trade slowly returns.",
+ "aussen.sanktion.gegen_titel": "{land} responds with a counter-sanction",
+ "aussen.sanktion.gegen": "{land} in turn blocks imports from Türkiye. The price hits exporters and tourism; it ends only with Türkiye's own sanction.",
+ "aussen.sanktion.klausel_keine": "There is no sanction against Türkiye from this side.",
+ "aussen.sanktion.vertrag_aufgehoben": "The treaty with {land} lifts the sanctions against Türkiye.",
+ "aussen.sanktion.vertrag_aufgehoben.warum": "The return service is agreed; markets and the defence industry breathe a sigh of relief."
 }

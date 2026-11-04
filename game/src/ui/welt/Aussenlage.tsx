@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import type { World } from "../../sim/types";
-import { AGENDEN, aussenBerichte, aussenLage, fuehreInstrumentAus, instrumente, vorschau, type Agenda, type InstrumentId, type Lieferant } from "../../sim/diplomatie";
+import { AGENDEN, aussenBerichte, aussenLage, aussenZustand, fuehreInstrumentAus, instrumente, sanktionsStaende, vorschau, type Agenda, type InstrumentId, type Lieferant } from "../../sim/diplomatie";
 import { akteurName } from "../../sim/welt-modell";
 import { dimensionZu, vertrauenZu } from "../../sim/laender";
 import { Portraet } from "../art/Portraet";
@@ -145,12 +145,28 @@ function Lage({ world, lage }: { world: World; lage: ReturnType<typeof aussenLag
           <h3>{t("aussen.ui.sanktionen")}</h3>
           {lage.sanktionen.length === 0 ? <p>{t("aussen.ui.keine_sanktionen")}</p> : (
             <ul>
-              {lage.sanktionen.map((s) => (
+              {/* Wie man eine Sanktion loswird: Bedingung, Zählerstand und Wege (PRUEFUNG_GESAMT_2026-11-04) */}
+              {sanktionsStaende(world).map((s) => (
                 <li key={s.id}>
                   <b>{akteurName(s.von)}</b>: {t(`aussen.ui.sanktion.${s.id}`)}
+                  <p className="al-klein">{s.bedingung} {t("aussen.ui.zaehler", { n: s.zaehler, noetig: s.noetig })}</p>
+                  <p className="al-klein">{s.wege}</p>
                 </li>
               ))}
             </ul>
+          )}
+          {(aussenZustand(world).eigeneSanktionen.length > 0) && (
+            <>
+              <h3>{t("aussen.ui.eigene_sanktionen")}</h3>
+              <ul>
+                {aussenZustand(world).eigeneSanktionen.map((id) => (
+                  <li key={id}><b>{akteurName(id)}</b>{(aussenZustand(world).gegenSanktionen ?? []).includes(id) ? ` · ${t("aussen.ui.gegensanktion")}` : ""}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {world.economy.sanktionsLast && (world.economy.sanktionsLast.risiko > 0 || world.economy.sanktionsLast.nachfrage > 0) && (
+            <p className="al-klein">{t("aussen.ui.sanktion_last", { risiko: Math.round(world.economy.sanktionsLast.risiko), nachfrage: Math.round(world.economy.sanktionsLast.nachfrage * 10) / 10 })}</p>
           )}
           <h3>{t("aussen.ui.diaspora")}</h3>
           <div className="al-zeile">

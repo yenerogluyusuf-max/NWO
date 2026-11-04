@@ -198,5 +198,22 @@
  "aussen.winter.text": "Arz yetmiyor (güvenlik {v}): Sanayi kısılıyor, haneler üşüyor, hükümet güven kaybediyor.",
  "aussen.winter.titel": "Kışın gaz sıkıntısı",
  "aussen.winter.warn": "Enerji bakanı uyarıyor: {v} arz güvenliğiyle soğuk bir ocakta gaz yetmez. Depolar, LNG sözleşmeleri ya da bir tedarikçiye devlet ziyareti yardımcı olur.",
- "aussen.winter.warn_titel": "Kış için gaz"
+ "aussen.winter.warn_titel": "Kış için gaz",
+ "aussen.sanktion.bedingung.caatsa": "ABD ile ilişkiler art arda altı ay yumuşadığında (çatışma 50'nin altında) veya bir antlaşma kaldırılmasını öngördüğünde sona erer.",
+ "aussen.sanktion.bedingung.eu_handel": "AB ile anlaşmazlığın soğuduğu (çatışma 60'ın altında) ve basın özgürlüğünün en az 15 olduğu art arda altı aydan sonra sona erer.",
+ "aussen.sanktion.bedingung.eu_krieg": "Bir AB üyesine karşı savaş sürdükçe devam eder.",
+ "aussen.sanktion.wege.caatsa": "Yollar: ABD ile gerginliği azaltmak ve zirve yapmak; müzakere masasında örneğin S-400'lerin depolanması karşılığında „yaptırımları kaldır“ üzerinde anlaşmak.",
+ "aussen.sanktion.wege.eu_handel": "Yollar: bir AB üyesine karşı savaşı bitirmek, hukuk devletini ve basın özgürlüğünü güçlendirmek, AB ile zirve, müzakere masası.",
+ "aussen.ui.zaehler": "Yumuşama {noetig} ayın {n}. ayı",
+ "aussen.ui.eigene_sanktionen": "Türkiye'nin yaptırımları",
+ "aussen.ui.gegensanktion": "karşı yaptırımla yanıt veriyor",
+ "aussen.ui.sanktion_last": "Piyasa yükü yaklaşık +{risiko} baz puan, dış talep −{nachfrage} endeks puanı",
+ "aussen.notiz.eingelenkt": "Yaptırım altında geri adım attı",
+ "aussen.sanktion.eingelenkt_titel": "{land} geri adım atıyor",
+ "aussen.sanktion.eingelenkt": "Türk yaptırımının baskısıyla {land} talebi karşılıyor. Yaptırım sona eriyor; ticaret yavaş yavaş geri geliyor.",
+ "aussen.sanktion.gegen_titel": "{land} karşı yaptırımla yanıt veriyor",
+ "aussen.sanktion.gegen": "{land} de Türkiye'den ithalatı engelliyor. Bedeli ihracatçılar ve turizm öder; ancak Türkiye'nin kendi yaptırımıyla sona erer.",
+ "aussen.sanktion.klausel_keine": "Bu taraftan Türkiye'ye karşı bir yaptırım yok.",
+ "aussen.sanktion.vertrag_aufgehoben": "{land} ile antlaşma Türkiye'ye yönelik yaptırımları kaldırıyor.",
+ "aussen.sanktion.vertrag_aufgehoben.warum": "Karşılığı kararlaştırıldı; piyasalar ve savunma sanayii rahat bir nefes alıyor."
 }

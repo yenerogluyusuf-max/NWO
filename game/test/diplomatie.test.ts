@@ -113,6 +113,8 @@ describe("Monatsschritt", () => {
 
   test("anhaltender Streit mit Washington führt nach Vorwarnung zu Sanktionen, Entspannung hebt sie auf", () => {
     const w = welt();
+    // Neue Spiele beginnen mit CAATSA (seit 12/2020); für die Entstehungsregel ohne bestehende Sanktion starten
+    aussenZustand(w).sanktionen = [];
     weltZustand(w)["USA"]!.konflikt = 90;
     weltZustand(w)["USA"]!.anker = 50;
     for (let i = 0; i < 4; i++) {

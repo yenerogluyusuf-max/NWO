@@ -29,6 +29,13 @@ export const PARAMS = {
    * wuchs die Wirtschaft im Krieg, obwohl der Aufschlag um 300 Basispunkte stieg (PRUEFUNG_GESAMT_2026-11-04).
    */
   riskOnRate: 1,
+  /**
+   * Z1/Z2 (Spielparameter): Fehlende Energie bremst die Produktion und treibt die Preise. Je Prozentpunkt Mangel (Öl und Gas)
+   * −0,02 Auslastung im Monat und +0,15 Prozentpunkte im Inflationsanker. Ohne Beleg für einen Mangel dieser Größe in der Türkei
+   * gewählt, damit ein jahrelanger Engpass sichtbar schadet (früher sank die Inflation dabei sogar leicht).
+   */
+  mangelAufGap: 0.02,
+  mangelAufInflation: 0.15,
   riskAnkerTempo: 0.03,
   /** Persistenz der Auslastung pro Monat */
   gapPersistence: 0.92,
@@ -150,7 +157,9 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
     AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100) +
     // Runde „Netz atmet“: Politische Schocks (klingen ab) und die Lage der Institutionen preisen die Märkte ein (0 ohne Netz)
     (e.politikRisiko ?? 0) +
-    (e.institutionenRisiko ?? 0);
+    (e.institutionenRisiko ?? 0) +
+    // Laufende Sanktionen (sim/diplomatie.ts SANKTION_LAST)
+    (e.sanktionsLast?.risiko ?? 0);
   return e.riskPremium + 0.02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
 
@@ -164,8 +173,9 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.gapPersistence * e.outputGap -
     PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) +
     PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) -
-    PARAMS.rateOnGap * PARAMS.riskOnRate * Math.max(0, (e.riskPremium - (e.riskAnker ?? e.riskPremium)) / 100) +
-    AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100) -
+    PARAMS.rateOnGap * PARAMS.riskOnRate * Math.max(0, (e.riskPremium - (e.riskAnker ?? e.riskPremium)) / 100) -
+    PARAMS.mangelAufGap * 100 * (e.energieMangel ?? 0) +
+    AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100 - (e.sanktionsLast?.nachfrage ?? 0)) -
     AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1) +
     // Runde „Netz atmet“: Die Realwirtschaft der Branchen wirkt auf die Auslastung (0 ohne Netz)
     PARAMS.sektorAufAuslastung * (e.sektorIndex ?? 0) +
@@ -185,6 +195,7 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.gapOnInflation * e.outputGap +
     PARAMS.fxPassThrough * excessDepreciation +
     e.costPush +
+    PARAMS.mangelAufInflation * 100 * (e.energieMangel ?? 0) +
     AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1);
   const previousInflation = e.inflation;
   e.inflation += PARAMS.inflationSpeed * (anchor - e.inflation) + rng.normal(0.3);

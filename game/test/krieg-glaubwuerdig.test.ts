@@ -151,8 +151,8 @@ describe("Rahmung und eigener Einstieg", () => {
     for (const seed of [1, 2, 3]) {
       const w = welt(seed);
       weltZustand(w)["CYP"]!.konflikt = 72;
-      const rng = new Rng(seed);
-      for (let m = 0; m < 36 && !kriegMit(w, "CYP"); m++) kriegMonat(w, rng);
+      // Echte Monate durchlaufen: Die Zwischenfälle würfeln aus einem eigenen, vom Spieltag abgeleiteten Strom
+      for (let m = 0; m < 36 && !kriegMit(w, "CYP") && (weltZustand(w)["CYP"]!.konflikt ?? 0) <= 72; m++) { weltZustand(w)["CYP"]!.konflikt = Math.max(weltZustand(w)["CYP"]!.konflikt, 72); advance(w, 30); }
       if ((weltZustand(w)["CYP"]!.konflikt ?? 0) > 72 || kriegMit(w, "CYP")) mehr++;
     }
     expect(mehr).toBeGreaterThan(0);

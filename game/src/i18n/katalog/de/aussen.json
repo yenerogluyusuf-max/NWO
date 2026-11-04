@@ -198,5 +198,22 @@
  "aussen.winter.text": "Die Versorgung reicht nicht (Sicherheit {v}): Industrie wird gedrosselt, Haushalte frieren, die Regierung verliert Vertrauen.",
  "aussen.winter.titel": "Gasmangel im Winter",
  "aussen.winter.warn": "Der Energieminister warnt: Bei einer Versorgungssicherheit von {v} reicht das Gas in einem kalten Januar nicht. Speicher, LNG-Verträge oder ein Staatsbesuch bei einem Lieferanten helfen.",
- "aussen.winter.warn_titel": "Gas für den Winter"
+ "aussen.winter.warn_titel": "Gas für den Winter",
+ "aussen.sanktion.bedingung.caatsa": "Endet, wenn das Verhältnis zu den USA sechs Monate in Folge entspannt ist (Konflikt unter 50) oder ein Vertrag die Aufhebung vereinbart.",
+ "aussen.sanktion.bedingung.eu_handel": "Endet nach sechs Monaten in Folge, in denen der Streit mit der EU abgekühlt ist (Konflikt unter 60) und die Pressefreiheit mindestens 15 erreicht.",
+ "aussen.sanktion.bedingung.eu_krieg": "Solange der Krieg gegen ein EU-Mitglied läuft, bleibt sie bestehen.",
+ "aussen.sanktion.wege.caatsa": "Wege: mit den USA entspannen und einen Gipfel führen; am Verhandlungstisch „Sanktionen aufheben“ vereinbaren, etwa gegen die Einlagerung der S-400.",
+ "aussen.sanktion.wege.eu_handel": "Wege: einen Krieg gegen ein EU-Mitglied beenden, Rechtsstaat und Pressefreiheit stärken, Gipfel mit der EU, Verhandlungstisch.",
+ "aussen.ui.zaehler": "Entspannung {n} von {noetig} Monaten",
+ "aussen.ui.eigene_sanktionen": "Sanktionen der Türkei",
+ "aussen.ui.gegensanktion": "antwortet mit Gegensanktion",
+ "aussen.ui.sanktion_last": "Last am Markt etwa +{risiko} Basispunkte, Auslandsnachfrage −{nachfrage} Indexpunkte",
+ "aussen.notiz.eingelenkt": "Unter der Sanktion eingelenkt",
+ "aussen.sanktion.eingelenkt_titel": "{land} lenkt ein",
+ "aussen.sanktion.eingelenkt": "Unter dem Druck der türkischen Sanktion erfüllt {land} die Forderung. Die Sanktion endet; der Handel kommt langsam zurück.",
+ "aussen.sanktion.gegen_titel": "{land} antwortet mit einer Gegensanktion",
+ "aussen.sanktion.gegen": "{land} sperrt seinerseits Einfuhren aus der Türkei. Der Preis trifft Exporteure und Tourismus; er endet erst mit der eigenen Sanktion.",
+ "aussen.sanktion.klausel_keine": "Von dieser Seite besteht keine Sanktion gegen die Türkei.",
+ "aussen.sanktion.vertrag_aufgehoben": "Der Vertrag mit {land} hebt die Sanktionen gegen die Türkei auf.",
+ "aussen.sanktion.vertrag_aufgehoben.warum": "Die Gegenleistung ist vereinbart; Märkte und Rüstungsindustrie atmen auf."
 }
