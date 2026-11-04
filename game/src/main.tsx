@@ -19,6 +19,8 @@ async function start() {
   await ladeSprache(sprache);
   document.documentElement.lang = sprache;
   const { App } = await import("./ui/App");
+  // Gemeinsame Bauteile zuletzt: Sie legen Knöpfe und Abschnittstitel aller Akten fest (ENTSCHEIDUNGEN T)
+  await import("./ui/akte/bauteile.css");
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <App />

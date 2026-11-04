@@ -6,4 +6,4 @@
 .hb .hb-warnung{border-left:3px solid #a34b31;padding-left:10px;color:#7b3325}.hb details{margin:12px 0}.hb summary{cursor:pointer;padding:4px 0;font-weight:600}.hb summary:focus-visible{outline:3px solid #b78a39;outline-offset:3px}.hb .link{white-space:normal;max-width:100%}
 @container(max-width:480px){.hb-zahlen{grid-template-columns:minmax(0,1fr)}.hb-kopf{padding:16px}.hb-inhalt{padding:0 16px 16px}.hb h4{font-size:24px}}
 
-.hb-finanzstand{border:1px solid #cbd8ce;border-radius:8px;background:#f4f2eb;padding:14px 16px;margin:18px 0;color:#48372e}.hb-finanzstand h5{margin-top:0}.hb-finanzstand p{font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.hb-finanzstand{border:1px solid #d8d4cb;border-radius:8px;background:#f4f2eb;padding:14px 16px;margin:18px 0;color:#48372e}.hb-finanzstand h5{margin-top:0}.hb-finanzstand p{font-size:13px;line-height:1.6;overflow-wrap:anywhere}

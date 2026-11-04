@@ -10,9 +10,9 @@
 .sk .sd-kopf { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:30px 32px; border-radius:16px;
   background:linear-gradient(118deg,#2e221c,#4b3a30); color:#faf7e8; position:relative; border:1px solid #584439; box-shadow:0 10px 26px #3d2f2714; }
 .sk .sd-kicker { display:flex; flex-wrap:wrap; gap:4px 12px; color:#e0c98d; font-size:11px; font-weight:650; letter-spacing:.1em; text-transform:uppercase; margin-bottom:12px; }
-.sk .sd-kicker span { color:#c9d5c9; letter-spacing:.035em; }
+.sk .sd-kicker span { color:#d5d1c9; letter-spacing:.035em; }
 .sk .sd-kopf h3 { margin:0 0 10px; font:500 clamp(27px,4cqi,42px)/1.12 var(--display); color:#faf7e8; letter-spacing:-.02em; }
-.sk .sd-amtszeit { margin:0; color:#d2dcd2; max-width:65ch; font-size:12px; line-height:1.6; }
+.sk .sd-amtszeit { margin:0; color:#dcd9d2; max-width:65ch; font-size:12px; line-height:1.6; }
 .sk .sd-siegel { border:1px solid #bfaa7166; color:#d8bf80; border-radius:50%; width:76px; height:76px; flex:none; display:grid; place-items:center; box-shadow:0 0 0 8px #bca9700a; }
 .sk .sd-kennzahlen { list-style:none; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:-10px 0 0; padding:0; gap:1px; border:1px solid var(--sd-line); background:var(--sd-line); border-radius:12px; overflow:hidden; }
 .dossier .sk button.sd-kennzahl { display:flex; flex-direction:column; align-items:start; width:100%; height:100%; text-align:left; padding:16px 20px; color:var(--sd-ink); background:var(--sd-paper); border:0; border-radius:0; box-shadow:none; text-shadow:none; gap:5px; }
@@ -101,7 +101,7 @@
 .sk .sd-vorgaenge p { font-size:13px; margin-bottom:0; }
 .sk .sd-etikett { font:650 11px/1.5 var(--sans); letter-spacing:.04em; color:var(--sd-muted); text-transform:uppercase; }
 .sk .sd-links { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
-.sk .sd-bericht { display:flex; align-items:start; gap:18px; padding:22px; background:#f1eee6; border:1px solid #cbd4bf; border-radius:10px; }
+.sk .sd-bericht { display:flex; align-items:start; gap:18px; padding:22px; background:#f1eee6; border:1px solid #d4cebf; border-radius:10px; }
 .sk .sd-bericht > svg { flex:none; }
 .sk .sd-bericht > div { min-width:0; }
 .sk .sd-bericht p { font-size:13px; }

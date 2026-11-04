@@ -50,7 +50,7 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 /* Mehrheit: Balken statt Doppeltext; Lager blaugrün, Duldung gold, Rest dunkel, Strich an der Schwelle */
 .kf-mehrheit { position: relative; display: flex; width: 64px; height: 6px; margin-top: 2px; border-radius: 3px; overflow: visible; background: rgba(0, 0, 0, 0.45); box-shadow: inset 0 0 0 1px rgba(217, 180, 106, 0.28); }
 .kf-mehrheit i { display: block; height: 100%; }
-.kf-mh-lager { background: linear-gradient(180deg, #6fb3b0, #6f4f3c); border-radius: 3px 0 0 3px; }
+.kf-mh-lager { background: linear-gradient(180deg, #ab8f60, #6f4f3c); border-radius: 3px 0 0 3px; }
 .kf-mh-duldung { background: linear-gradient(180deg, #e3c27a, #a88437); }
 .kf-mh-schwelle { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #f4e6c4; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }
 .kf-parlament.warn .kf-mh-lager { background: linear-gradient(180deg, #d98a74, #8f3a2a); }
@@ -117,7 +117,7 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 .kf-meldungen .kf-mehr-liste::before { left: 24px; }
 .kf-mehr-liste .tone-rot { --ton: #b2402f; }
 .kf-mehr-liste .tone-gelb { --ton: #b58a36; }
-.kf-mehr-liste .tone-blau { --ton: #3f7f8c; }
+.kf-mehr-liste .tone-blau { --ton: #81673a; }
 .kf-meldungen .kf-mehr-liste button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 4px; border: none; background: none; color: #f1e5c8; font: 600 13.5px var(--serif); text-align: left; cursor: pointer; }
 .kf-meldungen .kf-mehr-liste button:hover { color: #fff3cf; }
 

@@ -65,7 +65,7 @@
 .wa-koalition h3 { font-size: 22px; }
 .wa-balken { display: flex; height: 20px; border-radius: 10px; overflow: hidden; background: rgba(90, 64, 40, 0.18); box-shadow: inset 0 0 0 1px rgba(60, 40, 20, 0.25); }
 .wa-balken span { min-width: 0; }
-.wa-balken .rolle-traeger { background: linear-gradient(90deg, #4a8a92, var(--pd-teal)); }
+.wa-balken .rolle-traeger { background: linear-gradient(90deg, #866e44, var(--pd-teal)); }
 .wa-balken .rolle-schwankend { background: linear-gradient(90deg, #dcba6a, #c9a257); }
 .wa-balken .rolle-gegner { background: linear-gradient(90deg, #b8493c, var(--seal)); }
 .wa-balken span + span { box-shadow: -2px 0 0 var(--paper-light); }

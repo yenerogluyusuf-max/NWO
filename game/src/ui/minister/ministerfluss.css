@@ -163,7 +163,7 @@
 .mf-vorschau .mf-risiko { margin: 0; padding-left: 18px; display: grid; gap: 3px; font: 15.5px/1.4 var(--serif); color: #8a2d26; }
 .mf-chance { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0; font: 600 15.5px var(--serif); }
 .mf-chance i { display: inline-block; position: relative; width: 120px; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
-.mf-chance i b { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #5d4231, #3d7f88); }
+.mf-chance i b { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #5d4231, #7d6438); }
 .mf-laufend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 12px; }
 .mf-laufend li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 16px; border: 1px solid var(--pd-line, rgba(120, 90, 50, 0.28)); border-left: 4px solid #b9954a; border-radius: 6px; background: var(--pd-card, rgba(255, 252, 241, 0.88)); box-shadow: var(--pd-schatten); font: 15.5px/1.35 var(--serif); }
 .mf-laufend li strong { font: 650 16px var(--display); }

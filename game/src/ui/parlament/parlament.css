@@ -205,11 +205,11 @@
 .dossier .fraktion-aktionen { gap: 10px; margin-top: 2px; }
 .dossier .fraktion{container:fraktionskarte / inline-size;min-width:0}
 .fraktion-abkommen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:5px;overflow-wrap:anywhere}
-.fraktion-abkommen>article{display:flex;flex-direction:column;gap:9px;padding:14px;border:1px solid #ccd5c0;border-radius:9px;background:#f6f7ed;color:#4e3c32;min-width:0}
+.fraktion-abkommen>article{display:flex;flex-direction:column;gap:9px;padding:14px;border:1px solid #d5cfc0;border-radius:9px;background:#f6f7ed;color:#4e3c32;min-width:0}
 .fraktion-abkommen h4{margin:0;font:600 21px/1.2 var(--display,Georgia,serif)}.fraktion-abkommen p{margin:0;font:12px/1.6 var(--sans,sans-serif)}
 .fraktion-abkommen .fa-preis{font-weight:600;color:#5e724d;font-variant-numeric:tabular-nums}.fraktion-abkommen .fa-hinweis{font-size:11px;color:#69795f}
 .fraktion-abkommen>.fa-hinweis{grid-column:1/-1}
-.fa-vorsitz{padding-top:10px;border-top:1px solid #d7decc;font:12px/1.6 var(--sans,sans-serif)}.fa-vorsitz p{margin-top:5px}
+.fa-vorsitz{padding-top:10px;border-top:1px solid #ded9cc;font:12px/1.6 var(--sans,sans-serif)}.fa-vorsitz p{margin-top:5px}
 .fa-ziel{grid-column:1/-1;padding:12px;border-left:3px solid #53765d;background:#f0ece3;border-radius:0 6px 6px 0;font:12px/1.5 var(--sans,sans-serif)}
 .fa-ziel dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:8px 0}
 .fa-ziel dt{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#5e724d}.fa-ziel dd{margin:3px 0;font-weight:600}
@@ -223,7 +223,7 @@
 .dossier .gesetz-liste .offen-kopf strong { display: block; font: 650 20px/1.25 var(--display); }
 .dossier .gesetz-liste .offen-kopf .subtitle { margin: 2px 0 0; font: 15.5px/1.4 var(--serif); color: var(--pd-soft); }
 .dossier .stimmen-bar { height: 12px; margin: 4px 0; border-radius: 6px; background: rgba(90, 64, 40, 0.16); }
-.dossier .stimmen-ja { background: linear-gradient(90deg, #5d4231, #3d7f88); }
+.dossier .stimmen-ja { background: linear-gradient(90deg, #5d4231, #7d6438); }
 .dossier .stimmen-marke { top: -5px; bottom: -5px; background: var(--seal); }
 .dossier .stimmen-zeile { gap: 6px 16px; font: 16px/1.4 var(--serif); color: var(--pd-ink); }
 .dossier .stimmen-zeile strong { font: 700 17px var(--sans); }

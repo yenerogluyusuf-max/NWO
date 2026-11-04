@@ -58,7 +58,7 @@
 
 /* Zuletzt fertig, Einrichtungen, Lohnt sich */
 .rv-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.rv-eintrag { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; background: rgba(255, 250, 235, 0.6); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 3px solid #3f8a8f; border-radius: 2px; min-width: 0; }
+.rv-eintrag { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; background: rgba(255, 250, 235, 0.6); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 3px solid #84693a; border-radius: 2px; min-width: 0; }
 .rv-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; }
 .rv-kopf strong { overflow-wrap: anywhere; }
 .rv-zustand { margin: 2px 0; font: 600 14px var(--serif); }
@@ -106,7 +106,7 @@
 /* Programme für Regionen */
 .rg-karte { gap: 6px; }
 .rg-wo { display: flex; flex-direction: column; gap: 3px; }
-.rg-preisschild { margin: 2px 0; padding: 4px 8px; font: 600 13.5px/1.4 var(--serif); background: rgba(255, 250, 232, 0.8); border-left: 3px solid #3f8a8f; }
+.rg-preisschild { margin: 2px 0; padding: 4px 8px; font: 600 13.5px/1.4 var(--serif); background: rgba(255, 250, 232, 0.8); border-left: 3px solid #84693a; }
 .rg-angelegt ul { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
 .rg-angelegt li.fertig { color: #553a2a; }
 .rg-karte .ortwahl { position: relative; }

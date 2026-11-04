@@ -1,5 +1,5 @@
 // Gemalte Wahrzeichen als Silhouetten im Stil des Spiels: warmer Himmel, Sonne, ferne Hügel, ein dunkles Motiv mit goldenem Saum.
-// Drei Zustände: „fertig“ (gemalt), „bau“ (Gerüst und Kran, das Bauwerk wächst mit dem Fortschritt) und „entwurf“ (Bauplan auf blauem Grund).
+// Drei Zustände: „fertig“ (gemalt), „bau“ (Gerüst und Kran, das Bauwerk wächst mit dem Fortschritt) und „entwurf“ (Bauplan, mit heller Tusche auf dunklem Leder; früher blau, ENTSCHEIDUNGEN T).
 // Mit `animiert` läuft die Fertigstellung als Zeitraffer: Morgendämmerung, Gerüst und Kran, das Bauwerk wächst Stein für Stein, das Gerüst fällt,
 // ein Lichtstreif läuft über den Stein, Strahlen, Funken und Vögel. Alles in SVG und CSS (wunder.css); mit prefers-reduced-motion steht das fertige Bild sofort.
 
@@ -357,8 +357,8 @@ export function WunderBild({
           <stop offset="1" stopColor="#f2d59a" />
         </linearGradient>
         <linearGradient id={`blau${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1f3a55" />
-          <stop offset="1" stopColor="#35597a" />
+          <stop offset="0" stopColor="#3a2418" />
+          <stop offset="1" stopColor="#5a3a24" />
         </linearGradient>
         <radialGradient id={`sonne${id}`} cx="0.5" cy="0.5" r="0.5">
           <stop offset="0" stopColor="#fff2c8" stopOpacity="1" />
@@ -415,9 +415,9 @@ export function WunderBild({
             })}
           </g>
         )}
-        <path d="M0 122 Q40 96 84 116 T170 108 T260 118 T320 104 V180 H0 Z" fill={entwurf ? "#2b4a68" : "#7d6247"} opacity={entwurf ? 0.6 : 0.7} />
-        <path d="M0 132 Q60 112 120 128 T240 124 T320 130 V180 H0 Z" fill={entwurf ? "#20394f" : "#4a3826"} opacity="0.9" />
-        <rect y="136" width="320" height="44" fill={entwurf ? "#1a3046" : `url(#boden${id})`} />
+        <path d="M0 122 Q40 96 84 116 T170 108 T260 118 T320 104 V180 H0 Z" fill={entwurf ? "#6b4a2c" : "#7d6247"} opacity={entwurf ? 0.6 : 0.7} />
+        <path d="M0 132 Q60 112 120 128 T240 124 T320 130 V180 H0 Z" fill={entwurf ? "#4a3020" : "#4a3826"} opacity="0.9" />
+        <rect y="136" width="320" height="44" fill={entwurf ? "#38231a" : `url(#boden${id})`} />
         <g clipPath={`url(#bau${id})`}>
           <g fill={TINTE} stroke={GOLD} strokeWidth="0.8" strokeOpacity="0.55" className="wunder-a-motiv">
             {motiv(art)}

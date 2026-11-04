@@ -319,3 +319,11 @@ Der Projektinhaber: In allen Bereichen soll man viel mehr mit der Karte und auf 
 Der Projektinhaber zur Gestaltung nach Vorgabe P: Das Design entfernt sich vom Spiel. Links ist alles grün, es wirkt statisch, die Schrift ist statisch. Es soll professionell und schön aussehen, aber ein Spiel bleiben, **ohne das Grün** und mit **eigener Identität**.
 
 Daraus: Das dunkelgrüne Leitbild der Akten und der Bereichsleiste wird ersetzt. Drei Richtungen liegen als Muster vor (`game/identitaet.html?v=cini|tisch|hilal`, Bilder in `reports/identitaet/`): „Çini“ (Nachtblau, Iznik-Türkis, Koralle, Gold, Fliesenmuster, Cinzel), „Kriegstisch“ (Nussholz, Messing, Pergamentkarte, Schreibmaschine, Stempel) und „Hilal“ (Karmesin auf Nachtschwarz, Glasflächen, Oswald). In allen dreien ist die Karte die Bühne und die Akte eine Seitenleiste (Vorgabe S). Die Wahl trifft der Projektinhaber.
+
+Nachtrag zu T (zweite Rückmeldung, 4. November): Das bestehende Design mit Karte und Meeren ist besser als alle drei Muster. Das Problem ist das Durcheinander der Farben und Muster; am meisten Identität hat der „Kriegstisch“. Umgesetzt im Spiel selbst, die Karte bleibt unverändert:
+
+1. **Eine Palette „Kabinettstisch“:** Leder, Messing, Pergament, Siegelrot als einziger Akzent. Dunkle Grün- und Blauflächen wurden Leder, Türkis wurde Messing, helle Tönungen wurden Pergament; alle Bereiche teilen eine Aktenpalette.
+2. **Eine Navigationsspalte weniger:** Die Unterseiten eines Bereichs sind Aktenreiter über dem Blatt (Arbeit links, Einordnung rechts), bei vielen Unterseiten in zwei Reihen wie bei einem Register.
+3. **Gemeinsame Bauteile** (`game/src/ui/akte/bauteile.css`): drei Knopfstufen (Haupt: Leder; Normal: Pergament mit Messingrand; Leise: Schrift), eine Titelsprache (Kapitälchen in Siegelrot mit Messinglinie), Bereichszeichen als Siegel, Kapitälchen (Marcellus SC) für Leisten und Reiter, Schreibmaschine (Courier Prime) für Aktenvermerke.
+
+Offen: Reiter innerhalb der Seiten (dritte und vierte Ebene, etwa Kabinett → Ministerrat → Vorlagen) zusammenführen; die in jedem Bereich gleichen Seiten „Behörden“, „Bilanz“ und „Zuständige“ zu einer Seite „Hintergrund“ bündeln; Politik hat noch eine eigene Bereichsliste als zweite Spalte.

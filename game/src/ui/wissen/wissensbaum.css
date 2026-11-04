@@ -50,12 +50,12 @@
   font-family: var(--serif);
 }
 .wbf button { box-shadow: none; }
-.wbf .b-digital { --bahn: #4ea0d8; }
+.wbf .b-digital { --bahn: #c99945; }
 .wbf .b-energie { --bahn: #e2a93c; }
 .wbf .b-luftraum { --bahn: #a98ad8; }
 .wbf .b-ruestung { --bahn: #cf5a4c; }
 .wbf .b-bio { --bahn: #62b072; }
-.wbf .b-werkstoff { --bahn: #4cb8ad; }
+.wbf .b-werkstoff { --bahn: #ab8544; }
 
 .wbf-kopf {
   display: flex; align-items: center; gap: 18px; padding: 10px 18px; min-height: 62px;
@@ -127,13 +127,13 @@
   border: 2px solid color-mix(in srgb, var(--bahn) 60%, #e9d9a6); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 .wbf-k-rund.klein { width: 26px; height: 26px; margin: 0; border-width: 1.5px; color: #fff; }
-.wb .wbf-k-rund.klein { --bahn: #4e6a8c; }
-.wb .wbf-k-rund.klein.b-digital { --bahn: #4ea0d8; }
+.wb .wbf-k-rund.klein { --bahn: #816c48; }
+.wb .wbf-k-rund.klein.b-digital { --bahn: #c99945; }
 .wb .wbf-k-rund.klein.b-energie { --bahn: #e2a93c; }
 .wb .wbf-k-rund.klein.b-luftraum { --bahn: #a98ad8; }
 .wb .wbf-k-rund.klein.b-ruestung { --bahn: #cf5a4c; }
 .wb .wbf-k-rund.klein.b-bio { --bahn: #62b072; }
-.wb .wbf-k-rund.klein.b-werkstoff { --bahn: #4cb8ad; }
+.wb .wbf-k-rund.klein.b-werkstoff { --bahn: #ab8544; }
 .wbf-k-name {
   font: 600 14.5px/1.2 var(--serif); align-self: center; min-width: 0;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -148,14 +148,14 @@
   color: #f0c9a2; background: rgba(120, 70, 30, 0.35); border: 1px solid rgba(214, 150, 90, 0.55);
 }
 .wbf-k-grund:hover { color: #fff; border-color: #f0c9a2; }
-.wbf-k-grund.h-bildung { color: #bfe3ef; background: rgba(40, 100, 120, 0.35); border-color: rgba(120, 190, 210, 0.55); }
+.wbf-k-grund.h-bildung { color: #ebdfc3; background: rgba(40, 100, 120, 0.35); border-color: rgba(120, 190, 210, 0.55); }
 .wbf-k-balken { position: absolute; left: 34px; right: 10px; bottom: 4px; height: 4px; border-radius: 2px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .wbf-k-balken i { display: block; height: 100%; background: linear-gradient(90deg, #c99a3a, var(--gold-hell)); }
 .wbf-k-heureka {
   position: absolute; right: -7px; top: -8px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
   color: #6f7f97; background: #291c13; border: 1.5px solid #4c5d78;
 }
-.wbf-k-heureka.bereit { color: #b7e4c4; border-color: #6fb487; background: linear-gradient(90deg, #473226 50%, #291c13 50%); }
+.wbf-k-heureka.bereit { color: #e4d6b7; border-color: #6fb487; background: linear-gradient(90deg, #473226 50%, #291c13 50%); }
 .wbf-k-heureka.ja { color: #241a14; background: #8fd4a6; border-color: #efe4c9; }
 .wbf-k-stempel {
   position: absolute; right: 8px; top: -11px; transform: rotate(6deg); font: 700 9.5px var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
@@ -209,7 +209,7 @@
 .wbf-legende .l-moeglich::before { background: #624636; border-color: var(--blau-hell); }
 .wbf-legende .l-gesperrt::before { background: #31241d; border-color: #534035; }
 .wbf-legende .l-heureka::before, .wbf-legende .wbf-klein::before { display: none; }
-.wbf-legende .l-heureka { color: #b7e4c4; display: inline-flex; align-items: center; gap: 3px; }
+.wbf-legende .l-heureka { color: #e4d6b7; display: inline-flex; align-items: center; gap: 3px; }
 
 .wbf-meldung {
   position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); max-width: min(640px, 90%); margin: 0; display: flex; gap: 10px; align-items: flex-start;
@@ -247,7 +247,7 @@
 .wbf-leiste .wb-zu { background: none; border: none; color: var(--perg-leise); font-size: 22px; line-height: 1; cursor: pointer; padding: 0 4px; }
 .wbf-leiste .wb-detail-satz { margin: 0; font: 15px/1.45 var(--serif); }
 .wbf-leiste .wb-grund { margin: 0; padding: 8px 10px; border-radius: 4px; font-size: 14px; line-height: 1.4; background: rgba(120, 70, 30, 0.25); border-left: 3px solid #d6965a; display: flex; flex-direction: column; gap: 6px; }
-.wbf-leiste .wb-grund-bildung { background: rgba(40, 100, 120, 0.25); border-left-color: #78bed2; }
+.wbf-leiste .wb-grund-bildung { background: rgba(40, 100, 120, 0.25); border-left-color: #cba664; }
 .wb-sprung, .wb-sprung-zeile {
   align-self: flex-start; cursor: pointer; font: 600 13px var(--sans); color: var(--gold-hell); background: none; border: none; padding: 0; text-decoration: underline; text-underline-offset: 3px;
 }
@@ -258,8 +258,8 @@
 .wbf-leiste .wb-hinweis { margin: 0; font-size: 13px; line-height: 1.4; color: var(--perg-leise); }
 .wbf-leiste .wb-heureka { color: #9fc8ad; display: block; }
 .wbf-leiste .wb-heureka svg { vertical-align: -2px; }
-.wbf-leiste .wb-heureka.ja { color: #b7e4c4; }
-.wbf-leiste .wb-werk { margin: 0; font-size: 13.5px; color: #8ccfc6; }
+.wbf-leiste .wb-heureka.ja { color: #e4d6b7; }
+.wbf-leiste .wb-werk { margin: 0; font-size: 13.5px; color: #c7aa78; }
 .wbf-leiste .wb-tempozeile { margin: 0; font-size: 12.5px; color: var(--perg-leise); }
 .wbf-leiste .wb-wege { display: flex; flex-direction: column; gap: 8px; }
 .wbf-leiste .wb-knoepfe { display: flex; flex-wrap: wrap; gap: 6px; }
