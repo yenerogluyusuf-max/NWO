@@ -81,4 +81,6 @@ Im Spiel unter **Forschung & Ziele → Große Ziele** (`game/src/sim/grosseziele
 - **Versuch:** Er gelingt, gelingt nur abgeschwächt mit halber Wirkung (die nächste Stufe wird schwerer) oder scheitert mit einem Jahr Sperrfrist, Ansehensverlust und Vertrauensverlust bei den Partnern. Gegenspieler reagieren auf jeden Erfolg.
 - **Begrenzung:** höchstens drei Ziele gleichzeitig.
 
-**Offen:** weitere Ziele aus Abschnitt 3 (Technologie, Innen, Energie, Kultur, UN-Sicherheitsrat), Großprojekte für Landwirtschaft, See, Handel und Logistik im Reich (Q.4) sowie Ziele, die der Fokusbaum vorbereitet.
+**Nachtrag 5. November:** vier weitere Ziele, jetzt zehn in acht Bereichen: **Technologiemacht** (Rüstung aus eigener Hand → Halbleiterfabrik → Mondmission), **Energieunabhängigkeit** (Sakarya-Gas → Kernkraft-Flotte → unabhängig), **Versöhnung im Innern** (Friedensprozess → zivile Verfassung → versöhnte Gesellschaft), **Die Welt ist größer als fünf** (Olympische Spiele in Istanbul → Istanbul als Genf des Ostens → Sitz im Sicherheitsrat). Erreichte Stufen sind historische Momente der Amtszeit (`sim/epoche.ts`).
+
+**Offen:** Großprojekte für Landwirtschaft, See, Handel und Logistik im Reich (Q.4) sowie Ziele, die der Fokusbaum vorbereitet.

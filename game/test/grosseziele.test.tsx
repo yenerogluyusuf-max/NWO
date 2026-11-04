@@ -34,8 +34,9 @@ function schwelleErfuellen(w: World, id: string): void {
 }
 
 describe("Katalog und Messung", () => {
-  test("sechs Ziele mit je drei Stufen; alle genannten Netzgrößen gibt es", () => {
-    expect(ZIELE.length).toBe(6);
+  test("zehn Ziele in acht Bereichen mit je drei Stufen; alle genannten Netzgrößen gibt es", () => {
+    expect(ZIELE.length).toBe(10);
+    expect(new Set(ZIELE.map((z) => z.bereich)).size).toBe(8);
     for (const z of ZIELE) {
       expect(z.stufen.length).toBe(3);
       for (const s of z.stufen) for (const f of [...s.faktoren, ...s.schwelle]) if (f.art === "knoten" || f.art === "massnahme") expect(NET.index.has(f.id), f.id).toBe(true);

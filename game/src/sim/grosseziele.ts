@@ -20,7 +20,7 @@ import type { World } from "./types";
 // ---------------------------------------------------------------------------
 // Typen
 
-export type ZielBereich = "aussen" | "sicherheit" | "logistik" | "agrar" | "see";
+export type ZielBereich = "aussen" | "sicherheit" | "logistik" | "agrar" | "see" | "technik" | "energie" | "innen";
 export type Bedingung =
   | { art: "knoten"; id: string; min: number }
   | { art: "vertrauen"; laender: string[]; min: number }
@@ -51,7 +51,7 @@ export interface StufeDef {
 export interface ZielDef {
   id: string;
   bereich: ZielBereich;
-  bild: "tor" | "bruecke" | "schiff" | "damm" | "gericht" | "kuppel";
+  bild: "tor" | "bruecke" | "schiff" | "damm" | "gericht" | "kuppel" | "jet" | "reaktor" | "tempel";
   /** Länder, um deren Zustimmung es geht (für Wege und Vertretungen) */
   partner: string[];
   /** Wer sich bei Erfolg querstellt (Vertrauen −, Konflikt +) */
@@ -178,6 +178,63 @@ export const ZIELE: ZielDef[] = [
       { id: "weltwerft", schwelle: [{ art: "knoten", id: "ruestungsautarkie", min: 65 }, { art: "knoten", id: "export", min: 55 }], basis: 0.04, pk: 16, aufmerksamkeit: 18,
         faktoren: [k("ruestungsautarkie", 0.25, 65, 90, "autarkie"), k("export", 0.2, 55, 85, "export"), k("investitionen", 0.1, 50, 80, "investitionen")],
         erfolg: [{ art: "knoten", id: "export", d: 6 }, { art: "knoten", id: "investitionen", d: 4 }, { art: "knoten", id: "ansehen", d: 3 }] },
+    ],
+  },
+  // Vier weitere Bereiche (Vorgabe Q.4, GROSSE_ZIELE §3): Technologie, Energie, Innen, Weltbühne. Werte sind Spielparameter.
+  {
+    id: "technologie", bereich: "technik", bild: "jet", partner: ["EU", "AZE"], gegenspieler: ["GRC"],
+    stufen: [
+      { id: "autarkie", schwelle: [{ art: "knoten", id: "ruestungsautarkie", min: 45 }], basis: 0.18, pk: 8, aufmerksamkeit: 12,
+        faktoren: [k("ruestungsautarkie", 0.25, 45, 80, "autarkie"), k("hochschule", 0.15, 45, 75, "forschung"), k("modernisierung", 0.1, 40, 70, "modernisierung")],
+        erfolg: [{ art: "knoten", id: "ruestungsautarkie", d: 4 }, { art: "knoten", id: "export", d: 2 }, { art: "knoten", id: "ansehen", d: 2 }] },
+      { id: "halbleiter", schwelle: [{ art: "knoten", id: "hochschule", min: 55 }, { art: "massnahme", id: "m_forschung", min: 55 }], basis: 0.07, pk: 12, aufmerksamkeit: 15,
+        faktoren: [k("hochschule", 0.2, 55, 85, "forschung"), k("m_forschung", 0.15, 55, 85, "forschung"), k("auslandskapital", 0.15, 40, 70, "auslandskapital"), v(["EU"], 0.1, 40, 70, "vertrauen")],
+        erfolg: [{ art: "knoten", id: "modernisierung", d: 4 }, { art: "knoten", id: "export", d: 3 }] },
+      { id: "mond", schwelle: [{ art: "knoten", id: "hochschule", min: 65 }, { art: "knoten", id: "ruestungsautarkie", min: 65 }], basis: 0.03, pk: 16, aufmerksamkeit: 18,
+        faktoren: [k("m_forschung", 0.2, 60, 90, "forschung"), k("hochschule", 0.15, 65, 90, "forschung"), k("ansehen", 0.1, 50, 80, "ansehen")],
+        erfolg: [{ art: "knoten", id: "ansehen", d: 6 }, { art: "knoten", id: "identitaet", d: 4 }, { art: "knoten", id: "hochschule", d: 3 }] },
+    ],
+  },
+  {
+    id: "energieunabhaengig", bereich: "energie", bild: "reaktor", partner: ["AZE", "KAZ"], gegenspieler: ["RUS", "IRN"],
+    stufen: [
+      { id: "sakarya", schwelle: [{ art: "massnahme", id: "m_gasfoerderung", min: 50 }], basis: 0.18, pk: 8, aufmerksamkeit: 10,
+        faktoren: [k("m_gasfoerderung", 0.2, 50, 80, "gas"), k("gasabhaengigkeit", 0.15, 70, 45, "abhaengigkeit"), v(["AZE"], 0.1, 50, 80, "vertrauen")],
+        erfolg: [{ art: "knoten", id: "gasabhaengigkeit", d: -4 }, { art: "knoten", id: "energieversorgung", d: 2 }] },
+      { id: "kernkraft", schwelle: [{ art: "massnahme", id: "m_kernkraft", min: 55 }, { art: "knoten", id: "erneuerbare", min: 40 }], basis: 0.08, pk: 12, aufmerksamkeit: 14,
+        faktoren: [k("m_kernkraft", 0.2, 55, 85, "kernkraft"), k("erneuerbare", 0.15, 40, 70, "erneuerbare"), kf(["RUS"], -0.1, 50, 80, "widerstand")],
+        erfolg: [{ art: "knoten", id: "gasabhaengigkeit", d: -4 }, { art: "knoten", id: "stromversorgung", d: 3 }] },
+      { id: "unabhaengig", schwelle: [{ art: "knoten", id: "erneuerbare", min: 60 }, { art: "knoten", id: "energieversorgung", min: 60 }], basis: 0.03, pk: 16, aufmerksamkeit: 18,
+        faktoren: [k("erneuerbare", 0.2, 60, 90, "erneuerbare"), k("gasabhaengigkeit", 0.2, 50, 20, "abhaengigkeit"), k("m_energieeffizienz", 0.1, 50, 80, "effizienz")],
+        erfolg: [{ art: "knoten", id: "energieimporte", d: -6 }, { art: "knoten", id: "ansehen", d: 3 }, { art: "knoten", id: "energieversorgung", d: 4 }] },
+    ],
+  },
+  {
+    id: "versoehnung", bereich: "innen", bild: "gericht", partner: ["EU"], gegenspieler: [],
+    stufen: [
+      { id: "friedensprozess", schwelle: [{ art: "massnahme", id: "m_friedensprozess", min: 50 }], basis: 0.15, pk: 10, aufmerksamkeit: 14,
+        faktoren: [k("m_friedensprozess", 0.2, 50, 80, "frieden"), k("minderheiten", 0.15, 40, 70, "minderheiten"), k("polarisierung", 0.15, 80, 55, "polarisierung")],
+        erfolg: [{ art: "knoten", id: "minderheiten", d: 4 }, { art: "knoten", id: "polarisierung", d: -3 }] },
+      { id: "verfassung", schwelle: [{ art: "knoten", id: "justiz_unabhaengigkeit", min: 40 }, { art: "knoten", id: "legitimitaet", min: 55 }], basis: 0.07, pk: 14, aufmerksamkeit: 16,
+        faktoren: [k("justizvertrauen", 0.15, 40, 70, "justiz"), k("pressefreiheit", 0.15, 30, 60, "presse"), k("legitimitaet", 0.1, 55, 80, "legitimitaet")],
+        erfolg: [{ art: "knoten", id: "rechtssicherheit", d: 4 }, { art: "knoten", id: "legitimitaet", d: 3 }, { art: "land", laender: ["EU"], dim: "vertrauen", d: 4 }] },
+      { id: "versoehnung", schwelle: [{ art: "knoten", id: "minderheiten", min: 60 }, { art: "knoten", id: "identitaet", min: 60 }], basis: 0.03, pk: 16, aufmerksamkeit: 18,
+        faktoren: [k("polarisierung", 0.25, 70, 40, "polarisierung"), k("minderheiten", 0.15, 60, 85, "minderheiten"), k("identitaet", 0.1, 60, 85, "identitaet")],
+        erfolg: [{ art: "knoten", id: "polarisierung", d: -8 }, { art: "knoten", id: "identitaet", d: 5 }, { art: "knoten", id: "ansehen", d: 3 }] },
+    ],
+  },
+  {
+    id: "weltbuehne", bereich: "aussen", bild: "tempel", partner: ["EU", "SAU", "AZE", "KAZ"], gegenspieler: ["USA", "RUS", "CHN"],
+    stufen: [
+      { id: "olympia", schwelle: [{ art: "knoten", id: "ansehen", min: 50 }, { art: "knoten", id: "tourismus", min: 55 }], basis: 0.15, pk: 10, aufmerksamkeit: 12,
+        faktoren: [k("ansehen", 0.2, 50, 75, "ansehen"), k("tourismus", 0.15, 55, 80, "tourismus"), k("bahnnetz", 0.1, 40, 70, "infrastruktur")],
+        erfolg: [{ art: "knoten", id: "tourismus", d: 4 }, { art: "knoten", id: "ansehen", d: 3 }, { art: "knoten", id: "identitaet", d: 2 }] },
+      { id: "vermittler", schwelle: [{ art: "knoten", id: "ansehen", min: 55 }, { art: "vertrauen", laender: ["USA", "RUS"], min: 45 }], basis: 0.08, pk: 12, aufmerksamkeit: 15,
+        faktoren: [k("ansehen", 0.2, 55, 80, "ansehen"), v(["USA", "RUS", "EU"], 0.2, 45, 70, "vertrauen"), vt(["EU", "SAU"], 0.1, "vertretung")],
+        erfolg: [{ art: "knoten", id: "ansehen", d: 4 }, { art: "land", laender: ["USA", "RUS"], dim: "vertrauen", d: 3 }] },
+      { id: "sicherheitsrat", schwelle: [{ art: "knoten", id: "ansehen", min: 70 }], basis: 0.02, pk: 20, aufmerksamkeit: 20,
+        faktoren: [k("ansehen", 0.2, 70, 95, "ansehen"), v(["EU", "SAU", "AZE", "KAZ"], 0.15, 55, 85, "vertrauen"), kf(["USA", "RUS", "CHN"], -0.15, 40, 80, "widerstand")],
+        erfolg: [{ art: "knoten", id: "ansehen", d: 8 }, { art: "knoten", id: "identitaet", d: 3 }] },
     ],
   },
 ];
