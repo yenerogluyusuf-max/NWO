@@ -128,7 +128,9 @@ const botPassiv: Bot = () => {};
 
 type Ausgang = "erster" | "stichwahl" | "verloren" | "-";
 
-/** Zustimmung vor der ersten Wahl (nach 58 Monaten) des letzten Laufs: ein stetiges Maß für die Ausgangslage jeder Linie. */
+/** Zustimmung nach 24 Monaten des letzten Laufs: ein stetiges Maß für die Ausgangslage jeder Linie. Früher nach 58 Monaten; seit Proteste
+ * und Putschzirkel wirken (PRUEFUNG_GESAMT_2026-11-04), stürzt der passive Bot auf „hart“ meist vorher, und die Linien ohne Messwert
+ * zählten als 0. Zwei Jahre erreicht jede Partie. */
 let letzteZustimmung = NaN;
 
 function lauf(linieId: string, bot: Bot, seed: number): Ausgang {
@@ -146,7 +148,7 @@ function lauf(linieId: string, bot: Bot, seed: number): Ausgang {
     bot(w, rng, monat);
     advance(w, 30);
     monat++;
-    if (monat === 58) letzteZustimmung = w.spiel!.umfrage.zustimmung;
+    if (monat === 24) letzteZustimmung = w.spiel!.umfrage.zustimmung;
   }
   if (process.env.NEUTRALITAET_DEBUG) schreibe(`   [${linieId} Wert ${seed}] Stammsaldo ${(w.player?.stammSaldo ?? 0).toFixed(1)}, Kalibrierung ${w.spiel!.kalibrierung.toFixed(1)}, Versuche ${JSON.stringify(diag)}, Zustimmung ${w.spiel!.umfrage.zustimmung.toFixed(1)}`);
   const e = w.spiel!.wahl?.historie[0];
@@ -178,7 +180,7 @@ describe(VOLL ? "Neutralität der Startlinien: linientreuer Bot" : "Neutralität
       schreibe(
         `${linie.id.padEnd(16)} Siege ${r.filter((x) => x === "erster" || x === "stichwahl").length}/${r.length} (${pct(quote(r))}); erster Wahlgang ${r.filter((x) => x === "erster").length}, Stichwahl ${r.filter((x) => x === "stichwahl").length}, verloren ${r.filter((x) => x === "verloren").length}, ohne Wahl ${r.filter((x) => x === "-").length}` +
           (k ? ` | Kontrolle (ohne Linie) ${pct(quote(k))}` : "") +
-          ` | Zustimmung nach 58 Monaten ${zm.toFixed(1)}`,
+          ` | Zustimmung nach 24 Monaten ${zm.toFixed(1)}`,
       );
       // Jede Partie erreicht die Wahl oder endet vorher (Rücktritt, Sturz, Amtsenthebung); es gibt keine Ausnahme
       expect(r.length).toBe(SEEDS_N);
