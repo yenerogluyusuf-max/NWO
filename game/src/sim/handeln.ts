@@ -7,6 +7,7 @@
 //   - konkurriert mit allen anderen laufenden Vorhaben um die Verwaltungskapazität.
 // Alle Werte sind Platzhalter der Kalibrierung.
 
+import { politikGeaendert } from "./zynismus";
 import { NET } from "./modell";
 import { erfuelleZusage, schliesseZusageErinnerung, zusageStufen, zusageZielErreicht } from "./zusagenfolgen";
 import { addDays, formatDateDe } from "./dates";
@@ -512,7 +513,9 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     if (!pr.erlass.bezahlbar) return { ok: false, text: `Für den Erlass fehlt Politisches Kapital (nötig ${pr.erlass.pk}, vorhanden ${Math.floor(spiel.kapital)}).` };
     spiel.kapital -= pr.erlass.pk;
     verbrauche(world, AUFMERKSAMKEIT_KOSTEN.erlass, pr.name);
+    const vorErlass = stufeIn(world, id, ortsListe(pr.provinzen));
     setPolicy(world, id, pr.stufe, pr.provinzen);
+    politikGeaendert(world, id, vorErlass, pr.stufe);
     vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
     const l = world.log[world.log.length - 1]!;
     nachEinbringen?.(world, id, `Per Erlass angeordnet: ${l.text}`);
@@ -687,7 +690,9 @@ export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
     const angenommen = ja >= REGELN.mehrheit;
     out.push({ gesetz: g.name, angenommen, ja, nein });
     if (angenommen) {
+      const vorGesetz = stufeIn(world, g.massnahme, ortsListe(g.provinzen));
       wendeAn(world, g.massnahme, g.stufe, g.provinzen);
+      politikGeaendert(world, g.massnahme, vorGesetz, g.stufe);
       const node = NET.nodes[knotenIndex(g.massnahme)]!;
       const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
       addLog(

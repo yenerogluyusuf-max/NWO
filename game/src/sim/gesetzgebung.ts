@@ -5,6 +5,7 @@
 // und das Verfassungsgericht als Schatten über Erlassen und grundrechtsnahen Gesetzen.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
 
+import { politikGeaendert } from "./zynismus";
 import { FASSUNG_WERTE, FASSUNGEN, GESETZESVORHABEN, STANDARD_SCHRITTE, VERBAENDE, VORHABEN_NACH_ID, type FassungId, type GesetzesVorhaben } from "../data/gesetzesvorhaben";
 import { GRUPPEN } from "./gruppen";
 import { NET } from "./modell";
@@ -345,6 +346,7 @@ export function bringeVorhabenEin(w: World, vorhabenId: string, fassung: Fassung
     sp.kapital -= fs.erlass.pk;
     verbrauche(w, AUFMERKSAMKEIT_KOSTEN.erlass, sicht.titel);
     setPolicy(w, v.massnahme, fs.ziel, null);
+    politikGeaendert(w, v.massnahme, alteStufe, fs.ziel);
     vertrauenAendern(w, -(1 + Math.abs(fs.aenderung) / 40));
     folgenNachBeschluss(w, v, fassung);
     z.beschlossen.push({ vorhaben: v.id, fassung, tag: w.day, weg: "erlass" });

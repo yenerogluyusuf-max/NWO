@@ -580,6 +580,8 @@ export interface SpielZustand {
   krisen?: AktiveKrise[];
   /** Konfliktvorgänge (MIL-1 „Krieg als Vorgang“); ältere Spielstände haben das Feld nicht — kein Krieg-Feld = kein Konflikt, es wird beim ersten Zugriff angelegt */
   kriege?: import("./krieg-typen").KriegVorgang[];
+  /** Zynismus durch Kehrtwenden und Wahlgeschenke (sim/zynismus.ts) */
+  zynismus?: import("./zynismus").ZynismusZustand;
   /** Amtszeit-Epochen: historische Momente und Bewertungen (sim/epoche.ts); ältere Spielstände legen das Feld beim ersten Monat an */
   epoche?: import("./epoche").EpochenZustand;
   /** Große Ziele (sim/grosseziele.ts); ältere Spielstände haben das Feld nicht, es wird beim ersten Zugriff angelegt */

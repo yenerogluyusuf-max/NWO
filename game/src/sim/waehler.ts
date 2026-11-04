@@ -160,6 +160,7 @@ export function zustimmungsBilanz(world: World): { jetzt: number; tendenz: numbe
     { name: tx("bilanz.wirtschaft.name"), delta: 0.3 * (t.wirtschaft - 50), text: tx("bilanz.wirtschaft.text") },
     { name: tx("bilanz.probleme.name"), delta: -(t.probleme - probleme0), text: tx("bilanz.probleme.text") },
     { name: tx("bilanz.muedigkeit.name"), delta: -t.muedigkeit, text: tx("bilanz.muedigkeit.text") },
+    ...(t.zynismus > 0.05 ? [{ name: tx("bilanz.zynismus.name"), delta: -t.zynismus, text: tx("bilanz.zynismus.text") }] : []),
   ];
   return {
     jetzt: spiel.umfrage.zustimmung,

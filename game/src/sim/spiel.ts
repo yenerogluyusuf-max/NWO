@@ -60,6 +60,7 @@ import { wahlkampfTag } from "./wahlkampf";
 import { wahlTick } from "./wahl";
 import { amtszeitMonat, muedigkeitsMonate } from "./amtszeit";
 import { epocheMonat } from "./epoche";
+import { zynismusLast, zynismusMonat } from "./zynismus";
 import { endenMonat } from "./enden";
 import { dauerherrscherMonat } from "./dauerherrscher";
 import { kabinettStatus } from "./kabinett";
@@ -142,7 +143,7 @@ function problemLast(w: World): number {
 }
 
 /** Die Bestandteile der Zustimmung; jeder Teil steht für sich, damit die Oberfläche erklären kann, woher die Zahl kommt. */
-export function zustimmungsTeile(w: World, monate: number): { vertrauen: number; gruppen: number; wirtschaft: number; probleme: number; muedigkeit: number; roh: number } {
+export function zustimmungsTeile(w: World, monate: number): { vertrauen: number; gruppen: number; wirtschaft: number; probleme: number; muedigkeit: number; zynismus: number; roh: number } {
   const spiel = w.spiel!;
   const s0 = spiel.start;
   const e = w.economy;
@@ -152,7 +153,8 @@ export function zustimmungsTeile(w: World, monate: number): { vertrauen: number;
   const probleme = SPIEL.problemGewicht * problemLast(w);
   // Die Müdigkeit zählt ab dem Beginn der Amtszeit; ein Teil des Verschleißes früherer Amtszeiten geht mit (sim/amtszeit.ts)
   const muedigkeit = SPIEL.muedigkeit * schwierig(w).muedigkeit * muedigkeitsMonate(w, monate);
-  return { vertrauen, gruppen, wirtschaft, probleme, muedigkeit, roh: 0.45 * vertrauen + 0.25 * gruppen + 0.3 * wirtschaft - probleme - muedigkeit };
+  const zyn = zynismusLast(w);
+  return { vertrauen, gruppen, wirtschaft, probleme, muedigkeit, zynismus: zyn, roh: 0.45 * vertrauen + 0.25 * gruppen + 0.3 * wirtschaft - probleme - muedigkeit - zyn };
 }
 
 /** Zustimmung, wie sie sich aus dem Zustand ergäbe (ohne Startverschiebung). */
@@ -415,6 +417,7 @@ function spielMonat(world: World, rng: Rng): void {
   ueberlaeufer(world);
   grosseZieleMonat(world);
   epocheMonat(world);
+  zynismusMonat(world);
   ressortNachsorgeTag(world);
   haushaltsMonatsabschluss(world);
   // Amtszeit (sim/amtszeit.ts): ältere Stände nachholen, Umbildungsfenster schließen, in der letzten Amtszeit die Nachfolge

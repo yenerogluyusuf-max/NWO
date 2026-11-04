@@ -1,0 +1,8 @@
+{
+ "zynismus.log.wende": "“{name}” konusunda geri adım: halk hükümete daha az inanıyor",
+ "zynismus.log.geschenk": "Seçim hediyesi “{name}”: niyeti çoğu kişi görüyor",
+ "zynismus.warum.wende": "Bir tedbiri değiştirdikten kısa süre sonra tersine çevirmek güvenilirliği zedeler (sinizm). Aylar içinde azalır.",
+ "zynismus.warum.geschenk": "Seçimden önceki son altı aydaki pahalı artışlar oy satın alma gibi görünür; seçmenlerin bir kısmı bunu cezalandırır.",
+ "bilanz.zynismus.name": "Sinizm",
+ "bilanz.zynismus.text": "Geri adımlar ve seçim hediyeleri güvenilirliğe mal olur; sinizm aylar içinde azalır."
+}
