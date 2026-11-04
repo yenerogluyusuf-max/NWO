@@ -308,4 +308,4 @@ Aus der Gesamtprüfung ([PRUEFUNG_GESAMT_2026-11-04.md](PRUEFUNG_GESAMT_2026-11-
 
 1. **Gezielt statt pauschal:** CAATSA trifft die Rüstungsbehörde SSB. Sie sperrt US-Lizenzen für Rüstungsvorhaben und Triebwerke und US-Lieferungen von Rüstung und Elektronik, aber keine zivilen Chips, keine KI, keine Medizin und kein LNG-Abkommen. Breite Handelsmaßnahmen (EU) sperren den Handel mit dem Partner ganz.
 2. **Eingepreist:** Was zu Spielbeginn schon gilt, steckt in den kalibrierten Startwerten (Risikoaufschlag, Netz). Es zählt nicht noch einmal; wird es aufgehoben, entlastet das mit umgekehrtem Vorzeichen.
-3. **Grenze für Kriegsvorgänge:** Höchstens zwei heiße Vorgänge (ab Drohkulisse); bloße Spannungen dürfen einen dritten Vorgang nicht verhindern, damit ein echter Angriff nie an zwei lauen Spannungen scheitert.
+3. **Grenze für Kriegsvorgänge:** Höchstens zwei Vorgänge gleichzeitig. Ausnahme bei akuter Angriffsgefahr (Konflikt ab 90, Spielparameter): Dann darf ein dritter entstehen, solange nicht schon zwei heiße (ab Drohkulisse) laufen. So scheitert ein echter Angriff nie an zwei lauen Spannungen.

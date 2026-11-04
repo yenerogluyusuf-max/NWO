@@ -96,7 +96,7 @@ Alle sechs Punkte aus Abschnitt 7 sind umgesetzt, jeweils mit eigenen Tests. Gem
 | Kampfkraft in den ersten Wochen | 25 % (Treibstoff 0) | Öldeckung des Landes | `versorgung.ts` |
 | Frontwege unter Beschuss | nach rund 5 Monaten ohne Nachschub | netto 5 % Schaden je Monat (Pioniere) | `transport.ts` |
 | Waffenruhe | endlos, kostenloses Parken | Gegenangebot nach 30 Tagen, nach 120 Tagen Wiederaufnahme oder eingefroren | `krieg.ts` |
-| Eigener Einstieg | nur monatelanges „Druck“ | Ultimatum, „Krise eröffnen“, Zwischenfälle auch ohne Spieler; die Grenze von zwei Vorgängen gilt für heiße Lagen, bloße Spannungen verdrängen keinen echten Angriff | `krieg.ts`, `KriegDossier.tsx` |
+| Eigener Einstieg | nur monatelanges „Druck“ | Ultimatum, „Krise eröffnen“, Zwischenfälle auch ohne Spieler; bei akuter Angriffsgefahr darf ein dritter Vorgang neben zwei lauen Spannungen entstehen | `krieg.ts`, `KriegDossier.tsx` |
 | „Verteidigung“ bei eigenem Angriff | +30 Stimmen | zählt wie „Schutz“ (UN-Charta Art. 51) | `krieg.ts`, `befehle.ts` |
 | Neutrale und EU als Kriegspartei | Österreich, „EU“ kämpften | nie | `pakte.ts` |
 | Wachstum im Krieg gegen Griechenland | 2,30 → 3,40 % | 2,30 → 1,77 % | Kreditkanal des Risikoaufschlags (`economy.ts`, läuft durch denselben Deckel wie der Realzins), Sanktionslast |

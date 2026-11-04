@@ -220,10 +220,10 @@ describe("Spielbarkeit: einfache Spieler gegeneinander", () => {
   });
 
   test("Alles hochzudrehen ist keine beste Strategie", () => {
-    // Blindes Hochdrehen verliert die Wiederwahl gegen kluges Steuern
-    expect(blindL.filter((l) => l.ende !== "abwahl" && l.ende !== "sturz").length).toBeLessThan(
-      klugL.filter((l) => l.ende !== "abwahl" && l.ende !== "sturz").length,
-    );
+    // Blindes Hochdrehen verliert die Wiederwahl gegen kluges Steuern. Gezählt werden gewonnene erste Wahlen: Ein zufälliges Ende
+    // des Takts (Krankheit, Rücktritt vor der Wahl) ist weder Sieg noch Niederlage und darf den Vergleich nicht kippen.
+    const siege1 = (ls: Lauf[]) => ls.filter((l) => l.wahl1 === "erster" || l.wahl1 === "stichwahl").length;
+    expect(siege1(blindL)).toBeLessThan(siege1(klugL));
     // Die Verwaltung und das Kapital lassen nicht alle 117 Maßnahmen in fünf Jahren zu
     expect(mittel(blindL.map((l) => l.gesetze))).toBeLessThan(117);
     // Wer blind alles hochdreht, löst die akuten Probleme nicht besser als der kluge Spieler

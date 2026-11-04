@@ -150,6 +150,8 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 
 ## 10. Nächste Schritte (Stand 04.11.2026)
 
+**Stand 04.11. spät:** Die neun neu aufgetretenen Testfehler sind behoben, vor allem durch gezielte statt pauschale Sanktionen und einen eingepreisten Startzustand (ENTSCHEIDUNGEN R) sowie eine Ausnahme von der Kriegsgrenze bei akuter Angriffsgefahr. Die Vollsuite zeigt danach nur noch die Fehler, die schon vor dieser Arbeit bestanden. Es bleiben die Balancetests, die schon vorher scheiterten: Der kluge Testspieler gewinnt die erste Wahl nur in 2 von 8 Partien (Ziel: 70 %), und es kommen rund 19 statt höchstens 16 Ereignisse im Jahr. Das ist die nächste Aufgabe (a). Außerdem offen: die Arbeitslosigkeit im Lernfall 2021 liegt etwa 1,7 Punkte zu hoch, weil der Kreditboom über Staatsbanken fehlt (KALIBRIERUNG_LOG §4.5).
+
 **Stand 04.11. abends:** Die sechs Punkte der Gesamtprüfung sind umgesetzt (Abschnitt 8 dort, mit Vorher-Nachher-Zahlen). Als Nächstes: (a) die 13 schon vorher scheiternden Spielbarkeits- und Balancetests klären, (b) weitere große Ziele und Großprojekte für Landwirtschaft, See, Handel, Logistik (Q.4), (c) Krieg mit Verbänden und Generälen, (d) eigene Kopfmotive und Medienpolitik-Zugang.
 
 **Vorher:** Die Gesamtprüfung [PRUEFUNG_GESAMT_2026-11-04.md](PRUEFUNG_GESAMT_2026-11-04.md) legte die Reihenfolge fest: (1) Krieg glaubwürdig machen, (2) Sanktionen mit Wirkung, (3) Warnen und hinführen, (4) Ordnung der Navigation, (5) Preise schärfen und Putsch erreichbar, (6) große Ziele nach [GROSSE_ZIELE_2026-11-04.md](GROSSE_ZIELE_2026-11-04.md).

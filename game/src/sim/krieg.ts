@@ -55,6 +55,9 @@ import { besatzungNachFrieden, eigenerBestandsFaktor, gegnerBestand, gegnerBesta
 export const KRIEG = {
   /** Höchstens so viele aktive Konfliktvorgänge gleichzeitig (spannung bis waffenruhe) */
   maxAktiv: 2,
+  /** Ab dieser Konflikt-Dimension gilt akute Angriffsgefahr: Dann darf ein dritter Vorgang neben zwei bloßen Spannungen entstehen
+   * (Spielparameter, ENTSCHEIDUNGEN R.3) */
+  notfallAb: 90,
   /** Ab dieser Konflikt-Dimension eines Landes entsteht ein Spannungs-Vorgang (Monatsprüfung); knapp unter der Kriegsgefahr-Krise (75) */
   anlageAb: 73,
   /** Waffenruhe (Spielparameter): nach so vielen Tagen macht der Gegner ein Gegenangebot; nach der Frist endet die Waffenruhe */
@@ -1244,14 +1247,15 @@ export function kriegMonat(w: World, rng: Rng): void {
   // Die gemeinsame Folge (übrige Ereignisse, Alttests) bleibt unberührt.
   zwischenfaelle(w, new Rng((w.rngState ^ Math.imul(w.day + 13, 0x9e3779b1)) | 0));
   void rng;
-  // Die Grenze gilt für heiße Vorgänge (ab Drohkulisse); bloße Spannungen dürfen eine mehr sein. Sonst verdrängten zwei laue
-  // Spannungen (etwa durch Zwischenfälle) einen echten Angriff. Das heißeste Land kommt zuerst an die Reihe.
+  // Höchstens zwei Vorgänge. Ausnahme: Bei akuter Angriffsgefahr (Konflikt ab notfallAb) darf ein dritter entstehen, solange nicht
+  // schon zwei heiße (ab Drohkulisse) laufen. Sonst verdrängten zwei laue Spannungen (etwa durch Zwischenfälle) einen echten Angriff.
+  // Das heißeste Land kommt zuerst an die Reihe.
   const heiss = (): number => aktiveKriege(w).filter((k) => k.phase !== "spannung").length;
-  const voll = (): boolean => heiss() >= KRIEG.maxAktiv || aktiveKriege(w).length > KRIEG.maxAktiv;
-  if (voll()) return;
+  const voll = (konflikt: number): boolean => heiss() >= KRIEG.maxAktiv ||
+    aktiveKriege(w).length >= (konflikt >= KRIEG.notfallAb ? KRIEG.maxAktiv + 1 : KRIEG.maxAktiv);
   const z = weltZustand(w);
   for (const l of [...LAENDER].sort((a, b) => (z[b.id]?.konflikt ?? 0) - (z[a.id]?.konflikt ?? 0))) {
-    if (voll()) break;
+    if (voll(z[l.id]?.konflikt ?? 0)) continue;
     if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
     if (kriegMit(w, l.id)) continue;
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
