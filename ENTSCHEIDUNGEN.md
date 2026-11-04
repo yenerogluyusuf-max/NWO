@@ -291,4 +291,6 @@ Der Projektinhaber: Man spielt die Türkei und soll **verschiedene Wege einschla
 2. **Keine Garantie:** Auch mit allen Voraussetzungen ist der Eintritt nicht sicher. Man erhöht die **Wahrscheinlichkeit** Schritt für Schritt und versucht dann, es durchzusetzen. Scheitern bleibt ein Ergebnis (Härte-Regel).
 3. **Spielbar statt kleinteilig:** Nicht alles bis ins Detail. Einfache Handlungen sind ein Knopf (Beispiel: **Botschaft errichten**). Das Spiel soll groß und klassisch spielbar bleiben.
 
+4. **Großprojekte in allen Bereichen:** Technologie, Außenpolitik, Innenpolitik, Landwirtschaft, See und Schifffahrt, Handel und vor allem **Logistik**. Die Türkei verbindet geografisch die Kontinente und ist dafür ein natürliches Logistikland.
+
 Das schärft Abschnitt N (ganzes Spektrum, Bäume wie Civ 6/HOI4) und die Regel „Wege statt Verbote“.
