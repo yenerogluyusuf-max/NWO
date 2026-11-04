@@ -8,22 +8,22 @@
 
 .fk-kopf { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .fk-kopf-text { flex: 1 1 260px; min-width: 0; }
-.fk-satz { margin: 0; font: 600 15.5px/1.35 var(--serif); color: var(--ink); }
+.fk-satz { margin: 0; font: 600 16.5px/1.35 var(--serif); color: var(--ink); }
 .fk-zaehler { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
 .fk-aktiv {
   display: flex; flex-direction: column; gap: 4px; min-width: 200px; max-width: 320px; padding: 6px 10px; text-align: left;
   font: inherit; color: var(--ink); cursor: pointer; border-radius: 4px; border: 1px solid var(--teal); background: rgba(255, 251, 238, 0.95);
 }
-.fk-aktiv-name { font: 600 13.5px/1.2 var(--serif); }
+.fk-aktiv-name { font: 600 14px/1.2 var(--serif); }
 .fk-werkzeug { display: flex; gap: 4px; }
 .fk-werkzeug button {
-  font: 500 13px var(--sans); min-width: 32px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(90, 64, 40, 0.35);
+  font: 500 14px var(--sans); min-width: 32px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(90, 64, 40, 0.35);
   background: rgba(255, 251, 238, 0.9); color: var(--ink); cursor: pointer;
 }
 .fk-werkzeug button:hover { background: #fff; }
 
 .fk-meldung { margin: 0; padding: 6px 10px; border-radius: 3px; font-size: 14px; }
-.fk-meldung.ok { background: rgba(74, 140, 92, 0.14); }
+.fk-meldung.ok { background: rgba(140,109,74, 0.14); }
 .fk-meldung.nein { background: rgba(150, 44, 36, 0.12); }
 
 .fk-flaeche {
@@ -59,9 +59,9 @@
 .fk-knoten:hover { box-shadow: 0 3px 10px rgba(40, 25, 10, 0.22); }
 .fk-knoten.auf { outline: 2.5px solid var(--teal); outline-offset: 2px; }
 .fk-knoten-name { font: 600 12.5px/1.2 var(--serif); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.fk-flaeche.fern .fk-knoten-name { font-size: 14.5px; -webkit-line-clamp: 2; }
+.fk-flaeche.fern .fk-knoten-name { font-size: 15px; -webkit-line-clamp: 2; }
 .fk-knoten.fk-fertig { background: color-mix(in srgb, var(--ast) 16%, #fffbee); border-color: color-mix(in srgb, var(--ast) 55%, transparent); }
-.fk-knoten.fk-laeuft { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(30, 110, 110, 0.25); }
+.fk-knoten.fk-laeuft { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(103,66,44, 0.25); }
 .fk-knoten.fk-moeglich { background: #fffdf5; }
 .fk-knoten.fk-gesperrt { opacity: 0.62; }
 .fk-knoten.fk-ausgeschlossen { opacity: 0.4; background: repeating-linear-gradient(-45deg, rgba(150, 44, 36, 0.06) 0 6px, transparent 6px 12px), #f4ecdc; }
@@ -72,7 +72,7 @@
 
 .fk-stempel {
   position: absolute; right: -10px; top: -12px; padding: 2px 7px; transform: rotate(-9deg);
-  font: 800 11px var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: rgb(150, 44, 36);
+  font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.12em; text-transform: uppercase; color: rgb(150, 44, 36);
   border: 2px solid rgb(150, 44, 36); border-radius: 3px; background: rgba(255, 248, 236, 0.92);
   animation: fk-stempel 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
 }
@@ -86,26 +86,26 @@
 }
 .fk-blatt-kopf { display: flex; justify-content: space-between; gap: 8px; border-top: 4px solid; padding-top: 6px; }
 .fk-blatt-kopf h3 { margin: 2px 0; font: 700 18px/1.2 var(--serif); }
-.fk-blatt-ast { margin: 0; font: 600 11px var(--sans); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
-.fk-blatt-unter { margin: 0; font: italic 13.5px/1.35 var(--serif); color: var(--ink-soft); }
-.fk-zu { border: 0; background: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--ink-soft); align-self: flex-start; }
+.fk-blatt-ast { margin: 0; font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+.fk-blatt-unter { margin: 0; font: italic 14px/1.35 var(--serif); color: var(--ink-soft); }
+.fk-zu { border: 0; background: none; font-size: 24px; line-height: 1; cursor: pointer; color: var(--ink-soft); align-self: flex-start; }
 .fk-blatt-text { margin: 0; font: 14px/1.45 var(--serif); }
-.fk-fertig { margin: 0; font-size: 13px; color: rgb(48, 104, 64); }
-.fk-lauf { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 13px; }
+.fk-fertig { margin: 0; font-size: 14px; color: rgb(48, 104, 64); }
+.fk-lauf { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 14px; }
 .fk-lauf .fk-balken { grid-column: 1 / -1; height: 6px; }
-.fk-grund { margin: 0; padding: 5px 8px; border-radius: 3px; font-size: 13px; background: rgba(90, 64, 40, 0.08); }
+.fk-grund { margin: 0; padding: 5px 8px; border-radius: 3px; font-size: 14px; background: rgba(90, 64, 40, 0.08); }
 .fk-grund-ausgeschlossen { background: rgba(150, 44, 36, 0.1); color: rgb(130, 36, 30); }
-.fk-preis { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13.5px; }
+.fk-preis { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 14px; }
 .fk-linie { color: var(--ink-soft); font-size: 12.5px; }
 .fk-ja, .fk-nein, .fk-direkt {
-  font: 600 13px var(--sans); padding: 5px 12px; border-radius: 3px; cursor: pointer; border: 1px solid var(--teal);
+  font: 600 14px var(--sans); padding: 5px 12px; border-radius: 3px; cursor: pointer; border: 1px solid var(--teal);
   background: var(--teal); color: #fff;
 }
 .fk-ja:disabled { opacity: 0.5; cursor: default; }
 .fk-nein { background: rgba(255, 251, 238, 0.9); color: rgb(130, 36, 30); border-color: rgba(150, 44, 36, 0.5); }
-.fk-direkt { font-weight: 500; font-size: 12px; padding: 2px 8px; background: rgba(30, 110, 110, 0.1); color: var(--teal); }
-.fk-block h4 { margin: 0 0 4px; font: 700 11.5px var(--sans); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
-.fk-liste, .fk-folgen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; }
+.fk-direkt { font-weight: 500; font-size: 12.5px; padding: 2px 8px; background: rgba(103,66,44, 0.1); color: var(--teal); }
+.fk-block h4 { margin: 0 0 4px; font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+.fk-liste, .fk-folgen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
 .fk-liste li { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
 .fk-liste li.fehlt { color: rgb(130, 36, 30); }
 .fk-liste li.ok { color: rgb(48, 104, 64); }
@@ -117,11 +117,11 @@
 .fk-link { border: 0; padding: 0; background: none; font: inherit; color: var(--teal); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; text-align: left; }
 .fk-gegen { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .fk-link-gegen { color: rgb(130, 36, 30); }
-.fk-reakt { margin: 0 0 2px; font-size: 13px; }
+.fk-reakt { margin: 0 0 2px; font-size: 14px; }
 .fk-reakt.plus b { color: rgb(48, 104, 64); }
 .fk-reakt.minus b { color: rgb(150, 44, 36); }
-.fk-klein { margin: 2px 0 0; font-size: 12px; color: var(--ink-soft); }
-.fk-legende { margin: 0; font-size: 12px; color: var(--ink-soft); }
+.fk-klein { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.fk-legende { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
 
 @media (max-width: 640px) {
   .fk { min-height: 70vh; }

@@ -1,6 +1,6 @@
 /* Parteikonfigurator und Szenariowahl im Prolog: ruhige Papierflächen, Schrift mindestens 12 px */
 .pk { display: grid; grid-template-columns: minmax(240px, 1.1fr) minmax(280px, 1.3fr) minmax(240px, 1fr); gap: 20px; align-items: start; text-align: left; }
-.pk h3 { margin: 0 0 8px; font: 600 14px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.pk h3 { margin: 0 0 8px; font: 400 14px/1.2 var(--kapitaelchen); letter-spacing: 0.06em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
 .pk-presets { display: grid; gap: 6px; max-height: 380px; overflow: auto; padding-right: 4px; }
 .pk-presets button { display: grid; gap: 2px; text-align: left; padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.35); border-left-width: 6px; background: rgba(255, 252, 244, 0.7); cursor: pointer; font-family: var(--sans, Inter, sans-serif); color: var(--ink, #2b1e12); }
 .pk-presets button strong { font: 600 14px/1.25 var(--display, Fraunces, serif); }

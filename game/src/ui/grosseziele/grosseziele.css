@@ -10,9 +10,9 @@
 .gzz-stufen li { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #7c5823; background: transparent; }
 .gzz-stufen li.erreicht { background: #7c5823; } .gzz-stufen li.jetzt { background: #f1d58f; }
 .gzz-inhalt { display: flex; flex-direction: column; gap: 9px; min-width: 0; padding: 13px 14px 14px; }
-.gzz-inhalt h3 { margin: 0; font: 600 19px/1.2 var(--display, Georgia, serif); color: var(--ink, #2a1f18); hyphens: auto; }
+.gzz-inhalt h3 { margin: 0; font: 600 21px/1.2 var(--display, Georgia, serif); color: var(--ink, #2a1f18); hyphens: auto; }
 .gzz-text { margin: 0; font: 14px/1.45 var(--serif); color: var(--ink-soft, #6a5a4a); }
-.gzz-naechste { margin: 0; font: 600 13px var(--sans); color: #5b4a7a; }
+.gzz-naechste { margin: 0; font: 600 14px var(--sans); color: #5b4a7a; }
 .gzz-fertig { margin: 0; font: 600 14px var(--sans); color: #674b3b; }
 .gzz-chance { display: grid; gap: 5px; padding: 9px 10px; border-radius: 6px; background: #f7f0de; border: 1px solid #5a402826; }
 .gzz-chance strong { font: 600 14px var(--sans); }
@@ -20,18 +20,18 @@
 .gzz-chance > i { position: relative; display: block; height: 8px; border-radius: 999px; background: #5a40281f; }
 .gzz-chance > i s { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #c9a45a, #674b3b); }
 .gzz-gruende p { margin: 0; font: 12.5px/1.4 var(--sans); color: #5e6a61; }
-.gzz-schwelle summary { cursor: pointer; font: 600 13px var(--sans); color: var(--seal, #8e2a22); }
-.gzz-schwelle ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font: 13px/1.35 var(--sans); }
+.gzz-schwelle summary { cursor: pointer; font: 600 14px var(--sans); color: var(--seal, #8e2a22); }
+.gzz-schwelle ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font: 14px/1.35 var(--sans); }
 .gzz-schwelle li.ok { color: #674b3b; } .gzz-schwelle li.offen { color: #7a5b26; }
 .gzz-wege { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid #5a402826; }
-.gzz-kicker { font: 600 10.5px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: #6a5a4a; }
+.gzz-kicker { font: 400 11.5px var(--kapitaelchen); letter-spacing: .1em; text-transform: uppercase; color: #6a5a4a; }
 .gzz-wegknoepfe { display: grid; gap: 6px; }
-.gzz-weg { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 6px 8px; border-radius: 6px; border: 1px solid #5a402833; background: #fffdf7; cursor: pointer; font: 600 13px var(--sans); color: var(--ink, #2a1f18); text-align: left; }
+.gzz-weg { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 6px 8px; border-radius: 6px; border: 1px solid #5a402833; background: #fffdf7; cursor: pointer; font: 600 14px var(--sans); color: var(--ink, #2a1f18); text-align: left; }
 .gzz-weg:disabled { opacity: .55; cursor: not-allowed; }
 .gzz-vertretungen ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
-.gzz-vertretungen li { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font: 13px var(--sans); }
+.gzz-vertretungen li { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font: 14px var(--sans); }
 .gzz-vertretungen .gz-knopf { margin: 0; }
-.gzz-gegen { margin: 0; font: italic 13px var(--serif); color: #8e2a22; }
+.gzz-gegen { margin: 0; font: italic 14px var(--serif); color: #8e2a22; }
 .gzz-versuch { justify-self: start; padding: 8px 16px; font: 600 15px var(--display, Georgia, serif); cursor: pointer; }
 .gzz-versuch:disabled { opacity: .55; cursor: not-allowed; }
 .gzz-aktion { margin-top: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

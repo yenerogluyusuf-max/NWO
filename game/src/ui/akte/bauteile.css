@@ -3,13 +3,13 @@
    Haupt: Leder mit Messingkante. Normal: Pergament mit Messingrand. Leise: nur Schrift. Signalfarben (gut, schlecht) bleiben. */
 
 /* Haupt */
-.dossier button:is(.primary, .haupt, .leather-button, .ak-urteil-knopf, .rg-beschluss, .rr-beginnen, .pd-btn.primary, .gzz-versuch) {
+.dossier button:is(.primary, .haupt, .leather-button, .ak-urteil-knopf, .rg-beschluss, .rr-beginnen, .pd-btn.primary, .gzz-versuch, .wb-oeffnen) {
   background: linear-gradient(180deg, #5a3722, #3a2418); color: #f7ecd2; border: 1px solid #7c5823; border-radius: 6px;
   box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 #24150c; text-shadow: none;
-  font: 400 14.5px/1.2 var(--kapitaelchen); letter-spacing: .03em; padding: 9px 16px;
+  font: 400 15px/1.2 var(--kapitaelchen); letter-spacing: .03em; padding: 9px 16px;
   transition: transform .15s, box-shadow .15s, filter .15s;
 }
-.dossier button:is(.primary, .haupt, .leather-button, .ak-urteil-knopf, .rg-beschluss, .rr-beginnen, .pd-btn.primary, .gzz-versuch):hover:not(:disabled) {
+.dossier button:is(.primary, .haupt, .leather-button, .ak-urteil-knopf, .rg-beschluss, .rr-beginnen, .pd-btn.primary, .gzz-versuch, .wb-oeffnen):hover:not(:disabled) {
   transform: translateY(-1px); filter: brightness(1.12); box-shadow: inset 0 1px 0 #ffffff26, inset 0 0 0 1px #c69a4a66, 0 4px 10px #24150c55;
 }
 
@@ -28,7 +28,7 @@
 
 /* Abschnittstitel: Kapitälchen in Siegelrot mit Messinglinie */
 .dossier :is(.ak-abschnitt, .ub-gruppe-name, .gz-abschnitt, .sd-abschnitt) {
-  font: 400 13px/1.3 var(--kapitaelchen); letter-spacing: .1em; text-transform: none; color: #8e2a22;
+  font: 400 14px/1.3 var(--kapitaelchen); letter-spacing: .1em; text-transform: none; color: #8e2a22;
   display: flex; align-items: center; gap: 10px;
 }
 .dossier :is(.ak-abschnitt, .ub-gruppe-name)::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #c69a4a99, transparent); }

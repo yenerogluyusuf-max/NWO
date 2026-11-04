@@ -70,7 +70,7 @@ html:not([data-effekte="aus"]) .atlas-labels .marke.marke-frist .ort-form { anim
 
 /* Gedränge: Zahl der verdeckten Marken an der obersten */
 .ort-mehr { position: absolute; right: -7px; top: -7px; min-width: 15px; height: 15px; padding: 0 3px; box-sizing: border-box; border-radius: 8px; z-index: 2;
-  background: #f6e3b0; color: #2b1e12; font: 700 11px/15px var(--sans, Inter, sans-serif); text-align: center; border: 1px solid #2b1e12; display: none; }
+  background: #f6e3b0; color: #2b1e12; font: 700 11.5px/15px var(--sans, Inter, sans-serif); text-align: center; border: 1px solid #2b1e12; display: none; }
 .ort-mehr[data-mehr]:not([data-mehr=""])::before { content: "+" attr(data-mehr); }
 .ort-mehr[data-mehr]:not([data-mehr=""]) { display: block; }
 
@@ -83,7 +83,7 @@ html:not([data-effekte="aus"]) .atlas-labels .marke.marke-frist .ort-form { anim
 /* Tafel: sofort beim Überfahren und beim Tastaturfokus, kein Warten */
 .ort-tafel { position: absolute; z-index: 20; display: none; width: 252px; padding: 8px 11px 9px; text-align: left; white-space: normal; color: #2a1f18; cursor: pointer;
   background: rgba(244, 236, 214, 0.98); border: 1.5px solid #2a1f18; outline: 2px double rgba(42, 31, 24, 0.5); outline-offset: 2px; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
-  font: 400 13px/1.35 var(--serif); pointer-events: none; filter: none; }
+  font: 400 14px/1.35 var(--serif); pointer-events: none; filter: none; }
 .atlas-labels .ort:hover .ort-tafel, .atlas-labels .ort:focus-visible .ort-tafel,
 .atlas-labels .marke:hover .ort-tafel, .atlas-labels .marke:focus-visible .ort-tafel { display: grid; gap: 2px; }
 .atlas-labels [data-tafel^="o"] .ort-tafel { bottom: calc(100% + 11px); top: auto; }
@@ -92,14 +92,14 @@ html:not([data-effekte="aus"]) .atlas-labels .marke.marke-frist .ort-form { anim
 .atlas-labels [data-tafel$="l"] .ort-tafel { left: -8px; right: auto; translate: 0 0; }
 .atlas-labels [data-tafel$="r"] .ort-tafel { right: -8px; left: auto; translate: 0 0; }
 .atlas-labels .ort:not([data-tafel]) .ort-tafel, .atlas-labels .marke:not([data-tafel]) .ort-tafel { bottom: calc(100% + 11px); left: 50%; translate: -50% 0; }
-.ort-tafel-art { font: 700 12px var(--serif); font-variant: small-caps; letter-spacing: 0.06em; color: #8c2b1f; }
-.ort-tafel strong { font: 700 15.5px/1.2 var(--display); color: #2a1f18; }
+.ort-tafel-art { font: 700 12.5px var(--serif); font-variant: small-caps; letter-spacing: 0.06em; color: #8c2b1f; }
+.ort-tafel strong { font: 700 16.5px/1.2 var(--display); color: #2a1f18; }
 .ort-tafel-ort { font-style: italic; color: #5a4a38; }
 .ort-tafel-zeile { font-weight: 600; }
 .ort-tafel-rest { color: #5a4a38; }
 .ort-tafel-next { margin-top: 3px; padding-top: 4px; border-top: 1px solid rgba(90, 64, 40, 0.35); }
 .ort-tafel-next b { font-weight: 700; color: #8c2b1f; }
-.ort-tafel-klick { margin-top: 2px; font-size: 12px; color: #6b5a44; font-style: italic; }
+.ort-tafel-klick { margin-top: 2px; font-size: 12.5px; color: #6b5a44; font-style: italic; }
 
 /* Legende unten rechts über der Plakette (zusammen mit dem Effekte-Schalter) */
 .karten-werkzeuge { position: absolute; z-index: 6; right: 20px; bottom: 20px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: none; max-width: min(320px, calc(100vw - 120px)); }
@@ -110,11 +110,11 @@ html:not([data-effekte="aus"]) .atlas-labels .marke.marke-frist .ort-form { anim
 .marken-legende:not(.offen) { width: auto; padding: 3px 9px; }
 .marken-legende-kopf { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; color: inherit; font: inherit; text-align: left; }
 .marken-legende-kopf:focus-visible { outline: 2px solid #8c2b1f; outline-offset: 2px; }
-.marken-legende-titel { font: 700 13px var(--serif); font-variant: small-caps; letter-spacing: 0.06em; }
+.marken-legende-titel { font: 700 14px var(--serif); font-variant: small-caps; letter-spacing: 0.06em; }
 .marken-legende-kopf i { font: 700 14px var(--sans, Inter, sans-serif); font-style: normal; width: 18px; height: 18px; line-height: 16px; text-align: center; border: 1px solid #2a1f18; border-radius: 50%; }
 .marken-legende-liste { list-style: none; margin: 7px 0 0; padding: 0; display: grid; gap: 5px; }
 .marken-legende-liste li { display: grid; grid-template-columns: 26px 1fr; align-items: center; gap: 8px; font: 400 12.5px/1.3 var(--serif); }
-.marken-legende-hinweis { margin: 7px 0 0; padding-top: 5px; border-top: 1px solid rgba(90, 64, 40, 0.35); font: italic 12px/1.3 var(--serif); color: #5a4a38; }
+.marken-legende-hinweis { margin: 7px 0 0; padding-top: 5px; border-top: 1px solid rgba(90, 64, 40, 0.35); font: italic 12.5px/1.3 var(--serif); color: #5a4a38; }
 .mz { position: relative; width: 26px; height: 26px; display: grid; place-items: center; }
 .mz .ort-form { filter: none; }
 .mz > svg:not(.ort-form) { position: relative; z-index: 1; color: #fff3d6; }

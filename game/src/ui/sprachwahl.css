@@ -24,7 +24,7 @@
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
-  font: 700 11px/1 var(--sans, Inter, sans-serif);
+  font: 700 11.5px/1 var(--sans, Inter, sans-serif);
   color: #cdb88c;
   letter-spacing: 0.04em;
   transition: all 0.15s ease;

@@ -2,11 +2,11 @@
 
 .nz { container-type: inline-size; display: flex; flex-direction: column; gap: 8px; }
 .nz-zweck { margin: 0; font: italic 15px/1.45 var(--serif); color: var(--ink-soft); }
-.nz-etat, .nz-quelle, .nz-leer { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
-.nz-vergabe { font: 600 13.5px var(--serif); }
+.nz-etat, .nz-quelle, .nz-leer { margin: 0; font-size: 14px; color: var(--ink-soft); }
+.nz-vergabe { font: 600 14px var(--serif); }
 .nz-vergabe select { font: inherit; margin-left: 4px; }
 .nz-meldung { margin: 0; padding: 6px 10px; border-radius: 3px; font-size: 14px; }
-.nz-meldung.ok { background: rgba(74, 140, 92, 0.14); }
+.nz-meldung.ok { background: rgba(140,109,74, 0.14); }
 .nz-meldung.nein { background: rgba(150, 44, 36, 0.12); }
 
 .nz-liste, .nz-pakete { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -39,18 +39,18 @@ span.nz-schlecht, td.nz-schlecht { color: rgb(150, 44, 36); }
 .nz-tabelle tr + tr { border-top: 1px dotted rgba(90, 64, 40, 0.3); }
 .nz-knopf {
   display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; margin: 2px 6px 2px 0; padding: 4px 10px; cursor: pointer;
-  font: 600 13px var(--serif); color: var(--ink); background: #fbf4df; border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 3px;
+  font: 600 14px var(--serif); color: var(--ink); background: #fbf4df; border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 3px;
 }
 .nz-knopf small { font: 400 11.5px var(--sans); color: var(--ink-soft); }
 .nz-knopf:disabled { opacity: 0.5; cursor: default; }
 .nz-knopf:not(:disabled):hover { background: #fff8e6; border-color: var(--seal); }
 
-.nz-titel { margin: 10px 0 2px; font: 600 16px var(--display); border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
+.nz-titel { margin: 10px 0 2px; font: 600 16.5px var(--display); border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
 .nz-paket { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; background: rgba(255, 251, 238, 0.7); }
-.nz-paket > span { font-size: 13.5px; }
+.nz-paket > span { font-size: 14px; }
 .nz-paket-preis { color: var(--ink-soft); }
 .nz-paket .nz-knopf { align-self: flex-start; }
-.nz-zeile { font-size: 13.5px; }
+.nz-zeile { font-size: 14px; }
 
 @container (max-width: 420px) {
   .nz-kopf { grid-template-columns: 1fr 54px; }

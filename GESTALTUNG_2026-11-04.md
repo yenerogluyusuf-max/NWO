@@ -73,3 +73,27 @@ Neue Texte stehen dreisprachig in `i18n/katalog/*/gestaltung.json`. Tests: `test
 - Bildkarten für Kultur, Recht und Wissensbaum.
 - G4 (Entscheidungskarten entschlacken), G5 (Karte als Bühne) und G6 (Momente).
 - Die Klassennamen der Vorhaben („Wunder“, „Großprojekt“) sind bisher nur deutsch; das ist eine vorhandene Übersetzungslücke.
+
+## 7. Regelwerk „Kabinettstisch“ (verbindlich ab 4. November)
+
+Anlass: Der Projektinhaber sah ein Spiel, das wirkt, als hätten mehrere Leute ihre Entwürfe zusammengeworfen, und verlangte, jede Änderung am Gesamtbild zu messen (ENTSCHEIDUNGEN T). Dieses Regelwerk gilt für jede Ansicht; Abweichungen brauchen einen Grund (etwa die Zeitung als eigenes Druckbild, die Karte, Parteifarben).
+
+| Regel | Festlegung | Wo |
+|---|---|---|
+| Farben | Leder (#3a2418 bis #5a3722), Messing (#7c5823, #c69a4a, #f1d58f), Pergament (#efe4cb bis #fffdf7), Tinte (#2a1f18), Siegelrot (#8e2a22) als einziger Akzent. Kein Grün, kein Blau für Flächen; Signalfarben nur klein. | `styles.css` (Variablen), `akte.css` |
+| Schrift | vier Rollen: Lesetext und Daten EB Garamond (Ziffern gleich breit), Titel und große Zahlen Fraunces, Beschriftungen, Knöpfe, Reiter und Leisten Marcellus SC (Kapitälchen), Aktenvermerke Courier Prime. Keine serifenlose Schrift. | `--sans`, `--serif`, `--display`, `--kapitaelchen`, `--maschine` |
+| Größen | Stufenleiter 11,5 · 12,5 · 14 · 15 · 16,5 · 18 · 21 · 24 · 28 · 32 · 40 · 48 px | alle Stylesheets |
+| Navigation | höchstens zwei Ebenen sichtbar: Leiste links (Bereiche), Aktenreiter über dem Blatt (Unterseiten; Arbeit links, Einordnung rechts). Auf dem Handy eine wischbare Reiterzeile. | `navigation.css`, `akte.css` |
+| Knöpfe | drei Stufen: Haupt (Leder mit Messingkante), Normal (Pergament mit Messingrand), Leise (Schrift) | `akte/bauteile.css` |
+| Titel im Blatt | Kapitälchen in Siegelrot mit Messinglinie | `akte/bauteile.css` |
+| Prüfung | Jede Gestaltungsänderung läuft durch `game/e2e/gesamtbild.mjs` (28 Bildschirmarten, Breite 1440 und 390) mit Messung von Schriften, Größen, Knöpfen, Flächen, Rundungen | `game/e2e/gesamtbild*.{mjs,py}` |
+
+**Messung im Gesamtbild (28 Bildschirmarten, 1440 px):**
+
+| Größe | vorher | nachher |
+|---|---|---|
+| Schriftfamilien | 5 (Inter, Garamond, Fraunces, Marcellus, Courier gemischt) | 4, jede mit einer Aufgabe |
+| Schriftgrößen | 41 | 24 (Rest: Diagramme und Sonderfälle) |
+| Knopf-Erscheinungsbilder | 81 | noch über 80 (viele davon Kartenmarken und Kartenknöpfe; die Aktenknöpfe sind vereinheitlicht) |
+
+**Noch nicht im Regelwerk:** Reiter innerhalb einzelner Seiten (dritte Ebene, etwa Außen → Staaten → Verhandlungstisch, Kabinett → Ministerrat → Vorlagen), die Bereichsliste in „Politik“ als zweite Spalte, die farbigen Ringe der Politikbereiche, Knöpfe außerhalb der Akten (Kartenleisten, Ereignisfenster), Rundungen (15 verschiedene).

@@ -16,7 +16,7 @@
 }
 .ba * { min-width: 0; }
 .ba h3, .ba h4 { font-family: var(--display); font-weight: 600; margin: 0; letter-spacing: 0.005em; overflow-wrap: anywhere; }
-.ba h4 { font-size: 16px; margin: 0 0 4px; }
+.ba h4 { font-size: 16.5px; margin: 0 0 4px; }
 
 /* --- Liste ----------------------------------------------------------------- */
 /* Die Liste bleibt beim Lesen stehen und scrollt für sich, wenn sie länger ist als das Fenster */
@@ -37,20 +37,20 @@
 .ba-eintrag.phase-zu_frueh { border-left-color: var(--ba-frueh) !important; }
 .ba-eintrag-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .ba-eintrag-kopf b { font: 600 14px var(--serif); }
-.ba-eintrag-kopf em { font: 600 11px var(--display); letter-spacing: 0.07em; text-transform: uppercase; font-style: normal; color: var(--ink-soft); white-space: nowrap; }
+.ba-eintrag-kopf em { font: 600 11.5px var(--display); letter-spacing: 0.07em; text-transform: uppercase; font-style: normal; color: var(--ink-soft); white-space: nowrap; }
 .ba-eintrag.phase-wirkt em { color: var(--ba-gut); }
 .ba-eintrag.phase-gemischt em { color: var(--ba-gemischt); }
 .ba-eintrag.phase-gegenlaeufig em { color: var(--ba-schlecht); }
 .ba-eintrag.phase-zu_frueh em { color: var(--ba-frueh); }
-.ba-eintrag-datum { font: italic 13px var(--serif); color: var(--ink-soft); }
+.ba-eintrag-datum { font: italic 14px var(--serif); color: var(--ink-soft); }
 .ba-bald li { display: grid; gap: 0; padding: 4px 2px; border-bottom: 1px dotted rgba(90, 64, 40, 0.25); }
-.ba-bald-name { font: 600 13.5px var(--serif); overflow-wrap: anywhere; }
+.ba-bald-name { font: 600 14px var(--serif); overflow-wrap: anywhere; }
 
 /* --- Bericht ---------------------------------------------------------------- */
 .ba-bericht { display: grid; gap: 18px; }
 .ba-kicker { margin: 0 0 2px; font: 600 11.5px var(--display); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); }
 .ba-kopf h3 { font-size: 24px; line-height: 1.2; }
-.ba-unter { margin: 4px 0 0; font: italic 14.5px/1.4 var(--serif); color: var(--ink-soft); }
+.ba-unter { margin: 4px 0 0; font: italic 15px/1.4 var(--serif); color: var(--ink-soft); }
 .ba .ba-gehe { margin-top: 10px; font: 600 14px var(--serif); }
 
 .ba-urteil { padding: 12px 16px 14px; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 5px solid var(--ba-still); background: rgba(255, 250, 235, 0.7); }
@@ -58,12 +58,12 @@
 .ba-urteil.phase-gemischt { border-left-color: var(--ba-gemischt); }
 .ba-urteil.phase-gegenlaeufig { border-left-color: var(--ba-schlecht); }
 .ba-urteil.phase-zu_frueh { border-left-color: var(--ba-frueh); }
-.ba-urteil-wort { margin: 0; font: 650 12px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ba-still); }
+.ba-urteil-wort { margin: 0; font: 650 12.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ba-still); }
 .ba-urteil.phase-wirkt .ba-urteil-wort { color: var(--ba-gut); }
 .ba-urteil.phase-gemischt .ba-urteil-wort { color: var(--ba-gemischt); }
 .ba-urteil.phase-gegenlaeufig .ba-urteil-wort { color: var(--ba-schlecht); }
 .ba-urteil.phase-zu_frueh .ba-urteil-wort { color: var(--ba-frueh); }
-.ba-urteil-kurz { margin: 3px 0 0; font: 600 17px/1.35 var(--serif); }
+.ba-urteil-kurz { margin: 3px 0 0; font: 600 18px/1.35 var(--serif); }
 .ba-urteil ul { margin: 8px 0 0; padding-left: 18px; font: 15px/1.45 var(--serif); }
 .ba-urteil li { margin: 3px 0; }
 
@@ -88,26 +88,26 @@
 .ba-karte.bew-spaeter { border-left-color: var(--ba-frueh); border-left-style: dashed; }
 .ba-karte-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
 .ba-karte-kopf strong { font: 650 16.5px var(--display); overflow-wrap: anywhere; }
-.ba-soll { font: italic 13px var(--serif); color: var(--ink-soft); }
-.ba-bewertung { margin-left: auto; font: 650 10.5px var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ba-still); white-space: nowrap; }
+.ba-soll { font: italic 14px var(--serif); color: var(--ink-soft); }
+.ba-bewertung { margin-left: auto; font: 650 11.5px var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ba-still); white-space: nowrap; }
 .ba-bewertung.bew-erwartet { color: var(--ba-gut); }
 .ba-bewertung.bew-nebenwirkung, .ba-bewertung.bew-gegenlaeufig { color: var(--ba-schlecht); }
 .ba-bewertung.bew-spaeter { color: var(--ba-frueh); }
 .ba-zahlen { margin: 3px 0 2px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-variant-numeric: tabular-nums; }
-.ba-von { font: 16px var(--serif); color: var(--ink-soft); }
+.ba-von { font: 16.5px var(--serif); color: var(--ink-soft); }
 .ba-pfeil { color: var(--ink-soft); }
-.ba-nach { font: 650 19px var(--serif); }
+.ba-nach { font: 650 21px var(--serif); }
 .ba-delta { font: 650 15px var(--serif); margin-left: 4px; }
 .ba-delta.ton-gut { color: var(--ba-gut); }
 .ba-delta.ton-schlecht { color: var(--ba-schlecht); }
 .ba-delta.ton-neutral { color: var(--ink-soft); font-weight: 500; font-style: italic; }
-.ba-ursache { margin: 3px 0 0; font: 14.5px/1.4 var(--serif); color: var(--ink); }
+.ba-ursache { margin: 3px 0 0; font: 15px/1.4 var(--serif); color: var(--ink); }
 .ba-warum { margin: 2px 0 0; font: italic 14px/1.4 var(--serif); color: var(--ink-soft); }
 .ba-regionen { margin: 3px 0 0; font: 14px/1.4 var(--serif); }
-.ba-regionen span { font: 600 11px var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-right: 4px; }
+.ba-regionen span { font: 600 11.5px var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-right: 4px; }
 .ba-karte-kurve { display: grid; gap: 1px; justify-items: stretch; }
 .ba-kurve { width: 100%; height: auto; display: block; overflow: visible; }
-.ba-kurve .ba-marke-text { font: 600 7px var(--sans); fill: var(--ink-soft); letter-spacing: 0.04em; }
+.ba-kurve .ba-marke-text { font: 600 11.5px var(--sans); fill: var(--ink-soft); letter-spacing: 0.04em; }
 .ba-kurve .ba-start { stroke: rgba(90, 64, 40, 0.5); stroke-width: 0.8; stroke-dasharray: 3 3; }
 .ba-kurve .ba-marke { stroke: rgba(90, 64, 40, 0.3); stroke-width: 0.8; }
 .ba-kurve .ba-linie { fill: none; stroke: var(--ba-still); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
@@ -117,13 +117,13 @@
 .ba-kurve.ton-gut .ba-punkt { fill: var(--ba-gut); }
 .ba-kurve.ton-schlecht .ba-punkt { fill: var(--ba-schlecht); }
 .ba-kurve .ba-punkt.start { fill: #efe4cb; stroke: var(--ink-soft); stroke-width: 1; }
-.ba-kurve-legende { font: italic 12px var(--serif); color: var(--ink-soft); text-align: center; }
+.ba-kurve-legende { font: italic 12.5px var(--serif); color: var(--ink-soft); text-align: center; }
 
-.ba-ruhig { font: 14.5px/1.4 var(--serif); }
+.ba-ruhig { font: 15px/1.4 var(--serif); }
 .ba-ruhig summary { cursor: pointer; color: var(--ink-soft); font-style: italic; }
 .ba-ruhig ul { margin: 6px 0 0; padding-left: 18px; }
 .ba-zurechnung { padding: 10px 14px 12px; border-top: 1px dashed rgba(90, 64, 40, 0.4); }
-.ba-zurechnung p { margin: 4px 0 0; font: 14.5px/1.45 var(--serif); }
+.ba-zurechnung p { margin: 4px 0 0; font: 15px/1.45 var(--serif); }
 .ba-alt { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; font: 15px/1.4 var(--serif); }
 .ba-leer { display: block; }
 .ba-beobachtet { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 6px; }

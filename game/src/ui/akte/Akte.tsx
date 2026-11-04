@@ -1,7 +1,7 @@
 // Bereichsarbeitsplatz: direkte fachliche Zugänge, ruhige Kennzahlen und nachgeordnete Einordnung.
 // Bestehende Reiterkennungen bleiben für gespeicherte und programmatische Zugänge erhalten.
 
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { t } from "../../i18n";
 import { Funke } from "./Kennzahl";
 import { VorgaengeReiter } from "./Vorgaenge";
@@ -98,6 +98,14 @@ export function Akte({ bereich, zweck, kernwerte, reiter, start, aktiv, onReiter
   };
   const profil=aktenProfil(bereich),navigation=aktenNavigation(bereich,reiter,zeige?.id,waehle,zugaenge);
   const ausgewaehlt=navigation.find(n=>n.aktiv);
+  // Auf schmalen Bildschirmen ist die Reiterzeile wischbar: Der offene Reiter rückt waagerecht ins Bild (nie senkrecht scrollen).
+  const navRef=useRef<HTMLElement>(null);
+  useEffect(()=>{
+    const nav=navRef.current, b=nav?.querySelector<HTMLElement>("button.on");
+    if(!nav||!b||nav.scrollWidth<=nav.clientWidth)return;
+    const l=b.offsetLeft-nav.offsetLeft, r=l+b.offsetWidth;
+    if(l<nav.scrollLeft||r>nav.scrollLeft+nav.clientWidth)nav.scrollLeft=Math.max(0,l-16);
+  },[ausgewaehlt?.id]);
   return (
     <div className={`ak-akte ak-${bereich}`} data-bereich={bereich}>
       <header className={`ak-kopf${KOPFBILD[bereich] ? " mit-bild" : ""}`}>
@@ -119,7 +127,7 @@ export function Akte({ bereich, zweck, kernwerte, reiter, start, aktiv, onReiter
         </dl>
       </header>
       <div className="ak-arbeitsplatz">
-        <nav className="ak-navigation" aria-label={t("akneu.navigation",{bereich:profil.titel})}>
+        <nav ref={navRef} className="ak-navigation" aria-label={t("akneu.navigation",{bereich:profil.titel})}>
           <a className="ak-zum-inhalt" href={`#${id}-inhalt`}>{t("akneu.zumInhalt")}</a>
           {(["arbeit","einordnung"] as const).map(gruppe=><div className={`ak-navgruppe ${gruppe}`} key={gruppe}>
             <span className="ak-navtitel">{t(`akneu.${gruppe}`)}</span>

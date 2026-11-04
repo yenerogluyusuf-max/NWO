@@ -1,18 +1,18 @@
 /* Politische Entscheidungen mit Luft und klarer Reihenfolge; nur die gewählte Zusage zeigt alle Wege. */
 .zw { container: zusagenwache / inline-size; min-width: 0; display: grid; gap: 14px; color: var(--pd-ink); }
 .zw-kopf { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; }
-.zw-kopf span, .zw-fraktion { font: 700 11px/1.5 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
-.zw-kopf h4 { margin: 3px 0 6px; font: 600 25px/1.2 var(--display); }
+.zw-kopf span, .zw-fraktion { font: 400 11.5px/1.5 var(--kapitaelchen); letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+.zw-kopf h4 { margin: 3px 0 6px; font: 600 28px/1.2 var(--display); }
 .zw-kopf p { margin: 0; color: var(--pd-soft); font: 15px/1.5 var(--serif); max-width: 68ch; }
 .zw-zusage { min-width: 0; overflow-wrap: anywhere; border: 1px solid var(--pd-line); border-radius: 9px; background: var(--pd-card); box-shadow: var(--pd-schatten); padding: 18px 20px; border-top: 3px solid #b58b3f; }
 .zw-zusage.akut { border-top-color: var(--pd-bad); }
 .zw-kartenkopf { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 16px; }
-.zw-kartenkopf h5 { margin: 5px 0 0; font: 600 20px/1.3 var(--display); }
+.zw-kartenkopf h5 { margin: 5px 0 0; font: 600 21px/1.3 var(--display); }
 .zw-frist { display: grid; align-content: start; gap: 4px; text-align: right; font: 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
 .zw-frist b { color: #805c20; } .zw-zusage.akut .zw-frist b { color: var(--pd-bad); }
-.zw-frist time { color: var(--pd-soft); font-size: 12px; }
+.zw-frist time { color: var(--pd-soft); font-size: 12.5px; }
 .zw p { font: 15px/1.5 var(--serif); margin: 7px 0; }
-.zw .zw-person { font: 13px/1.5 var(--sans); color: var(--pd-soft); }
+.zw .zw-person { font: 14px/1.5 var(--sans); color: var(--pd-soft); }
 .zw-lage { margin: 14px 0; padding-left: 12px; border-left: 2px solid var(--pd-line); }
 .zw .zw-warn { color: var(--pd-bad); } .zw-prognose { color: var(--teal); }
 .zw-schritte { border-top: 1px solid var(--pd-line); margin-top: 16px; padding-top: 10px; }
@@ -20,13 +20,13 @@
 .zw-optionen { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
 .zw-gespraeche { grid-template-columns: repeat(3,minmax(0,1fr)); }
 .zw-option { min-width: 0; padding: 13px 15px; border: 1px solid var(--pd-line); border-radius: 6px; background: color-mix(in srgb,var(--teal) 3%,var(--paper-light)); }
-.zw-option h6, .zw-zwischen { font: 600 16px/1.35 var(--display); margin: 0 0 6px; }
+.zw-option h6, .zw-zwischen { font: 600 16.5px/1.35 var(--display); margin: 0 0 6px; }
 .zw .zw-zwischen { margin-top: 20px; }
-.zw .zw-preis { font: 700 13px/1.5 var(--sans); }
+.zw .zw-preis { font: 700 14px/1.5 var(--sans); }
 .zw .pd-btn { white-space: normal; max-width: 100%; min-height: 36px; }
 .zw .pd-btn:focus-visible, .zw summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
 .zw .pd-btn:disabled { cursor: not-allowed; opacity: .55; }
-.zw-folgen { margin: 10px 0; font: 13px/1.5 var(--sans); } .zw-folgen ul { padding-left: 17px; }
+.zw-folgen { margin: 10px 0; font: 14px/1.5 var(--sans); } .zw-folgen ul { padding-left: 17px; }
 .zw-folgen summary { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .zw-gesetz, .zw-antwort { padding: 12px 15px; border: 1px solid var(--pd-line); border-radius: 5px; margin-bottom: 12px; }
 .zw-antwort.gut { background: color-mix(in srgb,var(--teal) 8%,var(--paper-light)); }

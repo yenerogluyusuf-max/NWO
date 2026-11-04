@@ -2,7 +2,7 @@
   margin: 10px 0; padding: 10px 12px; min-width: 0;
   border: 1px solid rgba(90, 64, 40, .24); border-radius: 6px;
   background: rgba(255, 250, 235, .6); color: var(--ink);
-  font: 400 13px/1.5 var(--sans); overflow-wrap: anywhere;
+  font: 400 14px/1.5 var(--sans); overflow-wrap: anywhere;
 }
 .bauhilfe summary { cursor: pointer; font-weight: 650; }
 .bauhilfe summary:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; }
