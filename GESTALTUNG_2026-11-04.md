@@ -94,6 +94,14 @@ Anlass: Der Projektinhaber sah ein Spiel, das wirkt, als hätten mehrere Leute i
 |---|---|---|
 | Schriftfamilien | 5 (Inter, Garamond, Fraunces, Marcellus, Courier gemischt) | 4, jede mit einer Aufgabe |
 | Schriftgrößen | 41 | 24 (Rest: Diagramme und Sonderfälle) |
-| Knopf-Erscheinungsbilder | 81 | noch über 80 (viele davon Kartenmarken und Kartenknöpfe; die Aktenknöpfe sind vereinheitlicht) |
+| Knopf-Erscheinungsbilder | 81 | 73 (davon die meisten Kartenmarken; Akten, Fenster und Unterreiter folgen den drei Stufen) |
+| Rundungen | 14 | 6 (4, 6 und 10 px, dazu rund und Pille) |
 
-**Noch nicht im Regelwerk:** Reiter innerhalb einzelner Seiten (dritte Ebene, etwa Außen → Staaten → Verhandlungstisch, Kabinett → Ministerrat → Vorlagen), die Bereichsliste in „Politik“ als zweite Spalte, die farbigen Ringe der Politikbereiche, Knöpfe außerhalb der Akten (Kartenleisten, Ereignisfenster), Rundungen (15 verschiedene).
+**Zweite Runde (4. November):**
+- **Unterreiter** (dritte Ebene in Außen, Kabinett, Medien, Personen, Erklärung): leise Kapitälchen auf einer Messinglinie, offener Reiter mit siegelrotem Strich, statt Kacheln, Pillen und Karteikarten.
+- **Fenster:** Leder ist der Hauptknopf, Messing der zweite; ein einzelner Knopf ist immer Haupt (vorher war „Zur Akte“ golden und „Verstanden“ gleichwertig).
+- **Politik:** Die Bereichsliste ist ein Register im Blatt (offener Bereich Pergament mit rotem Strich, nicht mehr goldene Kachel); die Ampelringe tragen Palettenfarben (ruhig neutral, Achtung Messing, angespannt Siegelrot).
+- **Farben:** mittlere Grüntöne auf ein Signalgrün, mittlere Blautöne auf Tinte; Rundungen auf 4, 6 und 10 px.
+- **Fehler aus dem Gesamtbild:** Die Zielwahl am ersten Amtstag lag hinter dem Schreibtisch und war nicht bedienbar; Fenster liegen jetzt immer über Akten und Leiste.
+
+**Noch offen:** Kartenleisten und Kartenmarken (die meisten verbleibenden Knopfbilder), die Zeitung als eigenes Druckbild bewusst ausgenommen, Parteifarben im Halbrund bleiben.

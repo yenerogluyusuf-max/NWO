@@ -25,7 +25,7 @@
 .ba-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
 .ba .ba-eintrag {
   width: 100%; text-align: left; display: grid; gap: 1px; padding: 7px 10px 6px 12px !important;
-  border: 1px solid rgba(90, 64, 40, 0.3) !important; border-left: 4px solid var(--ba-still) !important; border-radius: 2px !important;
+  border: 1px solid rgba(90, 64, 40, 0.3) !important; border-left: 4px solid var(--ba-still) !important; border-radius: 4px!important;
   background: rgba(255, 250, 235, 0.55) !important; box-shadow: none !important;
 }
 .ba .ba-eintrag:hover { background: rgba(255, 250, 235, 0.95) !important; }
@@ -82,7 +82,7 @@
 }
 .ba-karte.bew-erwartet { border-left-color: var(--ba-gut); }
 .ba-karte.bew-nebenwirkung, .ba-karte.bew-gegenlaeufig { border-left-color: var(--ba-schlecht); }
-.ba-karte.bew-unerwartet { border-left-color: #6b8a4e; }
+.ba-karte.bew-unerwartet { border-left-color: #4f6b3a; }
 .ba-karte.bew-ruhig { border-left-color: rgba(106, 90, 74, 0.55); }
 .ba-karte.bew-fremd { border-left-color: var(--ba-still); border-left-style: double; }
 .ba-karte.bew-spaeter { border-left-color: var(--ba-frueh); border-left-style: dashed; }

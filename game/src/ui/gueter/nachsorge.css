@@ -5,29 +5,29 @@
 .vn-nachsorge p{margin:7px 0}.vn-leise{color:#68735f;font-size:11.5px}
 .vn-auftrag{background:#efeadf;border:1px solid #d8d1bf;border-radius:10px;padding:13px 15px;margin:16px 0}
 .vn-auftrag>b{font-size:14px}.vn-pflichten{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.vn-pflichten>details{border:1px solid #d8d3c8;background:#fffdf6;border-radius:8px;padding:12px}
+.vn-pflichten>details{border:1px solid #d8d3c8;background:#fffdf6;border-radius:6px;padding:12px}
 .vn-pflichten summary{cursor:pointer}.vn-pflichten summary>b{font-size:12.5px}.vn-pflichten summary>span{display:block;margin:3px 0 0 14px;color:#697b58;font-size:11.5px}
 .vn-pflichten p{font-size:11.5px}.vn-pflichten>.vn-abweichung{border-color:#bd8564;background:#fff3e7}
-.vn-kontrolle{margin:16px 0;border-left:3px solid #a5b391;padding:8px 13px;background:#f0f1e7;font-size:11.5px}
+.vn-kontrolle{margin:16px 0;border-left:3px solid #4f6b3a;padding:8px 13px;background:#f0f1e7;font-size:11.5px}
 .vn-konflikte{list-style:none;padding:0;margin:0;display:grid;gap:9px}
-.vn-konflikte>li{padding:12px 14px;border:1px solid #e0d1b6;background:#f6efe3;border-radius:8px}
+.vn-konflikte>li{padding:12px 14px;border:1px solid #e0d1b6;background:#f6efe3;border-radius:6px}
 .vn-konflikte>li>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.vn-konflikte small{font-size:11.5px;color:#776d59}
 .vn-verlust{color:#965238;font-size:11.5px}.vn-verlust>span{display:block}
 .vn-koalitionskopf{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}.vn-koalitionskopf>span{font-size:11.5px;color:#607255}
-.vn-partner{margin:15px 0;border:1px solid #c7d3ba;border-radius:11px;background:#f6f7ee;padding:16px}
+.vn-partner{margin:15px 0;border:1px solid #c7d3ba;border-radius:10px;background:#f6f7ee;padding:16px}
 .vn-partner.vn-akut{border-color:#bf7c5b;background:#fff2e5}.vn-partner.vn-gefaehrdet{border-color:#c7aa73;background:#fbf4e5}
 .vn-partner>header{display:flex;justify-content:space-between;gap:15px;align-items:center}.vn-partner header b{font:600 24px var(--display,Georgia,serif)}
 .vn-partner header span{display:block;font-size:11.5px;color:#7d6b48}.vn-partner header>strong{font:500 32px/1 var(--display,Georgia,serif);font-variant-numeric:tabular-nums;text-align:right}
 .vn-partner header small{display:block;font:11.5px/1.6 var(--sans,sans-serif);color:#68745d}
 .vn-loyalitaetsbalken{height:7px;background:#dedfce;position:relative;margin:14px 0}.vn-loyalitaetsbalken i{height:100%;display:block;background:#7d9467}.vn-loyalitaetsbalken s{position:absolute;top:-3px;height:13px;width:2px;background:#a45135}
-.vn-wege{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:15px}.vn-hilfe{border:1px solid #d6d9c7;border-radius:8px;padding:13px;background:#fffdf5;display:flex;flex-direction:column}
+.vn-wege{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:15px}.vn-hilfe{border:1px solid #d6d9c7;border-radius:6px;padding:13px;background:#fffdf5;display:flex;flex-direction:column}
 .vn-hilfe>b{font-size:14px}.vn-hilfe>p{font-size:11.5px}.vn-preis{color:#806b44}.vn-prognose{background:#f1ede3;padding:9px;border-radius:6px;font-weight:600}.vn-prognose span{display:block;font-weight:400;margin-top:4px}
 .vn-hilfe details{font-size:11.5px;margin:5px 0 12px}.vn-hilfe summary,.vn-weitere summary,.vn-protokoll summary{cursor:pointer}.vn-hilfe ul{padding-left:16px}.vn-grund{color:#8b6041}
 .rg-mandat .vn-hilfe>button{margin-top:auto;border:1px solid #6b5344;border-radius:6px;background:#574338;color:#fff8e6;padding:10px;font:600 12.5px var(--sans,sans-serif);cursor:pointer;white-space:normal}
 .rg-mandat .vn-hilfe>button:disabled{background:#e7e9dd;color:#7a816f;border-color:#d3cec1;cursor:default}.rg-mandat .vn-hilfe>button:hover:not(:disabled){background:#413229}
 .vn-weitere{margin:12px 0;padding:10px 0;border-top:1px solid #d8d9c8}.vn-weitere ul{padding-left:16px}.vn-weitere small{display:block;color:#876339}
-.vn-protokoll{padding:13px 15px;background:#efebe1;border-radius:8px;margin-top:17px}.vn-protokoll>div{border-top:1px solid #dad3c4;margin-top:10px;padding-top:10px}.vn-protokoll b{font-size:11.5px}.vn-protokoll p,.vn-protokoll small{font-size:11.5px}.vn-protokoll small{display:block}
+.vn-protokoll{padding:13px 15px;background:#efebe1;border-radius:6px;margin-top:17px}.vn-protokoll>div{border-top:1px solid #dad3c4;margin-top:10px;padding-top:10px}.vn-protokoll b{font-size:11.5px}.vn-protokoll p,.vn-protokoll small{font-size:11.5px}.vn-protokoll small{display:block}
 @container versorgungsmandat (min-width:1000px){.vn-wege{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @container versorgungsmandat (max-width:550px){.vn-pflichten{grid-template-columns:minmax(0,1fr)}.vn-partner{padding:12px}.vn-koalitionskopf h6{margin-bottom:0}.vn-koalitionskopf>span{width:100%}.vn-hilfe{padding:12px}}
-.vn-austritte{margin:12px 0;padding:13px 15px;border:1px solid #c28c6d;border-left:4px solid #a2593c;border-radius:8px;background:#fff0e2;color:#7c472f}
+.vn-austritte{margin:12px 0;padding:13px 15px;border:1px solid #c28c6d;border-left:4px solid #a2593c;border-radius:6px;background:#fff0e2;color:#7c472f}
 .vn-austritte .ub-verweis{white-space:normal;text-align:left}.vn-austritte .ub-verweis:focus-visible{outline:3px solid #b78a39;outline-offset:3px}

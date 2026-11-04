@@ -1,7 +1,7 @@
 /* Schauplatz und Besatzung: Papierton der Akten, Regionen als Kette mit Farbpunkt (eigen = Siegelrot, umkämpft = Ocker, Gegner = Grau). */
 
 .ks { container-type: inline-size; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; margin-top: 8px;
-  background: rgba(255, 251, 238, 0.92); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 3px; }
+  background: rgba(255, 251, 238, 0.92); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 4px; }
 .ks-kopf { display: flex; flex-direction: column; gap: 2px; }
 .ks-kopf b { font: 600 16.5px var(--display); }
 .ks-kopf span { font: 15px/1.4 var(--serif); }
@@ -10,7 +10,7 @@
 .ks-warn { margin: 0; padding: 5px 8px; border-left: 3px solid #a8742a; background: rgba(255, 244, 214, 0.8); font-size: 14px; }
 
 .ks-kette { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: stretch; }
-.ks-region { display: flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 12px; font-size: 14px;
+.ks-region { display: flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 10px; font-size: 14px;
   border: 1px solid rgba(90, 64, 40, 0.35); background: rgba(255, 250, 235, 0.7); }
 .ks-region small { color: var(--ink-soft); font-size: 11.5px; }
 .ks-punkt { width: 9px; height: 9px; border-radius: 50%; background: #8a8378; flex: none; }
@@ -24,7 +24,7 @@
 .ks-wahl h5 { margin: 4px 0 2px; font: 600 14px var(--display); }
 .ks-knoepfe { display: grid; gap: 5px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
 .ks-knoepfe button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 5px 8px; text-align: left; cursor: pointer;
-  font: 600 14px var(--serif); color: var(--ink); background: rgba(255, 250, 235, 0.7); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 3px; }
+  font: 600 14px var(--serif); color: var(--ink); background: rgba(255, 250, 235, 0.7); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 4px; }
 .ks-knoepfe button span { font-weight: 400; font-size: 12.5px; color: var(--ink-soft); }
 .ks-knoepfe button em { font-weight: 400; font-size: 11.5px; color: #7a2f22; }
 .ks-knoepfe button:hover:not(:disabled) { background: #fbf4df; }
@@ -38,7 +38,7 @@
 .ks-gut { color: #574134; }
 .ks-schlecht { color: #7a2f22; }
 .ks-mini { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
-.ks-mini i { width: 6px; background: rgba(90, 64, 40, 0.55); border-radius: 1px; }
+.ks-mini i { width: 6px; background: rgba(90, 64, 40, 0.55); border-radius: 4px; }
 
 .ks-besetzt { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .ks-besetzt > li { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; border-top: 1px dotted rgba(90, 64, 40, 0.35); }

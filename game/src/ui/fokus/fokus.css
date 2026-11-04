@@ -22,7 +22,7 @@
 }
 .fk-werkzeug button:hover { background: #fff; }
 
-.fk-meldung { margin: 0; padding: 6px 10px; border-radius: 3px; font-size: 14px; }
+.fk-meldung { margin: 0; padding: 6px 10px; border-radius: 4px; font-size: 14px; }
 .fk-meldung.ok { background: rgba(140,109,74, 0.14); }
 .fk-meldung.nein { background: rgba(150, 44, 36, 0.12); }
 
@@ -67,13 +67,13 @@
 .fk-knoten.fk-ausgeschlossen { opacity: 0.4; background: repeating-linear-gradient(-45deg, rgba(150, 44, 36, 0.06) 0 6px, transparent 6px 12px), #f4ecdc; }
 .fk-knoten.fk-ausgeschlossen .fk-knoten-name { text-decoration: line-through; text-decoration-color: rgba(150, 44, 36, 0.6); }
 
-.fk-balken { display: block; height: 4px; border-radius: 2px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.fk-balken { display: block; height: 4px; border-radius: 4px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
 .fk-balken i { display: block; height: 100%; background: var(--teal); }
 
 .fk-stempel {
   position: absolute; right: -10px; top: -12px; padding: 2px 7px; transform: rotate(-9deg);
   font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.12em; text-transform: uppercase; color: rgb(150, 44, 36);
-  border: 2px solid rgb(150, 44, 36); border-radius: 3px; background: rgba(255, 248, 236, 0.92);
+  border: 2px solid rgb(150, 44, 36); border-radius: 4px; background: rgba(255, 248, 236, 0.92);
   animation: fk-stempel 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
 }
 @keyframes fk-stempel { from { transform: rotate(-20deg) scale(2.2); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: 1; } }
@@ -90,15 +90,15 @@
 .fk-blatt-unter { margin: 0; font: italic 14px/1.35 var(--serif); color: var(--ink-soft); }
 .fk-zu { border: 0; background: none; font-size: 24px; line-height: 1; cursor: pointer; color: var(--ink-soft); align-self: flex-start; }
 .fk-blatt-text { margin: 0; font: 14px/1.45 var(--serif); }
-.fk-fertig { margin: 0; font-size: 14px; color: rgb(48, 104, 64); }
+.fk-fertig { margin: 0; font-size: 14px; color: rgb(79,107,58); }
 .fk-lauf { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 14px; }
 .fk-lauf .fk-balken { grid-column: 1 / -1; height: 6px; }
-.fk-grund { margin: 0; padding: 5px 8px; border-radius: 3px; font-size: 14px; background: rgba(90, 64, 40, 0.08); }
+.fk-grund { margin: 0; padding: 5px 8px; border-radius: 4px; font-size: 14px; background: rgba(90, 64, 40, 0.08); }
 .fk-grund-ausgeschlossen { background: rgba(150, 44, 36, 0.1); color: rgb(130, 36, 30); }
 .fk-preis { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 14px; }
 .fk-linie { color: var(--ink-soft); font-size: 12.5px; }
 .fk-ja, .fk-nein, .fk-direkt {
-  font: 600 14px var(--sans); padding: 5px 12px; border-radius: 3px; cursor: pointer; border: 1px solid var(--teal);
+  font: 600 14px var(--sans); padding: 5px 12px; border-radius: 4px; cursor: pointer; border: 1px solid var(--teal);
   background: var(--teal); color: #fff;
 }
 .fk-ja:disabled { opacity: 0.5; cursor: default; }
@@ -108,17 +108,17 @@
 .fk-liste, .fk-folgen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
 .fk-liste li { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
 .fk-liste li.fehlt { color: rgb(130, 36, 30); }
-.fk-liste li.ok { color: rgb(48, 104, 64); }
+.fk-liste li.ok { color: rgb(79,107,58); }
 .fk-haken { font-weight: 700; width: 1em; }
 .fk-wege { display: inline-flex; gap: 6px; flex-wrap: wrap; flex-basis: 100%; padding-left: 1.4em; }
 .fk-folgen li { display: flex; justify-content: space-between; gap: 8px; }
-.fk-folgen li.plus b { color: rgb(48, 104, 64); }
+.fk-folgen li.plus b { color: rgb(79,107,58); }
 .fk-folgen li.minus b { color: rgb(150, 44, 36); }
 .fk-link { border: 0; padding: 0; background: none; font: inherit; color: var(--teal); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; text-align: left; }
 .fk-gegen { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .fk-link-gegen { color: rgb(130, 36, 30); }
 .fk-reakt { margin: 0 0 2px; font-size: 14px; }
-.fk-reakt.plus b { color: rgb(48, 104, 64); }
+.fk-reakt.plus b { color: rgb(79,107,58); }
 .fk-reakt.minus b { color: rgb(150, 44, 36); }
 .fk-klein { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
 .fk-legende { margin: 0; font-size: 12.5px; color: var(--ink-soft); }

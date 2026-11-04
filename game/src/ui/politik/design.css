@@ -107,13 +107,13 @@
 /* Liste der Programme */
 .pd-prog-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 500px), 1fr)); gap: 20px; margin: 0; padding: 0; list-style: none; align-items: stretch; }
 .pd-prog {
-  position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 20px 22px 14px; border-radius: 8px;
+  position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 20px 22px 14px; border-radius: 6px;
   border: 1px solid var(--pd-line); background: var(--pd-card); box-shadow: var(--pd-schatten);
   transition: box-shadow 200ms ease, transform 200ms ease;
 }
-.pd-prog::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 3px 3px 0; background: rgba(120, 90, 50, 0.3); }
+.pd-prog::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0; background: rgba(120, 90, 50, 0.3); }
 .pd-prog.lage-laeuft::before { background: linear-gradient(180deg, #e6c56c, #a77a14); }
-.pd-prog.lage-bereit::before { background: linear-gradient(180deg, #5eb283, #704e3a); }
+.pd-prog.lage-bereit::before { background: linear-gradient(180deg, #4f6b3a, #704e3a); }
 .pd-prog.lage-unterwegs::before, .pd-prog.lage-erfuellt::before { background: var(--pd-teal); }
 .pd-prog.lage-laeuft { border-color: rgba(167, 122, 20, 0.6); }
 .pd-prog.lage-bereit { border-color: rgba(138,102,60, 0.55); }
@@ -134,7 +134,7 @@
 .pd-pfad { display: flex; align-items: center; margin: 2px 0; padding: 0; list-style: none; }
 .pd-pfad li { display: flex; align-items: center; flex: 1; }
 .pd-pfad li:last-child { flex: none; }
-.pd-pfad li:not(:last-child)::after { content: ""; flex: 1; height: 3px; margin: 0 6px; border-radius: 2px; background: rgba(120, 90, 50, 0.25); }
+.pd-pfad li:not(:last-child)::after { content: ""; flex: 1; height: 3px; margin: 0 6px; border-radius: 4px; background: rgba(120, 90, 50, 0.25); }
 .pd-pfad li.fertig:not(:last-child)::after { background: var(--pd-teal); }
 .pd-station { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--pd-line-strong); background: #f6edd6; color: var(--pd-soft); font: 700 14px/1 var(--sans); }
 .pd-pfad li.fertig .pd-station { background: var(--pd-teal); border-color: var(--pd-teal); color: #f6edd6; }
@@ -195,7 +195,7 @@
 .dossier .po-seite { gap: 24px; }
 .dossier .po-rail { gap: 3px; max-height: calc(100vh - 210px); padding: 0 6px 0 0; }
 .dossier button.po-rail-eintrag {
-  grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; padding: 4px 9px 4px 7px; border-radius: 8px; border: 1px solid transparent;
+  grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; padding: 4px 9px 4px 7px; border-radius: 6px; border: 1px solid transparent;
   font: 16.5px/1.25 var(--serif); color: var(--pd-ink); transition: background 140ms ease, border-color 140ms ease;
 }
 .dossier button.po-rail-eintrag:first-child { grid-template-columns: 1fr; margin-bottom: 8px; padding: 9px 12px; font: 650 18px var(--display); }
@@ -206,7 +206,7 @@
 }
 .dossier button.po-rail-eintrag:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
 .pd-ring { display: inline-grid; place-items: center; flex: none; width: 29px; height: 29px; border-radius: 50%; border: 2px solid var(--pd-line-strong); background: rgba(255, 252, 241, 0.85); color: var(--pd-soft); }
-.pd-ring.gruen { border-color: #3c8a63; color: #553828; }
+.pd-ring.gruen { border-color: #4f6b3a; color: #553828; }
 .pd-ring.gelb { border-color: #cf9f1a; color: #6f4f0c; }
 .pd-ring.rot { border-color: var(--pd-bad); color: var(--pd-bad); background: rgba(168, 58, 50, 0.08); }
 .po-rail-akut { min-width: 22px; padding: 0 7px; border-radius: 999px; font: 700 12.5px/20px var(--sans); text-align: center; color: #fdf3e2; background: var(--pd-bad); }
@@ -222,12 +222,12 @@
 .pd-zaehler li.rot { border-color: rgba(168, 58, 50, 0.55); background: linear-gradient(180deg, #fbeee6, #f5ddd2); }
 .pd-kacheln { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 18px; }
 .dossier button.pd-kachel {
-  position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 18px 18px 16px; text-align: left; cursor: pointer; border-radius: 8px;
+  position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 18px 18px 16px; text-align: left; cursor: pointer; border-radius: 6px;
   border: 1px solid var(--pd-line); background: var(--pd-card); box-shadow: var(--pd-schatten); color: var(--pd-ink); text-shadow: none;
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 .dossier button.pd-kachel::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 4px; border-radius: 0 0 4px 4px; background: var(--pd-line-strong); }
-.dossier button.pd-kachel.gruen::before { background: #3c8a63; }
+.dossier button.pd-kachel.gruen::before { background: #4f6b3a; }
 .dossier button.pd-kachel.gelb::before { background: #d0a21e; }
 .dossier button.pd-kachel.rot::before { background: var(--pd-bad); }
 .dossier button.pd-kachel.rot { background: linear-gradient(180deg, rgba(251, 238, 230, 0.9), var(--pd-card) 70%); }
@@ -241,9 +241,9 @@
 .pd-signale li { display: grid; grid-template-columns: minmax(0, 1fr) 64px 44px; align-items: center; gap: 10px; font: 15px/1.3 var(--serif); }
 .pd-signal-name { min-width: 0; overflow-wrap: anywhere; }
 .pd-signale strong { font: 700 15px var(--sans); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
-.pd-mini { position: relative; display: block; height: 6px; border-radius: 3px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
-.pd-mini > i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--pd-teal); }
-.pd-mini.b-gut > i { background: #3c8a63; }
+.pd-mini { position: relative; display: block; height: 6px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
+.pd-mini > i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--pd-teal); }
+.pd-mini.b-gut > i { background: #4f6b3a; }
 .pd-mini.b-mittel > i { background: #cf9f1a; }
 .pd-mini.b-schlecht > i { background: var(--pd-bad); }
 
@@ -286,10 +286,10 @@
 }
 .dossier button.po-lage:hover { background: rgba(255, 251, 238, 0.9); border-color: var(--pd-line); }
 .dossier button.po-lage:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
-.po-balken { height: 10px; border-radius: 5px; }
-.po-balken i { border-radius: 5px; }
-.po-balken b { width: 3px; margin-left: -1.5px; top: -4px; bottom: -4px; border-radius: 2px; background: var(--pd-ink); opacity: 0.75; }
-.po-lage.b-gut .po-balken i { background: #3c8a63; }
+.po-balken { height: 10px; border-radius: 6px; }
+.po-balken i { border-radius: 6px; }
+.po-balken b { width: 3px; margin-left: -1.5px; top: -4px; bottom: -4px; border-radius: 4px; background: var(--pd-ink); opacity: 0.75; }
+.po-lage.b-gut .po-balken i { background: #4f6b3a; }
 .po-lage.b-mittel .po-balken i { background: #cf9f1a; }
 .po-lage.b-schlecht .po-balken i { background: var(--pd-bad); }
 .po-lage-wert { font: 700 16.5px var(--sans); font-variant-numeric: tabular-nums; }
@@ -360,9 +360,9 @@
 .dossier .valueline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin: 16px 0 20px; font: 400 12.5px/1.2 var(--kapitaelchen); letter-spacing: 0.14em; text-transform: uppercase; color: var(--pd-soft); }
 .dossier .valueline strong { font: 700 40px/1 var(--sans); letter-spacing: -0.02em; color: var(--pd-ink); text-transform: none; }
 .dossier .valueline .subtitle { margin: 0; font: 15px/1.3 var(--serif); letter-spacing: 0; text-transform: none; color: var(--pd-faint); }
-.pd-wertleiste { position: relative; align-self: center; flex: none; width: 160px; height: 10px; border-radius: 5px; background: rgba(90, 64, 40, 0.18); }
-.pd-wertleiste > i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: linear-gradient(90deg, #5d4231, #7d6438); }
-.pd-wertleiste > b { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--pd-ink); opacity: 0.75; }
+.pd-wertleiste { position: relative; align-self: center; flex: none; width: 160px; height: 10px; border-radius: 6px; background: rgba(90, 64, 40, 0.18); }
+.pd-wertleiste > i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: linear-gradient(90deg, #5d4231, #7d6438); }
+.pd-wertleiste > b { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 4px; background: var(--pd-ink); opacity: 0.75; }
 
 /* Die Mentorin erklärt */
 .dossier .erklaerung { margin: 4px 0 20px; border: 1px solid var(--pd-line); border-left: 4px solid var(--pd-teal); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
@@ -376,7 +376,7 @@
 .dossier .ng-legende { padding: 8px 4px 2px; border: none; background: none; font-size: 14px; color: var(--pd-soft); }
 
 /* Was folgt daraus: Wirkungen und Preisliste unter dem Bild */
-.pd-folgen { margin-top: 24px; padding: 22px 24px 24px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.pd-folgen { margin-top: 24px; padding: 22px 24px 24px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .pd-folgen > h3 { margin: 0 0 16px; font: 650 24px/1.2 var(--display); }
 .pd-folgen-raster { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 28px; }
 .pd-folgen-spalte h4 { margin: 0 0 10px; font: 400 12.5px/1.2 var(--kapitaelchen); letter-spacing: 0.14em; text-transform: uppercase; color: var(--pd-soft); }
@@ -400,7 +400,7 @@
 /* Rechte Spalte: die Entscheidung als ein Blatt */
 .dossier .net-side { gap: 18px; }
 .dossier .policy.schritte, .dossier .net-side .policy {
-  margin: 0; padding: 8px 24px 22px !important; border: 1px solid var(--pd-line-strong) !important; border-radius: 8px; outline: none; box-shadow: var(--pd-schatten-hoch); background: var(--pd-card-hell);
+  margin: 0; padding: 8px 24px 22px !important; border: 1px solid var(--pd-line-strong) !important; border-radius: 6px; outline: none; box-shadow: var(--pd-schatten-hoch); background: var(--pd-card-hell);
 }
 .dossier .schritt { padding: 20px 0 20px; border-top: 1px solid var(--pd-line); }
 .dossier .schritt h4 { gap: 12px; margin: 0 0 14px; font: 650 21px/1.2 var(--display); }
@@ -453,13 +453,13 @@
 .pd-um-zahlen { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font: 400 12.5px var(--kapitaelchen); letter-spacing: 0.06em; text-transform: uppercase; color: var(--pd-soft); }
 .pd-um-zahlen b { font: 700 24px/1 var(--sans); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; text-transform: none; color: var(--pd-ink); margin-left: 4px; }
 .pd-um-zahlen em { margin-left: auto; font: 15px var(--serif); font-style: normal; letter-spacing: 0; text-transform: none; color: var(--pd-soft); }
-.pd-skala.breit { height: 10px; border-radius: 5px; }
-.pd-skala.breit > i { background: linear-gradient(90deg, #5d4231, #7d6438); border-radius: 5px; }
+.pd-skala.breit { height: 10px; border-radius: 6px; }
+.pd-skala.breit > i { background: linear-gradient(90deg, #5d4231, #7d6438); border-radius: 6px; }
 .pd-skala.breit > b { top: -5px; bottom: -5px; border-left-width: 3px; }
 
 .pd-bericht-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
 .pd-bericht { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--pd-line); border-left: 4px solid var(--pd-line-strong); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
-.pd-bericht.gut { border-left-color: #3c8a63; }
+.pd-bericht.gut { border-left-color: #4f6b3a; }
 .pd-bericht.warn { border-left-color: #cf9f1a; }
 .pd-bericht.schlecht { border-left-color: var(--pd-bad); }
 .pd-bericht-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -469,7 +469,7 @@
 .pd-bericht .pd-leise { font-size: 14px; }
 
 .pd-zeitleiste { position: relative; display: grid; gap: 0; margin: 0 0 12px; padding: 0 0 0 22px; list-style: none; }
-.pd-zeitleiste::before { content: ""; position: absolute; left: 6px; top: 10px; bottom: 10px; width: 2px; border-radius: 1px; background: var(--pd-line-strong); }
+.pd-zeitleiste::before { content: ""; position: absolute; left: 6px; top: 10px; bottom: 10px; width: 2px; border-radius: 4px; background: var(--pd-line-strong); }
 .pd-zeitleiste li { position: relative; display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; padding: 10px 0 12px; border-bottom: 1px solid var(--pd-line); }
 .pd-zeitleiste li:last-child { border-bottom: none; }
 .pd-zeitleiste li::before { content: ""; position: absolute; left: -21px; top: 16px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #f4ead2; background: var(--seal); box-shadow: 0 0 0 1.5px var(--seal); }
@@ -540,7 +540,7 @@
 /* ---------- Verfassung (ui/Verfassung.tsx) ---------- */
 
 .dossier .vf-akte { gap: 26px; }
-.dossier .vf-akte > .paper { padding: 24px 28px 24px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .vf-akte > .paper { padding: 24px 28px 24px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .vf-akte > .paper > h3 { margin: 0 0 6px; font: 600 28px/1.2 var(--display); }
 .dossier .vf-akte .subtitle { margin: 4px 0 14px; font: 16.5px/1.5 var(--serif); font-style: normal; color: var(--pd-soft); }
 .dossier .vf-akte p { font: 18px/1.5 var(--serif); }
@@ -549,7 +549,7 @@
 .dossier .vf-aktiv { color: #553828; background: rgba(138,102,60, 0.1); }
 .dossier .vf-sperre { color: #8a2d26; background: rgba(168, 58, 50, 0.08); }
 .dossier .vf-varianten { gap: 12px; margin-top: 12px; }
-.dossier .vf-variante { padding: 16px 18px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card-hell); transition: border-color 140ms ease, box-shadow 140ms ease; }
+.dossier .vf-variante { padding: 16px 18px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card-hell); transition: border-color 140ms ease, box-shadow 140ms ease; }
 .dossier .vf-variante:hover { border-color: var(--gold-3); }
 .dossier .vf-variante.gewaehlt { border-color: rgba(93,66,49, 0.7); box-shadow: 0 0 0 3px rgba(93,66,49, 0.14); background: #fff; }
 .dossier .vf-variante label { gap: 12px; }

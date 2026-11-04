@@ -18,7 +18,12 @@ const messe = async () => page.evaluate(() => {
   const groessen = texte.map((e) => getComputedStyle(e).fontSize);
   const flaechen = Array.from(document.querySelectorAll("div,section,article,aside,nav,header,li")).filter(sicht).map((e) => getComputedStyle(e).backgroundColor).filter((c) => c !== "rgba(0, 0, 0, 0)");
   const radien = Array.from(document.querySelectorAll("div,section,article,aside,button,li")).filter(sicht).map((e) => getComputedStyle(e).borderTopLeftRadius).filter((r) => r !== "0px");
-  return { knoepfe, schriften, groessen, flaechen, radien };
+  // Reiterleisten: Behälter mit mindestens zwei Knöpfen, deren Klasse oder Rolle nach Reitern aussieht (außer Leiste und Aktenreitern)
+  const reiter = Array.from(document.querySelectorAll('[role=tablist], [class*="tab"], [class*="reiter"]')).filter(sicht)
+    .filter((e) => !e.closest(".regierungs-navigation, .ak-navigation") && e.querySelectorAll(":scope > button, :scope > a").length >= 2)
+    .map((e) => { const b = e.querySelector(":scope > button, :scope > a"); return `${e.className}::${b.className}`; });
+  const knopfKlassen = Array.from(document.querySelectorAll("button")).filter(sicht).map((b) => `${b.closest(".dossier") ? "akte" : b.closest(".event-layer") ? "fenster" : "buehne"}:${(b.className || "-").split(" ")[0]}`);
+  return { knoepfe, schriften, groessen, flaechen, radien, reiter, knopfKlassen };
 });
 const foto = async (name) => { n++; const f = `${String(n).padStart(2, "0")}-${name}`.replace(/[^\wäöüÄÖÜß-]+/g, "_"); await page.screenshot({ path: `${dir}/${f}.png` }); stil[f] = await messe(); };
 const klick = (re, sel = "button") => page.evaluate(([re, sel]) => { const b = Array.from(document.querySelectorAll(sel)).find((x) => new RegExp(re).test((x.textContent || "") + " " + (x.getAttribute("aria-label") || ""))); if (b) { b.click(); return true; } return false; }, [re, sel]);

@@ -14,7 +14,7 @@
 .gv-lager { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
 .gv-lager-titel { flex: none; min-width: 58px; font: 400 11.5px/1.6 var(--kapitaelchen); letter-spacing: 0.06em; text-transform: uppercase; color: #6b5a44; }
 .gv-lager ul { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.gv-lager li { padding: 1px 7px; border-radius: 3px; font: 14px/1.5 var(--sans, Inter, sans-serif); }
+.gv-lager li { padding: 1px 7px; border-radius: 4px; font: 14px/1.5 var(--sans, Inter, sans-serif); }
 .gv-lager.fuer li { background: rgba(109,84,70, 0.12); color: #523f34; }
 .gv-lager.gegen li { background: rgba(140, 43, 31, 0.1); color: #7a2418; }
 .gv-lager li.partei, .gv-lager li.partner, .gv-lager li.eigene { font-weight: 600; }

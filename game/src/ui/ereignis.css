@@ -38,7 +38,7 @@
 
 .ev2-worum h3 { margin: 0 0 6px; font: 400 12.5px/1.2 var(--kapitaelchen); letter-spacing: 0.08em; text-transform: uppercase; color: #8c2b1f; }
 .ev2-kz-reihe { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px; }
-.ev2-kz { display: grid; gap: 2px; padding: 9px 12px 8px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 3px; }
+.ev2-kz { display: grid; gap: 2px; padding: 9px 12px 8px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 4px; }
 .ev2-kz-label { font: 600 12.5px/1.2 var(--sans, Inter, sans-serif); color: #5a4a38; }
 .ev2-kz strong { font: 600 21px/1.15 var(--display, Fraunces, serif); color: var(--ink, #2b1e12); }
 .ev2-verlauf { width: 100%; height: 22px; color: #5f4739; }
@@ -48,7 +48,7 @@
 .ev2-option {
   width: 100%; height: 100%; display: grid; gap: 6px; align-content: start; text-align: left; cursor: pointer;
   padding: 12px 14px 12px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.38); border-left: 4px solid var(--seal, #8c2b1f);
-  border-radius: 3px; color: var(--ink, #2b1e12); box-shadow: 0 1px 0 rgba(90, 64, 40, 0.15); transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  border-radius: 4px; color: var(--ink, #2b1e12); box-shadow: 0 1px 0 rgba(90, 64, 40, 0.15); transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 .ev2-option:hover:not(:disabled) { background: #f6ebc9; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(60, 40, 20, 0.18); }
 .ev2-option:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -74,7 +74,7 @@
 
 .ev2-fuss { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 28px 14px; border-top: 1px solid rgba(90, 64, 40, 0.25); background: rgba(243, 233, 209, 0.9); }
 .ev2-frist { display: grid; gap: 4px; flex: 1; max-width: 520px; font: italic 14px/1.3 var(--serif, "EB Garamond", serif); color: #5a4a38; }
-.ev2-frist i { display: block; height: 5px; border-radius: 3px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.ev2-frist i { display: block; height: 5px; border-radius: 4px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
 .ev2-frist b { display: block; height: 100%; background: linear-gradient(90deg, #8c2b1f, #c9a25a); }
 
 @media (max-width: 1100px), (max-height: 760px) {

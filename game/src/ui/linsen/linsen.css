@@ -54,7 +54,7 @@
 
 .linsen-kachel {
   position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px 34px 14px 8px;
-  text-align: left; cursor: pointer; color: #efe2c4; border-radius: 8px; border: 1px solid rgba(217, 180, 106, 0.28); background: rgba(255, 255, 255, 0.04);
+  text-align: left; cursor: pointer; color: #efe2c4; border-radius: 6px; border: 1px solid rgba(217, 180, 106, 0.28); background: rgba(255, 255, 255, 0.04);
   transition: background 120ms ease, border-color 120ms ease;
 }
 .linsen-kachel:hover { background: rgba(217, 180, 106, 0.14); border-color: rgba(217, 180, 106, 0.7); }
@@ -67,7 +67,7 @@
   position: absolute; right: 8px; top: 7px; min-width: 18px; padding: 0 5px; text-align: center; border-radius: 4px;
   font: 700 12.5px/18px var(--sans); color: #2b1e12; background: linear-gradient(180deg, #f3dca0, #c9a257); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
-.linsen-streifen { position: absolute; left: 8px; right: 8px; bottom: 5px; height: 4px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5); }
+.linsen-streifen { position: absolute; left: 8px; right: 8px; bottom: 5px; height: 4px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5); }
 
 /* Die kleine Legende neben dem Knopf: im Leerlauf Titel und Farbstreifen, aufgeklappt mit allen Einträgen */
 .linsen-legende {
@@ -97,7 +97,7 @@
 .linsen-legende-problem .hinweis { font-style: italic; color: var(--ink-soft); }
 .linsen-legende-problem button {
   width: 100%; text-align: left; padding: 3px 8px; cursor: pointer; font: 650 14px var(--serif); color: var(--ink);
-  background: #f3dc98; border: 1px solid var(--gold-3); border-radius: 3px;
+  background: #f3dc98; border: 1px solid var(--gold-3); border-radius: 4px;
 }
 .linsen-legende-problem button b { float: right; margin-left: 8px; color: var(--seal); font-variant-numeric: tabular-nums; }
 .linsen-legende .legend-scale { margin-top: 7px; }

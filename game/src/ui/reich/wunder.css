@@ -79,7 +79,7 @@
 }
 .wunder-bildrahmen { cursor: pointer; }
 .wunder-fenster .wunder-gruppe-kopf { animation: wunderText 700ms ease 1.6s both; }
-.wunder-a-hinweis { position: absolute; right: 12px; bottom: 9px; padding: 2px 9px; font: italic 12.5px var(--serif); color: #f0e4c6; background: rgba(20, 12, 6, 0.6); border-radius: 3px; pointer-events: none; opacity: 0; animation: wunder-a-hinweis 5.4s ease 0.6s both; }
+.wunder-a-hinweis { position: absolute; right: 12px; bottom: 9px; padding: 2px 9px; font: italic 12.5px var(--serif); color: #f0e4c6; background: rgba(20, 12, 6, 0.6); border-radius: 4px; pointer-events: none; opacity: 0; animation: wunder-a-hinweis 5.4s ease 0.6s both; }
 @keyframes wunder-a-hinweis { 0% { opacity: 0; } 10% { opacity: 0.9; } 80% { opacity: 0.9; } 100% { opacity: 0; } }
 /* Übersprungen: alles springt an den Endzustand */
 .wunder-fenster.uebersprungen *, .wunder-fenster.uebersprungen *::before, .wunder-fenster.uebersprungen *::after { animation-duration: 0.001s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
@@ -101,7 +101,7 @@
 
 /* Laufende Bauten mit kleiner Baustelle: Bild links, Text und Knöpfe daneben */
 .rr-bauliste li.wunder-a-mitbild { grid-template-columns: 124px minmax(0, 1fr) auto; }
-.rr-bauliste li.wunder-a-mitbild .wunder-a-mini { grid-column: 1; grid-row: 1 / 3; width: 124px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 2px; box-shadow: 0 0 0 1px rgba(60, 40, 20, 0.45); background: #2a1d14; }
+.rr-bauliste li.wunder-a-mitbild .wunder-a-mini { grid-column: 1; grid-row: 1 / 3; width: 124px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 4px; box-shadow: 0 0 0 1px rgba(60, 40, 20, 0.45); background: #2a1d14; }
 .rr-bauliste li.wunder-a-mitbild .wunder-a-mini .wunder-bild { width: 100%; height: 100%; }
 .rr-bauliste li.wunder-a-mitbild .rr-bau-kopf, .rr-bauliste li.wunder-a-mitbild .rr-balken { grid-column: 2; }
 .rr-bauliste li.wunder-a-mitbild .rr-bau-knoepfe { grid-column: 3; }

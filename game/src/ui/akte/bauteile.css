@@ -37,3 +37,42 @@
 .ak-inhalt :is(.gz-konflikt, .ub-kachel, .ub-lage, .ak-urteil) { background: #fffdf7; border-color: #dccdab; border-radius: 6px; }
 .ak-inhalt .gz-konflikt { box-shadow: 0 1px 0 #dccdab; }
 .ak-inhalt .gz-konflikt.krieg { border-left-color: #8e2a22; background: linear-gradient(90deg, #f6e3d6, #fffdf7 40%); }
+
+/* Unterreiter (dritte Ebene, Regelwerk GESTALTUNG §7): leiser als die Aktenreiter. Kapitälchen auf einer Messinglinie; der offene
+   Reiter trägt einen siegelroten Strich. Vorher hatte jede Ansicht eigene Reiter (Kacheln, Pillen, Karteikarten). */
+.dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) {
+  display: flex !important; flex-wrap: wrap; gap: 2px 6px; padding: 0 !important; margin-bottom: 14px; background: none !important;
+  border: 0 !important; border-bottom: 1px solid #c69a4a99 !important; border-radius: 0!important; box-shadow: none !important;
+}
+.dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) > :is(button, a) {
+  background: none !important; border: 0 !important; border-bottom: 2px solid transparent !important; border-radius: 0!important;
+  box-shadow: none !important; padding: 8px 10px 7px !important; margin: 0 0 -1px !important; min-height: 0; width: auto;
+  font: 400 14px/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; color: #6a5a4a !important; text-shadow: none !important; transform: none !important;
+}
+.dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) > :is(button, a):hover { color: #2a1f18 !important; border-bottom-color: #c69a4a !important; }
+.dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) > :is(button, a):is(.on, .aktiv, [aria-selected="true"], [aria-current="page"]) {
+  color: #2a1f18 !important; border-bottom-color: #8e2a22 !important;
+}
+
+/* Knöpfe in Fenstern auf Papier: Leder ist Haupt, Messing ist Normal (dieselbe Rangfolge wie in den Akten). Auf dunklem Grund
+   (Titelbild, Kopfleiste, Kartenleisten) bleibt Messing der Hauptknopf. */
+.event-layer button.leather-button {
+  background: linear-gradient(180deg, #5a3722, #3a2418) !important; color: #f7ecd2 !important; border: 1px solid #7c5823 !important; border-radius: 6px!important;
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 #24150c !important; font: 400 15px/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; text-shadow: none !important;
+}
+.event-layer button.brass-button {
+  background: linear-gradient(180deg, #fffaf0, #f1e6cc) !important; color: #2a1f18 !important; border: 1px solid #a37c3c !important; border-radius: 6px!important;
+  box-shadow: 0 1px 0 #7c582355 !important; font: 400 15px/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; text-shadow: none !important;
+}
+
+/* Politik: Die Liste der Politikbereiche ist ein Register im Blatt, keine zweite Leiste. Offener Bereich: Pergament mit siegelrotem Rand. */
+.dossier button.po-rail-eintrag.on { background: #fffdf7 !important; border-color: #dccdab !important; box-shadow: inset 3px 0 0 #8e2a22 !important; font-weight: 400 !important; }
+.dossier button.po-rail-eintrag:first-child { font-family: var(--kapitaelchen) !important; font-weight: 400 !important; letter-spacing: .04em; }
+/* Ampel der Bereiche innerhalb der Palette: ruhig ist neutral, Achtung Messing, angespannt Siegelrot */
+.pd-ring.gruen { border-color: #b09a74 !important; color: #5d4231 !important; }
+.pd-ring.gelb { border-color: #c69a4a !important; color: #6b4a1c !important; }
+/* Ein einzelner Knopf in einem Fenster ist immer der Hauptknopf */
+.event-layer button.brass-button:only-of-type {
+  background: linear-gradient(180deg, #5a3722, #3a2418) !important; color: #f7ecd2 !important; border-color: #7c5823 !important;
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 #24150c !important;
+}

@@ -4,7 +4,7 @@
 
 /* Kopfleiste mit Kennzahlen */
 .pe-kopf { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.pe-chip { display: grid; gap: 2px; padding: 8px 12px; border: 1px solid rgba(90, 64, 40, 0.28); background: var(--paper-light); border-radius: 3px; }
+.pe-chip { display: grid; gap: 2px; padding: 8px 12px; border: 1px solid rgba(90, 64, 40, 0.28); background: var(--paper-light); border-radius: 4px; }
 .pe-chip b { font: 600 11.5px var(--display); letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink-soft); }
 .pe-chip span { font: 600 18px var(--display); color: var(--ink); }
 .pe-chip em { font: italic 12.5px var(--serif); color: var(--ink-soft); }
@@ -25,13 +25,13 @@
 .pe-layout.pe-szenenmodus .pe-liste { display: none; }
 .pe-gruppe { font: 600 11.5px var(--display); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-soft); margin: 8px 2px 0; }
 .pe-gruppe:first-child { margin-top: 0; }
-.dossier .pe-karte { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: center; width: 100%; padding: 8px 10px !important; text-align: left; cursor: pointer; border: 1px solid rgba(90, 64, 40, 0.28) !important; border-radius: 3px; background: var(--paper-light) !important; box-shadow: none !important; }
+.dossier .pe-karte { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: center; width: 100%; padding: 8px 10px !important; text-align: left; cursor: pointer; border: 1px solid rgba(90, 64, 40, 0.28) !important; border-radius: 4px; background: var(--paper-light) !important; box-shadow: none !important; }
 .dossier .pe-karte:hover { background: #fffaf0 !important; }
 .dossier .pe-karte.on { border-color: var(--seal) !important; box-shadow: inset 3px 0 0 var(--seal) !important; background: #fffaf0 !important; }
 .pe-karte strong { display: block; font: 650 16.5px/1.2 var(--display); }
 .pe-karte .pe-rolle { display: block; font: italic 14px/1.25 var(--serif); color: var(--ink-soft); }
 .pe-karte .pe-zeile { display: flex; align-items: center; gap: 7px; margin-top: 4px; }
-.pe-marke { display: inline-block; padding: 0 6px; border-radius: 2px; font: 600 11.5px/1.6 var(--sans); letter-spacing: 0.03em; background: rgba(90, 64, 40, 0.13); color: var(--ink); white-space: nowrap; }
+.pe-marke { display: inline-block; padding: 0 6px; border-radius: 4px; font: 600 11.5px/1.6 var(--sans); letter-spacing: 0.03em; background: rgba(90, 64, 40, 0.13); color: var(--ink); white-space: nowrap; }
 .pe-marke.rot { background: rgba(142, 42, 34, 0.14); color: var(--seal); }
 .pe-marke.gruen { background: rgba(93,66,49, 0.16); color: var(--teal); }
 .pe-marke.gold { background: rgba(198, 154, 74, 0.28); color: var(--gold-3); }
@@ -46,7 +46,7 @@
 .pe-balken-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; min-width: 0; }
 .pe-balken-kopf span { min-width: 0; font: 600 11.5px/1.25 var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 .pe-balken-kopf em { flex: none; font: italic 14px var(--serif); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.pe-bar { height: 7px; border-radius: 3px; background: rgba(120, 90, 50, 0.22); overflow: hidden; }
+.pe-bar { height: 7px; border-radius: 4px; background: rgba(120, 90, 50, 0.22); overflow: hidden; }
 .pe-bar i { display: block; height: 100%; background: var(--teal); transition: width 0.4s ease; }
 .pe-balken.mittel .pe-bar i { background: #b58b3f; }
 .pe-balken.schlecht .pe-bar i { background: var(--seal); }
@@ -56,7 +56,7 @@
 .pe-balken.klein .pe-bar { height: 6px; }
 
 /* Kosten und Zahlen in Marken: eine Zeile, nie umbrechen */
-.pe-kosten { display: inline-block; padding: 1px 9px; border-radius: 9px; font: 600 12.5px/1.5 var(--sans); background: rgba(198, 154, 74, 0.3); color: var(--gold-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pe-kosten { display: inline-block; padding: 1px 9px; border-radius: 10px; font: 600 12.5px/1.5 var(--sans); background: rgba(198, 154, 74, 0.3); color: var(--gold-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .pe-kosten.frei { background: rgba(93,66,49, 0.16); color: var(--teal); }
 .pe-kosten.knapp { background: rgba(142, 42, 34, 0.14); color: var(--seal); }
 
@@ -75,7 +75,7 @@
 .pe-aktionen { display: flex; flex-wrap: wrap; gap: 8px; }
 .dossier .pe-aktion {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 7px 14px !important;
-  border: 1px solid rgba(90, 64, 40, 0.5) !important; border-radius: 3px; background: linear-gradient(180deg, #fbf5e6, #eadcbc) !important;
+  border: 1px solid rgba(90, 64, 40, 0.5) !important; border-radius: 4px; background: linear-gradient(180deg, #fbf5e6, #eadcbc) !important;
   color: var(--ink) !important; font: 600 15px/1.15 var(--display) !important; letter-spacing: 0.01em; text-align: center; text-shadow: none !important;
   box-shadow: none !important; cursor: pointer;
 }
@@ -86,10 +86,10 @@
 .dossier .pe-aktion.leise:hover:not(:disabled) { background: rgba(255, 250, 235, 0.7) !important; color: var(--ink) !important; }
 .dossier .pe-aktion:disabled { cursor: not-allowed; background: rgba(120, 100, 70, 0.1) !important; color: rgba(60, 44, 28, 0.5) !important; border-style: dashed !important; border-color: rgba(90, 64, 40, 0.3) !important; }
 .pe-aktion .icon { flex: none; }
-.pe-aktion b { margin-left: 2px; padding: 0 7px; border-radius: 9px; background: rgba(0, 0, 0, 0.14); font: 600 12.5px/1.6 var(--sans); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pe-aktion b { margin-left: 2px; padding: 0 7px; border-radius: 10px; background: rgba(0, 0, 0, 0.14); font: 600 12.5px/1.6 var(--sans); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .dossier .pe-aktion.haupt b { background: rgba(255, 255, 255, 0.22); }
 .pe-detail, .pe-szene { scroll-margin-top: 22px; }
-.pe-auftrag { padding: 10px 12px; border: 1px dashed rgba(90, 64, 40, 0.45); border-radius: 3px; background: rgba(255, 250, 235, 0.6); display: grid; gap: 6px; }
+.pe-auftrag { padding: 10px 12px; border: 1px dashed rgba(90, 64, 40, 0.45); border-radius: 4px; background: rgba(255, 250, 235, 0.6); display: grid; gap: 6px; }
 .pe-auftrag.erfuellt { border-style: solid; border-color: var(--teal); }
 .pe-auftrag.verfehlt { border-style: solid; border-color: var(--seal); }
 .pe-erinnerung { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font: 14px/1.35 var(--serif); }
@@ -109,18 +109,18 @@
 .pe-schritte span { padding: 2px 8px; border-radius: 10px; background: rgba(90, 64, 40, 0.1); }
 .pe-schritte span.on { background: var(--seal); color: #fff; }
 .pe-themen { display: grid; gap: 8px; }
-.dossier .pe-thema { display: grid; gap: 2px; width: 100%; text-align: left; padding: 9px 12px !important; border: 1px solid rgba(90, 64, 40, 0.3) !important; border-radius: 3px; background: var(--paper-light) !important; cursor: pointer; box-shadow: none !important; }
+.dossier .pe-thema { display: grid; gap: 2px; width: 100%; text-align: left; padding: 9px 12px !important; border: 1px solid rgba(90, 64, 40, 0.3) !important; border-radius: 4px; background: var(--paper-light) !important; cursor: pointer; box-shadow: none !important; }
 .dossier .pe-thema:hover, .dossier .pe-thema.on { border-color: var(--seal) !important; background: #fffaf0 !important; }
 .pe-thema strong { font: 650 16.5px var(--display); }
 .pe-thema span { font: 14px/1.35 var(--serif); color: var(--ink-soft); }
 .pe-thema.dringend strong::after { content: " · dringend"; color: var(--seal); font: 600 11.5px var(--sans); letter-spacing: 0.04em; }
 .pe-ansaetze { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-.dossier .pe-ansatz { display: grid; align-content: start; gap: 6px; text-align: left; padding: 11px 13px !important; border: 1px solid rgba(90, 64, 40, 0.35) !important; border-radius: 3px; background: var(--paper-light) !important; cursor: pointer; box-shadow: none !important; }
+.dossier .pe-ansatz { display: grid; align-content: start; gap: 6px; text-align: left; padding: 11px 13px !important; border: 1px solid rgba(90, 64, 40, 0.35) !important; border-radius: 4px; background: var(--paper-light) !important; cursor: pointer; box-shadow: none !important; }
 .dossier .pe-ansatz:hover:not(:disabled) { border-color: var(--seal) !important; background: #fffaf0 !important; }
 .dossier .pe-ansatz:disabled { opacity: 0.62; cursor: not-allowed; background: rgba(240, 230, 208, 0.6) !important; }
 .pe-ansatz header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .pe-ansatz header strong { font: 650 16.5px var(--display); }
-.pe-ansatz .pe-kosten { font: 600 12.5px var(--sans); padding: 1px 8px; border-radius: 9px; background: rgba(198, 154, 74, 0.3); color: var(--gold-3); white-space: nowrap; }
+.pe-ansatz .pe-kosten { font: 600 12.5px var(--sans); padding: 1px 8px; border-radius: 10px; background: rgba(198, 154, 74, 0.3); color: var(--gold-3); white-space: nowrap; }
 .pe-ansatz .pe-kosten.frei { background: rgba(93,66,49, 0.16); color: var(--teal); }
 .pe-ansatz p { margin: 0; font: italic 14px/1.35 var(--serif); color: var(--ink-soft); }
 .pe-ansatz ul { margin: 0; padding: 0 0 0 16px; font: 14px/1.4 var(--serif); }
@@ -132,14 +132,14 @@
 /* Sprechblasen */
 .pe-dialog { display: grid; gap: 10px; }
 .pe-blase { max-width: 88%; padding: 10px 14px; border-radius: 10px; font: 16.5px/1.45 var(--serif); position: relative; animation: pe-ein 0.35s ease both; }
-.pe-blase.ich { justify-self: end; background: rgba(93,66,49, 0.13); border: 1px solid rgba(93,66,49, 0.35); border-bottom-right-radius: 2px; }
-.pe-blase.er { justify-self: start; background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.35); border-bottom-left-radius: 2px; }
+.pe-blase.ich { justify-self: end; background: rgba(93,66,49, 0.13); border: 1px solid rgba(93,66,49, 0.35); border-bottom-right-radius: 4px; }
+.pe-blase.er { justify-self: start; background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.35); border-bottom-left-radius: 4px; }
 .pe-blase.erzaehler { justify-self: center; max-width: 92%; font: italic 15px/1.45 var(--serif); color: var(--ink-soft); background: none; border: 0; text-align: center; }
 .pe-blase .pe-sprecher { display: block; font: 600 11.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 2px; }
 .pe-dialog .pe-blase:nth-child(2) { animation-delay: 0.45s; }
 .pe-dialog .pe-blase:nth-child(3) { animation-delay: 0.9s; }
 @keyframes pe-ein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.pe-hinweise { display: grid; gap: 6px; padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.3); background: var(--paper-light); border-radius: 3px; }
+.pe-hinweise { display: grid; gap: 6px; padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.3); background: var(--paper-light); border-radius: 4px; }
 .pe-hinweise h4 { margin: 0; font: 600 11.5px var(--display); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-soft); }
 .pe-hinweise p { margin: 0; font: 15px/1.45 var(--serif); }
 .pe-folgen { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font: 15px/1.4 var(--serif); }
@@ -151,7 +151,7 @@
 /* Nachfolge: Folgen, gleich aufgebaute Kandidatenkarten, Entscheidung */
 .pe-nachfolge { gap: 14px; }
 .pe-szenenkopf .pe-termine b { font: 600 16.5px var(--display); color: var(--ink); font-variant-numeric: tabular-nums; }
-.pe-folgenkasten { display: grid; gap: 6px; padding: 12px 16px; border: 1px solid rgba(142, 42, 34, 0.32); border-left: 4px solid var(--seal); border-radius: 3px; background: rgba(142, 42, 34, 0.06); }
+.pe-folgenkasten { display: grid; gap: 6px; padding: 12px 16px; border: 1px solid rgba(142, 42, 34, 0.32); border-left: 4px solid var(--seal); border-radius: 4px; background: rgba(142, 42, 34, 0.06); }
 .pe-folgenkasten h4 { margin: 0; display: flex; align-items: center; gap: 8px; font: 600 11.5px var(--display); letter-spacing: 0.13em; text-transform: uppercase; color: var(--seal); }
 .pe-folgenkasten ul { margin: 0; padding: 0 0 0 20px; display: grid; gap: 3px; font: 15px/1.4 var(--serif); }
 .pe-abschnitt { margin: 4px 0 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 600 11.5px var(--display); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-soft); }
@@ -190,7 +190,7 @@
 .pe-bilanz .pe-gross { display: grid; gap: 6px; }
 .pe-bilanz .pe-gross strong { font: 600 32px var(--display); }
 .pe-zusagen { display: grid; gap: 12px; }
-.pe-zusage { display: grid; gap: 9px; padding: 12px 14px; border: 1px solid rgba(90, 64, 40, 0.35); border-left: 4px solid var(--gold-2); border-radius: 3px; background: var(--paper-light); }
+.pe-zusage { display: grid; gap: 9px; padding: 12px 14px; border: 1px solid rgba(90, 64, 40, 0.35); border-left: 4px solid var(--gold-2); border-radius: 4px; background: var(--paper-light); }
 .pe-zusage.bald { border-left-color: #b58b3f; }
 .pe-zusage.dringend, .pe-zusage.ueberfaellig { border-left-color: var(--seal); }
 .pe-zusage header { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
@@ -219,7 +219,7 @@
 .mr-kopfband { display: grid; grid-template-columns: minmax(260px, 1fr) auto; gap: 14px 24px; align-items: center; padding: 14px 18px; background: var(--paper-light); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 4px; }
 .mr-titel-zeile { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .mr-titel-zeile h3 { margin: 0; font: 600 21px var(--display); color: var(--ink); }
-.mr-disziplin-badge { padding: 2px 9px; border-radius: 3px; font: 700 11.5px/1.5 var(--sans); letter-spacing: 0.08em; white-space: nowrap; }
+.mr-disziplin-badge { padding: 2px 9px; border-radius: 4px; font: 700 11.5px/1.5 var(--sans); letter-spacing: 0.08em; white-space: nowrap; }
 .mr-disziplin-badge.geschlossen { background: rgba(93,66,49, 0.16); color: var(--teal); border: 1px solid var(--teal); }
 .mr-disziplin-badge.geordnet { background: rgba(198, 154, 74, 0.2); color: #8e6822; border: 1px solid #c69a4a; }
 .mr-disziplin-badge.gespalten { background: rgba(180, 110, 40, 0.18); color: #a85818; border: 1px solid #b46e28; }
@@ -249,7 +249,7 @@
 .mr-person-rolle { font: italic 14px/1.3 var(--serif); color: var(--ink-soft); }
 .mr-k-werte { display: grid; gap: 9px; align-content: start; }
 
-.mr-k-kapital { display: grid; gap: 3px; align-content: start; padding: 8px 10px; background: rgba(90, 64, 40, 0.06); border-radius: 3px; }
+.mr-k-kapital { display: grid; gap: 3px; align-content: start; padding: 8px 10px; background: rgba(90, 64, 40, 0.06); border-radius: 4px; }
 .mr-kapital-feld { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .mr-kapital-label { font: 600 11.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 .mr-kapital-wert { font: 700 15px var(--display); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -273,7 +273,7 @@
 .dossier .mr-thema-tab { display: inline-flex; align-items: center; padding: 8px 14px !important; border: 0 !important; border-bottom: 3px solid transparent !important; border-radius: 0; background: none !important; box-shadow: none !important; text-align: left; font: 600 15px var(--display) !important; color: var(--ink-soft) !important; cursor: pointer; }
 .dossier .mr-thema-tab.on { color: var(--ink) !important; border-bottom-color: var(--seal) !important; }
 .mr-dringend-dot { flex: none; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: var(--seal); }
-.mr-anlass-box { margin-bottom: 14px; padding: 10px 14px; background: rgba(90, 64, 40, 0.06); border-radius: 3px; font: 15px/1.45 var(--serif); }
+.mr-anlass-box { margin-bottom: 14px; padding: 10px 14px; background: rgba(90, 64, 40, 0.06); border-radius: 4px; font: 15px/1.45 var(--serif); }
 .mr-anlass-box p { margin: 0; }
 .mr-ressort-tag { display: block; margin-bottom: 3px; font: 700 11.5px var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); }
 
@@ -315,7 +315,7 @@
   .pe-layout { grid-template-columns: 1fr; }
   .pe-layout.pe-offen .pe-liste { display: none; }
   .pe-layout:not(.pe-offen) .pe-detail { display: none; }
-  .dossier .pe-zurueck { display: inline-block; justify-self: start; padding: 6px 12px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-radius: 3px; background: var(--paper-light) !important; box-shadow: none !important; font: 600 14px var(--display) !important; text-shadow: none !important; color: var(--ink) !important; cursor: pointer; }
+  .dossier .pe-zurueck { display: inline-block; justify-self: start; padding: 6px 12px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-radius: 4px; background: var(--paper-light) !important; box-shadow: none !important; font: 600 14px var(--display) !important; text-shadow: none !important; color: var(--ink) !important; cursor: pointer; }
   .pe-kopfzeile { grid-template-columns: auto 1fr; gap: 12px; }
   .pe-szenenkopf { grid-template-columns: auto 1fr; }
   .pe-szenenkopf .pe-termine { grid-column: 1 / -1; text-align: left; }
@@ -337,7 +337,7 @@
 /* Die Zusagenakte kann auch innerhalb eines breiten Fensters schmal sein. */
 .pe-zusagen-seite { container-type: inline-size; container-name: zusagenakte; min-width: 0; }
 .pe-zusage { min-width: 0; overflow-wrap: anywhere; }
-.pe-zusage-gesetz { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--teal) 25%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--teal) 6%, var(--paper-light)); }
+.pe-zusage-gesetz { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--teal) 25%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--teal) 6%, var(--paper-light)); }
 .pe-zusage-gesetz strong { font: 600 14px/1.4 var(--display); color: var(--teal); }
 .pe-zusage-gesetz p { margin: 4px 0 0; font: 14px/1.5 var(--serif); }
 @container zusagenakte (max-width: 600px) {

@@ -5,7 +5,7 @@
 .mw-beratung h5{font:500 28px/1.15 var(--display,Georgia,serif);margin:6px 0 8px}
 .mw-beratung>header>p,.mw-hinweis,.mw-leer{font:12.5px/1.65 var(--sans,sans-serif);color:#65715d}
 .mw-wege{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}
-.mw-weg{min-width:0;border:1px solid #c4cfb8;border-radius:12px;overflow:hidden;background:#fffdf6;box-shadow:0 3px 12px #3c2e2607}
+.mw-weg{min-width:0;border:1px solid #c4cfb8;border-radius:10px;overflow:hidden;background:#fffdf6;box-shadow:0 3px 12px #3c2e2607}
 .mw-weg>header{display:flex;gap:12px;align-items:center;padding:17px 18px;background:#eee9de;border-bottom:1px solid #dcd6c9}
 .mw-nummer{font:400 28px var(--display,Georgia,serif);color:#8d794f;flex-shrink:0}
 .mw-weg h6{font:500 21px/1.25 var(--display,Georgia,serif);margin:0}
@@ -26,7 +26,7 @@
 .mw-zeit{font-size:11.5px;color:#647359;margin:12px 0}
 .mw-warnung{font:11.5px/1.65 var(--sans,sans-serif);padding:9px 11px;border-left:3px solid #bc9452;background:#f5ecd8;color:#79592f}
 .mw-unvollstaendig>header{background:#f1e9d8}.mw-unvollstaendig>header p{color:#875c30}
-.mw-politik{border:1px solid #dfd8c8;border-radius:8px;background:#f3efe7;padding:11px 12px;margin:14px 0;color:#6c5445}
+.mw-politik{border:1px solid #dfd8c8;border-radius:6px;background:#f3efe7;padding:11px 12px;margin:14px 0;color:#6c5445}
 .mw-politik.mw-konflikt{background:#f7eee0;border-color:#dfcda9;color:#7c5934}
 .mw-politik>b{font-size:11.5px}.mw-politik p{font-size:11.5px;margin:5px 0}
 .mw-politik small{display:block;font-size:11.5px}.mw-politik details{margin-top:9px;border-top:1px solid #8f8b6940;padding-top:9px}
@@ -36,7 +36,7 @@
 .mw-fraktionen li>div>span{display:block;font-size:11.5px;color:#6d765e}.mw-fraktionen li>strong{font-variant-numeric:tabular-nums}
 .mw-fraktionen li>p{grid-column:1/-1;margin:0}.mw-zusagen{border-top:1px solid #8f8b6940;padding-top:7px}
 .mw-zusagen p{line-height:1.7}.mw-zusagen b{display:block;margin-top:8px}
-.rg-mandat .mw-uebernehmen{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;border:1px solid #584439;border-radius:7px;background:#554136;color:#fff9e9;padding:11px 12px;font:600 12.5px/1.5 var(--sans,sans-serif);cursor:pointer;text-align:left;white-space:normal}
+.rg-mandat .mw-uebernehmen{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;border:1px solid #584439;border-radius:6px;background:#554136;color:#fff9e9;padding:11px 12px;font:600 12.5px/1.5 var(--sans,sans-serif);cursor:pointer;text-align:left;white-space:normal}
 .rg-mandat .mw-uebernehmen:hover{background:#3c2c23}.mw-uebernehmen>span{font-weight:400;font-size:11.5px;flex-shrink:0}
 .mw-hinweis{margin:14px 0 0;font-size:11.5px}
 @container versorgungsmandat (min-width:1050px){.mw-wege{grid-template-columns:repeat(3,minmax(0,1fr))}.mw-weg{display:flex;flex-direction:column}.mw-weg-body{display:flex;flex-direction:column;flex:1}.mw-uebernehmen{margin-top:auto}}

@@ -1,6 +1,6 @@
 /* Inventar der Wirtschaftsakte: Autarkiebalken, Bilanz, Partner, Instrumente */
 
-.vs-lage { padding: 16px 18px; background: #f7f1e4; border: 1px solid #cbbd9f; border-top: 3px solid #8c2b1f; border-radius: 5px; color: #30291f; }
+.vs-lage { padding: 16px 18px; background: #f7f1e4; border: 1px solid #cbbd9f; border-top: 3px solid #8c2b1f; border-radius: 6px; color: #30291f; }
 .vs-lage header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
 .vs-lage h3 { margin: 0; font: 600 21px var(--display, serif); }
 .vs-lage header span, .vs-hinweis { font: 12.5px/1.5 var(--sans, sans-serif); color: #655b49; }
@@ -27,8 +27,8 @@
 .gi-inventar { display: grid; gap: 10px; }
 .wi-akte .gi-zeile { grid-template-columns: minmax(0, 1fr) auto; }
 .gi-zeile .gi-balken { grid-column: 1 / -1; }
-.gi-balken { display: block; height: 6px; min-width: 80px; border-radius: 3px; background: rgba(90, 64, 40, 0.14); overflow: hidden; }
-.gi-balken > span { display: block; height: 100%; border-radius: 3px; background: var(--pd-teal, #5d4231); }
+.gi-balken { display: block; height: 6px; min-width: 80px; border-radius: 4px; background: rgba(90, 64, 40, 0.14); overflow: hidden; }
+.gi-balken > span { display: block; height: 100%; border-radius: 4px; background: var(--pd-teal, #5d4231); }
 .gi-balken.gi-mittel > span { background: var(--pd-gold, #a77a14); }
 .gi-balken.gi-schlecht > span { background: var(--pd-bad, #a83a32); }
 .wi-kopf .gi-balken { flex: 1 1 160px; max-width: 280px; height: 9px; align-self: center; }

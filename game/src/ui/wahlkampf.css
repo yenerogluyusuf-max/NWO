@@ -30,7 +30,7 @@
 .kampf-atlas { position: absolute; inset: 0; }
 
 .kampf-regionen { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; max-height: 340px; overflow: auto; }
-.kampf-regionen details { border: 1px solid rgba(120, 90, 50, 0.2); border-radius: 5px; }
+.kampf-regionen details { border: 1px solid rgba(120, 90, 50, 0.2); border-radius: 6px; }
 .kampf-regionen summary { cursor: pointer; padding: 6px 10px; font: 600 14px var(--serif); }
 .kampf-regionen summary em { float: right; font: 400 12.5px var(--sans); color: #8a744f; }
 .kampf-provliste { list-style: none; margin: 0; padding: 4px 8px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
@@ -88,11 +88,11 @@
 .dossier .kampf-root .gut { color: #553828; }
 .dossier .kampf-root .schlecht { color: #8a2d26; }
 
-.dossier .kampf-warte { max-width: 760px; padding: 26px 30px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .kampf-warte { max-width: 760px; padding: 26px 30px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .kampf-warte h3 { margin-bottom: 12px; font: 600 28px/1.2 var(--display); }
 .dossier .kampf-warte > p:first-of-type { font: 18px/1.5 var(--serif); }
 
-.dossier .kampf-kopf { gap: 12px 40px; padding: 18px 24px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .kampf-kopf { gap: 12px 40px; padding: 18px 24px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .kampf-kopf-block { gap: 4px; }
 .dossier .kampf-kopf-block strong { font: 700 28px/1.1 var(--sans); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 .dossier .kampf-kicker { font: 700 12.5px var(--sans); letter-spacing: 0.14em; color: var(--pd-soft); }
@@ -102,7 +102,7 @@
 .dossier .kampf-meldung { padding: 12px 16px; border-left-width: 4px; border-radius: 0 6px 6px 0; font: 16.5px/1.45 var(--serif); }
 
 .dossier .kampf-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 36px; }
-.dossier .kampf-karte { height: 340px; border-radius: 8px; border-color: var(--pd-line); }
+.dossier .kampf-karte { height: 340px; border-radius: 6px; border-color: var(--pd-line); }
 .dossier .kampf-regionen { gap: 8px; max-height: 420px; }
 .dossier .kampf-regionen details { border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); }
 .dossier .kampf-regionen summary { padding: 10px 14px; font: 650 16.5px var(--serif); }
@@ -118,7 +118,7 @@
 .dossier .kampf-prov-kosten { font: 600 12.5px var(--sans); color: var(--pd-soft); }
 
 .dossier .kampf-spalte { gap: 28px; }
-.dossier .kampf-spalte > section { padding: 20px 22px; border: 1px solid var(--pd-line); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .kampf-spalte > section { padding: 20px 22px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .kampf-tourliste li { padding: 12px 0; border-bottom: 1px solid var(--pd-line); }
 .dossier .kampf-tour-text strong { font: 650 18px var(--serif); }
 .dossier .kampf-tour-text span { font: 15px/1.4 var(--serif); color: var(--pd-soft); }
@@ -130,7 +130,7 @@
 .dossier .kampf-ticker li em { font: 600 12.5px var(--sans); font-style: normal; color: var(--pd-soft); }
 
 .dossier .kampf-vliste { grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 14px; }
-.dossier .kampf-vliste li { gap: 14px; padding: 16px 18px; border: 1px solid var(--pd-line); border-left: 4px solid var(--gold-3); border-radius: 8px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .kampf-vliste li { gap: 14px; padding: 16px 18px; border: 1px solid var(--pd-line); border-left: 4px solid var(--gold-3); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .kampf-vliste li.gegeben { border-left-color: var(--pd-teal); background: rgba(93,66,49, 0.08); }
 .dossier .kampf-v-text { gap: 4px; }
 .dossier .kampf-v-text strong { font: 650 18px/1.25 var(--display); }
@@ -151,15 +151,15 @@
 /* Ein ausgewähltes Reiseziel statt 81 unmittelbarer Aktionsknöpfe. */
 .kampf-root { container: wahlkampf / inline-size; min-width: 0; }
 .kampf-reiseziel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 16px 0; font: 650 15px var(--sans); }
-.kampf-reiseziel select { min-width: 0; max-width: 100%; flex: 1 1 180px; padding: 10px 12px; border: 1px solid var(--pd-line-strong); border-radius: 8px; background: var(--pd-card-hell); color: var(--pd-ink); font: inherit; }
-.kampf-entscheid { min-width: 0; padding: 18px; border: 1px solid var(--pd-line); border-radius: 12px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink, #302d25); overflow-wrap: anywhere; }
+.kampf-reiseziel select { min-width: 0; max-width: 100%; flex: 1 1 180px; padding: 10px 12px; border: 1px solid var(--pd-line-strong); border-radius: 6px; background: var(--pd-card-hell); color: var(--pd-ink); font: inherit; }
+.kampf-entscheid { min-width: 0; padding: 18px; border: 1px solid var(--pd-line); border-radius: 10px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink, #302d25); overflow-wrap: anywhere; }
 .kampf-entscheid header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--pd-line); padding-bottom: 12px; }
 .kampf-entscheid h4 { font: 650 21px/1.2 var(--display, var(--serif)); margin: 3px 0; }
 .kampf-entscheid header > strong { color: #523b2e; font: 750 15px var(--sans); }
 .kampf-entscheid p { font: 15px/1.5 var(--serif); margin: 10px 0; }
 .kampf-entscheid .kampf-hinweis { font: 14px/1.5 var(--sans); color: var(--pd-soft); }
 .kampf-ausgaenge { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
-.kampf-ausgaenge > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; background: rgba(93,66,49, .06); border-radius: 8px; }
+.kampf-ausgaenge > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; background: rgba(93,66,49, .06); border-radius: 6px; }
 .kampf-ausgaenge span, .kampf-ausgaenge small { font: 12.5px/1.4 var(--sans); }
 .kampf-ausgaenge strong { font: 750 28px/1.2 var(--sans); font-variant-numeric: tabular-nums; }
 .kampf-tourplaene { display: grid; gap: 12px; }

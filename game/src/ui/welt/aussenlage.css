@@ -20,10 +20,10 @@
 .al-karte h3, .al-fuehrungen h3, .al-verlauf h3 { margin: 0 0 8px; font: 400 14px var(--kapitaelchen); letter-spacing: 0.06em; text-transform: uppercase; color: #6b5640; }
 .al-karte p { margin: 4px 0; }
 .al-gross { font: 600 21px var(--display, Fraunces, serif); }
-.al-mix { display: flex; height: 16px; overflow: hidden; border-radius: 3px; border: 1px solid rgba(43, 30, 18, 0.3); }
+.al-mix { display: flex; height: 16px; overflow: hidden; border-radius: 4px; border: 1px solid rgba(43, 30, 18, 0.3); }
 .al-mix span { display: block; height: 100%; }
 .al-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 8px 0; padding: 0; list-style: none; font: 14px var(--sans, Inter, sans-serif); }
-.al-legende i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; }
+.al-legende i { display: inline-block; width: 10px; height: 10px; border-radius: 4px; vertical-align: middle; }
 .al-chip { padding: 1px 8px; border-radius: 999px; font: 600 12.5px var(--sans, Inter, sans-serif); }
 .al-chip.h-offen { background: #e9e3d5; color: #674b3b; }
 .al-chip.h-gestoert { background: #f2e2bd; color: #8a5a10; }
@@ -50,7 +50,7 @@
 .al-feld { display: grid; gap: 3px; font: 600 12.5px var(--sans, Inter, sans-serif); color: #6b5640; }
 .al-feld select { padding: 5px 8px; font: 14px var(--sans, Inter, sans-serif); }
 .al-folgen { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 14px/1.35 var(--sans, Inter, sans-serif); }
-.al-folgen li { padding: 3px 8px; border-radius: 3px; background: rgba(90, 64, 40, 0.07); }
+.al-folgen li { padding: 3px 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.07); }
 .al-folgen li.gut { background: rgba(103,75,59, 0.12); color: #4c382c; }
 .al-folgen li.schlecht { background: rgba(140, 43, 31, 0.1); color: #6e2117; }
 .al-instr-fuss { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 14px var(--sans, Inter, sans-serif); }

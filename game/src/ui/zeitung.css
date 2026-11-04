@@ -13,7 +13,7 @@
 .zt-blaetter { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: -1px; position: relative; z-index: 1; }
 .zt-blatt-tab {
   display: flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 7px 14px 5px !important;
-  border: 1px solid rgba(90, 64, 40, 0.45) !important; border-bottom: none !important; border-radius: 4px 4px 0 0 !important;
+  border: 1px solid rgba(90, 64, 40, 0.45) !important; border-bottom: none !important; border-radius: 4px 4px 0 0!important;
   background: linear-gradient(180deg, #e6d8b8, #dccdab) !important; box-shadow: none !important;
   opacity: 0.75; min-width: 132px;
 }
@@ -26,7 +26,7 @@
 
 /* --- Seite und Masthead ----------------------------------------------------- */
 .zt-seite {
-  border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 0 3px 3px 3px;
+  border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 0 4px 4px 4px;
   background:
     radial-gradient(ellipse at 15% 0%, rgba(255, 250, 235, 0.75), transparent 55%),
     repeating-linear-gradient(0deg, rgba(120, 90, 50, 0.03) 0 1px, transparent 1px 3px),
@@ -42,7 +42,7 @@
   border-top: 2.5px solid var(--ink); border-bottom: 0.75px solid var(--ink); padding: 3px 1px;
 }
 .zt-eil {
-  font-style: normal; color: var(--seal); border: 1px solid var(--seal); border-radius: 2px;
+  font-style: normal; color: var(--seal); border: 1px solid var(--seal); border-radius: 4px;
   padding: 0 5px; margin-left: 7px; font-weight: 700; letter-spacing: 0.08em;
 }
 .zt-blattname { font-family: var(--display); font-size: 48px; font-weight: 700; margin: 6px 0 0; letter-spacing: 0.01em; line-height: 1.05; }
@@ -87,7 +87,7 @@
 /* Der Knopf einer Meldung: führt zur passenden Akte */
 .zt .zt-gehe, .zt .zt-zeile-link {
   display: inline-block; padding: 0 !important; margin: 2px 0 0; cursor: pointer;
-  border: none !important; border-bottom: 1px dotted var(--seal) !important; border-radius: 0 !important;
+  border: none !important; border-bottom: 1px dotted var(--seal) !important; border-radius: 0!important;
   background: none !important; box-shadow: none !important; text-shadow: none !important;
   color: var(--seal); font: 600 14px var(--serif); text-align: left;
 }
@@ -153,15 +153,15 @@
 .zt-lage-zahl em { font-style: normal; }
 .zt-lage-zahl em.schlecht { color: var(--seal); }
 .zt-lage-zahl em.gut { color: #5f4739; }
-.zt-balken { grid-column: 1 / -1; display: block; height: 5px; background: rgba(90, 64, 40, 0.18); border-radius: 2px; overflow: hidden; }
+.zt-balken { grid-column: 1 / -1; display: block; height: 5px; background: rgba(90, 64, 40, 0.18); border-radius: 4px; overflow: hidden; }
 .zt-balken i { display: block; height: 100%; background: var(--seal); }
 .zt-lage-ort { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-soft); }
 
 /* Parlament */
 .zt-parl-zeile { margin: 0 0 6px; font-size: 14px; }
-.zt-sitze { position: relative; display: flex; height: 12px; background: rgba(90, 64, 40, 0.18); border-radius: 2px; margin: 4px 0 8px; }
+.zt-sitze { position: relative; display: flex; height: 12px; background: rgba(90, 64, 40, 0.18); border-radius: 4px; margin: 4px 0 8px; }
 .zt-sitze i { display: block; height: 100%; }
-.zt-sitze i.lager { background: var(--teal); border-radius: 2px 0 0 2px; }
+.zt-sitze i.lager { background: var(--teal); border-radius: 4px 0 0 4px; }
 .zt-sitze i.duldung { background: #a39070; }
 .zt-sitze b { position: absolute; top: -3px; width: 2px; height: 18px; background: var(--ink); }
 .zt-parl-meta { margin: 0 0 5px; font-size: 12.5px; color: var(--ink-soft); }
@@ -185,7 +185,7 @@
 .zt-archiv button {
   display: grid; grid-template-columns: auto 1fr; column-gap: 8px; width: 100%; text-align: left;
   border: 1px solid rgba(90, 64, 40, 0.4) !important; background: linear-gradient(180deg, #fbf5e6, #eee1c3) !important;
-  border-radius: 3px; padding: 5px 9px !important; box-shadow: none !important;
+  border-radius: 4px; padding: 5px 9px !important; box-shadow: none !important;
 }
 .zt-archiv button.on { border-color: var(--seal) !important; box-shadow: inset 0 0 0 1px var(--seal) !important; }
 .zt-archiv button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
@@ -241,7 +241,7 @@
 /* --- Reiter Ausgaben | Medien --------------------------------------------- */
 .zt-reiter { display: flex; gap: 6px; margin: 0 0 12px; border-bottom: 1px solid rgba(90, 64, 40, 0.4); }
 .zt-reiter button {
-  padding: 7px 16px 6px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-bottom: none !important; border-radius: 4px 4px 0 0 !important;
+  padding: 7px 16px 6px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-bottom: none !important; border-radius: 4px 4px 0 0!important;
   background: linear-gradient(180deg, #e6d8b8, #dccdab) !important; box-shadow: none !important; font: 600 14px/1.2 var(--sans, Inter, sans-serif) !important; color: var(--ink-soft); cursor: pointer;
 }
 .zt-reiter button.on { background: linear-gradient(180deg, #fbf5e6, #f3ead2) !important; color: var(--ink); margin-bottom: -1px; }
@@ -258,7 +258,7 @@
 .md-grund { font-size: 12.5px; color: var(--seal); }
 .md-kopf { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
 @container zt (min-width: 720px) { .md-kopf { grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); } }
-.md-rsf, .md-wahrnehmung, .md-regler, .md-verlauf, .md-aktionen, .md-tableau { padding: 12px 14px; border: 1px solid rgba(90, 64, 40, 0.35); background: var(--paper-light); border-radius: 3px; }
+.md-rsf, .md-wahrnehmung, .md-regler, .md-verlauf, .md-aktionen, .md-tableau { padding: 12px 14px; border: 1px solid rgba(90, 64, 40, 0.35); background: var(--paper-light); border-radius: 4px; }
 .md-rsf h5 { margin-top: 0; }
 .md-rsf p { margin: 0 0 4px; }
 .md-rsf-linie { width: 100%; height: 70px; }
@@ -271,7 +271,7 @@
 
 .md-karten { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
 .md-karte {
-  display: grid; gap: 6px; width: 100%; text-align: left; padding: 10px 12px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-radius: 3px !important;
+  display: grid; gap: 6px; width: 100%; text-align: left; padding: 10px 12px !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; border-radius: 4px!important;
   background: linear-gradient(180deg, #fbf5e6, #f3ead2) !important; box-shadow: none !important; cursor: pointer; color: var(--ink);
 }
 .md-karte.on { outline: 2px solid var(--teal); outline-offset: 0; }
@@ -294,7 +294,7 @@
 .md-balken-spur u { position: absolute; top: -2px; width: 2px; height: 11px; background: var(--seal); text-decoration: none; }
 
 .md-aktionen-liste { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
-.md-aktion { display: grid; gap: 4px; align-content: start; padding: 10px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 3px; background: linear-gradient(180deg, #fbf5e6, #f3ead2); }
+.md-aktion { display: grid; gap: 4px; align-content: start; padding: 10px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 4px; background: linear-gradient(180deg, #fbf5e6, #f3ead2); }
 .md-aktion.gesperrt { opacity: 0.8; }
 .md-aktion-kopf { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
 .md-aktion-kopf strong { font: 600 16.5px/1.2 var(--display); }
