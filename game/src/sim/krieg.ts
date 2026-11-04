@@ -14,6 +14,7 @@
 //
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { kraenke } from "./kraenkung";
 import { KRAFT_TUERKEI, NORMALSTAND } from "../data/kraefte";
 import { militaerVersorgung } from "./versorgung";
 import { kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
@@ -841,6 +842,8 @@ function kriegsbeginn(w: World, k: KriegVorgang, weg: "parlament" | "erlass" | "
   phaseSetzen(w, k, "krieg");
   k.woche = 0;
   k.stagnation = 0;
+  // Greift die Türkei an (kein Gegenangriff, keine tragfähige Verteidigung), sehen die Schutzmächte des Gegners zu (sim/kraenkung.ts)
+  if (weg !== "angriff" && (rahmung !== "verteidigung" || k.rahmungDuenn)) kraenke(w, k.land, "angriff");
   // Koalitionen: Pakt-Pflicht nur für das Opfer, Eigeninteresse für alle (sim/pakte.ts); danach erst die Stärke rechnen
   koalitionenBeiKriegsbeginn(w, k, weg);
   gegnerBestand(w, k);

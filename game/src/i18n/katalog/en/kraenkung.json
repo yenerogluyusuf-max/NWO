@@ -1,0 +1,7 @@
+{
+ "kraenkung.notiz.sanktion": "Watched Türkiye sanction {opfer}",
+ "kraenkung.notiz.angriff": "Watched Türkiye attack {opfer}",
+ "kraenkung.log": "Observers resent it: {zeugen} stand by {opfer}",
+ "kraenkung.warum.sanktion": "Hitting a partner hits its friends too: protectors and allies lose trust.",
+ "kraenkung.warum.angriff": "An attack offends the victim's protectors; they will remember."
+}

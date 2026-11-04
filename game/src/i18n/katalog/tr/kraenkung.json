@@ -1,0 +1,7 @@
+{
+ "kraenkung.notiz.sanktion": "Türkiye'nin {opfer} ülkesine yaptırım uygulamasını izledi",
+ "kraenkung.notiz.angriff": "Türkiye'nin {opfer} ülkesine saldırmasını izledi",
+ "kraenkung.log": "Gözlemciler kırgın: {zeugen}, {opfer} yanında",
+ "kraenkung.warum.sanktion": "Bir ortağı vuran onun dostlarını da vurur: koruyucular ve müttefikler güven kaybeder.",
+ "kraenkung.warum.angriff": "Bir saldırı kurbanın koruyucularını kırar; bunu unutmazlar."
+}

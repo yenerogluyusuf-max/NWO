@@ -183,6 +183,7 @@ function tageSeit(heute: string, damals: string): number {
  * TÜİK-Primärzahl ist eine offene Lücke der Recherche).
  */
 export { SANKTION_GEZIELT, breiteSanktionVon } from "./sanktion-art";
+import { kraenke } from "./kraenkung";
 
 export const SANKTION_LAST = {
   caatsa: { risiko: 25, nachfrage: 0 },
@@ -679,6 +680,8 @@ export function fuehreInstrumentAus(w: World, id: InstrumentId, landId?: string,
       a.eigeneSanktionen.push(landId!);
       landAendern(w, landId!, { handel: -15, konflikt: 10, vertrauen: -8 }, t("aussen.notiz.sanktion"));
       stoss(w, "export", -0.3);
+      // Schutzmächte und Partner des Ziels sehen zu (sim/kraenkung.ts)
+      kraenke(w, landId!, "sanktion");
       // Wer stark genug ist, antwortet mit einer Gegensanktion (Vorbild Russland 2015); kleinere Partner schlucken es
       if ((KRAFT[landId!] ?? 20) >= SANKTION_LAST.gegenAbStaerke && !(a.gegenSanktionen ?? []).includes(landId!)) {
         (a.gegenSanktionen ??= []).push(landId!);
