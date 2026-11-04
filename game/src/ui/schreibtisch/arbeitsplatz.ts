@@ -8,6 +8,8 @@ import { ressortInhaber } from '../../sim/ressortanliegen';
 import { offeneRessortVorfaelle } from '../../sim/ressortpolitik';
 import { aktiveRessortNachsorge } from '../../sim/ressortnachsorge';
 import { AEMTER } from '../../sim/personen';
+import { offenerKonflikt, wartendeVorgaenge } from '../../sim/vorgaenge';
+import { PROVINZEN } from '../../sim/regional';
 import { rendere, t } from '../../i18n';
 import { addDays, formatDateDe } from '../../sim/dates';
 import { stimmenPrognose } from '../../sim/handeln';
@@ -18,7 +20,7 @@ import type { Briefing, Ziel } from './briefing';
 export type Arbeitsbereich = 'entscheiden' | 'arbeit' | 'rueckblick';
 export type ArbeitsGruppe = 'vorlagen' | 'minister' | 'zusagen';
 export type ArbeitsAuswahl = { bereich: Arbeitsbereich; gruppe: ArbeitsGruppe; id?: string };
-export type ArbeitsSprung = { art:'intern'; auswahl:ArbeitsAuswahl } | { art:'extern'; ziel:Ziel };
+export type ArbeitsSprung = { art:'intern'; auswahl:ArbeitsAuswahl } | { art:'extern'; ziel:Ziel } | { art:'vorgang'; id:string };
 export interface Prioritaet { id:string; titel:string; grund:string; ton:'rot'|'gelb'|'ruhig'; tage?:number; rang:number; sprung:ArbeitsSprung }
 export const fristText = (tage:number) => t(tage<0?'sd.ueberfaellig':tage===0?'sd.heute':'sd.inTagen',{n:Math.abs(tage)});
 /** Nach Erledigung wird kein anderer Vorgang automatisch zur bestätigungsfähigen Auswahl. */
@@ -44,6 +46,14 @@ export function schreibtischArbeit(w:World,b:Pick<Briefing,'warnungen'|'faellig'
     ton:v.erfolg?'gelb':'rot',rang:v.erfolg?88:115,sprung:intern('entscheiden','minister',v.amt)});
   for(const a of anliegen)prioritaeten.push({id:`ra-${a.id}`,titel:t('sd.gespraech',{name:a.name}),grund:AEMTER[a.amt].ressort,
     tage:a.frist-w.day,ton:a.frist-w.day<=3?'rot':'gelb',rang:a.frist-w.day<=3?110:80,sprung:intern('entscheiden','minister',a.amt)});
+  // Ein Wohnungsbau-Vorgang, der auf eine Entscheidung wartet, gehört nach oben: Läuft die Frist ab, gilt der Standardweg
+  // (vorher stand er nur im Reiter „In Arbeit“ und blieb leicht liegen).
+  // Nur lesen: vorgaenge() legt die Liste sonst im Spielstand an, und die Anzeige veränderte den Stand
+  for(const v of w.spiel?.vorgaenge?wartendeVorgaenge(w):[]){
+    const k=offenerKonflikt(v)!,tage=k.frist-w.day,ort=PROVINZEN[v.plaka-1]?.name??String(v.plaka);
+    prioritaeten.push({id:`vg-${v.id}`,titel:t('vorgang.ui.titel',{ort}),grund:t('vorgang.ui.entscheiden'),tage,
+      ton:tage<=7?'rot':'gelb',rang:tage<=7?109:85,sprung:{art:'vorgang',id:v.id}});
+  }
   // Dasselbe Ereignis oder dieselbe Zusage erhält oben nur einen Platz.
   const zusageIds=new Set(zusagen.map(z=>z.z.id));
   const ereignisse=new Set<string>();

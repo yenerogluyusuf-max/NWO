@@ -121,6 +121,7 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
   const waehle=(k:keyof Auswahl,id:string)=>{setAuswahl(a=>({...a,[k]:id}));setFokusWechsel(n=>n+1);};
   const springe=(s:ArbeitsSprung)=>{
     if(s.art==='extern'){onGehe(s.ziel);return;}
+    if(s.art==='vorgang'){if(onVorgang)onVorgang(s.id);else onGehe({art:'akte',akte:'programme'});return;}
     setBereich(s.auswahl.bereich);setGruppe(s.auswahl.gruppe);
     if(s.auswahl.id)waehle(s.auswahl.bereich==='arbeit'?'beobachtung':s.auswahl.gruppe,s.auswahl.id);
     setFokusWechsel(n=>n+1);
