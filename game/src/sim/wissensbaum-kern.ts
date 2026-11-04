@@ -63,15 +63,16 @@ const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.m
 
 // Ob ein Partner sperrt, rechnet sim/wissensbaum.ts (Krieg, Sanktion, Vertrauen) und meldet die Prüfung hier an:
 // So zieht der Kern, den das Reich früh lädt, Außenpolitik und Krieg nicht in die Ladereihenfolge.
-let sperrQuelle: ((w: World, p: Lizenzgeber) => boolean) | null = null;
-export const setzeSperrQuelle = (f: ((w: World, p: Lizenzgeber) => boolean) | null): void => {
+let sperrQuelle: ((w: World, p: Lizenzgeber, knoten?: string) => boolean) | null = null;
+export const setzeSperrQuelle = (f: ((w: World, p: Lizenzgeber, knoten?: string) => boolean) | null): void => {
   sperrQuelle = f;
 };
 
-/** Sperrt der Partner gerade Lieferungen und Updates (Krieg, Sanktion gegen die Türkei, Vertrauen zu tief)? */
-export function partnerGesperrt(w: World, p: Lizenzgeber): boolean {
+/** Sperrt der Partner gerade Lieferungen und Updates (Krieg, Sanktion gegen die Türkei, Vertrauen zu tief)? Mit Knoten zählt auch
+ * eine gezielte Rüstungssanktion (CAATSA), die nur Rüstungsvorhaben und Triebwerke trifft. */
+export function partnerGesperrt(w: World, p: Lizenzgeber, knoten?: string): boolean {
   if (!w.spiel || !sperrQuelle) return false;
-  return sperrQuelle(w, p);
+  return sperrQuelle(w, p, knoten);
 }
 
 /** Die Bestandteile des Forschungstempos, für die Anzeige. */
@@ -119,9 +120,9 @@ export function tempoTeile(w: World, id: string): TempoTeile | null {
   const land = landesTempo(w);
   const schwerpunkt = z.schwerpunkt === null ? 1 : z.schwerpunkt === zweig ? BAUM.schwerpunktTempo : BAUM.andereTempo;
   const lg = z.lizenzen[id];
-  const lizenz = lg ? (partnerGesperrt(w, lg) ? BAUM.gesperrtTempo : BAUM.lizenzTempo) : 1;
+  const lizenz = lg ? (partnerGesperrt(w, lg, id) ? BAUM.gesperrtTempo : BAUM.lizenzTempo) : 1;
   const tr = z.traeger[id];
-  const traeger = tr ? (tr.art === "ausland" && tr.partner && partnerGesperrt(w, tr.partner) ? BAUM.gesperrtTempo : BAUM.traeger[tr.art].tempo) : 1;
+  const traeger = tr ? (tr.art === "ausland" && tr.partner && partnerGesperrt(w, tr.partner, id) ? BAUM.gesperrtTempo : BAUM.traeger[tr.art].tempo) : 1;
   const standort = z.standort?.[id]?.tempo ?? 1;
   const heureka = z.heureka?.some((h) => h.id === id) ? BAUM.heurekaTempo : 1;
   // Fokusbaum: Modifikatoren statt Import (sim/fokus.ts schreibt sie beim Abschluss eines Fokus)
@@ -151,9 +152,9 @@ export function werkErtrag(w: World, id: string): number {
   const z = w.spiel!.wissensbaum;
   let f = Math.min(1, b.zustand / 90);
   const lg = z?.lizenzen[id];
-  if (lg && partnerGesperrt(w, lg)) f *= BAUM.gesperrtErtrag;
+  if (lg && partnerGesperrt(w, lg, id)) f *= BAUM.gesperrtErtrag;
   const tr = z?.traeger[id];
-  if (tr?.art === "ausland" && tr.partner && partnerGesperrt(w, tr.partner)) f *= BAUM.gesperrtErtrag;
+  if (tr?.art === "ausland" && tr.partner && partnerGesperrt(w, tr.partner, id)) f *= BAUM.gesperrtErtrag;
   return f;
 }
 

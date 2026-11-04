@@ -75,6 +75,9 @@ export interface AussenZustand {
   terror: Record<Taeter, number>;
   friedens: { phase: number; fortschritt: number; rueckschlaege: number };
   sanktionen: Sanktion[];
+  /** Sanktionen, die schon zu Spielbeginn galten: Ihre Wirkung steckt in den kalibrierten Startwerten (Risikoaufschlag, Netz),
+   * zählt also nicht noch einmal. Wird eine von ihnen aufgehoben, entlastet das umgekehrt. */
+  startSanktionen?: Sanktion["id"][];
   /** Zähler der Monate, in denen eine Sanktionsbedingung erfüllt bzw. aufgehoben ist */
   zaehler: Record<string, number>;
   diaspora: { vertrauen: number; flussMrd: number; mobilisierung: number };
@@ -145,6 +148,7 @@ export function aussenZustand(w: World): AussenZustand {
     // CAATSA gilt seit dem 14.12.2020 (US-Sanktionen gegen die Rüstungsbehörde SSB wegen S-400) und ist im Oktober 2026 nicht
     // aufgehoben (Turkish Minute 15.10.2026; RECHERCHE_REALWELT_LAENDERDOSSIERS.md). Früher begann das Spiel ohne diese Sanktion.
     sanktionen: [{ id: "caatsa", von: "USA", seit: w.day - tageSeit(w.date, "2020-12-14") }],
+    startSanktionen: ["caatsa"],
     zaehler: {},
     diaspora: { vertrauen: 50, flussMrd: 0, mobilisierung: 0 },
     bis: {},
@@ -178,6 +182,8 @@ function tageSeit(heute: string, damals: string): number {
  * gezielte Rüstungssanktionen wirken vor allem über die Märkte. Das Handelsgewicht ist ein Spielparameter (EU 0,4; die
  * TÜİK-Primärzahl ist eine offene Lücke der Recherche).
  */
+export { SANKTION_GEZIELT, breiteSanktionVon } from "./sanktion-art";
+
 export const SANKTION_LAST = {
   caatsa: { risiko: 25, nachfrage: 0 },
   eu_handel: { risiko: 80, nachfrage: 25 * (0.4) },
@@ -194,7 +200,10 @@ export const SANKTION_LAST = {
 
 function sanktionsLastBerechnen(a: AussenZustand): { risiko: number; nachfrage: number } {
   let risiko = 0, nachfrage = 0;
-  for (const s of a.sanktionen) { risiko += SANKTION_LAST[s.id].risiko; nachfrage += SANKTION_LAST[s.id].nachfrage; }
+  const start = a.startSanktionen ?? [];
+  for (const s of a.sanktionen) if (!start.includes(s.id)) { risiko += SANKTION_LAST[s.id].risiko; nachfrage += SANKTION_LAST[s.id].nachfrage; }
+  // Aufgehobene Startsanktion: Der eingepreiste Aufschlag fällt weg (Entlastung gegenüber dem Start)
+  for (const id of start) if (!a.sanktionen.some((s) => s.id === id)) { risiko -= SANKTION_LAST[id].risiko; nachfrage -= SANKTION_LAST[id].nachfrage; }
   for (const id of a.eigeneSanktionen) { nachfrage += (HANDEL_GEWICHT[id] ?? 0.02) * SANKTION_LAST.eigeneJeHandel; risiko += SANKTION_LAST.eigeneRisiko; }
   for (const id of a.gegenSanktionen ?? []) nachfrage += (HANDEL_GEWICHT[id] ?? 0.02) * SANKTION_LAST.gegenJeHandel;
   return { risiko, nachfrage };
@@ -370,7 +379,15 @@ export function aussenMonat(w: World, m: WeltModell): void {
   sanktionsRegel(w, a, "caatsa", "USA", (welt["USA"]?.konflikt ?? 45) >= 70, (welt["USA"]?.konflikt ?? 45) < 50, 3);
   const euRegel = (welt["EU"]?.konflikt ?? 45) >= 75 || (knoten(w, "pressefreiheit", 30) < 12 && knoten(w, "justiz_unabhaengigkeit", 30) < 20);
   sanktionsRegel(w, a, "eu_handel", "EU", euRegel, (welt["EU"]?.konflikt ?? 45) < 60 && knoten(w, "pressefreiheit", 30) >= 15 && !kriegGegenEuMitglied(w), 6);
+  // Eine schon zu Beginn geltende Sanktion steckt in den Startwerten; ihre Aufhebung wirkt mit umgekehrtem Vorzeichen.
+  const start = a.startSanktionen ?? [];
+  for (const id of start) if (!a.sanktionen.some((s) => s.id === id) && id === "caatsa") {
+    stoss(w, "modernisierung", 0.15);
+    stoss(w, "export", 0.1);
+    stoss(w, "auslandskapital", 0.1);
+  }
   for (const s of a.sanktionen) {
+    if (start.includes(s.id)) continue;
     if (s.id === "caatsa") {
       stoss(w, "modernisierung", -0.15);
       stoss(w, "export", -0.1);

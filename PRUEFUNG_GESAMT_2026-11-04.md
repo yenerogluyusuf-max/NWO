@@ -96,13 +96,13 @@ Alle sechs Punkte aus Abschnitt 7 sind umgesetzt, jeweils mit eigenen Tests. Gem
 | Kampfkraft in den ersten Wochen | 25 % (Treibstoff 0) | Öldeckung des Landes | `versorgung.ts` |
 | Frontwege unter Beschuss | nach rund 5 Monaten ohne Nachschub | netto 5 % Schaden je Monat (Pioniere) | `transport.ts` |
 | Waffenruhe | endlos, kostenloses Parken | Gegenangebot nach 30 Tagen, nach 120 Tagen Wiederaufnahme oder eingefroren | `krieg.ts` |
-| Eigener Einstieg | nur monatelanges „Druck“ | Ultimatum, „Krise eröffnen“, Zwischenfälle auch ohne Spieler | `krieg.ts`, `KriegDossier.tsx` |
+| Eigener Einstieg | nur monatelanges „Druck“ | Ultimatum, „Krise eröffnen“, Zwischenfälle auch ohne Spieler; die Grenze von zwei Vorgängen gilt für heiße Lagen, bloße Spannungen verdrängen keinen echten Angriff | `krieg.ts`, `KriegDossier.tsx` |
 | „Verteidigung“ bei eigenem Angriff | +30 Stimmen | zählt wie „Schutz“ (UN-Charta Art. 51) | `krieg.ts`, `befehle.ts` |
 | Neutrale und EU als Kriegspartei | Österreich, „EU“ kämpften | nie | `pakte.ts` |
-| Wachstum im Krieg gegen Griechenland | 2,30 → 3,40 % | 2,30 → 1,73 % | Kreditkanal des Risikoaufschlags (`economy.ts`), Sanktionslast |
-| Sanktionen gegen die Türkei | Lira 61,72 gegen 61,84, Reserven unberührt | Reserven 11,5 → 3,0 Mrd. $, Aufschlag +60 bp, Wachstum −0,4 | `diplomatie.ts`, `devisen.ts`, `economy.ts` |
+| Wachstum im Krieg gegen Griechenland | 2,30 → 3,40 % | 2,30 → 1,77 % | Kreditkanal des Risikoaufschlags (`economy.ts`, läuft durch denselben Deckel wie der Realzins), Sanktionslast |
+| Sanktionen gegen die Türkei | Lira 61,72 gegen 61,84, Reserven unberührt | ohne jede Sanktion gegen CAATSA plus EU-Maßnahmen: Reserven 13,2 → 4,7 Mrd. $, Aufschlag +60 bp, Wachstum −0,4 | `diplomatie.ts`, `devisen.ts`, `economy.ts` |
 | Türkei sanktioniert Russland | Reserven steigen, keine Folgen | Gegensanktion, Wachstum 1,9 → −1,8 %, Inflation +2,8 Punkte | Gegensanktion, Energiemangel (`gueter.ts`, `economy.ts`) |
-| CAATSA | fehlte im Start; Klausel wirkungslos | gilt seit 12/2020; Vertrag hebt sie auf | `diplomatie.ts`, `abkommen.ts` |
+| CAATSA | fehlte im Start; Klausel wirkungslos | gilt seit 12/2020, ist in den Startwerten eingepreist (keine doppelte Last; Aufhebung entlastet um 25 bp); sperrt nur Rüstung und Triebwerke, keine Chips, KI oder LNG; Vertrag hebt sie auf | `diplomatie.ts`, `sanktion-art.ts`, `wissensbaum.ts`, `versorgungspolitik.ts`, `abkommen.ts` |
 | Warnungen | keine zu Protest, Putsch, Opposition, Groll, Ausschuss, Nachschub | alle mit Sprung zur Lösung; Hinweisfenster mit „Zur Akte“ | `briefing.ts`, `hinweisziel.ts` |
 | Navigation | Politik versteckt; Krieg nur unter Außen; neunmal Vorgänge | Gruppe „Politik“; Konfliktlage in Sicherheit; Vorgänge nur in Land; klare Namen | `Stage.tsx`, `Bereiche.tsx`, Kataloge |
 | Preise | Koalition retten 1 PK; Protestantworten ohne Wirkung | nach Fraktionsgröße bzw. Bewegungsgröße; Zustimmung reagiert; echte Zugeständnisse | `gespraeche.ts`, `bewegungen.ts` |

@@ -166,14 +166,16 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
 /** Monatliche Fortschreibung der Realwirtschaft (Z1, Z2, Z3, Z5, Z6, Z7, Z9). */
 export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: Rng): SchuldenRechnung {
   const lagged = history[history.length - PARAMS.rateLagMonths];
-  const laggedRealRate = clamp(lagged ? lagged.realRate : realRate(e), -PARAMS.rateTransmissionCap, PARAMS.rateTransmissionCap);
+  // Ein Schock im Risikoaufschlag wirkt wie ein höherer Realzins und läuft durch denselben Deckel: Liegt der Realzins tief unter
+  // dem Deckel (2021/22: rund −50 %, Kredit über Staatsbanken), verpufft er, und der Boom läuft trotz CDS über 600 weiter (Lernfall 2021).
+  const risikoSchock = PARAMS.riskOnRate * Math.max(0, (e.riskPremium - (e.riskAnker ?? e.riskPremium)) / 100);
+  const laggedRealRate = clamp((lagged ? lagged.realRate : realRate(e)) + risikoSchock, -PARAMS.rateTransmissionCap, PARAMS.rateTransmissionCap);
 
   // Z1 und Z6: Nachfrage und Auslastung
   e.outputGap =
     PARAMS.gapPersistence * e.outputGap -
     PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) +
     PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) -
-    PARAMS.rateOnGap * PARAMS.riskOnRate * Math.max(0, (e.riskPremium - (e.riskAnker ?? e.riskPremium)) / 100) -
     PARAMS.mangelAufGap * 100 * (e.energieMangel ?? 0) +
     AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100 - (e.sanktionsLast?.nachfrage ?? 0)) -
     AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1) +

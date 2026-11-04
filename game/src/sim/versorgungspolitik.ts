@@ -18,6 +18,7 @@ import { figurLoyalitaetAendern } from "./figuren";
 import { parteiAchsen } from "./linie";
 import { oppositionVon, oppositionsFraktionen } from "./opposition";
 import { clamp } from "./economy";
+import { breiteSanktionVon } from "./sanktion-art";
 import type { VersorgungsNachweis } from "./versorgungsbericht";
 
 export type VersorgungsProgramm = "schutz" | "energie" | "netz";
@@ -83,7 +84,7 @@ function zustand(w: World): VersorgungsRegierung {
 export function energiePartnerHindernis(w: World, partner: EnergiePartner): Msg | undefined {
   const a = w.spiel?.weltmodell?.aussen;
   if (w.spiel?.kriege?.some(k => k.land === partner && (k.phase === "krieg" || k.phase === "waffenruhe")) ||
-    a?.eigeneSanktionen?.includes(partner) || a?.sanktionen?.some(s => s.von === partner) || w.spiel?.welt?.[partner]?.handelssperre)
+    a?.eigeneSanktionen?.includes(partner) || breiteSanktionVon(a, partner) || w.spiel?.welt?.[partner]?.handelssperre)
     return msg("regierung.partnerGesperrt");
   if (vertrauenSicht(w, partner) < 40) return msg("regierung.partnerVertrauen");
 }

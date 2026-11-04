@@ -233,7 +233,7 @@ export function Detail({
       {k.zustand === "laeuft" && !k.lizenz && k.lizenzgeber.length > 0 && (
         <div className="wb-knoepfe">
           {k.lizenzgeber.map((p) => (
-            <button key={p} type="button" className="wb-knopf" disabled={partnerGesperrt(w, p)} title={t("wissen.ui.lizenzText")} onClick={() => onGetan(kaufeLizenz(w, k.id, p))}>
+            <button key={p} type="button" className="wb-knopf" disabled={partnerGesperrt(w, p, k.id)} title={t("wissen.ui.lizenzText")} onClick={() => onGetan(kaufeLizenz(w, k.id, p))}>
               {t("wissen.ui.lizenzNach", { land: t(`wissen.partner.${p}`), pk: BAUM.lizenzPk })}
             </button>
           ))}
@@ -277,7 +277,7 @@ export function Detail({
           {k.lizenz && (
             <p className="wb-hinweis">
               {t("wissen.ui.mitLizenz", { land: t(`wissen.partner.${k.lizenz}`) })}
-              {partnerGesperrt(w, k.lizenz) ? ` ${t("wissen.ui.gesperrtPartner", { land: t(`wissen.partner.${k.lizenz}`) })}` : ""}
+              {partnerGesperrt(w, k.lizenz, k.id) ? ` ${t("wissen.ui.gesperrtPartner", { land: t(`wissen.partner.${k.lizenz}`) })}` : ""}
             </p>
           )}
           {werk && k.zustand !== "moeglich" && k.standort !== undefined && <p className="wb-hinweis">{t("wissen.ui.standortIst", { ort: ortName(k.standort) })}</p>}

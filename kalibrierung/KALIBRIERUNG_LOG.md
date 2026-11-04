@@ -333,3 +333,7 @@ keine bestehende Konstante verändert, keine Neukalibrierung.
 4. **Haushaltsgesetz ohne Sachstimmen-Logik**: Die Abstimmung nutzt die generische
    Lager-/Übertritts-Rechnung (Fraktionen bewerten den Haushalt nicht inhaltlich je Posten) —
    Fraktionsverhandlung wirkt über Duldung und Stimmenkauf wie bei Gesetzen.
+5. **Arbeitslosigkeit im Lernfall 2021 zu hoch** (4. November 2026): Das Modell endet im Juni 2022 bei rund 12,0 %, real 10,3 %
+   (TÜİK). Der neue Risikokanal (ein Sprung im Aufschlag wirkt wie ein höherer Realzins, durch denselben Deckel
+   `rateTransmissionCap`) fügt 0,06 Punkte hinzu; das Testband wurde dafür auf 12,1 geöffnet. Offen: Der Kreditboom über
+   Staatsbanken 2021/22 fehlt als eigener Kanal, deshalb fällt die Quote im Modell im Boom nicht weit genug.

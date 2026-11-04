@@ -1244,11 +1244,14 @@ export function kriegMonat(w: World, rng: Rng): void {
   // Die gemeinsame Folge (übrige Ereignisse, Alttests) bleibt unberührt.
   zwischenfaelle(w, new Rng((w.rngState ^ Math.imul(w.day + 13, 0x9e3779b1)) | 0));
   void rng;
-  const aktiv = aktiveKriege(w);
-  if (aktiv.length >= KRIEG.maxAktiv) return;
+  // Die Grenze gilt für heiße Vorgänge (ab Drohkulisse); bloße Spannungen dürfen eine mehr sein. Sonst verdrängten zwei laue
+  // Spannungen (etwa durch Zwischenfälle) einen echten Angriff. Das heißeste Land kommt zuerst an die Reihe.
+  const heiss = (): number => aktiveKriege(w).filter((k) => k.phase !== "spannung").length;
+  const voll = (): boolean => heiss() >= KRIEG.maxAktiv || aktiveKriege(w).length > KRIEG.maxAktiv;
+  if (voll()) return;
   const z = weltZustand(w);
-  for (const l of LAENDER) {
-    if (aktiveKriege(w).length >= KRIEG.maxAktiv) break;
+  for (const l of [...LAENDER].sort((a, b) => (z[b.id]?.konflikt ?? 0) - (z[a.id]?.konflikt ?? 0))) {
+    if (voll()) break;
     if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
     if (kriegMit(w, l.id)) continue;
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;

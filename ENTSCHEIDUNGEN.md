@@ -301,3 +301,11 @@ Antworten des Projektinhabers auf die Fragen in [GROSSE_ZIELE_2026-11-04.md](GRO
 8. **Gleichzeitig:** wenige große Ziele, etwa drei.
 
 Das schärft Abschnitt N (ganzes Spektrum, Bäume wie Civ 6/HOI4) und die Regel „Wege statt Verbote“.
+
+## R. Festlegung 04.11.2026: Gezielte Sanktionen und eingepreister Startzustand
+
+Aus der Gesamtprüfung ([PRUEFUNG_GESAMT_2026-11-04.md](PRUEFUNG_GESAMT_2026-11-04.md)), ohne eigene Frage an den Projektinhaber, weil es aus Realitätsnähe und Kalibrierung folgt:
+
+1. **Gezielt statt pauschal:** CAATSA trifft die Rüstungsbehörde SSB. Sie sperrt US-Lizenzen für Rüstungsvorhaben und Triebwerke und US-Lieferungen von Rüstung und Elektronik, aber keine zivilen Chips, keine KI, keine Medizin und kein LNG-Abkommen. Breite Handelsmaßnahmen (EU) sperren den Handel mit dem Partner ganz.
+2. **Eingepreist:** Was zu Spielbeginn schon gilt, steckt in den kalibrierten Startwerten (Risikoaufschlag, Netz). Es zählt nicht noch einmal; wird es aufgehoben, entlastet das mit umgekehrtem Vorzeichen.
+3. **Grenze für Kriegsvorgänge:** Höchstens zwei heiße Vorgänge (ab Drohkulisse); bloße Spannungen dürfen einen dritten Vorgang nicht verhindern, damit ein echter Angriff nie an zwei lauen Spannungen scheitert.

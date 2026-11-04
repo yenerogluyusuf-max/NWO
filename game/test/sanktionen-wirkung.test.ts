@@ -8,6 +8,10 @@ import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { aussenZustand, fuehreInstrumentAus, sanktionsStaende, verhaengeSanktion, SANKTION_LAST } from "../src/sim/diplomatie";
 import { klauselSicht, schliesse } from "../src/sim/abkommen";
+import { breiteSanktionVon } from "../src/sim/sanktion-art";
+import { partnerGesperrt } from "../src/sim/wissensbaum-kern";
+import "../src/sim/wissensbaum";
+import { energiePartnerGrund } from "../src/sim/versorgungspolitik";
 import { KRAFT } from "../src/data/kraefte";
 import { monthlyUpdate } from "../src/sim/economy";
 import { Rng } from "../src/sim/rng";
@@ -32,6 +36,26 @@ describe("Startzustand und Anzeige", () => {
     const st = sanktionsStaende(w);
     expect(st.length).toBeGreaterThan(0);
     for (const s of st) { expect(s.bedingung.length).toBeGreaterThan(20); expect(s.wege.length).toBeGreaterThan(20); expect(s.noetig).toBe(6); }
+  });
+});
+
+describe("Gezielt statt pauschal", () => {
+  test("die Start-CAATSA ist eingepreist: keine zusätzliche Marktlast, ihre Aufhebung entlastet", () => {
+    const w = welt();
+    advance(w, 31);
+    expect(w.economy.sanktionsLast?.risiko ?? 0).toBe(0);
+    const a = aussenZustand(w);
+    a.sanktionen = a.sanktionen.filter((s) => s.id !== "caatsa");
+    advance(w, 31);
+    expect(w.economy.sanktionsLast!.risiko).toBe(-SANKTION_LAST.caatsa.risiko);
+  });
+  test("CAATSA sperrt US-Lizenzen nur für Rüstung, nicht für Chips; LNG-Abkommen mit den USA bleibt möglich", () => {
+    const w = welt();
+    expect(partnerGesperrt(w, "USA", "chips_design")).toBe(false);
+    expect(partnerGesperrt(w, "USA", "mil_kaan_motor")).toBe(true);
+    expect(partnerGesperrt(w, "USA", "luft_triebwerke")).toBe(true);
+    expect(breiteSanktionVon(aussenZustand(w), "USA")).toBe(false);
+    expect(energiePartnerGrund(w, "USA") ?? "").not.toMatch(/Handelssperre/);
   });
 });
 

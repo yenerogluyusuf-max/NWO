@@ -17,6 +17,7 @@ import { baumZustand, landesTempo, lizenzgeber, partnerGesperrt, setzeSperrQuell
 import { auslastung } from "./infrastruktur";
 import { PROVINZEN } from "./regional";
 import { aussenZustand } from "./diplomatie";
+import { SANKTION_GEZIELT } from "./sanktion-art";
 import { aktiveKriege } from "./krieg";
 import { forschungsSicht, WISSEN, bildungsUeberhang } from "./wissensbasis";
 import { NET } from "./modell";
@@ -422,7 +423,7 @@ export function beginnPreis(w: World, id: string, o: BeginnOptionen = {}): { pk:
   let pk = vergabeAngebot(s.v, "ausschreibung").pk;
   if (o.lizenz) {
     if (!lizenzgeber(id).includes(o.lizenz)) return { pk, ok: false, grund: t("wissen.e.keineLizenz") };
-    if (partnerGesperrt(w, o.lizenz)) return { pk, ok: false, grund: t("wissen.e.partnerGesperrt", { land: t(`wissen.partner.${o.lizenz}`) }) };
+    if (partnerGesperrt(w, o.lizenz, id)) return { pk, ok: false, grund: t("wissen.e.partnerGesperrt", { land: t(`wissen.partner.${o.lizenz}`) }) };
     pk += BAUM.lizenzPk;
   }
   if (o.traeger) {
@@ -430,7 +431,7 @@ export function beginnPreis(w: World, id: string, o: BeginnOptionen = {}): { pk:
     if (o.traeger === "ausland") {
       const p = o.partner ?? lizenzgeber(id)[0];
       if (!p) return { pk, ok: false, grund: t("wissen.e.keinPartner") };
-      if (partnerGesperrt(w, p)) return { pk, ok: false, grund: t("wissen.e.partnerGesperrt", { land: t(`wissen.partner.${p}`) }) };
+      if (partnerGesperrt(w, p, id)) return { pk, ok: false, grund: t("wissen.e.partnerGesperrt", { land: t(`wissen.partner.${p}`) }) };
     }
     pk += BAUM.traeger[o.traeger].pk;
   }
@@ -502,7 +503,7 @@ export function kaufeLizenz(w: World, id: string, p: Lizenzgeber): Ergebnis {
   if (!k || k.zustand !== "laeuft") return { ok: false, text: t("wissen.e.nichtLaufend") };
   if (k.lizenz) return { ok: false, text: t("wissen.e.schonLizenz") };
   if (!k.lizenzgeber.includes(p)) return { ok: false, text: t("wissen.e.keineLizenz") };
-  if (partnerGesperrt(w, p)) return { ok: false, text: t("wissen.e.partnerGesperrt", { land: t(`wissen.partner.${p}`) }) };
+  if (partnerGesperrt(w, p, id)) return { ok: false, text: t("wissen.e.partnerGesperrt", { land: t(`wissen.partner.${p}`) }) };
   if (!kannZahlen(sp.kapital, BAUM.lizenzPk)) return { ok: false, text: t("wissen.e.kapital", { pk: BAUM.lizenzPk }) };
   sp.kapital -= BAUM.lizenzPk;
   const z = baumZustand(w);
@@ -533,11 +534,15 @@ export function militaerGueterFaktor(w: World, gattung: GattungId): number {
 }
 setzeGueterQuelle(militaerGueterFaktor);
 
+/** Vorhaben, die eine gezielte Rüstungssanktion trifft: CAATSA richtet sich gegen die Rüstungsbehörde SSB (Exportlizenzen für
+ * Rüstungsgüter), nicht gegen zivile Chips, KI oder Medizin. Triebwerke zählen dazu, weil sie in Kampfflugzeuge gehen. */
+const RUESTUNGSNAH = (knoten: string): boolean => ZWEIG_VON[knoten] === "ruestung" || knoten === "luft_triebwerke";
+
 /** Ein Partner sperrt bei Krieg mit der Türkei, bei Sanktionen gegen sie oder wenn das Vertrauen unter die Schwelle fällt. */
-function sperrt(w: World, p: Lizenzgeber): boolean {
+function sperrt(w: World, p: Lizenzgeber, knoten?: string): boolean {
   try {
     if (aktiveKriege(w).some((k) => k.land === p && (k.phase === "krieg" || k.phase === "waffenruhe"))) return true;
-    if (aussenZustand(w).sanktionen.some((s) => s.von === p)) return true;
+    if (aussenZustand(w).sanktionen.some((s) => s.von === p && (!SANKTION_GEZIELT.has(s.id) || (!!knoten && RUESTUNGSNAH(knoten))))) return true;
     return beziehungZurTuerkei(w, p).vertrauen < BAUM.partnerVertrauenMin;
   } catch {
     return false;
