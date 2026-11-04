@@ -44,3 +44,13 @@ Jede Stufe wird mit `e2e/wahlkampf-oberflaeche-pruef.mjs` als Muster im Browser 
 
 - Welche Stufe zuerst? Empfehlung: G1+G2 an einer Pilotakte, weil alle späteren Stufen auf Rahmen und Zeichensprache aufbauen.
 - Wie wirkt die 3D-Karte auf dem eigenen Rechner? Ein Bildschirmfoto von dort würde die Bewertung von B8 und G5 ermöglichen.
+
+## 5. Beispiele (Musterseite)
+
+Auf Wunsch des Projektinhabers gibt es Beispiele zum Anschauen: `game/muster.html` (Dev-Server starten, dann `http://localhost:5173/muster.html`). Die Seite gehört nicht zum Spiel. Sie nutzt die echten Zeichnungen (`WunderBild`, Ornamente, Symbole) und liest Kosten, Wirkung, Kehrseite und Voraussetzungen der Vorhaben aus den Spieldaten. Kennzahlen stammen aus den geprüften Spielständen vom 6. Juni und 4. August 2028.
+
+1. **Aktenrahmen (G1+G3)** am Beispiel Sicherheit & Verteidigung: neue Strichzeichnung (Küste, Schiff, Strahlflugzeug), Kennzahlen als Messringe, Lage als Stempel, Möglichkeiten als Bildkarten (Hürjet, KAAN Block 10, TF-2000, Akkuyu im Bau) mit Preis-Baustein, Wirkung, Kehrseite und fehlender Voraussetzung samt „Weg dorthin zeigen“.
+2. **Zeichensprache (G2):** neun Ressourcen mit festem Symbol und fester Farbe.
+3. **Entscheidungskarte (G4):** Wahlversprechen „Renten erhöhen“ mit Zielbalken, Frist, Preis, Mehrheit oben; Herleitung aufklappbar.
+
+Vorher-Nachher-Bilder: `reports/Gestaltung-Beispiele-2026-11-04/`. Die Seite ist bei 1440 px und 390 px geprüft (kein seitliches Überlaufen).
