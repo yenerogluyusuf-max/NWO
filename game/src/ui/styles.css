@@ -289,10 +289,13 @@ button.link { border: none !important; background: none !important; box-shadow: 
 }
 .atlas-label::before { content: ""; display: inline-block; width: 5px; height: 5px; border: 1.6px solid #24180f; border-radius: 50%; margin-right: 4px; vertical-align: middle; background: #f1e6cc; }
 .atlas-label.selected { font-weight: 800; }
+
 .atlas-loading, .atlas-hover {
   position: absolute; right: 22px; bottom: 26px; padding: 6px 14px; border-radius: 4px; z-index: 3;
   background: var(--paper-light); font-family: var(--serif); font-size: 18px; color: var(--ink); box-shadow: var(--shadow);
 }
+/* Die Fehlermeldung der Karte steht in der Mitte, nicht auf der Kartusche */
+.atlas-loading { right: auto; bottom: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 
 /* ---------------------------------------------------------------------- */
 /* Schreibtisch */

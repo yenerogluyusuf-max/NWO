@@ -104,4 +104,10 @@ Anlass: Der Projektinhaber sah ein Spiel, das wirkt, als hätten mehrere Leute i
 - **Farben:** mittlere Grüntöne auf ein Signalgrün, mittlere Blautöne auf Tinte; Rundungen auf 4, 6 und 10 px.
 - **Fehler aus dem Gesamtbild:** Die Zielwahl am ersten Amtstag lag hinter dem Schreibtisch und war nicht bedienbar; Fenster liegen jetzt immer über Akten und Leiste.
 
-**Noch offen:** Kartenleisten und Kartenmarken (die meisten verbleibenden Knopfbilder), die Zeitung als eigenes Druckbild bewusst ausgenommen, Parteifarben im Halbrund bleiben.
+**Dritte Runde: die Karte (4. November):** geprüft an der echten Karte mit Software-Grafik (`game/e2e/karte-mit-grafik.mjs`) und bei sechs Bildschirmgrößen (`game/e2e/leiste-hoehen.mjs`).
+- Die Legende „Marken auf der Karte“ ist zu, bis man sie öffnet (die Wahl wird gemerkt); offen verdeckte sie den Osten mit der Front.
+- Der Knopf „Kartenebene“ hat einen festen Platz unter der Leiste; bei 800 px Höhe lag er dahinter.
+- Die Leiste wird bei niedrigen Bildschirmen dichter: Bei 1024×768 bis 1920×1080 sind alle elf Bereiche ohne Scrollen sichtbar.
+- Die Meldung „Die Karte konnte nicht geladen werden“ steht in der Mitte statt unter der Kartusche.
+
+**Noch offen:** Kartenmarken (die meisten verbleibenden Knopfbilder), die Zeitung als eigenes Druckbild bewusst ausgenommen, Parteifarben im Halbrund bleiben.

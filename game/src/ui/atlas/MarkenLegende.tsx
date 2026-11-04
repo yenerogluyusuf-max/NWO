@@ -11,7 +11,9 @@ const SCHLUESSEL = "staatsraeson-markenlegende";
 
 function lesen(): boolean {
   try {
-    return localStorage.getItem(SCHLUESSEL) !== "zu";
+    // Zu, bis man sie öffnet: Offen verdeckte die Legende den Osten mit der Front (Gesamtbild vom 4. November). Ohne Speicher
+    // (Vorschau, Server) bleibt sie offen, damit die Marken erklärt sind.
+    return localStorage.getItem(SCHLUESSEL) === "offen";
   } catch {
     return true;
   }
