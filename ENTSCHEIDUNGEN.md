@@ -281,3 +281,14 @@ Lokal umgesetzt: ein gemeinsamer Finanzierungsnachweis, gespeicherte reale/nomin
 ## P. Vorgabe 04.11.2026: Das Spiel muss schöner werden
 
 Der Projektinhaber: Das Spiel, vor allem das Design, kann „noch viel schöner“ werden. Die Möglichkeiten sind inzwischen riesig, aber „noch nicht gut ausgearbeitet“ und „sehen nicht schön aus“. Vorbild für die Anmutung ist Civilization („ein wunderschönes Spiel“). Das bekräftigt Abschnitt N (Animationen wie bei Civ 6, Karte, Bäume) und macht die Gestaltung der Möglichkeiten (Handlungen, Karten, Akten) zum eigenen Arbeitsstrang. Vorbild heißt Gestaltungsprinzipien (Klarheit, Bildsprache, Belohnung, Ruhe), keine Übernahme fremder Grafik, Namen oder Optik.
+
+
+## Q. Vorgabe 04.11.2026: Viele Wege, große Ziele, keine Garantie
+
+Der Projektinhaber: Man spielt die Türkei und soll **verschiedene Wege einschlagen** können, und all diese Wege müssen möglich sein, auch **utopische Ziele am oberen Ende eines Bereichs**. Beispiele: eine Union der Turkstaaten nach dem Vorbild der EU, eine Union mit asiatischen Staaten zur Ordnung im Nahen und Mittleren Osten, Handelspakte, Ressourcenverträge, Militärpakte, Technologieaustausch.
+
+1. **Ziel mit Voraussetzungen:** Ein großes Ziel kann man sich vornehmen; es verlangt bestimmte Voraussetzungen.
+2. **Keine Garantie:** Auch mit allen Voraussetzungen ist der Eintritt nicht sicher. Man erhöht die **Wahrscheinlichkeit** Schritt für Schritt und versucht dann, es durchzusetzen. Scheitern bleibt ein Ergebnis (Härte-Regel).
+3. **Spielbar statt kleinteilig:** Nicht alles bis ins Detail. Einfache Handlungen sind ein Knopf (Beispiel: **Botschaft errichten**). Das Spiel soll groß und klassisch spielbar bleiben.
+
+Das schärft Abschnitt N (ganzes Spektrum, Bäume wie Civ 6/HOI4) und die Regel „Wege statt Verbote“.
