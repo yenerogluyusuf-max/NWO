@@ -20,6 +20,7 @@ import { kosten } from "./ereignis-hilfen";
 import { zeitungEreignis } from "./zeitung";
 import { regierungsJahre } from "./amtszeit";
 import { kriege } from "./krieg";
+import { machtkreis } from "./machtkreis";
 import { t } from "../i18n";
 import type { Rng } from "./rng";
 import type { World } from "./types";
@@ -29,7 +30,8 @@ export const ENDEN = {
   /** Putschrisiko: Schwellen der Warnstufen (Stufe 1 Gerücht, 2 Warnung mit Entscheidung, 3 Putschversuch möglich) */
   putschStufe1: 40,
   putschStufe2: 60,
-  putschStufe3: 75,
+  // Stufe 3 bei 68 (Spielparameter; früher 75, praktisch unerreichbar: PRUEFUNG_GESAMT_2026-11-04)
+  putschStufe3: 68,
   /** Monatschance eines Putschversuchs auf Stufe 3: Basis plus Zuschlag je Risikopunkt über der Schwelle, Deckel; Mindestabstand zweier Versuche in Tagen */
   putschVersuchBasis: 0.06,
   putschVersuchJePunkt: 0.006,
@@ -175,6 +177,9 @@ export function putschRisiko(w: World): { risiko: number; teile: RisikoTeil[] } 
   if (sp.amtszeit >= 3) add(t("enden.risiko.dauerherrscher"), clamp((sp.amtszeit - 2) * 3, 0, 12));
   const verloren = kriege(w).some((k) => k.ausgang === "niederlage" && w.day - k.seit < 400);
   if (verloren) add(t("enden.risiko.krieg"), 12);
+  // Ein Putschzirkel im Offizierskorps (Machtkreis) treibt das Risiko; solange er unentdeckt ist, sieht man nur „Unruhe“
+  const zirkel = machtkreis(w).geheimnisse.find((g) => g.art === "putschzirkel" && g.schwere >= 2);
+  if (zirkel) add(t(zirkel.aufgedeckt ? "enden.risiko.zirkel" : "enden.risiko.unruhe"), 10);
   if ((z.putsch.geschuetztBis ?? -1) > w.day) add(t("enden.risiko.schutz"), -ENDEN.putschSchutzAbschlag);
   const risiko = Math.round(clamp(teile.reduce((s, x) => s + x.punkte, 0), 0, 100));
   return { risiko, teile };

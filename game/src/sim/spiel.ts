@@ -404,6 +404,7 @@ function spielMonat(world: World, rng: Rng): void {
 
   personenMonat(world);
   figurenPruefen(world, rng);
+  ueberlaeufer(world);
   ressortNachsorgeTag(world);
   haushaltsMonatsabschluss(world);
   // Amtszeit (sim/amtszeit.ts): ältere Stände nachholen, Umbildungsfenster schließen, in der letzten Amtszeit die Nachfolge
@@ -415,6 +416,26 @@ function spielMonat(world: World, rng: Rng): void {
   // Die Zeitung (UI-1): Monatsausgabe mit den Blättern der Cluster, Umfrage eines Instituts und
   // der leichten Wirkung auf die Wählergruppen. Eilmeldungen von heute bringt Print erst nächsten Monat.
   zeitungMonat(world);
+}
+
+/**
+ * Überläufer (PRUEFUNG_GESAMT_2026-11-04): Bei sehr schwacher Zustimmung verlassen Abgeordnete der Präsidentenpartei das Lager und
+ * wechseln zur größten Oppositionsfraktion. Früher liefen Abgeordnete nie von selbst über. Monatliche Aussicht (35 − Zustimmung) / 100,
+ * je Fall 1 bis 3 Sitze (Spielparameter); eigener, abgeleiteter Zufallsstrom, damit die gemeinsame Folge unberührt bleibt.
+ */
+function ueberlaeufer(world: World): void {
+  const z = world.spiel!.umfrage.zustimmung;
+  const p = world.parliament, partei = world.player?.partei.kurz;
+  if (z >= 35 || !p || !partei || (p.seats[partei] ?? 0) <= 3) return;
+  const rng = new Rng((world.rngState ^ Math.imul(world.day + 29, 0x85ebca6b)) | 0);
+  if (rng.next() >= (35 - z) / 100) return;
+  const ziel = Object.entries(p.seats).filter(([k]) => k !== partei && !(world.spiel!.lager ?? []).includes(k)).sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (!ziel) return;
+  const n = 1 + Math.floor(rng.next() * 3);
+  p.seats[partei] = (p.seats[partei] ?? 0) - n;
+  p.seats[ziel] = (p.seats[ziel] ?? 0) + n;
+  world.spiel!.hinweise.push({ id: `ueberlaeufer-${world.day}`, titel: t("spiel.ueberlaeufer.titel", { n }), szene: "parlament", text: [t("spiel.ueberlaeufer.text", { n, ziel, z: Math.round(z) })] });
+  addLog(world, "ereignis", t("spiel.ueberlaeufer.titel", { n }), t("spiel.ueberlaeufer.text", { n, ziel, z: Math.round(z) }));
 }
 
 function figurenPruefen(world: World, rng: Rng): void {
@@ -451,7 +472,9 @@ function figurenPruefen(world: World, rng: Rng): void {
   }
   // Wer gar nichts mehr trägt, geht: Ein Regierungsmitglied mit Loyalität unter 12 tritt mit einiger Wahrscheinlichkeit zurück
   for (const f of spiel.figuren) {
-    if (!f.imAmt || !AEMTER[f.amt].regierungsamt || f.eigen?.kommissarisch || f.loyalitaet >= 12) continue;
+    // Der Generalstabschef tritt nicht von selbst zurück: Wer gegen den Präsidenten plant, bleibt im Amt; ihn zu entlassen ist eine
+    // Entscheidung mit eigenem Preis (früher senkte sein Rücktritt das Putschrisiko von selbst, PRUEFUNG_GESAMT_2026-11-04)
+    if (!f.imAmt || !AEMTER[f.amt].regierungsamt || f.eigen?.kommissarisch || f.loyalitaet >= 12 || f.amt === "generalstab") continue;
     if (rng.next() < 0.4) ausscheiden(world, f, "Rücktritt, weil ihm der Rückhalt fehlt");
   }
 }

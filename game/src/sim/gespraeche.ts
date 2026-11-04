@@ -339,7 +339,10 @@ export function planeGespraech(w: World, figurId: string, themaId: string, ansat
 
   switch (ansatz) {
     case "vertrauen": {
-      plan.pk = 1;
+      // Ein Koalitionspartner will mehr als eine Geste: Preis nach Größe der Fraktion (Spielparameter, je 30 Sitze 1 Kapital mehr).
+      // Früher rettete ein Gespräch für 1 Kapital jede Koalition (PRUEFUNG_GESAMT_2026-11-04).
+      const sitze = f.amt === "partner" && f.partei ? (w.parliament?.seats[f.partei] ?? 0) : 0;
+      plan.pk = f.amt === "partner" ? 2 + Math.round(sitze / 30) : 1;
       let dLoy = 7 * STIL_VERTRAUEN[e.stil] + (thema.art === "sorge" || thema.art === "person" ? 3 : 0);
       plan.dGroll = -8;
       if (e.groll >= 40) {

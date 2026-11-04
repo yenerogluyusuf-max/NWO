@@ -211,5 +211,9 @@
  "vermaechtnis.wahl.zeile": "{datum, date}: yüzde {anteil, number, 1} {gang, select, stich {ikinci turda} other {ilk turda}}, {ergebnis, select, ja {kazanıldı} other {kaybedildi}}; mecliste ittifak: {vorher} sandalyeden {nachher} sandalyeye{letzte, select, ja { (halef seçimi)} other {}}",
  "vermaechtnis.wendepunkte.keine": "Yanıt gerektiren hiçbir şey olmadı.",
  "vermaechtnis.zeitraum": "{von, date} – {bis, date}: {jahre, number, 1} yıl görevde",
- "vermaechtnis.zusagen.text": "{gehalten} tutuldu, {gebrochen} bozuldu, {offen} açık; inandırıcılık 100 üzerinden {glaub}."
+ "vermaechtnis.zusagen.text": "{gehalten} tutuldu, {gebrochen} bozuldu, {offen} açık; inandırıcılık 100 üzerinden {glaub}.",
+ "enden.risiko.zirkel": "Subay kadrosunda komplo",
+ "enden.risiko.unruhe": "Subay kadrosunda huzursuzluk",
+ "spiel.ueberlaeufer.titel": "{n} milletvekili saf değiştiriyor",
+ "spiel.ueberlaeufer.text": "Onay % {z} seviyesindeyken partinizden {n} milletvekili kamptan ayrılıp {ziel} partisine geçiyor. Koltuğundan korkan daha güvenli bir gemi arar."
 }

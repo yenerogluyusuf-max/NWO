@@ -211,5 +211,9 @@
  "vermaechtnis.wahl.zeile": "{datum, date}: {anteil, number, 1} percent {gang, select, stich {in the runoff} other {in the first round}}, {ergebnis, select, ja {won} other {lost}}; bloc in parliament: {vorher} to {nachher} seats{letzte, select, ja { (succession election)} other {}}",
  "vermaechtnis.wendepunkte.keine": "Nothing that would have demanded an answer.",
  "vermaechtnis.zeitraum": "From {von, date} to {bis, date}: {jahre, number, 1} years in office",
- "vermaechtnis.zusagen.text": "{gehalten} kept, {gebrochen} broken, {offen} open; credibility {glaub} out of 100."
+ "vermaechtnis.zusagen.text": "{gehalten} kept, {gebrochen} broken, {offen} open; credibility {glaub} out of 100.",
+ "enden.risiko.zirkel": "Conspiracy in the officer corps",
+ "enden.risiko.unruhe": "Unrest in the officer corps",
+ "spiel.ueberlaeufer.titel": "{n, plural, one {One deputy changes} other {# deputies change}} sides",
+ "spiel.ueberlaeufer.text": "With approval at {z} %, {n} deputies of your party leave the camp and join {ziel}. Whoever fears for their seat looks for a safer boat."
 }

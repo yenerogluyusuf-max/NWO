@@ -224,6 +224,21 @@ export const ANTWORTEN: Record<BewegungsAntwort, AntwortDef> = {
   verbot: { kapital: 4, aufmerksamkeit: 5, groesse: -30, radikal: 22, maertyrer: 15, groll: 6, repression: 10, folgen: ["groesse_stark_kurz", "radikal_stark", "maertyrer", "legitimitaet_runter", "markt"] },
 };
 
+/**
+ * Preis nach Größe (PRUEFUNG_GESAMT_2026-11-04, Spielparameter): Eine große Bewegung zu beruhigen kostet mehr als eine kleine; bei
+ * Größe 50 das Doppelte. Früher kostete jede Antwort gleich viel, und die Zustimmung reagierte auf keine.
+ */
+export const antwortKapital = (a: AntwortDef, b: Bewegung): number => Math.round(a.kapital * (1 + b.groesse / 50));
+
+/** Wie die Antwort in den Umfragen ankommt (Punkte Zustimmung, Spielparameter); Opfer bei Polizei oder Verbot kosten zusätzlich. */
+const ANTWORT_ZUSTIMMUNG: Record<BewegungsAntwort, number> = { dialog: 0.3, zugestaendnis: 0.6, polizei: -0.8, verbot: -1.5 };
+
+/** Ein Zugeständnis bewegt eine echte Maßnahme (Zielstufe +5): Was die Bewegung fordert, steht danach im Haushalt und im Netz. */
+const ZUGESTAENDNIS_MASSNAHME: Partial<Record<BewegungsArt, string>> = {
+  teuerung: "m_mindestlohn", arbeiter: "m_gewerkschaftsrechte", studenten: "m_stipendien", kurden: "m_friedensprozess",
+  aleviten: "m_minderheitenrechte", frauen: "m_gewaltschutz", opposition: "m_versammlungsfreiheit", nationalisten: "m_grenzschutz",
+};
+
 export interface BewegungsSicht {
   b: Bewegung;
   druck: number;
@@ -240,10 +255,10 @@ export function bewegungenSicht(w: World): BewegungsSicht[] {
       const a = ANTWORTEN[id];
       let grund: string | undefined;
       if (b.letzte && w.day - b.letzte.tag < BEWEGUNG.abkuehlung) grund = t("ges.grund.abkuehlung", { tage: BEWEGUNG.abkuehlung - (w.day - b.letzte.tag) });
-      else if (!kannZahlen(kap, a.kapital)) grund = t("ges.grund.kapital", { kapital: a.kapital });
+      else if (!kannZahlen(kap, antwortKapital(a, b))) grund = t("ges.grund.kapital", { kapital: antwortKapital(a, b) });
       return {
         id,
-        kapital: a.kapital,
+        kapital: antwortKapital(a, b),
         aufmerksamkeit: a.aufmerksamkeit,
         moeglich: !grund,
         ...(grund ? { grund } : {}),
@@ -268,7 +283,7 @@ export function bewegungAntworten(w: World, id: string, antwort: BewegungsAntwor
   if (!s.moeglich) return { ok: false, text: s.grund ?? "" };
   const a = ANTWORTEN[antwort];
   const d = artDef(b.art);
-  sp.kapital -= a.kapital;
+  sp.kapital -= s.kapital;
   verbrauche(w, a.aufmerksamkeit, `Bewegung: ${antwort}`);
   b.groesse = clamp(b.groesse + a.groesse, 0, 100);
   b.radikalitaet = clamp(b.radikalitaet + a.radikal, 0, 100);
@@ -280,6 +295,11 @@ export function bewegungAntworten(w: World, id: string, antwort: BewegungsAntwor
   if (d.milieu) grollAendern(w, d.milieu, a.groll);
   repressionBuchen(w, a.repression);
   b.letzte = { antwort, tag: w.day };
+  sp.umfrage.zustimmung = clamp(sp.umfrage.zustimmung + ANTWORT_ZUSTIMMUNG[antwort] - (opfer ? 1.5 : 0), 0, 100);
+  if (antwort === "zugestaendnis") {
+    const m = ZUGESTAENDNIS_MASSNAHME[b.art];
+    if (m && NET.index.has(m)) w.net.targets[m] = clamp((w.net.targets[m] ?? 50) + 5, 0, 100);
+  }
   switch (antwort) {
     case "dialog":
       wirke(w, "polarisierung", -0.5);
@@ -303,7 +323,7 @@ export function bewegungAntworten(w: World, id: string, antwort: BewegungsAntwor
       break;
   }
   const text = t(`ges.bew.ergebnis.${antwort}`, { art: t(`ges.bew.art.${b.art}`) }) + (opfer ? " " + t("ges.bew.opfer") : "");
-  addLog(w, "entscheidung", text, t("ges.log.kapital", { kapital: a.kapital }));
+  addLog(w, "entscheidung", text, t("ges.log.kapital", { kapital: s.kapital }));
   if (b.groesse < BEWEGUNG.aufloesung) aufloesen(w, g, b, antwort);
   return { ok: true, text };
 }

@@ -211,5 +211,9 @@
  "vermaechtnis.wahl.zeile": "{datum, date}: {anteil, number, 1} Prozent {gang, select, stich {in der Stichwahl} other {im ersten Wahlgang}}, {ergebnis, select, ja {gewonnen} other {verloren}}; Lager im Parlament: {vorher} auf {nachher} Sitze{letzte, select, ja { (Nachfolgewahl)} other {}}",
  "vermaechtnis.wendepunkte.keine": "Nichts, das eine Antwort verlangt hätte.",
  "vermaechtnis.zeitraum": "Vom {von, date} bis zum {bis, date}: {jahre, number, 1} Jahre im Amt",
- "vermaechtnis.zusagen.text": "{gehalten} gehalten, {gebrochen} gebrochen, {offen} offen; Glaubwürdigkeit {glaub} von 100."
+ "vermaechtnis.zusagen.text": "{gehalten} gehalten, {gebrochen} gebrochen, {offen} offen; Glaubwürdigkeit {glaub} von 100.",
+ "enden.risiko.zirkel": "Verschwörung im Offizierskorps",
+ "enden.risiko.unruhe": "Unruhe im Offizierskorps",
+ "spiel.ueberlaeufer.titel": "{n, plural, one {Ein Abgeordneter wechselt} other {# Abgeordnete wechseln}} die Seite",
+ "spiel.ueberlaeufer.text": "Bei einer Zustimmung von {z} % verlassen {n} Abgeordnete Ihrer Partei das Lager und wechseln zu {ziel}. Wer um seinen Sitz fürchtet, sucht sich ein sichereres Boot."
 }
