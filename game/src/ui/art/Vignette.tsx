@@ -3,7 +3,7 @@
 
 import { useId, type ReactNode } from "react";
 
-export type Scene = "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht";
+export type Scene = "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht" | "kueste";
 
 const INK = "#2a1f18";
 const PAPER = "#f3e7c9";
@@ -338,12 +338,56 @@ function Wahlnacht({ id, banner }: { id: string; banner?: string }) {
   );
 }
 
+/** Küste mit Leuchtturm, Radar, Zerstörer und Strahlflugzeug: Kopf der Akte Sicherheit & Verteidigung. */
+function Kueste({ id }: { id: string }) {
+  const meer = 176;
+  return (
+    <g>
+      {/* Berge im Dunst */}
+      <path d={`M380 ${meer} L430 128 L452 142 L498 96 L540 132 L566 118 L640 ${meer} Z`} fill={`url(#dots${id})`} stroke={INK} strokeWidth="0.9" strokeOpacity="0.6" />
+      <path d="M498 96 l-9 13 l7 -2 l5 7 l6 -9" fill={PAPER} stroke={INK} strokeWidth="0.9" />
+      {/* Steilküste */}
+      <path d={`M0 ${meer} L0 132 C34 126 62 118 96 122 C128 126 150 140 176 150 L198 ${meer} Z`} fill={PAPER} stroke={INK} strokeWidth="1.1" />
+      <path d={`M10 ${meer} L18 140 M40 ${meer} L52 132 M72 ${meer} L84 128 M110 ${meer} L120 134 M146 ${meer} L156 146`} stroke={INK} strokeWidth="0.7" strokeOpacity="0.5" />
+      <path d={`M120 ${meer} C140 160 160 152 184 158 L198 ${meer} Z`} fill={`url(#hatch${id})`} />
+      {/* Leuchtturm */}
+      <path d="M58 122 L61 78 L71 78 L74 122 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
+      <path d="M61 96 h10 M60 108 h12" stroke={INK} strokeWidth="2.4" strokeOpacity="0.75" />
+      <rect x="59" y="70" width="14" height="8" fill="#f1d58f" stroke={INK} strokeWidth="0.9" />
+      <path d="M57 70 L66 62 L75 70 Z" fill={INK} />
+      <path d="M73 74 L116 64 M73 74 L116 84" stroke="#c69a4a" strokeWidth="0.8" strokeOpacity="0.7" />
+      {/* Radar */}
+      <path d="M120 128 v-18 M108 104 a12 7 0 0 1 24 0 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
+      {/* Meer */}
+      <rect y={meer} width={W} height={H - meer} fill={PAPER} />
+      <Waves y0={meer} y1={H} seed={7} />
+      {/* Zerstörer */}
+      <g stroke={INK} strokeWidth="1.1">
+        <path d={`M262 ${meer - 4} L486 ${meer - 4} L470 ${meer + 9} L280 ${meer + 9} Z`} fill={`url(#hatch2${id})`} />
+        <path d={`M262 ${meer - 4} L486 ${meer - 4} L470 ${meer + 9} L280 ${meer + 9} Z`} fill="none" />
+        <path d={`M300 ${meer - 4} v-12 h54 v-9 h30 v21 M398 ${meer - 4} v-26 h20 v26`} fill={PAPER} />
+        <path d={`M368 ${meer - 25} v-20 M356 ${meer - 45} h24 M408 ${meer - 30} l7 -15 M440 ${meer - 4} v-8 h16 v8`} fill="none" />
+        <path d={`M318 ${meer - 10} h12 M384 ${meer - 12} h8`} strokeWidth="0.8" />
+      </g>
+      <path d={`M262 ${meer + 2} q-14 2 -26 0 M486 ${meer} q12 3 22 1`} fill="none" stroke={INK} strokeWidth="0.7" strokeOpacity="0.5" />
+      {/* Strahlflugzeug mit Kondensstreifen */}
+      <path d="M210 70 C300 58 380 52 452 44" fill="none" stroke={INK} strokeWidth="0.8" strokeDasharray="2 5" strokeOpacity="0.5" />
+      <g stroke={INK} strokeWidth="1" fill={PAPER} strokeLinejoin="round">
+        <path d="M452 44 l34 -3 l7 2.5 l-7 2.5 l-34 1.5 Z" />
+        <path d="M468 43 l-9 -11 h5 l14 10 M468 45.5 l-7 9 h5 l12 -8 M454 44 l-5 -6 h4 l5 5" />
+      </g>
+      <circle cx="560" cy="58" r="20" fill="#f1d58f" fillOpacity="0.55" />
+    </g>
+  );
+}
+
 const SKY: Record<Scene, [string, string]> = {
   istanbul: ["#f1dcb2", "#f6ead0"],
   parlament: ["#e9dcc0", "#f5ecd4"],
   bank: ["#e6dcc6", "#f4ecd8"],
   anatolien: ["#efd6a4", "#f6e9cb"],
   wahlnacht: ["#1d2330", "#3b3a3f"],
+  kueste: ["#e4dcc4", "#f4ecd6"],
 };
 
 export function Vignette({ scene, className, banner }: { scene: Scene; className?: string; banner?: string }) {
@@ -358,6 +402,7 @@ export function Vignette({ scene, className, banner }: { scene: Scene; className
         {scene === "bank" && <Bank id={id} />}
         {scene === "anatolien" && <Anatolien id={id} />}
         {scene === "wahlnacht" && <Wahlnacht id={id} banner={banner} />}
+        {scene === "kueste" && <Kueste id={id} />}
       </g>
       <rect width={W} height={H} fill={`url(#vig${id})`} />
     </svg>

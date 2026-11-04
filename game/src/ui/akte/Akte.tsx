@@ -8,6 +8,7 @@ import { VorgaengeReiter } from "./Vorgaenge";
 import type { World } from "../../sim/types";
 import { Icon, type IconName } from "../icons";
 import { aktenProfil } from "./profil";
+import { Vignette, type Scene } from "../art/Vignette";
 import "./akte.css";
 
 /** „vorgaenge“: Platz für politische Vorhaben vom Versprechen bis zur Rechenschaft (baut ein späterer Strang). */
@@ -28,6 +29,24 @@ export interface Kernwert {
   /** Ton des Wertes */
   ton?: "gut" | "mittel" | "schlecht";
   hinweis?: string;
+  /** 0 bis 1: Stand auf einer Skala von 0 bis 100; dann zeigt der Kopf einen Messring */
+  anteil?: number;
+}
+
+/** Kopfzeichnung je Bereich (GESTALTUNG_2026-11-04, G1). Bis jeder Bereich ein eigenes Motiv hat, teilen sich manche eines. */
+const KOPFBILD: Record<string, Scene> = {
+  sicherheit: "kueste", aussen: "istanbul", recht: "parlament", regierung: "parlament", wirtschaft: "bank",
+  land: "anatolien", wissen: "anatolien", gesellschaft: "istanbul", medien: "istanbul",
+};
+
+function Messring({ anteil }: { anteil: number }) {
+  const r = 17, u = 2 * Math.PI * r, a = Math.max(0, Math.min(1, anteil));
+  return (
+    <svg className="ak-ring" width="42" height="42" viewBox="0 0 42 42" aria-hidden>
+      <circle cx="21" cy="21" r={r} className="spur" />
+      <circle cx="21" cy="21" r={r} className="wert" strokeDasharray={`${u * a} ${u}`} transform="rotate(-90 21 21)" />
+    </svg>
+  );
 }
 
 export interface AkteProps {
@@ -81,7 +100,8 @@ export function Akte({ bereich, zweck, kernwerte, reiter, start, aktiv, onReiter
   const ausgewaehlt=navigation.find(n=>n.aktiv);
   return (
     <div className={`ak-akte ak-${bereich}`} data-bereich={bereich}>
-      <header className="ak-kopf">
+      <header className={`ak-kopf${KOPFBILD[bereich] ? " mit-bild" : ""}`}>
+        {KOPFBILD[bereich] && <div className="ak-kopfbild"><Vignette scene={KOPFBILD[bereich]} /></div>}
         <div className="ak-identitaet">
           <div className="ak-titelzeile"><span className="ak-bereichszeichen"><Icon name={profil.icon} size={28}/></span>
             <div><div className="ak-metazeile"><span>{t(bereich==="recht"?"rn.gesetzgebung":bereich==="regierung"?"rn.vollzug":"akneu.ressort")}</span>{datum&&<span>{datum}</span>}</div><h2>{profil.titel}</h2></div>
@@ -90,9 +110,9 @@ export function Akte({ bereich, zweck, kernwerte, reiter, start, aktiv, onReiter
         </div>
         <dl className="ak-kernwerte" aria-label={t("akneu.kennzahlen")}>
           {kernwerte.slice(0, 3).map((k) => (
-            <div key={k.label} className={`ak-kernwert${k.ton ? ` ${k.ton}` : ""}`} title={k.hinweis}>
+            <div key={k.label} className={`ak-kernwert${k.ton ? ` ${k.ton}` : ""}${k.anteil !== undefined ? " mit-ring" : ""}`} title={k.hinweis}>
               <dt className="ak-kernwert-label">{k.label}</dt>
-              <dd><strong>{k.wert}</strong></dd>
+              <dd>{k.anteil !== undefined && <Messring anteil={k.anteil} />}<strong>{k.wert}</strong></dd>
               {k.verlauf && k.verlauf.length > 1 && <Funke werte={k.verlauf} breite={96} hoehe={22} />}
             </div>
           ))}

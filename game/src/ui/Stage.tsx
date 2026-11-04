@@ -877,7 +877,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
       {dossier && (
         <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
-          {!gruppe?.akte && dossier !== "wirtschaft" && <Corners />}
+          {/* Alle Akten im selben Leder- und Goldrahmen (GESTALTUNG_2026-11-04, G1) */}
+          <Corners />
           <header className="dossier-head">
             <h2>{gruppe?.titel}</h2>
             {gruppe && !gruppe.akte && gruppe.tabs.length > 1 && (

@@ -9,7 +9,7 @@ import { KOPFFORMEN } from "./ui/art/portraet-proportionen";
 import { Vignette, type Scene } from "./ui/art/Vignette";
 import { Corners, Flourish, StateSeal } from "./ui/art/Ornament";
 
-const SCENES: Scene[] = ["istanbul", "parlament", "bank", "anatolien", "wahlnacht"];
+const SCENES: Scene[] = ["istanbul", "parlament", "bank", "anatolien", "wahlnacht", "kueste"];
 const NAMEN = Array.from({ length: 60 }, (_, i) => `Person ${i + 1}`);
 const RESSORTS = Object.keys(RESSORT_FARBE);
 const titel = { margin: 0, color: "#f1d58f", font: "600 15px Inter, sans-serif", letterSpacing: "0.06em", textTransform: "uppercase" as const };

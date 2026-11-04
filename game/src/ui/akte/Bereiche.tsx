@@ -32,6 +32,13 @@ import { laufendeVerfahren } from "../../sim/gesetzgebung";
 import { gesetzName } from "../../sim/gesetz-name";
 import { formatDateDe } from "../../sim/dates";
 import { ZUGANG_ICON } from "./profil";
+import { Bildkarten } from "./Bildkarten";
+
+/** Bereiche, deren Lage ihre Vorhaben als Bildkarten zeigt: Vorhabenbereich im Reich und der Reiter, in dem man sie beginnt. */
+const BILDKARTEN: Partial<Record<BereichId, { reich: string; tab: string }>> = {
+  sicherheit: { reich: "militaer", tab: "reich_militaer" },
+  land: { reich: "infrastruktur", tab: "reich_infra" },
+};
 
 export type BereichId = "gesellschaft" | "recht" | "regierung" | "sicherheit" | "aussen" | "land" | "wissen" | "medien";
 
@@ -55,7 +62,7 @@ function zustimmungsVerlauf(w: World): number[] {
 function knotenKern(w: World, id: string, label: string, gut: number, schlecht: number): Kernwert {
   const x = knoten(w, id);
   if (x === undefined) return leer(label);
-  return { label, wert: nf(x), ton: ton(x, gut, schlecht) };
+  return { label, wert: nf(x), ton: ton(x, gut, schlecht), anteil: x / 100 };
 }
 
 // ---------------------------------------------------------------------------
@@ -283,7 +290,7 @@ function Zeilen({ zeilen }: { zeilen: LageZeile[] }) {
   );
 }
 
-function LageAnsicht({ w, b, ziel, onInstrumente }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void }) {
+function LageAnsicht({ w, b, ziel, onInstrumente, karten }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined }) {
   const gruppen = lageZeilen(w, b);
   const urteil = lageUrteil(w, b);
   // Die drei Kernwerte stehen schon im Kopf; die Lage zeigt ihre Begründungen nur aufgeklappt.
@@ -310,12 +317,17 @@ function LageAnsicht({ w, b, ziel, onInstrumente }: { w: World; b: BereichId; zi
           </ul>
         </details>
       )}
-      {gruppen.map((g) => (
+      {karten && <Bildkarten w={w} reichBereich={karten.reich} ziel={karten.ziel} oeffnen={karten.oeffnen} />}
+      {gruppen.filter((g) => g.zeilen.length > 0).map((g) => (
         <section key={g.kopf}>
           <h3 className="ak-abschnitt">{g.kopf}</h3>
-          {g.zeilen.length === 0 ? <p className="ak-leer">{t("akte.b.lage.leer")}</p> : <Zeilen zeilen={g.zeilen} />}
+          <Zeilen zeilen={g.zeilen} />
         </section>
       ))}
+      {/* Leere Abschnitte stehen nicht mehr als eigene Überschrift mit „Derzeit nichts.“, sondern in einer ruhigen Zeile. */}
+      {gruppen.some((g) => g.zeilen.length === 0) && (
+        <p className="ak-leer">{t("gz.lage.ruhig", { abschnitte: gruppen.filter((g) => g.zeilen.length === 0).map((g) => g.kopf).join(" · ") })}</p>
+      )}
     </div>
   );
 }
@@ -431,7 +443,11 @@ export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, 
       aktiv={reiter}
       onReiter={onReiter}
       reiter={[
-        { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} /> },
+        { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => {
+          const bk = BILDKARTEN[bereich], kartenTab = bk && tabs.find((tab) => tab.id === bk.tab);
+          const karten = bk && kartenTab ? { reich: bk.reich, ziel: kartenTab.label, oeffnen: () => { setBehoerdenOffen(false); onTab(kartenTab.id); onReiter("instrumente"); } } : undefined;
+          return <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} />;
+        } },
         { id: "instrumente", text: t("akte.b.reiter.instrumente"), inhalt: instrumente },
         { id: "verlauf", text: t("akte.b.reiter.verlauf"), inhalt: () => <VerlaufAnsicht w={world} b={bereich} /> },
         { id: "personen", text: t("akte.b.reiter.personen"), inhalt: () => <PersonenListe w={world} aemter={BEREICH_AEMTER[bereich]} /> },

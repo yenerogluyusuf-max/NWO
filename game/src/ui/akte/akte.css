@@ -8,9 +8,22 @@
 .ak-land{--ak-akzent:#526a3b;--ak-tief:#354a2d;--ak-hell:#ecf0e4}
 .ak-wissen{--ak-akzent:#515c95;--ak-tief:#363f67;--ak-hell:#eaeef8}
 .ak-medien{--ak-akzent:#89612a;--ak-tief:#594421;--ak-hell:#f4eedf}
-.ak-kopf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:center;padding:24px;background:linear-gradient(110deg,var(--ak-hell),#fcfbf5 68%);border:1px solid var(--ak-linie);border-radius:15px}
+.ak-kopf{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:center;padding:24px;background:linear-gradient(110deg,#f7f0de,#fbf6e8 68%);border:1px solid #5a40284d;border-radius:4px;box-shadow:0 1px 0 #fff inset,0 6px 18px #3b2a1a1f;overflow:hidden}
+.ak-kopf.mit-bild{grid-template-columns:minmax(0,1fr);gap:16px;padding:0;align-items:stretch}
+.ak-kopfbild{position:relative;height:190px;border-bottom:1.5px solid var(--gold-2,#c69a4a)}
+.ak-kopfbild{background:linear-gradient(110deg,#f7f0de,#efe3c6)}
+/* Die Zeichnung behält ihr Seitenverhältnis (640:240) und läuft nach links in das Pergament aus, statt beschnitten zu werden. */
+.ak-kopfbild .vignette{position:absolute;top:0;right:0;height:100%;width:auto;aspect-ratio:640/240;display:block;-webkit-mask-image:linear-gradient(90deg,transparent,#000 28%);mask-image:linear-gradient(90deg,transparent,#000 28%)}
+.ak-kopf.mit-bild .ak-identitaet{position:absolute;left:0;top:0;height:190px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;padding:20px 26px 18px;max-width:min(560px,70%);background:linear-gradient(90deg,#f7f0def5 55%,#f7f0de00)}
+.ak-kopf.mit-bild .ak-kernwerte{padding:0 18px 18px;gap:10px;align-items:stretch}
+.ak-kopf.mit-bild .ak-kernwert{border:1px solid #5a402833;border-radius:6px;background:#fffaf0;padding:10px 14px}
+.ak-kopf.mit-bild .ak-kernwert:first-child{border-left:1px solid #5a402833;padding-left:14px}
+.ak-kernwert dd{display:flex;align-items:center;gap:10px}
+.ak-ring .spur{fill:none;stroke:#5a402822;stroke-width:5}.ak-ring .wert{fill:none;stroke-width:5;stroke-linecap:round;stroke:#856026}
+.ak-kernwert.gut .ak-ring .wert{stroke:#326747}.ak-kernwert.schlecht .ak-ring .wert{stroke:#a23d3e}
 .ak-identitaet{min-width:0}.ak-titelzeile{display:flex;align-items:center;gap:14px}
 .ak-bereichszeichen{display:grid;place-items:center;flex:0 0 52px;width:52px;height:56px;background:var(--ak-tief);color:#f9f6ea;border-radius:16px 16px 16px 4px}
+.ak-kopf.mit-bild .ak-bereichszeichen{box-shadow:0 0 0 1.5px var(--gold-2,#c69a4a),0 3px 8px #0003}
 .ak-metazeile{display:flex;flex-wrap:wrap;gap:5px 15px;color:var(--ak-akzent);font:600 10px/1.4 var(--sans,Inter,sans-serif);text-transform:uppercase;letter-spacing:.1em}
 .ak-akte .ak-identitaet h2{margin:4px 0 0;color:var(--ak-tief);font:500 29px/1.15 var(--display,Georgia,serif);letter-spacing:-.025em;text-shadow:none;overflow-wrap:anywhere}
 .ak-zweck{margin:13px 0 0;max-width:57ch;font:13px/1.65 var(--sans,Inter,sans-serif);color:#5a665f}
@@ -35,6 +48,7 @@
 .ak-inhalt{min-width:0;container:akteninhalt/inline-size}.ak-inhalt:focus-visible{outline:2px solid var(--ak-akzent);outline-offset:6px;border-radius:5px}
 @container aktenbereich (max-width:950px){
  .ak-kopf{grid-template-columns:minmax(0,1fr);gap:18px}.ak-kernwerte{border-top:1px solid var(--ak-linie);padding-top:16px}.ak-kernwert:first-child{border-left:0;padding-left:0}
+ .ak-kopf.mit-bild{gap:12px}.ak-kopf.mit-bild .ak-kernwerte{border-top:0;padding-top:0}.ak-kopf.mit-bild .ak-identitaet{max-width:88%}
  .ak-arbeitsplatz{grid-template-columns:minmax(0,1fr);gap:20px}.ak-navigation{padding:12px;position:relative;top:auto;max-height:none;overflow:visible}
  .ak-navtitel{margin:0 7px 9px}.ak-navgruppe>div{grid-template-columns:repeat(3,minmax(0,1fr))}.ak-navgruppe.einordnung{margin-top:10px;padding-top:10px}.ak-navgruppe.einordnung .ak-navtitel{display:none}
  .ak-navigation button{padding:9px 10px;font-size:13px}
@@ -43,18 +57,18 @@
  .ak-kopf{padding:18px 15px;border-radius:10px}.ak-akte .ak-identitaet h2{font-size:26px}.ak-bereichszeichen{flex-basis:44px;width:44px;height:48px}.ak-zweck{font-size:13px}
  .ak-navgruppe>div{grid-template-columns:repeat(2,minmax(0,1fr))}.ak-navigation button{grid-template-columns:18px minmax(0,1fr);gap:8px}.ak-navigation button>i{display:none}.ak-navigation button .icon{width:18px;height:18px}
  .ak-kernwert{padding:5px 10px;gap:7px}.ak-kernwert strong{font-size:25px}.ak-kernwert-label{font-size:11px}
+ .ak-kopfbild{height:118px}.ak-kopfbild .vignette{width:100%;aspect-ratio:auto;-webkit-mask-image:none;mask-image:none}.ak-kopf.mit-bild .ak-identitaet{position:static;height:auto;max-width:100%;padding:4px 14px 0;background:none}
+ .ak-kopf.mit-bild .ak-kernwerte{padding:0 10px 12px;gap:6px}.ak-kopf.mit-bild .ak-kernwert{padding:8px 9px}.ak-ring{display:none}
  .ak-metazeile{letter-spacing:.05em;font-size:9px}
 }
 @container aktenbereich (max-width:360px){.ak-kernwerte{grid-template-columns:minmax(0,1fr);padding-top:8px}.ak-kernwert{grid-template-columns:minmax(0,1fr) auto;align-items:center;border-left:0;border-top:1px solid var(--ak-linie);padding:10px 0}.ak-kernwert:first-child{border-top:0}.ak-kernwert .ak-funke{display:none}.ak-kernwert dd{grid-column:2}.ak-navgruppe.einordnung>div{grid-template-columns:minmax(0,1fr)}}
 
 /* Die Bereichsakten bekommen einen stillen Rahmen statt Lederband und Zierecken. */
-.dossier.dossier--bereich.frame{background:#f7f6ef;border:1px solid #b7c0b7;border-radius:16px;outline:none;box-shadow:0 18px 60px #12221e40;overflow:hidden}
-.dossier.dossier--bereich .dossier-head{padding:12px 18px;background:#edf0e8;border-bottom:1px solid #d2d9ce;color:#34463d;gap:12px}
-.dossier.dossier--bereich .dossier-head h2{font:600 12px/1.4 var(--sans,Inter,sans-serif);letter-spacing:.07em;text-transform:uppercase;text-shadow:none;color:#435447}
-.dossier.dossier--bereich .dossier-head .close{background:#ffffff80;border:1px solid #cad2c6;border-radius:7px;box-shadow:none;color:#3f5145;width:32px;height:32px;font-size:15px;flex-shrink:0}
-.dossier.dossier--bereich .dossier-head .close:hover{background:#fff}.dossier.dossier--bereich .dossier-head .close:focus-visible{outline:3px solid #9c773a;outline-offset:2px}
-.dossier.dossier--bereich .dossier-body{padding:22px 24px 32px;mask-image:none;-webkit-mask-image:none}
-.dossier.dossier--bereich .dossier-tabs{flex-wrap:wrap;gap:4px}.dossier.dossier--bereich .dossier-tabs button{background:none;color:#53614f;border:0;box-shadow:none;padding:6px 9px;font:12px/1.5 var(--sans,Inter,sans-serif);text-shadow:none}.dossier.dossier--bereich .dossier-tabs button.on{background:#dbe4d6;color:#263f30;border-radius:5px}
+/* Fachakten im selben Rahmen wie Schreibtisch und Ereignisse (Leder, Gold, Pergament; GESTALTUNG_2026-11-04, B1/G1).
+   Früher standen hier eine flache hellgraue Kopfzeile und ein heller Bürohintergrund. */
+.dossier.dossier--bereich .dossier-head h2{font-size:17px;letter-spacing:.02em}
+.dossier.dossier--bereich .dossier-body{padding:22px 24px 32px;mask-image:none;-webkit-mask-image:none;background:linear-gradient(180deg,#f7f0de,#efe4cb 60%)}
+.dossier.dossier--bereich .dossier-tabs{flex-wrap:wrap;gap:4px}
 @media(max-width:700px){.dossier.dossier--bereich .dossier-body{padding:14px 12px 24px}.dossier.dossier--bereich .dossier-head{padding:10px 12px;flex-wrap:wrap}.dossier.dossier--bereich .dossier-head .close{margin-left:auto}}
 
 .ak-diagramme { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }

@@ -54,3 +54,22 @@ Auf Wunsch des Projektinhabers gibt es Beispiele zum Anschauen: `game/muster.htm
 3. **Entscheidungskarte (G4):** Wahlversprechen „Renten erhöhen“ mit Zielbalken, Frist, Preis, Mehrheit oben; Herleitung aufklappbar.
 
 Vorher-Nachher-Bilder: `reports/Gestaltung-Beispiele-2026-11-04/`. Die Seite ist bei 1440 px und 390 px geprüft (kein seitliches Überlaufen).
+
+## 6. Umsetzung im Spiel (Pilot, 4. November)
+
+Nach Zustimmung des Projektinhabers zu den Beispielen sind G1 bis G3 im Spiel umgesetzt, als Vorlage für die übrigen Ansichten.
+
+| Stufe | Umgesetzt | Wo |
+|---|---|---|
+| G1 Rahmen | Alle Fachakten tragen den Leder- und Goldrahmen mit Goldecken wie Schreibtisch und Ereignisse; die flache hellgraue Kopfzeile ist entfallen. Der Aktenkopf zeigt eine Kupferstich-Zeichnung des Bereichs in ihrem echten Seitenverhältnis, Kennzahlen aus dem Politiknetz (Skala 0–100) mit Messring. Leere Lageabschnitte stehen nur noch in einer Zeile statt je als Überschrift mit „Derzeit nichts.“ | `ui/akte/Akte.tsx`, `akte.css`, `Stage.tsx`, `art/Vignette.tsx` (neues Motiv „Küste“) |
+| G2 Zeichen | Neun Ressourcen mit festem Symbol und fester Farbe; Preis-Baustein mit Vorlesetext; fehlendes Kapital oder Verwaltungskraft wird rot umrandet. | `ui/akte/Zeichen.tsx`, `zeichen.css` |
+| G3 Bildkarten | Sicherheit (Rüstung) und Land (Infrastruktur) zeigen bis zu vier Vorhaben als Bildkarten aus dem **echten** Zustand der Simulation: im Bau mit Restmonaten, sofort möglich, oder mit fehlender Voraussetzung im Wortlaut der Simulation. Der Knopf springt in die bestehende Vorhabenkarte; Beginnen, Vergabe und Reihenfolge bleiben dort, die Spielregeln sind unverändert. | `ui/akte/Bildkarten.tsx`, `Bereiche.tsx` |
+
+Neue Texte stehen dreisprachig in `i18n/katalog/*/gestaltung.json`. Tests: `test/akte-bildkarten.test.tsx` (Auswahl und Reihenfolge gegen die Simulation, keine Instandsetzungen, drei Sprachen ohne kaputte Platzhalter, nur lesend, leere Abschnitte). Bilder: `reports/Gestaltung-Umsetzung-2026-11-04/`.
+
+**Noch offen:**
+
+- Eigene Motive für Gesellschaft, Medien, Regierung und Wissen (heute zwischenzeitlich Istanbul, Parlament und Anatolien).
+- Bildkarten für Kultur, Recht und Wissensbaum.
+- G4 (Entscheidungskarten entschlacken), G5 (Karte als Bühne) und G6 (Momente).
+- Die Klassennamen der Vorhaben („Wunder“, „Großprojekt“) sind bisher nur deutsch; das ist eine vorhandene Übersetzungslücke.

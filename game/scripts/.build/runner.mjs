@@ -201,12 +201,53 @@ function defizitQuote(e, strukturell = false) {
 	return e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (strukturell ? 0 : e.konjunkturSaldo ?? 0);
 }
 const positiv = (x) => typeof x === "number" && Number.isFinite(x) && x > 0;
+const gueltigeBasis = (b) => !!b && positiv(b.basisBipMrd) && positiv(b.real) && positiv(b.preise) && positiv(b.basisBipMrd * b.real * b.preise) && /^\d{4}-\d{2}-\d{2}$/.test(b.seit) && /^\d{4}-\d{2}$/.test(b.letzterMonat);
+const startBipMrd = (e) => positiv(e.bipTryTn) ? e.bipTryTn * 1e3 : PLAN_2026.mrdProProzentBip * 100;
+/** Gemeinsamer Geldwert, auch für Module, die nur EconomyState kennen. Lesen bucht nichts. */
+function bipWertMrd(e, real = false) {
+	const b = e.geldbasis;
+	return gueltigeBasis(b) ? b.basisBipMrd * b.real * (real ? 1 : b.preise) : startBipMrd(e);
+}
+const bipUsdMrd = (e) => bipWertMrd(e) / Math.max(1, e.usdTry);
+/** Jahresraten werden in denselben Monatsfaktor für Geldbeträge und Schuldenquoten übersetzt. */
+const monatsfaktor = (rate) => Math.pow(1 + Math.max(-99, Number.isFinite(rate) ? rate : 0) / 100, 1 / 12);
+/** Bestandsrechnung: alter Bestand + Wechselkursbewertung + Gesamtdefizit (Zinsen bereits enthalten).
+* Der Monatsfluss beträgt 1/12 der Jahresquote beim aktuellen Monats-BIP. Nur der vorhandene
+* FX-Schuldenbestand wird umbewertet, neue Schulden nicht rückwirkend für den gesamten Monat.
+* Ohne vorgegebenen Kursvergleich ist dies eine Rechnung bei unverändertem Wechselkurs. */
+function schuldenMonatsrechnung(e, vorherUsdTry = e.usdTry, fxAnteil = 0) {
+	const bipVorherMrd = bipWertMrd(e);
+	const bipNachherMrd = bipVorherMrd * monatsfaktor(e.growth) * monatsfaktor(e.inflation);
+	const vorherMrd = Math.max(0, e.debtRatio) * bipVorherMrd / 100;
+	const wechselkursMrd = positiv(vorherUsdTry) && positiv(e.usdTry) ? vorherMrd * Math.max(0, Math.min(1, fxAnteil)) * (e.usdTry / vorherUsdTry - 1) : 0;
+	const defizitMrd = defizitQuote(e) * bipNachherMrd / 100 / 12;
+	const kasseVorherMrd = kassenbestand(e);
+	const kasseEntnahmeMrd = Math.min(kasseVorherMrd, Math.max(0, defizitMrd));
+	const saldo = vorherMrd + wechselkursMrd + defizitMrd - kasseEntnahmeMrd;
+	const nachherMrd = Math.max(0, saldo);
+	return {
+		bipVorherMrd,
+		bipNachherMrd,
+		vorherMrd,
+		defizitMrd,
+		wechselkursMrd,
+		restUeberschussMrd: Math.max(0, -saldo),
+		nachherMrd,
+		kasseVorherMrd,
+		kasseEntnahmeMrd,
+		kasseNachherMrd: kasseVorherMrd - kasseEntnahmeMrd + Math.max(0, -saldo),
+		vorherQuote: e.debtRatio,
+		nachherQuote: nachherMrd / bipNachherMrd * 100
+	};
+}
+/** Gebuchter Zinsdienst; Haushalt, Defizit und Kennzahl zeigen denselben Monatsansatz. */
+const zinsQuote = (e) => PLAN_2026.zinsenProzentBip + (e.zinsMehrlast ?? 0);
 /** Altstände starten ohne erfundene Wachstumsgewinne; vorhandene gültige Konten bleiben erhalten. */
 function geldbasis(w) {
 	const b = w.economy.geldbasis;
-	if (b && positiv(b.basisBipMrd) && positiv(b.real) && positiv(b.preise) && positiv(b.basisBipMrd * b.real * b.preise) && /^\d{4}-\d{2}-\d{2}$/.test(b.seit) && /^\d{4}-\d{2}$/.test(b.letzterMonat)) return b;
+	if (gueltigeBasis(b)) return b;
 	return {
-		basisBipMrd: positiv(w.economy.bipTryTn) ? w.economy.bipTryTn * 1e3 : PLAN_2026.mrdProProzentBip * 100,
+		basisBipMrd: startBipMrd(w.economy),
 		real: 1,
 		preise: 1,
 		seit: w.date,
@@ -223,8 +264,7 @@ function staatsgeldMonat(w) {
 	if (!w.spiel) return;
 	const b = geldbasis(w), monat = w.date.slice(0, 7);
 	if (monat <= b.letzterMonat) return;
-	const faktor = (rate) => Math.pow(1 + Math.max(-99, Number.isFinite(rate) ? rate : 0) / 100, 1 / 12);
-	const real = b.real * faktor(w.economy.growth), preise = b.preise * faktor(w.economy.inflation);
+	const real = b.real * monatsfaktor(w.economy.growth), preise = b.preise * monatsfaktor(w.economy.inflation);
 	if (!positiv(b.basisBipMrd * real * preise)) return;
 	w.economy.geldbasis = {
 		...b,
@@ -234,10 +274,21 @@ function staatsgeldMonat(w) {
 	};
 }
 function bipMrd(w, real = false) {
-	const b = geldbasis(w);
-	return b.basisBipMrd * b.real * (real ? 1 : b.preise);
+	return bipWertMrd(w.economy, real);
 }
 const geldAusBip = (w, prozent) => prozent * bipMrd(w) / 100;
+/** Unverzinste Kasse in nominalen Mrd. Lira; Altstände erhalten kein erfundenes Guthaben. */
+const kassenbestand = (e) => positiv(e.kassenbestandMrd) ? e.kassenbestandMrd : 0;
+/** Einmaliger Finanzierungssaldo: Guthaben vor neuen Krediten verwenden, Einnahmen zuerst tilgen.
+* Nur Finanzierung, keine Nachfrage-/Vertrauenswirkung: diese bleibt beim jeweiligen Spielereignis.
+* Politisches Kapital und der laufende Jahresetat bleiben getrennt. */
+function bucheFinanzsaldo(e, prozentBip) {
+	const bip = bipWertMrd(e), kasse = kassenbestand(e), betrag = prozentBip * bip / 100;
+	const entnahme = Math.min(kasse, Math.max(0, betrag));
+	const saldo = Math.max(0, e.debtRatio) * bip / 100 + betrag - entnahme;
+	e.debtRatio = Math.max(0, saldo) / bip * 100;
+	e.kassenbestandMrd = kasse - entnahme + Math.max(0, -saldo);
+}
 //#endregion
 //#region src/i18n/tuerkisch.ts
 const VOKALE = "aeıioöuüâîû";
@@ -704,20 +755,9 @@ const PARAMS = {
 	longRunTarget: 5,
 	/** Monatliche Annäherung der Zwischenziele an das langfristige Ziel (ergibt etwa 24, 15, 9, 5) */
 	targetGlide: .04,
-	/**
-	* ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
-	* lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
-	* Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
-	* Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
-	* Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
-	*/
-	/**
-	* ZEI-4 (Spielparameter, Befund der Spielbarkeitsanalyse 29.09.): Dauerhafte Politikkosten über etwa 2 % des BIP
-	* lesen die Märkte als strukturelles, chronisches Defizit — Basispunkte Risikoaufschlag je Prozentpunkt darüber.
-	* Ohne diesen Kanal schmolz die Schuldenquote (Z7) bei hohem Nominalwachstum weg, und „alles auf Maximum“ blieb folgenlos.
-	* Kalibrierung WIR-1: Schwelle 1 → 2 % (chronische Last, nicht jede Ausgabe; deckt sich mit der Fiskaldominanz-
-	* Schwelle der Glaubwürdigkeit) und Satz 40 → 130 bp je Punkt.
-	*/
+	/** Zusätzlicher laufender Finanzierungsbedarf aus Reformen und Haushalt nach Gegenfinanzierung.
+	* Spielparameter: 130 Basispunkte je BIP-Punkt oberhalb von 2. Der Grundhaushalt
+	* und Zinslasten werden nicht erneut als zusätzlicher Impuls angerechnet. */
 	politiklastAufRisiko: 130,
 	/**
 	* Z7: Anteil der Schulden in Fremdwährung oder indexiert (Spielparameter, Größenordnung Türkei ~40–50 %).
@@ -763,6 +803,9 @@ function potential(e) {
 function realRate(e) {
 	return e.policyRate - e.expectedInflation;
 }
+/** Zusätzlicher laufender Primärbedarf: Reformkosten plus beschlossene Etat-/Steueränderungen.
+* Zinsen und konjunkturelle Stabilisatoren werden nicht nochmals als neue Ausgabenpolitik bestraft. */
+const finanzierungsMehrbedarf = (e) => e.policyCost + e.fiscalImpulse;
 /** Z4: tägliche Veränderung des Wechselkurses (Anteil, z. B. 0,001 = 0,1 %). */
 function dailyDepreciation(e, rng) {
 	const inflationGap = e.expectedInflation - PARAMS.foreignInflation;
@@ -777,7 +820,7 @@ function dailyDepreciation(e, rng) {
 }
 /** Z8: täglicher Risikoaufschlag, zieht zum fundamentalen Wert. */
 function dailyRiskPremium(e, rng) {
-	const fundamental = 150 + 2.5 * Math.max(0, e.expectedInflation - 10) + 2 * Math.max(0, e.debtRatio - 40) + 200 * (1 - e.credibility) + PARAMS.politiklastAufRisiko * Math.max(0, e.policyCost - 2) + PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0) + AUSSEN$2.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100) + (e.politikRisiko ?? 0) + (e.institutionenRisiko ?? 0);
+	const fundamental = 150 + 2.5 * Math.max(0, e.expectedInflation - 10) + 2 * Math.max(0, e.debtRatio - 40) + 200 * (1 - e.credibility) + PARAMS.politiklastAufRisiko * Math.max(0, finanzierungsMehrbedarf(e) - 2) + PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0) + AUSSEN$2.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100) + (e.politikRisiko ?? 0) + (e.institutionenRisiko ?? 0);
 	return e.riskPremium + .02 * (fundamental - e.riskPremium) + rng.normal(2);
 }
 /** Monatliche Fortschreibung der Realwirtschaft (Z1, Z2, Z3, Z5, Z6, Z7, Z9). */
@@ -798,18 +841,17 @@ function monthlyUpdate(e, history, rng) {
 	const r = realRate(e);
 	if (r > 1 && e.inflation < previousInflation) e.credibility += .01;
 	if (r < 0) e.credibility -= .012;
-	if (e.policyCost > 1.75) e.credibility -= .045 * Math.min(2.5, e.policyCost - 1.75);
+	const mehrbedarf = finanzierungsMehrbedarf(e);
+	if (mehrbedarf > 1.75) e.credibility -= .045 * Math.min(2.5, mehrbedarf - 1.75);
 	e.credibility = clamp$8(e.credibility, .05, .95);
 	const gapYearAgo = yearAgo ? yearAgo.outputGap : e.outputGap;
 	e.growth = potential(e) + (e.outputGap - gapYearAgo);
 	e.unemployment += .03 * (PARAMS.naturalUnemployment + (e.arbeitsmarktShift ?? 0) - e.unemployment) - PARAMS.okun * (e.growth - potential(e));
 	e.unemployment = clamp$8(e.unemployment, 3, 30);
-	const nominalGrowth = (e.growth + e.inflation) / 100;
-	e.debtRatio += defizitQuote(e) / 12 - e.debtRatio * nominalGrowth / 12;
-	const vormonat = history[history.length - 1];
-	const fxMonat = vormonat ? e.usdTry / vormonat.usdTry - 1 : 0;
-	e.debtRatio += PARAMS.fxSchuldAnteil * e.debtRatio * fxMonat;
-	e.debtRatio = Math.max(0, e.debtRatio);
+	const rechnung = schuldenMonatsrechnung(e, history.at(-1)?.usdTry, PARAMS.fxSchuldAnteil);
+	e.debtRatio = rechnung.nachherQuote;
+	e.kassenbestandMrd = rechnung.kasseNachherMrd;
+	return rechnung;
 }
 /** Gewichte der Reaktionsregel je Haltung der Führung. */
 const PPK_GEWICHTE = {
@@ -836,12 +878,14 @@ function ppkZiel(e, stance) {
 }
 /**
 * Reaktionsregel des Geldpolitischen Ausschusses (angelehnt an Taylor 1993): Die Bank geht die halbe Strecke zum Zielzins, höchstens
-* fünf Punkte je Sitzung. `druck` ist die Verschiebung des Beschlusses in Prozentpunkten durch politischen Einfluss (Zentralbank-Modul);
+* fünf Punkte je Sitzung im Normalfall. Bei stark negativem Realzins kann eine regelgebundene Führung
+* bis zu 12,5 Punkte aufholen. Senkungen bleiben auf fünf Punkte begrenzt. Spielparameter, keine Prognose realer Banken.
+* `druck` ist die Verschiebung des Beschlusses in Prozentpunkten durch politischen Einfluss (Zentralbank-Modul);
 * er kommt zur Regel hinzu und darf über die Höchstschrittweite hinausgehen. Ohne Einfluss bleibt es die reine Regel.
 */
 function ppkDecision(e, stance, druck = 0) {
 	const target = ppkZiel(e, stance);
-	const step = clamp$8((target - e.policyRate) * .5, -5, 5) + druck;
+	const step = clamp$8((target - e.policyRate) * .5, -5, ppkSchrittweite(e, stance)) + druck;
 	const newRate = Math.max(0, Math.round((e.policyRate + step) * 2) / 2);
 	let why;
 	if (newRate > e.policyRate) why = t("sim2.sim.economy.0fbefd3");
@@ -853,6 +897,10 @@ function ppkDecision(e, stance, druck = 0) {
 		why,
 		target
 	};
+}
+/** Aufholen einer stark hinter den Erwartungen liegenden Verzinsung; kein sprunghafter Inflationsschwellenwert. */
+function ppkSchrittweite(e, stance) {
+	return stance === "gefuegig" ? 5 : 5 + Math.round(clamp$8((-realRate(e) - 15) / 3, 0, 7.5) * 2) / 2;
 }
 function clamp$8(x, min, max) {
 	return Math.min(max, Math.max(min, x));
@@ -8371,9 +8419,9 @@ const akutIn = (w, id) => {
 	for (let p = 0; p < 81; p++) if (w.net.values[i * 81 + p] >= node.threshold) out.push(p + 1);
 	return out;
 };
-/** Einmalige Kosten in % des BIP: erhöhen die Schulden und stützen kurz die Nachfrage. */
+/** Einmalige Kosten in % des BIP: nutzen Kasse, dann Kredit und stützen kurz die Nachfrage. */
 function kosten(w, prozentBip) {
-	w.economy.debtRatio += prozentBip;
+	bucheFinanzsaldo(w.economy, prozentBip);
 	w.economy.outputGap += .08 * prozentBip;
 }
 const dk = (ev, k) => Number(ev.daten?.[k] ?? 0);
@@ -9349,7 +9397,7 @@ function fuehreAktionAus(w, id, aktion) {
 				vertrauen: 4
 			}, t("sim2.sim.laender.87923f2"));
 			wirke(w, "militaer", 2);
-			w.economy.debtRatio += .1;
+			bucheFinanzsaldo(w.economy, .1);
 			for (const g of GEGENSPIELER[id] ?? []) landAendern(w, g, { vertrauen: -6 }, t("sim2.sim.laender.02724b5", { p0: l.dat }));
 			text = t("sim2.sim.laender.be935a5", {
 				p0: l.dat,
@@ -9388,7 +9436,7 @@ function fuehreAktionAus(w, id, aktion) {
 				handel: 8,
 				konflikt: -4
 			}, t("sim2.sim.laender.7ea86b6"));
-			w.economy.debtRatio += .1;
+			bucheFinanzsaldo(w.economy, .1);
 			wirke(w, "bauwirtschaft", 1);
 			text = t("sim2.sim.laender.40182d6", {
 				p0: l.akk,
@@ -9597,11 +9645,9 @@ function defizitStrukturell(w) {
 	const e = w.economy;
 	return defizitQuote(e, true);
 }
-/** Zinsausgaben des Staates in % des BIP: Schuldenquote mal Durchschnittszins. */
+/** Gebuchter Monatsansatz in % des BIP, identisch mit dem Zinsdienst im Haushalt. */
 function zinsausgabenJetzt(w) {
-	const z = w.spiel?.wirtschaft?.haushalt;
-	const satz = z ? z.zinssatz : ZINSSATZ_START;
-	return w.economy.debtRatio * satz / 100;
+	return zinsQuote(w.economy);
 }
 /** Größen, die nicht in `world.history` stehen und deshalb eigens aufgezeichnet werden. */
 const EXTRA = {
@@ -9756,7 +9802,7 @@ function staatsfinanzen(w) {
 		zeile("ressorts", ressorts),
 		zeile("weitere", e.fiscalImpulse - ressorts + steuern),
 		zeile("reformen", e.policyCost),
-		zeile("zinsen", PLAN_2026.zinsenProzentBip + (e.zinsMehrlast ?? 0))
+		zeile("zinsen", zinsQuote(e))
 	];
 	const summe = (z) => z.reduce((s, p) => s + p.mrd, 0);
 	return {
@@ -9768,6 +9814,8 @@ function staatsfinanzen(w) {
 		ausgabenMrd: summe(ausgaben),
 		kreditMrd: defizitQuote(e) * bip / 100,
 		schuldenMrd: e.debtRatio * bip / 100,
+		kasseMrd: kassenbestand(e),
+		nettoSchuldenMrd: e.debtRatio * bip / 100 - kassenbestand(e),
 		realeEinnahmenMrd: summe(einnahmen) / basis.preise,
 		realesWachstum: (basis.real - 1) * 100,
 		preisAnstieg: (basis.preise - 1) * 100
@@ -9814,6 +9862,11 @@ function zusagenDruck(w, partei) {
 function haushaltsStand(w) {
 	const sp = w.spiel, e = w.economy, f = staatsfinanzen(w);
 	return {
+		sozial: {
+			armut: nationalAverage(NET, w.net, "armut"),
+			lebenshaltung: nationalAverage(NET, w.net, "lebenshaltung"),
+			realeinkommen: nationalAverage(NET, w.net, "realeinkommen")
+		},
 		finanzen: {
 			einnahmenMrd: f.einnahmenMrd,
 			ausgabenMrd: f.ausgabenMrd,
@@ -9878,6 +9931,7 @@ function beginneHaushaltsBeleg(w, g, ja) {
 	return {
 		id: `haushalt-${g.jahr}-${g.eingebracht}`,
 		jahr: g.jahr,
+		...g.krisenpaket ? { krisenpaket: g.krisenpaket } : {},
 		tag: w.day,
 		datum: w.date,
 		ja,
@@ -16600,6 +16654,546 @@ function umfrageMonat(zustimmung, ziel, rng, optionen = {}) {
 	return umfrageMessung(wert, rng, optionen);
 }
 //#endregion
+//#region src/data/gueter.ts
+const GUETER = [
+	{
+		id: "getreide",
+		art: "nahrung",
+		einheit: "Mio. t",
+		produktion: 40,
+		verbrauch: 37,
+		ausfuhr: 7,
+		lagerMonate: 3,
+		lieferanten: [
+			{
+				land: "RUS",
+				anteil: 65
+			},
+			{
+				land: "UKR",
+				anteil: 20
+			},
+			{
+				land: "KAZ",
+				anteil: 5
+			}
+		],
+		kunden: [
+			"IRQ",
+			"SYR",
+			"LBY"
+		],
+		produktionTreiber: [{
+			knoten: "ernte",
+			elastizitaet: 1
+		}],
+		engpass: [{
+			knoten: "lebensmittelpreise",
+			jeProzent: .35
+		}],
+		quelle: "TÜİK/FAO 2023: Weizen rund 22, Mais rund 9, Gerste rund 9 Mio. t; TÜİK 2024: Weizen 20,8 Mio. t (minus 5,5 %). Weizeneinfuhr überwiegend aus Russland, rund 9 Mio. t je Saison (TOBB, schwach belegt; TÜİK-Außenhandel und TMO prüfen), Mehlausfuhr in den Irak und nach Afrika. TMO-Lagerbestand: Lücke.",
+		pruefen: true
+	},
+	{
+		id: "obst_gemuese",
+		art: "nahrung",
+		einheit: "Mio. t",
+		produktion: 56,
+		verbrauch: 50,
+		ausfuhr: 7,
+		lagerMonate: .5,
+		lieferanten: [{
+			land: "EGY",
+			anteil: 15
+		}],
+		kunden: [
+			"RUS",
+			"DEU",
+			"IRQ"
+		],
+		produktionTreiber: [{
+			knoten: "ernte",
+			elastizitaet: .8
+		}],
+		engpass: [{
+			knoten: "lebensmittelpreise",
+			jeProzent: .15
+		}],
+		quelle: "TÜİK 2023: Obst rund 25, Gemüse rund 31 Mio. t; die Türkei ist Nettoausfuhrland (Zitrus, Tomaten, Haselnüsse).",
+		pruefen: true,
+		beispiel: {
+			name: "Bananen",
+			produktion: .875,
+			verbrauch: 1.11,
+			einheit: "Mio. t",
+			orte: "Anamur und Bozyazı (Mersin), Alanya und Manavgat (Antalya), unter Folie"
+		}
+	},
+	{
+		id: "fleisch_milch",
+		art: "nahrung",
+		einheit: "Mio. t",
+		produktion: 25,
+		verbrauch: 24.5,
+		ausfuhr: .8,
+		lagerMonate: .5,
+		lieferanten: [{
+			land: "BRA",
+			anteil: 30
+		}],
+		kunden: ["IRQ", "SAU"],
+		produktionTreiber: [{
+			knoten: "landwirtschaft_einkommen",
+			elastizitaet: .4
+		}],
+		engpass: [{
+			knoten: "lebensmittelpreise",
+			jeProzent: .2
+		}],
+		quelle: "TÜİK 2023: Milch rund 21,5 Mio. t, Geflügel rund 2,4 und rotes Fleisch rund 1,5 Mio. t; Lebendvieh-Einfuhr schwankt.",
+		pruefen: true
+	},
+	{
+		id: "zucker_oele",
+		art: "nahrung",
+		einheit: "Mio. t",
+		produktion: 4.5,
+		verbrauch: 5.5,
+		ausfuhr: .3,
+		lagerMonate: 2,
+		lieferanten: [{
+			land: "RUS",
+			anteil: 55
+		}, {
+			land: "UKR",
+			anteil: 25
+		}],
+		kunden: ["IRQ"],
+		produktionTreiber: [{
+			knoten: "ernte",
+			elastizitaet: .7
+		}],
+		engpass: [{
+			knoten: "lebensmittelpreise",
+			jeProzent: .25
+		}],
+		quelle: "TBMM-Haushaltsvorlage Landwirtschaft: Zucker 2023/24 rund 3,3 Mio. t aus rund 23 Mio. t Rüben (TÜİK 2024: Rübe minus 8,9 %), Zucker damit praktisch autark; Sonnenblumenkerne und -öl zu großen Teilen aus Russland und der Ukraine (Menge zu prüfen, TÜİK-Außenhandel).",
+		pruefen: true
+	},
+	{
+		id: "wasser",
+		art: "wasser",
+		einheit: "km³",
+		produktion: 57,
+		verbrauch: 57,
+		ausfuhr: 0,
+		lagerMonate: 6,
+		lieferanten: [],
+		kunden: ["IRQ", "SYR"],
+		produktionTreiber: [{
+			knoten: "wasserversorgung",
+			elastizitaet: 1
+		}, {
+			knoten: "duerre",
+			elastizitaet: -.6
+		}],
+		verbrauchTreiber: [{
+			knoten: "landwirtschaft_einkommen",
+			elastizitaet: .3
+		}],
+		engpass: [{
+			knoten: "wasserversorgung",
+			jeProzent: -.4
+		}, {
+			knoten: "ernte",
+			jeProzent: -.3
+		}],
+		quelle: "DSİ: Entnahme rund 57 km³ je Jahr bei rund 112 km³ nutzbarem Potenzial, rund drei Viertel für die Bewässerung; „Ausfuhr“ meint den Abfluss von Euphrat und Tigris, der vertraglich nicht fest geregelt ist.",
+		pruefen: true
+	},
+	{
+		id: "strom",
+		art: "energie",
+		einheit: "TWh",
+		produktion: 349,
+		verbrauch: 347,
+		ausfuhr: 3,
+		lagerMonate: 0,
+		lieferanten: [{
+			land: "GEO",
+			anteil: 40
+		}, {
+			land: "BGR",
+			anteil: 40
+		}],
+		kunden: [
+			"IRQ",
+			"GEO",
+			"BGR"
+		],
+		produktionTreiber: [{
+			knoten: "stromversorgung",
+			elastizitaet: 1
+		}],
+		verbrauchTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .6
+		}],
+		engpass: [{
+			knoten: "stromversorgung",
+			jeProzent: -.6
+		}, {
+			knoten: "industrie",
+			jeProzent: -.2
+		}],
+		quelle: "TEİAŞ 2024: Erzeugung 348,9 TWh (EMO zählt 341,8 TWh); Mix laut Ember: Kohle 35,2, Wasser 21,5, Gas 18,9, Wind 10,5, Sonne 7,5, Geothermie 3,2 %. Außenhandel gering (wenige TWh). Erzeugung ist autark, ihre Brennstoffe sind es nicht (siehe Erdgas und Kohle).",
+		pruefen: true
+	},
+	{
+		id: "erdgas",
+		art: "energie",
+		einheit: "Mrd. m³",
+		produktion: 3.5,
+		verbrauch: 56.4,
+		ausfuhr: 1,
+		lagerMonate: 1.5,
+		lieferanten: [
+			{
+				land: "RUS",
+				anteil: 36
+			},
+			{
+				land: "AZE",
+				anteil: 20
+			},
+			{
+				land: "USA",
+				anteil: 16
+			},
+			{
+				land: "IRN",
+				anteil: 13
+			}
+		],
+		kunden: ["GEO", "BGR"],
+		produktionTreiber: [{
+			knoten: "sakarya_gas",
+			elastizitaet: 1
+		}],
+		verbrauchTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .4
+		}],
+		engpass: [{
+			knoten: "energiepreise",
+			jeProzent: .4
+		}, {
+			knoten: "energieversorgung",
+			jeProzent: -.4
+		}],
+		hormusAnteil: .1,
+		quelle: "BOTAŞ: Verbrauch 2024 56,39 Mrd. m³ (plus 9,5 %; über Presse, gegen EPDK-Sektorbericht prüfen), 2025 Rekord rund 60 Mrd. m³ (RECHERCHE_ENERGIE.md); Lagerkapazität Silivri und Tuz Gölü: Lücke; Lieferanten 2025 Russland 36, Aserbaidschan 20, USA 16, Iran 13, Algerien 8 Prozent (Ember; Algerien fehlt im Weltmodell und zählt zur übrigen Welt); Sakarya-Feld in der ersten Phase."
+	},
+	{
+		id: "erdoel",
+		art: "energie",
+		einheit: "Mio. t",
+		produktion: 5,
+		verbrauch: 50,
+		ausfuhr: 8,
+		lagerMonate: 3,
+		lieferanten: [
+			{
+				land: "RUS",
+				anteil: 55
+			},
+			{
+				land: "IRQ",
+				anteil: 15
+			},
+			{
+				land: "KAZ",
+				anteil: 10
+			}
+		],
+		kunden: ["EU"],
+		produktionTreiber: [{
+			knoten: "energieversorgung",
+			elastizitaet: .2
+		}],
+		verbrauchTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .3
+		}],
+		engpass: [{
+			knoten: "energiepreise",
+			jeProzent: .35
+		}, {
+			knoten: "lebenshaltung",
+			jeProzent: .1
+		}],
+		hormusAnteil: .15,
+		quelle: "EPDK/IEA: Bedarf rund eine Million Barrel je Tag; eigene Förderung (Batman, Şırnak-Gabar) rund ein Zehntel; Rohöl 2024 zu über der Hälfte aus Russland; Raffinerieprodukte werden auch ausgeführt. Lager: Pflichtvorrat nach IEA-Regel 90 Tage Nettoeinfuhr (Türkei ist IEA-Mitglied); die Angabe „rund 10 Tage“ (worldometers) ist schwach belegt und nicht übernommen.",
+		pruefen: true
+	},
+	{
+		id: "kohle",
+		art: "energie",
+		einheit: "Mio. t",
+		produktion: 90,
+		verbrauch: 130,
+		ausfuhr: 0,
+		lagerMonate: 2,
+		lieferanten: [{
+			land: "RUS",
+			anteil: 65
+		}],
+		kunden: [],
+		produktionTreiber: [{
+			knoten: "energieversorgung",
+			elastizitaet: .2
+		}],
+		engpass: [{
+			knoten: "strompreis",
+			jeProzent: .2
+		}, {
+			knoten: "industrie",
+			jeProzent: -.1
+		}],
+		quelle: "Ember/TÜİK: Braunkohle eigen (Afşin-Elbistan, Soma) rund 90 Mio. t, Steinkohle rund 40 Mio. t eingeführt, überwiegend aus Russland.",
+		pruefen: true
+	},
+	{
+		id: "stahl",
+		art: "industrie",
+		einheit: "Mio. t",
+		produktion: 36.9,
+		verbrauch: 37,
+		ausfuhr: 11,
+		lagerMonate: 1,
+		lieferanten: [
+			{
+				land: "USA",
+				anteil: 20
+			},
+			{
+				land: "EU",
+				anteil: 30
+			},
+			{
+				land: "RUS",
+				anteil: 15
+			}
+		],
+		kunden: [
+			"EU",
+			"USA",
+			"ISR"
+		],
+		produktionTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .8
+		}, {
+			knoten: "energiepreise",
+			elastizitaet: -.3
+		}],
+		verbrauchTreiber: [{
+			knoten: "bauwirtschaft",
+			elastizitaet: .7
+		}],
+		engpass: [{
+			knoten: "bauwirtschaft",
+			jeProzent: -.25
+		}, {
+			knoten: "industrie",
+			jeProzent: -.15
+		}],
+		quelle: "worldsteel/TÇÜD 2024: Rohstahl 36,9 Mio. t (2025 rund 38,1 Mio. t, Platz 7 der Welt; Presse, schwach belegt), überwiegend im Elektroofen aus Schrott (rund 20 Mio. t Schrotteinfuhr aus USA und EU).",
+		pruefen: true
+	},
+	{
+		id: "bor",
+		art: "rohstoff",
+		einheit: "Mio. t",
+		produktion: 2.5,
+		verbrauch: .3,
+		ausfuhr: 2.2,
+		lagerMonate: 2,
+		lieferanten: [],
+		kunden: [
+			"CHN",
+			"USA",
+			"EU"
+		],
+		produktionTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .3
+		}],
+		engpass: [],
+		quelle: "Eti Maden/USGS: rund drei Viertel der bekannten Borvorkommen der Welt liegen in der Türkei (Eskişehir, Balıkesir, Kütahya, Bursa); Ausfuhr vor allem nach China. Seltene Erden (Beylikova, Eskişehir) sind erschlossen, aber noch ohne nennenswerte Förderung.",
+		pruefen: true
+	},
+	{
+		id: "erze",
+		art: "rohstoff",
+		einheit: "Mio. t",
+		produktion: 3,
+		verbrauch: 1.2,
+		ausfuhr: 2.3,
+		lagerMonate: 1,
+		lieferanten: [{
+			land: "CHN",
+			anteil: 20
+		}],
+		kunden: ["CHN"],
+		produktionTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .3
+		}],
+		engpass: [{
+			knoten: "industrie",
+			jeProzent: -.05
+		}],
+		quelle: "USGS/MTA: Chromerz (Elazığ, Muğla, Eskişehir) rund 2 bis 3 Mio. t, die Türkei gehört zu den größten Förderländern; Kupfer (Artvin, Elazığ, Kastamonu) deckt den Bedarf nicht.",
+		pruefen: true
+	},
+	{
+		id: "elektronik",
+		art: "industrie",
+		einheit: "Mrd. $",
+		produktion: 4,
+		verbrauch: 24,
+		ausfuhr: 5,
+		lagerMonate: 1,
+		lieferanten: [
+			{
+				land: "CHN",
+				anteil: 55
+			},
+			{
+				land: "EU",
+				anteil: 15
+			},
+			{
+				land: "USA",
+				anteil: 5
+			}
+		],
+		kunden: ["EU"],
+		produktionTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .5
+		}],
+		engpass: [{
+			knoten: "industrie",
+			jeProzent: -.15
+		}, {
+			knoten: "internet",
+			jeProzent: -.05
+		}],
+		quelle: "Spielparameter: Chips und Bauteile werden fast vollständig eingeführt, Endgeräte (Fernseher, weiße Ware) teils im Land montiert; Wert der Einfuhr zu prüfen (TÜİK Außenhandel nach Warengruppen).",
+		pruefen: true
+	},
+	{
+		id: "medikamente",
+		art: "industrie",
+		einheit: "Mrd. $",
+		produktion: 5,
+		verbrauch: 8.9,
+		ausfuhr: 2.3,
+		lagerMonate: 3,
+		lieferanten: [
+			{
+				land: "EU",
+				anteil: 47
+			},
+			{
+				land: "DEU",
+				anteil: 17
+			},
+			{
+				land: "USA",
+				anteil: 16
+			},
+			{
+				land: "CHN",
+				anteil: 9
+			}
+		],
+		kunden: ["IRQ"],
+		produktionTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .3
+		}],
+		engpass: [{
+			knoten: "medikamente",
+			jeProzent: -.5
+		}, {
+			knoten: "gesundheitsversorgung",
+			jeProzent: -.2
+		}],
+		quelle: "İEİS/TEİS 2024: Einfuhr 6,22 Mrd. $ (plus 8,5 %; 2025: 7,3 Mrd. $), die Ausfuhr deckt 37 % davon; 64,4 % der Einfuhr aus Europa (Deutschland 1,04 Mrd. $), USA 984 Mio. $, China 540 Mio. $. Heimische Erzeugung in Dollar ist Spielparameter (der Großteil der Packungen wird im Land hergestellt, Wirkstoffe kommen von außen).",
+		pruefen: true
+	},
+	{
+		id: "duenger",
+		art: "nahrung",
+		einheit: "Mio. t",
+		produktion: 3.5,
+		verbrauch: 6.5,
+		ausfuhr: .2,
+		lagerMonate: 2,
+		lieferanten: [{
+			land: "RUS",
+			anteil: 40
+		}, {
+			land: "EGY",
+			anteil: 15
+		}],
+		kunden: [],
+		produktionTreiber: [{
+			knoten: "industrie",
+			elastizitaet: .4
+		}, {
+			knoten: "energiepreise",
+			elastizitaet: -.3
+		}],
+		engpass: [{
+			knoten: "ernte",
+			jeProzent: -.2
+		}, {
+			knoten: "landwirtschaft_einkommen",
+			jeProzent: -.2
+		}],
+		quelle: "Spielparameter nach Branchenangaben: Stickstoffdünger hängt am Gaspreis, ein großer Teil wird eingeführt; zu prüfen (Tarım ve Orman Bakanlığı, TÜGSAŞ).",
+		pruefen: true
+	},
+	{
+		id: "ruestung",
+		art: "ruestung",
+		einheit: "Index",
+		produktion: 0,
+		verbrauch: 0,
+		ausfuhr: 0,
+		lagerMonate: 0,
+		lieferanten: [{
+			land: "USA",
+			anteil: 40
+		}, {
+			land: "EU",
+			anteil: 40
+		}],
+		kunden: [
+			"AZE",
+			"UKR",
+			"SAU"
+		],
+		engpass: [],
+		quelle: "Autarkie aus dem Netzknoten „Rüstungsautarkie“ (Spielwert); das Militär-Inventar mit Beständen führt ein eigenes Modul."
+	}
+];
+new Map(GUETER.map((g) => [g.id, g]));
+//#endregion
 //#region src/sim/versorgung.ts
 function letzteVersorgung(w) {
 	return w.spiel?.gueter?.bilanz;
@@ -16617,16 +17211,28 @@ function produktionsVersorgung(w, id) {
 	if (id === "getreide" || id === "obst_gemuese") return .6 + .2 * warenDeckung(w, "wasser") + .2 * warenDeckung(w, "duenger");
 	return 1;
 }
+/** Bedarf ohne Bevorratung; Reserveaufbau ist keine schon erbrachte Versorgung. */
+const frontMonatsverbrauch = (phase) => GUETER.find((g) => g.id === "erdoel").verbrauch / 12 * .12 * (phase === "waffenruhe" ? .35 : 1);
+/** Eine Bilanz gehört zum konkreten Einsatz, nicht zu jedem späteren Krieg mit demselben Land.
+* Ältere gespeicherte Bilanzen ohne Einsatzkennung bleiben für den laufenden Einsatz lesbar. */
+function frontVersorgungsBeleg(w, land) {
+	const k = w.spiel?.kriege?.find((k) => k.land === land && (k.phase === "krieg" || k.phase === "waffenruhe"));
+	const b = w.spiel?.transport?.bilanz?.depots[land];
+	return k && b && (!b.kriegId || b.kriegId === k.id) ? b : void 0;
+}
 function militaerVersorgung(w, land) {
 	const b = letzteVersorgung(w);
-	const oel = b?.waren.erdoel;
-	let treibstoff = oel && oel.militaerBedarf > 0 ? Math.min(1, oel.militaerGeliefert / oel.militaerBedarf) : 1;
-	const depots = Object.values(w.spiel?.transport?.bilanz?.depots ?? {}).filter((d) => (!land || d.land === land) && w.spiel?.kriege?.some((k) => k.land === d.land && (k.phase === "krieg" || k.phase === "waffenruhe")));
-	if (depots.length) treibstoff = depots.reduce((n, d) => n + d.verbraucht, 0) / Math.max(1e-9, depots.reduce((n, d) => n + d.bedarf, 0));
-	const material = Math.min(warenDeckung(w, "stahl"), warenDeckung(w, "elektronik"), warenDeckung(w, "strom"));
+	const fronten = (w.spiel?.kriege ?? []).filter((k) => (!land || k.land === land) && (k.phase === "krieg" || k.phase === "waffenruhe"));
+	let verbraucht = 0, bedarf = 0;
+	for (const k of fronten) {
+		const beleg = frontVersorgungsBeleg(w, k.land);
+		bedarf += beleg?.bedarf ?? frontMonatsverbrauch(k.phase);
+		verbraucht += beleg?.verbraucht ?? 0;
+	}
+	const treibstoff = bedarf > 0 ? Math.max(0, Math.min(1, verbraucht / bedarf)) : 1;
 	return {
 		treibstoff,
-		material,
+		material: Math.min(warenDeckung(w, "stahl"), warenDeckung(w, "elektronik"), warenDeckung(w, "strom")),
 		faktor: .25 + .75 * treibstoff,
 		monat: b?.monat
 	};
@@ -16757,10 +17363,6 @@ function migriereDevisen(w) {
 	e.reservenDruck ??= 0;
 	e.fxPuffer ??= 0;
 	aktualisiereReservenDruck(e);
-}
-/** Nominales BIP in Mrd. USD (abgeleitet aus dem Szenario-Feld bipTryTn und dem aktuellen Kurs). */
-function bipUsdMrd(e) {
-	return (e.bipTryTn ?? 84) * 1e3 / Math.max(1, e.usdTry);
 }
 /** Die rechnerische Zielmarke der Leistungsbilanz und ihre Bausteine. */
 function leistungsbilanzZerlegung(w) {
@@ -21487,7 +22089,7 @@ function haushaltMonat(w) {
 	const markt = e.policyRate + e.riskPremium / 100;
 	const ziel = ZINSSATZ_START + .25 * (markt - z.marktStart);
 	z.zinssatz = clamp$8(z.zinssatz + .06 * (ziel - z.zinssatz), 3, 60);
-	e.zinsMehrlast = e.debtRatio / 100 * (z.zinssatz - ZINSSATZ_START);
+	e.zinsMehrlast = Math.max(0, e.debtRatio) / 100 * z.zinssatz - PLAN_2026.zinsenProzentBip;
 }
 /** Monatlicher Schub, der die Abwanderung je % des BIP Bildungsüberhang um `WISSEN.abwanderungJeProzent` Punkte verschiebt. */
 const ABWANDERUNG_JE_PROZENT = s("abwanderung", WISSEN.abwanderungJeProzent).d;
@@ -21529,7 +22131,7 @@ function haushaltsfenster(w) {
 	};
 }
 /** Wendet einen beschlossenen Entwurf an: Regler-Stufen, Nachfrage-Impuls und Sofortwirkungen je Posten. */
-function wendeEntwurfAn(w, schritte, jahr) {
+function wendeEntwurfAn(w, schritte, jahr, paketTitel) {
 	const z = haushaltZustand(w);
 	let angewendet = 0;
 	for (const [id, zielStufe] of Object.entries(schritte)) {
@@ -21553,7 +22155,8 @@ function wendeEntwurfAn(w, schritte, jahr) {
 			tag: w.day,
 			datum: w.date,
 			posten: p.name,
-			text: t("haushalt.beschluss.gesetz", {
+			text: t(paketTitel ? "kp.beschlussPosten" : "haushalt.beschluss.gesetz", {
+				name: paketTitel ?? "",
 				jahr: String(jahr + 1),
 				posten: p.name,
 				richtung,
@@ -21588,27 +22191,28 @@ function haushaltszyklusTag(w, rng) {
 	const nein = 600 - ja;
 	const angenommen = ja >= REGELN$1.mehrheit;
 	const beleg = beginneHaushaltsBeleg(w, g, ja);
-	z.zyklusJahr = g.jahr;
+	if (!g.krisenpaket) z.zyklusJahr = g.jahr;
+	const titel = haushaltsTitel(g);
 	if (angenommen) {
-		const n = wendeEntwurfAn(w, g.schritte, g.jahr);
-		z.letztesErgebnis = "angenommen";
-		addLog(w, "entscheidung", `Das Parlament nimmt das Haushaltsgesetz ${g.jahr + 1} an (${ja} zu ${nein}): ${n} ${n === 1 ? "Posten" : "Posten"} geändert.`, `Das Defizit liegt jetzt bei ${fmt(defizitJetzt(w))} % des BIP. Die Änderungen wirken ab sofort; die Dauerwirkungen entfalten sich über die nächsten Monate.`);
-		addMarke(w, "haushalt", `Haushaltsgesetz ${g.jahr + 1} beschlossen`);
+		const n = wendeEntwurfAn(w, g.schritte, g.jahr, g.krisenpaket ? titel : void 0);
+		if (!g.krisenpaket) z.letztesErgebnis = "angenommen";
+		addLog(w, "entscheidung", `Das Parlament nimmt ${titel} an (${ja} zu ${nein}): ${n} ${n === 1 ? "Posten" : "Posten"} geändert.`, `Das Defizit liegt jetzt bei ${fmt(defizitJetzt(w))} % des BIP. Die Änderungen wirken ab sofort; die Dauerwirkungen entfalten sich über die nächsten Monate.`);
+		addMarke(w, "haushalt", `${titel} beschlossen`);
 		spiel.chronik.push({
 			tag: w.day,
 			datum: w.date,
-			titel: `Haushaltsgesetz ${g.jahr + 1}`,
+			titel,
 			ausgang: `Mit ${ja} zu ${nein} Stimmen angenommen.`
 		});
 	} else {
-		z.letztesErgebnis = "gescheitert";
+		if (!g.krisenpaket) z.letztesErgebnis = "gescheitert";
 		wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.scheiternLegitimitaet);
 		spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - .8);
-		addLog(w, "entscheidung", `Das Parlament lehnt das Haushaltsgesetz ${g.jahr + 1} ab (${ja} zu ${nein}).`, `Der Vorjahrshaushalt läuft weiter: Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation automatisch aus. Die Regierung wirkt geschwächt (Legitimität ${HAUSHALT_ZYKLUS.scheiternLegitimitaet}). Es fehlten ${REGELN$1.mehrheit - ja} Stimmen.`);
+		addLog(w, "entscheidung", `Das Parlament lehnt ${titel} ab (${ja} zu ${nein}).`, `Der Vorjahrshaushalt läuft weiter: Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation automatisch aus. Die Regierung wirkt geschwächt (Legitimität ${HAUSHALT_ZYKLUS.scheiternLegitimitaet}). Es fehlten ${REGELN$1.mehrheit - ja} Stimmen.`);
 		spiel.chronik.push({
 			tag: w.day,
 			datum: w.date,
-			titel: `Haushaltsgesetz ${g.jahr + 1}`,
+			titel,
 			ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.`
 		});
 	}
@@ -21622,6 +22226,10 @@ function schreibeHaushaltFort(w) {
 	z.letztesErgebnis = "fortgeschrieben";
 	z.entwurf = {};
 	addLog(w, "entscheidung", `Der Haushalt ${jahr + 1} wird fortgeschrieben.`, "Die Posten bleiben unverändert und laufen mit der Inflation automatisch mit; wer später ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.");
+}
+/** Gemeinsamer Name in Kalender, laufender Arbeit und gespeichertem Bericht. */
+function haushaltsTitel(g) {
+	return g.krisenpaket ? t("kp.gesetz", { name: t(`kp.${g.krisenpaket}.titel`) }) : t("sd.haushaltsgesetz", { jahr: g.jahr + 1 });
 }
 //#endregion
 //#region src/data/reich/kultur.ts
@@ -30754,6 +31362,9 @@ function bauKapazitaet(w) {
 function verwaltungBilanz(w) {
 	const z = reichZustand(w);
 	let einkommen = 18 + .05 * level(w, "m_verwaltungsdigital");
+	const h = w.spiel?.wirtschaft?.haushalt;
+	const personal = einkommen * .05 * clamp$8((h?.wirksam ?? h?.stufen)?.personal ?? 0, -4, 4);
+	einkommen += personal;
 	for (const id of Object.keys(z.bestand)) einkommen += vorhabenDef(id)?.kapazitaet?.verwaltung ?? 0;
 	let bau = 0;
 	for (const l of z.laufend) if (!l.pausiert) bau += vorhabenDef(l.id)?.kosten.verwaltung ?? 0;
@@ -30764,7 +31375,8 @@ function verwaltungBilanz(w) {
 		einkommen,
 		bau,
 		unterhalt,
-		netto: einkommen - bau - unterhalt
+		netto: einkommen - bau - unterhalt,
+		personal
 	};
 }
 const nodeName = (id) => NET.nodes[NET.index.get(id) ?? -1]?.name ?? id;
@@ -30879,7 +31491,7 @@ function vorhabenSicht(w, id) {
 		const bau = laufBau(lauf, v);
 		const f = bau > 0 ? lauf.fortschritt / bau : 1;
 		const rate = bauplan(w)[id] ?? 0;
-		const cap = Math.max(1, rate > 0 ? rate : Math.min(bau / Math.max(1, laufMonate(lauf, v)), bauKapazitaet(w)));
+		const termin = warteschlange(w).find((e) => e.id === id);
 		const phase = inVergabePhase(w, lauf);
 		const vorlauf = phase ? Math.ceil((lauf.vergabeBis - w.day) / 30) : 0;
 		return {
@@ -30887,7 +31499,7 @@ function vorhabenSicht(w, id) {
 			status: lauf.pausiert ? "pausiert" : "im_bau",
 			fortschritt: f,
 			rate,
-			restMonate: vorlauf + Math.ceil((bau - lauf.fortschritt) / cap),
+			...termin?.fertigIn !== void 0 ? { restMonate: termin.fertigIn } : {},
 			vergabe: laufVergabe(lauf),
 			vergabePhase: phase,
 			vergabeMonate: vorlauf
@@ -30916,6 +31528,8 @@ function vorhabenSicht(w, id) {
 		fortschritt: 0
 	};
 }
+/** Verwaltung bremst die verfügbare Leistung, nicht den Restauftrag. Sonst dauert der letzte Punkt beliebig lange. */
+const monatsBauleistung = (rate, kapazitaet, rest, faktor) => Math.min(Math.max(0, rate) * faktor, Math.max(0, kapazitaet) * faktor, Math.max(0, rest));
 /** Wie viele Baupunkte je Monat jedes laufende Vorhaben bei der jetzigen Reihenfolge und Kapazität bekommt. */
 function bauplan(w) {
 	const z = reichZustand(w);
@@ -30929,9 +31543,9 @@ function bauplan(w) {
 			continue;
 		}
 		const rest = Math.max(0, laufBau(l, v) - l.fortschritt);
-		const aufnahme = Math.min(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * forschungsTempo(w, l.id), cap, rest);
-		out[l.id] = aufnahme * verzug;
-		cap -= aufnahme;
+		const aufnahme = monatsBauleistung(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * forschungsTempo(w, l.id), cap, rest, verzug);
+		out[l.id] = aufnahme;
+		cap -= aufnahme / verzug;
 	}
 	return out;
 }
@@ -30962,7 +31576,7 @@ function wendeEffekt(w, e, faktor = 1) {
 			if (spiel) spiel.kapital = clamp$8(spiel.kapital + e.d * faktor, 0, 150);
 			break;
 		case "schulden":
-			w.economy.debtRatio += e.d * faktor;
+			bucheFinanzsaldo(w.economy, e.d * faktor);
 			break;
 		case "risiko":
 			w.economy.riskPremium = Math.max(0, w.economy.riskPremium + e.d * faktor);
@@ -31259,6 +31873,62 @@ function pausiere(w, id, an) {
 	l.pausiert = an;
 	return true;
 }
+/**
+* Die Baureihenfolge als öffentliche Liste mit ehrlichen Schätzungen:
+* Monat für Monat nachgespielt bei heutigem Tempo, Verwaltungsfaktor und Baukapazität.
+* Fertige Vorgänger geben Kapazität frei. Künftige Krisen, Budgetänderungen und Baurisiken sind nicht vorweggenommen.
+*/
+function warteschlange(w) {
+	const z = reichZustand(w);
+	const plan = bauplan(w);
+	const kapazitaet = bauKapazitaet(w);
+	const verzug = z.verwaltung <= 0 ? .5 : 1;
+	const ausstehend = /* @__PURE__ */ new Map();
+	const vorlauf = /* @__PURE__ */ new Map();
+	const tempo = /* @__PURE__ */ new Map();
+	for (const l of z.laufend) {
+		const v = vorhabenDef(l.id);
+		if (!v) continue;
+		ausstehend.set(l.id, Math.max(0, laufBau(l, v) - l.fortschritt));
+		tempo.set(l.id, forschungsTempo(w, l.id));
+		vorlauf.set(l.id, inVergabePhase(w, l) ? Math.ceil((l.vergabeBis - w.day) / 30) : 0);
+	}
+	const startIn = {};
+	const fertigIn = {};
+	const MAX_MONATE = 600;
+	for (let m = 1; m <= MAX_MONATE; m++) {
+		let frei = kapazitaet;
+		let allesFertig = true;
+		for (const l of z.laufend) {
+			const v = vorhabenDef(l.id);
+			if (!v || l.pausiert) continue;
+			let rest = ausstehend.get(l.id);
+			if (rest <= 0) continue;
+			allesFertig = false;
+			if ((vorlauf.get(l.id) ?? 0) >= m) continue;
+			const aufnahme = monatsBauleistung(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * tempo.get(l.id), frei, rest, verzug);
+			if (aufnahme <= 0) continue;
+			if (startIn[l.id] === void 0) startIn[l.id] = m - 1;
+			rest -= aufnahme;
+			frei -= aufnahme / verzug;
+			ausstehend.set(l.id, rest <= 1e-6 ? 0 : rest);
+			if (rest <= 1e-6) fertigIn[l.id] = m;
+		}
+		if (allesFertig) break;
+	}
+	return z.laufend.map((l, i) => ({
+		id: l.id,
+		position: i + 1,
+		vergabe: laufVergabe(l),
+		pausiert: !!l.pausiert,
+		vergabePhase: inVergabePhase(w, l),
+		rate: plan[l.id] ?? 0,
+		...l.pausiert ? {} : {
+			startIn: startIn[l.id] ?? (vorlauf.get(l.id) || void 0),
+			fertigIn: fertigIn[l.id]
+		}
+	}));
+}
 function aktiveVorteile(w) {
 	if (!w.spiel?.reich) return [];
 	return VORTEILE.filter((d) => d.voraus.every((x) => pruefeVoraus(w, x).erfuellt)).map((d) => d.id);
@@ -31342,7 +32012,7 @@ function ueberzugPruefen(w, l, v) {
 		const extra = Math.round(jetzt * frac);
 		l.bau = jetzt + extra;
 		l.monate = Math.ceil(laufMonate(l, v) * (1 + frac));
-		if (v.kosten.schulden && v.kosten.bau > 0) w.economy.debtRatio += v.kosten.schulden * extra / v.kosten.bau;
+		if (v.kosten.schulden && v.kosten.bau > 0) bucheFinanzsaldo(w.economy, v.kosten.schulden * extra / v.kosten.bau);
 		wirke(w, "legitimitaet", -.6);
 		meldung(w, "ueberzug", t("sim2.sim.reich.f3c24ba", {
 			p0: v.name,
@@ -31400,7 +32070,7 @@ function reichMonat(w, _rng) {
 		const bau = laufBau(l, v);
 		const rest = Math.max(0, bau - l.fortschritt);
 		const monatsMax = bau / Math.max(1, laufMonate(l, v)) * forschungsTempo(w, l.id);
-		const aufnahme = Math.min(monatsMax, cap, rest) * verzug;
+		const aufnahme = monatsBauleistung(monatsMax, cap, rest, verzug);
 		l.fortschritt += aufnahme;
 		cap -= aufnahme / verzug;
 		genutzt += aufnahme;
@@ -31414,7 +32084,7 @@ function reichMonat(w, _rng) {
 			if (!_rng) w.rngState = rngU.state;
 			if (ueberzug && frac > 0) {
 				l.bau = bau + Math.round(bau * frac);
-				if (v.kosten.schulden) w.economy.debtRatio += v.kosten.schulden * frac;
+				if (v.kosten.schulden) bucheFinanzsaldo(w.economy, v.kosten.schulden * frac);
 				wirke(w, "legitimitaet", -.6);
 				meldung(w, "ueberzug", t("sim2.sim.reich.f3c24ba", {
 					p0: v.name,
@@ -31426,7 +32096,7 @@ function reichMonat(w, _rng) {
 		if (v.bauwirkung && aufnahme > 0) for (const e of v.bauwirkung) wendeEffekt(w, amOrt(w, v, e));
 		if (!l.frei && v.ueberzug && bau > 0) ueberzugPruefen(w, l, v);
 		if (v.scheitern && !l.durchbruchGeprueft && bau > 0 && l.fortschritt / laufBau(l, v) >= v.scheitern.an && durchbruchPruefen(w, l, v)) continue;
-		if (v.kosten.schulden && bau > 0) w.economy.debtRatio += v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * kostenFaktor(w, l.id) * aufnahme / bau;
+		if (v.kosten.schulden && bau > 0) bucheFinanzsaldo(w.economy, v.kosten.schulden * VERGABE_REGELN[laufVergabe(l)].kosten * kostenFaktor(w, l.id) * aufnahme / bau);
 		if (l.fortschritt >= bau - 1e-6) schliesseAb(w, v);
 	}
 	z.bauGenutzt = genutzt;
@@ -34483,6 +35153,12 @@ const ressortNamen = (aemter) => aemter.map((a) => AEMTER[a].ressort);
 /** Eine Zusage, die Ministerien verspricht (Prolog: „zwei Ministerien zugesagt“). */
 const istMinisterienZusage = (z) => !z.massnahme && (z.id === "z-ministerien" || /Ministerien/.test(z.text));
 //#endregion
+//#region src/sim/wahlversprechen-bezug.ts
+/** Metadaten neuer Zusagen und die bisherigen festen Kennungen; keine Umbenennung alter Belege. */
+function wahlversprechenThema(z) {
+	return z.wahlversprechen?.thema ?? /^z-wahl-(v_[a-z]+)(?:$|--)/.exec(z.id)?.[1];
+}
+//#endregion
 //#region src/data/katastrophe_risiko.json
 var provinzen$1 = {
 	"1": {
@@ -35777,7 +36453,7 @@ function soforthilfe(w, fallId) {
 	const s = fall.staerke;
 	const versicherung = nationalAverage(NET, w.net, "m_versicherungspflicht") / 100;
 	const anteil = (.1 * s + .04) * (1 - KATASTROPHE.versicherungEntlastung * versicherung);
-	w.economy.debtRatio += anteil;
+	bucheFinanzsaldo(w.economy, anteil);
 	w.economy.outputGap += .08 * anteil;
 	if (fall.art === "erdbeben" || fall.art === "flut") {
 		wirke(w, "p_wohnungsnot", -3 * s, fall.provinzen);
@@ -35894,7 +36570,7 @@ function katastropheMonat(w, rng) {
 		if (fall.bewaeltigt) continue;
 		if (fall.hilfe.uebergangBis !== void 0 && fall.hilfe.uebergangBis > w.day) {
 			const kosten = KATASTROPHE.uebergangKosten * fall.staerke;
-			w.economy.debtRatio += kosten;
+			bucheFinanzsaldo(w.economy, kosten);
 			wirke(w, "p_wohnungsnot", -.6, fall.provinzen);
 			if (w.day - fall.tag === 60) vertrauenAendern(w, .4);
 		}
@@ -36856,7 +37532,7 @@ function vorgaengeAbgleichen(w) {
 	const liste = vorgaenge(w);
 	const hat = (art, ref) => liste.some((v) => v.ursprung.art === art && v.ursprung.ref === ref);
 	for (const z of sp.zusagen) {
-		if (z.id !== "z-wahl-v_wohnen" || z.erfuellt || z.gebrochen || hat("wahlversprechen", z.id)) continue;
+		if (wahlversprechenThema(z) !== "v_wohnen" || z.erfuellt || z.gebrochen || hat("wahlversprechen", z.id)) continue;
 		const kandidaten = PROVINZEN.filter((p) => p.grossstadt);
 		const best = kandidaten.reduce((a, b) => knotenIn(w, "p_wohnungsnot", b.plaka) > knotenIn(w, "p_wohnungsnot", a.plaka) ? b : a, kandidaten[0]);
 		starteVorgang(w, {
@@ -38554,546 +39230,6 @@ function fuehreGespraech(w, figurId, themaId, ansatz) {
 		...ausgeschieden ? { ausgeschieden } : {}
 	};
 }
-//#endregion
-//#region src/data/gueter.ts
-const GUETER = [
-	{
-		id: "getreide",
-		art: "nahrung",
-		einheit: "Mio. t",
-		produktion: 40,
-		verbrauch: 37,
-		ausfuhr: 7,
-		lagerMonate: 3,
-		lieferanten: [
-			{
-				land: "RUS",
-				anteil: 65
-			},
-			{
-				land: "UKR",
-				anteil: 20
-			},
-			{
-				land: "KAZ",
-				anteil: 5
-			}
-		],
-		kunden: [
-			"IRQ",
-			"SYR",
-			"LBY"
-		],
-		produktionTreiber: [{
-			knoten: "ernte",
-			elastizitaet: 1
-		}],
-		engpass: [{
-			knoten: "lebensmittelpreise",
-			jeProzent: .35
-		}],
-		quelle: "TÜİK/FAO 2023: Weizen rund 22, Mais rund 9, Gerste rund 9 Mio. t; TÜİK 2024: Weizen 20,8 Mio. t (minus 5,5 %). Weizeneinfuhr überwiegend aus Russland, rund 9 Mio. t je Saison (TOBB, schwach belegt; TÜİK-Außenhandel und TMO prüfen), Mehlausfuhr in den Irak und nach Afrika. TMO-Lagerbestand: Lücke.",
-		pruefen: true
-	},
-	{
-		id: "obst_gemuese",
-		art: "nahrung",
-		einheit: "Mio. t",
-		produktion: 56,
-		verbrauch: 50,
-		ausfuhr: 7,
-		lagerMonate: .5,
-		lieferanten: [{
-			land: "EGY",
-			anteil: 15
-		}],
-		kunden: [
-			"RUS",
-			"DEU",
-			"IRQ"
-		],
-		produktionTreiber: [{
-			knoten: "ernte",
-			elastizitaet: .8
-		}],
-		engpass: [{
-			knoten: "lebensmittelpreise",
-			jeProzent: .15
-		}],
-		quelle: "TÜİK 2023: Obst rund 25, Gemüse rund 31 Mio. t; die Türkei ist Nettoausfuhrland (Zitrus, Tomaten, Haselnüsse).",
-		pruefen: true,
-		beispiel: {
-			name: "Bananen",
-			produktion: .875,
-			verbrauch: 1.11,
-			einheit: "Mio. t",
-			orte: "Anamur und Bozyazı (Mersin), Alanya und Manavgat (Antalya), unter Folie"
-		}
-	},
-	{
-		id: "fleisch_milch",
-		art: "nahrung",
-		einheit: "Mio. t",
-		produktion: 25,
-		verbrauch: 24.5,
-		ausfuhr: .8,
-		lagerMonate: .5,
-		lieferanten: [{
-			land: "BRA",
-			anteil: 30
-		}],
-		kunden: ["IRQ", "SAU"],
-		produktionTreiber: [{
-			knoten: "landwirtschaft_einkommen",
-			elastizitaet: .4
-		}],
-		engpass: [{
-			knoten: "lebensmittelpreise",
-			jeProzent: .2
-		}],
-		quelle: "TÜİK 2023: Milch rund 21,5 Mio. t, Geflügel rund 2,4 und rotes Fleisch rund 1,5 Mio. t; Lebendvieh-Einfuhr schwankt.",
-		pruefen: true
-	},
-	{
-		id: "zucker_oele",
-		art: "nahrung",
-		einheit: "Mio. t",
-		produktion: 4.5,
-		verbrauch: 5.5,
-		ausfuhr: .3,
-		lagerMonate: 2,
-		lieferanten: [{
-			land: "RUS",
-			anteil: 55
-		}, {
-			land: "UKR",
-			anteil: 25
-		}],
-		kunden: ["IRQ"],
-		produktionTreiber: [{
-			knoten: "ernte",
-			elastizitaet: .7
-		}],
-		engpass: [{
-			knoten: "lebensmittelpreise",
-			jeProzent: .25
-		}],
-		quelle: "TBMM-Haushaltsvorlage Landwirtschaft: Zucker 2023/24 rund 3,3 Mio. t aus rund 23 Mio. t Rüben (TÜİK 2024: Rübe minus 8,9 %), Zucker damit praktisch autark; Sonnenblumenkerne und -öl zu großen Teilen aus Russland und der Ukraine (Menge zu prüfen, TÜİK-Außenhandel).",
-		pruefen: true
-	},
-	{
-		id: "wasser",
-		art: "wasser",
-		einheit: "km³",
-		produktion: 57,
-		verbrauch: 57,
-		ausfuhr: 0,
-		lagerMonate: 6,
-		lieferanten: [],
-		kunden: ["IRQ", "SYR"],
-		produktionTreiber: [{
-			knoten: "wasserversorgung",
-			elastizitaet: 1
-		}, {
-			knoten: "duerre",
-			elastizitaet: -.6
-		}],
-		verbrauchTreiber: [{
-			knoten: "landwirtschaft_einkommen",
-			elastizitaet: .3
-		}],
-		engpass: [{
-			knoten: "wasserversorgung",
-			jeProzent: -.4
-		}, {
-			knoten: "ernte",
-			jeProzent: -.3
-		}],
-		quelle: "DSİ: Entnahme rund 57 km³ je Jahr bei rund 112 km³ nutzbarem Potenzial, rund drei Viertel für die Bewässerung; „Ausfuhr“ meint den Abfluss von Euphrat und Tigris, der vertraglich nicht fest geregelt ist.",
-		pruefen: true
-	},
-	{
-		id: "strom",
-		art: "energie",
-		einheit: "TWh",
-		produktion: 349,
-		verbrauch: 347,
-		ausfuhr: 3,
-		lagerMonate: 0,
-		lieferanten: [{
-			land: "GEO",
-			anteil: 40
-		}, {
-			land: "BGR",
-			anteil: 40
-		}],
-		kunden: [
-			"IRQ",
-			"GEO",
-			"BGR"
-		],
-		produktionTreiber: [{
-			knoten: "stromversorgung",
-			elastizitaet: 1
-		}],
-		verbrauchTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .6
-		}],
-		engpass: [{
-			knoten: "stromversorgung",
-			jeProzent: -.6
-		}, {
-			knoten: "industrie",
-			jeProzent: -.2
-		}],
-		quelle: "TEİAŞ 2024: Erzeugung 348,9 TWh (EMO zählt 341,8 TWh); Mix laut Ember: Kohle 35,2, Wasser 21,5, Gas 18,9, Wind 10,5, Sonne 7,5, Geothermie 3,2 %. Außenhandel gering (wenige TWh). Erzeugung ist autark, ihre Brennstoffe sind es nicht (siehe Erdgas und Kohle).",
-		pruefen: true
-	},
-	{
-		id: "erdgas",
-		art: "energie",
-		einheit: "Mrd. m³",
-		produktion: 3.5,
-		verbrauch: 56.4,
-		ausfuhr: 1,
-		lagerMonate: 1.5,
-		lieferanten: [
-			{
-				land: "RUS",
-				anteil: 36
-			},
-			{
-				land: "AZE",
-				anteil: 20
-			},
-			{
-				land: "USA",
-				anteil: 16
-			},
-			{
-				land: "IRN",
-				anteil: 13
-			}
-		],
-		kunden: ["GEO", "BGR"],
-		produktionTreiber: [{
-			knoten: "sakarya_gas",
-			elastizitaet: 1
-		}],
-		verbrauchTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .4
-		}],
-		engpass: [{
-			knoten: "energiepreise",
-			jeProzent: .4
-		}, {
-			knoten: "energieversorgung",
-			jeProzent: -.4
-		}],
-		hormusAnteil: .1,
-		quelle: "BOTAŞ: Verbrauch 2024 56,39 Mrd. m³ (plus 9,5 %; über Presse, gegen EPDK-Sektorbericht prüfen), 2025 Rekord rund 60 Mrd. m³ (RECHERCHE_ENERGIE.md); Lagerkapazität Silivri und Tuz Gölü: Lücke; Lieferanten 2025 Russland 36, Aserbaidschan 20, USA 16, Iran 13, Algerien 8 Prozent (Ember; Algerien fehlt im Weltmodell und zählt zur übrigen Welt); Sakarya-Feld in der ersten Phase."
-	},
-	{
-		id: "erdoel",
-		art: "energie",
-		einheit: "Mio. t",
-		produktion: 5,
-		verbrauch: 50,
-		ausfuhr: 8,
-		lagerMonate: 3,
-		lieferanten: [
-			{
-				land: "RUS",
-				anteil: 55
-			},
-			{
-				land: "IRQ",
-				anteil: 15
-			},
-			{
-				land: "KAZ",
-				anteil: 10
-			}
-		],
-		kunden: ["EU"],
-		produktionTreiber: [{
-			knoten: "energieversorgung",
-			elastizitaet: .2
-		}],
-		verbrauchTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .3
-		}],
-		engpass: [{
-			knoten: "energiepreise",
-			jeProzent: .35
-		}, {
-			knoten: "lebenshaltung",
-			jeProzent: .1
-		}],
-		hormusAnteil: .15,
-		quelle: "EPDK/IEA: Bedarf rund eine Million Barrel je Tag; eigene Förderung (Batman, Şırnak-Gabar) rund ein Zehntel; Rohöl 2024 zu über der Hälfte aus Russland; Raffinerieprodukte werden auch ausgeführt. Lager: Pflichtvorrat nach IEA-Regel 90 Tage Nettoeinfuhr (Türkei ist IEA-Mitglied); die Angabe „rund 10 Tage“ (worldometers) ist schwach belegt und nicht übernommen.",
-		pruefen: true
-	},
-	{
-		id: "kohle",
-		art: "energie",
-		einheit: "Mio. t",
-		produktion: 90,
-		verbrauch: 130,
-		ausfuhr: 0,
-		lagerMonate: 2,
-		lieferanten: [{
-			land: "RUS",
-			anteil: 65
-		}],
-		kunden: [],
-		produktionTreiber: [{
-			knoten: "energieversorgung",
-			elastizitaet: .2
-		}],
-		engpass: [{
-			knoten: "strompreis",
-			jeProzent: .2
-		}, {
-			knoten: "industrie",
-			jeProzent: -.1
-		}],
-		quelle: "Ember/TÜİK: Braunkohle eigen (Afşin-Elbistan, Soma) rund 90 Mio. t, Steinkohle rund 40 Mio. t eingeführt, überwiegend aus Russland.",
-		pruefen: true
-	},
-	{
-		id: "stahl",
-		art: "industrie",
-		einheit: "Mio. t",
-		produktion: 36.9,
-		verbrauch: 37,
-		ausfuhr: 11,
-		lagerMonate: 1,
-		lieferanten: [
-			{
-				land: "USA",
-				anteil: 20
-			},
-			{
-				land: "EU",
-				anteil: 30
-			},
-			{
-				land: "RUS",
-				anteil: 15
-			}
-		],
-		kunden: [
-			"EU",
-			"USA",
-			"ISR"
-		],
-		produktionTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .8
-		}, {
-			knoten: "energiepreise",
-			elastizitaet: -.3
-		}],
-		verbrauchTreiber: [{
-			knoten: "bauwirtschaft",
-			elastizitaet: .7
-		}],
-		engpass: [{
-			knoten: "bauwirtschaft",
-			jeProzent: -.25
-		}, {
-			knoten: "industrie",
-			jeProzent: -.15
-		}],
-		quelle: "worldsteel/TÇÜD 2024: Rohstahl 36,9 Mio. t (2025 rund 38,1 Mio. t, Platz 7 der Welt; Presse, schwach belegt), überwiegend im Elektroofen aus Schrott (rund 20 Mio. t Schrotteinfuhr aus USA und EU).",
-		pruefen: true
-	},
-	{
-		id: "bor",
-		art: "rohstoff",
-		einheit: "Mio. t",
-		produktion: 2.5,
-		verbrauch: .3,
-		ausfuhr: 2.2,
-		lagerMonate: 2,
-		lieferanten: [],
-		kunden: [
-			"CHN",
-			"USA",
-			"EU"
-		],
-		produktionTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .3
-		}],
-		engpass: [],
-		quelle: "Eti Maden/USGS: rund drei Viertel der bekannten Borvorkommen der Welt liegen in der Türkei (Eskişehir, Balıkesir, Kütahya, Bursa); Ausfuhr vor allem nach China. Seltene Erden (Beylikova, Eskişehir) sind erschlossen, aber noch ohne nennenswerte Förderung.",
-		pruefen: true
-	},
-	{
-		id: "erze",
-		art: "rohstoff",
-		einheit: "Mio. t",
-		produktion: 3,
-		verbrauch: 1.2,
-		ausfuhr: 2.3,
-		lagerMonate: 1,
-		lieferanten: [{
-			land: "CHN",
-			anteil: 20
-		}],
-		kunden: ["CHN"],
-		produktionTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .3
-		}],
-		engpass: [{
-			knoten: "industrie",
-			jeProzent: -.05
-		}],
-		quelle: "USGS/MTA: Chromerz (Elazığ, Muğla, Eskişehir) rund 2 bis 3 Mio. t, die Türkei gehört zu den größten Förderländern; Kupfer (Artvin, Elazığ, Kastamonu) deckt den Bedarf nicht.",
-		pruefen: true
-	},
-	{
-		id: "elektronik",
-		art: "industrie",
-		einheit: "Mrd. $",
-		produktion: 4,
-		verbrauch: 24,
-		ausfuhr: 5,
-		lagerMonate: 1,
-		lieferanten: [
-			{
-				land: "CHN",
-				anteil: 55
-			},
-			{
-				land: "EU",
-				anteil: 15
-			},
-			{
-				land: "USA",
-				anteil: 5
-			}
-		],
-		kunden: ["EU"],
-		produktionTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .5
-		}],
-		engpass: [{
-			knoten: "industrie",
-			jeProzent: -.15
-		}, {
-			knoten: "internet",
-			jeProzent: -.05
-		}],
-		quelle: "Spielparameter: Chips und Bauteile werden fast vollständig eingeführt, Endgeräte (Fernseher, weiße Ware) teils im Land montiert; Wert der Einfuhr zu prüfen (TÜİK Außenhandel nach Warengruppen).",
-		pruefen: true
-	},
-	{
-		id: "medikamente",
-		art: "industrie",
-		einheit: "Mrd. $",
-		produktion: 5,
-		verbrauch: 8.9,
-		ausfuhr: 2.3,
-		lagerMonate: 3,
-		lieferanten: [
-			{
-				land: "EU",
-				anteil: 47
-			},
-			{
-				land: "DEU",
-				anteil: 17
-			},
-			{
-				land: "USA",
-				anteil: 16
-			},
-			{
-				land: "CHN",
-				anteil: 9
-			}
-		],
-		kunden: ["IRQ"],
-		produktionTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .3
-		}],
-		engpass: [{
-			knoten: "medikamente",
-			jeProzent: -.5
-		}, {
-			knoten: "gesundheitsversorgung",
-			jeProzent: -.2
-		}],
-		quelle: "İEİS/TEİS 2024: Einfuhr 6,22 Mrd. $ (plus 8,5 %; 2025: 7,3 Mrd. $), die Ausfuhr deckt 37 % davon; 64,4 % der Einfuhr aus Europa (Deutschland 1,04 Mrd. $), USA 984 Mio. $, China 540 Mio. $. Heimische Erzeugung in Dollar ist Spielparameter (der Großteil der Packungen wird im Land hergestellt, Wirkstoffe kommen von außen).",
-		pruefen: true
-	},
-	{
-		id: "duenger",
-		art: "nahrung",
-		einheit: "Mio. t",
-		produktion: 3.5,
-		verbrauch: 6.5,
-		ausfuhr: .2,
-		lagerMonate: 2,
-		lieferanten: [{
-			land: "RUS",
-			anteil: 40
-		}, {
-			land: "EGY",
-			anteil: 15
-		}],
-		kunden: [],
-		produktionTreiber: [{
-			knoten: "industrie",
-			elastizitaet: .4
-		}, {
-			knoten: "energiepreise",
-			elastizitaet: -.3
-		}],
-		engpass: [{
-			knoten: "ernte",
-			jeProzent: -.2
-		}, {
-			knoten: "landwirtschaft_einkommen",
-			jeProzent: -.2
-		}],
-		quelle: "Spielparameter nach Branchenangaben: Stickstoffdünger hängt am Gaspreis, ein großer Teil wird eingeführt; zu prüfen (Tarım ve Orman Bakanlığı, TÜGSAŞ).",
-		pruefen: true
-	},
-	{
-		id: "ruestung",
-		art: "ruestung",
-		einheit: "Index",
-		produktion: 0,
-		verbrauch: 0,
-		ausfuhr: 0,
-		lagerMonate: 0,
-		lieferanten: [{
-			land: "USA",
-			anteil: 40
-		}, {
-			land: "EU",
-			anteil: 40
-		}],
-		kunden: [
-			"AZE",
-			"UKR",
-			"SAU"
-		],
-		engpass: [],
-		quelle: "Autarkie aus dem Netzknoten „Rüstungsautarkie“ (Spielwert); das Militär-Inventar mit Beständen führt ein eigenes Modul."
-	}
-];
-new Map(GUETER.map((g) => [g.id, g]));
 const HUBS = [
 	22,
 	34,
@@ -39205,7 +39341,6 @@ const FRONT_ZUGANG = {
 const sum = (o) => Object.values(o).reduce((s, n) => s + n, 0);
 const clamp$4 = (n) => Math.max(0, Math.min(1, n));
 const aktiv$1 = (w) => (w.spiel?.kriege ?? []).filter((k) => k.phase === "krieg" || k.phase === "waffenruhe");
-const oelMonat = GUETER.find((g) => g.id === "erdoel").verbrauch / 12;
 const FRACHT = {
 	erdoel: 12,
 	erdgas: 12,
@@ -39244,7 +39379,7 @@ function frontBedarf(w) {
 	const z = w.spiel?.transport;
 	return aktiv$1(w).reduce((s, k) => {
 		const d = z?.depots[k.land];
-		const n = oelMonat * .12 * (k.phase === "waffenruhe" ? .35 : 1);
+		const n = frontMonatsverbrauch(k.phase);
 		const ziel = z?.massnahmen.some((a) => a.art === "depot" && a.ziel === k.land && aktivAm(w, a)) ? 30 : d?.zielTage ?? 15;
 		return s + Math.max(0, n * (1 + ziel / 30) - (d?.bestand ?? 0));
 	}, 0);
@@ -39344,7 +39479,7 @@ function transportLage(w) {
 	}
 	return {
 		routen: p.routen,
-		depots: Object.values(p.zustand.depots)
+		depots: Object.values(p.zustand.depots).filter((d) => aktiv$1(w).some((k) => k.land === d.land))
 	};
 }
 function erlaubt(r, gut) {
@@ -39430,10 +39565,11 @@ function regionalVerteilen(p, g, f, prioritaet) {
 	}));
 	const mil = g.id === "erdoel" ? aktiv$1(w).map((k) => {
 		const d = z.depots[k.land];
-		const bedarf = oelMonat * .12 * (k.phase === "waffenruhe" ? .35 : 1);
+		const bedarf = frontMonatsverbrauch(k.phase);
 		if (z.massnahmen.some((a) => a.art === "depot" && a.ziel === k.land && a.ab <= w.day)) d.zielTage = 30;
 		p.bilanz.depots[k.land] = {
 			land: k.land,
+			kriegId: k.id,
 			anfang: d.bestand,
 			geliefert: 0,
 			verbraucht: 0,
@@ -45576,7 +45712,7 @@ function infrastrukturMonat(w) {
 		}
 	}
 	z.leerKosten = Math.round(leer * .004 * 1e4) / 1e4;
-	if (z.leerKosten > 0) w.economy.debtRatio += z.leerKosten;
+	if (z.leerKosten > 0) bucheFinanzsaldo(w.economy, z.leerKosten);
 	for (const n of NETZE) {
 		const top = engpaesse(w, n.id, 1)[0];
 		if (!top || top.a < SCHWELLE.ueberlast || top.a <= top.start + .04) continue;
@@ -51864,7 +52000,7 @@ const BEHOERDEN = [
 		id: "justiz",
 		bereich: "recht",
 		ressort: "justiz",
-		posten: "personal",
+		posten: "justiz",
 		start: {
 			personal: 2,
 			technik: 3,
@@ -52049,7 +52185,7 @@ const BEHOERDEN = [
 		id: "diplomatie",
 		bereich: "aussen",
 		ressort: "aussen",
-		posten: "personal",
+		posten: "diplomatie",
 		start: {
 			personal: 3,
 			technik: 3,
@@ -52201,11 +52337,11 @@ const AUSBAU = {
 const RESSORT_POSTEN = {
 	praesidialamt: "innere_sicherheit",
 	inneres: "innere_sicherheit",
-	justiz: "personal",
+	justiz: "justiz",
 	finanzen: "personal",
 	gesundheit: "gesundheit",
 	bildung: "bildung",
-	aussen: "personal"
+	aussen: "diplomatie"
 };
 //#endregion
 //#region src/sim/behoerden.ts
@@ -55049,10 +55185,10 @@ function wahlkampfVon(w) {
 	};
 });
 /** Der Diaspora-Block bei der Wahl: registrierte Auslandswähler × Beteiligung × Lager-Modifikator (Recherche 6.1). */
-function diasporaBlock(w, inlandZustimmung) {
+function diasporaBlock(w, inlandZustimmung, zusaetzlicheBeteiligung = 0, zusaetzlichesLager = 0) {
 	const touren = w.spiel?.wahlkampf?.touren ?? [];
-	const beteiligungPlus = touren.reduce((s, t) => s + t.beteiligungPlus, 0);
-	const lagerPlus = touren.reduce((s, t) => s + t.lagerPlus, 0);
+	const beteiligungPlus = touren.reduce((s, t) => s + t.beteiligungPlus, zusaetzlicheBeteiligung);
+	const lagerPlus = touren.reduce((s, t) => s + t.lagerPlus, zusaetzlichesLager);
 	const p = DIASPORA_PROFIL;
 	const beteiligung = clamp$8(p.beteiligung + beteiligungPlus / 100, p.beteiligungKorridor.min, .75);
 	const effektivAnteil = p.anteilStimmen * (beteiligung / p.beteiligung);
@@ -60357,7 +60493,7 @@ const REICH_VORLAGEN = [
 			hebeStaette(w, "hagia_sophia", 2);
 			return "Die Regierung öffnet feste Zeiten für Besucher aller Glaubensrichtungen.";
 		}), opt("gebuehr", "Den Eintritt für Ausländer anheben", beschr(1, 0, "Einnahmen, weniger Gäste."), 1, (w) => {
-			w.economy.debtRatio -= .02;
+			bucheFinanzsaldo(w.economy, -.02);
 			wirke(w, "tourismus", -1, [34]);
 			return "Der Eintritt für ausländische Gäste steigt; das bringt Einnahmen und dämpft den Andrang.";
 		})],
@@ -62499,7 +62635,7 @@ const HAUSHALT = {
 			return "Ein Sparpaket wird angekündigt; die Märkte atmen auf, das Land murrt.";
 		}),
 		opt("steuer", "Steuern anheben", "Kostet 6 Kapital; bringt Einnahmen, trifft die Haushalte.", 6, (w) => {
-			w.economy.debtRatio -= .6;
+			bucheFinanzsaldo(w.economy, -.6);
 			wirke(w, "steuereinnahmen", 4);
 			wirke(w, "lebenshaltung", 3);
 			vertrauenAendern(w, -2);
@@ -62717,7 +62853,7 @@ const FLUECHTLINGE = {
 			return "Die Menschen werden aufgenommen; die Provinzen bekommen Unterstützung, die Stimmung bleibt gespalten.";
 		}),
 		opt("eu", "Mit der EU verhandeln", "Kostet 5 Kapital; wenn es klappt, zahlt die EU.", 5, (w) => {
-			w.economy.debtRatio -= .1;
+			bucheFinanzsaldo(w.economy, -.1);
 			wirke(w, "beziehungen_eu", 2);
 			wirke(w, "gefluechtete", 3 * ev.staerke, ev.provinzen);
 			return "Eine Vereinbarung mit der EU bringt Geld für die Grenzprovinzen.";
@@ -63838,7 +63974,7 @@ const VORSCHAU_CACHE = /* @__PURE__ */ new Map();
 */
 function wirkungsVorschau(world, ev, optionId) {
 	if (ev.vorlage === "zusage") return zusagenErinnerungsAntwort(world, ev, optionId)?.sofortfolgen ?? [];
-	const key = `${ev.id}|${optionId}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}`;
+	const key = `${ev.id}|${optionId}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
 	const gemerkt = VORSCHAU_CACHE.get(key);
 	if (gemerkt) return gemerkt;
 	const zeilen = [];
@@ -63850,6 +63986,7 @@ function wirkungsVorschau(world, ev, optionId) {
 			const vorher = /* @__PURE__ */ new Map();
 			for (const n of NET.nodes) if (!n.input) vorher.set(n.id, nationalAverage(NET, world.net, n.id));
 			const schulden0 = kopie.economy.debtRatio;
+			const kasse0 = kassenbestand(kopie.economy);
 			const risiko0 = kopie.economy.riskPremium;
 			const fx0 = kopie.economy.usdTry;
 			const loyal0 = new Map(kopie.spiel.figuren.map((f) => [f.id, f.loyalitaet]));
@@ -63861,6 +63998,8 @@ function wirkungsVorschau(world, ev, optionId) {
 			}
 			const ds = kopie.economy.debtRatio - schulden0;
 			if (Math.abs(ds) >= .04) zeilen.push(`Schulden ${ds > 0 ? "+" : "−"}${nf$7(Math.abs(ds), 2)} Prozentpunkte`);
+			const dk = kassenbestand(kopie.economy) - kasse0;
+			if (Math.abs(dk) > .001) zeilen.push(t("sf.kasseAenderung", { betrag: `${dk > 0 ? "+" : "−"}${nf$7(Math.abs(dk), 2)}` }));
 			const dr = kopie.economy.riskPremium - risiko0;
 			if (Math.abs(dr) >= 4) zeilen.push(`Risikoaufschlag ${dr > 0 ? "+" : "−"}${nf$7(Math.abs(dr), 0)} Punkte`);
 			const df = (kopie.economy.usdTry / fx0 - 1) * 100;
@@ -66756,8 +66895,13 @@ function tick(world) {
 	e.riskPremium = clamp$8(dailyRiskPremium(e, rng), 50, 2e3);
 	if (world.ppkDays.includes(world.day)) zinssitzung(world);
 	if (dayOfMonth(world.date) === 1) {
-		monthlyUpdate(e, world.history, rng);
+		const schulden = monthlyUpdate(e, world.history, rng);
 		staatsgeldMonat(world);
+		if (world.spiel) e.schuldenAbschluss = {
+			...schulden,
+			monat: previousMonth(monthOf(world.date)),
+			datum: world.date
+		};
 		world.history.push({
 			month: previousMonth(monthOf(world.date)),
 			inflation: e.inflation,
