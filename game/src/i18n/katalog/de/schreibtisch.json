@@ -224,5 +224,20 @@
  "mf.wirk.zeit": "in {monate} Monaten · ohne Eingriff {ohne}",
  "mf.rechnung": "Rechnung zeigen",
  "mf.lageMehr": "Mehr zur Lage",
- "mf.mehrheitFehlt": "{n, plural, one {Es fehlt # Stimme.} other {Es fehlen # Stimmen.}}"
+ "mf.mehrheitFehlt": "{n, plural, one {Es fehlt # Stimme.} other {Es fehlen # Stimmen.}}",
+ "sk.w.bewegung.text": "{name} wächst (Größe {g}).",
+ "sk.w.bewegung.warum": "Bewegungen werden zur Massenbewegung, wenn niemand antwortet. Dialog, Zugeständnis, Polizei oder Verbot stehen in der Gesellschaftsakte, jeweils mit Preis.",
+ "sk.w.putsch.text": "Unruhe im Offizierskorps (Stufe {stufe} von 3).",
+ "sk.w.putsch.warum": "Gerüchte, Rivalitäten und ein illoyaler Generalstab treiben das Putschrisiko. Einbinden, Entlassen oder Untersuchen: im Kabinett und Machtkreis.",
+ "sk.w.opposition.text": "Die Opposition ist stark ({s} von 100).",
+ "sk.w.opposition.warum": "Eine starke Opposition gewinnt Rathäuser, blockiert im Parlament und mobilisiert die Straße. Gespräch, Ermittlung oder Zugeständnis in der Gesellschaftsakte.",
+ "sk.w.ausschuss.text": "Die Opposition fordert einen Untersuchungsausschuss, Frist {wann}.",
+ "sk.w.ausschuss.warum": "Wer den Ausschuss abblockt, trägt den Verdacht; wer ihn zulässt, öffnet die Akten. Die Entscheidung liegt in der Gesellschaftsakte bei der Opposition.",
+ "sk.w.groll.text": "Groll unter {name} ({g} von 100).",
+ "sk.w.groll.warum": "Lang aufgestauter Groll entlädt sich in Bewegungen und Wahlenthaltung. Die Ursachen stehen in der Gesellschaftsakte beim Milieu.",
+ "sk.w.nachschub.text": "Der Nachschub an der Front gegen {land} versiegt ({p} % Treibstoff).",
+ "sk.w.nachschub.warum": "Ohne Treibstoff fällt die Kampfkraft bis auf ein Viertel. Reparatur der Wege, Umleitung, Luftbrücke oder Vorrang für das Militär helfen.",
+ "sk.w.waffenruhe.text": "Die Waffenruhe mit {land} endet {wann}.",
+ "sk.w.waffenruhe.angebot": "{land} hat ein Gegenangebot gemacht; die Waffenruhe endet {wann}.",
+ "sk.w.waffenruhe.warum": "Ohne Frieden kippt die Waffenruhe: Wer im Vorteil ist, greift wieder an, sonst friert der Konflikt ein."
 }

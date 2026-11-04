@@ -224,5 +224,20 @@
  "mf.wirk.zeit": "{monate} ay içinde · müdahalesiz {ohne}",
  "mf.rechnung": "Hesabı göster",
  "mf.lageMehr": "Durum hakkında daha fazla",
- "mf.mehrheitFehlt": "{n} oy eksik."
+ "mf.mehrheitFehlt": "{n} oy eksik.",
+ "sk.w.bewegung.text": "{name} büyüyor (büyüklük {g}).",
+ "sk.w.bewegung.warum": "Kimse yanıt vermezse hareketler kitle hareketine dönüşür. Diyalog, taviz, polis veya yasak, her biri bedeliyle toplum dosyasında.",
+ "sk.w.putsch.text": "Subay kadrosunda huzursuzluk (3 üzerinden {stufe}. kademe).",
+ "sk.w.putsch.warum": "Söylentiler, rekabetler ve sadakatsiz bir genelkurmay darbe riskini artırır. Dahil etmek, görevden almak veya soruşturmak: kabine ve iktidar çevresinde.",
+ "sk.w.opposition.text": "Muhalefet güçlü (100 üzerinden {s}).",
+ "sk.w.opposition.warum": "Güçlü bir muhalefet belediyeleri kazanır, mecliste engeller ve sokağı harekete geçirir. Görüşme, soruşturma veya taviz toplum dosyasında.",
+ "sk.w.ausschuss.text": "Muhalefet bir soruşturma komisyonu istiyor, süre {wann}.",
+ "sk.w.ausschuss.warum": "Komisyonu engelleyen şüpheyi taşır; izin veren dosyaları açar. Karar toplum dosyasında, muhalefet bölümünde.",
+ "sk.w.groll.text": "{name} arasında kırgınlık (100 üzerinden {g}).",
+ "sk.w.groll.warum": "Uzun süre biriken kırgınlık hareketlerde ve sandığa gitmemede patlar. Nedenler toplum dosyasında, kesim bölümünde.",
+ "sk.w.nachschub.text": "{land} cephesinde ikmal tükeniyor (yakıt % {p}).",
+ "sk.w.nachschub.warum": "Yakıt olmadan muharebe gücü dörtte bire düşer. Yolların onarımı, yönlendirme, hava köprüsü veya orduya öncelik yardımcı olur.",
+ "sk.w.waffenruhe.text": "{land} ile ateşkes {wann} sona eriyor.",
+ "sk.w.waffenruhe.angebot": "{land} karşı teklif sundu; ateşkes {wann} sona eriyor.",
+ "sk.w.waffenruhe.warum": "Barış olmadan ateşkes bozulur: Üstün olan yeniden saldırır, aksi halde çatışma donar."
 }

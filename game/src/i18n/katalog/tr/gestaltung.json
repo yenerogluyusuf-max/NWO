@@ -40,5 +40,7 @@
  "gz.konflikt.eskalation": "Tırmanma {wert} / 100",
  "gz.konflikt.spannung": "Gerginlik {wert} / 100",
  "gz.konflikt.krise": "kriz mümkün",
- "gz.konflikt.oeffnen": "Çatışma dosyasını aç →"
+ "gz.konflikt.oeffnen": "Çatışma dosyasını aç →",
+ "hinweis.zurAkte": "Dosyaya git",
+ "hinweis.verstanden": "Anladım"
 }

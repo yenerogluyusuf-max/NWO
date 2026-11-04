@@ -29,6 +29,11 @@ import type { World } from "../../sim/types";
 import { zusageText, zusageVon } from "../../sim/zusagen";
 import { zusageZiel } from "../../sim/zusagenfolgen";
 import { koalitionsHinweis } from "../koalitionshinweis";
+import { gesellschaftVon, milieuLage } from "../../sim/gesellschaft";
+import { oppositionVon } from "../../sim/opposition";
+import { endenZustand } from "../../sim/enden";
+import { aktiveKriege, KRIEG } from "../../sim/krieg";
+import { militaerVersorgung } from "../../sim/versorgung";
 
 /** Wohin ein Eintrag führt. Die Bühne übersetzt das in ein Fenster. */
 export type Ziel =
@@ -37,7 +42,9 @@ export type Ziel =
   | { art: "akte"; akte: "wirtschaft" | "entscheidungen" | "parlament" | "waehler" | "welt" | "personen" | "chronik" | "programme" | "beschluesse" | "bereiche" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | "wirkungsbericht"; start?: "haushalt" | "inventar"; programm?: VersorgungsProgramm }
   | { art: "politik"; theme?: Theme; massnahme?: { id: string; level?: number; ort?: number[] | null } }
   | { art: "ereignis"; id: string }
-  | { art: "land"; id: string };
+  | { art: "land"; id: string }
+  /** Konfliktdossier eines Landes (Welt → Land → Konflikt) */
+  | { art: "konflikt"; land: string };
 
 /** Was ein Knopf tut: hingehen oder gleich handeln. */
 export type Knopf =
@@ -401,11 +408,46 @@ export function warnungen(world: World): Warnung[] {
       out.push({ id: "verwaltung", stufe: "gelb", text: t("sk.w.verwaltung.text"), warum: t("sk.w.verwaltung.warum"), ziel: { art: "akte", akte: "reich_haushalt" } });
     }
   }
+  innenUndKriegsWarnungen(world, out);
   const monateWahl = monateBis(spiel.wahltag - world.day);
   if (monateWahl <= 12 && z < 46) {
     out.push({ id: "wahl", stufe: "gelb", text: t("sk.w.wahl.text", { n: monateWahl, z: Math.round(z) }), warum: t("sk.w.wahl.warum"), ziel: { art: "akte", akte: "waehler" } });
   }
   return out.sort((a, b) => Number(b.stufe === "rot") - Number(a.stufe === "rot"));
+}
+
+/**
+ * Innen- und Kriegswarnungen (PRUEFUNG_GESAMT_2026-11-04): Früher warnte der Schreibtisch weder vor Massenbewegungen noch vor
+ * Putschgefahr, einer starken Opposition, dem Groll eines Milieus, einer offenen Ausschussforderung, versiegendem Nachschub an der
+ * Front oder dem Ende einer Waffenruhe. Jede Warnung führt in die Ansicht, in der man handelt. Schwellen sind Spielparameter.
+ */
+function innenUndKriegsWarnungen(world: World, out: Warnung[]): void {
+  const spiel = world.spiel!;
+  const g = gesellschaftVon(world);
+  const bewegung = g.bewegungen.filter((b) => b.phase === "massen" || (b.phase === "waechst" && b.groesse >= 25)).sort((a, b) => b.groesse - a.groesse)[0];
+  if (bewegung) out.push({ id: `bewegung-${bewegung.id}`, stufe: bewegung.phase === "massen" ? "rot" : "gelb", text: t("sk.w.bewegung.text", { name: t(`ges.bew.art.${bewegung.art}`), g: Math.round(bewegung.groesse) }), warum: t("sk.w.bewegung.warum"), ziel: { art: "akte", akte: "waehler" } });
+  const putsch = endenZustand(world).putsch;
+  if (putsch.stufe >= 1) out.push({ id: "putsch", stufe: putsch.stufe >= 2 ? "rot" : "gelb", text: t("sk.w.putsch.text", { stufe: putsch.stufe }), warum: t("sk.w.putsch.warum"), ziel: { art: "akte", akte: "personen" } });
+  const opp = oppositionVon(world);
+  if (opp.staerke >= 65) out.push({ id: "opposition", stufe: opp.staerke >= 80 ? "rot" : "gelb", text: t("sk.w.opposition.text", { s: Math.round(opp.staerke) }), warum: t("sk.w.opposition.warum"), ziel: { art: "akte", akte: "waehler" } });
+  if (opp.ausschussBis !== undefined && opp.ausschussBis >= world.day) {
+    const tage = opp.ausschussBis - world.day;
+    out.push({ id: "ausschuss", stufe: tage <= 14 ? "rot" : "gelb", text: t("sk.w.ausschuss.text", { wann: tageWort(tage) }), warum: t("sk.w.ausschuss.warum"), ziel: { art: "akte", akte: "waehler" } });
+  }
+  const groll = milieuLage(world).filter((m) => m.groll > 50).sort((a, b) => b.groll - a.groll)[0];
+  if (groll) out.push({ id: `groll-${groll.id}`, stufe: groll.groll > 65 ? "rot" : "gelb", text: t("sk.w.groll.text", { name: t(`ges.milieu.${groll.id}`), g: groll.groll }), warum: t("sk.w.groll.warum"), ziel: { art: "akte", akte: "waehler" } });
+  for (const k of aktiveKriege(world)) {
+    const name = akteurName(k.land);
+    if (k.phase === "krieg") {
+      const v = militaerVersorgung(world, k.land);
+      if (v.treibstoff < 0.5) out.push({ id: `nachschub-${k.id}`, stufe: v.treibstoff < 0.25 ? "rot" : "gelb", text: t("sk.w.nachschub.text", { land: name, p: Math.round(v.treibstoff * 100) }), warum: t("sk.w.nachschub.warum"), ziel: { art: "konflikt", land: k.land } });
+    }
+    if (k.phase === "waffenruhe") {
+      const rest = KRIEG.waffenruheFrist - (world.day - k.seit);
+      out.push({ id: `waffenruhe-${k.id}`, stufe: rest <= 21 ? "rot" : "gelb", text: t(k.angebotPaket ? "sk.w.waffenruhe.angebot" : "sk.w.waffenruhe.text", { land: name, wann: tageWort(Math.max(0, rest)) }), warum: t("sk.w.waffenruhe.warum"), ziel: { art: "konflikt", land: k.land } });
+    }
+  }
+  void spiel;
 }
 
 export function termine(world: World): Termin[] {

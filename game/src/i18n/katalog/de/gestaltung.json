@@ -40,5 +40,7 @@
  "gz.konflikt.eskalation": "Eskalation {wert} / 100",
  "gz.konflikt.spannung": "Spannung {wert} / 100",
  "gz.konflikt.krise": "Krise möglich",
- "gz.konflikt.oeffnen": "Konfliktdossier öffnen →"
+ "gz.konflikt.oeffnen": "Konfliktdossier öffnen →",
+ "hinweis.zurAkte": "Zur Akte",
+ "hinweis.verstanden": "Verstanden"
 }

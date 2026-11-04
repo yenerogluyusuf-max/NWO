@@ -40,5 +40,7 @@
  "gz.konflikt.eskalation": "Escalation {wert} / 100",
  "gz.konflikt.spannung": "Tension {wert} / 100",
  "gz.konflikt.krise": "crisis possible",
- "gz.konflikt.oeffnen": "Open conflict dossier →"
+ "gz.konflikt.oeffnen": "Open conflict dossier →",
+ "hinweis.zurAkte": "Open file",
+ "hinweis.verstanden": "Understood"
 }

@@ -38,6 +38,7 @@ import { Icon, type IconName } from "./icons";
 import { Cameo } from "./art/Cameo";
 import type { Theme } from "../data/politiknetz";
 import { Corners } from "./art/Ornament";
+import { hinweisZiel } from "./hinweisziel";
 import { EventWindow, type GameEvent } from "./EventWindow";
 import { EreignisFenster } from "./EreignisFenster";
 import { Reich } from "./Reich";
@@ -765,6 +766,12 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         setWeltStart(z.id);
         oeffneDossier("welt");
         break;
+      case "konflikt":
+        setWeltStart(z.land);
+        setWeltTab("konflikt");
+        setDossier("welt");
+        beendeZeit();
+        break;
     }
   };
 
@@ -1252,7 +1259,11 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 ))}
               </>
             ),
-            actions: [{ label: "Verstanden", primary: true }],
+            // Zweiter Knopf „Zur Akte“: führt dorthin, wo man auf den Hinweis antwortet (PRUEFUNG_GESAMT_2026-11-04)
+            actions: [
+              ...(() => { const z = hinweisZiel(hinweis.id); return z ? [{ label: t("hinweis.zurAkte"), run: () => { spiel!.hinweise = spiel!.hinweise.filter((x) => x.id !== hinweis.id); gehe(z); } }] : []; })(),
+              { label: t("hinweis.verstanden"), primary: true },
+            ],
           }}
           onClose={() => {
             // Quittiert genau diesen Hinweis (in der Warteschlange können gesammelte C-Meldungen nachrücken)

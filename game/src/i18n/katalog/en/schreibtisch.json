@@ -224,5 +224,20 @@
  "mf.wirk.zeit": "in {monate} months · without action {ohne}",
  "mf.rechnung": "Show the calculation",
  "mf.lageMehr": "More on the situation",
- "mf.mehrheitFehlt": "{n, plural, one {# vote short.} other {# votes short.}}"
+ "mf.mehrheitFehlt": "{n, plural, one {# vote short.} other {# votes short.}}",
+ "sk.w.bewegung.text": "{name} is growing (size {g}).",
+ "sk.w.bewegung.warum": "Movements turn into mass movements when nobody answers. Dialogue, concession, police or ban are in the society file, each with a price.",
+ "sk.w.putsch.text": "Unrest in the officer corps (level {stufe} of 3).",
+ "sk.w.putsch.warum": "Rumours, rivalries and a disloyal general staff drive the coup risk. Involve, dismiss or investigate: in the cabinet and inner circle.",
+ "sk.w.opposition.text": "The opposition is strong ({s} of 100).",
+ "sk.w.opposition.warum": "A strong opposition wins town halls, blocks parliament and mobilises the street. Talks, investigation or concession in the society file.",
+ "sk.w.ausschuss.text": "The opposition demands a committee of inquiry, deadline {wann}.",
+ "sk.w.ausschuss.warum": "Whoever blocks the committee carries the suspicion; whoever allows it opens the files. The decision is in the society file under opposition.",
+ "sk.w.groll.text": "Resentment among {name} ({g} of 100).",
+ "sk.w.groll.warum": "Long pent-up resentment erupts in movements and abstention. The causes are in the society file under the milieu.",
+ "sk.w.nachschub.text": "Supplies at the front against {land} are drying up ({p} % fuel).",
+ "sk.w.nachschub.warum": "Without fuel combat power falls to a quarter. Repairing routes, rerouting, an airlift or priority for the military help.",
+ "sk.w.waffenruhe.text": "The ceasefire with {land} ends {wann}.",
+ "sk.w.waffenruhe.angebot": "{land} has made a counter-offer; the ceasefire ends {wann}.",
+ "sk.w.waffenruhe.warum": "Without peace the ceasefire tips: whoever has the upper hand attacks again, otherwise the conflict freezes."
 }
