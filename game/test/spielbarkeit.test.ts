@@ -186,7 +186,7 @@ function lauf(name: string, bot: Bot, seed: number, mitBuendnis = seed % 2 === 1
     ende: w.spiel!.ende?.art ?? "läuft",
     jahre: w.day / 365,
     zustimmung5,
-    ereignisseProJahr: w.spiel!.chronik.filter((c) => !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel)).length / Math.max(1, w.day / 365),
+    ereignisseProJahr: w.spiel!.chronik.filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel)).length / Math.max(1, w.day / 365),
     akut: akutZahl(w),
     gesetze,
   };

@@ -91,6 +91,8 @@ export interface ChronikEintrag {
   datum: string;
   titel: string;
   ausgang: string;
+  /** Einträge, die keine Entscheidung waren (historische Momente, Epochenurteil): Zählungen und Rückblicke lassen sie aus */
+  art?: "moment" | "epoche";
 }
 
 export interface Umfrage {

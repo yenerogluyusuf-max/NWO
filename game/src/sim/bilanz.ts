@@ -99,7 +99,7 @@ function vermaechtnisSaetze(w: World): string[] {
   if (geaendert.length) out.push(t("bilanz.verfassung", { n: geaendert.length, artikel: geaendert }));
   const fertig = Object.keys(sp.reich?.bestand ?? {}).length;
   if (fertig > 0) out.push(t("bilanz.reich", { fertig }));
-  const wende = sp.chronik.filter((c) => !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel) && !c.ausgang.startsWith("Keine Entscheidung")).slice(-3).map((c) => c.titel);
+  const wende = sp.chronik.filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel) && !c.ausgang.startsWith("Keine Entscheidung")).slice(-3).map((c) => c.titel);
   if (wende.length) out.push(t("bilanz.wendepunkte", { liste: wende }));
   return out;
 }
@@ -118,7 +118,7 @@ export function erstelleBilanz(w: World, modus: "ende" | "zwischen" = "ende"): B
   const akut = akuteProbleme(w);
   const gesetze = w.log.filter((l) => l.kind === "entscheidung" && l.text.startsWith("Das Parlament nimmt")).length;
   const abgelehnt = w.log.filter((l) => l.kind === "entscheidung" && l.text.startsWith("Das Parlament lehnt")).length;
-  const entscheidungen = spiel.chronik.filter((c) => !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel)).length;
+  const entscheidungen = spiel.chronik.filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel)).length;
   const unentschieden = spiel.chronik.filter((c) => c.ausgang.startsWith("Keine Entscheidung")).length;
   const archiv = spiel.zielArchiv ?? [];
   const mehrere = archiv.length > 0 && modus === "ende" && spiel.ziele.length > 0;

@@ -63,7 +63,7 @@ function moment(w: World, id: string, wert: number, params: Record<string, strin
   z.momente.push({ tag: w.day, datum: w.date, id, wert, titel });
   z.wert += wert;
   z.zuletzt[id] = w.day;
-  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: t("epoche.chronik.titel", { titel }), ausgang: t("epoche.chronik.wert", { wert: wert > 0 ? `+${wert}` : String(wert), summe: z.wert }) });
+  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: t("epoche.chronik.titel", { titel }), ausgang: t("epoche.chronik.wert", { wert: wert > 0 ? `+${wert}` : String(wert), summe: z.wert }), art: "moment" });
 }
 
 const frei = (z: EpochenZustand, id: string, tag: number): boolean => tag - (z.zuletzt[id] ?? -1e9) >= EPOCHE.abkuehlung;
@@ -153,7 +153,7 @@ export function bewerteEpoche(w: World, abgelaufen: number): EpochenStufe {
   if (f.legitimitaet) wirke(w, "legitimitaet", f.legitimitaet);
   if (f.protest) wirke(w, "protestdruck", f.protest);
   const titel = t(`epoche.stufe.${stufe}`);
-  sp.chronik.push({ tag: w.day, datum: w.date, titel: t("epoche.bewertung.titel", { nr: abgelaufen, stufe: titel }), ausgang: t(`epoche.stufe.${stufe}.folge`) });
+  sp.chronik.push({ tag: w.day, datum: w.date, titel: t("epoche.bewertung.titel", { nr: abgelaufen, stufe: titel }), ausgang: t(`epoche.stufe.${stufe}.folge`), art: "epoche" });
   if (!sp.hinweise.some((h) => h.id === `epoche-${abgelaufen}`)) sp.hinweise.push({ id: `epoche-${abgelaufen}`, titel: t("epoche.bewertung.titel", { nr: abgelaufen, stufe: titel }), text: [t(`epoche.stufe.${stufe}.text`, { wert: z.wert }), t(`epoche.stufe.${stufe}.folge`)], szene: "wahlnacht" });
   addLog(w, "ereignis", t("epoche.bewertung.titel", { nr: abgelaufen, stufe: titel }), t(`epoche.stufe.${stufe}.folge`));
   z.amtszeit = abgelaufen + 1; z.wert = 0; z.momente = [];

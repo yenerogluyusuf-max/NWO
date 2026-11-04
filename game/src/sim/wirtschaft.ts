@@ -128,7 +128,7 @@ export function addMarke(w: World, art: Marke["art"], text: string): void {
 export function alleMarken(w: World): Marke[] {
   const eigene = w.spiel?.wirtschaft?.marken ?? [];
   const chronik: Marke[] = (w.spiel?.chronik ?? [])
-    .filter((c) => !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel))
+    .filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel))
     .map((c) => ({ tag: c.tag, monat: monthOf(c.datum), art: "ereignis" as const, text: `${c.titel}: ${c.ausgang}` }));
   return [...eigene, ...chronik].sort((a, b) => a.tag - b.tag);
 }

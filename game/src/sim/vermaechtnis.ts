@@ -90,7 +90,7 @@ export function vermaechtnis(w: World): VermaechtnisDaten {
     .slice(0, 8);
   const kat = katastrophenZustand(w);
   const hist = sp.verfassungsvorgang?.historie ?? [];
-  const chronik = sp.chronik.filter((c) => !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel) && !c.ausgang.startsWith("Keine Entscheidung"));
+  const chronik = sp.chronik.filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel) && !c.ausgang.startsWith("Keine Entscheidung"));
   const es = endenSicht(w);
   return {
     name: w.player?.name ?? "",
