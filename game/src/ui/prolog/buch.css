@@ -165,10 +165,10 @@
 .chip .pips { display: inline-flex; gap: 2px; flex: none; }
 .chip .pips b { width: 6px; height: 6px; border-radius: 50%; background: rgba(0, 0, 0, 0.16); }
 .chip .pips b.an { background: currentColor; }
-.chip.gruppe, .chip.vorteil { color: #2f5f3a; background: #e3ecd3; border-color: #b8cc9c; }
+.chip.gruppe, .chip.vorteil { color: #4f6b3a; background: #efe9d2; border-color: #c2b98f; }
 .chip.preis { color: #8a2a1e; background: #f4dcd3; border-color: #dba99a; }
 .chip.fern { color: #7a3a24; background: #f1e1cd; border-color: #d8bb98; }
-.chip.partner { color: #1f4f56; background: #d8e8e6; border-color: #9fc4c0; }
+.chip.partner { color: #6b4a1c; background: #f1e3c0; border-color: #c69a4a; }
 .chip.leer { color: var(--ink-soft); background: rgba(120, 90, 50, 0.1); font-weight: 500; }
 
 /* Vorschau als Zettel an der Karte (Zeiger oder Fokus): oben liegende Karten klappen nach unten auf, untere nach oben */

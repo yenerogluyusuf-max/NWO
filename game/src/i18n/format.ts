@@ -238,10 +238,44 @@ function rendereKnoten(knoten: Knoten[], params: Params, sprache: Sprache, plura
         throw new Error(`Unbekannte Art „${k.art}“ bei ${k.name}`);
     }
     for (const marke of k.pipes) text = wendeMarkeAn(text, w, marke, sprache);
+    if (sprache === "de" && k.art === undefined && k.pipes.length === 0 && typeof w === "string" && DE_ARTIKEL[w]) {
+      const g = beugeNachPraeposition(out, w);
+      out = g.davor;
+      text = g.name;
+    }
     out += text;
   }
   return out;
 }
+
+/**
+ * Ländernamen mit Artikel im Deutschen: Die Kataloge setzen „mit {land}“, „gegen {land}“, „nach {land}“. Für Namen ohne Artikel
+ * (Russland, Iran) stimmt das; für „Vereinigte Staaten“ entstand „Zwischenfall mit Vereinigte Staaten“. Hier wird der Name nach
+ * der Präposition davor gebeugt (Dativ nach mit/von/bei/aus/zu/seit/gegenüber, Akkusativ nach gegen/für/durch/ohne/um,
+ * „nach“ wird zu „in“ mit Akkusativ). Ohne Präposition bleibt die Grundform.
+ */
+const DE_ARTIKEL: Record<string, { dat: string; akk: string }> = {
+  "Vereinigte Staaten": { dat: "den Vereinigten Staaten", akk: "die Vereinigten Staaten" },
+  "Vereinigtes Königreich": { dat: "dem Vereinigten Königreich", akk: "das Vereinigte Königreich" },
+  "Europäische Union": { dat: "der Europäischen Union", akk: "die Europäische Union" },
+  "Vereinigte Arabische Emirate": { dat: "den Vereinigten Arabischen Emiraten", akk: "die Vereinigten Arabischen Emirate" },
+  Niederlande: { dat: "den Niederlanden", akk: "die Niederlande" },
+  "Saudi-Arabien und Golfstaaten": { dat: "Saudi-Arabien und den Golfstaaten", akk: "Saudi-Arabien und die Golfstaaten" },
+  "Republik Zypern": { dat: "der Republik Zypern", akk: "die Republik Zypern" },
+};
+const DE_DATIV = /(^|[\s(„"])(mit|von|bei|aus|zu|seit|gegenüber|Mit|Von|Bei|Aus|Zu|Seit|Gegenüber) $/;
+const DE_AKKUSATIV = /(^|[\s(„"])(gegen|für|durch|ohne|um|Gegen|Für|Durch|Ohne|Um) $/;
+const DE_NACH = /(^|[\s(„"])(nach|Nach) $/;
+function beugeNachPraeposition(davor: string, name: string): { davor: string; name: string } {
+  const f = DE_ARTIKEL[name]!;
+  if (DE_DATIV.test(davor)) return { davor, name: f.dat };
+  if (DE_AKKUSATIV.test(davor)) return { davor, name: f.akk };
+  const n = DE_NACH.exec(davor);
+  if (n) return { davor: davor.slice(0, davor.length - n[2]!.length - 1) + (n[2] === "Nach" ? "In " : "in "), name: f.akk };
+  return { davor, name };
+}
+/** Für Tests: Dativ- und Akkusativformen der Namen mit Artikel */
+export const DE_LAENDER_MIT_ARTIKEL = DE_ARTIKEL;
 
 /** Setzt die Einsatzwerte in eine Meldungsvorlage ein. */
 export function formatiere(vorlage: string, params: Params | undefined, sprache: Sprache): string {
