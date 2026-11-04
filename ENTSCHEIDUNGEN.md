@@ -309,3 +309,7 @@ Aus der Gesamtprüfung ([PRUEFUNG_GESAMT_2026-11-04.md](PRUEFUNG_GESAMT_2026-11-
 1. **Gezielt statt pauschal:** CAATSA trifft die Rüstungsbehörde SSB. Sie sperrt US-Lizenzen für Rüstungsvorhaben und Triebwerke und US-Lieferungen von Rüstung und Elektronik, aber keine zivilen Chips, keine KI, keine Medizin und kein LNG-Abkommen. Breite Handelsmaßnahmen (EU) sperren den Handel mit dem Partner ganz.
 2. **Eingepreist:** Was zu Spielbeginn schon gilt, steckt in den kalibrierten Startwerten (Risikoaufschlag, Netz). Es zählt nicht noch einmal; wird es aufgehoben, entlastet das mit umgekehrtem Vorzeichen.
 3. **Grenze für Kriegsvorgänge:** Höchstens zwei Vorgänge gleichzeitig. Ausnahme bei akuter Angriffsgefahr (Konflikt ab 90, Spielparameter): Dann darf ein dritter entstehen, solange nicht schon zwei heiße (ab Drohkulisse) laufen. So scheitert ein echter Angriff nie an zwei lauen Spannungen.
+
+## S. Vorgabe 04.11.2026: Mehr mit der Karte arbeiten
+
+Der Projektinhaber: In allen Bereichen soll man viel mehr mit der Karte und auf der Karte arbeiten, wie in Civilization. Die Akten bleiben (das ist der Sinn des Spiels), aber man soll auf der Karte mehr sehen und dort handeln können. Ausarbeitung folgt als Vorschlag mit Fragen an den Projektinhaber.
