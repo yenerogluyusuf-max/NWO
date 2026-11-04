@@ -14,7 +14,7 @@ import { startAfterElection, type PlayerProfile } from "../src/sim/prolog";
 import { nationalAverage } from "../src/sim/netz";
 import { entscheide, standardAntwort } from "../src/sim/ereignisse";
 import { bringeEin, pruefeVorhaben } from "../src/sim/handeln";
-import { waehleZiele } from "../src/sim/spiel";
+import { waehleZiele, zielZustimmung } from "../src/sim/spiel";
 import { duellVorbereiten, wahlkampfAktiv, wahlkampfSicht, wahlkampfTag } from "../src/sim/wahlkampf";
 import { amtszeitBegrenzt, amtszeitJahre, kuerFaellig, maxAmtszeiten, nachfolgeZustand, regelPruefen, umbildungAbschliessen, waehleZieleAmtszeit } from "../src/sim/amtszeit";
 import { ARTIKEL, VERFASSUNG_REGELN, artikelDef, bringeVerfassungEin, paketStimmen, paketVervollstaendigen, referendumAuszaehlen, verfassungAktiv, verfassungsZustand } from "../src/sim/verfassung";
@@ -57,6 +57,25 @@ function spiel(seed = 5): World {
   waehleZiele(w, ["inflation15", "wohnen", "mehrheit"], "normal");
   w.spiel!.ereignisse = [];
   return w;
+}
+
+
+/**
+ * Läuft bis kurz nach dem Wahltag und hält die Zustimmung dabei halbjährlich auf dem Zielwert (wie in wahl.test.ts). Eine einmalige
+ * Anhebung trägt seit Protesten, Putschzirkel und liegengebliebenen Bitten nicht mehr über fünf Jahre Nichtstun (PRUEFUNG_GESAMT_2026-11-04).
+ */
+function bisNachWahl(w: World, ziel: number): void {
+  const sp = w.spiel!;
+  sp.umfrage.zustimmung = ziel;
+  sp.kalibrierung += 33;
+  while (sp.wahltag - w.day > 32 && !sp.ende) {
+    advance(w, Math.min(180, sp.wahltag - w.day - 32));
+    for (let i = 0; i < 3; i++) sp.kalibrierung += ziel - zielZustimmung(w);
+    sp.umfrage.zustimmung = ziel;
+    sp.ereignisse = [];
+  }
+  advance(w, sp.wahltag - w.day + 1);
+  if (sp.wahl?.stichwahl) advance(w, 16);
 }
 
 /** Setzt die Verfassungsregel, als wäre sie beschlossen worden (der Weg über das Parlament steht in den Verfassungstests). */
@@ -259,10 +278,7 @@ describe("Ohne Grenze gibt es keine letzte Amtszeit", () => {
   test("Keine letzte Wahl, keine Kür, keine Nachfolge, kein Nachfolger-Wahlkampf", () => {
     const w = spiel(6);
     regel(w, "amtszeit", "unbegrenzt");
-    w.spiel!.umfrage.zustimmung = 80;
-    w.spiel!.kalibrierung += 33;
-    advance(w, w.spiel!.wahltag - w.day + 1);
-    if (w.spiel!.wahl?.stichwahl) advance(w, 16);
+    bisNachWahl(w, 80);
     expect(w.spiel!.amtszeit).toBe(2);
     umbildungAbschliessen(w);
     waehleZieleAmtszeit(w, []);
@@ -280,10 +296,7 @@ describe("Ohne Grenze gibt es keine letzte Amtszeit", () => {
 
   test("Fällt die Grenze mitten in der letzten Amtszeit, entfällt die Nachfolge und der Wahlkampf kämpft für den Präsidenten", () => {
     const w = spiel(7);
-    w.spiel!.umfrage.zustimmung = 80;
-    w.spiel!.kalibrierung += 33;
-    advance(w, w.spiel!.wahltag - w.day + 1);
-    if (w.spiel!.wahl?.stichwahl) advance(w, 16);
+    bisNachWahl(w, 80);
     umbildungAbschliessen(w);
     waehleZieleAmtszeit(w, []);
     expect(istLetzteWahl(w)).toBe(true);
@@ -439,10 +452,7 @@ describe("Mehrere Wahlen ohne Grenze", () => {
     regel(w, "amtszeit", "unbegrenzt");
     const sp = w.spiel!;
     for (let nr = 1; nr <= 3; nr++) {
-      sp.umfrage.zustimmung = 82;
-      sp.kalibrierung += 33;
-      advance(w, sp.wahltag - w.day + 1);
-      if (sp.wahl?.stichwahl) advance(w, 16);
+      bisNachWahl(w, 82);
       expect(sp.ende, `nach Wahl ${nr}`).toBeUndefined();
       expect(sp.amtszeit).toBe(nr + 1);
       expect(sp.zielwahl?.offen).toBe(true);
@@ -468,10 +478,7 @@ describe("Mehrere Wahlen ohne Grenze", () => {
     const w = spiel(17);
     const sp = w.spiel!;
     regel(w, "amtszeitlaenge", "jahre_7");
-    sp.umfrage.zustimmung = 82;
-    sp.kalibrierung += 33;
-    advance(w, sp.wahltag - w.day + 1);
-    if (sp.wahl?.stichwahl) advance(w, 16);
+    bisNachWahl(w, 82);
     expect(sp.amtszeit).toBe(2);
     expect(sp.wahltag - w.day).toBeGreaterThan(365 * 6.9);
     expect(sp.wahltag - w.day).toBeLessThan(365 * 7.1 + 2);
