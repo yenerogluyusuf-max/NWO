@@ -22,7 +22,7 @@
   "wv.vertrauen": "Government trust: {n} index points. Group reactions are also index points, not guaranteed votes.",
   "wv.gesetz": "What subsequent legislation requires",
   "wv.erreicht": "The promised national target has already been enacted. Implementation may still take time.",
-  "wv.gesetzPreis": "A new bill today: {pk} political capital and {auf} attention. Annual modelled burden versus today: {bip} percentage points of GDP ({geld} bn TRY). Implementation after passage: {monate} months.",
+  "wv.gesetzPreis": "A new bill today: {pk} political capital and {auf} attention. Annual modelled burden versus today: {bip} percentage points of GDP ({geld} bn TRY). Implementation after passage: {monate, plural, one {# month} other {# months}}.",
   "wv.finanzierung": "The promise does not book these amounts. Positive amounts mean additional spending or lost revenue; offsetting funding is not automatic.",
   "wv.regional": "Already under debate: regional bill, target {ziel}.",
   "wv.laufend": "Already under debate: nationwide bill, target {ziel}.",

@@ -22,10 +22,12 @@
 .ak-kernwert .ak-funke{max-width:100%;color:var(--ak-akzent);opacity:.8}
 .ak-arbeitsplatz{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:start;min-width:0}
 .ak-navigation{min-width:0;border-radius:12px;background:var(--ak-tief);color:#f8f5e9;padding:16px 10px;position:relative}
+/* Zweispaltig bleibt das Menü beim Lesen langer Seiten stehen (sonst bleibt links eine leere Spalte); ist es höher als das Fenster, scrollt es selbst. */
+.ak-navigation{position:sticky;top:12px;max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .ak-navtitel{display:block;margin:0 10px 12px;font:500 10px/1.4 var(--sans,Inter,sans-serif);letter-spacing:.13em;text-transform:uppercase;color:#d6dcd5}
 .ak-navgruppe>div{display:grid;gap:4px}.ak-navgruppe.einordnung{margin-top:18px;padding-top:17px;border-top:1px solid #ffffff24}
 .ak-navigation button{display:grid;grid-template-columns:20px minmax(0,1fr) 12px;align-items:center;gap:10px;width:100%;min-height:44px;padding:11px 10px;text-align:left;background:transparent;border:1px solid transparent;border-radius:7px;color:#e0e7df;box-shadow:none;cursor:pointer;font:500 13px/1.5 var(--sans,Inter,sans-serif)}
-.ak-navigation button>span{overflow-wrap:anywhere}.ak-navigation button .icon{opacity:.8;flex-shrink:0}.ak-navigation button>i{font-style:normal;font-size:15px}
+.ak-navigation button>span{overflow-wrap:break-word;hyphens:auto}.ak-navigation button .icon{opacity:.8;flex-shrink:0}.ak-navigation button>i{font-style:normal;font-size:15px}
 .ak-navigation button:hover{background:#ffffff12;color:#fffdf5}.ak-navigation button.on{background:#fcfaf1;color:var(--ak-tief);border-color:#fcfaf1;box-shadow:0 2px 4px #00000012;font-weight:650}
 .ak-navigation button:focus-visible{outline:3px solid #e5c78e;outline-offset:2px}
 .ak-zum-inhalt{position:absolute;top:4px;left:8px;padding:10px;background:#fcfaf1;color:var(--ak-tief);border-radius:6px;z-index:2;transform:translateY(-150%);clip-path:inset(50%)}
@@ -33,7 +35,7 @@
 .ak-inhalt{min-width:0;container:akteninhalt/inline-size}.ak-inhalt:focus-visible{outline:2px solid var(--ak-akzent);outline-offset:6px;border-radius:5px}
 @container aktenbereich (max-width:950px){
  .ak-kopf{grid-template-columns:minmax(0,1fr);gap:18px}.ak-kernwerte{border-top:1px solid var(--ak-linie);padding-top:16px}.ak-kernwert:first-child{border-left:0;padding-left:0}
- .ak-arbeitsplatz{grid-template-columns:minmax(0,1fr);gap:20px}.ak-navigation{padding:12px}
+ .ak-arbeitsplatz{grid-template-columns:minmax(0,1fr);gap:20px}.ak-navigation{padding:12px;position:relative;top:auto;max-height:none;overflow:visible}
  .ak-navtitel{margin:0 7px 9px}.ak-navgruppe>div{grid-template-columns:repeat(3,minmax(0,1fr))}.ak-navgruppe.einordnung{margin-top:10px;padding-top:10px}.ak-navgruppe.einordnung .ak-navtitel{display:none}
  .ak-navigation button{padding:9px 10px;font-size:13px}
 }

@@ -163,3 +163,28 @@ Ein echter Tageslauf bringt das neu versprochene Rentenziel ein und läuft durch
 Nachweise: `reports/Wahlversprechen-Stand-2026-11-03.json` fasst die jüngsten Ergebnisse samt Quellenprüfsummen zusammen. Die drei ursprünglich scheiternden Fehlerfälle bleiben in `Wahlversprechen-Vorpruefung-2026-11-03.json` erhalten. Ein späterer Testfehler verwendete eine numerische Vergleichsassertion für ein ISO-Datum; er wurde korrigiert, und die betroffene Datei ist vollständig bestanden. Dieser Zwischenstand ist ausdrücklich als `Wahlversprechen-Datumsassertion-*` erhalten. Erfolgreicher Build: `Wahlversprechen-Build-2026-11-03.log`.
 
 Der zuvor offene Prüfpunkt zu wiederholten Wahlversprechen ist damit bearbeitet. Der harte Inflationsverlauf vor der Wahl bleibt eine getrennte Balancefrage. Die neuen Karten schaffen weder zusätzliche Zustimmungsboni noch eine Wiederwahlgarantie.
+
+
+## Anschluss: Browserprüfung der jüngsten Oberflächen (4. November)
+
+Die bisher offene visuelle Abnahme von Wahlkampf mit Reisen, Wahlversprechen-Karte und Krisengesetzen ist nachgeholt, in vier Fenstergrößen (1280×720, 1000×570, 1512×982, 390×844). Der Spielstand entsteht im Browser über die Module des Dev-Servers (Wahl in 56 Tagen). WebGL ist dabei abgeschaltet, weil die Cloud-Umgebung keine Grafikkarte hat; die 3D-Karte im Wahlkampf bleibt deshalb leer und ist **nicht** geprüft.
+
+### Gefundene und behobene Fehler
+
+| Befund | Wo | Ursache | Korrektur |
+|---|---|---|---|
+| „Umsetzung nach Annahme: 1 Monate“, „Etwa 1 Monate“ | Wahlversprechen-Karte, Krisengesetz-Karte, Krisenpaket (DE/EN) | feste Mehrzahl im Text | ICU-Mehrzahl (`{n, plural, one {# Monat} other {# Monate}}`); Türkisch braucht keine |
+| Leere linke Spalte beim Lesen langer Seiten | alle Akten mit Seitenmenü (`akte.css`) | Menü scrollte mit dem Inhalt weg | Menü bleibt im zweispaltigen Layout stehen und scrollt bei Bedarf selbst; einspaltig unverändert |
+| „Gesellschaftlich / e Vorhaben“ | Aktenmenü | `overflow-wrap:anywhere` trennt mitten im Wort | Silbentrennung (`hyphens:auto`, Seite hat `lang`) |
+| Meldungschips liegen über modalen Blättern | Stand der Dinge, Ereignisse (vor allem schmal) | Chips z-index 120, Blatt 10 | Chips verborgen, solange ein modales Blatt offen ist |
+| Knopf „Bereiche“ verdeckt Fristzeile und Knöpfe modaler Blätter | Handy | Knopf z-index 150 | auf dem Handy verborgen, solange ein Blatt offen ist |
+| Zielnamen laufen über den Kartenrand | Zielwahl am ersten Tag, Handy | Spalte `1fr` statt `minmax(0,1fr)`, zwei Spalten bei 390 px | eine Spalte unter 480 px, Umbruch mit Silbentrennung |
+| Meldungschips über der Aktentitelzeile, Kartenschalter über dem Akteninhalt | Handy mit offener Akte | Chips 120; Kartenschalter gleicher z-index 8 wie die Akte, später im DOM | beide verborgen, solange auf dem Handy eine Akte offen ist; die Warnungen stehen weiter am Schreibtisch |
+
+### Prüfung
+
+- Wiederholbar mit `node e2e/wahlkampf-oberflaeche-pruef.mjs` (Dev-Server muss laufen). Gegen den Stand vor der Korrektur meldet das Skript 24 Befunde, danach keinen. Log: `reports/Wahlkampf-Oberflaeche-Pruefung-2026-11-04.log`, Bilder: `reports/Wahlkampf-Oberflaeche-2026-11-04/`.
+- 246 von 247 gezielten Tests bestanden (Wahlversprechen, Krisengesetze, Wahlkampfreisen und alle Sprach-/Katalogtests). Der eine Fehlschlag (`reich-katalog`: Transitabkommen, Vertrauen Kasachstan 66,92 statt über 67) tritt unverändert auch ohne diese Änderungen auf; er ist ein bestehender Kalibrierungsfehler und bleibt offen.
+- TypeScript und Produktionsbuild bestanden; der bekannte Hinweis zu großen Paketen bleibt.
+
+Grenzen: Die automatische Überlaufprüfung erfasst nur einen Teil möglicher Fehler; die Bilder wurden zusätzlich einzeln angesehen. Die 3D-Karte, Animationen und Safari/Firefox sind nicht geprüft.

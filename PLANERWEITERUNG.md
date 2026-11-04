@@ -146,3 +146,13 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 3. Speichern und Laden (SAVE-01).
 4. Figuren und Kabinett, danach freie Sprachbefehle (ACT-01, CHAT-01) und Agenda (AGENDA-01).
 5. Karte: Tag-und-Nacht-Grenze, Wetter, Markierungen für Probleme und Projekte.
+
+
+## 10. Nächste Schritte (Stand 04.11.2026)
+
+Die Liste in Abschnitt 9 ist großteils umgesetzt (Parlament, Ereignisse, Speichern, Kabinett, KI-Befehle, Agenda). Laufend gilt:
+
+1. **Gestaltung nach Vorgabe P** ([ENTSCHEIDUNGEN.md](ENTSCHEIDUNGEN.md#p-vorgabe-04112026-das-spiel-muss-schöner-werden)): Bestandsaufnahme aller Ansichten, gemeinsame Bildsprache für Handlungen (Karte statt Textwand), dann Ansicht für Ansicht umbauen.
+2. **Offener Testfehler** `reich-katalog` (Transitabkommen: Vertrauen Kasachstan knapp unter der Erwartung): Kalibrierung oder Erwartung prüfen.
+3. **Balance:** harter Inflationsverlauf vor der Wahl ([KRISENRAT_REGIERUNGSARBEIT_2026-11-03.md](KRISENRAT_REGIERUNGSARBEIT_2026-11-03.md)).
+4. **Browserprüfung ausweiten:** 3D-Karte und Animationen auf einem Rechner mit Grafikkarte; Safari und Firefox. Die Prüfung `e2e/wahlkampf-oberflaeche-pruef.mjs` dient als Muster für weitere Ansichten.

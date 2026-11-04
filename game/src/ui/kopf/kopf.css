@@ -103,6 +103,8 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 
 /* Meldungen unter der Leiste: beschriftete Kapseln in fester Reihenfolge, auch auf großen Bildschirmen mit Text */
 .alerts.kf-meldungen { top: 64px; left: 16px; max-width: calc(100vw - 480px); flex-wrap: wrap; gap: 6px; }
+/* Ein modales Blatt (Ereignis, Stand der Dinge) liegt mit z-index 10 unter den Meldungen (120); auf schmalen Fenstern verdeckten die Chips seinen Text und blieben klickbar. */
+.stage:has(> .event-layer) > .kf-meldungen { visibility: hidden; }
 /* Die Zahl steht im Text („10 akute Probleme“); eine zweite Zahl davor entfällt */
 .kf-meldungen .alert .alert-zahl, .kf-meldungen .alert.kompakt .alert-zahl { display: none; }
 .kf-meldungen .alert .alert-text, .kf-meldungen .alert.kompakt .alert-text { display: inline-block; }
