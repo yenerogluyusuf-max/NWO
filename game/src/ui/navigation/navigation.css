@@ -51,3 +51,24 @@
   .stage .dossier-menu.regierungs-navigation .menu-kurz{font-size:10.5px;line-height:1.15}
   .stage .regierungs-navigation h3{margin:5px 2px 2px;font-size:8px}
 }
+/* Einklappbare Leiste (Vorgabe S): schmal zeigt sie nur Zeichen und Zahlen; Name im Tooltip. Akten rücken nach links. */
+@media(min-width:1101px){.stage .regierungs-navigation .rn-marke{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}}
+.stage .dossier-menu.regierungs-navigation button.rn-klappe{flex:none;width:28px;min-height:28px;height:28px;padding:0;margin:0;justify-content:center;border:1px solid #c69a4a66;border-radius:6px;color:#f1d58f;font:400 16px/1 var(--kapitaelchen);background:#ffffff0a}
+.stage .dossier-menu.regierungs-navigation button.rn-klappe:hover{background:#ffffff1a;transform:none}
+@media(min-width:1101px){
+  .stage:has(.regierungs-navigation.rn-schmal){--rn-abstand:80px}
+  .stage .dossier-menu.regierungs-navigation.rn-schmal{width:60px;padding:8px 5px;overflow-x:visible}
+  .stage .regierungs-navigation.rn-schmal .rn-marke{justify-content:center;padding:0 0 8px}
+  .stage .regierungs-navigation.rn-schmal .rn-marke-text,.stage .regierungs-navigation.rn-schmal .menu-kurz{display:none}
+  .stage .regierungs-navigation.rn-schmal h3{font-size:0;margin:8px 4px 4px;height:1px;background:#c69a4a44}
+  .stage .regierungs-navigation.rn-schmal h3::before{display:none}
+  .stage .dossier-menu.regierungs-navigation.rn-schmal button:not(.rn-klappe){justify-content:center;padding:6px 0;min-height:38px;flex-wrap:nowrap}
+  .stage .dossier-menu.regierungs-navigation.rn-schmal button.on{margin-right:-5px;width:calc(100% + 5px)}
+  .stage .regierungs-navigation.rn-schmal .rn-zahlen{position:absolute;top:1px;right:1px}
+  .stage .regierungs-navigation.rn-schmal .rn-zahlen b{font-size:9px;padding:2px 3px}
+}
+@media(max-width:720px){.stage .dossier-menu.regierungs-navigation button.rn-klappe{display:none}}
+/* Ist eine Akte offen, tritt die Kartenebene zurück (sie ragte halb unter das Blatt); auf der Karte ist sie wieder da */
+@media(min-width:721px){.stage:has(> .dossier) > .linsen{visibility:hidden}}
+/* Eingeklappte Leiste: auch die Kartenebene zeigt nur ihr Medaillon */
+@media(min-width:1101px){.stage:has(.regierungs-navigation.rn-schmal) .linsen-knopf > :not(.linsen-medaillon){display:none}}

@@ -83,7 +83,8 @@ button.link { border: none !important; background: none !important; box-shadow: 
 /* ---------------------------------------------------------------------- */
 /* Bühne */
 
-.stage { position: fixed; inset: 0; overflow: hidden; background: #e9e0cc; }
+/* overflow: clip statt hidden: Die Bühne lässt sich nicht verschieben, auch nicht durch Springen per Tastatur oder „ins Bild scrollen“ (sonst rutschten Kopfleiste und Karte nach oben weg) */
+.stage { position: fixed; inset: 0; overflow: hidden; overflow: clip; background: #e9e0cc; }
 .stage-map { position: absolute !important; inset: 0; min-height: 0; border-radius: 0; }
 .stage::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;

@@ -51,6 +51,8 @@
   "kp.seitBeschluss": "Since the vote: {n} points",
   "rn.marke": "Staatsräson",
   "rn.unter": "Your government workspace",
+  "rn.einklappen": "Collapse the bar: more map",
+  "rn.ausklappen": "Expand the bar",
   "rn.bereiche": "Sections",
   "rn.regieren": "Govern",
   "rn.land": "Shape the country",

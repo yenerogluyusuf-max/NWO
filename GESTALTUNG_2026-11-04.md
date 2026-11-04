@@ -110,4 +110,9 @@ Anlass: Der Projektinhaber sah ein Spiel, das wirkt, als hätten mehrere Leute i
 - Die Leiste wird bei niedrigen Bildschirmen dichter: Bei 1024×768 bis 1920×1080 sind alle elf Bereiche ohne Scrollen sichtbar.
 - Die Meldung „Die Karte konnte nicht geladen werden“ steht in der Mitte statt unter der Kartusche.
 
+**Vierte Runde (4. November):**
+- **Einklappbare Leiste** (»/«, wird gemerkt): schmal nur Zeichen und Zahlen, die Karte zeigt den ganzen Westen bis Edirne; Akten rücken nach links und werden breiter; die Kartenebene zeigt dann nur ihr Medaillon.
+- **Die Bühne verrutscht nicht mehr:** Beim Springen in eine Akte (Tastatur, „ins Bild“) rutschten Kopfleiste und Karte nach oben weg (`overflow: clip`).
+- Ist eine Akte offen, tritt die Kartenebene zurück, statt halb unter dem Blatt zu stecken.
+
 **Noch offen:** Kartenmarken (die meisten verbleibenden Knopfbilder), die Zeitung als eigenes Druckbild bewusst ausgenommen, Parteifarben im Halbrund bleiben.
