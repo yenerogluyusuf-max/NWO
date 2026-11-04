@@ -180,3 +180,21 @@
 }
 
 .sk .mf-optionen > .mf-option:only-child > .pd-btn { min-width:0; align-self:stretch; }
+
+/* Amtszeit-Epoche (sim/epoche.ts): Siegel, Aussicht, die letzten Momente. Golden Messing, dunkel Leder, heroisch Siegelrot. */
+.sd-epoche{display:grid;grid-template-columns:minmax(220px,auto) minmax(0,1fr);gap:8px 22px;align-items:center;margin:14px 0 4px;padding:12px 16px;background:#fffdf7;border:1px solid #dccdab;border-left:4px solid #c69a4a;border-radius:6px}
+.sd-epoche.dunkel{border-left-color:#3a2418;background:linear-gradient(90deg,#efe4cb,#fffdf7 50%)}
+.sd-epoche.heroisch{border-left-color:#8e2a22}
+.sd-epoche.normal{border-left-color:#b09a74}
+.sd-epoche-kopf{display:flex;align-items:center;gap:12px}
+.sd-epoche-siegel{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;flex:none;font-size:20px;color:#f7ecd2;background:radial-gradient(circle at 38% 32%,#d8b26a,#a37c3c 60%,#6b4a1c);box-shadow:0 0 0 2px #fffdf7,0 0 0 3px #c69a4a}
+.sd-epoche.dunkel .sd-epoche-siegel{background:radial-gradient(circle at 38% 32%,#6b4a2c,#3a2418 60%,#24150c)}
+.sd-epoche.heroisch .sd-epoche-siegel{background:radial-gradient(circle at 38% 32%,#b23a2e,#8e2a22 55%,#5c140f)}
+.sd-epoche-kicker{display:block;font:700 11.5px/1.3 var(--maschine);letter-spacing:.12em;text-transform:uppercase;color:#8e2a22}
+.sd-epoche-kopf strong{display:block;font:400 18px/1.2 var(--kapitaelchen);color:#2a1f18;letter-spacing:.02em}
+.sd-epoche-kopf small{display:block;font:14px/1.3 var(--serif);color:#6a5a4a}
+.sd-epoche-momente{list-style:none;margin:0;padding:0;display:grid;gap:3px;font:14px/1.35 var(--serif);color:#3f3129}
+.sd-epoche-momente b{display:inline-block;min-width:30px;font:600 14px var(--serif)}
+.sd-epoche-momente .gut b{color:#4f6b3a}.sd-epoche-momente .schlecht b{color:#8e2a22}
+.sd-epoche-leer{margin:0;font:italic 14px/1.4 var(--serif);color:#6a5a4a}
+@media(max-width:700px){.sd-epoche{grid-template-columns:minmax(0,1fr)}}

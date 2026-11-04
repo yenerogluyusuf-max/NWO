@@ -59,6 +59,7 @@ import { VERFASSUNG, belastungEreignis, verfassungStart, verfassungTag } from ".
 import { wahlkampfTag } from "./wahlkampf";
 import { wahlTick } from "./wahl";
 import { amtszeitMonat, muedigkeitsMonate } from "./amtszeit";
+import { epocheMonat } from "./epoche";
 import { endenMonat } from "./enden";
 import { dauerherrscherMonat } from "./dauerherrscher";
 import { kabinettStatus } from "./kabinett";
@@ -108,8 +109,14 @@ export const SPIEL = {
   kapitalGrund: 3.5,
   kapitalVertrauen: 5,
   kapitalMehrheit: 1.5,
-  /** Verlust an Zustimmung je Monat im Amt (Regierungsmüdigkeit) */
-  muedigkeit: 0.30,
+  /**
+   * Verlust an Zustimmung je Monat im Amt (Regierungsmüdigkeit), Spielparameter. Beleg als Untergrenze: Die „Kosten des Regierens“
+   * liegen bei rund 2,25 Prozentpunkten Stimmenverlust je Wahlperiode (Paldam 1986; Nannestad & Paldam 2002). Das Spiel nimmt
+   * 0,15 je Monat (9 Punkte je fünfjähriger Amtszeit), weil die Zustimmung kein Stimmenanteil ist und die Müdigkeit zugleich den
+   * Schwierigkeitsgrad trägt. Vorher 0,30 (18 Punkte): Seit den Ministeranliegen (2. November) gewann kluges Regieren nur noch
+   * 3 von 8 ersten Wahlen; mit 0,15 sind es 7 von 8, Nichtstun 1 von 8 (Messung 4. November, test/spielbarkeit.test.ts).
+   */
+  muedigkeit: 0.15,
   /** Gewicht der Probleme in der Zustimmung: Summe der Bevölkerungsanteile in Provinzen mit akutem Problem */
   problemGewicht: 4,
   /** Monate unter der Sturzschwelle bis zum Sturz */
@@ -407,6 +414,7 @@ function spielMonat(world: World, rng: Rng): void {
   figurenPruefen(world, rng);
   ueberlaeufer(world);
   grosseZieleMonat(world);
+  epocheMonat(world);
   ressortNachsorgeTag(world);
   haushaltsMonatsabschluss(world);
   // Amtszeit (sim/amtszeit.ts): ältere Stände nachholen, Umbildungsfenster schließen, in der letzten Amtszeit die Nachfolge

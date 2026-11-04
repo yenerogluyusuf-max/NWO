@@ -10,6 +10,7 @@ import { zusageText } from '../../sim/zusagen';
 import { formatDateDe } from '../../sim/dates';
 import { zielStand } from '../../sim/ziele';
 import { offenerKonflikt, vorgaenge } from '../../sim/vorgaenge';
+import { epochenSicht } from '../../sim/epoche';
 import { PROVINZEN } from '../../sim/regional';
 import { mentorNotes } from '../mentor';
 import { Icon } from '../icons';
@@ -99,6 +100,17 @@ export function SchreibtischRueckblick({world,onGehe,onPosteingang,umlauf}:{worl
   </div>;
 }
 
+/** Amtszeit-Epoche (sim/epoche.ts): Wert, Aussicht und die letzten historischen Momente */
+function EpochenBand({world}:{world:World}){
+  const e=epochenSicht(world);if(!e)return null;
+  return <section className={`sd-epoche ${e.aussicht}`} aria-label={t('epoche.ui.titel',{nr:e.amtszeit})}>
+    <div className="sd-epoche-kopf"><span className="sd-epoche-siegel" aria-hidden>{e.aussicht==='golden'?'☀':e.aussicht==='heroisch'?'✦':e.aussicht==='dunkel'?'☾':'◆'}</span>
+      <div><span className="sd-epoche-kicker">{t('epoche.ui.titel',{nr:e.amtszeit})}</span><strong>{t('epoche.ui.aussicht',{stufe:t(`epoche.stufe.${e.aussicht}`)})}</strong>
+      <small>{t('epoche.ui.wert',{wert:e.wert>0?`+${e.wert}`:String(e.wert)})}{e.bisGolden>0&&e.aussicht!=='golden'&&e.aussicht!=='heroisch'?` · ${t('epoche.ui.bis',{n:e.bisGolden})}`:''}</small></div></div>
+    {e.momente.length?<ul className="sd-epoche-momente">{e.momente.map(m=><li key={m.tag+m.id} className={m.wert>0?'gut':'schlecht'}><b>{m.wert>0?`+${m.wert}`:m.wert}</b> {m.titel}</li>)}</ul>:<p className="sd-epoche-leer" title={t('epoche.ui.erklaerung')}>{t('epoche.ui.keine')}</p>}
+  </section>;
+}
+
 export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,onVorgang}:GemeinsameProps&{
   umlauf?:UmlaufEintrag[];onKarte?:(problemId?:string)=>void;onPosteingang?:()=>void;onVorgang?:(id:string)=>void;
 }) {
@@ -133,6 +145,7 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
   return <div className="sk">
     <header className="sd-kopf"><div><p className="sd-kicker">{t('sd.kicker')} <span>· {b.datum}</span></p><h3>{t('sd.titel')}</h3><p className="sd-amtszeit">{t('sk.ui.amtszeit',{n:b.amtszeit.nummer,monate:b.amtszeit.monateBisWahl,wahltag:b.amtszeit.wahltag})}</p></div><span className="sd-siegel" aria-hidden><Icon name="kuppel" size={42}/></span></header>
     <ul className="sd-kennzahlen" aria-label={t('sk.ui.lageAria')}>{b.kennzahlen.filter(k=>KENNZAHLEN.has(k.id)).map(k=><li key={k.id}><button type="button" className={`sd-kennzahl ton-${k.ton}`} onClick={()=>onGehe(k.ziel)} title={t('sk.ui.akteOeffnen',{label:k.label})}><span>{k.label}</span><strong>{k.wert}{k.trend!=='gleich'&&<em aria-hidden>{k.trend==='auf'?'↑':'↓'}</em>}</strong><small>{k.zusatz}</small></button></li>)}</ul>
+    <EpochenBand world={world}/>
     <details className="sd-krisenrat" onToggle={e=>setKrisenOffen(e.currentTarget.open)}><summary><Icon name="kuppel" size={22}/>{t("kp.titel")}<small>{t("kp.einstieg")}</small></summary>{krisenOffen&&<Krisenrat world={world} geaendert={refresh}/>}</details>
     <section className="sd-prioritaeten" aria-label={t('sd.prioritaeten')}><div className="sd-abschnittskopf"><h4>{t('sd.prioritaeten')}</h4><span>{t('sd.prioritaetenText')}</span></div>
       {arbeit.highlights.length?<ol className="sd-lagekarten">{arbeit.highlights.map((p,i)=><li key={p.id}><button type="button" className={`sd-lagekarte ton-${p.ton}`} onClick={()=>springe(p.sprung)}><span className="sd-lagekopf"><b className="sd-nummer">0{i+1}</b><span>{p.tage===undefined?t(p.ton==='rot'?'sd.akut':p.ton==='gelb'?'sd.achtung':'sd.vorlage'):fristText(p.tage)}</span></span><strong>{p.titel}</strong><span className="sd-grund">{p.grund}</span><span className="sd-oeffnen">{t('sd.vorgangOeffnen')} <span aria-hidden>↗</span></span></button></li>)}</ol>:<p className="sd-leer">{t('sd.keinePrioritaet')}</p>}

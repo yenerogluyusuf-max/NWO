@@ -578,6 +578,8 @@ export interface SpielZustand {
   krisen?: AktiveKrise[];
   /** Konfliktvorgänge (MIL-1 „Krieg als Vorgang“); ältere Spielstände haben das Feld nicht — kein Krieg-Feld = kein Konflikt, es wird beim ersten Zugriff angelegt */
   kriege?: import("./krieg-typen").KriegVorgang[];
+  /** Amtszeit-Epochen: historische Momente und Bewertungen (sim/epoche.ts); ältere Spielstände legen das Feld beim ersten Monat an */
+  epoche?: import("./epoche").EpochenZustand;
   /** Große Ziele (sim/grosseziele.ts); ältere Spielstände haben das Feld nicht, es wird beim ersten Zugriff angelegt */
   grosseZiele?: import("./grosseziele").GrosseZieleZustand;
   /** Besetzte Regionen nach einem Frieden (sim/kriegsschauplatz.ts); ältere Spielstände haben keine */

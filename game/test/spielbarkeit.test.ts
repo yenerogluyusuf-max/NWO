@@ -20,6 +20,7 @@ import { duellVorbereiten, wahlkampfAktiv } from "../src/sim/wahlkampf";
 import { Rng } from "../src/sim/rng";
 import { fuehreAus, infrastrukturBitte, type InfraAktion } from "../src/sim/infrastruktur";
 import { verwaltungBilanz } from "../src/sim/reich";
+import { beantworteRessortAnliegen, ressortAntwortPlan } from "../src/sim/ressortanliegen";
 import type { World } from "../src/sim/types";
 
 const AUS = process.env.SPIELBARKEIT_AUS;
@@ -52,9 +53,24 @@ const beantworte = (w: World, rng: Rng) => {
 
 const passiv: Bot = () => {};
 
+/**
+ * Anliegen der Minister (seit 2. November, sim/ressortanliegen.ts): Wer regiert, antwortet. Umsetzen, wenn der Plan geht und Kapital übrig
+ * bleibt, sonst ein Gespräch. Ohne Antwort eskalieren sie und kosten Vertrauen und die Sachgröße; die älteren Testspieler kannten sie
+ * nicht und verloren deshalb die Wahl (Messung 4. November: Vertrauen 45 → 34 in drei Jahren trotz besserer Wirtschaft).
+ */
+const anliegen = (w: World, reserve: number) => {
+  for (const a of (w.spiel?.ministerfluss?.ressortAnliegen ?? []).filter((x) => x.status === "offen")) {
+    for (const art of ["umsetzen", "reden"] as const) {
+      const p = ressortAntwortPlan(w, a.id, art);
+      if (p?.ok && w.spiel!.kapital > p.pk + reserve) { beantworteRessortAnliegen(w, p); break; }
+    }
+  }
+};
+
 const KLUG = ["m_wasserleitungen", "m_krankenhausbau", "m_sozialwohnungen", "m_bauaufsicht", "m_polizei", "m_stadterneuerung", "m_ausbildung", "m_aerztegehalt", "m_bewaesserung", "m_netzausbau"];
 const klug: Bot = (w, rng, monat) => {
   beantworte(w, rng);
+  anliegen(w, 8);
   if (wahlkampfAktiv(w) && (w.spiel?.wahlkampf?.ap ?? 0) >= 2) {
     duellVorbereiten(w);
   }
@@ -93,6 +109,7 @@ const staatsmann: Bot = (w, rng, monat) => {
     if (ev.vorlage === "zusage") entscheide(w, ev.id, sp.kapital >= 14 ? "erfuellen" : "vertroesten", rng);
   }
   beantworte(w, rng);
+  anliegen(w, 6);
   if (stimmenSicht(w).lager < 301 && sp.kapital >= 2) {
     for (const f of fraktionsUebersicht(w)) {
       const koal = f.aktionen.find((a) => a.id === "koalition");

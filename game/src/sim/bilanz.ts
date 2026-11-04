@@ -150,6 +150,14 @@ export function erstelleBilanz(w: World, modus: "ende" | "zwischen" = "ende"): B
       : "Eigene Ziele hatte sich der Präsident nicht gesetzt.",
   );
 
+  // Epochen: wie die Geschichtsschreibung die Amtszeiten einordnet (sim/epoche.ts)
+  const ep = spiel.epoche;
+  if (ep && (ep.bewertungen.length || ep.momente.length)) {
+    const teile = ep.bewertungen.map((b) => t("bilanz.epoche.amtszeit", { nr: b.amtszeit, stufe: t(`epoche.stufe.${b.stufe}`), wert: b.wert > 0 ? `+${b.wert}` : String(b.wert) }));
+    const gross = [...ep.momente].sort((a, b) => Math.abs(b.wert) - Math.abs(a.wert)).slice(0, 3).map((m) => m.titel);
+    absaetze.push(t("bilanz.epoche", { teile: teile.join("; "), anzahl: teile.length, momente: gross.join(", "), mitMomenten: gross.length ? "ja" : "nein" }));
+  }
+
   // Warum es endete: Ursachen aus den Daten der Partie (Zustimmungsbilanz, Putschrisiko, Verfahren)
   if (ende && modus === "ende") {
     const u = endeUrsache(w);

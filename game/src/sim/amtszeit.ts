@@ -5,6 +5,7 @@
 // nicht mehr: Sein Lager stellt einen Nachfolger.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { bewerteEpoche } from "./epoche";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { clamp } from "./economy";
@@ -175,6 +176,8 @@ export function beginneAmtszeit(w: World, nr: number, anlass: UmbildungZustand["
     sp.zielArchiv.push({ amtszeit: nr - 1, ziele: zielStand(w).map((z) => ({ titel: z.def.titel, erreicht: z.erreicht, stand: z.stand })) });
   }
   if (anlass === "wiederwahl") {
+    // Die abgelaufene Amtszeit wird als Epoche bewertet (golden, normal, dunkel, heroisch) und wirkt in die neue hinein
+    bewerteEpoche(w, nr - 1);
     sp.amtszeiten!.push({ nr, tag: w.day, datum: w.date, zustimmung: sp.umfrage.zustimmung, start: momentaufnahme(w) });
     sp.amtszeit = nr;
     sp.wahltag = w.day + 365 * amtszeitJahre(w) + 1;
