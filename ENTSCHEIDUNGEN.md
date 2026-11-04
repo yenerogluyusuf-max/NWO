@@ -313,3 +313,9 @@ Aus der Gesamtprüfung ([PRUEFUNG_GESAMT_2026-11-04.md](PRUEFUNG_GESAMT_2026-11-
 ## S. Vorgabe 04.11.2026: Mehr mit der Karte arbeiten
 
 Der Projektinhaber: In allen Bereichen soll man viel mehr mit der Karte und auf der Karte arbeiten, wie in Civilization. Die Akten bleiben (das ist der Sinn des Spiels), aber man soll auf der Karte mehr sehen und dort handeln können. Ausarbeitung folgt als Vorschlag mit Fragen an den Projektinhaber.
+
+## T. Rückmeldung 04.11.2026: Es muss wie ein Spiel aussehen
+
+Der Projektinhaber zur Gestaltung nach Vorgabe P: Das Design entfernt sich vom Spiel. Links ist alles grün, es wirkt statisch, die Schrift ist statisch. Es soll professionell und schön aussehen, aber ein Spiel bleiben, **ohne das Grün** und mit **eigener Identität**.
+
+Daraus: Das dunkelgrüne Leitbild der Akten und der Bereichsleiste wird ersetzt. Drei Richtungen liegen als Muster vor (`game/identitaet.html?v=cini|tisch|hilal`, Bilder in `reports/identitaet/`): „Çini“ (Nachtblau, Iznik-Türkis, Koralle, Gold, Fliesenmuster, Cinzel), „Kriegstisch“ (Nussholz, Messing, Pergamentkarte, Schreibmaschine, Stempel) und „Hilal“ (Karmesin auf Nachtschwarz, Glasflächen, Oswald). In allen dreien ist die Karte die Bühne und die Akte eine Seitenleiste (Vorgabe S). Die Wahl trifft der Projektinhaber.

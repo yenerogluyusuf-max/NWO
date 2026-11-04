@@ -1,0 +1,294 @@
+/* Identitätsmuster: drei Richtungen. Gemeinsames Gerüst: Kopfleiste, Bereichsleiste links, Karte als Bühne, Akte rechts. */
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; }
+button { font: inherit; cursor: pointer; }
+
+.id { position: relative; height: 100vh; min-height: 760px; overflow: hidden; display: grid;
+  grid-template-columns: 216px 1fr 412px; grid-template-rows: 68px 1fr; grid-template-areas: "hud hud hud" "nav buehne akte"; }
+.id-grund { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.id > :not(.id-grund) { position: relative; z-index: 1; }
+
+/* Kopfleiste */
+.id-hud { grid-area: hud; display: flex; align-items: center; gap: 28px; padding: 0 22px; }
+.id-wer { display: flex; align-items: center; gap: 12px; }
+.id-wer b { display: block; font-size: 17px; }
+.id-wer i { display: block; font-size: 12px; opacity: .75; }
+.id-bild { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; }
+.id-zeit { display: flex; align-items: center; gap: 14px; }
+.id-zeit b { font-size: 19px; }
+.id-tempo { display: flex; gap: 3px; }
+.id-tempo button { border: 0; padding: 5px 9px; font-size: 11px; border-radius: 4px; }
+.id-werte { margin-left: auto; display: flex; gap: 10px; }
+.id-wert { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 9px; }
+.id-wert b { display: block; font-size: 20px; line-height: 1; }
+.id-wert small { display: block; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; margin-top: 2px; }
+
+/* Bereichsleiste */
+.id-nav { grid-area: nav; padding: 16px 12px; display: flex; flex-direction: column; gap: 14px; }
+.id-marke-spiel b { display: block; font-size: 22px; }
+.id-marke-spiel small { display: block; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; opacity: .7; margin-top: 2px; }
+.id-gruppe { display: flex; flex-direction: column; gap: 4px; }
+.id-gruppenkopf { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; margin: 4px 6px; opacity: .7; }
+.id-punkt { display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 5px 6px; text-align: left; position: relative; transition: transform .2s, filter .2s; }
+.id-punkt:hover { transform: translateX(3px); filter: brightness(1.15); }
+.id-medaillon { width: 36px; height: 36px; display: grid; place-items: center; flex: none; transition: box-shadow .3s; }
+.id-punktname { font-size: 14px; }
+.id-punkt em { margin-left: auto; font-style: normal; font-size: 11px; min-width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; }
+
+/* Bühne mit Karte */
+.id-buehne { grid-area: buehne; position: relative; display: flex; flex-direction: column; min-width: 0; }
+.id-kartenleiste { display: flex; gap: 6px; padding: 14px 18px 0; }
+.id-kartenleiste button { border: 0; padding: 7px 14px; font-size: 13px; }
+.id-karte { flex: 1; width: 100%; min-height: 0; }
+.id-nachbarn path { stroke-width: 1; }
+.id-provinzen path { stroke-width: .8; transition: filter .2s; }
+.id-provinzen path:hover { filter: brightness(1.25); }
+.id-land path { fill: none; stroke-width: 3; }
+.id-vorstoss { fill: none; stroke-width: 5; stroke-dasharray: 12 8; animation: id-marsch 1.2s linear infinite; }
+@keyframes id-marsch { to { stroke-dashoffset: -20; } }
+.id-marke .ring { animation: id-puls 2.4s ease-in-out infinite; transform-origin: center; }
+@keyframes id-puls { 0%, 100% { opacity: .9; } 50% { opacity: .35; } }
+.id-ortsname text { font-size: 15px; }
+.id-legende { position: absolute; left: 20px; bottom: 18px; display: flex; gap: 14px; font-size: 12px; padding: 8px 12px; }
+.id-legende span { display: flex; align-items: center; gap: 6px; }
+.id-legende i { width: 12px; height: 12px; display: inline-block; border-radius: 3px; }
+.id-meldung { position: absolute; right: 22px; bottom: 18px; width: 340px; padding: 14px 16px; animation: id-rein .6s ease-out; }
+@keyframes id-rein { from { transform: translateY(20px); opacity: 0; } }
+.id-meldungskopf { display: block; font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 4px; }
+.id-meldung b { display: block; font-size: 18px; margin-bottom: 4px; }
+.id-meldung p { margin: 0 0 10px; font-size: 13.5px; line-height: 1.4; }
+.id-wahl { display: flex; gap: 8px; }
+.id-wahl button { padding: 7px 12px; font-size: 13px; }
+
+/* Akte rechts */
+.id-akte { grid-area: akte; margin: 12px 14px 14px 0; padding: 20px 20px 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+.id-kicker { display: block; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; }
+.id-aktenkopf h1 { margin: 4px 0 2px; font-size: 32px; line-height: 1.05; }
+.id-aktenkopf p { margin: 0; font-size: 13px; opacity: .75; }
+.id-karten { display: flex; flex-direction: column; gap: 10px; }
+.id-karte-akte { position: relative; padding: 12px 14px 12px 52px; transition: transform .2s, box-shadow .2s; }
+.id-karte-akte:hover { transform: translateY(-2px); }
+.id-karte-akte h2 { margin: 2px 0 4px; font-size: 17px; line-height: 1.2; }
+.id-karte-akte p { margin: 0 0 8px; font-size: 13px; line-height: 1.4; }
+.id-karte-akte button { border: 0; background: none; padding: 0; font-size: 13px; font-weight: 600; }
+.id-nr { position: absolute; left: 12px; top: 12px; font-size: 24px; line-height: 1; }
+.id-tag { position: absolute; right: 12px; top: 10px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 2px 7px; }
+.id-ziel { padding: 10px 12px; }
+.id-lage { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.id-lage button { border: 0; padding: 10px 6px; text-align: center; }
+.id-lage b { display: block; font-size: 24px; line-height: 1; }
+.id-lage small { display: block; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; margin-top: 4px; }
+.id-cini .id-lage button { background: #13284a; color: var(--elfenbein); border: 1px solid var(--gold); }
+.id-cini .id-lage b { font-family: "Saira Condensed", sans-serif; color: var(--gold-hell); } .id-cini .id-lage small { font-family: Cinzel, serif; }
+.id-cini .id-lage button:first-child b { color: #ff9a8a; }
+.id-tisch .id-lage button { background: none; border: 2px solid var(--tinte); color: var(--tinte); }
+.id-tisch .id-lage b { font-family: "Marcellus SC", serif; } .id-tisch .id-lage button:first-child b { color: var(--rot); }
+.id-hilal .id-lage button { background: var(--glas); border: 1px solid var(--linie); border-radius: 12px; color: #fff; }
+.id-hilal .id-lage b { font-family: "Oswald Variable", sans-serif; font-weight: 600; } .id-hilal .id-lage button:first-child { border-color: var(--karmesin); } .id-hilal .id-lage button:first-child b { color: var(--glut); }
+.id-hilal .id-lage small { color: rgba(255,255,255,.55); }
+.id-band { position: relative; height: 8px; margin: 6px 0 4px; border-radius: 4px; }
+.id-band i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.id-ziel small { font-size: 12px; }
+.id-schild { position: absolute !important; left: 12px; bottom: 12px; z-index: 5 !important; font-size: 11px; letter-spacing: .25em; text-transform: uppercase; padding: 4px 12px; opacity: .75; }
+
+/* ===================================================================================================================
+   A „Çini“: Nacht-Indigo, Iznik-Türkis, Koralle und Gold; Fliesenmuster; Cinzel für Titel, Saira Condensed für Zahlen */
+.id-cini { --nacht: #0a1424; --nacht2: #11223b; --tuerkis: #2bb3aa; --tuerkis-tief: #13706d; --koralle: #d2503f; --gold: #d8a948; --gold-hell: #f2d38b; --elfenbein: #f4ead6; --tinte: #1b2433;
+  color: var(--elfenbein); font-family: "EB Garamond Variable", serif; background: var(--nacht); }
+.id-cini .id-grund { background:
+  radial-gradient(ellipse at 55% 45%, rgba(43,179,170,.13), transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%232bb3aa' stroke-opacity='.10' stroke-width='1.2'%3E%3Cpath d='M32 4l8 20 20 8-20 8-8 20-8-20-20-8 20-8z'/%3E%3Ccircle cx='32' cy='32' r='6'/%3E%3Cpath d='M0 0l12 12M64 0L52 12M0 64l12-12M64 64L52 52'/%3E%3C/g%3E%3C/svg%3E"), var(--nacht); }
+.id-cini .id-hud { background: linear-gradient(180deg, #13284a, #0c1a30); border-bottom: 4px solid transparent;
+  border-image: repeating-linear-gradient(90deg, var(--gold) 0 10px, var(--tuerkis) 10px 20px, var(--koralle) 20px 26px, var(--tuerkis) 26px 36px) 4; }
+.id-cini .id-bild { background: radial-gradient(circle at 35% 30%, var(--gold-hell), var(--gold) 60%, #8a6520); color: var(--nacht); font-family: Cinzel, serif; box-shadow: 0 0 0 2px var(--nacht), 0 0 0 4px var(--gold); }
+.id-cini .id-wer b, .id-cini .id-zeit b { font-family: Cinzel, serif; letter-spacing: .04em; }
+.id-cini .id-wer b { color: var(--gold-hell); }
+.id-cini .id-tempo button { background: rgba(255,255,255,.07); color: var(--elfenbein); }
+.id-cini .id-tempo .an { background: var(--gold); color: var(--nacht); }
+.id-cini .id-wert { background: linear-gradient(180deg, rgba(43,179,170,.16), rgba(43,179,170,.04)); border: 1px solid rgba(216,169,72,.55); clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%); padding: 6px 16px; color: var(--gold-hell); }
+.id-cini .id-wert b { font-family: "Saira Condensed", sans-serif; font-weight: 700; color: var(--elfenbein); font-size: 22px; }
+.id-cini .id-wert small { font-family: Cinzel, serif; color: var(--gold); }
+.id-cini .id-wert.schlecht b { color: #ff9a8a; } .id-cini .id-wert.gut b { color: #8ce6dc; }
+.id-cini .id-nav { background: linear-gradient(180deg, rgba(17,34,59,.92), rgba(10,20,36,.92)); border-right: 1px solid rgba(216,169,72,.3); }
+.id-cini .id-marke-spiel b { font-family: Cinzel, serif; font-weight: 700; color: var(--gold-hell); letter-spacing: .06em; }
+.id-cini .id-gruppenkopf { font-family: Cinzel, serif; color: var(--tuerkis); opacity: 1; }
+.id-cini .id-gruppenkopf::before { content: "✦ "; color: var(--gold); }
+.id-cini .id-punkt { color: var(--elfenbein); }
+.id-cini .id-medaillon { border-radius: 50%; border: 1.5px solid var(--gold); background: radial-gradient(circle at 40% 35%, #1d3a5e, #0c1a30); color: var(--gold-hell); }
+.id-cini .id-punkt.an .id-medaillon { background: radial-gradient(circle at 40% 35%, #4fd6cc, var(--tuerkis-tief)); color: #fff; box-shadow: 0 0 14px rgba(43,179,170,.8); }
+.id-cini .id-punkt.an .id-punktname { color: var(--gold-hell); }
+.id-cini .id-punktname { font-family: Cinzel, serif; font-size: 13px; letter-spacing: .03em; }
+.id-cini .id-punkt em { background: var(--koralle); color: #fff; }
+.id-cini .id-kartenleiste button { background: rgba(10,20,36,.7); color: var(--elfenbein); border: 1px solid rgba(216,169,72,.4); font-family: Cinzel, serif; border-radius: 18px; }
+.id-cini .id-kartenleiste .an { background: var(--gold); color: var(--nacht); }
+.id-cini .id-nachbarn path { fill: #172a45; stroke: #34507a; }
+.id-cini .id-provinzen path { stroke: #0a1424; }
+.id-cini .id-land path { stroke: var(--gold); opacity: .8; }
+.id-cini .id-front-grund { fill: #7a2a24; } .id-cini .id-front-linie { stroke: var(--koralle); stroke-width: 3; }
+.id-cini .id-vorstoss { stroke: var(--koralle); } .id-cini .id-vorstoss.eigen { stroke: var(--gold-hell); }
+.id-cini .id-pfeilspitze { fill: var(--koralle); }
+.id-cini .id-marke .ring { fill: none; stroke: var(--gold); stroke-width: 2; }
+.id-cini .id-marke .kern { fill: var(--nacht); stroke: var(--gold); }
+.id-cini .id-marke { color: var(--gold-hell); } .id-cini .id-marke.protest { color: #ff9a8a; } .id-cini .id-marke.krise { color: var(--koralle); }
+.id-cini .id-ortsname text { fill: var(--elfenbein); font-family: Cinzel, serif; paint-order: stroke; stroke: var(--nacht); stroke-width: 4px; }
+.id-cini .id-legende { background: rgba(10,20,36,.85); border: 1px solid rgba(216,169,72,.35); font-family: Cinzel, serif; }
+.id-cini .l-front { background: var(--koralle); } .id-cini .l-protest { background: #ff9a8a; } .id-cini .l-bau { background: var(--gold); } .id-cini .l-zust { background: linear-gradient(90deg, #22385c, #a9c3e6); }
+.id-cini .id-meldung { background: var(--elfenbein); color: var(--tinte); border: 2px solid var(--gold); box-shadow: 0 12px 40px rgba(0,0,0,.5), inset 0 0 0 4px var(--elfenbein), inset 0 0 0 5px rgba(210,80,63,.6); }
+.id-cini .id-meldungskopf { font-family: Cinzel, serif; color: var(--koralle); font-weight: 700; }
+.id-cini .id-meldung b { font-family: Cinzel, serif; }
+.id-cini .id-wahl button { border: 1px solid var(--tuerkis-tief); background: transparent; color: var(--tuerkis-tief); font-family: Cinzel, serif; }
+.id-cini .id-wahl .haupt { background: linear-gradient(180deg, var(--tuerkis), var(--tuerkis-tief)); color: #fff; border-color: var(--tuerkis-tief); }
+.id-cini .id-akte { background: var(--elfenbein); color: var(--tinte); border: 1px solid var(--gold); box-shadow: 0 18px 50px rgba(0,0,0,.55);
+  border-top: 10px solid transparent; border-image: none; position: relative; }
+.id-cini .id-akte::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px;
+  background: repeating-linear-gradient(90deg, var(--tuerkis-tief) 0 14px, var(--gold) 14px 18px, var(--koralle) 18px 26px, var(--gold) 26px 30px); }
+.id-cini .id-kicker { font-family: Cinzel, serif; color: var(--koralle); font-weight: 700; }
+.id-cini .id-aktenkopf h1 { font-family: Cinzel, serif; color: #13284a; }
+.id-cini .id-karte-akte { background: #fffaf0; border: 1px solid #e2d2ae; border-left: 4px solid var(--tuerkis); box-shadow: 0 2px 0 #e9dcc0; }
+.id-cini .id-karte-akte.krieg, .id-cini .id-karte-akte.dringend { border-left-color: var(--koralle); }
+.id-cini .id-karte-akte:hover { box-shadow: 0 8px 20px rgba(19,40,74,.18); }
+.id-cini .id-karte-akte h2 { font-family: Cinzel, serif; font-size: 16px; color: #13284a; }
+.id-cini .id-nr { font-family: Cinzel, serif; color: var(--gold); }
+.id-cini .id-tag { background: var(--koralle); color: #fff; font-family: Cinzel, serif; }
+.id-cini .blick .id-tag { background: var(--tuerkis-tief); }
+.id-cini .id-karte-akte button { color: var(--tuerkis-tief); font-family: Cinzel, serif; }
+.id-cini .id-ziel { background: #13284a; color: var(--elfenbein); border: 1px solid var(--gold); }
+.id-cini .id-ziel .id-kicker { color: var(--gold-hell); }
+.id-cini .id-band { background: rgba(255,255,255,.15); } .id-cini .id-band i { background: linear-gradient(90deg, var(--tuerkis), var(--gold)); }
+.id-cini .id-schild { background: rgba(10,20,36,.8); color: var(--gold-hell); font-family: Cinzel, serif; border: 1px solid var(--gold); }
+
+/* ===================================================================================================================
+   B „Kriegstisch“: Nussholz, Messing, Pergamentkarte, Schreibmaschine, Stempel und Siegel */
+.id-tisch { --holz: #3b2416; --holz2: #24150c; --messing: #c59d55; --messing-tief: #7c5a22; --leder: #5b1c17; --pergament: #ecdcb4; --tinte: #2a1d12; --rot: #a3241c;
+  color: var(--pergament); font-family: "Courier Prime", monospace; background: var(--holz2); }
+.id-tisch .id-grund { background:
+  radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,.6)),
+  repeating-linear-gradient(92deg, rgba(255,255,255,.025) 0 2px, transparent 2px 9px),
+  repeating-linear-gradient(88deg, rgba(0,0,0,.18) 0 1px, transparent 1px 23px),
+  linear-gradient(180deg, #4a2d1a, #2b190d); }
+.id-tisch .id-hud { background: linear-gradient(180deg, #e2c07b, var(--messing) 45%, #8f6a2c); color: var(--tinte); box-shadow: 0 3px 0 #5d4317, 0 8px 18px rgba(0,0,0,.5); }
+.id-tisch .id-wer b, .id-tisch .id-zeit b { font-family: "Marcellus SC", serif; }
+.id-tisch .id-wer b { text-shadow: 0 1px 0 rgba(255,255,255,.4); }
+.id-tisch .id-bild { background: var(--leder); color: var(--pergament); font-family: "Marcellus SC", serif; box-shadow: inset 0 0 0 2px var(--messing), 0 2px 4px rgba(0,0,0,.4); }
+.id-tisch .id-tempo button { background: #6f5121; color: #f3dfb0; box-shadow: inset 0 -2px 0 rgba(0,0,0,.3); }
+.id-tisch .id-tempo .an { background: var(--leder); }
+.id-tisch .id-wert { background: linear-gradient(180deg, #f1d999, #c9a35d); border: 1px solid #6b4c1b; border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 2px 3px rgba(0,0,0,.35); color: #4b3311; position: relative; }
+.id-tisch .id-wert::before, .id-tisch .id-wert::after { content: ""; position: absolute; top: 4px; width: 4px; height: 4px; border-radius: 50%; background: #6b4c1b; box-shadow: 0 calc(100% + 10px) 0 #6b4c1b; }
+.id-tisch .id-wert::before { left: 3px; } .id-tisch .id-wert::after { right: 3px; }
+.id-tisch .id-wert b { font-family: "Saira Condensed", sans-serif; font-weight: 700; color: var(--tinte); }
+.id-tisch .id-wert small { font-family: "Marcellus SC", serif; letter-spacing: .08em; }
+.id-tisch .id-wert.schlecht b { color: var(--rot); }
+.id-tisch .id-nav { padding-left: 0; }
+.id-tisch .id-marke-spiel { padding-left: 16px; }
+.id-tisch .id-marke-spiel b { font-family: "Marcellus SC", serif; font-size: 24px; color: var(--messing); text-shadow: 0 2px 0 #000; }
+.id-tisch .id-gruppenkopf { font-family: "Marcellus SC", serif; color: var(--messing); padding-left: 16px; }
+.id-tisch .id-punkt { background: linear-gradient(90deg, #4d1814, var(--leder)); color: var(--pergament); border-radius: 0 6px 6px 0; padding: 4px 10px 4px 14px; margin-right: 18px; box-shadow: 0 2px 0 #2c0b08, 0 4px 8px rgba(0,0,0,.4); }
+.id-tisch .id-punkt.an { background: linear-gradient(90deg, var(--pergament), #f6ead0); color: var(--tinte); margin-right: 0; }
+.id-tisch .id-medaillon { width: 30px; height: 30px; color: var(--messing); }
+.id-tisch .id-punkt.an .id-medaillon { color: var(--rot); }
+.id-tisch .id-punktname { font-family: "Marcellus SC", serif; font-size: 14px; }
+.id-tisch .id-punkt em { background: var(--messing); color: var(--tinte); }
+.id-tisch .id-kartenleiste button { background: var(--pergament); color: var(--tinte); font-family: "Marcellus SC", serif; border-radius: 0; box-shadow: 0 2px 4px rgba(0,0,0,.45); transform: rotate(-1deg); }
+.id-tisch .id-kartenleiste button:nth-child(2n) { transform: rotate(1deg); }
+.id-tisch .id-kartenleiste .an { background: var(--rot); color: var(--pergament); }
+.id-tisch .id-karte { background: radial-gradient(ellipse at 50% 45%, #f3e6c3, #dcc590 75%, #b99a5e); margin: 12px 18px 18px; width: calc(100% - 36px); border-radius: 4px; box-shadow: 0 20px 40px rgba(0,0,0,.6), inset 0 0 60px rgba(120,80,30,.45); transform: rotate(-.6deg); }
+.id-tisch .id-nachbarn path { fill: rgba(150,115,60,.18); stroke: rgba(90,60,25,.5); stroke-dasharray: 3 3; }
+.id-tisch .id-provinzen path { stroke: #6b4a22; stroke-width: .9; }
+.id-tisch .id-land path { stroke: var(--tinte); stroke-width: 2.5; }
+.id-tisch .id-land { filter: none; }
+.id-tisch .id-front-grund { fill: rgba(163,36,28,.25); } .id-tisch .id-front-linie { stroke: var(--rot); stroke-width: 2.4; }
+.id-tisch .id-vorstoss { stroke: var(--rot); stroke-width: 4; stroke-dasharray: none; stroke-linecap: round; animation: none; }
+.id-tisch .id-vorstoss.eigen { stroke: #1f3d6b; }
+.id-tisch .id-pfeilspitze { fill: var(--rot); }
+.id-tisch .id-marke .ring { fill: rgba(0,0,0,.25); stroke: none; transform: translate(2px, 3px); animation: none; }
+.id-tisch .id-marke .kern { fill: var(--rot); stroke: #5c0f0a; stroke-width: 1.5; }
+.id-tisch .id-marke { color: #fff3d6; } .id-tisch .id-marke.bau .kern { fill: #1f3d6b; }
+.id-tisch .id-ortsname text { fill: var(--tinte); font-family: "Marcellus SC", serif; font-size: 16px; }
+.id-tisch .id-legende { background: var(--pergament); color: var(--tinte); box-shadow: 0 4px 10px rgba(0,0,0,.5); left: 36px; bottom: 34px; transform: rotate(1deg); }
+.id-tisch .l-front { background: var(--rot); } .id-tisch .l-protest { background: #c2672a; } .id-tisch .l-bau { background: #1f3d6b; } .id-tisch .l-zust { background: linear-gradient(90deg, #efe0b8, #b98f48); }
+.id-tisch .id-meldung { background: #f6eed8; color: var(--tinte); transform: rotate(1.4deg); box-shadow: 0 14px 30px rgba(0,0,0,.6); border-top: 18px solid #d9c9a0; right: 40px; bottom: 36px; }
+.id-tisch .id-meldungskopf { font-family: "Courier Prime", monospace; font-weight: 700; color: #6b5530; margin-top: -24px; margin-bottom: 14px; }
+.id-tisch .id-meldung b { font-family: "Courier Prime", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 16px; }
+.id-tisch .id-wahl button { background: none; border: 2px solid var(--tinte); color: var(--tinte); font-family: "Marcellus SC", serif; }
+.id-tisch .id-wahl .haupt { background: var(--rot); border-color: #5c0f0a; color: var(--pergament); border-radius: 50% / 40%; }
+.id-tisch .id-akte { background: var(--pergament); color: var(--tinte); box-shadow: 0 2px 0 #c9b483, 4px 6px 0 #d8c697, 8px 12px 0 #cdb985, 0 30px 50px rgba(0,0,0,.6); transform: rotate(.8deg); margin-top: 22px; margin-right: 24px; }
+.id-tisch .id-akte::after { content: ""; position: absolute; top: -12px; right: 46px; width: 16px; height: 46px; border: 3px solid #8a8a8a; border-radius: 8px; border-bottom-color: transparent; }
+.id-tisch .id-kicker { font-family: "Courier Prime", monospace; font-weight: 700; color: #6b5530; }
+.id-tisch .id-aktenkopf h1 { font-family: "Marcellus SC", serif; }
+.id-tisch .id-karte-akte { background: transparent; border-bottom: 1px dashed #a48b5a; padding-bottom: 14px; }
+.id-tisch .id-karte-akte h2 { font-family: "Courier Prime", monospace; font-size: 15.5px; text-transform: uppercase; }
+.id-tisch .id-nr { font-family: "Marcellus SC", serif; color: var(--rot); }
+.id-tisch .id-tag { color: var(--rot); border: 2px solid var(--rot); font-family: "Courier Prime", monospace; font-weight: 700; transform: rotate(-8deg); opacity: .85; top: -4px; background: rgba(236,220,180,.6); }
+.id-tisch .blick .id-tag { color: #1f3d6b; border-color: #1f3d6b; }
+.id-tisch .id-karte-akte button { color: var(--rot); font-family: "Marcellus SC", serif; }
+.id-tisch .id-ziel { border: 2px solid var(--tinte); }
+.id-tisch .id-band { background: repeating-linear-gradient(90deg, #cdb985 0 6px, #e4d4a8 6px 12px); } .id-tisch .id-band i { background: var(--rot); }
+.id-tisch .id-schild { background: var(--messing); color: var(--tinte); font-family: "Marcellus SC", serif; }
+
+/* ===================================================================================================================
+   C „Hilal“: modern und kräftig; Karmesin auf Nachtschwarz, Glasflächen, Oswald in Versalien, leuchtende Front */
+.id-hilal { --nacht: #08080d; --karmesin: #e30a17; --karmesin-tief: #7a0a12; --glut: #ff6a3d; --gold: #f0c36a; --weiss: #f7f3ee; --glas: rgba(255,255,255,.06); --linie: rgba(255,255,255,.12);
+  color: var(--weiss); font-family: "Inter Variable", sans-serif; background: var(--nacht); }
+.id-hilal .id-grund { background:
+  radial-gradient(circle at 82% 12%, rgba(227,10,23,.35), transparent 30%),
+  radial-gradient(ellipse at 45% 60%, rgba(122,10,18,.55), transparent 60%),
+  linear-gradient(160deg, #1a0609, var(--nacht) 70%); }
+.id-hilal .id-grund::after { content: ""; position: absolute; right: 120px; top: 60px; width: 380px; height: 380px; border-radius: 50%;
+  box-shadow: -60px 0 0 0 rgba(227,10,23,.10); opacity: .9; }
+.id-hilal .id-hud { background: rgba(8,8,13,.55); backdrop-filter: blur(10px); border-bottom: 1px solid var(--linie); box-shadow: inset 0 -2px 0 var(--karmesin); }
+.id-hilal .id-wer b, .id-hilal .id-zeit b { font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.id-hilal .id-bild { background: linear-gradient(135deg, var(--karmesin), var(--karmesin-tief)); font-family: "Oswald Variable", sans-serif; box-shadow: 0 0 0 2px rgba(255,255,255,.8), 0 0 18px rgba(227,10,23,.7); }
+.id-hilal .id-tempo button { background: var(--glas); color: var(--weiss); border: 1px solid var(--linie); }
+.id-hilal .id-tempo .an { background: var(--karmesin); border-color: var(--karmesin); }
+.id-hilal .id-wert { background: var(--glas); border: 1px solid var(--linie); border-radius: 10px; color: var(--gold); }
+.id-hilal .id-wert b { font-family: "Oswald Variable", sans-serif; font-weight: 600; font-size: 22px; color: var(--weiss); }
+.id-hilal .id-wert small { color: rgba(255,255,255,.55); }
+.id-hilal .id-wert.schlecht { border-color: rgba(255,106,61,.6); } .id-hilal .id-wert.schlecht b { color: var(--glut); }
+.id-hilal .id-wert.gut b { color: #7ee0a5; }
+.id-hilal .id-nav { background: rgba(8,8,13,.45); border-right: 1px solid var(--linie); }
+.id-hilal .id-marke-spiel b { font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .12em; font-size: 24px; }
+.id-hilal .id-marke-spiel b::before { content: "☾ "; color: var(--karmesin); }
+.id-hilal .id-gruppenkopf { color: rgba(255,255,255,.5); font-weight: 600; }
+.id-hilal .id-punkt { color: rgba(255,255,255,.82); border-radius: 10px; }
+.id-hilal .id-medaillon { clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); background: rgba(255,255,255,.08); color: var(--weiss); width: 38px; }
+.id-hilal .id-punkt.an { background: linear-gradient(90deg, rgba(227,10,23,.35), transparent); color: #fff; }
+.id-hilal .id-punkt.an .id-medaillon { background: var(--karmesin); box-shadow: 0 0 18px rgba(227,10,23,.9); }
+.id-hilal .id-punktname { font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .06em; font-size: 14px; }
+.id-hilal .id-punkt em { background: var(--karmesin); color: #fff; }
+.id-hilal .id-kartenleiste button { background: var(--glas); color: var(--weiss); border: 1px solid var(--linie); font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .08em; border-radius: 20px; }
+.id-hilal .id-kartenleiste .an { background: var(--karmesin); border-color: var(--karmesin); box-shadow: 0 0 16px rgba(227,10,23,.6); }
+.id-hilal .id-nachbarn path { fill: rgba(255,255,255,.03); stroke: rgba(255,255,255,.12); }
+.id-hilal .id-provinzen path { stroke: rgba(255,255,255,.22); stroke-width: .6; }
+.id-hilal .id-land path { stroke: var(--karmesin); stroke-width: 2.5; }
+.id-hilal .id-front-grund { fill: rgba(227,10,23,.55); } .id-hilal .id-front-linie { stroke: var(--glut); stroke-width: 2; }
+.id-hilal .id-provinzen .front { animation: id-glut 1.8s ease-in-out infinite; }
+@keyframes id-glut { 50% { filter: brightness(1.6) drop-shadow(0 0 6px #ff3b2f); } }
+.id-hilal .id-vorstoss { stroke: var(--glut); filter: drop-shadow(0 0 6px var(--glut)); } .id-hilal .id-vorstoss.eigen { stroke: #fff; filter: drop-shadow(0 0 6px #fff); }
+.id-hilal .id-pfeilspitze { fill: var(--glut); }
+.id-hilal .id-marke .ring { fill: none; stroke: #fff; stroke-width: 1.5; }
+.id-hilal .id-marke .kern { fill: rgba(8,8,13,.85); }
+.id-hilal .id-marke { color: #fff; } .id-hilal .id-marke.krise .ring, .id-hilal .id-marke.protest .ring { stroke: var(--glut); } .id-hilal .id-marke.bau { color: var(--gold); }
+.id-hilal .id-ortsname text { fill: #fff; font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; paint-order: stroke; stroke: rgba(0,0,0,.8); stroke-width: 4px; }
+.id-hilal .id-legende { background: rgba(8,8,13,.7); border: 1px solid var(--linie); border-radius: 10px; }
+.id-hilal .l-front { background: var(--karmesin); box-shadow: 0 0 8px var(--karmesin); } .id-hilal .l-protest { background: var(--glut); } .id-hilal .l-bau { background: var(--gold); } .id-hilal .l-zust { background: linear-gradient(90deg, #2a1418, #a33a40); }
+.id-hilal .id-meldung { background: linear-gradient(135deg, rgba(122,10,18,.92), rgba(30,8,12,.92)); border: 1px solid rgba(227,10,23,.7); border-radius: 14px; box-shadow: 0 0 40px rgba(227,10,23,.35); }
+.id-hilal .id-meldungskopf { color: var(--gold); font-weight: 700; }
+.id-hilal .id-meldung b { font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .04em; font-size: 20px; }
+.id-hilal .id-wahl button { border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff; border-radius: 8px; font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.id-hilal .id-wahl .haupt { background: var(--weiss); color: var(--karmesin-tief); border-color: var(--weiss); }
+.id-hilal .id-akte { background: rgba(18,12,16,.72); backdrop-filter: blur(14px); border: 1px solid var(--linie); border-radius: 18px; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+.id-hilal .id-kicker { color: var(--karmesin); font-weight: 700; }
+.id-hilal .id-aktenkopf h1 { font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .03em; font-size: 38px; font-weight: 600; }
+.id-hilal .id-karte-akte { background: var(--glas); border: 1px solid var(--linie); border-radius: 12px; }
+.id-hilal .id-karte-akte.krieg { border-color: rgba(227,10,23,.7); box-shadow: inset 4px 0 0 var(--karmesin), 0 0 22px rgba(227,10,23,.25); }
+.id-hilal .id-karte-akte:hover { background: rgba(255,255,255,.1); }
+.id-hilal .id-karte-akte h2 { font-family: "Oswald Variable", sans-serif; font-weight: 500; font-size: 18px; letter-spacing: .02em; }
+.id-hilal .id-karte-akte p { color: rgba(255,255,255,.72); }
+.id-hilal .id-nr { font-family: "Oswald Variable", sans-serif; color: rgba(255,255,255,.35); font-size: 28px; }
+.id-hilal .id-tag { background: var(--karmesin); color: #fff; border-radius: 10px; font-weight: 700; }
+.id-hilal .blick .id-tag { background: rgba(255,255,255,.16); }
+.id-hilal .id-karte-akte button { color: var(--gold); font-family: "Oswald Variable", sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.id-hilal .id-ziel { background: var(--glas); border: 1px solid var(--linie); border-radius: 12px; }
+.id-hilal .id-ziel .id-kicker { color: var(--gold); }
+.id-hilal .id-band { background: rgba(255,255,255,.1); } .id-hilal .id-band i { background: linear-gradient(90deg, var(--karmesin), var(--gold)); box-shadow: 0 0 10px rgba(240,195,106,.6); }
+.id-hilal .id-schild { background: var(--karmesin); color: #fff; font-family: "Oswald Variable", sans-serif; border-radius: 10px; }
