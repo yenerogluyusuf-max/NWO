@@ -28,6 +28,11 @@ export interface PostfachProps {
 
 const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
 
+/** Anliegen, Vorfälle und Nachsorge der Ressorts, die neben den Vorlagen auf dem Tisch liegen; der Reiter im Ministerpult zählt dieselben */
+export function offeneAnliegen(world: World) {
+  return [...(world.spiel?.ministerfluss?.ressortAnliegen ?? []).filter((a) => ["offen", "besprochen", "abgelehnt"].includes(a.status)), ...offeneRessortVorfaelle(world), ...aktiveRessortNachsorge(world)];
+}
+
 export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: PostfachProps) {
   const [ressort, setRessort] = useState<Amt | "alle">("alle");
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
@@ -43,7 +48,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world,pflegeStand]);
 
-  const anliegen=[...(world.spiel?.ministerfluss?.ressortAnliegen??[]).filter(a=>["offen","besprochen","abgelehnt"].includes(a.status)),...offeneRessortVorfaelle(world),...aktiveRessortNachsorge(world)];
+  const anliegen=offeneAnliegen(world);
   const sichtbar = ressort === "alle" ? alle : alle.filter((v) => v.amt === ressort);
   const z = flussZustand(world);
   const vertagt = Object.entries(z.vertagt).filter(([, t]) => t > world.day).length;

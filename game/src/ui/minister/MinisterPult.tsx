@@ -7,7 +7,7 @@ import { ministerVorlagen } from "../../sim/ministerfluss";
 import type { Vorlage, VorlagenZiel } from "../../sim/ministerfluss-typen";
 import type { World } from "../../sim/types";
 import { BefehlBlatt } from "./BefehlBlatt";
-import { Posteingang } from "./Posteingang";
+import { offeneAnliegen, Posteingang } from "./Posteingang";
 import { t } from "../../i18n";
 import "../politik/design.css";
 import "./ministerfluss.css";
@@ -24,7 +24,8 @@ export interface MinisterPultProps {
 
 export function MinisterPult({ world, refresh, onGehe, onKarte, onEinstellen, start = "vorlagen" }: MinisterPultProps) {
   const [reiter, setReiter] = useState<"vorlagen" | "befehle">(start);
-  const n = world.spiel ? ministerVorlagen(world, { tiefe: 0 }).length : 0;
+  // Dieselbe Zahl wie „Alle“ im Posteingang: Vorlagen und Anliegen der Ressorts
+  const n = world.spiel ? ministerVorlagen(world, { tiefe: 0 }).length + offeneAnliegen(world).length : 0;
   const laufend = world.spiel ? laufendeBefehle(world).length : 0;
   return (
     <div className="mf">
