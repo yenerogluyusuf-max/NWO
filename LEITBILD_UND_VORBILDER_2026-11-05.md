@@ -23,9 +23,9 @@ Anlass: Auftrag des Projektinhabers, die Nacht durch zu prüfen, zu vergleichen 
 
 | Vorbild | Lehre | In Staatsräson | Nächster Schritt |
 |---|---|---|---|
-| **Civilization 6** | Karte als Bühne; Epochen golden, dunkel, heroisch; Kränkungen mit Beobachtern | Karte, Wunder, Epochen (neu) | Beobachter-Kränkungen (Abschnitt 4) |
+| **Civilization 6** | Karte als Bühne; Epochen golden, dunkel, heroisch; Kränkungen mit Beobachtern | Karte (auch 2D mit Kriegslage), Wunder, Epochen, Beobachter-Kränkungen, eigene Kopfbilder je Bereich | Befehle auf der Karte |
 | **Democracy 4** | Wirkungsnetz sichtbar; Gruppen mit Zynismus; Wahlbeteiligung endogen | Netz, Gruppen, Vorschau | Zynismus bei Richtungswechseln und Wahlgeschenken |
-| **Suzerain** | Personen mit Gedächtnis, Gespräche statt Menüs, Entscheidungen mit späten Folgen | Ministerfluss, Gespräch, Machtkreis, Zusagen | Erinnerung der Minister an frühere Antworten sichtbar machen |
+| **Suzerain** | Personen mit Gedächtnis, Gespräche statt Menüs, Entscheidungen mit späten Folgen | Ministerfluss, Gespräch, Machtkreis, Zusagen; Minister nennen ihre Erinnerung an frühere Antworten auf der nächsten Karte | Erinnerung auch in Gesprächen aufgreifen |
 | **Victoria 3** | Interessengruppen mit Einfluss und Legitimität; „Journal“ für laufende Vorhaben | Fraktionen, Vorgänge | Vorgänge als ein Journal auf dem Schreibtisch bündeln |
 | **Hearts of Iron 4** | Fokusbaum, Fronten auf der Karte, Nationalgeist | Fokusbaum, Krieg mit Front, Schauplätze | Front und Befehle auf der Karte (Vorgabe S) |
 | **Frostpunk** | Wenige Kerngrößen (Hoffnung, Unmut), Gesetzbuch mit Preis | Zustimmung, Kapital, viele Größen | Kopfleiste bleibt bei wenigen Werten (umgesetzt: wählbar, höchstens zwei Zusatzwerte) |
