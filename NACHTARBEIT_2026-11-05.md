@@ -1,6 +1,6 @@
 # Nachtarbeit 4./5. November 2026 – Bericht für den Morgen
 
-Auftrag: die Nacht durch prüfen, verbessern, vergleichen, über alle Bereiche, und überlegen, was das Spiel sein soll und was andere Spiele lehren. Leitbild und Vergleich: [LEITBILD_UND_VORBILDER_2026-11-05.md](LEITBILD_UND_VORBILDER_2026-11-05.md). Rund 40 Commits, alle auf `claude/blissful-galileo-llka15`, `claude/weiter-b91y4u` und `codex/spiel-konsistenz`.
+Auftrag: die Nacht durch prüfen, verbessern, vergleichen, über alle Bereiche, und überlegen, was das Spiel sein soll und was andere Spiele lehren. Leitbild und Vergleich: [LEITBILD_UND_VORBILDER_2026-11-05.md](LEITBILD_UND_VORBILDER_2026-11-05.md). Vollsuite am Ende der Nacht: 207 Testdateien, 2992 Tests bestanden, 8 übersprungen, keine Fehler (vorher 25 Folgefehler, alle behoben). Rund 45 Commits, alle auf `claude/blissful-galileo-llka15`, `claude/weiter-b91y4u` und `codex/spiel-konsistenz`.
 
 ## 1. Das Wichtigste in fünf Punkten
 
