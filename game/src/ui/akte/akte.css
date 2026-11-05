@@ -203,3 +203,19 @@
   .ak-navgruppe.einordnung{margin-left:10px}
   .ak-navigation button{scroll-snap-align:start}
 }
+
+/* Vorgabe V: schlanker Aktenkopf in allen Bereichen. Das Bild bleibt als Band, der Zweck steht als Hinweis am Titel,
+   die drei Kennzahlen stehen kompakt daneben; vorher belegte der Kopf ein Drittel des Bildschirms. */
+.ak-kopf.mit-bild{grid-template-columns:minmax(0,1fr) auto;gap:0;align-items:center}
+.ak-kopf.mit-bild .ak-kopfbild{position:absolute;inset:0 0 auto 0;height:100%;border-bottom:0;opacity:.55}
+.ak-kopf.mit-bild .ak-identitaet{position:relative;height:auto;max-width:none;padding:14px 20px;background:linear-gradient(90deg,#f7f0def2 60%,#f7f0de00)}
+.ak-akte .ak-identitaet h2{font-size:24px}
+.ak-bereichszeichen{flex-basis:40px;width:40px;height:42px}
+.ak-zweck{display:none}
+.ak-kopf.mit-bild .ak-kernwerte{position:relative;display:flex;gap:8px;padding:10px 16px}
+.ak-kopf.mit-bild .ak-kernwert{padding:6px 12px;min-width:110px;background:#fffaf0e6}
+.ak-kernwert strong{font-size:21px}
+.ak-kernwert .ak-ring{width:24px;height:24px}
+.ak-kernwert .ak-funke{display:none}
+.ak-kernwert-hinweis{-webkit-line-clamp:1;max-width:220px}
+@container aktenbereich (max-width: 820px){.ak-kopf.mit-bild{grid-template-columns:minmax(0,1fr)}.ak-kopf.mit-bild .ak-kernwerte{flex-wrap:wrap}}
