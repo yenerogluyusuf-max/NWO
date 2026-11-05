@@ -39,7 +39,9 @@ cp "$HIER/main.cjs" "$HIER/package.json" "$WERK/stage/"
 echo "→ Symbol wird erzeugt …"
 if [ ! -f "$WERK/staatsraeson.icns" ] || [ "$HIER/symbol.svg" -nt "$WERK/staatsraeson.icns" ]; then
   rm -rf "$WERK/symbol.iconset" && mkdir "$WERK/symbol.iconset"
-  (cd "$QUELLE/game" && node "$HIER/symbol.mjs" "$HIER/symbol.svg" "$WERK/symbol-1024.png")
+  # Nach „npm install“ kann eine neue Playwright-Version ihren Browser noch nicht haben: dann einmal nachladen und erneut zeichnen
+  (cd "$QUELLE/game" && { node "$HIER/symbol.mjs" "$HIER/symbol.svg" "$WERK/symbol-1024.png" 2>/dev/null \
+    || { echo "  Browser für das Symbol fehlt, wird geladen …"; npx playwright install chromium && node "$HIER/symbol.mjs" "$HIER/symbol.svg" "$WERK/symbol-1024.png"; }; })
   for g in 16 32 64 128 256 512; do
     sips -z $g $g "$WERK/symbol-1024.png" --out "$WERK/symbol.iconset/icon_${g}x${g}.png" > /dev/null
     sips -z $((g*2)) $((g*2)) "$WERK/symbol-1024.png" --out "$WERK/symbol.iconset/icon_${g}x${g}@2x.png" > /dev/null
