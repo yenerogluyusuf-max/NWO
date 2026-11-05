@@ -40,5 +40,7 @@
  "ereignis.rat": "Rat aus dem Ressort",
  "ereignis.ratVerhalten": "Hält sich zurück",
  "ereignis.spaeter": "Später entscheiden",
- "ereignis.worum": "Worum es geht"
+ "ereignis.worum": "Worum es geht",
+ "ereignis.kz.wohnungsnot": "Wohnungsnot",
+ "ereignis.kz.erdbeben": "Erdbebengefahr"
 }

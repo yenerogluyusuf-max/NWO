@@ -40,5 +40,7 @@
  "ereignis.rat": "Advice from the ministry",
  "ereignis.ratVerhalten": "Holding back",
  "ereignis.spaeter": "Decide later",
- "ereignis.worum": "What is at stake"
+ "ereignis.worum": "What is at stake",
+ "ereignis.kz.wohnungsnot": "Housing shortage",
+ "ereignis.kz.erdbeben": "Earthquake risk"
 }

@@ -40,5 +40,7 @@
  "ereignis.rat": "Bakanlığın tavsiyesi",
  "ereignis.ratVerhalten": "Çekingen davranıyor",
  "ereignis.spaeter": "Sonra karar ver",
- "ereignis.worum": "Mesele ne"
+ "ereignis.worum": "Mesele ne",
+ "ereignis.kz.wohnungsnot": "Konut sıkıntısı",
+ "ereignis.kz.erdbeben": "Deprem riski"
 }

@@ -11,9 +11,11 @@ import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import type { EreignisAnsicht } from "../../sim/ereignisse";
 
-export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht";
+export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht" | "wohnen";
 
 const MUSTER: [RegExp, Thema][] = [
+  // Wiederaufbau, Wohnungen, Mieten: Es geht um Wohnungsnot und Erdbebengefahr, nicht um Inflation (Spielerdurchlauf 5. November)
+  [/wiederaufbau|wohnung|miete|bauaufsicht|sozialbau/, "wohnen"],
   [/beben|flut|brand|duerre|dürre|katastroph|ueberschwemm|hochwasser/, "katastrophe"],
   [/haushalt|mindestlohn|iwf|rating|lira|bank|steuer|zins|waehrung|schulden|rente/, "haushalt"],
   [/krieg|mil_|putsch|grenz|anschlag|terror|militaer/, "sicherheit"],
@@ -40,6 +42,7 @@ const THEMA_AMT: Record<Thema, Figur["amt"]> = {
   gesellschaft: "inneres",
   katastrophe: "inneres",
   recht: "justiz",
+  wohnen: "inneres",
 };
 
 const SZENE_THEMA: Record<string, Thema> = { bank: "haushalt", parlament: "recht", istanbul: "gesellschaft", anatolien: "gesellschaft", wahlnacht: "gesellschaft" };
@@ -126,6 +129,8 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     vertrauen: knot("vertrauen_regierung", t("ereignis.kz.vertrauen")),
     justiz: knot("justiz_unabhaengigkeit", t("ereignis.kz.justiz")),
     presse: knot("pressefreiheit", t("ereignis.kz.presse")),
+    wohnungsnot: knot("p_wohnungsnot", t("ereignis.kz.wohnungsnot")),
+    erdbeben: knot("p_erdbebengefahr", t("ereignis.kz.erdbeben")),
   };
 }
 
@@ -137,6 +142,7 @@ const THEMA_ZAHLEN: Record<Thema, string[]> = {
   gesellschaft: ["zustimmung", "polarisierung", "inflation", "arbeitslosigkeit"],
   katastrophe: ["zustimmung", "vertrauen", "schulden"],
   recht: ["justiz", "presse", "zustimmung"],
+  wohnen: ["wohnungsnot", "erdbeben", "vertrauen", "schulden"],
 };
 
 export function kennzahlenFuer(w: World, thema: Thema): Kennzahl[] {
@@ -157,6 +163,7 @@ export function akteFuer(thema: Thema): { ziel: AktenZiel; label: string } {
     case "sicherheit":
       return { ziel: { dossier: "reich_militaer" }, label: t("ereignis.akte.militaer") };
     case "katastrophe":
+    case "wohnen":
       return { ziel: { dossier: "katastrophe" }, label: t("ereignis.akte.katastrophe") };
     case "recht":
       return { ziel: { dossier: "reich_recht" }, label: t("ereignis.akte.recht") };

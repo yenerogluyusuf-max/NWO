@@ -246,6 +246,8 @@ const SZENEN: Record<Thema, (p: { id: string }) => ReactElement> = {
   gesellschaft: Gesellschaft,
   katastrophe: Katastrophe,
   recht: Recht,
+  // Wohnen und Wiederaufbau: dieselbe Kulisse wie die Katastrophe (Trümmer, Kräne)
+  wohnen: Katastrophe,
 };
 
 export function EreignisSzene({ thema }: { thema: Thema }) {
