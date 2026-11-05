@@ -14,3 +14,24 @@ test("zeichnet 81 Provinzen über einem Landgrund, färbt nach Ebene und markier
   expect(html).toContain("<title>Ankara</title>");
   expect(html).not.toMatch(/karte2d\.|undefined|NaN/);
 });
+
+test("zeigt die Kriegslage: Regionen nach Lage, Vorstöße und bedrohte Provinzen; ein ferner Schauplatz erweitert den Ausschnitt", () => {
+  const krieg = {
+    regionen: [
+      { id: "a", lon: 44.5, lat: 38.0, lage: "umkaempft" as const, gelaende: "berg" as const, wert: 1 },
+      { id: "b", lon: 47.0, lat: 36.5, lage: "gegner" as const, gelaende: "ebene" as const, wert: 1 },
+    ],
+    pfeile: [{ von: [43.5, 38.4] as [number, number], nach: [44.5, 38.0] as [number, number], seite: "eigen" as const }],
+    bedroht: [65],
+    aktiv: true,
+  };
+  const html = renderToStaticMarkup(createElement(Karte2D, { krieg: krieg as never }));
+  expect(html).toContain('class="karte2d-krieg aktiv"');
+  expect(html).toContain('class="umkaempft"');
+  expect(html).toContain('class="pfeil eigen"');
+  expect(html).toContain('class="bedroht"');
+  // 47° Ost liegt außerhalb des Grundausschnitts (bis 45°): die Breite wächst über 836 hinaus
+  const breite = Number(/viewBox="[-\d.]+ [-\d.]+ ([\d.]+)/.exec(html)![1]);
+  expect(breite).toBeGreaterThan((45 - 25.4) * 40 + 60);
+  expect(html).not.toMatch(/karte2d\.|undefined|NaN/);
+});

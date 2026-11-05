@@ -1333,7 +1333,7 @@ export function AtlasMap({
       </div>
       {!ready && !fehler && <div className="atlas-loading">{tx("ui2.ui.atlas.AtlasMap.895afa5")}</div>}
       {/* Ohne WebGL: vereinfachte 2D-Karte statt einer leeren Fläche (Vorgabe S) */}
-      {fehler && <Karte2D fill={fill} fillAlpha={fillAlpha} selected={selected} onSelect={onSelect} laenderFarben={laenderFarben} onLand={onLand} />}
+      {fehler && <Karte2D fill={fill} fillAlpha={fillAlpha} selected={selected} onSelect={onSelect} laenderFarben={laenderFarben} onLand={onLand} krieg={krieg} />}
       {bezirk ? (
         <div className="atlas-hover bezirk" style={{ left: bezirk.x + 16, top: bezirk.y + 16 }}>
           <strong>{bezirk.info.name}</strong>

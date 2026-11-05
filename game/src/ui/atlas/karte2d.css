@@ -9,3 +9,21 @@
 .karte2d-provinzen path:hover{filter:brightness(1.12)}
 .karte2d-provinzen path.gewaehlt{stroke:#8e2a22;stroke-width:2.4}
 .karte2d-hinweis{position:absolute;left:50%;top:104px;transform:translateX(-50%);margin:0;padding:4px 12px;border-radius:6px;background:#2a1f18cc;color:#f1e6cc;font:italic 12.5px/1.3 var(--serif);pointer-events:none}
+/* Kriegslage wie in der 3D-Karte (kriegsfx.ts): eigen Siegelrot, umkämpft Ocker mit pulsierendem Rand, beim Gegner graue Strichlinie, besetzt schraffiert */
+.karte2d-provinzen path.bedroht{stroke:#8e2a22;stroke-width:1.6;stroke-dasharray:4 3}
+.karte2d-krieg circle{stroke-width:1.6;pointer-events:visiblePainted}
+.karte2d-krieg circle.eigen{fill:#8e2a22b3;stroke:#5c1a14}
+.karte2d-krieg circle.umkaempft{fill:#c69a4a99;stroke:#7c5823}
+.karte2d-krieg circle.gegner{fill:#5a4a3a33;stroke:#5a4a3a;stroke-dasharray:3 2}
+.karte2d-krieg circle.besetzt{fill:url(#k2d-schraffur);stroke:#8e2a22}
+#k2d-schraffur line{stroke:#8e2a22;stroke-width:2}
+.karte2d-krieg .pfeil{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:7 5}
+.karte2d-krieg .pfeil.eigen{stroke:#8e2a22}
+.karte2d-krieg .pfeil.gegner{stroke:#2a1f18}
+marker path.eigen{fill:#8e2a22} marker path.gegner{fill:#2a1f18}
+@media (prefers-reduced-motion:no-preference){
+  .karte2d-krieg.aktiv .pfeil{animation:k2d-lauf 1.6s linear infinite}
+  .karte2d-krieg.aktiv circle.umkaempft{animation:k2d-puls 1.8s ease-in-out infinite}
+}
+@keyframes k2d-lauf{to{stroke-dashoffset:-24}}
+@keyframes k2d-puls{50%{stroke-width:3.4}}

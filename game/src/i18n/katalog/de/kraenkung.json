@@ -5,5 +5,10 @@
  "kraenkung.warum.sanktion": "Wer einen Partner trifft, trifft auch dessen Freunde: Schutzmächte und Bündnispartner verlieren Vertrauen.",
  "kraenkung.warum.angriff": "Ein Angriff kränkt die Schutzmächte des Opfers; sie merken es sich.",
  "karte2d.aria": "Karte (vereinfacht)",
- "karte2d.hinweis": "Vereinfachte Karte: Dieses Gerät zeigt keine 3D-Grafik. Provinzen und Länder lassen sich anklicken."
+ "karte2d.hinweis": "Vereinfachte Karte: Dieses Gerät zeigt keine 3D-Grafik. Provinzen und Länder lassen sich anklicken.",
+ "karte2d.krieg": "Kriegslage",
+ "karte2d.lage.eigen": "Von eigenen Truppen gehalten",
+ "karte2d.lage.umkaempft": "Umkämpft",
+ "karte2d.lage.gegner": "Beim Gegner",
+ "karte2d.lage.besetzt": "Besetzt"
 }

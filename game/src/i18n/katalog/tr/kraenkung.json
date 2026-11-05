@@ -5,5 +5,10 @@
  "kraenkung.warum.sanktion": "Bir ortağı vuran onun dostlarını da vurur: koruyucular ve müttefikler güven kaybeder.",
  "kraenkung.warum.angriff": "Bir saldırı kurbanın koruyucularını kırar; bunu unutmazlar.",
  "karte2d.aria": "Harita (sade)",
- "karte2d.hinweis": "Sade harita: Bu cihaz 3B grafik göstermiyor. İllere ve ülkelere tıklanabilir."
+ "karte2d.hinweis": "Sade harita: Bu cihaz 3B grafik göstermiyor. İllere ve ülkelere tıklanabilir.",
+ "karte2d.krieg": "Savaş durumu",
+ "karte2d.lage.eigen": "Kendi birliklerimizin elinde",
+ "karte2d.lage.umkaempft": "Çatışma bölgesi",
+ "karte2d.lage.gegner": "Düşmanın elinde",
+ "karte2d.lage.besetzt": "İşgal altında"
 }
