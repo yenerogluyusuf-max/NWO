@@ -1,0 +1,1508 @@
+[
+ {
+  "nr": 1,
+  "pfad": [
+   "Schreibtisch"
+  ],
+  "datei": "001.png",
+  "datei2": null,
+  "titel": "",
+  "hoehe": 0,
+  "sichtHoehe": 0,
+  "woerter": 1,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": ""
+ },
+ {
+  "nr": 2,
+  "pfad": [
+   "Politik",
+   "Bereiche"
+  ],
+  "datei": "002.png",
+  "datei2": "002b.png",
+  "titel": "Politik · Maßnahmen nach Bereichen",
+  "hoehe": 2576,
+  "sichtHoehe": 753,
+  "woerter": 485,
+  "knoepfe": 35,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Alle Bereiche"
+  ],
+  "anfang": "Überblick Wirtschaft Haushalt und Steuern Arbeit und Soziales 2 Gesundheit 1 Bildung und Fachkräfte 1 Wohnen, Bau und Erdbeben 2 Energie und Umwelt 1 Landwirtschaft und Wasser 2 Infrastruktur und Verkehr Innere Sicherheit und Frieden Recht und Justiz Streitkräfte Kultur und Erbe Medien und Gesellschaft Außenpolitik und Migration 1 Kriegsgefahr. Der Konflikt mit Zypern steht bei 72 von 100; das Land erwartet Geschlossenheit statt Schauprojekten. Endet, wenn kein Konflikt mit einem Nachbarn mehr über 65 steht. POLITIK Alle Bereiche Am dringendsten: Wohnen, Bau und Erdbeben, Bildung und Fachkräft"
+ },
+ {
+  "nr": 3,
+  "pfad": [
+   "Politik",
+   "Vorschläge"
+  ],
+  "datei": "003.png",
+  "datei2": "003b.png",
+  "titel": "Politik · Maßnahmen nach Bereichen",
+  "hoehe": 3159,
+  "sichtHoehe": 753,
+  "woerter": 544,
+  "knoepfe": 34,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Was jetzt ansteht",
+   "Erdbebengefahr: Erdbebensichere Stadterneuerung",
+   "Wohnungsnot: Industrieller Wohnungsbau",
+   "Wohnungsnot: Mietpreisbremse",
+   "Luftverschmutzung: Umweltauflagen",
+   "Bahn in Burdur: überlastet",
+   "Spannungen um Migration: Integration von Geflüchteten"
+  ],
+  "anfang": "HEUTE Was jetzt ansteht Nach Rang geordnet, aus Ihren akuten Problemen und den Sorgen der Ressorts berechnet. Was Sie hier nicht entscheiden, bleibt im Posteingang der Minister. 6 Vorlagen nach Rang 1 Murat Erdem Wirtschaft · Loyalität 40 VORSCHLAG Erdbebengefahr: Erdbebensichere Stadterneuerung Wie schlimm und wo: Erdbebengefahr ist in 20 Provinzen akut (45 Prozent der Bevölkerung), vor allem in İstanbul, İzmir, Bursa, Kocaeli, Hatay.Auf der Karte ansehen EMPFEHLUNGWarten Erdbebensichere Stadterneuerung: ausbauen von Stufe 40 auf 60 5 Kapital 10 Aufmerksamkeit Erdbebengefahr (Provinzen mit ak"
+ },
+ {
+  "nr": 4,
+  "pfad": [
+   "Politik",
+   "Wirkungsnetz"
+  ],
+  "datei": "004.png",
+  "datei2": "004b.png",
+  "titel": "Politik · Maßnahmen nach Bereichen",
+  "hoehe": 2271,
+  "sichtHoehe": 753,
+  "woerter": 774,
+  "knoepfe": 83,
+  "regler": 1,
+  "unterreiter": [
+   "Erklärt",
+   "Weltvergleich",
+   "Was tun?"
+  ],
+  "ueberschriften": [
+   "Themen",
+   "Mindestlohn",
+   "Was folgt daraus?",
+   "Wirkungen im Land",
+   "Preis und Gegenspieler",
+   "1 Wo soll es gelten?",
+   "2 Auf welchen Satz?",
+   "3 Auf welchem Weg?",
+   "Ursachen",
+   "Wirkungen",
+   "Zusammenspiel mit anderen Maßnahmen"
+  ],
+  "anfang": "Themen 262 Knoten · 1.022 Verbindungen Alle Maßnahmen Größen Probleme ▾ Wirtschaft 32 MASSNAHMEN Mindestlohn 80 ▲ Exportförderung 40 Investitionsanreize 45 Staatliche Kreditgarantien 35 Preiskontrollen für Lebensmittel 20 Tourismuswerbung 50 Mittelstandsförderung 40 Einfuhrzölle 40 Bankenaufsicht 55 Industrielle Modernisierung 35 GRÖSSEN Inflation Modell Arbeitslosigkeit Modell Wachstum Modell Leitzins Modell Abwertung der Lira Modell Gefühlte Teuerung 69 ▼ Reallöhne 56 ▲ Investitionen 48 ▲ Exportstärke 58 Tourismus 68 Industrieproduktion 59 Lage des Mittelstands 42 ▼ Kreditvergabe 43 ▲ Auslan"
+ },
+ {
+  "nr": 5,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Mehrheitslage"
+  ],
+  "datei": "005.png",
+  "datei2": null,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 21,
+  "knoepfe": 1,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Lage: angespannt Auffällig: Unabhängige Justiz: 33 Gesetzesvorhaben öffnen Woher die Zahlen kommen Keine Einträge in Gesetze im Verfahren · Beim Verfassungsgericht."
+ },
+ {
+  "nr": 6,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Gesetzesvorhaben"
+  ],
+  "datei": "006.png",
+  "datei2": "006b.png",
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 1964,
+  "sichtHoehe": 759,
+  "woerter": 653,
+  "knoepfe": 0,
+  "regler": 1,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Auf dem Tisch",
+   "Weitere Vorhaben"
+  ],
+  "anfang": "Wählen Sie ein Vorhaben, eine Fassung und den Weg. Oben steht, was gerade drängt. 0 IM PARLAMENT 0 BEIM VERFASSUNGSGERICHT Auf dem Tisch Ausbau der İmam-Hatip-Schulen Mehrheit steht 373 Ja-Stimmen erwartet, nötig 301 Ihre Linie Mehr religiöse Schulen und mehr Religionsunterricht. Für die einen Heimat, für die anderen ein Schritt weg vom laizistischen Staat. Rückkehrgesetz Mehrheit steht 373 Ja-Stimmen erwartet, nötig 301 Ihre Linie Freiwillige Rückkehr der Geflüchteten mit Anreizen und Fristen. Was freiwillig heißt, entscheidet sich an der Grenze. Polizeibefugnisgesetz Mehrheit steht 373 Ja-St"
+ },
+ {
+  "nr": 7,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Fraktionen und Abstimmung"
+  ],
+  "datei": "007.png",
+  "datei2": "007b.png",
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 3833,
+  "sichtHoehe": 759,
+  "woerter": 765,
+  "knoepfe": 21,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Das Parlament",
+   "Letzte Abstimmungen",
+   "Nazlı Turan · Justiz",
+   "Zeynep Karaca · Präsidialamt",
+   "Versorgung auf der Tagesordnung",
+   "Was Ihre Entscheidungen bewirken",
+   "Ihre Entscheidungen im Vergleich",
+   "Warum die Parteien reagieren",
+   "Fraktionen und Verhandlungen",
+   "Duldung vereinbaren",
+   "Koalition schließen",
+   "Duldung vereinbaren",
+   "Koalition schließen"
+  ],
+  "anfang": "PARLAMENT Das Parlament 600 Sitze. Gesetze brauchen 301 Stimmen, Verfassungsänderungen 360 mit Volksabstimmung oder 400 ohne. 328 Lager, Mehrheit steht 272 Opposition 301 328 Regierungsmehrheit Mehrheit ab 301 AKP EIGENE PARTEI 296 35,7 % MHP IM LAGER 32 7 % YENİ Parti OPPOSITION 201 26 % DEM Parti OPPOSITION 71 10,4 % Letzte Abstimmungen ANGENOMMEN Gebäude-Verstärkungsprogramm 2. Dezember 2028 · 366 zu 234 Ansehen ANGENOMMEN Rentenerhöhungen 8. Oktober 2028 · 356 zu 244 Ansehen Nazlı Turan · Justiz 30. Dezember 2029 Die Ressortanfrage blieb ohne fachliche Antwort. Liegen gebliebene Aufgaben v"
+ },
+ {
+  "nr": 8,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Umsetzung"
+  ],
+  "datei": "008.png",
+  "datei2": "008b.png",
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 2188,
+  "sichtHoehe": 759,
+  "woerter": 534,
+  "knoepfe": 8,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Von Beschluss zu Wirkung",
+   "In Umsetzung",
+   "Was die Beschlüsse bewirkt haben",
+   "Beschlüsse"
+  ],
+  "anfang": "UMSETZUNG Von Beschluss zu Wirkung Ein Beschluss ist noch keine Wirkung: Erst die Verwaltung setzt ihn Monat für Monat um, und erst der umgesetzte Anteil wirkt. 0,44 % BIP laufende Kosten im Jahr, davon 0,44 % wirksam 57 Beschlüsse seit dem Amtsantritt 1 Umsetzung läuft In Umsetzung Gebäude-Verstärkungsprogramm in 20 Provinzen stoppen HEUTE 26 → ZIEL 40 noch etwa 48 Monate Was die Beschlüsse bewirkt haben Währungskrise im Iran: Finanzhilfe und Beistand anbieten GEMISCHT Währungskrise im Iran: Finanzhilfe und Beistand anbieten, 6 Monate danach: Gemischte Bilanz. Besser: Beziehungen zu den Nachb"
+ },
+ {
+  "nr": 9,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Verfassung"
+  ],
+  "datei": "009.png",
+  "datei2": "009b.png",
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 4270,
+  "sichtHoehe": 759,
+  "woerter": 810,
+  "knoepfe": 0,
+  "regler": 18,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Die Verfassungs-Werkstatt",
+   "Amtszeit und Wiederwahl",
+   "Länge der Amtszeit",
+   "Wahlhürde",
+   "Besetzung des Verfassungsgerichts",
+   "Notstandsartikel",
+   "Immunität der Abgeordneten",
+   "Das Paket"
+  ],
+  "anfang": "Die Verfassungs-Werkstatt Eine Verfassungsfrage je Amtszeit: Schnüren Sie ein Paket aus bis zu fünf Artikeln. Das Parlament braucht 360 Stimmen (dann entscheidet das Volk) oder 400 für den direkten Beschluss; das Verfassungsgericht kann angerufen werden. Gescheiterte Artikel sind zwölf Monate gesperrt. Amtszeit und Wiederwahl Wie lange regiert ein Präsident, und wie oft darf er wieder antreten? Wie bisher Höchstens zwei Amtszeiten: eine Wiederwahl, dann ist Schluss — die Amtszeitfrage bleibt unangetastet. Der bisherige Stand. Weitere Wiederwahl Eine zusätzliche Wiederwahl wird möglich: Wer das"
+ },
+ {
+  "nr": 10,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Justiz"
+  ],
+  "datei": "010.png",
+  "datei2": "010b.png",
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 2185,
+  "sichtHoehe": 759,
+  "woerter": 433,
+  "knoepfe": 14,
+  "regler": 0,
+  "unterreiter": [
+   "Lage",
+   "Reformen und Vorhaben4"
+  ],
+  "ueberschriften": [
+   "Besetzung der Gerichte Wer sitzt, prägt die Unabhängigkeit",
+   "Einrichtungen Man liest sie an den Größen ab, die sie prägen",
+   "Baureihenfolge öffentlich: Position 1 baut zuerst; vorziehen kostet 10 Verwaltungskraft je Position",
+   "Vorteile gelten, solange ihre Bedingungen gelten",
+   "Zuletzt"
+  ],
+  "anfang": "Lage Reformen und Vorhaben4 VERWALTUNGSKRAFT 99 +2,4 im Monat BAUKAPAZITÄT 133 99 von 133 je Monat verplant Was den Bau beschleunigt Unabhängigkeit der Justiz 33 Kapazität der Gerichte 45 17 Richter je 100.000 Einwohner, Schnitt 22 Effizienz der Verfahren 50 Strafgerichte 228 Tage (2024) Befolgung von Urteilen 39 Überfüllung der Haftanstalten 87▲ etwa 142 Prozent Belegung Ausnahmerecht 10 Autonomie der Anwaltschaft 55 Druck aus Straßburg 57 Rechtssicherheit 41 Legitimität der Regierung 60 Besetzung der Gerichte Wer sitzt, prägt die Unabhängigkeit Verfassungsgericht 10 loyal zur Regierung 3 ref"
+ },
+ {
+  "nr": 11,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Behörden"
+  ],
+  "datei": "011.png",
+  "datei2": null,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 34,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Ausbau kostet Kapital, Geld und Zeit; jede weitere Stufe bringt weniger. Kürzen spart sofort und kostet Erfahrung. 0 IM AUSBAU 1 ETAT KNAPP Justiz und Gerichte Personal Technik Fachwissen Etat ohne Spielraum Taner Polat"
+ },
+ {
+  "nr": 12,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Gesetzesbilanz"
+  ],
+  "datei": "012.png",
+  "datei2": null,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 773,
+  "sichtHoehe": 759,
+  "woerter": 16,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Zustimmung 52 → 50 % 52 50 2028-07 2030-02 WIRKUNGSBERICHTE Noch keine Wirkungsberichte in diesem Bereich."
+ },
+ {
+  "nr": 13,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Politische Akteure"
+  ],
+  "datei": "013.png",
+  "datei2": null,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 44,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Cem Arıkan Oppositionsführer Haltung: abtrünnig (24) Die Regierung vorführen und die nächste Wahl gewinnen. Cem Duran Vorsitz der MHP Haltung: verlässlich (53) Ministerien, Einfluss und die Zusagen aus dem Wahlkampf. Nazlı Turan Justizministerin Haltung: abtrünnig (29) Verfahren beschleunigen, ohne dass es nach Einmischung aussieht."
+ },
+ {
+  "nr": 14,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Handlungsfähigkeit"
+  ],
+  "datei": "014.png",
+  "datei2": null,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 26,
+  "knoepfe": 1,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Lage: gemischt Auffällig: Loyalität im Kabinett: 49 · Offene Zusagen: 0 Ministerrat & Kabinett öffnen Woher die Zahlen kommen Keine Einträge in Offene Zusagen nach Frist."
+ },
+ {
+  "nr": 15,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Ministerrat & Kabinett"
+  ],
+  "datei": "015.png",
+  "datei2": "015b.png",
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 12783,
+  "sichtHoehe": 759,
+  "woerter": 2258,
+  "knoepfe": 106,
+  "regler": 0,
+  "unterreiter": [
+   "Ministerrat",
+   "Gespräche & Umfeld",
+   "Machtkreis",
+   "Zusagen",
+   "Vorlagen der Minister18",
+   "Befehle erteilen"
+  ],
+  "ueberschriften": [
+   "Der Ministerrat (Bakanlar Kurulu)",
+   "Nazlı Turan · Justiz",
+   "Zeynep Karaca · Präsidialamt",
+   "Ihre Minister brauchen eine Entscheidung",
+   "Nazlı Turan",
+   "Zeynep Karaca",
+   "Nikosia sucht den Streit",
+   "Ressortstreit: Justizministerin verlangt Mittel für „Überfüllung der Haftanstalten“",
+   "Sicherheitsdoktrin: Härte der Polizei gegen Rechtsstaatlichkeit",
+   "Erdbebengefahr: Erdbebensichere Stadterneuerung",
+   "Wohnungsnot: Industrieller Wohnungsbau",
+   "Wohnungsnot: Mietpreisbremse",
+   "Luftverschmutzung: Umweltauflagen",
+   "Bahn in Burdur: überlastet",
+   "Spannungen um Migration: Integration von Geflüchteten",
+   "Abwanderung von Fachkräften: Fachkräfte und Weiterbildung",
+   "Justizministerin Nazlı Turan legt nichts mehr vor",
+   "Perspektivlose Jugend: Berufsausbildungsprogramme",
+   "Wassermangel: Wasserleitungen und Kläranlagen",
+   "Haushaltskurs: Sparzwang gegen Wachstumsinvestitionen",
+   "Aus der Mappe"
+  ],
+  "anfang": "TERMINE (30 TAGE) 0 von 4 Ihre Zeit ist knapp GLAUBWÜRDIGKEIT 76 verlässlich AUFTRÄGE 0 laufen im Kabinett RÜCKTRITTSGEFAHR 0 niemand Ministerrat Gespräche & Umfeld Machtkreis Zusagen Der Ministerrat (Bakanlar Kurulu) GEORDNET Geordnete Regierungsarbeit mit vereinzelten Meinungsverschiedenheiten. KAPITAL-ERTRAG +3,7 Kapital monatlich durch das Kabinett SCHNITT LOYALITÄT 49 % über 7 Ressorts KABINETTSSITZUNG beschlussfähig Beschlussvorlagen liegen unten vor Vorlagen der Minister 18 Befehle erteilen Alle 18 Präsidialamt 3 Finanzen 1 Inneres 1 Äußeres 2 Justiz 3 Streitkräfte 0 Wirtschaft 8 Nazlı "
+ },
+ {
+  "nr": 16,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Gespräch"
+  ],
+  "datei": "016.png",
+  "datei2": null,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 95,
+  "knoepfe": 8,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Präsidialamt REGELWERK · KI NICHT EINGERICHTET KI einrichten PRÄSIDIALAMT Sie haben das Wort. Schreiben Sie, was Sie tun wollen, etwa: Wie stehe ich in den Umfragen? · Erhöhe den Mindestlohn. · Baue Wasserleitungen in Hatay und Adana. Bei allem anderen sage ich, was es gibt und was nicht. Was soll ich als Nächstes tun? Wie stehen die Rentner zu mir? Wie ist das Verhältnis zu Russland? Gipfeltreffen mit der EU Wie verhandle ich mit der Opposition? Hilfe Enter sendet, Umschalt und Enter macht eine neue Zeile. Was Kapital kostet, wird nie ohne Ihr Zeichen ausgeführt."
+ },
+ {
+  "nr": 17,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Verwaltung"
+  ],
+  "datei": "017.png",
+  "datei2": "017b.png",
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 1525,
+  "sichtHoehe": 759,
+  "woerter": 286,
+  "knoepfe": 14,
+  "regler": 0,
+  "unterreiter": [
+   "Lage",
+   "Sonderrechte und Vorhaben5"
+  ],
+  "ueberschriften": [
+   "Verwaltung und Haushalt Was knapp ist, ist selten nur Geld",
+   "Baureihenfolge öffentlich: Position 1 baut zuerst; vorziehen kostet 10 Verwaltungskraft je Position",
+   "Vorteile gelten, solange ihre Bedingungen gelten",
+   "Zuletzt"
+  ],
+  "anfang": "Lage Sonderrechte und Vorhaben5 VERWALTUNGSKRAFT 99 +2,4 im Monat BAUKAPAZITÄT 133 99 von 133 je Monat verplant Was den Bau beschleunigt Legitimität der Regierung 60 Vertrauen der Märkte 46▼ Vertrauen in die Regierung 40 Verwaltung und Haushalt Was knapp ist, ist selten nur Geld Im monatlichen Verwaltungszufluss enthalten: 0,0 Punkte aus dem bereits wirksamen Personaletat. VERWALTUNGSKRAFT JE MONAT Einkommen (Grundstock, Digitalisierung, Institutionen) +19,5 Bauvorhaben −7,6 Unterhalt des Bestands −9,5 Saldo +2,4 POLITISCHES KAPITAL JE MONAT Grundeinkommen 3,5 Vertrauen der Bürger 2,0 Mehrheit"
+ },
+ {
+  "nr": 18,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Behörden"
+  ],
+  "datei": "018.png",
+  "datei2": null,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 42,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Ausbau kostet Kapital, Geld und Zeit; jede weitere Stufe bringt weniger. Kürzen spart sofort und kostet Erfahrung. 0 IM AUSBAU 2 ETAT KNAPP Steuerverwaltung Personal Technik Reichweite Etat ohne Spielraum Barış Aksoy Statistikamt (TÜİK) Personal Technik Unabhängigkeit Etat ohne Spielraum Volkan Akın"
+ },
+ {
+  "nr": 19,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Regierungsbilanz"
+  ],
+  "datei": "019.png",
+  "datei2": null,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 729,
+  "sichtHoehe": 729,
+  "woerter": 16,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Zustimmung 52 → 50 % 52 50 2028-07 2030-02 WIRKUNGSBERICHTE Noch keine Wirkungsberichte in diesem Bereich."
+ },
+ {
+  "nr": 20,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Verantwortliche"
+  ],
+  "datei": "020.png",
+  "datei2": null,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 800,
+  "sichtHoehe": 759,
+  "woerter": 128,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Orhan Erdem Finanzminister Haltung: verlässlich (61) Ein Haushalt ohne Überraschungen und Märkte, die dem Land vertrauen. Selin Koçak Innenministerin Haltung: distanziert (48) Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte. Taner Erdem Außenminister Haltung: verlässlich (58) Verlässliche Partner und ein Land, das mit allen redet. Zeynep Karaca Chefin des Präsidialamts Haltung: verlässlich (55) Dass der Präsident seine Amtszeit übersteht und etwas hinterlässt. Cem Duran Vorsitz der MHP Haltung: verlässlich (53) Ministerien, Einfluss und die Zusagen aus dem Wahlkampf. Nazlı Turan Justiz"
+ },
+ {
+  "nr": 21,
+  "pfad": [
+   "Wirtschaft",
+   "Wirtschaftslage"
+  ],
+  "datei": "021.png",
+  "datei2": "021b.png",
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 2478,
+  "sichtHoehe": 759,
+  "woerter": 471,
+  "knoepfe": 27,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Preise und Geld",
+   "Wirtschaft und Arbeit",
+   "Staat und Märkte",
+   "Alltag der Menschen",
+   "Inflation",
+   "Was bewegt diese Zahl?",
+   "Im Vergleich mit anderen Ländern",
+   "Was Sie tun können",
+   "Was zuletzt passiert ist"
+  ],
+  "anfang": "PREISE UND GELD Inflation 19,2% Inflationserwartung 16,7% Leitzins 23,5% Realzins 6,8% Lira je US-Dollar 64,96Lira Lira je Euro 66,50Lira WIRTSCHAFT UND ARBEIT Wachstum 4,1% Arbeitslosenquote 9,7% Reallöhne 55,9 Investitionen 47,9 Kreditvergabe 43,3 Exportstärke 58,4 STAAT UND MÄRKTE Haushaltsdefizit 2,9% des BIP Staatsschulden 23,0% des BIP Zinsausgaben des Staates 3,1% des BIP Risikoaufschlag 260Basispunkte Leistungsbilanz -3,3% des BIP Netto-Reserven der Zentralbank 23,9Mrd. US-Dollar Brutto-Reserven der Zentralbank 169,3Mrd. US-Dollar Vertrauen der Märkte 45,7 ALLTAG DER MENSCHEN Gefühlte "
+ },
+ {
+  "nr": 22,
+  "pfad": [
+   "Wirtschaft",
+   "Krisenrat"
+  ],
+  "datei": "022.png",
+  "datei2": "022b.png",
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 1335,
+  "sichtHoehe": 759,
+  "woerter": 245,
+  "knoepfe": 9,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Krisenrat: Entlastung & Mehrheit",
+   "Preise, Einkommen & Arbeit"
+  ],
+  "anfang": "REGIERUNGSENTSCHEIDUNG Krisenrat: Entlastung & Mehrheit Entlaste Haushalte, benenne die Finanzierung und organisiere die Stimmen. Sozialer Fortschritt und parlamentarischer Rückhalt sind zwei unterschiedliche Aufgaben. 01 Entlastung finanzieren 02 Mehrheit verhandeln 03 Zusagen & Wirkung prüfen Armutsbelastung 36,0 / 100 Zustimmung im Land 50,2 % Regierungssitze / Mehrheit 328 / 301 Politischer Tiefstand: 0 von 6 Monaten. Unter 25 % Zustimmung steigt der Zähler; ab 25 % sinkt er schrittweise. Eine Parlamentsmehrheit allein verhindert diesen Vertrauensverlust nicht. WAS DIE HAUSHALTE BELASTET P"
+ },
+ {
+  "nr": 23,
+  "pfad": [
+   "Wirtschaft",
+   "Haushalt"
+  ],
+  "datei": "023.png",
+  "datei2": "023b.png",
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 2185,
+  "sichtHoehe": 759,
+  "woerter": 480,
+  "knoepfe": 77,
+  "regler": 20,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Haushalt gestalten",
+   "Wofür das Geld ausgegeben wird 29,2 Bio. ₺",
+   "Woher es kommt 29,2 Bio. ₺",
+   "Ausgaben",
+   "Renten",
+   "Soziales",
+   "Gesundheit, Bildung, Forschung",
+   "Sicherheit",
+   "Bauen, Land, Energie",
+   "Staat und Preise",
+   "Einnahmen",
+   "Nächstes Haushaltsfenster: Oktober 2030 · in 8 Monaten"
+  ],
+  "anfang": "Haushalt gestalten Wofür das Geld ausgegeben wird 29,2 Bio. ₺ Renten 4,0 Bio. ₺ 12 % Soziales 1,3 Bio. ₺ 4 % Gesundheit, Bildung, Forschung 5,6 Bio. ₺ 17 % Sicherheit 3,7 Bio. ₺ 11 % Bauen, Land, Energie 3,6 Bio. ₺ 11 % Staat und Preise 10,8 Bio. ₺ 33 % Zinsen 3,9 Bio. ₺ 12 % Defizit 2,9 % des BIP Außen die Ausgaben, innen die Einnahmen; schraffiert, was auf Kredit läuft. Ein Klick führt zu den Reglern. Woher es kommt 29,2 Bio. ₺ Lohn- und Einkommensteuer 5,6 Bio. ₺ 19 % Mehrwert- und Sonderverbrauchsteuern 9,5 Bio. ₺ 33 % Körperschaftsteuer 2,7 Bio. ₺ 9 % Übrige Steuern 3,8 Bio. ₺ 13 % Gebühr"
+ },
+ {
+  "nr": 24,
+  "pfad": [
+   "Wirtschaft",
+   "Versorgung & Handel"
+  ],
+  "datei": "024.png",
+  "datei2": "024b.png",
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 2076,
+  "sichtHoehe": 759,
+  "woerter": 394,
+  "knoepfe": 10,
+  "regler": 1,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Das Land versorgen",
+   "Politische Handlungsmöglichkeiten",
+   "Was Ihre Entscheidungen bewirken",
+   "Ihre Entscheidungen im Vergleich",
+   "Warum die Parteien reagieren",
+   "Lebensmittel",
+   "Wasser",
+   "Energie",
+   "Rohstoffe",
+   "Industriegüter",
+   "Rüstung",
+   "Getreide",
+   "Nächster Monat · Mengenrechnung",
+   "Lieferländer",
+   "Abnehmer"
+  ],
+  "anfang": "KABINETT · VERSORGUNG & SICHERHEIT Das Land versorgen Sie bestimmen den Kurs. Die Ministerien verteilen Waren und organisieren Transporte innerhalb der verfügbaren Möglichkeiten. Ungedeckte Warengruppen: 0 Versorgungswege auf der Karte → Zivile Bedarfsdeckung¹ 100 % Treibstoff für den Einsatz — Warenhandel gegenüber Ausgangslage +0,10 Mrd. $ Wem geben Sie im Engpass Vorrang? ● Anteilig verteilen Knappheit gemeinsam tragen. Zivilbedarf und Fronten teilen die verfügbaren Mengen. Aktueller Regierungskurs ○ Zivile Versorgung zuerst Bevölkerung zuerst. Versorgung im Inland geht vor; bei Knappheit e"
+ },
+ {
+  "nr": 25,
+  "pfad": [
+   "Wirtschaft",
+   "Zentralbank und Devisen"
+  ],
+  "datei": "025.png",
+  "datei2": "025b.png",
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 4798,
+  "sichtHoehe": 759,
+  "woerter": 1014,
+  "knoepfe": 28,
+  "regler": 5,
+  "unterreiter": [
+   "Leitzins",
+   "Inflation",
+   "Wachstum",
+   "Lira je Dollar",
+   "Arbeitslosigkeit",
+   "2 Mrd. $",
+   "5 Mrd. $",
+   "10 Mrd. $"
+  ],
+  "ueberschriften": [
+   "Gouverneurin der Zentralbank Sevgi Erdem",
+   "17. März 2030 · in 42 Tagen",
+   "Was danach kommt",
+   "Wer die Zinsen macht",
+   "Wie unabhängig ist die Bank?",
+   "Reserven, die man nicht drucken kann",
+   "Intervention: Reserven gegen Abwertungsdruck verkaufen",
+   "Der IWF",
+   "Was die Bank beschlossen hat"
+  ],
+  "anfang": "DIE ZENTRALBANK Gouverneurin der Zentralbank Sevgi Erdem Haltung: streng · Verhältnis zu Ihnen: distanziert STUFE B Formell unabhängig Die Regierung ernennt die Führung und kann sie unter Bedingungen entlassen. Druck wirkt je nach Haltung der Gouverneurin. LEITZINS 23,5 % REALZINS 6,8 % GLAUBWÜRDIGKEIT DER BANK solide RISIKOAUFSCHLAG 260 Punkte Reformen und Haushalt benötigen zusammen zusätzlich -0,4 % des BIP pro Jahr. Steuern und Einsparungen zählen zur Gegenfinanzierung. Dies ist nicht das gesamte Haushaltsdefizit. NÄCHSTE ZINSSITZUNG 17. März 2030 · in 42 Tagen Ohne Ihr Zutun folgt die Ban"
+ },
+ {
+  "nr": 26,
+  "pfad": [
+   "Wirtschaft",
+   "Bilanz & Entwicklung"
+  ],
+  "datei": "026.png",
+  "datei2": null,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 1047,
+  "sichtHoehe": 759,
+  "woerter": 152,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Inflation 31,5 → 19,2 % 31,5 19,2 2027-06 2030-01 Wachstum 2,3 → 3,6 % 4,1 2,3 2027-06 2030-01 Arbeitslosigkeit 8,1 → 9,7 % 9,7 8,1 2027-06 2030-01 Leitzins 37,0 → 23,5 % 37,0 23,5 2027-06 2030-01 Lira je Dollar 38,8 → 64,9 TRY 64,9 38,8 2027-06 2030-01 Staatsschulden in % des BIP 23,8 → 23,0 % 23,8 23,0 2027-06 2030-01 WIRKUNGSBERICHTE Mindestlohn 29. November 2029 · nach 12 Monaten Gemischt: Reallöhne +8,3 Punkte, jetzt 53,2, aber Kostendruck der Betriebe +5,3 Punkte, jetzt 65,5. Rentenerhöhungen 3. Oktober 2029 · nach 12 Monaten Gemischt: Rentenniveau +10,4 Punkte, jetzt 50,5, aber Lage der"
+ },
+ {
+  "nr": 27,
+  "pfad": [
+   "Wirtschaft",
+   "Wirtschaftskabinett"
+  ],
+  "datei": "027.png",
+  "datei2": null,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 49,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Orhan Erdem Finanzminister Haltung: verlässlich (61) Ein Haushalt ohne Überraschungen und Märkte, die dem Land vertrauen. Sevgi Erdem Gouverneurin der Zentralbank Haltung: verlässlich (50) Preisstabilität, auch wenn sie unbeliebt macht. Murat Erdem Wirtschaftsminister Haltung: distanziert (40) Ein Land, in dem sich Investieren lohnt und Gesetze nicht über Nacht wechseln."
+ },
+ {
+  "nr": 28,
+  "pfad": [
+   "Gesellschaft",
+   "Stimmung im Land"
+  ],
+  "datei": "028.png",
+  "datei2": null,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 39,
+  "knoepfe": 1,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Milieus"
+  ],
+  "anfang": "Lage: ruhig Keine der Kernzahlen steht im roten Bereich. Wählerkoalition öffnen MILIEUS Aleviten Stimmung 42 · Groll 31 Frauen Stimmung 39 · Groll 35 Geflüchtete Stimmung 48 · Groll 19 Diaspora Stimmung 41 · Groll 31 1 weiterer Eintrag"
+ },
+ {
+  "nr": 29,
+  "pfad": [
+   "Gesellschaft",
+   "Wählerkoalition"
+  ],
+  "datei": "029.png",
+  "datei2": "029b.png",
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 4086,
+  "sichtHoehe": 759,
+  "woerter": 785,
+  "knoepfe": 44,
+  "regler": 0,
+  "unterreiter": [
+   "Wählerkoalition",
+   "Gesellschaft, Opposition, Straße"
+  ],
+  "ueberschriften": [
+   "Ihre Koalition der Wähler",
+   "Ihre Wähler",
+   "Junge Erwachsene",
+   "Warum sie so gestimmt sind",
+   "Was sie wollen und was sie stört",
+   "Worauf sie achten",
+   "Wohin sie wechseln würden",
+   "Was jetzt helfen würde",
+   "Was dazu schon auf dem Tisch liegt"
+  ],
+  "anfang": "Wählerkoalition Gesellschaft, Opposition, Straße WENN HEUTE GEWÄHLT WÜRDE 54 % Zustimmung laut Ekran Onlinepanel, nötig sind 50. Die Wahl ist am 2030-12-05, in etwa 10 Monaten. Die Zahl ist eine Umfrage, keine Messung der Wahrheit: Rohdaten gibt es im Reiter „Medien“ der Zeitung. Apr. 2029 Feb. 2030 Woher die Zahl kommt, seit dem Amtsantritt Ihre Koalition der Wähler 37 % tragen Sie (3 Gruppen) 63 % schwanken (8 Gruppen) 0 % haben sich abgewandt (0 Gruppen) AM EHESTEN ZU GEWINNEN: Junge Erwachsene. Läge sie bei 58, brächte das 0,3 Punkte Zustimmung.Ansehen Wohin Wähler abwandern 10 % wechselte"
+ },
+ {
+  "nr": 30,
+  "pfad": [
+   "Gesellschaft",
+   "Wahlkampf"
+  ],
+  "datei": "030.png",
+  "datei2": null,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 76,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Der Wahlkampf steht noch bevor"
+  ],
+  "anfang": "Der Wahlkampf steht noch bevor Die Wahl ist in 10 Monaten. Die heiße Phase beginnt acht Wochen vorher — in etwa 8 Monaten. Dann zählt jede Woche: Reisen in die Provinzen, Versprechen an die Wähler, Auslandstouren zur Diaspora und das TV-Duell gegen Oppositionsführer Cem Arıkan. Jede Woche stehen 10 Aktionspunkte bereit. Was Sie bis dahin regieren, ist Ihr Programm: Die Opposition greift dort an, wo echte Probleme brennen — und Ihre Bilanz entscheidet das Duell mit."
+ },
+ {
+  "nr": 31,
+  "pfad": [
+   "Gesellschaft",
+   "Behörden"
+  ],
+  "datei": "031.png",
+  "datei2": null,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 32,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Ausbau kostet Kapital, Geld und Zeit; jede weitere Stufe bringt weniger. Kürzen spart sofort und kostet Erfahrung. 0 IM AUSBAU 1 ETAT KNAPP Gesundheitswesen Personal Technik Reichweite Etat ohne Spielraum Murat Sarı"
+ },
+ {
+  "nr": 32,
+  "pfad": [
+   "Gesellschaft",
+   "Gesellschaft im Wandel"
+  ],
+  "datei": "032.png",
+  "datei2": null,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 979,
+  "sichtHoehe": 759,
+  "woerter": 109,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Zustimmung 52 → 50 % 52 50 2028-07 2030-02 Polarisierung 70 → 63 70 63 2028-07 2030-02 Protestdruck 30 → 28 31 28 2028-07 2030-02 Stärke der Opposition 55 → 65 69 55 2028-07 2030-02 Repression 4 → 2 4 2 2028-07 2030-02 Rathäuser des Lagers 32 → 19 32 19 2028-07 2030-02 Groll der Milieus (Mittel) 23 → 26 26 23 2028-07 2030-02 WIRKUNGSBERICHTE Gebäude-Verstärkungsprogramm 27. November 2029 · nach 12 Monaten Umsetzung zu 22 Prozent, noch keine Wirkung messbar; volle Wirkung in etwa 37 Monaten. Gebäude-Verstärkungsprogramm 31. Mai 2029 · nach 6 Monaten Umsetzung zu 10 Prozent, noch keine Wirkung m"
+ },
+ {
+  "nr": 33,
+  "pfad": [
+   "Gesellschaft",
+   "Politische Akteure"
+  ],
+  "datei": "033.png",
+  "datei2": null,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 28,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Selin Koçak Innenministerin Haltung: distanziert (48) Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte. Cem Arıkan Oppositionsführer Haltung: abtrünnig (24) Die Regierung vorführen und die nächste Wahl gewinnen."
+ },
+ {
+  "nr": 34,
+  "pfad": [
+   "Land",
+   "Lage der Regionen"
+  ],
+  "datei": "034.png",
+  "datei2": null,
+  "titel": "Land und Regionen",
+  "hoehe": 1191,
+  "sichtHoehe": 759,
+  "woerter": 237,
+  "knoepfe": 6,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Was Sie jetzt in Auftrag geben können",
+   "Wiederaufbau im Erdbebengebiet",
+   "Kanal Istanbul",
+   "Ost-West-Stromachse",
+   "Bahn Kars–Tiflis: Personenverkehr",
+   "Bauvorhaben im Bau"
+  ],
+  "anfang": "Lage: ruhig Keine der Kernzahlen steht im roten Bereich. Infrastruktur und Bau öffnen Was Sie jetzt in Auftrag geben können GROSSPROJEKT IM BAU Wiederaufbau im Erdbebengebiet Zeit 16 Mon. Rest ▲ Wohnungsbau +6 in 10 Provinzen ▲ Erdbebenvorsorge +4 in 10 Provinzen ▲ Vertrauen in die Regierung +2 Versprechen gegen Lieferung: Jede Verzögerung wird als gebrochenes Versprechen gelesen, und die Baunachfrage treibt die Preise. Baustelle ansehen → WUNDER MÖGLICH Kanal Istanbul Politisches Kapital 12 Baukapazität 3.200 Zeit 60 Mon. Schuldenquote +0,9 Pp. Verwaltungskraft 3 ▲ Logistik und Häfen +3 in 2 "
+ },
+ {
+  "nr": 35,
+  "pfad": [
+   "Land",
+   "Infrastruktur und Bau"
+  ],
+  "datei": "035.png",
+  "datei2": "035b.png",
+  "titel": "Land und Regionen",
+  "hoehe": 2213,
+  "sichtHoehe": 759,
+  "woerter": 591,
+  "knoepfe": 20,
+  "regler": 0,
+  "unterreiter": [
+   "Lage",
+   "Bauwerke pflegen8",
+   "Neue Vorhaben20"
+  ],
+  "ueberschriften": [
+   "Hier lohnt sich Pflege wo Instandsetzen am meisten bewegt",
+   "Im Bau Reihenfolge = Vorrang bei der Baukapazität",
+   "Baureihenfolge öffentlich: Position 1 baut zuerst; vorziehen kostet 10 Verwaltungskraft je Position",
+   "Vorteile gelten, solange ihre Bedingungen gelten",
+   "Zuletzt"
+  ],
+  "anfang": "Lage Bauwerke pflegen8 Neue Vorhaben20 VERWALTUNGSKRAFT 99 +2,4 im Monat BAUKAPAZITÄT 133 99 von 133 je Monat verplant Was den Bau beschleunigt Straßen und Autobahnen 60 Bahnnetz 35 Stau in den Städten 61 Logistik und Häfen 62 Breitband und Mobilfunk 54 Stromversorgung 62▼ Wasserversorgung 49 Zustand der Anlagen 55 Hier lohnt sich Pflege wo Instandsetzen am meisten bewegt Südostanatolien-Projekt (GAP) mit Atatürk-Damm Zustand 74 → 100 ▲ Wasserversorgung +2,6 in 8 Provinzen (heute 39) ▲ Ernten +1,7 in 4 Provinzen (heute 55) ▲ Stromversorgung +1,7 in 5 Provinzen (heute 64) ▼ Trockenheit −2,1 in "
+ },
+ {
+  "nr": 36,
+  "pfad": [
+   "Land",
+   "Netze"
+  ],
+  "datei": "036.png",
+  "datei2": null,
+  "titel": "Land und Regionen",
+  "hoehe": 954,
+  "sichtHoehe": 759,
+  "woerter": 120,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Netze",
+   "Großinvestitionsprogramme"
+  ],
+  "anfang": "Finanzierung aus dem Posten „Öffentliche Investitionen“ (Stufe 0). 0 NETZE ÜBERLASTET 0 AUSBAUTEN LAUFEN Netze Straßen und Autobahnen 74 % Auslastung Größter Engpass: İstanbul (109 %) Bahn 70 % Auslastung Größter Engpass: Burdur (118 %) Seehäfen 80 % Auslastung Flughäfen 73 % Auslastung Größter Engpass: İstanbul (104 %) Stromnetz 76 % Auslastung Größter Engpass: İzmir (79 %) Wasser 71 % Auslastung Größter Engpass: Konya (82 %) Internet und Mobilfunk 69 % Auslastung Größter Engpass: Şanlıurfa (77 %) Wohnungen 83 % Auslastung Größter Engpass: Ankara (96 %) Kliniken 75 % Auslastung Größter Engpas"
+ },
+ {
+  "nr": 37,
+  "pfad": [
+   "Land",
+   "Kultur und Erbe"
+  ],
+  "datei": "037.png",
+  "datei2": "037b.png",
+  "titel": "Land und Regionen",
+  "hoehe": 1956,
+  "sichtHoehe": 759,
+  "woerter": 416,
+  "knoepfe": 18,
+  "regler": 0,
+  "unterreiter": [
+   "Lage",
+   "Stätten pflegen9",
+   "Neue Vorhaben16"
+  ],
+  "ueberschriften": [
+   "Am schlechtesten erhalten Erhaltung insgesamt 63",
+   "Baureihenfolge öffentlich: Position 1 baut zuerst; vorziehen kostet 10 Verwaltungskraft je Position",
+   "Vorteile gelten, solange ihre Bedingungen gelten",
+   "Zuletzt"
+  ],
+  "anfang": "Lage Stätten pflegen9 Neue Vorhaben16 VERWALTUNGSKRAFT 99 +2,4 im Monat BAUKAPAZITÄT 133 99 von 133 je Monat verplant Was den Bau beschleunigt Erhaltung des Kulturerbes 62 Nationale Identität und Zusammenhalt 56 Akzeptanz kultureller und religiöser Vielfalt 40 Tourismus 68 Internationales Ansehen 46 Am schlechtesten erhalten Erhaltung insgesamt 63 Hasankeyf Hasankeyf: 2020 vom Ilısu-Stausee überflutet, Teile versetzt. ZUSTAND 14 Verfällt: Teile sind einsturzgefährdet oder gehen verloren. Kulturerbe in dieser Provinz: 17 von 100. Restaurieren: Zustand 14 → 40. Dazu: ▲ Nationale Identität und Zu"
+ },
+ {
+  "nr": 38,
+  "pfad": [
+   "Land",
+   "Katastrophen und Wiederaufbau"
+  ],
+  "datei": "038.png",
+  "datei2": "038b.png",
+  "titel": "Land und Regionen",
+  "hoehe": 3596,
+  "sichtHoehe": 759,
+  "woerter": 735,
+  "knoepfe": 14,
+  "regler": 3,
+  "unterreiter": [
+   "Lage und Vorsorge",
+   "Laufende Fälle",
+   "Versprechen",
+   "Chronik"
+  ],
+  "ueberschriften": [
+   "Bereitschaft des Katastrophenschutzes (AFAD)",
+   "Gefährdung des Landes",
+   "Erdbeben: Nordanatolische Verwerfung",
+   "Erdbeben: Ostanatolische Verwerfung",
+   "Erdbeben: Westanatolische Grabensysteme",
+   "Sturzflut am Schwarzen Meer",
+   "Großbrand an Ägäis und Mittelmeer",
+   "Dürre im Konya-Becken",
+   "Vorsorge: Was Sie tun können",
+   "Ausbau der Katastrophenbehörde (AFAD)",
+   "Frühwarnsystem",
+   "Katastrophen-Pflichtversicherung",
+   "Gebäude-Verstärkungsprogramm",
+   "Bauaufsicht",
+   "Szenario: Was wäre, wenn …"
+  ],
+  "anfang": "Bereitschaft 45 von 100 Laufende Fälle 0 Politisches Kapital 113 Lage und Vorsorge Laufende Fälle Versprechen Chronik 45 VON 100 Bereitschaft des Katastrophenschutzes (AFAD) Referenz 20 heute 45 Bei einer schweren Katastrophe sterben nach Modellrechnung etwa 20,3 Prozent weniger Menschen als ganz ohne Vorsorge; gegenüber der Referenz 20 sind es 12,4 Prozent weniger. Die Bereitschaft wächst mit dem Ausbau der Behörde, dem Frühwarnsystem, der Pflichtversicherung und der Gebäude-Verstärkung, jeweils mit Verzögerung. Gefährdung des Landes Erdbeben: Nordanatolische Verwerfung etwa 12 % in zwölf Mon"
+ },
+ {
+  "nr": 39,
+  "pfad": [
+   "Land",
+   "Behörden"
+  ],
+  "datei": "039.png",
+  "datei2": null,
+  "titel": "Land und Regionen",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 33,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Ausbau kostet Kapital, Geld und Zeit; jede weitere Stufe bringt weniger. Kürzen spart sofort und kostet Erfahrung. 0 IM AUSBAU 1 ETAT KNAPP AFAD (Katastrophenschutz) Personal Technik Reichweite Etat ohne Spielraum Zeynep Kaplan"
+ },
+ {
+  "nr": 40,
+  "pfad": [
+   "Land",
+   "Entwicklung des Landes"
+  ],
+  "datei": "040.png",
+  "datei2": null,
+  "titel": "Land und Regionen",
+  "hoehe": 885,
+  "sichtHoehe": 759,
+  "woerter": 54,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Zustimmung 52 → 50 % 52 50 2028-07 2030-02 WIRKUNGSBERICHTE Gebäude-Verstärkungsprogramm 27. November 2029 · nach 12 Monaten Umsetzung zu 22 Prozent, noch keine Wirkung messbar; volle Wirkung in etwa 37 Monaten. Gebäude-Verstärkungsprogramm 31. Mai 2029 · nach 6 Monaten Umsetzung zu 10 Prozent, noch keine Wirkung messbar; volle Wirkung in etwa 43 Monaten."
+ },
+ {
+  "nr": 41,
+  "pfad": [
+   "Land",
+   "Zuständige Minister"
+  ],
+  "datei": "041.png",
+  "datei2": null,
+  "titel": "Land und Regionen",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 33,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Selin Koçak Innenministerin Haltung: distanziert (48) Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte. Murat Erdem Wirtschaftsminister Haltung: distanziert (40) Ein Land, in dem sich Investieren lohnt und Gesetze nicht über Nacht wechseln."
+ },
+ {
+  "nr": 42,
+  "pfad": [
+   "Land",
+   "Bau & Umsetzung"
+  ],
+  "datei": "042.png",
+  "datei2": null,
+  "titel": "Land und Regionen",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 13,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Noch keine Vorgänge. Sie entstehen aus Wahlversprechen, Zusagen nach Katastrophen oder eigenen Beschlüssen."
+ },
+ {
+  "nr": 43,
+  "pfad": [
+   "Forschung & Ziele",
+   "Stand der Agenda"
+  ],
+  "datei": "043.png",
+  "datei2": null,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 844,
+  "sichtHoehe": 759,
+  "woerter": 69,
+  "knoepfe": 1,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Fokus",
+   "Wissensbaum",
+   "Ziele der Amtszeit"
+  ],
+  "anfang": "Lage: gemischt Auffällig: Foki vollendet: 0 · Hochschulen: 44 Fokusbaum öffnen Woher die Zahlen kommen FOKUS Kein Fokus läuft: 7 Wege sind jetzt offen. WISSENSBAUM Hürjet Möglich Eigenes Kampfjet-Triebwerk Möglich Kampfjet KAAN Möglich Zerstörer TF-2000 Möglich 2 weitere Einträge ZIELE DER AMTSZEIT Inflation unter 15 Prozent jetzt 19,2 % Wohnungsnot beenden akut in 7 Provinzen Verlässliche Partner 11 Länder mit Vertrauen ab 55 Keine Einträge in Programmschritte in Arbeit."
+ },
+ {
+  "nr": 44,
+  "pfad": [
+   "Forschung & Ziele",
+   "Fokusbaum"
+  ],
+  "datei": "044.png",
+  "datei2": null,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 801,
+  "sichtHoehe": 759,
+  "woerter": 392,
+  "knoepfe": 113,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Kein Fokus läuft: 7 Wege sind jetzt offen. 0 von 102 vollendet · 7 jetzt möglich + − Ganzer Baum Vollbild WIRTSCHAFTSORDNUNG AUSSENPOLITIK & BÜNDNISSE STAAT, JUSTIZ & VERFASSUNG GESELLSCHAFT & KULTUR SICHERHEIT & STREITKRÄFTE LAND, REGIONEN & MEGAPROJEKTE WISSENSCHAFT & ZUKUNFT Nationale Wirtschaftsstrategie Rückkehr zur geldpolitischen Orthodoxie Privatisierung und Deregulierung Magnet für Auslandsinvestitionen Gezielte Kreditlenkung und Niedrigzins Strategischer Staatsfonds und Dirigismus Nationale Industrieautarkie Exportoffensive Europa & Nahost Die anatolischen Tiger stärken Globale Logis"
+ },
+ {
+  "nr": 45,
+  "pfad": [
+   "Forschung & Ziele",
+   "Große Ziele"
+  ],
+  "datei": "045.png",
+  "datei2": "045b.png",
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 2264,
+  "sichtHoehe": 759,
+  "woerter": 537,
+  "knoepfe": 10,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Union der Turkstaaten",
+   "Ordnung im Nahen Osten",
+   "Logistikdrehscheibe Eurasien",
+   "EU-Vollmitgliedschaft",
+   "Kornkammer des Nahen Ostens",
+   "Seemacht und Weltwerft",
+   "Technologiemacht",
+   "Energieunabhängigkeit",
+   "Versöhnung im Innern",
+   "Die Welt ist größer als fünf"
+  ],
+  "anfang": "Ziele über Jahre, bis zur Utopie. Jede Stufe hat Voraussetzungen; auch dann ist der Ausgang nicht sicher. Wege erhöhen die Chance, der Versuch entscheidet. Höchstens 3 Ziele gleichzeitig (0 verfolgt). AUSSENPOLITIK Union der Turkstaaten Von der Organisation der Turkstaaten zu einer Union nach dem Vorbild der EU: erst Freihandel, dann gemeinsamer Markt, am Ende eine gemeinsame Währung. Nächste Stufe: Freihandelszone Aussicht aussichtsreich (etwa 34–54 %) Dafür: Vertrauen der Partner · Exportkraft Dagegen: Botschaften und Vertretungen reicht noch nicht Voraussetzungen Als Ziel verfolgen → SICHER"
+ },
+ {
+  "nr": 46,
+  "pfad": [
+   "Forschung & Ziele",
+   "Wissensbaum"
+  ],
+  "datei": "046.png",
+  "datei2": null,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 73,
+  "knoepfe": 6,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "In Arbeit",
+   "Als Nächstes möglich"
+  ],
+  "anfang": "×1,0 FORSCHUNGSTEMPO 10 Technologien warten auf mehr Ingenieure: Bildung und Hochschulen öffnen den Baum, mit Jahren Verzug. Forschungsetat 0,4 % des BIP, Innovationsgrenze 0,7 % · 1 von 50 Technologien fertig Baum öffnen IN ARBEIT Kampfpanzer Altay in 25 Monaten Stahlkuppel in 31 Monaten ALS NÄCHSTES MÖGLICH Hürjet 3 Kapital · etwa 20 Monate Eigenes Kampfjet-Triebwerk 7 Kapital · etwa 60 Monate Kampfjet KAAN 8 Kapital · etwa 48 Monate und 1 weitere"
+ },
+ {
+  "nr": 47,
+  "pfad": [
+   "Forschung & Ziele",
+   "Programme"
+  ],
+  "datei": "047.png",
+  "datei2": "047b.png",
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 2657,
+  "sichtHoehe": 759,
+  "woerter": 604,
+  "knoepfe": 16,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Pläne für Jahre",
+   "Wiederaufbau und Erdbebenschutz",
+   "Preisstabilität",
+   "Starke Regionen",
+   "Gesundheit für alle",
+   "Rechtsstaat und Vertrauen",
+   "Wasser und Energie der Zukunft",
+   "Sicherheit und Frieden",
+   "Die Türkei in der Welt"
+  ],
+  "anfang": "REGIERUNGSPROGRAMME Pläne für Jahre Jeder Schritt verlangt echte Politik (eine Maßnahme auf einer Stufe, ein gelöstes Problem), kostet Kapital und Zeit und wirkt danach dauerhaft. Höchstens 2 Schritte laufen gleichzeitig. 0 von 2 Plätzen belegt 2 Schritte bereit 0 / 8 Programme erfüllt PLATZ FREI Ein bereiter Schritt kann hier laufen. PLATZ FREI Ein bereiter Schritt kann hier laufen. Wiederaufbau und Erdbebenschutz SCHRITT BEREIT 0 / 5 Nie wieder eingestürzte Häuser: erst wissen, was gefährdet ist, dann prüfen, umsiedeln und einen Katastrophenschutz aufbauen. 1 2 3 4 5 1 ALS NÄCHSTES Gefährdet"
+ },
+ {
+  "nr": 48,
+  "pfad": [
+   "Forschung & Ziele",
+   "Behörden"
+  ],
+  "datei": "048.png",
+  "datei2": null,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 32,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Ausbau kostet Kapital, Geld und Zeit; jede weitere Stufe bringt weniger. Kürzen spart sofort und kostet Erfahrung. 0 IM AUSBAU 1 ETAT KNAPP Bildungsverwaltung Personal Technik Reichweite Etat ohne Spielraum Ebru Akın"
+ },
+ {
+  "nr": 49,
+  "pfad": [
+   "Forschung & Ziele",
+   "Fortschritt"
+  ],
+  "datei": "049.png",
+  "datei2": null,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 729,
+  "sichtHoehe": 729,
+  "woerter": 16,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Zustimmung 52 → 50 % 52 50 2028-07 2030-02 WIRKUNGSBERICHTE Noch keine Wirkungsberichte in diesem Bereich."
+ },
+ {
+  "nr": 50,
+  "pfad": [
+   "Forschung & Ziele",
+   "Forschungskabinett"
+  ],
+  "datei": "050.png",
+  "datei2": null,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 36,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Zeynep Karaca Chefin des Präsidialamts Haltung: verlässlich (55) Dass der Präsident seine Amtszeit übersteht und etwas hinterlässt. Murat Erdem Wirtschaftsminister Haltung: distanziert (40) Ein Land, in dem sich Investieren lohnt und Gesetze nicht über Nacht wechseln."
+ },
+ {
+  "nr": 51,
+  "pfad": [
+   "Außen",
+   "Weltlage"
+  ],
+  "datei": "051.png",
+  "datei2": "051b.png",
+  "titel": "Außenpolitik",
+  "hoehe": 1804,
+  "sichtHoehe": 759,
+  "woerter": 236,
+  "knoepfe": 4,
+  "regler": 0,
+  "unterreiter": [
+   "Lage",
+   "Instrumente",
+   "Verlauf"
+  ],
+  "ueberschriften": [
+   "Vorwarnungen",
+   "Energie",
+   "Flucht und Rückkehr",
+   "Terror",
+   "Friedensprozess",
+   "Sanktionen gegen die Türkei",
+   "Diaspora",
+   "Die Staatsführungen",
+   "Laufende Verträge"
+  ],
+  "anfang": "Lage: angespannt Auffällig: Vertrauen der EU: 28 Länder und Diplomatie öffnen Lage Instrumente Verlauf VORWARNUNGEN Hormus ist geschlossen: Flüssiggas aus dem Golf fehlt; andere Lieferanten füllen die Lücke zu höheren Preisen. ANSEHEN 46 Wie die Welt die Türkei sieht VERTRAUEN DER EU 28 Grundlage für Beitritt, Visa, Zollunion SICHERHEITSLAGE 56 100 minus Terrorgefahr GEFLÜCHTETE 2,20 Mio. Millionen Menschen unter Schutz VERSORGUNGSSICHERHEIT 100 Gas und Strom im Winter DIASPORA 44 Vertrauen der Auslandstürken ENERGIE Russland 36 % Aserbaidschan 20 % Flüssiggas (LNG) 38 % Eigenes Gas 6 % Hormus"
+ },
+ {
+  "nr": 52,
+  "pfad": [
+   "Außen",
+   "Länder und Diplomatie"
+  ],
+  "datei": "052.png",
+  "datei2": "052b.png",
+  "titel": "Außenpolitik",
+  "hoehe": 1592,
+  "sichtHoehe": 759,
+  "woerter": 516,
+  "knoepfe": 68,
+  "regler": 1,
+  "unterreiter": [
+   "Staaten",
+   "Blöcke",
+   "Dienst",
+   "Vermittlung",
+   "Überblick",
+   "Verhandlungstisch",
+   "Verträge",
+   "Gesten",
+   "★ Beitritt"
+  ],
+  "ueberschriften": [
+   "Europäische Union kühl"
+  ],
+  "anfang": "Staaten Blöcke Dienst Vermittlung Alle Nachbarn Große Mächte EU-Staaten BRICS Golf Turkstaaten NATO GROSSE MÄCHTE Vereinigte Staaten angespannt · Streit Europäische Union kühl Russland nüchtern China nüchtern Brasilien nüchtern Indien kühl Vereinigtes Königreich Partner NACHBARN Griechenland kühl Iran nüchtern Syrien Partner Irak Partner Aserbaidschan enger Partner 1 Armenien kühl Israel feindselig · ⚔ Spannung Ukraine enger Partner Georgien Partner Zypern feindselig · ⚔ Spannung Bulgarien nüchtern EU-STAATEN Deutschland nüchtern Frankreich kühl Italien nüchtern Spanien nüchtern Polen nüchtern"
+ },
+ {
+  "nr": 53,
+  "pfad": [
+   "Außen",
+   "Behörden"
+  ],
+  "datei": "053.png",
+  "datei2": null,
+  "titel": "Außenpolitik",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 33,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Ausbau kostet Kapital, Geld und Zeit; jede weitere Stufe bringt weniger. Kürzen spart sofort und kostet Erfahrung. 0 IM AUSBAU 1 ETAT KNAPP Diplomatischer Dienst Personal Technik Reichweite Etat ohne Spielraum Murat Bozkurt"
+ },
+ {
+  "nr": 54,
+  "pfad": [
+   "Außen",
+   "Diplomatische Bilanz"
+  ],
+  "datei": "054.png",
+  "datei2": null,
+  "titel": "Außenpolitik",
+  "hoehe": 706,
+  "sichtHoehe": 706,
+  "woerter": 16,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Zustimmung 52 → 50 % 52 50 2028-07 2030-02 WIRKUNGSBERICHTE Noch keine Wirkungsberichte in diesem Bereich."
+ },
+ {
+  "nr": 55,
+  "pfad": [
+   "Außen",
+   "Diplomatie & Dienste"
+  ],
+  "datei": "055.png",
+  "datei2": null,
+  "titel": "Außenpolitik",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 15,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Taner Erdem Außenminister Haltung: verlässlich (58) Verlässliche Partner und ein Land, das mit allen redet."
+ },
+ {
+  "nr": 56,
+  "pfad": [
+   "Sicherheit",
+   "Sicherheitslage"
+  ],
+  "datei": "056.png",
+  "datei2": "056b.png",
+  "titel": "Sicherheit und Militär",
+  "hoehe": 1571,
+  "sichtHoehe": 759,
+  "woerter": 275,
+  "knoepfe": 13,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Konfliktlage",
+   "Was Sie jetzt in Auftrag geben können",
+   "F-16 Block 70",
+   "Stahlkuppel: mehrschichtige Luftverteidigung",
+   "Kampfpanzer Altay T1",
+   "Kampfjet KAAN Block 10",
+   "Bündnisse der Türkei"
+  ],
+  "anfang": "Lage: angespannt Auffällig: Laufende Konflikte: 2 Streitkräfte öffnen KONFLIKTLAGE Zypern Spannung · Eskalation 72 / 100 Konfliktdossier öffnen → Israel Spannung · Eskalation 70 / 100 Konfliktdossier öffnen → Vereinigte Staaten Spannung 65 / 100 Konfliktdossier öffnen → Griechenland Spannung 55 / 100 · Krise möglich Konfliktdossier öffnen → Iran Spannung 55 / 100 · Krise möglich Konfliktdossier öffnen → Europäische Union Spannung 53 / 100 Konfliktdossier öffnen → Russland Spannung 52 / 100 Konfliktdossier öffnen → Was Sie jetzt in Auftrag geben können BESCHAFFUNG IM BAU F-16 Block 70 Zeit 4 Mo"
+ },
+ {
+  "nr": 57,
+  "pfad": [
+   "Sicherheit",
+   "Streitkräfte"
+  ],
+  "datei": "057.png",
+  "datei2": "057b.png",
+  "titel": "Sicherheit und Militär",
+  "hoehe": 1541,
+  "sichtHoehe": 759,
+  "woerter": 293,
+  "knoepfe": 10,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Heer",
+   "Luftwaffe",
+   "Marine und Raketen",
+   "Personal, Vorhaben, Einsatz",
+   "Zielräume"
+  ],
+  "anfang": "Heer 100 Luftwaffe 100 Marine und Raketen 100 Verteidigungsetat 100 % von 2026 Wissensbasis 50 von 100 100 KAMPFKRAFT Heer Personal 481.000 Generation 100 % heimisch Kampfpanzer Index 100 Generation noch 11 Monate Altay T1 Munition 60 Tage Generation 80 % heimisch Luftwaffe Kampfflugzeuge 235 Generation noch 17 Monate Eurofighter, F-16 Block 70, KAAN Block 10 (Triebwerk GE F110) Drohnen Index 100 Generation 100 % heimisch Luftabwehr Index 100 Generation noch 17 Monate Stahlkuppel Marine und Raketen Marine Index 100 Generation 70 % heimisch Raketen Index 100 Generation 90 % heimisch Personal, V"
+ },
+ {
+  "nr": 58,
+  "pfad": [
+   "Sicherheit",
+   "Rüstung und Beschaffung"
+  ],
+  "datei": "058.png",
+  "datei2": "058b.png",
+  "titel": "Sicherheit und Militär",
+  "hoehe": 2032,
+  "sichtHoehe": 759,
+  "woerter": 415,
+  "knoepfe": 21,
+  "regler": 0,
+  "unterreiter": [
+   "Lage",
+   "Rüstung pflegen2",
+   "Beschaffung und Doktrinen8"
+  ],
+  "ueberschriften": [
+   "Hier lohnt sich Pflege wo Instandsetzen am meisten bewegt",
+   "Im Bau Reihenfolge = Vorrang bei der Baukapazität",
+   "Baureihenfolge öffentlich: Position 1 baut zuerst; vorziehen kostet 10 Verwaltungskraft je Position",
+   "Vorteile gelten, solange ihre Bedingungen gelten",
+   "Zuletzt"
+  ],
+  "anfang": "Lage Rüstung pflegen2 Beschaffung und Doktrinen8 VERWALTUNGSKRAFT 99 +2,4 im Monat BAUKAPAZITÄT 133 99 von 133 je Monat verplant Was den Bau beschleunigt Einsatzbereitschaft des Heeres 60 Einsatzbereitschaft der Luftwaffe 55 Einsatzbereitschaft der Marine 58 Modernisierung der Ausrüstung 45 Rüstungsautarkie 60 Truppenmoral 60 Vertrauen in die Offiziersführung 44 Abschreckung 58▲ Hier lohnt sich Pflege wo Instandsetzen am meisten bewegt Drohnenverbund (Bayraktar TB2, Akıncı, TB3) Zustand 78 → 100 ▲ Modernisierung der Ausrüstung +2,9 (heute 45) ▲ Abschreckung +2,2 (heute 58) ▲ Exportstärke +1,5 "
+ },
+ {
+  "nr": 59,
+  "pfad": [
+   "Sicherheit",
+   "Behörden"
+  ],
+  "datei": "059.png",
+  "datei2": null,
+  "titel": "Sicherheit und Militär",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 64,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Ausbau kostet Kapital, Geld und Zeit; jede weitere Stufe bringt weniger. Kürzen spart sofort und kostet Erfahrung. 0 IM AUSBAU 4 ETAT KNAPP MİT (Nachrichtendienst) Personal Technik Reichweite Etat ohne Spielraum Barış Işık Polizei und Gendarmerie Personal Technik Reichweite Etat ohne Spielraum Orhan Yalçın Grenzschutz und Küstenwache Personal Technik Reichweite Etat ohne Spielraum Levent Demirci Cyberabwehr Personal Technik Reichweite Etat ohne Spielraum Melis Turan"
+ },
+ {
+  "nr": 60,
+  "pfad": [
+   "Sicherheit",
+   "Sicherheitsbilanz"
+  ],
+  "datei": "060.png",
+  "datei2": null,
+  "titel": "Sicherheit und Militär",
+  "hoehe": 706,
+  "sichtHoehe": 706,
+  "woerter": 16,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Zustimmung 52 → 50 % 52 50 2028-07 2030-02 WIRKUNGSBERICHTE Noch keine Wirkungsberichte in diesem Bereich."
+ },
+ {
+  "nr": 61,
+  "pfad": [
+   "Sicherheit",
+   "Führung & Zuständigkeit"
+  ],
+  "datei": "061.png",
+  "datei2": null,
+  "titel": "Sicherheit und Militär",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 31,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Selin Koçak Innenministerin Haltung: distanziert (48) Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte. Levent Duran Chef des Generalstabs Haltung: verlässlich (52) Einsatzbereite Streitkräfte und eine Beförderungspraxis, die die Truppe versteht."
+ },
+ {
+  "nr": 62,
+  "pfad": [
+   "Medien",
+   "Medienlage"
+  ],
+  "datei": "062.png",
+  "datei2": null,
+  "titel": "Medien und Öffentlichkeit",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 43,
+  "knoepfe": 1,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Medien nach Gruppen"
+  ],
+  "anfang": "Lage: angespannt Auffällig: Pressefreiheit: 29,4 Zeitung öffnen MEDIEN NACH GRUPPEN Digitale Nachrichtenkanäle unter Druck · Selbstzensur 0 Staatlicher Rundfunkverbund Lizenz frei · Selbstzensur 80 Bau- und Energieholding Medien Lizenz frei · Selbstzensur 76 Kreditfinanzierte Mediengruppe Lizenz frei · Selbstzensur 68 3 weitere Einträge"
+ },
+ {
+  "nr": 63,
+  "pfad": [
+   "Medien",
+   "Zeitung"
+  ],
+  "datei": "063.png",
+  "datei2": "063b.png",
+  "titel": "Medien und Öffentlichkeit",
+  "hoehe": 1989,
+  "sichtHoehe": 759,
+  "woerter": 530,
+  "knoepfe": 26,
+  "regler": 0,
+  "unterreiter": [
+   "Ausgaben",
+   "Medien",
+   "Der Staatsboteregierungsnah",
+   "Der Widerspruchoppositionell"
+  ],
+  "ueberschriften": [
+   "Der Staatsbote",
+   "Zinssenkung: Kredite werden billiger"
+  ],
+  "anfang": "Ausgaben Medien Der Staatsbote regierungsnah Der Widerspruch oppositionell 1. Februar 2030 Ausgabe Nr. 22 Erscheint gedruckt Der Staatsbote Amtlich. Ausgewogen. Immer schon da. regierungsnah Preis: eine Kleinigkeit Wirtschaft Zinssenkung: Kredite werden billiger Der Leitzins steht bei 23,5 Prozent (zuvor 24,5). Der Schritt um 1,0 Prozentpunkte entlastet Unternehmen und Haushalte, die Kredite bedienen. „Das ist ein Signal an die Betriebe“, sagt Wirtschaftsminister Murat Erdem. Zur Wirtschaftsakte → Meinungslage Umfrage: 54,2 Prozent Zustimmung Ekran Onlinepanel misst der Regierung 54,2 Prozent "
+ },
+ {
+  "nr": 64,
+  "pfad": [
+   "Medien",
+   "Pressebilanz"
+  ],
+  "datei": "064.png",
+  "datei2": null,
+  "titel": "Medien und Öffentlichkeit",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 24,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [
+   "Wirkungsberichte"
+  ],
+  "anfang": "Pressefreiheit 29,4 → 29,4 29,4 29,4 2028-07 2030-02 Zustimmung 52 → 50 % 52 50 2028-07 2030-02 WIRKUNGSBERICHTE Noch keine Wirkungsberichte in diesem Bereich."
+ },
+ {
+  "nr": 65,
+  "pfad": [
+   "Medien",
+   "Zuständige Akteure"
+  ],
+  "datei": "065.png",
+  "datei2": null,
+  "titel": "Medien und Öffentlichkeit",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 31,
+  "knoepfe": 0,
+  "regler": 0,
+  "unterreiter": [],
+  "ueberschriften": [],
+  "anfang": "Selin Koçak Innenministerin Haltung: distanziert (48) Ruhe auf den Straßen und Rückhalt der Sicherheitskräfte. Zeynep Karaca Chefin des Präsidialamts Haltung: verlässlich (55) Dass der Präsident seine Amtszeit übersteht und etwas hinterlässt."
+ }
+]
