@@ -13,7 +13,10 @@ export const istGetroffen = (c: ChronikEintrag): boolean => !c.art && !c.ohneEnt
 
 /** Ältere Spielstände (vor dem 5. November 2026, nur auf Deutsch erzeugt): Merkmale aus dem Text ableiten. */
 export function migriereChronik(w: World): void {
-  for (const c of w.spiel?.chronik ?? []) {
+  const chronik = w.spiel?.chronik ?? [];
+  // Ein Stand, der schon Merkmale trägt, ist neu: Dann bleibt alles, wie es ist (der Rundlauf Speichern/Laden muss exakt sein)
+  if (chronik.some((c) => c.vorlage || c.art === "bericht" || c.art === "haken" || c.art === "zustand" || c.ohneEntscheidung)) return;
+  for (const c of chronik) {
     if (c.art || c.vorlage || c.ohneEntscheidung) continue;
     if (/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel)) c.art = "bericht";
     else if (/^(Der Präsident wirkt|Die Lage beruhigt|Überlastung)/.test(c.titel)) c.art = "zustand";

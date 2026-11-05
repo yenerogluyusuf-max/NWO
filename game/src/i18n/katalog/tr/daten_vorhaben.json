@@ -509,5 +509,11 @@
  "daten.vorhaben.voraus.serie_sinan.0.text": "İki alan da en az 62 durumunda",
  "daten.vorhaben.voraus.serie_tas_tepeler.0.text": "3 alanın tamamı en az 55 durumunda",
  "daten.vorhaben.voraus.serie_byzanz.0.text": "6 alanın tamamı en az 52 durumunda",
- "daten.vorhaben.voraus.serie_vielvoelker.0.text": "Dokuz alanın tamamı en az 50 durumunda"
+ "daten.vorhaben.voraus.serie_vielvoelker.0.text": "Dokuz alanın tamamı en az 50 durumunda",
+ "daten.vorhaben.infra_entwicklungsstrasse.name": "Kalkınma Yolu Irak–Türkiye",
+ "daten.vorhaben.infra_entwicklungsstrasse.text": "Körfez'deki Büyük Fav Limanı'ndan yaklaşık 1.200 km boyunca Habur sınır kapısına ve oradan Akdeniz'e uzanan karayolu ve demiryolu. Irak, Türkiye, Katar ve BAE 22.04.2024'te bir mutabakat zaptı imzaladı; 2028, 2033 ve 2050'ye kadar üç aşamada yaklaşık 17 milyar ABD doları planlanıyor.",
+ "daten.vorhaben.infra_entwicklungsstrasse.kehrseite": "Güzergâh PKK'nın savaştığı sınır bölgesinden geçiyor; güvenlik olmadan tren işlemez. İran kendi koridorlarını tehdit altında görüyor, Körfez'in ise Hindistan–Orta Doğu–Avrupa koridoruyla ikinci bir seçeneği var.",
+ "daten.vorhaben.infra_kop.name": "Konya Ovası Projesi'ni (KOP) tamamlamak",
+ "daten.vorhaben.infra_kop.text": "17 km uzunluğundaki Mavi Tünel, Göksu havzasından kapalı Konya Ovası'na su taşıyor; tam kapasitede yılda 414 milyon m³ akması, bunun 314 milyon m³'ünün 65.000 hektar sulamaya gitmesi öngörülüyor. Diğer tüneller ile Bozkır, Avşar ve Hadim barajları henüz tamamlanmadı.",
+ "daten.vorhaben.infra_kop.kehrseite": "Su Göksu'da ve aşağıda Akdeniz kıyısında eksik kalıyor; ova yeraltı suyunu herhangi bir tünelin sağlayabileceğinden hızlı kaybediyor ve Meclis'teki eleştirmenler tüneli bir yatıştırıcı olarak nitelendiriyor."
 }

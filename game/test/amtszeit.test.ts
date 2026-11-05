@@ -32,6 +32,7 @@ import {
   waehleZieleAmtszeit,
 } from "../src/sim/amtszeit";
 import { kandidatenFuer } from "../src/sim/nachfolge";
+import { ENDEN } from "../src/sim/enden";
 import type { World } from "../src/sim/types";
 
 const profil: PlayerProfile = {
@@ -56,13 +57,29 @@ function spiel(seed = 5): World {
   return w;
 }
 
+/** Läuft ohne Amtsenthebungsverfahren (Hürde über allen Sitzen): Die Tests prüfen Amtszeiten, nicht die Enthebung (test/enden.test.ts). */
+function ohneEnthebung(f: () => void): void {
+  const enden = ENDEN as { huerdeAntrag: number };
+  const antrag = enden.huerdeAntrag;
+  enden.huerdeAntrag = 601;
+  try {
+    f();
+  } finally {
+    enden.huerdeAntrag = antrag;
+  }
+}
+
 /** Eine Welt unmittelbar nach der ersten Wiederwahl (zweite und letzte Amtszeit). */
 function nachWiederwahl(seed = 5): World {
   const w = spiel(seed);
   w.spiel!.umfrage.zustimmung = 80;
   w.spiel!.kalibrierung += 33;
-  advance(w, w.spiel!.wahltag - w.day + 1);
-  if (w.spiel!.wahl?.stichwahl) advance(w, 16);
+  // Wer fünf Jahre gar nicht antwortet, verliert den Partner und wird nach einem Skandal angeklagt (Seed 5: YENİ geht 2031, Urteil
+  // Dezember 2032, gemessen 5. November). Der Aufbau braucht nur die Wiederwahl; die Enthebung prüft test/enden.test.ts.
+  ohneEnthebung(() => {
+    ohneEnthebung(() => advance(w, w.spiel!.wahltag - w.day + 1));
+    if (w.spiel!.wahl?.stichwahl) advance(w, 16);
+  });
   if (w.spiel!.amtszeit !== 2) throw new Error("Wiederwahl blieb aus");
   w.spiel!.ereignisse = [];
   w.spiel!.kapital = 60;
@@ -77,7 +94,7 @@ describe("Beginn der zweiten Amtszeit", () => {
     w.spiel!.ziele = ["inflation15", "wohnen", "mehrheit"];
     w.spiel!.umfrage.zustimmung = 80;
     w.spiel!.kalibrierung += 33;
-    advance(w, w.spiel!.wahltag - w.day + 1);
+    ohneEnthebung(() => advance(w, w.spiel!.wahltag - w.day + 1));
     const sp = w.spiel!;
     expect(sp.amtszeit).toBe(2);
     expect(sp.zielArchiv).toHaveLength(1);
@@ -217,7 +234,7 @@ describe("Zwischenbilanz und Bilanz", () => {
     w.spiel!.ziele = ["inflation15", "wohnen"];
     w.spiel!.umfrage.zustimmung = 80;
     w.spiel!.kalibrierung += 33;
-    advance(w, w.spiel!.wahltag - w.day + 1);
+    ohneEnthebung(() => advance(w, w.spiel!.wahltag - w.day + 1));
     const b = erstelleBilanz(w, "zwischen");
     expect(b.titel).toBe("Zwischenbilanz der ersten Amtszeit");
     expect(b.ziele).toHaveLength(2);

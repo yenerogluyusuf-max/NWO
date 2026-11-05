@@ -509,5 +509,11 @@
  "daten.vorhaben.voraus.serie_sinan.0.text": "Alle 2 Stätten mindestens in Zustand 62",
  "daten.vorhaben.voraus.serie_tas_tepeler.0.text": "Alle 3 Stätten mindestens in Zustand 55",
  "daten.vorhaben.voraus.serie_byzanz.0.text": "Alle 6 Stätten mindestens in Zustand 52",
- "daten.vorhaben.voraus.serie_vielvoelker.0.text": "Alle neun Stätten mindestens in Zustand 50"
+ "daten.vorhaben.voraus.serie_vielvoelker.0.text": "Alle neun Stätten mindestens in Zustand 50",
+ "daten.vorhaben.infra_entwicklungsstrasse.name": "Entwicklungsstraße Irak–Türkei",
+ "daten.vorhaben.infra_entwicklungsstrasse.text": "Straße und Bahn vom Hafen Grand al-Faw am Golf rund 1.200 km bis zum Grenzübergang Fishkhabur und weiter zum Mittelmeer. Irak, die Türkei, Katar und die Emirate unterzeichneten am 22.04.2024 eine Absichtserklärung; geplant sind etwa 17 Mrd. US-Dollar in drei Phasen bis 2028, 2033 und 2050.",
+ "daten.vorhaben.infra_entwicklungsstrasse.kehrseite": "Die Trasse läuft durch das Grenzgebiet, in dem die PKK kämpft; ohne Sicherheit fährt kein Zug. Iran sieht seine eigenen Korridore bedroht, und der Golf hat mit dem Indien-Nahost-Europa-Korridor eine zweite Wahl.",
+ "daten.vorhaben.infra_kop.name": "Konya-Ebene-Projekt (KOP) vollenden",
+ "daten.vorhaben.infra_kop.text": "Der 17 km lange Blaue Tunnel (Mavi Tünel) leitet Wasser aus dem Göksu-Becken in die geschlossene Konya-Ebene; voll ausgebaut sollen jährlich 414 Mio. m³ fließen, davon 314 Mio. m³ für 65.000 Hektar Bewässerung. Offen sind weitere Tunnel und die Dämme Bozkır, Avşar und Hadim.",
+ "daten.vorhaben.infra_kop.kehrseite": "Das Wasser fehlt im Göksu und flussabwärts am Mittelmeer; die Ebene verliert Grundwasser schneller, als jeder Tunnel nachliefert, und Kritiker im Parlament nennen den Tunnel eine Beruhigungspille."
 }

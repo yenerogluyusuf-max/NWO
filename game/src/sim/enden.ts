@@ -51,6 +51,15 @@ export const ENDEN = {
   untersuchungTage: 45,
   anklageTage: 60,
   urteilTage: 60,
+  /**
+   * Scheu vor den Wählern (Spielparameter, 5. November 2026): Über dieser Zustimmung verweigert sich ein Teil der Abgeordneten außerhalb
+   * des Lagers einer Enthebung, je Punkt dieser Anteil, höchstens der Deckel. Vorbild: Clinton 1998/99 wurde bei rund 65 Prozent
+   * Zustimmung angeklagt, aber nicht verurteilt; ein beliebter Präsident wird selten aus dem Amt gedrängt. Vorher konnte ein Präsident
+   * mit 75 Prozent verurteilt werden, sobald der Partner gegangen war und ein Skandal im Jahr lag.
+   */
+  scheuAb: 55,
+  scheuJePunkt: 0.015,
+  scheuMax: 0.3,
   /** Abweichler im Lager (Anteil der Lagersitze): bei einem Skandal im letzten Jahr, bei Zustimmung unter 35 Prozent, bei hoher Polarisierung */
   abweichlerSkandal: 0.05,
   abweichlerZustimmung: 0.07,
@@ -279,7 +288,8 @@ export function amtsenthebungSitze(w: World): { gegen: number; abweichler: numbe
   if (sp.amtszeit >= 3) anteil += Math.min(0.06, 0.02 * (sp.amtszeit - 2));
   let abweichler = Math.round(lager * clamp(anteil, 0, 0.2));
   if ((z.amtsenthebung.schutzBis ?? -1) > w.day) abweichler = Math.round(abweichler / 2);
-  return { gegen: gesamt - lager + abweichler, abweichler, lager, skandal };
+  const scheu = clamp((sp.umfrage.zustimmung - ENDEN.scheuAb) * ENDEN.scheuJePunkt, 0, ENDEN.scheuMax);
+  return { gegen: Math.round((gesamt - lager) * (1 - scheu)) + abweichler, abweichler, lager, skandal };
 }
 
 function amtsenthebungMonat(w: World, rng: Rng): void {

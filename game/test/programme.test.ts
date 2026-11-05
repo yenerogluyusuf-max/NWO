@@ -1,5 +1,6 @@
 // Regierungsprogramme: Aufbau, Ablauf, Wirkung und Erreichbarkeit.
 
+import { ENDEN } from "../src/sim/enden";
 import { describe, expect, test } from "vitest";
 import { advance, createWorld } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
@@ -100,6 +101,12 @@ describe("Erreichbarkeit", () => {
       if (b.art === "massnahme-max") setPolicy(w, b.id, Math.max(0, b.max - 15));
     }
     const fehlend = new Set<string>();
+    // Geprüft wird die Erreichbarkeit, nicht die Enthebung: Ohne Antworten auf Zusagen geht der Partner, und ein Skandal genügt für die
+    // Anklage (Seed des Tests: Urteil Mai 2031, gemessen 5. November). Die Enthebung prüft test/enden.test.ts.
+    const enden = ENDEN as { huerdeAntrag: number };
+    const antrag = enden.huerdeAntrag;
+    enden.huerdeAntrag = 601;
+    try {
     for (let monat = 0; monat < 12 * 9; monat++) {
       w.spiel!.kapital = 150;
       w.spiel!.ereignisse = [];
@@ -107,6 +114,9 @@ describe("Erreichbarkeit", () => {
       for (const p of PROGRAMME) for (const s of p.schritte) if (schrittSicht(w, s).status === "bereit") starteSchritt(w, s.id);
       advance(w, 30);
       if (w.spiel!.ende) break;
+    }
+    } finally {
+      enden.huerdeAntrag = antrag;
     }
     const z = programmZustand(w);
     for (const p of PROGRAMME) for (const s of p.schritte) if (!z.fertig.includes(s.id)) fehlend.add(`${p.id}/${s.id}: ${schrittSicht(w, s).bedingungen.filter((b) => !b.erfuellt).map((b) => b.text).join(" ; ") || "gesperrt"}`);

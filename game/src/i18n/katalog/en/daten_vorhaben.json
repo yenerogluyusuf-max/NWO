@@ -509,5 +509,11 @@
  "daten.vorhaben.voraus.serie_sinan.0.text": "Both sites at least in condition 62",
  "daten.vorhaben.voraus.serie_tas_tepeler.0.text": "All 3 sites at least in condition 55",
  "daten.vorhaben.voraus.serie_byzanz.0.text": "All 6 sites at least in condition 52",
- "daten.vorhaben.voraus.serie_vielvoelker.0.text": "All nine sites at least in condition 50"
+ "daten.vorhaben.voraus.serie_vielvoelker.0.text": "All nine sites at least in condition 50",
+ "daten.vorhaben.infra_entwicklungsstrasse.name": "Development Road Iraq–Türkiye",
+ "daten.vorhaben.infra_entwicklungsstrasse.text": "Road and rail from the port of Grand al-Faw on the Gulf about 1,200 km to the Fishkhabur border crossing and on to the Mediterranean. Iraq, Türkiye, Qatar and the Emirates signed a memorandum of understanding on 22 April 2024; about 17 bn US dollars are planned in three phases up to 2028, 2033 and 2050.",
+ "daten.vorhaben.infra_entwicklungsstrasse.kehrseite": "The route runs through the border area where the PKK fights; without security no train runs. Iran sees its own corridors threatened, and the Gulf has a second option in the India–Middle East–Europe corridor.",
+ "daten.vorhaben.infra_kop.name": "Complete the Konya Plain Project (KOP)",
+ "daten.vorhaben.infra_kop.text": "The 17 km Blue Tunnel (Mavi Tünel) carries water from the Göksu basin into the closed Konya plain; fully built, 414 million m³ a year are to flow, 314 million m³ of it for 65,000 hectares of irrigation. Further tunnels and the Bozkır, Avşar and Hadim dams are still open.",
+ "daten.vorhaben.infra_kop.kehrseite": "The water is missing in the Göksu and downstream on the Mediterranean; the plain loses groundwater faster than any tunnel can supply, and critics in parliament call the tunnel a sedative."
 }

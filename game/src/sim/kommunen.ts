@@ -94,7 +94,7 @@ export function kommunalwahlDurchfuehren(w: World, bonus = 0): { text: string; e
   const gross = [34, 6, 35].filter((pl) => gewonnen.includes(pl) || verloren.includes(pl)).map((pl) => PROVINZEN[pl - 1]!.name);
   const text = t("ges.kom.ergebnis", { nachher: lagerNachher, vorher: lagerVorher, gewonnen: gewonnen.length, verloren: verloren.length }) + (gross.length ? " " + t("ges.kom.grossstaedte", { staedte: gross.join(", ") }) : "");
   addLog(w, "ereignis", text, t("ges.kom.warum"));
-  w.spiel?.chronik.push({ tag: w.day, datum: w.date, titel: t("ges.kom.titel"), ausgang: text });
+  w.spiel?.chronik.push({ tag: w.day, datum: w.date, titel: t("ges.kom.titel"), ausgang: text, vorlage: "kommunalwahl" });
   return { text, ergebnis };
 }
 
