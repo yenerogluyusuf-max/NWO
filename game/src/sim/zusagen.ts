@@ -269,7 +269,7 @@ export function brecheZusage(w: World, z: Zusage, verfall = false): string {
   }
   if (!verfall) vertrauenAendern(w, -1);
   zusageAbschluss(w, z, "gebrochen");
-  addLog(w, "entscheidung", `Zusage gebrochen: ${z.text}`, t("sim2.sim.zusagen.4c39914"));
+  addLog(w, "entscheidung", t("protokoll.zusage.gebrochen", { text: z.text }), t("sim2.sim.zusagen.4c39914"));
   return verfall ? t("sim2.sim.zusagen.26feba7") : t("sim2.sim.zusagen.ad79f58");
 }
 
@@ -303,7 +303,7 @@ export function vertroesteFrei(w: World, z: Zusage): ZusageAntwort {
   if (!kannZahlen(sp.kapital, 1)) return { ok: false, text: t("sim2.sim.zusagen.6555b2b") };
   sp.kapital -= 1;
   const text = vertroesteZusage(w, z);
-  addLog(w, "entscheidung", `Zusage vertagt: ${z.text}`, t("sim2.sim.zusagen.834013c"));
+  addLog(w, "entscheidung", t("protokoll.zusage.vertagt", { text: z.text }), t("sim2.sim.zusagen.834013c"));
   return { ok: true, text, why: t("sim2.sim.zusagen.347aa21") };
 }
 

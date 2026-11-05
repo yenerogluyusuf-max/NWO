@@ -365,7 +365,7 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
   wirke(w, "nationalisten", WAHLKAMPF.tourNationalisten * abnutzung);
 
   const text = tx("sim2.sim.wahlkampf.8f7e132", { p0: ziel.name, p1: beteiligungPlus >= 0 ? "+" : "−", p2: fmt(Math.abs(beteiligungPlus)), p3: fmt(lagerPlus), p4: verbotText });
-  addLog(w, "entscheidung", `Auslandstour: ${ziel.name} (${WAHLKAMPF.tourAp} AP).`, text);
+  addLog(w, "entscheidung", t("protokoll.wk.tour", { ziel: ziel.name, ap: WAHLKAMPF.tourAp }), text);
   return { ok: true, text };
 }
 
@@ -484,7 +484,7 @@ export function verspreche(w: World, id: string): AktionErgebnis {
   const text = nachfolgerRolle ? t("wv.nachfolgerGebucht", { name: def.titel }) : t("wv.gebucht", {
     name: def.titel, ziel: angebot.zusage.stufeZiel!, datum: formatDateDe(addDays(w.date, angebot.zusage.faellig - w.day)),
   });
-  addLog(w, "entscheidung", `Wahlversprechen: ${def.titel} (${WAHLKAMPF.versprechenAp} AP).`, text);
+  addLog(w, "entscheidung", t("protokoll.wk.versprechen", { titel: def.titel, ap: WAHLKAMPF.versprechenAp }), text);
   return { ok: true, text };
 }
 
@@ -592,7 +592,7 @@ export function duellVorbereiten(w: World): AktionErgebnis {
   k.ap -= WAHLKAMPF.duellAp;
   k.duell.vorbereitet = 1;
   const text = tx("sim2.sim.wahlkampf.f94dad3");
-  addLog(w, "entscheidung", `TV-Duell: Vorbereitung (${WAHLKAMPF.duellAp} AP).`, text);
+  addLog(w, "entscheidung", t("protokoll.wk.duell_vorbereitung", { ap: WAHLKAMPF.duellAp }), text);
   return { ok: true, text };
 }
 
@@ -642,7 +642,7 @@ function duellAustragen(w: World, rng: Rng): void {
       tx("sim2.sim.wahlkampf.0724d47", { p0: effekt >= 0 ? "+" : "−", p1: fmt(Math.abs(effekt)), p2: vorbereitet ? "Die Vorbereitung hat sich bezahlt gemacht." : "Vorbereitung hätte den Ausgang womöglich gedreht." }),
     ],
   });
-  addLog(w, "ereignis", `TV-Duell ${effekt >= 0 ? "gewonnen" : "verloren"} (${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte).`, k.duell.szene);
+  addLog(w, "ereignis", t(effekt >= 0 ? "protokoll.wk.duell_gewonnen" : "protokoll.wk.duell_verloren", { punkte: fmt(Math.abs(effekt)) }), k.duell.szene);
 }
 
 // ---------------------------------------------------------------------------
@@ -779,10 +779,10 @@ export function wahlEffekte(w: World): { gesamt: number; teile: WahlEffekt[] } {
   const k = sp?.wahlkampf;
   if (!sp || !k) return { gesamt: 0, teile: [] };
   const teile: WahlEffekt[] = [];
-  if (k.duell.effekt !== undefined && k.duell.effekt !== 0) teile.push({ name: "TV-Duell", punkte: k.duell.effekt });
+  if (k.duell.effekt !== undefined && k.duell.effekt !== 0) teile.push({ name: t("protokoll.wk.duell_name"), punkte: k.duell.effekt });
   if (k.angriffe !== 0) teile.push({ name: tx("sim2.sim.wahlkampf.2e61132"), punkte: k.angriffe });
   const dias = diasporaBlock(w, sp.umfrage.zustimmung);
-  if (Math.abs(dias.beitrag) >= 0.05) teile.push({ name: "Diaspora-Block", punkte: Math.round(dias.beitrag * 100) / 100 });
+  if (Math.abs(dias.beitrag) >= 0.05) teile.push({ name: t("protokoll.wk.diaspora_name"), punkte: Math.round(dias.beitrag * 100) / 100 });
   if (k.nachfolgerAuftritte && k.nachfolgerAuftritte.punkte !== 0) teile.push({ name: t("enden.wk.effekt.auftritte"), punkte: k.nachfolgerAuftritte.punkte });
   return { gesamt: Math.round(teile.reduce((s, t) => s + t.punkte, 0) * 100) / 100, teile };
 }

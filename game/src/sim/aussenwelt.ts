@@ -3,6 +3,7 @@
 // werden gelegentlich von Schocks getroffen. Die Türkei kann sie nicht steuern, nur abfedern.
 // Die Wirkung auf Inflation, Wachstum und Risikoaufschlag steht in economy.ts (AUSSEN).
 
+import { t } from "../i18n";
 import { addLog } from "./log";
 import { startWerte, weltModell } from "./welt-modell";
 import type { Rng } from "./rng";
@@ -65,11 +66,11 @@ export function aussenweltMonat(world: World, rng: Rng): void {
   if (rng.next() < AUSSENWELT.schockChance.eu) {
     const staerke = rng.between(8, 16);
     e.euNachfrage = Math.max(60, e.euNachfrage! - staerke);
-    addLog(world, "markt", "Die Nachfrage aus der EU bricht ein.", "Die EU ist der wichtigste Handelspartner: Exporte und Beschäftigung in den Industrieprovinzen leiden.");
+    addLog(world, "markt", t("protokoll.markt.eu_nachfrage"), t("protokoll.markt.eu_nachfrage_warum"));
   }
   if (rng.next() < AUSSENWELT.schockChance.weltzins) {
     const staerke = rng.between(6, 14);
     e.weltzins = e.weltzins! + staerke;
-    addLog(world, "markt", "Die großen Zentralbanken heben die Zinsen an.", "Anleger ziehen Geld aus Schwellenländern ab: Risikoaufschlag und Lira geraten unter Druck.");
+    addLog(world, "markt", t("protokoll.markt.zinsen"), t("protokoll.markt.zinsen_warum"));
   }
 }

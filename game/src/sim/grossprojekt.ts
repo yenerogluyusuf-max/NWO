@@ -7,6 +7,7 @@
 // Korruption, Verlierer). Grenzübertritte werden zur Bagdadbahn-Verhandlungsserie am Verhandlungstisch.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import { t } from "../i18n";
 import { NET } from "./modell";
 import { PROVINZEN } from "./regional";
 import { LAENDER, land, type Dimension } from "./laender";
@@ -677,7 +678,7 @@ export function entwirf(w: World, eingabe: string): EntwurfErgebnis {
   };
   (z.frei ??= {})[id] = eintrag;
   reichZustand(w); // Registrierung der dynamischen Vorhaben-Definition synchronisieren
-  addLog(w, "entscheidung", `Schätzblatt: ${s.name}`, `Frei eingegeben („${s.eingabe}“). Kosten ${bandText(s.pk)} Kapital, Bau ${bandText(s.bau)} Punkte, ${bandText(s.monate)} Monate — Bänder, keine Festpreise.`);
+  addLog(w, "entscheidung", t("protokoll.gp.schaetzblatt", { name: s.name }), t("protokoll.gp.schaetzblatt_warum", { eingabe: s.eingabe, pk: bandText(s.pk), bau: bandText(s.bau), monate: bandText(s.monate) }));
   return { art: "entwurf", id, eintrag };
 }
 
@@ -729,7 +730,7 @@ export function verwerfeFrei(w: World, id: string): { ok: boolean; text: string 
   if (!e) return { ok: false, text: "Dieses freie Vorhaben liegt nicht vor." };
   if (e.stand === "begonnen") return { ok: false, text: "Was läuft, lässt sich hier nicht verwerfen (pausieren Sie es in der Baureihenfolge)." };
   delete z.frei![id];
-  addLog(w, "entscheidung", `Verworfen: ${e.def.name}`, "Der Entwurf ist vom Tisch; geschätzt wurde umsonst, gebaut wurde nichts.");
+  addLog(w, "entscheidung", t("protokoll.gp.verworfen", { name: e.def.name }), t("protokoll.gp.verworfen_warum"));
   return { ok: true, text: `„${e.def.name}“ ist vom Tisch.` };
 }
 
@@ -819,7 +820,7 @@ export function transitUmweg(w: World, id: string, landId: string): { ok: boolea
   e.def.kosten.monate = Math.max(1, Math.round(e.def.kosten.monate * 1.25));
   if (e.def.kosten.schulden) e.def.kosten.schulden = r1(e.def.kosten.schulden * 1.3);
   e.def.text += ` Umweg um ${land(landId).name}.`;
-  addLog(w, "entscheidung", `Umweg um ${land(landId).name}: ${e.def.name}`, `Das Veto steht; die Strecke umgeht das Land. Bau +${Math.round((UMWEG_FAKTOR - 1) * 100)} %, Zeit +25 %, Schulden +30 %.`);
+  addLog(w, "entscheidung", t("protokoll.gp.umweg", { land: land(landId).name, name: e.def.name }), t("protokoll.gp.umweg_warum", { bau: Math.round((UMWEG_FAKTOR - 1) * 100) }));
   return { ok: true, text: `Umweg um ${land(landId).name}: Die Strecke bleibt möglich, wird aber spürbar teurer und länger (neu geschätzt: Bau ${bandText(e.schaetzung.bau)} Punkte, ${bandText(e.schaetzung.monate)} Monate).` };
 }
 

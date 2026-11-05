@@ -25,6 +25,7 @@
 // Modul-Ladezyklen: Ereignis-Öffnung und Zeitungsmeldung laufen über eine Brücke, die in sim/spiel.ts
 // registriert wird (Muster der Kriegsbrücke in sim/initiative.ts) — kein Import von ereignisse.ts hier.
 
+import { t } from "../i18n";
 import { GARANTIEN, KONFLIKTE, KONFLIKT_NACH_ID, SPOILER_ARTEN, VORBEREITUNGEN, type GarantieArtId, type KonfliktDef, type SpoilerArtId, type VorbereitungId } from "../data/konflikte";
 import { land, landAendern, vertrauenZu } from "./laender";
 import { wirke, vertrauenAendern } from "./wirkung";
@@ -493,13 +494,13 @@ export function verstossFolge(w: World, ev: OffenesEreignis, antwort: VerstossAn
       wirke(w, "ansehen", 1);
       z.konfliktIndex = clamp(z.konfliktIndex + 8, 0, 100);
       z.reif = clamp(z.reif - 5, 0, 100);
-      addLog(w, "entscheidung", `Ankara greift ein: Die Garantie zwischen ${namen(def)} wird durchgesetzt.`, "Die Entschlossenheit kostet 0,3 % des BIP und Abschreckung — aber die Garantie gilt weiter, und alle rechnen mit Ankara.");
+      addLog(w, "entscheidung", t("protokoll.vm.eingreifen", { namen: namen(def) }), t("protokoll.vm.eingreifen_warum"));
       return "Türkische Kräfte setzen die Garantie durch: Der Verstoß wird zurückgewiesen, die Vereinbarung gilt — und alle wissen, dass Ankara es ernst meint.";
     }
     case "daempfen": {
       z.konfliktIndex = clamp(z.konfliktIndex + 6, 0, 100);
       z.reif = clamp(z.reif - 5, 0, 100);
-      addLog(w, "entscheidung", `Verstoß gegen die Vereinbarung zwischen ${namen(def)}: Ankara dämpft.`, "Der Verstoß wird notiert, nicht beantwortet; die Garantie steht, aber ihre Abschreckung leidet.");
+      addLog(w, "entscheidung", t("protokoll.vm.daempfen", { namen: namen(def) }), t("protokoll.vm.daempfen_warum"));
       return "Ankara dämpft auf allen Kanälen: Die Garantie steht noch, aber beide Seiten haben gelernt, dass Verstöße billig sind.";
     }
     default: {
@@ -510,7 +511,7 @@ export function verstossFolge(w: World, ev: OffenesEreignis, antwort: VerstossAn
       z.reif = clamp(z.reif - 15, 0, 100);
       z.konfliktIndex = clamp(z.konfliktIndex + 12, 0, 100);
       kippPruefen(w, def, z);
-      addLog(w, "entscheidung", `Die Garantie „${label}" zwischen ${namen(def)} ist gebrochen.`, "Ein Verstoß ohne Antwort: Der Garant verliert das Gesicht (Ansehen −6), die Reife der Lage stürzt ab.");
+      addLog(w, "entscheidung", t("protokoll.vm.gebrochen", { label, namen: namen(def) }), t("protokoll.vm.gebrochen_warum"));
       return `Der Verstoß bleibt ohne Antwort: Die Garantie „${label}" ist gebrochen — Ankara verliert das Gesicht, und die Lage fällt zurück.`;
     }
   }

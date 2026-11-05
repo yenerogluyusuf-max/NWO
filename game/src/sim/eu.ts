@@ -618,7 +618,7 @@ function schliesseKapitel(w: World, def: KapitelDef): void {
         t("sim2.sim.eu.0d47075"),
       ],
     });
-    addLog(w, "ereignis", "Beitritts-Perspektive erreicht.", t("sim2.sim.eu.e3ac48e"));
+    addLog(w, "ereignis", t("protokoll.eu.perspektive"), t("sim2.sim.eu.e3ac48e"));
   }
 }
 
@@ -752,7 +752,7 @@ function fortschrittsbericht(w: World): void {
   z.berichte.push(bericht);
   if (z.berichte.length > 8) z.berichte.shift();
   spiel.chronik.push({ tag: w.day, datum: w.date, titel: `EU-Fortschrittsbericht ${jahr}`, ausgang: zeilen[1] ?? zeilen[0]! });
-  addLog(w, "ereignis", `EU-Fortschrittsbericht ${jahr}`, zeilen.slice(0, 4).join(" "));
+  addLog(w, "ereignis", t("protokoll.eu.bericht", { jahr }), zeilen.slice(0, 4).join(" "));
   spiel.hinweise.push({
     id: `eu-bericht-${jahr}`,
     titel: `EU-Fortschrittsbericht ${jahr}`,
