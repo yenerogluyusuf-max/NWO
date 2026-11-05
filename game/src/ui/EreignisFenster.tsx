@@ -30,6 +30,7 @@ function KennzahlKarte({ k }: { k: Kennzahl }) {
       <span className="ev2-kz-label">{k.label}</span>
       <strong>{k.wert}</strong>
       {k.verlauf && <Verlauf werte={k.verlauf} />}
+      {k.notiz && <small className="ev2-kz-notiz">{k.notiz}</small>}
     </div>
   );
 }

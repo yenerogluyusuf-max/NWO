@@ -41,6 +41,7 @@
 .ev2-kz { display: grid; gap: 2px; padding: 9px 12px 8px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 4px; }
 .ev2-kz-label { font: 600 12.5px/1.2 var(--sans, Inter, sans-serif); color: #5a4a38; }
 .ev2-kz strong { font: 600 21px/1.15 var(--display, Fraunces, serif); color: var(--ink, #2b1e12); }
+.ev2-kz-notiz { font: italic 12.5px/1.3 var(--serif, "EB Garamond", serif); color: #6b5a46; }
 .ev2-verlauf { width: 100%; height: 22px; color: #5f4739; }
 
 .ev2-optionen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 10px; }

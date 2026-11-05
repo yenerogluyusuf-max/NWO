@@ -33,6 +33,7 @@
  "ereignis.kz.vertrauen": "Hükümete güven",
  "ereignis.kz.wachstum": "Büyüme",
  "ereignis.kz.zustimmung": "Destek (anketler)",
+ "ereignis.kz.umfrageQuelle": "{institut}, {tage, plural, =0 {bugün} other {# gün önce}}",
  "ereignis.mehr": "Ayrıntılar",
  "ereignis.preis": "{n} sermaye",
  "ereignis.pump": "borçla",

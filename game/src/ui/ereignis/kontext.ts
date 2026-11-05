@@ -112,6 +112,8 @@ export interface Kennzahl {
   wert: string;
   /** Monatswerte, älteste zuerst (nur wo es eine Zeitreihe gibt) */
   verlauf?: number[];
+  /** Quelle unter der Zahl, wo sie von der Kopfleiste abweichen kann (Umfrage eines Instituts) */
+  notiz?: string;
 }
 
 const nf = (x: number, d = 1): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -143,8 +145,11 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     arbeitslosigkeit: () => zahl("arbeitslosigkeit", t("ereignis.kz.arbeitslosigkeit"), `${nf(w.economy.unemployment)} %`, reihe(w, (h) => h.unemployment)),
     zustimmung: () => {
       if (!w.spiel) return undefined;
+      // Die Kopfleiste zeigt die Messung des Stabs, hier steht die zuletzt veröffentlichte Umfrage; die Quelle erklärt den
+      // Unterschied (Spielerdurchlauf 5. November: 47 % im Fenster, 50 % in der Leiste)
       const z = angezeigteZustimmung(w);
-      return zahl("zustimmung", t("ereignis.kz.zustimmung"), `${Math.round(z.wert)} %`);
+      const k = zahl("zustimmung", t("ereignis.kz.zustimmung"), `${Math.round(z.wert)} %`);
+      return z.quelle === "institut" && z.institut ? { ...k, notiz: t("ereignis.kz.umfrageQuelle", { institut: z.institut, tage: z.alterTage }) } : k;
     },
     ansehen: knot("ansehen", t("ereignis.kz.ansehen")),
     eu: knot("beziehungen_eu", t("ereignis.kz.eu")),

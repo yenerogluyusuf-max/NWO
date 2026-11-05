@@ -33,6 +33,7 @@
  "ereignis.kz.vertrauen": "Trust in government",
  "ereignis.kz.wachstum": "Growth",
  "ereignis.kz.zustimmung": "Approval (polls)",
+ "ereignis.kz.umfrageQuelle": "{institut}, {tage, plural, =0 {today} one {# day ago} other {# days ago}}",
  "ereignis.mehr": "More on this",
  "ereignis.preis": "{n} capital",
  "ereignis.pump": "on credit",
