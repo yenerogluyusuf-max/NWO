@@ -1,111 +1,24 @@
-// Lage und Vorsorge: die Bereitschaft des Landes, die Gefährdung nach Gebiet und Gefahr, die Hebel der Vorsorge
-// mit Preis und Wirkung und ein Szenario („Was wäre bei einem Beben dort?“). Alles aus dem Modell, nichts erfunden.
+// Lage und Vorsorge: oben Bereitschaft und Gefahren als Ringe, die Karte der gefährdeten Provinzen und rechts die Folgen eines Falls
+// in der angeklickten Provinz (ohne Vorsorge, heute, ausgebaut); darunter die Hebel der Vorsorge mit Preis und Wirkung. Alles aus dem Modell.
 
-import { useMemo, useState } from "react";
+import { useState, type ReactNode } from "react";
+import { PROV, BREITE, HOEHE } from "../atlas/Karte2D";
+import "./gefahrenbild.css";
 import type { World } from "../../sim/types";
 import type { KatastrophenArt } from "../../sim/spiel-typen";
 import { bringeEin } from "../../sim/handeln";
 import {
-  ART_NAMEN,
-  bereitGegenReferenz,
   bereitSenkung,
   bereitschaft,
   KATASTROPHE,
   risikoUebersicht,
-  staerkeWort,
   szenario,
-  type RisikoGebiet,
   type RisikoSicht,
 } from "../../sim/katastrophe";
 import type { Ziel } from "../schreibtisch/briefing";
 import { hebel, nf, type HebelZeile } from "./daten";
 
 import { t } from "../../i18n";
-const mio = (x: number) => `${nf(x / 1e6, 1)} Millionen`;
-
-function gebietText(g: RisikoGebiet[], n = 5): string {
-  const namen = g.slice(0, n).map((x) => x.name);
-  return g.length > n ? `${namen.join(", ")} und ${g.length - n} weitere` : namen.join(", ");
-}
-
-// ---------------------------------------------------------------------------
-
-function BereitschaftKarte({ stand }: { stand: number }) {
-  const ref = KATASTROPHE.bereitReferenz;
-  const gegen = bereitGegenReferenz(stand);
-  return (
-    <section className="kr-bereit" aria-label={t("ui.katastrophe.Lage.6d149ed")}>
-      <div className="kr-bereit-zahl">
-        <b>{stand}</b>
-        <span>{t("ui.katastrophe.Lage.18df22a")}</span>
-      </div>
-      <div className="kr-bereit-text">
-        <h3>{t("ui.katastrophe.Lage.c509fe3")}</h3>
-        <div className="kr-skala" role="img" aria-label={t("ui2.ui.katastrophe.Lage.a9ce597", { p0: stand, p1: ref })}>
-          <i className="fuell" style={{ width: `${stand}%` }} />
-          <span className="marke ref" style={{ left: `${ref}%` }}>
-            <em>{t("ui2.ui.katastrophe.Lage.462275f", { p0: ref })}</em>
-          </span>
-          <span className="marke heute" style={{ left: `${stand}%` }}>
-            <em>{t("ui2.ui.katastrophe.Lage.de86eb4", { p0: stand })}</em>
-          </span>
-        </div>
-        <p>
-          {t("ui2.ui.katastrophe.Lage.feedc23")} <strong>{t("ui2.ui.katastrophe.Lage.9844a1b", { p0: nf(bereitSenkung(stand), 1) })}</strong> {t("ui2.ui.katastrophe.Lage.fa0adca")}
-          {gegen !== 0 ? (
-            <>
-              {t("ui2.ui.katastrophe.Lage.7345c7c", { p0: ref })} {gegen > 0 ? t("ui2.ui.katastrophe.Lage.bc80ba0", { p0: nf(gegen, 1) }) : t("ui2.ui.katastrophe.Lage.bab09fd", { p0: nf(-gegen, 1) })}.
-            </>
-          ) : (
-            <>{t("ui2.ui.katastrophe.Lage.393af98")}</>
-          )}
-        </p>
-        <p className="kr-klein">{t("ui.katastrophe.Lage.bd9b25d")}</p>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-
-function Gefahr({ r }: { r: RisikoSicht }) {
-  const prozent = Math.round(r.jahresChance * 1000) / 10;
-  return (
-    <li className="kr-gefahr">
-      <div className="kr-gefahr-kopf">
-        <h4>{r.titel}</h4>
-        <span className={`kr-chance ${prozent >= 10 ? "hoch" : prozent >= 4 ? "mittel" : "niedrig"}`}>
-          {r.jahresChance <= 0 ? "ruht" : `etwa ${nf(prozent, prozent < 10 ? 1 : 0)} %`}
-          <small>{r.jahresChance <= 0 ? t("ui2.ui.katastrophe.Lage.9653262") : t("ui2.ui.katastrophe.Lage.85b9be6")}</small>
-        </span>
-      </div>
-      <div className="kr-balken" aria-hidden>
-        <i style={{ width: `${Math.min(100, (prozent / 30) * 100)}%` }} />
-      </div>
-      <p className="kr-gebiet">
-        <strong>{t("ui.katastrophe.Lage.e2323f3")}</strong> {gebietText(r.gebiet)} <span>{t("ui2.ui.katastrophe.Lage.03a3385", { p0: r.gebiet.length, p1: mio(r.bevoelkerung) })}</span>
-      </p>
-      <p className="kr-gefahr-meta">
-        <span>{t("ui2.ui.katastrophe.Lage.5c6f916", { p0: r.saison })}</span>
-        {r.freiIn > 0 ? (
-          <span>
-            {t("ui2.ui.katastrophe.Lage.f590363", { p0: nf(r.letzteVor ?? 0), p1: r.freiIn })} {r.freiIn === 1 ? t("ui2.ui.katastrophe.Lage.da13625") : t("ui2.ui.katastrophe.Lage.1c561ae")}
-          </span>
-        ) : r.letzteVor !== undefined ? (
-          <span>{t("ui2.ui.katastrophe.Lage.f4ac116", { p0: nf(r.letzteVor) })}</span>
-        ) : (
-          <span>{t("ui.katastrophe.Lage.ce040f9")}</span>
-        )}
-        {r.kennzahl && (
-          <span className={r.kennzahl.gut === "hoch" ? (r.kennzahl.wert >= 50 ? "gut" : "schlecht") : r.kennzahl.wert <= 40 ? "gut" : "schlecht"}>
-            {t("ui2.ui.katastrophe.Lage.96504fa", { p0: r.kennzahl.name, p1: r.kennzahl.wert })}
-          </span>
-        )}
-      </p>
-    </li>
-  );
-}
-
 // ---------------------------------------------------------------------------
 
 function HebelKarte({ h, w, refresh, melde, onGehe }: { h: HebelZeile; w: World; refresh: () => void; melde: (m: string) => void; onGehe?: (z: Ziel) => void }) {
@@ -186,105 +99,117 @@ function HebelKarte({ h, w, refresh, melde, onGehe }: { h: HebelZeile; w: World;
 
 // ---------------------------------------------------------------------------
 
-const GEFAHREN: { art: KatastrophenArt; name: string }[] = [
-  { art: "erdbeben", name: "Erdbeben" },
-  { art: "flut", name: "Sturzflut" },
-  { art: "waldbrand", name: "Großbrand" },
-];
-const STAERKEN = [
-  { wert: 0.5, name: "spürbar" },
-  { wert: 0.75, name: "schwer" },
-  { wert: 0.95, name: "verheerend" },
-];
+// ---------------------------------------------------------------------------
+// Gefahrenbild (Rundgang 05.11.2026, Muster der Netze): Ringe je Gefahr, Karte der gefährdeten Provinzen, rechts die Folgen eines Falls
 
-function Szenario({ w, risiken }: { w: World; risiken: RisikoSicht[] }) {
-  const [art, setArt] = useState<KatastrophenArt>("erdbeben");
-  const [staerke, setStaerke] = useState(0.75);
-  // Erdbeben: nur Provinzen mit Risiko ab Stufe 3 (so wählt auch die Mechanik das Epizentrum); sonst das Gebiet der Gefahr
-  const provinzen = useMemo(() => {
-    const quellen = risiken.filter((r) => r.art === art);
-    const alle = quellen.flatMap((r) => r.gebiet).filter((g) => art !== "erdbeben" || (g.risiko ?? 0) >= 3);
-    const einmal = new Map(alle.map((g) => [g.plaka, g]));
-    return [...einmal.values()].sort((a, b) => b.bevoelkerung - a.bevoelkerung);
-  }, [risiken, art]);
-  const [plaka, setPlaka] = useState<number | null>(null);
-  const gewaehlt = provinzen.find((p) => p.plaka === plaka) ?? provinzen[0];
-  const stand = Math.round(bereitschaft(w));
-  const zeilen = gewaehlt
-    ? szenario(w, art, [gewaehlt.plaka], staerke, [
-        { name: "Ohne Vorsorge", stand: 0 },
-        { name: "Heute", stand },
-        { name: stand >= 80 ? "Voll ausgebaut" : "Bei Bereitschaft 80", stand: stand >= 80 ? 100 : 80 },
-      ])
-    : [];
+const STUFEN_STAERKE = [0.5, 0.75, 0.95] as const;
+const SZENARIO_ARTEN = new Set<KatastrophenArt>(["erdbeben", "flut", "waldbrand"]);
 
+function Ring({ anteil, ton, children }: { anteil: number; ton: string; children?: ReactNode }) {
   return (
-    <section className="kr-szenario">
-      <h3>{t("ui.katastrophe.Lage.18b8780")}</h3>
-      <div className="kr-szenario-wahl">
-        <label>
-          {t("ui2.ui.katastrophe.Lage.7a20fb8")}
-          <select value={art} onChange={(e) => { setArt(e.target.value as KatastrophenArt); setPlaka(null); }}>
-            {GEFAHREN.map((g) => (
-              <option key={g.art} value={g.art}>
-                {g.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("ui2.ui.katastrophe.Lage.d784889")}
-          <select value={gewaehlt?.plaka ?? ""} onChange={(e) => setPlaka(Number(e.target.value))}>
-            {provinzen.map((p) => (
-              <option key={p.plaka} value={p.plaka}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("ui2.ui.katastrophe.Lage.7e752b5")}
-          <select value={staerke} onChange={(e) => setStaerke(Number(e.target.value))}>
-            {STAERKEN.map((s) => (
-              <option key={s.wert} value={s.wert}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      {gewaehlt && (
-        <table className="kr-szenario-tabelle">
-          <thead>
-            <tr>
-              <th scope="col">{t("ui.katastrophe.Lage.99cafe1")}</th>
-              <th scope="col">{t("ui2.ui.katastrophe.Lage.c99f806")}</th>
-              <th scope="col">{t("ui2.ui.katastrophe.Lage.5280572")}</th>
-              <th scope="col">{t("ui.katastrophe.Lage.0bfc8c3")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {zeilen.map((z) => (
-              <tr key={z.name} className={z.name === "Heute" ? "heute" : ""}>
-                <th scope="row">
-                  {z.name} <small>({z.stand})</small>
-                </th>
-                <td>{nf(z.tote)}</td>
-                <td>{nf(z.obdachlos)}</td>
-                <td>{nf(z.wohnungen)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      <p className="kr-klein">
-        {t("ui2.ui.katastrophe.Lage.972ce58")} {gewaehlt ? t("ui2.ui.katastrophe.Lage.c2c3b3a", { p0: ART_NAMEN[art], p1: staerkeWort(STAERKEN.find((s) => s.wert === staerke)!.wert), p2: gewaehlt.name }) : t("ui2.ui.katastrophe.Lage.93cb618")}{t("ui2.ui.katastrophe.Lage.6abc46b")}
-      </p>
-    </section>
+    <span className="kg-ring-feld">
+      <svg className={`kg-ring ${ton}`} viewBox="0 0 100 100" aria-hidden>
+        <circle cx="50" cy="50" r="40" className="grund" pathLength={100} strokeDasharray="75 100" transform="rotate(135 50 50)" />
+        <circle cx="50" cy="50" r="40" className="wert" pathLength={100} strokeDasharray={`${Math.max(0, Math.min(1, anteil)) * 75} 100`} transform="rotate(135 50 50)" />
+      </svg>
+      {children}
+    </span>
   );
 }
 
-// ---------------------------------------------------------------------------
+const chanceTon = (p: number) => (p >= 0.1 ? "hoch" : p >= 0.04 ? "mittel" : "niedrig");
+
+function Gefahrenbild({ world, risiken, stand }: { world: World; risiken: RisikoSicht[]; stand: number }) {
+  const sortiert = [...risiken].sort((a, b) => b.jahresChance - a.jahresChance);
+  const [wahl, setWahl] = useState<string | null>(null);
+  // Vorgabe: die wahrscheinlichste Gefahr, für die sich ein einzelner Fall durchrechnen lässt (Dürre wirkt über Monate)
+  const r = risiken.find((x) => x.id === wahl) ?? sortiert.find((x) => SZENARIO_ARTEN.has(x.art)) ?? sortiert[0];
+  const [plaka, setPlaka] = useState<number | null>(null);
+  const [staerke, setStaerke] = useState<number>(0.75);
+  if (!r) return null;
+  const gebiet = new Map(r.gebiet.map((g, i) => [g.plaka, { g, rang: i }]));
+  const ort = (plaka !== null && gebiet.get(plaka)?.g) || r.gebiet[0];
+  const farbe = (plakaNr: number): string | undefined => {
+    const x = gebiet.get(plakaNr);
+    if (!x) return undefined;
+    const stufe = x.g.risiko ?? (x.rang < r.gebiet.length / 3 ? 5 : x.rang < (2 * r.gebiet.length) / 3 ? 4 : 3);
+    return ["#f1d9a8", "#e8b874", "#dc8f55", "#c0563f", "#8f2a1e"][Math.max(0, Math.min(4, stufe - 1))];
+  };
+  const kannSzenario = SZENARIO_ARTEN.has(r.art) && !!ort;
+  const zeilen = kannSzenario
+    ? szenario(world, r.art, [ort!.plaka], staerke, [
+        { name: t("kg.ohne"), stand: 0 },
+        { name: t("kg.heute"), stand },
+        { name: stand >= 80 ? t("kg.voll") : t("kg.bei80"), stand: stand >= 80 ? 100 : 80 },
+      ])
+    : [];
+  const maxTote = Math.max(1, ...zeilen.map((z) => z.tote));
+  const prozent = (p: number) => (p <= 0 ? t("kg.ruht") : `${nf(Math.round(p * 1000) / 10, p < 0.1 ? 1 : 0)} %`);
+  return (
+    <section className="kg">
+      <ul className="kg-ringe">
+        <li className="kg-bereit" title={t("kg.bereitTitel", { ref: KATASTROPHE.bereitReferenz, senkung: nf(bereitSenkung(stand), 1) })}>
+          <Ring anteil={stand / 100} ton={stand >= 60 ? "gut" : stand >= KATASTROPHE.bereitReferenz ? "mittel" : "hoch"}><b>{stand}</b></Ring>
+          <strong>{t("kg.bereit")}</strong>
+          <small>{t("kg.bereitKurz", { senkung: nf(bereitSenkung(stand), 0) })}</small>
+        </li>
+        {sortiert.map((x) => (
+          <li key={x.id}>
+            <button type="button" className={`kg-gefahr${x.id === r.id ? " on" : ""}`} aria-pressed={x.id === r.id} onClick={() => { setWahl(x.id); setPlaka(null); }}>
+              <Ring anteil={x.jahresChance / 0.3} ton={chanceTon(x.jahresChance)}><b>{prozent(x.jahresChance)}</b></Ring>
+              <strong>{x.titel}</strong>
+              <small>{t("kg.provinzen", { n: x.gebiet.length })}</small>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <div className="kg-buehne">
+        <div className="kg-karte-feld">
+          <svg className="kg-karte" viewBox={`-10 -10 ${BREITE + 20} ${HOEHE + 20}`} role="img" aria-label={t("kg.karteAria", { gefahr: r.titel })}>
+            {PROV.map((p) => {
+              const f = farbe(p.plaka);
+              return (
+                <path key={p.plaka} d={p.d} className={`${f ? "" : "ruhig"}${p.plaka === ort?.plaka ? " gewaehlt" : ""}`} style={f ? { fill: f } : undefined} onClick={() => f && setPlaka(p.plaka)}>
+                  <title>{p.name}</title>
+                </path>
+              );
+            })}
+          </svg>
+          <p className="kg-legende">{t("kg.legende")}</p>
+        </div>
+        <aside className="kg-akte">
+          <span className="kg-kicker">{t("kg.inZwoelf")}</span>
+          <h4>{r.titel} <b className={chanceTon(r.jahresChance)}>{prozent(r.jahresChance)}</b></h4>
+          <p className="kg-zeile">{t("kg.gebiet", { n: r.gebiet.length, mio: nf(r.bevoelkerung / 1e6, 1) })} · {t("ui2.ui.katastrophe.Lage.5c6f916", { p0: r.saison })}</p>
+          {r.kennzahl && <p className="kg-zeile">{t("ui2.ui.katastrophe.Lage.96504fa", { p0: r.kennzahl.name, p1: r.kennzahl.wert })}</p>}
+          {kannSzenario && ort ? (
+            <>
+              <h5>{t("kg.wenn", { ort: ort.name })}</h5>
+              <div className="kg-staerke" role="radiogroup" aria-label={t("ui2.ui.katastrophe.Lage.7e752b5")}>
+                {STUFEN_STAERKE.map((x) => (
+                  <button key={x} type="button" role="radio" aria-checked={staerke === x} className={staerke === x ? "on" : ""} onClick={() => setStaerke(x)}>{t(`kg.st.${x >= 0.85 ? "verheerend" : x >= 0.65 ? "schwer" : "spuerbar"}`)}</button>
+                ))}
+              </div>
+              <ul className="kg-folgen">
+                {zeilen.map((z, i) => (
+                  <li key={z.name} className={i === 1 ? "heute" : ""}>
+                    <span className="kg-folgen-name">{z.name} <small>({z.stand})</small></span>
+                    <span className="kg-folgen-balken"><i style={{ width: `${(z.tote / maxTote) * 100}%` }} /></span>
+                    <span className="kg-folgen-zahl"><b>{nf(z.tote)}</b> {t("kg.tote")} · {nf(z.obdachlos)} {t("kg.obdachlos")}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="kr-klein">{t("kg.klick")}</p>
+            </>
+          ) : (
+            <p className="kr-klein">{t("kg.keinSzenario")}</p>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
+}
 
 export function Lage({ world, refresh, melde, onGehe }: { world: World; refresh: () => void; melde: (m: string) => void; onGehe?: (z: Ziel) => void }) {
   const stand = Math.round(bereitschaft(world));
@@ -292,16 +217,7 @@ export function Lage({ world, refresh, melde, onGehe }: { world: World; refresh:
   const hebelListe = hebel(world);
   return (
     <div className="kr-lage">
-      <BereitschaftKarte stand={stand} />
-
-      <section className="kr-abschnitt">
-        <h3>{t("ui.katastrophe.Lage.1952bf9")}</h3>
-        <ul className="kr-gefahren">
-          {risiken.map((r) => (
-            <Gefahr key={r.id} r={r} />
-          ))}
-        </ul>
-      </section>
+      <Gefahrenbild world={world} risiken={risiken} stand={stand} />
 
       <section className="kr-abschnitt">
         <h3>{t("ui.katastrophe.Lage.7338818")}</h3>
@@ -312,7 +228,6 @@ export function Lage({ world, refresh, melde, onGehe }: { world: World; refresh:
         </div>
       </section>
 
-      <Szenario w={world} risiken={risiken} />
     </div>
   );
 }

@@ -1,0 +1,51 @@
+/* Gefahrenbild (Rundgang 05.11.2026): dasselbe Muster wie die Netze – Ringe, Karte, Akte rechts */
+.kg { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+.kg-ringe { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 6px; }
+.kg-ringe > li { display: flex; }
+.kg-bereit, .dossier button.kg-gefahr { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 8px; border-radius: 8px; color: #2e2118; text-align: center; }
+.kg-bereit { background: rgba(255, 250, 235, 0.7); border: 1px dashed rgba(138, 106, 42, 0.5); }
+.dossier button.kg-gefahr { min-height: 0; border: 1px solid transparent; background: transparent; box-shadow: none; cursor: pointer; text-transform: none; letter-spacing: 0; transition: background 140ms ease, border-color 140ms ease; }
+.dossier button.kg-gefahr:hover { background: rgba(201, 162, 90, 0.14); }
+.dossier button.kg-gefahr.on { background: #fffaf0; border-color: rgba(138, 106, 42, 0.6); box-shadow: 0 4px 12px rgba(60, 40, 20, 0.14); }
+.kg-ring-feld { position: relative; width: 82px; height: 82px; display: grid; place-items: center; }
+.kg-ring-feld > b { position: absolute; font: 700 16px var(--sans); color: #2e2118; }
+.kg-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.kg-ring circle { fill: none; stroke-width: 10; stroke-linecap: round; }
+.kg-ring .grund { stroke: #e8dcc0; }
+.kg-ring .wert { transition: stroke-dasharray 500ms cubic-bezier(.2,.8,.2,1); }
+.kg-ring.niedrig .wert, .kg-ring.gut .wert { stroke: #5e8f6e; }
+.kg-ring.mittel .wert { stroke: #d2a64a; }
+.kg-ring.hoch .wert { stroke: #a8402f; }
+.kg-ringe strong { font: 600 13px/1.2 var(--serif); }
+.kg-ringe small { font: 11.5px/1.2 var(--sans); color: #7a6650; }
+
+.kg-buehne { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+.kg-karte-feld { padding: 10px; border-radius: 6px; background: radial-gradient(ellipse at 50% 40%, #d9e6ea, #b9cdd4); box-shadow: inset 0 0 0 1px rgba(60, 80, 90, 0.25); }
+.kg-karte { display: block; width: 100%; height: auto; }
+.kg-karte path { stroke: #fffaf0; stroke-width: 0.8; cursor: pointer; transition: fill 300ms ease, filter 120ms ease; }
+.kg-karte path.ruhig { fill: #e6dcc4; cursor: default; }
+.kg-karte path:hover:not(.ruhig) { filter: brightness(1.1); stroke: #2e2118; stroke-width: 1.4; }
+.kg-karte path.gewaehlt { stroke: #1f160f; stroke-width: 2.4; }
+.dossier p.kg-legende { margin: 6px 0 0; font: 12px var(--sans); color: #2e3a3e; }
+
+.kg-akte { position: sticky; top: 8px; padding: 14px 16px; border-radius: 6px; background: linear-gradient(180deg, #fffaf0, #f6ecd3); border: 1px solid rgba(160, 130, 80, 0.45); box-shadow: 0 8px 22px rgba(60, 40, 20, 0.12); display: flex; flex-direction: column; gap: 6px; }
+.kg-kicker { font: 400 12px var(--kapitaelchen, serif); letter-spacing: 0.12em; text-transform: uppercase; color: var(--seal, #8f2a1e); }
+.kg-akte h4 { margin: 0; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font: 600 20px/1.2 var(--serif); color: #2e2118; }
+.kg-akte h4 b { font: 700 24px var(--sans); }
+.kg-akte h4 b.hoch { color: #a8402f; } .kg-akte h4 b.mittel { color: #9a7425; } .kg-akte h4 b.niedrig { color: #3d6b4e; }
+.dossier p.kg-zeile { margin: 0; font: 13px/1.4 var(--sans); color: #5a4632; }
+.kg-akte h5 { margin: 8px 0 2px; font: 600 15px var(--serif); color: #2e2118; }
+.kg-staerke { display: flex; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 4px; overflow: hidden; align-self: flex-start; }
+.dossier .kg-staerke button { padding: 4px 12px; min-height: 0; border: 0; border-radius: 0; background: #fbf4df; box-shadow: none; font: 13px var(--serif); color: #3a2a1d; cursor: pointer; text-transform: none; letter-spacing: 0; }
+.dossier .kg-staerke button + button { border-left: 1px solid rgba(90, 64, 40, 0.3); }
+.dossier .kg-staerke button.on { background: #5d4231; color: #f4ead2; }
+.kg-folgen { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.kg-folgen li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 6px 8px; border-radius: 4px; background: #fffdf6; }
+.kg-folgen li.heute { box-shadow: inset 3px 0 0 #8a6a2a; }
+.kg-folgen-name { font: 600 13.5px var(--serif); color: #2e2118; }
+.kg-folgen-name small { font: 11.5px var(--sans); color: #7a6650; }
+.kg-folgen-balken { height: 8px; border-radius: 4px; background: #efe6d0; overflow: hidden; }
+.kg-folgen-balken i { display: block; height: 100%; background: linear-gradient(90deg, #c0563f, #8f2a1e); transition: width 400ms ease; }
+.kg-folgen-zahl { font: 12.5px var(--sans); color: #5a4632; }
+.kg-folgen-zahl b { color: #2e2118; font-size: 14px; }
+@media (max-width: 1100px) { .kg-buehne { grid-template-columns: 1fr; } .kg-akte { position: static; } }
