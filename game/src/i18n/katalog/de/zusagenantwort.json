@@ -1,6 +1,6 @@
 {
   "ze.titel": "Zusage fällig: {wer}",
-  "ze.text": "Erinnerung von {wer}: {text}.",
+  "ze.text": "Erinnerung durch {wer}: {text}.",
   "ze.antwortFrist": "Vor dem Tageswechsel zum {datum} antworten. Unbeantwortet verfällt die Zusage nach den bestehenden Regeln.",
   "ze.warum": "Erfüllung, Vertröstung und Bruch wirken auf Rückhalt und Glaubwürdigkeit. Die Antwortkarten zeigen die sofortigen Folgen und die danach verbleibenden Fristen.",
   "ze.veraltet": "Diese Erinnerung ist überholt oder die Zusage bereits abgeschlossen. Es wird nichts erneut gebucht.",

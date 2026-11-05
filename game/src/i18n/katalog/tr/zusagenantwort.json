@@ -1,6 +1,6 @@
 {
   "ze.titel": "Sözün vadesi geldi: {wer}",
-  "ze.text": "{wer} tarafından hatırlatma: {text}.",
+  "ze.text": "{wer} hatırlatıyor: {text}.",
   "ze.antwortFrist": "Tarih {datum} olmadan yanıtlayın. Yanıtsız kalan söz, mevcut kurallar uyarınca süresini doldurur.",
   "ze.warum": "Sözü tutmak, ertelemek veya bozmak desteği ve güvenilirliği etkiler. Yanıt kartları anlık etkileri ve sonrasında kalan süreleri gösterir.",
   "ze.veraltet": "Bu hatırlatma artık geçerli değil veya söz zaten kapatılmış. Yeniden işlem yapılmaz.",

@@ -15,7 +15,7 @@ export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesel
 
 const MUSTER: [RegExp, Thema][] = [
   // Wiederaufbau, Wohnungen, Mieten: Es geht um Wohnungsnot und Erdbebengefahr, nicht um Inflation (Spielerdurchlauf 5. November)
-  [/wiederaufbau|wohnung|miete|bauaufsicht|sozialbau/, "wohnen"],
+  [/wiederaufbau|wohnung|miet|bauaufsicht|sozialbau/, "wohnen"],
   [/beben|flut|brand|duerre|dürre|katastroph|ueberschwemm|hochwasser/, "katastrophe"],
   [/haushalt|mindestlohn|iwf|rating|lira|bank|steuer|zins|waehrung|schulden|rente/, "haushalt"],
   [/krieg|mil_|putsch|grenz|anschlag|terror|militaer/, "sicherheit"],
@@ -70,6 +70,14 @@ export function sprecherFuer(w: World, a: Pick<EreignisAnsicht, "id" | "vorlage"
   // Meldet sich eine Partnerpartei (Zusage, Koalitionsangebot), spricht ihr Vorsitz, nicht das Ressort des Themas (Spielerdurchlauf 5. November:
   // „MHP meldet sich“ zeigte die Justizministerin)
   const partnerZuerst: Figur["amt"][] = /^start_partner$|koalition|partner/.test(a.vorlage) ? ["partner"] : [];
+  // Eine fällige Zusage trägt vor, wem sie gegeben wurde: der Vorsitz der Partei, bei Wählern das Präsidialamt
+  if (a.vorlage === "zusage") {
+    const ev = sp.ereignisse.find((e) => e.id === a.id);
+    const von = sp.zusagen.find((z) => z.id === String(ev?.daten?.zusage))?.von;
+    const chef = von ? im.find((f) => f.amt === "partner" && f.partei === von) : undefined;
+    if (chef) return { figur: chef };
+    if (von === "Wähler") partnerZuerst.push("stab");
+  }
   const reihenfolge: Figur["amt"][] = [...partnerZuerst, ...(bezug?.amt ?? []), THEMA_AMT[themaFuer(a)], "stab"];
   for (const amt of reihenfolge) {
     const f = im.find((x) => x.amt === amt);
