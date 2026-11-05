@@ -10,15 +10,48 @@ import { anrede, figur, loyalitaetAendern } from "./figuren";
 import { DEVISEN, iwfAktiv, iwfAuflagen, iwfStarten } from "./devisen";
 import { CYBER_ZIELE, GRENZ_NACHBAR, NATO_BEWERBER, waehle } from "./akteure";
 import { dk } from "./ereignis-hilfen";
-import { beschr, kosten, monatVon, namen, netz, nf, opt, ziehe, zusageAnlegen } from "./ereignis-hilfen";
+import { beschr, kosten, monatVon, netz, nf, opt, ziehe, zusageAnlegen } from "./ereignis-hilfen";
 import type { Vorlage } from "./ereignis-hilfen";
 import { lieferanteilVerschieben } from "./diplomatie";
 import { msg, t } from "../i18n";
+import { PROVINZEN } from "./regional";
 
 /** Lieferland im Ereignistext zu Lieferant im Energiemodell */
 const LIEFERANT: Record<string, "RUS" | "AZE" | "IRN"> = { Russland: "RUS", Aserbaidschan: "AZE", Iran: "IRN" };
 
 const GRENZE = [31, 79, 27, 63, 47, 73, 30, 65, 76, 36, 75, 8]; // Hatay, Kilis, Gaziantep, Şanlıurfa, Mardin, Şırnak, Hakkari, Van, Iğdır, Kars, Ardahan, Artvin
+
+/** Provinznamen als Aufzählung für den Katalog (`{orte, list}`): im Deutschen wie `namen()` „A, B und C“, sonst nach Sprache. */
+const orte = (provinzen: number[]): string[] => provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
+
+/** Nachbar jenseits der Grenze (GRENZ_NACHBAR, deutsche Namen) zur Länderkennung des Namenskatalogs (land.name.*) — nur für die Anzeige. */
+const NACHBAR_ID: Record<string, string> = { Syrien: "SYR", Irak: "IRQ", Iran: "IRN", Armenien: "ARM", Georgien: "GEO" };
+function nachbarName(provinz: number | undefined): string | undefined {
+  const roh = GRENZ_NACHBAR[provinz ?? 0];
+  if (roh === undefined) return undefined;
+  const id = NACHBAR_ID[roh];
+  return id ? t(`land.name.${id}`) : roh;
+}
+
+/** Name des Gaslieferlandes in der Anzeigesprache; gespeichert bleibt der deutsche Wert (er steuert LIEFERANT und die Beziehungen). */
+function gasLand(land: unknown): string {
+  const id = LIEFERANT[String(land)];
+  return id ? t(`land.name.${id}`) : String(land);
+}
+
+/** NATO-Bewerber (Land und Lage aus NATO_BEWERBER, deutsch gespeichert) in der Anzeigesprache; Unbekanntes bleibt, wie es ist. */
+function natoBewerber(daten: Record<string, number | string> | undefined): { land: string; lage: string } {
+  const i = NATO_BEWERBER.findIndex((b) => b.land === daten?.land);
+  const b = NATO_BEWERBER[i];
+  if (!b) return { land: String(daten?.land ?? t("eva.nato_ratifizierung.staat_ersatz")), lage: String(daten?.lage) };
+  return { land: t(`eva.nato_ratifizierung.bewerber.${i}.land`), lage: b.lage === daten?.lage ? t(`eva.nato_ratifizierung.bewerber.${i}.lage`) : String(daten?.lage) };
+}
+
+/** Ziel des Cyberangriffs (CYBER_ZIELE, deutsch gespeichert) in der Anzeigesprache. */
+function cyberZiel(ziel: unknown): string {
+  const i = CYBER_ZIELE.indexOf(String(ziel));
+  return i >= 0 ? t(`eva.cyberangriff.ziel.${i}`) : String(ziel);
+}
 
 const GRENZZWISCHENFALL: Vorlage = {
   id: "grenzzwischenfall",
@@ -30,43 +63,43 @@ const GRENZZWISCHENFALL: Vorlage = {
     const p = ziehe(rng, (pl) => (GRENZE.includes(pl) ? 1 : 0), 1);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next() } : null;
   },
-  titel: (_, ev) => `Zwischenfall an der Grenze zu ${GRENZ_NACHBAR[ev.provinzen[0] ?? 0] ?? "einem Nachbarn"}`,
+  titel: (_, ev) => t("eva.grenzzwischenfall.titel", { nachbar: nachbarName(ev.provinzen[0]) ?? t("eva.grenzzwischenfall.nachbar_ersatz_titel") }),
   text: (_, ev) => {
-    const nachbar = GRENZ_NACHBAR[ev.provinzen[0] ?? 0] ?? "dem Nachbarland";
-    return [`An der Grenze zu ${nachbar} bei ${namen(ev.provinzen)} fallen Schüsse; Grenzsoldaten melden Verletzte. Wer zuerst geschossen hat, ist unklar: ${nachbar} und die türkische Seite geben sich gegenseitig die Schuld.`];
+    const nachbar = nachbarName(ev.provinzen[0]) ?? t("eva.grenzzwischenfall.nachbar_ersatz");
+    return [t("eva.grenzzwischenfall.text1", { nachbar, orte: orte(ev.provinzen) })];
   },
-  warum: () => "Grenzzwischenfälle entscheiden sich an der Frage, ob man eine Lage beruhigt oder ausnutzt. Jede Reaktion ist auch ein Signal an die Nachbarn und an die Wähler.",
+  warum: () => t("eva.grenzzwischenfall.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "terrorgefahr", 4 * ev.staerke, ev.provinzen);
     wirke(w, "vertrauen_regierung", -0.5);
   },
   optionen: (_, ev) => [
-    opt("diplomatie", "Protest und Vermittlung", beschr(2, 0, "beruhigt die Lage, wirkt auf Hardliner schwach."), 2, (w) => {
+    opt("diplomatie", t("eva.grenzzwischenfall.opt.diplomatie.label"), beschr(2, 0, t("eva.grenzzwischenfall.opt.diplomatie.folge")), 2, (w) => {
       wirke(w, "beziehungen_nahost", 2);
       wirke(w, "terrorgefahr", -1, ev.provinzen);
       loyalitaetAendern(w, "aussen", 4);
-      return "Die Regierung protestiert diplomatisch und bietet Vermittlung an.";
+      return t("eva.grenzzwischenfall.opt.diplomatie.ausgang");
     }),
-    opt("verstaerken", "Grenztruppen verstärken", beschr(3, 0.1, "erhöht die Sicherheit, kostet Geld."), 3, (w) => {
+    opt("verstaerken", t("eva.grenzzwischenfall.opt.verstaerken.label"), beschr(3, 0.1, t("eva.grenzzwischenfall.opt.verstaerken.folge")), 3, (w) => {
       kosten(w, 0.1);
       wirke(w, "terrorgefahr", -3 * ev.staerke, ev.provinzen);
       wirke(w, "militaer", 2);
       loyalitaetAendern(w, "inneres", 3);
-      return "Zusätzliche Truppen sichern die Grenze.";
+      return t("eva.grenzzwischenfall.opt.verstaerken.ausgang");
     }),
-    opt("vergeltung", "Mit einem Gegenschlag antworten", beschr(4, 0.15, "ein starker Auftritt, der Spannungen und Risiken erhöht."), 4, (w) => {
+    opt("vergeltung", t("eva.grenzzwischenfall.opt.vergeltung.label"), beschr(4, 0.15, t("eva.grenzzwischenfall.opt.vergeltung.folge")), 4, (w) => {
       kosten(w, 0.15);
       vertrauenAendern(w, 2);
       wirke(w, "ansehen", -3);
       wirke(w, "beziehungen_nahost", -5);
       wirke(w, "terrorgefahr", 2, ev.provinzen);
-      return "Die Armee antwortet mit einem begrenzten Gegenschlag.";
+      return t("eva.grenzzwischenfall.opt.vergeltung.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "terrorgefahr", 2 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -1);
-    return "Ohne klare Reaktion wächst die Unruhe in den Grenzorten.";
+    return t("eva.grenzzwischenfall.standard");
   },
 };
 
@@ -77,35 +110,35 @@ const EU_ANGEBOT: Vorlage = {
   abkuehlung: 600,
   chance: (w) => (netz(w, "beziehungen_eu") >= 45 ? 0.04 : 0.005),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Brüssel bietet Gespräche an",
+  titel: () => t("eva.eu_angebot.titel"),
   text: () => [
-    "Die EU-Kommission bietet an, die Zollunion zu modernisieren und Visaerleichterungen zu verhandeln, wenn die Türkei Zusagen zu Rechtsstaat und Justiz macht. Die Wirtschaft drängt, die Nationalisten warnen vor Bevormundung.",
+    t("eva.eu_angebot.text1"),
   ],
-  warum: () => "Europa ist der wichtigste Absatzmarkt und Kapitalgeber der Türkei, und es verlangt dafür Gegenleistungen bei Rechtsstaat und Justiz.",
+  warum: () => t("eva.eu_angebot.warum"),
   optionen: () => [
-    opt("verhandeln", "Verhandlungen aufnehmen und eine Justizreform zusagen", beschr(4, 0, "Export und Kapital gewinnen, Sie schulden Brüssel eine Reform."), 4, (w) => {
+    opt("verhandeln", t("eva.eu_angebot.opt.verhandeln.label"), beschr(4, 0, t("eva.eu_angebot.opt.verhandeln.folge")), 4, (w) => {
       wirke(w, "beziehungen_eu", 6);
       wirke(w, "export", 3);
       wirke(w, "auslandskapital", 3);
       wirke(w, "konservative", -1);
       zusageAnlegen(w, { von: "EU-Kommission", text: "Der EU wurde eine Justizreform zugesagt", msg: msg("zusage.eu.justizreform"), tage: 240, massnahme: "m_justizreform" });
-      return "Die Türkei nimmt die Gespräche auf und sagt eine Justizreform zu.";
+      return t("eva.eu_angebot.opt.verhandeln.ausgang");
     }),
-    opt("teilweise", "Nur über den Handel sprechen", beschr(2, 0, "ein Anfang, ohne Zusagen zum Rechtsstaat."), 2, (w) => {
+    opt("teilweise", t("eva.eu_angebot.opt.teilweise.label"), beschr(2, 0, t("eva.eu_angebot.opt.teilweise.folge")), 2, (w) => {
       wirke(w, "beziehungen_eu", 2);
       wirke(w, "export", 1);
-      return "Beide Seiten sprechen zunächst nur über den Handel.";
+      return t("eva.eu_angebot.opt.teilweise.ausgang");
     }),
-    opt("ablehnen", "Ablehnen", beschr(0, 0, "das nationale Lager applaudiert, die Wirtschaft ist enttäuscht."), 0, (w) => {
+    opt("ablehnen", t("eva.eu_angebot.opt.ablehnen.label"), beschr(0, 0, t("eva.eu_angebot.opt.ablehnen.folge")), 0, (w) => {
       wirke(w, "beziehungen_eu", -3);
       wirke(w, "konservative", 2);
       wirke(w, "unternehmer", -1);
-      return "Das Angebot wird abgelehnt.";
+      return t("eva.eu_angebot.opt.ablehnen.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "beziehungen_eu", -1);
-    return "Das Angebot bleibt unbeantwortet und verfällt.";
+    return t("eva.eu_angebot.standard");
   },
 };
 
@@ -117,24 +150,24 @@ const IWF: Vorlage = {
   // WIR-2: Der IWF tritt auf, wenn die Märkte stürmen oder die Netto-Reserven schwinden — nicht, solange ein Programm läuft
   chance: (w) => (iwfAktiv(w) ? 0 : w.economy.riskPremium > 400 || (w.economy.reservenNettoUsdMrd ?? 99) < DEVISEN.warnungUnter ? 0.2 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Der IWF bietet ein Programm an",
+  titel: () => t("eva.iwf_angebot.titel"),
   text: (w) => {
     const auflagen = iwfAuflagen(w);
     return [
-      `Bei ${nf(w.economy.riskPremium, 0)} Basispunkten Risikoaufschlag, ${nf(w.economy.usdTry)} Lira je Dollar und ${nf(w.economy.reservenNettoUsdMrd ?? 0)} Mrd. Dollar Netto-Reserven bietet der Internationale Währungsfonds ein Stand-by-Abkommen an. ${anrede(figur(w, "finanzen"))} wägt ab.`,
-      `Devisen sofort und zwei Tranchen nach Reviews; dafür Auflagen: Leitzins mindestens ${nf(auflagen.zinsMindest)} % und Defizit höchstens ${nf(auflagen.defizitMax)} % des BIP, geprüft in drei Reviews. Wer die Auflagen reißt, verliert das Programm — und das Vertrauen der Märkte.`,
+      t("eva.iwf_angebot.text1", { aufschlag: nf(w.economy.riskPremium, 0), kurs: nf(w.economy.usdTry), reserven: nf(w.economy.reservenNettoUsdMrd ?? 0), wer: anrede(figur(w, "finanzen")) }),
+      t("eva.iwf_angebot.text2", { zins: nf(auflagen.zinsMindest), defizit: nf(auflagen.defizitMax) }),
     ];
   },
-  warum: () => "Ein IWF-Programm bringt Devisen und das Vertrauen der Märkte und kostet politische Freiheit: Die Auflagen binden Zins und Defizit, und sie treffen meist die, die am wenigsten haben.",
+  warum: () => t("eva.iwf_angebot.warum"),
   optionen: (w) => [
-    opt("annehmen", "Das Stand-by-Abkommen annehmen", beschr(5, 0, `Devisen-Zufluss und ruhigere Märkte gegen Auflagen (Zins ≥ ${nf(iwfAuflagen(w).zinsMindest)} %, Defizit ≤ ${nf(iwfAuflagen(w).defizitMax)} %) in drei Reviews.`), 5, (w) => {
+    opt("annehmen", t("eva.iwf_angebot.opt.annehmen.label"), beschr(5, 0, t("eva.iwf_angebot.opt.annehmen.folge", { zins: nf(iwfAuflagen(w).zinsMindest), defizit: nf(iwfAuflagen(w).defizitMax) })), 5, (w) => {
       iwfStarten(w);
       wirke(w, "realeinkommen", -3);
       wirke(w, "arbeitnehmer", -3);
       wirke(w, "junge", -2);
-      return "Die Regierung unterschreibt das Stand-by-Abkommen: Devisen fließen, die Märkte beruhigen sich — und die Auflagen ticken.";
+      return t("eva.iwf_angebot.opt.annehmen.ausgang");
     }),
-    opt("golf", "Kredite aus dem Golf suchen", beschr(4, 0, "Geld ohne Auflagen, aber mit politischen Gegenleistungen."), 4, (w) => {
+    opt("golf", t("eva.iwf_angebot.opt.golf.label"), beschr(4, 0, t("eva.iwf_angebot.opt.golf.folge")), 4, (w) => {
       w.economy.riskPremium = Math.max(150, w.economy.riskPremium - 30);
       w.economy.credibility = clamp(w.economy.credibility + 0.01, 0.05, 0.95);
       const e = w.economy;
@@ -142,18 +175,18 @@ const IWF: Vorlage = {
       if (e.reservenNettoUsdMrd !== undefined) e.reservenNettoUsdMrd += 4;
       wirke(w, "beziehungen_nahost", 4);
       wirke(w, "beziehungen_usa", -1);
-      return "Golfstaaten stellen 4 Mrd. Dollar bereit; sie erwarten Entgegenkommen.";
+      return t("eva.iwf_angebot.opt.golf.ausgang");
     }),
-    opt("allein", "Den Weg allein gehen", beschr(0, 0, "keine Auflagen, aber auch keine Hilfe."), 0, (w) => {
+    opt("allein", t("eva.iwf_angebot.opt.allein.label"), beschr(0, 0, t("eva.iwf_angebot.opt.allein.folge")), 0, (w) => {
       w.economy.riskPremium += 20;
       wirke(w, "vertrauen_maerkte", -2);
       wirke(w, "konservative", 1);
-      return "Die Regierung lehnt fremde Hilfe ab.";
+      return t("eva.iwf_angebot.opt.allein.ausgang");
     }),
   ],
   standard: (w) => {
     w.economy.riskPremium += 25;
-    return "Das Angebot verfällt; die Märkte deuten das als Zögern.";
+    return t("eva.iwf_angebot.standard");
   },
 };
 
@@ -164,35 +197,35 @@ const RATING: Vorlage = {
   abkuehlung: 360,
   chance: (w) => (w.economy.debtRatio > 45 || netz(w, "vertrauen_maerkte") < 38 ? 0.08 : 0.004),
   erzeuge: (_, rng) => ({ provinzen: [], staerke: 1, daten: { agentur: waehle(rng, ["Fitch", "Moody's", "S&P Global Ratings"]) } }),
-  titel: (_, ev) => `${ev.daten?.agentur} droht mit Herabstufung`,
-  text: (w, ev) => [`${ev.daten?.agentur} stellt die Bonität des Landes auf den Prüfstand: Schulden ${nf(w.economy.debtRatio)} % des BIP, Inflation ${nf(w.published.inflation.value)} %. Eine Herabstufung würde Kredite verteuern.`],
-  warum: () => "Ratings entscheiden mit, was der Staat für Schulden zahlt. Sie folgen dem Vertrauen der Investoren und beeinflussen es zugleich.",
+  titel: (_, ev) => t("eva.ratingagentur.titel", { agentur: String(ev.daten?.agentur) }),
+  text: (w, ev) => [t("eva.ratingagentur.text1", { agentur: String(ev.daten?.agentur), schulden: nf(w.economy.debtRatio), inflation: nf(w.published.inflation.value) })],
+  warum: () => t("eva.ratingagentur.warum"),
   optionen: () => [
-    opt("fahrplan", "Einen Reformfahrplan vorlegen", beschr(3, 0, "beruhigt die Investoren, bindet die Regierung."), 3, (w) => {
+    opt("fahrplan", t("eva.ratingagentur.opt.fahrplan.label"), beschr(3, 0, t("eva.ratingagentur.opt.fahrplan.folge")), 3, (w) => {
       wirke(w, "vertrauen_maerkte", 4);
       ratingDruck(w, -4);
       setFiscalImpulse(w, Math.min(w.economy.fiscalImpulse, 0));
       loyalitaetAendern(w, "finanzen", 4);
-      return "Ein mehrjähriger Reformfahrplan wird vorgelegt.";
+      return t("eva.ratingagentur.opt.fahrplan.ausgang");
     }),
-    opt("roadshow", "Eine Investorenreise", beschr(2, 0, "wirbt Kapital, ersetzt keine Reformen."), 2, (w) => {
+    opt("roadshow", t("eva.ratingagentur.opt.roadshow.label"), beschr(2, 0, t("eva.ratingagentur.opt.roadshow.folge")), 2, (w) => {
       wirke(w, "auslandskapital", 3);
       w.economy.riskPremium -= 10;
-      return "Der Finanzminister wirbt bei Investoren.";
+      return t("eva.ratingagentur.opt.roadshow.ausgang");
     }),
-    opt("zurueckweisen", "Die Kritik zurückweisen", beschr(0, 0, "populär im Inland, teuer an den Märkten."), 0, (w) => {
+    opt("zurueckweisen", t("eva.ratingagentur.opt.zurueckweisen.label"), beschr(0, 0, t("eva.ratingagentur.opt.zurueckweisen.folge")), 0, (w) => {
       w.economy.riskPremium += 20;
       ratingDruck(w, 5);
       wirke(w, "vertrauen_maerkte", -3);
       wirke(w, "konservative", 1);
-      return "Die Regierung weist die Kritik als ungerechtfertigt zurück.";
+      return t("eva.ratingagentur.opt.zurueckweisen.ausgang");
     }),
   ],
   standard: (w) => {
     // Runde „Netz atmet“: Die Herabstufung ist jetzt ein Zustand (sim/maerkte.ts): Stufe, Aufschlag und Vertrauen folgen daraus
     ratingAendere(w, -1);
     wirke(w, "vertrauen_maerkte", -2);
-    return "Die Agentur stuft das Land herab; Kredite werden teurer.";
+    return t("eva.ratingagentur.standard");
   },
 };
 
@@ -206,40 +239,40 @@ const NATO: Vorlage = {
     const b = waehle(rng, NATO_BEWERBER);
     return { provinzen: [], staerke: 1, daten: { land: b.land, lage: b.lage, ru: b.russland } };
   },
-  titel: (_, ev) => `NATO: ${String(ev.daten?.land ?? "Ein Staat").replace(/^die /, "Die ")} will beitreten`,
+  titel: (_, ev) => t("eva.nato_ratifizierung.titel", { land: natoBewerber(ev.daten).land }),
   text: (_, ev) => [
-    `${String(ev.daten?.land).replace(/^die /, "Die ")} hat den Beitritt zur NATO beantragt; die Mitglieder müssen ihn ratifizieren, und Ankara hat eine Stimme. ${ev.daten?.lage}`,
-    "Washington und Brüssel drängen auf Zustimmung; Ankara kann sie geben oder zurückhalten und dafür Zugeständnisse verlangen.",
+    t("eva.nato_ratifizierung.text1", natoBewerber(ev.daten)),
+    t("eva.nato_ratifizierung.text2"),
   ],
-  warum: () => "Wer ein Veto hat, hat einen Preis. Die Frage ist, ob man ihn in Waffen, in Zusagen oder in Vertrauen bezahlt bekommen will.",
+  warum: () => t("eva.nato_ratifizierung.warum"),
   optionen: (_, ev) => [
-    opt("zustimmen", "Zustimmen, gegen Zusagen bei Rüstung und Terrorbekämpfung", beschr(3, 0, "der Westen dankt, Moskau verzieht die Miene."), 3, (w) => {
+    opt("zustimmen", t("eva.nato_ratifizierung.opt.zustimmen.label"), beschr(3, 0, t("eva.nato_ratifizierung.opt.zustimmen.folge")), 3, (w) => {
       wirke(w, "beziehungen_usa", 5);
       wirke(w, "beziehungen_eu", 2);
       wirke(w, "beziehungen_russland", -4 * (dk(ev, "ru") || 1));
       wirke(w, "militaer", 2);
       wirke(w, "ansehen", 2);
       loyalitaetAendern(w, "aussen", 4);
-      return "Die Türkei stimmt zu und erhält Zusagen bei Rüstung und Terrorbekämpfung.";
+      return t("eva.nato_ratifizierung.opt.zustimmen.ausgang");
     }),
-    opt("blockieren", "Blockieren, bis die Bedingungen erfüllt sind", beschr(2, 0, "Härte nach innen, Ärger nach außen."), 2, (w) => {
+    opt("blockieren", t("eva.nato_ratifizierung.opt.blockieren.label"), beschr(2, 0, t("eva.nato_ratifizierung.opt.blockieren.folge")), 2, (w) => {
       wirke(w, "beziehungen_usa", -4);
       wirke(w, "beziehungen_eu", -3);
       wirke(w, "beziehungen_russland", 2 * (dk(ev, "ru") || 1));
       wirke(w, "ansehen", -1);
       wirke(w, "konservative", 2);
       vertrauenAendern(w, 1);
-      return `Die Türkei blockiert die Ratifizierung des Beitritts von ${ev.daten?.land}.`;
+      return t("eva.nato_ratifizierung.opt.blockieren.ausgang", { land: natoBewerber(ev.daten).land });
     }),
-    opt("zeit", "Zeit gewinnen", beschr(0, 0, "hält alle Optionen offen und kostet Nerven."), 0, (w) => {
+    opt("zeit", t("eva.nato_ratifizierung.opt.zeit.label"), beschr(0, 0, t("eva.nato_ratifizierung.opt.zeit.folge")), 0, (w) => {
       wirke(w, "ansehen", -1);
       loyalitaetAendern(w, "aussen", -2);
-      return "Die Regierung vertagt die Entscheidung.";
+      return t("eva.nato_ratifizierung.opt.zeit.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "ansehen", -1);
-    return "Die Entscheidung wird vertagt; die Verbündeten werden ungeduldig.";
+    return t("eva.nato_ratifizierung.standard");
   },
 };
 
@@ -250,24 +283,24 @@ const GASVERTRAG: Vorlage = {
   abkuehlung: 700,
   chance: (w) => ([3, 9].includes(monatVon(w)) ? 0.04 : 0),
   erzeuge: (_, rng) => ({ provinzen: [], staerke: 1, daten: { land: waehle(rng, ["Russland", "Aserbaidschan", "Iran"]) } }),
-  titel: (_, ev) => `Der Gasvertrag mit ${ev.daten?.land} läuft aus`,
+  titel: (_, ev) => t("eva.gasvertrag.titel", { land: gasLand(ev.daten?.land) }),
   text: (w, ev) => [
-    `Der langfristige Liefervertrag für Erdgas mit Lieferanten aus ${ev.daten?.land} steht zur Verlängerung an. Die Energiepreise stehen bei Index ${nf(netz(w, "energiepreise"), 0)}, die Abhängigkeit von Importen bei ${nf(netz(w, "energieimporte"), 0)}.`,
+    t("eva.gasvertrag.text1", { land: gasLand(ev.daten?.land), preise: nf(netz(w, "energiepreise"), 0), importe: nf(netz(w, "energieimporte"), 0) }),
   ],
-  warum: () => "Gasverträge binden über Jahre. Ein günstiger Preis ist eine Abhängigkeit, und jede Alternative kostet erst einmal mehr.",
+  warum: () => t("eva.gasvertrag.warum"),
   optionen: (_, ev) => {
     const bez = ev.daten?.land === "Russland" ? "beziehungen_russland" : "beziehungen_nahost";
     return [
-    opt("verlaengern", "Langfristig verlängern", beschr(2, 0, "billiges Gas, mehr Abhängigkeit."), 2, (w) => {
+    opt("verlaengern", t("eva.gasvertrag.opt.verlaengern.label"), beschr(2, 0, t("eva.gasvertrag.opt.verlaengern.folge")), 2, (w) => {
       wirke(w, "energiepreise", -3);
       wirke(w, "energieimporte", 2);
       wirke(w, bez, 4);
       wirke(w, "beziehungen_eu", -3);
       // Spielparameter: Die Verlängerung bindet 4 Punkte mehr des Gasbezugs an den Lieferanten (sim/diplomatie.ts)
       lieferanteilVerschieben(w, LIEFERANT[ev.daten?.land ?? ""] ?? "RUS", 4);
-      return t("wort.gas.verlaengert", { land: ev.daten?.land ?? "" });
+      return t("wort.gas.verlaengert", { land: ev.daten?.land === undefined ? "" : gasLand(ev.daten.land) });
     }),
-    opt("diversifizieren", "Neue Lieferanten und Flüssiggas erschließen", beschr(4, 0.2, "teurer heute, unabhängiger morgen."), 4, (w) => {
+    opt("diversifizieren", t("eva.gasvertrag.opt.diversifizieren.label"), beschr(4, 0.2, t("eva.gasvertrag.opt.diversifizieren.folge")), 4, (w) => {
       kosten(w, 0.2);
       wirke(w, "energiepreise", 2);
       wirke(w, "energieimporte", -3);
@@ -277,12 +310,12 @@ const GASVERTRAG: Vorlage = {
       lieferanteilVerschieben(w, "LNG", 6);
       return t("wort.gas.diversifiziert");
     }),
-    opt("kurz", "Nur kurz verlängern", beschr(1, 0, "kauft Zeit, ohne Weichen zu stellen."), 1, () => t("wort.gas.kurz")),
+    opt("kurz", t("eva.gasvertrag.opt.kurz.label"), beschr(1, 0, t("eva.gasvertrag.opt.kurz.folge")), 1, () => t("wort.gas.kurz")),
   ];
   },
   standard: (w) => {
     wirke(w, "energiepreise", 3);
-    return "Der Vertrag läuft aus; Notkäufe am Spotmarkt verteuern die Energie.";
+    return t("eva.gasvertrag.standard");
   },
 };
 
@@ -293,32 +326,32 @@ const GASFUND: Vorlage = {
   abkuehlung: 3000,
   chance: (w) => (w.day > 150 ? 0.008 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Ein Gasfeld wird entdeckt",
-  text: () => ["Im Schwarzen Meer ist ein bedeutendes Gasfeld gefunden worden. Die Förderung würde Jahre dauern, aber sie verspricht weniger Importe und neue Einnahmen."],
-  warum: () => "Ressourcenfunde sind ein Geschenk und eine Versuchung: Sie können Importe ersetzen, Schulden tilgen oder in Subventionen verpuffen.",
+  titel: () => t("eva.gasfund.titel"),
+  text: () => [t("eva.gasfund.text1")],
+  warum: () => t("eva.gasfund.warum"),
   optionen: () => [
-    opt("foerdern", "Rasch erschließen", beschr(3, 0.3, "weniger Importe, mehr Klimalast."), 3, (w) => {
+    opt("foerdern", t("eva.gasfund.opt.foerdern.label"), beschr(3, 0.3, t("eva.gasfund.opt.foerdern.folge")), 3, (w) => {
       kosten(w, 0.3);
       wirke(w, "energieimporte", -5);
       wirke(w, "energiepreise", -3);
       wirke(w, "auslandskapital", 2);
       wirke(w, "klimaschutz", -2);
-      return "Die Erschließung beginnt.";
+      return t("eva.gasfund.opt.foerdern.ausgang");
     }),
-    opt("fonds", t("wort.fonds.titel"), beschr(4, -0.4, "Einnahmen für kommende Jahre, wenig für heute."), 4, (w) => {
+    opt("fonds", t("wort.fonds.titel"), beschr(4, -0.4, t("eva.gasfund.opt.fonds.folge")), 4, (w) => {
       kosten(w, -0.4);
       wirke(w, "vertrauen_maerkte", 3);
       wirke(w, "energieimporte", -2);
       return t("wort.fonds.ausgang");
     }),
-    opt("senken", "Die Energiepreise sofort senken", beschr(2, 0.2, "populär und teuer."), 2, (w) => {
+    opt("senken", t("eva.gasfund.opt.senken.label"), beschr(2, 0.2, t("eva.gasfund.opt.senken.folge")), 2, (w) => {
       kosten(w, 0.2);
       wirke(w, "lebenshaltung", -3);
       vertrauenAendern(w, 2);
-      return "Die Regierung senkt die Energiepreise für Haushalte.";
+      return t("eva.gasfund.opt.senken.ausgang");
     }),
   ],
-  standard: () => "Das Feld wird vermessen; eine Entscheidung fällt nicht.",
+  standard: () => t("eva.gasfund.standard"),
 };
 
 const CYBER: Vorlage = {
@@ -328,34 +361,34 @@ const CYBER: Vorlage = {
   abkuehlung: 500,
   chance: () => 0.008,
   erzeuge: (_, rng) => ({ provinzen: [], staerke: 1, daten: { ziel: waehle(rng, CYBER_ZIELE) } }),
-  titel: () => "Ein Cyberangriff",
-  text: (_, ev) => [`Ein Angriff legt für Stunden ${ev.daten?.ziel} lahm. Die Herkunft ist unklar; Sicherheitsbehörden sprechen von einem professionellen Vorgehen.`],
-  warum: () => "Digitale Infrastruktur ist so verwundbar wie sie schlecht geschützt ist. Die Schwachstelle liegt oft nicht in der Technik, sondern in der Zuständigkeit.",
+  titel: () => t("eva.cyberangriff.titel"),
+  text: (_, ev) => [t("eva.cyberangriff.text1", { ziel: cyberZiel(ev.daten?.ziel) })],
+  warum: () => t("eva.cyberangriff.warum"),
   eroeffne: (w) => {
     wirke(w, "stromversorgung", -3);
     wirke(w, "vertrauen_maerkte", -2);
   },
   optionen: () => [
-    opt("behoerde", t("wort.cyber.titel"), beschr(4, 0.1, "schützt künftig, kostet jetzt."), 4, (w) => {
+    opt("behoerde", t("wort.cyber.titel"), beschr(4, 0.1, t("eva.cyberangriff.opt.behoerde.folge")), 4, (w) => {
       kosten(w, 0.1);
       wirke(w, "stromversorgung", 4);
       wirke(w, "vertrauen_maerkte", 3);
       return t("wort.cyber.ausgang");
     }),
-    opt("beschuldigen", "Öffentlich einen Staat beschuldigen", beschr(2, 0, "das Land rückt zusammen, die Beweislage bleibt dünn."), 2, (w) => {
+    opt("beschuldigen", t("eva.cyberangriff.opt.beschuldigen.label"), beschr(2, 0, t("eva.cyberangriff.opt.beschuldigen.folge")), 2, (w) => {
       vertrauenAendern(w, 1);
       wirke(w, "beziehungen_nahost", -3);
       wirke(w, "ansehen", -1);
-      return "Die Regierung macht einen Staat öffentlich verantwortlich.";
+      return t("eva.cyberangriff.opt.beschuldigen.ausgang");
     }),
-    opt("still", "Still beheben", beschr(0, 0, "keine Aufregung, keine Lehre."), 0, (w) => {
+    opt("still", t("eva.cyberangriff.opt.still.label"), beschr(0, 0, t("eva.cyberangriff.opt.still.folge")), 0, (w) => {
       wirke(w, "vertrauen_maerkte", -3);
-      return "Die Systeme werden ohne öffentliche Erklärung repariert.";
+      return t("eva.cyberangriff.opt.still.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "vertrauen_maerkte", -3);
-    return "Die Behörden schweigen; das Misstrauen wächst.";
+    return t("eva.cyberangriff.standard");
   },
 };
 
@@ -366,12 +399,12 @@ const WELTKRISE: Vorlage = {
   abkuehlung: 1500,
   chance: (w) => (w.day > 500 ? 0.012 : 0),
   erzeuge: (_, rng) => ({ provinzen: [], staerke: 0.7 + 0.5 * rng.next() }),
-  titel: () => "Eine Weltwirtschaftskrise erreicht die Türkei",
+  titel: () => t("eva.weltwirtschaftskrise.titel"),
   text: (w, ev) => [
-    `Ein Einbruch an den Weltmärkten reißt die Nachfrage nach türkischen Waren ein: Bestellungen werden storniert, Touristen bleiben aus, Auslandskapital zieht ab. Das Wachstum liegt bei ${nf(w.economy.growth)} %, der Risikoaufschlag steigt auf ${nf(w.economy.riskPremium + 60 * ev.staerke, 0)} Basispunkte.`,
-    `${anrede(figur(w, "finanzen"))} fragt, ob der Staat stützen oder sparen soll. Wer Kapital zurückgelegt hat, kann jetzt handeln.`,
+    t("eva.weltwirtschaftskrise.text1", { wachstum: nf(w.economy.growth), aufschlag: nf(w.economy.riskPremium + 60 * ev.staerke, 0) }),
+    t("eva.weltwirtschaftskrise.text2", { wer: anrede(figur(w, "finanzen")) }),
   ],
-  warum: () => "Krisen kommen von außen und treffen die, die am wenigsten Puffer haben. Ein Staat, der in guten Jahren Kapital und Vertrauen aufbaut, hat in schlechten Handlungsspielraum.",
+  warum: () => t("eva.weltwirtschaftskrise.warum"),
   eroeffne: (w, ev) => {
     w.economy.riskPremium += 60 * ev.staerke;
     w.economy.outputGap -= 1.6 * ev.staerke;
@@ -382,27 +415,27 @@ const WELTKRISE: Vorlage = {
     wirke(w, "mittelstand", -3 * ev.staerke);
   },
   optionen: (_, ev) => [
-    opt("konjunktur", "Ein Konjunkturprogramm auflegen", beschr(6, 1.0, "stützt die Nachfrage und die Beschäftigung, kostet Schulden."), 6, (w) => {
+    opt("konjunktur", t("eva.weltwirtschaftskrise.opt.konjunktur.label"), beschr(6, 1.0, t("eva.weltwirtschaftskrise.opt.konjunktur.folge")), 6, (w) => {
       kosten(w, 1.0);
       w.economy.outputGap += 1.0 * ev.staerke;
       wirke(w, "mittelstand", 3);
       wirke(w, "arbeitnehmer", 2);
       vertrauenAendern(w, 2);
-      return "Ein Konjunkturprogramm stützt die Wirtschaft.";
+      return t("eva.weltwirtschaftskrise.opt.konjunktur.ausgang");
     }),
-    opt("kurzarbeit", "Kurzarbeit und Kredite für Betriebe", beschr(4, 0.4, "hält Arbeitsplätze, ohne den Haushalt zu sprengen."), 4, (w) => {
+    opt("kurzarbeit", t("eva.weltwirtschaftskrise.opt.kurzarbeit.label"), beschr(4, 0.4, t("eva.weltwirtschaftskrise.opt.kurzarbeit.folge")), 4, (w) => {
       kosten(w, 0.4);
       wirke(w, "mittelstand", 3);
       wirke(w, "arbeitsplaetze_industrie", 3);
       wirke(w, "kredite", 2);
-      return "Kurzarbeitergeld und Kreditgarantien federn den Schlag ab.";
+      return t("eva.weltwirtschaftskrise.opt.kurzarbeit.ausgang");
     }),
-    opt("sparen", "Ruhig bleiben und den Haushalt schützen", beschr(2, 0, "die Märkte danken es, die Betriebe müssen selbst durch."), 2, (w) => {
+    opt("sparen", t("eva.weltwirtschaftskrise.opt.sparen.label"), beschr(2, 0, t("eva.weltwirtschaftskrise.opt.sparen.folge")), 2, (w) => {
       wirke(w, "vertrauen_maerkte", 3);
       wirke(w, "mittelstand", -3);
       wirke(w, "arbeitnehmer", -3);
       vertrauenAendern(w, -2);
-      return "Die Regierung hält den Haushalt und lässt die Krise auslaufen.";
+      return t("eva.weltwirtschaftskrise.opt.sparen.ausgang");
     }),
   ],
   standard: (w, ev) => {
@@ -410,7 +443,7 @@ const WELTKRISE: Vorlage = {
     wirke(w, "arbeitsplaetze_industrie", -4);
     wirke(w, "armut", 2);
     vertrauenAendern(w, -3);
-    return "Ohne Antwort vertieft sich die Krise; die Entlassungen häufen sich.";
+    return t("eva.weltwirtschaftskrise.standard");
   },
 };
 
@@ -421,12 +454,12 @@ const PANDEMIE: Vorlage = {
   abkuehlung: 2000,
   chance: (w) => (w.day > 700 ? 0.007 : 0),
   erzeuge: (_, rng) => ({ provinzen: [], staerke: 0.7 + 0.5 * rng.next() }),
-  titel: () => "Eine neue Seuche breitet sich aus",
+  titel: () => t("eva.pandemie.titel"),
   text: (w) => [
-    `Ein neuer Erreger verbreitet sich schneller als jeder Winterinfekt: Krankenhäuser melden Überlastung, Schulen schließen, Flüge werden gestrichen. Die Gesundheitsversorgung steht bei Index ${nf(netz(w, "gesundheitsversorgung"), 0)}.`,
-    "Der Ärzteverband fordert Maßnahmen; die Wirtschaft warnt vor einem Stillstand.",
+    t("eva.pandemie.text1", { index: nf(netz(w, "gesundheitsversorgung"), 0) }),
+    t("eva.pandemie.text2"),
   ],
-  warum: () => "Seuchen zeigen, wie belastbar ein Gesundheitssystem und ein Staat sind. Beschränkungen schützen Leben und kosten Wirtschaft; beides zugleich lässt sich nicht maximieren.",
+  warum: () => t("eva.pandemie.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "gesundheitsversorgung", -6 * ev.staerke);
     wirke(w, "wartezeiten", 8 * ev.staerke);
@@ -434,33 +467,33 @@ const PANDEMIE: Vorlage = {
     wirke(w, "tourismus", -6 * ev.staerke);
   },
   optionen: (_, ev) => [
-    opt("beschraenken", "Strenge Beschränkungen und Impfprogramm", beschr(6, 0.5, "schützt Leben, kostet Wirtschaftsleistung und Geduld."), 6, (w) => {
+    opt("beschraenken", t("eva.pandemie.opt.beschraenken.label"), beschr(6, 0.5, t("eva.pandemie.opt.beschraenken.folge")), 6, (w) => {
       kosten(w, 0.5);
       wirke(w, "gesundheitsversorgung", 5 * ev.staerke);
       wirke(w, "wartezeiten", -4);
       wirke(w, "produktivitaet", -2);
       wirke(w, "tourismus", -3);
       vertrauenAendern(w, 1.5);
-      return "Beschränkungen und ein Impfprogramm dämmen die Ausbreitung ein.";
+      return t("eva.pandemie.opt.beschraenken.ausgang");
     }),
-    opt("gezielt", "Gezielt schützen: Risikogruppen und Krankenhäuser", beschr(4, 0.3, "ein Mittelweg."), 4, (w) => {
+    opt("gezielt", t("eva.pandemie.opt.gezielt.label"), beschr(4, 0.3, t("eva.pandemie.opt.gezielt.folge")), 4, (w) => {
       kosten(w, 0.3);
       wirke(w, "gesundheitsversorgung", 3 * ev.staerke);
       wirke(w, "wartezeiten", -2);
-      return "Risikogruppen und Krankenhäuser werden gezielt geschützt.";
+      return t("eva.pandemie.opt.gezielt.ausgang");
     }),
-    opt("offen", "Das Land offen halten", beschr(1, 0, "die Wirtschaft läuft, das Gesundheitssystem gerät an die Grenze."), 1, (w) => {
+    opt("offen", t("eva.pandemie.opt.offen.label"), beschr(1, 0, t("eva.pandemie.opt.offen.folge")), 1, (w) => {
       wirke(w, "gesundheitsversorgung", -3 * ev.staerke);
       wirke(w, "wartezeiten", 4);
       vertrauenAendern(w, -2);
-      return "Die Regierung hält das Land offen; die Krankenhäuser laufen voll.";
+      return t("eva.pandemie.opt.offen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "gesundheitsversorgung", -4 * ev.staerke);
     wirke(w, "wartezeiten", 5);
     vertrauenAendern(w, -3);
-    return "Ohne klare Linie breitet sich die Seuche aus; das Vertrauen sinkt.";
+    return t("eva.pandemie.standard");
   },
 };
 

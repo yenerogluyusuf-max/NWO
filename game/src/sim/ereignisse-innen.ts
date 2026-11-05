@@ -19,10 +19,14 @@ import { stufeIn } from "./handeln";
 import { beginne, beginneRegional } from "./reich";
 import { anrede, figur, loyalitaetAendern, zufallsName } from "./figuren";
 import { BANKEN, KOHLEFIRMEN, TEXTILFIRMEN, ZEITUNGEN, waehle } from "./akteure";
-import { PROZ_STADT, akutIn, beschr, jahrVon, kosten, monatVon, namen, netz, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
+import { PROZ_STADT, akutIn, beschr, jahrVon, kosten, monatVon, netz, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
 import type { Option, Vorlage } from "./ereignis-hilfen";
 import { t } from "../i18n";
+import { PROVINZEN } from "./regional";
 import type { World } from "./types";
+
+/** Provinznamen als Aufzählung für den Katalog (`{orte, list}`): im Deutschen wie `namen()` „A, B und C“, sonst nach Sprache. */
+const orte = (provinzen: number[]): string[] => provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
 
 const KOHLE = [67, 43, 45, 74]; // Zonguldak, Kütahya, Manisa, Bartın
 const SCHWARZMEER = [53, 61, 8, 28, 52, 55, 57, 67, 74, 37];
@@ -94,37 +98,37 @@ const MINDESTLOHN: Vorlage = {
   chance: (w) => (monatVon(w) === 12 ? 0.95 : 0),
   // Takt (Variantenpool): Die Lage des Landes bestimmt, welche Frage das Jahresende stellt: Teuerung, ruhiger Aufschwung oder Rezession
   erzeuge: (w) => ({ provinzen: [], staerke: 1, daten: { variante: mindestlohnLage(w) } }),
-  titel: () => "Der Mindestlohn für das neue Jahr",
+  titel: () => t("evi.mindestlohn.titel"),
   text: (w, ev) => ev.daten?.variante === "ruhe" ? [t("takt.var.mindestlohn.ruhe.text", { inflation: nf(w.published.inflation.value), wachstum: nf(w.economy.growth) })]
     : ev.daten?.variante === "rezession" ? [t("takt.var.mindestlohn.rezession.text", { wachstum: nf(w.economy.growth), arbeitslos: nf(w.economy.unemployment) })]
     : [
-    `Die Mindestlohnkommission legt zum Jahresende fest, was ab Januar gilt. Die Gewerkschaften verlangen einen Ausgleich für die Teuerung (Inflation ${nf(w.published.inflation.value)} %), die Arbeitgeber warnen vor Kosten, die kleine Betriebe nicht tragen können.`,
+    t("evi.mindestlohn.text1", { inflation: nf(w.published.inflation.value) }),
   ],
-  warum: (_, ev) => ev.daten?.variante === "ruhe" ? t("takt.var.mindestlohn.ruhe.warum") : ev.daten?.variante === "rezession" ? t("takt.var.mindestlohn.rezession.warum") : "Der Mindestlohn ist der wichtigste Preis am Arbeitsmarkt: Er schützt die Ärmsten und stützt die Nachfrage, kostet aber Betriebe Spielraum und kann die Preise treiben.",
+  warum: (_, ev) => ev.daten?.variante === "ruhe" ? t("takt.var.mindestlohn.ruhe.warum") : ev.daten?.variante === "rezession" ? t("takt.var.mindestlohn.rezession.warum") : t("evi.mindestlohn.warum"),
   optionen: (_, ev) => ev.daten?.variante === "ruhe" ? mindestlohnRuhe() : ev.daten?.variante === "rezession" ? mindestlohnRezession() : [
-    opt("kraeftig", "Kräftig anheben", beschr(3, 0, "die Beschäftigten gewinnen, kleine Betriebe und die Preise stehen unter Druck."), 3, (ww) => {
+    opt("kraeftig", t("evi.mindestlohn.opt.kraeftig.label"), beschr(3, 0, t("evi.mindestlohn.opt.kraeftig.folge")), 3, (ww) => {
       setPolicy(ww, "m_mindestlohn", Math.min(100, netz(ww, "m_mindestlohn") + 15));
       wirke(ww, "arbeitnehmer", 3);
       wirke(ww, "unternehmer", -3);
       wirke(ww, "kostendruck", 2);
-      return "Der Mindestlohn steigt deutlich.";
+      return t("evi.mindestlohn.opt.kraeftig.ausgang");
     }),
-    opt("mass", "Den Preisanstieg ausgleichen", beschr(1, 0, "ein Kompromiss, der beide Seiten unzufrieden lässt."), 1, (ww) => {
+    opt("mass", t("evi.mindestlohn.opt.mass.label"), beschr(1, 0, t("evi.mindestlohn.opt.mass.folge")), 1, (ww) => {
       setPolicy(ww, "m_mindestlohn", Math.min(100, netz(ww, "m_mindestlohn") + 6));
       wirke(ww, "arbeitnehmer", 1);
-      return "Der Mindestlohn folgt der Inflation.";
+      return t("evi.mindestlohn.opt.mass.ausgang");
     }),
-    opt("einfrieren", "Einfrieren", beschr(0, 0, "die Betriebe atmen auf, die Streikneigung steigt."), 0, (ww) => {
+    opt("einfrieren", t("evi.mindestlohn.opt.einfrieren.label"), beschr(0, 0, t("evi.mindestlohn.opt.einfrieren.folge")), 0, (ww) => {
       wirke(ww, "arbeitnehmer", -4);
       wirke(ww, "streikneigung", 4);
       wirke(ww, "unternehmer", 2);
-      return "Der Mindestlohn bleibt, wie er ist.";
+      return t("evi.mindestlohn.opt.einfrieren.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "arbeitnehmer", -3);
     wirke(w, "streikneigung", 3);
-    return "Ohne Entscheidung bleibt der Mindestlohn eingefroren; die Gewerkschaften sind verärgert.";
+    return t("evi.mindestlohn.standard");
   },
 };
 
@@ -145,13 +149,13 @@ const HAUSHALTSJAHR: Vorlage = {
   chance: (w) => (monatVon(w) === 10 && jahrVon(w) >= 2028 ? 1 : 0),
   // Takt (Variantenpool): Sparzwang, Wahljahr oder ruhiges Jahr geben dem Haushaltsfenster jeweils eine eigene Frage
   erzeuge: (w) => ({ provinzen: [], staerke: 1, daten: { variante: haushaltLage(w) } }),
-  titel: () => "Das Haushaltsfenster öffnet",
+  titel: () => t("evi.haushaltsjahr.titel"),
   text: (w, ev) => [
-    `${anrede(figur(w, "finanzen"))} legt den Haushaltsentwurf für das nächste Jahr vor. Die Schulden liegen bei ${nf(w.economy.debtRatio)} % des BIP, die Inflation bei ${nf(w.published.inflation.value)} %.`,
+    t("evi.haushaltsjahr.text1", { wer: anrede(figur(w, "finanzen")), schulden: nf(w.economy.debtRatio), inflation: nf(w.published.inflation.value) }),
     ...(ev.daten?.variante === "defizit" ? [t("takt.var.haushaltsjahr.defizit.text", { defizit: nf(w.economy.deficit) })] : ev.daten?.variante === "wahljahr" ? [t("takt.var.haushaltsjahr.wahljahr.text")] : []),
-    "Vier Wochen lang stellen Sie die Regler des Haushalts kostenlos; danach geht der Entwurf als Haushaltsgesetz ins Parlament. Wer nichts einbringt, fährt mit dem Vorjahr weiter — die Posten laufen mit der Inflation automatisch mit.",
+    t("evi.haushaltsjahr.text2"),
   ],
-  warum: () => "Der Haushalt ist der größte parlamentarische Akt des Jahres: Einmal im Oktober werden alle Regler gemeinsam entschieden. Außerhalb des Fensters kostet jede Änderung als Nachtragshaushalt das Doppelte und etwas Legitimität.",
+  warum: () => t("evi.haushaltsjahr.warum"),
   optionen: (_, ev) => [
     ...(ev.daten?.variante === "defizit"
       ? [
@@ -173,15 +177,15 @@ const HAUSHALTSJAHR: Vorlage = {
             }),
           ]
         : []),
-    opt("entwurf", "Den Entwurf selbst vorbereiten", beschr(0, 0, "die Regler in der Haushaltsakte sind jetzt kostenlos; das Gesetz braucht eine Mehrheit."), 0, () => "Das Fenster ist offen: Regler in der Haushaltsakte stellen — Pakete des Finanzministeriums lassen sich übernehmen — und das Haushaltsgesetz einbringen."),
-    opt("fortschreiben", "Den Vorjahrshaushalt fortschreiben", beschr(0, 0, "keine Änderung, kein Risiko im Parlament."), 0, (w) => {
+    opt("entwurf", t("evi.haushaltsjahr.opt.entwurf.label"), beschr(0, 0, t("evi.haushaltsjahr.opt.entwurf.folge")), 0, () => t("evi.haushaltsjahr.opt.entwurf.ausgang")),
+    opt("fortschreiben", t("evi.haushaltsjahr.opt.fortschreiben.label"), beschr(0, 0, t("evi.haushaltsjahr.opt.fortschreiben.folge")), 0, (w) => {
       schreibeHaushaltFort(w);
-      return "Der Haushalt läuft unverändert weiter (inflationsausgeglichen).";
+      return t("evi.haushaltsjahr.opt.fortschreiben.ausgang");
     }),
   ],
   standard: (w) => {
     schreibeHaushaltFort(w);
-    return "Ohne Entscheidung läuft der Vorjahrshaushalt weiter (inflationsausgeglichen).";
+    return t("evi.haushaltsjahr.standard");
   },
 };
 
@@ -195,42 +199,42 @@ const BERGWERK: Vorlage = {
     const p = ziehe(rng, (pl) => (KOHLE.includes(pl) ? 1 : 0), 1);
     return p.length ? { provinzen: p, staerke: 0.6 + 0.4 * rng.next(), daten: { firma: waehle(rng, KOHLEFIRMEN) } } : null;
   },
-  titel: (_, ev) => `Grubenunglück bei ${ev.daten?.firma}`,
+  titel: (_, ev) => t("evi.bergwerksunglueck.titel", { firma: String(ev.daten?.firma) }),
   text: (_, ev) => [
-    `Im Bergwerk der ${ev.daten?.firma} in ${namen(ev.provinzen)} ist es zu einem schweren Unglück gekommen; Rettungskräfte suchen nach Eingeschlossenen. Gewerkschaften sprechen von Warnungen, die jahrelang ignoriert wurden.`,
+    t("evi.bergwerksunglueck.text1", { firma: String(ev.daten?.firma), orte: orte(ev.provinzen) }),
   ],
-  warum: () => "Arbeitsschutz wird meist erst nach einem Unglück Thema. Aufsicht kostet Geld und Zeit, ihr Fehlen kostet Menschenleben und irgendwann das Vertrauen.",
+  warum: () => t("evi.bergwerksunglueck.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "streikneigung", 4 * ev.staerke);
     vertrauenAendern(w, -1.5 * ev.staerke);
   },
   optionen: (_, ev) => [
-    opt("untersuchen", "Unabhängige Untersuchung und schärfere Aufsicht", beschr(4, 0.05, "der Bergbau wird teurer, das Vertrauen wächst."), 4, (w) => {
+    opt("untersuchen", t("evi.bergwerksunglueck.opt.untersuchen.label"), beschr(4, 0.05, t("evi.bergwerksunglueck.opt.untersuchen.folge")), 4, (w) => {
       kosten(w, 0.05);
       wirke(w, "justizvertrauen", 3);
       wirke(w, "korruption", -2);
       wirke(w, "arbeitnehmer", 2);
       wirke(w, "unternehmer", -2);
       vertrauenAendern(w, 1 * ev.staerke);
-      return "Eine unabhängige Kommission untersucht das Unglück; die Aufsicht wird verschärft.";
+      return t("evi.bergwerksunglueck.opt.untersuchen.ausgang");
     }),
-    opt("entschaedigen", "Familien entschädigen und Nothilfe leisten", beschr(2, 0.05, "lindert die Not, ändert nichts an den Ursachen."), 2, (w) => {
+    opt("entschaedigen", t("evi.bergwerksunglueck.opt.entschaedigen.label"), beschr(2, 0.05, t("evi.bergwerksunglueck.opt.entschaedigen.folge")), 2, (w) => {
       kosten(w, 0.05);
       wirke(w, "arbeitnehmer", 1);
       vertrauenAendern(w, 1.5 * ev.staerke);
-      return "Die Familien der Opfer werden entschädigt.";
+      return t("evi.bergwerksunglueck.opt.entschaedigen.ausgang");
     }),
-    opt("betreiber", "Die Verantwortung beim Betreiber suchen", beschr(1, 0, "schnell erledigt, aber die Gewerkschaften glauben es nicht."), 1, (w) => {
+    opt("betreiber", t("evi.bergwerksunglueck.opt.betreiber.label"), beschr(1, 0, t("evi.bergwerksunglueck.opt.betreiber.folge")), 1, (w) => {
       wirke(w, "justizvertrauen", -3);
       wirke(w, "streikneigung", 4);
       vertrauenAendern(w, -1);
-      return "Der Betreiber wird belangt; die Kritik an der Aufsicht bleibt.";
+      return t("evi.bergwerksunglueck.opt.betreiber.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "streikneigung", 4);
     vertrauenAendern(w, -2 * ev.staerke);
-    return "Ohne Antwort wächst der Zorn der Bergleute und ihrer Familien.";
+    return t("evi.bergwerksunglueck.standard");
   },
 };
 
@@ -245,38 +249,38 @@ const UEBERSCHWEMMUNG: Vorlage = {
     const p = ziehe(rng, (pl) => (SCHWARZMEER.includes(pl) ? 1 : 0), 2);
     return p.length ? { provinzen: p, staerke: 0.4 + 0.6 * rng.next() } : null;
   },
-  titel: () => "Überschwemmungen am Schwarzen Meer",
-  text: (_, ev) => [`Sturzfluten reißen in ${namen(ev.provinzen)} Brücken und Straßen mit; Dörfer sind abgeschnitten, Felder stehen unter Wasser.`],
-  warum: () => "Steile Täler, Bebauung an Bachläufen und fehlender Hochwasserschutz machen aus Starkregen eine Katastrophe.",
+  titel: () => t("evi.ueberschwemmung.titel"),
+  text: (_, ev) => [t("evi.ueberschwemmung.text1", { orte: orte(ev.provinzen) })],
+  warum: () => t("evi.ueberschwemmung.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "verkehrsnetz", -6 * ev.staerke, ev.provinzen);
     wirke(w, "ernte", -4 * ev.staerke, ev.provinzen);
     wirke(w, "wasserversorgung", -3 * ev.staerke, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("hilfe", "Katastrophenhilfe und Wiederaufbau der Straßen", beschr(3, 0.15, "die Region kommt schneller auf die Beine."), 3, (w) => {
+    opt("hilfe", t("evi.ueberschwemmung.opt.hilfe.label"), beschr(3, 0.15, t("evi.ueberschwemmung.opt.hilfe.folge")), 3, (w) => {
       kosten(w, 0.15);
       wirke(w, "verkehrsnetz", 5 * ev.staerke, ev.provinzen);
       wirke(w, "ernte", 2, ev.provinzen);
       vertrauenAendern(w, 1.5);
-      return "Der Wiederaufbau der Straßen beginnt; Betroffene erhalten Hilfe.";
+      return t("evi.ueberschwemmung.opt.hilfe.ausgang");
     }),
-    opt("schutz", "Hochwasserschutz und Umsiedlung aus Gefahrenlagen", beschr(5, 0.3, "langfristig sicherer, kurzfristig teuer und unbeliebt bei den Umzuziehenden."), 5, (w) => {
+    opt("schutz", t("evi.ueberschwemmung.opt.schutz.label"), beschr(5, 0.3, t("evi.ueberschwemmung.opt.schutz.folge")), 5, (w) => {
       kosten(w, 0.3);
       wirke(w, "verkehrsnetz", 3 * ev.staerke, ev.provinzen);
       wirke(w, "landflucht", 2, ev.provinzen);
       vertrauenAendern(w, 0.5);
-      return "Ein Hochwasserschutzprogramm wird aufgelegt; gefährdete Siedlungen werden verlegt.";
+      return t("evi.ueberschwemmung.opt.schutz.ausgang");
     }),
-    opt("kommunen", "Den Kommunen die Aufräumarbeit überlassen", beschr(0, 0, "die Region fühlt sich allein gelassen."), 0, (w) => {
+    opt("kommunen", t("evi.ueberschwemmung.opt.kommunen.label"), beschr(0, 0, t("evi.ueberschwemmung.opt.kommunen.folge")), 0, (w) => {
       vertrauenAendern(w, -1.5);
-      return "Die Kommunen räumen auf, so gut sie können.";
+      return t("evi.ueberschwemmung.opt.kommunen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "verkehrsnetz", -2 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -2 * ev.staerke);
-    return "Die Hilfe kommt spät; die Menschen in den Tälern fühlen sich im Stich gelassen.";
+    return t("evi.ueberschwemmung.standard");
   },
 };
 
@@ -287,35 +291,35 @@ const BANKENSTRESS: Vorlage = {
   abkuehlung: 400,
   chance: (w) => (w.economy.riskPremium > 350 || netz(w, "vertrauen_maerkte") < 36 ? 0.12 : 0.004),
   erzeuge: (_, rng) => ({ provinzen: [], staerke: 1, daten: { bank: waehle(rng, BANKEN) } }),
-  titel: (_, ev) => `Die ${ev.daten?.bank} gerät ins Wanken`,
+  titel: (_, ev) => t("evi.bankenstress.titel", { bank: String(ev.daten?.bank) }),
   text: (w, ev) => [
-    `Die ${ev.daten?.bank}, eine Bank mittlerer Größe, kann ihre Refinanzierung nicht mehr sichern; Kunden heben Geld ab. Der Risikoaufschlag steht bei ${nf(w.economy.riskPremium, 0)} Basispunkten, die Märkte beobachten jede Reaktion.`,
+    t("evi.bankenstress.text1", { bank: String(ev.daten?.bank), aufschlag: nf(w.economy.riskPremium, 0) }),
   ],
-  warum: () => "Banken leben von Vertrauen. Springt der Staat ein, sichert er die Ersparnisse und belohnt riskantes Wirtschaften; lässt er sie fallen, riskiert er einen Dominoeffekt.",
+  warum: () => t("evi.bankenstress.warum"),
   eroeffne: (w) => {
     wirke(w, "kredite", -4);
     wirke(w, "vertrauen_maerkte", -3);
   },
   optionen: () => [
-    opt("liquiditaet", "Liquidität bereitstellen", beschr(4, 0.4, "die Bank hält, die Kreditvergabe erholt sich, der Steuerzahler haftet."), 4, (w) => {
+    opt("liquiditaet", t("evi.bankenstress.opt.liquiditaet.label"), beschr(4, 0.4, t("evi.bankenstress.opt.liquiditaet.folge")), 4, (w) => {
       kosten(w, 0.4);
       wirke(w, "kredite", 5);
       wirke(w, "vertrauen_maerkte", 3);
-      return "Der Staat stellt der Bank Liquidität bereit.";
+      return t("evi.bankenstress.opt.liquiditaet.ausgang");
     }),
-    opt("abwickeln", "Abwickeln und die Aufsicht durchgreifen lassen", beschr(3, 0.15, "der Markt lernt, die Kunden sind gesichert, kleine Firmen leiden."), 3, (w) => {
+    opt("abwickeln", t("evi.bankenstress.opt.abwickeln.label"), beschr(3, 0.15, t("evi.bankenstress.opt.abwickeln.folge")), 3, (w) => {
       kosten(w, 0.15);
       wirke(w, "vertrauen_maerkte", 4);
       wirke(w, "mittelstand", -2);
       wirke(w, "kredite", -2);
-      return "Die Bank wird abgewickelt; die Einlagen sind gesichert.";
+      return t("evi.bankenstress.opt.abwickeln.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "kredite", -4);
     wirke(w, "vertrauen_maerkte", -4);
     w.economy.riskPremium += 25;
-    return "Ohne Entscheidung erfasst die Unruhe weitere Banken; der Risikoaufschlag steigt.";
+    return t("evi.bankenstress.standard");
   },
 };
 
@@ -329,34 +333,34 @@ const STUDENTEN: Vorlage = {
     const p = ziehe(rng, (pl) => (PROZ_STADT.has(pl) ? 1 : 0.1), 2);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next() } : null;
   },
-  titel: () => "Studentinnen und Studenten gehen auf die Straße",
-  text: (_, ev) => [`In ${namen(ev.provinzen)} besetzen Studierende Hörsäle und marschieren durch die Innenstädte: gegen Studiengebühren, Wohnungsnot und fehlende Aussichten auf Arbeit.`],
-  warum: () => "Junge Menschen ohne Perspektive sind der verlässlichste Auslöser für Massenproteste; wie ein Staat mit ihnen umgeht, prägt sein Bild bei allen anderen.",
+  titel: () => t("evi.studentenproteste.titel"),
+  text: (_, ev) => [t("evi.studentenproteste.text1", { orte: orte(ev.provinzen) })],
+  warum: () => t("evi.studentenproteste.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "junge", -3 * ev.staerke);
     wirke(w, "polarisierung", 2 * ev.staerke);
   },
   optionen: (_, ev) => [
-    opt("dialog", "Dialog und Stipendien", beschr(3, 0.1, "entspannt die Lage, kostet Geld."), 3, (w) => {
+    opt("dialog", t("evi.studentenproteste.opt.dialog.label"), beschr(3, 0.1, t("evi.studentenproteste.opt.dialog.folge")), 3, (w) => {
       kosten(w, 0.1);
       wirke(w, "junge", 4 * ev.staerke);
       wirke(w, "hochschule", 1);
       wirke(w, "polarisierung", -1);
-      return "Der Präsident empfängt Studierendenvertreter; Stipendien werden aufgestockt.";
+      return t("evi.studentenproteste.opt.dialog.ausgang");
     }),
-    opt("raeumen", "Hochschulen räumen lassen", beschr(2, 0, "Ruhe auf den Straßen, der Preis ist Vertrauen der Jungen und im Ausland."), 2, (w) => {
+    opt("raeumen", t("evi.studentenproteste.opt.raeumen.label"), beschr(2, 0, t("evi.studentenproteste.opt.raeumen.folge")), 2, (w) => {
       wirke(w, "junge", -5);
       wirke(w, "pressefreiheit", -2);
       wirke(w, "polarisierung", 3);
       wirke(w, "beziehungen_eu", -2);
       loyalitaetAendern(w, "inneres", 3);
-      return "Die Polizei räumt die besetzten Hörsäle.";
+      return t("evi.studentenproteste.opt.raeumen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "junge", -3 * ev.staerke);
     wirke(w, "polarisierung", 2);
-    return "Die Proteste ziehen sich hin und werden lauter.";
+    return t("evi.studentenproteste.standard");
   },
 };
 
@@ -372,27 +376,27 @@ const PRESSE: Vorlage = {
     marktSchock(w, "presse", 0.8);
   },
   erzeuge: (w, rng) => ({ provinzen: [], staerke: 1, daten: { blatt: waehle(rng, ZEITUNGEN), chef: zufallsName(w, rng) } }),
-  titel: (_, ev) => `Festnahmen bei der Zeitung ${ev.daten?.blatt}`,
+  titel: (_, ev) => t("evi.pressekonflikt.titel", { blatt: String(ev.daten?.blatt) }),
   text: (_, ev) => [
-    `Bei der Zeitung ${ev.daten?.blatt} sind der Chefredakteur ${ev.daten?.chef} und mehrere Reporter nach kritischen Berichten festgenommen worden. Verbände und die EU fordern ihre Freilassung; regierungsnahe Medien sprechen von Propaganda gegen den Staat.`,
+    t("evi.pressekonflikt.text1", { blatt: String(ev.daten?.blatt), chef: String(ev.daten?.chef) }),
   ],
-  warum: () => "Kontrolle über die Medien verschafft kurz Ruhe, kostet aber Glaubwürdigkeit im Land und Ansehen im Ausland; ein Staat, der Kritik einsperrt, bekommt dafür die schlechteren Informationen.",
+  warum: () => t("evi.pressekonflikt.warum"),
   optionen: () => [
-    opt("freilassen", "Die Freilassung veranlassen und die Verfahren prüfen", beschr(3, 0, "die Pressefreiheit und das Ausland danken es, die Sicherheitskräfte murren."), 3, (w) => {
+    opt("freilassen", t("evi.pressekonflikt.opt.freilassen.label"), beschr(3, 0, t("evi.pressekonflikt.opt.freilassen.folge")), 3, (w) => {
       wirke(w, "pressefreiheit", 3);
       wirke(w, "ansehen", 2);
       wirke(w, "beziehungen_eu", 2);
       wirke(w, "polarisierung", -1);
       marktSchock(w, "presse", -0.6);
       medienEntspannung(w);
-      loyalitaetAendern(w, "inneres", -4, "Die Innenministerin sieht ihre Sicherheitskräfte im Stich gelassen.");
-      return "Die Journalisten kommen frei; die Verfahren werden überprüft, und die Redaktionen trauen sich wieder.";
+      loyalitaetAendern(w, "inneres", -4, t("evi.pressekonflikt.opt.freilassen.grund"));
+      return t("evi.pressekonflikt.opt.freilassen.ausgang");
     }),
-    opt("justiz", "Der Justiz ihren Lauf lassen", beschr(1, 0, "kein Eingriff, aber auch kein Signal."), 1, (w) => {
+    opt("justiz", t("evi.pressekonflikt.opt.justiz.label"), beschr(1, 0, t("evi.pressekonflikt.opt.justiz.folge")), 1, (w) => {
       wirke(w, "ansehen", -1);
-      return "Die Justiz führt die Verfahren fort.";
+      return t("evi.pressekonflikt.opt.justiz.ausgang");
     }),
-    opt("haerte", "Härte zeigen und die Medienaufsicht ausweiten", beschr(2, 0, "das Lager jubelt, Land und Ausland wenden sich ab."), 2, (w) => {
+    opt("haerte", t("evi.pressekonflikt.opt.haerte.label"), beschr(2, 0, t("evi.pressekonflikt.opt.haerte.folge")), 2, (w) => {
       wirke(w, "pressefreiheit", -5);
       wirke(w, "polarisierung", 3);
       wirke(w, "beziehungen_eu", -4);
@@ -401,13 +405,13 @@ const PRESSE: Vorlage = {
       marktSchock(w, "presse", 1);
       medienHaerte(w);
       loyalitaetAendern(w, "inneres", 3);
-      return "Die Medienaufsicht wird ausgeweitet: Strafen und Verfahren treffen vor allem die kritischen Blätter, die Redaktionen lassen mehr weg.";
+      return t("evi.pressekonflikt.opt.haerte.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "ansehen", -1);
     wirke(w, "polarisierung", 1);
-    return "Die Verfahren laufen; die Kritik hält an.";
+    return t("evi.pressekonflikt.standard");
   },
 };
 
@@ -418,13 +422,13 @@ const BAUAMNESTIE: Vorlage = {
   abkuehlung: 400,
   chance: (w) => (netz(w, "m_bauamnestie") < 40 ? 0.018 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Eine Bauamnestie wird gefordert",
+  titel: () => t("evi.bauamnestie_forderung.titel"),
   text: (w) => [
-    `${anrede(figur(w, "partner")) || "Ein Bündnispartner"} drängt auf ein Bauamnestie-Gesetz: Wer ohne Genehmigung gebaut hat, zahlt eine Gebühr und wird legalisiert. Das bringt Geld und Stimmen, und es legalisiert Häuser, die kein Statiker je gesehen hat.`,
+    t("evi.bauamnestie_forderung.text1", { wer: anrede(figur(w, "partner")) || t("evi.bauamnestie_forderung.partner_ersatz") }),
   ],
-  warum: () => "Bauamnestien sind populär und einträglich. Sie sind auch der Grund, warum bei Erdbeben so viele Häuser einstürzen: Wer weiß, dass Schwarzbauten legalisiert werden, baut ohne Prüfung.",
+  warum: () => t("evi.bauamnestie_forderung.warum"),
   optionen: () => [
-    opt("zustimmen", "Zustimmen", beschr(0, -0.1, "Einnahmen und Zustimmung jetzt, Erdbebenrisiko später."), 0, (w) => {
+    opt("zustimmen", t("evi.bauamnestie_forderung.opt.zustimmen.label"), beschr(0, -0.1, t("evi.bauamnestie_forderung.opt.zustimmen.folge")), 0, (w) => {
       kosten(w, -0.1);
       vertrauenAendern(w, 2);
       wirke(w, "steuereinnahmen", 2);
@@ -435,21 +439,21 @@ const BAUAMNESTIE: Vorlage = {
       setPolicy(w, "m_bauamnestie", Math.max(45, stufeIn(w, "m_bauamnestie", null)));
       return t("wort.bauamnestie.ausgang");
     }),
-    opt("statik", "Nur mit Statiknachweis", beschr(3, 0, "ein Kompromiss, der die Baupolitik schützt und den Partner nur halb zufrieden stellt."), 3, (w) => {
+    opt("statik", t("evi.bauamnestie_forderung.opt.statik.label"), beschr(3, 0, t("evi.bauamnestie_forderung.opt.statik.folge")), 3, (w) => {
       wirke(w, "steuereinnahmen", 1);
       wirke(w, "bauqualitaet", -1);
       loyalitaetAendern(w, "partner", 3);
-      return "Eine Amnestie gilt nur für Gebäude mit bestandenem Statiknachweis.";
+      return t("evi.bauamnestie_forderung.opt.statik.ausgang");
     }),
-    opt("ablehnen", "Ablehnen", beschr(2, 0, "die Bausicherheit gewinnt, der Partner ist verärgert."), 2, (w) => {
+    opt("ablehnen", t("evi.bauamnestie_forderung.opt.ablehnen.label"), beschr(2, 0, t("evi.bauamnestie_forderung.opt.ablehnen.folge")), 2, (w) => {
       wirke(w, "bauqualitaet", 1);
-      loyalitaetAendern(w, "partner", -8, "Der Partner hält Ihnen die abgelehnte Bauamnestie vor.");
-      return "Die Bauamnestie wird abgelehnt.";
+      loyalitaetAendern(w, "partner", -8, t("evi.bauamnestie_forderung.opt.ablehnen.grund"));
+      return t("evi.bauamnestie_forderung.opt.ablehnen.ausgang");
     }),
   ],
   standard: (w) => {
     loyalitaetAendern(w, "partner", -5);
-    return "Die Forderung bleibt unbeantwortet; der Partner wird ungeduldig.";
+    return t("evi.bauamnestie_forderung.standard");
   },
 };
 
@@ -460,31 +464,31 @@ const RENTNER: Vorlage = {
   abkuehlung: 300,
   chance: (w) => (w.economy.inflation > 12 && netz(w, "rentenniveau") < 52 ? 0.07 : 0.004),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Rentner fordern Ausgleich",
-  text: (w) => [`Rentnerverbände demonstrieren vor dem Parlament: Bei ${nf(w.published.inflation.value)} % Inflation reicht die Mindestrente nicht mehr bis zum Monatsende.`],
-  warum: () => "Renten hinken der Teuerung hinterher, weil sie nur in Schritten angepasst werden. Rentner wählen zuverlässig, und ihre Not ist sichtbar.",
+  titel: () => t("evi.rentnerprotest.titel"),
+  text: (w) => [t("evi.rentnerprotest.text1", { inflation: nf(w.published.inflation.value) })],
+  warum: () => t("evi.rentnerprotest.warum"),
   optionen: () => [
-    opt("erhoehen", "Die Mindestrente kräftig erhöhen", beschr(3, 0.3, "die Not sinkt, der Haushalt spürt es dauerhaft."), 3, (w) => {
+    opt("erhoehen", t("evi.rentnerprotest.opt.erhoehen.label"), beschr(3, 0.3, t("evi.rentnerprotest.opt.erhoehen.folge")), 3, (w) => {
       kosten(w, 0.3);
       wirke(w, "rentner", 5);
       wirke(w, "armut", -2);
       loyalitaetAendern(w, "finanzen", -3);
-      return "Die Mindestrente steigt deutlich.";
+      return t("evi.rentnerprotest.opt.erhoehen.ausgang");
     }),
-    opt("einmal", "Eine Einmalzahlung leisten", beschr(2, 0.15, "lindert kurz, ohne den Haushalt dauerhaft zu belasten."), 2, (w) => {
+    opt("einmal", t("evi.rentnerprotest.opt.einmal.label"), beschr(2, 0.15, t("evi.rentnerprotest.opt.einmal.folge")), 2, (w) => {
       kosten(w, 0.15);
       wirke(w, "rentner", 3);
-      return "Rentner erhalten eine Einmalzahlung.";
+      return t("evi.rentnerprotest.opt.einmal.ausgang");
     }),
-    opt("ablehnen", "Nichts tun", beschr(0, 0, "der Haushalt bleibt ruhig, die Rentner sind wütend."), 0, (w) => {
+    opt("ablehnen", t("evi.rentnerprotest.opt.ablehnen.label"), beschr(0, 0, t("evi.rentnerprotest.opt.ablehnen.folge")), 0, (w) => {
       wirke(w, "rentner", -4);
-      return "Die Forderung wird zurückgewiesen.";
+      return t("evi.rentnerprotest.opt.ablehnen.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "rentner", -3);
     vertrauenAendern(w, -1);
-    return "Die Demonstrationen gehen weiter.";
+    return t("evi.rentnerprotest.standard");
   },
 };
 
@@ -498,37 +502,37 @@ const EPIDEMIE: Vorlage = {
     return winter ? 0.025 + (netz(w, "gesundheitsversorgung") < 55 ? 0.025 : 0) : 0;
   },
   erzeuge: (_, rng) => ({ provinzen: [], staerke: 0.5 + 0.5 * rng.next() }),
-  titel: () => "Eine schwere Grippewelle",
-  text: () => ["Eine Grippewelle legt Schulen, Betriebe und Notaufnahmen lahm. In den Krankenhäusern fehlen Betten und Personal."],
-  warum: () => "Wie gut ein Gesundheitssystem ist, zeigt sich in der Spitzenbelastung, nicht im Durchschnitt.",
+  titel: () => t("evi.grippewelle.titel"),
+  text: () => [t("evi.grippewelle.text1")],
+  warum: () => t("evi.grippewelle.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "gesundheitsversorgung", -4 * ev.staerke);
     wirke(w, "wartezeiten", 5 * ev.staerke);
     wirke(w, "produktivitaet", -1);
   },
   optionen: () => [
-    opt("impfen", "Impfkampagne und Aufrufe", beschr(2, 0.1, "wirkt in Wochen, hilft vor allem den Schwächsten."), 2, (w) => {
+    opt("impfen", t("evi.grippewelle.opt.impfen.label"), beschr(2, 0.1, t("evi.grippewelle.opt.impfen.folge")), 2, (w) => {
       kosten(w, 0.1);
       wirke(w, "gesundheitsversorgung", 3);
       wirke(w, "wartezeiten", -2);
-      return "Eine landesweite Impfkampagne läuft an.";
+      return t("evi.grippewelle.opt.impfen.ausgang");
     }),
-    opt("kapazitaet", "Krankenhauskapazitäten und Personal aufstocken", beschr(4, 0.25, "stärkt das System auch nach der Welle."), 4, (w) => {
+    opt("kapazitaet", t("evi.grippewelle.opt.kapazitaet.label"), beschr(4, 0.25, t("evi.grippewelle.opt.kapazitaet.folge")), 4, (w) => {
       kosten(w, 0.25);
       wirke(w, "gesundheitsversorgung", 4);
       wirke(w, "wartezeiten", -4);
       wirke(w, "aerzte", 1);
-      return "Zusätzliche Betten und Personal werden bereitgestellt.";
+      return t("evi.grippewelle.opt.kapazitaet.ausgang");
     }),
-    opt("abwarten", "Auf die Selbstheilung setzen", beschr(0, 0, "die Welle läuft aus, das Vertrauen leidet."), 0, (w) => {
+    opt("abwarten", t("evi.grippewelle.opt.abwarten.label"), beschr(0, 0, t("evi.grippewelle.opt.abwarten.folge")), 0, (w) => {
       vertrauenAendern(w, -1);
-      return "Die Regierung setzt auf Eigenverantwortung.";
+      return t("evi.grippewelle.opt.abwarten.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "wartezeiten", 3);
     vertrauenAendern(w, -1.5);
-    return "Die Krankenhäuser laufen über; die Kritik an der Regierung wächst.";
+    return t("evi.grippewelle.standard");
   },
 };
 
@@ -542,34 +546,34 @@ const BAUERN: Vorlage = {
     const p = ziehe(rng, (pl) => (AGRAR.includes(pl) ? 1 + (100 - wertIn(w, "landwirtschaft_einkommen", [pl])) / 50 : 0.05), 3);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next() } : null;
   },
-  titel: () => "Traktoren vor den Rathäusern",
-  text: (_, ev) => [`Bäuerinnen und Bauern blockieren in ${namen(ev.provinzen)} mit ihren Traktoren die Straßen: Dünger und Diesel sind teuer, die Erzeugerpreise fallen.`],
-  warum: () => "Landwirte tragen das Risiko von Wetter und Preisen. Wenn die Kosten schneller steigen als die Preise, die sie erzielen, geben sie auf und ziehen in die Städte.",
+  titel: () => t("evi.bauernproteste.titel"),
+  text: (_, ev) => [t("evi.bauernproteste.text1", { orte: orte(ev.provinzen) })],
+  warum: () => t("evi.bauernproteste.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "landwirte", -3 * ev.staerke);
     wirke(w, "landflucht", 2, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("subventionen", "Agrarsubventionen erhöhen", beschr(3, 0.2, "hilft schnell, belastet den Haushalt."), 3, (w) => {
+    opt("subventionen", t("evi.bauernproteste.opt.subventionen.label"), beschr(3, 0.2, t("evi.bauernproteste.opt.subventionen.folge")), 3, (w) => {
       setPolicy(w, "m_agrarsubventionen", Math.min(100, netz(w, "m_agrarsubventionen") + 12));
       wirke(w, "landwirte", 4 * ev.staerke);
-      return "Die Agrarsubventionen steigen.";
+      return t("evi.bauernproteste.opt.subventionen.ausgang");
     }),
-    opt("mindestpreise", "Mindestpreise für Getreide garantieren", beschr(2, 0.05, "sichert die Einkommen, verteuert die Lebensmittel."), 2, (w) => {
+    opt("mindestpreise", t("evi.bauernproteste.opt.mindestpreise.label"), beschr(2, 0.05, t("evi.bauernproteste.opt.mindestpreise.folge")), 2, (w) => {
       kosten(w, 0.05);
       wirke(w, "landwirte", 4 * ev.staerke);
       wirke(w, "lebensmittelpreise", 3);
-      return "Der Staat garantiert Mindestpreise für Getreide.";
+      return t("evi.bauernproteste.opt.mindestpreise.ausgang");
     }),
-    opt("gespraech", "Gespräche mit den Verbänden", beschr(1, 0, "Zeit gewonnen, nichts gelöst."), 1, (w) => {
+    opt("gespraech", t("evi.bauernproteste.opt.gespraech.label"), beschr(1, 0, t("evi.bauernproteste.opt.gespraech.folge")), 1, (w) => {
       wirke(w, "landwirte", 1);
-      return "Die Regierung lädt die Bauernverbände zu Gesprächen.";
+      return t("evi.bauernproteste.opt.gespraech.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "landwirte", -3 * ev.staerke);
     vertrauenAendern(w, -1);
-    return "Die Blockaden halten an, bis die Ernte drängt.";
+    return t("evi.bauernproteste.standard");
   },
 };
 
@@ -583,40 +587,40 @@ const FABRIK: Vorlage = {
     const p = ziehe(rng, (pl) => (TEXTIL.includes(pl) ? 1 : 0.02), 2);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next(), daten: { firma: waehle(rng, TEXTILFIRMEN) } } : null;
   },
-  titel: (_, ev) => `${ev.daten?.firma} schließt Werke`,
-  text: (_, ev) => [`Die ${ev.daten?.firma} und ihre Zulieferer schließen Werke in ${namen(ev.provinzen)}: Energie, Löhne und Kredite sind zu teuer, Aufträge wandern in Länder mit niedrigeren Kosten ab.`],
-  warum: () => "Industrie reagiert auf Kosten, nicht auf Reden. Wenn die Kosten schneller steigen als die Preise, die sich am Weltmarkt erzielen lassen, verschwinden Arbeitsplätze, die nicht wiederkommen.",
+  titel: (_, ev) => t("evi.fabrikschliessungen.titel", { firma: String(ev.daten?.firma) }),
+  text: (_, ev) => [t("evi.fabrikschliessungen.text1", { firma: String(ev.daten?.firma), orte: orte(ev.provinzen) })],
+  warum: () => t("evi.fabrikschliessungen.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "arbeitsplaetze_industrie", -4 * ev.staerke, ev.provinzen);
     wirke(w, "industrie", -2 * ev.staerke, ev.provinzen);
     wirke(w, "streikneigung", 2);
   },
   optionen: (_, ev) => [
-    opt("kurzarbeit", "Kurzarbeitergeld", beschr(3, 0.15, "rettet Stellen auf Zeit."), 3, (w) => {
+    opt("kurzarbeit", t("evi.fabrikschliessungen.opt.kurzarbeit.label"), beschr(3, 0.15, t("evi.fabrikschliessungen.opt.kurzarbeit.folge")), 3, (w) => {
       kosten(w, 0.15);
       wirke(w, "arbeitsplaetze_industrie", 3 * ev.staerke, ev.provinzen);
       wirke(w, "arbeitnehmer", 2);
-      return "Kurzarbeitergeld überbrückt die Auftragslücke.";
+      return t("evi.fabrikschliessungen.opt.kurzarbeit.ausgang");
     }),
-    opt("kredit", "Kreditgarantien für die Betriebe", beschr(3, 0.1, "hilft den Betrieben, nicht unbedingt den Beschäftigten."), 3, (w) => {
+    opt("kredit", t("evi.fabrikschliessungen.opt.kredit.label"), beschr(3, 0.1, t("evi.fabrikschliessungen.opt.kredit.folge")), 3, (w) => {
       kosten(w, 0.1);
       wirke(w, "kredite", 2);
       wirke(w, "mittelstand", 2);
       wirke(w, "arbeitsplaetze_industrie", 2 * ev.staerke, ev.provinzen);
-      return "Der Staat verbürgt Kredite für betroffene Betriebe.";
+      return t("evi.fabrikschliessungen.opt.kredit.ausgang");
     }),
-    opt("umschulen", "Umschulung und neue Ansiedlungen", beschr(4, 0.2, "wirkt langsam, aber tragfähig."), 4, (w) => {
+    opt("umschulen", t("evi.fabrikschliessungen.opt.umschulen.label"), beschr(4, 0.2, t("evi.fabrikschliessungen.opt.umschulen.folge")), 4, (w) => {
       kosten(w, 0.2);
       wirke(w, "fachkraefte", 2);
       wirke(w, "arbeitsplaetze_industrie", 1, ev.provinzen);
-      return "Ein Umschulungsprogramm und Ansiedlungshilfen werden aufgelegt.";
+      return t("evi.fabrikschliessungen.opt.umschulen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "arbeitsplaetze_industrie", -3 * ev.staerke, ev.provinzen);
     wirke(w, "armut", 2, ev.provinzen);
     vertrauenAendern(w, -1);
-    return "Die Entlassungen laufen weiter; in den Orten fehlt es an Alternativen.";
+    return t("evi.fabrikschliessungen.standard");
   },
 };
 
@@ -640,19 +644,24 @@ const KAYYUM: Vorlage = {
     if (rathaus && istLagerPartei(w, rathaus.partei)) return null;
     return { provinzen: p, staerke: 1, daten: { name: zufallsName(w, rng), partei: rathaus?.partei ?? seats[0]?.[0] ?? "Opposition" } };
   },
-  titel: (_, ev) => `Verfahren gegen das Rathaus von ${namen(ev.provinzen)}`,
+  titel: (_, ev) => t("evi.buergermeister_verfahren.titel", { orte: orte(ev.provinzen) }),
   text: (_, ev) => [
-    `Staatsanwälte werfen dem Rathaus von ${namen(ev.provinzen)} unter ${ev.daten?.name} (${ev.daten?.partei}) Unregelmäßigkeiten bei Vergaben vor. Die Partei spricht von einem politischen Verfahren, das Innenministerium erwägt, einen Zwangsverwalter einzusetzen.`,
+    t("evi.buergermeister_verfahren.text1", {
+      orte: orte(ev.provinzen),
+      name: String(ev.daten?.name),
+      // „Opposition“ ist der Ersatz aus erzeuge (keine Fraktion bekannt): nur für die Anzeige übersetzt, gespeichert bleibt der Wert
+      partei: ev.daten?.partei === "Opposition" ? t("evi.buergermeister_verfahren.opposition") : String(ev.daten?.partei),
+    }),
   ],
-  warum: () => "Wo die Regierung eine Stadt nicht gewinnt, bleibt ihr die Justiz. Wer sie einsetzt, gewinnt Kontrolle und verliert Glaubwürdigkeit bei allen, die den Vorwurf für politisch halten.",
+  warum: () => t("evi.buergermeister_verfahren.warum"),
   optionen: () => [
-    opt("justiz", "Die Justiz unabhängig arbeiten lassen", beschr(2, 0, "wahrt den Anschein des Rechtsstaats, kostet die Kontrolle über die Stadt."), 2, (w) => {
+    opt("justiz", t("evi.buergermeister_verfahren.opt.justiz.label"), beschr(2, 0, t("evi.buergermeister_verfahren.opt.justiz.folge")), 2, (w) => {
       wirke(w, "justizvertrauen", 2);
       wirke(w, "polarisierung", -1);
       loyalitaetAendern(w, "inneres", -2);
-      return "Das Verfahren läuft ohne Eingriff der Regierung.";
+      return t("evi.buergermeister_verfahren.opt.justiz.ausgang");
     }),
-    opt("verwalter", "Einen Zwangsverwalter einsetzen", beschr(3, 0, "Kontrolle über die Stadt, Streit im ganzen Land."), 3, (w, ev) => {
+    opt("verwalter", t("evi.buergermeister_verfahren.opt.verwalter.label"), beschr(3, 0, t("evi.buergermeister_verfahren.opt.verwalter.folge")), 3, (w, ev) => {
       wirke(w, "polarisierung", 5);
       wirke(w, "justizvertrauen", -4);
       wirke(w, "ansehen", -3);
@@ -662,18 +671,18 @@ const KAYYUM: Vorlage = {
       marktSchock(w, "verhaftung", 1.4);
       // Ortszustand mit Folgen bis zur nächsten Kommunalwahl (sim/kommunen.ts)
       for (const pl of ev.provinzen) setzeZwangsverwalter(w, pl);
-      return "Ein Zwangsverwalter übernimmt die Geschäfte der Stadt.";
+      return t("evi.buergermeister_verfahren.opt.verwalter.ausgang");
     }),
-    opt("dialog", "Das Gespräch mit der Stadtspitze suchen", beschr(2, 0, "entspannt die Lage, ohne den Vorwurf auszuräumen."), 2, (w) => {
+    opt("dialog", t("evi.buergermeister_verfahren.opt.dialog.label"), beschr(2, 0, t("evi.buergermeister_verfahren.opt.dialog.folge")), 2, (w) => {
       wirke(w, "polarisierung", -2);
       vertrauenAendern(w, 1);
       wirke(w, "konservative", -1);
-      return "Der Präsident lädt die Stadtspitze zu einem Gespräch.";
+      return t("evi.buergermeister_verfahren.opt.dialog.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "polarisierung", 2);
-    return "Die Lage in der Stadt bleibt gespannt; das Verfahren zieht sich.";
+    return t("evi.buergermeister_verfahren.standard");
   },
 };
 
@@ -684,11 +693,11 @@ const TOURISMUS: Vorlage = {
   abkuehlung: 300,
   chance: (w) => (sommer(w) && netz(w, "tourismus") >= 50 ? 0.05 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Eine Rekordsaison",
-  text: () => ["Die Hotels an der Küste sind voll, die Flughäfen melden Höchstwerte. Die Branche fragt, was der Staat mit dem Rückenwind anfängt."],
-  warum: () => "Gute Jahre sind die Zeit, in der man Infrastruktur baut, nicht nur feiert: Die Saison von heute entscheidet über die von übermorgen.",
+  titel: () => t("evi.tourismusrekord.titel"),
+  text: () => [t("evi.tourismusrekord.text1")],
+  warum: () => t("evi.tourismusrekord.warum"),
   optionen: () => [
-    opt("ausbauen", "In Küsteninfrastruktur investieren", beschr(3, 0.2, "sichert die Zukunft der Saison."), 3, (w) => {
+    opt("ausbauen", t("evi.tourismusrekord.opt.ausbauen.label"), beschr(3, 0.2, t("evi.tourismusrekord.opt.ausbauen.folge")), 3, (w) => {
       // Ein echtes Bauvorhaben in den Küstenprovinzen (Antalya, Muğla, İzmir); das Kapital des Ereignisses trägt die Vergabe
       w.spiel!.kapital += 3;
       const r = beginneRegional(w, "reg_strassen", [7, 48, 35]);
@@ -702,18 +711,18 @@ const TOURISMUS: Vorlage = {
       wirke(w, "verkehrsnetz", 2);
       return t("wort.kueste.ohne_bau", { grund: r.text });
     }),
-    opt("abgabe", "Eine Abgabe auf Übernachtungen erheben", beschr(1, -0.15, "bringt Geld, dämpft die Nachfrage ein wenig."), 1, (w) => {
+    opt("abgabe", t("evi.tourismusrekord.opt.abgabe.label"), beschr(1, -0.15, t("evi.tourismusrekord.opt.abgabe.folge")), 1, (w) => {
       kosten(w, -0.15);
       wirke(w, "steuereinnahmen", 1);
       wirke(w, "tourismus", -1);
-      return "Übernachtungen werden mit einer Abgabe belegt.";
+      return t("evi.tourismusrekord.opt.abgabe.ausgang");
     }),
-    opt("geniessen", "Den Erfolg genießen", beschr(0, 0, "ein guter Sommer und sonst nichts."), 0, (w) => {
+    opt("geniessen", t("evi.tourismusrekord.opt.geniessen.label"), beschr(0, 0, t("evi.tourismusrekord.opt.geniessen.folge")), 0, (w) => {
       vertrauenAendern(w, 0.5);
-      return "Die Regierung feiert die Saison.";
+      return t("evi.tourismusrekord.opt.geniessen.ausgang");
     }),
   ],
-  standard: () => "Die Saison endet, ohne dass der Staat etwas daraus macht.",
+  standard: () => t("evi.tourismusrekord.standard"),
 };
 
 const KANAL: Vorlage = {
@@ -723,13 +732,13 @@ const KANAL: Vorlage = {
   abkuehlung: 3000,
   chance: (w) => (w.day > 200 ? 0.012 : 0),
   erzeuge: () => ({ provinzen: [34], staerke: 1 }),
-  titel: () => "Der Kanal Istanbul",
+  titel: () => t("evi.kanal_istanbul.titel"),
   text: () => [
-    "Ein Großprojekt liegt bereit: ein zweiter Wasserweg neben dem Bosporus. Bauindustrie und Regierungsnahe drängen auf den Baubeginn; Umweltverbände, Wasserwerke und die Opposition warnen vor Kosten und Folgen für Trinkwasser und Meer.",
+    t("evi.kanal_istanbul.text1"),
   ],
-  warum: () => "Großprojekte binden Geld, Kapital und Aufmerksamkeit über Jahre. Sie versprechen Wachstum, und manche halten es, andere hinterlassen vor allem Schulden.",
+  warum: () => t("evi.kanal_istanbul.warum"),
   optionen: () => [
-    opt("bauen", "Bauen", beschr(6, 1.0, "Aufträge und Schlagzeilen, dazu Schulden und Umweltrisiken."), 6, (w) => {
+    opt("bauen", t("evi.kanal_istanbul.opt.bauen.label"), beschr(6, 1.0, t("evi.kanal_istanbul.opt.bauen.folge")), 6, (w) => {
       wirke(w, "konservative", 2);
       wirke(w, "staedtische_saekulare", -3);
       // Der Kanal wird ein echtes Bauvorhaben (data/reich/infrastruktur.ts): Kosten, Bauzeit und Folgen trägt das Vorhaben
@@ -740,19 +749,19 @@ const KANAL: Vorlage = {
       wirke(w, "bauwirtschaft", 3, [34]);
       return t("wort.kanal.ohne_bau", { grund: r.text });
     }),
-    opt("nahverkehr", "Stattdessen Metro und Nahverkehr ausbauen", beschr(3, 0.3, "spürbar im Alltag, weniger eindrucksvoll auf Fotos."), 3, (w) => {
+    opt("nahverkehr", t("evi.kanal_istanbul.opt.nahverkehr.label"), beschr(3, 0.3, t("evi.kanal_istanbul.opt.nahverkehr.folge")), 3, (w) => {
       kosten(w, 0.3);
       wirke(w, "stau", -4, [34]);
       wirke(w, "bauwirtschaft", 2, [34]);
       wirke(w, "staedtische_saekulare", 2);
-      return "Die Regierung setzt auf Metro und Nahverkehr statt auf einen Kanal.";
+      return t("evi.kanal_istanbul.opt.nahverkehr.ausgang");
     }),
-    opt("verschieben", "Verschieben", beschr(0, 0, "die Bauindustrie ist enttäuscht, das Geld bleibt im Haushalt."), 0, (w) => {
+    opt("verschieben", t("evi.kanal_istanbul.opt.verschieben.label"), beschr(0, 0, t("evi.kanal_istanbul.opt.verschieben.folge")), 0, (w) => {
       wirke(w, "bauwirtschaft", -1);
-      return "Das Projekt wird zurückgestellt.";
+      return t("evi.kanal_istanbul.opt.verschieben.ausgang");
     }),
   ],
-  standard: () => "Das Projekt bleibt liegen.",
+  standard: () => t("evi.kanal_istanbul.standard"),
 };
 
 const KOMMUNALWAHL: Vorlage = {
@@ -763,27 +772,27 @@ const KOMMUNALWAHL: Vorlage = {
   // Alle fünf Jahre (sim/kommunen.ts): 25.03.2029, dann Ende März 2034, 2039 …
   chance: (w) => (kommunalwahlFaellig(w) ? 1 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Kommunalwahlen",
+  titel: () => t("evi.kommunalwahl.titel"),
   text: (w) => [
-    `Im ganzen Land werden Bürgermeister und Gemeinderäte gewählt. Es ist der erste Stimmungstest seit Ihrem Amtsantritt; Ihre Zustimmung liegt bei ${nf(w.spiel?.umfrage.zustimmung ?? 0, 0)} %.`,
+    t("evi.kommunalwahl.text1", { zustimmung: nf(w.spiel?.umfrage.zustimmung ?? 0, 0) }),
   ],
-  warum: () => "Kommunalwahlen zeigen, ob die Menschen dem Präsidenten zutrauen, ihre Stadt zu verwalten, und sie sind die Generalprobe für die nächste Präsidentschaftswahl.",
+  warum: () => t("evi.kommunalwahl.warum"),
   optionen: (w) => {
     // Ergebnis je Provinz aus dem Vertrauen vor Ort, Amtsbonus und Zwangsverwaltung (sim/kommunen.ts); der Wahlkampf gibt einen Zuschlag
     const ergebnis = (ww: typeof w, bonus = 0): string => kommunalwahlDurchfuehren(ww, bonus).text;
     return [
-      opt("reisen", "Selbst durchs Land reisen", beschr(4, 0, "bringt Stimmen und Schlagzeilen, mobilisiert auch die Gegner."), 4, (ww) => {
+      opt("reisen", t("evi.kommunalwahl.opt.reisen.label"), beschr(4, 0, t("evi.kommunalwahl.opt.reisen.folge")), 4, (ww) => {
         vertrauenAendern(ww, 2);
         wirke(ww, "polarisierung", 2);
-        return `Der Präsident führt Wahlkampf. ${ergebnis(ww, 3)}`;
+        return t("evi.kommunalwahl.opt.reisen.ausgang", { ergebnis: ergebnis(ww, 3) });
       }),
-      opt("projekte", "Lokale Projekte vorziehen", beschr(3, 0.1, "Straßen und Schulen vor dem Wahltag."), 3, (ww) => {
+      opt("projekte", t("evi.kommunalwahl.opt.projekte.label"), beschr(3, 0.1, t("evi.kommunalwahl.opt.projekte.folge")), 3, (ww) => {
         kosten(ww, 0.1);
         wirke(ww, "verkehrsnetz", 2);
         vertrauenAendern(ww, 1.5);
-        return `Projekte in den Provinzen werden vorgezogen. ${ergebnis(ww, 2)}`;
+        return t("evi.kommunalwahl.opt.projekte.ausgang", { ergebnis: ergebnis(ww, 2) });
       }),
-      opt("sachlich", "Sachlich bleiben", beschr(0, 0, "keine Hilfe, kein Schaden."), 0, (ww) => `Der Präsident hält sich im Wahlkampf zurück. ${ergebnis(ww)}`),
+      opt("sachlich", t("evi.kommunalwahl.opt.sachlich.label"), beschr(0, 0, t("evi.kommunalwahl.opt.sachlich.folge")), 0, (ww) => t("evi.kommunalwahl.opt.sachlich.ausgang", { ergebnis: ergebnis(ww) })),
     ];
   },
   standard: (w) => kommunalwahlDurchfuehren(w, 0).text,
