@@ -267,7 +267,7 @@
  "ui2.ui.Reich.8c37851": "Completed",
  "ui2.ui.Reich.8c5c22e": "World Heritage",
  "ui2.ui.Reich.8db82ca": "Moderately preserved.",
- "ui2.ui.Reich.90f1a97": "public: position 1 builds first; moving up costs {p0} administrative power per position",
+ "ui2.ui.Reich.90f1a97": "Position 1 builds first. New orders join the back of the queue; moving a project up costs {p0} administrative capacity per place.",
  "ui2.ui.Reich.9219dc0": "Overall preservation {p0}",
  "ui2.ui.Reich.95175c7": "Pause",
  "ui2.ui.Reich.96504fa": "{p0}: {p1} of 100",

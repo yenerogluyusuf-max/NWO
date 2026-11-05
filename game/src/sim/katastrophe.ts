@@ -598,7 +598,8 @@ export function beginneWiederaufbau(w: World, fallId: string, vergabe: Vergabe):
   };
   fall.wohnbau = p;
   registriereVorhaben(wohnbauVorhaben(fall, p));
-  const r = beginne(w, p.id, vergabe);
+  // Notvergabe: Der Wiederaufbau nach einer Katastrophe geht der Baureihenfolge vor (Nacht N6, sonst reihen sich neue Aufträge hinten ein)
+  const r = beginne(w, p.id, vergabe, "notfall");
   if (!r.ok) {
     fall.wohnbau = undefined;
     return r;

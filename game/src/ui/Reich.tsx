@@ -7,7 +7,14 @@ import type { World } from "../sim/types";
 import { BEREICH_NAMEN, VERGABE_NAMEN, type Bereich, type Vergabe } from "../sim/reich-typen";
 import {
   aktiveVorteile,
+  aufgabeFolgen,
   bauKapazitaet,
+  bauPool,
+  gibAuf,
+  pauseVerlust,
+  poolKapazitaet,
+  ruestungsKapazitaet,
+  type BauPool,
   bauplan,
   beginne,
   erhaltung,
@@ -23,7 +30,7 @@ import {
   warteschlange,
   wirkungsVorschau,
   effektZeile,
-  type VorhabenSicht,
+  type Platz,
 } from "../sim/reich";
 import { ERBE, KIRCHEN_DER_OFFENBARUNG, type Erbe } from "../data/erbe";
 import { VORTEILE } from "../data/reich";
@@ -35,7 +42,7 @@ import { WunderBild } from "./reich/WunderBild";
 import { Neues } from "./reich/Neues";
 import { Lohnt, PflegeListe, Zeilen, lohnendste } from "./reich/Pflege";
 import { Verlauf } from "./reich/Verlauf";
-import { t, aktuelleLocale } from "../i18n";
+import { t, aktuelleLocale, zahl } from "../i18n";
 import { t as tx } from "../i18n";
 import "./reich/reich.css";
 import { Bauhilfe } from "./reich/Bauhilfe";
@@ -64,7 +71,8 @@ function Statistik({ world }: { world: World }) {
   const z = reichZustand(world);
   const vb = verwaltungBilanz(world);
   const cap = bauKapazitaet(world);
-  const geplant = Object.values(bauplan(world)).reduce((a, b) => a + b, 0);
+  const plan = bauplan(world);
+  const geplant = Object.entries(plan).reduce((a, [id, r]) => a + (vorhabenDef(id) && bauPool(vorhabenDef(id)!) === "land" ? r : 0), 0);
   return (
     <div className="rr-ressourcen">
       <div className={`rr-ressource ${vb.vorrat < 15 ? "knapp" : ""}`} title={t("ui.Reich.6284526")}>
@@ -90,20 +98,58 @@ function Statistik({ world }: { world: World }) {
   );
 }
 
+/** Pausieren und Aufgeben eines laufenden Vorhabens; Aufgeben fragt erst und nennt den Preis aus derselben Rechnung wie die Buchung. */
+function BauKnoepfe({ world, id, pausiert, refresh, onText }: { world: World; id: string; pausiert: boolean; refresh: () => void; onText: (s: string | null) => void }) {
+  const [frage, setFrage] = useState(false);
+  const l = reichZustand(world).laufend.find((x) => x.id === id);
+  const v = vorhabenDef(id);
+  if (!l || !v) return null;
+  const verlust = Math.round(pauseVerlust(l, v));
+  if (frage) {
+    const f = aufgabeFolgen(world, id);
+    return (
+      <div className="bs-frage" role="group">
+        <p>
+          {f && f.erstattung > 0
+            ? t("n6.bau.folgenErstattung", { pk: zahl(f.erstattung) })
+            : f
+              ? t("n6.bau.folgenVerlust", { anteil: Math.round(f.anteil * 100), bau: f.verlorenBau, strafe: zahl(f.strafe) }) + (f.ruine ? t("n6.bau.ruine") : "")
+              : ""}
+        </p>
+        <span>
+          <button type="button" className="aktion-knopf gefahr" onClick={() => { const r = gibAuf(world, id); onText(r.why ? `${r.text} ${r.why}` : r.text); setFrage(false); refresh(); }}>{t("n6.bau.jaAufgeben")}</button>
+          <button type="button" className="aktion-knopf" onClick={() => setFrage(false)}>{t("n6.bau.nein")}</button>
+        </span>
+      </div>
+    );
+  }
+  return (
+    <>
+      <button type="button" className="aktion-knopf" title={pausiert ? undefined : t("n6.bau.pauseTitel", { bau: verlust })} onClick={() => { pausiere(world, id, !pausiert); refresh(); }}>
+        {pausiert ? tx("ui2.ui.Reich.aeff967") : tx("ui2.ui.Reich.95175c7")}
+      </button>
+      <button type="button" className="aktion-knopf leise" onClick={() => setFrage(true)}>{t("n6.bau.aufgeben")}</button>
+    </>
+  );
+}
+
 function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; refresh: () => void }) {
   const z = reichZustand(world);
   const plan = bauplan(world);
+  const [hinweis, setHinweis] = useState<string | null>(null);
   const liste = z.laufend.map((l) => ({ l, v: vorhabenDef(l.id)! })).filter((x) => x.v && x.v.bereich === bereich);
   if (!liste.length) return null;
+  const schlange = new Map(warteschlange(world).map((e) => [e.id, e]));
   return (
     <section className="rr-abschnitt">
       <h4>{t("reich.bau.titel")} <em>{t("reich.bau.untertitel")}</em></h4>
+      {hinweis && <p className="rr-hinweis" role="status">{hinweis}</p>}
       <ul className="rr-bauliste">
         {liste.map(({ l, v }) => {
           const bauGesamt = laufBau(l, v);
           const f = bauGesamt > 0 ? l.fortschritt / bauGesamt : 1;
           const rate = plan[l.id] ?? 0;
-          const nr = z.laufend.findIndex((x) => x.id === l.id);
+          const nr = schlange.get(l.id)?.position ?? 1;
           return (
             <li key={l.id} className={`wunder-a-bau${v.bild ? " wunder-a-mitbild" : ""}${l.pausiert ? " ruht" : rate <= 0 ? " wartet" : ""}`}>
               {v.bild && (
@@ -114,17 +160,15 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
               <div className="rr-bau-kopf">
                 <strong>{v.name}</strong>
                 <span className="rr-bau-info">
-                  {tx("ui2.ui.Reich.5950cd8", { p0: nr + 1, p1: Math.round(f * 100) })}{" "}
-                  {l.pausiert ? t("reste.reich.ruht") : rate > 0 ? tx("ui2.ui.Reich.d7fc5d0", { p0: rate.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 0 }) }) : tx("ui2.ui.Reich.6202407")}
+                  {tx("ui2.ui.Reich.5950cd8", { p0: nr, p1: Math.round(f * 100) })}{" "}
+                  {l.pausiert ? t("n6.bau.ruhtVerlust", { bau: Math.round(pauseVerlust(l, v)) }) : rate > 0 ? tx("ui2.ui.Reich.d7fc5d0", { p0: rate.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 0 }) }) : tx("ui2.ui.Reich.6202407")}
                 </span>
               </div>
               <span className="rr-balken" aria-hidden>
                 <i style={{ width: `${Math.round(f * 100)}%` }} />
               </span>
               <div className="rr-bau-knoepfe">
-                <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, l.id, !l.pausiert); refresh(); }}>
-                  {l.pausiert ? tx("ui2.ui.Reich.aeff967") : tx("ui2.ui.Reich.95175c7")}
-                </button>
+                <BauKnoepfe world={world} id={l.id} pausiert={!!l.pausiert} refresh={refresh} onText={setHinweis} />
               </div>
             </li>
           );
@@ -134,21 +178,24 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
   );
 }
 
-
-// Farben der Baustellen in der Kapazitätsleiste (Reihenfolge = Position)
-const BAU_FARBEN = ["#8a6a2a", "#3f7c86", "#a8402f", "#5e8f6e", "#6b4a8a", "#c9a25a", "#4a5a6a", "#b0704a"];
+/** Farbe eines Blocks in der Kapazitätsleiste nach dem Bereich des Vorhabens (vorher nach Position, ohne Bedeutung). */
+const BEREICH_FARBE: Record<Bereich, string> = { infrastruktur: "#8a6a2a", kultur: "#3f7c86", recht: "#6b4a8a", haushalt: "#4a5a6a", militaer: "#5b6b45" };
 
 /**
- * Die Baustelle (Rundgang 05.11.2026): Bild oben ist die Baukapazität eines Monats, aufgeteilt auf die Vorhaben in ihrer Reihenfolge;
- * darunter eine Liste statt zweier (vorher „Im Bau“ und „Baureihenfolge“ mit denselben Vorhaben). Die Kapazität ist für alle Bereiche
- * gemeinsam; Vorhaben anderer Bereiche stehen deshalb mit ihrem Bereich dabei.
+ * Die Baustelle (Rundgang 05.11.2026): Bild oben ist die Kapazität eines Monats, aufgeteilt auf die Vorhaben in ihrer Reihenfolge;
+ * darunter eine Liste. Seit dem 6. November hat jeder Engpass seine eigene Baustelle (sim/reich.ts: bauPool): die Bauwerke des Landes
+ * in Infrastruktur und Bau, die Rüstung bei den Streitkräften; Verträge und Reformen laufen ohne Kapazität nach ihrer Dauer.
  */
 function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich; refresh: () => void }) {
   const z = reichZustand(world);
   const [hinweis, setHinweis] = useState<string | null>(null);
-  if (!z.laufend.length) return null;
-  const liste = warteschlange(world);
-  const cap = Math.max(1, bauKapazitaet(world));
+  const pool: BauPool = bereich === "militaer" ? "ruestung" : "land";
+  const alle = warteschlange(world);
+  const liste = alle.filter((e) => e.pool === pool);
+  const ohne = alle.filter((e) => e.pool === "ohne" && vorhabenDef(e.id)?.bereich === bereich);
+  const ruestung = pool === "land" ? alle.filter((e) => e.pool === "ruestung").length : 0;
+  if (!liste.length && !ohne.length) return null;
+  const cap = Math.max(1, poolKapazitaet(world, pool));
   const frei = Math.max(0, cap - liste.reduce((n, e) => n + (e.pausiert ? 0 : e.rate), 0));
   const bauen = liste.filter((e) => !e.pausiert && e.rate > 0).length;
   const monatsText = (m?: number) => (m === undefined ? "" : m <= 0 ? t("reste.reich.jetzt") : t("reste.reich.inMonaten", { n: m }));
@@ -159,60 +206,81 @@ function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich
     else setHinweis(null);
     refresh();
   };
+  const zeitText = (e: (typeof alle)[number]) => {
+    const l = z.laufend.find((x) => x.id === e.id);
+    const v = vorhabenDef(e.id);
+    return e.pausiert && l && v
+      ? t("n6.bau.ruhtVerlust", { bau: Math.round(pauseVerlust(l, v)) })
+      : e.vergabePhase
+        ? t("reste.reich.vergabe", { start: monatsText(e.startIn) }) + (e.fertigIn !== undefined ? t("reste.reich.fertigZusatz", { fertig: monatsText(e.fertigIn) }) : "")
+        : e.rate > 0
+          ? t("reste.reich.baut", { rate: Math.round(e.rate), fertig: monatsText(e.fertigIn) })
+          : t("reste.reich.wartet", { start: monatsText(e.startIn) }) + (e.fertigIn !== undefined ? t("reste.reich.fertigZusatz", { fertig: monatsText(e.fertigIn) }) : "");
+  };
+  const zeile = (e: (typeof alle)[number], mitReihe: boolean) => {
+    const v = vorhabenDef(e.id);
+    const l = z.laufend.find((x) => x.id === e.id);
+    if (!v || !l) return null;
+    const gesamt = laufBau(l, v);
+    const f = gesamt > 0 ? l.fortschritt / gesamt : 1;
+    const i = liste.indexOf(e);
+    const verdrangt = mitReihe && i > 0 ? (vorhabenDef(liste[i - 1]!.id)?.name ?? liste[i - 1]!.id) : null;
+    const baut = !e.pausiert && e.rate > 0;
+    const farbe = baut ? BEREICH_FARBE[v.bereich] : undefined;
+    return (
+      <li key={e.id} className={`bs-eintrag${e.pausiert ? " ruht" : baut ? "" : " wartet"}${v.bereich !== bereich ? " fremd" : ""}`}>
+        <span className="bs-pos" style={{ background: farbe }}>{mitReihe ? e.position : "·"}</span>
+        {v.bild ? <div className="bs-bild"><WunderBild art={v.bild} zustand="bau" fortschritt={f} klasse={baut ? "" : "ruht"} /></div> : <div className="bs-bild leer" aria-hidden />}
+        <div className="bs-mitte">
+          <div className="bs-kopf">
+            <strong>{v.name}</strong>
+            {v.bereich !== bereich && <span className="bs-bereich">{BEREICH_NAMEN[v.bereich]}</span>}
+            <span className="rr-plakette" title={tx("ui2.ui.Reich.0804578", { p0: VERGABE_NAMEN[e.vergabe] })}>{VERGABE_NAMEN[e.vergabe]}</span>
+          </div>
+          <span className="bs-fortschritt" aria-hidden><i style={{ width: `${Math.round(f * 100)}%`, background: farbe }} /></span>
+          <span className="bs-zeit"><b>{Math.round(f * 100)} %</b> · {zeitText(e)}</span>
+        </div>
+        <div className="bs-knoepfe">
+          {mitReihe && (
+            <>
+              <button type="button" className="aktion-knopf" disabled={i === 0} onClick={() => rueckmeldung(e.id, -1)}
+                title={verdrangt ? tx("ui2.ui.Reich.f584365", { p0: VORZIEHEN_VERWALTUNG, p1: verdrangt }) : tx("ui2.ui.Reich.a1e5051")}>▲</button>
+              <button type="button" className="aktion-knopf" disabled={i === liste.length - 1} onClick={() => rueckmeldung(e.id, 1)} title={t("ui.Reich.df0cd3b")}>▼</button>
+            </>
+          )}
+          <BauKnoepfe world={world} id={e.id} pausiert={e.pausiert} refresh={refresh} onText={setHinweis} />
+        </div>
+      </li>
+    );
+  };
   return (
     <section className="rr-abschnitt rr-baustelle">
-      <h4>{t("reich.bau.titel")} <em>{t("bs.unter", { cap: Math.round(cap), bauen, warten: liste.length - bauen })}</em></h4>
-      <div className="bs-leiste" role="img" aria-label={t("bs.leisteAria", { cap: Math.round(cap), frei: Math.round(frei) })}>
-        {liste.map((e, i) => (!e.pausiert && e.rate > 0 ? (
-          <span key={e.id} style={{ flexGrow: e.rate, background: BAU_FARBEN[i % BAU_FARBEN.length] }} title={`${vorhabenDef(e.id)?.name ?? e.id}: ${Math.round(e.rate)}`}>
-            <b>{e.position}</b>
-          </span>
-        ) : null))}
-        {frei > 0.5 && <span className="frei" style={{ flexGrow: frei }} title={t("bs.frei", { n: Math.round(frei) })}>{t("bs.frei", { n: Math.round(frei) })}</span>}
-      </div>
+      {liste.length > 0 && (
+        <>
+          <h4>{t("reich.bau.titel")} <em>{t(pool === "ruestung" ? "n6.bau.ruestungUnter" : "bs.unter", { cap: Math.round(cap), bauen, warten: liste.length - bauen })}</em></h4>
+          <div className="bs-leiste" role="img" aria-label={t("bs.leisteAria", { cap: Math.round(cap), frei: Math.round(frei) })}>
+            {liste.map((e) => {
+              const v = vorhabenDef(e.id);
+              return !e.pausiert && e.rate > 0 ? (
+                <span key={e.id} style={{ flexGrow: e.rate, background: v ? BEREICH_FARBE[v.bereich] : undefined }} title={`${e.position}. ${v?.name ?? e.id}: ${Math.round(e.rate)}`}>
+                  <b>{e.position}</b><em>{v?.name ?? e.id}</em>
+                </span>
+              ) : null;
+            })}
+            {frei > 0.5 && <span className="frei" style={{ flexGrow: frei }} title={t("bs.frei", { n: Math.round(frei) })}>{t("bs.frei", { n: Math.round(frei) })}</span>}
+          </div>
+        </>
+      )}
       {hinweis && <p className="rr-hinweis" role="status">{hinweis}</p>}
-      <ol className="bs-liste">
-        {liste.map((e, i) => {
-          const v = vorhabenDef(e.id);
-          const l = z.laufend.find((x) => x.id === e.id);
-          if (!v || !l) return null;
-          const gesamt = laufBau(l, v);
-          const f = gesamt > 0 ? l.fortschritt / gesamt : 1;
-          const zeit = e.pausiert
-            ? t("reste.reich.ruht")
-            : e.vergabePhase
-              ? t("reste.reich.vergabe", { start: monatsText(e.startIn) }) + (e.fertigIn !== undefined ? t("reste.reich.fertigZusatz", { fertig: monatsText(e.fertigIn) }) : "")
-              : e.rate > 0
-                ? t("reste.reich.baut", { rate: Math.round(e.rate), fertig: monatsText(e.fertigIn) })
-                : t("reste.reich.wartet", { start: monatsText(e.startIn) }) + (e.fertigIn !== undefined ? t("reste.reich.fertigZusatz", { fertig: monatsText(e.fertigIn) }) : "");
-          const verdrangt = e.position > 1 ? (vorhabenDef(liste[e.position - 2]!.id)?.name ?? liste[e.position - 2]!.id) : null;
-          const baut = !e.pausiert && e.rate > 0;
-          return (
-            <li key={e.id} className={`bs-eintrag${e.pausiert ? " ruht" : baut ? "" : " wartet"}${v.bereich !== bereich ? " fremd" : ""}`}>
-              <span className="bs-pos" style={{ background: baut ? BAU_FARBEN[i % BAU_FARBEN.length] : undefined }}>{e.position}</span>
-              {v.bild ? <div className="bs-bild"><WunderBild art={v.bild} zustand="bau" fortschritt={f} klasse={baut ? "" : "ruht"} /></div> : <div className="bs-bild leer" aria-hidden />}
-              <div className="bs-mitte">
-                <div className="bs-kopf">
-                  <strong>{v.name}</strong>
-                  {v.bereich !== bereich && <span className="bs-bereich">{BEREICH_NAMEN[v.bereich]}</span>}
-                  <span className="rr-plakette" title={tx("ui2.ui.Reich.0804578", { p0: VERGABE_NAMEN[e.vergabe] })}>{VERGABE_NAMEN[e.vergabe]}</span>
-                </div>
-                <span className="bs-fortschritt" aria-hidden><i style={{ width: `${Math.round(f * 100)}%`, background: baut ? BAU_FARBEN[i % BAU_FARBEN.length] : undefined }} /></span>
-                <span className="bs-zeit"><b>{Math.round(f * 100)} %</b> · {zeit}</span>
-              </div>
-              <div className="bs-knoepfe">
-                <button type="button" className="aktion-knopf" disabled={e.position === 1} onClick={() => rueckmeldung(e.id, -1)}
-                  title={verdrangt ? tx("ui2.ui.Reich.f584365", { p0: VORZIEHEN_VERWALTUNG, p1: verdrangt }) : tx("ui2.ui.Reich.a1e5051")}>▲</button>
-                <button type="button" className="aktion-knopf" disabled={e.position === liste.length} onClick={() => rueckmeldung(e.id, 1)} title={t("ui.Reich.df0cd3b")}>▼</button>
-                <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, e.id, !e.pausiert); refresh(); }}>
-                  {e.pausiert ? tx("ui2.ui.Reich.aeff967") : tx("ui2.ui.Reich.95175c7")}
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-      <p className="rr-hinweis">{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("ui.Reich.119c095")}</p>
+      {liste.length > 0 && <ol className="bs-liste">{liste.map((e) => zeile(e, true))}</ol>}
+      {ohne.length > 0 && (
+        <>
+          <h4 className="bs-ohne">{t("n6.bau.ohneTitel")} <em>{t("n6.bau.ohneUnter")}</em></h4>
+          <ol className="bs-liste">{ohne.map((e) => zeile(e, false))}</ol>
+        </>
+      )}
+      {liste.length > 0 && <p className="rr-hinweis">{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("ui.Reich.119c095")}</p>}
+      {ruestung > 0 && <p className="rr-hinweis">{t("n6.bau.ruestungHinweis", { n: ruestung, cap: Math.round(ruestungsKapazitaet(world)) })}</p>}
     </section>
   );
 }
@@ -510,22 +578,21 @@ function Dringend({ world, bereich, refresh, zuPflege }: { world: World; bereich
   return <Lohnt world={world} bereich={bereich} refresh={refresh} zuPflege={zuPflege} />;
 }
 
-export function Reich(props: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; /** Reiter, mit dem die Akte beginnt (eine Marke der Karte kann „Pflegen“ vorgeben) */ startTab?: Tab }) {
+export function Reich(props: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; /** Reiter, mit dem die Akte beginnt (eine Marke der Karte kann „Pflegen“ vorgeben) */ startTab?: Tab; /** Vorgewähltes Vorhaben im Katalog */ startVorhaben?: string }) {
   // Je Bereich eigener Zustand der Reiter: Beim Wechsel beginnt die Akte wieder bei der Lage (oder beim vorgegebenen Reiter)
-  return <ReichInnen key={`${props.bereich}:${props.startTab ?? ""}`} {...props} />;
+  return <ReichInnen key={`${props.bereich}:${props.startTab ?? ""}:${props.startVorhaben ?? ""}`} {...props} />;
 }
 
-function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; startTab?: Tab }) {
+function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben }: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; startTab?: Tab; startVorhaben?: string }) {
   const tabs = tabsFuerBereich(bereich);
   const [tab, setTab] = useState<Tab>(startTab && tabs.some((x) => x.id === startTab) ? startTab : "lage");
   const [ergebnisse, setErgebnisse] = useState<Record<string, { ok: boolean; text: string }>>({});
   if (!world.spiel) return <p>{t("ui.Reich.186589c")}</p>;
   const z = reichZustand(world);
-  const kapitalJetzt = world.spiel.kapital;
   const liste = vorhabenListe(world, bereich);
 
-  const beginneVorhaben = (id: string, vergabe: Vergabe = "ausschreibung") => {
-    const r = beginne(world, id, vergabe);
+  const beginneVorhaben = (id: string, vergabe: Vergabe = "ausschreibung", platz: Platz = "ende") => {
+    const r = beginne(world, id, vergabe, platz);
     setErgebnisse((e) => ({ ...e, [id]: { ok: r.ok, text: r.why ? `${r.text} ${r.why}` : r.text } }));
     refresh();
   };
@@ -533,9 +600,6 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
   // Pflege (Instandsetzung, Restaurierung) gehört in „pflegen“, nicht unter die neuen Vorhaben
   const neu = liste.filter((s) => s.status !== "fertig" && s.status !== "im_bau" && s.status !== "pausiert" && (s.v.klasse !== "restaurierung" || !!s.v.vorlage));
   const technik = bereich === "infrastruktur" || bereich === "militaer";
-  // Was fertig ist: Bei Technik steht es unter „pflegen“, die Einrichtungen des Rechts unter „Lage“, der Rest unter den neuen Vorhaben
-  const vollendet = technik ? [] : liste.filter((s) => s.status === "fertig" && s.v.klasse !== "restaurierung" && s.v.klasse !== "institution");
-  const gross = (s: VorhabenSicht) => s.v.klasse === "wunder" || s.v.klasse === "grossprojekt" || s.v.klasse === "serie";
   const bereitN = neu.filter((s) => s.status === "verfuegbar" && s.bereit).length;
   const dringendN = bereich === "kultur" ? ERBE.filter((e) => (z.staetten[e.id]?.zustand ?? 100) < 45).length : technik ? lohnendste(world, bereich, 99, 1).length : 0;
   const plakette = (id: Tab): number => (id === "neu" ? bereitN : id === "bestand" ? dringendN : 0);
@@ -590,19 +654,8 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
       {tab === "neu" && (
         <>
           {bereich === "infrastruktur" && <Schaetzblaetter world={world} refresh={refresh} />}
-          <Neues world={world} liste={neu} alle={liste} onBeginne={beginneVorhaben} ergebnisse={ergebnisse} refresh={refresh} {...(onKarte ? { onKarte } : {})} />
-          {vollendet.length > 0 && (
-            <section className="rr-abschnitt">
-              <h4>
-                {tx("ui2.ui.Reich.8c37851")} <em>{vollendet.length} {vollendet.length === 1 ? tx("ui2.ui.Reich.d335b73") : tx("ui2.ui.Reich.d335b73")}</em>
-              </h4>
-              <div className="rr-raster gross">
-                {vollendet.map((s) => (
-                  <VorhabenKarte key={s.v.id} s={s} world={world} gross={gross(s)} onBeginne={beginneVorhaben} kapital={kapitalJetzt} {...(onKarte ? { onKarte } : {})} />
-                ))}
-              </div>
-            </section>
-          )}
+          {/* Fertige Vorhaben stehen als Filter „Fertig“ im Katalog statt als zweite Kartenreihe darunter (Länge, Befund F-1) */}
+          <Neues world={world} bereich={bereich} liste={neu} alle={liste} onBeginne={beginneVorhaben} ergebnisse={ergebnisse} refresh={refresh} start={startVorhaben} {...(onKarte ? { onKarte } : {})} />
         </>
       )}
     </div>

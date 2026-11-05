@@ -74,7 +74,8 @@
 }
 
 /* Neue Vorhaben: Themenleiste, Weg der Stufen, Technologiefelder, das Unrealistische */
-.rr-themen { position: sticky; top: -1px; z-index: 3; margin: 0 -2px 8px; padding: 6px 2px 8px; background: linear-gradient(180deg, #f7efd8 85%, rgba(247, 239, 216, 0)); }
+/* Deckender Papiergrund mit Schatten (Befund F-32: Ortschips und Karten schienen durch) */
+.rr-themen { position: sticky; top: -1px; z-index: 3; margin: 0 -2px 6px; padding: 6px 4px 6px; background: #f7efd8; box-shadow: 0 4px 6px -4px rgba(60, 40, 20, 0.35); border-radius: 0 0 4px 4px; }
 .rr-themen button b { margin-left: 4px; font: 700 11.5px var(--sans); color: var(--seal); }
 .rr-teiler { margin: 18px 0 2px; padding-top: 10px; border-top: 2px solid rgba(90, 64, 40, 0.4); font: 600 21px var(--display); }
 .rr-feld { margin: 10px 0 4px; }
@@ -138,3 +139,17 @@
 .bs-zeit { font: 12.5px var(--sans); color: #5a4632; }
 .bs-zeit b { color: #2e2118; }
 .bs-knoepfe { display: flex; gap: 4px; }
+
+/* Kapazitätsleiste mit Namen (Befund F-35): Nummer und Kurzname im Block, Farbe nach Bereich */
+.bs-leiste > span { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px; overflow: hidden; }
+.bs-leiste > span b { flex: none; }
+.bs-leiste > span em { font: 500 12px var(--sans); font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.92; min-width: 0; }
+.bs-leiste > span.frei { padding: 0 6px; }
+.bs-knoepfe { flex-wrap: wrap; justify-content: flex-end; max-width: 260px; }
+.bs-frage { display: flex; flex-direction: column; gap: 6px; max-width: 320px; padding: 6px 8px; border: 1px solid rgba(142, 42, 34, 0.45); border-radius: 4px; background: #fbf1e6; }
+.bs-frage p { margin: 0; font-size: 13px; line-height: 1.35; color: #5a2a20; }
+.bs-frage span { display: flex; gap: 6px; flex-wrap: wrap; }
+.aktion-knopf.gefahr { background: #8f2a1e; color: #fbeee0; border-color: #6e1f16; }
+.aktion-knopf.gefahr:hover { background: #a3352a; }
+.rr-baustelle h4.bs-ohne { margin-top: 14px; }
+.rr-bau-knoepfe { display: flex; gap: 4px; flex-wrap: wrap; }

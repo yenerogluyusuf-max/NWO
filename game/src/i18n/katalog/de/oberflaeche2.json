@@ -267,7 +267,7 @@
  "ui2.ui.Reich.8c37851": "Vollendet",
  "ui2.ui.Reich.8c5c22e": "Welterbe",
  "ui2.ui.Reich.8db82ca": "Mäßig erhalten.",
- "ui2.ui.Reich.90f1a97": "öffentlich: Position 1 baut zuerst; vorziehen kostet {p0} Verwaltungskraft je Position",
+ "ui2.ui.Reich.90f1a97": "Position 1 baut zuerst. Neue Aufträge reihen sich hinten ein; wer ein Vorhaben vorzieht, zahlt {p0} Verwaltungskraft je Platz.",
  "ui2.ui.Reich.9219dc0": "Erhaltung insgesamt {p0}",
  "ui2.ui.Reich.95175c7": "Pausieren",
  "ui2.ui.Reich.96504fa": "{p0}: {p1} von 100",

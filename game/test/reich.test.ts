@@ -147,7 +147,8 @@ describe("Vorhaben beginnen und bauen", () => {
   test("Eine Restaurierung wird fertig, hebt den Zustand und lässt sich später wiederholen", () => {
     const w = welt();
     const vorher = reichZustand(w).staetten.thyatira!.zustand;
-    expect(beginne(w, "restaurierung_thyatira").ok).toBe(true);
+    // Nacht N6 (Befund F-3): Neue Aufträge reihen sich hinten ein; der Test bezahlt den Platz an der Spitze, weil er die Fertigstellung prüft, nicht die Reihenfolge
+    expect(beginne(w, "restaurierung_thyatira", "ausschreibung", "spitze").ok).toBe(true);
     advance(w, 30 * 14);
     const z = reichZustand(w);
     expect(z.laufend.some((l) => l.id === "restaurierung_thyatira")).toBe(false);
@@ -181,7 +182,8 @@ describe("Vorhaben beginnen und bauen", () => {
     for (const id of ["ephesos", "smyrna", "pergamon", "thyatira", "sardes", "philadelphia", "laodikeia"]) z.staetten[id]!.zustand = 70;
     const s2 = vorhabenSicht(w, "serie_kirchen7")!;
     expect(s2.bereit, s2.voraus.map((x) => x.text).join("; ")).toBe(true);
-    expect(beginne(w, "serie_kirchen7").ok).toBe(true);
+    // Nacht N6 (Befund F-3): Neue Aufträge reihen sich hinten ein; der Test bezahlt den Platz an der Spitze, weil er die Fertigstellung prüft, nicht die Reihenfolge
+    expect(beginne(w, "serie_kirchen7", "ausschreibung", "spitze").ok).toBe(true);
     advance(w, 30 * 30);
     expect(reichZustand(w).bestand.serie_kirchen7).toBeDefined();
     expect(reichZustand(w).feier).toContain("serie_kirchen7");
@@ -363,18 +365,25 @@ describe("Bauvergabe mit drei Optionen (INF-1)", () => {
 
 describe("Baureihenfolge mit Verdrängungspreis (INF-3)", () => {
   /** Drei frische Bauten vor den drei Anfangsbauten: [thyatira, pergamon, ephesos, …] */
+  // Nacht N6: Die drei Bauten werden bezahlt an die Spitze gestellt (vorher sprangen neue Aufträge umsonst dorthin)
   function dreiBauten() {
     const w = welt();
-    beginne(w, "restaurierung_ephesos", "stammfirma");
-    beginne(w, "restaurierung_pergamon", "stammfirma");
-    beginne(w, "restaurierung_thyatira", "stammfirma");
+    reichZustand(w).verwaltung = 100;
+    beginne(w, "restaurierung_ephesos", "stammfirma", "spitze");
+    beginne(w, "restaurierung_pergamon", "stammfirma", "spitze");
+    beginne(w, "restaurierung_thyatira", "stammfirma", "spitze");
+    reichZustand(w).verwaltung = 60;
     return w;
   }
 
   test("Die Warteschlange zeigt Positionen und ehrliche Schätzungen; Pausierte bekommen keine", () => {
     const w = dreiBauten();
     const ws = warteschlange(w);
-    expect(ws.map((e) => e.position)).toEqual(ws.map((_, i) => i + 1));
+    // Nacht N6: Die Position zählt je Engpass (Baukapazität des Landes, Rüstung, ohne Kapazität)
+    for (const pool of ["land", "ruestung", "ohne"] as const) {
+      const teil = ws.filter((e) => e.pool === pool);
+      expect(teil.map((e) => e.position)).toEqual(teil.map((_, i) => i + 1));
+    }
     expect(ws[0]!.id).toBe("restaurierung_thyatira");
     expect(ws[0]!.vergabe).toBe("stammfirma");
     expect(ws[0]!.startIn).toBe(0);

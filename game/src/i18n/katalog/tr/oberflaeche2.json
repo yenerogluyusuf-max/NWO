@@ -267,7 +267,7 @@
  "ui2.ui.Reich.8c37851": "Tamamlandı",
  "ui2.ui.Reich.8c5c22e": "Dünya Mirası",
  "ui2.ui.Reich.8db82ca": "Orta düzeyde korunmuş.",
- "ui2.ui.Reich.90f1a97": "açık: önce 1. sıra yapılır; öne almak sıra başına {p0} idari güce mal olur",
+ "ui2.ui.Reich.90f1a97": "Önce 1. sıra inşa edilir. Yeni siparişler sıranın sonuna eklenir; bir projeyi öne almak her sıra için {p0} idari güce mal olur.",
  "ui2.ui.Reich.9219dc0": "Genel koruma {p0}",
  "ui2.ui.Reich.95175c7": "Duraklat",
  "ui2.ui.Reich.96504fa": "{p0}: 100 üzerinden {p1}",

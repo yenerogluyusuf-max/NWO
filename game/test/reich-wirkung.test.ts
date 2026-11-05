@@ -163,7 +163,8 @@ describe("Pflege: ein Wort je Handlung, kein Stück ohne Eingriff", () => {
 describe("Jeder Eingriff hält Vorher und Nachher fest", () => {
   test("Ein Ausbau legt die Ausgangslage an und schließt mit einem Eintrag im Verlauf ab", () => {
     const w = welt(3);
-    const r = beginne(w, "infra_btk_personen", "stammfirma");
+    // Nacht N6 (Befund F-3): Neue Aufträge reihen sich hinten ein; der Test bezahlt den Platz an der Spitze, weil er die Fertigstellung prüft, nicht die Reihenfolge
+    const r = beginne(w, "infra_btk_personen", "stammfirma", "spitze");
     expect(r.ok, r.text).toBe(true);
     const lauf = reichZustand(w).laufend.find((l) => l.id === "infra_btk_personen")!;
     expect(Object.keys(lauf.vorher!)).toEqual(expect.arrayContaining(["tourismus", "logistik"]));
@@ -177,7 +178,8 @@ describe("Jeder Eingriff hält Vorher und Nachher fest", () => {
   test("Restaurierungen von Stätten halten den Zustand vorher und nachher fest", () => {
     const w = welt(3);
     const vorher = reichZustand(w).staetten.smyrna!.zustand;
-    expect(beginne(w, "restaurierung_smyrna").ok).toBe(true);
+    // Nacht N6 (Befund F-3): Neue Aufträge reihen sich hinten ein; der Test bezahlt den Platz an der Spitze, weil er die Fertigstellung prüft, nicht die Reihenfolge
+    expect(beginne(w, "restaurierung_smyrna", "ausschreibung", "spitze").ok).toBe(true);
     advance(w, 365);
     const e = reichZustand(w).verlauf!.find((x) => x.id === "restaurierung_smyrna")!;
     expect(e.zustand!.vorher).toBe(Math.round(vorher));
@@ -186,7 +188,8 @@ describe("Jeder Eingriff hält Vorher und Nachher fest", () => {
 
   test("Ältere Spielstände ohne Ausgangslage schließen ohne Fehler ab", () => {
     const w = welt(3);
-    expect(beginne(w, "restaurierung_smyrna").ok).toBe(true);
+    // Nacht N6 (Befund F-3): Neue Aufträge reihen sich hinten ein; der Test bezahlt den Platz an der Spitze, weil er die Fertigstellung prüft, nicht die Reihenfolge
+    expect(beginne(w, "restaurierung_smyrna", "ausschreibung", "spitze").ok).toBe(true);
     const z = reichZustand(w);
     delete z.laufend[0]!.vorher;
     delete z.laufend[0]!.zustandVorher;
@@ -202,7 +205,8 @@ describe("Die Akten sind gegliedert und zeigen die Pflege", () => {
   const html = (bereich: "kultur" | "recht" | "militaer" | "infrastruktur" | "haushalt") => renderToStaticMarkup(createElement(Reich, { world: welt(), bereich, refresh: () => {} }));
 
   test("Jede Akte beginnt mit der Lage und bietet getrennte Reiter an", () => {
-    expect(html("infrastruktur")).toContain("Bauwerke pflegen");
+    // Nacht N6 (Wortprüfung F): der Reiter heißt jetzt „Instandhaltung“
+    expect(html("infrastruktur")).toContain("Instandhaltung");
     expect(html("infrastruktur")).toContain("Neue Vorhaben");
     expect(html("kultur")).toContain("Stätten pflegen");
     expect(html("militaer")).toContain("Rüstung pflegen");
@@ -237,8 +241,9 @@ describe("Die Akten sind gegliedert und zeigen die Pflege", () => {
   test("Neue Vorhaben sind nach Art getrennt und enthalten keine Pflege", () => {
     const w = welt();
     const liste = vorhabenListe(w, "infrastruktur").filter((s) => s.status === "verfuegbar" && s.v.klasse !== "restaurierung");
+    // Nacht N6: Die Art steht auf jeder Kachel (Raster mit Filtern statt Abschnitten je Art)
     const h = renderToStaticMarkup(createElement(Neues, { world: w, liste, onBeginne: () => {}, ergebnisse: {} }));
-    expect(h).toContain("Großprojekte");
+    expect(h).toContain("Großprojekt");
     expect(h).toContain("Wunder");
     expect(h).not.toContain("Instandsetzung:");
     expect(h).not.toContain("NaN");

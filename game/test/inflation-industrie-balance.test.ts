@@ -5,7 +5,7 @@ import { startAfterElection, schnellProfil } from '../src/sim/prolog';
 import { dailyRiskPremium, monthlyUpdate, ppkDecision } from '../src/sim/economy';
 import { haushaltMonat, setzePosten } from '../src/sim/haushalt';
 import { Rng } from '../src/sim/rng';
-import { bauplan, reichZustand, warteschlange, verwaltungBilanz, reichMonat, monatsBauleistung, pausiere } from '../src/sim/reich';
+import { bauplan, reichZustand, warteschlange, verwaltungBilanz, reichMonat, monatsBauleistung, pausiere, laufBau, vorhabenDef, PAUSE_VERFALL } from '../src/sim/reich';
 import { haushaltZustand } from '../src/sim/wirtschaft';
 function welt(){const w=createWorld(turkey2026,17);startAfterElection(w,schnellProfil());return w;}
 test('voll gegenfinanzierte Reformen tragen keinen zusätzlichen Fiskaldominanzaufschlag',()=>{
@@ -88,11 +88,12 @@ test('erschöpfte Verwaltung beendet ein fast fertiges Werk einmalig auch im wir
  const anzahl=Object.keys(z.bestand).length;reichMonat(w);expect(Object.keys(z.bestand)).toHaveLength(anzahl);
 });
 
-test('Pausieren entlastet die Verwaltung und bewahrt Fortschritt',()=>{
+test('Pausieren entlastet die Verwaltung; der ruhende Bau verliert nur den Pausenverfall',()=>{
  const w=welt(),z=reichZustand(w),l=z.laufend[0]!,vor=verwaltungBilanz(w),fort=l.fortschritt;
  expect(pausiere(w,l.id,true)).toBe(true);
  expect(verwaltungBilanz(w).bau).toBeLessThan(vor.bau);
- reichMonat(w);expect(l.fortschritt).toBe(fort);
+ // Nacht N6 (Befund F-4): Ein ruhender Bau verliert je Monat PAUSE_VERFALL seiner Baupunkte
+ reichMonat(w);expect(l.fortschritt).toBeCloseTo(Math.max(0,fort-laufBau(l,vorhabenDef(l.id)!)*PAUSE_VERFALL),6);
 });
 
 

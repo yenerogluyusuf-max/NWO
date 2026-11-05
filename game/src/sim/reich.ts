@@ -13,7 +13,7 @@ import { ERBE, ERBE_NACH_ID } from "../data/erbe";
 import { VORHABEN, VORTEILE, STAETTEN_START } from "../data/reich";
 import { Rng } from "./rng";
 import { hashZahl } from "./personen";
-import { umfangFaktor } from "./handeln";
+import { akuteOrte, umfangFaktor } from "./handeln";
 import { PROVINZEN, REGION_DE } from "./regional";
 import { instandsetzung, stoss } from "../data/reich/bau";
 import MITTEN from "../data/reich/provinzmitten.json";
@@ -24,7 +24,7 @@ import type { VorteilDef } from "../data/reich/typen";
 import { kannZahlen } from "./kapital";
 import { zeitungEreignis } from "./zeitung";
 import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, belastungSinken, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
-import { t as tx } from "../i18n";
+import { t as tx, zahl } from "../i18n";
 import { ohneBeleg } from "../i18n/ohne-beleg";
 
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
@@ -182,13 +182,53 @@ export const verfallSatz = (v: Vorhaben): number => (v.bereich === "militaer" ? 
 /** Pflegefaktor des Landes: Wer die Instandhaltung hoch hält, bremst den Verfall (0,65 bis 1,25). */
 export const pflegeFaktor = (w: World): number => 1.25 - 0.6 * (level(w, "m_instandhaltung") / 100);
 
-/** Baupunkte je Monat, die das Land insgesamt aufbringt. */
+/**
+ * Wessen Kapazität ein Vorhaben bindet (Befund F-16, 6. November 2026). Bis dahin teilten sich Kampfjets, Panzer und Verträge
+ * dieselben Baupunkte wie Straßen und Kliniken; real konkurrieren sie um andere Mittel: Rüstungsgüter um Werften, Rüstungsbetriebe
+ * und Devisen, Verträge und Reformen um Verhandlungs- und Gesetzgebungszeit, nicht um Baufirmen.
+ * - „land“: Bauwerke, Restaurierungen und Einrichtungen im Land (Baukapazität des Landes)
+ * - „ruestung“: alles der Streitkräfte außer Doktrinen und Reformen (Rüstungskapazität, eigener Engpass)
+ * - „ohne“: Abkommen, Doktrinen, Reformen und Sonderrechte; sie laufen nur nach ihrer eigenen Dauer
+ */
+export type BauPool = "land" | "ruestung" | "ohne";
+export function bauPool(v: Vorhaben): BauPool {
+  if (v.klasse === "reform" || v.klasse === "doktrin" || v.klasse === "sonderrecht") return "ohne";
+  if (v.bereich === "militaer") return "ruestung";
+  return "land";
+}
+
+/**
+ * Anteil der früher gemeinsamen Baukapazität, der beim Spielbeginn auf Rüstungsvorhaben entfiel (F-16 Block 70 20, Stahlkuppel 25,
+ * Altay 15 Baupunkte je Monat). Die gemeinsame Kapazität ist in zwei Engpässe geteilt, ohne dass am Spielbeginn etwas schneller fertig wird.
+ * Spielparameter, keine Tatsache.
+ */
+const RUESTUNG_ANTEIL_START = 60;
+
+/** Baupunkte je Monat, die das Land für Bauwerke aufbringt (ohne Rüstung und Verträge). */
 export function bauKapazitaet(w: World): number {
   const z = reichZustand(w);
-  let cap = 110 + 0.35 * level(w, "m_bauindustrie") + 0.25 * level(w, "m_industrie_modernisierung") + 0.15 * level(w, "m_fachkraefteprogramm");
+  let cap = 110 - RUESTUNG_ANTEIL_START + 0.35 * level(w, "m_bauindustrie") + 0.25 * level(w, "m_industrie_modernisierung") + 0.15 * level(w, "m_fachkraefteprogramm");
   for (const id of Object.keys(z.bestand)) cap += vorhabenDef(id)?.kapazitaet?.bau ?? 0;
   return Math.round(cap * 10) / 10;
 }
+
+/**
+ * Fertigungskapazität der Rüstung je Monat: wächst mit der heimischen Rüstungsindustrie (Maßnahme, Start 60 ergibt 60 Punkte).
+ * Spielparameter, keine Tatsache.
+ */
+export function ruestungsKapazitaet(w: World): number {
+  return Math.round((24 + 0.6 * level(w, "m_ruestungsindustrie")) * 10) / 10;
+}
+
+/** Kapazität eines Engpasses; „ohne“ hat keinen (unendlich). */
+export function poolKapazitaet(w: World, pool: BauPool): number {
+  return pool === "land" ? bauKapazitaet(w) : pool === "ruestung" ? ruestungsKapazitaet(w) : Number.POSITIVE_INFINITY;
+}
+
+const poolVon = (id: string): BauPool => {
+  const v = vorhabenDef(id);
+  return v ? bauPool(v) : "land";
+};
 
 export interface VerwaltungBilanz {
   vorrat: number;
@@ -271,7 +311,7 @@ export function pruefeVoraus(w: World, v: Voraussetzung): VorausStand {
       const jetzt = level(w, v.id);
       const gut = (v.min === undefined || jetzt >= v.min) && (v.max === undefined || jetzt <= v.max);
       const ziel = v.min ?? v.max!;
-      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, tx("sim2.sim.reich.a07d8e3", { p0: nodeName(v.id), p1: v.min !== undefined ? `mindestens ${v.min}` : `höchstens ${v.max}`, p2: Math.round(jetzt) }));
+      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, tx("sim2.sim.reich.a07d8e3", { p0: nodeName(v.id), p1: v.min !== undefined ? tx("n6.voraus.mindestens", { n: v.min }) : tx("n6.voraus.hoechstens", { n: v.max! }), p2: Math.round(jetzt) }));
     }
     case "massnahme": {
       const jetzt = level(w, v.id);
@@ -282,9 +322,10 @@ export function pruefeVoraus(w: World, v: Voraussetzung): VorausStand {
     case "land": {
       const jetzt = dimensionZu(w, v.land, v.dim);
       const gut = (v.min === undefined || jetzt >= v.min) && (v.max === undefined || jetzt <= v.max);
-      const namen = { handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" } as const;
+      // Befund F-8: der Name des Landes statt seines Kürzels („Vertrauen zu GEO“), alle Wörter aus dem Katalog
       const ziel = v.min ?? v.max!;
-      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, tx("sim2.sim.reich.252b1c6", { p0: namen[v.dim], p1: v.land, p2: v.min !== undefined ? `mindestens ${v.min}` : `höchstens ${v.max}`, p3: Math.round(jetzt) }));
+      const grenze = v.min !== undefined ? tx("n6.voraus.mindestens", { n: v.min }) : tx("n6.voraus.hoechstens", { n: v.max! });
+      return ok(gut, 1 - Math.abs(ziel - jetzt) / 50, tx(`n6.voraus.land.${v.dim}`, { land: land(v.land).name, grenze, jetzt: Math.round(jetzt) }));
     }
     case "vorteil": {
       const d = vorteilDef(v.id);
@@ -377,7 +418,8 @@ export const monatsBauleistung = (rate: number, kapazitaet: number, rest: number
 export function bauplan(w: World): Record<string, number> {
   const z = reichZustand(w);
   const verzug = z.verwaltung <= 0 ? 0.5 : 1;
-  let cap = bauKapazitaet(w);
+  // Jeder Engpass hat seine eigene Kapazität; die Reihenfolge gilt innerhalb des Engpasses
+  const cap: Record<BauPool, number> = { land: bauKapazitaet(w), ruestung: ruestungsKapazitaet(w), ohne: Number.POSITIVE_INFINITY };
   const out: Record<string, number> = {};
   for (const l of z.laufend) {
     const v = vorhabenDef(l.id);
@@ -386,10 +428,11 @@ export function bauplan(w: World): Record<string, number> {
       out[l.id] = 0;
       continue;
     }
+    const pool = bauPool(v);
     const rest = Math.max(0, laufBau(l, v) - l.fortschritt);
-    const aufnahme = monatsBauleistung((laufBau(l, v) / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id), cap, rest, verzug);
+    const aufnahme = monatsBauleistung((laufBau(l, v) / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id), cap[pool], rest, verzug);
     out[l.id] = aufnahme;
-    cap -= aufnahme / verzug;
+    cap[pool] -= aufnahme / verzug;
   }
   return out;
 }
@@ -730,7 +773,22 @@ export function eingriffHeute(w: World, e: Eingriff): Record<string, number> {
 // ---------------------------------------------------------------------------
 // Beginnen, Pausieren, Reihenfolge
 
-export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"): { ok: boolean; text: string; why?: string } {
+/**
+ * Wo ein neuer Auftrag in die Baureihenfolge kommt: „ende“ (frei), „spitze“ (kostet wie Vorziehen VORZIEHEN_VERWALTUNG je überholtem
+ * Vorhaben desselben Engpasses) oder „notfall“ (Wiederaufbau nach einer Katastrophe: Vorrang per Notvergabe, ohne Verwaltungspreis).
+ */
+export type Platz = "ende" | "spitze" | "notfall";
+
+/** Was es kostet, einen neuen Auftrag an die Spitze zu stellen, und wen er überholt. */
+export function spitzenPreis(w: World, id: string): { kosten: number; verdrangt: string[] } {
+  const v = vorhabenDef(id);
+  if (!v || bauPool(v) === "ohne") return { kosten: 0, verdrangt: [] };
+  const pool = bauPool(v);
+  const vor = reichZustand(w).laufend.filter((l) => l.id !== id && poolVon(l.id) === pool);
+  return { kosten: vor.length * VORZIEHEN_VERWALTUNG, verdrangt: vor.map((l) => vorhabenDef(l.id)?.name ?? l.id) };
+}
+
+export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung", platz: Platz = "ende"): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
   if (!spiel) return { ok: false, text: tx("sim2.sim.reich.186589c") };
   if (spiel.ende) return { ok: false, text: tx("sim2.sim.reich.56f5ccf") };
@@ -760,12 +818,16 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
   if (!s.verwaltungOk) return { ok: false, text: tx("sim2.sim.reich.15a4e3e") };
   const pause = neuanfangGrund(w);
   if (pause) return { ok: false, text: pause };
+  const spitze = platz === "spitze" ? spitzenPreis(w, id) : { kosten: 0, verdrangt: [] as string[] };
+  if (spitze.kosten > 0 && z.verwaltung < spitze.kosten) return { ok: false, text: tx("sim2.sim.reich.8eb9ca2", { p0: spitze.kosten }) };
   spiel.kapital -= angebot.pk;
+  if (spitze.kosten > 0) z.verwaltung = clamp(z.verwaltung - spitze.kosten, 0, 100);
   verbrauche(w, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, v.name);
-  // Was der Präsident eben beschlossen hat, kommt an die Spitze der Baureihenfolge; „Später“ schiebt es zurück
+  // Ein neuer Auftrag reiht sich hinten ein (Befund F-3): Wer ihn vorziehen will, zahlt dafür wie bei jedem anderen Vorhaben
+  // (VORZIEHEN_VERWALTUNG je überholtem Platz). Vorher sprang er umsonst an die Spitze und machte alle Schätzungen still falsch.
   const vorher = messe(w, knotenZiele(v));
   const zustandVorher = zielZustand(w, v);
-  z.laufend.unshift({
+  z.laufend[platz === "ende" ? "push" : "unshift"]({
     id,
     fortschritt: 0,
     start: w.date,
@@ -788,10 +850,18 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
     wirke(w, "legitimitaet", 0.5);
     landAendern(w, "EU", { vertrauen: 1 });
   }
-  const cap = Math.max(1, Math.min(angebot.bau / Math.max(1, angebot.monate), bauKapazitaet(w)));
-  const monate = angebot.vorlauf + Math.max(angebot.monate, Math.ceil(angebot.bau / cap));
+  // Die Schätzung kommt aus derselben Rechnung wie die Baustelle: hinten in der Reihe, bei heutiger Kapazität
+  const termin = warteschlange(w).find((e) => e.id === id);
+  const cap = Math.max(1, Math.min(angebot.bau / Math.max(1, angebot.monate), poolKapazitaet(w, bauPool(v))));
+  const monate = termin?.fertigIn ?? angebot.vorlauf + Math.max(angebot.monate, Math.ceil(angebot.bau / cap));
   const weg = VERGABE_NAMEN[vergabe];
-  const text = tx("sim2.sim.reich.894d8f1", { p0: v.name, p1: weg, p2: monate, p3: monate === 1 ? tx("sim2.sim.reich.ida13625") : tx("sim2.sim.reich.i1c561ae") });
+  const platzText =
+    spitze.kosten > 0
+      ? tx("n6.bau.spitzeText", { kosten: spitze.kosten, liste: spitze.verdrangt.join(", ") })
+      : termin && termin.position > 1 && bauPool(v) !== "ohne"
+        ? tx("n6.bau.platz", { n: termin.position })
+        : "";
+  const text = tx("sim2.sim.reich.894d8f1", { p0: v.name, p1: weg, p2: monate, p3: monate === 1 ? tx("sim2.sim.reich.ida13625") : tx("sim2.sim.reich.i1c561ae") }) + platzText;
   const preis =
     vergabe === "stammfirma"
       ? tx("sim2.sim.reich.ec71455")
@@ -803,12 +873,88 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
   return { ok: true, text, why };
 }
 
+/** Anteil der Baupunkte, der je Monat Ruhe verfällt (Sicherung, Witterung, abgezogene Kolonnen). Spielparameter, keine Tatsache. */
+export const PAUSE_VERFALL = 0.005;
+
+/** Wie viele Baupunkte ein ruhendes Vorhaben je Monat verliert (nie mehr als den erreichten Fortschritt). */
+export function pauseVerlust(l: LaufEintrag, v: Vorhaben): number {
+  return Math.min(l.fortschritt, laufBau(l, v) * PAUSE_VERFALL);
+}
+
 export function pausiere(w: World, id: string, an: boolean): boolean {
   const l = reichZustand(w).laufend.find((x) => x.id === id);
   if (!l) return false;
   l.pausiert = an;
   return true;
 }
+
+/** Vertragsstrafe beim Aufgeben: Anteil der noch ausstehenden Schuldenlast des Vorhabens. Spielparameter, keine Tatsache. */
+export const AUFGABE_STRAFE = 0.15;
+/** Erstattung des Kapitalpreises, wenn noch kein Spatenstich erfolgt ist (Vergabephase oder noch kein Baupunkt). Spielparameter. */
+export const AUFGABE_ERSTATTUNG = 0.5;
+
+export interface AufgabeFolgen {
+  /** Kapital zurück (nur ohne Spatenstich) */
+  erstattung: number;
+  /** Schuldenquote in Prozentpunkten als Vertragsstrafe */
+  strafe: number;
+  /** Erreichte Baupunkte, die verloren gehen */
+  verlorenBau: number;
+  /** Anteil 0 bis 1, der fertig war */
+  anteil: number;
+  /** Eine angefangene Großbaustelle bleibt als Ruine stehen: Legitimität −0,5 */
+  ruine: boolean;
+}
+
+/** Was es kostet, ein laufendes Vorhaben aufzugeben; dieselbe Rechnung zeigt die Oberfläche vor dem Klick. */
+export function aufgabeFolgen(w: World, id: string): AufgabeFolgen | null {
+  const z = reichZustand(w);
+  const l = z.laufend.find((x) => x.id === id);
+  const v = vorhabenDef(id);
+  if (!l || !v) return null;
+  const bau = laufBau(l, v);
+  const anteil = bau > 0 ? clamp(l.fortschritt / bau, 0, 1) : 0;
+  const begonnen = l.fortschritt > 0 && !inVergabePhase(w, l);
+  const pk = l.start === "Spielbeginn" ? 0 : vergabeAngebot(v, laufVergabe(l)).pk;
+  const schulden = (v.kosten.schulden ?? 0) * VERGABE_REGELN[laufVergabe(l)].kosten;
+  return {
+    erstattung: begonnen ? 0 : Math.round(pk * AUFGABE_ERSTATTUNG * 10) / 10,
+    strafe: begonnen ? Math.round(schulden * (1 - anteil) * AUFGABE_STRAFE * 1000) / 1000 : 0,
+    verlorenBau: Math.round(l.fortschritt),
+    anteil,
+    ruine: begonnen && (v.klasse === "wunder" || v.klasse === "grossprojekt"),
+  };
+}
+
+/**
+ * Ein laufendes Vorhaben aufgeben (Befund F-4, GROSSPROJEKTE.md §5: „Ein Projekt kann … versenkt werden — mit bereits ausgegebenen
+ * Planungskosten“). Bezahltes Kapital und gebuchte Schulden sind verloren; vor dem Spatenstich kommt die Hälfte des Kapitals zurück.
+ * Nach dem Spatenstich verlangen die Firmen eine Vertragsstrafe, die Unternehmer verlieren Vertrauen, und eine Großbaustelle bleibt Ruine.
+ */
+export function gibAuf(w: World, id: string): { ok: boolean; text: string; why?: string } {
+  const spiel = w.spiel;
+  if (!spiel || spiel.ende) return { ok: false, text: tx("sim2.sim.reich.56f5ccf") };
+  const z = reichZustand(w);
+  const f = aufgabeFolgen(w, id);
+  const v = vorhabenDef(id);
+  if (!f || !v) return { ok: false, text: tx("n6.bau.aufgabeFehlt") };
+  z.laufend = z.laufend.filter((x) => x.id !== id);
+  if (v.ast && z.gewaehlt[v.ast] === id) delete z.gewaehlt[v.ast];
+  // Ein Programm für Provinzen gibt seinen Ort frei; ein freies Großprojekt geht zurück in den Entwurf
+  if (z.regional) for (const [k, e] of Object.entries(z.regional)) if (e.def.id === id && !z.bestand[id]) delete z.regional[k];
+  const frei = z.frei?.[id];
+  if (frei) frei.stand = "entwurf";
+  if (f.erstattung > 0) spiel.kapital += f.erstattung;
+  if (f.strafe > 0) bucheFinanzsaldo(w.economy, f.strafe);
+  if (f.anteil > 0 && f.erstattung === 0) wirke(w, "unternehmer", -1);
+  if (f.ruine) wirke(w, "legitimitaet", -0.5);
+  const text = tx("n6.bau.aufgegeben", { name: v.name });
+  const why = f.erstattung > 0 ? tx("n6.bau.aufgabeErstattet", { pk: zahl(f.erstattung) }) : tx("n6.bau.aufgabeVerloren", { bau: f.verlorenBau, strafe: zahl(f.strafe) });
+  meldung(w, "gescheitert", text);
+  addLog(w, "entscheidung", text, why);
+  return { ok: true, text, why };
+}
+
 
 /** Verwaltungskraft je überholter Position beim Vorziehen (Verdrängungspreis, INF-3). Spielparameter, keine Tatsache. */
 export const VORZIEHEN_VERWALTUNG = 10;
@@ -827,8 +973,11 @@ export function verschiebe(w: World, id: string, richtung: -1 | 1): VerschiebeEr
   const z = reichZustand(w);
   const l = z.laufend;
   const i = l.findIndex((x) => x.id === id);
-  const j = i + richtung;
-  if (i < 0 || j < 0 || j >= l.length) return { ok: false, grund: tx("sim2.sim.reich.6fef49a") };
+  // Getauscht wird mit dem Nachbarn im selben Engpass; ein Kampfjet überholt keine Straße
+  const pool = poolVon(id);
+  let j = i + richtung;
+  while (i >= 0 && j >= 0 && j < l.length && poolVon(l[j]!.id) !== pool) j += richtung;
+  if (i < 0 || j < 0 || j >= l.length || pool === "ohne") return { ok: false, grund: tx("sim2.sim.reich.6fef49a") };
   const andere = l[j]!;
   if (richtung === -1) {
     if (z.verwaltung < VORZIEHEN_VERWALTUNG) return { ok: false, grund: tx("sim2.sim.reich.8eb9ca2", { p0: VORZIEHEN_VERWALTUNG }) };
@@ -849,6 +998,8 @@ export function verschiebe(w: World, id: string, richtung: -1 | 1): VerschiebeEr
 
 export interface SchlangeEintrag {
   id: string;
+  /** Welche Kapazität das Vorhaben bindet; die Position zählt innerhalb dieses Engpasses */
+  pool: BauPool;
   /** Position in der Reihenfolge, 1 baut zuerst */
   position: number;
   vergabe: Vergabe;
@@ -871,7 +1022,7 @@ export interface SchlangeEintrag {
 export function warteschlange(w: World): SchlangeEintrag[] {
   const z = reichZustand(w);
   const plan = bauplan(w);
-  const kapazitaet = bauKapazitaet(w);
+  const kapazitaet: Record<BauPool, number> = { land: bauKapazitaet(w), ruestung: ruestungsKapazitaet(w), ohne: Number.POSITIVE_INFINITY };
   const verzug = z.verwaltung <= 0 ? 0.5 : 1;
   const ausstehend = new Map<string, number>();
   const vorlauf = new Map<string, number>();
@@ -887,7 +1038,7 @@ export function warteschlange(w: World): SchlangeEintrag[] {
   const fertigIn: Record<string, number | undefined> = {};
   const MAX_MONATE = 600;
   for (let m = 1; m <= MAX_MONATE; m++) {
-    let frei = kapazitaet;
+    const frei = { ...kapazitaet };
     let allesFertig = true;
     for (const l of z.laufend) {
       const v = vorhabenDef(l.id);
@@ -896,20 +1047,24 @@ export function warteschlange(w: World): SchlangeEintrag[] {
       if (rest <= 0) continue;
       allesFertig = false;
       if ((vorlauf.get(l.id) ?? 0) >= m) continue; // die Vergabephase läuft noch
-      const aufnahme = monatsBauleistung(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * tempo.get(l.id)!, frei, rest, verzug);
+      const pool = bauPool(v);
+      const aufnahme = monatsBauleistung(laufBau(l, v) / Math.max(1, laufMonate(l, v)) * tempo.get(l.id)!, frei[pool], rest, verzug);
       if (aufnahme <= 0) continue;
       if (startIn[l.id] === undefined) startIn[l.id] = m - 1;
       rest -= aufnahme;
-      frei -= aufnahme / verzug;
+      frei[pool] -= aufnahme / verzug;
       // Wie im echten Monatslauf ist das Projekt innerhalb der Rundungstoleranz fertig.
       ausstehend.set(l.id, rest <= 1e-6 ? 0 : rest);
       if (rest <= 1e-6) fertigIn[l.id] = m;
     }
     if (allesFertig) break;
   }
-  return z.laufend.map((l, i) => ({
+  // Die Position zählt innerhalb des Engpasses: In der Baustelle des Landes steht kein Kampfjet zwischen den Straßen
+  const zaehler: Record<BauPool, number> = { land: 0, ruestung: 0, ohne: 0 };
+  return z.laufend.map((l) => ({
     id: l.id,
-    position: i + 1,
+    pool: poolVon(l.id),
+    position: ++zaehler[poolVon(l.id)],
     vergabe: laufVergabe(l),
     pausiert: !!l.pausiert,
     vergabePhase: inVergabePhase(w, l),
@@ -1037,20 +1192,26 @@ export function reichMonat(w: World, _rng?: Rng): void {
   }
 
   // 2. Bau
-  let cap = bauKapazitaet(w);
+  const cap: Record<BauPool, number> = { land: bauKapazitaet(w), ruestung: ruestungsKapazitaet(w), ohne: Number.POSITIVE_INFINITY };
   let genutzt = 0;
   for (const l of [...z.laufend]) {
-    if (l.pausiert || inVergabePhase(w, l)) continue;
     const v = vorhabenDef(l.id);
     if (!v) continue;
+    // Eine ruhende Baustelle wird gesichert, aber das Begonnene leidet: je Monat verfällt ein Teil des Fortschritts (Spielparameter)
+    if (l.pausiert) {
+      l.fortschritt = Math.max(0, l.fortschritt - pauseVerlust(l, v));
+      continue;
+    }
+    if (inVergabePhase(w, l)) continue;
+    const pool = bauPool(v);
     const bau = laufBau(l, v);
     const rest = Math.max(0, bau - l.fortschritt);
     // Knoten des Wissensbaums: Forschungsetat, Bildung (Innovationsgrenze), Abwanderung, Schwerpunkt, Lizenz und Träger ändern das Tempo
     const monatsMax = (bau / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id);
-    const aufnahme = monatsBauleistung(monatsMax, cap, rest, verzug);
+    const aufnahme = monatsBauleistung(monatsMax, cap[pool], rest, verzug);
     l.fortschritt += aufnahme;
-    cap -= aufnahme / verzug;
-    genutzt += aufnahme;
+    cap[pool] -= aufnahme / verzug;
+    if (pool === "land") genutzt += aufnahme;
     // Stammfirma: Nähe ohne Wettbewerb nährt jeden Baumonat das Korruptionsrisiko (und damit die Affären-Ereignisse)
     if (laufVergabe(l) === "stammfirma") wirke(w, "korruption", STAMMFIRMA_KORRUPTION_MONAT);
     // Freie Großprojekte (INF-4): Die Schätzung ist ein Band. An der 35-%-Marke des Baus fällt der Wurf,
@@ -1306,12 +1467,12 @@ export function regionalVorschau(w: World, vorlageId: string, ort: number[] | nu
   if (!spiel) return { ok: false, grund: tx("sim2.sim.reich.186589c") };
   const z = reichZustand(w);
   const f = plan.faktoren;
-  const zahl = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2 });
   const umfang =
     f.art === "staetten"
       ? tx("sim2.sim.reich.6df8a5d", { p0: f.staetten, p1: ERBE.length })
       : tx("sim2.sim.reich.ddc4399", { p0: f.anteil < 0.01 ? tx("sim2.sim.reich.ic57dc53") : Math.round(f.anteil * 100) });
-  const preisschild = tx("sim2.sim.reich.95a1430", { p0: umfang, p1: zahl(f.pk), p2: zahl(f.bau), p3: zahl(f.monate), p4: plan.def.kosten.schulden ? ` · Schulden ×${zahl(f.schulden)}` : "" });
+  // Befund F-33: Anteile am landesweiten Programm in Prozent statt Multiplikatoren aus dem Modell („Kapital ×0,77“)
+  const preisschild = tx("sim2.sim.reich.95a1430", { p0: umfang, p1: Math.round(f.pk * 100), p2: Math.round(f.bau * 100), p3: Math.round(f.monate * 100) });
   const konflikt = regionalKonflikt(w, vorlageId, plan.provinzen);
   const voraus = plan.def.voraus.map((x) => pruefeVoraus(w, x));
   return {
@@ -1330,7 +1491,7 @@ export function regionalVorschau(w: World, vorlageId: string, ort: number[] | nu
 }
 
 /** Legt ein Vorhaben aus einer Vorlage für die gewählten Provinzen an und beginnt es. Dasselbe Vorhaben am selben Ort gibt es nur einmal. */
-export function beginneRegional(w: World, vorlageId: string, ort: number[] | null, vergabe: Vergabe = "ausschreibung"): { ok: boolean; text: string; why?: string; id?: string } {
+export function beginneRegional(w: World, vorlageId: string, ort: number[] | null, vergabe: Vergabe = "ausschreibung", platz: Platz = "ende"): { ok: boolean; text: string; why?: string; id?: string } {
   if (!w.spiel) return { ok: false, text: tx("sim2.sim.reich.186589c") };
   const plan = regionalPlan(w, vorlageId, ort);
   if (!plan.ok) return { ok: false, text: plan.grund };
@@ -1340,12 +1501,30 @@ export function beginneRegional(w: World, vorlageId: string, ort: number[] | nul
   (z.regional ??= {})[plan.def.id] = { vorlage: vorlageId, provinzen: plan.provinzen, def: plan.def, ...(plan.pflege ? { pflege: plan.pflege } : {}), angelegt: w.date } satisfies RegionalEintrag;
   registriereVorhaben(plan.def);
   if (plan.pflege) registriereVorhaben(plan.pflege);
-  const r = beginne(w, plan.def.id, vergabe);
+  const r = beginne(w, plan.def.id, vergabe, platz);
   if (!r.ok) {
     delete z.regional![plan.def.id];
     return r;
   }
   return { ...r, id: plan.def.id };
+}
+
+/** Gefährdete Stätten: unter diesem Zustand gilt eine Provinz für Restaurierungsprogramme als akut (Spielparameter, wie die Plakette „gefährdet“). */
+export const STAETTE_AKUT = 45;
+
+/**
+ * „Wo es akut ist“ für eine Vorlage (Befund F-15): Restaurierungsprogramme nach den Provinzen mit gefährdeten Stätten (Hasankeyf, Antakya …),
+ * alle anderen nach den Problemknoten ihrer Maßnahme wie in der Politik. Vorher wählte die Restaurierung dieselben Großstädte wie der Wohnungsbau.
+ */
+export function akuteOrteVorlage(w: World, vorlageId: string): number[] | null {
+  const v = vorhabenDef(vorlageId);
+  if (!v?.vorlage) return null;
+  if (v.vorlage.nach === "staetten") {
+    const z = reichZustand(w);
+    const p = [...new Set(ERBE.filter((e) => (z.staetten[e.id]?.zustand ?? 100) < STAETTE_AKUT).map((e) => e.plaka))].sort((a, b) => a - b);
+    return p.length ? p : null;
+  }
+  return akuteOrte(w, v.vorlage.massnahme);
 }
 
 /** Ein Ort auf der Karte: eine Baustelle oder ein fertiges Projekt. Die Oberfläche (ui/Stage.tsx, `orte`) kann diese Liste anstelle der festen Vorhaben lesen. */
