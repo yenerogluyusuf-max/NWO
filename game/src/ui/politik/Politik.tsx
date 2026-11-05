@@ -23,7 +23,8 @@ import { t } from "../../i18n";
 import { t as tx } from "../../i18n";
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 
-const AMPEL_WORT: Record<Ampel, string> = { gruen: "ruhig", gelb: "Achtung", rot: "angespannt" };
+// Wörter der Ampel aus dem Katalog (früher fest auf Deutsch); als Proxy, damit jede Stelle die aktuelle Sprache liest
+const AMPEL_WORT = new Proxy({} as Record<Ampel, string>, { get: (_, a: string) => t(`pd.ampel.${a}`) });
 const AMPEL_PILL: Record<Ampel, string> = { gruen: "gut", gelb: "warn", rot: "schlecht" };
 
 /** Was geöffnet ist: ein Knoten des Netzes (Maßnahme, Größe, Problem) mit voreingestellter Stufe und Ort. */
@@ -250,7 +251,7 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
         <ul className="pd-zaehler" aria-label={t("ui.politik.Politik.8eec19c")}>
           <li className={zahl("rot") > 0 ? "hell rot" : ""}>
             <b>{zahl("rot")}</b>
-            <span>angespannt</span>
+            <span>{t("pd.ampel.rot")}</span>
           </li>
           <li>
             <b>{zahl("gelb")}</b>
@@ -258,7 +259,7 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
           </li>
           <li>
             <b>{zahl("gruen")}</b>
-            <span>ruhig</span>
+            <span>{t("pd.ampel.gruen")}</span>
           </li>
           <li>
             <b>{akutGesamt}</b>
@@ -266,35 +267,22 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
           </li>
         </ul>
       </header>
-      <div className="pd-kacheln">
+      {/* AP 8: die Bereiche als Kreise, ein Bild statt 15 Karten. Farbe nach Ampel, rote Zahl = akute Probleme; Klick öffnet den Bereich */}
+      <ul className="pd-kreise" aria-label={t("pd.kreise")}>
         {sortiert.map((k) => (
-          <button key={k.theme} className={`pd-kachel ${k.ampel}`} onClick={() => onWaehle(k.theme)}>
-            <span className="pd-kachel-kopf">
-              <Medaille name={embleme(k.theme)} groesse="klein" />
+          <li key={k.theme}>
+            <button type="button" className={`pd-kreis ${k.ampel}`} onClick={() => onWaehle(k.theme)}
+              title={`${k.name}: ${AMPEL_WORT[k.ampel]}. ${k.ampelGrund ?? ""}\n${k.signale.map((x) => `${x.name} ${Math.round(x.jetzt)}`).join(" · ")}`}>
+              <span className="pd-kreis-rund">
+                <Emblem name={embleme(k.theme)} size={34} />
+                {k.akut > 0 && <em className="pd-kreis-akut" aria-label={t("pd.akut", { n: k.akut })}>{k.akut}</em>}
+              </span>
               <strong>{k.name}</strong>
-            </span>
-            <span className="pd-kachel-stand" title={k.ampelGrund}>
-              <span className={`pd-pill ${AMPEL_PILL[k.ampel]}`}>{AMPEL_WORT[k.ampel]}</span>
-              {k.akut > 0 && <span className="pd-chip schlecht">{k.akut} akut</span>}
-              {k.laufend > 0 && <span className="pd-chip" title={`${k.laufend} ${k.laufend === 1 ? "Vorhaben läuft" : "Vorhaben laufen"}`}>{tx("ui2.ui.politik.Politik.790441d", { p0: k.laufend })}</span>}
-            </span>
-            <span className="pd-kachel-text">{k.text}</span>
-            <ul className="pd-signale">
-              {k.signale.map((s) => (
-                <li key={s.id}>
-                  <span className="pd-signal-name">{s.name}</span>
-                  <span className={`pd-mini b-${s.bewertung}`} aria-hidden>
-                    <i style={{ width: `${Math.max(0, Math.min(100, s.jetzt))}%` }} />
-                  </span>
-                  <strong>
-                    {Math.round(s.jetzt)} <Trend z={s} />
-                  </strong>
-                </li>
-              ))}
-            </ul>
-          </button>
+              <small>{AMPEL_WORT[k.ampel]}{k.laufend > 0 ? ` · ${t("pd.laufend", { n: k.laufend })}` : ""}</small>
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </>
   );
 }
