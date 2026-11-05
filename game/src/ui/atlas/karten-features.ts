@@ -1,4 +1,6 @@
-// Strategische 3D-Kartenfeatures: Megaprojekte, seismische Verwerfungslinien und taktische Frontlinien.
+// Strategische 3D-Kartenfeatures: Megaprojekte und seismische Verwerfungslinien.
+// Feste „taktische Fronten“ (Syrischer Korridor, Pençe-Kilit, Ägäis, Grüne Linie) gibt es nicht mehr: Sie standen immer als „aktiv“
+// auf der Karte, gleich was im Spiel geschah (Rückmeldung des Projektinhabers 5. November). Fronten zeigt nur ein echter Krieg (kriegsfx.ts).
 // Unterstützt HOI4-artige Frontabschnitts-Glows, Civ-artige Weltwunder/Großprojekte und seismische Risiko-Visualisierung.
 
 import type { World } from "../../sim/types";
@@ -12,16 +14,6 @@ export interface BruchlinieDef {
   nameEn: string;
   typ: "hauptverwerfung" | "nebenverwerfung";
   risiko: number; // 0..1
-  punkte: [lon: number, lat: number][];
-}
-
-export interface TaktikFrontDef {
-  id: string;
-  name: string;
-  nameTr: string;
-  nameEn: string;
-  status: "aktiv" | "befestigt" | "patrouille" | "puffer";
-  bedrohung: number; // 0..1
   punkte: [lon: number, lat: number][];
 }
 
@@ -109,78 +101,6 @@ export const BRUCHLINIEN: BruchlinieDef[] = [
       [27.85, 37.85], // Aydın
       [28.50, 37.90], // Nazilli
       [29.10, 37.78], // Pamukkale / Denizli
-    ],
-  },
-];
-
-/** Taktische Frontabschnitte und Pufferzonen (HOI4-Stil) */
-export const TAKTIK_FRONTEN: TaktikFrontDef[] = [
-  // Syrischer Sicherheitskorridor (Pufferzone Operation Fırat Kalkanı / Barış Pınarı / Zeytin Dalı)
-  {
-    id: "front_syr_korridor",
-    name: "Syrischer Sicherheitskorridor (30-km-Pufferzone)",
-    nameTr: "Suriye Güvenli Bölge ve Harekât Koridoru",
-    nameEn: "Syrian Northern Security Corridor (Buffer Zone)",
-    status: "aktiv",
-    bedrohung: 0.85,
-    punkte: [
-      [36.35, 36.55], // Afrin-Westriegel
-      [36.90, 36.60], // Kilis-Azaz-Grenzabschnitt
-      [37.50, 36.70], // Jarablus / Euphrat-Übergang
-      [38.30, 36.75], // Kobane-Südriegel
-      [38.95, 36.70], // Tel Abyad
-      [39.90, 36.85], // Ras al-Ayn
-      [41.20, 37.05], // Qamishli-Nordpuffer
-      [42.15, 37.15], // Cizre / Dreiländereck
-    ],
-  },
-  // Nordirak Grenzriegel (Operation Pençe-Kilit / Bergfestungen)
-  {
-    id: "front_irq_pence",
-    name: "Nordirak-Grenzsicherungslinie (Pençe-Kilit)",
-    nameTr: "Kuzey Irak Pençe-Kilit Güvenlik Hattı",
-    nameEn: "Northern Iraq Border Denial Line (Claw-Lock)",
-    status: "befestigt",
-    bedrohung: 0.75,
-    punkte: [
-      [42.50, 37.25], // Haftanin-Sektor
-      [43.20, 37.15], // Metina / Zap-Tal
-      [43.80, 37.10], // Avasin-Basyan
-      [44.30, 37.05], // Hakurk
-      [44.80, 36.95], // Qandil-Vorpostenkette
-    ],
-  },
-  // Ägäis Demarkations- & Fluggrenze (FIR / Schelfgrenze)
-  {
-    id: "front_aeg_demark",
-    name: "Ägäis-Demarkation & Mavi-Vatan-Riegel",
-    nameTr: "Ege Demarkasyon Hattı ve Mavi Vatan Koruma Sahası",
-    nameEn: "Aegean Demarcation Line & Maritime Buffer",
-    status: "patrouille",
-    bedrohung: 0.65,
-    punkte: [
-      [25.80, 40.50], // Samothraki-Nordsee
-      [25.40, 39.80], // Lemnos-Ostkorridor
-      [25.60, 39.00], // Lesbos-Westsektor
-      [25.80, 38.30], // Chios-Passage
-      [26.40, 37.50], // Samos-Ikaria-Gürtel
-      [26.80, 36.80], // Kos / Dodekanes
-      [27.60, 36.00], // Rhodos-Westrand
-    ],
-  },
-  // Zypern Grüne Linie (BM-Waffenstillstandszone)
-  {
-    id: "front_cyp_greenline",
-    name: "Zypern-Waffenstillstandslinie (Grüne Linie)",
-    nameTr: "Kıbrıs Yeşil Hat (BM Tampon Bölgesi)",
-    nameEn: "Cyprus Ceasefire Line (UN Buffer Zone)",
-    status: "puffer",
-    bedrohung: 0.5,
-    punkte: [
-      [32.80, 35.15], // Morphou-Bucht
-      [33.36, 35.17], // Nikosia-Zentrum
-      [33.95, 35.08], // Dhekelia
-      [34.00, 35.03], // Famagusta-Rand
     ],
   },
 ];
@@ -318,74 +238,6 @@ export function zeichneBruchlinien(
     ctx.strokeStyle = f.typ === "hauptverwerfung" ? "#b31e12" : "#c96818";
     ctx.lineWidth = f.typ === "hauptverwerfung" ? 2.5 : 1.6;
     ctx.setLineDash(f.typ === "hauptverwerfung" ? [6, 4] : [4, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  ctx.restore();
-}
-
-/** Zeichnet Frontlinien im HOI4-Stil mit taktischem Glow und Schraffur */
-export function zeichneTaktikFronten(
-  ctx: CanvasRenderingContext2D,
-  atlas: AtlasScene,
-  relief: Relief,
-  options: ZeichneFeaturesOptions,
-): void {
-  const { zeit, ebene, kriegAktiv } = options;
-  // Sichtbar bei Kartenebene "probleme", "welt" oder aktivem Krieg/Militärkrise
-  const sichtbar = ebene === "probleme" || ebene === "welt" || !!kriegAktiv;
-  if (!sichtbar) return;
-
-  const puls = 0.5 + 0.5 * Math.sin(zeit * 0.0025);
-  ctx.save();
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-
-  for (const front of TAKTIK_FRONTEN) {
-    const coords: { x: number; y: number; sichtbar: boolean }[] = [];
-    for (const [lon, lat] of front.punkte) {
-      const [u, v] = lonLatToUv(relief, lon, lat);
-      coords.push(atlas.project(u, v));
-    }
-    if (coords.length < 2 || !coords.some((c) => c.sichtbar)) continue;
-
-    // 1. Taktischer Neon-Bloom / Glow
-    ctx.beginPath();
-    let first = true;
-    for (const pt of coords) {
-      if (first) {
-        ctx.moveTo(pt.x, pt.y);
-        first = false;
-      } else {
-        ctx.lineTo(pt.x, pt.y);
-      }
-    }
-    const farbeGlow = front.status === "aktiv"
-      ? `rgba(235, 60, 40, ${(0.3 + 0.3 * puls).toFixed(2)})`
-      : front.status === "befestigt"
-        ? `rgba(220, 160, 30, ${(0.25 + 0.25 * puls).toFixed(2)})`
-        : `rgba(60, 150, 230, ${(0.25 + 0.2 * puls).toFixed(2)})`;
-
-    ctx.strokeStyle = farbeGlow;
-    ctx.lineWidth = 10;
-    ctx.stroke();
-
-    // 2. Militärischer Bandstreifen (HOI4-Frontkante)
-    ctx.beginPath();
-    first = true;
-    for (const pt of coords) {
-      if (first) {
-        ctx.moveTo(pt.x, pt.y);
-        first = false;
-      } else {
-        ctx.lineTo(pt.x, pt.y);
-      }
-    }
-    const farbeKern = front.status === "aktiv" ? "#cf2e20" : front.status === "befestigt" ? "#d48d1c" : "#2e7fc9";
-    ctx.strokeStyle = farbeKern;
-    ctx.lineWidth = 3;
-    ctx.setLineDash([8, 5]);
     ctx.stroke();
     ctx.setLineDash([]);
   }

@@ -625,7 +625,6 @@ export function AtlasMap({
     const c = ctx.current;
     const fx = fxRef.current;
     if (!ready || !c || !fx) return;
-    c.vector.setTaktikFronten(!krieg?.aktiv);
     if (!krieg) {
       fx.setKrieg(null);
       wecke(300);

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { BRUCHLINIEN, TAKTIK_FRONTEN, MEGAPROJEKTE_DETAILS } from "../src/ui/atlas/karten-features";
+import { BRUCHLINIEN, MEGAPROJEKTE_DETAILS } from "../src/ui/atlas/karten-features";
 
 describe("Strategische 3D-Kartenfeatures", () => {
   test("Bruchlinien enthalten NAF und EAF mit validen Koordinaten", () => {
@@ -25,26 +25,6 @@ describe("Strategische 3D-Kartenfeatures", () => {
         expect(lat).toBeLessThan(43);
       }
     }
-  });
-
-  test("Taktische Fronten decken Syrien, Irak, Ägäis und Zypern ab", () => {
-    expect(TAKTIK_FRONTEN.length).toBeGreaterThanOrEqual(4);
-    const syr = TAKTIK_FRONTEN.find((f) => f.id === "front_syr_korridor");
-    expect(syr).toBeDefined();
-    expect(syr!.status).toBe("aktiv");
-    expect(syr!.punkte.length).toBeGreaterThan(5);
-
-    const irq = TAKTIK_FRONTEN.find((f) => f.id === "front_irq_pence");
-    expect(irq).toBeDefined();
-    expect(irq!.status).toBe("befestigt");
-
-    const aeg = TAKTIK_FRONTEN.find((f) => f.id === "front_aeg_demark");
-    expect(aeg).toBeDefined();
-    expect(aeg!.status).toBe("patrouille");
-
-    const cyp = TAKTIK_FRONTEN.find((f) => f.id === "front_cyp_greenline");
-    expect(cyp).toBeDefined();
-    expect(cyp!.status).toBe("puffer");
   });
 
   test("Megaprojekte enthalten Kanal Istanbul, Akkuyu, Atatürk-Damm und Meerengen-Brücken", () => {

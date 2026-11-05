@@ -15,7 +15,7 @@ import { fuegeZusammen, imPunkt, ladeMeta, ladeStufe, type KBesitzer, type KFlae
 import { PROVINZEN } from "../../sim/regional";
 import { Beschriftung } from "./beschriftung";
 import type { Kartenebene } from "../ebenen";
-import { BRUCHLINIEN, TAKTIK_FRONTEN, MEGAPROJEKTE_DETAILS } from "./karten-features";
+import { BRUCHLINIEN, MEGAPROJEKTE_DETAILS } from "./karten-features";
 
 export interface BezirkInfo {
   name: string;
@@ -818,9 +818,6 @@ export class VectorLayer {
     // Seismische Verwerfungslinien (Bruchlinien bei Katastrophenrisiko / Probleme)
     this.drawBruchlinien(z, st.ebene);
 
-    // Taktische Frontabschnitte & Pufferzonen (HOI4-Stil)
-    this.drawFrontlinien(z, st.ebene);
-
     // Megaprojekte (Kanal Istanbul, Çanakkale-, Osmangazi-Brücke, Atatürk-Staudamm)
     this.drawMegaprojekte(z);
 
@@ -1009,50 +1006,6 @@ export class VectorLayer {
       ctx.strokeStyle = f.typ === "hauptverwerfung" ? "#a81e14" : "#b85c18";
       ctx.lineWidth = (f.typ === "hauptverwerfung" ? 2.0 : 1.4) * z;
       ctx.setLineDash(f.typ === "hauptverwerfung" ? [6 * z, 3.5 * z] : [4 * z, 3 * z]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    ctx.restore();
-  }
-
-  /** Die festen Sicherheitslinien (karten-features.ts) weichen, solange ein Krieg seine eigene Front zeigt (kriegsfx.ts). */
-  private ohneTaktikFronten = false;
-  setTaktikFronten(an: boolean): void {
-    if (this.ohneTaktikFronten === !an) return;
-    this.ohneTaktikFronten = !an;
-    this.dirty = true;
-  }
-
-  private drawFrontlinien(z: number, ebene: Kartenebene): void {
-    if (this.ohneTaktikFronten) return;
-    if (ebene !== "welt" && ebene !== "probleme" && ebene !== "gelaende") return;
-    const { ctx, atlas, relief } = this;
-    ctx.save();
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    for (const front of TAKTIK_FRONTEN) {
-      const coords: { x: number; y: number; sichtbar: boolean }[] = [];
-      for (const [lon, lat] of front.punkte) {
-        const [u, v] = lonLatToUv(relief, lon, lat);
-        coords.push(atlas.project(u, v));
-      }
-      if (coords.length < 2 || !coords.some((c) => c.sichtbar)) continue;
-
-      // Front-Glow
-      ctx.beginPath();
-      coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
-      const farbeGlow = front.status === "aktiv" ? "rgba(235, 55, 35, 0.35)" : front.status === "befestigt" ? "rgba(220, 160, 30, 0.3)" : "rgba(60, 150, 230, 0.25)";
-      ctx.strokeStyle = farbeGlow;
-      ctx.lineWidth = 6 * z;
-      ctx.stroke();
-
-      // Taktische gestrichelte Frontlinie
-      ctx.beginPath();
-      coords.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
-      const farbeKern = front.status === "aktiv" ? "#c92416" : front.status === "befestigt" ? "#c47f16" : "#246eb5";
-      ctx.strokeStyle = farbeKern;
-      ctx.lineWidth = 2.4 * z;
-      ctx.setLineDash([7 * z, 4.5 * z]);
       ctx.stroke();
       ctx.setLineDash([]);
     }
