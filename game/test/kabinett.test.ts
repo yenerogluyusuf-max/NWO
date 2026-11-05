@@ -18,11 +18,11 @@ function welt(): ReturnType<typeof createWorld> {
 }
 
 describe("Ministerrat (Bakanlar Kurulu) – Simulation & Democracy-4-Kopplung", () => {
-  test("KabinettStatus erfasst die 7 Regierungsminister korrekt", () => {
+  test("KabinettStatus erfasst die 17 Ministerien, Präsidialamt und Generalstab (ENTSCHEIDUNGEN W 1)", () => {
     const w = welt();
     const st = kabinettStatus(w);
 
-    expect(st.minister.length).toBe(7);
+    expect(st.minister.length).toBe(19);
     const aemter = st.minister.map((m) => m.amt);
     expect(aemter).toContain("finanzen");
     expect(aemter).toContain("inneres");

@@ -105,32 +105,34 @@ function posten(r: Roh): PostenDef {
   return def;
 }
 
+// Zuständig (amt) ist das Ministerium nach ENTSCHEIDUNGEN W 1 (data/ministerien.ts). Investitionen und Subventionen bleiben beim
+// Industrieministerium, das für sie wirbt; das Gesamtrad zeigt sie als ressortübergreifend (Plan Teil 4).
 export const POSTEN: PostenDef[] = [
-  posten({ id: "rentenniveau", seite: "ausgabe", gruppe: "renten", amt: "stab", unbeliebt: -1, plan: "uebertragungen",
+  posten({ id: "rentenniveau", seite: "ausgabe", gruppe: "renten", amt: "arbeit", unbeliebt: -1, plan: "uebertragungen",
     sofort: [st("rentner", 2), st("arbeitnehmer", 0.3)], dauer: [s("rentenniveau", 1.2), s("armut", -0.6), s("sozialkassen", 0.8)] }),
-  posten({ id: "rentenalter", seite: "ausgabe", gruppe: "renten", amt: "stab", unbeliebt: 1, plan: "uebertragungen",
+  posten({ id: "rentenalter", seite: "ausgabe", gruppe: "renten", amt: "arbeit", unbeliebt: 1, plan: "uebertragungen",
     sofort: [st("rentner", -1.5), st("arbeitnehmer", -2)], dauer: [s("sozialkassen", 0.8), s("fachkraefte", 0.3), s("jugendarbeitslosigkeit", 0.3)] }),
-  posten({ id: "sozialhilfe", seite: "ausgabe", gruppe: "soziales", amt: "stab", unbeliebt: -1, plan: "uebertragungen",
+  posten({ id: "sozialhilfe", seite: "ausgabe", gruppe: "soziales", amt: "familie", unbeliebt: -1, plan: "uebertragungen",
     sofort: [st("arme", 1.5), st("arbeitnehmer", 0.5)], dauer: [s("armut", -1), s("ungleichheit", -0.4), s("geburtenrate", 0.2), s("informelle_arbeit", 0.2)] }),
-  posten({ id: "gesundheit", seite: "ausgabe", gruppe: "dienste", amt: "stab", unbeliebt: -1,
+  posten({ id: "gesundheit", seite: "ausgabe", gruppe: "dienste", amt: "gesundheit", unbeliebt: -1,
     sofort: [st("rentner", 0.5), st("arbeitnehmer", 0.5)], dauer: [s("gesundheitsversorgung", 1), s("wartezeiten", -1.2), s("aerzte", 0.4), s("lebenserwartung", 0.3)] }),
-  posten({ id: "bildung", seite: "ausgabe", gruppe: "dienste", amt: "stab", unbeliebt: -1,
+  posten({ id: "bildung", seite: "ausgabe", gruppe: "dienste", amt: "bildung", unbeliebt: -1,
     sofort: [st("junge", 1)], dauer: [s("bildungsqualitaet", 0.8), s("schulabbruch", -0.5), s("hochschule", 0.4), s("fachkraefte", 0.4)] }),
   posten({ id: "forschung", seite: "ausgabe", gruppe: "dienste", amt: "wirtschaft", unbeliebt: -1,
     sofort: [st("junge", 0.3), st("unternehmer", 0.3)], dauer: [s("hochschule", 0.5), s("produktivitaet", 0.3), s("abwanderung", -0.4), s("modernisierung", 0.2)] }),
-  posten({ id: "verteidigung", seite: "ausgabe", gruppe: "sicherheit", amt: "generalstab", unbeliebt: -1,
+  posten({ id: "verteidigung", seite: "ausgabe", gruppe: "sicherheit", amt: "verteidigung", unbeliebt: -1,
     sofort: [st("konservative", 1), st("nationalisten", 1)], dauer: [s("militaer", 0.8), s("abschreckung", 0.6), s("bereitschaft_heer", 0.4), s("modernisierung", 0.3), s("ruestungsautarkie", 0.2), s("beziehungen_eu", -0.1)] }),
   posten({ id: "innere_sicherheit", seite: "ausgabe", gruppe: "sicherheit", amt: "inneres", unbeliebt: -1,
     sofort: [st("konservative", 0.5)], dauer: [s("kriminalitaet", -0.5), s("terrorgefahr", -0.4), s("pressefreiheit", -0.1)] }),
   posten({ id: "investitionen", seite: "ausgabe", gruppe: "wirtschaft", amt: "wirtschaft", unbeliebt: -1, plan: "investitionen",
     sofort: [st("unternehmer", 1)], dauer: [s("bauwirtschaft", 2), s("wachstum_regional", 0.6), s("verkehrsnetz", 0.8), s("produktivitaet", 0.4), s("stau", -0.3)] }),
-  posten({ id: "wohnen", seite: "ausgabe", gruppe: "wirtschaft", amt: "wirtschaft", unbeliebt: -1,
+  posten({ id: "wohnen", seite: "ausgabe", gruppe: "wirtschaft", amt: "umwelt", unbeliebt: -1,
     sofort: [st("junge", 0.5)], dauer: [s("wohnungsbau", 0.8), s("mieten", -0.6), s("erdbebenvorsorge", 0.3), s("bauwirtschaft", 0.3)] }),
-  posten({ id: "landwirtschaft", seite: "ausgabe", gruppe: "wirtschaft", amt: "wirtschaft", unbeliebt: -1,
+  posten({ id: "landwirtschaft", seite: "ausgabe", gruppe: "wirtschaft", amt: "landwirtschaft", unbeliebt: -1,
     sofort: [st("landwirte", 1.5)], dauer: [s("landwirtschaft_einkommen", 0.8), s("ernte", 0.3), s("landflucht", -0.3), s("lebensmittelpreise", -0.3)] }),
-  posten({ id: "umwelt_energie", seite: "ausgabe", gruppe: "wirtschaft", amt: "wirtschaft", unbeliebt: -1,
+  posten({ id: "umwelt_energie", seite: "ausgabe", gruppe: "wirtschaft", amt: "energie", unbeliebt: -1,
     sofort: [st("junge", 0.3), st("staedtische_saekulare", 0.3)], dauer: [s("erneuerbare", 0.6), s("luftqualitaet", 0.4), s("klimaschutz", 0.6), s("stromversorgung", 0.2)] }),
-  posten({ id: "kultur", seite: "ausgabe", gruppe: "staat", amt: "stab", unbeliebt: -1,
+  posten({ id: "kultur", seite: "ausgabe", gruppe: "staat", amt: "kultur", unbeliebt: -1,
     sofort: [st("konservative", 0.3), st("staedtische_saekulare", 0.3)], dauer: [s("kulturerbe", 0.6), s("identitaet", 0.3), s("tourismus", 0.3)] }),
   posten({ id: "justiz", seite: "ausgabe", gruppe: "staat", amt: "justiz", unbeliebt: -1,
     sofort: [st("beamte", 0.3)], dauer: [s("justizvertrauen", 0.6), s("rechtssicherheit", 0.3)] }),
@@ -315,7 +317,7 @@ export function ministerWunsch(w: World, id: string): number {
   if (!p || p.seite !== "ausgabe") return 0;
   if (p.id === "rentenalter") return 0;
   if (p.id === "personal") return -1; // das Finanzministerium will den eigenen Apparat schlanker
-  const basis = p.amt === "generalstab" ? 2 : 1;
+  const basis = p.amt === "verteidigung" ? 2 : 1;
   return Math.min(p.max, basis + Math.floor(stabilerWert(w, `hh-wunsch|${p.id}`) * 3));
 }
 

@@ -1,6 +1,6 @@
 import { bucheFinanzsaldo } from "./staatsgeld";
 // Der Ministerrat (Bakanlar Kurulu): Kollegialorgan der Regierung nach Vorbild von Democracy 4 und Suzerain.
-// Das Kabinett besteht aus den 7 Regierungsämtern (Finanzen, Inneres, Äußeres, Justiz, Generalstab, Wirtschaft, Stab).
+// Das Kabinett besteht aus den 17 Ministerien, dem Präsidialamt und dem Generalstab (ENTSCHEIDUNGEN W 1).
 // Die Minister erzeugen das Politische Kapital der Regierung, tragen Ressortkonflikte aus und beraten in Kabinettssitzungen.
 // Alle Zahlen sind Spielparameter (Kalibrierungs-Platzhalter), keine Tatsachenbehauptungen.
 
@@ -15,6 +15,7 @@ import { Rng } from "./rng";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
 import { t } from "../i18n";
+import { MINISTERIEN } from "../data/ministerien";
 
 export interface MinisterPosten {
   id: string;
@@ -70,15 +71,12 @@ export interface KabinettThema {
   optionen: KabinettOption[];
 }
 
-const REIHENFOLGE_KABINETT: Figur["amt"][] = [
-  "stab",
-  "finanzen",
-  "inneres",
-  "aussen",
-  "justiz",
-  "generalstab",
-  "wirtschaft",
-];
+/** Sitzordnung: Präsidialamt, die 17 Ministerien in der amtlichen Reihenfolge (data/ministerien.ts), der Generalstab als Gast. */
+const REIHENFOLGE_KABINETT: Figur["amt"][] = ["stab", ...MINISTERIEN.map((m) => m.id), "generalstab"];
+
+/** Entscheidung F3 (ENTSCHEIDUNGEN W, Nachtrag): Die Summe des Kabinettskapitals bleibt die der sieben Ämter vor dem Umbau;
+ *  jeder Beitrag zählt 7 / Zahl der beitragenden Ämter (17: die Ministerien ohne Jugend und Handel, dazu Präsidialamt und Generalstab). */
+export const KAPITAL_GEWICHT = 7 / Object.values(AEMTER).filter((a) => a.regierungsamt && !a.ohneKapital).length;
 
 export function stimmungVon(loyalitaet: number, groll: number): MinisterPosten["stimmung"] {
   if (loyalitaet < 25 || groll >= 70) return "meuternd";
@@ -90,6 +88,7 @@ export function stimmungVon(loyalitaet: number, groll: number): MinisterPosten["
 
 /** Berechnet den monatlichen Kapital-Beitrag eines Ministers (Democracy-4-Mechanik) */
 export function berechneMinisterKapital(w: World, f: Figur): { beitrag: number; grund: string } {
+  if (AEMTER[f.amt].ohneKapital) return { beitrag: 0, grund: t("kab.grund.ohneHebel") };
   const e = eigenVon(w, f);
   const loy = f.loyalitaet;
   const q = leistung(w, f); // 0 bis 1.3, Normwert ca. 0.65
@@ -109,8 +108,8 @@ export function berechneMinisterKapital(w: World, f: Figur): { beitrag: number; 
   // Kommissarische Amtsführung: fehlt die Autorität im Ministerium
   if (e.kommissarisch) beitrag *= 0.55;
 
-  // Runden auf eine Dezimalstelle
-  beitrag = Math.round(clamp(beitrag, -0.3, 1.2) * 10) / 10;
+  // Runden auf eine Dezimalstelle wie vor dem Umbau, dann gewichtet (F3) und auf zwei Stellen
+  beitrag = Math.round(Math.round(clamp(beitrag, -0.3, 1.2) * 10) * KAPITAL_GEWICHT * 10) / 100;
 
   let grund = t("kab.grund.leistung", { p: Math.round(q * 100) });
   if (loy < 30) grund += t("kab.grund.verweigert");
@@ -176,7 +175,7 @@ export function kabinettStatus(w: World): KabinettStatus {
     };
   });
 
-  const kapitalSumme = Math.round(minister.reduce((sum, m) => sum + m.kapitalBeitrag, 0) * 10) / 10;
+  const kapitalSumme = Math.round(minister.reduce((sum, m) => sum + m.kapitalBeitrag, 0) * 100) / 100;
   const schnittLoyalitaet = minister.length
     ? Math.round(minister.reduce((sum, m) => sum + m.loyalitaet, 0) / minister.length)
     : 50;
@@ -189,10 +188,13 @@ export function kabinettStatus(w: World): KabinettStatus {
   let disziplin: KabinettStatus["disziplin"] = "geschlossen";
   let disziplinText = t("kab.disziplin.geschlossen");
 
-  if (ruecktrittGefahr.length >= 2 || schnittLoyalitaet < 35) {
+  // Die Schwellen galten für sieben Ämter (zwei Abtrünnige: rebellisch, einer: gespalten); mit mehr Ämtern wachsen sie anteilig (F3)
+  const grenzeRebellisch = Math.max(2, Math.round((2 * minister.length) / 7));
+  const grenzeGespalten = Math.max(1, Math.round(minister.length / 7));
+  if (ruecktrittGefahr.length >= grenzeRebellisch || schnittLoyalitaet < 35) {
     disziplin = "rebellisch";
     disziplinText = t("kab.disziplin.rebellisch");
-  } else if (ruecktrittGefahr.length === 1 || schnittLoyalitaet < 48) {
+  } else if (ruecktrittGefahr.length >= grenzeGespalten || schnittLoyalitaet < 48) {
     disziplin = "gespalten";
     disziplinText = t("kab.disziplin.gespalten");
   } else if (schnittLoyalitaet < 65) {

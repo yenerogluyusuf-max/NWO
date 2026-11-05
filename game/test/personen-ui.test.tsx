@@ -29,9 +29,9 @@ describe("Ministerkarten", () => {
   const w = welt();
   const html = renderToStaticMarkup(createElement(MinisterratSaal, { world: w, refresh: () => {}, onWaehlePerson: () => {} }));
 
-  test("alle sieben Karten haben denselben Aufbau in derselben Reihenfolge", () => {
+  test("alle 19 Karten (17 Ministerien, Präsidialamt, Generalstab) haben denselben Aufbau in derselben Reihenfolge", () => {
     const karten = html.split('<article class="mr-karte').slice(1);
-    expect(karten).toHaveLength(7);
+    expect(karten).toHaveLength(19);
     const aufbau = karten.map((k) => klassen(k.split("</article>")[0]!, /<(?:header|div|footer) class="(mr-(?:k-[a-z]+|kapital-feld|sorge-box|titel-block))/g).join(" > "));
     expect(new Set(aufbau).size).toBe(1);
     expect(aufbau[0]).toContain("mr-k-kopf");
@@ -58,13 +58,13 @@ describe("Ministerkarten", () => {
   test("das Wort zur Loyalität ist dasselbe wie im Umfeld, Zahl und Wort stehen zusammen", () => {
     // haltung(): loyal / verlässlich / distanziert / verärgert / kurz vor dem Bruch
     const worte = klassen(html, /pe-balken-kopf"><span>Loyalität<\/span><em>([^<]+)<\/em>/g);
-    expect(worte).toHaveLength(7);
+    expect(worte).toHaveLength(19);
     for (const x of worte) expect(x).toMatch(/^\d+ · (loyal|verlässlich|distanziert|verärgert|kurz vor dem Bruch)$/);
   });
 
   test("Kapital-Ertrag: Zahl, Vorzeichen und Einheit in einem Element", () => {
     const werte = klassen(html, /class="mr-kapital-wert[^"]*">([^<]+)</g);
-    expect(werte).toHaveLength(7);
+    expect(werte).toHaveLength(19);
     for (const x of werte) expect(x).toMatch(/^[+−-]?\d+,\d Kapital\/Monat$/);
   });
 });

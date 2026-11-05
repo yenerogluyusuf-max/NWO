@@ -10,6 +10,7 @@ import type { Figur } from "./spiel-typen";
 import type { Erinnerung, FigurEigen, LagerArt, Stil } from "./personen-typen";
 import { aktuelleLocale, t as tx } from "../i18n";
 import { datenTexte } from "../i18n/daten";
+import { AEMTER_OHNE_MINISTERIUM, MINISTERIEN } from "../data/ministerien";
 
 export const nf = (x: number, d = 1): string => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
@@ -17,6 +18,8 @@ export const nf = (x: number, d = 1): string => x.toLocaleString(aktuelleLocale(
 export const HOCH_SCHLECHT = new Set([
   "kriminalitaet", "terrorgefahr", "korruption", "haftueberfuellung", "ausnahmerecht", "strassburg_druck", "polarisierung",
   "zinslast", "lebenshaltung", "energiepreise", "energieimporte", "armut", "ungleichheit", "stau", "mieten", "kostendruck",
+  // Leitgrößen der zwölf neuen Ressorts (wie SCHLECHT_WENN_HOCH in ui/politik/bereiche.ts)
+  "jugendarbeitslosigkeit", "informelle_arbeit", "streikneigung", "wartezeiten", "schulabbruch", "abwanderung", "duerre", "lebensmittelpreise",
 ]);
 
 export interface AmtDef {
@@ -37,6 +40,17 @@ export interface AmtDef {
   regierungsamt: boolean;
   /** Ob man ihn entlassen kann */
   entlassbar: boolean;
+  /** Ressort ohne eigene Hebel im Netz: sitzt am Tisch, trägt aber nichts zum Kapital bei (Plan Teil 3, F11; bis Hebel recherchiert sind) */
+  ohneKapital?: boolean;
+}
+
+/** Ein Ressort der 17 Ministerien, das es vor dem Umbau nicht gab: ohne Monatswirkung, bis sie kalibriert ist (Plan Anhang A 1.2).
+ *  Fähigkeit, Ehrgeiz und Stile sind Spielparameter nach dem Muster der bestehenden Ämter. */
+function ressort(amt: Figur["amt"], ressortName: string, fach: string[], stile: Stil[], lager: LagerArt, ohneKapital = false): AmtDef {
+  return {
+    amt, ressort: ressortName, fach, massnahmen: [], wirkung: [], stile, faehigkeit: [52, 78], ehrgeiz: [30, 66], lager,
+    regierungsamt: true, entlassbar: true, ...(ohneKapital ? { ohneKapital } : {}),
+  };
 }
 
 export const AEMTER: Record<Figur["amt"], AmtDef> = {
@@ -83,7 +97,7 @@ export const AEMTER: Record<Figur["amt"], AmtDef> = {
     stile: ["streng", "machtbewusst", "vorsichtig"], faehigkeit: [58, 82], ehrgeiz: [30, 70], lager: "streitkraefte", regierungsamt: true, entlassbar: true,
   },
   wirtschaft: {
-    amt: "wirtschaft", ressort: "Wirtschaft", fach: ["investitionen", "industrie", "export", "auslandskapital"],
+    amt: "wirtschaft", ressort: "Industrie und Technologie", fach: ["investitionen", "industrie", "export", "auslandskapital"],
     massnahmen: ["m_investitionsanreize", "m_exportfoerderung", "m_kmu", "m_industrie_modernisierung", "m_kreditgarantien"],
     wirkung: [{ id: "investitionen", d: 0.08 }, { id: "industrie", d: 0.06 }],
     stile: ["eitel", "nuechtern", "machtbewusst"], faehigkeit: [52, 78], ehrgeiz: [40, 72], lager: "markt", regierungsamt: true, entlassbar: true,
@@ -96,9 +110,32 @@ export const AEMTER: Record<Figur["amt"], AmtDef> = {
     amt: "opposition", ressort: "Opposition", fach: ["polarisierung"], massnahmen: [], wirkung: [],
     stile: ["machtbewusst", "eitel"], faehigkeit: [50, 72], ehrgeiz: [70, 95], lager: "opposition", regierungsamt: false, entlassbar: false,
   },
+  // Die zwölf Ministerien, die mit den 17 Ministerien hinzukamen (ENTSCHEIDUNGEN W 1). Leitgrößen aus dem Thema ihrer Maßnahmen;
+  // Lager zivil („partei“, „markt“), damit Putschzirkel und Sicherheitsapparat (sim/machtkreis.ts) nicht stillschweigend wachsen.
+  familie: ressort("familie", "Familie und Soziales", ["armut", "frauenrechte", "ungleichheit"], ["loyal", "vorsichtig", "nuechtern"], "partei"),
+  arbeit: ressort("arbeit", "Arbeit und Sozialversicherung", ["jugendarbeitslosigkeit", "informelle_arbeit", "sozialkassen", "rentenniveau", "streikneigung"], ["nuechtern", "machtbewusst", "vorsichtig"], "partei"),
+  umwelt: ressort("umwelt", "Umwelt, Städtebau und Klima", ["mieten", "wohnungsbau", "bauqualitaet", "erdbebenvorsorge", "luftqualitaet"], ["machtbewusst", "eitel", "nuechtern"], "partei"),
+  energie: ressort("energie", "Energie und Rohstoffe", ["energiepreise", "stromversorgung", "energieimporte", "erneuerbare"], ["nuechtern", "machtbewusst", "eitel"], "markt"),
+  jugend: ressort("jugend", "Jugend und Sport", ["jugendarbeitslosigkeit", "abwanderung"], ["eitel", "loyal", "machtbewusst"], "partei", true),
+  kultur: ressort("kultur", "Kultur und Tourismus", ["kulturerbe", "tourismus", "identitaet", "vielfalt"], ["eitel", "nuechtern", "loyal"], "partei"),
+  bildung: ressort("bildung", "Bildung", ["bildungsqualitaet", "schulabbruch", "hochschule", "fachkraefte"], ["streng", "loyal", "vorsichtig"], "partei"),
+  verteidigung: ressort("verteidigung", "Verteidigung", ["modernisierung", "ruestungsautarkie", "abschreckung"], ["streng", "nuechtern", "machtbewusst"], "partei"),
+  gesundheit: ressort("gesundheit", "Gesundheit", ["gesundheitsversorgung", "wartezeiten", "aerzte", "medikamente"], ["nuechtern", "vorsichtig", "streng"], "partei"),
+  landwirtschaft: ressort("landwirtschaft", "Landwirtschaft und Forst", ["ernte", "landwirtschaft_einkommen", "wasserversorgung", "duerre", "lebensmittelpreise"], ["loyal", "nuechtern", "machtbewusst"], "partei"),
+  handel: ressort("handel", "Handel", ["export", "lebenshaltung", "kostendruck"], ["nuechtern", "eitel", "vorsichtig"], "markt", true),
+  verkehr: ressort("verkehr", "Verkehr und Infrastruktur", ["verkehrsnetz", "bahnnetz", "stau", "internet", "wartungszustand"], ["machtbewusst", "eitel", "nuechtern"], "partei"),
 };
 
+// Eine Quelle für die Maßnahmen jedes Amts: data/ministerien.ts (jede Maßnahme genau ein Amt, test/ministerien.test.ts)
+for (const a of Object.values(AEMTER)) {
+  const m = MINISTERIEN.find((x) => x.id === a.amt) ?? AEMTER_OHNE_MINISTERIUM.find((x) => x.id === a.amt);
+  if (m) a.massnahmen = [...m.massnahmen];
+}
+
 datenTexte("amt", Object.values(AEMTER), (a) => a.amt, ["ressort"]);
+
+/** Die Ämter, die mit den 17 Ministerien hinzukamen: Ihre Zufallswürfe laufen über eigene Hash-Würfel, damit der Zufallsstrom alter Partien gleich bleibt. */
+export const NEUE_AEMTER: ReadonlySet<Figur["amt"]> = new Set(["familie", "arbeit", "umwelt", "energie", "jugend", "kultur", "bildung", "verteidigung", "gesundheit", "landwirtschaft", "handel", "verkehr"]);
 
 export const amtDef = (f: Figur): AmtDef => AEMTER[f.amt];
 
@@ -303,6 +340,12 @@ export function sorgeText(w: World, f: Figur): string {
     }
     case "opposition":
       return tx("person.sorge.opposition", { p: Math.round(wertVon(w, "polarisierung")), g: f.weiblich ? "f" : "m" });
+    default: {
+      // Die neuen Ressorts: die schlechteste ihrer Leitgrößen
+      const g = f.weiblich ? "f" : "m";
+      const s = schlechtesteGroesse(w, f);
+      return s ? tx("person.sorge.ressort", { groesse: s.name, wert: Math.round(s.wert), g }) : tx("person.sorge.ressortLeer", { g });
+    }
   }
 }
 

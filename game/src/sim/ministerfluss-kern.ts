@@ -7,9 +7,10 @@ import { figur } from "./figuren";
 import { neuerMinisterFluss, type Amt, type MinisterFlussZustand, type VorlageMinister } from "./ministerfluss-typen";
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
+import { MINISTERIEN, ressortVon } from "../data/ministerien";
 
-/** Die Regierungsämter in der Reihenfolge des Kabinetts. */
-export const KABINETT_AMT: Amt[] = ["stab", "finanzen", "inneres", "aussen", "justiz", "generalstab", "wirtschaft"];
+/** Die Regierungsämter in der Reihenfolge des Kabinetts: Präsidialamt, die 17 Ministerien (amtliche Reihenfolge), Generalstab. */
+export const KABINETT_AMT: Amt[] = ["stab", ...MINISTERIEN.map((m) => m.id), "generalstab"];
 
 /** Der Zustand des Ministerflusses; ältere Spielstände legen ihn beim ersten Zugriff an (Migration). */
 export function flussZustand(w: World): MinisterFlussZustand {
@@ -28,29 +29,31 @@ export function flussZustand(w: World): MinisterFlussZustand {
   return z;
 }
 
-/** Welches Thema des Politiknetzes in welches Ressort gehört, wenn kein Amt die Maßnahme ausdrücklich führt. */
+/** Welches Thema des Politiknetzes in welches Ressort gehört, wenn kein Amt die Maßnahme ausdrücklich führt: das Leitministerium
+ *  (Plan Anhang A 1.2, „Politikbereiche → Leitministerium“). */
 const THEMA_AMT: Record<string, Amt> = {
   wirtschaft: "wirtschaft",
   haushalt: "finanzen",
-  arbeit: "wirtschaft",
-  gesundheit: "stab",
-  bildung: "stab",
-  infrastruktur: "wirtschaft",
-  energie: "wirtschaft",
-  landwirtschaft: "wirtschaft",
-  wohnen: "wirtschaft",
+  arbeit: "arbeit",
+  gesundheit: "gesundheit",
+  bildung: "bildung",
+  infrastruktur: "verkehr",
+  energie: "energie",
+  landwirtschaft: "landwirtschaft",
+  wohnen: "umwelt",
   sicherheit: "inneres",
   recht: "justiz",
-  militaer: "generalstab",
-  kultur: "stab",
+  militaer: "verteidigung",
+  kultur: "kultur",
   gesellschaft: "stab",
   aussen: "aussen",
   gruppen: "stab",
 };
 
-/** Welcher Minister eine Maßnahme vorlegt: zuerst das Amt, das sie ausdrücklich führt, sonst das Ressort ihres Themas. */
+/** Welcher Minister eine Maßnahme vorlegt: das Amt, das sie laut data/ministerien.ts führt, sonst das Leitministerium ihres Themas. */
 export function ressortFuerMassnahme(id: string): Amt {
-  for (const amt of KABINETT_AMT) if (AEMTER[amt].massnahmen.includes(id)) return amt;
+  const amt = ressortVon(id);
+  if (amt) return amt;
   const node = NET.nodes[NET.index.get(id) ?? -1];
   return (node?.theme && THEMA_AMT[node.theme]) || "stab";
 }

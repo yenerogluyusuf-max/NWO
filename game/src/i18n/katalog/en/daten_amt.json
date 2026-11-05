@@ -6,7 +6,19 @@
  "daten.amt.stab.ressort": "Presidency",
  "daten.amt.justiz.ressort": "Justice",
  "daten.amt.generalstab.ressort": "Armed Forces",
- "daten.amt.wirtschaft.ressort": "Economy",
+ "daten.amt.wirtschaft.ressort": "Industry and Technology",
  "daten.amt.partner.ressort": "Coalition party",
- "daten.amt.opposition.ressort": "Opposition"
+ "daten.amt.opposition.ressort": "Opposition",
+ "daten.amt.familie.ressort": "Family and Social Services",
+ "daten.amt.arbeit.ressort": "Labour and Social Security",
+ "daten.amt.umwelt.ressort": "Environment, Urbanisation and Climate",
+ "daten.amt.energie.ressort": "Energy and Natural Resources",
+ "daten.amt.jugend.ressort": "Youth and Sports",
+ "daten.amt.kultur.ressort": "Culture and Tourism",
+ "daten.amt.bildung.ressort": "Education",
+ "daten.amt.verteidigung.ressort": "Defence",
+ "daten.amt.gesundheit.ressort": "Health",
+ "daten.amt.landwirtschaft.ressort": "Agriculture and Forestry",
+ "daten.amt.handel.ressort": "Trade",
+ "daten.amt.verkehr.ressort": "Transport and Infrastructure"
 }

@@ -33,7 +33,11 @@ export interface Figur {
   id: string;
   name: string;
   rolle: string;
-  amt: "finanzen" | "inneres" | "aussen" | "zentralbank" | "opposition" | "partner" | "stab" | "justiz" | "generalstab" | "wirtschaft";
+  /** Amt der Figur. „wirtschaft“ ist das Ministerium für Industrie und Technologie (Kennung aus älteren Spielständen); die zwölf
+   *  Ministerien ab „familie“ kamen mit den 17 Ministerien hinzu (ENTSCHEIDUNGEN W 1, data/ministerien.ts). */
+  amt:
+    | "finanzen" | "inneres" | "aussen" | "zentralbank" | "opposition" | "partner" | "stab" | "justiz" | "generalstab" | "wirtschaft"
+    | "familie" | "arbeit" | "umwelt" | "energie" | "jugend" | "kultur" | "bildung" | "verteidigung" | "gesundheit" | "landwirtschaft" | "handel" | "verkehr";
   /** Was die Figur will; bestimmt, wie sie auf Entscheidungen reagiert */
   ziel: string;
   /** 0 bis 100 */

@@ -34,6 +34,13 @@ const AMT_THEMA: Partial<Record<Figur["amt"], Thema>> = {
   generalstab: "sicherheit",
   justiz: "recht",
   inneres: "gesellschaft",
+  energie: "wirtschaft",
+  handel: "wirtschaft",
+  arbeit: "haushalt",
+  umwelt: "wohnen",
+  gesundheit: "gesellschaft",
+  bildung: "gesellschaft",
+  verteidigung: "sicherheit",
 };
 
 const THEMA_AMT: Record<Thema, Figur["amt"]> = {
@@ -44,7 +51,7 @@ const THEMA_AMT: Record<Thema, Figur["amt"]> = {
   gesellschaft: "inneres",
   katastrophe: "inneres",
   recht: "justiz",
-  wohnen: "inneres",
+  wohnen: "umwelt",
 };
 
 const SZENE_THEMA: Record<string, Thema> = { bank: "haushalt", parlament: "recht", istanbul: "gesellschaft", anatolien: "gesellschaft", wahlnacht: "gesellschaft" };

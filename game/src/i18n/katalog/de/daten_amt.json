@@ -6,7 +6,19 @@
  "daten.amt.stab.ressort": "Präsidialamt",
  "daten.amt.justiz.ressort": "Justiz",
  "daten.amt.generalstab.ressort": "Streitkräfte",
- "daten.amt.wirtschaft.ressort": "Wirtschaft",
+ "daten.amt.wirtschaft.ressort": "Industrie und Technologie",
  "daten.amt.partner.ressort": "Bündnispartei",
- "daten.amt.opposition.ressort": "Opposition"
+ "daten.amt.opposition.ressort": "Opposition",
+ "daten.amt.familie.ressort": "Familie und Soziales",
+ "daten.amt.arbeit.ressort": "Arbeit und Sozialversicherung",
+ "daten.amt.umwelt.ressort": "Umwelt, Städtebau und Klima",
+ "daten.amt.energie.ressort": "Energie und Rohstoffe",
+ "daten.amt.jugend.ressort": "Jugend und Sport",
+ "daten.amt.kultur.ressort": "Kultur und Tourismus",
+ "daten.amt.bildung.ressort": "Bildung",
+ "daten.amt.verteidigung.ressort": "Verteidigung",
+ "daten.amt.gesundheit.ressort": "Gesundheit",
+ "daten.amt.landwirtschaft.ressort": "Landwirtschaft und Forst",
+ "daten.amt.handel.ressort": "Handel",
+ "daten.amt.verkehr.ressort": "Verkehr und Infrastruktur"
 }

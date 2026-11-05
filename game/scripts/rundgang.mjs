@@ -40,11 +40,11 @@ url.searchParams.set("schnellstart", "");
 await page.goto(url.toString());
 await page.waitForTimeout(4000);
 
-/** Offene Ereignisfenster beiseitelegen, damit sie die Ansicht nicht verdecken. */
+/** Offene Ereignisfenster beiseitelegen, damit sie die Ansicht nicht verdecken (auch die Zielwahl des ersten Amtstags: „Ohne Ziele beginnen“). */
 const ruhe = async () => {
   for (let i = 0; i < 6; i++) {
     const weg = await page.evaluate(() => {
-      const b = Array.from(document.querySelectorAll(".event-layer button")).find((x) => /Später entscheiden|Verstanden|Weiter|Schließen|Zum Schreibtisch|An die Arbeit|Los geht|Beginnen/.test(x.textContent ?? ""));
+      const b = Array.from(document.querySelectorAll(".event-layer button")).find((x) => /Später entscheiden|Verstanden|Weiter|Schließen|Zum Schreibtisch|An die Arbeit|Los geht|[Bb]eginnen/.test(x.textContent ?? ""));
       b?.click();
       return !!b;
     });

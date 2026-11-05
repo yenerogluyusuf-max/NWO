@@ -4,6 +4,7 @@
  "kab.grund.groll": ", Reibungsverluste durch Groll",
  "kab.grund.treu": ", treuer Rückhalt",
  "kab.grund.kommissarisch": " (kommissarisch)",
+ "kab.grund.ohneHebel": "Das Ressort hat im Spiel noch keine eigenen Hebel und trägt deshalb nichts zum Kapital bei.",
  "kab.keineKrise": "Keine akute Ressortkrise",
  "kab.sorge": "{name} ({wert} Pkt.)",
  "kab.disziplin.geschlossen": "Die Regierungsmannschaft zieht geschlossen an einem Strang.",

@@ -5,16 +5,26 @@
 import { NET } from "./modell";
 import { addLog } from "./log";
 import { Rng } from "./rng";
-import { eigenVon, merke } from "./personen";
+import { eigenVon, merke, NEUE_AEMTER } from "./personen";
+import { ressortVon } from "../data/ministerien";
 import type { LagerArt, Stil } from "./personen-typen";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
 import { aktuelleSprache, t, tIn } from "../i18n";
 import { aktiveParteivorsitzende } from "./koalitionslage";
 
-const VORNAMEN_F = ["Selin", "Derya", "Zeynep", "Nilay", "Melis", "Pınar", "Gizem", "Ebru", "Sevgi", "Nazlı", "Ilgın", "Damla", "Aylin", "Defne", "Hande"];
-const VORNAMEN_M = ["Kaan", "Barış", "Emre", "Tolga", "Volkan", "Onur", "Serkan", "Levent", "Murat", "Cengiz", "Orhan", "Taner", "Cem", "Burak", "Mert"];
-const NACHNAMEN = ["Yücel", "Karaca", "Erdem", "Aksoy", "Kılıç", "Tunç", "Arıkan", "Özgür", "Bozkurt", "Çelik", "Sarı", "Koçak", "Ateş", "Işık", "Uysal", "Yalçın", "Duran", "Güler", "Polat", "Demirci", "Kaplan", "Sezer", "Turan", "Akın"];
+// Namensvorrat: Die ersten Einträge jeder Liste sind die alten (bis zum Umbau auf 17 Ministerien); die Figuren des Amtsantritts von
+// damals ziehen weiter nur aus ihnen, damit ihre Namen und damit ihre Profile (eigenVon hasht den Namen) gleich bleiben. Alle
+// späteren Namen ziehen aus der ganzen Liste. Verbreitete türkische Namen; Nachnamen amtierender Kabinettsmitglieder sind ausgelassen.
+const VORNAMEN_F = ["Selin", "Derya", "Zeynep", "Nilay", "Melis", "Pınar", "Gizem", "Ebru", "Sevgi", "Nazlı", "Ilgın", "Damla", "Aylin", "Defne", "Hande",
+  "Elif", "Merve", "Esra", "Burcu", "Tuğba", "Özlem", "Seda", "Gülay", "Canan", "Ece"];
+const VORNAMEN_M = ["Kaan", "Barış", "Emre", "Tolga", "Volkan", "Onur", "Serkan", "Levent", "Murat", "Cengiz", "Orhan", "Taner", "Cem", "Burak", "Mert",
+  "Hakan", "Kerem", "Selim", "Okan", "Ercan", "Sinan", "Erkan", "Uğur", "İlker", "Bülent", "Doruk", "Alper", "Tarık", "Koray", "Engin"];
+const NACHNAMEN = ["Yücel", "Karaca", "Erdem", "Aksoy", "Kılıç", "Tunç", "Arıkan", "Özgür", "Bozkurt", "Çelik", "Sarı", "Koçak", "Ateş", "Işık", "Uysal", "Yalçın", "Duran", "Güler", "Polat", "Demirci", "Kaplan", "Sezer", "Turan", "Akın",
+  "Kaya", "Demir", "Şahin", "Yıldız", "Yıldırım", "Öztürk", "Aydın", "Özdemir", "Arslan", "Doğan", "Aslan", "Çetin", "Kara", "Koç", "Kurt", "Özkan", "Çakır", "Güneş", "Aktaş", "Bulut",
+  "Keskin", "Ünal", "Avcı", "Taş", "Özer", "Korkmaz", "Çiftçi", "Acar", "Altun", "Kalkan", "Gök", "Yavuz", "Ekinci", "Sönmez", "Toprak", "Güven", "Coşkun", "Bilgin", "Akbulut", "Başaran"];
+/** Die alten Listenlängen (Vornamen je 15, Nachnamen 24) für die Figuren des Amtsantritts von vor dem Umbau. */
+const ALT = { f: 15, m: 15, nach: 24 };
 
 interface RollenSpec {
   id: string;
@@ -41,18 +51,33 @@ const ZUSATZ_ROLLEN: RollenSpec[] = [
   { id: "wirtschaft", amt: "wirtschaft", rolle: () => t("figur.rolle.wirtschaft"), ziel: "figur.ziel.wirtschaft", start: 60, weiblich: false },
 ];
 
-function name(rng: Rng, benutzt: Set<string>, weiblich?: boolean): string {
+/** Die zwölf Ministerien, die mit den 17 Ministerien hinzukamen (ENTSCHEIDUNGEN W 1). Eigener Zufallsstrom und ganze Namensliste;
+ *  Startloyalität wie die übrigen Fachminister (Spielparameter). */
+const NEUE_ROLLEN: RollenSpec[] = ([
+  ["familie", 60, true], ["arbeit", 58, false], ["umwelt", 60, false], ["energie", 60, false], ["jugend", 62, false], ["kultur", 60, true],
+  ["bildung", 58, false], ["verteidigung", 58, false], ["gesundheit", 60, true], ["landwirtschaft", 58, false], ["handel", 60, true], ["verkehr", 60, false],
+] as const).map(([amt, start, weiblich]) => ({ id: amt, amt, rolle: () => t(`figur.rolle.${amt}`), ziel: `figur.ziel.${amt}`, start, weiblich }));
+
+/** Salz des Zufallsstroms der neuen Ministerien (unabhängig von Haupt- und Zusatzstrom). */
+const NEU_SALZ = 0x17a3c5;
+
+function name(rng: Rng, benutzt: Set<string>, weiblich?: boolean, alt = false): string {
   // Kein Nachname doppelt, solange die Liste reicht (Spielerdurchlauf 5. November: Finanz-, Außen- und Wirtschaftsminister
   // hießen alle Erdem und wirkten wie eine Familie). Ein vergebener Nachname rückt zum nächsten freien weiter, ohne weiteren
-  // Zufallswurf: So bleibt der Zufallsstrom der Partie derselbe wie vorher.
+  // Zufallswurf: So bleibt der Zufallsstrom der Partie derselbe wie vorher. Mit der ganzen Liste gilt dasselbe für Vornamen
+  // (vorher dreimal Cem im Kabinett); die alten Figuren (alt) behalten ihre Namen.
   const nachnamen = new Set([...benutzt].map((x) => x.split(" ").at(-1)));
+  const vornamen = new Set([...benutzt].map((x) => x.split(" ")[0]));
+  const nach = alt ? NACHNAMEN.slice(0, ALT.nach) : NACHNAMEN;
   for (;;) {
     const frau = weiblich ?? rng.next() < 0.5;
-    const vor = frau ? VORNAMEN_F : VORNAMEN_M;
-    const vorname = vor[Math.floor(rng.next() * vor.length)]!;
-    let i = Math.floor(rng.next() * NACHNAMEN.length);
-    for (let k = 0; k < NACHNAMEN.length && nachnamen.has(NACHNAMEN[i]!); k++) i = (i + 1) % NACHNAMEN.length;
-    const n = `${vorname} ${NACHNAMEN[i]!}`;
+    const vor = frau ? (alt ? VORNAMEN_F.slice(0, ALT.f) : VORNAMEN_F) : alt ? VORNAMEN_M.slice(0, ALT.m) : VORNAMEN_M;
+    let v = Math.floor(rng.next() * vor.length);
+    if (!alt) for (let k = 0; k < vor.length && vornamen.has(vor[v]!); k++) v = (v + 1) % vor.length;
+    const vorname = vor[v]!;
+    let i = Math.floor(rng.next() * nach.length);
+    for (let k = 0; k < nach.length && nachnamen.has(nach[i]!); k++) i = (i + 1) % nach.length;
+    const n = `${vorname} ${nach[i]!}`;
     if (!benutzt.has(n)) {
       benutzt.add(n);
       return n;
@@ -68,7 +93,7 @@ export function erzeugeFiguren(world: World, rng: Rng): Figur[] {
   const benutzt = new Set<string>();
   const figuren: Figur[] = ROLLEN.map((r) => ({
     id: r.id,
-    name: name(rng, benutzt, r.weiblich),
+    name: name(rng, benutzt, r.weiblich, true),
     weiblich: r.weiblich,
     rolle: r.rolle(world),
     amt: r.amt,
@@ -80,7 +105,7 @@ export function erzeugeFiguren(world: World, rng: Rng): Figur[] {
   if (partner) {
     figuren.push({
       id: "partner",
-      name: name(rng, benutzt, false),
+      name: name(rng, benutzt, false, true),
       weiblich: false,
       rolle: t("wahl.ereignis.koalition.vorsitz", { partei: partner }),
       amt: "partner",
@@ -91,15 +116,16 @@ export function erzeugeFiguren(world: World, rng: Rng): Figur[] {
     });
   }
   figuren.push(...zusatzFiguren(world, figuren, new Rng((world.seed ^ 0x51ed) | 0)));
+  figuren.push(...zusatzFiguren(world, figuren, new Rng((world.seed ^ NEU_SALZ) | 0), NEUE_ROLLEN));
   for (const f of figuren) lokalisiereFigur(f);
   return figuren;
 }
 
-function zusatzFiguren(world: World, vorhanden: Figur[], rng: Rng): Figur[] {
+function zusatzFiguren(world: World, vorhanden: Figur[], rng: Rng, rollen = ZUSATZ_ROLLEN): Figur[] {
   const benutzt = new Set(vorhanden.map((f) => f.name));
-  return ZUSATZ_ROLLEN.filter((r) => !vorhanden.some((f) => f.amt === r.amt)).map((r) => ({
+  return rollen.filter((r) => !vorhanden.some((f) => f.amt === r.amt)).map((r) => ({
     id: r.id,
-    name: name(rng, benutzt, r.weiblich),
+    name: name(rng, benutzt, r.weiblich, rollen === ZUSATZ_ROLLEN),
     weiblich: r.weiblich,
     rolle: r.rolle(world),
     amt: r.amt,
@@ -130,7 +156,7 @@ export function lokalisiereFigur(f: { amt: string; rolle: string; ziel?: string;
         break;
       }
     }
-  } else if (ROLLEN.some((r) => r.amt === f.amt) || ZUSATZ_ROLLEN.some((r) => r.amt === f.amt)) {
+  } else if (ROLLEN.some((r) => r.amt === f.amt) || ZUSATZ_ROLLEN.some((r) => r.amt === f.amt) || NEUE_ROLLEN.some((r) => r.amt === f.amt)) {
     f.rolle = t(`figur.rolle.${f.amt}`);
   }
   if (f.ziel === undefined) return;
@@ -147,9 +173,16 @@ export function lokalisiereFigur(f: { amt: string; rolle: string; ziel?: string;
 export function ergaenzeFiguren(world: World): void {
   const sp = world.spiel;
   if (!sp) return;
-  const fehlen = ZUSATZ_ROLLEN.some((r) => !sp.figuren.some((f) => f.amt === r.amt));
-  if (!fehlen) return;
-  sp.figuren.push(...zusatzFiguren(world, sp.figuren, new Rng((world.seed ^ 0x51ed ^ Math.imul(world.day, 2654435761)) | 0)));
+  // Die Amtsbezeichnung des Industrieministeriums hieß bis zum Umbau „Wirtschaftsminister“ (deutsche Spielstände tragen den Text)
+  for (const f of sp.figuren) if (f.amt === "wirtschaft" && f.rolle === "Wirtschaftsminister") f.rolle = t("figur.rolle.wirtschaft");
+  const tagSalz = Math.imul(world.day, 2654435761);
+  if (ZUSATZ_ROLLEN.some((r) => !sp.figuren.some((f) => f.amt === r.amt)))
+    sp.figuren.push(...zusatzFiguren(world, sp.figuren, new Rng((world.seed ^ 0x51ed ^ tagSalz) | 0)));
+  if (NEUE_ROLLEN.some((r) => !sp.figuren.some((f) => f.amt === r.amt))) {
+    const neu = zusatzFiguren(world, sp.figuren, new Rng((world.seed ^ NEU_SALZ ^ tagSalz) | 0), NEUE_ROLLEN);
+    for (const f of neu) lokalisiereFigur(f);
+    sp.figuren.push(...neu);
+  }
 }
 
 export function figur(world: World, amt: Figur["amt"]): Figur | undefined {
@@ -193,8 +226,17 @@ export function reagiereFiguren(world: World, theme: string, massnahme: string, 
   if (theme === "militaer") aendere(world, figur(world, "generalstab"), richtung * (massnahme === "m_offiziersauswahl" ? 0.5 : 2), t("figur.grund.generalstab"));
   // Wirtschaftsminister: Förderung freut, Auflagen und Eingriffe ärgern
   if (theme === "wirtschaft") aendere(world, figur(world, "wirtschaft"), richtung * (WIRTSCHAFT_EINGRIFF[massnahme] ?? 1.2), t("figur.grund.wirtschaft"));
+  // Die Minister der neuen Ressorts: Wer seine Maßnahme ausbaut, stärkt das Ressort (dieselbe Größenordnung wie Inneres und Außen)
+  const neu = neuesRessort(massnahme);
+  if (neu) aendere(world, figur(world, neu), richtung * 1.5, t("figur.grund.ressort"));
   // Opposition: ein Präsident, der viel durchsetzt, ärgert sie
   aendere(world, figur(world, "opposition"), -0.3);
+}
+
+/** Das neue Ministerium (NEUE_AEMTER), das eine Maßnahme führt; die alten Ämter reagieren nach ihren eigenen Regeln oben. */
+function neuesRessort(massnahme: string): Figur["amt"] | undefined {
+  const amt = ressortVon(massnahme);
+  return amt && NEUE_AEMTER.has(amt) ? amt : undefined;
 }
 
 /** Maßnahmen der Wirtschaft, die Betriebe belasten statt fördern (Vorzeichen der Reaktion des Wirtschaftsministers). */
@@ -252,7 +294,7 @@ export function ersetze(world: World, amt: Figur["amt"], rng: Rng): Figur | unde
   const spiel = world.spiel;
   if (!alt || !spiel) return undefined;
   const benutzt = new Set(spiel.figuren.map((f) => f.name));
-  const spec = ROLLEN.find((r) => r.amt === amt) ?? ZUSATZ_ROLLEN.find((r) => r.amt === amt);
+  const spec = ROLLEN.find((r) => r.amt === amt) ?? ZUSATZ_ROLLEN.find((r) => r.amt === amt) ?? NEUE_ROLLEN.find((r) => r.amt === amt);
   const neu = name(rng, benutzt, spec?.weiblich);
   const loyal = Math.round(50 + rng.between(-8, 16));
   const vorher = `${alt.rolle} ${alt.name}`;
@@ -327,5 +369,8 @@ export function kabinettReaktion(world: World, massnahme: string, richtung: 1 | 
   }
   const a = figur(world, "aussen");
   if (a && node.theme === "aussen") out.push({ wer: `${a.rolle} ${a.name}`, text: richtung > 0 ? t("figur.reaktion.aussenPlus") : t("figur.reaktion.aussenMinus"), mehr: richtung > 0 });
+  const neu = neuesRessort(massnahme);
+  const r = neu ? figur(world, neu) : undefined;
+  if (r) out.push({ wer: `${r.rolle} ${r.name}`, text: richtung > 0 ? t("figur.reaktion.ressortPlus") : t("figur.reaktion.ressortMinus"), mehr: richtung > 0 });
   return out;
 }

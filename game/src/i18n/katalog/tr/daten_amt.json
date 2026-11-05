@@ -6,7 +6,19 @@
  "daten.amt.stab.ressort": "Cumhurbaşkanlığı",
  "daten.amt.justiz.ressort": "Adalet",
  "daten.amt.generalstab.ressort": "Silahlı Kuvvetler",
- "daten.amt.wirtschaft.ressort": "Ekonomi",
+ "daten.amt.wirtschaft.ressort": "Sanayi ve Teknoloji",
  "daten.amt.partner.ressort": "İttifak partisi",
- "daten.amt.opposition.ressort": "Muhalefet"
+ "daten.amt.opposition.ressort": "Muhalefet",
+ "daten.amt.familie.ressort": "Aile ve Sosyal Hizmetler",
+ "daten.amt.arbeit.ressort": "Çalışma ve Sosyal Güvenlik",
+ "daten.amt.umwelt.ressort": "Çevre, Şehircilik ve İklim Değişikliği",
+ "daten.amt.energie.ressort": "Enerji ve Tabii Kaynaklar",
+ "daten.amt.jugend.ressort": "Gençlik ve Spor",
+ "daten.amt.kultur.ressort": "Kültür ve Turizm",
+ "daten.amt.bildung.ressort": "Millî Eğitim",
+ "daten.amt.verteidigung.ressort": "Millî Savunma",
+ "daten.amt.gesundheit.ressort": "Sağlık",
+ "daten.amt.landwirtschaft.ressort": "Tarım ve Orman",
+ "daten.amt.handel.ressort": "Ticaret",
+ "daten.amt.verkehr.ressort": "Ulaştırma ve Altyapı"
 }

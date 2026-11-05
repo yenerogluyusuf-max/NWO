@@ -36,7 +36,7 @@ import { verlaufAufzeichnen } from "./waehler-verlauf";
 import { erzeugeFiguren, figur, anrede } from "./figuren";
 import { personenMonat } from "./personen-monat";
 import { ausscheiden } from "./nachfolge";
-import { AEMTER } from "./personen";
+import { AEMTER, hashZahl, NEUE_AEMTER } from "./personen";
 import { gesetzeAbstimmen, REGELN, stimmenSicht, unterhaltKosten } from "./handeln";
 import { versorgungsParlamentTag } from "./versorgungspolitik";
 import { drohtKoalitionsbruch, KOALITIONSBRUCH_LOYALITAET, regierungsSitze } from "./koalitionslage";
@@ -495,7 +495,9 @@ function figurenPruefen(world: World, rng: Rng): void {
     // Der Generalstabschef tritt nicht von selbst zurück: Wer gegen den Präsidenten plant, bleibt im Amt; ihn zu entlassen ist eine
     // Entscheidung mit eigenem Preis (früher senkte sein Rücktritt das Putschrisiko von selbst, PRUEFUNG_GESAMT_2026-11-04)
     if (!f.imAmt || !AEMTER[f.amt].regierungsamt || f.eigen?.kommissarisch || f.loyalitaet >= 12 || f.amt === "generalstab") continue;
-    if (rng.next() < 0.4) ausscheiden(world, f, "Rücktritt, weil ihm der Rückhalt fehlt");
+    // Die neuen Ministerien würfeln mit eigenem Hash-Würfel, damit der Zufallsstrom alter Partien gleich bleibt
+    const u = NEUE_AEMTER.has(f.amt) ? hashZahl(`${world.seed}|${world.day}|ruecktritt|${f.id}`) : rng.next();
+    if (u < 0.4) ausscheiden(world, f, "Rücktritt, weil ihm der Rückhalt fehlt");
   }
 }
 
