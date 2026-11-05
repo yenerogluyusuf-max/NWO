@@ -269,7 +269,7 @@ export function NetView({
           <h2>{node.name}</h2>
           <p>{node.text}</p>
           <p className="valueline">
-            {istMassnahme && ort ? t("ui2.ui.NetView.875014d", { p0: provinzenText(ort) }) : t("ui2.ui.NetView.f37ee0e")} <strong>{nf(now)}</strong>
+            {istMassnahme && ort ? t("ui2.ui.NetView.875014d", { p0: provinzenText(ort) }) : t("ui2.ui.NetView.f37ee0e")} <strong>{istMassnahme ? stufenName(node.id, now) : nf(now)}</strong>
             {!node.input && (
               <span className="pd-wertleiste" aria-hidden>
                 <i style={{ width: `${Math.max(0, Math.min(100, now))}%` }} />
@@ -365,11 +365,11 @@ export function NetView({
                         <>
                           <div className="stufe-kopf klein">
                             <span>
-                              {t("ui2.ui.NetView.eb9c6e4")} <b>{Math.round(now)}</b>
+                              {t("ui2.ui.NetView.eb9c6e4")} <b>{stufenName(node.id, now)}</b>
                             </span>
                             <span aria-hidden>→</span>
                             <span>
-                              neu <b>{sliderValue}</b>
+                              neu <b>{stufenName(node.id, sliderValue)}</b>
                             </span>
                           </div>
                           <input type="range" min={0} max={100} value={sliderValue} aria-label={t("ui2.ui.NetView.b0debca", { p0: node.name })} onChange={(ev) => wahl(Number(ev.target.value))} />

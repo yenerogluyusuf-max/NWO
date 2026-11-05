@@ -7,6 +7,7 @@ import { formatDateDe } from "../../sim/dates";
 import { provinzenText, setPolicy } from "../../sim/handeln";
 import { geaenderteArtikel, verfassungStand } from "../../sim/verfassung";
 import type { Bericht } from "../../sim/berichte";
+import { skala, skalenArt, stufenName, tunWort } from "../../data/skalen";
 import "./design.css";
 
 import { t } from "../../i18n";
@@ -46,6 +47,7 @@ export function UmsetzungAkte({
   beschlossen,
   wirksam,
   onBerichtOeffnen,
+  onAendern,
 }: {
   world: World;
   refresh: () => void;
@@ -55,6 +57,7 @@ export function UmsetzungAkte({
   /** Davon schon wirksam */
   wirksam: number;
   onBerichtOeffnen?: (b: Bericht) => void;
+  onAendern?: (x: { id: string; level: number; ort: number[] | null }) => void;
 }) {
   const spiel = world.spiel;
   const [alleBeschluesse, setAlleBeschluesse] = useState(false);
@@ -105,42 +108,57 @@ export function UmsetzungAkte({
           <p className="pd-leise">{t("ui.politik.UmsetzungAkte.a6d211a")}</p>
         ) : (
           <ul className="pd-um-liste">
-            {offen.map((o) => (
-              <li key={o.id} className="pd-um">
-                <div className="pd-um-kopf">
-                  <strong>
-                    {o.name}
-                    {o.ort ? ` ${provinzenText(o.ort)}` : ""}
-                  </strong>
-                  <button
-                    className="pd-btn quiet klein"
-                    onClick={() => {
-                      setPolicy(world, o.id.replace("@", ""), Math.round(o.now), o.ort ?? null);
-                      refresh();
-                    }}
-                    title={t("ui.politik.UmsetzungAkte.9a5129a")}
-                  >
-                    {t("ui2.ui.politik.UmsetzungAkte.d08e4cb")}
-                  </button>
-                </div>
-                <div className="pd-um-zahlen">
-                  <span>
-                    {t("ui2.ui.politik.UmsetzungAkte.cedb067")} <b>{Math.round(o.now)}</b>
+            {offen.map((o) => {
+              const id = o.id.split("@")[0]!;
+              // Nächster Schritt über und unter dem Ziel: bei benannten Zuständen der Nachbarzustand, sonst 20 Punkte
+              const regime = skalenArt(id) === "regime" ? skala(id, o.target).stufen : null;
+              const hoch = regime ? regime.find((x) => x.w > o.target + 1)?.w : o.target < 99 ? Math.min(100, Math.round(o.target) + 20) : undefined;
+              const tief = regime ? [...regime].reverse().find((x) => x.w < o.target - 1)?.w : o.target > 1 ? Math.max(0, Math.round(o.target) - 20) : undefined;
+              return (
+                <li key={o.id} className={`pd-um ${o.target > o.now ? "steigt" : "faellt"}`}>
+                  <div className="pd-um-kopf">
+                    <strong>
+                      {o.name}
+                      {o.ort ? ` ${provinzenText(o.ort)}` : ""}
+                    </strong>
+                    <em className="pd-um-dauer">{t("ui2.ui.politik.UmsetzungAkte.2ff812a", { p0: o.months })}{o.months === 1 ? "" : "e"}</em>
+                  </div>
+                  <div className="pd-um-weg">
+                    <span className="pd-um-stand"><small>{t("ui2.ui.politik.UmsetzungAkte.cedb067")}</small><b>{stufenName(id, o.now)}</b></span>
+                    <span className="pd-um-pfeil" aria-hidden>→</span>
+                    <span className="pd-um-stand ziel"><small>{t("ui2.ui.politik.UmsetzungAkte.44d1262")}</small><b>{stufenName(id, o.target)}</b></span>
+                  </div>
+                  {/* Skala 0 bis 100 wie im Regler: gefüllt bis heute, Marke am Ziel */}
+                  <span className="pd-skala breit" aria-hidden>
+                    <i style={{ width: `${Math.max(0, Math.min(100, o.now))}%` }} />
+                    <b style={{ left: `${Math.max(0, Math.min(100, o.target))}%` }} />
                   </span>
-                  <span aria-hidden>→</span>
-                  <span>
-                    {t("ui2.ui.politik.UmsetzungAkte.44d1262")} <b>{Math.round(o.target)}</b>
-                  </span>
-                  <em>
-                    {t("ui2.ui.politik.UmsetzungAkte.2ff812a", { p0: o.months })}{o.months === 1 ? "" : "e"}
-                  </em>
-                </div>
-                <span className="pd-skala breit" aria-hidden>
-                  <i style={{ width: `${Math.max(0, Math.min(100, o.now))}%` }} />
-                  <b style={{ left: `${Math.max(0, Math.min(100, o.target))}%` }} title={t("ui2.ui.politik.UmsetzungAkte.44d1262")} />
-                </span>
-              </li>
-            ))}
+                  <div className="pd-um-tun">
+                    {onAendern && hoch !== undefined && (
+                      <button type="button" className="pd-btn klein" onClick={() => onAendern({ id, level: hoch, ort: o.ort ?? null })} title={t("um.weiterTitel", { ziel: stufenName(id, hoch) })}>
+                        {t("um.weiter", { tun: tunWort(id, 1) })} <small>{stufenName(id, hoch)}</small>
+                      </button>
+                    )}
+                    {onAendern && tief !== undefined && (
+                      <button type="button" className="pd-btn quiet klein" onClick={() => onAendern({ id, level: tief, ort: o.ort ?? null })} title={t("um.wenigerTitel", { ziel: stufenName(id, tief) })}>
+                        {t("um.weniger")} <small>{stufenName(id, tief)}</small>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="pd-btn quiet klein pd-um-stopp"
+                      onClick={() => {
+                        setPolicy(world, id, Math.round(o.now), o.ort ?? null);
+                        refresh();
+                      }}
+                      title={t("ui.politik.UmsetzungAkte.9a5129a")}
+                    >
+                      {t("ui2.ui.politik.UmsetzungAkte.d08e4cb")}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

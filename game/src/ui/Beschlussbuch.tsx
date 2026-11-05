@@ -32,11 +32,14 @@ export function Beschlussbuch({
   refresh,
   teil = "parlament",
   onBerichtOeffnen,
+  onAendern,
 }: {
   world: World;
   refresh: () => void;
   teil?: "parlament" | "beschluesse";
   onBerichtOeffnen?: (b: Bericht) => void;
+  /** Öffnet eine laufende Maßnahme in der Politik mit neuem Ziel (weiter ausbauen, Ziel senken) */
+  onAendern?: (x: { id: string; level: number; ort: number[] | null }) => void;
 }) {
   const spiel = world.spiel;
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
@@ -231,7 +234,7 @@ export function Beschlussbuch({
       )}
 
       {teil === "beschluesse" && (
-        <UmsetzungAkte world={world} refresh={refresh} offen={offen} beschlossen={beschlossen} wirksam={wirksam} {...(onBerichtOeffnen ? { onBerichtOeffnen } : {})} />
+        <UmsetzungAkte world={world} refresh={refresh} offen={offen} beschlossen={beschlossen} wirksam={wirksam} {...(onBerichtOeffnen ? { onBerichtOeffnen } : {})} {...(onAendern ? { onAendern } : {})} />
       )}
     </div>
   );
