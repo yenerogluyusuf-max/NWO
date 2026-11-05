@@ -79,3 +79,66 @@
 .vf-segment .vf-wort { transition: background 160ms ease; }
 /* Geltendes Recht bleibt ohne Marker (nur unterstrichen); gelb ist allein, was das Paket ändert */
 .vf-segment.on.bisher .vf-wort { background: none; padding: 0; margin: 0; border-bottom: 2px solid #5d4231; font-weight: 600; }
+
+/* Zweiter Schritt (05.11.2026: „es geht aber auch besser“): Machtwaage, Achse von Kontrolle zu Macht, Parteien im Halbrund, Folgen als Abzeichen */
+.vf-entwurf-kopf { padding-right: 0; }
+.vf-entwurf-kopf > div { flex: 1; min-width: 0; }
+.vf-tafel p.vf-achse-legende { display: flex; justify-content: space-between; max-width: 520px; margin-top: 8px; font: 400 11.5px var(--kapitaelchen, serif); letter-spacing: 0.1em; text-transform: uppercase; }
+.vf-achse-legende span:first-child { color: #2f5e66; }
+.vf-achse-legende span:first-child::before { content: "◀ "; }
+.vf-achse-legende span:last-child { color: var(--seal, #8f2a1e); }
+.vf-achse-legende span:last-child::after { content: " ▶"; }
+
+.vf-waage { margin: -6px 0 -4px; width: 150px; flex: none; text-align: center; }
+.vf-waage svg { width: 100%; height: auto; overflow: visible; }
+.vf-waage-fuss { fill: #7c5823; }
+.vf-waage-balken { transition: transform 600ms cubic-bezier(.3,1.4,.5,1); }
+.vf-waage-balken line { stroke: #5d4231; stroke-width: 4; stroke-linecap: round; }
+.vf-waage-achse { fill: #c9a25a; stroke: #5d4231; stroke-width: 1.5; }
+.vf-schale line { stroke: #7c5823; stroke-width: 1; }
+.vf-schale path { fill: #c9a25a; stroke: #7c5823; stroke-width: 1; transition: fill 300ms ease; }
+.vf-schale text { font: 8.5px var(--sans); fill: #5a4632; }
+.vf-schale.links.schwer path { fill: #3f7c86; }
+.vf-schale.rechts.schwer path { fill: #a8402f; }
+.vf-schale, .vf-schale * { transition: all 600ms cubic-bezier(.3,1.4,.5,1); }
+.vf-waage figcaption { font: italic 12px var(--serif); color: #6b5338; }
+.vf-waage figcaption.palast { color: var(--seal, #8f2a1e); }
+.vf-waage figcaption.buerger { color: #2f5e66; }
+
+/* Fassungen als Stationen auf einer Linie, links mehr Kontrolle, rechts mehr Macht */
+.vf-segmente { position: relative; gap: 4px 0; padding-top: 2px; }
+.vf-segmente::before { content: ""; position: absolute; left: 10px; right: 10px; top: 9px; height: 2px; background: linear-gradient(90deg, rgba(47, 94, 102, 0.5), rgba(160, 130, 80, 0.45), rgba(143, 42, 30, 0.5)); }
+.dossier .vf-segment, .vf-segment { align-items: center; text-align: center; min-width: 110px; padding: 0 8px 3px; }
+.vf-punkt { position: relative; z-index: 1; width: 14px; height: 14px; margin-bottom: 4px; border-radius: 50%; background: #fbf5e4; border: 2px solid #b09a74; transition: transform 200ms ease, background 200ms ease, box-shadow 200ms ease; }
+.vf-segment.macht-minus .vf-punkt { border-color: #3f7c86; }
+.vf-segment.macht-plus .vf-punkt { border-color: #a8402f; }
+.vf-segment:hover:not(:disabled) .vf-punkt { transform: scale(1.25); }
+.vf-segment.on .vf-punkt { transform: scale(1.45); background: #b09a74; box-shadow: 0 0 0 4px rgba(255, 214, 92, 0.55); }
+.vf-segment.on.macht-minus .vf-punkt { background: #3f7c86; }
+.vf-segment.on.macht-plus .vf-punkt { background: #a8402f; }
+.vf-segment.on .vf-wort { margin: 0; }
+
+/* Halbrund der Fraktionen */
+.vf-sitze { margin: 2px 0 4px; }
+.vf-sitze .par-svg { max-height: 190px; }
+.vf-sitze-mitte { display: flex; flex-direction: column; align-items: center; }
+.vf-sitze-mitte b { font: 700 30px/1 var(--sans); color: #2e2118; }
+.vf-sitze-mitte small { font: 11.5px var(--sans); color: #6b5338; }
+.vf-leiste { position: relative; height: 8px; margin: 18px 0 4px; border-radius: 4px; background: #e8dcc0; }
+.vf-leiste i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: #8a6a2a; transition: width 420ms cubic-bezier(.2,.8,.2,1), background 300ms ease; }
+.vf-leiste i.reicht { background: #2f7d62; }
+.vf-leiste b { position: absolute; top: -5px; bottom: -5px; width: 2px; background: #2e2118; }
+.vf-leiste b span { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font: 600 10.5px var(--sans); color: #2e2118; }
+.vf-tafel p.vf-spanne-zeile { margin: 2px 0 0; font: 12px var(--sans); color: #6b5338; text-align: center; }
+.vf-fraktionen { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.vf-fraktionen li { padding: 1px 7px; border-left: 4px solid; border-radius: 2px; background: rgba(255, 251, 238, 0.9); font: 12px var(--sans); color: #3a2a1d; }
+.vf-fraktionen b { font-weight: 700; }
+.vf-fraktionen small { color: #7a6650; }
+
+/* Folgen als Abzeichen */
+.vf-folgen { margin: 8px 0; display: flex; flex-direction: column; gap: 4px; }
+.vf-folgen-titel { font: 400 11.5px var(--kapitaelchen, serif); letter-spacing: 0.1em; text-transform: uppercase; color: #6b5338; }
+.vf-folgen ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.vf-folgen li { padding: 2px 8px; border-radius: 11px; font: 12px var(--sans); }
+.vf-folgen li.gut { background: rgba(47, 125, 98, 0.13); color: #24573f; }
+.vf-folgen li.schlecht { background: rgba(168, 64, 47, 0.12); color: #8a2d26; }

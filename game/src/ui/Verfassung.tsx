@@ -25,7 +25,12 @@ import {
   zieheVerfassungZurueck,
   amtszeitBelegt,
 } from "../sim/verfassung";
-import { PARTEI_NAME } from "../sim/fraktionen";
+import { PARTEI_NAME, DULDUNG_QUOTE, duldung } from "../sim/fraktionen";
+import { NET } from "../sim/modell";
+import { HOCH_SCHLECHT } from "../sim/personen";
+import { Sitzplan, FARBEN_PAPIER } from "./parlament/Halbrund";
+import { parlamentsLage } from "./parlament/lage";
+import { stimmzettel } from "./parlament/stimmen";
 import { kannZahlen } from "../sim/kapital";
 import type { Ergebnis } from "../sim/handeln";
 import "./politik/design.css";
@@ -55,20 +60,93 @@ function parteienText(world: World, parteien: Record<string, number>): string {
   return teile.length ? teile.join("; ") : t("vf.ohneFronten");
 }
 
-/** Stimmzettel als Halbrund: 600 Sitze von links nach rechts, gefüllt bis zu den erwarteten Ja-Stimmen, Spanne heller, Marken bei 360 und 400. */
-function Halbrund({ erwartet, tief, hoch }: { erwartet: number; tief: number; hoch: number }) {
-  const r = 88, cx = 120, cy = 116;
-  const bogen = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
-  const punkt = (n: number, d = 0) => { const w = Math.PI * (1 - n / 600); return { x: cx + (r + d) * Math.cos(w), y: cy - (r + d) * Math.sin(w) }; };
-  const marke = (n: number, text: string) => { const a = punkt(n, -14), b = punkt(n, 14), c = punkt(n, 24); return <g key={n} className="vf-hr-marke"><line x1={a.x} y1={a.y} x2={b.x} y2={b.y} /><text x={c.x} y={c.y} textAnchor={n > 300 ? "start" : "end"}>{text}</text></g>; };
+const knotenName = (id: string): string => NET.nodes[NET.index.get(id) ?? -1]?.name ?? id;
+
+/** Das Paket im Halbrund: jede Fraktion in ihrer Farbe, Ja-Sitze voll, Nein-Sitze blass; darunter die Leiste mit 360 und 400. */
+function PaketHalbrund({ world, stimmen }: { world: World; stimmen: ReturnType<typeof paketStimmen> | null }) {
+  const lage = useMemo(() => parlamentsLage(world), [world, world.day]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!lage) return null;
+  const lagerParteien = new Set([world.player?.partei.kurz ?? "", ...(world.spiel?.lager ?? [])]);
+  const dul = new Set(duldung(world).parteien);
+  const jaJe: Record<string, number> = {};
+  for (const f of lage.fraktionen)
+    jaJe[f.partei] = !stimmen ? 0 : lagerParteien.has(f.partei) ? f.sitze : dul.has(f.partei) ? Math.round(f.sitze * DULDUNG_QUOTE) : stimmen.fraktionen.find((x) => x.partei === f.partei)?.ja ?? 0;
+  // Fester Zufall: die Abweichler bleiben beim Umschalten auf ihren Plätzen
+  const votum = stimmen ? stimmzettel(lage, jaJe, 175) : undefined;
   return (
-    <svg className="vf-halbrund" viewBox="0 0 240 130" role="img" aria-label={t("vf.erwartetJa", { n: erwartet })}>
-      <path d={bogen} pathLength={600} className="vf-hr-grund" />
-      {hoch > tief && <path d={bogen} pathLength={600} className="vf-hr-spanne" strokeDasharray={`0 ${tief} ${hoch - tief} 600`} />}
-      {erwartet > 0 && <path d={bogen} pathLength={600} className={`vf-hr-ja${erwartet >= VERFASSUNG_REGELN.mehrheit ? " reicht" : ""}`} strokeDasharray={`${erwartet} 600`} />}
-      {marke(VERFASSUNG_REGELN.mehrheit, String(VERFASSUNG_REGELN.mehrheit))}
-      {marke(VERFASSUNG_REGELN.direkt, String(VERFASSUNG_REGELN.direkt))}
-    </svg>
+    <div className="vf-sitze">
+      <Sitzplan lage={lage} modus={stimmen ? "abstimmung" : "partei"} {...(votum ? { votum, sichtbar: 600 } : {})} farben={FARBEN_PAPIER}
+        aria={stimmen ? t("vf.erwartetJa", { n: stimmen.erwartet }) : t("vf.paket")}
+        mitte={stimmen ? <span className="vf-sitze-mitte"><b>{stimmen.erwartet}</b><small>{t("vf.ja")}</small></span> : undefined} />
+      {stimmen && (
+        <div className="vf-leiste" aria-hidden>
+          <i style={{ width: `${(stimmen.erwartet / 600) * 100}%` }} className={stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit ? "reicht" : ""} />
+          {[VERFASSUNG_REGELN.mehrheit, VERFASSUNG_REGELN.direkt].map((n) => <b key={n} style={{ left: `${(n / 600) * 100}%` }}><span>{n}</span></b>)}
+        </div>
+      )}
+      {stimmen && (
+        <ul className="vf-fraktionen">
+          {lage.fraktionen.map((f) => (
+            <li key={f.partei} style={{ borderColor: f.farbe }} title={f.name}>
+              <span>{f.partei}</span> <b>{jaJe[f.partei] ?? 0}</b><small>/{f.sitze}</small>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** Was das Paket im Land bewegt: Größen aus den Effekten der Fassungen und die Wählergruppen der Volksabstimmung, als Abzeichen. */
+function PaketFolgen({ paket }: { paket: Record<string, string> }) {
+  const groessen = new Map<string, number>(), gruppen = new Map<string, number>();
+  for (const x of geaenderteArtikel(paket)) {
+    for (const e of x.variante.effekte) groessen.set(e.id, (groessen.get(e.id) ?? 0) + e.d);
+    for (const [g, d] of Object.entries(x.variante.waehler)) gruppen.set(g, (gruppen.get(g) ?? 0) + d);
+  }
+  const g = [...groessen].filter(([, d]) => d !== 0);
+  const w = [...gruppen].filter(([, d]) => d !== 0).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 5);
+  if (!g.length && !w.length) return null;
+  const marke = (id: string, d: number, gut: boolean) => (
+    <li key={id} className={gut ? "gut" : "schlecht"}><span aria-hidden>{d > 0 ? "▲" : "▼"}</span> {knotenName(id)} <b>{d > 0 ? `+${d}` : d}</b></li>
+  );
+  return (
+    <div className="vf-folgen">
+      {g.length > 0 && <><span className="vf-folgen-titel">{t("vf.folgen.land")}</span><ul>{g.map(([id, d]) => marke(id, d, d > 0 !== HOCH_SCHLECHT.has(id)))}</ul></>}
+      {w.length > 0 && <><span className="vf-folgen-titel">{t("vf.folgen.waehler")}</span><ul>{w.map(([id, d]) => marke(id, d, d > 0))}</ul></>}
+    </div>
+  );
+}
+
+/**
+ * Die Machtwaage: links Parlament und Bürger, rechts der Palast. Die Summe der Machtrichtung aller gewählten Fassungen neigt den Balken
+ * (Daten: `autoritaer` je Fassung, + Machtkonzentration, − mehr Kontrolle). Das ist dieselbe Größe, die Gegenreaktion und Gericht treibt.
+ */
+function Waage({ summe }: { summe: number }) {
+  const winkel = Math.max(-18, Math.min(18, summe * 3));
+  const neigung = (winkel * Math.PI) / 180;
+  const lx = 60 - 50 * Math.cos(neigung), ly = 44 - 50 * Math.sin(neigung);
+  const rx = 60 + 50 * Math.cos(neigung), ry = 44 + 50 * Math.sin(neigung);
+  const schale = (x: number, y: number, text: string, cls: string) => (
+    <g className={cls}>
+      <line x1={x} y1={y} x2={x - 12} y2={y + 20} /><line x1={x} y1={y} x2={x + 12} y2={y + 20} />
+      <path d={`M${x - 16},${y + 20} Q${x},${y + 32} ${x + 16},${y + 20} Z`} />
+      <text x={x} y={y + 44} textAnchor="middle">{text}</text>
+    </g>
+  );
+  return (
+    <figure className="vf-waage" aria-label={t("vf.waage.aria", { n: summe })}>
+      <svg viewBox="0 0 120 104">
+        <path d="M60,44 L52,96 L68,96 Z" className="vf-waage-fuss" />
+        <g className="vf-waage-balken" style={{ transform: `rotate(${winkel}deg)`, transformOrigin: "60px 44px" }}>
+          <line x1={10} y1={44} x2={110} y2={44} />
+        </g>
+        {schale(lx, ly, t("vf.waage.links"), `vf-schale links${summe < 0 ? " schwer" : ""}`)}
+        {schale(rx, ry, t("vf.waage.rechts"), `vf-schale rechts${summe > 0 ? " schwer" : ""}`)}
+        <circle cx={60} cy={44} r={4} className="vf-waage-achse" />
+      </svg>
+      <figcaption className={summe > 0 ? "palast" : summe < 0 ? "buerger" : ""}>{summe === 0 ? t("vf.waage.gleich") : t(summe > 0 ? "vf.waage.zumPalast" : "vf.waage.zumParlament")}</figcaption>
+    </figure>
   );
 }
 
@@ -229,7 +307,9 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
             <div>
               <h3>{t("vf.entwurf.titel")}</h3>
               <p>{t("vf.regelZeile", { mehrheit: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
+              <p className="vf-achse-legende"><span>{t("vf.achse.links")}</span><span>{t("vf.achse.rechts")}</span></p>
             </div>
+            <Waage summe={geaenderteArtikel(paket).reduce((n, x) => n + x.variante.autoritaer, 0)} />
           </header>
           <ol className="vf-zeilen">
             {ARTIKEL.map((a) => {
@@ -249,13 +329,14 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                       {sperre > 0 && <span className="vf-sperre">{t("vf.gesperrt", { n: sperre - world.day })}</span>}
                     </div>
                     <div className="vf-segmente" role="radiogroup" aria-label={a.name}>
-                      {a.varianten.map((x) => {
+                      {[...a.varianten].sort((p, q) => p.autoritaer - q.autoritaer).map((x) => {
                         const gewaehlt = paket[a.id] === x.id;
                         const delta = gewaehlt ? 0 : paketStimmen(world, { ...paket, [a.id]: x.id }).erwartet - dJetzt;
                         const tipp = `${x.text}${x.statusQuo ? "" : ` (${richtungWort(x.autoritaer)}; ${parteienText(world, x.parteien)})`}`;
                         return (
-                          <button key={x.id} type="button" role="radio" aria-checked={gewaehlt} className={`vf-segment${gewaehlt ? " on" : ""}${x.statusQuo ? " bisher" : ""}`}
+                          <button key={x.id} type="button" role="radio" aria-checked={gewaehlt} className={`vf-segment${gewaehlt ? " on" : ""}${x.statusQuo ? " bisher" : ""} macht-${x.autoritaer > 0 ? "plus" : x.autoritaer < 0 ? "minus" : "null"}`}
                             disabled={sperre > 0 || belegt} title={tipp} onClick={() => setWahl({ ...wahl, [a.id]: x.id })}>
+                            <i className="vf-punkt" aria-hidden />
                             <span className="vf-wort">{x.name}</span>
                             {x.statusQuo && <small className="vf-geltend">{t("vf.geltend")}</small>}
                             {!gewaehlt && delta !== 0 && <small className={`vf-delta ${delta > 0 ? "plus" : "minus"}`}>{t("vf.deltaJa", { n: `${delta > 0 ? "+" : "−"}${Math.abs(delta)}` })}</small>}
@@ -274,16 +355,14 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
         {pr && (
           <aside className="vf-zettel" aria-live="polite">
             <h3>{t("vf.paket")}</h3>
-            <Halbrund erwartet={pr.geaendert > 0 ? pr.stimmen.erwartet : 0} tief={pr.geaendert > 0 ? pr.stimmen.tief : 0} hoch={pr.geaendert > 0 ? pr.stimmen.hoch : 0} />
+            <PaketHalbrund world={world} stimmen={pr.geaendert > 0 ? pr.stimmen : null} />
             {pr.geaendert > 0 ? (
               <>
-                <p className="vf-zahl">
-                  <b>{pr.stimmen.erwartet}</b>
-                  <span>{t("vf.spanne", { tief: pr.stimmen.tief, hoch: pr.stimmen.hoch })}</span>
-                </p>
+                <p className="vf-spanne-zeile">{t("vf.spanne", { tief: pr.stimmen.tief, hoch: pr.stimmen.hoch })}</p>
                 <p className={`vf-urteil ${pr.stimmen.erwartet >= VERFASSUNG_REGELN.direkt ? "direkt" : pr.stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit ? "volk" : "fehlt"}`}>
                   {pr.stimmen.erwartet >= VERFASSUNG_REGELN.direkt ? t("vf.urteil.direkt") : pr.stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit ? t("vf.urteil.volk") : t("vf.urteil.fehlt", { n: VERFASSUNG_REGELN.mehrheit - pr.stimmen.erwartet })}
                 </p>
+                <PaketFolgen paket={paket} />
                 <ul className="vf-aenderungen">
                   {geaenderteArtikel(paket).map((x) => (
                     <li key={x.artikel.id}><span>{t(`vf.art.${x.artikel.id}`)}</span> <mark>{x.variante.name}</mark></li>
