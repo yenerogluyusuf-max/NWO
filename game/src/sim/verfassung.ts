@@ -446,7 +446,7 @@ export interface PaketStimmen {
   lager: number;
   /** Ja-Stimmen duldender Fraktionen */
   duldung: number;
-  /** Rechnung je Oppositionsfraktion */
+  /** Rechnung je Fraktion außer der eigenen und den duldenden (Partner und Opposition) */
   fraktionen: { partei: string; sitze: number; quote: number; ja: number }[];
   /** Fehlende Stimmen bis zur Hürde 301 (erwartet) */
   lueckeMehrheit: number;
@@ -470,16 +470,30 @@ export function paketStimmen(w: World, paket: Record<string, string>, absprachen
   const geaendert = geaenderteArtikel(paket);
   const zustimmung = spiel.umfrage.zustimmung;
   const beliebtheit = (zustimmung - 45) / 100;
+  // Präferenz: Mittel über die geänderten Artikel; wer nichts zum Thema sagt, misstraut dem Vorgang leicht
+  // Die Opposition schenkt dem Amtsinhaber keine Macht: Fassungen, die Macht zum Palast ziehen, trägt sie höchstens neutral mit,
+  // auch wenn sie die Einrichtung grundsätzlich mag (eine AKP in der Opposition gibt einem fremden Präsidenten keine dritte Amtszeit)
+  const praefVon = (partei: string, opposition: boolean) =>
+    geaendert.length ? geaendert.reduce((s, x) => { const p = x.variante.parteien[partei] ?? -0.5; return s + (opposition && x.variante.autoritaer > 0 ? Math.min(0, p) : p); }, 0) / geaendert.length : 0;
   const fraktionen: PaketStimmen["fraktionen"] = [];
+  let partnerJa = 0;
   for (const [partei, sitze] of Object.entries(parl.seats)) {
-    if (lagerParteien.includes(partei) || dul.parteien.includes(partei) || sitze <= 0) continue;
-    // Präferenz: Mittel über die geänderten Artikel; wer nichts zum Thema sagt, misstraut dem Vorgang leicht
-    const praef = geaendert.length ? geaendert.reduce((s, x) => s + (x.variante.parteien[partei] ?? -0.5), 0) / geaendert.length : 0;
-    const quote = clamp(0.28 + 0.16 * praef + 0.35 * beliebtheit, 0.02, 0.92);
-    fraktionen.push({ partei, sitze, quote, ja: Math.round(sitze * quote) });
+    if (partei === eigene || dul.parteien.includes(partei) || sitze <= 0) continue;
+    const partner = spiel.lager.includes(partei);
+    const praef = praefVon(partei, !partner);
+    // Entscheidung des Projektinhabers 05.11.2026 („Mache“): Wer ein Paket ablehnt, stimmt auch dagegen. Vorher stimmten 28 % jeder
+    // Oppositionsfraktion für jedes Paket, und das Lager stimmte geschlossen, auch wenn der Partner das Paket ablehnte.
+    //   Partner: folgt dem Präsidenten, solange er nicht dagegen ist; bei Ablehnung gehen bis zu 80 % der Sitze verloren.
+    //   Opposition: neutral 10 %, wer dagegen ist fast niemand, wer dafür ist bis 82 %; die Beliebtheit verschiebt um bis zu ±5 Punkte.
+    const quote = partner
+      ? clamp(praef >= 0 ? 1 : 1 + 0.4 * praef, 0.2, 1)
+      : clamp((praef > 0 ? 0.1 + 0.36 * praef : 0.1 * (1 + praef)) + 0.15 * beliebtheit, 0.02, 0.9);
+    const ja = Math.round(sitze * quote);
+    if (partner) partnerJa += ja;
+    fraktionen.push({ partei, sitze, quote, ja });
   }
-  const opJa = fraktionen.reduce((s, f) => s + f.ja, 0);
-  const erwartet = Math.min(600, lager + dul.ja + opJa + absprachen);
+  const opJa = fraktionen.reduce((s, f) => s + f.ja, 0) - partnerJa;
+  const erwartet = Math.min(600, (parl.seats[eigene] ?? 0) + partnerJa + dul.ja + opJa + absprachen);
   // Wie bei den Gesetzen: Angespanntheit des Präsidenten verbreitert die Schätzung
   const band = Math.round((10 + geaendert.length * 2) * unsicherheitFaktor(w));
   return {

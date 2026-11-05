@@ -70,7 +70,7 @@ function PaketHalbrund({ world, stimmen }: { world: World; stimmen: ReturnType<t
   const dul = new Set(duldung(world).parteien);
   const jaJe: Record<string, number> = {};
   for (const f of lage.fraktionen)
-    jaJe[f.partei] = !stimmen ? 0 : lagerParteien.has(f.partei) ? f.sitze : dul.has(f.partei) ? Math.round(f.sitze * DULDUNG_QUOTE) : stimmen.fraktionen.find((x) => x.partei === f.partei)?.ja ?? 0;
+    jaJe[f.partei] = !stimmen ? 0 : stimmen.fraktionen.find((x) => x.partei === f.partei)?.ja ?? (lagerParteien.has(f.partei) ? f.sitze : dul.has(f.partei) ? Math.round(f.sitze * DULDUNG_QUOTE) : 0);
   // Fester Zufall: die Abweichler bleiben beim Umschalten auf ihren Plätzen
   const votum = stimmen ? stimmzettel(lage, jaJe, 175) : undefined;
   return (
