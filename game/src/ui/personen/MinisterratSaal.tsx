@@ -1,6 +1,7 @@
-// Der Ministerratssaal (Bakanlar Kurulu): Visueller Kabinettssaal nach Democracy 4- und Suzerain-Vorbild.
-// Zeigt die 7 Regierungsminister am Konferenztisch, ihren Beitrag zum Politischen Kapital,
-// ihre Loyalität, Lagerbindung und Sorgen, und ermöglicht gemeinsame Kabinettssitzungen.
+// Der Kabinettstisch (Cumhurbaşkanlığı Kabinesi; Plan Oberfläche, Anhang A „Kabinett › Kabinettstisch“): alle 17 Ministerien,
+// das Präsidialamt und der Generalstab als Gast um einen Tisch. Ring = Stimmung, Abzeichen = offene Vorlagen, Warnzeichen = Rücktrittsgefahr.
+// Ein Klick öffnet rechts die Ministerakte: die Ministerkarte und nur die Vorlagen und Befehle dieser Person. Vorher standen 19 große
+// Karten und 21 Vorlagen untereinander (20 Bildschirme; Rundgang 5. November).
 //
 // Alle Ministerkarten haben denselben Aufbau in derselben Reihenfolge, damit man sie nebeneinander lesen kann:
 //   Kopf (Gesicht, Ressort, Name, Rolle) · Werte (Loyalität, Leistung, Ehrgeiz) · Kapital-Ertrag · Ressortsorge · Marken · Handlungen.
@@ -15,6 +16,11 @@ import { ehrgeizWort, eigenVon, grollWort, leistung, leistungWort, nf } from "..
 import type { Figur } from "../../sim/spiel-typen";
 import { Icon } from "../icons";
 import { MinisterPult } from "../minister/MinisterPult";
+import { offeneAnliegen } from "../minister/Posteingang";
+import { ministerVorlagen } from "../../sim/ministerfluss";
+import { useState } from "react";
+import "./kabinettstisch.css";
+import { Portraet as Zeichnung } from "../art/Portraet";
 import { Balken, Marke, Portraet } from "./bausteine";
 
 import { t } from "../../i18n";
@@ -52,7 +58,7 @@ export function leitministerVon(ressort: string, minister: MinisterPosten[]): Mi
 /** Eine Zahl mit Vorzeichen und Einheit; die Einheit hängt an der Zahl und bricht nie um. */
 const mitVorzeichen = (x: number) => (x > 0 ? `+${nf(x, 1)}` : nf(x, 1));
 
-function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: MinisterPosten; figur: Figur | undefined; onWaehlePerson: (id: string, modus?: "gespraech" | "entlassen") => void }) {
+export function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: MinisterPosten; figur: Figur | undefined; onWaehlePerson: (id: string, modus?: "gespraech" | "entlassen") => void }) {
   const e = figur ? eigenVon(world, figur) : undefined;
   const q = figur ? leistung(world, figur) : undefined;
   const grund = figur ? gespraechGrund(world, figur.id) : undefined;
@@ -129,50 +135,69 @@ export function MinisterratSaal({
   onKarte?: (problemId?: string) => void;
 }) {
   const status = kabinettStatus(world);
+  const [gewaehlt, setGewaehlt] = useState<string | null>(null);
+  const figuren = world.spiel?.figuren ?? [];
+  // Offene Vorlagen und Anliegen je Amt (Abzeichen am Platz)
+  const vorlagen = world.spiel ? ministerVorlagen(world, { tiefe: 0 }) : [];
+  const anliegen = world.spiel ? offeneAnliegen(world) : [];
+  const offen = (amt: string) => vorlagen.filter((v) => v.amt === amt).length + anliegen.filter((a) => a.amt === amt).length;
+  // Sitzordnung: Präsidialamt am Kopf, die Ministerien im Uhrzeigersinn, der Generalstab als Gast unten
+  const sitze = status.minister;
+  const n = sitze.length;
+  const platz = (i: number) => {
+    const winkel = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    return { left: `${50 + 46 * Math.cos(winkel)}%`, top: `${50 + 44 * Math.sin(winkel)}%` };
+  };
+  const m = sitze.find((x) => x.id === gewaehlt);
+  const fm = m ? figuren.find((f) => f.id === m.id) : undefined;
 
   return (
-    <div className="mr-saal">
-      {/* Kopfband: Kabinettsdisziplin und Kapital-Generierung */}
-      <div className="mr-kopfband">
-        <div className="mr-status-info">
-          <div className="mr-titel-zeile">
-            <h3>{t("ui2.ui.personen.MinisterratSaal.345ebc4")}</h3>
-            <span className={`mr-disziplin-badge ${status.disziplin}`}>{status.disziplin.toUpperCase()}</span>
-          </div>
-          <p className="mr-disziplin-text">{status.disziplinText}</p>
-        </div>
-
-        <div className="mr-kennzahlen">
-          <div className="mr-kpi">
-            <span className="mr-kpi-label">{t("ui.personen.MinisterratSaal.840a839")}</span>
-            <strong className={`mr-kpi-wert ${status.kapitalSumme >= 6 ? "gut" : status.kapitalSumme < 2 ? "warn" : ""}`}>{mitVorzeichen(status.kapitalSumme)} Kapital</strong>
-            <small>{t("ui.personen.MinisterratSaal.0207ed0")}</small>
-          </div>
-
-          <div className="mr-kpi">
-            <span className="mr-kpi-label">{t("ui.personen.MinisterratSaal.99fc71c")}</span>
-            <strong className="mr-kpi-wert">{Math.round(status.schnittLoyalitaet)}</strong>
-            <small>{t("ui2.ui.personen.MinisterratSaal.4a7c557", { p0: status.minister.length })}</small>
-          </div>
-
-          <div className="mr-kpi">
-            <span className="mr-kpi-label">{t("ui2.ui.personen.MinisterratSaal.a9fb3e7")}</span>
-            <strong className="mr-kpi-wert">{status.sitzungMoeglich ? t("ui2.ui.personen.MinisterratSaal.25b5b98") : t("ui2.ui.personen.MinisterratSaal.94acca5", { p0: status.tageBisSitzung })}</strong>
-            <small>{status.sitzungMoeglich ? t("ui2.ui.personen.MinisterratSaal.ee1c3c4") : t("ui2.ui.personen.MinisterratSaal.a944248")}</small>
-          </div>
-        </div>
+    <div className="mr-saal kt">
+      <div className="kt-kopf">
+        <span className={`mr-disziplin-badge ${status.disziplin}`}>{status.disziplin.toUpperCase()}</span>
+        <span>{t("kt.kapital", { n: mitVorzeichen(status.kapitalSumme) })}</span>
+        <span>{t("kt.loyalitaet", { n: Math.round(status.schnittLoyalitaet) })}</span>
+        <span>{status.sitzungMoeglich ? t("ui2.ui.personen.MinisterratSaal.25b5b98") : t("ui2.ui.personen.MinisterratSaal.94acca5", { p0: status.tageBisSitzung })}</span>
+        {status.ruecktrittGefahr.length > 0 && <span className="kt-warn">{t("kt.ruecktritt", { namen: status.ruecktrittGefahr.map((x) => x.name).join(", ") })}</span>}
       </div>
-
-      {/* Vorlagen der Minister (auch die Beschlussvorlagen der Kabinettssitzung) und Befehle an die Minister */}
-      <section className="mr-pult" aria-label={t("ui.personen.MinisterratSaal.7efc7da")}>
-        <MinisterPult world={world} refresh={refresh} {...(onGeheVorlage ? { onGehe: onGeheVorlage } : {})} {...(onKarte ? { onKarte } : {})} />
-      </section>
-
-      {/* Der Ministerratstisch: die Karten haben alle denselben Aufbau, die Reihen sind gleich hoch */}
-      <div className="mr-tisch-gitter">
-        {status.minister.map((m) => (
-          <Ministerkarte key={m.id} world={world} m={m} figur={(world.spiel?.figuren ?? []).find((f) => f.id === m.id)} onWaehlePerson={onWaehlePerson} />
-        ))}
+      <div className="kt-buehne">
+        <div className="kt-raum" role="group" aria-label={t("kt.tischAria")}>
+          <div className="kt-tisch" aria-hidden="true">
+            <span className="kt-tisch-titel">{t("kt.titel")}</span>
+            <span className="kt-tisch-text">{status.disziplinText}</span>
+          </div>
+          {sitze.map((x, i) => {
+            const f = figuren.find((y) => y.id === x.id);
+            const k = offen(x.amt);
+            return (
+              <button
+                key={x.id}
+                type="button"
+                className={`kt-platz kt-st-${x.stimmung}${gewaehlt === x.id ? " on" : ""}${x.amt === "generalstab" ? " gast" : ""}${x.kommissarisch ? " kommissarisch" : ""}`}
+                style={platz(i)}
+                onClick={() => setGewaehlt(gewaehlt === x.id ? null : x.id)}
+                title={`${x.rolle} ${x.name} · ${x.sorge}`}
+                aria-pressed={gewaehlt === x.id}
+              >
+                <span className="kt-gesicht">{f && <Zeichnung seed={f.name} size={46} geschlecht={f.weiblich ? "f" : "m"} rolle={x.amt} rahmen="keiner" />}</span>
+                <span className="kt-name">{x.name}</span>
+                <span className="kt-ressort">{x.ressort}</span>
+                {k > 0 && <i className="kt-abzeichen">{k}</i>}
+                {x.loyalitaet < 25 && <i className="kt-blitz" title={t("ui.personen.MinisterratSaal.434c793")}>!</i>}
+              </button>
+            );
+          })}
+        </div>
+        <aside className="kt-akte" aria-live="polite">
+          {m ? (
+            <>
+              <Ministerkarte world={world} m={m} figur={fm} onWaehlePerson={onWaehlePerson} />
+              <MinisterPult world={world} refresh={refresh} nur={{ id: m.id, amt: m.amt }} {...(onGeheVorlage ? { onGehe: onGeheVorlage } : {})} {...(onKarte ? { onKarte } : {})} />
+            </>
+          ) : (
+            <p className="kt-leer">{t("kt.waehlen", { n: vorlagen.length + anliegen.length })}</p>
+          )}
+        </aside>
       </div>
     </div>
   );

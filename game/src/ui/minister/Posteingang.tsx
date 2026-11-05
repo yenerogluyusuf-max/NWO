@@ -33,8 +33,10 @@ export function offeneAnliegen(world: World) {
   return [...(world.spiel?.ministerfluss?.ressortAnliegen ?? []).filter((a) => ["offen", "besprochen", "abgelehnt"].includes(a.status)), ...offeneRessortVorfaelle(world), ...aktiveRessortNachsorge(world)];
 }
 
-export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: PostfachProps) {
-  const [ressort, setRessort] = useState<Amt | "alle">("alle");
+export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen, nurAmt }: PostfachProps & { nurAmt?: Amt }) {
+  const [gewaehltesRessort, setRessort] = useState<Amt | "alle">("alle");
+  // In der Ministerakte (Kabinettstisch) steht das Ressort fest; die Auswahlleiste entfällt
+  const ressort = nurAmt ?? gewaehltesRessort;
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const [zaehler, setZaehler] = useState(0);
   const schluessel = `${ministerflussSchluessel(world)}|${zaehler}`;
@@ -60,7 +62,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
 
   return (
     <div className="mf">
-      <div className="mf-ressorts" role="group" aria-label={t("ui.minister.Posteingang.31ce8a9")}>
+      {!nurAmt && <div className="mf-ressorts" role="group" aria-label={t("ui.minister.Posteingang.31ce8a9")}>
         <button className={`mf-ressort${ressort === "alle" ? " on" : ""}`} onClick={() => setRessort("alle")} style={{ paddingLeft: 11 }}>
           {t("ui2.ui.minister.Posteingang.4c7a986")} <em className={alle.length+anliegen.length ? "" : "null"}>{alle.length+anliegen.length}</em>
         </button>
@@ -74,7 +76,7 @@ export function Posteingang({ world, refresh, onGehe, onKarte, onEinstellen }: P
             </button>
           );
         })}
-      </div>
+      </div>}
 
       <RessortAnliegenKarten world={world} refresh={refresh} amt={ressort==="alle"?undefined:ressort}/>
       {antwort && (

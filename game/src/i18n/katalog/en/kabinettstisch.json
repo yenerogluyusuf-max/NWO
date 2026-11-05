@@ -1,0 +1,8 @@
+{
+ "kt.kapital": "Capital from the cabinet: {n} a month",
+ "kt.loyalitaet": "Average loyalty: {n}",
+ "kt.ruecktritt": "Resignation looming: {namen}",
+ "kt.tischAria": "Cabinet table with all ministers",
+ "kt.titel": "Cabinet",
+ "kt.waehlen": "Choose a person at the table to see loyalty, performance, worries, their proposals and orders. {n, plural, one {# proposal is} other {# proposals are}} waiting at the table."
+}

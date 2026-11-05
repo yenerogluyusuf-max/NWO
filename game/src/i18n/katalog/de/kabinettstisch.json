@@ -1,0 +1,8 @@
+{
+ "kt.kapital": "Kapital aus dem Kabinett: {n} im Monat",
+ "kt.loyalitaet": "Loyalität im Schnitt: {n}",
+ "kt.ruecktritt": "Rücktritt droht: {namen}",
+ "kt.tischAria": "Kabinettstisch mit allen Ministern",
+ "kt.titel": "Kabinett",
+ "kt.waehlen": "Wählen Sie eine Person am Tisch: Hier stehen dann Loyalität, Leistung, Sorge, ihre Vorlagen und Befehle. Am Tisch warten {n, plural, one {# Vorlage} other {# Vorlagen}}."
+}

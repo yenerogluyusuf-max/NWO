@@ -20,13 +20,15 @@ export interface MinisterPultProps {
   onEinstellen?: (v: Vorlage) => void;
   /** Welcher Reiter zuerst offen ist (Standard: Vorlagen) */
   start?: "vorlagen" | "befehle";
+  /** Nur diese Person (Ministerakte am Kabinettstisch) */
+  nur?: { id: string; amt: import("../../sim/ministerfluss-typen").Amt };
 }
 
-export function MinisterPult({ world, refresh, onGehe, onKarte, onEinstellen, start = "vorlagen" }: MinisterPultProps) {
+export function MinisterPult({ world, refresh, onGehe, onKarte, onEinstellen, start = "vorlagen", nur }: MinisterPultProps) {
   const [reiter, setReiter] = useState<"vorlagen" | "befehle">(start);
   // Dieselbe Zahl wie „Alle“ im Posteingang: Vorlagen und Anliegen der Ressorts
-  const n = world.spiel ? ministerVorlagen(world, { tiefe: 0 }).length + offeneAnliegen(world).length : 0;
-  const laufend = world.spiel ? laufendeBefehle(world).length : 0;
+  const n = world.spiel ? ministerVorlagen(world, { tiefe: 0 }).filter((v) => !nur || v.amt === nur.amt).length + offeneAnliegen(world).filter((a) => !nur || a.amt === nur.amt).length : 0;
+  const laufend = world.spiel ? laufendeBefehle(world).filter((b) => !nur || b.figurId === nur.id).length : 0;
   return (
     <div className="mf">
       <div className="mf-reiter" role="tablist" aria-label={t("ui2.ui.minister.MinisterPult.78e2eab")}>
@@ -37,7 +39,7 @@ export function MinisterPult({ world, refresh, onGehe, onKarte, onEinstellen, st
           {t("ui2.ui.minister.MinisterPult.f2dda66")}{laufend > 0 && <em>{laufend}</em>}
         </button>
       </div>
-      {reiter === "vorlagen" ? <Posteingang world={world} refresh={refresh} {...(onGehe ? { onGehe } : {})} {...(onKarte ? { onKarte } : {})} {...(onEinstellen ? { onEinstellen } : {})} /> : <BefehlBlatt world={world} refresh={refresh} />}
+      {reiter === "vorlagen" ? <Posteingang world={world} refresh={refresh} {...(onGehe ? { onGehe } : {})} {...(onKarte ? { onKarte } : {})} {...(onEinstellen ? { onEinstellen } : {})} {...(nur ? { nurAmt: nur.amt } : {})} /> : <BefehlBlatt world={world} refresh={refresh} {...(nur ? { nurFigur: nur.id } : {})} />}
     </div>
   );
 }

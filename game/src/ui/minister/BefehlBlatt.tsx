@@ -18,9 +18,11 @@ import { t as tx } from "../../i18n";
 const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
 const TYPEN: BefehlTyp[] = ["ziel", "vorhaben", "verhandeln"];
 
-export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => void }) {
+export function BefehlBlatt({ world, refresh, nurFigur }: { world: World; refresh: () => void; nurFigur?: string }) {
   const sp = world.spiel;
-  const [figurId, setFigurId] = useState<string | null>(null);
+  const [gewaehlteFigur, setFigurId] = useState<string | null>(null);
+  // In der Ministerakte steht die Person fest; die Personenspalte entfällt
+  const figurId = nurFigur ?? gewaehlteFigur;
   const [wahl, setWahl] = useState<number | null>(null);
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const minister = useMemo(
@@ -56,7 +58,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
         </p>
       )}
       <div className="mf-befehle">
-        <div className="mf-spalte">
+        {!nurFigur && <div className="mf-spalte">
           <h4>{tx("ui2.ui.minister.BefehlBlatt.0f1e1ef")}</h4>
           {minister.map((m) => {
             const busy = laufend.some((b) => b.figurId === m.id) || eigenVon(world, m).auftrag?.status === "laeuft";
@@ -74,7 +76,7 @@ export function BefehlBlatt({ world, refresh }: { world: World; refresh: () => v
               </button>
             );
           })}
-        </div>
+        </div>}
 
         <div className="mf-spalte">
           <h4>{f ? tx("ui2.ui.minister.BefehlBlatt.82780fc", { p0: f.name }) : tx("ui2.ui.minister.BefehlBlatt.772b07f")}</h4>

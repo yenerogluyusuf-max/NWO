@@ -10,7 +10,7 @@ import { createWorld } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
 import { kabinettStatus } from "../src/sim/kabinett";
-import { MinisterratSaal, leitministerVon, tonDerZeile } from "../src/ui/personen/MinisterratSaal";
+import { MinisterratSaal, Ministerkarte, leitministerVon, tonDerZeile } from "../src/ui/personen/MinisterratSaal";
 import { NachfolgeAuswahl } from "../src/ui/personen/NachfolgeAuswahl";
 import { Cameo } from "../src/ui/art/Cameo";
 
@@ -27,7 +27,16 @@ const klassen = (html: string, muster: RegExp) => [...html.matchAll(muster)].map
 
 describe("Ministerkarten", () => {
   const w = welt();
-  const html = renderToStaticMarkup(createElement(MinisterratSaal, { world: w, refresh: () => {}, onWaehlePerson: () => {} }));
+  // Am Kabinettstisch stehen 19 Plätze; die Karte einer Person steht in ihrer Akte. Geprüft werden die Karten aller 19 Personen.
+  const saal = renderToStaticMarkup(createElement(MinisterratSaal, { world: w, refresh: () => {}, onWaehlePerson: () => {} }));
+  const html = kabinettStatus(w).minister
+    .map((m) => renderToStaticMarkup(createElement(Ministerkarte, { world: w, m, figur: w.spiel!.figuren.find((f) => f.id === m.id), onWaehlePerson: () => {} })))
+    .join("");
+
+  test("der Tisch zeigt alle 19 Plätze ohne Karten (Plan: keine Vorlage und keine Karte auf dem Tisch)", () => {
+    expect(klassen(saal, /<button type="button" class="(kt-platz[^"]*)"/g)).toHaveLength(19);
+    expect(saal).not.toContain('class="mr-karte');
+  });
 
   test("alle 19 Karten (17 Ministerien, Präsidialamt, Generalstab) haben denselben Aufbau in derselben Reihenfolge", () => {
     const karten = html.split('<article class="mr-karte').slice(1);
