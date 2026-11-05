@@ -169,6 +169,14 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 - **Welt und Personen:** keine zwei Minister mit demselben Nachnamen (ohne zusätzlichen Zufallswurf); Zwischenfälle nach Geografie (keine „Grenze“ zu den USA); „Stand der Dinge“ nennt Abstimmungen seit der letzten Sitzung, weil die Abstimmungskarte nur kurz erscheint.
 - Vorher am Morgen: Amtsantritt passend zum Szenario, Starthilfe mit echtem Wahltermin, Partner und Zusagen mit richtiger Sprecherin, Wiederaufbau mit Wohnungsnot, weniger Konfliktmeldungen, „Kapital“ statt „PK“.
 
+**Umbau nach Vorgabe V (jeder Bereich nach seiner Frage, Muster Democracy 4).** Erledigt: Haushalt (Haushaltsrad außen Ausgaben, innen Einnahmen und neue Schulden; Tafel mit allen Reglern; Beschluss am Posten). Offen, in dieser Reihenfolge:
+1. **Schreibtisch** – Frage: „Was muss ich heute entscheiden?“ Eine Liste der Vorgänge nach Dringlichkeit, Entscheidung öffnet sich an der Zeile (heute erscheint sie am Ende der Liste); „Jetzt wichtig“ und „Entscheiden“ zeigen nicht mehr dieselben Vorgänge doppelt; Kopfbanner und Einleitungssätze weg.
+2. **Politik** – „Was kann ich ändern, und was bewirkt es?“ Alle Maßnahmen eines Bereichs als Zeilen mit Regler wie im Haushalt; die Wirkung als kleine Kette am Regler.
+3. **Wähler/Gesellschaft** – „Wer mag mich, wer nicht, und warum?“ Gruppenkreise nach Größe und Zustimmung (Democracy 4).
+4. **Parlament** – „Habe ich eine Mehrheit?“ Das Halbrund mit der Linie 301 als Bild, darunter die Vorhaben.
+5. **Außen und Sicherheit** – „Wer ist Freund, wer Gefahr?“ Die Karte mit Beziehungen als Hauptbild, Länder als Zeilen.
+6. **Wirtschaft** – „Wohin läuft die Wirtschaft?“ Vier Kurven (Inflation, Wachstum, Arbeitslosigkeit, Lira) mit Zielband, darunter die Stellgrößen der Zentralbank.
+
 **Als Nächstes:** (a) übersetzt sind jetzt Protokoll, Verträge, Initiativen, Ländernamen und Ereignispreise; offen bleiben einzelne Texte aus Datenmodulen (Profile der Länder, Ausstrahlungstexte, heimWirkung), (b) endogene Gruppengröße (Democracy 4), (c) Befehle auf der Karte (Vorgabe S; die Lage steht jetzt auf beiden Karten), (d) Besatzungsverwaltung (HOI4), (e) Wahlkampf sichtbarer machen: Ohne Wahlkampf kosten unbeantwortete Angriffe der Opposition 6 Punkte, TV-Duell und schwaches Lager rund 2 (Wahltest: 51 % Zustimmung ergaben 39–42 % der Stimmen); der Schreibtisch sollte das vor der heißen Phase ankündigen, (f) die Zeitung und das Halbrund bleiben bewusst außerhalb der Palette, (g) Durchlauf fortsetzen: Haushalt im Oktober, Wahlkampf und Wahl, ein Krieg von der Spannung bis zum Frieden; Texte der Ereignisvorlagen (ereignisse.ts) sind noch deutsch fest geschrieben.
 
 ## 10a. Stand 04.11.2026
