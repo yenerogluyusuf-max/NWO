@@ -53,5 +53,9 @@
  "nacht_n7.kalender.stand": "{p}% built",
  "nacht_n7.kalender.hinweis": "One date per system, estimated from the build queue: moving a project up or pausing it shifts the date. Systems already under way are not offered again.",
  "nacht_n7.ruestung.vorteile": "Advantages of the armed forces",
- "nacht_n7.ruestung.bauliste": "Reorder the build queue, see the figures"
+ "nacht_n7.ruestung.bauliste": "Reorder the build queue, see the figures",
+ "nacht_n7.karte.prozent": "{p}%",
+ "nacht_n7.karte.front": "Front: position {front} (100 means victory, 50 the starting line)",
+ "nacht_n7.karte.verband": "{teil}: strength {p}% of the 2026 level",
+ "nacht_n7.karte.gegner": "Enemy: strength {p}% of pre-war level"
 }

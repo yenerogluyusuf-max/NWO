@@ -53,5 +53,9 @@
  "nacht_n7.kalender.stand": "{p} % gebaut",
  "nacht_n7.kalender.hinweis": "Ein Datum je System, geschätzt aus der Bauliste: Wer dort vorzieht oder pausiert, verschiebt es. Laufende Systeme werden nicht erneut angeboten.",
  "nacht_n7.ruestung.vorteile": "Vorteile der Streitkräfte",
- "nacht_n7.ruestung.bauliste": "Bauliste ordnen und Kennzahlen ansehen"
+ "nacht_n7.ruestung.bauliste": "Bauliste ordnen und Kennzahlen ansehen",
+ "nacht_n7.karte.prozent": "{p} %",
+ "nacht_n7.karte.front": "Front: Lage {front} (100 heißt Sieg, 50 die Ausgangslinie)",
+ "nacht_n7.karte.verband": "{teil}: Bestand {p} % des Stands 2026",
+ "nacht_n7.karte.gegner": "Gegner: Bestand {p} % des Vorkriegsstands"
 }

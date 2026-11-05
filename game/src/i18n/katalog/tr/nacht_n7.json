@@ -53,5 +53,9 @@
  "nacht_n7.kalender.stand": "%{p} tamamlandı",
  "nacht_n7.kalender.hinweis": "Her sistem için inşa listesinden tahmin edilen tek bir tarih: Listede öne alma veya durdurma tarihi değiştirir. Süren sistemler yeniden sunulmaz.",
  "nacht_n7.ruestung.vorteile": "Silahlı kuvvetlerin avantajları",
- "nacht_n7.ruestung.bauliste": "İnşa listesini düzenleyin, göstergelere bakın"
+ "nacht_n7.ruestung.bauliste": "İnşa listesini düzenleyin, göstergelere bakın",
+ "nacht_n7.karte.prozent": "%{p}",
+ "nacht_n7.karte.front": "Cephe: durum {front} (100 zafer, 50 başlangıç hattı)",
+ "nacht_n7.karte.verband": "{teil}: 2026 düzeyinin %{p}'i",
+ "nacht_n7.karte.gegner": "Karşı taraf: savaş öncesi düzeyin %{p}'i"
 }
