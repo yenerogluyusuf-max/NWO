@@ -73,3 +73,55 @@
 .sk-lagezeile b { font: 600 15px var(--serif, "EB Garamond", serif); color: var(--ink, #2b1e12); }
 .ub-detail .sk-instrumente { display: flex; flex-wrap: wrap; gap: 6px; }
 .ub-detail .ks { margin: 0; }
+
+/* Oben das Bild (Befund G-12): Radar Heer, Luftwaffe, Marine gegen den Stand 2026, daneben je eine Zeile in Worten */
+.sk-oben { display: grid; grid-template-columns: 220px 1fr; gap: 6px 22px; align-items: center; padding: 8px 14px;
+  background: linear-gradient(180deg, rgba(255, 251, 238, 0.96), rgba(244, 233, 205, 0.9)); border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 6px; }
+@container (max-width: 620px) { .sk-oben { grid-template-columns: 1fr; } }
+.sk-radar { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.sk-radar svg { width: 100%; max-width: 220px; height: auto; }
+.sk-radar .ring { fill: none; stroke: rgba(90, 64, 40, 0.18); stroke-width: 1; }
+.sk-radar .bezug { fill: rgba(90, 64, 40, 0.05); stroke: rgba(90, 64, 40, 0.6); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.sk-radar .achse { stroke: rgba(90, 64, 40, 0.25); stroke-width: 1; }
+.sk-radar polygon.kraft { fill: rgba(142, 42, 34, 0.28); stroke: var(--seal); stroke-width: 2; }
+.sk-radar polygon.bereit { fill: none; stroke: #5f6f4a; stroke-width: 2; }
+.sk-radar .name { font: 600 12.5px var(--serif); fill: var(--ink); }
+.sk-radar-legende { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12.5px; color: var(--ink-soft); }
+.sk-radar-legende span::before { content: ""; display: inline-block; width: 10px; height: 3px; margin-right: 4px; vertical-align: middle; }
+.sk-radar-legende .kraft::before { background: var(--seal); }
+.sk-radar-legende .bereit::before { background: #5f6f4a; }
+.sk-radar-legende .bezug::before { border-top: 2px dashed rgba(90, 64, 40, 0.6); height: 0; }
+.sk-oben-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sk-kampfkraft { margin: 0; display: flex; align-items: baseline; gap: 12px; }
+.sk-kampfkraft span { font: 600 13px var(--display); letter-spacing: 0.04em; color: var(--ink-soft); text-transform: uppercase; }
+.sk-kampfkraft strong { font: 700 26px/1 var(--display); color: var(--ink); }
+.sk-kampfkraft strong.schlecht { color: var(--seal); }
+.sk-oben .sk-lagezeile { margin: 0; }
+.sk-achsen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.sk-achsen li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; padding-left: 10px; border-left: 3px solid rgba(90, 64, 40, 0.3); }
+.sk-achsen li.gut { border-left-color: #5f6f4a; }
+.sk-achsen li.schlecht { border-left-color: var(--seal); }
+.sk-achsen b { font: 600 15.5px var(--display); min-width: 9.5em; }
+.sk-achsen span { font: 14.5px/1.35 var(--serif); color: var(--ink-soft); }
+
+/* Lieferkalender in „Rüstung und Beschaffung“: ein Fertigdatum je System auf einer Zeitachse */
+.sk-kalender { display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+.sk-kal-kopf { display: grid; grid-template-columns: 15em 1fr 8.5em; gap: 12px; }
+.sk-kalender h4 { margin: 0; font: 600 17px var(--display); }
+.sk-kal-achse { position: relative; height: 18px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); font: 12.5px var(--serif); color: var(--ink-soft); }
+.sk-kal-achse span { position: absolute; top: 0; padding-left: 3px; border-left: 1px solid rgba(90, 64, 40, 0.35); height: 18px; }
+.sk-kal-achse .heute { position: absolute; top: -2px; bottom: -4px; width: 2px; background: var(--seal); }
+.sk-kal-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.sk-kal-zeilen li { display: grid; grid-template-columns: 15em 1fr 8.5em; gap: 12px; align-items: center; }
+.sk-kal-name { display: flex; flex-direction: column; min-width: 0; }
+.sk-kal-name b { font: 600 15px/1.2 var(--serif); }
+.sk-kal-name small, .sk-kal-datum small { font-size: 12.5px; color: var(--ink-soft); }
+.sk-kal-bahn { position: relative; height: 12px; background: repeating-linear-gradient(90deg, rgba(90, 64, 40, 0.07) 0 1px, transparent 1px calc(100% / 12)); border-radius: 6px; }
+.sk-kal-bahn .lauf { position: absolute; top: 4px; height: 4px; border-radius: 2px; background: rgba(90, 64, 40, 0.45); }
+.sk-kal-bahn .ziel { position: absolute; top: 1px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--seal); box-shadow: 0 0 0 2px #fffaf0; }
+.sk-kal-zeilen li.wartet .sk-kal-datum, .sk-kal-zeilen li.ruht .sk-kal-datum { color: #7a2f22; }
+.sk-kal-datum { display: flex; flex-direction: column; font: 600 14.5px var(--serif); text-align: right; }
+.sk-kal-hinweis { margin: 2px 0 0; font: italic 13.5px/1.4 var(--serif); color: var(--ink-soft); }
+@container (max-width: 620px) { .sk-kal-zeilen li { grid-template-columns: 1fr 6em; } .sk-kal-bahn, .sk-kal-kopf { display: none; } }
+.rr-aufklapp { margin-top: 10px; }
+.rr-aufklapp > summary { cursor: pointer; font: 600 15px var(--serif); color: var(--ink); padding: 6px 0; }

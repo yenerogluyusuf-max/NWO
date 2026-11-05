@@ -2,6 +2,7 @@
 // mit Zustand, Folgen und Eingriff; „Neue Vorhaben“ das, was sich beginnen lässt, nach Art getrennt. Kein Bereich wird nur in Geld gemessen:
 // Jeder hat eigene Größen, und jedes Vorhaben nennt vorher Ausgangslage und erwartete Wirkung und hinterher Vorher und Nachher.
 
+import { Lieferkalender } from "./militaer/Lieferkalender";
 import { useState } from "react";
 import type { World } from "../sim/types";
 import { BEREICH_NAMEN, VERGABE_NAMEN, type Bereich, type Vergabe } from "../sim/reich-typen";
@@ -559,16 +560,28 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
             {/* Verwaltungskraft und Baukapazität nur dort, wo Bau und Verwaltung zu Hause sind; vorher in fünf Bereichen derselbe Block (Rundgang 5. November) */}
             {(bereich === "infrastruktur" || bereich === "haushalt") && <Statistik world={world} />}
             {(bereich === "infrastruktur" || bereich === "haushalt") && <Bauhilfe world={world} />}
-            <Groessen world={world} liste={GROESSEN[bereich]} />
+            {/* Rüstung (N7, Befund G-4/G-45): oben der Lieferkalender mit einem Datum je System, Kennzahlen und Bauliste aufklappbar */}
+            {bereich === "militaer" ? <Lieferkalender world={world} /> : <Groessen world={world} liste={GROESSEN[bereich]} />}
           </section>
-          {technik && <Baustelle world={world} bereich={bereich} refresh={refresh} />}
+          {bereich === "militaer" ? (
+            <details className="rr-aufklapp">
+              <summary>{t("nacht_n7.ruestung.bauliste")}</summary>
+              <Baustelle world={world} bereich={bereich} refresh={refresh} />
+              <Groessen world={world} liste={GROESSEN[bereich]} />
+            </details>
+          ) : technik && <Baustelle world={world} bereich={bereich} refresh={refresh} />}
           {(bereich === "kultur" || technik) && <Dringend world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
           {bereich === "haushalt" && <Haushalt world={world} />}
           {bereich === "recht" && <Sitze world={world} />}
           {bereich === "recht" && <Institutionen world={world} />}
           {!technik && <ImBau world={world} bereich={bereich} refresh={refresh} />}
           <Verlauf world={world} bereich={bereich} />
-          <VorteileListe world={world} bereich={bereich} />
+          {bereich === "militaer" ? (
+            <details className="rr-aufklapp">
+              <summary>{t("nacht_n7.ruestung.vorteile")}</summary>
+              <VorteileListe world={world} bereich={bereich} />
+            </details>
+          ) : <VorteileListe world={world} bereich={bereich} />}
           {z.meldungen.length > 0 && (
             <section className="rr-abschnitt">
               <h4>{tx("ui2.ui.Reich.0326b65")}</h4>
