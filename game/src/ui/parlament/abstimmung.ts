@@ -1,5 +1,6 @@
-// Abstimmungen erkennen und aufbereiten: Die Simulation schreibt jede Abstimmung als Protokollzeile („Das Parlament nimmt … an (326 zu 274)“).
-// Diese Zeile ist die Quelle; test/parlament.test.ts prüft, dass das Format hier noch gelesen wird.
+// Abstimmungen erkennen und aufbereiten: Die Simulation schreibt jede Abstimmung als Protokollzeile mit dem Feld `abstimmung`
+// (seit 5. November 2026; der Text ist übersetzt). Ältere Spielstände haben nur den deutschen Text („Das Parlament nimmt … an (326 zu 274)“);
+// test/parlament.test.ts prüft, dass beides gelesen wird.
 
 import type { LogEntry, World } from "../../sim/types";
 import { duldung, SACHSTIMMEN_QUOTE, sachstimmen, PARTEI_NAME } from "../../sim/fraktionen";
@@ -26,14 +27,22 @@ export interface Abstimmung {
 const ANGENOMMEN = /^Das Parlament nimmt „(.+?)“ (.*?) ?an \((\d+) zu (\d+)\)\.(?: Stufe (\d+)\.)?/;
 const ABGELEHNT = /^Das Parlament lehnt „(.+?)“ ab \((\d+) zu (\d+)\)/;
 
-export function istAbstimmung(text: string): boolean {
+/** Eine Abstimmung über ein Gesetz (der Haushalt zählt hier nicht). Neue Einträge tragen das Feld abstimmung; ältere nur den deutschen Text. */
+export function istAbstimmung(l: string | Pick<LogEntry, "text" | "abstimmung">): boolean {
+  if (typeof l !== "string" && l.abstimmung) return l.abstimmung.art === "gesetz";
+  const text = typeof l === "string" ? l : l.text;
   return text.startsWith("Das Parlament nimmt „") || text.startsWith("Das Parlament lehnt „");
 }
 
-export function leseAbstimmung(l: Pick<LogEntry, "text" | "day" | "date" | "versorgungsvotum">): Abstimmung | null {
+export function leseAbstimmung(l: Pick<LogEntry, "text" | "day" | "date" | "versorgungsvotum" | "abstimmung">): Abstimmung | null {
   if (l.versorgungsvotum) {
     const v=l.versorgungsvotum, ja=v.stimmen.reduce((s,f)=>s+f.ja,0), gesamt=v.stimmen.reduce((s,f)=>s+f.sitze,0);
     return {name:t(`regierung.${v.programm}.titel`),ja,nein:gesamt-ja,angenommen:ja>=301,tag:l.day,datum:l.date,ort:t("mandat.kicker"),fraktionen:v.stimmen};
+  }
+  if (l.abstimmung) {
+    const s = l.abstimmung;
+    if (s.art !== "gesetz") return null;
+    return { name: s.name, ort: s.ort, ja: s.ja, nein: s.nein, angenommen: s.angenommen, tag: l.day, datum: l.date, ...(s.stufe !== undefined ? { stufe: s.stufe } : {}) };
   }
   const a = ANGENOMMEN.exec(l.text);
   if (a) return { name: a[1]!, ort: a[2]!, ja: Number(a[3]), nein: Number(a[4]), angenommen: true, tag: l.day, datum: l.date, ...(a[5] ? { stufe: Number(a[5]) } : {}) };

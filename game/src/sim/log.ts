@@ -3,10 +3,11 @@ import { aktuelleLocale } from "../i18n";
 
 import type { LogEntry, LogKind, World } from "./types";
 
-export function addLog(world: World, kind: LogKind, text: string, why?: string): void {
+export function addLog(world: World, kind: LogKind, text: string, why?: string): LogEntry {
   const entry: LogEntry = { day: world.day, date: world.date, kind, text };
   if (why) entry.why = why;
   world.log.push(entry);
+  return entry;
 }
 
 /** Zahl mit einer Nachkommastelle im deutschen Format. */

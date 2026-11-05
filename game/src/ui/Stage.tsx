@@ -251,8 +251,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       const titel = new Set((s?.ereignisse ?? []).map((e) => vorlage(e.vorlage).titel(wd, e)));
       for (const l of wd.log.slice(before)) {
         // Abstimmungen zeigt die Abstimmungskarte, nicht der Meldungsstapel
-        if (l.kind === "statistik" || titel.has(l.text) || istAbstimmung(l.text) || l.versorgungsvotum) continue;
-        const ton: Meldung["ton"] = l.kind === "markt" ? "markt" : l.text.includes("Zentralbank") ? "bank" : l.text.includes("Parlament") ? "parlament" : "ereignis";
+        if (l.kind === "statistik" || titel.has(l.text) || istAbstimmung(l) || l.versorgungsvotum) continue;
+        const ton: Meldung["ton"] = l.kind === "markt" ? "markt" : /Zentralbank|central bank|Merkez Bankası/i.test(l.text) ? "bank" : l.abstimmung || /Parlament|Parliament|Meclis/.test(l.text) ? "parlament" : "ereignis";
         melde({ titel: l.text, ...(l.why ? { text: l.why } : {}), ton });
         umlaufPush({ datum: formatDateDe(l.date), titel: l.text, ...(l.why ? { text: l.why } : {}) });
       }

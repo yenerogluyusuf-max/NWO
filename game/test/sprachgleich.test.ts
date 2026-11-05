@@ -6,6 +6,7 @@ import { createWorld, advance, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
 import { migriereChronik } from "../src/sim/chronik";
+import { istAbstimmung, leseAbstimmung } from "../src/ui/parlament/abstimmung";
 
 async function verlauf(sprache: "de" | "en" | "tr", tage: number) {
   await setzeSprache(sprache);
@@ -43,5 +44,12 @@ describe("Sprachgleichheit", () => {
     expect(g[1]).toMatchObject({ vorlage: "mindestlohn", ohneEntscheidung: true });
     expect(g[2]!.ohneEntscheidung).toBe(true);
     migriereChronik(w); // doppelt ist unschädlich
+  });
+
+  it("Abstimmungen werden in jeder Sprache erkannt (Feld statt Text)", () => {
+    const l = { day: 5, date: "2028-07-01", text: "Parliament adopts “Pension reform” nationwide (330 to 270). Level 60.", abstimmung: { art: "gesetz" as const, name: "Pension reform", ort: "nationwide", ja: 330, nein: 270, angenommen: true, stufe: 60 } };
+    expect(istAbstimmung(l)).toBe(true);
+    expect(leseAbstimmung(l)).toMatchObject({ name: "Pension reform", ja: 330, angenommen: true, stufe: 60 });
+    expect(istAbstimmung({ text: l.text, abstimmung: { ...l.abstimmung, art: "haushalt" } })).toBe(false);
   });
 });

@@ -118,8 +118,10 @@ export function erstelleBilanz(w: World, modus: "ende" | "zwischen" = "ende"): B
   const ende = spiel.ende;
   const vertrauen = nationalAverage(NET, w.net, "vertrauen_regierung");
   const akut = akuteProbleme(w);
-  const gesetze = w.log.filter((l) => l.kind === "entscheidung" && l.text.startsWith("Das Parlament nimmt")).length;
-  const abgelehnt = w.log.filter((l) => l.kind === "entscheidung" && l.text.startsWith("Das Parlament lehnt")).length;
+  const votum = (l: (typeof w.log)[number], ja: boolean) =>
+    l.kind === "entscheidung" && (l.abstimmung ? l.abstimmung.angenommen === ja : l.text.startsWith(ja ? "Das Parlament nimmt" : "Das Parlament lehnt"));
+  const gesetze = w.log.filter((l) => votum(l, true)).length;
+  const abgelehnt = w.log.filter((l) => votum(l, false)).length;
   const entscheidungen = spiel.chronik.filter(istEntscheidung).length;
   const unentschieden = spiel.chronik.filter((c) => c.ohneEntscheidung && c.art !== "haken").length;
   const archiv = spiel.zielArchiv ?? [];

@@ -96,11 +96,10 @@ export function provinzName(plaka: number): string {
 
 /** „Hatay“, „Hatay und Adana“, „Hatay, Adana und Mersin“, bei vielen „12 Provinzen“. */
 export function provinzenText(provinzen: number[] | null | undefined): string {
-  if (!provinzen || provinzen.length === 0 || provinzen.length >= PROVINCES) return "im ganzen Land";
+  if (!provinzen || provinzen.length === 0 || provinzen.length >= PROVINCES) return t("protokoll.ort.land");
   const namen = provinzen.map(provinzName);
-  if (namen.length > 4) return `in ${namen.length} Provinzen`;
-  if (namen.length === 1) return `in ${namen[0]}`;
-  return `in ${namen.slice(0, -1).join(", ")} und ${namen[namen.length - 1]}`;
+  if (namen.length > 4) return t("protokoll.ort.viele", { n: namen.length });
+  return t("protokoll.ort.liste", { namen });
 }
 
 function ortsListe(provinzen?: number[] | null): number[] | null {
@@ -695,21 +694,12 @@ export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
       politikGeaendert(world, g.massnahme, vorGesetz, g.stufe);
       const node = NET.nodes[knotenIndex(g.massnahme)]!;
       const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
-      addLog(
-        world,
-        "entscheidung",
-        `Das Parlament nimmt „${g.name}“ ${provinzenText(g.provinzen)} an (${ja} zu ${nein}). Stufe ${g.stufe}.`,
-        `${node.text} Umsetzung läuft über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`,
-      );
+      const ort = provinzenText(g.provinzen);
+      addLog(world, "entscheidung", t("protokoll.gesetz.ja", { name: g.name, ort, ja, nein, stufe: g.stufe }), t("protokoll.gesetz.ja_warum", { text: node.text, monate })).abstimmung = { art: "gesetz", name: g.name, ort, ja, nein, angenommen: true, stufe: g.stufe };
     } else {
       vertrauenAendern(world, -1.2);
       spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
-      addLog(
-        world,
-        "entscheidung",
-        `Das Parlament lehnt „${g.name}“ ab (${ja} zu ${nein}).`,
-        `Das eingesetzte Kapital (${g.pk}) ist verloren, die Regierung wirkt geschwächt. Es fehlten ${REGELN.mehrheit - ja} Stimmen; ein Rückzug vor der Abstimmung hätte ${Math.floor(g.pk * REGELN.rueckzugAnteil)} Kapital gerettet.`,
-      );
+      addLog(world, "entscheidung", t("protokoll.gesetz.nein", { name: g.name, ja, nein }), t("protokoll.gesetz.nein_warum", { pk: g.pk, fehlen: REGELN.mehrheit - ja, gerettet: Math.floor(g.pk * REGELN.rueckzugAnteil) })).abstimmung = { art: "gesetz", name: g.name, ort: "", ja, nein, angenommen: false };
     }
     nachAbstimmung?.(world, g, angenommen);
   }

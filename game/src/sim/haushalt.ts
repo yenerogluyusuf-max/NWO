@@ -665,20 +665,14 @@ export function haushaltszyklusTag(w: World, rng: Rng): void {
   if (angenommen) {
     const n = wendeEntwurfAn(w, g.schritte, g.jahr, g.krisenpaket?titel:undefined);
     if (!g.krisenpaket) z.letztesErgebnis = "angenommen";
-    const text = `Das Parlament nimmt ${titel} an (${ja} zu ${nein}): ${n} ${n === 1 ? "Posten" : "Posten"} geändert.`;
-    addLog(w, "entscheidung", text, `Das Defizit liegt jetzt bei ${fmt(defizitJetzt(w))} % des BIP. Die Änderungen wirken ab sofort; die Dauerwirkungen entfalten sich über die nächsten Monate.`);
+    addLog(w, "entscheidung", t("protokoll.haushalt.ja", { titel, ja, nein, n }), t("protokoll.haushalt.ja_warum", { defizit: fmt(defizitJetzt(w)) })).abstimmung = { art: "haushalt", name: titel, ort: "", ja, nein, angenommen: true };
     addMarke(w, "haushalt", `${titel} beschlossen`);
     spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `Mit ${ja} zu ${nein} Stimmen angenommen.` });
   } else {
     if (!g.krisenpaket) z.letztesErgebnis = "gescheitert";
     wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.scheiternLegitimitaet);
     spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
-    addLog(
-      w,
-      "entscheidung",
-      `Das Parlament lehnt ${titel} ab (${ja} zu ${nein}).`,
-      `Der Vorjahrshaushalt läuft weiter: Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation automatisch aus. Die Regierung wirkt geschwächt (Legitimität ${HAUSHALT_ZYKLUS.scheiternLegitimitaet}). Es fehlten ${REGELN.mehrheit - ja} Stimmen.`,
-    );
+    addLog(w, "entscheidung", t("protokoll.haushalt.nein", { titel, ja, nein }), t("protokoll.haushalt.nein_warum", { legitimitaet: HAUSHALT_ZYKLUS.scheiternLegitimitaet, fehlen: REGELN.mehrheit - ja })).abstimmung = { art: "haushalt", name: titel, ort: "", ja, nein, angenommen: false };
     spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.` });
   }
   schliesseHaushaltsBeleg(w,beleg);

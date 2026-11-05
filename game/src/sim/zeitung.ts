@@ -1046,20 +1046,27 @@ function gesetzVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
   const out: ZeitungVorgang[] = [];
   for (const l of world.log) {
     if (l.day <= z.letzteMonatsausgabeTag || l.day >= world.day || l.kind !== "entscheidung") continue;
-    const ja = /^Das Parlament nimmt „(.+)“ an/.exec(l.text);
-    const nein = /^Das Parlament lehnt „(.+)“ ab/.exec(l.text);
-    const m = ja ?? nein;
-    if (!m) continue;
+    // Neue Einträge: strukturiertes Feld; ältere Spielstände: der deutsche Protokolltext
+    let name: string, ja: boolean;
+    if (l.abstimmung) {
+      if (l.abstimmung.art !== "gesetz") continue;
+      name = l.abstimmung.name; ja = l.abstimmung.angenommen;
+    } else {
+      const mJa = /^Das Parlament nimmt „(.+)“ an/.exec(l.text), mNein = /^Das Parlament lehnt „(.+)“ ab/.exec(l.text);
+      const m = mJa ?? mNein;
+      if (!m) continue;
+      name = m[1]!; ja = !!mJa;
+    }
     out.push({
       id: `gesetz-${l.day}-${out.length}`,
       art: "gesetz",
       sparte: "politik",
-      titel: m[1]!,
-      fakt: ja ? tx("sim2.sim.zeitung.065f3a1", { p0: m[1] }) : `Das Parlament lehnt „${m[1]}" ab.`,
+      titel: name,
+      fakt: ja ? tx("sim2.sim.zeitung.065f3a1", { p0: name }) : tx("protokoll.zeitung.nein", { name }),
       wertung: ja ? 0.3 : -0.5,
       tag: l.day,
       datum: l.date,
-      daten: { typ: "gesetz", name: m[1]!, ja: !!ja },
+      daten: { typ: "gesetz", name, ja },
     });
   }
   return out.slice(-2);

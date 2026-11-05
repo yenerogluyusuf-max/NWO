@@ -112,6 +112,10 @@ export function entscheidungsMarken(world: World): Marke[] {
   const out: Marke[] = [];
   for (const l of world.log) {
     if (l.kind !== "entscheidung") continue;
+    if (l.abstimmung) {
+      if (l.abstimmung.art === "gesetz" && l.abstimmung.angenommen) out.push({ monat: l.date.slice(0, 7), text: l.abstimmung.name });
+      continue;
+    }
     const m = /^Das Parlament nimmt „(.+)“ an/.exec(l.text);
     if (m) out.push({ monat: l.date.slice(0, 7), text: m[1]! });
   }

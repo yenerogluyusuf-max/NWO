@@ -1,0 +1,14 @@
+{
+ "protokoll.gesetz.ja": "Parliament adopts “{name}” {ort} ({ja} to {nein}). Level {stufe}.",
+ "protokoll.gesetz.ja_warum": "{text} Implementation takes about {monate, plural, one {# month} other {# months}}.",
+ "protokoll.gesetz.nein": "Parliament rejects “{name}” ({ja} to {nein}).",
+ "protokoll.gesetz.nein_warum": "The capital committed ({pk}) is lost and the government looks weakened. It lacked {fehlen} votes; withdrawing before the vote would have saved {gerettet} capital.",
+ "protokoll.haushalt.ja": "Parliament adopts {titel} ({ja} to {nein}): {n, plural, one {# item} other {# items}} changed.",
+ "protokoll.haushalt.ja_warum": "The deficit now stands at {defizit} % of GDP. The changes take effect immediately; the lasting effects unfold over the coming months.",
+ "protokoll.haushalt.nein": "Parliament rejects {titel} ({ja} to {nein}).",
+ "protokoll.haushalt.nein_warum": "Last year's budget continues: the items are set as a share of economic output and adjust for inflation automatically. The government looks weakened (legitimacy {legitimitaet}). It lacked {fehlen} votes.",
+ "protokoll.ort.land": "nationwide",
+ "protokoll.ort.viele": "in {n} provinces",
+ "protokoll.ort.liste": "in {namen}",
+ "protokoll.zeitung.nein": "Parliament rejects “{name}”."
+}

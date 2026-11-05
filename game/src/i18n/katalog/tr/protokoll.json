@@ -1,0 +1,14 @@
+{
+ "protokoll.gesetz.ja": "Meclis „{name}“ yasasını {ort} kabul ediyor ({ja} kabul, {nein} ret). Kademe {stufe}.",
+ "protokoll.gesetz.ja_warum": "{text} Uygulama yaklaşık {monate} ay sürüyor.",
+ "protokoll.gesetz.nein": "Meclis „{name}“ yasasını reddediyor ({ja} kabul, {nein} ret).",
+ "protokoll.gesetz.nein_warum": "Harcanan siyasi sermaye ({pk}) kayboldu, hükümet zayıf görünüyor. {fehlen} oy eksikti; oylamadan önce geri çekmek {gerettet} sermayeyi kurtarırdı.",
+ "protokoll.haushalt.ja": "Meclis {titel} kabul ediyor ({ja} kabul, {nein} ret): {n} kalem değişti.",
+ "protokoll.haushalt.ja_warum": "Bütçe açığı şimdi GSYH'nin % {defizit}'i. Değişiklikler hemen yürürlüğe giriyor; kalıcı etkiler önümüzdeki aylarda ortaya çıkıyor.",
+ "protokoll.haushalt.nein": "Meclis {titel} reddediyor ({ja} kabul, {nein} ret).",
+ "protokoll.haushalt.nein_warum": "Geçen yılın bütçesi sürüyor: Kalemler ekonomik çıktının yüzdesi olarak belirlenir ve enflasyonu kendiliğinden dengeler. Hükümet zayıf görünüyor (meşruiyet {legitimitaet}). {fehlen} oy eksikti.",
+ "protokoll.ort.land": "tüm ülkede",
+ "protokoll.ort.viele": "{n} ilde",
+ "protokoll.ort.liste": "{namen} illerinde",
+ "protokoll.zeitung.nein": "Meclis „{name}“ yasasını reddediyor."
+}
