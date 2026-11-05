@@ -244,5 +244,13 @@
  "hd.schulden": "Schulden",
  "hd.zinsen": "Zinsen",
  "hd.rechnung": "Rechnung im Einzelnen",
- "hd.mehr": "Verfahren und Hintergrund"
+ "hd.mehr": "Verfahren und Hintergrund",
+ "hd.rad.uebrig": "Übrige Ausgaben",
+ "hd.rad.uebrigeSteuern": "Übrige Steuern",
+ "hd.rad.sonstige": "Gebühren und sonstige Einnahmen",
+ "hd.rad.kredit": "Neue Schulden",
+ "hd.rad.wofuer": "Wofür das Geld ausgegeben wird",
+ "hd.rad.woher": "Woher es kommt",
+ "hd.rad.aria": "Haushaltsrad: Ausgaben {ausgaben}, Einnahmen {einnahmen}, neue Schulden {kredit}.",
+ "hd.rad.lesart": "Außen die Ausgaben, innen die Einnahmen; schraffiert, was auf Kredit läuft. Ein Klick führt zu den Reglern."
 }

@@ -244,5 +244,13 @@
  "hd.schulden": "Debt",
  "hd.zinsen": "Interest",
  "hd.rechnung": "Detailed accounts",
- "hd.mehr": "Procedure and background"
+ "hd.mehr": "Procedure and background",
+ "hd.rad.uebrig": "Other spending",
+ "hd.rad.uebrigeSteuern": "Other taxes",
+ "hd.rad.sonstige": "Fees and other revenue",
+ "hd.rad.kredit": "New borrowing",
+ "hd.rad.wofuer": "Where the money goes",
+ "hd.rad.woher": "Where it comes from",
+ "hd.rad.aria": "Budget wheel: spending {ausgaben}, revenue {einnahmen}, new borrowing {kredit}.",
+ "hd.rad.lesart": "Outer ring spending, inner ring revenue; hatched is what runs on credit. Click a slice to go to its sliders."
 }

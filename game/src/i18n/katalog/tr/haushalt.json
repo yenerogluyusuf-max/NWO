@@ -244,5 +244,13 @@
  "hd.schulden": "Borç",
  "hd.zinsen": "Faiz",
  "hd.rechnung": "Ayrıntılı hesap",
- "hd.mehr": "Süreç ve arka plan"
+ "hd.mehr": "Süreç ve arka plan",
+ "hd.rad.uebrig": "Diğer harcamalar",
+ "hd.rad.uebrigeSteuern": "Diğer vergiler",
+ "hd.rad.sonstige": "Harçlar ve diğer gelirler",
+ "hd.rad.kredit": "Yeni borçlanma",
+ "hd.rad.wofuer": "Para nereye gidiyor",
+ "hd.rad.woher": "Nereden geliyor",
+ "hd.rad.aria": "Bütçe çarkı: harcamalar {ausgaben}, gelirler {einnahmen}, yeni borçlanma {kredit}.",
+ "hd.rad.lesart": "Dışta harcamalar, içte gelirler; taralı kısım borçla karşılanıyor. Bir dilime tıklayınca ayarlara gidersiniz."
 }

@@ -80,9 +80,9 @@ test('eine ausgewählte Alternative baut genau ihren Inhalt auf, veraltete Auswa
  const inhalt=vi.fn(id=><p>{id}</p>);renderToStaticMarkup(<EntscheidungsWege wege={wege} wahl="b" inhalt={inhalt}/>);
  expect(inhalt.mock.calls).toEqual([['b']]);inhalt.mockClear();renderToStaticMarkup(<EntscheidungsWege wege={wege} wahl="entfallen" inhalt={inhalt}/>);expect(inhalt).not.toHaveBeenCalled();
 });
-test('Haushaltstafel zeigt alle Posten mit Regler auf einen Blick und die Bilanz als Balken (Democracy 4)',()=>{
+test('Haushaltstafel zeigt alle Posten mit Regler auf einen Blick und die Bilanz als Haushaltsrad (Democracy 4)',()=>{
  const w=welt('2028-06-05');const html=renderToStaticMarkup(<Haushalt world={w} geaendert={noop}/>);
- expect(html).toContain('hd-bilanz');expect(html).toContain('hd-spur');
+ expect(html).toContain('hd-bilanz');expect(html).toContain('hr-figur');expect(html).toContain('<path');
  const regler=(html.match(/type="range"/g)??[]).length;expect(regler).toBe(POSTEN.length);
  expect(html).not.toContain('NaN');expect(html).not.toContain('⟦');
 });

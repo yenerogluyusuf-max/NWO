@@ -1,5 +1,5 @@
 import { Staatsfinanzen } from "./Staatsfinanzen";
-import { staatsfinanzen } from "../../sim/staatsfinanzen";
+import { HaushaltsRad } from "./HaushaltsRad";
 import { geldAusBip } from "../../sim/staatsgeld";
 // Der Haushalt wie in Democracy: oben die Bilanz (Einnahmen, Ausgaben, Defizit, Schulden), darunter je Ressort ein Regler mit Betrag in Lira
 // und % des BIP, vorher → nachher, einer Wirkungszeile und dem Wunsch der zuständigen Ministerin oder des Ministers. Renten mit eigenen
@@ -7,7 +7,7 @@ import { geldAusBip } from "../../sim/staatsgeld";
 // Tiefe aufklappbar: Vorschau mit Folgen über zwölf Monate je Ressort, der Haushaltsplan 2026 mit Quellen.
 
 import { behoerdenVerbrauch } from "../../sim/behoerden";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
 import { impulsKette } from "../../sim/folgen";
@@ -310,9 +310,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   // Das Verfahren (Fenster, Abstimmung, Bericht nach dem Beschluss) steht offen; der Rest auf Wunsch
   const [mehr, setMehr] = useState<string | null>(posten?.startsWith("_") ? posten : "_zyklus");
   const mehrheit = gesetzSicht ?? haushaltsEntwurfsSicht(world);
-  const fin = staatsfinanzen(world);
-  const groesser = Math.max(fin.einnahmenMrd, fin.ausgabenMrd, 1);
-  const bioText = (mrd: number) => t("hd.bio", { n: zahl(mrd / 1000, 1) });
+  const tafelId = useId().replace(/:/g, "");
   const waehleZeile = (q: PostenDef, s: number) => {
     if (sel !== q.id) setPrognoseOffen(false);
     setRueck(null);
@@ -394,13 +392,13 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
     );
   };
   const seite = (welche: "ausgabe" | "einnahme") => (
-    <section className="hd-seite" aria-label={t(welche === "ausgabe" ? "hd.ausgaben" : "hd.einnahmen")}>
+    <section className="hd-seite" id={welche === "einnahme" ? `${tafelId}-einnahmen` : undefined} aria-label={t(welche === "ausgabe" ? "hd.ausgaben" : "hd.einnahmen")}>
       <h3>{t(welche === "ausgabe" ? "hd.ausgaben" : "hd.einnahmen")}</h3>
       {GRUPPEN.map((g) => {
         const liste = POSTEN.filter((q) => q.gruppe === g && q.seite === welche);
         if (!liste.length) return null;
         return (
-          <div key={g} className="hd-gruppe">
+          <div key={g} className="hd-gruppe" id={`${tafelId}-${g}`}>
             {welche === "ausgabe" && <h4>{t(`haushalt.gruppe.${g}`)}</h4>}
             <ul>{liste.map(zeile)}</ul>
           </div>
@@ -425,23 +423,12 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
       )}
       <section className="hd-bilanz" aria-label={t("hd.bilanz")}>
         <h2 className="hd-titel">{t("eo.haushalt")}</h2>
-        <div className="hd-balken">
-          <div className="hd-balken-zeile">
-            <span className="hd-balken-name">{t("hd.einnahmen")}</span>
-            <span className="hd-spur"><i className="ein" style={{ width: `${(fin.einnahmenMrd / groesser) * 100}%` }} /></span>
-            <b>{bioText(fin.einnahmenMrd)}</b>
-          </div>
-          <div className="hd-balken-zeile">
-            <span className="hd-balken-name">{t("hd.ausgaben")}</span>
-            <span className="hd-spur"><i className="aus" style={{ width: `${(fin.ausgabenMrd / groesser) * 100}%` }} /></span>
-            <b>{bioText(fin.ausgabenMrd)}</b>
-          </div>
-        </div>
+        <HaushaltsRad
+          world={world}
+          defizit={defizit}
+          onZiel={(ziel) => document.getElementById(ziel === "steuern" ? `${tafelId}-einnahmen` : `${tafelId}-${ziel}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        />
         <dl className="hd-kern">
-          <div className={defizit > 3 ? "schlecht" : defizit > 1.5 ? "mittel" : "gut"}>
-            <dt>{defizit > 0 ? t("hd.defizit") : t("hd.ueberschuss")}</dt>
-            <dd>{nf(Math.abs(defizit), 1)} %<small>{t("hd.desBip")}</small></dd>
-          </div>
           <div><dt>{t("hd.schulden")}</dt><dd>{nf(world.economy.debtRatio, 1)} %<small>{t("hd.desBip")}</small></dd></div>
           <div><dt>{t("hd.zinsen")}</dt><dd>{nf(zinsausgabenJetzt(world), 1)} %<small>{t("hd.desBip")}</small></dd></div>
         </dl>
