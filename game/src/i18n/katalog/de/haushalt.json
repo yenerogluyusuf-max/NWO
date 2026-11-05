@@ -164,7 +164,7 @@
  "haushalt.ui.knopf.verwerfen": "Verwerfen",
  "haushalt.ui.plan.ausgaben": "Ausgaben (Mrd. Lira)",
  "haushalt.ui.plan.hinweis": "Das Haushaltsgesetz der Zentralregierung nach Arten; das geplante Defizit beträgt rund {defizit} Bio. Lira ({bip} % des BIP).",
- "haushalt.ui.plan.kicker": "Haushaltsplan 2026",
+ "haushalt.ui.plan.kicker": "Ausgangslage: Haushaltsgesetz 2026",
  "haushalt.ui.plan.quellen": "Quellen:",
  "haushalt.ui.plan.ressorts_beleg": "Die Ressortetats sind nur teilweise aus diesen Zeilen abgeleitet (Renten, Infrastruktur, Personal); die übrigen Startanteile sind Spielparameter und zu prüfen.",
  "haushalt.ui.plan.steuern": "Steuern (Mrd. Lira)",

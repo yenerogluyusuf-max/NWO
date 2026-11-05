@@ -331,7 +331,11 @@ function themaGroesse(w: World, f: Figur, t: Thema): string | undefined {
 /** Die Größe, um die es in einem offenen Ereignis aus Sicht dieser Person geht (siehe EREIGNIS_BEZUG.groessen). */
 function ereignisGroesse(w: World, f: Figur, ereignisId: string | undefined): string | undefined {
   const ev = w.spiel?.ereignisse.find((e) => e.id === ereignisId);
-  const groessen = ev ? EREIGNIS_BEZUG[ev.vorlage]?.groessen : undefined;
+  // Geht es um ein bestimmtes Land, zuerst die Beziehung, über die es im Netz wirkt (Spielerdurchlauf: Beim Vertrag mit Baku
+  // riet der Außenminister zu Forschungsförderung für das Ansehen)
+  const landKnoten = LAENDER.find((l) => l.id === String(ev?.daten?.land ?? ""))?.knoten;
+  const bezug = ev ? EREIGNIS_BEZUG[ev.vorlage]?.groessen : undefined;
+  const groessen = bezug && landKnoten ? [landKnoten, ...bezug] : bezug;
   if (!groessen) return schlechtesteGroesse(w, f)?.id;
   const fach = new Set(lageIm(w, f).map((l) => l.id));
   return groessen.find((g) => fach.has(g));

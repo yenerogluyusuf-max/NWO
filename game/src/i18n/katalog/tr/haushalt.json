@@ -164,7 +164,7 @@
  "haushalt.ui.knopf.verwerfen": "Vazgeç",
  "haushalt.ui.plan.ausgaben": "Giderler (milyar lira)",
  "haushalt.ui.plan.hinweis": "Merkezi yönetim bütçe kanunu, ekonomik sınıflandırmaya göre; planlanan açık yaklaşık {defizit} trilyon lira (GSYH'nin %{bip} kadarı).",
- "haushalt.ui.plan.kicker": "2026 bütçesi",
+ "haushalt.ui.plan.kicker": "Başlangıç: 2026 bütçe kanunu",
  "haushalt.ui.plan.quellen": "Kaynaklar:",
  "haushalt.ui.plan.ressorts_beleg": "Bakanlık bütçeleri bu satırlardan ancak kısmen türetilmiştir (emeklilik, altyapı, personel); diğer başlangıç payları oyun parametresidir ve doğrulanmalıdır.",
  "haushalt.ui.plan.steuern": "Vergiler (milyar lira)",

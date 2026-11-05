@@ -164,7 +164,7 @@
  "haushalt.ui.knopf.verwerfen": "Discard",
  "haushalt.ui.plan.ausgaben": "Spending (bn lira)",
  "haushalt.ui.plan.hinweis": "The central government budget law by economic type; the planned deficit is about {defizit} tn lira ({bip} % of GDP).",
- "haushalt.ui.plan.kicker": "Budget plan 2026",
+ "haushalt.ui.plan.kicker": "Starting point: 2026 budget law",
  "haushalt.ui.plan.quellen": "Sources:",
  "haushalt.ui.plan.ressorts_beleg": "The department budgets are only partly derived from these lines (pensions, infrastructure, staff); the other starting shares are game parameters still to be checked.",
  "haushalt.ui.plan.steuern": "Taxes (bn lira)",
