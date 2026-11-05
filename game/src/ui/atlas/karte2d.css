@@ -27,3 +27,6 @@ marker path.eigen{fill:#8e2a22} marker path.gegner{fill:#2a1f18}
 }
 @keyframes k2d-lauf{to{stroke-dashoffset:-24}}
 @keyframes k2d-puls{50%{stroke-width:3.4}}
+/* Nachbarländer laufen über den Ausschnitt hinaus weiter, statt am Rand hart abzubrechen (Handy, hohe Fenster) */
+.karte2d svg{overflow:visible}
+@media (max-width:640px){.karte2d-hinweis{top:auto;bottom:118px;max-width:calc(100vw - 32px);text-align:center}}
