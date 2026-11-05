@@ -13,9 +13,10 @@ import "./karte2d.css";
 const LON0 = 25.4, LAT0 = 42.4, K = 40, KY = K * 1.27;
 const px = (lon: number, lat: number): [number, number] => [(lon - LON0) * K, (LAT0 - lat) * KY];
 const pfad = (ringe: number[][][]): string => ringe.map((r) => r.map(([lo, la], i) => { const [x, y] = px(lo!, la!); return `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`; }).join("") + "Z").join("");
-const BREITE = (45.0 - LON0) * K, HOEHE = (LAT0 - 35.7) * KY;
+export const BREITE = (45.0 - LON0) * K, HOEHE = (LAT0 - 35.7) * KY;
 
-const PROV = PROVINCE_FC.features.map((f) => ({ plaka: f.properties.plaka, name: f.properties.name, d: pfad(ringsOf(f) as number[][][]) }));
+/** Provinzflächen als SVG-Pfade (auch für kleine Karten in den Akten) */
+export const PROV = PROVINCE_FC.features.map((f) => ({ plaka: f.properties.plaka, name: f.properties.name, d: pfad(ringsOf(f) as number[][][]) }));
 // Die Länderdaten enden an einem Rechteck (17,5–52,5° O, 29–48° N); an diesen Rändern blenden die Masken weich aus
 const [RX0, RY0] = px(17.5, 48), [RX1, RY1] = px(52.5, 29);
 const LAENDER = (nachbarn as unknown as { countries: { iso: string; name: string; rings: number[][][] }[] }).countries.map((c) => ({ iso: c.iso, name: c.name, d: pfad(c.rings) }));
