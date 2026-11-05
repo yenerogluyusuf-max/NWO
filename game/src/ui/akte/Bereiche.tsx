@@ -2,6 +2,9 @@
 // Sicherheit, Außenpolitik, Land, Agenda, Medien. Lage, Verlauf und Personen entstehen hier aus den vorhandenen Daten (nur lesen);
 // Die bisherigen Ansichten sind direkte fachliche Zugänge; interne Reiterkennungen bleiben für Sprünge kompatibel.
 
+import { netzSichten } from "../../sim/infrastruktur";
+import { SCHWELLE } from "../../data/infrastruktur-netze";
+import { INSTITUTION_NACH_ID } from "../../data/welt-institutionen";
 import { Aussenlage } from "../welt/Aussenlage";
 import { useEffect, useState, type ReactNode } from "react";
 import { aktuelleLocale, t } from "../../i18n";
@@ -35,7 +38,7 @@ import { gesetzName } from "../../sim/gesetz-name";
 import { formatDateDe } from "../../sim/dates";
 import { ZUGANG_ICON } from "./profil";
 import { Bildkarten } from "./Bildkarten";
-import { Konfliktlage } from "./Konfliktlage";
+import { Konfliktlage, angespannteLaender } from "./Konfliktlage";
 
 /** Bereiche, deren Lage ihre Vorhaben als Bildkarten zeigt: Vorhabenbereich im Reich und der Reiter, in dem man sie beginnt. */
 const BILDKARTEN: Partial<Record<BereichId, { reich: string; tab: string }>> = {
@@ -112,7 +115,9 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
       k.push(knotenKern(w, "bereitschaft_heer", t("akte.b.kern.bereitschaft"), 60, 40));
       k.push(knotenKern(w, "abschreckung", t("akte.b.kern.abschreckung"), 60, 40));
       const kriege = sp ? aktiveKriege(w).length : 0;
-      k.push({ label: t("akte.b.kern.konflikte"), wert: nf(kriege), ton: kriege > 0 ? "schlecht" : "gut" });
+      // Kopf und Konfliktlage zählen gleich: laufende Vorgänge, dazu die angespannten Länder als Hinweis
+      const spannung = sp ? angespannteLaender(w).length : 0;
+      k.push({ label: t("akte.b.kern.konflikte"), wert: nf(kriege), hinweis: t("akte.b.kern.angespannt", { n: spannung }), ton: kriege > 0 ? "schlecht" : spannung > 0 ? "mittel" : "gut" });
       break;
     }
     case "aussen": {
@@ -129,8 +134,10 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
     case "land": {
       const faelle = (sp?.katastrophen?.faelle ?? []).filter((f) => !f.bewaeltigt).length;
       k.push({ label: t("akte.b.kern.faelle"), wert: nf(faelle), ton: faelle > 0 ? "schlecht" : "gut" });
-      k.push({ label: t("akte.b.kern.bauten"), wert: nf(sp?.reich?.laufend.length ?? 0) });
-      k.push(knotenKern(w, "verkehrsnetz", t("akte.b.kern.infrastruktur"), 60, 40));
+      // Örtliche Überlast zählt (das Landesmittel verdeckt Engpässe von 118 % in einzelnen Provinzen)
+      const ueber = sp ? netzSichten(w).filter((x) => x.mittel >= SCHWELLE.ueberlast || x.engpaesse.some((e) => e.a >= SCHWELLE.ueberlast)).length : 0;
+      k.push({ label: t("akte.b.kern.ueberlast"), wert: nf(ueber), ton: ueber > 0 ? "schlecht" : "gut" });
+      k.push(knotenKern(w, "verkehrsnetz", t("akte.b.kern.verkehrsnetz"), 60, 40));
       break;
     }
     case "wissen": {
@@ -202,7 +209,7 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
       ];
     case "sicherheit": {
       const kriege = aktiveKriege(w).map((k) => ({ titel: akteurName(k.land), meta: t("akte.b.lage.konfliktMeta", { phase: PHASEN_NAME[k.phase] ?? k.phase, front: Math.round(k.front) }), ton: (k.front >= 55 ? "gut" : k.front <= 40 ? "schlecht" : "mittel") as LageZeile["ton"] }));
-      const pakte = paktSicht(w).filter((p) => p.tuerkeiMitglied).map((p) => ({ titel: p.name, meta: p.gespalten ? t("akte.b.lage.paktGespalten") : t("akte.b.lage.paktMitglieder", { n: p.mitglieder.length }) }));
+      const pakte = paktSicht(w).filter((p) => p.tuerkeiMitglied).map((p) => ({ titel: p.name, meta: p.gespalten ? t("akte.b.lage.paktGespalten") : t("akte.b.lage.paktMitglieder", { n: p.mitglieder.filter((m) => m !== "EU").length + (INSTITUTION_NACH_ID.get(p.id)?.weitereMitglieder ?? 0) }) }));
       return [
         { kopf: t("akte.b.lage.konflikte"), zeilen: kriege },
         { kopf: t("akte.b.lage.pakte"), zeilen: pakte },
@@ -407,7 +414,7 @@ function VerlaufAnsicht({ w, b }: { w: World; b: BereichId }) {
         <p className="ak-leer">{t("akte.b.verlauf.keineDaten")}</p>
       )}
       <h3 className="ak-abschnitt">{t("akte.verlauf.berichte")}</h3>
-      <BerichtListe berichte={berichteFuer(w, BEREICH_THEMEN[b])} />
+      <BerichtListe berichte={berichteFuer(w, BEREICH_THEMEN[b])} gesamt={w.spiel?.berichte?.length ?? 0} />
     </div>
   );
 }

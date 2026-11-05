@@ -59,7 +59,7 @@
 .fk-knoten:hover { box-shadow: 0 3px 10px rgba(40, 25, 10, 0.22); }
 .fk-knoten.auf { outline: 2.5px solid var(--teal); outline-offset: 2px; }
 .fk-knoten-name { font: 600 12.5px/1.2 var(--serif); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.fk-flaeche.fern .fk-knoten-name { font-size: 15px; -webkit-line-clamp: 2; }
+.fk-flaeche.fern .fk-knoten-name { font-size: 20px; -webkit-line-clamp: 2; }
 .fk-knoten.fk-fertig { background: color-mix(in srgb, var(--ast) 16%, #fffbee); border-color: color-mix(in srgb, var(--ast) 55%, transparent); }
 .fk-knoten.fk-laeuft { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(103,66,44, 0.25); }
 .fk-knoten.fk-moeglich { background: #fffdf5; }

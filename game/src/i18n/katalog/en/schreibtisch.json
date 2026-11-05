@@ -3,6 +3,7 @@
  "sk.wert.prozent1": "{x, prozent, 1}",
  "sk.wert.monat": "{d, date, monat}",
  "sk.tage": "{n, plural, =0 {today} =1 {tomorrow} other {in # days}}",
+ "sk.monate": "{n, plural, one {in a month} other {in # months}}",
  "sk.tageKurz": "{n, plural, =0 {today} other {in # d}}",
  "sk.bereit": "ready",
  "sk.kz.zustimmung": "Approval",

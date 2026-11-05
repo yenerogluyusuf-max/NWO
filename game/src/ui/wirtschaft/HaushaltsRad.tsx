@@ -30,19 +30,23 @@ export interface RadStueck {
 const AUSGABE_GRUPPEN: PostenGruppe[] = ["renten", "soziales", "dienste", "sicherheit", "wirtschaft", "staat"];
 
 /** Die Stücke beider Ringe aus dem Spielstand; nichts wird gebucht. */
-export function radStuecke(world: World): { aussen: RadStueck[]; innen: RadStueck[]; ausgabenMrd: number; einnahmenMrd: number; kreditMrd: number } {
+export function radStuecke(world: World): { aussen: RadStueck[]; innen: RadStueck[]; ausgabenMrd: number; einnahmenMrd: number; kreditMrd: number; ueberhangMrd: number } {
   const fin = staatsfinanzen(world);
   const mrd = (bipProzent: number) => (bipProzent * fin.bip) / 100;
   const aussen: RadStueck[] = AUSGABE_GRUPPEN.map((g, i) => {
     const summe =
       g === "renten"
         ? mrd(rentenSicht(world).etat)
-        : POSTEN.filter((p) => p.gruppe === g && p.seite === "ausgabe").reduce((s, p) => s + mrd(etatBip(p, stufeVon(world, p.id)) ?? 0), 0);
-    return { id: g, name: t(`haushalt.gruppe.${g}`), mrd: summe, farbe: FARBEN[i]!, ziel: g };
+        : // Personal überschneidet sich mit den Fachressorts (data/haushaltsplan.ts): es steckt im Reststück, nicht in „Staat“
+          POSTEN.filter((p) => p.gruppe === g && p.seite === "ausgabe" && p.id !== "personal").reduce((s, p) => s + mrd(etatBip(p, stufeVon(world, p.id)) ?? 0), 0);
+    return { id: g, name: g === "staat" ? t("hd.rad.staat") : t(`haushalt.gruppe.${g}`), mrd: summe, farbe: FARBEN[i]!, ziel: g };
   });
   aussen.push({ id: "zinsen", name: t("hd.zinsen"), mrd: mrd(zinsausgabenJetzt(world)), farbe: FARBEN[6]! });
   const bekannt = aussen.reduce((s, x) => s + x.mrd, 0);
-  if (fin.ausgabenMrd - bekannt > 0) aussen.push({ id: "uebrig", name: t("hd.rad.uebrig"), mrd: fin.ausgabenMrd - bekannt, farbe: UEBRIG });
+  // Was die Fachressorts nicht erklären: Gehälter des öffentlichen Dienstes, Reformkosten und weitere Ausgaben. Übersteigen die
+  // geschätzten Ressortanteile die Ausgaben, wird das als Überhang gemeldet statt den Ring über 100 % zu füllen.
+  const rest = fin.ausgabenMrd - bekannt;
+  if (rest > 0) aussen.push({ id: "uebrig", name: t("hd.rad.uebrig"), mrd: rest, farbe: UEBRIG, ziel: "staat" });
 
   // Einnahmen: Zusammensetzung des Haushaltsgesetzes 2026, auf die heutigen Einnahmen gerechnet, dazu die beschlossenen Steueränderungen
   const steuerPosten = POSTEN.filter((p) => p.seite === "einnahme");
@@ -60,7 +64,7 @@ export function radStuecke(world: World): { aussen: RadStueck[]; innen: RadStuec
     { id: "sonstige", name: t("hd.rad.sonstige"), mrd: basis * (1 - steuern2026), farbe: EINNAHME[4]! },
   ];
   if (fin.kreditMrd > 0) innen.push({ id: "kredit", name: t("hd.rad.kredit"), mrd: fin.kreditMrd, farbe: "#8c2b1f", schraffiert: true });
-  return { aussen: aussen.filter((x) => x.mrd > 0), innen: innen.filter((x) => x.mrd > 0), ausgabenMrd: fin.ausgabenMrd, einnahmenMrd: fin.einnahmenMrd, kreditMrd: Math.max(0, fin.kreditMrd) };
+  return { aussen: aussen.filter((x) => x.mrd > 0), innen: innen.filter((x) => x.mrd > 0), ausgabenMrd: fin.ausgabenMrd, einnahmenMrd: fin.einnahmenMrd, kreditMrd: Math.max(0, fin.kreditMrd), ueberhangMrd: Math.max(0, -rest) };
 }
 
 /** Bogenstück eines Rings von Winkel a bis b (Bogenmaß, 0 oben, im Uhrzeigersinn). */
@@ -147,7 +151,10 @@ export function HaushaltsRad({ world, defizit, onZiel }: { world: World; defizit
             {aktiv ? "" : t("hd.desBip")}
           </text>
         </svg>
-        <figcaption>{t("hd.rad.lesart")}</figcaption>
+        <figcaption>
+          {t("hd.rad.lesart")}
+          {r.ueberhangMrd > 0 && <span className="hr-ueberhang"> {t("hd.rad.ueberhang", { mrd: bio(r.ueberhangMrd) })}</span>}
+        </figcaption>
       </figure>
       {legende(r.innen, summeInnen, t("hd.rad.woher"), r.einnahmenMrd + r.kreditMrd)}
     </div>

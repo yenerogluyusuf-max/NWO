@@ -11,6 +11,7 @@
 // Sitzungs-Snapshot (für das „Stand der Dinge“-Blatt beim Laden): die drei Kennzahlen zu Beginn der laufenden Sitzung. Autospeichern
 // führt die Vergleichsbasis unverändert weiter; erst `sitzungBegonnen` (beim Laden/Fortsetzen) setzt sie auf den geladenen Stand.
 
+import { angezeigteZustimmung } from "../sim/medien";
 import { load, save } from "../sim/world";
 import type { World } from "../sim/types";
 
@@ -34,7 +35,7 @@ export function snapshotVon(world: World): KennzahlenSnapshot {
   return {
     tag: world.day,
     datum: world.date,
-    zustimmung: world.spiel?.umfrage.zustimmung ?? 0,
+    zustimmung: world.spiel ? angezeigteZustimmung(world).wert : 0,
     inflation: world.published.inflation.value,
     kapital: world.spiel?.kapital ?? 0,
   };
@@ -322,7 +323,9 @@ export function fruehereStaende(): Rueck[] {
   const m = leseMeta();
   const liste: Rueck[] = [];
   const gleich = (a: MetaInfo | undefined, b: MetaInfo | undefined) => !!a && !!b && a.gespeichert === b.gespeichert;
-  if (m.hoechst && !gleich(m.hoechst, m.auto)) liste.push({ key: "hoechst", art: "hoechst", info: ohneEnde(m.hoechst) });
+  // „Weitester Stand“ nur, wenn er wirklich weiter liegt als der aktuelle; sonst ist er eine gewöhnliche frühere Sicherung
+  if (m.hoechst && !gleich(m.hoechst, m.auto))
+    liste.push({ key: "hoechst", art: !m.auto || m.hoechst.datum > m.auto.datum ? "hoechst" : "rolle", info: ohneEnde(m.hoechst) });
   (m.rueck ?? []).forEach((i, n) => {
     if (!i || gleich(i, m.auto) || gleich(i, m.hoechst)) return;
     liste.push({ key: `rueck-${n + 1}` as Rueck["key"], art: "rolle", info: ohneEnde(i) });

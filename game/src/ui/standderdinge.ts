@@ -2,6 +2,7 @@
 // Rückkehr ist ein Feature). Reine Rechnung ohne Anzeige: Alles kommt aus dem Weltzustand und dem
 // Sitzungs-Snapshot aus speicher.ts; fehlt der Snapshot (alte Spielstände), gibt es „keine Vergleichsdaten“.
 
+import { angezeigteZustimmung } from "../sim/medien";
 import type { World } from "../sim/types";
 import { formatDateDe } from "../sim/dates";
 import { vorhabenDef, vorhabenSicht, reichZustand } from "../sim/reich";
@@ -91,7 +92,7 @@ function laufendeVorgaenge(w: World): VorgangLaufend[] {
 function deltas(w: World, vorsitzung: KennzahlenSnapshot): KennzahlDelta[] {
   const spiel = w.spiel!;
   const roh: [KennzahlDelta["id"], string, number, number, boolean, string][] = [
-    ["zustimmung", t("sk.kz.zustimmung"), vorsitzung.zustimmung, spiel.umfrage.zustimmung, true, "%"],
+    ["zustimmung", t("sk.kz.zustimmung"), vorsitzung.zustimmung, angezeigteZustimmung(w).wert, true, "%"],
     ["inflation", t("sk.kz.preise"), vorsitzung.inflation, w.published.inflation.value, false, "%"],
     ["kapital", t("sk.kz.kapital"), vorsitzung.kapital, spiel.kapital, true, ""],
   ];
@@ -109,8 +110,9 @@ export function standDerDinge(w: World, vorsitzung: KennzahlenSnapshot | null): 
     monateBisWahl: Math.round(wahltage / 30.4),
     vorgaenge: laufendeVorgaenge(w),
     probleme: warnungen(w).slice(0, 3).map((x) => ({ id: x.id, text: x.text, stufe: x.stufe })),
-    deltas: vorsitzung ? deltas(w, vorsitzung) : null,
-    vergleichDatum: vorsitzung ? formatDateDe(vorsitzung.datum) : null,
+    // Ein Vergleich mit demselben Tag zeigt nur ±0; dann lieber keinen
+    deltas: vorsitzung && vorsitzung.tag < w.day ? deltas(w, vorsitzung) : null,
+    vergleichDatum: vorsitzung && vorsitzung.tag < w.day ? formatDateDe(vorsitzung.datum) : null,
     agenda: agendaTermin ? t("sk.sdd.agenda", { datum: agendaTermin.datum, text: agendaTermin.text }) : null,
     frist: f && f.tage !== undefined ? { titel: f.titel, tage: f.tage } : null,
     // Spielerdurchlauf 5. November: Die Abstimmungskarte erscheint nur kurz; wer zurückkommt, soll wissen, was beschlossen wurde

@@ -113,3 +113,6 @@
   .linsen-tafel { width: calc(100vw - 84px); }
 }
 @media (max-height: 700px) { .linsen { bottom: 52px; } .linsen-kachel { padding-top: 6px; } .linsen-text em { font-size: 12.5px; } }
+
+/* Ebenenordnung: Die Linsen beginnen rechts neben der Navigationsleiste (die liegt mit z-index 100 darüber) */
+@media (min-width: 721px) { .stage:has(.regierungs-navigation) .linsen { left: calc(var(--rn-abstand, 224px) - 8px); } }

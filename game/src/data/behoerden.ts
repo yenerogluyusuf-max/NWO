@@ -81,7 +81,7 @@ export const BEHOERDEN: readonly BehoerdeDef[] = [
     bip: 0.03, unterhalt: 0.02, monate: 6, pk: 3,
   },
   {
-    id: "polizei", bereich: "sicherheit", ressort: "inneres", posten: "sicherheit",
+    id: "polizei", bereich: "sicherheit", ressort: "inneres", posten: "innere_sicherheit",
     start: { personal: 3, technik: 3, reichweite: 3 },
     wirkung: {
       personal: [w("kriminalitaet", -4), w("beamte", 1)],
@@ -125,7 +125,7 @@ export const BEHOERDEN: readonly BehoerdeDef[] = [
     instrument: { id: "uebung", achse: "reichweite", ab: 4, pk: 2, bip: 0.01, abkuehlung: 12, stoss: [w("katastrophenschutz", 4), w("erdbebenvorsorge", 2), w("vertrauen_regierung", 0.5)] },
   },
   {
-    id: "gesundheit", bereich: "gesellschaft", ressort: "gesundheit", posten: "gesundheit_bildung",
+    id: "gesundheit", bereich: "gesellschaft", ressort: "gesundheit", posten: "gesundheit",
     start: { personal: 3, technik: 3, reichweite: 3 },
     wirkung: {
       personal: [w("aerzte", 4), w("wartezeiten", -2.5)],
@@ -136,7 +136,7 @@ export const BEHOERDEN: readonly BehoerdeDef[] = [
     instrument: { id: "mobile_teams", achse: "reichweite", ab: 4, pk: 2, bip: 0.02, abkuehlung: 12, stoss: [w("wartezeiten", -3), w("gesundheitsversorgung", 2), w("arme", 1)] },
   },
   {
-    id: "bildung", bereich: "wissen", ressort: "bildung", posten: "gesundheit_bildung",
+    id: "bildung", bereich: "wissen", ressort: "bildung", posten: "bildung",
     start: { personal: 3, technik: 2, reichweite: 3 },
     wirkung: {
       personal: [w("bildungsqualitaet", 3), w("schulabbruch", -2)],
@@ -170,7 +170,7 @@ export const BEHOERDEN: readonly BehoerdeDef[] = [
     instrument: { id: "revision", achse: "reichweite", ab: 4, pk: 3, bip: 0.001, abkuehlung: 24, stoss: [w("vertrauen_maerkte", 4), w("auslandskapital", 2), w("vertrauen_regierung", -1.5)] },
   },
   {
-    id: "grenzschutz", bereich: "sicherheit", ressort: "inneres", posten: "sicherheit",
+    id: "grenzschutz", bereich: "sicherheit", ressort: "inneres", posten: "innere_sicherheit",
     start: { personal: 3, technik: 3, reichweite: 3 },
     wirkung: {
       personal: [w("terrorgefahr", -1), w("gefluechtete", -1.5)],

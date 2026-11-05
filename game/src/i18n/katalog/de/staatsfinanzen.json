@@ -30,7 +30,7 @@
   "sf.starthilfe": "Staatsgeld finanziert Ressorts und Investitionen aus Einnahmen oder Krediten. Politisches Kapital (oben „Kapital“) brauchen Sie für Reformen und Verhandlungen; es wächst mit Rückhalt und Regierungsarbeit. Aufmerksamkeit und Verwaltungskapazität bestimmen, wie viel gleichzeitig gelingt.",
   "sf.finanzwirkung": "Jährlicher Finanzierungsbedarf",
   "sf.preisHinweis": "Bei heutiger Wirtschaftsleistung; negative Werte entlasten den Haushalt.",
-  "sf.hud": "Haushalt",
+  "sf.hud": "Defizit",
   "sf.hudTip": "Jährlicher Finanzierungsbedarf: {n} Mrd. ₺. Positive Werte bedeuten zusätzliche Schulden, negative Werte einen Überschuss. Haushalt öffnen und Ressorts finanzieren.",
   "sf.zeile.startEinnahmen": "Einnahmen aus dem Grundhaushalt",
   "sf.zeile.steuern": "Beschlossene Steueränderungen",

@@ -27,7 +27,9 @@ export const quelleName = (q: VorlagenQuelle): string => t(`mf.quelle.${QUELLE_S
 const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
 
 const nf = (x: number): string => t("mf.zahl1", { x });
-const zahl = (n: NutzenZeile, x: number): string => (n.einheit === "Provinzen" ? String(Math.round(x)) : nf(x));
+// Indizes ganzzahlig; eine Nachkommastelle nur, wenn „mit“ und „ohne“ gerundet gleich aussähen, obwohl sie sich unterscheiden
+const stellen = (n: NutzenZeile): number => (n.einheit !== "Provinzen" && Math.round(n.mit) === Math.round(n.ohne) && Math.abs(n.mit - n.ohne) >= 0.05 ? 1 : 0);
+const zahl = (n: NutzenZeile, x: number): string => (stellen(n) ? nf(x) : String(Math.round(x)));
 const istMeta = (o: VorlageOption): boolean => o.id === "spaeter" || o.id === "nichts" || o.id === "kenntnis";
 
 /**
@@ -71,7 +73,7 @@ function Gesicht({ v, size = 84 }: { v: Vorlage; size?: number }) {
 function Kosten({ o }: { o: VorlageOption }) {
   return (
     <div className="mf-kosten">
-      <span>{o.kosten.pk > 0 ? t("mf.kosten.kapital", { pk: o.kosten.pk }) : t("mf.kosten.frei")}</span>
+      <span>{o.kosten.pk > 0 ? t("mf.kosten.kapital", { pk: Math.round(o.kosten.pk) }) : t("mf.kosten.frei")}</span>
       {o.kosten.aufmerksamkeit > 0 && <span className="leise">{t("mf.kosten.aufmerksamkeit", { n: o.kosten.aufmerksamkeit })}</span>}
     </div>
   );

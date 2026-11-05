@@ -147,6 +147,6 @@
  "infra.ui.ueberlastet": "overloaded",
  "infra.ui.paket.kurz": "{n} provinces · {monate} months",
  "infra.ui.engpaesse": "Bottlenecks by province",
- "infra.ui.zahl_ueber": "networks overloaded",
+ "infra.ui.zahl_ueber": "networks overloaded in provinces",
  "infra.ui.zahl_laufend": "expansions under way"
 }

@@ -1,3 +1,4 @@
+import { angezeigteZustimmung } from "../sim/medien";
 import { geldAusBip, defizitQuote } from "../sim/staatsgeld";
 import type { VersorgungsProgramm } from "../sim/versorgungspolitik";
 import { TransportTafel, transportKartenDaten } from "./gueter/TransportKarte";
@@ -426,8 +427,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       return neu;
     });
   const trust = nationalAverage(NET, w.net, "vertrauen_regierung");
-  const zustimmung = spiel?.umfrage.zustimmung ?? trust;
-  const zVor = spiel && spiel.umfrage.verlauf.length > 3 ? spiel.umfrage.verlauf[spiel.umfrage.verlauf.length - 4]!.wert : undefined;
+  // Die Leiste zeigt, was das Land sieht: die letzte veröffentlichte Umfrage; die wahre Zahl nur mit gekauften Rohdaten
+  const gezeigt = spiel ? angezeigteZustimmung(w) : null;
+  const zustimmung = gezeigt?.wert ?? trust;
+  const zVor = gezeigt?.vormonat;
 
   // Kennzahlen der Kopfleiste: fest Zustimmung, Kapital, Parlament; Inflation, Lira und Leitzins wählbar. Jede Zahl öffnet ihre Akte.
   const kopfWerte: KopfWert[] = [];
@@ -440,7 +443,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       ...(zVor !== undefined ? { trend: zustimmung - zVor } : {}),
       steigenGut: true,
       warn: zustimmung < 40,
-      tip: t("st.zustimmung.tip", { n: Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4)) }),
+      tip: `${gezeigt?.quelle === "institut" ? t("st.zustimmung.quelleInstitut", { institut: gezeigt.institut ?? "", tage: gezeigt.alterTage }) : gezeigt?.quelle === "rohdaten" ? t("st.zustimmung.quelleRoh") : ""}${t("st.zustimmung.tip", { n: Math.max(0, Math.round((spiel.wahltag - w.day) / 30.4)) })}`,
       onKlick: () => oeffneDossier("waehler"),
     });
     kopfWerte.push({ id: "kapital", icon: "siegel", name: t("buehne.stat.kapitalKurz"), wert: `${Math.floor(spiel.kapital)}`, warn: spiel.kapital < 5, tip: kapitalErklaerung(w), onKlick: () => oeffneDossier("schreibtisch") });
@@ -575,7 +578,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       akte: "land",
       titel: t("nav.landTitel"),
       icon: "karte",
-      badge: (spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length ?? 0) + (spiel?.reich?.laufend.length ?? 0) || undefined,
+      // Nur, was Handeln verlangt: offene Katastrophenfälle (laufende Bauten sind kein Alarm)
+      badge: spiel?.katastrophen?.faelle.filter((f) => !f.bewaeltigt).length || undefined,
       tabs: [
         { id: "reich_infra", label: t("buehne.tab.infra") },
         { id: "netze", label: t("infra.tab") },
@@ -696,7 +700,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     window.clearTimeout(frischTimer.current);
     if (r.ok) {
       const datum = formatDateDe(world.current.date);
-      const zustimmung = Math.round(world.current.spiel?.umfrage.zustimmung ?? 0);
+      const zustimmung = Math.round(world.current.spiel ? angezeigteZustimmung(world.current).wert : 0);
       setSicherGrund(null);
       setSicherStatus("frisch");
       frischTimer.current = window.setTimeout(() => setSicherStatus("ruhig"), 2600);

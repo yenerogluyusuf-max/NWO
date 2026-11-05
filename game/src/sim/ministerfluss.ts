@@ -47,7 +47,8 @@ export type { Vorlage, VorlageOption } from "./ministerfluss-typen";
 // Bausteine
 
 // Texte stehen im Katalog (i18n/katalog/<sprache>/ministerfluss.json, Schlüssel `mfl.*`); Vorlagen werden bei jeder Anzeige neu gerechnet
-const tageWort = (n: number): string => t("mfl.tage", { n: Math.max(0, n) });
+// Über 60 Tage in Monaten: „in 22 Monaten“ statt „in 666 Tagen“
+const tageWort = (n: number): string => (n > 60 ? t("mfl.monate", { n: Math.round(n / 30.4) }) : t("mfl.tage", { n: Math.max(0, n) }));
 const bip = (x: number): string => t("mfl.bip", { x });
 const kurzName = (f: Figur | undefined): string => (f ? `${f.rolle} ${f.name}` : "");
 const ressort = (amt: Amt): string => t(`mfl.ressort.${amt}`);
@@ -547,13 +548,14 @@ function empfiehl(w: World, v: Roh): void {
   if (eigenInteresse) hinweise.push(t("mfl.e.eigen"));
   if (e.faehigkeit < 50) hinweise.push(t("mfl.e.schwach", { name: m.name }));
   if (m.loyalitaet < 55) hinweise.push(t("mfl.e.distanziert", { name: m.name, loy: Math.round(m.loyalitaet) }));
-  const dez = (n: NonNullable<typeof nutzen>) => nf(n.ohne, n.einheit === "Provinzen" ? 0 : 1);
+  const st = (n: NonNullable<typeof nutzen>) => (n.einheit !== "Provinzen" && Math.round(n.mit) === Math.round(n.ohne) && Math.abs(n.mit - n.ohne) >= 0.05 ? 1 : 0);
+  const dez = (n: NonNullable<typeof nutzen>) => nf(n.ohne, st(n));
   v.empfehlung = {
     optionId: o.id,
     grund: [
       t("mfl.e.empfiehlt", { name: kurzName(m), option: o.label, grund: stilGrund(e.stil) }),
       ...(o.kosten.pk > 0 ? [t("mfl.e.kostet", { pk: o.kosten.pk })] : []),
-      ...(nutzen ? [t("mfl.e.nutzen", { groesse: nutzen.name, ohne: dez(nutzen), mit: nf(nutzen.mit, nutzen.einheit === "Provinzen" ? 0 : 1), monate: nutzen.monate })] : []),
+      ...(nutzen ? [t("mfl.e.nutzen", { groesse: nutzen.name, ohne: dez(nutzen), mit: nf(nutzen.mit, st(nutzen)), monate: nutzen.monate })] : []),
     ].join(" "),
     von: m.name,
     ...(hinweise.length ? { hinweis: hinweise.join(" ") } : {}),
@@ -651,11 +653,28 @@ export function ministerVorlagen(w: World, opt: VorlagenOptionen = {}): Vorlage[
     }
     rein.push(v);
   }
+  const gerechnet = new Set<Roh>();
   rein.forEach((v, i) => {
-    if (i < tiefe) reichere(w, v);
+    if (i < tiefe) {
+      reichere(w, v);
+      gerechnet.add(v);
+    }
     empfiehl(w, v);
   });
-  const ergebnis: Vorlage[] = rein.map(({ empfehlungsArt: _e, leitGroesse: _l, ...v }) => v);
+  // Ein Vorschlag, dessen gerechnete Wirkung null ist (mit = ohne Eingriff), gehört nicht nach oben (Rundgang 5. November:
+  // „Erdbebengefahr 20 → 20“ auf Platz 1). Er rückt ans Ende; die übrige Reihenfolge bleibt.
+  const ohneWirkung = (v: Roh) =>
+    v.art === "vorschlag" &&
+    v.optionen.some((o) => o.nutzen?.length) &&
+    v.optionen.every((o) => istMeta(o) || !o.nutzen?.length || o.nutzen.every((n) => Math.abs(n.mit - n.ohne) < 0.05));
+  const geordnet = [...rein.filter((v) => !ohneWirkung(v)), ...rein.filter(ohneWirkung)];
+  // Was dabei nach oben rückt, bekommt seine Vorschau nachgereicht
+  geordnet.slice(0, tiefe).forEach((v) => {
+    if (gerechnet.has(v)) return;
+    reichere(w, v);
+    empfiehl(w, v);
+  });
+  const ergebnis: Vorlage[] = geordnet.map(({ empfehlungsArt: _e, leitGroesse: _l, ...v }) => v);
   cacheWelt = w;
   cacheSchluessel = schluessel;
   cacheErgebnis = ergebnis;

@@ -4,7 +4,7 @@
 
 import { ERBE } from "../../data/erbe";
 import { t } from "../../i18n";
-import { kartenOrte, reichZustand, vorhabenDef } from "../../sim/reich";
+import { kartenOrte, reichZustand, vorhabenDef, warteschlange } from "../../sim/reich";
 import type { Vorhaben } from "../../sim/reich-typen";
 import type { World } from "../../sim/types";
 import type { Kartenebene } from "../ebenen";
@@ -111,6 +111,8 @@ export function reichMarken(w: World, ebene: Kartenebene): KartenOrt[] {
     }
   }
   // Katalog, freie Großprojekte und die für Provinzen angelegten Vorhaben mit Ort (sim/reich.ts)
+  // Restzeit wie in der Baureihenfolge (Kapazität und Reihenfolge), nicht aus Fortschritt × Plandauer
+  const schlange = new Map(warteschlange(w).map((x) => [x.id, x]));
   for (const o of kartenOrte(w)) {
     const id = o.id.startsWith("v:") ? o.id.slice(2) : o.id;
     const def: Vorhaben | undefined = vorhabenDef(id) ?? z.regional?.[id]?.def ?? z.frei?.[id]?.def;
@@ -131,7 +133,9 @@ export function reichMarken(w: World, ebene: Kartenebene): KartenOrt[] {
           name,
           ...(ortName ? { ortName } : {}),
           fortschritt: p,
-          ...(monate !== undefined ? { restMonate: Math.max(0, Math.ceil(monate * (1 - p))) } : {}),
+          ...(schlange.get(id)?.fertigIn !== undefined
+            ? { restMonate: schlange.get(id)!.fertigIn! }
+            : monate !== undefined ? { restMonate: Math.max(0, Math.ceil(monate * (1 - p))) } : {}),
           ...(laeuft?.vergabeBis !== undefined ? { vergabeTage: Math.max(0, laeuft.vergabeBis - w.day) } : {}),
           pausiert: !!laeuft?.pausiert,
           bereich,

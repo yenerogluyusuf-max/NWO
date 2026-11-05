@@ -49,7 +49,8 @@ export function Netze({ world: w, onGeaendert }: { world: World; onGeaendert?: (
     setStand((x) => x + 1);
     if (r.ok) onGeaendert?.();
   };
-  const ueber = sichten.filter((x) => ton(x.mittel) === "schlecht").length;
+  // Ein Netz gilt als überlastet, sobald es irgendwo über 100 % läuft; das Landesmittel verdeckt örtliche Engpässe
+  const ueber = sichten.filter((x) => ton(x.mittel) === "schlecht" || x.engpaesse.some((e) => e.a >= SCHWELLE.ueberlast)).length;
   const laufendGesamt = sichten.reduce((n, x) => n + x.laufend, 0);
   const vergabeWahl = (
     <label className="nz-vergabe">

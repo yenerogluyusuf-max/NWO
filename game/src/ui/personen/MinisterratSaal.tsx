@@ -151,7 +151,7 @@ export function MinisterratSaal({
 
           <div className="mr-kpi">
             <span className="mr-kpi-label">{t("ui.personen.MinisterratSaal.99fc71c")}</span>
-            <strong className="mr-kpi-wert">{status.schnittLoyalitaet} %</strong>
+            <strong className="mr-kpi-wert">{Math.round(status.schnittLoyalitaet)}</strong>
             <small>{t("ui2.ui.personen.MinisterratSaal.4a7c557", { p0: status.minister.length })}</small>
           </div>
 

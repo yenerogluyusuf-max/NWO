@@ -497,6 +497,15 @@ const SCHLECHT_WENN_HOCH = new Set([
   "gefluechtete",
 ]);
 
+/** Name eines Landes für Wirkungstexte; unbekannte Kennungen bleiben, wie sie sind. */
+const landNameSicher = (id: string): string => {
+  try {
+    return land(id).name;
+  } catch {
+    return id;
+  }
+};
+
 export function effektZeile(e: Effekt, modus: "sofort" | "dauer" = "sofort", w?: World): EffektZeile | null {
   const zahl = (x: number) => Math.abs(x).toLocaleString("de-DE", { maximumFractionDigits: 1 });
   // Dauerwirkungen sind je Monat angegeben; bei Größen des Netzes zeigt die Oberfläche, um wie viel sich das Gleichgewicht dauerhaft verschiebt
@@ -524,7 +533,7 @@ function effektZeileBasis(e: Effekt, zahl: (x: number) => string): EffektZeile |
       return { text: `${name} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}${wo}`, richtung: e.d > 0 ? 1 : -1, gut: gruppe ? e.d > 0 : schlecht ? e.d < 0 : e.d > 0 };
     }
     case "land":
-      return { text: `${e.land}: ${{ handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" }[e.dim]} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.dim === "konflikt" ? e.d < 0 : e.d > 0 };
+      return { text: `${landNameSicher(e.land)}: ${{ handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" }[e.dim]} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.dim === "konflikt" ? e.d < 0 : e.d > 0 };
     case "kapital":
       return { text: tx("sim2.sim.reich.e0bb30b", { p0: e.d > 0 ? "+" : "−", p1: zahl(e.d) }), richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
     case "schulden":

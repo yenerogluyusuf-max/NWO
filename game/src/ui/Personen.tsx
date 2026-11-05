@@ -46,12 +46,12 @@ export function Personen({ world, initialTab, refresh, onMassnahme, onGeheVorlag
   return (
     <div className="pe" ref={wurzel}>
       <div className="pe-kopf">
-        <div className={`pe-chip${termine.belegt >= termine.max ? " warn" : ""}`}>
+        <div className={`pe-chip${termine.max - termine.belegt <= 1 ? " warn" : ""}`}>
           <b>{t("ui2.ui.Personen.b98ade3")}</b>
           <span>
-            {t("ui2.ui.Personen.34ba32f", { p0: termine.belegt, p1: termine.max })}
+            {t("ui2.ui.Personen.frei", { frei: Math.max(0, termine.max - termine.belegt), max: termine.max })}
           </span>
-          <em>{t("ui.Personen.eda230f")}</em>
+          {termine.max - termine.belegt <= 1 && <em>{t("ui.Personen.eda230f")}</em>}
         </div>
         <div className={`pe-chip${bilanz.glaubwuerdigkeit >= 75 ? " gut" : bilanz.glaubwuerdigkeit < 40 ? " warn" : ""}`}>
           <b>{t("ui.Personen.e8d0e79")}</b>

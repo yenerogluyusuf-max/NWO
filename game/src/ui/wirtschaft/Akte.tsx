@@ -54,7 +54,8 @@ export function kernwerteWirtschaft(w: World): Kernwert[] {
   const h = w.history.slice(-12);
   return [
     { label: t("akte.wirtschaft.kern.inflation"), wert: `${nf(w.published.inflation.value)} %`, verlauf: h.map((s) => s.inflation), ton: w.published.inflation.value < 10 ? "gut" : w.published.inflation.value < 25 ? "mittel" : "schlecht" },
-    { label: t("akte.wirtschaft.kern.wachstum"), wert: `${nf(w.economy.growth)} %`, verlauf: h.map((s) => s.growth), ton: w.economy.growth >= 3 ? "gut" : w.economy.growth >= 0 ? "mittel" : "schlecht" },
+    // Wie die Inflation der veröffentlichte Wert (vorher: Kopf 3,6 aus der Simulation, Liste 4,1 aus der Statistik)
+    { label: t("akte.wirtschaft.kern.wachstum"), wert: `${nf(w.published.growth.value)} %`, verlauf: h.map((s) => s.growth), ton: w.published.growth.value >= 3 ? "gut" : w.published.growth.value >= 0 ? "mittel" : "schlecht" },
     { label: t("akte.wirtschaft.kern.lira"), wert: nf(w.economy.usdTry), verlauf: h.map((s) => s.usdTry) },
   ];
 }

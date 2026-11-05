@@ -166,7 +166,7 @@ export function App() {
                         else setLadeFehler(msg("titel.fehler_sicherung"));
                       }}
                     >
-                      {r.key === "hoechst" ? t("titel.weitester") : t("titel.sicherung")} · {formatDateDe(r.info.datum)}
+                      {r.art === "hoechst" ? t("titel.weitester") : t("titel.sicherung")} · {formatDateDe(r.info.datum)}
                       {r.info.gespeichert ? t("titel.sicherung_zeit", { z: r.info.gespeichert }) : ""}
                     </button>
                   ))}

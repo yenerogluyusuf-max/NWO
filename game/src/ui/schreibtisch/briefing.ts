@@ -134,7 +134,8 @@ export interface Briefing {
 }
 
 const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
-const tageWort = (tage: number) => t("sk.tage", { n: Math.max(0, tage) });
+// Über 60 Tage in Monaten (keine Scheingenauigkeit)
+const tageWort = (tage: number) => (tage > 60 ? t("sk.monate", { n: Math.round(tage / 30.4) }) : t("sk.tage", { n: Math.max(0, tage) }));
 const monateBis = (tage: number) => Math.max(0, Math.round(tage / 30.4));
 
 

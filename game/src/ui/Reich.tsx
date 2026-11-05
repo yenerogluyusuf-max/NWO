@@ -354,6 +354,9 @@ function Sitze({ world }: { world: World }) {
 function Haushalt({ world }: { world: World }) {
   const vb = verwaltungBilanz(world);
   const k = kapitalEinkommen(world);
+  // Werte unter 0,05 zeigen „0“ ohne Vorzeichen (kein „−0,0“)
+  const vz = (x: number) => (Math.abs(x) < 0.05 ? 0 : x);
+  const mitVz = (x: number) => (vz(x) === 0 ? "0" : `${x > 0 ? "+" : "−"}${z(Math.abs(x))}`);
   const e = world.economy;
   const z = (x: number, d = 1) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
   return (
@@ -378,8 +381,11 @@ function Haushalt({ world }: { world: World }) {
             <tr><th>{tx("ui2.ui.Reich.4183cf9")}</th><td>{z(k.grund)}</td></tr>
             <tr><th>{t("ui.Reich.c8434a3")}</th><td>{z(k.vertrauen)}</td></tr>
             <tr><th>{tx("ui2.ui.Reich.fb57aba")}</th><td>{z(k.mehrheit)}</td></tr>
-            <tr><th>{t("ui.Reich.6121d6a")}</th><td className={k.legitimitaet >= 0 ? "hoch" : "runter"}>{k.legitimitaet >= 0 ? "+" : "−"}{z(Math.abs(k.legitimitaet))}</td></tr>
-            <tr className="summe"><th>{tx("ui2.ui.Reich.2197d26")}</th><td>{z(k.summe)}</td></tr>
+            <tr><th>{t("ui.Reich.6121d6a")}</th><td className={vz(k.legitimitaet) >= 0 ? "hoch" : "runter"}>{mitVz(k.legitimitaet)}</td></tr>
+            <tr><th>{t("ui.Reich.kapKabinett")}</th><td className="hoch">{mitVz(k.kabinett)}</td></tr>
+            {Math.abs(k.unterhalt) >= 0.05 && <tr><th>{t("ui.Reich.kapUnterhalt")}</th><td className="runter">{mitVz(-k.unterhalt)}</td></tr>}
+            {Math.abs(k.altlast) >= 0.05 && <tr><th>{t("ui.Reich.kapAltlast")}</th><td className="runter">{mitVz(-k.altlast)}</td></tr>}
+            <tr className="summe"><th>{t("ui.Reich.kapSaldo")}</th><td className={vz(k.summe) >= 0 ? "hoch" : "runter"}>{mitVz(k.summe)}</td></tr>
           </tbody>
         </table>
         <table>
@@ -550,7 +556,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
           {bereich === "recht" && <Sitze world={world} />}
           {bereich === "recht" && <Institutionen world={world} />}
           <ImBau world={world} bereich={bereich} refresh={refresh} />
-          <Baureihenfolge world={world} refresh={refresh} />
+          {technik && <Baureihenfolge world={world} refresh={refresh} />}
           <Verlauf world={world} bereich={bereich} />
           <VorteileListe world={world} bereich={bereich} />
           {z.meldungen.length > 0 && (

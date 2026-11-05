@@ -42,7 +42,7 @@ export interface AmtDef {
 export const AEMTER: Record<Figur["amt"], AmtDef> = {
   finanzen: {
     amt: "finanzen", ressort: "Finanzen", fach: ["steuereinnahmen", "vertrauen_maerkte", "zinslast", "steuermoral"],
-    massnahmen: ["m_einkommensteuer", "m_mwst", "m_steuerfahndung", "m_verwaltungsdigital", "m_steueramnestie", "m_privatisierung"],
+    massnahmen: ["m_einkommensteuer", "m_mwst", "m_steuerfahndung", "m_verwaltungsdigital", "m_steueramnestie", "m_privatisierung", "m_bankenaufsicht"],
     wirkung: [{ id: "steuermoral", d: 0.12 }, { id: "steuereinnahmen", d: 0.1 }, { id: "vertrauen_maerkte", d: 0.1 }],
     stile: ["nuechtern", "vorsichtig", "streng"], faehigkeit: [58, 82], ehrgeiz: [30, 62], lager: "markt", regierungsamt: true, entlassbar: true,
   },
@@ -60,7 +60,7 @@ export const AEMTER: Record<Figur["amt"], AmtDef> = {
   },
   zentralbank: {
     amt: "zentralbank", ressort: "Zentralbank", fach: ["vertrauen_maerkte", "lebenshaltung"],
-    massnahmen: ["m_bankenaufsicht"],
+    massnahmen: [],
     wirkung: [],
     stile: ["vorsichtig", "streng", "nuechtern"], faehigkeit: [60, 84], ehrgeiz: [15, 40], lager: "markt", regierungsamt: false, entlassbar: false,
   },

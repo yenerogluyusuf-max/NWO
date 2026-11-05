@@ -1815,3 +1815,7 @@ html[data-effekte="aus"] .atlas-labels .ort-form, html[data-effekte="aus"] .atla
 @media (max-width: 640px) {
   .stage:has(.dossier) .dossier-menu { display: none; }
 }
+
+/* Ebenenordnung: Die Provinzkarte liegt über den Kartenwerkzeugen und weicht der Versorgungstafel nach links aus */
+.province-card-float, .province-card-float.frame { z-index: 21; }
+.stage:has(.tr-tafel) .province-card-float { right: calc(min(360px, 100vw - 120px) + 32px); }

@@ -1075,7 +1075,7 @@ Zwei Ansichten: **Kabinettstisch** (Start) und **Verwaltung**. Die Ministerakte 
 |---|---|---|---|
 | F1 | Kapitaltabelle summiert nicht: vier Zeilen, Summe 9,6 | `ui/Reich.tsx:377–381` (`Haushalt`) | Zeilen `k.kabinett`, `−k.unterhalt`, `−k.altlast` ergänzen; Beschriftung „Saldo“ |
 | F2 | „−0,0“ bei Legitimität | `ui/Reich.tsx:380` | Werte mit \|x\| < 0,05 als „0“ ohne Vorzeichen |
-| F3 | Baureihenfolge mit Kampfjets in Justiz, Verwaltung, Infrastruktur, Kultur | `ui/Reich.tsx:553` (`<Baureihenfolge>` ohne Bedingung) | nur bei `bereich === "haushalt"` rendern |
+| F3 | Baureihenfolge mit Kampfjets in Justiz, Verwaltung, Infrastruktur, Kultur | `ui/Reich.tsx:553` (`<Baureihenfolge>` ohne Bedingung) | ~~nur bei `bereich === "haushalt"`~~ nach Teil 4 (eine Bauleiste in Land): nur in Infrastruktur und Militär, bis die Bauleiste steht (erledigt 05.11.) |
 | F4 | Wirkungsberichte „noch keine“ in Parlament und Kabinett trotz 21 Berichten | `ui/akte/Bereiche.tsx:351` (`BEREICH_THEMEN.recht = ["recht"]`, `regierung = ["haushalt","recht","gesellschaft"]`) | bis die Bilanzreiter entfallen: Leertext „In diesem Bereich noch keine; alle Berichte im Verlauf“ mit Link |
 | F5 | Bilanzkurve Achse 50–52 | `VerlaufsDiagramm` in `ui/akte/Bereiche.tsx` | Mindestspanne 20 Punkte oder Achsenbruch |
 | F6 | Zwei Konstanten heißen `BEREICH_THEMEN` mit anderer Bedeutung | `ui/politik/bereiche.ts:25` und `ui/akte/Bereiche.tsx:351` | die zweite in `AKTE_THEMEN` umbenennen |

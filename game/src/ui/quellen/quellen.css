@@ -12,13 +12,13 @@
 .quellen-zweck {
   font-family: var(--serif);
   font-style: italic;
-  color: #cdb98f;
+  color: #5a4a38;
   margin: 0;
   font-size: 14px;
 }
 
 .quellen-hinweis {
-  color: #a89a80;
+  color: #5f4f3c;
   margin: 0;
   font-size: 12.5px;
   line-height: 1.5;
@@ -31,7 +31,7 @@
 }
 
 .quellen-gemeldet {
-  color: #9cc49c;
+  color: #2f6b2f;
   font-size: 12.5px;
 }
 
@@ -39,27 +39,27 @@
   font-family: var(--display);
   font-size: 15px;
   letter-spacing: 0.04em;
-  color: #d8c69a;
+  color: #2b1e12;
   margin: 10px 0 6px;
-  border-bottom: 1px solid rgba(198, 154, 74, 0.25);
+  border-bottom: 1px solid rgba(90, 64, 40, 0.3);
   padding-bottom: 4px;
 }
 
 .quellen-eintrag {
   padding: 7px 0;
-  border-bottom: 1px dotted rgba(198, 154, 74, 0.14);
+  border-bottom: 1px dotted rgba(90, 64, 40, 0.22);
 }
 
 .quellen-name {
   font-family: var(--display);
   font-size: 14px;
   font-weight: 600;
-  color: #e8d8ae;
+  color: #3b2a1c;
   text-decoration: none;
 }
 
 .quellen-name:hover {
-  color: #f3e6c6;
+  color: #8c2b1f;
   text-decoration: underline;
 }
 
@@ -67,11 +67,11 @@
   margin: 3px 0 0;
   font-size: 12.5px;
   line-height: 1.5;
-  color: #a89a80;
+  color: #5f4f3c;
 }
 
 .quellen-lizenz {
-  color: #cdb98f;
+  color: #5a4a38;
   font-weight: 600;
   margin-right: 6px;
 }

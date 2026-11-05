@@ -30,7 +30,7 @@
   "sf.starthilfe": "Public money funds departments and investment through revenue or borrowing. Political capital (“Capital” at the top) is needed for reforms and negotiations and grows with support and government work. Attention and administrative capacity limit how much succeeds at once.",
   "sf.finanzwirkung": "Annual financing need",
   "sf.preisHinweis": "At current economic output; negative amounts ease the budget.",
-  "sf.hud": "Budget",
+  "sf.hud": "Deficit",
   "sf.hudTip": "Annual financing need: ₺{n} bn. Positive values mean additional borrowing, negative values a surplus. Open the budget to fund departments.",
   "sf.zeile.startEinnahmen": "Baseline revenue",
   "sf.zeile.steuern": "Approved tax changes",

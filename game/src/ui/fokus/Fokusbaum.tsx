@@ -262,6 +262,9 @@ function datumAusTag(w: World, tag: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Kleinster Maßstab der Baumfläche (Gestaltungsvorgabe: Beschriftung mindestens 12 px auf dem Bildschirm) */
+const FOKUS_MIN_MASSSTAB = 0.6;
+
 export function Fokusbaum({ world: w, onGeaendert, onGehe }: { world: World; onGeaendert: () => void; onGehe: (z: Ziel) => void }) {
   const lay = useMemo(flaeche, []);
   const paare = useMemo(gegenPaare, []);
@@ -278,7 +281,8 @@ export function Fokusbaum({ world: w, onGeaendert, onGehe }: { world: World; onG
     const el = flaecheRef.current;
     const bw = el?.clientWidth || 1200;
     const bh = el?.clientHeight || 600;
-    const s = Math.min(1.2, (bw - 24) / lay.breite, (bh - 24) / lay.hoehe);
+    // Mindestmaßstab: Die Namen bleiben lesbar (fern 20 px × 0,6 = 12 px); was nicht passt, wird verschoben
+    const s = Math.max(FOKUS_MIN_MASSSTAB, Math.min(1.2, (bw - 24) / lay.breite, (bh - 24) / lay.hoehe));
     return { s, x: (bw - lay.breite * s) / 2, y: (bh - lay.hoehe * s) / 2 };
   }, [lay]);
 
@@ -297,7 +301,7 @@ export function Fokusbaum({ world: w, onGeaendert, onGehe }: { world: World; onG
       const el = flaecheRef.current;
       const px = cx ?? (el?.clientWidth ?? 0) / 2;
       const py = cy ?? (el?.clientHeight ?? 0) / 2;
-      const s = Math.max(0.3, Math.min(2.2, v.s * faktor));
+      const s = Math.max(FOKUS_MIN_MASSSTAB, Math.min(2.2, v.s * faktor));
       const k = s / v.s;
       return { s, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
     });

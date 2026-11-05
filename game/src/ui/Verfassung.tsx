@@ -43,9 +43,11 @@ function richtungWort(autoritaer: number): string {
 }
 
 /** Wer im Parlament eine Variante trägt oder ablehnt (Qualität statt Scheingenauigkeit). */
-function parteienText(parteien: Record<string, number>): string {
-  const dafuer = Object.entries(parteien).filter(([, x]) => x >= 1).map(([p]) => PARTEI_NAME[p] ?? p);
-  const dagegen = Object.entries(parteien).filter(([, x]) => x <= -1).map(([p]) => PARTEI_NAME[p] ?? p);
+function parteienText(world: World, parteien: Record<string, number>): string {
+  // Nur Parteien, die im Parlament sitzen
+  const sitzt = ([p]: [string, number]) => (world.parliament?.seats[p] ?? 0) > 0;
+  const dafuer = Object.entries(parteien).filter(sitzt).filter(([, x]) => x >= 1).map(([p]) => PARTEI_NAME[p] ?? p);
+  const dagegen = Object.entries(parteien).filter(sitzt).filter(([, x]) => x <= -1).map(([p]) => PARTEI_NAME[p] ?? p);
   const teile: string[] = [];
   if (dafuer.length) teile.push(t("vf.dafuer", { l: dafuer }));
   if (dagegen.length) teile.push(t("vf.dagegen", { l: dagegen }));
@@ -231,7 +233,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                     </label>
                     <p>{x.text}</p>
                     <p className="subtitle">
-                      {x.statusQuo ? t("vf.statusQuo") : `${richtungWort(x.autoritaer)}; ${parteienText(x.parteien)}.`}
+                      {x.statusQuo ? t("vf.statusQuo") : `${richtungWort(x.autoritaer)}; ${parteienText(world, x.parteien)}.`}
                       {!x.statusQuo && !gewaehlt && delta !== 0 && ` ${t("vf.mitVariante", { n: dNeu, delta: `${delta > 0 ? "+" : ""}${delta}` })}`}
                     </p>
                   </li>

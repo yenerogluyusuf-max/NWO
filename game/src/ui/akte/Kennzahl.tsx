@@ -34,8 +34,11 @@ export function VerlaufsDiagramm({ reihe }: { reihe: VerlaufsReihe }) {
   const H = 120;
   const w = reihe.werte;
   if (w.length < 2) return <p className="ak-leer">{t("akte.verlauf.zuWenig", { name: reihe.name })}</p>;
-  const min = Math.min(...w);
-  const max = Math.max(...w);
+  // Mindestspanne 20 Punkte um die Mitte: kleine Schwankungen sehen klein aus; nie unter null, wenn alle Werte positiv sind
+  const roh0 = Math.min(...w), roh1 = Math.max(...w);
+  const mitte = (roh0 + roh1) / 2, halb = Math.max((roh1 - roh0) / 2, 10);
+  const min = roh0 >= 0 ? Math.max(0, mitte - halb) : mitte - halb;
+  const max = min + 2 * halb;
   const span = max - min || 1;
   const x = (i: number) => 34 + (i / (w.length - 1)) * (B - 44);
   const y = (v: number) => 8 + (1 - (v - min) / span) * (H - 28);

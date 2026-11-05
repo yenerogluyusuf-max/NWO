@@ -57,7 +57,7 @@ export function Kopfleiste(p: {
   /** Zurück ins Titelbild; Stage sichert vorher */
   onHauptmenue?: () => void;
 }) {
-  useTempoTasten(p.onTempo);
+  useTempoTasten(p.tempo, p.onTempo);
   return (
     <header className="hud kf">
       <div className="hud-bar" />
@@ -85,8 +85,8 @@ export function Kopfleiste(p: {
               onClick={() => p.onTempo(i)}
               aria-label={tempoName(i)}
               aria-pressed={i === p.tempo}
-              aria-keyshortcuts={i === 0 ? "Space" : String(i)}
-              title={t("kopf.tempo.taste", { name: tempoName(i), taste: i === 0 ? t("kopf.tempo.leertaste") : String(i) })}
+              aria-keyshortcuts={i === 0 ? "Space" : "+ -"}
+              title={t("kopf.tempo.taste", { name: tempoName(i), taste: i === 0 ? t("kopf.tempo.leertaste") : "+ / −" })}
             >
               {i === 0 ? <span className="pause-glyph" /> : i === 4 ? <span className="skip-glyph" /> : Array.from({ length: i }, (_, k) => <span key={k} className="play-glyph" />)}
             </button>
@@ -109,19 +109,22 @@ function tempoName(i: number): string {
   return i === 0 ? t("st.tempo.pause") : i === 4 ? t("st.tempo.bis") : t("st.tempo.n", { n: i });
 }
 
-/** Tasten 1 bis 4 wählen das Tempo (die Leertaste für Pause liegt in Stage); nicht beim Tippen in Feldern. */
-function useTempoTasten(onTempo: (i: number) => void) {
-  const ref = useRef(onTempo);
-  ref.current = onTempo;
+/** Plus und Minus schalten das Tempo eine Stufe weiter (die Leertaste für Pause liegt in Stage); die Ziffern gehören den
+ *  Kartenlinsen. Nicht beim Tippen in Feldern. */
+function useTempoTasten(tempo: number, onTempo: (i: number) => void) {
+  const ref = useRef({ tempo, onTempo });
+  ref.current = { tempo, onTempo };
   useEffect(() => {
     const taste = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       const ziel = e.target as HTMLElement | null;
       if (ziel && (["INPUT", "TEXTAREA", "SELECT"].includes(ziel.tagName) || ziel.isContentEditable)) return;
-      const n = ["1", "2", "3", "4"].indexOf(e.key);
-      if (n < 0) return;
+      const schritt = e.key === "+" || e.key === "=" ? 1 : e.key === "-" || e.key === "_" ? -1 : 0;
+      if (!schritt) return;
       e.preventDefault();
-      ref.current(n + 1);
+      const { tempo: jetzt, onTempo: setze } = ref.current;
+      const neu = Math.max(1, Math.min(4, (jetzt || 0) + schritt));
+      if (neu !== jetzt) setze(neu);
     };
     window.addEventListener("keydown", taste);
     return () => window.removeEventListener("keydown", taste);
@@ -183,6 +186,17 @@ function KopfMenue(p: Parameters<typeof Kopfleiste>[0]) {
   const [offen, setOffen] = useState(false);
   const [ton, setTon] = useState(tonStatus);
   const wurzel = useRef<HTMLDivElement>(null);
+  // Das offene Menü hält die Zeit an; beim Schließen läuft das vorige Tempo weiter (wenn niemand inzwischen umgeschaltet hat)
+  const tempoRef = useRef({ tempo: p.tempo, onTempo: p.onTempo });
+  tempoRef.current = { tempo: p.tempo, onTempo: p.onTempo };
+  useEffect(() => {
+    if (!offen) return;
+    const vorher = tempoRef.current.tempo;
+    if (vorher !== 0) tempoRef.current.onTempo(0);
+    return () => {
+      if (vorher !== 0 && tempoRef.current.tempo === 0) tempoRef.current.onTempo(vorher);
+    };
+  }, [offen]);
   useEffect(() => {
     if (!offen) return;
     const weg = (e: MouseEvent) => {

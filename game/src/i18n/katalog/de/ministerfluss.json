@@ -1,5 +1,6 @@
 {
  "mfl.tage": "{n, plural, =0 {heute} =1 {morgen} other {in # Tagen}}",
+ "mfl.monate": "{n, plural, one {in einem Monat} other {in # Monaten}}",
  "mfl.bip": "{x, number, 2} % BIP im Jahr",
  "mfl.spaeter.label": "Später",
  "mfl.spaeter.text": "In 30 Tagen wieder vorlegen.",

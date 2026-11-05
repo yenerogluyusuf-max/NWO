@@ -183,7 +183,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
             {frueher.map((r) => (
               <div key={r.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 12px", border: "1px solid rgba(120, 90, 50, 0.35)", background: "rgba(255, 250, 235, 0.75)" }}>
                 <span>
-                  <strong>{r.key === "hoechst" ? t("ui2.ui.SpeicherDossier.126ee5b") : t("ui2.ui.SpeicherDossier.e93ae2b")}</strong> · {formatDateDe(r.info.datum)}
+                  <strong>{r.art === "hoechst" ? t("ui2.ui.SpeicherDossier.126ee5b") : t("ui2.ui.SpeicherDossier.e93ae2b")}</strong> · {formatDateDe(r.info.datum)}
                   {r.info.zustimmung !== undefined ? t("ui2.ui.SpeicherDossier.6f8ded0", { p0: Math.round(r.info.zustimmung) }) : ""}
                   {r.info.gespeichert ? t("ui2.ui.SpeicherDossier.9321161", { p0: new Date(r.info.gespeichert).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }) : ""}
                 </span>

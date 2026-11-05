@@ -32,10 +32,10 @@ function Barometer({ world }: { world: World }) {
   const verlauf = roh ? wahrVerlauf : { monate: institute.map((x) => x.monat), werte: institute.map((x) => x.wert) };
   const textArt =
     zeig.quelle === "rohdaten"
-      ? t("medien.barometer.text_rohdaten", { datum: bilanz.wahlDatum, monate: bilanz.wahlIn, tendenz: nf(bilanz.tendenz, 0) })
+      ? t("medien.barometer.text_rohdaten", { datum: formatDateDe(bilanz.wahlDatum), monate: bilanz.wahlIn, tendenz: nf(bilanz.tendenz, 0) })
       : zeig.quelle === "institut"
-        ? t("medien.barometer.text_institut", { institut: zeig.institut ?? "", datum: bilanz.wahlDatum, monate: bilanz.wahlIn })
-        : t("medien.barometer.text_start", { datum: bilanz.wahlDatum });
+        ? t("medien.barometer.text_institut", { institut: zeig.institut ?? "", datum: formatDateDe(bilanz.wahlDatum), monate: bilanz.wahlIn })
+        : t("medien.barometer.text_start", { datum: formatDateDe(bilanz.wahlDatum) });
   return (
     <section className="wa-barometer">
       <div className="wa-baro-zahl">

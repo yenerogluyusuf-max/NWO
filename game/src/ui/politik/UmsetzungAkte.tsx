@@ -86,7 +86,7 @@ export function UmsetzungAkte({
               {nf(Math.abs(beschlossen))}
               <small> % BIP</small>
             </b>
-            <span>{wirksam === 0 ? t("ui2.ui.politik.UmsetzungAkte.1e68ece") : t("ui2.ui.politik.UmsetzungAkte.b1c11a3", { p0: nf(Math.abs(wirksam)) })}</span>
+            <span>{wirksam === 0 ? t("ui2.ui.politik.UmsetzungAkte.1e68ece") : nf(Math.abs(wirksam)) === nf(Math.abs(beschlossen)) ? t("ui2.ui.politik.UmsetzungAkte.voll") : t("ui2.ui.politik.UmsetzungAkte.b1c11a3", { p0: nf(Math.abs(wirksam)) })}</span>
           </li>
           <li>
             <b>{beschluesse.length}</b>

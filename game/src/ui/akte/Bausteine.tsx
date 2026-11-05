@@ -6,6 +6,8 @@ import type { Bericht } from "../../sim/berichte";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import { Portraet } from "../personen/bausteine";
+import { stimmungVon } from "../../sim/kabinett";
+import { bereitschaftWort } from "../../sim/fraktionen";
 
 /** Wirkungsberichte, deren Maßnahme zu einem der Themen gehört (neueste zuerst). */
 export function berichteFuer(w: World, themen: readonly string[]): Bericht[] {
@@ -20,8 +22,9 @@ export function berichteFuer(w: World, themen: readonly string[]): Bericht[] {
     .reverse();
 }
 
-export function BerichtListe({ berichte, onOeffne }: { berichte: Bericht[]; onOeffne?: (b: Bericht) => void }) {
-  if (!berichte.length) return <p className="ak-leer">{t("akte.verlauf.keineBerichte")}</p>;
+export function BerichtListe({ berichte, onOeffne, gesamt = 0 }: { berichte: Bericht[]; onOeffne?: (b: Bericht) => void; /** Berichte über alle Bereiche, für den Leertext */ gesamt?: number }) {
+  // Leer heißt hier nur „in diesem Bereich“; gibt es anderswo Berichte, sagt der Text, wo sie stehen
+  if (!berichte.length) return <p className="ak-leer">{gesamt > 0 ? t("akte.verlauf.keineHierAberGesamt", { n: gesamt }) : t("akte.verlauf.keineBerichte")}</p>;
   return (
     <ul className="ak-berichte">
       {berichte.slice(0, 8).map((b) => (
@@ -42,7 +45,16 @@ export function BerichtListe({ berichte, onOeffne }: { berichte: Bericht[]; onOe
   );
 }
 
-const loyalWort = (l: number): string => t(l >= 70 ? "akte.personen.loyal" : l >= 50 ? "akte.personen.verlaesslich" : l >= 30 ? "akte.personen.distanziert" : "akte.personen.abtruennig");
+/** Haltung in einem Wort, mit denselben Stufen wie der Kabinettstisch (`stimmungVon`); Parteifiguren nach der Gesprächsbereitschaft
+ *  ihrer Fraktion, denn eine Oppositionsführerin ist Ihnen nicht „abtrünnig“ (Rundgang 5. November). Nur lesend. */
+function haltung(w: World, f: Figur): string {
+  if ((f.amt === "opposition" || f.amt === "partner") && f.partei) {
+    const b = w.spiel?.fraktionen?.[f.partei]?.bereitschaft ?? 40;
+    return t("akte.personen.bereitschaft", { wort: bereitschaftWort(b), n: Math.round(b) });
+  }
+  const st = stimmungVon(f.loyalitaet, f.eigen?.groll ?? 0);
+  return t("akte.personen.haltung", { wort: t(`akte.personen.st.${st}`), n: Math.round(f.loyalitaet) });
+}
 
 /** Zuständige Figuren eines Bereichs mit Gesicht, Amt, Haltung und Ziel. */
 export function PersonenListe({ w, aemter, onGespraech }: { w: World; aemter: readonly Figur["amt"][]; onGespraech?: (f: Figur) => void }) {
@@ -56,7 +68,7 @@ export function PersonenListe({ w, aemter, onGespraech }: { w: World; aemter: re
           <div>
             <b>{f.name}</b>
             <span className="ak-person-rolle">{f.rolle}</span>
-            <span className="ak-person-haltung">{t("akte.personen.haltung", { wort: loyalWort(f.loyalitaet), n: Math.round(f.loyalitaet) })}</span>
+            <span className="ak-person-haltung">{haltung(w, f)}</span>
             <p>{f.ziel}</p>
             {onGespraech && (
               <button type="button" className="ak-link" onClick={() => onGespraech(f)}>

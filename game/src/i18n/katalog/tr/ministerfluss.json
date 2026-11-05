@@ -1,5 +1,6 @@
 {
  "mfl.tage": "{n, plural, =0 {bugün} =1 {yarın} other {# gün içinde}}",
+ "mfl.monate": "{n, plural, one {bir ay içinde} other {# ay içinde}}",
  "mfl.bip": "yılda GSYH'nin %{x, number, 2} kadarı",
  "mfl.spaeter.label": "Sonra",
  "mfl.spaeter.text": "30 gün içinde yeniden sun.",

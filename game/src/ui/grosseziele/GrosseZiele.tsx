@@ -95,7 +95,7 @@ function ZielKarte({ w, z, geaendert, melde }: { w: World; z: ZielDef; geaendert
         <div className="gzz-aktion">
           {!fertig && (verfolgt
             ? <button type="button" className="gz-knopf" onClick={() => tue(verfolge(w, z.id, false))}>{t("gz2.ui.loslassen")}</button>
-            : <button type="button" className="gz-knopf" disabled={!!vGrund} title={vGrund ?? undefined} onClick={() => tue(verfolge(w, z.id, true))}>{t("gz2.ui.verfolgen")} →</button>)}
+            : <button type="button" className="gz-knopf" disabled={!!vGrund} title={vGrund ?? undefined} onClick={() => tue(verfolge(w, z.id, true))}>{t("gz2.ui.verfolgen")}</button>)}
           {!verfolgt && vGrund && <span className="gz-hinweis">{vGrund}</span>}
         </div>
       </div>

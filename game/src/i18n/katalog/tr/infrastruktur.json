@@ -147,6 +147,6 @@
  "infra.ui.ueberlastet": "aşırı yüklü",
  "infra.ui.paket.kurz": "{n} il · {monate} ay",
  "infra.ui.engpaesse": "İllere göre darboğazlar",
- "infra.ui.zahl_ueber": "aşırı yüklü ağ",
+ "infra.ui.zahl_ueber": "illerde aşırı yüklü ağ",
  "infra.ui.zahl_laufend": "süren genişletme"
 }

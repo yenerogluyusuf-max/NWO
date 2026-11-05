@@ -22,9 +22,9 @@ export function Krisenrat({world,geaendert}:{world:World;geaendert:()=>void}) {
   const lage=sozialeKrisenlage(world),h=world.spiel?.wirtschaft?.haushalt,g=h?.gesetz;
   const p=wahl&&!g?krisenPaketPlan(world,wahl):undefined;
   return <section className="krisenrat" aria-label={t('kp.titel')}>
-    <header className="kr-kopf"><span>{t('kp.kicker')}</span><h3>{t('kp.titel')}</h3><p>{t('kp.lead')}</p></header>
+    <header className="krr-kopf"><span>{t('kp.kicker')}</span><h3>{t('kp.titel')}</h3><p>{t('kp.lead')}</p></header>
     <ol className="kr-schritte"><li><b>01</b>{t('kp.schritt1')}</li><li><b>02</b>{t('kp.schritt2')}</li><li><b>03</b>{t('kp.schritt3')}</li></ol>
-    <dl className="kr-lage"><div><dt>{t('kp.armut')}</dt><dd>{zahl(lage.armut,1)} / 100</dd></div><div><dt>{t('kp.zustimmung')}</dt><dd>{zahl(lage.zustimmung,1)} %</dd></div><div><dt>{t('kp.sitze')}</dt><dd>{lage.sitze} / 301</dd></div></dl>
+    <dl className="krr-lage"><div><dt>{t('kp.armut')}</dt><dd>{zahl(lage.armut,1)} / 100</dd></div><div><dt>{t('kp.zustimmung')}</dt><dd>{zahl(lage.zustimmung,1)} %</dd></div><div><dt>{t('kp.sitze')}</dt><dd>{lage.sitze} / 301</dd></div></dl>
     <p className={lage.tiefstand>0?'kr-warnung':'kr-hinweis'}>{t('kp.druck',{n:lage.tiefstand})}</p>
     <KrisenGesetze world={world} geaendert={geaendert}/>
     {antwort&&<p role="status" className={`rueckmeldung ${antwort.ok?'ok':'nein'}`}>{antwort.text}</p>}

@@ -28,7 +28,8 @@ const naehe = (s: VorhabenSicht) => (s.voraus.length ? s.voraus.reduce((a, v) =>
 
 export function kartenAuswahl(w: World, reichBereich: string, max = 4): { s: VorhabenSicht; z: KartenZustand }[] {
   const liste = vorhabenListe(w, reichBereich).filter((s) => !istAbleger(s));
-  const mit = liste.map((s) => ({ s, z: zustandVon(s) })).filter((x): x is { s: VorhabenSicht; z: KartenZustand } => x.z !== null);
+  // Laufende Bauten stehen in der Baureihenfolge; hier nur, was man jetzt beginnen kann oder was dafür noch fehlt
+  const mit = liste.map((s) => ({ s, z: zustandVon(s) })).filter((x): x is { s: VorhabenSicht; z: KartenZustand } => x.z !== null && x.z !== "bau");
   const rang: Record<KartenZustand, number> = { bau: 0, moeglich: 1, verlangt: 2 };
   return mit.sort((a, b) => rang[a.z] - rang[b.z] || naehe(b.s) - naehe(a.s)).slice(0, max);
 }
@@ -78,7 +79,7 @@ export function Bildkarten({ w, reichBereich, ziel, oeffnen }: { w: World; reich
   if (!w.spiel) return null;
   const auswahl = kartenAuswahl(w, reichBereich);
   if (!auswahl.length) return null;
-  const gesamt = vorhabenListe(w, reichBereich).filter((s) => !istAbleger(s) && s.status !== "fertig").length;
+  const gesamt = vorhabenListe(w, reichBereich).filter((s) => !istAbleger(s) && s.status === "verfuegbar").length;
   return (
     <section className="gz-karten-block" aria-label={t("gz.karten.titel")}>
       <h3 className="gz-karten-kopf">{t("gz.karten.titel")}</h3>

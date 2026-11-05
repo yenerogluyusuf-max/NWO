@@ -30,7 +30,7 @@
   "sf.starthilfe": "Kamu parası bakanlıkları ve yatırımları gelir veya borçla finanse eder. Siyasi sermaye (üstte „Sermaye“) reformlar ve müzakereler için gerekir; destek ve hükümet çalışmasıyla artar. Dikkat ve idari kapasite aynı anda ne kadarının başarılacağını belirler.",
   "sf.finanzwirkung": "Yıllık finansman ihtiyacı",
   "sf.preisHinweis": "Mevcut ekonomik üretime göre; negatif tutarlar bütçeyi rahatlatır.",
-  "sf.hud": "Bütçe",
+  "sf.hud": "Açık",
   "sf.hudTip": "Yıllık finansman ihtiyacı: {n} milyar ₺. Pozitif değer ek borç, negatif değer fazladır. Bakanlıkları finanse etmek için bütçeyi açın.",
   "sf.zeile.startEinnahmen": "Temel bütçe geliri",
   "sf.zeile.steuern": "Kabul edilen vergi değişiklikleri",

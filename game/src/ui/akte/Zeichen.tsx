@@ -43,9 +43,9 @@ export function Preis({ r, wert, einheit, knapp }: { r: Ressource; wert: string;
   return (
     <span className={`gz-preis${knapp ? " knapp" : ""}`} style={{ ["--gz-farbe" as string]: RESSOURCEN[r].farbe }} title={`${ressourceName(r)}: ${ressourceText(r)}`}>
       <Zeichen r={r} size={13} />
-      <span className="gz-vorleser">{ressourceName(r)}</span>
       <b>{wert}</b>
       {einheit && <small>{einheit}</small>}
+      {r === "zeit" ? <span className="gz-vorleser">{ressourceName(r)}</span> : <small className="gz-preis-name">{t(`gz.res.${r}.kurz`)}</small>}
     </span>
   );
 }

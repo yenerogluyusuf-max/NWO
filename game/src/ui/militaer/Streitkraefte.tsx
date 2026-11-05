@@ -14,7 +14,8 @@ import {
   vorschauAusbau,
   type GattungSicht,
 } from "../../sim/streitkraefte";
-import { aktiveKriege, eigenStaerke, gegnerStaerke, waehleZielraum, zielraeumeFuer } from "../../sim/krieg";
+import { PHASEN_NAME, aktiveKriege, eigenStaerke, gegnerStaerke, waehleZielraum, zielraeumeFuer } from "../../sim/krieg";
+import type { KriegPhase } from "../../sim/krieg-typen";
 import { land } from "../../sim/laender";
 import type { GattungId } from "../../data/streitkraefte";
 import { Schauplatz } from "../krieg/Schauplatz";
@@ -116,6 +117,9 @@ function Zielraeume({ world, onTat }: { world: World; onTat: (text: string) => v
   );
 }
 
+const PHASEN_RANG: KriegPhase[] = ["spannung", "drohkulisse", "waffenruhe", "beschluss", "krieg"];
+const schwerstePhase = (phasen: KriegPhase[]): KriegPhase => phasen.reduce((a, b) => (PHASEN_RANG.indexOf(b) > PHASEN_RANG.indexOf(a) ? b : a));
+
 export function Streitkraefte({ world, refresh }: { world: World; refresh: () => void }) {
   useSprache();
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string } | null>(null);
@@ -176,7 +180,12 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
     titel: t("militaer.ui.ziel"),
     wert: kriege.length ? String(kriege.length) : "–",
     zeile: kriege.length ? kriege.map((k) => landName(k.land)).join(", ") : t("militaer.ui.ziel_keins_kurz"),
-    ...(kriege.length ? { ton: "schlecht" as const, marke: { text: t("militaer.ui.krieg_laeuft"), ton: "schlecht" as const } } : {}),
+    // „Krieg läuft“ nur, wenn geschossen wird; sonst die Phase des schwersten Vorgangs (Spannung, Drohkulisse …)
+    ...(kriege.some((k) => k.phase === "krieg")
+      ? { ton: "schlecht" as const, marke: { text: t("militaer.ui.krieg_laeuft"), ton: "schlecht" as const } }
+      : kriege.length
+        ? { ton: "mittel" as const, marke: { text: PHASEN_NAME[schwerstePhase(kriege.map((k) => k.phase))], ton: "mittel" as const } }
+        : {}),
   });
   if (besetzt)
     kacheln.push({ id: "_besatzung", gruppe: gruppeLage, titel: t("krieg.besatzung.titel"), wert: String(besetzt), ton: "mittel", marke: { text: t("militaer.ui.besetzt"), ton: "mittel" } });

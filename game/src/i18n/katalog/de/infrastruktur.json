@@ -147,6 +147,6 @@
  "infra.ui.ueberlastet": "überlastet",
  "infra.ui.paket.kurz": "{n} Provinzen · {monate} Monate",
  "infra.ui.engpaesse": "Engpässe nach Provinz",
- "infra.ui.zahl_ueber": "Netze überlastet",
+ "infra.ui.zahl_ueber": "Netze mit Überlast in Provinzen",
  "infra.ui.zahl_laufend": "Ausbauten laufen"
 }

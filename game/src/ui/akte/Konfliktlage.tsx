@@ -8,13 +8,19 @@ import { LAENDER, weltZustand } from "../../sim/laender";
 import type { World } from "../../sim/types";
 
 /** Ab dieser Spannung erscheint ein Land in der Konfliktlage (Spielparameter, wie die Schwelle der Zwischenfälle). */
-const ANGESPANNT_AB = 50;
+export const ANGESPANNT_AB = 50;
+
+/** Länder mit Spannung ab der Schwelle ohne laufenden Vorgang (ohne EU und ferne Mächte): dieselbe Zählung für Kopf und Liste. */
+export function angespannteLaender(w: World) {
+  const aktiv = aktiveKriege(w);
+  const z = weltZustand(w);
+  return LAENDER.filter((l) => !ohneKriegsvorgang(l.id) && !aktiv.some((k) => k.land === l.id) && (z[l.id]?.konflikt ?? 0) >= ANGESPANNT_AB);
+}
 
 export function Konfliktlage({ w, onKonflikt }: { w: World; onKonflikt: (landId: string) => void }) {
   const aktiv = aktiveKriege(w);
   const z = weltZustand(w);
-  const angespannt = LAENDER
-    .filter((l) => !aktiv.some((k) => k.land === l.id) && (z[l.id]?.konflikt ?? 0) >= ANGESPANNT_AB)
+  const angespannt = angespannteLaender(w)
     .sort((a, b) => (z[b.id]?.konflikt ?? 0) - (z[a.id]?.konflikt ?? 0))
     .slice(0, 6);
   if (!aktiv.length && !angespannt.length) return <p className="ak-leer">{t("gz.konflikt.ruhig", { ab: ANGESPANNT_AB })}</p>;
@@ -36,7 +42,7 @@ export function Konfliktlage({ w, onKonflikt }: { w: World; onKonflikt: (landId:
           const wert = Math.round(z[l.id]?.konflikt ?? 0);
           return (
             <li key={l.id} className="gz-konflikt angespannt">
-              <div><strong>{l.name}</strong><span>{t("gz.konflikt.spannung", { wert })}{wert >= KRISE_AB && !ohneKriegsvorgang(l.id) ? ` · ${t("gz.konflikt.krise")}` : ""}</span></div>
+              <div><strong>{l.name}</strong><span>{t("gz.konflikt.spannung", { wert })}{wert >= KRISE_AB ? ` · ${t("gz.konflikt.krise")}` : ""}</span></div>
               <button type="button" className="gz-knopf" onClick={() => onKonflikt(l.id)}>{t("gz.konflikt.oeffnen")}</button>
             </li>
           );
