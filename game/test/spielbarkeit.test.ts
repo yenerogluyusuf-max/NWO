@@ -166,9 +166,15 @@ function lauf(name: string, bot: Bot, seed: number, mitBuendnis = seed % 2 === 1
   let zustimmung5 = NaN;
   let gesetze = 0;
   const angenommen = () => w.log.filter((l) => l.text.startsWith("Das Parlament nimmt")).length;
+  // Gezählt werden geöffnete Entscheidungen (Ereignisse), nicht Chronikzeilen: Die Chronik führt auch Berichte, Kalendertermine und
+  // historische Momente. Tageweise, damit kurze Fristen nicht durchrutschen.
+  const entscheidungen = new Set<string>();
   while (!w.spiel!.ende && monat < 130) {
     bot(w, rng, monat);
-    advance(w, 30);
+    for (let d = 0; d < 30 && !w.spiel!.ende; d++) {
+      advance(w, 1);
+      for (const e of w.spiel!.ereignisse) entscheidungen.add(e.id);
+    }
     monat++;
     if (monat === 58) {
       zustimmung5 = w.spiel!.umfrage.zustimmung;
@@ -186,7 +192,7 @@ function lauf(name: string, bot: Bot, seed: number, mitBuendnis = seed % 2 === 1
     ende: w.spiel!.ende?.art ?? "läuft",
     jahre: w.day / 365,
     zustimmung5,
-    ereignisseProJahr: w.spiel!.chronik.filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel)).length / Math.max(1, w.day / 365),
+    ereignisseProJahr: entscheidungen.size / Math.max(1, w.day / 365),
     akut: akutZahl(w),
     gesetze,
   };
@@ -254,6 +260,8 @@ describe("Spielbarkeit: einfache Spieler gegeneinander", () => {
     // Regionen mit eigenen akuten Problemen starten (gemessen ~12,9). Die Saisonereignisse des Takts (sim/ereignisse-saison.ts) fügen
     // etwa ein Ereignis im Jahr hinzu (gemessen ~14,9; die Zählung nimmt auch die Chronikzeilen ausgesessener Vorgänge und der Termine mit),
     // dafür öffnen die Ereignisse nicht mehr am Monatsersten: Die Fluten (mehr als drei Entscheidungen in zehn Tagen) sanken von 0,40 auf 0,10 je Lauf.
+    // Seit 5. November zählt der Lauf geöffnete Entscheidungen statt Chronikzeilen (gemessen 16,4 je Jahr in den ersten zwei Jahren, mit den
+    // drei einmaligen Startereignissen; die Chronik führt zusätzlich Berichte, Termine und historische Momente, rund 21 Zeilen im Jahr).
     expect(e).toBeLessThan(16);
   });
 });
