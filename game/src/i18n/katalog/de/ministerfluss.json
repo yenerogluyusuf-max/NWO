@@ -129,5 +129,5 @@
  "mfl.ressort.partner": "Bündnispartei",
  "mfl.ressort.opposition": "Opposition",
  "mfl.p.groll.titel": "Groll im Ressort {ressort, select, finanzen {Finanzen} inneres {Inneres} aussen {Äußeres} zentralbank {Zentralbank} stab {Präsidialamt} justiz {Justiz} generalstab {Streitkräfte} wirtschaft {Wirtschaft} partner {Bündnispartei} opposition {Opposition} other {Präsidialamt}}",
- "mfl.lage.titel": "{ressort, select, finanzen {Finanzen} inneres {Inneres} aussen {Äußeres} zentralbank {Zentralbank} stab {Präsidialamt} justiz {Justiz} generalstab {Streitkräfte} wirtschaft {Wirtschaft} partner {Bündnispartei} opposition {Opposition} other {Präsidialamt}}: {groesse} steht schlecht"
+ "mfl.lage.titel": "{ressort, select, finanzen {Finanzen} inneres {Inneres} aussen {Äußeres} zentralbank {Zentralbank} stab {Präsidialamt} justiz {Justiz} generalstab {Streitkräfte} wirtschaft {Wirtschaft} partner {Bündnispartei} opposition {Opposition} other {Präsidialamt}}: {groesse} im schlechten Bereich"
 }

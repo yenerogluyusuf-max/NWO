@@ -134,8 +134,9 @@ export function themenFuer(w: World, figurId: string): Thema[] {
     .sort((a, b) => b.schlecht - a.schlecht)
     .slice(0, 2);
   for (const { l } of lage) {
-    const ton = l.ton === "schlecht" ? "steht schlecht" : l.ton === "mittel" ? "steht mittelmäßig" : "steht gut";
-    out.push({ id: `lage:${l.id}`, titel: `Lage: ${l.name}`, text: `${l.name} ${ton}: ${Math.round(l.wert)} von 100${l.schlechtWennHoch ? " (hoch ist schlecht)" : ""}.`, art: "lage", bezug: l.id, dringlich: l.ton === "schlecht" });
+    // „Name: schlecht“ statt „Name steht schlecht“: Viele Größen stehen in der Mehrzahl (Steuereinnahmen, Beziehungen zur EU)
+    const ton = l.ton === "schlecht" ? "schlecht" : l.ton === "mittel" ? "mittelmäßig" : "gut";
+    out.push({ id: `lage:${l.id}`, titel: `Lage: ${l.name}`, text: `${l.name}: ${ton}, ${Math.round(l.wert)} von 100${l.schlechtWennHoch ? " (hoch ist schlecht)" : ""}.`, art: "lage", bezug: l.id, dringlich: l.ton === "schlecht" });
   }
 
   // Offene Ereignisse im Ressort
@@ -290,13 +291,14 @@ export function ratHinweise(w: World, f: Figur, thema: Thema): string[] {
     const richtung: 1 | -1 = l.schlechtWennHoch ? -1 : 1;
     const schritte = schritteFuer(w, f, groesse, richtung, 2);
     if (schritte.length) {
-      out.push(`${l.name} steht bei ${Math.round(l.wert)} von 100. Was ${f.weiblich ? "sie" : "er"} vorschlägt:`);
+      // „Name: Wert“ statt „Name steht bei“: Viele Größen stehen in der Mehrzahl („Beziehungen zur EU steht bei 39“)
+      out.push(`${l.name}: ${Math.round(l.wert)} von 100. Was ${f.weiblich ? "sie" : "er"} vorschlägt:`);
       for (const s of schritte) out.push(schrittText(s));
       if (e.stil === "eitel" && schritte.some((s) => s.eigenesRessort)) out.push("Auffällig: Die Vorschläge stärken vor allem sein eigenes Ressort.");
       if (e.stil === "vorsichtig") out.push("Sie rät zu den günstigen Schritten; bei den teuren wartet sie ab.");
       if (e.stil === "machtbewusst") out.push("Er rät zu den wirksamsten Schritten, gleich, was sie kosten.");
     } else {
-      out.push(`${l.name} steht bei ${Math.round(l.wert)} von 100; ${f.weiblich ? "sie" : "er"} sieht keinen Schritt, der sich lohnt: Entweder ist die Stufe erreicht oder die Wirkung zu klein.`);
+      out.push(`${l.name}: ${Math.round(l.wert)} von 100; ${f.weiblich ? "sie" : "er"} sieht keinen Schritt, der sich lohnt: Entweder ist die Stufe erreicht oder die Wirkung zu klein.`);
     }
   }
   // Wer dem Präsidenten folgt, sagt mehr
