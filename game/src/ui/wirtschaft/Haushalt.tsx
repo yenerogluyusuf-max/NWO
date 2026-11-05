@@ -1,4 +1,5 @@
 import { Staatsfinanzen } from "./Staatsfinanzen";
+import { staatsfinanzen } from "../../sim/staatsfinanzen";
 import { geldAusBip } from "../../sim/staatsgeld";
 // Der Haushalt wie in Democracy: oben die Bilanz (Einnahmen, Ausgaben, Defizit, Schulden), darunter je Ressort ein Regler mit Betrag in Lira
 // und % des BIP, vorher → nachher, einer Wirkungszeile und dem Wunsch der zuständigen Ministerin oder des Ministers. Renten mit eigenen
@@ -6,7 +7,7 @@ import { geldAusBip } from "../../sim/staatsgeld";
 // Tiefe aufklappbar: Vorschau mit Folgen über zwölf Monate je Ressort, der Haushaltsplan 2026 mit Quellen.
 
 import { behoerdenVerbrauch } from "../../sim/behoerden";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
 import { impulsKette } from "../../sim/folgen";
@@ -41,12 +42,9 @@ import { HaushaltsNachbericht } from "./HaushaltsBericht";
 import { AUSGABEN_2026, PLAN_2026, STEUERN_2026 } from "../../data/haushaltsplan";
 import { t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
-import { Portraet } from "../art/Portraet";
-import { UbDetailKopf, type UbKachel } from "../akte/Uebersicht";
+import { UbDetailKopf } from "../akte/Uebersicht";
 import { Diagramm } from "./Diagramm";
 import { Folgen } from "./Folgen";
-import { EntscheidungsKarte } from "../entscheidungen/EntscheidungsKarte";
-import { HaushaltsArbeitsplatz } from "./HaushaltsArbeitsplatz";
 import { HaushaltsEntwurf } from "./HaushaltsEntwurf";
 import { haushaltsPostenEntscheidung, fuehreHaushaltsPostenAus } from "../../sim/haushaltsentscheidung";
 import { Wirkung } from "./Wirkung";
@@ -71,7 +69,6 @@ const METRIKEN: { id: Metric; kennzahl: string }[] = [
 
 const GRUPPEN: PostenGruppe[] = ["renten", "soziales", "dienste", "sicherheit", "wirtschaft", "staat", "steuern"];
 
-const TINT: Record<string, string> = { stab: "#7c5823", finanzen: "#265a62", inneres: "#4a3f6b", aussen: "#2f5a8a", justiz: "#6b4a3a", generalstab: "#4c5a3a", wirtschaft: "#265a62" };
 
 /** Der Betrag eines Postens bei einer Stufe: Etat in Mrd. Lira und % des BIP, Renten in ihren eigenen Einheiten. */
 function betrag(world: World, p: PostenDef, stufe: number): string {
@@ -83,71 +80,6 @@ function betrag(world: World, p: PostenDef, stufe: number): string {
     return stufe === 0 ? t("haushalt.ui.wert.steuer_null") : t("haushalt.ui.wert.steuer", { mrd: `${mrd > 0 ? "+" : "−"}${mrdText(Math.abs(mrd))}` });
   }
   return t("haushalt.ui.wert.etat", { mrd: mrdText(geldAusBip(world, bip)), bip: nf(bip, 1) });
-}
-
-function Minister({ world, p }: { world: World; p: PostenDef }) {
-  const f = ministerFuer(world, p.amt);
-  if (!f) return <span className="hh-minister leer" aria-hidden />;
-  return (
-    <span className="hh-minister" title={`${f.name}, ${f.rolle}`}>
-      <Portraet seed={f.name} size={36} geschlecht={f.weiblich ? "f" : "m"} tint={TINT[p.amt] ?? "#7c5823"} rolle={p.amt} rahmen="keiner" lebendig={false} />
-    </span>
-  );
-}
-
-function Zeile({ world, p, aktiv, wert, plan, onWahl, children }: { world: World; p: PostenDef; aktiv: boolean; wert: number; plan: number; onWahl: (s: number) => void; children?: ReactNode }) {
-  const ist = stufeVon(world, p.id);
-  const wirksam = wirksamVon(world, p.id);
-  const f = ministerFuer(world, p.amt);
-  const wunsch = ministerWunsch(world, p.id);
-  const zeigt = aktiv ? wert : plan;
-  const anteil = ist !== 0 ? Math.round((wirksam / ist) * 100) : 100;
-  const forschung = p.id === "forschung" ? forschungsSicht(world, etatBip(p, zeigt) ?? 0) : null;
-  return (
-    <div className={`hh-zeile${aktiv ? " on" : ""}`}>
-      <div className="hh-kopf">
-        <div className="hh-name">
-          <span className="hh-text">{p.text}</span>
-        </div>
-        <div className="hh-betrag">
-          {zeigt !== ist ? (
-            <>
-              <s>{betrag(world, p, ist)}</s> <span aria-hidden>→</span> <b>{betrag(world, p, zeigt)}</b>
-            </>
-          ) : (
-            <b>{betrag(world, p, ist)}</b>
-          )}
-        </div>
-      </div>
-      <div className="hh-regler">
-        <span className="hh-rand">{p.id === "rentenalter" ? t("haushalt.ui.regler.frueher") : p.seite === "ausgabe" ? t("haushalt.ui.regler.kuerzen") : t("haushalt.ui.regler.senken")}</span>
-        <input
-          type="range"
-          min={p.min}
-          max={p.max}
-          step={1}
-          value={zeigt}
-          aria-label={t("haushalt.ui.regler.aria", { posten: p.name })}
-          aria-valuetext={`${vz(zeigt)}: ${betrag(world, p, zeigt)}`}
-          onChange={(e) => onWahl(Number(e.target.value))}
-        />
-        <span className="hh-rand">{p.id === "rentenalter" ? t("haushalt.ui.regler.spaeter") : p.seite === "ausgabe" ? t("haushalt.ui.regler.ausbauen") : t("haushalt.ui.regler.anheben")}</span>
-        <span className="hh-stufe">{vz(zeigt)}</span>
-      </div>
-      <p className="hh-wirkung">
-        {p.wirkung}
-        {ist !== 0 && anteil < 95 && <> {t("haushalt.ui.reifung", { anteil, monate: p.reifeMonate })}</>}
-        {forschung && <> {t("haushalt.ui.forschung.grenze", { grenze: nf(forschung.grenze, 2), verpufft: nf(forschung.verpufft, 2) })}</>}
-        {zeigt > 2 && p.seite === "ausgabe" && p.id !== "forschung" && <> {t("haushalt.ui.abnehmend")}</>}
-      </p>
-      {f && p.seite === "ausgabe" && p.id !== "rentenalter" && (
-        <p className={`hh-wunsch${ist >= wunsch ? " erfuellt" : ""}`}>
-          {ist >= wunsch ? t("haushalt.ui.wunsch.erfuellt", { name: f.name }) : t("haushalt.ui.wunsch.offen", { name: f.name, stufe: vz(wunsch), betrag: betrag(world, p, wunsch) })}
-        </p>
-      )}
-      {children}
-    </div>
-  );
 }
 
 export function Haushalt({ world, geaendert, posten }: { world: World; geaendert: () => void; posten?: string | undefined }) {
@@ -170,8 +102,6 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   const fenster = haushaltsfenster(world);
   const gesetzSicht = haushaltsGesetzSicht(world);
   const entwurfEintraege = Object.entries(z.entwurf ?? {}).filter(([id, s]) => (z.stufen[id] ?? 0) !== s);
-  const entwurfsSicht = haushaltsEntwurfsSicht(world);
-  const mehrheit = gesetzSicht ?? entwurfsSicht;
 
   // Die Vorschau über zwölf Monate rechnet erst, wenn der Regler kurz ruht
   useEffect(() => {
@@ -226,56 +156,6 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
     requestAnimationFrame(()=>rueckRef.current?.focus());
   }
 
-  const vorschauBlock = p && v && entscheidung && entwurf !== null && entwurf !== (fenster.offen ? z.entwurf?.[p.id] ?? stufeVon(world,p.id) : stufeVon(world,p.id)) && (
-    <div className="wi-hh-vorschau">
-    <EntscheidungsKarte kicker={t(entscheidung.modus === "entwurf" ? "eo.entwurf" : "eo.nachtrag")} titel={p.name} einleitung={p.wirkung}
-      fakten={[
-        {label:t("eo.kapital"),wert:t("ve.pk",{n:entscheidung.pk})},
-        {label:t("haushalt.ui.vorschau.defizit"),wert:`${nf(v.defizitVorher,2)} → ${nf(v.defizitNachher,2)} %`,hinweis:entscheidung.modus==="entwurf"?t("eo.nachAnnahme"):t("eo.sofort")},
-        {label:t("sf.finanzwirkung"),wert:t("sf.betrag",{n:nf(entscheidung.finanzMrd,1)}),hinweis:t("sf.preisHinweis")},
-        {label:t("eo.befugnis"),wert:t(entscheidung.modus==="entwurf"?"eo.votum":"eo.regierung"),hinweis:t(entscheidung.modus==="entwurf"?"eo.entwurfNur":"eo.keinVotum")},
-      ]}
-      aktion={entscheidung.modus==="entwurf"?t(entscheidung.entfernen?"eo.entwurfEntfernen":"eo.entwurfAendern"):t("haushalt.ui.knopf.nachtrag",{kapital:entscheidung.pk})}
-      gesperrt={entscheidung.grund} hinweis={v.zyklus.hinweis} onAusfuehren={beschliesse}>
-      <p>{p.name}: {betrag(world,p,stufeVon(world,p.id))} → <b>{betrag(world,p,entwurf)}</b></p>
-      <p>{entscheidung.modus==="entwurf"?t("eo.entwurfWirkung"):t("eo.nachtragFolge",{leg:nf(entscheidung.legitimitaet,2),loy:nf(entscheidung.loyalitaet,2),monate:p.reifeMonate})}</p>
-      <div className="wi-verteilung">
-        <span>
-          <b>{t("haushalt.ui.vorschau.gewinner")}</b> {p.gewinner}
-        </span>
-        <span>
-          <b>{t("haushalt.ui.vorschau.verlierer")}</b> {p.verlierer}
-        </span>
-      </div>
-      <p className="wi-kehrseite">
-        <b>{t("haushalt.ui.vorschau.kehrseite")}</b> {p.kehrseite}
-      </p>
-      <details className="hh-tiefe" onToggle={e=>setPrognoseOffen(e.currentTarget.open)}>
-        <summary>{t("haushalt.ui.vorschau.tiefe")}</summary>
-        <Folgen titel={t("haushalt.ui.vorschau.danach")} glieder={impulsKette(v.impuls)} />
-        <h4>{t("haushalt.ui.vorschau.netz")}</h4>
-        <div className="wi-dauer">
-          {v.zeilen.map((x) => (
-            <span key={x.text} className={`wi-chip ${x.gut === true ? "wi-gut" : x.gut === false ? "wi-schlecht" : "wi-neutral"}`}>
-              {x.richtung > 0 ? "▲" : "▼"} {x.text}
-            </span>
-          ))}
-        </div>
-        <Wirkung reihen={reihen} metriken={METRIKEN.map((m) => ({ ...m, label: KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl }))} rechnet={rechnet} />
-        <div className="wi-metriken" role="group" aria-label={t("haushalt.ui.vorschau.groesse")}>
-          {METRIKEN.map((m) => (
-            <button key={m.id} type="button" aria-pressed={metrik === m.id} className={metrik === m.id ? "on" : ""} onClick={() => setMetrik(m.id)}>
-              {KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl}
-            </button>
-          ))}
-        </div>
-        <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "haushalt" || m.art === "zins")} stellen={k.stellen} einheit={einheitName(k.einheit)} name={k.name} rechnet={rechnet} />
-      </details>
-    </EntscheidungsKarte>
-      <button type="button" className="pd-btn quiet" onClick={() => {setEntwurf(null);setPrognoseOffen(false);}}>{t("haushalt.ui.knopf.verwerfen")}</button>
-    </div>
-  );
-
   const defizit = defizitJetzt(world);
   const behoerdenSatz = () => {
     const verbrauch = behoerdenVerbrauch(structuredClone(world));
@@ -286,71 +166,6 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
           liste: verbrauch.map((x) => t("haushalt.ui.behoerden.posten", { posten: POSTEN_NACH_ID[x.posten]?.name ?? x.posten, etat: x.ausEtat, defizit: x.aufsDefizit > 0.0005 ? "ja" : "nein", d: x.aufsDefizit })),
         });
   };
-  const kacheln: UbKachel[] = [
-    ...(z.abschluesse?.length?[{id:"_abschluss",gruppe:t("haushalt.ui.gruppe_lage"),titel:t("hb.titel"),zeile:t("hb.kachel"),wert:String(z.abschluesse.at(-1)!.ja),wertLabel:t("gp.votum")}]:[]),
-    {
-      id: "_bilanz",
-      gruppe: t("haushalt.ui.gruppe_lage"),
-      titel: t("haushalt.ui.bilanz.kicker"),
-      wert: `${nf(defizit, 1)} %`,
-      wertLabel: t("haushalt.ui.bilanz.defizit"),
-      zeile: t("haushalt.ui.bilanz.kurz", { schulden: nf(world.economy.debtRatio, 1), zinsen: nf(zinsausgabenJetzt(world), 1) }),
-      ton: defizit > 3 ? "schlecht" : defizit > 1.5 ? "mittel" : "gut",
-    },
-    {
-      id: "_zyklus",
-      gruppe: t("haushalt.ui.gruppe_lage"),
-      titel: t("haushalt.ui.zyklus.kicker"),
-      ...(mehrheit ? { wert: String(mehrheit.ja), wertLabel: t("hm.kachelStimmen", { datum:formatDateDe(mehrheit.datum) }) } : {}),
-      zeile: mehrheit
-        ? `${mehrheit.luecke ? t("gp.luecke",{n:mehrheit.luecke}) : t("gp.mehrheit")}${mehrheit.auslaufend.length ? ` ${t("hm.kachelFristen",{n:mehrheit.auslaufend.length})}` : ""}`
-        : fenster.offen
-        ? t("haushalt.ui.zyklus.offen", { tage: fenster.tageRest })
-        : fenster.gesetzUnterwegs && gesetzSicht
-          ? t("haushalt.ui.zyklus.parlament", { tage: gesetzSicht.tageBis })
-          : t("haushalt.ui.zyklus.naechstes", { jahr: fenster.naechsterStart.slice(0, 4), monate: fenster.monateBis }),
-      ...(fenster.offen
-        ? { marke: { text: t("haushalt.ui.zyklus.marke_offen", { n: entwurfEintraege.length }), ton: "aktiv" as const }, ton: "aktiv" as const }
-        : fenster.gesetzUnterwegs && gesetzSicht
-          ? { marke: { text: t(`gesetz.ui.urteil.${gesetzSicht.urteil === "sicher" ? "sicher" : gesetzSicht.luecke > 0 ? "verloren" : "knapp"}`), ton: gesetzSicht.urteil === "sicher" ? ("gut" as const) : ("mittel" as const) }, ton:gesetzSicht.urteil==="sicher"?"gut" as const:gesetzSicht.luecke>0?"schlecht" as const:"mittel" as const }
-          : {}),
-    },
-    {
-      id: "_plan",
-      gruppe: t("haushalt.ui.gruppe_lage"),
-      titel: t("haushalt.ui.plan.kicker"),
-      zeile: t("haushalt.ui.plan.titel", { aus: bio(PLAN_2026.ausgabenGesamt), ein: bio(PLAN_2026.einnahmenGesamt) }),
-    },
-    {
-      id: "_bisher",
-      gruppe: t("haushalt.ui.gruppe_lage"),
-      titel: t("haushalt.ui.bisher.titel"),
-      wert: String(z.aenderungen.length),
-      zeile: z.aenderungen.length ? z.aenderungen[z.aenderungen.length - 1]!.text : t("haushalt.ui.bisher.leer"),
-    },
-    ...GRUPPEN.flatMap((g) =>
-      POSTEN.filter((q) => q.gruppe === g).map((q): UbKachel => {
-        const ist = stufeVon(world, q.id);
-        const plan = z.entwurf?.[q.id] ?? ist;
-        const f = ministerFuer(world, q.amt);
-        const wunsch = ministerWunsch(world, q.id);
-        const offenWunsch = !!f && q.seite === "ausgabe" && q.id !== "rentenalter" && ist < wunsch;
-        return {
-          id: q.id,
-          gruppe: t(`haushalt.gruppe.${g}`),
-          titel: q.name,
-          bild: f ? <Minister world={world} p={q} /> : undefined,
-          wert: betrag(world, q, plan),
-          wertLabel: plan !== ist ? t("haushalt.ui.kurz.vorher", { wert: betrag(world, q, ist) }) : vz(plan),
-          ...(plan !== ist
-            ? { marke: { text: t("haushalt.ui.kurz.entwurf"), ton: "aktiv" as const }, ton: "aktiv" as const }
-            : offenWunsch
-              ? { marke: { text: t("haushalt.ui.kurz.wunsch", { stufe: vz(wunsch) }), ton: "mittel" as const } }
-              : {}),
-        };
-      }),
-    ),
-  ];
   const detail = (id: string) => {
     if (id === "_bilanz")
       return (
@@ -487,59 +302,174 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
           </ul>
         )}
       </div>;
-    const q = POSTEN_NACH_ID[id];
-    if (!q) return null;
-    const aktiv = sel === q.id;
-    const plan = z.entwurf?.[q.id] ?? stufeVon(world, q.id);
+    return null;
+  };
+  // Die Tafel nach dem Vorbild von Democracy 4 (Rückmeldung des Projektinhabers 5. November: „zu kompliziert“, „extrem lang
+  // gezogen“): oben die Bilanz als Balken, darunter alle Posten auf einen Blick, je eine Zeile mit Regler. Wer einen Posten
+  // verstellt, sieht Preis und Wirkung direkt darunter und beschließt dort. Verfahren, Ausgangslage und Verlauf stehen darunter.
+  // Das Verfahren (Fenster, Abstimmung, Bericht nach dem Beschluss) steht offen; der Rest auf Wunsch
+  const [mehr, setMehr] = useState<string | null>(posten?.startsWith("_") ? posten : "_zyklus");
+  const mehrheit = gesetzSicht ?? haushaltsEntwurfsSicht(world);
+  const fin = staatsfinanzen(world);
+  const groesser = Math.max(fin.einnahmenMrd, fin.ausgabenMrd, 1);
+  const bioText = (mrd: number) => t("hd.bio", { n: zahl(mrd / 1000, 1) });
+  const waehleZeile = (q: PostenDef, s: number) => {
+    if (sel !== q.id) setPrognoseOffen(false);
+    setRueck(null);
+    waehle(q.id, inSpanne(q, s));
+  };
+  const zeile = (q: PostenDef) => {
+    const ist = stufeVon(world, q.id);
+    const plan = z.entwurf?.[q.id] ?? ist;
+    const aktiv = sel === q.id && entwurf !== null;
+    const zeigt = aktiv ? entwurf! : plan;
+    const f = ministerFuer(world, q.amt);
+    const wunsch = ministerWunsch(world, q.id);
+    const offenWunsch = !!f && q.seite === "ausgabe" && q.id !== "rentenalter" && ist < wunsch;
+    const runter = q.id === "rentenalter" ? t("haushalt.ui.regler.frueher") : q.seite === "ausgabe" ? t("haushalt.ui.regler.kuerzen") : t("haushalt.ui.regler.senken");
+    const rauf = q.id === "rentenalter" ? t("haushalt.ui.regler.spaeter") : q.seite === "ausgabe" ? t("haushalt.ui.regler.ausbauen") : t("haushalt.ui.regler.anheben");
     return (
-      <div className="hh-im-detail">
-        <UbDetailKopf bild={<Minister world={world} p={q} />} titel={q.name} unter={t(`haushalt.gruppe.${q.gruppe}`)} />
-        {q.gruppe === "renten" && <p className="hh-text">{t("haushalt.ui.renten.etat", { etat: nf(rentenSicht(world).etat, 1), mrd: mrdText(geldAusBip(world, rentenSicht(world).etat)) })}</p>}
-        <Zeile world={world} p={q} aktiv={aktiv} wert={aktiv && entwurf !== null ? entwurf : plan} plan={plan} onWahl={(s) => waehle(q.id, s)}>
-          {aktiv && vorschauBlock}
-        </Zeile>
-      </div>
+      <li key={q.id} className={`hd-zeile${sel === q.id ? " on" : ""}${zeigt !== ist ? " geaendert" : ""}`}>
+        <div className="hd-reihe">
+          <button type="button" className="hd-name" onClick={() => { setSel(q.id); setEntwurf(plan); setPrognoseOffen(false); }} title={q.text}>
+            <span>{q.name}</span>
+            {offenWunsch && <small>{t("haushalt.ui.kurz.wunsch", { stufe: vz(wunsch) })}</small>}
+          </button>
+          <div className="hd-regler">
+            <button type="button" aria-label={`${q.name}: ${runter}`} title={runter} disabled={zeigt <= q.min} onClick={() => waehleZeile(q, zeigt - 1)}>−</button>
+            <input type="range" min={q.min} max={q.max} step={1} value={zeigt} aria-label={t("haushalt.ui.regler.aria", { posten: q.name })} aria-valuetext={`${vz(zeigt)}: ${betrag(world, q, zeigt)}`} onChange={(e) => waehleZeile(q, Number(e.target.value))} />
+            <button type="button" aria-label={`${q.name}: ${rauf}`} title={rauf} disabled={zeigt >= q.max} onClick={() => waehleZeile(q, zeigt + 1)}>+</button>
+          </div>
+          <span className="hd-betrag">{zeigt !== ist ? <><s>{betrag(world, q, ist)}</s> <b>{betrag(world, q, zeigt)}</b></> : betrag(world, q, ist)}</span>
+        </div>
+        {sel === q.id && aktiv && entscheidung && v && entwurf !== (fenster.offen ? z.entwurf?.[q.id] ?? ist : ist) && (
+          <div className="hd-panel" role="region" aria-label={q.name}>
+            <p className="hd-panel-wirkung">
+              {q.wirkung}
+              {ist !== 0 && Math.round((wirksamVon(world, q.id) / ist) * 100) < 95 && <> {t("haushalt.ui.reifung", { anteil: Math.round((wirksamVon(world, q.id) / ist) * 100), monate: q.reifeMonate })}</>}
+              {q.id === "forschung" && (() => { const fo = forschungsSicht(world, etatBip(q, zeigt) ?? 0); return <> {t("haushalt.ui.forschung.grenze", { grenze: nf(fo.grenze, 2), verpufft: nf(fo.verpufft, 2) })}</>; })()}
+              {zeigt > 2 && q.seite === "ausgabe" && q.id !== "forschung" && <> {t("haushalt.ui.abnehmend")}</>}
+            </p>
+            <dl className="hd-fakten">
+              <div><dt>{t("eo.kapital")}</dt><dd>{t("ve.pk", { n: entscheidung.pk })}</dd></div>
+              <div><dt>{t("haushalt.ui.vorschau.defizit")}</dt><dd>{nf(v.defizitVorher, 2)} → {nf(v.defizitNachher, 2)} %</dd></div>
+              <div><dt>{t("eo.befugnis")}</dt><dd>{t(entscheidung.modus === "entwurf" ? "eo.votum" : "eo.regierung")}</dd></div>
+            </dl>
+            <p className="hd-verteilung">
+              <span><b>{t("haushalt.ui.vorschau.gewinner")}</b> {q.gewinner}</span>
+              <span><b>{t("haushalt.ui.vorschau.verlierer")}</b> {q.verlierer}</span>
+            </p>
+            {entscheidung.modus !== "entwurf" && <p className="hd-hinweis">{t("eo.nachtragFolge", { leg: nf(entscheidung.legitimitaet, 2), loy: nf(entscheidung.loyalitaet, 2), monate: q.reifeMonate })}</p>}
+            {entscheidung.grund && <p className="hd-gesperrt">{entscheidung.grund}</p>}
+            <div className="hd-knoepfe">
+              <button type="button" className="brass-button" disabled={!!entscheidung.grund} onClick={beschliesse}>
+                {entscheidung.modus === "entwurf" ? t(entscheidung.entfernen ? "eo.entwurfEntfernen" : "eo.entwurfAendern") : t("haushalt.ui.knopf.nachtrag", { kapital: entscheidung.pk })}
+              </button>
+              <button type="button" className="pd-btn quiet" onClick={() => { setEntwurf(null); setSel(null); setPrognoseOffen(false); }}>{t("haushalt.ui.knopf.verwerfen")}</button>
+            </div>
+            <details className="hh-tiefe" onToggle={(e) => setPrognoseOffen(e.currentTarget.open)}>
+              <summary>{t("haushalt.ui.vorschau.tiefe")}</summary>
+              <p className="wi-kehrseite"><b>{t("haushalt.ui.vorschau.kehrseite")}</b> {q.kehrseite}</p>
+              <Folgen titel={t("haushalt.ui.vorschau.danach")} glieder={impulsKette(v.impuls)} />
+              <div className="wi-dauer">
+                {v.zeilen.map((x) => (
+                  <span key={x.text} className={`wi-chip ${x.gut === true ? "wi-gut" : x.gut === false ? "wi-schlecht" : "wi-neutral"}`}>
+                    {x.richtung > 0 ? "▲" : "▼"} {x.text}
+                  </span>
+                ))}
+              </div>
+              <Wirkung reihen={reihen} metriken={METRIKEN.map((m) => ({ ...m, label: KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl }))} rechnet={rechnet} />
+              <div className="wi-metriken" role="group" aria-label={t("haushalt.ui.vorschau.groesse")}>
+                {METRIKEN.map((m) => (
+                  <button key={m.id} type="button" aria-pressed={metrik === m.id} className={metrik === m.id ? "on" : ""} onClick={() => setMetrik(m.id)}>
+                    {KENNZAHLEN_NACH_ID[m.kennzahl]?.name ?? m.kennzahl}
+                  </button>
+                ))}
+              </div>
+              <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "haushalt" || m.art === "zins")} stellen={k.stellen} einheit={einheitName(k.einheit)} name={k.name} rechnet={rechnet} />
+            </details>
+          </div>
+        )}
+      </li>
     );
   };
-  const [blick, setBlick] = useState<string>(start ?? "_zyklus");
+  const seite = (welche: "ausgabe" | "einnahme") => (
+    <section className="hd-seite" aria-label={t(welche === "ausgabe" ? "hd.ausgaben" : "hd.einnahmen")}>
+      <h3>{t(welche === "ausgabe" ? "hd.ausgaben" : "hd.einnahmen")}</h3>
+      {GRUPPEN.map((g) => {
+        const liste = POSTEN.filter((q) => q.gruppe === g && q.seite === welche);
+        if (!liste.length) return null;
+        return (
+          <div key={g} className="hd-gruppe">
+            {welche === "ausgabe" && <h4>{t(`haushalt.gruppe.${g}`)}</h4>}
+            <ul>{liste.map(zeile)}</ul>
+          </div>
+        );
+      })}
+    </section>
+  );
+  const mehrListe: { id: string; titel: string }[] = [
+    { id: "_zyklus", titel: t("haushalt.ui.zyklus.kicker") },
+    ...(z.abschluesse?.length ? [{ id: "_abschluss", titel: t("hb.titel") }] : []),
+    { id: "_bilanz", titel: t("hd.rechnung") },
+    { id: "_bisher", titel: t("haushalt.ui.bisher.titel") },
+    { id: "_plan", titel: t("haushalt.ui.plan.kicker") },
+  ];
   return (
-    <div className="wi-hh">
+    <div className="wi-hh hd">
       {rueck && (
         <p className={`rueckmeldung ${rueck.ok ? "ok" : "nein"} wi-rueck`} role="status" ref={rueckRef} tabIndex={-1}>
           {rueck.text}
           {rueck.why && <em> {rueck.why}</em>}
         </p>
       )}
-      {blick !== "_bilanz" && <Staatsfinanzen world={world} />}
-      <HaushaltsArbeitsplatz
-        lage={
-          <>
-            <b>{defizit > 0 ? t("haushalt.ui.bilanz.titel_defizit", { defizit: nf(defizit, 1) }) : t("haushalt.ui.bilanz.titel_ueberschuss", { wert: nf(-defizit, 1) })}</b>{" "}
-            {fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
-          </>
-        }
-        zahlen={[
-          { label: t("haushalt.ui.bilanz.defizit"), wert: `${nf(defizit, 1)} %` },
-          { label: t("haushalt.ui.bilanz.schulden"), wert: `${nf(world.economy.debtRatio, 1)} %` },
-        ]}
-        kacheln={kacheln}
-        wahl={blick}
-        onWahl={(id) => {
-          setBlick(id);
-          if (id && POSTEN_NACH_ID[id]) {
-            if (sel !== id) {
-              setSel(id);
-              setEntwurf(null);
-              setPrognoseOffen(false);
-            }
-          } else {
-            setSel(null);
-            setEntwurf(null);
-            setPrognoseOffen(false);
-          }
-        }}
-        detail={detail}
-      />
+      <section className="hd-bilanz" aria-label={t("hd.bilanz")}>
+        <h2 className="hd-titel">{t("eo.haushalt")}</h2>
+        <div className="hd-balken">
+          <div className="hd-balken-zeile">
+            <span className="hd-balken-name">{t("hd.einnahmen")}</span>
+            <span className="hd-spur"><i className="ein" style={{ width: `${(fin.einnahmenMrd / groesser) * 100}%` }} /></span>
+            <b>{bioText(fin.einnahmenMrd)}</b>
+          </div>
+          <div className="hd-balken-zeile">
+            <span className="hd-balken-name">{t("hd.ausgaben")}</span>
+            <span className="hd-spur"><i className="aus" style={{ width: `${(fin.ausgabenMrd / groesser) * 100}%` }} /></span>
+            <b>{bioText(fin.ausgabenMrd)}</b>
+          </div>
+        </div>
+        <dl className="hd-kern">
+          <div className={defizit > 3 ? "schlecht" : defizit > 1.5 ? "mittel" : "gut"}>
+            <dt>{defizit > 0 ? t("hd.defizit") : t("hd.ueberschuss")}</dt>
+            <dd>{nf(Math.abs(defizit), 1)} %<small>{t("hd.desBip")}</small></dd>
+          </div>
+          <div><dt>{t("hd.schulden")}</dt><dd>{nf(world.economy.debtRatio, 1)} %<small>{t("hd.desBip")}</small></dd></div>
+          <div><dt>{t("hd.zinsen")}</dt><dd>{nf(zinsausgabenJetzt(world), 1)} %<small>{t("hd.desBip")}</small></dd></div>
+        </dl>
+        <p className="hd-fenster">
+          {fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
+          {mehrheit && (
+            <>
+              {" "}
+              <b>{t("hm.kachelStimmen", { datum: formatDateDe(mehrheit.datum) })}: {mehrheit.ja}</b> · {mehrheit.luecke ? t("gp.luecke", { n: mehrheit.luecke }) : t("gp.mehrheit")}
+              {mehrheit.auslaufend.length ? ` ${t("hm.kachelFristen", { n: mehrheit.auslaufend.length })}` : ""}
+            </>
+          )}
+        </p>
+      </section>
+      <div className="hd-spalten">
+        {seite("ausgabe")}
+        {seite("einnahme")}
+      </div>
+      <section className="hd-mehr" aria-label={t("hd.mehr")}>
+        <div className="hd-mehr-reiter" role="group" aria-label={t("hd.mehr")}>
+          {mehrListe.map((m) => (
+            <button key={m.id} type="button" aria-pressed={mehr === m.id} className={mehr === m.id ? "on" : ""} onClick={() => setMehr(mehr === m.id ? null : m.id)}>
+              {m.titel}
+            </button>
+          ))}
+        </div>
+        {mehr && <div className="hd-mehr-inhalt">{detail(mehr)}</div>}
+      </section>
     </div>
   );
 }

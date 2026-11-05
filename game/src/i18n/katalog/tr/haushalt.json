@@ -199,7 +199,7 @@
  "haushalt.ui.wert.etat": "{mrd} milyar lira · GSYH %{bip}",
  "haushalt.ui.wert.niveau": "ücretin %{wert} kadarı",
  "haushalt.ui.wert.steuer": "{mrd} milyar lira",
- "haushalt.ui.wert.steuer_null": "2026 gibi",
+ "haushalt.ui.wert.steuer_null": "başlangıç düzeyi",
  "haushalt.ui.wunsch.erfuellt": "{name} bütçeden memnun.",
  "haushalt.ui.wunsch.offen": "{name} {stufe} kademesini istiyor ({betrag}).",
  "haushalt.ui.zyklus.einbringen": "{jahr} bütçe kanununu sun",
@@ -233,5 +233,16 @@
  "haushalt.ui.zyklus.marke_offen": "Pencere açık · taslakta {n}",
  "haushalt.ui.kurz.vorher": "önceki {wert}",
  "haushalt.ui.kurz.entwurf": "taslakta",
- "haushalt.ui.kurz.wunsch": "bakanlık {stufe} istiyor"
+ "haushalt.ui.kurz.wunsch": "bakanlık {stufe} istiyor",
+ "hd.bilanz": "Devletin bilançosu",
+ "hd.bio": "{n} trilyon ₺",
+ "hd.einnahmen": "Gelirler",
+ "hd.ausgaben": "Giderler",
+ "hd.defizit": "Açık",
+ "hd.ueberschuss": "Fazla",
+ "hd.desBip": "GSYH'nin",
+ "hd.schulden": "Borç",
+ "hd.zinsen": "Faiz",
+ "hd.rechnung": "Ayrıntılı hesap",
+ "hd.mehr": "Süreç ve arka plan"
 }

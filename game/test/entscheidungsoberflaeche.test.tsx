@@ -1,3 +1,4 @@
+import { POSTEN } from '../src/sim/haushalt';
 import { afterEach, expect, test, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createWorld, save } from '../src/sim/world';
@@ -15,7 +16,6 @@ import { behoerden } from '../src/sim/behoerden';
 import { EntscheidungsWege } from '../src/ui/entscheidungen/EntscheidungsWege';
 import { HaushaltsEntwurf } from '../src/ui/wirtschaft/HaushaltsEntwurf';
 import { Uebersicht } from '../src/ui/akte/Uebersicht';
-import { HaushaltsArbeitsplatz } from '../src/ui/wirtschaft/HaushaltsArbeitsplatz';
 import { Haushalt } from '../src/ui/wirtschaft/Haushalt';
 import { setzeSprache, t, katalogVon, platzhalter } from '../src/i18n';
 import de from '../src/i18n/katalog/de/entscheidungsoberflaeche.json';
@@ -80,13 +80,11 @@ test('eine ausgewählte Alternative baut genau ihren Inhalt auf, veraltete Auswa
  const inhalt=vi.fn(id=><p>{id}</p>);renderToStaticMarkup(<EntscheidungsWege wege={wege} wahl="b" inhalt={inhalt}/>);
  expect(inhalt.mock.calls).toEqual([['b']]);inhalt.mockClear();renderToStaticMarkup(<EntscheidungsWege wege={wege} wahl="entfallen" inhalt={inhalt}/>);expect(inhalt).not.toHaveBeenCalled();
 });
-test('Haushaltsbuch zeigt dieselben Ressorts in Desktopnavigation und schmaler Auswahl, baut nur das gewählte auf',()=>{
- const detail=vi.fn(id=><p>{id}</p>),kacheln=[{id:'_zyklus',titel:'Jahreshaushalt',gruppe:'Lage'},{id:'bildung',titel:'Bildung',gruppe:'Ressorts'}];
- const html=renderToStaticMarkup(<HaushaltsArbeitsplatz kacheln={kacheln} wahl="bildung" onWahl={noop} detail={detail} lage="Haushaltslage" zahlen={[]}/>);
- expect(detail.mock.calls).toEqual([['bildung']]);expect(html).toContain('<optgroup label="Ressorts">');expect(html).toContain('value="bildung" selected=""');expect(html).toContain('aria-current="page"');expect(html).toContain('tabindex="-1"');
-});
-test('Haushaltsbuch fällt bei entfallenem Sprungziel auf den aktuellen Zyklus zurück, nicht auf eine Ausgabe',()=>{
- const detail=vi.fn(()=>null);renderToStaticMarkup(<HaushaltsArbeitsplatz kacheln={[{id:'bildung',titel:'Bildung'},{id:'_zyklus',titel:'Zyklus'}]} wahl="alt" onWahl={noop} detail={detail} lage="Lage" zahlen={[]}/>);expect(detail.mock.calls).toEqual([['_zyklus']]);
+test('Haushaltstafel zeigt alle Posten mit Regler auf einen Blick und die Bilanz als Balken (Democracy 4)',()=>{
+ const w=welt('2028-06-05');const html=renderToStaticMarkup(<Haushalt world={w} geaendert={noop}/>);
+ expect(html).toContain('hd-bilanz');expect(html).toContain('hd-spur');
+ const regler=(html.match(/type="range"/g)??[]).length;expect(regler).toBe(POSTEN.length);
+ expect(html).not.toContain('NaN');expect(html).not.toContain('⟦');
 });
 test.each(['de','en','tr'] as const)('Haushaltsarbeitsplatz, Entscheidungskarten und Katalog auf %s',async lang=>{
  await setzeSprache(lang);const w=welt('2028-10-12');setzeEntwurf(w,'investitionen',1);const s=save(w),html=renderToStaticMarkup(<Haushalt world={w} geaendert={noop}/>);

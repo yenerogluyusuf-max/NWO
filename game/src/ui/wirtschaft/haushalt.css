@@ -57,3 +57,79 @@
 @container haushaltsarbeit (max-width:900px){.hw-flaeche{grid-template-columns:minmax(0,1fr)}.hw-zeilen{display:none}.hw-mobil{display:grid;gap:7px;font-size:12.5px;color:#58704f}.hw-mobil select{width:100%;padding:12px 14px;background:#fffcf6;color:#4a3930;border:1px solid #cfc5b5;border-radius:6px;font:14px var(--sans,Inter,sans-serif)}.hw-sprung{display:none}.hw-kopf{flex-wrap:wrap}.hw-kopf>div{flex-basis:100%}.hw-kopf dl{gap:28px}}
 @container haushaltsarbeit (max-width:480px){.hw-inhalt{padding:17px 13px}.hw-kopf{padding:18px 15px}.hw-inhalt .hh-kopf{grid-template-columns:minmax(0,1fr)}.hw-inhalt .hh-betrag{text-align:left}.hw-inhalt .hh-regler{gap:6px}.hw-inhalt .hh-rand{font-size:11.5px}.hw-inhalt .wi-plan-liste li{flex-wrap:wrap}}
 @container haushaltsinhalt (max-width:620px){.hw-inhalt .hh-kopf{grid-template-columns:minmax(0,1fr)}.hw-inhalt .hh-betrag{text-align:left}.hw-inhalt .hh-bilanz-zahlen{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Haushaltstafel nach dem Vorbild von Democracy 4: Bilanz als Balken, alle Posten als Zeilen mit Regler, Wirkung unter dem Posten */
+.hd { display: grid; gap: 18px; }
+.hd-bilanz { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 28px; align-items: center; padding: 16px 20px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.hd-titel { grid-column: 1 / -1; margin: 0; font: 600 21px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
+.hd-balken { display: grid; gap: 8px; }
+.hd-balken-zeile { display: grid; grid-template-columns: 92px minmax(0, 1fr) 110px; gap: 12px; align-items: center; font: 14px/1.2 var(--sans, Inter, sans-serif); color: #4a3a28; }
+.hd-balken-zeile b { font: 600 16.5px/1.2 var(--display, Fraunces, serif); text-align: right; font-variant-numeric: tabular-nums; }
+.hd-spur { height: 14px; border-radius: 7px; background: rgba(90, 64, 40, 0.1); overflow: hidden; }
+.hd-spur i { display: block; height: 100%; border-radius: 7px; }
+.hd-spur i.ein { background: #5d4231; }
+.hd-spur i.aus { background: #a25e3c; }
+.hd-kern { display: flex; gap: 22px; margin: 0; }
+.hd-kern div { display: grid; gap: 2px; min-width: 88px; }
+.hd-kern dt { font: 600 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.hd-kern dd { margin: 0; font: 600 24px/1.1 var(--display, Fraunces, serif); color: #2b1e12; font-variant-numeric: tabular-nums; }
+.hd-kern dd small { display: block; font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.hd-kern .schlecht dd { color: #8c2b1f; }
+.hd-kern .mittel dd { color: #856026; }
+.hd-fenster { grid-column: 1 / -1; margin: 0; font: italic 14px/1.35 var(--serif, "EB Garamond", serif); color: #5a4a38; }
+
+.hd-spalten { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.hd-seite { display: grid; gap: 10px; padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.hd-seite h3 { margin: 0; font: 600 18px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
+.hd-gruppe h4 { margin: 6px 0 2px; font: 700 11.5px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: #7a6a56; }
+.hd-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.hd-zeile { border-bottom: 1px solid rgba(90, 64, 40, 0.14); }
+.hd-zeile:last-child { border-bottom: 0; }
+.hd-reihe { display: grid; grid-template-columns: minmax(0, 1fr) 180px 150px; gap: 12px; align-items: center; padding: 6px 4px; }
+.hd-zeile.on > .hd-reihe { background: rgba(201, 162, 90, 0.16); border-radius: 4px; }
+.hd-zeile.geaendert .hd-betrag b { color: #8c2b1f; }
+.hd-name { display: grid; gap: 1px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; color: #2b1e12; font: 15px/1.25 var(--sans, Inter, sans-serif); }
+.hd-name small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #856026; }
+.hd-regler { display: grid; grid-template-columns: 26px minmax(0, 1fr) 26px; gap: 6px; align-items: center; }
+.hd-regler button { width: 26px; height: 26px; padding: 0; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: #fffaf0; color: #4a3a28; font: 600 16.5px/1 var(--sans, Inter, sans-serif); cursor: pointer; }
+.hd-regler button:disabled { opacity: 0.35; cursor: default; }
+.hd-regler input { width: 100%; accent-color: #8c2b1f; }
+.hd-betrag { font: 14px/1.25 var(--sans, Inter, sans-serif); color: #4a3a28; text-align: right; font-variant-numeric: tabular-nums; }
+.hd-betrag s { color: #7a6a56; }
+
+.hd-panel { display: grid; gap: 8px; margin: 4px 0 10px; padding: 12px 14px; border-left: 3px solid #8c2b1f; background: #fffaf0; border-radius: 0 4px 4px 0; }
+.hd-panel-wirkung, .hd-hinweis { margin: 0; font: 15px/1.4 var(--serif, "EB Garamond", serif); color: #4a3a28; }
+.hd-fakten { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; }
+.hd-fakten div { display: grid; gap: 1px; }
+.hd-fakten dt { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.hd-fakten dd { margin: 0; font: 600 16.5px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
+.hd-verteilung { display: grid; gap: 2px; margin: 0; font: 14px/1.35 var(--sans, Inter, sans-serif); color: #4a3a28; }
+.hd-gesperrt { margin: 0; font: 600 14px/1.35 var(--sans, Inter, sans-serif); color: #8c2b1f; }
+.hd-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+.hd-mehr { display: grid; gap: 12px; }
+.hd-mehr-reiter { display: flex; flex-wrap: wrap; gap: 8px; }
+.hd-mehr-reiter button { padding: 6px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: #fbf6e6; color: #4a3a28; font: 14px/1.2 var(--sans, Inter, sans-serif); cursor: pointer; }
+.hd-mehr-reiter button.on { background: #4a3424; color: #f8eedb; border-color: #4a3424; }
+.hd-mehr-inhalt { padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+
+@media (max-width: 1100px) {
+  .hd-spalten { grid-template-columns: minmax(0, 1fr); }
+  .hd-bilanz { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .hd-reihe { grid-template-columns: minmax(0, 1fr) auto; }
+  .hd-regler { grid-column: 1 / -1; grid-row: 2; }
+  .hd-balken-zeile { grid-template-columns: 76px minmax(0, 1fr) 90px; }
+}
+
+/* Die allgemeinen Knopf- und Überschriftenstile der Akten gelten in der Tafel nicht: Namen sind Text, Gruppen leise Zwischenzeilen */
+.dossier .hd button.hd-name { all: unset; display: grid; gap: 1px; min-width: 0; cursor: pointer; color: #2b1e12; font: 15px/1.25 var(--sans, Inter, sans-serif) !important; text-transform: none !important; letter-spacing: 0 !important; overflow-wrap: break-word; hyphens: auto; }
+.dossier .hd button.hd-name:hover span, .dossier .hd button.hd-name:focus-visible span { text-decoration: underline; text-underline-offset: 3px; }
+.dossier .hd button.hd-name small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #856026; }
+.dossier .hd .hd-regler button { all: unset; box-sizing: border-box; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: #fffaf0; color: #4a3a28; font: 600 16.5px/1 var(--sans, Inter, sans-serif); cursor: pointer; }
+.dossier .hd .hd-regler button:disabled { opacity: 0.35; cursor: default; }
+.dossier .hd .hd-gruppe h4 { margin: 8px 0 2px !important; font: 700 11.5px/1.2 var(--sans, Inter, sans-serif) !important; letter-spacing: 0.06em !important; text-transform: uppercase; color: #7a6a56 !important; }
+.dossier .hd .hd-seite h3 { margin: 0 !important; font: 600 18px/1.2 var(--display, Fraunces, serif) !important; letter-spacing: 0 !important; text-transform: none !important; }
+.dossier .hd .hd-mehr-reiter button { all: unset; padding: 6px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: #fbf6e6; color: #4a3a28; font: 14px/1.2 var(--sans, Inter, sans-serif); cursor: pointer; }
+.dossier .hd .hd-mehr-reiter button.on { background: #4a3424; color: #f8eedb; border-color: #4a3424; }

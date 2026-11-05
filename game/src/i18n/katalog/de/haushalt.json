@@ -199,7 +199,7 @@
  "haushalt.ui.wert.etat": "{mrd} Mrd. Lira · {bip} % BIP",
  "haushalt.ui.wert.niveau": "{wert} % des Lohns",
  "haushalt.ui.wert.steuer": "{mrd} Mrd. Lira",
- "haushalt.ui.wert.steuer_null": "wie 2026",
+ "haushalt.ui.wert.steuer_null": "Ausgangsstand",
  "haushalt.ui.wunsch.erfuellt": "{name} ist mit dem Etat zufrieden.",
  "haushalt.ui.wunsch.offen": "{name} wünscht Stufe {stufe} ({betrag}).",
  "haushalt.ui.zyklus.einbringen": "Haushaltsgesetz {jahr} einbringen",
@@ -233,5 +233,16 @@
  "haushalt.ui.zyklus.marke_offen": "Fenster offen · {n} im Entwurf",
  "haushalt.ui.kurz.vorher": "bisher {wert}",
  "haushalt.ui.kurz.entwurf": "im Entwurf",
- "haushalt.ui.kurz.wunsch": "Ministerium will {stufe}"
+ "haushalt.ui.kurz.wunsch": "Ministerium will {stufe}",
+ "hd.bilanz": "Bilanz des Staates",
+ "hd.bio": "{n} Bio. ₺",
+ "hd.einnahmen": "Einnahmen",
+ "hd.ausgaben": "Ausgaben",
+ "hd.defizit": "Defizit",
+ "hd.ueberschuss": "Überschuss",
+ "hd.desBip": "des BIP",
+ "hd.schulden": "Schulden",
+ "hd.zinsen": "Zinsen",
+ "hd.rechnung": "Rechnung im Einzelnen",
+ "hd.mehr": "Verfahren und Hintergrund"
 }

@@ -199,7 +199,7 @@
  "haushalt.ui.wert.etat": "{mrd} bn lira · {bip} % GDP",
  "haushalt.ui.wert.niveau": "{wert} % of wages",
  "haushalt.ui.wert.steuer": "{mrd} bn lira",
- "haushalt.ui.wert.steuer_null": "as in 2026",
+ "haushalt.ui.wert.steuer_null": "starting level",
  "haushalt.ui.wunsch.erfuellt": "{name} is satisfied with the budget.",
  "haushalt.ui.wunsch.offen": "{name} wants level {stufe} ({betrag}).",
  "haushalt.ui.zyklus.einbringen": "Introduce budget law {jahr}",
@@ -233,5 +233,16 @@
  "haushalt.ui.zyklus.marke_offen": "Window open · {n} in draft",
  "haushalt.ui.kurz.vorher": "before {wert}",
  "haushalt.ui.kurz.entwurf": "in draft",
- "haushalt.ui.kurz.wunsch": "ministry wants {stufe}"
+ "haushalt.ui.kurz.wunsch": "ministry wants {stufe}",
+ "hd.bilanz": "State balance",
+ "hd.bio": "₺{n} tn",
+ "hd.einnahmen": "Revenue",
+ "hd.ausgaben": "Spending",
+ "hd.defizit": "Deficit",
+ "hd.ueberschuss": "Surplus",
+ "hd.desBip": "of GDP",
+ "hd.schulden": "Debt",
+ "hd.zinsen": "Interest",
+ "hd.rechnung": "Detailed accounts",
+ "hd.mehr": "Procedure and background"
 }
