@@ -73,9 +73,9 @@ export function klauselnFuer(w: World, landId: string): KlauselSicht[] {
     const o = p.texte?.[id];
     const rot = p.rot.includes(id);
     let gesperrt: string | undefined;
-    if (aktiv.has(id)) gesperrt = "Dazu läuft schon ein Vertrag.";
+    if (aktiv.has(id)) gesperrt = t("abk.gesperrt.laeuft");
     // Handelssperre (Stand 30.09.2026: Israel seit 05/2024): Handels-Klauseln bleiben gesperrt, bis „ende_sperre“ vereinbart ist
-    else if (weltZustand(w)[landId]!.handelssperre && SPERRE_KLAUSELN.includes(id)) gesperrt = "Die Handels-, Hafen- und Luftraumsperre blockiert das; erst muss sie per Vertrag enden („Handels- und Häfensperre aufheben“).";
+    else if (weltZustand(w)[landId]!.handelssperre && SPERRE_KLAUSELN.includes(id)) gesperrt = t("abk.gesperrt.sperre");
     else if (def.mindestens && dimensionZu(w, landId, def.mindestens.dim) < def.mindestens.wert) gesperrt = def.mindestens.text;
     // „Sanktionen aufheben“ gibt es nur, wo dieser Partner wirklich eine Sanktion gegen die Türkei verhängt hat (früher auch ohne)
     else if (id === "w_sanktion" && !aussenZustand(w).sanktionen.some((x) => x.von === landId)) gesperrt = t("aussen.sanktion.klausel_keine");
@@ -148,22 +148,22 @@ function beitraege(w: World, a: Angebot): { punkte: number; gruende: Grund[]; ve
   for (const id of [...a.gibt, ...a.will]) {
     const k = klauselSicht(w, a.land, id);
     if (!k) {
-      gruende.push({ text: `${l.name} verhandelt darüber nicht.`, wert: -20, art: "minus" });
+      gruende.push({ text: t("abk.grund.nicht", { land: l.name }), wert: -20, art: "minus" });
       punkte -= 20;
       continue;
     }
     if (k.rot) veto = k.rotText ?? `${l.name} nimmt „${k.label}“ nicht an.`;
     const gibt = k.def.seite === "gibt";
-    if (k.wert >= 0) gruende.push({ text: gibt ? `„${k.label}“: ${l.name} will das.` : `„${k.label}“ kostet ${l.name} nichts.`, wert: k.wert, art: "plus" });
+    if (k.wert >= 0) gruende.push({ text: gibt ? t("abk.grund.will", { label: k.label, land: l.name }) : t("abk.grund.kostetnichts", { label: k.label, land: l.name }), wert: k.wert, art: "plus" });
     else if (!k.rot) gruende.push({ text: t("abk.grund.kostet", { label: k.label, land: l.name }), wert: k.wert, art: "minus" });
     else gruende.push({ text: t("abk.grund.rot", { label: k.label }), wert: 0, art: "minus" });
     if (!k.rot) punkte += k.wert;
   }
   const v = vertrauenZu(w, a.land);
   const basis = (v - 45) / 5;
-  gruende.push({ text: basis >= 0 ? `Vertrauen zur Türkei trägt (${Math.round(v)}).` : `Das Vertrauen ist gering (${Math.round(v)}).`, wert: basis, art: basis >= 0 ? "plus" : "minus" });
+  gruende.push({ text: basis >= 0 ? t("abk.grund.vertrauen_ja", { v: Math.round(v) }) : t("abk.grund.vertrauen_nein", { v: Math.round(v) }), wert: basis, art: basis >= 0 ? "plus" : "minus" });
   const konf = -(z.konflikt - 40) / 8;
-  if (Math.abs(konf) >= 1) gruende.push({ text: konf < 0 ? "Offener Streit belastet die Gespräche." : "Es gibt kaum offenen Streit.", wert: konf, art: konf < 0 ? "minus" : "plus" });
+  if (Math.abs(konf) >= 1) gruende.push({ text: konf < 0 ? t("abk.grund.streit") : t("abk.grund.kein_streit"), wert: konf, art: konf < 0 ? "minus" : "plus" });
   if (p.hebel !== 0) gruende.push({ text: p.hebelText, wert: p.hebel, art: p.hebel > 0 ? "plus" : "minus" });
   const bruch = -(z.bruch ?? 0);
   if (bruch < -0.3) gruende.push({ text: t("abk.grund.bruch"), wert: bruch, art: "minus" });
@@ -194,13 +194,13 @@ function gegenangebote(w: World, a: Angebot): Gegenangebot[] {
   for (const j of VERTRAGSLAUFZEITEN) {
     if (j >= a.jahre) continue;
     const b = { ...a, jahre: j };
-    if (mitGrenze(b) >= 0) kandidaten.push({ angebot: b, preis: 0.5, text: `${l.name} stimmt zu, wenn die Laufzeit auf ${j} Jahre verkürzt wird.`, punkte: mitGrenze(b) });
+    if (mitGrenze(b) >= 0) kandidaten.push({ angebot: b, preis: 0.5, text: t("abk.weg.kuerzer", { land: l.name, jahre: j }), punkte: mitGrenze(b) });
   }
   // 2. Ein weiteres Angebot der Türkei
   for (const k of klauselnFuer(w, a.land)) {
     if (k.def.seite !== "gibt" || k.gesperrt || k.rot || a.gibt.includes(k.def.id) || k.wert <= 0) continue;
     const b = { ...a, gibt: [...a.gibt, k.def.id] };
-    if (mitGrenze(b) >= 0) kandidaten.push({ angebot: b, preis: 1 + eigenerPreis(k.def), text: `${l.name} stimmt zu, wenn Sie zusätzlich „${k.label}“ anbieten.`, punkte: mitGrenze(b) });
+    if (mitGrenze(b) >= 0) kandidaten.push({ angebot: b, preis: 1 + eigenerPreis(k.def), text: t("abk.weg.zusaetzlich", { land: l.name, label: k.label }), punkte: mitGrenze(b) });
   }
   // 3. Verzicht auf eine Forderung
   for (const id of a.will) {
@@ -217,7 +217,7 @@ function gegenangebote(w: World, a: Angebot): Gegenangebot[] {
   const angebote = klauselnFuer(w, a.land).filter((k) => k.def.seite === "gibt" && !k.gesperrt && !k.rot && k.wert > 0 && !a.gibt.includes(k.def.id)).sort((x, y) => y.wert - x.wert);
   if (forderungen[0] && angebote[0]) {
     const b = { ...a, will: a.will.filter((x) => x !== forderungen[0]!.id), gibt: [...a.gibt, angebote[0].def.id] };
-    if (mitGrenze(b) >= 0) return [{ text: `${l.name} stimmt zu, wenn Sie auf „${forderungen[0].k!.label}“ verzichten und „${angebote[0].label}“ anbieten.`, angebot: b }];
+    if (mitGrenze(b) >= 0) return [{ text: t("abk.weg.tausch", { land: l.name, verzicht: forderungen[0].k!.label, angebot: angebote[0].label }), angebot: b }];
   }
   return [];
 }
@@ -303,17 +303,17 @@ export function schliesse(w: World, a: Angebot): Vertrag {
 
 /** Ob das Angebot formal in Ordnung ist: ein Satz mit dem Mangel, sonst `null`. */
 export function pruefeAngebot(w: World, a: Angebot): string | null {
-  if (!PROFILE[a.land]) return "Mit diesem Land gibt es keine Verhandlungen.";
-  if (!VERTRAGSLAUFZEITEN.includes(a.jahre)) return "Diese Laufzeit gibt es nicht.";
+  if (!PROFILE[a.land]) return t("abk.pruef.kein_land");
+  if (!VERTRAGSLAUFZEITEN.includes(a.jahre)) return t("abk.pruef.laufzeit");
   const ids = [...a.gibt, ...a.will];
-  if (ids.length === 0) return "Ein Vertrag braucht mindestens eine Klausel.";
-  if (new Set(ids).size !== ids.length) return "Eine Klausel kann nur einmal im Vertrag stehen.";
+  if (ids.length === 0) return t("abk.pruef.leer");
+  if (new Set(ids).size !== ids.length) return t("abk.pruef.doppelt");
   for (const id of ids) if (!KLAUSEL_NACH_ID[id]) return `Die Klausel „${id}“ gibt es nicht.`;
-  for (const id of a.gibt) if (KLAUSEL_NACH_ID[id]?.seite !== "gibt") return "Unter „Wir bieten“ steht etwas, das wir verlangen.";
-  for (const id of a.will) if (KLAUSEL_NACH_ID[id]?.seite !== "will") return "Unter „Wir verlangen“ steht etwas, das wir bieten.";
+  for (const id of a.gibt) if (KLAUSEL_NACH_ID[id]?.seite !== "gibt") return t("abk.pruef.seite_gibt");
+  for (const id of a.will) if (KLAUSEL_NACH_ID[id]?.seite !== "will") return t("abk.pruef.seite_will");
   for (const id of ids) {
     const k = klauselSicht(w, a.land, id);
-    if (!k) return `${land(a.land).name} verhandelt nicht über „${KLAUSEL_NACH_ID[id]?.label ?? id}“.`;
+    if (!k) return t("abk.pruef.klausel", { land: land(a.land).name, label: KLAUSEL_NACH_ID[id]?.label ?? id });
     if (k.gesperrt) return `„${k.label}“: ${k.gesperrt}`;
   }
   return null;
@@ -327,7 +327,7 @@ export function verhandle(w: World, a: Angebot): Ergebnis {
   if (problem) return { ok: false, urteil: "leer", text: problem };
   const l = land(a.land);
   const rest = sperreRest(w, a.land);
-  if (rest > 0) return { ok: false, urteil: "gesperrt", text: `${l.name} spricht erst in ${rest} Tagen wieder mit Ihnen.` };
+  if (rest > 0) return { ok: false, urteil: "gesperrt", text: t("abk.urteil.gesperrt", { land: l.name, tage: rest }) };
   const b = bewerte(w, a);
   if (!kannZahlen(spiel.kapital, b.pk)) return { ok: false, urteil: "kein-kapital", text: t("abk.kein_kapital"), bewertung: b };
   spiel.kapital -= b.pk;
@@ -359,13 +359,13 @@ export function nimmGegenangebot(w: World, a: Angebot): Ergebnis {
   if (problem) return { ok: false, urteil: "leer", text: problem };
   const b = bewerte(w, a);
   const l = land(a.land);
-  if (b.urteil !== "zustimmung") return { ok: false, urteil: b.urteil, text: `${l.name} steht zu dem Gegenangebot nicht mehr.`, bewertung: b };
+  if (b.urteil !== "zustimmung") return { ok: false, urteil: b.urteil, text: t("abk.urteil.gegen_weg", { land: l.name }), bewertung: b };
   // Nur der politische Preis der Klauseln im eigenen Land kommt zum Sockel hinzu
   const preis = [...a.gibt, ...a.will].reduce((s, id) => s + (KLAUSEL_NACH_ID[id]?.pk ?? 0), 0);
   if (!kannZahlen(spiel.kapital, preis)) return { ok: false, urteil: "kein-kapital", text: t("abk.kein_kapital"), bewertung: b };
   spiel.kapital -= preis;
   const v = schliesse(w, a);
-  return { ok: true, urteil: "zustimmung", text: `${l.name} und die Türkei einigen sich: Der Vertrag gilt ${a.jahre} Jahre.`, why: preis ? `Der politische Preis im eigenen Land: ${preis} Kapital.` : "Kein weiterer Preis.", bewertung: b, vertrag: v };
+  return { ok: true, urteil: "zustimmung", text: t("abk.urteil.einig", { land: l.name, jahre: a.jahre }), why: preis ? t("abk.urteil.einig_preis", { pk: preis }) : t("abk.urteil.einig_frei"), bewertung: b, vertrag: v };
 }
 
 // ---------------------------------------------------------------------------
