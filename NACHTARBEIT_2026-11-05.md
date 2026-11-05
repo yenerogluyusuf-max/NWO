@@ -41,7 +41,7 @@ Auftrag: die Nacht durch prüfen, verbessern, vergleichen, über alle Bereiche, 
 
 ## 5. Nachtrag am Vormittag: gespielt wie ein Neuling
 
-Auf Ihre Frage hin habe ich das Spiel im Browser durchgeklickt, ohne Wissen über die Innereien: Prolog, Amtsantritt, Ziele, rund zwanzig Ereignisse, ein Gesetz über „Politik“ bis zur Umsetzung, Parlament, Außen- und Sicherheitslage, bis März 2029. Was auffiel und behoben ist:
+Auf Ihre Frage hin habe ich das Spiel im Browser durchgeklickt, ohne Wissen über die Innereien: Prolog, Amtsantritt, Ziele, rund siebzig Ereignisse, ein Gesetz über „Politik“ bis zur Umsetzung, Parlament, Haushalt, Außen- und Sicherheitslage, Kommunalwahl, Wahlkampf mit TV-Duell und die Wiederwahl im Dezember 2030 (52 % Zustimmung, zweite Amtszeit). Was auffiel und behoben ist:
 
 | Auffällig | Behebung |
 |---|---|
@@ -57,4 +57,15 @@ Auf Ihre Frage hin habe ich das Spiel im Browser durchgeklickt, ohne Wissen übe
 | Zwischenfall „an der Grenze“ mit den USA | Ort nach Geografie |
 | Gesetz beschlossen, aber nirgends gemeldet nach dem Laden | „Stand der Dinge“ nennt die Abstimmungen |
 | „stehen unter Heute“, Reiter heißt „Vorschläge“ | Verweis nennt den Reiter |
+| Kommunalwahl lief als kurze Meldung vorbei | Hinweis mit Ergebnis und Folge, das Spiel hält an |
+| „Währungskrise im Iran. Währungskrise im Iran.“ | erster Satz wiederholt den Titel nicht |
+| Länderereignis zeigt EU-Vertrauen | Vertrauen des betroffenen Landes |
+| Spannung mit den USA auf dem Weg zum Kriegsvorgang | kein militärischer Vorgang mit fernen Großmächten und der EU (ENTSCHEIDUNGEN, Nachtrag zu U) |
+| „Beziehungen zur EU steht bei 39“ | „Beziehungen zur EU: 39 von 100“ |
+| „Haushaltsplan 2026“ im Jahr 2030 | „Ausgangslage: Haushaltsgesetz 2026“ |
+| TV-Duell unter dem Banner WAHLNACHT | Bild des Fernsehstudios |
+| Innenministerin trägt das Rücktrittsgesuch der Justizministerin vor | die Person spricht selbst |
+| Schreibtisch mit 121 neuen Meldungen, obwohl offen | gilt bei offenem Schreibtisch als gelesen; „99+“ |
+
+Offen aus dem Durchlauf: Die Texte der Ereignisvorlagen sind noch fest deutsch (Übersetzung von `ereignisse-innen.ts` und `ereignisse-aussen.ts` läuft); die Weltereignisse hängen an deutschen Kasusformen der Länderdaten.
 
