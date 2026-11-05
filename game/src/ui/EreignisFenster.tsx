@@ -61,7 +61,7 @@ export function EreignisFenster({
 }) {
   const thema = themaFuer(ansicht, world);
   const sprecher = world ? sprecherFuer(world, ansicht) : null;
-  const kennzahlen = world ? kennzahlenFuer(world, thema) : [];
+  const kennzahlen = world ? kennzahlenFuer(world, thema, ansicht.id) : [];
   const akte = akteFuer(thema);
   const { zitat, rest } = zitatAus(ansicht.text);
   // Fristbalken: voll bei 30 und mehr Tagen, leer am letzten Tag

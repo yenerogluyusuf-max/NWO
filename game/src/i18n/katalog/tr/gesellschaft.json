@@ -63,6 +63,7 @@
  "ges.kom.abziehen_ergebnis": "{stadt} kayyumu geri çekiliyor; seçilmiş meclis yeniden görevde.",
  "ges.kom.einsetzen": "Kayyum ata",
  "ges.kom.ergebnis": "Yerel seçimler: İttifak 81 belediyeden {nachher} tanesini elinde tutuyor (önce {vorher}), {gewonnen} kazanıyor, {verloren} kaybediyor.",
+ "ges.kom.folge": "{richtung, select, auf {Hükümete rüzgâr: Daha fazla belediye yerelde daha fazla görünürlük demek, muhalefet ivme kaybediyor.} ab {Bir darbe: Belediye kaybeden yerelde sahneyi ve parayı kaybeder, muhalefet bir sonraki seçim için ivme kazanıyor.} other {Net değişiklik yok; sonucun nasıl okunacağını ülkedeki hava belirliyor.}} Bir sonraki yerel seçimler {naechste} yılında.",
  "ges.kom.grossstaedte": "Değişenler arasında: {staedte}.",
  "ges.kom.grund.eigenes": "Belediye kendi ittifakınıza ait.",
  "ges.kom.grund.kein_verwalter": "Orada kayyum yok.",

@@ -95,6 +95,14 @@ export function kommunalwahlDurchfuehren(w: World, bonus = 0): { text: string; e
   const text = t("ges.kom.ergebnis", { nachher: lagerNachher, vorher: lagerVorher, gewonnen: gewonnen.length, verloren: verloren.length }) + (gross.length ? " " + t("ges.kom.grossstaedte", { staedte: gross.join(", ") }) : "");
   addLog(w, "ereignis", text, t("ges.kom.warum"));
   w.spiel?.chronik.push({ tag: w.day, datum: w.date, titel: t("ges.kom.titel"), ausgang: text, vorlage: "kommunalwahl" });
+  // Ein Wahlabend, kein Randvermerk: Das Ergebnis hält das Spiel an (Spielerdurchlauf 5. November: Es lief als kurze Meldung
+  // vorbei; 2019 kostete eine Kommunalwahl die Regierungspartei Istanbul und Ankara)
+  w.spiel?.hinweise.push({
+    id: `kommunalwahl-${w.date}`,
+    titel: t("ges.kom.titel"),
+    szene: "wahlnacht",
+    text: [text, t("ges.kom.folge", { richtung: saldo > 0 ? "auf" : saldo < 0 ? "ab" : "gleich", naechste: k.naechste.slice(0, 4) })],
+  });
   return { text, ergebnis };
 }
 

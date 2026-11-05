@@ -63,6 +63,7 @@
  "ges.kom.abziehen_ergebnis": "Der Zwangsverwalter in {stadt} wird abgezogen; der gewählte Rat übernimmt wieder.",
  "ges.kom.einsetzen": "Zwangsverwalter einsetzen",
  "ges.kom.ergebnis": "Kommunalwahlen: Das Lager hält {nachher} von 81 Rathäusern (vorher {vorher}), gewinnt {gewonnen} und verliert {verloren}.",
+ "ges.kom.folge": "{richtung, select, auf {Rückenwind für die Regierung: Mehr Rathäuser heißt mehr Sichtbarkeit vor Ort, und die Opposition verliert an Schwung.} ab {Ein Dämpfer: Wer Rathäuser verliert, verliert Bühne und Geld vor Ort, und die Opposition gewinnt Schwung für die nächste Wahl.} other {Kein Wechsel im Saldo; die Stimmung im Land entscheidet, wie das Ergebnis gelesen wird.}} Die nächsten Kommunalwahlen finden {naechste} statt.",
  "ges.kom.grossstaedte": "Unter den Wechseln: {staedte}.",
  "ges.kom.grund.eigenes": "Das Rathaus gehört dem eigenen Lager.",
  "ges.kom.grund.kein_verwalter": "Dort ist kein Verwalter.",

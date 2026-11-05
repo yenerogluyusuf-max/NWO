@@ -63,6 +63,7 @@
  "ges.kom.abziehen_ergebnis": "The trustee in {stadt} is withdrawn; the elected council takes over again.",
  "ges.kom.einsetzen": "Appoint trustee",
  "ges.kom.ergebnis": "Local elections: the bloc holds {nachher} of 81 town halls (before {vorher}), wins {gewonnen} and loses {verloren}.",
+ "ges.kom.folge": "{richtung, select, auf {A tailwind for the government: more town halls mean more local visibility, and the opposition loses momentum.} ab {A setback: losing town halls means losing a local stage and money, and the opposition gains momentum for the next election.} other {No net change; the national mood decides how the result is read.}} The next local elections are in {naechste}.",
  "ges.kom.grossstaedte": "Among the changes: {staedte}.",
  "ges.kom.grund.eigenes": "The town hall belongs to your own bloc.",
  "ges.kom.grund.kein_verwalter": "There is no trustee there.",

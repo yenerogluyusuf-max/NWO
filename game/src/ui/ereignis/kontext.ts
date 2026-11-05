@@ -7,7 +7,7 @@ import { EREIGNIS_BEZUG } from "../../sim/gespraeche";
 import { ratZuEreignis, type RessortRat } from "../../sim/personen-api";
 import { angezeigteZustimmung } from "../../sim/medien";
 import { schlechtBeiHoch } from "../../sim/berichte";
-import { vertrauenZu } from "../../sim/laender";
+import { LAENDER, vertrauenZu } from "../../sim/laender";
 import { aktuelleSprache, t } from "../../i18n";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
@@ -176,8 +176,13 @@ const THEMA_ZAHLEN: Record<Thema, string[]> = {
   wohnen: ["wohnungsnot", "erdbeben", "vertrauen", "schulden"],
 };
 
-export function kennzahlenFuer(w: World, thema: Thema): Kennzahl[] {
+export function kennzahlenFuer(w: World, thema: Thema, ereignisId?: string): Kennzahl[] {
   const b = bausteine(w);
+  // Geht es um ein bestimmtes Land, steht dessen Vertrauen statt dem der EU (Spielerdurchlauf 5. November: Währungskrise im Iran
+  // zeigte „Vertrauen der EU“)
+  const landId = String(w.spiel?.ereignisse.find((e) => e.id === ereignisId)?.daten?.land ?? "");
+  const l = landId && landId !== "EU" ? LAENDER.find((x) => x.id === landId) : undefined;
+  if (l && w.spiel) b.eu = () => zahl(`land-${l.id}`, t("ereignis.kz.landVertrauen", { land: l.name }), `${Math.round(vertrauenZu(w, l.id))} / 100`);
   return THEMA_ZAHLEN[thema].map((id) => b[id]?.()).filter((k): k is Kennzahl => !!k);
 }
 

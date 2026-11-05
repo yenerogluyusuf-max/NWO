@@ -127,16 +127,19 @@ const KRISE: Vorlage = {
     const id = landId(ev);
     const e = eigenVon(w, id);
     const art = kriseVon(ev);
+    // Der erste Satz steht als Zitat unter dem Titel; er wiederholt den Titel nicht (Spielerdurchlauf 5. November:
+    // „Währungskrise im Iran. Währungskrise im Iran.“)
+    const inLand = akteurDef(id).inLand;
     const lage =
       art === "waehrung"
-        ? `Die Inflation liegt bei ${nf(e.inflation)} Prozent, das Defizit bei ${nf(-e.defizit)} Prozent des BIP.`
+        ? `Die Inflation ${inLand} liegt bei ${nf(e.inflation)} Prozent, das Defizit bei ${nf(-e.defizit)} Prozent des BIP.`
         : art === "zahlungsausfall"
           ? `Die Schulden stehen bei ${nf(e.schulden + 20, 0)} Prozent des BIP; ${akteurName(id)} kann sie nicht mehr bedienen.`
           : art === "grenzkrise"
-            ? `Die Spannung mit dem Nachbarn ist so hoch, dass es zu Gefechten kommt; die Stabilität liegt bei ${Math.round(e.stabilitaet)} von 100.`
-            : `Die Stabilität liegt bei ${Math.round(e.stabilitaet)} von 100, der Rückhalt der Führung bei ${Math.round(e.rueckhalt)}.`;
+            ? `Die Spannung ${inLand} mit einem Nachbarn ist so hoch, dass es zu Gefechten kommt; die Stabilität liegt bei ${Math.round(e.stabilitaet)} von 100.`
+            : `Die Stabilität ${inLand} liegt bei ${Math.round(e.stabilitaet)} von 100, der Rückhalt der Führung bei ${Math.round(e.rueckhalt)}.`;
     return [
-      `${KRISE_NAME[art]} ${akteurDef(id).inLand}. ${lage}`,
+      lage,
       `Für die Türkei hängt daran einiges: Handel, Sicherheit an der Grenze und die Frage, wer in ${akteurName(id)} Einfluss gewinnt, wenn niemand hilft. Der Stab schlägt vor, jetzt zu helfen, die Grenze zu sichern oder zuzusehen.`,
     ];
   },

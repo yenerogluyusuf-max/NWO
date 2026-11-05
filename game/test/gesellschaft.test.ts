@@ -165,6 +165,10 @@ describe("Rathäuser und Kommunalwahl", () => {
     expect(r.ergebnis.lagerNachher).toBe(rathaeuserLager(w));
     expect(k.rathaus[opp[0]]!.verwalter).toBeUndefined();
     expect(k.naechste).toBe("2034-03-26");
+    // Das Ergebnis hält das Spiel an: ein Hinweis mit Ergebnis und Folge, nicht nur eine Zeile im Protokoll
+    const h = w.spiel!.hinweise.find((x) => x.id.startsWith("kommunalwahl-"))!;
+    expect(h.text[0]).toBe(r.text);
+    expect(h.text[1]).toMatch(/2034/);
   });
 
   test("die Kommunalwahl findet im Spielverlauf 2029 statt", () => {
