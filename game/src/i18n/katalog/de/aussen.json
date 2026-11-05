@@ -215,5 +215,9 @@
  "aussen.sanktion.gegen": "{land} sperrt seinerseits Einfuhren aus der Türkei. Der Preis trifft Exporteure und Tourismus; er endet erst mit der eigenen Sanktion.",
  "aussen.sanktion.klausel_keine": "Von dieser Seite besteht keine Sanktion gegen die Türkei.",
  "aussen.sanktion.vertrag_aufgehoben": "Der Vertrag mit {land} hebt die Sanktionen gegen die Türkei auf.",
- "aussen.sanktion.vertrag_aufgehoben.warum": "Die Gegenleistung ist vereinbart; Märkte und Rüstungsindustrie atmen auf."
+ "aussen.sanktion.vertrag_aufgehoben.warum": "Die Gegenleistung ist vereinbart; Märkte und Rüstungsindustrie atmen auf.",
+ "welt.modus.laender": "Staaten",
+ "welt.modus.bloecke": "Blöcke",
+ "welt.modus.dienst": "Dienst",
+ "welt.modus.vermittlung": "Vermittlung"
 }

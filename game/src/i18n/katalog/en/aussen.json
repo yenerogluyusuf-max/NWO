@@ -215,5 +215,9 @@
  "aussen.sanktion.gegen": "{land} in turn blocks imports from Türkiye. The price hits exporters and tourism; it ends only with Türkiye's own sanction.",
  "aussen.sanktion.klausel_keine": "There is no sanction against Türkiye from this side.",
  "aussen.sanktion.vertrag_aufgehoben": "The treaty with {land} lifts the sanctions against Türkiye.",
- "aussen.sanktion.vertrag_aufgehoben.warum": "The return service is agreed; markets and the defence industry breathe a sigh of relief."
+ "aussen.sanktion.vertrag_aufgehoben.warum": "The return service is agreed; markets and the defence industry breathe a sigh of relief.",
+ "welt.modus.laender": "States",
+ "welt.modus.bloecke": "Blocs",
+ "welt.modus.dienst": "Service",
+ "welt.modus.vermittlung": "Mediation"
 }

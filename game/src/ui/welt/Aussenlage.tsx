@@ -39,14 +39,15 @@ function Balken({ wert, ton }: { wert: number; ton: "gut" | "mittel" | "schlecht
   );
 }
 
-export function Aussenlage({ world, refresh }: { world: World; refresh: () => void }) {
+/** eingebettet: im Aktenreiter „Weltlage“ unter dem Lageurteil; Titel und Zweck stehen dort schon */
+export function Aussenlage({ world, refresh, eingebettet = false }: { world: World; refresh: () => void; eingebettet?: boolean }) {
   const [reiter, setReiter] = useState<Reiter>("lage");
   const lage = aussenLage(world);
   return (
     <div className="al">
       <header className="al-kopf">
-        <h2>{t("aussen.ui.titel")}</h2>
-        <p>{t("aussen.ui.zweck")}</p>
+        {!eingebettet && <h2>{t("aussen.ui.titel")}</h2>}
+        {!eingebettet && <p>{t("aussen.ui.zweck")}</p>}
         <div className="al-reiter" role="tablist">
           {(["lage", "instrumente", "verlauf"] as Reiter[]).map((r) => (
             <button key={r} type="button" role="tab" aria-selected={reiter === r} className={reiter === r ? "on" : ""} onClick={() => setReiter(r)}>

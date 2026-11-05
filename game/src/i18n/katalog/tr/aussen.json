@@ -215,5 +215,9 @@
  "aussen.sanktion.gegen": "{land} de Türkiye'den ithalatı engelliyor. Bedeli ihracatçılar ve turizm öder; ancak Türkiye'nin kendi yaptırımıyla sona erer.",
  "aussen.sanktion.klausel_keine": "Bu taraftan Türkiye'ye karşı bir yaptırım yok.",
  "aussen.sanktion.vertrag_aufgehoben": "{land} ile antlaşma Türkiye'ye yönelik yaptırımları kaldırıyor.",
- "aussen.sanktion.vertrag_aufgehoben.warum": "Karşılığı kararlaştırıldı; piyasalar ve savunma sanayii rahat bir nefes alıyor."
+ "aussen.sanktion.vertrag_aufgehoben.warum": "Karşılığı kararlaştırıldı; piyasalar ve savunma sanayii rahat bir nefes alıyor.",
+ "welt.modus.laender": "Devletler",
+ "welt.modus.bloecke": "Bloklar",
+ "welt.modus.dienst": "Teşkilat",
+ "welt.modus.vermittlung": "Arabuluculuk"
 }

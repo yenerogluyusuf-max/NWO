@@ -931,6 +931,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               onReiter={setAkteReiter}
               vorgangStart={vorgangStart}
               onKonflikt={(id) => { setWeltStart(id); setWeltTab("konflikt"); setDossier("welt"); beendeZeit(); }}
+              refresh={() => { refresh(); sichere(true); }}
             >
             {/* Zweckzeile je Reiter auch in den Bereichsakten (früher nur ohne Akte; 17 Texte blieben ungesehen, PRUEFUNG_GESAMT_2026-11-04) */}
             {dossier !== "wirtschaft" && zweckVon(dossier, gruppe?.akte ? undefined : gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.akte ? undefined : gruppe?.kurz)}</p>}

@@ -27,7 +27,6 @@ import { ratStimmen, THEMA_NAME } from "../sim/welt-bloecke";
 import { ANZEIGE_GRUPPEN, akteurListe, haltungWortAlle, imFilter, trifft } from "../sim/welt-sicht";
 import type { EuThema } from "../data/welt-weitere";
 import type { WeltTab } from "./welt/LandPopover";
-import { Aussenlage } from "./welt/Aussenlage";
 import { t } from "../i18n";
 import { t as tx } from "../i18n";
 import "./welt/welt.css";
@@ -57,14 +56,9 @@ const TABS: { id: WeltTab; label: string }[] = [
   { id: "handeln", label: "reste.welt.gesten" },
 ];
 
-type Modus = "aussen" | "laender" | "bloecke" | "dienst" | "vermittlung";
-const MODI: { id: Modus; label: string }[] = [
-  { id: "aussen", label: t("aussen.ui.modus") },
-  { id: "laender", label: "Staaten" },
-  { id: "bloecke", label: "Blöcke" },
-  { id: "dienst", label: "Dienst" },
-  { id: "vermittlung", label: "Vermittlung" },
-];
+// Die Außenlage steht im Aktenreiter „Weltlage“ (akte/Bereiche.tsx), nicht noch einmal hier (Vorgabe T: eine Lage, nicht zwei)
+type Modus = "laender" | "bloecke" | "dienst" | "vermittlung";
+const MODI: Modus[] = ["laender", "bloecke", "dienst", "vermittlung"];
 
 export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: World; refresh: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; start?: string; startTab?: WeltTab }) {
   const [modus, setModus] = useState<Modus>(start === "vermittlung" ? "vermittlung" : "laender");
@@ -122,8 +116,8 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
       <nav className="we-liste" aria-label={t("ui.Welt.5f9089a")}>
         <div className="we-modus" role="tablist" aria-label={tx("ui2.ui.Welt.5c38879")}>
           {MODI.map((m) => (
-            <button key={m.id} type="button" role="tab" aria-selected={modus === m.id} className={modus === m.id ? "on" : ""} onClick={() => setModus(m.id)}>
-              {m.label}
+            <button key={m} type="button" role="tab" aria-selected={modus === m} className={modus === m ? "on" : ""} onClick={() => setModus(m)}>
+              {t(`welt.modus.${m}`)}
             </button>
           ))}
         </div>
@@ -169,13 +163,11 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
             </div>
           </div>
         )}
-        {modus === "aussen" && <p className="we-hinweis we-liste-hinweis">{t("aussen.ui.liste_hinweis")}</p>}
         {modus === "dienst" && <p className="we-hinweis we-liste-hinweis">{t("ui.Welt.37f315c")}</p>}
         {modus === "vermittlung" && <p className="we-hinweis we-liste-hinweis">{tx("ui2.ui.Welt.be92f9d")}</p>}
       </nav>
 
       <div className="we-akte">
-        {modus === "aussen" && <Aussenlage world={world} refresh={refresh} />}
         {modus === "vermittlung" && <Vermittlung world={world} refresh={refresh} />}
         {modus === "dienst" && <Dienst world={world} refresh={refresh} {...(dienstZiel ? { ziel: dienstZiel } : {})} onLand={waehle} />}
         {modus === "bloecke" && <Block key={block} world={world} id={block} refresh={refresh} onLand={waehle} />}

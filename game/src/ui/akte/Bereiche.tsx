@@ -2,6 +2,7 @@
 // Sicherheit, Außenpolitik, Land, Agenda, Medien. Lage, Verlauf und Personen entstehen hier aus den vorhandenen Daten (nur lesen);
 // Die bisherigen Ansichten sind direkte fachliche Zugänge; interne Reiterkennungen bleiben für Sprünge kompatibel.
 
+import { Aussenlage } from "../welt/Aussenlage";
 import { useEffect, useState, type ReactNode } from "react";
 import { aktuelleLocale, t } from "../../i18n";
 import { NET } from "../../sim/modell";
@@ -291,7 +292,7 @@ function Zeilen({ zeilen }: { zeilen: LageZeile[] }) {
   );
 }
 
-function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined; onKonflikt?: ((landId: string) => void) | undefined }) {
+function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined; onKonflikt?: ((landId: string) => void) | undefined; refresh?: (() => void) | undefined }) {
   // Mit Konfliktlage (Sicherheit) stehen die laufenden Konflikte dort, nicht zusätzlich als Zeilenliste
   const gruppen = lageZeilen(w, b).filter((g) => !(b === "sicherheit" && onKonflikt && w.spiel && g.kopf === t("akte.b.lage.konflikte")));
   const urteil = lageUrteil(w, b);
@@ -320,6 +321,8 @@ function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt }: { w: Wor
         </details>
       )}
       {b === "sicherheit" && onKonflikt && w.spiel && <Konfliktlage w={w} onKonflikt={onKonflikt} />}
+      {/* Die Außenlage (Vorwarnungen, Instrumente, Verlauf) steht hier statt eine Ebene tiefer unter „Länder und Diplomatie“ (Vorgabe T: eine Lage, nicht zwei) */}
+      {b === "aussen" && refresh && w.spiel && <Aussenlage world={w} refresh={refresh} eingebettet />}
       {karten && <Bildkarten w={w} reichBereich={karten.reich} ziel={karten.ziel} oeffnen={karten.oeffnen} />}
       {gruppen.filter((g) => g.zeilen.length > 0).map((g) => (
         <section key={g.kopf}>
@@ -419,11 +422,13 @@ export interface BereichsAkteProps {
   vorgangStart?: string | undefined;
   /** Sprung in das Konfliktdossier eines Landes (Akte Sicherheit) */
   onKonflikt?: ((landId: string) => void) | undefined;
+  /** Nach einer Handlung in der Lage neu zeichnen (Außenlage im Reiter Weltlage) */
+  refresh?: (() => void) | undefined;
   /** Inhalt der aktiven Ansicht */
   children: ReactNode;
 }
 
-export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, onReiter, vorgangStart, onKonflikt, children }: BereichsAkteProps) {
+export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, onReiter, vorgangStart, onKonflikt, refresh, children }: BereichsAkteProps) {
   // Behörden sind ein eigener Fachzugang; die übrigen Ansichten behalten ihre Zuständigkeiten.
   const [behoerdenOffen, setBehoerdenOffen] = useState(false);
   useEffect(() => setBehoerdenOffen(false), [bereich]);
@@ -451,7 +456,7 @@ export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, 
         { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => {
           const bk = BILDKARTEN[bereich], kartenTab = bk && tabs.find((tab) => tab.id === bk.tab);
           const karten = bk && kartenTab ? { reich: bk.reich, ziel: kartenTab.label, oeffnen: () => { setBehoerdenOffen(false); onTab(kartenTab.id); onReiter("instrumente"); } } : undefined;
-          return <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} onKonflikt={onKonflikt} />;
+          return <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} onKonflikt={onKonflikt} refresh={refresh} />;
         } },
         { id: "instrumente", text: t("akte.b.reiter.instrumente"), inhalt: instrumente },
         { id: "verlauf", text: t("akte.b.reiter.verlauf"), inhalt: () => <VerlaufAnsicht w={world} b={bereich} /> },
