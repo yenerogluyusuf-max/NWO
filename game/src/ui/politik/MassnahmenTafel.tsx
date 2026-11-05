@@ -1,11 +1,14 @@
 // Die Maßnahmen eines Politikbereichs als Tafel nach dem Vorbild des Haushalts (Vorgabe V, ENTSCHEIDUNGEN): jede Maßnahme eine
 // Zeile mit Regler über ihre Stufen; wer eine Stufe wählt, sieht darunter Kapital, Mehrheit, Dauer und Haushalt und bringt das
-// Gesetz dort ein. Ein Vorschlag des Stabs steht als Marke an seiner Zeile, nicht in einer zweiten Liste.
+// Gesetz dort ein. Ein Vorschlag des Stabs steht als Marke an seiner Zeile, nicht in einer zweiten Liste. Das ist der einzige Weg
+// zum Gesetz (ENTSCHEIDUNGEN W 2): Einträge des Gesetzeskatalogs erscheinen hier als benannte Fassungen.
 
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Vorschlag } from "../../sim/vorschlaege";
-import { bringeEin, pruefeVorhaben, REGELN } from "../../sim/handeln";
+import { bringeEin, REGELN } from "../../sim/handeln";
+import { fassungsKnoepfe, gesetzesPrognose } from "../../sim/gesetzgebung";
+import type { FassungId } from "../../data/gesetzesvorhaben";
 import { naechsteStufe, skala, skalenArt } from "../../data/skalen";
 import { t, zahl } from "../../i18n";
 import type { MassnahmeZeile } from "./bereiche";
@@ -27,18 +30,34 @@ function naechsterIndex(stufen: { w: number }[], wert: number): number {
   return beste;
 }
 
-function Pruefzeile({ world, m, ziel, ort, onErgebnis, onGenauer, onVerwerfen }: { world: World; m: MassnahmeZeile; ziel: number; ort: number[] | null; onErgebnis: (r: Ergebnis) => void; onGenauer: () => void; onVerwerfen: () => void }) {
-  const p = useMemo(() => pruefeVorhaben(world, m.id, ziel, ort), [world, m.id, ziel, ort, world.day, world.spiel?.kapital]);
-  const st = p.gesetz.stimmen;
+/** Die Prüfzeile unter dem Regler (G1–G6, Plan Anhang A 1.1): Fassungen als Knöpfe, eine Prognose für Kapital, Mehrheit, Dauer und
+ *  Haushalt, wer dafür und dagegen ist, dann Einbringen oder Erlass mit dem Risiko vor dem Verfassungsgericht. */
+function Pruefzeile({ world, m, ziel, ort, wahl, onFassung, onErgebnis, onGenauer, onVerwerfen }: { world: World; m: MassnahmeZeile; ziel: number; ort: number[] | null; wahl?: FassungId; onFassung: (ziel: number, f: FassungId) => void; onErgebnis: (r: Ergebnis) => void; onGenauer: () => void; onVerwerfen: () => void }) {
+  const prog = useMemo(() => gesetzesPrognose(world, m.id, ziel, ort, wahl), [world, m.id, ziel, ort, wahl, world.day, world.spiel?.kapital]);
+  const knoepfe = useMemo(() => (ort ? [] : fassungsKnoepfe(world, m.id)), [world, m.id, ort, world.day]);
+  const p = prog.pruefung;
+  const fas = prog.fassung;
+  const namen = (l: { name: string }[]) => l.slice(0, 4).map((x) => x.name).join(", ");
   return (
     <div className="mt-panel" role="region" aria-label={m.name}>
       <p className="mt-text">{m.text}</p>
+      {knoepfe.map((k) => (
+        <div key={k.vorhaben} className="mt-fassungen" role="group" aria-label={k.titel}>
+          <span>{k.titel}:</span>
+          {k.knoepfe.map((b) => (
+            <button key={b.fassung} type="button" className={`pd-btn quiet${fas?.vorhaben === k.vorhaben && fas.fassung === b.fassung ? " on" : ""}`} aria-pressed={fas?.vorhaben === k.vorhaben && fas.fassung === b.fassung} onClick={() => onFassung(b.ziel, b.fassung)}>
+              {t(`gesetz.fassung.${b.fassung}`)}
+            </button>
+          ))}
+        </div>
+      ))}
+      {fas && <p className="mt-gilt">{t("po2.giltAls", { titel: fas.titel, fassung: t(`gesetz.fassung.${fas.fassung}`) })}</p>}
       {p.ok ? (
         <Preisfeld
           kl="mt"
           fakten={[
             { label: t("po2.kapital"), wert: t("po2.kapitalWert", { n: p.gesetz.pk }), schlecht: !p.gesetz.bezahlbar },
-            { label: t("po2.mehrheit"), wert: st.luecke > 0 ? t("po2.fehlen", { n: st.luecke }) : t("po2.steht", { ja: st.erwartet, noetig: REGELN.mehrheit }), schlecht: st.luecke > 0 },
+            { label: t("po2.mehrheit"), wert: prog.luecke > 0 ? t("po2.fehlen", { n: prog.luecke }) : t("po2.steht", { ja: prog.ja, noetig: REGELN.mehrheit }), schlecht: prog.luecke > 0 },
             { label: t("po2.dauer"), wert: t("po2.monate", { n: p.monate }) },
             { label: t("po2.haushalt"), wert: Math.abs(p.kostenBip) < 0.005 ? t("po2.keineKosten") : t(p.kostenBip > 0 ? "po2.kostet" : "po2.bringt", { n: zahl(Math.abs(p.kostenBip), 2) }) },
           ]}
@@ -46,14 +65,20 @@ function Pruefzeile({ world, m, ziel, ort, onErgebnis, onGenauer, onVerwerfen }:
       ) : (
         <p className="mt-gesperrt">{p.grund}</p>
       )}
+      {prog.lager && (prog.lager.fuer.length > 0 || prog.lager.gegen.length > 0) && (
+        <p className="mt-lager">
+          {prog.lager.fuer.length > 0 && <span><b>{t("po2.dafuer")}</b> {namen(prog.lager.fuer)}</span>}
+          {prog.lager.gegen.length > 0 && <span><b>{t("po2.dagegen")}</b> {namen(prog.lager.gegen)}</span>}
+        </p>
+      )}
       {p.hinweise.length > 0 && <p className="mt-hinweis">{p.hinweise.join(" ")}</p>}
       <div className="mt-knoepfe">
-        <button type="button" className="brass-button" disabled={!p.ok || !p.gesetz.bezahlbar} onClick={() => onErgebnis(bringeEin(world, m.id, ziel, ort, "gesetz"))}>
+        <button type="button" className="brass-button" disabled={!p.ok || !p.gesetz.bezahlbar} onClick={() => onErgebnis(bringeEin(world, m.id, ziel, ort, "gesetz", wahl))}>
           {t("po2.einbringen", { n: p.gesetz.pk })}
         </button>
         {p.ok && p.erlass.moeglich && (
-          <button type="button" className="pd-btn" disabled={!p.erlass.bezahlbar} onClick={() => onErgebnis(bringeEin(world, m.id, ziel, ort, "erlass"))}>
-            {t("po2.erlass", { n: p.erlass.pk })}
+          <button type="button" className="pd-btn" disabled={!p.erlass.bezahlbar} onClick={() => onErgebnis(bringeEin(world, m.id, ziel, ort, "erlass", wahl))}>
+            {fas && fas.gerichtP > 0 ? t("po2.erlassGericht", { n: p.erlass.pk, p: Math.round(fas.gerichtP * 100) }) : t("po2.erlass", { n: p.erlass.pk })}
           </button>
         )}
         <button type="button" className="pd-btn quiet" onClick={onGenauer}>{t("po2.genauer")}</button>
@@ -70,7 +95,7 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
   refresh: () => void;
   onGenauer: (o: { id: string; level?: number; ort: number[] | null }) => void;
 }) {
-  const [wahl, setWahl] = useState<{ id: string; ziel: number; ort: number[] | null } | null>(null);
+  const [wahl, setWahl] = useState<{ id: string; ziel: number; ort: number[] | null; fassung?: FassungId } | null>(null);
   const [antwort, setAntwort] = useState<Ergebnis | null>(null);
   const vorschlagFuer = new Map(vorschlaege.map((v) => [v.massnahme, v]));
   return (
@@ -131,6 +156,11 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
                   m={m}
                   ziel={wahl.ziel}
                   ort={wahl.ort}
+                  {...(wahl.fassung ? { wahl: wahl.fassung } : {})}
+                  onFassung={(ziel, fassung) => {
+                    setAntwort(null);
+                    setWahl({ id: m.id, ziel, ort: null, fassung });
+                  }}
                   onErgebnis={(r) => {
                     setAntwort(r);
                     if (r.ok) setWahl(null);

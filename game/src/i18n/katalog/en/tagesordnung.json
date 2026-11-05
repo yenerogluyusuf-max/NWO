@@ -1,0 +1,20 @@
+{
+ "to.titel": "Order of business",
+ "to.balkenAria": "{ja} yes votes expected, {schwelle} needed",
+ "to.leer": "Nothing before parliament. You introduce laws in Policy: at the measure you want to change.",
+ "to.zurPolitik": "To Policy",
+ "to.art.gesetz": "Law",
+ "to.art.haushalt": "Budget",
+ "to.art.versorgung": "Supply",
+ "to.art.verfassung": "Constitution",
+ "to.art.gericht": "Court",
+ "to.termin": "Vote {datum} ({n, plural, =0 {today} one {in # day} other {in # days}})",
+ "to.spruch": "Ruling {datum} ({n, plural, =0 {today} one {in # day} other {in # days}})",
+ "to.erwartet": "{ja} yes expected, {schwelle} needed",
+ "to.knapp": "close",
+ "to.fehlt": "{n} short",
+ "to.gericht": "Before the Constitutional Court: about {p} % chance of annulment",
+ "to.zuTeuer": "The votes cost {n} capital; you have {da}.",
+ "to.sichern": "Secure {n} votes ·",
+ "to.zurueck": "Withdraw ({n} capital back)"
+}

@@ -114,6 +114,7 @@
  "gesetz.grund.ausgeschoepft": "Sınıra gelindi: Bu yönde daha ileri gidilemez.",
  "gesetz.grund.unbekannt": "Böyle bir tasarı yok.",
  "gesetz.grund.keinErlass": "Bunun için kanun gerekir: Kararname bunu düzenleyemez.",
+ "tagesordnung.verfassung": "Anayasa değişikliği",
  "gesetz.grund.kapital": "Siyasi sermaye yetmiyor (gereken {noetig}, mevcut {da}).",
  "gesetz.eingebracht.text": "“{titel}” Meclis'e sunuldu. Oylama {tage, plural, one {# gün} other {# gün}} sonra.",
  "gesetz.erlass.text": "Cumhurbaşkanlığı kararnamesiyle: “{titel}” hemen yürürlükte. {partei} 60 günlük süre içinde dava açıyor; Anayasa Mahkemesi yaklaşık {tage} gün içinde karar verecek.",

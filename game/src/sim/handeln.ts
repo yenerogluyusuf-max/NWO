@@ -26,6 +26,7 @@ import { t } from "../i18n";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { Gesetz, Weg } from "./spiel-typen";
+import type { FassungId } from "../data/gesetzesvorhaben";
 import { kannZahlen } from "./kapital";
 import { krisenFuerMassnahme, type KrisenTreffer } from "./krisen";
 import { starteUmsetzung } from "./umsetzung";
@@ -216,6 +217,39 @@ export function stimmenSicht(world: World, gesetz?: { massnahme: string; richtun
 // ---------------------------------------------------------------------------
 // Prüfen
 
+/** Die benannte Fassung, als die eine Änderung gilt (ENTSCHEIDUNGEN W, F4): Bonus, Erlassrecht und Sperren aus dem Gesetzeskatalog.
+ *  Gerechnet in sim/gesetzgebung.ts und hier über einen Haken eingehängt, damit beide Module sich nicht gegenseitig laden. */
+export interface FassungsInfo {
+  vorhaben: string;
+  fassung: FassungId;
+  /** Stimmen, die die Fassung holt oder kostet (Opposition, Lager, Absprung der Partner) */
+  bonus: number;
+  /** Name des Gesetzes („Mindestlohngesetz“) */
+  titel: string;
+  /** Ob der Katalog einen Erlass zulässt (anfechtbar, ohne Grundrechte) */
+  erlassErlaubt: boolean;
+  /** Wahrscheinlichkeit, dass das Verfassungsgericht einen Erlass aufhebt (0, wenn niemand klagen darf) */
+  gerichtP: number;
+  /** Sperre aus dem Katalog: ruht nach einer Entscheidung, liegt beim Verfassungsgericht (G6) */
+  grund?: string;
+}
+
+type FassungsRechner = (world: World, id: string, ziel: number, ort: number[] | null, wahl?: FassungId) => FassungsInfo | undefined;
+let fassungsRechner: FassungsRechner | undefined;
+export function setzeFassungsRechner(fn: FassungsRechner): void {
+  fassungsRechner = fn;
+}
+
+/** Was nach dem Einbringen einer Fassung geschieht: als Gesetz die Ausgangsstufe merken, als Erlass Folgen und Prüfung (sim/gesetzgebung.ts). */
+interface FassungsFolgen {
+  eingebracht: (world: World, g: Gesetz, alteStufe: number) => void;
+  erlassen: (world: World, pr: Pruefung, alteStufe: number) => Ergebnis;
+}
+let fassungsFolgen: FassungsFolgen | undefined;
+export function setzeFassungsFolgen(f: FassungsFolgen): void {
+  fassungsFolgen = f;
+}
+
 export interface Pruefung {
   ok: boolean;
   grund?: string;
@@ -240,6 +274,8 @@ export interface Pruefung {
   krisenFaktor: number;
   /** Die vier Preise mit aufgelösten Defaults und der Preis, der bei diesem Vorhaben greift */
   preise: { einfuehren: number; aendern: number; streichen: number; unterhaltMonat: number; richtung: "einfuehren" | "streichen" };
+  /** Hat die Maßnahme einen Eintrag im Gesetzeskatalog, gilt die Änderung als dessen Fassung (Stimmen enthalten den Bonus) */
+  fassung?: FassungsInfo;
 }
 
 function pkKosten(world: World, id: string, delta: number, ort: number[] | null, weg: Weg): number {
@@ -308,12 +344,20 @@ export function unterhaltKosten(world: World): { summe: number; posten: Unterhal
   return { summe: posten.reduce((s, p) => s + p.betrag, 0), posten };
 }
 
+/** Die Schätzung mit dem Bonus einer Fassung (Spanne und Lücke verschieben sich mit). */
+function mitBonus(st: StimmenSicht, bonus: number): StimmenSicht {
+  if (!bonus) return st;
+  const z = (x: number) => Math.min(600, Math.max(0, x + bonus));
+  const erwartet = z(st.erwartet);
+  return { ...st, erwartet, low: z(st.low), high: z(st.high), luecke: Math.max(0, REGELN.mehrheit - erwartet) };
+}
+
 export function erlassMoeglich(id: string): boolean {
   const node = NET.nodes[knotenIndex(id)]!;
   return ERLASS_THEMEN.has(node.theme) || ERLASS_MASSNAHMEN.has(id);
 }
 
-export function pruefeVorhaben(world: World, id: string, stufe: number, provinzen?: number[] | null): Pruefung {
+export function pruefeVorhaben(world: World, id: string, stufe: number, provinzen?: number[] | null, wahl?: FassungId): Pruefung {
   const i = knotenIndex(id);
   const node = NET.nodes[i]!;
   const ort = ortsListe(provinzen);
@@ -332,7 +376,10 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   const offen = offeneVorhaben(world);
   const ueberl = ueberlast(world, 1);
   const kapital = world.spiel?.kapital ?? Infinity;
-  const stimmen = stimmenSicht(world, { massnahme: id, richtung: Math.sign(aenderung) });
+  const roh = stimmenSicht(world, { massnahme: id, richtung: Math.sign(aenderung) });
+  // Eine Stimmenzahl überall (G3): Gilt die Änderung als Fassung eines Katalogeintrags, zählt deren Bonus schon hier
+  const fassung = world.spiel ? fassungsRechner?.(world, id, ziel, ort, wahl) : undefined;
+  const stimmen = fassung ? mitBonus(roh, fassung.bonus) : roh;
   // Krisen-Blocker (MIL-3): gesperrte Vorhaben scheitern unten mit Begründung und Ausweg, verteuerte zahlen den Faktor
   const krisen = world.spiel ? krisenFuerMassnahme(world, id) : [];
   const krisenFaktor = krisen.reduce((f, k) => (k.art === "teuer" ? f * k.faktor : f), 1);
@@ -380,15 +427,20 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
     offen,
     kapital,
     gesetz: { pk: pkGesetz, stimmen, tage: REGELN.tageBisAbstimmung, bezahlbar: kannZahlen(kapital, pkGesetz) },
-    erlass: erlassOk
+    // Hat die Maßnahme einen Katalogeintrag, entscheidet der Katalog (er kennt Art. 104 Abs. 17 je Vorhaben), sonst die Themenregel
+    erlass: fassung && !fassung.erlassErlaubt
+      ? { moeglich: false, pk: pkErlass, bezahlbar: false, grund: t("gesetz.grund.keinErlass") }
+      : fassung || erlassOk
       ? { moeglich: true, pk: pkErlass, bezahlbar: kannZahlen(kapital, pkErlass) }
       : { moeglich: false, pk: pkErlass, bezahlbar: false, grund: "Dafür braucht der Präsident ein Gesetz; ein Erlass ist nur in Sicherheit und Außenbeziehungen zulässig." },
     hinweise,
     krisen,
     krisenFaktor,
     preise: { ...preise, richtung },
+    ...(fassung ? { fassung } : {}),
   };
   if (Math.abs(aenderung) < 1) return { ...base, ok: false, grund: "Das ist schon die aktuelle Stufe." };
+  if (fassung?.grund) return { ...base, ok: false, grund: fassung.grund };
   // Eine Sperre durch eine aktive Krise ist eine ehrliche Ablehnung: Grund und Alternativweg stehen immer dabei.
   const gesperrt = krisen.find((k) => k.art === "gesperrt");
   if (gesperrt) return { ...base, ok: false, grund: `${gesperrt.krise.name}: ${gesperrt.krise.grund} ${gesperrt.ausweg ?? ""}`.trim() };
@@ -494,8 +546,8 @@ export interface Ergebnis {
 }
 
 /** Ein Vorhaben einbringen: als Gesetz (mit Abstimmung) oder als Erlass. */
-export function bringeEin(world: World, id: string, stufe: number, provinzen: number[] | null | undefined, weg: Weg): Ergebnis {
-  const pr = pruefeVorhaben(world, id, stufe, provinzen);
+export function bringeEin(world: World, id: string, stufe: number, provinzen: number[] | null | undefined, weg: Weg, wahl?: FassungId): Ergebnis {
+  const pr = pruefeVorhaben(world, id, stufe, provinzen, wahl);
   if (!pr.ok) return { ok: false, text: pr.grund ?? "Nicht möglich." };
   const spiel = world.spiel;
   if (!spiel) {
@@ -518,6 +570,8 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
     const l = world.log[world.log.length - 1]!;
     nachEinbringen?.(world, id, `Per Erlass angeordnet: ${l.text}`);
+    // Eine Fassung des Katalogs: Verbände, Straße und Verfassungsgericht folgen (sim/gesetzgebung.ts)
+    if (pr.fassung && fassungsFolgen) return fassungsFolgen.erlassen(world, pr, vorErlass);
     return { ok: true, text: `Erlass: ${l.text}`, why: `${l.why} Ein Erlass umgeht das Parlament und kostet ${pr.erlass.pk} Kapital sowie etwas Vertrauen.` };
   }
 
@@ -528,10 +582,13 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
   // Ist der Präsident angespannt, verzögert sich die Einbringung mitunter um ein paar Tage
   const verzug = stufeVon(verfassungVon(world).belastung) >= 1 && hashWert(`${world.seed}|${world.day}|${id}|verzug`) < VERFASSUNG.verzugChance ? VERFASSUNG.verzugTage : 0;
   const tag = world.day + REGELN.tageBisAbstimmung + verzug;
-  spiel.gesetze.push({
+  const alteStufe = stufeIn(world, id, ortsListe(pr.provinzen));
+  const fas = pr.fassung;
+  const name = fas ? `${fas.titel} · ${t(`gesetz.fassung.${fas.fassung}`)}` : pr.name;
+  const gesetz: Gesetz = {
     id: `g-${world.day}-${id}`,
     massnahme: id,
-    name: pr.name,
+    name,
     stufe: pr.stufe,
     provinzen: pr.provinzen,
     eingebracht: world.day,
@@ -539,7 +596,10 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     pk: pr.gesetz.pk,
     absprachen: 0,
     richtung: Math.sign(pr.aenderung),
-  });
+    ...(fas ? { vorhaben: fas.vorhaben, fassung: fas.fassung, stimmenBonus: fas.bonus } : {}),
+  };
+  spiel.gesetze.push(gesetz);
+  if (fas) fassungsFolgen?.eingebracht(world, gesetz, alteStufe);
   // Dieselbe Fristregel für jeden Zugangsweg, auch ohne bereits offene Erinnerung.
   // Nur ein landesweiter Entwurf zum festen Zusagenziel begründet die Beratungszeit.
   for (const z of spiel.zusagen) {
@@ -556,7 +616,7 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
   }
   const tageBis = tag - world.day;
   const monate = pr.monate;
-  const text = `Gesetzentwurf „${pr.name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
+  const text = `Gesetzentwurf „${name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
   const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
   addLog(world, "entscheidung", text, why);
   nachEinbringen?.(world, id, text);

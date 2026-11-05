@@ -1,0 +1,20 @@
+{
+ "to.titel": "Tagesordnung",
+ "to.balkenAria": "{ja} Ja-Stimmen erwartet, nötig sind {schwelle}",
+ "to.leer": "Keine Vorlage im Parlament. Gesetze bringen Sie in der Politik ein: an der Maßnahme, die Sie ändern wollen.",
+ "to.zurPolitik": "Zur Politik",
+ "to.art.gesetz": "Gesetz",
+ "to.art.haushalt": "Haushalt",
+ "to.art.versorgung": "Versorgung",
+ "to.art.verfassung": "Verfassung",
+ "to.art.gericht": "Gericht",
+ "to.termin": "Abstimmung {datum} ({n, plural, =0 {heute} one {in # Tag} other {in # Tagen}})",
+ "to.spruch": "Spruch {datum} ({n, plural, =0 {heute} one {in # Tag} other {in # Tagen}})",
+ "to.erwartet": "{ja} Ja erwartet, nötig {schwelle}",
+ "to.knapp": "knapp",
+ "to.fehlt": "es fehlen {n}",
+ "to.gericht": "Beim Verfassungsgericht: Aufhebung zu etwa {p} %",
+ "to.zuTeuer": "Die Stimmen kosten {n} Kapital, Sie haben {da}.",
+ "to.sichern": "{n} Stimmen sichern ·",
+ "to.zurueck": "Zurückziehen ({n} Kapital zurück)"
+}

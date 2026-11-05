@@ -1,0 +1,20 @@
+{
+ "to.titel": "Gündem",
+ "to.balkenAria": "{ja} evet oyu bekleniyor, gereken {schwelle}",
+ "to.leer": "Mecliste bekleyen bir teklif yok. Kanunları Politika bölümünde, değiştirmek istediğiniz tedbirin üzerinden sunarsınız.",
+ "to.zurPolitik": "Politikaya git",
+ "to.art.gesetz": "Kanun",
+ "to.art.haushalt": "Bütçe",
+ "to.art.versorgung": "Tedarik",
+ "to.art.verfassung": "Anayasa",
+ "to.art.gericht": "Mahkeme",
+ "to.termin": "Oylama {datum} ({n, plural, =0 {bugün} other {# gün sonra}})",
+ "to.spruch": "Karar {datum} ({n, plural, =0 {bugün} other {# gün sonra}})",
+ "to.erwartet": "{ja} evet bekleniyor, gereken {schwelle}",
+ "to.knapp": "kıl payı",
+ "to.fehlt": "{n} eksik",
+ "to.gericht": "Anayasa Mahkemesinde: iptal ihtimali yaklaşık %{p}",
+ "to.zuTeuer": "Oylar {n} sermayeye mal olur; elinizde {da} var.",
+ "to.sichern": "{n} oyu güvenceye al ·",
+ "to.zurueck": "Geri çek ({n} sermaye geri)"
+}

@@ -11,7 +11,7 @@ import { parlamentsLage } from "../src/ui/parlament/lage";
 import { verteileErwartung, vorgabeFuer, zaehleZustaende } from "../src/ui/parlament/stimmen";
 import { setzeSprache, t } from "../src/i18n";
 import { GesetzesPrognoseHinweis } from "../src/ui/parlament/GesetzesPrognoseHinweis";
-import { Gesetzesvorhaben } from "../src/ui/gesetze/Gesetzesvorhaben";
+import { Tagesordnung } from "../src/ui/parlament/Tagesordnung";
 import { faellig } from "../src/ui/schreibtisch/briefing";
 import { laufendeVerfahren, vorhabenSicht } from "../src/sim/gesetzgebung";
 import { GESETZESVORHABEN } from "../src/data/gesetzesvorhaben";
@@ -114,13 +114,13 @@ describe("Gesetzesprognose im Parlament",()=>{
     const neu=load(stand);expect(gesetzPrognose(neu,neu.spiel!.gesetze[0]!)).toEqual(p);
     expect(parlamentsLage(w)!.fraktionen.find(f=>f.partei==="CHP")!.rolle).toBe("duldung");
   });
-  test("die Übersichtskachel zeigt das eingebrachte Gesetz statt einer neuen Kompromissfassung",()=>{
+  test("die Tagesordnung zeigt das eingebrachte Gesetz mit derselben Zahl wie die Prognose (ein Weg zum Gesetz)",()=>{
     const {w,g}=beispiel();g.vorhaben="gv_renten";g.stimmenBonus=-130;
-    const p=gesetzPrognose(w,g),html=renderToStaticMarkup(<Gesetzesvorhaben world={w} refresh={()=>{}}/>);
-    expect(html).toContain(`<small>${t("gesetz.ui.stimmen",{ja:p.ja})}</small>`);
+    const p=gesetzPrognose(w,g),html=renderToStaticMarkup(<Tagesordnung world={w} refresh={()=>{}} onMassnahme={()=>{}} onHaushalt={()=>{}} onVerfassung={()=>{}} onPolitik={()=>{}}/>);
+    expect(html).toContain(t("to.erwartet",{ja:p.ja,schwelle:301}));expect(html).toContain(g.name);
   });
   test("ein unbezahlbarer Stimmenpuffer bleibt als gesperrte Handlung mit Preis sichtbar",()=>{
-    const {w,g}=beispiel();g.stimmenBonus=304-gesetzPrognose(w,g).ja;w.spiel!.kapital=-30;
+    const {w,g}=beispiel();g.stimmenBonus=(g.stimmenBonus??0)+304-gesetzPrognose(w,g).ja;w.spiel!.kapital=-30;
     const p=gesetzPrognose(w,g);expect(p.ja).toBe(304);expect(p.bezahlbar).toBe(false);
     const html=renderToStaticMarkup(<Beschlussbuch world={w} refresh={()=>{}}/>);
     expect(html).toMatch(/class="pd-btn primary" disabled=""[^>]*>[^<]*<b>3<\/b>/);

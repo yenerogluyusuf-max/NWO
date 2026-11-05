@@ -114,6 +114,7 @@
  "gesetz.grund.ausgeschoepft": "Ausgeschöpft: Weiter geht es in diese Richtung nicht.",
  "gesetz.grund.unbekannt": "Dieses Vorhaben gibt es nicht.",
  "gesetz.grund.keinErlass": "Das braucht ein Gesetz: Ein Erlass darf das nicht regeln.",
+ "tagesordnung.verfassung": "Verfassungsänderung",
  "gesetz.grund.kapital": "Es fehlt Politisches Kapital (nötig {noetig}, vorhanden {da}).",
  "gesetz.eingebracht.text": "„{titel}“ ist eingebracht. Abgestimmt wird in {tage, plural, one {# Tag} other {# Tagen}}.",
  "gesetz.erlass.text": "Per Präsidialerlass: „{titel}“ gilt ab sofort. Die {partei} klagt binnen der Frist von 60 Tagen; das Verfassungsgericht entscheidet in etwa {tage} Tagen.",

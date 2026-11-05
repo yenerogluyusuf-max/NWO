@@ -18,7 +18,7 @@ import { PARTEI_NAME } from "./fraktionen";
 import { parteiAchsen, spielerAchsen, uebereinstimmung } from "./linie";
 import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, hashWert, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
-import { REGELN, STIMMEN_PUFFER, bringeEin, gesetzPrognose, pruefeVorhaben, setPolicy, setzeAbstimmungsHaken, type Ergebnis } from "./handeln";
+import { REGELN, STIMMEN_PUFFER, bringeEin, gesetzPrognose, pruefeVorhaben, setPolicy, setzeAbstimmungsHaken, setzeFassungsFolgen, setzeFassungsRechner, type Ergebnis, type FassungsInfo, type Pruefung } from "./handeln";
 import { istLagerPartei } from "./kommunen";
 import { vorschlaege } from "./vorschlaege";
 import type { Gesetz } from "./spiel-typen";
@@ -234,6 +234,94 @@ function stimmenBonusFuer(w: World, v: GesetzesVorhaben, fassung: FassungId): nu
   return Math.round(opp * f.opposition) - Math.round(lagerSitze * f.lager) - Math.round(absprung) + Math.round(fokus);
 }
 
+/** F4 (ENTSCHEIDUNGEN W, Nachtrag; Variante A in Plan Anhang A 1.1, G3): Eine freie Stufe gilt als die Fassung, deren Schritt sie
+ *  erreicht: ab dem scharfen Schritt scharf, ab dem Kompromiss Kompromiss, sonst verwässert. Nur landesweit und nur in der Richtung,
+ *  die der Katalogeintrag vorsieht; eine Gegenrichtung oder eine Maßnahme ohne Eintrag ist eine freie Änderung ohne Fassung. */
+export function fassungFuerStufe(w: World, massnahme: string, ziel: number, ort?: number[] | null, wahl?: FassungId): { v: GesetzesVorhaben; fassung: FassungId } | undefined {
+  if (ort?.length || !knotenDa(massnahme)) return undefined;
+  const delta = ziel - nationalAverage(NET, w.net, massnahme);
+  if (Math.abs(delta) < 1) return undefined;
+  const v = GESETZESVORHABEN.find((x) => x.massnahme === massnahme && x.richtung === Math.sign(delta));
+  if (!v) return undefined;
+  if (wahl) return { v, fassung: wahl };
+  const [scharf, kompromiss] = schritte(v);
+  const s = Math.abs(delta) + 0.5;
+  return { v, fassung: s >= scharf ? "scharf" : s >= kompromiss ? "kompromiss" : "verwaessert" };
+}
+
+setzeFassungsRechner((w, id, ziel, ort, wahl) => {
+  const f = fassungFuerStufe(w, id, ziel, ort, wahl);
+  if (!f) return undefined;
+  const { v, fassung } = f;
+  const z = leseZustand(w);
+  const ruhe = z.ruhe[v.id];
+  // G6: Nach einer Entscheidung ruht das Thema, beim Verfassungsgericht liegt es fest
+  const grund = ruhe !== undefined && ruhe > w.day ? t("gesetz.grund.ruht", { tage: ruhe - w.day }) : z.pruefungen.some((p) => p.vorhaben === v.id) ? t("gesetz.grund.gericht") : undefined;
+  const k = klaeger(w, v);
+  return {
+    vorhaben: v.id, fassung, bonus: stimmenBonusFuer(w, v, fassung), titel: t(`gesetz.v.${v.id}.titel`),
+    erlassErlaubt: v.erlass === "anfechtbar" && !v.grundrechte, gerichtP: k ? gerichtWahrscheinlichkeit(w, v, fassung, "erlass") : 0,
+    ...(grund ? { grund } : {}),
+  };
+});
+
+setzeFassungsFolgen({
+  eingebracht: (w, g, alteStufe) => {
+    gesetzgebungVon(w).vorher[g.id] = Math.round(alteStufe);
+  },
+  erlassen: (w, pr, alteStufe) => {
+    const fas = pr.fassung!;
+    const v = VORHABEN_NACH_ID.get(fas.vorhaben)!;
+    const z = gesetzgebungVon(w);
+    const titel = `${fas.titel} · ${t(`gesetz.fassung.${fas.fassung}`)}`;
+    folgenNachBeschluss(w, v, fas.fassung);
+    z.beschlossen.push({ vorhaben: v.id, fassung: fas.fassung, tag: w.day, weg: "erlass" });
+    z.ruhe[v.id] = w.day + GESETZGEBUNG.ruheNachAnnahme;
+    const k = klaeger(w, v);
+    if (k) z.pruefungen.push({ id: `aym-${w.day}-${v.id}`, vorhaben: v.id, fassung: fas.fassung, massnahme: v.massnahme, alteStufe: Math.round(alteStufe), weg: "erlass", tag: w.day + GESETZGEBUNG.gerichtTage, p: fas.gerichtP });
+    const text = k ? t("gesetz.erlass.text", { titel, tage: GESETZGEBUNG.gerichtTage, partei: PARTEI_NAME[k] ?? k }) : t("gesetz.erlass.unangefochten", { titel });
+    const why = k ? t("gesetz.erlass.warum", { pk: pr.erlass.pk, p: Math.round(fas.gerichtP * 100) }) : t("gesetz.erlass.unangefochtenWarum", { pk: pr.erlass.pk });
+    addLog(w, "entscheidung", text, why);
+    return { ok: true, text, why };
+  },
+});
+
+/** Eine Prognose für jede Vorlage, gleich ob aus dem Regler oder aus einer benannten Fassung (G3): Prüfung, Ja-Stimmen mit Bonus,
+ *  Urteil, Fassung und Lager. Politik, Gesetzeskatalog und Tagesordnung lesen nur diese Zahl. */
+export interface GesetzesPrognose {
+  pruefung: Pruefung;
+  ja: number;
+  luecke: number;
+  urteil: Urteil;
+  fassung?: FassungsInfo;
+  /** Wer dafür und wer dagegen ist (nur mit Katalogeintrag) */
+  lager?: { fuer: LagerEintrag[]; gegen: LagerEintrag[] };
+}
+
+export function gesetzesPrognose(w: World, massnahme: string, ziel: number, ort?: number[] | null, wahl?: FassungId): GesetzesPrognose {
+  const pruefung = pruefeVorhaben(w, massnahme, ziel, ort, wahl);
+  const ja = pruefung.gesetz.stimmen.erwartet;
+  const v = pruefung.fassung ? VORHABEN_NACH_ID.get(pruefung.fassung.vorhaben) : undefined;
+  return {
+    pruefung, ja, luecke: pruefung.gesetz.stimmen.luecke, urteil: urteilAus(ja),
+    ...(pruefung.fassung ? { fassung: pruefung.fassung } : {}),
+    ...(v && w.spiel ? { lager: lagerVon(w, v) } : {}),
+  };
+}
+
+/** Die benannten Fassungen einer Maßnahme als Knöpfe über dem Regler (G2): je Katalogeintrag drei Zielstufen. */
+export function fassungsKnoepfe(w: World, massnahme: string): { vorhaben: string; titel: string; knoepfe: { fassung: FassungId; ziel: number }[] }[] {
+  if (!knotenDa(massnahme)) return [];
+  const stufe = nationalAverage(NET, w.net, massnahme);
+  return GESETZESVORHABEN.filter((v) => v.massnahme === massnahme)
+    .map((v) => ({
+      vorhaben: v.id,
+      titel: t(`gesetz.v.${v.id}.titel`),
+      knoepfe: FASSUNGEN.map((f, i) => ({ fassung: f, ziel: clamp(Math.round(stufe + v.richtung * schritte(v)[i]!), 0, 100) })).filter((k) => Math.abs(k.ziel - stufe) >= 1),
+    }))
+    .filter((x) => x.knoepfe.length > 0);
+}
+
 function urteilAus(ja: number): Urteil {
   return ja >= REGELN.mehrheit + STIMMEN_PUFFER ? "sicher" : ja >= REGELN.mehrheit - 10 ? "knapp" : "verloren";
 }
@@ -250,9 +338,10 @@ export function vorhabenSicht(w: World, v: GesetzesVorhaben, akutListe?: Set<str
   const fassungen = {} as Record<FassungId, FassungSicht>;
   FASSUNGEN.forEach((f, i) => {
     const ziel = clamp(Math.round(stufe + v.richtung * schritte(v)[i]!), 0, 100);
-    const pr = pruefeVorhaben(w, v.massnahme, ziel, null);
-    const bonus = stimmenBonusFuer(w, v, f);
-    const ja = Math.min(600, Math.max(0, pr.gesetz.stimmen.erwartet + bonus));
+    // Dieselbe Prüfung wie an der Maßnahmenzeile: Die Stimmen enthalten den Bonus der Fassung schon (G3)
+    const pr = pruefeVorhaben(w, v.massnahme, ziel, null, f);
+    const bonus = pr.fassung?.bonus ?? 0;
+    const ja = pr.gesetz.stimmen.erwartet;
     let grund: string | undefined;
     if (sp.ende) grund = t("gesetz.grund.ende");
     else if (pause) grund = pause;
@@ -276,7 +365,7 @@ export function vorhabenSicht(w: World, v: GesetzesVorhaben, akutListe?: Set<str
       moeglich: grund === undefined,
       ...(grund !== undefined ? { grund } : {}),
     };
-    if (v.erlass === "anfechtbar" && !v.grundrechte) fs.erlass = { pk: pr.erlass.pk, bezahlbar: kannZahlen(sp.kapital, pr.erlass.pk), gerichtP: klaeger(w, v) ? gerichtWahrscheinlichkeit(w, v, f, "erlass") : 0 };
+    if (pr.erlass.moeglich) fs.erlass = { pk: pr.erlass.pk, bezahlbar: kannZahlen(sp.kapital, pr.erlass.pk), gerichtP: pr.fassung?.gerichtP ?? 0 };
     fassungen[f] = fs;
   });
   // Rang: Kalender, akute Probleme, Linie der eigenen Partei
@@ -336,39 +425,15 @@ export function bringeVorhabenEin(w: World, vorhabenId: string, fassung: Fassung
   const sicht = vorhabenSicht(w, v);
   const fs = sicht.fassungen[fassung];
   if (!fs.moeglich) return { ok: false, text: fs.grund ?? t("gesetz.grund.unbekannt") };
-  const z = gesetzgebungVon(w);
-  const titel = `${sicht.titel} · ${t(`gesetz.fassung.${fassung}`)}`;
-  const alteStufe = sicht.stufe;
-
   if (weg === "erlass") {
     if (!fs.erlass) return { ok: false, text: t("gesetz.grund.keinErlass") };
     if (!fs.erlass.bezahlbar) return { ok: false, text: t("gesetz.grund.kapital", { noetig: fs.erlass.pk, da: Math.floor(sp.kapital) }) };
-    sp.kapital -= fs.erlass.pk;
-    verbrauche(w, AUFMERKSAMKEIT_KOSTEN.erlass, sicht.titel);
-    setPolicy(w, v.massnahme, fs.ziel, null);
-    politikGeaendert(w, v.massnahme, alteStufe, fs.ziel);
-    vertrauenAendern(w, -(1 + Math.abs(fs.aenderung) / 40));
-    folgenNachBeschluss(w, v, fassung);
-    z.beschlossen.push({ vorhaben: v.id, fassung, tag: w.day, weg: "erlass" });
-    z.ruhe[v.id] = w.day + GESETZGEBUNG.ruheNachAnnahme;
-    const k = klaeger(w, v);
-    if (k) z.pruefungen.push({ id: `aym-${w.day}-${v.id}`, vorhaben: v.id, fassung, massnahme: v.massnahme, alteStufe, weg: "erlass", tag: w.day + GESETZGEBUNG.gerichtTage, p: fs.erlass.gerichtP });
-    const text = k ? t("gesetz.erlass.text", { titel, tage: GESETZGEBUNG.gerichtTage, partei: PARTEI_NAME[k] ?? k }) : t("gesetz.erlass.unangefochten", { titel });
-    const why = k ? t("gesetz.erlass.warum", { pk: fs.erlass.pk, p: Math.round(fs.erlass.gerichtP * 100) }) : t("gesetz.erlass.unangefochtenWarum", { pk: fs.erlass.pk });
-    addLog(w, "entscheidung", text, why);
-    return { ok: true, text, why };
   }
-
-  const r = bringeEin(w, v.massnahme, fs.ziel, null, "gesetz");
-  if (!r.ok) return r;
+  // Derselbe Weg wie an der Maßnahmenzeile (G1): bringeEin merkt sich Fassung und Bonus, der Haken oben die Folgen
+  const r = bringeEin(w, v.massnahme, fs.ziel, null, weg, fassung);
+  if (!r.ok || weg === "erlass") return r;
   const g = [...sp.gesetze].reverse().find((x) => x.massnahme === v.massnahme);
-  if (g) {
-    g.name = titel;
-    g.vorhaben = v.id;
-    g.fassung = fassung;
-    g.stimmenBonus = fs.stimmenBonus;
-    z.vorher[g.id] = alteStufe;
-  }
+  const titel = `${sicht.titel} · ${t(`gesetz.fassung.${fassung}`)}`;
   return { ok: true, text: t("gesetz.eingebracht.text", { titel, tage: g ? g.abstimmung - w.day : REGELN.tageBisAbstimmung }), why: r.why ?? "" };
 }
 

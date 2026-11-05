@@ -50,7 +50,7 @@ import { WunderFenster } from "./reich/WunderFenster";
 import { Wissensbaum } from "./wissen/Wissensbaum";
 import { Fokusbaum } from "./fokus/Fokusbaum";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
-import { Gesetzesvorhaben } from "./gesetze/Gesetzesvorhaben";
+import { Tagesordnung } from "./parlament/Tagesordnung";
 import { istAbstimmung } from "./parlament/abstimmung";
 import { quittiereFeier, reichZustand, vorhabenDef } from "../sim/reich";
 import { ERBE } from "../data/erbe";
@@ -1000,7 +1000,17 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               />
             )}
             {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}-${wirtschaftProgramm ?? ""}`} programm={wirtschaftProgramm} world={w} start={wirtschaftStart} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} />}
-            {dossier === "gesetze" && <Gesetzesvorhaben world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {/* Ein Weg zum Gesetz (ENTSCHEIDUNGEN W 2): Gesetze bringt man in der Politik ein, das Parlament zeigt die Tagesordnung */}
+            {dossier === "gesetze" && (
+              <Tagesordnung
+                world={w}
+                refresh={() => { refresh(); sichere(true); }}
+                onMassnahme={(id) => { setPolitikStart({ offen: { id } }); setDossier("politik"); }}
+                onHaushalt={() => { setWirtschaftProgramm(undefined); setWirtschaftStart("haushalt"); setWirtschaftPosten(undefined); setDossier("wirtschaft"); }}
+                onVerfassung={() => setDossier("verfassung")}
+                onPolitik={() => { setPolitikStart(null); setDossier("politik"); }}
+              />
+            )}
             {(dossier === "parlament" || dossier === "beschluesse") && (
               <Beschlussbuch
                 teil={dossier === "parlament" ? "parlament" : "beschluesse"}

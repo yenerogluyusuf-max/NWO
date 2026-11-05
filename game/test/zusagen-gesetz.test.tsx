@@ -78,6 +78,12 @@ describe("Gesetzeszusagen werden erst beim zugesagten Beschluss belohnt", () => 
     if (art === "ablehnen") expect(abstimmen(w, false).angenommen).toBe(false);
     else expect(zieheGesetzZurueck(w, w.spiel!.gesetze[0]!.id).ok).toBe(true);
     expect(z.erfuellt).toBe(false); expect(chef(w).loyalitaet).toBe(40);
+    // Nach einer Niederlage ruht das Thema (G6, ein Weg zum Gesetz): erst danach lässt es sich erneut einbringen
+    if (art === "ablehnen") {
+      const r = loeseEin(w, z);
+      expect(r.ok).toBe(false); expect(r.text).toContain("ruht");
+      w.spiel!.gesetzgebung!.ruhe = {};
+    }
     expect(loeseEin(w, z).ok).toBe(true); expect(chef(w).loyalitaet).toBe(40);
     expect(fraktion(w, z.von).bereitschaft).toBe(60);
   });
