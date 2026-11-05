@@ -59,5 +59,8 @@
   "rp.auftrag": "Das vereinbarte Ressortziel wurde zum Termin verfehlt. Die Koalition verlangt eine politische Antwort.",
   "rp.entlassungZusatz": "Offener Ressortvorfall: zusätzlich {n} Aufmerksamkeit. Die Entlassung löst dieselben Fraktionsreaktionen wie die Vorfallkarte aus; bestehende Zusagen bleiben offen.",
   "rp.kommissarisch": "Die kommissarische Leitung hat zusätzlich den Leistungsfaktor ×0,8 bis zur festen Nachbesetzung.",
-  "rp.abschluss.entlassen": "Minister entlassen"
+  "rp.abschluss.entlassen": "Minister entlassen",
+  "rp.sachfolgeKurz": "{name}: {vor} → {nach}.",
+  "rp.sachKosten": "Bereits gebuchte Zusatzkosten: {bip} % des BIP.",
+  "rp.grenzeTitel": "Was diese Entscheidung nicht ändert"
 }

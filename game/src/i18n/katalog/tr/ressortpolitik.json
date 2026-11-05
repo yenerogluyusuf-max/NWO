@@ -59,5 +59,8 @@
   "rp.auftrag": "Kararlaştırılan bakanlık hedefine süresinde ulaşılamadı. Koalisyon siyasi yanıt istiyor.",
   "rp.entlassungZusatz": "Açık bakanlık olayı: ek {n} dikkat. Görevden alma olay kartıyla aynı grup tepkilerini doğurur; mevcut sözler açık kalır.",
   "rp.kommissarisch": "Kalıcı halef atanana kadar vekil yöneticiye ayrıca ×0,8 performans çarpanı uygulanır.",
-  "rp.abschluss.entlassen": "Bakan görevden alındı"
+  "rp.abschluss.entlassen": "Bakan görevden alındı",
+  "rp.sachfolgeKurz": "{name}: {vor} → {nach}.",
+  "rp.sachKosten": "Önceden kaydedilen ek maliyet: GSYH'nin %{bip} kadarı.",
+  "rp.grenzeTitel": "Bu kararın değiştirmedikleri"
 }

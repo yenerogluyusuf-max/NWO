@@ -6,7 +6,7 @@
   "gp.mehrheit": "Die erwarteten Stimmen erreichen die Mehrheit von 301.",
   "gp.fristeffekt": "Durch bekannte Fristen: {n} erwartete Ja-Stimmen weniger.",
   "gp.fraktion": "{partei} · {sitze} Sitze: Duldung endet am {datum} vor oder am Votum.",
-  "gp.hilfe": "Prüfe ein Bündnis oder weitere Fraktionen in den Verhandlungen. Absprachen können die Lücke für dieses Gesetz schließen. Eine neue Duldung ist erst nach Ablauf der bisherigen möglich.",
+  "gp.hilfe": "Prüfen Sie ein Bündnis oder weitere Fraktionen in den Verhandlungen. Absprachen können die Lücke für dieses Gesetz schließen. Eine neue Duldung ist erst nach Ablauf der bisherigen möglich.",
   "gp.grenze": "Heutige politische Lage, Absprachen und Fassungseffekte; bekannte Duldungsfristen sind berücksichtigt. Künftige Ereignisse, Koalitionsbrüche und die Streuung der Abstimmung können das Ergebnis verändern.",
   "gp.aufmerksamkeit": "Zusätzlich {n} Aufmerksamkeit je Absprache.",
   "gp.verteilung": "Die Sitzfarben veranschaulichen die Gesamtprognose. Fassungseffekte und Übertritte sind geschätzt; die Simulation legt dafür keine einzelnen Abgeordneten fest.",

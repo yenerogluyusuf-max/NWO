@@ -5,6 +5,7 @@ import { offeneRessortVorfaelle, ressortPolitikPlan, entscheideRessortVorfall, t
 import { formatDateDe, addDays } from '../../sim/dates';
 import { t, zahl } from '../../i18n';
 import { NET } from '../../sim/modell';
+import { AEMTER } from '../../sim/personen';
 import { UbVerweis } from '../akte/Uebersicht';
 import { ZusagenDruck } from '../personen/ZusagenDruck';
 import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
@@ -63,20 +64,21 @@ export function RessortReaktionsOption({world,id,art,onEntscheide}:{world:World;
   </EntscheidungsKarte>;
 }
 export function RessortVerantwortung({world,refresh,amt,anliegenVorOrt=false,mitNachsorge=true}:{world:World;refresh:()=>void;amt?:RessortVorfall['amt'];anliegenVorOrt?:boolean;mitNachsorge?:boolean}) {
-  const [auswahl,setAuswahl]=useState(''),[antwort,setAntwort]=useState('');
+  const [antwort,setAntwort]=useState('');
   const offen=offeneRessortVorfaelle(world).filter(v=>!amt||v.amt===amt),alle=(world.spiel?.ministerfluss?.ressortVorfaelle??[]).filter(v=>!amt||v.amt===amt);
   if(!alle.length)return mitNachsorge?<RessortErholung refresh={refresh} world={world} amt={amt} anliegenVorOrt={anliegenVorOrt}/>:null;
-  return <>{mitNachsorge&&<RessortErholung refresh={refresh} world={world} amt={amt} anliegenVorOrt={anliegenVorOrt}/>}<section className="rp" aria-label={t('rp.titel')}><header><small>{t('rp.kicker')}</small><h3>{t('rp.titel')}</h3><p>{t('rp.intro')}</p></header>
+  return <>{mitNachsorge&&<RessortErholung refresh={refresh} world={world} amt={amt} anliegenVorOrt={anliegenVorOrt}/>}<section className="rp" aria-label={t('rp.titel')}>
     {antwort&&<p role="status">{antwort}</p>}
     {offen.map(v=><article className="rp-vorfall" key={v.id}>
-      <div className="rp-kopf"><h4>{v.name} · {v.partei??t('rp.parteilos')}</h4><time>{formatDateDe(v.datum)}</time></div>
+      <div className="rp-kopf"><h4>{v.name} · {AEMTER[v.amt].ressort}{v.partei?` · ${v.partei}`:''}</h4><time>{formatDateDe(v.datum)}</time></div>
       <p>{t(ausgang(v))}</p>
-      <p>{t('rp.sachfolge',{name:knoten(v.folge.groesse),vor:zahl(v.folge.vorher,2),nach:zahl(v.folge.nachher,2),bip:zahl(v.folge.bip,3)})}</p>
+      {/* Vorgabe V: ganze Zahlen, Zusatzkosten nur, wenn es welche gibt; die drei Antworten stehen gleich da (früher erst nach „vergleichen“) */}
+      <p>{t('rp.sachfolgeKurz',{name:knoten(v.folge.groesse),vor:zahl(v.folge.vorher,0),nach:zahl(v.folge.nachher,0)})}{v.folge.bip>0.0005?` ${t('rp.sachKosten',{bip:zahl(v.folge.bip,2)})}`:''}</p>
+      <RessortReaktionsWege key={v.id} world={world} id={v.id} onEntscheide={p=>{const r=entscheideRessortVorfall(world,p);setAntwort(r.text);refresh();}}/>
       <details><summary>{t('rp.schonGebucht')}</summary><RessortPolitikFolgen b={v.reaktion}/></details>
-      <button type="button" className="pd-btn" aria-expanded={auswahl===v.id} onClick={()=>setAuswahl(auswahl===v.id?'':v.id)}>{t('rp.vergleichen')}</button>
-      {auswahl===v.id&&<RessortReaktionsWege key={v.id} world={world} id={v.id} onEntscheide={p=>{const r=entscheideRessortVorfall(world,p);setAntwort(r.text);refresh();}}/>}
     </article>)}
-    <p>{t('rp.grenze')}</p><p><UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('rp.parlament')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'personen'}}>{t('rp.nachfolge')}</UbVerweis></p>
+    <details className="rp-grenze"><summary>{t('rp.grenzeTitel')}</summary><p>{t('rp.grenze')}</p></details>
+    <p><UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('rp.parlament')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'personen'}}>{t('rp.nachfolge')}</UbVerweis></p>
     <RessortPolitikVerlauf vorfaelle={alle}/>
   </section></>;
 }

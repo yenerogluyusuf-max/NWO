@@ -12,7 +12,7 @@
   "sd.heute": "Bugün son gün",
   "sd.inTagen": "{n} gün sonra",
   "sd.zusageGrund": "{partei} için verilen taahhüt; süreyi ve siyasi desteği inceleyin.",
-  "sd.verantwortung": "{name}: sorumluluğu değerlendirin",
+  "sd.verantwortung": "{art, select, stillstand {{name}: bakanlık işleri aksıyor} auftragVerfehlt {{name}: hedef tutturulamadı} gut {{name}: danışmadan hareket etti} other {{name}: tek başına hamle ters tepti}}",
   "sd.gespraech": "{name} yanıt bekliyor",
   "sd.forderung": "{partei} sonuç bekliyor",
   "sd.arbeitsbereiche": "Yönetim masası çalışma alanları",

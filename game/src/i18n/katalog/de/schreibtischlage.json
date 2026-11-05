@@ -3,5 +3,5 @@
   "sl.partner.frueh": "Rückhalt sichern: {name} ({partei})",
   "sl.partner.bruch": "Loyalität {loyalitaet}, unter 20: Ohne ausreichende Stabilisierung droht bei der Monatsprüfung am {datum} der Verlust von {sitze} Regierungssitzen; {rest} blieben. Andere Monatsfolgen können den Rückhalt verändern.",
   "sl.partner.puffer": "Loyalität {loyalitaet}: unzufrieden, aber derzeit nicht unter der Bruchschwelle von 20. Die nächste Prüfung ist am {datum}. Bei einem späteren Austritt gingen {sitze} Regierungssitze verloren; {rest} blieben.",
-  "sl.partner.hilfe": "Prüfe unter Personen und Zusagen die offenen Verpflichtungen und die Folgen eines Gesprächs. Ein Gespräch erfüllt keine Zusage."
+  "sl.partner.hilfe": "Prüfen Sie unter Personen und Zusagen die offenen Verpflichtungen und die Folgen eines Gesprächs. Ein Gespräch erfüllt keine Zusage."
 }

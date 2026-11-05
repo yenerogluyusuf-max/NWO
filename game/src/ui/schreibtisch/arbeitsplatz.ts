@@ -42,7 +42,7 @@ export function schreibtischArbeit(w:World,b:Pick<Briefing,'warnungen'|'faellig'
       ton:z.akut||z.druck?.bruch?'rot':'gelb',rang:z.akut||z.druck?.bruch?120:tage<=7?105:70,
       sprung:intern('entscheiden','zusagen',z.z.id)});
   }
-  for(const v of vorfaelle)prioritaeten.push({id:`rv-${v.id}`,titel:t('sd.verantwortung',{name:v.name}),grund:AEMTER[v.amt].ressort,
+  for(const v of vorfaelle)prioritaeten.push({id:`rv-${v.id}`,titel:t('sd.verantwortung',{name:v.name,art:v.art==='eigeninitiative'?(v.erfolg?'gut':'schlecht'):v.art}),grund:AEMTER[v.amt].ressort,
     ton:v.erfolg?'gelb':'rot',rang:v.erfolg?88:115,sprung:intern('entscheiden','minister',v.amt)});
   for(const a of anliegen)prioritaeten.push({id:`ra-${a.id}`,titel:t('sd.gespraech',{name:a.name}),grund:AEMTER[a.amt].ressort,
     tage:a.frist-w.day,ton:a.frist-w.day<=3?'rot':'gelb',rang:a.frist-w.day<=3?110:80,sprung:intern('entscheiden','minister',a.amt)});

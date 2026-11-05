@@ -908,7 +908,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             {gruppe && !gruppe.akte && gruppe.tabs.length > 1 && (
               <div className="dossier-tabs" role="tablist" aria-label={t("st.ansicht", { titel: gruppe.titel })}>
                 {gruppe.tabs.map((t) => (
-                  <button key={t.id} role="tab" aria-selected={dossier === t.id} className={dossier === t.id ? "on" : ""} onClick={() => { if (t.id === "politik") setPolitikStart(null); setDossier(t.id); }}>
+                  <button key={t.id} role="tab" aria-selected={dossier === t.id} className={dossier === t.id ? "on" : ""} title={zweckVon(t.id, gruppe.kurz)} onClick={() => { if (t.id === "politik") setPolitikStart(null); setDossier(t.id); }}>
                     {t.label}
                   </button>
                 ))}
@@ -938,8 +938,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               onKonflikt={(id) => { setWeltStart(id); setWeltTab("konflikt"); setDossier("welt"); beendeZeit(); }}
               refresh={() => { refresh(); sichere(true); }}
             >
-            {/* Zweckzeile je Reiter auch in den Bereichsakten (früher nur ohne Akte; 17 Texte blieben ungesehen, PRUEFUNG_GESAMT_2026-11-04) */}
-            {dossier !== "wirtschaft" && zweckVon(dossier, gruppe?.akte ? undefined : gruppe?.kurz) && <p className="dossier-zweck">{zweckVon(dossier, gruppe?.akte ? undefined : gruppe?.kurz)}</p>}
+            {/* Vorgabe V: keine Erklärzeile über jeder Ansicht mehr; der Zweck steht als Hinweis am Reiter (Mauszeiger) */}
             {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} onVorgang={zeigeVorgang} />}
             {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}

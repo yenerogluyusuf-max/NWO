@@ -149,7 +149,7 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
   const notizen=mentorNotes(world),v=b.verfassung;
   return <div className="sk sk2">
     <header className="sk2-kopf">
-      <div><h3>{t('sd.titel')}</h3><p>{b.datum} · {t('sk.ui.amtszeit',{n:b.amtszeit.nummer,monate:b.amtszeit.monateBisWahl,wahltag:b.amtszeit.wahltag})}</p></div>
+      <div><p className="sk2-datum">{b.datum}</p><p>{t('sk.ui.amtszeit',{n:b.amtszeit.nummer,monate:b.amtszeit.monateBisWahl,wahltag:b.amtszeit.wahltag})}</p></div>
       <ul className="sk2-zahlen" aria-label={t('sk.ui.lageAria')}>{b.kennzahlen.filter(k=>KENNZAHLEN.has(k.id)).map(k=><li key={k.id}><button type="button" className={`ton-${k.ton}`} onClick={()=>onGehe(k.ziel)} title={`${k.zusatz} · ${t('sk.ui.akteOeffnen',{label:k.label})}`}><span>{k.label}</span><strong>{k.wert}{k.trend!=='gleich'&&<em aria-hidden>{k.trend==='auf'?'↑':'↓'}</em>}</strong></button></li>)}</ul>
     </header>
     <div className="sk2-layout">

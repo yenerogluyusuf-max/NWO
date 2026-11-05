@@ -21,7 +21,7 @@
  "hm.parlament":"Fraktionen im Parlament öffnen",
  "hm.bruch":"{name} ({partei}) liegt bei {loyal} Loyalität. Bei der Monatsprüfung am {datum} droht noch vor oder am Votum der Verlust von {sitze} Regierungssitzen. Die Stimmenprognose setzt den Verbleib im Bündnis voraus; stabilisiere den Partner rechtzeitig.",
  "hm.kapital":"Das nötige Kapital übersteigt auch den verfügbaren Überziehungsrahmen.",
- "hm.veraltet":"Die Bedingungen haben sich geändert. Prüfe das aktualisierte Angebot; es wurde nichts gebucht.",
+ "hm.veraltet":"Die Bedingungen haben sich geändert. Prüfen Sie das aktualisierte Angebot; es wurde nichts gebucht.",
  "hm.beendet":"Die Amtszeit ist beendet; ein neues Haushaltsgeschäft ist nicht mehr möglich.",
  "hm.anzahl":"Vereinbare eine gültige Anzahl zwischen 1 und 600 Stimmen.",
  "hm.einbringenWarum":"Zum Votum am {datum} werden {ja} Ja-Stimmen erwartet, nötig sind {noetig}. Bekannte Duldungsfristen sind berücksichtigt. Absprachen oder Fraktionsabkommen können die Mehrheit stärken. Scheitert das Gesetz, gilt der Vorjahrshaushalt weiter und die Regierung verliert Legitimität. Spätere Ereignisse und die Streuung der Abstimmung bleiben möglich."

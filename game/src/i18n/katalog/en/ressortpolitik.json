@@ -59,5 +59,8 @@
   "rp.auftrag": "The agreed ministry target was missed at its deadline. The coalition demands a political response.",
   "rp.entlassungZusatz": "Open ministry incident: {n} additional attention. Dismissal triggers the same faction reactions as the incident card; existing promises remain open.",
   "rp.kommissarisch": "The interim appointment adds a performance factor of ×0.8 until a permanent successor is appointed.",
-  "rp.abschluss.entlassen": "Minister dismissed"
+  "rp.abschluss.entlassen": "Minister dismissed",
+  "rp.sachfolgeKurz": "{name}: {vor} → {nach}.",
+  "rp.sachKosten": "Extra costs already booked: {bip}% of GDP.",
+  "rp.grenzeTitel": "What this decision does not change"
 }

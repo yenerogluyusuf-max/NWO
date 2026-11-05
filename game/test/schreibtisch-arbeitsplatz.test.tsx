@@ -86,7 +86,7 @@ describe('Regierungsschreibtisch als Arbeitsablauf',()=>{
     const plan=ressortPolitikPlan(w,v.id,'stuetzen')!;expect(entscheideRessortVorfall(w,plan).ok).toBe(true);
     const neu=arbeit(w);expect(neu.vorfaelle).toHaveLength(0);expect(neu.beobachtet.some(m=>m.amt==='inneres')).toBe(true);
     const html=renderToStaticMarkup(<SchreibtischInArbeit world={w} refresh={noop} onGehe={noop} arbeit={neu} auswahl="inneres" onAuswahl={noop}/>);
-    expect(html).toContain(t('rn.titel'));expect(html).toContain(t('rn.status.wartet'));expect(html).not.toContain(t('rp.vergleichen'));
+    expect(html).toContain(t('rn.titel'));expect(html).toContain(t('rn.status.wartet'));
   });
   test('neue Ergebnisforderung führt zur Wirkungskontrolle mit erreichbaren Hilfen',()=>{
     const w=ministerWelt();w.day+=14;w.date=addDays(w.date,14);ressortAnliegenTag(w);const v=offeneRessortVorfaelle(w)[0]!;
@@ -156,7 +156,7 @@ describe('Dreisprachige Arbeitsoberfläche',()=>{
   test.each(['de','en','tr'] as const)('%s: Navigation, Auswahl, Berichte und Risiko bleiben verständlich',async lang=>{
     await setzeSprache(lang);const w=welt();zusage(w);aktiveParteivorsitzende(w,'YENİ')[0]!.loyalitaet=19;
     const html=renderToStaticMarkup(<Schreibtisch world={w} refresh={noop} onGehe={noop}/>);
-    for(const key of ['sd.titel','sd.aufDemTisch','sd.arbeit','sd.rueckblick','sd.handlungsspielraum'])expect(html).toContain(t(key));
+    for(const key of ['sd.aufDemTisch','sd.arbeit','sd.rueckblick','sd.handlungsspielraum'])expect(html).toContain(t(key));
     // Eine Liste nach Dringlichkeit; der dringendste Eintrag steht offen (Vorgabe V)
     expect(html).toContain('aria-expanded="true"');expect(html).toContain('aria-controls=');expect(html).toContain('tabindex="-1"');expect(html).not.toContain('<main');
     expect(html).not.toContain('⟦');expect(html).not.toMatch(/\{(?:n|datum|name|partei)\}/);

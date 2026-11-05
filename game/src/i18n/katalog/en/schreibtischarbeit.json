@@ -12,7 +12,7 @@
   "sd.heute": "Due today",
   "sd.inTagen": "In {n} days",
   "sd.zusageGrund": "Commitment to {partei}; review its deadline and political support.",
-  "sd.verantwortung": "{name}: decide on accountability",
+  "sd.verantwortung": "{art, select, stillstand {{name}: ministry work stalls} auftragVerfehlt {{name}: target missed} gut {{name}: went it alone} other {{name}: solo move backfired}}",
   "sd.gespraech": "{name} is waiting for an answer",
   "sd.forderung": "{partei} demands results",
   "sd.arbeitsbereiche": "Government desk workspaces",
