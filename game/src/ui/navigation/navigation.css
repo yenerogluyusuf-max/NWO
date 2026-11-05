@@ -53,7 +53,7 @@
 }
 /* Einklappbare Leiste (Vorgabe S): schmal zeigt sie nur Zeichen und Zahlen; Name im Tooltip. Akten rücken nach links. */
 @media(min-width:1101px){.stage .regierungs-navigation .rn-marke{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}}
-.stage .dossier-menu.regierungs-navigation button.rn-klappe{flex:none;width:28px;min-height:28px;height:28px;padding:0;margin:0;justify-content:center;border:1px solid #c69a4a66;border-radius:6px;color:#f1d58f;font:400 16px/1 var(--kapitaelchen);background:#ffffff0a}
+.stage .dossier-menu.regierungs-navigation button.rn-klappe{flex:none;width:28px;min-height:28px;height:28px;padding:0;margin:0;justify-content:center;border:1px solid #c69a4a66;border-radius:6px;color:#f1d58f;font:400 15px/1 var(--kapitaelchen);background:#ffffff0a}
 .stage .dossier-menu.regierungs-navigation button.rn-klappe:hover{background:#ffffff1a;transform:none}
 @media(min-width:1101px){
   .stage:has(.regierungs-navigation.rn-schmal){--rn-abstand:80px}

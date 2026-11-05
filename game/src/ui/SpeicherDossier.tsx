@@ -224,11 +224,11 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                     {t("ui2.ui.SpeicherDossier.217e0b1", { p0: slotNum })} {info ? info.label : t("ui2.ui.SpeicherDossier.eaf7d94")}
                   </strong>
                   {info ? (
-                    <span style={{ fontSize: 13, color: "var(--ink-soft)", fontStyle: "italic" }}>
+                    <span style={{ fontSize: 12.5, color: "var(--ink-soft)", fontStyle: "italic" }}>
                       {t("ui2.ui.SpeicherDossier.a68cc16", { p0: info.datum, p1: info.name, p2: Math.round(info.zustimmung ?? 0) })}
                     </span>
                   ) : (
-                    <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("ui.SpeicherDossier.e0f9ca5")}</span>
+                    <span style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>{t("ui.SpeicherDossier.e0f9ca5")}</span>
                   )}
                 </div>
 
@@ -253,7 +253,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                   <button
                     type="button"
                     className="brass-button"
-                    style={{ padding: "4px 10px", fontSize: 13 }}
+                    style={{ padding: "4px 10px", fontSize: 12.5 }}
                     onClick={() => void speichereIn(slotNum)}
                     title={t("ui2.ui.SpeicherDossier.030022f", { p0: slotNum })}
                   >
@@ -264,7 +264,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                       <button
                         type="button"
                         className="leather-button"
-                        style={{ padding: "4px 10px", fontSize: 13 }}
+                        style={{ padding: "4px 10px", fontSize: 12.5 }}
                         onClick={() => void ladeAus(slotNum)}
                         title={t("ui2.ui.SpeicherDossier.1d688ae", { p0: slotNum })}
                       >
