@@ -13,6 +13,7 @@ import { MEDIEN_CLUSTER } from "../../data/medien";
 import { programmZustand, schrittMitProgramm } from "../../sim/programme";
 import { zielStand } from "../../sim/ziele";
 import { baumSicht, knotenName } from "../../sim/wissensbaum";
+import { vertrauenZu } from "../../sim/laender";
 import { fokusName, fokusUeberblick } from "../../sim/fokus";
 import { alleLaufenden } from "../../sim/abkommen";
 import { aktiveKriege, PHASEN_NAME } from "../../sim/krieg";
@@ -116,7 +117,12 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
     }
     case "aussen": {
       k.push(knotenKern(w, "ansehen", t("akte.b.kern.ansehen"), 55, 40));
-      k.push(knotenKern(w, "beziehungen_eu", t("akte.b.kern.eu"), 55, 35));
+      // Dieselbe Zahl wie in der Weltlage: das Vertrauen der EU (Knoten und Versatz), mit dem die EU-Logik rechnet
+      // (Spielerdurchlauf 5. November: Kopf 40, Weltlage 38)
+      if (w.spiel) {
+        const eu = vertrauenZu(w, "EU");
+        k.push({ label: t("akte.b.kern.eu"), wert: nf(eu), ton: ton(eu, 55, 35), anteil: eu / 100 });
+      } else k.push(knotenKern(w, "beziehungen_eu", t("akte.b.kern.eu"), 55, 35));
       k.push({ label: t("akte.b.kern.vertraege"), wert: nf(sp ? alleLaufenden(w).length : 0) });
       break;
     }

@@ -189,7 +189,7 @@
  "aussen.warn.diaspora": "Die Diaspora verliert Vertrauen: Ersparnisse fließen ab.",
  "aussen.warn.eu": "Der Streit mit Brüssel nähert sich Handelsmaßnahmen.",
  "aussen.warn.flucht": "Neue Fluchtbewegung: rund {z} Tausend Menschen im Monat erreichen das Land.",
- "aussen.warn.hormus_geschlossen": "Hormus ist geschlossen: Ein Teil der Gasversorgung fehlt.",
+ "aussen.warn.hormus_geschlossen": "Hormus ist geschlossen: {gedeckt, select, ja {Flüssiggas aus dem Golf fehlt; andere Lieferanten füllen die Lücke zu höheren Preisen.} other {Ein Teil der Gasversorgung fehlt, gedeckt sind {v} % des Bedarfs.}}",
  "aussen.warn.hormus_gestoert": "Hormus ist gestört: LNG wird teurer und unsicherer.",
  "aussen.warn.terror_is": "Die Lage in Syrien nährt den IS: Die Anschlagsgefahr ist hoch.",
  "aussen.warn.terror_links": "Linksextreme Zellen nutzen die Polarisierung.",

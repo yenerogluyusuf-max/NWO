@@ -189,7 +189,7 @@
  "aussen.warn.diaspora": "The diaspora is losing trust: savings are flowing out.",
  "aussen.warn.eu": "The dispute with Brussels is nearing trade measures.",
  "aussen.warn.flucht": "New refugee movement: around {z} thousand people a month are arriving.",
- "aussen.warn.hormus_geschlossen": "Hormuz is closed: part of the gas supply is missing.",
+ "aussen.warn.hormus_geschlossen": "Hormuz is closed: {gedeckt, select, ja {LNG from the Gulf is missing; other suppliers fill the gap at higher prices.} other {part of the gas supply is missing; {v}% of demand is covered.}}",
  "aussen.warn.hormus_gestoert": "Hormuz is disrupted: LNG is becoming dearer and less certain.",
  "aussen.warn.terror_is": "The situation in Syria feeds IS: the risk of attacks is high.",
  "aussen.warn.terror_links": "Far-left cells exploit polarisation.",

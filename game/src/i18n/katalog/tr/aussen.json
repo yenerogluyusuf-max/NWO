@@ -189,7 +189,7 @@
  "aussen.warn.diaspora": "Diaspora güven kaybediyor: Birikimler dışarı akıyor.",
  "aussen.warn.eu": "Brüksel ile anlaşmazlık ticari önlemlere yaklaşıyor.",
  "aussen.warn.flucht": "Yeni göç dalgası: ayda yaklaşık {z} bin kişi ülkeye ulaşıyor.",
- "aussen.warn.hormus_geschlossen": "Hürmüz kapalı: Gaz arzının bir kısmı eksik.",
+ "aussen.warn.hormus_geschlossen": "Hürmüz kapalı: {gedeckt, select, ja {Körfez'den gelen LNG eksik; diğer tedarikçiler açığı daha yüksek fiyatlarla kapatıyor.} other {Gaz arzının bir kısmı eksik; ihtiyacın %{v} kadarı karşılanıyor.}}",
  "aussen.warn.hormus_gestoert": "Hürmüz aksıyor: LNG pahalanıyor ve belirsizleşiyor.",
  "aussen.warn.terror_is": "Suriye'deki durum IŞİD'i besliyor: Saldırı tehlikesi yüksek.",
  "aussen.warn.terror_links": "Aşırı sol hücreler kutuplaşmadan yararlanıyor.",

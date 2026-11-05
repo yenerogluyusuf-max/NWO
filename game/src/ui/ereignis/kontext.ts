@@ -7,6 +7,7 @@ import { EREIGNIS_BEZUG } from "../../sim/gespraeche";
 import { ratZuEreignis, type RessortRat } from "../../sim/personen-api";
 import { angezeigteZustimmung } from "../../sim/medien";
 import { schlechtBeiHoch } from "../../sim/berichte";
+import { vertrauenZu } from "../../sim/laender";
 import { aktuelleSprache, t } from "../../i18n";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
@@ -152,7 +153,7 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
       return z.quelle === "institut" && z.institut ? { ...k, notiz: t("ereignis.kz.umfrageQuelle", { institut: z.institut, tage: z.alterTage }) } : k;
     },
     ansehen: knot("ansehen", t("ereignis.kz.ansehen")),
-    eu: knot("beziehungen_eu", t("ereignis.kz.eu")),
+    eu: () => (w.spiel ? zahl("eu", t("ereignis.kz.eu"), `${Math.round(vertrauenZu(w, "EU"))} / 100`) : knot("beziehungen_eu", t("ereignis.kz.eu"))()),
     terror: knot("terrorgefahr", t("ereignis.kz.terror")),
     moral: knot("truppenmoral", t("ereignis.kz.moral")),
     polarisierung: knot("polarisierung", t("ereignis.kz.polarisierung")),

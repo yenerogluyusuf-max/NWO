@@ -748,7 +748,9 @@ export function vorwarnungen(w: World): Vorwarnung[] {
   const a = aussenZustand(w);
   const welt = weltZustand(w);
   const out: Vorwarnung[] = [];
-  if (a.energie.hormus !== "offen") out.push({ id: "hormus", text: t(`aussen.warn.hormus_${a.energie.hormus}`), ernst: a.energie.hormus === "geschlossen" ? 2 : 1 });
+  // Ob wirklich Gas fehlt, sagt die Güterbilanz (Versorgung); sonst ersetzen andere Lieferanten das LNG zu höheren Preisen
+  // (Spielerdurchlauf 5. November: „Ein Teil der Gasversorgung fehlt“ neben „Versorgungssicherheit 100“)
+  if (a.energie.hormus !== "offen") out.push({ id: "hormus", text: t(`aussen.warn.hormus_${a.energie.hormus}`, { gedeckt: a.energie.versorgung >= 99 ? "ja" : "nein", v: Math.round(a.energie.versorgung) }), ernst: a.energie.hormus === "geschlossen" ? (a.energie.versorgung >= 99 ? 1 : 2) : 1 });
   if (a.energie.versorgung < 45) out.push({ id: "winter", text: t("aussen.warn.winter", { v: Math.round(a.energie.versorgung) }), ernst: 2 });
   if ((welt["USA"]?.konflikt ?? 0) >= 60 && !a.sanktionen.some((s) => s.id === "caatsa")) out.push({ id: "caatsa", text: t("aussen.warn.caatsa"), ernst: 1 });
   if ((welt["EU"]?.konflikt ?? 0) >= 65 && !a.sanktionen.some((s) => s.id === "eu_handel")) out.push({ id: "eu", text: t("aussen.warn.eu"), ernst: 1 });
