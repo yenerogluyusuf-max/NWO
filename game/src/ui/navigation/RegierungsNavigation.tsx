@@ -17,7 +17,7 @@ export function RegierungsNavigation({eintraege,aktiv,onWaehlen}:{eintraege:Navi
     <nav id={id} className={`dossier-menu regierungs-navigation${offen?' rn-offen':''}${schmal?' rn-schmal':''}`} aria-label={t('nav.aria')} onKeyDown={e=>{if(e.key==='Escape'&&offen){setOffen(false);schalter.current?.focus();}}}>
       <div className="rn-marke"><span className="rn-marke-text">{t('rn.marke')}<small>{t('rn.unter')}</small></span><button type="button" className="rn-klappe" aria-pressed={schmal} title={t(schmal?'rn.ausklappen':'rn.einklappen')} aria-label={t(schmal?'rn.ausklappen':'rn.einklappen')} onClick={umschalten}><span aria-hidden>{schmal?'»':'«'}</span></button></div>
       {navigationsGruppen(eintraege).map(g=><section key={g.id} aria-label={t(`rn.${g.id}`)}><h3>{t(`rn.${g.id}`)}</h3>{g.eintraege.map(m=><button type="button" key={m.id} className={aktiv===m.id?'on':''} aria-current={aktiv===m.id?'page':undefined} title={m.titel} onClick={()=>{onWaehlen(m.id);setOffen(false);}}>
-        <Icon name={m.icon} size={21}/><span className="menu-kurz">{m.kurz}</span><span className="rn-zahlen">{m.badge!==undefined&&<b aria-label={t('rn.offen',{n:m.badge})}>{m.badge}</b>}{m.umlauf!==undefined&&<b className="ruhig" aria-label={t('rn.neu',{n:m.umlauf})}>{m.umlauf}</b>}</span>
+        <Icon name={m.icon} size={21}/><span className="menu-kurz">{m.kurz}</span><span className="rn-zahlen">{m.badge!==undefined&&<b aria-label={t('rn.offen',{n:m.badge})}>{m.badge>99?'99+':m.badge}</b>}{m.umlauf!==undefined&&<b className="ruhig" aria-label={t('rn.neu',{n:m.umlauf})}>{m.umlauf>99?'99+':m.umlauf}</b>}</span>
       </button>)}</section>)}
     </nav></>;
 }

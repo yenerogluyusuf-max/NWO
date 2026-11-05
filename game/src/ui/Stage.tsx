@@ -658,6 +658,11 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     if (!dossier) setWissensZurueck(null);
     ueberLeiste.current = false;
   }, [dossier]);
+  // Bei offenem Schreibtisch ist der Umlauf gelesen (Spielerdurchlauf 5. November: Der Zähler stand bei 121, während der
+  // Schreibtisch offen war, weil er nur beim Öffnen zurückgesetzt wurde)
+  useEffect(() => {
+    if (dossier === "schreibtisch" && umlaufNeu > 0) umlaufGelesen();
+  }, [dossier, umlaufNeu, umlaufGelesen]);
   const oeffneDossier = (d: Dossier) => {
     if (d === "personen") setPersonenStart(undefined);
     if (d === "politik") setPolitikStart(null);
