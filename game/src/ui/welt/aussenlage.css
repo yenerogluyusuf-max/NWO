@@ -65,3 +65,10 @@
 .al-berichte ul { padding-left: 16px; font: 14px var(--sans, Inter, sans-serif); }
 .al-berichte li.gut { color: #674b3b; }
 .al-berichte li.schlecht { color: #8c2b1f; }
+
+/* Handy: Kennzahlen zweispaltig und flach, die Raster einspaltig ohne Mindestbreite über dem Bildschirm */
+@media (max-width: 640px) {
+  .al-zahlen { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .al-zahlen > * { min-height: 0; padding: 10px 12px; }
+  .al-raster, .al-instr-raster, .al-diagramme { grid-template-columns: minmax(0, 1fr); }
+}

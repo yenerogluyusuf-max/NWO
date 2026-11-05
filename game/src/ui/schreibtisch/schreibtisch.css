@@ -136,9 +136,10 @@
   .sk .sd-oeffnen { grid-column:1/-1; padding-top:8px; }
 }
 @container regierungsdesk (max-width:480px) {
-  .sk .sd-kopf { padding:22px 18px; border-radius:10px; }
+  .sk .sd-kopf { padding:14px 16px; border-radius:10px; }
   .sk .sd-siegel { display:none; }
-  .sk .sd-kennzahlen { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  /* Auf dem Handy stehen dieselben Werte in der Kopfleiste: die Reihe weicht, damit „Jetzt wichtig“ im ersten Blick liegt */
+  .sk .sd-kennzahlen { display:none; }
   .dossier .sk button.sd-kennzahl { padding:14px; }
   .sk .sd-kennzahl strong { font-size:24px; }
   .sk .sd-panel { padding:16px 12px; }
