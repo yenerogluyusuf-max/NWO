@@ -2,6 +2,8 @@
   "ra.titel": "Your ministers need a decision",
   "ra.schonBearbeitet": "Policy work has already begun or the situation has eased. This response is no longer needed; the daily review closes the request without an additional relationship penalty.",
   "ra.kicker": "Departments under pressure",
+  "tk.anliegenTitel": "Request for a decision: {groesse}",
+  "tk.leer": "Nothing is left open for this department.",
   "ra.intro": "When a troubled department receives no new policy action or conversation for 30 days, its minister raises a request. Up to three requests can be open at once. Reading is not a decision.",
   "ra.frist": "Reply by {datum}",
   "ra.bitte": "“{groesse} stands at {wert}. I need a decision and want to discuss the next steps personally.”",

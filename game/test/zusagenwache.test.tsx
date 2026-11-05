@@ -200,7 +200,10 @@ describe("Gefährdete Zusagen auf dem Regierungsschreibtisch",()=>{
   });
   test("Regierungsschreibtisch bindet die Karten ein; Zusagensprung öffnet direkt den richtigen Personenreiter",()=>{
     const w=welt();zusage(w);
-    expect(renderToStaticMarkup(<Schreibtisch world={w} refresh={()=>{}} onGehe={()=>{}}/>)).toContain(t("zw.titel"));
+    // Seit 05.11.2026 dieselbe Vorlagenkarte wie jede andere Entscheidung am Tisch: erfüllen und vertrösten mit Preis
+    const tisch=renderToStaticMarkup(<Schreibtisch world={w} refresh={()=>{}} onGehe={()=>{}}/>);
+    expect(tisch).toContain('quelle-zusage');
+    expect(tisch).toContain(t("zw.vertroesten"));
     const html=renderToStaticMarkup(<Personen world={w} initialTab="zusagen"/>);
     expect(html).toContain('class="pe-zusagen-seite"');
   });

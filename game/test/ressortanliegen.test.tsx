@@ -9,6 +9,7 @@ import {eigenVon,wertVon,AEMTER,HOCH_SCHLECHT} from '../src/sim/personen';
 import {wirke} from '../src/sim/wirkung';
 import {addDays} from '../src/sim/dates';
 import {RessortAnliegenKarten,RessortFolgen,RessortAntwortKarte} from '../src/ui/minister/RessortAnliegen';
+import {RessortTischkarten,anliegenAlsVorlage} from '../src/ui/schreibtisch/Tischkarte';
 import {setzeSprache,t,katalogVon,platzhalter,zahl} from '../src/i18n';
 import {fuehreGespraech} from '../src/sim/gespraeche';
 import {setzePosten} from '../src/sim/haushalt';
@@ -70,4 +71,16 @@ test('Gedächtnis (Suzerain): eine Ablehnung bleibt in Erinnerung und steht auf 
  expect(person(w).eigen!.erinnerung.at(-1)!.text).toBe(t('ra.merke.ablehnen',{groesse:NET.nodes[NET.index.get(a.groesse)!]!.name}));
  tag(w,14);tag(w,30);const neu=w.spiel!.ministerfluss!.ressortAnliegen!.find(x=>x.amt==='inneres'&&x.status==='offen'&&x.id!==a.id);
  if(neu){const html=renderToStaticMarkup(<RessortAnliegenKarten world={w} refresh={()=>{}}/>);expect(html).toContain('ra-gedaechtnis');}
+});
+// Schreibtisch (05.11.2026): Anliegen erscheinen als dieselbe Vorlagenkarte wie Ereignisse; Wege und Preise aus den Plänen, Anzeige ändert nichts
+test.each(['de','en','tr'] as const)('Tischkarte des Anliegens auf %s: vier Wege mit Preis, ohne Zustandsänderung',async lang=>{
+ await setzeSprache(lang);const w=anliegen(),s=save(w);
+ const html=renderToStaticMarkup(<RessortTischkarten world={w} refresh={()=>{}} amt="inneres"/>);
+ expect(save(w)).toBe(s);
+ expect(html).toContain('mf-karte');
+ for(const art of ['reden','umsetzen','ablehnen'] as const)expect(html).toContain(t(`ra.art.${art}`));
+ expect(html).toContain(t('ra.art.spaeter'));
+ const a=offene(w),v=anliegenAlsVorlage(w,a,(['reden','umsetzen','spaeter','ablehnen'] as const).flatMap(x=>{const p=ressortAntwortPlan(w,a.id,x);return p?[p]:[];}))!;
+ const plan=ressortAntwortPlan(w,a.id,'umsetzen')!;
+ expect(v.optionen.find(o=>o.id==='umsetzen')!.kosten.pk).toBe(Math.max(0,plan.pk));
 });

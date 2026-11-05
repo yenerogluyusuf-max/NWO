@@ -102,8 +102,9 @@ describe("Behörden: Ausbau, Kosten, Ertrag", () => {
     const w = neu(17);
     monate(w, 2);
     delete w.spiel!.behoerden;
+    // Seit 05.11.2026 ergänzt das Laden selbst (world.ts), damit keine Ansicht beim Lesen den Spielstand verändert
     const kopie = load(JSON.stringify(w));
-    expect(kopie.spiel!.behoerden).toBeUndefined();
+    expect(kopie.spiel!.behoerden).toBeDefined();
     const z = behoerden(kopie);
     expect(z.stand.afad.stufen).toEqual(BEHOERDE_NACH_ID.afad.start);
     // Eine neue Behörde wird in einen Stand ohne sie ergänzt

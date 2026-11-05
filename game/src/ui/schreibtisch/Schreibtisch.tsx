@@ -22,6 +22,7 @@ import { RessortErholung } from '../minister/RessortErholung';
 import { Krisenrat } from '../wirtschaft/Krisenrat';
 import { ZusagenWache } from './ZusagenWache';
 import { DreiFragen } from './DreiFragen';
+import { RessortTischkarten, ZusageTischkarte } from './Tischkarte';
 import { tageslage, type Ziel } from './briefing';
 import { aktuelleAuswahl, fristText, schreibtischArbeit, regierungsVorgaenge, type ArbeitsGruppe, type Prioritaet } from './arbeitsplatz';
 import type { UmlaufEintrag } from '../autostopp';
@@ -116,8 +117,8 @@ function TischDetail({world,refresh,onGehe,p,onKarte,onPosteingang}:GemeinsamePr
   const gehe=(z:VorlagenZiel)=>z.art==='karte'?onKarte?.(z.problemId):onGehe(z as Ziel);
   const {gruppe,bereich,id}=s.auswahl;
   if(gruppe==='vorlagen'&&id)return <Mappe world={world} refresh={refresh} ohneRessorts fokus nurKarte vorlageId={id} onGehe={gehe} onPosteingang={onPosteingang} onKarte={onKarte}/>;
-  if(gruppe==='minister'&&id&&Object.hasOwn(AEMTER,id))return bereich==='arbeit'?<RessortErholung world={world} refresh={refresh} amt={id as Amt}/>:<RessortAnliegenKarten world={world} refresh={refresh} amt={id as Amt} mitNachsorge={false}/>;
-  if(gruppe==='zusagen'&&id)return <ZusagenWache world={world} refresh={refresh} onGehe={onGehe} zusageId={id}/>;
+  if(gruppe==='minister'&&id&&Object.hasOwn(AEMTER,id))return bereich==='arbeit'?<RessortErholung world={world} refresh={refresh} amt={id as Amt}/>:<RessortTischkarten world={world} refresh={refresh} amt={id as Amt} onGehe={gehe}/>;
+  if(gruppe==='zusagen'&&id)return <ZusageTischkarte world={world} refresh={refresh} onGehe={onGehe} zusageId={id}/>;
   return null;
 }
 

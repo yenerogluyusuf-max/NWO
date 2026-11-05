@@ -1,6 +1,8 @@
 {
   "ra.titel": "Ihre Minister brauchen eine Entscheidung",
   "ra.kicker": "Ressorts unter Druck",
+  "tk.anliegenTitel": "Bitte um Entscheidung: {groesse}",
+  "tk.leer": "Für dieses Ressort liegt nichts mehr offen.",
   "ra.intro": "Bleibt ein kritisches Ressort 30 Tage ohne neue fachliche Schritte oder Gespräch, meldet sich der zuständige Minister. Bis zu drei Anliegen liegen gleichzeitig vor. Lesen allein gilt nicht als Entscheidung.",
   "ra.frist": "Antwort bis {datum}",
   "ra.bitte": "„Bei {groesse} stehen wir bei {wert}. Ich brauche eine Entscheidung und möchte die nächsten Schritte persönlich besprechen.“",

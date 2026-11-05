@@ -2,6 +2,8 @@
   "ra.titel": "Bakanların karar bekliyor",
   "ra.schonBearbeitet": "Konu için somut çalışma başladı veya durum hafifledi. Bu yanıta artık gerek yok; günlük değerlendirme talebi ilişkilerde ek bir kayıp olmadan kapatır.",
   "ra.kicker": "Baskı altındaki bakanlıklar",
+  "tk.anliegenTitel": "Karar talebi: {groesse}",
+  "tk.leer": "Bu bakanlık için açık bir konu kalmadı.",
   "ra.intro": "Sorunlu bir alanda 30 gün yeni adım veya görüşme olmazsa ilgili bakan talepte bulunur. Aynı anda en fazla üç talep açılır. Okumak karar vermek sayılmaz.",
   "ra.frist": "Yanıt tarihi: {datum}",
   "ra.bitte": "“{groesse} düzeyi {wert}. Bir kararınıza ihtiyacım var; sonraki adımları sizinle görüşmek istiyorum.”",

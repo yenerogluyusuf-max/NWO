@@ -221,9 +221,11 @@ export interface VorlageKarteProps {
   onKarte?: (problemId?: string) => void;
   /** „Einstellen und ansehen“ für Vorhaben aus dem Problemlöser */
   onEinstellen?: (v: Vorlage) => void;
+  /** Absender, der kein Ressort ist (etwa eine Fraktion bei Zusagen): ersetzt Name und Zeile unter dem Namen */
+  wer?: { name: string; unter: string };
 }
 
-export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte, onEinstellen }: VorlageKarteProps) {
+export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte, onEinstellen, wer }: VorlageKarteProps) {
   const [auf, setAuf] = useState(false);
   const echte = v.optionen.filter((o) => !istMeta(o));
   const meta = v.optionen.filter(istMeta);
@@ -243,10 +245,10 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
       <header className="mf-kopf">
         <Gesicht v={v} size={kompakt ? 38 : 32} />
         <div className="mf-wer">
-          <strong>{v.minister ? v.minister.name : AEMTER[v.amt].ressort}</strong>
+          <strong>{wer ? wer.name : v.minister ? v.minister.name : AEMTER[v.amt].ressort}</strong>
           <span>
-            {v.minister ? AEMTER[v.amt].ressort : ""}
-            {v.minister ? ` · ${t("mf.loyalitaet", { n: v.minister.loyalitaet })}` : ""}
+            {wer ? wer.unter : v.minister ? AEMTER[v.amt].ressort : ""}
+            {!wer && v.minister ? ` · ${t("mf.loyalitaet", { n: v.minister.loyalitaet })}` : ""}
           </span>
         </div>
         <div className="mf-marken">
