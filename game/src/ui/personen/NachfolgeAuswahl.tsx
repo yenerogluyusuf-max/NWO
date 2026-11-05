@@ -83,7 +83,7 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
           return (
             <article key={c.id} className={`pe-kandidat${an ? " on" : ""}`} aria-label={c.name}>
               <header>
-                <Gesicht name={c.name} weiblich={c.weiblich} lager={c.lager} size={100} rolle={figur.amt} />
+                <Gesicht name={c.name} weiblich={c.weiblich} lager={c.lager} size={76} rolle={figur.amt} />
                 <div>
                   <strong>{c.name}</strong>
                   <em>{c.herkunft}</em>
@@ -95,8 +95,8 @@ export function NachfolgeAuswahl({ world, figur, modus, refresh, onFertig }: { w
               </div>
               <div className="pe-werte-spalte">
                 <Balken label={t("ui.personen.NachfolgeAuswahl.132b486")} wert={c.faehigkeit} wort={String(c.faehigkeit)} klein />
-                <Balken label={t("ui2.ui.personen.NachfolgeAuswahl.3cdcb44")} wert={c.ehrgeiz} ton={c.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(c.ehrgeiz)} klein {...(c.ehrgeiz >= 75 ? { zeile: t("ui2.ui.personen.NachfolgeAuswahl.8ef008c") } : {})} />
-                <Balken label={t("ui.personen.NachfolgeAuswahl.61ae3ec")} wert={c.loyalitaet} wort={String(c.loyalitaet)} klein />
+                <Balken label={t("ui2.ui.personen.NachfolgeAuswahl.3cdcb44")} wert={c.ehrgeiz} ton={c.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(c.ehrgeiz)} klein {...(c.ehrgeiz >= 75 ? { zeile: t("n1.person.gefaehrlich", { g: c.weiblich ? "f" : "m" }) } : {})} />
+                <Balken label={t("ui.personen.MinisterratSaal.87f6f23")} wert={c.loyalitaet} wort={String(c.loyalitaet)} klein />
               </div>
               <p className="pe-plus">
                 <b>+</b> {c.staerke}

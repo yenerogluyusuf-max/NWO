@@ -107,7 +107,9 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
       const offen = (sp?.zusagen ?? []).filter((z) => !z.erfuellt && !z.gebrochen);
       const ueberfaellig = offen.filter((z) => z.faellig < w.day).length;
       k.push({ label: t("akte.b.kern.zusagen"), wert: nf(offen.length), hinweis: t("akte.b.kern.ueberfaellig", { n: ueberfaellig }), ton: ueberfaellig > 0 ? "schlecht" : "mittel" });
-      k.push(sp ? { label: t("akte.b.kern.kabinettErtrag"), wert: `+${nf(kapitalEinkommen(w).kabinett, 1)}` } : leer(t("akte.b.kern.kabinettErtrag")));
+      // Befund C-29 (N1): Vorzeichen aus der Zahl (vorher „+-1,2“ in der Krise)
+      const ertrag = sp ? kapitalEinkommen(w).kabinett : 0;
+      k.push(sp ? { label: t("akte.b.kern.kabinettErtrag"), wert: `${ertrag > 0 ? "+" : ertrag < 0 ? "−" : ""}${nf(Math.abs(ertrag), 1)}` } : leer(t("akte.b.kern.kabinettErtrag")));
       break;
     }
     case "sicherheit": {

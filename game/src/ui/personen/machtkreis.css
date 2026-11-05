@@ -14,7 +14,8 @@
 
 .mk-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 330px); gap: 14px; align-items: start; }
 .mk-netz { position: relative; height: 400px; border: 1px solid rgba(90, 64, 40, 0.22); border-radius: 4px; background: radial-gradient(circle at 50% 50%, rgba(255, 250, 238, 0.95), rgba(240, 228, 204, 0.7)); overflow: hidden; }
-.mk-netz svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* nur das Liniennetz, nicht die Gesichter in den Knoten (Befund C-12: die Porträts lagen absolut über Name und Rolle) */
+.mk-netz > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mk-mitte { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px; pointer-events: none; }
 .mk-mitte span { font: 600 11.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 .dossier .mk-person, .mk-person {

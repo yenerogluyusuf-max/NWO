@@ -12,7 +12,8 @@ import { kabinettStatus, type MinisterPosten } from "../../sim/kabinett";
 import type { VorlagenZiel } from "../../sim/ministerfluss-typen";
 import { haltung } from "../../sim/figuren";
 import { gespraechGrund } from "../../sim/gespraeche";
-import { ehrgeizWort, eigenVon, grollWort, leistung, leistungWort, nf } from "../../sim/personen";
+import { AEMTER, HOCH_SCHLECHT, ehrgeizWort, eigenVon, grollWort, leistung, leistungWort, nf, ressortWirkungSicht } from "../../sim/personen";
+import { termineInfo } from "../../sim/gespraeche";
 import type { Figur } from "../../sim/spiel-typen";
 import { Icon } from "../icons";
 import { MinisterPult } from "../minister/MinisterPult";
@@ -20,7 +21,6 @@ import { offeneAnliegen } from "../minister/Posteingang";
 import { ministerVorlagen } from "../../sim/ministerfluss";
 import { useState } from "react";
 import "./kabinettstisch.css";
-import { Portraet as Zeichnung } from "../art/Portraet";
 import { Balken, Marke, Portraet } from "./bausteine";
 
 import { t } from "../../i18n";
@@ -56,7 +56,27 @@ export function leitministerVon(ressort: string, minister: MinisterPosten[]): Mi
 }
 
 /** Eine Zahl mit Vorzeichen und Einheit; die Einheit hängt an der Zahl und bricht nie um. */
-const mitVorzeichen = (x: number) => (x > 0 ? `+${nf(x, 1)}` : nf(x, 1));
+export const mitVorzeichen = (x: number) => (x > 0 ? `+${nf(x, 1)}` : x < 0 ? `−${nf(-x, 1)}` : nf(0, 1));
+
+/** Leistung nur dort als Ressortleistung, wo das Ressort im Land wirkt (Befund C-4). Der Hinweis entsteht aus denselben Zahlen, die der Monat bucht. */
+function leistungsZeile(world: World, figur: Figur, q: number): { label: string; zeile: string } | null {
+  const d = AEMTER[figur.amt];
+  const wirkung = ressortWirkungSicht(world, figur).filter((x) => Math.abs(x.punkte) >= 0.05);
+  if (d.wirkung.length) {
+    // ressortWirkungSicht zählt „besser für das Land“ positiv; angezeigt wird die Richtung der Größe selbst (Kriminalität −0,2 ist gut)
+    const liste = wirkung
+      .map((x) => {
+        const d = HOCH_SCHLECHT.has(x.id) ? -x.punkte : x.punkte;
+        return `${x.name} ${d > 0 ? "+" : "−"}${nf(Math.abs(d), 1)}`;
+      })
+      .join(" · ");
+    return { label: t("ui2.ui.personen.MinisterratSaal.98cd370"), zeile: liste ? t("n1.leistung.wirkt", { liste }) : t("n1.leistung.neutral") };
+  }
+  const auftrag = eigenVon(world, figur).auftrag?.status === "laeuft";
+  if (d.ohneKapital) return auftrag ? { label: t("n1.leistung.label"), zeile: t("n1.leistung.nurAuftrag") } : null;
+  void q;
+  return { label: t("n1.leistung.label"), zeile: t("n1.leistung.nurKapital") };
+}
 
 export function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: MinisterPosten; figur: Figur | undefined; onWaehlePerson: (id: string, modus?: "gespraech" | "entlassen") => void }) {
   const e = figur ? eigenVon(world, figur) : undefined;
@@ -65,6 +85,7 @@ export function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: Worl
   const wort = figur ? haltung(figur) : m.stimmung;
   const ruecktritt = m.loyalitaet < 25;
   const kapitalTon = m.kapitalBeitrag > 1.2 ? "gut" : m.kapitalBeitrag <= 0 ? "warn" : "";
+  const lz = figur && q !== undefined ? leistungsZeile(world, figur, q) : null;
   return (
     <article className={`mr-karte stimmung-${m.stimmung}${ruecktritt ? " gefahr" : ""}`} aria-label={`${m.ressort}: ${m.name}`}>
       <header className="mr-k-kopf">
@@ -78,14 +99,14 @@ export function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: Worl
 
       <div className="mr-k-werte">
         <Balken label={t("ui.personen.MinisterratSaal.87f6f23")} wert={m.loyalitaet} wort={`${Math.round(m.loyalitaet)} · ${wort}`} hinweis={t("ui2.ui.personen.MinisterratSaal.5abc3cc", { p0: Math.round(m.loyalitaet) })} />
-        {q !== undefined && <Balken label={t("ui2.ui.personen.MinisterratSaal.98cd370")} wert={Math.min(100, q * 100)} wort={`${Math.round(q * 100)} · ${leistungWort(q)}`} hinweis={t("ui2.ui.personen.MinisterratSaal.9c9352b")} />}
-        <Balken label={t("ui2.ui.personen.MinisterratSaal.3cdcb44")} wert={m.ehrgeiz} ton={m.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(m.ehrgeiz)} {...(m.ehrgeiz >= 75 ? { zeile: t("ui2.ui.personen.MinisterratSaal.8ef008c") } : {})} />
+        {q !== undefined && lz && <Balken label={lz.label} wert={Math.min(100, q * 100)} wort={`${Math.round(q * 100)} · ${leistungWort(q)}`} hinweis={t("ui2.ui.personen.MinisterratSaal.9c9352b")} zeile={lz.zeile} zeileLeise />}
+        <Balken label={t("ui2.ui.personen.MinisterratSaal.3cdcb44")} wert={m.ehrgeiz} ton={m.ehrgeiz >= 75 ? "schlecht" : "gut"} wort={ehrgeizWort(m.ehrgeiz)} {...(m.ehrgeiz >= 75 ? { zeile: t("n1.person.gefaehrlich", { g: m.weiblich ? "f" : "m" }) } : {})} />
       </div>
 
       <div className="mr-k-kapital">
         <div className="mr-kapital-feld">
           <span className="mr-kapital-label">{t("ui.personen.MinisterratSaal.840a839")}</span>
-          <span className={`mr-kapital-wert ${kapitalTon}`}>{mitVorzeichen(m.kapitalBeitrag)} Kapital/Monat</span>
+          <span className={`mr-kapital-wert ${kapitalTon}`}>{t("n1.kapitalMonat", { n: mitVorzeichen(m.kapitalBeitrag) })}</span>
         </div>
         <small className="mr-kapital-grund">{m.kapitalGrund}</small>
       </div>
@@ -112,12 +133,56 @@ export function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: Worl
           </button>
           <button className="pe-aktion leise" onClick={() => onWaehlePerson(m.id, "entlassen")} title={t("ui.personen.MinisterratSaal.a8bd79c")}>
             <Icon name="tausch" size={16} />
-            {t("ui2.ui.personen.MinisterratSaal.8f17473")}
+            {t("n1.karte.entlassen")}
           </button>
         </div>
       </footer>
     </article>
   );
+}
+
+/** Wer neben dem Präsidialamt sitzt: die vier klassischen Ressorts zuerst, dann die amtliche Reihenfolge (data/ministerien.ts). */
+const NAH_AM_KOPF: string[] = ["finanzen", "inneres", "aussen", "justiz"];
+
+/** Reihenfolge der Plätze: Präsidialamt (Kopf), dann abwechselnd rechts und links nach Nähe zum Kopf, der Generalstab zuletzt (Fuß). */
+export function sitzordnung(minister: MinisterPosten[]): MinisterPosten[] {
+  const kopf = minister.filter((m) => m.amt === "stab");
+  const fuss = minister.filter((m) => m.amt === "generalstab");
+  const rest = minister.filter((m) => m.amt !== "stab" && m.amt !== "generalstab");
+  const rang = (m: MinisterPosten) => (NAH_AM_KOPF.includes(m.amt) ? NAH_AM_KOPF.indexOf(m.amt) : 10 + rest.indexOf(m));
+  return [...kopf, ...[...rest].sort((a, b) => rang(a) - rang(b)), ...fuss];
+}
+
+/** Halbachsen der Sitzellipse in Prozent des Raums und das Seitenverhältnis des Raums (Breite zu Höhe, bei 1440 × 900 etwa 1,55). */
+const RX = 45;
+const RY = 40;
+const SEITEN = 2.3;
+
+/** Punkte auf einer Hälfte der Sitzellipse in gleichen Bogenabständen (nicht gleichen Winkeln: sonst drängen sich die Plätze an den Seiten). */
+function halbbogen(anzahl: number, rechts: boolean): { x: number; y: number }[] {
+  const N = 240;
+  const pkt = Array.from({ length: N + 1 }, (_, j) => {
+    const w = -Math.PI / 2 + ((rechts ? 1 : -1) * Math.PI * j) / N;
+    return { x: 50 + RX * Math.cos(w), y: 50 + RY * Math.sin(w) };
+  });
+  const laenge = [0];
+  for (let j = 1; j <= N; j++) laenge.push(laenge[j - 1]! + Math.hypot((pkt[j]!.x - pkt[j - 1]!.x) * SEITEN, pkt[j]!.y - pkt[j - 1]!.y));
+  const gesamt = laenge[N]!;
+  return Array.from({ length: anzahl }, (_, k) => {
+    const ziel = (gesamt * (k + 1)) / (anzahl + 1);
+    const j = laenge.findIndex((l) => l >= ziel);
+    return pkt[Math.max(0, j)]!;
+  });
+}
+
+/** Lage des i-ten Platzes: 0 oben, die Nummern 1, 3, 5 … rechts, 2, 4, 6 … links, der letzte Platz (Generalstab) unten. */
+function lage(i: number, n: number): { x: number; y: number } {
+  if (i === 0) return { x: 50, y: 50 - RY };
+  if (i === n - 1) return { x: 50, y: 50 + RY };
+  const rechts = Math.ceil((n - 2) / 2);
+  const links = n - 2 - rechts;
+  const k = Math.ceil(i / 2) - 1;
+  return i % 2 === 1 ? halbbogen(rechts, true)[k]! : halbbogen(links, false)[k]!;
 }
 
 export function MinisterratSaal({
@@ -141,30 +206,36 @@ export function MinisterratSaal({
   const vorlagen = world.spiel ? ministerVorlagen(world, { tiefe: 0 }) : [];
   const anliegen = world.spiel ? offeneAnliegen(world) : [];
   const offen = (amt: string) => vorlagen.filter((v) => v.amt === amt).length + anliegen.filter((a) => a.amt === amt).length;
-  // Sitzordnung: Präsidialamt am Kopf, die Ministerien im Uhrzeigersinn, der Generalstab als Gast unten
-  const sitze = status.minister;
-  const n = sitze.length;
+  // Sitzordnung (Befund C-9): Präsidialamt am Kopf, daneben Finanzen, Inneres, Äußeres und Justiz; die übrigen Ministerien abwechselnd rechts
+  // und links in der amtlichen Reihenfolge; der Generalstab als Gast am Fuß. Rechts sitzen neun, links acht.
+  const sitze = sitzordnung(status.minister);
   const platz = (i: number) => {
-    const winkel = -Math.PI / 2 + (2 * Math.PI * i) / n;
-    return { left: `${50 + 46 * Math.cos(winkel)}%`, top: `${50 + 44 * Math.sin(winkel)}%` };
+    const p = lage(i, sitze.length);
+    return { left: `${p.x}%`, top: `${p.y}%` };
   };
+  // An den Seiten steht der Name neben dem Gesicht, zur Tischmitte hin: Dort ist Breite frei, Höhe nicht
+  const seite = (i: number) => {
+    const p = lage(i, sitze.length);
+    return p.x > 91 ? " seite rechts" : p.x < 9 ? " seite links" : "";
+  };
+  const termine = termineInfo(world);
   const m = sitze.find((x) => x.id === gewaehlt);
   const fm = m ? figuren.find((f) => f.id === m.id) : undefined;
 
   return (
     <div className="mr-saal kt">
-      <div className="kt-kopf">
-        <span className={`mr-disziplin-badge ${status.disziplin}`}>{status.disziplin.toUpperCase()}</span>
-        <span>{t("kt.kapital", { n: mitVorzeichen(status.kapitalSumme) })}</span>
-        <span>{t("kt.loyalitaet", { n: Math.round(status.schnittLoyalitaet) })}</span>
-        <span>{status.sitzungMoeglich ? t("ui2.ui.personen.MinisterratSaal.25b5b98") : t("ui2.ui.personen.MinisterratSaal.94acca5", { p0: status.tageBisSitzung })}</span>
-        {status.ruecktrittGefahr.length > 0 && <span className="kt-warn">{t("kt.ruecktritt", { namen: status.ruecktrittGefahr.map((x) => x.name).join(", ") })}</span>}
-      </div>
       <div className="kt-buehne">
         <div className="kt-raum" role="group" aria-label={t("kt.tischAria")}>
-          <div className="kt-tisch" aria-hidden="true">
+          {/* Befund C-10: Die Kennzahlzeilen über dem Tisch sind in die Tischmitte gezogen; Loyalität und Kapital stehen nur noch im Kopf der Akte */}
+          <div className={`kt-tisch ${status.disziplin}`}>
             <span className="kt-tisch-titel">{t("kt.titel")}</span>
+            <span className={`kt-disziplin ${status.disziplin}`}>{t(`n1.disziplin.wort.${status.disziplin}`)}</span>
             <span className="kt-tisch-text">{status.disziplinText}</span>
+            <span className="kt-tisch-zeilen">
+              <span>{status.sitzungMoeglich ? t("n1.tisch.sitzung.moeglich") : t("n1.tisch.sitzung.in", { n: status.tageBisSitzung })}</span>
+              <span>{t("n1.tisch.termine", { frei: Math.max(0, termine.max - termine.belegt), max: termine.max })}</span>
+              {status.ruecktrittGefahr.length > 0 && <span className="kt-warn">{t("n1.tisch.ruecktritt", { namen: status.ruecktrittGefahr.map((x) => x.name) })}</span>}
+            </span>
           </div>
           {sitze.map((x, i) => {
             const f = figuren.find((y) => y.id === x.id);
@@ -173,31 +244,47 @@ export function MinisterratSaal({
               <button
                 key={x.id}
                 type="button"
-                className={`kt-platz kt-st-${x.stimmung}${gewaehlt === x.id ? " on" : ""}${x.amt === "generalstab" ? " gast" : ""}${x.kommissarisch ? " kommissarisch" : ""}`}
+                className={`kt-platz kt-st-${x.stimmung}${seite(i)}${gewaehlt === x.id ? " on" : ""}${x.amt === "generalstab" ? " gast" : ""}${x.kommissarisch ? " kommissarisch" : ""}`}
                 style={platz(i)}
                 onClick={() => setGewaehlt(gewaehlt === x.id ? null : x.id)}
-                title={`${x.rolle} ${x.name} · ${x.sorge}`}
+                title={`${x.ressort} · ${x.rolle} ${x.name} · ${x.sorge}`}
                 aria-pressed={gewaehlt === x.id}
               >
-                <span className="kt-gesicht">{f && <Zeichnung seed={f.name} size={46} geschlecht={f.weiblich ? "f" : "m"} rolle={x.amt} rahmen="keiner" />}</span>
-                <span className="kt-name">{x.name}</span>
-                <span className="kt-ressort">{x.ressort}</span>
-                {k > 0 && <i className="kt-abzeichen">{k}</i>}
-                {x.loyalitaet < 25 && <i className="kt-blitz" title={t("ui.personen.MinisterratSaal.434c793")}>!</i>}
+                <span className="kt-gesicht">
+                  {f && <Portraet w={world} f={f} size={44} rahmen="keiner" />}
+                  {k > 0 && <i className="kt-abzeichen" title={t("n1.tisch.vorlagen", { n: k })}>{k}</i>}
+                  {x.loyalitaet < 25 && <i className="kt-blitz" title={t("ui.personen.MinisterratSaal.434c793")}>!</i>}
+                </span>
+                <span className="kt-text">
+                  {/* Am Tisch der Nachname (eindeutig, figuren.ts), der ganze Name steht im Titel und in der Akte */}
+                  <span className="kt-name">{x.name.split(" ").at(-1)}</span>
+                  <span className="kt-ressort">{t(`n1.amt.kurz.${x.amt}`)}</span>
+                </span>
               </button>
             );
           })}
         </div>
-        <aside className="kt-akte" aria-live="polite">
-          {m ? (
-            <>
-              <Ministerkarte world={world} m={m} figur={fm} onWaehlePerson={onWaehlePerson} />
-              <MinisterPult world={world} refresh={refresh} nur={{ id: m.id, amt: m.amt }} {...(onGeheVorlage ? { onGehe: onGeheVorlage } : {})} {...(onKarte ? { onKarte } : {})} />
-            </>
-          ) : (
-            <p className="kt-leer">{t("kt.waehlen", { n: vorlagen.length + anliegen.length })}</p>
-          )}
-        </aside>
+        {/* Der Tisch nimmt die ganze Breite (19 Plätze brauchen sie); die Ministerakte legt sich bei einer Wahl als Blatt über die rechte Seite */}
+        {!m && (
+          <>
+            <p className="kt-hinweis">{t("kt.waehlen", { n: vorlagen.length + anliegen.length })}</p>
+            <p className="kt-legende">
+              <span><i className="kt-ring treu" /> {t("n1.tisch.legende.loyal")}</span>
+              <span><i className="kt-ring skeptisch" /> {t("n1.tisch.legende.skeptisch")}</span>
+              <span><i className="kt-ring kritisch" /> {t("n1.tisch.legende.kritisch")}</span>
+              <span><i className="kt-abzeichen-muster">2</i> {t("n1.tisch.legende.vorlagen")}</span>
+            </p>
+          </>
+        )}
+        {m && (
+          <aside className="kt-akte" aria-live="polite" aria-label={`${m.ressort}: ${m.name}`}>
+            <button type="button" className="kt-zu" onClick={() => setGewaehlt(null)} aria-label={t("n1.tisch.schliessen")} title={t("n1.tisch.schliessen")}>
+              ×
+            </button>
+            <Ministerkarte world={world} m={m} figur={fm} onWaehlePerson={onWaehlePerson} />
+            <MinisterPult world={world} refresh={refresh} nur={{ id: m.id, amt: m.amt }} {...(onGeheVorlage ? { onGehe: onGeheVorlage } : {})} {...(onKarte ? { onKarte } : {})} />
+          </aside>
+        )}
       </div>
     </div>
   );
