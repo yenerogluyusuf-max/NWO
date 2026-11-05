@@ -22,7 +22,7 @@
   "wv.vertrauen": "Regierungsvertrauen: {n} Indexpunkte. Gruppenreaktionen ebenfalls in Indexpunkten, keine garantierten Wahlstimmen.",
   "wv.gesetz": "Was die spätere Gesetzesarbeit verlangt",
   "wv.erreicht": "Das zugesagte Landesziel ist bereits beschlossen. Die laufende Umsetzung kann noch Zeit brauchen.",
-  "wv.gesetzPreis": "Neuer Entwurf heute: {pk} PK und {auf} Aufmerksamkeit. Jährliche Modellbelastung gegenüber heute: {bip} Prozentpunkte des BIP ({geld} Mrd. TRY). Umsetzung nach Annahme: {monate, plural, one {# Monat} other {# Monate}}.",
+  "wv.gesetzPreis": "Neuer Entwurf heute: {pk} Kapital und {auf} Aufmerksamkeit. Jährliche Modellbelastung gegenüber heute: {bip} Prozentpunkte des BIP ({geld} Mrd. TRY). Umsetzung nach Annahme: {monate, plural, one {# Monat} other {# Monate}}.",
   "wv.finanzierung": "Diese Beträge werden durch das Versprechen noch nicht gebucht. Positive Beträge bedeuten zusätzliche Ausgaben oder Mindereinnahmen; eine Gegenfinanzierung entsteht nicht automatisch.",
   "wv.regional": "Bereits in Beratung: regionaler Entwurf, Ziel {ziel}.",
   "wv.laufend": "Bereits in Beratung: landesweiter Entwurf, Ziel {ziel}.",

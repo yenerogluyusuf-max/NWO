@@ -2,7 +2,7 @@
   "fa.titel": "Zusammenarbeit mit {partei}",
   "fa.koalition": "Koalition schließen",
   "fa.duldung": "Duldung vereinbaren",
-  "fa.preis": "Bei Abschluss: {pk} PK · {aufmerksamkeit} Aufmerksamkeit",
+  "fa.preis": "Bei Abschluss: {pk} Kapital · {aufmerksamkeit} Aufmerksamkeit",
   "fa.unbefristet": "Das Bündnis läuft ohne feste Befristung; ein späterer Koalitionsbruch bleibt möglich.",
   "fa.befristet": "Die Partei bleibt außerhalb des Lagers. Bei heutigem Abschluss unterstützt sie die Regierung bis {datum}.",
   "fa.zusage": "Neue verbindliche Zusage bis {datum}: {forderung}.",

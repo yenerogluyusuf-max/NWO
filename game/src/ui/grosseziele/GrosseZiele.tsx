@@ -79,7 +79,7 @@ function ZielKarte({ w, z, geaendert, melde }: { w: World; z: ZielDef; geaendert
                   return (
                     <li key={l}>
                       <span>{akteurName(l)} · {t(`gz2.ui.vertretung.${stufeV}`)}</span>
-                      {stufeV < GROSSE_ZIELE.vertretungMax && <button type="button" className="gz-knopf" disabled={!!grund} title={grund ?? undefined} onClick={() => tue(vertretungAusbauen(w, l))}>{t("gz2.ui.ausbauen")} · {GROSSE_ZIELE.vertretungPk} PK</button>}
+                      {stufeV < GROSSE_ZIELE.vertretungMax && <button type="button" className="gz-knopf" disabled={!!grund} title={grund ?? undefined} onClick={() => tue(vertretungAusbauen(w, l))}>{t("gz2.ui.ausbauen")} · {GROSSE_ZIELE.vertretungPk} Kapital</button>}
                     </li>
                   );
                 })}
@@ -87,7 +87,7 @@ function ZielKarte({ w, z, geaendert, melde }: { w: World; z: ZielDef; geaendert
             </div>
             {z.gegenspieler.length > 0 && <p className="gzz-gegen">{t("gz2.ui.gegenspieler", { laender: z.gegenspieler.map((l) => akteurName(l)).join(", ") })}</p>}
             <button type="button" className="leather-button gzz-versuch" disabled={!!xGrund} title={xGrund ?? undefined} onClick={() => tue(versuche(w, z.id))}>
-              {t("gz2.ui.versuch")} · {stufe!.pk} PK
+              {t("gz2.ui.versuch")} · {stufe!.pk} Kapital
             </button>
             {xGrund && <p className="gz-hinweis">{xGrund}</p>}
           </div>

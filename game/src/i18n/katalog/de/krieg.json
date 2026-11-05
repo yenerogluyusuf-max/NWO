@@ -424,7 +424,7 @@
  "krieg.k.krise.notiz": "Krise von der Türkei eröffnet",
  "krieg.k.krise.ok": "Krise mit {land} eröffnet.",
  "krieg.k.krise.warum": "Die Regierung macht den Streit zur Chefsache: Forderungen, Truppenbewegungen und Drohgebärden beginnen. Märkte und Ausland notieren es sofort.",
- "krieg.k.krise.knopf": "Krise eröffnen · {pk} PK",
+ "krieg.k.krise.knopf": "Krise eröffnen · {pk} Kapital",
  "krieg.k.krise.erklaerung": "Konflikte entstehen aus der Spannung mit einem Land: ab {anlage} von selbst, durch Zwischenfälle oder wenn Sie ab {ab} selbst eine Krise eröffnen. Danach stehen Ultimatum, Vermittlung, Deeskalation, Mobilmachung und Einsatzbeschluss offen.",
  "krieg.k.zwischenfall.notiz": "Zwischenfall",
  "krieg.k.zwischenfall.titel": "Zwischenfall mit {land}",

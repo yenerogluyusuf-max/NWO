@@ -79,7 +79,7 @@ function Ministerkarte({ world, m, figur, onWaehlePerson }: { world: World; m: M
       <div className="mr-k-kapital">
         <div className="mr-kapital-feld">
           <span className="mr-kapital-label">{t("ui.personen.MinisterratSaal.840a839")}</span>
-          <span className={`mr-kapital-wert ${kapitalTon}`}>{mitVorzeichen(m.kapitalBeitrag)} PK/Mt.</span>
+          <span className={`mr-kapital-wert ${kapitalTon}`}>{mitVorzeichen(m.kapitalBeitrag)} Kapital/Monat</span>
         </div>
         <small className="mr-kapital-grund">{m.kapitalGrund}</small>
       </div>
@@ -145,7 +145,7 @@ export function MinisterratSaal({
         <div className="mr-kennzahlen">
           <div className="mr-kpi">
             <span className="mr-kpi-label">{t("ui.personen.MinisterratSaal.840a839")}</span>
-            <strong className={`mr-kpi-wert ${status.kapitalSumme >= 6 ? "gut" : status.kapitalSumme < 2 ? "warn" : ""}`}>{mitVorzeichen(status.kapitalSumme)} PK</strong>
+            <strong className={`mr-kpi-wert ${status.kapitalSumme >= 6 ? "gut" : status.kapitalSumme < 2 ? "warn" : ""}`}>{mitVorzeichen(status.kapitalSumme)} Kapital</strong>
             <small>{t("ui.personen.MinisterratSaal.0207ed0")}</small>
           </div>
 

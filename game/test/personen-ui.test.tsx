@@ -65,7 +65,7 @@ describe("Ministerkarten", () => {
   test("Kapital-Ertrag: Zahl, Vorzeichen und Einheit in einem Element", () => {
     const werte = klassen(html, /class="mr-kapital-wert[^"]*">([^<]+)</g);
     expect(werte).toHaveLength(7);
-    for (const x of werte) expect(x).toMatch(/^[+−-]?\d+,\d PK\/Mt\.$/);
+    for (const x of werte) expect(x).toMatch(/^[+−-]?\d+,\d Kapital\/Monat$/);
   });
 });
 

@@ -31,7 +31,7 @@ export function VersorgungsMehrheitsWege({world,programm,onErgebnis}:{world:Worl
               {p.hinzu.map(k=><li key={k}><span aria-hidden="true">+</span>{t("mehrheitsweg.aufnehmen",{klausel:t(`mandat.${k}.titel`)})}</li>)}
               {p.gespraeche.map(partei=><li key={partei}><span aria-hidden="true">↗</span>{t("mehrheitsweg.gespraech",{partei:name(partei)})}</li>)}
             </ul>
-            <dl className="mw-kosten"><div><dt>{t("mehrheitsweg.sofort")}</dt><dd>{p.pk} PK</dd></div><div><dt>{t("mandat.budgetBeiAnnahme")}</dt><dd>{zahl(p.konditionen.bip,3)} % BIP<small>{t("mehrheitsweg.budgetDelta",{n:delta(p.budgetDelta,3)})}</small></dd></div></dl>
+            <dl className="mw-kosten"><div><dt>{t("mehrheitsweg.sofort")}</dt><dd>{p.pk} Kapital</dd></div><div><dt>{t("mandat.budgetBeiAnnahme")}</dt><dd>{zahl(p.konditionen.bip,3)} % BIP<small>{t("mehrheitsweg.budgetDelta",{n:delta(p.budgetDelta,3)})}</small></dd></div></dl>
             <p className="mw-zeit">{t("mehrheitsweg.zeit",{datum:datum(p.abstimmung),vorlauf:p.konditionen.vorlauf,dauer:p.konditionen.dauer})}</p>
             {p.verschiebung>0 && <p className="mw-warnung">{t("mandat.votumVerschoben",{tage:p.verschiebung,datum:datum(p.abstimmung)})}</p>}
             {p.duldungen.length>0 && <p className="mw-warnung">{t("mehrheitsweg.duldung",{parteien:p.duldungen.map(f=>name(f.partei)).join(", ")})}</p>}

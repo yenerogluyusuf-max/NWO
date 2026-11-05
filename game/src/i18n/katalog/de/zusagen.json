@@ -16,7 +16,7 @@
  "zusage.gesetz.belohnung": "Diese Anerkennung gibt es einmal bei Erfüllung des zugesagten Ziels. Ein Entwurf, ein Rückzug oder eine Ablehnung bringen keinen Zusagenbonus.",
  "zusage.gesetz.beschlossen": "Das zugesagte Ziel ist landesweit beschlossen. Zusagenbonus und Glaubwürdigkeit sind jetzt gebucht; die tatsächliche Umsetzung läuft weiter.",
  "zusage.gesetz.offen.titel": "Erst der Beschluss zählt",
- "zusage.gesetz.offen.text": "Zugesagt: {name} landesweit auf Stufe {ziel}. Das Einbringen kostet {pk} PK; die persönliche und politische Anerkennung folgt erst bei Erfüllung.",
+ "zusage.gesetz.offen.text": "Zugesagt: {name} landesweit auf Stufe {ziel}. Das Einbringen kostet {pk} Kapital; die persönliche und politische Anerkennung folgt erst bei Erfüllung.",
  "zusage.gesetz.beratung.titel": "Im Parlament · Zusage noch offen",
  "zusage.gesetz.beratung.text": "Abstimmung am {datum}, Entwurf auf Stufe {stufe}. Die zugesagte Zielstufe bleibt {ziel}.",
  "zusage.gesetz.deckt": "Bei Annahme erfüllt dieser Entwurf die Zusage. Die praktische Umsetzung folgt danach.",

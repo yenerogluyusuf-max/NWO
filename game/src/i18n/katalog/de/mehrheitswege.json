@@ -14,7 +14,7 @@
   "mehrheitsweg.verlust": "Dafür weniger Zustimmung: {parteien}",
   "mehrheitsweg.entfernen": "Herausnehmen: {klausel}",
   "mehrheitsweg.aufnehmen": "Zusagen: {klausel}",
-  "mehrheitsweg.gespraech": "Sachgespräch mit {partei} · 1 PK",
+  "mehrheitsweg.gespraech": "Sachgespräch mit {partei} · 1 Kapital",
   "mehrheitsweg.sofort": "Jetzt: politisches Kapital",
   "mehrheitsweg.budgetDelta": "{n} % BIP zum jetzigen Entwurf",
   "mehrheitsweg.zeit": "Votum am {datum} · {vorlauf} Tage Vorbereitung · {dauer} Tage Laufzeit.",
@@ -26,11 +26,11 @@
   "mehrheitsweg.bedingt": "Diese Reaktionen gelten bei Annahme und unveränderter politischer Lage. Gespräche erhöhen nur die Stimmen für diese Vorlage. Zahlen sind an den Grenzen 0 und 100 begrenzt.",
   "mehrheitsweg.neuesGespraech": "neues Sachgespräch eingerechnet",
   "mehrheitsweg.button": "Verhandlungsweg übernehmen",
-  "mehrheitsweg.buttonName": "{name}: Verhandlungsweg für {pk} PK übernehmen",
-  "mehrheitsweg.pk": "{n} PK jetzt",
+  "mehrheitsweg.buttonName": "{name}: Verhandlungsweg für {pk} Kapital übernehmen",
+  "mehrheitsweg.pk": "{n} Kapital jetzt",
   "mehrheitsweg.hinweis": "Die Übernahme ändert den Entwurf und führt die genannten Gespräche. Haushaltsgeld wird erst bei Annahme gebucht. Die Abstimmung folgt automatisch am angezeigten Termin; bis dahin können sich Mehrheiten ändern. Stimmengewinne bezeichnen Abgeordnete, keine dauerhafte Unterstützung einer ganzen Fraktion.",
   "mehrheitsweg.veraltet": "Die Verhandlungslage hat sich geändert. Es wurde nichts übernommen und kein Kapital ausgegeben. Vergleichen Sie die neu berechneten Wege.",
-  "mehrheitsweg.uebernommen": "Verhandlungsweg für „{name}“ übernommen: {klauseln}. Neue Gespräche: {parteien}. {pk} PK eingesetzt; derzeit {ja} Ja-Stimmen erwartet. Die Vorlage bleibt bis zum Votum in Beratung.",
+  "mehrheitsweg.uebernommen": "Verhandlungsweg für „{name}“ übernommen: {klauseln}. Neue Gespräche: {parteien}. {pk} Kapital eingesetzt; derzeit {ja} Ja-Stimmen erwartet. Die Vorlage bleibt bis zum Votum in Beratung.",
   "mehrheitsweg.ohneKlauseln": "ohne zusätzliche Klauseln",
   "mehrheitsweg.keineGespraeche": "keine"
 }

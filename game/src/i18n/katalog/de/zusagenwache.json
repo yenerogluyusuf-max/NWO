@@ -29,7 +29,7 @@
   "zw.entwurf": "Votum am {datum} · derzeit {ja} erwartete Ja-Stimmen",
   "zw.mehrheit": "Mehrheit im Parlament sichern",
   "zw.vertroesten": "Zeit gewinnen · mit politischem Preis",
-  "zw.vertroestenText": "Die bestehende Vertröstung verschiebt die Fälligkeit um 90 Tage ab heute. Sie kostet 1 PK, Loyalität und Regierungsvertrauen; höchstens zweimal.",
+  "zw.vertroestenText": "Die bestehende Vertröstung verschiebt die Fälligkeit um 90 Tage ab heute. Sie kostet 1 Kapital, Loyalität und Regierungsvertrauen; höchstens zweimal.",
   "zw.einloesen": "Zusage jetzt erfüllen",
   "zw.einloesenText": "Die bestehende Zusagenaktion führt die Gegenleistung aus. Unten stehen die tatsächlichen sofortigen Kosten und Personenfolgen.",
   "zw.verschieben": "Mit diesen Folgen vertrösten",
