@@ -419,6 +419,7 @@
  "krieg.k.x.ultimatum.nein.warum": "Reddeden artık kararlılığını göstermek zorunda; geri adım iki taraf için de itibar kaybıdır.",
  "krieg.k.ende.nachgegeben": "karşı taraf geri adım attı",
  "krieg.k.krise.schon": "Bu ülkeyle zaten bir çatışma süreci yürüyor.",
+ "krieg.k.krise.fern": "{land} ile askerî bir çatışma seçenek değil: Gerginlik diplomasi, ticaret ve yaptırımlar meselesi olarak kalıyor.",
  "krieg.k.krise.zuviele": "Zaten {n} çatışma sürüyor; ordu ve idare aynı anda daha fazlasını kaldıramaz.",
  "krieg.k.krise.zuruhig": "Durum kriz için fazla sakin (çatışma {konflikt}, gereken {ab}). Önce baskı veya olaylar gerginliği artırmalı.",
  "krieg.k.krise.notiz": "Türkiye'nin başlattığı kriz",

@@ -1260,6 +1260,7 @@ export function kriegMonat(w: World, rng: Rng): void {
   for (const l of [...LAENDER].sort((a, b) => (z[b.id]?.konflikt ?? 0) - (z[a.id]?.konflikt ?? 0))) {
     if (voll(z[l.id]?.konflikt ?? 0)) continue;
     if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
+    if (ohneKriegsvorgang(l.id)) continue;
     if (kriegMit(w, l.id)) continue;
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
     vorgangAnlegen(w, l.id, z[l.id]!.konflikt);
@@ -1294,6 +1295,7 @@ export function kriseGrund(w: World, landId: string): string | undefined {
   const spiel = w.spiel;
   if (!spiel || spiel.ende) return t("krieg.k.x.keinspiel");
   if (kriegMit(w, landId)) return t("krieg.k.krise.schon");
+  if (ohneKriegsvorgang(landId)) return t("krieg.k.krise.fern", { land: land(landId).name });
   if (aktiveKriege(w).length >= KRIEG.maxAktiv) return t("krieg.k.krise.zuviele", { n: KRIEG.maxAktiv });
   const konflikt = weltZustand(w)[landId]?.konflikt ?? 0;
   if (konflikt < KRISE_AB) return t("krieg.k.krise.zuruhig", { konflikt: Math.round(konflikt), ab: KRISE_AB });
@@ -1339,12 +1341,21 @@ const ZWISCHENFALL_ORT: Record<string, "grenze" | "see" | "fern"> = {
 };
 export const zwischenfallOrt = (landId: string): string => ZWISCHENFALL_ORT[landId] ?? "alle";
 
+/**
+ * Mit fernen Großmächten und der EU entsteht kein militärischer Vorgang (Spannung, Drohkulisse, Kriegsbeschluss): Die Spannung
+ * bleibt Sache von Diplomatie, Handel und Sanktionen (ENTSCHEIDUNGEN, Nachtrag zu U vom 5. November). Zwischenfälle gibt es weiter,
+ * etwa 2023 der Abschuss einer türkischen Drohne durch die US-Luftwaffe über Syrien; sie treiben die Spannung aber nicht über die
+ * Schwelle eines Vorgangs.
+ */
+export const ohneKriegsvorgang = (landId: string): boolean => landId === "EU" || ZWISCHENFALL_ORT[landId] === "fern";
+
 function zwischenfaelle(w: World, rng: Rng): void {
   const z = weltZustand(w);
   for (const l of LAENDER) {
     const konflikt = z[l.id]?.konflikt ?? 0;
     if (konflikt < 50 || kriegMit(w, l.id)) continue;
     if (rng.next() >= (konflikt - 50) / 300) continue;
+    if (ohneKriegsvorgang(l.id) && konflikt >= KRIEG.anlageAb - 8) continue;
     const plus = 4 + Math.round(rng.next() * 4);
     landAendern(w, l.id, { konflikt: plus }, t("krieg.k.zwischenfall.notiz"));
     hinweis(w, `krieg-zwischenfall-${l.id}-${w.day}`, t("krieg.k.zwischenfall.titel", { land: l.name }), [t("krieg.k.zwischenfall.text", { land: l.name, ort: zwischenfallOrt(l.id), alt: Math.round(konflikt), neu: Math.round(konflikt + plus) })]);

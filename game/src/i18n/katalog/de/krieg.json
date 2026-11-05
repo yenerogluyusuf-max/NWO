@@ -419,6 +419,7 @@
  "krieg.k.x.ultimatum.nein.warum": "Wer nicht nachgibt, muss nun zeigen, dass er standhält; ein Rückzieher kostet beide Seiten Gesicht.",
  "krieg.k.ende.nachgegeben": "Gegner hat nachgegeben",
  "krieg.k.krise.schon": "Mit diesem Land läuft bereits ein Konfliktvorgang.",
+ "krieg.k.krise.fern": "Mit {land} ist ein militärischer Konflikt keine Option: Die Spannung bleibt eine Sache von Diplomatie, Handel und Sanktionen.",
  "krieg.k.krise.zuviele": "Es laufen schon {n} Konflikte; mehr verkraften Armee und Verwaltung nicht gleichzeitig.",
  "krieg.k.krise.zuruhig": "Die Lage ist zu ruhig für eine Krise (Konflikt {konflikt}, nötig {ab}). Erst Druck oder Zwischenfälle verschärfen sie.",
  "krieg.k.krise.notiz": "Krise von der Türkei eröffnet",

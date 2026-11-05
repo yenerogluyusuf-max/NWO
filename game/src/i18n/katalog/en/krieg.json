@@ -419,6 +419,7 @@
  "krieg.k.x.ultimatum.nein.warum": "Whoever refuses must now show resolve; backing down costs both sides face.",
  "krieg.k.ende.nachgegeben": "opponent gave in",
  "krieg.k.krise.schon": "A conflict process with this country is already running.",
+ "krieg.k.krise.fern": "A military conflict with {land} is not an option: the tension remains a matter for diplomacy, trade and sanctions.",
  "krieg.k.krise.zuviele": "{n} conflicts are already running; army and administration cannot handle more at once.",
  "krieg.k.krise.zuruhig": "The situation is too calm for a crisis (conflict {konflikt}, needed {ab}). Pressure or incidents must sharpen it first.",
  "krieg.k.krise.notiz": "Crisis opened by Türkiye",
