@@ -2,6 +2,7 @@
 // Tinte auf Papier, Schatten als Schraffur, der Himmel als Lasur.
 
 import { useId, type ReactNode } from "react";
+import { t } from "../../i18n";
 
 export type Scene = "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht" | "kueste" | "welt" | "platz" | "presse" | "wissen" | "amtssitz";
 
@@ -314,7 +315,7 @@ function Wahlnacht({ id, banner }: { id: string; banner?: string }) {
       <rect x="226" y={base - 138} width="188" height="32" fill="#e7d7b0" stroke="#120c08" />
       <path d={`M226 ${base - 138} h188 v32 h-188 Z`} fill="none" stroke="#b3352b" strokeWidth="3" />
       <text x="320" y={base - 117} textAnchor="middle" fontFamily="Fraunces Variable, serif" fontWeight="700" fontSize="15" fill="#3a2a1e" {...((banner ?? "").length > 14 ? { textLength: 172, lengthAdjust: "spacingAndGlyphs" } : { letterSpacing: "0.04em" })}>
-        {(banner ?? "Wahlnacht").toUpperCase()}
+        {(banner ?? t("wahl.ui.banner")).toUpperCase()}
       </text>
       <rect x="236" y={base - 40} width="168" height="40" fill="#3a2a1e" stroke="#120c08" />
       <rect x="236" y={base - 40} width="168" height="6" fill="#b3352b" />

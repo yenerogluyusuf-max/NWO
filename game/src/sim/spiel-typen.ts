@@ -137,7 +137,8 @@ export interface Hinweis {
   id: string;
   titel: string;
   text: string[];
-  szene: "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht";
+  /** Bild über dem Hinweis (ui/art/Vignette); „presse“ ist das Fernsehstudio mit Sendeturm */
+  szene: "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht" | "presse";
 }
 
 /** Phase eines laufenden Verfassungsvorgangs (sim/verfassung.ts). */

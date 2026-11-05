@@ -78,3 +78,13 @@ describe("Wertung der Vorschauzeilen", () => {
     expect(wertungVon("Mindestlohn: Stufe 3 auf 5")).toBe("neutral");
   });
 });
+
+describe("Wer spricht", () => {
+  test("Beim Rücktrittsgesuch spricht die Person, die gehen will", async () => {
+    const { sprecherFuer } = await import("../src/ui/ereignis/kontext");
+    const w = neu();
+    const justiz = w.spiel!.figuren.find((f) => f.imAmt && f.amt === "justiz")!;
+    w.spiel!.ereignisse.push({ id: "e-r", vorlage: "person_ruecktritt", tag: w.day, frist: w.day + 20, provinzen: [], staerke: 1, daten: { figur: justiz.id } } as never);
+    expect(sprecherFuer(w, { id: "e-r", vorlage: "person_ruecktritt", szene: "istanbul" })?.figur.id).toBe(justiz.id);
+  });
+});

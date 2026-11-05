@@ -636,7 +636,8 @@ function duellAustragen(w: World, rng: Rng): void {
   sp.hinweise.push({
     id: `wahlkampf-duell-${w.day}`,
     titel: `TV-Duell: ${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte`,
-    szene: "wahlnacht",
+    // Das Fernsehstudio, nicht die Wahlnacht: Das Bild „wahlnacht“ trägt ein Banner WAHLNACHT (Spielerdurchlauf 5. November)
+    szene: "presse",
     text: [
       k.duell.szene,
       tx("sim2.sim.wahlkampf.0724d47", { p0: effekt >= 0 ? "+" : "−", p1: fmt(Math.abs(effekt)), p2: vorbereitet ? "Die Vorbereitung hat sich bezahlt gemacht." : "Vorbereitung hätte den Ausgang womöglich gedreht." }),

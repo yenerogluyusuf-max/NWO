@@ -88,6 +88,13 @@ export function sprecherFuer(w: World, a: Pick<EreignisAnsicht, "id" | "vorlage"
   // Meldet sich eine Partnerpartei (Zusage, Koalitionsangebot), spricht ihr Vorsitz, nicht das Ressort des Themas (Spielerdurchlauf 5. November:
   // „MHP meldet sich“ zeigte die Justizministerin)
   const partnerZuerst: Figur["amt"][] = /^start_partner$|koalition|partner/.test(a.vorlage) ? ["partner"] : [];
+  // Wer mit Rücktritt droht oder aus Altersgründen geht, spricht selbst (Spielerdurchlauf 5. November: Beim Rücktrittsgesuch der
+  // Justizministerin sprach die Innenministerin). Bei Intrige, Leck und Vorwürfen trägt weiter das zuständige Amt vor.
+  if (a.vorlage === "person_ruecktritt" || a.vorlage === "person_altersruecktritt") {
+    const ev = sp.ereignisse.find((e) => e.id === a.id);
+    const selbst = im.find((f) => f.id === String(ev?.daten?.figur ?? ""));
+    if (selbst) return { figur: selbst };
+  }
   // Eine fällige Zusage trägt vor, wem sie gegeben wurde: der Vorsitz der Partei, bei Wählern das Präsidialamt
   if (a.vorlage === "zusage") {
     const ev = sp.ereignisse.find((e) => e.id === a.id);
