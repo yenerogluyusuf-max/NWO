@@ -1,14 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+// Drei Schriftfamilien (Gestaltungsleitfaden, befund-H §5): Fraunces für Titel und große Zahlen, EB Garamond für Lese- und Datentext,
+// Marcellus SC für Beschriftungen. Inter und Courier Prime werden nicht mehr geladen (Aktenvermerke stehen in Kapitälchen).
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/eb-garamond";
-import "@fontsource-variable/inter";
 import "@fontsource/marcellus-sc/latin-400.css";
 import "@fontsource/marcellus-sc/latin-ext-400.css";
-import "@fontsource/courier-prime/latin-400.css";
-import "@fontsource/courier-prime/latin-ext-400.css";
-import "@fontsource/courier-prime/latin-700.css";
-import "@fontsource/courier-prime/latin-ext-700.css";
 import "./ui/styles.css";
 import "./ui/fenster.css";
 import { aktuelleSprache, ladeSprache } from "./i18n";

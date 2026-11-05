@@ -1,37 +1,37 @@
 /* Kabinettstisch: Plätze auf einer Ellipse um einen Holztisch, rechts die Ministerakte (Palette Kabinettstisch). */
-.kt-kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 8px 12px; margin-bottom: 10px; border: 1px solid rgba(140, 110, 60, 0.35); border-radius: 4px; background: rgba(255, 250, 235, 0.7); font-size: 14px; color: #3a2a1d; }
-.kt-kopf .kt-warn { color: var(--seal, #8f2a1e); font-weight: 600; }
+.kt-kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 8px 12px; margin-bottom: 10px; border: 1px solid rgba(140, 110, 60, 0.35); border-radius: 4px; background: rgba(255, 250, 235, 0.7); font-size: var(--schrift-2); color: var(--leder); }
+.kt-kopf .kt-warn { color: var(--seal, var(--siegel)); font-weight: 600; }
 .kt-buehne { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 440px); gap: 14px; align-items: start; }
 .kt-raum { position: relative; height: min(660px, calc(100vh - 260px)); min-height: 560px; }
 .kt-tisch {
   position: absolute; left: 23%; right: 23%; top: 25%; bottom: 25%; border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 40%, #7a5638, #4e3422 70%, #3a2618);
+  background: radial-gradient(ellipse at 50% 40%, #7a5638, var(--leder-hell) 70%, var(--leder));
   box-shadow: inset 0 0 0 6px rgba(201, 162, 90, 0.55), 0 10px 26px rgba(40, 24, 10, 0.35);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 0 12%; text-align: center;
 }
-.kt-tisch-titel { font-family: "Marcellus SC", serif; font-size: 17px; letter-spacing: 0.06em; color: #f1dfb4; }
-.kt-tisch-text { font-size: 12.5px; color: #e6d2a6; line-height: 1.35; }
+.kt-tisch-titel { font-family: "Marcellus SC", serif; font-size: var(--schrift-3); letter-spacing: 0.06em; color: var(--warnung-flaeche); }
+.kt-tisch-text { font-size: var(--schrift-2); color: var(--linie); line-height: 1.35; }
 .kt-platz {
   position: absolute; transform: translate(-50%, -50%); width: 96px; padding: 3px 2px 4px; border: 0; border-radius: 8px; background: transparent;
-  display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; font-family: var(--serif); color: #2e2118;
+  display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; font-family: var(--serif); color: var(--tinte-1);
 }
 /* gegen allgemeine Knopfregeln des Saals: ein Platz ist kein Kartenknopf */
 .mr-saal.kt .kt-raum .kt-platz { background: transparent; border: 0; box-shadow: none; min-height: 0; }
 .mr-saal.kt .kt-raum .kt-platz:hover { background: rgba(201, 162, 90, 0.18); }
-.mr-saal.kt .kt-raum .kt-platz.on { background: rgba(232, 199, 115, 0.55); box-shadow: 0 0 0 2px #8a6a2a; }
-.kt-gesicht { display: inline-grid; border-radius: 50%; padding: 2px; box-shadow: 0 0 0 3px #7c5823; background: #fbf4df; }
-.kt-st-treu .kt-gesicht, .kt-st-loyal .kt-gesicht { box-shadow: 0 0 0 3px #2b1e12; }
-.kt-st-skeptisch .kt-gesicht { box-shadow: 0 0 0 3px #c9a25a; }
-.kt-st-kritisch .kt-gesicht, .kt-st-meuternd .kt-gesicht { box-shadow: 0 0 0 3px #8c2b1f; }
-.kt-name { font-size: 12px; font-weight: 600; line-height: 1.12; text-align: center; }
-.kt-ressort { font-size: 11.5px; color: #6b5338; line-height: 1.12; text-align: center; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mr-saal.kt .kt-raum .kt-platz.on { background: rgba(232, 199, 115, 0.55); box-shadow: 0 0 0 2px var(--warnung); }
+.kt-gesicht { display: inline-grid; border-radius: 50%; padding: 2px; box-shadow: 0 0 0 3px var(--messing-3); background: var(--papier-2); }
+.kt-st-treu .kt-gesicht, .kt-st-loyal .kt-gesicht { box-shadow: 0 0 0 3px var(--messing-text); }
+.kt-st-skeptisch .kt-gesicht { box-shadow: 0 0 0 3px var(--messing-2); }
+.kt-st-kritisch .kt-gesicht, .kt-st-meuternd .kt-gesicht { box-shadow: 0 0 0 3px var(--siegel); }
+.kt-name { font-size: var(--schrift-1); font-weight: 600; line-height: 1.12; text-align: center; }
+.kt-ressort { font-size: var(--schrift-2); color: #6b5338; line-height: 1.12; text-align: center; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .kt-platz.gast .kt-gesicht { opacity: 0.85; }
 .kt-platz.kommissarisch { filter: grayscale(0.7); }
-.kt-abzeichen { position: absolute; top: 0; right: 16px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--seal, #8f2a1e); color: #fff; font-style: normal; font-size: 11px; display: grid; place-items: center; }
-.kt-blitz { position: absolute; top: 0; left: 16px; width: 18px; height: 18px; border-radius: 50%; background: #e0a52a; color: #2e2118; font-style: normal; font-weight: 700; font-size: 12px; display: grid; place-items: center; }
+.kt-abzeichen { position: absolute; top: 0; right: 16px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--seal, var(--siegel)); color: var(--papier-1); font-style: normal; font-size: var(--schrift-2); display: grid; place-items: center; }
+.kt-blitz { position: absolute; top: 0; left: 16px; width: 18px; height: 18px; border-radius: 50%; background: #e0a52a; color: var(--tinte-1); font-style: normal; font-weight: 700; font-size: var(--schrift-2); display: grid; place-items: center; }
 .kt-akte { position: sticky; top: 8px; max-height: calc(100vh - 220px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 .kt-akte .mr-karte { margin: 0; }
-.kt-leer { margin: 0; padding: 22px 18px; border: 1px dashed rgba(120, 90, 50, 0.45); border-radius: 4px; color: #5a4632; font-size: 14px; text-align: center; }
+.kt-leer { margin: 0; padding: 22px 18px; border: 1px dashed rgba(120, 90, 50, 0.45); border-radius: 4px; color: var(--tinte-2); font-size: var(--schrift-2); text-align: center; }
 
 @media (max-width: 1100px) {
   .kt-buehne { grid-template-columns: 1fr; }

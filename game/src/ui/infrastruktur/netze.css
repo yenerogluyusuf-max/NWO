@@ -1,12 +1,12 @@
 /* Die Netze des Landes (ui/infrastruktur/Netze.tsx): Auslastung als Balken, Engpässe, Ausbau und Programme. */
 
 .nz { container-type: inline-size; display: flex; flex-direction: column; gap: 8px; }
-.nz-zweck { margin: 0; font: italic 15px/1.45 var(--serif); color: var(--ink-soft); }
-.nz-etat, .nz-quelle, .nz-leer { margin: 0; font-size: 14px; color: var(--ink-soft); }
-.nz-vergabe { font: 600 14px var(--serif); }
+.nz-zweck { margin: 0; font: italic var(--schrift-3)/1.45 var(--serif); color: var(--ink-soft); }
+.nz-etat, .nz-quelle, .nz-leer { margin: 0; font-size: var(--schrift-2); color: var(--ink-soft); }
+.nz-vergabe { font: 600 var(--schrift-2) var(--serif); }
 .nz-vergabe select { font: inherit; margin-left: 4px; }
-.nz-meldung { margin: 0; padding: 6px 10px; border-radius: 4px; font-size: 14px; }
-.nz-meldung.ok { background: rgba(140,109,74, 0.14); }
+.nz-meldung { margin: 0; padding: 6px 10px; border-radius: 4px; font-size: var(--schrift-2); }
+.nz-meldung.ok { background: color-mix(in srgb, var(--gut) 14%, transparent); }
 .nz-meldung.nein { background: rgba(150, 44, 36, 0.12); }
 
 .nz-liste, .nz-pakete { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -16,10 +16,10 @@
   display: grid; grid-template-columns: minmax(110px, 1.1fr) minmax(90px, 2fr) 54px; gap: 4px 10px; align-items: center;
   width: 100%; padding: 7px 10px; background: transparent; border: none; cursor: pointer; text-align: left; font: inherit; color: var(--ink);
 }
-.nz-zusatz { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-soft); min-height: 0; }
+.nz-zusatz { grid-column: 1 / -1; font-size: var(--schrift-2); color: var(--ink-soft); min-height: 0; }
 .nz-zusatz:empty { display: none; }
-.nz-name { font: 600 15px var(--serif); }
-.nz-wert { font: 700 14px var(--sans); text-align: right; }
+.nz-name { font: 600 var(--schrift-3) var(--serif); }
+.nz-wert { font: 700 var(--schrift-2) var(--serif); text-align: right; }
 
 .nz-balken { position: relative; display: block; height: 9px; border-radius: 6px; background: rgba(90, 64, 40, 0.14); overflow: visible; }
 .nz-balken i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: rgb(79,107,58); }
@@ -33,24 +33,24 @@ span.nz-mittel, td.nz-mittel { color: rgb(140, 100, 30); }
 span.nz-schlecht, td.nz-schlecht { color: rgb(150, 44, 36); }
 
 .nz-auf { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 6px; }
-.nz-tabelle { width: 100%; border-collapse: collapse; font-size: 14px; }
+.nz-tabelle { width: 100%; border-collapse: collapse; font-size: var(--schrift-2); }
 .nz-tabelle th { text-align: left; font-weight: 600; padding: 4px 6px 4px 0; white-space: nowrap; }
 .nz-tabelle td { padding: 4px 6px; vertical-align: middle; }
 .nz-tabelle tr + tr { border-top: 1px dotted rgba(90, 64, 40, 0.3); }
 .nz-knopf {
   display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; margin: 2px 6px 2px 0; padding: 4px 10px; cursor: pointer;
-  font: 600 14px var(--serif); color: var(--ink); background: #fbf4df; border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 4px;
+  font: 600 var(--schrift-2) var(--serif); color: var(--ink); background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 4px;
 }
-.nz-knopf small { font: 400 11.5px var(--sans); color: var(--ink-soft); }
+.nz-knopf small { font: 400 var(--schrift-2) var(--serif); color: var(--ink-soft); }
 .nz-knopf:disabled { opacity: 0.5; cursor: default; }
-.nz-knopf:not(:disabled):hover { background: #fff8e6; border-color: var(--seal); }
+.nz-knopf:not(:disabled):hover { background: var(--papier-2); border-color: var(--seal); }
 
-.nz-titel { margin: 10px 0 2px; font: 600 16.5px var(--display); border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
+.nz-titel { margin: 10px 0 2px; font: 600 var(--schrift-3) var(--display); border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
 .nz-paket { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 4px; background: rgba(255, 251, 238, 0.7); }
-.nz-paket > span { font-size: 14px; }
+.nz-paket > span { font-size: var(--schrift-2); }
 .nz-paket-preis { color: var(--ink-soft); }
 .nz-paket .nz-knopf { align-self: flex-start; }
-.nz-zeile { font-size: 14px; }
+.nz-zeile { font-size: var(--schrift-2); }
 
 @container (max-width: 420px) {
   .nz-kopf { grid-template-columns: 1fr 54px; }
@@ -63,63 +63,63 @@ span.nz-schlecht, td.nz-schlecht { color: rgb(150, 44, 36); }
 
 /* Netze als Spielbild (Rückmeldung 05.11.2026: „viel schöner, viel interaktiver“): Ringe oben, Karte mit Auslastung, Provinz rechts */
 .nz2 { display: flex; flex-direction: column; gap: 14px; }
-.nz2 .nz-lage { margin: 0; font: 13.5px/1.4 var(--sans); color: #5a4632; }
+.nz2 .nz-lage { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
 .nz-ringe { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
-.dossier button.nz-netz { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 8px; min-height: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; box-shadow: none; cursor: pointer; text-transform: none; letter-spacing: 0; color: #2e2118; transition: background 140ms ease, border-color 140ms ease; }
+.dossier button.nz-netz { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 8px; min-height: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; box-shadow: none; cursor: pointer; text-transform: none; letter-spacing: 0; color: var(--tinte-1); transition: background 140ms ease, border-color 140ms ease; }
 .dossier button.nz-netz:hover { background: rgba(201, 162, 90, 0.14); }
-.dossier button.nz-netz.on { background: #fffaf0; border-color: rgba(138, 106, 42, 0.6); box-shadow: 0 4px 12px rgba(60, 40, 20, 0.14); }
+.dossier button.nz-netz.on { background: var(--papier-1); border-color: rgba(138, 106, 42, 0.6); box-shadow: 0 4px 12px rgba(60, 40, 20, 0.14); }
 .nz-ring-feld { position: relative; width: 82px; height: 82px; display: grid; place-items: center; }
-.nz-ring-feld > b { position: absolute; font: 700 17px var(--sans); color: #2e2118; }
+.nz-ring-feld > b { position: absolute; font: 700 var(--schrift-3) var(--serif); color: var(--tinte-1); }
 .nz-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
 .nz-ring circle { fill: none; stroke-width: 10; stroke-linecap: round; }
-.nz-ring-grund { stroke: #e8dcc0; }
+.nz-ring-grund { stroke: var(--papier-4); }
 .nz-ring-wert { transition: stroke-dasharray 500ms cubic-bezier(.2,.8,.2,1); }
-.nz-ring.nz-gut .nz-ring-wert { stroke: #5e8f6e; }
-.nz-ring.nz-mittel .nz-ring-wert { stroke: #d2a64a; }
-.nz-ring.nz-schlecht .nz-ring-wert { stroke: #a8402f; }
-.nz-ring-marke { stroke: #2e2118; stroke-width: 2; }
-.nz-bau { position: absolute; top: -2px; right: -6px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: #5d4231; color: #f4ead2; font: 700 12px/22px var(--sans); font-style: normal; }
-.nz-netz strong { font: 600 13.5px/1.2 var(--serif); text-align: center; }
-.nz-netz small { font: 11.5px/1.2 var(--sans); color: #7a6650; text-align: center; }
-.nz-netz small.nz-warn { color: var(--seal, #8f2a1e); }
+.nz-ring.nz-gut .nz-ring-wert { stroke: var(--gut); }
+.nz-ring.nz-mittel .nz-ring-wert { stroke: var(--messing-2); }
+.nz-ring.nz-schlecht .nz-ring-wert { stroke: var(--siegel-hell); }
+.nz-ring-marke { stroke: var(--tinte-1); stroke-width: 2; }
+.nz-bau { position: absolute; top: -2px; right: -6px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: var(--tinte-weich); color: var(--leder-text); font: 700 var(--schrift-2)/22px var(--serif); font-style: normal; }
+.nz-netz strong { font: 600 var(--schrift-2)/1.2 var(--serif); text-align: center; }
+.nz-netz small { font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); text-align: center; }
+.nz-netz small.nz-warn { color: var(--seal, var(--siegel)); }
 
 .nz-buehne { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
 .nz-kartenfeld { padding: 10px; border-radius: 6px; background: radial-gradient(ellipse at 50% 40%, #d9e6ea, #b9cdd4); box-shadow: inset 0 0 0 1px rgba(60, 80, 90, 0.25); }
 .nz-karte { display: block; width: 100%; height: auto; }
-.nz-karte path { fill: #efe6d0; stroke: #fffaf0; stroke-width: 0.8; cursor: pointer; transition: fill 300ms ease, filter 120ms ease; }
-.nz-karte path.leer { fill: #e3d9c2; cursor: default; }
-.nz-karte path:hover:not(.leer) { filter: brightness(1.12); stroke: #2e2118; stroke-width: 1.4; }
-.nz-karte path.gewaehlt { stroke: #1f160f; stroke-width: 2.4; }
-.nz-legende { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font: 12px var(--sans); color: #2e3a3e; }
+.nz-karte path { fill: var(--papier-3); stroke: var(--papier-1); stroke-width: 0.8; cursor: pointer; transition: fill 300ms ease, filter 120ms ease; }
+.nz-karte path.leer { fill: var(--papier-3); cursor: default; }
+.nz-karte path:hover:not(.leer) { filter: brightness(1.12); stroke: var(--tinte-1); stroke-width: 1.4; }
+.nz-karte path.gewaehlt { stroke: var(--leder-tief); stroke-width: 2.4; }
+.nz-legende { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font: var(--schrift-2) var(--serif); color: #2e3a3e; }
 .nz-legende i { display: inline-block; width: 12px; height: 12px; margin-right: 5px; border-radius: 2px; vertical-align: -1px; }
 .nz-landweit { display: flex; align-items: center; gap: 16px; padding: 30px 20px; }
 .nz-landweit .nz-ring { position: static; width: 120px; height: 120px; }
-.nz-landweit p { font: 16px/1.4 var(--serif); color: #2e2118; }
+.nz-landweit p { font: var(--schrift-3)/1.4 var(--serif); color: var(--tinte-1); }
 
-.nz-akte { position: sticky; top: 8px; padding: 14px 16px; border-radius: 6px; background: linear-gradient(180deg, #fffaf0, #f6ecd3); border: 1px solid rgba(160, 130, 80, 0.45); box-shadow: 0 8px 22px rgba(60, 40, 20, 0.12); display: flex; flex-direction: column; gap: 10px; }
+.nz-akte { position: sticky; top: 8px; padding: 14px 16px; border-radius: 6px; background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); border: 1px solid rgba(160, 130, 80, 0.45); box-shadow: 0 8px 22px rgba(60, 40, 20, 0.12); display: flex; flex-direction: column; gap: 10px; }
 .nz-akte header { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 0 10px; }
-.nz-kicker { grid-column: 1 / -1; font: 400 12px var(--kapitaelchen, serif); letter-spacing: 0.12em; text-transform: uppercase; color: var(--seal, #8f2a1e); }
-.nz-akte h4 { margin: 0; font: 600 24px/1.1 var(--serif); color: #2e2118; }
-.nz-akte p.nz-ortwert { margin: 0; font: 700 26px/1 var(--sans); }
-.nz-ortwert small { font: 400 11.5px var(--sans); color: #7a6650; }
-.nz-gut { color: #3d6b4e; } .nz-mittel { color: #9a7425; } .nz-schlecht { color: #a8402f; }
+.nz-kicker { grid-column: 1 / -1; font: 400 var(--schrift-1) var(--kapitaelchen, serif); letter-spacing: 0.12em; color: var(--seal, var(--siegel)); }
+.nz-akte h4 { margin: 0; font: 600 var(--schrift-5)/1.1 var(--serif); color: var(--tinte-1); }
+.nz-akte p.nz-ortwert { margin: 0; font: 700 var(--schrift-6)/1 var(--serif); }
+.nz-ortwert small { font: 400 var(--schrift-1) var(--serif); color: var(--tinte-3); }
+.nz-gut { color: var(--gut); } .nz-mittel { color: #9a7425; } .nz-schlecht { color: var(--siegel-hell); }
 .nz-ausbauten { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.nz-ausbau { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; background: #fffdf6; border: 1px solid rgba(160, 130, 80, 0.35); }
+.nz-ausbau { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; background: var(--papier-1); border: 1px solid rgba(160, 130, 80, 0.35); }
 .nz-ausbau > div { display: flex; flex-direction: column; gap: 2px; }
-.nz-ausbau strong { font: 600 15px var(--serif); color: #2e2118; }
-.nz-wirkung { font: 15px var(--sans); color: #5a4632; }
+.nz-ausbau strong { font: 600 var(--schrift-3) var(--serif); color: var(--tinte-1); }
+.nz-wirkung { font: var(--schrift-3) var(--serif); color: var(--tinte-2); }
 .nz-wirkung b { font-weight: 700; }
-.nz-ausbau small { font: 12px var(--sans); color: #7a6650; }
+.nz-ausbau small { font: var(--schrift-2) var(--serif); color: var(--tinte-3); }
 .nz-ausbau.aus { opacity: 0.6; }
-.nz-grund { font: 12.5px/1.3 var(--sans); color: #7a6650; }
-.nz-engpaesse { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font: 12px var(--sans); color: #6b5338; }
-.dossier button.nz-chip { padding: 2px 9px; min-height: 0; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 12px; background: #fffaf0; font: 12.5px var(--sans); cursor: pointer; text-transform: none; letter-spacing: 0; box-shadow: none; }
-.dossier button.nz-chip.on { background: #5d4231; color: #f4ead2; border-color: #5d4231; }
+.nz-grund { font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-3); }
+.nz-engpaesse { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font: var(--schrift-2) var(--serif); color: #6b5338; }
+.dossier button.nz-chip { padding: 2px 9px; min-height: 0; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 12px; background: var(--papier-1); font: var(--schrift-1) var(--serif); cursor: pointer; text-transform: none; letter-spacing: 0; box-shadow: none; }
+.dossier button.nz-chip.on { background: var(--tinte-weich); color: var(--leder-text); border-color: var(--tinte-weich); }
 
-.nz-programme h4 { margin: 4px 0 8px; font: 400 15px var(--kapitaelchen, serif); letter-spacing: 0.08em; color: #5d4231; }
+.nz-programme h4 { margin: 4px 0 8px; font: 400 var(--schrift-3) var(--kapitaelchen, serif); letter-spacing: 0.08em; color: var(--tinte-weich); }
 .nz-programme ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
-.nz-programm { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; background: #fffdf6; border: 1px solid rgba(160, 130, 80, 0.35); }
+.nz-programm { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; background: var(--papier-1); border: 1px solid rgba(160, 130, 80, 0.35); }
 .nz-programm > div { display: flex; flex-direction: column; gap: 2px; }
-.nz-programm strong { font: 600 15px var(--serif); }
-.nz-programm small { font: 12px/1.35 var(--sans); color: #6b5338; }
+.nz-programm strong { font: 600 var(--schrift-3) var(--serif); }
+.nz-programm small { font: var(--schrift-2)/1.35 var(--serif); color: #6b5338; }
 @media (max-width: 1100px) { .nz-buehne { grid-template-columns: 1fr; } .nz-akte { position: static; } }

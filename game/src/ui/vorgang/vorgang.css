@@ -29,7 +29,7 @@
 .vg-zeitstrahl li { flex: 1 1 90px; display: grid; justify-items: center; gap: 4px; font-size: .8em; position: relative; padding-top: 2px; }
 .vg-zeitstrahl li::before { content: ""; position: absolute; top: 8px; left: 0; right: 0; height: 2px; background: rgba(0,0,0,.15); z-index: 0; }
 .vg-zeitstrahl li.fertig::before, .vg-zeitstrahl li.jetzt::before { background: var(--brass, #a8823a); }
-.vg-punkt { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--brass, #a8823a); background: var(--paper, #f6f1e6); z-index: 1; }
+.vg-punkt { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--brass, #a8823a); background: var(--paper, var(--papier-2)); z-index: 1; }
 .vg-zeitstrahl li.fertig .vg-punkt { background: var(--brass, #a8823a); }
 .vg-zeitstrahl li.jetzt .vg-punkt { box-shadow: 0 0 0 3px rgba(168,130,58,.3); }
 .vg-zeitstrahl li.offen { opacity: .6; }

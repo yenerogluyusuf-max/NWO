@@ -3,11 +3,11 @@
    Grün = wie beabsichtigt, gestrichelt = Stand beim Beschluss. Keine abgeschnittenen Namen: lange Titel brechen um. */
 
 .ba {
-  --ba-gut: #553a2a;
-  --ba-schlecht: #8e2a22;
-  --ba-gemischt: #8a5d14;
-  --ba-frueh: #5d4231;
-  --ba-still: #6a5a4a;
+  --ba-gut: var(--gut);
+  --ba-schlecht: var(--siegel);
+  --ba-gemischt: var(--warnung);
+  --ba-frueh: var(--tinte-weich);
+  --ba-still: var(--tinte-3);
   container-type: inline-size;
   display: grid;
   grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
@@ -16,12 +16,12 @@
 }
 .ba * { min-width: 0; }
 .ba h3, .ba h4 { font-family: var(--display); font-weight: 600; margin: 0; letter-spacing: 0.005em; overflow-wrap: anywhere; }
-.ba h4 { font-size: 16.5px; margin: 0 0 4px; }
+.ba h4 { font-size: var(--schrift-3); margin: 0 0 4px; }
 
 /* --- Liste ----------------------------------------------------------------- */
 /* Die Liste bleibt beim Lesen stehen und scrollt für sich, wenn sie länger ist als das Fenster */
 .ba-liste { display: grid; gap: 16px; position: sticky; top: 0; align-self: start; max-height: calc(100vh - 340px); min-height: 160px; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
-.ba-gruppe h4 { font: 600 11.5px var(--display); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
+.ba-gruppe h4 { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
 .ba-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
 .ba .ba-eintrag {
   width: 100%; text-align: left; display: grid; gap: 1px; padding: 7px 10px 6px 12px !important;
@@ -29,50 +29,50 @@
   background: rgba(255, 250, 235, 0.55) !important; box-shadow: none !important;
 }
 .ba .ba-eintrag:hover { background: rgba(255, 250, 235, 0.95) !important; }
-.ba .ba-eintrag.an { background: #fbf5e6 !important; box-shadow: 0 2px 6px rgba(60, 40, 16, 0.2) !important; border-color: rgba(90, 64, 40, 0.55) !important; }
+.ba .ba-eintrag.an { background: var(--papier-2) !important; box-shadow: 0 2px 6px rgba(60, 40, 16, 0.2) !important; border-color: rgba(90, 64, 40, 0.55) !important; }
 .ba .ba-eintrag:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
 .ba-eintrag.phase-wirkt { border-left-color: var(--ba-gut) !important; }
 .ba-eintrag.phase-gemischt { border-left-color: var(--ba-gemischt) !important; }
 .ba-eintrag.phase-gegenlaeufig { border-left-color: var(--ba-schlecht) !important; }
 .ba-eintrag.phase-zu_frueh { border-left-color: var(--ba-frueh) !important; }
 .ba-eintrag-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.ba-eintrag-kopf b { font: 600 14px var(--serif); }
-.ba-eintrag-kopf em { font: 600 11.5px var(--display); letter-spacing: 0.07em; text-transform: uppercase; font-style: normal; color: var(--ink-soft); white-space: nowrap; }
+.ba-eintrag-kopf b { font: 600 var(--schrift-2) var(--serif); }
+.ba-eintrag-kopf em { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.07em; text-transform: uppercase; font-style: normal; color: var(--ink-soft); white-space: nowrap; }
 .ba-eintrag.phase-wirkt em { color: var(--ba-gut); }
 .ba-eintrag.phase-gemischt em { color: var(--ba-gemischt); }
 .ba-eintrag.phase-gegenlaeufig em { color: var(--ba-schlecht); }
 .ba-eintrag.phase-zu_frueh em { color: var(--ba-frueh); }
-.ba-eintrag-datum { font: italic 14px var(--serif); color: var(--ink-soft); }
+.ba-eintrag-datum { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
 .ba-bald li { display: grid; gap: 0; padding: 4px 2px; border-bottom: 1px dotted rgba(90, 64, 40, 0.25); }
-.ba-bald-name { font: 600 14px var(--serif); overflow-wrap: anywhere; }
+.ba-bald-name { font: 600 var(--schrift-2) var(--serif); overflow-wrap: anywhere; }
 
 /* --- Bericht ---------------------------------------------------------------- */
 .ba-bericht { display: grid; gap: 18px; }
-.ba-kicker { margin: 0 0 2px; font: 600 11.5px var(--display); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); }
-.ba-kopf h3 { font-size: 24px; line-height: 1.2; }
-.ba-unter { margin: 4px 0 0; font: italic 15px/1.4 var(--serif); color: var(--ink-soft); }
-.ba .ba-gehe { margin-top: 10px; font: 600 14px var(--serif); }
+.ba-kicker { margin: 0 0 2px; font: 600 var(--schrift-1) var(--display); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); }
+.ba-kopf h3 { font-size: var(--schrift-5); line-height: 1.2; }
+.ba-unter { margin: 4px 0 0; font: italic var(--schrift-3)/1.4 var(--serif); color: var(--ink-soft); }
+.ba .ba-gehe { margin-top: 10px; font: 600 var(--schrift-2) var(--serif); }
 
 .ba-urteil { padding: 12px 16px 14px; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 5px solid var(--ba-still); background: rgba(255, 250, 235, 0.7); }
 .ba-urteil.phase-wirkt { border-left-color: var(--ba-gut); }
 .ba-urteil.phase-gemischt { border-left-color: var(--ba-gemischt); }
 .ba-urteil.phase-gegenlaeufig { border-left-color: var(--ba-schlecht); }
 .ba-urteil.phase-zu_frueh { border-left-color: var(--ba-frueh); }
-.ba-urteil-wort { margin: 0; font: 650 12.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ba-still); }
+.ba-urteil-wort { margin: 0; font: 600 var(--schrift-1) var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ba-still); }
 .ba-urteil.phase-wirkt .ba-urteil-wort { color: var(--ba-gut); }
 .ba-urteil.phase-gemischt .ba-urteil-wort { color: var(--ba-gemischt); }
 .ba-urteil.phase-gegenlaeufig .ba-urteil-wort { color: var(--ba-schlecht); }
 .ba-urteil.phase-zu_frueh .ba-urteil-wort { color: var(--ba-frueh); }
-.ba-urteil-kurz { margin: 3px 0 0; font: 600 18px/1.35 var(--serif); }
-.ba-urteil ul { margin: 8px 0 0; padding-left: 18px; font: 15px/1.45 var(--serif); }
+.ba-urteil-kurz { margin: 3px 0 0; font: 600 var(--schrift-4)/1.35 var(--serif); }
+.ba-urteil ul { margin: 8px 0 0; padding-left: 18px; font: var(--schrift-3)/1.45 var(--serif); }
 .ba-urteil li { margin: 3px 0; }
 
 .ba-reife { margin-top: 12px; }
 .ba-reife-balken { height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.2); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25); overflow: hidden; }
 .ba-reife-balken i { display: block; height: 100%; background: linear-gradient(180deg, #877049, var(--ba-frueh)); }
-.ba-reife p { margin: 5px 0 0; font: italic 14px var(--serif); color: var(--ink-soft); }
+.ba-reife p { margin: 5px 0 0; font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
 
-.ba-erklaer { margin: 0 0 8px; font: italic 14px/1.4 var(--serif); color: var(--ink-soft); }
+.ba-erklaer { margin: 0 0 8px; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--ink-soft); }
 
 /* --- Karten je Größe --------------------------------------------------------- */
 .ba-karten { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
@@ -82,53 +82,53 @@
 }
 .ba-karte.bew-erwartet { border-left-color: var(--ba-gut); }
 .ba-karte.bew-nebenwirkung, .ba-karte.bew-gegenlaeufig { border-left-color: var(--ba-schlecht); }
-.ba-karte.bew-unerwartet { border-left-color: #4f6b3a; }
+.ba-karte.bew-unerwartet { border-left-color: var(--lorbeer); }
 .ba-karte.bew-ruhig { border-left-color: rgba(106, 90, 74, 0.55); }
 .ba-karte.bew-fremd { border-left-color: var(--ba-still); border-left-style: double; }
 .ba-karte.bew-spaeter { border-left-color: var(--ba-frueh); border-left-style: dashed; }
 .ba-karte-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
-.ba-karte-kopf strong { font: 650 16.5px var(--display); overflow-wrap: anywhere; }
-.ba-soll { font: italic 14px var(--serif); color: var(--ink-soft); }
-.ba-bewertung { margin-left: auto; font: 650 11.5px var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ba-still); white-space: nowrap; }
+.ba-karte-kopf strong { font: 600 var(--schrift-3) var(--display); overflow-wrap: anywhere; }
+.ba-soll { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
+.ba-bewertung { margin-left: auto; font: 600 var(--schrift-1) var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ba-still); white-space: nowrap; }
 .ba-bewertung.bew-erwartet { color: var(--ba-gut); }
 .ba-bewertung.bew-nebenwirkung, .ba-bewertung.bew-gegenlaeufig { color: var(--ba-schlecht); }
 .ba-bewertung.bew-spaeter { color: var(--ba-frueh); }
 .ba-zahlen { margin: 3px 0 2px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-variant-numeric: tabular-nums; }
-.ba-von { font: 16.5px var(--serif); color: var(--ink-soft); }
+.ba-von { font: var(--schrift-3) var(--serif); color: var(--ink-soft); }
 .ba-pfeil { color: var(--ink-soft); }
-.ba-nach { font: 650 21px var(--serif); }
-.ba-delta { font: 650 15px var(--serif); margin-left: 4px; }
-.ba-delta.ton-gut { color: var(--ba-gut); }
+.ba-nach { font: 600 var(--schrift-5) var(--serif); }
+.ba-delta { font: 600 var(--schrift-3) var(--serif); margin-left: 4px; }
+.ba-delta.ton-gut { color: var(--gut); }
 .ba-delta.ton-schlecht { color: var(--ba-schlecht); }
 .ba-delta.ton-neutral { color: var(--ink-soft); font-weight: 500; font-style: italic; }
-.ba-ursache { margin: 3px 0 0; font: 15px/1.4 var(--serif); color: var(--ink); }
-.ba-warum { margin: 2px 0 0; font: italic 14px/1.4 var(--serif); color: var(--ink-soft); }
-.ba-regionen { margin: 3px 0 0; font: 14px/1.4 var(--serif); }
-.ba-regionen span { font: 600 11.5px var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-right: 4px; }
+.ba-ursache { margin: 3px 0 0; font: var(--schrift-3)/1.4 var(--serif); color: var(--ink); }
+.ba-warum { margin: 2px 0 0; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--ink-soft); }
+.ba-regionen { margin: 3px 0 0; font: var(--schrift-2)/1.4 var(--serif); }
+.ba-regionen span { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-right: 4px; }
 .ba-karte-kurve { display: grid; gap: 1px; justify-items: stretch; }
 .ba-kurve { width: 100%; height: auto; display: block; overflow: visible; }
-.ba-kurve .ba-marke-text { font: 600 11.5px var(--sans); fill: var(--ink-soft); letter-spacing: 0.04em; }
+.ba-kurve .ba-marke-text { font: 600 var(--schrift-1) var(--serif); fill: var(--ink-soft); letter-spacing: 0.04em; }
 .ba-kurve .ba-start { stroke: rgba(90, 64, 40, 0.5); stroke-width: 0.8; stroke-dasharray: 3 3; }
 .ba-kurve .ba-marke { stroke: rgba(90, 64, 40, 0.3); stroke-width: 0.8; }
 .ba-kurve .ba-linie { fill: none; stroke: var(--ba-still); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
-.ba-kurve.ton-gut .ba-linie { stroke: var(--ba-gut); }
+.ba-kurve.ton-gut .ba-linie { stroke: var(--gut); }
 .ba-kurve.ton-schlecht .ba-linie { stroke: var(--ba-schlecht); }
 .ba-kurve .ba-punkt { fill: var(--ba-still); }
-.ba-kurve.ton-gut .ba-punkt { fill: var(--ba-gut); }
+.ba-kurve.ton-gut .ba-punkt { fill: var(--gut); }
 .ba-kurve.ton-schlecht .ba-punkt { fill: var(--ba-schlecht); }
-.ba-kurve .ba-punkt.start { fill: #efe4cb; stroke: var(--ink-soft); stroke-width: 1; }
-.ba-kurve-legende { font: italic 12.5px var(--serif); color: var(--ink-soft); text-align: center; }
+.ba-kurve .ba-punkt.start { fill: var(--papier-3); stroke: var(--ink-soft); stroke-width: 1; }
+.ba-kurve-legende { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); text-align: center; }
 
-.ba-ruhig { font: 15px/1.4 var(--serif); }
+.ba-ruhig { font: var(--schrift-3)/1.4 var(--serif); }
 .ba-ruhig summary { cursor: pointer; color: var(--ink-soft); font-style: italic; }
 .ba-ruhig ul { margin: 6px 0 0; padding-left: 18px; }
 .ba-zurechnung { padding: 10px 14px 12px; border-top: 1px dashed rgba(90, 64, 40, 0.4); }
-.ba-zurechnung p { margin: 4px 0 0; font: 15px/1.45 var(--serif); }
-.ba-alt { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; font: 15px/1.4 var(--serif); }
+.ba-zurechnung p { margin: 4px 0 0; font: var(--schrift-3)/1.45 var(--serif); }
+.ba-alt { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; font: var(--schrift-3)/1.4 var(--serif); }
 .ba-leer { display: block; }
 .ba-beobachtet { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 6px; }
 .ba-beobachtet li { display: grid; padding: 7px 12px; border: 1px solid rgba(90, 64, 40, 0.3); border-left: 4px solid var(--ba-frueh); background: rgba(255, 250, 235, 0.6); }
-.ba-beobachtet span { font: italic 14px var(--serif); color: var(--ink-soft); }
+.ba-beobachtet span { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
 
 /* --- Schmales Fenster: Liste oben, Karten untereinander ------------------------ */
 @container (max-width: 700px) {

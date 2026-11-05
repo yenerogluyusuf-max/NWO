@@ -4,9 +4,9 @@
 
 /* Haupt */
 .dossier button:is(.primary, .haupt, .leather-button, .ak-urteil-knopf, .rg-beschluss, .rr-beginnen, .pd-btn.primary, .gzz-versuch, .wb-oeffnen) {
-  background: linear-gradient(180deg, #5a3722, #3a2418); color: #f7ecd2; border: 1px solid #7c5823; border-radius: 6px;
-  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 #24150c; text-shadow: none;
-  font: 400 15px/1.2 var(--kapitaelchen); letter-spacing: .03em; padding: 9px 16px;
+  background: linear-gradient(180deg, var(--leder-hell), var(--leder)); color: var(--leder-text); border: 1px solid var(--messing-3); border-radius: 6px;
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 var(--tinte-1); text-shadow: none;
+  font: 400 var(--schrift-3)/1.2 var(--kapitaelchen); letter-spacing: .03em; padding: 9px 16px;
   transition: transform .15s, box-shadow .15s, filter .15s;
 }
 .dossier button:is(.primary, .haupt, .leather-button, .ak-urteil-knopf, .rg-beschluss, .rr-beginnen, .pd-btn.primary, .gzz-versuch, .wb-oeffnen):hover:not(:disabled) {
@@ -15,12 +15,12 @@
 
 /* Normal */
 .dossier button:is(.pd-btn:not(.primary):not(.quiet):not(.on), .aktion-knopf, .pe-aktion, .brass-button, .kr-knopf, .gz-knopf, .wb-knopf, .gv-knopf, .umb-akt, .zt-gehe) {
-  background: linear-gradient(180deg, #fffaf0, #f1e6cc); color: #2a1f18; border: 1px solid #a37c3c; border-radius: 6px;
-  box-shadow: 0 1px 0 #7c582355; text-shadow: none; font: 400 14px/1.2 var(--kapitaelchen); letter-spacing: .03em;
+  background: linear-gradient(180deg, var(--papier-1), var(--papier-3)); color: var(--tinte-1); border: 1px solid #a37c3c; border-radius: 6px;
+  box-shadow: 0 1px 0 #7c582355; text-shadow: none; font: 400 var(--schrift-2)/1.2 var(--kapitaelchen); letter-spacing: .03em;
   transition: transform .15s, box-shadow .15s, background .15s;
 }
 .dossier button:is(.pd-btn:not(.primary):not(.quiet):not(.on), .aktion-knopf, .pe-aktion, .brass-button, .kr-knopf, .gz-knopf, .wb-knopf, .gv-knopf, .umb-akt, .zt-gehe):hover:not(:disabled) {
-  transform: translateY(-1px); background: linear-gradient(180deg, #fffdf6, #f6ecd5); box-shadow: 0 3px 8px #7c582340;
+  transform: translateY(-1px); background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); box-shadow: 0 3px 8px #7c582340;
 }
 .dossier button:is(.primary, .haupt, .leather-button, .ak-urteil-knopf, .pd-btn, .aktion-knopf, .pe-aktion, .brass-button, .kr-knopf, .gz-knopf, .wb-knopf, .gv-knopf):disabled {
   filter: grayscale(.5); opacity: .55; transform: none; cursor: not-allowed;
@@ -28,15 +28,15 @@
 
 /* Abschnittstitel: Kapitälchen in Siegelrot mit Messinglinie */
 .dossier :is(.ak-abschnitt, .ub-gruppe-name, .gz-abschnitt, .sd-abschnitt) {
-  font: 400 14px/1.3 var(--kapitaelchen); letter-spacing: .1em; text-transform: none; color: #8e2a22;
+  font: 400 var(--schrift-2)/1.3 var(--kapitaelchen); letter-spacing: .1em; text-transform: none; color: var(--siegel);
   display: flex; align-items: center; gap: 10px;
 }
 .dossier :is(.ak-abschnitt, .ub-gruppe-name)::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #c69a4a99, transparent); }
 
 /* Zeilen und Karten im Blatt: ein Papier, eine Kante */
-.ak-inhalt :is(.gz-konflikt, .ub-kachel, .ub-lage, .ak-urteil) { background: #fffdf7; border-color: #dccdab; border-radius: 6px; }
-.ak-inhalt .gz-konflikt { box-shadow: 0 1px 0 #dccdab; }
-.ak-inhalt .gz-konflikt.krieg { border-left-color: #8e2a22; background: linear-gradient(90deg, #f6e3d6, #fffdf7 40%); }
+.ak-inhalt :is(.gz-konflikt, .ub-kachel, .ub-lage, .ak-urteil) { background: var(--papier-1); border-color: var(--linie); border-radius: 6px; }
+.ak-inhalt .gz-konflikt { box-shadow: 0 1px 0 var(--linie); }
+.ak-inhalt .gz-konflikt.krieg { border-left-color: var(--siegel); background: linear-gradient(90deg, var(--schlecht-flaeche), var(--papier-1) 40%); }
 
 /* Unterreiter (dritte Ebene, Regelwerk GESTALTUNG §7): leiser als die Aktenreiter. Kapitälchen auf einer Messinglinie; der offene
    Reiter trägt einen siegelroten Strich. Vorher hatte jede Ansicht eigene Reiter (Kacheln, Pillen, Karteikarten). */
@@ -47,34 +47,34 @@
 .dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) > :is(button, a) {
   background: none !important; border: 0 !important; border-bottom: 2px solid transparent !important; border-radius: 0!important;
   box-shadow: none !important; padding: 8px 10px 7px !important; margin: 0 0 -1px !important; min-height: 0; width: auto;
-  font: 400 14px/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; color: #6a5a4a !important; text-shadow: none !important; transform: none !important;
+  font: 400 var(--schrift-2)/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; color: var(--tinte-3) !important; text-shadow: none !important; transform: none !important;
 }
-.dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) > :is(button, a):hover { color: #2a1f18 !important; border-bottom-color: #c69a4a !important; }
+.dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) > :is(button, a):hover { color: var(--tinte-1) !important; border-bottom-color: var(--messing-2) !important; }
 .dossier :is(.we-tabs, .we-modus, .pe-tabs, .mf-reiter, .rr-tabs, .zt-reiter, .reiter[role=tablist]) > :is(button, a):is(.on, .aktiv, [aria-selected="true"], [aria-current="page"]) {
-  color: #2a1f18 !important; border-bottom-color: #8e2a22 !important;
+  color: var(--tinte-1) !important; border-bottom-color: var(--siegel) !important;
 }
 
 /* Knöpfe in Fenstern auf Papier: Leder ist Haupt, Messing ist Normal (dieselbe Rangfolge wie in den Akten). Auf dunklem Grund
    (Titelbild, Kopfleiste, Kartenleisten) bleibt Messing der Hauptknopf. */
 .event-layer button.leather-button {
-  background: linear-gradient(180deg, #5a3722, #3a2418) !important; color: #f7ecd2 !important; border: 1px solid #7c5823 !important; border-radius: 6px!important;
-  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 #24150c !important; font: 400 15px/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; text-shadow: none !important;
+  background: linear-gradient(180deg, var(--leder-hell), var(--leder)) !important; color: var(--leder-text) !important; border: 1px solid var(--messing-3) !important; border-radius: 6px!important;
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 var(--tinte-1) !important; font: 400 var(--schrift-3)/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; text-shadow: none !important;
 }
 .event-layer button.brass-button {
-  background: linear-gradient(180deg, #fffaf0, #f1e6cc) !important; color: #2a1f18 !important; border: 1px solid #a37c3c !important; border-radius: 6px!important;
-  box-shadow: 0 1px 0 #7c582355 !important; font: 400 15px/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; text-shadow: none !important;
+  background: linear-gradient(180deg, var(--papier-1), var(--papier-3)) !important; color: var(--tinte-1) !important; border: 1px solid #a37c3c !important; border-radius: 6px!important;
+  box-shadow: 0 1px 0 #7c582355 !important; font: 400 var(--schrift-3)/1.2 var(--kapitaelchen) !important; letter-spacing: .03em; text-shadow: none !important;
 }
 
 /* Politik: Die Liste der Politikbereiche ist ein Register im Blatt, keine zweite Leiste. Offener Bereich: Pergament mit siegelrotem Rand. */
-.dossier button.po-rail-eintrag.on { background: #fffdf7 !important; border-color: #dccdab !important; box-shadow: inset 3px 0 0 #8e2a22 !important; font-weight: 400 !important; }
+.dossier button.po-rail-eintrag.on { background: var(--papier-1) !important; border-color: var(--linie) !important; box-shadow: inset 3px 0 0 var(--siegel) !important; font-weight: 400 !important; }
 .dossier button.po-rail-eintrag:first-child { font-family: var(--kapitaelchen) !important; font-weight: 400 !important; letter-spacing: .04em; }
 /* Ampel der Bereiche innerhalb der Palette: ruhig ist neutral, Achtung Messing, angespannt Siegelrot */
-.pd-ring.gruen { border-color: #b09a74 !important; color: #5d4231 !important; }
-.pd-ring.gelb { border-color: #c69a4a !important; color: #6b4a1c !important; }
+.pd-ring.gruen { border-color: var(--linie-stark) !important; color: var(--tinte-weich) !important; }
+.pd-ring.gelb { border-color: var(--messing-2) !important; color: var(--messing-3) !important; }
 /* Ein einzelner Knopf in einem Fenster ist immer der Hauptknopf */
 .event-layer button.brass-button:only-of-type {
-  background: linear-gradient(180deg, #5a3722, #3a2418) !important; color: #f7ecd2 !important; border-color: #7c5823 !important;
-  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 #24150c !important;
+  background: linear-gradient(180deg, var(--leder-hell), var(--leder)) !important; color: var(--leder-text) !important; border-color: var(--messing-3) !important;
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 var(--tinte-1) !important;
 }
 /* Die Unterleiste der Diplomatie steht in der schmalen Listenspalte: vier Reiter in einer Zeile */
 .dossier .we-liste .we-modus[role=tablist] { flex-wrap: nowrap !important; gap: 2px 2px; }

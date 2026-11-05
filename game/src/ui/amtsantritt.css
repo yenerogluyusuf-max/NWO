@@ -9,48 +9,48 @@
   overflow: hidden;
 }
 .antritt-wahl { padding: 26px 28px 22px; border-right: 1px solid rgba(120, 90, 50, 0.3); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.antritt-wahl h2 { margin: 0; font-size: 30px; line-height: 1.15; }
+.antritt-wahl h2 { margin: 0; font-size: var(--schrift-6); line-height: 1.15; }
 .antritt-zahlen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .antritt-zahlen > div { padding: 8px 10px; border: 1px solid rgba(140, 110, 60, 0.35); border-radius: 4px; background: rgba(255, 250, 235, 0.6); }
-.antritt-zahlen b { display: block; font-size: 22px; font-family: var(--serif); color: #2e2118; }
-.antritt-zahlen b small { font-size: 13px; color: #6b5338; }
-.antritt-zahlen span { font-size: 12.5px; color: #5a4632; }
-.antritt-zahlen .gut b { color: #3d5a2e; }
-.antritt-zahlen .schlecht b { color: var(--seal, #8f2a1e); }
+.antritt-zahlen b { display: block; font-size: var(--schrift-5); font-family: var(--serif); color: var(--tinte-1); }
+.antritt-zahlen b small { font-size: var(--schrift-1); color: #6b5338; }
+.antritt-zahlen span { font-size: var(--schrift-1); color: var(--tinte-2); }
+.antritt-zahlen .gut b { color: var(--gut); }
+.antritt-zahlen .schlecht b { color: var(--seal, var(--siegel)); }
 .antritt-wahl .par-svg { width: 100%; max-height: 300px; }
 .antritt-mitte { display: flex; flex-direction: column; align-items: center; }
-.antritt-mitte b { font-size: 28px; font-family: var(--serif); }
-.antritt-mitte small { font-size: 12px; color: #6b5338; }
-.antritt-parteien { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: 13.5px; color: #3a2a1d; }
+.antritt-mitte b { font-size: var(--schrift-6); font-family: var(--serif); }
+.antritt-mitte small { font-size: var(--schrift-2); color: #6b5338; }
+.antritt-parteien { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: var(--schrift-2); color: var(--leder); }
 .antritt-parteien li { padding: 3px 9px; border-left: 4px solid; background: rgba(255, 250, 235, 0.7); border-radius: 2px; }
 
 .antritt-ziele { padding: 26px 28px 20px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.antritt-ziele h3 { margin: 0; font-size: 22px; }
-.antritt-hinweis { margin: 0; font-size: 13.5px; color: #5a4632; }
+.antritt-ziele h3 { margin: 0; font-size: var(--schrift-5); }
+.antritt-hinweis { margin: 0; font-size: var(--schrift-2); color: var(--tinte-2); }
 .antritt-kacheln { list-style: none; margin: 2px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .antritt-kachel {
   position: relative; width: 100%; min-height: 58px; padding: 7px 9px 6px 34px; text-align: left; cursor: pointer;
-  border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 4px; background: linear-gradient(180deg, #fbf4df, #efe2c0);
-  font-family: var(--serif); color: #2e2118; transition: background 120ms ease, transform 120ms ease;
+  border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 4px; background: linear-gradient(180deg, var(--papier-2), var(--papier-4));
+  font-family: var(--serif); color: var(--tinte-1); transition: background 120ms ease, transform 120ms ease;
 }
 .antritt-kachel .icon { position: absolute; left: 9px; top: 9px; color: #6b5338; }
-.antritt-kachel strong { display: block; font-size: 14px; line-height: 1.2; }
-.antritt-kachel small { display: block; margin-top: 2px; font-size: 12px; color: #6b5338; }
+.antritt-kachel strong { display: block; font-size: var(--schrift-2); line-height: 1.2; }
+.antritt-kachel small { display: block; margin-top: 2px; font-size: var(--schrift-2); color: #6b5338; }
 .antritt-kachel:hover { transform: translateY(-1px); }
-.antritt-kachel.on { padding-right: 28px; background: linear-gradient(180deg, #f6dfa0, #e8c773); border-color: #8a6a2a; }
-.antritt-kachel.on .icon { color: #2e2118; }
-.antritt-nr { position: absolute; right: 6px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--seal, #8f2a1e); color: #fff; font-style: normal; font-size: 11px; display: grid; place-items: center; }
-.antritt-kachel.b-wirtschaft { border-left: 3px solid #8a6a2a; }
-.antritt-kachel.b-land { border-left: 3px solid #5d4231; }
+.antritt-kachel.on { padding-right: 28px; background: linear-gradient(180deg, var(--messing-1), #e8c773); border-color: var(--warnung); }
+.antritt-kachel.on .icon { color: var(--tinte-1); }
+.antritt-nr { position: absolute; right: 6px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--seal, var(--siegel)); color: var(--papier-1); font-style: normal; font-size: var(--schrift-2); display: grid; place-items: center; }
+.antritt-kachel.b-wirtschaft { border-left: 3px solid var(--warnung); }
+.antritt-kachel.b-land { border-left: 3px solid var(--tinte-weich); }
 .antritt-kachel.b-aussen { border-left: 3px solid #4a5a6a; }
-.antritt-kachel.b-staat { border-left: 3px solid var(--seal, #8f2a1e); }
-.antritt-detail { margin: 2px 0 0; min-height: 40px; font-size: 13.5px; line-height: 1.4; color: #3a2a1d; }
+.antritt-kachel.b-staat { border-left: 3px solid var(--seal, var(--siegel)); }
+.antritt-detail { margin: 2px 0 0; min-height: 40px; font-size: var(--schrift-2); line-height: 1.4; color: var(--leder); }
 .antritt-fuss { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; }
 .antritt-schwer { display: flex; border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 4px; overflow: hidden; }
-.antritt-schwer button { padding: 7px 14px; border: 0; background: #fbf4df; font-family: var(--serif); font-size: 14px; color: #3a2a1d; cursor: pointer; }
+.antritt-schwer button { padding: 7px 14px; border: 0; background: var(--papier-2); font-family: var(--serif); font-size: var(--schrift-2); color: var(--leder); cursor: pointer; }
 .antritt-schwer button + button { border-left: 1px solid rgba(90, 64, 40, 0.3); }
-.antritt-schwer button.on { background: #5d4231; color: #f4ead2; }
-.antritt-schwer-text { margin: 0; font-size: 12.5px; color: #6b5338; }
+.antritt-schwer button.on { background: var(--tinte-weich); color: var(--leder-text); }
+.antritt-schwer-text { margin: 0; font-size: var(--schrift-2); color: #6b5338; }
 
 @media (max-width: 900px) {
   .event-window.antritt { grid-template-columns: 1fr; overflow-y: auto; }
