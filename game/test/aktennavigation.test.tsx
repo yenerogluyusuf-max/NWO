@@ -20,7 +20,8 @@ describe('Fachliche Navigation ohne zusätzliche Instrumente-Ebene',()=>{
   test('direkte Zugänge ersetzen genau die Sammelrubrik; Auswertungen bleiben erreichbar',()=>{
     const n=aktenNavigation('wirtschaft',reiter,'lage',noop,{aktiv:'haushalt',eintraege});
     expect(n.map(z=>z.id)).toEqual(['lage','zugang-haushalt','zugang-inventar','verlauf','personen','vorgaenge']);
-    expect(n.filter(z=>z.gruppe==='arbeit').map(z=>z.label)).toEqual(['Wirtschaftslage','Haushalt','Versorgung']);
+    // Die Lage steht seit dem Plan Oberfläche (Q4) im Hintergrund, nicht mehr bei den Fachansichten
+    expect(n.filter(z=>z.gruppe==='arbeit').map(z=>z.label)).toEqual(['Haushalt','Versorgung']);
     expect(n.filter(z=>z.aktiv).map(z=>z.id)).toEqual(['lage']);
   });
   test('ein Fachzugang öffnet das bestehende Ziel und den richtigen internen Bereich',()=>{

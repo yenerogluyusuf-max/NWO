@@ -123,3 +123,8 @@
 @media(prefers-reduced-motion:reduce){.ak-akte .ub-kachel{transition:none}}
 
 .ak-akte .ub-detail:focus-visible{outline:3px solid #b38e48;outline-offset:3px}
+
+/* Erkennbar klickbar (Rundgang 5. November, Fehler C-19: „Karte klickbar, aber nicht erkennbar“): ein Pfeil rechts, der beim Öffnen kippt */
+.ub-kachel { position: relative; padding-right: 26px; }
+.ub-kachel::after { content: "›"; position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font: 600 20px/1 var(--sans, Inter, sans-serif); color: #7c5823; transition: transform 0.15s; }
+.ub-kachel.gewaehlt::after { transform: translateY(-50%) rotate(90deg); }

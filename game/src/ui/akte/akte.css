@@ -219,3 +219,4 @@
 .ak-kernwert .ak-funke{display:none}
 .ak-kernwert-hinweis{-webkit-line-clamp:1;max-width:220px}
 @container aktenbereich (max-width: 820px){.ak-kopf.mit-bild{grid-template-columns:minmax(0,1fr)}.ak-kopf.mit-bild .ak-kernwerte{flex-wrap:wrap}}
+.ak-zustaendige { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 2px 0 6px; }

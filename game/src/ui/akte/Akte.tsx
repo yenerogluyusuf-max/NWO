@@ -78,7 +78,8 @@ export function aktenNavigation(bereich:string,reiter:AktenReiter[],aktiv:AktenR
       waehlen:()=>{waehle(r.id);z.waehlen();},
     }));
     return [{id:r.id,label:profil.reiter(r.id),text:r.text,icon:REITER_ICON[r.id],aktiv:aktiv===r.id,
-      gruppe:r.id==="lage"||r.id==="instrumente"?"arbeit":"einordnung",waehlen:()=>waehle(r.id)}];
+      // Nur die Fachansichten sind Arbeit; die Lage gehört wie Bilanz und Personen zum Hintergrund (Plan Oberfläche, Q4)
+      gruppe:r.id==="instrumente"?"arbeit":"einordnung",waehlen:()=>waehle(r.id)}];
   });
 }
 

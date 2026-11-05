@@ -498,8 +498,6 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         { id: "schreibtisch", label: t("buehne.tab.schreibtisch") },
         { id: "chronik", label: t("buehne.tab.chronik") },
         { id: "wirkungsbericht", label: t("buehne.tab.wirkungsbericht") },
-        { id: "speicher", label: t("buehne.tab.speicher") },
-        { id: "quellen", label: t("quellen.tab") },
       ],
     },
     // Politik als eigene Gruppe (ENTSCHEIDUNGEN T2: „Politik › Bereiche“ ist der Hauptweg zu jeder Maßnahme). Früher war sie der dritte
@@ -604,6 +602,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     },
   ];
   const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.tabs.some((t) => t.id === "wirtschaft")));
+  // Spielstände und Quellen gehören ins Hauptmenü ≡ (Plan Oberfläche, Q4), nicht zu den Ansichten des Schreibtischs
+  const menueTitel = dossier === "speicher" ? t("buehne.tab.speicher") : dossier === "quellen" ? t("quellen.tab") : undefined;
 
   /** Mit welchem Reiter die Wirtschaftsakte öffnet (das Ereignisfenster springt in den Haushalt) */
   const [wirtschaftStart, setWirtschaftStart] = useState<"lage" | "haushalt" | "inventar">("lage");
@@ -645,7 +645,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     if (r.ok) sichere(true);
     refresh();
   };
-  /** Reiter der Bereichsakte: Über die Leiste beginnt eine Akte bei der Lage, jeder andere Sprung landet in der gezielten Ansicht (Instrumente). */
+  /** Reiter der Bereichsakte: Jede Akte beginnt in ihrer ersten Fachansicht (PLAN_OBERFLAECHE_DETAIL Q4: das Bild zuerst, nicht eine
+   *  Lageseite davor); Lage, Bilanz und Personen stehen als Hintergrund rechts in der Reiterzeile. */
   const [akteReiter, setAkteReiter] = useState<AktenReiterId>("instrumente");
   // Sprung zu einem Vorgang (Schreibtisch, Zusagen, Karte): die Land-Akte im Reiter „Vorgänge“ mit diesem Vorgang offen
   const [vorgangStart, setVorgangStart] = useState<string | undefined>(undefined);
@@ -654,13 +655,11 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     setAkteReiter("vorgaenge");
     setDossier("reich_infra");
   };
-  const ueberLeiste = useRef(false);
   useEffect(() => {
-    setAkteReiter(ueberLeiste.current ? "lage" : "instrumente");
+    setAkteReiter("instrumente");
     if (dossier !== "wissensbaum") setWissensStart(null);
     if (dossier !== "wirtschaft") setWirtschaftPosten(undefined);
     if (!dossier) setWissensZurueck(null);
-    ueberLeiste.current = false;
   }, [dossier]);
   // Bei offenem Schreibtisch ist der Umlauf gelesen (Spielerdurchlauf 5. November: Der Zähler stand bei 121, während der
   // Schreibtisch offen war, weil er nur beim Öffnen zurückgesetzt wurde)
@@ -876,6 +875,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         sicherGrund={sicherGrund}
         onSichern={() => void schnellSichern()}
         onSpielstaende={() => oeffneDossier("speicher")}
+        onQuellen={() => oeffneDossier("quellen")}
         onHauptmenue={() => {
           // Erst sichern, dann ohne Schnellstart neu laden: Die App beginnt im Titelbild, „Fortsetzen“ führt zurück
           void speichereWarten(world.current).then((r) => {
@@ -898,8 +898,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
       <RegierungsNavigation eintraege={menue.map(m=>({...m,id:m.tabs[0]!.id}))} aktiv={gruppe?.tabs[0]!.id} onWaehlen={id=>{
         const m=menue.find(m=>m.tabs[0]!.id===id);if(!m)return;
-        ueberLeiste.current=gruppe!==m;oeffneDossier(gruppe===m?null:m.tabs[0]!.id);
-        if(gruppe!==m&&m.tabs[0]!.id===dossier){ueberLeiste.current=false;setAkteReiter("lage");}
+        oeffneDossier(gruppe===m?null:m.tabs[0]!.id);
+        if(gruppe!==m&&m.tabs[0]!.id===dossier)setAkteReiter("instrumente");
       }}/>
 
 
@@ -908,7 +908,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
           {/* Alle Akten im selben Leder- und Goldrahmen (GESTALTUNG_2026-11-04, G1) */}
           <Corners />
           <header className="dossier-head">
-            <h2>{gruppe?.titel}</h2>
+            <h2>{gruppe?.titel ?? menueTitel}</h2>
             {gruppe && !gruppe.akte && gruppe.tabs.length > 1 && (
               <div className="dossier-tabs" role="tablist" aria-label={t("st.ansicht", { titel: gruppe.titel })}>
                 {gruppe.tabs.map((t) => (

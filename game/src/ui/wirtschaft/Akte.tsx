@@ -10,7 +10,7 @@ import { ZUGANG_ICON } from "../akte/profil";
 import type { Handlung } from "../../sim/wirtschaft-kennzahlen";
 import { Akte, type AktenReiterId, type Kernwert } from "../akte/Akte";
 import { VerlaufsDiagramm, type VerlaufsReihe } from "../akte/Kennzahl";
-import { BerichtListe, PersonenListe, berichteFuer } from "../akte/Bausteine";
+import { BerichtListe, berichteFuer } from "../akte/Bausteine";
 import { Krisenrat } from "./Krisenrat";
 import { Lage } from "./Lage";
 import { Zentralbank } from "./Zentralbank";
@@ -112,7 +112,6 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, pro
               </div>
             ),
           },
-          { id: "personen", text: t("akte.wirtschaft.personenText"), inhalt: () => <PersonenListe w={world} aemter={["finanzen", "wirtschaft", "zentralbank"]} /> },
           // Vorgänge stehen in der Akte Land (siehe akte/Bereiche.tsx)
         ]}
       />

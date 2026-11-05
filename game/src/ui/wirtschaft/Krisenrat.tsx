@@ -11,6 +11,7 @@ import { GesetzesPrognoseHinweis } from '../parlament/GesetzesPrognoseHinweis';
 import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
 import { ZusagenDruck } from '../personen/ZusagenDruck';
 import { UbVerweis } from '../akte/Uebersicht';
+import { angezeigteZustimmung } from '../../sim/medien';
 import './krisenrat.css';
 import { KrisenGesetze } from './KrisenGesetze';
 
@@ -24,7 +25,7 @@ export function Krisenrat({world,geaendert}:{world:World;geaendert:()=>void}) {
   return <section className="krisenrat" aria-label={t('kp.titel')}>
     <header className="krr-kopf"><span>{t('kp.kicker')}</span><h3>{t('kp.titel')}</h3><p>{t('kp.lead')}</p></header>
     <ol className="kr-schritte"><li><b>01</b>{t('kp.schritt1')}</li><li><b>02</b>{t('kp.schritt2')}</li><li><b>03</b>{t('kp.schritt3')}</li></ol>
-    <dl className="krr-lage"><div><dt>{t('kp.armut')}</dt><dd>{zahl(lage.armut,1)} / 100</dd></div><div><dt>{t('kp.zustimmung')}</dt><dd>{zahl(lage.zustimmung,1)} %</dd></div><div><dt>{t('kp.sitze')}</dt><dd>{lage.sitze} / 301</dd></div></dl>
+    <dl className="krr-lage"><div><dt>{t('kp.armut')}</dt><dd>{zahl(Math.round(lage.armut),0)} / 100</dd></div><div><dt>{t('kp.zustimmung')}</dt><dd>{zahl(Math.round(angezeigteZustimmung(world).wert),0)} %</dd></div><div><dt>{t('kp.sitze')}</dt><dd>{lage.sitze} / 301</dd></div></dl>
     <p className={lage.tiefstand>0?'kr-warnung':'kr-hinweis'}>{t('kp.druck',{n:lage.tiefstand})}</p>
     <KrisenGesetze world={world} geaendert={geaendert}/>
     {antwort&&<p role="status" className={`rueckmeldung ${antwort.ok?'ok':'nein'}`}>{antwort.text}</p>}

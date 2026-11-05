@@ -28,8 +28,6 @@ import { PROVINZEN } from "../../sim/regional";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import { Akte, VorgaengePlatz, type AktenReiterId, type Kernwert } from "./Akte";
-import { VerlaufsDiagramm, type VerlaufsReihe } from "./Kennzahl";
-import { BerichtListe, PersonenListe, berichteFuer } from "./Bausteine";
 import { mehrheitsSicht } from "./lage";
 import { BehoerdenInstrument } from "../behoerden/Instrument";
 import { behoerdenImBereich } from "../../sim/behoerden";
@@ -39,6 +37,7 @@ import { formatDateDe } from "../../sim/dates";
 import { ZUGANG_ICON } from "./profil";
 import { Bildkarten } from "./Bildkarten";
 import { Konfliktlage, angespannteLaender } from "./Konfliktlage";
+import { PersonChip } from "../bausteine/PersonChip";
 
 /** Bereiche, deren Lage ihre Vorhaben als Bildkarten zeigt: Vorhabenbereich im Reich und der Reiter, in dem man sie beginnt. */
 const BILDKARTEN: Partial<Record<BereichId, { reich: string; tab: string }>> = {
@@ -305,6 +304,17 @@ function Zeilen({ zeilen }: { zeilen: LageZeile[] }) {
   );
 }
 
+/** Wer im Bereich zuständig ist, als Porträt-Chips (Ring nach Stimmung); ersetzt den Personenreiter. */
+function Zustaendige({ w, b }: { w: World; b: BereichId }) {
+  const figuren = (w.spiel?.figuren ?? []).filter((f) => f.imAmt && BEREICH_AEMTER[b].includes(f.amt));
+  if (!figuren.length) return null;
+  return (
+    <div className="ak-zustaendige" aria-label={t("akte.b.reiter.personen")}>
+      {figuren.map((f) => <PersonChip key={f.id} w={w} f={f} unter={f.rolle} />)}
+    </div>
+  );
+}
+
 function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined; onKonflikt?: ((landId: string) => void) | undefined; refresh?: (() => void) | undefined }) {
   // Mit Konfliktlage (Sicherheit) stehen die laufenden Konflikte dort, nicht zusätzlich als Zeilenliste
   const gruppen = lageZeilen(w, b).filter((g) => !(b === "sicherheit" && onKonflikt && w.spiel && g.kopf === t("akte.b.lage.konflikte")));
@@ -333,6 +343,7 @@ function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh }:
           </ul>
         </details>
       )}
+      <Zustaendige w={w} b={b} />
       {b === "sicherheit" && onKonflikt && w.spiel && <Konfliktlage w={w} onKonflikt={onKonflikt} />}
       {/* Die Außenlage (Vorwarnungen, Instrumente, Verlauf) steht hier statt eine Ebene tiefer unter „Länder und Diplomatie“ (Vorgabe T: eine Lage, nicht zwei) */}
       {b === "aussen" && refresh && w.spiel && <Aussenlage world={w} refresh={refresh} eingebettet />}
@@ -351,22 +362,7 @@ function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh }:
   );
 }
 
-// ---------------------------------------------------------------------------
-// Verlauf: Diagramme aus vorhandenen Verlaufsdaten, Wirkungsberichte des Bereichs
-
-/** Themen des Politiknetzes je Bereich (für die Wirkungsberichte). */
-export const BEREICH_THEMEN: Record<BereichId, readonly string[]> = {
-  gesellschaft: ["gesellschaft", "wohnen", "gesundheit", "bildung"],
-  recht: ["recht"],
-  regierung: ["haushalt", "recht", "gesellschaft"],
-  sicherheit: ["sicherheit", "militaer"],
-  aussen: ["aussen"],
-  land: ["infrastruktur", "landwirtschaft", "energie", "kultur", "wohnen"],
-  wissen: ["bildung"],
-  medien: ["gesellschaft"],
-};
-
-/** Zuständige Ämter je Bereich (Reiter Personen). */
+/** Zuständige Ämter je Bereich (Porträt-Chips in der Lage). */
 export const BEREICH_AEMTER: Record<BereichId, readonly Figur["amt"][]> = {
   gesellschaft: ["inneres", "opposition"],
   recht: ["justiz", "partner", "opposition"],
@@ -378,46 +374,6 @@ export const BEREICH_AEMTER: Record<BereichId, readonly Figur["amt"][]> = {
   medien: ["stab", "inneres"],
 };
 
-function verlaufsReihen(w: World, b: BereichId): VerlaufsReihe[] {
-  const sp = w.spiel;
-  if (!sp) return [];
-  const zust = sp.umfrage.verlauf.slice(-36);
-  const zustimmung: VerlaufsReihe = { id: "zustimmung", name: t("akte.b.kern.zustimmung"), einheit: "%", stellen: 0, monate: zust.map((v) => v.monat), werte: zust.map((v) => v.wert) };
-  if (b === "gesellschaft") {
-    const lage = gesellschaftLage(w);
-    return [
-      zustimmung,
-      ...lage.map((x) => {
-        const paare = x.reihe.werte.map((v, i) => [v, x.reihe.monate[i]] as const).filter((p): p is readonly [number, string] => p[0] !== null).slice(-36);
-        return { id: x.id, name: t(`akte.b.reihe.${x.id}`), einheit: "", stellen: 0, monate: paare.map((p) => p[1]), werte: paare.map((p) => p[0]) };
-      }),
-    ];
-  }
-  if (b === "medien") {
-    const rsf = rsfSicht(w).verlauf.slice(-36);
-    return [{ id: "rsf", name: t("akte.b.kern.pressefreiheit"), einheit: "", stellen: 1, monate: rsf.map((v) => v.datum.slice(0, 7)), werte: rsf.map((v) => v.score) }, zustimmung];
-  }
-  return [zustimmung];
-}
-
-function VerlaufAnsicht({ w, b }: { w: World; b: BereichId }) {
-  const reihen = verlaufsReihen(w, b).filter((r) => r.werte.length > 1);
-  return (
-    <div className="ak-verlauf">
-      {reihen.length > 0 ? (
-        <div className="ak-diagramme">
-          {reihen.map((r) => (
-            <VerlaufsDiagramm key={r.id} reihe={r} />
-          ))}
-        </div>
-      ) : (
-        <p className="ak-leer">{t("akte.b.verlauf.keineDaten")}</p>
-      )}
-      <h3 className="ak-abschnitt">{t("akte.verlauf.berichte")}</h3>
-      <BerichtListe berichte={berichteFuer(w, BEREICH_THEMEN[b])} gesamt={w.spiel?.berichte?.length ?? 0} />
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Rahmen: Bereichsakte mit den bisherigen Ansichten als Instrumente
@@ -472,8 +428,8 @@ export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, 
           return <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} onKonflikt={onKonflikt} refresh={refresh} />;
         } },
         { id: "instrumente", text: t("akte.b.reiter.instrumente"), inhalt: instrumente },
-        { id: "verlauf", text: t("akte.b.reiter.verlauf"), inhalt: () => <VerlaufAnsicht w={world} b={bereich} /> },
-        { id: "personen", text: t("akte.b.reiter.personen"), inhalt: () => <PersonenListe w={world} aemter={BEREICH_AEMTER[bereich]} /> },
+        // Bilanz- und Personenreiter entfallen (Plan Oberfläche, Q4; Rundgang 5. November: in jeder Akte fast leer, Berichte stehen
+        // im Verlauf des Schreibtischs). Die Zuständigen stehen als Porträt-Chips in der Lage.
         // Vorgänge (Wohnungsbau aus Zusagen und Katastrophen) nur in der Akte Land, wohin auch alle Sprünge führen. Früher stand dieselbe
         // ungefilterte Liste in allen neun Akten unter vier Namen (PRUEFUNG_GESAMT_2026-11-04).
         ...(bereich === "land" ? [{ id: "vorgaenge" as const, inhalt: () => <VorgaengePlatz w={world} start={vorgangStart} /> }] : []),

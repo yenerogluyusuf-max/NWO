@@ -54,6 +54,8 @@ export function Kopfleiste(p: {
   sicherGrund: string | null;
   onSichern: () => void;
   onSpielstaende: () => void;
+  /** Quellen und Lizenzen (früher ein Reiter des Schreibtischs) */
+  onQuellen?: () => void;
   /** Zurück ins Titelbild; Stage sichert vorher */
   onHauptmenue?: () => void;
 }) {
@@ -268,6 +270,22 @@ function KopfMenue(p: Parameters<typeof Kopfleiste>[0]) {
               <span>{t("kopf.menue.spielstaende")}</span>
             </span>
           </button>
+          {p.onQuellen && (
+            <button
+              type="button"
+              role="menuitem"
+              className="kf-eintrag"
+              onClick={() => {
+                p.onQuellen?.();
+                setOffen(false);
+              }}
+            >
+              <Icon name="buch" size={16} />
+              <span className="kf-eintrag-text">
+                <span>{t("kopf.menue.quellen")}</span>
+              </span>
+            </button>
+          )}
           <button
             type="button"
             role="menuitem"
