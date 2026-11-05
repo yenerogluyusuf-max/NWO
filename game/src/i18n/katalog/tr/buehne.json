@@ -133,6 +133,9 @@
   "reich.pflege.fehltVerwaltung": "İdari kapasite yetersiz",
   "reich.pflege.alle": "Tüm varlıkları durum ve etkileriyle gör",
   "reich.bau.titel": "İnşa Halinde",
+  "bs.unter": "Ayda {cap} inşaat puanı · {bauen} inşa ediliyor, {warten} bekliyor",
+  "bs.leisteAria": "Aylık inşaat kapasitesi {cap}, {frei} boş",
+  "bs.frei": "{n} boş",
   "reich.bau.untertitel": "Sıralama = İnşa önceliği",
 
   "vorhaben.gap.name": "Güneydoğu Anadolu Projesi (GAP) ve Atatürk Barajı",

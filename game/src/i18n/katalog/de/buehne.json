@@ -133,6 +133,9 @@
   "reich.pflege.fehltVerwaltung": "Die Verwaltungskraft reicht nicht",
   "reich.pflege.alle": "Alle Stücke mit Zustand und Folgen ansehen",
   "reich.bau.titel": "Im Bau",
+  "bs.unter": "{cap} Baupunkte im Monat · {bauen} bauen, {warten} warten",
+  "bs.leisteAria": "Baukapazität {cap} im Monat, davon {frei} frei",
+  "bs.frei": "{n} frei",
   "reich.bau.untertitel": "Reihenfolge = Vorrang bei der Baukapazität",
 
   "vorhaben.gap.name": "Südostanatolien-Projekt (GAP) mit Atatürk-Damm",

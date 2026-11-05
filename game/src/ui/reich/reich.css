@@ -115,3 +115,26 @@
 @container (max-width: 700px) {
   .rr-weg li { border-radius: 10px; }
 }
+
+/* Baustelle (Rundgang 05.11.2026): Kapazität eines Monats als Leiste nach Vorhaben, darunter eine einzige Liste */
+.rr-baustelle h4 em { font-style: normal; }
+.bs-leiste { display: flex; height: 34px; margin: 8px 0 12px; border-radius: 5px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(90, 64, 40, 0.3); background: #efe6d0; }
+.bs-leiste > span { display: grid; place-items: center; min-width: 22px; color: #fff; font: 700 13px var(--sans); border-right: 2px solid #fbf5e4; transition: flex-grow 500ms cubic-bezier(.2,.8,.2,1); }
+.bs-leiste > span.frei { color: #6b5338; font: 12px var(--sans); background: repeating-linear-gradient(45deg, #efe6d0 0 6px, #e6dbc0 6px 12px); border-right: 0; }
+.bs-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bs-eintrag { display: grid; grid-template-columns: 30px 96px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 6px; background: #fffdf6; border: 1px solid rgba(160, 130, 80, 0.35); }
+.bs-eintrag.wartet { background: #fbf7ec; }
+.bs-eintrag.ruht { opacity: 0.65; }
+.bs-pos { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #b09a74; color: #fff; font: 700 13px var(--sans); }
+.bs-bild { width: 96px; height: 56px; border-radius: 4px; overflow: hidden; }
+.bs-bild.leer { background: repeating-linear-gradient(135deg, #efe6d0 0 8px, #e8dcc0 8px 16px); }
+.bs-bild > * { width: 100%; height: 100%; }
+.bs-mitte { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.bs-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.bs-kopf strong { font: 600 15.5px var(--serif); color: #2e2118; }
+.bs-bereich { font: 400 11px var(--kapitaelchen, serif); letter-spacing: 0.1em; text-transform: uppercase; color: #6b5338; }
+.bs-fortschritt { height: 7px; border-radius: 4px; background: #e8dcc0; overflow: hidden; }
+.bs-fortschritt i { display: block; height: 100%; background: #b09a74; transition: width 400ms ease; }
+.bs-zeit { font: 12.5px var(--sans); color: #5a4632; }
+.bs-zeit b { color: #2e2118; }
+.bs-knoepfe { display: flex; gap: 4px; }

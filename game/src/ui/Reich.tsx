@@ -134,11 +134,23 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
   );
 }
 
-function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void }) {
+
+// Farben der Baustellen in der Kapazitätsleiste (Reihenfolge = Position)
+const BAU_FARBEN = ["#8a6a2a", "#3f7c86", "#a8402f", "#5e8f6e", "#6b4a8a", "#c9a25a", "#4a5a6a", "#b0704a"];
+
+/**
+ * Die Baustelle (Rundgang 05.11.2026): Bild oben ist die Baukapazität eines Monats, aufgeteilt auf die Vorhaben in ihrer Reihenfolge;
+ * darunter eine Liste statt zweier (vorher „Im Bau“ und „Baureihenfolge“ mit denselben Vorhaben). Die Kapazität ist für alle Bereiche
+ * gemeinsam; Vorhaben anderer Bereiche stehen deshalb mit ihrem Bereich dabei.
+ */
+function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich; refresh: () => void }) {
   const z = reichZustand(world);
   const [hinweis, setHinweis] = useState<string | null>(null);
   if (!z.laufend.length) return null;
   const liste = warteschlange(world);
+  const cap = Math.max(1, bauKapazitaet(world));
+  const frei = Math.max(0, cap - liste.reduce((n, e) => n + (e.pausiert ? 0 : e.rate), 0));
+  const bauen = liste.filter((e) => !e.pausiert && e.rate > 0).length;
   const monatsText = (m?: number) => (m === undefined ? "" : m <= 0 ? t("reste.reich.jetzt") : t("reste.reich.inMonaten", { n: m }));
   const rueckmeldung = (id: string, richtung: -1 | 1) => {
     const r = verschiebe(world, id, richtung);
@@ -148,21 +160,24 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
     refresh();
   };
   return (
-    <section className="rr-abschnitt">
-      <h4>
-        {tx("ui2.ui.Reich.bb4c8f7")} <em>{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })}</em>
-      </h4>
-      {hinweis && (
-        <p className="rr-hinweis" role="status">
-          {hinweis}
-        </p>
-      )}
-      <ol className="rr-bauliste rr-queue">
-        {liste.map((e) => {
+    <section className="rr-abschnitt rr-baustelle">
+      <h4>{t("reich.bau.titel")} <em>{t("bs.unter", { cap: Math.round(cap), bauen, warten: liste.length - bauen })}</em></h4>
+      <div className="bs-leiste" role="img" aria-label={t("bs.leisteAria", { cap: Math.round(cap), frei: Math.round(frei) })}>
+        {liste.map((e, i) => (!e.pausiert && e.rate > 0 ? (
+          <span key={e.id} style={{ flexGrow: e.rate, background: BAU_FARBEN[i % BAU_FARBEN.length] }} title={`${vorhabenDef(e.id)?.name ?? e.id}: ${Math.round(e.rate)}`}>
+            <b>{e.position}</b>
+          </span>
+        ) : null))}
+        {frei > 0.5 && <span className="frei" style={{ flexGrow: frei }} title={t("bs.frei", { n: Math.round(frei) })}>{t("bs.frei", { n: Math.round(frei) })}</span>}
+      </div>
+      {hinweis && <p className="rr-hinweis" role="status">{hinweis}</p>}
+      <ol className="bs-liste">
+        {liste.map((e, i) => {
           const v = vorhabenDef(e.id);
-          if (!v) return null;
-          // Wer eine Position zurückfällt, wenn dieses Vorhaben vorgezogen wird
-          const verdrangt = e.position > 1 ? (vorhabenDef(liste[e.position - 2]!.id)?.name ?? liste[e.position - 2]!.id) : null;
+          const l = z.laufend.find((x) => x.id === e.id);
+          if (!v || !l) return null;
+          const gesamt = laufBau(l, v);
+          const f = gesamt > 0 ? l.fortschritt / gesamt : 1;
           const zeit = e.pausiert
             ? t("reste.reich.ruht")
             : e.vergabePhase
@@ -170,31 +185,25 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
               : e.rate > 0
                 ? t("reste.reich.baut", { rate: Math.round(e.rate), fertig: monatsText(e.fertigIn) })
                 : t("reste.reich.wartet", { start: monatsText(e.startIn) }) + (e.fertigIn !== undefined ? t("reste.reich.fertigZusatz", { fertig: monatsText(e.fertigIn) }) : "");
+          const verdrangt = e.position > 1 ? (vorhabenDef(liste[e.position - 2]!.id)?.name ?? liste[e.position - 2]!.id) : null;
+          const baut = !e.pausiert && e.rate > 0;
           return (
-            <li key={e.id} className={`rr-queue-eintrag${e.pausiert ? " ruht" : ""}`}>
-              <span className="rr-queue-pos" aria-label={tx("ui2.ui.Reich.8af9b4d", { p0: e.position })}>
-                {e.position}
-              </span>
-              <div className="rr-bau-kopf">
-                <strong>{v.name}</strong>{" "}
-                <span className="rr-plakette" title={tx("ui2.ui.Reich.0804578", { p0: VERGABE_NAMEN[e.vergabe] })}>
-                  {VERGABE_NAMEN[e.vergabe]}
-                </span>
-                <span className="rr-bau-info">{zeit}</span>
+            <li key={e.id} className={`bs-eintrag${e.pausiert ? " ruht" : baut ? "" : " wartet"}${v.bereich !== bereich ? " fremd" : ""}`}>
+              <span className="bs-pos" style={{ background: baut ? BAU_FARBEN[i % BAU_FARBEN.length] : undefined }}>{e.position}</span>
+              {v.bild ? <div className="bs-bild"><WunderBild art={v.bild} zustand="bau" fortschritt={f} klasse={baut ? "" : "ruht"} /></div> : <div className="bs-bild leer" aria-hidden />}
+              <div className="bs-mitte">
+                <div className="bs-kopf">
+                  <strong>{v.name}</strong>
+                  {v.bereich !== bereich && <span className="bs-bereich">{BEREICH_NAMEN[v.bereich]}</span>}
+                  <span className="rr-plakette" title={tx("ui2.ui.Reich.0804578", { p0: VERGABE_NAMEN[e.vergabe] })}>{VERGABE_NAMEN[e.vergabe]}</span>
+                </div>
+                <span className="bs-fortschritt" aria-hidden><i style={{ width: `${Math.round(f * 100)}%`, background: baut ? BAU_FARBEN[i % BAU_FARBEN.length] : undefined }} /></span>
+                <span className="bs-zeit"><b>{Math.round(f * 100)} %</b> · {zeit}</span>
               </div>
-              <div className="rr-bau-knoepfe">
-                <button
-                  type="button"
-                  className="aktion-knopf"
-                  disabled={e.position === 1}
-                  onClick={() => rueckmeldung(e.id, -1)}
-                  title={verdrangt ? tx("ui2.ui.Reich.f584365", { p0: VORZIEHEN_VERWALTUNG, p1: verdrangt }) : tx("ui2.ui.Reich.a1e5051")}
-                >
-                  ▲
-                </button>
-                <button type="button" className="aktion-knopf" disabled={e.position === liste.length} onClick={() => rueckmeldung(e.id, 1)} title={t("ui.Reich.df0cd3b")}>
-                  ▼
-                </button>
+              <div className="bs-knoepfe">
+                <button type="button" className="aktion-knopf" disabled={e.position === 1} onClick={() => rueckmeldung(e.id, -1)}
+                  title={verdrangt ? tx("ui2.ui.Reich.f584365", { p0: VORZIEHEN_VERWALTUNG, p1: verdrangt }) : tx("ui2.ui.Reich.a1e5051")}>▲</button>
+                <button type="button" className="aktion-knopf" disabled={e.position === liste.length} onClick={() => rueckmeldung(e.id, 1)} title={t("ui.Reich.df0cd3b")}>▼</button>
                 <button type="button" className="aktion-knopf" onClick={() => { pausiere(world, e.id, !e.pausiert); refresh(); }}>
                   {e.pausiert ? tx("ui2.ui.Reich.aeff967") : tx("ui2.ui.Reich.95175c7")}
                 </button>
@@ -203,7 +212,7 @@ function Baureihenfolge({ world, refresh }: { world: World; refresh: () => void 
           );
         })}
       </ol>
-      <p className="rr-hinweis">{t("ui.Reich.119c095")}</p>
+      <p className="rr-hinweis">{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("ui.Reich.119c095")}</p>
     </section>
   );
 }
@@ -552,12 +561,12 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
             {(bereich === "infrastruktur" || bereich === "haushalt") && <Bauhilfe world={world} />}
             <Groessen world={world} liste={GROESSEN[bereich]} />
           </section>
+          {technik && <Baustelle world={world} bereich={bereich} refresh={refresh} />}
           {(bereich === "kultur" || technik) && <Dringend world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
           {bereich === "haushalt" && <Haushalt world={world} />}
           {bereich === "recht" && <Sitze world={world} />}
           {bereich === "recht" && <Institutionen world={world} />}
-          <ImBau world={world} bereich={bereich} refresh={refresh} />
-          {technik && <Baureihenfolge world={world} refresh={refresh} />}
+          {!technik && <ImBau world={world} bereich={bereich} refresh={refresh} />}
           <Verlauf world={world} bereich={bereich} />
           <VorteileListe world={world} bereich={bereich} />
           {z.meldungen.length > 0 && (

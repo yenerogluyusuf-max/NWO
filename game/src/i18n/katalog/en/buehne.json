@@ -133,6 +133,9 @@
   "reich.pflege.fehltVerwaltung": "Insufficient administrative capacity",
   "reich.pflege.alle": "View all assets with condition and impacts",
   "reich.bau.titel": "Under Construction",
+  "bs.unter": "{cap} build points a month · {bauen} building, {warten} waiting",
+  "bs.leisteAria": "Build capacity {cap} a month, {frei} unused",
+  "bs.frei": "{n} free",
   "reich.bau.untertitel": "Order = Capacity Priority",
 
   "vorhaben.gap.name": "Southeastern Anatolia Project (GAP) & Atatürk Dam",
