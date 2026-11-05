@@ -1,4 +1,5 @@
 // Ein Arbeitsplatz: Lage verstehen, einen Vorgang entscheiden, später seine Wirkung prüfen.
+import { WAHLKAMPF } from "../../sim/wahlkampf";
 import { useEffect, useId, useRef, useState } from 'react';
 import type { World } from '../../sim/types';
 import type { Amt, VorlagenZiel } from '../../sim/ministerfluss-typen';
@@ -139,7 +140,9 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
     setFokusWechsel(n=>n+1);
   };
   const fristen=[...regierungsVorgaenge(world).map(g=>({id:g.id,text:g.titel,wann:`${g.status} · ${formatDateDe(g.datum)}`,tage:g.tage,ziel:g.ziel})),...b.faellig.filter(f=>f.art==='gesetz'||f.art==='duldung'||f.art==='schritt').map(f=>({id:f.id,text:f.titel,wann:f.tage===undefined?t('sk.bereit'):fristText(f.tage),tage:f.tage??0,ziel:f.knopf.art==='gehe'?f.knopf.ziel:undefined})),
-    ...b.termine.filter(x=>!x.id.startsWith('g-')&&!x.id.startsWith('z-')).map(x=>({id:`t-${x.id}`,text:x.text,wann:x.datum,tage:x.tage,ziel:x.ziel}))].sort((a,c)=>a.tage-c.tage).slice(0,5);
+    ...b.termine.filter(x=>!x.id.startsWith('g-')&&!x.id.startsWith('z-')).map(x=>({id:`t-${x.id}`,text:x.text,wann:x.datum,tage:x.tage,ziel:x.ziel})),
+    // Der Wahlkampf kündigt sich an: Wer ihn nicht vorbereitet, verliert am Wahltag rund acht Punkte an Angriffe, Duell und Lager (Messung 5. November)
+    ...(()=>{const sp=world.spiel;if(!sp||sp.ende)return [];const tage=sp.wahltag-WAHLKAMPF.beginnTage-world.day;return tage>0&&tage<=180?[{id:'wahlkampf-beginn',text:t('sd.wahlkampfFrist'),wann:fristText(tage),tage,ziel:{art:'akte' as const,akte:'wahlkampf' as const}}]:[];})()].sort((a,c)=>a.tage-c.tage).slice(0,5);
   const notizen=mentorNotes(world),v=b.verfassung;
   const zahlen={vorlagen:mappe.mappe.length,minister:arbeit.anliegen.length+arbeit.vorfaelle.length,zusagen:zusagen.length};
   return <div className="sk">

@@ -53,5 +53,6 @@
   "sd.vorlauf": "Onaylandı · uygulama hazırlığında",
   "sd.aktiv": "Uygulanıyor",
   "sd.beginn": "{datum} tarihinde yürürlüğe girer. Henüz bir iyileşme kanıtı yok.",
-  "sd.ende": "{datum} tarihine kadar sürer. Ölçülen etkiler aylık raporda yer alır."
+  "sd.ende": "{datum} tarihine kadar sürer. Ölçülen etkiler aylık raporda yer alır.",
+  "sd.wahlkampfFrist": "Seçim kampanyası başlıyor: Yanıtsız muhalefet saldırıları altı puana kadar kaybettirir"
 }

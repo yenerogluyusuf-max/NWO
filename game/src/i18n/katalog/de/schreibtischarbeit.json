@@ -53,5 +53,6 @@
   "sd.vorlauf": "Beschlossen · im Vorlauf",
   "sd.aktiv": "In Umsetzung",
   "sd.beginn": "Wirksam ab {datum}. Noch kein Nachweis einer Verbesserung.",
-  "sd.ende": "Läuft bis {datum}. Die gemessenen Folgen stehen im Monatsbericht."
+  "sd.ende": "Läuft bis {datum}. Die gemessenen Folgen stehen im Monatsbericht.",
+  "sd.wahlkampfFrist": "Der Wahlkampf beginnt: Unbeantwortete Angriffe der Opposition kosten bis zu sechs Punkte"
 }

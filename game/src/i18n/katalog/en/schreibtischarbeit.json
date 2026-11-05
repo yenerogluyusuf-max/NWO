@@ -53,5 +53,6 @@
   "sd.vorlauf": "Approved · preparing implementation",
   "sd.aktiv": "In operation",
   "sd.beginn": "Takes effect on {datum}. Improvement has not yet been demonstrated.",
-  "sd.ende": "Runs until {datum}. Measured effects are recorded in the monthly report."
+  "sd.ende": "Runs until {datum}. Measured effects are recorded in the monthly report.",
+  "sd.wahlkampfFrist": "The election campaign begins: unanswered opposition attacks cost up to six points"
 }

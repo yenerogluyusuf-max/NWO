@@ -39,7 +39,7 @@ import { militaerVersorgung } from "../../sim/versorgung";
 export type Ziel =
   | { art: "zusagen" }
   | { art: "versorgung" }
-  | { art: "akte"; akte: "wirtschaft" | "entscheidungen" | "parlament" | "waehler" | "welt" | "personen" | "chronik" | "programme" | "beschluesse" | "bereiche" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | "wirkungsbericht" | "grosseziele"; start?: "haushalt" | "inventar"; programm?: VersorgungsProgramm }
+  | { art: "akte"; akte: "wirtschaft" | "entscheidungen" | "parlament" | "waehler" | "welt" | "personen" | "chronik" | "programme" | "beschluesse" | "bereiche" | "reich_kultur" | "reich_recht" | "reich_militaer" | "reich_infra" | "reich_haushalt" | "zeitung" | "wirkungsbericht" | "grosseziele" | "wahlkampf"; start?: "haushalt" | "inventar"; programm?: VersorgungsProgramm }
   | { art: "politik"; theme?: Theme; massnahme?: { id: string; level?: number; ort?: number[] | null } }
   | { art: "ereignis"; id: string }
   | { art: "land"; id: string }
