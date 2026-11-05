@@ -1087,6 +1087,7 @@
  "ui2.ui.wirtschaft.Diagramm.cedb067": "today",
  "ui2.ui.wirtschaft.Folgen.25e3f3e": "within days",
  "ui2.ui.wirtschaft.Folgen.300f156": "after about {p0}",
+ "folgen.weitere": "{n, plural, one {One more consequence} other {# more consequences}} in the chain",
  "ui2.ui.wirtschaft.Folgen.3e846ba": "months",
  "ui2.ui.wirtschaft.Folgen.da13625": "month",
  "ui2.ui.wirtschaft.Lage.010dece": "index points",

@@ -415,3 +415,29 @@
   .dossier .wi-akte .wi-reiter button, .dossier .wi-akte .wi-zeile, .dossier .wi-option { transition: none; }
 }
 .dossier .wi-kennziffer .wi-chip { justify-self: start; }
+
+/* Zentralbank (AP 11): Zinsskala als Bild oben, darunter vier Teile statt fünf Karten untereinander */
+.wi-zb-bild { margin: 12px 0 4px; }
+.wi-zb-bild svg { display: block; width: 100%; height: auto; max-height: 170px; }
+.wi-zb-achse { fill: #efe4cb; stroke: rgba(90, 64, 40, 0.35); }
+.wi-zb-real.gut { fill: rgba(61, 90, 46, 0.45); }
+.wi-zb-real.schlecht { fill: rgba(143, 42, 30, 0.4); }
+.wi-zb-strich { stroke: rgba(90, 64, 40, 0.5); }
+.wi-zb-skala { font: 12px var(--sans); fill: #6b5338; }
+.wi-zb-bild g line { stroke-width: 3; }
+.wi-zb-bild g text { font: 600 15px var(--sans); }
+.wi-zb-m-infl line { stroke: var(--seal, #8f2a1e); } .wi-zb-m-infl text { fill: var(--seal, #8f2a1e); }
+.wi-zb-m-erw line { stroke: #8a6a2a; stroke-dasharray: 4 3; } .wi-zb-m-erw text { fill: #7a5a22; }
+.wi-zb-m-zins line { stroke: #2e2118; stroke-width: 4; } .wi-zb-m-zins text { fill: #2e2118; }
+.wi-zb-pfeil { stroke: #2e2118; stroke-width: 2; fill: none; stroke-dasharray: 5 3; }
+.wi-zb-spitze { fill: #2e2118; }
+.wi-zb-bild figcaption { font: 15px/1.4 var(--serif); color: #3a2a1d; }
+.wi-zb-zeile { margin: 4px 0 0; font: 13.5px var(--sans); color: #5a4632; }
+.wi-zb-zeile span { cursor: help; color: #8a6a2a; }
+.wi-zb-teile { display: flex; flex-wrap: wrap; gap: 6px; }
+.dossier .wi-zb-teile button { padding: 7px 14px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 4px; background: #fbf4df; font: 14px var(--serif); color: #3a2a1d; cursor: pointer; }
+.dossier .wi-zb-teile button.on { background: #5d4231; border-color: #5d4231; color: #f4ead2; }
+.dossier .wi-zb .wi-optionen { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.wi-zb-verlauf { margin-top: 10px; }
+.wi-zb-verlauf > summary { cursor: pointer; font: 14px var(--serif); color: #5d4231; }
+.wi-folgen-mehr > summary { cursor: pointer; font: 14px var(--serif); color: #5d4231; margin: 4px 0; }

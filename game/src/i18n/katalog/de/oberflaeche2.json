@@ -1087,6 +1087,7 @@
  "ui2.ui.wirtschaft.Diagramm.cedb067": "heute",
  "ui2.ui.wirtschaft.Folgen.25e3f3e": "binnen Tagen",
  "ui2.ui.wirtschaft.Folgen.300f156": "nach etwa {p0}",
+ "folgen.weitere": "{n, plural, one {Eine weitere Folge} other {# weitere Folgen}} in der Kette",
  "ui2.ui.wirtschaft.Folgen.3e846ba": "Monaten",
  "ui2.ui.wirtschaft.Folgen.da13625": "Monat",
  "ui2.ui.wirtschaft.Lage.010dece": "Indexpunkte",

@@ -51,6 +51,48 @@ function aktionFuer(o: DruckOption | undefined): Aktion | null {
   return { art: "zinsdruck", richtung: o.richtung, weg: o.weg };
 }
 
+type Teil = "sitzung" | "fuehrung" | "devisen" | "verlauf";
+const TEILE: Teil[] = ["sitzung", "fuehrung", "devisen", "verlauf"];
+
+/**
+ * Das Bild oben (AP 11): eine Zinsskala mit Inflation, erwarteter Inflation, Leitzins heute und dem, was die Bank nach ihrer Regel
+ * in der nächsten Sitzung beschließt. Die Fläche zwischen Erwartung und Leitzins ist der Realzins: grün, wenn Geld etwas kostet, rot, wenn nicht.
+ */
+function ZinsBild({ inflation, erwartet, zins, regel }: { inflation: number; erwartet: number; zins: number; regel: number }) {
+  const max = Math.max(10, Math.ceil(Math.max(inflation, erwartet, zins, regel) / 10) * 10 + 5);
+  const x = (v: number) => 20 + (Math.max(0, v) / max) * 920;
+  const real = zins - erwartet;
+  const marken = [
+    { id: "zins", v: zins, label: t("zb.bild.zins", { p: nf(zins) }), y: 4, cls: "wi-zb-m-zins" },
+    { id: "inflation", v: inflation, label: t("zb.bild.inflation", { p: nf(inflation) }), y: 104, cls: "wi-zb-m-infl" },
+    { id: "erwartet", v: erwartet, label: t("zb.bild.erwartet", { p: nf(erwartet) }), y: 126, cls: "wi-zb-m-erw" },
+  ];
+  const striche = Array.from({ length: Math.floor(max / 10) + 1 }, (_, i) => i * 10);
+  return (
+    <figure className="wi-zb-bild" aria-label={t("zb.bild.aria", { zins: nf(zins), erwartet: nf(erwartet), real: nf(real) })}>
+      <svg viewBox="0 0 960 144" role="img">
+        <rect x={20} y={44} width={920} height={26} rx={4} className="wi-zb-achse" />
+        <rect x={Math.min(x(erwartet), x(zins))} y={44} width={Math.abs(x(zins) - x(erwartet))} height={26} className={real >= 0 ? "wi-zb-real gut" : "wi-zb-real schlecht"} />
+        {striche.map((v) => (
+          <g key={v}><line x1={x(v)} x2={x(v)} y1={70} y2={76} className="wi-zb-strich" /><text x={x(v)} y={100} textAnchor="middle" className="wi-zb-skala">{v} %</text></g>
+        ))}
+        {regel !== zins && <path d={`M${x(zins)},38 L${x(regel)},38`} className="wi-zb-pfeil" markerEnd="url(#wi-zb-spitze)" />}
+        <defs><marker id="wi-zb-spitze" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" className="wi-zb-spitze" /></marker></defs>
+        {marken.map((m) => (
+          <g key={m.id} className={m.cls}>
+            <line x1={x(m.v)} x2={x(m.v)} y1={m.y < 44 ? 36 : 44} y2={m.y < 44 ? 70 : m.y + 2} />
+            <text x={x(m.v)} y={m.y + 14} textAnchor={x(m.v) > 800 ? "end" : x(m.v) < 140 ? "start" : "middle"}>{m.label}</text>
+          </g>
+        ))}
+      </svg>
+      <figcaption>
+        <b className={real >= 0 ? "wi-gut" : "wi-schlecht"}>{t("zb.bild.real", { p: nf(real) })}</b>{" "}
+        {regel === zins ? t("zb.bild.haelt", { p: nf(zins) }) : t("zb.bild.regel", { p: nf(regel) })}
+      </figcaption>
+    </figure>
+  );
+}
+
 export function Zentralbank({ world, geaendert, abschnitt }: { world: World; geaendert: () => void; abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen" | undefined }) {
   const z = zbZustand(world);
   const naechste = naechsteSitzung(world);
@@ -66,6 +108,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
   const [vorgabe, setVorgabe] = useState<number | null>(null);
   const [offen, setOffen] = useState<number | null>(null);
   const [betrag, setBetrag] = useState(5);
+  const [teil, setTeil] = useState<Teil>(abschnitt === "gouverneur" || abschnitt === "stufe" ? "fuehrung" : abschnitt === "devisen" ? "devisen" : "sitzung");
 
   const e = world.economy;
   const opt = optionen.find((o) => o.id === gewaehlt) ?? optionen[0]!;
@@ -103,6 +146,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
 
   useEffect(() => {
     if (!abschnitt) return;
+    setTeil(abschnitt === "gouverneur" || abschnitt === "stufe" ? "fuehrung" : abschnitt === "devisen" ? "devisen" : "sitzung");
     document.getElementById(`wi-zb-${abschnitt}`)?.scrollIntoView({ block: "start" });
   }, [abschnitt]);
 
@@ -167,29 +211,22 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             <b>{STUFEN[z.stufe].name}</b>
           </div>
         </div>
-        <p className="wi-hinweis">{STUFEN[z.stufe].text}</p>
-        <dl className="wi-zahlen">
-          <div>
-            <dt>{t("zb.metrik.policyRate")}</dt>
-            <dd>{t("zb.prozent", { p: e.policyRate })}</dd>
-          </div>
-          <div>
-            <dt>{t("zb.realzins")}</dt>
-            <dd>{t("zb.prozent", { p: e.policyRate - e.expectedInflation })}</dd>
-          </div>
-          <div>
-            <dt>{t("ui.wirtschaft.Zentralbank.37e34e7")}</dt>
-            <dd>{glaubwuerdigkeitWort(e.credibility)}</dd>
-          </div>
-          <div>
-            <dt>{t("zb.risiko")}</dt>
-            <dd>{t("zb.punkte", { n: Math.round(e.riskPremium) })}</dd>
-          </div>
-        </dl>
-        <p className="wi-hinweis">{t("balance.fiskalstand", { wert: nf(finanzierungsMehrbedarf(e)) })}</p>
+        <ZinsBild inflation={e.inflation} erwartet={e.expectedInflation} zins={e.policyRate} regel={modusC ? (z.vorgabe ?? regel.newRate) : regel.newRate} />
+        <p className="wi-zb-zeile">
+          {t("zb.bild.zeile", { glaub: glaubwuerdigkeitWort(e.credibility), risiko: Math.round(e.riskPremium) })} <span title={STUFEN[z.stufe].text}>ⓘ</span>
+        </p>
+        {finanzierungsMehrbedarf(e) >= 0.05 && <p className="wi-hinweis">{t("balance.fiskalstand", { wert: nf(finanzierungsMehrbedarf(e)) })}</p>}
       </section>
 
-      <section className="wi-karte" id="wi-zb-sitzung">
+      <nav className="wi-zb-teile" aria-label={t("zb.teile")}>
+        {TEILE.map((x) => (
+          <button key={x} type="button" aria-pressed={teil === x} className={teil === x ? "on" : ""} onClick={() => setTeil(x)}>
+            {t(`zb.teil.${x}`)}
+          </button>
+        ))}
+      </nav>
+
+      {teil === "sitzung" && <section className="wi-karte" id="wi-zb-sitzung">
         <p className="kicker">{t("ui.wirtschaft.Zentralbank.440cbd3")}</p>
         {naechste ? (
           <h3>
@@ -241,8 +278,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
 
         <div className="wi-vorschau">
           <h4>{t("zb.danach")}{!modusC && opt.id !== "keiner" ? `: ${opt.label}` : ""}</h4>
-          <Folgen glieder={kette} leer={delta === 0 ? t("zb.bliebe", { p: e.policyRate }) : undefined} />
+          <Folgen kurz glieder={kette} leer={delta === 0 ? t("zb.bliebe", { p: e.policyRate }) : undefined} />
           <Wirkung reihen={reihen} metriken={METRIKEN} rechnet={rechnet} />
+          <details className="wi-zb-verlauf"><summary>{t("zb.verlaufZeigen")}</summary>
           <div className="wi-metriken" role="tablist" aria-label={t("ui.wirtschaft.Zentralbank.34b3ca6")}>
             {METRIKEN.map((m) => (
               <button key={m.id} role="tab" aria-selected={metrik === m.id} className={metrik === m.id ? "on" : ""} onClick={() => setMetrik(m.id)}>
@@ -251,6 +289,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             ))}
           </div>
           <Diagramm punkte={verlauf(world, mk.kennzahl)} startMonat={startMonat(world)} jetztMonat={world.date.slice(0, 7)} band={band} linien={k.linien?.(world)} marken={alleMarken(world).filter((m) => m.art === "zins" || m.art === "eingriff")} stellen={k.stellen} einheit={einheitName(k.einheit)} name={k.name} rechnet={rechnet} />
+          </details>
         </div>
 
         {!modusC && opt.id !== "keiner" && (
@@ -267,9 +306,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             </button>
           )
         )}
-      </section>
+      </section>}
 
-      <section className="wi-karte" id="wi-zb-gouverneur">
+      {teil === "fuehrung" && <section className="wi-karte" id="wi-zb-gouverneur">
         <p className="kicker">{t("ui.wirtschaft.Zentralbank.4e897df")}</p>
         <h3>{t("ui.wirtschaft.Zentralbank.6517018")}</h3>
         <p className="wi-hinweis">{t("zb.neubesetzung", { n: 120 })}</p>
@@ -295,9 +334,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             );
           })}
         </div>
-      </section>
+      </section>}
 
-      <section className="wi-karte" id="wi-zb-stufe">
+      {teil === "fuehrung" && <section className="wi-karte" id="wi-zb-stufe">
         <p className="kicker">{t("zb.kicker.gesetz")}</p>
         <h3>{t("ui.wirtschaft.Zentralbank.bf2ad27")}</h3>
         <p className="wi-hinweis">{t("zb.gesetzText", { lager, mehrheit: REGELN.mehrheit })}</p>
@@ -327,9 +366,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             );
           })}
         </div>
-      </section>
+      </section>}
 
-      <section className="wi-karte" id="wi-zb-devisen">
+      {teil === "devisen" && <section className="wi-karte" id="wi-zb-devisen">
         <p className="kicker">{t("ui.wirtschaft.Zentralbank.2c78621")}</p>
         <h3>{t("ui.wirtschaft.Zentralbank.6d066c0")}</h3>
         <p className="wi-hinweis">
@@ -434,9 +473,9 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             </ul>
           </>
         )}
-      </section>
+      </section>}
 
-      <section className="wi-karte">
+      {teil === "verlauf" && <section className="wi-karte">
         <p className="kicker">{t("zb.kicker.sitzungen")}</p>
         <h3>{t("ui.wirtschaft.Zentralbank.f0053e6")}</h3>
         {z.sitzungen.length === 0 ? (
@@ -480,7 +519,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             </ul>
           </>
         )}
-      </section>
+      </section>}
     </div>
   );
 }
