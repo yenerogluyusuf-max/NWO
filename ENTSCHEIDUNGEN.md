@@ -345,3 +345,11 @@ Nachtrag zu S (Karte ohne feste Fronten, 5. November): Die rote gestrichelte Lin
 ## V. Vorgabe 05.11.2026: Jeder Bereich nach seiner Frage, einfach wie Democracy 4
 
 Rückmeldung des Projektinhabers zum Haushalt: „zu kompliziert“, „extrem lang gezogen“, „alles sieht anders aus“, „Kreisdiagramm ist doch besser“, „sei kreativ“, „gehe jeden Bereich logisch an“. Festlegung: Jeder Bereich beantwortet zuerst die eine Frage, die der Spieler dort hat, mit einem Bild (Rad, Karte, Balken), und darunter stehen alle Stellgrößen auf einen Blick, je eine Zeile mit Regler; Preis und Wirkung erscheinen dort, wo man stellt, nicht in einem zweiten Fenster oder am Ende einer Liste. Was nur nachgelesen wird (Verfahren, Quellen, Verlauf), steht als Reiter darunter. Dasselbe Muster in allen Bereichen. Umgesetzt zuerst im Haushalt (Haushaltsrad, Tafel mit Reglern).
+
+## W. Entscheidungen 05.11.2026 zum Plan Oberfläche (PLAN_OBERFLAECHE_2026-11-05.md)
+
+Nach dem Rundgang über alle Seiten (88 Bildschirme, 9 passen) entschied der Projektinhaber:
+1. **Kabinett mit den 17 Ministerien der Türkei seit 2018** (Justiz; Familie und Soziales; Arbeit und Sozialversicherung; Umwelt, Städtebau und Klima; Äußeres; Energie und Rohstoffe; Jugend und Sport; Finanzen; Inneres; Kultur und Tourismus; Bildung; Verteidigung; Gesundheit; Industrie und Technologie; Landwirtschaft und Forst; Handel; Verkehr und Infrastruktur). Politikbereiche und Haushaltsposten werden ihnen zugeordnet; jeder Minister hat ein Ressortrad.
+2. **Ein Weg zum Gesetz: die Maßnahme.** Jedes Gesetz ist eine Maßnahme mit dem Weg „Gesetz“; die Einträge des Gesetzeskatalogs werden benannte Fassungen an den Maßnahmen. Das Parlament zeigt die Tagesordnung.
+3. **Karte als Bühne** für Land, Außen und Sicherheit: Die Akte wird ein Seitenfenster neben der Karte; Konflikte, Fronten, Baustellen und Länder werden auf der Karte bedient.
+Reihenfolge laut Plan: Fehler, Gerüst, Bilder je Bereich, Drill-downs (nach Recherche der Ministeriumshaushalte 2026), Karte.
