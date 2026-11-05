@@ -55,6 +55,23 @@ function parteienText(world: World, parteien: Record<string, number>): string {
   return teile.length ? teile.join("; ") : t("vf.ohneFronten");
 }
 
+/** Stimmzettel als Halbrund: 600 Sitze von links nach rechts, gefüllt bis zu den erwarteten Ja-Stimmen, Spanne heller, Marken bei 360 und 400. */
+function Halbrund({ erwartet, tief, hoch }: { erwartet: number; tief: number; hoch: number }) {
+  const r = 88, cx = 120, cy = 116;
+  const bogen = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  const punkt = (n: number, d = 0) => { const w = Math.PI * (1 - n / 600); return { x: cx + (r + d) * Math.cos(w), y: cy - (r + d) * Math.sin(w) }; };
+  const marke = (n: number, text: string) => { const a = punkt(n, -14), b = punkt(n, 14), c = punkt(n, 24); return <g key={n} className="vf-hr-marke"><line x1={a.x} y1={a.y} x2={b.x} y2={b.y} /><text x={c.x} y={c.y} textAnchor={n > 300 ? "start" : "end"}>{text}</text></g>; };
+  return (
+    <svg className="vf-halbrund" viewBox="0 0 240 130" role="img" aria-label={t("vf.erwartetJa", { n: erwartet })}>
+      <path d={bogen} pathLength={600} className="vf-hr-grund" />
+      {hoch > tief && <path d={bogen} pathLength={600} className="vf-hr-spanne" strokeDasharray={`0 ${tief} ${hoch - tief} 600`} />}
+      {erwartet > 0 && <path d={bogen} pathLength={600} className={`vf-hr-ja${erwartet >= VERFASSUNG_REGELN.mehrheit ? " reicht" : ""}`} strokeDasharray={`${erwartet} 600`} />}
+      {marke(VERFASSUNG_REGELN.mehrheit, String(VERFASSUNG_REGELN.mehrheit))}
+      {marke(VERFASSUNG_REGELN.direkt, String(VERFASSUNG_REGELN.direkt))}
+    </svg>
+  );
+}
+
 export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh: () => void }) {
   const spiel = world.spiel;
   const [wahl, setWahl] = useState<Record<string, string>>(() => {
@@ -195,89 +212,97 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
   const aktivEintraege = Object.entries(z.aktiv);
   return (
     <div className="beschlussbuch vf-akte">
-      <section className="paper">
-        <h3>{t("vf.werkstatt")}</h3>
-        <p className="subtitle vf-regel">{t("vf.regelZeile", { mehrheit: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
-        {belegt && <p className="weg-warnung">{t("ui.Verfassung.f354624")}</p>}
-        {antwort && (
-          <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
-            {antwort.text}
-            {antwort.why && <em> {antwort.why}</em>}
-          </p>
-        )}
-      </section>
+      {belegt && <p className="weg-warnung">{t("ui.Verfassung.f354624")}</p>}
+      {antwort && (
+        <p className={`rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
+          {antwort.text}
+          {antwort.why && <em> {antwort.why}</em>}
+        </p>
+      )}
 
-      {/* Tafel (Plan Oberfläche, Anhang A „Verfassungsdialog“): links je Artikel eine Zeile mit Segmenten, rechts fest die Zählung an 360/400 */}
+      {/* Tafel als Gesetzentwurf (Rückmeldung 05.11.2026: „super hässlich“): links der Entwurf auf Papier mit Artikelnummern am Rand,
+          die Wahl wie mit dem Marker gesetzt; rechts der Stimmzettel als Halbrund mit 600 Sitzen und den Marken 360 und 400 */}
       <div className="vf-tafel">
-        <ol className="vf-zeilen">
-          {ARTIKEL.map((a) => {
-            const sperre = artikelSperre(world, a.id);
-            const aktiv = verfassungAktiv(world, a.id);
-            const dJetzt = paketStimmen(world, paket).erwartet;
-            return (
-              <li key={a.id} className="vf-zeile">
-                <div className="vf-zeile-kopf">
-                  <strong title={a.frage}>{a.name}</strong>
-                  {aktiv && <span className="vf-aktiv">{t("vf.beschlossen", { name: varianteDef(aktiv)?.name ?? aktiv })}</span>}
-                  {sperre > 0 && <span className="vf-sperre">{t("vf.gesperrt", { n: sperre - world.day })}</span>}
-                </div>
-                <div className="vf-segmente" role="radiogroup" aria-label={a.name}>
-                  {a.varianten.map((x) => {
-                    const gewaehlt = paket[a.id] === x.id;
-                    const delta = gewaehlt ? 0 : paketStimmen(world, { ...paket, [a.id]: x.id }).erwartet - dJetzt;
-                    const tipp = `${x.text}${x.statusQuo ? "" : ` (${richtungWort(x.autoritaer)}; ${parteienText(world, x.parteien)})`}`;
-                    return (
-                      <button
-                        key={x.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={gewaehlt}
-                        className={`vf-segment${gewaehlt ? " on" : ""}${x.statusQuo ? " bisher" : ""}`}
-                        disabled={sperre > 0 || belegt}
-                        title={tipp}
-                        onClick={() => setWahl({ ...wahl, [a.id]: x.id })}
-                      >
-                        <span>{x.name}</span>
-                        {x.statusQuo && !/bisher|current|mevcut/i.test(x.name) && <small>{t("vf.bisher")}</small>}
-                        {!gewaehlt && delta !== 0 && <small className={delta > 0 ? "plus" : "minus"}>{`${delta > 0 ? "+" : "−"}${Math.abs(delta)}`}</small>}
-                      </button>
-                    );
-                  })}
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+        <article className="vf-entwurf">
+          <header className="vf-entwurf-kopf">
+            <span className="vf-siegel" aria-hidden>§</span>
+            <div>
+              <h3>{t("vf.entwurf.titel")}</h3>
+              <p>{t("vf.regelZeile", { mehrheit: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
+            </div>
+          </header>
+          <ol className="vf-zeilen">
+            {ARTIKEL.map((a) => {
+              const sperre = artikelSperre(world, a.id);
+              const aktiv = verfassungAktiv(world, a.id);
+              const dJetzt = paketStimmen(world, paket).erwartet;
+              const gewaehlteV = a.varianten.find((x) => x.id === paket[a.id]) ?? a.varianten.find((x) => x.statusQuo);
+              return (
+                <li key={a.id} className={`vf-zeile${gewaehlteV && !gewaehlteV.statusQuo ? " geaendert" : ""}`}>
+                  <div className="vf-rand">
+                    <span className="vf-artnr">{t(`vf.art.${a.id}`)}</span>
+                  </div>
+                  <div className="vf-inhalt">
+                    <div className="vf-zeile-kopf">
+                      <strong title={a.frage}>{a.name}</strong>
+                      {aktiv && <span className="vf-aktiv">{t("vf.beschlossen", { name: varianteDef(aktiv)?.name ?? aktiv })}</span>}
+                      {sperre > 0 && <span className="vf-sperre">{t("vf.gesperrt", { n: sperre - world.day })}</span>}
+                    </div>
+                    <div className="vf-segmente" role="radiogroup" aria-label={a.name}>
+                      {a.varianten.map((x) => {
+                        const gewaehlt = paket[a.id] === x.id;
+                        const delta = gewaehlt ? 0 : paketStimmen(world, { ...paket, [a.id]: x.id }).erwartet - dJetzt;
+                        const tipp = `${x.text}${x.statusQuo ? "" : ` (${richtungWort(x.autoritaer)}; ${parteienText(world, x.parteien)})`}`;
+                        return (
+                          <button key={x.id} type="button" role="radio" aria-checked={gewaehlt} className={`vf-segment${gewaehlt ? " on" : ""}${x.statusQuo ? " bisher" : ""}`}
+                            disabled={sperre > 0 || belegt} title={tipp} onClick={() => setWahl({ ...wahl, [a.id]: x.id })}>
+                            <span className="vf-wort">{x.name}</span>
+                            {x.statusQuo && <small className="vf-geltend">{t("vf.geltend")}</small>}
+                            {!gewaehlt && delta !== 0 && <small className={`vf-delta ${delta > 0 ? "plus" : "minus"}`}>{t("vf.deltaJa", { n: `${delta > 0 ? "+" : "−"}${Math.abs(delta)}` })}</small>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {gewaehlteV && <p className="vf-bedeutung">{gewaehlteV.text}</p>}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </article>
 
         {pr && (
-          <aside className="vf-zaehlung" aria-live="polite">
+          <aside className="vf-zettel" aria-live="polite">
             <h3>{t("vf.paket")}</h3>
-            <p className="vf-zahl">
-              <b>{pr.stimmen.erwartet}</b>
-              <span>{t("vf.spanne", { tief: pr.stimmen.tief, hoch: pr.stimmen.hoch })}</span>
-            </p>
-            <div className="stimmen-bar vf-bar" aria-label={t("vf.erwartetJa", { n: pr.stimmen.erwartet })}>
-              <div className="vf-spanne" style={{ left: `${(pr.stimmen.tief / 600) * 100}%`, width: `${((pr.stimmen.hoch - pr.stimmen.tief) / 600) * 100}%` }} />
-              <div className="stimmen-ja" style={{ width: `${Math.min(100, (pr.stimmen.erwartet / 600) * 100)}%` }} />
-              <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.mehrheit / 600) * 100}%` }} title={t("vf.marke.volk", { n: VERFASSUNG_REGELN.mehrheit })} />
-              <div className="stimmen-marke" style={{ left: `${(VERFASSUNG_REGELN.direkt / 600) * 100}%` }} title={t("vf.marke.direkt", { n: VERFASSUNG_REGELN.direkt })} />
-            </div>
-            <p className="vf-legende">{t("vf.linien", { m: VERFASSUNG_REGELN.mehrheit, d: VERFASSUNG_REGELN.direkt })}</p>
+            <Halbrund erwartet={pr.geaendert > 0 ? pr.stimmen.erwartet : 0} tief={pr.geaendert > 0 ? pr.stimmen.tief : 0} hoch={pr.geaendert > 0 ? pr.stimmen.hoch : 0} />
             {pr.geaendert > 0 ? (
               <>
-                <p className="vf-gewaehlt">{geaenderteArtikel(paket).map((x) => `${x.artikel.name}: ${x.variante.name}`).join(" · ")}</p>
-                <ul className="vf-hinweise">
-                  {pr.hinweise.map((h) => (
-                    <li key={h}>{h}</li>
+                <p className="vf-zahl">
+                  <b>{pr.stimmen.erwartet}</b>
+                  <span>{t("vf.spanne", { tief: pr.stimmen.tief, hoch: pr.stimmen.hoch })}</span>
+                </p>
+                <p className={`vf-urteil ${pr.stimmen.erwartet >= VERFASSUNG_REGELN.direkt ? "direkt" : pr.stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit ? "volk" : "fehlt"}`}>
+                  {pr.stimmen.erwartet >= VERFASSUNG_REGELN.direkt ? t("vf.urteil.direkt") : pr.stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit ? t("vf.urteil.volk") : t("vf.urteil.fehlt", { n: VERFASSUNG_REGELN.mehrheit - pr.stimmen.erwartet })}
+                </p>
+                <ul className="vf-aenderungen">
+                  {geaenderteArtikel(paket).map((x) => (
+                    <li key={x.artikel.id}><span>{t(`vf.art.${x.artikel.id}`)}</span> <mark>{x.variante.name}</mark></li>
                   ))}
                 </ul>
-                <button className="pd-btn primary" disabled={!pr.ok} title={pr.ok ? t("vf.einbringenTitel") : pr.grund} onClick={() => tu(bringeVerfassungEin(world, paket))}>
+                {pr.hinweise.length > 0 && (
+                  <ul className="vf-hinweise">
+                    {pr.hinweise.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                )}
+                <button className="pd-btn primary vf-einbringen" disabled={!pr.ok} title={pr.ok ? t("vf.einbringenTitel") : pr.grund} onClick={() => tu(bringeVerfassungEin(world, paket))}>
                   {t("vf.einbringen")} <b>{pr.pk}</b>
                 </button>
                 {!pr.ok && <p className="weg-warnung">{pr.grund}</p>}
               </>
             ) : (
-              <p className="subtitle">{t("ui.Verfassung.4d3a1f3")}</p>
+              <p className="vf-leer">{t("vf.leer")}</p>
             )}
           </aside>
         )}

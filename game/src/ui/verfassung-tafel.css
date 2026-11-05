@@ -1,31 +1,81 @@
-/* Verfassung als Tafel: Artikelzeilen mit Segmenten, rechts fest die Zählung an 360/400 (Plan Anhang A). */
-.vf-tafel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); gap: 14px; align-items: start; margin-top: 10px; }
-.vf-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.vf-zeile { padding: 9px 12px; border: 1px solid rgba(140, 110, 60, 0.35); border-radius: 4px; background: rgba(255, 251, 238, 0.85); }
-.vf-zeile-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 6px; }
-.vf-zeile-kopf strong { font-size: 15px; color: #2e2118; }
-.vf-zeile-kopf .vf-aktiv, .vf-zeile-kopf .vf-sperre { font-size: 12.5px; }
-.vf-segmente { display: flex; flex-wrap: wrap; gap: 5px; }
-.vf-segment {
-  display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 11px; border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 4px;
-  background: #fbf4df; font-family: var(--serif); font-size: 14px; color: #3a2a1d; cursor: pointer;
+/* Verfassung als Gesetzentwurf und Stimmzettel (Rückmeldung 05.11.2026; Feinschliff-Richtung: Papier, Marker, Korrektorenschrift) */
+.vf-tafel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, 340px); gap: 22px; align-items: start; margin-top: 6px; }
+
+.vf-entwurf {
+  position: relative; padding: 22px 28px 14px 0; border-radius: 3px;
+  background: linear-gradient(180deg, #fffdf6, #fbf5e4); box-shadow: 0 1px 0 rgba(90, 64, 40, 0.15), 0 8px 22px rgba(60, 40, 20, 0.12);
+  border: 1px solid rgba(160, 130, 80, 0.35);
 }
-.vf-segment:hover:not(:disabled) { background: #f3e5c0; }
-.vf-segment.on { background: #5d4231; color: #f4ead2; border-color: #5d4231; }
-.vf-segment:disabled { opacity: 0.55; cursor: not-allowed; }
-.vf-segment small { font-size: 11.5px; }
-.vf-segment small.plus { color: #3d5a2e; }
-.vf-segment small.minus { color: var(--seal, #8f2a1e); }
-.vf-segment.on small { color: #e8d6ab; }
-.vf-zaehlung { position: sticky; top: 8px; padding: 12px 14px; border: 1px solid rgba(140, 110, 60, 0.4); border-radius: 4px; background: rgba(255, 250, 235, 0.95); }
-.vf-zaehlung h3 { margin: 0 0 4px; font-size: 16px; }
-.vf-zahl { margin: 0; display: flex; align-items: baseline; gap: 10px; }
-.vf-zahl b { font-size: 34px; font-family: var(--serif); color: #2e2118; }
-.vf-zahl span { font-size: 13px; color: #6b5338; }
-.vf-bar { position: relative; overflow: visible; }
-.vf-spanne { position: absolute; top: 2px; bottom: 2px; background: repeating-linear-gradient(45deg, rgba(90, 64, 40, 0.25) 0 4px, transparent 4px 8px); }
-.vf-zaehlung p.vf-legende { margin: 2px 0 8px; font-size: 12px; line-height: 1.3; color: #6b5338; }
-.vf-zaehlung p.vf-gewaehlt { margin: 0 0 6px; font-size: 13px; line-height: 1.35; color: #3a2a1d; }
-.vf-zaehlung .vf-hinweise { margin: 0 0 10px; padding-left: 16px; font-size: 12.5px; color: #5a4632; }
-.vf-regel { margin: 0; }
-@media (max-width: 1100px) { .vf-tafel { grid-template-columns: 1fr; } .vf-zaehlung { position: static; } }
+/* Rand wie auf einem Aktenblatt: rote Randlinie, dahinter die Artikelnummern */
+.vf-entwurf::before { content: ""; position: absolute; top: 0; bottom: 0; left: 118px; border-left: 1px solid rgba(143, 42, 30, 0.35); }
+.vf-entwurf-kopf { display: flex; gap: 14px; align-items: center; padding: 0 0 14px 134px; border-bottom: 1px solid rgba(90, 64, 40, 0.2); position: relative; }
+.vf-siegel { position: absolute; left: 44px; top: -2px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font: 600 24px var(--serif); color: #f4ead2; background: radial-gradient(circle at 38% 32%, #b23a2e, #8f2a1e 60%, #5c140f); box-shadow: 0 0 0 3px #fbf5e4, 0 0 0 4px rgba(143, 42, 30, 0.5); }
+.vf-entwurf-kopf h3 { margin: 0 0 3px; font: 400 21px/1.2 var(--kapitaelchen, serif); letter-spacing: 0.03em; color: #2e2118; }
+.vf-entwurf-kopf p { margin: 0; font: 13px/1.4 var(--sans); color: #6b5338; }
+
+.vf-zeilen { list-style: none; margin: 0; padding: 0; }
+.vf-zeile { display: grid; grid-template-columns: 118px minmax(0, 1fr); border-bottom: 1px dashed rgba(90, 64, 40, 0.18); }
+.vf-zeile:last-child { border-bottom: 0; }
+.vf-rand { padding: 14px 12px 0 0; text-align: right; }
+.vf-artnr { font: italic 600 13.5px var(--serif); color: var(--seal, #8f2a1e); }
+.vf-inhalt { padding: 12px 0 12px 16px; }
+.vf-zeile-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 7px; }
+.vf-zeile-kopf strong { font: 600 16px var(--serif); color: #2e2118; }
+.vf-zeile-kopf .vf-aktiv, .vf-zeile-kopf .vf-sperre { font: 12.5px var(--sans); color: #8a6a2a; }
+
+.vf-segmente { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.dossier .vf-segment, .vf-segment {
+  position: relative; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 2px 4px 3px; border: 0; border-radius: 2px;
+  background: transparent; box-shadow: none; min-height: 0; font: 15px/1.3 var(--serif); color: #4a3a2a; cursor: pointer; text-transform: none; letter-spacing: 0;
+}
+.vf-segment .vf-wort { border-bottom: 1px dotted rgba(90, 64, 40, 0.45); }
+.vf-segment:hover:not(:disabled) .vf-wort { border-bottom-style: solid; color: #2e2118; }
+/* Die Wahl wie mit dem gelben Marker gestrichen */
+.vf-segment.on .vf-wort { border-bottom: 0; color: #1f160f; font-weight: 600; background: linear-gradient(100deg, rgba(255, 214, 92, 0) 0.5%, rgba(255, 214, 92, 0.85) 3%, rgba(250, 205, 80, 0.8) 96%, rgba(255, 214, 92, 0) 99.5%); padding: 0 4px; margin: 0 -4px; border-radius: 3px 8px 4px 9px; }
+.vf-segment:disabled { opacity: 0.5; cursor: not-allowed; }
+.vf-segment small { font: 11.5px/1.2 var(--sans); }
+.vf-geltend { color: #7a6650; font-style: italic; }
+.vf-delta.plus { color: #3d5a2e; }
+.vf-delta.minus { color: var(--seal, #8f2a1e); }
+.vf-bedeutung { margin: 6px 0 0; font: italic 13.5px/1.4 var(--serif); color: #5a4632; }
+.vf-zeile.geaendert .vf-artnr::before { content: "✎ "; }
+
+/* Stimmzettel */
+.vf-zettel { position: sticky; top: 8px; padding: 16px 18px 18px; border-radius: 3px; background: linear-gradient(180deg, #fffaf0, #f6ecd3); border: 1px solid rgba(160, 130, 80, 0.45); box-shadow: 0 8px 22px rgba(60, 40, 20, 0.14); }
+.vf-zettel h3 { margin: 0 0 4px; font: 400 17px var(--kapitaelchen, serif); letter-spacing: 0.06em; color: #2e2118; text-align: center; }
+.vf-halbrund { display: block; width: 100%; height: auto; }
+.vf-halbrund path { fill: none; stroke-width: 22; }
+.vf-hr-grund { stroke: #e8dcc0; }
+.vf-hr-spanne { stroke: rgba(138, 106, 42, 0.35); }
+.vf-hr-ja { stroke: #8a6a2a; }
+.vf-hr-ja.reicht { stroke: #3d5a2e; }
+.vf-hr-marke line { stroke: #2e2118; stroke-width: 2; }
+.vf-hr-marke text { font: 600 10px var(--sans); fill: #2e2118; }
+.vf-zettel .vf-zahl { margin: -34px 0 0; display: flex; flex-direction: column; align-items: center; }
+.vf-zettel .vf-zahl b { font: 700 34px/1 var(--sans); color: #2e2118; }
+.vf-zettel .vf-zahl span { font: 12px var(--sans); color: #6b5338; }
+.vf-urteil { margin: 10px 0 8px; padding: 6px 10px; border-radius: 3px; font: 13.5px/1.35 var(--serif); text-align: center; }
+.vf-urteil.direkt { background: rgba(61, 90, 46, 0.14); color: #2f4a22; }
+.vf-urteil.volk { background: rgba(201, 162, 87, 0.2); color: #5d4231; }
+.vf-urteil.fehlt { background: rgba(143, 42, 30, 0.1); color: var(--seal, #8f2a1e); }
+.vf-aenderungen { list-style: none; margin: 0 0 8px; padding: 0; font: 13.5px/1.5 var(--serif); }
+.vf-aenderungen span { font: italic 600 12.5px var(--serif); color: var(--seal, #8f2a1e); }
+.vf-aenderungen mark { background: rgba(255, 214, 92, 0.75); padding: 0 3px; border-radius: 2px 5px 3px 6px; color: #1f160f; }
+.vf-zettel .vf-hinweise { margin: 0 0 10px; padding-left: 16px; font: 12.5px/1.4 var(--sans); color: #5a4632; }
+.vf-einbringen { width: 100%; }
+.vf-leer { margin: 8px 0 0; font: italic 14px/1.45 var(--serif); color: #5a4632; text-align: center; }
+
+@media (max-width: 1100px) { .vf-tafel { grid-template-columns: 1fr; } .vf-zettel { position: static; } }
+/* gegen die allgemeinen Absatzregeln der Akte */
+.vf-tafel .vf-entwurf-kopf p { font: 13px/1.45 var(--sans); color: #6b5338; margin: 0; }
+.vf-tafel p.vf-bedeutung { font: italic 13.5px/1.4 var(--serif); color: #5a4632; margin: 6px 0 0; }
+.vf-tafel .vf-zettel p { margin-bottom: 0; }
+.vf-tafel p.vf-urteil { font: 13.5px/1.35 var(--serif); margin: 10px 0 8px; }
+.vf-tafel p.vf-leer { font: italic 14px/1.45 var(--serif); }
+/* Das Halbrund füllt sich sichtbar, wenn sich das Paket ändert */
+.vf-hr-ja, .vf-hr-spanne { transition: stroke-dasharray 420ms cubic-bezier(.2,.8,.2,1), stroke 300ms ease; }
+.vf-zeile { transition: background 200ms ease; }
+.vf-zeile.geaendert { background: linear-gradient(90deg, rgba(255, 214, 92, 0.12), transparent 60%); }
+.vf-segment .vf-wort { transition: background 160ms ease; }
+/* Geltendes Recht bleibt ohne Marker (nur unterstrichen); gelb ist allein, was das Paket ändert */
+.vf-segment.on.bisher .vf-wort { background: none; padding: 0; margin: 0; border-bottom: 2px solid #5d4231; font-weight: 600; }
