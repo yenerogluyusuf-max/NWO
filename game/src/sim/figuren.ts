@@ -42,10 +42,17 @@ const ZUSATZ_ROLLEN: RollenSpec[] = [
 ];
 
 function name(rng: Rng, benutzt: Set<string>, weiblich?: boolean): string {
+  // Kein Nachname doppelt, solange die Liste reicht (Spielerdurchlauf 5. November: Finanz-, Außen- und Wirtschaftsminister
+  // hießen alle Erdem und wirkten wie eine Familie). Ein vergebener Nachname rückt zum nächsten freien weiter, ohne weiteren
+  // Zufallswurf: So bleibt der Zufallsstrom der Partie derselbe wie vorher.
+  const nachnamen = new Set([...benutzt].map((x) => x.split(" ").at(-1)));
   for (;;) {
     const frau = weiblich ?? rng.next() < 0.5;
     const vor = frau ? VORNAMEN_F : VORNAMEN_M;
-    const n = `${vor[Math.floor(rng.next() * vor.length)]!} ${NACHNAMEN[Math.floor(rng.next() * NACHNAMEN.length)]!}`;
+    const vorname = vor[Math.floor(rng.next() * vor.length)]!;
+    let i = Math.floor(rng.next() * NACHNAMEN.length);
+    for (let k = 0; k < NACHNAMEN.length && nachnamen.has(NACHNAMEN[i]!); k++) i = (i + 1) % NACHNAMEN.length;
+    const n = `${vorname} ${NACHNAMEN[i]!}`;
     if (!benutzt.has(n)) {
       benutzt.add(n);
       return n;

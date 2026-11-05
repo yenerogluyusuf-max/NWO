@@ -14,6 +14,8 @@
   "sdd.tageFrist": "{titel} — {tage, plural, =0 {bugün} =1 {yarın} other {# gün içinde}}",
   "sdd.zumSchreibtisch": "Çalışma Masasına Geç",
   "sdd.zuletzt": "son: {wert}",
+  "sdd.abgestimmt": "Oylandı",
+  "sdd.beschluss": "{name} {ergebnis, select, ja {kabul edildi} other {reddedildi}} ({ja}:{nein})",
 
   "buehne.stat.zustimmung": "Halk Desteği",
   "buehne.stat.kapital": "Siyasi Sermaye",

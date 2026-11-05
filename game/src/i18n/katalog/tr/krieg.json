@@ -361,7 +361,7 @@
  "krieg.k.demob.rechnung": "Terhis faturası: GSYH'nin %{bip, number}'i.",
  "krieg.k.demob.rechnung.warum": "Yedekleri eve göndermek, toplamak kadar pahalı; {datum} tarihine kadar.",
  "krieg.k.sp.titel": "{land} ile gerginlik",
- "krieg.k.sp.text1": "{zwischenfall, select, ja {Sınırda, havada ya da denizde yaşanan bir olayın ardından {land} ile çatışma bir eşiği aştı} other {{land} ile çatışma bir eşiği aştı}} (100 üzerinden {konflikt}): Olaylar, kendi kararlarını gerektiren bir sürece dönüşüyor.",
+ "krieg.k.sp.text1": "{zwischenfall, select, ja {{ort, select, grenze {Sınırda ya da havada} see {Havada ya da denizde} fern {Sınırlardan uzakta} other {Sınırda, havada ya da denizde}} yaşanan bir olayın ardından {land} ile çatışma bir eşiği aştı} other {{land} ile çatışma bir eşiği aştı}} (100 üzerinden {konflikt}): Olaylar, kendi kararlarını gerektiren bir sürece dönüşüyor.",
  "krieg.k.sp.text2": "Şimdi nasıl devam edileceğine siz karar veriyorsunuz: hazırlığı artırmak, mesaj vermek, arabuluculuk istemek ya da sonraki tüm adımların bedelini belirleyen bir savaş amacı ilan etmek. Hepsi Güvenlik altındaki çatışma dosyasında.",
  "krieg.k.sp.log": "{land} ile gerginlik: Çatışma bir sürece dönüşüyor.",
  "krieg.k.sp.warum": "Dosya, Dünya görünümünde ülkenin yanında; her adımın bedeli orada yazılı.",
@@ -428,7 +428,7 @@
  "krieg.k.krise.erklaerung": "Çatışmalar bir ülkeyle olan gerginlikten doğar: {anlage} değerinden itibaren kendiliğinden, olaylarla veya {ab} değerinden itibaren sizin başlattığınız bir krizle. Ardından ültimatom, arabuluculuk, gerginliği azaltma, seferberlik ve konuşlanma kararı mümkündür.",
  "krieg.k.zwischenfall.notiz": "Olay",
  "krieg.k.zwischenfall.titel": "{land} ile olay",
- "krieg.k.zwischenfall.text": "Sınırda, hava sahasında veya denizde {land} ile bir olay yaşandı. Gerginlik {alt} değerinden {neu} değerine çıkıyor.",
+ "krieg.k.zwischenfall.text": "{ort, select, grenze {Sınırda veya hava sahasında} see {Hava sahasında veya denizde} fern {Sınırlardan uzakta, görev ya da tatbikat sırasında} other {Sınırda, hava sahasında veya denizde}} {land} ile bir olay yaşandı. Gerginlik {alt} değerinden {neu} değerine çıkıyor.",
  "krieg.k.zwischenfall.log": "{land} ile olay: gerginlik +{plus}.",
  "krieg.k.zwischenfall.warum": "Gerginliğin yüksek olduğu yerde bir kıvılcım yeter: önlenen bir jet, sınırda bir atış, tartışmalı sularda bir gemi."
 }

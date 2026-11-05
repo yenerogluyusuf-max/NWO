@@ -361,7 +361,7 @@
  "krieg.k.demob.rechnung": "Demobilisation bill: {bip, number}% of GDP.",
  "krieg.k.demob.rechnung.warum": "Bringing reserves home costs as much as calling them up; until {datum}.",
  "krieg.k.sp.titel": "Tension with {land}",
- "krieg.k.sp.text1": "{zwischenfall, select, ja {After an incident on the border, in the air or at sea, the conflict with {land} has crossed a threshold} other {The conflict with {land} has crossed a threshold}} ({konflikt} out of 100): incidents become an episode that demands decisions of its own.",
+ "krieg.k.sp.text1": "{zwischenfall, select, ja {After an incident {ort, select, grenze {at the border or in the air} see {in the air or at sea} fern {far from Turkey's borders} other {on the border, in the air or at sea}}, the conflict with {land} has crossed a threshold} other {The conflict with {land} has crossed a threshold}} ({konflikt} out of 100): incidents become an episode that demands decisions of its own.",
  "krieg.k.sp.text2": "Now you decide what happens next: raise readiness, send signals, seek mediation – or declare a war aim that sets the price of every later step. Everything is in the conflict dossier under Security.",
  "krieg.k.sp.log": "Tension with {land}: the conflict becomes an episode.",
  "krieg.k.sp.warum": "The dossier is in the world view next to the country; every action shows its price there.",
@@ -428,7 +428,7 @@
  "krieg.k.krise.erklaerung": "Conflicts arise from tension with a country: on their own from {anlage}, through incidents, or when you open a crisis yourself from {ab}. Then ultimatum, mediation, de-escalation, mobilisation and deployment decision are open.",
  "krieg.k.zwischenfall.notiz": "Incident",
  "krieg.k.zwischenfall.titel": "Incident with {land}",
- "krieg.k.zwischenfall.text": "An incident with {land} has occurred at the border, in the airspace or at sea. Tension rises from {alt} to {neu}.",
+ "krieg.k.zwischenfall.text": "An incident with {land} has occurred {ort, select, grenze {at the border or in the airspace} see {in the airspace or at sea} fern {far from Turkey's borders, during deployments or exercises} other {at the border, in the airspace or at sea}}. Tension rises from {alt} to {neu}.",
  "krieg.k.zwischenfall.log": "Incident with {land}: tension +{plus}.",
  "krieg.k.zwischenfall.warum": "Where the situation is tense, a spark is enough: an intercepted jet, a shot at the border, a ship in disputed waters."
 }

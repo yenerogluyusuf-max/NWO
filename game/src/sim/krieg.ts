@@ -1280,7 +1280,7 @@ function vorgangAnlegen(w: World, landId: string, eskalation: number): KriegVorg
   const sp = w.spiel;
   const zwischenfall = sp?.hinweise.some((h) => h.id === `krieg-zwischenfall-${l.id}-${w.day}`);
   if (sp && zwischenfall) sp.hinweise = sp.hinweise.filter((h) => h.id !== `krieg-zwischenfall-${l.id}-${w.day}`);
-  hinweis(w, `krieg-spannung-${k.id}`, t("krieg.k.sp.titel", { land: l.name }), [t("krieg.k.sp.text1", { land: l.name, konflikt, zwischenfall: zwischenfall ? "ja" : "nein" }), t("krieg.k.sp.text2")]);
+  hinweis(w, `krieg-spannung-${k.id}`, t("krieg.k.sp.titel", { land: l.name }), [t("krieg.k.sp.text1", { land: l.name, konflikt, zwischenfall: zwischenfall ? "ja" : "nein", ort: zwischenfallOrt(l.id) }), t("krieg.k.sp.text2")]);
   addLog(w, "ereignis", t("krieg.k.sp.log", { land: l.name }), t("krieg.k.sp.warum"));
   return k;
 }
@@ -1327,6 +1327,18 @@ export function kriseEroeffnen(w: World, landId: string): Ergebnis {
  * Präsidenten. Monatliche Wahrscheinlichkeit (Konflikt − 50) / 300, also bei Konflikt 72 rund 7 % (Spielparameter). Früher bewegten
  * sich Konflikte ohne den Spieler nie (24 Monate ohne einen Vorgang, PRUEFUNG_GESAMT_2026-11-04).
  */
+/**
+ * Wo ein Zwischenfall geschehen kann, nach der Geografie: Landgrenze (Iran, Irak, Syrien, Kaukasus), Luftraum und See
+ * (Schwarzes Meer, östliches Mittelmeer), fern der Grenzen (USA, China, Golf, Zentralasien). Griechenland und die EU
+ * (über Bulgarien und Griechenland) haben alle drei Wege. Spielerdurchlauf 5. November: „Zwischenfall an der Grenze“ mit den USA.
+ */
+const ZWISCHENFALL_ORT: Record<string, "grenze" | "see" | "fern"> = {
+  IRN: "grenze", IRQ: "grenze", SYR: "grenze", ARM: "grenze", AZE: "grenze", GEO: "grenze",
+  RUS: "see", UKR: "see", CYP: "see", EGY: "see", LBY: "see", ISR: "see",
+  USA: "fern", CHN: "fern", SAU: "fern", KAZ: "fern",
+};
+export const zwischenfallOrt = (landId: string): string => ZWISCHENFALL_ORT[landId] ?? "alle";
+
 function zwischenfaelle(w: World, rng: Rng): void {
   const z = weltZustand(w);
   for (const l of LAENDER) {
@@ -1335,7 +1347,7 @@ function zwischenfaelle(w: World, rng: Rng): void {
     if (rng.next() >= (konflikt - 50) / 300) continue;
     const plus = 4 + Math.round(rng.next() * 4);
     landAendern(w, l.id, { konflikt: plus }, t("krieg.k.zwischenfall.notiz"));
-    hinweis(w, `krieg-zwischenfall-${l.id}-${w.day}`, t("krieg.k.zwischenfall.titel", { land: l.name }), [t("krieg.k.zwischenfall.text", { land: l.name, alt: Math.round(konflikt), neu: Math.round(konflikt + plus) })]);
+    hinweis(w, `krieg-zwischenfall-${l.id}-${w.day}`, t("krieg.k.zwischenfall.titel", { land: l.name }), [t("krieg.k.zwischenfall.text", { land: l.name, ort: zwischenfallOrt(l.id), alt: Math.round(konflikt), neu: Math.round(konflikt + plus) })]);
     addLog(w, "ereignis", t("krieg.k.zwischenfall.log", { land: l.name, plus }), t("krieg.k.zwischenfall.warum"));
   }
 }

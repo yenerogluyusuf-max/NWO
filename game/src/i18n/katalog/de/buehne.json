@@ -14,6 +14,8 @@
   "sdd.tageFrist": "{titel} — {tage, plural, =0 {heute} =1 {morgen} other {in # Tagen}}",
   "sdd.zumSchreibtisch": "Zum Schreibtisch",
   "sdd.zuletzt": "zuletzt {wert}",
+  "sdd.abgestimmt": "Abgestimmt",
+  "sdd.beschluss": "{name} {ergebnis, select, ja {angenommen} other {abgelehnt}} ({ja}:{nein})",
 
   "buehne.stat.zustimmung": "Zustimmung",
   "buehne.stat.kapital": "Politisches Kapital",

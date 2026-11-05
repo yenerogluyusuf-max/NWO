@@ -361,7 +361,7 @@
  "krieg.k.demob.rechnung": "Demobilisierungs-Rechnung: {bip, number} % des BIP.",
  "krieg.k.demob.rechnung.warum": "Reserven nach Hause bringen kostet wie das Hochfahren; noch bis {datum}.",
  "krieg.k.sp.titel": "Spannung mit {land}",
- "krieg.k.sp.text1": "{zwischenfall, select, ja {Nach einem Zwischenfall an der Grenze, im Luftraum oder auf See hat der Konflikt mit {land} eine Schwelle überschritten} other {Der Konflikt mit {land} hat eine Schwelle überschritten}} ({konflikt} von 100): Aus Zwischenfällen wird ein Vorgang, der eigene Entscheidungen verlangt.",
+ "krieg.k.sp.text1": "{zwischenfall, select, ja {Nach einem Zwischenfall {ort, select, grenze {an der Grenze oder im Luftraum} see {im Luftraum oder auf See} fern {fern der eigenen Grenzen} other {an der Grenze, im Luftraum oder auf See}} hat der Konflikt mit {land} eine Schwelle überschritten} other {Der Konflikt mit {land} hat eine Schwelle überschritten}} ({konflikt} von 100): Aus Zwischenfällen wird ein Vorgang, der eigene Entscheidungen verlangt.",
  "krieg.k.sp.text2": "Jetzt entscheiden Sie, wie es weitergeht: Bereitschaft erhöhen, Signale senden, vermitteln lassen – oder ein Kriegsziel erklären, das den Preis aller weiteren Schritte festlegt. Alles dazu steht im Konfliktdossier unter Sicherheit.",
  "krieg.k.sp.log": "Spannung mit {land}: Der Konflikt wird zum Vorgang.",
  "krieg.k.sp.warum": "Das Dossier steht in der Welt-Ansicht beim Land; jede Handlung hat dort ihren Preis.",
@@ -428,7 +428,7 @@
  "krieg.k.krise.erklaerung": "Konflikte entstehen aus der Spannung mit einem Land: ab {anlage} von selbst, durch Zwischenfälle oder wenn Sie ab {ab} selbst eine Krise eröffnen. Danach stehen Ultimatum, Vermittlung, Deeskalation, Mobilmachung und Einsatzbeschluss offen.",
  "krieg.k.zwischenfall.notiz": "Zwischenfall",
  "krieg.k.zwischenfall.titel": "Zwischenfall mit {land}",
- "krieg.k.zwischenfall.text": "An der Grenze, im Luftraum oder auf See ist es zu einem Zwischenfall mit {land} gekommen. Die Spannung steigt von {alt} auf {neu}.",
+ "krieg.k.zwischenfall.text": "{ort, select, grenze {An der Grenze oder im Luftraum} see {Im Luftraum oder auf See} fern {Fern der eigenen Grenzen, bei Einsätzen oder Manövern,} other {An der Grenze, im Luftraum oder auf See}} ist es zu einem Zwischenfall mit {land} gekommen. Die Spannung steigt von {alt} auf {neu}.",
  "krieg.k.zwischenfall.log": "Zwischenfall mit {land}: Spannung +{plus}.",
  "krieg.k.zwischenfall.warum": "Wo die Lage angespannt ist, genügt ein Funke: ein abgefangener Jet, ein Grenzschuss, ein Schiff in umstrittenen Gewässern."
 }

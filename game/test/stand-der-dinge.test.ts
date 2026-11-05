@@ -111,3 +111,18 @@ describe("Re-Entry-Blatt", () => {
     expect(stand.frist!.tage).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe("Abstimmungen seit der letzten Sitzung", () => {
+  test("Das Blatt nennt, was seit dem Snapshot im Parlament entschieden wurde, die jüngste zuerst", () => {
+    const w = neu();
+    const snap = snapshotVon(w);
+    const vorher = { day: w.day - 1, date: "2026-09-24", kind: "entscheidung" as const, text: "alt", abstimmung: { art: "gesetz" as const, name: "Alt", ort: "", ja: 400, nein: 200, angenommen: true } };
+    const a = { day: w.day, date: "2026-09-25", kind: "entscheidung" as const, text: "a", abstimmung: { art: "gesetz" as const, name: "Mietpreisbremse", ort: "", ja: 280, nein: 320, angenommen: false } };
+    const b = { day: w.day + 3, date: "2026-09-28", kind: "entscheidung" as const, text: "b", abstimmung: { art: "gesetz" as const, name: "Gebäude-Verstärkungsprogramm", ort: "", ja: 361, nein: 239, angenommen: true } };
+    w.log.push(vorher, a, b);
+    const stand = standDerDinge(w, snap);
+    expect(stand.abgestimmt.map((x) => x.name)).toEqual(["Gebäude-Verstärkungsprogramm", "Mietpreisbremse"]);
+    expect(stand.abgestimmt[1]!.angenommen).toBe(false);
+    expect(standDerDinge(w, null).abgestimmt).toEqual([]);
+  });
+});

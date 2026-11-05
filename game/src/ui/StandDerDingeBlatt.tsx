@@ -87,6 +87,12 @@ export function StandDerDingeBlatt({ stand, onSchliessen }: { stand: Stand; onSc
             </section>
           </div>
 
+          {stand.abgestimmt.length > 0 && (
+            <p className="sdd-zeile">
+              <span className="sdd-zeile-label">{t("sdd.abgestimmt")}</span>{" "}
+              {stand.abgestimmt.map((a) => t("sdd.beschluss", { name: a.name, ergebnis: a.angenommen ? "ja" : "nein", ja: a.ja, nein: a.nein })).join(" · ")}
+            </p>
+          )}
           <p className="sdd-zeile">
             <span className="sdd-zeile-label">{t("sdd.agenda")}</span> {stand.agenda ?? t("sdd.agendaLeer")}
           </p>

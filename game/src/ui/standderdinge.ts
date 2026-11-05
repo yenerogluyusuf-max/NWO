@@ -51,6 +51,8 @@ export interface StandDerDinge {
   agenda: string | null;
   /** Die dringendste Frist, falls es eine gibt */
   frist: { titel: string; tage: number } | null;
+  /** Abstimmungen im Parlament seit Beginn der letzten Sitzung, die jüngste zuerst (höchstens drei) */
+  abgestimmt: { name: string; angenommen: boolean; ja: number; nein: number }[];
 }
 
 const restWort = (tage: number) => t("sk.sdd.rest", { n: Math.max(0, tage) });
@@ -111,5 +113,13 @@ export function standDerDinge(w: World, vorsitzung: KennzahlenSnapshot | null): 
     vergleichDatum: vorsitzung ? formatDateDe(vorsitzung.datum) : null,
     agenda: agendaTermin ? t("sk.sdd.agenda", { datum: agendaTermin.datum, text: agendaTermin.text }) : null,
     frist: f && f.tage !== undefined ? { titel: f.titel, tage: f.tage } : null,
+    // Spielerdurchlauf 5. November: Die Abstimmungskarte erscheint nur kurz; wer zurückkommt, soll wissen, was beschlossen wurde
+    abgestimmt: vorsitzung
+      ? w.log
+          .filter((l) => l.abstimmung && l.day >= vorsitzung.tag)
+          .slice(-3)
+          .reverse()
+          .map((l) => ({ name: l.abstimmung!.name, angenommen: l.abstimmung!.angenommen, ja: l.abstimmung!.ja, nein: l.abstimmung!.nein }))
+      : [],
   };
 }
