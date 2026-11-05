@@ -9,7 +9,7 @@ import type { Vorschlag } from "../../sim/vorschlaege";
 import { bringeEin, REGELN } from "../../sim/handeln";
 import { fassungsKnoepfe, gesetzesPrognose } from "../../sim/gesetzgebung";
 import type { FassungId } from "../../data/gesetzesvorhaben";
-import { naechsteStufe, skala, skalenArt } from "../../data/skalen";
+import { naechsteStufe, skala, skalenArt, stufenName } from "../../data/skalen";
 import { t, zahl } from "../../i18n";
 import type { MassnahmeZeile } from "./bereiche";
 import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
@@ -19,7 +19,7 @@ type Ergebnis = { ok: boolean; text: string; why?: string };
 /** Die wählbaren Werte einer Maßnahme: benannte Zustände oder 0, 10, … 100 */
 function stufenVon(id: string, jetzt: number): { w: number; name: string }[] {
   if (skalenArt(id) === "regime") return skala(id, jetzt).stufen.map((s) => ({ w: s.w, name: s.name }));
-  return Array.from({ length: 11 }, (_, i) => ({ w: i * 10, name: t("po2.stufe", { n: i * 10 }) }));
+  return Array.from({ length: 11 }, (_, i) => ({ w: i * 10, name: stufenName(id, i * 10) }));
 }
 
 function naechsterIndex(stufen: { w: number }[], wert: number): number {
@@ -119,7 +119,7 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
             setAntwort(null);
             setWahl(Math.abs(s.w - m.jetzt) < 1 ? null : { id: m.id, ziel: s.w, ort });
           };
-          const jetztName = skalenArt(m.id) === "regime" ? naechsteStufe(skala(m.id, m.jetzt), m.jetzt).stufe.name : t("po2.stufe", { n: Math.round(m.jetzt) });
+          const jetztName = skalenArt(m.id) === "regime" ? naechsteStufe(skala(m.id, m.jetzt), m.jetzt).stufe.name : stufenName(m.id, m.jetzt);
           return (
             <ReglerZeile
               key={m.id}
@@ -143,7 +143,7 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
                     {m.imParlament ? t("po2.imParlament", { tage: m.imParlament.tage }) : m.umsetzung ? t("po2.umsetzung", { stand: Math.round(m.umsetzung.stand), rest: m.umsetzung.rest }) : m.blocker ? m.blocker.titel.slice(0, 80) : ""}
                     {v && !aktiv && (
                       <button type="button" className="mt-vorschlag" onClick={() => setWahl({ id: m.id, ziel: v.ziel, ort: v.ort })}>
-                        {t("po2.vorschlag", { stufe: v.zielName ?? t("po2.stufe", { n: v.ziel }), problem: v.problemName })}
+                        {t("po2.vorschlag", { stufe: v.zielName ?? stufenName(m.id, v.ziel), problem: v.problemName })}
                       </button>
                     )}
                   </small>

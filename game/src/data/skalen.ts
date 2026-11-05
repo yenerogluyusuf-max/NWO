@@ -7,6 +7,7 @@
 
 import { t } from "../i18n";
 import { datenTexte } from "../i18n/daten";
+import { NODES } from "./politiknetz";
 
 export type SkalenArt = "regime" | "satz" | "menge";
 
@@ -247,6 +248,33 @@ const SATZ = new Set(["m_einkommensteuer", "m_mwst", "m_koerperschaftsteuer", "m
 const SATZ_NAMEN = ["skala.satz.m2", "skala.satz.m1", "skala.satz.0", "skala.satz.p1", "skala.satz.p2"];
 const MENGE_NAMEN = ["skala.menge.m2", "skala.menge.m1", "skala.menge.0", "skala.menge.p1", "skala.menge.p2"];
 
+/**
+ * Belegte heutige Sätze (Rückmeldung 05.11.2026: „bei Steuererhöhungen müssen Zahlen und Prozente angegeben werden“). Der Startwert der
+ * Maßnahme entspricht diesem Satz; andere Stufen werden verhältnisgleich umgerechnet (Spielparameter, ENTSCHEIDUNGEN „Reglerstufen in Worten“).
+ */
+const ECHT: Record<string, { satz: number; muster: "satz" | "spitze"; quelle: string }> = {
+  m_mwst: { satz: 20, muster: "satz", quelle: "KDV-Regelsatz 20 % seit 10.07.2023 (Präsidialbeschluss Nr. 7346, Resmî Gazete 07.07.2023)" },
+  m_einkommensteuer: { satz: 40, muster: "spitze", quelle: "Spitzensatz 40 % (Gelir Vergisi Kanunu Art. 103)" },
+  m_koerperschaftsteuer: { satz: 25, muster: "satz", quelle: "25 % ab Veranlagung 2023 (Gesetz Nr. 7456, Resmî Gazete 15.07.2023)" },
+};
+const START = new Map(NODES.filter((n) => n.kind === "massnahme").map((n) => [n.id, n.start]));
+
+/**
+ * Eine Stufe in Worten statt „Stufe 50“: benannter Zustand, belegter Satz („22 %“) oder Anteil am Ausgangsstand („120 % des Ausgangs“).
+ * Nur wo eine Maßnahme zu Beginn nicht besteht (Start 0), bleibt die Stufe als Zahl.
+ */
+export function stufenName(id: string, w: number): string {
+  if (REGIME[id]) return naechsteStufe({ art: "regime", frage: "", stufen: REGIME[id]! }, w).stufe.name;
+  const start = START.get(id) ?? 0;
+  const echt = ECHT[id];
+  if (echt && start > 0) return t(`skala.echt.${echt.muster}`, { p: Math.round((echt.satz * w) / start) });
+  if (start > 0) return t("skala.anteil", { p: Math.round((w / start) * 100) });
+  return t("skala.stufe", { w: Math.round(w) });
+}
+
+/** Woher der heutige Satz stammt, falls belegt */
+export const stufenQuelle = (id: string): string | undefined => ECHT[id]?.quelle;
+
 export function skalenArt(id: string): SkalenArt {
   return REGIME[id] ? "regime" : SATZ.has(id) ? "satz" : "menge";
 }
@@ -264,7 +292,7 @@ export function skala(id: string, jetzt: number): Skala {
   for (let k = -2; k <= 2; k++) {
     const w = mitte + 20 * k;
     if (w < 0 || w > 100) continue;
-    stufen.push({ w, name: t(namen[k + 2]!), text: k === 0 ? t("skala.stufe", { w }) : t("skala.stufeDelta", { w, d: `${k > 0 ? "+" : "−"}${Math.abs(20 * k)}` }) });
+    stufen.push({ w, name: t(namen[k + 2]!), text: stufenName(id, w) });
   }
   return { art, frage: t(art === "satz" ? "skala.frage.satz" : "skala.frage.menge"), stufen };
 }

@@ -6,7 +6,7 @@ import { NET } from "../../sim/modell";
 import { nationalAverage, startAverage } from "../../sim/netz";
 import { type NodeSpec, type Theme } from "../../data/politiknetz";
 import { t } from "../../i18n";
-import { skala, naechsteStufe, skalenArt } from "../../data/skalen";
+import { skala, naechsteStufe, skalenArt, stufenName } from "../../data/skalen";
 import { akuteProbleme, vorschlaege, type Vorschlag } from "../../sim/vorschlaege";
 import { krisenFuerMassnahme } from "../../sim/krisen";
 import { restMonate, umsetzungsStand } from "../../sim/umsetzung";
@@ -202,7 +202,7 @@ export function massnahmenZeilen(world: World, theme: Theme): MassnahmeZeile[] {
     const ziel = world.net.targets[n.id];
     const gesetz = spiel?.gesetze.find((g) => g.massnahme === n.id);
     const sk = skala(n.id, jetzt);
-    const stufe = skalenArt(n.id) === "regime" ? naechsteStufe(sk, jetzt).stufe.name : `Stufe ${Math.round(jetzt)}`;
+    const stufe = skalenArt(n.id) === "regime" ? naechsteStufe(sk, jetzt).stufe.name : stufenName(n.id, jetzt);
     const kosten = Math.abs(((n.cost ?? 0) * jetzt) / 100);
     // Krisen-Blocker: Sperre schlägt Verteuerung; mehrere Verteuerungen multiplizieren sich
     const treffer = spiel ? krisenFuerMassnahme(world, n.id) : [];

@@ -14,7 +14,7 @@ import { OrtWahl } from "./OrtWahl";
 import { type NodeSpec, type Theme } from "../data/politiknetz";
 import { themeName } from "./politik/bereiche";
 import { wann } from "./lernen";
-import { skala, naechsteStufe } from "../data/skalen";
+import { skala, naechsteStufe, stufenName } from "../data/skalen";
 import { betroffene } from "../sim/wege";
 import { PARTEI_NAME } from "../sim/fraktionen";
 import { kabinettReaktion } from "../sim/figuren";
@@ -336,11 +336,11 @@ export function NetView({
                       </h4>
                       <div className="stufe-kopf">
                         <span>
-                          {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : `etwa ${jetztStufe.stufe.name}`) : t("ui2.ui.NetView.875014d", { p0: Math.round(now) })}</b>
+                          {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : `etwa ${jetztStufe.stufe.name}`) : stufenName(node.id, now)}</b>
                         </span>
                         <span aria-hidden>→</span>
                         <span className={aendert ? "neu" : ""}>
-                          neu <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : `etwa ${neuStufe.stufe.name}`) : t("ui2.ui.NetView.875014d", { p0: sliderValue })}</b>
+                          neu <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : `etwa ${neuStufe.stufe.name}`) : stufenName(node.id, sliderValue)}</b>
                         </span>
                       </div>
                       <div className={`stufenwahl art-${sk.art}`} role="radiogroup" aria-label={`${sk.frage} ${node.name}`}>

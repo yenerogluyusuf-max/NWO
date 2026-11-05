@@ -16,7 +16,7 @@
 import { NET } from "./modell";
 import { PROVINZEN } from "./regional";
 import { Rng } from "./rng";
-import { skalenArt } from "../data/skalen";
+import { skalenArt, stufenName } from "../data/skalen";
 import { aktuelleSprache, msg, rendere, t, type Msg } from "../i18n";
 import { kannZahlen, nurAufPump } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN } from "./aufmerksamkeit";
@@ -94,7 +94,7 @@ function optionMassnahme(w: World, f: Figur | undefined, id: string, ziel: numbe
   const finanzen = amtBesetzt(w, "finanzen");
   const dafuer = [...(f ? [kurzName(f)] : []), ...b.gewinner.slice(0, 3)];
   const dagegen = [...(finanzen && f?.amt !== "finanzen" && pr.kostenBip >= 0.25 ? [t("mfl.m.haushalt", { name: kurzName(finanzen) })] : []), ...b.verlierer.slice(0, 3)];
-  const stufe = opt.jetztName && opt.zielName ? t("mfl.m.stufeNamen", { von: opt.jetztName, zu: opt.zielName }) : t("mfl.m.stufe", { tun: tunWort(id, richtung), jetzt, ziel });
+  const stufe = opt.jetztName && opt.zielName ? t("mfl.m.stufeNamen", { von: opt.jetztName, zu: opt.zielName }) : t("mfl.m.stufe", { tun: tunWort(id, richtung), jetzt: stufenName(id, jetzt), ziel: stufenName(id, ziel) });
   const geld = Math.abs(pr.kostenBip) >= 0.01 ? t(pr.kostenBip < 0 ? "mfl.m.bringt" : "mfl.m.kostet", { bip: bip(Math.abs(pr.kostenBip)) }) : "";
   return {
     id: `m:${id}:${ziel}`,

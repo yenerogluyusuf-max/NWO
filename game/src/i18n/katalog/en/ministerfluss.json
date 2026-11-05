@@ -23,7 +23,7 @@
  "mfl.tun.regel.minus": "restrict",
  "mfl.m.haushalt": "{name} (budget)",
  "mfl.m.stufeNamen": "from “{von}” to “{zu}”",
- "mfl.m.stufe": "{tun} from level {jetzt} to {ziel}",
+ "mfl.m.stufe": "{tun}: from {jetzt} to {ziel}",
  "mfl.m.bringt": ", brings in {bip}",
  "mfl.m.kostet": ", costs {bip}",
  "mfl.m.label": "{name}: {stufe}",

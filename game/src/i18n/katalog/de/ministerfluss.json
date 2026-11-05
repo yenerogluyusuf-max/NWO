@@ -23,7 +23,7 @@
  "mfl.tun.regel.minus": "einschränken",
  "mfl.m.haushalt": "{name} (Haushalt)",
  "mfl.m.stufeNamen": "von „{von}“ zu „{zu}“",
- "mfl.m.stufe": "{tun} von Stufe {jetzt} auf {ziel}",
+ "mfl.m.stufe": "{tun}: von {jetzt} auf {ziel}",
  "mfl.m.bringt": ", bringt {bip}",
  "mfl.m.kostet": ", kostet {bip}",
  "mfl.m.label": "{name}: {stufe}",

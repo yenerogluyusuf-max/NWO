@@ -23,7 +23,7 @@
  "mfl.tun.regel.minus": "kısıtlamak",
  "mfl.m.haushalt": "{name} (bütçe)",
  "mfl.m.stufeNamen": "„{von}“ düzeyinden „{zu}“ düzeyine",
- "mfl.m.stufe": "{jetzt}. kademeden {ziel}. kademeye {tun}",
+ "mfl.m.stufe": "{tun}: {jetzt} düzeyinden {ziel} düzeyine",
  "mfl.m.bringt": ", {bip} getirir",
  "mfl.m.kostet": ", {bip} maliyet",
  "mfl.m.label": "{name}: {stufe}",
