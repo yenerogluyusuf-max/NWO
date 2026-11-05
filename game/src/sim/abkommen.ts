@@ -297,7 +297,7 @@ export function schliesse(w: World, a: Angebot): Vertrag {
     for (const x of AUSSTRAHLUNG[`${id}@${a.land}`] ?? []) landAendern(w, x.land, { [x.dim]: x.d }, x.text);
   }
   z.abkommen.push(`Vertrag ${w.date.slice(0, 4)}: ${nameKlauseln(w, a.land, [...a.gibt, ...a.will])} (${a.jahre} Jahre)`);
-  addLog(w, "entscheidung", `Vertrag mit ${l.dat}: ${nameKlauseln(w, a.land, [...a.gibt, ...a.will])}`, `Laufzeit ${a.jahre} Jahre. Er wirkt jeden Monat, wird jedes Jahr geprüft und bindet beide Seiten.`);
+  addLog(w, "entscheidung", t("abkommen.log.geschlossen", { dat: l.dat, land: l.name, klauseln: nameKlauseln(w, a.land, [...a.gibt, ...a.will]) }), t("abkommen.log.geschlossen_warum", { jahre: a.jahre }));
   return v;
 }
 
@@ -393,7 +393,7 @@ function pruefeJahr(w: World, v: Vertrag): void {
   }
   if (verfehlt.length === 0) {
     landAendern(w, v.land, { vertrauen: 2 }, "Jahresprüfung des Vertrags bestanden");
-    addLog(w, "entscheidung", `Vertrag mit ${l.dat}: Die Jahresprüfung ist bestanden.`, "Die Türkei hat alle Pflichten erfüllt: Das Vertrauen wächst.");
+    addLog(w, "entscheidung", t("abkommen.log.bestanden", { dat: l.dat, land: l.name }), t("abkommen.log.bestanden_warum"));
     return;
   }
   v.verstoesse += 1;
@@ -403,9 +403,9 @@ function pruefeJahr(w: World, v: Vertrag): void {
     landAendern(w, v.land, { vertrauen: -12, konflikt: 6 }, "Der Vertrag ist gebrochen");
     wirke(w, "ansehen", -2);
     z.bruch = (z.bruch ?? 0) + BRUCH_STRAFE;
-    addLog(w, "entscheidung", `Der Vertrag mit ${l.dat} ist gebrochen.`, `Verfehlt: ${verfehlt.join("; ")}. Das Vertrauen bricht ein, und ${l.name} wird künftig härter verhandeln.`);
+    addLog(w, "entscheidung", t("abkommen.log.gebrochen", { dat: l.dat, land: l.name }), t("abkommen.log.gebrochen_warum", { verfehlt: verfehlt.join("; "), land: l.name }));
   } else {
-    addLog(w, "entscheidung", `Vertrag mit ${l.dat}: ein Verstoß.`, `Verfehlt: ${verfehlt.join("; ")}. Beim zweiten Mal gilt der Vertrag als gebrochen.`);
+    addLog(w, "entscheidung", t("abkommen.log.verstoss", { dat: l.dat, land: l.name }), t("abkommen.log.verstoss_warum", { verfehlt: verfehlt.join("; ") }));
   }
 }
 
@@ -430,7 +430,7 @@ export function abkommenMonat(w: World, _rng?: Rng): void {
         z.gehalten = (z.gehalten ?? 0) + (v.verstoesse === 0 ? 1 : 0);
         beende(w, v, "ausgelaufen", "Die Laufzeit ist zu Ende.");
         landAendern(w, id, { vertrauen: v.verstoesse === 0 ? 2 : 0 });
-        addLog(w, "entscheidung", `Vertrag mit ${land(id).dat} ausgelaufen.`, v.verstoesse === 0 ? "Er wurde gehalten; für einen neuen Vertrag zählt das." : "Es gab Verstöße; dafür wird das Land in Erinnerung behalten.");
+        addLog(w, "entscheidung", t("abkommen.log.ausgelaufen", { dat: land(id).dat, land: land(id).name }), t(v.verstoesse === 0 ? "abkommen.log.ausgelaufen_gehalten" : "abkommen.log.ausgelaufen_verstoesse"));
         continue;
       }
       if (w.day - v.letztePruefung >= TAGE_JAHR) pruefeJahr(w, v);
@@ -448,14 +448,14 @@ export function kuendige(w: World, landId: string, vertragId: string): { ok: boo
   if (w.day >= fruehesten) {
     beende(w, v, "gekuendigt", "Ordentlich gekündigt.");
     landAendern(w, landId, { vertrauen: -4 }, "Kündigung eines Vertrags");
-    addLog(w, "entscheidung", `Vertrag mit ${l.dat} gekündigt.`, "Ordentliche Kündigung: ein kleiner Verlust an Vertrauen, keine Strafe.");
+    addLog(w, "entscheidung", t("abkommen.log.gekuendigt", { dat: l.dat, land: l.name }), t("abkommen.log.gekuendigt_warum"));
     return { ok: true, text: `Der Vertrag mit ${l.dat} ist gekündigt.`, why: "Ein kleiner Verlust an Vertrauen; die Dauerwirkungen enden." };
   }
   beende(w, v, "gebrochen", "Vorzeitig ausgestiegen.");
   landAendern(w, landId, { vertrauen: -12, konflikt: 6 }, "Vorzeitiger Ausstieg aus einem Vertrag");
   wirke(w, "ansehen", -2);
   z.bruch = (z.bruch ?? 0) + BRUCH_STRAFE;
-  addLog(w, "entscheidung", `Ausstieg aus dem Vertrag mit ${l.dat}.`, "Vor einem Drittel der Laufzeit gilt das als Bruch: Vertrauen und Ansehen sinken, und das Land wird künftig härter verhandeln.");
+  addLog(w, "entscheidung", t("abkommen.log.ausstieg", { dat: l.dat, land: l.name }), t("abkommen.log.ausstieg_warum"));
   return { ok: true, text: `Der Vertrag mit ${l.dat} ist vorzeitig beendet: Das gilt als Bruch.`, why: "Vertrauen und Ansehen sinken; das Land erinnert sich." };
 }
 
@@ -477,7 +477,7 @@ export function verlaengere(w: World, landId: string, vertragId: string, jahre: 
   v.ablauf += jahre * TAGE_JAHR;
   v.jahre = (v.jahre >= jahre ? v.jahre : jahre) as Laufzeit;
   landAendern(w, landId, { vertrauen: 3 }, "Vertrag verlängert");
-  addLog(w, "entscheidung", `Vertrag mit ${l.dat} um ${jahre} Jahre verlängert.`, `Das Vertrauen wächst.`);
+  addLog(w, "entscheidung", t("abkommen.log.verlaengert", { dat: l.dat, land: l.name, jahre }), t("abkommen.log.verlaengert_warum"));
   return { ok: true, text: `Der Vertrag mit ${l.dat} läuft ${jahre} Jahre länger.`, why: bezahlen ? `Kostet ${pk} Kapital.` : "Das Vertrauen wächst." };
 }
 

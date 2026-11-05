@@ -320,6 +320,11 @@ keine bestehende Konstante verändert, keine Neukalibrierung.
      sind in beiden Läufen identisch — die WIR-2-Kanäle sind hier nachweislich neutral, der
      Treiber ist die Deckel-Kalibrierung des Politiknetzes (Revier INN-1). Kernbefund
      (+16,9 → +2,5) steht. TODO(INN-1): nach Kantenformel-Kalibrierung wieder auf +1 zuziehen.
+3. **`spielbarkeit.test.ts` (5. November 2026):** Regierungsmüdigkeit `SPIEL.muedigkeit` 0,30 → 0,15 → **0,10** je Monat.
+   Beleg als Untergrenze: Kosten des Regierens rund 2,25 Prozentpunkte je Wahlperiode (Paldam 1986; Nannestad & Paldam 2002);
+   0,10 ergibt 6 Punkte je Amtszeit. Messung mit denselben Testspielern (8 Seeds): kluges Regieren gewinnt 8 von 8 ersten Wahlen,
+   Nichtstun verliert 7 von 8. Dazu zählt die Ereignisdichte nur noch Entscheidungen (Chronik-Merkmale statt deutscher Titel,
+   ENTSCHEIDUNGEN U), und der Test misst Entscheidungen je Jahr aus der Chronik (Vorlage) statt in Tagesschritten.
 
 ## 4. Bewusste Modellgrenzen (dokumentiert, nicht erzwungen)
 

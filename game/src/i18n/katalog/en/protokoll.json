@@ -39,5 +39,22 @@
  "belastung.ruhetag.log": "The president needs a quiet day.",
  "belastung.ruhetag.warum": "Strain has risen above 70: until {datum} no new matters start; ongoing work continues.",
  "belastung.erholt.titel": "The president looks recovered",
- "belastung.erholt.chronik": "Strain has fallen below 40."
+ "belastung.erholt.chronik": "Strain has fallen below 40.",
+ "abkommen.log.geschlossen": "Treaty with {land}: {klauseln}",
+ "abkommen.log.geschlossen_warum": "Term {jahre} years. It takes effect every month, is reviewed every year and binds both sides.",
+ "abkommen.log.bestanden": "Treaty with {land}: the annual review is passed.",
+ "abkommen.log.bestanden_warum": "Türkiye has met all obligations: trust grows.",
+ "abkommen.log.gebrochen": "The treaty with {land} is broken.",
+ "abkommen.log.gebrochen_warum": "Missed: {verfehlt}. Trust collapses, and {land} will negotiate harder in future.",
+ "abkommen.log.verstoss": "Treaty with {land}: one violation.",
+ "abkommen.log.verstoss_warum": "Missed: {verfehlt}. A second time and the treaty counts as broken.",
+ "abkommen.log.ausgelaufen": "Treaty with {land} has expired.",
+ "abkommen.log.ausgelaufen_gehalten": "It was kept; that counts for a new treaty.",
+ "abkommen.log.ausgelaufen_verstoesse": "There were violations; the country will remember them.",
+ "abkommen.log.gekuendigt": "Treaty with {land} terminated.",
+ "abkommen.log.gekuendigt_warum": "Regular termination: a small loss of trust, no penalty.",
+ "abkommen.log.ausstieg": "Withdrawal from the treaty with {land}.",
+ "abkommen.log.ausstieg_warum": "Before a third of the term this counts as a breach: trust and standing fall, and the country will negotiate harder in future.",
+ "abkommen.log.verlaengert": "Treaty with {land} extended by {jahre} years.",
+ "abkommen.log.verlaengert_warum": "Trust grows."
 }

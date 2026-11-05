@@ -39,5 +39,22 @@
  "belastung.ruhetag.log": "Cumhurbaşkanının sakin bir güne ihtiyacı var.",
  "belastung.ruhetag.warum": "Yük 70'in üzerine çıktı: {datum} tarihine kadar yeni dosya başlamıyor; süren işler devam ediyor.",
  "belastung.erholt.titel": "Cumhurbaşkanı yeniden dinlenmiş görünüyor",
- "belastung.erholt.chronik": "Yük 40'ın altına düştü."
+ "belastung.erholt.chronik": "Yük 40'ın altına düştü.",
+ "abkommen.log.geschlossen": "{land} ile antlaşma: {klauseln}",
+ "abkommen.log.geschlossen_warum": "Süre {jahre} yıl. Her ay etki eder, her yıl denetlenir ve iki tarafı da bağlar.",
+ "abkommen.log.bestanden": "{land} ile antlaşma: Yıllık denetim geçildi.",
+ "abkommen.log.bestanden_warum": "Türkiye tüm yükümlülüklerini yerine getirdi: Güven artıyor.",
+ "abkommen.log.gebrochen": "{land} ile antlaşma bozuldu.",
+ "abkommen.log.gebrochen_warum": "Karşılanmayan: {verfehlt}. Güven çöküyor ve {land} bundan sonra daha sert pazarlık edecek.",
+ "abkommen.log.verstoss": "{land} ile antlaşma: bir ihlal.",
+ "abkommen.log.verstoss_warum": "Karşılanmayan: {verfehlt}. İkinci seferde antlaşma bozulmuş sayılır.",
+ "abkommen.log.ausgelaufen": "{land} ile antlaşmanın süresi doldu.",
+ "abkommen.log.ausgelaufen_gehalten": "Antlaşmaya uyuldu; yeni bir antlaşmada bu sayılır.",
+ "abkommen.log.ausgelaufen_verstoesse": "İhlaller oldu; ülke bunları unutmayacak.",
+ "abkommen.log.gekuendigt": "{land} ile antlaşma feshedildi.",
+ "abkommen.log.gekuendigt_warum": "Olağan fesih: biraz güven kaybı, ceza yok.",
+ "abkommen.log.ausstieg": "{land} ile antlaşmadan çekilme.",
+ "abkommen.log.ausstieg_warum": "Sürenin üçte biri dolmadan bu bir ihlal sayılır: Güven ve itibar düşer, ülke bundan sonra daha sert pazarlık eder.",
+ "abkommen.log.verlaengert": "{land} ile antlaşma {jahre} yıl uzatıldı.",
+ "abkommen.log.verlaengert_warum": "Güven artıyor."
 }

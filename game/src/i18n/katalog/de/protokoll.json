@@ -39,5 +39,22 @@
  "belastung.ruhetag.log": "Der Präsident braucht einen ruhigen Tag.",
  "belastung.ruhetag.warum": "Die Belastung ist über 70 gestiegen: Bis {datum} starten keine neuen Vorgänge; das Laufende geht weiter.",
  "belastung.erholt.titel": "Der Präsident wirkt wieder erholt",
- "belastung.erholt.chronik": "Die Belastung ist unter 40 gefallen."
+ "belastung.erholt.chronik": "Die Belastung ist unter 40 gefallen.",
+ "abkommen.log.geschlossen": "Vertrag mit {dat}: {klauseln}",
+ "abkommen.log.geschlossen_warum": "Laufzeit {jahre} Jahre. Er wirkt jeden Monat, wird jedes Jahr geprüft und bindet beide Seiten.",
+ "abkommen.log.bestanden": "Vertrag mit {dat}: Die Jahresprüfung ist bestanden.",
+ "abkommen.log.bestanden_warum": "Die Türkei hat alle Pflichten erfüllt: Das Vertrauen wächst.",
+ "abkommen.log.gebrochen": "Der Vertrag mit {dat} ist gebrochen.",
+ "abkommen.log.gebrochen_warum": "Verfehlt: {verfehlt}. Das Vertrauen bricht ein, und {land} wird künftig härter verhandeln.",
+ "abkommen.log.verstoss": "Vertrag mit {dat}: ein Verstoß.",
+ "abkommen.log.verstoss_warum": "Verfehlt: {verfehlt}. Beim zweiten Mal gilt der Vertrag als gebrochen.",
+ "abkommen.log.ausgelaufen": "Vertrag mit {dat} ausgelaufen.",
+ "abkommen.log.ausgelaufen_gehalten": "Er wurde gehalten; für einen neuen Vertrag zählt das.",
+ "abkommen.log.ausgelaufen_verstoesse": "Es gab Verstöße; dafür wird das Land in Erinnerung behalten.",
+ "abkommen.log.gekuendigt": "Vertrag mit {dat} gekündigt.",
+ "abkommen.log.gekuendigt_warum": "Ordentliche Kündigung: ein kleiner Verlust an Vertrauen, keine Strafe.",
+ "abkommen.log.ausstieg": "Ausstieg aus dem Vertrag mit {dat}.",
+ "abkommen.log.ausstieg_warum": "Vor einem Drittel der Laufzeit gilt das als Bruch: Vertrauen und Ansehen sinken, und das Land wird künftig härter verhandeln.",
+ "abkommen.log.verlaengert": "Vertrag mit {dat} um {jahre} Jahre verlängert.",
+ "abkommen.log.verlaengert_warum": "Das Vertrauen wächst."
 }

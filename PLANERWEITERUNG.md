@@ -156,8 +156,12 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 - **Inhalt:** vier weitere Große Ziele (zehn in acht Bereichen); zwei reale Großprojekte (Entwicklungsstraße Irak–Türkei, Konya-Ebene-Projekt).
 - **Karte:** 2D-Ersatzkarte ohne WebGL; einklappbare Leiste; Legende zu bis zum Öffnen.
 - **Alte Testfehler behoben:** Vorgang-Sprung, Transitabkommen, Nachtrag, Amtszeit-Tests, Extraktionsskript, Neutralität.
+- **Sprachgleichheit (ENTSCHEIDUNGEN U):** Dieselbe Partie lief auf Englisch anders als auf Deutsch (Ereignisdichte las deutsche Titel). Chronik und Protokoll tragen jetzt Merkmale (`art`, `vorlage`, `ohneEntscheidung`, `presse`, `abstimmung`); `test/sprachgleich.test.ts` prüft de, en, tr. Übersetzt: Krisenbanner, Abstimmungen, Ortsangaben, Statistik- und Belastungsmeldungen, Namen im Reich, Ländernamen der 2D-Karte.
+- **Balance, zweiter Schritt:** Müdigkeit 0,15 → 0,10 je Monat. Mit der korrigierten Dichte (Momente, Berichte und ausgesessene Vorgänge zählen nicht) gewinnt kluges Regieren 8 von 8 ersten Wahlen, Nichtstun verliert 7 von 8, blindes Hochdrehen 8 von 8; rund 12 bis 16 Entscheidungen im Jahr (Ziel unter 16 erreicht).
+- **Vorbilder umgesetzt:** Wahlabend mit dem Urteil der Geschichte (Tropico, Epoche); Kriegslage auch auf der 2D-Karte (Vorgabe S); Schreibtisch zeigt das Dringende zuerst.
+- **Fehler gefunden und behoben:** Der Wahlabend lag hinter einer offenen Akte (Ebene 12 gegen 50) und blieb unsichtbar, wenn man nach dem Laden „Zum Schreibtisch“ wählte.
 
-**Als Nächstes:** (a) Ereignisdichte prüfen (gezählt werden Chronikzeilen, darunter viele Kalendertermine), (b) endogene Gruppengröße (Democracy 4), (c) Front und Befehle auf der Karte (Vorgabe S), (d) Besatzungsverwaltung (HOI4), (e) die Zeitung und das Halbrund bleiben bewusst außerhalb der Palette.
+**Als Nächstes:** (a) restliche fest deutsche Protokollzeilen übersetzen (Abkommen, Wahlkampf, Vermittlung, Großprojekte: rund 35 Stellen), (b) endogene Gruppengröße (Democracy 4), (c) Befehle auf der Karte (Vorgabe S; die Lage steht jetzt auf beiden Karten), (d) Besatzungsverwaltung (HOI4), (e) Abstand zwischen Zustimmung und Stimmenanteil prüfen (Wahltest: 51 % Zustimmung ergaben in drei Seeds 39–42 % der Stimmen), (f) die Zeitung und das Halbrund bleiben bewusst außerhalb der Palette.
 
 ## 10a. Stand 04.11.2026
 
