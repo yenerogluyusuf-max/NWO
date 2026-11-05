@@ -64,7 +64,10 @@ export function sprecherFuer(w: World, a: Pick<EreignisAnsicht, "id" | "vorlage"
   const im = sp.figuren.filter((f) => f.imAmt && f.amt !== "opposition");
   const raete = ratZuEreignis(w, a.id);
   const bezug = EREIGNIS_BEZUG[a.vorlage];
-  const reihenfolge: Figur["amt"][] = [...(bezug?.amt ?? []), THEMA_AMT[themaFuer(a)], "stab"];
+  // Meldet sich eine Partnerpartei (Zusage, Koalitionsangebot), spricht ihr Vorsitz, nicht das Ressort des Themas (Spielerdurchlauf 5. November:
+  // „MHP meldet sich“ zeigte die Justizministerin)
+  const partnerZuerst: Figur["amt"][] = /^start_partner$|koalition|partner/.test(a.vorlage) ? ["partner"] : [];
+  const reihenfolge: Figur["amt"][] = [...partnerZuerst, ...(bezug?.amt ?? []), THEMA_AMT[themaFuer(a)], "stab"];
   for (const amt of reihenfolge) {
     const f = im.find((x) => x.amt === amt);
     if (f) {
