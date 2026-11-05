@@ -17,7 +17,8 @@
 import { kraenke } from "./kraenkung";
 import { KRAFT_TUERKEI, NORMALSTAND } from "../data/kraefte";
 import { militaerVersorgung } from "./versorgung";
-import { kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
+import { PREIS, REAKTION, kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
+import { BEOBACHTER, KRAENKUNG } from "./kraenkung";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { wirke, vertrauenAendern } from "./wirkung";
@@ -34,6 +35,7 @@ import {
   koalitionRufen,
   koalitionWoche,
   koalitionenBeiKriegsbeginn,
+  koalitionenIn,
   koalitionsFaktoren,
   lastTeilung,
   paketBlockade,
@@ -46,7 +48,7 @@ import { kannZahlen } from "./kapital";
 import { VERFASSUNG, AUFMERKSAMKEIT_KOSTEN, belastungEreignis, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { Rng } from "./rng";
 import type { World } from "./types";
-import { aktuelleSprache, t } from "../i18n";
+import { aktuelleSprache, liste, t, zahl } from "../i18n";
 import { bestandsFaktor, streitkraefteMonat } from "./streitkraefte";
 import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte";
 import type { FriedensPaket, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
@@ -78,6 +80,26 @@ export const KRIEG = {
   angriffAb: 95,
   /** Tage bis zur Parlamentsabstimmung über den Einsatzbeschluss */
   beschlussTage: 7,
+  /**
+   * Vorlauf (Befund G-2, 5. November: vorher lag zwischen Krisenbeginn und Krieg ein Tag). Spielparameter, keine belegten Fristen:
+   * Die Spannung dauert mindestens drei Wochen, bevor eine offene Drohkulisse entsteht, und die Drohkulisse mindestens zwei Wochen,
+   * bevor die Regierung der Großen Nationalversammlung einen Einsatzbeschluss vorlegen kann. In dieser Zeit reagieren Partner,
+   * Märkte und Vermittler, und die Mobilmachung braucht ihre Tage. Zusammen mit der Abstimmung (7 Tage) liegen zwischen der ersten
+   * Spannung und einem selbst begonnenen Krieg mindestens 42 Tage. Ein Angriff des Gegners auf die Türkei wartet auf keine Frist.
+   */
+  spannungMinTage: 21,
+  drohkulisseMinTage: 14,
+  /** Tage, bis eine angeordnete Mobilmachungsstufe voll steht (keine, teilweise, voll): Reserven einberufen, Verbände verlegen (Spielparameter) */
+  mobilTage: [0, 14, 30],
+  /** Stärkefaktor je Mobilmachungsstufe */
+  mobilFaktor: [0.55, 0.85, 1.08],
+  /** Preis des Einsatzes per Erlass (nur nach Art. 92 Abs. 2 bei einem Angriff auf die Türkei): Vertrauen und Legitimität */
+  erlassVertrauen: -3,
+  erlassLegitimitaet: -2.5,
+  /** Kriegsbeginn: Risikoaufschlag der Märkte (Basispunkte) und die Sammlung um die Flagge (Zustimmung; ohne Parlament oder bei offener Revision ein Abschlag) */
+  beginnRisiko: { angriff: 220, revision: 200, sonst: 150 },
+  beginnSammlung: 2,
+  beginnOhneSammlung: -1,
   /** Frontlage: Faktor und Wochen-Maximum der Bewegung */
   frontFaktor: 0.16,
   frontMaxDelta: 5,
@@ -300,7 +322,7 @@ export function eigenStaerke(w: World, k: KriegVorgang): number {
   const b = knotenWert(w, "bereitschaft_heer") * 0.45 + knotenWert(w, "bereitschaft_luft") * 0.35 + knotenWert(w, "bereitschaft_see") * 0.2;
   const moral = 0.65 + 0.35 * (knotenWert(w, "truppenmoral") / 100);
   const dok = doktrinPassung(w).faktor;
-  const mob = ([0.55, 0.85, 1.08] as const)[k.mobilmachung] + (k.bereit ? 0.06 : 0);
+  const mob = mobilStand(w, k).faktor + (k.bereit ? 0.06 : 0);
   const nachschub = clamp(0.72 + 0.0035 * (knotenWert(w, "logistik") - 50) + 0.0025 * (knotenWert(w, "export") - 50), 0.6, 1.1);
   const allianz = 1 + koalitionsFaktoren(w, k).eigenPlus;
   // Bestand und Technik der Streitkräfte (sim/streitkraefte.ts; 1 = Stand 2026); mit gewählter Einsatzart zählen ihre tragenden Gattungen,
@@ -310,6 +332,19 @@ export function eigenStaerke(w: World, k: KriegVorgang): number {
   const n = NORMALSTAND;
   const relativ = (b / n.bereitschaft) * (moral / n.moral) * (mob / n.mobilmachung) * (nachschub / n.nachschub);
   return KRAFT_TUERKEI * relativ * dok * militaerVersorgung(w, k.land).faktor * allianz * (eigenerBestandsFaktor(w, k) ?? bestandsFaktor(w));
+}
+
+/**
+ * Wie weit die angeordnete Mobilmachung steht: Die neue Stufe wächst über KRIEG.mobilTage von der alten Stufe zur vollen Stärke an.
+ * `anteil` 1 heißt fertig; `fertig` ist der Tag, an dem sie voll steht (Anzeige als Fortschrittsbalken).
+ */
+export function mobilStand(w: World, k: KriegVorgang): { faktor: number; anteil: number; fertig: number } {
+  const ziel = KRIEG.mobilFaktor[k.mobilmachung];
+  if (k.mobilSeit === undefined || k.mobilVon === undefined) return { faktor: ziel, anteil: 1, fertig: w.day };
+  const dauer = KRIEG.mobilTage[k.mobilmachung] || 1;
+  const anteil = clamp((w.day - k.mobilSeit) / dauer, 0, 1);
+  const von = k.mobilVon;
+  return { faktor: von + (ziel - von) * anteil, anteil, fertig: k.mobilSeit + dauer };
 }
 
 /** Die vermutete Stärke des Gegners; steigt leicht mit der Eskalation (der Gegner rüstet mit) und mit seinen Koalitionspartnern. */
@@ -361,6 +396,28 @@ export function paketAnnahme(w: World, k: KriegVorgang, p: FriedensPaket, paketI
   // Die Partner des Gegners blockieren harte Pakete, solange sie Kampfkraft haben (sim/pakte.ts)
   const roh = 40 + (100 - k.uhrGegner) * 0.55 - (100 - k.uhr) * 0.25 + (k.front - 50) * 0.7 - paketHaerte(p) * 22 - paketBlockade(w, k, hart);
   return Math.round(clamp(roh, 5, 98));
+}
+
+/**
+ * Der Innenpreis eines Friedenspakets, genau so, wie `friedenSchliessen` ihn bucht (Befund G-18: der Knopf versprach einen Preis und
+ * nannte keinen). `basis` ist der Preis vor der Presse, `po` der Zustimmungsverlust danach; `nationalisten` die Bewegung dieser Gruppe.
+ */
+export function paketPreis(w: World, k: KriegVorgang, p: FriedensPaket): { po: number; nationalisten: number } {
+  let basis = 0;
+  let nationalisten = 0;
+  if (p.gebiet === 1) {
+    nationalisten += 6 + 2 * (zielraumVon(k).bedeutung - 2);
+    if (k.rahmung !== "verteidigung") basis += 3;
+  }
+  if (p.gebiet === -1) {
+    nationalisten -= 10;
+    basis += 8;
+  }
+  if (p.reparation === 1) nationalisten += 2;
+  if (p.reparation === -1) basis += 6;
+  const weiss = p.gebiet === 0 && p.reparation === 0;
+  if (weiss && k.woche >= 10) basis += 2;
+  return { po: poVerlustFuer(w, basis), nationalisten };
 }
 
 export const PAKETE: Record<string, { name: string; text: string; paket: (front: number) => FriedensPaket }> = {
@@ -438,6 +495,18 @@ export interface KriegHandlungSicht {
 }
 
 
+/**
+ * Ob ein Angriff auf die Türkei vorliegt oder unmittelbar bevorsteht, so dass der Präsident nach Art. 92 Abs. 2 der Verfassung den
+ * Einsatz sofort anordnen darf: Die Selbstverteidigung wurde erklärt, als der Gegner schon kurz vor dem Schlag stand (Eskalation ab
+ * KRIEG.verteidigungGlaubhaftAb vor der eigenen Erklärung). Jede andere Rahmung (Schutz, Beistand, Revision) ist ein Einsatz im
+ * Ausland und braucht den Beschluss der Großen Nationalversammlung.
+ */
+export function angriffAufTuerkei(k: KriegVorgang): boolean {
+  return k.rahmung === "verteidigung" && !k.rahmungDuenn;
+}
+
+const zahlMitVorzeichen = (x: number): string => (x > 0 ? "+" : x < 0 ? "−" : "") + zahl(Math.abs(x), Number.isInteger(x) ? 0 : 1);
+
 function demobGrund(w: World): string | undefined {
   const bis = demobSperreBis(w);
   if (bis <= w.day) return undefined;
@@ -476,14 +545,31 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
     push("rueckzug", t("krieg.k.h.rueckzug"), 6, t("krieg.k.h.rueckzug.hinweis"));
   }
   if (ph === "drohkulisse") {
-    if (k.mobilmachung === 0) push("mobil_teil", t("krieg.k.h.mobil_teil"), 8, t("krieg.k.h.mobil_teil.hinweis"), demob);
-    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_voll"), 14, t("krieg.k.h.mobil_voll.hinweis"), demob);
+    const dauer = (stufe: 1 | 2) => " " + t("nacht_n7.krieg.mobil.dauer", { tage: KRIEG.mobilTage[stufe] });
+    if (k.mobilmachung === 0) push("mobil_teil", t("krieg.k.h.mobil_teil"), 8, t("krieg.k.h.mobil_teil.hinweis") + dauer(1), demob);
+    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_voll"), 14, t("krieg.k.h.mobil_voll.hinweis") + dauer(2), demob);
     if (!k.kriegszielDeklariert) {
       // Ohne deklariertes Kriegsziel kein Beschluss: Die Rahmung ist Pflicht (Civ6-Preisschild).
     } else {
+      // Art. 92 der Verfassung: Den Einsatz der Streitkräfte im Ausland beschließt die Große Nationalversammlung. Erst nach der
+      // Mindestdauer der Drohkulisse kann die Regierung ihn vorlegen (Spielparameter, KRIEG.drohkulisseMinTage).
       const stimmen = stimmenSicht(w, { massnahme: "m_verteidigung", richtung: 1 }).erwartet + rahmungWerte(k).stimmen;
-      push("beschluss", t("krieg.k.h.beschluss"), 10, t("krieg.k.h.beschluss.hinweis", { tage: KRIEG.beschlussTage, stimmen: Math.round(stimmen) }));
-      push("beschluss_erlass", t("krieg.k.h.erlass"), 20, t("krieg.k.h.erlass.hinweis"));
+      const frueh = k.seit + KRIEG.drohkulisseMinTage - w.day;
+      push(
+        "beschluss",
+        t("krieg.k.h.beschluss"),
+        10,
+        t("krieg.k.h.beschluss.hinweis", { tage: KRIEG.beschlussTage, stimmen: Math.round(stimmen) }),
+        frueh > 0 ? t("nacht_n7.krieg.beschluss.frueh", { tage: frueh, datum: addDays(w.date, frueh) }) : undefined,
+      );
+      // Nur bei einem Angriff auf die Türkei darf der Präsident den Einsatz sofort selbst anordnen (Art. 92 Abs. 2)
+      push(
+        "beschluss_erlass",
+        t("krieg.k.h.erlass"),
+        20,
+        t("nacht_n7.krieg.erlass.hinweis", { vertrauen: zahlMitVorzeichen(KRIEG.erlassVertrauen), legitimitaet: zahlMitVorzeichen(KRIEG.erlassLegitimitaet) }),
+        angriffAufTuerkei(k) ? undefined : t("nacht_n7.krieg.erlass.art92"),
+      );
     }
   }
   if (ph === "beschluss" && k.beschluss?.weg === "parlament") {
@@ -514,11 +600,73 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
       if (!angeboten && id === "paket_zugestaendnis" && k.front > 45) continue;
       const p = def.paket(k.front);
       const aussicht = paketAnnahme(w, k, p, id);
-      push(id as KriegHandlungId, t("krieg.k.h.paket", { name: def.name }), 4, t("krieg.k.h.paket.hinweis", { text: def.text, aussicht }));
+      const preis = paketPreis(w, k, p);
+      const daheim = preis.po > 0 ? t("nacht_n7.krieg.paket.preis", { po: zahl(preis.po, 1) }) : t("nacht_n7.krieg.paket.preis_kein");
+      const gruppe = preis.nationalisten ? " " + t("nacht_n7.krieg.paket.nationalisten", { n: zahlMitVorzeichen(preis.nationalisten) }) : "";
+      push(id as KriegHandlungId, t("krieg.k.h.paket", { name: def.name }), 4, t("nacht_n7.krieg.paket.hinweis", { text: def.text, aussicht, daheim: daheim + gruppe }));
     }
     push("weiterkaempfen", t("krieg.k.h.weiter"), 2, t("krieg.k.h.weiter.hinweis"));
   }
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// Vorlauf und Preis vor dem Krieg (Befund G-2: Phasen mit Mindestdauer; Kriegspreis daheim und im Ausland sichtbar)
+
+export type LeiterStufe = "spannung" | "drohkulisse" | "beschluss" | "krieg" | "waffenruhe" | "frieden";
+export const LEITER: LeiterStufe[] = ["spannung", "drohkulisse", "beschluss", "krieg", "waffenruhe", "frieden"];
+
+/** Die Phasenleiter: wo der Vorgang steht und ab wann der nächste Schritt frühestens möglich ist (Tag; nur für den nächsten Schritt). */
+export function phasenLeiter(w: World, k: KriegVorgang): { stufe: LeiterStufe; stand: "vorbei" | "jetzt" | "kommt"; ab?: number }[] {
+  const jetzt = k.phase === "beendet" ? "frieden" : k.phase;
+  const i = LEITER.indexOf(jetzt);
+  return LEITER.map((stufe, j) => {
+    const stand = j < i ? "vorbei" : j === i ? "jetzt" : "kommt";
+    let ab: number | undefined;
+    if (j === i + 1 && k.phase === "spannung") ab = Math.max(w.day, k.seit + KRIEG.spannungMinTage);
+    if (j === i + 1 && k.phase === "drohkulisse" && k.kriegszielDeklariert && !angriffAufTuerkei(k)) ab = Math.max(w.day, k.seit + KRIEG.drohkulisseMinTage);
+    if (j === i + 1 && k.phase === "beschluss" && k.beschluss) ab = k.beschluss.abstimmung;
+    return { stufe, stand, ...(ab !== undefined ? { ab } : {}) };
+  });
+}
+
+export interface KriegsVorschau {
+  /** Ob die Türkei als Angreifer gälte (sonst Selbstverteidigung nach Art. 92 Abs. 2) */
+  angreifer: boolean;
+  daheim: string[];
+  ausland: string[];
+}
+
+/**
+ * Was ein Krieg mit diesem Land kosten würde, aus denselben Zahlen, die `kriegsbeginn`, `kriegspreisBeginn`, `kriegspreisWoche` und
+ * `kraenke` buchen: Märkte, Sammlung um die Flagge, Kriegsmüdigkeit, Tourismus; Ansehen, EU und USA, Sanktionen, gekränkte
+ * Schutzmächte und wer an der Seite des Gegners kämpfen würde.
+ */
+export function kriegsVorschau(w: World, k: KriegVorgang): KriegsVorschau {
+  const l = land(k.land);
+  const angreifer = !angriffAufTuerkei(k);
+  const r = REAKTION[k.land];
+  const rahmung = k.rahmung ?? "verteidigung";
+  const zm = (x: number) => zahlMitVorzeichen(Math.round(x * 10) / 10);
+  const daheim: string[] = [];
+  const ausland: string[] = [];
+  const sammlung = rahmung === "revision" ? KRIEG.beginnOhneSammlung : KRIEG.beginnSammlung;
+  daheim.push(t("nacht_n7.vorschau.sammlung", { z: zm(sammlung), erlass: zm(KRIEG.beginnOhneSammlung) }));
+  daheim.push(t("nacht_n7.vorschau.maerkte", { bp: rahmung === "revision" ? KRIEG.beginnRisiko.revision : KRIEG.beginnRisiko.sonst, woche: Math.round((r?.risiko ?? 4) * (angreifer ? 1 : 0.5)) }));
+  daheim.push(t("nacht_n7.vorschau.muede", { z: zahl(PREIS.muedeJeWoche * (angreifer ? 1 : PREIS.muedeVerteidigung), 2), deckel: zahl(PREIS.muedeDeckel * (angreifer ? 1 : PREIS.muedeVerteidigung), 1) }));
+  if (r?.kueste) daheim.push(t("nacht_n7.vorschau.kueste", { n: r.kueste.provinzen.length }));
+  const werte = rahmungWerte(k);
+  ausland.push(t("nacht_n7.vorschau.ansehen", { z: zm(werte.ansehen) }));
+  if (angreifer) {
+    if (r && r.eu > 0) ausland.push(t("nacht_n7.vorschau.eu", { z: zm(r.eu * PREIS.beginnWochen), woche: zm(r.eu) }));
+    if (r?.euSanktionAb !== undefined) ausland.push(t("nacht_n7.vorschau.eu_sanktion", { land: l.name, woche: r.euSanktionAb }));
+    if (r?.usaSanktionAb !== undefined) ausland.push(t("nacht_n7.vorschau.usa_sanktion", { woche: r.usaSanktionAb }));
+    const zeugen = (BEOBACHTER[k.land] ?? []).filter((b) => b !== k.land && w.spiel?.welt?.[b]);
+    if (zeugen.length) ausland.push(t("nacht_n7.vorschau.zeugen", { namen: liste(zeugen.map(landNameVon)), land: l.name, z: zm(-KRAENKUNG.staerke.angriff * KRAENKUNG.vertrauen) }));
+  }
+  const mit = koalitionenIn(w, k.id).gegner.filter((x) => x.rolle === "partner").map((x) => x.name);
+  if (mit.length) ausland.push(t("nacht_n7.vorschau.koalition", { namen: liste(mit), n: mit.length, land: lf(l, "dat") }));
+  return { angreifer, daheim, ausland };
 }
 
 // ---------------------------------------------------------------------------
@@ -661,6 +809,9 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
     case "mobil_teil":
     case "mobil_voll": {
       const voll = handlungId === "mobil_voll";
+      // Die neue Stufe steht erst nach KRIEG.mobilTage voll (mobilStand); bis dahin wächst die Stärke vom heutigen Stand aus
+      k.mobilVon = mobilStand(w, k).faktor;
+      k.mobilSeit = w.day;
       k.mobilmachung = (voll ? 2 : 1) as Mobilmachung;
       k.eskalation = clamp(k.eskalation + (voll ? 14 : 8), 0, 100);
       kosten(w, voll ? 0.7 : 0.3);
@@ -684,8 +835,8 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       break;
     }
     case "beschluss_erlass": {
-      vertrauenAendern(w, -3);
-      wirke(w, "legitimitaet", -2.5);
+      vertrauenAendern(w, KRIEG.erlassVertrauen);
+      wirke(w, "legitimitaet", KRIEG.erlassLegitimitaet);
       k.beschluss = { weg: "erlass", abstimmung: w.day, rahmung: k.rahmung! };
       text = t("krieg.k.x.erlass", { land: lf(l, "akk") });
       why += " " + t("krieg.k.x.erlass.warum");
@@ -856,11 +1007,11 @@ function kriegsbeginn(w: World, k: KriegVorgang, weg: "parlament" | "erlass" | "
   k.uhrGegner = 100;
   regionenSetzen(w, k);
   // Märkte (Suzerain-Anker: CDS-/Öl-Sprung)
-  w.economy.riskPremium += weg === "angriff" ? 220 : rahmung === "revision" ? 200 : 150;
+  w.economy.riskPremium += weg === "angriff" ? KRIEG.beginnRisiko.angriff : rahmung === "revision" ? KRIEG.beginnRisiko.revision : KRIEG.beginnRisiko.sonst;
   // Rally um die Flagge (Suzerain: Kriegsorder +2 PO) — nicht beim Erlass, nicht bei Revision
   const spiel = w.spiel!;
-  if (weg === "erlass" || rahmung === "revision") spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 1);
-  else spiel.umfrage.zustimmung = Math.min(100, spiel.umfrage.zustimmung + 2);
+  if (weg === "erlass" || rahmung === "revision") spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung + KRIEG.beginnOhneSammlung);
+  else spiel.umfrage.zustimmung = Math.min(100, spiel.umfrage.zustimmung + KRIEG.beginnSammlung);
   wirke(w, "nationalisten", 3);
   wirke(w, "konservative", 1);
   wirke(w, "staedtische_saekulare", rahmung === "verteidigung" ? 0.5 : -1.5);
@@ -957,11 +1108,11 @@ function demobStarten(w: World, k: KriegVorgang): void {
 function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId: string, rng?: Rng): Ergebnis {
   const spiel = w.spiel!;
   const l = land(k.land);
+  // Innenpreis des Pakets aus derselben Rechnung, die der Knopf vorher zeigt (paketPreis)
+  const preis = paketPreis(w, k, p);
   phaseSetzen(w, k, "frieden");
   k.ausgang = p.gebiet === 1 || p.reparation === 1 ? "sieg" : p.gebiet === -1 || p.reparation === -1 ? "frieden" : "weisser_frieden";
   const teile: string[] = [];
-  // Innenpreis-Basis des Pakets (Presse multipliziert sie gleich)
-  let basis = 0;
   if (p.gebiet === 1) {
     wirke(w, "nationalisten", 6);
     wirke(w, "konservative", 3);
@@ -970,7 +1121,6 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     wirke(w, "beziehungen_eu", -3);
     landAendern(w, k.land, { konflikt: 25, vertrauen: -10 }, t("wort.krieg.grund_pufferzone"));
     teile.push(t("wort.krieg.teil_pufferzone", { ansehen }));
-    if (k.rahmung !== "verteidigung") basis += 3;
     // Ein bedeutender Zielraum zählt innen mehr und kostet außen mehr (Bedeutung 1 bis 3, Standard 2)
     const bed = zielraumVon(k).bedeutung - 2;
     if (bed !== 0) {
@@ -985,7 +1135,6 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     wirke(w, "offiziersvertrauen", -15);
     wirke(w, "nationalisten", -10);
     wirke(w, "konservative", -4);
-    basis += 8;
     teile.push(t("wort.krieg.teil_zugestaendnis"));
   }
   if (p.reparation === 1) {
@@ -995,7 +1144,6 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
   }
   if (p.reparation === -1) {
     kosten(w, 1.2);
-    basis += 6;
     // Gekaufter Frieden erzeugt Abhängigkeit (Suzerain: Beatrice-Deal)
     landAendern(w, k.land, { handel: 10 }, t("krieg.k.fr.gekauft.notiz"));
     teile.push(t("krieg.k.fr.rep_von"));
@@ -1009,9 +1157,8 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     wirke(w, "truppenmoral", 2);
     teile.push(t("krieg.k.fr.rueckzug"));
   }
-  if (k.ausgang === "weisser_frieden" && k.woche >= 10) basis += 2;
   // Innenpreis, presse-multipliziert (Suzerain: freie Presse verteuert den Frieden)
-  const po = poVerlustFuer(w, basis);
+  const po = preis.po;
   if (po > 0) {
     spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - po);
     vertrauenAendern(w, -po * 0.4);
@@ -1184,7 +1331,7 @@ export function kriegTag(w: World, rng: Rng): void {
     }
     switch (k.phase) {
       case "spannung": {
-        if (k.eskalation >= KRIEG.drohkulisseAb) {
+        if (k.eskalation >= KRIEG.drohkulisseAb && (w.day - k.seit >= KRIEG.spannungMinTage || k.gegnerDroht)) {
           phaseSetzen(w, k, "drohkulisse");
           belastungEreignis(w, VERFASSUNG.eskalation, t("krieg.k.droh.belastung", { land: land(k.land).name }));
           addLog(w, "ereignis", t("krieg.k.droh.log", { land: land(k.land).name }), t("krieg.k.droh.warum"));
@@ -1265,6 +1412,19 @@ export function kriegMonat(w: World, rng: Rng): void {
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
     vorgangAnlegen(w, l.id, z[l.id]!.konflikt);
   }
+}
+
+/**
+ * Ein Land droht selbst offen (Länder-Eigeninitiative „Drohkulisse“, sim/initiative.ts über die Brücke in sim/spiel.ts): Besteht mit ihm
+ * eine Spannung, steigt sie auf Drohkulisse-Niveau, und die Mindestdauer der Spannung entfällt, weil der Gegner den Takt vorgibt.
+ * Die Mindestdauer vor dem eigenen Einsatzbeschluss bleibt.
+ */
+export function drohkulisseDurchGegner(w: World, landId: string): boolean {
+  const k = kriegMit(w, landId);
+  if (!k || k.phase !== "spannung") return false;
+  k.eskalation = Math.max(k.eskalation, KRIEG.drohkulisseAb + 2);
+  k.gegnerDroht = true;
+  return true;
 }
 
 /** Legt einen Spannungs-Vorgang an (Monatsprüfung oder vom Präsidenten eröffnete Krise). */

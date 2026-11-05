@@ -31,7 +31,9 @@ function drohkulisse(w: World, land: string): KriegVorgang {
   kriegMonat(w, new Rng(1));
   const k = kriegMit(w, land)!;
   k.eskalation = 80;
+  k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   advance(w, 1);
+  k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
   return k;
 }
 function angriffDurch(w: World, land: string): KriegVorgang {
@@ -55,6 +57,8 @@ describe("Gemeinsame Kräfteskala", () => {
     const w = welt();
     const k = drohkulisse(w, "GRC");
     fuehreKriegHandlungAus(w, k.id, "mobil_teil");
+    // Die Teilmobilmachung steht erst nach KRIEG.mobilTage[1] Tagen voll (Befund G-2); hier ist sie fertig
+    k.mobilSeit! -= KRIEG.mobilTage[1];
     expect(eigenStaerke(w, k) / KRAFT_TUERKEI).toBeGreaterThan(0.85);
     expect(eigenStaerke(w, k) / KRAFT_TUERKEI).toBeLessThan(1.2);
   });

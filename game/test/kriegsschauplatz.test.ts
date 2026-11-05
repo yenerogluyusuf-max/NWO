@@ -49,8 +49,10 @@ function krieg(w: World, landId: string, zielraum?: string): KriegVorgang {
   const k = kriegMit(w, landId)!;
   expect(k).toBeTruthy();
   k.eskalation = 80;
+  k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   advance(w, 1);
   expect(k.phase).toBe("drohkulisse");
+  k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
   if (zielraum) expect(waehleZielraum(w, k.id, zielraum).ok).toBe(true);
   fuehreKriegHandlungAus(w, k.id, "ziel_verteidigung");
   fuehreKriegHandlungAus(w, k.id, "beschluss");

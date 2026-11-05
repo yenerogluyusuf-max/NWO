@@ -18,7 +18,10 @@ import {
   kriegMit,
   kriegMonat,
   kriege,
+  kriegsVorschau,
+  PAKETE,
   paketAnnahme,
+  paketPreis,
   poVerlustFuer,
   presseFaktor,
 } from "../src/sim/krieg";
@@ -28,6 +31,7 @@ import { NET } from "../src/sim/modell";
 import { weltZustand } from "../src/sim/laender";
 import { reichZustand } from "../src/sim/reich";
 import { Rng } from "../src/sim/rng";
+import { zahl } from "../src/i18n";
 import type { World } from "../src/sim/types";
 import type { KriegVorgang } from "../src/sim/krieg-typen";
 
@@ -56,10 +60,12 @@ function spannungMitGrc(w: World): KriegVorgang {
 /** In die Drohkulisse treiben (Eskalation über der Schwelle, ein Tages-Schritt). */
 function inDrohkulisse(w: World, k: KriegVorgang): void {
   k.eskalation = 80;
+  k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   const rng = new Rng(w.rngState);
   w.rngState = rng.state;
   advance(w, 1);
   expect(k.phase, "Übergang spannung → drohkulisse").toBe("drohkulisse");
+  k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
 }
 
 describe("Phasengerüst: der volle Weg durch den Vorgang", () => {
@@ -153,11 +159,13 @@ describe("Parlamentspflicht und Erlass", () => {
     expect(w.spiel!.umfrage.zustimmung, "verlorene Abstimmung kostet Zustimmung").toBeLessThan(zustimmungVorher);
   });
 
-  test("der Erlass umgeht das Parlament: doppelte Kosten und Vertrauensverlust", () => {
+  test("der Erlass bei einem Angriff auf die Türkei (Art. 92 Abs. 2): doppelte Kosten und Vertrauensverlust", () => {
     const w = welt();
     mehrheit(w, 50); // keine Mehrheit nötig
     const k = spannungMitGrc(w);
     inDrohkulisse(w, k);
+    // Der Gegner steht kurz vor dem Schlag, bevor die Türkei Selbstverteidigung erklärt (seit dem 6. November Bedingung des Erlasses)
+    k.eskalation = KRIEG.verteidigungGlaubhaftAb + 1;
     fuehreKriegHandlungAus(w, k.id, "ziel_verteidigung");
     const sichtB = handlungenFuer(w, k.id).find((h) => h.id === "beschluss")!;
     const sichtE = handlungenFuer(w, k.id).find((h) => h.id === "beschluss_erlass")!;
@@ -167,6 +175,92 @@ describe("Parlamentspflicht und Erlass", () => {
     expect(r.ok, r.text).toBe(true);
     expect(k.phase).toBe("krieg");
     expect(kapitalVorher - w.spiel!.kapital).toBe(sichtE.pk);
+  });
+});
+
+describe("Vorlauf und Art. 92 (Befund G-2/G-3, 6. November)", () => {
+  test("keine Drohkulisse vor der Mindestdauer der Spannung, kein Beschluss vor der Mindestdauer der Drohkulisse", () => {
+    const w = welt();
+    mehrheit(w, 400);
+    const k = spannungMitGrc(w);
+    k.eskalation = 90;
+    advance(w, 1);
+    expect(k.phase, "einen Tag nach Krisenbeginn noch keine Drohkulisse").toBe("spannung");
+    weltZustand(w)["GRC"]!.konflikt = 90;
+    advance(w, KRIEG.spannungMinTage);
+    expect(k.phase).toBe("drohkulisse");
+    fuehreKriegHandlungAus(w, k.id, "ziel_schutz");
+    const frueh = handlungenFuer(w, k.id).find((h) => h.id === "beschluss")!;
+    expect(frueh.moeglich, "Beschluss erst nach der Mindestdauer").toBe(false);
+    expect(frueh.grund).toMatch(/frühestens/);
+    advance(w, KRIEG.drohkulisseMinTage);
+    if (k.phase === "drohkulisse") expect(handlungenFuer(w, k.id).find((h) => h.id === "beschluss")!.moeglich).toBe(true);
+    // Vom Krisenbeginn bis zum frühesten selbst begonnenen Krieg vergehen mindestens Spannung + Drohkulisse + Abstimmung
+    expect(KRIEG.spannungMinTage + KRIEG.drohkulisseMinTage + KRIEG.beschlussTage).toBeGreaterThanOrEqual(42);
+  });
+
+  test("ein eigener Angriff (Schutz, Revision) geht nur über die Große Nationalversammlung, nicht per Erlass", () => {
+    for (const r of ["schutz", "revision", "verteidigung"] as const) {
+      const w = welt();
+      const k = spannungMitGrc(w);
+      inDrohkulisse(w, k);
+      fuehreKriegHandlungAus(w, k.id, `ziel_${r}`);
+      const erlass = handlungenFuer(w, k.id).find((h) => h.id === "beschluss_erlass")!;
+      expect(erlass.moeglich, r).toBe(false);
+      expect(erlass.grund).toMatch(/Art\. 92/);
+      expect(fuehreKriegHandlungAus(w, k.id, "beschluss_erlass").ok).toBe(false);
+      expect(k.phase).toBe("drohkulisse");
+    }
+  });
+
+  test("die Mobilmachung wächst über ihre Tage zur vollen Stärke", () => {
+    const w = welt();
+    const k = spannungMitGrc(w);
+    inDrohkulisse(w, k);
+    const vorher = eigenStaerke(w, k);
+    fuehreKriegHandlungAus(w, k.id, "mobil_teil");
+    expect(eigenStaerke(w, k), "am Tag der Anordnung noch keine Wirkung").toBeCloseTo(vorher, 5);
+    k.mobilSeit! -= KRIEG.mobilTage[1] / 2;
+    const halb = eigenStaerke(w, k);
+    k.mobilSeit! -= KRIEG.mobilTage[1];
+    const voll = eigenStaerke(w, k);
+    expect(halb).toBeGreaterThan(vorher);
+    expect(voll).toBeGreaterThan(halb);
+  });
+
+  test("der Preis eines Friedenspakets am Knopf ist der Preis, den der Friede bucht", () => {
+    const w = welt();
+    mehrheit(w, 400);
+    const k = spannungMitGrc(w);
+    inDrohkulisse(w, k);
+    fuehreKriegHandlungAus(w, k.id, "ziel_schutz");
+    fuehreKriegHandlungAus(w, k.id, "beschluss");
+    advance(w, KRIEG.beschlussTage);
+    expect(k.phase).toBe("krieg");
+    k.uhrGegner = 30;
+    k.woche = 12;
+    fuehreKriegHandlungAus(w, k.id, "waffenruhe");
+    k.angebotPaket = "paket_weiss";
+    const h = handlungenFuer(w, k.id).find((x) => x.id === "paket_weiss")!;
+    const versprochen = paketPreis(w, k, PAKETE.paket_weiss!.paket(k.front)).po;
+    expect(versprochen).toBeGreaterThan(0);
+    expect(h.hinweis).toContain(zahl(versprochen, 1));
+    const z0 = w.spiel!.umfrage.zustimmung;
+    expect(fuehreKriegHandlungAus(w, k.id, "paket_weiss").ok).toBe(true);
+    expect(k.friedenspreis).toBe(versprochen);
+    expect(z0 - w.spiel!.umfrage.zustimmung).toBeGreaterThanOrEqual(versprochen - 0.05);
+  });
+
+  test("die Vorschau nennt den Preis daheim und im Ausland, bei Zypern die EU", () => {
+    const w = welt();
+    weltZustand(w)["CYP"]!.konflikt = 80;
+    kriegMonat(w, new Rng(1));
+    const k = kriegMit(w, "CYP")!;
+    fuehreKriegHandlungAus(w, k.id, "ziel_schutz");
+    const v = kriegsVorschau(w, k);
+    expect(v.angreifer).toBe(true);
+    expect(v.daheim.length).toBeGreaterThanOrEqual(3);
+    expect(v.ausland.join(" ")).toMatch(/EU/);
   });
 });
 
@@ -311,6 +405,7 @@ describe("Demobilisierungs-Rechnung (90 Tage)", () => {
     kriegMonat(w, new Rng(2));
     const k2 = kriegMit(w, "IRN")!;
     k2.eskalation = 80;
+    k2.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
     advance(w, 1);
     const mobil = handlungenFuer(w, k2.id).find((h) => h.id === "mobil_teil")!;
     expect(mobil.moeglich).toBe(false);
