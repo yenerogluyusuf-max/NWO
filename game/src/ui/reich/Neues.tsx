@@ -7,6 +7,8 @@ import type { World } from "../../sim/types";
 import { FELDER, KLASSEN_NAMEN, THEMEN, type Klasse, type Vergabe } from "../../sim/reich-typen";
 import type { VorhabenSicht } from "../../sim/reich";
 import { VorhabenKarte } from "./VorhabenKarte";
+import { VorhabenKachel } from "./VorhabenKachel";
+import "./vorhabenkachel.css";
 import { VorlageKarte } from "./Regional";
 
 import { t } from "../../i18n";
@@ -81,6 +83,7 @@ export function Neues({
   refresh?: () => void;
 }) {
   const [auswahl, setAuswahl] = useState<string>("alle");
+  const [gewaehlt, setGewaehlt] = useState<string | null>(null);
   const kapital = world.spiel?.kapital ?? 0;
   const alleListe = alle ?? liste;
   const gross = (s: VorhabenSicht) => s.v.klasse === "wunder" || s.v.klasse === "grossprojekt" || s.v.klasse === "serie";
@@ -88,11 +91,12 @@ export function Neues({
     [...items].sort((x, y) => (x.v.stufe ?? 0) - (y.v.stufe ?? 0) || Number(y.bereit) - Number(x.bereit) || Number(x.status === "gesperrt") - Number(y.status === "gesperrt"));
 
   const nutzlos = () => undefined;
+  // Kachel im Raster; die volle Karte steht im Detailfenster daneben (ein Vorhaben zur Zeit)
   const karte = (s: VorhabenSicht) =>
     s.v.vorlage ? (
       <VorlageKarte key={s.v.id} world={world} v={s.v} refresh={refresh ?? nutzlos} />
     ) : (
-      <VorhabenKarte key={s.v.id} s={s} world={world} gross={gross(s)} onBeginne={onBeginne} ergebnis={ergebnisse[s.v.id]} kapital={kapital} {...(onKarte ? { onKarte } : {})} />
+      <VorhabenKachel key={s.v.id} s={s} gewaehlt={gewaehlt === s.v.id} onWaehle={() => setGewaehlt(gewaehlt === s.v.id ? null : s.v.id)} />
     );
 
   const utopien = liste.filter((s) => s.v.unrealistisch);
@@ -121,11 +125,11 @@ export function Neues({
                 .map((k) => (
                   <Weg key={k[0]!.v.id} kette={k} />
                 ))}
-              <div className="rr-raster gross">{f.items.map(karte)}</div>
+              <div className="rr-raster vk-raster">{f.items.map(karte)}</div>
             </div>
           ))
         ) : (
-          <div className="rr-raster gross">{items.map(karte)}</div>
+          <div className="rr-raster vk-raster">{items.map(karte)}</div>
         )}
       </section>
     );
@@ -141,8 +145,10 @@ export function Neues({
   ];
   const aktiv = chips.some((c) => c.id === auswahl) ? auswahl : "alle";
 
+  const detail = liste.find((x) => x.v.id === gewaehlt) ?? alleListe.find((x) => x.v.id === gewaehlt);
   return (
-    <>
+    <div className="vk-katalog">
+    <div className="vk-liste">
       {chips.length > 2 && (
         <div className="rr-filter rr-themen" role="group" aria-label={t("ui.reich.Neues.e47e4da")}>
           {chips.map((c) => (
@@ -163,7 +169,7 @@ export function Neues({
                 {a.titel} <em>{a.items.length} {a.items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
               </h4>
               <p className="rr-hinweis">{a.satz}</p>
-              <div className="rr-raster gross">{a.items.map(karte)}</div>
+              <div className="rr-raster vk-raster">{a.items.map(karte)}</div>
             </section>
           ))}
           {utopien.length > 0 && (
@@ -172,7 +178,7 @@ export function Neues({
                 {tx("ui2.ui.reich.Neues.227530c")} <em>{tx("ui2.ui.reich.Neues.3e892ea", { p0: utopien.length })}</em>
               </h4>
               <p className="rr-hinweis">{UTOPIE_SATZ}</p>
-              <div className="rr-raster gross">{sortiere(utopien).map(karte)}</div>
+              <div className="rr-raster vk-raster">{sortiere(utopien).map(karte)}</div>
             </section>
           )}
         </>
@@ -187,7 +193,7 @@ export function Neues({
               {a.titel} <em>{a.items.length} {a.items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
             </h4>
             <p className="rr-hinweis">{a.satz}</p>
-            <div className="rr-raster gross">{a.items.map(karte)}</div>
+            <div className="rr-raster vk-raster">{a.items.map(karte)}</div>
           </section>
         ))}
 
@@ -197,9 +203,17 @@ export function Neues({
             {tx("ui2.ui.reich.Neues.227530c")} <em>{tx("ui2.ui.reich.Neues.3e892ea", { p0: utopien.length })}</em>
           </h4>
           <p className="rr-hinweis">{UTOPIE_SATZ}</p>
-          <div className="rr-raster gross">{sortiere(utopien).map(karte)}</div>
+          <div className="rr-raster vk-raster">{sortiere(utopien).map(karte)}</div>
         </section>
       )}
-    </>
+    </div>
+    <aside className="vk-detail" aria-live="polite">
+      {detail ? (
+        <VorhabenKarte s={detail} world={world} gross={gross(detail)} onBeginne={onBeginne} ergebnis={ergebnisse[detail.v.id]} kapital={kapital} {...(onKarte ? { onKarte } : {})} />
+      ) : (
+        <p className="vk-leer">{tx("vk.waehlen")}</p>
+      )}
+    </aside>
+    </div>
   );
 }

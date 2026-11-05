@@ -1,0 +1,15 @@
+{
+ "vk.fertig": "tamamlandı",
+ "vk.imBau": "yapımda",
+ "vk.pausiert": "durduruldu",
+ "vk.gesperrt": "engelli",
+ "vk.voraus": "ön koşul eksik",
+ "vk.kapital": "sermaye eksik",
+ "vk.bereit": "hazır",
+ "vk.stufe": "{n}. aşama",
+ "vk.jahre": "{n} yıl",
+ "vk.monate": "{n} ay",
+ "vk.pk": "{n} sermaye",
+ "vk.bip": "GSYH'nin %{n}'i",
+ "vk.waehlen": "Soldan bir proje seçin: etkileri, ön koşulları, ihale şekli ve başlatma düğmesi burada görünür."
+}

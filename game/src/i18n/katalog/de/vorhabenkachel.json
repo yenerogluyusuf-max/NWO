@@ -1,0 +1,15 @@
+{
+ "vk.fertig": "fertig",
+ "vk.imBau": "im Bau",
+ "vk.pausiert": "pausiert",
+ "vk.gesperrt": "gesperrt",
+ "vk.voraus": "Voraussetzung fehlt",
+ "vk.kapital": "Kapital fehlt",
+ "vk.bereit": "bereit",
+ "vk.stufe": "Stufe {n}",
+ "vk.jahre": "{n} Jahre",
+ "vk.monate": "{n, plural, one {# Monat} other {# Monate}}",
+ "vk.pk": "{n} Kapital",
+ "vk.bip": "{n} % BIP",
+ "vk.waehlen": "Wählen Sie links ein Vorhaben: Hier stehen dann Wirkung, Voraussetzungen, Vergabe und der Knopf zum Beginnen."
+}

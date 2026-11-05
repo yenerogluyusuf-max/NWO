@@ -1,0 +1,43 @@
+/* Katalog der Vorhaben: Kacheln links, volle Karte im festen Detailfenster rechts (Palette Kabinettstisch). */
+.vk-katalog { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap: 16px; align-items: start; }
+.vk-liste { min-width: 0; }
+.vk-detail { position: sticky; top: 8px; max-height: calc(100vh - 220px); overflow-y: auto; }
+.vk-detail .rr-karte { box-shadow: 0 4px 14px rgba(60, 40, 20, 0.18); }
+.vk-leer { margin: 0; padding: 22px 18px; border: 1px dashed rgba(120, 90, 50, 0.45); border-radius: 4px; color: #5a4632; font-size: 14px; text-align: center; }
+.rr-raster.vk-raster { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+
+.vk {
+  display: flex; flex-direction: column; gap: 4px; width: 100%; min-height: 104px; padding: 9px 11px 9px; text-align: left; cursor: pointer;
+  border: 1px solid rgba(90, 64, 40, 0.38); border-left-width: 4px; border-radius: 4px;
+  background: linear-gradient(180deg, #fbf4df, #efe2c0); font-family: var(--serif); color: #2e2118;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.vk:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(60, 40, 20, 0.15); }
+.vk.on { border-color: #8a6a2a; background: linear-gradient(180deg, #f6dfa0, #e8c773); }
+.vk-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font-size: 11.5px; letter-spacing: 0.03em; }
+.vk-stand { white-space: nowrap; }
+.vk-klasse { font-family: "Marcellus SC", serif; color: #6b5338; }
+.vk-stand { font-weight: 600; }
+.vk-stand.vk-bereit { color: #3d5a2e; }
+.vk-stand.vk-knapp { color: #8a6a2a; }
+.vk-stand.vk-zu { color: #7a6a58; }
+.vk-stand.vk-bau, .vk-stand.vk-fertig { color: #5d4231; }
+.vk-name { font-size: 15px; line-height: 1.22; }
+.vk-eck { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+.vk-eck span { padding: 1px 7px; border: 1px solid rgba(120, 90, 50, 0.35); border-radius: 10px; font-size: 12px; background: rgba(255, 251, 238, 0.8); }
+.vk-bringt { font-size: 12.5px; color: #3d5a2e; }
+.vk-bringt.schlecht { color: var(--seal, #8f2a1e); }
+.vk-balken { height: 5px; border-radius: 3px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
+.vk-balken i { display: block; height: 100%; background: #7d6438; }
+.vk.vk-zu { background: linear-gradient(180deg, #f6efdc, #e9ddc0); }
+/* Farbe der linken Kante nach Art */
+.vk.klasse-wunder, .vk.klasse-grossprojekt, .vk.klasse-serie { border-left-color: #8a6a2a; }
+.vk.klasse-beschaffung, .vk.klasse-doktrin { border-left-color: #4a5a6a; }
+.vk.klasse-reform, .vk.klasse-sonderrecht, .vk.klasse-institution { border-left-color: var(--seal, #8f2a1e); }
+.vk.klasse-forschung, .vk.klasse-ausbau { border-left-color: #5d4231; }
+.vk.utopie { border-style: dashed; }
+
+@media (max-width: 1100px) {
+  .vk-katalog { grid-template-columns: 1fr; }
+  .vk-detail { position: static; max-height: none; }
+}

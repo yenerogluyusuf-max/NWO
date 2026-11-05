@@ -1,0 +1,15 @@
+{
+ "vk.fertig": "complete",
+ "vk.imBau": "under construction",
+ "vk.pausiert": "paused",
+ "vk.gesperrt": "blocked",
+ "vk.voraus": "prerequisite missing",
+ "vk.kapital": "capital missing",
+ "vk.bereit": "ready",
+ "vk.stufe": "stage {n}",
+ "vk.jahre": "{n} years",
+ "vk.monate": "{n, plural, one {# month} other {# months}}",
+ "vk.pk": "{n} capital",
+ "vk.bip": "{n} % GDP",
+ "vk.waehlen": "Choose a project on the left: its effects, prerequisites, contracting and the start button appear here."
+}
