@@ -254,15 +254,17 @@ export function waehleZiele(world: World, ids: string[], schwierigkeit?: Schwier
   if (schwierigkeit) spiel.schwierigkeit = schwierigkeit;
   spiel.ziele = ids.filter((id) => zielDef(id)).slice(0, 3);
   spiel.ersterTagErledigt = true;
+  // Die Starthilfe nennt die Bereiche so, wie die Leiste sie zeigt, und den echten Wahltermin (Szenarien beginnen mitten in der Legislatur)
+  const monateBisWahl = Math.max(1, Math.round((spiel.wahltag - world.day) / 30.44));
   spiel.hinweise.push({
     id: "starthilfe",
-    titel: "So regieren Sie",
+    titel: t("starthilfe.titel"),
     szene: "istanbul",
     text: [
       t("sf.starthilfe"),
-      "Ereignisse verlangen eine Antwort. Wer schweigt, bekommt die schlechtere Folge; wer kein Kapital hat, kann bewusst abwarten. Jede Antwort zeigt, was sie bewirkt.",
-      "Unter „Politik“ steht, was bei Ihren akuten Problemen jetzt am meisten bringt. Ein Gesetz braucht 301 Stimmen; ohne sie verhandeln Sie im Parlament mit den Fraktionen.",
-      "„Wähler“ zeigt, wer Sie trägt und was jede Gruppe will, „Die Welt“ die anderen Staaten und „Programme“ Ihren Plan für Jahre. In fünf Jahren wird gewählt.",
+      t("starthilfe.ereignisse"),
+      t("starthilfe.politik"),
+      t("starthilfe.bereiche", { wahl: monateBisWahl >= 18 ? t("amtsuebergabe.zeit_jahre", { n: Math.round(monateBisWahl / 6) / 2 }) : t("amtsuebergabe.zeit_monate", { n: monateBisWahl }) }),
     ],
   });
   addLog(world, "entscheidung", spiel.ziele.length ? t("protokoll.ziele", { liste: spiel.ziele.map((id) => zielDef(id)!.titel) }) : t("protokoll.ziele_keine"), t("protokoll.ziele_warum"));

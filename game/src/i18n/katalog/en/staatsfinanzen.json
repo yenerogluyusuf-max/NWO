@@ -27,7 +27,7 @@
   "sf.politikText": "Political points measure the effort of reforms and negotiations. They do not pay for schools, salaries or supplies.",
   "sf.zeit": "Time and administration",
   "sf.zeitText": "Attention limits personal decisions. Too many projects lengthen delivery without raising the base political price.",
-  "sf.starthilfe": "Public money funds departments and investment through revenue or borrowing. Political capacity is needed for reforms and negotiations and grows with support and government work. Attention and administrative capacity limit concurrent work.",
+  "sf.starthilfe": "Public money funds departments and investment through revenue or borrowing. Political capital (“Capital” at the top) is needed for reforms and negotiations and grows with support and government work. Attention and administrative capacity limit how much succeeds at once.",
   "sf.finanzwirkung": "Annual financing need",
   "sf.preisHinweis": "At current economic output; negative amounts ease the budget.",
   "sf.hud": "Budget",
@@ -78,5 +78,9 @@
   "sf.kasseEntnahme": "Financed from treasury cash",
   "sf.kasseBeleg": "Treasury cash in the settled month: {vorher} → {nachher} bn ₺.",
   "sf.kasseAenderung": "Treasury cash {betrag} bn ₺",
-  "sf.restAltText": "This older settlement only reported the surplus. No cash balance was saved at that time and none is credited retroactively."
+  "sf.restAltText": "This older settlement only reported the surplus. No cash balance was saved at that time and none is credited retroactively.",
+  "starthilfe.titel": "How to govern",
+  "starthilfe.ereignisse": "Events demand an answer. Whoever stays silent gets the worse outcome; whoever lacks capital can wait deliberately. Every answer shows what it does.",
+  "starthilfe.politik": "“Policy” shows what helps most with your acute problems right now. A law needs 301 votes; without them you negotiate with the parliamentary groups under “Parliament & laws”.",
+  "starthilfe.bereiche": "“Society” shows who supports you and what each group wants, “Foreign” the other states and “Research & goals” your programmes for years. The “Desk” collects what is urgent right now. The election is in about {wahl}."
 }

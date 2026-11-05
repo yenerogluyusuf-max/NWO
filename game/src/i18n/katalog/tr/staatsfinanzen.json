@@ -27,7 +27,7 @@
   "sf.politikText": "Siyasi puanlar reform ve müzakere çabasını ölçer. Okulları, maaşları veya malzemeleri ödemez.",
   "sf.zeit": "Zaman ve idare",
   "sf.zeitText": "Dikkat kişisel kararları sınırlar. Fazla iş, temel siyasi bedeli artırmadan uygulamayı uzatır.",
-  "sf.starthilfe": "Kamu parası bakanlıkları ve yatırımları gelir veya borçla finanse eder. Reformlar ve müzakereler için siyasi hareket alanı gerekir; destek ve hükümet çalışmalarıyla artar. Dikkat ve idari kapasite eşzamanlı işleri sınırlar.",
+  "sf.starthilfe": "Kamu parası bakanlıkları ve yatırımları gelir veya borçla finanse eder. Siyasi sermaye (üstte „Sermaye“) reformlar ve müzakereler için gerekir; destek ve hükümet çalışmasıyla artar. Dikkat ve idari kapasite aynı anda ne kadarının başarılacağını belirler.",
   "sf.finanzwirkung": "Yıllık finansman ihtiyacı",
   "sf.preisHinweis": "Mevcut ekonomik üretime göre; negatif tutarlar bütçeyi rahatlatır.",
   "sf.hud": "Bütçe",
@@ -78,5 +78,9 @@
   "sf.kasseEntnahme": "Hazine nakdinden finansman",
   "sf.kasseBeleg": "Hesaplanan ayda Hazine nakdi: {vorher} → {nachher} milyar ₺.",
   "sf.kasseAenderung": "Hazine nakdi {betrag} milyar ₺",
-  "sf.restAltText": "Bu eski hesap kapanışı fazlayı yalnızca gösteriyordu. O tarihte nakit bakiyesi kaydedilmediği için geriye dönük bir bakiye eklenmez."
+  "sf.restAltText": "Bu eski hesap kapanışı fazlayı yalnızca gösteriyordu. O tarihte nakit bakiyesi kaydedilmediği için geriye dönük bir bakiye eklenmez.",
+  "starthilfe.titel": "Nasıl yönetirsiniz",
+  "starthilfe.ereignisse": "Olaylar yanıt bekler. Susan daha kötü sonucu alır; sermayesi olmayan bilinçli olarak bekleyebilir. Her yanıt neye yol açtığını gösterir.",
+  "starthilfe.politik": "„Politika“ bölümü, acil sorunlarınızda şu anda en çok neyin işe yaradığını gösterir. Bir yasa 301 oy ister; oy yoksa „Meclis ve kanunlar“ bölümünde gruplarla pazarlık edersiniz.",
+  "starthilfe.bereiche": "„Toplum“ sizi kimin taşıdığını ve her grubun ne istediğini, „Dış“ diğer devletleri, „Araştırma ve hedefler“ yıllara yayılan programlarınızı gösterir. „Çalışma Masası“ şu anda acil olanı toplar. Seçim yaklaşık {wahl} sonra."
 }

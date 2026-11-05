@@ -27,7 +27,7 @@
   "sf.politikText": "PK stehen für politischen Aufwand bei Reformen und Verhandlungen. Sie bezahlen keine Schulen, Gehälter oder Lieferungen.",
   "sf.zeit": "Zeit und Verwaltung",
   "sf.zeitText": "Aufmerksamkeit begrenzt persönliche Entscheidungen. Zu viele Vorhaben verlängern die Umsetzung, ohne den politischen Grundpreis zu erhöhen.",
-  "sf.starthilfe": "Staatsgeld finanziert Ressorts und Investitionen aus Einnahmen oder Krediten. Politischer Spielraum (PK) wird für Reformen und Verhandlungen gebraucht; er wächst mit Rückhalt und Regierungsarbeit. Aufmerksamkeit und Verwaltungskapazität bestimmen, wie viel gleichzeitig gelingt.",
+  "sf.starthilfe": "Staatsgeld finanziert Ressorts und Investitionen aus Einnahmen oder Krediten. Politisches Kapital (oben „Kapital“) brauchen Sie für Reformen und Verhandlungen; es wächst mit Rückhalt und Regierungsarbeit. Aufmerksamkeit und Verwaltungskapazität bestimmen, wie viel gleichzeitig gelingt.",
   "sf.finanzwirkung": "Jährlicher Finanzierungsbedarf",
   "sf.preisHinweis": "Bei heutiger Wirtschaftsleistung; negative Werte entlasten den Haushalt.",
   "sf.hud": "Haushalt",
@@ -78,5 +78,9 @@
   "sf.kasseEntnahme": "Finanzierung aus der Staatskasse",
   "sf.kasseBeleg": "Staatskasse im abgerechneten Monat: {vorher} → {nachher} Mrd. ₺.",
   "sf.kasseAenderung": "Staatskasse {betrag} Mrd. ₺",
-  "sf.restAltText": "Dieser ältere Abschluss hat den Überschuss nur ausgewiesen. Ein Kassenbestand wurde damals nicht gespeichert und wird nicht rückwirkend gutgeschrieben."
+  "sf.restAltText": "Dieser ältere Abschluss hat den Überschuss nur ausgewiesen. Ein Kassenbestand wurde damals nicht gespeichert und wird nicht rückwirkend gutgeschrieben.",
+  "starthilfe.titel": "So regieren Sie",
+  "starthilfe.ereignisse": "Ereignisse verlangen eine Antwort. Wer schweigt, bekommt die schlechtere Folge; wer kein Kapital hat, kann bewusst abwarten. Jede Antwort zeigt, was sie bewirkt.",
+  "starthilfe.politik": "Unter „Politik“ steht, was bei Ihren akuten Problemen jetzt am meisten bringt. Ein Gesetz braucht 301 Stimmen; ohne sie verhandeln Sie unter „Parlament & Gesetze“ mit den Fraktionen.",
+  "starthilfe.bereiche": "„Gesellschaft“ zeigt, wer Sie trägt und was jede Gruppe will, „Außen“ die anderen Staaten und „Forschung & Ziele“ Ihre Programme für Jahre. Der „Schreibtisch“ sammelt, was gerade dringend ist. Gewählt wird in etwa {wahl}."
 }
