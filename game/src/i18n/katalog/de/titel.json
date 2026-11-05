@@ -11,14 +11,14 @@
  "titel.fortsetzen": "Fortsetzen",
  "titel.fortsetzen_datum": "Fortsetzen · {d, date}",
  "titel.frueher": "Frühere Sicherungen ({n})",
- "titel.frueher_hinweis": "Ein früherer automatischer Stand. Das Spiel hebt den weitesten Stand und die letzten Sicherungen auf, damit ein Ladevorgang nie Fortschritt kostet.",
+ "titel.frueher_hinweis": "Ein früherer automatischer Stand. Das Spiel bewahrt den am weitesten gespielten Stand und die letzten Sicherungen auf. So verlieren Sie beim Laden nie Fortschritt.",
  "titel.kein_stand": "Noch kein Spielstand vorhanden",
  "titel.neu": "Neues Spiel",
- "titel.quellen": "Wirtschaftsdaten vom {d, date} · Karte nach Natural Earth, AWS Terrain und OpenStreetMap · Verwerfungen: GEM Global Active Faults (CC BY-SA 4.0)",
+ "titel.quellen": "Karte: Natural Earth, AWS Terrain, OpenStreetMap · Verwerfungen: GEM Global Active Faults (CC BY-SA 4.0)",
  "titel.sicherung": "Sicherung",
  "titel.sicherung_zeit": " ({z, time} Uhr)",
  "titel.slot_text": "{label} · {d, date}",
  "titel.stand_hinweis": "{name}, {d, date}",
  "titel.tagline": "Die Türkei nach der Wahl 2028. Ein Land, ein Amt und die Frage, wie lange Sie es halten.",
- "titel.weitester": "Weitester Stand"
+ "titel.weitester": "Am weitesten gespielter Stand"
 }

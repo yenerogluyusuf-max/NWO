@@ -1,5 +1,5 @@
 {
- "takt.bericht.beobachtet": "{monate} aylık geriye bakış:",
+ "takt.bericht.beobachtet": "{monate} ay sonra geriye bakış:",
  "takt.bericht.besser": "Daha iyi: {name}, {vorher} düzeyinden {nachher} düzeyine.",
  "takt.bericht.chronik": "Etki raporu: {name}",
  "takt.bericht.ereignis": "{titel}: {antwort}",

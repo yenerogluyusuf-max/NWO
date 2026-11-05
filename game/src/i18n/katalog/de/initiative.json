@@ -24,7 +24,7 @@
   "ini.paket.klausel": "„{label}“",
   "ini.paket.bietet": "Die Türkei bietet: {liste}",
   "ini.paket.erhaelt": "Die Türkei erhält: {liste}",
-  "ini.paket.laufzeit": "Laufzeit {jahre} Jahre.",
+  "ini.paket.laufzeit": "Laufzeit {jahre, plural, one {# Jahr} other {# Jahre}}.",
   "ini.klauselWert": "Was das bedeutet: {text}",
   "ini.opt.ablehnen": "Ablehnen",
   "ini.fordert.titel_klausel": "{wer} fordert: „{klausel}“",

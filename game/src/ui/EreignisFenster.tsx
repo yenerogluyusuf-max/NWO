@@ -35,7 +35,8 @@ export function preisText(p: { kapital: number; bip: number }): string {
   else if (k < 0) teile.push(t("ev.preis.gewinn", { n: -k }));
   const b = Math.abs(p.bip);
   if (b >= 0.005) {
-    const st = b < 1 ? 2 : 1;
+    // Zwei Stellen nur, wo die zweite etwas sagt (0,15), sonst eine (0,4 statt 0,40)
+    const st = b < 1 && Math.abs(b * 10 - Math.round(b * 10)) > 0.05 ? 2 : 1;
     teile.push(t(p.bip > 0 ? `ev.preis.bip${st}` : `ev.preis.einnahme${st}`, { x: b }));
   }
   return teile.length ? teile.join(" · ") : t("ereignis.kostenlos");
@@ -155,7 +156,7 @@ export function EreignisFenster({
                       : undefined;
                 return (
                   <li key={o.id}>
-                    <button className="ev2-option" disabled={!o.bezahlbar || !!o.sperre} onClick={() => onWaehle(o.id)} title={o.sperre ?? (o.bezahlbar ? undefined : t("ereignis.fehltKapital"))}>
+                    <button className={`ev2-option${frei ? " frei" : ""}`} disabled={!o.bezahlbar || !!o.sperre} onClick={() => onWaehle(o.id)} title={o.sperre ?? (o.bezahlbar ? undefined : t("ereignis.fehltKapital"))}>
                       <span className="ev2-option-kopf">
                         <strong>{o.label}</strong>
                         <span className={`ev2-preis${frei ? " frei" : ""}${pump ? " pump" : ""}`} title={pump ? t("ereignis.pumpTitel") : undefined}>

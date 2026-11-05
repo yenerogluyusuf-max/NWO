@@ -125,3 +125,5 @@
   .date-day { font-size: 18px; }
   .datum { gap: 10px; }
 }
+/* Befund A-33: Der Rand zeigt den Preis; kostenlose Antworten tragen das ruhige Blaugrün statt des Siegelrots */
+.ev2-option.frei { border-left-color: #2f5d62; }

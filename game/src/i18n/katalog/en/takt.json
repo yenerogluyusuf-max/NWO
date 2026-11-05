@@ -1,5 +1,5 @@
 {
- "takt.bericht.beobachtet": "{monate}-month review on",
+ "takt.bericht.beobachtet": "Review after {monate} months, on",
  "takt.bericht.besser": "Better: {name}, from {vorher} to {nachher}.",
  "takt.bericht.chronik": "Impact report: {name}",
  "takt.bericht.ereignis": "{titel}: {antwort}",

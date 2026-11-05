@@ -288,7 +288,7 @@
  "krieg.k.bs.text2": "Den Einsatzbeschluss braucht es trotzdem: Parlament oder Erlass, Mobilmachung und Vorbereitung entscheiden, wie teuer der Einsatz wird.",
  "krieg.k.bs.log": "Beistand für {partner}: Konfliktvorgang mit {land}.",
  "krieg.k.bs.log.warum": "Rahmung „Beistand“, der Partner steht an der Seite der Türkei.",
- "krieg.k.bs.ok": "Die Türkei sagt {partner} militärischen Beistand zu; der Konfliktvorgang mit {land} beginnt.",
+ "krieg.k.bs.ok": "Die Türkei sagt {partner|dat} militärischen Beistand zu; der Konfliktvorgang mit {land} beginnt.",
  "krieg.k.ang.weg": "Das Angebot ist gegenstandslos geworden.",
  "krieg.k.ang.ok": "Die Waffenruhe mit {land} tritt in Kraft; der Verhandlungstisch öffnet sich.",
  "krieg.k.beg.rivale": "Krieg zwischen der Türkei und {land}",

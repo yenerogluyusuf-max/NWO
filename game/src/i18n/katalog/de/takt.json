@@ -1,5 +1,5 @@
 {
- "takt.bericht.beobachtet": "{monate}-Monats-Rückblick am",
+ "takt.bericht.beobachtet": "Rückblick nach {monate} Monaten, am",
  "takt.bericht.besser": "Besser: {name}, von {vorher} auf {nachher}.",
  "takt.bericht.chronik": "Wirkungsbericht: {name}",
  "takt.bericht.ereignis": "{titel}: {antwort}",

@@ -3,5 +3,5 @@
   "sl.partner.frueh": "Desteği güçlendirin: {name} ({partei})",
   "sl.partner.bruch": "Sadakat {loyalitaet}, 20 altında: destek yeterince artırılmazsa {datum} tarihindeki aylık değerlendirmede {sitze} hükümet sandalyesi kaybedilebilir; {rest} kalır. Diğer aylık etkiler desteği değiştirebilir.",
   "sl.partner.puffer": "Sadakat {loyalitaet}: memnun değil, ancak şu anda 20 olan ayrılma eşiğinin altında değil. Sonraki değerlendirme {datum}. Daha sonra ayrılırsa {sitze} hükümet sandalyesi kaybedilir; {rest} kalır.",
-  "sl.partner.hilfe": "Kişiler ve Sözler bölümünde açık yükümlülükleri ve bir görüşmenin etkilerini inceleyin. Görüşme yapmak, sözü yerine getirmez."
+  "sl.partner.hilfe": "Kabine ve idare › Vaatler bölümünde açık yükümlülükleri ve bir görüşmenin etkilerini inceleyin. Görüşme yapmak, sözü yerine getirmez."
 }

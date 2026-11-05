@@ -9,7 +9,7 @@ import { angezeigteZustimmung } from "../../sim/medien";
 import { schlechtBeiHoch } from "../../sim/berichte";
 import { LAENDER, vertrauenZu } from "../../sim/laender";
 import { aktuelleSprache, t, zahl as zahlFmt } from "../../i18n";
-import { regierungsSitze } from "../../sim/koalitionslage";
+import { stimmenSicht } from "../../sim/handeln";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import type { EreignisAnsicht } from "../../sim/ereignisse";
@@ -187,7 +187,12 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     presse: knot("pressefreiheit", t("ereignis.kz.presse")),
     wohnungsnot: knot("p_wohnungsnot", t("ereignis.kz.wohnungsnot")),
     erdbeben: knot("p_erdbebengefahr", t("ereignis.kz.erdbeben")),
-    sitze: () => (w.parliament ? zahl("sitze", t("ev.kz.sitze"), t("ev.kz.sitzeWert", { n: regierungsSitze(w), von: Object.values(w.parliament.seats).reduce((a, b) => a + b, 0) })) : undefined),
+    // Dieselbe Zahl wie in der Kopfleiste: Lager und Fraktionen, die es gerade dulden (ui/Stage.tsx)
+    sitze: () => {
+      if (!w.parliament || !w.spiel) return undefined;
+      const s = stimmenSicht(w);
+      return zahl("sitze", t("ev.kz.sitze"), t("ev.kz.sitzeWert", { n: s.lager + s.duldungSitze, von: Object.values(w.parliament.seats).reduce((a, b) => a + b, 0) }));
+    },
     partner: () => {
       const p = partnerFigur(w);
       return p ? zahl("partner", t("ev.kz.partner", { partei: p.partei ?? "" }), `${Math.round(p.loyalitaet)} / 100`) : undefined;
