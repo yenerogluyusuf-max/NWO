@@ -9,7 +9,7 @@
   "wahlreise.probleme": "Unter Druck: {namen}. Je mehr akute Probleme, desto höher das Risiko.",
   "wahlreise.ruhig": "Zurzeit keine akuten Probleme oberhalb der Warnschwelle.",
   "wahlreise.wirkung": "Wirkung nach Wiederholungen: {anteil}. Die Reise verändert örtlichen Rückhalt, beseitigt aber keine Krise. Das sind keine landesweiten Wahlprozentpunkte; beim Nachfolger ist der geringere Übertrag bereits eingerechnet.",
-  "wahlreise.start": "{name} besuchen · {ap} AP",
+  "wahlreise.start": "{name} besuchen · {ap} Aktionspunkte",
   "wahlreise.heimisch": "Im Inland: Vertrauen {vertrauen}, Nationalisten {nationalisten} Indexpunkte.",
   "wahlreise.ausland": "Zusätzlicher Diaspora-Beitrag ohne Verbot: {beitrag} Wahlprozentpunkte; Auslandsbeteiligung {beteiligung} Prozentpunkte. Bei heutiger Zustimmung, nach geltenden Obergrenzen.",
   "wahlreise.verbot": "Auftrittsverbot: {chance} Risiko · Folgen ansehen",

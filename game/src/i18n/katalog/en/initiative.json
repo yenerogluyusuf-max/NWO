@@ -18,7 +18,7 @@
   "ini.anrede.KAZ": "Astana",
   "ini.anrede.CYP": "Nicosia",
   "ini.droh.log": "Standoff with {name}: the situation remains on the brink of war (conflict {konflikt} of 100).",
-  "ini.droh.uebergeben": "Handed over to the conflict episode: tension with this country rises to standoff level — the dossier is in the world view.",
+  "ini.droh.uebergeben": "Handed over to the conflict process: tension with this country rises to the level of a standoff; the country's file is under Foreign Affairs.",
   "ini.droh.naechstePruefung": "The conflict episode takes up the situation at the next monthly review, as long as the conflict stays above its threshold; there is no automatic war.",
   "ini.titel.fallback": "Own initiative",
   "ini.paket.klausel": "“{label}”",

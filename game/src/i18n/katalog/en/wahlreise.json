@@ -9,7 +9,7 @@
   "wahlreise.probleme": "Under pressure: {namen}. More acute problems raise the risk.",
   "wahlreise.ruhig": "No acute problems currently above the warning threshold.",
   "wahlreise.wirkung": "Effect after repeat visits: {anteil}. Visits change local support but do not resolve a crisis. These are not national vote percentage points; the reduced transfer to a successor is already included.",
-  "wahlreise.start": "Visit {name} · {ap} AP",
+  "wahlreise.start": "Visit {name} · {ap} action points",
   "wahlreise.heimisch": "At home: trust {vertrauen}, nationalists {nationalisten} index points.",
   "wahlreise.ausland": "Additional diaspora contribution without a ban: {beitrag} vote percentage points; overseas turnout {beteiligung} percentage points. At today’s approval, after applicable caps.",
   "wahlreise.verbot": "Rally ban: {chance} risk · see consequences",

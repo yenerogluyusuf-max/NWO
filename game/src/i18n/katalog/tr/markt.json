@@ -4,7 +4,7 @@
  "markt.rating.ausblick_positiv.titel": "Not {stufe}: görünüm pozitif",
  "markt.rating.herab.text": "Derecelendirme kuruluşları öncekinden daha fazla risk görüyor ({von} → {nach}): krediler pahalılaşır, yatırımcılar geri çekilir. {anlagegrad, select, ja {Yatırım yapılabilir seviye korunuyor.} other {Yatırım yapılabilir seviye çok uzakta.}}",
  "markt.rating.herab.titel": "Not düşürüldü: {nach}",
- "markt.rating.herauf.text": "Derecelendirme kuruluşları daha az risk görüyor ({von} → {nach}): krediler ucuzlar, sermaye geri döner. {anlagegrad, select, ja {Ülke yatırım yapılabilir seviyeye ulaştı: emeklilik ve devlet fonları yeniden alım yapabilir.} other {Yatırım yapılabilir seviye bir sonraki hedef olarak kalıyor.}}",
+ "markt.rating.herauf.text": "Derecelendirme kuruluşları daha az risk görüyor ({von} → {nach}): krediler ucuzlar, yatırımcı parası geri döner. {anlagegrad, select, ja {Ülke yatırım yapılabilir seviyeye ulaştı: emeklilik ve devlet fonları yeniden alım yapabilir.} other {Yatırım yapılabilir seviye bir sonraki hedef olarak kalıyor.}}",
  "markt.rating.herauf.titel": "Not yükseltildi: {nach}",
  "markt.schock.justiz.hoch.text": "Hâkimleri ve davaları yönlendiren, sözleşmelerin korunmasını zayıflatır: risk primi yaklaşık {cds} baz puan yükselir.",
  "markt.schock.justiz.hoch.titel": "Yargıya müdahale piyasalarda güven kaybettirir.",

@@ -5,7 +5,7 @@
  "titel.datei_hinweis": "Eine Datei laden, die im Spiel unter „Spielstand“ als Datei gesichert wurde",
  "titel.fehler_datei_format": "Diese Datei ist kein lesbarer Staatsräson-Spielstand. Gemeint ist die Datei, die „Als Datei sichern“ im Spielstand-Reiter erzeugt hat.",
  "titel.fehler_datei_lesen": "Die Datei konnte nicht gelesen werden.",
- "titel.fehler_letzter": "Der letzte Stand lässt sich nicht lesen. Laden Sie stattdessen eine Spielstanddatei oder einen Slot.",
+ "titel.fehler_letzter": "Der letzte Stand lässt sich nicht lesen. Laden Sie stattdessen eine Spielstanddatei oder einen Speicherplatz.",
  "titel.fehler_sicherung": "Diese Sicherung lässt sich nicht lesen.",
  "titel.fehler_slot": "Der Speicherplatz {n} ist beschädigt und lässt sich nicht laden.",
  "titel.fortsetzen": "Fortsetzen",

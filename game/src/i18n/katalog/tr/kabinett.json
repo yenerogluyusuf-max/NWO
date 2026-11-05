@@ -9,7 +9,7 @@
  "kab.sorge": "{name} ({wert} puan)",
  "kab.disziplin.geschlossen": "Hükümet ekibi tek vücut hâlinde çalışıyor.",
  "kab.disziplin.rebellisch": "Kabinede açık isyan: birkaç bakan topluca istifa etmekle tehdit ediyor.",
- "kab.disziplin.gespalten": "Bakanlar Kurulu'nda derin uçurumlar: bakanlıklar arası çekişmeler reform sürecini felç ediyor.",
+ "kab.disziplin.gespalten": "Kabinede derin uçurumlar: bakanlıklar arası çekişmeler reform sürecini felç ediyor.",
  "kab.disziplin.geordnet": "Ara sıra görüş ayrılıklarıyla düzenli hükümet çalışması.",
  "kab.fb.finanzministerium": "Hazine ve Maliye Bakanlığı",
  "kab.fb.finanzminister": "Maliye bakanı",
@@ -63,11 +63,11 @@
  "kab.si.recht.e1": "{name}: +12 sadakat, yargı bağımsızlığı artar",
  "kab.si.recht.e2": "{name}: -12 sadakat, kırgınlık biriktirir",
  "kab.si.recht.e3": "Uluslararası itibar +2 puan",
- "kab.si.recht.m1": "Bakanlar Kurulu'nda hukuk devletinin sınırları savunuldu.",
+ "kab.si.recht.m1": "Kabinede hukuk devletinin sınırları savunuldu.",
  "kab.si.recht.m2": "İçişleri Bakanlığı devlet yönetimi tarafından yüzüstü bırakılmış hissediyor.",
  "kab.kr.titel": "Kabine krizi: koalisyon barışı ve görev disiplini",
  "kab.kr.ressort": "Devlet yönetimi ve Cumhurbaşkanlığı",
- "kab.kr.anlass": "Bakanlar Kurulu'ndaki artan dağınıklık yönetme kabiliyetini tehlikeye atıyor. Birkaç bakanlık birbirine karşı çalışıyor.",
+ "kab.kr.anlass": "Kabinedeki artan dağınıklık yönetme kabiliyetini tehlikeye atıyor. Birkaç bakanlık birbirine karşı çalışıyor.",
  "kab.kr.machtwort.titel": "Otoriter son söz: disiplin talep et",
  "kab.kr.machtwort.text": "Cumhurbaşkanı, ayak oyunu yapanların derhal görevden alınacağını açıkça söyler. Temkinli bakanları hizaya getirir, ancak gururlu isimleri kışkırtır.",
  "kab.kr.machtwort.e1": "Sadık bakanlar +6 sadakat kazanır",
@@ -83,6 +83,6 @@
  "kab.e.option": "Karar seçeneği bulunamadı.",
  "kab.e.kapital": "Bunun için siyasi sermaye yetmiyor.",
  "kab.log": "Kabine toplantısında karar: {thema}, “{option}”.",
- "kab.log.warum": "Bakanlar Kurulu kararı: {folgen}",
- "kab.ergebnis": "Bakanlar Kurulu toplandı: “{option}” resmî hükümet çizgisi olarak kabul edildi."
+ "kab.log.warum": "Kabine kararı: {folgen}",
+ "kab.ergebnis": "Kabine toplandı: “{option}” resmî hükümet çizgisi olarak kabul edildi."
 }

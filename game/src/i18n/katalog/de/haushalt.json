@@ -14,7 +14,7 @@
  "haushalt.fehler.unbekannt": "Diesen Haushaltsposten gibt es nicht.",
  "haushalt.grund.kapital": "Das kostet {kosten} Kapital; vorhanden sind {da}.",
  "haushalt.grund.keine": "Keine Änderung.",
- "haushalt.grund.ohne_spiel": "Ohne Spielschleife.",
+ "haushalt.grund.ohne_spiel": "Diese Ansicht steht bereit, sobald Ihre Amtszeit begonnen hat.",
  "haushalt.gruppe.dienste": "Gesundheit, Bildung, Forschung",
  "haushalt.gruppe.renten": "Renten",
  "haushalt.gruppe.sicherheit": "Sicherheit",

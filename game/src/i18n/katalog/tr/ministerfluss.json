@@ -106,7 +106,7 @@
  "mfl.e.nutzen": "{groesse}: müdahalesiz {ohne}, {monate} ay sonra müdahaleyle {mit}.",
  "mfl.x.zusage_weg": "Bu söz artık yok.",
  "mfl.x.kenntnis": "Bilgi edinildi.",
- "mfl.x.kein_spiel": "Oyun döngüsü olmadan sunum olmaz.",
+ "mfl.x.kein_spiel": "Bu bölüm, göreviniz başladığında kullanılabilir.",
  "mfl.x.vorlage_weg": "Bu sunum artık masada değil.",
  "mfl.x.option_weg": "Bu seçenek yok.",
  "mfl.x.wiedervorlage": "{n} gün sonra yeniden sunulacak.",

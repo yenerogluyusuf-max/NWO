@@ -9,7 +9,7 @@
   "wahlreise.probleme": "Baskı altında: {namen}. Acil sorunlar arttıkça risk yükselir.",
   "wahlreise.ruhig": "Şu anda uyarı eşiğini aşan acil sorun yok.",
   "wahlreise.wirkung": "Tekrar ziyaretlerden sonraki etki: {anteil}. Ziyaret yerel desteği değiştirir, krizi çözmez. Bunlar ulusal oy yüzdesi puanları değildir; halefe daha düşük aktarım hesaba katılmıştır.",
-  "wahlreise.start": "{name} ziyareti · {ap} EP",
+  "wahlreise.start": "{name} ziyareti · {ap} eylem puanı",
   "wahlreise.heimisch": "Yurt içinde: güven {vertrauen}, milliyetçiler {nationalisten} endeks puanı.",
   "wahlreise.ausland": "Yasak yoksa ek diaspora katkısı: {beitrag} oy yüzdesi puanı; yurt dışı katılımı {beteiligung} yüzde puanı. Bugünkü destek ve geçerli üst sınırlarla.",
   "wahlreise.verbot": "Miting yasağı: {chance} risk · sonuçları göster",

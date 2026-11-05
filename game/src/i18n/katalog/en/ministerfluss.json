@@ -106,7 +106,7 @@
  "mfl.e.nutzen": "{groesse}: {ohne} without, {mit} with action after {monate} months.",
  "mfl.x.zusage_weg": "This pledge no longer exists.",
  "mfl.x.kenntnis": "Noted.",
- "mfl.x.kein_spiel": "Without a game loop there are no submissions.",
+ "mfl.x.kein_spiel": "This view becomes available once your term has begun.",
  "mfl.x.vorlage_weg": "This submission is no longer on the desk.",
  "mfl.x.option_weg": "This option does not exist.",
  "mfl.x.wiedervorlage": "Back on the desk in {n} days.",

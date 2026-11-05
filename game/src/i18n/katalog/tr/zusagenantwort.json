@@ -15,5 +15,5 @@
   "ze.person": "{name}: sadakat {vor} → {nach}; kırgınlık {groll}.",
   "ze.akut": "Bu yanıttan sonra görevdeki en düşük sadakatli başkanın değeri {n}, yani 20 altında. {datum} tarihindeki aylık değerlendirmeye kadar destek yeterince artırılmazsa {sitze} hükümet sandalyesi kaybedilebilir; {rest} kalır. Diğer aylık etkiler desteği değiştirebilir.",
   "ze.weitereFrist": "Tarih {datum} olmadan diğer hatırlatmayı ele alın. Bu koşullu hesap bugün kesinti yapmaz ve diğer aylık etkileri öngörmez.",
-  "ze.gesetzAnsehen": "Önce yasa tasarısını inceleyin:"
+  "ze.gesetzAnsehen": "Önce kanun teklifini inceleyin:"
 }

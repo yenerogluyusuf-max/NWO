@@ -79,7 +79,7 @@
  "infra.alt.kliniken.text": "Insurance pays for treatment in private hospitals until waiting times fall.",
  "infra.alt.kliniken.dagegen": "Those who can pay get seen sooner.",
  "infra.alt.ok": "{was} in {ort} decided.",
- "infra.fehler.kein_spiel": "Without a game loop there are no networks.",
+ "infra.fehler.kein_spiel": "This view becomes available once your term has begun.",
  "infra.fehler.unbekannt": "This expansion does not exist.",
  "infra.fehler.braucht.schiene_km": "There is no rail line in {ort} that could be upgraded.",
  "infra.fehler.braucht.flughaefen": "There is no airport in {ort} that could be expanded.",

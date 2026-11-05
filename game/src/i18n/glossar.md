@@ -8,8 +8,8 @@ Dieses Glossar dient als verbindliche Referenz für Übersetzungen, Menübezeich
 
 | Deutsch (DE) | Türkçe (TR) | English (EN) | Kontext & Anmerkung |
 |---|---|---|---|
-| Staatsräson | Devlet Aklı / Hikmet-i Hükûmet | Raison d'État / State Rationale | Spieltitel; oberstes Staatsinteresse |
-| Ministerrat / Kabinett | Bakanlar Kurulu / Kabine | Council of Ministers / Cabinet | Exekutivorgan |
+| Staatsräson | Devlet Aklı / Hikmet-i Hükûmet | Raison d'État / State Rationale | Begriff; als Spieltitel bleibt „Staatsräson“ in allen Sprachen die Marke |
+| Kabinett | Kabine / Cumhurbaşkanlığı Kabinesi | Cabinet | Seit 2018 kein „Bakanlar Kurulu“ mehr; die Minister ernennt der Präsident (Art. 106 TC Anayasası) |
 | Große Nationalversammlung | Türkiye Büyük Millet Meclisi (TBMM) | Grand National Assembly | Parlament der Türkei |
 | Präsidialamt | Cumhurbaşkanlığı | Presidency / Presidential Office | Amtssitz & Exekutivspitze |
 | Nationaler Sicherheitsrat | Millî Güvenlik Kurulu (MGK) | National Security Council | Verfassungsorgan für Sicherheit |
@@ -19,7 +19,10 @@ Dieses Glossar dient als verbindliche Referenz für Übersetzungen, Menübezeich
 | Präsidialdekret | Cumhurbaşkanlığı Kararnamesi | Presidential Decree | Exekutivverordnung |
 | Amtszeit | Görev Süresi / Dönem | Term of Office | Präsidentschaftsperiode |
 | Umbildung | Kabine Revizyonu | Cabinet Reshuffle | Ministerwechsel |
-| Misstrauensvotum | Gensoru | Vote of No Confidence | Parlamentarische Kontrolle |
+| Gesetzentwurf | Kanun teklifi | Bill | Seit 2017 bringen nur Abgeordnete Gesetze ein (Art. 88); „tasarı“ (Regierungsentwurf) nur noch historisch |
+| Haushaltsentwurf | Bütçe taslağı; im Parlament: Merkezi Yönetim Bütçe Kanun Teklifi | Draft budget; budget bill | Den Haushalt legt der Präsident vor (Art. 161) |
+| Präsidialdekret (heute) | Cumhurbaşkanlığı Kararnamesi (CBK) | Presidential decree | Die früheren Kanun Hükmünde Kararnameler (KHK) gibt es seit 2018 nicht mehr |
+| Misstrauensvotum (früher) | Gensoru | Vote of No Confidence | Seit 2018 abgeschafft; heute nur noch schriftliche Anfrage und Untersuchung (Art. 98) |
 | Koalitionsvertrag | Koalisyon Protokolü | Coalition Agreement | Regierungsbündnis |
 
 ---
@@ -28,7 +31,7 @@ Dieses Glossar dient als verbindliche Referenz für Übersetzungen, Menübezeich
 
 | Deutsch (DE) | Türkçe (TR) | English (EN) | Kontext & Anmerkung |
 |---|---|---|---|
-| Zentralbank | Türkiye Cumhuriyet Merkez Bankası (TCMB) | Central Bank of the Republic of Turkey | Währungshüter |
+| Zentralbank | Türkiye Cumhuriyet Merkez Bankası (TCMB) | Central Bank of the Republic of Türkiye | Währungshüter |
 | Leitzins | Politika Faizi | Policy Benchmark Rate | Einwöchiger Reposatz |
 | Preisstabilität | Fiyat İstikrarı | Price Stability | Hauptziel der Notenbank |
 | Devisenreserven | Döviz Rezervleri | Foreign Exchange Reserves | Währungsrücklagen |
@@ -105,3 +108,24 @@ Dieses Glossar dient als verbindliche Referenz für Übersetzungen, Menübezeich
 | Akademische Freiheit | Akademik Özerklik | Academic Autonomy | Unabhängigkeit der Universitäten |
 | Katastrophenschutzbehörde | Afet ve Acil Durum Yönetimi (AFAD) | Disaster and Emergency Authority | Zivilschutz & Rettungsnetz |
 | Erdbebenvorsorge | Deprem Dirençliliği | Seismic Resilience | Bauwerksverstärkung & Sanierung |
+
+---
+
+## 7. Spielbegriffe / Oyun Terimleri
+
+Verbindlich für alle Oberflächentexte (Befund I-18, I-26). Je Sache ein Wort; die rechte Spalte nennt, was nicht mehr vorkommen soll.
+
+| Sache | Deutsch | Türkçe | English | Nicht mehr |
+|---|---|---|---|---|
+| Ressource für Handlungen | Politisches Kapital, am Preisschild kurz „Kapital“ | siyasi sermaye / sermaye | political capital / capital | PK, PC, SS; Geldkapital heißt „Geld“, „Investitionen“, „Anlegergeld“ |
+| Bereichsfenster | Akte | dosya | file | Dossier, Fenster, Reich |
+| Was man einstellt | Maßnahme; beschlossen als Gesetz oder Erlass | önlem; kanun / Cumhurbaşkanlığı kararnamesi | measure; law / decree | Dekret, „Vorhaben“ für Maßnahmen (Vorhaben nur für Bauprojekte) |
+| Fachministerium | Ministerium, Leitung Minister/Ministerin | bakanlık | ministry | Wechsel mit „Ressort“ im selben Satz |
+| Staatsoberhaupt | Präsident/Präsidentin | Cumhurbaşkanı | President | Staatsoberhaupt, Devlet Başkanı |
+| Eigene Mehrheit | Regierungslager | hükümet bloğu | governing bloc | „Koalition“ für das Lager |
+| Stimmung der Bevölkerung | Zustimmung (Prozent) | onay | approval | „Rückhalt“ als Synonym (nur für Partner und Fraktionen) |
+| Amtssitz | Präsidialamt | Cumhurbaşkanlığı | Presidency | Kanzlei, Palast |
+| Spielstand | sichern, Speicherplatz | kaydetmek, kayıt yuvası | save, save slot | Slot, Schnellspeichern |
+| Eigenes Land | Türkei | Türkiye | Türkiye | DE „Türkiye“, EN „Turkey“ |
+| Wahlkampfwoche | Aktionspunkte | eylem puanı | action points | AP, EP |
+
