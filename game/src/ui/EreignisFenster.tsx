@@ -6,7 +6,7 @@ import { Corners } from "./art/Ornament";
 import { Icon } from "./icons";
 import { Portraet as PersonPortraet } from "./personen/bausteine";
 import { EreignisSzene } from "./ereignis/Szenen";
-import { akteFuer, kennzahlenFuer, richtungVon, sprecherFuer, themaFuer, zitatAus, type AktenZiel, type Kennzahl } from "./ereignis/kontext";
+import { akteFuer, kennzahlenFuer, richtungVon, wertungVon, sprecherFuer, themaFuer, zitatAus, type AktenZiel, type Kennzahl } from "./ereignis/kontext";
 import { t } from "../i18n";
 import type { EreignisAnsicht } from "../sim/ereignisse";
 import type { World } from "../sim/types";
@@ -58,7 +58,7 @@ export function EreignisFenster({
   /** Öffnet die passende Akte, ohne das Ereignis zu entscheiden */
   onAkte?: (ziel: AktenZiel) => void;
 }) {
-  const thema = themaFuer(ansicht);
+  const thema = themaFuer(ansicht, world);
   const sprecher = world ? sprecherFuer(world, ansicht) : null;
   const kennzahlen = world ? kennzahlenFuer(world, thema) : [];
   const akte = akteFuer(thema);
@@ -150,16 +150,7 @@ export function EreignisFenster({
                       {o.sperre && <span className="ev2-option-zusatz">{o.sperre}</span>}
                       {zusatz && <span className="ev2-option-zusatz">{zusatz}</span>}
                       {o.vorschau.length > 0 ? (
-                        <span className="ev2-folgen" aria-label={t("ereignis.folgen")}>
-                          {o.vorschau.map((z) => {
-                            const r = richtungVon(z);
-                            return (
-                              <span key={z} className={`ev2-chip ${r}`}>
-                                <i aria-hidden>{r === "auf" ? "▲" : r === "ab" ? "▼" : "•"}</i> {z}
-                              </span>
-                            );
-                          })}
-                        </span>
+                        <Folgen zeilen={o.vorschau} />
                       ) : (
                         <span className="ev2-folgen leer">{t("ereignis.folgenUnsicher")}</span>
                       )}
@@ -168,6 +159,15 @@ export function EreignisFenster({
                 );
               })}
             </ul>
+
+            {ansicht.standardFolge && (
+              <section className="ev2-standard" aria-label={t("ereignis.standard")}>
+                <h3>{t("ereignis.standard")}</h3>
+                <p>{ansicht.standardFolge.text}</p>
+                {ansicht.standardFolge.zeilen.length > 0 && <Folgen zeilen={ansicht.standardFolge.zeilen} />}
+                <small>{t("ereignis.standardHinweis")}</small>
+              </section>
+            )}
 
             {knapp && (
               <p className="event-knapp">
@@ -209,5 +209,20 @@ export function EreignisFenster({
         </footer>
       </article>
     </div>
+  );
+}
+
+function Folgen({ zeilen }: { zeilen: string[] }) {
+  return (
+    <span className="ev2-folgen" aria-label={t("ereignis.folgen")}>
+      {zeilen.map((z) => {
+        const r = richtungVon(z);
+        return (
+          <span key={z} className={`ev2-chip ${r} ${wertungVon(z)}`}>
+            <i aria-hidden>{r === "auf" ? "▲" : r === "ab" ? "▼" : "•"}</i> {z}
+          </span>
+        );
+      })}
+    </span>
   );
 }

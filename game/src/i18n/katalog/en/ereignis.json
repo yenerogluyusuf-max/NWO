@@ -42,5 +42,17 @@
  "ereignis.spaeter": "Decide later",
  "ereignis.worum": "What is at stake",
  "ereignis.kz.wohnungsnot": "Housing shortage",
- "ereignis.kz.erdbeben": "Earthquake risk"
+ "ereignis.kz.erdbeben": "Earthquake risk",
+ "ereignis.vs.stufe": "{name}: level {von} to {auf}",
+ "ereignis.vs.schulden": "Debt {d} percentage points",
+ "ereignis.vs.risiko": "Risk premium {d} points",
+ "ereignis.vs.lira": "Lira {richtung, select, schwaecher {weaker} other {stronger}} by {d}%",
+ "ereignis.vs.zustimmung": "Approval {d} points",
+ "ereignis.vs.rueckhalt": "{rolle} {name}: {richtung, select, mehr {more} other {less}} support",
+ "ereignis.ursache": "Or tackle the cause:",
+ "ereignis.nichtOffen": "This event is no longer open.",
+ "ereignis.keineAntwort": "This response does not exist.",
+ "ereignis.fehltKapitalGenau": "Not enough political capital (needed {noetig}, available {vorhanden}).",
+ "ereignis.standard": "Without a response",
+ "ereignis.standardHinweis": "This happens if you let the deadline pass. Silence also costs approval."
 }

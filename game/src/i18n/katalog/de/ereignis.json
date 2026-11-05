@@ -42,5 +42,17 @@
  "ereignis.spaeter": "Später entscheiden",
  "ereignis.worum": "Worum es geht",
  "ereignis.kz.wohnungsnot": "Wohnungsnot",
- "ereignis.kz.erdbeben": "Erdbebengefahr"
+ "ereignis.kz.erdbeben": "Erdbebengefahr",
+ "ereignis.vs.stufe": "{name}: Stufe {von} auf {auf}",
+ "ereignis.vs.schulden": "Schulden {d} Prozentpunkte",
+ "ereignis.vs.risiko": "Risikoaufschlag {d} Punkte",
+ "ereignis.vs.lira": "Lira {richtung, select, schwaecher {schwächer} other {stärker}} um {d} %",
+ "ereignis.vs.zustimmung": "Zustimmung {d} Punkte",
+ "ereignis.vs.rueckhalt": "{rolle} {name}: {richtung, select, mehr {mehr} other {weniger}} Rückhalt",
+ "ereignis.ursache": "Oder an der Ursache ansetzen:",
+ "ereignis.nichtOffen": "Dieses Ereignis ist nicht mehr offen.",
+ "ereignis.keineAntwort": "Diese Antwort gibt es nicht.",
+ "ereignis.fehltKapitalGenau": "Dafür fehlt Politisches Kapital (nötig {noetig}, vorhanden {vorhanden}).",
+ "ereignis.standard": "Ohne Antwort",
+ "ereignis.standardHinweis": "Das geschieht, wenn Sie die Frist verstreichen lassen. Schweigen kostet zudem Zustimmung."
 }

@@ -250,7 +250,7 @@ function Ueberblick({ kurz, onWaehle, onOpen }: { kurz: BereichKurz[]; onWaehle:
               <>
                 {tx("ui2.ui.politik.Politik.f4f01f0")}{" "}
                 <button className="pd-btn quiet" onClick={() => onOpen("bereiche")}>
-                  {tx("ui2.ui.politik.Politik.1ab3309")}
+                  {t("buehne.tab.heute")}
                 </button>
                 .
               </>

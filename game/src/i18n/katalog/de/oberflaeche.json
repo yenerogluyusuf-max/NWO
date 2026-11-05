@@ -422,5 +422,9 @@
  "ui.wirtschaft.Zentralbank.c4908f0": "Betrag der Intervention",
  "ui.wirtschaft.Zentralbank.e3fb7df": "Gesetz einbringen",
  "ui.wirtschaft.Zentralbank.e661ba3": "Devisen sind die zweite Staatswährung: Importe, Auslandsschulden und die Verteidigung der Lira werden in Dollar bezahlt. Die Zentralbank kann Lira schöpfen, aber keine Dollar. Was fehlt, muss hereingeholt werden — über die Leistungsbilanz, über Kapital, das Sie anziehen, oder über den IWF.",
- "ui.wirtschaft.Zentralbank.f0053e6": "Was die Bank beschlossen hat"
+ "ui.wirtschaft.Zentralbank.f0053e6": "Was die Bank beschlossen hat",
+ "ui.Erklaerung.reiter.erklaert": "Erklärt",
+ "ui.Erklaerung.reiter.welt": "Weltvergleich",
+ "ui.Erklaerung.reiter.tun": "Was tun?",
+ "ui.NetView.akutAb": "· akut ab {n}"
 }

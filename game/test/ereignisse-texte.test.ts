@@ -73,7 +73,7 @@ describe("Ereignistexte", () => {
       if (!ev) continue;
       geoeffnet++;
       const a = ansicht(w, ev);
-      const alles = [a.titel, ...a.text, a.warum, ...a.optionen.flatMap((o) => [o.label, o.beschreibung, ...o.vorschau]), ...a.massnahmen.map((m) => m.name)].join(" ¦ ");
+      const alles = [a.titel, ...a.text, a.warum, ...a.optionen.flatMap((o) => [o.label, o.beschreibung, ...o.vorschau]), ...a.massnahmen.map((m) => m.name), ...(a.standardFolge ? [a.standardFolge.text, ...a.standardFolge.zeilen] : [])].join(" ¦ ");
       expect(alles, `${id} Seed ${seed}`).not.toMatch(KAPUTT);
       expect(a.titel.length).toBeGreaterThan(3);
       expect(a.optionen.length).toBeGreaterThanOrEqual(2);

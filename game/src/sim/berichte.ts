@@ -162,7 +162,7 @@ const EXTRA_SCHLECHT = new Set([
   "gasabhaengigkeit", "energie_importrechnung", "energie_subventionslast", "strompreis", "duerre", "lebensmittelpreise", "landflucht",
 ]);
 
-function schlechtBeiHoch(id: string): boolean {
+export function schlechtBeiHoch(id: string): boolean {
   if (HOCH_SCHLECHT.has(id) || EXTRA_SCHLECHT.has(id)) return true;
   const i = NET.index.get(id);
   return i !== undefined && NET.nodes[i]!.kind === "problem";

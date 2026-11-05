@@ -285,12 +285,12 @@ export function NetView({
             {node.kind === "problem" && (
               <span className="subtitle">
                 {" "}
-                · akut ab {node.threshold}
+                {t("ui.NetView.akutAb", { n: node.threshold })}
               </span>
             )}
           </p>
 
-          <Erklaerung node={node} world={world} onSelect={select} />
+          <Erklaerung node={node} world={world} onSelect={select} kopfText={node.text} />
 
           <NetGraph nodeId={node.id} onSelect={select} />
           {folgenPanel}

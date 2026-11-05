@@ -6,7 +6,8 @@ import { nationalAverage } from "../../sim/netz";
 import { EREIGNIS_BEZUG } from "../../sim/gespraeche";
 import { ratZuEreignis, type RessortRat } from "../../sim/personen-api";
 import { angezeigteZustimmung } from "../../sim/medien";
-import { t } from "../../i18n";
+import { schlechtBeiHoch } from "../../sim/berichte";
+import { aktuelleSprache, t } from "../../i18n";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import type { EreignisAnsicht } from "../../sim/ereignisse";
@@ -47,7 +48,23 @@ const THEMA_AMT: Record<Thema, Figur["amt"]> = {
 
 const SZENE_THEMA: Record<string, Thema> = { bank: "haushalt", parlament: "recht", istanbul: "gesellschaft", anatolien: "gesellschaft", wahlnacht: "gesellschaft" };
 
-export function themaFuer(a: Pick<EreignisAnsicht, "vorlage" | "szene">): Thema {
+// Eine fällige Zusage handelt von ihrer Maßnahme, nicht von der Szene (Spielerdurchlauf 5. November: Die Rentenzusage zeigte
+// Justiz und Pressefreiheit unter „Worum es geht“)
+const ZUSAGE_MUSTER: [RegExp, Thema][] = [
+  [/sozialwohnung|mietdeckel|bauamnestie|stadterneuerung/, "wohnen"],
+  [/rente|mwst|steuer|kindergeld|subvention|preiswahrheit/, "haushalt"],
+  [/mindestlohn|kmu|kernkraft|autobahn|regionalfoerderung|gewerkschaft/, "wirtschaft"],
+  [/polizei|verteidigung|grenzschutz|notstand|wehrdienst|friedensprozess/, "sicherheit"],
+  [/justiz|richter|versammlung|internetsperren|medienaufsicht|antikorruption|minderheiten|wissenschaftsfreiheit/, "recht"],
+];
+
+export function themaFuer(a: Pick<EreignisAnsicht, "id" | "vorlage" | "szene">, w?: World): Thema {
+  if (a.vorlage === "zusage" && w?.spiel) {
+    const ev = w.spiel.ereignisse.find((e) => e.id === a.id);
+    const m = w.spiel.zusagen.find((z) => z.id === String(ev?.daten?.zusage))?.massnahme ?? "";
+    for (const [re, th] of ZUSAGE_MUSTER) if (re.test(m)) return th;
+    return "gesellschaft";
+  }
   for (const [re, th] of MUSTER) if (re.test(a.vorlage)) return th;
   const bezug = EREIGNIS_BEZUG[a.vorlage];
   const amt = bezug?.amt[0];
@@ -78,7 +95,7 @@ export function sprecherFuer(w: World, a: Pick<EreignisAnsicht, "id" | "vorlage"
     if (chef) return { figur: chef };
     if (von === "Wähler") partnerZuerst.push("stab");
   }
-  const reihenfolge: Figur["amt"][] = [...partnerZuerst, ...(bezug?.amt ?? []), THEMA_AMT[themaFuer(a)], "stab"];
+  const reihenfolge: Figur["amt"][] = [...partnerZuerst, ...(bezug?.amt ?? []), THEMA_AMT[themaFuer(a, w)], "stab"];
   for (const amt of reihenfolge) {
     const f = im.find((x) => x.amt === amt);
     if (f) {
@@ -191,11 +208,34 @@ export function zitatAus(text: string[]): { zitat: string; rest: string[] } {
 
 export type Richtung = "auf" | "ab" | "neutral";
 
-/** Richtung einer Vorschauzeile aus ihrem Wortlaut (+, −, mehr, weniger, stärker, schwächer, Stufe a auf b). */
+/** Richtung einer Vorschauzeile aus ihrem Wortlaut (+, −, mehr, weniger, stärker, schwächer, Stufe a auf b), in allen drei Sprachen. */
 export function richtungVon(zeile: string): Richtung {
-  const stufe = /Stufe (\d+) auf (\d+)/.exec(zeile);
+  const stufe = /(?:Stufe|level|seviye) (\d+) (?:auf|to|→) (\d+)/i.exec(zeile);
   if (stufe) return Number(stufe[2]) > Number(stufe[1]) ? "auf" : "ab";
-  if (/\+\d|\bmehr\b|stärker|steigt|höher/.test(zeile)) return "auf";
-  if (/[−-]\d|\bweniger\b|schwächer|sinkt|niedriger/.test(zeile)) return "ab";
+  if (/\+\d|\bmehr\b|stärker|steigt|höher|\bmore\b|stronger|daha fazla|güçlü/.test(zeile)) return "auf";
+  if (/[−-]\d|\bweniger\b|schwächer|sinkt|niedriger|\bless\b|weaker|daha az|zayıf/.test(zeile)) return "ab";
   return "neutral";
+}
+
+export type Wertung = "gut" | "schlecht" | "neutral";
+
+let schlechteNamen: { sprache: string; namen: string[] } | undefined;
+
+/** Namen der Größen, bei denen mehr schlechter ist (Polarisierung, Druck aus Straßburg, Kriminalität …), in der aktuellen Sprache. */
+function hochSchlechtNamen(): string[] {
+  const sprache = aktuelleSprache();
+  if (schlechteNamen?.sprache !== sprache) schlechteNamen = { sprache, namen: NET.nodes.filter((n) => !n.input && schlechtBeiHoch(n.id)).map((n) => n.name) };
+  return schlechteNamen.namen;
+}
+
+/**
+ * Ob eine Vorschauzeile für das Land gut oder schlecht ist, nicht nur, wohin sie zeigt (Spielerdurchlauf 5. November:
+ * „Druck aus Straßburg −2“ stand rot da). Stufen von Maßnahmen sind weder noch; bei Schulden, Risikoaufschlag und
+ * Größen wie Polarisierung ist mehr schlechter.
+ */
+export function wertungVon(zeile: string): Wertung {
+  const r = richtungVon(zeile);
+  if (r === "neutral" || /(?:Stufe|level|seviye) \d+ (?:auf|to|→) \d+/i.test(zeile)) return "neutral";
+  const mehrSchlecht = /^(Schulden|Debt|Borç|Risikoaufschlag|Risk premium|Risk primi)\b/.test(zeile) || hochSchlechtNamen().some((n) => zeile.startsWith(`${n} `));
+  return (r === "auf") !== mehrSchlecht ? "gut" : "schlecht";
 }

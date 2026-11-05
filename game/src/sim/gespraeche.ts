@@ -75,44 +75,47 @@ const datumAn = (w: World, tag: number): string => formatDateDe(addDays(w.spiel!
 // ---------------------------------------------------------------------------
 // Ereignisse, die ein Ressort betreffen
 
-export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string }> = {
-  grenzzwischenfall: { amt: ["inneres", "aussen", "generalstab"], titel: "Der Grenzzwischenfall" },
-  eu_angebot: { amt: ["aussen", "wirtschaft", "justiz"], titel: "Das Angebot der EU" },
-  iwf_angebot: { amt: ["finanzen"], titel: "Das Angebot des IWF" },
-  ratingagentur: { amt: ["finanzen"], titel: "Die Ratingagentur" },
-  nato_ratifizierung: { amt: ["aussen", "generalstab"], titel: "Die NATO-Ratifizierung" },
-  gasvertrag: { amt: ["aussen", "wirtschaft"], titel: "Der Gasvertrag" },
-  gasfund: { amt: ["wirtschaft"], titel: "Der Gasfund" },
-  cyberangriff: { amt: ["inneres", "generalstab"], titel: "Der Cyberangriff" },
-  weltwirtschaftskrise: { amt: ["finanzen", "wirtschaft", "zentralbank"], titel: "Die Weltwirtschaftskrise" },
-  pandemie: { amt: ["stab", "inneres"], titel: "Die Seuche" },
-  bankenstress: { amt: ["finanzen", "zentralbank"], titel: "Der Stress im Bankensystem" },
-  waehrungsrutsch: { amt: ["finanzen", "zentralbank"], titel: "Der Absturz der Lira" },
-  haushaltsdruck: { amt: ["finanzen", "zentralbank"], titel: "Der Druck auf den Haushalt" },
-  energiepreisschock: { amt: ["wirtschaft", "finanzen"], titel: "Der Energiepreisschock" },
-  korruptionsaffaere: { amt: ["justiz", "inneres", "stab"], titel: "Die Korruptionsaffäre" },
-  streikwelle: { amt: ["wirtschaft", "inneres"], titel: "Die Streikwelle" },
-  anschlag: { amt: ["inneres", "generalstab"], titel: "Der Anschlag" },
-  fluechtlingswelle: { amt: ["inneres", "aussen"], titel: "Die Fluchtbewegung" },
-  fabrikschliessungen: { amt: ["wirtschaft"], titel: "Die Fabrikschließungen" },
-  erdbeben: { amt: ["stab", "inneres"], titel: "Das Erdbeben" },
-  pressekonflikt: { amt: ["stab", "inneres"], titel: "Der Streit mit der Presse" },
-  studentenproteste: { amt: ["inneres", "stab"], titel: "Die Studentenproteste" },
-  buergermeister_verfahren: { amt: ["justiz", "inneres"], titel: "Das Verfahren gegen den Bürgermeister" },
-  recht_ernennung: { amt: ["justiz"], titel: "Die Besetzung am Verfassungsgericht" },
-  recht_aym_kassation: { amt: ["justiz"], titel: "Der Streit der Höchstgerichte" },
-  recht_egmr: { amt: ["justiz", "aussen"], titel: "Das Urteil aus Straßburg" },
-  recht_haftrevolte: { amt: ["justiz", "inneres"], titel: "Die Unruhen im Gefängnis" },
-  mil_lieferverzug: { amt: ["generalstab"], titel: "Der Lieferverzug bei der Rüstung" },
-  mil_militaerrat: { amt: ["generalstab"], titel: "Der Oberste Militärrat" },
-  land_fordert: { amt: ["aussen"], titel: "Die Forderung eines Partnerlandes" },
-  land_angebot: { amt: ["aussen"], titel: "Das Angebot eines Partnerlandes" },
-  land_provokation: { amt: ["aussen", "generalstab"], titel: "Die Provokation an der Grenze" },
-  land_drohkulisse: { amt: ["aussen", "generalstab"], titel: "Die Drohkulisse" },
-  vertrag_verlaengerung: { amt: ["aussen"], titel: "Die Vertragsverlängerung" },
-  mindestlohn: { amt: ["wirtschaft", "finanzen"], titel: "Der Mindestlohn" },
-  haushaltsjahr: { amt: ["finanzen"], titel: "Der Haushalt für das nächste Jahr" },
-  kommunalwahl: { amt: ["stab"], titel: "Die Kommunalwahlen" },
+// groessen: worum es im Ereignis geht, in der Reihenfolge der Bedeutung. Der Rat einer Person nimmt die erste Größe ihres
+// Fachs; hat sie keine, rät sie nicht zu etwas anderem (Spielerdurchlauf 5. November: Bei der Besetzung am Verfassungsgericht
+// riet die Justiz zu Gefängnissen, weil das ihre schlechteste Größe war).
+export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string; groessen?: string[] }> = {
+  grenzzwischenfall: { amt: ["inneres", "aussen", "generalstab"], titel: "Der Grenzzwischenfall", groessen: ["terrorgefahr", "ansehen", "bereitschaft_heer", "truppenmoral"] },
+  eu_angebot: { amt: ["aussen", "wirtschaft", "justiz"], titel: "Das Angebot der EU", groessen: ["beziehungen_eu", "auslandskapital", "investitionen", "justiz_unabhaengigkeit"] },
+  iwf_angebot: { amt: ["finanzen"], titel: "Das Angebot des IWF", groessen: ["vertrauen_maerkte", "zinslast"] },
+  ratingagentur: { amt: ["finanzen"], titel: "Die Ratingagentur", groessen: ["vertrauen_maerkte", "zinslast"] },
+  nato_ratifizierung: { amt: ["aussen", "generalstab"], titel: "Die NATO-Ratifizierung", groessen: ["beziehungen_usa", "ansehen", "bereitschaft_heer"] },
+  gasvertrag: { amt: ["aussen", "wirtschaft"], titel: "Der Gasvertrag", groessen: ["beziehungen_russland", "industrie"] },
+  gasfund: { amt: ["wirtschaft"], titel: "Der Gasfund", groessen: ["investitionen", "export"] },
+  cyberangriff: { amt: ["inneres", "generalstab"], titel: "Der Cyberangriff", groessen: ["terrorgefahr", "bereitschaft_heer"] },
+  weltwirtschaftskrise: { amt: ["finanzen", "wirtschaft", "zentralbank"], titel: "Die Weltwirtschaftskrise", groessen: ["vertrauen_maerkte", "export", "investitionen"] },
+  pandemie: { amt: ["stab", "inneres"], titel: "Die Seuche", groessen: ["vertrauen_regierung", "kriminalitaet"] },
+  bankenstress: { amt: ["finanzen", "zentralbank"], titel: "Der Stress im Bankensystem", groessen: ["vertrauen_maerkte"] },
+  waehrungsrutsch: { amt: ["finanzen", "zentralbank"], titel: "Der Absturz der Lira", groessen: ["vertrauen_maerkte", "lebenshaltung"] },
+  haushaltsdruck: { amt: ["finanzen", "zentralbank"], titel: "Der Druck auf den Haushalt", groessen: ["steuereinnahmen", "zinslast", "vertrauen_maerkte"] },
+  energiepreisschock: { amt: ["wirtschaft", "finanzen"], titel: "Der Energiepreisschock", groessen: ["industrie", "lebenshaltung", "steuereinnahmen"] },
+  korruptionsaffaere: { amt: ["justiz", "inneres", "stab"], titel: "Die Korruptionsaffäre", groessen: ["justiz_unabhaengigkeit", "kriminalitaet", "vertrauen_regierung"] },
+  streikwelle: { amt: ["wirtschaft", "inneres"], titel: "Die Streikwelle", groessen: ["industrie", "kriminalitaet"] },
+  anschlag: { amt: ["inneres", "generalstab"], titel: "Der Anschlag", groessen: ["terrorgefahr", "truppenmoral"] },
+  fluechtlingswelle: { amt: ["inneres", "aussen"], titel: "Die Fluchtbewegung", groessen: ["kriminalitaet", "beziehungen_eu"] },
+  fabrikschliessungen: { amt: ["wirtschaft"], titel: "Die Fabrikschließungen", groessen: ["industrie", "investitionen"] },
+  erdbeben: { amt: ["stab", "inneres"], titel: "Das Erdbeben", groessen: ["vertrauen_regierung", "kriminalitaet"] },
+  pressekonflikt: { amt: ["stab", "inneres"], titel: "Der Streit mit der Presse", groessen: ["legitimitaet", "vertrauen_regierung"] },
+  studentenproteste: { amt: ["inneres", "stab"], titel: "Die Studentenproteste", groessen: ["polarisierung", "kriminalitaet"] },
+  buergermeister_verfahren: { amt: ["justiz", "inneres"], titel: "Das Verfahren gegen den Bürgermeister", groessen: ["justiz_unabhaengigkeit", "polarisierung"] },
+  recht_ernennung: { amt: ["justiz"], titel: "Die Besetzung am Verfassungsgericht", groessen: ["justiz_unabhaengigkeit"] },
+  recht_aym_kassation: { amt: ["justiz"], titel: "Der Streit der Höchstgerichte", groessen: ["urteilsbefolgung", "justiz_unabhaengigkeit"] },
+  recht_egmr: { amt: ["justiz", "aussen"], titel: "Das Urteil aus Straßburg", groessen: ["urteilsbefolgung", "beziehungen_eu"] },
+  recht_haftrevolte: { amt: ["justiz", "inneres"], titel: "Die Unruhen im Gefängnis", groessen: ["haftueberfuellung", "kriminalitaet"] },
+  mil_lieferverzug: { amt: ["generalstab"], titel: "Der Lieferverzug bei der Rüstung", groessen: ["bereitschaft_heer", "bereitschaft_luft"] },
+  mil_militaerrat: { amt: ["generalstab"], titel: "Der Oberste Militärrat", groessen: ["offiziersvertrauen", "truppenmoral"] },
+  land_fordert: { amt: ["aussen"], titel: "Die Forderung eines Partnerlandes", groessen: ["ansehen"] },
+  land_angebot: { amt: ["aussen"], titel: "Das Angebot eines Partnerlandes", groessen: ["ansehen"] },
+  land_provokation: { amt: ["aussen", "generalstab"], titel: "Die Provokation an der Grenze", groessen: ["ansehen", "bereitschaft_heer"] },
+  land_drohkulisse: { amt: ["aussen", "generalstab"], titel: "Die Drohkulisse", groessen: ["ansehen", "bereitschaft_heer"] },
+  vertrag_verlaengerung: { amt: ["aussen"], titel: "Die Vertragsverlängerung", groessen: ["ansehen"] },
+  mindestlohn: { amt: ["wirtschaft", "finanzen"], titel: "Der Mindestlohn", groessen: ["industrie", "investitionen", "steuereinnahmen", "lebenshaltung"] },
+  haushaltsjahr: { amt: ["finanzen"], titel: "Der Haushalt für das nächste Jahr", groessen: ["steuereinnahmen", "zinslast"] },
+  kommunalwahl: { amt: ["stab"], titel: "Die Kommunalwahlen", groessen: ["vertrauen_regierung", "polarisierung"] },
 };
 
 // ---------------------------------------------------------------------------
@@ -269,7 +272,10 @@ export function ratHinweise(w: World, f: Figur, thema: Thema): string[] {
   const out: string[] = [];
   let groesse = thema.art === "lage" || thema.art === "sorge" ? thema.bezug : undefined;
   if (thema.art === "sorge") groesse = schlechtesteGroesse(w, f)?.id;
-  if (thema.art === "ereignis") groesse = schlechtesteGroesse(w, f)?.id;
+  if (thema.art === "ereignis") {
+    groesse = ereignisGroesse(w, f, thema.bezug);
+    if (!groesse) out.push(`Zu „${thema.titel}“ sieht ${f.name} keinen Hebel im eigenen Ressort.`);
+  }
   if (thema.art === "zusage") {
     const z = w.spiel!.zusagen.find((x) => x.id === thema.bezug);
     const v = zusageVorhaben(w, z);
@@ -317,8 +323,18 @@ export const MACHT_SCHWELLE = 45;
 
 function themaGroesse(w: World, f: Figur, t: Thema): string | undefined {
   if (t.art === "lage") return t.bezug;
-  if (t.art === "sorge" || t.art === "ereignis") return schlechtesteGroesse(w, f)?.id;
+  if (t.art === "sorge") return schlechtesteGroesse(w, f)?.id;
+  if (t.art === "ereignis") return ereignisGroesse(w, f, t.bezug);
   return undefined;
+}
+
+/** Die Größe, um die es in einem offenen Ereignis aus Sicht dieser Person geht (siehe EREIGNIS_BEZUG.groessen). */
+function ereignisGroesse(w: World, f: Figur, ereignisId: string | undefined): string | undefined {
+  const ev = w.spiel?.ereignisse.find((e) => e.id === ereignisId);
+  const groessen = ev ? EREIGNIS_BEZUG[ev.vorlage]?.groessen : undefined;
+  if (!groessen) return schlechtesteGroesse(w, f)?.id;
+  const fach = new Set(lageIm(w, f).map((l) => l.id));
+  return groessen.find((g) => fach.has(g));
 }
 
 export function planeGespraech(w: World, figurId: string, themaId: string, ansatz: AnsatzId): Plan | { grund: string } {

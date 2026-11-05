@@ -42,5 +42,17 @@
  "ereignis.spaeter": "Sonra karar ver",
  "ereignis.worum": "Mesele ne",
  "ereignis.kz.wohnungsnot": "Konut sıkıntısı",
- "ereignis.kz.erdbeben": "Deprem riski"
+ "ereignis.kz.erdbeben": "Deprem riski",
+ "ereignis.vs.stufe": "{name}: seviye {von} → {auf}",
+ "ereignis.vs.schulden": "Borç {d} yüzde puan",
+ "ereignis.vs.risiko": "Risk primi {d} puan",
+ "ereignis.vs.lira": "Lira %{d} {richtung, select, schwaecher {zayıf} other {güçlü}}",
+ "ereignis.vs.zustimmung": "Onay {d} puan",
+ "ereignis.vs.rueckhalt": "{rolle} {name}: {richtung, select, mehr {daha fazla} other {daha az}} destek",
+ "ereignis.ursache": "Ya da nedene müdahale edin:",
+ "ereignis.nichtOffen": "Bu olay artık açık değil.",
+ "ereignis.keineAntwort": "Böyle bir yanıt yok.",
+ "ereignis.fehltKapitalGenau": "Yeterli siyasi sermaye yok (gerekli {noetig}, mevcut {vorhanden}).",
+ "ereignis.standard": "Yanıt verilmezse",
+ "ereignis.standardHinweis": "Süreyi geçirirseniz bu olur. Sessizlik ayrıca onaya mal olur."
 }

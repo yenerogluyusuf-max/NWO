@@ -422,5 +422,9 @@
  "ui.wirtschaft.Zentralbank.c4908f0": "Amount of the intervention",
  "ui.wirtschaft.Zentralbank.e3fb7df": "Submit a law",
  "ui.wirtschaft.Zentralbank.e661ba3": "Foreign currency is the state's second currency: imports, foreign debt and defending the lira are paid in dollars. The central bank can create lira, but not dollars. What is missing must be brought in — via the current account, capital you attract, or the IMF.",
- "ui.wirtschaft.Zentralbank.f0053e6": "What the bank has decided"
+ "ui.wirtschaft.Zentralbank.f0053e6": "What the bank has decided",
+ "ui.Erklaerung.reiter.erklaert": "Explained",
+ "ui.Erklaerung.reiter.welt": "World comparison",
+ "ui.Erklaerung.reiter.tun": "What to do?",
+ "ui.NetView.akutAb": "· acute from {n}"
 }

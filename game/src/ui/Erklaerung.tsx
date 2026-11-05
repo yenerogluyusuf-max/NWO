@@ -11,12 +11,14 @@ import { Cameo } from "./art/Cameo";
 
 type Reiter = "erklaert" | "welt" | "tun";
 
-export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: World; onSelect: (id: string) => void }) {
+/** kopfText: der Satz, der über der Erklärung schon steht; die Mentorin wiederholt ihn nicht (Spielerdurchlauf 5. November) */
+export function Erklaerung({ node, world, onSelect, kopfText }: { node: NodeSpec; world: World; onSelect: (id: string) => void; kopfText?: string }) {
   const [reiter, setReiter] = useState<Reiter>("erklaert");
   const [welt, setWelt] = useState(0);
   const [mehr, setMehr] = useState(false);
   const tag = world.day - (world.day % 15);
-  const e = useMemo(() => erklaere(node, world), [node.id, world.net.month, tag]); // eslint-disable-line react-hooks/exhaustive-deps
+  const e0 = useMemo(() => erklaere(node, world), [node.id, world.net.month, tag]); // eslint-disable-line react-hooks/exhaustive-deps
+  const e = kopfText && e0.was[0]?.trim() === kopfText.trim() && e0.was.length > 1 ? { ...e0, was: e0.was.slice(1) } : e0;
   const vergleiche = indikatorenFuer(node.input ?? node.id);
   const aktuell = vergleiche[Math.min(welt, vergleiche.length - 1)];
   const eingang = node.input ? spielWert(world, node.input) : undefined;
@@ -32,9 +34,9 @@ export function Erklaerung({ node, world, onSelect }: { node: NodeSpec; world: W
         <div className="reiter" role="tablist">
           {(
             [
-              ["erklaert", "Erklärt"],
-              ["welt", "Weltvergleich"],
-              ["tun", "Was tun?"],
+              ["erklaert", t("ui.Erklaerung.reiter.erklaert")],
+              ["welt", t("ui.Erklaerung.reiter.welt")],
+              ["tun", t("ui.Erklaerung.reiter.tun")],
             ] as [Reiter, string][]
           ).map(([id, label]) => (
             <button key={id} role="tab" aria-selected={reiter === id} className={reiter === id ? "on" : ""} onClick={() => setReiter(id)}>

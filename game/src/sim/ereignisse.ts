@@ -1496,7 +1496,7 @@ setzeKatastrophenOeffner((w, vorlageId, rng, params) => {
   oeffne(w, vorlageId, rng, params);
 });
 
-const VORSCHAU_CACHE = new Map<string, string[]>();
+const VORSCHAU_CACHE = new Map<string, { text: string; zeilen: string[] }>();
 
 /**
  * Was eine Antwort sofort bewirkt: auf einer Kopie der Welt durchgerechnet, nichts davon geschieht wirklich.
@@ -1504,61 +1504,91 @@ const VORSCHAU_CACHE = new Map<string, string[]>();
  */
 export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: string): string[] {
   if (ev.vorlage === "zusage") return zusagenErinnerungsAntwort(world, ev, optionId)?.sofortfolgen ?? [];
-  const key = `${ev.id}|${optionId}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
+  return folgenAufKopie(world, ev, optionId, (kopie, evK) => {
+    const o = antworten(kopie, evK).find((x) => x.id === optionId);
+    if (!o || o.sperre) return null;
+    o.wirkung(kopie, evK, new Rng(12345));
+    return "";
+  }).zeilen;
+}
+
+/**
+ * Was geschieht, wenn bis zur Frist niemand antwortet: die Standardfolge der Vorlage auf einer Kopie, dazu der Preis des
+ * Schweigens in der Umfrage (wie in ereignisseTag). Spielerdurchlauf 5. November: „Man erfährt nicht, was die Standardfolge ist.“
+ */
+export function standardVorschau(world: World, ev: OffenesEreignis): { text: string; zeilen: string[] } | null {
+  const r = folgenAufKopie(world, ev, "§standard", (kopie, evK) => {
+    const text = vorlage(evK.vorlage).standard(kopie, evK, new Rng(12345));
+    if (!evK.vorlage.startsWith("start_")) kopie.spiel!.umfrage.zustimmung = Math.max(0, kopie.spiel!.umfrage.zustimmung - 0.8);
+    return text;
+  });
+  return r.text ? r : null;
+}
+
+/** Rechnet eine Wirkung auf einer Kopie der Welt durch und beschreibt, was sich sofort ändert. */
+function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, anwenden: (kopie: World, evK: OffenesEreignis) => string | null): { text: string; zeilen: string[] } {
+  const key = `${ev.id}|${schluessel}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
   const gemerkt = VORSCHAU_CACHE.get(key);
   if (gemerkt) return gemerkt;
   const zeilen: string[] = [];
+  let text = "";
   try {
     const kopie = structuredClone(world);
     const evK = kopie.spiel!.ereignisse.find((e) => e.id === ev.id);
-    const o = evK ? antworten(kopie, evK).find((x) => x.id === optionId) : undefined;
-    if (evK && o && !o.sperre) {
+    if (evK) {
       const vorher = new Map<string, number>();
       for (const n of NET.nodes) if (!n.input) vorher.set(n.id, nationalAverage(NET, world.net, n.id));
       const schulden0 = kopie.economy.debtRatio;
       const kasse0 = kassenbestand(kopie.economy);
       const risiko0 = kopie.economy.riskPremium;
       const fx0 = kopie.economy.usdTry;
+      const zust0 = kopie.spiel!.umfrage.zustimmung;
       const loyal0 = new Map(kopie.spiel!.figuren.map((f) => [f.id, f.loyalitaet]));
       const imAmt0 = new Set(kopie.spiel!.figuren.filter((f) => f.imAmt).map((f) => f.id));
-      o.wirkung(kopie, evK, new Rng(12345));
-      // 1. Maßnahmen, die der Spieler damit verändert
-      for (const [id, ziel] of Object.entries(kopie.net.targets)) {
-        const jetzt = nationalAverage(NET, world.net, id);
-        const alt = world.net.targets[id];
-        if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(`${NET.nodes[NET.index.get(id)!]!.name}: Stufe ${Math.round(jetzt)} auf ${Math.round(ziel)}`);
+      const ergebnis = anwenden(kopie, evK);
+      if (ergebnis !== null) {
+        text = ergebnis;
+        // 1. Maßnahmen, die der Spieler damit verändert
+        for (const [id, ziel] of Object.entries(kopie.net.targets)) {
+          const jetzt = nationalAverage(NET, world.net, id);
+          const alt = world.net.targets[id];
+          if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(t("ereignis.vs.stufe", { name: NET.nodes[NET.index.get(id)!]!.name, von: Math.round(jetzt), auf: Math.round(ziel) }));
+        }
+        // 2. Haushalt und Märkte
+        const vz = (d: number, stellen: number) => `${d > 0 ? "+" : "−"}${nf(Math.abs(d), stellen)}`;
+        const ds = kopie.economy.debtRatio - schulden0;
+        if (Math.abs(ds) >= 0.04) zeilen.push(t("ereignis.vs.schulden", { d: vz(ds, 2) }));
+        const dk = kassenbestand(kopie.economy) - kasse0;
+        if (Math.abs(dk) > 0.001) zeilen.push(t("sf.kasseAenderung", { betrag: vz(dk, 2) }));
+        const dr = kopie.economy.riskPremium - risiko0;
+        if (Math.abs(dr) >= 4) zeilen.push(t("ereignis.vs.risiko", { d: vz(dr, 0) }));
+        const df = (kopie.economy.usdTry / fx0 - 1) * 100;
+        if (Math.abs(df) >= 0.4) zeilen.push(t("ereignis.vs.lira", { richtung: df > 0 ? "schwaecher" : "staerker", d: nf(Math.abs(df)) }));
+        const dz = kopie.spiel!.umfrage.zustimmung - zust0;
+        if (Math.abs(dz) >= 0.5) zeilen.push(t("ereignis.vs.zustimmung", { d: vz(dz, 1) }));
+        // 3. Personen
+        for (const f of kopie.spiel!.figuren) {
+          // Nur wer vorher und nachher im Amt ist: Wer durch die Antwort erst ins Amt rückt, gewinnt oder verliert keinen Rückhalt
+          // (Spielerdurchlauf: „Die Person opfern“ nannte die Nachfolgerin)
+          if (!f.imAmt || !imAmt0.has(f.id)) continue;
+          const d = f.loyalitaet - (loyal0.get(f.id) ?? f.loyalitaet);
+          if (Math.abs(d) >= 3) zeilen.push(t("ereignis.vs.rueckhalt", { rolle: f.rolle, name: f.name, richtung: d > 0 ? "mehr" : "weniger" }));
+        }
+        // 4. Die Größen, die sich am stärksten bewegen
+        const aenderungen: { name: string; d: number }[] = [];
+        for (const n of NET.nodes) {
+          if (n.input) continue;
+          const d = nationalAverage(NET, kopie.net, n.id) - (vorher.get(n.id) ?? 0);
+          if (Math.abs(d) >= 0.4) aenderungen.push({ name: n.name, d });
+        }
+        aenderungen.sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+        for (const a of aenderungen.slice(0, 4)) zeilen.push(`${a.name} ${vz(a.d, 1)}`);
       }
-      // 2. Haushalt und Märkte
-      const ds = kopie.economy.debtRatio - schulden0;
-      if (Math.abs(ds) >= 0.04) zeilen.push(`Schulden ${ds > 0 ? "+" : "−"}${nf(Math.abs(ds), 2)} Prozentpunkte`);
-      const dk = kassenbestand(kopie.economy) - kasse0;
-      if (Math.abs(dk) > 0.001) zeilen.push(t("sf.kasseAenderung", { betrag: `${dk > 0 ? "+" : "−"}${nf(Math.abs(dk), 2)}` }));
-      const dr = kopie.economy.riskPremium - risiko0;
-      if (Math.abs(dr) >= 4) zeilen.push(`Risikoaufschlag ${dr > 0 ? "+" : "−"}${nf(Math.abs(dr), 0)} Punkte`);
-      const df = (kopie.economy.usdTry / fx0 - 1) * 100;
-      if (Math.abs(df) >= 0.4) zeilen.push(`Lira ${df > 0 ? "schwächer" : "stärker"} um ${nf(Math.abs(df))} %`);
-      // 3. Personen
-      for (const f of kopie.spiel!.figuren) {
-        // Nur wer vorher und nachher im Amt ist: Wer durch die Antwort erst ins Amt rückt, gewinnt oder verliert keinen Rückhalt
-        // (Spielerdurchlauf: „Die Person opfern“ nannte die Nachfolgerin)
-        if (!f.imAmt || !imAmt0.has(f.id)) continue;
-        const d = f.loyalitaet - (loyal0.get(f.id) ?? f.loyalitaet);
-        if (Math.abs(d) >= 3) zeilen.push(`${f.rolle} ${f.name}: ${d > 0 ? "mehr" : "weniger"} Rückhalt`);
-      }
-      // 4. Die Größen, die sich am stärksten bewegen
-      const aenderungen: { name: string; d: number }[] = [];
-      for (const n of NET.nodes) {
-        if (n.input) continue;
-        const d = nationalAverage(NET, kopie.net, n.id) - (vorher.get(n.id) ?? 0);
-        if (Math.abs(d) >= 0.4) aenderungen.push({ name: n.name, d });
-      }
-      aenderungen.sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
-      for (const a of aenderungen.slice(0, 4)) zeilen.push(`${a.name} ${a.d > 0 ? "+" : "−"}${nf(Math.abs(a.d))}`);
     }
   } catch {
     // Keine Vorschau ist besser als eine falsche
   }
-  const ergebnis = zeilen.slice(0, 6);
+  const ergebnis = { text, zeilen: zeilen.slice(0, 6) };
   if (VORSCHAU_CACHE.size > 300) VORSCHAU_CACHE.clear();
   VORSCHAU_CACHE.set(key, ergebnis);
   return ergebnis;
@@ -1578,6 +1608,8 @@ export interface EreignisAnsicht {
   massnahmen: { id: string; name: string; ziel?: number }[];
   /** Beschriftung der Zeile mit den Maßnahmen */
   massnahmenText: string;
+  /** Was ohne Antwort bis zur Frist geschieht (Text der Standardfolge und ihre sofortigen Wirkungen) */
+  standardFolge?: { text: string; zeilen: string[] };
 }
 
 function zusageAnsicht(world: World, ev: OffenesEreignis, v: Vorlage): { massnahmen: { id: string; name: string; ziel?: number }[]; massnahmenText: string } {
@@ -1586,7 +1618,7 @@ function zusageAnsicht(world: World, ev: OffenesEreignis, v: Vorlage): { massnah
     const vorhaben = zusageVorhaben(world, z);
     return { massnahmen: vorhaben ? [{ id: vorhaben.id, name: vorhaben.name, ziel: vorhaben.ziel }] : [], massnahmenText: t("ze.gesetzAnsehen") };
   }
-  return { massnahmen: (v.massnahmen ?? []).map((id) => ({ id, name: NET.nodes[NET.index.get(id)!]!.name })), massnahmenText: "Oder an der Ursache ansetzen:" };
+  return { massnahmen: (v.massnahmen ?? []).map((id) => ({ id, name: NET.nodes[NET.index.get(id)!]!.name })), massnahmenText: t("ereignis.ursache") };
 }
 
 export function ansicht(world: World, ev: OffenesEreignis): EreignisAnsicht {
@@ -1602,19 +1634,23 @@ export function ansicht(world: World, ev: OffenesEreignis): EreignisAnsicht {
     tageBisFrist: Math.max(0, ev.frist - world.day),
     optionen: antworten(world, ev).map(({ wirkung: _w, ...rest }) => ({ ...rest, bezahlbar: kannZahlen(world.spiel?.kapital ?? 0, rest.anzeigePk ?? rest.pk), vorschau: rest.sperre ? [] : rest.sofortfolgen ?? wirkungsVorschau(world, ev, rest.id) })),
     ...zusageAnsicht(world, ev, v),
+    ...(() => {
+      const sf = standardVorschau(world, ev);
+      return sf ? { standardFolge: sf } : {};
+    })(),
   };
 }
 
 export function entscheide(world: World, ereignisId: string, optionId: string, rng: Rng): { ok: boolean; text: string } {
   const spiel = world.spiel;
   const ev = spiel?.ereignisse.find((e) => e.id === ereignisId);
-  if (!spiel || !ev) return { ok: false, text: "Dieses Ereignis ist nicht mehr offen." };
+  if (!spiel || !ev) return { ok: false, text: t("ereignis.nichtOffen") };
   const v = vorlage(ev.vorlage);
   const o = antworten(world, ev).find((x) => x.id === optionId);
-  if (!o) return { ok: false, text: "Diese Antwort gibt es nicht." };
+  if (!o) return { ok: false, text: t("ereignis.keineAntwort") };
   if (o.sperre) return { ok: false, text: o.sperre };
   const vollerPreis = o.anzeigePk ?? o.pk;
-  if (!kannZahlen(spiel.kapital, vollerPreis)) return { ok: false, text: `Dafür fehlt Politisches Kapital (nötig ${vollerPreis}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  if (!kannZahlen(spiel.kapital, vollerPreis)) return { ok: false, text: t("ereignis.fehltKapitalGenau", { noetig: vollerPreis, vorhanden: Math.floor(spiel.kapital) }) };
   spiel.kapital -= o.pk;
   const titel = v.titel(world, ev);
   // Rückblick (sim/berichte.ts): Stand vor der Antwort festhalten, damit der Bericht nach 6, 12 und 24 Monaten zeigen kann, was davon blieb

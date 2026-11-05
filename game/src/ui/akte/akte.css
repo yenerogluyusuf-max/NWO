@@ -24,6 +24,7 @@
 .ak-kernwert{display:grid;align-content:center;gap:6px;min-width:0;padding:8px 14px;border-left:1px solid var(--ak-linie);color:var(--ak-tief)}
 .ak-kernwert-label{font:500 11.5px/1.5 var(--sans,Inter,sans-serif);color:#5e6a61;overflow-wrap:anywhere}
 .ak-kernwert dd{margin:0;min-width:0}.ak-kernwert strong{font:500 32px/1.15 var(--display,Georgia,serif);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ak-kernwert-hinweis{font:12.5px/1.35 var(--sans,Inter,sans-serif);color:#6b5a46;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ak-kernwert.gut strong{color:#644b3d}.ak-kernwert.mittel strong{color:#856026}.ak-kernwert.schlecht strong{color:#a23d3e}
 .ak-kernwert .ak-funke{max-width:100%;color:var(--ak-akzent);opacity:.8}
 .ak-arbeitsplatz{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:start;min-width:0}
