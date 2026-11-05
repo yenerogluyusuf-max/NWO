@@ -186,12 +186,17 @@ describe("Zeit und Eingriffe", () => {
     expect(r.text).toMatch(/Zentralbank/);
   });
 
-  test("Finanzminister entlassen kostet Kapital", () => {
+  // Befund C-2 (Nacht 5./6. November): Der Chat entließ sofort und mit einem zufälligen Nachfolger. Jetzt bereitet er die Entlassung
+  // nur vor; Kosten fallen erst mit der Wahl des Nachfolgers an (der Preis der Kandidaten prüft test/personen.test.ts).
+  test("Finanzminister entlassen wird nur vorbereitet: kein Kapital, niemand geht", () => {
     const w = neu();
     const vorher = w.spiel!.kapital;
+    const name = w.spiel!.figuren.find((f) => f.amt === "finanzen")!.name;
     const r = befehl("Entlasse den Finanzminister", w);
     expect(r.ok).toBe(true);
-    expect(w.spiel!.kapital).toBe(vorher - 4);
+    expect(r.vorschlag).toEqual({ art: "entlassung", amt: "finanzen", figurId: "finanzen" });
+    expect(w.spiel!.kapital).toBe(vorher);
+    expect(w.spiel!.figuren.find((f) => f.amt === "finanzen")!.name).toBe(name);
   });
 });
 
