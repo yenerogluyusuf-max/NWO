@@ -1520,6 +1520,7 @@ export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: st
       const risiko0 = kopie.economy.riskPremium;
       const fx0 = kopie.economy.usdTry;
       const loyal0 = new Map(kopie.spiel!.figuren.map((f) => [f.id, f.loyalitaet]));
+      const imAmt0 = new Set(kopie.spiel!.figuren.filter((f) => f.imAmt).map((f) => f.id));
       o.wirkung(kopie, evK, new Rng(12345));
       // 1. Maßnahmen, die der Spieler damit verändert
       for (const [id, ziel] of Object.entries(kopie.net.targets)) {
@@ -1538,6 +1539,9 @@ export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: st
       if (Math.abs(df) >= 0.4) zeilen.push(`Lira ${df > 0 ? "schwächer" : "stärker"} um ${nf(Math.abs(df))} %`);
       // 3. Personen
       for (const f of kopie.spiel!.figuren) {
+        // Nur wer vorher und nachher im Amt ist: Wer durch die Antwort erst ins Amt rückt, gewinnt oder verliert keinen Rückhalt
+        // (Spielerdurchlauf: „Die Person opfern“ nannte die Nachfolgerin)
+        if (!f.imAmt || !imAmt0.has(f.id)) continue;
         const d = f.loyalitaet - (loyal0.get(f.id) ?? f.loyalitaet);
         if (Math.abs(d) >= 3) zeilen.push(`${f.rolle} ${f.name}: ${d > 0 ? "mehr" : "weniger"} Rückhalt`);
       }
