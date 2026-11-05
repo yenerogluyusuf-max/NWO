@@ -12,7 +12,7 @@ import { t } from "../i18n";
 import { GruppenDetail, type DossierZiel } from "./waehler/GruppenDetail";
 import { HilfeKarte } from "./waehler/HilfeKarte";
 import { Sparkline } from "./waehler/Sparkline";
-import { GesellschaftAkte } from "./gesellschaft/GesellschaftAkte";
+import { Kreisfeld } from "./waehler/Kreisfeld";
 import { gewichtWort, nf, prozent, vz } from "./waehler/format";
 import "./politik/design.css";
 import "./waehler/waehler.css";
@@ -72,7 +72,7 @@ function Barometer({ world }: { world: World }) {
   );
 }
 
-function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typeof koalition>; waehle: (id: string) => void; world: World; onMassnahme?: (id: string, richtung: 1 | -1) => void }) {
+function KoalitionsBalken({ k, waehle, aktiv, world, onMassnahme }: { k: ReturnType<typeof koalition>; waehle: (id: string) => void; aktiv: string | null; world: World; onMassnahme?: (id: string, richtung: 1 | -1) => void }) {
   const spiel = world.spiel!;
   const signatur = `${world.date.slice(0, 7)}|${Math.floor(spiel.kapital)}|${Object.keys(world.net.targets).length}|${spiel.gesetze.length}`;
   const schritte = useMemo(() => schritteFuerZustimmung(world, 3), [signatur]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -93,11 +93,7 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
   return (
     <section className="wa-koalition" aria-label={t("ui.Waehler.64eb6ca")}>
       <h3>{t("ui.Waehler.8ac7f95")}</h3>
-      <div className="wa-balken" role="img" aria-label={t("wa.balkenAria", { t: prozent(k.traeger), s: prozent(k.schwankend), g: prozent(k.gegner) })}>
-        <span className="rolle-traeger" style={{ flexGrow: k.traeger }} />
-        <span className="rolle-schwankend" style={{ flexGrow: k.schwankend }} />
-        <span className="rolle-gegner" style={{ flexGrow: k.gegner }} />
-      </div>
+      <Kreisfeld gruppen={k.gruppen} aktiv={aktiv} waehle={waehle} />
       <ul className="wa-legende">
         <li className="rolle-traeger">
           <b>{prozent(k.traeger)}</b> {t("wa.legende.traeger")} <em>({anzahl("traeger")})</em>
@@ -153,37 +149,10 @@ function KoalitionsBalken({ k, waehle, world, onMassnahme }: { k: ReturnType<typ
   );
 }
 
-function GruppenKarte({ g, aktiv, waehle }: { g: GruppeKurz; aktiv: boolean; waehle: (id: string) => void }) {
-  const abstand = g.ziel - g.laune;
-  return (
-    <li>
-      <button type="button" className={`wa-gruppe rolle-${g.rolle}${aktiv ? " on" : ""}`} aria-pressed={aktiv} onClick={() => waehle(g.id)}>
-        <span className="wa-g-kopf">
-          <strong>{g.name}</strong>
-          <span className="wa-g-rolle">{t(ROLLE_TEXT[g.rolle])}</span>
-        </span>
-        <span className="wa-g-bar" aria-hidden>
-          <i style={{ width: `${Math.max(0, Math.min(100, g.laune))}%` }} />
-          <b className="ruhe" />
-          {Math.abs(abstand) >= 2 && <u className={abstand < 0 ? "fallend" : "steigend"} style={{ left: `${Math.max(0, Math.min(100, g.ziel))}%` }} title={t("wa.strebtNach", { ziel: nf(g.ziel, 0) })} />}
-        </span>
-        <span className="wa-g-fuss">
-          <span>{gewichtWort(g.anteil)}</span>
-          <span className="wa-g-zahl">
-            {Math.round(g.laune)}
-            {g.trend !== null && Math.abs(g.trend) >= 0.4 && <em className={g.trend > 0 ? "gut" : "schlecht"}> {g.trend > 0 ? "▲" : "▼"} {nf(Math.abs(g.trend))}</em>}
-          </span>
-        </span>
-      </button>
-    </li>
-  );
-}
-
 export function Waehler({ world, onMassnahme, onDossier }: { world: World; onMassnahme?: (id: string, richtung: 1 | -1) => void; onDossier?: (d: DossierZiel) => void }) {
   const spiel = world.spiel;
   const k = useMemo(() => (spiel ? koalition(world) : null), [spiel ? world.date.slice(0, 7) : "", spiel?.gesetze.length, spiel ? Object.keys(world.net.targets).length : 0]); // eslint-disable-line react-hooks/exhaustive-deps
   const [gewaehlt, setGewaehlt] = useState<string | null>(null);
-  const [ansicht, setAnsicht] = useState<"koalition" | "gesellschaft">("koalition");
   const detailRef = useRef<HTMLDivElement>(null);
   const erster = useRef(true);
   const standard = k?.gefaehrdet?.id ?? k?.gewinnbar?.id ?? k?.gruppen[0]?.id ?? null;
@@ -197,37 +166,13 @@ export function Waehler({ world, onMassnahme, onDossier }: { world: World; onMas
     if (gewaehlt && window.matchMedia("(max-width: 900px)").matches) detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [gewaehlt]);
   if (!spiel || !k) return <p>{t("ui.Waehler.847ba01")}</p>;
-  const umschalter = (
-    <nav className="ges-reiter wa-umschalter" role="tablist" aria-label={t("ges.umschalter")}>
-      {(["koalition", "gesellschaft"] as const).map((a) => (
-        <button key={a} type="button" role="tab" aria-selected={ansicht === a} className={ansicht === a ? "on" : ""} onClick={() => setAnsicht(a)}>
-          {t(`ges.umschalter.${a}`)}
-        </button>
-      ))}
-    </nav>
-  );
-  if (ansicht === "gesellschaft")
-    return (
-      <div className="wa-root">
-        {umschalter}
-        <GesellschaftAkte world={world} />
-      </div>
-    );
   return (
     <div className="wa-root">
-      {umschalter}
       <Barometer world={world} />
-      <KoalitionsBalken k={k} waehle={setGewaehlt} world={world} {...(onMassnahme ? { onMassnahme } : {})} />
-      <div className="wa-haupt">
-        <nav className="wa-liste" aria-label={t("ui.Waehler.8fa6867")}>
-          <h3>{t("ui.Waehler.e984a34")}</h3>
-          <p className="wa-unter">{t("ui.Waehler.617465c")}</p>
-          <ul>
-            {k.gruppen.map((g) => (
-              <GruppenKarte key={g.id} g={g} aktiv={g.id === aktuell} waehle={setGewaehlt} />
-            ))}
-          </ul>
-        </nav>
+      <div className="wa-haupt wa-feld-haupt">
+        <div className="wa-liste">
+          <KoalitionsBalken k={k} waehle={setGewaehlt} aktiv={aktuell} world={world} {...(onMassnahme ? { onMassnahme } : {})} />
+        </div>
         <div className="wa-rechts" ref={detailRef}>
           {aktuell && <GruppenDetail key={aktuell} world={world} id={aktuell} {...(onMassnahme ? { onMassnahme } : {})} {...(onDossier ? { onDossier } : {})} />}
         </div>

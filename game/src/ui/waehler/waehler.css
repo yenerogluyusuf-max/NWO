@@ -252,3 +252,46 @@
 @media (prefers-reduced-motion: reduce) {
   .dossier button.wa-gruppe, .wa-zu > summary::before, .wa-bilanz summary::before { transition: none; }
 }
+
+/* Kreisfeld (AP 12): eine Zeile je Wählergruppe, der Kreis auf ihrer Stimmung, Größe nach Gewicht, Pfeil zum Ziel */
+.wa-feld { margin: 0; }
+.wa-feld-raster { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr); column-gap: 14px; row-gap: 3px; align-items: center; }
+.wa-feld-kopf { position: relative; height: 20px; }
+.wa-feld-zone { position: absolute; top: 0; font: 400 11.5px var(--kapitaelchen, serif); letter-spacing: 0.1em; text-transform: uppercase; color: #6b5338; padding-left: 6px; white-space: nowrap; overflow: hidden; }
+.wa-root .wa-feld button.wa-feld-name { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 3px 8px; min-height: 0; border: 0; border-radius: 4px; background: transparent; text-align: left; font: 14px/1.2 var(--serif); color: #2e2118; cursor: pointer; text-transform: none; letter-spacing: 0; box-shadow: none; }
+.wa-root .wa-feld button.wa-feld-name small { font: 11.5px var(--sans); color: #7a6650; white-space: nowrap; }
+.wa-root .wa-feld button.wa-feld-name:hover { background: rgba(201, 162, 90, 0.18); }
+.wa-root .wa-feld button.wa-feld-name.on { background: #5d4231; color: #f4ead2; }
+.wa-root .wa-feld button.wa-feld-name.on small { color: #e6d2a6; }
+.wa-feld-spur { position: relative; height: 34px; }
+.wa-feld-b { position: absolute; top: 15px; height: 4px; }
+.wa-feld-b.gegner { background: rgba(143, 42, 30, 0.22); }
+.wa-feld-b.schwankend { background: rgba(201, 162, 87, 0.35); }
+.wa-feld-b.traeger { background: rgba(38, 90, 98, 0.3); }
+.wa-feld-spur.on .wa-feld-b { top: 14px; height: 6px; }
+.wa-root .wa-feld button.wa-feld-kreis { position: absolute; top: 17px; transform: translate(-50%, -50%); padding: 0; min-height: 0; min-width: 0; letter-spacing: 0; text-transform: none; display: grid; place-items: center; border-radius: 50%; border: 2px solid #fbf4df; cursor: pointer; box-shadow: 0 1px 4px rgba(40, 24, 10, 0.3); color: #fff; font: 700 11px var(--sans); }
+.wa-root .wa-feld button.wa-feld-kreis.on { box-shadow: 0 0 0 3px #2e2118; }
+.wa-root .wa-feld button.wa-feld-kreis.rolle-traeger { background: var(--pd-teal, #265a62); }
+.wa-root .wa-feld button.wa-feld-kreis.rolle-schwankend { background: #c9a257; color: #2e2118; }
+.wa-root .wa-feld button.wa-feld-kreis.rolle-gegner { background: var(--seal, #8f2a1e); }
+.wa-feld-pfeil { position: absolute; top: 16px; height: 0; border-top: 2px dashed #5d4231; }
+.wa-feld-pfeil.steigt::after, .wa-feld-pfeil.faellt::before { content: ""; position: absolute; top: -6px; border: 5px solid transparent; }
+.wa-feld-pfeil.steigt::after { right: -8px; border-left: 7px solid #5d4231; }
+.wa-feld-pfeil.faellt::before { left: -8px; border-right: 7px solid #5d4231; }
+.wa-feld-achse { position: relative; height: 16px; }
+.wa-feld-achse span { position: absolute; transform: translateX(-50%); font: 11.5px var(--sans); color: #7a6650; }
+.wa-feld figcaption { margin: 8px 0 0; font: 13px var(--sans); color: #5a4632; }
+/* Feld links, gewählte Gruppe rechts als feste Akte (AP 12) */
+.wa-haupt.wa-feld-haupt { grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr); gap: 18px; }
+.wa-feld-haupt > .wa-liste { position: static; }
+.wa-feld-haupt > .wa-rechts { position: sticky; top: 0; max-height: calc(100vh - 230px); overflow-y: auto; }
+.wa-barometer { padding: 14px 22px 10px; }
+@media (max-width: 1100px) { .wa-haupt.wa-feld-haupt { grid-template-columns: 1fr; } .wa-feld-haupt > .wa-rechts { position: static; max-height: none; } }
+.wa-haupt.wa-feld-haupt { grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr); }
+.wa-feld-raster { grid-template-columns: minmax(130px, 190px) minmax(0, 1fr); }
+.wa-feld-zone { border-bottom: 3px solid; }
+.wa-feld-zone.gegner { border-color: rgba(143, 42, 30, 0.45); }
+.wa-feld-zone.schwankend { border-color: rgba(201, 162, 87, 0.7); }
+.wa-feld-zone.traeger { border-color: rgba(38, 90, 98, 0.55); }
+.wa-root .wa-barometer .wa-baro-zahl strong { font-size: 44px; line-height: 1; }
+.wa-root .wa-barometer { gap: 4px 30px; }

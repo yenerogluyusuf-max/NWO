@@ -24,7 +24,8 @@ describe("Wähleransicht", () => {
     const html = renderToStaticMarkup(createElement(Waehler, { world: neu() }));
     expect(html).toContain("Wenn heute gewählt würde");
     expect(html).toContain("Ihre Koalition der Wähler");
-    expect((html.match(/class="wa-gruppe/g) ?? []).length).toBe(GRUPPEN.length);
+    // Seit 05.11.2026 eine Zeile je Gruppe im Kreisfeld (Name und Kreis auf der Stimmungsachse)
+    expect((html.match(/class="wa-feld-kreis/g) ?? []).length).toBe(GRUPPEN.length);
     expect(html).not.toContain("NaN");
   });
 
