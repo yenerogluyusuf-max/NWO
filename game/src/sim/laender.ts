@@ -254,6 +254,10 @@ export const LAENDER: LandDef[] = [
   },
 ];
 
+// Name, Dativ und Akkusativ in der aktuellen Sprache (Katalog laendernamen.json): als Getter, damit ein Sprachwechsel sofort greift.
+// Vorher standen sie fest deutsch oder wurden einmal beim Laden übersetzt. Die Logik arbeitet mit l.id, nie mit dem Namen.
+for (const l of LAENDER) for (const feld of ["name", "dat", "akk"] as const) Object.defineProperty(l, feld, { get: () => t(`land.${feld}.${l.id}`), enumerable: true, configurable: true });
+
 const LAND = new Map(LAENDER.map((l) => [l.id, l]));
 export const land = (id: string): LandDef => {
   const l = LAND.get(id);
