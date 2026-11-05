@@ -35,6 +35,6 @@ Auftrag: die Nacht durch prüfen, verbessern, vergleichen, über alle Bereiche, 
 ## 4. Offen und für Sie zu entscheiden
 
 - **Müdigkeit 0,10 je Monat** liegt über der Untergrenze des Belegs (2,25 Punkte je Wahlperiode). Bitte prüfen, ob das Spiel damit hart genug bleibt; „hart“ behält die alte Müdigkeit.
-- **Rund 35 Sätze in Rückgabetexten** der Simulation sind noch fest deutsch (Abkommen, Initiativen); die häufigsten Protokollzeilen sind übersetzt.
+- **Übersetzung:** Protokoll, Verträge, Initiativen anderer Staaten, Ländernamen und Ereignispreise kommen jetzt aus Katalogen; die englische Oberfläche zeigt in der Stichprobe keine deutschen Reste mehr. Offen sind einzelne Texte aus Datenmodulen (Länderprofile, Rote-Linien-Sätze).
 - **Mentorin und Prolog duzen** bewusst; alle Systemtexte siezen. Wenn auch die Mentorin siezen soll, ist das ein kurzer Schritt.
 - Nächste Schritte stehen in [PLANERWEITERUNG.md](PLANERWEITERUNG.md) §10: Befehle auf der Karte, endogene Gruppengröße (Democracy 4), Besatzungsverwaltung (HOI4).

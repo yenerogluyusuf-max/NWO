@@ -163,7 +163,7 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 - **Suzerain:** Minister erinnern sich an Ihre Antworten und nennen sie auf der nächsten Karte.
 - **Fehler gefunden und behoben:** Der Wahlabend lag hinter einer offenen Akte (Ebene 12 gegen 50) und blieb unsichtbar, wenn man nach dem Laden „Zum Schreibtisch“ wählte.
 
-**Als Nächstes:** (a) restliche fest deutsche Protokollzeilen übersetzen (Abkommen, Wahlkampf, Vermittlung, Großprojekte: rund 35 Stellen), (b) endogene Gruppengröße (Democracy 4), (c) Befehle auf der Karte (Vorgabe S; die Lage steht jetzt auf beiden Karten), (d) Besatzungsverwaltung (HOI4), (e) Wahlkampf sichtbarer machen: Ohne Wahlkampf kosten unbeantwortete Angriffe der Opposition 6 Punkte, TV-Duell und schwaches Lager rund 2 (Wahltest: 51 % Zustimmung ergaben 39–42 % der Stimmen); der Schreibtisch sollte das vor der heißen Phase ankündigen, (f) die Zeitung und das Halbrund bleiben bewusst außerhalb der Palette.
+**Als Nächstes:** (a) übersetzt sind jetzt Protokoll, Verträge, Initiativen, Ländernamen und Ereignispreise; offen bleiben einzelne Texte aus Datenmodulen (Profile der Länder, Ausstrahlungstexte, heimWirkung), (b) endogene Gruppengröße (Democracy 4), (c) Befehle auf der Karte (Vorgabe S; die Lage steht jetzt auf beiden Karten), (d) Besatzungsverwaltung (HOI4), (e) Wahlkampf sichtbarer machen: Ohne Wahlkampf kosten unbeantwortete Angriffe der Opposition 6 Punkte, TV-Duell und schwaches Lager rund 2 (Wahltest: 51 % Zustimmung ergaben 39–42 % der Stimmen); der Schreibtisch sollte das vor der heißen Phase ankündigen, (f) die Zeitung und das Halbrund bleiben bewusst außerhalb der Palette.
 
 ## 10a. Stand 04.11.2026
 
