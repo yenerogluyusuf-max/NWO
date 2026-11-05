@@ -30,3 +30,5 @@ marker path.eigen{fill:#8e2a22} marker path.gegner{fill:#2a1f18}
 /* Nachbarländer laufen über den Ausschnitt hinaus weiter, statt am Rand hart abzubrechen (Handy, hohe Fenster) */
 .karte2d svg{overflow:visible}
 @media (max-width:640px){.karte2d-hinweis{top:auto;bottom:118px;max-width:calc(100vw - 32px);text-align:center}}
+/* Auf dem Titelbild und im Prolog ist die Karte Kulisse ohne Klicks: kein Hinweis */
+.front .karte2d-hinweis{display:none}
