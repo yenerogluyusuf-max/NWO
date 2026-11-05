@@ -1,6 +1,6 @@
 import { VersorgungsBruchwarnung } from "../gueter/VersorgungsBruchwarnung";
 import { RessortVerantwortung } from './RessortVerantwortung';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Portraet } from '../art/Portraet';
 import type { Amt } from '../../sim/ministerfluss-typen';
 import type { World } from '../../sim/types';
@@ -84,7 +84,10 @@ export function RessortAntwortKarte({world,p,onAntwort}:{world:World;p:AntwortPl
  </EntscheidungsKarte>;
 }
 function RessortAntwortWege({world,id,onAntwort}:{world:World;id:string;onAntwort:(p:AntwortPlan)=>void}) {
- const pl=ARTEN.flatMap(art=>{const p=ressortAntwortPlan(world,id,art);return p?[p]:[];});
+ // Jeder Plan rechnet in einer Kopie der Welt (rund 45 ms); nur neu, wenn sich Tag, Anliegen oder Kapital ändern
+ const pl=useMemo(()=>ARTEN.flatMap(art=>{const p=ressortAntwortPlan(world,id,art);return p?[p]:[];}),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [world,id,world.day,world.spiel?.kapital,world.spiel?.ministerfluss?.ressortAnliegen?.find(a=>a.id===id)?.status]);
  return <EntscheidungsWege wege={pl.map(p=>({id:p.art,titel:t(`ra.art.${p.art}`),kurz:t(`eo.antwort.${p.art}`),
    preis:p.ok?t('vn.preis',{pk:zahl(p.pk,1),aufmerksamkeit:zahl(p.aufmerksamkeit,0)}):t('eo.pruefen'),hinweis:p.grund}))}
    inhalt={art=>{const p=pl.find(p=>p.art===art);return p?<RessortAntwortKarte world={world} p={p} onAntwort={onAntwort}/>:null;}}/>;
