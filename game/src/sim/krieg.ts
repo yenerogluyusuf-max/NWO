@@ -1276,7 +1276,11 @@ function vorgangAnlegen(w: World, landId: string, eskalation: number): KriegVorg
   };
   kriege(w).push(k);
   const konflikt = Math.round(weltZustand(w)[l.id]?.konflikt ?? eskalation);
-  hinweis(w, `krieg-spannung-${k.id}`, t("krieg.k.sp.titel", { land: l.name }), [t("krieg.k.sp.text1", { land: l.name, konflikt }), t("krieg.k.sp.text2")]);
+  // Ein Zwischenfall desselben Tages ist der Auslöser: Er steht nicht noch als eigenes Fenster davor (Spielerdurchlauf: sechs Fenster an einem Tag)
+  const sp = w.spiel;
+  const zwischenfall = sp?.hinweise.some((h) => h.id === `krieg-zwischenfall-${l.id}-${w.day}`);
+  if (sp && zwischenfall) sp.hinweise = sp.hinweise.filter((h) => h.id !== `krieg-zwischenfall-${l.id}-${w.day}`);
+  hinweis(w, `krieg-spannung-${k.id}`, t("krieg.k.sp.titel", { land: l.name }), [t("krieg.k.sp.text1", { land: l.name, konflikt, zwischenfall: zwischenfall ? "ja" : "nein" }), t("krieg.k.sp.text2")]);
   addLog(w, "ereignis", t("krieg.k.sp.log", { land: l.name }), t("krieg.k.sp.warum"));
   return k;
 }

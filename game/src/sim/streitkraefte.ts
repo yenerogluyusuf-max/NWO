@@ -419,7 +419,7 @@ export function streitkraefteMonat(w: World, imKrieg: boolean): void {
       b.fertig += 30;
       if (!b.gestoppt) {
         b.gestoppt = true;
-        w.spiel.hinweise.push({ id: `militaer-lieferstopp-${b.id}`, titel: t("militaer.lieferstopp.titel"), text: [t("militaer.lieferstopp.text", { gattung: t(`militaer.gattung.${b.gattung}`) })], szene: "parlament" });
+        w.spiel.hinweise.push({ id: `militaer-lieferstopp-${b.id}`, titel: t("militaer.lieferstopp.titel"), text: [t("militaer.lieferstopp.text", { gattung: b.name ? `${b.name} (${t(`militaer.gattung.${b.gattung}`)})` : t(`militaer.gattung.${b.gattung}`) })], szene: "parlament" });
       }
       continue;
     }
