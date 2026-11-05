@@ -79,3 +79,30 @@ describe("C-5/C-21: Kabinettsvorlagen gehören dem richtigen Amt", () => {
     expect(katalogDe()["kab.kr.paket.e1"]).not.toMatch(/7/);
   });
 });
+
+describe("C-6: Ministerien für die Partnerpartei nur mit sichtbarer Wahl", () => {
+  test("Ohne Wahl kein Einlösen; mit Wahl gehen genau die gewählten Ressorts, für den angezeigten Preis", async () => {
+    const { loeseEin, ZUSAGE_EINLOESEN_PK } = await import("../src/sim/zusagen");
+    const { istMinisterienZusage, waehlbareRessorts, PARTNER_MINISTER } = await import("../src/sim/ressortvergabe");
+    const w = neu();
+    const z = w.spiel!.zusagen.find((x) => istMinisterienZusage(x) && !x.erfuellt)!;
+    expect(z, "Schnellstart verspricht der Bündnispartei zwei Ministerien").toBeTruthy();
+    const vorher = imAmt(w);
+    const k = w.spiel!.kapital;
+    const ohne = loeseEin(w, z);
+    expect(ohne.ok).toBe(false);
+    expect(ohne.text).toMatch(/Zusagen/);
+    expect(imAmt(w)).toBe(vorher);
+    expect(w.spiel!.kapital).toBe(k);
+    expect(waehlbareRessorts(w, z.von)).toHaveLength(17);
+    const r = loeseEin(w, z, ["gesundheit", "handel"]);
+    expect(r.ok, r.text).toBe(true);
+    expect(w.spiel!.kapital).toBe(k - ZUSAGE_EINLOESEN_PK);
+    const partner = w.spiel!.figuren.filter((f) => f.partei === z.von && f.amt !== "partner").map((f) => f.amt).sort();
+    expect(partner).toEqual(["gesundheit", "handel"]);
+    const neuer = w.spiel!.figuren.find((f) => f.amt === "gesundheit")!;
+    expect(neuer.loyalitaet).toBe(PARTNER_MINISTER.loyalitaet);
+    // Industrie und Justiz (vorher die feste Liste) bleiben, wer sie war
+    for (const a of ["wirtschaft", "justiz"]) expect(vorher).toContain(`${a}:${w.spiel!.figuren.find((f) => f.amt === a)!.name}`);
+  });
+});

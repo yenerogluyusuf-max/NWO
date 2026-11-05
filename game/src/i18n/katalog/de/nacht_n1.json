@@ -43,5 +43,20 @@
  "n1.chat.bsp3": "Entlasse den Gesundheitsminister",
  "n1.chat.bsp4": "Was soll ich als Nächstes tun?",
  "n1.chat.bsp5": "Wie viel Kapital habe ich?",
- "n1.chat.bsp6": "Hilfe"
+ "n1.chat.bsp6": "Hilfe",
+ "n1.zusage.ministerien.waehlen": "Wählen Sie unter Kabinett › Zusagen, welche {n, plural, one {# Ministerium} other {# Ministerien}} an die {partei} gehen; dort steht je Platz, wer geht.",
+ "n1.zusage.ministerien.folge": "{n, plural, one {Ein Minister muss} other {# Minister müssen}} für die {partei} gehen; Sie wählen, wer.",
+ "n1.zusage.dring.ruhig": "Zeit genug",
+ "n1.zusage.dring.bald": "bald fällig",
+ "n1.zusage.dring.dringend": "dringend",
+ "n1.zusage.dring.ueberfaellig": "überfällig",
+ "n1.mwahl.oeffnen": "Ressorts wählen …",
+ "n1.mwahl.titel": "Welche {n, plural, one {# Ministerium geht} other {# Ministerien gehen}} an die {partei}?",
+ "n1.mwahl.text": "Wer gewählt wird, verlässt das Kabinett. Für die {partei} kommt je ein Parteimann oder eine Parteifrau mit Fähigkeit {fae} und Loyalität {loy}; die Parteispitze wird zufriedener.",
+ "n1.mwahl.werte": "Fähigkeit {fae} · Loyalität {loy}",
+ "n1.mwahl.folge": "Es gehen {gehen}. Dafür übernehmen Minister der {partei}.",
+ "n1.mwahl.nochWaehlen": "Wählen Sie noch {n, plural, one {ein Ressort} other {# Ressorts}}.",
+ "n1.mwahl.geht": "geht",
+ "n1.mwahl.einloesen": "Einlösen",
+ "n1.mwahl.kapital": "Dafür reicht das Kapital nicht."
 }

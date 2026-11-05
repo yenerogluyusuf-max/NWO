@@ -5,13 +5,15 @@ import { vorgangZuZusage } from "../../sim/vorgaenge";
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { addDays, formatDateDe } from "../../sim/dates";
-import { brecheFrei, loeseEin, vertroesteFrei, zusagenBilanz, zusagenSicht, zusageBezug, zusageText, zusageVon, type ZusageAntwort, type ZusageSicht } from "../../sim/zusagen";
+import { ZUSAGE_EINLOESEN_PK, brecheFrei, loeseEin, vertroesteFrei, zusagenBilanz, zusagenSicht, zusageBezug, zusageText, zusageVon, type ZusageAntwort, type ZusageSicht } from "../../sim/zusagen";
 import { Balken, Portraet, tonVon } from "./bausteine";
 import { t as tx } from "../../i18n";
 import { zusagenDruck } from "../../sim/zusagendruck";
 import { ZusagenDruck } from "./ZusagenDruck";
+import { MinisterienWahl } from "./MinisterienWahl";
+import { istMinisterienZusage } from "../../sim/ressortvergabe";
 
-const DRING_TEXT: Record<ZusageSicht["dringlichkeit"], string> = { ruhig: "in Ruhe", bald: "bald fällig", dringend: "dringend", ueberfaellig: "überfällig" };
+const DRING_TEXT = (d: ZusageSicht["dringlichkeit"]): string => tx(`n1.zusage.dring.${d}`);
 
 function Medaille({ world, s }: { world: World; s: ZusageSicht }) {
   if (s.bezug.art === "person") {
@@ -30,6 +32,8 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
   const spiel = world.spiel!;
   const [antwort, setAntwort] = useState<(ZusageAntwort & { id: string }) | null>(null);
   const [wirklich, setWirklich] = useState<string | null>(null);
+  // Befund C-6: Die Zusage „zwei Ministerien“ öffnet erst die Wahl, welche Ressorts gehen
+  const [wahlFuer, setWahlFuer] = useState<string | null>(null);
   const sicht = zusagenSicht(world);
   const bilanz = zusagenBilanz(world);
   const druck = [...new Set(spiel.lager)].flatMap(p => { const d=zusagenDruck(world,p); return d?[d]:[]; });
@@ -88,7 +92,7 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                 <div className={`pe-frist ${s.dringlichkeit}`}>
                   {s.tage < 0 ? tx("ui2.ui.personen.ZusagenAnsicht.9e31426", { p0: -s.tage }) : s.tage === 0 ? tx("ui2.ui.personen.ZusagenAnsicht.342e0c3") : tx("ui2.ui.personen.ZusagenAnsicht.94acca5", { p0: s.tage })}
                   <small>
-                    {formatDateDe(s.datum)} · {DRING_TEXT[s.dringlichkeit]}
+                    {formatDateDe(s.datum)} · {DRING_TEXT(s.dringlichkeit)}
                   </small>
                 </div>
               </header>
@@ -128,9 +132,16 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                 </div>
               </div>
               <div className="pe-aktionen">
-                <button className="pe-aktion haupt" onClick={() => tu(s.z.id, () => loeseEin(world, s.z))} disabled={s.gesetz?.gesperrt} title={s.gesetz ? s.gesetz.text : s.fortschritt?.imParlament ? tx("ui2.ui.personen.ZusagenAnsicht.dc72b81") : tx("ui2.ui.personen.ZusagenAnsicht.67fe9f3")}>
-                  {s.gesetz?.aktion ?? t("ui.personen.ZusagenAnsicht.104b3fd")}
-                </button>
+                {istMinisterienZusage(s.z) ? (
+                  <button className="pe-aktion haupt" aria-expanded={wahlFuer === s.z.id} onClick={() => setWahlFuer(wahlFuer === s.z.id ? null : s.z.id)}>
+                    {tx("n1.mwahl.oeffnen")}
+                  </button>
+                ) : (
+                  <button className="pe-aktion haupt" onClick={() => tu(s.z.id, () => loeseEin(world, s.z))} disabled={s.gesetz?.gesperrt} title={s.gesetz ? s.gesetz.text : s.fortschritt?.imParlament ? tx("ui2.ui.personen.ZusagenAnsicht.dc72b81") : tx("ui2.ui.personen.ZusagenAnsicht.67fe9f3")}>
+                    {s.gesetz?.aktion ?? t("ui.personen.ZusagenAnsicht.104b3fd")}
+                    {!s.gesetz && !s.z.massnahme && <b>{ZUSAGE_EINLOESEN_PK}</b>}
+                  </button>
+                )}
                 {s.z.massnahme && onMassnahme && (
                   <button className="pe-aktion" onClick={() => onMassnahme(s.z.massnahme!, (s.z.richtung ?? 1) > 0 ? 1 : -1)}>
                     {t("ui.personen.ZusagenAnsicht.0e1c234")}
@@ -148,6 +159,19 @@ export function ZusagenAnsicht({ world, refresh, onMassnahme, onVorgang }: { wor
                   {wirklich === s.z.id ? tx("ui2.ui.personen.ZusagenAnsicht.e674097") : tx("ui2.ui.personen.ZusagenAnsicht.94c66b4")}
                 </button>
               </div>
+              {wahlFuer === s.z.id && (
+                <MinisterienWahl
+                  world={world}
+                  z={s.z}
+                  onFertig={(r) => {
+                    setWahlFuer(null);
+                    if (r) {
+                      setAntwort({ ...r, id: s.z.id });
+                      refresh();
+                    }
+                  }}
+                />
+              )}
               {s.vertroesten && <p className="subtitle" style={{ margin: 0 }}>{s.vertroesten.text}</p>}
             </article>
           ))}

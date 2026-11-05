@@ -4,7 +4,7 @@
   "ze.antwortFrist": "Respond before the day changes to {datum}. If unanswered, the promise expires under the existing rules.",
   "ze.warum": "Fulfilling, postponing or breaking a promise affects support and credibility. The response cards show immediate effects and deadlines remaining afterwards.",
   "ze.veraltet": "This reminder is obsolete or the promise has already been closed. Nothing will be charged again.",
-  "ze.erfuellen": "Fulfil the promise",
+  "ze.erfuellen": "Fulfil",
   "ze.vertroesten": "Postpone",
   "ze.brechen": "Break the promise",
   "ze.vertroestenText": "The deadline moves to 90 days from today. Support falls; the promise remains binding.",

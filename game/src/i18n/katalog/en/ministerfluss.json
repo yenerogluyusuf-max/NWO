@@ -54,7 +54,7 @@
  "mfl.ansatz.machtfrage.label": "Force the question of power",
  "mfl.ansatz.machtfrage.kurz": "An ultimatum: with me or against me.",
  "mfl.kabinett.warte": "The next cabinet meeting is in {n} days.",
- "mfl.z.einloesen.label": "Keep it",
+ "mfl.z.einloesen.label": "Fulfil",
  "mfl.z.einloesen.text": "Introduces “{name}” from level {jetzt} to {ziel}; the law carries the cost.",
  "mfl.z.einloesen.erfuellt": "The pledge is fulfilled.",
  "mfl.z.einloesen.preis": "{pk} capital in the bill, {mehrheit}.",

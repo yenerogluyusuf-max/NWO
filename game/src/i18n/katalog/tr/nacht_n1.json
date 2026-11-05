@@ -43,5 +43,20 @@
  "n1.chat.bsp3": "Entlasse den Gesundheitsminister",
  "n1.chat.bsp4": "Was soll ich als Nächstes tun?",
  "n1.chat.bsp5": "Wie viel Kapital habe ich?",
- "n1.chat.bsp6": "Hilfe"
+ "n1.chat.bsp6": "Hilfe",
+ "n1.zusage.ministerien.waehlen": "Kabine › Sözler bölümünde {partei} partisine hangi {n, plural, one {bakanlığın} other {# bakanlığın}} verileceğini seçin; her koltukta kimin gideceği yazar.",
+ "n1.zusage.ministerien.folge": "{partei} için {n, plural, one {bir bakan} other {# bakan}} görevden ayrılmak zorunda; kimin gideceğini siz seçersiniz.",
+ "n1.zusage.dring.ruhig": "zaman var",
+ "n1.zusage.dring.bald": "yakında",
+ "n1.zusage.dring.dringend": "acil",
+ "n1.zusage.dring.ueberfaellig": "gecikti",
+ "n1.mwahl.oeffnen": "Bakanlıkları seç …",
+ "n1.mwahl.titel": "{partei} partisine hangi {n, plural, one {bakanlık} other {# bakanlık}} verilsin?",
+ "n1.mwahl.text": "Seçtiğiniz kişi kabineden ayrılır. Her koltuğa {partei} yetenek {fae} ve sadakat {loy} olan bir parti mensubunu gönderir; parti yönetimi daha memnun olur.",
+ "n1.mwahl.werte": "Yetenek {fae} · sadakat {loy}",
+ "n1.mwahl.folge": "Ayrılanlar: {gehen}. Yerlerine {partei} bakanları geçer.",
+ "n1.mwahl.nochWaehlen": "{n, plural, one {Bir bakanlık} other {# bakanlık}} daha seçin.",
+ "n1.mwahl.geht": "ayrılır",
+ "n1.mwahl.einloesen": "Yerine getir",
+ "n1.mwahl.kapital": "Bunun için sermaye yetmiyor."
 }

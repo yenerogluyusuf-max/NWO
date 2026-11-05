@@ -54,7 +54,7 @@
  "mfl.ansatz.machtfrage.label": "Güç sınavı",
  "mfl.ansatz.machtfrage.kurz": "Bir ültimatom: ya benimlesin ya karşımda.",
  "mfl.kabinett.warte": "Bir sonraki kabine toplantısı {n} gün sonra.",
- "mfl.z.einloesen.label": "Yerine getirmek",
+ "mfl.z.einloesen.label": "Yerine getir",
  "mfl.z.einloesen.text": "„{name}“ düzenlemesini {jetzt}. kademeden {ziel}. kademeye taşır; maliyeti yasa üstlenir.",
  "mfl.z.einloesen.erfuellt": "Söz yerine getirilir.",
  "mfl.z.einloesen.preis": "Yasada {pk} sermaye, {mehrheit}.",

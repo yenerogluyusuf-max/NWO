@@ -43,5 +43,20 @@
  "n1.chat.bsp3": "Entlasse den Gesundheitsminister",
  "n1.chat.bsp4": "Was soll ich als Nächstes tun?",
  "n1.chat.bsp5": "Wie viel Kapital habe ich?",
- "n1.chat.bsp6": "Hilfe"
+ "n1.chat.bsp6": "Hilfe",
+ "n1.zusage.ministerien.waehlen": "Choose under Cabinet › Promises which {n, plural, one {ministry goes} other {# ministries go}} to {partei}; each seat shows who has to leave.",
+ "n1.zusage.ministerien.folge": "{n, plural, one {One minister has} other {# ministers have}} to make way for {partei}; you choose who.",
+ "n1.zusage.dring.ruhig": "plenty of time",
+ "n1.zusage.dring.bald": "due soon",
+ "n1.zusage.dring.dringend": "urgent",
+ "n1.zusage.dring.ueberfaellig": "overdue",
+ "n1.mwahl.oeffnen": "Choose ministries …",
+ "n1.mwahl.titel": "Which {n, plural, one {ministry goes} other {# ministries go}} to {partei}?",
+ "n1.mwahl.text": "Whoever you pick leaves the cabinet. In each seat {partei} sends a party figure with ability {fae} and loyalty {loy}; the party leadership grows more content.",
+ "n1.mwahl.werte": "Ability {fae} · loyalty {loy}",
+ "n1.mwahl.folge": "Leaving: {gehen}. Ministers from {partei} take over.",
+ "n1.mwahl.nochWaehlen": "Choose {n, plural, one {one more ministry} other {# more ministries}}.",
+ "n1.mwahl.geht": "leaves",
+ "n1.mwahl.einloesen": "Fulfil",
+ "n1.mwahl.kapital": "Not enough capital for that."
 }
