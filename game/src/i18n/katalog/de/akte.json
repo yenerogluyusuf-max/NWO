@@ -137,10 +137,10 @@
  "akte.b.urteil.gemischt": "Lage: gemischt",
  "akte.b.urteil.angespannt": "Lage: angespannt",
  "akte.b.urteil.kritisch": "Lage: kritisch",
- "akte.b.urteil.weil": "weil {gruende}",
+ "akte.b.urteil.weil": "Auffällig: {gruende}",
  "akte.b.urteil.ruhigSatz": "Keine der Kernzahlen steht im roten Bereich.",
  "akte.b.lage.mehr": "{n, plural, one {# weiterer Eintrag} other {# weitere Einträge}}",
  "akte.b.lage.woher": "Woher die Zahlen kommen",
- "akte.b.urteil.grund": "{label} bei {wert}",
+ "akte.b.urteil.grund": "{label}: {wert}",
  "akte.b.kern.keineZiele": "Noch keine Ziele gewählt: Die Agenda gibt der Amtszeit eine Richtung."
 }

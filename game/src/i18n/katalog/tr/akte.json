@@ -137,7 +137,7 @@
  "akte.b.urteil.gemischt": "Durum: karışık",
  "akte.b.urteil.angespannt": "Durum: gergin",
  "akte.b.urteil.kritisch": "Durum: kritik",
- "akte.b.urteil.weil": "çünkü {gruende}",
+ "akte.b.urteil.weil": "Dikkat çeken: {gruende}",
  "akte.b.urteil.ruhigSatz": "Temel göstergelerin hiçbiri kırmızı bölgede değil.",
  "akte.b.lage.mehr": "{n, plural, other {# kayıt daha}}",
  "akte.b.lage.woher": "Rakamlar nereden geliyor",

@@ -137,10 +137,10 @@
  "akte.b.urteil.gemischt": "Situation: mixed",
  "akte.b.urteil.angespannt": "Situation: tense",
  "akte.b.urteil.kritisch": "Situation: critical",
- "akte.b.urteil.weil": "because of {gruende}",
+ "akte.b.urteil.weil": "Notable: {gruende}",
  "akte.b.urteil.ruhigSatz": "None of the key figures is in the red.",
  "akte.b.lage.mehr": "{n, plural, one {# more entry} other {# more entries}}",
  "akte.b.lage.woher": "Where the figures come from",
- "akte.b.urteil.grund": "{label} at {wert}",
+ "akte.b.urteil.grund": "{label}: {wert}",
  "akte.b.kern.keineZiele": "No goals chosen yet: the agenda gives the term a direction."
 }
