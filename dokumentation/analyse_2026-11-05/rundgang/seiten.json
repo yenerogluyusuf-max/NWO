@@ -1,0 +1,803 @@
+[
+ {
+  "nr": 1,
+  "pfad": [
+   "Schreibtisch",
+   "Schreibtisch"
+  ],
+  "datei": "001.png",
+  "schirme": 2.55,
+  "titel": "Schreibtisch des Präsidenten",
+  "hoehe": 1923,
+  "sichtHoehe": 753,
+  "woerter": 424,
+  "knoepfe": 30,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.6 Bildschirme"
+  ]
+ },
+ {
+  "nr": 2,
+  "pfad": [
+   "Schreibtisch",
+   "Verlauf"
+  ],
+  "datei": "002.png",
+  "schirme": 1,
+  "titel": "Schreibtisch des Präsidenten",
+  "hoehe": 617,
+  "sichtHoehe": 617,
+  "woerter": 75,
+  "knoepfe": 0,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 3,
+  "pfad": [
+   "Politik",
+   "Bereiche"
+  ],
+  "datei": "003.png",
+  "schirme": 1.04,
+  "titel": "Politik · Maßnahmen nach Bereichen",
+  "hoehe": 781,
+  "sichtHoehe": 753,
+  "woerter": 146,
+  "knoepfe": 35,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 4,
+  "pfad": [
+   "Politik",
+   "Vorschläge"
+  ],
+  "datei": "004.png",
+  "schirme": 1.6,
+  "titel": "Politik · Maßnahmen nach Bereichen",
+  "hoehe": 1204,
+  "sichtHoehe": 753,
+  "woerter": 293,
+  "knoepfe": 18,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.6 Bildschirme"
+  ]
+ },
+ {
+  "nr": 5,
+  "pfad": [
+   "Politik",
+   "Wirkungsnetz"
+  ],
+  "datei": "005.png",
+  "schirme": 3.15,
+  "titel": "Politik · Maßnahmen nach Bereichen",
+  "hoehe": 2374,
+  "sichtHoehe": 753,
+  "woerter": 798,
+  "knoepfe": 93,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 3.2 Bildschirme"
+  ]
+ },
+ {
+  "nr": 6,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Tagesordnung"
+  ],
+  "datei": "006.png",
+  "schirme": 1,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 20,
+  "knoepfe": 1,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 7,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Fraktionen und Abstimmung"
+  ],
+  "datei": "007.png",
+  "schirme": 3.01,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 2284,
+  "sichtHoehe": 759,
+  "woerter": 328,
+  "knoepfe": 7,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 3.0 Bildschirme"
+  ]
+ },
+ {
+  "nr": 8,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Umsetzung"
+  ],
+  "datei": "008.png",
+  "schirme": 1.14,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 867,
+  "sichtHoehe": 759,
+  "woerter": 95,
+  "knoepfe": 0,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 9,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Verfassung"
+  ],
+  "datei": "009.png",
+  "schirme": 1.83,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 1387,
+  "sichtHoehe": 759,
+  "woerter": 229,
+  "knoepfe": 18,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.8 Bildschirme"
+  ]
+ },
+ {
+  "nr": 10,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Justiz"
+  ],
+  "datei": "010.png",
+  "schirme": 2.01,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 1522,
+  "sichtHoehe": 759,
+  "woerter": 291,
+  "knoepfe": 2,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.0 Bildschirme"
+  ]
+ },
+ {
+  "nr": 11,
+  "pfad": [
+   "Parlament & Gesetze",
+   "Mehrheitslage"
+  ],
+  "datei": "011.png",
+  "schirme": 1,
+  "titel": "Parlament & Gesetze · Mehrheiten, Gesetze & Recht",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 45,
+  "knoepfe": 2,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 12,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Ministerrat & Kabinett"
+  ],
+  "datei": "012.png",
+  "schirme": 1.5,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 1142,
+  "sichtHoehe": 759,
+  "woerter": 154,
+  "knoepfe": 23,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.5 Bildschirme"
+  ]
+ },
+ {
+  "nr": 13,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Gespräch"
+  ],
+  "datei": "013.png",
+  "schirme": 1,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 95,
+  "knoepfe": 8,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 14,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Verwaltung"
+  ],
+  "datei": "014.png",
+  "schirme": 1.4,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 1063,
+  "sichtHoehe": 759,
+  "woerter": 174,
+  "knoepfe": 2,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 15,
+  "pfad": [
+   "Kabinett & Verwaltung",
+   "Handlungsfähigkeit"
+  ],
+  "datei": "015.png",
+  "schirme": 1,
+  "titel": "Kabinett & Verwaltung · Regierung, Zusagen & Behörden",
+  "hoehe": 721,
+  "sichtHoehe": 721,
+  "woerter": 93,
+  "knoepfe": 2,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 16,
+  "pfad": [
+   "Wirtschaft",
+   "Krisenrat"
+  ],
+  "datei": "016.png",
+  "schirme": 1.68,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 1275,
+  "sichtHoehe": 759,
+  "woerter": 239,
+  "knoepfe": 9,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.7 Bildschirme"
+  ]
+ },
+ {
+  "nr": 17,
+  "pfad": [
+   "Wirtschaft",
+   "Haushalt"
+  ],
+  "datei": "017.png",
+  "schirme": 2.82,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 2141,
+  "sichtHoehe": 759,
+  "woerter": 484,
+  "knoepfe": 98,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.8 Bildschirme"
+  ]
+ },
+ {
+  "nr": 18,
+  "pfad": [
+   "Wirtschaft",
+   "Versorgung & Handel"
+  ],
+  "datei": "018.png",
+  "schirme": 1.58,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 1200,
+  "sichtHoehe": 759,
+  "woerter": 193,
+  "knoepfe": 27,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.6 Bildschirme"
+  ]
+ },
+ {
+  "nr": 19,
+  "pfad": [
+   "Wirtschaft",
+   "Zentralbank und Devisen"
+  ],
+  "datei": "019.png",
+  "schirme": 1.99,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 1510,
+  "sichtHoehe": 759,
+  "woerter": 314,
+  "knoepfe": 14,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.0 Bildschirme"
+  ]
+ },
+ {
+  "nr": 20,
+  "pfad": [
+   "Wirtschaft",
+   "Wirtschaftslage"
+  ],
+  "datei": "020.png",
+  "schirme": 2.81,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 2131,
+  "sichtHoehe": 759,
+  "woerter": 383,
+  "knoepfe": 27,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.8 Bildschirme"
+  ]
+ },
+ {
+  "nr": 21,
+  "pfad": [
+   "Wirtschaft",
+   "Bilanz & Entwicklung"
+  ],
+  "datei": "021.png",
+  "schirme": 1,
+  "titel": "Wirtschaft und Haushalt",
+  "hoehe": 688,
+  "sichtHoehe": 688,
+  "woerter": 67,
+  "knoepfe": 0,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 22,
+  "pfad": [
+   "Gesellschaft",
+   "Wählerkoalition"
+  ],
+  "datei": "022.png",
+  "schirme": 2.03,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 1539,
+  "sichtHoehe": 759,
+  "woerter": 616,
+  "knoepfe": 52,
+  "klein": [
+   "11px „50“",
+   "11px „52“",
+   "11px „56“",
+   "11px „60“",
+   "11px „53“"
+  ],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.0 Bildschirme",
+   "Schrift unter 11.5 px: 5"
+  ]
+ },
+ {
+  "nr": 23,
+  "pfad": [
+   "Gesellschaft",
+   "Opposition & Straße"
+  ],
+  "datei": "023.png",
+  "schirme": 1,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 34,
+  "knoepfe": 4,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 24,
+  "pfad": [
+   "Gesellschaft",
+   "Stimmung im Land"
+  ],
+  "datei": "024.png",
+  "schirme": 1,
+  "titel": "Gesellschaft und Opposition",
+  "hoehe": 631,
+  "sichtHoehe": 631,
+  "woerter": 50,
+  "knoepfe": 2,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 25,
+  "pfad": [
+   "Land",
+   "Infrastruktur und Bau"
+  ],
+  "datei": "025.png",
+  "schirme": 2.72,
+  "titel": "Land und Regionen",
+  "hoehe": 2068,
+  "sichtHoehe": 759,
+  "woerter": 609,
+  "knoepfe": 22,
+  "klein": [
+   "11px „Streitkräfte“"
+  ],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.7 Bildschirme",
+   "Schrift unter 11.5 px: 1"
+  ]
+ },
+ {
+  "nr": 26,
+  "pfad": [
+   "Land",
+   "Netze"
+  ],
+  "datei": "026.png",
+  "schirme": 1.23,
+  "titel": "Land und Regionen",
+  "hoehe": 932,
+  "sichtHoehe": 759,
+  "woerter": 186,
+  "knoepfe": 20,
+  "klein": [],
+  "blass": [
+   "4.2:1 „88 %“"
+  ],
+  "indexKomma": [],
+  "verstoesse": [
+   "Kontrast unter 4.5:1: 1"
+  ]
+ },
+ {
+  "nr": 27,
+  "pfad": [
+   "Land",
+   "Kultur und Erbe"
+  ],
+  "datei": "027.png",
+  "schirme": 1.7,
+  "titel": "Land und Regionen",
+  "hoehe": 1294,
+  "sichtHoehe": 759,
+  "woerter": 276,
+  "knoepfe": 6,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.7 Bildschirme"
+  ]
+ },
+ {
+  "nr": 28,
+  "pfad": [
+   "Land",
+   "Katastrophen und Wiederaufbau"
+  ],
+  "datei": "028.png",
+  "schirme": 2.53,
+  "titel": "Land und Regionen",
+  "hoehe": 1920,
+  "sichtHoehe": 759,
+  "woerter": 477,
+  "knoepfe": 23,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.5 Bildschirme"
+  ]
+ },
+ {
+  "nr": 29,
+  "pfad": [
+   "Land",
+   "Lage der Regionen"
+  ],
+  "datei": "029.png",
+  "schirme": 1.7,
+  "titel": "Land und Regionen",
+  "hoehe": 1291,
+  "sichtHoehe": 759,
+  "woerter": 250,
+  "knoepfe": 7,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.7 Bildschirme"
+  ]
+ },
+ {
+  "nr": 30,
+  "pfad": [
+   "Forschung & Ziele",
+   "Fokusbaum"
+  ],
+  "datei": "030.png",
+  "schirme": 1.06,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 801,
+  "sichtHoehe": 759,
+  "woerter": 392,
+  "knoepfe": 113,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 31,
+  "pfad": [
+   "Forschung & Ziele",
+   "Große Ziele"
+  ],
+  "datei": "031.png",
+  "schirme": 3.01,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 2282,
+  "sichtHoehe": 759,
+  "woerter": 530,
+  "knoepfe": 10,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 3.0 Bildschirme"
+  ]
+ },
+ {
+  "nr": 32,
+  "pfad": [
+   "Forschung & Ziele",
+   "Wissensbaum"
+  ],
+  "datei": "032.png",
+  "schirme": 1,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 73,
+  "knoepfe": 6,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 33,
+  "pfad": [
+   "Forschung & Ziele",
+   "Programme"
+  ],
+  "datei": "033.png",
+  "schirme": 3.5,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 2657,
+  "sichtHoehe": 759,
+  "woerter": 604,
+  "knoepfe": 16,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 3.5 Bildschirme"
+  ]
+ },
+ {
+  "nr": 34,
+  "pfad": [
+   "Forschung & Ziele",
+   "Stand der Agenda"
+  ],
+  "datei": "034.png",
+  "schirme": 1.1,
+  "titel": "Forschung & Ziele · Fokus, Wissen & Programme",
+  "hoehe": 838,
+  "sichtHoehe": 759,
+  "woerter": 68,
+  "knoepfe": 2,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 35,
+  "pfad": [
+   "Außen",
+   "Länder und Diplomatie"
+  ],
+  "datei": "035.png",
+  "schirme": 1.75,
+  "titel": "Außenpolitik",
+  "hoehe": 1327,
+  "sichtHoehe": 759,
+  "woerter": 398,
+  "knoepfe": 67,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 1.7 Bildschirme"
+  ]
+ },
+ {
+  "nr": 36,
+  "pfad": [
+   "Außen",
+   "Weltlage"
+  ],
+  "datei": "036.png",
+  "schirme": 2.51,
+  "titel": "Außenpolitik",
+  "hoehe": 1903,
+  "sichtHoehe": 759,
+  "woerter": 234,
+  "knoepfe": 5,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.5 Bildschirme"
+  ]
+ },
+ {
+  "nr": 37,
+  "pfad": [
+   "Sicherheit",
+   "Streitkräfte"
+  ],
+  "datei": "037.png",
+  "schirme": 1.34,
+  "titel": "Sicherheit und Militär",
+  "hoehe": 1016,
+  "sichtHoehe": 759,
+  "woerter": 113,
+  "knoepfe": 11,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 38,
+  "pfad": [
+   "Sicherheit",
+   "Rüstung und Beschaffung"
+  ],
+  "datei": "038.png",
+  "schirme": 2.18,
+  "titel": "Sicherheit und Militär",
+  "hoehe": 1656,
+  "sichtHoehe": 759,
+  "woerter": 387,
+  "knoepfe": 21,
+  "klein": [
+   "11px „Infrastruktur“"
+  ],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.2 Bildschirme",
+   "Schrift unter 11.5 px: 1"
+  ]
+ },
+ {
+  "nr": 39,
+  "pfad": [
+   "Sicherheit",
+   "Sicherheitslage"
+  ],
+  "datei": "039.png",
+  "schirme": 2.11,
+  "titel": "Sicherheit und Militär",
+  "hoehe": 1598,
+  "sichtHoehe": 759,
+  "woerter": 304,
+  "knoepfe": 12,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": [
+   "zu lang: 2.1 Bildschirme"
+  ]
+ },
+ {
+  "nr": 40,
+  "pfad": [
+   "Medien",
+   "Zeitung"
+  ],
+  "datei": "040.png",
+  "schirme": 1,
+  "titel": "Medien und Öffentlichkeit",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 18,
+  "knoepfe": 2,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ },
+ {
+  "nr": 41,
+  "pfad": [
+   "Medien",
+   "Medienlage"
+  ],
+  "datei": "041.png",
+  "schirme": 1,
+  "titel": "Medien und Öffentlichkeit",
+  "hoehe": 623,
+  "sichtHoehe": 623,
+  "woerter": 51,
+  "knoepfe": 1,
+  "klein": [],
+  "blass": [],
+  "indexKomma": [],
+  "verstoesse": []
+ }
+]
