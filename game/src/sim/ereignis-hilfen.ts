@@ -10,6 +10,7 @@ import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
 import type { Msg } from "../i18n";
+import { t } from "../i18n";
 
 export type SzenenName = "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht";
 
@@ -142,10 +143,10 @@ export const netz = (w: World, id: string): number => nationalAverage(NET, w.net
 /** Preisangabe einer Antwort in Worten: „Kostet 3 Kapital und 0,2 % des BIP; …“ */
 export function beschr(pk: number, bipProzent: number, folge: string): string {
   const teile: string[] = [];
-  if (pk > 0) teile.push(`${pk} Kapital`);
-  if (bipProzent > 0) teile.push(`${nf(bipProzent, bipProzent < 0.1 ? 2 : 1)} % des BIP`);
-  const preis = teile.length ? `Kostet ${teile.join(" und ")}` : bipProzent < 0 ? `Bringt ${nf(-bipProzent, 2)} % des BIP` : "Kostet nichts";
-  return `${preis}; ${folge}`;
+  if (pk > 0) teile.push(t("hilfe.preis.kapital", { pk }));
+  if (bipProzent > 0) teile.push(t("hilfe.preis.bip", { x: nf(bipProzent, bipProzent < 0.1 ? 2 : 1) }));
+  const preis = teile.length ? t("hilfe.preis.kostet", { teile }) : bipProzent < 0 ? t("hilfe.preis.bringt", { x: nf(-bipProzent, 2) }) : t("hilfe.preis.nichts");
+  return t("hilfe.preis.satz", { preis, folge });
 }
 
 /** Eine Zusage, die später fällig wird und dann als Ereignis eingefordert wird. */

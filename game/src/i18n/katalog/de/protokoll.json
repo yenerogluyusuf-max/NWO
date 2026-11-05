@@ -108,5 +108,11 @@
  "abk.kostet": "Kostet {pk} Kapital.",
  "abk.leer": "Ohne Spielschleife gibt es keine Verhandlungen.",
  "abk.kein_kapital": "Dafür fehlt das Kapital.",
- "abk.weg": "Diesen Vertrag gibt es nicht mehr."
+ "abk.weg": "Diesen Vertrag gibt es nicht mehr.",
+ "hilfe.preis.kapital": "{pk} Kapital",
+ "hilfe.preis.bip": "{x} % des BIP",
+ "hilfe.preis.kostet": "Kostet {teile}",
+ "hilfe.preis.bringt": "Bringt {x} % des BIP",
+ "hilfe.preis.nichts": "Kostet nichts",
+ "hilfe.preis.satz": "{preis}; {folge}"
 }

@@ -108,5 +108,11 @@
  "abk.kostet": "Costs {pk} capital.",
  "abk.leer": "Without a game loop there are no negotiations.",
  "abk.kein_kapital": "There is not enough capital for this.",
- "abk.weg": "This treaty no longer exists."
+ "abk.weg": "This treaty no longer exists.",
+ "hilfe.preis.kapital": "{pk} capital",
+ "hilfe.preis.bip": "{x} % of GDP",
+ "hilfe.preis.kostet": "Costs {teile}",
+ "hilfe.preis.bringt": "Yields {x} % of GDP",
+ "hilfe.preis.nichts": "Costs nothing",
+ "hilfe.preis.satz": "{preis}; {folge}"
 }

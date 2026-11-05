@@ -108,5 +108,11 @@
  "abk.kostet": "{pk} sermayeye mal oluyor.",
  "abk.leer": "Oyun döngüsü olmadan müzakere olmaz.",
  "abk.kein_kapital": "Bunun için sermaye yetmiyor.",
- "abk.weg": "Bu antlaşma artık yok."
+ "abk.weg": "Bu antlaşma artık yok.",
+ "hilfe.preis.kapital": "{pk} sermaye",
+ "hilfe.preis.bip": "GSYH'nin % {x}'i",
+ "hilfe.preis.kostet": "Bedeli: {teile}",
+ "hilfe.preis.bringt": "Getirisi: GSYH'nin % {x}'i",
+ "hilfe.preis.nichts": "Bedeli yok",
+ "hilfe.preis.satz": "{preis}; {folge}"
 }
