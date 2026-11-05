@@ -1,7 +1,7 @@
 {
   "sdd.kicker": "State of Affairs",
-  "sdd.amtszeit": "{datum} · {amtszeit, select, 1 {1st} 2 {2nd} other {#th}} Term",
-  "sdd.willkommen": "Welcome back. The election is {monate, plural, =0 {shortly} other {in # months}}{vergleichDatum, select, undefined {} other {; compared with the start of your last session ({vergleichDatum})}}.",
+  "sdd.amtszeit": "{datum} · {amtszeit, select, 1 {1st} 2 {2nd} 3 {3rd} other {{amtszeit}th}} term",
+  "sdd.willkommen": "Welcome back. The election is {monate, plural, =0 {shortly} =1 {in 1 month} other {in # months}}{vergleichDatum, select, undefined {} other {; compared with the start of your last session ({vergleichDatum})}}.",
   "sdd.keineVergleichsdaten": "No comparison data from the last session — this will be generated on every save from now on.",
   "sdd.vorgaenge": "Ongoing Affairs",
   "sdd.vorgaengeLeer": "Nothing running right now. The staff at the desk reports what is worthwhile.",

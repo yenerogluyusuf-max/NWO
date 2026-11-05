@@ -32,7 +32,7 @@
  "epoche.ui.titel": "Era of term {nr}",
  "epoche.ui.wert": "Era score {wert}",
  "epoche.ui.aussicht": "Heading for: {stufe}",
- "epoche.ui.bis": "{n} more to the next level",
+ "epoche.ui.bis": "{n} more points to a golden term",
  "epoche.ui.keine": "No historic moment in this term yet.",
  "epoche.ui.erklaerung": "Great deeds and heavy setbacks make history. At re-election the term is judged; the verdict carries into the next."
 }

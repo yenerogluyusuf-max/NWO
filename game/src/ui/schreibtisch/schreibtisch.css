@@ -191,8 +191,9 @@
 .sd-epoche-siegel{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;flex:none;font-size:21px;color:#f7ecd2;background:radial-gradient(circle at 38% 32%,#d8b26a,#a37c3c 60%,#6b4a1c);box-shadow:0 0 0 2px #fffdf7,0 0 0 3px #c69a4a}
 .sd-epoche.dunkel .sd-epoche-siegel{background:radial-gradient(circle at 38% 32%,#6b4a2c,#3a2418 60%,#24150c)}
 .sd-epoche.heroisch .sd-epoche-siegel{background:radial-gradient(circle at 38% 32%,#b23a2e,#8e2a22 55%,#5c140f)}
-.sd-epoche-kicker{display:block;font:700 11.5px/1.3 var(--maschine);letter-spacing:.12em;text-transform:uppercase;color:#8e2a22}
-.sd-epoche-kopf strong{display:block;font:400 18px/1.2 var(--kapitaelchen);color:#2a1f18;letter-spacing:.02em}
+/* Befund A-29: dieselbe Schrift wie die Nachbarkästen (Handlungsspielraum), keine gesperrten roten Versalien in Schreibmaschinenschrift */
+.sd-epoche-kicker{display:block;font:600 11.5px/1.3 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#59665e}
+.sd-epoche-kopf strong{display:block;font:600 18px/1.25 var(--display);color:#2a1f18}
 .sd-epoche-kopf small{display:block;font:14px/1.3 var(--serif);color:#6a5a4a}
 .sd-epoche-momente{list-style:none;margin:0;padding:0;display:grid;gap:3px;font:14px/1.35 var(--serif);color:#3f3129}
 .sd-epoche-momente b{display:inline-block;min-width:30px;font:600 14px var(--serif)}
@@ -243,3 +244,8 @@
 
 /* In der Seitenleiste ist kein Platz für zwei Spalten: Siegel und Momente untereinander (sonst bricht der Text Buchstabe für Buchstabe) */
 .sd-seite .sd-epoche{grid-template-columns:minmax(0,1fr);margin:0}
+
+/* Befund A-27: kürzere Seitenspalte (Fristen kompakt, höchstens vier) */
+.dossier .sk .sd-kalender button, .sk .sd-kalender li > div { padding:8px 0; }
+.sk .sd-seite { gap:12px; }
+.sk .sd-seite h4 { margin-bottom:8px; }

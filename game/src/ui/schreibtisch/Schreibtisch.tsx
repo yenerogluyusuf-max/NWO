@@ -30,7 +30,6 @@ import { rendere, t } from '../../i18n';
 import '../politik/design.css';
 import './schreibtisch.css';
 
-const KENNZAHLEN = new Set(['zustimmung','kapital','mehrheit','preise']);
 type Arbeit=ReturnType<typeof schreibtischArbeit>;
 type Auswahl={vorlagen?:string;minister?:string;zusagen?:string;beobachtung?:string};
 type GemeinsameProps={world:World;refresh:()=>void;onGehe:(z:Ziel)=>void};
@@ -129,14 +128,15 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
   // Dringlichkeit; die Entscheidung öffnet sich an der Zeile. Früher standen dieselben Vorgänge in „Jetzt wichtig“ und noch einmal
   // im Arbeitsbereich, und die Entscheidung erschien am Ende der Liste.
   const [krisenOffen,setKrisenOffen]=useState(false);
-  // undefined: der dringendste Eintrag mit eigener Entscheidung steht offen; null: bewusst alles zugeklappt
+  // undefined: Offen steht nur ein akuter Eintrag (rot) mit eigener Entscheidung; null: bewusst alles zugeklappt.
+  // Befund A-27 (5. November 2026): Der stets aufgeklappte erste Eintrag machte den Tisch 2,55 Bildschirme lang, auch wenn nichts drängte.
   const [wahl,setWahl]=useState<string|null|undefined>(undefined);
   const liste=useId();
   const b=world.spiel?tageslage(world):null;
   if(!world.spiel||!b)return <p>{t('sk.ui.keinBriefing')}</p>;
   const mappe=schreibtischMappe(world,5),zusagen=gefaehrdeteZusagen(world),arbeit=schreibtischArbeit(world,b,mappe.mappe,zusagen);
   const posteingang=onPosteingang??(()=>onGehe({art:'akte',akte:'personen'}));
-  const offen=wahl===undefined?arbeit.alle.find(p=>p.sprung.art==='intern')?.id??null:wahl;
+  const offen=wahl===undefined?arbeit.alle.find(p=>p.sprung.art==='intern'&&p.ton==='rot')?.id??null:wahl;
   const oeffne=(p:Prioritaet)=>{
     const s=p.sprung;
     if(s.art==='extern'){onGehe(s.ziel);return;}
@@ -146,12 +146,12 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
   const fristen=[...regierungsVorgaenge(world).map(g=>({id:g.id,text:g.titel,wann:`${g.status} · ${formatDateDe(g.datum)}`,tage:g.tage,ziel:g.ziel})),...b.faellig.filter(f=>f.art==='gesetz'||f.art==='duldung'||f.art==='schritt').map(f=>({id:f.id,text:f.titel,wann:f.tage===undefined?t('sk.bereit'):fristText(f.tage),tage:f.tage??0,ziel:f.knopf.art==='gehe'?f.knopf.ziel:undefined})),
     ...b.termine.filter(x=>!x.id.startsWith('g-')&&!x.id.startsWith('z-')).map(x=>({id:`t-${x.id}`,text:x.text,wann:x.datum,tage:x.tage,ziel:x.ziel})),
     // Der Wahlkampf kündigt sich an: Wer ihn nicht vorbereitet, verliert am Wahltag rund acht Punkte an Angriffe, Duell und Lager (Messung 5. November)
-    ...(()=>{const sp=world.spiel;if(!sp||sp.ende)return [];const tage=sp.wahltag-WAHLKAMPF.beginnTage-world.day;return tage>0&&tage<=180?[{id:'wahlkampf-beginn',text:t('sd.wahlkampfFrist'),wann:fristText(tage),tage,ziel:{art:'akte' as const,akte:'wahlkampf' as const}}]:[];})()].sort((a,c)=>a.tage-c.tage).slice(0,6);
+    ...(()=>{const sp=world.spiel;if(!sp||sp.ende)return [];const tage=sp.wahltag-WAHLKAMPF.beginnTage-world.day;return tage>0&&tage<=180?[{id:'wahlkampf-beginn',text:t('sd.wahlkampfFrist'),wann:fristText(tage),tage,ziel:{art:'akte' as const,akte:'wahlkampf' as const}}]:[];})()].sort((a,c)=>a.tage-c.tage).slice(0,4);
   const notizen=mentorNotes(world),v=b.verfassung;
   return <div className="sk sk2">
     <header className="sk2-kopf">
+      {/* Zustimmung, Kapital, Mehrheit und Inflation stehen in der Kopfleiste; hier nur Tag und Amtszeit (Befund A-27: doppelte Kopfzeile) */}
       <div><p className="sk2-datum">{b.datum}</p><p>{t('sk.ui.amtszeit',{n:b.amtszeit.nummer,monate:b.amtszeit.monateBisWahl,wahltag:b.amtszeit.wahltag})}</p></div>
-      <ul className="sk2-zahlen" aria-label={t('sk.ui.lageAria')}>{b.kennzahlen.filter(k=>KENNZAHLEN.has(k.id)).map(k=><li key={k.id}><button type="button" className={`ton-${k.ton}`} onClick={()=>onGehe(k.ziel)} title={`${k.zusatz} · ${t('sk.ui.akteOeffnen',{label:k.label})}`}><span>{k.label}</span><strong>{k.wert}{k.trend!=='gleich'&&<em aria-hidden>{k.trend==='auf'?'↑':'↓'}</em>}</strong></button></li>)}</ul>
     </header>
     <div className="sk2-layout">
       <div className="sk2-haupt">
