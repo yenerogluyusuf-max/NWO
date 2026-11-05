@@ -64,10 +64,11 @@ export function Bereiche({
         </p>
       )}
       {vs.length === 0 && <p className="mf-leer">{t("ui.Bereiche.d6f5489")}</p>}
-      <ol className="mf-liste">
+      {/* Kompakt in zwei Spalten wie am Schreibtisch: Empfehlung mit einem Knopf, alle Wege klappen auf (vorher 4,1 Bildschirme) */}
+      <ol className="mf-liste mf-raster">
         {vs.map((v, i) => (
           <li key={v.id}>
-            <VorlageKarte v={v} nummer={i + 1} onEntscheide={entscheide} {...(onGehe ? { onGehe } : {})} {...(onKarte ? { onKarte } : {})} {...(onVorhaben ? { onEinstellen: (x: Vorlage) => x.vorschlag && onVorhaben(x.vorschlag) } : {})} />
+            <VorlageKarte v={v} kompakt nummer={i + 1} onEntscheide={entscheide} {...(onGehe ? { onGehe } : {})} {...(onKarte ? { onKarte } : {})} {...(onVorhaben ? { onEinstellen: (x: Vorlage) => x.vorschlag && onVorhaben(x.vorschlag) } : {})} />
           </li>
         ))}
       </ol>
