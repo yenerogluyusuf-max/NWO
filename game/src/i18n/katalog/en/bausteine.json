@@ -1,0 +1,12 @@
+{
+  "bs.mrd": "₺{n} bn",
+  "bs.bio": "₺{n} tn",
+  "bs.prozent": "{n}%",
+  "bs.erklaer": "Explanation",
+  "bs.schliessen": "Close",
+  "bs.tacho.aria": "{titel}: {wert}; target band {von} to {bis}",
+  "bs.tacho.ziel": "Target {von}–{bis}",
+  "bs.kreis.aria": "{name}: {wert} of 100, share {anteil}",
+  "bs.kreis.links": "against",
+  "bs.kreis.rechts": "in favour"
+}

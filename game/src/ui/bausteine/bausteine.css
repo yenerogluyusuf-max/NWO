@@ -1,0 +1,59 @@
+/* Gemeinsame Bausteine (ui/bausteine): Tacho, Kreisfeld, ⓘ-Erklärung, Seitenfenster, Porträt-Chip. Palette Kabinettstisch:
+   Tinte #2b1e12, gedämpft #6b5a46, Siegelrot #8c2b1f (rot heißt schlechter), Messing #7c5823. Schrift mindestens 12,5 px. */
+
+.bs-tacho { all: unset; box-sizing: border-box; display: grid; justify-items: center; gap: 2px; padding: 8px 10px 10px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; background: #fbf6e6; margin: 0; }
+button.bs-tacho { cursor: pointer; }
+button.bs-tacho:hover { background: #f6ebc9; }
+button.bs-tacho:focus-visible { outline: 2px solid #7c5823; outline-offset: 2px; }
+.bs-tacho svg { width: 100%; max-width: 200px; height: auto; display: block; }
+.bs-tacho figcaption { display: contents; }
+.bs-tacho-skala { fill: rgba(90, 64, 40, 0.14); }
+.bs-tacho-band { fill: rgba(124, 88, 35, 0.55); }
+.bs-tacho-zeiger { stroke: #2b1e12; stroke-width: 3; stroke-linecap: round; }
+.bs-tacho-zeiger.schlecht { stroke: #8c2b1f; }
+.bs-tacho-nabe { fill: #2b1e12; }
+.bs-tacho-nabe.schlecht { fill: #8c2b1f; }
+.bs-tacho-titel { font: 600 13px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.bs-tacho-wert { font: 600 24px/1.1 var(--display, Fraunces, serif); color: #2b1e12; font-variant-numeric: tabular-nums; }
+.bs-tacho-wert.schlecht { color: #8c2b1f; }
+.bs-tacho small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+
+.bs-kreisfeld { margin: 0; display: grid; gap: 6px; }
+.bs-kreisfeld svg { width: 100%; height: auto; display: block; }
+.bs-kreisfeld figcaption { font: italic 12.5px/1.35 var(--serif, "EB Garamond", serif); color: #6b5a46; }
+.bs-kreis-achse { stroke: rgba(90, 64, 40, 0.35); stroke-width: 1; }
+.bs-kreis-mitte { stroke: rgba(90, 64, 40, 0.25); stroke-dasharray: 3 4; }
+.bs-kreis-rand { font: 12.5px var(--sans, Inter, sans-serif); fill: #6b5a46; }
+.bs-kreis circle { stroke: #fbf6e6; stroke-width: 2; opacity: 0.9; }
+.bs-kreis.klickbar { cursor: pointer; }
+.bs-kreis.klickbar:hover circle, .bs-kreis.klickbar:focus-visible circle { opacity: 1; stroke: #2b1e12; }
+.bs-kreis-name { font: 600 12.5px var(--sans, Inter, sans-serif); fill: #fffaf0; pointer-events: none; }
+
+.bs-erklaer { display: inline-block; position: relative; vertical-align: middle; }
+.bs-erklaer > summary { list-style: none; cursor: pointer; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: #7c5823; font: 600 16px/1 var(--sans, Inter, sans-serif); }
+.bs-erklaer > summary::-webkit-details-marker { display: none; }
+.bs-erklaer > summary:focus-visible { outline: 2px solid #7c5823; }
+.bs-erklaer-text { position: absolute; z-index: 30; top: 26px; left: -8px; width: min(320px, 80vw); padding: 10px 12px; background: #fffaf0; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 6px; box-shadow: 0 6px 18px rgba(40, 25, 10, 0.2); font: 14px/1.45 var(--serif, "EB Garamond", serif); color: #2b1e12; }
+
+.bs-seite { position: absolute; z-index: 40; top: 56px; right: 16px; bottom: 16px; width: min(480px, calc(100vw - 32px)); display: flex; flex-direction: column; background: var(--paper, #f4ecd8); border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 8px; box-shadow: 0 18px 50px rgba(37, 23, 15, 0.35); overflow: hidden; }
+.bs-seite-kopf { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
+.bs-seite-kopf h2 { margin: 0; font: 600 20px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
+.bs-seite-reiter { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.bs-seite-reiter button { border: 1px solid rgba(90, 64, 40, 0.35); background: transparent; border-radius: 999px; padding: 4px 12px; font: 600 13px var(--sans, Inter, sans-serif); color: #4a3a28; cursor: pointer; }
+.bs-seite-reiter button.on { background: #2b1e12; color: #fbf6e6; border-color: #2b1e12; }
+.bs-seite-zu { margin-left: auto; width: 30px; height: 30px; border: none; background: transparent; font: 22px/1 var(--sans, Inter, sans-serif); color: #4a3a28; cursor: pointer; border-radius: 50%; }
+.bs-seite-zu:hover { background: rgba(90, 64, 40, 0.12); }
+.bs-seite-inhalt { overflow-y: auto; padding: 14px 16px 18px; min-height: 0; }
+@media (max-width: 720px) { .bs-seite { inset: 56px 0 0 0; width: auto; border-radius: 0; } }
+
+.bs-person { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border-radius: 999px; }
+button.bs-person { cursor: pointer; }
+button.bs-person:hover { background: rgba(201, 162, 90, 0.18); }
+button.bs-person:focus-visible { outline: 2px solid #7c5823; }
+.bs-person-ring { display: inline-grid; border-radius: 50%; padding: 2px; box-shadow: 0 0 0 2.5px #7c5823; }
+.bs-person-ring.treu, .bs-person-ring.loyal { box-shadow: 0 0 0 2.5px #2b1e12; }
+.bs-person-ring.skeptisch { box-shadow: 0 0 0 2.5px #b8935e; }
+.bs-person-ring.kritisch, .bs-person-ring.meuternd { box-shadow: 0 0 0 2.5px #8c2b1f; }
+.bs-person-text { display: grid; gap: 1px; }
+.bs-person-text b { font: 600 14px/1.2 var(--sans, Inter, sans-serif); color: #2b1e12; }
+.bs-person-text small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }

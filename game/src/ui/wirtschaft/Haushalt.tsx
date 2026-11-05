@@ -1,3 +1,4 @@
+import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
 import { Staatsfinanzen } from "./Staatsfinanzen";
 import { HaushaltsRad } from "./HaushaltsRad";
 import { geldAusBip } from "../../sim/staatsgeld";
@@ -327,19 +328,28 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
     const runter = q.id === "rentenalter" ? t("haushalt.ui.regler.frueher") : q.seite === "ausgabe" ? t("haushalt.ui.regler.kuerzen") : t("haushalt.ui.regler.senken");
     const rauf = q.id === "rentenalter" ? t("haushalt.ui.regler.spaeter") : q.seite === "ausgabe" ? t("haushalt.ui.regler.ausbauen") : t("haushalt.ui.regler.anheben");
     return (
-      <li key={q.id} className={`hd-zeile${sel === q.id ? " on" : ""}${zeigt !== ist ? " geaendert" : ""}`}>
-        <div className="hd-reihe">
+      <ReglerZeile
+        key={q.id}
+        kl="hd"
+        zustand={`${sel === q.id ? "on" : ""}${zeigt !== ist ? " geaendert" : ""}`.trim()}
+        name={
           <button type="button" className="hd-name" onClick={() => { setSel(q.id); setEntwurf(plan); setPrognoseOffen(false); }} title={q.text}>
             <span>{q.name}</span>
             {offenWunsch && <small>{t("haushalt.ui.kurz.wunsch", { stufe: vz(wunsch) })}</small>}
           </button>
-          <div className="hd-regler">
-            <button type="button" aria-label={`${q.name}: ${runter}`} title={runter} disabled={zeigt <= q.min} onClick={() => waehleZeile(q, zeigt - 1)}>−</button>
-            <input type="range" min={q.min} max={q.max} step={1} value={zeigt} aria-label={t("haushalt.ui.regler.aria", { posten: q.name })} aria-valuetext={`${vz(zeigt)}: ${betrag(world, q, zeigt)}`} onChange={(e) => waehleZeile(q, Number(e.target.value))} />
-            <button type="button" aria-label={`${q.name}: ${rauf}`} title={rauf} disabled={zeigt >= q.max} onClick={() => waehleZeile(q, zeigt + 1)}>+</button>
-          </div>
-          <span className="hd-betrag">{zeigt !== ist ? <><s>{betrag(world, q, ist)}</s> <b>{betrag(world, q, zeigt)}</b></> : betrag(world, q, ist)}</span>
-        </div>
+        }
+        wert={zeigt}
+        min={q.min}
+        max={q.max}
+        onWert={(s) => waehleZeile(q, s)}
+        minus={`${q.name}: ${runter}`}
+        plus={`${q.name}: ${rauf}`}
+        aria={t("haushalt.ui.regler.aria", { posten: q.name })}
+        ariaWert={`${vz(zeigt)}: ${betrag(world, q, zeigt)}`}
+        anzeigeKlasse="betrag"
+        vorher={betrag(world, q, ist)}
+        {...(zeigt !== ist ? { nachher: betrag(world, q, zeigt) } : {})}
+      >
         {sel === q.id && aktiv && entscheidung && v && entwurf !== (fenster.offen ? z.entwurf?.[q.id] ?? ist : ist) && (
           <div className="hd-panel" role="region" aria-label={q.name}>
             <p className="hd-panel-wirkung">
@@ -348,11 +358,14 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
               {q.id === "forschung" && (() => { const fo = forschungsSicht(world, etatBip(q, zeigt) ?? 0); return <> {t("haushalt.ui.forschung.grenze", { grenze: nf(fo.grenze, 2), verpufft: nf(fo.verpufft, 2) })}</>; })()}
               {zeigt > 2 && q.seite === "ausgabe" && q.id !== "forschung" && <> {t("haushalt.ui.abnehmend")}</>}
             </p>
-            <dl className="hd-fakten">
-              <div><dt>{t("eo.kapital")}</dt><dd>{t("ve.pk", { n: entscheidung.pk })}</dd></div>
-              <div><dt>{t("haushalt.ui.vorschau.defizit")}</dt><dd>{nf(v.defizitVorher, 2)} → {nf(v.defizitNachher, 2)} %</dd></div>
-              <div><dt>{t("eo.befugnis")}</dt><dd>{t(entscheidung.modus === "entwurf" ? "eo.votum" : "eo.regierung")}</dd></div>
-            </dl>
+            <Preisfeld
+              kl="hd"
+              fakten={[
+                { label: t("eo.kapital"), wert: t("ve.pk", { n: entscheidung.pk }) },
+                { label: t("haushalt.ui.vorschau.defizit"), wert: `${nf(v.defizitVorher, 2)} → ${nf(v.defizitNachher, 2)} %` },
+                { label: t("eo.befugnis"), wert: t(entscheidung.modus === "entwurf" ? "eo.votum" : "eo.regierung") },
+              ]}
+            />
             <p className="hd-verteilung">
               <span><b>{t("haushalt.ui.vorschau.gewinner")}</b> {q.gewinner}</span>
               <span><b>{t("haushalt.ui.vorschau.verlierer")}</b> {q.verlierer}</span>
@@ -388,7 +401,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
             </details>
           </div>
         )}
-      </li>
+      </ReglerZeile>
     );
   };
   const seite = (welche: "ausgabe" | "einnahme") => (

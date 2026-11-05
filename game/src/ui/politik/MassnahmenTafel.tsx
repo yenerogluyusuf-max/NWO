@@ -9,6 +9,7 @@ import { bringeEin, pruefeVorhaben, REGELN } from "../../sim/handeln";
 import { naechsteStufe, skala, skalenArt } from "../../data/skalen";
 import { t, zahl } from "../../i18n";
 import type { MassnahmeZeile } from "./bereiche";
+import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
 
 type Ergebnis = { ok: boolean; text: string; why?: string };
 
@@ -33,12 +34,15 @@ function Pruefzeile({ world, m, ziel, ort, onErgebnis, onGenauer, onVerwerfen }:
     <div className="mt-panel" role="region" aria-label={m.name}>
       <p className="mt-text">{m.text}</p>
       {p.ok ? (
-        <dl className="mt-fakten">
-          <div><dt>{t("po2.kapital")}</dt><dd className={p.gesetz.bezahlbar ? "" : "schlecht"}>{t("po2.kapitalWert", { n: p.gesetz.pk })}</dd></div>
-          <div><dt>{t("po2.mehrheit")}</dt><dd className={st.luecke > 0 ? "schlecht" : ""}>{st.luecke > 0 ? t("po2.fehlen", { n: st.luecke }) : t("po2.steht", { ja: st.erwartet, noetig: REGELN.mehrheit })}</dd></div>
-          <div><dt>{t("po2.dauer")}</dt><dd>{t("po2.monate", { n: p.monate })}</dd></div>
-          <div><dt>{t("po2.haushalt")}</dt><dd>{Math.abs(p.kostenBip) < 0.005 ? t("po2.keineKosten") : t(p.kostenBip > 0 ? "po2.kostet" : "po2.bringt", { n: zahl(Math.abs(p.kostenBip), 2) })}</dd></div>
-        </dl>
+        <Preisfeld
+          kl="mt"
+          fakten={[
+            { label: t("po2.kapital"), wert: t("po2.kapitalWert", { n: p.gesetz.pk }), schlecht: !p.gesetz.bezahlbar },
+            { label: t("po2.mehrheit"), wert: st.luecke > 0 ? t("po2.fehlen", { n: st.luecke }) : t("po2.steht", { ja: st.erwartet, noetig: REGELN.mehrheit }), schlecht: st.luecke > 0 },
+            { label: t("po2.dauer"), wert: t("po2.monate", { n: p.monate }) },
+            { label: t("po2.haushalt"), wert: Math.abs(p.kostenBip) < 0.005 ? t("po2.keineKosten") : t(p.kostenBip > 0 ? "po2.kostet" : "po2.bringt", { n: zahl(Math.abs(p.kostenBip), 2) }) },
+          ]}
+        />
       ) : (
         <p className="mt-gesperrt">{p.grund}</p>
       )}
@@ -92,8 +96,22 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
           };
           const jetztName = skalenArt(m.id) === "regime" ? naechsteStufe(skala(m.id, m.jetzt), m.jetzt).stufe.name : t("po2.stufe", { n: Math.round(m.jetzt) });
           return (
-            <li key={m.id} className={`mt-zeile${aktiv ? " on" : ""}${m.imParlament || m.umsetzung ? " laeuft" : ""}`}>
-              <div className="mt-reihe">
+            <ReglerZeile
+              key={m.id}
+              kl="mt"
+              zustand={`${aktiv ? "on" : ""}${m.imParlament || m.umsetzung ? " laeuft" : ""}`.trim()}
+              wert={idx}
+              min={0}
+              max={stufen.length - 1}
+              onWert={(i) => setze(i)}
+              minus={`${m.name}: ${t("po2.weniger")}`}
+              plus={`${m.name}: ${t("po2.mehr")}`}
+              aria={m.name}
+              {...(stufen[idx] ? { ariaWert: stufen[idx]!.name } : {})}
+              anzeigeKlasse="stufe"
+              vorher={jetztName}
+              {...(aktiv ? { nachher: stufen[idx]?.name } : {})}
+              name={
                 <div className="mt-name">
                   <span title={m.text}>{m.name}</span>
                   <small>
@@ -105,13 +123,8 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
                     )}
                   </small>
                 </div>
-                <div className="mt-regler">
-                  <button type="button" aria-label={`${m.name}: ${t("po2.weniger")}`} disabled={idx <= 0} onClick={() => setze(idx - 1)}>−</button>
-                  <input type="range" min={0} max={stufen.length - 1} step={1} value={idx} aria-label={m.name} aria-valuetext={stufen[idx]?.name} onChange={(e) => setze(Number(e.target.value))} />
-                  <button type="button" aria-label={`${m.name}: ${t("po2.mehr")}`} disabled={idx >= stufen.length - 1} onClick={() => setze(idx + 1)}>+</button>
-                </div>
-                <span className="mt-stufe">{aktiv ? <><s>{jetztName}</s> <b>{stufen[idx]?.name}</b></> : jetztName}</span>
-              </div>
+              }
+            >
               {aktiv && wahl && (
                 <Pruefzeile
                   world={world}
@@ -127,7 +140,7 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
                   onVerwerfen={() => setWahl(null)}
                 />
               )}
-            </li>
+            </ReglerZeile>
           );
         })}
       </ul>

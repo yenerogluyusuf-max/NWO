@@ -1,0 +1,12 @@
+{
+  "bs.mrd": "{n} milyar ₺",
+  "bs.bio": "{n} trilyon ₺",
+  "bs.prozent": "%{n}",
+  "bs.erklaer": "Açıklama",
+  "bs.schliessen": "Kapat",
+  "bs.tacho.aria": "{titel}: {wert}; hedef aralığı {von} ile {bis} arası",
+  "bs.tacho.ziel": "Hedef {von}–{bis}",
+  "bs.kreis.aria": "{name}: 100 üzerinden {wert}, pay {anteil}",
+  "bs.kreis.links": "karşı",
+  "bs.kreis.rechts": "destek"
+}
