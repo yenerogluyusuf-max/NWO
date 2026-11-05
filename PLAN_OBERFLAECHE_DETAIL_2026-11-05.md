@@ -132,11 +132,11 @@ Gesammelt aus den vier Spezifikationen (Anhang A Teil 7, B, C Teil D, D). „Ent
 
 | Nr | Frage | Empfehlung | Art |
 |---|---|---|---|
-| F1 | Haushaltsposten und gleichnamige Maßnahmen kosten beide Geld für dieselbe Sache (`verteidigung` und `m_verteidigung` u. a.) | Der Posten ist der Etat; die Maßnahme ist das Gesetz ohne eigene Kosten | **Entscheid nötig** |
-| F2 | Was zeigt die Kopfleiste als Zustimmung: die wahre Zahl oder die veröffentlichte Umfrage? Heute die wahre, damit ist „Rohdaten kaufen“ wertlos | die veröffentlichte Umfrage mit Institut; die wahre Zahl nach Kauf der Rohdaten und am Wahlabend | **Entscheid nötig** |
-| F3 | Kabinettskapital mit 17 statt 7 Ministern | Summe bleibt gleich (Beitrag je Minister × 7/17), keine Neukalibrierung | **Entscheid nötig** |
-| F4 | Freie Reglerstufen: gelten sie als nächstliegende Fassung (Bonus, Verbandsfolgen)? | ja (Variante A), einheitlich | **Entscheid nötig** |
-| F5 | Generalstabschef und Verteidigungsminister | zwei Figuren: Minister (Etat, Ressort), Generalstabschef (Loyalität, Putschgefahr) | **Entscheid nötig** |
+| F1 | Haushaltsposten und gleichnamige Maßnahmen kosten beide Geld für dieselbe Sache (`verteidigung` und `m_verteidigung` u. a.) | Der Posten ist der Etat; die Maßnahme ist das Gesetz ohne eigene Kosten | **entschieden 05.11.2026** (ENTSCHEIDUNGEN W, Nachtrag) |
+| F2 | Was zeigt die Kopfleiste als Zustimmung: die wahre Zahl oder die veröffentlichte Umfrage? Heute die wahre, damit ist „Rohdaten kaufen“ wertlos | die veröffentlichte Umfrage mit Institut; die wahre Zahl nach Kauf der Rohdaten und am Wahlabend | **entschieden 05.11.2026** (ENTSCHEIDUNGEN W, Nachtrag) |
+| F3 | Kabinettskapital mit 17 statt 7 Ministern | Summe bleibt gleich (Beitrag je Minister × 7/17), keine Neukalibrierung | **entschieden 05.11.2026** (ENTSCHEIDUNGEN W, Nachtrag) |
+| F4 | Freie Reglerstufen: gelten sie als nächstliegende Fassung (Bonus, Verbandsfolgen)? | ja (Variante A), einheitlich | **entschieden 05.11.2026** (ENTSCHEIDUNGEN W, Nachtrag) |
+| F5 | Generalstabschef und Verteidigungsminister | zwei Figuren: Minister (Etat, Ressort), Generalstabschef (Loyalität, Putschgefahr) | **entschieden 05.11.2026** (ENTSCHEIDUNGEN W, Nachtrag) |
 | F6 | Personal: eigenes Stück „Öffentlicher Dienst“ oder auf die Ministerien verteilt? | eigenes Stück beim Finanzministerium bis Tabelle A; danach nur in der Anzeige auf die Ministerien verteilt, der Besoldungsregler bleibt einer | Empfehlung |
 | F7 | Wehrdienst: Maßnahme `m_wehrdienst` oder `setzeWehrdienst` (0/6/12/18 Monate)? | die Maßnahme führt, ihre Stufen bilden die vier Monatswerte ab | Empfehlung |
 | F8 | Rüstungsprojekte haben zwei Fertigdaten (Bau und Beschaffung) | ein Fertigdatum aus der Bauleiste | Empfehlung |

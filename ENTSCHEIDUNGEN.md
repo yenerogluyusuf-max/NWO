@@ -353,3 +353,10 @@ Nach dem Rundgang über alle Seiten (88 Bildschirme, 9 passen) entschied der Pro
 2. **Ein Weg zum Gesetz: die Maßnahme.** Jedes Gesetz ist eine Maßnahme mit dem Weg „Gesetz“; die Einträge des Gesetzeskatalogs werden benannte Fassungen an den Maßnahmen. Das Parlament zeigt die Tagesordnung.
 3. **Karte als Bühne** für Land, Außen und Sicherheit: Die Akte wird ein Seitenfenster neben der Karte; Konflikte, Fronten, Baustellen und Länder werden auf der Karte bedient.
 Reihenfolge laut Plan: Fehler, Gerüst, Bilder je Bereich, Drill-downs (nach Recherche der Ministeriumshaushalte 2026), Karte.
+
+**Nachtrag zu W (05.11.2026, Regelfragen F1 bis F5 des Detailplans):**
+- **F1 Geld:** Der Haushaltsposten ist der Etat. Eine gleichnamige Maßnahme (etwa `m_verteidigung` neben dem Posten `verteidigung`) ist das Gesetz und kostet kein eigenes Geld mehr; was sie bewegt, bezahlt der Posten.
+- **F2 Zustimmung:** Die Kopfleiste und jede Ansicht zeigen die veröffentlichte Umfrage mit Institut (`angezeigteZustimmung`). Die wahre Zahl erscheint nur nach dem Kauf der Rohdaten (Etikett „Rohdaten“) und am Wahlabend.
+- **F3 Kabinettskapital:** Die Summe bleibt gleich; der Beitrag je Minister wird mit 7/17 umgerechnet. Keine Neukalibrierung, der Balance-Lauf wacht.
+- **F4 Fassungen:** Eine freie Reglerstufe gilt als die nächstliegende benannte Fassung (Bonus, Verbandsfolgen), einheitlich für alle Maßnahmen.
+- **F5 Verteidigung:** Zwei Figuren: der Verteidigungsminister (Etat, Ressort, Sitz am Tisch) und der Generalstabschef (Loyalität, Putschgefahr).
