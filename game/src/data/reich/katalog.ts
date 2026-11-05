@@ -49,6 +49,8 @@ const REGELN: Regel[] = [
   ["welt_maglev", (t) => hat(t, /(maglev|magnetschweb|hyperloop)/)],
   ["welt_bruecke_zypern", (t) => alle(t, /zypern/, /(bruecke|tunnel|verbindung)/)],
   ["welt_megahafen", (t) => alle(t, /hafen/, /(gross|mega|riesig|welt)/)],
+  ["infra_entwicklungsstrasse", (t) => hat(t, /(entwicklungsstrasse|development road|kalkinma yolu)/) || alle(t, /irak/, /(bahn|strasse|korridor|route)/)],
+  ["infra_kop", (t) => hat(t, /(konya.*(bewaesser|ebene|wasser)|mavi tunel|blauer tunnel|\bkop\b)/)],
   // ---- Städte
   ["stadt_hauptstadt_neu", (t) => hat(t, /(neue|neuen|neuer) hauptstadt/, /hauptstadt (bauen|gruenden|verlegen)/)],
   ["stadt_unterwasser", (t) => hat(t, /unterwasser ?stadt|meeresstadt|tauchstadt/)],

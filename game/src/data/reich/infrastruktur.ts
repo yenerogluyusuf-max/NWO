@@ -2,6 +2,7 @@
 // (FACHBEREICHE.md, Abschnitt 6.4). Fakten stammen aus RECHERCHE_KONKURRENZ_FACHBEREICHE.md, Abschnitt 4; Wirkungen und Kosten
 // sind Spielparameter. Was am Spielbeginn steht, steckt schon in den Startwerten des Netzes: Es wirkt nur nach seinem Zustand.
 
+import { ARBEIT, vertrauen } from "./zukunft";
 import type { Vorhaben } from "../../sim/reich-typen";
 import type { VorteilDef } from "./typen";
 import { ERDBEBENGEBIET, instandsetzung, stoss, stuetze } from "./bau";
@@ -222,6 +223,44 @@ const ZUKUNFT: Vorhaben[] = [
     einmalig: true,
     bild: "kanal",
     quelle: "en.wikipedia.org/wiki/Kanal_Istanbul; erkansaka.net/2025/05/02/kanal-istanbul-project-analysis-2025",
+  },
+  {
+    id: "infra_entwicklungsstrasse",
+    bereich: "infrastruktur",
+    klasse: "grossprojekt",
+    name: "Entwicklungsstraße Irak–Türkei",
+    text: "Straße und Bahn vom Hafen Grand al-Faw am Golf rund 1.200 km bis zum Grenzübergang Fishkhabur und weiter zum Mittelmeer. Irak, die Türkei, Katar und die Emirate unterzeichneten am 22.04.2024 eine Absichtserklärung; geplant sind etwa 17 Mrd. US-Dollar in drei Phasen bis 2028, 2033 und 2050.",
+    ort: { lat: 37.23, lon: 42.46, plaka: 73, name: "Şırnak" },
+    provinzen: [73, 47, 63, 27, 80, 1, 33],
+    voraus: [vertrauen("IRQ", 55), vertrauen("SAU", 50), { art: "massnahme", id: "m_bahn", min: 50 }],
+    kosten: { pk: 10, bau: 2600, monate: 54, verwaltung: 2.4, schulden: 0.8 },
+    abschluss: [stoss("logistik", 4, [73, 47, 63, 27, 80, 1, 33]), stoss("export", 2), stoss("wachstum_regional", 3, [73, 47, 63]), { t: "land", land: "IRQ", dim: "handel", d: 6 }, { t: "land", land: "SAU", dim: "handel", d: 3 }, { t: "land", land: "IRN", dim: "vertrauen", d: -3 }],
+    dauer: [stuetze("logistik", 2, [73, 47, 63, 27, 1, 33]), stuetze("export", 1), stuetze("wachstum_regional", 1.5, [73, 47, 63])],
+    bauwirkung: [ARBEIT(0.15)],
+    unterhalt: 0.9,
+    kehrseite: "Die Trasse läuft durch das Grenzgebiet, in dem die PKK kämpft; ohne Sicherheit fährt kein Zug. Iran sieht seine eigenen Korridore bedroht, und der Golf hat mit dem Indien-Nahost-Europa-Korridor eine zweite Wahl.",
+    verlierer: "Iran",
+    bild: "bahn",
+    quelle: "Absichtserklärung vom 22.04.2024 (Verkehrsministerium Katar, mot.gov.qa); khl.com (Turkey and Iraq unveil plans for US$17 billion Development Road); worldhighways.com (Iraq, Turkey, UAE, Qatar sign road MoU). Baupunkte und Kosten im Spiel: Spielparameter.",
+  },
+  {
+    id: "infra_kop",
+    bereich: "infrastruktur",
+    klasse: "grossprojekt",
+    name: "Konya-Ebene-Projekt (KOP) vollenden",
+    text: "Der 17 km lange Blaue Tunnel (Mavi Tünel) leitet Wasser aus dem Göksu-Becken in die geschlossene Konya-Ebene; voll ausgebaut sollen jährlich 414 Mio. m³ fließen, davon 314 Mio. m³ für 65.000 Hektar Bewässerung. Offen sind weitere Tunnel und die Dämme Bozkır, Avşar und Hadim.",
+    ort: { lat: 37.6, lon: 32.6, plaka: 42, name: "Konya" },
+    provinzen: [42, 70, 68, 51],
+    voraus: [{ art: "massnahme", id: "m_bewaesserung", min: 50 }],
+    kosten: { pk: 6, bau: 1100, monate: 36, verwaltung: 1.4, schulden: 0.3 },
+    abschluss: [stoss("ernte", 3, [42, 70, 68]), stoss("wasserversorgung", 3, [42]), stoss("duerre", -3, [42, 70, 68])],
+    dauer: [stuetze("ernte", 1.5, [42, 70, 68]), stuetze("wasserversorgung", 1.5, [42]), stuetze("duerre", -1.5, [42, 70, 68])],
+    bauwirkung: [ARBEIT(0.1)],
+    unterhalt: 0.4,
+    kehrseite: "Das Wasser fehlt im Göksu und flussabwärts am Mittelmeer; die Ebene verliert Grundwasser schneller, als jeder Tunnel nachliefert, und Kritiker im Parlament nennen den Tunnel eine Beruhigungspille.",
+    verlierer: "Anrainer am Göksu",
+    bild: "damm",
+    quelle: "Staatliche Wasserbehörde DSİ und Generaldirektion Meteorologie (mgm.gov.tr, Konya 24.02.2016); Plenarreden im Parlament (tbmm.gov.tr). Baupunkte und Kosten im Spiel: Spielparameter.",
   },
   {
     id: "infra_yht_izmir",

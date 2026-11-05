@@ -260,7 +260,8 @@ describe("Katalog: Verhalten im Spiel", () => {
       beginne(w, "luft_triebwerke", "stammfirma");
       advance(w, 30 * 44);
       const z = reichZustand(w);
-      if (!z.meldungen.some((m) => m.art === "gescheitert")) continue;
+      // Nur Partien, in denen das Vorhaben scheiterte und die noch laufen (eine beendete Amtszeit nimmt keine Vorhaben mehr an)
+      if (!z.meldungen.some((m) => m.art === "gescheitert") || w.spiel!.ende) continue;
       w.spiel!.kapital = 150;
       z.verwaltung = 90;
       erfuelle(w, v);
