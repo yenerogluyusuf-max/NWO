@@ -239,9 +239,10 @@ export function initSpiel(world: World, profil: PlayerProfile, rng: Rng): void {
   if (gouverneur) world.governor.name = gouverneur.name;
   spiel.start.akut = akuteProbleme(world);
   spiel.kalibrierung = profil.wahl.anteil - rohZustimmung(world, 0);
-  // Die drei drängenden Vorgänge des ersten Tages
-  oeffne(world, "start_haushalt", rng);
-  oeffne(world, "start_partner", rng);
+  // Die drängenden Vorgänge des ersten Tages. Kein Haushaltsentwurf: Der Präsident übernimmt im Juni den laufenden Haushalt, der erste
+  // eigene Entwurf kommt im Haushaltsfenster im Oktober (das Ereignis drehte am Konjunkturimpuls vorbei am Haushalt; Rückmeldung 05.11.2026).
+  // Die Partnerfrage nur mit einem Bündnispartner; ohne ihn hatte die Opposition nur Antworten ohne Wirkung.
+  if (profil.buendnis) oeffne(world, "start_partner", rng);
   oeffne(world, "start_wiederaufbau", rng);
   // Krisen-Blocker: beim Amtsantritt einmal auf den Stand bringen (ältere Spielstände bekommen das Feld so beim ersten Tick)
   krisenAktualisieren(world);

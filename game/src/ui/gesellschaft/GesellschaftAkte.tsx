@@ -226,8 +226,8 @@ function Kommunen({ world, onAktion }: { world: World; onAktion: (text: string) 
   );
 }
 
-export function GesellschaftAkte({ world }: { world: World }) {
-  const [reiter, setReiter] = useState<Reiter>("lage");
+export function GesellschaftAkte({ world, start = "lage" }: { world: World; start?: Reiter }) {
+  const [reiter, setReiter] = useState<Reiter>(start);
   const [meldung, setMeldung] = useState<string | null>(null);
   const [, setTick] = useState(0);
   if (!world.spiel) return null;

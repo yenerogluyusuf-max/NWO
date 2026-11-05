@@ -310,9 +310,14 @@ const GASVERTRAG: Vorlage = {
       lieferanteilVerschieben(w, "LNG", 6);
       return t("wort.gas.diversifiziert");
     }),
-    opt("kurz", t("eva.gasvertrag.opt.kurz.label"), beschr(1, 0, t("eva.gasvertrag.opt.kurz.folge")), 1, () => t("wort.gas.kurz")),
+    // Kurze Laufzeiten lassen sich Lieferanten bezahlen (Spielparameter +1,5); nach einem Jahr liegt der Vertrag wieder auf dem Tisch (folgen)
+    opt("kurz", t("eva.gasvertrag.opt.kurz.label"), beschr(1, 0, t("eva.gasvertrag.opt.kurz.folge")), 1, (w) => {
+      wirke(w, "energiepreise", 1.5);
+      return t("wort.gas.kurz");
+    }),
   ];
   },
+  folgen: { kurz: { vorlage: "gasvertrag", nach: [330, 400] } },
   standard: (w) => {
     wirke(w, "energiepreise", 3);
     return t("eva.gasvertrag.standard");

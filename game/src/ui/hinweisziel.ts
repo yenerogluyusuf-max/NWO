@@ -9,7 +9,8 @@ export function hinweisZiel(id: string): Ziel | undefined {
   if (id.startsWith("krieg-") || id.startsWith("militaer-")) return { art: "akte", akte: "reich_militaer" };
   if (id.startsWith("aussen-") || id.startsWith("vermittlung-")) return { art: "akte", akte: "welt" };
   if (id.startsWith("putsch-") || id.startsWith("mit-")) return { art: "akte", akte: "personen" };
-  if (id.startsWith("gesellschaft-")) return { art: "akte", akte: "waehler" };
+  // Bewegungen und Opposition: direkt in die Ansicht „Opposition & Straße“ (vorher ganz unten in der Wählerkoalition)
+  if (id.startsWith("gesellschaft-")) return { art: "akte", akte: "strasse" };
   if (id.startsWith("grossziel-")) return { art: "akte", akte: "grosseziele" };
   if (id.startsWith("amtsenthebung-") || id.startsWith("ueberlaeufer-")) return { art: "akte", akte: "parlament" };
   return undefined;

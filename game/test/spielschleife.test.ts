@@ -106,7 +106,7 @@ describe("Politisches Kapital und Parlament", () => {
     expect(w.spiel!.gesetze).toHaveLength(1);
     advance(w, 2);
     expect(w.spiel!.gesetze).toHaveLength(0);
-    expect(w.log.some((l) => l.text.startsWith("Das Parlament nimmt „Mindestlohn“"))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
     advance(w, 60);
     expect(nationalAverage(NET, w.net, "m_mindestlohn")).toBeGreaterThan(70);
   });
@@ -120,7 +120,7 @@ describe("Politisches Kapital und Parlament", () => {
     const nachEinbringen = w.spiel!.kapital;
     expect(nachEinbringen).toBeLessThan(kapital);
     advance(w, 25);
-    expect(w.log.some((l) => l.text.startsWith("Das Parlament lehnt „Mindestlohn“"))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament lehnt „Mindestlohn/.test(l.text))).toBe(true);
     expect(nationalAverage(NET, w.net, "m_mindestlohn")).toBeLessThan(55);
   });
 
@@ -135,7 +135,7 @@ describe("Politisches Kapital und Parlament", () => {
     // Der Kauf ist ein Geschäft ohne Nachspiel: keine Zusage an „Fraktionen“, die später als Rechnung wiederkehrt
     expect(w.spiel!.zusagen.some((z) => z.von === "Fraktionen")).toBe(false);
     advance(w, 22);
-    expect(w.log.some((l) => l.text.startsWith("Das Parlament nimmt „Mindestlohn“"))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
   });
 
   test("Alte Spielstände: Zusagen an „Fraktionen“ und ihre Ereignisse verschwinden", () => {
@@ -157,17 +157,19 @@ describe("Politisches Kapital und Parlament", () => {
 
   test("Erlass nur in Sicherheit und Außenbeziehungen, sofort wirksam, teurer", () => {
     const w = spiel();
-    expect(erlassMoeglich("m_polizei")).toBe(true);
+    // Mit Katalogeintrag entscheidet der Katalog (gv_polizei: Grundrechte, kein Erlass); geprüft wird eine Sicherheitsmaßnahme ohne Eintrag
+    expect(erlassMoeglich("m_polizeitechnik")).toBe(true);
     expect(erlassMoeglich("m_mindestlohn")).toBe(false);
     const nein = bringeEin(w, "m_mindestlohn", 75, null, "erlass");
     expect(nein.ok).toBe(false);
-    const pr = pruefeVorhaben(w, "m_polizei", 80);
+    expect(pruefeVorhaben(w, "m_polizei", 80).erlass.moeglich).toBe(false);
+    const pr = pruefeVorhaben(w, "m_polizeitechnik", 80);
     expect(pr.erlass.pk).toBeGreaterThan(pr.gesetz.pk);
-    const ja = bringeEin(w, "m_polizei", 80, null, "erlass");
+    const ja = bringeEin(w, "m_polizeitechnik", 80, null, "erlass");
     expect(ja.ok).toBe(true);
     expect(w.spiel!.gesetze).toHaveLength(0);
     advance(w, 30);
-    expect(nationalAverage(NET, w.net, "m_polizei")).toBeGreaterThan(55);
+    expect(nationalAverage(NET, w.net, "m_polizeitechnik")).toBeGreaterThan(nationalAverage(NET, spiel().net, "m_polizeitechnik"));
   });
 
   test("Doppeltes Einbringen derselben Maßnahme wird abgelehnt", () => {
@@ -239,10 +241,11 @@ describe("Ereignisse", () => {
     expect(w.spiel!.umfrage.zustimmung).toBeLessThan(zustimmung);
   });
 
-  test("Die erste Woche hat drei Vorgänge (Entscheidungen E)", () => {
+  test("Die erste Woche: Partnerfrage (nur mit Bündnis) und Wiederaufbau; kein Haushaltsentwurf vorbei am Haushalt (Rückmeldung 05.11.2026)", () => {
     const w = createWorld(turkey2026, 5);
     startAfterElection(w, profil);
-    expect(w.spiel!.ereignisse.map((e) => e.vorlage).sort()).toEqual(["start_haushalt", "start_partner", "start_wiederaufbau"]);
+    const erwartet = profil.buendnis ? ["start_partner", "start_wiederaufbau"] : ["start_wiederaufbau"];
+    expect(w.spiel!.ereignisse.map((e) => e.vorlage).sort()).toEqual(erwartet);
   });
 
   test("Zusagen aus dem Wahlkampf werden fällig und als Ereignis eingefordert", () => {

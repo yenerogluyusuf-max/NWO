@@ -847,9 +847,16 @@ const KOALITION: Vorlage = {
   warum: () => "Ohne eigene Mehrheit braucht ein Präsident Partner. Jeder Partner hat eigene Wähler und einen Preis.",
   optionen: (w, ev) => [
     koalitionsAntwort(w, String(ev.daten?.partei), "zustimmen", t("ka.annehmen"), "z-koalition"),
-    opt("ablehnen", "Ablehnen", "Kostet nichts; die Mehrheit bleibt schwer.", 0, () => "Das Angebot wird abgelehnt."),
+    // Eine klare Absage kostet weniger Gesprächsbereitschaft als ein Angebot, das unbeantwortet verfällt (Spielparameter −5 / −10)
+    opt("ablehnen", "Ablehnen", "Kostet nichts; die Mehrheit bleibt schwer, die Gesprächsbereitschaft der Partei sinkt (−5).", 0, (w) => {
+      bereitschaftAendern(w, String(ev.daten?.partei), -5);
+      return "Das Angebot wird abgelehnt; die Partei merkt sich die Absage.";
+    }),
   ],
-  standard: () => "Das Angebot verfällt.",
+  standard: (w, ev) => {
+    bereitschaftAendern(w, String(ev.daten?.partei), -10);
+    return "Das Angebot verfällt unbeantwortet; die Partei fühlt sich übergangen.";
+  },
 };
 
 function lueckeJetzt(w: World): number {

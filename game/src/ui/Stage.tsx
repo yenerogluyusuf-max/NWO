@@ -51,6 +51,7 @@ import { Wissensbaum } from "./wissen/Wissensbaum";
 import { Fokusbaum } from "./fokus/Fokusbaum";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
 import { Tagesordnung } from "./parlament/Tagesordnung";
+import { GesellschaftAkte } from "./gesellschaft/GesellschaftAkte";
 import { istAbstimmung } from "./parlament/abstimmung";
 import { quittiereFeier, reichZustand, vorhabenDef } from "../sim/reich";
 import { ERBE } from "../data/erbe";
@@ -122,6 +123,7 @@ type Dossier =
   | "beschluesse"
   | "waehler"
   | "wahlkampf"
+  | "strasse"
   | "katastrophe"
   | "programme"
   | "wissensbaum"
@@ -528,6 +530,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       icon: "menge",
       tabs: [
         { id: "waehler", label: t("buehne.tab.waehler") },
+        // Opposition, Bewegungen und Rathäuser als eigene Ansicht (Plan Anhang B „Opposition & Straße“); vorher ganz unten in der Wählerkoalition
+        { id: "strasse", label: t("buehne.tab.strasse") },
         { id: "wahlkampf", label: t("buehne.tab.wahlkampf") },
       ],
     },
@@ -904,7 +908,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
 
       {dossier && (
-        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "grosseziele" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "strasse" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "grosseziele" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           {/* Alle Akten im selben Leder- und Goldrahmen (GESTALTUNG_2026-11-04, G1) */}
           <Corners />
           <header className="dossier-head">
@@ -1062,6 +1066,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
+            {dossier === "strasse" && <GesellschaftAkte world={w} start="strasse" />}
             {dossier === "wahlkampf" && <WahlkampfZentrale world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "katastrophe" && <Katastrophe world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "personen" && (
