@@ -9,6 +9,7 @@ import type { Dimension } from "../sim/laender";
 import type { Effekt } from "../sim/reich-typen";
 import type { Bedingung } from "../sim/programme";
 import { stoss, stuetze } from "./reich/bau";
+import { datenFelder, datenTexte } from "../i18n/daten";
 
 export interface KlauselDef {
   id: string;
@@ -707,3 +708,12 @@ export const PROFILE: Record<string, LandProfil> = {
 
 export const VERTRAGSLAUFZEITEN = [2, 5, 10] as const;
 export type Laufzeit = (typeof VERTRAGSLAUFZEITEN)[number];
+
+// Texte dreisprachig (Katalog daten_abkommen.json; Deutsch bleibt hier die Quelle). Kennungen sind Klausel- und Ländercodes,
+// in der Ausstrahlung wird „@“ zu „_at_“, damit Schlüssel nur Buchstaben, Ziffern, „_“ und „.“ enthalten.
+datenTexte("abkommen.klausel", KLAUSELN, (k) => k.id, ["label", "text", "kehrseite", "pflichtText"]);
+datenFelder("abkommen.mindestens", KLAUSELN.filter((k) => k.mindestens).map((k) => ({ id: k.id, obj: k.mindestens!, feld: "text" })));
+datenFelder("abkommen.ausstrahlung", Object.entries(AUSSTRAHLUNG).flatMap(([key, liste]) => liste.map((x, i) => ({ id: `${key.replace("@", "_at_")}.${i}`, obj: x, feld: "text" }))));
+datenFelder("abkommen.profil", Object.entries(PROFILE).map(([land, p]) => ({ id: land, obj: p, feld: "hebelText" })));
+datenFelder("abkommen.rot", Object.entries(PROFILE).flatMap(([land, p]) => Object.keys(p.rotText ?? {}).map((klausel) => ({ id: land, obj: p.rotText!, feld: klausel }))));
+datenFelder("abkommen.texte", Object.entries(PROFILE).flatMap(([land, p]) => Object.entries(p.texte ?? {}).flatMap(([klausel, o]) => (["label", "text"] as const).map((feld) => ({ id: `${land}.${klausel}`, obj: o, feld })))));

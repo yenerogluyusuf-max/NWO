@@ -12,6 +12,7 @@ import "../src/data/reich/index";
 import "../src/data/erbe";
 import "../src/sim/regional";
 import "../src/sim/personen-typen";
+import "../src/data/abkommen";
 
 type Tabelle = Record<string, string>;
 const lade = (s: string): Record<string, Tabelle> =>
@@ -21,7 +22,7 @@ const TR = lade("tr");
 const EN = lade("en");
 
 // Kataloge, die dieser Strang anlegt und vollständig in drei Sprachen führt
-const VOLL = ["netzknoten.json", "simtexte.json", "daten_skala.json", "daten_programm.json", "daten_amt.json", "daten_vorhaben.json", "daten_vorteil.json", "daten_erbe.json", "daten_region.json", "daten_person.json", "oberflaeche2.json", "simtexte2.json"];
+const VOLL = ["netzknoten.json", "simtexte.json", "daten_skala.json", "daten_programm.json", "daten_amt.json", "daten_vorhaben.json", "daten_vorteil.json", "daten_erbe.json", "daten_region.json", "daten_person.json", "oberflaeche2.json", "simtexte2.json", "daten_abkommen.json"];
 
 describe("Datentexte", () => {
   it("der deutsche Katalog entspricht den angemeldeten Daten", () => {
