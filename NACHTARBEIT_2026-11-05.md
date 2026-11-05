@@ -38,3 +38,23 @@ Auftrag: die Nacht durch prüfen, verbessern, vergleichen, über alle Bereiche, 
 - **Übersetzung:** Protokoll, Verträge, Initiativen anderer Staaten, Ländernamen und Ereignispreise kommen jetzt aus Katalogen; die englische Oberfläche zeigt in der Stichprobe keine deutschen Reste mehr. Offen sind einzelne Texte aus Datenmodulen (Länderprofile, Rote-Linien-Sätze).
 - **Mentorin und Prolog duzen** bewusst; alle Systemtexte siezen. Wenn auch die Mentorin siezen soll, ist das ein kurzer Schritt.
 - Nächste Schritte stehen in [PLANERWEITERUNG.md](PLANERWEITERUNG.md) §10: Befehle auf der Karte, endogene Gruppengröße (Democracy 4), Besatzungsverwaltung (HOI4).
+
+## 5. Nachtrag am Vormittag: gespielt wie ein Neuling
+
+Auf Ihre Frage hin habe ich das Spiel im Browser durchgeklickt, ohne Wissen über die Innereien: Prolog, Amtsantritt, Ziele, rund zwanzig Ereignisse, ein Gesetz über „Politik“ bis zur Umsetzung, Parlament, Außen- und Sicherheitslage, bis März 2029. Was auffiel und behoben ist:
+
+| Auffällig | Behebung |
+|---|---|
+| Man erfährt nicht, was ohne Antwort geschieht | Abschnitt „Ohne Antwort“ mit Standardfolge, Wirkungen und Preis des Schweigens |
+| Justizministerin rät bei der Verfassungsrichterwahl zu Gefängnissen | Rat nach der Größe des Ereignisses |
+| Rentenzusage zeigt Justiz und Pressefreiheit | Kennzahlen nach dem Thema der Zusage |
+| „Druck aus Straßburg −2“ rot | Farbe nach Wertung, Pfeil nach Richtung |
+| 47 % im Fenster, 50 % in der Leiste | Umfrage mit Institut und Alter |
+| EU 40 im Kopf, 38 in der Weltlage | eine Zahl: Vertrauen der EU |
+| „Gasversorgung fehlt“ bei Versorgung 100 | Warnung nach echter Versorgung |
+| „Mehrheit 328“ ohne Bezug | „Lager …, geduldet …, Mehrheit ab 301“ unter der Zahl |
+| Drei Minister namens Erdem | keine doppelten Nachnamen |
+| Zwischenfall „an der Grenze“ mit den USA | Ort nach Geografie |
+| Gesetz beschlossen, aber nirgends gemeldet nach dem Laden | „Stand der Dinge“ nennt die Abstimmungen |
+| „stehen unter Heute“, Reiter heißt „Vorschläge“ | Verweis nennt den Reiter |
+
