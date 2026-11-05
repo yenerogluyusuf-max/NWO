@@ -4,16 +4,18 @@
 
 import type { Dimension } from "./laender";
 import type { Angebot } from "./abkommen-typen";
+import { t } from "../i18n";
 
 export type Bereich = "kultur" | "recht" | "militaer" | "infrastruktur" | "haushalt";
 
-export const BEREICH_NAMEN: Record<Bereich, string> = {
-  kultur: "Kultur und Erbe",
-  recht: "Recht und Justiz",
-  militaer: "Streitkräfte",
-  infrastruktur: "Infrastruktur",
-  haushalt: "Haushalt und Verwaltung",
-};
+
+
+/** Objekt mit festen Schlüsseln, dessen Werte bei jedem Lesen aus dem Katalog kommen */
+function sprachObjekt<K extends string>(schluessel: readonly K[], wert: (k: K) => string): Record<K, string> {
+  const o = {} as Record<K, string>;
+  for (const k of schluessel) Object.defineProperty(o, k, { get: () => wert(k), enumerable: true });
+  return o;
+}
 
 export type Klasse =
   | "wunder"
@@ -28,42 +30,24 @@ export type Klasse =
   | "sonderrecht"
   | "forschung";
 
-export const KLASSEN_NAMEN: Record<Klasse, string> = {
-  wunder: "Wunder",
-  grossprojekt: "Großprojekt",
-  serie: "Themenroute",
-  restaurierung: "Restaurierung",
-  ausbau: "Ausbau",
-  reform: "Reform",
-  beschaffung: "Beschaffung",
-  institution: "Institution",
-  doktrin: "Doktrin",
-  sonderrecht: "Sonderrecht",
-  forschung: "Forschung",
-};
+export const BEREICH_NAMEN = sprachObjekt(["kultur", "recht", "militaer", "infrastruktur", "haushalt"] as Bereich[], (k) => t(`reich.bereich.${k}`)) as Record<Bereich, string>;
+
+/** Namen der Klassen in der aktuellen Sprache (Katalog reichtypen.json); als Getter, damit ein Sprachwechsel sofort greift */
+const KLASSEN: Klasse[] = ["wunder", "grossprojekt", "serie", "restaurierung", "ausbau", "reform", "beschaffung", "institution", "doktrin", "sonderrecht", "forschung"];
+export const KLASSEN_NAMEN = sprachObjekt(KLASSEN, (k) => t(`reich.klasse.${k}`)) as Record<Klasse, string>;
 
 /** Themen der Ansicht „Neue Vorhaben“ (Vorhaben.thema), in der Reihenfolge der Anzeige. */
-export const THEMEN: { id: string; titel: string; satz: string }[] = [
-  { id: "regional", titel: "Programme für Regionen", satz: "Dasselbe Programm für eine Provinz, eine Region oder das ganze Land: Preis, Dauer und Wirkung folgen dem Umfang, und dasselbe Vorhaben legt man am selben Ort nur einmal an." },
-  { id: "verkehr", titel: "Verkehr und Welt", satz: "Wege nach Zentralasien und China, Häfen und Megaverbindungen: Jede Stufe verlangt die vorige und Partner entlang der Strecke." },
-  { id: "energie", titel: "Energie und Wasser", satz: "Stromverbund, Atom, Fusion und Wasserumleitungen: erst Forschung und Verträge, dann Anlagen." },
-  { id: "stadt", titel: "Städte", satz: "Von neuen Stadtteilen bis zur neuen Hauptstadt: Wohnraum schaffen kostet Wald, Wasser und Vertrauen." },
-  { id: "raumfahrt", titel: "Raumfahrt", satz: "Von der Behörde bis zum Mars: Jede Stufe baut auf der vorigen auf, und keine ist billig." },
-  { id: "ki", titel: "Künstliche Intelligenz", satz: "Strategie, Rechenzentren, Chips und Anwendungen: abhängig von Strom, Köpfen und Lieferanten." },
-  { id: "technologie", titel: "Technologie", satz: "Sehr große Investitionen in Meer, Luft, Biologie, Chips, Batterien, Quanten, Robotik und Werkstoffe: lange Laufzeit, ungewisse Durchbrüche, Konkurrenz und Spionage, später Ertrag mit Nebenwirkungen." },
-];
+export const THEMEN: { id: string; titel: string; satz: string }[] = ["regional", "verkehr", "energie", "stadt", "raumfahrt", "ki", "technologie"].map((id) => ({
+  id,
+  get titel() { return t(`reich.thema.${id}.titel`); },
+  get satz() { return t(`reich.thema.${id}.satz`); },
+}));
 
 /** Technologiefelder (Vorhaben.feld) in der Reihenfolge der Anzeige. */
-export const FELDER: { id: string; titel: string }[] = [
-  { id: "meer", titel: "Meerestechnologie" },
-  { id: "luft", titel: "Luftfahrttechnik" },
-  { id: "bio", titel: "Biotechnologie" },
-  { id: "chips", titel: "Halbleiter und Chips" },
-  { id: "energietech", titel: "Batterien und Wasserstoff" },
-  { id: "quanten", titel: "Quantentechnologie" },
-  { id: "robotik", titel: "Robotik" },
-  { id: "nano", titel: "Nanomaterialien" },
-];
+export const FELDER: { id: string; titel: string }[] = ["meer", "luft", "bio", "chips", "energietech", "quanten", "robotik", "nano"].map((id) => ({
+  id,
+  get titel() { return t(`reich.feld.${id}`); },
+}));
 
 /** Was ein Vorhaben oder ein Vorteil in der Welt bewegt. Nichts davon ist nur Geld. */
 export type Effekt =
@@ -103,11 +87,7 @@ export type Voraussetzung =
  */
 export type Vergabe = "stammfirma" | "sparvergabe" | "ausschreibung";
 
-export const VERGABE_NAMEN: Record<Vergabe, string> = {
-  stammfirma: "Stammfirma",
-  sparvergabe: "Sparvergabe",
-  ausschreibung: "Transparente Ausschreibung",
-};
+export const VERGABE_NAMEN = sprachObjekt(["stammfirma", "sparvergabe", "ausschreibung"] as Vergabe[], (k) => t(`reich.vergabe.${k}`)) as Record<Vergabe, string>;
 
 // ---------------------------------------------------------------------------
 // Freie Großprojekte (INF-4, GRO-01/02; GROSSPROJEKTE.md und PLANERWEITERUNG.md, Nachtrag §8)

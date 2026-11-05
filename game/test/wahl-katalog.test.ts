@@ -28,6 +28,7 @@ const FAMILIEN: Record<string, string[]> = {
   "wahl.ui.wer.${wer}": WER.map((x) => `wahl.ui.wer.${x}`),
   "umbildung.ui.entschieden.${m.entschieden}": ENTSCHIEDEN.map((x) => `umbildung.ui.entschieden.${x}`),
   "ziel.bereich.${g.bereich}": BEREICH.map((x) => `ziel.bereich.${x}`),
+  "bilanz.wandel.${groesse}": ["inflation", "alq", "schulden", "vertrauen"].map((x) => `bilanz.wandel.${x}`),
 };
 
 function schluesselAusQuellen(): { statisch: Set<string>; dynamisch: Set<string> } {

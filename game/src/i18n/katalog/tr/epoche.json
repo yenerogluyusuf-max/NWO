@@ -34,7 +34,5 @@
  "epoche.ui.aussicht": "Gidişat: {stufe}",
  "epoche.ui.bis": "bir sonraki aşamaya {n} kaldı",
  "epoche.ui.keine": "Bu dönemde henüz tarihî an yok.",
- "epoche.ui.erklaerung": "Büyük işler ve ağır geri adımlar tarih yazar. Yeniden seçimde dönem değerlendirilir; karar bir sonrakine taşınır.",
- "bilanz.epoche.amtszeit": "{nr}. dönem: {stufe} ({wert})",
- "bilanz.epoche": "{anzahl, plural, =0 {} other {Tarih şöyle değerlendiriyor: {teile}. }}{mitMomenten, select, ja {Son dönemin belirleyici anları: {momente}.} other {}}"
+ "epoche.ui.erklaerung": "Büyük işler ve ağır geri adımlar tarih yazar. Yeniden seçimde dönem değerlendirilir; karar bir sonrakine taşınır."
 }

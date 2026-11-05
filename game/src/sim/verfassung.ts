@@ -672,7 +672,7 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
     addLog(w, "ereignis", t("sim2.sim.verfassung.84f127a", { p0: wegText }), t("sim2.sim.verfassung.1db54cb"));
     weiterNachAym(w, rng);
   }
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.8977bcd"), ausgang: `${ja} zu ${nein}${angefochten ? "; die Opposition fechtet an" : ""}` });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.8977bcd"), ausgang: `${ja} zu ${nein}${angefochten ? "; die Opposition fechtet an" : ""}`, presse: { sparte: "politik", wertung: 0.3 } });
   return { ja, weg, angefochten, text: `${wegText}${angefochten ? " Die Opposition zieht vor das Verfassungsgericht." : ""}` };
 }
 
@@ -736,11 +736,11 @@ export function aymEntscheiden(w: World, rng: Rng): { kassiert: boolean; text: s
       text,
       t("sim2.sim.verfassung.6704ca0"),
     );
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.851e8f9"), ausgang: t("sim2.sim.verfassung.3aa2806") });
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.851e8f9"), ausgang: t("sim2.sim.verfassung.3aa2806"), presse: { sparte: "politik", wertung: -0.6 } });
     return { kassiert, text };
   }
   addLog(w, "ereignis", t("sim2.sim.verfassung.37845af"), t("sim2.sim.verfassung.54f0f07"));
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.60bb5f0"), ausgang: t("sim2.sim.verfassung.94ebb26") });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.60bb5f0"), ausgang: t("sim2.sim.verfassung.94ebb26"), presse: { sparte: "politik", wertung: 0.3 } });
   weiterNachAym(w, rng);
   return { kassiert, text: t("sim2.sim.verfassung.d42e1dd") };
 }
@@ -942,7 +942,7 @@ function beschliessePaket(w: World, rng: Rng): void {
         ? t("sim2.sim.verfassung.267a75b")
         : t("sim2.sim.verfassung.e1299ec"),
   );
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.780e6c6"), ausgang: namen });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.780e6c6"), ausgang: namen, presse: { sparte: "politik", wertung: 0.3 } });
   spiel.hinweise.push({
     id: `verfassung-kraft-${w.day}`,
     titel: t("sim2.sim.verfassung.780e6c6"),

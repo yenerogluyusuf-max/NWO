@@ -2,6 +2,7 @@ import { defizitQuote, zinsQuote } from "./staatsgeld";
 // Die Wirtschaftsakte: Zustand, Verlauf der Kennzahlen und Marken auf der Zeitachse. Die Größen des Wirtschaftsmodells stehen schon in
 // `world.history` (Monatswerte); hier kommen weitere Größen dazu (Netzknoten, Defizit, Zinsausgaben), damit jede Zahl einen Verlauf hat.
 
+import { istEntscheidung } from "./chronik";
 import type { World } from "./types";
 import type { HaushaltZustand, Marke, WirtschaftZustand, ZentralbankZustand } from "./wirtschaft-typen";
 import { realRate } from "./economy";
@@ -128,7 +129,7 @@ export function addMarke(w: World, art: Marke["art"], text: string): void {
 export function alleMarken(w: World): Marke[] {
   const eigene = w.spiel?.wirtschaft?.marken ?? [];
   const chronik: Marke[] = (w.spiel?.chronik ?? [])
-    .filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel))
+    .filter(istEntscheidung)
     .map((c) => ({ tag: c.tag, monat: monthOf(c.datum), art: "ereignis" as const, text: `${c.titel}: ${c.ausgang}` }));
   return [...eigene, ...chronik].sort((a, b) => a.tag - b.tag);
 }

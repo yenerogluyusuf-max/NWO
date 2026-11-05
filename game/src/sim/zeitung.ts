@@ -988,14 +988,22 @@ function chronikVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
   for (const c of spiel.chronik) {
     if (c.tag <= z.letzteMonatsausgabeTag || c.tag >= world.day) continue;
     if (gesperrt.some((s) => c.titel.includes(s) || c.ausgang.includes(s))) continue;
-    if (/^(Der Präsident wirkt|Die Lage beruhigt|Überlastung)/.test(c.titel)) continue; // Verfassung ist intern
-    if (c.titel.startsWith("Wirkungsbericht:")) continue; // erscheint mit Zahlen über spiel.berichte
+    if (c.art === "zustand" || c.art === "moment" || c.art === "epoche") continue; // Verfassung ist intern; Momente erzählt die Bilanz
+    if (c.art === "bericht" && c.titel.startsWith("Wirkungsbericht:")) continue; // erscheint mit Zahlen über spiel.berichte
     let art: VorgangArt = "ereignis";
     let sparte: Sparte = "ereignis";
-    let wertung = c.ausgang.startsWith("Keine Entscheidung") || c.ausgang.startsWith("Ausgesessen") ? -0.55 : -0.15;
+    let wertung = c.ohneEntscheidung ? -0.55 : -0.15;
     let daten: VorgangDaten | undefined;
-    const programm = /^(Schritt erreicht|Programm erfüllt): (.+)$/.exec(c.titel);
-    if (c.titel.includes("packt aus")) {
+    // Übersetzte Titel tragen ihre Lesart mit (c.presse); die Muster darunter gelten nur für fest deutsche Titel und ältere Stände
+    const programm = c.presse ? null : /^(Schritt erreicht|Programm erfüllt): (.+)$/.exec(c.titel);
+    if (c.presse) {
+      sparte = c.presse.sparte;
+      wertung = c.presse.wertung;
+      if (c.presse.programm) {
+        art = "programm";
+        daten = { typ: "programm", schritt: c.presse.programm.schritt, erfuellt: c.presse.programm.erfuellt };
+      }
+    } else if (c.titel.includes("packt aus")) {
       art = "skandal";
       sparte = "politik";
       wertung = -0.9;

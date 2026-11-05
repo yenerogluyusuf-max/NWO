@@ -91,8 +91,18 @@ export interface ChronikEintrag {
   datum: string;
   titel: string;
   ausgang: string;
-  /** Einträge, die keine Entscheidung waren (historische Momente, Epochenurteil): Zählungen und Rückblicke lassen sie aus */
-  art?: "moment" | "epoche";
+  /**
+   * Einträge, die keine Entscheidung waren: historische Momente, Epochenurteil, Wirkungs- und Programmberichte,
+   * Haken des Ereigniswettbewerbs (ausgesessen, gärt weiter) und Zustandsmeldungen der Belastung.
+   * Zählungen und Rückblicke lassen sie aus. Die Logik liest nur diese Merkmale, nie den Text (der hängt an der Sprache).
+   */
+  art?: "moment" | "epoche" | "bericht" | "haken" | "zustand";
+  /** Vorlage des Ereignisses, aus dem der Eintrag stammt (feste Termine des Staatsjahres zählen nicht zur Ereignisdichte) */
+  vorlage?: string;
+  /** Die Frist lief ab, ohne dass der Präsident entschied */
+  ohneEntscheidung?: true;
+  /** Wie die Zeitung den Eintrag liest (Ressort, Wertung −1 bis +1); gesetzt dort, wo der Titel übersetzt wird */
+  presse?: { sparte: "politik" | "welt" | "programm"; wertung: number; programm?: { schritt: string; erfuellt: boolean } };
 }
 
 export interface Umfrage {

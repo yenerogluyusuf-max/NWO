@@ -260,20 +260,20 @@ export function verfassungTag(w: World): void {
   v.stufe = stufe;
   if (stufe === 1) {
     if (alt === 0) {
-      sp.chronik.push({ tag: w.day, datum: w.date, titel: "Der Präsident wirkt angespannt", ausgang: "Die Belastung ist über 40 gestiegen: Schätzungen streuen breiter, manche Einbringung verzögert sich." });
+      sp.chronik.push({ tag: w.day, datum: w.date, titel: "Der Präsident wirkt angespannt", ausgang: "Die Belastung ist über 40 gestiegen: Schätzungen streuen breiter, manche Einbringung verzögert sich.", art: "zustand" });
       addLog(w, "ereignis", "Der Präsident wirkt angespannt.", "Die Belastung ist über 40 gestiegen. Aufmerksamkeit lädt sich täglich auf; wer sie über 60 hält, baut Belastung wieder ab.");
     } else {
-      sp.chronik.push({ tag: w.day, datum: w.date, titel: "Die Lage beruhigt sich etwas", ausgang: "Die Belastung fällt unter 70; der Präsident bleibt angespannt." });
+      sp.chronik.push({ tag: w.day, datum: w.date, titel: "Die Lage beruhigt sich etwas", ausgang: "Die Belastung fällt unter 70; der Präsident bleibt angespannt.", art: "zustand" });
     }
   } else if (stufe === 2) {
-    sp.chronik.push({ tag: w.day, datum: w.date, titel: "Überlastung", ausgang: "Die Belastung ist über 70 gestiegen; der Stab erzwingt ruhige Tage ohne neue Vorgänge." });
+    sp.chronik.push({ tag: w.day, datum: w.date, titel: "Überlastung", ausgang: "Die Belastung ist über 70 gestiegen; der Stab erzwingt ruhige Tage ohne neue Vorgänge.", art: "zustand" });
     const abkuehlungVorbei = v.letztePause === undefined || w.day - v.letztePause >= VERFASSUNG.pauseAbkuehlung;
     if (abkuehlungVorbei && v.pauseBis === undefined) {
       pauseBeginnen(w, v, VERFASSUNG.pauseTage, false);
       addLog(w, "ereignis", "Der Präsident braucht einen ruhigen Tag.", `Die Belastung ist über 70 gestiegen: Bis ${formatDateDe(addDays(w.date, VERFASSUNG.pauseTage))} starten keine neuen Vorgänge; das Laufende geht weiter.`);
     }
   } else {
-    sp.chronik.push({ tag: w.day, datum: w.date, titel: "Der Präsident wirkt wieder erholt", ausgang: "Die Belastung ist unter 40 gefallen." });
+    sp.chronik.push({ tag: w.day, datum: w.date, titel: "Der Präsident wirkt wieder erholt", ausgang: "Die Belastung ist unter 40 gefallen.", art: "zustand" });
   }
 }
 

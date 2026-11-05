@@ -86,9 +86,10 @@ function dichteFaktor(world: World, id: string): number {
   for (let i = sp.chronik.length - 1; i >= 0; i--) {
     const c = sp.chronik[i]!;
     if (c.tag < grenze) break;
-    // ZEI-1: Die Haken des Ereignis-Wettbewerbs („ausgesessen“/„gärt weiter“) sind keine Präsentationen und zählen nicht zur Dichte
-    if (/^(Ausgesessen|Im Hintergrund)/.test(c.ausgang)) continue;
-    if (!/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt|Der Mindestlohn|Der Haushalt für|Kommunalwahlen|Zusage fällig)/.test(c.titel)) n++;
+    // ZEI-1: Die Haken des Ereignis-Wettbewerbs („ausgesessen“/„gärt weiter“), Berichte und Momente sind keine Präsentationen,
+    // feste Termine des Staatsjahres zählen nie zur Dichte. Gelesen werden Merkmale, nicht der übersetzte Titel.
+    if (c.art || (c.vorlage && TERMINE.has(c.vorlage))) continue;
+    n++;
   }
   return n <= DICHTE_SCHWELLE ? 1 : Math.max(0.3, 1 - 0.14 * (n - DICHTE_SCHWELLE));
 }
@@ -1363,13 +1364,13 @@ function verliererBehandeln(world: World, rng: Rng, v: Vorlage, gen: Erzeugung):
     const ausgang = v.standard(world, ev, rng);
     spiel.zuletzt[v.id] = world.day;
     delete eskalation[v.id];
-    spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Ausgesessen — der Vorgang kam nicht auf den Tisch: ${ausgang}` });
-    addLog(world, "ereignis", `Ausgesessen: ${titel}`, ausgang);
+    spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: t("ereignis.chronik.ausgesessen", { ausgang }), art: "haken", vorlage: v.id, ohneEntscheidung: true });
+    addLog(world, "ereignis", t("ereignis.log.ausgesessen", { titel }), ausgang);
   } else {
     const stufe = Math.min(EREIGNIS_WETTBEWERB.maxStufe, (eskalation[v.id] ?? 0) + 1);
     eskalation[v.id] = stufe;
-    spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: `Im Hintergrund gärt es weiter; der Vorgang kommt dringlicher zurück (Eskalation ${stufe} von ${EREIGNIS_WETTBEWERB.maxStufe}).` });
-    addLog(world, "ereignis", `Im Hintergrund: ${titel} gärt weiter.`, "Der Vorgang war für diesen Monat nicht dringlich genug; die Lage verschärft sich.");
+    spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang: t("ereignis.chronik.gaert", { stufe, max: EREIGNIS_WETTBEWERB.maxStufe }), art: "haken", vorlage: v.id });
+    addLog(world, "ereignis", t("ereignis.log.gaert", { titel }), t("ereignis.log.gaert_warum"));
   }
 }
 
@@ -1459,14 +1460,14 @@ export function ereignisTag(world: World, rng: Rng): void {
     const ausgang = v.standard(world, ev, rng);
     // Schweigen wird bemerkt: Ein Präsident, der nicht antwortet, wirkt schwach
     if (!ev.vorlage.startsWith("start_")) spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
-    abschliessen(world, ev, v.titel(world, ev), `Keine Entscheidung: ${ausgang}`);
+    abschliessen(world, ev, v.titel(world, ev), t("ereignis.chronik.keine", { ausgang }), true);
   }
 }
 
-function abschliessen(world: World, ev: OffenesEreignis, titel: string, ausgang: string): void {
+function abschliessen(world: World, ev: OffenesEreignis, titel: string, ausgang: string, ohneEntscheidung = false): void {
   const spiel = world.spiel!;
   spiel.ereignisse = spiel.ereignisse.filter((e) => e.id !== ev.id);
-  spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang });
+  spiel.chronik.push({ tag: world.day, datum: world.date, titel, ausgang, vorlage: ev.vorlage, ...(ohneEntscheidung ? { ohneEntscheidung: true as const } : {}) });
   addLog(world, "entscheidung", `${titel}: ${ausgang}`);
 }
 
@@ -1479,7 +1480,7 @@ setzeEinbringHaken((world, massnahmeId, text) => {
     if (ev.vorlage.startsWith("start_") || ev.vorlage === "zusage") continue;
     const v = vorlage(ev.vorlage);
     if (!v.massnahmen?.includes(massnahmeId)) continue;
-    abschliessen(world, ev, v.titel(world, ev), `Selbst an der Ursache angesetzt. ${text}`);
+    abschliessen(world, ev, v.titel(world, ev), t("ereignis.chronik.ursache", { text }));
   }
 });
 

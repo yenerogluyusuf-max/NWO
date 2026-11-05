@@ -22,6 +22,7 @@ import { devisenMonat, migriereDevisen } from "./devisen";
 import { koppleNetzAnWirtschaft } from "./maerkte";
 import { migriereKatastrophen } from "./katastrophe";
 import { migriereWahlkampf } from "./wahlkampf";
+import { migriereChronik } from "./chronik";
 import { turkey2026 } from "./scenario";
 
 // Das Netz, das Protokoll und die Eingriffe liegen in eigenen Dateien; hier bleiben die Namen erreichbar.
@@ -292,6 +293,8 @@ export function load(json: string): World {
   migriereWahlkampf(w);
   // Ältere Spielstände (INF-5): Katastrophen-Feld anlegen; dynamische Wohnbau-Vorhaben erneut im Reich anmelden
   migriereKatastrophen(w);
+  // Ältere Spielstände (5. November 2026): Chronik-Merkmale statt Textsuche
+  migriereChronik(w);
   return w;
 }
 

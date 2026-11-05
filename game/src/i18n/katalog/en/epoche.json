@@ -34,7 +34,5 @@
  "epoche.ui.aussicht": "Heading for: {stufe}",
  "epoche.ui.bis": "{n} more to the next level",
  "epoche.ui.keine": "No historic moment in this term yet.",
- "epoche.ui.erklaerung": "Great deeds and heavy setbacks make history. At re-election the term is judged; the verdict carries into the next.",
- "bilanz.epoche.amtszeit": "Term {nr}: {stufe} ({wert})",
- "bilanz.epoche": "{anzahl, plural, =0 {} other {History judges: {teile}. }}{mitMomenten, select, ja {Defining moments of the last term: {momente}.} other {}}"
+ "epoche.ui.erklaerung": "Great deeds and heavy setbacks make history. At re-election the term is judged; the verdict carries into the next."
 }

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { PROVINCE_FC, ringsOf } from "./overlay";
 import nachbarn from "../../data/nachbarn.json";
 import { t } from "../../i18n";
+import { landName } from "../ebenen";
 import "./karte2d.css";
 
 const LON0 = 25.4, LAT0 = 42.4, K = 40, KY = K * 1.27;
@@ -28,7 +29,7 @@ export function Karte2D({ fill, fillAlpha = 0.85, selected, onSelect, laenderFar
         <g className="karte2d-laender">
           {LAENDER.map((l) => (
             <path key={l.iso} d={l.d} style={laenderFarben?.[l.iso] ? { fill: laenderFarben[l.iso] } : undefined}
-              onClick={(e) => onLand?.(l.iso, { x: e.clientX, y: e.clientY })}><title>{l.name}</title></path>
+              onClick={(e) => onLand?.(l.iso, { x: e.clientX, y: e.clientY })}><title>{landName(l.iso) ?? l.name}</title></path>
           ))}
         </g>
         {/* Grund: Land in Pergament, darüber die Farbe der Ebene (Provinzen ohne Wert bleiben Land, nicht Meer) */}

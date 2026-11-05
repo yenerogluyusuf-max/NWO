@@ -300,7 +300,7 @@ export function programmTag(w: World): void {
     if (s.rabatt) spiel.modifikatoren = { ...(spiel.modifikatoren ?? {}), [`rabatt:${s.rabatt.thema}`]: (spiel.modifikatoren?.[`rabatt:${s.rabatt.thema}`] ?? 0) + s.rabatt.anteil };
     if (s.schutz) spiel.modifikatoren = { ...(spiel.modifikatoren ?? {}), [`schutz:${s.schutz.ereignis}`]: s.schutz.faktor };
     const titel = s.vermaechtnis ? t("programm.log.erfuellt", { titel: e.programm.titel }) : t("programm.log.erreicht", { titel: s.titel });
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `${s.text} ${s.ergebnis}.` });
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `${s.text} ${s.ergebnis}.`, art: "bericht", presse: { sparte: "programm", wertung: 0.5, programm: { schritt: s.vermaechtnis ? e.programm.titel : s.titel, erfuellt: !!s.vermaechtnis } } });
     addLog(w, "ereignis", titel, `${s.text} ${s.ergebnis}.`);
     spiel.hinweise.push({ id: `programm-${s.id}-${w.day}`, titel, szene: "istanbul", text: [s.text, t("programm.log.wirkung", { ergebnis: s.ergebnis })] });
   }

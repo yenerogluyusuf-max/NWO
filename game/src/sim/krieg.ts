@@ -937,7 +937,7 @@ function niederlage(w: World, k: KriegVorgang, rng?: Rng): void {
     t(frei ? "krieg.k.nl.text.frei" : "krieg.k.nl.text.gelenkt", { land: lf(l, "akk"), po: Math.round(po * 10) / 10 }),
     t(knotenWert(w, "offiziersvertrauen") < KRIEG.putschAb ? "krieg.k.nl.offiziere.zerbrochen" : "krieg.k.nl.offiziere.angeknackst"),
   ]);
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("krieg.k.nl.titel", { land: l.name }), ausgang: t("krieg.k.nl.chronik") });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("krieg.k.nl.titel", { land: l.name }), ausgang: t("krieg.k.nl.chronik"), presse: { sparte: "welt", wertung: -0.9 } });
   addLog(w, "ereignis", t("krieg.k.nl.log", { land: l.name }), t("krieg.k.nl.log.warum", { po: Math.round(po * 10) / 10 }));
   // Gebietsabtretung und Niederlage sind der klassische Putsch-Auslöser (Suzerain: Estord und Narbel)
   pruefePutsch(w, k, rng);
@@ -1028,7 +1028,7 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
   const paketName = PAKETE[paketId]!.name;
   const inhalt = teile.join("; ") || t("krieg.k.fr.weiss");
   const po1 = Math.round(po * 10) / 10;
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("krieg.k.fr.titel", { land: l.name }), ausgang: t("krieg.k.fr.chronik", { paket: paketName, inhalt }) });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("krieg.k.fr.titel", { land: l.name }), ausgang: t("krieg.k.fr.chronik", { paket: paketName, inhalt }), presse: { sparte: "welt", wertung: 0.5 } });
   hinweis(w, `krieg-frieden-${k.id}-${w.day}`, t("krieg.k.fr.titel", { land: l.name }), [
     t("krieg.k.fr.text1", { paket: paketName, inhalt: teile.join("; ") || t("krieg.k.fr.ohne") }),
     po > 0 ? t(knotenWert(w, "pressefreiheit") >= 50 ? "krieg.k.fr.preis.frei" : "krieg.k.fr.preis.gelenkt", { po: po1 }) : t("krieg.k.fr.preiswert"),

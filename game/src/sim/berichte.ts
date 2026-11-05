@@ -659,7 +659,7 @@ export function berichteTag(world: World): void {
         const r = bericht(world, b, m);
         (spiel.berichte ??= []).push(r);
         if (spiel.berichte.length > 80) spiel.berichte.shift();
-        spiel.chronik.push({ tag: world.day, datum: world.date, titel: `Wirkungsbericht: ${b.name}`, ausgang: `${r.kurz}${chronikMarke(r)}` });
+        spiel.chronik.push({ tag: world.day, datum: world.date, titel: `Wirkungsbericht: ${b.name}`, ausgang: `${r.kurz}${chronikMarke(r)}`, art: "bericht" });
         addLog(world, "ereignis", `Wirkungsbericht: ${b.name}, ${m} Monate danach`, r.kurz);
         schlechtesUrteilMelden(world, r, b.id);
       }
@@ -834,7 +834,7 @@ function rueckblickTag(world: World): void {
         if (m === 12 && !r.berichtet.includes(24)) r.berichtet.push(24);
         continue;
       }
-      spiel.chronik.push({ tag: world.day, datum: world.date, titel: t("takt.bericht.chronik", { name: r.name }), ausgang: b.kurz ?? b.titel });
+      spiel.chronik.push({ tag: world.day, datum: world.date, titel: t("takt.bericht.chronik", { name: r.name }), ausgang: b.kurz ?? b.titel, art: "bericht" });
       addLog(world, "ereignis", t("takt.bericht.log", { name: r.name, monate: m }), b.kurz);
       schlechtesUrteilMelden(world, b, r.id);
     }

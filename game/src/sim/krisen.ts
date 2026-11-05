@@ -12,6 +12,8 @@ import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { addLog } from "./log";
 import { LAENDER, weltZustand } from "./laender";
+import { akteurName } from "./welt-modell";
+import { t } from "../i18n";
 import { zeitungEreignis } from "./zeitung";
 import { DEVISEN } from "./devisen";
 import type { World } from "./types";
@@ -63,21 +65,17 @@ interface KrisenEffekt {
 
 interface KrisenDef {
   id: string;
-  name: string;
   /** Schwelle erreicht: Die Krise wird aktiv. */
   ausloeser: (w: World) => boolean;
   /** Unterschwelle unterschritten: Eine aktive Krise endet (Hysterese). */
   beruhigt: (w: World) => boolean;
-  grund: (w: World) => string;
-  wirkung: string;
-  bedingung: string;
-  /** Was der Spieler stattdessen tun kann — eine Ablehnung nennt immer den Alternativweg. */
-  ausweg: string;
+  /** Platzhalter der Texte (krise.<id>.grund, .wirkung, .bedingung; Katalog krisen.json). Der Ausweg (krise.<id>.ausweg) nennt bei
+   * einer Ablehnung immer den Alternativweg. */
+  werte?: (w: World) => Record<string, string | number>;
   /** Wie die Krise eine Maßnahme trifft; null = nicht betroffen. */
   effekt: (node: NodeSpec) => KrisenEffekt | null;
 }
 
-const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
 
 // ---------------------------------------------------------------------------
 // Auslöser der einzelnen Krisen
@@ -101,14 +99,14 @@ function katastropheOffen(w: World): boolean {
   return w.spiel!.ereignisse.some((e) => KATASTROPHEN_VORLAGEN.has(e.vorlage));
 }
 
-function schaerfsterNachbar(w: World): { name: string; konflikt: number } | null {
+function schaerfsterNachbar(w: World): { id: string; konflikt: number } | null {
   if (!w.spiel) return null;
   const welt = weltZustand(w);
-  let out: { name: string; konflikt: number } | null = null;
+  let out: { id: string; konflikt: number } | null = null;
   for (const l of LAENDER) {
     if (l.gruppe !== "Nachbarn") continue;
     const k = welt[l.id]?.konflikt ?? 0;
-    if (!out || k > out.konflikt) out = { name: l.name, konflikt: k };
+    if (!out || k > out.konflikt) out = { id: l.id, konflikt: k };
   }
   return out;
 }
@@ -131,29 +129,19 @@ function justizreformLaeuft(w: World): boolean {
 const KRISEN: KrisenDef[] = [
   {
     id: "lira_vertrauen",
-    name: "Lira-Vertrauen erschüttert",
     ausloeser: (w) => w.economy.fxChange12 >= R.lira.abwertungAn || w.economy.riskPremium >= R.lira.cdsAn,
     beruhigt: (w) => w.economy.fxChange12 < R.lira.abwertungAus && w.economy.riskPremium < R.lira.cdsAus,
-    grund: (w) => {
-      const teile: string[] = [];
-      if (w.economy.fxChange12 >= R.lira.abwertungAus) teile.push(`die Lira hat in zwölf Monaten ${nf(w.economy.fxChange12)} % verloren`);
-      if (w.economy.riskPremium >= R.lira.cdsAus) teile.push(`der Risikoaufschlag liegt bei ${Math.round(w.economy.riskPremium)} Punkten`);
-      return `Die Märkte trauen der Lira nicht: ${teile.join(" und ")}. Neue Ausgabenprogramme lesen sie als Inflationsrisiko.`;
+    werte: (w) => {
+      const a = w.economy.fxChange12 >= R.lira.abwertungAus, c = w.economy.riskPremium >= R.lira.cdsAus;
+      return { fall: a && c ? "beide" : a ? "abwertung" : c ? "cds" : "keins", abwertung: w.economy.fxChange12, cds: Math.round(w.economy.riskPremium), faktor: R.lira.faktor, abwertungAus: R.lira.abwertungAus, cdsAus: R.lira.cdsAus };
     },
-    wirkung: `Ausgaben in Wirtschaft und Haushalt kosten das ${nf(R.lira.faktor)}-fache an Kapital.`,
-    bedingung: `Endet, wenn die Abwertung auf zwölf Monate unter ${R.lira.abwertungAus} % und der Risikoaufschlag unter ${R.lira.cdsAus} Punkte fallen.`,
-    ausweg: "Ausweg: erst das Vertrauen zurückgewinnen (Zentralbank in Ruhe lassen, Haushalt ordnen) oder Einnahmen statt Ausgaben nutzen.",
     effekt: (node) => ((node.theme === "wirtschaft" || node.theme === "haushalt") && (node.cost ?? 0) > 0 ? { art: "teuer", faktor: R.lira.faktor } : null),
   },
   {
     id: "katastrophenlage",
-    name: "Katastrophenlage",
     ausloeser: (w) => katastropheOffen(w) || w.day - katastropheZuletzt(w) < R.katastrophe.frisch,
     beruhigt: (w) => !katastropheOffen(w) && w.day - katastropheZuletzt(w) > R.katastrophe.ende,
-    grund: () => "Nach der Katastrophe sind Verwaltung, Haushalt und Aufmerksamkeit auf Nothilfe und Versorgung der Betroffenen ausgerichtet.",
-    wirkung: `Nur Versorgung (Wohnen, Gesundheit, Sicherheit, Infrastruktur) geht wie bisher; alles andere kostet das ${nf(R.katastrophe.faktor)}-fache, Prestige-Vorhaben (Kultur) warten.`,
-    bedingung: `Endet, wenn die Katastrophe mehr als ${R.katastrophe.ende} Tage zurückliegt und kein Ereignis mehr offen ist.`,
-    ausweg: "Ausweg: Was der Versorgung dient (Wohnen, Gesundheit, Sicherheit, Infrastruktur), geht sofort; der Rest wartet, bis die Lage vorbei ist.",
+    werte: () => ({ faktor: R.katastrophe.faktor, tage: R.katastrophe.ende }),
     effekt: (node) => {
       if (VERSORGUNG.has(node.theme)) return null;
       if (node.theme === "kultur") return { art: "gesperrt", faktor: 1 };
@@ -162,16 +150,12 @@ const KRISEN: KrisenDef[] = [
   },
   {
     id: "kriegsgefahr",
-    name: "Kriegsgefahr",
     ausloeser: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) > R.krieg.an,
     beruhigt: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) < R.krieg.aus,
-    grund: (w) => {
+    werte: (w) => {
       const n = schaerfsterNachbar(w);
-      return n ? `Der Konflikt mit ${n.name} steht bei ${Math.round(n.konflikt)} von 100; das Land erwartet Geschlossenheit statt Schauprojekten.` : "";
+      return { land: n ? akteurName(n.id) : "", wert: Math.round(n?.konflikt ?? 0), rabatt: Math.round(R.krieg.rabatt * 100), schwelle: R.krieg.aus };
     },
-    wirkung: `Außen- und Militärpolitik kostet nur ${Math.round(R.krieg.rabatt * 100)} % des Kapitals; Prestige-Vorhaben (Kultur) sind gesperrt.`,
-    bedingung: `Endet, wenn kein Konflikt mit einem Nachbarn mehr über ${R.krieg.aus} steht.`,
-    ausweg: "Ausweg: den Konflikt entschärfen (Gespräche am Verhandlungstisch in der Welt) — oder warten, bis die Spannung nachlässt.",
     effekt: (node) => {
       if (node.theme === "aussen" || node.theme === "militaer") return { art: "teuer", faktor: R.krieg.rabatt };
       if (node.theme === "kultur") return { art: "gesperrt", faktor: 1 };
@@ -180,13 +164,9 @@ const KRISEN: KrisenDef[] = [
   },
   {
     id: "zahlungsbilanz",
-    name: "Zahlungsbilanzkrise",
     ausloeser: (w) => (w.economy.reservenNettoUsdMrd ?? Number.POSITIVE_INFINITY) < DEVISEN.kriseAn,
     beruhigt: (w) => (w.economy.reservenNettoUsdMrd ?? Number.POSITIVE_INFINITY) > DEVISEN.kriseAus,
-    grund: (w) => `Die Netto-Reserven der Zentralbank liegen bei ${nf(w.economy.reservenNettoUsdMrd ?? 0)} Mrd. Dollar: Das Land kann Importe und Schulden kaum noch bezahlen, und die Märkte wissen es.`,
-    wirkung: `Ausgaben in Wirtschaft und Haushalt kosten das ${nf(R.zahlungsbilanz.faktor)}-fache an Kapital; Prestige-Vorhaben (Kultur) sind gesperrt. Kapital flieht schneller (Devisen-Lage).`,
-    bedingung: `Endet, wenn die Netto-Reserven wieder über ${DEVISEN.kriseAus} Mrd. Dollar liegen.`,
-    ausweg: "Ausweg: Reserven schonen (keine Interventionen), Kapital anziehen (Zinsen, Vertrauen der Märkte, günstige Leistungsbilanz) — oder das IWF-Programm annehmen, solange es angeboten wird.",
+    werte: (w) => ({ reserven: w.economy.reservenNettoUsdMrd ?? 0, faktor: R.zahlungsbilanz.faktor, schwelle: DEVISEN.kriseAus }),
     effekt: (node) => {
       if ((node.theme === "wirtschaft" || node.theme === "haushalt") && (node.cost ?? 0) > 0) return { art: "teuer", faktor: R.zahlungsbilanz.faktor };
       if (node.theme === "kultur") return { art: "gesperrt", faktor: 1 };
@@ -195,19 +175,21 @@ const KRISEN: KrisenDef[] = [
   },
   {
     id: "justiz_umbau",
-    name: "Justiz im Umbau",
     ausloeser: justizreformLaeuft,
     beruhigt: (w) => !justizreformLaeuft(w),
-    grund: () => "Die Justizreform wird gerade umgesetzt; Gerichte, Ministerium und Richterrat sind mit dem Umbau ausgelastet.",
-    wirkung: "Weitere Justiz-Maßnahmen (Recht und Justiz) sind gesperrt, bis die Reform abgeschlossen ist.",
-    bedingung: "Endet, wenn die Justizreform umgesetzt oder ihr Gesetz zurückgezogen ist.",
-    ausweg: "Ausweg: die laufende Reform zu Ende bringen (oder ihr Gesetz im Parlament zurückziehen); danach ist der Weg frei.",
     effekt: (node) => (node.theme === "recht" && node.id !== "m_justizreform" ? { art: "gesperrt", faktor: 1 } : null),
   },
 ];
 
 function defZu(id: string): KrisenDef | undefined {
   return KRISEN.find((d) => d.id === id);
+}
+
+/** Texte einer Krise in der aktuellen Sprache (Katalog krisen.json) */
+function text(def: KrisenDef, feld: "name" | "grund" | "wirkung" | "bedingung" | "ausweg", w: World): string {
+  const v = def.werte?.(w) ?? {};
+  // Die Bedingung nennt die Unterschwellen, der Grund die aktuellen Werte
+  return t(`krise.${def.id}.${feld}`, feld === "bedingung" && def.id === "lira_vertrauen" ? { abwertung: v.abwertungAus!, cds: v.cdsAus! } : v);
 }
 
 // ---------------------------------------------------------------------------
@@ -219,7 +201,7 @@ export function aktiveKrisen(world: World): KrisenSicht[] {
   if (!spiel) return [];
   return (spiel.krisen ?? []).flatMap((k) => {
     const def = defZu(k.id);
-    return def ? [{ id: def.id, name: def.name, grund: def.grund(world), wirkung: def.wirkung, bedingung: def.bedingung, seit: k.seit }] : [];
+    return def ? [{ id: def.id, name: text(def, "name", world), grund: text(def, "grund", world), wirkung: text(def, "wirkung", world), bedingung: text(def, "bedingung", world), seit: k.seit }] : [];
   });
 }
 
@@ -232,9 +214,9 @@ export function krisenFuerMassnahme(world: World, massnahmeId: string): KrisenTr
     const def = defZu(krise.id)!;
     const e = def.effekt(node);
     if (!e) return [];
-    const t: KrisenTreffer = { krise, art: e.art, faktor: e.art === "teuer" ? e.faktor : 1 };
-    if (e.art === "gesperrt") t.ausweg = def.ausweg;
-    return [t];
+    const treffer: KrisenTreffer = { krise, art: e.art, faktor: e.art === "teuer" ? e.faktor : 1 };
+    if (e.art === "gesperrt") treffer.ausweg = text(def, "ausweg", world);
+    return [treffer];
   });
 }
 
@@ -251,21 +233,22 @@ export function krisenAktualisieren(world: World): void {
     const aktiv = bisher.find((k) => k.id === def.id);
     if (aktiv) {
       if (def.beruhigt(world)) {
-        addLog(world, "ereignis", `„${def.name}“ ist vorbei.`, def.bedingung);
+        addLog(world, "ereignis", t("krise.vorbei", { name: text(def, "name", world) }), text(def, "bedingung", world));
         continue;
       }
       neu.push(aktiv);
     } else if (def.ausloeser(world)) {
       neu.push({ id: def.id, seit: world.day });
-      addLog(world, "ereignis", `${def.name}: ${def.grund(world)}`, `${def.wirkung} ${def.bedingung}`);
+      const name = text(def, "name", world), grund = text(def, "grund", world);
+      addLog(world, "ereignis", `${name}: ${grund}`, `${text(def, "wirkung", world)} ${text(def, "bedingung", world)}`);
       // Krise (bzw. Kriegsphase): Großereignis für die Zeitung — Eilmeldung digital, Print im nächsten Monat
       zeitungEreignis(world, {
         art: "krise",
-        titel: def.name,
-        fakt: def.grund(world),
+        titel: name,
+        fakt: grund,
         wertung: def.id === "kriegsgefahr" ? -0.9 : -0.8,
         ...(def.id === "kriegsgefahr" ? { krieg: true } : {}),
-        schluessel: [def.name],
+        schluessel: [name],
       });
     }
   }

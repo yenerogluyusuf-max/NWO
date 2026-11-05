@@ -480,7 +480,7 @@ export function kuendigeReformAn(w: World): { ok: boolean; text: string; why?: s
   const text = t("sim2.sim.eu.45f5c80", { p0: formatDateDe(addTag(w, EU_REGELN.screeningTage)) });
   const why = t("sim2.sim.eu.86a31cc", { p0: EU_REGELN.pkAnkuendigung, p1: Math.round(sicht.annaeherung) });
   addLog(w, "entscheidung", text, why);
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.eu.da35033"), ausgang: t("sim2.sim.eu.42a0467") });
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.eu.da35033"), ausgang: t("sim2.sim.eu.42a0467"), presse: { sparte: "welt", wertung: 0.3 } });
   return { ok: true, text, why };
 }
 
@@ -574,7 +574,7 @@ function oeffneKapitel(w: World, def: KapitelDef): void {
     t("sim2.sim.eu.4a16ba4", { p0: def.nummer, p1: def.name }),
     t("sim2.sim.eu.beb7ddc", { p0: def.text, p1: def.jahre, p2: def.jahre === 1 ? "Jahr" : "Jahren" }),
   );
-  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.eu.77515fe", { p0: def.nummer }), ausgang: t("sim2.sim.eu.bb7d433", { p0: def.name }) });
+  w.spiel!.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.eu.77515fe", { p0: def.nummer }), ausgang: t("sim2.sim.eu.bb7d433", { p0: def.name }), presse: { sparte: "welt", wertung: 0.1 } });
 }
 
 function schliesseKapitel(w: World, def: KapitelDef): void {

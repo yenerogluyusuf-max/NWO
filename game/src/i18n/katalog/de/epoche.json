@@ -34,7 +34,5 @@
  "epoche.ui.aussicht": "Auf dem Weg zu: {stufe}",
  "epoche.ui.bis": "noch {n} bis zur nächsten Stufe",
  "epoche.ui.keine": "Noch kein historischer Moment in dieser Amtszeit.",
- "epoche.ui.erklaerung": "Große Taten und schwere Rückschläge schreiben Geschichte. Bei der Wiederwahl wird die Amtszeit bewertet; die Bewertung wirkt in die nächste hinein.",
- "bilanz.epoche.amtszeit": "Amtszeit {nr}: {stufe} ({wert})",
- "bilanz.epoche": "{anzahl, plural, =0 {} other {Die Geschichtsschreibung ordnet ein: {teile}. }}{mitMomenten, select, ja {Prägend in der letzten Amtszeit: {momente}.} other {}}"
+ "epoche.ui.erklaerung": "Große Taten und schwere Rückschläge schreiben Geschichte. Bei der Wiederwahl wird die Amtszeit bewertet; die Bewertung wirkt in die nächste hinein."
 }

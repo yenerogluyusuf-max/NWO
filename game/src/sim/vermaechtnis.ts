@@ -2,6 +2,7 @@
 // Kriege, Verfassung, Reich, Kabinett, Katastrophen). Reine Daten: Die Oberfläche (ui/wahl/Vermaechtnis.tsx) setzt Zahlen und Namen in Texte der aktuellen
 // Sprache. Kein Kapitel erfindet Zahlen; jede Angabe stammt aus dem Weltzustand.
 
+import { istGetroffen } from "./chronik";
 import { VORHABEN } from "../data/reich";
 import { zielStand } from "./ziele";
 import { zusagenBilanz } from "./zusagen";
@@ -90,7 +91,7 @@ export function vermaechtnis(w: World): VermaechtnisDaten {
     .slice(0, 8);
   const kat = katastrophenZustand(w);
   const hist = sp.verfassungsvorgang?.historie ?? [];
-  const chronik = sp.chronik.filter((c) => !c.art && !/^(Wirkungsbericht|Schritt erreicht|Programm erfüllt)/.test(c.titel) && !c.ausgang.startsWith("Keine Entscheidung"));
+  const chronik = sp.chronik.filter(istGetroffen);
   const es = endenSicht(w);
   return {
     name: w.player?.name ?? "",

@@ -327,3 +327,9 @@ Nachtrag zu T (zweite Rückmeldung, 4. November): Das bestehende Design mit Kart
 3. **Gemeinsame Bauteile** (`game/src/ui/akte/bauteile.css`): drei Knopfstufen (Haupt: Leder; Normal: Pergament mit Messingrand; Leise: Schrift), eine Titelsprache (Kapitälchen in Siegelrot mit Messinglinie), Bereichszeichen als Siegel, Kapitälchen (Marcellus SC) für Leisten und Reiter, Schreibmaschine (Courier Prime) für Aktenvermerke.
 
 Offen: Reiter innerhalb der Seiten (dritte und vierte Ebene, etwa Kabinett → Ministerrat → Vorlagen) zusammenführen; die in jedem Bereich gleichen Seiten „Behörden“, „Bilanz“ und „Zuständige“ zu einer Seite „Hintergrund“ bündeln; Politik hat noch eine eigene Bereichsliste als zweite Spalte.
+
+## U. Festlegung 05.11.2026: Logik liest nie übersetzten Text
+
+Befund der Nachtprüfung: Dieselbe Partie (gleicher Seed, gleiche Züge) verlief auf Deutsch anders als auf Englisch. Ursache: Die Ereignisdichte (`sim/ereignisse.ts`) erkannte feste Termine und Berichte in der Chronik an deutschen Titelanfängen („Der Mindestlohn“, „Wirkungsbericht“); auf Englisch zählten sie als Ereignisse, und neue Ereignisse kamen seltener. Dasselbe Muster las die Zeitung (Wertung von Programmschritten, Verfassung, EU, Kriegsausgang) und die Bilanz.
+
+Festlegung: Chronik-Einträge tragen Merkmale (`art`: moment, epoche, bericht, haken, zustand; `vorlage`; `ohneEntscheidung`; `presse` mit Ressort und Wertung). Zählungen, Dichte, Zeitung, Bilanz und Vermächtnis lesen nur diese Merkmale (`sim/chronik.ts`). Ältere Spielstände bekommen sie beim Laden aus dem deutschen Text. Prüfung: `test/sprachgleich.test.ts` (de, en, tr über den ersten Jahreswechsel identisch). Offen: rund 45 Protokollzeilen der Simulation sind noch fest deutsch (etwa „Das Parlament nimmt … an“), die Oberfläche liest Abstimmungen aus diesem Text; sie brauchen ein strukturiertes Feld, bevor sie übersetzt werden können.
