@@ -375,5 +375,5 @@
  "bilanz.epoche.amtszeit": "Term {nr}: {stufe} ({wert})",
  "bilanz.epoche": "{anzahl, plural, =0 {} other {History judges: {teile}. }}{mitMomenten, select, ja {Defining moments of the last term: {momente}.} other {}}",
  "wahl.ui.urteil": "History's verdict on term {nr}",
- "wahl.ui.urteil_text": "Era score {wert}. {gewonnen, select, ja {With the victory it carries into the new term: {folge}} other {It stays in the history book.}}"
+ "wahl.ui.urteil_text": "Era score {wert}. {gewonnen, select, ja {{folge}} other {It stays in the history book.}}"
 }
