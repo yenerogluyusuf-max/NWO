@@ -238,6 +238,46 @@ function Recht({ id }: { id: string }) {
   );
 }
 
+function Partner({ id }: { id: string }) {
+  // Verhandlungstisch vor dem Halbrund: zwei Mappen, ein Füller, die Sitzreihen in zwei Farben (Regierungslager und Partner)
+  const reihen = [64, 88, 112];
+  return (
+    <>
+      <Grund id={id} oben="#f4e9cf" unten="#e4d2a6" />
+      <g transform="translate(170 168)">
+        {reihen.map((r, ri) =>
+          Array.from({ length: 9 + ri * 3 }, (_, i) => {
+            const n = 8 + ri * 3;
+            const w = Math.PI * (i / n);
+            const x = -Math.cos(w) * r;
+            const y = -Math.sin(w) * r;
+            return <circle key={`${ri}-${i}`} cx={x} cy={y} r="5" fill={i / n < 0.62 ? ROT : OCKER} stroke={TINTE} strokeWidth="0.8" />;
+          }),
+        )}
+        <path d="M-130 0 H130" stroke={TINTE} strokeWidth="1.6" />
+      </g>
+      <g transform="translate(360 104)" stroke={TINTE} strokeWidth="1.6">
+        <path d="M0 40 L300 40 L280 64 L20 64 Z" fill="#7d4a2c" />
+        <path d="M20 64 v24 M280 64 v24" />
+        <rect x="46" y="18" width="92" height="24" fill={TEAL} transform="rotate(-4 92 30)" />
+        <rect x="160" y="16" width="92" height="24" fill="#8a2d22" transform="rotate(5 206 28)" />
+        <line x1="60" y1="28" x2="124" y2="24" stroke={PAPIER} strokeWidth="1" />
+        <line x1="172" y1="24" x2="236" y2="30" stroke={PAPIER} strokeWidth="1" />
+        <path d="M128 52 L196 34" strokeWidth="3" />
+        <circle cx="196" cy="34" r="2.5" fill={OCKER} />
+      </g>
+      <g transform="translate(690 40)" stroke={TINTE} strokeWidth="1.4" fill={PAPIER}>
+        <path d="M-40 80 Q0 10 40 80 Z" />
+        <rect x="-50" y="80" width="100" height="40" />
+        {[-36, -18, 0, 18, 36].map((x) => <line key={x} x1={x} y1="86" x2={x} y2="118" />)}
+        <line x1="0" y1="20" x2="0" y2="-6" />
+        <path d="M0 -6 h16 v8 h-16" fill={ROT} />
+      </g>
+      <rect width="760" height="190" fill={`url(#${id}-schraffur)`} opacity="0.4" />
+    </>
+  );
+}
+
 const SZENEN: Record<Thema, (p: { id: string }) => ReactElement> = {
   haushalt: Haushalt,
   wirtschaft: Wirtschaft,
@@ -248,6 +288,8 @@ const SZENEN: Record<Thema, (p: { id: string }) => ReactElement> = {
   recht: Recht,
   // Wohnen und Wiederaufbau: dieselbe Kulisse wie die Katastrophe (Trümmer, Kräne)
   wohnen: Katastrophe,
+  // Parteien melden sich: Verhandlungstisch vor dem Halbrund (Befund A-6/A-32: der Partner zeigte die Justizwaage)
+  partner: Partner,
 };
 
 export function EreignisSzene({ thema }: { thema: Thema }) {

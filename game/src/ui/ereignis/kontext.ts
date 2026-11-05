@@ -8,12 +8,19 @@ import { ratZuEreignis, type RessortRat } from "../../sim/personen-api";
 import { angezeigteZustimmung } from "../../sim/medien";
 import { schlechtBeiHoch } from "../../sim/berichte";
 import { LAENDER, vertrauenZu } from "../../sim/laender";
-import { aktuelleSprache, t } from "../../i18n";
+import { aktuelleSprache, t, zahl as zahlFmt } from "../../i18n";
+import { regierungsSitze } from "../../sim/koalitionslage";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import type { EreignisAnsicht } from "../../sim/ereignisse";
 
-export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht" | "wohnen";
+export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht" | "wohnen" | "partner";
+
+/**
+ * Ereignisse, in denen sich eine Partei meldet (Partner, Koalition, Duldung): Es geht um Sitze, den Rückhalt des Partners und offene
+ * Zusagen, nicht um Justiz und Presse (Befund A-6: „AKP meldet sich“ zeigte Unabhängigkeit der Justiz und „Justiz öffnen“).
+ */
+const PARTNER_MUSTER = /^start_partner$|koalition|partner|duldung/;
 
 const MUSTER: [RegExp, Thema][] = [
   // Wiederaufbau, Wohnungen, Mieten: Es geht um Wohnungsnot und Erdbebengefahr, nicht um Inflation (Spielerdurchlauf 5. November)
@@ -52,6 +59,7 @@ const THEMA_AMT: Record<Thema, Figur["amt"]> = {
   katastrophe: "inneres",
   recht: "justiz",
   wohnen: "umwelt",
+  partner: "partner",
 };
 
 const SZENE_THEMA: Record<string, Thema> = { bank: "haushalt", parlament: "recht", istanbul: "gesellschaft", anatolien: "gesellschaft", wahlnacht: "gesellschaft" };
@@ -71,8 +79,11 @@ export function themaFuer(a: Pick<EreignisAnsicht, "id" | "vorlage" | "szene">, 
     const ev = w.spiel.ereignisse.find((e) => e.id === a.id);
     const m = w.spiel.zusagen.find((z) => z.id === String(ev?.daten?.zusage))?.massnahme ?? "";
     for (const [re, th] of ZUSAGE_MUSTER) if (re.test(m)) return th;
+    const von = w.spiel.zusagen.find((z) => z.id === String(ev?.daten?.zusage))?.von;
+    if (von && w.parliament?.seats[von] !== undefined) return "partner";
     return "gesellschaft";
   }
+  if (PARTNER_MUSTER.test(a.vorlage)) return "partner";
   for (const [re, th] of MUSTER) if (re.test(a.vorlage)) return th;
   const bezug = EREIGNIS_BEZUG[a.vorlage];
   const amt = bezug?.amt[0];
@@ -131,7 +142,7 @@ export interface Kennzahl {
   notiz?: string;
 }
 
-const nf = (x: number, d = 1): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const nf = (x: number, d = 1): string => zahlFmt(x, d);
 
 function knoten(w: World, id: string): number | undefined {
   return NET.index.has(id) ? nationalAverage(NET, w.net, id) : undefined;
@@ -176,6 +187,12 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     presse: knot("pressefreiheit", t("ereignis.kz.presse")),
     wohnungsnot: knot("p_wohnungsnot", t("ereignis.kz.wohnungsnot")),
     erdbeben: knot("p_erdbebengefahr", t("ereignis.kz.erdbeben")),
+    sitze: () => (w.parliament ? zahl("sitze", t("ev.kz.sitze"), t("ev.kz.sitzeWert", { n: regierungsSitze(w), von: Object.values(w.parliament.seats).reduce((a, b) => a + b, 0) })) : undefined),
+    partner: () => {
+      const p = partnerFigur(w);
+      return p ? zahl("partner", t("ev.kz.partner", { partei: p.partei ?? "" }), `${Math.round(p.loyalitaet)} / 100`) : undefined;
+    },
+    zusagen: () => (w.spiel ? zahl("zusagen", t("ev.kz.zusagen"), String(w.spiel.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length)) : undefined),
   };
 }
 
@@ -188,9 +205,20 @@ const THEMA_ZAHLEN: Record<Thema, string[]> = {
   katastrophe: ["zustimmung", "vertrauen", "schulden"],
   recht: ["justiz", "presse", "zustimmung"],
   wohnen: ["wohnungsnot", "erdbeben", "vertrauen", "schulden"],
+  partner: ["sitze", "partner", "zusagen"],
 };
 
+/** Der Vorsitz der Partei, die sich im offenen Ereignis meldet (sonst der schwächste Partnervorsitz im Lager). */
+let partnerImEreignis: string | undefined;
+function partnerFigur(w: World): Figur | undefined {
+  const im = (w.spiel?.figuren ?? []).filter((f) => f.amt === "partner" && f.imAmt);
+  return (partnerImEreignis ? im.find((f) => f.partei === partnerImEreignis) : undefined) ?? im.filter((f) => w.spiel?.lager.includes(f.partei ?? "")).sort((a, b) => a.loyalitaet - b.loyalitaet)[0] ?? im[0];
+}
+
 export function kennzahlenFuer(w: World, thema: Thema, ereignisId?: string): Kennzahl[] {
+  const evOffen = w.spiel?.ereignisse.find((e) => e.id === ereignisId);
+  const vonZusage = evOffen?.vorlage === "zusage" ? w.spiel?.zusagen.find((z) => z.id === String(evOffen.daten?.zusage))?.von : undefined;
+  partnerImEreignis = String(evOffen?.daten?.partei ?? vonZusage ?? "") || undefined;
   const b = bausteine(w);
   // Geht es um ein bestimmtes Land, steht dessen Vertrauen statt dem der EU (Spielerdurchlauf 5. November: Währungskrise im Iran
   // zeigte „Vertrauen der EU“)
@@ -200,7 +228,7 @@ export function kennzahlenFuer(w: World, thema: Thema, ereignisId?: string): Ken
   return THEMA_ZAHLEN[thema].map((id) => b[id]?.()).filter((k): k is Kennzahl => !!k);
 }
 
-export type AktenZiel = { dossier: "wirtschaft"; start: "lage" | "haushalt" } | { dossier: "welt" | "reich_militaer" | "katastrophe" | "waehler" | "reich_recht" };
+export type AktenZiel = { dossier: "wirtschaft"; start: "lage" | "haushalt" } | { dossier: "welt" | "reich_militaer" | "katastrophe" | "waehler" | "reich_recht" | "personen" };
 
 export function akteFuer(thema: Thema): { ziel: AktenZiel; label: string } {
   switch (thema) {
@@ -217,6 +245,8 @@ export function akteFuer(thema: Thema): { ziel: AktenZiel; label: string } {
       return { ziel: { dossier: "katastrophe" }, label: t("ereignis.akte.katastrophe") };
     case "recht":
       return { ziel: { dossier: "reich_recht" }, label: t("ereignis.akte.recht") };
+    case "partner":
+      return { ziel: { dossier: "personen" }, label: t("ev.akte.partner") };
     default:
       return { ziel: { dossier: "waehler" }, label: t("ereignis.akte.waehler") };
   }
