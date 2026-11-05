@@ -35,8 +35,9 @@ export interface Kernwert {
 
 /** Kopfzeichnung je Bereich (GESTALTUNG_2026-11-04, G1). Bis jeder Bereich ein eigenes Motiv hat, teilen sich manche eines. */
 const KOPFBILD: Record<string, Scene> = {
-  sicherheit: "kueste", aussen: "istanbul", recht: "parlament", regierung: "parlament", wirtschaft: "bank",
-  land: "anatolien", wissen: "anatolien", gesellschaft: "istanbul", medien: "istanbul",
+  // Jeder Bereich ein eigenes Motiv (vorher teilten sich neun Bereiche drei Bilder)
+  sicherheit: "kueste", aussen: "welt", recht: "parlament", regierung: "amtssitz", wirtschaft: "bank",
+  land: "anatolien", wissen: "wissen", gesellschaft: "platz", medien: "presse",
 };
 
 function Messring({ anteil }: { anteil: number }) {
