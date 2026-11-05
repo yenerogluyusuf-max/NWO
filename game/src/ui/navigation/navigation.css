@@ -72,3 +72,5 @@
 @media(min-width:721px){.stage:has(> .dossier) > .linsen{visibility:hidden}}
 /* Eingeklappte Leiste: auch die Kartenebene zeigt nur ihr Medaillon */
 @media(min-width:1101px){.stage:has(.regierungs-navigation.rn-schmal) .linsen-knopf > :not(.linsen-medaillon){display:none}}
+/* Handy: Solange Wahlabend, Umbildung, Bilanz oder ein Ereignisfenster offen sind, verdeckt der Bereichsknopf nicht deren Knöpfe */
+@media(max-width:720px){.stage:has(.wn-layer,.umb-layer,.bilanz-layer,.event-layer) .rn-schalter{display:none}}
