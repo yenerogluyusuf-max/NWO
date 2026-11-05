@@ -105,8 +105,12 @@ function Karte({ world, eintrag, weitere, onZu }: { world: World; eintrag: Eintr
 
   if (!verlauf) return null;
   const ja = sichtbar > 0 ? verlauf.jaKum[sichtbar - 1]! : 0;
-  const nein = sichtbar - ja;
-  const ueber = ab.ja - REGELN.mehrheit;
+  const nein = sichtbar > 0 ? verlauf.neinKum[sichtbar - 1]! : 0;
+  // Art. 96: Mit Abwesenden zählt die Mehrheit der Anwesenden (mehr Ja als Nein); ältere Einträge ohne Abwesende messen an 301
+  const anwesend = ab.ja + ab.nein;
+  const noetig = ab.abwesend ? Math.max(151, Math.floor(anwesend / 2) + 1) : REGELN.mehrheit;
+  const ueber = ab.ja - noetig;
+  const basis = ab.abwesend ? anwesend : n;
 
   function tippen() {
     if (!fertig) {
@@ -122,7 +126,7 @@ function Karte({ world, eintrag, weitere, onZu }: { world: World; eintrag: Eintr
         <span className="par-karte-kopf">{tx("ui2.ui.parlament.AbstimmungsKarte.9b849fa")}</span>
         <strong className="par-karte-titel">„{massnahmenName(ab.name)}“</strong>
         <span className="par-karte-unter">
-          {ab.angenommen ? `${ab.ort}${ab.stufe !== undefined ? ` · Stufe ${ab.stufe}` : ""}` : tx("ui2.ui.parlament.AbstimmungsKarte.c9f8371")} {tx("ui2.ui.parlament.AbstimmungsKarte.af7a8b5", { p0: REGELN.mehrheit })}
+          {ab.angenommen ? ab.ort : tx("ui2.ui.parlament.AbstimmungsKarte.c9f8371")} {ab.abwesend ? tx("n4.karte.anwesend", { n: anwesend, noetig }) : tx("ui2.ui.parlament.AbstimmungsKarte.af7a8b5", { p0: noetig })}
         </span>
         <Sitzplan
           lage={verlauf.lage}
@@ -136,25 +140,25 @@ function Karte({ world, eintrag, weitere, onZu }: { world: World; eintrag: Eintr
             <div className="par-zaehler">
               <span className="ja">
                 <b>{ja}</b>
-                <i>Ja</i>
+                <i>{tx("n4.karte.ja")}</i>
               </span>
               <span className="nein">
                 <b>{nein}</b>
-                <i>Nein</i>
+                <i>{tx("n4.karte.nein")}</i>
               </span>
             </div>
           }
         />
         <span className="par-balken" aria-hidden="true">
-          <i className="ja" style={{ width: `${(ja / Math.max(1, n)) * 100}%` }} />
-          <i className="nein" style={{ width: `${(nein / Math.max(1, n)) * 100}%` }} />
-          <s style={{ left: `${(REGELN.mehrheit / Math.max(1, n)) * 100}%` }} />
+          <i className="ja" style={{ width: `${(ja / Math.max(1, basis)) * 100}%` }} />
+          <i className="nein" style={{ width: `${(nein / Math.max(1, basis)) * 100}%` }} />
+          <s style={{ left: `${(noetig / Math.max(1, basis)) * 100}%` }} />
         </span>
         <span className="par-urteil-zeile">
           {fertig ? (
             <>
               <span className={`par-stempel ${ab.angenommen ? "angenommen" : "abgelehnt"}`}>{ab.angenommen ? tx("ui2.ui.parlament.AbstimmungsKarte.187cf38") : tx("ui2.ui.parlament.AbstimmungsKarte.110d6fe")}</span>
-              <span className="par-urteil-text">{ab.angenommen ? tx("ui2.ui.parlament.AbstimmungsKarte.23e9c6b", { p0: ab.ja, p1: ab.nein, p2: ueber }) : tx("ui2.ui.parlament.AbstimmungsKarte.825d029", { p0: ab.ja, p1: ab.nein, p2: REGELN.mehrheit - ab.ja })}</span>
+              <span className="par-urteil-text">{ab.angenommen ? tx("ui2.ui.parlament.AbstimmungsKarte.23e9c6b", { p0: ab.ja, p1: ab.nein, p2: ueber }) : tx("ui2.ui.parlament.AbstimmungsKarte.825d029", { p0: ab.ja, p1: ab.nein, p2: Math.max(1, noetig - ab.ja) })}</span>
             </>
           ) : (
             <span className="par-urteil-text">{tx("ui2.ui.parlament.AbstimmungsKarte.0d2974b")}</span>

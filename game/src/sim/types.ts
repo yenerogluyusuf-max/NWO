@@ -159,7 +159,7 @@ export type LogKind = "entscheidung" | "ereignis" | "statistik" | "markt";
 
 export interface LogEntry {
   /** Strukturierte Abstimmung im Parlament: Oberfläche, Zeitung und Bilanz lesen dieses Feld, nicht den (übersetzten) Text. */
-  abstimmung?: { art: "gesetz" | "haushalt"; name: string; ort: string; ja: number; nein: number; angenommen: boolean; stufe?: number };
+  abstimmung?: { art: "gesetz" | "haushalt"; name: string; ort: string; ja: number; nein: number; angenommen: boolean; stufe?: number; abwesend?: number };
   /** Strukturiertes Votum: bleibt nach Sprachwechsel und späteren Wahlen korrekt abspielbar. */
   versorgungsvotum?: { programm: import("./versorgungspolitik").VersorgungsProgramm; stimmen: import("./versorgungsmehrheit").VersorgungsStimme[] };
   day: number;

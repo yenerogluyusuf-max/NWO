@@ -1,5 +1,5 @@
 {
- "protokoll.gesetz.ja": "Parliament adopts “{name}” {ort} ({ja} to {nein}). Level {stufe}.",
+ "protokoll.gesetz.ja": "Parliament adopts “{name}” {ort} ({ja} to {nein}). Now in force: “{stufe}”.",
  "protokoll.gesetz.ja_warum": "{text} Implementation takes about {monate, plural, one {# month} other {# months}}.",
  "protokoll.gesetz.nein": "Parliament rejects “{name}” ({ja} to {nein}).",
  "protokoll.gesetz.nein_warum": "The capital committed ({pk}) is lost and the government looks weakened. It lacked {fehlen} votes; withdrawing before the vote would have saved {gerettet} capital.",

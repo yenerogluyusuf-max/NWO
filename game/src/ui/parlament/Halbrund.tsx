@@ -5,6 +5,7 @@ import { baueSitzplan, belege, grenzWinkel, type Sitzplan as Plan } from "./geom
 import type { Parlamentslage } from "./lage";
 import { ROLLEN_WORT } from "./lage";
 import type { Zustand } from "./stimmen";
+import { t } from "../../i18n";
 import "./parlament.css";
 
 export interface SitzFarben {
@@ -26,11 +27,11 @@ export const FARBEN_DUNKEL: SitzFarben = { ja: "#7fd1a6", zusage: "#5aa584", wac
 export const zustandFarbe = (farben: SitzFarben, z: Zustand): string => farben[z === "fest" ? "ja" : z];
 
 export const ZUSTAND_WORT: Record<Zustand, string> = {
-  fest: "stimmt mit Ja (Lager)",
-  zusage: "stimmt mit Ja (Zusage oder Absprache)",
-  wackelig: "könnte aus der Opposition mit Ja stimmen",
-  offen: "innerhalb der Spanne, unsicher",
-  nein: "stimmt mit Nein",
+  get fest() { return t("n4.hr.z.fest"); },
+  get zusage() { return t("n4.hr.z.zusage"); },
+  get wackelig() { return t("n4.hr.z.wackelig"); },
+  get offen() { return t("n4.hr.z.offen"); },
+  get nein() { return t("n4.hr.z.nein"); },
 };
 
 export interface SitzplanProps {
@@ -38,8 +39,8 @@ export interface SitzplanProps {
   modus?: "partei" | "erwartung" | "abstimmung";
   /** erwartung: Zustand je Sitz von links */
   zustand?: Zustand[];
-  /** abstimmung: Ja oder Nein je Sitz von links */
-  votum?: boolean[];
+  /** abstimmung: Ja, Nein oder abwesend (null) je Sitz von links */
+  votum?: (boolean | null)[];
   /** abstimmung: Wie viele Sitze (von links) schon abgestimmt haben */
   sichtbar?: number;
   hervor?: string | null;
@@ -60,7 +61,7 @@ interface Kern {
   farbe: Record<string, string>;
   modus: "partei" | "erwartung" | "abstimmung";
   zustand: Zustand[] | undefined;
-  votum: boolean[] | undefined;
+  votum: (boolean | null)[] | undefined;
   sichtbar: number;
   hervor: string | null;
   farben: SitzFarben;
@@ -95,7 +96,8 @@ const SitzKern = memo(
             stroke = c;
             breit = 1.7;
           } else if (modus === "abstimmung") {
-            fill = s.i < sichtbar ? (votum?.[s.i] ? farben.ja : farben.nein) : farben.leer;
+            const v = votum?.[s.i];
+            fill = s.i < sichtbar ? (v === null ? farben.offen : v ? farben.ja : farben.nein) : farben.leer;
             stroke = c;
             breit = 1.7;
           }
@@ -171,10 +173,10 @@ function SitzplanRaw({ lage, modus = "partei", zustand, votum, sichtbar = 0, her
 
   const beschreibung = (i: number): string[] => {
     const f = info[partei[i] ?? ""];
-    const zeilen = [f ? `${f.name} (${f.sitze} Sitze)` : "Sitz"];
+    const zeilen = [f ? t("n4.hr.sitze", { name: f.name, n: f.sitze }) : t("n4.hr.sitz")];
     if (f) zeilen.push(ROLLEN_WORT[f.rolle]);
     if (modus === "erwartung" && zustand?.[i]) zeilen.push(ZUSTAND_WORT[zustand[i]!]);
-    if (modus === "abstimmung") zeilen.push(i < sichtbar ? (votum?.[i] ? "hat mit Ja gestimmt" : "hat mit Nein gestimmt") : "hat noch nicht abgestimmt");
+    if (modus === "abstimmung") zeilen.push(t(i >= sichtbar ? "n4.hr.nochNicht" : votum?.[i] === null ? "n4.hr.abwesend" : votum?.[i] ? "n4.hr.ja" : "n4.hr.nein"));
     return zeilen;
   };
 

@@ -33,7 +33,8 @@ describe("Umfang und Preis", () => {
       expect(region.gesetz.pk, `${id}: Region >= Provinz`).toBeGreaterThanOrEqual(provinz.gesetz.pk);
       expect(land.kostenBip).toBeGreaterThan(region.kostenBip);
       expect(region.kostenBip).toBeGreaterThan(provinz.kostenBip);
-      expect(region.hinweise.some((h) => h.startsWith("Umfang:"))).toBe(true);
+      // Wortlaut seit N4 aus dem Katalog (n4.hw.umfang): „Betroffen sind … der Bevölkerung“
+      expect(region.hinweise.some((h) => h.startsWith("Betroffen"))).toBe(true);
     }
   });
 });
