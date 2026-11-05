@@ -4,6 +4,6 @@
 .ra{background:#f4f2eb;border-color:#d9d5cd;border-left:0;padding:22px;color:#344238;font:14px/1.65 var(--sans,Inter,sans-serif)}
 .ra>header{padding:0 0 17px;border-bottom:1px solid #ded9ce}.ra>header small{font:400 11.5px/1.4 var(--kapitaelchen);letter-spacing:.1em;text-transform:uppercase;color:#69765e}.ra>header h3{font-weight:500}.ra>header p{max-width:68ch;color:#64705f}
 .ra-anliegen{padding:24px;margin:20px 0;background:#fffdf7;border-color:#d9d5cb;border-radius:10px;box-shadow:0 5px 16px #46362d06}.ra-absender{display:flex;align-items:center;gap:14px;min-width:0}.ra-absender>svg{flex-shrink:0;border-radius:50%}.ra-absender h4{font-weight:500}.ra-absender small{font-size:12.5px;color:#6c7865}.ra-kopf time{padding:6px 10px;background:#f2ead8;border-radius:6px;font-size:12.5px;color:#735d35}
-.ra-anliegen blockquote{font:400 24px/1.5 var(--display,Georgia,serif);padding:20px 0 20px 18px;margin:22px 0;border-left:3px solid #a8b296;color:#513f34}
+.ra-anliegen blockquote{font:400 24px/1.5 var(--display,Georgia,serif);padding:20px 0 20px 18px;margin:22px 0;border-left:3px solid #b8a990;color:#513f34}
 .ra-anliegen>.ra-warnung{padding:12px 15px;background:#f6efe1;border-radius:6px;color:#7c5b32}.ra .ek-entscheidung{margin-top:15px}.ra .ek-entscheidung>header{padding:22px}.ra .ew-auswahl>button{margin:0}
 @container(max-width:560px){.ra-anliegen{padding:17px 14px}.ra-anliegen blockquote{font-size:21px}.ra .ra-absender h4{font-size:21px}}

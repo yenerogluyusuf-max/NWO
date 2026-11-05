@@ -2,7 +2,7 @@
 .sf-kopf{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:20px}
 .sf-kopf small{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:#50685b}
 .sf-kopf h3{font:500 clamp(22px,3cqi,30px)/1.2 var(--display,Fraunces,serif);margin:4px 0}
-.sf-zeit{display:flex;flex-wrap:wrap;gap:3px;padding:3px;border:1px solid #bdcfc0;border-radius:10px}
+.sf-zeit{display:flex;flex-wrap:wrap;gap:3px;padding:3px;border:1px solid #d3c9b9;border-radius:10px}
 .sf-zeit button{font:inherit;font-size:12.5px;border:0;border-radius:6px;background:transparent;color:#534035;padding:8px 12px;cursor:pointer;min-height:36px}
 .sf-zeit button[aria-pressed=true]{background:#4a392f;color:#fff}
 .sf-finanzbuch button:focus-visible{outline:3px solid #a56821;outline-offset:3px}
@@ -15,7 +15,7 @@
 .sf-summen .sf-kredit{background:#f5eee1;border-radius:6px;color:#754c22}
 .sf-summen .sf-plus{background:#efebe1;border-radius:6px}
 .sf-laufend{font-size:11.5px;color:#5f7066;margin:12px 0}
-.sf-wachstum{margin:14px 0 0;padding-top:14px;border-top:1px solid #ced8cf;font-size:12.5px}
+.sf-wachstum{margin:14px 0 0;padding-top:14px;border-top:1px solid #dad5cc;font-size:12.5px}
 .sf-wachstum strong{font-weight:500;display:block;margin-top:4px}
 .sf-rechnung{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:24px}
 .sf-rechnung h4{font-size:14px;margin:0 0 10px}

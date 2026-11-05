@@ -21,9 +21,9 @@
 .ew-wege{container:entscheidungswege/inline-size;min-width:0;margin:18px 0;color:#49382f;font:14px/1.6 var(--sans,Inter,sans-serif)}
 .ew-hinweis{font-size:14px;color:#647063;margin:0 0 12px}.ew-auswahl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px}
 .ew-auswahl>button{display:flex;align-items:flex-start;gap:12px;min-width:0;max-width:none;width:100%;margin:0;padding:16px;background:#fffcf5;border:1px solid #d4d0c8;border-radius:10px;color:inherit;text-align:left;cursor:pointer;box-shadow:none;font:14px/1.5 var(--sans,Inter,sans-serif)}
-.ew-auswahl>button:hover{border-color:#7a9684;background:#f7f5ef}.ew-auswahl>button.on{background:#f2eee6;border-color:#6c5445;box-shadow:inset 3px 0 #6c5445}
-.ew-auswahl>button:focus-visible{outline:3px solid #ad8440;outline-offset:3px}.ew-nummer{flex-shrink:0;font:500 21px/1.2 var(--display,Georgia,serif);color:#7a8877;padding-top:2px}
-.ew-text{display:grid;gap:6px;min-width:0;flex:1}.ew-text strong{font:600 15px/1.4 var(--sans,Inter,sans-serif)}.ew-text>span,.ew-text>small{font-size:12.5px;color:#65705f;overflow-wrap:anywhere}.ew-text>b{font-size:14px;color:#4c3a30}.ew-pfeil{font-size:21px;flex-shrink:0;color:#5c7462}.ew-leer{margin:12px 0;padding:15px 18px;border-left:2px solid #c4cbbd;font-size:14px;color:#626d5c}
+.ew-auswahl>button:hover{border-color:#9c8d74;background:#f7f5ef}.ew-auswahl>button.on{background:#f2eee6;border-color:#6c5445;box-shadow:inset 3px 0 #6c5445}
+.ew-auswahl>button:focus-visible{outline:3px solid #ad8440;outline-offset:3px}.ew-nummer{flex-shrink:0;font:500 21px/1.2 var(--display,Georgia,serif);color:#8b8374;padding-top:2px}
+.ew-text{display:grid;gap:6px;min-width:0;flex:1}.ew-text strong{font:600 15px/1.4 var(--sans,Inter,sans-serif)}.ew-text>span,.ew-text>small{font-size:12.5px;color:#65705f;overflow-wrap:anywhere}.ew-text>b{font-size:14px;color:#4c3a30}.ew-pfeil{font-size:21px;flex-shrink:0;color:#5c7462}.ew-leer{margin:12px 0;padding:15px 18px;border-left:2px solid #cec7ba;font-size:14px;color:#626d5c}
 .ew-detail{min-width:0}.ew-detail>.ek-entscheidung{margin-top:15px}
 .ek-entscheidung .ek-fakten dd{font-size:24px}.ek-entscheidung .ek-abwaegung p{font-size:14px;line-height:1.65}
 .ek-entscheidung .ek-abwaegung h5{font-size:16.5px}.ek-entscheidung .ek-fakten{margin:0}.ek-entscheidung>footer button{margin:0}

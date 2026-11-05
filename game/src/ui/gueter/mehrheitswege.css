@@ -5,7 +5,7 @@
 .mw-beratung h5{font:500 28px/1.15 var(--display,Georgia,serif);margin:6px 0 8px}
 .mw-beratung>header>p,.mw-hinweis,.mw-leer{font:12.5px/1.65 var(--sans,sans-serif);color:#65715d}
 .mw-wege{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}
-.mw-weg{min-width:0;border:1px solid #c4cfb8;border-radius:10px;overflow:hidden;background:#fffdf6;box-shadow:0 3px 12px #3c2e2607}
+.mw-weg{min-width:0;border:1px solid #d4c8b3;border-radius:10px;overflow:hidden;background:#fffdf6;box-shadow:0 3px 12px #3c2e2607}
 .mw-weg>header{display:flex;gap:12px;align-items:center;padding:17px 18px;background:#eee9de;border-bottom:1px solid #dcd6c9}
 .mw-nummer{font:400 28px var(--display,Georgia,serif);color:#8d794f;flex-shrink:0}
 .mw-weg h6{font:500 21px/1.25 var(--display,Georgia,serif);margin:0}
@@ -21,7 +21,7 @@
 .mw-schritte{list-style:none;margin:14px 0;padding:0;display:grid;gap:7px}
 .mw-schritte>li{display:flex;gap:9px;align-items:baseline}.mw-schritte>li>span{color:#7f895f;width:13px;flex-shrink:0}
 .mw-kosten{display:grid;grid-template-columns:1fr 1.4fr;gap:15px;padding:13px 0;margin:0;border-top:1px solid #e7e0d2;border-bottom:1px solid #e7e0d2}
-.mw-kosten dt{font-size:11.5px;color:#738067}.mw-kosten dd{margin:2px 0 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.mw-kosten dt{font-size:11.5px;color:#857862}.mw-kosten dd{margin:2px 0 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
 .mw-kosten small{display:block;font-size:11.5px;font-weight:400;color:#7d6b4b}
 .mw-zeit{font-size:11.5px;color:#647359;margin:12px 0}
 .mw-warnung{font:11.5px/1.65 var(--sans,sans-serif);padding:9px 11px;border-left:3px solid #bc9452;background:#f5ecd8;color:#79592f}

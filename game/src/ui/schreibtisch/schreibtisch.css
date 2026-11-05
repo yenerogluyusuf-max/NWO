@@ -38,7 +38,7 @@
 .sk .sd-lagekarte > strong { font:600 21px/1.3 var(--display); }
 .sk .sd-grund { font:400 12.5px/1.6 var(--sans); color:var(--sd-muted); }
 .sk .sd-oeffnen { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-top:auto; padding-top:12px; border-top:1px solid var(--sd-line); font:650 12.5px/1.4 var(--sans); }
-.dossier .sk button.sd-lagekarte:hover { border-color:#668577; background:#f4f5ec; }
+.dossier .sk button.sd-lagekarte:hover { border-color:#8b7b60; background:#f4f5ec; }
 .sk .sd-layout { display:grid; grid-template-columns:minmax(0,1fr) 252px; gap:24px; align-items:start; }
 .sk .sd-bereiche { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; border-bottom:1px solid var(--sd-line); margin-bottom:0; }
 .dossier .sk .sd-bereiche button { display:flex; align-items:center; justify-content:center; gap:7px; min-height:52px; padding:12px 8px; border:0; border-bottom:3px solid transparent; border-radius:6px 6px 0 0;
@@ -55,11 +55,11 @@
 .sk .sd-gruppen button > span { border-radius:4px; padding:1px 5px; background:#ffffff24; font-variant-numeric:tabular-nums; }
 .sk .sd-auswahl { display:grid; gap:8px; margin:0 0 18px; }
 .dossier .sk button.sd-auswahlkarte { display:grid; gap:4px; width:100%; min-height:48px; text-align:left; padding:12px 16px; border:1px solid var(--sd-line); border-left:3px solid transparent; border-radius:6px; box-shadow:none; background:#f6f5ee; color:var(--sd-ink); text-shadow:none; }
-.dossier .sk button.sd-auswahlkarte:hover { background:#f3f0e8; border-color:#7b9480; }
+.dossier .sk button.sd-auswahlkarte:hover { background:#f3f0e8; border-color:#998c76; }
 .dossier .sk button.sd-auswahlkarte[aria-pressed=true] { background:#f2efe8; border-color:#657e68; border-left-color:#5a4539; }
 .sk .sd-auswahlkarte strong { font:600 15px/1.4 var(--sans); }
 .sk .sd-auswahlkarte :is(span,small) { font:400 12.5px/1.5 var(--sans); color:var(--sd-muted); }
-.sk .sd-leer { padding:22px; border:1px dashed #c3c9b9; border-radius:6px; background:#f4f5ee; color:var(--sd-muted); font:400 14px/1.6 var(--sans); margin:8px 0 18px; }
+.sk .sd-leer { padding:22px; border:1px dashed #ccc4b6; border-radius:6px; background:#f4f5ee; color:var(--sd-muted); font:400 14px/1.6 var(--sans); margin:8px 0 18px; }
 .sk .sd-seite { display:grid; gap:18px; }
 .sk .sd-seite h4 { margin:0 0 14px; display:flex; align-items:center; gap:8px; font:600 21px/1.3 var(--display); }
 .sk :is(.sd-kraft,.sd-kalender,.sd-details) { border:1px solid var(--sd-line); border-radius:10px; padding:16px; background:#f4f3ea; }
@@ -105,20 +105,20 @@
 .sk .sd-bericht > svg { flex:none; }
 .sk .sd-bericht > div { min-width:0; }
 .sk .sd-bericht p { font-size:14px; }
-.sk .sd-verlauf { list-style:none; padding:0; margin:0; border-left:1px solid #c1cabc; }
+.sk .sd-verlauf { list-style:none; padding:0; margin:0; border-left:1px solid #cdc6b9; }
 .sk .sd-verlauf li { padding:0 0 20px 18px; position:relative; }
-.sk .sd-verlauf li::before { content:''; width:7px; height:7px; background:#6b816b; border:2px solid var(--sd-paper); position:absolute; left:-4px; top:6px; border-radius:50%; box-sizing:content-box; }
+.sk .sd-verlauf li::before { content:''; width:7px; height:7px; background:#857a67; border:2px solid var(--sd-paper); position:absolute; left:-4px; top:6px; border-radius:50%; box-sizing:content-box; }
 .sk .sd-verlauf time { font:600 11.5px/1.4 var(--sans); color:var(--sd-muted); }
 .sk .sd-verlauf p { font-size:14px; margin:5px 0 0; }
 .sk .sd-ziele { padding:0; list-style:none; }
 .sk .sd-ziele li { display:flex; align-items:start; gap:10px; padding:10px 0; }
 .sk .sd-ziele p { font-size:14px; margin:5px 0 0; }
 /* Bestehende Entscheidungskarten behalten ihre Regeln; auf dem Schreibtisch ruhigere Bedienelemente. */
-.dossier .sk .pd-btn { min-height:40px; border-radius:6px; border:1px solid #bdc6b5; background:#eee9df; color:#3e3028; box-shadow:none; text-shadow:none; font:600 12.5px/1.5 var(--sans); white-space:normal; }
+.dossier .sk .pd-btn { min-height:40px; border-radius:6px; border:1px solid #c9c1b2; background:#eee9df; color:#3e3028; box-shadow:none; text-shadow:none; font:600 12.5px/1.5 var(--sans); white-space:normal; }
 .dossier .sk .pd-btn.quiet { background:transparent; }
 .dossier .sk .pd-btn:disabled { opacity:.6; cursor:not-allowed; }
 .dossier .sk button:hover:not(:disabled) { filter:none; }
-.dossier .sk .pd-btn:hover:not(:disabled) { background:#e7e0d2; border-color:#70856c; }
+.dossier .sk .pd-btn:hover:not(:disabled) { background:#e7e0d2; border-color:#8a7d67; }
 .sk .mf-liste { margin:0; }
 .sk .mf-liste > li { min-width:0; }
 /* Dieses Zeichen wird auch von VorlageKarte außerhalb des Schreibtischs verwendet. */
@@ -171,7 +171,7 @@
 .sk :is(.mf-anlass,.mf-empf-zeile,.mf-text,.mf-folgen,.mf-lager,.mf-leer,.mf-rueckmeldung,.zw p) { font:400 14px/1.65 var(--sans); }
 .sk .mf-empf-zeile em { font:400 14px/1.6 var(--sans); }
 .sk :is(.mf-option,.zw-zusage,.ra-anliegen,.rn-karte) { box-shadow:none; background:#fafbf4; }
-.sk .mf-option.empfohlen { border-color:#65896d; box-shadow:0 0 0 2px #78916b16; }
+.sk .mf-option.empfohlen { border-color:#907e5e; box-shadow:0 0 0 2px #99856316; }
 .sk .mf-kosten span { background:#f1ead5; border-color:#d0c49d; border-radius:6px; }
 .sk .mf-marke { border-radius:6px; white-space:normal; }
 @container regierungsdesk (max-width:480px) {
