@@ -2,7 +2,7 @@
 // Bandbreite — die Mentorin erklärt die Rechnung, sie verspricht keine Scheingenauigkeit), dazu das
 // Tracking des laufenden Vorgangs über Parlament, Verfassungsgericht und Volksabstimmung.
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import type { World } from "../sim/types";
 import { addDays, formatDateDe } from "../sim/dates";
 import {
@@ -307,10 +307,11 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
             <div>
               <h3>{t("vf.entwurf.titel")}</h3>
               <p>{t("vf.regelZeile", { mehrheit: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
-              <p className="vf-achse-legende"><span>{t("vf.achse.links")}</span><span>{t("vf.achse.rechts")}</span></p>
             </div>
             <Waage summe={geaenderteArtikel(paket).reduce((n, x) => n + x.variante.autoritaer, 0)} />
           </header>
+          {/* Achse einmal über allen Artikeln, genau über den Linien */}
+          <div className="vf-achse-zeile" aria-hidden><span /><p className="vf-achse-legende"><span>{t("vf.achse.links")}</span><span>{t("vf.achse.rechts")}</span></p></div>
           <ol className="vf-zeilen">
             {ARTIKEL.map((a) => {
               const sperre = artikelSperre(world, a.id);
@@ -328,7 +329,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                       {aktiv && <span className="vf-aktiv">{t("vf.beschlossen", { name: varianteDef(aktiv)?.name ?? aktiv })}</span>}
                       {sperre > 0 && <span className="vf-sperre">{t("vf.gesperrt", { n: sperre - world.day })}</span>}
                     </div>
-                    <div className="vf-segmente" role="radiogroup" aria-label={a.name}>
+                    <div className="vf-segmente" role="radiogroup" aria-label={a.name} style={{ "--n": a.varianten.length } as CSSProperties}>
                       {[...a.varianten].sort((p, q) => p.autoritaer - q.autoritaer).map((x) => {
                         const gewaehlt = paket[a.id] === x.id;
                         const delta = gewaehlt ? 0 : paketStimmen(world, { ...paket, [a.id]: x.id }).erwartet - dJetzt;

@@ -142,3 +142,24 @@
 .vf-folgen li { padding: 2px 8px; border-radius: 11px; font: 12px var(--sans); }
 .vf-folgen li.gut { background: rgba(47, 125, 98, 0.13); color: #24573f; }
 .vf-folgen li.schlecht { background: rgba(168, 64, 47, 0.12); color: #8a2d26; }
+
+/* Dritter Schritt: Kopf über die ganze Breite, Achse genau über den Linien, Stationen gleichmäßig verteilt */
+.vf-entwurf::before { top: 96px; }
+.vf-entwurf-kopf { padding: 0 24px 14px 24px; gap: 18px; }
+.vf-siegel { position: static; flex: none; }
+.vf-entwurf-kopf h3 { font-size: 20px; }
+.vf-waage { width: 190px; margin: -10px 0 -8px; }
+.vf-waage figcaption { white-space: nowrap; }
+.vf-achse-zeile { display: grid; grid-template-columns: 118px minmax(0, 1fr); padding-top: 10px; }
+.vf-tafel .vf-achse-zeile p.vf-achse-legende { max-width: none; margin: 0; padding: 0 0 0 16px; }
+.vf-segmente { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; }
+.vf-segmente::before { left: calc(100% / var(--n, 3) / 2); right: calc(100% / var(--n, 3) / 2); }
+.dossier .vf-segment, .vf-segment { min-width: 0; width: 100%; }
+.vf-segment .vf-wort { max-width: 100%; }
+.vf-delta { margin-top: 1px; padding: 0 6px; border-radius: 8px; }
+.vf-delta.plus { background: rgba(47, 125, 98, 0.12); }
+.vf-delta.minus { background: rgba(168, 64, 47, 0.1); }
+/* Randlinie nur neben den Artikeln, nicht durch den Kopf */
+.vf-entwurf::before { display: none; }
+.vf-rand, .vf-achse-zeile > span { border-right: 1px solid rgba(143, 42, 30, 0.35); }
+.vf-entwurf { padding-top: 18px; }
