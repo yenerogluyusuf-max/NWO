@@ -155,8 +155,8 @@ function beitraege(w: World, a: Angebot): { punkte: number; gruende: Grund[]; ve
     if (k.rot) veto = k.rotText ?? `${l.name} nimmt „${k.label}“ nicht an.`;
     const gibt = k.def.seite === "gibt";
     if (k.wert >= 0) gruende.push({ text: gibt ? `„${k.label}“: ${l.name} will das.` : `„${k.label}“ kostet ${l.name} nichts.`, wert: k.wert, art: "plus" });
-    else if (!k.rot) gruende.push({ text: `„${k.label}“ kostet ${l.name} etwas.`, wert: k.wert, art: "minus" });
-    else gruende.push({ text: `„${k.label}“ ist eine Rote Linie.`, wert: 0, art: "minus" });
+    else if (!k.rot) gruende.push({ text: t("abk.grund.kostet", { label: k.label, land: l.name }), wert: k.wert, art: "minus" });
+    else gruende.push({ text: t("abk.grund.rot", { label: k.label }), wert: 0, art: "minus" });
     if (!k.rot) punkte += k.wert;
   }
   const v = vertrauenZu(w, a.land);
@@ -166,12 +166,12 @@ function beitraege(w: World, a: Angebot): { punkte: number; gruende: Grund[]; ve
   if (Math.abs(konf) >= 1) gruende.push({ text: konf < 0 ? "Offener Streit belastet die Gespräche." : "Es gibt kaum offenen Streit.", wert: konf, art: konf < 0 ? "minus" : "plus" });
   if (p.hebel !== 0) gruende.push({ text: p.hebelText, wert: p.hebel, art: p.hebel > 0 ? "plus" : "minus" });
   const bruch = -(z.bruch ?? 0);
-  if (bruch < -0.3) gruende.push({ text: `Die Erinnerung an einen gebrochenen Vertrag wirkt nach.`, wert: bruch, art: "minus" });
+  if (bruch < -0.3) gruende.push({ text: t("abk.grund.bruch"), wert: bruch, art: "minus" });
   const gehalten = Math.min(3, (z.gehalten ?? 0) * 1.5);
-  if (gehalten > 0) gruende.push({ text: "Frühere Verträge hat die Türkei gehalten.", wert: gehalten, art: "plus" });
+  if (gehalten > 0) gruende.push({ text: t("abk.grund.gehalten"), wert: gehalten, art: "plus" });
   const gegenseitig = a.gibt.length > 0 && a.will.length > 0 ? 2 : 0;
-  if (gegenseitig) gruende.push({ text: "Ein ausgewogenes Paket: Geben und Nehmen.", wert: gegenseitig, art: "plus" });
-  else if (a.will.length > 0 && a.gibt.length === 0) gruende.push({ text: "Sie verlangen nur, ohne etwas zu bieten.", wert: 0, art: "info" });
+  if (gegenseitig) gruende.push({ text: t("abk.grund.gegenseitig"), wert: gegenseitig, art: "plus" });
+  else if (a.will.length > 0 && a.gibt.length === 0) gruende.push({ text: t("abk.grund.einseitig"), wert: 0, art: "info" });
   punkte += basis + konf + p.hebel + bruch + gehalten + gegenseitig;
   return { punkte, gruende, ...(veto ? { veto } : {}) };
 }
@@ -322,39 +322,39 @@ export function pruefeAngebot(w: World, a: Angebot): string | null {
 /** Ein Angebot unterbreiten: kostet Kapital, die Gegenseite antwortet. Zustimmung schließt den Vertrag. */
 export function verhandle(w: World, a: Angebot): Ergebnis {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, urteil: "leer", text: "Ohne Spielschleife gibt es keine Verhandlungen." };
+  if (!spiel) return { ok: false, urteil: "leer", text: t("abk.leer") };
   const problem = pruefeAngebot(w, a);
   if (problem) return { ok: false, urteil: "leer", text: problem };
   const l = land(a.land);
   const rest = sperreRest(w, a.land);
   if (rest > 0) return { ok: false, urteil: "gesperrt", text: `${l.name} spricht erst in ${rest} Tagen wieder mit Ihnen.` };
   const b = bewerte(w, a);
-  if (!kannZahlen(spiel.kapital, b.pk)) return { ok: false, urteil: "kein-kapital", text: "Dafür fehlt das Kapital.", bewertung: b };
+  if (!kannZahlen(spiel.kapital, b.pk)) return { ok: false, urteil: "kein-kapital", text: t("abk.kein_kapital"), bewertung: b };
   spiel.kapital -= b.pk;
   const z = weltZustand(w)[a.land]!;
   switch (b.urteil) {
     case "zustimmung": {
       const v = schliesse(w, a);
-      return { ok: true, urteil: "zustimmung", text: `${l.name} stimmt zu: Der Vertrag gilt ${a.jahre} Jahre.`, why: `Kostet ${b.pk} Kapital. Er wirkt jeden Monat und wird jedes Jahr geprüft.`, bewertung: b, vertrag: v };
+      return { ok: true, urteil: "zustimmung", text: t("abk.urteil.zustimmung", { land: l.name, jahre: a.jahre }), why: t("abk.urteil.zustimmung_warum", { pk: b.pk }), bewertung: b, vertrag: v };
     }
     case "gegenangebot":
-      return { ok: false, urteil: "gegenangebot", text: `${l.name} antwortet mit einem Gegenangebot.`, why: `Kostet ${b.pk} Kapital; die Annahme des Gegenangebots kostet nichts mehr.`, bewertung: b };
+      return { ok: false, urteil: "gegenangebot", text: t("abk.urteil.gegenangebot", { land: l.name }), why: t("abk.urteil.gegenangebot_warum", { pk: b.pk }), bewertung: b };
     case "veto":
       landAendern(w, a.land, { vertrauen: -2 }, "Ein Angebot über eine Rote Linie");
       z.sperreBis = w.day + SPERRE_TAGE;
       // Merker für die Eigeninitiative (sim/initiative.ts): Eine bedrohte Rote Linie ist der stärkste Treiber
       z.rotBedroht = w.day;
-      return { ok: false, urteil: "veto", text: `${l.name} weist das Angebot zurück: ${b.veto}`, why: `Kostet ${b.pk} Kapital und etwas Vertrauen; das Land spricht ${SPERRE_TAGE} Tage nicht mit Ihnen.`, bewertung: b };
+      return { ok: false, urteil: "veto", text: t("abk.urteil.veto", { land: l.name, veto: b.veto ?? "" }), why: t("abk.urteil.veto_warum", { pk: b.pk, tage: SPERRE_TAGE }), bewertung: b };
     default:
       z.sperreBis = w.day + SPERRE_TAGE / 3;
-      return { ok: false, urteil: "ablehnung", text: `${l.name} lehnt ab: Das Paket ist zu einseitig.`, why: `Kostet ${b.pk} Kapital; ein neues Angebot ist in ${Math.round(SPERRE_TAGE / 3)} Tagen möglich.`, bewertung: b };
+      return { ok: false, urteil: "ablehnung", text: t("abk.urteil.ablehnung", { land: l.name }), why: t("abk.urteil.ablehnung_warum", { pk: b.pk, tage: Math.round(SPERRE_TAGE / 3) }), bewertung: b };
   }
 }
 
 /** Ein Gegenangebot annehmen: kostet nichts mehr, das Land hat schon zugestimmt. */
 export function nimmGegenangebot(w: World, a: Angebot): Ergebnis {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, urteil: "leer", text: "Ohne Spielschleife gibt es keine Verhandlungen." };
+  if (!spiel) return { ok: false, urteil: "leer", text: t("abk.leer") };
   const problem = pruefeAngebot(w, a);
   if (problem) return { ok: false, urteil: "leer", text: problem };
   const b = bewerte(w, a);
@@ -362,7 +362,7 @@ export function nimmGegenangebot(w: World, a: Angebot): Ergebnis {
   if (b.urteil !== "zustimmung") return { ok: false, urteil: b.urteil, text: `${l.name} steht zu dem Gegenangebot nicht mehr.`, bewertung: b };
   // Nur der politische Preis der Klauseln im eigenen Land kommt zum Sockel hinzu
   const preis = [...a.gibt, ...a.will].reduce((s, id) => s + (KLAUSEL_NACH_ID[id]?.pk ?? 0), 0);
-  if (!kannZahlen(spiel.kapital, preis)) return { ok: false, urteil: "kein-kapital", text: "Dafür fehlt das Kapital.", bewertung: b };
+  if (!kannZahlen(spiel.kapital, preis)) return { ok: false, urteil: "kein-kapital", text: t("abk.kein_kapital"), bewertung: b };
   spiel.kapital -= preis;
   const v = schliesse(w, a);
   return { ok: true, urteil: "zustimmung", text: `${l.name} und die Türkei einigen sich: Der Vertrag gilt ${a.jahre} Jahre.`, why: preis ? `Der politische Preis im eigenen Land: ${preis} Kapital.` : "Kein weiterer Preis.", bewertung: b, vertrag: v };
@@ -441,7 +441,7 @@ export function abkommenMonat(w: World, _rng?: Rng): void {
 /** Kündigen: Nach einem Drittel der Laufzeit ordentlich (kleiner Vertrauensverlust), früher gilt es als Bruch. */
 export function kuendige(w: World, landId: string, vertragId: string): { ok: boolean; text: string; why?: string } {
   const v = vertraegeVon(w, landId).find((x) => x.id === vertragId);
-  if (!v || v.status !== "laeuft") return { ok: false, text: "Diesen Vertrag gibt es nicht mehr." };
+  if (!v || v.status !== "laeuft") return { ok: false, text: t("abk.weg") };
   const l = land(landId);
   const z = weltZustand(w)[landId]!;
   const fruehesten = v.seit + Math.floor((v.ablauf - v.seit) / 3);
@@ -449,14 +449,14 @@ export function kuendige(w: World, landId: string, vertragId: string): { ok: boo
     beende(w, v, "gekuendigt", "Ordentlich gekündigt.");
     landAendern(w, landId, { vertrauen: -4 }, "Kündigung eines Vertrags");
     addLog(w, "entscheidung", t("abkommen.log.gekuendigt", { dat: l.dat, land: l.name }), t("abkommen.log.gekuendigt_warum"));
-    return { ok: true, text: `Der Vertrag mit ${l.dat} ist gekündigt.`, why: "Ein kleiner Verlust an Vertrauen; die Dauerwirkungen enden." };
+    return { ok: true, text: t("abk.gekuendigt", { dat: l.dat, land: l.name }), why: t("abk.gekuendigt_warum") };
   }
   beende(w, v, "gebrochen", "Vorzeitig ausgestiegen.");
   landAendern(w, landId, { vertrauen: -12, konflikt: 6 }, "Vorzeitiger Ausstieg aus einem Vertrag");
   wirke(w, "ansehen", -2);
   z.bruch = (z.bruch ?? 0) + BRUCH_STRAFE;
   addLog(w, "entscheidung", t("abkommen.log.ausstieg", { dat: l.dat, land: l.name }), t("abkommen.log.ausstieg_warum"));
-  return { ok: true, text: `Der Vertrag mit ${l.dat} ist vorzeitig beendet: Das gilt als Bruch.`, why: "Vertrauen und Ansehen sinken; das Land erinnert sich." };
+  return { ok: true, text: t("abk.ausstieg", { dat: l.dat, land: l.name }), why: t("abk.ausstieg_warum") };
 }
 
 /** Ein laufender Vertrag ohne Verstoß lässt sich vor dem Ablauf um weitere Jahre verlängern; der Partner muss ihm noch trauen. */
@@ -465,20 +465,20 @@ export const VERLAENGERUNG_PK: Record<Laufzeit, number> = { 2: 1, 5: 3, 10: 6 };
 export function verlaengere(w: World, landId: string, vertragId: string, jahre: Laufzeit, bezahlen = true): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
   const v = vertraegeVon(w, landId).find((x) => x.id === vertragId);
-  if (!spiel || !v || v.status !== "laeuft") return { ok: false, text: "Diesen Vertrag gibt es nicht mehr." };
+  if (!spiel || !v || v.status !== "laeuft") return { ok: false, text: t("abk.weg") };
   const l = land(landId);
-  if (v.verstoesse > 0) return { ok: false, text: `${l.name} verlängert keinen Vertrag mit Verstößen.` };
-  if (!partnerVerlaesslich(w, landId) || vertrauenZu(w, landId) < 35) return { ok: false, text: `${l.name} vertraut der Türkei nicht genug für eine Verlängerung.` };
+  if (v.verstoesse > 0) return { ok: false, text: t("abk.verl.verstoesse", { land: l.name }) };
+  if (!partnerVerlaesslich(w, landId) || vertrauenZu(w, landId) < 35) return { ok: false, text: t("abk.verl.vertrauen", { land: l.name }) };
   const pk = VERLAENGERUNG_PK[jahre];
   if (bezahlen) {
-    if (!kannZahlen(spiel.kapital, pk)) return { ok: false, text: "Dafür fehlt das Kapital." };
+    if (!kannZahlen(spiel.kapital, pk)) return { ok: false, text: t("abk.kein_kapital") };
     spiel.kapital -= pk;
   }
   v.ablauf += jahre * TAGE_JAHR;
   v.jahre = (v.jahre >= jahre ? v.jahre : jahre) as Laufzeit;
   landAendern(w, landId, { vertrauen: 3 }, "Vertrag verlängert");
   addLog(w, "entscheidung", t("abkommen.log.verlaengert", { dat: l.dat, land: l.name, jahre }), t("abkommen.log.verlaengert_warum"));
-  return { ok: true, text: `Der Vertrag mit ${l.dat} läuft ${jahre} Jahre länger.`, why: bezahlen ? `Kostet ${pk} Kapital.` : "Das Vertrauen wächst." };
+  return { ok: true, text: t("abk.verl.ok", { dat: l.dat, land: l.name, jahre }), why: bezahlen ? t("abk.kostet", { pk }) : t("abkommen.log.verlaengert_warum") };
 }
 
 /**
