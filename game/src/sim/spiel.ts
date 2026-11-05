@@ -113,11 +113,12 @@ export const SPIEL = {
   /**
    * Verlust an Zustimmung je Monat im Amt (Regierungsmüdigkeit), Spielparameter. Beleg als Untergrenze: Die „Kosten des Regierens“
    * liegen bei rund 2,25 Prozentpunkten Stimmenverlust je Wahlperiode (Paldam 1986; Nannestad & Paldam 2002). Das Spiel nimmt
-   * 0,15 je Monat (9 Punkte je fünfjähriger Amtszeit), weil die Zustimmung kein Stimmenanteil ist und die Müdigkeit zugleich den
-   * Schwierigkeitsgrad trägt. Vorher 0,30 (18 Punkte): Seit den Ministeranliegen (2. November) gewann kluges Regieren nur noch
-   * 3 von 8 ersten Wahlen; mit 0,15 sind es 7 von 8, Nichtstun 1 von 8 (Messung 4. November, test/spielbarkeit.test.ts).
+   * 0,10 je Monat (6 Punkte je fünfjähriger Amtszeit), weil die Zustimmung kein Stimmenanteil ist und die Müdigkeit zugleich den
+   * Schwierigkeitsgrad trägt. Verlauf: 0,30 (18 Punkte) gewann seit den Ministeranliegen (2. November) nur 3 von 8 ersten Wahlen;
+   * 0,15 nach Trennung von Wahl 1 und Bündnis 4 von 8 (klug), 0,10 dann 7 von 8 (klug) und 6 von 8 (klug ohne Bündnis),
+   * Messung 5. November, test/spielbarkeit.test.ts. Damit liegt der Wert näher an der Untergrenze des Belegs.
    */
-  muedigkeit: 0.15,
+  muedigkeit: 0.1,
   /** Gewicht der Probleme in der Zustimmung: Summe der Bevölkerungsanteile in Provinzen mit akutem Problem */
   problemGewicht: 4,
   /** Monate unter der Sturzschwelle bis zum Sturz */
@@ -260,7 +261,7 @@ export function waehleZiele(world: World, ids: string[], schwierigkeit?: Schwier
       "„Wähler“ zeigt, wer Sie trägt und was jede Gruppe will, „Die Welt“ die anderen Staaten und „Programme“ Ihren Plan für Jahre. In fünf Jahren wird gewählt.",
     ],
   });
-  addLog(world, "entscheidung", `Ziele der Amtszeit: ${spiel.ziele.map((id) => zielDef(id)!.titel).join(", ") || "keine"}.`, "Die Bilanz misst am Ende, was davon erreicht wurde.");
+  addLog(world, "entscheidung", spiel.ziele.length ? t("protokoll.ziele", { liste: spiel.ziele.map((id) => zielDef(id)!.titel) }) : t("protokoll.ziele_keine"), t("protokoll.ziele_warum"));
 }
 
 // ---------------------------------------------------------------------------
@@ -355,7 +356,7 @@ function spielMonat(world: World, rng: Rng): void {
     wirke(world, "vertrauen_regierung", -0.25 * last);
     if (!spiel.hinweise.some((h) => h.id.startsWith("pump-")) && world.day - (spiel.zuletzt.pump ?? -1e9) > 180) {
       spiel.zuletzt.pump = world.day;
-      addLog(world, "ereignis", "Sie handeln auf Pump: Das Politische Kapital ist im Minus.", "Wer Rückhalt vorwegnimmt, zahlt mit Legitimität und Vertrauen, bis die monatliche Gutschrift das Konto ausgleicht.");
+      addLog(world, "ereignis", t("protokoll.pump"), t("protokoll.pump_warum"));
     }
   }
   verhandlungMonat(world);
@@ -405,7 +406,7 @@ function spielMonat(world: World, rng: Rng): void {
         "Wenn sich nichts ändert, droht das Ende der Amtszeit lange vor der nächsten Wahl.",
       ],
     });
-    addLog(world, "ereignis", "Warnzeichen: Die Zustimmung bleibt sehr niedrig.", "Nach sechs Monaten unter der Schwelle droht der Sturz.");
+    addLog(world, "ereignis", t("protokoll.warnzeichen"), t("protokoll.warnzeichen_warum"));
   }
   if (spiel.tiefstand >= SPIEL.sturzMonate) {
     beende(world, "sturz", "Massenproteste beenden die Amtszeit", `Nach Monaten unter ${SPIEL.sturzSchwelle} Prozent Zustimmung zwingen Massenproteste, ein Bruch im Lager und der Druck der Straße den Präsidenten aus dem Amt.`);
@@ -461,7 +462,7 @@ function figurenPruefen(world: World, rng: Rng): void {
       spiel.lager = spiel.lager.filter((p) => p !== f.partei);
       const seats = world.parliament?.seats[f.partei] ?? 0;
       austritte.push({partei:f.partei,name:f.name,loyalitaet:f.loyalitaet,sitze:seats});
-      addLog(world, "ereignis", `Die ${f.partei} verlässt das Regierungslager (${seats} Sitze).`, "Ohne die Partner wird jede Abstimmung schwerer; Zusagen zu brechen hat einen Preis.");
+      addLog(world, "ereignis", t("protokoll.lager_verlassen", { partei: f.partei, sitze: seats }), t("protokoll.lager_verlassen_warum"));
       spiel.hinweise.push({
         id: `bruch-${world.day}-${f.partei}`,
         titel: "Bruch im Lager",

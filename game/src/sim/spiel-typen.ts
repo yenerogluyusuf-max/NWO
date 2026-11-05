@@ -102,7 +102,7 @@ export interface ChronikEintrag {
   /** Die Frist lief ab, ohne dass der Präsident entschied */
   ohneEntscheidung?: true;
   /** Wie die Zeitung den Eintrag liest (Ressort, Wertung −1 bis +1); gesetzt dort, wo der Titel übersetzt wird */
-  presse?: { sparte: "politik" | "welt" | "programm"; wertung: number; programm?: { schritt: string; erfuellt: boolean } };
+  presse?: { sparte: "politik" | "welt" | "programm" | "ereignis"; wertung: number; programm?: { schritt: string; erfuellt: boolean } };
 }
 
 export interface Umfrage {

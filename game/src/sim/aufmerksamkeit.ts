@@ -5,6 +5,7 @@
 // Erst die Überlastung erzwingt eine ehrliche Zwangspause, anhaltende Überlastung den Zusammenbruch.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachen.
 
+import { t } from "../i18n";
 import { addLog } from "./log";
 import { addDays, formatDateDe } from "./dates";
 import { clamp } from "./economy";
@@ -225,8 +226,8 @@ function zusammenbruch(w: World, v: Verfassung): void {
   v.stufe = stufeVon(v.belastung);
   vertrauenAendern(w, -2);
   for (const f of sp.figuren) if (f.imAmt) f.loyalitaet = clamp(f.loyalitaet - 6, 0, 100);
-  sp.chronik.push({ tag: w.day, datum: w.date, titel: "Zusammenbruch", ausgang: "Der Präsident bricht unter der Last zusammen; Tage der erzwungenen Ruhe folgen, das Vertrauen ins Amt und in sein Umfeld leidet." });
-  addLog(w, "ereignis", "Der Präsident bricht unter der Belastung zusammen.", "Wochen der Überlastung fordern ihren Preis: Vertrauen in die Regierung −2, Loyalität des Umfelds −6, eine Zwangspause folgt.");
+  sp.chronik.push({ tag: w.day, datum: w.date, titel: t("belastung.zusammenbruch.titel"), ausgang: t("belastung.zusammenbruch.chronik"), presse: { sparte: "ereignis", wertung: -0.6 } });
+  addLog(w, "ereignis", t("belastung.zusammenbruch.log"), t("belastung.zusammenbruch.warum"));
 }
 
 /** Täglich: Aufladung, Belastungsdrift, Stufenwechsel mit Chronik, Zwangspause und Zusammenbruch. */
@@ -260,20 +261,20 @@ export function verfassungTag(w: World): void {
   v.stufe = stufe;
   if (stufe === 1) {
     if (alt === 0) {
-      sp.chronik.push({ tag: w.day, datum: w.date, titel: "Der Präsident wirkt angespannt", ausgang: "Die Belastung ist über 40 gestiegen: Schätzungen streuen breiter, manche Einbringung verzögert sich.", art: "zustand" });
-      addLog(w, "ereignis", "Der Präsident wirkt angespannt.", "Die Belastung ist über 40 gestiegen. Aufmerksamkeit lädt sich täglich auf; wer sie über 60 hält, baut Belastung wieder ab.");
+      sp.chronik.push({ tag: w.day, datum: w.date, titel: t("belastung.angespannt.titel"), ausgang: t("belastung.angespannt.chronik"), art: "zustand" });
+      addLog(w, "ereignis", t("belastung.angespannt.log"), t("belastung.angespannt.warum"));
     } else {
-      sp.chronik.push({ tag: w.day, datum: w.date, titel: "Die Lage beruhigt sich etwas", ausgang: "Die Belastung fällt unter 70; der Präsident bleibt angespannt.", art: "zustand" });
+      sp.chronik.push({ tag: w.day, datum: w.date, titel: t("belastung.beruhigt.titel"), ausgang: t("belastung.beruhigt.chronik"), art: "zustand" });
     }
   } else if (stufe === 2) {
-    sp.chronik.push({ tag: w.day, datum: w.date, titel: "Überlastung", ausgang: "Die Belastung ist über 70 gestiegen; der Stab erzwingt ruhige Tage ohne neue Vorgänge.", art: "zustand" });
+    sp.chronik.push({ tag: w.day, datum: w.date, titel: t("belastung.ueberlastung.titel"), ausgang: t("belastung.ueberlastung.chronik"), art: "zustand" });
     const abkuehlungVorbei = v.letztePause === undefined || w.day - v.letztePause >= VERFASSUNG.pauseAbkuehlung;
     if (abkuehlungVorbei && v.pauseBis === undefined) {
       pauseBeginnen(w, v, VERFASSUNG.pauseTage, false);
-      addLog(w, "ereignis", "Der Präsident braucht einen ruhigen Tag.", `Die Belastung ist über 70 gestiegen: Bis ${formatDateDe(addDays(w.date, VERFASSUNG.pauseTage))} starten keine neuen Vorgänge; das Laufende geht weiter.`);
+      addLog(w, "ereignis", t("belastung.ruhetag.log"), t("belastung.ruhetag.warum", { datum: formatDateDe(addDays(w.date, VERFASSUNG.pauseTage)) }));
     }
   } else {
-    sp.chronik.push({ tag: w.day, datum: w.date, titel: "Der Präsident wirkt wieder erholt", ausgang: "Die Belastung ist unter 40 gefallen.", art: "zustand" });
+    sp.chronik.push({ tag: w.day, datum: w.date, titel: t("belastung.erholt.titel"), ausgang: t("belastung.erholt.chronik"), art: "zustand" });
   }
 }
 

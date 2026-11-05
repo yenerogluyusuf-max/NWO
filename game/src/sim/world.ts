@@ -2,6 +2,7 @@ import { initialisiereStaatsgeld, staatsgeldMonat } from "./staatsgeld";
 // Weltzustand, Zeit und Handlungen. Jede verbindliche Zustandsänderung wird
 // protokolliert (Entwicklungsplan, Abschnitt 6).
 
+import { t } from "../i18n";
 import type { EconomyState, MonthlySnapshot, Scenario, World } from "./types";
 import { Rng, seedToState } from "./rng";
 import { addDays, dayOfMonth, formatDateDe, formatMonthDe, monthNumber, monthOf, previousMonth } from "./dates";
@@ -71,7 +72,7 @@ export function createWorld(scenario: Scenario, seed: number): World {
   };
   // WIR-2: Die Devisen-Lage aus den Datenfeldern des Szenarios (Leistungsbilanz, Reserven)
   migriereDevisen(world);
-  addLog(world, "ereignis", "Amtsantritt. Die Wirtschaftsdaten stammen vom Stichtag " + formatDateDe(scenario.dataDate) + ".");
+  addLog(world, "ereignis", t("protokoll.amtsantritt", { datum: formatDateDe(scenario.dataDate) }));
   return world;
 }
 
@@ -186,11 +187,7 @@ function publishInflation(world: World): void {
   if (!snap) return;
   const before = world.published.inflation.value;
   world.published.inflation = { value: snap.inflation, period: month, publishedOn: world.date };
-  addLog(
-    world,
-    "statistik",
-    `Inflation ${formatMonthDe(month)}: ${fmt(snap.inflation)} % zum Vorjahr (zuvor ${fmt(before)} %).`,
-  );
+  addLog(world, "statistik", t("protokoll.stat.inflation", { monat: formatMonthDe(month), wert: fmt(snap.inflation), vorher: fmt(before) }));
 }
 
 function publishUnemployment(world: World): void {
@@ -198,7 +195,7 @@ function publishUnemployment(world: World): void {
   const snap = findSnapshot(world, month);
   if (!snap) return;
   world.published.unemployment = { value: snap.unemployment, period: month, publishedOn: world.date };
-  addLog(world, "statistik", `Arbeitslosenquote ${formatMonthDe(month)}: ${fmt(snap.unemployment)} %.`);
+  addLog(world, "statistik", t("protokoll.stat.alq", { monat: formatMonthDe(month), wert: fmt(snap.unemployment) }));
 }
 
 function publishQuarterlyGrowth(world: World): void {
@@ -211,7 +208,7 @@ function publishQuarterlyGrowth(world: World): void {
   const q = Math.ceil(Number(quarterEnd.slice(5, 7)) / 3);
   const period = `${quarterEnd.slice(0, 4)}-Q${q}`;
   world.published.growth = { value: snap.growth, period, publishedOn: world.date };
-  addLog(world, "statistik", `Wachstum ${q}. Quartal ${quarterEnd.slice(0, 4)}: ${fmt(snap.growth)} % zum Vorjahr.`);
+  addLog(world, "statistik", t("protokoll.stat.wachstum", { q, jahr: quarterEnd.slice(0, 4), wert: fmt(snap.growth) }));
 }
 
 // ---------------------------------------------------------------------------
