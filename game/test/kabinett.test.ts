@@ -135,3 +135,33 @@ describe("Kabinettshebel wirken bezahlt und bleiben (Reparatur Welle 2)", () => 
     expect(w.economy.fiscalImpulse).toBeGreaterThanOrEqual(-3);
   });
 });
+
+describe("Kabinettsbeschlüsse buchen ihren angezeigten Preis (Befund C-1)", () => {
+  test("Jede Option kostet genau ihren Chip: sparen 0, investieren 2, Ressort-Paket 5, Ressortmittel 3", () => {
+    const fall = (themaId: string, optionId: string, vorbereiten?: (w: ReturnType<typeof welt>) => void) => {
+      const w = welt();
+      vorbereiten?.(w);
+      w.spiel!.kapital = 40;
+      const thema = bereiteKabinettssitzungVor(w).find((x) => x.id === themaId || x.id.startsWith(themaId));
+      expect(thema, themaId).toBeTruthy();
+      const opt = thema!.optionen.find((o) => o.id === optionId)!;
+      const r = halteKabinettssitzungAb(w, thema!.id, optionId);
+      expect(r.erfolg).toBe(true);
+      expect(w.spiel!.kapital).toBeCloseTo(40 - (opt.kostenPk ?? 0), 6);
+      return opt.kostenPk ?? 0;
+    };
+    expect(fall("haushalt_prioritaet", "sparen")).toBe(0);
+    expect(fall("haushalt_prioritaet", "investieren")).toBe(2);
+    // Vertrauenskrise: alle Minister illoyal, dann steht das Paket zur Wahl
+    const krise = (w: ReturnType<typeof welt>) => { for (const f of w.spiel!.figuren) if (f.imAmt) f.loyalitaet = 20; };
+    expect(fall("vertrauenskrise", "ressort_zugestaendnis", krise)).toBe(5);
+  });
+
+  test("Ohne Kapital (auch nicht auf Pump) kein Beschluss, und nichts wird gebucht", () => {
+    const w = welt();
+    w.spiel!.kapital = -19;
+    const r = halteKabinettssitzungAb(w, "haushalt_prioritaet", "investieren");
+    expect(r.erfolg).toBe(false);
+    expect(w.spiel!.kapital).toBe(-19);
+  });
+});

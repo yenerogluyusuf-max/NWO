@@ -12,6 +12,7 @@ import { clamp } from "./economy";
 import { AEMTER, eigenVon, grollVerschieben, leistung, loyalitaetVerschieben, merke, schlechtesteGroesse, wertVon, nf } from "./personen";
 import { LAGER_NAMEN, type LagerArt } from "./personen-typen";
 import { Rng } from "./rng";
+import { kannZahlen } from "./kapital";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
 import { t } from "../i18n";
@@ -65,6 +66,8 @@ export interface KabinettOption {
 export interface KabinettThema {
   id: string;
   titel: string;
+  /** Das vorlegende Amt (Befund C-21: nie aus dem übersetzten Ressorttext lesen) */
+  amt: Figur["amt"];
   ressort: string;
   anlass: string;
   dringlichkeit: "hoch" | "normal";
@@ -240,6 +243,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
   themen.push({
     id: "haushalt_prioritaet",
     titel: t("kab.hh.titel"),
+    amt: "finanzen",
     ressort: t("kab.hh.ressort"),
     anlass: t("kab.hh.anlass", { wer: fin?.name ?? t("kab.fb.finanzministerium") }),
     dringlichkeit: w.economy.inflation > 20 || w.economy.deficit > 5 ? "hoch" : "normal",
@@ -337,6 +341,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
   themen.push({
     id: "sicherheit_justiz",
     titel: t("kab.si.titel"),
+    amt: "inneres",
     ressort: t("kab.si.ressort"),
     anlass: t("kab.si.anlass", { inn: inn?.name ?? t("kab.fb.innenministerium"), jus: jus?.name ?? t("kab.fb.justiz") }),
     dringlichkeit: nationalAverage(NET, w.net, "kriminalitaet") > 50 || nationalAverage(NET, w.net, "polarisierung") > 60 ? "hoch" : "normal",
@@ -414,7 +419,8 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
     themen.push({
       id: `ressortkonflikt_${f.amt}`,
       titel: t("takt.kabinett.konflikt.titel", { rolle: f.rolle, groesse: g.name }),
-      ressort: f.rolle,
+      amt: f.amt,
+      ressort: AEMTER[f.amt].ressort,
       anlass: t("takt.kabinett.konflikt.anlass", { rolle: f.rolle, name: f.name, groesse: g.name, wert: nf(g.wert, 0) }),
       dringlichkeit: brenn.schlecht >= 75 ? "hoch" : "normal",
       optionen: [
@@ -479,6 +485,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
     themen.unshift({
       id: "vertrauenskrise",
       titel: t("kab.kr.titel"),
+      amt: "stab",
       ressort: t("kab.kr.ressort"),
       anlass: t("kab.kr.anlass"),
       dringlichkeit: "hoch",
@@ -507,7 +514,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
           befuerworter: status.minister.map((m) => m.name),
           gegner: [],
           kostenPk: 5,
-          effekteText: [t("kab.kr.paket.e1"), t("kab.kr.paket.e2"), t("kab.kr.paket.e3")],
+          effekteText: [t("kab.kr.paket.e1"), t("kab.kr.paket.e2")],
           ausfuehren: (world) => {
             const fs = world.spiel?.figuren ?? [];
             for (const f of fs) {
@@ -516,7 +523,6 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
               grollVerschieben(world, f, -15);
               merke(world, f, t("kab.kr.paket.m1"));
             }
-            if (world.spiel) world.spiel.kapital = Math.max(-20, world.spiel.kapital - 5);
           },
         },
       ],
@@ -539,11 +545,15 @@ export function halteKabinettssitzungAb(
   const opt = thema.optionen.find((o) => o.id === optionId);
   if (!opt) return { erfolg: false, text: t("kab.e.option"), effekteText: [] };
 
-  if (opt.kostenPk && (w.spiel?.kapital ?? 0) + 20 < opt.kostenPk) {
+  const preis = opt.kostenPk ?? 0;
+  if (preis > 0 && !kannZahlen(w.spiel?.kapital ?? 0, preis)) {
     return { erfolg: false, text: t("kab.e.kapital"), effekteText: [] };
   }
 
   opt.ausfuehren(w);
+
+  // Befund C-1: Der Preis am Chip (kostenPk) wird hier und nur hier gebucht, für jede Option gleich.
+  if (w.spiel && preis > 0) w.spiel.kapital -= preis;
 
   if (w.spiel) {
     w.spiel.zuletzt = w.spiel.zuletzt ?? {};
