@@ -44,6 +44,7 @@ import { beschr, kosten, opt, zusageAnlegen } from "./ereignis-hilfen";
 import type { Vorlage } from "./ereignis-hilfen";
 import { belastungEreignis, VERFASSUNG } from "./aufmerksamkeit";
 import type { World } from "./types";
+import { msg, t, tIn } from "../i18n";
 
 /** Die Regeln der Eigeninitiative als Spielparameter (Kalibrierung). */
 export const INITIATIVE_REGELN = {
@@ -86,7 +87,12 @@ export const ANREDE: Record<string, string> = {
   IRN: "Teheran", SYR: "Damaskus", IRQ: "Bagdad", ARM: "Eriwan", ISR: "Jerusalem", UKR: "Kiew", GEO: "Tiflis", EGY: "Kairo", LBY: "Tripolis", KAZ: "Astana", CYP: "Nikosia",
 };
 
-const anredeVon = (id: string): string => ANREDE[id] ?? land(id).name;
+/** Anrede in der aktuellen Sprache (Anzeige). */
+const anredeVon = (id: string): string => (ANREDE[id] ? t(`ini.anrede.${id}`) : land(id).name);
+/** Anrede auf Deutsch: Absender einer Zusage, den zusageBezug über Namen zuordnet (Logik liest nie übersetzten Text). */
+const anredeDe = (id: string): string => ANREDE[id] ?? land(id).name;
+/** Gerundete Zahl als Text, genau wie zuvor im Template-String (kein Tausenderpunkt, keine „-0“). */
+const rund = (x: number): string => String(Math.round(x));
 
 // ---------------------------------------------------------------------------
 // Kriegsmodul-Übergabe (AUS-1 ↔ MIL-1): die Drohkulisse ist die letzte Schwelle vor dem Krieg
@@ -124,10 +130,8 @@ export function drohkulisseUebergabe(w: World, u: DrohkulisseUebergabe): void {
   addLog(
     w,
     "ereignis",
-    `Drohkulisse mit ${land(u.land).dat}: Die Lage bleibt an der Kriegsschwelle (Konflikt ${Math.round(u.konflikt)} von 100).`,
-    eskaliert
-      ? "Übergeben an den Konfliktvorgang: Die Spannung mit diesem Land hebt auf Drohkulisse-Niveau — das Dossier steht in der Welt-Ansicht."
-      : "Der Konfliktvorgang greift die Lage bei der nächsten Monatsprüfung auf, solange der Konflikt über seiner Anlageschwelle steht; es gibt keinen automatischen Krieg.",
+    t("ini.droh.log", { dat: land(u.land).dat, name: land(u.land).name, konflikt: rund(u.konflikt) }),
+    t(eskaliert ? "ini.droh.uebergeben" : "ini.droh.naechstePruefung"),
   );
 }
 
@@ -347,7 +351,7 @@ export function initiativeGegen(w: World, landId: string): InitiativeSicht | nul
   for (const e of spiel.ereignisse) {
     if (!INITIATIVE_VORLAGE_IDS.has(e.vorlage) || String(e.daten?.land) !== landId) continue;
     const v = VORLAGE_Lokal.get(e.vorlage);
-    return { evId: e.id, vorlage: e.vorlage, titel: v ? v.titel(w, e) : "Eigeninitiative" };
+    return { evId: e.id, vorlage: e.vorlage, titel: v ? v.titel(w, e) : t("ini.titel.fallback") };
   }
   return null;
 }
@@ -359,9 +363,10 @@ const labelVon = (w: World, landId: string, id: string) => klauselSicht(w, landI
 
 const paketText = (w: World, a: Angebot) => {
   const teile: string[] = [];
-  if (a.gibt.length) teile.push(`Die Türkei bietet: ${a.gibt.map((id) => `„${labelVon(w, a.land, id)}“`).join(", ")}`);
-  if (a.will.length) teile.push(`Die Türkei erhält: ${a.will.map((id) => `„${labelVon(w, a.land, id)}“`).join(", ")}`);
-  return `${teile.join(". ")}. Laufzeit ${a.jahre} Jahre.`;
+  const liste = (ids: string[]) => ids.map((id) => t("ini.paket.klausel", { label: labelVon(w, a.land, id) })).join(", ");
+  if (a.gibt.length) teile.push(t("ini.paket.bietet", { liste: liste(a.gibt) }));
+  if (a.will.length) teile.push(t("ini.paket.erhaelt", { liste: liste(a.will) }));
+  return `${teile.join(". ")}. ${t("ini.paket.laufzeit", { jahre: a.jahre })}`;
 };
 
 function paketAus(ev: { daten?: Record<string, number | string> }): Angebot {
@@ -388,7 +393,7 @@ function gegenPaket(w: World, ev: { daten?: Record<string, number | string> }): 
 /** Der Schlusssatz einer Forderung: was sie dem Land konkret wert ist. */
 const klauselWert = (w: World, landId: string, klausel: string) => {
   const k = klauselSicht(w, landId, klausel);
-  return k ? `Was das bedeutet: ${k.text}` : "";
+  return k ? t("ini.klauselWert", { text: k.text }) : "";
 };
 
 const LAND_FORDERT: Vorlage = {
@@ -405,26 +410,28 @@ const LAND_FORDERT: Vorlage = {
   titel: (w, ev) => {
     const l = land(String(ev.daten?.land));
     const klausel = String(ev.daten?.klausel ?? "");
-    return `${anredeVon(l.id)} fordert${klausel ? `: „${labelVon(w, l.id, klausel)}“` : " Gehör"}`;
+    return klausel ? t("ini.fordert.titel_klausel", { wer: anredeVon(l.id), klausel: labelVon(w, l.id, klausel) }) : t("ini.fordert.titel_ohne", { wer: anredeVon(l.id) });
   },
   text: (w, ev) => {
     const l = land(String(ev.daten?.land));
     const z = weltZustand(w)[l.id]!;
     const anlass = String(ev.daten?.anlass ?? "anliegen");
     const klausel = String(ev.daten?.klausel ?? "");
+    const wer = anredeVon(l.id);
+    const k = { mit: klausel ? "ja" : "nein", klausel: klausel ? labelVon(w, l.id, klausel) : "" };
     let grund: string;
     if (anlass === "rot") {
-      const rotText = PROFILE[l.id]?.rotText?.[String(ev.daten?.roteLinie)] ?? `${anredeVon(l.id)} sieht eine Rote Linie berührt.`;
-      grund = `${rotText} ${anredeVon(l.id)} verlangt nun ein sichtbares Zeichen, dass die Türkei die Linie respektiert${klausel ? ` — konkret: „${labelVon(w, l.id, klausel)}“` : ""}.`;
+      const rotText = PROFILE[l.id]?.rotText?.[String(ev.daten?.roteLinie)] ?? t("ini.fordert.rot_fallback", { wer });
+      grund = t("ini.fordert.grund_rot", { rot: rotText, wer, ...k });
     } else if (anlass === "ausstrahlung") {
-      grund = `${ev.daten?.text ?? "Ein Vertrag der Türkei mit einem Drittland trifft das Land."} ${anredeVon(l.id)} verlangt Klarheit${klausel ? ` und ein Entgegenkommen: „${labelVon(w, l.id, klausel)}“` : ""}.`;
+      grund = t("ini.fordert.grund_ausstrahlung", { anlass: String(ev.daten?.text ?? t("ini.fordert.ausstrahlung_fallback")), wer, ...k });
     } else {
-      grund = `${anredeVon(l.id)} lässt ausrichten, dass die Geduld schwindet: ${ev.daten?.text ?? "Ein offenes Anliegen wartet."}${klausel ? ` Am Verhandlungstisch hieße das: „${labelVon(w, l.id, klausel)}“. ${klauselWert(w, l.id, klausel)}` : ""}`;
+      grund = t("ini.fordert.grund_anliegen", { wer, anliegen: String(ev.daten?.text ?? t("ini.fordert.anliegen_fallback")), wert: klausel ? klauselWert(w, l.id, klausel) : "", ...k });
     }
-    const drohung = z.konflikt >= R.konfliktProvokation ? " Zwischen den Zeilen klingt mit, dass es Alternativen zum guten Verhältnis gibt." : "";
-    return [grund, `Das Verhältnis steht bei Vertrauen ${Math.round(vertrauenZu(w, l.id))} und Konflikt ${Math.round(z.konflikt)}. Eine Antwort wird erwartet.${drohung}`];
+    const drohung = z.konflikt >= R.konfliktProvokation ? "ja" : "nein";
+    return [grund, t("ini.fordert.lage", { vertrauen: rund(vertrauenZu(w, l.id)), konflikt: rund(z.konflikt), drohung })];
   },
-  warum: () => "Andere Staaten haben eigene Interessen und eigene Fristen. Wer ihre Anliegen ignoriert, bekommt sie als Forderung zurück — mit Preis auf beide Antworten.",
+  warum: () => t("ini.fordert.warum"),
   massnahmen: [],
   optionen: (w, ev) => {
     const l = land(String(ev.daten?.land));
@@ -437,54 +444,60 @@ const LAND_FORDERT: Vorlage = {
     if (!paket) {
       // Kein verhandelbarer Wunsch: Das Land will Gehör und Zusagen statt Klauseln
       return [
-        opt("gespraech", "Ein Gespräch anbieten", beschr(2, 0, "kauft Zeit, ohne etwas zu ändern."), 2, (ww) => {
+        opt("gespraech", t("ini.fordert.opt.gespraech"), beschr(2, 0, t("ini.fordert.opt.gespraech.folge")), 2, (ww) => {
           landAendern(ww, l.id, { vertrauen: 4 }, "Gesprächsangebot nach einer Forderung");
-          return `${anredeVon(l.id)} nimmt das Gesprächsangebot an, wartet aber weiter auf Taten.`;
+          return t("ini.fordert.opt.gespraech.ergebnis", { wer: anredeVon(l.id) });
         }),
-        opt("zusagen", "Eine Zusage machen", beschr(3, 0, `${anredeVon(l.id)} bekommt ein Versprechen, das in acht Monaten eingefordert wird.`), 3, (ww) => {
+        opt("zusagen", t("ini.fordert.opt.zusagen"), beschr(3, 0, t("ini.fordert.opt.zusagen.folge", { wer: anredeVon(l.id) })), 3, (ww) => {
           landAendern(ww, l.id, { vertrauen: 6 }, "Zusage nach einer Forderung");
-          if (m) zusageAnlegen(ww, { von: anredeVon(l.id), text: `${anredeVon(l.id)} wurde zugesagt: ${String(ev.daten?.text ?? "das Anliegen")}`, tage: 240, massnahme: m.id });
-          return `Die Regierung sagt ${anredeVon(l.id)} zu, das Anliegen anzugehen.`;
+          if (m) {
+            // Text und Absender bleiben deutsch (Logik und Erinnerung lesen sie); die Anzeige kommt aus der Meldung
+            const text = ev.daten?.text;
+            const de = { wer: anredeDe(l.id), was: String(text ?? tIn("de", "ini.fordert.opt.zusagen.anliegen")) };
+            const p = { wer: anredeVon(l.id), was: String(text ?? t("ini.fordert.opt.zusagen.anliegen")) };
+            zusageAnlegen(ww, { von: anredeDe(l.id), text: tIn("de", "ini.fordert.opt.zusagen.zusage", de), msg: msg("ini.fordert.opt.zusagen.zusage", p), tage: 240, massnahme: m.id });
+          }
+          return t("ini.fordert.opt.zusagen.ergebnis", { wer: anredeVon(l.id) });
         }),
-        opt("zurueckweisen", "Zurückweisen", beschr(0, 0, "Beifall zu Hause, Ärger im Ausland."), 0, (ww) => {
+        opt("zurueckweisen", t("ini.fordert.opt.zurueckweisen"), beschr(0, 0, t("ini.fordert.opt.zurueckweisen.folge")), 0, (ww) => {
           landAendern(ww, l.id, { vertrauen: -8, konflikt: 5 }, "Forderung zurückgewiesen");
           wirke(ww, "konservative", 1);
           vertrauenAendern(ww, 0.5);
-          return `Die Regierung weist die Forderung von ${anredeVon(l.id)} zurück.`;
+          return t("ini.fordert.opt.zurueckweisen.ergebnis", { wer: anredeVon(l.id) });
         }),
       ];
     }
     const pk = pkFuer(paket);
     const pkGegen = gegen ? pkFuer(gegen) : pk;
     return [
-      opt("erfuellen", `Die Forderung erfüllen (Vertrag über ${paket.jahre} Jahre)`, beschr(pk, 0, `${anredeVon(l.id)} bekommt „${labelVon(w, l.id, String(ev.daten?.klausel))}“ als Vertrag; das Verhältnis entspannt sich, aber der Vertrag bindet und wird jedes Jahr geprüft.`), pk, (ww) => {
+      opt("erfuellen", t("ini.fordert.opt.erfuellen", { jahre: paket.jahre }), beschr(pk, 0, t("ini.fordert.opt.erfuellen.folge", { wer: anredeVon(l.id), klausel: labelVon(w, l.id, String(ev.daten?.klausel)) })), pk, (ww) => {
         const pruef = pruefeAngebot(ww, paket);
-        if (pruef) return `Die Forderung lässt sich nicht mehr erfüllen: ${pruef}`;
+        if (pruef) return t("ini.fordert.opt.erfuellen.unmoeglich", { grund: pruef });
         schliesse(ww, paket);
-        return `Die Türkei erfüllt die Forderung: ${paketText(ww, paket)}`;
+        return t("ini.fordert.opt.erfuellen.ergebnis", { paket: paketText(ww, paket) });
       }),
-      opt("gegenangebot", "Gegenangebot: Entgegenkommen gegen Gegenleistung", beschr(pkGegen, 0, gegen && gegen.will.length ? `die Türkei gibt „${labelVon(w, l.id, gegen.gibt[0]!)}“ und verlangt „${labelVon(w, l.id, gegen.will[0]!)}“; stimmt ${l.name} nicht, war die Verhandlung umsonst.` : `dieselbe Klausel, aber nur zwei Jahre gebunden; stimmt ${l.name} nicht, war die Verhandlung umsonst.`), pkGegen, (ww) => {
-        if (!gegen) return "Es gibt nichts, wogegen sich verhandeln ließe.";
+      opt("gegenangebot", t("ini.fordert.opt.gegenangebot"), beschr(pkGegen, 0, gegen && gegen.will.length ? t("ini.fordert.opt.gegenangebot.folge_tausch", { gibt: labelVon(w, l.id, gegen.gibt[0]!), will: labelVon(w, l.id, gegen.will[0]!), land: l.name }) : t("ini.fordert.opt.gegenangebot.folge_kurz", { land: l.name })), pkGegen, (ww) => {
+        if (!gegen) return t("ini.fordert.opt.gegenangebot.nichts");
         const b = bewerte(ww, gegen);
         if (b.urteil === "zustimmung") {
           schliesse(ww, gegen);
-          return `${anredeVon(l.id)} lässt sich auf den Tausch ein: ${paketText(ww, gegen)}`;
+          return t("ini.fordert.opt.gegenangebot.ja", { wer: anredeVon(l.id), paket: paketText(ww, gegen) });
         }
         landAendern(ww, l.id, { vertrauen: -2 }, "Gegenangebot abgelehnt");
-        return `${anredeVon(l.id)} besteht auf der vollen Forderung und lehnt den Tausch ab. Der Verhandlungstisch bleibt geöffnet.`;
+        return t("ini.fordert.opt.gegenangebot.nein", { wer: anredeVon(l.id) });
       }),
-      opt("ablehnen", "Ablehnen", beschr(0, 0, "Beifall zu Hause, aber die Beziehung kühlt ab und der Streit wächst."), 0, (ww) => {
+      opt("ablehnen", t("ini.opt.ablehnen"), beschr(0, 0, t("ini.fordert.opt.ablehnen.folge")), 0, (ww) => {
         landAendern(ww, l.id, { vertrauen: -8, konflikt: 5 }, "Forderung abgelehnt");
         wirke(ww, "konservative", 1);
         vertrauenAendern(ww, 0.5);
-        return `Die Regierung lehnt die Forderung von ${anredeVon(l.id)} ab.`;
+        return t("ini.fordert.opt.ablehnen.ergebnis", { wer: anredeVon(l.id) });
       }),
     ];
   },
   standard: (w, ev) => {
     const l = land(String(ev.daten?.land));
     landAendern(w, l.id, { vertrauen: -5, konflikt: 2 }, "Forderung unbeantwortet");
-    return `${anredeVon(l.id)} wertet das Schweigen als Antwort.`;
+    return t("ini.fordert.standard", { wer: anredeVon(l.id) });
   },
 };
 
@@ -499,18 +512,18 @@ const LAND_ANGEBOT: Vorlage = {
     const k = besterKandidat(w, "land_angebot");
     return k ? { provinzen: [], staerke: 1, daten: { ...k.daten, gewicht: k.gewicht } } : null;
   },
-  titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} schlägt einen Vertrag vor`,
+  titel: (_, ev) => t("ini.angebot.titel", { wer: anredeVon(String(ev.daten?.land)) }),
   text: (w, ev) => {
     const l = land(String(ev.daten?.land));
     const a = paketAus(ev);
     const anlass = String(ev.daten?.anlass ?? "vertrauen");
-    const zeile = anlass === "ausstrahlung" ? `${ev.daten?.text ?? ""} ${anredeVon(l.id)} will den Moment nutzen und legt ein Paket auf den Tisch.` : `${anredeVon(l.id)} legt ein Paket auf den Tisch.`;
+    const zeile = anlass === "ausstrahlung" ? t("ini.angebot.zeile_ausstrahlung", { anlass: String(ev.daten?.text ?? ""), wer: anredeVon(l.id) }) : t("ini.angebot.zeile", { wer: anredeVon(l.id) });
     return [
       `${zeile} ${paketText(w, a)}`,
-      `Das Verhältnis ist gut (Vertrauen ${Math.round(vertrauenZu(w, l.id))}); es ist die Zeit, daraus etwas zu machen. Was das Paket bei uns bewirkt, zeigen die Antworten.`,
+      t("ini.angebot.lage", { vertrauen: rund(vertrauenZu(w, l.id)) }),
     ];
   },
-  warum: () => "Vertrauen ist Kapital, das man nur einlösen kann, wenn ein Angebot kommt. Wer es nie einlöst, hat es umsonst aufgebaut. Ein Vertrag bindet aber beide Seiten und wird jedes Jahr geprüft.",
+  warum: () => t("ini.angebot.warum"),
   massnahmen: [],
   optionen: (w, ev) => {
     const l = land(String(ev.daten?.land));
@@ -519,28 +532,28 @@ const LAND_ANGEBOT: Vorlage = {
     const zeilen = [...a.gibt, ...a.will].flatMap((id) => (KLAUSEL_NACH_ID[id] ? heimWirkung(KLAUSEL_NACH_ID[id]!).dauer.slice(0, 2).map((z) => z.text) : [])).slice(0, 4).join("; ");
     const preis = pkFuer(a);
     return [
-      opt("annehmen", `Annehmen: ${a.jahre} Jahre`, beschr(preis, 0, zeilen ? `bei uns: ${zeilen}; ein Vertrag bindet und wird jedes Jahr geprüft.` : "ein Vertrag bindet und wird jedes Jahr geprüft."), preis, (ww) => {
+      opt("annehmen", t("ini.angebot.opt.annehmen", { jahre: a.jahre }), beschr(preis, 0, zeilen ? t("ini.angebot.opt.annehmen.folge_zeilen", { zeilen }) : t("ini.angebot.opt.annehmen.folge")), preis, (ww) => {
         const pruef = pruefeAngebot(ww, a);
-        if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
+        if (pruef) return t("ini.angebot.unmoeglich", { grund: pruef });
         schliesse(ww, a);
-        return `Die Türkei und ${l.name} schließen den Vertrag: ${paketText(ww, a)}`;
+        return t("ini.angebot.opt.annehmen.ergebnis", { land: l.name, paket: paketText(ww, a) });
       }),
-      opt("verhandeln", "Verhandeln: nur zwei Jahre binden", beschr(pkFuer(kurz), 0, "schwächere Dauerwirkung, dafür weniger Bindung."), pkFuer(kurz), (ww) => {
+      opt("verhandeln", t("ini.angebot.opt.verhandeln"), beschr(pkFuer(kurz), 0, t("ini.angebot.opt.verhandeln.folge")), pkFuer(kurz), (ww) => {
         const pruef = pruefeAngebot(ww, kurz);
-        if (pruef) return `Das Paket ist nicht mehr möglich: ${pruef}`;
+        if (pruef) return t("ini.angebot.unmoeglich", { grund: pruef });
         schliesse(ww, kurz);
-        return `Die Türkei und ${l.name} schließen einen Vertrag auf zwei Jahre.`;
+        return t("ini.angebot.opt.verhandeln.ergebnis", { land: l.name });
       }),
-      opt("ablehnen", "Ablehnen", beschr(0, 0, "wahrt die Unabhängigkeit, kostet etwas Wärme."), 0, (ww) => {
+      opt("ablehnen", t("ini.opt.ablehnen"), beschr(0, 0, t("ini.angebot.opt.ablehnen.folge")), 0, (ww) => {
         landAendern(ww, l.id, { vertrauen: -3 }, "Vertragsvorschlag abgelehnt");
-        return `Die Türkei lehnt den Vorschlag von ${anredeVon(l.id)} höflich ab.`;
+        return t("ini.angebot.opt.ablehnen.ergebnis", { wer: anredeVon(l.id) });
       }),
     ];
   },
   standard: (w, ev) => {
     merkeInitiative(w, String(ev.daten?.land)); // auch ausgesessen: Das Land hat gehandelt, der Vorschlag verfällt
     landAendern(w, String(ev.daten?.land), { vertrauen: -2 }, "Vertragsvorschlag verfallen");
-    return "Der Vorschlag verfällt ungenutzt.";
+    return t("ini.angebot.standard");
   },
 };
 
@@ -555,18 +568,26 @@ const VERTRAG_VERLAENGERUNG: Vorlage = {
     const k = besterKandidat(w, "vertrag_verlaengerung");
     return k ? { provinzen: [], staerke: 1, daten: { ...k.daten, gewicht: k.gewicht } } : null;
   },
-  titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} will den Vertrag verlängern`,
+  titel: (_, ev) => t("ini.verl.titel", { wer: anredeVon(String(ev.daten?.land)) }),
   text: (w, ev) => {
     const l = land(String(ev.daten?.land));
     const v = laufende(w, l.id).find((x) => x.id === String(ev.daten?.vertrag));
     const rest = v ? Math.max(0, v.ablauf - w.day) : 0;
     const zugabe = String(ev.daten?.zugabe ?? "");
     return [
-      `Der Vertrag mit ${l.dat} (${v ? vertragsName(w, v) : "Vertrag"}) läuft in etwa ${Math.max(1, Math.round(rest / 30))} Monaten aus. ${anredeVon(l.id)} kommt früh auf die Türkei zu und bietet eine Verlängerung an${zugabe ? ` — für die lange Bindung erwartet es eine kleine Zugabe: „${labelVon(w, l.id, zugabe)}“` : ""}.`,
-      `${v && v.verstoesse === 0 ? "Der Vertrag wurde bisher gehalten; das zählt für eine Verlängerung." : "Es gab Verstöße; eine Verlängerung ist damit fraglich."} Das Vertrauen liegt bei ${Math.round(vertrauenZu(w, l.id))}.`,
+      t("ini.verl.text", {
+        dat: l.dat,
+        name: l.name,
+        vertrag: v ? vertragsName(w, v) : t("ini.verl.vertrag_fallback"),
+        monate: Math.max(1, Math.round(rest / 30)),
+        wer: anredeVon(l.id),
+        mit: zugabe ? "ja" : "nein",
+        zugabe: zugabe ? labelVon(w, l.id, zugabe) : "",
+      }),
+      t("ini.verl.bilanz", { gehalten: v && v.verstoesse === 0 ? "ja" : "nein", vertrauen: rund(vertrauenZu(w, l.id)) }),
     ];
   },
-  warum: () => "Verträge, die auslaufen, hören nicht auf zu wirken, weil man sie vergisst: Die Dauerwirkungen enden, und das Land fragt sich, ob man es ernst gemeint hat. Wer früh kommt, handelt aus Interesse, nicht aus Freundlichkeit.",
+  warum: () => t("ini.verl.warum"),
   massnahmen: [],
   optionen: (w, ev) => {
     const l = land(String(ev.daten?.land));
@@ -575,24 +596,24 @@ const VERTRAG_VERLAENGERUNG: Vorlage = {
     const optionen = [
       ...(zugabe
         ? [
-            opt("verlaengern_zugabe", `Verlängern mit Zugabe: fünf Jahre plus „${labelVon(w, l.id, zugabe)}“`, beschr(VERLAENGERUNG_PK[5] + 2, 0, "die Dauerwirkungen laufen fünf Jahre weiter; die Zugabe ist ein kleines Zusatzprotokoll auf zwei Jahre."), VERLAENGERUNG_PK[5] + 2, (ww) => {
+            opt("verlaengern_zugabe", t("ini.verl.opt.zugabe", { zugabe: labelVon(w, l.id, zugabe) }), beschr(VERLAENGERUNG_PK[5] + 2, 0, t("ini.verl.opt.zugabe.folge")), VERLAENGERUNG_PK[5] + 2, (ww) => {
               const r = verlaengere(ww, l.id, vid, 5, false);
               if (!r.ok) return r.text;
               const protokoll: Angebot = { land: l.id, gibt: [zugabe], will: [], jahre: 2 };
               if (!pruefeAngebot(ww, protokoll)) {
                 schliesse(ww, protokoll);
-                return `${r.text} Als Zugabe unterschreiben beide Seiten ein Zusatzprotokoll: „${labelVon(ww, l.id, zugabe)}“.`;
+                return t("ini.verl.opt.zugabe.ja", { r: r.text, zugabe: labelVon(ww, l.id, zugabe) });
               }
-              return `${r.text} Die Zugabe entfällt; sie ist nicht mehr möglich.`;
+              return t("ini.verl.opt.zugabe.nein", { r: r.text });
             }),
           ]
         : [
-            opt("verlaengern5", "Um fünf Jahre verlängern", beschr(VERLAENGERUNG_PK[5], 0, "die Dauerwirkungen laufen weiter, die Bindung auch."), VERLAENGERUNG_PK[5], (ww) => verlaengere(ww, l.id, vid, 5, false).text),
+            opt("verlaengern5", t("ini.verl.opt.fuenf"), beschr(VERLAENGERUNG_PK[5], 0, t("ini.verl.opt.fuenf.folge")), VERLAENGERUNG_PK[5], (ww) => verlaengere(ww, l.id, vid, 5, false).text),
           ]),
-      opt("verlaengern2", "Um zwei Jahre verlängern", beschr(VERLAENGERUNG_PK[2], 0, "kürzere Bindung ohne Zugabe, die Wirkungen laufen weiter."), VERLAENGERUNG_PK[2], (ww) => verlaengere(ww, l.id, vid, 2, false).text),
-      opt("auslaufen", "Auslaufen lassen", beschr(0, 0, "die Wirkungen enden mit dem Vertrag; das Land merkt sich die Zurückhaltung."), 0, (ww) => {
+      opt("verlaengern2", t("ini.verl.opt.zwei"), beschr(VERLAENGERUNG_PK[2], 0, t("ini.verl.opt.zwei.folge")), VERLAENGERUNG_PK[2], (ww) => verlaengere(ww, l.id, vid, 2, false).text),
+      opt("auslaufen", t("ini.verl.opt.auslaufen"), beschr(0, 0, t("ini.verl.opt.auslaufen.folge")), 0, (ww) => {
         landAendern(ww, l.id, { vertrauen: -2 }, "Verlängerung ausgeschlagen");
-        return `Der Vertrag mit ${l.dat} läuft aus.`;
+        return t("ini.verl.opt.auslaufen.ergebnis", { dat: l.dat, name: l.name });
       }),
     ];
     return optionen;
@@ -601,7 +622,7 @@ const VERTRAG_VERLAENGERUNG: Vorlage = {
     const l = land(String(ev.daten?.land));
     merkeInitiative(w, l.id); // auch ausgesessen: Das Angebot des Landes verfällt
     landAendern(w, l.id, { vertrauen: -2 }, "Verlängerungsangebot verfristet");
-    return `Das Angebot von ${anredeVon(l.id)} verfällt; der Vertrag mit ${l.dat} läuft ohne Verlängerung aus.`;
+    return t("ini.verl.standard", { wer: anredeVon(l.id), dat: l.dat, name: l.name });
   },
 };
 
@@ -616,51 +637,51 @@ const LAND_PROVOKATION: Vorlage = {
     const k = besterKandidat(w, "land_provokation");
     return k ? { provinzen: [], staerke: 1, daten: { ...k.daten, gewicht: k.gewicht } } : null;
   },
-  titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} sucht den Streit`,
+  titel: (_, ev) => t("ini.prov.titel", { wer: anredeVon(String(ev.daten?.land)) }),
   text: (w, ev) => {
     const l = land(String(ev.daten?.land));
     return [
-      `Der Dauerstreit mit ${l.dat} verschärft sich von der anderen Seite: Erklärungen, Manöver, Vorwürfe — offenbar soll die Türkei aus der Reserve gelockt werden. Der Konflikt liegt bei ${Math.round(weltZustand(w)[l.id]!.konflikt)} von 100.`,
+      t("ini.prov.text", { dat: l.dat, name: l.name, konflikt: rund(weltZustand(w)[l.id]!.konflikt) }),
       `${l.text.split(";")[0]}.`,
     ];
   },
-  warum: () => "Provokationen sind Angebote zum Fehler: Wer duldet, verliert Gesicht; wer kontert, heizt den Streit an; wer vermitteln lässt, braucht Geduld und etwas Ansehen.",
+  warum: () => t("ini.prov.warum"),
   massnahmen: [],
   optionen: (_, ev) => {
     const l = land(String(ev.daten?.land));
     return [
-      opt("dulden", "Dulden und nicht anbeißen", beschr(0, 0, "keine Eskalation, aber ein Gesichtsverlust im Inland."), 0, (ww) => {
+      opt("dulden", t("ini.prov.opt.dulden"), beschr(0, 0, t("ini.prov.opt.dulden.folge")), 0, (ww) => {
         vertrauenAendern(ww, -1);
         wirke(ww, "konservative", -1);
         landAendern(ww, l.id, { konflikt: 2 }, "Provokation geduldet");
-        return `Die Regierung schweigt zu den Vorwürfen aus ${l.name}; zu Hause lesen das manche als Schwäche.`;
+        return t("ini.prov.opt.dulden.ergebnis", { land: l.name });
       }),
-      opt("kontern", "Kontern: scharfe Antwort und Manöver", beschr(2, 0.05, "ein starker Auftritt im Inland, der den Streit anheizt und Geld kostet."), 2, (ww) => {
+      opt("kontern", t("ini.prov.opt.kontern"), beschr(2, 0.05, t("ini.prov.opt.kontern.folge")), 2, (ww) => {
         kosten(ww, 0.05);
         landAendern(ww, l.id, { konflikt: 8, vertrauen: -4 }, "Provokation gekontert");
         wirke(ww, "militaer", 1);
         wirke(ww, "konservative", 1);
         vertrauenAendern(ww, 1);
-        return `Ankara antwortet scharf und lässt Truppen auffahren; die Spannung mit ${l.dat} steigt.`;
+        return t("ini.prov.opt.kontern.ergebnis", { dat: l.dat, name: l.name });
       }),
-      opt("vermittlung", "Internationale Vermittlung rufen", beschr(4, 0, "dritte Vermittler sollen die Lage beruhigen; misslingt es, steht die Türkei schwächer da."), 4, (ww, e, rng) => {
+      opt("vermittlung", t("ini.prov.opt.vermittlung"), beschr(4, 0, t("ini.prov.opt.vermittlung.folge")), 4, (ww, e, rng) => {
         const aussicht = clamp(45 + (vertrauenZu(ww, l.id) - 30), 10, 80);
         if (rng.next() * 100 < aussicht) {
           landAendern(ww, l.id, { konflikt: -12, vertrauen: 4 }, "Vermittlung gelungen");
           wirke(ww, "ansehen", 1);
           loyalitaetAendern(ww, "aussen", 4);
-          return `Vermittler legen beide Seiten auf Eis: Der Streit mit ${l.dat} beruhigt sich.`;
+          return t("ini.prov.opt.vermittlung.ja", { dat: l.dat, name: l.name });
         }
         landAendern(ww, l.id, { konflikt: 3 }, "Vermittlung gescheitert");
         wirke(ww, "ansehen", -1);
-        return `${anredeVon(l.id)} lässt die Vermittler abblitzen; der Versuch wirkt wie ein Eingeständnis.`;
+        return t("ini.prov.opt.vermittlung.nein", { wer: anredeVon(l.id) });
       }),
     ];
   },
   standard: (w, ev) => {
     landAendern(w, String(ev.daten?.land), { konflikt: 4 }, "Provokation unbeantwortet");
     vertrauenAendern(w, -0.5);
-    return "Ohne Antwort verschärft sich der Ton.";
+    return t("ini.prov.standard");
   },
 };
 
@@ -675,16 +696,16 @@ const LAND_DROHKULISSE: Vorlage = {
     const k = besterKandidat(w, "land_drohkulisse");
     return k ? { provinzen: [], staerke: 1, daten: { ...k.daten, gewicht: k.gewicht } } : null;
   },
-  titel: (_, ev) => `${anredeVon(String(ev.daten?.land))} baut eine Drohkulisse auf`,
+  titel: (_, ev) => t("ini.drohk.titel", { wer: anredeVon(String(ev.daten?.land)) }),
   text: (w, ev) => {
     const l = land(String(ev.daten?.land));
     const klausel = String(ev.daten?.klausel ?? forderungsKlausel(w, l.id)?.def.id ?? "");
     return [
-      `${anredeVon(l.id)} lässt Geduld und Diplomatie hinter sich: Truppenbewegungen, scharfe Worte, und dazu eine konkrete Forderung${klausel ? ` — „${labelVon(w, l.id, klausel)}“` : ""}. Der Konflikt liegt bei ${Math.round(weltZustand(w)[l.id]!.konflikt)} von 100, knapp unter der Schwelle, ab der aus Krise Krieg werden kann.`,
-      `Der Generalstab warnt, dass jede falsche Antwort die Lage kippen lässt; die Auslandspresse spricht von der schwersten Krise dieser Amtszeit.`,
+      t("ini.drohk.text", { wer: anredeVon(l.id), mit: klausel ? "ja" : "nein", klausel: klausel ? labelVon(w, l.id, klausel) : "", konflikt: rund(weltZustand(w)[l.id]!.konflikt) }),
+      t("ini.drohk.warnung"),
     ];
   },
-  warum: () => "An der Kriegsschwelle hat jede Antwort zwei Preise: den sofortigen für die Beziehung und den inneren für das Gesicht des Präsidenten. Nachgeben beruhigt und beschämt, Standhalten ehrt und riskiert, Vermittlung kostet Ansehen und Zeit.",
+  warum: () => t("ini.drohk.warum"),
   massnahmen: [],
   optionen: (w, ev) => {
     const l = land(String(ev.daten?.land));
@@ -694,42 +715,42 @@ const LAND_DROHKULISSE: Vorlage = {
     return [
       opt(
         "nachgeben",
-        paket ? `Nachgeben: „${labelVon(w, l.id, klausel)}“ als Vertrag erfüllen` : "Nachgeben und beruhigen",
-        beschr(pk, 0, "die Krise entspannt sich sofort, aber der Verzicht unter Drohung kostet Ansehen im Ausland und Stimmen im nationalen Lager."),
+        paket ? t("ini.drohk.opt.nachgeben_klausel", { klausel: labelVon(w, l.id, klausel) }) : t("ini.drohk.opt.nachgeben_ohne"),
+        beschr(pk, 0, t("ini.drohk.opt.nachgeben.folge")),
         pk,
         (ww) => {
           if (paket) {
             const pruef = pruefeAngebot(ww, paket);
-            if (pruef) return `Das Zugeständnis lässt sich nicht mehr geben: ${pruef}`;
+            if (pruef) return t("ini.drohk.opt.nachgeben.unmoeglich", { grund: pruef });
             schliesse(ww, paket);
           }
           landAendern(ww, l.id, { konflikt: -15, vertrauen: -4 }, "Nachgegeben unter Drohung");
           wirke(ww, "konservative", -2);
           wirke(ww, "ansehen", -2);
           vertrauenAendern(ww, -1);
-          return `Die Türkei gibt der Drohkulisse nach${paket ? ` und erfüllt „${labelVon(ww, l.id, klausel)}“ per Vertrag` : ""}; die Lage beruhigt sich, doch der Verzicht unter Druck bleibt in Erinnerung.`;
+          return t("ini.drohk.opt.nachgeben.ergebnis", { mit: paket ? "ja" : "nein", klausel: paket ? labelVon(ww, l.id, klausel) : "" });
         },
       ),
-      opt("standhalten", "Standhalten", beschr(2, 0, "Härte zeigen: Das Land rückt zusammen, doch die Drohkulisse bleibt — und die Kriegsgefahr rückt näher."), 2, (ww) => {
+      opt("standhalten", t("ini.drohk.opt.standhalten"), beschr(2, 0, t("ini.drohk.opt.standhalten.folge")), 2, (ww) => {
         landAendern(ww, l.id, { konflikt: 3, vertrauen: -3 }, "Drohkulisse standgehalten");
         wirke(ww, "militaer", 1);
         wirke(ww, "konservative", 1);
         vertrauenAendern(ww, 1);
         drohkulisseUebergabe(ww, { land: l.id, konflikt: weltZustand(ww)[l.id]!.konflikt, tag: ww.day, ausloeser: "standhalten" });
-        return `Ankara weist die Forderung von ${anredeVon(l.id)} zurück und bleibt an der Schwelle standhaft.`;
+        return t("ini.drohk.opt.standhalten.ergebnis", { wer: anredeVon(l.id) });
       }),
-      opt("vermittlung", "Vermittlung unter Freunden suchen", beschr(5, 0, "teuer und ungewiss: Gelingt sie, entspannt sich die Lage spürbar; scheitert sie, wächst die Drohkulisse."), 5, (ww, e, rng) => {
+      opt("vermittlung", t("ini.drohk.opt.vermittlung"), beschr(5, 0, t("ini.drohk.opt.vermittlung.folge")), 5, (ww, e, rng) => {
         const aussicht = clamp(40 + (vertrauenZu(ww, l.id) - 25), 10, 75);
         if (rng.next() * 100 < aussicht) {
           landAendern(ww, l.id, { konflikt: -18, vertrauen: 3 }, "Vermittlung in der Drohkulisse gelungen");
           wirke(ww, "ansehen", 2);
           loyalitaetAendern(ww, "aussen", 5);
-          return `Vermittler erreichen eine Deeskalation: ${anredeVon(l.id)} zieht die Drohkulisse ab.`;
+          return t("ini.drohk.opt.vermittlung.ja", { wer: anredeVon(l.id) });
         }
         landAendern(ww, l.id, { konflikt: 4 }, "Vermittlung in der Drohkulisse gescheitert");
         wirke(ww, "ansehen", -1);
         drohkulisseUebergabe(ww, { land: l.id, konflikt: weltZustand(ww)[l.id]!.konflikt, tag: ww.day, ausloeser: "vermittlung_gescheitert" });
-        return `Die Vermittlung scheitert; ${anredeVon(l.id)} liest den Versuch als Schwäche und baut die Drohkulisse weiter aus.`;
+        return t("ini.drohk.opt.vermittlung.nein", { wer: anredeVon(l.id) });
       }),
     ];
   },
@@ -737,9 +758,9 @@ const LAND_DROHKULISSE: Vorlage = {
     const l = land(String(ev.daten?.land));
     landAendern(w, l.id, { konflikt: 6, vertrauen: -4 }, "Drohkulisse verfristet");
     vertrauenAendern(w, -1.5);
-    belastungEreignis(w, VERFASSUNG.eskalation, `Ungelöste Drohkulisse mit ${l.name}`);
+    belastungEreignis(w, VERFASSUNG.eskalation, t("ini.drohk.belastung", { land: l.name }));
     drohkulisseUebergabe(w, { land: l.id, konflikt: weltZustand(w)[l.id]!.konflikt, tag: w.day, ausloeser: "verfristet" });
-    return `Ohne Antwort hält ${anredeVon(l.id)} die Drohkulisse aufrecht; die Krise „Kriegsgefahr“ trägt die Folgen.`;
+    return t("ini.drohk.standard", { wer: anredeVon(l.id) });
   },
 };
 
