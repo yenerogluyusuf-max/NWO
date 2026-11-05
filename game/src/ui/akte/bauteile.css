@@ -76,3 +76,6 @@
   background: linear-gradient(180deg, #5a3722, #3a2418) !important; color: #f7ecd2 !important; border-color: #7c5823 !important;
   box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #c69a4a40, 0 2px 0 #24150c !important;
 }
+/* Die Unterleiste der Diplomatie steht in der schmalen Listenspalte: vier Reiter in einer Zeile */
+.dossier .we-liste .we-modus[role=tablist] { flex-wrap: nowrap !important; gap: 2px 2px; }
+.dossier .we-liste .we-modus[role=tablist] > button { padding: 8px 6px 7px !important; letter-spacing: 0; }
