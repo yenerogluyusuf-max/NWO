@@ -426,7 +426,10 @@ function Stationsseite({ station, schale, profile, step, total, gewaehlt, waehle
   const antworten = antwortenFuer(station, profile, true);
   const folgen = useMemo(() => (station.modus === "konfigurator" ? [] : antworten.map((a) => folgeVon(profile, a))), [station, profile, antworten.length, step]); // eslint-disable-line react-hooks/exhaustive-deps
   const istHeimat = station.id === "kindheit";
-  const kicker = t("prolog.station_n", { titel: station.title, n: step + 1, gesamt: total });
+  // Gezählt werden nur die Stationen, die dieses Szenario wirklich zeigt (vorgegebene Partei, Bündnis und Wahl fallen weg)
+  const sichtbar = STATIONS.filter((s) => !s.ueberspringen?.(profile));
+  const nr = sichtbar.indexOf(station);
+  const kicker = t("prolog.station_n", { titel: station.title, n: nr >= 0 ? nr + 1 : step + 1, gesamt: nr >= 0 ? sichtbar.length : total });
   return schale(
     <>
       <p className="story">{station.story}</p>

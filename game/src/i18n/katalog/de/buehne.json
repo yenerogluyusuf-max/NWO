@@ -102,7 +102,7 @@
   "amtsuebergabe.absatz1": "Um neun Uhr legt {name} im Parlament den Amtseid ab. Die {partei} stellt {sitze} der 600 Abgeordneten.",
   "amtsuebergabe.mehrheit_ja": "Mit {partner} steht das Regierungslager bei {sitze} Sitzen: Gesetze haben eine Mehrheit, solange die Partner mitgehen. Sie erwarten dafür ihre Forderungen erfüllt.",
   "amtsuebergabe.mehrheit_nein": "Mit {partner} steht das Regierungslager bei {sitze} Sitzen: eine Mehrheit fehlt noch.",
-  "amtsuebergabe.absatz2": "Auf dem Schreibtisch liegen das Morgenbriefing, die Zusagen aus dem Wahlkampf und der nächste Schritt für Ihr Programm. Die Inflation liegt bei {inflation} %, die Wahl in etwa fünf Jahren. Wählen Sie gleich Ihre Ziele.",
+  "amtsuebergabe.absatz2": "Auf dem Schreibtisch liegen das Morgenbriefing, {zusagen, select, vorgaenger {die offenen Zusagen Ihrer Vorgänger} other {die Zusagen aus dem Wahlkampf}} und der nächste Schritt für Ihr Programm. Die Inflation liegt bei {inflation} %, die Wahl in etwa {zeit}. Wählen Sie gleich Ihre Ziele.",
   "amtsuebergabe.warum": "Die Wirtschaftsdaten stammen vom 25. September 2026. Die Wahl 2028 ist erfunden, das Land und seine Regeln sind echt.",
   "amtsuebergabe.aktion": "An die Arbeit",
 
@@ -352,5 +352,7 @@
   "mappe.posteingang_leer": "Der Posteingang ist leer",
   "mappe.vertagt": ", {vertagt} vertagt",
   "mappe.verfallen": ", {verfallen} verfallen",
-  "mappe.zum_posteingang": "Zum Posteingang"
+  "mappe.zum_posteingang": "Zum Posteingang",
+  "amtsuebergabe.zeit_jahre": "{n, number} Jahren",
+  "amtsuebergabe.zeit_monate": "{n, plural, one {# Monat} other {# Monaten}}"
 }

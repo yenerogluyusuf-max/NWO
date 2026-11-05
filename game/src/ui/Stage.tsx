@@ -1532,6 +1532,12 @@ function startEvent(w: World): GameEvent {
         <p>
           {t("amtsuebergabe.absatz2", {
             inflation: w.published.inflation.value.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 }),
+            // Mitten in der Legislatur oder nach dem Sturz der Regierung erbt man Zusagen und eine kürzere Frist bis zur Wahl
+            zusagen: (p?.startszenario ?? "neugruendung") === "neugruendung" ? "wahlkampf" : "vorgaenger",
+            zeit: (() => {
+              const monate = Math.max(1, Math.round(((w.spiel?.wahltag ?? w.day) - w.day) / 30.44));
+              return monate >= 18 ? t("amtsuebergabe.zeit_jahre", { n: Math.round(monate / 6) / 2 }) : t("amtsuebergabe.zeit_monate", { n: monate });
+            })(),
           })}
         </p>
       </>

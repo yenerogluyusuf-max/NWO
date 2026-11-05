@@ -102,7 +102,7 @@
   "amtsuebergabe.absatz1": "At nine o'clock, {name} takes the oath of office in Parliament. The {partei} holds {sitze} of the 600 seats.",
   "amtsuebergabe.mehrheit_ja": "Together with {partner}, the governing coalition holds {sitze} seats: Legislation has a working majority as long as coalition partners align. In return, they expect their demands to be met.",
   "amtsuebergabe.mehrheit_nein": "Together with {partner}, the governing coalition stands at {sitze} seats: a working majority is still missing.",
-  "amtsuebergabe.absatz2": "On your desk lie the morning briefing, campaign pledges, and the next step for your agenda. Inflation stands at {inflation}%, with the next election in roughly five years. Choose your priorities now.",
+  "amtsuebergabe.absatz2": "On your desk lie the morning briefing, {zusagen, select, vorgaenger {the open pledges of your predecessors} other {campaign pledges}}, and the next step for your agenda. Inflation stands at {inflation}%, with the next election in roughly {zeit}. Choose your priorities now.",
   "amtsuebergabe.warum": "Economic baseline figures date to 25 September 2026. The 2028 election is fictional; the country and its systemic rules are authentic.",
   "amtsuebergabe.aktion": "Assume Office",
 
@@ -352,5 +352,7 @@
   "mappe.posteingang_leer": "The inbox is empty",
   "mappe.vertagt": ", {vertagt} deferred",
   "mappe.verfallen": ", {verfallen} expired",
-  "mappe.zum_posteingang": "To Inbox"
+  "mappe.zum_posteingang": "To Inbox",
+  "amtsuebergabe.zeit_jahre": "{n, number} years",
+  "amtsuebergabe.zeit_monate": "{n, plural, one {# month} other {# months}}"
 }

@@ -102,7 +102,7 @@
   "amtsuebergabe.absatz1": "Saat dokuzda {name} Meclis'te göreve başlama andını içer. {partei} 600 milletvekilinin {sitze}'ine sahiptir.",
   "amtsuebergabe.mehrheit_ja": "{partner} ile hükümet kanadı {sitze} sandalyeye ulaşır: Ortaklar birlikte hareket ettiği sürece yasalar için çoğunluk mevcuttur. Bunun karşılığında taleplerinin karşılanmasını beklerler.",
   "amtsuebergabe.mehrheit_nein": "{partner} ile hükümet kanadı {sitze} sandalyede kalır: meclis çoğunluğu henüz sağlanamamıştır.",
-  "amtsuebergabe.absatz2": "Masada sabah brifingi, seçim vaatleri ve hükümet programınızın ilk adımları yer almaktadır. Enflasyon %{inflation} seviyesinde, bir sonraki seçim ise yaklaşık beş yıl sonra. Şimdi görev dönemi hedeflerinizi belirleyin.",
+  "amtsuebergabe.absatz2": "Masada sabah brifingi, {zusagen, select, vorgaenger {seleflerinizin açık sözleri} other {seçim vaatleri}} ve hükümet programınızın ilk adımları yer almaktadır. Enflasyon %{inflation} seviyesinde, bir sonraki seçim ise yaklaşık {zeit} sonra. Şimdi görev dönemi hedeflerinizi belirleyin.",
   "amtsuebergabe.warum": "Ekonomik veriler 25 Eylül 2026 tarihlidir. 2028 seçimi kurgusaldır; ülke, kurumlar ve kurallar gerçektir.",
   "amtsuebergabe.aktion": "Göreve Başla",
 
@@ -352,5 +352,7 @@
   "mappe.posteingang_leer": "Gelen kutusu boş",
   "mappe.vertagt": ", {vertagt} ertelendi",
   "mappe.verfallen": ", {verfallen} zaman aşımına uğradı",
-  "mappe.zum_posteingang": "Gelen Kutusuna Git"
+  "mappe.zum_posteingang": "Gelen Kutusuna Git",
+  "amtsuebergabe.zeit_jahre": "{n, number} yıl",
+  "amtsuebergabe.zeit_monate": "{n} ay"
 }
