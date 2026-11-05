@@ -13,16 +13,15 @@ import { tunSatz } from "../../data/skalen";
 import type { Theme } from "../../data/politiknetz";
 import type { Vorschlag } from "../../sim/vorschlaege";
 import { NetView } from "../NetView";
-import { VorschlagKarte } from "./VorschlagKarte";
 import { Emblem, Medaille, embleme } from "./embleme";
 import { EINHEIT, alleBereiche, alleVorschlaege, bereichStand, vorschlaegeIn, type Ampel, type BereichKurz, type LageZeile } from "./bereiche";
 import "./politik.css";
+import { MassnahmenTafel } from "./MassnahmenTafel";
 import "./design.css";
 
 import { t } from "../../i18n";
 import { t as tx } from "../../i18n";
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-const nc = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
 const AMPEL_WORT: Record<Ampel, string> = { gruen: "ruhig", gelb: "Achtung", rot: "angespannt" };
 const AMPEL_PILL: Record<Ampel, string> = { gruen: "gut", gelb: "warn", rot: "schlecht" };
@@ -53,16 +52,6 @@ export function KrisenBanner({ krisen }: { krisen: KrisenSicht[] }) {
 }
 
 /** Badge an einer betroffenen Maßnahme: gesperrt (gestrichelt) oder verteuert/verbilligt (durchgezogen). */
-function BlockerBadge({ blocker }: { blocker: { art: "gesperrt" | "teuer"; faktor: number; titel: string } }) {
-  const text = blocker.art === "gesperrt" ? "Gesperrt" : blocker.faktor > 1 ? `Teurer (×${nf(blocker.faktor)})` : `Günstiger (−${Math.round((1 - blocker.faktor) * 100)} %)`;
-  const klasse = blocker.art === "gesperrt" ? "gesperrt" : blocker.faktor > 1 ? "teuer" : "guenstig";
-  return (
-    <span className={`po-blocker po-b-${klasse}`} title={blocker.titel}>
-      {text}
-    </span>
-  );
-}
-
 function Trend({ z }: { z: LageZeile }) {
   if (z.besser === null) return null;
   return (
@@ -209,6 +198,7 @@ export function Politik({
             einstellen={einstellen}
             sofort={sofort}
             onOpen={onOpen}
+            refresh={refresh}
           />
         )}
       </div>
@@ -321,7 +311,9 @@ function BereichSeite({
   einstellen,
   sofort,
   onOpen,
+  refresh,
 }: {
+  refresh: () => void;
   world: World;
   kurz: BereichKurz;
   vorschlaege: Vorschlag[];
@@ -342,7 +334,6 @@ function BereichSeite({
   const mittel = (id: string) => nationalAverage(NET, world.net, id);
   const lageSortiert = [...stand.lage].sort((a, b) => Number(b.bewertung === "schlecht") - Number(a.bewertung === "schlecht") || Math.abs(b.delta) - Math.abs(a.delta));
   const lageSicht = alleLage ? lageSortiert : lageSortiert.slice(0, 6);
-  const kapital = world.spiel?.kapital;
   // Laufende Maßnahmen zuerst: Sie brauchen Aufmerksamkeit, der Rest ist Vorrat
   const massnahmen = [...stand.massnahmen].sort((a, b) => Number(Boolean(b.imParlament || b.ziel !== undefined || b.umsetzung)) - Number(Boolean(a.imParlament || a.ziel !== undefined || a.umsetzung)));
 
@@ -360,30 +351,6 @@ function BereichSeite({
         </span>
       </header>
 
-      <ul className="pd-kennzahlen" aria-label={t("ui.politik.Politik.b7f486b")}>
-        <li className={stand.probleme.length > 0 ? "rot" : ""}>
-          <b>{stand.probleme.length}</b>
-          <span>{stand.probleme.length === 1 ? tx("ui2.ui.politik.Politik.6944fe6") : tx("ui2.ui.politik.Politik.df425a2")}</span>
-        </li>
-        <li>
-          <b>{stand.laufend}</b>
-          <span>{stand.laufend === 1 ? tx("ui2.ui.politik.Politik.672ba95") : tx("ui2.ui.politik.Politik.870b084")}</span>
-        </li>
-        {stand.besser + stand.schlechter > 0 && (
-          <li>
-            <b>
-              <span className="gut">{stand.besser} ▲</span> <span className="schlecht">{stand.schlechter} ▼</span>
-            </b>
-            <span>{t("ui.politik.Politik.a31e13e")}</span>
-          </li>
-        )}
-        {kapital !== undefined && (
-          <li>
-            <b>{Math.floor(kapital)}</b>
-            <span>{t("ui.politik.Politik.353f9d6")}</span>
-          </li>
-        )}
-      </ul>
       <p className="pd-grund">{stand.ampelGrund}</p>
 
       {antwort && (
@@ -453,80 +420,8 @@ function BereichSeite({
         )}
       </section>
 
-      {vorschlaege.length > 0 && (
-        <section className="pd-block">
-          <h4>{tx("ui2.ui.politik.Politik.d878de6")}</h4>
-          <ol className="vorschlag-liste">
-            {vorschlaege.map((v) => (
-              <VorschlagKarte key={v.massnahme} v={v} onEinstellen={einstellen} onSofort={sofort} kompakt />
-            ))}
-          </ol>
-        </section>
-      )}
-
-      <section className="pd-block">
-        <h4>{t("ui.politik.Politik.876a5f6")}</h4>
-        <p className="pd-legende ohne-rand">{t("ui.politik.Politik.626c180")}</p>
-        <ul className="pd-massnahmen">
-          {massnahmen.map((m) => {
-            const laeuft = Boolean(m.imParlament || m.ziel !== undefined || m.umsetzung);
-            const pos = Math.max(0, Math.min(100, m.jetzt));
-            return (
-              <li key={m.id} className={`pd-m${laeuft ? " laeuft" : ""}`}>
-                <div className="pd-m-haupt">
-                  <div className="pd-m-kopf">
-                    <strong>{m.name}</strong>
-                    {m.umsetzung && (
-                      <span className="pd-pill teal" title={t("ui.politik.Politik.3fd852b")}>
-                        {t("ui.politik.Politik.4d62df2")}
-                      </span>
-                    )}
-                    {m.imParlament && <span className="pd-pill warn">{tx("ui2.ui.politik.Politik.07204cc")}</span>}
-                    {m.blocker && <BlockerBadge blocker={m.blocker} />}
-                  </div>
-                  <p className="pd-m-beschr">{m.text}</p>
-                  {m.umsetzung && (
-                    <p className="pd-m-umsetzung">
-                      <span className="pd-balken schmal" role="img" aria-label={tx("ui2.ui.politik.Politik.595d2f1", { p0: Math.round(m.umsetzung.stand) })}>
-                        <i style={{ width: `${m.umsetzung.stand}%` }} />
-                      </span>
-                      <span>
-                        {tx("ui2.ui.politik.Politik.2ba66c2", { p0: Math.round(m.umsetzung.stand), p1: m.umsetzung.rest })} {m.umsetzung.rest === 1 ? tx("ui2.ui.politik.Politik.da13625") : tx("ui2.ui.politik.Politik.3e846ba")}
-                      </span>
-                    </p>
-                  )}
-                  {m.imParlament && (
-                    <p className="pd-m-umsetzung">
-                      <span>{tx("ui2.ui.politik.Politik.03bc1ef", { p0: Math.round(m.imParlament.stufe), p1: m.imParlament.tage })}</span>
-                    </p>
-                  )}
-                </div>
-                <div className="pd-m-stufe">
-                  <span className="pd-m-stufentext">{m.stufe}</span>
-                  <span className="pd-skala" aria-hidden>
-                    <i style={{ width: `${pos}%` }} />
-                    {m.ziel !== undefined && <b style={{ left: `${Math.max(0, Math.min(100, m.ziel))}%` }} title={tx("ui2.ui.politik.Politik.3759d2f")} />}
-                  </span>
-                  {m.ziel !== undefined && <small>{tx("ui2.ui.politik.Politik.70d45ec", { p0: Math.round(m.ziel) })}</small>}
-                </div>
-                <div className="pd-m-kosten">
-                  {m.kosten > 0 ? (
-                    <>
-                      <b>{nc(m.kosten)} %</b>
-                      <small>{m.einnahme ? tx("ui2.ui.politik.Politik.f8b133b") : tx("ui2.ui.politik.Politik.9bc1843")} {tx("ui2.ui.politik.Politik.1145673")}</small>
-                    </>
-                  ) : (
-                    <small>{t("ui.politik.Politik.c00fcd3")}</small>
-                  )}
-                </div>
-                <button className="pd-btn" onClick={() => oeffne({ id: m.id })}>
-                  {t("ui.politik.Politik.e2398a5")}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      {/* Vorgabe V: alle Maßnahmen als Zeilen mit Regler; Vorschläge des Stabs als Marke an ihrer Zeile */}
+      <MassnahmenTafel world={world} massnahmen={massnahmen} vorschlaege={vorschlaege} refresh={refresh} onGenauer={(o) => oeffne(o)} />
     </>
   );
 }

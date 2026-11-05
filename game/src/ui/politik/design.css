@@ -564,3 +564,34 @@
 .dossier .vf-stufe.aktiv { opacity: 1; font-weight: 600; }
 .dossier .vf-stufe.erledigt { opacity: 0.85; text-decoration: none; color: #553828; }
 @media (prefers-reduced-motion: reduce) { .dossier .vf-variante { transition: none; } }
+
+/* Vorgabe V: Maßnahmentafel wie im Haushalt (Zeile mit Regler, Prüfung unter der Zeile) */
+.mt { display: grid; gap: 8px; padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.dossier .mt > h4 { margin: 0 !important; font: 600 18px/1.2 var(--display, Fraunces, serif) !important; letter-spacing: 0 !important; text-transform: none !important; color: #2b1e12; }
+.mt-liste { list-style: none; margin: 0; padding: 0; display: grid; }
+.mt-zeile { border-bottom: 1px solid rgba(90, 64, 40, 0.14); }
+.mt-zeile:last-child { border-bottom: 0; }
+.mt-reihe { display: grid; grid-template-columns: minmax(0, 1fr) 190px 190px; gap: 12px; align-items: center; padding: 7px 4px; }
+.mt-zeile.on > .mt-reihe { background: rgba(201, 162, 90, 0.16); border-radius: 4px; }
+.mt-name { display: grid; gap: 2px; min-width: 0; }
+.mt-name > span { font: 15px/1.25 var(--sans, Inter, sans-serif); color: #2b1e12; }
+.mt-name small { font: 12.5px/1.3 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.mt-zeile.laeuft .mt-name small { color: #265a62; }
+.dossier .mt button.mt-vorschlag { all: unset; display: inline; margin-left: 4px; padding: 1px 6px; border-radius: 999px; background: rgba(201, 162, 90, 0.28); color: #5d4231; font: 600 12.5px/1.4 var(--sans, Inter, sans-serif); cursor: pointer; }
+.mt-regler { display: grid; grid-template-columns: 26px minmax(0, 1fr) 26px; gap: 6px; align-items: center; }
+.dossier .mt .mt-regler button { all: unset; box-sizing: border-box; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: #fffaf0; color: #4a3a28; font: 600 16.5px/1 var(--sans, Inter, sans-serif); cursor: pointer; }
+.dossier .mt .mt-regler button:disabled { opacity: 0.35; cursor: default; }
+.mt-regler input { width: 100%; accent-color: #8c2b1f; }
+.mt-stufe { font: 14px/1.25 var(--sans, Inter, sans-serif); color: #4a3a28; text-align: right; }
+.mt-stufe s { color: #7a6a56; }
+.mt-stufe b { color: #8c2b1f; }
+.mt-panel { display: grid; gap: 8px; margin: 4px 0 10px; padding: 12px 14px; border-left: 3px solid #8c2b1f; background: #fffaf0; border-radius: 0 4px 4px 0; }
+.mt-text, .mt-hinweis { margin: 0; font: 15px/1.4 var(--serif, "EB Garamond", serif); color: #4a3a28; }
+.mt-fakten { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 0; }
+.mt-fakten div { display: grid; gap: 1px; }
+.mt-fakten dt { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.mt-fakten dd { margin: 0; font: 600 16.5px/1.25 var(--display, Fraunces, serif); color: #2b1e12; }
+.mt-fakten dd.schlecht { color: #8c2b1f; }
+.mt-gesperrt { margin: 0; font: 600 14px/1.35 var(--sans, Inter, sans-serif); color: #8c2b1f; }
+.mt-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+@media (max-width: 760px) { .mt-reihe { grid-template-columns: minmax(0, 1fr) auto; } .mt-regler { grid-column: 1 / -1; grid-row: 2; } }

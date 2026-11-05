@@ -67,7 +67,7 @@ describe("Bereiche", () => {
     expect(html).toContain("Wohnen, Bau und Erdbeben");
     expect(html).toContain("Maßnahmen");
     expect(html).toContain("Lage");
-    expect(html).toContain("pd-massnahmen");
+    expect(html).toContain("mt-liste");expect((html.match(/type="range"/g) ?? []).length).toBeGreaterThan(3);
     expect(html).not.toContain("NaN");
   });
 });
