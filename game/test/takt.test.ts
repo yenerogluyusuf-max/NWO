@@ -243,7 +243,12 @@ describe("Gedächtnis: Rückblicke und Folgehaken", () => {
   test("Gesetze bekommen einen dritten Bericht nach 24 Monaten", () => {
     const w = welt();
     setPolicy(w, "m_mindestlohn", 90);
-    advance(w, 30 * 25);
+    // Ein Jahr spielen (Berichte nach 6 und 12 Monaten), dann die Beobachtung um ein weiteres Jahr zurückdatieren: Zwei
+    // ungespielte Jahre endeten in dieser Testwelt (ohne Antworten auf Ereignisse) vorher mit einer Amtsenthebung.
+    advance(w, 30 * 13);
+    for (const b of w.spiel!.beobachtungen ?? []) if (b.name.includes("Mindestlohn")) b.tag -= 30 * 12;
+    advance(w, 3);
+    expect(w.spiel!.ende).toBeUndefined();
     const monate = (w.spiel!.berichte ?? []).filter((b) => (b.name ?? "").includes("Mindestlohn")).map((b) => b.monate).sort((a, b) => a - b);
     expect(monate).toEqual([6, 12, 24]);
   });

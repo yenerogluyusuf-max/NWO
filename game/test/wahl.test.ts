@@ -231,7 +231,9 @@ describe("Stichwahl", () => {
   function stichwahlWelt(): World {
     for (let seed = 1; seed <= 60; seed++) {
       const w = spiel(seed);
-      stelleZustimmung(w, 48);
+      // 54 statt 48: Ohne Wahlkampf kosten unbeantwortete Angriffe Stimmen (PLANERWEITERUNG §10 e); bei 48 % Zustimmung verliert der
+      // Amtsinhaber seit der Balance vom 5. November schon im ersten Wahlgang, und die Suche lief über alle 60 Seeds in die Zeitgrenze
+      stelleZustimmung(w, 54);
       bisWahltag(w);
       if (w.spiel!.wahl?.stichwahl) return w;
     }

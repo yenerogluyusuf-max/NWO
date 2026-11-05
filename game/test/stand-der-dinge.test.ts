@@ -78,12 +78,20 @@ describe("Sitzungs-Snapshot", () => {
 });
 
 describe("Re-Entry-Blatt", () => {
+  test("Kein Vergleich mit demselben Tag", () => {
+    const w = neu();
+    const stand = standDerDinge(w, { tag: w.day, datum: w.date, zustimmung: 40, inflation: 30, kapital: 10 });
+    expect(stand.deltas).toBeNull();
+    expect(stand.vergleichDatum).toBeNull();
+  });
+
   test("Deltas rechnen gegen den Snapshot: Zustimmung, Inflation, Kapital", () => {
     const w = neu();
     w.spiel!.umfrage.zustimmung = 46;
     w.published.inflation.value = 33.5;
     w.spiel!.kapital = 22;
-    const stand = standDerDinge(w, { tag: 0, datum: "2026-09-25", zustimmung: 40, inflation: 30, kapital: 10 });
+    // Der Vergleich gilt nur für einen früheren Tag (am selben Tag zeigte er bloß ±0)
+    const stand = standDerDinge(w, { tag: w.day - 30, datum: "2026-09-25", zustimmung: 40, inflation: 30, kapital: 10 });
     const d = Object.fromEntries(stand.deltas!.map((x) => [x.id, x]));
     expect(d.zustimmung!.delta).toBeCloseTo(6, 6);
     expect(d.zustimmung!.gutWennAuf).toBe(true);
