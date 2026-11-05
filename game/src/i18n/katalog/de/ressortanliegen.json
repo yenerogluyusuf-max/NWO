@@ -1,5 +1,5 @@
 {
-  "ra.titel": "Deine Minister brauchen eine Entscheidung",
+  "ra.titel": "Ihre Minister brauchen eine Entscheidung",
   "ra.kicker": "Ressorts unter Druck",
   "ra.intro": "Bleibt ein kritisches Ressort 30 Tage ohne neue fachliche Schritte oder Gespräch, meldet sich der zuständige Minister. Bis zu drei Anliegen liegen gleichzeitig vor. Lesen allein gilt nicht als Entscheidung.",
   "ra.frist": "Antwort bis {datum}",
@@ -40,12 +40,16 @@
   "ra.art.entschaerft": "Die Ressortlage hat sich entspannt",
   "ra.art.bearbeitet": "Fachliche Bearbeitung aufgenommen",
   "ra.art.wechsel": "Anliegen nach Amtswechsel geschlossen",
-  "ra.antwort.reden": "Du hast zugehört. Die fachliche Antwort wird in 21 Tagen erneut geprüft; das Gespräch allein verändert die Ressortgröße nicht.",
+  "ra.antwort.reden": "Sie haben zugehört. Die fachliche Antwort wird in 21 Tagen erneut geprüft; das Gespräch allein verändert die Ressortgröße nicht.",
   "ra.antwort.umsetzen": "Der Vorschlag ist auf dem Weg. Laufende Gesetze benötigen weiterhin ihre Mehrheit; fachliche Wirkung entsteht erst durch das jeweilige Verfahren.",
   "ra.antwort.spaeter": "Die Antwortfrist wurde einmalig um 7 Tage verlängert. Das kostet 1 Loyalität und bringt 1 Groll; das Problem bleibt.",
   "ra.antwort.ablehnen": "Die Ablehnung kostet 3 Loyalität und bringt 5 Groll. Bleibt das Problem bis zur Frist unbearbeitet, folgt die angekündigte Eigeninitiative oder Verschärfung.",
-  "ra.sprecher.ich": "Du:",
+  "ra.sprecher.ich": "Sie:",
   "ra.sprecher.er": "Minister:",
   "ra.sprecher.erzaehler": "",
-  "ra.art.auftragVerfehlt": "Ressortauftrag verfehlt"
+  "ra.art.auftragVerfehlt": "Ressortauftrag verfehlt",
+  "ra.merke.umsetzen": "Mein Vorschlag zu {groesse} wurde umgesetzt.",
+  "ra.merke.spaeter": "Mein Anliegen zu {groesse} wurde vertagt.",
+  "ra.merke.ablehnen": "Mein Anliegen zu {groesse} wurde zurückgewiesen.",
+  "ra.gedaechtnis": "Erinnert sich ({datum}): „{text}“"
 }

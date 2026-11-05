@@ -17,6 +17,7 @@ import { NET } from './modell';
 import { t } from '../i18n';
 import { erfasseRessortVorfall, ressortPolitikTag } from './ressortpolitik';
 
+const knotenName=(id:string)=>NET.nodes[NET.index.get(id)??-1]?.name??id;
 export const RESSORT_ENTWARNUNG=62;
 // Landesmittel können an ganzzahligen Grenzen um wenige Rechenbits abweichen.
 export const ressortEntspannt=(id:string,wert:number)=>(HOCH_SCHLECHT.has(id)?wert:100-wert)<=RESSORT_ENTWARNUNG+1e-8;
@@ -142,6 +143,8 @@ function antwort(w:World,id:string,art:RessortAntwort):{ok:boolean;text:string;d
  }else if(art==='ablehnen'){
   a.status='abgelehnt';loyalitaetVerschieben(f,-3);grollVerschieben(w,f,5);
  }else return {ok:false,text:t('ra.veraltet')};
+ // Suzerain: Wer gefragt hat, erinnert sich an die Antwort; die nächste Karte desselben Ministers nennt sie (ui/minister/RessortAnliegen.tsx)
+ if(art!=='reden')merke(w,f,t(`ra.merke.${art}`,{groesse:knotenName(a.groesse)}));
  const b=flussZustand(w).ressortBeobachtung?.[a.amt];if(b){b.seit=w.day;b.signal=signal(w,f);b.gespraech=f.gespraech??-1;}
  const folge=beleg(w,a,art,vor,loy,groll,w.economy.debtRatio-vorher.schulden,wertVon(w,'legitimitaet')-vorher.leg,wertVon(w,'vertrauen_regierung')-vorher.vertrauen);
  folge.pk=vorher.pk-w.spiel!.kapital;folge.aufmerksamkeit=vorher.auf-(w.spiel!.verfassung?.aufmerksamkeit??80);folge.defizit=defizitJetzt(w)-vorher.defizit;

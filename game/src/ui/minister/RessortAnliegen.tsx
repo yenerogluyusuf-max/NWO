@@ -44,6 +44,7 @@ export function RessortAnliegenKarten({world,refresh,amt,mitNachsorge=true}:{wor
    return <article className="ra-anliegen" id={`ressort-anliegen-${a.id}`} key={a.id}>
     <div className="ra-kopf"><div className="ra-absender"><Portraet seed={f.name} size={54} geschlecht={f.weiblich?"f":"m"} rahmen="keiner" lebendig={false}/><div><small>{f.rolle}</small><h4>{f.name}</h4></div></div><time dateTime={addDays(world.date,a.frist-world.day)}>{t('ra.frist',{datum:datum(world,a.frist)})}</time></div>
     <blockquote>{t(a.status==='besprochen'?'ra.nachGespraech':a.status==='abgelehnt'?'ra.zurueckgewiesen':'ra.bitte',{groesse:name(a.groesse),wert:zahl(a.vorher,1)})}</blockquote>
+    {(()=>{const e=(f.eigen?.erinnerung??[]).filter(x=>x.tag<a.seit).at(-1);return e?<p className="ra-gedaechtnis">{t('ra.gedaechtnis',{datum:datum(world,e.tag),text:e.text})}</p>:null;})()}
     <p><b>{t('ra.vorschlag')}</b> {vtext}</p>
     <p className="ra-warnung">{t(eigen?.eigen?eigen.faehig?'ra.ohneEigenGut':'ra.ohneEigenSchlecht':'ra.ohneStill')}</p>
     {(eigen?.kontrolleBis??0)>world.day&&<p>{t('rp.kontrolle',{datum:datum(world,eigen!.kontrolleBis!)})}</p>}

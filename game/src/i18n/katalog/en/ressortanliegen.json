@@ -47,5 +47,9 @@
   "ra.sprecher.ich": "You:",
   "ra.sprecher.er": "Minister:",
   "ra.sprecher.erzaehler": "",
-  "ra.art.auftragVerfehlt": "Ministry target missed"
+  "ra.art.auftragVerfehlt": "Ministry target missed",
+  "ra.merke.umsetzen": "My proposal on {groesse} was implemented.",
+  "ra.merke.spaeter": "My concern about {groesse} was postponed.",
+  "ra.merke.ablehnen": "My concern about {groesse} was turned down.",
+  "ra.gedaechtnis": "Remembers ({datum}): “{text}”"
 }

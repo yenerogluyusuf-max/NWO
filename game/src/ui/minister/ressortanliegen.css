@@ -7,3 +7,5 @@
 .ra-anliegen blockquote{font:400 24px/1.5 var(--display,Georgia,serif);padding:20px 0 20px 18px;margin:22px 0;border-left:3px solid #b8a990;color:#513f34}
 .ra-anliegen>.ra-warnung{padding:12px 15px;background:#f6efe1;border-radius:6px;color:#7c5b32}.ra .ek-entscheidung{margin-top:15px}.ra .ek-entscheidung>header{padding:22px}.ra .ew-auswahl>button{margin:0}
 @container(max-width:560px){.ra-anliegen{padding:17px 14px}.ra-anliegen blockquote{font-size:21px}.ra .ra-absender h4{font-size:21px}}
+/* Gedächtnis des Ministers (Suzerain): die letzte Antwort, an die er sich erinnert */
+.ra-gedaechtnis{margin:4px 0 8px;padding:4px 10px;border-left:2px solid #c69a4a;font:italic 14px/1.45 var(--serif);color:var(--ink-soft,#5a4a38)}

@@ -1,4 +1,5 @@
 import {afterEach,expect,test} from 'vitest';
+import {NET} from "../src/sim/modell";
 import {renderToStaticMarkup} from 'react-dom/server';
 import {advance,createWorld,save,load} from '../src/sim/world';
 import {turkey2026} from '../src/sim/scenario';
@@ -63,4 +64,10 @@ test.each(['de','en','tr'] as const)('ausgewählte Ministerantworten auf %s zeig
   if(p.gesetz)expect(vorAktion).toContain(t('eo.gesetzStimmen',{n:p.gesetz.ja}));
  }
  expect(save(w)).toBe(s);
+});
+test('Gedächtnis (Suzerain): eine Ablehnung bleibt in Erinnerung und steht auf der nächsten Karte desselben Ministers',()=>{
+ const w=anliegen(),a=offene(w);beantworteRessortAnliegen(w,ressortAntwortPlan(w,a.id,'ablehnen')!);
+ expect(person(w).eigen!.erinnerung.at(-1)!.text).toBe(t('ra.merke.ablehnen',{groesse:NET.nodes[NET.index.get(a.groesse)!]!.name}));
+ tag(w,14);tag(w,30);const neu=w.spiel!.ministerfluss!.ressortAnliegen!.find(x=>x.amt==='inneres'&&x.status==='offen'&&x.id!==a.id);
+ if(neu){const html=renderToStaticMarkup(<RessortAnliegenKarten world={w} refresh={()=>{}}/>);expect(html).toContain('ra-gedaechtnis');}
 });

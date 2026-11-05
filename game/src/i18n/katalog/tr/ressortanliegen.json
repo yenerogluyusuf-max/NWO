@@ -47,5 +47,9 @@
   "ra.sprecher.ich": "Sen:",
   "ra.sprecher.er": "Bakan:",
   "ra.sprecher.erzaehler": "",
-  "ra.art.auftragVerfehlt": "Bakanlık hedefi karşılanamadı"
+  "ra.art.auftragVerfehlt": "Bakanlık hedefi karşılanamadı",
+  "ra.merke.umsetzen": "{groesse} konusundaki önerim uygulandı.",
+  "ra.merke.spaeter": "{groesse} konusundaki talebim ertelendi.",
+  "ra.merke.ablehnen": "{groesse} konusundaki talebim reddedildi.",
+  "ra.gedaechtnis": "Hatırlıyor ({datum}): „{text}“"
 }
