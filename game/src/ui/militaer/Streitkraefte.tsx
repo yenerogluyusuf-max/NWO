@@ -29,8 +29,10 @@ const WEHRDIENST = [0, 6, 12, 18] as const;
 const zahl = (n: number, stellen = 0): string => n.toLocaleString("de-DE", { maximumFractionDigits: stellen });
 const landName = (id: string | null): string => (id ? land(id).name : "");
 
-function mengeText(g: { einheit: GattungSicht["einheit"] }, n: number): string {
-  if (g.einheit === "index") return t("militaer.ui.einheit.index", { n: zahl(n) });
+// Für Panzer, Drohnen, Luftabwehr, Marine und Raketen gibt es keine offene Bestandsquelle (IISS hinter Bezahlschranke,
+// RECHERCHE_GITHUB_DATEN.md): der Wert ist ein Spielparameter, gezeigt als Anteil am Bestand vom Juni 2026 statt als „Index 100“.
+function mengeText(g: { einheit: GattungSicht["einheit"]; start?: number }, n: number): string {
+  if (g.einheit === "index") return t("militaer.ui.einheit.index", { n: zahl(g.start ? (n / g.start) * 100 : n) });
   if (g.einheit === "tage") return t("militaer.ui.einheit.tage", { n: zahl(n) });
   return zahl(n);
 }
@@ -42,7 +44,7 @@ function GattungDetail({ world, g, onTat, antwort }: { world: World; g: GattungS
     <>
       <UbDetailKopf
         titel={t(`militaer.gattung.${g.id}`)}
-        unter={`${mengeText(g, g.menge)} · ${t("militaer.ui.generation", { g: zahl(g.generation, 1) })}${Math.abs(diff) > 0.05 ? ` · ${t("militaer.ui.gegen_start", { n: mengeText(g, g.start) })}` : ""}`}
+        unter={`${mengeText(g, g.menge)} · ${t("militaer.ui.generation", { g: zahl(g.generation, 1) })}${Math.abs(diff) > 0.05 ? ` · ${t("militaer.ui.gegen_start", { n: mengeText(g, g.start) })}` : ""}${g.einheit === "index" ? ` · ${t("militaer.ui.indexHinweis")}` : ""}`}
         text={
           <>
             {t("militaer.ui.herkunft", { p: zahl(g.heimisch * 100) })}
