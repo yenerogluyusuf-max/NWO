@@ -112,7 +112,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "land",
     pruefe: (w) => {
       const m = minimum(w, "verkehrsnetz");
-      return { erreicht: m >= 45, stand: t("reste.ziel.schwaechste", { wert: nf(m) }) };
+      return { erreicht: m >= 45, stand: t("reste.ziel.schwaechste", { wert: Math.round(m) }) };
     },
   },
   {
@@ -133,7 +133,7 @@ export const ZIELE: ZielDef[] = [
     bereich: "staat",
     pruefe: (w) => {
       const v = nationalAverage(NET, w.net, "vertrauen_regierung");
-      return { erreicht: v >= 60, stand: t("ziel.stand_jetzt", { wert: nf(v) }) };
+      return { erreicht: v >= 60, stand: t("ziel.stand_jetzt", { wert: Math.round(v) }) };
     },
   },
 ];

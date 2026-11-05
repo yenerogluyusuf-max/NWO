@@ -44,7 +44,7 @@ await page.waitForTimeout(4000);
 const ruhe = async () => {
   for (let i = 0; i < 6; i++) {
     const weg = await page.evaluate(() => {
-      const b = Array.from(document.querySelectorAll(".event-layer button")).find((x) => /Später entscheiden|Verstanden|Weiter|Schließen|Zum Schreibtisch|An die Arbeit|Los geht|[Bb]eginnen/.test(x.textContent ?? ""));
+      const b = Array.from(document.querySelectorAll(".event-layer button")).find((x) => /Später entscheiden|Verstanden|Weiter|Schließen|Zum Schreibtisch|An die Arbeit|Los geht|[Bb]eginnen|antreten/.test(x.textContent ?? ""));
       b?.click();
       return !!b;
     });

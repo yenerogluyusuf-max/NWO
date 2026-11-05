@@ -1,0 +1,20 @@
+{
+ "antritt.wahlAria": "Election result and situation at inauguration",
+ "antritt.kicker": "{datum} · Oath of office in Ankara",
+ "antritt.titel": "{name} is President of Türkiye",
+ "antritt.ersterGang": "in the first round",
+ "antritt.stichwahl": "in the run-off",
+ "antritt.mehrheit": "Seats of the camp: majority",
+ "antritt.keineMehrheit": "Seats of the camp: no majority",
+ "antritt.inflation": "Inflation",
+ "antritt.jahre": "{n} years",
+ "antritt.monate": "{n} months",
+ "antritt.bisWahl": "until the next election",
+ "antritt.halbrundAria": "Seats in parliament; the camp holds {lager} of 600 seats",
+ "antritt.lager": "Camp",
+ "antritt.zieleHinweis": "Up to three goals ({n} of 3 chosen). They are your yardstick: the final record measures you against them.",
+ "antritt.heute": "today: {stand}",
+ "antritt.detailLeer": "Hover over a goal to see how it is measured.",
+ "antritt.antreten": "Take office with {n, plural, one {# goal} other {# goals}}",
+ "antritt.antretenOhne": "Take office without goals"
+}

@@ -28,7 +28,7 @@ const messe = async () => page.evaluate(() => {
 const foto = async (name) => { n++; const f = `${String(n).padStart(2, "0")}-${name}`.replace(/[^\wäöüÄÖÜß-]+/g, "_"); await page.screenshot({ path: `${dir}/${f}.png` }); stil[f] = await messe(); };
 const klick = (re, sel = "button") => page.evaluate(([re, sel]) => { const b = Array.from(document.querySelectorAll(sel)).find((x) => new RegExp(re).test((x.textContent || "") + " " + (x.getAttribute("aria-label") || ""))); if (b) { b.click(); return true; } return false; }, [re, sel]);
 const warte = (ms) => page.waitForTimeout(ms);
-const WEG = "An die Arbeit|Zum Schreibtisch|Ohne Ziele beginnen|Später entscheiden|Verstanden|Schließen";
+const WEG = "An die Arbeit|Zum Schreibtisch|Ohne Ziele beginnen|Ohne Ziele das Amt antreten|Später entscheiden|Verstanden|Schließen";
 await page.goto("http://localhost:5173/", { waitUntil: "domcontentloaded" }); await warte(3000); await foto("Titelbild");
 await page.evaluate(async () => {
   const W = await import("/src/sim/world.ts"); const S = await import("/src/sim/scenario.ts"); const P = await import("/src/sim/prolog.ts");

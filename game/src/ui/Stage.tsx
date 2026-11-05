@@ -60,6 +60,7 @@ import type { KartenOrt } from "./atlas/AtlasMap";
 import { Meldungen, type Meldung } from "./Meldungen";
 import { bewerteHalt, hinweisKlasse, sammleUmlauf, type UmlaufEintrag } from "./autostopp";
 import { ZielWahl } from "./ZielWahl";
+import { Amtsantritt } from "./Amtsantritt";
 import { Effekte } from "./Effekte";
 import { Kopfleiste, MehrheitsBalken, type KopfWert } from "./kopf/Kopfleiste";
 import { MarkenLegende } from "./atlas/MarkenLegende";
@@ -1262,19 +1263,12 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         />
       )}
 
-      {!bilanz && intro && (
-        <EventWindow
-          key={intro.id}
-          event={intro}
-          onClose={() => {
-            setIntro(null);
-          }}
-        />
-      )}
-
-      {!bilanz && !intro && zielWahlOffen && (
-        <ZielWahl
+      {/* Startbild: Wahlergebnis und Zielwahl auf einem Bildschirm (ersetzt Amtsübergabe und lange Zielliste; Rückmeldung 05.11.2026) */}
+      {!bilanz && !standDerD && spiel && (intro || zielWahlOffen) && (
+        <Amtsantritt
+          world={w}
           onFertig={(ids, schwer) => {
+            setIntro(null);
             waehleZiele(w, ids, schwer);
             sichere(true);
             refresh();

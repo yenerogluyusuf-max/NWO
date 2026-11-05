@@ -1,0 +1,20 @@
+{
+ "antritt.wahlAria": "Wahlergebnis und Lage zum Amtsantritt",
+ "antritt.kicker": "{datum} · Amtseid in Ankara",
+ "antritt.titel": "{name} {g, select, f {ist Präsidentin} other {ist Präsident}} der Türkei",
+ "antritt.ersterGang": "im ersten Wahlgang",
+ "antritt.stichwahl": "in der Stichwahl",
+ "antritt.mehrheit": "Sitze des Lagers: Mehrheit",
+ "antritt.keineMehrheit": "Sitze des Lagers: keine Mehrheit",
+ "antritt.inflation": "Inflation",
+ "antritt.jahre": "{n} Jahre",
+ "antritt.monate": "{n} Monate",
+ "antritt.bisWahl": "bis zur nächsten Wahl",
+ "antritt.halbrundAria": "Sitzverteilung im Parlament; das Lager hält {lager} von 600 Sitzen",
+ "antritt.lager": "Lager",
+ "antritt.zieleHinweis": "Bis zu drei Ziele ({n} von 3 gewählt). Sie sind Ihr Maßstab: Am Ende misst die Bilanz Sie daran.",
+ "antritt.heute": "heute: {stand}",
+ "antritt.detailLeer": "Fahren Sie über ein Ziel, um zu sehen, woran es gemessen wird.",
+ "antritt.antreten": "Mit {n, plural, one {# Ziel} other {# Zielen}} das Amt antreten",
+ "antritt.antretenOhne": "Ohne Ziele das Amt antreten"
+}

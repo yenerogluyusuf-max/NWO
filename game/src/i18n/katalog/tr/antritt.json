@@ -1,0 +1,20 @@
+{
+ "antritt.wahlAria": "Seçim sonucu ve göreve başlarken durum",
+ "antritt.kicker": "{datum} · Ankara'da yemin töreni",
+ "antritt.titel": "{name} Türkiye Cumhurbaşkanı",
+ "antritt.ersterGang": "ilk turda",
+ "antritt.stichwahl": "ikinci turda",
+ "antritt.mehrheit": "İttifakın sandalyeleri: çoğunluk",
+ "antritt.keineMehrheit": "İttifakın sandalyeleri: çoğunluk yok",
+ "antritt.inflation": "Enflasyon",
+ "antritt.jahre": "{n} yıl",
+ "antritt.monate": "{n} ay",
+ "antritt.bisWahl": "bir sonraki seçime kadar",
+ "antritt.halbrundAria": "Meclisteki sandalye dağılımı; ittifak 600 sandalyenin {lager} tanesine sahip",
+ "antritt.lager": "İttifak",
+ "antritt.zieleHinweis": "En fazla üç hedef ({n}/3 seçildi). Ölçütünüz bunlar: dönem sonunda bilanço sizi bunlarla ölçer.",
+ "antritt.heute": "bugün: {stand}",
+ "antritt.detailLeer": "Neyle ölçüldüğünü görmek için bir hedefin üzerine gelin.",
+ "antritt.antreten": "{n} hedefle göreve başla",
+ "antritt.antretenOhne": "Hedefsiz göreve başla"
+}
