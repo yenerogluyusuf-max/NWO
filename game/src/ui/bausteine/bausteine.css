@@ -51,9 +51,9 @@ button.bs-person { cursor: pointer; }
 button.bs-person:hover { background: rgba(201, 162, 90, 0.18); }
 button.bs-person:focus-visible { outline: 2px solid #7c5823; }
 .bs-person-ring { display: inline-grid; border-radius: 50%; padding: 2px; box-shadow: 0 0 0 2.5px #7c5823; }
-.bs-person-ring.treu, .bs-person-ring.loyal { box-shadow: 0 0 0 2.5px #2b1e12; }
-.bs-person-ring.skeptisch { box-shadow: 0 0 0 2.5px #b8935e; }
-.bs-person-ring.kritisch, .bs-person-ring.meuternd { box-shadow: 0 0 0 2.5px #8c2b1f; }
+.bs-person-ring.bs-st-treu, .bs-person-ring.bs-st-loyal { box-shadow: 0 0 0 2.5px #2b1e12; }
+.bs-person-ring.bs-st-skeptisch { box-shadow: 0 0 0 2.5px #b8935e; }
+.bs-person-ring.bs-st-kritisch, .bs-person-ring.bs-st-meuternd { box-shadow: 0 0 0 2.5px #8c2b1f; }
 .bs-person-text { display: grid; gap: 1px; }
 .bs-person-text b { font: 600 14px/1.2 var(--sans, Inter, sans-serif); color: #2b1e12; }
 .bs-person-text small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }

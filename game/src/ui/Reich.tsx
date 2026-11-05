@@ -547,8 +547,9 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab }: { world: Wor
       {tab === "lage" && (
         <>
           <section className="rr-abschnitt">
-            <Statistik world={world} />
-            <Bauhilfe world={world} />
+            {/* Verwaltungskraft und Baukapazität nur dort, wo Bau und Verwaltung zu Hause sind; vorher in fünf Bereichen derselbe Block (Rundgang 5. November) */}
+            {(bereich === "infrastruktur" || bereich === "haushalt") && <Statistik world={world} />}
+            {(bereich === "infrastruktur" || bereich === "haushalt") && <Bauhilfe world={world} />}
             <Groessen world={world} liste={GROESSEN[bereich]} />
           </section>
           {(bereich === "kultur" || technik) && <Dringend world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}

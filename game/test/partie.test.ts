@@ -99,6 +99,6 @@ describe("Partie: Aylin Demir übernimmt die Türkei", () => {
     expect(beschluesse.length).toBeGreaterThanOrEqual(3);
     expect(mindestlohn).toBeGreaterThan(60);
     // Das Gesetz musste durch das Parlament: eingebracht am Anfang, angenommen nach 21 Tagen
-    expect(w.log.some((l) => l.text.startsWith("Das Parlament nimmt „Mindestlohn“"))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
   });
 });

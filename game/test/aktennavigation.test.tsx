@@ -78,7 +78,9 @@ describe('Bereichsarbeitsplatz und weiterhin gültige Sprünge',()=>{
   test('Parlament, Verfassung und Behörden sind direkt erreichbar, aktive Ansicht bleibt erhalten',()=>{
     const w=welt(),html=renderToStaticMarkup(<BereichsAkte bereich="recht" world={w} tabs={[{id:'parlament',label:'Fraktionen'},{id:'verfassung',label:'Verfassung'}]} aktiverTab="verfassung" onTab={noop} reiter="instrumente" onReiter={noop}><p>Verfassungsinhalt</p></BereichsAkte>);
     expect(html).toContain('Verfassungsinhalt');expect(html).toMatch(/id="[^"]*-zugang-verfassung" type="button" aria-current="page"/);
-    for(const id of ['parlament','behoerden'])expect(html).toContain(`-zugang-${id}`);
+    expect(html).toContain('-zugang-parlament');
+    // Die Behörden stehen im Hintergrund unter der Lage, nicht mehr als eigener Zugang (Rundgang 5. November)
+    expect(html).not.toContain('-zugang-behoerden');
     expect(html).not.toContain('class="ak-unterreiter"');
   });
   test('die neue Navigation und Kopfzeile verändern keine Weltkonten',()=>{

@@ -397,20 +397,27 @@ export interface BereichsAkteProps {
   children: ReactNode;
 }
 
+/** Die Behörden des Bereichs unter der Lage, aufklappbar; erst beim Öffnen gerechnet (Anzeigen der Lage ändert den Spielstand nicht). */
+function BehoerdenAufklapp({ w, bereich }: { w: World; bereich: BereichId }) {
+  const [offen, setOffen] = useState(false);
+  return (
+    <section className="ak-behoerden">
+      <button type="button" className="pd-btn quiet" aria-expanded={offen} onClick={() => setOffen((x) => !x)}>
+        {t(offen ? "akte.behoerden.zu" : "akte.behoerden.auf", { n: behoerdenImBereich(bereich).length })}
+      </button>
+      {offen && <BehoerdenInstrument w={w} bereich={bereich} />}
+    </section>
+  );
+}
+
 export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, onReiter, vorgangStart, onKonflikt, refresh, children }: BereichsAkteProps) {
-  // Behörden sind ein eigener Fachzugang; die übrigen Ansichten behalten ihre Zuständigkeiten.
-  const [behoerdenOffen, setBehoerdenOffen] = useState(false);
-  useEffect(() => setBehoerdenOffen(false), [bereich]);
+  // Die Behörden stehen im Hintergrund-Reiter unter der Lage (ENTSCHEIDUNGEN T, offen: Lage, Behörden und Zuständige zu einer Seite;
+  // Rundgang 5. November: derselbe Behörden-Reiter mit einer Karte in sieben Akten)
   const hatBehoerden = !!world.spiel && behoerdenImBereich(bereich).length > 0;
-  const zeigeBehoerden = hatBehoerden && behoerdenOffen;
-  const instrumente = () => zeigeBehoerden ? <BehoerdenInstrument w={world} bereich={bereich} /> : children;
+  const instrumente = () => children;
   const zugaenge = {
-    aktiv: zeigeBehoerden ? "behoerden" : aktiverTab,
-    eintraege: [
-      ...tabs.map(tab => ({id:tab.id,label:tab.label,icon:ZUGANG_ICON[tab.id]??"akte" as const,
-        waehlen:()=>{setBehoerdenOffen(false);onTab(tab.id);}})),
-      ...(hatBehoerden?[{id:"behoerden",label:t("behoerden.ui.titel"),icon:"kuppel" as const,waehlen:()=>setBehoerdenOffen(true)}]:[]),
-    ],
+    aktiv: aktiverTab,
+    eintraege: tabs.map(tab => ({id:tab.id,label:tab.label,icon:ZUGANG_ICON[tab.id]??"akte" as const, waehlen:()=>onTab(tab.id)})),
   };
   return (
     <Akte
@@ -424,15 +431,21 @@ export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, 
       reiter={[
         { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => {
           const bk = BILDKARTEN[bereich], kartenTab = bk && tabs.find((tab) => tab.id === bk.tab);
-          const karten = bk && kartenTab ? { reich: bk.reich, ziel: kartenTab.label, oeffnen: () => { setBehoerdenOffen(false); onTab(kartenTab.id); onReiter("instrumente"); } } : undefined;
-          return <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} onKonflikt={onKonflikt} refresh={refresh} />;
+          const karten = bk && kartenTab ? { reich: bk.reich, ziel: kartenTab.label, oeffnen: () => { onTab(kartenTab.id); onReiter("instrumente"); } } : undefined;
+          return (
+            <>
+              <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} onKonflikt={onKonflikt} refresh={refresh} />
+              {hatBehoerden && <BehoerdenAufklapp w={world} bereich={bereich} />}
+            </>
+          );
         } },
         { id: "instrumente", text: t("akte.b.reiter.instrumente"), inhalt: instrumente },
         // Bilanz- und Personenreiter entfallen (Plan Oberfläche, Q4; Rundgang 5. November: in jeder Akte fast leer, Berichte stehen
         // im Verlauf des Schreibtischs). Die Zuständigen stehen als Porträt-Chips in der Lage.
         // Vorgänge (Wohnungsbau aus Zusagen und Katastrophen) nur in der Akte Land, wohin auch alle Sprünge führen. Früher stand dieselbe
         // ungefilterte Liste in allen neun Akten unter vier Namen (PRUEFUNG_GESAMT_2026-11-04).
-        ...(bereich === "land" ? [{ id: "vorgaenge" as const, inhalt: () => <VorgaengePlatz w={world} start={vorgangStart} /> }] : []),
+        // Nur, wenn es Vorgänge gibt (sonst stand dort ein einziger Satz; Rundgang 5. November) oder ein Sprung einen bestimmten öffnet
+        ...(bereich === "land" && (vorgangStart || (world.spiel?.vorgaenge?.length ?? 0) > 0) ? [{ id: "vorgaenge" as const, inhalt: () => <VorgaengePlatz w={world} start={vorgangStart} /> }] : []),
       ]}
     />
   );

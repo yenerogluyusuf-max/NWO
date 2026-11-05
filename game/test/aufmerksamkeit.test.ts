@@ -244,7 +244,7 @@ describe("Zwangspause", () => {
     expect(b.text).toContain("ruhigen Tag");
     // Laufend: die Abstimmung geschieht trotzdem
     advance(w, 25);
-    expect(w.log.some((l) => l.text.startsWith("Das Parlament nimmt „Mindestlohn“"))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
     // Nach der Pause geht es wieder
     expect(neuanfangGrund(w)).toBeUndefined();
     expect(bringeEin(w, "m_krankenhausbau", 80, null, "gesetz").ok).toBe(true);

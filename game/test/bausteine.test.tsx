@@ -96,3 +96,17 @@ test("Erklärung und Seitenfenster: lesbar in drei Sprachen, ohne Platzhalter", 
     expect(html).not.toMatch(KAPUTT);
   }
 });
+
+test("Porträt-Chip: die Stimmung trägt ein Präfix (eine globale Regel `.loyal` zog die Ringe sonst zu leeren Ovalen auseinander)", async () => {
+  const { createWorld } = await import("../src/sim/world");
+  const { turkey2026 } = await import("../src/sim/scenario");
+  const { startAfterElection, schnellProfil } = await import("../src/sim/prolog");
+  const { PersonChip } = await import("../src/ui/bausteine/PersonChip");
+  const w = createWorld(turkey2026, 3);
+  startAfterElection(w, schnellProfil());
+  for (const f of w.spiel!.figuren) {
+    const html = renderToStaticMarkup(createElement(PersonChip, { w, f }));
+    expect(html).toMatch(/class="bs-person-ring bs-st-(treu|loyal|skeptisch|kritisch|meuternd)"/);
+    expect(html).not.toMatch(/class="[^"]*\b(treu|loyal|skeptisch|kritisch|meuternd)\b(?<!bs-st-\1)/);
+  }
+});

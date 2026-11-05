@@ -13,6 +13,7 @@ import { ARCHETYP_DELTAS } from "../data/provinz_archetypen";
 import { NET } from "./modell";
 import { addLog, fmt } from "./log";
 import { spielTick } from "./spiel";
+import { behoerden } from "./behoerden";
 import { ergaenzeFiguren, lokalisiereFiguren } from "./figuren";
 import { lokalisiereBerichte } from "./berichte";
 import { migriereVerfassung } from "./aufmerksamkeit";
@@ -276,6 +277,7 @@ export function load(json: string): World {
   initialisiereStaatsgeld(w);
   // Ältere Spielstände: die neuen Ämter des Umfelds (Justiz, Streitkräfte, Wirtschaft) werden einmal ergänzt
   ergaenzeFiguren(w);
+  if (w.spiel) behoerden(w);
   // Rollen und Ziele liegen als fertiger Text im Spielstand: in die aktuelle Sprache bringen
   lokalisiereFiguren(w);
   lokalisiereBerichte(w);

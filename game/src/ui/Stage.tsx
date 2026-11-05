@@ -60,6 +60,7 @@ import type { KartenOrt } from "./atlas/AtlasMap";
 import { Meldungen, type Meldung } from "./Meldungen";
 import { bewerteHalt, hinweisKlasse, sammleUmlauf, type UmlaufEintrag } from "./autostopp";
 import { ZielWahl } from "./ZielWahl";
+import { WAHLKAMPF } from "../sim/wahlkampf";
 import { Amtsantritt } from "./Amtsantritt";
 import { Effekte } from "./Effekte";
 import { Kopfleiste, MehrheitsBalken, type KopfWert } from "./kopf/Kopfleiste";
@@ -499,8 +500,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       umlauf: umlaufNeu || undefined,
       tabs: [
         { id: "schreibtisch", label: t("buehne.tab.schreibtisch") },
-        { id: "chronik", label: t("buehne.tab.chronik") },
-        { id: "wirkungsbericht", label: t("buehne.tab.wirkungsbericht") },
+        // Chronik und Berichte als ein Verlauf (Plan Oberfläche: Schreibtisch › Verlauf); einzeln waren beide fast leer
+        { id: "chronik", label: t("buehne.tab.verlauf") },
       ],
     },
     // Politik als eigene Gruppe (ENTSCHEIDUNGEN T2: „Politik › Bereiche“ ist der Hauptweg zu jeder Maßnahme). Früher war sie der dritte
@@ -533,7 +534,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         { id: "waehler", label: t("buehne.tab.waehler") },
         // Opposition, Bewegungen und Rathäuser als eigene Ansicht (Plan Anhang B „Opposition & Straße“); vorher ganz unten in der Wählerkoalition
         { id: "strasse", label: t("buehne.tab.strasse") },
-        { id: "wahlkampf", label: t("buehne.tab.wahlkampf") },
+        // Der Wahlkampf erst, wenn er beginnt (56 Tage vor der Wahl) oder läuft; vorher stand dort nur, dass er bevorsteht
+        ...(spiel && (spiel.wahlkampf !== undefined || spiel.wahltag - w.day <= WAHLKAMPF.beginnTage) ? [{ id: "wahlkampf" as const, label: t("buehne.tab.wahlkampf") }] : []),
       ],
     },
     {
@@ -1087,7 +1089,20 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
-            {dossier === "chronik" && <Chronik world={w} />}
+            {dossier === "chronik" && (
+              <>
+                <Chronik world={w} />
+                <WirkungsberichtDossier
+                  world={w}
+                  gewaehlterBericht={null}
+                  onMassnahmeOeffnen={(mid) => {
+                    setPolitikStart({ offen: { id: mid } });
+                    setDossier("politik");
+                  }}
+                  onClose={() => setDossier(null)}
+                />
+              </>
+            )}
             {dossier === "netze" && <Netze world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "fokusbaum" && <Fokusbaum world={w} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "grosseziele" && <GrosseZiele world={w} geaendert={() => { refresh(); sichere(true); }} />}

@@ -36,6 +36,7 @@ import { verlaufAufzeichnen } from "./waehler-verlauf";
 import { erzeugeFiguren, figur, anrede } from "./figuren";
 import { personenMonat } from "./personen-monat";
 import { ausscheiden } from "./nachfolge";
+import { behoerden } from "./behoerden";
 import { AEMTER, hashZahl, NEUE_AEMTER } from "./personen";
 import { gesetzeAbstimmen, REGELN, stimmenSicht, unterhaltKosten } from "./handeln";
 import { versorgungsParlamentTag } from "./versorgungspolitik";
@@ -235,6 +236,8 @@ export function initSpiel(world: World, profil: PlayerProfile, rng: Rng): void {
   world.spiel = spiel;
   initialisiereStaatsgeld(world);
   spiel.figuren = erzeugeFiguren(world, rng);
+  // Behörden mit Leitung gleich beim Amtsantritt anlegen (eigene Hash-Würfel): Anzeigen liest dann nur und ändert den Spielstand nicht
+  behoerden(world);
   const gouverneur = figur(world, "zentralbank");
   if (gouverneur) world.governor.name = gouverneur.name;
   spiel.start.akut = akuteProbleme(world);

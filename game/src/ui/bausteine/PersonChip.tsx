@@ -11,7 +11,7 @@ export function PersonChip({ w, f, unter, onKlick }: { w: World; f: Figur; unter
   const stimmung = stimmungVon(f.loyalitaet, f.eigen?.groll ?? 0);
   const inhalt = (
     <>
-      <span className={`bs-person-ring ${stimmung}`}>
+      <span className={`bs-person-ring bs-st-${stimmung}`}>
         <Portraet w={w} f={f} size={40} />
       </span>
       <span className="bs-person-text">
