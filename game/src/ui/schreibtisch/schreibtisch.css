@@ -199,3 +199,43 @@
 .sd-epoche-momente .gut b{color:#4f6b3a}.sd-epoche-momente .schlecht b{color:#8e2a22}
 .sd-epoche-leer{margin:0;font:italic 14px/1.4 var(--serif);color:#6a5a4a}
 @media(max-width:700px){.sd-epoche{grid-template-columns:minmax(0,1fr)}}
+
+/* Vorgabe V: Der Schreibtisch als eine Liste nach Dringlichkeit, Entscheidung an der Zeile */
+.sk2 { display: grid; gap: 16px; }
+.sk2-kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 12px 18px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.sk2-kopf h3 { margin: 0; font: 600 24px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
+.sk2-kopf p { margin: 2px 0 0; font: 14px/1.35 var(--sans, Inter, sans-serif); color: #5a4a38; }
+.sk2-zahlen { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.dossier .sk2-zahlen button { all: unset; box-sizing: border-box; display: grid; gap: 1px; min-width: 104px; padding: 6px 12px; border: 1px solid rgba(90, 64, 40, 0.28); border-radius: 6px; background: #fffaf0; cursor: pointer; }
+.dossier .sk2-zahlen button:hover { background: #f6ebc9; }
+.sk2-zahlen span { font: 600 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.sk2-zahlen strong { font: 600 21px/1.15 var(--display, Fraunces, serif); color: #2b1e12; font-variant-numeric: tabular-nums; }
+.sk2-zahlen .ton-rot strong { color: #8c2b1f; }
+.sk2-zahlen em { font-style: normal; font-size: 14px; margin-left: 3px; }
+
+.sk2-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); gap: 18px; align-items: start; }
+.sk2-haupt { display: grid; gap: 12px; min-width: 0; }
+.sk2-tisch { padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.dossier .sk2-tisch h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px !important; font: 600 18px/1.2 var(--display, Fraunces, serif) !important; letter-spacing: 0 !important; text-transform: none !important; color: #2b1e12; }
+.sk2-tisch h4 span { padding: 1px 8px; border-radius: 999px; background: #4a3424; color: #f8eedb; font: 600 12.5px/1.5 var(--sans, Inter, sans-serif); }
+.sk2-tisch ol { list-style: none; margin: 0; padding: 0; display: grid; }
+.sk2-zeile { border-bottom: 1px solid rgba(90, 64, 40, 0.14); }
+.sk2-zeile:last-child { border-bottom: 0; }
+.dossier .sk2-knopf { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 16px; gap: 12px; align-items: center; padding: 9px 6px; border-radius: 4px; cursor: pointer; }
+.dossier .sk2-knopf:hover, .sk2-zeile.on > .sk2-knopf { background: rgba(201, 162, 90, 0.16); }
+.dossier .sk2-knopf:focus-visible { outline: 2px solid #8c2b1f; outline-offset: 1px; }
+.sk2-punkt { width: 10px; height: 10px; border-radius: 50%; background: #b8a888; }
+.ton-rot .sk2-punkt { background: #8c2b1f; }
+.ton-gelb .sk2-punkt { background: #c9a25a; }
+.sk2-text { display: grid; gap: 1px; min-width: 0; }
+.sk2-text strong { font: 600 15px/1.3 var(--sans, Inter, sans-serif); color: #2b1e12; }
+.sk2-text small { font: 14px/1.3 var(--sans, Inter, sans-serif); color: #6b5a46; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sk2-frist { font: 600 12.5px/1.2 var(--sans, Inter, sans-serif); color: #5a4a38; white-space: nowrap; }
+.ton-rot .sk2-frist { color: #8c2b1f; }
+.sk2-pfeil { color: #7a6a56; }
+.sk2-detail { margin: 2px 0 10px 22px; padding: 10px 12px; border-left: 3px solid #8c2b1f; background: #fffaf0; border-radius: 0 4px 4px 0; }
+.sk2-detail:focus { outline: none; }
+.sk2-weitere { margin: 10px 0 0; font: 14px/1.35 var(--sans, Inter, sans-serif); color: #5a4a38; }
+.sk2-mehr > summary { font: 600 16.5px/1.3 var(--display, Fraunces, serif); }
+@media (max-width: 1100px) { .sk2-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .dossier .sk2-knopf { grid-template-columns: 10px minmax(0, 1fr) 16px; } .sk2-frist { grid-column: 2; } }

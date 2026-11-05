@@ -142,5 +142,6 @@
  "akte.b.lage.mehr": "{n, plural, other {# kayıt daha}}",
  "akte.b.lage.woher": "Rakamlar nereden geliyor",
  "akte.b.urteil.grund": "{label}: {wert}",
- "akte.b.kern.keineZiele": "Henüz hedef seçilmedi: Gündem, görev süresine yön verir."
+ "akte.b.kern.keineZiele": "Henüz hedef seçilmedi: Gündem, görev süresine yön verir.",
+ "akte.netz.akutAb": "· {n} üzerinde akut"
 }

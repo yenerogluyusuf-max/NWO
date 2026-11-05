@@ -54,5 +54,7 @@
   "sd.aktiv": "Uygulanıyor",
   "sd.beginn": "{datum} tarihinde yürürlüğe girer. Henüz bir iyileşme kanıtı yok.",
   "sd.ende": "{datum} tarihine kadar sürer. Ölçülen etkiler aylık raporda yer alır.",
-  "sd.wahlkampfFrist": "Seçim kampanyası başlıyor: Yanıtsız muhalefet saldırıları altı puana kadar kaybettirir"
+  "sd.wahlkampfFrist": "Seçim kampanyası başlıyor: Yanıtsız muhalefet saldırıları altı puana kadar kaybettirir",
+  "sd.aufDemTisch": "Masada",
+  "sd.nichtsAufDemTisch": "Kararınızı bekleyen bir şey yok."
 }

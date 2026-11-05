@@ -28,9 +28,11 @@ export interface MappeProps {
   /** Öffnet den Posteingang der Minister */
   onPosteingang?: () => void;
   onEinstellen?: (v: Vorlage) => void;
+  /** Nur die Karte der gewählten Vorlage, ohne Auswahlleiste und Hinweis auf den Posteingang (Schreibtisch: Entscheidung an der Zeile) */
+  nurKarte?: boolean;
 }
 
-export function Mappe({ world, refresh, max = 5, ohneRessorts = false, fokus = false, vorlageId, onAuswahl, onGehe, onKarte, onPosteingang, onEinstellen }: MappeProps) {
+export function Mappe({ world, refresh, max = 5, ohneRessorts = false, fokus = false, vorlageId, onAuswahl, onGehe, onKarte, onPosteingang, onEinstellen, nurKarte = false }: MappeProps) {
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const [zaehler, setZaehler] = useState(0);
   const schluessel = `${ministerflussSchluessel(world)}|${zaehler}|${max}`;
@@ -62,7 +64,7 @@ export function Mappe({ world, refresh, max = 5, ohneRessorts = false, fokus = f
         (ohneRessorts || (!offeneAnliegen&&!offeneRessortVorfaelle(world).length&&!aktiveRessortNachsorge(world).length))&&<p className="mf-leer">{t("ui.minister.Mappe.61fe21b")}</p>
       ) : (
         <>
-        {fokus && <div className="sd-auswahl" role="group" aria-label={t("sd.vorlagen")}>
+        {fokus && !nurKarte && <div className="sd-auswahl" role="group" aria-label={t("sd.vorlagen")}>
           {m.mappe.map(v=><button type="button" className="sd-auswahlkarte" key={v.id} aria-pressed={v.id===vorlageId} onClick={()=>onAuswahl?.(v.id)}>
             <span>{v.minister?.name??t("sk.ui.mappe")}</span><strong>{v.titel}</strong>
             <small>{v.frist===undefined?v.prioritaetGrund:t(v.frist<0?"sd.ueberfaellig":v.frist===0?"sd.heute":"sd.inTagen",{n:Math.abs(v.frist)})}</small>
@@ -77,7 +79,7 @@ export function Mappe({ world, refresh, max = 5, ohneRessorts = false, fokus = f
           ))}
         </ol></>
       )}
-      {(m.weitere > 0 || m.rueckblick > 0 || m.vertagt > 0) && onPosteingang && (
+      {!nurKarte && (m.weitere > 0 || m.rueckblick > 0 || m.vertagt > 0) && onPosteingang && (
         <p className="mf-leer">
           {m.weitere > 0 ? t("mf.weitere", { n: m.weitere }) : t("mf.posteingangLeer")}
           {m.vertagt > 0 ? t("mf.vertagt", { n: m.vertagt }) : ""}

@@ -156,8 +156,9 @@ describe('Dreisprachige Arbeitsoberfläche',()=>{
   test.each(['de','en','tr'] as const)('%s: Navigation, Auswahl, Berichte und Risiko bleiben verständlich',async lang=>{
     await setzeSprache(lang);const w=welt();zusage(w);aktiveParteivorsitzende(w,'YENİ')[0]!.loyalitaet=19;
     const html=renderToStaticMarkup(<Schreibtisch world={w} refresh={noop} onGehe={noop}/>);
-    for(const key of ['sd.titel','sd.entscheiden','sd.arbeit','sd.rueckblick','sd.handlungsspielraum'])expect(html).toContain(t(key));
-    expect(html).toContain('aria-pressed="true"');expect(html).toContain('aria-controls=');expect(html).toContain('tabindex="-1"');expect(html).not.toContain('<main');
+    for(const key of ['sd.titel','sd.aufDemTisch','sd.arbeit','sd.rueckblick','sd.handlungsspielraum'])expect(html).toContain(t(key));
+    // Eine Liste nach Dringlichkeit; der dringendste Eintrag steht offen (Vorgabe V)
+    expect(html).toContain('aria-expanded="true"');expect(html).toContain('aria-controls=');expect(html).toContain('tabindex="-1"');expect(html).not.toContain('<main');
     expect(html).not.toContain('⟦');expect(html).not.toMatch(/\{(?:n|datum|name|partei)\}/);
     const work=renderToStaticMarkup(<SchreibtischInArbeit world={w} refresh={noop} onGehe={noop} arbeit={arbeit(w)} onAuswahl={noop}/>);
     const review=renderToStaticMarkup(<SchreibtischRueckblick world={w} onGehe={noop} onPosteingang={noop}/>);

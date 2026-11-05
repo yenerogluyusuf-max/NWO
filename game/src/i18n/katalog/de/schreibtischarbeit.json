@@ -54,5 +54,7 @@
   "sd.aktiv": "In Umsetzung",
   "sd.beginn": "Wirksam ab {datum}. Noch kein Nachweis einer Verbesserung.",
   "sd.ende": "Läuft bis {datum}. Die gemessenen Folgen stehen im Monatsbericht.",
-  "sd.wahlkampfFrist": "Der Wahlkampf beginnt: Unbeantwortete Angriffe der Opposition kosten bis zu sechs Punkte"
+  "sd.wahlkampfFrist": "Der Wahlkampf beginnt: Unbeantwortete Angriffe der Opposition kosten bis zu sechs Punkte",
+  "sd.aufDemTisch": "Auf dem Tisch",
+  "sd.nichtsAufDemTisch": "Nichts wartet auf Ihre Entscheidung."
 }

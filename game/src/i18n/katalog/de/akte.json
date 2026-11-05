@@ -142,5 +142,6 @@
  "akte.b.lage.mehr": "{n, plural, one {# weiterer Eintrag} other {# weitere Einträge}}",
  "akte.b.lage.woher": "Woher die Zahlen kommen",
  "akte.b.urteil.grund": "{label}: {wert}",
- "akte.b.kern.keineZiele": "Noch keine Ziele gewählt: Die Agenda gibt der Amtszeit eine Richtung."
+ "akte.b.kern.keineZiele": "Noch keine Ziele gewählt: Die Agenda gibt der Amtszeit eine Richtung.",
+ "akte.netz.akutAb": "· akut ab {n}"
 }

@@ -142,5 +142,6 @@
  "akte.b.lage.mehr": "{n, plural, one {# more entry} other {# more entries}}",
  "akte.b.lage.woher": "Where the figures come from",
  "akte.b.urteil.grund": "{label}: {wert}",
- "akte.b.kern.keineZiele": "No goals chosen yet: the agenda gives the term a direction."
+ "akte.b.kern.keineZiele": "No goals chosen yet: the agenda gives the term a direction.",
+ "akte.netz.akutAb": "· acute from {n}"
 }

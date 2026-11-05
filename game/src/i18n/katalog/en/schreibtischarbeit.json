@@ -54,5 +54,7 @@
   "sd.aktiv": "In operation",
   "sd.beginn": "Takes effect on {datum}. Improvement has not yet been demonstrated.",
   "sd.ende": "Runs until {datum}. Measured effects are recorded in the monthly report.",
-  "sd.wahlkampfFrist": "The election campaign begins: unanswered opposition attacks cost up to six points"
+  "sd.wahlkampfFrist": "The election campaign begins: unanswered opposition attacks cost up to six points",
+  "sd.aufDemTisch": "On the desk",
+  "sd.nichtsAufDemTisch": "Nothing is waiting for your decision."
 }

@@ -285,7 +285,7 @@ export function NetView({
             {node.kind === "problem" && (
               <span className="subtitle">
                 {" "}
-                {t("ui.NetView.akutAb", { n: node.threshold })}
+                {t("akte.netz.akutAb", { n: node.threshold })}
               </span>
             )}
           </p>

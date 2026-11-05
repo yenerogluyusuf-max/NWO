@@ -78,11 +78,12 @@ export function schreibtischArbeit(w:World,b:Pick<Briefing,'warnungen'|'faellig'
   prioritaeten.sort((a,c)=>c.rang-a.rang||(a.tage??Infinity)-(c.tage??Infinity)||a.id.localeCompare(c.id));
   // Mehrere Probleme desselben Ministers öffnen dieselbe Akte: eine hervorgehobene Karte reicht.
   const gesehen=new Set<string>();
-  const highlights=prioritaeten.filter(p=>{
+  const alle=prioritaeten.filter(p=>{
     const s=p.sprung,key=s.art==='intern'&&s.auswahl.gruppe==='minister'?`${s.auswahl.bereich}:${s.auswahl.id}`:p.id;
     if(gesehen.has(key))return false;gesehen.add(key);return true;
-  }).slice(0,3);
-  return {minister,beobachtet,nachsorge,highlights,anliegen,vorfaelle};
+  });
+  // alle: der ganze Tisch nach Dringlichkeit (Vorgabe V: eine Liste, Entscheidung an der Zeile); highlights: die ersten drei
+  return {minister,beobachtet,nachsorge,highlights:alle.slice(0,3),alle,anliegen,vorfaelle};
 }
 
 export interface RegierungsVorgang { id:string;titel:string;status:string;unter:string;tage:number;datum:string;ziel:Ziel;votum:boolean }
