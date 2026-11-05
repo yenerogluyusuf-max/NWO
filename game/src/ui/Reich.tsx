@@ -32,7 +32,7 @@ import {
   effektZeile,
   type Platz,
 } from "../sim/reich";
-import { ERBE, KIRCHEN_DER_OFFENBARUNG, type Erbe } from "../data/erbe";
+import { ERBE, type Erbe } from "../data/erbe";
 import { VORTEILE } from "../data/reich";
 import { kapitalEinkommen } from "../sim/spiel";
 import { Groessen, type GroesseDef } from "./reich/Groessen";
@@ -40,6 +40,7 @@ import { Schaetzblaetter } from "./reich/Schaetzblatt";
 import { VorhabenKarte } from "./reich/VorhabenKarte";
 import { WunderBild } from "./reich/WunderBild";
 import { Neues } from "./reich/Neues";
+import { StaettenAtlas } from "./reich/Staetten";
 import { Lohnt, PflegeListe, Zeilen, lohnendste } from "./reich/Pflege";
 import { Verlauf } from "./reich/Verlauf";
 import { t, aktuelleLocale, zahl } from "../i18n";
@@ -288,23 +289,10 @@ function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich
 /** Eine Stätte mit Zustand, Folge und Eingriff: Zustand → Restaurieren → Wirkung. */
 function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () => void; nurSchlechte?: number }) {
   const z = reichZustand(world);
-  const [serie, setSerie] = useState<string>("alle");
   const [rueckmeldung, setRueckmeldung] = useState<string | null>(null);
-  const SERIEN: { id: string; name: string }[] = [
-    { id: "alle", name: "Alle 53" },
-    { id: "kirchen7", name: "Sieben Kirchen" },
-    { id: "seldschuken", name: "Seldschuken" },
-    { id: "sinan", name: "Sinan" },
-    { id: "tas_tepeler", name: "Taş Tepeler" },
-    { id: "byzanz", name: "Byzanz" },
-    { id: "vielvoelker", name: "Gemeinschaften" },
-    { id: "welterbe", name: "Welterbe" },
-  ];
   const zustandVon = (e: Erbe) => z.staetten[e.id]?.zustand ?? 0;
-  const liste = ERBE.filter((e) => (nurSchlechte !== undefined ? true : serie === "alle" ? true : serie === "welterbe" ? e.unesco.status === "welterbe" : e.serien?.includes(serie as never)))
-    .sort((a, b) => zustandVon(a) - zustandVon(b))
-    .slice(0, nurSchlechte ?? ERBE.length);
-  const sieben = KIRCHEN_DER_OFFENBARUNG.map((k) => z.staetten[k.id]?.zustand ?? 0);
+  // Nur noch auf der Lage (die drei schlechtesten); die volle Pflege steht in reich/Staetten.tsx als Karte mit Raster
+  const liste = [...ERBE].sort((a, b) => zustandVon(a) - zustandVon(b)).slice(0, nurSchlechte ?? 3);
   const restauriere = (e: Erbe) => {
     const r = beginne(world, `restaurierung_${e.id}`);
     setRueckmeldung(r.text);
@@ -315,20 +303,6 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
       <h4>
         {nurSchlechte !== undefined ? tx("ui2.ui.Reich.fb453c1") : tx("ui2.ui.Reich.51ae0fa")} <em>{tx("ui2.ui.Reich.9219dc0", { p0: Math.round(erhaltung(world)) })}</em>
       </h4>
-      {nurSchlechte === undefined && (
-        <div className="rr-filter" role="group" aria-label={t("ui.Reich.4825f35")}>
-          {SERIEN.map((s) => (
-            <button key={s.id} type="button" className={serie === s.id ? "on" : ""} onClick={() => setSerie(s.id)} aria-pressed={serie === s.id}>
-              {s.name}
-            </button>
-          ))}
-        </div>
-      )}
-      {serie === "kirchen7" && nurSchlechte === undefined && (
-        <p className="rr-hinweis">
-          {tx("ui2.ui.Reich.171fd85", { p0: Math.round(Math.min(...sieben)) })}
-        </p>
-      )}
       {rueckmeldung && <p className="rr-hinweis" role="status">{rueckmeldung}</p>}
       <ul className="rr-stabliste">
         {liste.map((e) => {
@@ -338,7 +312,6 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
           const laeuft = z.laufend.some((l) => l.id === id);
           const hub = def?.abschluss.find((x) => x.t === "staette");
           const nach = hub && hub.t === "staette" ? Math.min(100, st.zustand + hub.d) : undefined;
-          const erbe = groessenWert(world, "kulturerbe", [e.plaka]);
           const vor = def ? wirkungsVorschau(world, id) : null;
           const folgen = (vor?.sofort ?? []).filter((x) => !x.text.startsWith(e.name));
           return (
@@ -358,7 +331,6 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
               </div>
               <p className="rp-satz">
                 {st.zustand < 30 ? tx("ui2.ui.Reich.64becd1") : st.zustand < 50 ? tx("ui2.ui.Reich.628669a") : st.zustand < 70 ? tx("ui2.ui.Reich.8db82ca") : tx("ui2.ui.Reich.1ba54c0")}
-                {Number.isFinite(erbe) && <> {tx("ui2.ui.Reich.4bc0142")} <b>{Math.round(erbe)}</b> {tx("ui2.ui.Reich.97a6c71")}</>}
               </p>
               {laeuft ? (
                 <p className="rp-satz">{t("ui.Reich.b1cebac")}</p>
@@ -373,8 +345,8 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
                     </p>
                     <Zeilen zeilen={folgen} />
                     <ul className="rr-kosten" aria-label={tx("ui2.ui.Reich.9bc1843")}>
-                      <li><b>{def.kosten.pk}</b> {tx("ui2.ui.Reich.28d438e")}</li>
-                      <li><b>{def.kosten.bau}</b> {tx("ui2.ui.Reich.f4466ae")}</li>
+                      <li><b>{zahl(def.kosten.pk)}</b> {tx("ui2.ui.Reich.28d438e")}</li>
+                      <li><b>{zahl(def.kosten.bau)}</b> {tx("ui2.ui.Reich.f4466ae")}</li>
                       <li><b>{def.kosten.monate}</b> {tx("ui2.ui.Reich.1c561ae")}</li>
                     </ul>
                     <button type="button" className="aktion-knopf" onClick={() => restauriere(e)} title={`${def.kehrseite}`}>
@@ -417,7 +389,7 @@ function Sitze({ world }: { world: World }) {
                 ))}
               </span>
               <span className="rr-sitz-legende">
-                <b className="loyal" /> {tx("ui2.ui.Reich.e20dbbc", { p0: s.loyal })} <b className="reform" /> {s.reform} reformorientiert <b className="unabhaengig" /> {tx("ui2.ui.Reich.da33253", { p0: s.unabhaengig })}
+                <b className="loyal" /> {tx("ui2.ui.Reich.e20dbbc", { p0: s.loyal })} <b className="reform" /> {t("n6.sitze.reform", { n: s.reform })} <b className="unabhaengig" /> {tx("ui2.ui.Reich.da33253", { p0: s.unabhaengig })}
               </span>
             </div>
           );
@@ -550,7 +522,7 @@ function Institutionen({ world }: { world: World }) {
             <li key={v.id} className="rv-eintrag">
               <div className="rv-kopf">
                 <strong>{v.name}</strong>
-                {v.unterhalt ? <span className="rr-bau-info">{tx("ui2.ui.Reich.cf4af98", { p0: v.unterhalt.toLocaleString("de-DE") })}</span> : null}
+                {v.unterhalt ? <span className="rr-bau-info">{tx("ui2.ui.Reich.cf4af98", { p0: zahl(v.unterhalt, 1) })}</span> : null}
               </div>
               <ul className="rr-wirkung-zeilen">
                 {zeigt.map((g) => (
@@ -607,7 +579,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
   return (
     <div className="reich">
       {tabs.length > 1 && (
-        <div className="rr-tabs" role="tablist" aria-label={`${BEREICH_NAMEN[bereich]}: Ansicht`}>
+        <div className="rr-tabs" role="tablist" aria-label={t("n6.reich.ansicht", { bereich: BEREICH_NAMEN[bereich] })}>
           {tabs.map((t) => (
             <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
               {t.label}
@@ -648,7 +620,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
         </>
       )}
 
-      {tab === "bestand" && bereich === "kultur" && <Staetten world={world} refresh={refresh} />}
+      {tab === "bestand" && bereich === "kultur" && <StaettenAtlas world={world} refresh={refresh} />}
       {tab === "bestand" && technik && <PflegeListe world={world} bereich={bereich} refresh={refresh} />}
 
       {tab === "neu" && (
