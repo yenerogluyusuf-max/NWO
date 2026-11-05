@@ -394,6 +394,8 @@ export interface WahlErgebnis {
    * Die Präsidentschaftswahl ist längst entschieden, die Wahlabend-Ansicht zeigt nur die Parlamentswahl (Stimmenanteile, Karte, Sitze, Reaktionen).
    */
   nachgetragen?: boolean;
+  /** Urteil der Geschichte über die Amtszeit, die mit dieser Wahl endet (Epoche, sim/epoche.ts); am Wahlabend gezeigt */
+  epoche?: { amtszeit: number; stufe: "golden" | "normal" | "dunkel" | "heroisch"; wert: number; momente: { titel: string; wert: number }[] };
 }
 
 /** Zwischen den Wahlgängen: Die Stichwahl steht an (14 Tage nach dem ersten Wahlgang). */

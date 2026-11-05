@@ -10,6 +10,7 @@
 // Die Reihenfolge am Wahltag: erster Wahlgang (mit Parlamentswahl), gegebenenfalls Stichwahl nach 14 Tagen, dann die Folgen:
 // Wahlabend-Ansicht, Reaktionen, bei Sieg der Beginn der nächsten Amtszeit (sim/amtszeit.ts), bei Niederlage das Ende (sim/spiel.ts).
 
+import { epochenSicht } from "./epoche";
 import { marktSchock } from "./maerkte";
 import { NET } from "./modell";
 import { PROVINCES, nationalAverage } from "./netz";
@@ -487,6 +488,12 @@ function abschliessen(w: World, rng: Rng, basis: Basis, nachStichwahl: boolean):
     reaktionen: [],
     anfechtung: gewonnen && marge < WAHL.knapp ? "laufend" : "keine",
   };
+  // Tropico: Der Wahlabend ist auch der Tag des Urteils. Die Stufe ist dieselbe, die bewerteEpoche beim Amtsantritt setzt.
+  const ep = epochenSicht(w);
+  if (ep) {
+    const momente = [...(sp.epoche?.momente ?? [])].sort((x, y) => Math.abs(y.wert) - Math.abs(x.wert)).slice(0, 3).map((m) => ({ titel: m.titel, wert: m.wert }));
+    e.epoche = { amtszeit: ep.amtszeit, stufe: ep.aussicht, wert: ep.wert, momente };
+  }
   e.reaktionen = reaktionen(w, e, nachStichwahl);
   z.historie.push(e);
   z.abend = e.id;

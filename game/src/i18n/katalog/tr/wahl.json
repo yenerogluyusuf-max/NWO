@@ -373,5 +373,7 @@
  "bilanz.kz.prozent": "%{n, number, 1}",
  "bilanz.kz.bip": "GSYH'nin %{n, number, 1}'i",
  "bilanz.epoche.amtszeit": "{nr}. dönem: {stufe} ({wert})",
- "bilanz.epoche": "{anzahl, plural, =0 {} other {Tarih şöyle değerlendiriyor: {teile}. }}{mitMomenten, select, ja {Son dönemin belirleyici anları: {momente}.} other {}}"
+ "bilanz.epoche": "{anzahl, plural, =0 {} other {Tarih şöyle değerlendiriyor: {teile}. }}{mitMomenten, select, ja {Son dönemin belirleyici anları: {momente}.} other {}}",
+ "wahl.ui.urteil": "{nr}. görev döneminin tarihteki hükmü",
+ "wahl.ui.urteil_text": "Dönem puanı {wert}. {gewonnen, select, ja {Zaferle yeni döneme taşınıyor: {folge}} other {Tarih kitabında kalıyor.}}"
 }

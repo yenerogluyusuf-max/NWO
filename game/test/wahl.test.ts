@@ -8,6 +8,7 @@ import { PROVINCES } from "../src/sim/netz";
 import { entscheide } from "../src/sim/ereignisse";
 import { WAHL, hochrechnung, huerdeProzent, istLetzteWahl, kandidatenFeld, rede, stichwahlAnteile, wahlabend, wahlabendQuittieren } from "../src/sim/wahl";
 import { SPIEL, zielZustimmung } from "../src/sim/spiel";
+import { ENDEN } from "../src/sim/enden";
 import { Rng } from "../src/sim/rng";
 import type { World } from "../src/sim/types";
 
@@ -109,17 +110,31 @@ describe("Erster Wahlgang", () => {
     // Runde „Das Netz atmet“: Gewöhnung und Gegendruck lassen die Zustimmung bei einem dauerhaft erzwungenen Tief nicht mehr bei 26 bis 28
     // Prozent stehen, sondern in Jahr zwei unter die Sturzschwelle (25) fallen (gemessen: Seed 5, 22 Prozent nach 22 Monaten, vorher 25 bis 27).
     // Der Test prüft die Wahl und nicht den Sturz: Die Schwelle ist hier ausgeschaltet; den Sturz decken test/enden.test.ts und test/spielschleife.test.ts ab.
+    // Ebenso die Amtsenthebung: Bei dauerhaft 30 Prozent klagt das Parlament seit den Enden (AY 105) vor der Wahl an (gemessen 5. November: Seed 5, Juli 2031).
     const spielwerte = SPIEL as { sturzSchwelle: number };
-    const schwelle = spielwerte.sturzSchwelle;
+    const enden = ENDEN as { huerdeAntrag: number };
+    const schwelle = spielwerte.sturzSchwelle, antrag = enden.huerdeAntrag;
     spielwerte.sturzSchwelle = 0;
+    enden.huerdeAntrag = 601;
     try {
       bisWahltag(w);
     } finally {
       spielwerte.sturzSchwelle = schwelle;
+      enden.huerdeAntrag = antrag;
     }
     expect(w.spiel!.ende?.art).toBe("abwahl");
     expect(w.spiel!.ende?.titel).toBe("Abgewählt");
     expect(w.spiel!.wahl!.historie[0]!.gewonnen).toBe(false);
+  });
+
+  test("Der Wahlabend trägt das Urteil der Geschichte über die Amtszeit (Epoche)", () => {
+    const w = spiel();
+    stelleZustimmung(w, 80);
+    bisWahltag(w);
+    const e = w.spiel!.wahl!.historie[0]!;
+    expect(e.epoche).toMatchObject({ amtszeit: 1 });
+    expect(["golden", "normal", "dunkel", "heroisch"]).toContain(e.epoche!.stufe);
+    expect(e.epoche!.momente.length).toBeLessThanOrEqual(3);
   });
 
   test("Provinzergebnisse: Der bevölkerungsgewichtete Schnitt trifft das Landesergebnis", () => {
@@ -278,7 +293,8 @@ describe("Rede und Anfechtung", () => {
       stelleZustimmung(w, 51);
       bisWahltag(w);
       if (w.spiel!.wahl?.stichwahl) advance(w, WAHL.stichwahlTage + 2);
-      const e = w.spiel!.wahl!.historie[0];
+      // Partien, die vor der Wahl enden (Tod, Enthebung), zählen nicht
+      const e = w.spiel!.wahl?.historie[0];
       if (e?.gewonnen && e.marge < WAHL.knapp) {
         gefunden = true;
         expect(e.anfechtung).toMatch(/laufend|abgewiesen/);

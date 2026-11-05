@@ -287,6 +287,21 @@ export function Wahlabend({ ergebnis, onRede, onSchliessen, stufe: stufeStart }:
             )}
           </section>
 
+          {fertig && ergebnis.epoche && (
+            <section className={`wn-block breit wn-urteil ${ergebnis.epoche.stufe}`}>
+              <h3>{t("wahl.ui.urteil", { nr: ergebnis.epoche.amtszeit })}</h3>
+              <p className="wn-urteil-stufe">{t(`epoche.stufe.${ergebnis.epoche.stufe}`)}</p>
+              <p className="wn-schwelle">{t("wahl.ui.urteil_text", { wert: ergebnis.epoche.wert, gewonnen: ergebnis.gewonnen ? "ja" : "nein", folge: t(`epoche.stufe.${ergebnis.epoche.stufe}.folge`) })}</p>
+              {ergebnis.epoche.momente.length > 0 && (
+                <ul className="wn-einfluesse">
+                  {ergebnis.epoche.momente.map((m) => (
+                    <li key={m.titel}><span>{m.titel}</span><span className={m.wert >= 0 ? "plus" : "minus"}>{m.wert >= 0 ? "+" : "−"}{Math.abs(m.wert)}</span></li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+
           {ergebnis.gewonnen && onRede && !nachgetragen && (
             <section className="wn-block breit">
               <h3>{t("wahl.ui.rede")}</h3>

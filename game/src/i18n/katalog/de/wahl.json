@@ -373,5 +373,7 @@
  "bilanz.kz.prozent": "{n, number, 1} %",
  "bilanz.kz.bip": "{n, number, 1} % des BIP",
  "bilanz.epoche.amtszeit": "Amtszeit {nr}: {stufe} ({wert})",
- "bilanz.epoche": "{anzahl, plural, =0 {} other {Die Geschichtsschreibung ordnet ein: {teile}. }}{mitMomenten, select, ja {Prägend in der letzten Amtszeit: {momente}.} other {}}"
+ "bilanz.epoche": "{anzahl, plural, =0 {} other {Die Geschichtsschreibung ordnet ein: {teile}. }}{mitMomenten, select, ja {Prägend in der letzten Amtszeit: {momente}.} other {}}",
+ "wahl.ui.urteil": "Das Urteil der Geschichte über die {nr}. Amtszeit",
+ "wahl.ui.urteil_text": "Epochenwert {wert}. {gewonnen, select, ja {Mit dem Sieg wirkt es in die neue Amtszeit: {folge}} other {Es bleibt im Geschichtsbuch.}}"
 }

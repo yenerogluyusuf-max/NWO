@@ -203,3 +203,9 @@ html[data-effekte="aus"] .umb-karte, html[data-effekte="aus"] .umb-stempel, html
 .wn-parteienanteile .zeile { display: grid; grid-template-columns: 90px 1fr 56px; align-items: center; gap: 8px; font: 15px var(--serif, "EB Garamond", serif); }
 .wn-parteienanteile .zeile i { display: block; height: 10px; border-radius: 4px; }
 .wn-parteienanteile .zeile b { text-align: right; font-weight: 700; }
+
+/* Das Urteil der Geschichte (Epoche) am Wahlabend: ein Siegel in Messing, golden und heroisch in Gold, dunkel in Siegelrot */
+.wn-urteil { border-top: 1px solid #c69a4a66; padding-top: 12px; }
+.wn-urteil-stufe { margin: 0; font: 500 26px/1.15 var(--display); color: var(--ink, #2a1f18); }
+.wn-urteil.golden .wn-urteil-stufe, .wn-urteil.heroisch .wn-urteil-stufe { color: #7c5823; }
+.wn-urteil.dunkel .wn-urteil-stufe { color: var(--seal, #8e2a22); }
