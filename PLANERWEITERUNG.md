@@ -148,7 +148,19 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 5. Karte: Tag-und-Nacht-Grenze, Wetter, Markierungen für Probleme und Projekte.
 
 
-## 10. Nächste Schritte (Stand 04.11.2026)
+## 10. Nächste Schritte (Stand 05.11.2026, Nachtarbeit)
+
+**Nachtarbeit 4./5. November** (Leitbild: [LEITBILD_UND_VORBILDER_2026-11-05.md](LEITBILD_UND_VORBILDER_2026-11-05.md)):
+- **Balance:** Regierungsmüdigkeit 0,30 → 0,15 je Monat mit Beleg (Kosten des Regierens); Testspieler beantworten Ministeranliegen; kluges Regieren gewinnt 7 von 8 ersten Wahlen, Nichtstun 1 von 8.
+- **Neue Mechaniken nach Vorbildern:** Amtszeit-Epochen (Civ 6), Beobachter-Kränkungen (Civ 6), Zynismus bei Kehrtwenden und Wahlgeschenken (Democracy 4).
+- **Inhalt:** vier weitere Große Ziele (zehn in acht Bereichen); zwei reale Großprojekte (Entwicklungsstraße Irak–Türkei, Konya-Ebene-Projekt).
+- **Karte:** 2D-Ersatzkarte ohne WebGL; einklappbare Leiste; Legende zu bis zum Öffnen.
+- **Alte Testfehler behoben:** Vorgang-Sprung, Transitabkommen, Nachtrag, Amtszeit-Tests, Extraktionsskript, Neutralität.
+
+**Als Nächstes:** (a) Ereignisdichte prüfen (gezählt werden Chronikzeilen, darunter viele Kalendertermine), (b) endogene Gruppengröße (Democracy 4), (c) Front und Befehle auf der Karte (Vorgabe S), (d) Besatzungsverwaltung (HOI4), (e) die Zeitung und das Halbrund bleiben bewusst außerhalb der Palette.
+
+## 10a. Stand 04.11.2026
+
 
 **Neu (Vorgabe S):** Karte als Hauptbühne in allen Bereichen; Vorschlag und Fragen gehen an den Projektinhaber, danach Umsetzung. Dazu gehört eine einfache 2D-Karte für Geräte ohne WebGL (heute bleibt die Karte dort leer).
 
