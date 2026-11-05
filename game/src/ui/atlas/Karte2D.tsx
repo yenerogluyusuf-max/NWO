@@ -16,6 +16,8 @@ const pfad = (ringe: number[][][]): string => ringe.map((r) => r.map(([lo, la], 
 const BREITE = (45.0 - LON0) * K, HOEHE = (LAT0 - 35.7) * KY;
 
 const PROV = PROVINCE_FC.features.map((f) => ({ plaka: f.properties.plaka, name: f.properties.name, d: pfad(ringsOf(f) as number[][][]) }));
+// Die Länderdaten enden an einem Rechteck (17,5–52,5° O, 29–48° N); an diesen Rändern blenden die Masken weich aus
+const [RX0, RY0] = px(17.5, 48), [RX1, RY1] = px(52.5, 29);
 const LAENDER = (nachbarn as unknown as { countries: { iso: string; name: string; rings: number[][][] }[] }).countries.map((c) => ({ iso: c.iso, name: c.name, d: pfad(c.rings) }));
 
 /** Vorstoß als leicht gebogene Linie (wie in der 3D-Karte, kriegsfx.ts) */
@@ -46,14 +48,18 @@ export function Karte2D({ fill, fillAlpha = 0.85, selected, onSelect, laenderFar
           <pattern id="k2d-schraffur" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" /></pattern>
           <marker id="k2d-spitze-eigen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" className="eigen" /></marker>
           <marker id="k2d-spitze-gegner" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" className="gegner" /></marker>
+          <linearGradient id="k2d-senk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#000" /><stop offset="0.08" stopColor="#fff" /><stop offset="0.92" stopColor="#fff" /><stop offset="1" stopColor="#000" /></linearGradient>
+          <linearGradient id="k2d-waag" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#000" /><stop offset="0.06" stopColor="#fff" /><stop offset="0.94" stopColor="#fff" /><stop offset="1" stopColor="#000" /></linearGradient>
+          <mask id="k2d-rand-senk" maskUnits="userSpaceOnUse" x={RX0} y={RY0} width={RX1 - RX0} height={RY1 - RY0}><rect x={RX0} y={RY0} width={RX1 - RX0} height={RY1 - RY0} fill="url(#k2d-senk)" /></mask>
+          <mask id="k2d-rand-waag" maskUnits="userSpaceOnUse" x={RX0} y={RY0} width={RX1 - RX0} height={RY1 - RY0}><rect x={RX0} y={RY0} width={RX1 - RX0} height={RY1 - RY0} fill="url(#k2d-waag)" /></mask>
         </defs>
         <rect x={-400} y={-400} width={BREITE + 800} height={HOEHE + 800} className="karte2d-meer" />
-        <g className="karte2d-laender">
+        <g mask="url(#k2d-rand-waag)"><g className="karte2d-laender" mask="url(#k2d-rand-senk)">
           {LAENDER.map((l) => (
             <path key={l.iso} d={l.d} style={laenderFarben?.[l.iso] ? { fill: laenderFarben[l.iso] } : undefined}
               onClick={(e) => onLand?.(l.iso, { x: e.clientX, y: e.clientY })}><title>{landName(l.iso) ?? l.name}</title></path>
           ))}
-        </g>
+        </g></g>
         {/* Grund: Land in Pergament, darüber die Farbe der Ebene (Provinzen ohne Wert bleiben Land, nicht Meer) */}
         <g className="karte2d-grund" aria-hidden>{provinzen.map((p) => <path key={p.plaka} d={p.d} />)}</g>
         <g className="karte2d-provinzen">
