@@ -10,7 +10,7 @@
  "sk.kz.zustimmung.vor": "vor drei Monaten {x, prozent, 0}",
  "sk.kz.kapital": "Politisches Kapital",
  "sk.kz.kapital.monat": "{vz}{x, number, 1} im Monat",
- "sk.kz.kapital.davon": " (davon {liste})",
+ "sk.kz.kapital.davon": " · davon {liste}",
  "sk.kz.kapital.unterhalt": "−{x, number, 1} Unterhalt laufender Maßnahmen",
  "sk.kz.mehrheit": "Mehrheit",
  "sk.kz.mehrheit.wert": "{n} Sitze",

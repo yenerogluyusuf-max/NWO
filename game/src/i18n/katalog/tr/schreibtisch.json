@@ -10,7 +10,7 @@
  "sk.kz.zustimmung.vor": "üç ay önce {x, prozent, 0}",
  "sk.kz.kapital": "Siyasi sermaye",
  "sk.kz.kapital.monat": "ayda {vz}{x, number, 1}",
- "sk.kz.kapital.davon": " (bunun {liste})",
+ "sk.kz.kapital.davon": " · bunun {liste}",
  "sk.kz.kapital.unterhalt": "−{x, number, 1} süren tedbirlerin bakımı",
  "sk.kz.mehrheit": "Çoğunluk",
  "sk.kz.mehrheit.wert": "{n} sandalye",

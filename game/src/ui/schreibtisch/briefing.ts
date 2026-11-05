@@ -202,8 +202,8 @@ export function kennzahlen(world: World): Kennzahl[] {
       label: t("sk.kz.kapital"),
       wert: `${Math.floor(spiel.kapital)}`,
       zusatz: `${t("sk.kz.kapital.monat", { vz: einkommen.summe >= 0 ? "+" : "−", x: Math.abs(einkommen.summe) })}${
-        einkommen.unterhalt > 0 || einkommen.altlast >= 0.05
-          ? t("sk.kz.kapital.davon", { liste: [einkommen.unterhalt > 0 ? t("sk.kz.kapital.unterhalt", { x: einkommen.unterhalt }) : "", einkommen.altlast >= 0.05 ? t("takt.briefing.altlast", { x: nf(einkommen.altlast) }) : ""].filter(Boolean).join(", ") })
+        einkommen.unterhalt >= 0.05 || einkommen.altlast >= 0.05
+          ? t("sk.kz.kapital.davon", { liste: [einkommen.unterhalt >= 0.05 ? t("sk.kz.kapital.unterhalt", { x: einkommen.unterhalt }) : "", einkommen.altlast >= 0.05 ? t("takt.briefing.altlast", { x: nf(einkommen.altlast) }) : ""].filter(Boolean).join(", ") })
           : ""
       }${spiel.kapital > 100 ? ` · ${t("takt.briefing.verfall", { x: nf((spiel.kapital - 100) * 0.3, 0) })}` : ""}`,
       trend: "gleich",

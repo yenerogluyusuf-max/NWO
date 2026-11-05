@@ -7,13 +7,13 @@
 .sk :is(button,a,strong,span,p,summary) { overflow-wrap:anywhere; }
 .sk :is(button,summary,a):focus-visible { outline:3px solid #7b5138; outline-offset:3px; }
 .sk :is(.sd-kopf,.sd-panel,.sd-seite,.sd-block,.sd-arbeitsplatz,.sd-auswahlkarte) { min-width:0; }
-.sk .sd-kopf { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:30px 32px; border-radius:10px;
+.sk .sd-kopf { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px 28px; border-radius:10px;
   background:linear-gradient(118deg,#2e221c,#4b3a30); color:#faf7e8; position:relative; border:1px solid #584439; box-shadow:0 10px 26px #3d2f2714; }
-.sk .sd-kicker { display:flex; flex-wrap:wrap; gap:4px 12px; color:#e0c98d; font-size:11.5px; font-weight:650; letter-spacing:.1em; text-transform:uppercase; margin-bottom:12px; }
+.sk .sd-kicker { display:flex; flex-wrap:wrap; gap:4px 12px; color:#e0c98d; font-size:11.5px; font-weight:650; letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px; }
 .sk .sd-kicker span { color:#d5d1c9; letter-spacing:.035em; }
-.sk .sd-kopf h3 { margin:0 0 10px; font:500 clamp(27px,4cqi,42px)/1.12 var(--display); color:#faf7e8; letter-spacing:-.02em; }
+.sk .sd-kopf h3 { margin:0 0 4px; font:500 clamp(24px,3cqi,32px)/1.12 var(--display); color:#faf7e8; letter-spacing:-.02em; }
 .sk .sd-amtszeit { margin:0; color:#dcd9d2; max-width:65ch; font-size:12.5px; line-height:1.6; }
-.sk .sd-siegel { border:1px solid #bfaa7166; color:#d8bf80; border-radius:50%; width:76px; height:76px; flex:none; display:grid; place-items:center; box-shadow:0 0 0 8px #bca9700a; }
+.sk .sd-siegel { border:1px solid #bfaa7166; color:#d8bf80; border-radius:50%; width:56px; height:56px; flex:none; display:grid; place-items:center; box-shadow:0 0 0 8px #bca9700a; }
 .sk .sd-kennzahlen { list-style:none; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:-10px 0 0; padding:0; gap:1px; border:1px solid var(--sd-line); background:var(--sd-line); border-radius:10px; overflow:hidden; }
 .dossier .sk button.sd-kennzahl { display:flex; flex-direction:column; align-items:start; width:100%; height:100%; text-align:left; padding:16px 20px; color:var(--sd-ink); background:var(--sd-paper); border:0; border-radius:0; box-shadow:none; text-shadow:none; gap:5px; }
 .sk .sd-kennzahl > span { color:var(--sd-muted); font:400 11.5px/1.4 var(--kapitaelchen); text-transform:uppercase; letter-spacing:.07em; }

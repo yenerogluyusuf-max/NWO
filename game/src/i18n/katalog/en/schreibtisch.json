@@ -10,7 +10,7 @@
  "sk.kz.zustimmung.vor": "three months ago {x, prozent, 0}",
  "sk.kz.kapital": "Political capital",
  "sk.kz.kapital.monat": "{vz}{x, number, 1} per month",
- "sk.kz.kapital.davon": " (of which {liste})",
+ "sk.kz.kapital.davon": " · of which {liste}",
  "sk.kz.kapital.unterhalt": "−{x, number, 1} upkeep of running measures",
  "sk.kz.mehrheit": "Majority",
  "sk.kz.mehrheit.wert": "{n} seats",
