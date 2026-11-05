@@ -175,6 +175,8 @@ export interface GeseheneZusage { id: string; faellig: number; vertroestet: numb
 
 export interface MinisterFlussZustand {
   ressortTag?:number;
+  /** Tag des letzten Anliegens aus dem täglichen Ressortlauf (kabinettsweiter Abstand, sim/ressortanliegen.ts) */
+  ressortAnliegenTag?:number;
   ressortNachsorgeTag?:number;
   ressortNachsorge?:import("./ressortnachsorge").RessortNachsorge[];
   ressortAnliegen?:import("./ressortanliegen").RessortAnliegen[];

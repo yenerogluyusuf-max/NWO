@@ -105,7 +105,12 @@ const SKANDAL: Vorlage = {
   frist: 15,
   abkuehlung: 240,
   // Grundrate auch ohne Streit (Messung vom 05.10.: person_*-Ereignisse brauchten Unmut und blieben aus): 0,007 je Monat, bei Unmut 0,012
-  chance: (w) => (regierung(w).length ? (regierung(w).some((f) => f.loyalitaet < 40 || eigenVon(w, f).groll >= 45) ? 0.012 : 0.007) : 0),
+  // Es zählt die Stimmung derer, die beschuldigt werden können (VORWURF): Mit 17 Ministerien war sonst fast immer jemand unzufrieden,
+  // und Skandale kamen um die Hälfte häufiger, ohne dass ein neues Ressort Gegenstand sein konnte (Nachtrag W, AP 3)
+  chance: (w) => {
+    const l = regierung(w).filter((f) => VORWURF[f.amt]);
+    return l.length ? (l.some((f) => f.loyalitaet < 40 || eigenVon(w, f).groll >= 45) ? 0.012 : 0.007) : 0;
+  },
   erzeuge: (w, rng: Rng) => {
     const liste = regierung(w).filter((f) => VORWURF[f.amt]);
     if (!liste.length) return null;

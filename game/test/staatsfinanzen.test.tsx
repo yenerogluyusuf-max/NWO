@@ -1,4 +1,5 @@
 import { haushaltsNachsorge, haushaltsMonatsabschluss } from "../src/sim/haushaltsbericht";
+import { MINISTERIEN } from "../src/data/ministerien";
 import { HaushaltsMonatsbericht } from "../src/ui/wirtschaft/HaushaltsBericht";
 import { afterEach, expect, test } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -151,9 +152,11 @@ test("Ausnahmebefugnisse bleiben eine ausdrücklich politische Dauerbelastung", 
   const w = welt(); expect(unterhaltKosten(w).posten.some(p => p.id === "m_notstand")).toBe(true);
   expect(kapitalErklaerung(w)).toContain(t("sf.politikText"));
 });
-test("alle sieben Kabinettsbereiche haben Ausgabenposten", () => {
-  const aemter = new Set(POSTEN.filter(p => p.seite === "ausgabe").map(p => p.amt));
-  for (const a of ["stab", "finanzen", "inneres", "justiz", "aussen", "generalstab", "wirtschaft"]) expect(aemter.has(a as never)).toBe(true);
+test("jeder Ausgabenposten gehört dem Ministerium, das ihn laut data/ministerien.ts führt (ENTSCHEIDUNGEN W 1)", () => {
+  for (const p of POSTEN.filter(x => x.seite === "ausgabe")) {
+    const m = MINISTERIEN.find(x => x.posten.includes(p.id));
+    expect(m?.id, p.id).toBe(p.amt);
+  }
 });
 test.each([["justiz", "justizvertrauen"], ["diplomatie", "ansehen"]])("%s hat echte Finanzierung und verzögerte Ressortwirkung", (id, node) => {
   const a = welt(), b = structuredClone(a), d = POSTEN_NACH_ID[id]!, before = defizitJetzt(a), value = nationalAverage(NET, a.net, node);

@@ -21,7 +21,10 @@ const knotenName=(id:string)=>NET.nodes[NET.index.get(id)??-1]?.name??id;
 export const RESSORT_ENTWARNUNG=62;
 // Landesmittel können an ganzzahligen Grenzen um wenige Rechenbits abweichen.
 export const ressortEntspannt=(id:string,wert:number)=>(HOCH_SCHLECHT.has(id)?wert:100-wert)<=RESSORT_ENTWARNUNG+1e-8;
-export const RESSORT_ANLIEGEN={ruhe:30,frist:14,beratung:21,aufschub:7,maxOffen:3};
+// abstand: Tage zwischen zwei neuen Anliegen im ganzen Kabinett. Mit 17 Ministerien statt 7 Ämtern meldeten sich die Ressorts dreimal so oft
+// (5,0 statt 1,6 Anliegen im Monat ohne Antwort des Präsidenten); nach F3 (ENTSCHEIDUNGEN W, Nachtrag) bleibt der Druck des Kabinetts in der
+// Summe der von vorher. Spielparameter, am Zählwerkzeug gemessen; es spricht zuerst das Ressort mit der schlimmsten Lage.
+export const RESSORT_ANLIEGEN={ruhe:30,frist:14,beratung:21,aufschub:7,maxOffen:3,abstand:18};
 export type RessortAntwort='reden'|'umsetzen'|'spaeter'|'ablehnen';
 export interface RessortAnliegen {
  id:string;figur:string;amt:Figur['amt'];name:string;groesse:string;vorher:number;seit:number;frist:number;
@@ -102,7 +105,8 @@ export function ressortAnliegenTag(w:World):void {
  kandidaten.sort((a,b)=>schlecht(w,b.sg.id)-schlecht(w,a.sg.id));
  for(const {f,sg} of kandidaten){
   if(alle.filter(offen).length>=RESSORT_ANLIEGEN.maxOffen)break;
-  legeRessortAnliegenAn(w,f,sg.id);
+  if(w.day-(z.ressortAnliegenTag??-1e9)<RESSORT_ANLIEGEN.abstand)break;
+  if(legeRessortAnliegenAn(w,f,sg.id))z.ressortAnliegenTag=w.day;
  }
  const alt=alle.filter(a=>!offen(a)).slice(-20);z.ressortAnliegen=[...alt,...alle.filter(offen)];
 }

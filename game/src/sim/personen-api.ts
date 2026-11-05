@@ -2,7 +2,7 @@
 // und ein Textblock über das ganze Umfeld für das Sprachmodell. Nichts davon verändert den Spielstand.
 
 import { addDays, formatDateDe } from "./dates";
-import { AEMTER, eigenVon, erinnerungen, grollWort, leistung, leistungWort, sorgeText, wertVon } from "./personen";
+import { AEMTER, eigenVon, erinnerungen, grollWort, leistung, leistungWort, NEUE_AEMTER, sorgeText, wertVon } from "./personen";
 import { EREIGNIS_BEZUG, ratHinweise, termineInfo } from "./gespraeche";
 import { zusagenBilanz, zusagenSicht } from "./zusagen";
 import type { World } from "./types";
@@ -67,9 +67,15 @@ export function umfeldKontext(w: World): string {
   const t = termineInfo(w);
   const b = zusagenBilanz(w);
   const zeilen = [`Umfeld (Termine ${t.belegt}/${t.max} in 30 Tagen; Glaubwürdigkeit ${Math.round(b.glaubwuerdigkeit)} ${b.wort}; Zusagen: ${b.gehalten} gehalten, ${b.gebrochen} gebrochen, ${b.offen} offen):`];
+  // Die zwölf neuen Ressorts stehen gesammelt in einer Zeile, solange nichts auffällt; so bleibt der Kontext für das Modell klein
+  const ruhig: string[] = [];
   for (const f of sp.figuren) {
     if (!f.imAmt) continue;
     const e = eigenVon(w, f);
+    if (NEUE_AEMTER.has(f.amt) && f.loyalitaet >= 40 && e.groll < 40 && !e.kommissarisch && e.auftrag?.status !== "laeuft") {
+      ruhig.push(`${f.rolle} ${f.name} (Loyalität ${Math.round(f.loyalitaet)})`);
+      continue;
+    }
     const kurz = [`${f.rolle} ${f.name}: Loyalität ${Math.round(f.loyalitaet)}, Groll ${Math.round(e.groll)}, Ehrgeiz ${Math.round(e.ehrgeiz)}, ${e.stil}`];
     if (AEMTER[f.amt].wirkung.length) kurz.push(`Ressort ${leistungWort(leistung(w, f))}`);
     if (e.kommissarisch) kurz.push("kommissarisch");
@@ -78,5 +84,6 @@ export function umfeldKontext(w: World): string {
     if (er) kurz.push(`zuletzt: ${er.text}`);
     zeilen.push(`- ${kurz.join("; ")}. Sorge: ${sorgeText(w, f)}`);
   }
+  if (ruhig.length) zeilen.push(`- Weitere Ressorts ohne Auffälligkeit: ${ruhig.join(", ")}`);
   return zeilen.join("\n");
 }

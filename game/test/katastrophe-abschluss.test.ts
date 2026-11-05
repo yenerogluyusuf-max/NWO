@@ -14,6 +14,7 @@ import { NET } from "../src/sim/modell";
 import { PROVINCES } from "../src/sim/netz";
 import { oeffne, vorlage } from "../src/sim/ereignisse";
 import { reichZustand } from "../src/sim/reich";
+import { endenZustand } from "../src/sim/enden";
 import {
   KATASTROPHE,
   abschlussPruefen,
@@ -66,6 +67,12 @@ function monate(w: World, n: number, rng = new Rng(1)): void {
     advance(w, 30);
     w.spiel!.ereignisse = [];
     w.spiel!.umfrage.zustimmung = 55;
+    // Auch keine Krankheit des Präsidenten: Mit 17 Ministerien verläuft die Testwelt anders, und ein verschwiegener Befund endete im Zusammenbruch
+    const g = endenZustand(w).gesundheit;
+    g.zustand = "gesund";
+    delete g.seit;
+    // … und keine Amtsenthebung: Die Testwelt regiert nicht, ein Skandal im letzten Jahr reicht sonst für ein Verfahren
+    endenZustand(w).amtsenthebung.stufe = 0;
     if (w.spiel!.ende) break;
   }
   void rng;

@@ -73,6 +73,10 @@ function bisNachWahl(w: World, ziel: number): void {
     for (let i = 0; i < 3; i++) sp.kalibrierung += ziel - zielZustimmung(w);
     sp.umfrage.zustimmung = ziel;
     sp.ereignisse = [];
+    // Geprüft werden Wahlen und Amtszeiten, nicht die Gesundheit: Ein verschwiegener Befund endete sonst nach 13 Jahren im Zusammenbruch
+    const g = endenZustand(w).gesundheit;
+    g.zustand = "gesund";
+    delete g.seit;
   }
   advance(w, sp.wahltag - w.day + 1);
   if (sp.wahl?.stichwahl) advance(w, 16);
