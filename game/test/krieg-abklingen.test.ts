@@ -33,14 +33,25 @@ function wieImSpielstand(w: World): KriegVorgang {
 }
 
 describe("Spannung ohne Anlass klingt ab (Spielstand 2039)", () => {
-  test("die alte Spannung mit Israel endet ohne Zutun, und die Kriegsgefahr endet mit ihr", () => {
+  test("die alte Spannung mit Israel endet, sobald kein Anlass mehr kommt, und die Kriegsgefahr endet mit ihr", () => {
     const w = welt();
-    // Zwischenfälle und Länderinitiativen aus: Der Vorgang soll nur aus sich selbst heraus laufen
+    // Andere Länder ruhig stellen; Israel selbst liegt mit 70 im Bereich der Zwischenfälle (rund 7 % im Monat)
     for (const l of Object.values(weltZustand(w))) l.konflikt = Math.min(l.konflikt, 45);
     const k = wieImSpielstand(w);
     expect(weltZustand(w)["ISR"]!.konflikt).toBe(70);
-    advance(w, 150);
-    expect(k.phase, "vorher blieb sie bei 70 stehen").toBe("beendet");
+    // Ein echter Zwischenfall nährt die Spannung erneut (gewollt, Welle H2). Der Zufallsstrom hängt am ganzen Spiel: Auf dem
+    // zusammengeführten Stand kam am 1. September 2028 einer, allein auf welle/h2 nicht. Geprüft wird deshalb nicht ein fester Tag,
+    // sondern die Regel: Nach dem letzten Anlass endet die Spannung spätestens nach Nährfrist plus Abklingen von höchstens 100 Punkten.
+    const frist = KRIEG.naehrFrist + Math.ceil(100 / KRIEG.abklingenJeTag);
+    let ohneAnlass = 0;
+    // Zwischenfälle können sie zur Drohkulisse treiben (Entscheidungsfenster); ohne Antwort und ohne Zwischenfälle in dieser Phase fällt sie zurück
+    for (let i = 0; i < 2000 && (k.phase === "spannung" || k.phase === "drohkulisse"); i++) {
+      const vorher = k.genaehrt;
+      advance(w, 1);
+      ohneAnlass = k.genaehrt === vorher ? ohneAnlass + 1 : 0;
+      expect(ohneAnlass, "vorher blieb sie bei 70 stehen").toBeLessThanOrEqual(frist);
+    }
+    expect(k.phase).toBe("beendet");
     expect(k.ausgang).toBe("abgeklungen");
     expect(aktiveKrisen(w).map((x) => x.id)).not.toContain("kriegsgefahr");
     expect(w.log.some((e) => e.text.includes("Israel") && e.text.includes("abgeklungen"))).toBe(true);
