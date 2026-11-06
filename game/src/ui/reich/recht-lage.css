@@ -1,0 +1,142 @@
+/* Lage der Justiz (Tagarbeit T6): Leitfrage oben, Größen und Einrichtungen als Kacheln, Einzelheiten per Klick. Nur Tokens aus N8. */
+.rl { display: flex; flex-direction: column; gap: var(--abstand-3); }
+
+/* --- Leitfrage ------------------------------------------------------------------------------------------------------------------ */
+.rl-frage {
+  padding: var(--abstand-4) var(--abstand-5) var(--abstand-4);
+  border: 1px solid var(--linie); border-radius: var(--rund-1);
+  background: linear-gradient(180deg, var(--papier-1), var(--papier-2)); box-shadow: var(--schatten-flach);
+}
+.rl-frage-kopf { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--abstand-1) var(--abstand-4); margin-bottom: var(--abstand-3); }
+.rl-frage-kopf h3 { flex: none; }
+.rl-frage-kopf h3 { margin: 0; font: 400 var(--schrift-6)/1.1 var(--display); color: var(--tinte-1); letter-spacing: 0.005em; }
+.rl .rl-frage-kopf p { margin: 0; font: italic var(--schrift-3)/1.4 var(--serif); color: var(--tinte-2); }
+
+.rl-wege { display: grid; grid-template-columns: minmax(0, 1.1fr) auto minmax(0, 1fr) minmax(200px, 0.55fr); gap: var(--abstand-3); align-items: stretch; }
+.rl-oder { align-self: center; font: italic var(--schrift-4) var(--serif); color: var(--tinte-3); }
+
+.rl-weg { display: flex; flex-direction: column; gap: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); border: 1px solid var(--linie); border-top: 3px solid var(--gut); border-radius: var(--rund-1); background: var(--papier-1); min-width: 0; }
+.rl-weg-b { border-top-color: var(--siegel); }
+.rl-weg.an { border-color: var(--messing-2); box-shadow: 0 0 0 1px var(--messing-1) inset; background: linear-gradient(180deg, var(--papier-1), var(--warnung-flaeche)); }
+.rl-weg header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--abstand-2); }
+.rl-weg h4 { margin: 0; font: 600 var(--schrift-4)/1.2 var(--display); color: var(--tinte-1); }
+.rl-stand { flex: none; padding: 1px var(--abstand-2); border-radius: var(--rund-pille); background: var(--papier-3); font: var(--schrift-1) var(--serif); color: var(--tinte-2); }
+.rl-stand.an { background: var(--gut-flaeche); color: var(--gut); font-weight: 600; }
+
+.rl-bedingungen { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--abstand-1); }
+.rl-bedingungen li { display: grid; grid-template-columns: minmax(0, 1fr) 56px auto; align-items: center; gap: var(--abstand-2); font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+.rl-bed-name em { font-style: italic; color: var(--tinte-3); white-space: nowrap; }
+.rl-bedingungen li > b { font: 600 var(--schrift-1) var(--serif); color: var(--siegel); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rl-bedingungen li.ok > b { color: var(--gut); }
+.rl-weg-a .rl-bedingungen .rr-balken i { background: linear-gradient(90deg, var(--gut), var(--gut-linie)); }
+.rl-weg-b .rl-bedingungen .rr-balken i { background: linear-gradient(90deg, var(--siegel), var(--siegel-hell)); }
+
+.rl-wirkung { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--abstand-1); }
+.rl-wirkung li, .rl-chip { padding: 1px var(--abstand-2); border-radius: var(--rund-1); font: var(--schrift-1)/1.5 var(--serif); white-space: nowrap; }
+.rl-wirkung li.gut, .rl-chip.gut { background: var(--gut-flaeche); color: var(--gut); }
+.rl-wirkung li.schlecht, .rl-chip.schlecht { background: var(--schlecht-flaeche); color: var(--siegel); }
+
+.rl-mehr > summary { cursor: pointer; width: max-content; font: 600 var(--schrift-2) var(--serif); color: var(--tinte-2); list-style-position: inside; }
+.rl-mehr > summary:hover { color: var(--tinte-1); }
+.rl-mehr[open] > summary { margin-bottom: var(--abstand-1); }
+.rl .rl-mehr p { margin: 0 0 var(--abstand-1); font: var(--schrift-2)/1.45 var(--serif); color: var(--tinte-2); }
+.rl .rl-mehr p b { color: var(--siegel); }
+
+/* Der Weg zur Entscheidung: die Zahl der beginnbaren Reformen und der Hauptknopf */
+.rl-zug { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--abstand-1); padding: var(--abstand-3); border: 1px solid var(--linie); border-top: 3px solid var(--messing-2); border-radius: var(--rund-1); background: var(--papier-2); text-align: center; }
+.rl-zug-zahl { font: 600 var(--schrift-7)/1 var(--display); color: var(--tinte-1); font-variant-numeric: tabular-nums; }
+.rl-zug > span { font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); margin-bottom: var(--abstand-2); }
+.rl-zug .knopf-haupt, .rl-zug .knopf { white-space: nowrap; }
+
+/* --- Abschnitte ----------------------------------------------------------------------------------------------------------------- */
+.rl-abschnitt h4 { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--abstand-1) var(--abstand-3); margin: 0 0 var(--abstand-2); font: 600 var(--schrift-4) var(--display); color: var(--tinte-1); }
+.rl-abschnitt h4 em { font: italic 400 var(--schrift-2) var(--serif); color: var(--tinte-3); }
+
+/* Größen als Kacheln: Name, Wert, Balken mit Mitte und den Schwellen der beiden Ziele */
+.rl-kacheln { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--abstand-2); }
+.rl-kacheln > li { min-width: 0; }
+.dossier .rl-kachel, .rl-kachel {
+  width: 100%; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto; gap: var(--abstand-1) var(--abstand-2); align-items: end;
+  padding: var(--abstand-2) var(--abstand-3) var(--abstand-3); border: 1px solid var(--linie); border-radius: var(--rund-1); background: var(--papier-1);
+  box-shadow: none; text-align: left; text-transform: none; letter-spacing: 0; cursor: pointer; transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+.rl-kachel:hover { border-color: var(--messing-2); background: var(--papier-2); }
+.rl-kachel:focus-visible, .rl-einrichtung:focus-visible { outline: none; box-shadow: var(--fokus-ring); }
+.rl-kachel.offen { border-color: var(--messing-3); background: var(--papier-2); box-shadow: 0 0 0 1px var(--messing-2) inset; }
+.rl-kachel-name { align-self: start; font: var(--schrift-2)/1.25 var(--serif); color: var(--tinte-2); }
+.rl-kachel-wert { align-self: start; font: 600 var(--schrift-5)/1 var(--serif); color: var(--tinte-1); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rl-kachel.rr-mies .rl-kachel-wert { color: var(--siegel); }
+.rl-kachel-wert em { margin-left: 2px; font: normal var(--schrift-1) var(--serif); vertical-align: super; }
+.rl-kachel-wert em.hoch { color: var(--gut); }
+.rl-kachel-wert em.runter { color: var(--siegel); }
+.rl-kachel .rr-balken { grid-column: 1 / -1; height: 7px; overflow: visible; }
+.rl-kachel.rr-mies .rr-balken i { background: linear-gradient(90deg, var(--siegel), var(--siegel-hell)); }
+.rl-kachel .rr-balken b.rl-marke { top: -3px; bottom: -3px; width: 2px; background: var(--messing-3); border-radius: 1px; }
+
+/* Detailfläche unter dem Raster */
+.rl-detail {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--abstand-3) var(--abstand-5);
+  margin-top: var(--abstand-1); padding: var(--abstand-3) var(--abstand-6) var(--abstand-3) var(--abstand-4);
+  border: 1px solid var(--messing-2); border-left: 3px solid var(--messing-3); border-radius: var(--rund-1); background: var(--papier-2);
+  animation: rl-auf 180ms ease-out;
+}
+.rl-detail:not(:has(.rl-detail-seite)) { grid-template-columns: minmax(0, 1fr); }
+@keyframes rl-auf { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.rl-detail h5 { margin: 0 0 var(--abstand-1); font: 600 var(--schrift-3) var(--display); color: var(--tinte-1); }
+.rl-detail h6 { margin: 0 0 var(--abstand-1); font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--tinte-3); }
+.rl .rl-detail p { margin: 0 0 var(--abstand-1); font: var(--schrift-2)/1.45 var(--serif); color: var(--tinte-2); }
+.rl .rl-detail p b { color: var(--siegel); }
+.rl .rl-detail p.rl-zusatz { font-style: italic; color: var(--tinte-3); }
+.rl-fakten { margin: var(--abstand-1) 0 0; display: grid; gap: 2px; font: var(--schrift-2)/1.4 var(--serif); }
+.rl-fakten div { display: flex; flex-wrap: wrap; gap: var(--abstand-2); }
+.rl-fakten dt { font-weight: 600; color: var(--tinte-1); }
+.rl-fakten dd { margin: 0; color: var(--tinte-2); }
+.rl-hebel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--abstand-1); }
+.rl-hebel li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--abstand-2); padding: var(--abstand-1) 0; border-bottom: 1px dashed var(--linie); }
+.rl-hebel li:last-child { border-bottom: 0; }
+.rl-hebel-name { display: flex; flex-direction: column; min-width: 0; }
+.rl-hebel-name b { font: 600 var(--schrift-2)/1.25 var(--serif); color: var(--tinte-1); }
+.rl-hebel-name small { font: italic var(--schrift-1) var(--serif); color: var(--tinte-3); }
+.dossier .rl-zu, .rl-zu { position: absolute; top: var(--abstand-1); right: var(--abstand-2); font: var(--schrift-5)/1 var(--serif); text-decoration: none; color: var(--tinte-3); }
+
+/* Einrichtungen: die beiden Gerichte mit ihren Sitzen, Strafvollzug und Anwaltskammern */
+.rl-legende { margin-left: auto; display: inline-flex; align-items: center; gap: var(--abstand-1); font: var(--schrift-1) var(--serif); color: var(--tinte-3); }
+.rl-legende i { display: inline-block; width: 10px; height: 10px; margin-left: var(--abstand-2); border-radius: 50%; }
+.rl-einrichtungen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1.35fr 1.35fr 1fr 1fr; gap: var(--abstand-2); }
+.rl-einrichtungen > li { min-width: 0; }
+.dossier .rl-einrichtung, .rl-einrichtung {
+  width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: var(--abstand-1);
+  padding: var(--abstand-2) var(--abstand-3) var(--abstand-3); border: 1px solid var(--linie); border-left: 3px solid var(--messing-3); border-radius: var(--rund-1);
+  background: var(--papier-1); box-shadow: none; text-align: left; text-transform: none; letter-spacing: 0; cursor: pointer; transition: border-color 160ms ease, background 160ms ease;
+}
+.rl-einrichtung:hover { border-color: var(--messing-2); border-left-color: var(--messing-3); background: var(--papier-2); }
+.rl-einrichtung.offen { background: var(--papier-2); box-shadow: 0 0 0 1px var(--messing-2) inset; }
+.rl-einrichtung-name { font: 600 var(--schrift-3)/1.25 var(--serif); color: var(--tinte-1); }
+.rl-sitze { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; margin: 2px 0; }
+.rl-sitze i, .rl-legende i { border: 1px solid var(--leder); box-shadow: inset 0 -2px 3px color-mix(in srgb, var(--leder-tief) 20%, transparent), inset 0 1px 1px color-mix(in srgb, var(--papier-1) 40%, transparent); }
+.rl-sitze i { width: 12px; height: 12px; border-radius: 50%; }
+.rl-sitze i.loyal, .rl-legende i.loyal { background: var(--siegel-hell); }
+.rl-sitze i.reform, .rl-legende i.reform { background: var(--messing-3); }
+.rl-sitze i.unabhaengig, .rl-legende i.unabhaengig { background: var(--messing-mittel); }
+.rl-sitze small { margin-left: var(--abstand-1); font: var(--schrift-1) var(--serif); color: var(--tinte-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rl-praegt { font: italic var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+
+.rl-verlauf { padding-top: var(--abstand-2); border-top: 1px solid var(--linie); }
+.rl-verlauf .rr-abschnitt { border-top: 0; }
+
+/* Schmalere Fenster */
+@container (max-width: 980px) {
+  .rl-wege { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .rl-zug { grid-column: 1 / -1; flex-direction: row; gap: var(--abstand-3); }
+  .rl-zug > span { margin: 0; }
+  .rl-kacheln { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rl-einrichtungen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rl-detail { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 620px) {
+  .rl-wege { grid-template-columns: minmax(0, 1fr); }
+  .rl-oder { justify-self: center; }
+  .rl-kacheln { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rl-einrichtungen { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .rl-detail { animation: none; } }

@@ -48,6 +48,7 @@ import { t, aktuelleLocale, zahl } from "../i18n";
 import { t as tx } from "../i18n";
 import "./reich/reich.css";
 import { Bauhilfe } from "./reich/Bauhilfe";
+import { RechtLage } from "./reich/RechtLage";
 import { ohneBeleg } from "../i18n/ohne-beleg";
 
 const GROESSEN: Record<Bereich, GroesseDef[]> = {
@@ -163,7 +164,8 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
                 <strong>{v.name}</strong>
                 <span className="rr-bau-info">
                   {tx("ui2.ui.Reich.5950cd8", { p0: nr, p1: Math.round(f * 100) })}{" "}
-                  {l.pausiert ? t("n6.bau.ruhtVerlust", { bau: Math.round(pauseVerlust(l, v)) }) : rate > 0 ? tx("ui2.ui.Reich.d7fc5d0", { p0: rate.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 0 }) }) : tx("ui2.ui.Reich.6202407")}
+                  {/* T6: In der Vergabephase wartet ein Vorhaben nicht auf Baukapazität (Reformen brauchen keine); es nennt dann den Baubeginn */}
+                  {l.pausiert ? t("n6.bau.ruhtVerlust", { bau: Math.round(pauseVerlust(l, v)) }) : rate > 0 ? tx("ui2.ui.Reich.d7fc5d0", { p0: rate.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 0 }) }) : schlange.get(l.id)?.vergabePhase ? t("reste.reich.vergabe", { start: (schlange.get(l.id)?.startIn ?? 0) <= 0 ? t("reste.reich.jetzt") : t("reste.reich.inMonaten", { n: schlange.get(l.id)!.startIn! }) }) : tx("ui2.ui.Reich.6202407")}
                 </span>
               </div>
               <span className="rr-balken" aria-hidden>
@@ -364,43 +366,6 @@ function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () 
   );
 }
 
-const SITZ_NAMEN = (): Record<string, string> => ({ aym: t("reste.reich.aym"), hsk: t("reste.reich.hsk") });
-
-function Sitze({ world }: { world: World }) {
-  const z = reichZustand(world);
-  return (
-    <section className="rr-abschnitt">
-      <h4>
-        {tx("ui2.ui.Reich.f5c645d")} <em>{t("ui.Reich.9e48137")}</em>
-      </h4>
-      <div className="rr-sitzgruppen">
-        {Object.entries(z.sitze).map(([key, s]) => {
-          const n = s.loyal + s.unabhaengig + s.reform;
-          const punkte = [
-            ...Array.from({ length: s.loyal }, () => "loyal"),
-            ...Array.from({ length: s.reform }, () => "reform"),
-            ...Array.from({ length: s.unabhaengig }, () => "unabhaengig"),
-          ];
-          return (
-            <div key={key} className="rr-sitzgruppe">
-              <strong>{SITZ_NAMEN()[key] ?? key}</strong>
-              <span className="rr-sitze" role="img" aria-label={tx("ui2.ui.Reich.eeb0a0b", { p0: n, p1: s.loyal, p2: s.reform, p3: s.unabhaengig })}>
-                {punkte.map((p, i) => (
-                  <i key={i} className={p} />
-                ))}
-              </span>
-              <span className="rr-sitz-legende">
-                <b className="loyal" /> {tx("ui2.ui.Reich.e20dbbc", { p0: s.loyal })} <b className="reform" /> {t("n6.sitze.reform", { n: s.reform })} <b className="unabhaengig" /> {tx("ui2.ui.Reich.da33253", { p0: s.unabhaengig })}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      <p className="rr-hinweis">{t("ui.Reich.baef25c")}</p>
-    </section>
-  );
-}
-
 function Haushalt({ world }: { world: World }) {
   const vb = verwaltungBilanz(world);
   const k = kapitalEinkommen(world);
@@ -504,47 +469,6 @@ function tabsFuerBereich(bereich: Bereich): { id: Tab; label: string }[] {
   }
 }
 
-/** Die Einrichtungen des Rechts, deren Zustand nichts bewegt: Man liest sie an den Größen ab, die sie prägen. */
-function Institutionen({ world }: { world: World }) {
-  const z = reichZustand(world);
-  const stuecke = Object.keys(z.bestand)
-    .map((id) => vorhabenDef(id))
-    .filter((v): v is NonNullable<typeof v> => !!v && v.bereich === "recht" && v.klasse === "institution");
-  if (!stuecke.length) return null;
-  return (
-    <section className="rr-abschnitt">
-      <h4>
-        {tx("ui2.ui.Reich.af5c59c")} <em>{t("ui.Reich.aaa550c")}</em>
-      </h4>
-      <ul className="rv-liste">
-        {stuecke.map((v) => {
-          const zeigt = wirkungsVorschau(world, v.id)?.zeigt ?? [];
-          return (
-            <li key={v.id} className="rv-eintrag">
-              <div className="rv-kopf">
-                <strong>{v.name}</strong>
-                {v.unterhalt ? <span className="rr-bau-info">{tx("ui2.ui.Reich.cf4af98", { p0: zahl(v.unterhalt, 1) })}</span> : null}
-              </div>
-              <ul className="rr-wirkung-zeilen">
-                {zeigt.map((g) => (
-                  <li key={g.id} className={g.gut ? "rr-gut" : "rr-schlecht"}>
-                    {tx("ui2.ui.Reich.96504fa", { p0: g.name, p1: g.wert })}
-                  </li>
-                ))}
-              </ul>
-              <details className="rp-mehr">
-                <summary>{t("ui.Reich.0995a96")}</summary>
-                <p className="rr-text">{ohneBeleg(v.text)}</p>
-                <p className="rr-kehrseite"><b>{tx("ui2.ui.Reich.0289c3f")}</b> {v.kehrseite}</p>
-              </details>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
 /** Auf der Lage-Seite: wo Pflege am meisten bringt, mit Sprung in die Pflegeliste. Bei der Kultur sind es die am schlechtesten erhaltenen Stätten. */
 function Dringend({ world, bereich, refresh, zuPflege }: { world: World; bereich: Bereich; refresh: () => void; zuPflege: () => void }) {
   if (bereich === "kultur") return <Staetten world={world} refresh={refresh} nurSchlechte={3} />;
@@ -560,6 +484,8 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
   const tabs = tabsFuerBereich(bereich);
   const [tab, setTab] = useState<Tab>(startTab && tabs.some((x) => x.id === startTab) ? startTab : "lage");
   const [ergebnisse, setErgebnisse] = useState<Record<string, { ok: boolean; text: string }>>({});
+  // Vorgewähltes Vorhaben im Katalog: von außen (Karte) oder aus der Lage der Justiz („Ansehen“ bei einem Hebel)
+  const [vorwahl, setVorwahl] = useState<string | undefined>(startVorhaben);
   if (!world.spiel) return <p>{t("ui.Reich.186589c")}</p>;
   const z = reichZustand(world);
   const liste = vorhabenListe(world, bereich);
@@ -590,7 +516,13 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
         </div>
       )}
 
-      {tab === "lage" && (
+      {/* Justiz (T6): Leitfrage, Größen und Einrichtungen als Kacheln, Einzelheiten per Klick (reich/RechtLage.tsx) */}
+      {tab === "lage" && bereich === "recht" && (
+        <RechtLage world={world} liste={GROESSEN.recht} bereit={bereitN} zuReformen={(id) => { setVorwahl(id); setTab("neu"); }}>
+          <ImBau world={world} bereich={bereich} refresh={refresh} />
+        </RechtLage>
+      )}
+      {tab === "lage" && bereich !== "recht" && (
         <>
           <section className="rr-abschnitt">
             {/* Verwaltungskraft und Baukapazität nur dort, wo Bau und Verwaltung zu Hause sind; vorher in fünf Bereichen derselbe Block (Rundgang 5. November) */}
@@ -608,8 +540,6 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
           ) : technik && <Baustelle world={world} bereich={bereich} refresh={refresh} />}
           {(bereich === "kultur" || technik) && <Dringend world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
           {bereich === "haushalt" && <Haushalt world={world} />}
-          {bereich === "recht" && <Sitze world={world} />}
-          {bereich === "recht" && <Institutionen world={world} />}
           {!technik && <ImBau world={world} bereich={bereich} refresh={refresh} />}
           <Verlauf world={world} bereich={bereich} />
           {bereich === "militaer" ? (
@@ -640,7 +570,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
         <>
           {bereich === "infrastruktur" && <Schaetzblaetter world={world} refresh={refresh} />}
           {/* Fertige Vorhaben stehen als Filter „Fertig“ im Katalog statt als zweite Kartenreihe darunter (Länge, Befund F-1) */}
-          <Neues world={world} bereich={bereich} liste={neu} alle={liste} onBeginne={beginneVorhaben} ergebnisse={ergebnisse} refresh={refresh} start={startVorhaben} {...(onKarte ? { onKarte } : {})} />
+          <Neues world={world} bereich={bereich} liste={neu} alle={liste} onBeginne={beginneVorhaben} ergebnisse={ergebnisse} refresh={refresh} start={vorwahl} {...(onKarte ? { onKarte } : {})} />
         </>
       )}
     </div>
