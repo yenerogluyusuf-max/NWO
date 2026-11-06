@@ -54,7 +54,7 @@
 .sk-vorschau p { margin: 0; font-size: var(--schrift-2); line-height: 1.35; }
 .sk-warnung { color: var(--messing-3); }
 .sk-nicht { color: #7a2f22; font-style: italic; }
-.sk-los { background: var(--seal) !important; color: var(--papier-2) !important; border-color: var(--seal) !important; }
+.sk-los { background: var(--seal) ; color: var(--papier-2) ; border-color: var(--seal) ; }
 .sk-los:disabled { opacity: 0.45; cursor: not-allowed; }
 .sk-quelle { margin: 0; font-size: var(--schrift-2); color: var(--ink-soft); opacity: 0.85; }
 

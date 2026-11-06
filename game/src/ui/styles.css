@@ -160,15 +160,22 @@ button { font: inherit; color: inherit; }
 .subtitle { color: var(--ink-soft); margin: 0 0 12px; font-size: var(--schrift-2); }
 .kind-label, .kicker { font-variant: small-caps; letter-spacing: 0.06em; font-size: var(--schrift-2); color: var(--seal); font-weight: 600; margin: 0 0 4px; }
 
-.paper button, .dossier button, .prologue-card button {
-  border: 1px solid rgba(90, 64, 40, 0.45);
-  background: linear-gradient(180deg, var(--papier-2), var(--papier-4));
-  border-radius: 4px;
+/* Grundform für Knöpfe im Blatt, die keine eigene Gestalt haben. Sie steht in :where() und hat damit kein Gewicht: Jede Klasse einer
+   Ansicht (Kreis, Kachel, Ring, Sitz, Karte) überschreibt sie ohne !important. Früher gab `.paper button, .dossier button` jedem Knopf
+   Verlauf, Ecke und Schatten mit Gewicht, und Ansichten mussten sich mit !important dagegen wehren (befund-H H-02). Die drei Knopfstufen
+   (primär, sekundär, leise) kommen aus der Klasse .knopf in akte/bauteile.css. */
+:where(.paper, .dossier, .prologue-card) :where(button) {
+  border: 1px solid rgba(124, 88, 35, 0.5);
+  background: linear-gradient(180deg, var(--papier-1), var(--papier-3));
+  border-radius: var(--rund-1);
   padding: 7px 13px;
   cursor: pointer;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--schatten-flach);
 }
-.paper button:hover, .dossier button:hover { border-color: var(--seal); }
+:where(.paper, .dossier, .prologue-card) :where(button):hover { border-color: var(--seal); }
+/* Ältere Klassen, die akte/bauteile.css der sekundären Stufe zuordnet, behalten den Innenabstand der früheren Grundregel (mit deren
+   Gewicht und an deren Stelle, damit eigene Abstände der Ansichten wie früher gewinnen oder verlieren). */
+.dossier button:where(.pd-btn, .aktion-knopf, .pe-aktion, .brass-button, .kr-knopf, .gz-knopf, .wb-knopf, .gv-knopf, .umb-akt, .zt-gehe) { padding: 7px 13px; }
 .paper button.primary, .dossier button.primary, .prologue-card button.primary {
   border: 1px solid transparent; color: var(--messing-text); font-family: var(--display); font-weight: 600; font-size: var(--schrift-3); padding: 8px 18px;
   background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel) 45%, #a57a34) padding-box, linear-gradient(180deg, var(--leder-text), var(--messing-3)) border-box;
@@ -176,7 +183,12 @@ button { font: inherit; color: inherit; }
   text-shadow: 0 1px 0 rgba(255, 244, 210, 0.7);
 }
 button:disabled { opacity: 0.45; cursor: default; }
-button.link { border: none !important; background: none !important; box-shadow: none !important; padding: 0 !important; color: var(--teal); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+/* Klickrückmeldung für jeden Knopf (befund-H H-23): Drücken senkt um einen Bildpunkt, Tastaturfokus zeigt einen Messingring. Ohne
+   Gewicht (:where) und über die eigene Eigenschaft `translate`, damit Kreise, Sitze und Marken mit eigenem transform an ihrem Ort bleiben
+   und eigene Fokusringe der Ansichten gelten. */
+:where(button, [role="tab"]):active:not(:disabled) { translate: 0 1px; }
+:where(button, [role="tab"], a, summary):focus-visible { outline: 2px solid var(--messing-2); outline-offset: 2px; }
+button.link { border: none; background: none; box-shadow: none; padding: 0; color: var(--teal); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
 /* ---------------------------------------------------------------------- */
 /* Bühne */
@@ -740,19 +752,20 @@ button.link { border: none !important; background: none !important; box-shadow: 
 /* ---------------------------------------------------------------------- */
 /* Bedienelemente in den Akten: Messing, Tinte und Stempel statt Webformular */
 
-.dossier .paper button:not(.link):not(.chip):not(.theme-head):not(.option):not(.primary):not(.stufe-karte):not(.aktion-knopf),
-.dossier-body > * button.secondary {
+/* Ohne Gewicht (:where), wie die Grundform oben: Eigene Klassen der Ansichten gewinnen ohne !important (befund-H H-02). */
+:where(.dossier .paper) :where(button:not(.link):not(.chip):not(.theme-head):not(.option):not(.primary):not(.stufe-karte):not(.aktion-knopf)),
+:where(.dossier-body > *) :where(button.secondary) {
   border: 1px solid transparent; border-radius: 4px; padding: 7px 14px; font-family: var(--serif); font-size: var(--schrift-3); font-weight: 600; color: var(--leder);
   background: linear-gradient(180deg, var(--leder-text), #e6cf98 55%, var(--messing-mittel)) padding-box, linear-gradient(180deg, var(--leder-text), var(--warnung)) border-box;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 0 var(--messing-3), 0 3px 6px rgba(60, 40, 16, 0.25);
   text-shadow: 0 1px 0 rgba(255, 250, 230, 0.8);
 }
-.dossier .paper button:not(.link):not(.chip):not(.theme-head):not(.option):not(.primary):not(.stufe-karte):not(.aktion-knopf):hover { filter: brightness(1.04); border-color: transparent; }
-.dossier .paper button:disabled { opacity: 0.55; }
+:where(.dossier .paper) :where(button:not(.link):not(.chip):not(.theme-head):not(.option):not(.primary):not(.stufe-karte):not(.aktion-knopf)):hover { filter: brightness(1.04); border-color: transparent; }
+:where(.dossier .paper) :where(button:disabled) { opacity: 0.55; }
 .dossier button.link, .prologue-card button.link {
-  color: var(--seal) !important; font-family: var(--serif); font-style: italic; text-decoration: none; border-bottom: 1px solid rgba(142, 42, 34, 0.35) !important;
+  color: var(--seal); font-family: var(--serif); font-style: italic; text-decoration: none; border-bottom: 1px solid rgba(142, 42, 34, 0.35);
 }
-.dossier button.link:hover, .prologue-card button.link:hover { border-bottom-color: var(--seal) !important; }
+.dossier button.link:hover, .prologue-card button.link:hover { border-bottom-color: var(--seal); }
 .dossier .subtitle, .dossier .when, .dossier .measured { font-family: var(--serif); font-style: italic; }
 .dossier .policy, .dossier .option.intent { border: none; outline: 1px solid rgba(90, 64, 40, 0.45); outline-offset: -4px; box-shadow: inset 0 0 0 1px rgba(90, 64, 40, 0.45); padding: 16px 18px; }
 .dossier .chip { border-radius: 4px!important; font-family: var(--serif); font-size: var(--schrift-2) !important; border: 1px solid rgba(90, 64, 40, 0.4) !important; }
@@ -999,11 +1012,11 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .ort-kopf strong { font: 600 var(--schrift-3) var(--display); }
 .ort-text { font-style: italic; color: var(--ink-soft); font-size: var(--schrift-3); }
 .ort-schnell { display: flex; flex-wrap: wrap; gap: 6px; }
-.ort-schnell button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel) 55%, var(--messing-2)) !important; }
+.ort-schnell button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel) 55%, var(--messing-2)); }
 .ort-schnell select { font: var(--schrift-2) var(--serif); padding: 6px 8px; border: 1px solid rgba(90, 64, 40, 0.5); background: var(--papier-2); color: var(--ink); border-radius: 4px; }
 .ort-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
 .ort-chips li.mehr { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); align-self: center; }
-.dossier .ort-chips button { padding: 3px 8px !important; font-size: var(--schrift-2) !important; }
+.dossier .ort-chips button { padding: 3px 8px; font-size: var(--schrift-2); }
 .ort-liste { display: grid; gap: 6px; }
 .ort-liste input[type="text"], .ort-liste input:not([type]) { font: var(--schrift-2) var(--serif); padding: 6px 8px; border: 1px solid rgba(90, 64, 40, 0.45); background: var(--papier-2); }
 .ort-liste ul { list-style: none; margin: 0; padding: 0; max-height: 210px; overflow: auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px 10px; font: var(--schrift-2) var(--serif); }
@@ -1060,9 +1073,9 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .nav-suche { width: 100%; margin: 4px 0 8px; padding: 7px 10px; font: var(--schrift-3) var(--serif); color: var(--ink); background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 4px; box-shadow: inset 0 1px 2px rgba(60, 40, 16, 0.12); }
 .nav-suche:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
 .nav-art { display: flex; margin-bottom: 8px; border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 4px; overflow: hidden; background: var(--leder-text); }
-.dossier .nav-art button { flex: 1; padding: 5px 4px !important; font: var(--schrift-2) var(--serif) !important; border: none !important; border-radius: 0!important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; color: var(--ink-soft) !important; }
-.dossier .nav-art button + button { border-left: 1px solid rgba(90, 64, 40, 0.3) !important; }
-.dossier .nav-art button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)) !important; color: var(--leder) !important; font-weight: 700 !important; }
+.dossier .nav-art button { flex: 1; padding: 5px 4px; font: var(--schrift-2) var(--serif); border: none; border-radius: 0; background: transparent; box-shadow: none; text-shadow: none; color: var(--ink-soft); }
+.dossier .nav-art button + button { border-left: 1px solid rgba(90, 64, 40, 0.3); }
+.dossier .nav-art button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)); color: var(--leder); font-weight: 700; }
 .nav-thema { border-top: 1px solid rgba(120, 90, 50, 0.25); }
 .dossier .nav-thema-kopf { width: 100%; display: flex; align-items: center; gap: 7px; padding: 8px 2px !important; text-align: left; border: none !important; background: none !important; box-shadow: none !important; font: 600 var(--schrift-3) var(--display) !important; color: var(--ink) !important; text-shadow: none !important; border-radius: 0!important; }
 .nav-thema-kopf .pfeil { width: 12px; color: var(--ink-soft); font-size: var(--schrift-1); }
@@ -1091,9 +1104,9 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .erklaerung-kopf strong { font: 600 var(--schrift-3) var(--display); }
 .erklaerung-kopf span { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
 .reiter { margin-left: auto; display: flex; border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 4px; overflow: hidden; background: var(--leder-text); }
-.dossier .reiter button { padding: 5px 12px !important; font: var(--schrift-2) var(--serif) !important; border: none !important; border-radius: 0!important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; color: var(--ink-soft) !important; cursor: pointer; }
-.dossier .reiter button + button { border-left: 1px solid rgba(90, 64, 40, 0.3) !important; }
-.dossier .reiter button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)) !important; color: var(--leder) !important; font-weight: 700 !important; }
+.dossier .reiter button { padding: 5px 12px; font: var(--schrift-2) var(--serif); border: none; border-radius: 0; background: transparent; box-shadow: none; text-shadow: none; color: var(--ink-soft); cursor: pointer; }
+.dossier .reiter button + button { border-left: 1px solid rgba(90, 64, 40, 0.3); }
+.dossier .reiter button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)); color: var(--leder); font-weight: 700; }
 .erklaerung-koerper { padding: 12px 16px 14px; font: var(--schrift-3)/1.55 var(--serif); }
 .erklaerung-koerper p { margin: 0 0 9px; }
 .erklaerung-koerper p.lead { font-size: var(--schrift-4); }
@@ -1114,8 +1127,8 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .hebel li { display: grid; gap: 1px; padding: 6px 10px; background: rgba(255, 250, 235, 0.6); border-left: 3px solid var(--gold-2); }
 .hebel li span { font: italic var(--schrift-3)/1.4 var(--serif); color: var(--ink-soft); }
 .welt-wahl { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
-.dossier .welt-wahl button { padding: 3px 10px !important; font: var(--schrift-2) var(--serif) !important; }
-.dossier .welt-wahl button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)) !important; }
+.dossier .welt-wahl button { padding: 3px 10px; font: var(--schrift-2) var(--serif); }
+.dossier .welt-wahl button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)); }
 .welt-hinweis { font: italic var(--schrift-2)/1.45 var(--serif) !important; color: var(--ink-soft); border-left: 2px solid var(--teal); padding-left: 10px; margin-top: 10px !important; }
 
 /* Weltvergleich als Balken */
@@ -1160,9 +1173,9 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .stufe-kopf .neu b { color: var(--seal); }
 .skala { display: flex; justify-content: space-between; font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); margin: -2px 2px 4px; }
 .aktionen { display: flex; gap: 10px; align-items: stretch; padding-top: 12px; border-top: 1px solid rgba(120, 90, 50, 0.28); }
-.dossier .aktionen button { padding: 9px 14px !important; font: 600 var(--schrift-3) var(--serif) !important; }
+.dossier .aktionen button { padding: 9px 14px; font: 600 var(--schrift-3) var(--serif); }
 .dossier .aktionen button.primary { flex: 1; }
-.dossier .aktionen button.ghost { background: transparent !important; box-shadow: none !important; border: 1px solid rgba(90, 64, 40, 0.55) !important; color: var(--ink) !important; text-shadow: none !important; }
+.dossier .aktionen button.ghost { background: transparent; box-shadow: none; border: 1px solid rgba(90, 64, 40, 0.55); color: var(--ink); text-shadow: none; }
 .dossier .aktionen button:disabled { opacity: 0.5; cursor: not-allowed; filter: saturate(0.6); }
 .hinweiszeile { margin: 8px 0 0; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--ink-soft); }
 .hinweiszeile.warn { color: var(--seal); }
@@ -1184,17 +1197,17 @@ button.link { border: none !important; background: none !important; box-shadow: 
 /* Ortswahl: zusammenhängende Leiste mit eigenen Menüs */
 .ortwahl { position: relative; display: grid; gap: 8px; margin: 0 !important; padding: 0 !important; border: none !important; }
 .seg { display: flex; border: 1px solid rgba(90, 64, 40, 0.6); border-radius: 4px; overflow: hidden; background: var(--leder-text); box-shadow: inset 0 1px 2px rgba(60, 40, 16, 0.15); }
-.dossier .seg button { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 8px !important; font: 600 var(--schrift-2) var(--serif) !important; white-space: nowrap; border: none !important; border-radius: 0!important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; color: var(--ink) !important; cursor: pointer; }
-.dossier .seg button + button { border-left: 1px solid rgba(90, 64, 40, 0.35) !important; }
-.dossier .seg button:hover:not(:disabled) { background: rgba(255, 246, 220, 0.9) !important; filter: none; }
-.dossier .seg button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel) 60%, var(--messing-2)) !important; color: var(--messing-text) !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important; }
-.dossier .seg button:disabled { color: rgba(60, 46, 30, 0.4) !important; cursor: not-allowed; opacity: 1; }
+.dossier .seg button { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 8px; font: 600 var(--schrift-2) var(--serif); white-space: nowrap; border: none; border-radius: 0; background: transparent; box-shadow: none; text-shadow: none; color: var(--ink); cursor: pointer; }
+.dossier .seg button + button { border-left: 1px solid rgba(90, 64, 40, 0.35); }
+.dossier .seg button:hover:not(:disabled) { background: rgba(255, 246, 220, 0.9); filter: none; }
+.dossier .seg button.on { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel) 60%, var(--messing-2)); color: var(--messing-text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+.dossier .seg button:disabled { color: rgba(60, 46, 30, 0.4); cursor: not-allowed; opacity: 1; }
 .seg b { min-width: 18px; padding: 0 5px; border-radius: 10px; font: 700 var(--schrift-2)/17px var(--serif); background: var(--seal); color: var(--papier-2); }
 .seg .pf { font-size: var(--schrift-2); opacity: 0.7; }
 .pop { position: absolute; z-index: 30; top: 46px; left: 0; right: 0; max-height: 330px; overflow: auto; display: grid; padding: 4px; background: var(--paper-light); border: 1px solid var(--ink); outline: 3px double rgba(42, 31, 24, 0.5); outline-offset: 2px; box-shadow: 0 12px 30px rgba(20, 10, 4, 0.4); animation: rise 160ms ease both; }
-.dossier .pop > button { display: grid; grid-template-columns: 14px 1fr; gap: 2px 10px; align-items: center; text-align: left; padding: 8px 10px !important; border: none !important; border-radius: 4px!important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; color: var(--ink) !important; font-family: var(--serif) !important; cursor: pointer; }
-.dossier .pop > button:hover { background: var(--warnung-flaeche) !important; }
-.dossier .pop > button.on { background: var(--messing-1) !important; }
+.dossier .pop > button { display: grid; grid-template-columns: 14px 1fr; gap: 2px 10px; align-items: center; text-align: left; padding: 8px 10px; border: none; border-radius: 4px; background: transparent; box-shadow: none; text-shadow: none; color: var(--ink); font-family: var(--serif); cursor: pointer; }
+.dossier .pop > button:hover { background: var(--warnung-flaeche); }
+.dossier .pop > button.on { background: var(--messing-1); }
 .pop > button i { grid-row: 1 / 3; width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(40, 30, 20, 0.5); }
 .pop .pop-name { font-size: var(--schrift-3); font-weight: 600; }
 .pop .pop-meta { grid-column: 2; font-size: var(--schrift-2); font-style: italic; color: var(--ink-soft); }
@@ -1209,7 +1222,7 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .pop-fuss span { margin-right: auto; }
 .ort-text { margin: 0; font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
 .ort-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
-.dossier .ort-chips button { padding: 3px 9px !important; font: var(--schrift-2) var(--serif) !important; border: 1px solid rgba(90, 64, 40, 0.5) !important; border-radius: 10px!important; background: var(--warnung-flaeche) !important; box-shadow: none !important; text-shadow: none !important; color: var(--ink) !important; cursor: pointer; }
+.dossier .ort-chips button { padding: 3px 9px; font: var(--schrift-2) var(--serif); border: 1px solid rgba(90, 64, 40, 0.5); border-radius: 10px; background: var(--warnung-flaeche); box-shadow: none; text-shadow: none; color: var(--ink); cursor: pointer; }
 .dossier .ort-chips button span { color: var(--seal); font-size: var(--schrift-1); margin-left: 3px; }
 
 /* Ereignisbilder: niedrig, damit Text und Antworten ohne Blättern zu sehen sind */
@@ -1396,9 +1409,9 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .art-satz .stufe-karte.on, .art-menge .stufe-karte.on { padding-block: 7px; }
 .stufe-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .ortwahl .seg { display: grid; grid-template-columns: 1fr 1fr; }
-.dossier .ortwahl .seg button + button { border-left: 1px solid rgba(90, 64, 40, 0.35) !important; }
-.dossier .ortwahl .seg button:nth-child(2n+1) { border-left: none !important; }
-.dossier .ortwahl .seg button:nth-child(n+3) { border-top: 1px solid rgba(90, 64, 40, 0.35) !important; }
+.dossier .ortwahl .seg button + button { border-left: 1px solid rgba(90, 64, 40, 0.35); }
+.dossier .ortwahl .seg button:nth-child(2n+1) { border-left: none; }
+.dossier .ortwahl .seg button:nth-child(n+3) { border-top: 1px solid rgba(90, 64, 40, 0.35); }
 
 /* Ereignisse: Wirkung je Antwort und der direkte Weg zur Ursache */
 .opt-wirkung { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 6px; }
@@ -1516,9 +1529,9 @@ button.link { border: none !important; background: none !important; box-shadow: 
 .welt-gruppe { margin-top: 12px; }
 .welt-gruppe > b, .welt-zahlen > b, .welt-anliegen > b, .welt-aktionen > b, .welt-erinnerung > b { display: block; margin-bottom: 6px; font: 600 var(--schrift-1) var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 .welt-wahl { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 7px; }
-.dossier .welt-wahl button { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 9px; align-items: center; width: 100%; padding: 7px 9px !important; text-align: left; cursor: pointer; color: var(--ink); text-shadow: none; background: var(--papier-2) !important; border: 1px solid rgba(90, 64, 40, 0.32) !important; box-shadow: none !important; border-radius: 4px!important; }
-.dossier .welt-wahl button:hover { background: var(--leder-text) !important; }
-.dossier .welt-wahl button.on { background: var(--messing-1) !important; border: 2px solid var(--seal) !important; padding: 6px 8px !important; }
+.dossier .welt-wahl button { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 9px; align-items: center; width: 100%; padding: 7px 9px; text-align: left; cursor: pointer; color: var(--ink); text-shadow: none; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.32); box-shadow: none; border-radius: 4px; }
+.dossier .welt-wahl button:hover { background: var(--leder-text); }
+.dossier .welt-wahl button.on { background: var(--messing-1); border: 2px solid var(--seal); padding: 6px 8px; }
 .welt-medaille { grid-row: 1 / 3; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; font: 700 var(--schrift-1) var(--display); color: var(--papier-2); box-shadow: 0 0 0 1.5px var(--gold-3); }
 .welt-medaille.ton-gut { background: var(--gut); }
 .welt-medaille.ton-mittel { background: #a8842f; }

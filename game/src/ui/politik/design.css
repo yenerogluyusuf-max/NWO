@@ -424,7 +424,7 @@
 
 /* Die Aktion steht unter den Optionen, klar abgesetzt */
 .dossier .aktionen { margin-top: 10px; padding: 16px 0 0; border-top: 1px solid var(--pd-line-strong); gap: 12px; }
-.dossier .aktionen button.primary { border-color: var(--messing-3) !important; background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel) 48%, var(--messing-2)) !important; color: var(--messing-text) !important; text-shadow: 0 1px 0 rgba(255, 240, 200, 0.55) !important; box-shadow: 0 1px 0 rgba(255, 246, 214, 0.9) inset, 0 2px 4px rgba(60, 40, 16, 0.3) !important; }
+.dossier .aktionen button.primary { border-color: var(--messing-3); background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel) 48%, var(--messing-2)); color: var(--messing-text); text-shadow: 0 1px 0 rgba(255, 240, 200, 0.55); box-shadow: 0 1px 0 rgba(255, 246, 214, 0.9) inset, 0 2px 4px rgba(60, 40, 16, 0.3); }
 .dossier .aktionen button.primary:disabled { filter: saturate(0.5); }
 
 /* Ursachen und Wirkungen unter der Entscheidung */

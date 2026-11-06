@@ -24,17 +24,17 @@
 .ba-gruppe h4 { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
 .ba-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
 .ba .ba-eintrag {
-  width: 100%; text-align: left; display: grid; gap: 1px; padding: 7px 10px 6px 12px !important;
-  border: 1px solid rgba(90, 64, 40, 0.3) !important; border-left: 4px solid var(--ba-still) !important; border-radius: 4px!important;
-  background: rgba(255, 250, 235, 0.55) !important; box-shadow: none !important;
+  width: 100%; text-align: left; display: grid; gap: 1px; padding: 7px 10px 6px 12px ;
+  border: 1px solid rgba(90, 64, 40, 0.3) ; border-left: 4px solid var(--ba-still) ; border-radius: 4px;
+  background: rgba(255, 250, 235, 0.55) ; box-shadow: none ;
 }
-.ba .ba-eintrag:hover { background: rgba(255, 250, 235, 0.95) !important; }
-.ba .ba-eintrag.an { background: var(--papier-2) !important; box-shadow: 0 2px 6px rgba(60, 40, 16, 0.2) !important; border-color: rgba(90, 64, 40, 0.55) !important; }
+.ba .ba-eintrag:hover { background: rgba(255, 250, 235, 0.95) ; }
+.ba .ba-eintrag.an { background: var(--papier-2) ; box-shadow: 0 2px 6px rgba(60, 40, 16, 0.2) ; border-color: rgba(90, 64, 40, 0.55) ; }
 .ba .ba-eintrag:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
-.ba-eintrag.phase-wirkt { border-left-color: var(--ba-gut) !important; }
-.ba-eintrag.phase-gemischt { border-left-color: var(--ba-gemischt) !important; }
-.ba-eintrag.phase-gegenlaeufig { border-left-color: var(--ba-schlecht) !important; }
-.ba-eintrag.phase-zu_frueh { border-left-color: var(--ba-frueh) !important; }
+.ba-eintrag.phase-wirkt { border-left-color: var(--ba-gut) ; }
+.ba-eintrag.phase-gemischt { border-left-color: var(--ba-gemischt) ; }
+.ba-eintrag.phase-gegenlaeufig { border-left-color: var(--ba-schlecht) ; }
+.ba-eintrag.phase-zu_frueh { border-left-color: var(--ba-frueh) ; }
 .ba-eintrag-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .ba-eintrag-kopf b { font: 600 var(--schrift-2) var(--serif); }
 .ba-eintrag-kopf em { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.07em; text-transform: uppercase; font-style: normal; color: var(--ink-soft); white-space: nowrap; }

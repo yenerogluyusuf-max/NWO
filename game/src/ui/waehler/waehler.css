@@ -98,16 +98,16 @@
 .wa-liste h3 { font-size: var(--schrift-5); }
 .wa-liste ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; }
 .dossier button.wa-gruppe {
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; width: 100%; padding: 12px 14px 11px !important; text-align: left; cursor: pointer; border-radius: 6px!important;
-  border: 1px solid var(--pd-line) !important; border-left: 5px solid var(--messing-2) !important; background: var(--pd-card) !important; box-shadow: var(--pd-schatten) !important; color: var(--pd-ink) !important; text-shadow: none;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; width: 100%; padding: 12px 14px 11px; text-align: left; cursor: pointer; border-radius: 6px;
+  border: 1px solid var(--pd-line); border-left: 5px solid var(--messing-2); background: var(--pd-card); box-shadow: var(--pd-schatten); color: var(--pd-ink); text-shadow: none;
   transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
 }
-.dossier button.wa-gruppe:hover { transform: translateX(2px); border-color: var(--gold-3) !important; }
+.dossier button.wa-gruppe:hover { transform: translateX(2px); border-color: var(--gold-3); }
 .dossier button.wa-gruppe:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
-.dossier button.wa-gruppe.on { background: var(--pd-card-hell) !important; border-color: rgba(167, 122, 20, 0.8) !important; box-shadow: 0 0 0 3px rgba(198, 154, 74, 0.28), var(--pd-schatten-hoch) !important; }
-.dossier button.wa-gruppe.rolle-traeger { border-left-color: var(--pd-teal) !important; }
-.dossier button.wa-gruppe.rolle-schwankend { border-left-color: var(--messing-2) !important; }
-.dossier button.wa-gruppe.rolle-gegner { border-left-color: var(--seal) !important; }
+.dossier button.wa-gruppe.on { background: var(--pd-card-hell); border-color: rgba(167, 122, 20, 0.8); box-shadow: 0 0 0 3px rgba(198, 154, 74, 0.28), var(--pd-schatten-hoch); }
+.dossier button.wa-gruppe.rolle-traeger { border-left-color: var(--pd-teal); }
+.dossier button.wa-gruppe.rolle-schwankend { border-left-color: var(--messing-2); }
+.dossier button.wa-gruppe.rolle-gegner { border-left-color: var(--seal); }
 .wa-g-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .wa-g-kopf strong { flex: 1 1 auto; font: 600 var(--schrift-4)/1.2 var(--display); }
 .wa-g-rolle { flex: none; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.08em; color: var(--pd-soft); white-space: nowrap; }
@@ -195,8 +195,8 @@
 .wa-hilfe-kopf strong span { font: var(--schrift-3) var(--serif); color: var(--pd-soft); font-weight: 400; }
 .wa-hilfe-kosten { padding: 0 10px; border: 1px solid rgba(167, 122, 20, 0.5); border-radius: 999px; font: 700 var(--schrift-2)/22px var(--serif); background: rgba(230, 197, 108, 0.45); color: #4a3308; white-space: nowrap; }
 .wa-hilfe p { margin: 0; font: var(--schrift-3)/1.45 var(--serif); }
-.wa-hilfe-neben { font-size: var(--schrift-3) !important; }
-.wa-hilfe-fuss { color: var(--pd-soft); font-size: var(--schrift-3) !important; }
+.wa-hilfe-neben { font-size: var(--schrift-3) ; }
+.wa-hilfe-fuss { color: var(--pd-soft); font-size: var(--schrift-3) ; }
 .wa-hilfe-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 .wa-vorschau { width: 100%; border-collapse: collapse; margin-top: 8px; font: var(--schrift-3) var(--serif); }
 .wa-vorschau th, .wa-vorschau td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--pd-line); font-variant-numeric: tabular-nums lining-nums; }

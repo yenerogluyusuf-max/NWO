@@ -18,8 +18,8 @@
 .mk-mitte { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px; pointer-events: none; }
 .mk-mitte span { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 .dossier .mk-person, .mk-person {
-  position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 1px; width: 92px; padding: 3px 2px 4px !important;
-  border: 0 !important; background: transparent !important; box-shadow: none !important; cursor: pointer; text-align: center;
+  position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 1px; width: 92px; padding: 3px 2px 4px ;
+  border: 0 ; background: transparent ; box-shadow: none ; cursor: pointer; text-align: center;
 }
 .mk-person > :first-child { border-radius: 50%; box-shadow: 0 0 0 3px var(--ring, rgba(90, 64, 40, 0.3)); }
 .mk-person.gut { --ring: rgba(93,66,49, 0.7); }
@@ -49,7 +49,7 @@
 .mk-rot { color: var(--seal); font-weight: 600; }
 .mk-hebel { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 .mk-balken { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
-.dossier .mk-hebel button, .mk-hebel button { display: grid; gap: 1px; align-content: start; text-align: left; padding: 5px 8px !important; border: 1px solid rgba(90, 64, 40, 0.3) !important; border-radius: 4px; background: var(--papier-1) !important; cursor: pointer; }
+.dossier .mk-hebel button, .mk-hebel button { display: grid; gap: 1px; align-content: start; text-align: left; padding: 5px 8px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 4px; background: var(--papier-1); cursor: pointer; }
 .mk-hebel button:disabled { opacity: 0.55; cursor: default; }
 .mk-hebel-kopf { display: flex; justify-content: space-between; gap: 8px; }
 .mk-hebel-kopf strong { font: 600 var(--schrift-2) var(--display); }

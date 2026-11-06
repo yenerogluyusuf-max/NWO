@@ -124,7 +124,7 @@
 }
 
 /* Die allgemeinen Knopf- und Überschriftenstile der Akten gelten in der Tafel nicht: Namen sind Text, Gruppen leise Zwischenzeilen */
-.dossier .hd button.hd-name { all: unset; display: grid; gap: 1px; min-width: 0; cursor: pointer; color: var(--messing-text); font: var(--schrift-3)/1.25 var(--serif) !important; text-transform: none !important; letter-spacing: 0 !important; overflow-wrap: break-word; hyphens: auto; }
+.dossier .hd button.hd-name { all: unset; display: grid; gap: 1px; min-width: 0; cursor: pointer; color: var(--messing-text); font: var(--schrift-3)/1.25 var(--serif); text-transform: none; letter-spacing: 0; overflow-wrap: break-word; hyphens: auto; }
 .dossier .hd button.hd-name:hover span, .dossier .hd button.hd-name:focus-visible span { text-decoration: underline; text-underline-offset: 3px; }
 .dossier .hd button.hd-name small { font: var(--schrift-1)/1.2 var(--serif); color: var(--messing-3); }
 .dossier .hd .hd-regler button { all: unset; box-sizing: border-box; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: var(--papier-1); color: var(--tinte-2); font: 600 var(--schrift-3)/1 var(--serif); cursor: pointer; }
