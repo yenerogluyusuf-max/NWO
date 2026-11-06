@@ -5,7 +5,7 @@
 // finden alle fünf Jahre statt; die erste am 25.03.2029 (tuerkei/INSTITUTIONEN.md, belegt), danach jeweils Ende März fünf Jahre später
 // (Tag als Spielparameter). Bürgermeister werden mit relativer Mehrheit gewählt (Gesetz 2972, tuerkei/INSTITUTIONEN.md): In jeder Provinz
 // gewinnt der stärkste Kandidat. Die örtlichen Anteile der Parteien kommen aus der letzten Parlamentswahl, verteilt nach den Hochburgen
-// von 2023 (data/provinzdaten.json, stimmen2023, belegt; sim/prolog.ts, lokaleAnteile), dazu die Stimmung seit der Parlamentswahl, das
+// von 2023 (data/provinzdaten.json, stimmen2023, belegt; sim/lokale-anteile.ts, lokaleAnteile), dazu die Stimmung seit der Parlamentswahl, das
 // Vertrauen in die Regierung vor Ort, der Amtsbonus, Bündnisse (Lager und Oppositionsbündnis mit gemeinsamem Kandidaten) und die
 // Zwangsverwaltung.
 //
@@ -27,7 +27,7 @@ import { hashWert, verbrauche } from "./aufmerksamkeit";
 import { marktSchock } from "./maerkte";
 import { gesellschaftVon, grollAendern, knotenIn, kurdischeProvinzen, repressionBuchen } from "./gesellschaft";
 import { parteiName } from "./opposition";
-import { lokaleAnteile } from "./prolog";
+import { lokaleAnteile } from "./lokale-anteile";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { t } from "../i18n";

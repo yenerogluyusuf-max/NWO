@@ -1392,7 +1392,7 @@ export interface SpannungsVerlauf {
 export function spannungsVerlauf(w: World, k: KriegVorgang): SpannungsVerlauf | undefined {
   if (k.phase !== "spannung" && k.phase !== "drohkulisse") return undefined;
   const genaehrt = k.genaehrt ?? k.seit;
-  let konflikt = weltZustand(w)[k.land]?.konflikt ?? k.eskalation;
+  let konflikt = w.spiel?.welt?.[k.land]?.konflikt ?? k.eskalation;
   const ruhewert = konfliktRuhewert(w, k.land);
   const heute = konflikt;
   let esk = k.eskalation;
@@ -1613,11 +1613,19 @@ function zwischenfaelle(w: World, rng: Rng): void {
   const z = weltZustand(w);
   for (const l of LAENDER) {
     const konflikt = z[l.id]?.konflikt ?? 0;
-    // Auch während einer Spannung oder Drohkulisse: Ein Zwischenfall nährt sie (kriegTag erkennt den Sprung); im Krieg zählt die Front
+    // Auch während einer Spannung: Ein Zwischenfall nährt sie (kriegTag erkennt den Sprung) und kann sie zur Drohkulisse treiben, die eine
+    // Entscheidung verlangt. In der Drohkulisse und später nicht: Sonst zogen Zwischenfälle allein einen Präsidenten, der nicht antwortet,
+    // bis zum Angriff (scripts/wahlkampf-krisenlauf.ts: Israel schlägt im Dezember 2028 zu); weiter eskaliert sie dort nur durch eigene
+    // Schritte oder die offene Drohung des Gegners
     const kv = kriegMit(w, l.id);
-    if (konflikt < 50 || (kv && kv.phase !== "spannung" && kv.phase !== "drohkulisse")) continue;
+    if (konflikt < 50 || (kv && kv.phase !== "spannung")) continue;
     if (rng.next() >= (konflikt - 50) / 300) continue;
     if (ohneKriegsvorgang(l.id) && konflikt >= KRIEG.anlageAb - 8) continue;
+    // Ebenso, solange nach einem abgeklungenen Vorgang kein neuer entstehen darf (Abkühlung): Sonst trieben Zwischenfälle den Konflikt
+    // ungesehen über die Schwelle, und der nächste Vorgang begann gleich an der Angriffsschwelle (frische Partie, Samen 6: Israel schlägt
+    // einen Tag nach der Drohkulisse zu)
+    const sp = w.spiel;
+    if (!kv && sp && w.day - (sp.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung && konflikt >= KRIEG.anlageAb - 8) continue;
     const plus = 4 + Math.round(rng.next() * 4);
     landAendern(w, l.id, { konflikt: plus }, t("krieg.k.zwischenfall.notiz"));
     hinweis(w, `krieg-zwischenfall-${l.id}-${w.day}`, t("krieg.k.zwischenfall.titel", { land: l.name }), [t("krieg.k.zwischenfall.text", { land: l.name, ort: zwischenfallOrt(l.id), alt: Math.round(konflikt), neu: Math.round(konflikt + plus) })]);

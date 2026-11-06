@@ -31,7 +31,7 @@ import {
 } from "../data/welt-daten";
 import { WEITERE, WEITERE_NACH_ID, type WeitereDef } from "../data/welt-weitere";
 import { INSTITUTIONEN, INSTITUTION_NACH_ID, type TuerkeiStatus } from "../data/welt-institutionen";
-import { AKTIONEN, land, landAendern, setzeWeltHaken, vertrauenZu, weltZustand, type AktionId } from "./laender";
+import { AKTIONEN, land, landAendern, landSicht, setzeWeltHaken, vertrauenSicht, vertrauenZu, weltZustand, type AktionId } from "./laender";
 import { NET } from "./modell";
 import { addLog } from "./log";
 import { addDays } from "./dates";
@@ -450,8 +450,9 @@ export function setzePaar(m: WeltModell, a: string, b: string, d: { buendnis?: n
 /** Die Beziehung eines Akteurs zur Türkei in den vier Dimensionen, gleich ob Haupt- oder weiterer Akteur. */
 export function beziehungZurTuerkei(w: World, id: string): { handel: number; sicherheit: number; vertrauen: number; konflikt: number } {
   if (istHauptakteur(id)) {
-    const z = weltZustand(w)[id]!;
-    return { handel: z.handel, sicherheit: z.sicherheit, vertrauen: vertrauenZu(w, id), konflikt: z.konflikt };
+    // Nur lesen: Die Kartenfarben rufen das bei jedem Bild auf und dürfen den Spielstand nicht anlegen (test/linsen.test.tsx)
+    const z = landSicht(w, id);
+    return { handel: z.handel, sicherheit: z.sicherheit, vertrauen: vertrauenSicht(w, id), konflikt: z.konflikt };
   }
   return { ...eigenVon(w, id).tr! };
 }
