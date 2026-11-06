@@ -62,3 +62,4 @@
 .hb-kurz{gap:12px}.hb-kurz .hb-raster{grid-template-columns:minmax(0,1fr)}
 @container(max-width:640px){.hb-kopf,.hb-raster{grid-template-columns:minmax(0,1fr)}.hb-zusagen li{grid-template-columns:minmax(0,1fr) auto}.hb-zusage{grid-column:1/-1}}
 .hb-tabelle .txt{text-align:left}.hb-monat{white-space:nowrap}
+.hb-kopf{display:flex;flex-wrap:wrap;justify-content:space-between}.hb-kopf>.hb-titel{flex:1 1 300px}.hb-kopf>.hb-kz{flex:0 1 auto}

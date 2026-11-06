@@ -54,3 +54,5 @@
 .vm-bericht>footer{padding-top:8px;border-top:1px solid rgba(90,64,40,.15);font:italic var(--schrift-1)/1.4 var(--serif);color:var(--tinte-3)}
 .vm-monatslink{margin-top:18px}.vm-monatslink>summary{font-size:var(--schrift-2);padding:12px 0;color:var(--tinte-3)}
 @container(max-width:580px){.vm-entscheidungen,.vm-bericht .vm-kopf{grid-template-columns:1fr}}
+/* Kopf bricht um, statt den Titel zu quetschen (schmale Spalte auf dem Schreibtisch) */
+.vm-bericht .vm-kopf{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center}.vm-bericht .vm-kopf>div{flex:1 1 260px}.vm-bericht .vm-kopf>.vm-kennzahlen{flex:0 1 auto}
