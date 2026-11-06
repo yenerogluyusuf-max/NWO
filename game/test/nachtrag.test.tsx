@@ -29,6 +29,32 @@ const profil: PlayerProfile = {
   wahl: { runde: 2, anteil: 51 },
 };
 
+/** Die Partie endete vor der Wahl aus einem anderen Grund als der Wahl (Zusammenbruch, Putsch, Enthebung). */
+class VorzeitigesEnde extends Error {}
+
+/**
+ * Stände für `anzahl` Partien ab den gewünschten Samen. Partien, die vor der Wahl aus einem anderen Grund enden, prüfen die Wahlmechanik nicht;
+ * an ihre Stelle treten die nächsten Samen, höchstens doppelt so viele Versuche wie Partien. Enden mehr vorzeitig, scheitert der Test: Das ist dann
+ * selbst ein Befund (Entscheidung des Koordinators, 6. November 2026).
+ */
+function staende(samen: number[], monateNachWahl = 2): World[] {
+  const out: World[] = [];
+  const vorzeitig: string[] = [];
+  let naechster = Math.max(...samen) + 1;
+  const kandidaten = [...samen];
+  for (let versuch = 0; out.length < samen.length; versuch++) {
+    if (versuch >= 2 * samen.length) throw new Error(`Zu viele Partien enden vor der Wahl: ${vorzeitig.join("; ")}`);
+    const seed = kandidaten.shift() ?? naechster++;
+    try {
+      out.push(alterStand(seed, monateNachWahl));
+    } catch (e) {
+      if (!(e instanceof VorzeitigesEnde)) throw e;
+      vorzeitig.push(e.message);
+    }
+  }
+  return out;
+}
+
 /** Ein Stand im alten Format, `monateNachWahl` Monate nach der Wahl (Amtszeit 2, Parlament und Lager wie vor der Wahl, ohne Historie). */
 function alterStand(seed = 5, monateNachWahl = 2): World {
   const w = createWorld(turkey2026, seed);
@@ -43,7 +69,9 @@ function alterStand(seed = 5, monateNachWahl = 2): World {
     for (let i = 0; i < 3; i++) sp.kalibrierung += 80 - zielZustimmung(w);
     sp.umfrage.zustimmung = 80;
   }
-  advance(w, sp.wahltag - w.day - 2);
+  if (!sp.ende) advance(w, sp.wahltag - w.day - 2);
+  // Endet die Partie vor der Wahl aus einem anderen Grund (Zusammenbruch, Putsch, Enthebung), sagt sie nichts über die Wahl: Ersatz-Samen
+  if (sp.ende) throw new VorzeitigesEnde(`Samen ${seed}: ${sp.ende.art} am ${sp.ende.datum}`);
   const parlament = JSON.parse(JSON.stringify(w.parliament));
   const lager = [...sp.lager];
   advance(w, 4);
@@ -121,7 +149,7 @@ describe("Die Frage", () => {
   });
 
   test("Der Merker überlebt Speichern und Laden; ein Stand mit offener Frage fragt nach dem Laden weiter, ein beantworteter nie wieder", () => {
-    const w = alterStand(6);
+    const w = staende([6])[0]!;
     advance(w, 1);
     const geladen = load(save(w));
     expect(parlamentNachtragFrage(geladen)?.status).toBe("frage");
@@ -232,8 +260,7 @@ describe("Antwort Ja", () => {
     const mittel = (zustimmung: number): number => {
       let d = 0;
       const seeds = [1, 2, 3, 4, 5, 6];
-      for (const seed of seeds) {
-        const w = alterStand(seed);
+      for (const w of staende(seeds)) {
         const sp = w.spiel!;
         for (const v of sp.umfrage.verlauf) if (v.monat === "2033-06") v.wert = zustimmung;
         advance(w, 1);

@@ -8,6 +8,10 @@ import { nationalAverage, startAverage } from "../src/sim/netz";
 import { setPolicy } from "../src/sim/handeln";
 import { PARAMS, glaubwuerdigkeitsAbzug, glaubwuerdigkeitsZuwachs, monthlyUpdate, ungedeckterMehrbedarf } from "../src/sim/economy";
 import { Rng } from "../src/sim/rng";
+import { VORLAGEN } from "../src/sim/ereignisse";
+
+/** Die festen Termine des Staatsjahres (sim/ereignisse.ts, TERMINE): Sie sind kein Zufall und bleiben in der Messung des Modells. */
+const FESTE_TERMINE = new Set(["mindestlohn", "haushaltsjahr", "kommunalwahl", "zusage", "koalitionsangebot"]);
 import type { EconomyState, MonthlySnapshot, World } from "../src/sim/types";
 
 const kosten = (w: World) => nationalAverage(NET, w.net, "kostendruck") - startAverage(NET, w.net, "kostendruck");
@@ -157,9 +161,19 @@ describe.skipIf(!existsSync(INHABER))("Spielstand des Inhabers (Welle H5)", () =
   });
 
   test("bei 9 % Realzins sinkt die Inflation über zwei Jahre, die Glaubwürdigkeit erholt sich, und das kostet", () => {
+    // Gemessen wird das Inflationsmodell, nicht der Zufallsverlauf: Zufallsereignisse würfeln nicht. Die festen Termine des Staatsjahres
+    // (Mindestlohn, Haushaltsjahr, Kommunalwahl) kommen weiter und laufen ohne Antwort in ihre Standardfolge, wie in jeder Partie.
+    // Mit Zufallsereignissen schwankte die Inflation nach 24 Monaten je nach Verlauf zwischen 13,0 und 15,2 %, je nachdem, welche Vorgänge
+    // in welchem Monat kamen (Messung Welle H3, 6. November 2026). Schwellen und Aussage sind unverändert.
     const w = inhaber();
     const start = { inf: w.economy.inflation, glaub: w.economy.credibility, alq: w.economy.unemployment, zins: w.economy.policyRate };
-    for (let m = 0; m < 24; m++) monat(w);
+    const chancen = VORLAGEN.map((v) => v.chance);
+    try {
+      for (const v of VORLAGEN) if (!FESTE_TERMINE.has(v.id)) v.chance = () => 0;
+      for (let m = 0; m < 24; m++) monat(w);
+    } finally {
+      VORLAGEN.forEach((v, i) => (v.chance = chancen[i]!));
+    }
     expect(w.economy.inflation).toBeLessThan(start.inf - 2);
     expect(w.economy.credibility).toBeGreaterThan(start.glaub + 0.1);
     expect(w.economy.policyRate).toBeLessThan(start.zins);

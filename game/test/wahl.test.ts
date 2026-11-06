@@ -57,6 +57,29 @@ function bisWahltag(w: World): void {
   advance(w, w.spiel!.wahltag - w.day + 1);
 }
 
+/**
+ * Partien bis zur Wahl bei gesetzter Zustimmung. Endet eine vor der Wahl aus einem anderen Grund (Zusammenbruch, Putsch, Enthebung), prüft sie die
+ * Wahlmechanik nicht; an ihre Stelle tritt der nächste Samen, höchstens doppelt so viele Versuche wie Partien. Enden mehr vorzeitig, scheitert
+ * der Test: Das ist dann selbst ein Befund (Entscheidung des Koordinators, 6. November 2026).
+ */
+function bisZurWahl(samen: number[], zustimmung: number): World[] {
+  const out: World[] = [];
+  const vorzeitig: string[] = [];
+  let naechster = Math.max(...samen) + 1;
+  const kandidaten = [...samen];
+  for (let versuch = 0; out.length < samen.length; versuch++) {
+    if (versuch >= 2 * samen.length) throw new Error(`Zu viele Partien enden vor der Wahl: ${vorzeitig.join("; ")}`);
+    const seed = kandidaten.shift() ?? naechster++;
+    const w = spiel(seed);
+    stelleZustimmung(w, zustimmung);
+    bisWahltag(w);
+    const ende = w.spiel!.ende;
+    if (ende && !w.spiel!.wahl) vorzeitig.push(`Samen ${seed}: ${ende.art} am ${ende.datum}`);
+    else out.push(w);
+  }
+  return out;
+}
+
 describe("Kandidatenfeld", () => {
   test("Amtsinhaber, Hauptgegner und ein Dritter, mit Parteien", () => {
     const w = spiel();
@@ -190,10 +213,7 @@ describe("Parlamentswahl am selben Tag", () => {
   test("Der Zugewinn des Präsidenten schlägt auf das Lager durch: hohe Zustimmung ergibt mehr Sitze als niedrige", () => {
     const mittel = (z: number) => {
       let s = 0;
-      for (const seed of [1, 2, 3, 4, 5, 6]) {
-        const w = spiel(seed);
-        stelleZustimmung(w, z);
-        bisWahltag(w);
+      for (const w of bisZurWahl([1, 2, 3, 4, 5, 6], z)) {
         // Die Parlamentswahl ist am ersten Wahltag entschieden, auch wenn die Stichwahl noch aussteht
         s += (w.spiel!.wahl!.stichwahl?.parlament ?? w.spiel!.wahl!.historie[0]!.parlament).lagerSitzeNachher;
       }
