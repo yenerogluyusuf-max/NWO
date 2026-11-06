@@ -209,3 +209,4 @@ html[data-effekte="aus"] .umb-karte, html[data-effekte="aus"] .umb-stempel, html
 .wn-urteil-stufe { margin: 0; font: 500 28px/1.15 var(--display); color: var(--ink, #2a1f18); }
 .wn-urteil.golden .wn-urteil-stufe, .wn-urteil.heroisch .wn-urteil-stufe { color: #7c5823; }
 .wn-urteil.dunkel .wn-urteil-stufe { color: var(--seal, #8e2a22); }
+.wn-einfluesse li.basis { font-weight: 700; border-bottom-style: solid; }

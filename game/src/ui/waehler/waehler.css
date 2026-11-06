@@ -295,3 +295,49 @@
 .wa-feld-zone.traeger { border-color: rgba(38, 90, 98, 0.55); }
 .wa-root .wa-barometer .wa-baro-zahl strong { font-size: 44px; line-height: 1; }
 .wa-root .wa-barometer { gap: 4px 30px; }
+
+/* Erwartetes Wahlergebnis (N2, E-1): Spanne, Skala mit Siegeslinie, Treppe von der Zustimmung zum Ergebnis, Vorwarnung */
+.wa-root .wa-barometer { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+.wa-prognose { --wa-gut: #3d6b5a; --wa-knapp: #a77a14; --wa-schlecht: #8a2d26; display: grid; gap: 12px; min-width: 0; }
+.wa-root .wa-barometer .wa-baro-zahl strong { font-size: 46px; }
+.wa-baro-zahl strong.gut { color: var(--wa-gut); }
+.wa-baro-zahl strong.knapp { color: #7a5a14; }
+.wa-baro-zahl strong.schlecht { color: var(--wa-schlecht); }
+.wa-skala { position: relative; padding: 18px 0 4px; }
+.wa-skala-spur { position: relative; height: 14px; border-radius: 7px; background: linear-gradient(90deg, rgba(138, 45, 38, 0.10), rgba(138, 45, 38, 0.06) 50%, rgba(61, 107, 90, 0.10) 50%, rgba(61, 107, 90, 0.16)); box-shadow: inset 0 1px 2px rgba(60, 40, 20, 0.18); }
+.wa-skala-band { position: absolute; top: 0; bottom: 0; border-radius: 7px; opacity: 0.85; }
+.wa-skala-band.gut { background: var(--wa-gut); }
+.wa-skala-band.knapp { background: linear-gradient(90deg, var(--wa-schlecht), var(--wa-knapp) 50%, var(--wa-gut)); }
+.wa-skala-band.schlecht { background: var(--wa-schlecht); }
+.wa-skala-mitte { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: #2a1f18; box-shadow: 0 0 0 2px #fffaf0; }
+.wa-skala-sieg { position: absolute; top: -18px; bottom: -6px; width: 0; border-left: 2px dashed #2a1f18; text-decoration: none; }
+.wa-skala-sieg span { position: absolute; top: -2px; left: 6px; white-space: nowrap; font: 600 12.5px/1 var(--sans); letter-spacing: 0.04em; color: #2a1f18; }
+.wa-skala-zust { position: absolute; top: 100%; width: 0; height: 0; margin-left: -6px; border: 6px solid transparent; border-bottom-color: #a77a14; transform: translateY(-14px); text-decoration: none; }
+.wa-skala-achse { position: relative; height: 18px; margin-top: 4px; }
+.wa-skala-achse span { position: absolute; transform: translateX(-50%); font: 12.5px var(--sans); color: #62503b; font-variant-numeric: tabular-nums; }
+.wa-treppe { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.wa-treppe li { display: inline-flex; align-items: baseline; gap: 8px; padding: 5px 10px; border: 1px solid var(--pd-line); border-radius: 4px; background: rgba(255, 250, 240, 0.9); font: 14.5px/1.3 var(--serif); color: #2a1f18; }
+.wa-treppe li + li::before { content: "→"; margin-right: 2px; color: #8a6d3b; }
+.wa-treppe li strong { font: 700 14.5px var(--sans); font-variant-numeric: tabular-nums lining-nums; }
+.wa-treppe li.plus strong { color: var(--wa-gut); }
+.wa-treppe li.minus strong { color: var(--wa-schlecht); }
+.wa-treppe li.basis { background: rgba(167, 122, 20, 0.10); border-color: rgba(167, 122, 20, 0.45); }
+.wa-treppe li.ergebnis { border-width: 1.5px; font-weight: 600; }
+.wa-treppe li.ergebnis.gut { border-color: var(--wa-gut); }
+.wa-treppe li.ergebnis.knapp { border-color: var(--wa-knapp); }
+.wa-treppe li.ergebnis.schlecht { border-color: var(--wa-schlecht); }
+.wa-vorwarnung { margin: 0; padding: 10px 14px; border-left: 3px solid #8a2d26; background: rgba(138, 45, 38, 0.06); font: 15.5px/1.45 var(--serif); color: #2a1f18; }
+.wa-vorwarnung b { font: 600 12.5px/1 var(--kapitaelchen, var(--sans)); letter-spacing: 0.12em; text-transform: uppercase; color: #8a2d26; margin-right: 4px; }
+.wa-vorwarnung .pd-btn { margin-left: 6px; }
+.wa-baro-leer { margin: 0; font: italic 15px/1.45 var(--serif); color: #4c3b28; }
+@media (max-width: 900px) { .wa-root .wa-barometer { grid-template-columns: minmax(0, 1fr); } }
+.wa-hilfe-rechnet { font-style: italic; color: #4c3b28; }
+.wa-vorschau-zu { margin-top: 6px; }
+.wa-vorschau-zu > summary { cursor: pointer; font: 600 14.5px var(--serif); color: var(--seal, #8f2a1e); }
+/* Prognose über die ganze Breite: links die Zahl, rechts Skala und Treppe; darunter Vorwarnung und Verlauf */
+.wa-root .wa-barometer { grid-template-columns: minmax(0, 1fr); }
+.wa-prognose { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px 34px; align-items: start; }
+.wa-prognose-rechts { display: grid; gap: 12px; align-content: start; padding-top: 6px; }
+.wa-vorwarnung { grid-column: 1 / -1; }
+.wa-baro-linie { padding-top: 4px; border-top: 1px solid var(--pd-line); }
+@media (max-width: 900px) { .wa-prognose { grid-template-columns: minmax(0, 1fr); } }
