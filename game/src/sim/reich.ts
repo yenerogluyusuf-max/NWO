@@ -579,7 +579,7 @@ function effektZeileBasis(e: Effekt, zahl: (x: number) => string): EffektZeile |
       return { text: `${name} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}${wo}`, richtung: e.d > 0 ? 1 : -1, gut: gruppe ? e.d > 0 : schlecht ? e.d < 0 : e.d > 0 };
     }
     case "land":
-      return { text: `${landNameSicher(e.land)}: ${{ handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" }[e.dim]} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.dim === "konflikt" ? e.d < 0 : e.d > 0 };
+      return { text: `${landNameSicher(e.land)}: ${tx(`n6.dim.${e.dim}`)} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.dim === "konflikt" ? e.d < 0 : e.d > 0 };
     case "kapital":
       return { text: tx("sim2.sim.reich.e0bb30b", { p0: e.d > 0 ? "+" : "−", p1: zahl(e.d) }), richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
     case "schulden":
@@ -587,13 +587,13 @@ function effektZeileBasis(e: Effekt, zahl: (x: number) => string): EffektZeile |
     case "risiko":
       return { text: `Risikoaufschlag ${e.d > 0 ? "+" : "−"}${zahl(e.d)} Punkte`, richtung: e.d > 0 ? 1 : -1, gut: e.d < 0 };
     case "staette":
-      return { text: `${ERBE_NACH_ID[e.id]?.name ?? e.id}: Zustand ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
+      return { text: tx("n6.eff.zustand", { name: ERBE_NACH_ID[e.id]?.name ?? e.id, d: `${e.d > 0 ? "+" : "−"}${zahl(Math.abs(e.d))}` }), richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
     case "serie":
-      return { text: `${e.serie === "alle" ? "Alle Stätten des Landes" : "Alle Stätten der Route"}: Zustand ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
+      return { text: tx("n6.eff.zustand", { name: tx(e.serie === "alle" ? "n6.eff.alleLand" : "n6.eff.alleRoute"), d: `${e.d > 0 ? "+" : "−"}${zahl(Math.abs(e.d))}` }), richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
     case "entferne":
       return { text: tx("sim2.sim.reich.cb53e0d", { p0: vorhabenDef(e.id)?.name ?? e.id }), richtung: -1, gut: true };
     case "bestand":
-      return { text: `${vorhabenDef(e.id)?.name ?? e.id}: Zustand ${e.d > 0 ? "+" : "−"}${zahl(e.d)}`, richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
+      return { text: tx("n6.eff.zustand", { name: vorhabenDef(e.id)?.name ?? e.id, d: `${e.d > 0 ? "+" : "−"}${zahl(Math.abs(e.d))}` }), richtung: e.d > 0 ? 1 : -1, gut: e.d > 0 };
   }
 }
 
@@ -803,7 +803,7 @@ export function beginne(w: World, id: string, vergabe: Vergabe = "ausschreibung"
   if (s.status === "gesperrt") return { ok: false, text: tx("sim2.sim.reich.e47e11c", { p0: v.name, p1: s.grund }) };
   if (s.status === "ausgeschlossen") return { ok: false, text: `„${v.name}“: ${s.grund}` };
   const fehlt = s.voraus.filter((x) => !x.erfuellt).map((x) => x.text);
-  if (fehlt.length) return { ok: false, text: `Voraussetzungen fehlen: ${fehlt.join("; ")}.` };
+  if (fehlt.length) return { ok: false, text: tx("n6.bau.vorausFehlt", { liste: fehlt.join("; ") }) };
   const z = reichZustand(w);
   // Freie Großprojekte (INF-4): Der Entwurf muss im Reich liegen, und über die Grenze hinaus baut erst,
   // wer jede Durchfahrt hat (Bagdadbahn-Regel: ein offenes Land oder ein Veto hält die Strecke auf)
@@ -1118,11 +1118,11 @@ function schliesseAb(w: World, v: Vorhaben): void {
     };
     (z.verlauf ??= []).push(eintrag);
     if (z.verlauf.length > 40) z.verlauf.shift();
-    if (eintrag.zustand) zusatz = ` Zustand ${eintrag.zustand.vorher} → ${eintrag.zustand.nachher}.`;
+    if (eintrag.zustand) zusatz = tx("n6.bau.zustandZusatz", { vorher: eintrag.zustand.vorher, nachher: eintrag.zustand.nachher });
   }
   const wichtig = v.klasse === "wunder" || v.klasse === "grossprojekt" || v.klasse === "serie";
   if (wichtig && !z.feier.includes(v.id)) z.feier.push(v.id);
-  const text = `Fertig: ${v.name}.${zusatz}`;
+  const text = tx("n6.bau.fertig", { name: v.name }) + zusatz;
   meldung(w, "fertig", text);
   // Die Sparvergabe zeigt sich am Ende: Das Stück geht in schlechterem Zustand in den Bestand
   const sparhinnweis = l?.zustandFertig !== undefined ? tx("sim2.sim.reich.3d76acf", { p0: l.zustandFertig }) : "";

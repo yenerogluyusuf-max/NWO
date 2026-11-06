@@ -2,7 +2,7 @@
 
 import { NET } from "../sim/world";
 import { offenerKonflikt, vorgaengeIn } from "../sim/vorgaenge";
-import { t } from "../i18n";
+import { t, zahl } from "../i18n";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { PROVINZEN, REGION_DE } from "../sim/regional";
 import { archetypName } from "../data/provinz_archetypen";
@@ -20,7 +20,8 @@ const LAND = (() => {
   return { dichte: km / fl };
 })();
 
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { maximumFractionDigits: d, minimumFractionDigits: d });
+// Zahlen in der Sprache des Spielers (Befund F-7: vorher fest „de-DE“)
+const nf = (x: number, d = 1) => zahl(x, d);
 
 const WERTE: { id: string; label: string }[] = [
   { id: "verkehrsnetz", label: "Straßen und Autobahnen" },
@@ -64,12 +65,12 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
         <p className="kicker">{t("ui2.ui.ProvinceCard.961e167", { p0: archetypName(plaka) })}</p>
         <dl>
           <dt>{t("ui2.ui.ProvinceCard.0102262")}</dt>
-          <dd>{d.bevoelkerung.toLocaleString("de-DE")}</dd>
+          <dd>{zahl(d.bevoelkerung)}</dd>
           <dt>{t("ui2.ui.ProvinceCard.2ef1990")}</dt>
-          <dd>{t("ui2.ui.ProvinceCard.62c34c2", { p0: d.bipProKopf.toLocaleString("de-DE") })}</dd>
+          <dd>{t("ui2.ui.ProvinceCard.62c34c2", { p0: zahl(d.bipProKopf) })}</dd>
           <dt>{t("ui2.ui.ProvinceCard.1cd606b")}</dt>
           <dd>
-            {d.arbeitslosigkeit.toLocaleString("de-DE")} %{d.arbeitslosigkeitHerkunft === "geschaetzt" ? t("ui2.ui.ProvinceCard.c31e5e0") : ""}
+            {zahl(d.arbeitslosigkeit)} %{d.arbeitslosigkeitHerkunft === "geschaetzt" ? t("ui2.ui.ProvinceCard.c31e5e0") : ""}
           </dd>
           <dt>{t("ui2.ui.ProvinceCard.336160c")}</dt>
           <dd>
@@ -86,11 +87,11 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
             <dl>
               <dt>{t("ui.ProvinceCard.e1ddaa6")}</dt>
               <dd>
-                {inf.strasse_km.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km · {nf(inf.strasse_dichte, 2)} je km²
+                {zahl(inf.strasse_km, 0)} km · {nf(inf.strasse_dichte, 2)} je km²
                 <span className={`rel ${dichteRel! < 0.75 ? "dünn" : dichteRel! > 1.3 ? "dicht" : ""}`}> ({dichteRel! < 0.75 ? t("ui2.ui.ProvinceCard.2086473") : dichteRel! > 1.3 ? t("ui2.ui.ProvinceCard.dicht") : t("ui2.ui.ProvinceCard.7b91940")})</span>
               </dd>
               <dt>{t("ui2.ui.ProvinceCard.b0ea2e1")}</dt>
-              <dd>{inf.schiene_km > 0 ? `${inf.schiene_km.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km` : t("ui2.ui.ProvinceCard.ade5c0b")}</dd>
+              <dd>{inf.schiene_km > 0 ? `${zahl(inf.schiene_km, 0)} km` : t("ui2.ui.ProvinceCard.ade5c0b")}</dd>
               <dt>{t("ui.ProvinceCard.384ddc5")}</dt>
               <dd>
                 {inf.krankenhaeuser} ({nf(kh100k!, 1)} je 100.000 Einwohner)
@@ -111,7 +112,7 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
             const land = nationalAverage(NET, world.net, wt.id);
             return (
               <li key={wt.id}>
-                <span>{wt.label}</span>
+                <span>{t(`netz.knoten.${wt.id}.name`)}</span>
                 <span className="bar" aria-hidden>
                   <i style={{ width: `${Math.max(2, Math.min(100, v))}%` }} className={v < land - 4 ? "schwach" : ""} />
                   <b style={{ left: `${Math.max(0, Math.min(100, land))}%` }} title={t("ui2.ui.ProvinceCard.cfaa7c5", { p0: nf(land, 0) })} />
@@ -149,7 +150,7 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
 
         {projekte.length > 0 && (
           <>
-            <h3 className="province-sub">Im Bau</h3>
+            <h3 className="province-sub">{t("reich.bau.titel")}</h3>
             <ul className="province-projekte">
               {projekte.map((p) => (
                 <li key={p.name}>
