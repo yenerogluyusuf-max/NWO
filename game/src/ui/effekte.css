@@ -1,14 +1,14 @@
 /* Schalter für die Effekte der Karte: kleine Messing-Pille unter der Kopfleiste, rechts */
 .effekte-schalter {
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 5px 11px 5px 9px; border-radius: 999px; cursor: pointer; color: #e7d5a8;
+  padding: 5px 11px 5px 9px; border-radius: 999px; cursor: pointer; color: var(--warnung-flaeche);
   background: rgba(24, 16, 10, 0.78); border: 1px solid rgba(214, 168, 72, 0.5);
-  font: 600 14px/1.1 var(--sans, Inter, sans-serif); letter-spacing: 0.02em;
+  font: 600 var(--schrift-2)/1.1 var(--serif); letter-spacing: 0.02em;
 }
-.effekte-schalter:hover { color: #f6e9c6; border-color: rgba(214, 168, 72, 0.85); }
-.effekte-schalter:focus-visible { outline: 2px solid #f3e6c6; outline-offset: 2px; }
+.effekte-schalter:hover { color: var(--leder-text); border-color: rgba(214, 168, 72, 0.85); }
+.effekte-schalter:focus-visible { outline: 2px solid var(--papier-3); outline-offset: 2px; }
 .effekte-name { opacity: 0.85; }
-.effekte-stufe { color: #f1d58f; min-width: 3.1em; text-align: left; }
+.effekte-stufe { color: var(--messing-1); min-width: 3.1em; text-align: left; }
 .effekte-punkte { display: inline-flex; gap: 3px; margin-left: 2px; }
 .effekte-punkte b { width: 5px; height: 5px; border-radius: 50%; background: rgba(214, 168, 72, 0.25); }
 .effekte-punkte b.an { background: #d6a848; }
@@ -17,5 +17,5 @@
 
 .effekte-text { display: grid; gap: 1px; text-align: left; }
 .effekte-zeile { display: inline-flex; gap: 7px; align-items: baseline; }
-.effekte-kurz { font: 400 12.5px/1.1 var(--serif); color: #cdb88c; letter-spacing: 0.02em; }
+.effekte-kurz { font: 400 var(--schrift-1)/1.1 var(--serif); color: var(--leder-beschriftung); letter-spacing: 0.02em; }
 .effekte-schalter { padding: 4px 11px 4px 9px; border-radius: 10px; }

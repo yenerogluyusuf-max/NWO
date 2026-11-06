@@ -17,6 +17,16 @@ export type StadtArt = "hauptstadt" | "metropole" | "stadt";
 /** Ab dieser Einwohnerzahl zeigt die Karte die Provinz als Großstadt (Spielparameter: Größenklassen der Figuren) */
 export const METROPOLE_AB = 1_800_000;
 
+/**
+ * Warndreieck auf der Karte nur bei einem akuten Fall (befund-H H-25, Spielparameter): Ein Problem gilt als akut, wenn sein Wert
+ * mindestens die Hälfte des Wegs von der Schwelle des Problems bis zum Höchstwert 100 zurückgelegt hat (Überschuss ≥ 0,5). Die
+ * bloße Überschreitung der Schwelle traf beim Amtsantritt 62 von 81 Provinzen, weil Dauerlagen wie Abwanderung, Landflucht und
+ * Erdbebengefahr fast überall knapp über ihrer Schwelle liegen; wenn alles warnt, warnt nichts. Mit der Hälfte sind es zu Beginn
+ * zehn Provinzen, und höchstens die fünf dringendsten tragen ein Dreieck. Die Tafel nennt weiterhin jede Lage über der Schwelle.
+ */
+export const AKUT_UEBERSCHUSS = 0.5;
+export const AKUT_HOECHSTENS = 5;
+
 export interface StadtStatus {
   ereignis: boolean;
   frist: boolean;
@@ -93,6 +103,15 @@ export function stadtInfos(w: World, marken: { plaka: number; art: string }[] = 
       }
     }
   }
+  // Die dringendsten akuten Provinzen (größter Überschuss zuerst, bei Gleichstand die größere Bevölkerung)
+  const akut = new Set(
+    exzess
+      .map((e, p) => ({ e, p }))
+      .filter((x) => x.e >= AKUT_UEBERSCHUSS)
+      .sort((a, b) => b.e - a.e || (PROVINZEN[b.p]?.bevoelkerung ?? 0) - (PROVINZEN[a.p]?.bevoelkerung ?? 0))
+      .slice(0, AKUT_HOECHSTENS)
+      .map((x) => x.p),
+  );
   const vi = NET.index.get("vertrauen_regierung");
   const bau = vorhabenJeProvinz(w);
   const out: Record<number, StadtInfo> = {};
@@ -103,7 +122,7 @@ export function stadtInfos(w: World, marken: { plaka: number; art: string }[] = 
     const parteiKurz = d.buergermeister2024;
     const partei = PARTEI_NAME[parteiKurz] ?? parteiKurz;
     const lage = top[p];
-    const status: StadtStatus = { ereignis: ev.has(plaka), frist: frist.has(plaka), krise: anzahl[p]! > 0, bau: bau[p]! > 0 };
+    const status: StadtStatus = { ereignis: ev.has(plaka), frist: frist.has(plaka), krise: akut.has(p), bau: bau[p]! > 0 };
     const lageText = lage
       ? anzahl[p]! > 1
         ? t("stadt.lage_mehr", { problem: lage.name, n: anzahl[p]! - 1 })

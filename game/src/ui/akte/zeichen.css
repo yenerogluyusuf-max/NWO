@@ -1,41 +1,41 @@
 /* Zeichensprache und Bildkarten (GESTALTUNG_2026-11-04, G2/G3). */
-.gz-zeichen { display: inline-grid; place-items: center; flex-shrink: 0; border-radius: 50%; color: #fffaf0; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--gz-farbe) 70%, white), var(--gz-farbe) 70%); box-shadow: inset 0 0 0 1.5px #ffffff40, 0 1px 2px #0004; }
+.gz-zeichen { display: inline-grid; place-items: center; flex-shrink: 0; border-radius: 50%; color: var(--papier-1); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--gz-farbe) 70%, white), var(--gz-farbe) 70%); box-shadow: inset 0 0 0 1.5px #ffffff40, 0 1px 2px #0004; }
 .gz-zeichen .icon { stroke-width: 2; }
-.gz-preis { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 2px; border-radius: 999px; background: color-mix(in srgb, var(--gz-farbe) 11%, #fffaf0); border: 1px solid color-mix(in srgb, var(--gz-farbe) 32%, transparent); font: 600 14px var(--sans); color: color-mix(in srgb, var(--gz-farbe) 85%, black); white-space: nowrap; }
-.gz-preis small { font-weight: 500; font-size: 11.5px; opacity: .8; }
+.gz-preis { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 2px; border-radius: 999px; background: color-mix(in srgb, var(--gz-farbe) 11%, var(--papier-1)); border: 1px solid color-mix(in srgb, var(--gz-farbe) 32%, transparent); font: 600 var(--schrift-2) var(--serif); color: color-mix(in srgb, var(--gz-farbe) 85%, black); white-space: nowrap; }
+.gz-preis small { font-weight: 500; font-size: var(--schrift-1); opacity: .8; }
 .gz-preis.knapp { outline: 2px solid #a23d3e; outline-offset: 1px; }
 .gz-vorleser { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .gz-preise { display: flex; flex-wrap: wrap; gap: 5px; }
 
 .gz-karten-block { display: grid; gap: 12px; margin-top: 8px; }
-.gz-karten-kopf { display: flex; align-items: center; gap: 12px; margin: 0; font: 600 21px var(--display, Georgia, serif); color: var(--ak-tief, #2a1f18); }
-.gz-karten-kopf::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--gold-2, #c69a4a), transparent); }
+.gz-karten-kopf { display: flex; align-items: center; gap: 12px; margin: 0; font: 600 var(--schrift-5) var(--display, Georgia, serif); color: var(--ak-tief, var(--tinte-1)); }
+.gz-karten-kopf::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--gold-2, var(--messing-2)), transparent); }
 .gz-karten { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
-.gz-karte { display: grid; grid-template-rows: auto 1fr; min-width: 0; border-radius: 6px; overflow: hidden; background: #fffaf0; border: 1px solid #5a40283d; box-shadow: 0 5px 14px #3b2a1a1f; transition: transform 160ms ease, box-shadow 160ms ease; }
+.gz-karte { display: grid; grid-template-rows: auto 1fr; min-width: 0; border-radius: 6px; overflow: hidden; background: var(--papier-1); border: 1px solid #5a40283d; box-shadow: 0 5px 14px #3b2a1a1f; transition: transform 160ms ease, box-shadow 160ms ease; }
 .gz-karte:hover { transform: translateY(-2px); box-shadow: 0 10px 22px #3b2a1a33; }
 @media (prefers-reduced-motion: reduce) { .gz-karte, .gz-karte:hover { transition: none; transform: none; } }
-.gz-bild { position: relative; height: 128px; display: grid; place-items: center; overflow: hidden; background: linear-gradient(180deg, #f3e7c9, #e5d3a8); border-bottom: 1px solid #5a402833; }
+.gz-bild { position: relative; height: 128px; display: grid; place-items: center; overflow: hidden; background: linear-gradient(180deg, var(--papier-3), var(--linie)); border-bottom: 1px solid #5a402833; }
 .gz-bild > svg, .gz-bild > div { max-width: 100%; max-height: 100%; }
 .gz-karte.verlangt .gz-bild { filter: saturate(.55); }
-.gz-klasse { position: absolute; left: 9px; top: 9px; padding: 3px 7px; border-radius: 4px; background: #2a1f18d9; color: #f3e1b6; font: 400 11.5px var(--kapitaelchen); letter-spacing: .1em; text-transform: uppercase; }
-.gz-stempel { position: absolute; right: 9px; bottom: 9px; padding: 2px 8px; border: 2px solid currentColor; border-radius: 4px; transform: rotate(-4deg); font: 400 11.5px var(--kapitaelchen); letter-spacing: .05em; text-transform: uppercase; background: #fffaf0d9; }
-.gz-stempel.bau { color: #8a6418; } .gz-stempel.verlangt { color: #5b4a7a; } .gz-stempel.moeglich { color: #674b3b; }
+.gz-klasse { position: absolute; left: 9px; top: 9px; padding: 3px 7px; border-radius: 4px; background: #2a1f18d9; color: var(--warnung-flaeche); font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: .1em; }
+.gz-stempel { position: absolute; right: 9px; bottom: 9px; padding: 2px 8px; border: 2px solid currentColor; border-radius: 4px; transform: rotate(-4deg); font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: .05em; background: #fffaf0d9; }
+.gz-stempel.bau { color: var(--warnung); } .gz-stempel.verlangt { color: #5b4a7a; } .gz-stempel.moeglich { color: var(--tinte-weich); }
 .gz-inhalt { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 13px 13px; }
-.gz-inhalt h4 { margin: 0; font: 600 18px/1.2 var(--display, Georgia, serif); color: var(--ink, #2a1f18); hyphens: auto; overflow-wrap: break-word; }
-.gz-wirkung { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font: 600 12.5px/1.35 var(--sans); }
-.gz-wirkung .gut { color: #674b3b; } .gz-wirkung .schlecht { color: #a23d3e; }
-.gz-kehrseite { margin: 0; font: italic 14px/1.4 var(--serif); color: #6a4a3a; border-left: 2px solid var(--seal, #8e2a22); padding-left: 8px; }
-.gz-hinweis { margin: 0; font: 600 12.5px/1.35 var(--sans); color: #5b4a7a; }
+.gz-inhalt h4 { margin: 0; font: 600 var(--schrift-4)/1.2 var(--display, Georgia, serif); color: var(--ink, var(--tinte-1)); hyphens: auto; overflow-wrap: break-word; }
+.gz-wirkung { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font: 600 var(--schrift-2)/1.35 var(--serif); }
+.gz-wirkung .gut { color: var(--gut); } .gz-wirkung .schlecht { color: #a23d3e; }
+.gz-kehrseite { margin: 0; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--tinte-weich); border-left: 2px solid var(--seal, var(--siegel)); padding-left: 8px; }
+.gz-hinweis { margin: 0; font: 600 var(--schrift-2)/1.35 var(--serif); color: #5b4a7a; }
 .gz-hinweis.knapp { color: #a23d3e; }
-.gz-knopf { margin-top: auto; align-self: flex-start; border: 0; background: none; padding: 4px 0; color: var(--seal, #8e2a22); font: 600 14px var(--sans); cursor: pointer; text-align: left; }
+.gz-knopf { margin-top: auto; align-self: flex-start; border: 0; background: none; padding: 4px 0; color: var(--seal, var(--siegel)); font: 600 var(--schrift-2) var(--serif); cursor: pointer; text-align: left; }
 .gz-knopf:hover { text-decoration: underline; }
-.gz-knopf:focus-visible { outline: 2px solid var(--seal, #8e2a22); outline-offset: 2px; border-radius: 4px; }
-.gz-mehr { justify-self: start; border: 0; background: none; padding: 2px 0; color: var(--seal, #8e2a22); font: 600 14px var(--sans); cursor: pointer; }
+.gz-knopf:focus-visible { outline: 2px solid var(--seal, var(--siegel)); outline-offset: 2px; border-radius: 4px; }
+.gz-mehr { justify-self: start; border: 0; background: none; padding: 2px 0; color: var(--seal, var(--siegel)); font: 600 var(--schrift-2) var(--serif); cursor: pointer; }
 
 /* Konfliktlage in der Akte Sicherheit */
 .gz-konflikte ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.gz-konflikt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 6px; background: #fffaf0; border: 1px solid #5a402833; border-left: 4px solid #b07a1f; }
-.gz-konflikt.krieg { border-left-color: #a23d3e; } .gz-konflikt.waffenruhe { border-left-color: #5b4a7a; } .gz-konflikt.angespannt { border-left-color: #c9a45a; }
-.gz-konflikt > div { display: grid; gap: 2px; min-width: 0; } .gz-konflikt strong { font: 600 15px var(--display, Georgia, serif); } .gz-konflikt span { font: 14px var(--sans); color: #5e6a61; }
+.gz-konflikt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 6px; background: var(--papier-1); border: 1px solid #5a402833; border-left: 4px solid #b07a1f; }
+.gz-konflikt.krieg { border-left-color: #a23d3e; } .gz-konflikt.waffenruhe { border-left-color: #5b4a7a; } .gz-konflikt.angespannt { border-left-color: var(--messing-2); }
+.gz-konflikt > div { display: grid; gap: 2px; min-width: 0; } .gz-konflikt strong { font: 600 var(--schrift-3) var(--display, Georgia, serif); } .gz-konflikt span { font: var(--schrift-2) var(--serif); color: #5e6a61; }
 .gz-konflikt .gz-knopf { margin: 0; white-space: nowrap; }
 @media (max-width: 560px) { .gz-konflikt { flex-direction: column; align-items: flex-start; } }

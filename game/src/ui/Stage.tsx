@@ -108,6 +108,7 @@ import { SprungKontext } from "./akte/Uebersicht";
 import type { AktenReiterId } from "./akte/Akte";
 import { t as tx } from "../i18n";
 import { zusageText } from "../sim/zusagen";
+import { Feiermoment, useFeierWaechter } from "./anim/Feier";
 
 type Dossier =
   | "schreibtisch"
@@ -196,6 +197,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
   const w = world.current;
   const spiel = w.spiel;
+  // Kurzer Feiermoment bei beschlossenem Gesetz, vollendetem Fokus und erreichtem Ziel (befund-H H-24, anim/Feier.tsx)
+  useFeierWaechter(w);
 
   const sichere = useCallback((sofort = false) => {
     const jetzt = Date.now();
@@ -870,6 +873,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         name={w.player?.name ?? t("buehne.staatsoberhaupt")}
         partei={w.player?.partei.name ?? tx("ui2.ui.Stage.b9592e1")}
         {...(w.player?.partei.farbe ? { parteiFarbe: w.player.partei.farbe } : {})}
+        {...(w.player?.aussehen ? { aussehen: w.player.aussehen } : {})}
         amt={t("buehne.staatsoberhaupt")}
         datum={formatDateDe(w.date)}
         tempo={speed}
@@ -901,6 +905,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} onZins={() => { setErlassStart(undefined); oeffneDossier("entscheidungen"); }} />
 
       <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} onOeffne={oeffneBerichtAusMeldung} />
+      <Feiermoment />
       <AbstimmungsKarte world={w} />
 
       <RegierungsNavigation eintraege={menue.map(m=>({...m,id:m.tabs[0]!.id}))} aktiv={gruppe?.tabs[0]!.id} onWaehlen={id=>{

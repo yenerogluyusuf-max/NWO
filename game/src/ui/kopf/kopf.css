@@ -15,13 +15,13 @@
 /* Wer */
 .kf-wer { gap: 11px; padding-right: 18px; min-width: 0; cursor: default; }
 .kf-wer-text { min-width: 0; }
-.kf-name { font-family: var(--display); font-size: 18px; font-weight: 600; line-height: 1.15; color: #f3e6c6; text-shadow: 0 1px 0 #000; white-space: nowrap; }
-.kf-partei { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-family: var(--serif); font-size: 12.5px; font-style: italic; color: #cdb98f; white-space: nowrap; }
+.kf-name { font-family: var(--display); font-size: var(--schrift-4); font-weight: 600; line-height: 1.15; color: var(--papier-3); text-shadow: 0 1px 0 #000; white-space: nowrap; }
+.kf-partei { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-family: var(--serif); font-size: var(--schrift-2); font-style: italic; color: var(--leder-beschriftung); white-space: nowrap; }
 .kf-partei-name { max-width: 210px; overflow: hidden; text-overflow: ellipsis; }
 
 /* Wann */
 .kf-wann { gap: 12px; padding: 0 18px; }
-.kf-datum { font-family: var(--display); font-size: 21px; font-weight: 600; color: #f4e6c4; white-space: nowrap; text-shadow: 0 1px 0 #000; letter-spacing: 0.01em; font-variant-numeric: lining-nums; }
+.kf-datum { font-family: var(--display); font-size: var(--schrift-5); font-weight: 600; color: var(--leder-text); white-space: nowrap; text-shadow: 0 1px 0 #000; letter-spacing: 0.01em; font-variant-numeric: lining-nums; }
 .kf-tempo button { width: 30px; }
 
 /* Wie steht es: gleich gebaute Kennzahlen */
@@ -35,42 +35,42 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 .kf-zahl + .kf-zahl::before { content: ""; position: absolute; left: -0.5px; top: 12px; bottom: 12px; width: 1px; background: rgba(198, 154, 74, 0.32); }
 .kf-zahl .icon { flex: none; filter: drop-shadow(0 1px 0 #000); }
 .kf-zahl-kern { display: grid; gap: 2px; min-width: 0; }
-.kf-zahl-wert { font-family: var(--display); font-size: 18px; font-weight: 600; line-height: 1; color: #f3e8cf; font-variant-numeric: tabular-nums lining-nums; text-shadow: 0 1px 0 #000; }
-.kf-zahl-zusatz { font-size: 11.5px; font-weight: 500; color: #c8b285; margin-left: 1px; }
-.kf-zahl-name { font-family: var(--kapitaelchen); font-size: 11.5px; font-weight:400; text-transform: uppercase; letter-spacing: 0.09em; color: #c7b188; line-height: 1.1; }
-.kf-trend { font-family: var(--sans); font-size: 11.5px; font-weight: 600; margin-left: 4px; vertical-align: 2px; letter-spacing: -0.02em; }
-.kf-trend.gut { color: #9fc7a4; }
+.kf-zahl-wert { font-family: var(--display); font-size: var(--schrift-4); font-weight: 600; line-height: 1; color: var(--papier-3); font-variant-numeric: tabular-nums lining-nums; text-shadow: 0 1px 0 #000; }
+.kf-zahl-zusatz { font-size: var(--schrift-1); font-weight: 500; color: var(--leder-beschriftung); margin-left: 1px; }
+.kf-zahl-name { font-family: var(--kapitaelchen); font-size: var(--schrift-1); font-weight:400; letter-spacing: 0.09em; color: var(--linie-stark); line-height: 1.1; }
+.kf-trend { font-family: var(--serif); font-size: var(--schrift-1); font-weight: 600; margin-left: 4px; vertical-align: 2px; letter-spacing: -0.02em; }
+.kf-trend.gut { color: var(--gut-auf-leder); }
 .kf-trend.schlecht { color: #e8927c; }
-.kf-zahl.warn { color: #f0a58f; }
+.kf-zahl.warn { color: var(--schlecht-auf-leder); }
 .kf-zahl.warn .kf-zahl-wert { color: #ffc6b5; }
 .kf-zahl .tip-text { display: block; margin-top: 4px; }
-.kf-zahl .tip-zeile { color: #f1dfb2; }
-.kf-zahl .tip-klick { color: #b9a47a; font-style: italic; font-family: var(--serif); }
+.kf-zahl .tip-zeile { color: var(--warnung-flaeche); }
+.kf-zahl .tip-klick { color: var(--linie-stark); font-style: italic; font-family: var(--serif); }
 
 /* Mehrheit: Balken statt Doppeltext; Lager blaugrün, Duldung gold, Rest dunkel, Strich an der Schwelle */
 .kf-mehrheit { position: relative; display: flex; width: 64px; height: 6px; margin-top: 2px; border-radius: 4px; overflow: visible; background: rgba(0, 0, 0, 0.45); box-shadow: inset 0 0 0 1px rgba(217, 180, 106, 0.28); }
 .kf-mehrheit i { display: block; height: 100%; }
-.kf-mh-lager { background: linear-gradient(180deg, #ab8f60, #6f4f3c); border-radius: 4px 0 0 4px; }
-.kf-mh-duldung { background: linear-gradient(180deg, #e3c27a, #a88437); }
-.kf-mh-schwelle { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #f4e6c4; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }
-.kf-parlament.warn .kf-mh-lager { background: linear-gradient(180deg, #d98a74, #8f3a2a); }
+.kf-mh-lager { background: linear-gradient(180deg, #ab8f60, var(--tinte-weich)); border-radius: 4px 0 0 4px; }
+.kf-mh-duldung { background: linear-gradient(180deg, var(--messing-1), #a88437); }
+.kf-mh-schwelle { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--leder-text); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }
+.kf-parlament.warn .kf-mh-lager { background: linear-gradient(180deg, #d98a74, var(--siegel)); }
 
 /* Menü */
 .kf-menue { padding-left: 10px; }
 .kf-menue-knopf {
   position: relative; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
-  border: 1px solid rgba(217, 180, 106, 0.55); background: radial-gradient(circle at 50% 35%, #4d3b29, #1f1610);
+  border: 1px solid rgba(217, 180, 106, 0.55); background: radial-gradient(circle at 50% 35%, var(--tinte-weich), var(--leder-tief));
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 230, 180, 0.15); transition: border-color 140ms ease, transform 140ms ease;
 }
 .kf-menue-knopf:hover, .kf-menue-knopf.offen { border-color: var(--gold-1); transform: translateY(-1px); }
 .kf-menue-striche { display: grid; gap: 3.5px; width: 16px; }
 .kf-menue-striche i { display: block; height: 2px; border-radius: 4px; background: #e9d29a; }
 .kf-menue-knopf.fehler { border-color: #d3644c; }
-.kf-menue-punkt { position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%; background: #d3523a; box-shadow: 0 0 0 2px #1f1610; }
+.kf-menue-punkt { position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%; background: #d3523a; box-shadow: 0 0 0 2px var(--leder-tief); }
 .kf-stempel {
   position: absolute; right: 54px; top: 50%; translate: 0 -50%; white-space: nowrap; pointer-events: none;
-  padding: 3px 9px; font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.12em; text-transform: uppercase; color: #f6dfb0;
-  border: 1.5px solid #c9a257; border-radius: 4px; background: rgba(32, 22, 14, 0.85); rotate: -4deg;
+  padding: 3px 9px; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.12em; color: var(--warnung-flaeche);
+  border: 1.5px solid var(--messing-2); border-radius: 4px; background: rgba(32, 22, 14, 0.85); rotate: -4deg;
   animation: kf-stempel 2600ms ease both;
 }
 @keyframes kf-stempel { 0% { opacity: 0; scale: 1.6; } 12% { opacity: 1; scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
@@ -78,27 +78,27 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 
 .kf-menue-tafel {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 300; width: 300px; padding: 8px; display: grid; gap: 4px;
-  color: #eadbb8; border: 1px solid transparent; border-radius: 6px;
-  background: linear-gradient(180deg, #34281f, #1f1813) padding-box, linear-gradient(180deg, #d9b46a, #6e4b1c) border-box;
-  box-shadow: 0 0 0 1px #0b0806, 0 18px 34px -10px rgba(0, 0, 0, 0.65);
+  color: var(--papier-4); border: 1px solid transparent; border-radius: 6px;
+  background: linear-gradient(180deg, var(--leder-dunkel), var(--leder-tief)) padding-box, linear-gradient(180deg, var(--messing-mittel), var(--messing-3)) border-box;
+  box-shadow: 0 0 0 1px var(--leder-tief), 0 18px 34px -10px rgba(0, 0, 0, 0.65);
 }
 .kf-eintrag {
   display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: none; border-radius: 4px; cursor: pointer;
-  background: transparent; color: #f1e5c8; font: 600 14px var(--serif); text-align: left;
+  background: transparent; color: var(--papier-3); font: 600 var(--schrift-2) var(--serif); text-align: left;
 }
 .kf-eintrag:hover, .kf-eintrag:focus-visible { background: rgba(217, 180, 106, 0.14); outline: none; }
 .kf-eintrag.fehler { color: #ffc6b5; }
 .kf-eintrag-text { display: grid; flex: 1; min-width: 0; }
-.kf-eintrag-text small { font: 400 12.5px var(--sans); color: #d9a796; white-space: normal; }
-.kf-eintrag kbd { font: 500 11.5px var(--sans); color: #bfa97b; padding: 1px 6px; border: 1px solid rgba(217, 180, 106, 0.35); border-radius: 4px; }
+.kf-eintrag-text small { font: 400 var(--schrift-2) var(--serif); color: #d9a796; white-space: normal; }
+.kf-eintrag kbd { font: 500 var(--schrift-2) var(--serif); color: var(--linie-stark); padding: 1px 6px; border: 1px solid rgba(217, 180, 106, 0.35); border-radius: 4px; }
 .kf-abschnitt { padding: 8px 10px 6px; border-top: 1px solid rgba(217, 180, 106, 0.22); }
-.kf-abschnitt-titel { font: 400 11.5px var(--kapitaelchen); text-transform: uppercase; letter-spacing: 0.1em; color: #c7b188; margin-bottom: 6px; }
-.kf-abschnitt-hinweis { margin: -2px 0 6px; font: italic 12.5px var(--serif); color: #b9a47a; }
-.kf-wahl { display: flex; align-items: center; gap: 8px; padding: 3px 0; font: 14px var(--serif); cursor: pointer; }
-.kf-wahl input { accent-color: #c9a257; }
+.kf-abschnitt-titel { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.1em; color: var(--linie-stark); margin-bottom: 6px; }
+.kf-abschnitt-hinweis { margin: -2px 0 6px; font: italic var(--schrift-2) var(--serif); color: var(--linie-stark); }
+.kf-wahl { display: flex; align-items: center; gap: 8px; padding: 3px 0; font: var(--schrift-2) var(--serif); cursor: pointer; }
+.kf-wahl input { accent-color: var(--messing-2); }
 .kf-sprache { display: flex; gap: 4px; }
-.kf-sprache button { flex: 1; padding: 6px 4px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(217, 180, 106, 0.35); background: rgba(0, 0, 0, 0.25); color: #e3cfa0; font: 600 12.5px var(--sans); }
-.kf-sprache button.on { color: #2b1e12; background: linear-gradient(180deg, #f3dca0, #c9a257); border-color: transparent; }
+.kf-sprache button { flex: 1; padding: 6px 4px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(217, 180, 106, 0.35); background: rgba(0, 0, 0, 0.25); color: var(--linie); font: 600 var(--schrift-2) var(--serif); }
+.kf-sprache button.on { color: var(--messing-text); background: linear-gradient(180deg, var(--messing-1), var(--messing-2)); border-color: transparent; }
 .kf-effekte { width: 100%; }
 
 /* Meldungen unter der Leiste: beschriftete Kapseln in fester Reihenfolge, auch auf großen Bildschirmen mit Text */
@@ -111,15 +111,15 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 .kf-meldungen .alert.kompakt .alert-text { max-width: none; margin-left: 0; opacity: 1; }
 .kf-meldungen .alert.kompakt .alert-zahl { display: none; }
 .kf-meldungen .alert { padding: 0 12px 0 4px; }
-.kf-meldungen .kf-mehr { padding: 0 12px; font: 600 14px var(--serif); }
+.kf-meldungen .kf-mehr { padding: 0 12px; font: 600 var(--schrift-2) var(--serif); }
 .kf-mehr-wurzel { position: relative; order: 9; display: inline-flex; }
 .kf-meldungen .kf-mehr-liste { left: 0; width: 320px; pointer-events: auto; opacity: 1; transform: none; display: grid; gap: 2px; }
 .kf-meldungen .kf-mehr-liste::before { left: 24px; }
-.kf-mehr-liste .tone-rot { --ton: #b2402f; }
-.kf-mehr-liste .tone-gelb { --ton: #b58a36; }
+.kf-mehr-liste .tone-rot { --ton: var(--siegel-hell); }
+.kf-mehr-liste .tone-gelb { --ton: var(--messing-2); }
 .kf-mehr-liste .tone-blau { --ton: #81673a; }
-.kf-meldungen .kf-mehr-liste button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 4px; border: none; background: none; color: #f1e5c8; font: 600 14px var(--serif); text-align: left; cursor: pointer; }
-.kf-meldungen .kf-mehr-liste button:hover { color: #fff3cf; }
+.kf-meldungen .kf-mehr-liste button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 4px; border: none; background: none; color: var(--papier-3); font: 600 var(--schrift-2) var(--serif); text-align: left; cursor: pointer; }
+.kf-meldungen .kf-mehr-liste button:hover { color: var(--leder-text); }
 
 /* Mittelbreite: Kurznamen bleiben, Abstände werden enger */
 @media (max-width: 1440px) {
@@ -131,11 +131,11 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
   .hud.kf { grid-template-columns: minmax(0, auto) auto minmax(0, 1fr) auto; padding: 0 8px 0 12px; }
   .kf-wer { padding-right: 12px; }
   .kf-partei { display: none; }
-  .kf-datum { font-size: 18px; }
+  .kf-datum { font-size: var(--schrift-4); }
   .kf-tempo button { width: 26px; }
   .kf-zahl-name { display: none; }
   .kf-zahl { padding: 4px 7px; gap: 5px; }
-  .kf-zahl-wert { font-size: 16.5px; }
+  .kf-zahl-wert { font-size: var(--schrift-3); }
   .kf-mehrheit { width: 48px; }
 }
 @media (max-width: 1000px) {
@@ -155,18 +155,18 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
   .kf > .kf-wie::before { display: none; }
   .kf .leader { width: 36px; height: 36px; }
   .kf-wann { padding: 0 8px; gap: 8px; justify-content: flex-start; }
-  .kf-datum { font-size: 15px; }
+  .kf-datum { font-size: var(--schrift-3); }
   .kf-tempo button { width: 24px; height: 22px; }
   .kf-menue-knopf { width: 36px; height: 36px; }
   .kf-zahl { padding: 3px 4px; gap: 4px; }
   .kf-zahl .icon { width: 15px; height: 15px; }
-  .kf-zahl-wert { font-size: 15px; }
+  .kf-zahl-wert { font-size: var(--schrift-3); }
   .kf-trend, .kf-zahl-zusatz { display: none; }
   .kf-mehrheit { width: 34px; height: 5px; }
   .kf-zahl + .kf-zahl::before { top: 9px; bottom: 9px; }
   .kf-stempel { right: 46px; }
   .alerts.kf-meldungen { top: 96px; left: 8px; max-width: calc(100vw - 16px); }
-  .kf-meldungen .alert { height: 28px; font-size: 12.5px; }
+  .kf-meldungen .alert { height: 28px; font-size: var(--schrift-2); }
   .stage:has(.hud.kf) .dossier-menu { top: 140px; }
   .stage:has(.hud.kf) .dossier, .stage:has(.hud.kf) .dossier.frame, .stage:has(.hud.kf) .dossier.full { top: 96px; max-height: calc(100vh - 104px); }
 }
@@ -174,8 +174,8 @@ button.kf-zahl:hover, button.kf-zahl:focus-visible { background: rgba(217, 180, 
 /* Gesperrte Wahl (schon zwei weitere Werte) und Abschluss des Menüs mit dem Weg ins Hauptmenü */
 .kf-wahl.gesperrt { opacity: 0.5; cursor: not-allowed; }
 .kf-abschnitt-schluss { padding: 6px 0 0; }
-.kf-eintrag-text small.kf-eintrag-hinweis { color: #b9a47a; font-style: italic; font-family: var(--serif); font-size: 12.5px; }
+.kf-eintrag-text small.kf-eintrag-hinweis { color: var(--linie-stark); font-style: italic; font-family: var(--serif); font-size: var(--schrift-2); }
 
 /* Sechs Kennzahlen behalten auch bei schmalen Fenstern Platz und ein lesbares Etikett. */
-@media (min-width:641px) and (max-width:850px){.kf-zahl{padding:4px;gap:3px}.kf-zahl .icon{width:15px;height:15px}.kf-wann{padding:0 6px}.kf-datum{font-size:15px}.kf-wann{gap:5px}.kf-tempo button{width:22px}}
-@media (max-width:640px){.kf-zahl{flex:1;justify-content:center}.kf-kapital .kf-zahl-name,.kf-haushalt .kf-zahl-name{display:block;font-size:11.5px;letter-spacing:0}.kf-zahl .icon{display:none}.kf-zahl-wert{font-size:14px}}
+@media (min-width:641px) and (max-width:850px){.kf-zahl{padding:4px;gap:3px}.kf-zahl .icon{width:15px;height:15px}.kf-wann{padding:0 6px}.kf-datum{font-size:var(--schrift-3)}.kf-wann{gap:5px}.kf-tempo button{width:22px}}
+@media (max-width:640px){.kf-zahl{flex:1;justify-content:center}.kf-kapital .kf-zahl-name,.kf-haushalt .kf-zahl-name{display:block;font-size:var(--schrift-1);letter-spacing:0}.kf-zahl .icon{display:none}.kf-zahl-wert{font-size:var(--schrift-2)}}

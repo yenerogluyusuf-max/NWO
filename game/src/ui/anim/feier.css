@@ -1,0 +1,58 @@
+/* Feiermoment (anim/Feier.tsx, befund-H H-24): Lederschild mit Messingkante unter der Kopfleiste, Siegel wird aufgedrückt, ein
+   Messingschein läuft einmal darüber (wie der Lichtstreif der Wunderfeier, reich/wunder.css). Zeitplan in Sekunden: 0 bis 0,2 Auftritt,
+   0,05 bis 0,45 Siegel, 0,3 bis 1,1 Schein, ab 1,5 Abgang; zusammen 1,8 (FEIER_DAUER). */
+
+.feier {
+  --feier-ton: var(--siegel);
+  position: absolute; z-index: 130; top: 76px; left: 50%; translate: -50% 0;
+  display: flex; align-items: center; gap: var(--abstand-3); min-width: 280px; max-width: min(560px, calc(100vw - 32px));
+  padding: 10px 22px 10px 12px; overflow: hidden; pointer-events: none;
+  border: 1px solid transparent; border-radius: var(--rund-3);
+  background: linear-gradient(180deg, var(--leder-hell), var(--leder)) padding-box, linear-gradient(180deg, var(--messing-1), var(--messing-3)) border-box;
+  box-shadow: 0 0 0 1px var(--leder-tief), 0 10px 28px rgba(20, 10, 4, 0.5);
+  color: var(--leder-text);
+  animation: feier-auftritt 1.8s ease both;
+}
+.feier-fokus { --feier-ton: var(--messing-3); }
+.feier-ziel { --feier-ton: var(--lorbeer); }
+
+.feier-siegel {
+  flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%;
+  color: var(--leder-text);
+  background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--feier-ton) 70%, white), var(--feier-ton) 58%, color-mix(in srgb, var(--feier-ton) 60%, black));
+  box-shadow: 0 0 0 2px var(--papier-2), 0 0 0 3.5px var(--messing-2), 0 3px 8px rgba(0, 0, 0, 0.45);
+  animation: feier-stempel 0.45s cubic-bezier(0.2, 0.7, 0.3, 1.2) 0.05s both;
+}
+.feier-text { display: grid; gap: 1px; min-width: 0; }
+.feier-text small { font: 400 var(--schrift-1)/1.3 var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--messing-1); }
+.feier-text strong { font: 600 var(--schrift-4)/1.25 var(--display); color: var(--papier-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.feier-glanz {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(241, 213, 143, 0.38) 48%, transparent 66%);
+  transform: translateX(-110%);
+  animation: feier-schein 0.8s ease-in-out 0.3s both;
+}
+
+@keyframes feier-auftritt {
+  0% { opacity: 0; transform: translateY(-10px); }
+  11% { opacity: 1; transform: none; }
+  83% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes feier-stempel {
+  0% { opacity: 0; transform: scale(1.7) rotate(-16deg); }
+  60% { opacity: 1; transform: scale(0.92) rotate(-5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-6deg); }
+}
+@keyframes feier-schein { to { transform: translateX(110%); } }
+@keyframes feier-ruhig { 0% { opacity: 0; } 12% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Effekte „Aus“: kein Moment (die Komponente zeigt dann ohnehin nichts) */
+html[data-effekte="aus"] .feier { display: none; }
+/* Bewegung reduzieren: nur ruhig ein- und ausblenden, kein Stempel, kein Schein */
+@media (prefers-reduced-motion: reduce) {
+  .feier { animation: feier-ruhig 1.8s linear both; }
+  .feier-siegel { animation: none; transform: rotate(-6deg); }
+  .feier-glanz { display: none; }
+}

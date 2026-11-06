@@ -3,27 +3,27 @@
 .fk { display: flex; flex-direction: column; gap: 8px; min-width: 0; height: 100%; min-height: 520px; }
 .fk.fk-voll {
   position: fixed; inset: 0; z-index: 2000; padding: 14px 18px; min-height: 0;
-  background: radial-gradient(ellipse at 50% 30%, #f6eedb 0%, #eadcbd 70%, #dccba6 100%);
+  background: radial-gradient(ellipse at 50% 30%, var(--papier-2) 0%, var(--papier-4) 70%, var(--linie) 100%);
 }
 
 .fk-kopf { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .fk-kopf-text { flex: 1 1 260px; min-width: 0; }
-.fk-satz { margin: 0; font: 600 16.5px/1.35 var(--serif); color: var(--ink); }
-.fk-zaehler { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.fk-satz { margin: 0; font: 600 var(--schrift-3)/1.35 var(--serif); color: var(--ink); }
+.fk-zaehler { margin: 2px 0 0; font-size: var(--schrift-2); color: var(--ink-soft); }
 .fk-aktiv {
   display: flex; flex-direction: column; gap: 4px; min-width: 200px; max-width: 320px; padding: 6px 10px; text-align: left;
   font: inherit; color: var(--ink); cursor: pointer; border-radius: 4px; border: 1px solid var(--teal); background: rgba(255, 251, 238, 0.95);
 }
-.fk-aktiv-name { font: 600 14px/1.2 var(--serif); }
+.fk-aktiv-name { font: 600 var(--schrift-2)/1.2 var(--serif); }
 .fk-werkzeug { display: flex; gap: 4px; }
 .fk-werkzeug button {
-  font: 500 14px var(--sans); min-width: 32px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(90, 64, 40, 0.35);
+  font: 500 var(--schrift-2) var(--serif); min-width: 32px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(90, 64, 40, 0.35);
   background: rgba(255, 251, 238, 0.9); color: var(--ink); cursor: pointer;
 }
-.fk-werkzeug button:hover { background: #fff; }
+.fk-werkzeug button:hover { background: var(--papier-1); }
 
-.fk-meldung { margin: 0; padding: 6px 10px; border-radius: 4px; font-size: 14px; }
-.fk-meldung.ok { background: rgba(140,109,74, 0.14); }
+.fk-meldung { margin: 0; padding: 6px 10px; border-radius: 4px; font-size: var(--schrift-2); }
+.fk-meldung.ok { background: color-mix(in srgb, var(--gut) 14%, transparent); }
 .fk-meldung.nein { background: rgba(150, 44, 36, 0.12); }
 
 .fk-flaeche {
@@ -42,7 +42,7 @@
 .fk-ast { position: absolute; border-radius: 6px; border-top: 3px solid var(--ast); background: rgba(255, 252, 244, 0.45); }
 .fk-ast-kopf {
   display: block; width: 100%; padding: 6px 4px 0; text-align: center; border: 0; background: none; cursor: zoom-in;
-  font: 700 15px var(--display, var(--serif)); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ast);
+  font: 700 var(--schrift-3) var(--display, var(--serif)); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ast);
 }
 .fk-linien { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
 .fk-linien path { fill: none; stroke: rgba(90, 64, 40, 0.38); stroke-width: 1.6; }
@@ -60,8 +60,8 @@
 .fk-knoten.auf { outline: 2.5px solid #6b4a2a; outline-offset: 2px; }
 .fk-knoten .fk-zeichen { flex: none; width: 22px; height: 22px; color: var(--ast); }
 .fk-knoten-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.fk-knoten-name { font: 600 13px/1.18 var(--serif); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.fk-knoten-fuss { display: flex; align-items: center; gap: 5px; font: 11.5px/1.2 var(--sans); color: var(--ink-soft); white-space: nowrap; }
+.fk-knoten-name { font: 600 var(--schrift-1)/1.18 var(--serif); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fk-knoten-fuss { display: flex; align-items: center; gap: 5px; font: var(--schrift-1)/1.2 var(--sans); color: var(--ink-soft); white-space: nowrap; }
 .fk-knoten .fk-balken { position: absolute; left: 4px; right: 4px; bottom: 3px; }
 .fk-knoten.fk-fertig { background: color-mix(in srgb, var(--ast) 18%, #fffbee); border-color: color-mix(in srgb, var(--ast) 60%, transparent); }
 .fk-knoten.fk-fertig .fk-knoten-fuss { color: color-mix(in srgb, var(--ast) 75%, #2e2118); font-weight: 600; }
@@ -111,7 +111,7 @@
 
 .fk-stempel {
   position: absolute; right: -10px; top: -12px; padding: 2px 7px; transform: rotate(-9deg);
-  font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.12em; text-transform: uppercase; color: rgb(150, 44, 36);
+  font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.12em; color: rgb(150, 44, 36);
   border: 2px solid rgb(150, 44, 36); border-radius: 4px; background: rgba(255, 248, 236, 0.92);
   animation: fk-stempel 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
 }
@@ -124,27 +124,27 @@
   box-shadow: 0 8px 24px rgba(40, 25, 10, 0.22); display: flex; flex-direction: column; gap: 9px;
 }
 .fk-blatt-kopf { display: flex; justify-content: space-between; gap: 8px; border-top: 4px solid; padding-top: 6px; }
-.fk-blatt-kopf h3 { margin: 2px 0; font: 700 18px/1.2 var(--serif); }
-.fk-blatt-ast { margin: 0; font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
-.fk-blatt-unter { margin: 0; font: italic 14px/1.35 var(--serif); color: var(--ink-soft); }
-.fk-zu { border: 0; background: none; font-size: 24px; line-height: 1; cursor: pointer; color: var(--ink-soft); align-self: flex-start; }
-.fk-blatt-text { margin: 0; font: 14px/1.45 var(--serif); }
-.fk-fertig { margin: 0; font-size: 14px; color: rgb(79,107,58); }
-.fk-lauf { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 14px; }
+.fk-blatt-kopf h3 { margin: 2px 0; font: 700 var(--schrift-4)/1.2 var(--serif); }
+.fk-blatt-ast { margin: 0; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.05em; color: var(--ink-soft); }
+.fk-blatt-unter { margin: 0; font: italic var(--schrift-2)/1.35 var(--serif); color: var(--ink-soft); }
+.fk-zu { border: 0; background: none; font-size: var(--schrift-5); line-height: 1; cursor: pointer; color: var(--ink-soft); align-self: flex-start; }
+.fk-blatt-text { margin: 0; font: var(--schrift-2)/1.45 var(--serif); }
+.fk-fertig { margin: 0; font-size: var(--schrift-2); color: rgb(79,107,58); }
+.fk-lauf { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: var(--schrift-2); }
 .fk-lauf .fk-balken { grid-column: 1 / -1; height: 6px; }
-.fk-grund { margin: 0; padding: 5px 8px; border-radius: 4px; font-size: 14px; background: rgba(90, 64, 40, 0.08); }
+.fk-grund { margin: 0; padding: 5px 8px; border-radius: 4px; font-size: var(--schrift-2); background: rgba(90, 64, 40, 0.08); }
 .fk-grund-ausgeschlossen { background: rgba(150, 44, 36, 0.1); color: rgb(130, 36, 30); }
-.fk-preis { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 14px; }
-.fk-linie { color: var(--ink-soft); font-size: 12.5px; }
+.fk-preis { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: var(--schrift-2); }
+.fk-linie { color: var(--ink-soft); font-size: var(--schrift-2); }
 .fk-ja, .fk-nein, .fk-direkt {
-  font: 600 14px var(--sans); padding: 5px 12px; border-radius: 4px; cursor: pointer; border: 1px solid var(--teal);
-  background: var(--teal); color: #fff;
+  font: 600 var(--schrift-2) var(--serif); padding: 5px 12px; border-radius: 4px; cursor: pointer; border: 1px solid var(--teal);
+  background: var(--teal); color: var(--papier-1);
 }
 .fk-ja:disabled { opacity: 0.5; cursor: default; }
 .fk-nein { background: rgba(255, 251, 238, 0.9); color: rgb(130, 36, 30); border-color: rgba(150, 44, 36, 0.5); }
-.fk-direkt { font-weight: 500; font-size: 12.5px; padding: 2px 8px; background: rgba(103,66,44, 0.1); color: var(--teal); }
-.fk-block h4 { margin: 0 0 4px; font: 400 11.5px var(--kapitaelchen); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
-.fk-liste, .fk-folgen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
+.fk-direkt { font-weight: 500; font-size: var(--schrift-2); padding: 2px 8px; background: rgba(103,66,44, 0.1); color: var(--teal); }
+.fk-block h4 { margin: 0 0 4px; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.05em; color: var(--ink-soft); }
+.fk-liste, .fk-folgen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: var(--schrift-2); }
 .fk-liste li { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
 .fk-liste li.fehlt { color: rgb(130, 36, 30); }
 .fk-liste li.ok { color: rgb(79,107,58); }
@@ -156,11 +156,11 @@
 .fk-link { border: 0; padding: 0; background: none; font: inherit; color: var(--teal); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; text-align: left; }
 .fk-gegen { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .fk-link-gegen { color: rgb(130, 36, 30); }
-.fk-reakt { margin: 0 0 2px; font-size: 14px; }
+.fk-reakt { margin: 0 0 2px; font-size: var(--schrift-2); }
 .fk-reakt.plus b { color: rgb(79,107,58); }
 .fk-reakt.minus b { color: rgb(150, 44, 36); }
-.fk-klein { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
-.fk-legende { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+.fk-klein { margin: 2px 0 0; font-size: var(--schrift-2); color: var(--ink-soft); }
+.fk-legende { margin: 0; font-size: var(--schrift-2); color: var(--ink-soft); }
 
 @media (max-width: 640px) {
   .fk { min-height: 70vh; }

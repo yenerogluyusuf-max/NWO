@@ -110,3 +110,24 @@ test("Porträt-Chip: die Stimmung trägt ein Präfix (eine globale Regel `.loyal
     expect(html).not.toMatch(/class="[^"]*\b(treu|loyal|skeptisch|kritisch|meuternd)\b(?<!bs-st-\1)/);
   }
 });
+
+// Knopf in drei Stufen (befund-H H-02): eine Klasse je Stufe, Typ „button“ als Vorgabe, eigene Klassen kommen dazu
+import { Knopf, knopfKlasse } from "../src/ui/bausteine/Knopf";
+import { readFileSync } from "node:fs";
+
+test("Knopf: drei Stufen, jede mit eigener Klasse und Regel in den Bauteilen", () => {
+  expect(renderToStaticMarkup(createElement(Knopf, null, "Beschließen"))).toBe('<button type="button" class="knopf">Beschließen</button>');
+  expect(renderToStaticMarkup(createElement(Knopf, { stufe: "haupt", className: "breit" }, "Los"))).toContain('class="knopf-haupt breit"');
+  expect(knopfKlasse("leise")).toBe("knopf-leise");
+  const css = readFileSync(`${__dirname}/../src/ui/akte/bauteile.css`, "utf8");
+  for (const k of ["knopf", "knopf-haupt", "knopf-leise"]) expect(css).toMatch(new RegExp(`\\.${k}\\b[^{]*\\{`));
+  // Druck und Fokus gehören zu jeder Stufe
+  expect(css).toMatch(/:active:not\(:disabled\)/);
+  expect(css).toMatch(/:focus-visible/);
+});
+
+test("Keine gewichtige Knopfregel mehr: die Grundform im Blatt steht in :where()", () => {
+  const css = readFileSync(`${__dirname}/../src/ui/styles.css`, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  expect(css).not.toMatch(/(^|[},])\s*\.paper button, \.dossier button/);
+  expect(css).toMatch(/:where\(\.paper, \.dossier, \.prologue-card\) :where\(button\)/);
+});

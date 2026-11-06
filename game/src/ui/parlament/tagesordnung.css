@@ -1,24 +1,24 @@
 /* Parlament › Tagesordnung: eine Zeile je Vorlage, Ja-Balken an der Mehrheitslinie (Palette Kabinettstisch). */
 .to { display: flex; flex-direction: column; gap: 10px; }
 .to-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.to-zeile { padding: 10px 14px; border: 1px solid var(--messing-rand, rgba(140, 110, 60, 0.35)); border-radius: 6px; background: var(--pergament, #f4ead2); }
+.to-zeile { padding: 10px 14px; border: 1px solid var(--messing-rand, rgba(140, 110, 60, 0.35)); border-radius: 6px; background: var(--pergament, var(--leder-text)); }
 .to-zeile.to-knapp { border-left: 4px solid #b08a2e; }
-.to-zeile.to-verloren { border-left: 4px solid var(--seal, #8f2a1e); }
-.to-zeile.to-sicher { border-left: 4px solid #5d4231; }
+.to-zeile.to-verloren { border-left: 4px solid var(--seal, var(--siegel)); }
+.to-zeile.to-sicher { border-left: 4px solid var(--tinte-weich); }
 .to-kopf { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.to-art { font-family: "Marcellus SC", serif; font-size: 12px; letter-spacing: 0.06em; color: #6b5338; min-width: 92px; }
-.to-titel { font-size: 15px; font-weight: 600; color: #2e2118; background: none; border: 0; padding: 0; text-align: left; }
+.to-art { font-family: "Marcellus SC", serif; font-size: var(--schrift-1); letter-spacing: 0.06em; color: #6b5338; min-width: 92px; }
+.to-titel { font-size: var(--schrift-3); font-weight: 600; color: var(--tinte-1); background: none; border: 0; padding: 0; text-align: left; }
 button.to-titel { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(120, 90, 50, 0.4); text-underline-offset: 3px; }
-button.to-titel:hover { color: var(--seal, #8f2a1e); }
-.to-termin { margin-left: auto; font-size: 13px; color: #5a4632; }
+button.to-titel:hover { color: var(--seal, var(--siegel)); }
+.to-termin { margin-left: auto; font-size: var(--schrift-2); color: var(--tinte-2); }
 .to-balken { position: relative; height: 12px; margin: 8px 0 6px; border-radius: 6px; background: rgba(90, 64, 40, 0.16); }
-.to-ja { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: linear-gradient(90deg, #5d4231, #7d6438); }
-.to-ja.to-verloren { background: linear-gradient(90deg, #7a2a20, #9b3a2c); }
-.to-ja.to-knapp { background: linear-gradient(90deg, #8a6a2a, #b08a2e); }
+.to-ja { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: linear-gradient(90deg, var(--tinte-weich), #7d6438); }
+.to-ja.to-verloren { background: linear-gradient(90deg, #7a2a20, var(--siegel)); }
+.to-ja.to-knapp { background: linear-gradient(90deg, var(--warnung), #b08a2e); }
 .to-spanne { position: absolute; top: 2px; bottom: 2px; background: repeating-linear-gradient(45deg, rgba(90, 64, 40, 0.25) 0 4px, transparent 4px 8px); }
-.to-linie { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--seal, #8f2a1e); }
-.to-linie.to-direkt { background: #2e2118; opacity: 0.6; }
-.to-fuss { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #3a2a1d; }
+.to-linie { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--seal, var(--siegel)); }
+.to-linie.to-direkt { background: var(--tinte-1); opacity: 0.6; }
+.to-fuss { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: var(--schrift-2); color: var(--leder); }
 .to-zahl { margin-right: auto; }
-.to-leer { padding: 18px; text-align: center; color: #3a2a1d; }
+.to-leer { padding: 18px; text-align: center; color: var(--leder); }
 .to-leer p { margin: 0 0 10px; }

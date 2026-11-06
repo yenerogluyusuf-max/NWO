@@ -1,28 +1,28 @@
 /* Ressortetats wie in Democracy: Bilanz oben, je Ressort eine Zeile mit Minister, Betrag, Regler, Wirkung und Wunsch */
 .hh-bilanz-zahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px 14px; margin: 10px 0 6px; }
 .hh-bilanz-zahlen div { border-left: 3px solid rgba(90, 64, 40, 0.35); padding-left: 8px; }
-.hh-bilanz-zahlen dt { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b5338; }
-.hh-bilanz-zahlen dd { margin: 0; font: 600 21px/1.2 var(--serif, Georgia, serif); color: #2b1e12; }
-.hh-bilanz-zahlen .hh-warn { border-left-color: #8e2a22; }
-.hh-bilanz-zahlen .hh-warn dd { color: #8e2a22; }
+.hh-bilanz-zahlen dt { font-size: var(--schrift-1); text-transform: uppercase; letter-spacing: 0.05em; color: #6b5338; }
+.hh-bilanz-zahlen dd { margin: 0; font: 600 var(--schrift-5)/1.2 var(--serif, Georgia, serif); color: var(--messing-text); }
+.hh-bilanz-zahlen .hh-warn { border-left-color: var(--siegel); }
+.hh-bilanz-zahlen .hh-warn dd { color: var(--siegel); }
 .hh-gruppe { margin-top: 14px; }
-.hh-gruppe > h4 { margin: 0 0 4px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: #6b5338; border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
+.hh-gruppe > h4 { margin: 0 0 4px; font-size: var(--schrift-2); text-transform: uppercase; letter-spacing: 0.06em; color: #6b5338; border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 3px; }
 .hh-liste { list-style: none; margin: 0; padding: 0; }
 .hh-zeile { padding: 8px 6px; border-bottom: 1px dashed rgba(90, 64, 40, 0.2); }
 .hh-zeile.on { background: rgba(214, 168, 72, 0.12); }
 .hh-kopf { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; }
 .hh-minister { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; display: inline-block; background: rgba(90, 64, 40, 0.1); }
 .hh-name { min-width: 0; display: flex; flex-direction: column; }
-.hh-text { font-size: 12.5px; color: #6b5338; }
-.hh-betrag { text-align: right; font-size: 14px; white-space: nowrap; }
+.hh-text { font-size: var(--schrift-2); color: #6b5338; }
+.hh-betrag { text-align: right; font-size: var(--schrift-2); white-space: nowrap; }
 .hh-betrag s { color: #8a7458; }
 .hh-regler { display: grid; grid-template-columns: auto 1fr auto 2.5em; gap: 8px; align-items: center; margin: 6px 0 2px 50px; }
-.hh-regler input[type="range"] { width: 100%; accent-color: #8e2a22; }
-.hh-rand { font-size: 12.5px; color: #6b5338; }
-.hh-stufe { font: 600 14px/1 var(--sans, Inter, sans-serif); text-align: right; }
-.hh-wirkung { margin: 2px 0 0 50px; font-size: 14px; color: #3d2c1b; }
-.hh-wunsch { margin: 2px 0 0 50px; font-size: 12.5px; color: #8e2a22; font-style: italic; }
-.hh-wunsch.erfuellt { color: #5f493d; }
+.hh-regler input[type="range"] { width: 100%; accent-color: var(--siegel); }
+.hh-rand { font-size: var(--schrift-2); color: #6b5338; }
+.hh-stufe { font: 600 var(--schrift-2)/1 var(--serif); text-align: right; }
+.hh-wirkung { margin: 2px 0 0 50px; font-size: var(--schrift-2); color: var(--leder); }
+.hh-wunsch { margin: 2px 0 0 50px; font-size: var(--schrift-2); color: var(--siegel); font-style: italic; }
+.hh-wunsch.erfuellt { color: var(--gut); }
 .hh-zeile .wi-hh-vorschau { margin: 8px 0 0 50px; }
 .hh-tiefe summary, .hh-plan summary { cursor: pointer; font-weight: 600; }
 @media (max-width: 560px) {
@@ -37,81 +37,81 @@
 .hh-im-detail .hh-regler, .hh-im-detail .hh-wirkung, .hh-im-detail .hh-wunsch, .hh-im-detail .hh-zeile .wi-hh-vorschau { margin-left: 0; }
 .hh-im-detail .hh-regler { grid-template-columns: auto 1fr auto 2.2em; }
 .hh-im-detail .wi-plan { grid-template-columns: 1fr; }
-.hh-im-detail h3 { margin: 0 0 4px; font: 600 18px/1.25 var(--display, Fraunces, serif); }
+.hh-im-detail h3 { margin: 0 0 4px; font: 600 var(--schrift-4)/1.25 var(--display, Fraunces, serif); }
 .ub-bild .hh-minister { width: 40px; height: 40px; }
 
 /* Das Haushaltsbuch: Ressorts in Zeilen, der gewählte Gegenstand bekommt Platz. */
-.hw-arbeitsplatz{container:haushaltsarbeit/inline-size;min-width:0;color:#43332b;font:14px/1.6 var(--sans,Inter,sans-serif)}
-.hw-kopf{display:flex;gap:22px;align-items:center;justify-content:space-between;padding:20px 22px;background:#f3f0e8;border:1px solid #d8d4cc;border-radius:10px;margin-bottom:20px}
-.hw-kopf>div{min-width:0;flex:1}.hw-kopf small{font:400 11.5px/1.4 var(--kapitaelchen);letter-spacing:.08em;text-transform:uppercase;color:#537564}.hw-kopf p{margin:7px 0 0;color:#536557}.hw-kopf p>b{display:block;font:500 28px/1.2 var(--display,Georgia,serif);color:#49362c;margin-bottom:8px}
-.hw-kopf dl{display:flex;gap:22px;flex-wrap:wrap;margin:0}.hw-kopf dt{font-size:12.5px;color:#536557}.hw-kopf dd{font:500 28px/1.3 var(--display,Georgia,serif);font-variant-numeric:tabular-nums;margin:3px 0 0}
+.hw-arbeitsplatz{container:haushaltsarbeit/inline-size;min-width:0;color:#43332b;font:var(--schrift-2)/1.6 var(--serif)}
+.hw-kopf{display:flex;gap:22px;align-items:center;justify-content:space-between;padding:20px 22px;background:var(--papier-1);border:1px solid #d8d4cc;border-radius:10px;margin-bottom:20px}
+.hw-kopf>div{min-width:0;flex:1}.hw-kopf small{font:400 var(--schrift-1)/1.4 var(--kapitaelchen);letter-spacing:.08em;color:#537564}.hw-kopf p{margin:7px 0 0;color:#536557}.hw-kopf p>b{display:block;font:500 var(--schrift-6)/1.2 var(--display,Georgia,serif);color:#49362c;margin-bottom:8px}
+.hw-kopf dl{display:flex;gap:22px;flex-wrap:wrap;margin:0}.hw-kopf dt{font-size:var(--schrift-1);color:#536557}.hw-kopf dd{font:500 var(--schrift-6)/1.3 var(--display,Georgia,serif);font-variant-numeric:tabular-nums;margin:3px 0 0}
 .hw-flaeche{display:grid;grid-template-columns:minmax(220px,28%) minmax(0,1fr);gap:22px;align-items:start}
-.hw-verzeichnis{min-width:0;position:relative}.hw-zeilen{display:grid;gap:19px}.hw-zeilen section>h4{font:400 11.5px/1.5 var(--kapitaelchen);letter-spacing:.08em;text-transform:uppercase;color:#63745f;margin:0 0 7px}
-.hw-eintrag{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;width:100%;text-align:left;padding:12px;border:0;border-bottom:1px solid #e7e0d2;border-radius:0;color:#523f34;background:transparent;font:14px/1.5 var(--sans,Inter,sans-serif);cursor:pointer;box-shadow:none}
-.hw-eintrag:hover{background:#f3f0e9}.hw-eintrag.on{background:#eee9df;box-shadow:inset 3px 0 #644d40;border-radius:6px;color:#473124}.hw-eintrag>span{min-width:0;overflow-wrap:anywhere}.hw-eintrag small{display:block;font-size:11.5px;color:#69745f}.hw-eintrag .hw-wert{font-variant-numeric:tabular-nums;font-size:12.5px;margin-left:auto;text-align:right}.hw-marke.mittel{color:#805d29}.hw-marke.schlecht{color:#923e34}.hw-marke.gut{color:#6c5040}
-.hw-inhalt{container:haushaltsinhalt/inline-size;min-width:0;padding:23px 24px;background:#fffcf6;border:1px solid #dcd8cf;border-radius:10px;box-shadow:0 5px 16px #3d2f2706}
-.hw-inhalt .hh-im-detail>h3{font:500 28px/1.25 var(--display,Georgia,serif);margin-bottom:12px}.hw-inhalt .ub-dkopf h4{font:500 28px/1.2 var(--display,Georgia,serif)}.hw-inhalt .kicker{color:#66785d;font:400 11.5px/1.5 var(--kapitaelchen);letter-spacing:.08em;text-transform:uppercase}
-.hw-inhalt .hh-betrag{white-space:normal;font-size:15px}.hw-inhalt .hh-text{font-size:14px;line-height:1.6}.hw-inhalt .hh-regler{margin:18px 0;gap:12px}.hw-inhalt input[type=range]{min-height:32px;accent-color:#685143}.hw-inhalt .hh-wirkung{font-size:14px;line-height:1.65}.hw-inhalt .hh-wunsch{margin-top:13px;padding:12px 15px;border-left:3px solid #ae8b4d;background:#f6f1df;font:14px/1.6 var(--sans,Inter,sans-serif);color:#73552e}.hw-inhalt .hh-wunsch.erfuellt{border-left-color:#5a815c;background:#f3efe7;color:#675042}
-.hw-inhalt .wi-hh-vorschau{padding:0;border:0;background:transparent}.hw-inhalt .hh-tiefe{margin-top:18px}.hw-inhalt .hh-tiefe summary{font-size:14px;padding:7px 0}.hw-inhalt .wi-plan{grid-template-columns:minmax(0,1fr)}
-.hw-mobil{display:none}.hw-sprung{display:block;font-size:12.5px;padding:6px 0 12px;color:#6e5546}.hw-arbeitsplatz :is(button,select,summary,a):focus-visible,.hw-inhalt:focus-visible{outline:3px solid #b38e48;outline-offset:3px}
-@container haushaltsarbeit (max-width:900px){.hw-flaeche{grid-template-columns:minmax(0,1fr)}.hw-zeilen{display:none}.hw-mobil{display:grid;gap:7px;font-size:12.5px;color:#58704f}.hw-mobil select{width:100%;padding:12px 14px;background:#fffcf6;color:#4a3930;border:1px solid #cfc5b5;border-radius:6px;font:14px var(--sans,Inter,sans-serif)}.hw-sprung{display:none}.hw-kopf{flex-wrap:wrap}.hw-kopf>div{flex-basis:100%}.hw-kopf dl{gap:28px}}
-@container haushaltsarbeit (max-width:480px){.hw-inhalt{padding:17px 13px}.hw-kopf{padding:18px 15px}.hw-inhalt .hh-kopf{grid-template-columns:minmax(0,1fr)}.hw-inhalt .hh-betrag{text-align:left}.hw-inhalt .hh-regler{gap:6px}.hw-inhalt .hh-rand{font-size:11.5px}.hw-inhalt .wi-plan-liste li{flex-wrap:wrap}}
+.hw-verzeichnis{min-width:0;position:relative}.hw-zeilen{display:grid;gap:19px}.hw-zeilen section>h4{font:400 var(--schrift-1)/1.5 var(--kapitaelchen);letter-spacing:.08em;color:#63745f;margin:0 0 7px}
+.hw-eintrag{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;width:100%;text-align:left;padding:12px;border:0;border-bottom:1px solid var(--schlecht-flaeche);border-radius:0;color:var(--tinte-2);background:transparent;font:var(--schrift-2)/1.5 var(--serif);cursor:pointer;box-shadow:none}
+.hw-eintrag:hover{background:var(--papier-1)}.hw-eintrag.on{background:var(--papier-2);box-shadow:inset 3px 0 var(--tinte-2);border-radius:6px;color:var(--leder)}.hw-eintrag>span{min-width:0;overflow-wrap:anywhere}.hw-eintrag small{display:block;font-size:var(--schrift-2);color:#69745f}.hw-eintrag .hw-wert{font-variant-numeric:tabular-nums;font-size:var(--schrift-1);margin-left:auto;text-align:right}.hw-marke.mittel{color:var(--messing-3)}.hw-marke.schlecht{color:#923e34}.hw-marke.gut{color:var(--gut)}
+.hw-inhalt{container:haushaltsinhalt/inline-size;min-width:0;padding:23px 24px;background:var(--papier-1);border:1px solid #dcd8cf;border-radius:10px;box-shadow:0 5px 16px #3d2f2706}
+.hw-inhalt .hh-im-detail>h3{font:500 var(--schrift-6)/1.25 var(--display,Georgia,serif);margin-bottom:12px}.hw-inhalt .ub-dkopf h4{font:500 var(--schrift-6)/1.2 var(--display,Georgia,serif)}.hw-inhalt .kicker{color:#66785d;font:400 var(--schrift-1)/1.5 var(--kapitaelchen);letter-spacing:.08em;}
+.hw-inhalt .hh-betrag{white-space:normal;font-size:var(--schrift-3)}.hw-inhalt .hh-text{font-size:var(--schrift-2);line-height:1.6}.hw-inhalt .hh-regler{margin:18px 0;gap:12px}.hw-inhalt input[type=range]{min-height:32px;accent-color:var(--tinte-3)}.hw-inhalt .hh-wirkung{font-size:var(--schrift-2);line-height:1.65}.hw-inhalt .hh-wunsch{margin-top:13px;padding:12px 15px;border-left:3px solid #ae8b4d;background:var(--papier-2);font:var(--schrift-2)/1.6 var(--serif);color:#73552e}.hw-inhalt .hh-wunsch.erfuellt{border-left-color:var(--gut);background:var(--papier-1);color:var(--gut)}
+.hw-inhalt .wi-hh-vorschau{padding:0;border:0;background:transparent}.hw-inhalt .hh-tiefe{margin-top:18px}.hw-inhalt .hh-tiefe summary{font-size:var(--schrift-2);padding:7px 0}.hw-inhalt .wi-plan{grid-template-columns:minmax(0,1fr)}
+.hw-mobil{display:none}.hw-sprung{display:block;font-size:var(--schrift-2);padding:6px 0 12px;color:var(--tinte-3)}.hw-arbeitsplatz :is(button,select,summary,a):focus-visible,.hw-inhalt:focus-visible{outline:3px solid #b38e48;outline-offset:3px}
+@container haushaltsarbeit (max-width:900px){.hw-flaeche{grid-template-columns:minmax(0,1fr)}.hw-zeilen{display:none}.hw-mobil{display:grid;gap:7px;font-size:var(--schrift-2);color:#58704f}.hw-mobil select{width:100%;padding:12px 14px;background:var(--papier-1);color:#4a3930;border:1px solid #cfc5b5;border-radius:6px;font:var(--schrift-2) var(--serif)}.hw-sprung{display:none}.hw-kopf{flex-wrap:wrap}.hw-kopf>div{flex-basis:100%}.hw-kopf dl{gap:28px}}
+@container haushaltsarbeit (max-width:480px){.hw-inhalt{padding:17px 13px}.hw-kopf{padding:18px 15px}.hw-inhalt .hh-kopf{grid-template-columns:minmax(0,1fr)}.hw-inhalt .hh-betrag{text-align:left}.hw-inhalt .hh-regler{gap:6px}.hw-inhalt .hh-rand{font-size:var(--schrift-2)}.hw-inhalt .wi-plan-liste li{flex-wrap:wrap}}
 @container haushaltsinhalt (max-width:620px){.hw-inhalt .hh-kopf{grid-template-columns:minmax(0,1fr)}.hw-inhalt .hh-betrag{text-align:left}.hw-inhalt .hh-bilanz-zahlen{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* Haushaltstafel nach dem Vorbild von Democracy 4: Bilanz als Balken, alle Posten als Zeilen mit Regler, Wirkung unter dem Posten */
 .hd { display: grid; gap: 18px; }
-.hd-bilanz { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 28px; align-items: center; padding: 16px 20px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
-.hd-titel { grid-column: 1 / -1; margin: 0; font: 600 21px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
+.hd-bilanz { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 28px; align-items: center; padding: 16px 20px; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.hd-titel { grid-column: 1 / -1; margin: 0; font: 600 var(--schrift-5)/1.2 var(--display, Fraunces, serif); color: var(--messing-text); }
 .hd-balken { display: grid; gap: 8px; }
-.hd-balken-zeile { display: grid; grid-template-columns: 92px minmax(0, 1fr) 110px; gap: 12px; align-items: center; font: 14px/1.2 var(--sans, Inter, sans-serif); color: #4a3a28; }
-.hd-balken-zeile b { font: 600 16.5px/1.2 var(--display, Fraunces, serif); text-align: right; font-variant-numeric: tabular-nums; }
+.hd-balken-zeile { display: grid; grid-template-columns: 92px minmax(0, 1fr) 110px; gap: 12px; align-items: center; font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-2); }
+.hd-balken-zeile b { font: 600 var(--schrift-3)/1.2 var(--display, Fraunces, serif); text-align: right; font-variant-numeric: tabular-nums; }
 .hd-spur { height: 14px; border-radius: 7px; background: rgba(90, 64, 40, 0.1); overflow: hidden; }
 .hd-spur i { display: block; height: 100%; border-radius: 7px; }
-.hd-spur i.ein { background: #5d4231; }
+.hd-spur i.ein { background: var(--tinte-weich); }
 .hd-spur i.aus { background: #a25e3c; }
 .hd-kern { display: flex; gap: 22px; margin: 0; }
 .hd-kern div { display: grid; gap: 2px; min-width: 88px; }
-.hd-kern dt { font: 600 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
-.hd-kern dd { margin: 0; font: 600 24px/1.1 var(--display, Fraunces, serif); color: #2b1e12; font-variant-numeric: tabular-nums; }
-.hd-kern dd small { display: block; font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
-.hd-kern .schlecht dd { color: #8c2b1f; }
-.hd-kern .mittel dd { color: #856026; }
-.hd-fenster { grid-column: 1 / -1; margin: 0; font: italic 14px/1.35 var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.hd-kern dt { font: 600 var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); }
+.hd-kern dd { margin: 0; font: 600 var(--schrift-5)/1.1 var(--display, Fraunces, serif); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.hd-kern dd small { display: block; font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); }
+.hd-kern .schlecht dd { color: var(--siegel); }
+.hd-kern .mittel dd { color: var(--messing-3); }
+.hd-fenster { grid-column: 1 / -1; margin: 0; font: italic var(--schrift-2)/1.35 var(--serif, "EB Garamond", serif); color: var(--tinte-2); }
 
 .hd-spalten { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-.hd-seite { display: grid; gap: 10px; padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
-.hd-seite h3 { margin: 0; font: 600 18px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
-.hd-gruppe h4 { margin: 6px 0 2px; font: 700 11.5px/1.2 var(--sans, Inter, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; color: #7a6a56; }
+.hd-seite { display: grid; gap: 10px; padding: 14px 16px; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.hd-seite h3 { margin: 0; font: 600 var(--schrift-4)/1.2 var(--display, Fraunces, serif); color: var(--messing-text); }
+.hd-gruppe h4 { margin: 6px 0 2px; font: 700 var(--schrift-1)/1.2 var(--serif); letter-spacing: 0.06em; text-transform: uppercase; color: var(--tinte-3); }
 .hd-gruppe ul { list-style: none; margin: 0; padding: 0; display: grid; }
 .hd-zeile { border-bottom: 1px solid rgba(90, 64, 40, 0.14); }
 .hd-zeile:last-child { border-bottom: 0; }
 .hd-reihe { display: grid; grid-template-columns: minmax(0, 1fr) 180px 150px; gap: 12px; align-items: center; padding: 6px 4px; }
 .hd-zeile.on > .hd-reihe { background: rgba(201, 162, 90, 0.16); border-radius: 4px; }
-.hd-zeile.geaendert .hd-betrag b { color: #8c2b1f; }
-.hd-name { display: grid; gap: 1px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; color: #2b1e12; font: 15px/1.25 var(--sans, Inter, sans-serif); }
-.hd-name small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #856026; }
+.hd-zeile.geaendert .hd-betrag b { color: var(--siegel); }
+.hd-name { display: grid; gap: 1px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--messing-text); font: var(--schrift-3)/1.25 var(--serif); }
+.hd-name small { font: var(--schrift-1)/1.2 var(--serif); color: var(--messing-3); }
 .hd-regler { display: grid; grid-template-columns: 26px minmax(0, 1fr) 26px; gap: 6px; align-items: center; }
-.hd-regler button { width: 26px; height: 26px; padding: 0; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: #fffaf0; color: #4a3a28; font: 600 16.5px/1 var(--sans, Inter, sans-serif); cursor: pointer; }
+.hd-regler button { width: 26px; height: 26px; padding: 0; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: var(--papier-1); color: var(--tinte-2); font: 600 var(--schrift-3)/1 var(--serif); cursor: pointer; }
 .hd-regler button:disabled { opacity: 0.35; cursor: default; }
-.hd-regler input { width: 100%; accent-color: #8c2b1f; }
-.hd-betrag { font: 14px/1.25 var(--sans, Inter, sans-serif); color: #4a3a28; text-align: right; font-variant-numeric: tabular-nums; }
-.hd-betrag s { color: #7a6a56; }
+.hd-regler input { width: 100%; accent-color: var(--siegel); }
+.hd-betrag { font: var(--schrift-2)/1.25 var(--serif); color: var(--tinte-2); text-align: right; font-variant-numeric: tabular-nums; }
+.hd-betrag s { color: var(--tinte-3); }
 
-.hd-panel { display: grid; gap: 8px; margin: 4px 0 10px; padding: 12px 14px; border-left: 3px solid #8c2b1f; background: #fffaf0; border-radius: 0 4px 4px 0; }
-.hd-panel-wirkung, .hd-hinweis { margin: 0; font: 15px/1.4 var(--serif, "EB Garamond", serif); color: #4a3a28; }
+.hd-panel { display: grid; gap: 8px; margin: 4px 0 10px; padding: 12px 14px; border-left: 3px solid var(--siegel); background: var(--papier-1); border-radius: 0 4px 4px 0; }
+.hd-panel-wirkung, .hd-hinweis { margin: 0; font: var(--schrift-3)/1.4 var(--serif, "EB Garamond", serif); color: var(--tinte-2); }
 .hd-fakten { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; }
 .hd-fakten div { display: grid; gap: 1px; }
-.hd-fakten dt { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
-.hd-fakten dd { margin: 0; font: 600 16.5px/1.2 var(--display, Fraunces, serif); color: #2b1e12; }
-.hd-verteilung { display: grid; gap: 2px; margin: 0; font: 14px/1.35 var(--sans, Inter, sans-serif); color: #4a3a28; }
-.hd-gesperrt { margin: 0; font: 600 14px/1.35 var(--sans, Inter, sans-serif); color: #8c2b1f; }
+.hd-fakten dt { font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); }
+.hd-fakten dd { margin: 0; font: 600 var(--schrift-3)/1.2 var(--display, Fraunces, serif); color: var(--messing-text); }
+.hd-verteilung { display: grid; gap: 2px; margin: 0; font: var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+.hd-gesperrt { margin: 0; font: 600 var(--schrift-2)/1.35 var(--serif); color: var(--siegel); }
 .hd-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
 .hd-mehr { display: grid; gap: 12px; }
 .hd-mehr-reiter { display: flex; flex-wrap: wrap; gap: 8px; }
-.hd-mehr-reiter button { padding: 6px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: #fbf6e6; color: #4a3a28; font: 14px/1.2 var(--sans, Inter, sans-serif); cursor: pointer; }
-.hd-mehr-reiter button.on { background: #4a3424; color: #f8eedb; border-color: #4a3424; }
-.hd-mehr-inhalt { padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.hd-mehr-reiter button { padding: 6px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: var(--papier-2); color: var(--tinte-2); font: var(--schrift-2)/1.2 var(--serif); cursor: pointer; }
+.hd-mehr-reiter button.on { background: var(--tinte-weich); color: var(--papier-2); border-color: var(--tinte-weich); }
+.hd-mehr-inhalt { padding: 14px 16px; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; }
 
 @media (max-width: 1100px) {
   .hd-spalten { grid-template-columns: minmax(0, 1fr); }
@@ -124,14 +124,14 @@
 }
 
 /* Die allgemeinen Knopf- und Überschriftenstile der Akten gelten in der Tafel nicht: Namen sind Text, Gruppen leise Zwischenzeilen */
-.dossier .hd button.hd-name { all: unset; display: grid; gap: 1px; min-width: 0; cursor: pointer; color: #2b1e12; font: 15px/1.25 var(--sans, Inter, sans-serif) !important; text-transform: none !important; letter-spacing: 0 !important; overflow-wrap: break-word; hyphens: auto; }
+.dossier .hd button.hd-name { all: unset; display: grid; gap: 1px; min-width: 0; cursor: pointer; color: var(--messing-text); font: var(--schrift-3)/1.25 var(--serif); text-transform: none; letter-spacing: 0; overflow-wrap: break-word; hyphens: auto; }
 .dossier .hd button.hd-name:hover span, .dossier .hd button.hd-name:focus-visible span { text-decoration: underline; text-underline-offset: 3px; }
-.dossier .hd button.hd-name small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #856026; }
-.dossier .hd .hd-regler button { all: unset; box-sizing: border-box; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: #fffaf0; color: #4a3a28; font: 600 16.5px/1 var(--sans, Inter, sans-serif); cursor: pointer; }
+.dossier .hd button.hd-name small { font: var(--schrift-1)/1.2 var(--serif); color: var(--messing-3); }
+.dossier .hd .hd-regler button { all: unset; box-sizing: border-box; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 50%; background: var(--papier-1); color: var(--tinte-2); font: 600 var(--schrift-3)/1 var(--serif); cursor: pointer; }
 .dossier .hd .hd-regler button:disabled { opacity: 0.35; cursor: default; }
-.dossier .hd .hd-gruppe h4 { margin: 8px 0 2px !important; font: 700 11.5px/1.2 var(--sans, Inter, sans-serif) !important; letter-spacing: 0.06em !important; text-transform: uppercase; color: #7a6a56 !important; }
-.dossier .hd .hd-seite h3 { margin: 0 !important; font: 600 18px/1.2 var(--display, Fraunces, serif) !important; letter-spacing: 0 !important; text-transform: none !important; }
-.dossier .hd .hd-mehr-reiter button { all: unset; padding: 6px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: #fbf6e6; color: #4a3a28; font: 14px/1.2 var(--sans, Inter, sans-serif); cursor: pointer; }
-.dossier .hd .hd-mehr-reiter button.on { background: #4a3424; color: #f8eedb; border-color: #4a3424; }
+.dossier .hd .hd-gruppe h4 { margin: 8px 0 2px !important; font: 700 var(--schrift-1)/1.2 var(--serif) !important; letter-spacing: 0.06em !important; text-transform: uppercase; color: var(--tinte-3) !important; }
+.dossier .hd .hd-seite h3 { margin: 0 !important; font: 600 var(--schrift-4)/1.2 var(--display, Fraunces, serif) !important; letter-spacing: 0 !important; text-transform: none !important; }
+.dossier .hd .hd-mehr-reiter button { all: unset; padding: 6px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: var(--papier-2); color: var(--tinte-2); font: var(--schrift-2)/1.2 var(--serif); cursor: pointer; }
+.dossier .hd .hd-mehr-reiter button.on { background: var(--tinte-weich); color: var(--papier-2); border-color: var(--tinte-weich); }
 
 /* Haushaltsrad: Legende Ausgaben | Rad | Legende Einnahmen */

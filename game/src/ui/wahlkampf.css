@@ -1,10 +1,10 @@
 /* Die Wahlkampf-Zentrale (INN-5): Kopfleiste mit Budget, Karte und Provinzlisten, Touren, Duell, Gegner, Ticker, Versprechen. */
 
 .kampf-root { display: flex; flex-direction: column; gap: 14px; }
-.kampf-root h3 { margin: 0 0 6px; font: 700 18px var(--serif); }
-.kampf-unter { margin: 4px 0 8px; font-size: 14px; line-height: 1.45; color: #6b5636; }
-.kampf-klein { font-size: 12.5px; color: #8a744f; }
-.kampf-root .gut { color: #5d4231; }
+.kampf-root h3 { margin: 0 0 6px; font: 700 var(--schrift-4) var(--serif); }
+.kampf-unter { margin: 4px 0 8px; font-size: var(--schrift-2); line-height: 1.45; color: #6b5636; }
+.kampf-klein { font-size: var(--schrift-2); color: #8a744f; }
+.kampf-root .gut { color: var(--gut); }
 .kampf-root .schlecht { color: var(--seal); }
 
 /* Wartezustand außerhalb der Phase */
@@ -14,13 +14,13 @@
 /* Kopfleiste */
 .kampf-kopf { display: flex; flex-wrap: wrap; gap: 10px 26px; padding: 10px 14px; background: rgba(120, 90, 50, 0.08); border: 1px solid rgba(120, 90, 50, 0.25); border-radius: 6px; }
 .kampf-kopf-block { display: flex; flex-direction: column; gap: 2px; }
-.kampf-kopf-block strong { font: 700 21px var(--serif); }
-.kampf-kicker { font: 400 12.5px var(--kapitaelchen); letter-spacing: 0.06em; text-transform: uppercase; color: #8a744f; }
+.kampf-kopf-block strong { font: 700 var(--schrift-5) var(--serif); }
+.kampf-kicker { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.06em; color: #8a744f; }
 .kampf-ap { display: inline-flex; gap: 3px; padding: 3px 0; }
 .kampf-ap i { width: 10px; height: 10px; border-radius: 50%; background: rgba(120, 90, 50, 0.2); border: 1px solid rgba(120, 90, 50, 0.35); }
-.kampf-ap i.voll { background: #b4832a; border-color: #8a6420; }
+.kampf-ap i.voll { background: #b4832a; border-color: var(--warnung); }
 
-.kampf-meldung { margin: 0; padding: 8px 12px; border-left: 3px solid #b4832a; background: rgba(196, 146, 42, 0.1); font-size: 14px; line-height: 1.4; }
+.kampf-meldung { margin: 0; padding: 8px 12px; border-left: 3px solid #b4832a; background: rgba(196, 146, 42, 0.1); font-size: var(--schrift-2); line-height: 1.4; }
 
 /* Grid: Reisen links breit, rechts eine Spalte, Versprechen unten */
 .kampf-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; }
@@ -31,17 +31,17 @@
 
 .kampf-regionen { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; max-height: 340px; overflow: auto; }
 .kampf-regionen details { border: 1px solid rgba(120, 90, 50, 0.2); border-radius: 6px; }
-.kampf-regionen summary { cursor: pointer; padding: 6px 10px; font: 600 14px var(--serif); }
-.kampf-regionen summary em { float: right; font: 400 12.5px var(--sans); color: #8a744f; }
+.kampf-regionen summary { cursor: pointer; padding: 6px 10px; font: 600 var(--schrift-2) var(--serif); }
+.kampf-regionen summary em { float: right; font: 400 var(--schrift-2) var(--serif); color: #8a744f; }
 .kampf-provliste { list-style: none; margin: 0; padding: 4px 8px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
-.kampf-prov { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; font: 500 12.5px var(--sans); border: 1px solid rgba(120, 90, 50, 0.35); border-radius: 999px; background: #fdf9ef; cursor: pointer; }
-.kampf-prov:hover:not(:disabled) { background: #f6e9c8; }
+.kampf-prov { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; font: 500 var(--schrift-2) var(--serif); border: 1px solid rgba(120, 90, 50, 0.35); border-radius: 999px; background: var(--papier-1); cursor: pointer; }
+.kampf-prov:hover:not(:disabled) { background: var(--leder-text); }
 .kampf-prov:disabled { opacity: 0.45; cursor: not-allowed; }
-.kampf-prov.besucht { background: #f0dfb4; border-color: #b4832a; }
+.kampf-prov.besucht { background: var(--warnung-flaeche); border-color: #b4832a; }
 .kampf-prov.brennt { border-color: var(--seal); }
-.kampf-prov-brand { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--seal); color: #fff; font: 700 12.5px var(--sans); }
-.kampf-prov-zahl { font: 700 12.5px var(--sans); color: #8a6420; }
-.kampf-prov-kosten { font: 600 12.5px var(--sans); color: #8a744f; }
+.kampf-prov-brand { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--seal); color: var(--papier-1); font: 700 var(--schrift-2) var(--serif); }
+.kampf-prov-zahl { font: 700 var(--schrift-1) var(--serif); color: var(--warnung); }
+.kampf-prov-kosten { font: 600 var(--schrift-2) var(--serif); color: #8a744f; }
 
 .kampf-spalte { display: flex; flex-direction: column; gap: 16px; }
 
@@ -50,30 +50,30 @@
 .kampf-tourliste li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed rgba(120, 90, 50, 0.25); }
 .kampf-tourliste li:last-child { border-bottom: 0; }
 .kampf-tour-text { display: flex; flex-direction: column; }
-.kampf-tour-text span { font-size: 12.5px; color: #6b5636; }
+.kampf-tour-text span { font-size: var(--schrift-2); color: #6b5636; }
 
 /* Duell und Gegner */
-.kampf-status { margin: 6px 0; font: 600 14px var(--serif); }
-.kampf-gegner-profil { margin: 2px 0; font-size: 15px; }
+.kampf-status { margin: 6px 0; font: 600 var(--schrift-2) var(--serif); }
+.kampf-gegner-profil { margin: 2px 0; font-size: var(--schrift-3); }
 .kampf-angriffe { list-style: none; margin: 8px 0; padding: 0; }
-.kampf-angriffe li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-size: 12.5px; border-bottom: 1px dashed rgba(120, 90, 50, 0.2); }
+.kampf-angriffe li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-size: var(--schrift-2); border-bottom: 1px dashed rgba(120, 90, 50, 0.2); }
 
 /* Umfrage-Ticker */
 .kampf-ticker ul { list-style: none; margin: 0; padding: 0; }
-.kampf-ticker li { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; border-bottom: 1px dashed rgba(120, 90, 50, 0.2); font-size: 14px; }
+.kampf-ticker li { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; border-bottom: 1px dashed rgba(120, 90, 50, 0.2); font-size: var(--schrift-2); }
 .kampf-ticker li:last-child { border-bottom: 0; }
-.kampf-ticker li strong { min-width: 52px; font: 700 14px var(--serif); }
+.kampf-ticker li strong { min-width: 52px; font: 700 var(--schrift-2) var(--serif); }
 .kampf-ticker li span { flex: 1; }
-.kampf-ticker li em { font: 600 12.5px var(--sans); color: #8a744f; }
+.kampf-ticker li em { font: 600 var(--schrift-1) var(--serif); color: #8a744f; }
 
 /* Versprechen */
 .kampf-vliste { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
 .kampf-vliste li { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid rgba(120, 90, 50, 0.25); border-radius: 6px; background: rgba(120, 90, 50, 0.05); }
 .kampf-vliste li.gegeben { background: rgba(93,66,49, 0.08); border-color: rgba(93,66,49, 0.35); }
 .kampf-v-text { display: flex; flex-direction: column; gap: 2px; }
-.kampf-v-text span { font-size: 12.5px; color: #6b5636; font-style: italic; }
-.kampf-v-text em { font: 500 12.5px var(--sans); color: #8a744f; font-style: normal; }
-.kampf-v-gegeben { font: 600 12.5px var(--sans); color: #5d4231; white-space: nowrap; }
+.kampf-v-text span { font-size: var(--schrift-2); color: #6b5636; font-style: italic; }
+.kampf-v-text em { font: 500 var(--schrift-2) var(--serif); color: #8a744f; font-style: normal; }
+.kampf-v-gegeben { font: 600 var(--schrift-2) var(--serif); color: var(--tinte-weich); white-space: nowrap; }
 
 @media (max-width: 1100px) {
   .kampf-grid { grid-template-columns: 1fr; }
@@ -82,61 +82,61 @@
 /* ---------- Gestaltung (wie politik/design.css) ---------- */
 
 .dossier .kampf-root { gap: 28px; }
-.dossier .kampf-root h3 { margin: 0 0 8px; font: 650 24px/1.25 var(--display); }
-.dossier .kampf-unter { margin: 4px 0 12px; font: 16.5px/1.5 var(--serif); color: var(--pd-soft); }
-.dossier .kampf-klein { font: 600 14px var(--sans); color: var(--pd-soft); }
-.dossier .kampf-root .gut { color: #553828; }
-.dossier .kampf-root .schlecht { color: #8a2d26; }
+.dossier .kampf-root h3 { margin: 0 0 8px; font: 600 var(--schrift-5)/1.25 var(--display); }
+.dossier .kampf-unter { margin: 4px 0 12px; font: var(--schrift-3)/1.5 var(--serif); color: var(--pd-soft); }
+.dossier .kampf-klein { font: 600 var(--schrift-2) var(--serif); color: var(--pd-soft); }
+.dossier .kampf-root .gut { color: var(--gut); }
+.dossier .kampf-root .schlecht { color: var(--siegel); }
 
 .dossier .kampf-warte { max-width: 760px; padding: 26px 30px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
-.dossier .kampf-warte h3 { margin-bottom: 12px; font: 600 28px/1.2 var(--display); }
-.dossier .kampf-warte > p:first-of-type { font: 18px/1.5 var(--serif); }
+.dossier .kampf-warte h3 { margin-bottom: 12px; font: 600 var(--schrift-6)/1.2 var(--display); }
+.dossier .kampf-warte > p:first-of-type { font: var(--schrift-4)/1.5 var(--serif); }
 
 .dossier .kampf-kopf { gap: 12px 40px; padding: 18px 24px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .kampf-kopf-block { gap: 4px; }
-.dossier .kampf-kopf-block strong { font: 700 28px/1.1 var(--sans); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-.dossier .kampf-kicker { font: 700 12.5px var(--sans); letter-spacing: 0.14em; color: var(--pd-soft); }
+.dossier .kampf-kopf-block strong { font: 700 var(--schrift-6)/1.1 var(--serif); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.dossier .kampf-kicker { font: 700 var(--schrift-1) var(--serif); letter-spacing: 0.14em; color: var(--pd-soft); }
 .dossier .kampf-ap { gap: 5px; padding: 5px 0; }
 .dossier .kampf-ap i { width: 14px; height: 14px; }
-.dossier .kampf-ap i.voll { background: linear-gradient(180deg, #e6c56c, #b4832a); border-color: #8a6420; }
-.dossier .kampf-meldung { padding: 12px 16px; border-left-width: 4px; border-radius: 0 6px 6px 0; font: 16.5px/1.45 var(--serif); }
+.dossier .kampf-ap i.voll { background: linear-gradient(180deg, #e6c56c, #b4832a); border-color: var(--warnung); }
+.dossier .kampf-meldung { padding: 12px 16px; border-left-width: 4px; border-radius: 0 6px 6px 0; font: var(--schrift-3)/1.45 var(--serif); }
 
 .dossier .kampf-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 36px; }
 .dossier .kampf-karte { height: 340px; border-radius: 6px; border-color: var(--pd-line); }
 .dossier .kampf-regionen { gap: 8px; max-height: 420px; }
 .dossier .kampf-regionen details { border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); }
-.dossier .kampf-regionen summary { padding: 10px 14px; font: 650 16.5px var(--serif); }
-.dossier .kampf-regionen summary em { font: 600 14px var(--sans); font-style: normal; color: var(--pd-soft); }
+.dossier .kampf-regionen summary { padding: 10px 14px; font: 600 var(--schrift-3) var(--serif); }
+.dossier .kampf-regionen summary em { font: 600 var(--schrift-2) var(--serif); font-style: normal; color: var(--pd-soft); }
 .dossier .kampf-provliste { gap: 8px; padding: 6px 12px 14px; }
-.dossier .kampf-prov { gap: 7px; padding: 5px 12px; font: 600 14px var(--sans); border-color: var(--pd-line-strong); background: var(--pd-card-hell); }
-.dossier .kampf-prov:hover:not(:disabled) { background: #f6e9c8; border-color: var(--gold-3); }
+.dossier .kampf-prov { gap: 7px; padding: 5px 12px; font: 600 var(--schrift-2) var(--serif); border-color: var(--pd-line-strong); background: var(--pd-card-hell); }
+.dossier .kampf-prov:hover:not(:disabled) { background: var(--leder-text); border-color: var(--gold-3); }
 .dossier .kampf-prov:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
-.dossier .kampf-prov.besucht { background: #f0dfb4; border-color: #b4832a; }
+.dossier .kampf-prov.besucht { background: var(--warnung-flaeche); border-color: #b4832a; }
 .dossier .kampf-prov.brennt { border-color: var(--pd-bad); }
-.dossier .kampf-prov-brand { width: 18px; height: 18px; font: 700 12.5px var(--sans); background: var(--pd-bad); }
-.dossier .kampf-prov-zahl { font: 700 12.5px var(--sans); color: #6f4f0c; }
-.dossier .kampf-prov-kosten { font: 600 12.5px var(--sans); color: var(--pd-soft); }
+.dossier .kampf-prov-brand { width: 18px; height: 18px; font: 700 var(--schrift-2) var(--serif); background: var(--pd-bad); }
+.dossier .kampf-prov-zahl { font: 700 var(--schrift-1) var(--serif); color: var(--messing-3); }
+.dossier .kampf-prov-kosten { font: 600 var(--schrift-2) var(--serif); color: var(--pd-soft); }
 
 .dossier .kampf-spalte { gap: 28px; }
 .dossier .kampf-spalte > section { padding: 20px 22px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .kampf-tourliste li { padding: 12px 0; border-bottom: 1px solid var(--pd-line); }
-.dossier .kampf-tour-text strong { font: 650 18px var(--serif); }
-.dossier .kampf-tour-text span { font: 15px/1.4 var(--serif); color: var(--pd-soft); }
-.dossier .kampf-status { margin: 8px 0; font: 650 18px/1.4 var(--serif); }
-.dossier .kampf-gegner-profil { font: 18px var(--serif); }
-.dossier .kampf-angriffe li { padding: 6px 0; font: 16.5px var(--serif); border-bottom: 1px solid var(--pd-line); }
-.dossier .kampf-ticker li { gap: 12px; padding: 8px 0; font: 16.5px var(--serif); border-bottom: 1px solid var(--pd-line); }
-.dossier .kampf-ticker li strong { min-width: 64px; font: 700 16.5px var(--sans); }
-.dossier .kampf-ticker li em { font: 600 12.5px var(--sans); font-style: normal; color: var(--pd-soft); }
+.dossier .kampf-tour-text strong { font: 600 var(--schrift-4) var(--serif); }
+.dossier .kampf-tour-text span { font: var(--schrift-3)/1.4 var(--serif); color: var(--pd-soft); }
+.dossier .kampf-status { margin: 8px 0; font: 600 var(--schrift-4)/1.4 var(--serif); }
+.dossier .kampf-gegner-profil { font: var(--schrift-4) var(--serif); }
+.dossier .kampf-angriffe li { padding: 6px 0; font: var(--schrift-3) var(--serif); border-bottom: 1px solid var(--pd-line); }
+.dossier .kampf-ticker li { gap: 12px; padding: 8px 0; font: var(--schrift-3) var(--serif); border-bottom: 1px solid var(--pd-line); }
+.dossier .kampf-ticker li strong { min-width: 64px; font: 700 var(--schrift-3) var(--serif); }
+.dossier .kampf-ticker li em { font: 600 var(--schrift-1) var(--serif); font-style: normal; color: var(--pd-soft); }
 
 .dossier .kampf-vliste { grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 14px; }
 .dossier .kampf-vliste li { gap: 14px; padding: 16px 18px; border: 1px solid var(--pd-line); border-left: 4px solid var(--gold-3); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
 .dossier .kampf-vliste li.gegeben { border-left-color: var(--pd-teal); background: rgba(93,66,49, 0.08); }
 .dossier .kampf-v-text { gap: 4px; }
-.dossier .kampf-v-text strong { font: 650 18px/1.25 var(--display); }
-.dossier .kampf-v-text span { font: 16.5px/1.45 var(--serif); font-style: normal; color: var(--pd-ink); }
-.dossier .kampf-v-text em { font: 600 14px/1.4 var(--sans); color: var(--pd-soft); }
-.dossier .kampf-v-gegeben { padding: 0 12px; border: 1px solid rgba(93,66,49, 0.5); border-radius: 999px; font: 400 12.5px/22px var(--kapitaelchen); letter-spacing: 0.08em; text-transform: uppercase; color: #503627; background: rgba(93,66,49, 0.1); }
+.dossier .kampf-v-text strong { font: 600 var(--schrift-4)/1.25 var(--display); }
+.dossier .kampf-v-text span { font: var(--schrift-3)/1.45 var(--serif); font-style: normal; color: var(--pd-ink); }
+.dossier .kampf-v-text em { font: 600 var(--schrift-2)/1.4 var(--serif); color: var(--pd-soft); }
+.dossier .kampf-v-gegeben { padding: 0 12px; border: 1px solid rgba(93,66,49, 0.5); border-radius: 999px; font: 400 var(--schrift-1)/22px var(--kapitaelchen); letter-spacing: 0.08em; color: var(--tinte-weich); background: rgba(93,66,49, 0.1); }
 
 @media (max-width: 1100px) {
   .dossier .kampf-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
@@ -144,28 +144,28 @@
 @media (prefers-reduced-motion: reduce) { .dossier .kampf-prov { transition: none; } }
 
 /* Nachfolger-Wahlkampf (letzte Amtszeit): Banner und Auftritte */
-.kampf-nachfolger { padding: 10px 14px; background: rgba(93,66,49, 0.08); border: 1px solid rgba(93,66,49, 0.35); border-left: 4px solid #5d4231; border-radius: 6px; }
+.kampf-nachfolger { padding: 10px 14px; background: rgba(93,66,49, 0.08); border: 1px solid rgba(93,66,49, 0.35); border-left: 4px solid var(--tinte-weich); border-radius: 6px; }
 .kampf-nachfolger h3 { margin: 0 0 4px; }
 .kampf-auftritte { padding-bottom: 4px; }
 
 /* Ein ausgewähltes Reiseziel statt 81 unmittelbarer Aktionsknöpfe. */
 .kampf-root { container: wahlkampf / inline-size; min-width: 0; }
-.kampf-reiseziel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 16px 0; font: 650 15px var(--sans); }
+.kampf-reiseziel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 16px 0; font: 600 var(--schrift-3) var(--serif); }
 .kampf-reiseziel select { min-width: 0; max-width: 100%; flex: 1 1 180px; padding: 10px 12px; border: 1px solid var(--pd-line-strong); border-radius: 6px; background: var(--pd-card-hell); color: var(--pd-ink); font: inherit; }
-.kampf-entscheid { min-width: 0; padding: 18px; border: 1px solid var(--pd-line); border-radius: 10px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink, #302d25); overflow-wrap: anywhere; }
+.kampf-entscheid { min-width: 0; padding: 18px; border: 1px solid var(--pd-line); border-radius: 10px; background: var(--pd-card-hell, var(--papier-1)); color: var(--pd-ink, var(--leder-dunkel)); overflow-wrap: anywhere; }
 .kampf-entscheid header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--pd-line); padding-bottom: 12px; }
-.kampf-entscheid h4 { font: 650 21px/1.2 var(--display, var(--serif)); margin: 3px 0; }
-.kampf-entscheid header > strong { color: #523b2e; font: 750 15px var(--sans); }
-.kampf-entscheid p { font: 15px/1.5 var(--serif); margin: 10px 0; }
-.kampf-entscheid .kampf-hinweis { font: 14px/1.5 var(--sans); color: var(--pd-soft); }
+.kampf-entscheid h4 { font: 600 var(--schrift-5)/1.2 var(--display, var(--serif)); margin: 3px 0; }
+.kampf-entscheid header > strong { color: var(--tinte-weich); font: 700 var(--schrift-3) var(--serif); }
+.kampf-entscheid p { font: var(--schrift-3)/1.5 var(--serif); margin: 10px 0; }
+.kampf-entscheid .kampf-hinweis { font: var(--schrift-2)/1.5 var(--serif); color: var(--pd-soft); }
 .kampf-ausgaenge { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
 .kampf-ausgaenge > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; background: rgba(93,66,49, .06); border-radius: 6px; }
-.kampf-ausgaenge span, .kampf-ausgaenge small { font: 12.5px/1.4 var(--sans); }
-.kampf-ausgaenge strong { font: 750 28px/1.2 var(--sans); font-variant-numeric: tabular-nums; }
+.kampf-ausgaenge span, .kampf-ausgaenge small { font: var(--schrift-2)/1.4 var(--serif); }
+.kampf-ausgaenge strong { font: 700 var(--schrift-6)/1.2 var(--serif); font-variant-numeric: tabular-nums; }
 .kampf-tourplaene { display: grid; gap: 12px; }
-.kampf-entscheid summary { cursor: pointer; font: 650 14px/1.5 var(--sans); color: var(--pd-bad, #8a2d26); }
+.kampf-entscheid summary { cursor: pointer; font: 600 var(--schrift-2)/1.5 var(--serif); color: var(--pd-bad, var(--siegel)); }
 .kampf-entscheid .pd-btn { white-space: normal; min-height: 42px; max-width: 100%; }
-.kampf-entscheid :is(button, summary):focus-visible, .kampf-reiseziel select:focus-visible { outline: 3px solid var(--pd-teal, #523b2e); outline-offset: 3px; }
+.kampf-entscheid :is(button, summary):focus-visible, .kampf-reiseziel select:focus-visible { outline: 3px solid var(--pd-teal, var(--tinte-weich)); outline-offset: 3px; }
 @container wahlkampf (max-width: 850px) {
   .kampf-grid, .dossier .kampf-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
@@ -181,17 +181,17 @@
 
 /* Erst das politische Versprechen wählen, dann eine einzige Verpflichtung prüfen. */
 .kampf-versprechen-auswahl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 14px 0; }
-.kampf-versprechen-auswahl button { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--pd-line); border-radius: 10px; background: var(--pd-card-hell, #fffaf0); color: var(--pd-ink); text-align: left; cursor: pointer; min-width: 0; overflow-wrap: anywhere; font: 15px/1.4 var(--sans); }
-.kampf-versprechen-auswahl button[aria-pressed=true] { background: #4b382d; color: #fffaf0; border-color: #4b382d; }
-.kampf-versprechen-auswahl small { margin-top: auto; font-size: 12.5px; }
-.kampf-versprechen-auswahl span { font-size: 14px; }
-.kampf-versprechen-auswahl button:focus-visible { outline: 3px solid var(--pd-teal, #523b2e); outline-offset: 3px; }
+.kampf-versprechen-auswahl button { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--pd-line); border-radius: 10px; background: var(--pd-card-hell, var(--papier-1)); color: var(--pd-ink); text-align: left; cursor: pointer; min-width: 0; overflow-wrap: anywhere; font: var(--schrift-3)/1.4 var(--serif); }
+.kampf-versprechen-auswahl button[aria-pressed=true] { background: #4b382d; color: var(--papier-1); border-color: #4b382d; }
+.kampf-versprechen-auswahl small { margin-top: auto; font-size: var(--schrift-2); }
+.kampf-versprechen-auswahl span { font-size: var(--schrift-2); }
+.kampf-versprechen-auswahl button:focus-visible { outline: 3px solid var(--pd-teal, var(--tinte-weich)); outline-offset: 3px; }
 .kampf-versprechen-fakten { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 14px 0; margin: 0; }
-.kampf-versprechen-fakten dt { font: 600 12.5px/1.5 var(--sans); color: var(--pd-soft); }
-.kampf-versprechen-fakten dd { margin: 5px 0 0; font: 650 16.5px/1.5 var(--sans); }
-.kampf-versprechen-plan h5 { margin: 16px 0 4px; font: 650 16.5px var(--serif); }
+.kampf-versprechen-fakten dt { font: 600 var(--schrift-2)/1.5 var(--serif); color: var(--pd-soft); }
+.kampf-versprechen-fakten dd { margin: 5px 0 0; font: 600 var(--schrift-3)/1.5 var(--serif); }
+.kampf-versprechen-plan h5 { margin: 16px 0 4px; font: 600 var(--schrift-3) var(--serif); }
 .kampf-verpflichtung { border-top: 1px solid var(--pd-line); margin-top: 16px; padding-top: 12px; }
-.kampf-verpflichtung summary { color: #523b2e; }
+.kampf-verpflichtung summary { color: var(--tinte-weich); }
 .kampf-plan-links { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 12px 0; }
 @container wahlkampf (max-width: 760px) { .kampf-versprechen-auswahl { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @container wahlkampf (max-width: 420px) { .kampf-versprechen-auswahl, .kampf-versprechen-fakten { grid-template-columns: minmax(0,1fr); } }
