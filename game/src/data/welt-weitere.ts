@@ -8,6 +8,7 @@
 // keine Messwerte. Namen von Amtsinhabern kommen nicht vor.
 
 import type { Lager, Regierungsform, Streuklasse, Wahl } from "./welt-daten";
+import { datenTexte } from "../i18n/daten";
 
 export type EuThema = "rechtsstaat" | "migration" | "handel" | "sicherheit" | "erweiterung" | "region";
 
@@ -173,6 +174,8 @@ export const WEITERE: WeitereDef[] = [
 ];
 
 export const WEITERE_NACH_ID = new Map(WEITERE.map((d) => [d.id, d]));
+// Beschreibung dreisprachig (Katalog tag_t8.json); Name, Fälle und Regierung bleiben, die Namen übersetzt sim/welt-modell.ts über den Katalog
+datenTexte("weitere", WEITERE, (d) => d.id, ["text"]);
 
 /** Ersatzwerte der Startgrößen für Staaten ohne jungen Weltbank-Wert. Spielparameter: Größenordnungen, im Spiel nicht neu belegt. */
 export const ERSATZ_WEITERE: Record<string, { wachstum?: number; inflation?: number; schulden?: number; ruestung?: number; defizit?: number }> = {

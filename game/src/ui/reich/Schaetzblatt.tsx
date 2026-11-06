@@ -11,9 +11,9 @@ import { vergabeAngebot } from "../../sim/reich";
 import { beginneFrei, freieEntwuerfe, transitGegenAnnehmen, transitUmweg, transitVerhandeln, UMWEG_FAKTOR, verwerfeFrei } from "../../sim/grossprojekt";
 import { land } from "../../sim/laender";
 
-import { t } from "../../i18n";
+import { aktuelleLocale, t } from "../../i18n";
 import { t as tt } from "../../i18n";
-const fmt = (x: number): string => x.toLocaleString("de-DE", { maximumFractionDigits: 1 });
+const fmt = (x: number): string => x.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 });
 const bandText = (b: Band): string => `${fmt(b.tief)} bis ${fmt(b.hoch)}`;
 
 const VERGABE_REIHENFOLGE: Vergabe[] = ["stammfirma", "sparvergabe", "ausschreibung"];

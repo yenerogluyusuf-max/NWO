@@ -88,7 +88,7 @@ export const INSTITUTIONEN: InstitutionDef[] = [
     quelle: "Dossiers 12, B4; Teil IV B2",
   },
   {
-    id: "mekka", name: t("sim2.data.welt-institutionen.0d2f816"), kurz: "Mekka-Pakt", weitereMitglieder: 0, tuerkei: "mitglied", beschluss: "konsens",
+    id: "mekka", name: t("sim2.data.welt-institutionen.0d2f816"), get kurz() { return t("tag_t8.block.mekka"); }, weitereMitglieder: 0, tuerkei: "mitglied", beschluss: "konsens",
     mitglieder: ["SAU", "PAK"],
     text: t("sim2.data.welt-institutionen.467dfd0"),
     tuerkeiText: t("sim2.data.welt-institutionen.7b3d064"),

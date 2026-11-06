@@ -143,9 +143,9 @@ export const ZONEN: Record<BebenZone, number[]> = {
 };
 
 export const ZONEN_NAMEN: Record<BebenZone, string> = {
-  kaf: "Nordanatolische Verwerfung",
-  daf: "Ostanatolische Verwerfung",
-  baf: "Westanatolische Grabensysteme",
+  get kaf() { return t("tag_t8.beben.kaf"); },
+  get daf() { return t("tag_t8.beben.daf"); },
+  get baf() { return t("tag_t8.beben.baf"); },
 };
 
 /** Sturzflut-Gebiet: Karadeniz-Region (steile Täler, Starkregen). */
@@ -943,7 +943,7 @@ export function risikoUebersicht(w: World): RisikoSicht[] {
     out.push({
       id: `beben-${zone}`,
       art: "erdbeben",
-      titel: `Erdbeben: ${ZONEN_NAMEN[zone]}`,
+      titel: t("tag_t8.beben.titel", { zone: ZONEN_NAMEN[zone] }),
       gebiet,
       bevoelkerung: summe(gebiet),
       jahresChance: jahresChance(w, "erdbeben", () => KATASTROPHE.bebenChance[zone]),

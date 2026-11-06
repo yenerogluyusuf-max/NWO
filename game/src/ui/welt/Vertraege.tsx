@@ -12,7 +12,7 @@ import { t } from "../../i18n";
 const TAGE_JAHR = 360;
 const datum = (w: World, tag: number) => formatDateDe(addDays(w.date, tag - w.day));
 
-const STATUS: Record<Vertrag["status"], string> = { laeuft: "läuft", ausgelaufen: "ausgelaufen", gebrochen: "gebrochen", gekuendigt: "gekündigt" };
+const statusName = (s: Vertrag["status"]): string => t(`tag_t8.aussen.vertrag.${s}`);
 
 function VertragKarte({ world, v, refresh }: { world: World; v: Vertrag; refresh: () => void }) {
   const [frage, setFrage] = useState(false);
@@ -28,7 +28,7 @@ function VertragKarte({ world, v, refresh }: { world: World; v: Vertrag; refresh
     <li className={`we-vertrag st-${v.status}`}>
       <div className="we-vertrag-kopf">
         <strong>{vertragsName(world, v)}</strong>
-        <span className={`we-status st-${v.status}`}>{STATUS[v.status]}</span>
+        <span className={`we-status st-${v.status}`}>{statusName(v.status)}</span>
       </div>
       <p className="we-vertrag-klauseln">
         {v.gibt.length > 0 && (

@@ -92,9 +92,8 @@ export interface WahlSicht {
 
 const staerkeWort = (x: number): string => (x >= 58 ? tx("sim2.sim.welt-sicht.b2bb223") : x <= 42 ? tx("tag_t8.dienst.staerke.schwach") : tx("tag_t8.dienst.staerke.gleichauf"));
 
-/** Art einer Wahl in der Sprache des Spiels; die Daten führen sie deutsch, der Dienst vergleicht mit dem deutschen Wort. */
-const WAHLARTEN: Record<string, string> = { Parlamentswahl: "parlament", Präsidentenwahl: "praesident", Europawahl: "europa", Zwischenwahlen: "zwischen", Unterhauswahl: "unterhaus", Reichstagswahl: "reichstag", Parteitag: "parteitag", Nationalratswahl: "nationalrat", "Ende der Übergangsphase": "uebergang", Dumawahl: "duma", Bundestagswahl: "bundestag", "Wahl nach verlängerter Übergangsphase": "uebergangVerlaengert" };
-export const wahlArtName = (art: string): string => (WAHLARTEN[art] ? tx(`tag_t8.wahlart.${WAHLARTEN[art]}`) : art);
+import { wahlArtName } from "./welt-modell";
+export { wahlArtName };
 
 export function wahlSicht(w: World, id: string): WahlSicht | null {
   const e = eigenVon(w, id);

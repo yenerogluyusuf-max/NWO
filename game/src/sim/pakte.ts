@@ -51,7 +51,7 @@ import type {
   PaktKlausel,
   PaktSicht,
 } from "./pakte-typen";
-import { t as tx } from "../i18n";
+import { aktuelleLocale, t as tx } from "../i18n";
 import { rufParams } from "./ereignisse-krieg";
 
 export type { DrittKrieg, KoalitionenSicht, KoalitionsSicht, PaktDef, PaktKlausel, PaktSicht } from "./pakte-typen";
@@ -503,7 +503,7 @@ function paktFolgenAngriff(w: World, k: KriegVorgang): void {
       wirke(w, "beziehungen_eu", -KOALITION.paktBeziehung * 0.7 * faktor);
     }
   }
-  addLog(w, "ereignis", tx("sim2.sim.pakte.69b60a2"), `Ansehen −${(KOALITION.paktAnsehen * faktor).toLocaleString("de-DE", { maximumFractionDigits: 1 })} (Rahmung „${k.rahmung ?? "revision"}“).`);
+  addLog(w, "ereignis", tx("sim2.sim.pakte.69b60a2"), tx("tag_t8.pakt.ansehen", { n: Math.round(KOALITION.paktAnsehen * faktor * 10) / 10, rahmung: k.rahmung ?? "revision" }));
 }
 
 /** Wöchentlich: Zögernde prüfen, Kampfkraft der Partner abschmelzen, Aussteiger melden. */

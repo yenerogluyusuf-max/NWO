@@ -7,7 +7,7 @@ import type { World } from "../../sim/types";
 import { KAPITEL, VISA_KRITERIEN, annaeherungSicht, euUebersicht, kuendigeReformAn, type KriteriumStand } from "../../sim/eu";
 import { formatDateDe } from "../../sim/dates";
 
-import { t } from "../../i18n";
+import { t, zahl } from "../../i18n";
 function KriteriumZeile({ s }: { s: KriteriumStand }) {
   return (
     <li className={s.erfuellt ? "ok" : "offen"}>
@@ -60,7 +60,7 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
           </p>
         )}
         {z.phase === "screening" && z.screeningBis !== undefined && <p className="subtitle">{t("ui2.ui.welt.EuDossier.d4c40bd", { p0: formatDateDe(datumNachTagen(world.date, z.screeningBis - world.day)) })}</p>}
-        {u.kapitalAbzug > 0 && <p className="subtitle">{t("ui2.ui.welt.EuDossier.4724b63", { p0: u.kapitalAbzug.toLocaleString("de-DE", { maximumFractionDigits: 2 }) })}</p>}
+        {u.kapitalAbzug > 0 && <p className="subtitle">{t("ui2.ui.welt.EuDossier.4724b63", { p0: zahl(u.kapitalAbzug) })}</p>}
       </section>
 
       {!u.zypern.bewegt && (

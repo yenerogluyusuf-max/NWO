@@ -124,7 +124,14 @@ export interface Bewertung {
   pk: number;
 }
 
-export const STIMMUNG_WORT = ["Ablehnend", "Skeptisch", "Zögernd", "Geneigt", "Einverstanden"] as const;
+// Stimmung des Partners in der Sprache des Spiels (Getter: der Text entsteht beim Lesen)
+export const STIMMUNG_WORT: Readonly<Record<0 | 1 | 2 | 3 | 4, string>> = {
+  get 0() { return t("tag_t8.aussen.stimmung.0"); },
+  get 1() { return t("tag_t8.aussen.stimmung.1"); },
+  get 2() { return t("tag_t8.aussen.stimmung.2"); },
+  get 3() { return t("tag_t8.aussen.stimmung.3"); },
+  get 4() { return t("tag_t8.aussen.stimmung.4"); },
+};
 
 /** Kapital für einen Vertrag: ein Sockel für die Verhandlung, dazu der politische Preis der Klauseln im eigenen Land. */
 export function pkFuer(a: Angebot): number {
