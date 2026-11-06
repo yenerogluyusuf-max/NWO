@@ -1,9 +1,9 @@
 /* Wähleransicht. Klassen-Präfix .wa-; Gestaltung wie politik/design.css (Papier, aufgelegte Karten, Pillen, ein hervorgehobener Knopf).
-   Aufbau: oben das Barometer mit Verlauf, darunter die Koalition als Balken mit drei Zahlen, dann links die Gruppen und rechts das Einzelbild.
-   Sekundäres (Wanderung, Sorgen, Regionen) liegt in einklappbaren Zeilen. */
+   Aufbau (Tagarbeit 6. November, T4): oben die Leitkarte mit Frage, erwartetem Ergebnis, Skala und Treppe; darunter links die Gruppen als
+   Kacheln, rechts die gewählte Gruppe im Einzelnen in einer eigenen Fläche. Sekundäres (Herkunft, Wanderung, Schritte, Sorgen) ist aufklappbar. */
 
 .stage:has(.wa-root) .meldungen { display: none; }
-.wa-root { display: grid; gap: 28px; min-width: 0; }
+.wa-root { display: grid; gap: var(--abstand-4); min-width: 0; }
 .wa-root * { min-width: 0; }
 .wa-root h3, .wa-root h4, .wa-root h5 { font-family: var(--display); margin: 0; }
 .wa-root .gut { color: var(--gut); }
@@ -21,30 +21,73 @@
 .wa-zu > summary h4 { font-size: var(--schrift-4); }
 .wa-zu > :not(summary) { margin-left: 30px; }
 
-/* Barometer */
-.wa-barometer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px 40px; align-items: center; padding: 22px 26px 16px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
-.wa-baro-zahl { display: grid; gap: 4px; }
-.wa-baro-kopf { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.14em; color: var(--pd-soft); }
-.wa-baro-zahl strong { font: 700 var(--schrift-7)/1 var(--serif); letter-spacing: -0.03em; font-variant-numeric: tabular-nums lining-nums; }
-.wa-baro-zahl strong.gut { color: var(--gut); }
-.wa-baro-zahl strong.schlecht { color: var(--siegel); }
-.wa-baro-text { max-width: 52ch; font: var(--schrift-3)/1.45 var(--serif); color: var(--pd-soft); }
-.wa-baro-linie { min-width: 0; }
-.wa-bilanz { grid-column: 1 / -1; margin-top: 4px; border-top: 1px solid var(--pd-line); padding-top: 4px; }
-.wa-bilanz summary { display: flex; align-items: center; gap: 8px; padding: 8px 0; cursor: pointer; list-style: none; font: 600 var(--schrift-3) var(--display); color: var(--seal); }
+
+/* Leitkarte: links Frage und Zahl, rechts Skala und Treppe; darunter Vorwarnung und die aufklappbare Herkunft */
+.wa-leit { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: var(--abstand-2) var(--abstand-6); align-items: start; padding: var(--abstand-4) var(--abstand-5) 0; border: 1px solid var(--pd-line); border-radius: var(--rund-2); background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.wa-leit-links { display: grid; gap: var(--abstand-1); align-content: start; }
+.wa-root .wa-frage { margin: 0 0 var(--abstand-2); font: 600 var(--schrift-6)/1.15 var(--display); color: var(--tinte-1); }
+.wa-baro-kopf { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--tinte-weich); }
+.wa-baro-spanne { font: 700 var(--schrift-7)/1 var(--serif); letter-spacing: -0.02em; font-variant-numeric: tabular-nums lining-nums; color: var(--warnung); }
+.wa-baro-spanne.gut { color: var(--gut); }
+.wa-baro-spanne.schlecht { color: var(--siegel); }
+.wa-baro-text { font: var(--schrift-3)/1.4 var(--serif); color: var(--tinte-weich); }
+.wa-baro-reihe { display: flex; align-items: flex-end; gap: var(--abstand-5); }
+.wa-baro-reihe > .wa-baro-spanne { flex: none; }
+.wa-baro-linie { flex: 1 1 140px; min-width: 120px; max-width: 260px; }
+.wa-baro-wahl { white-space: nowrap; }
+.wa-baro-leer { margin: 0; font: italic var(--schrift-2)/1.45 var(--serif); color: var(--tinte-2); }
+.wa-leit-rechts { display: grid; gap: var(--abstand-3); align-content: start; padding-top: var(--abstand-2); }
+.wa-leit-fuss { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--abstand-5); border-top: 1px solid var(--pd-line); }
+.wa-leit-fuss > .wa-bilanz[open] { flex: 1 1 100%; }
+
+.wa-skala { position: relative; padding: var(--abstand-4) 0 var(--abstand-1); }
+.wa-skala-spur { position: relative; height: 14px; border-radius: var(--rund-pille); background: linear-gradient(90deg, color-mix(in srgb, var(--siegel) 10%, transparent), color-mix(in srgb, var(--siegel) 6%, transparent) 50%, color-mix(in srgb, var(--gut) 10%, transparent) 50%, color-mix(in srgb, var(--gut) 16%, transparent)); box-shadow: inset 0 1px 2px color-mix(in srgb, var(--tinte-1) 18%, transparent); }
+.wa-skala-band { position: absolute; top: 0; bottom: 0; border-radius: var(--rund-pille); opacity: 0.85; }
+.wa-skala-band.gut { background: var(--gut); }
+.wa-skala-band.knapp { background: linear-gradient(90deg, var(--siegel), var(--messing-2) 50%, var(--gut)); }
+.wa-skala-band.schlecht { background: var(--siegel); }
+.wa-skala-mitte { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--tinte-1); box-shadow: 0 0 0 2px var(--papier-1); }
+.wa-skala-sieg { position: absolute; top: -18px; bottom: -6px; width: 0; border-left: 2px dashed var(--tinte-1); text-decoration: none; }
+.wa-skala-sieg span { position: absolute; top: -2px; left: 6px; white-space: nowrap; font: 400 var(--schrift-1)/1 var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-1); }
+.wa-skala-zust { position: absolute; top: 100%; width: 0; height: 0; margin-left: -6px; border: 6px solid transparent; border-bottom-color: var(--warnung); transform: translateY(-14px); text-decoration: none; }
+.wa-skala-achse { position: relative; height: 18px; margin-top: var(--abstand-1); }
+.wa-skala-achse span { position: absolute; transform: translateX(-50%); font: var(--schrift-1) var(--serif); color: var(--tinte-2); font-variant-numeric: tabular-nums; }
+.wa-treppe { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--abstand-2) var(--abstand-1); }
+.wa-treppe li { display: inline-flex; align-items: baseline; gap: var(--abstand-2); padding: var(--abstand-1) var(--abstand-3); border: 1px solid var(--pd-line); border-radius: var(--rund-1); background: var(--papier-1); font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-1); }
+.wa-treppe li + li::before { content: "→"; margin-right: 2px; color: var(--messing-3); }
+.wa-treppe li strong { font: 700 var(--schrift-2) var(--serif); font-variant-numeric: tabular-nums lining-nums; }
+.wa-treppe li.plus strong { color: var(--gut); }
+.wa-treppe li.minus strong { color: var(--siegel); }
+.wa-treppe li.basis { background: var(--warnung-flaeche); border-color: var(--warnung-linie); }
+.wa-treppe li.ergebnis { border-width: 2px; font-weight: 600; }
+.wa-treppe li.ergebnis.gut { border-color: var(--gut); }
+.wa-treppe li.ergebnis.knapp { border-color: var(--messing-2); }
+.wa-treppe li.ergebnis.schlecht { border-color: var(--siegel); }
+.wa-vorwarnung { grid-column: 1 / -1; margin: 0; padding: var(--abstand-2) var(--abstand-4); border-left: 3px solid var(--siegel); border-radius: 0 var(--rund-1) var(--rund-1) 0; background: var(--schlecht-flaeche); font: var(--schrift-3)/1.45 var(--serif); color: var(--tinte-1); }
+.wa-vorwarnung b { margin-right: var(--abstand-1); font: 400 var(--schrift-1)/1 var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--siegel); }
+.wa-root .wa-vorwarnung .wa-vorwarnung-knopf { margin-left: var(--abstand-1); padding: 0; font: inherit; color: var(--siegel); text-decoration: underline; text-decoration-color: var(--siegel); }
+.wa-rohdaten { margin: 0; font: var(--schrift-2)/1.45 var(--serif); color: var(--tinte-2); }
+.wa-rohdaten em { font-style: italic; }
+.wa-root .wa-rohdaten .knopf-leise { padding: 0 2px; font: inherit; color: var(--siegel); text-decoration: underline; }
+
+/* Herkunft der Zustimmung (aufklappbar) */
+.wa-bilanz summary { display: flex; align-items: center; gap: var(--abstand-2); padding: var(--abstand-2) 0; cursor: pointer; list-style: none; font: 600 var(--schrift-2) var(--display); color: var(--siegel); }
 .wa-bilanz summary::-webkit-details-marker { display: none; }
-.wa-bilanz summary::before { content: "▸"; display: inline-block; width: 16px; color: var(--gold-3); font-size: var(--schrift-2); transition: transform 140ms ease; }
+.wa-bilanz summary::before { content: "▸"; display: inline-block; width: 14px; color: var(--messing-3); transition: transform 140ms ease; }
 .wa-bilanz[open] summary::before { transform: rotate(90deg); }
-.wa-bilanz ul { list-style: none; margin: 8px 0 0 30px; padding: 0; display: grid; gap: 12px; }
-.wa-bilanz-zeile { display: grid; grid-template-columns: minmax(150px, 1.1fr) 2fr 64px; align-items: center; gap: 14px; font: 600 var(--schrift-3) var(--serif); }
+.wa-bilanz summary:focus-visible { outline: 2px solid var(--messing-2); outline-offset: 2px; }
+.wa-bilanz-inhalt { margin: 0 0 var(--abstand-3) var(--abstand-5); }
+.wa-bilanz ul { list-style: none; margin: var(--abstand-2) 0 0; padding: 0; display: grid; gap: var(--abstand-3); }
+.wa-bilanz-zeile { display: grid; grid-template-columns: minmax(150px, 1.1fr) 2fr 64px; align-items: center; gap: var(--abstand-3); font: 600 var(--schrift-3) var(--serif); }
 .wa-bilanz-zeile strong { text-align: right; font: 700 var(--schrift-3) var(--serif); font-variant-numeric: tabular-nums lining-nums; }
-.wa-bilanz-balken { position: relative; height: 10px; background: rgba(90, 64, 40, 0.12); border-radius: 6px; }
-.wa-bilanz-balken::after { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: rgba(60, 40, 20, 0.5); }
-.wa-bilanz-balken i { position: absolute; top: 0; bottom: 0; border-radius: 6px; }
+.wa-bilanz-balken { position: relative; height: 10px; background: color-mix(in srgb, var(--tinte-weich) 12%, transparent); border-radius: var(--rund-2); }
+.wa-bilanz-balken::after { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: color-mix(in srgb, var(--tinte-1) 50%, transparent); }
+.wa-bilanz-balken i { position: absolute; top: 0; bottom: 0; border-radius: var(--rund-2); }
 .wa-bilanz-balken i.plus { background: var(--gut); }
 .wa-bilanz-balken i.minus { background: var(--pd-bad); }
-.wa-bilanz li > em { display: block; margin-top: 2px; font: var(--schrift-3)/1.4 var(--serif); font-style: normal; color: var(--pd-soft); }
+.wa-bilanz li > em { display: block; margin-top: 2px; font: var(--schrift-3)/1.4 var(--serif); font-style: normal; color: var(--tinte-weich); }
 
+/* Verlaufslinie */
 /* Verlaufslinie */
 .wa-spark-box { min-width: 0; }
 .wa-spark { display: block; overflow: visible; }
@@ -60,28 +103,84 @@
 .wa-spark-achse { display: flex; justify-content: space-between; margin-top: 4px; font: 600 var(--schrift-1) var(--serif); color: var(--pd-soft); }
 .wa-spark-leer { margin: 6px 0; font: var(--schrift-3) var(--serif); color: var(--pd-soft); }
 
-/* Koalition */
-.wa-koalition { display: grid; gap: 16px; padding: 22px 26px 16px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
-.wa-koalition h3 { font-size: var(--schrift-5); }
-.wa-balken { display: flex; height: 20px; border-radius: 10px; overflow: hidden; background: rgba(90, 64, 40, 0.18); box-shadow: inset 0 0 0 1px rgba(60, 40, 20, 0.25); }
-.wa-balken span { min-width: 0; }
-.wa-balken .rolle-traeger { background: linear-gradient(90deg, #866e44, var(--pd-teal)); }
-.wa-balken .rolle-schwankend { background: linear-gradient(90deg, var(--messing-mittel), var(--messing-2)); }
-.wa-balken .rolle-gegner { background: linear-gradient(90deg, var(--siegel-hell), var(--seal)); }
-.wa-balken span + span { box-shadow: -2px 0 0 var(--paper-light); }
-.wa-legende { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
-.wa-legende li { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px 10px; padding: 8px 12px 8px 16px; border-radius: 6px; border: 1px solid var(--pd-line); background: rgba(255, 253, 246, 0.8); font: var(--schrift-3)/1.3 var(--serif); }
-.wa-legende li::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; border-radius: 0 4px 4px 0; }
-.wa-legende .rolle-traeger::before { background: var(--pd-teal); }
-.wa-legende .rolle-schwankend::before { background: var(--messing-2); }
-.wa-legende .rolle-gegner::before { background: var(--seal); }
-.wa-legende b { font: 700 var(--schrift-6)/1.1 var(--serif); letter-spacing: -0.01em; font-variant-numeric: tabular-nums lining-nums; }
-.wa-legende em { grid-column: 2; font: var(--schrift-3) var(--serif); font-style: normal; color: var(--pd-soft); }
-.wa-hinweise { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; font: var(--schrift-3)/1.45 var(--serif); }
-.wa-hinweise li { padding: 12px 16px; border: 1px solid var(--pd-line); border-left: 4px solid var(--messing-2); border-radius: 6px; background: rgba(255, 253, 246, 0.8); }
-.wa-hinweise li:last-child:not(:only-child) { border-left-color: var(--pd-bad); }
-.wa-hinweise b { display: block; margin-bottom: 2px; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.14em; color: var(--pd-soft); }
+/* Gruppen: Kopf mit Anteilsbalken, Kacheln im Raster, zwei Hinweise, aufklappbare Wanderung und Schritte */
+.wa-haupt { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(340px, 1fr); gap: var(--abstand-4); align-items: stretch; }
+.wa-koalition { display: grid; gap: 10px; align-content: start; padding: var(--abstand-4) var(--abstand-5) 0; border: 1px solid var(--pd-line); border-radius: var(--rund-2); background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.wa-koal-kopf { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--abstand-4); }
+.wa-root .wa-koal-kopf h4 { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--tinte-weich); }
+.wa-anteile-balken { display: flex; gap: 2px; height: 10px; border-radius: var(--rund-pille); overflow: hidden; background: var(--papier-3); }
+.wa-anteile-balken i { display: block; min-width: 4px; }
+.wa-anteile-balken .rolle-traeger, .wa-anteile li.rolle-traeger::before { background: var(--tinte-weich); }
+.wa-anteile-balken .rolle-schwankend, .wa-anteile li.rolle-schwankend::before { background: var(--messing-2); }
+.wa-anteile-balken .rolle-gegner, .wa-anteile li.rolle-gegner::before { background: var(--siegel); }
+.wa-anteile { list-style: none; margin: calc(-1 * var(--abstand-1)) 0 var(--abstand-1); padding: 0; display: flex; flex-wrap: wrap; gap: var(--abstand-1) var(--abstand-4); font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-1); }
+.wa-anteile li { display: inline-flex; align-items: baseline; gap: var(--abstand-1); }
+.wa-anteile li::before { content: ""; align-self: center; width: 10px; height: 10px; border-radius: 2px; }
+.wa-anteile b { font: 700 var(--schrift-3) var(--serif); font-variant-numeric: tabular-nums lining-nums; }
+.wa-anteile em { font-style: normal; color: var(--tinte-2); }
 
+.wa-kacheln { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--abstand-3) var(--abstand-2); }
+.wa-root button.wa-kachel {
+  position: relative; display: grid; grid-template-rows: 1fr auto; gap: 2px; min-height: 0; padding: var(--abstand-2) var(--abstand-3) var(--abstand-1); text-align: left; cursor: pointer;
+  border: 1px solid var(--pd-line); border-left: 4px solid var(--messing-2); border-radius: var(--rund-2); background: var(--papier-1); box-shadow: var(--schatten-flach);
+  color: var(--tinte-1); text-transform: none; letter-spacing: 0; text-shadow: none; font: inherit;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+.wa-root button.wa-kachel.rolle-traeger { border-left-color: var(--tinte-weich); }
+.wa-root button.wa-kachel.rolle-gegner { border-left-color: var(--siegel); }
+.wa-root button.wa-kachel:hover { border-top-color: var(--messing-3); border-right-color: var(--messing-3); border-bottom-color: var(--messing-3); transform: translateY(-1px); box-shadow: var(--schatten-hoch); }
+.wa-root button.wa-kachel:focus-visible { outline: none; box-shadow: var(--fokus-ring); }
+.wa-root button.wa-kachel.on { background: var(--leder); border-top-color: var(--leder); border-right-color: var(--leder); border-bottom-color: var(--leder); color: var(--leder-text); box-shadow: var(--schatten-hoch); }
+.wa-kachel-name { align-self: start; font: 600 var(--schrift-2)/1.25 var(--serif); hyphens: auto; overflow-wrap: break-word; }
+.wa-kachel-fuss { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--abstand-2); }
+/* Die Marke sitzt als Stempel auf der oberen Kante und nimmt dem Namen keinen Platz */
+.wa-kachel-marke { position: absolute; top: -9px; right: var(--abstand-2); padding: 0 var(--abstand-2); border-radius: var(--rund-pille); font: 400 var(--schrift-1)/18px var(--kapitaelchen); font-style: normal; letter-spacing: var(--laufweite-1); white-space: nowrap; }
+.wa-kachel-marke.gefaehrdet { background: var(--schlecht-flaeche); color: var(--siegel); box-shadow: inset 0 0 0 1px var(--schlecht-linie); }
+.wa-kachel-marke.gewinnbar { background: var(--warnung-flaeche); color: var(--messing-text); box-shadow: inset 0 0 0 1px var(--warnung-linie); }
+.wa-kachel-zahl { flex: none; font: 700 var(--schrift-5)/1 var(--serif); font-variant-numeric: tabular-nums lining-nums; }
+.wa-kachel-spur { position: relative; height: 18px; }
+.wa-kachel-spur .zone { position: absolute; top: 7px; height: 4px; }
+.wa-kachel-spur .zone.gegner { background: color-mix(in srgb, var(--siegel) 26%, transparent); border-radius: 2px 0 0 2px; }
+.wa-kachel-spur .zone.schwankend { background: color-mix(in srgb, var(--messing-2) 42%, transparent); }
+.wa-kachel-spur .zone.traeger { background: color-mix(in srgb, var(--tinte-weich) 32%, transparent); border-radius: 0 2px 2px 0; }
+.wa-kachel-spur .pfeil { position: absolute; top: 8px; height: 0; border-top: 2px dashed var(--tinte-weich); }
+.wa-kachel-spur .punkt { position: absolute; top: 9px; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid var(--papier-1); box-shadow: 0 1px 3px color-mix(in srgb, var(--tinte-1) 35%, transparent); background: var(--messing-2); }
+.rolle-traeger .wa-kachel-spur .punkt { background: var(--tinte-weich); }
+.rolle-gegner .wa-kachel-spur .punkt { background: var(--siegel); }
+.wa-kachel.on .wa-kachel-spur .zone.gegner { background: color-mix(in srgb, var(--schlecht-auf-leder) 45%, transparent); }
+.wa-kachel.on .wa-kachel-spur .zone.schwankend { background: color-mix(in srgb, var(--messing-1) 50%, transparent); }
+.wa-kachel.on .wa-kachel-spur .zone.traeger { background: color-mix(in srgb, var(--leder-text) 45%, transparent); }
+.wa-kachel.on .wa-kachel-spur .pfeil { border-top-color: var(--leder-text); }
+.wa-kachel.on .wa-kachel-spur .punkt { border-color: var(--leder); }
+.wa-kachel.on.rolle-traeger .wa-kachel-spur .punkt { background: var(--leder-text); }
+.wa-kachel-legende { margin: calc(-1 * var(--abstand-1)) 0 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.wa-hinweise { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--abstand-2); }
+.wa-root .wa-hinweise button { display: grid; align-content: start; justify-items: start; gap: 2px; width: 100%; height: 100%; padding: var(--abstand-2) var(--abstand-3); text-align: left; cursor: pointer; border: 0; border-left: 3px solid var(--messing-2); border-radius: 0 var(--rund-1) var(--rund-1) 0; background: var(--warnung-flaeche); box-shadow: none; color: var(--tinte-1); text-transform: none; letter-spacing: 0; text-shadow: none; font: var(--schrift-2)/1.4 var(--serif); }
+.wa-root .wa-hinweise li.gefaehrdet button { border-left-color: var(--siegel); background: var(--schlecht-flaeche); }
+.wa-root .wa-hinweise button:hover span { text-decoration: underline; text-decoration-color: var(--messing-2); text-underline-offset: 3px; }
+.wa-root .wa-hinweise button:focus-visible { outline: none; box-shadow: var(--fokus-ring); }
+.wa-hinweise b { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-weich); }
+/* Wanderung und Schritte: zwei Schalter in einer Zeile, der geöffnete Inhalt darunter */
+.wa-auf { display: flex; flex-wrap: wrap; gap: 0 var(--abstand-4); border-top: 1px solid var(--pd-line); }
+.wa-root button.wa-auf-knopf { flex: 0 0 auto; width: auto; display: inline-flex; align-items: center; gap: var(--abstand-2); padding: var(--abstand-2) 0; min-height: 0; border: 0; background: none; box-shadow: none; cursor: pointer; text-transform: none; letter-spacing: 0; text-shadow: none; font: 600 var(--schrift-3)/1.3 var(--display); color: var(--tinte-1); }
+.wa-root button.wa-auf-knopf::before { content: "▸"; display: inline-block; width: 12px; color: var(--messing-3); transition: transform 140ms ease; }
+.wa-root button.wa-auf-knopf.on::before { transform: rotate(90deg); }
+.wa-root button.wa-auf-knopf:hover { color: var(--siegel); }
+.wa-root button.wa-auf-knopf:focus-visible { outline: none; box-shadow: var(--fokus-ring); }
+.wa-auf-inhalt { margin: calc(-1 * var(--abstand-2)) 0 var(--abstand-3) var(--abstand-4); }
+.wa-auf-inhalt h5 { margin-bottom: var(--abstand-1); font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--tinte-weich); }
+.wa-auf-inhalt .wa-ziele { margin-left: 0; }
+
+/* Die gewählte Gruppe: eigene Fläche so hoch wie die Gruppen, darin scrollt das Einzelbild */
+.wa-rechts { position: relative; min-height: 480px; }
+.wa-rechts-rolle { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--abstand-4) var(--abstand-5); border: 1px solid var(--pd-line); border-radius: var(--rund-2); background: var(--papier-1); box-shadow: var(--pd-schatten); scrollbar-width: thin; scrollbar-color: var(--messing-2) transparent; }
+@media (max-width: 1100px) {
+  .wa-haupt { grid-template-columns: minmax(0, 1fr); }
+  .wa-rechts { min-height: 0; }
+  .wa-rechts-rolle { position: static; overflow: visible; }
+}
+
+/* Wanderung (Gesamt) */
 .wa-wanderung > summary h4, .wa-schritte > summary { font: 600 var(--schrift-4) var(--display); color: var(--pd-ink); }
 .wa-ziele { list-style: none; margin: 6px 0 12px 30px; padding: 0; display: grid; gap: 14px; }
 .wa-ziel-kopf { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; font: var(--schrift-3) var(--serif); }
@@ -91,37 +190,6 @@
 .wa-ziel-balken { display: block; height: 8px; margin: 5px 0 3px; border-radius: 4px; background: rgba(90, 64, 40, 0.14); overflow: hidden; }
 .wa-ziel-balken i { display: block; height: 100%; background: linear-gradient(90deg, var(--messing-2), var(--gold-3)); }
 .wa-ziel-passt { display: block; font: var(--schrift-3)/1.4 var(--serif); font-style: normal; color: var(--pd-soft); }
-
-/* Liste und Einzelbild */
-.wa-haupt { display: grid; grid-template-columns: minmax(250px, 310px) minmax(0, 1fr); gap: 40px; align-items: start; }
-.wa-liste { position: sticky; top: 0; }
-.wa-liste h3 { font-size: var(--schrift-5); }
-.wa-liste ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; }
-.dossier button.wa-gruppe {
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; width: 100%; padding: 12px 14px 11px; text-align: left; cursor: pointer; border-radius: 6px;
-  border: 1px solid var(--pd-line); border-left: 5px solid var(--messing-2); background: var(--pd-card); box-shadow: var(--pd-schatten); color: var(--pd-ink); text-shadow: none;
-  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
-}
-.dossier button.wa-gruppe:hover { transform: translateX(2px); border-color: var(--gold-3); }
-.dossier button.wa-gruppe:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
-.dossier button.wa-gruppe.on { background: var(--pd-card-hell); border-color: rgba(167, 122, 20, 0.8); box-shadow: 0 0 0 3px rgba(198, 154, 74, 0.28), var(--pd-schatten-hoch); }
-.dossier button.wa-gruppe.rolle-traeger { border-left-color: var(--pd-teal); }
-.dossier button.wa-gruppe.rolle-schwankend { border-left-color: var(--messing-2); }
-.dossier button.wa-gruppe.rolle-gegner { border-left-color: var(--seal); }
-.wa-g-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.wa-g-kopf strong { flex: 1 1 auto; font: 600 var(--schrift-4)/1.2 var(--display); }
-.wa-g-rolle { flex: none; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.08em; color: var(--pd-soft); white-space: nowrap; }
-.rolle-traeger .wa-g-rolle { color: var(--tinte-weich); }
-.rolle-gegner .wa-g-rolle { color: var(--siegel); }
-.wa-g-bar { position: relative; height: 10px; border-radius: 6px; background: rgba(90, 64, 40, 0.16); }
-.wa-g-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: linear-gradient(90deg, #a8552f, var(--messing-2) 50%, var(--pd-teal)); background-size: 260px 100%; }
-.wa-g-bar .ruhe { position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: rgba(40, 28, 16, 0.55); }
-.wa-g-bar u { position: absolute; top: -6px; width: 0; height: 0; transform: translateX(-50%); text-decoration: none; border-left: 5px solid transparent; border-right: 5px solid transparent; }
-.wa-g-bar u.fallend { border-top: 8px solid var(--seal); }
-.wa-g-bar u.steigend { border-top: 8px solid var(--pd-teal); }
-.wa-g-fuss { display: flex; justify-content: space-between; align-items: baseline; font: var(--schrift-2) var(--serif); color: var(--pd-soft); }
-.wa-g-zahl { font: 700 var(--schrift-4) var(--serif); color: var(--pd-ink); font-variant-numeric: tabular-nums lining-nums; }
-.wa-g-zahl em { font: 600 var(--schrift-1) var(--serif); font-style: normal; }
 
 /* Einzelbild */
 .wa-detail { display: grid; gap: 24px; }
@@ -222,12 +290,27 @@
 .wa-tisch b { display: inline-block; margin-right: 6px; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.12em; color: var(--seal); }
 .wa-aktionen { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; border-top: 1px solid var(--pd-line-strong); }
 
+
+/* Einzelbild in der schmaleren Fläche: kleinere Überschrift und Zahl */
+.wa-rechts .wa-detail { gap: var(--abstand-4); }
+/* Kopf: Name und Zahl in einer Zeile, Absicht und Beschreibung darunter über die ganze Breite */
+.wa-rechts .wa-kopf { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--abstand-1) var(--abstand-3); align-items: start; }
+.wa-rechts .wa-kopf-text { display: contents; }
+.wa-root .wa-rechts .wa-kopf h3 { grid-column: 1; grid-row: 1; align-self: center; font: 600 var(--schrift-5)/1.2 var(--display); }
+.wa-rechts .wa-zahl { grid-column: 2; grid-row: 1; max-width: 140px; padding: var(--abstand-1) var(--abstand-3); }
+.wa-rechts .wa-absicht, .wa-rechts .wa-beschreibung { grid-column: 1 / -1; margin: 0; }
+.wa-rechts .wa-absicht { font-size: var(--schrift-3); }
+.wa-rechts .wa-zahl strong { font-size: var(--schrift-6); }
+.wa-rechts .wa-fakten { margin-top: calc(-1 * var(--abstand-2)); }
+.wa-rechts .wa-verlauf { padding: var(--abstand-3) var(--abstand-4) var(--abstand-2); box-shadow: none; }
+.wa-rechts .wa-abschnitt { padding-top: var(--abstand-3); }
+.wa-rechts .wa-abschnitt > h4 { font-size: var(--schrift-4); }
+.wa-rechts .wa-pref-paar { grid-template-columns: minmax(0, 1fr); gap: var(--abstand-3); }
+
 /* Schmale Fenster: alles untereinander */
 @container (max-width: 860px) {
-  .wa-haupt { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .wa-liste { position: static; }
-  .wa-liste ul { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
-  .wa-barometer { grid-template-columns: minmax(0, 1fr); }
+  .wa-leit { grid-template-columns: minmax(0, 1fr); }
+  .wa-kacheln { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @container (max-width: 600px) {
   .wa-pref-paar { grid-template-columns: minmax(0, 1fr); }
@@ -235,110 +318,29 @@
   .wa-bilanz-zeile .wa-bilanz-balken { display: none; }
   .wa-kopf { flex-direction: column; }
   .wa-zahl { justify-items: start; text-align: left; }
-  .wa-zahl strong { font-size: var(--schrift-7); }
-  .wa-baro-zahl strong { font-size: var(--schrift-7); }
   .wa-kette-zeile { grid-template-columns: 16px minmax(0, 1fr) 54px; }
   .wa-kette-zeile .wa-kette-balken { display: none; }
   .wa-sorgen li { grid-template-columns: 16px minmax(0, 1fr); }
   .wa-sorge-wert { grid-column: 2; text-align: left; }
   .wa-regionen li { grid-template-columns: minmax(0, 1fr) 58px; }
   .wa-regionen .wa-region-balken { display: none; }
-  .wa-koalition, .wa-barometer { padding: 16px; }
+  .wa-koalition, .wa-leit { padding: var(--abstand-4) var(--abstand-4) 0; }
+}
+@media (max-width: 900px) {
+  .wa-leit { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: no-preference) {
   .wa-detail { animation: wa-ein 220ms ease both; }
   @keyframes wa-ein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 }
 @media (prefers-reduced-motion: reduce) {
-  .dossier button.wa-gruppe, .wa-zu > summary::before, .wa-bilanz summary::before { transition: none; }
+  .wa-root button.wa-kachel, .wa-zu > summary::before, .wa-bilanz summary::before { transition: none; }
 }
 
-/* Kreisfeld (AP 12): eine Zeile je Wählergruppe, der Kreis auf ihrer Stimmung, Größe nach Gewicht, Pfeil zum Ziel */
-.wa-feld { margin: 0; }
-.wa-feld-raster { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr); column-gap: 14px; row-gap: 3px; align-items: center; }
-.wa-feld-kopf { position: relative; height: 20px; }
-.wa-feld-zone { position: absolute; top: 0; font: 400 var(--schrift-1) var(--kapitaelchen, serif); letter-spacing: 0.1em; color: #6b5338; padding-left: 6px; white-space: nowrap; overflow: hidden; }
-.wa-root .wa-feld button.wa-feld-name { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 3px 8px; min-height: 0; border: 0; border-radius: 4px; background: transparent; text-align: left; font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-1); cursor: pointer; text-transform: none; letter-spacing: 0; box-shadow: none; }
-.wa-root .wa-feld button.wa-feld-name small { font: var(--schrift-1) var(--serif); color: var(--tinte-3); white-space: nowrap; }
-.wa-root .wa-feld button.wa-feld-name:hover { background: rgba(201, 162, 90, 0.18); }
-.wa-root .wa-feld button.wa-feld-name.on { background: var(--tinte-weich); color: var(--leder-text); }
-.wa-root .wa-feld button.wa-feld-name.on small { color: var(--linie); }
-.wa-feld-spur { position: relative; height: 34px; }
-.wa-feld-b { position: absolute; top: 15px; height: 4px; }
-.wa-feld-b.gegner { background: rgba(143, 42, 30, 0.22); }
-.wa-feld-b.schwankend { background: rgba(201, 162, 87, 0.35); }
-.wa-feld-b.traeger { background: rgba(38, 90, 98, 0.3); }
-.wa-feld-spur.on .wa-feld-b { top: 14px; height: 6px; }
-.wa-root .wa-feld button.wa-feld-kreis { position: absolute; top: 17px; transform: translate(-50%, -50%); padding: 0; min-height: 0; min-width: 0; letter-spacing: 0; text-transform: none; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--papier-2); cursor: pointer; box-shadow: 0 1px 4px rgba(40, 24, 10, 0.3); color: var(--papier-1); font: 700 var(--schrift-2) var(--serif); }
-.wa-root .wa-feld button.wa-feld-kreis.on { box-shadow: 0 0 0 3px var(--tinte-1); }
-.wa-root .wa-feld button.wa-feld-kreis.rolle-traeger { background: var(--pd-teal, #265a62); }
-.wa-root .wa-feld button.wa-feld-kreis.rolle-schwankend { background: var(--messing-2); color: var(--tinte-1); }
-.wa-root .wa-feld button.wa-feld-kreis.rolle-gegner { background: var(--seal, var(--siegel)); }
-.wa-feld-pfeil { position: absolute; top: 16px; height: 0; border-top: 2px dashed var(--tinte-weich); }
-.wa-feld-pfeil.steigt::after, .wa-feld-pfeil.faellt::before { content: ""; position: absolute; top: -6px; border: 5px solid transparent; }
-.wa-feld-pfeil.steigt::after { right: -8px; border-left: 7px solid var(--tinte-weich); }
-.wa-feld-pfeil.faellt::before { left: -8px; border-right: 7px solid var(--tinte-weich); }
-.wa-feld-achse { position: relative; height: 16px; }
-.wa-feld-achse span { position: absolute; transform: translateX(-50%); font: var(--schrift-1) var(--serif); color: var(--tinte-3); }
-.wa-feld figcaption { margin: 8px 0 0; font: var(--schrift-2) var(--serif); color: var(--tinte-2); }
-/* Feld links, gewählte Gruppe rechts als feste Akte (AP 12) */
-.wa-haupt.wa-feld-haupt { grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr); gap: 18px; }
-.wa-feld-haupt > .wa-liste { position: static; }
-.wa-feld-haupt > .wa-rechts { position: sticky; top: 0; max-height: calc(100vh - 230px); overflow-y: auto; }
-.wa-barometer { padding: 14px 22px 10px; }
-@media (max-width: 1100px) { .wa-haupt.wa-feld-haupt { grid-template-columns: 1fr; } .wa-feld-haupt > .wa-rechts { position: static; max-height: none; } }
-.wa-haupt.wa-feld-haupt { grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr); }
-.wa-feld-raster { grid-template-columns: minmax(130px, 190px) minmax(0, 1fr); }
-.wa-feld-zone { border-bottom: 3px solid; }
-.wa-feld-zone.gegner { border-color: rgba(143, 42, 30, 0.45); }
-.wa-feld-zone.schwankend { border-color: rgba(201, 162, 87, 0.7); }
-.wa-feld-zone.traeger { border-color: rgba(38, 90, 98, 0.55); }
-.wa-root .wa-barometer .wa-baro-zahl strong { font-size: var(--schrift-7); line-height: 1; }
-.wa-root .wa-barometer { gap: 4px 30px; }
+/* Vorschau in den Hilfekarten */
+.wa-hilfe-rechnet { font-style: italic; color: var(--tinte-2); }
+.wa-vorschau-zu { margin-top: var(--abstand-1); }
+.wa-vorschau-zu > summary { cursor: pointer; font: 600 var(--schrift-2) var(--serif); color: var(--siegel); }
 
-/* Erwartetes Wahlergebnis (N2, E-1): Spanne, Skala mit Siegeslinie, Treppe von der Zustimmung zum Ergebnis, Vorwarnung */
-.wa-root .wa-barometer { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
-.wa-prognose { --wa-gut: #3d6b5a; --wa-knapp: #a77a14; --wa-schlecht: #8a2d26; display: grid; gap: 12px; min-width: 0; }
-.wa-root .wa-barometer .wa-baro-zahl strong { font-size: 46px; }
-.wa-baro-zahl strong.gut { color: var(--wa-gut); }
-.wa-baro-zahl strong.knapp { color: #7a5a14; }
-.wa-baro-zahl strong.schlecht { color: var(--wa-schlecht); }
-.wa-skala { position: relative; padding: 18px 0 4px; }
-.wa-skala-spur { position: relative; height: 14px; border-radius: 7px; background: linear-gradient(90deg, rgba(138, 45, 38, 0.10), rgba(138, 45, 38, 0.06) 50%, rgba(61, 107, 90, 0.10) 50%, rgba(61, 107, 90, 0.16)); box-shadow: inset 0 1px 2px rgba(60, 40, 20, 0.18); }
-.wa-skala-band { position: absolute; top: 0; bottom: 0; border-radius: 7px; opacity: 0.85; }
-.wa-skala-band.gut { background: var(--wa-gut); }
-.wa-skala-band.knapp { background: linear-gradient(90deg, var(--wa-schlecht), var(--wa-knapp) 50%, var(--wa-gut)); }
-.wa-skala-band.schlecht { background: var(--wa-schlecht); }
-.wa-skala-mitte { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: #2a1f18; box-shadow: 0 0 0 2px #fffaf0; }
-.wa-skala-sieg { position: absolute; top: -18px; bottom: -6px; width: 0; border-left: 2px dashed #2a1f18; text-decoration: none; }
-.wa-skala-sieg span { position: absolute; top: -2px; left: 6px; white-space: nowrap; font: 600 12.5px/1 var(--sans); letter-spacing: 0.04em; color: #2a1f18; }
-.wa-skala-zust { position: absolute; top: 100%; width: 0; height: 0; margin-left: -6px; border: 6px solid transparent; border-bottom-color: #a77a14; transform: translateY(-14px); text-decoration: none; }
-.wa-skala-achse { position: relative; height: 18px; margin-top: 4px; }
-.wa-skala-achse span { position: absolute; transform: translateX(-50%); font: 12.5px var(--sans); color: #62503b; font-variant-numeric: tabular-nums; }
-.wa-treppe { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.wa-treppe li { display: inline-flex; align-items: baseline; gap: 8px; padding: 5px 10px; border: 1px solid var(--pd-line); border-radius: 4px; background: rgba(255, 250, 240, 0.9); font: 14.5px/1.3 var(--serif); color: #2a1f18; }
-.wa-treppe li + li::before { content: "→"; margin-right: 2px; color: #8a6d3b; }
-.wa-treppe li strong { font: 700 14.5px var(--sans); font-variant-numeric: tabular-nums lining-nums; }
-.wa-treppe li.plus strong { color: var(--wa-gut); }
-.wa-treppe li.minus strong { color: var(--wa-schlecht); }
-.wa-treppe li.basis { background: rgba(167, 122, 20, 0.10); border-color: rgba(167, 122, 20, 0.45); }
-.wa-treppe li.ergebnis { border-width: 1.5px; font-weight: 600; }
-.wa-treppe li.ergebnis.gut { border-color: var(--wa-gut); }
-.wa-treppe li.ergebnis.knapp { border-color: var(--wa-knapp); }
-.wa-treppe li.ergebnis.schlecht { border-color: var(--wa-schlecht); }
-.wa-vorwarnung { margin: 0; padding: 10px 14px; border-left: 3px solid #8a2d26; background: rgba(138, 45, 38, 0.06); font: 15.5px/1.45 var(--serif); color: #2a1f18; }
-.wa-vorwarnung b { font: 600 12.5px/1 var(--kapitaelchen, var(--sans)); letter-spacing: 0.12em; text-transform: uppercase; color: #8a2d26; margin-right: 4px; }
-.wa-vorwarnung .pd-btn { margin-left: 6px; }
-.wa-baro-leer { margin: 0; font: italic 15px/1.45 var(--serif); color: #4c3b28; }
-@media (max-width: 900px) { .wa-root .wa-barometer { grid-template-columns: minmax(0, 1fr); } }
-.wa-hilfe-rechnet { font-style: italic; color: #4c3b28; }
-.wa-vorschau-zu { margin-top: 6px; }
-.wa-vorschau-zu > summary { cursor: pointer; font: 600 14.5px var(--serif); color: var(--seal, #8f2a1e); }
-/* Prognose über die ganze Breite: links die Zahl, rechts Skala und Treppe; darunter Vorwarnung und Verlauf */
-.wa-root .wa-barometer { grid-template-columns: minmax(0, 1fr); }
-.wa-prognose { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px 34px; align-items: start; }
-.wa-prognose-rechts { display: grid; gap: 12px; align-content: start; padding-top: 6px; }
-.wa-vorwarnung { grid-column: 1 / -1; }
-.wa-baro-linie { padding-top: 4px; border-top: 1px solid var(--pd-line); }
-@media (max-width: 900px) { .wa-prognose { grid-template-columns: minmax(0, 1fr); } }
-.wa-rohdaten { margin: 0; font: 14.5px/1.45 var(--serif); color: #4c3b28; } .wa-rohdaten em { font-style: italic; }
+/* Lange Maßnahmennamen in der schmalen Fläche umbrechen statt unter den Balken zu laufen */
+.dossier .wa-pref-zeile .pd-btn.quiet { min-width: 0; white-space: normal; hyphens: auto; overflow-wrap: anywhere; }

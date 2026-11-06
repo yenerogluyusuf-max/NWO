@@ -1,0 +1,13 @@
+{
+ "tag_t4.wa.frage": "Wer trägt Sie, und wer bröckelt?",
+ "tag_t4.wa.prognose.unter": "der Stimmen im ersten Wahlgang",
+ "tag_t4.wa.prognose.unter_nachfolger": "der Stimmen für Ihren Nachfolger im ersten Wahlgang",
+ "tag_t4.wa.prognose.erklaerung": "Wer über 50 Prozent der Stimmen holt, gewinnt ohne Stichwahl. Die Zustimmung allein ist noch kein Wahlergebnis: Die Stufen oben zeigen, was dazwischen liegt. Hier steht, was die Zustimmung seit dem Amtsantritt bewegt hat.",
+ "tag_t4.wa.marke.gewinnbar": "zu gewinnen",
+ "tag_t4.wa.marke.gefaehrdet": "gefährdet",
+ "tag_t4.wa.kacheln.legende": "Punkt: Stimmung heute, größer für mehr Stimmen. Strich: wohin sie strebt.",
+ "tag_t4.wa.vorwarnung": "Im Wahlkampf greift die Opposition jede Woche dort an, wo es brennt: {thema}, akut in {n, plural, one {# Provinz} other {# Provinzen}} (darunter {orte}; {anteil} der Menschen). Bei heutiger Lage kostet das bis zum Wahltag {summe} Punkte.",
+ "tag_t4.wa.vorwarnung_antwort": "Wer das Problem vorher löst, nimmt den Angriffen die Kraft.",
+ "tag_t4.wa.prognose.wahl": "Wahl am {datum}, {monate, plural, =0 {in wenigen Tagen} one {in # Monat} other {in # Monaten}}",
+ "tag_t4.wa.schritte": "Was bis zur Wahl am meisten hilft"
+}

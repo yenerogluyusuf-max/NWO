@@ -24,8 +24,9 @@ describe("Wähleransicht", () => {
     const html = renderToStaticMarkup(createElement(Waehler, { world: neu() }));
     expect(html).toContain("Wenn heute gewählt würde");
     expect(html).toContain("Ihre Koalition der Wähler");
-    // Seit 05.11.2026 eine Zeile je Gruppe im Kreisfeld (Name und Kreis auf der Stimmungsachse)
-    expect((html.match(/class="wa-feld-kreis/g) ?? []).length).toBe(GRUPPEN.length);
+    // Seit 06.11.2026 (Tagarbeit T4) eine Kachel je Gruppe statt einer Zeile im Kreisfeld: jede Gruppe bleibt einzeln wählbar
+    expect((html.match(/class="wa-kachel rolle-/g) ?? []).length).toBe(GRUPPEN.length);
+    expect(html).toContain("Wer trägt Sie, und wer bröckelt?");
     expect(html).not.toContain("NaN");
   });
 

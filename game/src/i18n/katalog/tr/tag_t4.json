@@ -1,0 +1,13 @@
+{
+ "tag_t4.wa.frage": "Sizi kim taşıyor, kim kopuyor?",
+ "tag_t4.wa.prognose.unter": "ilk turda alacağınız oy",
+ "tag_t4.wa.prognose.unter_nachfolger": "ilk turda halefinizin alacağı oy",
+ "tag_t4.wa.prognose.erklaerung": "Oyların yüzde 50'sinden fazlasını alan ikinci tura kalmadan kazanır. Onay oranı tek başına seçim sonucu değildir: Yukarıdaki basamaklar aradaki farkı gösterir. Burada, göreve gelişinizden bu yana onay oranınızı neyin değiştirdiği yer alır.",
+ "tag_t4.wa.marke.gewinnbar": "kazanılabilir",
+ "tag_t4.wa.marke.gefaehrdet": "risk altında",
+ "tag_t4.wa.kacheln.legende": "Nokta: bugünkü ruh hâli, oy arttıkça büyür. Çizgi: nereye gittiği.",
+ "tag_t4.wa.vorwarnung": "Seçim kampanyasında muhalefet her hafta canın yandığı yerden saldırır: {thema}, {n, plural, other {# ilde}} akut ({orte} dahil; nüfusun {anteil}). Bugünkü durumla bu, seçim gününe kadar {summe} puana mal olur.",
+ "tag_t4.wa.vorwarnung_antwort": "Sorunu önceden çözen, saldırıların gücünü kırar.",
+ "tag_t4.wa.prognose.wahl": "seçim {datum} tarihinde, {monate, plural, =0 {birkaç gün sonra} other {# ay sonra}}",
+ "tag_t4.wa.schritte": "Seçime kadar en çok ne işe yarar"
+}
