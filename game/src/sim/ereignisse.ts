@@ -1,4 +1,4 @@
-import { bucheFinanzsaldo, kassenbestand, bipWertMrd } from "./staatsgeld";
+import { bucheFinanzsaldo, kassenbestand, bipWertMrd, defizitQuote } from "./staatsgeld";
 // Ereignismotor: Ereignisse entstehen aus dem Zustand der Welt (Weltmodell, Abschnitt 7), nicht aus einem Drehbuch.
 // Jede Vorlage ist ein Muster mit Bedingung, Ort, Stärke und mindestens zwei Antworten, die etwas kosten.
 // Wer nichts entscheidet, bekommt nach der Frist die schlechtere Standardfolge.
@@ -1098,8 +1098,9 @@ const EREIGNIS_FOLGEN: Record<string, NonNullable<Vorlage["folgen"]>> = {
     trotzdem: { vorlage: "fabrikschliessungen", nach: [120, 300], bedingung: (w) => w.economy.unemployment > 8 },
   },
   haushaltsjahr: {
-    fortschreiben: { vorlage: "haushaltsdruck", nach: [120, 300], bedingung: (w) => w.economy.deficit > 4 },
-    wahlgeschenke: { vorlage: "haushaltsdruck", nach: [200, 400], bedingung: (w) => w.economy.deficit > 3.5 },
+    // Welle H1: das tatsächliche Defizit (vorher das feste Grunddefizit von 3,1 %, die Bedingungen waren nie wahr)
+    fortschreiben: { vorlage: "haushaltsdruck", nach: [120, 300], bedingung: (w) => defizitQuote(w.economy) > 4 },
+    wahlgeschenke: { vorlage: "haushaltsdruck", nach: [200, 400], bedingung: (w) => defizitQuote(w.economy) > 3.5 },
   },
   korruptionsaffaere: { abwiegeln: { vorlage: "pressekonflikt", nach: [60, 200] } },
   streikwelle: { verbot: { vorlage: "streikwelle", nach: [120, 240], bedingung: (w) => nationalAverage(NET, w.net, "streikneigung") > 40 } },
