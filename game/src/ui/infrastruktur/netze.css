@@ -102,7 +102,8 @@ span.nz-schlecht, td.nz-schlecht { color: rgb(150, 44, 36); }
 .nz-akte h4 { margin: 0; font: 600 var(--schrift-5)/1.1 var(--serif); color: var(--tinte-1); }
 .nz-akte p.nz-ortwert { margin: 0; font: 700 var(--schrift-6)/1 var(--serif); }
 .nz-ortwert small { font: 400 var(--schrift-1) var(--serif); color: var(--tinte-3); }
-.nz-gut { color: var(--gut); } .nz-mittel { color: #9a7425; } .nz-schlecht { color: var(--siegel-hell); }
+/* Mittlere Auslastung in Messing 3: #9a7425 erreichte auf Papier nur 4,2 : 1 (Rundgang 6. November, „88 %“ im Ausbau) */
+.nz-gut { color: var(--gut); } .nz-mittel { color: var(--messing-3); } .nz-schlecht { color: var(--siegel-hell); }
 .nz-ausbauten { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .nz-ausbau { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; background: var(--papier-1); border: 1px solid rgba(160, 130, 80, 0.35); }
 .nz-ausbau > div { display: flex; flex-direction: column; gap: 2px; }
