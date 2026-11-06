@@ -32,15 +32,16 @@
 .kt-st-skeptisch { --kt-ring: #c9a25a; }
 .kt-st-kritisch, .kt-st-meuternd { --kt-ring: #a8382c; }
 .kt-name { font-size: var(--schrift-1); font-weight: 600; line-height: 1.15; text-align: center; max-width: 102px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px; }
-.kt-ressort { font-size: var(--schrift-1); color: #6b5338; line-height: 1.12; text-align: center; max-width: 102px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Ressort darf zweizeilig umbrechen (Tag 6. November): „Jugend und Sport“ stand als „Jugend und S…“ am Seitenplatz */
+.kt-ressort { font-size: var(--schrift-1); color: #6b5338; line-height: 1.15; text-align: center; max-width: 104px; white-space: normal; text-wrap: balance; }
 .kt-text { display: grid; justify-items: center; min-width: 0; }
 /* Seitenplätze: Gesicht am Ankerpunkt, Name zur Tischmitte hin (sonst überlappen sich die Namen übereinander stehender Plätze) */
-.mr-saal.kt .kt-raum .kt-platz.seite { width: 150px; flex-direction: row; align-items: center; gap: 7px; }
+.mr-saal.kt .kt-raum .kt-platz.seite { width: 166px; flex-direction: row; align-items: center; gap: 7px; }
 .mr-saal.kt .kt-raum .kt-platz.links { transform: translate(-26px, -50%); }
 .mr-saal.kt .kt-raum .kt-platz.rechts { flex-direction: row-reverse; transform: translate(calc(-100% + 26px), -50%); }
 .kt-platz.seite .kt-text { justify-items: start; }
 .kt-platz.rechts .kt-text { justify-items: end; }
-.kt-platz.seite .kt-name, .kt-platz.seite .kt-ressort { max-width: 96px; margin-top: 0; text-align: inherit; }
+.kt-platz.seite .kt-name, .kt-platz.seite .kt-ressort { max-width: 104px; margin-top: 0; text-align: inherit; }
 .kt-platz.rechts .kt-name, .kt-platz.rechts .kt-ressort { text-align: right; }
 .kt-platz.links .kt-name, .kt-platz.links .kt-ressort { text-align: left; }
 .kt-platz.gast .kt-gesicht { opacity: 0.88; }
@@ -55,7 +56,7 @@
 .dossier .kt-akte button.kt-zu, .kt-zu { position: sticky; top: 0; align-self: flex-end; z-index: 2; width: 30px; height: 30px; margin: 0 0 -38px; padding: 0 !important; border-radius: 50% !important; font: 600 20px/1 var(--serif); display: grid; place-items: center; background: #fffaf0 !important; border: 1px solid rgba(120, 84, 40, 0.45) !important; box-shadow: 0 1px 3px rgba(40, 24, 10, 0.2) !important; color: #3a2a1d; }
 .kt-hinweis { position: absolute; left: 0; top: 4px; margin: 0; max-width: 23%; font: italic 13.5px/1.4 var(--serif); color: #5a4632; }
 .kt-akte .mr-karte { margin: 0; }
-.kt-legende { position: absolute; right: 0; top: 4px; margin: 0; max-width: 22%; display: grid; gap: 5px; font-size: 12.5px; color: #6b5338; }
+.kt-legende { position: absolute; right: 0; top: 4px; margin: 0; max-width: 22%; display: grid; gap: 5px; font-size: var(--schrift-1); color: #6b5338; }
 .kt-legende span { display: inline-flex; align-items: center; gap: 6px; }
 .kt-ring { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #fbf4df; box-shadow: 0 0 0 3px var(--kt-ring); }
 .kt-ring.treu { --kt-ring: #4f7a45; }

@@ -1,5 +1,8 @@
 /* Der Fokusbaum (ui/fokus/Fokusbaum.tsx): eine Fläche mit allen Ästen, zieh- und zoombar; Blatt rechts über der Fläche. */
 
+/* Astfarbe als Schrift (Tag 6. November): die hellen Astfarben (Wirtschaft, Land, Außen) lagen auf Papier unter 4,5 : 1. Zur Hälfte mit Tinte
+   gemischt bleibt der Ton des Asts erkennbar und hält mindestens 5 : 1. Flächen und Linien behalten die reine Astfarbe.
+   Die Mischung steht in jeder Regel selbst: eine Variable auf .fk würde --ast dort auflösen, wo es noch nicht gesetzt ist. */
 .fk { display: flex; flex-direction: column; gap: 8px; min-width: 0; height: 100%; min-height: 520px; }
 .fk.fk-voll {
   position: fixed; inset: 0; z-index: 2000; padding: 14px 18px; min-height: 0;
@@ -42,7 +45,7 @@
 .fk-ast { position: absolute; border-radius: 6px; border-top: 3px solid var(--ast); background: rgba(255, 252, 244, 0.45); }
 .fk-ast-kopf {
   display: block; width: 100%; padding: 6px 4px 0; text-align: center; border: 0; background: none; cursor: zoom-in;
-  font: 700 var(--schrift-3) var(--display, var(--serif)); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ast);
+  font: 700 var(--schrift-3) var(--display, var(--serif)); letter-spacing: 0.04em; text-transform: uppercase; color: color-mix(in srgb, var(--ast) 50%, var(--tinte-1));
 }
 .fk-linien { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
 .fk-linien path { fill: none; stroke: rgba(90, 64, 40, 0.38); stroke-width: 1.6; }
@@ -64,7 +67,7 @@
 .fk-knoten-fuss { display: flex; align-items: center; gap: 5px; font: var(--schrift-1)/1.2 var(--sans); color: var(--ink-soft); white-space: nowrap; }
 .fk-knoten .fk-balken { position: absolute; left: 4px; right: 4px; bottom: 3px; }
 .fk-knoten.fk-fertig { background: color-mix(in srgb, var(--ast) 18%, #fffbee); border-color: color-mix(in srgb, var(--ast) 60%, transparent); }
-.fk-knoten.fk-fertig .fk-knoten-fuss { color: color-mix(in srgb, var(--ast) 75%, #2e2118); font-weight: 600; }
+.fk-knoten.fk-fertig .fk-knoten-fuss { color: color-mix(in srgb, var(--ast) 50%, var(--tinte-1)); font-weight: 600; }
 .fk-knoten.fk-laeuft { border-color: #6b4a2a; box-shadow: 0 0 0 2px rgba(107, 74, 42, 0.3); }
 .fk-knoten.fk-moeglich { border-color: #b8893a; box-shadow: 0 0 0 1.5px rgba(201, 162, 90, 0.55), 0 1px 2px rgba(40, 25, 10, 0.12); }
 .fk-knoten.fk-gesperrt { background: #f3ead6; color: #6b5a48; }
@@ -86,18 +89,18 @@
 .fk-ring .wert { stroke: var(--ast); stroke-linecap: round; }
 .fk-ring .fk-zeichen { position: absolute; left: 12px; top: 12px; width: 22px; height: 22px; }
 .fk-medaille-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.fk-medaille-text strong { font: 700 15px/1.2 var(--display, var(--serif)); color: var(--ast); }
-.fk-medaille-text small { font: 12px var(--sans); color: var(--ink-soft); }
+.fk-medaille-text strong { font: 700 var(--schrift-3)/1.2 var(--display, var(--serif)); color: color-mix(in srgb, var(--ast) 50%, var(--tinte-1)); }
+.fk-medaille-text small { font: var(--schrift-1)/1.3 var(--sans); color: var(--ink-soft); }
 .fk-medaille-fokus { display: flex; flex-direction: column; gap: 2px; padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(184, 137, 58, 0.55); background: #fffdf5; text-align: left; cursor: pointer; font: inherit; color: var(--ink); }
 .fk-medaille-fokus:hover { background: #fff6dc; }
-.fk-medaille-fokus span { font: 600 13.5px/1.2 var(--serif); }
-.fk-medaille-fokus em { font: normal 11.5px var(--sans); color: var(--ink-soft); }
+.fk-medaille-fokus span { font: 600 var(--schrift-2)/1.2 var(--serif); }
+.fk-medaille-fokus em { font: normal var(--schrift-1) var(--sans); color: var(--ink-soft); }
 .fk-medaille-fokus.laeuft { border-color: #6b4a2a; }
-.fk-medaille-mehr { align-self: flex-start; padding: 0; border: 0; background: none; font: 12.5px var(--serif); color: #6b4a2a; text-decoration: underline; cursor: pointer; }
+.fk-medaille-mehr { align-self: flex-start; padding: 0; border: 0; background: none; font: var(--schrift-1) var(--serif); color: #6b4a2a; text-decoration: underline; cursor: pointer; }
 
 /* Leiste der Äste über dem Baum eines Asts */
 .fk-astleiste { display: flex; flex-wrap: wrap; gap: 4px; }
-.fk-astleiste button { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px 2px 6px; border-radius: 999px; border: 1px solid rgba(90, 64, 40, 0.3); background: rgba(255, 251, 238, 0.9); font: 13px var(--serif); color: var(--ink); cursor: pointer; }
+.fk-astleiste button { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px 2px 6px; border-radius: 999px; border: 1px solid rgba(90, 64, 40, 0.3); background: rgba(255, 251, 238, 0.9); font: var(--schrift-1) var(--serif); color: var(--ink); cursor: pointer; }
 .fk-astleiste button .fk-zeichen { width: 16px; height: 16px; color: var(--ast); }
 .fk-astleiste button.on { border-color: var(--ast); box-shadow: inset 0 -3px 0 var(--ast); font-weight: 600; }
 
