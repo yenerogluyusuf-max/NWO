@@ -1,5 +1,6 @@
 import { angezeigteZustimmung } from "../sim/medien";
-import { geldAusBip, defizitQuote } from "../sim/staatsgeld";
+import { geldAusBip } from "../sim/staatsgeld";
+import { defizitJetzt } from "../sim/wirtschaft";
 import type { VersorgungsProgramm } from "../sim/versorgungspolitik";
 import { TransportTafel, transportKartenDaten } from "./gueter/TransportKarte";
 import { kriegsKarte } from "../sim/kriegsschauplatz";
@@ -459,8 +460,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       onKlick: () => oeffneDossier("waehler"),
     });
     kopfWerte.push({ id: "kapital", icon: "siegel", name: t("buehne.stat.kapitalKurz"), wert: `${Math.floor(spiel.kapital)}`, warn: spiel.kapital < 5, tip: kapitalErklaerung(w), onKlick: () => oeffneDossier("schreibtisch") });
-    kopfWerte.push({ id: "haushalt", icon: "muenze", name: t("sf.hud"), wert: `${zahl(defizitQuote(w.economy), 1)} %`, warn: defizitQuote(w.economy) > 3,
-      tip: t("sf.hudTip", { n: zahl(geldAusBip(w, defizitQuote(w.economy)), 0) }),
+    // Welle H1: dieselbe Zahl wie die Haushaltsansicht (mit dem heutigen Ertrag der Steuermaßnahmen)
+    const defizitHeute = defizitJetzt(w);
+    kopfWerte.push({ id: "haushalt", icon: "muenze", name: t("sf.hud"), wert: `${zahl(defizitHeute, 1)} %`, warn: defizitHeute > 3,
+      tip: t("sf.hudTip", { n: zahl(geldAusBip(w, defizitHeute), 0) }),
       onKlick: () => { setWirtschaftProgramm(undefined); setWirtschaftStart("haushalt"); setWirtschaftPosten("_bilanz"); oeffneDossier("wirtschaft"); } });
   }
   if (mehr.vorhanden) {

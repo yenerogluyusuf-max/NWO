@@ -58,6 +58,49 @@ export const PLAN_2026 = {
 export const ZINSSATZ_START = (PLAN_2026.zinsenProzentBip / 23.8) * 100;
 
 // ---------------------------------------------------------------------------
+// Einnahmen nach Steuerart und ihre Elastizität gegenüber dem nominalen BIP (Welle H1, 06.11.2026). Unter dem Jahr folgt die
+// Bemessungsgrundlage jeder Steuer dem nominalen BIP: Aufkommen = Satz × Grundlage, Grundlage = Plan × (BIP / Plan-BIP)^Elastizität.
+//
+// Quelle der belegten Werte: Belinga, Benedek, de Mooij, Norregaard (2014), „Tax Buoyancy in OECD Countries“, IMF Working Paper WP/14/110,
+// Tabelle 3, S. 12: kurzfristige Aufkommenselastizität (short-run buoyancy) je Steuerart, Panel der OECD-Länder 1965–2012 (PMG-Schätzer).
+// Die Türkei ist im Panel bei Einkommen-, Körperschaft- und Verbrauchsteuern enthalten, bei der Mehrwertsteuer nicht (Fußnote zu Abb. 2,
+// S. 8: Daten erst seit 1985). Eigene Werte je Steuerart für die Türkei nennt die Arbeit nicht. Die Gesamtelastizität der Türkei steht in
+// Tabelle 1, S. 10: kurzfristig 0,98, langfristig 1,06. Gewichtet mit den Anteilen von 2026 ergeben die Werte unten zusammen 1,03, nahe am
+// türkischen Wert. Die Sozialbeiträge (0,75) fehlen, weil sie nicht im Haushalt der Zentralregierung stehen (SGK).
+// Die OECD-Arbeitspapiere 1174 und 1275 (Price, Dang u. a.) waren beim Abruf am 06.11.2026 nicht lesbar (Zugriff verweigert).
+
+export type SteuerArt = "mwst" | "est" | "oetv" | "kst" | "uebrige" | "sonstige";
+
+export interface EinnahmenArt {
+  id: SteuerArt;
+  /** Zeilen der Steuern 2026 (STEUERN_2026), die zu dieser Art gehören; „sonstige“ sind die Nichtsteuer-Einnahmen */
+  plan: string[];
+  /** Kurzfristige Elastizität des Aufkommens gegenüber dem nominalen BIP */
+  elastizitaet: number;
+  beleg: string;
+}
+
+const BUOYANCY = "IMF WP/14/110, Tabelle 3 (kurzfristig, OECD-Panel)";
+
+export const EINNAHMEN_ARTEN: EinnahmenArt[] = [
+  { id: "mwst", plan: ["mwst"], elastizitaet: 0.92, beleg: `${BUOYANCY}: Umsatz- und Mehrwertsteuern (GST); ohne die Türkei geschätzt` },
+  { id: "est", plan: ["est"], elastizitaet: 1.1, beleg: `${BUOYANCY}: Einkommensteuer (PIT)` },
+  { id: "oetv", plan: ["oetv"], elastizitaet: 0.51, beleg: `${BUOYANCY}: Verbrauchsteuern (Excises)` },
+  { id: "kst", plan: ["kst"], elastizitaet: 1.96, beleg: `${BUOYANCY}: Körperschaftsteuer (CIT)` },
+  { id: "uebrige", plan: ["bankensteuer", "gebuehren", "zoelle", "stempel", "kfz", "sonst"], elastizitaet: 1, beleg: "Spielparameter: gemischte Steuern ohne belegten Gesamtwert" },
+  { id: "sonstige", plan: [], elastizitaet: 1, beleg: "Spielparameter: Einnahmen ohne Steuern (Gebühren, Gewinne, Vermögen), kein belegter Wert" },
+];
+
+/** Anteil jeder Art an den Einnahmen des Haushaltsgesetzes 2026; „sonstige“ ist der Rest bis zu den Gesamteinnahmen. */
+export const EINNAHMEN_ANTEIL: Record<SteuerArt, number> = (() => {
+  const summe = (ids: string[]) => STEUERN_2026.filter((x) => ids.includes(x.id)).reduce((s, x) => s + x.mrd, 0);
+  const steuern = STEUERN_2026.reduce((s, x) => s + x.mrd, 0);
+  const out = {} as Record<SteuerArt, number>;
+  for (const a of EINNAHMEN_ARTEN) out[a.id] = (a.id === "sonstige" ? PLAN_2026.einnahmenGesamt - steuern : summe(a.plan)) / PLAN_2026.einnahmenGesamt;
+  return out;
+})();
+
+// ---------------------------------------------------------------------------
 // Ressortetats (Haushalt wie in Democracy: ein Regler je Ressort). Das Haushaltsgesetz 2026 liegt hier nur nach ökonomischen Arten vor
 // (Personal, Übertragungen, Investitionen …), nicht nach Aufgaben. Wo sich ein Startanteil aus diesen Zeilen ableiten lässt, steht
 // „abgeleitet“; alle übrigen Startanteile, Schrittweiten, Spannen und Reifezeiten sind Spielparameter (zu prüfen gegen die funktionale

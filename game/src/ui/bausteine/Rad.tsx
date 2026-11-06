@@ -17,6 +17,8 @@ export interface RadStueck {
   schraffiert?: boolean;
   /** Ob ein Klick etwas tut */
   klickbar?: boolean;
+  /** Im Ring, in der Legende aber abgesetzt unter einem Strich und ohne Anteil (etwa die Lücke „auf Kredit“: keine Einnahme) */
+  abgesetzt?: boolean;
 }
 
 export interface RadRing {
@@ -26,6 +28,8 @@ export interface RadRing {
   /** Überschrift der Legende und der Gesamtbetrag daneben */
   titel: string;
   gesamt: number;
+  /** Bezug der Anteile in der Legende; fehlt er, gilt die Bezugsgröße des Rings */
+  anteilVon?: number;
 }
 
 /** Bogenstück eines Rings von Winkel a bis b (Bogenmaß, 0 oben, im Uhrzeigersinn). */
@@ -95,25 +99,28 @@ export function Rad({
       );
     });
   };
-  const legende = (r: RadRing) => (
-    <section className="hr-legende" aria-label={r.titel}>
-      <h3>
-        {r.titel} <b>{wertText(r.gesamt)}</b>
-      </h3>
-      <ul>
-        {r.stuecke.map((st) => (
-          <li key={st.id} className={hover === st.id ? "on" : undefined} onMouseEnter={() => setHover(st.id)} onMouseLeave={() => setHover(null)}>
-            <button type="button" disabled={!st.klickbar || !onStueck} onClick={() => st.klickbar && onStueck?.(st.id)}>
-              <i aria-hidden className={st.schraffiert ? "schraffiert" : undefined} style={{ background: st.schraffiert ? undefined : st.farbe }} />
-              <span>{st.name}</span>
-              <span className="hr-wert">{wertText(st.wert)}</span>
-              <span className="hr-anteil">{prozent(st.wert, summe(r))}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </section>
+  const zeile = (r: RadRing, st: RadStueck) => (
+    <li key={st.id} className={hover === st.id ? "on" : undefined} onMouseEnter={() => setHover(st.id)} onMouseLeave={() => setHover(null)}>
+      <button type="button" disabled={!st.klickbar || !onStueck} onClick={() => st.klickbar && onStueck?.(st.id)}>
+        <i aria-hidden className={st.schraffiert ? "schraffiert" : undefined} style={{ background: st.schraffiert ? undefined : st.farbe }} />
+        <span>{st.name}</span>
+        <span className="hr-wert">{wertText(st.wert)}</span>
+        <span className="hr-anteil">{st.abgesetzt ? "" : prozent(st.wert, r.anteilVon ?? summe(r))}</span>
+      </button>
+    </li>
   );
+  const legende = (r: RadRing) => {
+    const abgesetzt = r.stuecke.filter((st) => st.abgesetzt);
+    return (
+      <section className="hr-legende" aria-label={r.titel}>
+        <h3>
+          {r.titel} <b>{wertText(r.gesamt)}</b>
+        </h3>
+        <ul>{r.stuecke.filter((st) => !st.abgesetzt).map((st) => zeile(r, st))}</ul>
+        {abgesetzt.length > 0 && <ul className="hr-abgesetzt">{abgesetzt.map((st) => zeile(r, st))}</ul>}
+      </section>
+    );
+  };
   const aktiv = [...aussen.stuecke, ...(innen?.stuecke ?? [])].find((s) => s.id === hover);
   return (
     <div className={`hr${innen ? "" : " hr-einzeln"}`}>

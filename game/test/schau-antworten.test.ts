@@ -78,7 +78,9 @@ test("Jede Antwort wirkt, außer ehrlichem Nichtstun (keine Schau)", () => {
 /** Ehrliches Nichtstun: heißt so und verspricht nichts. „entwurf“ verhindert die automatische Fortschreibung des Haushalts (selbst vorbereiten). */
 const NICHTSTUN = new Set(["aussitzen", "abwarten", "spaeter", "ordentlich", "haushaltsjahr:entwurf"]);
 /** Ereignisse, deren Antworten auf eine laufende Lage wirken (Krieg, Stichwahl, Nachfolge): in einer frischen Partie ohne Gegenstand. */
-const LAGE_NOETIG = new Set(["krieg_drohkulisse", "krieg_waffenruhe", "wahl_stichwahl", "nachfolge_kuer"]);
+// Welle H1: Der Inflationsausgleich braucht Lira-Ausgaben, die Kaufkraft verloren haben; in der frischen Partie ist der Nachtrag gesperrt.
+// Seine Antworten prüft test/haushalt-etat.test.ts in einer Lage mit Kaufkraftverlust (Wirkung und Preisplakette gegen die Buchung).
+const LAGE_NOETIG = new Set(["krieg_drohkulisse", "krieg_waffenruhe", "wahl_stichwahl", "nachfolge_kuer", "inflationsausgleich"]);
 /** Nur noch für ältere Spielstände, in denen das Ereignis offen sein kann (neue Partien öffnen es nicht mehr). */
 const ALT = new Set(["start_haushalt"]);
 
