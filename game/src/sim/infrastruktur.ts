@@ -715,6 +715,7 @@ export interface BitteEntwurf {
   anlass: string[];
   optionen: VorlageOption[];
   tag: number;
+  /** Tage bis zur Frist (wie Vorlage.frist), nicht der Spieltag der Frist */
   frist: number;
   tragweite: number;
 }
@@ -814,7 +815,9 @@ export function infrastrukturBitte(w: World): BitteEntwurf | null {
     anlass: [t("infra.bitte.anlass", { netz: netzName, ort, a: Math.round(a * 100), start: Math.round((s.start[p] ?? 0) * 100), ohne: Math.round(ohne * 100) })],
     optionen,
     tag: b.tag,
-    frist: b.tag + 60,
+    // Restzeit bis zum Ende der 60 Tage (waehleBitte): Vorlagen rechnen Fristen in verbleibenden Tagen. Vorher stand hier der
+    // Spieltag der Frist, und der Schreibtisch zeigte „Frist in 130 Monaten · In 3.953 Tagen“ (Rückmeldung 06.11.2026).
+    frist: Math.max(0, b.tag + 60 - w.day),
     tragweite: clamp(0.25 + (a - 1) * 1.5 + (b.plaka > 0 ? (WEIGHTS[b.plaka - 1] ?? 0) * 2 : 0.2), 0.2, 0.8),
   };
 }

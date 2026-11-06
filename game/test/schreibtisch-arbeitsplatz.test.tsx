@@ -36,8 +36,8 @@ type Welt=ReturnType<typeof welt>;
 function zusage(w:Welt,id='rente') {
   const z={id,von:'YENİ',text:`Zusage ${id}`,faellig:w.day+2,massnahme:'m_renten',richtung:1 as const,stufeStart:20,stufeZiel:40,erfuellt:false,gebrochen:false};w.spiel!.zusagen.push(z);return z;
 }
-function vorlage(id:string,frist?:number):Vorlage {
-  return {id,thema:id,art:'vorschlag',quelle:'lage',amt:'wirtschaft',titel:`Vorlage ${id}`,anlass:[],optionen:[],tag:60,prioritaet:70,prioritaetGrund:'Grund',frist};
+function vorlage(id:string,frist?:number,quelle:Vorlage['quelle']='lage'):Vorlage {
+  return {id,thema:id,art:'vorschlag',quelle,amt:'wirtschaft',titel:`Vorlage ${id}`,anlass:[],optionen:[],tag:60,prioritaet:70,prioritaetGrund:'Grund',frist};
 }
 function arbeit(w:Welt) {return schreibtischArbeit(w,tageslage(w),schreibtischMappe(w,5).mappe,gefaehrdeteZusagen(w));}
 function ministerWelt() {
@@ -62,13 +62,14 @@ describe('Regierungsschreibtisch als Arbeitsablauf',()=>{
     expect(a.highlights[0]!.sprung).toEqual({art:'intern',auswahl:{bereich:'entscheiden',gruppe:'zusagen',id:z.id}});
   });
   test('eine Ereignisfrist und ihre Vorlage belegen nur einen hervorgehobenen Platz',()=>{
-    const w=welt(),v=vorlage('ereignis',1);v.optionen=[{id:'a',aktion:{art:'ereignis',ereignisId:'fristfall',optionId:'a'}} as Vorlage['optionen'][number]];
+    const w=welt(),v=vorlage('ereignis',1,'ereignis');v.optionen=[{id:'a',aktion:{art:'ereignis',ereignisId:'fristfall',optionId:'a'}} as Vorlage['optionen'][number]];
     const warn:Warnung={id:'frist-fristfall',stufe:'rot',text:'Frist',warum:'Heute',ziel:{art:'ereignis',id:'fristfall'}};
     const a=schreibtischArbeit(w,{warnungen:[warn],faellig:[]},[v],[]);
     expect(a.highlights.map(p=>p.id)).toEqual(['v-ereignis']);
   });
   test('fällige Vorlagen werden nach wirklicher Restzeit geordnet, höchstens drei hervorgehoben',()=>{
-    const a=schreibtischArbeit(welt(),{warnungen:[],faellig:[]},[vorlage('normal'),vorlage('morgen',1),vorlage('heute',0),vorlage('alt',-2)],[]);
+    // Probleme des Landes sind eigene Einträge; Vorlagen eines Ministers stehen seit 06.11.2026 in einem Eintrag je Ressort (Test unten)
+    const a=schreibtischArbeit(welt(),{warnungen:[],faellig:[]},[vorlage('normal',undefined,'problem'),vorlage('morgen',1,'problem'),vorlage('heute',0,'problem'),vorlage('alt',-2,'problem')],[]);
     expect(a.highlights.map(p=>p.id)).toEqual(['v-alt','v-heute','v-morgen']);expect(fristText(-2)).toContain('überfällig');
   });
   test('erledigte Auswahl fällt niemals automatisch auf die nächste Entscheidung zurück',()=>{
@@ -76,7 +77,7 @@ describe('Regierungsschreibtisch als Arbeitsablauf',()=>{
   });
   test('echte Ministeranfrage führt zum passenden Ressort; ein ausgeschiedener Inhaber verschwindet sofort',()=>{
     const w=ministerWelt(),a=arbeit(w);expect(a.minister.some(m=>m.amt==='inneres')).toBe(true);
-    const p=a.highlights.find(p=>p.id.startsWith('ra-'));expect(p!.sprung).toEqual({art:'intern',auswahl:{bereich:'entscheiden',gruppe:'minister',id:'inneres'}});
+    const p=a.highlights.find(p=>p.id==='r-inneres');expect(p!.sprung).toEqual({art:'intern',auswahl:{bereich:'entscheiden',gruppe:'minister',id:'inneres'}});
     w.spiel!.figuren.find(f=>f.amt==='inneres'&&f.imAmt)!.imAmt=false;
     expect(arbeit(w).minister.some(m=>m.amt==='inneres')).toBe(false);
   });
@@ -156,9 +157,9 @@ describe('Dreisprachige Arbeitsoberfläche',()=>{
   test.each(['de','en','tr'] as const)('%s: Navigation, Auswahl, Berichte und Risiko bleiben verständlich',async lang=>{
     await setzeSprache(lang);const w=welt();zusage(w);aktiveParteivorsitzende(w,'YENİ')[0]!.loyalitaet=19;
     const html=renderToStaticMarkup(<Schreibtisch world={w} refresh={noop} onGehe={noop}/>);
-    for(const key of ['sd.aufDemTisch','sd.arbeit','sd.rueckblick','sd.handlungsspielraum'])expect(html).toContain(t(key));
-    // Eine Liste nach Dringlichkeit; der dringendste Eintrag steht offen (Vorgabe V)
-    expect(html).toContain('aria-expanded="true"');expect(html).toContain('aria-controls=');expect(html).toContain('tabindex="-1"');expect(html).not.toContain('<main');
+    for(const key of ['h4.frage','h4.reiter.heute','sd.arbeit','sd.rueckblick','h4.reiter.krisenrat','sd.handlungsspielraum'])expect(html).toContain(t(key));
+    // Rückmeldung 06.11.2026: Die Entscheidung steht als Karte oben, die Wege sind Knöpfe ohne Aufklappen; Reiter statt Aufklapper
+    expect(html).toContain('class="tk2 gross ton-rot"');expect(html).toContain(t('zw.vertroesten'));expect(html).toContain('aria-selected="true"');expect(html).not.toContain('<main');
     expect(html).not.toContain('⟦');expect(html).not.toMatch(/\{(?:n|datum|name|partei)\}/);
     const work=renderToStaticMarkup(<SchreibtischInArbeit world={w} refresh={noop} onGehe={noop} arbeit={arbeit(w)} onAuswahl={noop}/>);
     const review=renderToStaticMarkup(<SchreibtischRueckblick world={w} onGehe={noop} onPosteingang={noop}/>);

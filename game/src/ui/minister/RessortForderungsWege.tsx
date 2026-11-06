@@ -52,8 +52,9 @@ export function RessortHilfeKarte({world,p,onTun}:{world:World;p:RessortHilfePla
   {!p.moeglich&&<p className="rh-warnung">{p.grund}</p>}
  </EntscheidungsKarte>;
 }
-export function RessortForderungsWege({world,bezug,refresh}:{world:World;bezug:RessortHilfeRef;refresh?:()=>void}){
- const [offen,setOffen]=useState(false),[wahl,setWahl]=useState(''),[kompromisseOffen,setKompromisseOffen]=useState(false),[antwort,setAntwort]=useState('');
+// offenStart: schon geöffnet zeigen (Schreibtisch: die Zeile selbst ist der Öffner)
+export function RessortForderungsWege({world,bezug,refresh,offenStart=false}:{world:World;bezug:RessortHilfeRef;refresh?:()=>void;offenStart?:boolean}){
+ const [offen,setOffen]=useState(offenStart),[wahl,setWahl]=useState(''),[kompromisseOffen,setKompromisseOffen]=useState(false),[antwort,setAntwort]=useState('');
  const sperre=ressortForderungsSperre(world,bezug);
  const pl=offen&&!sperre?ressortForderungsMassnahmen(world,bezug):[];
  const ausgewaehlt=pl.find(p=>JSON.stringify(p.aktion)===wahl),kompromisse=ausgewaehlt&&kompromisseOffen?ressortForderungsKompromisse(world,bezug,ausgewaehlt.aktion):[];
