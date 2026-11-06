@@ -505,7 +505,7 @@ export function vetoBeantworten(w: World, landId: string, kapitelId: string): st
   if (landId === "CYP") wirke(w, "staedtische_saekulare", 2);
   landAendern(w, "EU", { vertrauen: 3 }, t("sim2.sim.eu.047a8f4"));
   oeffneKapitel(w, def);
-  return t("sim2.sim.eu.9f4abd7", { p0: landId === "CYP" ? "Nikosia" : "Athen", p1: def.nummer, p2: def.name });
+  return t("sim2.sim.eu.9f4abd7", { p0: t(landId === "CYP" ? "ini.anrede.CYP" : "ini.anrede.GRC"), p1: def.nummer, p2: def.name });
 }
 
 /** Veto-Antwort „Abwarten": Das Kapitel bleibt ein Jahr blockiert. */
@@ -516,7 +516,7 @@ export function vetoAbwarten(w: World, landId: string, kapitelId: string): strin
   (z.vetoRuhe ??= {})[landId] = w.day + EU_REGELN.vetoSperreTage;
   landAendern(w, "EU", { vertrauen: -2 }, t("sim2.sim.eu.043237b"));
   const def = KAPITEL_NACH_ID.get(kapitelId);
-  return t("sim2.sim.eu.1a3f18d", { p0: def?.nummer ?? "?", p1: landId === "CYP" ? "Nikosia" : "Athen" });
+  return t("sim2.sim.eu.1a3f18d", { p0: def?.nummer ?? "?", p1: t(landId === "CYP" ? "ini.anrede.CYP" : "ini.anrede.GRC") });
 }
 
 /** Zollunion-Antwort „Annehmen": Das Update wird vereinbart — mit echten Effekten in beide Richtungen. */

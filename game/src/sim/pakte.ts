@@ -52,6 +52,7 @@ import type {
   PaktSicht,
 } from "./pakte-typen";
 import { t as tx } from "../i18n";
+import { rufParams } from "./ereignisse-krieg";
 
 export type { DrittKrieg, KoalitionenSicht, KoalitionsSicht, PaktDef, PaktKlausel, PaktSicht } from "./pakte-typen";
 
@@ -1012,8 +1013,8 @@ export function beistandMaterial(w: World, partner: string, paktId: string): str
   kosten(w, 0.2);
   beziehungAendern(w, partner, { vertrauen: 5, sicherheit: 6 }, tx("sim2.sim.pakte.7b0030c"));
   wirke(w, "ansehen", 0.5);
-  const p = allePakte(w).find((x) => x.id === paktId);
-  return tx("sim2.sim.pakte.d1f14bd", { p0: akteurDat(partner), p1: p ? ` (Pakt „${p.kurz}“)` : "" });
+  // Text aus dem Katalog nacht_n5_welt.json (Partner mit Fällen; der Pakt steht schon im Ereignistext)
+  return tx("ev.krieg_beistandsruf.opt.material.ausgang", rufParams(partner));
 }
 
 /** Die Antwort auf den Beistandsruf: Verweigern oder Schweigen kostet Vertrauen, Ansehen und womöglich den Vertrag. */
@@ -1038,8 +1039,7 @@ export function beistandVerweigern(w: World, partner: string, paktId: string, sc
       } else vertragText = tx("sim2.sim.pakte.be9a82f");
     }
   }
-  const p = allePakte(w).find((x) => x.id === paktId);
-  return tx("sim2.sim.pakte.39269f9", { p0: schweigen ? "Ankara lässt den Ruf unbeantwortet" : "Ankara verweigert den Beistand", p1: p ? ` im Pakt „${p.kurz}“` : "", p2: akteurName(partner), p3: vertragText });
+  return tx(schweigen ? "ev.krieg_beistandsruf.standard" : "ev.krieg_beistandsruf.opt.verweigern.ausgang", { ...rufParams(partner), vertrag: vertragText });
 }
 
 // ---------------------------------------------------------------------------
