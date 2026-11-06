@@ -58,8 +58,23 @@
 .zt-text { min-width: 0; }
 .zt-kaesten { display: grid; gap: 14px; align-content: start; min-width: 0; }
 
-/* Kurze Seite (etwa die Eilmeldung): die Kästen liegen als Raster unter dem Text */
-.zt-koerper.unten .zt-kaesten { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px 18px; }
+/* Die Kästen als Register am Rand (Tagarbeit T1): eine Zeile Reiter in Kapitälchen, darunter der offene Kasten */
+.zt-spalten.eine { columns: 1; }
+/* Kurze Seite: der offene Kasten breit unter dem Text, seine Zeilen in Spalten */
+.zt-koerper.unten .zt-kasten > ul { display: block; columns: 3 calc(var(--abstand-7) * 4.5); column-gap: var(--abstand-6); }
+.zt-koerper.unten .zt-kasten > ul > li + li { margin-top: 9px; }
+.zt-koerper.unten .zt-kasten > ul > li { break-inside: avoid; }
+.zt-register { display: flex; flex-wrap: wrap; gap: 0 var(--abstand-2); padding: 0 var(--abstand-1); border-bottom: 1px solid var(--ink); }
+.zt-register button {
+  all: unset; cursor: pointer; padding: var(--abstand-1) 0 2px; margin-bottom: -1px; border-bottom: 2px solid transparent;
+  font: 400 var(--schrift-1)/1.4 var(--kapitaelchen); color: var(--tinte-3);
+}
+.zt-register button:hover { color: var(--tinte-1); }
+.zt-register button.on { color: var(--seal); border-bottom-color: var(--seal); }
+.zt-register button:focus-visible { box-shadow: var(--fokus-ring); border-radius: var(--rund-1); }
+.zt-kaesten [hidden] { display: none; }
+.zt-kaesten:has(.zt-register) { gap: var(--abstand-2); }
+.zt-umfrage .zt-spark { display: block; margin: var(--abstand-1) 0; }
 
 /* --- Artikel ---------------------------------------------------------------- */
 .zt-lead { margin: 4px 0 10px; }
@@ -210,16 +225,23 @@
 /* --- Breite des Fensters ------------------------------------------------------- */
 /* Ab etwa 760 px stehen Text und Kästen nebeneinander */
 @container zt (min-width: 760px) {
-  .zt-koerper.mit-kasten { grid-template-columns: minmax(0, 1fr) 250px; }
+  .zt-koerper.mit-kasten { grid-template-columns: minmax(0, 1fr) calc(var(--abstand-7) * 6); }
 }
 /* Ab etwa 1040 px steht das Archiv neben der Seite; sonst darunter, als Raster */
-@container zt (min-width: 1040px) {
-  .zt { grid-template-columns: minmax(0, 1fr) 240px; }
-}
-@container zt (max-width: 1039px) {
-  .zt-archiv ul { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
-  .zt-rand { grid-template-columns: minmax(0, 1fr); }
-}
+/* Archiv als Leiste über der Seite (Tagarbeit T1; vorher eine eigene Spalte rechts): Ausgaben als Marken, die Leitzeile im Titel */
+.zt { gap: var(--abstand-3); }
+.zt .zt-rand { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--abstand-2) var(--abstand-5); }
+.zt .zt-archiv { display: flex; flex-wrap: wrap; align-items: center; gap: var(--abstand-2) var(--abstand-3); min-width: 0; }
+.zt .zt-archiv h5 { margin: 0; padding: 0; border: 0; }
+.zt .zt-archiv ul { display: flex; flex-wrap: wrap; gap: var(--abstand-2); }
+.zt .zt-archiv button { display: inline-flex; align-items: center; gap: var(--abstand-2); width: auto; padding: 2px var(--abstand-3); }
+.zt .zt-archiv-datum { text-align: left; }
+.zt .zt-archiv-lead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* Die Stimmung der Ausgabe als Farbe des linken Rands statt als Dreieck (das sähe in einer Marke wie ein Aufklapppfeil aus) */
+.zt .zt-archiv .zt-marke { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); border: 0; }
+.zt .zt-archiv button.auf { border-left: var(--abstand-1) solid var(--tinte-weich); }
+.zt .zt-archiv button.ab { border-left: var(--abstand-1) solid var(--seal); }
+.zt .zt-regulierung { border-top: 0; padding-top: 0; }
 /* Sehr schmal: kleinerer Titel, einspaltiger Satz */
 @container zt (max-width: 620px) {
   .zt-blattname { font-size: var(--schrift-6); }

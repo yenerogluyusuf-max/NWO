@@ -7,7 +7,7 @@
 // `onGehe` ist optional: Die Bühne reicht ihre `gehe`-Funktion durch (Ziele wie im Schreibtisch: Akte oder Land).
 // Ohne sie erscheinen keine Knöpfe, und alles andere funktioniert unverändert.
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { World } from "../sim/types";
 import { formatDateDe } from "../sim/dates";
 import { kzBewertung } from "../data/zeitung_texte";
@@ -22,7 +22,7 @@ import {
 } from "../sim/zeitung";
 import type { Ziel } from "./schreibtisch/briefing";
 import { Flourish } from "./art/Ornament";
-import { rsfSicht, startSelbstzensur } from "../sim/medien";
+import { startSelbstzensur } from "../sim/medien";
 import { medienCluster } from "../data/medien";
 import { aktuelleLocale, t } from "../i18n";
 import { t as tx } from "../i18n";
@@ -282,7 +282,7 @@ function Auslandkasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe: G
   );
 }
 
-function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
+function UmfrageKasten({ ausgabe, verlauf }: { ausgabe: ZeitungAusgabe; verlauf?: number[] }) {
   if (!ausgabe.umfrage && ausgabe.umfrageVerbot) {
     return (
       <aside className="zt-umfrage schublade">
@@ -315,6 +315,8 @@ function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
           </em>
         )}
       </p>
+      {/* Der Verlauf der veröffentlichten Werte; vorher stand er als Zeile unter den Zahlen des Monats */}
+      {verlauf && <Sparkline werte={verlauf} bewertung={delta === undefined || Math.abs(delta) < 0.05 ? "" : delta > 0 ? "gut" : "schlecht"} />}
       <p className="zt-umfrage-meta">
         {tx("ui2.ui.Zeitung.17826b8")}{u.stichprobe !== undefined ? ` · ${t("nacht_n2.zeitung.befragte", { n: u.stichprobe.toLocaleString(aktuelleLocale()) })}` : tx("ui2.ui.Zeitung.8d2ffa3")} · {t("nacht_n2.zeitung.methode", { m: methodeName(u.methode) })}
       </p>
@@ -342,26 +344,34 @@ function Kommentar({ blatt }: { blatt: ZeitungBlatt }) {
 
 function Frontseite({ ausgabe, blatt, onGehe }: { ausgabe: ZeitungAusgabe; blatt: ZeitungBlatt; onGehe: Gehe }) {
   const [lead, ...rest] = blatt.artikel;
-  const hatKasten = !!(ausgabe.zahlen?.length || ausgabe.lage?.length || ausgabe.parlament || ausgabe.ausland?.length || ausgabe.umfrage || ausgabe.umfrageSchublade);
-  // Genug Text: Die Kästen stehen als Seitenleiste daneben. Eine kurze Seite (etwa die Eilmeldung) legt sie in ein Raster darunter.
-  const seitlich = hatKasten && blatt.artikel.length >= 3;
-  // Die Lesart ordnet auch die Kästen: Regierungsnahe zuerst Zahlen und Parlament, Oppositionelle zuerst die Lage
-  const kaesten = (() => {
-    const zahlen = ausgabe.zahlen?.length ? <Zahlenkasten key="zahlen" zahlen={ausgabe.zahlen} ton={blatt.ton} /> : null;
-    const lage = <Lagekasten key="lage" ausgabe={ausgabe} onGehe={onGehe} />;
-    const parl = <Parlamentkasten key="parl" ausgabe={ausgabe} onGehe={onGehe} />;
-    const aus = <Auslandkasten key="aus" ausgabe={ausgabe} onGehe={onGehe} />;
-    const umf = <UmfrageKasten key="umf" ausgabe={ausgabe} />;
-    return blatt.ton === "oppositionell" ? [lage, zahlen, aus, parl, umf] : blatt.ton === "regierungsnah" ? [zahlen, parl, aus, lage, umf] : [zahlen, lage, parl, aus, umf];
-  })();
+  const [gewaehlt, setGewaehlt] = useState<string | null>(null);
+  // Die Zustimmung steht im Kasten „Umfrage des Monats“ (mit Institut und Verlauf), nicht noch einmal unter den Zahlen (Tagarbeit T1)
+  const zustimmung = ausgabe.zahlen?.find((k) => k.id === "zustimmung");
+  const zahlen = (ausgabe.zahlen ?? []).filter((k) => !(k.id === "zustimmung" && ausgabe.umfrage));
+  // Die Kästen als Register am Rand: einer offen, die übrigen einen Klick entfernt (Tagarbeit T1; vorher bis drei Bildschirme lang).
+  // Die Lesart ordnet sie: Regierungsnahe zuerst Zahlen und Parlament, Oppositionelle zuerst die Lage; der erste ist offen.
+  const alle: { id: string; da: boolean; el: ReactNode }[] = [
+    { id: "zahlen", da: zahlen.length > 0, el: <Zahlenkasten zahlen={zahlen} ton={blatt.ton} /> },
+    { id: "lage", da: !!ausgabe.lage?.length, el: <Lagekasten ausgabe={ausgabe} onGehe={onGehe} /> },
+    { id: "parlament", da: !!ausgabe.parlament, el: <Parlamentkasten ausgabe={ausgabe} onGehe={onGehe} /> },
+    { id: "ausland", da: !!ausgabe.ausland?.length, el: <Auslandkasten ausgabe={ausgabe} onGehe={onGehe} /> },
+    { id: "umfrage", da: !!(ausgabe.umfrage || ausgabe.umfrageSchublade || ausgabe.umfrageVerbot), el: <UmfrageKasten ausgabe={ausgabe} {...(zustimmung?.verlauf ? { verlauf: zustimmung.verlauf } : {})} /> },
+  ];
+  const reihe = blatt.ton === "oppositionell" ? ["lage", "zahlen", "ausland", "parlament", "umfrage"] : blatt.ton === "regierungsnah" ? ["zahlen", "parlament", "ausland", "lage", "umfrage"] : ["zahlen", "lage", "parlament", "ausland", "umfrage"];
+  const kaesten = reihe.map((id) => alle.find((k) => k.id === id)!).filter((k) => k.da);
+  const offen = kaesten.find((k) => k.id === gewaehlt) ?? kaesten[0];
+  // Mit Text neben sich stehen die Kästen am Rand; nur eine ganz kurze Seite (ein Aufmacher ohne Einordnung, etwa „Aus der Redaktion“)
+  // legt den offenen Kasten breit darunter, damit neben zwei Zeilen keine leere Spalte steht
+  const seitlich = blatt.artikel.length >= 2 || !!(lead?.einordnung && (lead.einordnung.feststeht.length || lead.einordnung.offen.length)) || (lead?.text.length ?? 0) >= 3;
   return (
     <div className="zt-seite">
       <Masthead ausgabe={ausgabe} blatt={blatt} />
-      <div className={`zt-koerper${hatKasten ? (seitlich ? " mit-kasten" : " unten") : ""}`}>
+      <div className={`zt-koerper${kaesten.length ? (seitlich ? " mit-kasten" : " unten") : ""}`}>
         <div className="zt-text">
           {lead && <Artikel a={lead} lead onGehe={onGehe} />}
           {rest.length > 0 && (
-            <div className="zt-spalten">
+            // Ein einzelner Nebenartikel läuft über die ganze Breite statt in der linken von zwei Spalten (keine halbleere Seite)
+            <div className={`zt-spalten${rest.length === 1 ? " eine" : ""}`}>
               {rest.map((a) => (
                 <Artikel key={a.id} a={a} onGehe={onGehe} />
               ))}
@@ -374,19 +384,42 @@ function Frontseite({ ausgabe, blatt, onGehe }: { ausgabe: ZeitungAusgabe; blatt
             </p>
           )}
         </div>
-        {hatKasten && <div className="zt-kaesten">{kaesten}</div>}
+        {kaesten.length > 0 && (
+          <div className="zt-kaesten">
+            {kaesten.length > 1 && (
+              <div className="zt-register" role="tablist" aria-label={t("tag_t1.zeitung.register")}>
+                {kaesten.map((k) => (
+                  <button
+                    key={k.id}
+                    type="button"
+                    role="tab"
+                    id={`zt-reg-${k.id}`}
+                    aria-selected={k === offen}
+                    aria-controls={`zt-kasten-${k.id}`}
+                    className={k === offen ? "on" : ""}
+                    onClick={() => setGewaehlt(k.id)}
+                  >
+                    {t(`tag_t1.zeitung.kasten.${k.id}`)}
+                  </button>
+                ))}
+              </div>
+            )}
+            {kaesten.map((k) => (
+              <div key={k.id} id={`zt-kasten-${k.id}`} role={kaesten.length > 1 ? "tabpanel" : undefined} aria-labelledby={kaesten.length > 1 ? `zt-reg-${k.id}` : undefined} hidden={k !== offen}>
+                {k.el}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-/** Kurzer Stand der Pressefreiheit am Rand der Zeitung; die Eingriffe selbst stehen im Reiter „Medien“. */
-function MedienHinweis({ world, onMedien }: { world: World; onMedien: () => void }) {
-  const rsf = rsfSicht(world);
+/** Der Weg zur Mediensteuerung am Rand der Zeitung. Rang und Veränderung der Pressefreiheit stehen im Aktenkopf, hier nicht noch einmal (Tagarbeit T1). */
+function MedienHinweis({ onMedien }: { onMedien: () => void }) {
   return (
-    <section className="zt-regulierung" aria-label={t("medien.zeitung.rsf_titel")}>
-      <h5>{t("medien.zeitung.rsf_titel")}</h5>
-      <p className="zt-reg-hinweis">{t("medien.zeitung.rsf_text", { rang: rsf.rang, score: nf(rsf.score) })}</p>
+    <section className="zt-regulierung" aria-label={t("medien.zeitung.zu_medien")}>
       <button type="button" className="zt-medien-knopf" onClick={onMedien}>
         {t("medien.zeitung.zu_medien")} →
       </button>
@@ -461,6 +494,41 @@ export function Zeitung({ world, onGehe, onMedien }: { world: World; onGehe?: (z
   return (
     <div className="zt-huelle">
       <div className="zt">
+        {/* Archiv und Weg zur Mediensteuerung als Leiste über der Seite (Tagarbeit T1): Die Seite bekommt die ganze Breite und wird kürzer */}
+        <aside className="zt-rand">
+          <section className="zt-archiv" aria-label={t("ui.Zeitung.db0bb89")}>
+            <h5>{tx("ui2.ui.Zeitung.d9431e3")}</h5>
+            <ul>
+              {[...archiv].reverse().map((a) => {
+                const i = archiv.indexOf(a);
+                const kopf = archivKopf(a);
+                return (
+                  <li key={a.nummer}>
+                    <button
+                      className={`${a === ausgabe ? "on" : ""}${kopf.stimmung ? ` ${kopf.stimmung}` : ""}`.trim()}
+                      title={kopf.titel}
+                      aria-current={a === ausgabe ? "true" : undefined}
+                      onClick={() => {
+                        setAusgabeIdx(i);
+                        setBlattIdx(0);
+                      }}
+                    >
+                      <span className="zt-archiv-nr">
+                        {t("nacht_n2.zeitung.nr", { n: a.nummer })}
+                        {a.anlass === "eilmeldung" && <em>{t("nacht_n2.zeitung.eil")}</em>}
+                      </span>
+                      <span className="zt-archiv-datum">{formatDateDe(a.datum)}</span>
+                      {kopf.stimmung && <i className={`zt-marke ${kopf.stimmung}`} aria-label={kopf.stimmung === "auf" ? tx("ui2.ui.Zeitung.12cddce") : tx("ui2.ui.Zeitung.690d51c")} />}
+                      {/* Die Leitzeile steht im Titel; die Ausgabe selbst zeigt sie als Aufmacher */}
+                      <span className="zt-archiv-lead">{kopf.titel}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+          {onMedien && <MedienHinweis onMedien={onMedien} />}
+        </aside>
         <div className="zt-haupt">
           <nav className="zt-blaetter" role="tablist" aria-label={t("ui.Zeitung.6a8c814")}>
             {ausgabe.blaetter.map((b, i) => (
@@ -479,40 +547,6 @@ export function Zeitung({ world, onGehe, onMedien }: { world: World; onGehe?: (z
           <Frontseite ausgabe={ausgabe} blatt={blatt} onGehe={onGehe} />
         </div>
 
-        <aside className="zt-rand">
-          <section className="zt-archiv" aria-label={t("ui.Zeitung.db0bb89")}>
-            <h5>{tx("ui2.ui.Zeitung.d9431e3")}</h5>
-            <ul>
-              {[...archiv].reverse().map((a) => {
-                const i = archiv.indexOf(a);
-                const kopf = archivKopf(a);
-                return (
-                  <li key={a.nummer}>
-                    <button
-                      className={a === ausgabe ? "on" : ""}
-                      aria-current={a === ausgabe ? "true" : undefined}
-                      onClick={() => {
-                        setAusgabeIdx(i);
-                        setBlattIdx(0);
-                      }}
-                    >
-                      <span className="zt-archiv-nr">
-                        {t("nacht_n2.zeitung.nr", { n: a.nummer })}
-                        {a.anlass === "eilmeldung" && <em>{t("nacht_n2.zeitung.eil")}</em>}
-                      </span>
-                      <span className="zt-archiv-datum">{formatDateDe(a.datum)}</span>
-                      <span className="zt-archiv-lead">
-                        {kopf.stimmung && <i className={`zt-marke ${kopf.stimmung}`} aria-label={kopf.stimmung === "auf" ? tx("ui2.ui.Zeitung.12cddce") : tx("ui2.ui.Zeitung.690d51c")} />}
-                        {kopf.titel}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-          {onMedien && <MedienHinweis world={world} onMedien={onMedien} />}
-        </aside>
       </div>
     </div>
   );

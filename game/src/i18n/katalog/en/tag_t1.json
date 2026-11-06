@@ -30,5 +30,11 @@
  "tag_t1.medien.hebel_einstellen": "Set in the policy network",
  "tag_t1.medien.hebel_fuss": "Levels in the policy network",
  "tag_t1.medien.verlauf_aelter": "{n, plural, one {One earlier intervention} other {# earlier interventions}}",
- "tag_t1.medien.rang_hinweis": "of {n} · since inauguration {d}"
+ "tag_t1.medien.rang_hinweis": "of {n} · since inauguration {d}",
+ "tag_t1.zeitung.register": "Boxes of this issue",
+ "tag_t1.zeitung.kasten.zahlen": "Figures",
+ "tag_t1.zeitung.kasten.lage": "Situation",
+ "tag_t1.zeitung.kasten.parlament": "Parliament",
+ "tag_t1.zeitung.kasten.ausland": "Abroad",
+ "tag_t1.zeitung.kasten.umfrage": "Poll"
 }
