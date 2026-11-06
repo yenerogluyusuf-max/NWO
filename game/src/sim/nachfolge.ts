@@ -3,6 +3,7 @@
 // und bringt Stil, Fähigkeit, Ehrgeiz und ein Lager mit. Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
 
 import { addLog } from "./log";
+import { t } from "../i18n";
 import { clamp } from "./economy";
 import { kannZahlen } from "./kapital";
 import { vertrauenAendern, wirke } from "./wirkung";
@@ -183,8 +184,8 @@ export function entlasse(w: World, amt: Figur["amt"], kandidatId: string | null,
     folgen.push("Eine kommissarische Leitung führt das Ressort; sie leistet weniger, bis ein Nachfolger ernannt wird.");
   }
   const neu = `${f.rolle} ${f.name}`;
-  const text = `Der Präsident entlässt ${alt} und ${k ? `ernennt ${neu}` : `setzt ${neu} kommissarisch ein`}.`;
-  addLog(w, "entscheidung", text, amt === "finanzen" ? "Märkte reagieren nervös auf einen Wechsel im Finanzministerium." : "Ein Wechsel im Kabinett kostet Kapital und macht Feinde.");
+  const text = t(k ? "ev.person.entlasse.log.ernennt" : "ev.person.entlasse.log.kommissarisch", { alt, neu });
+  addLog(w, "entscheidung", text, t(amt === "finanzen" ? "ev.person.entlasse.warum.finanzen" : "ev.person.entlasse.warum.allg"));
   ressortEntlassungEnde(w,f,ressortVorher);
   return { ok: true, text: `${alt} ist entlassen, ${neu} ${k ? "übernimmt" : "führt kommissarisch"}.`, why: `Kosten ${pk} Kapital.`, folgen };
 }
@@ -216,7 +217,7 @@ export function ausscheiden(w: World, f: Figur, grund: string): void {
   verlasse(w, f, grund, Math.min(100, 55 + eigenVon(w, f).groll * 0.4));
   marktFolgen(w, f.amt);
   besetzeNeu(w, f, { name: neuerName(rng, benutzt, f.weiblich), loyalitaet: 50, faehigkeit: 45, ehrgeiz: 20, kommissarisch: true, notiz: `Kommissarisch eingesetzt nach dem Rücktritt von ${alt}` });
-  addLog(w, "ereignis", `${alt} tritt zurück.`, `${grund}. Eine kommissarische Leitung übernimmt; die Märkte und die Presse achten auf den Nachfolger.`);
+  addLog(w, "ereignis", t("ev.person.ausscheiden.log", { wer: alt }), t("ev.person.ausscheiden.warum", { grund }));
 }
 
 setzeAusscheidenHaken((w, f, grund) => ausscheiden(w, f, grund));
