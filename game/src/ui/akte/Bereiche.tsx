@@ -85,8 +85,9 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
     case "gesellschaft": {
       const lage = sp ? gesellschaftLage(w) : [];
       const reihe = (id: string) => (lage.find((x) => x.id === id)?.reihe.werte ?? []).filter((v): v is number => v !== null).slice(-12);
-      const zust = sp?.umfrage.zustimmung;
-      k.push(zust !== undefined ? { label: t("akte.b.kern.zustimmung"), wert: `${nf(zust)} %`, verlauf: zustimmungsVerlauf(w), ton: ton(zust, 50, 40) } : leer(t("akte.b.kern.zustimmung")));
+      // Die Zustimmung steht schon in der Kopfleiste (veröffentlichte Umfrage, Festlegung W F2); hier die Stärke der Opposition (befund-E, E-8)
+      const opp = lage.find((x) => x.id === "opposition");
+      k.push(opp ? { label: t("ges.kz.opposition"), wert: nf(opp.wert), verlauf: reihe("opposition"), ton: ton(opp.wert, 45, 60) } : leer(t("ges.kz.opposition")));
       const pol = lage.find((x) => x.id === "polarisierung");
       k.push(pol ? { label: t("akte.b.kern.polarisierung"), wert: nf(pol.wert), verlauf: reihe("polarisierung"), ton: ton(pol.wert, 40, 65) } : leer(t("akte.b.kern.polarisierung")));
       const pro = lage.find((x) => x.id === "protest");

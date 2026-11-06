@@ -92,6 +92,7 @@ import { LAENDERNAMEN, LAND_PINS, farbenFuerEbene, laenderFarben, landName, type
 import { t, aktuelleLocale, zahl } from "../i18n";
 import { kurzVergleich } from "./vergleich";
 import { Zeitung } from "./Zeitung";
+import { MedienAkte } from "./MedienAkte";
 import { zeitungGelesen } from "../sim/zeitung";
 import { Katastrophe } from "./Katastrophe";
 import { SpeicherDossier } from "./SpeicherDossier";
@@ -140,6 +141,7 @@ type Dossier =
   | "netze"
   | "reich_haushalt"
   | "zeitung"
+  | "medien"
   | "quellen"
   | "speicher"
   | "wirkungsbericht"
@@ -605,7 +607,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       titel: t("nav.medienTitel"),
       icon: "zeitung",
       umlauf: (spiel?.zeitung?.ungelesen ?? 0) || undefined,
-      tabs: [{ id: "zeitung", label: t("buehne.tab.zeitung") }],
+      // Die Mediensteuerung als eigener Reiter, nicht mehr hinter „Zeitung › Medien“ versteckt (befund-E, E-7)
+      tabs: [{ id: "zeitung", label: t("buehne.tab.zeitung") }, { id: "medien", label: t("nacht_n2.tab.medien") }],
     },
   ];
   const gruppe = menue.find((m) => m.tabs.some((t) => t.id === dossier) || (dossier === "entscheidungen" && m.tabs.some((t) => t.id === "wirtschaft")));
@@ -911,7 +914,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
 
       {dossier && (
-        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "strasse" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "grosseziele" || dossier === "zeitung" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "strasse" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "grosseziele" || dossier === "zeitung" || dossier === "medien" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           {/* Alle Akten im selben Leder- und Goldrahmen (GESTALTUNG_2026-11-04, G1) */}
           <Corners />
           <header className="dossier-head">
@@ -951,7 +954,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             >
             {/* Vorgabe V: keine Erklärzeile über jeder Ansicht mehr; der Zweck steht als Hinweis am Reiter (Mauszeiger) */}
             {dossier === "schreibtisch" && <Schreibtisch world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} umlauf={umlauf} onKarte={zeigeKarte} onPosteingang={() => oeffneDossier("personen")} onVorgang={zeigeVorgang} />}
-            {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} />}
+            {dossier === "zeitung" && <Zeitung world={w} onGehe={gehe} onMedien={() => setDossier("medien")} onAenderung={() => { refresh(); sichere(true); }} />}
+            {dossier === "medien" && <MedienAkte world={w} onAenderung={() => { refresh(); sichere(true); }} />}
             {dossier === "gespraech" && <Chat world={w} refresh={() => { refresh(); sichere(true); }} />}
             {dossier === "quellen" && <Quellen />}
             {dossier === "speicher" && (
@@ -1061,6 +1065,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             {dossier === "waehler" && (
               <Waehler
                 world={w}
+                onGehe={gehe}
                 onDossier={(d) => setDossier(d)}
                 onMassnahme={(id, richtung) => {
                   setNetTheme(null);
@@ -1070,8 +1075,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
-            {dossier === "strasse" && <GesellschaftAkte world={w} start="strasse" />}
-            {dossier === "wahlkampf" && <WahlkampfZentrale world={w} refresh={() => { refresh(); sichere(true); }} />}
+            {dossier === "strasse" && <GesellschaftAkte world={w} start="strasse" onAenderung={() => { refresh(); sichere(true); }} />}
+            {dossier === "wahlkampf" && <WahlkampfZentrale world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "katastrophe" && <Katastrophe world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "personen" && (
               <Personen
