@@ -117,7 +117,9 @@ describe("Belegbarer Versorgungs-Monatsbericht",()=>{
     expect(b.politik!.legitimitaet).toBeCloseTo(-0.2);expect(b.politik!.sozial).toBeCloseTo(-0.25);
     expect(Object.values(b.politik!.vertrauen).reduce((a,b)=>a+b,0)).toBeCloseTo(b.vertrauen,10);
     const html=renderToStaticMarkup(<VersorgungsMonatsbericht bericht={b}/>);
-    expect(html).toContain("unter 90 %");expect(html).toContain("auch wenn sich die Versorgung");expect(html).toContain("parlamentarischen Anfrage");
+    // Welle B1 (06.11.2026): Anlass, Kontrolle und Anfrage stehen als Marken und Kennzahlen statt als Sätze; geprüft wird dieselbe Aussage.
+    expect(html).toContain("unter 90 %");expect(html).toContain(t("welle_b1.vm.kontrolle",{n:"-2"}));
+    expect(html).toContain(`<dt>${t("welle_b1.vm.anfrage")}</dt><dd>${t("welle_b1.vm.ja")}</dd>`);
   });
   test.each([0.91,0.94])("Über 90 Prozent braucht zusätzlicher Rückhalt mehr als zwei Prozentpunkte Erholung: %s",ziel=>{
     const w=welt();gueterMonat(w);const alt=structuredClone(w.spiel!.gueter!.bilanz!),neu=structuredClone(alt);
@@ -145,14 +147,14 @@ describe("Belegbarer Versorgungs-Monatsbericht",()=>{
     expect(bericht(w).politik!.anlass).toBe(anlass);
     const html=renderToStaticMarkup(<VersorgungsMonatsbericht bericht={bericht(w)}/>);
     if(anlass==="unterversorgung") {
-      expect(html).toContain("<dd>&lt; 90 %</dd>");expect(html).toContain(t("vm.anlass.knappUnterversorgung"));
+      expect(html).toContain("<dd>&lt; 90 %</dd>");expect(html).toContain(t("welle_b1.vm.anlass.knappUnterversorgung"));
     }
     if(anlass==="erholung")expect(html).toContain(t("vm.mehrAlsZwei"));
   });
   test.each(["de","en","tr"] as const)("Schwellenhinweise bleiben in jeder Sprache eindeutig: %s",async lang=>{
     await setzeSprache(lang);const w=welt();gueterMonat(w);const b=structuredClone(bericht(w));
     b.deckung=0.89996;b.politik!.anlass="unterversorgung";b.parlamentarisch="kritik";
-    expect(renderToStaticMarkup(<VersorgungsMonatsbericht bericht={b}/>)).toContain(t("vm.anlass.knappUnterversorgung"));
+    expect(renderToStaticMarkup(<VersorgungsMonatsbericht bericht={b}/>)).toContain(t("welle_b1.vm.anlass.knappUnterversorgung"));
     b.deckung=0.920001;b.nachweis!.vorher={monat:"2028-05",deckung:0.9};b.politik!.anlass="erholung";b.parlamentarisch="erfolg";
     const html=renderToStaticMarkup(<VersorgungsMonatsbericht bericht={b}/>);
     expect(html).toContain(t("vm.mehrAlsZwei"));expect(html).not.toMatch(/⟦|vm\.|\{(?:n|delta|deckung)\}/);
@@ -171,6 +173,7 @@ describe("Belegbarer Versorgungs-Monatsbericht",()=>{
     const b={monat:"2026-06",deckung:0.8,vertrauen:-0.1,zusatzGas:0.2,aufpreis:0.01,partner:"AZE" as const,reparaturen:2,
       reaktionen:[{partei:"CHP",bereitschaft:-1,personen:[]}],oppositionStaerke:1};
     const html=renderToStaticMarkup(<VersorgungsMonatsbericht bericht={b}/>);
-    expect(html).toContain(t("vm.altbericht"));expect(html).toContain("AZE");expect(html).toContain("-1,0 Bereitschaft");expect(html).not.toContain(t("vm.referenzProgramm"));
+    // Welle B1: Altbericht und Bereitschaft als Kennzahlzeile (Partei → −1,0) statt Satz
+    expect(html).toContain(t("welle_b1.vm.altbericht"));expect(html).toContain("AZE");expect(html).toMatch(/<dt>CHP<\/dt><dd>-1,0/);expect(html).not.toContain(t("welle_b1.vm.referenzProgramm"));
   });
 });

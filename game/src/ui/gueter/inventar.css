@@ -109,3 +109,5 @@
 .gi-detail-rechnung .gi-bilanz { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 .gi-partner small { font-size: var(--schrift-1); }
 @media (max-width: 1000px) { .gi-detail-spalten { grid-template-columns: minmax(0, 1fr); } }
+/* Welle B1: Pergament statt weißem Blatt */
+.gi-ware{background:var(--papier-2);border-color:rgba(90,64,40,.3);box-shadow:var(--schatten-flach)}

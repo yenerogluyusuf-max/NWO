@@ -73,6 +73,8 @@ export const VERSORGUNGSPOLITIK = {
   energie: { pk: 5, bip: 0.02, vorlauf: 30, dauer: 180 },
   netz: { pk: 6, bip: 0.08, vorlauf: 21, dauer: 90 },
 };
+/** Folgen eines abgelehnten Versorgungsprogramms (Spielparameter); Buchung und Anzeige lesen dieselben Zahlen. */
+export const VERSORGUNG_ABLEHNUNG = { vertrauen: -0.5, zustimmung: -0.4 } as const;
 export const SCHUTZ_GUETER: GutId[] = ["getreide", "obst_gemuese", "fleisch_milch", "zucker_oele", "medikamente", "duenger"];
 export function regierungsProgramm(w: World, id: VersorgungsProgramm): RegierungsAuftrag | undefined {
   const a = w.spiel?.gueter?.regierung?.programme[id];
@@ -202,7 +204,7 @@ export function versorgungsParlamentTag(w:World): void {
     v.status=angenommen ? "angenommen" : "abgelehnt";
     const text=t(angenommen ? "mandat.angenommen" : "mandat.abgelehnt",{name:t(`regierung.${v.programm}.titel`),ja});
     if (angenommen) vollzieheProgramm(w,v);
-    else {wirke(w,"vertrauen_regierung",-0.5);w.spiel!.umfrage.zustimmung=Math.max(0,w.spiel!.umfrage.zustimmung-0.4);}
+    else {wirke(w,"vertrauen_regierung",VERSORGUNG_ABLEHNUNG.vertrauen);w.spiel!.umfrage.zustimmung=Math.max(0,w.spiel!.umfrage.zustimmung+VERSORGUNG_ABLEHNUNG.zustimmung);}
     v.reaktionen=[];
     for (const f of v.stimmen) {
       const reaktion=reagiereFraktion(w,f.partei,versorgungsReaktionsDelta(f,angenommen),text);

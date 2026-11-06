@@ -127,7 +127,8 @@ describe('Entscheidungskarten und Aktenzugänge',()=>{
   test('Kosten, Votum, Folgen und Fraktionen stehen vor der verbindlichen Handlung',()=>{
     const w=welt(),before=save(w),html=renderToStaticMarkup(<VersorgungsVorschlag world={w} programm="schutz" partner="AZE" onErgebnis={noop}/>);
     for(const text of [t('ve.jetzt'),t('mandat.budgetBeiAnnahme'),t('ve.votum'),t('ve.politischerPreis'),t('ve.stimmenDetails')])expect(html.indexOf(text)).toBeLessThan(html.indexOf('<footer>'));
-    expect(html).toContain(t('ve.naechsterSchritt'));expect(html).not.toContain(t('mandat.tatsaechlicheFolgen'));expect(save(w)).toBe(before);
+    expect(html).toContain(t('welle_b1.ve.naechsterSchritt')); // Welle B1: derselbe Hinweis (Beratung eröffnet, noch nicht beschlossen) in einem Satz
+    expect(html).not.toContain(t('mandat.tatsaechlicheFolgen'));expect(save(w)).toBe(before);
   });
   test('geschlossene Vorgänge rendern keine unsichtbaren Verhandlungskarten',()=>{
     const w=welt();beschliesseVersorgungsProgramm(w,'schutz');const html=renderToStaticMarkup(<VersorgungsLage world={w} geaendert={noop}/>);

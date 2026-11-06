@@ -1,5 +1,5 @@
 import type { World } from "../../sim/types";
-import { beschliesseVersorgungsProgramm, type EnergiePartner, type VersorgungsProgramm } from "../../sim/versorgungspolitik";
+import { beschliesseVersorgungsProgramm, VERSORGUNG_ABLEHNUNG, type EnergiePartner, type VersorgungsProgramm } from "../../sim/versorgungspolitik";
 import { versorgungsStartVorschau } from "../../sim/versorgungsentscheidung";
 import { PARTEI_NAME } from "../../sim/fraktionen";
 import { addDays, formatDateDe } from "../../sim/dates";
@@ -21,10 +21,10 @@ export function VersorgungsVorschlag({world,programm,partner,onErgebnis}:{world:
       {label:t("ve.parlament"),wert:`${p.ja} / 301`,hinweis:t(p.fehlt?"mandat.fehlen":"mandat.mehrheit",{n:p.fehlt})},
       {label:t("ve.votum"),wert:datum(p.vorlage.abstimmung),hinweis:t("ve.beiEinbringen")},
     ]}
-    aktion={t("ve.einbringen",{pk:p.vorlage.pk})} gesperrt={p.grund} hinweis={t("ve.naechsterSchritt")}
+    aktion={t("ve.einbringen",{pk:p.vorlage.pk})} gesperrt={p.grund} hinweis={t("welle_b1.ve.naechsterSchritt")}
     onAusfuehren={()=>onErgebnis(beschliesseVersorgungsProgramm(world,programm,partner))}>
     <div className="ve-wirkung"><h5>{t("ve.wirkung")}</h5><p>{t(`regierung.${programm}.wirtschaft`)}</p>
-      <p className="ve-zeitplan">{t("ve.zeitplan",{ab:datum(p.ab),bis:datum(p.bis),tage:p.konditionen.dauer})}</p>
+      <p className="ve-zeitplan">{t("welle_b1.ve.zeitplan",{ab:datum(p.ab),bis:datum(p.bis),tage:p.konditionen.dauer})}</p>
     </div>
     <div className="ve-politik"><h5>{t("ve.politischerPreis")}</h5>
       <p>{t(`regierung.${programm}.innen`)}</p><p>{t(`regierung.${programm}.aussen`)}</p>
@@ -33,13 +33,12 @@ export function VersorgungsVorschlag({world,programm,partner,onErgebnis}:{world:
     {p.duldungen.length>0&&<aside className="ve-frist"><h5>{t("mandat.duldungEndet")}</h5><p>{t("mandat.duldungFrist",{parteien:p.duldungen.map(f=>`${name(f.partei)} (${datum(f.bis)})`).join(", ")})}</p></aside>}
     <VersorgungsBruchwarnung risiken={p.bruchrisiken}/>
     <details className="ve-fraktionen"><summary>{t("ve.stimmenDetails")}</summary>
-      <p>{t("mandat.prognoseStichtag",{datum:datum(p.vorlage.abstimmung)})}</p>
+      <p className="ve-stichtag">{t("welle_b1.ve.prognose",{datum:datum(p.vorlage.abstimmung)})}</p>
       <ul>{p.stimmen.map(f=><li key={f.partei}><div><b>{name(f.partei)}</b><small>{t(`mandat.rolle.${f.rolle}`)}</small></div>
         <span>{t(f.erfuellt?"mandat.erfuellt":"mandat.fordert",{forderung:t(`mandat.${f.forderung}.titel`)})}</span><strong>{f.ja} / {f.sitze}</strong></li>)}</ul>
-      <p>{t("ve.verhandeln")}</p>
       <RegierungsReaktionen reaktionen={p.annahme} titel={t("ve.beiAnnahme")}/>
       <RegierungsReaktionen reaktionen={p.ablehnung} titel={t("ve.beiAblehnung")}/>
-      <p>{t("ve.ablehnung")}</p><p>{t("ve.vorbehalt")}</p>
+      <p className="ve-ablehnung"><small>{t("welle_b1.ve.beiAblehnung")}</small><em>{t("welle_b1.ve.keinBudget")}</em><em>{t("welle_b1.ve.kapitalWeg")}</em><em>{t("welle_b1.ve.vertrauen",{n:zahl(VERSORGUNG_ABLEHNUNG.vertrauen,1)})}</em><em>{t("welle_b1.ve.zustimmung",{n:zahl(VERSORGUNG_ABLEHNUNG.zustimmung,1)})}</em></p>
     </details>
   </EntscheidungsKarte>;
 }

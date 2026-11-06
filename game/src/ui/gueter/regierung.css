@@ -110,3 +110,13 @@
 .rg-lage .rg-abschnitt{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px var(--abstand-4);margin:var(--abstand-4) 0 var(--abstand-3)}
 .rg-lage .rg-abschnitt small{font:var(--schrift-2)/1.45 var(--serif);color:var(--tinte-3)}
 .rg-lage .rg-kopf>div>span{font-size:var(--schrift-1);text-transform:uppercase;letter-spacing:2px;color:var(--leder-beschriftung)}
+.ve-stichtag{font:italic var(--schrift-1)/1.4 var(--serif);color:var(--tinte-3)}
+/* Welle B1 (06.11.2026): keine weißen Blätter in Spaltenbreite. Lage, Programme, Mandat und Reaktionen auf Pergament mit Rahmen und
+   Schatten wie der Haushaltskopf (.hd-bilanz); kleine Karten bleiben hell. */
+.rg-lage,.rg-programm,.rg-mandat,.rg-reaktionen{background:var(--papier-2);border-color:rgba(90,64,40,.3);border-radius:var(--rund-2);box-shadow:var(--schatten-flach)}
+.rg-programm .ek-entscheidung,.rg-programm .ek-entscheidung>header,.rg-programm .ek-entscheidung>footer{background:var(--papier-2)}
+.rg-programm .ek-entscheidung{border-color:rgba(90,64,40,.25);border-radius:var(--rund-2)}
+.rg-kurse button{background:var(--papier-2);border-color:rgba(90,64,40,.3)}
+.rg-lage .rg-kurse button:disabled:not([aria-pressed=true]){background:var(--papier-2)}
+.ve-ablehnung{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin:8px 0 0}.ve-ablehnung small{font:var(--schrift-1)/1.3 var(--serif);color:var(--tinte-3)}
+.ve-ablehnung em{font:normal 600 var(--schrift-1)/1.6 var(--serif);padding:0 9px;border-radius:var(--rund-pille);background:var(--schlecht-flaeche);color:var(--siegel)}
