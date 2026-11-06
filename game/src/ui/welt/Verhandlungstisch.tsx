@@ -35,7 +35,7 @@ function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSich
         aria-pressed={gewaehlt}
         disabled={!!k.gesperrt}
         onClick={onToggle}
-        title={k.gesperrt ?? k.text}
+        title={k.gesperrt ?? undefined}
       >
         {/* Wert oder Preis steht als Punkte in der Kopfzeile; was die Punkte bedeuten, sagt einmal die Spaltenüberschrift (Tag 6. November) */}
         <span className="we-klausel-kopf">
@@ -54,9 +54,9 @@ function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSich
             ) : null}
           </span>
         </span>
-        {/* Tag 6. November: die Beschreibung steht im Tooltip und erscheint, sobald die Klausel im Paket liegt (mit der Kehrseite);
-            die Karte selbst zeigt Name, Preis, Wert und Wirkung. Vorher stand jede Beschreibung offen, der Tisch war 2,6 Bildschirme lang. */}
-        {gewaehlt && <span className="we-klausel-text">{k.text}</span>}
+        {/* Die Beschreibung steht offen auf jeder Karte: Am Verhandlungstisch liest man, was man anbietet und verlangt
+            (der Inhaber am 6. November: dieser Bereich braucht Raum, nicht jeder Bereich wird gleich gekürzt) */}
+        <span className="we-klausel-text">{k.text}</span>
         {k.gesperrt ? (
           <span className="we-klausel-grund">{k.gesperrt}</span>
         ) : (
@@ -216,8 +216,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
         </div>}
       </div>
 
-      {/* Breite nach Zahl der Klauseln: die längere Seite bekommt mehr Platz und zwei Spalten */}
-      <div className="we-spalten" style={{ ["--we-spalten" as string]: `minmax(0, ${Math.max(1, bietet.length)}fr) minmax(0, ${Math.max(1, verlangt.length)}fr)` }}>
+      <div className="we-spalten">
         <div className="we-spalte">
           <h4>
             <Flagge id="TUR" breite={22} /> {t("ui2.ui.welt.Verhandlungstisch.0f5c0dc")}

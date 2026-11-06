@@ -83,11 +83,11 @@
   /* Sieben Größen. 13 px nur für Kapitälchen, Zahlen, Einheiten und Achsen; jeder Satz in Garamond mindestens 14 px. */
   --schrift-1: 13px;
   --schrift-2: 14px;
-  --schrift-3: 15px;
-  --schrift-4: 17px;
-  --schrift-5: 19px;
-  --schrift-6: 24px;
-  --schrift-7: 38px;
+  --schrift-3: 16px;
+  --schrift-4: 18px;
+  --schrift-5: 21px;
+  --schrift-6: 28px;
+  --schrift-7: 48px;
   /* Laufweiten: normal, Beschriftung, Kicker */
   --laufweite-1: 0.04em;
   --laufweite-2: 0.1em;

@@ -470,3 +470,18 @@ Auftrag des Projektinhabers: „eine Analyse zu allem, was es in diesem Spiel gi
   - Der Hausarzt-Zustand heißt „landesweit“.
   - Die Neuen Universitäten heißen jetzt „Studienplätze an Hochschulen“.
   - 43 Startwerte sind noch an der Primärquelle zu prüfen.
+
+## Y. Rückmeldung 06.11.2026: Nicht jeder Bereich wird gleich gekürzt
+
+Am Nachmittag kamen zwei Rückmeldungen:
+- Zur Größenansicht in der Politik (Kostendruck der Betriebe): „das geht alles schöner … es ist schon gut, aber viel zu groß“.
+- Zum Verhandlungstisch in der Außenpolitik: „dieser Bereich muss wieder größer sein, du kannst nicht jeden Bereich gleich bearbeiten“.
+
+Daraus folgt:
+- **Grenze von 1,5 Bildschirmen:** Sie ist ein Richtwert für Übersichten und keine Schere für jede Ansicht. Wo man liest und abwägt, bekommt der Inhalt Raum.
+- **Verhandlungstisch:** Jede Klausel zeigt ihre Beschreibung offen, nicht im Tooltip. Die Karten stehen je Seite untereinander, der Kopf zeigt die Landesbeschreibung. Er darf länger als 1,5 Bildschirme sein (Syrien etwa 1,8).
+- **Kein globales Verkleinern:** Die Schriftstufen bleiben bei 13, 14, 16, 18, 21, 28 und 48 px. Wird eine Ansicht als zu groß empfunden, wird sie selbst verdichtet, nicht die ganze Oberfläche.
+- **Größenansicht:**
+  - Die Zahl steht neben dem Titel.
+  - Das Handlungsfeld hat kompakte Zeilen mit den Überschriften „Senken“ und „Erhöhen“. Vorher brach ein Klassenkonflikt mit dem Haushalt diese Überschriften Wort für Wort um.
+  - Das Wirkungsdiagramm ist kleiner.

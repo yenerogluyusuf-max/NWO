@@ -79,14 +79,9 @@
 .we-akte { container-type: inline-size; }
 .we-tisch { display: flex; flex-direction: column; gap: 14px; }
 .we-tisch-oben { display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 4px; }
-.we-tisch-kopf { margin: 0; font: italic var(--schrift-2)/1.45 var(--serif); color: var(--ink-soft); }
+.we-tisch-kopf { margin: 0; font: italic var(--schrift-3)/1.45 var(--serif); color: var(--ink-soft); }
 .we-spalten { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
 @container (min-width: 620px) { .we-spalten { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-/* Tag 6. November: auf breiter Fläche je Seite so viel Breite wie Klauseln, darin Kacheln ab 270 px (die längere Seite läuft zweispaltig) */
-@container (min-width: 900px) {
-  .we-spalten { grid-template-columns: var(--we-spalten, minmax(0, 1fr) minmax(0, 1fr)); }
-  .we-spalte .we-klauseln { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); align-items: start; }
-}
 .we-spalte h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font: 600 var(--schrift-3) var(--display); letter-spacing: 0.02em; }
 .we-klauseln { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
 .dossier .we-klausel { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 9px 11px 10px; text-align: left; cursor: pointer; color: var(--ink); text-shadow: none; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 4px; box-shadow: none; }
@@ -103,8 +98,6 @@
 .we-unsichtbar { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .we-spalte h4 { flex-wrap: wrap; row-gap: 2px; }
 .we-spalte-legende { flex-basis: 100%; display: inline-flex; align-items: center; gap: var(--abstand-2); font: 400 var(--schrift-1) var(--serif); letter-spacing: 0; color: var(--ink-soft); }
-/* Wirkungen als fließende Zeile statt einer Zeile je Wirkung */
-.we-klausel .we-wirkung { display: flex; flex-wrap: wrap; gap: 0 var(--abstand-3); }
 .we-klausel-wert { display: flex; align-items: center; gap: 8px; font-size: var(--schrift-1); color: var(--ink-soft); }
 .we-klausel-wert em { font-style: normal; }
 .we-klausel-grund { font: italic var(--schrift-2) var(--serif); color: var(--seal); }
@@ -323,10 +316,6 @@
   .we.schmal .we-vermittlung-zeichen { grid-row: auto; }
   .we.schmal .we-modus, .we.schmal .we-suche, .we.schmal .we-chips, .we.schmal .we-liste-hinweis { display: none; }
   .we.schmal .we-liste { gap: 0; }
-  /* Am Verhandlungstisch trägt der Kopf nur Name, Haltung und Bündnisse; die Beschreibung steht im Überblick (Tag 6. November) */
-  .we.schmal .we-kopf { padding-block: var(--abstand-2); }
-  .we.schmal .we-kopf .flagge { width: 52px; height: auto; }
-  .we.schmal .we-kopf-text > p { display: none; }
   .we.schmal .we-kopf-zeile { margin: 0; }
 }
 
