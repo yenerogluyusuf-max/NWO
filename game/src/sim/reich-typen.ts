@@ -412,6 +412,11 @@ export interface StaetteZustand {
   zustand: number;
   /** Nutzungsmodus, bei manchen Stätten eine Entscheidung (Museum, Moschee, geteilte Nutzung) */
   modus?: string;
+  /**
+   * Folge des Verfalls (sim/ereignisse-bereiche.ts): ein Welterbe auf der Liste des gefährdeten Welterbes oder davon gestrichen, eine
+   * andere Stätte für Besucher geschlossen. Fehlt in älteren Spielständen und bei gepflegten Stätten.
+   */
+  lage?: "gefaehrdet" | "gestrichen" | "geschlossen";
 }
 
 export interface ReichMeldung {

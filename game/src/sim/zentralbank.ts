@@ -170,18 +170,61 @@ function protokolltext(alt: number, neu: number): string {
 // ---------------------------------------------------------------------------
 // Wege des Präsidenten
 
+/**
+ * Warum ein Druck auf die nächste Sitzung gerade nicht geht (sonst `null`). Dieselbe Prüfung nutzt `machDruck` und der Vorgang
+ * „Die Märkte zweifeln an der Notenbank“ (sim/ereignisse-bereiche.ts), damit gesperrte Antworten denselben Grund nennen.
+ */
+export function druckGrund(w: World, weg: ZbDruck["weg"]): string | null {
+  const spiel = w.spiel;
+  if (!spiel) return t("sim2.sim.zentralbank.9806890");
+  const z = zbZustand(w);
+  if (z.stufe === "C") return t("sim2.sim.zentralbank.0b29764");
+  if (!naechsteSitzung(w)) return t("sim2.sim.zentralbank.da9a4f9");
+  if (weg === "gespraech") {
+    const rest = (z.gespraech ?? -1e9) + GESPRAECH_ABKUEHLUNG - w.day;
+    if (rest > 0) return t("sim2.sim.zentralbank.205e499", { p0: rest });
+    if (!kannZahlen(spiel.kapital, 1)) return t("sim2.sim.zentralbank.f2c77d5");
+  }
+  return null;
+}
+
+/** Warum die Führung gerade nicht mit dieser Haltung neu besetzt werden kann (sonst `null`); `ernenneGouverneur` prüft dasselbe. */
+export function gouverneurGrund(w: World, haltung: GovernorStance): string | null {
+  if (!w.spiel) return t("sim2.sim.zentralbank.ad2d1f7");
+  const z = zbZustand(w);
+  if (z.stufe === "A") return t("sim2.sim.zentralbank.110fefb");
+  if (w.governor.stance === haltung) return t("sim2.sim.zentralbank.c40c7a2");
+  const rest = (z.gouverneurGeaendert ?? -1e9) + GOUVERNEUR_ABKUEHLUNG - w.day;
+  if (rest > 0) return t("sim2.sim.zentralbank.31107d3", { p0: rest });
+  return null;
+}
+
+/** Warum die Unabhängigkeit gerade nicht auf `ziel` wechseln kann (sonst `null`); `aendereStufe` prüft dasselbe. */
+export function stufeGrund(w: World, ziel: Unabhaengigkeit): string | null {
+  const spiel = w.spiel;
+  if (!spiel) return t("sim2.sim.zentralbank.ad2d1f7");
+  const z = zbZustand(w);
+  const w2 = WECHSEL[`${z.stufe}>${ziel}`];
+  if (!w2) return t("sim2.sim.zentralbank.7fd6870");
+  const rest = (z.stufeGeaendert ?? -1e9) + STUFEN_ABKUEHLUNG - w.day;
+  if (rest > 0) return t("sim2.sim.zentralbank.1193630", { p0: rest });
+  const lager = stimmenSicht(w).lager;
+  if (lager < REGELN.mehrheit) return t("sim2.sim.zentralbank.ec325a4", { p0: lager, p1: REGELN.mehrheit });
+  if (!kannZahlen(spiel.kapital, w2.pk)) return t("sim2.sim.zentralbank.9739328", { p0: w2.pk, p1: Math.floor(spiel.kapital) });
+  return null;
+}
+
+/** Kapital eines Wechsels der Unabhängigkeit (`undefined`, wenn es den Wechsel nicht gibt). */
+export const stufenPreis = (von: Unabhaengigkeit, ziel: Unabhaengigkeit): number | undefined => WECHSEL[`${von}>${ziel}`]?.pk;
+
 /** Druck auf die nächste Sitzung: vertraulich im Gespräch (1 Kapital) oder öffentlich in einer Rede. */
 export function machDruck(w: World, richtung: -1 | 1, weg: ZbDruck["weg"]): Ergebnis {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: t("sim2.sim.zentralbank.9806890") };
+  const grund = druckGrund(w, weg);
+  if (!spiel || grund) return { ok: false, text: grund ?? t("sim2.sim.zentralbank.9806890") };
   const z = zbZustand(w);
-  if (z.stufe === "C") return { ok: false, text: t("sim2.sim.zentralbank.0b29764") };
-  if (!naechsteSitzung(w)) return { ok: false, text: t("sim2.sim.zentralbank.da9a4f9") };
   const wirkung = druckWirkung(w, richtung, weg);
   if (weg === "gespraech") {
-    const rest = (z.gespraech ?? -1e9) + GESPRAECH_ABKUEHLUNG - w.day;
-    if (rest > 0) return { ok: false, text: t("sim2.sim.zentralbank.205e499", { p0: rest }) };
-    if (!kannZahlen(spiel.kapital, 1)) return { ok: false, text: t("sim2.sim.zentralbank.f2c77d5") };
     spiel.kapital -= 1;
     z.gespraech = w.day;
     // Ein vertraulicher Rat zu lockeren Zinsen sickert durch; wer die Bank zur Festigkeit ermuntert, schadet ihrem Ruf nicht (D-12)
@@ -219,13 +262,9 @@ export function machDruck(w: World, richtung: -1 | 1, weg: ZbDruck["weg"]): Erge
 
 /** Die Führung der Bank neu besetzen: mit einer eher strengen, ausgewogenen oder gefügigen Haltung. */
 export function ernenneGouverneur(w: World, haltung: GovernorStance): Ergebnis {
-  const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: t("sim2.sim.zentralbank.ad2d1f7") };
+  const grund = gouverneurGrund(w, haltung);
+  if (grund) return { ok: false, text: grund };
   const z = zbZustand(w);
-  if (z.stufe === "A") return { ok: false, text: t("sim2.sim.zentralbank.110fefb") };
-  if (w.governor.stance === haltung) return { ok: false, text: t("sim2.sim.zentralbank.c40c7a2") };
-  const rest = (z.gouverneurGeaendert ?? -1e9) + GOUVERNEUR_ABKUEHLUNG - w.day;
-  if (rest > 0) return { ok: false, text: t("sim2.sim.zentralbank.31107d3", { p0: rest }) };
   const rng = new Rng(w.rngState ^ Math.imul(w.day + 11, 0x9e3779b1));
   const name = haltung === "gefuegig" ? t("sim2.sim.zentralbank.54f843e") : zufallsName(w, rng);
   replaceGovernor(w, haltung, name);
@@ -312,15 +351,10 @@ export function wendeStufeAn(w: World, ziel: Unabhaengigkeit): void {
 /** Die Unabhängigkeit der Bank per Gesetz ändern: braucht eine Mehrheit im Lager, kostet Kapital und wirkt sofort auf die Märkte. */
 export function aendereStufe(w: World, ziel: Unabhaengigkeit): Ergebnis {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: t("sim2.sim.zentralbank.ad2d1f7") };
+  const grund = stufeGrund(w, ziel);
+  if (!spiel || grund) return { ok: false, text: grund ?? t("sim2.sim.zentralbank.ad2d1f7") };
   const z = zbZustand(w);
-  const w2 = WECHSEL[`${z.stufe}>${ziel}`];
-  if (!w2) return { ok: false, text: t("sim2.sim.zentralbank.7fd6870") };
-  const rest = (z.stufeGeaendert ?? -1e9) + STUFEN_ABKUEHLUNG - w.day;
-  if (rest > 0) return { ok: false, text: t("sim2.sim.zentralbank.1193630", { p0: rest }) };
-  const lager = stimmenSicht(w).lager;
-  if (lager < REGELN.mehrheit) return { ok: false, text: t("sim2.sim.zentralbank.ec325a4", { p0: lager, p1: REGELN.mehrheit }) };
-  if (!kannZahlen(spiel.kapital, w2.pk)) return { ok: false, text: t("sim2.sim.zentralbank.9739328", { p0: w2.pk, p1: Math.floor(spiel.kapital) }) };
+  const w2 = WECHSEL[`${z.stufe}>${ziel}`]!;
   spiel.kapital -= w2.pk;
   wendeStufeAn(w, ziel);
   const text = t("sim2.sim.zentralbank.edbe4ca", { p0: w2.text, p1: STUFEN[ziel].name });
