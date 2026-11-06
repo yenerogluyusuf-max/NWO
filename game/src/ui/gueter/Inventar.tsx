@@ -20,7 +20,7 @@ const tage = (x: number): string => (Number.isFinite(x) ? zahl(Math.round(x), 0)
 
 /** Ein Ring für die Eigenversorgung: voll bei 100 % und mehr (Befund D-17, Bild oben statt Strichen). */
 function Ring({ anteil, ton }: { anteil: number; ton: string }) {
-  const r = 17, u = 2 * Math.PI * r, voll = Math.max(0, Math.min(1, anteil));
+  const r = 18, u = 2 * Math.PI * r, voll = Math.max(0, Math.min(1, anteil));
   return (
     <svg className={`gi-ring-bild gi-${ton}`} viewBox="0 0 44 44" aria-hidden>
       <circle cx="22" cy="22" r={r} className="gi-ring-grund" />
@@ -55,7 +55,8 @@ export function Inventar({ world, geaendert, programm }: { world: World; geaende
           wert: `${Math.round(z.autarkie)} %`,
           anteil: z.autarkie / 100,
           ton: tn,
-          ...(z.ampel !== "keine" ? { marke: { text: t("gueter.kette.reichweiteOhne", { n: tage(n) }), ton: z.ampel === "rot" ? ("schlecht" as const) : z.ampel === "gelb" ? ("mittel" as const) : ("gut" as const) } } : {}),
+          // Tag T5: Auf der Kachel nur die Zahl der Tage; was sie bedeutet, sagt die Legende oben (und der Titel der Kachel)
+          ...(z.ampel !== "keine" ? { marke: { text: t("t5.vs.tage", { n: tage(n) }), ton: z.ampel === "rot" ? ("schlecht" as const) : z.ampel === "gelb" ? ("mittel" as const) : ("gut" as const) } } : {}),
         };
       }),
   );
@@ -74,6 +75,8 @@ export function Inventar({ world, geaendert, programm }: { world: World; geaende
         <UbDetailKopf titel={t(`gueter.gut.${g.id}`)} unter={`${t(`gueter.art.${g.art}`)} · ${Math.round(s.autarkie)} % ${t("gueter.autarkie")}`} />
         <p className={`gi-satz gi-${ton(s)}`}>{s.satz}</p>
         <UbRueck antwort={meldung} />
+        {/* Tag T5: links die Rechnung der Ware, rechts was die Regierung tun kann */}
+        <div className="gi-detail-spalten"><div className="gi-detail-rechnung">
         {g.id !== "ruestung" && <section className="vs-bilanz" aria-label={t("gueter.kette.vorschau")}>
           <h4>{t("gueter.kette.vorschau")}</h4>
           <p className="vs-hinweis">{t("gueter.kette.vorschauHinweis", { einheit })}</p>
@@ -115,6 +118,7 @@ export function Inventar({ world, geaendert, programm }: { world: World; geaende
             {s.blockiert > 0.005 && <div className="gi-aus-fall"><dt>{t("gueter.blockiert")}</dt><dd>{Math.round(s.blockiert * 100)} %</dd></div>}
           </dl>
         )}
+        </div><div className="gi-detail-handeln">
         {instrumente.map((iv) => (
           <UbHandlung
             key={iv.id}
@@ -154,6 +158,7 @@ export function Inventar({ world, geaendert, programm }: { world: World; geaende
             <p className="wi-gemessen">{t("gueter.jahr")}</p>
           </UbMehr>
         )}
+        </div></div>
       </div>
     );
   };
@@ -162,15 +167,18 @@ export function Inventar({ world, geaendert, programm }: { world: World; geaende
   return (
     <div className="gi-inventar">
       <section className="gi-raster" aria-label={t("gueter.titel")}>
-        <p className="gi-raster-lage">
-          {t("gueter.einleitung", { autark, gesamt: sicht.length - 1 })}{" "}
-          <b className={knapp ? "gi-schlecht" : "gi-gut"}>{knapp ? t("n3.vs.knapp", { n: knapp }) : t("n3.vs.keinKnapp")}</b>
-        </p>
+        <div className="gi-raster-kopf">
+          <p className="gi-raster-lage">
+            {t("gueter.einleitung", { autark, gesamt: sicht.length - 1 })}{" "}
+            <b className={knapp ? "gi-schlecht" : "gi-gut"}>{knapp ? t("n3.vs.knapp", { n: knapp }) : t("n3.vs.keinKnapp")}</b>
+          </p>
+          <p className="gi-legende">{t("t5.vs.legende")}</p>
+        </div>
         <div className="gi-ringe">
           {kacheln.map((k) => {
             const z = sicht.find((x) => x.def.id === k.id)!;
             return (
-              <button key={k.id} type="button" className={`gi-ring gi-${k.ton}${ware === k.id ? " on" : ""}`} aria-pressed={ware === k.id} onClick={() => setWare(ware === k.id ? null : k.id)}>
+              <button key={k.id} type="button" className={`gi-ring gi-${k.ton}${ware === k.id ? " on" : ""}`} aria-pressed={ware === k.id} title={z.ampel !== "keine" ? t("gueter.kette.reichweiteOhne", { n: tage(z.reichweiteTage) }) : undefined} onClick={() => setWare(ware === k.id ? null : k.id)}>
                 <small className="gi-ring-art">{k.gruppe}</small>
                 <span className="gi-ring-mitte"><Ring anteil={z.autarkie / 100} ton={k.ton ?? "gut"} /><b>{k.wert}</b></span>
                 <span className="gi-ring-name">{k.titel}</span>

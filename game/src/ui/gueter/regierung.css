@@ -99,3 +99,14 @@
 @container entscheidung (max-width:500px){.ve-fraktionen li{grid-template-columns:minmax(0,1fr) auto;gap:5px 12px}.ve-fraktionen li>span{grid-column:1;grid-row:2}.ve-fraktionen li>strong{grid-column:2;grid-row:1/3}.ve-fraktionen .rg-reaktionen li{grid-template-columns:minmax(0,1fr)}.ve-fraktionen .rg-reaktionen li>span{grid-row:auto}}
 .rg-kurse .ve-kurs-status{display:block;margin-top:12px;padding-top:8px;border-top:1px solid var(--schlecht-flaeche);font-size:var(--schrift-2);color:var(--tinte-2)}
 .rg-kurse button>span:nth-of-type(2){font-size:var(--schrift-2);line-height:1.6;display:block;color:#64715f}
+
+/* Tag T5: Kopf der Kabinettsvorlage in einer Zeile, Abrechnungshinweis an der Überschrift der Programme */
+.rg-lage .rg-kopf{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--abstand-2) var(--abstand-6);padding:var(--abstand-4) var(--abstand-5)}
+.rg-lage .rg-kopf h3{margin:4px 0 0}
+.rg-lage .rg-kopf>p{flex:0 1 46ch;font-size:var(--schrift-2);line-height:1.5;color:var(--leder-text)}
+.rg-lage .rg-inhalt{padding:var(--abstand-4) var(--abstand-5)}
+.rg-lage .rg-lagezeile .rg-kurs-zu{margin:0 auto 0 0}
+.rg-lage .rg-lagezeile>span:first-child{margin-right:var(--abstand-3)}
+.rg-lage .rg-abschnitt{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px var(--abstand-4);margin:var(--abstand-4) 0 var(--abstand-3)}
+.rg-lage .rg-abschnitt small{font:var(--schrift-2)/1.45 var(--serif);color:var(--tinte-3)}
+.rg-lage .rg-kopf>div>span{font-size:var(--schrift-1);text-transform:uppercase;letter-spacing:2px;color:var(--leder-beschriftung)}

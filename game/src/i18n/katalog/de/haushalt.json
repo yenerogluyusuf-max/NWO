@@ -254,5 +254,5 @@
  "hd.rad.wofuer": "Wofür das Geld ausgegeben wird",
  "hd.rad.woher": "Woher es kommt",
  "hd.rad.aria": "Haushaltsrad: Ausgaben {ausgaben}, Einnahmen {einnahmen}, neue Schulden {kredit}.",
- "hd.rad.lesart": "Außen die Ausgaben, innen die Einnahmen; schraffiert, was auf Kredit läuft. Ein Klick auf ein Ressort öffnet seine Regler."
+ "hd.rad.lesart": "Außen die Ausgaben, innen die Einnahmen; schraffiert, was auf Kredit läuft."
 }

@@ -1,20 +1,52 @@
 .krisenrat{container-type:inline-size;min-width:0;color:var(--ink,var(--leder-dunkel));font-family:var(--serif)}
-.krr-kopf{padding:22px 24px;background:var(--leder-dunkel);color:var(--papier-1);border-radius:10px 10px 0 0}
-.krr-kopf>span{font-size:var(--schrift-1);text-transform:uppercase;letter-spacing:.14em;color:var(--linie)}.krr-kopf h3{font:600 var(--schrift-6)/1.2 var(--serif);margin:7px 0 10px}.krr-kopf p{max-width:68ch;font-size:var(--schrift-2);line-height:1.6;margin:0;color:var(--papier-2)}
-.kr-schritte{list-style:none;display:flex;flex-wrap:wrap;gap:16px;padding:15px 18px;margin:0;background:var(--papier-2);border-bottom:1px solid #d0cbc1}.kr-schritte li{display:flex;align-items:center;gap:9px;font-size:var(--schrift-2)}.kr-schritte b{color:#3f5a4e;font-variant-numeric:tabular-nums}
-.krr-lage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.krr-lage div{padding:12px;border-left:3px solid #988e7c;background:var(--papier-1)}.krr-lage dt{font-size:var(--schrift-2)}.krr-lage dd{margin:8px 0 0;font-size:var(--schrift-5);font-variant-numeric:tabular-nums}
-.kr-hinweis,.kr-warnung{font-size:var(--schrift-2);line-height:1.6}.kr-warnung{padding:12px 15px;border-left:3px solid #a6523c;background:var(--schlecht-flaeche);color:#793e2e}
-.kr-pakete{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.kr-pakete button{display:flex;flex-direction:column;text-align:left;gap:9px;padding:18px;min-width:0;border:1px solid #cecac0;border-radius:10px;background:var(--papier-1);color:var(--leder-dunkel);cursor:pointer;font:inherit}.kr-pakete button[aria-pressed=true]{border-color:var(--tinte-2);box-shadow:inset 0 0 0 1px var(--tinte-2);background:var(--papier-1)}.kr-pakete button>span{font-size:var(--schrift-2);color:#627567}.kr-pakete strong{font-size:var(--schrift-4)}.kr-pakete small{font-size:var(--schrift-2);line-height:1.5}.kr-pakete em{margin-top:auto;padding-top:8px;font-size:var(--schrift-2);font-style:normal;font-weight:600}.kr-pakete button:focus-visible{outline:3px solid #9f7627;outline-offset:3px}
-.kr-posten{list-style:none;padding:0;display:grid;gap:10px}.kr-posten li{display:grid;gap:5px;padding:13px;background:var(--papier-1);border-radius:6px;font-size:var(--schrift-2)}.kr-posten small{line-height:1.5;color:#586459}.kr-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}.kr-bericht{margin:18px 0;border-top:1px solid #d0cbc1;padding-top:14px}.kr-bericht>summary{cursor:pointer;font-weight:600}
+.kr-hinweis,.kr-warnung{font-size:var(--schrift-2);line-height:1.6}.kr-warnung{padding:12px 15px;border-left:3px solid var(--schlecht-linie);background:var(--schlecht-flaeche);color:var(--siegel)}
+.kr-posten{list-style:none;padding:0;display:grid;gap:10px}.kr-posten li{display:grid;gap:5px;padding:13px;background:var(--papier-1);border-radius:6px;font-size:var(--schrift-2)}.kr-posten small{font-size:var(--schrift-1);line-height:1.5;color:var(--tinte-2)}.kr-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}.kr-bericht{margin:0;border-top:1px solid var(--linie);padding-top:14px}.kr-bericht>summary{cursor:pointer;font-weight:600}
 .sd-krisenrat{margin:20px 0;padding:15px 18px;border:1px solid #c6beb0;border-radius:10px;background:var(--papier-1)}.sd-krisenrat>summary{cursor:pointer;display:flex;gap:12px;align-items:center;color:var(--tinte-weich);font-weight:600}.sd-krisenrat>summary small{font-weight:400;margin-left:auto}.sd-krisenrat[open]>summary{margin-bottom:18px}
-@container(max-width:620px){.kr-pakete{grid-template-columns:1fr}.kr-pakete button{padding:15px}.krr-lage{gap:5px}.krr-lage dd{font-size:var(--schrift-4)}.krr-kopf{padding:18px}.krr-kopf h3{font-size:var(--schrift-6)}.sd-krisenrat>summary{flex-wrap:wrap}}
-@container(max-width:340px){.krr-lage{grid-template-columns:1fr}}
 
 .kr-detail:focus-visible{outline:2px solid var(--lorbeer);outline-offset:5px;border-radius:6px}
-.kr-alltag{margin:24px 0;padding:20px;border:1px solid #cecac0;border-radius:10px;background:var(--papier-1);overflow-wrap:anywhere}
-.kr-alltag header>span{font-size:var(--schrift-1);text-transform:uppercase;letter-spacing:.1em;color:#647768}.kr-alltag h4{font:600 var(--schrift-5)/1.25 var(--serif);margin:6px 0 16px}
-.kr-alltag-zahlen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 14px}.kr-alltag-zahlen dt{font-size:var(--schrift-1);min-height:2.4em}.kr-alltag-zahlen dd{margin:6px 0;font-size:var(--schrift-5);font-variant-numeric:tabular-nums}.kr-alltag-zahlen dd small{font-size:var(--schrift-1);margin-left:5px;color:#657267}.kr-alltag-zahlen p{font-size:var(--schrift-1);line-height:1.5;margin:0;color:#617064}.kr-alltag-zahlen p.besser{color:var(--gut)}.kr-alltag-zahlen p.schlechter{color:#914631}
-.kr-gesetz-wahl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kr-gesetz-wahl button{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;border:1px solid #d0cbc1;border-radius:6px;padding:13px;text-align:left;color:#4a372c;background:var(--papier-1);cursor:pointer}.kr-gesetz-wahl button[aria-pressed=true]{background:#4b382d;color:var(--papier-1);border-color:#4b382d}.kr-gesetz-wahl small{font-size:var(--schrift-2);line-height:1.5}.kr-gesetz-wahl span{font-size:var(--schrift-2);margin-top:auto;padding-top:6px}.kr-gesetz-wahl button:focus-visible{outline:3px solid #9f7627;outline-offset:3px}
+.kr-alltag-zahlen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 14px}.kr-alltag-zahlen dt{font-size:var(--schrift-1);color:var(--tinte-2)}.kr-alltag-zahlen dd{margin:2px 0;font-weight:600;font-size:var(--schrift-5);font-variant-numeric:tabular-nums}.kr-alltag-zahlen dd small{font-size:var(--schrift-1);margin-left:5px;color:var(--tinte-3)}.kr-alltag-zahlen p{font-size:var(--schrift-1);line-height:1.5;margin:0;color:var(--tinte-3)}.kr-alltag-zahlen p.besser{color:var(--gut)}.kr-alltag-zahlen p.schlechter{color:var(--siegel)}
 .kr-umfang{display:flex;gap:14px;flex-wrap:wrap;padding:12px;margin:18px 0;border:1px solid #d0cbc1;border-radius:6px}.kr-umfang legend{font-size:var(--schrift-2);padding:0 4px}.kr-umfang label{display:flex;align-items:center;gap:6px;font-size:var(--schrift-2);cursor:pointer;min-height:30px}.kr-umfang input{accent-color:#4b382d}
-@container(max-width:620px){.kr-alltag{padding:15px}.kr-alltag-zahlen{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.kr-gesetz-wahl{grid-template-columns:1fr}.kr-alltag-zahlen dt{min-height:0}}
+
+/* Tag T5: Krisenrat auf einen Bildschirm. Oben die Frage mit der politischen Lage, darunter die Zahlen der Haushalte,
+   dann die Wege als gleichartige Kacheln: gesetzliche Gegenmaßnahmen und das finanzierte Entlastungspaket. */
+.krisenrat{display:grid;gap:var(--abstand-4)}
+.krr-kopf{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:var(--abstand-3) var(--abstand-6);padding:var(--abstand-4) var(--abstand-5);background:var(--leder-dunkel);color:var(--papier-1);border-radius:var(--rund-3);border-bottom:3px solid var(--messing-2)}
+.krr-frage>span{font-size:var(--schrift-1);text-transform:uppercase;letter-spacing:.14em;color:var(--leder-beschriftung)}
+.krr-frage h3{font:600 var(--schrift-6)/1.2 var(--serif);margin:4px 0 6px;color:var(--papier-1)}
+.krr-frage p{margin:0;font:var(--schrift-3)/1.45 var(--serif);color:var(--leder-text)}
+.krr-lage{display:flex;gap:var(--abstand-5);margin:0}
+.krr-lage div{padding-left:var(--abstand-3);border-left:2px solid var(--messing-3)}
+.krr-lage dt{font-size:var(--schrift-1);color:var(--leder-beschriftung);white-space:nowrap}
+.krr-lage dd{margin:2px 0 0;font:600 var(--schrift-5)/1.2 var(--serif);font-variant-numeric:tabular-nums;color:var(--papier-1);white-space:nowrap}
+.krr-lage .krr-alarm{border-left-color:var(--schlecht-auf-leder)}.krr-lage .krr-alarm dd{color:var(--schlecht-auf-leder)}
+.kr-gesetze{display:grid;gap:var(--abstand-4)}
+.kr-alltag{margin:0;padding:var(--abstand-4) var(--abstand-5);border:1px solid var(--linie);border-radius:var(--rund-3);background:var(--papier-1);overflow-wrap:anywhere}
+.kr-alltag header{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px var(--abstand-3);margin-bottom:var(--abstand-3)}
+.kr-alltag header>span{font-size:var(--schrift-1);text-transform:uppercase;letter-spacing:.1em;color:var(--tinte-3)}
+.kr-alltag h4{font:600 var(--schrift-4)/1.25 var(--serif);margin:0;order:-1}
+.kr-alltag .kr-alltag-zahlen{margin:0}
+.kr-lesehilfe{margin-top:var(--abstand-3);font-size:var(--schrift-2)}
+.kr-lesehilfe>summary{cursor:pointer;color:var(--tinte-2);font-weight:600}
+.kr-lesehilfe>summary:focus-visible{outline:3px solid var(--messing-2);outline-offset:3px}
+.kr-lesehilfe p{margin:var(--abstand-2) 0 0;color:var(--tinte-2)}
+.kr-weg{display:grid;gap:var(--abstand-2)}
+.kr-weg>p{margin:0}
+.kr-weg-titel{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px var(--abstand-3);margin:0;font:600 var(--schrift-4)/1.3 var(--serif);color:var(--tinte-1)}
+.kr-weg-titel small{font:var(--schrift-2) var(--serif);color:var(--tinte-3)}
+.kr-wahl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--abstand-3)}
+.kr-wahl button{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;padding:var(--abstand-3) var(--abstand-4);border:1px solid var(--linie-stark);border-radius:var(--rund-2);background:var(--papier-1);color:var(--tinte-1);text-align:left;cursor:pointer;box-shadow:var(--schatten-flach)}
+.kr-wahl button:hover{border-color:var(--messing-3);background:var(--papier-2)}
+.kr-wahl button[aria-pressed=true]{border-color:var(--tinte-weich);background:var(--papier-2);box-shadow:inset 0 -3px 0 var(--messing-2)}
+.kr-wahl button:focus-visible{outline:3px solid var(--messing-2);outline-offset:3px}
+.kr-wahl strong{font:600 var(--schrift-3)/1.3 var(--serif)}
+.kr-wahl small{font:var(--schrift-2)/1.45 var(--serif);color:var(--tinte-2)}
+.kr-wahl span{margin-top:auto;padding-top:2px;font:600 var(--schrift-2) var(--serif);color:var(--messing-3)}
+.krisenrat .kr-links{margin-top:0}
+@container(max-width:760px){.krr-kopf{grid-template-columns:minmax(0,1fr)}.krr-lage{flex-wrap:wrap;gap:var(--abstand-3)}}
+@container(max-width:620px){.kr-wahl{grid-template-columns:minmax(0,1fr)}.kr-alltag{padding:var(--abstand-4)}.kr-alltag-zahlen{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.krr-frage h3{font-size:var(--schrift-5)}.sd-krisenrat>summary{flex-wrap:wrap}}
 @container(max-width:340px){.kr-alltag-zahlen{grid-template-columns:1fr}}
+/* Tag T5: In der Vorlage eines Pakets stehen die Posten nebeneinander und die Gruppenreaktionen in einer Zeile */
+.kr-detail .kr-posten{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:var(--abstand-3) 0}
+.kr-detail .kr-posten li{align-content:start;border:1px solid var(--linie);background:var(--papier-2)}
+.kr-detail .kr-gruppen{display:flex;flex-wrap:wrap;gap:var(--abstand-2);list-style:none;padding:0;margin:var(--abstand-2) 0}
+.kr-detail .kr-gruppen li{padding:2px 10px;border:1px solid var(--linie-stark);border-radius:var(--rund-pille);background:var(--papier-1);font-size:var(--schrift-2);font-variant-numeric:tabular-nums}
