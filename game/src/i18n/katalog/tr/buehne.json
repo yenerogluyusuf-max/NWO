@@ -49,7 +49,7 @@
   "buehne.tab.schreibtisch": "Çalışma Masası",
   "buehne.tab.zeitung": "Gazete",
   "buehne.tab.gespraech": "Görüşme",
-  "buehne.tab.personen": "Bakanlar Kurulu",
+  "buehne.tab.personen": "Kabine",
   "buehne.tab.chronik": "Kronoloji",
   "buehne.tab.verlauf": "Geçmiş",
   "buehne.tab.speicher": "Oyun Kaydı",
@@ -178,7 +178,7 @@
   "schreibtisch.kz.probleme": "Kritik Sorunlar",
 
   "vorlage.quelle.ereignis": "Olay",
-  "vorlage.quelle.kabinett": "Bakanlar Kurulu",
+  "vorlage.quelle.kabinett": "Kabine",
   "vorlage.quelle.lage": "Durum Raporu",
   "vorlage.quelle.problem": "Öneri",
   "vorlage.quelle.zusage": "Taahhüt",

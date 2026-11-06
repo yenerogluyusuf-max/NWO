@@ -9,7 +9,7 @@ import { nationalAverage } from "./netz";
 import { wirke, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
-import { AEMTER, eigenVon, grollVerschieben, leistung, loyalitaetVerschieben, merke, schlechtesteGroesse, wertVon, nf } from "./personen";
+import { AEMTER, HOCH_SCHLECHT, eigenVon, grollVerschieben, leistung, loyalitaetVerschieben, merke, schlechtesteGroesse, wertVon, nf } from "./personen";
 import { LAGER_NAMEN, type LagerArt } from "./personen-typen";
 import { Rng } from "./rng";
 import { kannZahlen } from "./kapital";
@@ -123,27 +123,26 @@ export function berechneMinisterKapital(w: World, f: Figur): { beitrag: number; 
   return { beitrag, grund };
 }
 
-/** Ermittelt die dringendste Sorge eines Ministers aus den Kennzahlen seines Fachbereichs */
+/** Die dringendste Sorge eines Ministers: dieselbe Größe wie im Gespräch (schlechtesteGroesse mit HOCH_SCHLECHT für alle Ressorts).
+ *  Befund C-7: Vorher galt eine eigene Liste mit sieben Größen; „Streikbereitschaft 35“ oder „Wartezeiten 45“ erschienen als Sorge, obwohl niedrig gut ist. */
 export function sorgeAusFach(w: World, f: Figur): string {
-  const d = AEMTER[f.amt];
-  if (!d.fach.length) return t("kab.keineKrise");
-  let schlimmsterWert = -1e9;
-  let sorgeKnoten = d.fach[0]!;
-
-  for (const id of d.fach) {
-    const val = wertVon(w, id);
-    // Bei hoch_schlecht ist ein hoher Wert eine Sorge, sonst ein niedriger
-    const isBadHigh = ["kriminalitaet", "terrorgefahr", "korruption", "haftueberfuellung", "zinslast", "lebenshaltung", "polarisierung"].includes(id);
-    const score = isBadHigh ? val : 100 - val;
-    if (score > schlimmsterWert) {
-      schlimmsterWert = score;
-      sorgeKnoten = id;
+  // Gleiche Wahl wie schlechtesteGroesse (erste schlechteste Größe), aber ohne Namen für jede Größe: kabinettStatus läuft oft
+  let id: string | undefined;
+  let wert = 0;
+  let schlimm = -Infinity;
+  for (const x of AEMTER[f.amt].fach) {
+    if (!NET.index.has(x)) continue;
+    const v = wertVon(w, x);
+    const s = HOCH_SCHLECHT.has(x) ? v : 100 - v;
+    if (s > schlimm) {
+      schlimm = s;
+      id = x;
+      wert = v;
     }
   }
-
-  const name = NET.nodes[NET.index.get(sorgeKnoten) ?? -1]?.name ?? sorgeKnoten;
-  const wert = Math.round(wertVon(w, sorgeKnoten));
-  return t("kab.sorge", { name, wert });
+  if (!id) return t("kab.keineKrise");
+  const name = NET.nodes[NET.index.get(id)!]?.name ?? id;
+  return t("kab.sorge", { name, wert: Math.round(wert) });
 }
 
 /** Gibt den vollständigen Zustand des Ministerrats zurück */

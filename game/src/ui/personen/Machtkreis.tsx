@@ -25,7 +25,7 @@ import { Balken, Gesicht, LAGER_FARBE, tonVon } from "./bausteine";
 import "./machtkreis.css";
 
 /** Kleidung des Porträts für Nebenfiguren (das Porträtsystem kennt die Ämter des Spiels als Rollen). */
-const KLEIDUNG: Record<string, string> = { kronprinz: "partner", fraktionschef: "partner", journalist: "opposition", richter: "justiz" };
+const KLEIDUNG: Record<string, string> = { kronprinz: "partner", fraktionschef: "partner", journalist: "opposition", richter: "richter" };
 
 const REIHENFOLGE = ["stab", "finanzen", "wirtschaft", "aussen", "inneres", "justiz", "generalstab", "zentralbank", "partner", "kronprinz", "fraktionschef", "richter", "journalist", "opposition"];
 
