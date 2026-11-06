@@ -67,6 +67,17 @@
 .al-berichte li.gut { color: var(--gut); }
 .al-berichte li.schlecht { color: var(--siegel); }
 
+/* Tag 6. November: Instrumente kompakter. Folgen als Marken im Fluss statt je eine volle Zeile, Land und Tagesordnung mit der Beschriftung
+   in einer Zeile, auf breiter Fläche vier Karten je Zeile (vorher drei Zeilen zu drei Karten, 2,2 Bildschirme) */
+.al-instr-raster { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
+.al-instrument { gap: var(--abstand-2); }
+.al-instrument h4 { font-size: var(--schrift-3); }
+.al-feld { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--abstand-2); }
+.al-folgen { display: flex; flex-wrap: wrap; gap: var(--abstand-1); }
+.al-folgen li { padding: 1px 8px; }
+.al-instr-fuss { margin-top: auto; }
+.al-instrument { align-content: stretch; grid-auto-rows: min-content; }
+
 /* Handy: Kennzahlen zweispaltig und flach, die Raster einspaltig ohne Mindestbreite über dem Bildschirm */
 @media (max-width: 640px) {
   .al-zahlen { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
