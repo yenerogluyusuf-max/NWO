@@ -90,7 +90,11 @@ export interface WahlSicht {
   offen: boolean;
 }
 
-const staerkeWort = (x: number): string => (x >= 58 ? tx("sim2.sim.welt-sicht.b2bb223") : x <= 42 ? "schwach" : "gleichauf");
+const staerkeWort = (x: number): string => (x >= 58 ? tx("sim2.sim.welt-sicht.b2bb223") : x <= 42 ? tx("tag_t8.dienst.staerke.schwach") : tx("tag_t8.dienst.staerke.gleichauf"));
+
+/** Art einer Wahl in der Sprache des Spiels; die Daten führen sie deutsch, der Dienst vergleicht mit dem deutschen Wort. */
+const WAHLARTEN: Record<string, string> = { Parlamentswahl: "parlament", Präsidentenwahl: "praesident", Europawahl: "europa", Zwischenwahlen: "zwischen", Unterhauswahl: "unterhaus", Reichstagswahl: "reichstag", Parteitag: "parteitag", Nationalratswahl: "nationalrat", "Ende der Übergangsphase": "uebergang", Dumawahl: "duma", Bundestagswahl: "bundestag", "Wahl nach verlängerter Übergangsphase": "uebergangVerlaengert" };
+export const wahlArtName = (art: string): string => (WAHLARTEN[art] ? tx(`tag_t8.wahlart.${WAHLARTEN[art]}`) : art);
 
 export function wahlSicht(w: World, id: string): WahlSicht | null {
   const e = eigenVon(w, id);
@@ -100,7 +104,7 @@ export function wahlSicht(w: World, id: string): WahlSicht | null {
   const l = lagebildZu(w, id);
   const k = haltungFuehrung(w, id);
   return {
-    art: e.wahl.art,
+    art: wahlArtName(e.wahl.art),
     datum: e.wahl.datum,
     datumDe: /^\d{4}-\d{2}-\d{2}$/.test(e.wahl.datum) ? formatDateDe(e.wahl.datum) : e.wahl.datum,
     tage,

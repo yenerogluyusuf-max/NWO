@@ -38,7 +38,7 @@ import { addDays } from "./dates";
 import { wirke } from "./wirkung";
 import { Rng } from "./rng";
 import type { World } from "./types";
-import { aktuelleSprache, t as tx } from "../i18n";
+import { aktuelleLocale, aktuelleSprache, t as tx } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // Typen
@@ -237,7 +237,8 @@ export function weitereDef(id: string): WeitereDef | undefined {
 const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
 const r2 = (x: number): number => Math.round(x * 100) / 100;
 const r1 = (x: number): number => Math.round(x * 10) / 10;
-export const nf = (x: number, d = 1): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+// Zahlen in der Sprache des Spiels (Deutsch unverändert „1,5“)
+export const nf = (x: number, d = 1): string => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
 export function hashInt(s: string): number {
   let h = 2166136261;
