@@ -311,3 +311,6 @@ html[data-effekte="aus"] .wbf *, html[data-effekte="aus"] .wbf { animation: none
 .wissen-zurueck { display: inline-block; margin: 0 0 8px; font: 600 var(--schrift-2) var(--serif); }
 /* Schmal: Der Lagetext bekommt eine eigene ganze Zeile, statt sich neben das Tempo zu quetschen */
 @container (max-width: 560px) { .wb-lage-text { flex-basis: 100%; } }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): die Lagezeile des Wissensbaums in Pergament statt Weiß */
+.wb-vorschau { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); border-radius: 6px; }

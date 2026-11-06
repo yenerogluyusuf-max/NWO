@@ -180,7 +180,7 @@
  "sim2.sim.katastrophe.d3d1336": "Neubau von {p0} Wohnungen im Katastrophengebiet ({p1} vom {p2}). Läuft über die gewöhnliche Bauvergabe: Es bindet Baukapazität und Verwaltungskraft wie jedes andere Großvorhaben.",
  "sim2.sim.katastrophe.d75ca58": "Dürre im Konya-Becken",
  "sim2.sim.katastrophe.d799247": "Diesen Fall gibt es nicht.",
- "sim2.sim.katastrophe.d7e6e19": "Noch nicht angemeldet: Bedarf etwa {p0} Wohnungen. Das Programm bindet Baukapazität und verdrängt, was hinten steht.",
+ "sim2.sim.katastrophe.d7e6e19": "Noch nicht angemeldet: Bedarf etwa {p0} Wohnungen; bindet Baukapazität.",
  "sim2.sim.katastrophe.d811384": "Kein zerstörter Wohnbestand: Hier hilft die Versorgung, ein Bauprogramm gibt es nicht.",
  "sim2.sim.katastrophe.d8191b4": "Bewältigt",
  "sim2.sim.katastrophe.dee39ef": "Öffentliches Versprechen: {p0} neue Wohnungen für {p1}.",

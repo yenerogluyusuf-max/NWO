@@ -106,3 +106,8 @@
 }
 .dossier-head .dossier-tabs button:hover { color: var(--papier-1); transform: translateY(-1px); }
 .dossier-head .dossier-tabs button.on { background: var(--papier-2); color: var(--tinte-1); border-color: #a37c3c; padding-top: 10px; transform: none; }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z, kleinste gemeinsame Stelle): Urteil der Lage, Behörden und Konflikte als Pergament statt Weiß, in allen
+   Akten. Auswahl und Hover behalten ihren Ton (--ak-hell), der Krieg seinen roten Verlauf. */
+.ak-akte .ak-inhalt :is(.ak-urteil, .ak-liste li, .ub-lage, .ub-detail, .ub-filter, .ub-kachel:not(:hover, .gewaehlt), .gz-konflikt:not(.krieg)) { background: var(--papier-2); }
+.ak-akte .ak-inhalt .ub-handlung { background: var(--papier-3); }

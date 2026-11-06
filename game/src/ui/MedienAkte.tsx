@@ -323,19 +323,25 @@ export function MedienAkte({ world, onAenderung }: { world: World; onAenderung?:
         {!offen && (
           <div className="md-griffe">
             <div className="md-griff" role="group" aria-label={t("tag_t1.medien.zahl_kopf")}>
-              <p>
-                {wahr.quelle === "rohdaten"
-                  ? t("tag_t1.medien.zahl_rohdaten", {
-                      bis: (wahr.rohdatenBis ?? world.day) - world.day,
-                    })
-                  : wahr.quelle === "institut"
-                    ? t("tag_t1.medien.zahl_institut", {
-                        institut: wahr.institut ?? "",
-                        tage: wahr.alterTage,
-                        streuung: nf(wahr.streuung),
+              {/* Welle B3: Institut, Alter und Streuung der Zahl als Plaketten, darunter eine kurze Zeile (ENTSCHEIDUNGEN Z) */}
+              {wahr.quelle === "institut" ? (
+                <>
+                  <ul className="rr-kosten md-zahl">
+                    <li><b>{wahr.institut ?? ""}</b></li>
+                    <li>{t("welle_b3.md.alter", { tage: wahr.alterTage })}</li>
+                    <li>{t("welle_b3.md.streuung")} <b>±{nf(wahr.streuung)}</b></li>
+                  </ul>
+                  <p className="md-hinweis">{t("welle_b3.md.darin")}</p>
+                </>
+              ) : (
+                <p>
+                  {wahr.quelle === "rohdaten"
+                    ? t("tag_t1.medien.zahl_rohdaten", {
+                        bis: (wahr.rohdatenBis ?? world.day) - world.day,
                       })
                     : t("tag_t1.medien.zahl_start")}
-              </p>
+                </p>
+              )}
               {wahr.verbot && <p className="md-warn">{t("medien.ui.verbot")}</p>}
               {wahr.schublade && <p className="md-hinweis">{t("medien.ui.schublade", { institut: wahr.schublade })}</p>}
               <div className="md-griff-fuss">

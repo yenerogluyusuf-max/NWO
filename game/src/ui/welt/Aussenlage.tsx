@@ -110,8 +110,13 @@ function Lage({ world, lage }: { world: World; lage: ReturnType<typeof aussenLag
               {sanktionsStaende(world).map((s) => (
                 <li key={s.id}>
                   <b>{akteurName(s.von)}</b>: {t(`aussen.ui.sanktion.${s.id}`)}
-                  <p className="al-klein">{s.bedingung} {t("aussen.ui.zaehler", { n: s.zaehler, noetig: s.noetig })}</p>
-                  <p className="al-klein">{s.wege}</p>
+                  {/* Welle B3: der Zähler als Balken mit Zahl, die Bedingung als eine Zeile, die Wege zum Aufklappen */}
+                  <span className="al-zaehler">
+                    <span className="al-zaehler-spur" aria-hidden><i style={{ width: `${Math.round((100 * s.zaehler) / Math.max(1, s.noetig))}%` }} /></span>
+                    {t("aussen.ui.zaehler", { n: s.zaehler, noetig: s.noetig })}
+                  </span>
+                  <p className="al-klein">{s.bedingung}</p>
+                  <details className="al-wege"><summary>{t("welle_b3.al.wege")}</summary><p className="al-klein">{s.wege.replace(/^[^:]{1,12}:\s*/, "")}</p></details>
                 </li>
               ))}
             </ul>
@@ -127,7 +132,10 @@ function Lage({ world, lage }: { world: World; lage: ReturnType<typeof aussenLag
             </>
           )}
           {world.economy.sanktionsLast && (world.economy.sanktionsLast.risiko > 0 || world.economy.sanktionsLast.nachfrage > 0) && (
-            <p className="al-klein">{t("aussen.ui.sanktion_last", { risiko: Math.round(world.economy.sanktionsLast.risiko), nachfrage: Math.round(world.economy.sanktionsLast.nachfrage * 10) / 10 })}</p>
+            <ul className="rr-kosten al-last" aria-label={t("aussen.ui.sanktion_last", { risiko: Math.round(world.economy.sanktionsLast.risiko), nachfrage: Math.round(world.economy.sanktionsLast.nachfrage * 10) / 10 })}>
+              <li>{t("welle_b3.al.risiko")} <b>+{Math.round(world.economy.sanktionsLast.risiko)}</b></li>
+              <li>{t("welle_b3.al.nachfrage")} <b>−{zahl(Math.round(world.economy.sanktionsLast.nachfrage * 10) / 10, 1)}</b></li>
+            </ul>
           )}
           <h3>{t("aussen.ui.diaspora")}</h3>
           <div className="al-zeile">

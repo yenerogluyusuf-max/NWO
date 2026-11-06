@@ -47,7 +47,7 @@ import { Verlauf } from "./reich/Verlauf";
 import { t, aktuelleLocale, zahl } from "../i18n";
 import { t as tx } from "../i18n";
 import "./reich/reich.css";
-import { Bauhilfe } from "./reich/Bauhilfe";
+import { Bauhilfe, bauhilfeWerte } from "./reich/Bauhilfe";
 import { RechtLage } from "./reich/RechtLage";
 import { ohneBeleg } from "../i18n/ohne-beleg";
 
@@ -297,10 +297,18 @@ function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich
       {/* Wie die Reihenfolge wirkt, steht bei der Baustelle des Landes in der aufklappbaren Bauhilfe; sie nannte Pause und Aufgeben schon */}
       {pool === "land" ? (
         <Bauhilfe world={world}>
-          {liste.length > 0 && <p>{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("tag_t3.bau.schaetzung")}</p>}
+          {liste.length > 0 && <p className="bauhilfe-satz">{t("welle_b3.bau.reihe")}</p>}
         </Bauhilfe>
-      ) : liste.length > 0 && <p className="rr-hinweis">{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("ui.Reich.119c095")}</p>}
-      {ruestung > 0 && <p className="rr-hinweis">{t("n6.bau.ruestungHinweis", { n: ruestung, cap: Math.round(ruestungsKapazitaet(world)) })}</p>}
+      ) : liste.length > 0 && (
+        // Welle B3: die Regeln der Reihenfolge als Plaketten mit den gebuchten Zahlen statt zweier Absätze
+        <ul className="rr-kosten bs-regeln">
+          <li>{t("welle_b3.bau.erster")}</li>
+          <li>{t("welle_b3.bau.vorziehen")}: <b>{t("welle_b3.bau.vorziehenPreis", bauhilfeWerte().vorziehen)}</b></li>
+          <li>{t("welle_b3.bau.pause")}: <b>{t("welle_b3.bau.pausePreis", bauhilfeWerte().pause)}</b></li>
+          <li>{t("welle_b3.bau.aufgeben")}: <b>{t("welle_b3.bau.aufgebenPreis")}</b></li>
+        </ul>
+      )}
+      {ruestung > 0 && <p className="rr-hinweis">{t("welle_b3.bau.ruestung", { n: ruestung, cap: Math.round(ruestungsKapazitaet(world)) })}</p>}
     </section>
   );
 }

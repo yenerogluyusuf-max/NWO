@@ -20,8 +20,15 @@ for(const lang of ['de','en','tr'] as const)test(`${lang}: Krisenregel, Gegenfin
  expect(bank).toContain(t('balance.zinsschritt',{wert:lang==='en'?'12.5':'12,5'}));
  const h=haushaltZustand(w);h.wirksam={personal:2};
  const bau=renderToStaticMarkup(createElement(Bauhilfe,{world:w}));
- // Nacht N6: Pausenverfall und Preis des Vorziehens stehen als Zahl aus den Spielparametern im Text (bauhilfeWerte)
- for(const k of ['bautitel','baupause','bauprioritaet','baupersonal'])expect(bau).toContain(t(`balance.${k}`,(bauhilfeWerte() as Record<string,Record<string,string|number>>)[k]??{}));
+ // Nacht N6: Pausenverfall und Preis des Vorziehens stehen als Zahl aus den Spielparametern im Text (bauhilfeWerte).
+ // Welle B3 (ENTSCHEIDUNGEN Z): Die Hebel stehen als Tabelle mit Preis und Wirkung statt als Absätze; geprüft werden dieselben Zahlen
+ // aus den Spielparametern in den Zellen (Pause, Vorziehen, Personaletat) und der Titel.
+ const werte=bauhilfeWerte();
+ expect(bau).toContain(t('balance.bautitel'));
+ expect(bau).toContain(t('welle_b3.bau.pausePreis',werte.pause));
+ expect(bau).toContain(t('welle_b3.bau.vorziehenPreis',werte.vorziehen));
+ expect(bau).toContain(t('welle_b3.bau.personalPreis',werte.personal));
+ expect(bau).toContain(t('welle_b3.bau.personalWirkung',werte.personal));
  expect(bau).toContain('<summary>');
  const reich=renderToStaticMarkup(createElement(Reich,{world:w,bereich:'infrastruktur',refresh:()=>{}}));
  expect(reich).toContain(t('balance.bautitel'));

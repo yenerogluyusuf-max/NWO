@@ -170,3 +170,7 @@
   .fk-blatt { left: 6px; right: 6px; width: auto; top: auto; max-height: 72%; }
   .fk-aktiv { min-width: 0; max-width: 100%; flex: 1 1 100%; }
 }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): das Blatt eines Fokus und die Medaillen der Äste in Pergament statt Weiß */
+.fk-blatt { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); }
+.fk-medaille { background: var(--papier-2); }

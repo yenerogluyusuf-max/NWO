@@ -97,3 +97,11 @@
 .rr-baustelle .bauhilfe summary { font: 600 var(--schrift-2) var(--serif); color: var(--tinte-2); }
 .rr-baustelle .bauhilfe[open] { padding: var(--abstand-2) var(--abstand-3); border: 1px solid var(--linie-stark); border-radius: var(--rund-2); background: var(--papier-1); }
 .rr-baustelle .bauhilfe + .rr-hinweis { margin: var(--abstand-1) 0 0; }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): Kacheln, Detail und offene Bauhilfe als Pergamentkarten statt weißer Flächen */
+.lk-marke { background: var(--papier-2); }
+.lk-kachel, .dossier button.lk-kachel { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.dossier button.lk-kachel:hover { background: var(--papier-3); }
+.dossier button.lk-vorteil.aktiv { background: var(--papier-3); }
+.lk-detail { background: var(--papier-2); border: 1px solid var(--messing-2); box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.rr-baustelle .bauhilfe[open] { padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; background: var(--papier-2); }

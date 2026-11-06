@@ -10,6 +10,7 @@ import { kannZahlen } from "../../sim/kapital";
 import { formatDateDe } from "../../sim/dates";
 import {
   ART_NAMEN,
+  KATASTROPHE,
   beginneWiederaufbau,
   fallSicht,
   hilfsketteSicht,
@@ -148,10 +149,12 @@ export function FallKarte({ w, sicht, refresh, melde, onGehe }: { w: World; sich
 
       <Kennzahlen w={w} fall={fall} nebelBekannt={sicht.nebel === "bekannt"} />
       {sicht.nebel === "bekannt" && (fall.verhindert.tote > 0 || fall.verhindert.wohnungen > 0) && (
-        <p className="kr-klein">
-          {t("ui2.ui.katastrophe.Faelle.b355043", { p0: fall.bereitschaft, p1: nf(fall.verhindert.tote) })}
-          {fall.verhindert.wohnungen > 0 ? t("ui2.ui.katastrophe.Faelle.dd09a10", { p0: nf(fall.verhindert.wohnungen) }) : ""} (Bandbreite ±25 %).
-        </p>
+        // Welle B3: Die verhinderten Zahlen stehen schon unter den Kennzahlen; hier nur noch Bereitschaft, Referenz und Bandbreite
+        <ul className="rr-kosten kr-modell">
+          <li>{t("welle_b3.kr.bereitschaft")} <b>{t("welle_b3.kr.von100", { n: fall.bereitschaft })}</b></li>
+          <li>{t("welle_b3.kr.referenz")} <b>{KATASTROPHE.bereitReferenz}</b></li>
+          <li>{t("welle_b3.kr.bandbreite")} <b>±25 %</b></li>
+        </ul>
       )}
 
       <Hilfskette stufen={kette} aktionen={aktionen} />

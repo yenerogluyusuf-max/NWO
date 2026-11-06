@@ -1,11 +1,19 @@
+/* Bauhilfe als Karte des Haushaltskopfs: Kennzahlen, ein Satz, eine kleine Tabelle der Hebel (Welle B3, ENTSCHEIDUNGEN Z) */
 .bauhilfe {
-  margin: 10px 0; padding: 10px 12px; min-width: 0;
-  border: 1px solid rgba(90, 64, 40, .24); border-radius: 6px;
-  background: rgba(255, 250, 235, .6); color: var(--ink);
-  font: 400 var(--schrift-2)/1.5 var(--serif); overflow-wrap: anywhere;
+  margin: 10px 0; padding: 10px 14px; min-width: 0;
+  border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px;
+  background: var(--papier-2); color: var(--tinte-1);
+  font: 400 var(--schrift-2)/1.45 var(--serif); overflow-wrap: anywhere;
 }
-.bauhilfe summary { cursor: pointer; font-weight: 600; }
-.bauhilfe summary:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; }
-.bauhilfe p { margin: 9px 0; }
-.bauhilfe ul { margin: 8px 0 0; padding-inline-start: 20px; }
-.bauhilfe li + li { margin-top: 8px; }
+.bauhilfe summary { cursor: pointer; font-weight: 600; color: var(--tinte-2); }
+.bauhilfe summary:focus-visible { outline: 2px solid var(--siegel); outline-offset: 4px; }
+.bauhilfe[open] summary { margin-bottom: 8px; }
+.bauhilfe-kz { display: flex; flex-wrap: wrap; gap: 6px 28px; margin: 0 0 4px; }
+.bauhilfe-kz div { display: grid; gap: 1px; }
+.bauhilfe-kz dt { font: var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.bauhilfe-kz dd { margin: 0; font: 600 var(--schrift-5)/1.1 var(--display, Fraunces, serif); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.bauhilfe-kz .schlecht dd { color: var(--siegel); }
+.bauhilfe-satz { margin: 4px 0 8px; font-style: italic; color: var(--tinte-2); }
+.bauhilfe-tabelle th, .bauhilfe-tabelle td { text-align: left !important; vertical-align: top; padding: 4px 8px; }
+.bauhilfe-tabelle tbody th { font-weight: 600; color: var(--tinte-1); white-space: nowrap; }
+.bauhilfe-tabelle td { color: var(--tinte-2); }

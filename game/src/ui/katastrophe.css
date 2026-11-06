@@ -190,3 +190,21 @@
   .kr-hebel-raster { grid-template-columns: minmax(0, 1fr); }
   .kr-hebel-spalten { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): Fälle, Versprechen, Bereitschaft und Kacheln als Pergamentkarten wie der Haushaltskopf statt heller
+   Blätter; der farbige Rand links bleibt das Zeichen der Art. */
+.kr-fall, .kr-versprechen-liste li, .kr-bereit, .kr-gefahr, .kr-szenario, .kr-wahltag, .kr-leer, .kr-kachel, .kr-hebel-detail {
+  background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); border-radius: 6px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1);
+}
+.kr-fall { border-left-color: var(--siegel); }
+.kr-versprechen-liste li { border-left-color: var(--messing-2); }
+.kr-wahltag.malus { border-color: var(--siegel); }
+.kr-status, .kr-chip, .kr-szenario-wahl select { background: var(--papier-2); }
+.kr-zahl { background: var(--papier-3); border-color: rgba(90, 64, 40, 0.22); border-radius: 4px; }
+.kr-modell { margin: 0; }
+.kr-wahltag-zahlen { display: flex; flex-wrap: wrap; gap: 8px 32px; margin: 0; }
+.kr-wahltag-zahlen div { display: grid; gap: 2px; }
+.kr-wahltag-zahlen dt { font: 600 var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); }
+.kr-wahltag-zahlen dd { margin: 0; font: 600 var(--schrift-5)/1.1 var(--display, Fraunces, serif); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.kr-wahltag-zahlen dd small { display: block; font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); }
+.kr-wahltag-zahlen .schlecht dd { color: var(--siegel); }
