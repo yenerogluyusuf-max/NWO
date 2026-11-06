@@ -48,7 +48,7 @@
  "ui2.ui.Chronik.7be9d26": "Was geschah",
  "ui2.ui.Erklaerung.0105a20": "Mehr erklären",
  "ui2.ui.Erklaerung.21f2bd4": "Begriffe erklärt ({p0})",
- "ui2.ui.Erklaerung.22265ed": "Im Spiel ist „{p0}“ ein Index von 0 bis 100. Der Vergleich zeigt die echte Größe dahinter, wie sie zuletzt gemessen wurde; er ändert sich mit Ihrem Spielstand nicht.",
+ "ui2.ui.Erklaerung.22265ed": "Im Spiel ist „{p0}“ ein Index von 0 bis 100. Der Vergleich zeigt die echte Größe dahinter, wie sie zuletzt gemessen wurde; er ändert sich mit deinem Spielstand nicht.",
  "ui2.ui.Erklaerung.34a01ce": "Weniger anzeigen",
  "ui2.ui.Erklaerung.39d21fd": "erhöht es",
  "ui2.ui.Erklaerung.7eb3571": "Für „{p0}“ hinterlegt das Spiel keinen internationalen Vergleich.",
