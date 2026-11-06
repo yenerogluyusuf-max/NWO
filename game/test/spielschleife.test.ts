@@ -93,12 +93,14 @@ describe("Ortsbezug: Bau vor Ort", () => {
   });
 });
 
+// Seit N4 setzt den Mindestlohn die Kommission fest (data/rechtswege.ts, test/nacht-n4.test.ts); das Musterbeispiel für ein Gesetz
+// über das Parlament ist hier das Kindergeld.
 describe("Politisches Kapital und Parlament", () => {
   test("Ein Gesetz kostet Kapital und wird nach 21 Tagen abgestimmt", () => {
     const w = spiel();
     mehrheit(w);
     const kapital = w.spiel!.kapital;
-    const r = bringeEin(w, "m_mindestlohn", 75, null, "gesetz");
+    const r = bringeEin(w, "m_kindergeld", 75, null, "gesetz");
     expect(r.ok).toBe(true);
     expect(w.spiel!.kapital).toBeLessThan(kapital);
     expect(w.spiel!.gesetze).toHaveLength(1);
@@ -106,9 +108,9 @@ describe("Politisches Kapital und Parlament", () => {
     expect(w.spiel!.gesetze).toHaveLength(1);
     advance(w, 2);
     expect(w.spiel!.gesetze).toHaveLength(0);
-    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament nimmt „Kindergeld/.test(l.text))).toBe(true);
     advance(w, 60);
-    expect(nationalAverage(NET, w.net, "m_mindestlohn")).toBeGreaterThan(70);
+    expect(nationalAverage(NET, w.net, "m_kindergeld")).toBeGreaterThan(70);
   });
 
   test("Ohne Mehrheit scheitert das Gesetz, das Kapital ist verloren", () => {
@@ -116,26 +118,30 @@ describe("Politisches Kapital und Parlament", () => {
     keineMehrheit(w);
     expect(stimmenSicht(w).luecke).toBeGreaterThan(50);
     const kapital = w.spiel!.kapital;
-    bringeEin(w, "m_mindestlohn", 75, null, "gesetz");
+    bringeEin(w, "m_kindergeld", 75, null, "gesetz");
     const nachEinbringen = w.spiel!.kapital;
     expect(nachEinbringen).toBeLessThan(kapital);
     advance(w, 25);
-    expect(w.log.some((l) => /^Das Parlament lehnt „Mindestlohn/.test(l.text))).toBe(true);
-    expect(nationalAverage(NET, w.net, "m_mindestlohn")).toBeLessThan(55);
+    expect(w.log.some((l) => /^Das Parlament lehnt „Kindergeld/.test(l.text))).toBe(true);
+    expect(nationalAverage(NET, w.net, "m_kindergeld")).toBeLessThan(55);
   });
 
-  test("Stimmen lassen sich kaufen und machen das Gesetz mehrheitsfähig", () => {
+  test("Stimmen lassen sich gewinnen und machen das Gesetz mehrheitsfähig", () => {
     const w = spiel();
-    keineMehrheit(w);
-    bringeEin(w, "m_mindestlohn", 75, null, "gesetz");
-    const luecke = stimmenSicht(w).luecke;
+    // Seit N4 (B-10) kommen gewonnene Stimmen von benannten Abgeordneten, höchstens ein Achtel je Fraktion. Damit die Lücke
+    // erreichbar bleibt, steht hier nur die eigene Partei mit dem größten Partner im Lager.
+    const [gross] = Object.entries(w.parliament!.seats).filter(([p]) => p !== w.player!.partei.kurz).sort((a, b) => b[1] - a[1]);
+    w.spiel!.lager = [gross![0]];
+    bringeEin(w, "m_kindergeld", 75, null, "gesetz");
+    const g = w.spiel!.gesetze[0]!;
     w.spiel!.kapital = 150;
-    const r = stimmenKaufen(w, w.spiel!.gesetze[0]!.id, luecke + 30);
+    const r = stimmenKaufen(w, g.id, 40);
     expect(r.ok).toBe(true);
-    // Der Kauf ist ein Geschäft ohne Nachspiel: keine Zusage an „Fraktionen“, die später als Rechnung wiederkehrt
+    expect(g.absprachen).toBeGreaterThan(0);
+    // Keine Sammelzusage an „Fraktionen“; Zusagen gehen, wenn überhaupt, an eine benannte Fraktion
     expect(w.spiel!.zusagen.some((z) => z.von === "Fraktionen")).toBe(false);
     advance(w, 22);
-    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament nimmt „Kindergeld/.test(l.text))).toBe(true);
   });
 
   test("Alte Spielstände: Zusagen an „Fraktionen“ und ihre Ereignisse verschwinden", () => {
@@ -149,34 +155,39 @@ describe("Politisches Kapital und Parlament", () => {
   test("Ohne genug Kapital wird nichts eingebracht", () => {
     const w = spiel();
     w.spiel!.kapital = -19;
-    const r = bringeEin(w, "m_mindestlohn", 90, null, "gesetz");
+    const r = bringeEin(w, "m_kindergeld", 90, null, "gesetz");
     expect(r.ok).toBe(false);
-    expect(r.text).toMatch(/fehlt Politisches Kapital/);
+    expect(r.text).toMatch(/fehlt Kapital/);
     expect(w.spiel!.gesetze).toHaveLength(0);
   });
 
-  test("Erlass nur in Sicherheit und Außenbeziehungen, sofort wirksam, teurer", () => {
+  test("Erlass nur in Sicherheit und Außenbeziehungen, nie für Haushaltsgeld, sofort wirksam, teurer", () => {
     const w = spiel();
-    // Mit Katalogeintrag entscheidet der Katalog (gv_polizei: Grundrechte, kein Erlass); geprüft wird eine Sicherheitsmaßnahme ohne Eintrag
-    expect(erlassMoeglich("m_polizeitechnik")).toBe(true);
-    expect(erlassMoeglich("m_mindestlohn")).toBe(false);
-    const nein = bringeEin(w, "m_mindestlohn", 75, null, "erlass");
+    // Seit N4 (B-4, Art. 161): Was Geld kostet, lässt sich per Erlass nicht ausweiten (m_polizeitechnik kostet Geld); ein Erlass
+    // bleibt für Kürzungen und für Maßnahmen ohne Kosten, etwa die Beförderung im Obersten Militärrat.
+    expect(erlassMoeglich("m_polizeitechnik", 1)).toBe(false);
+    expect(erlassMoeglich("m_polizeitechnik", -1)).toBe(true);
+    expect(erlassMoeglich("m_offiziersauswahl", 1)).toBe(true);
+    expect(erlassMoeglich("m_kindergeld")).toBe(false);
+    const nein = bringeEin(w, "m_kindergeld", 75, null, "erlass");
     expect(nein.ok).toBe(false);
     expect(pruefeVorhaben(w, "m_polizei", 80).erlass.moeglich).toBe(false);
-    const pr = pruefeVorhaben(w, "m_polizeitechnik", 80);
+    const id = "m_offiziersauswahl";
+    const ziel = Math.min(100, Math.round(nationalAverage(NET, w.net, id)) + 30);
+    const pr = pruefeVorhaben(w, id, ziel);
     expect(pr.erlass.pk).toBeGreaterThan(pr.gesetz.pk);
-    const ja = bringeEin(w, "m_polizeitechnik", 80, null, "erlass");
+    const ja = bringeEin(w, id, ziel, null, "erlass");
     expect(ja.ok).toBe(true);
     expect(w.spiel!.gesetze).toHaveLength(0);
     advance(w, 30);
-    expect(nationalAverage(NET, w.net, "m_polizeitechnik")).toBeGreaterThan(nationalAverage(NET, spiel().net, "m_polizeitechnik"));
+    expect(nationalAverage(NET, w.net, id)).toBeGreaterThan(nationalAverage(NET, spiel().net, id));
   });
 
   test("Doppeltes Einbringen derselben Maßnahme wird abgelehnt", () => {
     const w = spiel();
     mehrheit(w);
-    bringeEin(w, "m_mindestlohn", 75, null, "gesetz");
-    const r = bringeEin(w, "m_mindestlohn", 90, null, "gesetz");
+    bringeEin(w, "m_kindergeld", 75, null, "gesetz");
+    const r = bringeEin(w, "m_kindergeld", 90, null, "gesetz");
     expect(r.ok).toBe(false);
   });
 });

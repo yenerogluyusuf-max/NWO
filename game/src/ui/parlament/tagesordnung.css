@@ -22,3 +22,66 @@ button.to-titel:hover { color: var(--seal, var(--siegel)); }
 .to-zahl { margin-right: auto; }
 .to-leer { padding: 18px; text-align: center; color: var(--leder); }
 .to-leer p { margin: 0 0 10px; }
+
+/* Der Weg eines Gesetzes als Bild (befund-B B-7): sechs Stationen auf einer Messinglinie */
+.to-weg { list-style: none; margin: 0; padding: 14px 10px 10px; display: grid; grid-template-columns: repeat(6, 1fr); position: relative;
+  background: linear-gradient(180deg, rgba(244, 234, 210, 0.9), rgba(236, 222, 190, 0.9)); border: 1px solid var(--messing-rand, rgba(140, 110, 60, 0.35)); border-radius: 8px; }
+.to-weg::before { content: ""; position: absolute; left: 8%; right: 8%; top: 29px; height: 2px; background: linear-gradient(90deg, #a88a4c, #c9ad6a, #a88a4c); opacity: 0.7; }
+.to-station { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 0 4px; z-index: 1; }
+.to-punkt { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: "Marcellus SC", serif; font-size: 14px;
+  background: #f6eed9; border: 2px solid #b39a63; color: #6b5338; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset; }
+.to-station b { font-family: "Marcellus SC", serif; font-weight: 400; font-size: 13px; letter-spacing: 0.04em; color: #3a2a1d; }
+.to-station small { font-size: 11.5px; line-height: 1.25; color: #6b5338; max-width: 15ch; }
+.to-station.jetzt .to-punkt { background: var(--seal, #8f2a1e); border-color: #6e1f16; color: #fbf3df; box-shadow: 0 0 0 4px rgba(143, 42, 30, 0.15); }
+.to-station.jetzt b { color: var(--seal, #8f2a1e); }
+.to-station.vorbei .to-punkt { background: #5d4231; border-color: #4a3426; color: #f4ead2; }
+.to-weg-klein { padding: 8px 6px 4px; margin: 8px 0 2px; background: none; border: 0; }
+.to-weg-klein::before { top: 19px; }
+.to-weg-klein .to-punkt { width: 22px; height: 22px; font-size: 12px; }
+.to-weg-klein .to-station b { font-size: 12px; }
+.to-weg-klein .to-station small { font-size: 11px; }
+.to-ziel { margin-left: auto; font-size: 13px; color: #5a4632; }
+.to-hinweis { margin: 6px 0 0; font-size: 13px; color: #5a4632; }
+.to-warnung { margin: 6px 0 0; font-size: 13px; color: var(--seal, #8f2a1e); }
+.to-streit { margin: 4px 0 0; font-size: 13px; color: #4a3828; font-style: italic; }
+.to-ausschuss { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 6px; padding: 8px 10px; border-radius: 6px; background: rgba(176, 138, 46, 0.08); }
+/* Absprachen mit Gesichtern */
+.to-absprachen { margin-top: 8px; border-top: 1px dashed rgba(120, 90, 50, 0.35); padding-top: 8px; }
+.to-absprachen-kopf { margin: 0 0 6px; font-family: "Marcellus SC", serif; font-size: 12.5px; letter-spacing: 0.05em; color: #6b5338; }
+.to-absprachen ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.to-absprache { display: grid; grid-template-columns: minmax(150px, 1.2fr) minmax(170px, 1.6fr) auto auto; align-items: center; gap: 10px;
+  padding: 6px 10px; border-radius: 6px; background: #fbf5e6; border: 1px solid rgba(140, 110, 60, 0.25); }
+.to-abs-wer, .to-abs-was { display: flex; flex-direction: column; line-height: 1.25; }
+.to-abs-wer small, .to-abs-was small { font-size: 12px; color: #6b5338; }
+.to-abs-risiko { font-size: 12px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.to-abs-risiko.r-gering { background: rgba(93, 66, 49, 0.1); color: #5d4231; }
+.to-abs-risiko.r-mittel { background: rgba(176, 138, 46, 0.18); color: #7a5a14; }
+.to-abs-risiko.r-hoch { background: rgba(143, 42, 30, 0.14); color: var(--seal, #8f2a1e); }
+/* Kommission: fünfzehn Stühle */
+.to-kommission { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.to-kommission p { margin: 0; font-size: 13px; color: #3a2a1d; }
+.to-kom-sitze { display: grid; grid-template-columns: repeat(15, 10px); gap: 3px; }
+.to-kom-sitze i { width: 10px; height: 10px; border-radius: 50%; }
+.to-kom-sitze .staat { background: var(--seal, #8f2a1e); }
+.to-kom-sitze .an { background: #5d4231; }
+.to-kom-sitze .ag { background: #c9ad6a; }
+.to-zeile.to-art-kommission { border-left: 4px solid #c9ad6a; }
+.to-zeile.to-unterschrift { border-left: 4px solid var(--seal, #8f2a1e); background: #fbf2e0; }
+.to-zeile.to-unterschrift p { margin: 6px 0; font-size: 13.5px; }
+/* Ausnahmezustand */
+.to-notstand.aktiv { border-left: 4px solid var(--seal, #8f2a1e); }
+.to-frist { height: 8px; border-radius: 4px; margin: 8px 0 2px; background: rgba(143, 42, 30, 0.14); overflow: hidden; }
+.to-frist i { display: block; height: 100%; background: linear-gradient(90deg, #8f2a1e, #b0452f); }
+.to-notstand p { margin: 4px 0; font-size: 13px; }
+/* Leerer Zustand und Katalog */
+.to-leer { text-align: left; }
+.to-leer h4, .to-katalog summary { font-family: "Marcellus SC", serif; font-weight: 400; font-size: 14px; letter-spacing: 0.05em; color: #6b5338; margin: 12px 0 6px; }
+.to-katalog summary { cursor: pointer; }
+.to-vorhaben-liste { list-style: none; margin: 0 0 10px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.to-vorhaben { padding: 10px 12px; border-radius: 6px; background: var(--pergament, #f4ead2); border: 1px solid rgba(140, 110, 60, 0.3); }
+.to-vorhaben p { margin: 4px 0 0; font-size: 13px; color: #3a2a1d; }
+.to-vorhaben .to-lager { display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+.to-anlass { white-space: nowrap; display: inline-block; margin: 4px 0 0 8px; font-size: 11.5px; padding: 1px 7px; border-radius: 9px; background: rgba(143, 42, 30, 0.12); color: var(--seal, #8f2a1e); }
+.to-punkt { position: relative; }
+.to-zahl-marke { position: absolute; top: -8px; right: -12px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; font: 700 11px/18px var(--serif, serif); font-style: normal;
+  background: #2e2118; color: #f4ead2; border: 1px solid #f4ead2; }

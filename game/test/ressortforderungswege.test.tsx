@@ -37,7 +37,7 @@ afterEach(async()=>{await setzeSprache('de')});
 
 test('Forderung erhält mehrere passende Maßnahmen samt Preis, Umsetzung und echter Votumsfrist',()=>{
  const w=welt(),s=save(w),pl=ressortForderungsMassnahmen(w,ref(w));expect(pl.length).toBeGreaterThan(1);expect(pl.some(p=>p.fach.begrenzt)).toBe(true);expect(pl.some(p=>p.aktion.art==='etat')).toBe(true);expect(save(w)).toBe(s);
- for(const p of pl){expect(p.fach.id).toBe('kriminalitaet');expect(p.pk).toBeGreaterThanOrEqual(0);expect(p.fach.monate).toBeGreaterThanOrEqual(0);if(p.aktion.art==='gesetz'){expect(p.votum!.tag).toBeGreaterThan(w.day);expect(p.votum!.luecke).toBe(Math.max(0,301-p.votum!.ja));}}
+ for(const p of pl){expect(p.fach.id).toBe('kriminalitaet');expect(p.pk).toBeGreaterThanOrEqual(0);expect(p.fach.monate).toBeGreaterThanOrEqual(0);if(p.aktion.art==='gesetz'){expect(p.votum!.tag).toBeGreaterThan(w.day);expect(p.votum!.luecke).toBe(Math.max(0,p.votum!.schwelle-p.votum!.ja));}}
 });
 test('Annahmevorschau gibt keinen Rückhalt beim Einbringen; echte Messforderung bleibt offen',()=>{
  const w=welt(),p=gesetz(w),pk=w.spiel!.kapital,vor=JSON.stringify(spur(w).rueckhalt!.forderungen),hist=JSON.stringify(spur(w).meldungen);expect(p).toBeDefined();expect(p.annahme).toBeDefined();expect(fuehreRessortForderungsHilfeAus(w,p).ok).toBe(true);
@@ -54,8 +54,9 @@ test.each(['duldung','koalition'] as const)('%s zeigt und erzeugt dieselben fest
  const w=welt(),p=ressortForderungsPlan(w,ref(w),gesetz(w).aktion,{art,partei:'CHP'})!;expect(p.moeglich).toBe(true);expect(p.zusagen.length).toBeGreaterThan(0);expect(p.zusagen[0]!.stufeZiel).toBeDefined();expect(fuehreRessortForderungsHilfeAus(w,p).ok).toBe(true);
  expect(w.spiel!.zusagen).toEqual(p.zusagen);expect(spur(w).rueckhalt!.forderungen[0]!.status).toBe('offen');expect(haushaltsStand(w)).toEqual(p.sofort);
 });
+// Seit N4 gilt für Gesetze die Mehrheit der Anwesenden (Art. 96): Die Schwelle steht in der Prognose (votum.schwelle) statt fest 301
 test('Stimmenabsprachen zeigen tatsächlichen Preis und buchen den Puffer nur einmal',()=>{
- const w=welt();w.spiel!.lager=[];const a=gesetz(w).aktion,p=ressortForderungsPlan(w,ref(w),a,{art:'absprache'})!;expect(p.moeglich).toBe(true);expect(p.votum!.ja).toBeGreaterThanOrEqual(301);const pk=w.spiel!.kapital;expect(fuehreRessortForderungsHilfeAus(w,p).ok).toBe(true);expect(w.spiel!.kapital).toBe(pk-p.pk);const s=save(w);expect(fuehreRessortForderungsHilfeAus(w,p).ok).toBe(false);expect(save(w)).toBe(s);
+ const w=welt();w.spiel!.lager=[];const a=gesetz(w).aktion,p=ressortForderungsPlan(w,ref(w),a,{art:'absprache'})!;expect(p.moeglich).toBe(true);expect(p.votum!.ja).toBeGreaterThanOrEqual(p.votum!.schwelle);const pk=w.spiel!.kapital;expect(fuehreRessortForderungsHilfeAus(w,p).ok).toBe(true);expect(w.spiel!.kapital).toBe(pk-p.pk);const s=save(w);expect(fuehreRessortForderungsHilfeAus(w,p).ok).toBe(false);expect(save(w)).toBe(s);
 });
 test('laufendes Gesetz wird nicht dupliziert; Unterstützung kann später separat ausgehandelt werden',()=>{
  const w=welt(),p=gesetz(w);fuehreRessortForderungsHilfeAus(w,p);const lauf=ressortForderungsMassnahmen(w,ref(w)).find(p=>p.aktion.art==='laufend')!;expect(lauf.moeglich).toBe(false);const h=renderToStaticMarkup(<RessortHilfeKarte world={w} p={lauf} onTun={()=>{}}/>);expect(h).toContain(t('rh.laufend'));expect(h).not.toContain(t('rh.einbringen'));

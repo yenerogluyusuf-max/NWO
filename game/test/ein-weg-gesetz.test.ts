@@ -76,7 +76,8 @@ describe("Freie Stufe als Fassung", () => {
     const g = w.spiel!.gesetze.find((x) => x.massnahme === v.massnahme)!;
     expect(g.vorhaben).toBe("gv_mindestlohn");
     expect(g.fassung).toBe("kompromiss");
-    expect(g.name).toContain("Mindestlohngesetz");
+    // Seit N4 heißt der Eintrag „Mindestlohnrunde“: Den Mindestlohn setzt die Kommission fest, kein Gesetz (B-4)
+    expect(g.name).toContain("Mindestlohnrunde");
     g.absprachen = 600;
     w.day = g.abstimmung;
     gesetzeAbstimmen(w, new Rng(3));

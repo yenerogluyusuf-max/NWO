@@ -1,5 +1,5 @@
 {
- "protokoll.gesetz.ja": "Das Parlament nimmt „{name}“ {ort} an ({ja} zu {nein}). Stufe {stufe}.",
+ "protokoll.gesetz.ja": "Das Parlament nimmt „{name}“ {ort} an ({ja} zu {nein}). Neu gilt: „{stufe}“.",
  "protokoll.gesetz.ja_warum": "{text} Umsetzung läuft über etwa {monate, plural, one {# Monat} other {# Monate}}.",
  "protokoll.gesetz.nein": "Das Parlament lehnt „{name}“ ab ({ja} zu {nein}).",
  "protokoll.gesetz.nein_warum": "Das eingesetzte Kapital ({pk}) ist verloren, die Regierung wirkt geschwächt. Es fehlten {fehlen} Stimmen; ein Rückzug vor der Abstimmung hätte {gerettet} Kapital gerettet.",

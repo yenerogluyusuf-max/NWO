@@ -299,7 +299,7 @@ export function faellig(world: World): Faellig[] {
       titel: t("sk.f.gesetz.titel", { name: g.name }),
       tage,
       dringend: tage <= 14 && s.luecke > 0,
-      unter: `${t("sk.f.gesetz.unter", { wann: tageWort(tage), ja: s.ja, noetig: REGELN.mehrheit })}${s.luecke > 0 ? t("sk.f.gesetz.fehlt", { n: s.luecke }) : ""}`,
+      unter: `${t("sk.f.gesetz.unter", { wann: tageWort(tage), ja: s.ja, noetig: s.schwelle })}${s.luecke > 0 ? t("sk.f.gesetz.fehlt", { n: s.luecke }) : ""}`,
       knopf: { art: "gehe", label: s.luecke > 0 ? t("sk.f.gesetz.suchen") : t("sk.f.ansehen"), ziel: { art: "akte", akte: "parlament" } },
     });
   }

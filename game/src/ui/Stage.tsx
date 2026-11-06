@@ -1032,6 +1032,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 teil={dossier === "parlament" ? "parlament" : "beschluesse"}
                 world={w}
                 onAendern={(x) => { setPolitikStart({ offen: x }); setDossier("politik"); }}
+                onTagesordnung={() => setDossier("gesetze")}
                 refresh={() => { refresh(); sichere(true); }}
                 onBerichtOeffnen={(b) => {
                   setAktiverBericht(b);

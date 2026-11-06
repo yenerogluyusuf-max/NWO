@@ -27,6 +27,7 @@ import { vertrauenAendern, wirke } from "./wirkung";
 import { GRUPPEN, GRUPPEN_SUMME } from "./gruppen";
 import { bereitschaftAendern, duldung } from "./fraktionen";
 import { REGELN } from "./handeln";
+import { datenFelder } from "../i18n/daten";
 import { reichZustand } from "./reich";
 import { AEMTER, eigenVon, loyalitaetVerschieben } from "./personen";
 import { landAendern } from "./laender";
@@ -120,6 +121,10 @@ export interface VerfassungsArtikel {
  * Der Katalog: sechs Artikel mit je zwei bis drei Varianten (Spielparameter; die Sachverhalte stehen in
  * data/reich/recht.ts und RECHERCHE_VERTIEFUNG_MACHT_KAPITAL.md, Abschnitt 14d).
  */
+/** Varianten, deren Name hier fest deutsch steht (Übersetzung über datenFelder unten). */
+const FESTE_NAMEN = new Set(["amtszeit.unveraendert", "amtszeit.wiederwahl_plus", "amtszeit.unbegrenzt", "amtszeit.neuwahl_jetzt", "amtszeitlaenge.jahre_4",
+  "amtszeitlaenge.jahre_7", "justiz.acht_sieben", "notstand.eng", "notstand.unveraendert", "notstand.weit", "immunitaet.unveraendert"]);
+
 export const ARTIKEL: VerfassungsArtikel[] = [
   {
     id: "amtszeit",
@@ -373,6 +378,13 @@ export const ARTIKEL: VerfassungsArtikel[] = [
     ],
   },
 ];
+
+// I-3 (befund-I): Die Namen, die noch fest deutsch im Katalog oben stehen, kommen in Türkisch und Englisch aus dem Katalog
+// (daten.verfassung.<artikel>[.<variante>].name in nacht_n4.json). Nur Anzeigefelder; der Code vergleicht nie mit dem Namen.
+datenFelder("verfassung", ARTIKEL.flatMap((a) => [
+  ...(a.id === "notstand" ? [{ id: a.id, obj: a, feld: "name" }] : []),
+  ...a.varianten.filter((v) => FESTE_NAMEN.has(`${a.id}.${v.id}`)).map((v) => ({ id: `${a.id}.${v.id}`, obj: v, feld: "name" })),
+]));
 
 const ARTIKEL_NACH_ID = new Map(ARTIKEL.map((a) => [a.id, a]));
 const VARIANTE_NACH_ID = new Map<string, VerfassungsVariante>(ARTIKEL.flatMap((a) => a.varianten.map((v) => [v.id, v])));

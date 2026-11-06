@@ -266,9 +266,9 @@ describe("Vier-Preise-Regel", () => {
     const hochS = pruefeVorhaben(w, "m_schulbau", 70);
     const runterS = pruefeVorhaben(w, "m_schulbau", 20);
     expect(runterS.gesetz.pk / hochS.gesetz.pk).toBeCloseTo(REGELN.streichFaktor, 1);
-    // Der Exit-Hinweis steht in der Prüfung
-    expect(runter.hinweise.some((h) => h.startsWith("Exit-Preis"))).toBe(true);
-    expect(hoch.hinweise.some((h) => h.startsWith("Exit-Preis"))).toBe(false);
+    // Der Hinweis zum Rücknahmepreis steht in der Prüfung (Wortlaut seit N4 aus dem Katalog, ohne „Exit-Preis“, befund-B B-40)
+    expect(runter.hinweise.some((h) => h.startsWith("Zurücknehmen ist teurer"))).toBe(true);
+    expect(hoch.hinweise.some((h) => h.startsWith("Zurücknehmen ist teurer"))).toBe(false);
   });
 
   test("Politische Dauerbelastung zehrt am Kapital, Leistungen am Haushalt", () => {

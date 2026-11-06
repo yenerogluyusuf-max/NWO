@@ -27,6 +27,19 @@ export interface Gesetz {
   fassung?: import("../data/gesetzesvorhaben").FassungId;
   /** Ja-Stimmen, die die Fassung zusätzlich holt (Kompromiss) oder kostet (scharf) */
   stimmenBonus?: number;
+  /** Nicht das Parlament, sondern die Mindestlohnkommission entscheidet (data/rechtswege.ts); ohne Feld: Gesetz */
+  weg?: "kommission";
+  /** Bis zu diesem Tag berät der Fachausschuss (sim/handeln.ts REGELN.ausschussTage); ältere Spielstände haben es nicht */
+  ausschussBis?: number;
+  /** Ergebnis im Ausschuss: offen, unverändert, vom Ausschuss abgeschwächt, oder vom Präsidenten selbst als Kompromiss angeboten */
+  ausschuss?: "offen" | "unveraendert" | "geaendert" | "kompromiss";
+  /** Stufe und Fassung, wie die Fraktion den Entwurf eingebracht hat (vor einer Änderung im Ausschuss) */
+  urStufe?: number;
+  urFassung?: import("../data/gesetzesvorhaben").FassungId;
+  /** Vom Präsidenten zurückgesandt (Art. 89): Die Wiederannahme braucht die absolute Mehrheit der Mitglieder */
+  rueckgabe?: boolean;
+  /** Benannte Absprachen mit Abgeordneten (sim/fraktionen-absprachen.ts) */
+  zusagenListe?: import("./fraktionen-absprachen").Absprache[];
 }
 
 export interface Figur {

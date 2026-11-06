@@ -10,7 +10,7 @@ import type { Bericht } from "../../sim/berichte";
 import { skala, skalenArt, stufenName, tunWort } from "../../data/skalen";
 import "./design.css";
 
-import { t } from "../../i18n";
+import { t, zahl } from "../../i18n";
 export interface OffeneUmsetzung {
   id: string;
   name: string;
@@ -20,7 +20,8 @@ export interface OffeneUmsetzung {
   ort?: number[];
 }
 
-const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+/** Kosten mit einer Nachkommastelle in der Sprache des Spielers (befund-B B-23) */
+const nf = (x: number) => zahl(x, 1);
 
 /** Kurzurteil eines Berichts: das feinere Urteil (`phase`), sonst das alte (`urteil`). */
 function urteilVon(b: Bericht): { wort: string; klasse: "gut" | "warn" | "schlecht" | "still" } {
@@ -65,6 +66,8 @@ export function UmsetzungAkte({
   const berichte = [...(spiel?.berichte ?? [])].reverse();
   const beobachtet = spiel?.beobachtungen?.length ?? 0;
   const sichtBeschluesse = alleBeschluesse ? beschluesse : beschluesse.slice(0, 10);
+  // Gezählt wird nur, was in Kraft gesetzt wurde: kein eingebrachter Entwurf, keine „Ziele der Amtszeit“ (B-23)
+  const inKraft = beschluesse.filter((l) => l.beschluss || l.abstimmung?.angenommen).length;
 
   return (
     <div className="pd-umsetzung">
@@ -92,8 +95,8 @@ export function UmsetzungAkte({
             <span>{wirksam === 0 ? t("ui2.ui.politik.UmsetzungAkte.1e68ece") : nf(Math.abs(wirksam)) === nf(Math.abs(beschlossen)) ? t("ui2.ui.politik.UmsetzungAkte.voll") : t("ui2.ui.politik.UmsetzungAkte.b1c11a3", { p0: nf(Math.abs(wirksam)) })}</span>
           </li>
           <li>
-            <b>{beschluesse.length}</b>
-            <span>{t("ui.politik.UmsetzungAkte.00c5907")}</span>
+            <b>{inKraft}</b>
+            <span>{t("n4.bb.beschluesse", { n: inKraft })}</span>
           </li>
           <li className={offen.length > 0 ? "hell" : ""}>
             <b>{offen.length}</b>
@@ -168,7 +171,7 @@ export function UmsetzungAkte({
         {berichte.length === 0 ? (
           <p className="pd-leise">
             {beobachtet > 0
-              ? t("ui2.ui.politik.UmsetzungAkte.b65a475", { p0: beobachtet, p1: beobachtet === 1 ? "Beschluss wird" : "Beschlüsse werden" })
+              ? t("n4.bb.beobachtet", { n: beobachtet })
               : t("ui2.ui.politik.UmsetzungAkte.406517e")}
           </p>
         ) : (

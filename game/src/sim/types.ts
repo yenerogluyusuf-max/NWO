@@ -159,7 +159,7 @@ export type LogKind = "entscheidung" | "ereignis" | "statistik" | "markt";
 
 export interface LogEntry {
   /** Strukturierte Abstimmung im Parlament: Oberfläche, Zeitung und Bilanz lesen dieses Feld, nicht den (übersetzten) Text. */
-  abstimmung?: { art: "gesetz" | "haushalt"; name: string; ort: string; ja: number; nein: number; angenommen: boolean; stufe?: number };
+  abstimmung?: { art: "gesetz" | "haushalt"; name: string; ort: string; ja: number; nein: number; angenommen: boolean; stufe?: number; abwesend?: number };
   /** Strukturiertes Votum: bleibt nach Sprachwechsel und späteren Wahlen korrekt abspielbar. */
   versorgungsvotum?: { programm: import("./versorgungspolitik").VersorgungsProgramm; stimmen: import("./versorgungsmehrheit").VersorgungsStimme[] };
   day: number;
@@ -168,6 +168,9 @@ export interface LogEntry {
   text: string;
   /** Kurze Begründung, die „Warum?“ beantwortet */
   why?: string;
+  /** Dieser Eintrag setzt etwas in Kraft (Gesetz verkündet, Erlass, Präsidialbeschluss, Kommissionsbeschluss, Ausnahmezustand);
+   *  die Umsetzungsakte zählt nur diese als Beschlüsse (befund-B B-23) */
+  beschluss?: "gesetz" | "erlass" | "beschluss" | "kommission" | "notstand";
 }
 
 export interface World {

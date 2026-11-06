@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { createWorld, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
-import { bringeEin, gesetzPrognose, gesetzSicht, gesetzWeltAmVotum, gesetzeAbstimmen, stimmenKaufen, stufeIn } from "../src/sim/handeln";
+import { GESETZ_SCHWELLE, bringeEin, gesetzPrognose, gesetzSicht, gesetzWeltAmVotum, gesetzeAbstimmen, plenumAbstimmung, stimmenKaufen, stimmenPreis, stufeIn } from "../src/sim/handeln";
+import { absprachenAngebote } from "../src/sim/fraktionen-absprachen";
 import { fraktion } from "../src/sim/fraktionen";
 import { addDays } from "../src/sim/dates";
 import { Beschlussbuch } from "../src/ui/Beschlussbuch";
@@ -35,8 +36,9 @@ describe("Gesetzesprognose im Parlament",()=>{
     const {w,g}=beispiel();g.absprachen=83;g.stimmenBonus=7;
     const erwartet=gesetzSicht({...w,day:g.abstimmung,date:addDays(w.date,g.abstimmung-w.day)},g);
     expect(erwartet.ja).not.toBe(gesetzSicht(w,g).ja);
-    const html=renderToStaticMarkup(<Beschlussbuch world={w} refresh={()=>{}}/>);
-    expect(html).toContain(t("ui2.ui.Beschlussbuch.4a67f56",{p0:erwartet.ja,p1:301}));
+    // Seit N4 stehen laufende Gesetze nur in der Tagesordnung (B-20); die Zahl ist dieselbe wie am Abstimmungstag
+    const html=renderToStaticMarkup(<Tagesordnung world={w} refresh={()=>{}} onMassnahme={()=>{}} onHaushalt={()=>{}} onVerfassung={()=>{}} onPolitik={()=>{}}/>);
+    expect(html).toContain(t("n4.to.erwartet",{ja:erwartet.ja,schwelle:erwartet.schwelle}));
   });
   test.each([17,-80,1200])("Halbrund und tatsächliche Rechnung stimmen auch bei Bonus %s überein",bonus=>{
     const {w,g}=beispiel();fraktion(w,"CHP").duldungBis=w.day+100;g.absprachen=30;g.stimmenBonus=bonus;
@@ -76,7 +78,7 @@ describe("Gesetzesprognose im Parlament",()=>{
     const p=gesetzPrognose(w,g),v=GESETZESVORHABEN.find(v=>v.id==="gv_renten")!;
     expect(laufendeVerfahren(w).parlament[0]!.ja).toBe(p.ja);
     expect(vorhabenSicht(w,v,new Set()).imParlament?.ja).toBe(p.ja);
-    expect(faellig(w).find(f=>f.id===`g-${g.id}`)!.unter).toContain(t("sk.f.gesetz.unter",{wann:t("sk.tage",{n:g.abstimmung-w.day}),ja:p.ja,noetig:301}));
+    expect(faellig(w).find(f=>f.id===`g-${g.id}`)!.unter).toContain(t("sk.f.gesetz.unter",{wann:t("sk.tage",{n:g.abstimmung-w.day}),ja:p.ja,noetig:p.schwelle}));
   });
   test("das Halbrund hält seine Grenzen auch bei starken Fassungseffekten und großen Absprachen ein",()=>{
     const {w,g}=beispiel();
@@ -92,15 +94,23 @@ describe("Gesetzesprognose im Parlament",()=>{
     const vergleich=new Rng(91),streuung=Math.round(vergleich.normal(6));
     w.date=p.datum;w.day=p.tag;
     const ergebnis=gesetzeAbstimmen(w,new Rng(91))[0]!;
-    expect(ergebnis.ja).toBe(Math.max(0,Math.min(600,p.ja+streuung)));
-    expect(ergebnis.angenommen).toBe(ergebnis.ja>=301);
+    // Seit N4 zählt Art. 96 unter den Anwesenden: Aus den Unterstützern (Prognose plus Streuung) folgt das Ergebnis über plenumAbstimmung
+    const e=plenumAbstimmung(w,g.id,Math.max(0,Math.min(600,p.ja+streuung)));
+    expect(ergebnis.ja).toBe(e.ja);
+    expect(ergebnis.nein).toBe(e.nein);
+    expect(ergebnis.angenommen).toBe(e.angenommen);
   });
   test("die empfohlene Absprache erreicht den Puffer und bucht den gezeigten Preis",()=>{
     const {w,g}=beispiel();g.stimmenBonus=-100;const p=gesetzPrognose(w,g);
+    // Seit N4 (B-10) kommen die Stimmen aus benannten Absprachen; Preis und Stimmen zeigt stimmenPreis vorher an, jede Absprache
+    // kostet die Aufmerksamkeit eines Gesprächs
     expect(p.noetig).toBeGreaterThan(0);const kapital=w.spiel!.kapital,aufmerksamkeit=verfassungVon(w).aufmerksamkeit;
+    const preis=stimmenPreis(w,g,p.noetig);
     expect(stimmenKaufen(w,g.id,p.noetig).ok).toBe(true);
-    expect(w.spiel!.kapital).toBe(kapital-p.kosten);expect(verfassungVon(w).aufmerksamkeit).toBe(aufmerksamkeit-3);
-    expect(gesetzPrognose(w,g).ja).toBe(309);expect(gesetzPrognose(w,g).noetig).toBe(0);
+    const deals=(g.zusagenListe??[]).length;
+    expect(w.spiel!.kapital).toBe(kapital-preis.kapital);expect(verfassungVon(w).aufmerksamkeit).toBe(aufmerksamkeit-3*deals);
+    expect(gesetzPrognose(w,g).ja).toBe(p.ja+preis.stimmen);
+    if(preis.stimmen>=p.noetig)expect(gesetzPrognose(w,g).noetig).toBe(0);
   });
   test.each(["de","en","tr"] as const)("Prognosekarte erklärt Fristen und Grenzen auf %s",async lang=>{
     await setzeSprache(lang);const {w,g}=beispiel(),p=gesetzPrognose(w,g);
@@ -117,14 +127,15 @@ describe("Gesetzesprognose im Parlament",()=>{
   test("die Tagesordnung zeigt das eingebrachte Gesetz mit derselben Zahl wie die Prognose (ein Weg zum Gesetz)",()=>{
     const {w,g}=beispiel();g.vorhaben="gv_renten";g.stimmenBonus=-130;
     const p=gesetzPrognose(w,g),html=renderToStaticMarkup(<Tagesordnung world={w} refresh={()=>{}} onMassnahme={()=>{}} onHaushalt={()=>{}} onVerfassung={()=>{}} onPolitik={()=>{}}/>);
-    expect(html).toContain(t("to.erwartet",{ja:p.ja,schwelle:301}));expect(html).toContain(g.name);
+    expect(html).toContain(t("n4.to.erwartet",{ja:p.ja,schwelle:p.schwelle}));expect(html).toContain(g.name);
   });
   test("ein unbezahlbarer Stimmenpuffer bleibt als gesperrte Handlung mit Preis sichtbar",()=>{
-    const {w,g}=beispiel();g.stimmenBonus=(g.stimmenBonus??0)+304-gesetzPrognose(w,g).ja;w.spiel!.kapital=-30;
-    const p=gesetzPrognose(w,g);expect(p.ja).toBe(304);expect(p.bezahlbar).toBe(false);
-    const html=renderToStaticMarkup(<Beschlussbuch world={w} refresh={()=>{}}/>);
-    expect(html).toMatch(/class="pd-btn primary" disabled=""[^>]*>[^<]*<b>3<\/b>/);
-    expect(html).toContain(t("gp.aufmerksamkeit",{n:3}));
-    expect(html).toContain(t("ui2.ui.Beschlussbuch.3bd8b02",{p0:3,p1:-30}));
+    // Seit N4 (B-10): Absprachen mit benannten Abgeordneten in der Tagesordnung; ohne Kapital sind sie gesperrt, der Preis steht da
+    const {w,g}=beispiel();g.stimmenBonus=(g.stimmenBonus??0)+GESETZ_SCHWELLE+3-gesetzPrognose(w,g).ja;w.spiel!.kapital=-30;
+    const p=gesetzPrognose(w,g);expect(p.ja).toBe(GESETZ_SCHWELLE+3);expect(p.noetig).toBeGreaterThan(0);
+    const a=absprachenAngebote(w,g)[0]!;
+    const html=renderToStaticMarkup(<Tagesordnung world={w} refresh={()=>{}} onMassnahme={()=>{}} onHaushalt={()=>{}} onVerfassung={()=>{}} onPolitik={()=>{}}/>);
+    expect(html).toContain(a.wer);
+    expect(html).toMatch(new RegExp(`class="pd-btn" disabled=""[^>]*>[^<]*<b>${a.kapital}</b>`));
   });
 });

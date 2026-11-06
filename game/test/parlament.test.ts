@@ -182,10 +182,12 @@ describe("Abstimmungen im Protokoll", () => {
     for (const l of neu) {
       const ab = leseAbstimmung(l)!;
       expect(ab).not.toBeNull();
-      expect(ab.ja + ab.nein).toBe(600);
+      // Seit N4 zählt Art. 96 die Anwesenden: Ja, Nein und Abwesende ergeben zusammen 600 Sitze
+      expect(ab.ja + ab.nein + (ab.abwesend ?? 0)).toBe(600);
       const v = baueVerlauf(w, ab, speicher.get(ab.name) ?? [])!;
       expect(v.votum).toHaveLength(600);
       expect(v.jaKum[599]).toBe(ab.ja);
+      expect(v.neinKum[599]).toBe(ab.nein);
     }
     expect(letzteAbstimmungen(w, 10).length).toBe(neu.length);
   });

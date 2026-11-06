@@ -10,11 +10,12 @@ import type { World } from "../sim/types";
 
 import { t } from "../i18n";
 import { t as tx } from "../i18n";
+// Titel als Getter: Sie folgen der aktuellen Sprache (I-6)
 const ARTEN: { id: NodeSpec["kind"]; titel: string }[] = [
-  { id: "massnahme", titel: "Maßnahmen" },
-  { id: "groesse", titel: "Größen" },
-  { id: "problem", titel: "Probleme" },
-  { id: "gruppe", titel: "Wählergruppen" },
+  { id: "massnahme", get titel() { return t("n4.nv.art.massnahme"); } },
+  { id: "groesse", get titel() { return t("n4.nv.art.groesse"); } },
+  { id: "problem", get titel() { return t("n4.nv.art.problem"); } },
+  { id: "gruppe", get titel() { return t("n4.nv.art.gruppe"); } },
 ];
 
 const THEMEN_ORDNUNG: Theme[] = ["wirtschaft", "haushalt", "arbeit", "gesundheit", "bildung", "infrastruktur", "energie", "landwirtschaft", "wohnen", "sicherheit", "recht", "militaer", "kultur", "gesellschaft", "aussen", "gruppen"];
@@ -31,7 +32,7 @@ function Zeile({ node, world, gewaehlt, onSelect }: { node: NodeSpec; world: Wor
       <span className="nav-name">{node.name}</span>
       <span className="nav-wert">
         {node.kind === "problem" ? (
-          akut > 0 ? <b className="akut">{akut} akut</b> : <em>ruhig</em>
+          akut > 0 ? <b className="akut">{t("n4.nv.akut", { n: akut })}</b> : <em>{t("n4.nv.ruhig")}</em>
         ) : node.input ? (
           <em>{tx("ui2.ui.NetNavigator.a2eae7c")}</em>
         ) : (
@@ -80,7 +81,7 @@ export function NetNavigator({ world, selectedId, onSelect }: { world: World; se
       </p>
       <input className="nav-suche" type="search" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={tx("ui2.ui.NetNavigator.50b9af6")} aria-label={t("ui.NetNavigator.206237c")} />
       <div className="nav-art" role="group" aria-label={t("ui.NetNavigator.cc81be7")}>
-        {[{ id: "alle" as const, titel: "Alle" }, ...ARTEN.slice(0, 3)].map((a) => (
+        {[{ id: "alle" as const, titel: t("n4.nv.alle") }, ...ARTEN.slice(0, 3)].map((a) => (
           <button key={a.id} className={art === a.id ? "on" : ""} onClick={() => setArt(a.id)}>
             {a.titel}
           </button>
@@ -90,7 +91,7 @@ export function NetNavigator({ world, selectedId, onSelect }: { world: World; se
       {q ? (
         <div className="nav-treffer">
           <h4>
-            {treffer.length} {treffer.length === 1 ? tx("ui2.ui.NetNavigator.2404b90") : tx("ui2.ui.NetNavigator.2404b90")}
+            {t("n4.nv.treffer", { n: treffer.length })}
           </h4>
           {treffer.length === 0 && <p className="subtitle">{t("ui.NetNavigator.41e213c")}</p>}
           {ARTEN.map((a) => {

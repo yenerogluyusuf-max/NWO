@@ -1,5 +1,5 @@
 {
- "protokoll.gesetz.ja": "Meclis „{name}“ yasasını {ort} kabul ediyor ({ja} kabul, {nein} ret). Kademe {stufe}.",
+ "protokoll.gesetz.ja": "Meclis “{name}” kanununu {ort} kabul etti ({ja} kabul, {nein} ret). Yeni düzey: “{stufe}”.",
  "protokoll.gesetz.ja_warum": "{text} Uygulama yaklaşık {monate} ay sürüyor.",
  "protokoll.gesetz.nein": "Meclis „{name}“ yasasını reddediyor ({ja} kabul, {nein} ret).",
  "protokoll.gesetz.nein_warum": "Harcanan siyasi sermaye ({pk}) kayboldu, hükümet zayıf görünüyor. {fehlen} oy eksikti; oylamadan önce geri çekmek {gerettet} sermayeyi kurtarırdı.",

@@ -5,6 +5,7 @@ import { PARTNER_START_LOYALITAET } from "../../sim/figuren";
 import { KOALITIONSBRUCH_LOYALITAET, naechsteKoalitionspruefung } from "../../sim/koalitionslage";
 import { addDays, formatDateDe } from "../../sim/dates";
 import { t, zahl } from "../../i18n";
+import { stufenName } from "../../data/skalen";
 
 /** Sichtbare Bedingungen direkt am Abschluss; keine eigene Verhandlungsregel. */
 export function FraktionsAbkommen({world,fraktion:f,onVerhandlung}:{world:World;fraktion:FraktionSicht;onVerhandlung:(art:Verhandlung)=>void}) {
@@ -14,8 +15,8 @@ export function FraktionsAbkommen({world,fraktion:f,onVerhandlung}:{world:World;
     {f.zusagenziel && <div className="fa-ziel">
       <b>{f.zusagenziel.name}</b>
       <dl>
-        <div><dt>{t("fa.ausgang")}</dt><dd>{f.zusagenziel.startName ?? t("fa.stufe",{n:zahl(f.zusagenziel.stufeStart,1)})}</dd></div>
-        <div><dt>{t("fa.ziel")}</dt><dd>{f.zusagenziel.zielName ?? t("fa.stufe",{n:zahl(f.zusagenziel.stufeZiel,0)})}</dd></div>
+        <div><dt>{t("fa.ausgang")}</dt><dd>{f.zusagenziel.startName ?? stufenName(f.zusagenziel.massnahme,f.zusagenziel.stufeStart)}</dd></div>
+        <div><dt>{t("fa.ziel")}</dt><dd>{f.zusagenziel.zielName ?? stufenName(f.zusagenziel.massnahme,f.zusagenziel.stufeZiel)}</dd></div>
       </dl>
       <p>{t("fa.zielFest")}</p>
       {f.zusagenziel.bereitsBeschlossen && <p>{t("fa.zielBeschlossen")}</p>}
