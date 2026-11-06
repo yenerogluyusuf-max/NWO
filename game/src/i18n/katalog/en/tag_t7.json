@@ -1,3 +1,4 @@
 {
- "tag_t7.sk.frei": "{n, plural, one {one slot free} other {# slots free}}"
+ "tag_t7.sk.frei": "{n, plural, one {one slot free} other {# slots free}}",
+ "tag_t7.tisch.hinweis": "Put a package together. You see the other side's verdict at once; only the offer itself costs capital."
 }
