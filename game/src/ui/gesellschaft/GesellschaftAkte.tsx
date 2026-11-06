@@ -1,11 +1,13 @@
 // Akte „Gesellschaft“: Lage (Kennzahlen mit Verlauf, Milieus), Opposition (Führung, Stärke, Züge, Instrumente), Straße (Bewegungen mit
 // Antworten und Vorschau), Rathäuser (Kommunen, nächste Wahl, Zwangsverwalter). Alles aus sim/gesellschaft.ts und den Nachbarmodulen.
+// Tagarbeit 6. November (T4): Instrumente in einer Reihe, die Züge der Opposition neben ihrer Führung, Rathäuser als kompakte Zeilen
+// je Region mit der Handlung auf Klick, und die ruhige Straße zeigt, welche Bewegung als nächste entstehen könnte.
 
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { gesellschaftLage, gesellschaftVon, milieuLage } from "../../sim/gesellschaft";
 import { oppositionInstrument, oppositionInstrumente, oppositionVon, parteiName, zielStaerke, type OppInstrument } from "../../sim/opposition";
-import { bewegungAntworten, bewegungenSicht } from "../../sim/bewegungen";
+import { ARTEN, BEWEGUNG, bewegungAntworten, bewegungenSicht } from "../../sim/bewegungen";
 import { istLagerPartei, kommunenVon, VERWALTER_KOSTEN, zwangsverwalterAbziehen, zwangsverwalterEinsetzen } from "../../sim/kommunen";
 import { PROVINZEN, REGION_DE } from "../../sim/regional";
 import { figur } from "../../sim/figuren";
@@ -18,6 +20,7 @@ import { prozent, vz } from "../waehler/format";
 import { NET } from "../../sim/modell";
 import { oppositionsEinfluss } from "../../sim/wahl";
 import { Icon } from "../icons";
+import { Knopf } from "../bausteine/Knopf";
 import "./gesellschaft.css";
 
 type Reiter = "lage" | "opposition" | "strasse" | "kommunen";
@@ -104,21 +107,17 @@ function Opposition({ world, onAktion }: { world: World; onAktion: (text: string
   const f = figur(world, "opposition");
   const instr = oppositionInstrumente(world);
   const ziel = Math.round(zielStaerke(world, o));
+  const zuege = o.zuege.slice(-6).reverse();
   return (
     <div className="ges-opp">
       <section className="ges-opp-kopf">
-        <Portraet seed={f?.name ?? o.partei} size={132} {...(f ? { geschlecht: f.weiblich ? "f" : "m" } : {})} rolle="opposition" stimmung={o.staerke > 60 ? "sicher" : o.verfahren > 1 ? "veraergert" : "ernst"} />
-        <div>
+        <Portraet seed={f?.name ?? o.partei} size={104} {...(f ? { geschlecht: f.weiblich ? "f" : "m" } : {})} rolle="opposition" stimmung={o.staerke > 60 ? "sicher" : o.verfahren > 1 ? "veraergert" : "ernst"} />
+        <div className="ges-opp-person">
           <p className="ges-kicker">{t("ges.opp.kicker")}</p>
           <h3>{f?.name ?? parteiName(o.partei)}</h3>
           <p className="ges-unter">{t("ges.opp.fuehrt", { partei: parteiName(o.partei) })}{o.buendnis.length ? " · " + t("ges.opp.buendnis", { mit: o.buendnis.map(parteiName).join(", ") }) : ""}</p>
-          <div className="ges-zeile breit">
-            <span>{t("ges.opp.staerke")}</span>
-            <Balken wert={o.staerke} warn={55} />
-            <em>{Math.round(o.staerke)}</em>
-          </div>
-          <p className="ges-unter">{t("ges.opp.ziel", { ziel })}</p>
-          <p className="ges-unter">{t("nacht_n2.opp.stand", { d: vz(oppositionsEinfluss(world)) })}</p>
+          {/* Die Stärke steht im Aktenkopf; hier, wohin sie strebt und was sie bei der Wahl ausmacht */}
+          <p className="ges-unter">{t("ges.opp.ziel", { ziel })} {t("nacht_n2.opp.stand", { d: vz(oppositionsEinfluss(world)) })}</p>
           <ul className="ges-marken">
             {o.verfahren >= 0.5 && <li>{t("ges.opp.marke.verfahren", { n: Math.round(o.verfahren) })}</li>}
             {o.maertyrer >= 5 && <li>{t("ges.opp.marke.maertyrer", { n: Math.round(o.maertyrer) })}</li>}
@@ -127,36 +126,53 @@ function Opposition({ world, onAktion }: { world: World; onAktion: (text: string
             {o.ausschussBis !== undefined && <li className="warn">{t("ges.opp.marke.ausschuss", { tage: o.ausschussBis - world.day })}</li>}
           </ul>
         </div>
+        <div className="ges-opp-zuege">
+          <h4 className="ges-kicker">{t("ges.opp.zuege")}</h4>
+          <ol className="ges-chronik">
+            {zuege.map((z) => (
+              <li key={z.tag + z.art}>
+                <time>{formatDateDe(z.datum)}</time> <strong>{t(`ges.opp.zugart.${z.art}`)}</strong> {z.text}
+              </li>
+            ))}
+            {zuege.length === 0 && <li className="leer">{t("ges.opp.keine_zuege")}</li>}
+          </ol>
+        </div>
       </section>
       <h3 className="ges-h">{t("ges.opp.instrumente")}</h3>
       <div className="ges-instrumente">
-        {instr.map((i) => (
-          <article key={i.id} className={`ges-instrument${i.moeglich ? "" : " gesperrt"}`}>
-            <header>
-              <strong>{t(`ges.opp.instrument.${i.id}`)}</strong>
-              <span className="ges-preis">{t("ges.preis", { k: i.kapital, a: i.aufmerksamkeit })}</span>
-            </header>
-            <ul>{i.folgen.map((x) => <li key={x}>{x}</li>)}</ul>
-            {i.staerkeSofort !== 0 && <p className="ges-vorschau">{t("ges.opp.vorschau", { d: `${i.staerkeSofort > 0 ? "+" : "−"}${Math.abs(i.staerkeSofort)}` })}</p>}
-            <p className={`ges-vorschau ges-wahl ${i.wahl.wahltag > 0.05 ? "gut" : i.wahl.wahltag < -0.05 ? "schlecht" : ""}`}>
-              {t("nacht_n2.opp.wahl", { heute: vz(i.wahl.heute), wahltag: vz(i.wahl.wahltag) })}
-              {i.wahl.heute > 0.05 && i.wahl.wahltag < 0 ? <em> {t("nacht_n2.opp.wahl_kehrt")}</em> : null}
-            </p>
-            <button type="button" className="brass-button" disabled={!i.moeglich} title={i.grund ?? ""} onClick={() => onAktion(oppositionInstrument(world, i.id as OppInstrument).text)}>
-              {i.moeglich ? t("ges.ausfuehren") : i.grund}
-            </button>
-          </article>
-        ))}
+        {instr.map((i) => {
+          const wahlTon = (x: number) => (x > 0.05 ? "gut" : x < -0.05 ? "schlecht" : "");
+          return (
+            <article key={i.id} className={`ges-instrument${i.moeglich ? "" : " gesperrt"}`}>
+              <header>
+                <strong>{t(`ges.opp.instrument.${i.id}`)}</strong>
+                <span className="ges-preis">{t("ges.preis", { k: i.kapital, a: i.aufmerksamkeit })}</span>
+              </header>
+              <ul>{i.folgen.map((x) => <li key={x}>{x}</li>)}</ul>
+              <dl className="ges-wirkung" title={t("nacht_n2.opp.wahl", { heute: vz(i.wahl.heute), wahltag: vz(i.wahl.wahltag) })}>
+                {i.staerkeSofort !== 0 && (
+                  <div>
+                    <dt>{t("tag_t4.opp.staerke_sofort")}</dt>
+                    <dd>{`${i.staerkeSofort > 0 ? "+" : "−"}${Math.abs(i.staerkeSofort)}`}</dd>
+                  </div>
+                )}
+                <div>
+                  <dt>{t("tag_t4.opp.wahl_heute")}</dt>
+                  <dd className={wahlTon(i.wahl.heute)}>{vz(i.wahl.heute)}</dd>
+                </div>
+                <div>
+                  <dt>{t("tag_t4.opp.wahl_tag")}</dt>
+                  <dd className={wahlTon(i.wahl.wahltag)}>{vz(i.wahl.wahltag)}</dd>
+                </div>
+              </dl>
+              {i.wahl.heute > 0.05 && i.wahl.wahltag < 0 ? <p className="ges-kehrt">{t("nacht_n2.opp.wahl_kehrt")}</p> : null}
+              <Knopf className="ges-tat" disabled={!i.moeglich} title={i.grund ?? ""} onClick={() => onAktion(oppositionInstrument(world, i.id as OppInstrument).text)}>
+                {i.moeglich ? t("ges.ausfuehren") : i.grund}
+              </Knopf>
+            </article>
+          );
+        })}
       </div>
-      <h3 className="ges-h">{t("ges.opp.zuege")}</h3>
-      <ol className="ges-chronik">
-        {o.zuege.slice(-8).reverse().map((z) => (
-          <li key={z.tag + z.art}>
-            <time>{formatDateDe(z.datum)}</time> <strong>{t(`ges.opp.zugart.${z.art}`)}</strong> {z.text}
-          </li>
-        ))}
-        {o.zuege.length === 0 && <li className="leer">{t("ges.opp.keine_zuege")}</li>}
-      </ol>
     </div>
   );
 }
@@ -165,43 +181,67 @@ function datumIn(w: World, tag: number): string {
   return new Date(Date.parse(w.date + "T00:00:00Z") + (tag - w.day) * 86_400_000).toISOString().slice(0, 10);
 }
 
-/** Ruhe auf der Straße: kein leeres Blatt, sondern Protestdruck und die Milieus mit dem meisten Groll (Gestaltung leerer Zustände). */
-function StrasseRuhig({ world }: { world: World }) {
-  const protest = gesellschaftLage(world).find((k) => k.id === "protest")?.wert ?? 0;
+/**
+ * Ruhe auf der Straße: kein leeres Blatt, sondern was als Nächstes auf die Straße käme. Links die Bewegungen mit dem höchsten Druck
+ * gegen die Schwelle, ab der sie entstehen können (dieselbe Rechnung wie sim/bewegungen.ts), rechts die Milieus mit dem meisten Groll;
+ * ein Klick auf ein Milieu öffnet die Lage mit seinen Ursachen. Der Protestdruck selbst steht im Aktenkopf.
+ */
+function StrasseRuhig({ world, onLage }: { world: World; onLage: () => void }) {
+  const g = gesellschaftVon(world);
+  const naechste = ARTEN.map((d) => ({ art: d.art, druck: Math.round(d.druck(world, g)) }))
+    .sort((a, b) => b.druck - a.druck)
+    .slice(0, 3);
   const milieus = [...milieuLage(world)].sort((a, b) => b.groll - a.groll).slice(0, 3);
   return (
     <section className="ges-ruhe">
-      <div className="ges-ruhe-zeichen" aria-hidden>
-        <Icon name="menge" size={44} />
+      <div className="ges-ruhe-links">
+        <div className="ges-ruhe-zeichen" aria-hidden>
+          <Icon name="menge" size={40} />
+        </div>
+        <div>
+          <h3>{t("nacht_n2.strasse.leer_titel")}</h3>
+          <p className="ges-unter">{t("tag_t4.strasse.leer_text", { schwelle: BEWEGUNG.schwelle })}</p>
+          <ul className="ges-ruhe-liste">
+            {naechste.map((n) => (
+              <li key={n.art}>
+                <span>{t(`ges.bew.art.${n.art}`)}</span>
+                <i className={`ges-druck${n.druck >= BEWEGUNG.schwelle - 10 ? " nah" : ""}`} aria-hidden>
+                  <b style={{ width: `${balken(n.druck)}%` }} />
+                  <u style={{ left: `${BEWEGUNG.schwelle}%` }} />
+                </i>
+                <em>{n.druck}</em>
+              </li>
+            ))}
+          </ul>
+          <p className="ges-legende">{t("tag_t4.strasse.legende", { schwelle: BEWEGUNG.schwelle })}</p>
+        </div>
       </div>
-      <div>
-        <h3>{t("nacht_n2.strasse.leer_titel")}</h3>
-        <p className="ges-unter">{t("nacht_n2.strasse.leer_text", { protest })}</p>
-        <ul className="ges-ruhe-liste">
-          <li className="kopf">
-            <span>{t("ges.kz.protest")}</span>
-            <Balken wert={protest} warn={50} />
-            <em>{protest}</em>
-          </li>
-          {milieus.map((m) => (
-            <li key={m.id}>
-              <span>{t("nacht_n2.strasse.milieu", { name: t(`ges.milieu.${m.id}`) })}</span>
+      <div className="ges-ruhe-rechts">
+        <h4 className="ges-kicker">{t("tag_t4.strasse.groll")}</h4>
+        {milieus.map((m) => (
+          <button key={m.id} type="button" className="ges-glut" onClick={onLage}>
+            <span className="ges-glut-kopf">
+              <strong>{t(`ges.milieu.${m.id}`)}</strong>
+              <span className={`ges-trend ${m.trend}`}>{t(`ges.trend.${m.trend}`)}</span>
+            </span>
+            <span className="ges-zeile">
+              <span>{t("ges.milieu.groll")}</span>
               <Balken wert={m.groll} warn={45} />
               <em>{m.groll}</em>
-            </li>
-          ))}
-        </ul>
+            </span>
+          </button>
+        ))}
       </div>
     </section>
   );
 }
 
-function Strasse({ world, onAktion }: { world: World; onAktion: (text: string) => void }) {
+function Strasse({ world, onAktion, onLage }: { world: World; onAktion: (text: string) => void; onLage: () => void }) {
   const liste = bewegungenSicht(world);
   const g = gesellschaftVon(world);
   return (
     <div className="ges-strasse">
-      {liste.length === 0 && <StrasseRuhig world={world} />}
+      {liste.length === 0 && <StrasseRuhig world={world} onLage={onLage} />}
       {liste.map(({ b, druck, antworten }) => (
         <article key={b.id} className={`ges-bewegung phase-${b.phase}`}>
           <header>
@@ -255,40 +295,81 @@ function Strasse({ world, onAktion }: { world: World; onAktion: (text: string) =
   );
 }
 
-function Kommunen({ world, onAktion }: { world: World; onAktion: (text: string) => void }) {
-  const k = kommunenVon(world);
+/**
+ * Die Regionen fest auf vier Spalten verteilt, damit eine geöffnete Stadt nichts in eine andere Spalte schiebt: die größten zuerst,
+ * jeweils in die kürzeste Spalte (je Spalte etwa gleich viele Zeilen); in der Spalte bleibt die Reihenfolge der Karte.
+ */
+const SPALTEN: string[][] = (() => {
   const regionen = [...new Set(PROVINZEN.map((p) => p.region))];
+  const zeilen = (reg: string) => PROVINZEN.filter((p) => p.region === reg).length + 2;
+  const spalten: { regionen: string[]; zeilen: number }[] = Array.from({ length: 4 }, () => ({ regionen: [], zeilen: 0 }));
+  for (const reg of [...regionen].sort((a, b) => zeilen(b) - zeilen(a))) {
+    const ziel = spalten.reduce((a, b) => (b.zeilen < a.zeilen ? b : a));
+    ziel.regionen.push(reg);
+    ziel.zeilen += zeilen(reg);
+  }
+  return spalten.map((s) => s.regionen.sort((a, b) => regionen.indexOf(a) - regionen.indexOf(b)));
+})();
+
+function Kommunen({ world, onAktion }: { world: World; onAktion: (text: string) => void }) {
+  const [offen, setOffen] = useState<number | null>(null);
+  const k = kommunenVon(world);
   const lager = Object.values(k.rathaus).filter((r) => istLagerPartei(world, r.partei)).length;
   const letzte = k.wahlen[k.wahlen.length - 1];
+  const handle = (text: string) => {
+    setOffen(null);
+    onAktion(text);
+  };
   return (
     <div className="ges-kommunen">
       <p className="ges-unter">
         {t("ges.kom.stand", { lager, naechste: formatDateDe(k.naechste) })}
-        {letzte ? " " + t("ges.kom.letzte", { d: formatDateDe(letzte.datum), vorher: letzte.lagerVorher, nachher: letzte.lagerNachher }) : ""}
+        {letzte ? " " + t("ges.kom.letzte", { d: formatDateDe(letzte.datum), vorher: letzte.lagerVorher, nachher: letzte.lagerNachher }) : ""}{" "}
+        {t("ges.kom.verwalter_hinweis", { k: VERWALTER_KOSTEN.kapital })} <span className="ges-legende">{t("tag_t4.kom.legende")}</span>
       </p>
-      <p className="ges-unter">{t("ges.kom.verwalter_hinweis", { k: VERWALTER_KOSTEN.kapital })}</p>
-      {regionen.map((reg) => (
-        <section key={reg} className="ges-region">
-          <h4>{REGION_DE[reg] ?? reg}</h4>
-          <div className="ges-rathaeuser">
-            {PROVINZEN.filter((p) => p.region === reg).map((p) => {
-              const r = k.rathaus[String(p.plaka)]!;
-              const eigen = istLagerPartei(world, r.partei);
-              return (
-                <div key={p.plaka} className={`ges-rathaus${eigen ? " lager" : ""}${r.verwalter ? " verwalter" : ""}`}>
-                  <span className="name">{p.name}</span>
-                  <span className="partei">{r.verwalter ? t("ges.kom.verwaltet") : parteiName(r.partei)}</span>
-                  {r.verwalter ? (
-                    <button type="button" onClick={() => onAktion(zwangsverwalterAbziehen(world, p.plaka).text)}>{t("ges.kom.abziehen")}</button>
-                  ) : !eigen ? (
-                    <button type="button" onClick={() => onAktion(zwangsverwalterEinsetzen(world, p.plaka).text)}>{t("ges.kom.einsetzen")}</button>
-                  ) : null}
-                </div>
-              );
+      <div className="ges-regionen">
+        {SPALTEN.map((spalte, i) => (
+          <div key={i} className="ges-spalte">
+            {spalte.map((reg) => {
+          const orte = PROVINZEN.filter((p) => p.region === reg);
+          const eigene = orte.filter((p) => istLagerPartei(world, k.rathaus[String(p.plaka)]!.partei)).length;
+          return (
+            <section key={reg} className="ges-region">
+              <h4>
+                {REGION_DE[reg] ?? reg} <span title={t("tag_t4.kom.region_lager", { lager: eigene, n: orte.length })}>{eigene}/{orte.length}</span>
+              </h4>
+              <ul>
+                {orte.map((p) => {
+                  const r = k.rathaus[String(p.plaka)]!;
+                  const eigen = istLagerPartei(world, r.partei);
+                  const auf = offen === p.plaka;
+                  return (
+                    <li key={p.plaka} className={`ges-rathaus${eigen ? " lager" : ""}${r.verwalter ? " verwalter" : ""}${auf ? " offen" : ""}`}>
+                      <button type="button" className="ges-rathaus-zeile" aria-expanded={auf} onClick={() => setOffen(auf ? null : p.plaka)}>
+                        <span className="name">{p.name}</span>
+                        <span className="partei">{r.verwalter ? t("ges.kom.verwaltet") : parteiName(r.partei)}</span>
+                      </button>
+                      {auf && (
+                        <div className="ges-rathaus-tat">
+                          {r.verwalter ? (
+                            <Knopf onClick={() => handle(zwangsverwalterAbziehen(world, p.plaka).text)}>{t("ges.kom.abziehen")}</Knopf>
+                          ) : !eigen ? (
+                            <Knopf onClick={() => handle(zwangsverwalterEinsetzen(world, p.plaka).text)}>{t("ges.kom.einsetzen")}</Knopf>
+                          ) : (
+                            <span>{t("ges.kom.grund.eigenes")}</span>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
             })}
           </div>
-        </section>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -323,7 +404,7 @@ export function GesellschaftAkte({ world, start = "lage", onAenderung }: { world
       )}
       {reiter === "lage" && <Lage world={world} />}
       {reiter === "opposition" && <Opposition world={world} onAktion={onAktion} />}
-      {reiter === "strasse" && <Strasse world={world} onAktion={onAktion} />}
+      {reiter === "strasse" && <Strasse world={world} onAktion={onAktion} onLage={() => setReiter("lage")} />}
       {reiter === "kommunen" && <Kommunen world={world} onAktion={onAktion} />}
     </div>
   );
