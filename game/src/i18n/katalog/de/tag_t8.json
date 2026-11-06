@@ -469,5 +469,7 @@
  "tag_t8.pakt.ansehen": "Ansehen −{n} (Rahmung „{rahmung}“).",
  "tag_t8.zeitung.neu": "Die Zeitung: Neue Ausgabe",
  "tag_t8.zeitung.ausgabe": "Ausgabe Nr. {nr}: {blaetter}.{lead}",
- "tag_t8.zeitung.lead": " Leitartikel: „{titel}\" ({blatt})."
+ "tag_t8.zeitung.lead": " Leitartikel: „{titel}\" ({blatt}).",
+ "tag_t8.zusage.gehalten": "Zusage gehalten: {text}",
+ "tag_t8.zusage.gebrochen": "Zusage gebrochen: {text}"
 }

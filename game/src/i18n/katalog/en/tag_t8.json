@@ -469,5 +469,7 @@
  "tag_t8.pakt.ansehen": "Prestige −{n} (framing “{rahmung}”).",
  "tag_t8.zeitung.neu": "The newspaper: new issue",
  "tag_t8.zeitung.ausgabe": "Issue no. {nr}: {blaetter}.{lead}",
- "tag_t8.zeitung.lead": " Lead story: “{titel}” ({blatt})."
+ "tag_t8.zeitung.lead": " Lead story: “{titel}” ({blatt}).",
+ "tag_t8.zusage.gehalten": "Pledge kept: {text}",
+ "tag_t8.zusage.gebrochen": "Pledge broken: {text}"
 }

@@ -469,5 +469,7 @@
  "tag_t8.pakt.ansehen": "İtibar −{n} (çerçeve “{rahmung}”).",
  "tag_t8.zeitung.neu": "Gazete: Yeni sayı",
  "tag_t8.zeitung.ausgabe": "{nr}. sayı: {blaetter}.{lead}",
- "tag_t8.zeitung.lead": " Manşet: “{titel}” ({blatt})."
+ "tag_t8.zeitung.lead": " Manşet: “{titel}” ({blatt}).",
+ "tag_t8.zusage.gehalten": "Söz tutuldu: {text}",
+ "tag_t8.zusage.gebrochen": "Söz bozuldu: {text}"
 }
