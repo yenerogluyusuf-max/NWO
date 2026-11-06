@@ -6,8 +6,8 @@
   "balance.bautitel": "How to speed up construction",
   "balance.baulage": "Administration: {vorrat} points available · monthly balance {saldo}. An exhausted reserve halves construction output. The balance is applied before the next construction step.",
   "balance.personal": "Already included in monthly administrative capacity: {wert} points from the staffing budget already in effect.",
-  "balance.baupause": "Defer competing projects: The construction queue allows pauses with no new political-capital charge. Progress is preserved; paused projects deliver their benefits later.",
-  "balance.bauprioritaet": "Move a factory forward: 10 administration points per position. Other projects wait longer; this does not increase an exhausted administration’s capacity.",
+  "balance.baupause": "Pause projects: capacity is freed, but a paused site loses {anteil} % of its building points every month. Abandoning a project forfeits the capital paid.",
+  "balance.bauprioritaet": "Move a project up: {n} administrative capacity per place. Other projects then wait longer; an exhausted administration does not get stronger this way.",
   "balance.baupersonal": "Increase staffing: Each budget step costs 0.4% of GDP per year and raises base administrative capacity by 5% after implementation begins. It needs funding and political approval. Research, education and digital administration help over the longer term.",
   "balance.knappUnter": "just below {wert}",
   "balance.knappUeber": "just above {wert}"

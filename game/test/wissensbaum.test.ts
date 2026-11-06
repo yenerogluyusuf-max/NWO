@@ -117,6 +117,9 @@ describe("Wissensbaum: Bildung öffnet, Forschung treibt, Abwanderung bremst", (
       expect(beginneKnoten(w, "bio_genomik").ok).toBe(true);
       const l = reichZustand(w).laufend.find((x) => x.id === "bio_genomik")!;
       l.vergabeBis = undefined;
+      // Nacht N6: Neue Aufträge reihen sich hinten ein; der Test prüft das Tempo, deshalb steht der Knoten vorn wie zuvor
+      const lauf = reichZustand(w).laufend;
+      lauf.unshift(...lauf.splice(lauf.indexOf(l), 1));
       for (let i = 0; i < 6; i++) reichMonat(w);
       return reichZustand(w).laufend.find((x) => x.id === "bio_genomik")?.fortschritt ?? Infinity;
     };

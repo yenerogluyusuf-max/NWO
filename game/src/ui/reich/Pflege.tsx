@@ -52,10 +52,10 @@ export function lohnendste(world: World, bereich: Bereich, n: number, mindestens
 
 /** In einem Wort, wie es um das Stück steht. */
 export function zustandWort(s: PflegeStand): string {
-  if (s.bezug === undefined) return s.zustand >= 85 ? "gut in Schuss" : s.zustand >= 60 ? "zeigt Alterung" : "verschlissen";
-  if (s.skala > 0.1) return "besser als zum Spielbeginn";
-  if (s.skala < -0.1) return "schlechter als zum Spielbeginn";
-  return "wie zum Spielbeginn";
+  if (s.bezug === undefined) return t(s.zustand >= 85 ? "n6.pf.gut" : s.zustand >= 60 ? "n6.pf.alterung" : "n6.pf.verschlissen");
+  if (s.skala > 0.1) return t("n6.pf.besser");
+  if (s.skala < -0.1) return t("n6.pf.schlechter");
+  return t("n6.pf.gleich");
 }
 
 function Zustandsbalken({ zustand, bezug }: { zustand: number; bezug?: number | undefined }) {
@@ -118,7 +118,7 @@ function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refr
           {laeuft ? (
             <p className="rp-satz">
               {t("ui2.ui.reich.Pflege.a59d1ee", { p0: Math.round(p!.fortschritt * 100) })}
-              {p!.status === "pausiert" ? ", ruht" : p!.restMonate ? t("ui2.ui.reich.Pflege.829dd4a", { p0: p!.restMonate, p1: p!.restMonate === 1 ? "Monat" : "Monate" }) : ""}.
+              {p!.status === "pausiert" ? t("n6.pf.ruht") : p!.restMonate ? t("ui2.ui.reich.Pflege.829dd4a", { p0: p!.restMonate, p1: t(p!.restMonate === 1 ? "n6.pf.monat" : "n6.pf.monate") }) : ""}.
             </p>
           ) : (
             <>

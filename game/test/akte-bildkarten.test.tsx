@@ -51,8 +51,16 @@ test("Lage von Sicherheit und Land zeigt Bildkarten in drei Sprachen, liest nur 
       const html = renderToStaticMarkup(createElement(BereichsAkte, {
         bereich, world: w, tabs: [{ id: tab, label: "Fachansicht" }], aktiverTab: tab, onTab: () => {}, reiter: "lage", onReiter: () => {}, children: null,
       }));
-      expect(html).toContain("gz-karte");
-      expect(html).toContain("ak-kopfbild");
+      // Nacht N6 (Befund F-9, F-12): Die Lage des Landes zeigt Regionen (Karte, Handlungsbedarf, Tabelle) statt einer Wiederholung der
+      // neuen Vorhaben als Bildkarten; die Sicherheit behält ihre Bildkarten
+      if (bereich === "land") {
+        expect(html).toContain("rl-karte");
+        expect(html).toContain("rl-regionen");
+        expect(html).not.toContain("gz-karte");
+      } else {
+        expect(html).toContain("gz-karte");
+        expect(html).toContain("ak-kopfbild");
+      }
       expect(html).not.toMatch(KAPUTT);
       expect(html).not.toContain("gz.");
     }

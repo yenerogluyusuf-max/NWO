@@ -330,13 +330,24 @@ describe("Katalog: Oberfläche", () => {
     const w = welt();
     const liste = vorhabenListe(w, "infrastruktur");
     const offen = liste.filter((s) => s.status !== "fertig" && s.status !== "im_bau" && s.status !== "pausiert" && (s.v.klasse !== "restaurierung" || !!s.v.vorlage));
-    const h = renderToStaticMarkup(createElement(Neues, { world: w, liste: offen, alle: liste, onBeginne: () => {}, ergebnisse: {}, refresh: () => {} }));
-    for (const t of ["Programme für Regionen", "Verkehr und Welt", "Energie und Wasser", "Städte", "Raumfahrt", "Künstliche Intelligenz", "Technologie", "Unrealistisch, aber möglich", "Meerestechnologie", "Biotechnologie", "Autobahn bis China", "Marsmission"]) {
+    // Nacht N6 (Befund F-1): Ein Raster mit Filtern statt aller Abschnitte untereinander. Die Themen stehen als Filter da;
+    // ein vorgewähltes Vorhaben öffnet seinen Filter und zeigt im Detail den Weg der Stufen.
+    const mit = (start?: string) => renderToStaticMarkup(createElement(Neues, { world: w, liste: offen, alle: liste, onBeginne: () => {}, ergebnisse: {}, refresh: () => {}, ...(start ? { start } : {}) }));
+    const h = mit();
+    for (const t of ["Programme für Regionen", "Verkehr und Welt", "Energie und Wasser", "Städte", "Raumfahrt", "Künstliche Intelligenz", "Technologie", "Visionen"]) {
       expect(h, t).toContain(t);
     }
-    expect(h).toContain("Weg der Stufen");
-    expect(h).toContain("Stufe 3");
-    expect(h).not.toContain("NaN");
-    expect(h).not.toContain("Instandsetzung:");
+    const tech = mit("meer_institut");
+    expect(tech).toContain("Meerestechnologie");
+    expect(tech).toContain("Biotechnologie");
+    const china = mit("welt_autobahn_china");
+    expect(china).toContain("Autobahn bis China");
+    expect(china).toContain("Weg der Stufen");
+    expect(mit("raum_mars")).toContain("Marsmission");
+    expect(mit("raum_mars")).toContain("Stufe");
+    for (const x of [h, tech, china]) {
+      expect(x).not.toContain("NaN");
+      expect(x).not.toContain("Instandsetzung:");
+    }
   });
 });

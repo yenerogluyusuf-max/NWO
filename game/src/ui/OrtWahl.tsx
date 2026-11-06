@@ -28,12 +28,12 @@ function useSchliessen(offen: boolean, zu: () => void) {
   return ref;
 }
 
-export function OrtWahl({ world, massnahmeId, ort, onChange }: { world: World; massnahmeId: string; ort: number[] | null; onChange: (o: number[] | null) => void }) {
+export function OrtWahl({ world, massnahmeId, ort, onChange, akutVorgabe }: { world: World; massnahmeId: string; ort: number[] | null; onChange: (o: number[] | null) => void; /** Eigene Liste für „wo es akut ist“ (Restaurierung: Provinzen mit gefährdeten Stätten) */ akutVorgabe?: number[] | null }) {
   const [menu, setMenu] = useState<"region" | "provinz" | null>(null);
   const [filter, setFilter] = useState("");
   const zu = () => setMenu(null);
   const ref = useSchliessen(menu !== null, zu);
-  const akut = useMemo(() => akuteOrte(world, massnahmeId), [world, massnahmeId, world.net.month]);
+  const akut = useMemo(() => (akutVorgabe !== undefined ? akutVorgabe : akuteOrte(world, massnahmeId)), [world, massnahmeId, world.net.month, akutVorgabe]);
   const gewaehlt = new Set(ort ?? []);
   const sichtbar = PROVINZEN.filter((p) => p.name.toLocaleLowerCase("tr").includes(filter.toLocaleLowerCase("tr")));
   const istLand = ort === null;

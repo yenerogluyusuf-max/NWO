@@ -5,25 +5,28 @@
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Vorhaben } from "../../sim/reich-typen";
-import { akuteOrte } from "../../sim/handeln";
-import { beginneRegional, reichZustand, regionalVorschau, type EffektZeile } from "../../sim/reich";
+import { akuteOrteVorlage, beginneRegional, reichZustand, regionalVorschau, type EffektZeile, type Platz } from "../../sim/reich";
+import { PlatzWahl } from "./Platz";
+import { bipText } from "./VorhabenKarte";
 import { OrtWahl } from "../OrtWahl";
 import { Zeilen } from "./Pflege";
 import { verliererName } from "./VorhabenKarte";
 
-import { t } from "../../i18n";
+import { t, zahl } from "../../i18n";
 import { ohneBeleg } from "../../i18n/ohne-beleg";
 export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben; refresh: () => void }) {
   const massnahme = v.vorlage!.massnahme;
-  // Beginnt dort, wo es akut ist; gibt es keinen akuten Ort, gilt das ganze Land
-  const [ort, setOrt] = useState<number[] | null>(() => akuteOrte(world, massnahme));
+  // Beginnt dort, wo es akut ist (Restaurierung: wo Stätten gefährdet sind); gibt es keinen akuten Ort, gilt das ganze Land
+  const akut = useMemo(() => akuteOrteVorlage(world, v.id), [world, v.id, world.day]);
+  const [ort, setOrt] = useState<number[] | null>(() => akut);
+  const [platz, setPlatz] = useState<Platz>("ende");
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string } | null>(null);
   const vor = useMemo(() => regionalVorschau(world, v.id, ort), [world, v.id, ort, world.day, world.spiel?.kapital]);
   const z = reichZustand(world);
   const angelegt = Object.values(z.regional ?? {}).filter((e) => e.vorlage === v.id);
 
   const anlegen = () => {
-    const r = beginneRegional(world, v.id, ort);
+    const r = beginneRegional(world, v.id, ort, "ausschreibung", platz);
     setAntwort({ ok: r.ok, text: r.text });
     refresh();
   };
@@ -31,13 +34,13 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
   const grund = !vor.ok
     ? vor.grund
     : vor.konflikt
-      ? "Dasselbe Programm gibt es dort schon"
+      ? t("n6.rg.schonDa")
       : !vor.bereit
-        ? "Voraussetzungen fehlen"
+        ? t("n6.vk.grund.voraus")
         : !vor.bezahlbar
-          ? "Dafür fehlt Kapital"
+          ? t("n6.vk.grund.kapital")
           : !vor.verwaltungOk
-            ? "Die Verwaltungskraft reicht nicht"
+            ? t("n6.vk.grund.verwaltung")
             : "";
 
   return (
@@ -49,8 +52,8 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
       <p className="rr-text">{ohneBeleg(v.text)}</p>
 
       <div className="rg-wo">
-        <b className="rr-wirkung-kopf">Wo?</b>
-        <OrtWahl world={world} massnahmeId={massnahme} ort={ort} onChange={(o) => { setOrt(o); setAntwort(null); }} />
+        <b className="rr-wirkung-kopf">{t("n6.rg.wo")}</b>
+        <OrtWahl world={world} massnahmeId={massnahme} ort={ort} akutVorgabe={akut} onChange={(o) => { setOrt(o); setAntwort(null); }} />
       </div>
 
       {!vor.ok ? (
@@ -61,11 +64,11 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
             {vor.preisschild}
           </p>
           <ul className="rr-kosten" aria-label={t("ui.reich.Regional.3a20748")}>
-            <li><b>{vor.def.kosten.pk.toLocaleString("de-DE")}</b> {t("ui2.ui.reich.Regional.28d438e")}</li>
-            <li><b>{vor.def.kosten.bau.toLocaleString("de-DE")}</b> {t("ui2.ui.reich.Regional.f4466ae")}</li>
+            <li><b>{zahl(vor.def.kosten.pk, Number.isInteger(vor.def.kosten.pk) ? 0 : 1)}</b> {t("ui2.ui.reich.Regional.28d438e")}</li>
+            <li><b>{zahl(Math.round(vor.def.kosten.bau))}</b> {t("ui2.ui.reich.Regional.f4466ae")}</li>
             <li><b>{vor.def.kosten.monate}</b> {t("ui2.ui.reich.Regional.1c561ae")}</li>
-            {vor.def.kosten.verwaltung ? <li><b>{vor.def.kosten.verwaltung.toLocaleString("de-DE")}</b> {t("ui2.ui.reich.Regional.48ddb61")}</li> : null}
-            {vor.def.kosten.schulden ? <li><b>{vor.def.kosten.schulden.toLocaleString("de-DE")}</b> % BIP</li> : null}
+            {vor.def.kosten.verwaltung ? <li><b>{zahl(vor.def.kosten.verwaltung, 1)}</b> {t("ui2.ui.reich.Regional.48ddb61")}</li> : null}
+            {vor.def.kosten.schulden ? <li><b>{bipText(vor.def.kosten.schulden)}</b></li> : null}
           </ul>
           {vor.voraus.length > 0 && (
             <ul className="rr-voraus" aria-label={t("ui2.ui.reich.Regional.bc4e9f4")}>
@@ -92,9 +95,10 @@ export function VorlageKarte({ world, v, refresh }: { world: World; v: Vorhaben;
 
       <p className="rr-kehrseite">
         <b>{t("ui2.ui.reich.Regional.0289c3f")}</b> {v.kehrseite}
-        {v.verlierer && <em> Es verliert: {verliererName(v.verlierer)}.</em>}
+        {v.verlierer && <em> {t("n6.vk.verliert", { wer: verliererName(v.verlierer) ?? v.verlierer })}</em>}
       </p>
 
+      {vor.ok && !grund && <PlatzWahl world={world} v={vor.def} platz={platz} onPlatz={setPlatz} />}
       <button type="button" className="aktion-knopf rr-beginnen" disabled={!!grund} onClick={anlegen} title={grund || undefined}>
         {t("ui2.ui.reich.Regional.846460c")}{vor.ok ? t("ui2.ui.reich.Regional.89cba7e", { p0: vor.def.name.split(": ").slice(1).join(": ") }) : ""}
       </button>

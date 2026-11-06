@@ -220,7 +220,8 @@ describe("Katastrophen: Hilfskette und Wiederaufbau", () => {
       abschluss: [],
       kehrseite: "Test.",
     });
-    const gestartet = beginne(w, "test_bau_inf5", "stammfirma");
+    // Nacht N6: Neue Aufträge reihen sich hinten ein; „zuerst belegen“ heißt jetzt, den Platz an der Spitze zu bezahlen
+    const gestartet = beginne(w, "test_bau_inf5", "stammfirma", "spitze");
     expect(gestartet.ok, gestartet.text).toBe(true);
     const rateVorher = bauplan(w)["test_bau_inf5"]!;
 

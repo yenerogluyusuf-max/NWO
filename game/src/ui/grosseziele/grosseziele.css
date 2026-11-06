@@ -36,3 +36,30 @@
 .gzz-versuch:disabled { opacity: .55; cursor: not-allowed; }
 .gzz-aktion { margin-top: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 560px) { .gzz-raster { grid-template-columns: minmax(0, 1fr); } }
+
+/* Nacht N6 (Befund F-31): Kacheln links, volle Karte rechts */
+.gzz-buehne { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, 400px); gap: 14px; align-items: start; }
+.gzz-seite { position: sticky; top: 8px; max-height: calc(100vh - 230px); overflow-y: auto; border-radius: 6px; }
+.gzz-seite .gzz-bild { height: 120px; }
+.gzk-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.gzk { display: flex; flex-direction: column; gap: 4px; padding: 0 0 7px; overflow: hidden; text-align: left; cursor: pointer; font: inherit; color: var(--ink, #2a1f18);
+  border-radius: 6px; border: 1px solid #5a40283d; background: #fffaf0; box-shadow: 0 2px 6px #3b2a1a1a; transition: transform 120ms ease, box-shadow 120ms ease; }
+.gzk:hover { transform: translateY(-1px); box-shadow: 0 5px 12px #3b2a1a2a; }
+.gzk.on { border-color: #8a6a2a; box-shadow: 0 0 0 2px #c69a4a99, 0 5px 12px #3b2a1a2a; }
+.gzk.verfolgt { border-color: var(--gold-2, #c69a4a); }
+.gzk-bild { position: relative; display: block; height: 78px; }
+.gzk-bild > svg { display: block; width: 100%; height: 100%; }
+.gzk-stufen { position: absolute; right: 6px; bottom: 6px; display: flex; gap: 3px; padding: 2px 4px; border-radius: 999px; background: #fffaf0d9; }
+.gzk-stufen i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #7c5823; }
+.gzk-stufen i.erreicht { background: #7c5823; } .gzk-stufen i.jetzt { background: #f1d58f; }
+.gzk-marke { position: absolute; left: 6px; top: 6px; padding: 1px 6px; border-radius: 3px; font: 600 10.5px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: #2a1d14; background: #f1d58f; }
+.gzk-titel { padding: 0 8px; font: 600 13.5px/1.2 var(--display, Georgia, serif); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em; }
+.gzk-chance { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 6px; padding: 0 8px; font: 12px var(--sans); }
+.gzk-chance b { font-weight: 600; }
+.gzk-chance small { color: var(--ink-soft, #6a5a4a); }
+.gzk-chance > i { grid-column: 1 / -1; position: relative; display: block; height: 5px; border-radius: 999px; background: #5a40281f; }
+.gzk-chance > i s { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #c9a45a, #674b3b); }
+.gzk-chance.gering b { color: #a23d3e; } .gzk-chance.moeglich b { color: #8a6418; } .gzk-chance.aussichtsreich b { color: #3d5a2e; }
+.gzk-chance.fertig { color: #674b3b; font-weight: 600; }
+@media (max-width: 1100px) { .gzz-buehne { grid-template-columns: 1fr; } .gzz-seite { position: static; max-height: none; } }
+.gzk-titel { hyphens: auto; overflow-wrap: anywhere; }

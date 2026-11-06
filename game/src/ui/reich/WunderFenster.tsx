@@ -12,7 +12,8 @@ import type { Vorhaben } from "../../sim/reich-typen";
 
 import { t } from "../../i18n";
 import { ohneBeleg } from "../../i18n/ohne-beleg";
-const TITEL: Record<string, string> = { wunder: "Ein Wunder ist vollendet", grossprojekt: "Ein Großprojekt ist eröffnet", serie: "Eine Route ist eröffnet", ausbau: "Der Ausbau ist fertig" };
+/** Überschrift der Feier je Art (Katalog, Befund F-7) */
+const TITEL = (klasse: string): string => t(`n6.wf.titel.${["wunder", "grossprojekt", "serie", "ausbau"].includes(klasse) ? klasse : "ausbau"}`);
 
 function verliererName(v: Vorhaben): string | null {
   if (!v.verlierer) return null;
@@ -41,7 +42,7 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
             {t("ui.reich.WunderFenster.cd0618a")}
           </span>
           <span className="wunder-datum">{formatDateDe(datum)}</span>
-          <span className="wunder-klasse">{TITEL[v.klasse] ?? t("ui2.ui.reich.WunderFenster.32b1b72")}</span>
+          <span className="wunder-klasse">{TITEL(v.klasse)}</span>
         </div>
         <div className="wunder-koerper">
           <h2 id={`wf-${id}`} className="wunder-titel">
@@ -57,8 +58,8 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
             </blockquote>
           )}
           {[
-            { titel: "Sofort", liste: sofort, start: 1.7 },
-            { titel: "Dauerhaft", liste: dauer, start: 1.7 + sofort.length * 0.18 + 0.2 },
+            { titel: t("n6.wf.sofort"), liste: sofort, start: 1.7 },
+            { titel: t("n6.wf.dauerhaft"), liste: dauer, start: 1.7 + sofort.length * 0.18 + 0.2 },
           ]
             .filter((g) => g.liste.length > 0)
             .map((g) => (
@@ -75,7 +76,7 @@ export function WunderFenster({ id, datum, onWeiter, onKarte }: { id: string; da
             ))}
           <p className="wunder-kehrseite">
             <b>{t("ui2.ui.reich.WunderFenster.0289c3f")}</b> {v.kehrseite}
-            {verlierer && <em> Es verliert: {verlierer}.</em>}
+            {verlierer && <em> {t("n6.vk.verliert", { wer: verlierer })}</em>}
           </p>
           <div className="wunder-knoepfe">
             {v.ort && onKarte && (

@@ -1,0 +1,28 @@
+/* Lage der Regionen (Nacht N6): Karte nach Ebene, Handlungsbedarf, Regionen als Tabelle */
+.rl { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 10px; }
+.rl-oben { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); gap: 12px; align-items: stretch; }
+.rl-karte-feld { position: relative; padding: 8px 10px 6px; border-radius: 6px; background: radial-gradient(ellipse at 50% 40%, #dfe8ea, #c3d3d8); box-shadow: inset 0 0 0 1px rgba(60, 80, 90, 0.25); }
+.rl-ebenen { margin: 0 0 4px; }
+.rl-ebenen button { padding: 2px 10px; font-size: 13px; }
+.rl-karte { display: block; width: 100%; height: auto; max-height: 290px; }
+.rl-karte path { stroke: #fffaf0; stroke-width: 0.8; cursor: pointer; transition: fill 300ms ease; }
+.rl-karte path.ohne { fill: #ece3cc; }
+.rl-karte path:hover { stroke: #2e2118; stroke-width: 1.4; }
+.rl-karte path.gewaehlt { stroke: #1f160f; stroke-width: 2.4; }
+.rl-legende { margin: 2px 0 0; font: 12.5px var(--sans); color: #3a2c20; }
+.rl-bedarf { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(90, 64, 40, 0.35); background: linear-gradient(180deg, #fbf4df, #efe2c0); }
+.rl-bedarf h4 { margin: 0; font: 400 12px var(--kapitaelchen, serif); letter-spacing: 0.08em; text-transform: uppercase; color: #6b5338; }
+.rl-bedarf ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rl-bedarf li button { display: grid; grid-template-columns: 24px minmax(0, 1fr); grid-template-areas: "nr name" "nr wert"; gap: 0 8px; width: 100%; padding: 4px 6px; border: 1px solid transparent; border-radius: 4px; background: none; text-align: left; cursor: pointer; font: inherit; color: var(--ink); }
+.rl-bedarf li button:hover, .rl-bedarf li.on button { border-color: rgba(138, 106, 42, 0.5); background: #fffaf0; }
+.rl-nr { grid-area: nr; align-self: center; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 12px var(--sans); color: #2e2118; box-shadow: inset 0 0 0 1px rgba(60, 40, 20, 0.3); }
+.rl-name { grid-area: name; font: 600 14px/1.2 var(--serif); }
+.rl-wert { grid-area: wert; font: 12px/1.3 var(--sans); color: #5a4632; }
+.rl-sprung { align-self: flex-start; margin-top: auto; }
+.rl-regionen { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.rl-regionen th, .rl-regionen td { padding: 3px 8px; border-bottom: 1px solid rgba(90, 64, 40, 0.15); text-align: right; font-variant-numeric: tabular-nums; }
+.rl-regionen th:first-child, .rl-regionen thead th:first-child { text-align: left; }
+.rl-regionen thead th { font: 400 11.5px var(--kapitaelchen, serif); letter-spacing: 0.06em; text-transform: uppercase; color: #6b5338; text-align: right; }
+.rl-regionen tbody th { font: 600 13.5px var(--serif); }
+.rl-regionen td.schlecht { color: #8f2a1e; font-weight: 600; }
+@media (max-width: 1000px) { .rl-oben { grid-template-columns: 1fr; } }

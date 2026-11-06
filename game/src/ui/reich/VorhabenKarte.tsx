@@ -8,32 +8,32 @@ import type { World } from "../../sim/types";
 import { KLASSEN_NAMEN, VERGABE_NAMEN, type Vergabe } from "../../sim/reich-typen";
 import { NET } from "../../sim/modell";
 import { WunderBild } from "./WunderBild";
+import { PlatzWahl } from "./Platz";
+import type { Platz } from "../../sim/reich";
+import { zahl } from "../../i18n";
 
 import { t } from "../../i18n";
 import { t as tx } from "../../i18n";
 import { ohneBeleg } from "../../i18n/ohne-beleg";
-const STATUS_WORT: Record<VorhabenSicht["status"], string> = {
-  fertig: "Fertig",
-  im_bau: "Im Bau",
-  pausiert: "Pausiert",
-  verfuegbar: "",
-  gesperrt: "Gesperrt",
-  ausgeschlossen: "Ausgeschlossen",
-};
+/** Statuswort aus dem Katalog (Befund F-7: vorher fest deutsch). */
+const STATUS_WORT = (s: VorhabenSicht["status"]): string => (s === "verfuegbar" ? "" : t(`n6.vk.status.${s}`));
 
 /** Die drei Vergabe-Wege in Worten; die Zahlen kommen aus `vergabeAngebot` (Spielparameter, keine Tatsachen). */
 const VERGABE_REIHENFOLGE: Vergabe[] = ["stammfirma", "sparvergabe", "ausschreibung"];
-const VERGABE_TEXT: Record<Vergabe, string> = {
-  stammfirma: "Schnell und loyal: kürzere Bauzeit, höhere Kosten. Nähe ohne Wettbewerb — das Korruptionsrisiko wächst, die Unternehmer danken es.",
-  sparvergabe: "Günstig und langsam: weniger Kosten, längere Bauzeit, und das Ergebnis beginnt in schlechterem Zustand.",
-  ausschreibung: "Transparente Ausschreibung: Der Baubeginn verzögert sich um die Vergabephase; dafür kein Korruptionsrisiko, und Märkte, EU und Legitimität sehen es gern.",
-};
+const VERGABE_TEXT = (weg: Vergabe): string => t(`n6.vk.vergabe.${weg}`);
 
 /** Wer verliert: der Name der Gruppe aus dem Politiknetz, sonst der Text selbst. */
 export function verliererName(v: string | undefined): string | null {
   if (!v) return null;
   const n = NET.nodes[NET.index.get(v) ?? -1];
   return n ? n.name : v;
+}
+
+/** Schuldenlast als BIP-Anteil mit einer gültigen Stelle (Befund F-17: vorher „0 % BIP“ bei echter Schuld und „1,044 %“). */
+export function bipText(x: number): string {
+  if (x <= 0) return t("vk.bip", { n: zahl(0) });
+  if (x < 0.1) return t("n6.vk.bipKlein");
+  return t("vk.bip", { n: zahl(x, x < 1 ? 1 : x < 10 ? 1 : 0) });
 }
 
 export function VorhabenKarte({
@@ -46,7 +46,7 @@ export function VorhabenKarte({
   world,
 }: {
   s: VorhabenSicht;
-  onBeginne: (id: string, vergabe: Vergabe) => void;
+  onBeginne: (id: string, vergabe: Vergabe, platz?: Platz) => void;
   onKarte?: (o: { lon: number; lat: number }) => void;
   /** Wunder und Großprojekte bekommen ein Bild */
   gross?: boolean;
@@ -59,6 +59,7 @@ export function VorhabenKarte({
   const v = s.v;
   // Ob die Vergabe-Wahl auf dieser Karte aufgeklappt ist
   const [vergabeWahl, setVergabeWahl] = useState(false);
+  const [platz, setPlatz] = useState<Platz>("ende");
   const zeigt = s.status === "verfuegbar" || s.status === "gesperrt" || s.status === "ausgeschlossen";
   const vor = world ? wirkungsVorschau(world, v.id) : null;
   const gewinn = (vor ? vor.sofort : v.abschluss.map((e) => effektZeile(e)).filter((x): x is NonNullable<typeof x> => !!x)).slice(0, 6);
@@ -68,7 +69,7 @@ export function VorhabenKarte({
   const abgelesen = vor?.zeigt ?? [];
   const risiko = vor?.risiko;
   const los = s.voraus.filter((x) => !x.erfuellt);
-  const grund = !s.bereit ? "Voraussetzungen fehlen" : !s.bezahlbar ? "Dafür fehlt Kapital" : !s.verwaltungOk ? "Die Verwaltungskraft reicht nicht" : "";
+  const grund = !s.bereit ? t("n6.vk.grund.voraus") : !s.bezahlbar ? t("n6.vk.grund.kapital") : !s.verwaltungOk ? t("n6.vk.grund.verwaltung") : "";
   const vl = verliererName(v.verlierer);
   return (
     <article className={`rr-karte klasse-${v.klasse} status-${s.status}${gross ? " gross" : ""}${v.unrealistisch ? " unrealistisch" : ""}`}>
@@ -105,7 +106,7 @@ export function VorhabenKarte({
             {VERGABE_NAMEN[s.vergabe]}
           </span>
         )}
-        {STATUS_WORT[s.status] && <span className={`rr-status ${s.status}`}>{STATUS_WORT[s.status]}</span>}
+        {STATUS_WORT(s.status) && <span className={`rr-status ${s.status}`}>{STATUS_WORT(s.status)}</span>}
       </div>
       <h4 className="rr-name">{v.name}</h4>
       {v.ort && (
@@ -141,7 +142,7 @@ export function VorhabenKarte({
             {s.status === "pausiert"
               ? ` · ${t("wissen.ui.bauPause")}`
               : s.vergabePhase
-                ? tx("ui2.ui.reich.VorhabenKarte.783d302", { p0: s.vergabeMonate, p1: s.vergabeMonate === 1 ? "Monat" : "Monaten" })
+                ? t("n6.vk.vergabePhase", { n: s.vergabeMonate ?? 0 })
                 : s.restMonate !== undefined
                   ? tx("ui2.ui.reich.VorhabenKarte.36e9b81", { p0: s.restMonate })
                   : ` · ${t("wissen.ui.terminOffen")}`}
@@ -159,20 +160,20 @@ export function VorhabenKarte({
             )}
             {v.kosten.bau > 0 && (
               <li title={t("ui.reich.VorhabenKarte.b4e53a4")}>
-                <b>{v.kosten.bau.toLocaleString("de-DE")}</b> {tx("ui2.ui.reich.VorhabenKarte.f4466ae")}
+                <b>{zahl(v.kosten.bau)}</b> {tx("ui2.ui.reich.VorhabenKarte.f4466ae")}
               </li>
             )}
             {(v.kosten.verwaltung ?? 0) > 0 && (
               <li title={t("ui.reich.VorhabenKarte.3a3e4ed")}>
-                <b>{v.kosten.verwaltung}</b> {tx("ui2.ui.reich.VorhabenKarte.48ddb61")}
+                <b>{zahl(v.kosten.verwaltung ?? 0, 1)}</b> {tx("ui2.ui.reich.VorhabenKarte.48ddb61")}
               </li>
             )}
             <li title={t("ui.reich.VorhabenKarte.72e8bf0")}>
-              <b>{v.kosten.monate >= 24 ? (v.kosten.monate / 12).toLocaleString("de-DE", { maximumFractionDigits: 1 }) : v.kosten.monate}</b> {v.kosten.monate >= 24 ? tx("ui2.ui.reich.VorhabenKarte.b0bf214") : v.kosten.monate === 1 ? tx("ui2.ui.reich.VorhabenKarte.da13625") : tx("ui2.ui.reich.VorhabenKarte.1c561ae")}
+              <b>{v.kosten.monate >= 24 ? zahl(v.kosten.monate / 12, Number.isInteger(v.kosten.monate / 12) ? 0 : 1) : v.kosten.monate}</b> {v.kosten.monate >= 24 ? tx("ui2.ui.reich.VorhabenKarte.b0bf214") : v.kosten.monate === 1 ? tx("ui2.ui.reich.VorhabenKarte.da13625") : tx("ui2.ui.reich.VorhabenKarte.1c561ae")}
             </li>
             {v.kosten.schulden ? (
               <li title={t("ui.reich.VorhabenKarte.64361a7")}>
-                <b>{v.kosten.schulden.toLocaleString("de-DE")}</b> % BIP
+                <b>{bipText(v.kosten.schulden)}</b>
               </li>
             ) : null}
           </ul>
@@ -251,7 +252,7 @@ export function VorhabenKarte({
       {risiko && zeigt && <p className="rr-risiko"><b>{tx("ui2.ui.reich.VorhabenKarte.4b9c493")}</b> {risiko}</p>}
       <p className="rr-kehrseite">
         <b>{tx("ui2.ui.reich.VorhabenKarte.0289c3f")}</b> {v.kehrseite}
-        {vl && <em> Es verliert: {vl}.</em>}
+        {vl && <em> {t("n6.vk.verliert", { wer: vl })}</em>}
       </p>
       {v.konkurrenz && zeigt && <p className="rr-konkurrenz"><b>{t("ui.reich.VorhabenKarte.dea39ba")}</b> {v.konkurrenz}</p>}
       {v.anker && zeigt && <p className="rr-anker"><b>{t("ui.reich.VorhabenKarte.ac9df63")}</b> {ohneBeleg(v.anker)}</p>}
@@ -261,11 +262,12 @@ export function VorhabenKarte({
       {zeigt && s.status === "verfuegbar" && !vergabeWahl && (
         <button type="button" className="aktion-knopf rr-beginnen" disabled={!!grund} onClick={() => setVergabeWahl(true)} title={grund || undefined}>
           {tx("ui2.ui.reich.VorhabenKarte.0760a98")}
-          {los.length > 0 && <small> {tx("ui2.ui.reich.VorhabenKarte.35b2f5c", { p0: los.length })}{los.length === 1 ? "" : "en"} offen)</small>}
+          {los.length > 0 && <small> {t("n6.vk.offen", { n: los.length })}</small>}
         </button>
       )}
       {zeigt && s.status === "verfuegbar" && vergabeWahl && (
         <div className="rr-vergabe">
+          {world && <PlatzWahl world={world} v={v} platz={platz} onPlatz={setPlatz} />}
           <b className="rr-wirkung-kopf">{t("ui.reich.VorhabenKarte.1c4cddd")}</b>
           <ul>
             {VERGABE_REIHENFOLGE.map((weg) => {
@@ -277,19 +279,19 @@ export function VorhabenKarte({
                     type="button"
                     className="aktion-knopf"
                     disabled={unbezahlbar}
-                    title={unbezahlbar ? tx("ui2.ui.reich.VorhabenKarte.36325d8", { p0: a.pk }) : VERGABE_TEXT[weg]}
+                    title={unbezahlbar ? tx("ui2.ui.reich.VorhabenKarte.36325d8", { p0: a.pk }) : VERGABE_TEXT(weg)}
                     onClick={() => {
                       setVergabeWahl(false);
-                      onBeginne(v.id, weg);
+                      onBeginne(v.id, weg, platz);
                     }}
                   >
                     {VERGABE_NAMEN[weg]}
                   </button>
                   <span className="rr-bau-info">
-                    {tx("ui2.ui.reich.VorhabenKarte.632836b", { p0: a.pk, p1: a.bau.toLocaleString("de-DE"), p2: a.monate })} {a.monate === 1 ? tx("ui2.ui.reich.VorhabenKarte.da13625") : tx("ui2.ui.reich.VorhabenKarte.1c561ae")}
+                    {tx("ui2.ui.reich.VorhabenKarte.632836b", { p0: zahl(a.pk), p1: zahl(a.bau), p2: a.monate })} {a.monate === 1 ? tx("ui2.ui.reich.VorhabenKarte.da13625") : tx("ui2.ui.reich.VorhabenKarte.1c561ae")}
                     {a.vorlauf > 0 ? tx("ui2.ui.reich.VorhabenKarte.a3ec358", { p0: a.vorlauf }) : ""}
                   </span>
-                  <p className="rr-hinweis">{VERGABE_TEXT[weg]}</p>
+                  <p className="rr-hinweis">{VERGABE_TEXT(weg)}</p>
                 </li>
               );
             })}

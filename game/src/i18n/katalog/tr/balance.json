@@ -6,8 +6,8 @@
   "balance.bautitel": "İnşaat nasıl hızlanır?",
   "balance.baulage": "İdare: kullanılabilir {vorrat} puan · aylık bakiye {saldo}. Kaynak tükendiğinde inşaat üretimi yarıya iner. Bakiye, sonraki inşaat adımından önce işlenir.",
   "balance.personal": "Aylık idari kapasiteye zaten dahil: yürürlüğe girmiş personel bütçesinden {wert} puan.",
-  "balance.baupause": "Rakip projeleri ertele: İnşaat sırasındaki projeleri yeni siyasi sermaye harcamadan duraklatabilirsin. İlerleme korunur; bu projelerin faydaları daha geç gelir.",
-  "balance.bauprioritaet": "Bir tesisi öne al: Her sıra için 10 idare puanı gerekir. Diğer projeler daha uzun bekler; kaynakları tükenmiş idarenin kapasitesi artmaz.",
+  "balance.baupause": "Projeleri duraklatın: Kapasite boşalır, ancak duran inşaat her ay inşaat puanlarının % {anteil} kadarını kaybeder. Vazgeçmek ödenen sermayeye mal olur.",
+  "balance.bauprioritaet": "Bir projeyi öne alın: Her sıra için {n} idari güç gerekir. Diğer projeler daha uzun bekler; tükenmiş bir idare bununla güçlenmez.",
   "balance.baupersonal": "Personeli güçlendir: Her bütçe kademesi yılda GSYH’nin %0,4’üne mal olur ve uygulama başladıktan sonra temel idari kapasiteyi %5 artırır. Finansman ve siyasi onay gerekir. Araştırma, eğitim ve dijital idare daha uzun vadede yardımcı olur.",
   "balance.knappUnter": "{wert} değerinin biraz altında",
   "balance.knappUeber": "{wert} değerinin biraz üstünde"
