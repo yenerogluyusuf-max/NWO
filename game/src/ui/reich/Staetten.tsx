@@ -45,7 +45,8 @@ function Detail({ world, e, refresh }: { world: World; e: Erbe; refresh: () => v
         <h4>{e.name}</h4>
         <span className="st-ort">{e.ort}</span>
         <span className="st-plaketten">
-          {e.unesco.status === "welterbe" && <span className="rr-plakette" title={t("ui2.ui.Reich.2e2e824", { p0: e.unesco.jahr ?? "" })}>{t("ui2.ui.Reich.8c5c22e")}</span>}
+          {e.unesco.status === "welterbe" && st.lage !== "gestrichen" && <span className="rr-plakette" title={t("ui2.ui.Reich.2e2e824", { p0: e.unesco.jahr ?? "" })}>{t("ui2.ui.Reich.8c5c22e")}</span>}
+          {st.lage && <span className={`rr-plakette st-lage ${st.lage}`} title={t(`welle_h3.st.lage.${st.lage}.titel`)}>{t(`welle_h3.st.lage.${st.lage}`)}</span>}
           {e.kirche7 && <span className="rr-plakette kirche" title={t("ui.Reich.b39ebe5")}>{t("ui2.ui.Reich.b2c752c")}</span>}
         </span>
       </header>
@@ -84,13 +85,14 @@ function Detail({ world, e, refresh }: { world: World; e: Erbe; refresh: () => v
   );
 }
 
-export function StaettenAtlas({ world, refresh }: { world: World; refresh: () => void }) {
+export function StaettenAtlas({ world, refresh, start }: { world: World; refresh: () => void; /** Vorgewählte Stätte (ein Vorgang führt dorthin, Welle H3) */ start?: string }) {
   const z = reichZustand(world);
   const zustandVon = (e: Erbe) => z.staetten[e.id]?.zustand ?? 0;
   const gefaehrdet = ERBE.filter((e) => zustandVon(e) < STAETTE_AKUT);
-  const [serie, setSerie] = useState<Serie>(gefaehrdet.length ? "gefaehrdet" : "alle");
+  const startE = start ? ERBE.find((e) => e.id === start) : undefined;
+  const [serie, setSerie] = useState<Serie>(startE ? (zustandVon(startE) < STAETTE_AKUT ? "gefaehrdet" : "alle") : gefaehrdet.length ? "gefaehrdet" : "alle");
   const sortiert = [...ERBE].sort((a, b) => zustandVon(a) - zustandVon(b));
-  const [gewaehlt, setGewaehlt] = useState<string>(sortiert[0]?.id ?? "");
+  const [gewaehlt, setGewaehlt] = useState<string>(startE?.id ?? sortiert[0]?.id ?? "");
   const inSerie = (e: Erbe, s: Serie) =>
     s === "alle" ? true : s === "gefaehrdet" ? zustandVon(e) < STAETTE_AKUT : s === "welterbe" ? e.unesco.status === "welterbe" : (e.serien ?? []).includes(s as never);
   const liste = sortiert.filter((e) => inSerie(e, serie));

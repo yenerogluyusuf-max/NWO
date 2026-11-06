@@ -189,6 +189,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   /** Kamerafahrt der Karte, etwa zu einem fertigen Wunder */
   /** Reiter der Reich-Akte, den eine Marke der Karte vorgibt (sonst beginnt die Akte bei der Lage) */
   const [reichStart, setReichStart] = useState<"lage" | "bestand" | "neu" | undefined>(undefined);
+  /** Welle H3: Stätte, die ein Vorgang in Kultur › Stätten vorwählt */
+  const [reichStaette, setReichStaette] = useState<string | undefined>(undefined);
   const [kamera, setKamera] = useState<{ lon: number; lat: number; d: number } | undefined>(undefined);
   const [bilanzZu, setBilanzZu] = useState(false);
   /** Umlauf (Klasse C der Auto-Stopp-Taxonomie): gesammelt statt unterbrechend; `umlaufNeu` zählt Ungelesenes für den Zähler am Schreibtisch. */
@@ -621,7 +623,9 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const menueTitel = dossier === "speicher" ? t("buehne.tab.speicher") : dossier === "quellen" ? t("quellen.tab") : undefined;
 
   /** Mit welchem Reiter die Wirtschaftsakte öffnet (das Ereignisfenster springt in den Haushalt) */
-  const [wirtschaftStart, setWirtschaftStart] = useState<"lage" | "haushalt" | "inventar">("lage");
+  const [wirtschaftStart, setWirtschaftStart] = useState<"lage" | "haushalt" | "inventar" | "zentralbank">("lage");
+  /** Welle H3: Abschnitt der Zentralbank, in den ein Vorgang führt (Sitzung, Führung, Stufe) */
+  const [wirtschaftZb, setWirtschaftZb] = useState<"sitzung" | "gouverneur" | "stufe" | "devisen" | undefined>(undefined);
   // Sprung aus dem Wissensbaum zu einer Voraussetzung (Politiknetz, Bildungsetat, Außenlage) und der Rückweg zum Knoten
   const [wirtschaftProgramm, setWirtschaftProgramm] = useState<VersorgungsProgramm | undefined>();
   const [wirtschaftPosten, setWirtschaftPosten] = useState<string | undefined>(undefined);
@@ -1017,7 +1021,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
-            {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}-${wirtschaftProgramm ?? ""}`} programm={wirtschaftProgramm} world={w} start={wirtschaftStart} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
+            {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}-${wirtschaftProgramm ?? ""}-${wirtschaftStart === "zentralbank" ? wirtschaftZb ?? "" : ""}`} programm={wirtschaftProgramm} world={w} start={wirtschaftStart} {...(wirtschaftStart === "zentralbank" && wirtschaftZb ? { zbAbschnitt: wirtschaftZb } : {})} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {/* Ein Weg zum Gesetz (ENTSCHEIDUNGEN W 2): Gesetze bringt man in der Politik ein, das Parlament zeigt die Tagesordnung */}
             {dossier === "gesetze" && (
               <Tagesordnung
@@ -1155,6 +1159,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 refresh={() => { refresh(); sichere(true); }}
                 onKarte={(o) => { setKamera({ ...o, d: 4.6 }); setDossier(null); }}
                 {...(reichStart ? { startTab: reichStart } : {})}
+                {...(reichStaette && dossier === "reich_kultur" ? { startStaette: reichStaette } : {})}
               />
             )}
             {dossier === "netz" && (
@@ -1373,6 +1378,22 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             setSpaeter((s) => new Set(s).add(offen.id));
             if (ziel.dossier === "wirtschaft") { setWirtschaftProgramm(undefined); setWirtschaftStart(ziel.start); }
             oeffneDossier(ziel.dossier);
+          }}
+          onStelle={(st) => {
+            // Welle H3: zur zuständigen Stelle, ohne zu entscheiden; das Ereignis bleibt offen, die Frist läuft
+            setSpaeter((s) => new Set(s).add(offen.id));
+            if (st.art === "medien") oeffneDossier("medien");
+            else if (st.art === "zentralbank") {
+              setWirtschaftProgramm(undefined);
+              setWirtschaftPosten(undefined);
+              setWirtschaftStart("zentralbank");
+              setWirtschaftZb(st.abschnitt ?? "sitzung");
+              oeffneDossier("wirtschaft");
+            } else {
+              setReichStart("bestand");
+              setReichStaette(st.id);
+              oeffneDossier("reich_kultur");
+            }
           }}
           onMassnahme={(m) => {
             // Das Ereignis bleibt offen (die Frist läuft); der Spieler sieht sich das Gesetz an oder regelt die Ursache selbst

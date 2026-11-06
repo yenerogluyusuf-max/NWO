@@ -408,12 +408,12 @@ function tabsFuerBereich(bereich: Bereich): { id: Tab; label: string }[] {
   }
 }
 
-export function Reich(props: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; /** Reiter, mit dem die Akte beginnt (eine Marke der Karte kann „Pflegen“ vorgeben) */ startTab?: Tab; /** Vorgewähltes Vorhaben im Katalog */ startVorhaben?: string }) {
+export function Reich(props: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; /** Reiter, mit dem die Akte beginnt (eine Marke der Karte kann „Pflegen“ vorgeben) */ startTab?: Tab; /** Vorgewähltes Vorhaben im Katalog */ startVorhaben?: string; /** Vorgewählte Stätte in Kultur › Stätten (ein Vorgang führt dorthin) */ startStaette?: string }) {
   // Je Bereich eigener Zustand der Reiter: Beim Wechsel beginnt die Akte wieder bei der Lage (oder beim vorgegebenen Reiter)
-  return <ReichInnen key={`${props.bereich}:${props.startTab ?? ""}:${props.startVorhaben ?? ""}`} {...props} />;
+  return <ReichInnen key={`${props.bereich}:${props.startTab ?? ""}:${props.startVorhaben ?? ""}:${props.startStaette ?? ""}`} {...props} />;
 }
 
-function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben }: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; startTab?: Tab; startVorhaben?: string }) {
+function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben, startStaette }: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; startTab?: Tab; startVorhaben?: string; startStaette?: string }) {
   const tabs = tabsFuerBereich(bereich);
   const [tab, setTab] = useState<Tab>(startTab && tabs.some((x) => x.id === startTab) ? startTab : "lage");
   const [ergebnisse, setErgebnisse] = useState<Record<string, { ok: boolean; text: string }>>({});
@@ -504,7 +504,7 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
         </>
       )}
 
-      {tab === "bestand" && bereich === "kultur" && <StaettenAtlas world={world} refresh={refresh} />}
+      {tab === "bestand" && bereich === "kultur" && <StaettenAtlas world={world} refresh={refresh} {...(startStaette ? { start: startStaette } : {})} />}
       {tab === "bestand" && bereich === "infrastruktur" && <PflegeKacheln world={world} bereich={bereich} refresh={refresh} />}
       {tab === "bestand" && bereich === "militaer" && <PflegeListe world={world} bereich={bereich} refresh={refresh} />}
 
