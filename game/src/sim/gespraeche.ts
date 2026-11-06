@@ -16,7 +16,7 @@ import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamk
 import { clamp } from "./economy";
 import { pruefeVorhaben, stufeIn } from "./handeln";
 import { anliegenStand, LAENDER, vertrauenZu, weltZustand } from "./laender";
-import { zusagenSicht, zusageVorhaben } from "./zusagen";
+import { zusagenSicht, zusageText, zusageVorhaben } from "./zusagen";
 import {
   AEMTER, amtDef, eigenVon, erinnerungen, figurNachId, grollVerschieben, grollWort, HOCH_SCHLECHT, hashZahl, lageIm, leistung, leistungWort,
   loyalitaetVerschieben, merke, nf, schlechtesteGroesse, sorgeText, sprechbar, wertVon,
@@ -24,6 +24,12 @@ import {
 import type { Auftrag, Stil } from "./personen-typen";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
+import { t } from "../i18n";
+
+// Befund C-3: Alle Texte stehen im Katalog (nacht_n1.json, Präfix n1.gs.), Pronomen nach Geschlecht über `g`.
+const gv = (f: Figur): "f" | "m" => (f.weiblich ? "f" : "m");
+/** Eine Veränderung mit Vorzeichen und echtem Minus („+6“, „−8“). */
+const vz = (n: number): string => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "0");
 
 const k100 = (x: number): number => Math.min(100, Math.max(0, x));
 
@@ -58,15 +64,9 @@ export interface Plan {
   aussicht?: "gut" | "offen" | "schlecht";
 }
 
-export const ANSATZ_NAMEN: Record<AnsatzId, { label: string; kurz: string }> = {
-  vertrauen: { label: "Vertrauen aufbauen", kurz: "Ein offenes Gespräch unter vier Augen." },
-  rat: { label: "Um Rat bitten", kurz: "Sie nennt Zahlen und Schritte aus ihrem Ressort." },
-  auftrag: { label: "Auftrag mit Frist", kurz: "Ein messbares Ziel, das sie in sechs Monaten erreichen soll." },
-  kritik: { label: "Kritik üben", kurz: "Mehr Einsatz, aber auf Kosten von Loyalität und Ruhe." },
-  belohnung: { label: "Anerkennung und Mittel", kurz: "Lob, Zusatzmittel für das Ressort, Neid bei den anderen." },
-  rueckendeckung: { label: "Rückendeckung geben", kurz: "Öffentlich hinter ihr stehen, wenn sie unter Druck ist." },
-  machtfrage: { label: "Die Machtfrage stellen", kurz: "Ein Ultimatum: mit mir oder gegen mich." },
-};
+export const ANSATZ_NAMEN: Record<AnsatzId, { label: string; kurz: string }> = Object.fromEntries(
+  (["vertrauen", "rat", "auftrag", "kritik", "belohnung", "rueckendeckung", "machtfrage"] as const).map((a) => [a, { label: t(`mfl.ansatz.${a}.label`), kurz: t(`mfl.ansatz.${a}.kurz`) }]),
+) as Record<AnsatzId, { label: string; kurz: string }>;
 
 export const ANSATZ_REIHENFOLGE: AnsatzId[] = ["rat", "vertrauen", "auftrag", "belohnung", "kritik", "rueckendeckung", "machtfrage"];
 
@@ -79,43 +79,43 @@ const datumAn = (w: World, tag: number): string => formatDateDe(addDays(w.spiel!
 // Fachs; hat sie keine, rät sie nicht zu etwas anderem (Spielerdurchlauf 5. November: Bei der Besetzung am Verfassungsgericht
 // riet die Justiz zu Gefängnissen, weil das ihre schlechteste Größe war).
 export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string; groessen?: string[] }> = {
-  grenzzwischenfall: { amt: ["inneres", "aussen", "generalstab"], titel: "Der Grenzzwischenfall", groessen: ["terrorgefahr", "ansehen", "bereitschaft_heer", "truppenmoral"] },
-  eu_angebot: { amt: ["aussen", "wirtschaft", "justiz"], titel: "Das Angebot der EU", groessen: ["beziehungen_eu", "auslandskapital", "investitionen", "justiz_unabhaengigkeit"] },
-  iwf_angebot: { amt: ["finanzen"], titel: "Das Angebot des IWF", groessen: ["vertrauen_maerkte", "zinslast"] },
-  ratingagentur: { amt: ["finanzen"], titel: "Die Ratingagentur", groessen: ["vertrauen_maerkte", "zinslast"] },
-  nato_ratifizierung: { amt: ["aussen", "generalstab"], titel: "Die NATO-Ratifizierung", groessen: ["beziehungen_usa", "ansehen", "bereitschaft_heer"] },
-  gasvertrag: { amt: ["aussen", "energie", "wirtschaft"], titel: "Der Gasvertrag", groessen: ["beziehungen_russland", "energieimporte", "industrie"] },
-  gasfund: { amt: ["energie", "wirtschaft"], titel: "Der Gasfund", groessen: ["energieimporte", "investitionen", "export"] },
-  cyberangriff: { amt: ["inneres", "generalstab"], titel: "Der Cyberangriff", groessen: ["terrorgefahr", "bereitschaft_heer"] },
-  weltwirtschaftskrise: { amt: ["finanzen", "wirtschaft", "zentralbank", "handel"], titel: "Die Weltwirtschaftskrise", groessen: ["vertrauen_maerkte", "export", "investitionen"] },
-  pandemie: { amt: ["gesundheit", "stab", "inneres"], titel: "Die Seuche", groessen: ["gesundheitsversorgung", "wartezeiten", "vertrauen_regierung", "kriminalitaet"] },
-  bankenstress: { amt: ["finanzen", "zentralbank"], titel: "Der Stress im Bankensystem", groessen: ["vertrauen_maerkte"] },
-  waehrungsrutsch: { amt: ["finanzen", "zentralbank"], titel: "Der Absturz der Lira", groessen: ["vertrauen_maerkte", "lebenshaltung"] },
-  haushaltsdruck: { amt: ["finanzen", "zentralbank"], titel: "Der Druck auf den Haushalt", groessen: ["steuereinnahmen", "zinslast", "vertrauen_maerkte"] },
-  energiepreisschock: { amt: ["energie", "wirtschaft", "finanzen"], titel: "Der Energiepreisschock", groessen: ["energiepreise", "industrie", "lebenshaltung", "steuereinnahmen"] },
-  korruptionsaffaere: { amt: ["justiz", "inneres", "stab"], titel: "Die Korruptionsaffäre", groessen: ["justiz_unabhaengigkeit", "kriminalitaet", "vertrauen_regierung"] },
-  streikwelle: { amt: ["arbeit", "wirtschaft", "inneres"], titel: "Die Streikwelle", groessen: ["streikneigung", "industrie", "kriminalitaet"] },
-  anschlag: { amt: ["inneres", "generalstab"], titel: "Der Anschlag", groessen: ["terrorgefahr", "truppenmoral"] },
-  fluechtlingswelle: { amt: ["inneres", "aussen"], titel: "Die Fluchtbewegung", groessen: ["kriminalitaet", "beziehungen_eu"] },
-  fabrikschliessungen: { amt: ["wirtschaft"], titel: "Die Fabrikschließungen", groessen: ["industrie", "investitionen"] },
-  erdbeben: { amt: ["umwelt", "stab", "inneres"], titel: "Das Erdbeben", groessen: ["erdbebenvorsorge", "bauqualitaet", "vertrauen_regierung", "kriminalitaet"] },
-  pressekonflikt: { amt: ["stab", "inneres"], titel: "Der Streit mit der Presse", groessen: ["legitimitaet", "vertrauen_regierung"] },
-  studentenproteste: { amt: ["inneres", "stab", "bildung"], titel: "Die Studentenproteste", groessen: ["polarisierung", "kriminalitaet", "hochschule"] },
-  buergermeister_verfahren: { amt: ["justiz", "inneres"], titel: "Das Verfahren gegen den Bürgermeister", groessen: ["justiz_unabhaengigkeit", "polarisierung"] },
-  recht_ernennung: { amt: ["justiz"], titel: "Die Besetzung am Verfassungsgericht", groessen: ["justiz_unabhaengigkeit"] },
-  recht_aym_kassation: { amt: ["justiz"], titel: "Der Streit der Höchstgerichte", groessen: ["urteilsbefolgung", "justiz_unabhaengigkeit"] },
-  recht_egmr: { amt: ["justiz", "aussen"], titel: "Das Urteil aus Straßburg", groessen: ["urteilsbefolgung", "beziehungen_eu"] },
-  recht_haftrevolte: { amt: ["justiz", "inneres"], titel: "Die Unruhen im Gefängnis", groessen: ["haftueberfuellung", "kriminalitaet"] },
-  mil_lieferverzug: { amt: ["verteidigung", "generalstab"], titel: "Der Lieferverzug bei der Rüstung", groessen: ["modernisierung", "ruestungsautarkie", "bereitschaft_heer", "bereitschaft_luft"] },
-  mil_militaerrat: { amt: ["generalstab"], titel: "Der Oberste Militärrat", groessen: ["offiziersvertrauen", "truppenmoral"] },
-  land_fordert: { amt: ["aussen"], titel: "Die Forderung eines Partnerlandes", groessen: ["ansehen"] },
-  land_angebot: { amt: ["aussen"], titel: "Das Angebot eines Partnerlandes", groessen: ["ansehen"] },
-  land_provokation: { amt: ["aussen", "generalstab"], titel: "Die Provokation an der Grenze", groessen: ["ansehen", "bereitschaft_heer"] },
-  land_drohkulisse: { amt: ["aussen", "generalstab"], titel: "Die Drohkulisse", groessen: ["ansehen", "bereitschaft_heer"] },
-  vertrag_verlaengerung: { amt: ["aussen"], titel: "Die Vertragsverlängerung", groessen: ["ansehen"] },
-  mindestlohn: { amt: ["arbeit", "wirtschaft", "finanzen"], titel: "Der Mindestlohn", groessen: ["informelle_arbeit", "industrie", "investitionen", "steuereinnahmen", "lebenshaltung"] },
-  haushaltsjahr: { amt: ["finanzen"], titel: "Der Haushalt für das nächste Jahr", groessen: ["steuereinnahmen", "zinslast"] },
-  kommunalwahl: { amt: ["stab"], titel: "Die Kommunalwahlen", groessen: ["vertrauen_regierung", "polarisierung"] },
+  grenzzwischenfall: { amt: ["inneres", "aussen", "generalstab"], titel: t("n1.gs.ereignis.grenzzwischenfall"), groessen: ["terrorgefahr", "ansehen", "bereitschaft_heer", "truppenmoral"] },
+  eu_angebot: { amt: ["aussen", "wirtschaft", "justiz"], titel: t("n1.gs.ereignis.eu_angebot"), groessen: ["beziehungen_eu", "auslandskapital", "investitionen", "justiz_unabhaengigkeit"] },
+  iwf_angebot: { amt: ["finanzen"], titel: t("n1.gs.ereignis.iwf_angebot"), groessen: ["vertrauen_maerkte", "zinslast"] },
+  ratingagentur: { amt: ["finanzen"], titel: t("n1.gs.ereignis.ratingagentur"), groessen: ["vertrauen_maerkte", "zinslast"] },
+  nato_ratifizierung: { amt: ["aussen", "generalstab"], titel: t("n1.gs.ereignis.nato_ratifizierung"), groessen: ["beziehungen_usa", "ansehen", "bereitschaft_heer"] },
+  gasvertrag: { amt: ["aussen", "energie", "wirtschaft"], titel: t("n1.gs.ereignis.gasvertrag"), groessen: ["beziehungen_russland", "energieimporte", "industrie"] },
+  gasfund: { amt: ["energie", "wirtschaft"], titel: t("n1.gs.ereignis.gasfund"), groessen: ["energieimporte", "investitionen", "export"] },
+  cyberangriff: { amt: ["inneres", "generalstab"], titel: t("n1.gs.ereignis.cyberangriff"), groessen: ["terrorgefahr", "bereitschaft_heer"] },
+  weltwirtschaftskrise: { amt: ["finanzen", "wirtschaft", "zentralbank", "handel"], titel: t("n1.gs.ereignis.weltwirtschaftskrise"), groessen: ["vertrauen_maerkte", "export", "investitionen"] },
+  pandemie: { amt: ["gesundheit", "stab", "inneres"], titel: t("n1.gs.ereignis.pandemie"), groessen: ["gesundheitsversorgung", "wartezeiten", "vertrauen_regierung", "kriminalitaet"] },
+  bankenstress: { amt: ["finanzen", "zentralbank"], titel: t("n1.gs.ereignis.bankenstress"), groessen: ["vertrauen_maerkte"] },
+  waehrungsrutsch: { amt: ["finanzen", "zentralbank"], titel: t("n1.gs.ereignis.waehrungsrutsch"), groessen: ["vertrauen_maerkte", "lebenshaltung"] },
+  haushaltsdruck: { amt: ["finanzen", "zentralbank"], titel: t("n1.gs.ereignis.haushaltsdruck"), groessen: ["steuereinnahmen", "zinslast", "vertrauen_maerkte"] },
+  energiepreisschock: { amt: ["energie", "wirtschaft", "finanzen"], titel: t("n1.gs.ereignis.energiepreisschock"), groessen: ["energiepreise", "industrie", "lebenshaltung", "steuereinnahmen"] },
+  korruptionsaffaere: { amt: ["justiz", "inneres", "stab"], titel: t("n1.gs.ereignis.korruptionsaffaere"), groessen: ["justiz_unabhaengigkeit", "kriminalitaet", "vertrauen_regierung"] },
+  streikwelle: { amt: ["arbeit", "wirtschaft", "inneres"], titel: t("n1.gs.ereignis.streikwelle"), groessen: ["streikneigung", "industrie", "kriminalitaet"] },
+  anschlag: { amt: ["inneres", "generalstab"], titel: t("n1.gs.ereignis.anschlag"), groessen: ["terrorgefahr", "truppenmoral"] },
+  fluechtlingswelle: { amt: ["inneres", "aussen"], titel: t("n1.gs.ereignis.fluechtlingswelle"), groessen: ["kriminalitaet", "beziehungen_eu"] },
+  fabrikschliessungen: { amt: ["wirtschaft"], titel: t("n1.gs.ereignis.fabrikschliessungen"), groessen: ["industrie", "investitionen"] },
+  erdbeben: { amt: ["umwelt", "stab", "inneres"], titel: t("n1.gs.ereignis.erdbeben"), groessen: ["erdbebenvorsorge", "bauqualitaet", "vertrauen_regierung", "kriminalitaet"] },
+  pressekonflikt: { amt: ["stab", "inneres"], titel: t("n1.gs.ereignis.pressekonflikt"), groessen: ["legitimitaet", "vertrauen_regierung"] },
+  studentenproteste: { amt: ["inneres", "stab", "bildung"], titel: t("n1.gs.ereignis.studentenproteste"), groessen: ["polarisierung", "kriminalitaet", "hochschule"] },
+  buergermeister_verfahren: { amt: ["justiz", "inneres"], titel: t("n1.gs.ereignis.buergermeister_verfahren"), groessen: ["justiz_unabhaengigkeit", "polarisierung"] },
+  recht_ernennung: { amt: ["justiz"], titel: t("n1.gs.ereignis.recht_ernennung"), groessen: ["justiz_unabhaengigkeit"] },
+  recht_aym_kassation: { amt: ["justiz"], titel: t("n1.gs.ereignis.recht_aym_kassation"), groessen: ["urteilsbefolgung", "justiz_unabhaengigkeit"] },
+  recht_egmr: { amt: ["justiz", "aussen"], titel: t("n1.gs.ereignis.recht_egmr"), groessen: ["urteilsbefolgung", "beziehungen_eu"] },
+  recht_haftrevolte: { amt: ["justiz", "inneres"], titel: t("n1.gs.ereignis.recht_haftrevolte"), groessen: ["haftueberfuellung", "kriminalitaet"] },
+  mil_lieferverzug: { amt: ["verteidigung", "generalstab"], titel: t("n1.gs.ereignis.mil_lieferverzug"), groessen: ["modernisierung", "ruestungsautarkie", "bereitschaft_heer", "bereitschaft_luft"] },
+  mil_militaerrat: { amt: ["generalstab"], titel: t("n1.gs.ereignis.mil_militaerrat"), groessen: ["offiziersvertrauen", "truppenmoral"] },
+  land_fordert: { amt: ["aussen"], titel: t("n1.gs.ereignis.land_fordert"), groessen: ["ansehen"] },
+  land_angebot: { amt: ["aussen"], titel: t("n1.gs.ereignis.land_angebot"), groessen: ["ansehen"] },
+  land_provokation: { amt: ["aussen", "generalstab"], titel: t("n1.gs.ereignis.land_provokation"), groessen: ["ansehen", "bereitschaft_heer"] },
+  land_drohkulisse: { amt: ["aussen", "generalstab"], titel: t("n1.gs.ereignis.land_drohkulisse"), groessen: ["ansehen", "bereitschaft_heer"] },
+  vertrag_verlaengerung: { amt: ["aussen"], titel: t("n1.gs.ereignis.vertrag_verlaengerung"), groessen: ["ansehen"] },
+  mindestlohn: { amt: ["arbeit", "wirtschaft", "finanzen"], titel: t("n1.gs.ereignis.mindestlohn"), groessen: ["informelle_arbeit", "industrie", "investitionen", "steuereinnahmen", "lebenshaltung"] },
+  haushaltsjahr: { amt: ["finanzen"], titel: t("n1.gs.ereignis.haushaltsjahr"), groessen: ["steuereinnahmen", "zinslast"] },
+  kommunalwahl: { amt: ["stab"], titel: t("n1.gs.ereignis.kommunalwahl"), groessen: ["vertrauen_regierung", "polarisierung"] },
 };
 
 // ---------------------------------------------------------------------------
@@ -126,7 +126,7 @@ export function themenFuer(w: World, figurId: string): Thema[] {
   const f = figurNachId(w, figurId);
   if (!sp || !f || !sprechbar(f)) return [];
   const out: Thema[] = [];
-  out.push({ id: "sorge", titel: "Was sie gerade umtreibt", text: sorgeText(w, f), art: "sorge" });
+  out.push({ id: "sorge", titel: t("n1.gs.thema.sorge.titel", { g: gv(f) }), text: sorgeText(w, f), art: "sorge" });
 
   // Die schwächsten Größen des Ressorts
   const lage = lageIm(w, f)
@@ -135,23 +135,24 @@ export function themenFuer(w: World, figurId: string): Thema[] {
     .slice(0, 2);
   for (const { l } of lage) {
     // „Name: schlecht“ statt „Name steht schlecht“: Viele Größen stehen in der Mehrzahl (Steuereinnahmen, Beziehungen zur EU)
-    const ton = l.ton === "schlecht" ? "schlecht" : l.ton === "mittel" ? "mittelmäßig" : "gut";
-    out.push({ id: `lage:${l.id}`, titel: `Lage: ${l.name}`, text: `${l.name}: ${ton}, ${Math.round(l.wert)} von 100${l.schlechtWennHoch ? " (hoch ist schlecht)" : ""}.`, art: "lage", bezug: l.id, dringlich: l.ton === "schlecht" });
+    const ton = t(`n1.gs.ton.${l.ton}`);
+    out.push({ id: `lage:${l.id}`, titel: t("n1.gs.thema.lage.titel", { name: l.name }), text: t("n1.gs.thema.lage.text", { name: l.name, wert: Math.round(l.wert), ton, hoch: l.schlechtWennHoch ? "ja" : "nein" }), art: "lage", bezug: l.id, dringlich: l.ton === "schlecht" });
   }
 
   // Offene Ereignisse im Ressort
   for (const ev of sp.ereignisse) {
     const b = EREIGNIS_BEZUG[ev.vorlage];
-    if (b && b.amt.includes(f.amt)) out.push({ id: `ereignis:${ev.id}`, titel: b.titel, text: `${b.titel} wartet auf eine Antwort des Präsidenten; das Ressort ist betroffen.`, art: "ereignis", bezug: ev.id, dringlich: true });
+    if (b && b.amt.includes(f.amt)) out.push({ id: `ereignis:${ev.id}`, titel: b.titel, text: t("n1.gs.thema.ereignis.text", { titel: b.titel }), art: "ereignis", bezug: ev.id, dringlich: true });
   }
 
   // Zusagen, die diese Person betreffen
   for (const z of zusagenSicht(w)) {
     const trifft = z.bezug.id === f.id || (f.partei !== undefined && f.partei === z.z.von) || (z.z.massnahme !== undefined && amtDef(f).massnahmen.includes(z.z.massnahme));
-    if (trifft) out.push({ id: `zusage:${z.z.id}`, titel: `Zusage: ${z.z.text.length > 60 ? `${z.z.text.slice(0, 57)}…` : z.z.text}`, text: `Fällig ${z.tage < 0 ? "seit" : "in"} ${Math.abs(z.tage)} Tagen (${formatDateDe(z.datum)}).`, art: "zusage", bezug: z.z.id, dringlich: z.dringlichkeit === "dringend" || z.dringlichkeit === "ueberfaellig" });
+    const zt = zusageText(z.z);
+    if (trifft) out.push({ id: `zusage:${z.z.id}`, titel: t("n1.gs.thema.zusage.titel", { text: zt.length > 60 ? `${zt.slice(0, 57)}…` : zt }), text: t("n1.gs.thema.zusage.text", { seit: z.tage < 0 ? "ja" : "nein", n: Math.abs(z.tage), datum: formatDateDe(z.datum) }), art: "zusage", bezug: z.z.id, dringlich: z.dringlichkeit === "dringend" || z.dringlichkeit === "ueberfaellig" });
   }
 
-  out.push({ id: "person", titel: "Die Person selbst", text: `${f.name} und die eigene Zukunft: Ehrgeiz, Erwartungen an Sie, was ${f.weiblich ? "sie" : "er"} von der Zusammenarbeit will.`, art: "person" });
+  out.push({ id: "person", titel: t("n1.gs.thema.person.titel"), text: t("n1.gs.thema.person.text", { name: f.name, g: gv(f) }), art: "person" });
   return out.slice(0, 7);
 }
 
@@ -170,8 +171,8 @@ export function termineInfo(w: World): { belegt: number; max: number } {
 
 function terminGrund(w: World, f: Figur): string | undefined {
   const rest = (f.gespraech ?? -1e9) + GESPRAECH_ABKUEHLUNG - w.day;
-  if (rest > 0) return `Sie haben vor Kurzem mit ${f.name} gesprochen: wieder sinnvoll in ${rest} Tagen.`;
-  if (termine(w).length >= MAX_TERMINE) return `In den letzten dreißig Tagen liegen schon ${MAX_TERMINE} Gespräche; mehr Termine hat der Tag des Präsidenten nicht.`;
+  if (rest > 0) return t("n1.gs.termin.kurz", { name: f.name, n: rest });
+  if (termine(w).length >= MAX_TERMINE) return t("n1.gs.termin.voll", { max: MAX_TERMINE });
   return undefined;
 }
 
@@ -224,10 +225,10 @@ export function schritteFuer(w: World, f: Figur, groesse: string, richtung: 1 | 
 }
 
 function schrittText(s: Schritt): string {
-  const bip = Math.abs(s.kostenBip) >= 0.05 ? `${nf(Math.abs(s.kostenBip), 2)} % des BIP im Jahr` : "";
-  const kosten = s.kostenBip <= -0.05 ? `${s.pk} Kapital und bringt ${bip} ein` : `${s.pk} Kapital${bip ? ` und ${bip}` : ""}`;
-  const mehrheit = s.luecke > 0 ? `im Parlament fehlen etwa ${s.luecke} Stimmen` : "die Mehrheit im Parlament steht";
-  return `„${s.name}“ von Stufe ${s.von} auf ${s.nach}: wirkt auf ${s.wirkt}; das kostet ${kosten}, ${mehrheit}.`;
+  const bip = Math.abs(s.kostenBip) >= 0.05 ? t("n1.gs.schritt.bip", { n: Math.abs(s.kostenBip) }) : "";
+  const kosten = s.kostenBip <= -0.05 ? t("n1.gs.schritt.kostenEin", { pk: s.pk, bip }) : t("n1.gs.schritt.kosten", { pk: s.pk, bip: bip || "leer" });
+  const mehrheit = s.luecke > 0 ? t("n1.gs.schritt.luecke", { n: s.luecke }) : t("n1.gs.schritt.mehrheit");
+  return t("n1.gs.schritt.text", { name: s.name, von: s.von, nach: s.nach, wirkt: s.wirkt, kosten, mehrheit });
 }
 
 /** Was die Person über ihr Ressort weiß und Ihnen nur sagt, wenn sie Ihnen folgt: ein Fakt mit Zahl aus dem Weltzustand. */
@@ -236,33 +237,33 @@ function insiderFakt(w: World, f: Figur): string | undefined {
   const sp = w.spiel!;
   switch (f.amt) {
     case "finanzen":
-      return `Die beschlossenen Maßnahmen kosten ${nf(Math.abs(e.policyCost), 2)} % des BIP im Jahr ${e.policyCost >= 0 ? "mehr" : "weniger"} als zu Beginn; der Risikoaufschlag liegt bei ${Math.round(e.riskPremium)} Punkten.`;
+      return t("n1.gs.fakt.finanzen", { n: Math.abs(e.policyCost), mehr: e.policyCost >= 0 ? "ja" : "nein", r: Math.round(e.riskPremium) });
     case "inneres": {
       const n = activeProvinces(NET, w.net, "p_kriminalitaet").length;
-      const t = activeProvinces(NET, w.net, "p_migrationsdruck").length;
-      return n + t > 0 ? `In ${n} Provinzen ist die Unsicherheit akut, in ${t} der Druck durch Migration; dorthin gehören die Kräfte.` : "Keine Provinz meldet akute Unsicherheit.";
+      const m = activeProvinces(NET, w.net, "p_migrationsdruck").length;
+      return n + m > 0 ? t("n1.gs.fakt.inneres", { n, m }) : t("n1.gs.fakt.inneresRuhig");
     }
     case "aussen": {
       const schlecht = LAENDER.map((l) => ({ l, v: vertrauenZu(w, l.id), a: anliegenStand(w, l.id) })).sort((a, b) => a.v - b.v)[0];
       if (!schlecht) return undefined;
       const offen = schlecht.a.filter((x) => !x.erfuellt).length;
-      return `${schlecht.l.name} steht mit Vertrauen ${Math.round(schlecht.v)} am schlechtesten da; von ${schlecht.a.length} Anliegen sind ${offen} unerfüllt${weltZustand(w)[schlecht.l.id]!.konflikt >= 60 ? " und der Streit ist offen" : ""}.`;
+      return t("n1.gs.fakt.aussen", { land: schlecht.l.name, v: Math.round(schlecht.v), a: schlecht.a.length, o: offen, streit: weltZustand(w)[schlecht.l.id]!.konflikt >= 60 ? "ja" : "nein" });
     }
     case "zentralbank":
-      return `Die Inflationserwartung liegt bei ${nf(e.expectedInflation)} % bei einer Inflation von ${nf(e.inflation)} %; die Glaubwürdigkeit der Bank beträgt ${Math.round(e.credibility * 100)} von 100.`;
+      return t("n1.gs.fakt.zentralbank", { e: e.expectedInflation, i: e.inflation, c: Math.round(e.credibility * 100) });
     case "stab": {
       const offen = sp.zusagen.filter((z) => !z.erfuellt && !z.gebrochen);
       const bald = offen.sort((a, b) => a.faellig - b.faellig)[0];
-      return `Bis zur Wahl bleiben ${Math.max(0, Math.round((sp.wahltag - w.day) / 30))} Monate; ${bald ? `die nächste Zusage ist in ${Math.max(0, bald.faellig - w.day)} Tagen fällig` : "keine Zusage ist offen"}, und die Zustimmung liegt bei ${nf(sp.umfrage.zustimmung)} %.`;
+      return t("n1.gs.fakt.stab", { m: Math.max(0, Math.round((sp.wahltag - w.day) / 30)), bald: bald ? "ja" : "nein", t: bald ? Math.max(0, bald.faellig - w.day) : 0, z: sp.umfrage.zustimmung });
     }
     case "justiz":
-      return `Die Justiz arbeitet mit einer Effizienz von ${Math.round(wertVon(w, "justiz_effizienz"))} von 100; die Haftanstalten sind zu ${Math.round(wertVon(w, "haftueberfuellung"))} von 100 überfüllt.`;
+      return t("n1.gs.fakt.justiz", { e: Math.round(wertVon(w, "justiz_effizienz")), h: Math.round(wertVon(w, "haftueberfuellung")) });
     case "generalstab":
-      return `Heer ${Math.round(wertVon(w, "bereitschaft_heer"))}, Luftwaffe ${Math.round(wertVon(w, "bereitschaft_luft"))}, Marine ${Math.round(wertVon(w, "bereitschaft_see"))} von 100 einsatzbereit; die Truppenmoral liegt bei ${Math.round(wertVon(w, "truppenmoral"))}.`;
+      return t("n1.gs.fakt.generalstab", { h: Math.round(wertVon(w, "bereitschaft_heer")), l: Math.round(wertVon(w, "bereitschaft_luft")), m: Math.round(wertVon(w, "bereitschaft_see")), t: Math.round(wertVon(w, "truppenmoral")) });
     case "wirtschaft":
-      return `Das Wachstum liegt bei ${nf(e.growth)} %, die Arbeitslosigkeit bei ${nf(e.unemployment)} %; Auslandskapital steht bei ${Math.round(wertVon(w, "auslandskapital"))} von 100.`;
+      return t("n1.gs.fakt.wirtschaft", { w: e.growth, a: e.unemployment, k: Math.round(wertVon(w, "auslandskapital")) });
     case "partner":
-      return `Seine Partei hat ${w.parliament?.seats[f.partei ?? ""] ?? 0} Sitze; verlässt sie das Lager, fehlen Ihnen diese Stimmen bei jeder Abstimmung.`;
+      return t("n1.gs.fakt.partner", { g: gv(f), n: w.parliament?.seats[f.partei ?? ""] ?? 0 });
     default:
       return undefined;
   }
@@ -275,14 +276,15 @@ export function ratHinweise(w: World, f: Figur, thema: Thema): string[] {
   if (thema.art === "sorge") groesse = schlechtesteGroesse(w, f)?.id;
   if (thema.art === "ereignis") {
     groesse = ereignisGroesse(w, f, thema.bezug);
-    if (!groesse) out.push(`Zu „${thema.titel}“ sieht ${f.name} keinen Hebel im eigenen Ressort.`);
+    if (!groesse) out.push(t("n1.gs.rat.keinHebel", { titel: thema.titel, name: f.name, g: gv(f) }));
   }
   if (thema.art === "zusage") {
     const z = w.spiel!.zusagen.find((x) => x.id === thema.bezug);
     const v = zusageVorhaben(w, z);
     if (v) {
-      out.push(`Die Zusage verlangt „${v.name}“ von Stufe ${Math.round(v.jetzt)} auf ${v.ziel}: ${v.pr.ok ? `das kostet ${v.pr.gesetz.pk} Kapital, ${v.pr.gesetz.stimmen.luecke > 0 ? `im Parlament fehlen etwa ${v.pr.gesetz.stimmen.luecke} Stimmen` : "die Mehrheit steht"}` : "die Maßnahme steht schon dort"}.`);
-      if (v.pr.ok && !kannZahlen(w.spiel!.kapital, v.pr.gesetz.pk)) out.push("Das Kapital reicht dafür nicht; wer jetzt vertröstet, gewinnt drei Monate, aber Geduld.");
+      const rest = v.pr.ok ? t("n1.gs.rat.zusage.kosten", { pk: v.pr.gesetz.pk, mehrheit: v.pr.gesetz.stimmen.luecke > 0 ? t("n1.gs.schritt.luecke", { n: v.pr.gesetz.stimmen.luecke }) : t("n1.gs.rat.mehrheitSteht") }) : t("n1.gs.rat.zusage.schon");
+      out.push(t("n1.gs.rat.zusage", { name: v.name, von: Math.round(v.jetzt), ziel: v.ziel, rest }));
+      if (v.pr.ok && !kannZahlen(w.spiel!.kapital, v.pr.gesetz.pk)) out.push(t("n1.gs.rat.kapitalFehlt"));
     }
     return out;
   }
@@ -292,21 +294,21 @@ export function ratHinweise(w: World, f: Figur, thema: Thema): string[] {
     const schritte = schritteFuer(w, f, groesse, richtung, 2);
     if (schritte.length) {
       // „Name: Wert“ statt „Name steht bei“: Viele Größen stehen in der Mehrzahl („Beziehungen zur EU steht bei 39“)
-      out.push(`${l.name}: ${Math.round(l.wert)} von 100. Was ${f.weiblich ? "sie" : "er"} vorschlägt:`);
+      out.push(t("n1.gs.rat.vorschlag", { name: l.name, wert: Math.round(l.wert), g: gv(f) }));
       for (const s of schritte) out.push(schrittText(s));
-      if (e.stil === "eitel" && schritte.some((s) => s.eigenesRessort)) out.push("Auffällig: Die Vorschläge stärken vor allem sein eigenes Ressort.");
-      if (e.stil === "vorsichtig") out.push("Sie rät zu den günstigen Schritten; bei den teuren wartet sie ab.");
-      if (e.stil === "machtbewusst") out.push("Er rät zu den wirksamsten Schritten, gleich, was sie kosten.");
+      if (e.stil === "eitel" && schritte.some((s) => s.eigenesRessort)) out.push(t("n1.gs.rat.eitel", { g: gv(f) }));
+      if (e.stil === "vorsichtig") out.push(t("n1.gs.rat.vorsichtig", { g: gv(f) }));
+      if (e.stil === "machtbewusst") out.push(t("n1.gs.rat.machtbewusst", { g: gv(f) }));
     } else {
-      out.push(`${l.name}: ${Math.round(l.wert)} von 100; ${f.weiblich ? "sie" : "er"} sieht keinen Schritt, der sich lohnt: Entweder ist die Stufe erreicht oder die Wirkung zu klein.`);
+      out.push(t("n1.gs.rat.keinSchritt", { name: l.name, wert: Math.round(l.wert), g: gv(f) }));
     }
   }
   // Wer dem Präsidenten folgt, sagt mehr
   if (f.loyalitaet >= 60) {
     const fakt = insiderFakt(w, f);
-    if (fakt) out.push(`Vertraulich: ${fakt}`);
+    if (fakt) out.push(t("n1.gs.rat.vertraulich", { fakt }));
   } else if (f.loyalitaet >= 40) {
-    out.push(`${f.weiblich ? "Sie" : "Er"} hält sich zurück: Mit mehr Loyalität (ab 60) gäbe es auch die vertraulichen Zahlen.`);
+    out.push(t("n1.gs.rat.zurueck", { g: gv(f) }));
   }
   return out;
 }
@@ -346,13 +348,13 @@ function ereignisGroesse(w: World, f: Figur, ereignisId: string | undefined): st
 export function planeGespraech(w: World, figurId: string, themaId: string, ansatz: AnsatzId): Plan | { grund: string } {
   const sp = w.spiel;
   const f = figurNachId(w, figurId);
-  if (!sp || !f) return { grund: "Diese Person gibt es in Ihrer Partie nicht." };
-  if (!sprechbar(f)) return { grund: "Mit dem Oppositionsführer verhandeln Sie über die Fraktionen im Parlament." };
-  const thema = themenFuer(w, figurId).find((t) => t.id === themaId);
-  if (!thema) return { grund: "Dieses Thema steht gerade nicht an." };
+  if (!sp || !f) return { grund: t("n1.gs.g.keinePerson") };
+  if (!sprechbar(f)) return { grund: t("n1.gs.g.opposition") };
+  const thema = themenFuer(w, figurId).find((x) => x.id === themaId);
+  if (!thema) return { grund: t("n1.gs.g.keinThema") };
   const d = amtDef(f);
   const e = eigenVon(w, f);
-  const pron = f.weiblich ? "sie" : "er";
+  const g = gv(f);
   const nach = (x: number) => Math.round(k100(f.loyalitaet + x));
   const plan: Plan = { ansatz, pk: 0, dLoy: 0, dGroll: 0, dEhrgeiz: 0, folgen: [] };
   const tg = terminGrund(w, f);
@@ -372,35 +374,35 @@ export function planeGespraech(w: World, figurId: string, themaId: string, ansat
         plan.dGroll = -18;
       }
       plan.dLoy = Math.round(dLoy);
-      if (f.loyalitaet >= 90) plan.grund = "Die Loyalität ist schon so hoch, dass Zuwendung nichts mehr bringt.";
+      if (f.loyalitaet >= 90) plan.grund = t("n1.gs.g.vertrauenHoch");
       if (thema.art === "person" && e.ehrgeiz >= 65) plan.dEhrgeiz = 3;
-      plan.folgen.push(`Loyalität +${plan.dLoy} (auf ${nach(plan.dLoy)})`, `Groll ${plan.dGroll} (${grollWort(e.groll)})`);
-      if (plan.dEhrgeiz) plan.folgen.push(`${pron === "sie" ? "Sie" : "Er"} spricht von mehr Verantwortung: Ehrgeiz +${plan.dEhrgeiz}`);
+      plan.folgen.push(t("n1.gs.f.loyAuf", { d: vz(plan.dLoy), nach: nach(plan.dLoy) }), t("n1.gs.f.groll", { d: vz(plan.dGroll), wort: grollWort(e.groll) }));
+      if (plan.dEhrgeiz) plan.folgen.push(t("n1.gs.f.verantwortung", { g, n: plan.dEhrgeiz }));
       break;
     }
     case "rat": {
       plan.pk = 0;
       plan.dLoy = 2;
-      if (f.loyalitaet < 30) plan.grund = `Bei Loyalität ${Math.round(f.loyalitaet)} rückt ${pron} keine Zahlen heraus (ab 30).`;
-      else if (thema.art === "person") plan.grund = "Zu dieser Frage gibt es keinen fachlichen Rat.";
-      plan.folgen.push("Konkrete Schritte mit Kosten und Mehrheitsaussicht aus dem Weltzustand", f.loyalitaet >= 60 ? "Vertrauliche Zahlen aus dem Ressort" : "Vertrauliche Zahlen erst ab Loyalität 60", "Loyalität +2 (Wertschätzung)");
+      if (f.loyalitaet < 30) plan.grund = t("n1.gs.g.ratLoy", { loy: Math.round(f.loyalitaet), g });
+      else if (thema.art === "person") plan.grund = t("n1.gs.g.ratPerson");
+      plan.folgen.push(t("n1.gs.f.ratSchritte"), f.loyalitaet >= 60 ? t("n1.gs.f.ratVertraulich") : t("n1.gs.f.ratVertraulichAb"), t("n1.gs.f.wertschaetzung"));
       break;
     }
     case "auftrag": {
       plan.pk = 2;
       plan.dLoy = 0;
-      if (!d.regierungsamt) plan.grund = f.amt === "zentralbank" ? "Aufträge an die Zentralbank wären Eingriffe in ihre Unabhängigkeit." : "Nur Mitglieder der Regierung nehmen Aufträge an.";
-      else if (e.auftrag?.status === "laeuft") plan.grund = `Es läuft schon ein Auftrag: ${e.auftrag.text}`;
-      else if (!gr) plan.grund = "Dafür braucht es ein Thema mit einer messbaren Größe (Lage oder Sorge).";
-      else if (f.loyalitaet < 35) plan.grund = `Aufträge nimmt ${pron} nur von jemandem an, dem ${pron} folgt (Loyalität ab 35).`;
+      if (!d.regierungsamt) plan.grund = f.amt === "zentralbank" ? t("n1.gs.g.auftragZb") : t("n1.gs.g.auftragNurRegierung");
+      else if (e.auftrag?.status === "laeuft") plan.grund = t("n1.gs.g.auftragLaeuft", { text: auftragText(e.auftrag) });
+      else if (!gr) plan.grund = t("n1.gs.g.auftragGroesse");
+      else if (f.loyalitaet < 35) plan.grund = t("n1.gs.g.auftragLoy", { g });
       const richtung = gr && HOCH_SCHLECHT.has(gr) ? -1 : 1;
       const wirkung = Math.round(0.6 * leistung(w, f) * 10) / 10;
       if (gr && !plan.grund) {
         const jetzt = wertVon(w, gr);
         plan.folgen.push(
-          `Bis ${datumAn(w, w.day + AUFTRAG_TAGE)}: ${grName} von ${Math.round(jetzt)} auf ${Math.round(jetzt + richtung * 3)} (${richtung > 0 ? "mindestens 3 Punkte mehr" : "mindestens 3 Punkte weniger"})`,
-          `${pron === "sie" ? "Sie" : "Er"} setzt das Ressort ein: etwa ${richtung > 0 ? "+" : "−"}${nf(wirkung)} Punkte im Monat, mehr mit Anerkennung`,
-          "Erreicht: Loyalität +8, Ehrgeiz +3. Verfehlt: Loyalität −5, Groll +8",
+          t("n1.gs.f.auftragZiel", { datum: datumAn(w, w.day + AUFTRAG_TAGE), name: grName ?? "", von: Math.round(jetzt), nach: Math.round(jetzt + richtung * 3), richtung: richtung > 0 ? "hoch" : "runter" }),
+          t("n1.gs.f.auftragEinsatz", { g, d: `${richtung > 0 ? "+" : "−"}${nf(wirkung)}` }),
+          t("n1.gs.f.auftragBilanz"),
         );
       }
       break;
@@ -411,12 +413,12 @@ export function planeGespraech(w: World, figurId: string, themaId: string, ansat
       const streng = e.stil === "streng" ? -2 : e.stil === "loyal" ? -1 : 0;
       plan.dLoy = -(5 + eitel + streng);
       plan.dGroll = 12 + (e.stil === "eitel" ? 6 : 0);
-      if (!d.regierungsamt) plan.grund = f.amt === "zentralbank" ? "Kritik an der Zentralbank läuft über Zentralbank und Haushalt: Sie kostet Glaubwürdigkeit." : "Ein Bündnispartner lässt sich nicht kritisieren wie ein Ressortchef.";
-      else if (thema.art === "person" || thema.art === "sorge") plan.grund = "Ohne konkreten Anlass ist Kritik nur Streit.";
-      else if (thema.art === "lage" && lageIm(w, f).find((l) => l.id === thema.bezug)?.ton === "gut") plan.grund = "Die Lage steht gut; es gibt nichts zu kritisieren.";
-      else if (thema.art === "zusage") plan.grund = "Eine Zusage ist keine Leistung des Ressorts.";
-      plan.folgen.push(`Loyalität ${plan.dLoy} (auf ${nach(plan.dLoy)})`, `Groll +${plan.dGroll}`, "Sechzig Tage unter Druck: Ressortleistung +15 %");
-      if (e.groll + plan.dGroll >= 50 && e.ehrgeiz >= 50) plan.folgen.push("Risiko: Aus dem Gespräch dringt etwas an die Presse (Vertrauen −0,4)");
+      if (!d.regierungsamt) plan.grund = f.amt === "zentralbank" ? t("n1.gs.g.kritikZb") : t("n1.gs.g.kritikPartner");
+      else if (thema.art === "person" || thema.art === "sorge") plan.grund = t("n1.gs.g.kritikAnlass");
+      else if (thema.art === "lage" && lageIm(w, f).find((l) => l.id === thema.bezug)?.ton === "gut") plan.grund = t("n1.gs.g.kritikGut");
+      else if (thema.art === "zusage") plan.grund = t("n1.gs.g.kritikZusage");
+      plan.folgen.push(t("n1.gs.f.loyAuf", { d: vz(plan.dLoy), nach: nach(plan.dLoy) }), t("n1.gs.f.grollPlus", { n: plan.dGroll }), t("n1.gs.f.druck"));
+      if (e.groll + plan.dGroll >= 50 && e.ehrgeiz >= 50) plan.folgen.push(t("n1.gs.f.leakRisiko", { n: LEAK_VERTRAUEN }));
       break;
     }
     case "belohnung": {
@@ -424,11 +426,14 @@ export function planeGespraech(w: World, figurId: string, themaId: string, ansat
       plan.dLoy = 10 + (e.stil === "eitel" ? 4 : 0);
       plan.dGroll = -10;
       plan.dEhrgeiz = 2;
-      if (!d.regierungsamt) plan.grund = "Zusatzmittel gibt es nur für Ressorts der Regierung.";
-      else if (e.mittelBis !== undefined && e.mittelBis > w.day + 60) plan.grund = "Das Ressort hat schon Zusatzmittel.";
-      else if (f.loyalitaet >= 92) plan.grund = "Mehr Anerkennung würde nur Begehrlichkeiten wecken.";
-      plan.folgen.push(`Loyalität +${plan.dLoy} (auf ${nach(plan.dLoy)}), Groll ${plan.dGroll}, Ehrgeiz +${plan.dEhrgeiz}`, `Zusatzmittel für ${d.ressort}: Leistung +25 % bis ${datumAn(w, w.day + AUFTRAG_TAGE)}`, "Neid: die anderen Regierungsmitglieder ärgern sich (Groll +3)");
-      if (f.amt !== "finanzen") plan.folgen.push("Der Finanzminister mag die Ausgaben nicht (Loyalität −2)");
+      if (!d.regierungsamt) plan.grund = t("n1.gs.g.belohnungNur");
+      else if (e.mittelBis !== undefined && e.mittelBis > w.day + 60) plan.grund = t("n1.gs.g.belohnungSchon");
+      else if (f.loyalitaet >= 92) plan.grund = t("n1.gs.g.belohnungHoch");
+      plan.folgen.push(t("n1.gs.f.belohnung", { l: plan.dLoy, nach: nach(plan.dLoy), gr: vz(plan.dGroll), e: plan.dEhrgeiz }), t("n1.gs.f.mittel", { ressort: d.ressort, datum: datumAn(w, w.day + AUFTRAG_TAGE) }), t("n1.gs.f.neid", { n: neider(w, f).length }));
+      if (f.amt !== "finanzen") {
+        const fm = sp.figuren.find((x) => x.amt === "finanzen" && x.imAmt);
+        plan.folgen.push(t("n1.gs.f.finanzminister", { g: fm ? gv(fm) : "m" }));
+      }
       break;
     }
     case "rueckendeckung": {
@@ -436,22 +441,18 @@ export function planeGespraech(w: World, figurId: string, themaId: string, ansat
       plan.dLoy = 9;
       plan.dGroll = -15;
       plan.dEhrgeiz = 1;
-      if (e.groll < 20 && f.loyalitaet >= 45) plan.grund = `Niemand stellt ${f.name} infrage; öffentliche Rückendeckung wäre nur ein Zeichen der Unsicherheit.`;
-      else if (!d.regierungsamt && f.amt !== "partner") plan.grund = "Rückendeckung gibt es für Menschen im eigenen Lager.";
-      plan.folgen.push(`Loyalität +${plan.dLoy} (auf ${nach(plan.dLoy)}), Groll ${plan.dGroll}`, "Vertrauen in die Regierung −0,1: Blinde Rückendeckung hat einen Preis", "Ihr Lager nimmt es wahr: Loyalität der Nächststehenden +2");
+      if (e.groll < 20 && f.loyalitaet >= 45) plan.grund = t("n1.gs.g.rueckNiemand", { name: f.name });
+      else if (!d.regierungsamt && f.amt !== "partner") plan.grund = t("n1.gs.g.rueckLager");
+      plan.folgen.push(t("n1.gs.f.rueck", { l: plan.dLoy, nach: nach(plan.dLoy), gr: vz(plan.dGroll) }), t("n1.gs.f.rueckPreis", { n: RUECKENDECKUNG_VERTRAUEN }), t("n1.gs.f.rueckLager", { name: f.name }));
       break;
     }
     case "machtfrage": {
       plan.pk = 0;
       const s = machtScore(w, f);
       plan.aussicht = s >= MACHT_SCHWELLE + 10 ? "gut" : s >= MACHT_SCHWELLE - 8 ? "offen" : "schlecht";
-      if (f.loyalitaet >= 55 && e.groll < 40) plan.grund = "Es gibt keinen Anlass; ein Ultimatum an einen Verlässlichen erzeugt nur Ärger.";
-      else if (f.amt === "zentralbank") plan.grund = "Die Zentralbank folgt keinem Ultimatum des Präsidenten.";
-      plan.folgen.push(
-        `Aussicht: ${plan.aussicht === "gut" ? "gut" : plan.aussicht === "offen" ? "offen" : "schlecht"}`,
-        `Fügt ${pron} sich: Loyalität +6, Groll −10, Ehrgeiz −5`,
-        `Fügt ${pron} sich nicht: ${d.regierungsamt ? "Rücktritt im Streit, ein Nachfolger muss her, der Vorgänger nimmt Groll mit" : "Bruch: das Bündnis wackelt (Loyalität −20)"}`,
-      );
+      if (f.loyalitaet >= 55 && e.groll < 40) plan.grund = t("n1.gs.g.machtAnlass");
+      else if (f.amt === "zentralbank") plan.grund = t("n1.gs.g.machtZb");
+      plan.folgen.push(t("n1.gs.f.aussicht", { a: plan.aussicht }), t("n1.gs.f.fuegt", { g }), t("n1.gs.f.fuegtNicht", { g, r: d.regierungsamt ? "ja" : "nein" }));
       break;
     }
   }
@@ -460,7 +461,7 @@ export function planeGespraech(w: World, figurId: string, themaId: string, ansat
     const pause = neuanfangGrund(w);
     if (pause) plan.grund = pause;
   }
-  if (!plan.grund && !kannZahlen(sp.kapital, plan.pk)) plan.grund = `Dafür fehlen ${plan.pk} Kapital.`;
+  if (!plan.grund && !kannZahlen(sp.kapital, plan.pk)) plan.grund = t("n1.gs.g.kapital", { pk: plan.pk });
   return plan;
 }
 
@@ -504,146 +505,34 @@ export interface GespraechErgebnis {
 
 const wahl = <T,>(liste: T[], schluessel: string): T => liste[Math.floor(hashZahl(schluessel) * liste.length) % liste.length]!;
 
-const ERSTE_ZEILE: Record<AnsatzId, (t: Thema, f: Figur) => string> = {
-  vertrauen: (t) => (t.art === "person" ? "Ich möchte offen mit Ihnen reden: Wo stehen wir, und was erwarten Sie von mir?" : `Ich wollte in Ruhe mit Ihnen über „${t.titel}“ sprechen, ohne Protokoll.`),
-  rat: (t) => (t.art === "zusage" ? "Wie sollen wir mit dieser Zusage umgehen? Ich brauche Ihre ehrliche Einschätzung." : `Was raten Sie mir bei „${t.titel}“? Ich brauche Zahlen, keine Floskeln.`),
-  auftrag: (t) => `Ich gebe Ihnen einen Auftrag: „${t.titel}“ muss besser werden, und zwar messbar, bis zum Stichtag.`,
-  kritik: (t) => `„${t.titel}“ läuft nicht. Ich erwarte, dass Sie das in Ordnung bringen, und zwar bald.`,
-  belohnung: () => "Ihre Arbeit fällt auf. Ich will, dass Sie dafür mehr Mittel bekommen, und dass man es weiß.",
-  rueckendeckung: () => "Ich sage es Ihnen und der Öffentlichkeit: Ich stehe hinter Ihnen.",
-  machtfrage: () => "Ich brauche Klarheit: Sind Sie mit mir oder gegen mich?",
+const ERSTE_ZEILE: Record<AnsatzId, (th: Thema, f: Figur) => string> = {
+  vertrauen: (th) => (th.art === "person" ? t("n1.gs.eins.vertrauen.person") : t("n1.gs.eins.vertrauen", { titel: th.titel })),
+  rat: (th) => (th.art === "zusage" ? t("n1.gs.eins.rat.zusage") : t("n1.gs.eins.rat", { titel: th.titel })),
+  auftrag: (th) => t("n1.gs.eins.auftrag", { titel: th.titel }),
+  kritik: (th) => t("n1.gs.eins.kritik", { titel: th.titel }),
+  belohnung: () => t("n1.gs.eins.belohnung"),
+  rueckendeckung: () => t("n1.gs.eins.rueckendeckung"),
+  machtfrage: () => t("n1.gs.eins.machtfrage"),
 };
 
-const ANTWORTEN: Record<AnsatzId, { gut: Record<Stil, string>; schlecht: Record<Stil, string> }> = {
-  vertrauen: {
-    gut: {
-      nuechtern: "Danke, dass Sie sich Zeit nehmen. Ich sage Ihnen, wie ich die Lage sehe, und Sie sagen mir, was Sie brauchen.",
-      eitel: "Es ist schön, dass Sie das sehen. Ich habe manches geleistet, das nicht in der Zeitung steht.",
-      streng: "Gut. Wenn wir offen reden, kann ich Ihnen auch sagen, wo ich nicht mitgehe.",
-      loyal: "Sie können sich auf mich verlassen, das wissen Sie. Aber es tut gut, es auch zu hören.",
-      vorsichtig: "Ich schätze das. Wir sollten solche Gespräche öfter führen, bevor etwas schiefgeht.",
-      machtbewusst: "Das ist klug von Ihnen. Wer mit mir redet, hat weniger Ärger mit mir.",
-    },
-    schlecht: {
-      nuechtern: "Das ist freundlich, ändert aber nichts an den Zahlen.",
-      eitel: "Ich habe mehr erwartet, als ein Gespräch zwischen Tür und Angel.",
-      streng: "Nette Worte. Beschlüsse wären mir lieber.",
-      loyal: "Ich höre Sie, aber ich merke, dass etwas zwischen uns steht.",
-      vorsichtig: "Ich bin nicht sicher, ob das genügt. Es hat sich zu viel aufgestaut.",
-      machtbewusst: "Schön, dass Sie reden. Ich behalte aber im Kopf, was vorgefallen ist.",
-    },
-  },
-  rat: {
-    gut: {
-      nuechtern: "Hier sind die Zahlen. Ich rechne sie Ihnen vor, so wie ich sie sehe.",
-      eitel: "Nun, das ist mein Fach. Ich habe da längst einen Plan.",
-      streng: "Kurz und deutlich: Das sind die Schritte, alles andere ist Beiwerk.",
-      loyal: "Ich sage Ihnen, was ich wirklich denke, auch wenn es nicht angenehm ist.",
-      vorsichtig: "Ich würde nichts überstürzen. Aber das sind die Schritte, die ich für tragfähig halte.",
-      machtbewusst: "Sie wollen den kürzesten Weg? Hier ist er. Er ist nicht billig.",
-    },
-    schlecht: {
-      nuechtern: "Darüber habe ich keine belastbaren Zahlen.",
-      eitel: "Das fällt nicht in mein Ressort, fragen Sie andere.",
-      streng: "Dazu sage ich nichts, solange ich nicht weiß, wie es verwendet wird.",
-      loyal: "Ich würde gern helfen, aber ich weiß es nicht besser als Sie.",
-      vorsichtig: "Ich möchte mich nicht festlegen, ehe die Lage klarer ist.",
-      machtbewusst: "Rat gibt es für den, der mich ernst nimmt.",
-    },
-  },
-  auftrag: {
-    gut: {
-      nuechtern: "Verstanden. Ich bringe Ihnen bis zum Stichtag Zahlen, keine Ausreden.",
-      eitel: "Das ist eine Aufgabe, die mir liegt. Man wird von mir sprechen.",
-      streng: "Ich übernehme das. Wer im Weg steht, wird es merken.",
-      loyal: "Sie können auf mich zählen. Ich lasse Sie nicht hängen.",
-      vorsichtig: "Ich nehme das an. Ich sage Ihnen rechtzeitig, wenn es eng wird.",
-      machtbewusst: "Gut. Wenn ich es schaffe, erwarte ich, dass Sie das nicht vergessen.",
-    },
-    schlecht: {
-      nuechtern: "Ich nehme den Auftrag an, aber ich halte das Ziel für zu hoch.",
-      eitel: "Ich bin nicht sicher, dass ich dafür der Richtige bin.",
-      streng: "Ich nehme das an, unter Vorbehalt.",
-      loyal: "Ich versuche es. Versprechen kann ich es nicht.",
-      vorsichtig: "Ich nehme das an, aber ich rate zur Geduld.",
-      machtbewusst: "Ich mache es. Aber merken Sie sich, dass ich es nicht gern tue.",
-    },
-  },
-  kritik: {
-    gut: {
-      nuechtern: "Die Kritik ist berechtigt. Ich ziehe die Konsequenzen und melde mich in einem Monat.",
-      eitel: "Ich sehe das anders, aber ich werde es beweisen.",
-      streng: "Verstanden. Ich hätte es früher sagen sollen.",
-      loyal: "Sie haben recht, und es tut weh. Ich bringe es in Ordnung.",
-      vorsichtig: "Ich nehme das ernst. Ich brauche aber mehr Spielraum.",
-      machtbewusst: "Gut, ich verstehe. Aber halten Sie sich das Gleiche selbst vor.",
-    },
-    schlecht: {
-      nuechtern: "Das halte ich für ungerecht, und ich werde das festhalten.",
-      eitel: "Ich habe mehr für dieses Land getan als viele, die mir das vorwerfen.",
-      streng: "Sie vergessen, unter welchen Bedingungen ich arbeite.",
-      loyal: "Dass gerade Sie mir das sagen, hätte ich nicht gedacht.",
-      vorsichtig: "So kann ich nicht arbeiten. Ich brauche Rückhalt, keine Vorwürfe.",
-      machtbewusst: "Das merke ich mir. Alles hat seinen Preis.",
-    },
-  },
-  belohnung: {
-    gut: {
-      nuechtern: "Danke. Die Mittel setze ich dort ein, wo sie am meisten bringen.",
-      eitel: "Endlich sieht es jemand. Sie werden es nicht bereuen.",
-      streng: "Das nehme ich an, mit der Auflage, dass die anderen nicht dafür zahlen.",
-      loyal: "Das habe ich nicht erwartet, und ich vergesse es nicht.",
-      vorsichtig: "Ich bin dankbar. Ich hoffe, die anderen sehen es nicht als Bevorzugung.",
-      machtbewusst: "Ich nehme es und erwarte, dass es nicht die letzte Geste bleibt.",
-    },
-    schlecht: {
-      nuechtern: "Danke, aber Mittel ersetzen kein Vertrauen.",
-      eitel: "Anerkennung ist gut, aber ich hatte mit einer höheren Stellung gerechnet.",
-      streng: "Nicht mit Geld lösen, was ein Gespräch klären müsste.",
-      loyal: "Das ist nicht nötig, ich habe es nicht wegen der Mittel getan.",
-      vorsichtig: "Ich nehme das an, obwohl ich weiß, wie es aussieht.",
-      machtbewusst: "Ein Anfang. Aber ich will mehr als ein Geschenk.",
-    },
-  },
-  rueckendeckung: {
-    gut: {
-      nuechtern: "Das hilft mir jetzt mehr, als Sie ahnen.",
-      eitel: "Es ist gut zu wissen, dass man gesehen wird.",
-      streng: "Diese Geste vergesse ich nicht. Ich weiß, was sie kostet.",
-      loyal: "Sie ahnen nicht, wie viel mir das bedeutet. Ich werde Sie nicht enttäuschen.",
-      vorsichtig: "Danke. Das beruhigt mich, und es beruhigt mein Haus.",
-      machtbewusst: "Klug von Ihnen. Sie wissen, was ein Gefallen wert ist.",
-    },
-    schlecht: {
-      nuechtern: "Gut gemeint, aber die Vorwürfe bleiben.",
-      eitel: "Rückendeckung reicht nicht, ich will eine öffentliche Genugtuung.",
-      streng: "Das kommt zu spät.",
-      loyal: "Danke. Aber ich fürchte, es kommt zu spät.",
-      vorsichtig: "Ich bin nicht sicher, ob das die Lage beruhigt oder verschärft.",
-      machtbewusst: "Zu spät kommt die Rückendeckung, und sie hilft nicht mehr viel.",
-    },
-  },
-  machtfrage: {
-    gut: {
-      nuechtern: "Ich bin mit Ihnen. Sie hätten nicht fragen müssen, aber ich verstehe, warum.",
-      eitel: "Wenn es sein muss: mit Ihnen. Aber Sie werden es sich merken müssen.",
-      streng: "Ich bin mit Ihnen, solange Sie führen.",
-      loyal: "Natürlich mit Ihnen. Das war nie eine Frage.",
-      vorsichtig: "Ich bleibe. Aber ich bitte darum, dass wir so etwas nicht wiederholen.",
-      machtbewusst: "Gut. Ich füge mich, für jetzt.",
-    },
-    schlecht: {
-      nuechtern: "Dann gehe ich. Ich lasse mir keine Bedingungen stellen.",
-      eitel: "Wenn Sie so fragen, kennen Sie die Antwort. Sie werden von mir hören.",
-      streng: "Nicht unter solchen Bedingungen. Ich gebe mein Amt zurück.",
-      loyal: "Dass Sie so fragen, sagt mir alles. Ich trete zurück.",
-      vorsichtig: "Ich sehe keinen Weg mehr. Ich reiche meinen Rücktritt ein.",
-      machtbewusst: "Sie haben die Frage gestellt. Sie werden mit der Antwort leben.",
-    },
-  },
-};
+/** Die Antwort der Person je Ansatz, Ausgang und Stil (Katalog n1.gs.antwort.*; mit dem Geschlecht, wo die Form sich ändert). */
+const antwortText = (ansatz: AnsatzId, art: "gut" | "schlecht", f: Figur, stil: Stil): string => t(`n1.gs.antwort.${ansatz}.${art}.${stil}`, { g: gv(f) });
 
-const pron = (f: Figur) => ({ er: f.weiblich ? "Sie" : "Er", ihm: f.weiblich ? "ihr" : "ihm" });
+/** Was Kritik mit Durchstechen und blinde Rückendeckung am Vertrauen in die Regierung kosten (Spielparameter; Vorschau und Buchung lesen dieselbe Zahl). */
+const LEAK_VERTRAUEN = 0.4;
+const RUECKENDECKUNG_VERTRAUEN = 0.1;
+
+/** Wer Anerkennung anderer neidet (Befund C-20): seit es 19 statt 7 Plätze gibt, nur Regierungsmitglieder aus demselben Lager. */
+function neider(w: World, f: Figur): Figur[] {
+  const lager = eigenVon(w, f).lager;
+  return (w.spiel?.figuren ?? []).filter((g) => g !== f && g.imAmt && AEMTER[g.amt].regierungsamt && eigenVon(w, g).lager === lager);
+}
+
+/** Der Auftrag in Worten, aus Größe und Richtung (der gespeicherte Text bleibt für ältere Spielstände). */
+export function auftragText(a: Auftrag): string {
+  const name = NET.nodes[NET.index.get(a.groesse) ?? -1]?.name;
+  return name ? t("n1.gs.auftrag.text", { name, richtung: a.richtung > 0 ? "hoch" : "runter" }) : a.text;
+}
 
 function ton(x: number): "gut" | "schlecht" | "neutral" {
   return x > 0 ? "gut" : x < 0 ? "schlecht" : "neutral";
@@ -660,11 +549,11 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
   const sp = w.spiel;
   const f = figurNachId(w, figurId);
   const leer = (text: string): GespraechErgebnis => ({ ok: false, text, szene: [], hinweise: [], folgen: [], kosten: 0 });
-  if (!sp || !f) return leer("Diese Person gibt es in Ihrer Partie nicht.");
+  if (!sp || !f) return leer(t("n1.gs.g.keinePerson"));
   const p = planeGespraech(w, figurId, themaId, ansatz);
   if (!("ansatz" in p)) return leer(p.grund);
   if (p.grund) return leer(p.grund);
-  const thema = themenFuer(w, figurId).find((t) => t.id === themaId)!;
+  const thema = themenFuer(w, figurId).find((x) => x.id === themaId)!;
   const e = eigenVon(w, f);
   const d = amtDef(f);
   const gr = themaGroesse(w, f, thema);
@@ -678,12 +567,12 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
   const loyVorher = f.loyalitaet;
 
   sp.kapital -= p.pk;
-  verbrauche(w, AUFMERKSAMKEIT_KOSTEN.gespraech, `Gespräch mit ${f.name}`);
+  verbrauche(w, AUFMERKSAMKEIT_KOSTEN.gespraech, t("n1.gs.verbrauch", { name: f.name }));
   f.gespraech = w.day;
   (sp.termine ??= []).push(w.day);
   if (sp.termine.length > 40) sp.termine = sp.termine.slice(-40);
 
-  const antwort = (art: "gut" | "schlecht") => ANTWORTEN[ansatz][art][e.stil];
+  const antwort = (art: "gut" | "schlecht") => antwortText(ansatz, art, f, e.stil);
 
   switch (ansatz) {
     case "vertrauen": {
@@ -693,8 +582,8 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
       const gut = p.dLoy >= 6;
       ausgang = gut ? "gut" : "mittel";
       szene.push({ wer: "er", text: antwort(gut ? "gut" : "schlecht") });
-      if (thema.art === "person") szene.push({ wer: "erzaehler", text: e.ehrgeiz >= 65 ? `${pron(f).er} deutet an, dass ${f.weiblich ? "sie" : "er"} mehr Verantwortung erwartet und nicht ewig auf der Stelle bleiben wird.` : `${pron(f).er} wirkt mit dem Amt im Reinen und will vor allem in Ruhe arbeiten.` });
-      folgen.push({ text: `Loyalität ${p.dLoy >= 0 ? "+" : ""}${p.dLoy}: jetzt ${Math.round(f.loyalitaet)}`, ton: ton(p.dLoy) }, { text: `Groll ${p.dGroll}: ${grollWort(e.groll)}`, ton: "gut" });
+      if (thema.art === "person") szene.push({ wer: "erzaehler", text: e.ehrgeiz >= 65 ? t("n1.gs.sz.ehrgeiz", { g: gv(f) }) : t("n1.gs.sz.ruhe", { g: gv(f) }) });
+      folgen.push({ text: t("n1.gs.f.loyJetzt", { d: vz(p.dLoy), n: Math.round(f.loyalitaet) }), ton: ton(p.dLoy) }, { text: t("n1.gs.f.grollWort", { d: vz(p.dGroll), wort: grollWort(e.groll) }), ton: "gut" });
       break;
     }
     case "rat": {
@@ -702,14 +591,14 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
       hinweise.push(...ratHinweise(w, f, thema));
       ausgang = hinweise.length ? "gut" : "mittel";
       szene.push({ wer: "er", text: antwort(hinweise.length ? "gut" : "schlecht") });
-      folgen.push({ text: "Loyalität +2 (Wertschätzung)", ton: "gut" });
+      folgen.push({ text: t("n1.gs.f.wertschaetzung"), ton: "gut" });
       break;
     }
     case "auftrag": {
       const richtung: 1 | -1 = gr && HOCH_SCHLECHT.has(gr) ? -1 : 1;
       const a: Auftrag = {
         id: `auftrag-${f.id}-${w.day}`,
-        text: `${grName} ${richtung > 0 ? "verbessern" : "senken"}`,
+        text: t("n1.gs.auftrag.text", { name: grName ?? "", richtung: richtung > 0 ? "hoch" : "runter" }),
         groesse: gr!,
         richtung,
         delta: 3,
@@ -722,7 +611,7 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
       const skeptisch = f.loyalitaet < 50;
       ausgang = skeptisch ? "mittel" : "gut";
       szene.push({ wer: "er", text: antwort(skeptisch ? "schlecht" : "gut") });
-      folgen.push({ text: `Auftrag bis ${datumAn(w, a.frist)}: ${grName} um mindestens ${a.delta} Punkte ${richtung > 0 ? "steigern" : "senken"} (jetzt ${Math.round(a.vorher)})`, ton: "neutral" });
+      folgen.push({ text: t("n1.gs.f.auftrag", { datum: datumAn(w, a.frist), name: grName ?? "", delta: a.delta, richtung: richtung > 0 ? "hoch" : "runter", jetzt: Math.round(a.vorher) }), ton: "neutral" });
       break;
     }
     case "kritik": {
@@ -732,11 +621,11 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
       const scharf = e.groll >= 50;
       ausgang = scharf ? "schlecht" : "mittel";
       szene.push({ wer: "er", text: antwort(scharf ? "schlecht" : "gut") });
-      folgen.push({ text: `Loyalität ${p.dLoy}: jetzt ${Math.round(f.loyalitaet)}`, ton: "schlecht" }, { text: `Groll +${p.dGroll}: ${grollWort(e.groll)}`, ton: "schlecht" }, { text: "Sechzig Tage unter Druck: Ressortleistung +15 %", ton: "gut" });
+      folgen.push({ text: t("n1.gs.f.loyJetzt", { d: vz(p.dLoy), n: Math.round(f.loyalitaet) }), ton: "schlecht" }, { text: t("n1.gs.f.grollWort", { d: vz(p.dGroll), wort: grollWort(e.groll) }), ton: "schlecht" }, { text: t("n1.gs.f.druck"), ton: "gut" });
       if (e.groll >= 50 && e.ehrgeiz >= 50 && hashZahl(`${schluessel}|leak`) < 0.35) {
-        vertrauenAendern(w, -0.4);
-        addLog(w, "ereignis", `Aus der Regierung dringt etwas an die Presse: ${f.rolle} ${f.name} soll den Präsidenten hinter verschlossenen Türen scharf kritisiert haben.`, "Ein verärgertes Kabinettsmitglied redet.");
-        folgen.push({ text: "Aus dem Gespräch dringt etwas an die Presse: Vertrauen in die Regierung −0,4", ton: "schlecht" });
+        vertrauenAendern(w, -LEAK_VERTRAUEN);
+        addLog(w, "ereignis", t("n1.gs.leak.log", { rolle: f.rolle, name: f.name }), t("n1.gs.leak.why"));
+        folgen.push({ text: t("n1.gs.f.leak", { n: LEAK_VERTRAUEN }), ton: "schlecht" });
       }
       break;
     }
@@ -745,10 +634,8 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
       grollVerschieben(w, f, p.dGroll);
       e.ehrgeiz = k100(e.ehrgeiz + p.dEhrgeiz);
       e.mittelBis = w.day + AUFTRAG_TAGE;
-      for (const g of sp.figuren) {
-        if (g === f || !AEMTER[g.amt].regierungsamt) continue;
-        grollVerschieben(w, g, 3);
-      }
+      const neid = neider(w, f);
+      for (const x of neid) grollVerschieben(w, x, 3);
       if (f.amt !== "finanzen") {
         const fm = sp.figuren.find((x) => x.amt === "finanzen");
         if (fm) loyalitaetVerschieben(fm, -2);
@@ -756,18 +643,18 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
       const gut = p.dLoy >= 10;
       ausgang = gut ? "gut" : "mittel";
       szene.push({ wer: "er", text: antwort(f.loyalitaet >= 70 || e.stil === "loyal" || e.stil === "eitel" ? "gut" : "schlecht") });
-      folgen.push({ text: `Loyalität +${p.dLoy}: jetzt ${Math.round(f.loyalitaet)}`, ton: "gut" }, { text: `Zusatzmittel für ${d.ressort} bis ${datumAn(w, e.mittelBis)}: Leistung +25 %`, ton: "gut" }, { text: "Neid im Kabinett: Groll der anderen +3", ton: "schlecht" });
+      folgen.push({ text: t("n1.gs.f.loyJetzt", { d: vz(p.dLoy), n: Math.round(f.loyalitaet) }), ton: "gut" }, { text: t("n1.gs.f.mittelBis", { ressort: d.ressort, datum: datumAn(w, e.mittelBis) }), ton: "gut" }, { text: t("n1.gs.f.neid", { n: neid.length }), ton: neid.length ? "schlecht" : "neutral" });
       break;
     }
     case "rueckendeckung": {
       loyalitaetVerschieben(f, p.dLoy);
       grollVerschieben(w, f, p.dGroll);
       e.ehrgeiz = k100(e.ehrgeiz + p.dEhrgeiz);
-      vertrauenAendern(w, -0.1);
+      vertrauenAendern(w, -RUECKENDECKUNG_VERTRAUEN);
       for (const g of sp.figuren) if (g !== f && g.eigen?.lager === e.lager) loyalitaetVerschieben(g, 2);
       ausgang = "gut";
       szene.push({ wer: "er", text: antwort(f.loyalitaet >= 45 ? "gut" : "schlecht") });
-      folgen.push({ text: `Loyalität +${p.dLoy}: jetzt ${Math.round(f.loyalitaet)}`, ton: "gut" }, { text: `Groll ${p.dGroll}: ${grollWort(e.groll)}`, ton: "gut" }, { text: "Vertrauen in die Regierung −0,1", ton: "schlecht" });
+      folgen.push({ text: t("n1.gs.f.loyJetzt", { d: vz(p.dLoy), n: Math.round(f.loyalitaet) }), ton: "gut" }, { text: t("n1.gs.f.grollWort", { d: vz(p.dGroll), wort: grollWort(e.groll) }), ton: "gut" }, { text: t("n1.gs.f.vertrauen", { n: RUECKENDECKUNG_VERTRAUEN }), ton: "schlecht" });
       break;
     }
     case "machtfrage": {
@@ -778,18 +665,19 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
         e.ehrgeiz = k100(e.ehrgeiz - 5);
         ausgang = "gut";
         szene.push({ wer: "er", text: antwort("gut") });
-        folgen.push({ text: `${pron(f).er} fügt sich: Loyalität +6, jetzt ${Math.round(f.loyalitaet)}`, ton: "gut" }, { text: "Groll −10, Ehrgeiz −5", ton: "gut" });
+        folgen.push({ text: t("n1.gs.f.fuegtSich", { g: gv(f), n: Math.round(f.loyalitaet) }), ton: "gut" }, { text: t("n1.gs.f.grollEhrgeiz"), ton: "gut" });
       } else {
         ausgang = "bruch";
         szene.push({ wer: "er", text: antwort("schlecht") });
         if (d.regierungsamt && ausscheidenHaken) {
-          ausscheidenHaken(w, f, "Rücktritt nach dem Ultimatum des Präsidenten");
+          const name = f.name;
+          ausscheidenHaken(w, f, t("n1.gs.ruecktritt.grund"));
           ausgeschieden = true;
-          folgen.push({ text: `${f.name} tritt zurück, ein Nachfolger muss ernannt werden`, ton: "schlecht" });
+          folgen.push({ text: t("n1.gs.f.ruecktritt", { name }), ton: "schlecht" });
         } else {
           loyalitaetVerschieben(f, -20);
           grollVerschieben(w, f, 20);
-          folgen.push({ text: `Bruch: Loyalität −20, jetzt ${Math.round(f.loyalitaet)}`, ton: "schlecht" });
+          folgen.push({ text: t("n1.gs.f.bruch", { n: Math.round(f.loyalitaet) }), ton: "schlecht" });
         }
       }
       break;
@@ -797,21 +685,21 @@ export function fuehreGespraech(w: World, figurId: string, themaId: string, ansa
   }
 
   if (!ausgeschieden) {
-    merke(w, f, `${ANSATZ_NAMEN[ansatz].label}: ${thema.titel}${loyVorher !== f.loyalitaet ? ` (Loyalität ${f.loyalitaet > loyVorher ? "+" : "−"}${Math.abs(Math.round(f.loyalitaet - loyVorher))})` : ""}`);
+    merke(w, f, t("n1.gs.merke", { ansatz: ANSATZ_NAMEN[ansatz].label, thema: thema.titel, d: loyVorher !== f.loyalitaet ? vz(Math.round(f.loyalitaet - loyVorher)) : "leer" }));
   }
-  const kurz = `Gespräch mit ${f.rolle} ${f.name} (${ANSATZ_NAMEN[ansatz].label}): ${ausgang === "bruch" ? "Es endet im Bruch" : ausgang === "gut" ? "Es geht gut aus" : ausgang === "mittel" ? "Es bringt wenig" : "Es geht schlecht aus"}.`;
-  addLog(w, "entscheidung", kurz, `${thema.titel}. Kosten ${p.pk} Kapital.`);
+  const kurz = t("n1.gs.kurz", { rolle: f.rolle, name: f.name, ansatz: ANSATZ_NAMEN[ansatz].label, a: ausgang });
+  addLog(w, "entscheidung", kurz, t("n1.gs.kurz.why", { thema: thema.titel, pk: p.pk }));
   return { ok: true, text: kurz, szene, hinweise, folgen, kosten: p.pk, ausgang, ...(ausgeschieden ? { ausgeschieden } : {}) };
 }
 
 /** Ein kurzes Gespräch für Chat und Befehle: Vertrauen aufbauen zu dem, was die Person umtreibt. */
 export function sprichMitFigur(w: World, figurId: string): { ok: boolean; text: string; why?: string } {
   const f = figurNachId(w, figurId);
-  if (!f) return { ok: false, text: "Diese Person gibt es in Ihrer Partie nicht." };
-  if (!sprechbar(f)) return { ok: false, text: "Mit dem Oppositionsführer verhandeln Sie über die Fraktionen im Parlament (Parlament und Beschlüsse)." };
+  if (!f) return { ok: false, text: t("n1.gs.g.keinePerson") };
+  if (!sprechbar(f)) return { ok: false, text: t("n1.gs.g.opposition") };
   const r = fuehreGespraech(w, figurId, "sorge", "vertrauen");
   if (!r.ok) return { ok: false, text: r.text };
-  return { ok: true, text: r.text, why: `Kostet ${r.kosten} Kapital. ${f.name} will: ${f.ziel}` };
+  return { ok: true, text: r.text, why: t("n1.gs.sprich.why", { pk: r.kosten, name: f.name, ziel: f.ziel }) };
 }
 
 // ---------------------------------------------------------------------------
@@ -841,14 +729,14 @@ export function personKontext(w: World, figurId: string): string {
 
 /** Wendet ein vom Modell gewähltes Gespräch an: prüft Thema und Ansatz gegen den Katalog und führt es wie jede andere Handlung aus. */
 export function wendeGespraechsergebnisAn(w: World, figurId: string, themaId: string, ansatz: string): GespraechErgebnis {
-  if (!ANSATZ_REIHENFOLGE.includes(ansatz as AnsatzId)) return { ok: false, text: `Unbekannter Ansatz „${ansatz}“.`, szene: [], hinweise: [], folgen: [], kosten: 0 };
+  if (!ANSATZ_REIHENFOLGE.includes(ansatz as AnsatzId)) return { ok: false, text: t("n1.gs.unbekannt", { a: ansatz }), szene: [], hinweise: [], folgen: [], kosten: 0 };
   return fuehreGespraech(w, figurId, themaId, ansatz as AnsatzId);
 }
 
 /** Warum jetzt kein Gespräch mit dieser Person möglich ist (Abkühlzeit, Termine); leer, wenn es geht. */
 export function gespraechGrund(w: World, figurId: string): string | undefined {
   const f = figurNachId(w, figurId);
-  if (!f) return "Diese Person gibt es in Ihrer Partie nicht.";
-  if (!sprechbar(f)) return "Mit dem Oppositionsführer verhandeln Sie über die Fraktionen im Parlament.";
+  if (!f) return t("n1.gs.g.keinePerson");
+  if (!sprechbar(f)) return t("n1.gs.g.opposition");
   return terminGrund(w, f);
 }
