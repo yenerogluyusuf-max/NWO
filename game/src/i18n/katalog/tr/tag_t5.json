@@ -1,0 +1,7 @@
+{
+ "t5.zb.frage.senkt": "Banka {datum} tarihinde politika faizini %{alt, number, 1} seviyesinden %{neu, number, 1} seviyesine indiriyor.",
+ "t5.zb.frage.erhoeht": "Banka {datum} tarihinde politika faizini %{alt, number, 1} seviyesinden %{neu, number, 1} seviyesine yükseltiyor.",
+ "t5.zb.frage.haelt": "Banka {datum} tarihinde politika faizini %{neu, number, 1} seviyesinde sabit tutuyor.",
+ "t5.zb.frage.vorgabe": "Banka {datum} tarihinde sizin belirlediğiniz %{neu, number, 1} faizi uyguluyor.",
+ "t5.zb.vorgabeTitel": "Toplantı için talimatınız"
+}
