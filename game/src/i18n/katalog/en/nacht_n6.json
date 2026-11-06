@@ -97,5 +97,11 @@
  "n6.st.serie.vielvoelker": "Communities",
  "n6.st.laeuft": "under way",
  "n6.sitze.reform": "{n} reform-minded",
- "n6.reich.ansicht": "{bereich}: view"
+ "n6.reich.ansicht": "{bereich}: view",
+ "n6.fk.astZaehler": "{fertig} of {gesamt} completed · {moeglich} possible now",
+ "n6.fk.mehr": "and {n} more in this branch",
+ "n6.fk.aeste": "Branches of the focus tree",
+ "n6.fk.gegen": "rules out: {liste}",
+ "n6.fk.legende": "Line: prerequisite · ⨯: opposing path, one rules out the other · gold border: possible now",
+ "n6.fk.legendeUebersicht": "Click a branch to open its tree, or a focus to open its sheet."
 }

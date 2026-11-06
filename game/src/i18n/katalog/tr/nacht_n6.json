@@ -97,5 +97,11 @@
  "n6.st.serie.vielvoelker": "Topluluklar",
  "n6.st.laeuft": "sürüyor",
  "n6.sitze.reform": "{n} reform yanlısı",
- "n6.reich.ansicht": "{bereich}: görünüm"
+ "n6.reich.ansicht": "{bereich}: görünüm",
+ "n6.fk.astZaehler": "{gesamt} hedefin {fertig} tanesi tamamlandı · {moeglich} tanesi şimdi mümkün",
+ "n6.fk.mehr": "ve bu dalda {n} tane daha",
+ "n6.fk.aeste": "Odak ağacının dalları",
+ "n6.fk.gegen": "dışlar: {liste}",
+ "n6.fk.legende": "Çizgi: ön koşul · ⨯: karşıt yol, biri diğerini dışlar · altın çerçeve: şimdi mümkün",
+ "n6.fk.legendeUebersicht": "Ağacını açmak için bir dala, sayfasını açmak için bir odağa tıklayın."
 }

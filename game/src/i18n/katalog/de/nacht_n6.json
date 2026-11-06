@@ -97,5 +97,11 @@
  "n6.st.serie.vielvoelker": "Gemeinschaften",
  "n6.st.laeuft": "läuft",
  "n6.sitze.reform": "{n} reformorientiert",
- "n6.reich.ansicht": "{bereich}: Ansicht"
+ "n6.reich.ansicht": "{bereich}: Ansicht",
+ "n6.fk.astZaehler": "{fertig} von {gesamt} vollendet · {moeglich} jetzt möglich",
+ "n6.fk.mehr": "und {n} weitere im Ast",
+ "n6.fk.aeste": "Äste des Fokusbaums",
+ "n6.fk.gegen": "schließt aus: {liste}",
+ "n6.fk.legende": "Linie: Vorgänger · ⨯: Gegenweg, der eine schließt den anderen aus · goldener Rand: jetzt möglich",
+ "n6.fk.legendeUebersicht": "Ein Klick auf einen Ast öffnet seinen Baum, ein Klick auf einen Fokus sein Blatt."
 }
