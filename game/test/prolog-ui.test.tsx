@@ -31,7 +31,7 @@ describe("Parteikonfigurator", () => {
     expect(html).toContain("Name der Partei");
     expect(html).toContain("Kürzel");
     expect(html).toContain('type="color"');
-    expect(html).toContain("Trägt dich");
+    expect(html).toContain("Trägt Sie");
     expect(html).toContain("Mögliche Partner");
     expect(html).toContain("Billig (mit der Linie)");
     expect(html).toContain("Partei gründen");
@@ -86,11 +86,11 @@ describe("Parteikonfigurator", () => {
 describe("Prolog: das Buch", () => {
   test("erstes Blatt: Namensschild mit Zufallsname, Porträt und Gesichtswahl (Geschlecht, Alter, Frisur, Gesichtsform, Brille, Bart oder Kopftuch, Würfeln)", () => {
     const html = renderToStaticMarkup(<Prologue onDone={() => {}} />);
-    expect(html).toContain("Wer bist du?");
+    expect(html).toContain("Wer sind Sie?");
     expect(html).toContain("Namensschild");
     expect(html).toContain("Zufälliger Name");
     expect(zaehle(html, /class="portraet/g)).toBeGreaterThanOrEqual(1);
-    expect(html).toContain("Dein Gesicht");
+    expect(html).toContain("Ihr Gesicht");
     for (const w of ["Geschlecht", "Alter", "Frisur", "Gesichtsform", "Brille", "Kopftuch", "Würfeln"]) expect(html).toContain(w);
     expect(zaehle(html, /type="range"/g)).toBe(1);
     // acht benannte Stationen im Band, keine ist die aktuelle
@@ -101,7 +101,7 @@ describe("Prolog: das Buch", () => {
 
   test("zweites Blatt: vier Szenarien als Karten, die Opposition gesperrt mit Schloss und Hinweis „Folgt später“", () => {
     const html = renderToStaticMarkup(<Prologue onDone={() => {}} anfang={-1} />);
-    expect(html).toContain("Wie beginnt deine Geschichte?");
+    expect(html).toContain("Wie beginnt Ihre Geschichte?");
     for (const n of ["Neugründung", "Regierungspartei übernehmen", "Übergangsregierung nach der Krise", "Opposition nach dem Machtwechsel"]) expect(html).toContain(n);
     expect(zaehle(html, /role="radio"/g)).toBe(4);
     expect(zaehle(html, /disabled=""/g)).toBe(1);

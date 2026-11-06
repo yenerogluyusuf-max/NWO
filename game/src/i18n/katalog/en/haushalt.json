@@ -14,7 +14,7 @@
  "haushalt.fehler.unbekannt": "This budget item does not exist.",
  "haushalt.grund.kapital": "This costs {kosten} capital; you have {da}.",
  "haushalt.grund.keine": "No change.",
- "haushalt.grund.ohne_spiel": "No game loop.",
+ "haushalt.grund.ohne_spiel": "This view becomes available once your term has begun.",
  "haushalt.gruppe.dienste": "Health, education, research",
  "haushalt.gruppe.renten": "Pensions",
  "haushalt.gruppe.sicherheit": "Security",

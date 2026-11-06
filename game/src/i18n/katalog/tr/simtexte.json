@@ -180,7 +180,7 @@
  "person.sorge.aussen": "En zor ilişki {land|ins} (güven 100 üzerinden {v}); orada şu sıralar zemin kaybediyor.",
  "person.sorge.aussenLeer": "Ülkenin ittifakları için endişeleniyor.",
  "person.sorge.zentralbank": "Enflasyon %{i} (hedef %{z}), politika faizi %{l}; bankanın bağımsızlığına dokunulmamasını gözetiyor.",
- "person.sorge.stab": "Onay oranı %{z}; {o} söz açık ve Meclis'te {n} yasa tasarısı bekliyor; seçime kadar her günü sayıyor.",
+ "person.sorge.stab": "Onay oranı %{z}; {o} söz açık ve Meclis'te {n} kanun teklifi bekliyor; seçime kadar her günü sayıyor.",
  "person.sorge.justiz": "Cezaevlerindeki doluluk 100 üzerinden {h}, yargı bağımsızlığı {u}; davaları müdahale gibi görünmeden hızlandırmak istiyor.",
  "person.sorge.generalstab": "Askerin morali {m}, subayların güveni {v}; aklında teçhizat, terfiler ve bunlara kimin karar verdiği var.",
  "person.sorge.wirtschaft": "Yatırımlar 100 üzerinden {i}, büyüme %{w}; ülkenin yatırımcılara keyfî gelmemesini istiyor.",

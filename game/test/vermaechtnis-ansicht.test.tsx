@@ -46,7 +46,7 @@ afterEach(async () => {
 describe("Vermächtnis", () => {
   test("Alle Kapitel erscheinen, mit Epilog und Kurve", () => {
     const html = renderToStaticMarkup(<Vermaechtnis daten={vermaechtnis(beendet("abwahl"))} />);
-    for (const kap of ["Die Zustimmung", "Die Amtszeiten", "Die Wahlen", "Zusagen", "Kriege", "Verfassung", "Das Reich", "Das Kabinett", "Katastrophen", "Die Zahlen", "Wendepunkte", "Und danach?"]) {
+    for (const kap of ["Die Zustimmung", "Die Amtszeiten", "Die Wahlen", "Zusagen", "Kriege", "Verfassung", "Was gebaut wurde", "Das Kabinett", "Katastrophen", "Die Zahlen", "Wendepunkte", "Und danach?"]) {
       expect(html, kap).toContain(kap);
     }
     expect(html).toContain("Ende: Abwahl");
@@ -109,7 +109,7 @@ describe("Bilanzfenster", () => {
     expect(html).toContain("Warum es endete");
     expect(html).toContain("Vermächtnis ansehen");
     expect(html).toContain("Neue Partie");
-    expect(html).toContain("Weitester Stand");
+    expect(html).toContain("Am weitesten gespielter Stand"); // Wortlaut seit Befund I (titel.weitester, vermaechtnis.erhalten)
     expect(html).toContain("Karte ansehen");
   });
 });

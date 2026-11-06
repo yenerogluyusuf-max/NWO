@@ -92,7 +92,7 @@
  "akte.fragen.nichtsLiegen": "Akut sorunların hiçbiri sonuçsuz bekleyecek kadar küçük değil.",
  "akte.fragen.zuerst": "“{text}” ({von}), {tage} gün içinde vadesi doluyor.",
  "akte.kapital.altlast": "Eski yükler",
- "akte.kapital.erklaerung": "Siyasi sermaye para değil, destektir. Kanunlar, kararnameler, müzakereler ve yanıtlar onu tüketir; 20'ye kadar eksiye düşülebilir. Şu anki aylık gelir {summe}: {teile}. Sonraki gelir {naechste, date}, en çok {grenze}.",
+ "akte.kapital.erklaerung": "Siyasi sermaye para değil, destektir. Kanunlar, kararnameler, müzakereler ve yanıtlar onu tüketir; 20 puana kadar eksiye düşebilirsiniz. Şu anki aylık gelir {summe}: {teile}. Sonraki gelir {naechste, date}, en çok {grenze}.",
  "akte.kapital.grund": "Temel gelir",
  "akte.kapital.kabinett": "Kabine",
  "akte.kapital.legitimitaet": "Meşruiyet",

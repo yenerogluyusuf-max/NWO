@@ -79,7 +79,7 @@
  "infra.alt.kliniken.text": "Bekleme süreleri düşene kadar özel hastanelerdeki tedaviyi kurum öder.",
  "infra.alt.kliniken.dagegen": "Parası olan daha erken muayene olur.",
  "infra.alt.ok": "{ort|loc} {was} kararlaştırıldı.",
- "infra.fehler.kein_spiel": "Oyun döngüsü olmadan şebeke yok.",
+ "infra.fehler.kein_spiel": "Bu bölüm, göreviniz başladığında kullanılabilir.",
  "infra.fehler.unbekannt": "Böyle bir yatırım yok.",
  "infra.fehler.braucht.schiene_km": "{ort|loc} iyileştirilecek bir demiryolu hattı yok.",
  "infra.fehler.braucht.flughaefen": "{ort|loc} genişletilecek bir havalimanı yok.",

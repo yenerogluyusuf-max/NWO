@@ -93,10 +93,23 @@ setzeVermittlungBruecke({
  * Müdigkeitsfaktoren seit 5. November 0,5 / 1 / 1,8 (vorher 0,75 / 1 / 1,22 bei einer Grundmüdigkeit von 0,15): „hart“ behält damit seine
  * frühere Müdigkeit von rund 0,18 je Monat, „entspannt“ bleibt spürbar leichter als „normal“ (Messung: test/spielbarkeit.test.ts).
  */
+/** Name und Erklärung kommen aus dem Katalog; die Erklärung nennt die Faktoren, mit denen der Code rechnet (Befund A-1, A-30). */
+function stufe<K extends string>(id: K, f: { kapital: number; muedigkeit: number; ereignisse: number; haerte: number }) {
+  return {
+    ...f,
+    get name(): string {
+      return t(`n5.schwer.${id}.name`);
+    },
+    get text(): string {
+      return `${t(`n5.schwer.${id}.text`)} ${t("n5.schwer.werte", { kapital: Math.round(f.kapital * 100), ereignisse: Math.round(f.ereignisse * 100), haerte: Math.round(f.haerte * 100), muedigkeit: Math.round(f.muedigkeit * 100) })}`;
+    },
+  };
+}
+
 export const SCHWIERIGKEITEN = {
-  entspannt: { name: "Entspannt", text: "Mehr Kapital, weniger Müdigkeit, weniger Krisen. Zum Kennenlernen.", kapital: 1.25, muedigkeit: 0.5, ereignisse: 0.85, haerte: 0.9 },
-  normal: { name: "Normal", text: "Das Spiel, wie es gemeint ist.", kapital: 1, muedigkeit: 1, ereignisse: 1, haerte: 1 },
-  hart: { name: "Hart", text: "Knappes Kapital, schnelle Müdigkeit, mehr und härtere Krisen. Fehler kosten die Wiederwahl.", kapital: 0.8, muedigkeit: 1.8, ereignisse: 1.25, haerte: 1.2 },
+  entspannt: stufe("entspannt", { kapital: 1.25, muedigkeit: 0.5, ereignisse: 0.85, haerte: 0.9 }),
+  normal: stufe("normal", { kapital: 1, muedigkeit: 1, ereignisse: 1, haerte: 1 }),
+  hart: stufe("hart", { kapital: 0.8, muedigkeit: 1.8, ereignisse: 1.25, haerte: 1.2 }),
 } as const;
 export type Schwierigkeit = keyof typeof SCHWIERIGKEITEN;
 

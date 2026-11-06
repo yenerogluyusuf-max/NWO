@@ -18,7 +18,7 @@
   "zw.fraktionRisiko": "Bu grup sizi verdiğiniz sözle değerlendirir. İş birliği isteği ve güvenilirlik risk altında.",
   "zw.pruefung": "{datum} tarihindeki aylık değerlendirmede aktif bir parti başkanının sadakati 20’nin altındaysa parti ayrılır. {sitze} hükümet sandalyesi kaybedilir, {rest} kalır. Öncesinde diğer aylık etkiler de uygulanır.",
   "zw.verfall": "Bir hatırlatma yanıtsız sona ererse: sadakat en fazla 15 azalır; bugünkü duruma göre en zayıf başkanda {n} kalır. Bu koşullu bir sonuçtur, bugün ek kesinti değildir.",
-  "zw.zuSpaet": "Planlanan oylama sözün vadesinden sonra veya açık hatırlatmanın son gününde. Vade ve desteği şimdi çözün; tasarı tek başına sözü yerine getirmez.",
+  "zw.zuSpaet": "Planlanan oylama sözün vadesinden sonra veya açık hatırlatmanın son gününde. Vade ve desteği şimdi çözün; teklif tek başına sözü yerine getirmez.",
   "zw.knapp": "Çoğunluk henüz güvence altında değil: bugünkü duruma göre oylamada {ja} evet bekleniyor. 301 gerekiyor; bilinen dış destek süreleri hesaba katıldı.",
   "zw.schritte": "Adımları ve bedellerini incele",
   "zw.schliessen": "Eylem seçeneklerini daralt",
@@ -43,7 +43,7 @@
   "zw.erstVotum": "Planlanan oylama: {datum}. Söz bonusunu yalnızca yeterli bir karar sağlar. Bugünkü kopuş riski o zamana kadar sürer.",
   "zw.erinnerungOeffnen": "Açık hatırlatmayı yanıtla",
   "zw.empfehlung.akut": "Sonraki adım: görüşmeyle desteği artırın ve sözü ayrıca yerine getirin. Hangi eylemin kopuş eşiğini gerçekten aştığını aşağıda inceleyin.",
-  "zw.empfehlung.gesetz": "Sonraki adım: mecliste tasarıyı ve çoğunluğu kontrol edin. Destek zayıfsa koalisyon ortağıyla da görüşün.",
+  "zw.empfehlung.gesetz": "Sonraki adım: mecliste teklifi ve çoğunluğu kontrol edin. Destek zayıfsa koalisyon ortağıyla da görüşün.",
   "zw.empfehlung.erfuellen": "Sonraki adım: verilen taahhüdü uygulayın. Henüz mümkün değilse ertelemenin sadakat bedelini kontrol edin.",
   "zw.eigene": "Kendi grubunuz verilen taahhüdü bekliyor. Sözü yerine getirin veya ertelemenin bedelini inceleyin; bunun için kendi partinizle koalisyon anlaşması gerekmez."
 }

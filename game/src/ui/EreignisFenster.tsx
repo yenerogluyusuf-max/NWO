@@ -7,8 +7,8 @@ import { Icon } from "./icons";
 import { Portraet as PersonPortraet } from "./personen/bausteine";
 import { EreignisSzene } from "./ereignis/Szenen";
 import { akteFuer, kennzahlenFuer, richtungVon, wertungVon, sprecherFuer, themaFuer, zitatAus, type AktenZiel, type Kennzahl } from "./ereignis/kontext";
-import { t } from "../i18n";
-import type { EreignisAnsicht } from "../sim/ereignisse";
+import { t, zahl } from "../i18n";
+import { SCHWEIGEN_ZUSTIMMUNG, type EreignisAnsicht } from "../sim/ereignisse";
 import type { World } from "../sim/types";
 import "./ereignis.css";
 
@@ -22,6 +22,24 @@ function Verlauf({ werte }: { werte: number[] }) {
       <polyline points={punkte} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" />
     </svg>
   );
+}
+
+/**
+ * Plakette einer Antwort: Kapital und Anteil am BIP, wie gebucht (auf einer Kopie gemessen, sim/ereignisse.ts `preisVorschau`).
+ * Unter einem Prozent mit zwei Nachkommastellen, damit 0,15 % nicht als 0,2 % erscheint (Befund A-5).
+ */
+export function preisText(p: { kapital: number; bip: number }): string {
+  const teile: string[] = [];
+  const k = Math.round(p.kapital);
+  if (k > 0) teile.push(t("ereignis.preis", { n: k }));
+  else if (k < 0) teile.push(t("ev.preis.gewinn", { n: -k }));
+  const b = Math.abs(p.bip);
+  if (b >= 0.005) {
+    // Zwei Stellen nur, wo die zweite etwas sagt (0,15), sonst eine (0,4 statt 0,40)
+    const st = b < 1 && Math.abs(b * 10 - Math.round(b * 10)) > 0.05 ? 2 : 1;
+    teile.push(t(p.bip > 0 ? `ev.preis.bip${st}` : `ev.preis.einnahme${st}`, { x: b }));
+  }
+  return teile.length ? teile.join(" · ") : t("ereignis.kostenlos");
 }
 
 function KennzahlKarte({ k }: { k: Kennzahl }) {
@@ -67,7 +85,7 @@ export function EreignisFenster({
   // Fristbalken: voll bei 30 und mehr Tagen, leer am letzten Tag
   const fristAnteil = Math.max(0, Math.min(1, ansicht.tageBisFrist / 30));
   const knapp = !ansicht.optionen.some((o) => o.bezahlbar && (o.anzeigePk ?? o.pk) > 0) && ansicht.optionen.some((o) => (o.anzeigePk ?? o.pk) > 0);
-  const inflation = world ? world.published.inflation.value.toLocaleString("de-DE", { maximumFractionDigits: 1 }) : undefined;
+  const inflation = world ? zahl(world.published.inflation.value, 1) : undefined;
 
   return (
     <div className="event-layer" role="dialog" aria-modal="true" aria-labelledby={`ev-${ansicht.id}`}>
@@ -127,8 +145,9 @@ export function EreignisFenster({
 
             <ul className="ev2-optionen" aria-label={t("ereignis.antworten")}>
               {ansicht.optionen.map((o) => {
-                const preis = o.anzeigePk ?? o.pk;
+                const preis = Math.max(o.anzeigePk ?? o.pk, Math.round(o.preis.kapital));
                 const pump = preis > kapital && o.bezahlbar;
+                const frei = o.preis.kapital <= 0 && o.preis.bip < 0.005;
                 const zusatz =
                   ansicht.vorlage === "haushaltsjahr" && o.id === "fortschreiben" && inflation
                     ? t("ereignis.haushalt.fortschreiben", { inflation })
@@ -137,11 +156,11 @@ export function EreignisFenster({
                       : undefined;
                 return (
                   <li key={o.id}>
-                    <button className="ev2-option" disabled={!o.bezahlbar || !!o.sperre} onClick={() => onWaehle(o.id)} title={o.sperre ?? (o.bezahlbar ? undefined : t("ereignis.fehltKapital"))}>
+                    <button className={`ev2-option${frei ? " frei" : ""}`} disabled={!o.bezahlbar || !!o.sperre} onClick={() => onWaehle(o.id)} title={o.sperre ?? (o.bezahlbar ? undefined : t("ereignis.fehltKapital"))}>
                       <span className="ev2-option-kopf">
                         <strong>{o.label}</strong>
-                        <span className={`ev2-preis${preis === 0 ? " frei" : ""}${pump ? " pump" : ""}`} title={pump ? t("ereignis.pumpTitel") : undefined}>
-                          {preis === 0 ? t("ereignis.kostenlos") : t("ereignis.preis", { n: preis })}
+                        <span className={`ev2-preis${frei ? " frei" : ""}${pump ? " pump" : ""}`} title={pump ? t("ereignis.pumpTitel") : undefined}>
+                          {preisText(o.preis)}
                           {pump && <small> {t("ereignis.pump")}</small>}
                         </span>
                       </span>
@@ -166,7 +185,7 @@ export function EreignisFenster({
                 <h3>{t("ereignis.standard")}</h3>
                 <p>{ansicht.standardFolge.text}</p>
                 {ansicht.standardFolge.zeilen.length > 0 && <Folgen zeilen={ansicht.standardFolge.zeilen} />}
-                <small>{t("ereignis.standardHinweis")}</small>
+                <small>{ansicht.vorlage.startsWith("start_") ? t("ev.standardHinweis.start") : t("ev.standardHinweis", { d: SCHWEIGEN_ZUSTIMMUNG })}</small>
               </section>
             )}
 

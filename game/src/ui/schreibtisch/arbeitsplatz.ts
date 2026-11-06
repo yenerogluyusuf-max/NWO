@@ -15,7 +15,10 @@ import { addDays, formatDateDe } from '../../sim/dates';
 import { stimmenPrognose } from '../../sim/handeln';
 import { versorgungsStimmen } from '../../sim/versorgungsmehrheit';
 import { versorgungsVorlageHindernis, type VersorgungsProgramm } from '../../sim/versorgungspolitik';
-import type { Briefing, Ziel } from './briefing';
+import { istMinisterienZusage } from '../../sim/ressortvergabe';
+import { schreibtischMappe } from '../../sim/ministerfluss';
+import { gefaehrdeteZusagen } from '../../sim/zusagenwarnung';
+import { tageslage, type Briefing, type Ziel } from './briefing';
 
 export type Arbeitsbereich = 'entscheiden' | 'arbeit' | 'rueckblick';
 export type ArbeitsGruppe = 'vorlagen' | 'minister' | 'zusagen';
@@ -27,7 +30,22 @@ export const fristText = (tage:number) => t(tage<0?'sd.ueberfaellig':tage===0?'s
 export function aktuelleAuswahl<T extends {id:string}>(liste:readonly T[],id:string|undefined):T|undefined {
   return id ? liste.find(x=>x.id===id) : undefined;
 }
-export function schreibtischArbeit(w:World,b:Pick<Briefing,'warnungen'|'faellig'>,mappe:readonly Vorlage[],zusagen:readonly ZusagenWarnung[]) {
+/**
+ * Zusagen, über die gerade ein offenes Ereignis entscheidet: Die Startzusage der Ministerien steht im Ereignis „… meldet sich“
+ * (start_partner). Befund A-3 (5. November 2026): Sie stand zweimal auf dem Tisch, als Zusagenkarte und als Ereignis, mit zwei Knöpfen
+ * und demselben Preis. Der Tisch führt sie jetzt einmal, als Ereignis; unter Kabinett und Verwaltung › Zusagen bleibt sie sichtbar.
+ */
+export function zusagenImEreignis(w:World):Set<string> {
+  const ids=new Set<string>(),sp=w.spiel;if(!sp)return ids;
+  for(const e of sp.ereignisse){
+    if(e.vorlage==='zusage'&&e.daten?.zusage)ids.add(String(e.daten.zusage));
+    if(e.vorlage==='start_partner')for(const z of sp.zusagen)if(!z.erfuellt&&!z.gebrochen&&istMinisterienZusage(z)&&(!e.daten?.partei||z.von===e.daten.partei))ids.add(z.id);
+  }
+  return ids;
+}
+export function schreibtischArbeit(w:World,b:Pick<Briefing,'warnungen'|'faellig'>,mappe:readonly Vorlage[],zusagenAlle:readonly ZusagenWarnung[]) {
+  const imEreignis=zusagenImEreignis(w);
+  const zusagen=zusagenAlle.filter(z=>!imEreignis.has(z.z.id));
   const anliegen=(w.spiel?.ministerfluss?.ressortAnliegen??[]).filter(a=>['offen','besprochen','abgelehnt'].includes(a.status)&&ressortInhaber(w,a));
   const vorfaelle=offeneRessortVorfaelle(w),nachsorge=aktiveRessortNachsorge(w);
   const aemter=[...new Set<Amt>([...vorfaelle.map(v=>v.amt),...anliegen.map(a=>a.amt)])];
@@ -112,4 +130,18 @@ export function regierungsVorgaenge(w:World):RegierungsVorgang[] {
       datum:addDays(w.date,tag-w.day),ziel:{art:'akte',akte:'wirtschaft',start:'inventar',programm:id as VersorgungsProgramm},votum:false});
   }
   return out.sort((a,b)=>a.tage-b.tage);
+}
+
+/**
+ * Wie viel auf dem Tisch liegt: dieselbe Liste wie im Schreibtisch, für den Zähler an der Leiste (Befund A-26: Leiste „2“, Tisch „7“).
+ * Gemerkt je Tag und Stand der Vorgänge, weil die Leiste bei jedem Tagesschritt neu zeichnet.
+ */
+let tischGemerkt: { schluessel: string; n: number } | undefined;
+export function tischAnzahl(w:World):number {
+  const sp=w.spiel;if(!sp||sp.ende)return 0;
+  const schluessel=`${w.seed}|${w.day}|${Math.floor(sp.kapital)}|${sp.ereignisse.map(e=>e.id).join(',')}|${sp.zusagen.filter(z=>z.erfuellt||z.gebrochen).length}|${sp.zusagen.length}|${sp.ministerfluss?.ressortAnliegen?.length??0}`;
+  if(tischGemerkt?.schluessel===schluessel)return tischGemerkt.n;
+  const b=tageslage(w),mappe=schreibtischMappe(w,5),n=schreibtischArbeit(w,b,mappe.mappe,gefaehrdeteZusagen(w)).alle.length;
+  tischGemerkt={schluessel,n};
+  return n;
 }

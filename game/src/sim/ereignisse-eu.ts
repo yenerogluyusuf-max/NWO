@@ -4,28 +4,28 @@
 //   eu_zollunion — Brüssel bietet das Mandat für das Zollunion-Update an: annehmen oder vertagen
 // Beide werden nur vom EU-Motor geöffnet (chance 0) und rufen dieselben Funktionen wie das
 // Dossier — der Kern (sim/eu.ts) bleibt die einzige Wahrheitsquelle.
+// Alle sichtbaren Texte kommen aus dem Katalog (src/i18n/katalog/*/nacht_n5.json, Schlüssel ev.<vorlage>.*).
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
-import { land } from "./laender";
-import { opt, nf } from "./ereignis-hilfen";
+import { opt } from "./ereignis-hilfen";
 import { EU_REGELN, KAPITEL_NACH_ID, vetoAbwarten, vetoBeantworten, zollunionAblehnen, zollunionAnnehmen, zypernBewegung } from "./eu";
+import { landFormen, landZahl } from "./ereignisse-krieg";
+import { t } from "../i18n";
 import type { Vorlage } from "./ereignis-hilfen";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
 
 const landId = (ev: OffenesEreignis): string => String(ev.daten?.land ?? "GRC");
 const kapitelId = (ev: OffenesEreignis): string => String(ev.daten?.kapitel ?? "k23");
-const landName = (ev: OffenesEreignis): string => {
-  try {
-    return land(landId(ev)).name;
-  } catch {
-    return "Griechenland";
-  }
-};
+/** Kapitel mit Nummer und Namen (der Name ist in den Daten schon übersetzt), sonst „das Kapitel“. */
 const kapitelName = (ev: OffenesEreignis): string => {
   const def = KAPITEL_NACH_ID.get(kapitelId(ev));
-  return def ? `Kapitel ${def.nummer} „${def.name}“` : "das Kapitel";
+  return def ? t("ev.eu_veto.kapitel", { nummer: def.nummer, name: def.name }) : t("ev.eu_veto.kapitel.ohne");
 };
+const params = (ev: OffenesEreignis) => ({ land: landFormen(landId(ev)), nz: landZahl(landId(ev)), kapitel: kapitelName(ev) });
+
+/** Risikoaufschlag, um den das Zollunion-Update sinkt (dieselbe Zahl bucht zollunionAnnehmen in sim/eu.ts). */
+const ZOLLUNION_RISIKO = 40;
 
 const EU_VETO: Vorlage = {
   id: "eu_veto",
@@ -34,25 +34,15 @@ const EU_VETO: Vorlage = {
   abkuehlung: 90,
   chance: () => 0,
   erzeuge: () => ({ provinzen: [], staerke: 0.5, daten: { land: "GRC", kapitel: "k23" } }),
-  titel: (_, ev) => `${landName(ev)} legt ein Veto gegen ${kapitelName(ev)} ein`,
+  titel: (_, ev) => t("ev.eu_veto.titel", params(ev)),
   text: (w, ev) => {
-    const zypern = landId(ev) === "CYP" ? ` ${zypernBewegung(w).text}` : "";
-    return [
-      `Die Kriterien für ${kapitelName(ev)} wären erfüllt — doch im Rat der Europäischen Union legt ${landName(ev)} sein Veto ein. Erweiterung braucht Einstimmigkeit; ein einziges Mitglied genügt.${zypern}`,
-      "Der Außenminister legt zwei Wege vor: ein sichtbares Zugeständnis, das den Konflikt entschärft und das Veto aufhebt — oder abwarten, bis sich die Lage dreht, was das Kapitel für ein Jahr blockiert.",
-    ];
+    const zypern = landId(ev) === "CYP" ? zypernBewegung(w).text : "";
+    return [[t("ev.eu_veto.text1", params(ev)), zypern].filter(Boolean).join(" "), t("ev.eu_veto.text2")];
   },
-  warum: () =>
-    "Dokumentiert: Griechenland und Zypern nutzen ihre Vetomacht gegen jeden EU-Schritt Richtung Ankara, solange die Streitpunkte offen sind.",
+  warum: () => t("ev.eu_veto.warum"),
   optionen: (_, ev) => [
-    opt(
-      "zugestaendnis",
-      "Zugeständnis anbieten",
-      `Kostet ${EU_REGELN.pkVetoZugestaendnis} Kapital; entschärft den Konflikt und hebt das Veto — national gesinnte Wähler lesen es als Nachgeben.`,
-      EU_REGELN.pkVetoZugestaendnis,
-      (w) => vetoBeantworten(w, landId(ev), kapitelId(ev)),
-    ),
-    opt("abwarten", "Abwarten", `Kostet nichts; ${kapitelName(ev)} bleibt ein Jahr blockiert und Brüssel verliert etwas Vertrauen.`, 0, (w) => vetoAbwarten(w, landId(ev), kapitelId(ev))),
+    opt("zugestaendnis", t("ev.eu_veto.opt.zugestaendnis.label"), t("ev.eu_veto.opt.zugestaendnis.beschr"), EU_REGELN.pkVetoZugestaendnis, (w) => vetoBeantworten(w, landId(ev), kapitelId(ev))),
+    opt("abwarten", t("ev.eu_veto.opt.abwarten.label"), t("ev.eu_veto.opt.abwarten.beschr", { ...params(ev), jahre: EU_REGELN.vetoSperreTage / 365 }), 0, (w) => vetoAbwarten(w, landId(ev), kapitelId(ev))),
   ],
   standard: (w, ev) => vetoAbwarten(w, landId(ev), kapitelId(ev)),
 };
@@ -64,22 +54,12 @@ const EU_ZOLLUNION: Vorlage = {
   abkuehlung: 365,
   chance: () => 0,
   erzeuge: () => ({ provinzen: [], staerke: 0.5 }),
-  titel: () => "Brüssel bietet das Mandat für das Zollunion-Update an",
-  text: () => [
-    `Mit den geschlossenen Kapiteln ist die Türkei weit genug: Brüssel bietet das Mandat an, die Zollunion von 1995 zu modernisieren — Dienstleistungen, öffentliche Vergaben und Agrar kommen auf den Tisch.`,
-    "Das Update ist ein echtes Zwischenziel mit einem echten Preis: Die Industrie und die Exporteure gewinnen Zugang, die Landwirtschaft verliert Schutzzölle und steht im Wettbewerb. Wer ablehnt, wartet Jahre auf das nächste Angebot.",
-  ],
-  warum: () =>
-    `Das Mandat kommt mit ${EU_REGELN.zollunionKapitel} vorläufig geschlossenen Kapiteln in Reichweite.`,
+  titel: () => t("ev.eu_zollunion.titel"),
+  text: () => [t("ev.eu_zollunion.text1"), t("ev.eu_zollunion.text2")],
+  warum: () => t("ev.eu_zollunion.warum", { n: EU_REGELN.zollunionKapitel }),
   optionen: () => [
-    opt(
-      "annehmen",
-      "Das Mandat annehmen",
-      `Export +, Industrie +, Investitionen +, Risikoaufschlag sinkt um ${nf(40, 0)} Punkte; die Landwirtschaft verliert Schutz (Einkommen −, Landwirte −).`,
-      0,
-      (w) => zollunionAnnehmen(w),
-    ),
-    opt("ablehnen", "Ablehnen", "Kein Preis heute; das Angebot vertagt sich um zwei Jahre und Brüssel verliert Vertrauen.", 0, (w) => zollunionAblehnen(w)),
+    opt("annehmen", t("ev.eu_zollunion.opt.annehmen.label"), t("ev.eu_zollunion.opt.annehmen.beschr", { punkte: ZOLLUNION_RISIKO }), 0, (w) => zollunionAnnehmen(w)),
+    opt("ablehnen", t("ev.eu_zollunion.opt.ablehnen.label"), t("ev.eu_zollunion.opt.ablehnen.beschr", { jahre: EU_REGELN.zollunionSperreTage / 365 }), 0, (w) => zollunionAblehnen(w)),
   ],
   standard: (w) => zollunionAblehnen(w),
 };

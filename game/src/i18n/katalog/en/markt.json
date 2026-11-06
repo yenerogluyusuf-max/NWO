@@ -4,7 +4,7 @@
  "markt.rating.ausblick_positiv.titel": "Rating {stufe}: outlook positive",
  "markt.rating.herab.text": "The rating agencies see more risk than before ({von} → {nach}): loans become dearer and investors pull back. {anlagegrad, select, ja {Investment grade is preserved.} other {Investment grade is far out of reach.}}",
  "markt.rating.herab.titel": "Downgrade to {nach}",
- "markt.rating.herauf.text": "The rating agencies see less risk ({von} → {nach}): loans become cheaper and capital returns. {anlagegrad, select, ja {The country has reached investment grade: pension and sovereign funds may buy again.} other {Investment grade remains the next goal.}}",
+ "markt.rating.herauf.text": "The rating agencies see less risk ({von} → {nach}): loans become cheaper and investors' money returns. {anlagegrad, select, ja {The country has reached investment grade: pension and sovereign funds may buy again.} other {Investment grade remains the next goal.}}",
  "markt.rating.herauf.titel": "Upgrade to {nach}",
  "markt.schock.justiz.hoch.text": "Whoever steers judges and cases weakens the protection of contracts: the risk premium rises by about {cds} basis points.",
  "markt.schock.justiz.hoch.titel": "Interference with the judiciary costs trust in the markets.",

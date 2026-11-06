@@ -53,6 +53,7 @@ import { bestandsFaktor, streitkraefteMonat } from "./streitkraefte";
 import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte";
 import type { FriedensPaket, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
 import { besatzungNachFrieden, eigenerBestandsFaktor, gegnerBestand, gegnerBestandsFaktor, kriegsFaktoren, kriegsschauplatzMonat, regionenSetzen, schauplatzWoche, zielGeaendert } from "./kriegsschauplatz";
+import { landFormen } from "./ereignisse-krieg";
 
 /** Spielparameter, keine Tatsachen: alle Schwellen, Kosten und Faktoren des Konfliktvorgangs (Kalibrierung). */
 export const KRIEG = {
@@ -969,7 +970,8 @@ export function eroeffneBeistandsVorgang(w: World, gegnerId: string, partner: st
   const pn = landNameVon(partner);
   hinweis(w, `krieg-beistand-${k.id}`, t("krieg.k.bs.titel", { partner: pn }), [t("krieg.k.bs.text1", { partner: pn, land: l.name }), t("krieg.k.bs.text2")]);
   addLog(w, "entscheidung", t("krieg.k.bs.log", { partner: pn, land: l.name }), t("krieg.k.bs.log.warum"));
-  return { ok: true, text: t("krieg.k.bs.ok", { partner: pn, land: l.name }) };
+  // Partner mit Fallformen (im Deutschen „Saudi-Arabien und den Golfstaaten“), siehe landFormen in sim/ereignisse-krieg.ts
+  return { ok: true, text: t("krieg.k.bs.ok", { partner: landFormen(partner), land: l.name }) };
 }
 
 /** Das Waffenruhe-Angebot des Gegners annehmen (Ereignis krieg_waffenruhe). */

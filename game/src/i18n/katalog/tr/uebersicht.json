@@ -6,7 +6,7 @@
  "ub.stempel.ok": "Tamam",
  "ub.stempel.nein": "Reddedildi",
  "ub.preis.kapital": "{n} sermaye",
- "ub.preis.bip": "GSYH %{bip, number, 3}",
+ "ub.preis.bip": "GSYH'nin %{bip, number, 1} kadarı",
  "ub.preis.monate": "{n} ay",
  "ub.zum_haushalt": "Bütçede bakanlık ödeneği",
  "ub.behoerde.baut": "{achse} genişletiliyor, {monate} ay kaldı",

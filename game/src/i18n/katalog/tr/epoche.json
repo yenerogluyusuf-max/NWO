@@ -32,7 +32,7 @@
  "epoche.ui.titel": "{nr}. görev döneminin çağı",
  "epoche.ui.wert": "Dönem puanı {wert}",
  "epoche.ui.aussicht": "Gidişat: {stufe}",
- "epoche.ui.bis": "bir sonraki aşamaya {n} kaldı",
+ "epoche.ui.bis": "altın bir döneme {n} puan kaldı",
  "epoche.ui.keine": "Bu dönemde henüz tarihî an yok.",
  "epoche.ui.erklaerung": "Büyük işler ve ağır geri adımlar tarih yazar. Yeniden seçimde dönem değerlendirilir; karar bir sonrakine taşınır."
 }

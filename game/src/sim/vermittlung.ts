@@ -36,6 +36,7 @@ import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { hashWert, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { kosten } from "./ereignis-hilfen";
+import { konfliktNamen } from "./ereignisse-vermittlung";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
@@ -449,7 +450,8 @@ export type SpoilerAntwort = "verurteilen" | "daempfen" | "ignorieren";
 
 export function spoilerFolge(w: World, ev: OffenesEreignis, antwort: SpoilerAntwort): string {
   const def = KONFLIKT_NACH_ID[String(ev.daten?.konflikt ?? "")];
-  if (!def) return "Der Vorgang ist gegenstandslos geworden.";
+  if (!def) return t("ev.vermittlung.weg");
+  const n = konfliktNamen(def, ev.daten?.seite);
   const z = konfliktZustand(w, def.id);
   const art = SPOILER_ARTEN[(String(ev.daten?.art ?? "provokation") as SpoilerArtId)] ?? SPOILER_ARTEN.provokation;
   const seite = ev.daten?.seite === "b" ? def.b : def.a;
@@ -462,19 +464,19 @@ export function spoilerFolge(w: World, ev: OffenesEreignis, antwort: SpoilerAntw
       z.konfliktIndex = clamp(z.konfliktIndex - 3, 0, 100);
       wirke(w, "ansehen", 0.5);
       kippPruefen(w, def, z);
-      return `Ankara verurteilt die Provokation öffentlich: ${andere.name} fühlt sich geschützt, ${seite.name} antwortet kühl — aber die Verhandlungslinie hält.`;
+      return t("ev.vermittlung_spoiler.opt.verurteilen.ausgang", n);
     }
     case "daempfen": {
       z.reif = clamp(z.reif - 2, 0, 100);
       z.konfliktIndex = clamp(z.konfliktIndex - 2, 0, 100);
       kippPruefen(w, def, z);
-      return "Auf diskreten Kanälen dämpft Ankara beide Seiten: Der Schaden bleibt klein, ohne dass jemand das Gesicht verliert.";
+      return t("ev.vermittlung_spoiler.opt.daempfen.ausgang");
     }
     default: {
       z.reif = clamp(z.reif - art.reif, 0, 100);
       z.konfliktIndex = clamp(z.konfliktIndex + art.konflikt, 0, 100);
       kippPruefen(w, def, z);
-      return `Ankara schweigt — und die Spoiler lesen es als Freibrief: Die Reife der Lage sinkt um ${art.reif} Punkte.`;
+      return t("ev.vermittlung_spoiler.opt.ignorieren.ausgang", { n: art.reif });
     }
   }
 }
@@ -483,36 +485,40 @@ export type VerstossAntwort = "eingreifen" | "daempfen" | "hinnehmen";
 
 export function verstossFolge(w: World, ev: OffenesEreignis, antwort: VerstossAntwort): string {
   const def = KONFLIKT_NACH_ID[String(ev.daten?.konflikt ?? "")];
-  if (!def) return "Der Vorgang ist gegenstandslos geworden.";
+  if (!def) return t("ev.vermittlung.weg");
+  // Konfliktnamen in der Anzeigesprache (die Daten sind deutsch); Texte im Katalog nacht_n5.json
+  const nn = konfliktNamen(def);
+  const namenText = t("ev.vermittlung.namen", nn);
   const z = konfliktZustand(w, def.id);
   const d = z.garantie ? GARANTIEN[z.garantie] : undefined;
   switch (antwort) {
     case "eingreifen": {
-      if (z.garantie !== "militaer") return "Ohne militärische Garantie gibt es nichts einzugreifen.";
+      if (z.garantie !== "militaer") return t("ev.vermittlung_verstoss.opt.eingreifen.ohne");
       kosten(w, 0.3);
       wirke(w, "abschreckung", -2);
       wirke(w, "ansehen", 1);
       z.konfliktIndex = clamp(z.konfliktIndex + 8, 0, 100);
       z.reif = clamp(z.reif - 5, 0, 100);
-      addLog(w, "entscheidung", t("protokoll.vm.eingreifen", { namen: namen(def) }), t("protokoll.vm.eingreifen_warum"));
-      return "Türkische Kräfte setzen die Garantie durch: Der Verstoß wird zurückgewiesen, die Vereinbarung gilt — und alle wissen, dass Ankara es ernst meint.";
+      addLog(w, "entscheidung", t("protokoll.vm.eingreifen", { namen: namenText }), t("protokoll.vm.eingreifen_warum"));
+      return t("ev.vermittlung_verstoss.opt.eingreifen.ausgang");
     }
     case "daempfen": {
       z.konfliktIndex = clamp(z.konfliktIndex + 6, 0, 100);
       z.reif = clamp(z.reif - 5, 0, 100);
-      addLog(w, "entscheidung", t("protokoll.vm.daempfen", { namen: namen(def) }), t("protokoll.vm.daempfen_warum"));
-      return "Ankara dämpft auf allen Kanälen: Die Garantie steht noch, aber beide Seiten haben gelernt, dass Verstöße billig sind.";
+      addLog(w, "entscheidung", t("protokoll.vm.daempfen", { namen: namenText }), t("protokoll.vm.daempfen_warum"));
+      return t("ev.vermittlung_verstoss.opt.daempfen.ausgang");
     }
     default: {
-      const label = d?.label ?? "Garantie";
+      const art = d?.id ?? "allgemein";
+      const label = t(`ev.vermittlung_verstoss.garantie.${art}`);
       z.garantie = undefined;
       z.garantieSeit = undefined;
       wirke(w, "ansehen", -6);
       z.reif = clamp(z.reif - 15, 0, 100);
       z.konfliktIndex = clamp(z.konfliktIndex + 12, 0, 100);
       kippPruefen(w, def, z);
-      addLog(w, "entscheidung", t("protokoll.vm.gebrochen", { label, namen: namen(def) }), t("protokoll.vm.gebrochen_warum"));
-      return `Der Verstoß bleibt ohne Antwort: Die Garantie „${label}" ist gebrochen — Ankara verliert das Gesicht, und die Lage fällt zurück.`;
+      addLog(w, "entscheidung", t("protokoll.vm.gebrochen", { label, namen: namenText }), t("protokoll.vm.gebrochen_warum"));
+      return t("ev.vermittlung_verstoss.opt.hinnehmen.ausgang", { art });
     }
   }
 }

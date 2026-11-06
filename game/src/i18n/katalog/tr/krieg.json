@@ -364,7 +364,7 @@
  "krieg.k.sp.text1": "{zwischenfall, select, ja {{ort, select, grenze {Sınırda ya da havada} see {Havada ya da denizde} fern {Sınırlardan uzakta} other {Sınırda, havada ya da denizde}} yaşanan bir olayın ardından {land} ile çatışma bir eşiği aştı} other {{land} ile çatışma bir eşiği aştı}} (100 üzerinden {konflikt}): Olaylar, kendi kararlarını gerektiren bir sürece dönüşüyor.",
  "krieg.k.sp.text2": "Şimdi nasıl devam edileceğine siz karar veriyorsunuz: hazırlığı artırmak, mesaj vermek, arabuluculuk istemek ya da sonraki tüm adımların bedelini belirleyen bir savaş amacı ilan etmek. Hepsi Güvenlik altındaki çatışma dosyasında.",
  "krieg.k.sp.log": "{land} ile gerginlik: Çatışma bir sürece dönüşüyor.",
- "krieg.k.sp.warum": "Dosya, Dünya görünümünde ülkenin yanında; her adımın bedeli orada yazılı.",
+ "krieg.k.sp.warum": "Dosya, Dış İlişkiler bölümünde ülkenin yanında; her adımın bedeli orada yazılı.",
  "krieg.d.schwaecher": "kendi kuvvetlerimizden belirgin biçimde zayıf",
  "krieg.d.ebenbuertig": "aşağı yukarı denk",
  "krieg.d.staerker": "kendi kuvvetlerimizden belirgin biçimde güçlü",

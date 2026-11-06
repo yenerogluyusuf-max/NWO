@@ -32,7 +32,7 @@
  "epoche.ui.titel": "Epoche der Amtszeit {nr}",
  "epoche.ui.wert": "Epochenwert {wert}",
  "epoche.ui.aussicht": "Auf dem Weg zu: {stufe}",
- "epoche.ui.bis": "noch {n} bis zur nächsten Stufe",
+ "epoche.ui.bis": "noch {n} Punkte bis zu einer goldenen Amtszeit",
  "epoche.ui.keine": "Noch kein historischer Moment in dieser Amtszeit.",
  "epoche.ui.erklaerung": "Große Taten und schwere Rückschläge schreiben Geschichte. Bei der Wiederwahl wird die Amtszeit bewertet; die Bewertung wirkt in die nächste hinein."
 }

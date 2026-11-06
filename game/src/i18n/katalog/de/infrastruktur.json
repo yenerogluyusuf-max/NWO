@@ -79,7 +79,7 @@
  "infra.alt.kliniken.text": "Die Kasse zahlt Behandlungen in Privatkliniken, bis die Wartezeiten sinken.",
  "infra.alt.kliniken.dagegen": "Wer zahlen kann, kommt schneller dran.",
  "infra.alt.ok": "{was} in {ort} beschlossen.",
- "infra.fehler.kein_spiel": "Ohne Spielschleife gibt es keine Netze.",
+ "infra.fehler.kein_spiel": "Diese Ansicht steht bereit, sobald Ihre Amtszeit begonnen hat.",
  "infra.fehler.unbekannt": "Diesen Ausbau gibt es nicht.",
  "infra.fehler.braucht.schiene_km": "In {ort} gibt es keine Bahnstrecke, die man ausbauen könnte.",
  "infra.fehler.braucht.flughaefen": "In {ort} gibt es keinen Flughafen, den man ausbauen könnte.",

@@ -17,6 +17,7 @@ import { FORDERUNG, PARTEI_NAME } from "./fraktionen";
 import { anfechtungAbschluss, stichwahlEntscheidung } from "./wahl";
 import { kronprinzen, kuereNachfolger, nachfolgeZustand } from "./amtszeit";
 import { amtsenthebungEinschwoeren, amtsenthebungZugestaendnisse, krankheitAbgeben, krankheitOffen, krankheitVerschweigen, putschEinbinden, putschEntlassen, ruecktrittDurchhalten, ruecktrittErklaeren } from "./enden";
+import { KOMMISSARISCH_PK } from "./nachfolge";
 import { t } from "../i18n";
 import type { Vorlage } from "./ereignis-hilfen";
 import type { OffenesEreignis } from "./spiel-typen";
@@ -36,16 +37,19 @@ const STICHWAHL: Vorlage = {
   frist: 12,
   abkuehlung: 1,
   chance: () => 0,
-  erzeuge: () => ({ provinzen: [], staerke: 1, daten: { amt: 47.8, gegner: 46.4, dritte: 4.6, dritteName: "der dritte Kandidat", uebertrag: 30 } }),
+  erzeuge: () => ({ provinzen: [], staerke: 1, daten: { amt: 47.8, gegner: 46.4, dritte: 4.6, uebertrag: 30 } }),
   titel: () => t("wahl.ereignis.stichwahl.titel"),
   text: (_, ev) => [
     t("wahl.ereignis.stichwahl.text1", { amt: zahl(ev, "amt", 47.8), gegner: zahl(ev, "gegner", 46.4), dritte: zahl(ev, "dritte", 4.6) }),
-    t("wahl.ereignis.stichwahl.text2", { name: text(ev, "dritteName", "der dritte Kandidat"), uebertrag: zahl(ev, "uebertrag", 30) }),
+    // Ohne Namen (etwa beim direkten Öffnen) steht „des dritten Kandidaten“ im richtigen Fall statt eines eingesetzten Ersatznamens
+    ev.daten?.dritteName
+      ? t("wahl.ereignis.stichwahl.text2", { name: text(ev, "dritteName", ""), uebertrag: zahl(ev, "uebertrag", 30) })
+      : t("ev.wahl_stichwahl.text2.ohne_name", { uebertrag: zahl(ev, "uebertrag", 30) }),
   ],
   warum: () => t("wahl.ereignis.stichwahl.warum"),
   optionen: () => [
-    opt("werben", t("wahl.ereignis.stichwahl.werben"), t("wahl.ereignis.stichwahl.werben_beschr", { pk: 3 }), 3, (w) => stichwahlEntscheidung(w, "werben")),
-    opt("mobilisieren", t("wahl.ereignis.stichwahl.mobil"), t("wahl.ereignis.stichwahl.mobil_beschr", { pk: 2 }), 2, (w) => stichwahlEntscheidung(w, "mobilisieren")),
+    opt("werben", t("wahl.ereignis.stichwahl.werben"), t("wahl.ereignis.stichwahl.werben_beschr"), 3, (w) => stichwahlEntscheidung(w, "werben")),
+    opt("mobilisieren", t("wahl.ereignis.stichwahl.mobil"), t("wahl.ereignis.stichwahl.mobil_beschr"), 2, (w) => stichwahlEntscheidung(w, "mobilisieren")),
     opt("abwarten", t("wahl.ereignis.stichwahl.abwarten"), t("wahl.ereignis.stichwahl.abwarten_beschr"), 0, (w) => stichwahlEntscheidung(w, "abwarten")),
   ],
   standard: (w) => stichwahlEntscheidung(w, "abwarten"),
@@ -93,12 +97,12 @@ const ANFECHTUNG: Vorlage = {
   frist: 10,
   abkuehlung: 1,
   chance: () => 0,
-  erzeuge: () => ({ provinzen: [], staerke: 1, daten: { marge: 1.4, gegner: "Der Kandidat der Opposition" } }),
+  erzeuge: () => ({ provinzen: [], staerke: 1, daten: { marge: 1.4 } }),
   titel: () => t("wahl.ereignis.anfechtung.titel"),
-  text: (_, ev) => [t("wahl.ereignis.anfechtung.text1", { marge: zahl(ev, "marge", 1.4), gegner: text(ev, "gegner", "Der Kandidat der Opposition") }), t("wahl.ereignis.anfechtung.text2")],
+  text: (_, ev) => [t("wahl.ereignis.anfechtung.text1", { marge: zahl(ev, "marge", 1.4), gegner: text(ev, "gegner", t("wahl.gegner_name")) }), t("wahl.ereignis.anfechtung.text2")],
   warum: () => t("wahl.ereignis.anfechtung.warum"),
   optionen: () => [
-    opt("neuauszaehlung", t("wahl.ereignis.anfechtung.neu"), t("wahl.ereignis.anfechtung.neu_beschr", { pk: 2 }), 2, (w) => {
+    opt("neuauszaehlung", t("wahl.ereignis.anfechtung.neu"), t("wahl.ereignis.anfechtung.neu_beschr"), 2, (w) => {
       wirke(w, "legitimitaet", 1);
       wirke(w, "polarisierung", -0.5);
       anfechtungAbschluss(w, "abgewiesen");
@@ -121,6 +125,9 @@ const ANFECHTUNG: Vorlage = {
 // ---------------------------------------------------------------------------
 // Nachfolge in der letzten Amtszeit
 
+/** Strahlkraft und Ehrgeiz in Worten statt Zahlen (Grenzen 65 und 45 sind Spielparameter). */
+const stufe = (x: number): "hoch" | "mittel" | "gering" => (x >= 65 ? "hoch" : x >= 45 ? "mittel" : "gering");
+
 const NACHFOLGE_KUER: Vorlage = {
   id: "nachfolge_kuer",
   szene: "istanbul",
@@ -138,7 +145,7 @@ const NACHFOLGE_KUER: Vorlage = {
     const a = nachfolgeZustand(w)?.aspiranten ?? kronprinzen(w);
     return [
       ...a.map((x) =>
-        opt(`kuer-${x.amt}`, t("nachfolge.ereignis.kuer", { name: x.name, rolle: x.rolle }), t("nachfolge.ereignis.kuer_beschr", { staerke: x.staerke, ehrgeiz: x.ehrgeiz, pk: 3 }), 3, (ww) => kuereNachfolger(ww, x.amt).text),
+        opt(`kuer-${x.amt}`, t("nachfolge.ereignis.kuer", { name: x.name, rolle: x.rolle }), t("nachfolge.ereignis.kuer_beschr", { staerke: stufe(x.staerke), ehrgeiz: stufe(x.ehrgeiz) }), 3, (ww) => kuereNachfolger(ww, x.amt).text),
       ),
       opt("offen", t("nachfolge.ereignis.offen"), t("nachfolge.ereignis.offen_beschr"), 0, (ww) => kuereNachfolger(ww, "offen").text),
       opt("spaeter", t("nachfolge.ereignis.spaeter"), t("nachfolge.ereignis.spaeter_beschr"), 0, () => t("nachfolge.ereignis.spaeter_ausgang")),
@@ -162,8 +169,9 @@ const PUTSCH_WARNUNG: Vorlage = {
   text: (_, ev) => [t("enden.putsch.warnung.text1", { risiko: zahl(ev, "risiko", 62) }), t("enden.putsch.warnung.text2")],
   warum: () => t("enden.putsch.warnung.warum"),
   optionen: () => [
-    opt("entlassen", t("enden.putsch.warnung.entlassen"), t("enden.putsch.warnung.entlassen_beschr", { pk: 3 }), 3, (w) => putschEntlassen(w)),
-    opt("einbinden", t("enden.putsch.warnung.einbinden"), t("enden.putsch.warnung.einbinden_beschr", { pk: 4 }), 4, (w) => putschEinbinden(w)),
+    // Die Entlassung bucht in entlasse() (sim/nachfolge.ts) noch die kommissarische Besetzung nach: geprüft wird die Summe
+    { ...opt("entlassen", t("enden.putsch.warnung.entlassen"), t("enden.putsch.warnung.entlassen_beschr"), 3, (w) => putschEntlassen(w)), anzeigePk: 3 + KOMMISSARISCH_PK },
+    opt("einbinden", t("enden.putsch.warnung.einbinden"), t("enden.putsch.warnung.einbinden_beschr"), 4, (w) => putschEinbinden(w)),
     opt("abwarten", t("enden.putsch.warnung.abwarten"), t("enden.putsch.warnung.abwarten_beschr"), 0, () => t("enden.putsch.warnung.abwarten_ausgang")),
   ],
   standard: () => t("enden.putsch.warnung.abwarten_ausgang"),
@@ -180,8 +188,8 @@ const AMTSENTHEBUNG_ANTRAG: Vorlage = {
   text: (_, ev) => [t("enden.amtsenthebung.antrag.text1", { gegen: zahl(ev, "gegen", 305) }), t("enden.amtsenthebung.antrag.text2", { lager: zahl(ev, "lager", 295) })],
   warum: () => t("enden.amtsenthebung.antrag.warum_kurz"),
   optionen: () => [
-    opt("einschwoeren", t("enden.amtsenthebung.antrag.einschwoeren"), t("enden.amtsenthebung.antrag.einschwoeren_beschr", { pk: 5 }), 5, (w) => amtsenthebungEinschwoeren(w)),
-    opt("zugestaendnisse", t("enden.amtsenthebung.antrag.zugestaendnisse"), t("enden.amtsenthebung.antrag.zugestaendnisse_beschr", { pk: 3 }), 3, (w) => amtsenthebungZugestaendnisse(w)),
+    opt("einschwoeren", t("enden.amtsenthebung.antrag.einschwoeren"), t("enden.amtsenthebung.antrag.einschwoeren_beschr"), 5, (w) => amtsenthebungEinschwoeren(w)),
+    opt("zugestaendnisse", t("enden.amtsenthebung.antrag.zugestaendnisse"), t("enden.amtsenthebung.antrag.zugestaendnisse_beschr"), 3, (w) => amtsenthebungZugestaendnisse(w)),
     opt("abwarten", t("enden.amtsenthebung.antrag.abwarten"), t("enden.amtsenthebung.antrag.abwarten_beschr"), 0, () => t("enden.amtsenthebung.antrag.abwarten_ausgang")),
   ],
   standard: () => t("enden.amtsenthebung.antrag.abwarten_ausgang"),
@@ -198,7 +206,7 @@ const KRANKHEIT: Vorlage = {
   text: () => [t("enden.krankheit.text1"), t("enden.krankheit.text2")],
   warum: () => t("enden.krankheit.warum"),
   optionen: () => [
-    opt("offen", t("enden.krankheit.offen"), t("enden.krankheit.offen_beschr", { pk: 2 }), 2, (w) => krankheitOffen(w)),
+    opt("offen", t("enden.krankheit.offen"), t("enden.krankheit.offen_beschr"), 2, (w) => krankheitOffen(w)),
     opt("verschweigen", t("enden.krankheit.verschweigen"), t("enden.krankheit.verschweigen_beschr"), 0, (w) => krankheitVerschweigen(w)),
     opt("abgeben", t("enden.krankheit.abgeben"), t("enden.krankheit.abgeben_beschr"), 0, (w) => krankheitAbgeben(w)),
   ],
@@ -216,7 +224,7 @@ const RUECKTRITT_FORDERUNG: Vorlage = {
   text: (_, ev) => [t("enden.ruecktritt.forderung.text1", { zustimmung: zahl(ev, "zustimmung", 30) }), t("enden.ruecktritt.forderung.text2")],
   warum: () => t("enden.ruecktritt.forderung.warum"),
   optionen: () => [
-    opt("durchhalten", t("enden.ruecktritt.durchhalten"), t("enden.ruecktritt.durchhalten_beschr", { pk: 3 }), 3, (w) => ruecktrittDurchhalten(w)),
+    opt("durchhalten", t("enden.ruecktritt.durchhalten"), t("enden.ruecktritt.durchhalten_beschr"), 3, (w) => ruecktrittDurchhalten(w)),
     opt("erklaeren", t("enden.ruecktritt.erklaeren"), t("enden.ruecktritt.erklaeren_beschr"), 0, (w) => ruecktrittErklaeren(w)),
   ],
   standard: (w) => ruecktrittDurchhalten(w),

@@ -16,6 +16,7 @@ import { neubauLinien } from "./atlas/neubau";
 import { PROVINCE_FC, REGION_COLORS } from "./atlas/overlay";
 import { RegierungsNavigation } from "./navigation/RegierungsNavigation";
 import { Schreibtisch } from "./schreibtisch/Schreibtisch";
+import { tischAnzahl } from "./schreibtisch/arbeitsplatz";
 import type { Ziel } from "./schreibtisch/briefing";
 import { zweckVon } from "./politik/zweck";
 import { Chat } from "./Chat";
@@ -501,7 +502,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       kurz: t("nav.schreibtisch"),
       titel: t("nav.schreibtischTitel"),
       icon: "feder",
-      badge: (spiel?.ereignisse.length ?? 0) || undefined,
+      // Zählt dasselbe wie „Auf dem Tisch“ (Befund A-26; vorher nur die offenen Ereignisse)
+      badge: (spiel ? tischAnzahl(w) : 0) || undefined,
       umlauf: umlaufNeu || undefined,
       tabs: [
         { id: "schreibtisch", label: t("buehne.tab.schreibtisch") },

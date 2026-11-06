@@ -16,7 +16,7 @@ import { kommunalwahlDurchfuehren, kommunalwahlFaellig, kommunenVon, istLagerPar
 import { schreibeHaushaltFort } from "./haushalt";
 import { setPolicy } from "./handeln";
 import { stufeIn } from "./handeln";
-import { beginne, beginneRegional } from "./reich";
+import { beginne, beginneRegional, regionalPlan, vergabeAngebot, vorhabenSicht } from "./reich";
 import { anrede, figur, loyalitaetAendern, zufallsName } from "./figuren";
 import { BANKEN, KOHLEFIRMEN, TEXTILFIRMEN, ZEITUNGEN, waehle } from "./akteure";
 import { PROZ_STADT, akutIn, beschr, jahrVon, kosten, monatVon, netz, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
@@ -24,6 +24,19 @@ import type { Option, Vorlage } from "./ereignis-hilfen";
 import { t } from "../i18n";
 import { PROVINZEN } from "./regional";
 import type { World } from "./types";
+
+/**
+ * Startet eine Antwort ein Bauvorhaben, bucht dessen Vergabe das Kapital (das Ereignis erstattet seinen eigenen Preis zurück).
+ * `anzeigePk` nennt dann den Preis der Vergabe, damit die Bezahlbarkeit den ganzen Preis kennt.
+ */
+function vergabePreis(def: () => Parameters<typeof vergabeAngebot>[0] | undefined): { anzeigePk?: number } {
+  try {
+    const v = def();
+    return v ? { anzeigePk: vergabeAngebot(v, "ausschreibung").pk } : {};
+  } catch {
+    return {};
+  }
+}
 
 /** Provinznamen als Aufzählung für den Katalog (`{orte, list}`): im Deutschen wie `namen()` „A, B und C“, sonst nach Sprache. */
 const orte = (provinzen: number[]): string[] => provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
@@ -696,8 +709,10 @@ const TOURISMUS: Vorlage = {
   titel: () => t("evi.tourismusrekord.titel"),
   text: () => [t("evi.tourismusrekord.text1")],
   warum: () => t("evi.tourismusrekord.warum"),
-  optionen: () => [
-    opt("ausbauen", t("evi.tourismusrekord.opt.ausbauen.label"), beschr(3, 0.2, t("evi.tourismusrekord.opt.ausbauen.folge")), 3, (w) => {
+  optionen: (w0) => [
+    // Befund A-4: Der Ausbau startet ein Bauvorhaben, dessen Vergabe mehr kostet als die 3 Kapital des Ereignisses; die Bezahlbarkeit
+    // prüft deshalb den Preis der Vergabe (die Plakette misst die Buchung selbst).
+    { ...opt("ausbauen", t("evi.tourismusrekord.opt.ausbauen.label"), beschr(3, 0.2, t("evi.tourismusrekord.opt.ausbauen.folge")), 3, (w) => {
       // Ein echtes Bauvorhaben in den Küstenprovinzen (Antalya, Muğla, İzmir); das Kapital des Ereignisses trägt die Vergabe
       w.spiel!.kapital += 3;
       const r = beginneRegional(w, "reg_strassen", [7, 48, 35]);
@@ -710,7 +725,7 @@ const TOURISMUS: Vorlage = {
       wirke(w, "tourismus", 3);
       wirke(w, "verkehrsnetz", 2);
       return t("wort.kueste.ohne_bau", { grund: r.text });
-    }),
+    }), ...vergabePreis(() => { const pl = regionalPlan(w0, "reg_strassen", [7, 48, 35]); return pl.ok ? pl.def : undefined; }) },
     opt("abgabe", t("evi.tourismusrekord.opt.abgabe.label"), beschr(1, -0.15, t("evi.tourismusrekord.opt.abgabe.folge")), 1, (w) => {
       kosten(w, -0.15);
       wirke(w, "steuereinnahmen", 1);
@@ -737,8 +752,9 @@ const KANAL: Vorlage = {
     t("evi.kanal_istanbul.text1"),
   ],
   warum: () => t("evi.kanal_istanbul.warum"),
-  optionen: () => [
-    opt("bauen", t("evi.kanal_istanbul.opt.bauen.label"), beschr(6, 1.0, t("evi.kanal_istanbul.opt.bauen.folge")), 6, (w) => {
+  optionen: (w0) => [
+    // Befund A-4: „6 Kapital“ stand da, gebucht wurde der Preis der Vergabe (12). Die Bezahlbarkeit prüft jetzt diesen Preis.
+    { ...opt("bauen", t("evi.kanal_istanbul.opt.bauen.label"), beschr(6, 1.0, t("evi.kanal_istanbul.opt.bauen.folge")), 6, (w) => {
       wirke(w, "konservative", 2);
       wirke(w, "staedtische_saekulare", -3);
       // Der Kanal wird ein echtes Bauvorhaben (data/reich/infrastruktur.ts): Kosten, Bauzeit und Folgen trägt das Vorhaben
@@ -748,7 +764,7 @@ const KANAL: Vorlage = {
       w.spiel!.kapital -= 6;
       wirke(w, "bauwirtschaft", 3, [34]);
       return t("wort.kanal.ohne_bau", { grund: r.text });
-    }),
+    }), ...vergabePreis(() => { const sv = vorhabenSicht(w0, "infra_kanal_istanbul"); return sv && !["fertig", "im_bau", "pausiert", "gesperrt", "ausgeschlossen"].includes(sv.status) ? sv.v : undefined; }) },
     opt("nahverkehr", t("evi.kanal_istanbul.opt.nahverkehr.label"), beschr(3, 0.3, t("evi.kanal_istanbul.opt.nahverkehr.folge")), 3, (w) => {
       kosten(w, 0.3);
       wirke(w, "stau", -4, [34]);

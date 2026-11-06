@@ -7,9 +7,9 @@
  "mentor.kapital.short2": "Sermayeniz azaldı. Önce biriktirin, sonra hedefli harcayın.",
  "mentor.lira-schwach.more": "Zayıf bir para birimi ithal enerjiyi ve ara malları pahalandırır. Bu, enflasyonu birkaç hafta ile birkaç ay gecikmeyle artırır. İhracatçılar ise kazanır.",
  "mentor.lira-schwach.short": "Lira enflasyonun açıklayabileceğinden fazla değer kaybetti. İthalat pahalanıyor, bu fiyatlara yansır.",
- "mentor.mehrheit.more": "Oy satın alabilirsiniz (bu sermayeye mal olur ve ileride talep edilecek bir söz doğurur) ya da teklifleri olay olarak gelen ortaklar kazanabilirsiniz. Sözünü bozan ortak kaybeder.",
+ "mentor.mehrheit.more": "Meclis gruplarıyla görüşmeler, dışarıdan destek ve ittifaklar oy kazandırır; ortaklar tekliflerle gelir. Sözünü bozan ortak kaybeder.",
  "mentor.mehrheit.short": "İttifakınızın çoğunluk için yaklaşık {n} oyu eksik. Bu yasaları pahalı ve belirsiz kılar.",
- "mentor.partner-wackelt.more": "Ayrılan bir ortak sandalyelerini de götürür. Sadakat tutulan sözler ve bir görüşmeyle (1 sermaye) artar, oyalama ve sözünden dönmeyle azalır. “Kişiler ve sözler” altında ne istediğini görürsünüz.",
+ "mentor.partner-wackelt.more": "Ayrılan bir ortak sandalyelerini de götürür. Sadakat tutulan sözler ve bir görüşmeyle (1 sermaye) artar, oyalama ve sözünden dönmeyle azalır. Ne istediğini Kabine ve idare › Vaatler altında görürsünüz.",
  "mentor.partner-wackelt.short": "{rolle} {name} kopmanın eşiğinde.",
  "mentor.realzins-hoch.more": "Reel faiz, politika faizinden beklenen enflasyonun düşülmesiyle bulunur. Yüksekse tasarruf borçlanmaktan daha kârlıdır. Bu tüketimi ve yatırımı, dolayısıyla zamanla enflasyonu yatıştırır. Talebe genellikle altı ay ile bir buçuk yıl sonra, kura ise hızla yansır. Oyun bankaları ve kredi verme sürecini tek bir ilişkiye indirger.",
  "mentor.realzins-hoch.short": "Reel faiz yüksek. Bu krediyi ve talebi frenler, ama ancak aylar sonra.",
@@ -19,6 +19,6 @@
  "mentor.ruhig.short": "Şu anda dikkat çeken bir bağlantı yok. Bir şey öğrenmek isterseniz ekonomi dosyasında bir sayıya tıklayın.",
  "mentor.tipp-start.more": "“Altyapı” katmanı haritayı yol yoğunluğuna göre renklendirir ve yakınlaştırınca tek tek ilçeleri gösterir. Böylece para harcamadan önce nerede eksik olduğunu görürsünüz. Her tedbir tek tek illerle sınırlanabilir; o zaman daha az sermayeye mal olur ve yerinde etki eder.",
  "mentor.tipp-start.short": "İlk haftalar için ipucu: bir ile tıklayın. Kart sorunları, yolları ve hastaneleri gösterir; “Burada inşa et” doğrudan tedbirlere götürür.",
- "mentor.waehler-verstimmt.more": "Neden: {gruende}. Kızgın olan seçimde başka bir yanıt arar. Ne istedikleri “Seçmenler” penceresinde yazar.",
+ "mentor.waehler-verstimmt.more": "Neden: {gruende}. Kızgın olan seçimde başka bir yanıt arar. Ne istedikleri Toplum › Seçmen koalisyonu altında yazar.",
  "mentor.waehler-verstimmt.short": "{name} kızgın (ruh hali {s})."
 }
