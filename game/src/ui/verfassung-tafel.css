@@ -1,5 +1,5 @@
 /* Verfassung als Gesetzentwurf und Stimmzettel (Rückmeldung 05.11.2026; Feinschliff-Richtung: Papier, Marker, Korrektorenschrift) */
-.vf-tafel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, 340px); gap: 22px; align-items: start; margin-top: 6px; }
+.vf-tafel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, 290px); gap: var(--abstand-4); align-items: start; margin-top: 0; }
 
 .vf-entwurf {
   position: relative; padding: 22px 28px 14px 0; border-radius: 3px;
@@ -14,30 +14,30 @@
 .vf-entwurf-kopf p { margin: 0; font: var(--schrift-1)/1.4 var(--serif); color: #6b5338; }
 
 .vf-zeilen { list-style: none; margin: 0; padding: 0; }
-.vf-zeile { display: grid; grid-template-columns: 118px minmax(0, 1fr); border-bottom: 1px dashed rgba(90, 64, 40, 0.18); }
+.vf-zeile { display: grid; grid-template-columns: 102px minmax(0, 1fr); border-bottom: 1px dashed rgba(90, 64, 40, 0.18); }
 .vf-zeile:last-child { border-bottom: 0; }
-.vf-rand { padding: 14px 12px 0 0; text-align: right; }
+.vf-rand { padding: 9px 10px 0 0; text-align: right; }
 .vf-artnr { font: italic 600 var(--schrift-2) var(--serif); color: var(--seal, var(--siegel)); }
-.vf-inhalt { padding: 12px 0 12px 16px; }
-.vf-zeile-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 7px; }
+.vf-inhalt { padding: 7px 0 7px 14px; }
+.vf-zeile-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; margin-bottom: 4px; }
 .vf-zeile-kopf strong { font: 600 var(--schrift-3) var(--serif); color: var(--tinte-1); }
 .vf-zeile-kopf .vf-aktiv, .vf-zeile-kopf .vf-sperre { font: var(--schrift-1) var(--serif); color: var(--warnung); }
 
 .vf-segmente { display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .dossier .vf-segment, .vf-segment {
   position: relative; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 2px 4px 3px; border: 0; border-radius: 2px;
-  background: transparent; box-shadow: none; min-height: 0; font: var(--schrift-3)/1.3 var(--serif); color: var(--tinte-2); cursor: pointer; text-transform: none; letter-spacing: 0;
+  background: transparent; box-shadow: none; min-height: 0; font: var(--schrift-3)/1.22 var(--serif); color: var(--tinte-2); cursor: pointer; text-transform: none; letter-spacing: 0;
 }
 .vf-segment .vf-wort { border-bottom: 1px dotted rgba(90, 64, 40, 0.45); }
 .vf-segment:hover:not(:disabled) .vf-wort { border-bottom-style: solid; color: var(--tinte-1); }
 /* Die Wahl wie mit dem gelben Marker gestrichen */
 .vf-segment.on .vf-wort { border-bottom: 0; color: var(--leder-tief); font-weight: 600; background: linear-gradient(100deg, rgba(255, 214, 92, 0) 0.5%, rgba(255, 214, 92, 0.85) 3%, rgba(250, 205, 80, 0.8) 96%, rgba(255, 214, 92, 0) 99.5%); padding: 0 4px; margin: 0 -4px; border-radius: 3px 8px 4px 9px; }
 .vf-segment:disabled { opacity: 0.5; cursor: not-allowed; }
-.vf-segment small { font: var(--schrift-2)/1.2 var(--serif); }
+.vf-segment small { font: var(--schrift-1)/1.2 var(--serif); }
 .vf-geltend { color: var(--tinte-3); font-style: italic; }
 .vf-delta.plus { color: var(--gut); }
 .vf-delta.minus { color: var(--seal, var(--siegel)); }
-.vf-bedeutung { margin: 6px 0 0; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.vf-bedeutung { flex: 1 1 260px; min-width: 0; font: italic var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
 .vf-zeile.geaendert .vf-artnr::before { content: "✎ "; }
 
 /* Stimmzettel */
@@ -68,7 +68,6 @@
 @media (max-width: 1100px) { .vf-tafel { grid-template-columns: 1fr; } .vf-zettel { position: static; } }
 /* gegen die allgemeinen Absatzregeln der Akte */
 .vf-tafel .vf-entwurf-kopf p { font: var(--schrift-1)/1.45 var(--serif); color: #6b5338; margin: 0; }
-.vf-tafel p.vf-bedeutung { font: italic var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); margin: 6px 0 0; }
 .vf-tafel .vf-zettel p { margin-bottom: 0; }
 .vf-tafel p.vf-urteil { font: var(--schrift-2)/1.35 var(--serif); margin: 10px 0 8px; }
 .vf-tafel p.vf-leer { font: italic var(--schrift-2)/1.45 var(--serif); }
@@ -97,18 +96,17 @@
 .vf-waage-achse { fill: var(--messing-2); stroke: var(--tinte-weich); stroke-width: 1.5; }
 .vf-schale line { stroke: var(--messing-3); stroke-width: 1; }
 .vf-schale path { fill: var(--messing-2); stroke: var(--messing-3); stroke-width: 1; transition: fill 300ms ease; }
-.vf-schale text { font: 8.5px var(--serif); fill: var(--tinte-2); }
 .vf-schale.links.schwer path { fill: #3f7c86; }
 .vf-schale.rechts.schwer path { fill: var(--siegel-hell); }
 .vf-schale, .vf-schale * { transition: all 600ms cubic-bezier(.3,1.4,.5,1); }
-.vf-waage figcaption { font: italic var(--schrift-2) var(--serif); color: #6b5338; }
-.vf-waage figcaption.palast { color: var(--seal, var(--siegel)); }
-.vf-waage figcaption.buerger { color: #2f5e66; }
+.vf-tafel .vf-entwurf-kopf p.vf-waage-satz { margin-top: 2px; font: italic var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+.vf-tafel .vf-entwurf-kopf p.vf-waage-satz.palast { color: var(--siegel); }
+.vf-tafel .vf-entwurf-kopf p.vf-waage-satz.buerger { color: #2f5e66; }
 
 /* Fassungen als Stationen auf einer Linie, links mehr Kontrolle, rechts mehr Macht */
 .vf-segmente { position: relative; gap: 4px 0; padding-top: 2px; }
 .vf-segmente::before { content: ""; position: absolute; left: 10px; right: 10px; top: 9px; height: 2px; background: linear-gradient(90deg, rgba(47, 94, 102, 0.5), rgba(160, 130, 80, 0.45), rgba(143, 42, 30, 0.5)); }
-.dossier .vf-segment, .vf-segment { align-items: center; text-align: center; min-width: 110px; padding: 0 8px 3px; }
+.dossier .vf-segment, .vf-segment { align-items: center; text-align: center; min-width: 110px; padding: 0 4px 2px; }
 .vf-punkt { position: relative; z-index: 1; width: 14px; height: 14px; margin-bottom: 4px; border-radius: 50%; background: var(--papier-2); border: 2px solid var(--linie-stark); transition: transform 200ms ease, background 200ms ease, box-shadow 200ms ease; }
 .vf-segment.macht-minus .vf-punkt { border-color: #3f7c86; }
 .vf-segment.macht-plus .vf-punkt { border-color: var(--siegel-hell); }
@@ -124,11 +122,11 @@
 .vf-sitze-mitte { display: flex; flex-direction: column; align-items: center; }
 .vf-sitze-mitte b { font: 700 var(--schrift-6)/1 var(--serif); color: var(--tinte-1); }
 .vf-sitze-mitte small { font: var(--schrift-2) var(--serif); color: #6b5338; }
-.vf-leiste { position: relative; height: 8px; margin: 18px 0 4px; border-radius: 4px; background: var(--papier-4); }
+.vf-leiste { position: relative; height: 8px; margin: 22px 0 4px; border-radius: 4px; background: var(--papier-4); }
 .vf-leiste i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--warnung); transition: width 420ms cubic-bezier(.2,.8,.2,1), background 300ms ease; }
 .vf-leiste i.reicht { background: #2f7d62; }
 .vf-leiste b { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--tinte-1); }
-.vf-leiste b span { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font: 600 10.5px var(--serif); color: var(--tinte-1); }
+.vf-leiste b span { position: absolute; top: -18px; left: 50%; transform: translateX(-100%); padding-right: 3px; font: 600 var(--schrift-1) var(--serif); color: var(--tinte-1); }
 .vf-tafel p.vf-spanne-zeile { margin: 2px 0 0; font: var(--schrift-2) var(--serif); color: #6b5338; text-align: center; }
 .vf-fraktionen { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
 .vf-fraktionen li { padding: 1px 7px; border-left: 4px solid; border-radius: 2px; background: rgba(255, 251, 238, 0.9); font: var(--schrift-2) var(--serif); color: var(--leder); }
@@ -145,16 +143,25 @@
 
 /* Dritter Schritt: Kopf über die ganze Breite, Achse genau über den Linien, Stationen gleichmäßig verteilt */
 .vf-entwurf::before { top: 96px; }
-.vf-entwurf-kopf { padding: 0 24px 14px 24px; gap: 18px; }
+.vf-entwurf-kopf { padding: 0 20px 10px 20px; gap: 14px; }
 .vf-siegel { position: static; flex: none; }
-.vf-entwurf-kopf h3 { font-size: var(--schrift-5); }
-.vf-waage { width: 190px; margin: -10px 0 -8px; }
-.vf-waage figcaption { white-space: nowrap; }
-.vf-achse-zeile { display: grid; grid-template-columns: 118px minmax(0, 1fr); padding-top: 10px; }
-.vf-tafel .vf-achse-zeile p.vf-achse-legende { max-width: none; margin: 0; padding: 0 0 0 16px; }
+.vf-entwurf-kopf h3 { font-size: var(--schrift-4); }
+.vf-waage { width: 118px; margin: -6px 0 -8px; }
+.vf-achse-zeile { display: grid; grid-template-columns: 102px minmax(0, 1fr); padding-top: 6px; }
+.vf-tafel .vf-achse-zeile p.vf-achse-legende { max-width: none; margin: 0; padding: 0 0 0 14px; }
 .vf-segmente { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; }
 .vf-segmente::before { left: calc(100% / var(--n, 3) / 2); right: calc(100% / var(--n, 3) / 2); }
 .dossier .vf-segment, .vf-segment { min-width: 0; width: 100%; }
+/* T6: Stationen nach ihrem Wortlaut breit (ein langes Wort bricht nicht mehr um, solange die Zeile reicht); die Linie läuft darum je Station
+   von Mitte zu Mitte, in der Farbe ihrer Richtung, statt als ein Strich mit festen Enden über gleich breiten Spalten */
+.vf-segmente { display: flex; }
+.vf-segmente::before { display: none; }
+.dossier .vf-segment, .vf-segment { flex: 1 1 auto; width: auto; min-width: min-content; }
+.vf-segment::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: rgba(160, 130, 80, 0.45); }
+.vf-segment.macht-minus::before { background: rgba(47, 94, 102, 0.5); }
+.vf-segment.macht-plus::before { background: rgba(143, 42, 30, 0.5); }
+.vf-segment:first-child::before { left: 50%; }
+.vf-segment:last-child::before { right: 50%; }
 .vf-segment .vf-wort { max-width: 100%; }
 .vf-delta { margin-top: 1px; padding: 0 6px; border-radius: 8px; }
 .vf-delta.plus { background: color-mix(in srgb, var(--gut) 12%, transparent); }
@@ -162,4 +169,11 @@
 /* Randlinie nur neben den Artikeln, nicht durch den Kopf */
 .vf-entwurf::before { display: none; }
 .vf-rand, .vf-achse-zeile > span { border-right: 1px solid rgba(143, 42, 30, 0.35); }
-.vf-entwurf { padding-top: 18px; }
+.vf-entwurf { padding-top: 14px; padding-right: 20px; }
+
+/* T6: Die Marken 360 und 400 liegen eng beieinander; 360 steht links, 400 rechts der Marke */
+.vf-leiste b:last-of-type span { transform: none; padding: 0 0 0 3px; left: 50%; }
+/* Hinweise des Stimmzettels aufklappbar */
+.vf-bedenken { margin: 0 0 10px; }
+.vf-bedenken > summary { cursor: pointer; font: 600 var(--schrift-2) var(--serif); color: var(--tinte-2); }
+.vf-bedenken[open] > summary { margin-bottom: 4px; }

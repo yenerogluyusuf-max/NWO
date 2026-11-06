@@ -108,7 +108,7 @@ function PaketFolgen({ paket }: { paket: Record<string, string> }) {
   const w = [...gruppen].filter(([, d]) => d !== 0).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 5);
   if (!g.length && !w.length) return null;
   const marke = (id: string, d: number, gut: boolean) => (
-    <li key={id} className={gut ? "gut" : "schlecht"}><span aria-hidden>{d > 0 ? "▲" : "▼"}</span> {knotenName(id)} <b>{d > 0 ? `+${d}` : d}</b></li>
+    <li key={id} className={gut ? "gut" : "schlecht"}><span aria-hidden>{d > 0 ? "▲" : "▼"}</span> {knotenName(id)} <b>{d > 0 ? `+${d}` : `−${Math.abs(d)}`}</b></li>
   );
   return (
     <div className="vf-folgen">
@@ -116,6 +116,11 @@ function PaketFolgen({ paket }: { paket: Record<string, string> }) {
       {w.length > 0 && <><span className="vf-folgen-titel">{t("vf.folgen.waehler")}</span><ul>{w.map(([id, d]) => marke(id, d, d > 0))}</ul></>}
     </div>
   );
+}
+
+/** Was die Waage zeigt, als Satz unter der Regelzeile (T6: vorher Bildunterschrift, die den Kopf höher machte). */
+function waageSatz(summe: number): { text: string; klasse: string } {
+  return { text: summe === 0 ? t("vf.waage.gleich") : t(summe > 0 ? "vf.waage.zumPalast" : "vf.waage.zumParlament"), klasse: summe > 0 ? "palast" : summe < 0 ? "buerger" : "" };
 }
 
 /**
@@ -127,16 +132,17 @@ function Waage({ summe }: { summe: number }) {
   const neigung = (winkel * Math.PI) / 180;
   const lx = 60 - 50 * Math.cos(neigung), ly = 44 - 50 * Math.sin(neigung);
   const rx = 60 + 50 * Math.cos(neigung), ry = 44 + 50 * Math.sin(neigung);
+  // Die Schalen tragen ihren Namen als Tooltip; sichtbar beschriftet die Achse darunter beide Seiten (T6: die Schrift im Bild war unter 13 px)
   const schale = (x: number, y: number, text: string, cls: string) => (
     <g className={cls}>
+      <title>{text}</title>
       <line x1={x} y1={y} x2={x - 12} y2={y + 20} /><line x1={x} y1={y} x2={x + 12} y2={y + 20} />
       <path d={`M${x - 16},${y + 20} Q${x},${y + 32} ${x + 16},${y + 20} Z`} />
-      <text x={x} y={y + 44} textAnchor="middle">{text}</text>
     </g>
   );
   return (
     <figure className="vf-waage" aria-label={t("vf.waage.aria", { n: summe })}>
-      <svg viewBox="0 0 120 104">
+      <svg viewBox="-8 0 136 100">
         <path d="M60,44 L52,96 L68,96 Z" className="vf-waage-fuss" />
         <g className="vf-waage-balken" style={{ transform: `rotate(${winkel}deg)`, transformOrigin: "60px 44px" }}>
           <line x1={10} y1={44} x2={110} y2={44} />
@@ -145,7 +151,6 @@ function Waage({ summe }: { summe: number }) {
         {schale(rx, ry, t("vf.waage.rechts"), `vf-schale rechts${summe > 0 ? " schwer" : ""}`)}
         <circle cx={60} cy={44} r={4} className="vf-waage-achse" />
       </svg>
-      <figcaption className={summe > 0 ? "palast" : summe < 0 ? "buerger" : ""}>{summe === 0 ? t("vf.waage.gleich") : t(summe > 0 ? "vf.waage.zumPalast" : "vf.waage.zumParlament")}</figcaption>
     </figure>
   );
 }
@@ -288,6 +293,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
   // Werkstatt: Paket schnüren
   const belegt = amtszeitBelegt(world);
   const aktivEintraege = Object.entries(z.aktiv);
+  const machtSumme = geaenderteArtikel(paket).reduce((n, x) => n + x.variante.autoritaer, 0);
   return (
     <div className="beschlussbuch vf-akte">
       {belegt && <p className="weg-warnung">{t("ui.Verfassung.f354624")}</p>}
@@ -307,8 +313,9 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
             <div>
               <h3>{t("vf.entwurf.titel")}</h3>
               <p>{t("vf.regelZeile", { mehrheit: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
+              <p className={`vf-waage-satz ${waageSatz(machtSumme).klasse}`}>{waageSatz(machtSumme).text}</p>
             </div>
-            <Waage summe={geaenderteArtikel(paket).reduce((n, x) => n + x.variante.autoritaer, 0)} />
+            <Waage summe={machtSumme} />
           </header>
           {/* Achse einmal über allen Artikeln, genau über den Linien */}
           <div className="vf-achse-zeile" aria-hidden><span /><p className="vf-achse-legende"><span>{t("vf.achse.links")}</span><span>{t("vf.achse.rechts")}</span></p></div>
@@ -328,6 +335,8 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                       <strong title={a.frage}>{a.name}</strong>
                       {aktiv && <span className="vf-aktiv">{t("vf.beschlossen", { name: varianteDef(aktiv)?.name ?? aktiv })}</span>}
                       {sperre > 0 && <span className="vf-sperre">{t("vf.gesperrt", { n: sperre - world.day })}</span>}
+                      {/* Was die gewählte Fassung bedeutet, in derselben Zeile wie der Titel (T6: eine Zeile je Artikel weniger) */}
+                      {gewaehlteV && <span className="vf-bedeutung">{gewaehlteV.text}</span>}
                     </div>
                     <div className="vf-segmente" role="radiogroup" aria-label={a.name} style={{ "--n": a.varianten.length } as CSSProperties}>
                       {[...a.varianten].sort((p, q) => p.autoritaer - q.autoritaer).map((x) => {
@@ -345,7 +354,6 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                         );
                       })}
                     </div>
-                    {gewaehlteV && <p className="vf-bedeutung">{gewaehlteV.text}</p>}
                   </div>
                 </li>
               );
@@ -359,22 +367,21 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
             <PaketHalbrund world={world} stimmen={pr.geaendert > 0 ? pr.stimmen : null} />
             {pr.geaendert > 0 ? (
               <>
-                <p className="vf-spanne-zeile">{t("vf.spanne", { tief: pr.stimmen.tief, hoch: pr.stimmen.hoch })}</p>
+                <p className="vf-spanne-zeile">{t("tag_t6.vf.spanne", { tief: pr.stimmen.tief, hoch: pr.stimmen.hoch })}</p>
                 <p className={`vf-urteil ${pr.stimmen.erwartet >= VERFASSUNG_REGELN.direkt ? "direkt" : pr.stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit ? "volk" : "fehlt"}`}>
                   {pr.stimmen.erwartet >= VERFASSUNG_REGELN.direkt ? t("vf.urteil.direkt") : pr.stimmen.erwartet >= VERFASSUNG_REGELN.mehrheit ? t("vf.urteil.volk") : t("vf.urteil.fehlt", { n: VERFASSUNG_REGELN.mehrheit - pr.stimmen.erwartet })}
                 </p>
                 <PaketFolgen paket={paket} />
-                <ul className="vf-aenderungen">
-                  {geaenderteArtikel(paket).map((x) => (
-                    <li key={x.artikel.id}><span>{t(`vf.art.${x.artikel.id}`)}</span> <mark>{x.variante.name}</mark></li>
-                  ))}
-                </ul>
+                {/* Die Liste der geänderten Artikel fiel weg (T6): Der Entwurf daneben zeigt sie markiert. Die Hinweise sind aufklappbar. */}
                 {pr.hinweise.length > 0 && (
-                  <ul className="vf-hinweise">
-                    {pr.hinweise.map((h) => (
-                      <li key={h}>{h}</li>
-                    ))}
-                  </ul>
+                  <details className="vf-bedenken">
+                    <summary>{t("tag_t6.vf.bedenken", { n: pr.hinweise.length })}</summary>
+                    <ul className="vf-hinweise">
+                      {pr.hinweise.map((h) => (
+                        <li key={h}>{h}</li>
+                      ))}
+                    </ul>
+                  </details>
                 )}
                 <button className="pd-btn primary vf-einbringen" disabled={!pr.ok} title={pr.ok ? t("vf.einbringenTitel") : pr.grund} onClick={() => tu(bringeVerfassungEin(world, paket))}>
                   {t("vf.einbringen")} <b>{pr.pk}</b>
