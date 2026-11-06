@@ -44,7 +44,7 @@ export function RessortAnliegenKarten({world,refresh,amt,mitNachsorge=true}:{wor
  const anliegen=(world.spiel?.ministerfluss?.ressortAnliegen??[]).filter(a=>(!amt||a.amt===amt)&&['offen','besprochen','abgelehnt'].includes(a.status));
  const folgen=(world.spiel?.ministerfluss?.ressortFolgen??[]).filter(f=>!amt||f.amt===amt);
  if(!anliegen.length&&!folgen.length)return <RessortVerantwortung world={world} refresh={refresh} amt={amt} mitNachsorge={mitNachsorge} anliegenVorOrt/>;
- return <><RessortVerantwortung world={world} refresh={refresh} amt={amt} mitNachsorge={mitNachsorge} anliegenVorOrt/><section className="ra" aria-label={t('ra.titel')}><header><small>{t('ra.kicker')}</small><h3>{t('ra.titel')}</h3><p>{t('ra.intro')}</p></header>
+ return <><RessortVerantwortung world={world} refresh={refresh} amt={amt} mitNachsorge={mitNachsorge} anliegenVorOrt/><section className="ra" aria-label={t('ra.titel')}><header><small>{t('ra.kicker')}</small><h3 title={t('ra.intro')}>{t('ra.titel')}</h3></header>
   {antwort&&<><p role="status">{antwort.text}</p>{antwort.dialog&&<div className="ra-dialog">{antwort.dialog.map((z,i)=><p key={i}><b>{t(`ra.sprecher.${z.wer}`)}</b> {z.text}</p>)}</div>}</>}
   {anliegen.map(a=>{
    const f=ressortInhaber(world,a);if(!f)return null;
@@ -52,13 +52,12 @@ export function RessortAnliegenKarten({world,refresh,amt,mitNachsorge=true}:{wor
    const eigen=ressortEigenart(structuredClone(world),a),v=a.vorschlag;
    const vtext=v?.art==='gesetz'?`${name(v.id)} → ${zahl(v.ziel,0)}`:v?.art==='haushalt'?v.aktion.art==='etat'?t('hh.etat',{name:POSTEN_NACH_ID[v.aktion.posten]!.name,ziel:v.aktion.ziel}):v.aktion.art==='programm'?t(`regierung.${v.aktion.programm}.titel`):'':t('ra.keinVorschlag');
    return <article className="ra-anliegen" id={`ressort-anliegen-${a.id}`} key={a.id}>
-    <div className="ra-kopf"><div className="ra-absender"><Portraet seed={f.name} size={54} geschlecht={f.weiblich?"f":"m"} rahmen="keiner" lebendig={false}/><div><small>{f.rolle}</small><h4>{f.name}</h4></div></div><time dateTime={addDays(world.date,a.frist-world.day)}>{t('ra.frist',{datum:datum(world,a.frist)})}</time></div>
+    <div className="ra-kopf"><div className="ra-absender"><Portraet seed={f.name} size={54} geschlecht={f.weiblich?"f":"m"} rahmen="keiner" lebendig={false}/><div><small>{f.rolle}</small><h4>{f.name}</h4></div></div><time dateTime={addDays(world.date,a.frist-world.day)} title={t('ra.fristRegel')}>{t('ra.frist',{datum:datum(world,a.frist)})}</time></div>
     <blockquote>{t(a.status==='besprochen'?'ra.nachGespraech':a.status==='abgelehnt'?'ra.zurueckgewiesen':'ra.bitte',{groesse:name(a.groesse),wert:zahl(a.vorher,1)})}</blockquote>
     {(()=>{const e=(f.eigen?.erinnerung??[]).filter(x=>x.tag<a.seit).at(-1);return e?<p className="ra-gedaechtnis">{t('ra.gedaechtnis',{datum:datum(world,e.tag),text:e.text})}</p>:null;})()}
     <p><b>{t('ra.vorschlag')}</b> {vtext}</p>
     <p className="ra-warnung">{t(eigen?.eigen?eigen.faehig?'ra.ohneEigenGut':'ra.ohneEigenSchlecht':'ra.ohneStill')}</p>
     {(eigen?.kontrolleBis??0)>world.day&&<p>{t('rp.kontrolle',{datum:datum(world,eigen!.kontrolleBis!)})}</p>}
-    <p>{t('ra.fristRegel')}</p>
     <button type="button" className="pd-btn" aria-expanded={auswahl===a.id} onClick={()=>setAuswahl(auswahl===a.id?'':a.id)}>{t(auswahl===a.id?'ra.schliessen':'ra.antworten')}</button>
     {auswahl===a.id&&<RessortAntwortWege key={a.id} world={world} id={a.id} onAntwort={p=>{setAntwort(beantworteRessortAnliegen(world,p));refresh();}}/>}
     <UbVerweis ziel={{art:'akte',akte:'personen'}}>{t('ra.personen')}</UbVerweis>

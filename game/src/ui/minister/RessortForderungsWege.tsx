@@ -19,9 +19,9 @@ export function RessortHilfeFolgen({vor,nach}:{vor:HaushaltsStand;nach:Haushalts
  const parteien=nach.parteien.filter(p=>{const v=vor.parteien.find(x=>x.partei===p.partei);return v&&(p.bereitschaft!==v.bereitschaft||p.rolle!==v.rolle);});
  // ENTSCHEIDUNGEN Z: dieselben Zahlen als Chips statt als Sätze
  return <div className="rk-chips rh-folgen">
-  <Chip label={t('welle_b2.rk.defizit')} delta={nach.defizit-vor.defizit} umgekehrt/>
-  <Chip label={t('welle_b2.rk.legitimitaet')} delta={nach.legitimitaet-vor.legitimitaet}/>
-  <Chip label={t('welle_b2.rk.zustimmung')} delta={nach.zustimmung-vor.zustimmung}/>
+  {nach.defizit!==vor.defizit&&<Chip label={t('welle_b2.rk.defizit')} delta={nach.defizit-vor.defizit} umgekehrt/>}
+  {nach.legitimitaet!==vor.legitimitaet&&<Chip label={t('welle_b2.rk.legitimitaet')} delta={nach.legitimitaet-vor.legitimitaet}/>}
+  {nach.zustimmung!==vor.zustimmung&&<Chip label={t('welle_b2.rk.zustimmung')} delta={nach.zustimmung-vor.zustimmung}/>}
   {!parteien.length&&!personen.length&&<Chip label={t('welle_b2.rh.unveraendert')} title={t('rh.unveraendert')}/>}
   {parteien.map(p=><Chip key={p.partei} label={`${p.partei} · ${t(`rr.rolle.${p.rolle}`)} · ${t('rr.bereit')}`} delta={p.bereitschaft-vor.parteien.find(v=>v.partei===p.partei)!.bereitschaft}/>)}
   {personen.map(p=><Chip key={p.id} label={t('rr.loyal',{name:p.name})} wert={`${zahl(vor.personen.find(v=>v.id===p.id)!.loyalitaet,2)} → ${zahl(p.loyalitaet,2)}`}/>)}

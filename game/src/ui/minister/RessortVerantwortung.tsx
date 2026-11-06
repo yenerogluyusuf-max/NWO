@@ -22,8 +22,8 @@ const ausgang=(v:RessortVorfall)=>v.art==='auftragVerfehlt'?'rp.auftrag':v.art==
 export function RessortPolitikFolgen({b}:{b:RessortPolitikBeleg}) {
   return <div className="rp-folgen">
     <div className="rk-chips">
-      <Chip label={t('welle_b2.rk.vertrauen')} delta={b.vertrauen}/>
-      <Chip label={t('welle_b2.rk.legitimitaet')} delta={b.legitimitaet}/>
+      {b.vertrauen!==0&&<Chip label={t('welle_b2.rk.vertrauen')} delta={b.vertrauen}/>}
+      {b.legitimitaet!==0&&<Chip label={t('welle_b2.rk.legitimitaet')} delta={b.legitimitaet}/>}
       {b.risikoaufschlag!==0&&<Chip label={t('welle_b2.rk.risiko')} delta={b.risikoaufschlag} umgekehrt/>}
       {b.glaubwuerdigkeit!==0&&<Chip label={t('welle_b2.rk.glaubwuerdigkeit')} delta={b.glaubwuerdigkeit}/>}
       {b.kontrolleBis!==undefined&&<Chip label={t('welle_b2.rp.kontrolle')} wert={tagDatum(b.datum,b.tag,b.kontrolleBis)} title={t('rp.kontrolle',{datum:tagDatum(b.datum,b.tag,b.kontrolleBis)})}/>}
@@ -52,7 +52,7 @@ export function RessortPolitikVerlauf({vorfaelle}:{vorfaelle:RessortVorfall[]}) 
     {vorfaelle.slice().reverse().map(v=><article className="rk-eintrag" key={v.id}>
       <h5>{v.name} · {formatDateDe(v.datum)} <span className="rk-status">{t(`welle_b2.${ausgang(v)}`)}</span></h5>
       <RessortPolitikFolgen b={v.reaktion}/>
-      {v.entscheidung?<><h5>{t(v.entscheidung.art==='entlassen'?'rp.abschluss.entlassen':`rp.art.${v.entscheidung.art}`)} · {formatDateDe(v.entscheidung.datum)} <span className="rk-status">{t('vn.preis',{pk:zahl(v.entscheidung.pk,1),aufmerksamkeit:zahl(v.entscheidung.aufmerksamkeit,0)})}</span></h5><RessortPolitikFolgen b={v.entscheidung}/></>:<p className="rk-leise">{t(v.geschlossen?`rp.${v.geschlossen}`:'rp.offen')}</p>}
+      {v.entscheidung?<><h5>{t(v.entscheidung.art==='entlassen'?'rp.abschluss.entlassen':`rp.art.${v.entscheidung.art}`)} · {formatDateDe(v.entscheidung.datum)} <span className="rk-status">{t('vn.preis',{pk:zahl(v.entscheidung.pk,1),aufmerksamkeit:zahl(v.entscheidung.aufmerksamkeit,0)})}</span></h5><RessortPolitikFolgen b={v.entscheidung}/></>:<div className="rk-chips"><Chip label={t(`welle_b2.rp.zu.${v.geschlossen??'offen'}`)} title={t(v.geschlossen?`rp.${v.geschlossen}`:'rp.offen')}/></div>}
     </article>)}
   </details>;
 }
@@ -65,7 +65,7 @@ export function RessortReaktionsOption({world,id,art,onEntscheide}:{world:World;
       {label:t('eo.befugnis'),wert:t('eo.regierung'),hinweis:t('eo.keinVotum')},
       {label:t('eo.frist'),wert:formatDateDe(p.pruefung),hinweis:t('eo.koalitionspruefung')},
     ]}
-    aktion={t(`rp.art.${art}`)} gesperrt={p.ok?undefined:p.grund??t('vn.nichtMoeglich')} hinweis={t('rp.grenze')} onAusfuehren={()=>onEntscheide(p)}>
+    aktion={t(`rp.art.${art}`)} gesperrt={p.ok?undefined:p.grund??t('vn.nichtMoeglich')} hinweis={t('welle_b2.rp.grenzeKurz')} onAusfuehren={()=>onEntscheide(p)}>
     {p.ok&&p.beleg?<>
       <RessortPolitikFolgen b={p.beleg}/>
       {p.beleg.kapitalDanach<0&&<p className="rp-warnung">{t('vn.aufPump',{n:zahl(p.beleg.kapitalDanach,1)})}</p>}
@@ -91,7 +91,7 @@ export function RessortVerantwortung({world,refresh,amt,anliegenVorOrt=false,mit
       <RessortReaktionsWege key={v.id} world={world} id={v.id} onEntscheide={p=>{const r=entscheideRessortVorfall(world,p);setAntwort(r.text);refresh();}}/>
       <details><summary>{t('rp.schonGebucht')}</summary><RessortPolitikFolgen b={v.reaktion}/></details>
     </article>)}
-    <details className="rp-grenze"><summary>{t('rp.grenzeTitel')}</summary><p>{t('rp.grenze')}</p></details>
+    <details className="rp-grenze"><summary>{t('rp.grenzeTitel')}</summary><div className="rk-chips" title={t('rp.grenze')}>{(['votum','sitze','zusage','sache'] as const).map(k=><Chip key={k} label={t(`welle_b2.rp.grenze.${k}`)}/>)}</div></details>
     <p><UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('rp.parlament')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'personen'}}>{t('rp.nachfolge')}</UbVerweis></p>
     <RessortPolitikVerlauf vorfaelle={alle}/>
   </section></>;

@@ -71,3 +71,11 @@ section.rr p{margin:0;line-height:1.45}
 .rr-wege td{border-bottom:0;padding-top:0}
 .rr-gefahr{padding-left:8px;border-left:3px solid var(--siegel)}
 .rr summary{cursor:pointer;font:600 var(--schrift-2)/1.3 var(--serif);color:var(--tinte-2)}
+
+/* Schmale Seitenfenster (Ministermappe): Spalten dürfen schrumpfen, Wörter werden nicht mitten im Wort getrennt */
+.rn-karte,.rr,.rp-folgen,.rk-eintrag{grid-template-columns:minmax(0,1fr)}
+.rn-karte>*,.rr>*,.rp-folgen>*{min-width:0}
+.rk-tabelle{overflow-wrap:normal;word-break:normal;hyphens:auto}
+.rk-tabelle td:first-child{white-space:nowrap}
+.rk-tabelle td small{white-space:nowrap}
+@container(max-width:560px){.rk-tabelle td:first-child{white-space:normal}}

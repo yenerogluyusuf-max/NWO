@@ -47,7 +47,8 @@ export function Bereiche({
       <header className="vs-kopf">
         <p className="pd-ueber">{t("ui2.ui.Bereiche.1ab3309")}</p>
         <div className="vs-titelzeile">
-          <h3>
+          {/* ENTSCHEIDUNGEN Z: die Erklärung der Reihenfolge steht am Titel */}
+          <h3 title={t("ui.Bereiche.99f90d9")}>
             {t("ui2.ui.Bereiche.eaecb68")}
             {vs.length > 0 && (
               <span className="vs-zahl">
@@ -61,7 +62,6 @@ export function Bereiche({
             </p>
           )}
         </div>
-        <p className="pd-lead">{t("ui.Bereiche.99f90d9")}</p>
       </header>
       {antwort && (
         <p className={`mf-rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
