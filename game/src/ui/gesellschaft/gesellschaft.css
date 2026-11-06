@@ -139,3 +139,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ges-akte button.ges-glut { transition: none; }
 }
+
+/* ENTSCHEIDUNGEN Z (06.11.2026): Karte des Haushaltskopfs statt weißer Blätter */
+.ges-ruhe, .ges-instrument { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); box-shadow: 0 1px 2px rgba(59, 42, 26, 0.08); }
+.ges-antwort { background: var(--papier-3); }

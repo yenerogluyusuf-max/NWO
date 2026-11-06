@@ -65,7 +65,8 @@ export function UmsetzungAkte({
   const beschluesse = [...world.log].reverse().filter((l) => l.kind === "entscheidung");
   const berichte = [...(spiel?.berichte ?? [])].reverse();
   const beobachtet = spiel?.beobachtungen?.length ?? 0;
-  const sichtBeschluesse = alleBeschluesse ? beschluesse : beschluesse.slice(0, 10);
+  // ENTSCHEIDUNGEN Z: fünf jüngste Beschlüsse sichtbar, der Rest hinter „alle zeigen“
+  const sichtBeschluesse = alleBeschluesse ? beschluesse : beschluesse.slice(0, 5);
   // Gezählt wird nur, was in Kraft gesetzt wurde: kein eingebrachter Entwurf, keine „Ziele der Amtszeit“ (B-23)
   const inKraft = beschluesse.filter((l) => l.beschluss || l.abstimmung?.angenommen).length;
 
@@ -82,8 +83,8 @@ export function UmsetzungAkte({
       <header className="pd-seitenkopf">
         <div>
           <p className="pd-ueber">{t("ui2.ui.politik.UmsetzungAkte.d9c0cc7")}</p>
-          <h3>{t("ui2.ui.politik.UmsetzungAkte.7bb6605")}</h3>
-          <p className="pd-lead">{t("ui.politik.UmsetzungAkte.2ea8b02")}</p>
+          {/* ENTSCHEIDUNGEN Z: die Erklärung steht am Titel, die Zahlen rechts daneben */}
+          <h3 title={t("ui.politik.UmsetzungAkte.2ea8b02")}>{t("ui2.ui.politik.UmsetzungAkte.7bb6605")}</h3>
         </div>
         <ul className="pd-zaehler" aria-label={t("ui2.ui.politik.UmsetzungAkte.426eea4")}>
           <li>
@@ -214,14 +215,14 @@ export function UmsetzungAkte({
               {sichtBeschluesse.map((l, i) => (
                 <li key={i}>
                   <time>{formatDateDe(l.date)}</time>
-                  <div>
+                  {/* Die Begründung steht hinter dem Eintrag (Titel), damit die Zeitleiste eine Zeile je Beschluss bleibt */}
+                  <div title={l.why}>
                     <p>{l.text}</p>
-                    {l.why && <p className="pd-leise">{l.why}</p>}
                   </div>
                 </li>
               ))}
             </ol>
-            {beschluesse.length > 10 && (
+            {beschluesse.length > 5 && (
               <button className="pd-btn quiet" onClick={() => setAlleBeschluesse(!alleBeschluesse)}>
                 {alleBeschluesse ? t("ui2.ui.politik.UmsetzungAkte.34a01ce") : t("ui2.ui.politik.UmsetzungAkte.b4645e8", { p0: beschluesse.length })}
               </button>

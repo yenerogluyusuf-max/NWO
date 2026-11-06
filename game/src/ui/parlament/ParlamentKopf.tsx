@@ -62,7 +62,13 @@ export function ParlamentKopf({ world }: { world: World }) {
       <header className="pd-seitenkopf">
         <div>
           {/* Der Reiter heißt schon „Fraktionen und Abstimmung“; ohne zweite Überschrift beginnt die Seite mit der Regel und dem Halbrund */}
-          <p className="pd-lead">{t("n4.pk.lead", { sitze: zahl(lage.gesamt), gesetz: GESETZ_SCHWELLE, mitglieder: REGELN.mehrheit, vf: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
+          {/* ENTSCHEIDUNGEN Z: die Regel als Kennzahlen statt als Satz; der volle Satz steht am Titel */}
+          <dl className="par-kern" title={t("n4.pk.lead", { sitze: zahl(lage.gesamt), gesetz: GESETZ_SCHWELLE, mitglieder: REGELN.mehrheit, vf: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}>
+            <div><dt>{t("welle_b2.pk.sitze")}</dt><dd>{zahl(lage.gesamt)}</dd></div>
+            <div><dt>{t("welle_b2.pk.gesetz")}</dt><dd>{GESETZ_SCHWELLE}</dd><small>{t("welle_b2.pk.gesetzKlein")}</small></div>
+            <div><dt>{t("welle_b2.pk.mehrheit")}</dt><dd>{REGELN.mehrheit}</dd></div>
+            <div><dt>{t("welle_b2.pk.verfassung")}</dt><dd>{VERFASSUNG_REGELN.mehrheit} / {VERFASSUNG_REGELN.direkt}</dd><small>{t("welle_b2.pk.verfassungKlein")}</small></div>
+          </dl>
         </div>
       </header>
 

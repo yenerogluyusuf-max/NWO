@@ -12,21 +12,31 @@ import { t, zahl } from '../../i18n';
 import { UbVerweis } from '../akte/Uebersicht';
 import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
 import { EntscheidungsWege } from '../entscheidungen/EntscheidungsWege';
+import { Chip } from './RessortRueckhalt';
 import './ressortanliegen.css';
 const name=(id:string)=>NET.nodes[NET.index.get(id)??-1]?.name??id;
 const sign=(n:number)=>`${n>0?'+':''}${zahl(n,2)}`;
 const datum=(w:World,tag:number)=>formatDateDe(addDays(w.date,tag-w.day));
 const ARTEN:RessortAntwort[]=['reden','umsetzen','spaeter','ablehnen'];
+// ENTSCHEIDUNGEN Z: Rückblick als Tabelle, eine Zeile je Schritt; dieselben gebuchten Zahlen wie vorher die Sätze.
 export function RessortFolgen({folgen}:{folgen:RessortFolge[]}) {
  if(!folgen.length)return null;
- return <details className="ra-folgen"><summary>{t('ra.folgen')}</summary><p>{t('ra.folgenGrenze')}</p>
-  {folgen.slice().reverse().map((f,i)=><article key={`${f.id}-${f.tag}-${i}`}><b>{f.name} · {formatDateDe(f.datum)} · {t(`ra.art.${f.art}`)}</b>
-   <p>{t('ra.beleg',{groesse:name(f.groesse),vor:zahl(f.vorher,2),nach:zahl(f.nachher,2),loy:sign(f.loyalitaet),groll:sign(f.groll)})}</p>
-   {(f.bip!==0||f.legitimitaet!==0)&&<p>{t('ra.preisFolge',{bip:zahl(f.bip,3),leg:sign(f.legitimitaet)})}</p>}
-   {f.pk!==undefined&&<p>{t('vn.preis',{pk:zahl(f.pk,1),aufmerksamkeit:zahl(f.aufmerksamkeit??0,0)})}</p>}
-   {!!f.defizit&&<p>{t('ra.haushaltFolge',{n:sign(f.defizit),leg:sign(f.legitimitaet)})}</p>}
-   {!!f.vertrauen&&<p>{t('ra.vertrauen',{n:sign(f.vertrauen)})}</p>}
-  </article>)}
+ return <details className="ra-folgen"><summary>{t('ra.folgen')} ({folgen.length})</summary>
+  <table className="rk-tabelle"><thead><tr><th>{t('welle_b2.rk.datum')}</th><th>{t('welle_b2.rk.schritt')}</th><th>{t('welle_b2.rk.wert')}</th><th>{t('welle_b2.rk.loyalitaet')}</th><th>{t('welle_b2.rk.groll')}</th><th>{t('welle_b2.rk.preis')}</th></tr></thead><tbody>
+  {folgen.slice().reverse().map((f,i)=><tr key={`${f.id}-${f.tag}-${i}`}>
+   <td>{formatDateDe(f.datum)}<small>{f.name}</small></td>
+   <td>{t(`ra.art.${f.art}`)}</td>
+   <td>{name(f.groesse)} <span className="rk-wert">{zahl(f.vorher,2)} → {zahl(f.nachher,2)}</span></td>
+   <td className="rk-wert">{sign(f.loyalitaet)}</td><td className="rk-wert">{sign(f.groll)}</td>
+   <td><div className="rk-chips">
+    {f.bip!==0&&<Chip label={t('welle_b2.rk.bip')} wert={`${zahl(f.bip,3)} %`}/>}
+    {!!f.defizit&&<Chip label={t('welle_b2.rk.defizit')} delta={f.defizit} umgekehrt/>}
+    {f.legitimitaet!==0&&<Chip label={t('welle_b2.rk.legitimitaet')} delta={f.legitimitaet}/>}
+    {!!f.vertrauen&&<Chip label={t('welle_b2.rk.vertrauen')} delta={f.vertrauen}/>}
+    {f.pk!==undefined&&<Chip label={t('vn.preis',{pk:zahl(f.pk,1),aufmerksamkeit:zahl(f.aufmerksamkeit??0,0)})}/>}
+   </div></td>
+  </tr>)}
+  </tbody></table>
  </details>;
 }
 export function RessortAnliegenKarten({world,refresh,amt,mitNachsorge=true}:{world:World;refresh:()=>void;amt?:Amt;mitNachsorge?:boolean}) {

@@ -16,8 +16,9 @@
   --pd-faint: var(--tinte-2);
   --pd-line: rgba(120, 90, 50, 0.28);
   --pd-line-strong: rgba(120, 90, 50, 0.52);
-  --pd-card: rgba(255, 252, 241, 0.88);
-  --pd-card-hell: var(--papier-1);
+  /* ENTSCHEIDUNGEN Z (06.11.2026): Karten sind Pergament wie der Haushaltskopf (Rahmen und Schatten tragen sie), keine weißen Blätter */
+  --pd-card: var(--papier-2);
+  --pd-card-hell: var(--papier-2);
   --pd-good: var(--gut);
   --pd-gold: #a77a14;
   --pd-bad: var(--siegel-hell);

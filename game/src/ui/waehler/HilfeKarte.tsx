@@ -114,11 +114,13 @@ export function HilfeKarte({ h, world, ziel, onMassnahme }: { h: Hilfe; world: W
       ) : (
         <p className="wa-hilfe-wirkung wa-hilfe-rechnet">{vor.laeuft ? t("nacht_n2.hilfe.rechnet", { m: monate }) : t("nacht_n2.hilfe.grob")}</p>
       )}
-      <p className="wa-hilfe-fuss">
-        {t("hk.kosten", { bip: vz(h.kostenBip, 2), m: h.monate })}
-        {h.mehrheitFehlt ? " · " + t("hk.mehrheitFehlt") : ""}
-        {!h.moeglich && h.grund ? ` · ${h.grund}` : ""}
-      </p>
+      {/* ENTSCHEIDUNGEN Z: Kosten, Dauer und Mehrheit als Chips */}
+      <div className="wa-hilfe-fuss" title={t("hk.kosten", { bip: vz(h.kostenBip, 2), m: h.monate })}>
+        <span className="wa-vw-chip"><span>{t("welle_b2.hk.haushalt")}</span><b>{t("welle_b2.hk.bip", { bip: vz(h.kostenBip, 2) })}</b></span>
+        <span className="wa-vw-chip"><span>{t("welle_b2.hk.umsetzung")}</span><b>{t("welle_b2.hk.monate", { m: h.monate })}</b></span>
+        {h.mehrheitFehlt && <span className="wa-vw-chip schlecht" title={t("hk.mehrheitFehlt")}><b>{t("welle_b2.hk.mehrheit")}</b></span>}
+        {!h.moeglich && h.grund && <span className="wa-vw-chip schlecht"><b>{h.grund}</b></span>}
+      </div>
       <div className="wa-hilfe-knoepfe">
         <button type="button" className="pd-btn primary" onClick={() => onMassnahme?.(h.massnahme, h.richtung)}>
           {t("ui.waehler.HilfeKarte.fa37717")}

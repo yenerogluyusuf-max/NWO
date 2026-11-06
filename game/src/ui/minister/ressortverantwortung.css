@@ -9,3 +9,10 @@
 /* Politische Verantwortung: sachlicher Fallkopf, Abwägung im ausgewählten Weg. */
 .rp{background:var(--papier-1);border-color:var(--schlecht-flaeche);border-left-color:#98604e;padding:22px;font:var(--schrift-2)/1.65 var(--serif)}.rp>header{border-bottom:1px solid var(--schlecht-flaeche);padding-bottom:17px}.rp>header h3{font-weight:500}.rp>header p{max-width:70ch;color:var(--tinte-3)}.rp-vorfall{padding:22px;border-color:var(--schlecht-flaeche);border-radius:10px;background:var(--papier-1)}.rp-kopf h4{font-weight:500}.rp .ew-auswahl>button{margin:0}.rp .ek-entscheidung>header{background:var(--papier-1)}.rp .ek-entscheidung>header h4{font-size:var(--schrift-6)}.rp .ek-entscheidung .ek-kicker{color:#896451}.rp .ek-entscheidung>footer button{background:#6d443a;border-color:#6d443a}.rp .ek-entscheidung>footer button:disabled{background:var(--schlecht-flaeche);color:var(--tinte-3);border-color:#d5c9c0}.rp .ew-auswahl>button.on{background:var(--schlecht-flaeche);border-color:#9c7863;box-shadow:inset 3px 0 #9c7863}
 @container(max-width:560px){.rp-vorfall{padding:16px 13px}.rp .ek-entscheidung>header h4{font-size:var(--schrift-5)}}
+
+/* ENTSCHEIDUNGEN Z (06.11.2026): Karte des Haushaltskopfs statt weißer Blätter */
+.rp,.rp-vorfall{background:var(--papier-2);border:1px solid rgba(90,64,40,.3);border-radius:var(--rund-2);box-shadow:0 1px 2px rgba(59,42,26,.08);color:var(--tinte-1)}
+.rp{border-left:4px solid var(--siegel)}
+.rp .ek-entscheidung>header{background:transparent}
+.rp-folgen{display:grid;gap:6px}.rp-folgen .rk-chips{margin:0}
+.rp-verlauf>summary{font:600 var(--schrift-2)/1.3 var(--serif);color:var(--tinte-2)}

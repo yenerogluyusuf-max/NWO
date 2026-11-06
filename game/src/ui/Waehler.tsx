@@ -105,27 +105,31 @@ function Leitkarte({ world, onGehe, onAenderung }: { world: World; onGehe?: (z: 
         </ol>
       </div>
       {a.wochen > 0 && a.summe < 0 && (
-        <p className="wa-vorwarnung">
-          <b>{t("nacht_n2.vorwarnung.kopf")}</b>{" "}
-          {a.thema
-            ? t("tag_t4.wa.vorwarnung", { thema: a.thema, n: a.provinzen, orte: a.orte.join(", "), anteil: prozent(a.anteil, 0), summe: vz(a.summe) })
-            : t("nacht_n2.vorwarnung.ohne", { summe: vz(a.summe) })}{" "}
-          {t(world.spiel?.wahlkampf ? "nacht_n2.vorwarnung.laeuft" : "tag_t4.wa.vorwarnung_antwort")}
+        // ENTSCHEIDUNGEN Z: die Vorwarnung als Kennzahlen; der ganze Satz steht am Titel
+        <div
+          className="wa-vorwarnung"
+          title={`${a.thema ? t("tag_t4.wa.vorwarnung", { thema: a.thema, n: a.provinzen, orte: a.orte.join(", "), anteil: prozent(a.anteil, 0), summe: vz(a.summe) }) : t("nacht_n2.vorwarnung.ohne", { summe: vz(a.summe) })} ${t(world.spiel?.wahlkampf ? "nacht_n2.vorwarnung.laeuft" : "tag_t4.wa.vorwarnung_antwort")}`}
+        >
+          <b>{t("nacht_n2.vorwarnung.kopf")}</b>
+          <span className="wa-vw-chips">
+            {a.thema && <span className="wa-vw-chip"><span>{t("welle_b2.wa.angriff")}</span><b>{a.thema}</b></span>}
+            {a.thema && <span className="wa-vw-chip" title={a.orte.join(", ")}><span>{t("welle_b2.wa.akut")}</span><b>{t("welle_b2.wa.provinzen", { n: a.provinzen })} · {prozent(a.anteil, 0)}</b></span>}
+            <span className="wa-vw-chip schlecht"><span>{t("welle_b2.wa.bisWahl")}</span><b>{vz(a.summe)}</b></span>
+          </span>
           {themaNode && onGehe && (
             <button type="button" className="knopf-leise wa-vorwarnung-knopf" onClick={() => onGehe({ art: "politik", theme: themaNode.theme })}>
               {t("nacht_n2.vorwarnung.knopf", { thema: a.thema ?? "" })}
             </button>
           )}
-        </p>
+        </div>
       )}
       <div className="wa-leit-fuss">
         <details className="wa-bilanz">
-          <summary>{t("ui.Waehler.95c4f24")}</summary>
+          <summary title={t("tag_t4.wa.prognose.erklaerung")}>{t("ui.Waehler.95c4f24")}</summary>
           <div className="wa-bilanz-inhalt">
-            <p className="wa-unter">{t("tag_t4.wa.prognose.erklaerung")}</p>
             <ul>
               {bilanz.posten.map((x) => (
-                <li key={x.name}>
+                <li key={x.name} title={x.text}>
                   <div className="wa-bilanz-zeile">
                     <span>{x.name}</span>
                     <span className="wa-bilanz-balken" aria-hidden>
@@ -133,7 +137,6 @@ function Leitkarte({ world, onGehe, onAenderung }: { world: World; onGehe?: (z: 
                     </span>
                     <strong className={x.delta >= 0 ? "gut" : "schlecht"}>{vz(x.delta)}</strong>
                   </div>
-                  <em>{x.text}</em>
                 </li>
               ))}
             </ul>
@@ -142,8 +145,8 @@ function Leitkarte({ world, onGehe, onAenderung }: { world: World; onGehe?: (z: 
         {/* Ohne Verlauf steht der Grund in der Fußzeile, damit die Lücke erklärt ist */}
         {verlauf.werte.length < 2 && <p className="wa-baro-leer">{verlauf.werte.length === 1 ? t("nacht_n2.barometer.eine_umfrage") : t("medien.barometer.leer")}</p>}
         {p.quelle === "institut" && (
-          <p className="wa-rohdaten">
-            {bestellt && roh ? t("medien.rohdaten.bestellt", { tage: Math.max(0, roh.bereitTag - world.day) }) : t("nacht_n2.prognose.rohdaten", { kapital: ROHDATEN.kapital, tage: ROHDATEN.wartetage })}{" "}
+          <p className="wa-rohdaten" title={t("nacht_n2.prognose.rohdaten", { kapital: ROHDATEN.kapital, tage: ROHDATEN.wartetage })}>
+            {bestellt && roh ? t("medien.rohdaten.bestellt", { tage: Math.max(0, roh.bereitTag - world.day) }) : <span className="wa-vw-chip"><span>{t("welle_b2.wa.rohdaten")}</span><b>{t("welle_b2.wa.rohdatenPreis", { kapital: ROHDATEN.kapital, tage: ROHDATEN.wartetage })}</b></span>}{" "}
             {!bestellt && (
               <button
                 type="button"
@@ -264,8 +267,7 @@ function Gruppen({ k, waehle, aktiv, world, onMassnahme }: { k: Koalition; waehl
       )}
       {offen === "wanderung" && zeigeWanderung && (
         <div className="wa-auf-inhalt">
-          <p className="wa-unter">{t("wa.wanderung.text", { p: prozent(wanderung.anteil) })}</p>
-          <ul className="wa-ziele">
+          <ul className="wa-ziele" title={t("wa.wanderung.text", { p: prozent(wanderung.anteil) })}>
             {wanderung.ziele.map((z) => (
               <li key={z.partei}>
                 <div className="wa-ziel-kopf">
@@ -284,8 +286,7 @@ function Gruppen({ k, waehle, aktiv, world, onMassnahme }: { k: Koalition; waehl
       )}
       {offen === "schritte" && schritte.length > 0 && (
         <div className="wa-auf-inhalt">
-          <h5>{t("ui.Waehler.35c9e56")}</h5>
-          <p className="wa-unter">{t("nacht_n2.hilfe.erklaerung")}</p>
+          <h5 title={t("nacht_n2.hilfe.erklaerung")}>{t("ui.Waehler.35c9e56")}</h5>
           <ul className="wa-hilfen">
             {schritte.map((h) => (
               <HilfeKarte key={`${h.massnahme}${h.richtung}`} h={h} world={world} ziel={null} {...(onMassnahme ? { onMassnahme } : {})} />
