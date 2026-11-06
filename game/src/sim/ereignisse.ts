@@ -1622,9 +1622,10 @@ function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, a
         // 2. Haushalt und Märkte
         const vz = (d: number, stellen: number) => `${d > 0 ? "+" : "−"}${nf(Math.abs(d), stellen)}`;
         const ds = kopie.economy.debtRatio - schulden0;
-        if (!preisAufPlakette && Math.abs(ds) >= 0.04) zeilen.push(t("ereignis.vs.schulden", { d: vz(ds, 2) }));
         const dk = kassenbestand(kopie.economy) - kasse0;
-        if (!preisAufPlakette && Math.abs(dk) > 0.001) zeilen.push(t("sf.kasseAenderung", { betrag: vz(dk, 2) }));
+        // Mit Preisplakette (Befund A-7) bleibt genau eine Zeile zur Finanzierung: aus der Staatskasse, sonst auf Schulden
+        if (Math.abs(ds) >= 0.04 && (!preisAufPlakette || Math.abs(dk) <= 0.001)) zeilen.push(t("ereignis.vs.schulden", { d: vz(ds, 2) }));
+        if (Math.abs(dk) > 0.001) zeilen.push(t("sf.kasseAenderung", { betrag: vz(dk, 2) }));
         const dr = kopie.economy.riskPremium - risiko0;
         if (Math.abs(dr) >= 4) zeilen.push(t("ereignis.vs.risiko", { d: vz(dr, 0) }));
         const df = (kopie.economy.usdTry / fx0 - 1) * 100;
