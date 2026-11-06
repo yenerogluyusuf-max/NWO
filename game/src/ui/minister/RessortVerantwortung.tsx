@@ -38,7 +38,7 @@ export function RessortPolitikFolgen({b}:{b:RessortPolitikBeleg}) {
     </div>}
     <details><summary>{t('rp.fraktionen')}</summary>
       <table className="rk-tabelle"><thead><tr><th>{t('welle_b2.rk.fraktion')}</th><th>{t('welle_b2.rk.grund')}</th><th>{t('rr.bereit')}</th></tr></thead><tbody>
-        {b.parteien.map(p=><tr key={p.partei}><td><b>{p.partei}</b> <small>{t(`zw.rolle.${p.rolle}`)}</small></td><td>{t(`rp.grund.${p.grund}`)}</td><td><span className="rk-wert">{zahl(p.vorher,2)} → {zahl(p.nachher,2)}</span> <em className={ton(p.nachher-p.vorher)}>{sign(p.nachher-p.vorher)}</em></td></tr>)}
+        {b.parteien.map(p=><tr key={p.partei}><td><b>{p.partei}</b> <small>{t(`zw.rolle.${p.rolle}`)}</small></td><td>{t(`rp.grund.${p.grund}`)}</td><td><span className="rk-wert">{zahl(p.vorher,2)} → {zahl(p.nachher,2)}</span> {(p.nachher-p.vorher)!==0&&<em className={ton(p.nachher-p.vorher)}>{sign(p.nachher-p.vorher)}</em>}</td></tr>)}
       </tbody></table>
       {!!b.personen.length&&<table className="rk-tabelle"><thead><tr><th>{t('welle_b2.rk.person')}</th><th>{t('welle_b2.rk.loyalitaet')}</th><th>{t('welle_b2.rk.groll')}</th></tr></thead><tbody>
         {b.personen.map(p=>p.nachfolger?<tr key={p.id}><td colSpan={3}>{p.name} → {p.nachfolger}</td></tr>:<tr key={p.id}><td>{p.name}</td><td><span className="rk-wert">{zahl(p.loyalitaetVor,2)} → {zahl(p.loyalitaetNach,2)}</span></td><td className="rk-wert">{sign(p.grollNach-p.grollVor)}</td></tr>)}

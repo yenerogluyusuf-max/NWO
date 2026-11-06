@@ -39,8 +39,8 @@ export function RessortRueckhalt({beleg:b,hilfe}:{beleg?:RessortRueckhaltBeleg;h
       <table className="rk-tabelle"><thead><tr><th>{t('welle_b2.rk.fraktion')}</th><th>{t('rr.bereit')}</th><th>{t('welle_b2.rk.loyalitaet')}</th></tr></thead>
         <tbody>{b.parteien.map(p=><tr key={p.partei}>
           <td><b>{p.partei}</b> <small>{t(`rr.rolle.${p.rolle}`)}{p.traeger?` · ${t('rr.traeger')}`:''}</small></td>
-          <td><span className="rk-wert">{zahl(p.vorher,2)} → {zahl(p.nachher,2)}</span> <em className={ton(p.nachher-p.vorher)}>{saldo(p.nachher-p.vorher)}</em></td>
-          <td>{p.personen.map((f,i)=><span className="rk-person" key={`${f.name}-${i}`}>{f.name} <span className="rk-wert">{zahl(f.vorher,2)} → {zahl(f.nachher,2)}</span> <em className={ton(f.nachher-f.vorher)}>{saldo(f.nachher-f.vorher)}</em></span>)}{!p.personen.length&&'—'}</td>
+          <td><span className="rk-wert">{zahl(p.vorher,2)} → {zahl(p.nachher,2)}</span> {(p.nachher-p.vorher)!==0&&<em className={ton(p.nachher-p.vorher)}>{saldo(p.nachher-p.vorher)}</em>}</td>
+          <td>{p.personen.map((f,i)=><span className="rk-person" key={`${f.name}-${i}`}>{f.name} <span className="rk-wert">{zahl(f.vorher,2)} → {zahl(f.nachher,2)}</span> {(f.nachher-f.vorher)!==0&&<em className={ton(f.nachher-f.vorher)}>{saldo(f.nachher-f.vorher)}</em>}</span>)}{!p.personen.length&&'—'}</td>
         </tr>)}</tbody></table>
     </details>}
     {!!b.forderungen.length&&<div className="rr-forderungen">
