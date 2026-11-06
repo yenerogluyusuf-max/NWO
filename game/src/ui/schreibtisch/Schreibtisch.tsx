@@ -95,8 +95,8 @@ export function SchreibtischRueckblick({world,onGehe,onPosteingang,umlauf}:{worl
       <h4 className="hd-titel">{bericht?t('h4.bericht.titel',{monat:bericht.monat}):t('sd.monatsbericht')}</h4>
       {bericht?<dl className="hd-kern">
         <div><dt>{t('h4.bericht.deckung')}</dt><dd>{t('h4.prozent',{n:zahl(bericht.deckung*100,1)})}</dd></div>
-        <div className={bericht.vertrauen<0?'schlecht':undefined}><dt>{t('h4.bericht.vertrauen')}</dt><dd>{bericht.vertrauen>0?'+':''}{zahl(bericht.vertrauen,1)}</dd></div>
-        <div className={bericht.parlamentarisch==='kritik'?'schlecht':undefined}><dt>{t('h4.bericht.parlament')}</dt><dd>{t(`vm.urteil.${bericht.parlamentarisch}`)}</dd></div>
+        {(()=>{const v=Math.round(bericht.vertrauen*10)/10;return <div className={v<0?'schlecht':undefined}><dt>{t('h4.bericht.vertrauen')}</dt><dd>{v>0?'+':''}{zahl(v===0?0:v,1)}</dd></div>;})()}
+        {bericht.parlamentarisch&&<div className={bericht.parlamentarisch==='kritik'?'schlecht':undefined}><dt>{t('h4.bericht.parlament')}</dt><dd>{t(`vm.urteil.${bericht.parlamentarisch}`)}</dd></div>}
       </dl>:<p className="hd-fenster">{t('vm.nochNicht')}</p>}
       <button type="button" className="knopf" onClick={()=>onGehe({art:'akte',akte:'wirtschaft',start:'inventar'})}>{t('h4.bericht.oeffnen')}</button>
     </section>
@@ -132,6 +132,8 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
   const [reiter,setReiter]=useState<Reiter>('heute');
   const [offen,setOffen]=useState<string|null>(null);
   const [antwort,setAntwort]=useState<Antwort|null>(null);
+  // Gewählter Minister unter „In Arbeit“: vorher ging die Auswahl ins Leere (onAuswahl ohne Wirkung), die Karten öffneten nichts
+  const [arbeitWahl,setArbeitWahl]=useState<string|undefined>(undefined);
   const id=useId();
   const b=world.spiel?tageslage(world):null;
   if(!world.spiel||!b)return <p>{t('sk.ui.keinBriefing')}</p>;
@@ -198,7 +200,7 @@ export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,
         </aside>
       </div>
     </>}
-    {reiter==='arbeit'&&<SchreibtischInArbeit world={world} refresh={refresh} onGehe={onGehe} arbeit={arbeit} onAuswahl={()=>{}} onVorgang={onVorgang}/>}
+    {reiter==='arbeit'&&<SchreibtischInArbeit world={world} refresh={refresh} onGehe={onGehe} arbeit={arbeit} auswahl={arbeitWahl} onAuswahl={id=>setArbeitWahl(arbeitWahl===id?undefined:id)} onVorgang={onVorgang}/>}
     {reiter==='rueckblick'&&<><EpochenBand world={world}/><SchreibtischRueckblick world={world} onGehe={onGehe} onPosteingang={posteingang} umlauf={umlauf}/></>}
     {reiter==='krisenrat'&&<Krisenrat world={world} geaendert={refresh}/>}
   </div>;

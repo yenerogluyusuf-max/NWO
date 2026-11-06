@@ -53,16 +53,16 @@
 .dossier .sk .sd-gruppen button { display:flex; align-items:center; gap:8px; border:1px solid var(--sd-line); border-radius:6px; min-height:40px; padding:8px 12px; background:var(--papier-1); color:var(--sd-ink); text-shadow:none; box-shadow:none; font:500 var(--schrift-2)/1.4 var(--serif); }
 .dossier .sk .sd-gruppen button[aria-pressed=true] { background:var(--sd-ink); border-color:var(--sd-ink); color:var(--papier-1); }
 .sk .sd-gruppen button > span { border-radius:4px; padding:1px 5px; background:#ffffff24; font-variant-numeric:tabular-nums; }
-.sk .sd-auswahl { display:grid; gap:8px; margin:0 0 18px; }
-.dossier .sk button.sd-auswahlkarte { display:grid; gap:4px; width:100%; min-height:48px; text-align:left; padding:12px 16px; border:1px solid var(--sd-line); border-left:3px solid transparent; border-radius:6px; box-shadow:none; background:var(--papier-1); color:var(--sd-ink); text-shadow:none; }
-.dossier .sk button.sd-auswahlkarte:hover { background:var(--papier-1); border-color:#998c76; }
-.dossier .sk button.sd-auswahlkarte[aria-pressed=true] { background:var(--papier-1); border-color:#657e68; border-left-color:var(--tinte-2); }
+.sk .sd-auswahl { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap:8px; margin:0 0 18px; }
+.dossier .sk button.sd-auswahlkarte { display:grid; gap:4px; width:100%; min-height:48px; text-align:left; padding:10px 16px; border:1px solid rgba(90, 64, 40, 0.3); border-left:3px solid transparent; border-radius:6px; box-shadow:none; background:var(--papier-2); color:var(--sd-ink); text-shadow:none; }
+.dossier .sk button.sd-auswahlkarte:hover { background:var(--papier-3); border-color:#998c76; }
+.dossier .sk button.sd-auswahlkarte[aria-pressed=true] { background:var(--papier-3); border-color:#657e68; border-left-color:var(--tinte-2); }
 .sk .sd-auswahlkarte strong { font:600 var(--schrift-3)/1.4 var(--serif); }
 .sk .sd-auswahlkarte :is(span,small) { font:400 var(--schrift-2)/1.5 var(--serif); color:var(--sd-muted); }
 .sk .sd-leer { padding:22px; border:1px dashed #ccc4b6; border-radius:6px; background:var(--papier-1); color:var(--sd-muted); font:400 var(--schrift-2)/1.6 var(--serif); margin:8px 0 18px; }
 .sk .sd-seite { display:grid; gap:18px; }
 .sk .sd-seite h4 { margin:0 0 14px; display:flex; align-items:center; gap:8px; font:600 var(--schrift-5)/1.3 var(--display); }
-.sk :is(.sd-kraft,.sd-kalender,.sd-details) { border:1px solid var(--sd-line); border-radius:10px; padding:16px; background:var(--papier-1); }
+.sk :is(.sd-kraft,.sd-kalender,.sd-details) { border:1px solid rgba(90, 64, 40, 0.3); border-radius:6px; padding:12px 16px; background:var(--papier-2); }
 .sk .sd-kraft > header { display:flex; flex-direction:column; align-items:start; gap:4px; }
 .sk .sd-kraft > header span { font-size:var(--schrift-1); text-transform:uppercase; letter-spacing:.06em; color:var(--sd-muted); }
 .sk .sd-kraft > header b { font:600 var(--schrift-5)/1.3 var(--display); }
@@ -171,7 +171,9 @@
 .sk .mf-karte::before { display:none; }
 .sk :is(.mf-anlass,.mf-empf-zeile,.mf-text,.mf-folgen,.mf-lager,.mf-leer,.mf-rueckmeldung,.zw p) { font:400 var(--schrift-2)/1.65 var(--serif); }
 .sk .mf-empf-zeile em { font:400 var(--schrift-2)/1.6 var(--serif); }
-.sk :is(.mf-option,.zw-zusage,.ra-anliegen,.rn-karte) { box-shadow:none; background:var(--papier-1); }
+.sk :is(.mf-option,.zw-zusage,.ra-anliegen,.rn-karte) { box-shadow:none; background:var(--papier-2); border-color:rgba(90, 64, 40, 0.3); }
+/* Unter „In Arbeit“ steht die Frage schon über der Auswahl: kein zweiter Kopf derselben Frage */
+.sk [data-sd-detail] > .rn > header { display:none; }
 .sk .mf-option.empfohlen { border-color:#907e5e; box-shadow:0 0 0 2px #99856316; }
 .sk .mf-kosten span { background:var(--papier-2); border-color:var(--linie); border-radius:6px; }
 .sk .mf-marke { border-radius:6px; white-space:normal; }
@@ -183,7 +185,7 @@
 .sk .mf-optionen > .mf-option:only-child > .pd-btn { min-width:0; align-self:stretch; }
 
 /* Amtszeit-Epoche (sim/epoche.ts): Siegel, Aussicht, die letzten Momente. Golden Messing, dunkel Leder, heroisch Siegelrot. */
-.sd-epoche{display:grid;grid-template-columns:minmax(220px,auto) minmax(0,1fr);gap:8px 22px;align-items:center;margin:14px 0 4px;padding:12px 16px;background:var(--papier-1);border:1px solid var(--linie);border-left:4px solid var(--messing-2);border-radius:6px}
+.sd-epoche{display:grid;grid-template-columns:minmax(220px,auto) minmax(0,1fr);gap:8px 22px;align-items:center;margin:0;padding:12px 16px;background:var(--papier-2);border:1px solid var(--linie);border-left:4px solid var(--messing-2);border-radius:6px}
 .sd-epoche.dunkel{border-left-color:var(--leder);background:linear-gradient(90deg,var(--papier-3),var(--papier-1) 50%)}
 .sd-epoche.heroisch{border-left-color:var(--siegel)}
 .sd-epoche.normal{border-left-color:var(--linie-stark)}
