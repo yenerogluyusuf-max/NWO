@@ -9,7 +9,6 @@ import { NET } from "../sim/modell";
 import { tunWort } from "../data/skalen";
 import { formatDateDe } from "../sim/dates";
 import { laufende } from "../sim/abkommen";
-import daten from "../data/vergleich.json";
 import { GRUPPEN_FILTER, mitgliedschaften } from "../data/welt-institutionen";
 import { WEITERE_NACH_ID } from "../data/welt-weitere";
 import { Flagge, flaggenFarben } from "./art/Flaggen";
@@ -24,30 +23,16 @@ import { Block, BlockListe } from "./welt/Block";
 import { aktiveKriege, kriegMit, PHASEN_NAME } from "../sim/krieg";
 import { beziehungZurTuerkei, fuehreGesteAus, gestenFuerWeitere, istHauptakteur, akteurName } from "../sim/welt-modell";
 import { ratStimmen, THEMA_NAME } from "../sim/welt-bloecke";
-import { ANZEIGE_GRUPPEN, akteurListe, haltungWortAlle, imFilter, trifft } from "../sim/welt-sicht";
+import { ANZEIGE_GRUPPEN, akteurListe, gruppenName, haltungWortAlle, imFilter, trifft } from "../sim/welt-sicht";
 import type { EuThema } from "../data/welt-weitere";
 import type { WeltTab } from "./welt/LandPopover";
 import { t } from "../i18n";
 import { t as tx } from "../i18n";
 import "./welt/welt.css";
 
-const DIM: { id: Dimension; label: string; text: string }[] = [
-  { id: "handel", label: "Handel", text: "Güter-, Dienstleistungs- und Energieverflechtung" },
-  { id: "sicherheit", label: "Sicherheit", text: "Militärische Zusammenarbeit und gemeinsame Bedrohungswahrnehmung" },
-  { id: "vertrauen", label: "Vertrauen", text: "Zuverlässigkeit, Erinnerung an gehaltene und gebrochene Zusagen" },
-  { id: "konflikt", label: "Konflikt", text: "Offene Streitpunkte: je höher, desto heftiger" },
-];
-
-const KENNZAHLEN: { key: string; label: string; einheit: string }[] = [
-  { key: "FP.CPI.TOTL.ZG", label: "Inflation", einheit: "%" },
-  { key: "SL.UEM.TOTL.ZS", label: "Arbeitslosigkeit", einheit: "%" },
-  { key: "NY.GDP.MKTP.KD.ZG", label: "Wirtschaftswachstum", einheit: "%" },
-  { key: "MS.MIL.XPND.GD.ZS", label: "Verteidigungsausgaben", einheit: "% des BIP" },
-];
-
-type Indikatoren = Record<string, { tur: { wert: number; jahr: number }; laender: Record<string, [number, number]> }>;
-const IND = (daten as unknown as { indikatoren: Indikatoren }).indikatoren;
-const nf = (x: number) => x.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+// Bezeichnungen aus dem Katalog (Befund G-7: vorher fest deutsch auch in der englischen und türkischen Fassung)
+const dim = (id: Dimension) => ({ id, get label() { return t(`nacht_n7.dim.${id}`); }, get text() { return t(`nacht_n7.dim.${id}.text`); } });
+const DIM: { id: Dimension; label: string; text: string }[] = (["handel", "sicherheit", "vertrauen", "konflikt"] as Dimension[]).map(dim);
 
 const TABS: { id: WeltTab; label: string }[] = [
   { id: "ueberblick", label: "reste.welt.ueberblick" },
@@ -99,7 +84,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
           <span className="we-name">{a.name}</span>
           <span className={`we-haltung ton-${v >= 55 ? "gut" : v >= 35 ? "mittel" : "schlecht"}`}>
             {haltungWortAlle(world, a.id)}
-            {vorgang ? ` · ⚔ ${PHASEN_NAME[vorgang.phase]}` : k >= 65 ? " · Streit" : ""}
+            {vorgang ? ` · ⚔ ${PHASEN_NAME[vorgang.phase]}` : k >= 65 ? ` · ${t("nacht_n7.streit")}` : ""}
           </span>
           {n > 0 && (
             <b className="we-vertragszahl" title={tx("ui2.ui.Welt.f9ed63b", { p0: n })}>
@@ -141,7 +126,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                     const mitglieder = sichtbar.filter((a) => a.gruppe === g);
                     return mitglieder.length ? (
                       <div key={g} className="we-gruppe">
-                        <b>{g}</b>
+                        <b>{gruppenName(g)}</b>
                         <ul>{mitglieder.map(eintrag)}</ul>
                       </div>
                     ) : null;
@@ -233,7 +218,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
               )}
               {gewaehlt === "EU" && (
                 <button role="tab" type="button" aria-selected={tab === "beitritt"} className={tab === "beitritt" ? "on" : ""} onClick={() => setTab("beitritt")}>
-                  ★ Beitritt
+                  ★ {t("nacht_n7.beitritt")}
                 </button>
               )}
             </div>
@@ -350,7 +335,7 @@ function WeitereAkte({
           </div>
         ))}
       </div>
-      <div className="we-tabs" role="tablist" aria-label={`${wd.name}: Ansicht`}>
+      <div className="we-tabs" role="tablist" aria-label={t("nacht_n7.ansicht", { name: wd.name })}>
         <button role="tab" type="button" aria-selected={tab === "ueberblick"} className={tab === "ueberblick" ? "on" : ""} onClick={() => onTab("ueberblick")}>
           {t("ui.Welt.8f96328")}
         </button>
@@ -370,7 +355,7 @@ function WeitereAkte({
                   s ? (
                     <li key={t} className={`stimme-${s.stimme}`}>
                       <span>{THEMA_NAME[t]}</span>
-                      <b>{{ dafuer: "dafür", enthaltung: "Enthaltung", dagegen: "dagegen" }[s.stimme]}</b>
+                      <b>{tx(`nacht_n7.stimme.${s.stimme}`)}</b>
                     </li>
                   ) : null,
                 )}
@@ -424,7 +409,6 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
   const l = land(landId);
   const z = weltZustand(world)[landId]!;
   const stand = anliegenStand(world, landId);
-  const zeilen = KENNZAHLEN.map((k) => ({ k, wert: IND[k.key]?.laender[l.iso] })).filter((x) => x.wert);
   return (
     <div className="we-ueberblick">
       <WeltLage world={world} id={landId} onDienst={onDienst} />
@@ -468,30 +452,7 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
         </div>
       </div>
 
-      {!l.wdi || zeilen.length === 0 ? (
-        <p className="subtitle">{t("ui.Welt.882f065")}</p>
-      ) : (
-        <div className="we-zahlen">
-          <b>{tx("ui2.ui.Welt.e92d8d2")}</b>
-          <table>
-            <tbody>
-              {zeilen.map(({ k, wert }) => (
-                <tr key={k.key}>
-                  <th>{k.label}</th>
-                  <td>
-                    {nf(wert![0])} {k.einheit} <em>({wert![1]})</em>
-                  </td>
-                  <td className="we-tur">
-                    {tx("ui2.ui.Welt.6153704", { p0: nf(IND[k.key]!.tur.wert) })} <em>({IND[k.key]!.tur.jahr})</em>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {l.id === "EU" && <p className="subtitle">{t("ui.Welt.c5a36bc")}</p>}
-        </div>
-      )}
-
+      {/* Die Vergleichstabelle entfällt (Befund G-25): Sie wiederholte die Kacheln und widersprach dem laufenden Spiel */}
       {(z.abkommen.length > 0 || z.erinnerung.length > 0) && (
         <div className="we-erinnerung">
           <b>{tx("ui2.ui.Welt.d95298f")}</b>

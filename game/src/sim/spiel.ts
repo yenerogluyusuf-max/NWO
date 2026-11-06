@@ -46,7 +46,7 @@ import { haushaltszyklusTag } from "./haushalt";
 import { haushaltsMonatsabschluss } from "./haushaltsbericht";
 import { krisenAktualisieren } from "./krisen";
 import { katastropheMonat } from "./katastrophe";
-import { KRIEG, kriegMit, kriegMonat, kriegTag } from "./krieg";
+import { drohkulisseDurchGegner, kriegMonat, kriegTag } from "./krieg";
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
 import { Rng } from "./rng";
@@ -70,12 +70,7 @@ import { kabinettStatus } from "./kabinett";
 // ohne ihn direkt zu importieren (Modul-Ladezyklus). Besteht mit dem Land schon eine Spannung, hebt sie auf
 // Drohkulisse-Niveau; sonst greift die Monatsprüfung des Kriegsmoduls die Lage von sich aus auf.
 setzeKriegBruecke({
-  eskaliere: (w, landId) => {
-    const k = kriegMit(w, landId);
-    if (!k || k.phase !== "spannung") return false;
-    k.eskalation = Math.max(k.eskalation, KRIEG.drohkulisseAb + 2);
-    return true;
-  },
+  eskaliere: (w, landId) => drohkulisseDurchGegner(w, landId),
 });
 
 // AUS-4: Die Vermittlung zwischen Drittstaaten öffnet ihre Spoiler- und Verstoß-Ereignisse über diese

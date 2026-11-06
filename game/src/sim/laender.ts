@@ -18,7 +18,7 @@ import type { World } from "./types";
 import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import type { Vertrag } from "./abkommen-typen";
-import { msg, t, tIn } from "../i18n";
+import { liste, msg, t, tIn } from "../i18n";
 
 export type Dimension = "handel" | "sicherheit" | "vertrauen" | "konflikt";
 export type AktionId = "gipfel" | "handel" | "ruestung" | "druck" | "entspannen" | "hilfe";
@@ -274,8 +274,9 @@ export interface AktionDef {
 }
 
 export const AKTIONEN: Record<AktionId, AktionDef> = {
-  gipfel: { id: "gipfel", label: "Gipfeltreffen", hinweis: t("sim2.sim.laender.8570d13"), pk: 3, abkuehlung: 120 },
-  handel: { id: "handel", label: "Handelsabkommen", hinweis: t("sim2.sim.laender.3917d4b"), pk: 5, abkuehlung: 180 },
+  // Klar getrennt vom Staatsbesuch mit Tagesordnung (sim/diplomatie.ts): ein kurzes Arbeitstreffen der Staatsspitzen (Befund G-8)
+  gipfel: { id: "gipfel", get label() { return t("nacht_n7.aktion.gipfel"); }, get hinweis() { return t("sim2.sim.laender.8570d13"); }, pk: 3, abkuehlung: 120 },
+  handel: { id: "handel", get label() { return t("nacht_n7.aktion.handel"); }, get hinweis() { return t("sim2.sim.laender.3917d4b"); }, pk: 5, abkuehlung: 180 },
   ruestung: { id: "ruestung", label: t("sim2.sim.laender.87923f2"), hinweis: t("sim2.sim.laender.198cadb"), pk: 4, abkuehlung: 150 },
   druck: { id: "druck", label: t("sim2.sim.laender.2269ff9"), hinweis: t("sim2.sim.laender.6fee07a"), pk: 2, abkuehlung: 60 },
   entspannen: { id: "entspannen", label: t("sim2.sim.laender.acdf666"), hinweis: t("sim2.sim.laender.4cf8cec"), pk: 4, abkuehlung: 120 },
@@ -388,14 +389,19 @@ export function dimensionZu(w: World, id: string, dim: Dimension): number {
   return dim === "vertrauen" ? vertrauenZu(w, id) : z[dim];
 }
 
-export function haltungWort(w: World, id: string): string {
-  const v = vertrauenZu(w, id);
-  const k = weltZustand(w)[id]!.konflikt;
-  if (v >= 75) return "enger Partner";
-  if (v >= 55 && k < 50) return "Partner";
-  if (v >= 40) return k >= 60 ? "angespannt" : "nüchtern";
-  if (v >= 25) return "kühl";
+export type HaltungStufe = "eng" | "partner" | "gereizt" | "nuechtern" | "kuehl" | "feindselig";
+
+/** Haltung eines Landes zur Türkei als Stufe (Logik) und als Wort in der Sprache des Spielers (Befund G-7; ENTSCHEIDUNGEN U). */
+export function haltungStufe(vertrauen: number, konflikt: number): HaltungStufe {
+  if (vertrauen >= 75) return "eng";
+  if (vertrauen >= 55 && konflikt < 50) return "partner";
+  if (vertrauen >= 40) return konflikt >= 60 ? "gereizt" : "nuechtern";
+  if (vertrauen >= 25) return "kuehl";
   return "feindselig";
+}
+
+export function haltungWort(w: World, id: string): string {
+  return t(`nacht_n7.haltung.${haltungStufe(vertrauenZu(w, id), weltZustand(w)[id]!.konflikt)}`);
 }
 
 export interface AnliegenStand {
@@ -410,9 +416,9 @@ export function anliegenStand(w: World, id: string): AnliegenStand[] {
     const b = a.bedingung;
     if (b.art === "land") {
       const jetzt = dimensionZu(w, id, b.dim);
-      const namen: Record<Dimension, string> = { handel: "Handel", sicherheit: "Sicherheit", vertrauen: "Vertrauen", konflikt: "Konflikt" };
       const ok = (b.min === undefined || jetzt >= b.min) && (b.max === undefined || jetzt <= b.max);
-      return { anliegen: a, erfuellt: ok, text: t("sim2.sim.laender.a07d8e3", { p0: namen[b.dim], p1: b.min !== undefined ? `mindestens ${b.min}` : `höchstens ${b.max}`, p2: Math.round(jetzt) }), fortschritt: ok ? 1 : 0.4 };
+      const grenze = b.min !== undefined ? t("nacht_n7.mindestens", { n: b.min }) : t("nacht_n7.hoechstens", { n: b.max ?? 0 });
+      return { anliegen: a, erfuellt: ok, text: t("sim2.sim.laender.a07d8e3", { p0: t(`nacht_n7.dim.${b.dim}`), p1: grenze, p2: Math.round(jetzt) }), fortschritt: ok ? 1 : 0.4 };
     }
     const s = pruefeBedingung(w, b);
     return { anliegen: a, erfuellt: s.erfuellt, text: s.text, fortschritt: s.fortschritt };
@@ -516,7 +522,7 @@ export function fuehreAktionAus(w: World, id: string, aktion: AktionId): { ok: b
       bucheFinanzsaldo(w.economy, 0.1);
       for (const g of GEGENSPIELER[id] ?? []) landAendern(w, g, { vertrauen: -6 }, t("sim2.sim.laender.02724b5", { p0: l.dat }));
       text = t("sim2.sim.laender.be935a5", { p0: l.dat, p1: Math.round(z.sicherheit) });
-      why = t("sim2.sim.laender.0e162e9", { p0: def.pk, p1: (GEGENSPIELER[id] ?? []).length ? ` ${(GEGENSPIELER[id] ?? []).map((g) => land(g).name).join(" und ")} sieht das mit Sorge.` : "" });
+      why = t("sim2.sim.laender.0e162e9", { p0: def.pk, p1: (GEGENSPIELER[id] ?? []).length ? ` ${t("nacht_n7.sorge", { namen: liste((GEGENSPIELER[id] ?? []).map((g) => land(g).name)), n: (GEGENSPIELER[id] ?? []).length })}` : "" });
       break;
     case "druck":
       landAendern(w, id, { vertrauen: -8, konflikt: 6 }, t("sim2.sim.laender.2b34c0f"));

@@ -32,3 +32,17 @@ marker path.eigen{fill:var(--siegel)} marker path.gegner{fill:var(--tinte-1)}
 @media (max-width:640px){.karte2d-hinweis{top:auto;bottom:118px;max-width:calc(100vw - 32px);text-align:center}}
 /* Auf dem Titelbild und im Prolog ist die Karte Kulisse ohne Klicks: kein Hinweis */
 .front .karte2d-hinweis{display:none}
+
+/* Front und Verbände im Krieg (N7, Befund G-1): Zackenlinie quer zum Vorstoß, Marken der Teilstreitkräfte mit Bestand in Prozent */
+.karte2d-krieg .front-halo{fill:none;stroke:#f6eedbcc;stroke-width:6;stroke-linejoin:round}
+.karte2d-krieg .front-linie{fill:none;stroke:#8e2a22;stroke-width:2.4;stroke-linejoin:round;pointer-events:visibleStroke}
+.karte2d-krieg .verband rect{stroke-width:1.6}
+.karte2d-krieg .verband path{fill:none;stroke-width:1.6;stroke-linecap:round}
+.karte2d-krieg .verband text{font:600 10.5px var(--serif,Georgia,serif);text-anchor:middle;paint-order:stroke;stroke:#f6eedb;stroke-width:3px}
+.karte2d-krieg .verband.eigen rect{fill:#f6eedb;stroke:#8e2a22}
+.karte2d-krieg .verband.eigen path{stroke:#8e2a22}
+.karte2d-krieg .verband.eigen text{fill:#5c1a12}
+.karte2d-krieg .verband.gegner rect{fill:#3a3530;stroke:#1f1b17}
+.karte2d-krieg .verband.gegner path{stroke:#e8dfcc}
+.karte2d-krieg .verband.gegner text{fill:#2a1f18}
+@media (prefers-reduced-motion:no-preference){.karte2d-krieg .verband{transition:transform .6s ease}}

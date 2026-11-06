@@ -65,13 +65,18 @@ function inDenKrieg(land: string, weg: "angriff" | "verteidigung" | "schutz" | "
   kriegMonat(w, new Rng(1));
   const k0 = kriegMit(w, land)!;
   k0.eskalation = 80;
+  k0.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   advance(w, 1);
   if (weg === "angriff") {
     k0.eskalation = 99;
     advance(w, 1);
   } else {
+    // Ein eigener Angriff braucht seit dem 6. November den Beschluss der Großen Nationalversammlung (Art. 92); der Erlass gilt nur bei
+    // einem Angriff auf die Türkei. Vorher ging dieser Hilfsweg per Erlass.
     expect(fuehreKriegHandlungAus(w, k0.id, `ziel_${weg}`).ok).toBe(true);
-    expect(fuehreKriegHandlungAus(w, k0.id, "beschluss_erlass").ok).toBe(true);
+    k0.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
+    expect(fuehreKriegHandlungAus(w, k0.id, "beschluss").ok).toBe(true);
+    advance(w, KRIEG.beschlussTage);
   }
   const k = kriege(w).find((x) => x.land === land)!;
   expect(k.phase).toBe("krieg");
@@ -196,6 +201,7 @@ describe("Koalitionen im Krieg der Türkei: Pflicht nur für das Opfer", () => {
     kriegMonat(w, new Rng(1));
     const k = kriegMit(w, "IRN")!;
     k.eskalation = 80;
+    k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
     advance(w, 1);
     k.eskalation = 99;
     advance(w, 1);
@@ -331,6 +337,9 @@ describe("Beistandsvorgang", () => {
     expect(beistandVorgangGrund(w, "IND")).toMatch(/Material und Diplomatie/);
     // Der Einsatzbeschluss bleibt Entscheidung: kein automatischer Krieg
     expect(aktiveKriege(w)).toHaveLength(1);
+    // Auch der Beistand braucht den Beschluss der Großen Nationalversammlung, nach der Mindestdauer der Drohkulisse (Befund G-2)
+    expect(handlungenFuer(w, k.id).find((x) => x.id === "beschluss")?.moeglich).toBe(false);
+    k.seit -= KRIEG.drohkulisseMinTage;
     expect(handlungenFuer(w, k.id).some((x) => x.id === "beschluss" && x.moeglich)).toBe(true);
   });
 

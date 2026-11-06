@@ -364,6 +364,47 @@
   margin-top: 8px;
 }
 
+/* Kriegsdossier nach Befund G-5/G-30: Phasenleiter, Antwortstreifen, zweifarbige Front, Kriegsziel als Reihe, Preis vor dem Krieg */
+.kd-leiter { list-style: none; margin: 2px 0 10px; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); position: relative; }
+.kd-leiter::before { content: ""; position: absolute; left: 8.3%; right: 8.3%; top: 7px; height: 2px; background: rgba(90, 64, 40, 0.25); }
+.kd-stufe { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; font: 12.5px/1.2 var(--serif); color: var(--ink-soft); text-align: center; }
+.kd-stufe i { width: 14px; height: 14px; border-radius: 50%; background: #efe4c8; border: 2px solid rgba(90, 64, 40, 0.45); box-sizing: border-box; z-index: 1; }
+.kd-stufe.vorbei i { background: rgba(90, 64, 40, 0.55); border-color: rgba(90, 64, 40, 0.55); }
+.kd-stufe.jetzt i { background: var(--seal); border-color: var(--seal); box-shadow: 0 0 0 4px rgba(142, 42, 34, 0.18); }
+.kd-stufe.jetzt span { color: var(--ink); font-weight: 600; }
+.kd-stufe small { font-size: 11.5px; color: #7a2f22; }
+.kd-antwort { margin: 0 0 10px; }
+.kd-balken { position: relative; height: 10px; border-radius: 5px; background: rgba(90, 64, 40, 0.14); overflow: visible; display: block; }
+.kd-balken i { display: block; height: 100%; border-radius: 5px; background: rgba(90, 64, 40, 0.55); }
+.kd-balken u { position: absolute; top: -3px; bottom: -3px; width: 2px; background: rgba(42, 31, 24, 0.7); text-decoration: none; }
+.kd-eskalation i { background: linear-gradient(90deg, #c9a257, #a8552f 70%, #8e2a22); }
+.kd-mobil i { background: #5f6f4a; }
+.kd-front { background: #5a5148; }
+.kd-front i { background: var(--seal); border-radius: 5px 0 0 5px; }
+.kd-front u { background: #f6eedb; }
+.kd-rueckhalt i { background: #5f6f4a; }
+.kd-rueckhalt.knapp i { background: #a8552f; }
+.kd-woche { margin: 2px 0 8px; }
+.kd-ziele { margin: 6px 0 8px; }
+.kd-ziele h5, .kd-preis h5 { margin: 0 0 4px; font: 600 14px var(--display); }
+.kd-ziele-knoepfe { display: grid; gap: 5px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+.kd-ziele-knoepfe button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 5px 8px; text-align: left; cursor: pointer;
+  font: 600 14px var(--serif); color: var(--ink); background: rgba(255, 250, 235, 0.7); border: 1px solid rgba(90, 64, 40, 0.45); border-radius: 4px; }
+.kd-ziele-knoepfe button span { font-weight: 400; font-size: 12.5px; color: var(--ink-soft); }
+.kd-ziele-knoepfe button:hover:not(:disabled) { background: #fbf4df; }
+.kd-ziele-knoepfe button:disabled { opacity: 0.55; cursor: not-allowed; }
+.kd-handlungen li.gesperrt span { color: #7a2f22; }
+.kd-weitere { margin: 6px 0 4px; }
+.kd-weitere summary, .kd-lagebild summary, .kd-versorgung summary { cursor: pointer; font: 14px/1.4 var(--serif); color: var(--ink-soft); }
+.kd-weitere[open] summary { margin-bottom: 6px; }
+.kd-preis { margin: 10px 0 4px; padding: 8px 12px; border-left: 3px solid var(--seal); background: rgba(255, 246, 228, 0.75); }
+.kd-preis-spalten { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font: 14px/1.4 var(--serif); }
+.kd-preis-spalten b { font: 600 13px var(--display); letter-spacing: 0.03em; }
+.kd-preis-spalten ul { margin: 2px 0 0; padding-left: 16px; }
+@container (max-width: 560px) { .kd-preis-spalten { grid-template-columns: 1fr; } }
+.kd-versorgung { margin: 8px 0; }
+.kd-versorgung-sprung { margin: 6px 0; }
+
 
 /* EU-Dossier (AUS-2) */
 .we-eu { display: grid; gap: 16px; }

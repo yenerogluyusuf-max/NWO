@@ -5,15 +5,12 @@ import { useState } from "react";
 import type { World } from "../../sim/types";
 import { AGENDEN, aussenBerichte, aussenLage, aussenZustand, fuehreInstrumentAus, instrumente, sanktionsStaende, vorschau, type Agenda, type InstrumentId, type Lieferant } from "../../sim/diplomatie";
 import { akteurName } from "../../sim/welt-modell";
-import { dimensionZu, vertrauenZu } from "../../sim/laender";
-import { Portraet } from "../art/Portraet";
 import { t, zahl } from "../../i18n";
 import "./aussenlage.css";
 
 type Reiter = "lage" | "instrumente" | "verlauf";
 const LIEFERANTEN: Lieferant[] = ["RUS", "AZE", "LNG", "IRN", "HEIM"];
 const FARBE: Record<Lieferant, string> = { RUS: "#8c2b1f", AZE: "#2f6b45", LNG: "#2c4a7a", IRN: "#a8732b", HEIM: "#5c4a86" };
-const WICHTIG = ["EU", "USA", "RUS", "CHN", "GRC", "SYR", "IRQ", "IRN"];
 const nf = (x: number, d = 1) => zahl(x, d);
 
 function Linie({ werte, breite = 140, hoehe = 34, label }: { werte: number[]; breite?: number; hoehe?: number; label: string }) {
@@ -78,19 +75,7 @@ function Lage({ world, lage }: { world: World; lage: ReturnType<typeof aussenLag
           </ul>
         </section>
       )}
-      <section className="al-zahlen">
-        {lage.kennzahlen.map((k) => (
-          <div key={k.id} className="al-zahl">
-            <span className="al-zahl-name">{t(`aussen.ui.kz.${k.id}`)}</span>
-            <strong>
-              {nf(k.wert, k.id === "flucht" ? 2 : 0)}
-              {k.einheit ? ` ${k.einheit}` : ""}
-            </strong>
-            <Linie werte={k.reihe} label={t(`aussen.ui.kz.${k.id}`)} />
-            <span className="al-zahl-text">{t(`aussen.ui.kzt.${k.id}`)}</span>
-          </div>
-        ))}
-      </section>
+      {/* Kennzahlen-Kacheln entfallen: Ansehen und EU-Vertrauen stehen im Kopf (Befund G-9) */}
       <div className="al-raster">
         <section className="al-karte">
           <h3>{t("aussen.ui.energie")}</h3>
@@ -116,32 +101,7 @@ function Lage({ world, lage }: { world: World; lage: ReturnType<typeof aussenLag
           <p>{t("aussen.ui.flucht_fluss", { zu: Math.round(lage.flucht.zufluss * 1000), ab: Math.round(lage.flucht.abfluss * 1000) })}</p>
           <p>{t("aussen.ui.flucht_kosten", { k: nf(lage.flucht.kostenJahr, 2) })}</p>
         </section>
-        <section className="al-karte">
-          <h3>{t("aussen.ui.terror")}</h3>
-          {(["is", "pkk", "links"] as const).map((k) => (
-            <div key={k} className="al-zeile">
-              <span>{t(`aussen.ui.taeter.${k}`)}</span>
-              <Balken wert={lage.terror[k]} ton={lage.terror[k] >= 60 ? "schlecht" : lage.terror[k] >= 35 ? "mittel" : "gut"} />
-              <b>{Math.round(lage.terror[k])}</b>
-            </div>
-          ))}
-        </section>
-        <section className="al-karte">
-          <h3>{t("aussen.ui.frieden")}</h3>
-          <ol className="al-phasen">
-            {[0, 1, 2, 3, 4, 5].map((p) => (
-              <li key={p} className={p < lage.friedens.phase ? "fertig" : p === lage.friedens.phase ? "jetzt" : ""}>
-                {t(`aussen.frieden.name${p}`)}
-              </li>
-            ))}
-          </ol>
-          <div className="al-zeile">
-            <span>{t("aussen.ui.fortschritt")}</span>
-            <Balken wert={Math.max(0, lage.friedens.fortschritt)} ton={lage.friedens.fortschritt < 0 ? "schlecht" : "gut"} />
-            <b>{Math.round(lage.friedens.fortschritt)}</b>
-          </div>
-          {lage.friedens.rueckschlaege > 0 && <p className="al-klein">{t("aussen.ui.rueckschlaege", { n: lage.friedens.rueckschlaege })}</p>}
-        </section>
+        {/* Terror und Friedensprozess stehen jetzt in der Sicherheit (Befund G-10, ui/militaer/InnereSicherheit.tsx) */}
         <section className="al-karte">
           <h3>{t("aussen.ui.sanktionen")}</h3>
           {lage.sanktionen.length === 0 ? <p>{t("aussen.ui.keine_sanktionen")}</p> : (
@@ -178,29 +138,7 @@ function Lage({ world, lage }: { world: World; lage: ReturnType<typeof aussenLag
           {lage.diaspora.flussMrd !== 0 && <p>{t("aussen.ui.diaspora_fluss", { m: nf(lage.diaspora.flussMrd, 2) })}</p>}
         </section>
       </div>
-      <section className="al-fuehrungen">
-        <h3>{t("aussen.ui.fuehrungen")}</h3>
-        <div className="al-koepfe">
-          {WICHTIG.map((id) => {
-            const v = vertrauenZu(world, id);
-            const k = dimensionZu(world, id, "konflikt");
-            return (
-              <div key={id} className="al-kopfkarte">
-                <Portraet seed={`${id}-fuehrung`} size={72} rolle={"aussen"} stimmung={v >= 55 ? "laechelnd" : k >= 65 ? "veraergert" : "ernst"} />
-                <strong>{akteurName(id)}</strong>
-                <div className="al-zeile">
-                  <span>{t("aussen.ui.vertrauen")}</span>
-                  <Balken wert={v} ton={v >= 55 ? "gut" : v >= 35 ? "mittel" : "schlecht"} />
-                </div>
-                <div className="al-zeile">
-                  <span>{t("aussen.ui.konflikt")}</span>
-                  <Balken wert={k} ton={k >= 65 ? "schlecht" : k >= 40 ? "mittel" : "gut"} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+      {/* Das Raster der Staatsführungen ohne Namen entfällt (Befund G-29); die Länder stehen in der Länderakte */}
     </div>
   );
 }

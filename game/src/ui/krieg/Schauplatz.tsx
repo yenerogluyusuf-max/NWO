@@ -23,6 +23,7 @@ import {
 import { streitkraefte } from "../../sim/streitkraefte";
 import { land } from "../../sim/laender";
 import type { KriegsTempo } from "../../data/schauplaetze";
+import { gegenueber2026 } from "../militaer/zustand";
 import "./krieg.css";
 
 const TEMPI: KriegsTempo[] = ["vorsichtig", "normal", "hart"];
@@ -89,7 +90,7 @@ export function Schauplatz({ world, k, onTat }: { world: World; k: KriegVorgang;
               <strong>{t(`krieg.einsatz.${e.id}.name`)}</strong>
               <span>
                 {umk ? `${eignungWort(e.eignung)} · ` : ""}
-                {t("krieg.ui.kraft", { p: Math.round(e.kraft * 100) })}
+                {t("nacht_n7.kraefte", { z: gegenueber2026(e.kraft) })}
               </span>
               {e.grund && !e.aktiv && <em>{e.grund}</em>}
             </button>

@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
 import { OP_DEFS, EINGEHEND_NAME, dienstSicht, opsOptionen, ordneAn } from "../../sim/welt-dienst";
-import { akteurListe, ANZEIGE_GRUPPEN, wahlSicht } from "../../sim/welt-sicht";
+import { akteurListe, ANZEIGE_GRUPPEN, gruppenName, wahlSicht } from "../../sim/welt-sicht";
 import { akteurName } from "../../sim/welt-modell";
 import { formatDateDe } from "../../sim/dates";
 import { Flagge } from "../art/Flaggen";
@@ -70,7 +70,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
           <Flagge id={ziel} breite={34} />
           <select id="we-ziel" value={ziel} onChange={(e) => { setZiel(e.target.value); setAntwort(null); }}>
             {ANZEIGE_GRUPPEN.map((g) => (
-              <optgroup key={g} label={g}>
+              <optgroup key={g} label={gruppenName(g)}>
                 {liste.filter((a) => a.gruppe === g).map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name}

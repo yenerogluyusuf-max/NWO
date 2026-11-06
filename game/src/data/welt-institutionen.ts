@@ -59,7 +59,7 @@ export const INSTITUTIONEN: InstitutionDef[] = [
     quelle: "BRICS-Gipfelerklärungen 2023–2025",
   },
   {
-    id: "sco", name: t("sim2.data.welt-institutionen.af45aa4"), kurz: "SOZ", weitereMitglieder: 3, tuerkei: "dialog", beschluss: "konsens",
+    id: "sco", get name() { return t("sim2.data.welt-institutionen.af45aa4"); }, get kurz() { return t("nacht_n7.inst.sco"); }, weitereMitglieder: 3, tuerkei: "dialog", beschluss: "konsens",
     mitglieder: ["CHN", "RUS", "IND", "PAK", "IRN", "KAZ", "KGZ", "UZB"],
     partner: ["TUR", "EGY", "SAU", "ARE", "QAT", "ARM", "AZE"],
     text: t("sim2.data.welt-institutionen.9ecff07"),
@@ -67,7 +67,7 @@ export const INSTITUTIONEN: InstitutionDef[] = [
     quelle: "Dossier B2 (China); Mitgliederliste der SOZ",
   },
   {
-    id: "ots", name: t("sim2.data.welt-institutionen.b82e46a"), kurz: "Turkstaaten", weitereMitglieder: 0, tuerkei: "mitglied", beschluss: "konsens",
+    id: "ots", get name() { return t("sim2.data.welt-institutionen.b82e46a"); }, get kurz() { return t("nacht_n7.filter.turk"); }, weitereMitglieder: 0, tuerkei: "mitglied", beschluss: "konsens",
     mitglieder: ["AZE", "KAZ", "KGZ", "UZB"], beobachter: ["HUN", "TKM"],
     text: t("sim2.data.welt-institutionen.a190fd9"),
     tuerkeiText: t("sim2.data.welt-institutionen.6d551af"),
@@ -81,7 +81,7 @@ export const INSTITUTIONEN: InstitutionDef[] = [
     quelle: "Mitgliederliste der G20",
   },
   {
-    id: "golf", name: "Golfstaaten (Golf-Kooperationsrat)", kurz: "Golf", weitereMitglieder: 3, tuerkei: "partner", beschluss: "einstimmig",
+    id: "golf", get name() { return t("nacht_n7.inst.golf"); }, get kurz() { return t("nacht_n7.filter.golf"); }, weitereMitglieder: 3, tuerkei: "partner", beschluss: "einstimmig",
     mitglieder: ["SAU", "ARE", "QAT"],
     text: t("sim2.data.welt-institutionen.d0317a7"),
     tuerkeiText: t("sim2.data.welt-institutionen.f695892"),
@@ -121,12 +121,12 @@ const hauptNachbarn = ["GRC", "IRN", "SYR", "IRQ", "ARM", "ISR", "UKR", "GEO", "
 const hauptGross = ["USA", "EU", "RUS", "CHN"];
 
 export const GRUPPEN_FILTER: GruppenFilter[] = [
-  { id: "alle", label: "Alle", ids: null },
-  { id: "nachbarn", label: "Nachbarn", ids: [...hauptNachbarn, "BGR", "AZE"] },
+  { id: "alle", get label() { return t("nacht_n7.filter.alle"); }, ids: null },
+  { id: "nachbarn", get label() { return t("nacht_n7.gruppe.nachbarn"); }, ids: [...hauptNachbarn, "BGR", "AZE"] },
   { id: "gross", label: t("sim2.data.welt-institutionen.36d8358"), ids: [...hauptGross, "IND", "BRA", "GBR"] },
-  { id: "eu", label: "EU-Staaten", ids: ["EU", ...(INSTITUTIONEN.find((i) => i.id === "eu")?.mitglieder ?? [])] },
+  { id: "eu", get label() { return t("nacht_n7.gruppe.eu"); }, ids: ["EU", ...(INSTITUTIONEN.find((i) => i.id === "eu")?.mitglieder ?? [])] },
   { id: "brics", label: "BRICS", ids: [...(INSTITUTIONEN.find((i) => i.id === "brics")?.mitglieder ?? []), ...(INSTITUTIONEN.find((i) => i.id === "brics")?.partner ?? [])] },
-  { id: "golf", label: "Golf", ids: ["SAU", "ARE", "QAT", "PAK", "EGY"] },
-  { id: "turk", label: "Turkstaaten", ids: ["AZE", "KAZ", "UZB", "KGZ", "TKM", "HUN"] },
+  { id: "golf", get label() { return t("nacht_n7.filter.golf"); }, ids: ["SAU", "ARE", "QAT", "PAK", "EGY"] },
+  { id: "turk", get label() { return t("nacht_n7.filter.turk"); }, ids: ["AZE", "KAZ", "UZB", "KGZ", "TKM", "HUN"] },
   { id: "nato", label: "NATO", ids: (INSTITUTIONEN.find((i) => i.id === "nato")?.mitglieder ?? []) },
 ];

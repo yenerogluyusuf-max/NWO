@@ -1,7 +1,7 @@
 // Die Streitkräfte als Bestand: wenige, verständliche Gattungen mit Zahl, Technologiegeneration (1 bis 5) und Herkunft.
 //
 // Quellen (im Projekt belegt):
-//   - Personal: 481.000 Aktive, 380.000 Reservisten, Wehrpflicht 6 Monate (RECHERCHE_INNENPOLITIK.md Z. 74 nach Wikipedia
+//   - Personal: 355.000 Aktive ohne Gendarmerie (IISS-Auswertung; früher 481.000 nach RECHERCHE_INNENPOLITIK.md Z. 74 und Wikipedia
 //     „Turkish Armed Forces“ und Defense News 2026; RECHERCHE_KONKURRENZ_FACHBEREICHE.md Abschnitt Türkei).
 //   - Kampfflugzeuge: Bestand 235 F-16 (RECHERCHE_KONKURRENZ_FACHBEREICHE.md, Tabelle Programme, Stand Sept. 2026).
 //   - Laufende Beschaffungen: KAAN Block 10 (20 Stück, Vertrag 08.05.2026, Triebwerk GE F110), Eurofighter (20 neu, Okt. 2025),
@@ -34,8 +34,12 @@ export interface GattungDef {
 }
 
 export const GATTUNGEN: GattungDef[] = [
-  { id: "personal", teil: "heer", einheit: "stueck", start: 481_000, generation: 3, heimisch: 1, lieferland: null, gewicht: 0.3,
-    los: { menge: 20_000, pk: 3, bip: 0.05, monateKauf: 6, monateBau: 6 }, quelle: "481.000 Aktive (RECHERCHE_INNENPOLITIK.md)" },
+  // Eine Zahl für das aktive Personal (Befund G-13): 355.000 Soldaten von Heer, Luftwaffe und Marine nach der IISS-Auswertung, dieselbe
+  // Zahl wie die Kräfteskala des Krieges (data/kraefte.ts). Gendarmerie (rund 198.000) und Küstenwache unterstehen seit 2016 dem
+  // Innenministerium und zählen nicht mit (RECHERCHE_KONKURRENZ_FACHBEREICHE.md Z. 66). Die früher hier geführten 481.000 Aktiven
+  // (Wikipedia „Turkish Armed Forces“, RECHERCHE_INNENPOLITIK.md) sind gegen die IISS-Ausgabe 2025 nicht bestätigt.
+  { id: "personal", teil: "heer", einheit: "stueck", start: 355_000, generation: 3, heimisch: 1, lieferland: null, gewicht: 0.3,
+    los: { menge: 15_000, pk: 3, bip: 0.05, monateKauf: 6, monateBau: 6 }, quelle: "355.000 Aktive ohne Gendarmerie (IISS-Auswertung, RECHERCHE_GLM_4_STREITKRAEFTE_RUESTUNG.md)" },
   { id: "panzer", teil: "heer", einheit: "index", start: 100, generation: 3, heimisch: 0.4, lieferland: "EU", gewicht: 0.35,
     los: { menge: 10, pk: 5, bip: 0.15, monateKauf: 18, monateBau: 30 }, quelle: "Index; Altay T1 seit 2025 in Serie (RECHERCHE_KONKURRENZ_FACHBEREICHE.md)" },
   { id: "kampfflugzeuge", teil: "luft", einheit: "stueck", start: 235, generation: 3, heimisch: 0, lieferland: "USA", gewicht: 0.4,
@@ -54,13 +58,18 @@ export const GATTUNGEN: GattungDef[] = [
 
 export const GATTUNG_NACH_ID = Object.fromEntries(GATTUNGEN.map((g) => [g.id, g])) as Record<GattungId, GattungDef>;
 
-/** Belegte, bereits laufende Beschaffungen zum Spielstart (Lieferzeiten sind Spielparameter). */
-export const START_BESCHAFFUNGEN: { gattung: GattungId; art: "kauf" | "produktion"; menge: number; generation: number; monate: number; lieferland: string | null; name: string }[] = [
-  { gattung: "kampfflugzeuge", art: "produktion", menge: 20, generation: 5, monate: 72, lieferland: "USA", name: "KAAN Block 10 (Triebwerk GE F110)" },
-  { gattung: "kampfflugzeuge", art: "kauf", menge: 20, generation: 4, monate: 36, lieferland: "EU", name: "Eurofighter" },
-  { gattung: "kampfflugzeuge", art: "kauf", menge: 40, generation: 4, monate: 48, lieferland: "USA", name: "F-16 Block 70" },
-  { gattung: "luftabwehr", art: "produktion", menge: 25, generation: 4, monate: 36, lieferland: null, name: "Stahlkuppel" },
-  { gattung: "panzer", art: "produktion", menge: 10, generation: 4, monate: 30, lieferland: "EU", name: "Altay T1" },
+/**
+ * Belegte, bereits laufende Beschaffungen zum Spielstart. Ein Modell, ein Fertigdatum (Befund G-4, 5. November): Jede ist an ihr
+ * Rüstungsvorhaben in der Bauliste gebunden (`vorhaben`, data/reich/militaer.ts, dort `start: im_bau`). Geliefert wird, wenn das Vorhaben
+ * fertig ist; das Datum kommt aus der Bauliste (Reihenfolge, Kapazität, Verwaltung). `monate` gilt nur noch für ältere Spielstände,
+ * in denen das Vorhaben nicht läuft (Spielparameter).
+ */
+export const START_BESCHAFFUNGEN: { gattung: GattungId; art: "kauf" | "produktion"; menge: number; generation: number; monate: number; lieferland: string | null; name: string; vorhaben: string }[] = [
+  { gattung: "kampfflugzeuge", art: "produktion", menge: 20, generation: 5, monate: 72, lieferland: "USA", name: "KAAN Block 10 (Triebwerk GE F110)", vorhaben: "mil_kaan" },
+  { gattung: "kampfflugzeuge", art: "kauf", menge: 20, generation: 4, monate: 36, lieferland: "EU", name: "Eurofighter", vorhaben: "mil_eurofighter" },
+  { gattung: "kampfflugzeuge", art: "kauf", menge: 40, generation: 4, monate: 48, lieferland: "USA", name: "F-16 Block 70", vorhaben: "mil_f16" },
+  { gattung: "luftabwehr", art: "produktion", menge: 25, generation: 4, monate: 36, lieferland: null, name: "Stahlkuppel", vorhaben: "mil_stahlkuppel" },
+  { gattung: "panzer", art: "produktion", menge: 10, generation: 4, monate: 30, lieferland: "EU", name: "Altay T1", vorhaben: "mil_altay" },
 ];
 
 /** Benannte Zielräume je Gegner: Vorstufe der Regionen (Schwierigkeit 0,6 bis 1,4 auf die Gegenwehr, Bedeutung 1 bis 3; Spielparameter). */
