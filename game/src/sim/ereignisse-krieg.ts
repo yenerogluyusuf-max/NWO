@@ -5,7 +5,7 @@
 //   krieg_beistandsruf — ein Pakt-Partner der Türkei wird angegriffen: Beistand leisten, nur Material oder verweigern (sim/pakte.ts)
 // Alle drei werden nur vom Kriegsmotor geöffnet (chance 0) und führen dieselben Handlungen aus
 // wie die Welt-Ansicht, Parser und KI — der Kern bleibt die einzige Wahrheitsquelle.
-// Alle sichtbaren Texte kommen aus dem Katalog (src/i18n/katalog/*/nacht_n5_welt.json, Schlüssel ev.<vorlage>.*).
+// Alle sichtbaren Texte kommen aus dem Katalog (src/i18n/katalog/*/nacht_n5.json, Schlüssel ev.<vorlage>.*).
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
 import { wirke, vertrauenAendern } from "./wirkung";
@@ -65,13 +65,14 @@ const erzeugeKrieg = (w: World) => {
 /**
  * Eine Handlung des Konfliktvorgangs als Antwort. Den Preis bucht die Handlung selbst (sim/krieg.ts, fuehreKriegHandlungAus), so wie
  * in der Akte des Landes. Nacht 5./6.11.: Vorher buchte zusätzlich der Ereignismotor denselben Betrag (8 + 8, 5 + 5, 4 + 4); jetzt bucht
- * der Motor nichts, und `anzeigePk` nennt den Preis der Handlung, damit die Bezahlbarkeit ihn kennt. `pk` ist der Rückfall ohne Vorgang.
+ * der Motor nichts, und `anzeigePk` nennt den Preis der Handlung, damit die Bezahlbarkeit ihn kennt.
  */
 function kriegsHandlung(w: World, ev: OffenesEreignis, id: string, handlung: KriegHandlungId, pk: number, labelKey: string): Option {
   const sicht = handlungenFuer(w, vorgangId(ev)).find((x) => x.id === handlung);
   return {
     ...opt(id, t(labelKey), t(`ev.krieg_drohkulisse.opt.${id}.beschr`), 0, (ww, e2, rng) => fuehreKriegHandlungAus(ww, vorgangId(e2), handlung, rng).text),
-    anzeigePk: sicht?.pk ?? pk,
+    // Ohne laufenden Vorgang bucht die Handlung nichts; dann steht auch kein Preis da
+    ...(sicht ? { anzeigePk: sicht.pk } : {}),
   };
 }
 

@@ -527,7 +527,7 @@ export function setPolicy(world: World, id: string, level: number, provinzen?: n
   addLog(
     world,
     "entscheidung",
-    // Befund A-1 (6. November 2026): Protokoll der direkten Anwendung aus dem Katalog (nacht_n5_kv.json), es erscheint nach Ereignisantworten
+    // Befund A-1 (6. November 2026): Protokoll der direkten Anwendung aus dem Katalog (nacht_n5.json), es erscheint nach Ereignisantworten
     t("handeln.setzen.text", { name: node.name, ort: provinzenText(ort), von: Math.round(current), auf: target, richtung: target > current ? "hoch" : "runter" }),
     t("handeln.setzen.warum", {
       text: node.text,
@@ -621,8 +621,9 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
   }
   const tageBis = tag - world.day;
   const monate = pr.monate;
-  const text = `Gesetzentwurf „${name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
-  const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
+  // Nacht 5./6.11. (Befund A-1): Protokoll des Einbringens aus dem Katalog, damit es auch im Ereignisausgang nicht deutsch steht
+  const text = t("n5.gesetz.eingebracht", { name, ort: provinzenText(pr.provinzen), stufe: pr.stufe, tage: tageBis, monate });
+  const why = t("n5.gesetz.eingebrachtWarum", { pk: pr.gesetz.pk, ja: pr.gesetz.stimmen.erwartet, low: pr.gesetz.stimmen.low, high: pr.gesetz.stimmen.high, noetig: REGELN.mehrheit }) + (verzug > 0 ? ` ${t("n5.gesetz.verzug")}` : "");
   addLog(world, "entscheidung", text, why);
   nachEinbringen?.(world, id, text);
   return { ok: true, text, why };

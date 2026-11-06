@@ -8,7 +8,7 @@ import { ratZuEreignis, type RessortRat } from "../../sim/personen-api";
 import { angezeigteZustimmung } from "../../sim/medien";
 import { schlechtBeiHoch } from "../../sim/berichte";
 import { LAENDER, vertrauenZu } from "../../sim/laender";
-import { aktuelleSprache, t, zahl as zahlFmt } from "../../i18n";
+import { aktuelleSprache, formatiere, t, zahl as zahlFmt } from "../../i18n";
 import { stimmenSicht } from "../../sim/handeln";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
@@ -143,6 +143,8 @@ export interface Kennzahl {
 }
 
 const nf = (x: number, d = 1): string => zahlFmt(x, d);
+/** Prozent nach Sprache (de „23,8 %“, tr „%23,8“, en „23.8%“). */
+const pz = (x: number, d = 1): string => formatiere(`{x, prozent, ${d}}`, { x }, aktuelleSprache());
 
 function knoten(w: World, id: string): number | undefined {
   return NET.index.has(id) ? nationalAverage(NET, w.net, id) : undefined;
@@ -163,18 +165,18 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     return v === undefined ? undefined : zahl(id, label, `${Math.round(v)} / 100`);
   };
   return {
-    schulden: () => zahl("schulden", t("ereignis.kz.schulden"), `${nf(w.economy.debtRatio)} %`, reihe(w, (h) => h.debtRatio)),
-    inflation: () => zahl("inflation", t("ereignis.kz.inflation"), `${nf(w.published.inflation.value)} %`, reihe(w, (h) => h.inflation)),
-    defizit: () => zahl("defizit", t("ereignis.kz.defizit"), `${nf(w.economy.deficit)} %`),
+    schulden: () => zahl("schulden", t("ereignis.kz.schulden"), pz(w.economy.debtRatio), reihe(w, (h) => h.debtRatio)),
+    inflation: () => zahl("inflation", t("ereignis.kz.inflation"), pz(w.published.inflation.value), reihe(w, (h) => h.inflation)),
+    defizit: () => zahl("defizit", t("ereignis.kz.defizit"), pz(w.economy.deficit)),
     lira: () => zahl("lira", t("ereignis.kz.lira"), nf(w.economy.usdTry), reihe(w, (h) => h.usdTry)),
-    wachstum: () => zahl("wachstum", t("ereignis.kz.wachstum"), `${nf(w.economy.growth)} %`, reihe(w, (h) => h.growth)),
-    arbeitslosigkeit: () => zahl("arbeitslosigkeit", t("ereignis.kz.arbeitslosigkeit"), `${nf(w.economy.unemployment)} %`, reihe(w, (h) => h.unemployment)),
+    wachstum: () => zahl("wachstum", t("ereignis.kz.wachstum"), pz(w.economy.growth), reihe(w, (h) => h.growth)),
+    arbeitslosigkeit: () => zahl("arbeitslosigkeit", t("ereignis.kz.arbeitslosigkeit"), pz(w.economy.unemployment), reihe(w, (h) => h.unemployment)),
     zustimmung: () => {
       if (!w.spiel) return undefined;
       // Die Kopfleiste zeigt die Messung des Stabs, hier steht die zuletzt veröffentlichte Umfrage; die Quelle erklärt den
       // Unterschied (Spielerdurchlauf 5. November: 47 % im Fenster, 50 % in der Leiste)
       const z = angezeigteZustimmung(w);
-      const k = zahl("zustimmung", t("ereignis.kz.zustimmung"), `${Math.round(z.wert)} %`);
+      const k = zahl("zustimmung", t("ereignis.kz.zustimmung"), pz(Math.round(z.wert), 0));
       return z.quelle === "institut" && z.institut ? { ...k, notiz: t("ereignis.kz.umfrageQuelle", { institut: z.institut, tage: z.alterTage }) } : k;
     },
     ansehen: knot("ansehen", t("ereignis.kz.ansehen")),

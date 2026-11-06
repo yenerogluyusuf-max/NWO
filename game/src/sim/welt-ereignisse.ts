@@ -1,7 +1,7 @@
 // Große Weltereignisse als Entscheidungen für den Spieler: ein Machtwechsel bei einem wichtigen Gegenüber und der Ausbruch einer Krise bei
 // einem Nachbarn oder Partner (Währungskrise, Staatsbankrott, Unruhen, Grenzgefechte). Das Weltmodell (sim/welt-modell.ts) merkt sie vor;
 // dieses Modul legt höchstens eines in 150 Tagen vor und nur, wenn der Schreibtisch nicht ohnehin voll ist.
-// Alle sichtbaren Texte kommen aus dem Katalog (src/i18n/katalog/*/nacht_n5_welt.json, Schlüssel ev.<vorlage>.*).
+// Alle sichtbaren Texte kommen aus dem Katalog (src/i18n/katalog/*/nacht_n5.json, Schlüssel ev.<vorlage>.*).
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
 import { WELT_REGELN } from "../data/welt-daten";

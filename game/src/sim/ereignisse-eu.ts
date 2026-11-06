@@ -4,7 +4,7 @@
 //   eu_zollunion — Brüssel bietet das Mandat für das Zollunion-Update an: annehmen oder vertagen
 // Beide werden nur vom EU-Motor geöffnet (chance 0) und rufen dieselben Funktionen wie das
 // Dossier — der Kern (sim/eu.ts) bleibt die einzige Wahrheitsquelle.
-// Alle sichtbaren Texte kommen aus dem Katalog (src/i18n/katalog/*/nacht_n5_welt.json, Schlüssel ev.<vorlage>.*).
+// Alle sichtbaren Texte kommen aus dem Katalog (src/i18n/katalog/*/nacht_n5.json, Schlüssel ev.<vorlage>.*).
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
 import { opt } from "./ereignis-hilfen";

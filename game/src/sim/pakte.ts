@@ -1013,7 +1013,7 @@ export function beistandMaterial(w: World, partner: string, paktId: string): str
   kosten(w, 0.2);
   beziehungAendern(w, partner, { vertrauen: 5, sicherheit: 6 }, tx("sim2.sim.pakte.7b0030c"));
   wirke(w, "ansehen", 0.5);
-  // Text aus dem Katalog nacht_n5_welt.json (Partner mit Fällen; der Pakt steht schon im Ereignistext)
+  // Text aus dem Katalog nacht_n5.json (Partner mit Fällen; der Pakt steht schon im Ereignistext)
   return tx("ev.krieg_beistandsruf.opt.material.ausgang", rufParams(partner));
 }
 

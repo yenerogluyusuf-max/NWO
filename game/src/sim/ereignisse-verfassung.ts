@@ -22,7 +22,7 @@ import {
 import type { World } from "./types";
 import { liste, t } from "../i18n";
 
-// Texte (Befund A-1, 6. November 2026): alle aus dem Katalog (i18n/katalog/*/nacht_n5_kv.json, Schlüssel ev.<vorlage>.*).
+// Texte (Befund A-1, 6. November 2026): alle aus dem Katalog (i18n/katalog/*/nacht_n5.json, Schlüssel ev.<vorlage>.*).
 
 /**
  * Die geänderten Artikel als Aufzählung „Artikel: Variante“. Ohne laufenden Vorgang (die Proteste öffnen, wenn das Paket schon

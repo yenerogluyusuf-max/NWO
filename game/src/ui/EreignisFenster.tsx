@@ -8,7 +8,7 @@ import { Portraet as PersonPortraet } from "./personen/bausteine";
 import { EreignisSzene } from "./ereignis/Szenen";
 import { akteFuer, kennzahlenFuer, richtungVon, wertungVon, sprecherFuer, themaFuer, zitatAus, type AktenZiel, type Kennzahl } from "./ereignis/kontext";
 import { t, zahl } from "../i18n";
-import type { EreignisAnsicht } from "../sim/ereignisse";
+import { SCHWEIGEN_ZUSTIMMUNG, type EreignisAnsicht } from "../sim/ereignisse";
 import type { World } from "../sim/types";
 import "./ereignis.css";
 
@@ -185,7 +185,7 @@ export function EreignisFenster({
                 <h3>{t("ereignis.standard")}</h3>
                 <p>{ansicht.standardFolge.text}</p>
                 {ansicht.standardFolge.zeilen.length > 0 && <Folgen zeilen={ansicht.standardFolge.zeilen} />}
-                <small>{t("ereignis.standardHinweis")}</small>
+                <small>{ansicht.vorlage.startsWith("start_") ? t("ev.standardHinweis.start") : t("ev.standardHinweis", { d: SCHWEIGEN_ZUSTIMMUNG })}</small>
               </section>
             )}
 

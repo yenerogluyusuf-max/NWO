@@ -1,6 +1,6 @@
 // Ereignisse um Personen: Rücktrittsdrohung, Skandal, Intrige und Durchstecherei. Sie entstehen aus dem Zustand des Umfelds (Loyalität, Groll,
 // Ehrgeiz), nicht aus dem Würfel allein: Wer seine Leute pflegt, sieht sie selten. Alle Wahrscheinlichkeiten und Wirkungen sind Platzhalter
-// der Kalibrierung; Zahlen im Text kommen aus dem Weltzustand. Texte: katalog/<sprache>/nacht_n5_personen.json (Schlüssel ev.person_*).
+// der Kalibrierung; Zahlen im Text kommen aus dem Weltzustand. Texte: katalog/<sprache>/nacht_n5.json (Schlüssel ev.person_*).
 // Wer geht, wird VOR `ausscheiden()` festgehalten: Danach steht im selben Figurenobjekt schon die Nachfolge (Befund A-2, 5. November 2026).
 
 import { vertrauenAendern, wirke } from "./wirkung";

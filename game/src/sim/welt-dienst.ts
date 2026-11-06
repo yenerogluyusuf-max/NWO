@@ -479,7 +479,7 @@ export function beantworteEinfluss(w: World, opId: number, von: string, art: Ein
   const m = weltModell(w);
   const x = dz.eingehend.find((y) => y.id === opId);
   if (x) dz.eingehend = dz.eingehend.filter((y) => y.id !== opId);
-  // Texte aus dem Katalog (nacht_n5_welt.json): Land mit Fällen und Zahl des Verbs, die Art der Operation je Schlüssel
+  // Texte aus dem Katalog (nacht_n5.json): Land mit Fällen und Zahl des Verbs, die Art der Operation je Schlüssel
   const p = { land: landFormen(von), nz: landZahl(von) };
   let text = "";
   switch (antwort) {

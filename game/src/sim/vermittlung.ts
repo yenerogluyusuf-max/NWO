@@ -486,7 +486,7 @@ export type VerstossAntwort = "eingreifen" | "daempfen" | "hinnehmen";
 export function verstossFolge(w: World, ev: OffenesEreignis, antwort: VerstossAntwort): string {
   const def = KONFLIKT_NACH_ID[String(ev.daten?.konflikt ?? "")];
   if (!def) return t("ev.vermittlung.weg");
-  // Konfliktnamen in der Anzeigesprache (die Daten sind deutsch); Texte im Katalog nacht_n5_welt.json
+  // Konfliktnamen in der Anzeigesprache (die Daten sind deutsch); Texte im Katalog nacht_n5.json
   const nn = konfliktNamen(def);
   const namenText = t("ev.vermittlung.namen", nn);
   const z = konfliktZustand(w, def.id);

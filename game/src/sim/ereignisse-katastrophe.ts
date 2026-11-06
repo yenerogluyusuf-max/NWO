@@ -5,7 +5,7 @@
 // Höhen (mehr Applaus jetzt = mehr Versprechensschuld später) und die Untersuchung.
 // Danach läuft die Hilfskette im Katastrophen-Dossier weiter (Übergang, Wiederaufbau).
 // Alle Zahlen sind Spielparameter der Kalibrierung, keine Tatsachenbehauptungen.
-// Texte (Befund A-1, 6. November 2026): alle aus dem Katalog (i18n/katalog/*/nacht_n5_kv.json, Schlüssel ev.<vorlage>.*).
+// Texte (Befund A-1, 6. November 2026): alle aus dem Katalog (i18n/katalog/*/nacht_n5.json, Schlüssel ev.<vorlage>.*).
 
 import { wirke, vertrauenAendern } from "./wirkung";
 import { setPolicy } from "./handeln";
