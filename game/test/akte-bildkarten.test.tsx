@@ -43,11 +43,18 @@ test("Auswahl: höchstens vier, Laufendes vor Möglichem vor Gesperrtem, keine I
   }
 });
 
-test("Lage von Sicherheit und Land zeigt Bildkarten in drei Sprachen, liest nur und springt in den Reich-Reiter", async () => {
+// Seit dem 6. November zeigt die Sicherheitslage keine zweite Kopie der Rüstungskarten mehr (Befund G-4/A11: die Rüstung hat ihren
+// eigenen Reiter mit dem Lieferkalender); geprüft wird hier nur noch das Land.
+test("Lage des Landes zeigt Bildkarten in drei Sprachen, liest nur und springt in den Reich-Reiter", async () => {
   const w = welt(), vorher = save(w);
   for (const sprache of ["de", "en", "tr"] as const) {
     await setzeSprache(sprache);
-    for (const [bereich, tab] of [["sicherheit", "reich_militaer"], ["land", "reich_infra"]] as const) {
+    const sicherheit = renderToStaticMarkup(createElement(BereichsAkte, {
+      bereich: "sicherheit", world: w, tabs: [{ id: "reich_militaer", label: "Fachansicht" }], aktiverTab: "reich_militaer", onTab: () => {}, reiter: "lage", onReiter: () => {}, children: null,
+    }));
+    expect(sicherheit).not.toContain("gz-karte");
+    expect(sicherheit).not.toMatch(KAPUTT);
+    for (const [bereich, tab] of [["land", "reich_infra"]] as const) {
       const html = renderToStaticMarkup(createElement(BereichsAkte, {
         bereich, world: w, tabs: [{ id: tab, label: "Fachansicht" }], aktiverTab: tab, onTab: () => {}, reiter: "lage", onReiter: () => {}, children: null,
       }));

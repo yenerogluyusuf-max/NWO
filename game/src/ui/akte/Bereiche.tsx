@@ -37,11 +37,12 @@ import { formatDateDe } from "../../sim/dates";
 import { ZUGANG_ICON } from "./profil";
 import { Bildkarten } from "./Bildkarten";
 import { Konfliktlage, angespannteLaender } from "./Konfliktlage";
+import { InnereSicherheit } from "../militaer/InnereSicherheit";
 import { PersonChip } from "../bausteine/PersonChip";
 
 /** Bereiche, deren Lage ihre Vorhaben als Bildkarten zeigt: Vorhabenbereich im Reich und der Reiter, in dem man sie beginnt. */
 const BILDKARTEN: Partial<Record<BereichId, { reich: string; tab: string }>> = {
-  sicherheit: { reich: "militaer", tab: "reich_militaer" },
+  // Sicherheit ohne zweite Kopie der Rüstungskarten (Befund G-4/A11): die Rüstung hat ihren eigenen Reiter
   land: { reich: "infrastruktur", tab: "reich_infra" },
 };
 
@@ -345,6 +346,7 @@ function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh }:
       )}
       <Zustaendige w={w} b={b} />
       {b === "sicherheit" && onKonflikt && w.spiel && <Konfliktlage w={w} onKonflikt={onKonflikt} />}
+      {b === "sicherheit" && w.spiel && <InnereSicherheit world={w} />}
       {/* Die Außenlage (Vorwarnungen, Instrumente, Verlauf) steht hier statt eine Ebene tiefer unter „Länder und Diplomatie“ (Vorgabe T: eine Lage, nicht zwei) */}
       {b === "aussen" && refresh && w.spiel && <Aussenlage world={w} refresh={refresh} eingebettet />}
       {karten && <Bildkarten w={w} reichBereich={karten.reich} ziel={karten.ziel} oeffnen={karten.oeffnen} />}

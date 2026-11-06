@@ -125,3 +125,22 @@
 @container (max-width: 620px) { .sk-kal-zeilen li { grid-template-columns: 1fr 6em; } .sk-kal-bahn, .sk-kal-kopf { display: none; } }
 .rr-aufklapp { margin-top: 10px; }
 .rr-aufklapp > summary { cursor: pointer; font: 600 15px var(--serif); color: var(--ink); padding: 6px 0; }
+
+/* Innere Sicherheit in der Sicherheitslage (Befund G-10): Terror nach Tätergruppen, Friedensprozess als Phasenleiter */
+.si-innen-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+@container (max-width: 620px) { .si-innen-raster { grid-template-columns: 1fr; } }
+.si-innen h4 { margin: 0 0 6px; font: 600 15px var(--display); }
+.si-zeile { display: grid; grid-template-columns: 9em 1fr 2.5em; gap: 8px; align-items: center; font: 14px var(--serif); margin: 3px 0; }
+.si-zeile > b { text-align: right; font-variant-numeric: tabular-nums; }
+.si-balken { display: block; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.14); overflow: hidden; }
+.si-balken b { display: block; height: 100%; background: #5f6f4a; }
+.si-balken.mittel b { background: #b08a3a; }
+.si-balken.schlecht b { background: var(--seal); }
+.si-phasen { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.si-phasen li { padding: 2px 8px; border-radius: 10px; font: 13px var(--serif); color: var(--ink-soft); border: 1px solid rgba(90, 64, 40, 0.3); }
+.si-phasen li.fertig { background: rgba(95, 111, 74, 0.16); color: var(--ink); }
+.si-phasen li.jetzt { background: var(--seal); border-color: var(--seal); color: #fbeee0; font-weight: 600; }
+.si-klein { margin: 0; font: 13.5px/1.4 var(--serif); color: var(--ink-soft); }
+/* Konfliktlage in zwei Spalten statt sieben gleicher Zeilen untereinander (Länge der Sicherheitslage, Befund G-45) */
+.ak-inhalt .gz-konflikte > ul { grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
+.ak-inhalt .gz-konflikte .gz-knopf { font-size: 14px; }

@@ -119,7 +119,7 @@ export const KLAUSELN: KlauselDef[] = [
   },
   {
     id: "vermittlung_zusage", seite: "gibt", label: "Ankara vermittelt im Streit",
-    text: "Die Türkei bietet sich als Vermittler an: Istanbul als Ort, Erdoğans Draht zu beiden Seiten als Werkzeug.",
+    text: "Die Türkei bietet sich als Vermittler an: Istanbul als Ort, der Draht des Präsidenten zu beiden Seiten als Werkzeug.",
     pk: 1,
     abschluss: [stoss("ansehen", 1.5)],
     dauer: [stuetze("ansehen", 0.5)],
@@ -551,7 +551,7 @@ export const PROFILE: Record<string, LandProfil> = {
     hebelText: "Moskau braucht die Türkei als Tor nach Westen; Ankara braucht Moskaus Gas und Akkuyu.",
     werte: { gas_kauf: 8, zoll: 3, meerengen: 4, vermittlung_zusage: 3, investitionen_oeffnen: 2, zahlungsweg: 7, transit: 5, w_preis: -6, w_aufschub: -4, w_akkuyu: -3, w_getreide: -2, w_transit: -4 },
     texte: {
-      gas_kauf: { label: "Gasverträge verlängern", text: "Die Gasverträge mit Russland laufen Ende 2026 aus; es geht um rund 22 Milliarden Kubikmeter im Jahr." },
+      gas_kauf: { label: "Gasverträge verlängern", text: "Die großen Gasverträge mit Russland liefen Ende 2026 aus; jetzt geht es um rund 22 Milliarden Kubikmeter im Jahr." },
       w_akkuyu: { text: "Block 1 von Akkuyu läuft seit Juni 2026 an; für die Blöcke 2 bis 4, die Brennstoff-Sicherung und den Zahlungsweg braucht es eine Einigung." }, // Teil V §5.2: „2 Mrd. $ stecken fest“ ist überholt
       transit: { label: "Türkei als Gas-Drehkreuz", text: "Russisches Gas geht über türkisches Gebiet weiter nach Südeuropa." },
     },

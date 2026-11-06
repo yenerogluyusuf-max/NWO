@@ -38,6 +38,7 @@ import { addDays } from "./dates";
 import { wirke } from "./wirkung";
 import { Rng } from "./rng";
 import type { World } from "./types";
+import { aktuelleSprache, t as tx } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // Typen
@@ -208,7 +209,13 @@ export function akteurDef(id: string): WeltDef {
 
 export function akteurName(id: string): string {
   const w = WEITERE_NACH_ID.get(id);
-  return w ? w.name : land(id).name;
+  if (!w) return land(id).name;
+  // Englisch und Türkisch: Name aus dem Katalog (Befund G-7: vorher „Brasilien“ auch in der englischen Fassung); Deutsch aus den Daten
+  if (aktuelleSprache() !== "de") {
+    const n = tx(`nacht_n7.land.${id}`);
+    if (!n.startsWith("⟦") && n !== `nacht_n7.land.${id}`) return n;
+  }
+  return w.name;
 }
 /** „mit …“ / „zu …“ */
 export function akteurDat(id: string): string {
@@ -460,7 +467,11 @@ export function beziehungAendern(w: World, id: string, delta: Partial<Record<"ha
 // ---------------------------------------------------------------------------
 // Haltung zur Türkei: Führung und Herausforderer
 
-export const HALTUNG_WORT: Record<"-1" | "0" | "1", string> = { "-1": "türkeifeindlich", "0": "neutral", "1": "türkeifreundlich" };
+export const HALTUNG_WORT: Record<"-1" | "0" | "1", string> = {
+  get "-1"() { return tx("nacht_n7.fuehrung.feind"); },
+  get "0"() { return tx("nacht_n7.fuehrung.neutral"); },
+  get "1"() { return tx("nacht_n7.fuehrung.freund"); },
+};
 export const haltungWortVon = (k: -1 | 0 | 1): string => HALTUNG_WORT[String(k) as "-1" | "0" | "1"];
 
 /** Die Haltung der amtierenden Führung, abgelesen am Verhältnis zur Türkei (Spielparameter-Schwellen). */
@@ -1044,26 +1055,24 @@ export interface LageSicht {
   herkunft: Record<Code, string>;
 }
 
-export const FORM_NAME: Record<Regierungsform, string> = {
-  demokratie: "Demokratie",
-  hybrid: "Hybrides Regime",
-  autokratie: "Autokratie",
-  monarchie: "Monarchie",
-  uebergang: "Übergangsregierung",
-};
+export const FORM_NAME: Record<Regierungsform, string> = new Proxy({} as Record<Regierungsform, string>, { get: (_, k) => tx(`nacht_n7.form.${String(k)}`) });
+
+/** Wahlart der Daten (deutsch, data/welt-daten.ts) als Kennung für den Katalog; nur für die Anzeige. */
+const WAHLART: Record<string, string> = { Präsidentenwahl: "praesident", Parlamentswahl: "parlament", Europawahl: "europa", Dumawahl: "duma", Zwischenwahlen: "zwischen", "Ende der Übergangsphase": "uebergang", Parteitag: "parteitag" };
+const wahlArtId = (art: string): string => WAHLART[art] ?? "parlament";
 
 export function stabilitaetWort(s: number): string {
-  if (s >= 75) return "stabil";
-  if (s >= 55) return "gefestigt";
-  if (s >= 40) return "angespannt";
-  if (s >= 25) return "brüchig";
-  return "am Rand des Zerfalls";
+  if (s >= 75) return tx("nacht_n7.stabil.stabil");
+  if (s >= 55) return tx("nacht_n7.stabil.gefestigt");
+  if (s >= 40) return tx("nacht_n7.stabil.angespannt");
+  if (s >= 25) return tx("nacht_n7.stabil.bruechig");
+  return tx("nacht_n7.stabil.zerfall");
 }
 
 export function lage(w: World, id: string): LageSicht {
   const e = eigenVon(w, id);
   const d = akteurDef(id);
-  const wahlText = e.wahl ? `${e.wahl.art} am ${e.wahl.datum.split("-").reverse().join(".")}` : d.wahlen.length === 0 && (d.form === "monarchie" || d.id === "UKR" || d.id === "LBY") ? "keine Wahl vorgesehen" : "kein Termin";
+  const wahlText = e.wahl ? tx("nacht_n7.wahl.am", { art: tx(`nacht_n7.wahlart.${wahlArtId(e.wahl.art)}`), datum: e.wahl.datum }) : d.wahlen.length === 0 && (d.form === "monarchie" || d.id === "UKR" || d.id === "LBY") ? tx("nacht_n7.wahl.keine") : tx("nacht_n7.wahl.kein_termin");
   return {
     id,
     wachstum: e.wachstum,
