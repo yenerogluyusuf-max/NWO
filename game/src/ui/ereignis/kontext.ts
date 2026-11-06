@@ -14,6 +14,10 @@ import { defizitJetzt } from "../../sim/wirtschaft";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import type { EreignisAnsicht } from "../../sim/ereignisse";
+import type { Stelle } from "../../sim/ereignis-hilfen";
+import { rsfSicht } from "../../sim/medien";
+import { glaubwuerdigkeitWort } from "../../sim/zentralbank";
+import { ERBE_NACH_ID } from "../../data/erbe";
 
 export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht" | "wohnen" | "partner";
 
@@ -201,7 +205,35 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
       return p ? zahl("partner", t("ev.kz.partner", { partei: p.partei ?? "" }), `${Math.round(p.loyalitaet)} / 100`) : undefined;
     },
     zusagen: () => (w.spiel ? zahl("zusagen", t("ev.kz.zusagen"), String(w.spiel.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length)) : undefined),
+    // Welle H3: Kennzahlen der Bereichsvorgänge (Medien, Zentralbank, Kultur)
+    pressefreiheit: () => {
+      if (!w.spiel) return undefined;
+      const r = rsfSicht(w);
+      return zahl("pressefreiheit", t("welle_h3.kz.pressefreiheit"), t("welle_h3.kz.pressefreiheitWert", { score: r.score, rang: r.rang }));
+    },
+    leitzins: () => zahl("leitzins", t("welle_h3.kz.leitzins"), pz(w.economy.policyRate), reihe(w, (h) => h.policyRate)),
+    glaubwuerdigkeit: () => zahl("glaubwuerdigkeit", t("welle_h3.kz.glaubwuerdigkeit"), t("welle_h3.kz.glaubwuerdigkeitWert", { n: Math.round(w.economy.credibility * 100), wort: glaubwuerdigkeitWort(w.economy.credibility) })),
+    tourismus: knot("tourismus", t("welle_h3.kz.tourismus")),
   };
+}
+
+/** Vorgänge mit eigenen Kennzahlen statt denen ihres Themas (Welle H3). `staette` ist der Zustand der gemeldeten Stätte. */
+const VORLAGE_ZAHLEN: Record<string, string[]> = {
+  medien_kampagne: ["pressefreiheit", "zustimmung", "vertrauen"],
+  zentralbank_vertrauen: ["inflation", "leitzins", "glaubwuerdigkeit", "lira"],
+  erbe_verfall: ["staette", "tourismus", "ansehen"],
+};
+
+/** Beschriftung des Wegs zur zuständigen Stelle (Option.stelle, Vorlage.stelle). */
+export function stelleLabel(s: Stelle): string {
+  switch (s.art) {
+    case "medien":
+      return t("welle_h3.stelle.medien");
+    case "zentralbank":
+      return t(`welle_h3.stelle.zentralbank.${s.abschnitt ?? "sitzung"}`);
+    case "staette":
+      return t("welle_h3.stelle.staette", { name: ERBE_NACH_ID[s.id]?.name ?? s.id });
+  }
 }
 
 const THEMA_ZAHLEN: Record<Thema, string[]> = {
@@ -233,7 +265,11 @@ export function kennzahlenFuer(w: World, thema: Thema, ereignisId?: string): Ken
   const landId = String(w.spiel?.ereignisse.find((e) => e.id === ereignisId)?.daten?.land ?? "");
   const l = landId && landId !== "EU" ? LAENDER.find((x) => x.id === landId) : undefined;
   if (l && w.spiel) b.eu = () => zahl(`land-${l.id}`, t("ereignis.kz.landVertrauen", { land: l.name }), `${Math.round(vertrauenZu(w, l.id))} / 100`);
-  return THEMA_ZAHLEN[thema].map((id) => b[id]?.()).filter((k): k is Kennzahl => !!k);
+  const stId = String(evOffen?.daten?.staette ?? "");
+  const st = stId ? w.spiel?.reich?.staetten[stId] : undefined;
+  if (st) b.staette = () => zahl(`staette-${stId}`, t("welle_h3.kz.staette", { name: ERBE_NACH_ID[stId]?.name ?? stId }), `${Math.round(st.zustand)} / 100`);
+  const ids = (evOffen && VORLAGE_ZAHLEN[evOffen.vorlage]) ?? THEMA_ZAHLEN[thema];
+  return ids.map((id) => b[id]?.()).filter((k): k is Kennzahl => !!k);
 }
 
 export type AktenZiel = { dossier: "wirtschaft"; start: "lage" | "haushalt" } | { dossier: "welt" | "reich_militaer" | "katastrophe" | "waehler" | "reich_recht" | "personen" };

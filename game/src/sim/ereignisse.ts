@@ -38,7 +38,9 @@ import { KRIEG_VORLAGEN } from "./ereignisse-krieg";
 import { EU_VORLAGEN } from "./ereignisse-eu";
 import { WELT_VORLAGEN } from "./welt-ereignisse";
 import { VERMITTLUNG_VORLAGEN } from "./ereignisse-vermittlung";
-import { REICH_VORLAGEN } from "./ereignisse-reich";
+import { REICH_VORLAGEN, erbeLageMonat } from "./ereignisse-reich";
+import { BEREICHE_VORLAGEN } from "./ereignisse-bereiche";
+import type { Stelle } from "./ereignis-hilfen";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
 import { MACHTKREIS_VORLAGEN } from "./ereignisse-machtkreis";
 import { VERFASSUNG_VORLAGEN } from "./ereignisse-verfassung";
@@ -50,6 +52,7 @@ import { setzeVerfassungsOeffner } from "./verfassung";
 import { brecheZusage, zusageAbschluss, zusageBezug, zusageVorhaben, zusageText, zusageVon } from "./zusagen";
 import { istMinisterienZusage, ministerienAnPartei, naechsteRessorts, ressortNamen } from "./ressortvergabe";
 import { skala, skalenArt, stufenName } from "../data/skalen";
+import { ERBE_NACH_ID } from "../data/erbe";
 import { PROZ_STADT, akutIn, dk, einwohner, kosten, monatVon, namen, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
 import type { Option, SzenenName, Vorlage } from "./ereignis-hilfen";
 import { Rng } from "./rng";
@@ -1030,6 +1033,7 @@ export const VORLAGEN: Vorlage[] = [
   ZUSAGE, START_HAUSHALT, START_PARTNER, START_WIEDERAUFBAU,
   ...KATASTROPHE_VORLAGEN,
   ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...MACHTKREIS_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...WAHL_VORLAGEN, ...KRIEG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN, ...WELT_VORLAGEN, ...SAISON_VORLAGEN,
+  ...BEREICHE_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */
@@ -1287,6 +1291,8 @@ export function oeffne(world: World, vorlageId: string, rng: Rng, params?: { pro
 export function ereignisMonat(world: World, rng: Rng): void {
   const spiel = world.spiel;
   if (!spiel || spiel.ende) return;
+  // Gepflegte Stätten kommen von der Liste des gefährdeten Welterbes oder öffnen wieder (Welle H3)
+  erbeLageMonat(world);
   const grad = spiel.schwierigkeit ?? "normal";
   const schub = EREIGNIS_WETTBEWERB.eskalationsSchub[grad];
   const eskalation = spiel.eskalation ?? (spiel.eskalation = {});
@@ -1296,8 +1302,10 @@ export function ereignisMonat(world: World, rng: Rng): void {
   // 1. Kandidaten sammeln: Chance, Abkühlung, Dichte und Obergrenze wie bisher; gärende Vorgänge kommen eher wieder
   const kandidaten: { v: Vorlage; gen: Erzeugung }[] = [];
   for (const v of VORLAGEN) {
-    const u = rng.next();
+    // Neue Vorlagen (ziehtNurBeiChance) prüfen erst die Bedingung und ziehen dann, damit sie den Strom der übrigen nicht verschieben
     const basis = v.chance(world);
+    if (v.ziehtNurBeiChance && basis <= 0) continue;
+    const u = rng.next();
     if (basis <= 0) continue;
     if (offenNormal() + geplantNormal() >= MAX_OFFEN) continue;
     if (spiel.ereignisse.some((e) => e.vorlage === v.id) || spiel.geplant?.some((g) => g.vorlage === v.id)) continue;
@@ -1584,7 +1592,8 @@ export function standardVorschau(world: World, ev: OffenesEreignis): { text: str
  * und Kasse nicht als Folge da, weil die Plakette der Antwort den Preis in Prozent des BIP schon nennt (Befund A-7: Preis dreifach).
  */
 function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, anwenden: (kopie: World, evK: OffenesEreignis) => string | null, preisAufPlakette = false): KopieFolgen {
-  const key = `${ev.id}|${schluessel}|${preisAufPlakette ? 1 : 0}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
+  // Die Daten des Vorgangs gehören in den Schlüssel: Zwei Vorgänge derselben Vorlage am selben Tag (etwa zwei Stätten nacheinander) teilten sonst die Vorschau
+  const key = `${ev.id}|${JSON.stringify(ev.daten ?? {})}|${ev.provinzen.join(",")}|${schluessel}|${preisAufPlakette ? 1 : 0}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
   const gemerkt = VORSCHAU_CACHE.get(key);
   if (gemerkt) return gemerkt;
   const zeilen: string[] = [];
@@ -1602,6 +1611,9 @@ function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, a
       const risiko0 = kopie.economy.riskPremium;
       const fx0 = kopie.economy.usdTry;
       const zust0 = kopie.spiel!.umfrage.zustimmung;
+      const glaub0 = kopie.economy.credibility;
+      const staetten0 = new Map(Object.entries(kopie.spiel!.reich?.staetten ?? {}).map(([id, st]) => [id, st.zustand]));
+      const rsf0 = kopie.spiel!.medien?.rsfScore ?? 0;
       const loyal0 = new Map(kopie.spiel!.figuren.map((f) => [f.id, f.loyalitaet]));
       const imAmt0 = new Set(kopie.spiel!.figuren.filter((f) => f.imAmt).map((f) => f.id));
       // Personen über Kennung und Name: Bei einem Austausch behält der Posten seine Kennung, die Person wechselt (Befund A-11)
@@ -1633,6 +1645,15 @@ function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, a
         if (Math.abs(df) >= 0.4) zeilen.push(t("ereignis.vs.lira", { richtung: df > 0 ? "schwaecher" : "staerker", d: nf(Math.abs(df)) }));
         const dz = kopie.spiel!.umfrage.zustimmung - zust0;
         if (Math.abs(dz) >= 0.5) zeilen.push(t("ereignis.vs.zustimmung", { d: vz(dz, 1) }));
+        // Welle H3: Was die Bereichsvorgänge außerhalb des Netzes bewegen, steht ebenfalls da (Glaubwürdigkeit der Notenbank,
+        // Zustand einer Stätte, Pressefreiheitswert); dieselben Zahlen bucht die Antwort.
+        const dg = (kopie.economy.credibility - glaub0) * 100;
+        if (Math.abs(dg) >= 0.5) zeilen.push(t("welle_h3.vs.glaubwuerdigkeit", { d: vz(dg, 1) }));
+        const stBewegt = Object.entries(kopie.spiel!.reich?.staetten ?? {}).map(([id, st]) => ({ id, d: st.zustand - (staetten0.get(id) ?? st.zustand) })).filter((x) => Math.abs(x.d) >= 1);
+        if (stBewegt.length > 2) zeilen.push(t("welle_h3.vs.staetten", { n: stBewegt.length, d: vz(stBewegt.reduce((a, x) => a + x.d, 0) / stBewegt.length, 0) }));
+        else for (const x of stBewegt) zeilen.push(t("welle_h3.vs.staette", { name: ERBE_NACH_ID[x.id]?.name ?? x.id, d: vz(x.d, 0) }));
+        const dp = (kopie.spiel!.medien?.rsfScore ?? 0) - rsf0;
+        if (Math.abs(dp) >= 0.1) zeilen.push(t("welle_h3.vs.pressefreiheit", { d: vz(dp, 1) }));
         // 3. Personen. Nur wer vorher und nachher dieselbe Person im Amt ist: Wer durch die Antwort erst ins Amt rückt, gewinnt oder
         // verliert keinen Rückhalt (Spielerdurchlauf: „Die Person opfern“ nannte die Nachfolgerin; Befund A-11: die Kennung bleibt beim Austausch).
         // Bewegt sich der Rückhalt bei vielen zugleich, steht das als eine Zeile da, nicht als Liste unbeteiligter Minister.
@@ -1682,6 +1703,8 @@ export interface EreignisAnsicht {
   massnahmenText: string;
   /** Was ohne Antwort bis zur Frist geschieht (Text der Standardfolge und ihre sofortigen Wirkungen) */
   standardFolge?: { text: string; zeilen: string[] };
+  /** Die zuständige Stelle des Vorgangs (Medienakte, Zentralbank, Kulturstätte), sonst führt das Fenster in die Akte des Themas */
+  stelle?: Stelle;
 }
 
 function zusageAnsicht(world: World, ev: OffenesEreignis, v: Vorlage): { massnahmen: { id: string; name: string; ziel?: number }[]; massnahmenText: string } {
@@ -1706,6 +1729,7 @@ export function ansicht(world: World, ev: OffenesEreignis): EreignisAnsicht {
     tageBisFrist: Math.max(0, ev.frist - world.day),
     optionen: antworten(world, ev).map(({ wirkung: _w, ...rest }) => ({ ...rest, bezahlbar: kannZahlen(world.spiel?.kapital ?? 0, rest.anzeigePk ?? rest.pk), vorschau: rest.sperre ? [] : rest.sofortfolgen ?? wirkungsVorschau(world, ev, rest.id), preis: preisVorschau(world, ev, rest.id) })),
     ...zusageAnsicht(world, ev, v),
+    ...(v.stelle ? { stelle: v.stelle(world, ev) } : {}),
     ...(() => {
       const sf = standardVorschau(world, ev);
       return sf ? { standardFolge: sf } : {};

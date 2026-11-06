@@ -116,6 +116,10 @@ export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string
   mindestlohn: { amt: ["arbeit", "wirtschaft", "finanzen"], titel: t("n1.gs.ereignis.mindestlohn"), groessen: ["informelle_arbeit", "industrie", "investitionen", "steuereinnahmen", "lebenshaltung"] },
   haushaltsjahr: { amt: ["finanzen"], titel: t("n1.gs.ereignis.haushaltsjahr"), groessen: ["steuereinnahmen", "zinslast"] },
   kommunalwahl: { amt: ["stab"], titel: t("n1.gs.ereignis.kommunalwahl"), groessen: ["vertrauen_regierung", "polarisierung"] },
+  // Welle H3: Bereichsvorgänge (sim/ereignisse-bereiche.ts, sim/ereignisse-reich.ts)
+  medien_kampagne: { amt: ["stab"], titel: t("welle_h3.gs.medien_kampagne"), groessen: ["vertrauen_regierung", "pressefreiheit"] },
+  zentralbank_vertrauen: { amt: ["zentralbank", "finanzen"], titel: t("welle_h3.gs.zentralbank_vertrauen"), groessen: ["vertrauen_maerkte"] },
+  erbe_verfall: { amt: ["kultur"], titel: t("welle_h3.gs.erbe_verfall"), groessen: ["kulturerbe", "tourismus"] },
 };
 
 // ---------------------------------------------------------------------------

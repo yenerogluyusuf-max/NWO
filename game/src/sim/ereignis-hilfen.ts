@@ -14,6 +14,15 @@ import { aktuelleLocale, zahl } from "../i18n";
 
 export type SzenenName = "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht";
 
+/**
+ * Die zuständige Stelle, an der der Spieler selbst handeln kann (Vorgabe „Voraussetzungen verlinken“, 06.10.2026): Jede Antwort eines
+ * Bereichsvorgangs nennt sie, das Ereignisfenster führt mit einem Klick dorthin, ohne den Vorgang zu entscheiden.
+ */
+export type Stelle =
+  | { art: "medien"; cluster?: string }
+  | { art: "zentralbank"; abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen" }
+  | { art: "staette"; id: string };
+
 export interface Option {
   id: string;
   label: string;
@@ -31,6 +40,8 @@ export interface Option {
   /** Bereits mit der echten Handlung auf einer Kopie berechnete Sofortfolgen. */
   sofortfolgen?: string[];
   aufmerksamkeit?: number;
+  /** Wo man dasselbe selbst in der Hand hat (Medienakte, Zentralbank, Kulturstätte) */
+  stelle?: Stelle;
   /** Führt aus und liefert den Ausgang als Satz für Protokoll und Chronik */
   wirkung: (w: World, ev: OffenesEreignis, rng: Rng) => string;
 }
@@ -50,6 +61,8 @@ export interface Vorlage {
   abkuehlung: number;
   /** Maßnahmen, mit denen man die Ursache selbst regeln kann; wer eine davon einbringt, hat das Ereignis in die Hand genommen */
   massnahmen?: string[];
+  /** Die zuständige Stelle des Vorgangs: Das Ereignisfenster führt dorthin statt in die Akte des Themas */
+  stelle?: (w: World, ev: OffenesEreignis) => Stelle;
   /**
    * ZEI-1 (Ereignis-Wettbewerb): Was geschieht, wenn der ausgelöste Vorgang im Monatswettbewerb keinen
    * Präsentations-Slot bekommt. „aussitzen“: Er tritt im Hintergrund ein und läuft ohne Antwort schlecht aus
@@ -71,6 +84,11 @@ export interface Vorlage {
   folgen?: Record<string, { vorlage: string; nach: [number, number]; bedingung?: (w: World) => boolean }>;
   /** Wahrscheinlichkeit pro Monat, 0 = nicht möglich */
   chance: (w: World) => number;
+  /**
+   * Der Monatswürfel zieht für diese Vorlage nur, wenn ihre Chance über null liegt. Ältere Vorlagen ziehen immer (ihr Zufallsstrom bleibt);
+   * neue Vorlagen setzen das, damit Partien, in denen sie nicht auslösen können, genau denselben Verlauf behalten wie vorher (Welle H3).
+   */
+  ziehtNurBeiChance?: true;
   erzeuge: (w: World, rng: Rng) => { provinzen: number[]; staerke: number; daten?: Record<string, number | string> } | null;
 }
 

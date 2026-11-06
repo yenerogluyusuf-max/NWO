@@ -9,9 +9,14 @@ import { clamp } from "./economy";
 import { beschr, kosten, monatVon, netz, opt, zusageAnlegen } from "./ereignis-hilfen";
 import { aktuelleSprache, katalogVon, msg, t } from "../i18n";
 import type { Formen } from "../i18n";
-import type { Vorlage } from "./ereignis-hilfen";
-import { reichZustand, vorhabenDef } from "./reich";
+import type { Option, Vorlage } from "./ereignis-hilfen";
+import { VORZIEHEN_VERWALTUNG, bauPool, beginne, reichZustand, vergabeAngebot, verschiebe, vorhabenDef, vorhabenSicht } from "./reich";
 import { ERBE, ERBE_NACH_ID } from "../data/erbe";
+import { STAETTEN_START } from "../data/reich";
+import { neuanfangGrund } from "./aufmerksamkeit";
+import { addLog } from "./log";
+import { PROVINZEN } from "./regional";
+import { kannZahlen } from "./kapital";
 import type { World } from "./types";
 import type { Rng } from "./rng";
 
@@ -296,6 +301,223 @@ const PILGERWELLE: Vorlage = {
     return t("ev.kultur_pilgerwelle.standard");
   },
 };
+
+// ---------------------------------------------------------------------------
+// Verfall einer Stätte (Welle H3, 6. November 2026): Wer die Stätten nie pflegt, bekommt es mit dem Welterbekomitee oder der Denkmalbehörde zu tun.
+// Im Spielstand des Inhabers fielen Thyatira, Philadelphia und Smyrna in zehn Jahren um je neun Punkte, ohne jede Folge.
+//
+// Ein Welterbe unter seiner Schwelle droht auf die Liste des gefährdeten Welterbes zu kommen, wer es dort liegen lässt, riskiert die Streichung
+// von der Welterbeliste. Beides gibt es wirklich: Die UNESCO führt die „List of World Heritage in Danger“ und hat Stätten gestrichen (Arabian Oryx
+// Sanctuary 2007, Dresdner Elbtal 2009, Liverpool 2021; whc.unesco.org/en/danger und whc.unesco.org/en/deleted). Eine andere Stätte schließt die
+// Denkmalbehörde für Besucher. Ist die Stätte wieder gepflegt (Schwelle plus Erholung), kommt sie von der Liste oder öffnet wieder.
+// Alle Schwellen und Wirkungen sind Spielparameter.
+
+export const ERBE_DRUCK = {
+  /** Schwelle des Zustands (0 bis 100) je Status; darunter meldet sich das Komitee oder die Behörde */
+  schwelle: { welterbe: 45, tentativ: 35, nein: 30 } as Record<"welterbe" | "tentativ" | "nein", number>,
+  /** So viele Punkte muss die Stätte seit Spielbeginn verloren haben: Gemeldet wird Verfall unter dieser Regierung, nicht der Zustand beim Amtsantritt */
+  verlustMin: 4,
+  /** Chance je Monat; sie wächst, je weiter die schlimmste Stätte unter ihrer Schwelle liegt (je 10 Punkte um 1, bis `wachstumMax`) */
+  chance: 0.2,
+  wachstumMax: 2.5,
+  abkuehlung: 300,
+  frist: 25,
+  /** Punkte über der Schwelle, ab denen eine Stätte von der Liste kommt oder wieder öffnet */
+  erholung: 10,
+  /**
+   * Tage nach der Vergabe, die eine Restaurierung ohne jeden Baufortschritt als Pflege gilt. Danach zählt sie nicht mehr: Im Spielstand des
+   * Inhabers standen 16 Restaurierungen seit 2036 ohne Fortschritt hinter Kanal İstanbul und Flughäfen in der Reihe, die Stätten verfielen weiter.
+   */
+  geduld: 365,
+  /** Notsicherung: Kapital, Kosten in Prozent des BIP und Punkte, die sie sofort bringt */
+  notsicherung: { pk: 2, bip: 0.02, zustand: 10 },
+  /** Folgen ohne Antwort (Netzknoten, Tourismus und Erhaltung in der Provinz der Stätte) */
+  folgen: {
+    gefaehrdet: { ansehen: 1.5, tourismus: 3, identitaet: 0.5, kulturerbe: 0 },
+    gestrichen: { ansehen: 3, tourismus: 5, identitaet: 1, kulturerbe: 2 },
+    geschlossen: { ansehen: 0.5, tourismus: 2.5, identitaet: 0.5, kulturerbe: 2 },
+  },
+  /** Zusätzliches Ansehen, das der Verfall einer Stätte von Minderheiten im Ausland kostet */
+  minderheit: 1,
+  /** Was die Stätte weiter verliert, wenn niemand handelt */
+  verfall: 2,
+  /** Rückkehr von der Liste oder Wiedereröffnung */
+  erholt: { ansehen: 0.5, tourismus: 1 },
+} as const;
+
+type ErbeLage = "warnung" | "streichung" | "schliessung";
+
+const startZustand = (e: (typeof ERBE)[number]): number => STAETTEN_START[e.id] ?? (e.unesco.status === "welterbe" ? 66 : e.unesco.status === "tentativ" ? 52 : 46);
+const schwelleVon = (e: (typeof ERBE)[number]): number => ERBE_DRUCK.schwelle[e.unesco.status];
+const MINDERHEIT = new Set(["christlich", "juedisch", "armenisch", "syrisch"]);
+
+/** Die laufende Restaurierung einer Stätte, falls es eine gibt. */
+const restaurierungLauf = (w: World, id: string) => reichZustand(w).laufend.find((l) => l.id === `restaurierung_${id}`);
+
+/** Eine vergebene Restaurierung, an der seit `geduld` Tagen nichts gebaut wurde (sie wartet hinter anderen Vorhaben). */
+function steckt(w: World, l: { fortschritt: number; start: string; vergabeBis?: number }): boolean {
+  if (l.fortschritt > 0) return false;
+  const seit = l.vergabeBis ?? (/^\d{4}-\d{2}-\d{2}$/.test(l.start) ? w.day - Math.round((Date.parse(`${w.date}T00:00:00Z`) - Date.parse(`${l.start}T00:00:00Z`)) / 86_400_000) : w.day);
+  return w.day - seit > ERBE_DRUCK.geduld;
+}
+
+/** Wie viele Vorhaben desselben Engpasses vor der Restaurierung stehen (jedes kostet beim Vorziehen Verwaltungskraft, sim/reich.ts). */
+function vorDerRestaurierung(w: World, id: string): number {
+  const z = reichZustand(w);
+  const i = z.laufend.findIndex((l) => l.id === `restaurierung_${id}`);
+  const def = vorhabenDef(`restaurierung_${id}`);
+  if (i < 0 || !def) return 0;
+  const pool = bauPool(def);
+  return z.laufend.slice(0, i).filter((l) => {
+    const v = vorhabenDef(l.id);
+    return v && bauPool(v) === pool;
+  }).length;
+}
+
+/**
+ * Stätten, deren Verfall sich meldet: unter der Schwelle, deutlich schlechter als beim Amtsantritt, nicht schon gestrichen oder geschlossen,
+ * und ohne Restaurierung, an der gebaut wird (eine, die nur in der Reihe wartet, schützt nach `geduld` Tagen nicht mehr).
+ */
+export function verfallKandidaten(w: World): (typeof ERBE)[number][] {
+  const z = reichZustand(w);
+  return ERBE.filter((e) => {
+    const st = z.staetten[e.id];
+    if (!st || st.lage === "gestrichen" || st.lage === "geschlossen") return false;
+    const lauf = restaurierungLauf(w, e.id);
+    if (lauf && !steckt(w, lauf)) return false;
+    return st.zustand < schwelleVon(e) && st.zustand <= startZustand(e) - ERBE_DRUCK.verlustMin;
+  }).sort((a, b) => schwelleVon(b) - (z.staetten[b.id]?.zustand ?? 0) - (schwelleVon(a) - (z.staetten[a.id]?.zustand ?? 0)));
+}
+
+function erbeLage(w: World, e: (typeof ERBE)[number]): ErbeLage {
+  const st = reichZustand(w).staetten[e.id];
+  if (e.unesco.status !== "welterbe" || st?.lage === "gestrichen") return "schliessung";
+  return st?.lage === "gefaehrdet" ? "streichung" : "warnung";
+}
+
+/** Warum die Restaurierung der Stätte gerade nicht beginnen kann (dieselben Prüfungen wie `beginne`), sonst `null`. */
+function restaurierungGrund(w: World, id: string): string | null {
+  const s = vorhabenSicht(w, `restaurierung_${id}`);
+  if (!s) return t("ev.erbe_verfall.grund.keine");
+  if (s.status === "im_bau" || s.status === "pausiert" || s.status === "fertig") return t("ev.erbe_verfall.grund.laeuft");
+  const fehlt = s.voraus.filter((x) => !x.erfuellt).map((x) => x.text);
+  if (fehlt.length) return fehlt.join("; ");
+  if (!kannZahlen(w.spiel?.kapital ?? 0, vergabeAngebot(s.v, "ausschreibung").pk)) return t("ev.erbe_verfall.grund.kapital");
+  if (!s.verwaltungOk) return t("ev.erbe_verfall.grund.verwaltung");
+  return neuanfangGrund(w) ?? null;
+}
+
+/** Folgen, wenn niemand handelt: Liste des gefährdeten Welterbes, Streichung oder Schließung; die Stätte verfällt weiter. */
+function verfallStandard(w: World, ev: { daten?: Record<string, number | string>; provinzen: number[] }): string {
+  const e = staette(ev);
+  const st = reichZustand(w).staetten[e.id];
+  const lage = String(ev.daten?.lage ?? "schliessung") as ErbeLage;
+  const neu = lage === "warnung" ? "gefaehrdet" : lage === "streichung" ? "gestrichen" : "geschlossen";
+  const f = ERBE_DRUCK.folgen[neu];
+  if (st) st.lage = neu;
+  wirke(w, "ansehen", -f.ansehen - (e.bezug.some((b) => MINDERHEIT.has(b)) ? ERBE_DRUCK.minderheit : 0));
+  wirke(w, "tourismus", -f.tourismus, [e.plaka]);
+  wirke(w, "identitaet", -f.identitaet);
+  if (f.kulturerbe) wirke(w, "kulturerbe", -f.kulturerbe, [e.plaka]);
+  hebeStaette(w, e.id, -ERBE_DRUCK.verfall);
+  return tSt(`ev.erbe_verfall.${lage}.standard`, stelle(ev));
+}
+
+const VERFALL: Vorlage = {
+  id: "erbe_verfall",
+  ziehtNurBeiChance: true,
+  szene: "anatolien",
+  frist: ERBE_DRUCK.frist,
+  abkuehlung: ERBE_DRUCK.abkuehlung,
+  chance: (w) => {
+    const e = w.spiel ? verfallKandidaten(w)[0] : undefined;
+    if (!e) return 0;
+    const unter = schwelleVon(e) - (reichZustand(w).staetten[e.id]?.zustand ?? 0);
+    return ERBE_DRUCK.chance * clamp(1 + unter / 10, 1, ERBE_DRUCK.wachstumMax);
+  },
+  erzeuge: (w) => {
+    // Gemeldet wird die Stätte, die am weitesten unter ihrer Schwelle liegt; auf Zuruf (Prüfungen) sonst die schlechteste überhaupt
+    const z = reichZustand(w);
+    const e = verfallKandidaten(w)[0] ?? [...ERBE].sort((a, b) => (z.staetten[a.id]?.zustand ?? 0) - (z.staetten[b.id]?.zustand ?? 0))[0];
+    if (!e) return null;
+    return { provinzen: [e.plaka], staerke: 1, daten: { staette: e.id, lage: erbeLage(w, e) } };
+  },
+  titel: (_, ev) => tSt(`ev.erbe_verfall.${String(ev.daten?.lage)}.titel`, stelle(ev)),
+  text: (w, ev) => {
+    const e = staette(ev);
+    const p = { ...stelle(ev), zustand: Math.round(reichZustand(w).staetten[e.id]?.zustand ?? 0), start: Math.round(startZustand(e)), schwelle: schwelleVon(e) };
+    const lauf = restaurierungLauf(w, e.id);
+    return [
+      tSt(`ev.erbe_verfall.${String(ev.daten?.lage)}.text1`, p),
+      ...(lauf ? [t("ev.erbe_verfall.steckt", { n: vorDerRestaurierung(w, e.id) })] : []),
+      t(e.bezug.some((b) => MINDERHEIT.has(b)) ? "ev.erbe_verfall.text2.minderheit" : `ev.erbe_verfall.${String(ev.daten?.lage)}.text2`),
+    ];
+  },
+  warum: (_, ev) => t("ev.erbe_verfall.warum", { schwelle: schwelleVon(staette(ev)), verlust: ERBE_DRUCK.verlustMin }),
+  massnahmen: ["m_denkmalschutz"],
+  stelle: (_, ev) => ({ art: "staette", id: staette(ev).id }),
+  optionen: (w0, ev) => {
+    const e = staette(ev);
+    const id = `restaurierung_${e.id}`;
+    const def = vorhabenDef(id);
+    const hub = def?.abschluss.find((x) => x.t === "staette");
+    const n = ERBE_DRUCK.notsicherung;
+    const lage = String(ev.daten?.lage);
+    const zu = { art: "staette" as const, id: e.id };
+    const grund = restaurierungGrund(w0, e.id);
+    const lauf = restaurierungLauf(w0, e.id);
+    const vor = lauf ? vorDerRestaurierung(w0, e.id) : 0;
+    const verwaltung = vor * VORZIEHEN_VERWALTUNG;
+    // Wartet die Restaurierung schon in der Reihe, hilft keine neue Ausschreibung, sondern nur das Vorziehen (Verwaltungskraft je überholtem Vorhaben)
+    const bau: Option = lauf
+      ? { ...opt("vorziehen", t("ev.erbe_verfall.opt.vorziehen.label"), t("ev.erbe_verfall.opt.vorziehen.beschr", { n: vor }), 0, (w) => {
+          const n = vorDerRestaurierung(w, e.id);
+          for (let i = 0; i < n; i++) if (!verschiebe(w, id, -1).ok) break;
+          return tSt("ev.erbe_verfall.opt.vorziehen.ausgang", { ...stelle(ev), n: vorDerRestaurierung(w, e.id) });
+        }), stelle: { art: "staette", id: e.id }, bedingungen: [t("ev.erbe_verfall.opt.vorziehen.kosten", { k: verwaltung, n: vor })],
+          ...(vor === 0 ? { sperre: t("ev.erbe_verfall.grund.vorne") } : reichZustand(w0).verwaltung < verwaltung ? { sperre: t("ev.erbe_verfall.grund.vorziehen", { k: verwaltung, hat: Math.floor(reichZustand(w0).verwaltung) }) } : {}) }
+      : { ...opt("restaurierung", t("ev.erbe_verfall.opt.restaurierung.label"), t(`ev.erbe_verfall.opt.restaurierung.beschr.${lage === "schliessung" ? "behoerde" : "komitee"}`, { d: hub && hub.t === "staette" ? hub.d : 0, monate: def ? vergabeAngebot(def, "ausschreibung").monate : 0 }), 0, (w) => {
+          const r = beginne(w, id, "ausschreibung", "ende");
+          if (!r.ok) return t("ev.erbe_verfall.opt.restaurierung.gescheitert", { grund: r.text, folge: verfallStandard(w, ev) });
+          return tSt("ev.erbe_verfall.opt.restaurierung.ausgang", stelle(ev));
+        }), stelle: { art: "staette", id: e.id }, ...(def ? { anzeigePk: vergabeAngebot(def, "ausschreibung").pk } : {}), ...(grund ? { sperre: grund } : {}) };
+    return [
+      { ...opt("notsicherung", t("ev.erbe_verfall.opt.notsicherung.label"), t(`ev.erbe_verfall.opt.notsicherung.beschr.${lage === "schliessung" ? "behoerde" : "komitee"}`, { n: n.zustand }), n.pk, (w) => {
+        kosten(w, n.bip);
+        hebeStaette(w, e.id, n.zustand);
+        return tSt("ev.erbe_verfall.opt.notsicherung.ausgang", { ...stelle(ev), zustand: Math.round(reichZustand(w).staetten[e.id]?.zustand ?? 0) });
+      }), stelle: zu },
+      // Die Restaurierung ist das Bauvorhaben aus Kultur › Stätten: Die Vergabe bucht ihr Kapital selbst (die Plakette misst die Buchung)
+      bau,
+      // Die Folgen in der Provinz der Stätte bewegen den Landesdurchschnitt kaum; sie stehen deshalb eigens da (dieselben Zahlen bucht `verfallStandard`)
+      { ...opt("abwarten", t("ev.erbe_verfall.opt.abwarten.label"), t(`ev.erbe_verfall.${lage}.abwarten`), 0, (w) => verfallStandard(w, ev)), stelle: zu,
+        bedingungen: [t("ev.erbe_verfall.provinz", { provinz: PROVINZEN[e.plaka - 1]?.name ?? e.ort, tourismus: ERBE_DRUCK.folgen[lage === "warnung" ? "gefaehrdet" : lage === "streichung" ? "gestrichen" : "geschlossen"].tourismus, erhaltung: ERBE_DRUCK.folgen[lage === "warnung" ? "gefaehrdet" : lage === "streichung" ? "gestrichen" : "geschlossen"].kulturerbe })] },
+    ];
+  },
+  standard: (w, ev) => verfallStandard(w, ev),
+};
+
+/**
+ * Monatlich (aus dem Ereignismotor): Ist eine gemeldete Stätte wieder gepflegt (Schwelle plus Erholung), nimmt das Komitee sie von der Liste
+ * des gefährdeten Welterbes oder die Behörde öffnet sie wieder. Eine Streichung bleibt (die UNESCO hat noch keine gestrichene Stätte wieder aufgenommen).
+ */
+export function erbeLageMonat(w: World): void {
+  const sp = w.spiel;
+  if (!sp?.reich) return;
+  for (const e of ERBE) {
+    const st = sp.reich.staetten[e.id];
+    if (!st || (st.lage !== "gefaehrdet" && st.lage !== "geschlossen") || st.zustand < schwelleVon(e) + ERBE_DRUCK.erholung) continue;
+    const art = st.lage === "gefaehrdet" ? "liste" : "offen";
+    delete st.lage;
+    wirke(w, "ansehen", ERBE_DRUCK.erholt.ansehen);
+    wirke(w, "tourismus", ERBE_DRUCK.erholt.tourismus, [e.plaka]);
+    const p = { ad: ad(e), ort: e.ort, mitort: "nein" };
+    const titel = tSt(`ev.erbe_verfall.erholt.${art}.titel`, p);
+    const ausgang = tSt(`ev.erbe_verfall.erholt.${art}.text`, { ...p, zustand: Math.round(st.zustand) });
+    sp.chronik.push({ tag: w.day, datum: w.date, titel, ausgang, art: "bericht", vorlage: "erbe_verfall", presse: { sparte: "ereignis", wertung: 0.4 } });
+    addLog(w, "ereignis", titel, ausgang);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Recht
@@ -598,6 +820,7 @@ export const REICH_VORLAGEN: Vorlage[] = [
   FUND,
   HAGIA_SOPHIA,
   PILGERWELLE,
+  VERFALL,
   ERNENNUNG,
   AYM_GEGEN_KASSATION,
   EGMR_URTEIL,

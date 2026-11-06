@@ -6,7 +6,8 @@ import { Corners } from "./art/Ornament";
 import { Icon } from "./icons";
 import { Portraet as PersonPortraet } from "./personen/bausteine";
 import { EreignisSzene } from "./ereignis/Szenen";
-import { akteFuer, kennzahlenFuer, richtungVon, wertungVon, sprecherFuer, themaFuer, zitatAus, type AktenZiel, type Kennzahl } from "./ereignis/kontext";
+import { akteFuer, kennzahlenFuer, richtungVon, stelleLabel, wertungVon, sprecherFuer, themaFuer, zitatAus, type AktenZiel, type Kennzahl } from "./ereignis/kontext";
+import type { Stelle } from "../sim/ereignis-hilfen";
 import { t, zahl } from "../i18n";
 import { SCHWEIGEN_ZUSTIMMUNG, type EreignisAnsicht } from "../sim/ereignisse";
 import type { World } from "../sim/types";
@@ -63,6 +64,7 @@ export function EreignisFenster({
   naechsteGutschrift,
   world,
   onAkte,
+  onStelle,
 }: {
   ansicht: EreignisAnsicht;
   datum: string;
@@ -76,6 +78,8 @@ export function EreignisFenster({
   world?: World;
   /** Öffnet die passende Akte, ohne das Ereignis zu entscheiden */
   onAkte?: (ziel: AktenZiel) => void;
+  /** Führt zur zuständigen Stelle einer Antwort oder des Vorgangs (Medienakte, Zentralbank, Kulturstätte), ohne zu entscheiden */
+  onStelle?: (s: Stelle) => void;
 }) {
   const thema = themaFuer(ansicht, world);
   const sprecher = world ? sprecherFuer(world, ansicht) : null;
@@ -155,7 +159,7 @@ export function EreignisFenster({
                       ? t("ereignis.haushalt.entwurf")
                       : undefined;
                 return (
-                  <li key={o.id}>
+                  <li key={o.id} className={o.stelle && onStelle ? "mit-stelle" : undefined}>
                     <button className={`ev2-option${frei ? " frei" : ""}`} disabled={!o.bezahlbar || !!o.sperre} onClick={() => onWaehle(o.id)} title={o.sperre ?? (o.bezahlbar ? undefined : t("ereignis.fehltKapital"))}>
                       <span className="ev2-option-kopf">
                         <strong>{o.label}</strong>
@@ -175,6 +179,11 @@ export function EreignisFenster({
                         <span className="ev2-folgen leer">{t("ereignis.folgenUnsicher")}</span>
                       )}
                     </button>
+                    {o.stelle && onStelle && (
+                      <button type="button" className="link ev2-stelle" onClick={() => onStelle(o.stelle!)}>
+                        {stelleLabel(o.stelle)}
+                      </button>
+                    )}
                   </li>
                 );
               })}
@@ -197,10 +206,16 @@ export function EreignisFenster({
             )}
 
             <div className="ev2-wege">
-              {onAkte && (
-                <button className="aktion-knopf ev2-akte" onClick={() => onAkte(akte.ziel)}>
-                  <Icon name="buch" size={15} /> {akte.label}
+              {ansicht.stelle && onStelle ? (
+                <button className="aktion-knopf ev2-akte" onClick={() => onStelle(ansicht.stelle!)}>
+                  <Icon name="buch" size={15} /> {stelleLabel(ansicht.stelle)}
                 </button>
+              ) : (
+                onAkte && (
+                  <button className="aktion-knopf ev2-akte" onClick={() => onAkte(akte.ziel)}>
+                    <Icon name="buch" size={15} /> {akte.label}
+                  </button>
+                )
               )}
               {ansicht.massnahmen.length > 0 && onMassnahme && (
                 <span className="ev2-ursache">
