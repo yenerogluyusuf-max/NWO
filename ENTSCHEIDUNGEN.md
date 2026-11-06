@@ -485,3 +485,13 @@ Daraus folgt:
   - Die Zahl steht neben dem Titel.
   - Das Handlungsfeld hat kompakte Zeilen mit den Überschriften „Senken“ und „Erhöhen“. Vorher brach ein Klassenkonflikt mit dem Haushalt diese Überschriften Wort für Wort um.
   - Das Wirkungsdiagramm ist kleiner.
+
+## Z. Rückmeldung 06.11.2026: Karten statt weißem Blatt mit viel Text
+
+„Ich mag dieses Design und nicht dieses weiße Blatt-Design mit viel Text … das muss überall weg.“
+
+- **Vorbild:** der Kopf von Wirtschaft › Haushalt. Cremefarbene Karte, große Kennzahlen mit kleinem Etikett, Diagramm, Listen mit Farbfeld, Betrag und Anteil.
+- **Abgelehnt:** breite weiße Blätter mit Zwischenüberschriften und Absätzen Fließtext, wie der Haushaltsbericht nach einem Votum.
+- **Regel:** Zahlen statt Sätze. Höchstens ein kurzer Satz je Block. Rechenwege bei Bedarf als kleine Tabelle hinter einem Aufklapper. Keine Fläche in `--papier-1` über Spaltenbreite.
+- **Erhalten:** Nichts geht verloren. Möglichkeiten, Knöpfe und Zahlen bleiben erreichbar.
+- **Ausnahmen:** Y (Beschreibungen der Klauseln am Verhandlungstisch) sowie Erzähltexte von Ereignissen, Prolog, Zeitung und Mentorin.
