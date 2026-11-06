@@ -144,20 +144,21 @@ describe("Politiknetz: Doppelkante und anwaltsautonomie", () => {
 });
 
 // N4 (Befund B-10, Gesamtanalyse „Stimmen haben Gesichter“) ersetzt den anonymen Kauf für 0,5 Kapital je Stimme durch benannte
-// Absprachen (Zusage, Posten, Gefallen; sim/fraktionen-absprachen.ts). Den Preis zeigt jetzt jedes Angebot selbst (stimmenPreis,
+// Absprachen (Posten, Gefallen; sim/fraktionen-absprachen.ts). Den Preis zeigt jetzt jedes Angebot selbst (stimmenPreis,
 // geprüft in parlament-prognose und nacht-n4). Der Hinweis beim Prüfen muss deshalb die fehlenden Stimmen aus der Prognose und
-// die drei Wege nennen; der alte Satz vom sofort bezahlten Kauf darf nicht mehr erscheinen, er wäre eine Schau.
-// Achtung: ENTSCHEIDUNGEN K „Stimmenkauf ohne Nachspiel“ ist damit überholt; zur Bestätigung durch den Inhaber vermerkt.
+// die Wege nennen. ENTSCHEIDUNGEN K („Stimmenkauf ohne Nachspiel“) gilt weiter: Absprachen werden sofort bezahlt, die Art
+// „Zusage“ mit späterer Verpflichtung wird nicht angeboten (ENTSCHEIDUNGEN X, zur Bestätigung). Der alte Pauschalpreis je Stimme
+// darf nicht mehr erscheinen.
 describe("Stimmenkauf: Der Hinweis folgt dem Weg über benannte Absprachen", () => {
-  test("Fehlen Stimmen, nennt der Hinweis die Lücke der Prognose und die drei Wege, nicht mehr den anonymen Kauf", () => {
+  test("Fehlen Stimmen, nennt der Hinweis die Lücke der Prognose und die zwei sofort bezahlten Wege, nicht mehr den anonymen Kauf", () => {
     const w = welt();
     w.spiel!.lager = [];
     const pr = pruefeVorhaben(w, "m_polizei", 90);
     const text = pr.hinweise.join(" ");
     expect(pr.gesetz.stimmen.luecke).toBeGreaterThan(0);
     expect(text).toContain(`Es fehlen voraussichtlich ${pr.gesetz.stimmen.luecke} Stimmen`);
-    expect(text).toMatch(/Zusage.*Posten.*Gefallen/);
-    expect(text).not.toMatch(/sofort bezahlt/);
+    expect(text).toMatch(/sofort bezahlt.*Posten.*Gefallen/);
+    expect(text).not.toMatch(/Zusage/);
     expect(text).not.toContain(String(REGELN.kaufKostenProStimme).replace(".", ","));
   });
 });

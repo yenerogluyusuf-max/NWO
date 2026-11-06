@@ -61,7 +61,10 @@ export interface Absprache {
   forderung?: string;
 }
 
-const ARTEN: readonly AbspracheArt[] = ["zusage", "posten", "gefallen"];
+// ENTSCHEIDUNGEN K („Stimmenkauf ohne Nachspiel“, Rückmeldung des Inhabers): Absprachen werden sofort bezahlt, keine spätere
+// Zwangsrechnung. Die Art „Zusage“ legt eine Verpflichtung mit Frist an und wird deshalb nicht angeboten, bis der Inhaber anders
+// entscheidet (ENTSCHEIDUNGEN X, zur Bestätigung). Der Typ bleibt für Spielstände und Tests erhalten.
+const ARTEN: readonly AbspracheArt[] = ["posten", "gefallen"];
 
 function kaeufeImJahr(w: World, extra = 0): number {
   const tage = w.spiel?.gesetzgebung?.kaeufe ?? [];

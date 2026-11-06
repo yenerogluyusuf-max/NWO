@@ -145,7 +145,7 @@
  "n4.pk.anteil": "{p} %",
  "n4.pk.anteilHilfe": "Stimmenanteil bei der letzten Parlamentswahl, nicht Anteil der Sitze",
  "n4.hw.ueberlast": "Die Verwaltung arbeitet an {n} Vorhaben gleichzeitig: Die Umsetzung dauert {prozent} % länger.",
- "n4.hw.luecke": "Es fehlen voraussichtlich {n} Stimmen. Sie können sie im Parlament bei einzelnen Abgeordneten gewinnen, gegen eine Zusage, einen Posten oder einen Gefallen.",
+ "n4.hw.luecke": "Es fehlen voraussichtlich {n} Stimmen. Sie können sie im Parlament bei einzelnen Abgeordneten gewinnen, sofort bezahlt mit einem Posten oder einem Gefallen.",
  "n4.hw.kleinerOrt": "Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, vor Ort deutlich.",
  "n4.hw.umfang": "Betroffen sind {prozent} % der Bevölkerung. Der politische Preis liegt bei {preis} % des landesweiten Preises; die Haushaltskosten folgen der Bevölkerung ({bip} % des BIP im Jahr).",
  "n4.hw.umfangKlein": "Betroffen ist weniger als 1 % der Bevölkerung. Der politische Preis liegt bei {preis} % des landesweiten Preises; die Haushaltskosten folgen der Bevölkerung ({bip} % des BIP im Jahr).",

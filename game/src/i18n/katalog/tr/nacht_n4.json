@@ -145,7 +145,7 @@
  "n4.pk.anteil": "%{p}",
  "n4.pk.anteilHilfe": "Son milletvekili seçimindeki oy oranı, sandalye oranı değil",
  "n4.hw.ueberlast": "İdare aynı anda {n} projeyle uğraşıyor: Uygulama %{prozent} daha uzun sürüyor.",
- "n4.hw.luecke": "Tahminen {n} oy eksik. Bu oyları Mecliste tek tek milletvekillerinden bir söz, bir görev ya da bir iyilik karşılığında kazanabilirsiniz.",
+ "n4.hw.luecke": "Tahminen {n} oy eksik. Bu oyları Mecliste tek tek milletvekillerinden, hemen ödenen bir görev ya da bir iyilik karşılığında kazanabilirsiniz.",
  "n4.hw.kleinerOrt": "Küçük bir yer: Ülke geneline etkisi az, yerelde belirgin.",
  "n4.hw.umfang": "Nüfusun %{prozent} kadarı etkileniyor. Siyasi bedel, ülke geneli bedelin %{preis} kadarı; bütçe maliyeti nüfusa göre (yılda GSYH'nin %{bip} kadarı).",
  "n4.hw.umfangKlein": "Nüfusun %1'inden azı etkileniyor. Siyasi bedel, ülke geneli bedelin %{preis} kadarı; bütçe maliyeti nüfusa göre (yılda GSYH'nin %{bip} kadarı).",

@@ -145,7 +145,7 @@
  "n4.pk.anteil": "{p}%",
  "n4.pk.anteilHilfe": "Share of the vote at the last parliamentary election, not share of seats",
  "n4.hw.ueberlast": "The administration is handling {n} projects at once: implementation takes {prozent}% longer.",
- "n4.hw.luecke": "You are expected to be {n} votes short. You can win them in parliament from individual deputies, in return for a pledge, a post or a favour.",
+ "n4.hw.luecke": "You are expected to be {n} votes short. You can win them in parliament from individual deputies, paid at once with a post or a favour.",
  "n4.hw.kleinerOrt": "A small area: little effect on national figures, but clearly felt locally.",
  "n4.hw.umfang": "{prozent}% of the population is affected. The political price is {preis}% of the nationwide price; budget costs follow population ({bip}% of GDP a year).",
  "n4.hw.umfangKlein": "Less than 1% of the population is affected. The political price is {preis}% of the nationwide price; budget costs follow population ({bip}% of GDP a year).",

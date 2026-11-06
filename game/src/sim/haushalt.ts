@@ -156,19 +156,8 @@ export const ALTE_STEUERPOSTEN: Record<string, { massnahme: string; schritt: num
   unternehmensteuer: { massnahme: "m_koerperschaftsteuer", schritt: 0.3 },
 };
 
-/**
- * ENTSCHEIDUNGEN W, Nachtrag F1: Der Haushaltsposten ist der Etat. Die gleichnamige Maßnahme ist das Gesetz und kostet kein eigenes Geld
- * (Kosten 0 in data/politiknetz.ts); ihre Zeile im Politikbereich nennt den Etat, aus dem sie bezahlt wird.
- */
-export const ETAT_DER_MASSNAHME: Record<string, string> = {
-  m_verteidigung: "verteidigung",
-  m_renten: "rentenniveau",
-  m_sozialhilfe: "sozialhilfe",
-  m_forschung: "forschung",
-  m_polizei: "innere_sicherheit",
-  m_agrarsubventionen: "landwirtschaft",
-  m_energiesubventionen: "subventionen",
-};
+export { ETAT_DER_MASSNAHME } from "../data/etats";
+import { ETAT_DER_MASSNAHME } from "../data/etats";
 
 /** Alte Kennungen (Bündel vor den Ressortetats) zeigen auf das Ressort, das ihren Kern trägt. */
 export const POSTEN_ALIAS: Record<string, string> = { soziales: "sozialhilfe", gesundheit_bildung: "bildung", sicherheit: "verteidigung" };

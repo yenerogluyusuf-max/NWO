@@ -22,6 +22,7 @@
 //   Tag, Verlängerung auf Antrag des Präsidenten um jeweils höchstens vier Monate (sim/notstand.ts).
 
 import type { NodeSpec } from "./politiknetz";
+import { ETAT_DER_MASSNAHME } from "./etats";
 
 export type Rechtsweg = "gesetz" | "beschluss" | "erlass" | "haushalt" | "kommission" | "notstand";
 
@@ -51,7 +52,9 @@ export function rechtswegVon(node: Pick<NodeSpec, "id" | "theme" | "cost">, rich
   if (BESCHLUSS_MASSNAHMEN[node.id]) return "beschluss";
   const erlassThema = ERLASS_THEMEN.has(node.theme) || ERLASS_MASSNAHMEN.has(node.id);
   if (!erlassThema) return "gesetz";
-  // Art. 161: Mehr Geld ausgeben geht nur über den Haushalt
+  // Art. 161: Mehr Geld ausgeben geht nur über den Haushalt. Etat-Maßnahmen (F1) haben keine eigenen Kosten mehr, bewegen aber
+  // Haushaltsgeld: Sie gehen in beide Richtungen nur über den Haushalt
+  if (ETAT_DER_MASSNAHME[node.id]) return "haushalt";
   if ((node.cost ?? 0) > 0 && richtung > 0) return "haushalt";
   return "erlass";
 }
