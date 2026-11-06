@@ -6,6 +6,7 @@ import { startAfterElection, schnellProfil } from '../src/sim/prolog';
 import { KRISENGESETZE, krisenGesetzPlan, bringeKrisenGesetzEin, krisenAlltag } from '../src/sim/krisengesetze';
 import { bringeEin, gesetzPrognose, gesetzeAbstimmen, setPolicy } from '../src/sim/handeln';
 import { NET } from '../src/sim/modell';
+import { stufenName } from '../src/data/skalen';
 import { nationalAverage, PROVINCES } from '../src/sim/netz';
 import { fraktion } from '../src/sim/fraktionen';
 import { aktiveParteivorsitzende } from '../src/sim/koalitionslage';
@@ -94,7 +95,8 @@ test.each([false,true])('Beratung zeigt den echten %s-Entwurf statt eines neuen 
   const w=welt();bringeEin(w,'m_ausbildung',83,regional?[6]:null,'gesetz');
   const p=krisenGesetzPlan(w,'m_ausbildung',10)!;
   const html=renderToStaticMarkup(<KrisenGesetzKarte world={w} plan={p} ausfuehren={()=>{}}/>);
-  expect(html).toContain(t(regional?'kg.regionalBeratung':'kg.landesBeratung',{ziel:83}));
+  // Das Ziel des Entwurfs erscheint in der echten Einheit der Maßnahme (N9, Befund B-1), nicht als Indexstufe
+  expect(html).toContain(t(regional?'n9.kg.regional':'n9.kg.landes',{ziel:stufenName('m_ausbildung',83)}));
   expect(html).not.toContain(t('kg.einbringen'));expect(html).not.toContain(t('kg.jahreskosten'));
 });
 

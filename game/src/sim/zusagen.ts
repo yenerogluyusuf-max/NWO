@@ -10,7 +10,7 @@ import { addDays, formatDateDe } from "./dates";
 import { kannZahlen } from "./kapital";
 import { PARTEI_NAME, bereitschaftAendern } from "./fraktionen";
 import { bringeEin, pruefeVorhaben, stufeIn } from "./handeln";
-import { skala, skalenArt } from "../data/skalen";
+import { skala, skalenArt, stufenName } from "../data/skalen";
 import { grollVerschieben, loyalitaetVerschieben, merke } from "./personen";
 import { istMinisterienZusage, ministerienAnPartei, ressortNamen } from "./ressortvergabe";
 import { rendere, t } from "../i18n";
@@ -137,8 +137,8 @@ export function zusagenSicht(w: World): ZusageSicht[] {
         if (v) s.gesetz = {
           titel: t(v.erreicht ? "zusage.gesetz.bereit.titel" : v.gesetz ? "zusage.gesetz.beratung.titel" : "zusage.gesetz.offen.titel"),
           text: v.erreicht ? t("zusage.gesetz.bereit.text") : v.gesetz
-            ? `${t("zusage.gesetz.beratung.text", { datum: formatDateDe(addDays(sp.start.datum, v.gesetz.abstimmung)), stufe: v.gesetz.stufe, ziel: v.ziel })} ${t(v.decktZiel ? "zusage.gesetz.deckt" : "zusage.gesetz.teil")}`
-            : `${t("zusage.gesetz.offen.text", { name: v.name, ziel: v.ziel, pk: v.pr.gesetz.pk })} ${t("zusage.gesetz.fristRegel")}`,
+            ? `${t("n9.zusage.beratung", { datum: formatDateDe(addDays(sp.start.datum, v.gesetz.abstimmung)), stufe: stufenName(z.massnahme, v.gesetz.stufe), ziel: stufenName(z.massnahme, v.ziel) })} ${t(v.decktZiel ? "zusage.gesetz.deckt" : "zusage.gesetz.teil")}`
+            : `${t("n9.zusage.offen", { name: v.name, ziel: stufenName(z.massnahme, v.ziel), pk: v.pr.gesetz.pk })} ${t("zusage.gesetz.fristRegel")}`,
           aktion: t(v.erreicht ? "zusage.gesetz.verbuchen" : "zusage.gesetz.aktion"),
           gesperrt: !!v.gesetz && !v.erreicht,
         };

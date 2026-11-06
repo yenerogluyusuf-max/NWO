@@ -7,7 +7,7 @@ import { formatDateDe } from "../../sim/dates";
 import { provinzenText, setPolicy } from "../../sim/handeln";
 import { geaenderteArtikel, verfassungStand } from "../../sim/verfassung";
 import type { Bericht } from "../../sim/berichte";
-import { skala, skalenArt, stufenName, tunWort } from "../../data/skalen";
+import { hatZustaende, skala, skalenArt, stufenName, tunWort } from "../../data/skalen";
 import "./design.css";
 
 import { t } from "../../i18n";
@@ -111,7 +111,7 @@ export function UmsetzungAkte({
             {offen.map((o) => {
               const id = o.id.split("@")[0]!;
               // Nächster Schritt über und unter dem Ziel: bei benannten Zuständen der Nachbarzustand, sonst 20 Punkte
-              const regime = skalenArt(id) === "regime" ? skala(id, o.target).stufen : null;
+              const regime = skalenArt(id) === "regime" || hatZustaende(id) ? skala(id, o.target).stufen : null;
               const hoch = regime ? regime.find((x) => x.w > o.target + 1)?.w : o.target < 99 ? Math.min(100, Math.round(o.target) + 20) : undefined;
               const tief = regime ? [...regime].reverse().find((x) => x.w < o.target - 1)?.w : o.target > 1 ? Math.max(0, Math.round(o.target) - 20) : undefined;
               return (

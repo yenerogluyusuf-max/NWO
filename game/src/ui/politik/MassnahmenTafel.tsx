@@ -9,7 +9,7 @@ import type { Vorschlag } from "../../sim/vorschlaege";
 import { bringeEin, REGELN } from "../../sim/handeln";
 import { fassungsKnoepfe, gesetzesPrognose } from "../../sim/gesetzgebung";
 import type { FassungId } from "../../data/gesetzesvorhaben";
-import { naechsteStufe, skala, skalenArt, stufenName } from "../../data/skalen";
+import { hatZustaende, naechsteStufe, skala, skalenArt, stufenName } from "../../data/skalen";
 import { t, zahl } from "../../i18n";
 import type { MassnahmeZeile } from "./bereiche";
 import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
@@ -18,7 +18,7 @@ type Ergebnis = { ok: boolean; text: string; why?: string };
 
 /** Die wählbaren Werte einer Maßnahme: benannte Zustände oder 0, 10, … 100 */
 function stufenVon(id: string, jetzt: number): { w: number; name: string }[] {
-  if (skalenArt(id) === "regime") return skala(id, jetzt).stufen.map((s) => ({ w: s.w, name: s.name }));
+  if (skalenArt(id) === "regime" || hatZustaende(id)) return skala(id, jetzt).stufen.map((s) => ({ w: s.w, name: s.name }));
   return Array.from({ length: 11 }, (_, i) => ({ w: i * 10, name: stufenName(id, i * 10) }));
 }
 

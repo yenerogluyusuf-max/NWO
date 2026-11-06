@@ -9,6 +9,7 @@ import { bringeEin } from "../src/sim/handeln";
 import { NET } from "../src/sim/modell";
 import { nationalAverage } from "../src/sim/netz";
 import { Rng } from "../src/sim/rng";
+import { stufenName } from "../src/data/skalen";
 
 function neu() {
   const w = createWorld(turkey2026, 4);
@@ -28,7 +29,8 @@ describe("Wirkungsvorschau", () => {
     const a = ansicht(w, ev);
     expect(a.optionen.length).toBeGreaterThanOrEqual(2);
     const kraeftig = a.optionen.find((o) => o.id === "kraeftig")!;
-    expect(kraeftig.vorschau.some((z) => /Mindestlohn: Stufe/.test(z))).toBe(true);
+    // Die Maßnahme erscheint in ihrer echten Einheit mit Richtungsmarke (N9, Befund B-1), nicht mehr als „Stufe a auf b“
+    expect(kraeftig.vorschau.some((z) => /^▲ Mindestlohn: .*Lira netto im Monat → .*Lira netto im Monat$/.test(z))).toBe(true);
     expect(kraeftig.vorschau.some((z) => /Beschäftigte/.test(z))).toBe(true);
     expect(w.spiel!.kapital).toBe(vorherKapital);
     expect(JSON.stringify(w.net.targets)).toBe(vorherZiele);
@@ -40,10 +42,10 @@ describe("Wirkungsvorschau", () => {
     const w = neu();
     const ev = oeffne(w, "mindestlohn", new Rng(1))!;
     const vorschau = ansicht(w, ev).optionen.find((o) => o.id === "kraeftig")!.vorschau;
-    const zeile = vorschau.find((z) => z.startsWith("Mindestlohn: Stufe"))!;
-    const ziel = Number(zeile.match(/auf (\d+)/)![1]);
+    // Die Zeile nennt das Ziel in der echten Einheit (N9, Befund B-1); sie muss dem Ziel entsprechen, das der Beschluss wirklich setzt
+    const zeile = vorschau.find((z) => z.startsWith("▲ Mindestlohn: "))!;
     entscheide(w, ev.id, "kraeftig", new Rng(2));
-    expect(w.net.targets.m_mindestlohn).toBe(ziel);
+    expect(zeile.endsWith(`→ ${stufenName("m_mindestlohn", w.net.targets.m_mindestlohn!)}`)).toBe(true);
   });
 });
 

@@ -23,6 +23,7 @@ import { beobachte } from "./berichte";
 import { duldung, sachstimmen } from "./fraktionen";
 import { jaAnteilLager, jaAnteilOpposition, linienFaktor, reagierePartner, reagiereStamm } from "./linie";
 import { t } from "../i18n";
+import { stufenName } from "../data/skalen";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { Gesetz, Weg } from "./spiel-typen";
@@ -755,7 +756,7 @@ export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
       const node = NET.nodes[knotenIndex(g.massnahme)]!;
       const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
       const ort = provinzenText(g.provinzen);
-      addLog(world, "entscheidung", t("protokoll.gesetz.ja", { name: g.name, ort, ja, nein, stufe: g.stufe }), t("protokoll.gesetz.ja_warum", { text: node.text, monate })).abstimmung = { art: "gesetz", name: g.name, ort, ja, nein, angenommen: true, stufe: g.stufe };
+      addLog(world, "entscheidung", t("n9.protokoll.gesetz.ja", { name: g.name, ort, ja, nein, stufe: stufenName(g.massnahme, g.stufe) }), t("protokoll.gesetz.ja_warum", { text: node.text, monate })).abstimmung = { art: "gesetz", name: g.name, ort, ja, nein, angenommen: true, stufe: g.stufe };
     } else {
       vertrauenAendern(world, -1.2);
       spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);

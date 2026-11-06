@@ -9,6 +9,7 @@ import { AUFMERKSAMKEIT_KOSTEN } from './aufmerksamkeit';
 import { aktiveParteivorsitzende, naechsteKoalitionspruefung } from './koalitionslage';
 import { geldAusBip } from './staatsgeld';
 import { t } from '../i18n';
+import { stufenName } from '../data/skalen';
 
 export const KRISENGESETZE = ['m_mindestlohn','m_arbeitslosengeld','m_ausbildung'] as const;
 export type KrisenGesetz = typeof KRISENGESETZE[number];
@@ -28,7 +29,7 @@ export function krisenGesetzPlan(w:World,id:KrisenGesetz,umfang:10|20=10) {
   const k=structuredClone(w),pr=pruefeVorhaben(k,id,ziel,null);
   const laufend=k.spiel!.gesetze.find(g=>g.massnahme===id);
   const umsetzung=!laufend&&beschlossen!==undefined&&Math.abs(beschlossen-aktuell)>=1;
-  const grund=laufend?t('kg.laufend'):umsetzung?t('kg.umsetzung',{ziel:beschlossen}):undefined;
+  const grund=laufend?t('kg.laufend'):umsetzung?t('n9.kg.umsetzung',{ziel:stufenName(id,beschlossen)}):undefined;
   const r=grund?{ok:false,text:grund}:bringeEin(k,id,ziel,null,'gesetz');
   const g=laufend??(r.ok?k.spiel!.gesetze.find(g=>g.massnahme===id):undefined);
   const prognose=g?gesetzPrognose(k,g):undefined;

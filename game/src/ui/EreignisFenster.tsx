@@ -220,7 +220,7 @@ function Folgen({ zeilen }: { zeilen: string[] }) {
         const r = richtungVon(z);
         return (
           <span key={z} className={`ev2-chip ${r} ${wertungVon(z)}`}>
-            <i aria-hidden>{r === "auf" ? "▲" : r === "ab" ? "▼" : "•"}</i> {z}
+            <i aria-hidden>{r === "auf" ? "▲" : r === "ab" ? "▼" : "•"}</i> {z.replace(/^[▲▼] /, "")}
           </span>
         );
       })}

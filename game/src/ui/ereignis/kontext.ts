@@ -235,6 +235,9 @@ export type Richtung = "auf" | "ab" | "neutral";
 
 /** Richtung einer Vorschauzeile aus ihrem Wortlaut (+, −, mehr, weniger, stärker, schwächer, Stufe a auf b), in allen drei Sprachen. */
 export function richtungVon(zeile: string): Richtung {
+  // Maßnahmenzeilen tragen ihre Richtung als Marke vorn (n9.vs.auf/ab), weil die echte Einheit auch sinken kann, wenn die Maßnahme steigt
+  if (zeile.startsWith("▲ ")) return "auf";
+  if (zeile.startsWith("▼ ")) return "ab";
   const stufe = /(?:Stufe|level|seviye) (\d+) (?:auf|to|→) (\d+)/i.exec(zeile);
   if (stufe) return Number(stufe[2]) > Number(stufe[1]) ? "auf" : "ab";
   if (/\+\d|\bmehr\b|stärker|steigt|höher|\bmore\b|stronger|daha fazla|güçlü/.test(zeile)) return "auf";
@@ -260,7 +263,7 @@ function hochSchlechtNamen(): string[] {
  */
 export function wertungVon(zeile: string): Wertung {
   const r = richtungVon(zeile);
-  if (r === "neutral" || /(?:Stufe|level|seviye) \d+ (?:auf|to|→) \d+/i.test(zeile)) return "neutral";
+  if (r === "neutral" || /^[▲▼] /.test(zeile) || /(?:Stufe|level|seviye) \d+ (?:auf|to|→) \d+/i.test(zeile)) return "neutral";
   const mehrSchlecht = /^(Schulden|Debt|Borç|Risikoaufschlag|Risk premium|Risk primi)\b/.test(zeile) || hochSchlechtNamen().some((n) => zeile.startsWith(`${n} `));
   return (r === "auf") !== mehrSchlecht ? "gut" : "schlecht";
 }

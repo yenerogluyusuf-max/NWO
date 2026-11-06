@@ -22,6 +22,7 @@ import { addDays, dayOfMonth } from "./dates";
 import { addLog } from "./log";
 import { GRUPPEN } from "./gruppen";
 import { aktuelleLocale, aktuelleSprache, katalogDe, t, zahl } from "../i18n";
+import { stufenName } from "../data/skalen";
 import type { World } from "./types";
 
 /** Monatliche Stichproben seit dem Beschluss; Index 0 ist der Tag des Beschlusses. */
@@ -357,8 +358,9 @@ function zeileProblem(name: string, vorher: number, jetzt: number): string {
   return t("bericht.zeile.problem", { name, vorher, jetzt });
 }
 
-function titelVon(name: string, ort: number[] | null | undefined, von: number, auf: number, monate: number): string {
-  return ort ? t("bericht.titelOrt", { name, n: ort.length, von: Math.round(von), auf: Math.round(auf), monate }) : t("bericht.titel", { name, von: Math.round(von), auf: Math.round(auf), monate });
+function titelVon(id: string, name: string, ort: number[] | null | undefined, von: number, auf: number, monate: number): string {
+  const [v, a] = [stufenName(id, von), stufenName(id, auf)];
+  return ort ? t("n9.bericht.titelOrt", { name, n: ort.length, von: v, auf: a, monate }) : t("n9.bericht.titel", { name, von: v, auf: a, monate });
 }
 
 function hinweisVon(urteil: Bericht["urteil"], rb: number): string {
@@ -404,7 +406,7 @@ export function lokalisiereBerichte(world: World): void {
     b.name = knotenName(b.massnahme, b.name);
     for (const g of b.groessen) g.name = knotenName(g.id, g.name);
     for (const m of b.mitwirkend ?? []) m.name = knotenName(m.massnahme, m.name);
-    b.titel = titelVon(b.name, b.ort, b.von, b.auf, b.monate);
+    b.titel = titelVon(b.massnahme, b.name, b.ort, b.von, b.auf, b.monate);
     b.zeilen = b.groessen.filter((g) => g.art === "groesse" || g.delta !== 0).map((g) => (g.art === "problem" ? zeileProblem(g.name, g.vorher, g.nachher) : zeileGroesse(g.name, g.vorher, g.nachher, g.delta)));
     const rb = b.rest ?? Number(/(\d+)/.exec(alterHinweis.split(".")[0] ?? "")?.[1] ?? 0);
     b.hinweis = hinweisVon(b.urteil, /^(Die volle Wirkung|The full effect|Tam etki)/.test(alterHinweis) || b.rest !== undefined ? rb : 0);
@@ -614,7 +616,7 @@ function bericht(world: World, b: Beobachtung, monate: number): Bericht {
     tag: world.day,
     datum: world.date,
     massnahme: b.id,
-    titel: titelVon(b.name, b.ort, b.von, b.auf, monate),
+    titel: titelVon(b.id, b.name, b.ort, b.von, b.auf, monate),
     monate,
     urteil,
     zeilen,
