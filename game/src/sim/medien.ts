@@ -940,13 +940,27 @@ export function rohdatenKaufen(w: World): MedienErgebnis {
  * (sim/wahlkampf.ts, angriffBeantworten). Spielparameter aus den Modellwerten der Recherche A.5.2.
  */
 export function hausmedienAnteil(w: World): number {
-  let haus = 0;
-  let alle = 0;
-  for (const c of MEDIEN_CLUSTER) {
+  return publikumsAnteile(w).reduce((s, a) => s + (a.lager === "regierung" ? a.anteil : 0), 0);
+}
+
+/** Lager eines Hauses nach seiner heutigen Richtung (Eigentümer, Kippen, Übernahme): regierungsnah, angepasst oder kritisch. */
+export type MedienLager = "regierung" | "angepasst" | "kritisch";
+
+export function medienLager(w: World, c: MedienCluster): MedienLager {
+  const a = wirksamerCluster(w, c).ausrichtung;
+  if (loyalAusrichtung(a)) return "regierung";
+  return a === "linientreu_opportunistisch" || a === "konform_kommerziell" ? "angepasst" : "kritisch";
+}
+
+/**
+ * Anteil jedes Hauses am Publikum (0–1, Summe 1): Mittel der Segmentreichweiten mal der heutigen Reichweite, geteilt durch alle Häuser.
+ * Dieselbe Rechnung trägt `hausmedienAnteil`; die Medienansicht zeigt sie als Leiste „Wem gehört die Öffentlichkeit“.
+ */
+export function publikumsAnteile(w: World): { id: string; anteil: number; lager: MedienLager }[] {
+  const roh = MEDIEN_CLUSTER.map((c) => {
     const seg = Object.values(c.reichweiteSegmente);
-    const r = (seg.reduce((a, b) => a + b, 0) / Math.max(1, seg.length)) * reichweiteJetzt(w, c.id);
-    alle += r;
-    if (loyalAusrichtung(wirksamerCluster(w, c).ausrichtung)) haus += r;
-  }
-  return alle > 0 ? haus / alle : 0;
+    return { id: c.id, r: (seg.reduce((a, b) => a + b, 0) / Math.max(1, seg.length)) * reichweiteJetzt(w, c.id), lager: medienLager(w, c) };
+  });
+  const alle = roh.reduce((s, x) => s + x.r, 0);
+  return roh.map((x) => ({ id: x.id, anteil: alle > 0 ? x.r / alle : 0, lager: x.lager }));
 }
