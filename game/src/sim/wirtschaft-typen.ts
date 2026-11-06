@@ -87,6 +87,8 @@ export interface HaushaltZustand {
   wirksam?: Record<string, number>;
   /** Der Mehraufwand der Renten durch Alterung, der schon im Ausgabenimpuls steckt (% des BIP) */
   demografie?: number;
+  /** 1 = Steuerregler sind auf die Maßnahmen umgerechnet (06.11.2026, sim/wirtschaft.ts migriereSteuern); fehlt in älteren Spielständen */
+  steuerFassung?: number;
 }
 
 /** WIR-3: Der Haushaltsentwurf auf dem Weg durchs Parlament (Mehrheitslogik wie bei Gesetzen). */

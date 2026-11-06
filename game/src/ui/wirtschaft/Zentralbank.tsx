@@ -207,7 +207,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             </p>
           </div>
           <div className={`wi-stufe wi-stufe-${z.stufe}`}>
-            <span>{t("zb.stufe", { s: z.stufe })}</span>
+            <span>{t("n3.zb.stellung")}</span>
             <b>{STUFEN[z.stufe].name}</b>
           </div>
         </div>
@@ -346,7 +346,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
             return (
               <div key={w.ziel} className="wi-wechsel-karte">
                 <b>
-                  {w.text} <small>({t("zb.stufe", { s: w.ziel })}: {STUFEN[w.ziel].name})</small>
+                  {w.text} <small>({STUFEN[w.ziel].name})</small>
                 </b>
                 <span>{w.effekte}</span>
                 <span className="wi-kosten">{t("zb.kostetPk", { pk: w.pk })}</span>

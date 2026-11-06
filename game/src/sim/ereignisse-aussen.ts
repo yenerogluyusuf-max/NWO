@@ -4,7 +4,7 @@
 
 import { ratingAendere, ratingDruck } from "./maerkte";
 import { wirke, vertrauenAendern } from "./wirkung";
-import { setFiscalImpulse } from "./eingriffe";
+import { haushaltFahrplan } from "./haushalt";
 import { clamp } from "./economy";
 import { anrede, figur, loyalitaetAendern } from "./figuren";
 import { DEVISEN, iwfAktiv, iwfAuflagen, iwfStarten } from "./devisen";
@@ -204,7 +204,7 @@ const RATING: Vorlage = {
     opt("fahrplan", t("eva.ratingagentur.opt.fahrplan.label"), beschr(3, 0, t("eva.ratingagentur.opt.fahrplan.folge")), 3, (w) => {
       wirke(w, "vertrauen_maerkte", 4);
       ratingDruck(w, -4);
-      setFiscalImpulse(w, Math.min(w.economy.fiscalImpulse, 0));
+      haushaltFahrplan(w); // N3 (D-13): Mehrausgaben sichtbar an den Reglern zurückstellen
       loyalitaetAendern(w, "finanzen", 4);
       return t("eva.ratingagentur.opt.fahrplan.ausgang");
     }),

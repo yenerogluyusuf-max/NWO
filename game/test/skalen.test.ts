@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from "vitest";
 import { NET } from "../src/sim/modell";
-import { skala, skalenArt, naechsteStufe } from "../src/data/skalen";
+import { echteHalte, naechsteStufe, rasteStufe, satzBei, skala, skalenArt, stufenName } from "../src/data/skalen";
 
 const MASSNAHMEN = NET.nodes.filter((n) => n.kind === "massnahme");
 
@@ -29,10 +29,25 @@ describe("Skalen", () => {
     }
   });
 
-  test("Sätze und Mengen bieten Schritte um den heutigen Stand", () => {
+  // N3 (06.11.2026, Befund B-2): Echte Sätze in ganzen Prozentpunkten zwischen echten Grenzen; beide Ansichten lesen dieselbe Liste.
+  test("Echte Sätze gehen in ganzen Punkten; Tafel und Maßnahmenblatt lesen dieselbe Liste", () => {
     const s = skala("m_mwst", 60);
     expect(s.art).toBe("satz");
-    expect(s.stufen.map((x) => x.w)).toEqual([20, 40, 60, 80, 100]);
+    expect(s.stufen.map((x) => stufenName("m_mwst", x.w))).toEqual(["18 %", "19 %", "20 %", "21 %", "22 %"]);
+    const halte = echteHalte("m_mwst").map((h) => h.satz);
+    expect(halte[0]).toBe(15);
+    expect(halte.at(-1)).toBe(27);
+    for (const st of s.stufen) expect(echteHalte("m_mwst").some((h) => h.w === st.w)).toBe(true);
+    expect(echteHalte("m_einkommensteuer").map((h) => h.satz)).toEqual(Array.from({ length: 21 }, (_, i) => 30 + i));
+    expect(stufenName("m_einkommensteuer", 50)).toBe("Spitzensatz 40 %");
+    expect(echteHalte("m_koerperschaftsteuer").map((h) => h.satz)).toEqual(Array.from({ length: 21 }, (_, i) => 15 + i));
+    // Ein Wert zwischen zwei Sätzen und einer jenseits der Grenze landen auf dem nächsten ganzen Satz in der Spanne
+    expect(satzBei("m_mwst", rasteStufe("m_mwst", 63))).toBe(21);
+    expect(satzBei("m_mwst", rasteStufe("m_mwst", 0))).toBe(15);
+    expect(rasteStufe("m_krankenhausbau", 37)).toBe(37);
+  });
+
+  test("Mengen bieten Schritte um den heutigen Stand", () => {
     const t = skala("m_krankenhausbau", 10);
     expect(t.art).toBe("menge");
     expect(t.stufen.map((x) => x.w)).toEqual([10, 30, 50]);

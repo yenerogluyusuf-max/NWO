@@ -6,7 +6,7 @@ import { haushaltZustand, defizitJetzt } from './wirtschaft';
 import { REGELN, stimmenPrognose } from './handeln';
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from './aufmerksamkeit';
 import { kannZahlen } from './kapital';
-import { geldAusBip } from './staatsgeld';
+import { bipMrd, geldAusBip } from './staatsgeld';
 import { aktiveParteivorsitzende, naechsteKoalitionspruefung, regierungsSitze } from './koalitionslage';
 import { zusagenDruck } from './zusagendruck';
 import { addLog } from './log';
@@ -32,15 +32,17 @@ export function krisenPaketPlan(w:World,id:KrisenPaket) {
   const aktuell=(p:string)=>h.stufen[p]??0;
   const mindestens=(p:string,n:number)=>{if(aktuell(p)<n)schritte[p]=inSpanne(POSTEN_NACH_ID[p]!,n);};
   const hoechstens=(p:string,n:number)=>{if(aktuell(p)>n)schritte[p]=inSpanne(POSTEN_NACH_ID[p]!,n);};
-  if(id==='entlastung'){mindestens('sozialhilfe',4);hoechstens('verbrauchsteuern',-1);}
+  // Steuern stellt allein ihr Gesetz im Politikbereich (Befund D-1, N3): Kaufkrafthilfe über Preisstützen statt über eine Steuersenkung,
+  // Gegenfinanzierung über gestreckte Investitionen statt über einen zweiten Steuerregler.
+  if(id==='entlastung'){mindestens('sozialhilfe',4);mindestens('subventionen',1);}
   if(id==='umschichten'){mindestens('sozialhilfe',4);hoechstens('subventionen',-1);}
   if(id==='dienste'){mindestens('sozialhilfe',3);mindestens('gesundheit',2);mindestens('rentenniveau',2);}
-  const impulse=()=>Object.entries(schritte).reduce((s,[p,z])=>s+(z-aktuell(p))*POSTEN_NACH_ID[p]!.schritt*(POSTEN_NACH_ID[p]!.seite==='einnahme'?-1:1),0);
-  // Gegenfinanzierung nur für zusätzliche Leistungen; vorhandene höhere Steuern bleiben bestehen.
-  const bedarf=Math.max(0,impulse());
-  if(bedarf>1e-9)mindestens('unternehmensteuer',Math.min(POSTEN_NACH_ID.unternehmensteuer!.max,aktuell('unternehmensteuer')+Math.ceil((bedarf-1e-9)/POSTEN_NACH_ID.unternehmensteuer!.schritt)));
+  const impulse=()=>Object.entries(schritte).reduce((s,[p,z])=>s+(z-aktuell(p))*POSTEN_NACH_ID[p]!.schritt,0);
+  // Gegenfinanzierung nur für zusätzliche Leistungen: Investitionen werden gestreckt, soweit ihre Spanne reicht; ein Rest erhöht das Defizit.
+  const bedarf=Math.max(0,impulse()),inv=POSTEN_NACH_ID.investitionen!;
+  if(bedarf>1e-9&&!schritte.investitionen)hoechstens('investitionen',Math.max(inv.min,aktuell('investitionen')-Math.ceil((bedarf-1e-9)/inv.schritt)));
   const posten=Object.entries(schritte).map(([p,ziel])=>{const d=POSTEN_NACH_ID[p]!,delta=ziel-aktuell(p);return {id:p,vorher:aktuell(p),ziel,delta,
-    saldo:delta*d.schritt*(d.seite==='einnahme'?-1:1),monate:d.reifeMonate,
+    saldo:delta*d.schritt,monate:d.reifeMonate,
     gruppen:d.sofort.map(g=>({id:g.id,delta:g.d*delta}))};});
   let grund=sp.ende?t('hm.beendet'):h.gesetz?t('kp.laufend'):neuanfangGrund(k);
   const letzter=[...(h.abschluesse??[])].reverse().find(b=>b.krisenpaket===id&&!b.angenommen);
@@ -59,7 +61,8 @@ export function krisenPaketPlan(w:World,id:KrisenPaket) {
     pk:KRISENPAKET_KOSTEN.pk,aufmerksamkeit:KRISENPAKET_KOSTEN.aufmerksamkeit,
     kapitalDanach:sp.kapital-KRISENPAKET_KOSTEN.pk,aufmerksamkeitDanach:Math.max(0,(sp.verfassung?.aufmerksamkeit??80)-KRISENPAKET_KOSTEN.aufmerksamkeit),
     prognose,gruppen:[...gruppen].map(([id,vorher])=>({id,delta:nationalAverage(NET,k.net,id)-vorher})).filter(g=>Math.abs(g.delta)>1e-9),risiken,druck,pruefung:naechsteKoalitionspruefung(w.date)};
-  plan.stand=JSON.stringify({tag:w.day,datum:w.date,stufen:h.stufen,gesetz:h.gesetz,verfassung:sp.verfassung,kapital:sp.kapital,ende:sp.ende,plan});
+  // Die Geldbasis gehört zum Stand: Ändert sich das BIP, gelten die angezeigten Lira-Beträge nicht mehr (auch bei ausgeglichenem Saldo)
+  plan.stand=JSON.stringify({tag:w.day,datum:w.date,stufen:h.stufen,gesetz:h.gesetz,verfassung:sp.verfassung,kapital:sp.kapital,ende:sp.ende,bip:bipMrd(w),plan});
   return plan;
 }
 export type KrisenPaketPlan=NonNullable<ReturnType<typeof krisenPaketPlan>>;

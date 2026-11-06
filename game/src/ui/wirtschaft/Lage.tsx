@@ -15,8 +15,22 @@ import { berechneReihen } from "./prognose";
 import type { PrognoseReihe } from "../../sim/forecast";
 import "./wirtschaft.css";
 
-import { t } from "../../i18n";
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+import { t, zahl } from "../../i18n";
+import { Tacho } from "../bausteine/Tacho";
+const nf = (x: number, d = 1) => zahl(x, d);
+
+/**
+ * Das Bild der Lage (Befund D-27): sechs Halbkreise für die Größen, nach denen ein Finanzminister zuerst fragt. Die Skalen sind nur
+ * Anzeige (Spielparameter); das Band kommt aus den Linien der Kennzahl (Inflationsziel, 3-%-Grenze, Reservenschwelle).
+ */
+const TACHOS: { id: string; min: number; max: number }[] = [
+  { id: "inflation", min: 0, max: 60 },
+  { id: "arbeitslosigkeit", min: 0, max: 20 },
+  { id: "wachstum", min: -4, max: 8 },
+  { id: "defizit", min: 0, max: 8 },
+  { id: "risiko", min: 0, max: 800 },
+  { id: "reservenNetto", min: 0, max: 120 },
+];
 const zeichen = (x: number) => (x > 0 ? "+" : x < 0 ? "−" : "±");
 
 function Sparkline({ werte }: { werte: number[] }) {
@@ -56,6 +70,9 @@ function zumDetail() {
 
 export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Handlung) => void }) {
   const [gewaehlt, setGewaehlt] = useState("inflation");
+  // Rest auf Klick (≤ 1,5 Bildschirme): Die Liste aller Kennzahlen und die Abschnitte unter dem Diagramm öffnen sich erst auf Wunsch
+  const [alle, setAlle] = useState(false);
+  const [abschnitt, setAbschnitt] = useState<"treiber" | "vergleich" | "zuletzt" | null>(null);
   const [vorschau, setVorschau] = useState<Handlung | null>(null);
   const k = kennzahl(gewaehlt)!;
 
@@ -96,11 +113,37 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
   const letzteMarken = [...marken].reverse().slice(0, 5);
   const zuletzt = punkte.filter((p) => !p.jetzt).slice(-24).map((p) => p.wert);
 
-  const band = reihe ? { ohne: reihe.ohne, ...(reihe.mit.length ? { mit: reihe.mit, mitName: `Mit: ${vorschau?.label ?? "Vorhaben"}` } : {}) } : undefined;
+  const band = reihe ? { ohne: reihe.ohne, ...(reihe.mit.length ? { mit: reihe.mit, mitName: t("zb.mit", { name: vorschau?.label ?? "" }) } : {}) } : undefined;
+  // „Zum Vorjahr“ erst nach zwölf Monaten im Amt: Davor stammt der Vergleich aus der angenommenen Vorgeschichte (Befund D-9)
+  const monatsZahl = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5, 7));
+  const imAmtMonate = monatsZahl(world.date.slice(0, 7)) - monatsZahl(startMonat(world));
+  const tachoBand = (id: string): [number, number] | undefined => {
+    const x = kennzahl(id)!;
+    const l = x.linien?.(world).find((l) => l.art === "ziel" || l.art === "grenze");
+    const tacho = TACHOS.find((y) => y.id === id)!;
+    if (!l) return undefined;
+    return x.gut === "hoch" ? [l.wert, tacho.max] : [tacho.min, l.wert];
+  };
 
   return (
+    <div className={`wi-lage-seite${alle ? " mit-liste" : ""}`}>
+    <div className="wi-tachos" role="group" aria-label={t("n3.lage.bild")}>
+      {TACHOS.map((x) => {
+        const kz = kennzahl(x.id)!;
+        const wert = aktuellerWert(world, x.id);
+        const b = tachoBand(x.id);
+        return (
+          <div key={x.id} className={`wi-tacho${gewaehlt === x.id ? " on" : ""}`}>
+            <Tacho titel={kz.name} wert={wert} text={`${nf(wert, kz.stellen)} ${kz.einheit === "Indexpunkte" ? "" : einheitName(kz.einheit)}`.trim()} min={x.min} max={x.max}
+              {...(b ? { band: b, bandText: [nf(b[0], 0), nf(b[1], 0)] as [string, string] } : {})}
+              onKlick={() => { setGewaehlt(x.id); setVorschau(null); }} />
+          </div>
+        );
+      })}
+    </div>
+    <button type="button" className="pd-btn quiet wi-alle" aria-expanded={alle} onClick={() => setAlle(!alle)}>{t(alle ? "n3.lage.alleZu" : "n3.lage.alle", { n: KENNZAHLEN.length })}</button>
     <div className="wi-lage">
-      <nav className="wi-liste" aria-label={t("ui2.ui.wirtschaft.Lage.9a372e1")}>
+      {alle && <nav className="wi-liste" aria-label={t("ui2.ui.wirtschaft.Lage.9a372e1")}>
         {GRUPPEN.map((gruppe) => (
           <section key={gruppe}>
             <h4>{gruppeName(gruppe)}</h4>
@@ -127,7 +170,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
             </ul>
           </section>
         ))}
-      </nav>
+      </nav>}
 
       <article className="wi-detail" id="wi-detail" aria-live="polite">
         <button className="pd-btn quiet wi-zurueck" onClick={() => document.querySelector(".wi-liste")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
@@ -142,7 +185,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
             </strong>
             <span className="wi-chips">
               <Chip id={k.id} jetzt={jetzt} davor={start} label={t("ui2.ui.wirtschaft.Lage.6ac651e")} />
-              <Chip id={k.id} jetzt={jetzt} davor={vor12} label={t("ui.wirtschaft.Lage.e4b97b0")} />
+              {imAmtMonate >= 12 && <Chip id={k.id} jetzt={jetzt} davor={vor12} label={t("ui.wirtschaft.Lage.e4b97b0")} />}
             </span>
           </div>
           <p className="wi-gemessen">{k.gemessen(world)}</p>
@@ -161,10 +204,34 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
           rechnet={rechnet}
         />
 
-        <p className="wi-erklaerung">{k.erklaerung}</p>
+        <section className="wi-block wi-tun">
+          <h4>{t("ui.wirtschaft.Lage.51a8bcf")}</h4>
+          <ul className="wi-handlungen">
+            {k.handlungen.map((h) => (
+              <li key={h.label}>
+                <button className="wi-handlung" onClick={() => onHandlung(h)}>
+                  {h.label} <span aria-hidden>→</span>
+                </button>
+                {h.posten && h.stufe !== undefined && k.prognose && (
+                  <button className={`wi-wenn${vorschau?.label === h.label ? " on" : ""}`} aria-pressed={vorschau?.label === h.label} onClick={() => setVorschau(vorschau?.label === h.label ? null : h)}>
+                    {vorschau?.label === h.label ? t("ui2.ui.wirtschaft.Lage.8180db4") : t("ui2.ui.wirtschaft.Lage.cd1aa4e")}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {vorschau && <p className="wi-hinweis">{t("ui.wirtschaft.Lage.687148b")}</p>}
+        </section>
 
-        <section className="wi-block">
+        <div className="wi-abschnitte" role="group" aria-label={t("n3.lage.mehr")}>
+          <button type="button" aria-pressed={abschnitt === "treiber"} onClick={() => setAbschnitt(abschnitt === "treiber" ? null : "treiber")}>{t("ui2.ui.wirtschaft.Lage.4f96076")}</button>
+          {k.vergleichId && ZUORDNUNG[k.vergleichId] && <button type="button" aria-pressed={abschnitt === "vergleich"} onClick={() => setAbschnitt(abschnitt === "vergleich" ? null : "vergleich")}>{t("ui.wirtschaft.Lage.e0ee810")}</button>}
+          {letzteMarken.length > 0 && <button type="button" aria-pressed={abschnitt === "zuletzt"} onClick={() => setAbschnitt(abschnitt === "zuletzt" ? null : "zuletzt")}>{t("ui.wirtschaft.Lage.5e13268")}</button>}
+        </div>
+
+        {abschnitt === "treiber" && <section className="wi-block">
           <h4>{t("ui2.ui.wirtschaft.Lage.4f96076")}</h4>
+          <p className="wi-erklaerung">{k.erklaerung}</p>
           {treiber.kopf && <p className="wi-hinweis">{treiber.kopf}</p>}
           {treiber.zeilen.length === 0 ? (
             <p className="wi-hinweis">{t("ui.wirtschaft.Lage.1f43daf")}</p>
@@ -185,35 +252,16 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
               ))}
             </ul>
           )}
-        </section>
+        </section>}
 
-        {k.vergleichId && ZUORDNUNG[k.vergleichId] && (
+        {abschnitt === "vergleich" && k.vergleichId && ZUORDNUNG[k.vergleichId] && (
           <section className="wi-block">
             <h4>{t("ui.wirtschaft.Lage.e0ee810")}</h4>
             <VergleichBalken code={ZUORDNUNG[k.vergleichId]![0]!} spiel={spielWert(world, k.vergleichId)} />
           </section>
         )}
 
-        <section className="wi-block">
-          <h4>{t("ui.wirtschaft.Lage.51a8bcf")}</h4>
-          <ul className="wi-handlungen">
-            {k.handlungen.map((h) => (
-              <li key={h.label}>
-                <button className="wi-handlung" onClick={() => onHandlung(h)}>
-                  {h.label} <span aria-hidden>→</span>
-                </button>
-                {h.posten && h.stufe !== undefined && k.prognose && (
-                  <button className={`wi-wenn${vorschau?.label === h.label ? " on" : ""}`} aria-pressed={vorschau?.label === h.label} onClick={() => setVorschau(vorschau?.label === h.label ? null : h)}>
-                    {vorschau?.label === h.label ? t("ui2.ui.wirtschaft.Lage.8180db4") : t("ui2.ui.wirtschaft.Lage.cd1aa4e")}
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-          {vorschau && <p className="wi-hinweis">{t("ui.wirtschaft.Lage.687148b")}</p>}
-        </section>
-
-        {letzteMarken.length > 0 && (
+        {abschnitt === "zuletzt" && letzteMarken.length > 0 && (
           <section className="wi-block">
             <h4>{t("ui.wirtschaft.Lage.5e13268")}</h4>
             <ul className="wi-marken">
@@ -226,6 +274,7 @@ export function Lage({ world, onHandlung }: { world: World; onHandlung: (h: Hand
           </section>
         )}
       </article>
+    </div>
     </div>
   );
 }

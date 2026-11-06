@@ -1,7 +1,13 @@
 import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
 import { Staatsfinanzen } from "./Staatsfinanzen";
-import { HaushaltsRad } from "./HaushaltsRad";
+import { AUSGABE_GRUPPEN, HaushaltsRad, radStuecke } from "./HaushaltsRad";
 import { geldAusBip } from "../../sim/staatsgeld";
+import { staatsfinanzen } from "../../sim/staatsfinanzen";
+import type { SteuerZeile } from "../../sim/haushalt-steuern";
+import { echterSatz, stufeBeiSatz, stufenName } from "../../data/skalen";
+import { gesetzesPrognose } from "../../sim/gesetzgebung";
+import { RATING_STUFEN, ratingSicht } from "../../sim/maerkte";
+import type { Ziel } from "../schreibtisch/briefing";
 // Der Haushalt wie in Democracy: oben die Bilanz (Einnahmen, Ausgaben, Defizit, Schulden), darunter je Ressort ein Regler mit Betrag in Lira
 // und % des BIP, vorher → nachher, einer Wirkungszeile und dem Wunsch der zuständigen Ministerin oder des Ministers. Renten mit eigenen
 // Stellgrößen (Rentenniveau, Renteneintrittsalter). Im Oktober-Fenster gehen Änderungen kostenlos in den Entwurf, sonst sind sie ein Nachtrag.
@@ -12,7 +18,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Aktion, Metric, PrognoseReihe } from "../../sim/forecast";
 import { impulsKette } from "../../sim/folgen";
-import { formatDateDe } from "../../sim/dates";
+import { addDays, formatDateDe } from "../../sim/dates";
 import { KENNZAHLEN_NACH_ID, einheitName } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, defizitJetzt, haushaltZustand, startMonat, verlauf, zinsausgabenJetzt } from "../../sim/wirtschaft";
 import {
@@ -25,6 +31,7 @@ import {
   haushaltsEntwurfsSicht,
   haushaltsfenster,
   inSpanne,
+  ministerFolge,
   ministerWunsch,
   mrdJeStufe,
   paketInEntwurf,
@@ -68,22 +75,23 @@ const METRIKEN: { id: Metric; kennzahl: string }[] = [
   { id: "riskPremium", kennzahl: "risiko" },
 ];
 
-const GRUPPEN: PostenGruppe[] = ["renten", "soziales", "dienste", "sicherheit", "wirtschaft", "staat", "steuern"];
+const GRUPPEN: PostenGruppe[] = AUSGABE_GRUPPEN;
 
 
 /** Der Betrag eines Postens bei einer Stufe: Etat in Mrd. Lira und % des BIP, Renten in ihren eigenen Einheiten. */
 function betrag(world: World, p: PostenDef, stufe: number): string {
   if (p.id === "rentenniveau") return t("haushalt.ui.wert.niveau", { wert: nf(rentenSicht(world, stufe).niveau, 0) });
   if (p.id === "rentenalter") return t("haushalt.ui.wert.alter", { wert: nf(rentenSicht(world, undefined, stufe).alter, 0) });
+  // Personal ist ein Querschnitt durch alle Ressorts (D-8): Die Zeile zeigt nur die Änderung, die das Rad im Stück „Verwaltung und Übriges“ bucht
   const bip = etatBip(p, stufe);
-  if (bip === undefined) {
+  if (bip === undefined || p.id === "personal") {
     const mrd = stufe * mrdJeStufe(p, world);
     return stufe === 0 ? t("haushalt.ui.wert.steuer_null") : t("haushalt.ui.wert.steuer", { mrd: `${mrd > 0 ? "+" : "−"}${mrdText(Math.abs(mrd))}` });
   }
   return t("haushalt.ui.wert.etat", { mrd: mrdText(geldAusBip(world, bip)), bip: nf(bip, 1) });
 }
 
-export function Haushalt({ world, geaendert, posten }: { world: World; geaendert: () => void; posten?: string | undefined }) {
+export function Haushalt({ world, geaendert, posten, onGehe }: { world: World; geaendert: () => void; posten?: string | undefined; onGehe?: ((z: Ziel) => void) | undefined }) {
   useSprache();
   const rueckRef=useRef<HTMLParagraphElement>(null);
   const z = haushaltZustand(world);
@@ -96,6 +104,9 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   const [rechnet, setRechnet] = useState(false);
   const [prognoseOffen,setPrognoseOffen]=useState(false);
   const [offen, setOffen] = useState<number | null>(null);
+  // Rest auf Klick (Länge ≤ 1,5 Bildschirme): Die Ressortgruppen stehen zugeklappt mit ihrer Summe, ein Klick (auch auf das Rad) öffnet sie
+  const [gruppe, setGruppe] = useState<PostenGruppe | null>(start ? POSTEN_NACH_ID[start]?.gruppe ?? null : null);
+  const [steuer, setSteuer] = useState<{ id: string; satz: number } | null>(null);
   const stand = Math.floor(world.day / 30);
   const p = sel ? POSTEN_NACH_ID[sel] : undefined;
   const entscheidung = p && entwurf !== null ? haushaltsPostenEntscheidung(world, p.id, entwurf) : null;
@@ -158,6 +169,20 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   }
 
   const defizit = defizitJetzt(world);
+  const rating = ratingSicht(world);
+  /** „Ayşe Kaya will 1.008 Mrd. ₺ (+168)“: der Wunsch in Lira, mit dem Abstand zum heutigen Etat (D-4) */
+  const wunschText = (q: PostenDef, name: string, ist: number, wunsch: number) => {
+    const e1 = etatBip(q, wunsch), e0 = etatBip(q, ist);
+    if (q.id === "personal" || e1 === undefined || e0 === undefined || q.id === "rentenniveau") return t("n3.wunsch.stufe", { name, wert: betrag(world, q, wunsch) });
+    const d = geldAusBip(world, e1 - e0);
+    return t("n3.wunsch.mrd", { name, mrd: mrdText(geldAusBip(world, e1)), delta: `${d >= 0 ? "+" : "−"}${mrdText(Math.abs(d))}` });
+  };
+  /** Was die zuständige Person zum Beschluss sagt: dieselbe Zahl, die `wende` bucht (ministerFolge). */
+  const loyalitaetsFakt = (q: PostenDef, name: string, ist: number, ziel: number) => {
+    const n = ministerFolge(world, q.id, ist, ziel);
+    const grund = Math.abs(n) > 1 ? t(n > 0 ? "n3.wunsch.erfuellt" : "n3.wunsch.gekuerzt") : "";
+    return { label: t("n3.loyalitaet", { name }), wert: `${vz(n)}${grund ? ` · ${grund}` : ""}`, schlecht: n < 0 };
+  };
   const behoerdenSatz = () => {
     const verbrauch = behoerdenVerbrauch(structuredClone(world));
 
@@ -177,6 +202,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         </div>
       );
     if (id === "_abschluss") return <HaushaltsNachbericht world={world} geaendert={geaendert}/>;
+    if (id === "_bonitaet") return <Bonitaet world={world} />;
     if (id === "_zyklus") return <div className="hh-im-detail">
         <p className="kicker">{t("haushalt.ui.zyklus.kicker")}</p>
         {fenster.offen ? (
@@ -309,7 +335,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
   // gezogen“): oben die Bilanz als Balken, darunter alle Posten auf einen Blick, je eine Zeile mit Regler. Wer einen Posten
   // verstellt, sieht Preis und Wirkung direkt darunter und beschließt dort. Verfahren, Ausgangslage und Verlauf stehen darunter.
   // Das Verfahren (Fenster, Abstimmung, Bericht nach dem Beschluss) steht offen; der Rest auf Wunsch
-  const [mehr, setMehr] = useState<string | null>(posten?.startsWith("_") ? posten : "_zyklus");
+  const [mehr, setMehr] = useState<string | null>(posten?.startsWith("_") ? posten : fenster.offen || fenster.gesetzUnterwegs ? "_zyklus" : null);
   const mehrheit = gesetzSicht ?? haushaltsEntwurfsSicht(world);
   const tafelId = useId().replace(/:/g, "");
   const waehleZeile = (q: PostenDef, s: number) => {
@@ -335,7 +361,7 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         name={
           <button type="button" className="hd-name" onClick={() => { setSel(q.id); setEntwurf(plan); setPrognoseOffen(false); }} title={q.text}>
             <span>{q.name}</span>
-            {offenWunsch && <small>{t("haushalt.ui.kurz.wunsch", { stufe: vz(wunsch) })}</small>}
+            {offenWunsch && <small>{wunschText(q, f.name, ist, wunsch)}</small>}
           </button>
         }
         wert={zeigt}
@@ -362,15 +388,16 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
               kl="hd"
               fakten={[
                 { label: t("eo.kapital"), wert: t("ve.pk", { n: entscheidung.pk }) },
-                { label: t("haushalt.ui.vorschau.defizit"), wert: `${nf(v.defizitVorher, 2)} → ${nf(v.defizitNachher, 2)} %` },
+                { label: t("haushalt.ui.vorschau.defizit"), wert: `${nf(v.defizitVorher, Math.abs(v.impuls) < 0.1 ? 2 : 1)} → ${nf(v.defizitNachher, Math.abs(v.impuls) < 0.1 ? 2 : 1)} %` },
                 { label: t("eo.befugnis"), wert: t(entscheidung.modus === "entwurf" ? "eo.votum" : "eo.regierung") },
+                ...(f && q.seite === "ausgabe" ? [loyalitaetsFakt(q, f.name, ist, zeigt)] : []),
               ]}
             />
             <p className="hd-verteilung">
               <span><b>{t("haushalt.ui.vorschau.gewinner")}</b> {q.gewinner}</span>
               <span><b>{t("haushalt.ui.vorschau.verlierer")}</b> {q.verlierer}</span>
             </p>
-            {entscheidung.modus !== "entwurf" && <p className="hd-hinweis">{t("eo.nachtragFolge", { leg: nf(entscheidung.legitimitaet, 2), loy: nf(entscheidung.loyalitaet, 2), monate: q.reifeMonate })}</p>}
+            {entscheidung.modus !== "entwurf" && <p className="hd-hinweis">{t("eo.nachtragFolge", { leg: `${entscheidung.legitimitaet < 0 ? "−" : "+"}${nf(Math.abs(entscheidung.legitimitaet), 1)}`, loy: vz(Math.round(entscheidung.loyalitaet)), monate: q.reifeMonate })}</p>}
             {entscheidung.grund && <p className="hd-gesperrt">{entscheidung.grund}</p>}
             <div className="hd-knoepfe">
               <button type="button" className="brass-button" disabled={!!entscheidung.grund} onClick={beschliesse}>
@@ -404,23 +431,114 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
       </ReglerZeile>
     );
   };
-  const seite = (welche: "ausgabe" | "einnahme") => (
-    <section className="hd-seite" id={welche === "einnahme" ? `${tafelId}-einnahmen` : undefined} aria-label={t(welche === "ausgabe" ? "hd.ausgaben" : "hd.einnahmen")}>
-      <h3>{t(welche === "ausgabe" ? "hd.ausgaben" : "hd.einnahmen")}</h3>
+  const rad = radStuecke(world);
+  const gruppenSumme = (g: PostenGruppe) => rad.aussen.find((x) => x.id === g)?.mrd ?? 0;
+  const ausgaben = (
+    <section className="hd-seite" aria-label={t("hd.ausgaben")}>
+      <h3>{t("hd.ausgaben")}<small>{t("n3.hh.ausgabenHinweis")}</small></h3>
       {GRUPPEN.map((g) => {
-        const liste = POSTEN.filter((q) => q.gruppe === g && q.seite === welche);
+        const liste = POSTEN.filter((q) => q.gruppe === g && q.seite === "ausgabe");
         if (!liste.length) return null;
+        const auf = gruppe === g;
+        const geaendertN = liste.filter((q) => (z.entwurf?.[q.id] ?? stufeVon(world, q.id)) !== 0).length;
         return (
-          <div key={g} className="hd-gruppe" id={`${tafelId}-${g}`}>
-            {welche === "ausgabe" && <h4>{t(`haushalt.gruppe.${g}`)}</h4>}
-            <ul>{liste.map(zeile)}</ul>
+          <div key={g} className={`hd-gruppe${auf ? " auf" : ""}`} id={`${tafelId}-${g}`}>
+            <button type="button" className="hd-gruppe-kopf" aria-expanded={auf} onClick={() => setGruppe(auf ? null : g)}>
+              <span className="hd-gruppe-name">{t(`haushalt.gruppe.${g}`)}</span>
+              {geaendertN > 0 && <small>{t("n3.hh.geaendert", { n: geaendertN })}</small>}
+              <b>{t("hd.bio", { n: bio(gruppenSumme(g)) })}</b>
+              <i aria-hidden>{auf ? "▾" : "▸"}</i>
+            </button>
+            {auf && <ul>{liste.map(zeile)}</ul>}
           </div>
         );
       })}
     </section>
   );
+  const fin = staatsfinanzen(world);
+  const steuerZeile = (sz: SteuerZeile) => {
+    const m = sz.massnahme;
+    const e = m ? echterSatz(m) : undefined;
+    const laufend = m ? world.spiel?.gesetze.find((g) => g.massnahme === m && !g.provinzen?.length) : undefined;
+    const betragText = t("n3.hh.ertrag", { stand: sz.stand ?? "", bio: bio(sz.ertragMrd) });
+    const nurBetrag = t("hd.bio", { n: bio(sz.ertragMrd) });
+    if (!m || !e || sz.satz === undefined) {
+      return (
+        <li key={sz.id} className="hd-zeile hd-steuer-fest">
+          <div className="hd-reihe">
+            <span className="hd-name-fest">
+              <span>{sz.name}</span>
+              {m && (
+                <small>
+                  {t("n3.hh.stand", { stand: sz.stand ?? "" })}
+                  {onGehe && <> · <button type="button" className="hd-sprung" onClick={() => onGehe({ art: "politik", theme: "haushalt", massnahme: { id: m } })}>{t("n3.hh.zurMassnahme")}</button></>}
+                </small>
+              )}
+            </span>
+            <span className="hd-betrag">{nurBetrag}</span>
+          </div>
+        </li>
+      );
+    }
+    const heute = Math.round(sz.satz);
+    const auf = steuer?.id === m;
+    const ziel = auf ? steuer!.satz : heute;
+    const zielStufe = stufeBeiSatz(m, ziel);
+    const prog = auf && ziel !== heute ? gesetzesPrognose(world, m, zielStufe, null) : null;
+    const pr = prog?.pruefung;
+    return (
+      <ReglerZeile
+        key={sz.id}
+        kl="hd"
+        zustand={`${auf ? "on" : ""}${ziel !== heute ? " geaendert" : ""}`.trim()}
+        name={
+          <button type="button" className="hd-name" onClick={() => setSteuer(auf ? null : { id: m, satz: heute })}>
+            <span>{sz.name}</span>
+            <small>{laufend ? t("n3.hh.imParlament", { stand: stufenName(m, laufend.stufe), datum: formatDateDe(addDaysUi(world, laufend.abstimmung)) }) : t("n3.hh.jePunkt", { mrd: mrdText(sz.mrdJePunkt ?? 0) })}</small>
+          </button>
+        }
+        wert={ziel}
+        min={e.min}
+        max={e.max}
+        onWert={(x) => { setRueck(null); setSteuer({ id: m, satz: Math.max(e.min, Math.min(e.max, x)) }); }}
+        minus={`${sz.name}: ${t("haushalt.ui.regler.senken")}`}
+        plus={`${sz.name}: ${t("haushalt.ui.regler.anheben")}`}
+        aria={t("haushalt.ui.regler.aria", { posten: sz.name })}
+        ariaWert={stufenName(m, zielStufe)}
+        anzeigeKlasse="betrag"
+        vorher={ziel !== heute ? (sz.stand ?? "") : betragText}
+        {...(ziel !== heute ? { nachher: t("n3.hh.ertrag", { stand: stufenName(m, zielStufe), bio: bio(sz.ertragMrd + (ziel - sz.satz) * (sz.mrdJePunkt ?? 0)) }) } : {})}
+      >
+        {auf && ziel !== heute && pr && (
+          <div className="hd-panel" role="region" aria-label={sz.name}>
+            <p className="hd-panel-wirkung">{t("n3.hh.steuerWeg", { name: sz.name })}</p>
+            <Preisfeld
+              kl="hd"
+              fakten={[
+                { label: t("n3.hh.ertragJahr"), wert: t("n3.hh.mrd", { mrd: `${ziel > heute ? "+" : "−"}${mrdText(Math.abs((ziel - sz.satz) * (sz.mrdJePunkt ?? 0)))}` }) },
+                { label: t("haushalt.ui.vorschau.defizit"), wert: `${nf(defizit, 1)} → ${nf(defizit + pr.kostenBip, 1)} %` },
+                ...(pr.ok ? [{ label: t("po2.kapital"), wert: t("po2.kapitalWert", { n: pr.gesetz.pk }), schlecht: !pr.gesetz.bezahlbar }, { label: t("po2.mehrheit"), wert: prog!.luecke > 0 ? t("po2.fehlen", { n: prog!.luecke }) : t("po2.steht", { ja: prog!.ja, noetig: REGELN.mehrheit }), schlecht: prog!.luecke > 0 }] : []),
+              ]}
+            />
+            {!pr.ok && <p className="hd-gesperrt">{pr.grund}</p>}
+            <div className="hd-knoepfe">
+              {onGehe && <button type="button" className="brass-button" onClick={() => onGehe({ art: "politik", theme: "haushalt", massnahme: { id: m, level: zielStufe } })}>{t("n3.hh.einbringen")}</button>}
+              <button type="button" className="pd-btn quiet" onClick={() => setSteuer(null)}>{t("haushalt.ui.knopf.verwerfen")}</button>
+            </div>
+          </div>
+        )}
+      </ReglerZeile>
+    );
+  };
+  const einnahmen = (
+    <section className="hd-seite hd-einnahmen" id={`${tafelId}-einnahmen`} aria-label={t("hd.einnahmen")}>
+      <h3>{t("hd.einnahmen")}<small>{t("n3.hh.einnahmenHinweis")}</small></h3>
+      <div className="hd-gruppe"><ul>{fin.steuern.map(steuerZeile)}</ul></div>
+    </section>
+  );
   const mehrListe: { id: string; titel: string }[] = [
     { id: "_zyklus", titel: t("haushalt.ui.zyklus.kicker") },
+    { id: "_bonitaet", titel: t("n3.rating.reiter") },
     ...(z.abschluesse?.length ? [{ id: "_abschluss", titel: t("hb.titel") }] : []),
     { id: "_bilanz", titel: t("hd.rechnung") },
     { id: "_bisher", titel: t("haushalt.ui.bisher.titel") },
@@ -439,11 +557,21 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         <HaushaltsRad
           world={world}
           defizit={defizit}
-          onZiel={(ziel) => document.getElementById(ziel === "steuern" ? `${tafelId}-einnahmen` : `${tafelId}-${ziel}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          onZiel={(ziel) => {
+            if (ziel !== "steuern") setGruppe(ziel);
+            requestAnimationFrame(() => document.getElementById(ziel === "steuern" ? `${tafelId}-einnahmen` : `${tafelId}-${ziel}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }}
         />
         <dl className="hd-kern">
           <div><dt>{t("hd.schulden")}</dt><dd>{nf(world.economy.debtRatio, 1)} %<small>{t("hd.desBip")}</small></dd></div>
           <div><dt>{t("hd.zinsen")}</dt><dd>{nf(zinsausgabenJetzt(world), 1)} %<small>{t("hd.desBip")}</small></dd></div>
+          <div className={rating.anlagegrad ? "gut" : rating.index <= 2 ? "schlecht" : ""}>
+            <dt>{t("n3.rating.titel")}</dt>
+            <dd>
+              <button type="button" className="hd-bonitaet" aria-pressed={mehr === "_bonitaet"} onClick={() => setMehr(mehr === "_bonitaet" ? null : "_bonitaet")}>{rating.stufe}</button>
+              <small>{t(`n3.rating.ausblick.${rating.ausblick > 0 ? "positiv" : rating.ausblick < 0 ? "negativ" : "stabil"}`)}</small>
+            </dd>
+          </div>
         </dl>
         <p className="hd-fenster">
           {fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
@@ -457,8 +585,8 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         </p>
       </section>
       <div className="hd-spalten">
-        {seite("ausgabe")}
-        {seite("einnahme")}
+        {ausgaben}
+        {einnahmen}
       </div>
       <section className="hd-mehr" aria-label={t("hd.mehr")}>
         <div className="hd-mehr-reiter" role="group" aria-label={t("hd.mehr")}>
@@ -470,6 +598,33 @@ export function Haushalt({ world, geaendert, posten }: { world: World; geaendert
         </div>
         {mehr && <div className="hd-mehr-inhalt">{detail(mehr)}</div>}
       </section>
+    </div>
+  );
+}
+
+/** Ein Datum aus einem Spieltag (Abstimmungstermin eines Gesetzes). */
+function addDaysUi(world: World, tag: number): string {
+  return addDays(world.date, tag - world.day);
+}
+
+/** Kreditwürdigkeit (D-10): die Stufe auf der Treppe CCC+ … BBB mit der Marke „Anlagegrad“, der Ausblick und was eine Stufe an Zinsen kostet. */
+function Bonitaet({ world }: { world: World }) {
+  const r = ratingSicht(world);
+  const richtung = r.abstand >= 0.5 ? "besser" : r.abstand <= -0.5 ? "schlechter" : "gleich";
+  return (
+    <div className="hh-im-detail hd-rating">
+      <p className="kicker">{t("n3.rating.reiter")}</p>
+      <h3>{t("n3.rating.kopf", { stufe: r.stufe })}</h3>
+      <ol className="hd-treppe" aria-label={t("n3.rating.treppe")}>
+        {RATING_STUFEN.map((s, i) => (
+          <li key={s} className={`${i === r.index ? "jetzt" : ""}${i >= r.anlagegradIndex ? " anlage" : ""}`} aria-current={i === r.index ? "true" : undefined}>
+            {i === r.anlagegradIndex && <em>{t("n3.rating.anlagegrad")}</em>}
+            <span>{s}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="wi-hinweis">{t(`n3.rating.tendenz.${richtung}`, { n: zahl(Math.abs(r.abstand), 1), monate: r.monate, noetig: r.monateNoetig })}</p>
+      <p className="wi-hinweis">{t("n3.rating.wirkung", { bp: r.aufschlagJeStufe, monate: r.monateNoetig })}</p>
     </div>
   );
 }

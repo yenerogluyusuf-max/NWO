@@ -10,13 +10,24 @@ import { addDays, formatDateDe } from "../../sim/dates";
 import { akteurName } from "../../sim/welt-modell";
 import type { GutArt } from "../../data/gueter";
 import { t, zahl } from "../../i18n";
-import { Uebersicht, UbDetailKopf, UbHandlung, UbMehr, UbRueck, type UbKachel } from "../akte/Uebersicht";
+import { UbDetailKopf, UbHandlung, UbMehr, UbRueck, type UbKachel } from "../akte/Uebersicht";
 import "./inventar.css";
 
 const ARTEN: GutArt[] = ["nahrung", "wasser", "energie", "rohstoff", "industrie", "ruestung"];
 
 const menge = (x: number): string => zahl(x, x >= 100 ? 0 : 1);
 const tage = (x: number): string => (Number.isFinite(x) ? zahl(Math.round(x), 0) : "∞");
+
+/** Ein Ring für die Eigenversorgung: voll bei 100 % und mehr (Befund D-17, Bild oben statt Strichen). */
+function Ring({ anteil, ton }: { anteil: number; ton: string }) {
+  const r = 17, u = 2 * Math.PI * r, voll = Math.max(0, Math.min(1, anteil));
+  return (
+    <svg className={`gi-ring-bild gi-${ton}`} viewBox="0 0 44 44" aria-hidden>
+      <circle cx="22" cy="22" r={r} className="gi-ring-grund" />
+      <circle cx="22" cy="22" r={r} className="gi-ring-wert" strokeDasharray={`${(voll * u).toFixed(1)} ${u.toFixed(1)}`} transform="rotate(-90 22 22)" />
+    </svg>
+  );
+}
 
 function ton(s: GutSicht): "gut" | "mittel" | "schlecht" {
   if (s.fehlProzent > 0.5) return "schlecht";
@@ -27,6 +38,7 @@ function ton(s: GutSicht): "gut" | "mittel" | "schlecht" {
 export function Inventar({ world, geaendert, programm }: { world: World; geaendert: () => void; programm?: VersorgungsProgramm }) {
   const sicht = gueterSicht(world);
   const [meldung, setMeldung] = useState<{ ok: boolean; text: string } | null>(null);
+  const [ware, setWare] = useState<string | null>(null);
   if (!sicht.length) return <p className="wi-hinweis">{t("gueter.leer")}</p>;
   const autark = sicht.filter((x) => x.def.id !== "ruestung" && x.autarkie >= 99.5).length;
   const knapp = sicht.filter((x) => x.ampel === "rot" || x.fehlProzent > 0.5).length;
@@ -145,21 +157,31 @@ export function Inventar({ world, geaendert, programm }: { world: World; geaende
       </div>
     );
   };
+  // Oben das Bild: alle Warengruppen als Ringe (Eigenversorgung) mit den Tagen ohne Einfuhr; rot, was knapp ist. Ein Klick öffnet die Ware
+  // mit Mengenrechnung, Lieferländern und Knöpfen darunter. Kurs und Programme folgen (Befund D-17).
   return (
     <div className="gi-inventar">
+      <section className="gi-raster" aria-label={t("gueter.titel")}>
+        <p className="gi-raster-lage">
+          {t("gueter.einleitung", { autark, gesamt: sicht.length - 1 })}{" "}
+          <b className={knapp ? "gi-schlecht" : "gi-gut"}>{knapp ? t("n3.vs.knapp", { n: knapp }) : t("n3.vs.keinKnapp")}</b>
+        </p>
+        <div className="gi-ringe">
+          {kacheln.map((k) => {
+            const z = sicht.find((x) => x.def.id === k.id)!;
+            return (
+              <button key={k.id} type="button" className={`gi-ring gi-${k.ton}${ware === k.id ? " on" : ""}`} aria-pressed={ware === k.id} onClick={() => setWare(ware === k.id ? null : k.id)}>
+                <small className="gi-ring-art">{k.gruppe}</small>
+                <span className="gi-ring-mitte"><Ring anteil={z.autarkie / 100} ton={k.ton ?? "gut"} /><b>{k.wert}</b></span>
+                <span className="gi-ring-name">{k.titel}</span>
+                {k.marke && <small className={`gi-ring-tage gi-${k.marke.ton}`}>{k.marke.text}</small>}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+      {ware && <section className="gi-ware" aria-label={t(`gueter.gut.${ware}`)}>{detail(ware)}</section>}
       <VersorgungsLage programm={programm} world={world} geaendert={geaendert} />
-      <details className="gi-waren-details"><summary>{t("regierung.warenDetails")}</summary>
-      <Uebersicht
-        aria={t("gueter.titel")}
-        dicht
-        sortiert={false}
-        lage={t("gueter.einleitung", { autark, gesamt: sicht.length - 1 })}
-        zahlen={[{ label: t("gueter.zahl_knapp"), wert: String(knapp), ton: knapp ? "schlecht" : "gut" }]}
-        kacheln={kacheln}
-        start="getreide"
-        detail={detail}
-      />
-      </details>
     </div>
   );
 }

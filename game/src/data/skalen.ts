@@ -251,14 +251,68 @@ const MENGE_NAMEN = ["skala.menge.m2", "skala.menge.m1", "skala.menge.0", "skala
 
 /**
  * Belegte heutige Sätze (Rückmeldung 05.11.2026: „bei Steuererhöhungen müssen Zahlen und Prozente angegeben werden“). Der Startwert der
- * Maßnahme entspricht diesem Satz; andere Stufen werden verhältnisgleich umgerechnet (Spielparameter, ENTSCHEIDUNGEN „Reglerstufen in Worten“).
+ * Maßnahme entspricht diesem Satz. Ein Prozentpunkt sind `STUFEN_JE_PUNKT` Stufen des Netzes (Spielparameter), gewählt wird in ganzen
+ * Punkten zwischen echten Grenzen (Befund B-2: vorher sprang die Mehrwertsteuer 20 → 17 → 23 %, der Spitzensatz lief von 0 bis 80 %).
  */
-const ECHT: Record<string, { satz: number; muster: "satz" | "spitze"; quelle: string }> = {
-  m_mwst: { satz: 20, muster: "satz", quelle: "KDV-Regelsatz 20 % seit 10.07.2023 (Präsidialbeschluss Nr. 7346, Resmî Gazete 07.07.2023)" },
-  m_einkommensteuer: { satz: 40, muster: "spitze", quelle: "Spitzensatz 40 % (Gelir Vergisi Kanunu Art. 103)" },
-  m_koerperschaftsteuer: { satz: 25, muster: "satz", quelle: "25 % ab Veranlagung 2023 (Gesetz Nr. 7456, Resmî Gazete 15.07.2023)" },
+export interface EchterSatz {
+  satz: number;
+  muster: "satz" | "spitze";
+  quelle: string;
+  /** Spanne in Prozentpunkten, in ganzen Punkten wählbar */
+  min: number;
+  max: number;
+  grenze: string;
+}
+/** Stufen des Netzes je Prozentpunkt Steuersatz (Spielparameter; die Kanten des Netzes wirken je Stufe). */
+export const STUFEN_JE_PUNKT = 5;
+const ECHT: Record<string, EchterSatz> = {
+  m_mwst: { satz: 20, muster: "satz", quelle: "KDV-Regelsatz 20 % seit 10.07.2023 (Präsidialbeschluss Nr. 7346, Resmî Gazete 07.07.2023)", min: 15, max: 27,
+    grenze: "15 % ist der Mindestregelsatz der EU (Richtlinie 2006/112/EG Art. 97), 27 % der höchste Regelsatz in der EU (Ungarn)" },
+  m_einkommensteuer: { satz: 40, muster: "spitze", quelle: "Spitzensatz 40 % (Gelir Vergisi Kanunu Art. 103)", min: 30, max: 50,
+    grenze: "Spielgrenze: bis 2019 lag die Spitze bei 35 %, seit 2020 bei 40 % (Gesetz Nr. 7194); 50 % liegt am oberen Rand der OECD-Länder" },
+  m_koerperschaftsteuer: { satz: 25, muster: "satz", quelle: "25 % ab Veranlagung 2023 (Gesetz Nr. 7456, Resmî Gazete 15.07.2023)", min: 15, max: 35,
+    grenze: "15 % ist die globale Mindeststeuer (OECD, Säule 2); 35 % ist Spielgrenze" },
 };
 const START = new Map(NODES.filter((n) => n.kind === "massnahme").map((n) => [n.id, n.start]));
+
+/** Der belegte Satz einer Maßnahme mit echtem Satz (Mehrwertsteuer, Spitzensatz, Körperschaftsteuer), sonst undefined. */
+export const echterSatz = (id: string): EchterSatz | undefined => ECHT[id];
+export const MASSNAHMEN_MIT_SATZ = Object.keys(ECHT);
+
+/** Der Satz in Prozent bei einer Stufe des Netzes (ungerundet; Stufe = Start + 5 je Punkt). */
+export function satzBei(id: string, w: number): number | undefined {
+  const e = ECHT[id];
+  if (!e) return undefined;
+  return e.satz + (w - (START.get(id) ?? 50)) / STUFEN_JE_PUNKT;
+}
+
+/** Die Stufe des Netzes für einen Satz in Prozent. */
+export function stufeBeiSatz(id: string, satz: number): number {
+  const e = ECHT[id];
+  if (!e) return satz;
+  return (START.get(id) ?? 50) + (satz - e.satz) * STUFEN_JE_PUNKT;
+}
+
+/** Alle wählbaren Sätze in ganzen Punkten zwischen den Grenzen (beide Ansichten lesen dieselbe Liste). */
+export function echteHalte(id: string): { w: number; satz: number }[] {
+  const e = ECHT[id];
+  if (!e) return [];
+  const out: { w: number; satz: number }[] = [];
+  for (let s = e.min; s <= e.max; s++) {
+    const w = stufeBeiSatz(id, s);
+    if (w >= 0 && w <= 100) out.push({ w, satz: s });
+  }
+  return out;
+}
+
+/** Einen gewünschten Wert auf den nächsten ganzen Satz innerhalb der Grenzen legen; andere Maßnahmen bleiben unverändert. */
+export function rasteStufe(id: string, w: number): number {
+  const halte = echteHalte(id);
+  if (!halte.length) return w;
+  let beste = halte[0]!;
+  for (const h of halte) if (Math.abs(h.w - w) < Math.abs(beste.w - w)) beste = h;
+  return beste.w;
+}
 
 /**
  * Eine Stufe in Worten statt „Stufe 50“: benannter Zustand, belegter Satz („22 %“) oder die echte Größe aus data/einheiten.ts
@@ -269,7 +323,7 @@ export function stufenName(id: string, w: number): string {
   if (REGIME[id]) return naechsteStufe({ art: "regime", frage: "", stufen: REGIME[id]! }, w).stufe.name;
   const start = START.get(id) ?? 0;
   const echt = ECHT[id];
-  if (echt && start > 0) return t(`skala.echt.${echt.muster}`, { p: Math.round((echt.satz * w) / start) });
+  if (echt) return t(`skala.echt.${echt.muster}`, { p: Math.round(satzBei(id, w)!) });
   const einheit = einheitText(id, w, start);
   if (einheit !== undefined) return einheit;
   if (start > 0) return t("skala.anteil", { p: Math.round((w / start) * 100) });
@@ -287,8 +341,8 @@ export function skalenArt(id: string): SkalenArt {
 }
 
 /**
- * Die wählbaren Stufen einer Maßnahme. Bei Regimen sind es die benannten Zustände; bei Sätzen und Mengen fünf Schritte um den
- * heutigen Stand (±20 und ±40 Punkte), soweit sie zwischen 0 und 100 liegen.
+ * Die wählbaren Stufen einer Maßnahme. Bei Regimen sind es die benannten Zustände; bei echten Sätzen ganze Prozentpunkte um den
+ * heutigen Satz; bei übrigen Sätzen und Mengen fünf Schritte um den heutigen Stand (±20 und ±40 Punkte), soweit sie zwischen 0 und 100 liegen.
  */
 export function skala(id: string, jetzt: number): Skala {
   const art = skalenArt(id);
@@ -297,6 +351,20 @@ export function skala(id: string, jetzt: number): Skala {
   const zustaende = zustandsStufen(id);
   if (zustaende) return { art, frage: t("skala.frage.regime"), stufen: zustaende };
   const namen = art === "satz" ? SATZ_NAMEN : MENGE_NAMEN;
+  if (ECHT[id]) {
+    // Fünf Karten aus derselben Liste wie die Tafel: heute und je zwei ganze Punkte darunter und darüber
+    const halte = echteHalte(id);
+    const heute = halte.findIndex((h) => h.w === rasteStufe(id, jetzt));
+    const auswahl = halte.slice(Math.max(0, Math.min(heute - 2, halte.length - 5)), Math.max(0, Math.min(heute - 2, halte.length - 5)) + 5);
+    return {
+      art,
+      frage: t("skala.frage.satz"),
+      stufen: auswahl.map((h) => {
+        const d = h.satz - halte[heute]!.satz;
+        return { w: h.w, name: stufenName(id, h.w), text: d === 0 ? t(namen[2]!) : t("n3.skala.punkte", { n: Math.abs(d), richtung: d > 0 ? "auf" : "ab" }) };
+      }),
+    };
+  }
   const mitte = Math.round(jetzt);
   const stufen: SkalenStufe[] = [];
   for (let k = -2; k <= 2; k++) {

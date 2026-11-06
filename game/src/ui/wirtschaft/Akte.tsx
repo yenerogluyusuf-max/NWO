@@ -16,6 +16,10 @@ import { Lage } from "./Lage";
 import { Zentralbank } from "./Zentralbank";
 import { Haushalt } from "./Haushalt";
 import { Inventar } from "../gueter/Inventar";
+import type { Ziel } from "../schreibtisch/briefing";
+import { satzBei, stufeBeiSatz } from "../../data/skalen";
+import { NET } from "../../sim/modell";
+import { nationalAverage } from "../../sim/netz";
 import "../politik/design.css";
 import "./wirtschaft.css";
 
@@ -53,14 +57,14 @@ function reihen(w: World): VerlaufsReihe[] {
 export function kernwerteWirtschaft(w: World): Kernwert[] {
   const h = w.history.slice(-12);
   return [
-    { label: t("akte.wirtschaft.kern.inflation"), wert: `${nf(w.published.inflation.value)} %`, verlauf: h.map((s) => s.inflation), ton: w.published.inflation.value < 10 ? "gut" : w.published.inflation.value < 25 ? "mittel" : "schlecht" },
+    { label: t("akte.wirtschaft.kern.inflation"), wert: t("n3.prozent", { n: w.published.inflation.value }), verlauf: h.map((s) => s.inflation), ton: w.published.inflation.value < 10 ? "gut" : w.published.inflation.value < 25 ? "mittel" : "schlecht" },
     // Wie die Inflation der veröffentlichte Wert (vorher: Kopf 3,6 aus der Simulation, Liste 4,1 aus der Statistik)
-    { label: t("akte.wirtschaft.kern.wachstum"), wert: `${nf(w.published.growth.value)} %`, verlauf: h.map((s) => s.growth), ton: w.published.growth.value >= 3 ? "gut" : w.published.growth.value >= 0 ? "mittel" : "schlecht" },
+    { label: t("akte.wirtschaft.kern.wachstum"), wert: t("n3.prozent", { n: w.published.growth.value }), verlauf: h.map((s) => s.growth), ton: w.published.growth.value >= 3 ? "gut" : w.published.growth.value >= 0 ? "mittel" : "schlecht" },
     { label: t("akte.wirtschaft.kern.lira"), wert: nf(w.economy.usdTry), verlauf: h.map((s) => s.usdTry) },
   ];
 }
 
-export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, programm, onGeaendert }: { world: World; start?: Reiter; zbAbschnitt?: ZbAbschnitt; posten?: string; programm?: VersorgungsProgramm; onGeaendert?: (() => void) | undefined }) {
+export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, programm, onGeaendert, onGehe }: { world: World; start?: Reiter; zbAbschnitt?: ZbAbschnitt; posten?: string; programm?: VersorgungsProgramm; onGeaendert?: (() => void) | undefined; onGehe?: ((z: Ziel) => void) | undefined }) {
   const [reiter, setReiter] = useState<AktenReiterId>(start === "lage" ? "lage" : "instrumente");
   const [instrument, setInstrument] = useState<Instrument>(start === "inventar" ? "inventar" : start === "haushalt" ? "haushalt" : "zentralbank");
   const [abschnitt, setAbschnitt] = useState<ZbAbschnitt | undefined>(zbAbschnitt);
@@ -72,13 +76,19 @@ export function WirtschaftAkte({ world, start = "lage", zbAbschnitt, posten, pro
   };
 
   function handlung(h: Handlung) {
+    // Steuern: die eine Stellgröße ist die Maßnahme im Politikbereich, vorgewählt um ganze Punkte (Befund D-1)
+    if (h.ziel === "massnahme" && h.massnahme) {
+      const satz = satzBei(h.massnahme, nationalAverage(NET, world.net, h.massnahme));
+      if (onGehe) onGehe({ art: "politik", theme: "haushalt", massnahme: { id: h.massnahme, ...(satz !== undefined ? { level: stufeBeiSatz(h.massnahme, Math.round(satz) + (h.punkte ?? 0)) } : {}) } });
+      return;
+    }
     setReiter("instrumente");
     setInstrument(h.ziel === "haushalt" ? "haushalt" : "zentralbank");
     setAbschnitt(h.abschnitt);
     setWahl(h.posten);
   }
 
-  const instrumente = () => instrument === "krisenrat" ? <Krisenrat world={world} geaendert={geaendert}/> : instrument === "inventar" ? <Inventar programm={programm} world={world} geaendert={geaendert} /> : instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} />;
+  const instrumente = () => instrument === "krisenrat" ? <Krisenrat world={world} geaendert={geaendert}/> : instrument === "inventar" ? <Inventar programm={programm} world={world} geaendert={geaendert} /> : instrument === "zentralbank" ? <Zentralbank world={world} geaendert={geaendert} abschnitt={abschnitt} /> : <Haushalt world={world} geaendert={geaendert} posten={wahl} onGehe={onGehe} />;
   const zugaenge={aktiv:instrument,eintraege:(["krisenrat","haushalt","inventar","zentralbank"] as const).map(id=>({
     id,label:t(`akte.wirtschaft.instrument.${id}`),text:t(`akte.wirtschaft.instrument.${id}Text`),icon:id==="krisenrat"?"kuppel" as const:ZUGANG_ICON[id]!,
     waehlen:()=>{setInstrument(id);if(id==="zentralbank")setAbschnitt(undefined);else if(id==="haushalt")setWahl(undefined);},

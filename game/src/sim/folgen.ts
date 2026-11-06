@@ -94,7 +94,7 @@ export function netzKette(startId: string, richtung: 1 | -1, breite: [number, nu
   return out;
 }
 
-/** Was eine Zinsänderung im Wirtschaftsmodell auslöst (Z1 bis Z9) und welche Verzögerung dabei gilt. */
+/** Was eine Zinsänderung im Wirtschaftsmodell auslöst (WIRTSCHAFTSMODELL.md Z1 bis Z9) und welche Verzögerung dabei gilt. */
 export function zinsKette(delta: number): Glied[] {
   if (!delta) return [];
   const s: 1 | -1 = delta > 0 ? 1 : -1;
@@ -102,7 +102,7 @@ export function zinsKette(delta: number): Glied[] {
   const modell: Glied[] = [
     { text: s > 0 ? t("sim2.sim.folgen.3743889") : t("sim2.sim.folgen.1378c05"), richtung: s, gut: s > 0, nach: 0, ebene: 1, warum: t("sim2.sim.folgen.8f9be37") },
     { text: s > 0 ? t("sim2.sim.folgen.755fbec") : t("sim2.sim.folgen.84baae9"), richtung: (-s) as 1 | -1, gut: null, nach: lag, ebene: 1, warum: t("sim2.sim.folgen.2d910c5", { p0: lag }) },
-    { text: s > 0 ? "Die Inflation sinkt" : "Die Inflation steigt", richtung: (-s) as 1 | -1, gut: s > 0, nach: lag + 3, ebene: 2, warum: t("sim2.sim.folgen.3fcef71") },
+    { text: s > 0 ? t("n3.folgen.inflationSinkt") : t("n3.folgen.inflationSteigt"), richtung: (-s) as 1 | -1, gut: s > 0, nach: lag + 3, ebene: 2, warum: t("sim2.sim.folgen.3fcef71") },
     { text: s > 0 ? t("sim2.sim.folgen.b9bda4f") : t("sim2.sim.folgen.69156ae"), richtung: (-s) as 1 | -1, gut: s < 0, nach: lag + 2, ebene: 2, warum: t("sim2.sim.folgen.81a275c") },
     { text: s > 0 ? t("sim2.sim.folgen.116f1dd") : t("sim2.sim.folgen.e5f6b56"), richtung: s, gut: s < 0, nach: 12, ebene: 2, warum: t("sim2.sim.folgen.d10fa97") },
   ];
@@ -117,7 +117,7 @@ export function impulsKette(delta: number): Glied[] {
     { text: s > 0 ? t("sim2.sim.folgen.d79ba00") : t("sim2.sim.folgen.233d33e"), richtung: s, gut: null, nach: 1, ebene: 1, warum: t("sim2.sim.folgen.2144138") },
     { text: s > 0 ? t("sim2.sim.folgen.53924dd") : t("sim2.sim.folgen.9e6a4e7"), richtung: s, gut: s < 0, nach: 1, ebene: 1, warum: t("sim2.sim.folgen.24bc0c3") },
     { text: s > 0 ? t("sim2.sim.folgen.cd64fb0") : t("sim2.sim.folgen.69a8598"), richtung: s, gut: s > 0, nach: 3, ebene: 2, warum: t("sim2.sim.folgen.0bfc994") },
-    { text: s > 0 ? "Die Inflation steigt" : "Die Inflation sinkt", richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: t("sim2.sim.folgen.84b9b64") },
+    { text: s > 0 ? t("n3.folgen.inflationSteigt") : t("n3.folgen.inflationSinkt"), richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: t("sim2.sim.folgen.84b9b64") },
     { text: s > 0 ? t("sim2.sim.folgen.0977aca") : t("sim2.sim.folgen.eb0115b"), richtung: s, gut: s < 0, nach: 1, ebene: 2, warum: t("sim2.sim.folgen.95daa75") },
     ...netzKette("defizit", s, [2, 1, 1]).filter((g) => g.ebene <= 2),
   ];
@@ -129,7 +129,7 @@ export function glaubwuerdigkeitsKette(delta: number): Glied[] {
   const s: 1 | -1 = delta < 0 ? 1 : -1; // 1 = Vertrauensverlust
   return [
     { text: s > 0 ? t("sim2.sim.folgen.4d95e45") : t("sim2.sim.folgen.af6d37a"), richtung: s, gut: s < 0, nach: 0, ebene: 1, warum: t("sim2.sim.folgen.777be04") },
-    { text: s > 0 ? "Die Inflationserwartungen steigen" : "Die Inflationserwartungen sinken", richtung: s, gut: s < 0, nach: 2, ebene: 1, warum: t("sim2.sim.folgen.1bdeb08") },
+    { text: s > 0 ? t("n3.folgen.erwartungSteigt") : t("n3.folgen.erwartungSinkt"), richtung: s, gut: s < 0, nach: 2, ebene: 1, warum: t("sim2.sim.folgen.1bdeb08") },
     { text: s > 0 ? t("sim2.sim.folgen.654202f") : t("sim2.sim.folgen.1246aa3"), richtung: s, gut: s < 0, nach: 6, ebene: 2, warum: t("sim2.sim.folgen.6036af5") },
   ];
 }

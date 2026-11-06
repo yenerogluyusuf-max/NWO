@@ -8,6 +8,7 @@
 //   - konkurriert mit allen anderen laufenden Vorhaben um die Verwaltungskapazität.
 // Alle Werte sind Platzhalter der Kalibrierung.
 
+import { rasteStufe } from "../data/skalen";
 import { politikGeaendert } from "./zynismus";
 import { NET } from "./modell";
 import { erfuelleZusage, schliesseZusageErinnerung, zusageStufen, zusageZielErreicht } from "./zusagenfolgen";
@@ -420,7 +421,8 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   const i = knotenIndex(id);
   const node = NET.nodes[i]!;
   const ort = ortsListe(provinzen);
-  const ziel = clamp(Math.round(stufe), 0, 100);
+  // Steuern mit echtem Satz nur in ganzen Prozentpunkten zwischen echten Grenzen (Befund B-2, data/skalen.ts)
+  const ziel = rasteStufe(id, clamp(Math.round(stufe), 0, 100));
   const aktuell = stufeIn(world, id, ort);
   const aenderung = ziel - aktuell;
   const share = anteil(world, ort);

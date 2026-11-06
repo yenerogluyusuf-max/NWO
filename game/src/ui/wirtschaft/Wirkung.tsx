@@ -4,8 +4,8 @@ import type { Metric, PrognoseReihe } from "../../sim/forecast";
 import { KENNZAHLEN_NACH_ID, einheitName } from "../../sim/wirtschaft-kennzahlen";
 import "./wirtschaft.css";
 
-import { t } from "../../i18n";
-const nf = (x: number, d: number) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+import { t, zahl } from "../../i18n";
+const nf = (x: number, d: number) => zahl(x, d);
 
 export function Wirkung({ reihen, metriken, rechnet }: { reihen: PrognoseReihe[] | null; metriken: { id: Metric; kennzahl: string; label: string }[]; rechnet?: boolean }) {
   if (!reihen) return rechnet ? <p className="wi-hinweis wi-rechnet">{t("ui.wirtschaft.Wirkung.b2a60be")}</p> : null;

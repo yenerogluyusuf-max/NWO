@@ -134,7 +134,9 @@ describe("Haushaltsgesetz im Parlament", () => {
     const w = welt();
     insFenster(w);
     setzeEntwurf(w, "investitionen", 2);
-    setzeEntwurf(w, "einkommensteuer", 1);
+    // N3 (Befund D-1): Steuern stellt nur noch ihre Maßnahme; der zweite Posten des Entwurfs ist darum eine Personalkürzung
+    expect(setzeEntwurf(w, "einkommensteuer", 1).ok).toBe(false);
+    setzeEntwurf(w, "personal", -1);
     const einbringen = bringeHaushaltsgesetzEin(w);
     expect(einbringen.ok, einbringen.text).toBe(true);
     expect(haushaltZustand(w).entwurf).toEqual({}); // Entwurf liegt nun als Gesetz im Parlament
@@ -153,8 +155,8 @@ describe("Haushaltsgesetz im Parlament", () => {
     expect(z.zyklusJahr).toBe(2028);
     expect(z.letztesErgebnis).toBe("angenommen");
     expect(stufeVon(w, "investitionen")).toBe(2);
-    expect(stufeVon(w, "einkommensteuer")).toBe(1);
-    expect(ohneDemografie()).toBeCloseTo(imp0 + 0.8 - 0.3, 6);
+    expect(stufeVon(w, "personal")).toBe(-1);
+    expect(ohneDemografie()).toBeCloseTo(imp0 + 0.8 - 0.4, 6);
     expect(z.aenderungen.some((a) => a.text.includes("Haushaltsgesetz 2029"))).toBe(true);
   });
 

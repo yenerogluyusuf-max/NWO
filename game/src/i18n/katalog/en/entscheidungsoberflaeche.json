@@ -36,7 +36,7 @@
   "eo.entwurfEntfernen": "Remove change from draft",
   "eo.entwurfAendern": "Save change in draft",
   "eo.entwurfNur": "Edit draft · no immediate effect yet",
-  "eo.nachtragFolge": "Immediate change: legitimacy {leg}; minister loyalty {loy}. Ongoing effects unfold over approximately {monate} months.",
+  "eo.nachtragFolge": "At once: legitimacy {leg}, minister's loyalty {loy}. The full effect arrives after {monate, plural, one {# month} other {# months}}.",
   "eo.keineAenderung": "This setting is already in the draft.",
   "eo.amtsende": "The budget cannot be changed after leaving office.",
   "eo.vergleich": "{vor} → {nach}",

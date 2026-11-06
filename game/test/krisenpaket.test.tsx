@@ -67,8 +67,9 @@ test.each(['kapital','pause','beendet','haushalt','stufen','stimmen','duldung','
  const vor=save(w);expect(bringeKrisenPaketEin(w,p).ok).toBe(false);expect(save(w)).toBe(vor);
 });
 test('höhere bestehende Hilfe wird nicht gekürzt; Finanzierungsgrenze bleibt als Defizit sichtbar',()=>{
- const w=welt(),h=haushaltZustand(w);h.stufen={sozialhilfe:6,unternehmensteuer:4};
- const p=krisenPaketPlan(w,'dienste')!;expect(p.schritte.sozialhilfe).toBeUndefined();expect(p.schritte.unternehmensteuer).toBeUndefined();expect(p.saldo).toBeGreaterThan(0);
+ // N3 (Befund D-1): Gegenfinanzierung über gestreckte Investitionen statt über einen zweiten Steuerregler; am unteren Rand bleibt der Rest Defizit
+ const w=welt(),h=haushaltZustand(w);h.stufen={sozialhilfe:6,investitionen:-3};
+ const p=krisenPaketPlan(w,'dienste')!;expect(p.schritte.sozialhilfe).toBeUndefined();expect(p.schritte.investitionen).toBeUndefined();expect(p.saldo).toBeGreaterThan(0);
 });
 test('vor dem Votum auslaufende Duldung wird ausgewiesen; ein echter Vertrag sichert Stimmen und speichert die neue Zusage',()=>{
  const w=welt();w.parliament!.seats={[w.player!.partei.kurz]:180,CHP:180,'YENİ':120,MHP:90,DEM:30};w.spiel!.lager=[];fraktion(w,'CHP').duldungBis=w.day+10;fraktion(w,'YENİ').bereitschaft=65;

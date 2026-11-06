@@ -81,7 +81,8 @@ describe("Maßnahmen wirken in die erwartete Richtung", () => {
   test("Maßnahmen kosten Geld und erhöhen die Schulden", () => {
     const w = createWorld(turkey2026, 2);
     const base = createWorld(turkey2026, 2);
-    setPolicy(w, "m_renten", 90);
+    // N3 (ENTSCHEIDUNGEN W, F1): Rentenerhöhungen bezahlt jetzt der Etat „Rentenniveau“; geprüft wird eine Maßnahme ohne Etatposten
+    setPolicy(w, "m_kindergeld", 100);
     advance(w, 400);
     advance(base, 400);
     expect(w.economy.policyCost).toBeGreaterThan(0.3);

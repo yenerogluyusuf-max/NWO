@@ -8,7 +8,7 @@ import { schnellProfil, startAfterElection } from "../src/sim/prolog";
 import { NET } from "../src/sim/modell";
 import { nationalAverage } from "../src/sim/netz";
 import { metricValue, prognoseReihen } from "../src/sim/forecast";
-import { alleMarken, defizitJetzt, verlauf, wirtschaftZustand, zbZustand, zinsausgabenJetzt } from "../src/sim/wirtschaft";
+import { alleMarken, defizitJetzt, haushaltZustand, verlauf, wirtschaftZustand, zbZustand, zinsausgabenJetzt } from "../src/sim/wirtschaft";
 import { KENNZAHLEN, aktuellerWert, kennzahl } from "../src/sim/wirtschaft-kennzahlen";
 import { aendereStufe, druckOptionen, druckWirkung, ernenneGouverneur, machDruck, naechsteSitzung, setzeVorgabe } from "../src/sim/zentralbank";
 import { PAKETE, POSTEN, POSTEN_NACH_ID, haushaltMonat, impulsAusPosten, postenVorschau, setzePosten, stufeVon, wendePaketAn } from "../src/sim/haushalt";
@@ -223,17 +223,20 @@ describe("Haushalt", () => {
     expect(defizitJetzt(a)).toBeGreaterThan(defizitJetzt(b));
   });
 
-  test("Steuern anheben senkt Impuls und Defizit, trifft Gruppen und kostet doppelt", () => {
+  // N3 (06.11.2026, Befund D-1): Steuern haben genau eine Stellgröße, die Maßnahme mit echtem Satz. Der frühere Haushaltsregler
+  // „einkommensteuer“ ist entfallen; alte Spielstände werden auf die Maßnahme umgerechnet, ohne dass sich das Defizit ändert.
+  test("Steuern stellt allein die Maßnahme; alte Steuerregler werden ohne Sprung im Defizit umgerechnet", () => {
     const w = welt();
-    const k0 = w.spiel!.kapital;
-    const arbeitnehmer0 = nationalAverage(NET, w.net, "arbeitnehmer");
-    const defizit0 = defizitJetzt(w);
-    const r = setzePosten(w, "einkommensteuer", 1);
-    expect(r.ok, r.text).toBe(true);
-    // Unbeliebte Richtung kostet doppelt (2); WIR-3: außerhalb des Oktober-Fensters als Nachtrag nochmals doppelt (4)
-    expect(w.spiel!.kapital).toBe(k0 - 4);
-    expect(defizitJetzt(w)).toBeCloseTo(defizit0 - 0.3, 6);
-    expect(nationalAverage(NET, w.net, "arbeitnehmer")).toBeLessThan(arbeitnehmer0);
+    expect(setzePosten(w, "einkommensteuer", 1).ok).toBe(false);
+    const z = haushaltZustand(w);
+    delete z.steuerFassung;
+    z.stufen.einkommensteuer = 1;
+    w.economy.fiscalImpulse -= 0.3; // so hatte der alte Regler gebucht
+    const defizit0 = defizitJetzt(w), satz0 = nationalAverage(NET, w.net, "m_einkommensteuer");
+    haushaltZustand(w);
+    expect(z.stufen.einkommensteuer).toBeUndefined();
+    expect(defizitJetzt(w)).toBeCloseTo(defizit0, 9);
+    expect(nationalAverage(NET, w.net, "m_einkommensteuer")).toBeCloseTo(satz0 + 20, 6); // 0,3 % BIP bei 1,5 % je 100 Stufen
   });
 
   test("Die Vorschau nennt Kapital, Defizit vorher und nachher; ohne Kapital geht es nicht", () => {

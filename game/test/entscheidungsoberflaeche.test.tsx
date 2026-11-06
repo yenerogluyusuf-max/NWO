@@ -1,4 +1,5 @@
 import { POSTEN } from '../src/sim/haushalt';
+import { MASSNAHMEN_MIT_SATZ } from "../src/data/skalen";
 import { afterEach, expect, test, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createWorld, save } from '../src/sim/world';
@@ -80,10 +81,15 @@ test('eine ausgewählte Alternative baut genau ihren Inhalt auf, veraltete Auswa
  const inhalt=vi.fn(id=><p>{id}</p>);renderToStaticMarkup(<EntscheidungsWege wege={wege} wahl="b" inhalt={inhalt}/>);
  expect(inhalt.mock.calls).toEqual([['b']]);inhalt.mockClear();renderToStaticMarkup(<EntscheidungsWege wege={wege} wahl="entfallen" inhalt={inhalt}/>);expect(inhalt).not.toHaveBeenCalled();
 });
-test('Haushaltstafel zeigt alle Posten mit Regler auf einen Blick und die Bilanz als Haushaltsrad (Democracy 4)',()=>{
+// N3 (06.11.2026): Der Haushalt passt auf anderthalb Bildschirme. Alle Ressortgruppen stehen mit ihrer Summe da und öffnen ihre Regler
+// auf Klick (auch über das Rad); die drei Steuern mit echtem Satz haben je eine Zeile mit Regler (Befund D-1, D-16).
+test('Haushaltstafel zeigt alle Ressortgruppen und Steuern auf einen Blick und die Bilanz als Haushaltsrad (Democracy 4)',()=>{
  const w=welt('2028-06-05');const html=renderToStaticMarkup(<Haushalt world={w} geaendert={noop}/>);
  expect(html).toContain('hd-bilanz');expect(html).toContain('hr-figur');expect(html).toContain('<path');
- const regler=(html.match(/type="range"/g)??[]).length;expect(regler).toBe(POSTEN.length);
+ const gruppen=new Set(POSTEN.map(p=>p.gruppe));expect((html.match(/hd-gruppe-kopf/g)??[]).length).toBe(gruppen.size);
+ expect((html.match(/type="range"/g)??[]).length).toBe(MASSNAHMEN_MIT_SATZ.length);
+ const offen=renderToStaticMarkup(<Haushalt world={w} geaendert={noop} posten="bildung"/>);
+ expect((offen.match(/type="range"/g)??[]).length).toBe(MASSNAHMEN_MIT_SATZ.length+POSTEN.filter(p=>p.gruppe==='dienste').length);
  expect(html).not.toContain('NaN');expect(html).not.toContain('⟦');
 });
 test.each(['de','en','tr'] as const)('Haushaltsarbeitsplatz, Entscheidungskarten und Katalog auf %s',async lang=>{

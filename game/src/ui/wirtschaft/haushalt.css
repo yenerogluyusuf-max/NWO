@@ -135,3 +135,41 @@
 .dossier .hd .hd-mehr-reiter button.on { background: var(--tinte-weich); color: var(--papier-2); border-color: var(--tinte-weich); }
 
 /* Haushaltsrad: Legende Ausgaben | Rad | Legende Einnahmen */
+
+/* N3 (06.11.2026): Haushalt auf höchstens anderthalb Bildschirme. Kopfzahlen neben dem Titel, Rad etwas kleiner, Ressortgruppen
+   zugeklappt mit ihrer Summe aus dem Rad, Steuern als eigene Zeilen mit Satz und Ertrag. */
+.hd-bilanz { padding: 14px 20px 12px; gap: 6px 28px; }
+.hd-bilanz > .hd-titel { grid-column: 1; grid-row: 1; align-self: center; }
+.hd-bilanz > .hd-kern { grid-column: 2; grid-row: 1; justify-content: flex-end; }
+.hd .hr-figur svg { max-width: 236px; }
+.hd .hr { grid-template-columns: minmax(0, 1fr) minmax(200px, 236px) minmax(0, 1fr); }
+.hd-kern dd { font-size: 21px; }
+.hd-kern .gut dd { color: #3f6b45; }
+.dossier .hd button.hd-bonitaet { all: unset; cursor: pointer; font: 600 21px/1.1 var(--display, Fraunces, serif); color: inherit; border-bottom: 1px dotted rgba(90, 64, 40, 0.5); }
+.dossier .hd button.hd-bonitaet[aria-pressed="true"] { border-bottom-style: solid; }
+.dossier .hd button.hd-bonitaet:focus-visible { outline: 3px solid #b38e48; outline-offset: 2px; }
+.hd-seite h3 { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.dossier .hd .hd-seite h3 small { font: italic 13px/1.3 var(--serif, "EB Garamond", serif); color: #6b5a46; }
+.dossier .hd button.hd-gruppe-kopf { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto 14px; gap: 10px; align-items: center; padding: 8px 6px; border-bottom: 1px solid rgba(90, 64, 40, 0.14); cursor: pointer; color: #2b1e12; font: 15px/1.25 var(--sans, Inter, sans-serif); }
+.dossier .hd button.hd-gruppe-kopf:hover { background: rgba(201, 162, 90, 0.12); }
+.dossier .hd button.hd-gruppe-kopf:focus-visible { outline: 3px solid #b38e48; outline-offset: -2px; }
+.hd-gruppe-kopf small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #8c2b1f; }
+.hd-gruppe-kopf b { font: 600 15px/1.2 var(--display, Fraunces, serif); font-variant-numeric: tabular-nums; }
+.hd-gruppe-kopf i { font-style: normal; color: #7a6a56; }
+.hd-gruppe.auf > .hd-gruppe-kopf { background: rgba(201, 162, 90, 0.16); border-radius: 4px 4px 0 0; }
+.hd-gruppe.auf > ul { padding: 2px 0 8px 10px; border-left: 2px solid rgba(201, 162, 90, 0.5); margin-left: 4px; }
+.hd-seite .hd-gruppe { margin: 0; }
+.hd-name-fest { display: grid; gap: 1px; min-width: 0; color: #2b1e12; font: 15px/1.25 var(--sans, Inter, sans-serif); }
+.hd-name-fest small { font: 12.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.dossier .hd button.hd-sprung { all: unset; justify-self: start; cursor: pointer; font: 13px/1.2 var(--sans, Inter, sans-serif); color: #7c5823; border-bottom: 1px dotted #7c5823; }
+.dossier .hd button.hd-sprung:focus-visible { outline: 3px solid #b38e48; outline-offset: 2px; }
+.hd-treppe { list-style: none; margin: 18px 0 6px; padding: 0; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; align-items: end; }
+.hd-treppe li { position: relative; display: grid; place-items: center; padding: 8px 0; border-radius: 4px; background: rgba(90, 64, 40, 0.1); font: 600 13px/1 var(--sans, Inter, sans-serif); color: #6b5a46; font-variant-numeric: tabular-nums; }
+.hd-treppe li.anlage { background: rgba(63, 107, 69, 0.14); color: #3f6b45; }
+.hd-treppe li.jetzt { background: #4a3424; color: #f8eedb; box-shadow: 0 2px 0 #b38e48; }
+.hd-treppe li em { position: absolute; left: -2px; top: -17px; white-space: nowrap; font: italic 12px/1 var(--serif, "EB Garamond", serif); color: #3f6b45; border-left: 2px solid #3f6b45; padding-left: 4px; }
+@media (max-width: 1100px) { .hd-bilanz > .hd-kern { grid-column: 1; grid-row: auto; justify-content: flex-start; } .hd .hr { grid-template-columns: minmax(0, 1fr); } }
+.hd-einnahmen .hd-reihe { grid-template-columns: minmax(0, 1fr) 128px 168px; }
+.hd-einnahmen .hd-steuer-fest .hd-reihe { grid-template-columns: minmax(0, 1fr) auto; }
+.hd-einnahmen .hd-betrag { white-space: nowrap; }
+@media (max-width: 560px) { .hd-einnahmen .hd-reihe { grid-template-columns: minmax(0, 1fr) auto; } }

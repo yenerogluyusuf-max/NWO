@@ -15,7 +15,7 @@ import { DRUCK_STAERKE, criticizeCentralBank, kritikStaerke, replaceGovernor } f
 import { Rng } from "./rng";
 import { addMarke, zbZustand } from "./wirtschaft";
 import { glaubwuerdigkeitsKette, kettenZeile, zinsKette } from "./folgen";
-import { t } from "../i18n";
+import { t, zahl } from "../i18n";
 
 export interface Ergebnis {
   ok: boolean;
@@ -23,11 +23,16 @@ export interface Ergebnis {
   why?: string;
 }
 
-export const STUFEN: Record<Unabhaengigkeit, { name: string; text: string }> = {
-  A: { name: t("sim2.sim.zentralbank.04c9394"), text: t("sim2.sim.zentralbank.82647b2") },
-  B: { name: t("sim2.sim.zentralbank.4f68d18"), text: t("sim2.sim.zentralbank.229957b") },
-  C: { name: "Weisungsgebunden", text: t("sim2.sim.zentralbank.1af7fa5") },
+/** Namen und Texte entstehen bei jedem Lesen in der aktuellen Sprache (vorher beim Laden des Moduls, also immer deutsch: Befund I-4). */
+const stufe = (name: string, text: string): { readonly name: string; readonly text: string } => ({ get name() { return t(name); }, get text() { return t(text); } });
+export const STUFEN: Record<Unabhaengigkeit, { readonly name: string; readonly text: string }> = {
+  A: stufe("sim2.sim.zentralbank.04c9394", "sim2.sim.zentralbank.82647b2"),
+  B: stufe("sim2.sim.zentralbank.4f68d18", "sim2.sim.zentralbank.229957b"),
+  C: stufe("n3.zb.weisungsgebunden", "sim2.sim.zentralbank.1af7fa5"),
 };
+
+/** Spielparameter der Folgen eines Gesprächs nach der Sitzung: Loyalität der Bankführung je Prozentpunkt Nachgeben und bei einem erfolglosen Versuch. */
+export const ZB_FOLGEN = { loyalitaetJePunkt: 3, loyalitaetVersuch: 2 } as const;
 
 /** Wie empfänglich die Führung für Druck ist, je nach Haltung. */
 export const EMPFAENGLICH: Record<GovernorStance, number> = { vorsichtig: 0.3, ausgewogen: 0.6, gefuegig: 1 };
@@ -42,10 +47,10 @@ const GOUVERNEUR_ABKUEHLUNG = 120;
 
 export function glaubwuerdigkeitWort(c: number): string {
   if (c < 0.2) return t("sim2.sim.zentralbank.03a881d");
-  if (c < 0.35) return "gering";
-  if (c < 0.5) return "mäßig";
-  if (c < 0.65) return "solide";
-  return "hoch";
+  if (c < 0.35) return t("n3.zb.glaub.gering");
+  if (c < 0.5) return t("n3.zb.glaub.maessig");
+  if (c < 0.65) return t("n3.zb.glaub.solide");
+  return t("n3.zb.glaub.hoch");
 }
 
 /** Die nächste Zinssitzung: Tag, Abstand in Tagen und Datum; `null`, wenn keine mehr geplant ist. */
@@ -122,13 +127,14 @@ export function zinssitzung(w: World): void {
     e.usdTry *= 1 + 0.004 * a;
     e.eurTry *= 1 + 0.004 * a;
     wirke(w, "vertrauen_maerkte", -0.8 * a);
-    loyalitaetAendern(w, "zentralbank", -3 * a, t("sim2.sim.zentralbank.58942b0"));
+    loyalitaetAendern(w, "zentralbank", -ZB_FOLGEN.loyalitaetJePunkt * a, t("sim2.sim.zentralbank.58942b0"));
   } else if (abw > 0) {
     e.credibility = clamp(e.credibility + 0.01 * abw, 0.05, 0.95);
     e.riskPremium = Math.max(50, e.riskPremium - 3 * abw);
     wirke(w, "unternehmer", -0.5 * abw);
-  } else if (druck && z.stufe !== "C") {
-    loyalitaetAendern(w, "zentralbank", -2, t("sim2.sim.zentralbank.be644d5"));
+  } else if (druck && druck.richtung < 0 && z.stufe !== "C") {
+    // Nur der Versuch, die Bank zu lockeren Zinsen zu drängen, verärgert sie; Rückhalt für einen strengen Kurs nicht (Befund D-12)
+    loyalitaetAendern(w, "zentralbank", -ZB_FOLGEN.loyalitaetVersuch, t("sim2.sim.zentralbank.be644d5"));
   }
 
   const delta = neu - alt;
@@ -154,7 +160,7 @@ export function zinssitzung(w: World): void {
 
   const text = protokolltext(alt, neu);
   addLog(w, "entscheidung", abw !== 0 && z.stufe !== "C" ? t("sim2.sim.zentralbank.f8f80db", { p0: text }) : text, begruendung);
-  addMarke(w, "zins", `${text}${abw !== 0 ? " (auf Druck)" : ""}`);
+  addMarke(w, "zins", abw !== 0 ? t("n3.zb.aufDruck", { text }) : text);
 }
 
 function protokolltext(alt: number, neu: number): string {
@@ -178,10 +184,11 @@ export function machDruck(w: World, richtung: -1 | 1, weg: ZbDruck["weg"]): Erge
     if (!kannZahlen(spiel.kapital, 1)) return { ok: false, text: t("sim2.sim.zentralbank.f2c77d5") };
     spiel.kapital -= 1;
     z.gespraech = w.day;
-    w.economy.credibility = clamp(w.economy.credibility - 0.005, 0.05, 0.95);
+    // Ein vertraulicher Rat zu lockeren Zinsen sickert durch; wer die Bank zur Festigkeit ermuntert, schadet ihrem Ruf nicht (D-12)
+    if (richtung < 0) w.economy.credibility = clamp(w.economy.credibility - 0.005, 0.05, 0.95);
     z.druck = { richtung, weg, staerke: DRUCK_STAERKE.gespraech, tag: w.day };
     const text = t("sim2.sim.zentralbank.ffbb527", { p0: richtung < 0 ? t("sim2.sim.zentralbank.i110baa9") : t("sim2.sim.zentralbank.icb593b0") });
-    const why = t("sim2.sim.zentralbank.0bda6cb", { p0: wirkung.abweichung !== 0 ? `Nach heutigem Stand beschließt die Bank ${fmt(wirkung.neu)} % statt ${fmt(wirkung.regel)} %.` : "Nach heutigem Stand ändert das nichts: Die Gouverneurin bleibt bei ihrer Linie." });
+    const why = t("sim2.sim.zentralbank.0bda6cb", { p0: wirkung.abweichung !== 0 ? t("n3.zb.nachStand", { neu: fmt(wirkung.neu), regel: fmt(wirkung.regel) }) : t("n3.zb.aendertNichts") });
     addLog(w, "entscheidung", text, why);
     addMarke(w, "eingriff", text);
     return { ok: true, text, why };
@@ -192,7 +199,7 @@ export function machDruck(w: World, richtung: -1 | 1, weg: ZbDruck["weg"]): Erge
     const staerke = kritikStaerke(w);
     criticizeCentralBank(w);
     const text = t("sim2.sim.zentralbank.7c0edc4");
-    const why = t("sim2.sim.zentralbank.f68d232", { p0: staerke > 1 ? ` (wiederholte Kritik: ${fmt(staerke)}fache Wirkung)` : "", p1: wirkung.abweichung !== 0 ? `Nach heutigem Stand beschließt die Bank ${fmt(wirkung.neu)} % statt ${fmt(wirkung.regel)} %.` : "Die Gouverneurin lässt sich davon nicht beeindrucken." });
+    const why = t("sim2.sim.zentralbank.f68d232", { p0: staerke > 1 ? t("n3.zb.wiederholtWirkung", { n: fmt(staerke) }) : "", p1: wirkung.abweichung !== 0 ? t("n3.zb.nachStand", { neu: fmt(wirkung.neu), regel: fmt(wirkung.regel) }) : t("n3.zb.unbeeindruckt") });
     return { ok: true, text, why };
   }
   // Öffentliche Rückendeckung für eine strenge Linie
@@ -253,16 +260,17 @@ interface Wechsel {
   effekte: string;
 }
 
+const wechsel = (pk: number, text: string, effekte: string): Wechsel => ({ pk, get text() { return t(text); }, get effekte() { return t(effekte); } });
 const WECHSEL: Record<string, Wechsel> = {
-  "B>C": { pk: 8, text: t("sim2.sim.zentralbank.0f40e13"), effekte: t("sim2.sim.zentralbank.a006e71") },
-  "C>B": { pk: 4, text: t("sim2.sim.zentralbank.1480165"), effekte: t("sim2.sim.zentralbank.66fac34") },
-  "B>A": { pk: 6, text: t("sim2.sim.zentralbank.9c97aee"), effekte: t("sim2.sim.zentralbank.e376cf5") },
-  "A>B": { pk: 2, text: t("sim2.sim.zentralbank.e933261"), effekte: t("sim2.sim.zentralbank.2f3493e") },
+  "B>C": wechsel(8, "sim2.sim.zentralbank.0f40e13", "sim2.sim.zentralbank.a006e71"),
+  "C>B": wechsel(4, "sim2.sim.zentralbank.1480165", "sim2.sim.zentralbank.66fac34"),
+  "B>A": wechsel(6, "sim2.sim.zentralbank.9c97aee", "sim2.sim.zentralbank.e376cf5"),
+  "A>B": wechsel(2, "sim2.sim.zentralbank.e933261", "sim2.sim.zentralbank.2f3493e"),
 };
 
 export function stufenWechsel(von: Unabhaengigkeit): { ziel: Unabhaengigkeit; pk: number; text: string; effekte: string }[] {
   const nach: Record<Unabhaengigkeit, Unabhaengigkeit[]> = { A: ["B"], B: ["A", "C"], C: ["B"] };
-  return nach[von].map((ziel) => ({ ziel, ...WECHSEL[`${von}>${ziel}`]! }));
+  return nach[von].map((ziel) => { const x = WECHSEL[`${von}>${ziel}`]!; return { ziel, pk: x.pk, text: x.text, effekte: x.effekte }; });
 }
 
 /** Die Wirkung eines Wechsels der Unabhängigkeit auf Märkte und Bank, ohne Prüfung von Mehrheit und Kosten. */
@@ -282,7 +290,7 @@ export function wendeStufeAn(w: World, ziel: Unabhaengigkeit): void {
     e.eurTry *= 1.04;
     wirke(w, "vertrauen_maerkte", -8);
     wirke(w, "legitimitaet", -3);
-    loyalitaetAendern(w, "zentralbank", -25, "Die Gouverneurin sieht ihre Bank entmachtet.");
+    loyalitaetAendern(w, "zentralbank", -25, t("n3.zb.entmachtet"));
   } else if (alt === "C" && ziel === "B") {
     e.credibility = clamp(e.credibility + 0.06, 0.05, 0.95);
     e.riskPremium = Math.max(50, e.riskPremium - 30);
@@ -348,7 +356,7 @@ export function druckOptionen(w: World): DruckOption[] {
     let grund: string | undefined;
     if (!spiel || !z) {
       moeglich = false;
-      grund = "Ohne Spielschleife.";
+      grund = t("n3.zb.ohneSpiel");
     } else if (z.stufe === "C") {
       moeglich = false;
       grund = t("sim2.sim.zentralbank.418409f");
@@ -363,15 +371,20 @@ export function druckOptionen(w: World): DruckOption[] {
       } else if (!kannZahlen(spiel.kapital, 1)) {
         moeglich = false;
         grund = t("sim2.sim.zentralbank.2f739ec");
+      } else if (richtung > 0 && wirkung.abweichung === 0) {
+        // Kein Kapital für einen Rat, der nach heutigem Stand nichts ändert (Befund D-12)
+        moeglich = false;
+        grund = t("n3.zb.schonStreng");
       }
     }
     return { id, label, text, richtung, weg, neu: wirkung.neu, abweichung: wirkung.abweichung, kosten, moeglich, ...(grund ? { grund } : {}) };
   };
   return [
-    { id: "keiner", label: "Nicht einmischen", text: t("sim2.sim.zentralbank.7670a8a"), neu: regel, abweichung: 0, kosten: ["keine"], moeglich: true },
-    opt("gespraech_senken", t("sim2.sim.zentralbank.e7a3e0b"), t("sim2.sim.zentralbank.21a5b4a"), -1, "gespraech", [t("sim2.sim.zentralbank.25678f3"), t("sim2.sim.zentralbank.e3a96e2")]),
-    opt("rede_senken", t("sim2.sim.zentralbank.a382a84"), t("sim2.sim.zentralbank.ca11f2a"), -1, "rede", [t("sim2.sim.zentralbank.4055625"), `Risikoaufschlag +${Math.round(10 * kritik)}`, t("sim2.sim.zentralbank.f16a017", { p0: fmt(3 * kritik) }), kritik > 1 ? `Wiederholte Kritik wirkt ${fmt(kritik)}fach` : t("sim2.sim.zentralbank.f76b008")]),
-    opt("gespraech_straffen", "Vertraulich zur Festigkeit raten", t("sim2.sim.zentralbank.f25700d"), 1, "gespraech", [t("sim2.sim.zentralbank.25678f3"), t("sim2.sim.zentralbank.ba6faa3")]),
+    { id: "keiner", label: t("n3.zb.opt.keiner"), text: t("sim2.sim.zentralbank.7670a8a"), neu: regel, abweichung: 0, kosten: [t("n3.zb.kostenlos")], moeglich: true },
+    // Die Preise stehen in derselben Zahl, die zinssitzung bucht: Nachgeben kostet je Punkt Loyalität, ein erfolgloser Versuch weniger
+    opt("gespraech_senken", t("sim2.sim.zentralbank.e7a3e0b"), t("sim2.sim.zentralbank.21a5b4a"), -1, "gespraech", [t("sim2.sim.zentralbank.25678f3"), t("sim2.sim.zentralbank.e3a96e2"), t("n3.zb.loyalMinus", { n: zahl(druckWirkung(w, -1, "gespraech").abweichung !== 0 ? ZB_FOLGEN.loyalitaetJePunkt * Math.abs(druckWirkung(w, -1, "gespraech").abweichung) : ZB_FOLGEN.loyalitaetVersuch) })]),
+    opt("rede_senken", t("sim2.sim.zentralbank.a382a84"), t("sim2.sim.zentralbank.ca11f2a"), -1, "rede", [t("sim2.sim.zentralbank.4055625"), t("n3.zb.risiko", { n: Math.round(10 * kritik) }), t("sim2.sim.zentralbank.f16a017", { p0: zahl(3 * kritik) }), kritik > 1 ? t("n3.zb.wiederholt", { n: fmt(kritik) }) : t("sim2.sim.zentralbank.f76b008")]),
+    opt("gespraech_straffen", t("n3.zb.opt.festigkeit"), t("sim2.sim.zentralbank.f25700d"), 1, "gespraech", [t("sim2.sim.zentralbank.25678f3"), t("n3.zb.unternehmerMurren")]),
     opt("rede_straffen", t("sim2.sim.zentralbank.2f49720"), t("sim2.sim.zentralbank.9fef94c"), 1, "rede", [t("sim2.sim.zentralbank.6f39ef9"), t("sim2.sim.zentralbank.cee6da0")]),
   ];
 }

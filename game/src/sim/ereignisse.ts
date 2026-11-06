@@ -22,7 +22,8 @@ import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
 import { anrede, ersetze, figur } from "./figuren";
-import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingriffe";
+import { criticizeCentralBank, replaceGovernor } from "./eingriffe";
+import { haushaltAusEreignis } from "./haushalt";
 import { interveniere } from "./devisen";
 import { bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
 import { FORDERUNG, PARTEI_NAME, bereitschaftAendern, forderungVon } from "./fraktionen";
@@ -335,7 +336,7 @@ const HAUSHALT: Vorlage = {
   warum: () => t("ev.haushaltsdruck.warum"),
   optionen: () => [
     opt("sparpaket", t("ev.haushaltsdruck.opt.sparpaket.label"), t("ev.haushaltsdruck.opt.sparpaket.beschr"), 6, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse - 1.5);
+      haushaltAusEreignis(w, "sparpaket"); // N3 (D-13): Regler statt unsichtbarem Impuls
       wirke(w, "vertrauen_maerkte", 6);
       vertrauenAendern(w, -3);
       const f = figur(w, "finanzen");
@@ -887,7 +888,7 @@ const START_HAUSHALT: Vorlage = {
   warum: () => t("ev.start_haushalt.warum"),
   optionen: () => [
     opt("sparen", t("ev.start_haushalt.opt.sparen.label"), t("ev.start_haushalt.opt.sparen.beschr"), 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse - 1);
+      haushaltAusEreignis(w, "sparkurs"); // N3 (D-13)
       wirke(w, "vertrauen_maerkte", 4);
       vertrauenAendern(w, -1);
       const f = figur(w, "finanzen");
@@ -896,7 +897,7 @@ const START_HAUSHALT: Vorlage = {
     }),
     opt("mitte", t("ev.start_haushalt.opt.mitte.label"), t("ev.start_haushalt.opt.mitte.beschr"), 0, () => t("ev.start_haushalt.opt.mitte.ausgang")),
     opt("wachstum", t("ev.start_haushalt.opt.wachstum.label"), t("ev.start_haushalt.opt.wachstum.beschr"), 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse + 1.5);
+      haushaltAusEreignis(w, "wachstum"); // N3 (D-13)
       vertrauenAendern(w, 1);
       const f = figur(w, "finanzen");
       if (f) f.loyalitaet = Math.max(0, f.loyalitaet - 8);
