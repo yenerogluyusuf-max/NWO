@@ -216,7 +216,7 @@ export function PflegeKacheln({ world, bereich, refresh }: { world: World; berei
       <h4>
         {t("ui2.ui.reich.Pflege.6e8cf3e")} <em>{stuecke.length} {stuecke.length === 1 ? t("ui2.ui.reich.Pflege.26e1a92") : t("ui2.ui.reich.Pflege.cd3f30b")}{t("ui2.ui.reich.Pflege.3144bed")}</em>
       </h4>
-      <p className="rr-hinweis">{t("ui.reich.Pflege.50d63b0")}</p>
+      <p className="rr-hinweis">{t("welle_b3.pf.legende")}</p>
       <ul className="lk-raster lk-raster-vier">
         {stuecke.map((x) => (
           <li key={x.id}>

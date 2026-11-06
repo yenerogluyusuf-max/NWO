@@ -58,5 +58,8 @@
  "welle_b3.nz.leerWert": "yılda borç oranında {x, number} puan",
  "welle_b3.al.risiko": "Piyasa risk primi, baz puan",
  "welle_b3.al.nachfrage": "Dış talep, endeks puanı",
- "welle_b3.al.wege": "Kaldırılmasının yolları"
+ "welle_b3.al.wege": "Kaldırılmasının yolları",
+ "welle_b3.md.alter": "{tage} gün önce ölçüldü",
+ "welle_b3.md.streuung": "Sapma",
+ "welle_b3.md.darin": "Kurumun eğilimi ve korkunun hüküm sürdüğü yerde gerçeği yansıtmayan yanıtlar da buna dahildir."
 }

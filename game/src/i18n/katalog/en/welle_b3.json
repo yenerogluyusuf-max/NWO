@@ -58,5 +58,8 @@
  "welle_b3.nz.leerWert": "{x, number} pp of debt ratio a year",
  "welle_b3.al.risiko": "Market risk premium, basis points",
  "welle_b3.al.nachfrage": "Foreign demand, index points",
- "welle_b3.al.wege": "Ways to lift it"
+ "welle_b3.al.wege": "Ways to lift it",
+ "welle_b3.md.alter": "{tage, plural, one {measured # day ago} other {measured # days ago}}",
+ "welle_b3.md.streuung": "Margin",
+ "welle_b3.md.darin": "It includes the pollster’s house effect and, where fear rules, flattering answers."
 }

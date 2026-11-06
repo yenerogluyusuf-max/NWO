@@ -58,5 +58,8 @@
  "welle_b3.nz.leerWert": "{x, number} Pp. Schuldenquote im Jahr",
  "welle_b3.al.risiko": "Risikoaufschlag am Markt, Basispunkte",
  "welle_b3.al.nachfrage": "Auslandsnachfrage, Indexpunkte",
- "welle_b3.al.wege": "Wege zur Aufhebung"
+ "welle_b3.al.wege": "Wege zur Aufhebung",
+ "welle_b3.md.alter": "{tage, plural, one {vor # Tag} other {vor # Tagen}} gemessen",
+ "welle_b3.md.streuung": "Streuung",
+ "welle_b3.md.darin": "Darin stecken der Haus-Effekt des Instituts und, wo Angst herrscht, geschönte Antworten."
 }
