@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import type { World } from '../../sim/types';
 import { krisenAlltag, KRISENGESETZE, krisenGesetzPlan, bringeKrisenGesetzEin, type KrisenGesetz, type KrisenGesetzPlan } from '../../sim/krisengesetze';
 import { t, zahl } from '../../i18n';
@@ -9,23 +9,28 @@ import { GesetzesPrognoseHinweis } from '../parlament/GesetzesPrognoseHinweis';
 import { UbVerweis } from '../akte/Uebersicht';
 
 const sign=(n:number)=>`${n>0?'+':''}${zahl(n,2)}`;
-export function KrisenGesetze({world,geaendert}:{world:World;geaendert:()=>void}) {
+/** Tag T5: oben die Lage der Haushalte als vier Zahlen, die Lesehilfe aufklappbar (`lesehilfe` ergänzt sie um den Tiefstand),
+ *  darunter die drei gesetzlichen Wege als Kacheln; die gewählte Kachel öffnet ihre Vorlage. */
+export function KrisenGesetze({world,geaendert,lesehilfe}:{world:World;geaendert:()=>void;lesehilfe?:ReactNode}) {
   const [wahl,setWahl]=useState<KrisenGesetz>(),[umfang,setUmfang]=useState<10|20>(10);
   const [antwort,setAntwort]=useState<{ok:boolean;text:string}>();
   const id=useId(),ref=useRef<HTMLDivElement>(null);
   useEffect(()=>{if(wahl)ref.current?.focus();},[wahl]);
   const plan=wahl?krisenGesetzPlan(world,wahl,umfang):undefined;
-  return <section className="kr-alltag" aria-label={t('kg.titel')}>
+  return <div className="kr-gesetze"><section className="kr-alltag" aria-label={t('kg.titel')}>
     <header><span>{t('kg.kicker')}</span><h4>{t('kg.titel')}</h4></header>
     <dl className="kr-alltag-zahlen">{krisenAlltag(world).map(v=><div key={v.id}><dt>{t(`kp.${v.id}`)}</dt><dd>{zahl(v.wert,1)}<small>/ 100</small></dd><p className={v.trend===null?'':v.trend*v.gut>0?'besser':v.trend*v.gut<0?'schlechter':''}>{v.trend===null?t('kg.keinVerlauf'):t('kg.trend',{n:sign(v.trend)})}</p></div>)}<div><dt>{t('kg.arbeit')}</dt><dd>{zahl(world.economy.unemployment,1)}<small>%</small></dd><p>{t('kg.inflation',{n:zahl(world.economy.inflation,1)})}</p></div></dl>
-    <p className="kr-hinweis">{t('kg.beobachtung')}</p><p className="kr-hinweis">{t(world.economy.inflation>0?'kg.preiseSteigen':'kg.preiseGrenze')}</p>
-    <div className="kr-gesetz-wahl" role="group" aria-label={t('kg.wege')}>{KRISENGESETZE.map(g=><button type="button" key={g} aria-pressed={wahl===g} aria-controls={wahl===g?id:undefined} onClick={()=>{setWahl(g);setAntwort(undefined);}}><strong>{t(`kg.${g}.titel`)}</strong><small>{t(`kg.${g}.kurz`)}</small><span>{t('kp.pruefen')} →</span></button>)}</div>
+    <details className="kr-lesehilfe"><summary>{t('t5.kr.lesehilfe')}</summary>{lesehilfe}<p className="kr-hinweis">{t('kg.beobachtung')}</p><p className="kr-hinweis">{t(world.economy.inflation>0?'kg.preiseSteigen':'kg.preiseGrenze')}</p></details>
+    </section>
+    <section className="kr-weg" aria-label={t('kg.wege')}>
+    <h4 className="kr-weg-titel">{t('kg.wege')}</h4>
+    <div className="kr-wahl" role="group" aria-label={t('kg.wege')}>{KRISENGESETZE.map(g=><button type="button" key={g} aria-pressed={wahl===g} aria-controls={wahl===g?id:undefined} onClick={()=>{setWahl(g);setAntwort(undefined);}}><strong>{t(`kg.${g}.titel`)}</strong><small>{t(`kg.${g}.kurz`)}</small><span>{t('kp.pruefen')} →</span></button>)}</div>
     {plan&&<div className="kr-detail" tabIndex={-1} ref={ref} id={id} role="region" aria-label={t(`kg.${plan.id}.titel`)}>
       {!plan.laufend&&!plan.umsetzung&&<fieldset className="kr-umfang"><legend>{t('kg.umfang')}</legend>{([10,20] as const).map(n=><label key={n}><input type="radio" name={`${id}-umfang`} checked={umfang===n} onChange={()=>{setUmfang(n);setAntwort(undefined);}}/>{t('kg.schritt',{n})}</label>)}</fieldset>}
       <KrisenGesetzKarte world={world} plan={plan} ausfuehren={()=>{const r=bringeKrisenGesetzEin(world,plan);setAntwort(r);geaendert();}}/>
     </div>}
     {antwort&&<p role="status" className={`rueckmeldung ${antwort.ok?'ok':'nein'}`}>{antwort.text}</p>}
-  </section>;
+  </section></div>;
 }
 
 export function KrisenGesetzKarte({world,plan:p,ausfuehren}:{world:World;plan:KrisenGesetzPlan;ausfuehren:()=>void}) {

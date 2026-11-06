@@ -3,5 +3,9 @@
  "t5.zb.frage.erhoeht": "Am {datum} erhöht die Bank den Leitzins von {alt, number, 1} auf {neu, number, 1} %.",
  "t5.zb.frage.haelt": "Am {datum} hält die Bank den Leitzins bei {neu, number, 1} %.",
  "t5.zb.frage.vorgabe": "Am {datum} setzt die Bank Ihre Vorgabe von {neu, number, 1} % um.",
- "t5.zb.vorgabeTitel": "Ihre Vorgabe für die Sitzung"
+ "t5.zb.vorgabeTitel": "Ihre Vorgabe für die Sitzung",
+ "t5.kr.frage": "Wie entlasten Sie die Haushalte, und wer stimmt dafür?",
+ "t5.kr.tiefstand": "Politischer Tiefstand",
+ "t5.kr.tiefstandWert": "{n} von 6 Monaten",
+ "t5.kr.lesehilfe": "Wie diese Zahlen zu lesen sind"
 }

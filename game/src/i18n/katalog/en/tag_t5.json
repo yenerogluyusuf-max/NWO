@@ -3,5 +3,9 @@
  "t5.zb.frage.erhoeht": "On {datum} the bank raises the policy rate from {alt, number, 1} to {neu, number, 1}%.",
  "t5.zb.frage.haelt": "On {datum} the bank holds the policy rate at {neu, number, 1}%.",
  "t5.zb.frage.vorgabe": "On {datum} the bank carries out your instruction of {neu, number, 1}%.",
- "t5.zb.vorgabeTitel": "Your instruction for the meeting"
+ "t5.zb.vorgabeTitel": "Your instruction for the meeting",
+ "t5.kr.frage": "How do you relieve households, and who will vote for it?",
+ "t5.kr.tiefstand": "Political low",
+ "t5.kr.tiefstandWert": "{n} of 6 months",
+ "t5.kr.lesehilfe": "How to read these figures"
 }

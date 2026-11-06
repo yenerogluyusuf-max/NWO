@@ -3,5 +3,9 @@
  "t5.zb.frage.erhoeht": "Banka {datum} tarihinde politika faizini %{alt, number, 1} seviyesinden %{neu, number, 1} seviyesine yükseltiyor.",
  "t5.zb.frage.haelt": "Banka {datum} tarihinde politika faizini %{neu, number, 1} seviyesinde sabit tutuyor.",
  "t5.zb.frage.vorgabe": "Banka {datum} tarihinde sizin belirlediğiniz %{neu, number, 1} faizi uyguluyor.",
- "t5.zb.vorgabeTitel": "Toplantı için talimatınız"
+ "t5.zb.vorgabeTitel": "Toplantı için talimatınız",
+ "t5.kr.frage": "Hanelerin yükünü nasıl hafifletirsiniz ve buna kim oy verir?",
+ "t5.kr.tiefstand": "Siyasi dip",
+ "t5.kr.tiefstandWert": "6 ayın {n} ayı",
+ "t5.kr.lesehilfe": "Bu rakamlar nasıl okunur"
 }
