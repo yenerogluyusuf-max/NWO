@@ -73,8 +73,8 @@
 .ges-bewegung.phase-abklingend { border-left-color: var(--tinte-weich); }
 .ges-bewegung h3 { margin: 2px 0; font: 600 var(--schrift-5) var(--display); }
 .ges-drei { display: grid; gap: var(--abstand-1); max-width: 560px; }
-.ges-antworten { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--abstand-2); }
-.ges-antwort { display: grid; gap: 3px; padding: var(--abstand-2) var(--abstand-3); text-align: left; border: 1px solid var(--linie-stark); border-radius: var(--rund-1); background: var(--papier-1); cursor: pointer; font: var(--schrift-2) var(--serif); color: var(--messing-text); }
+.ges-antworten { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--abstand-2); }
+.ges-antwort { display: grid; align-content: start; gap: var(--abstand-1); padding: var(--abstand-2) var(--abstand-3); text-align: left; border: 1px solid var(--linie-stark); border-radius: var(--rund-1); background: var(--papier-1); cursor: pointer; font: var(--schrift-2) var(--serif); color: var(--messing-text); }
 .ges-antwort:hover:not(:disabled) { border-color: var(--messing-2); box-shadow: var(--schatten-hoch); }
 .ges-antwort:focus-visible { outline: none; box-shadow: var(--fokus-ring); }
 .ges-antwort:disabled { opacity: 0.6; cursor: not-allowed; }

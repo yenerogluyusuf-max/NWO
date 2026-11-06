@@ -297,7 +297,7 @@
 .wa-rechts .wa-kopf { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--abstand-1) var(--abstand-3); align-items: start; }
 .wa-rechts .wa-kopf-text { display: contents; }
 .wa-root .wa-rechts .wa-kopf h3 { grid-column: 1; grid-row: 1; align-self: center; font: 600 var(--schrift-5)/1.2 var(--display); }
-.wa-rechts .wa-zahl { grid-column: 2; grid-row: 1; max-width: 140px; padding: var(--abstand-1) var(--abstand-3); }
+.wa-rechts .wa-zahl { grid-column: 2; grid-row: 1; max-width: 180px; padding: var(--abstand-1) var(--abstand-3); }
 .wa-rechts .wa-absicht, .wa-rechts .wa-beschreibung { grid-column: 1 / -1; margin: 0; }
 .wa-rechts .wa-absicht { font-size: var(--schrift-3); }
 .wa-rechts .wa-zahl strong { font-size: var(--schrift-6); }
