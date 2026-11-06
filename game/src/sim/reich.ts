@@ -16,6 +16,7 @@ import { hashZahl } from "./personen";
 import { akuteOrte, umfangFaktor } from "./handeln";
 import { PROVINZEN, REGION_DE } from "./regional";
 import { instandsetzung, stoss } from "../data/reich/bau";
+import { setzeBild } from "../data/reich/bilder";
 import MITTEN from "../data/reich/provinzmitten.json";
 import type { World } from "./types";
 import type { Effekt, Eingriff, LaufEintrag, ReichMeldung, ReichZustand, RegionalEintrag, Voraussetzung, Vergabe, Vorhaben } from "./reich-typen";
@@ -40,6 +41,8 @@ const DYNAMISCHE: Vorhaben[] = [];
 const PFLEGE_DYN = new Map<string, string>();
 
 export function registriereVorhaben(v: Vorhaben): void {
+  // Auch was zur Laufzeit dazukommt, trägt sein Motiv (data/reich/bilder.ts)
+  setzeBild(v);
   if (!VORHABEN_NACH_ID.has(v.id)) DYNAMISCHE.push(v);
   VORHABEN_NACH_ID.set(v.id, v);
   if (v.pflegt) PFLEGE_DYN.set(v.pflegt, v.id);

@@ -228,7 +228,36 @@ export type WunderBild =
   | "kanal"
   | "gericht"
   | "jet"
-  | "kuppelschirm";
+  | "kuppelschirm"
+  // Nacht N6 (Befund F-26): eigene Motive je Art von Vorhaben
+  | "panzer"
+  | "drohne"
+  | "rakete"
+  | "satellit"
+  | "rechenzentrum"
+  | "chip"
+  | "klinik"
+  | "schule"
+  | "mast"
+  | "hafen"
+  | "konferenz"
+  | "wind"
+  | "labor"
+  | "uboot"
+  | "wohnblock"
+  | "strasse"
+  | "museum"
+  | "feld"
+  | "mond"
+  | "quanten"
+  | "netzwerk"
+  | "fabrik"
+  | "roboter"
+  | "leitung"
+  | "bohrinsel"
+  | "triebwerk"
+  | "tunnel"
+  | "bank";
 
 export interface Vorhaben {
   id: string;
