@@ -2,7 +2,8 @@
 // Die Treiber stammen aus den Formeln des Wirtschaftsmodells (`economy.ts`) und den Verbindungen des Politiknetzes, nicht aus dem Kopf.
 
 import type { World } from "./types";
-import { AUSSEN, PARAMS, potential, ppkZiel, PPK_GEWICHTE, realRate, finanzierungsMehrbedarf } from "./economy";
+import { AUSSEN, PARAMS, mangelSchub, potential, ppkZiel, PPK_GEWICHTE, realRate, ungedeckterMehrbedarf } from "./economy";
+import { COUPLING, KOSTEN, spiralAnteil } from "./world";
 import { DEVISEN, kapitalflussZerlegung, leistungsbilanzZerlegung } from "./devisen";
 import { NET } from "./modell";
 import { nationalAverage, startAverage, decayVon } from "./netz";
@@ -123,6 +124,14 @@ function netzKennzahl(id: string, gruppe: Gruppe, gut: "niedrig" | "hoch", handl
   };
 }
 
+/** Welle H5: Kostenschub aus dem Abstand zum eingepreisten Stand (sim/world.ts, KOSTEN), aus derselben Zahl, die gebucht ist. */
+function kostenText(w: World): string {
+  const abstand = w.economy.costPush / COUPLING.costPush;
+  const spirale = KOSTEN.spirale * spiralAnteil(w);
+  const p = { abstand, tempo: PARAMS.preisAnpassung * 100, spirale };
+  return spirale >= 0.05 ? t("welle_h5.wk.kostenSpirale", p) : t("welle_h5.wk.kosten", p);
+}
+
 export const KENNZAHLEN: Kennzahl[] = [
   {
     id: "inflation", name: t("wk.5b4e842"), gruppe: "Preise und Geld", einheit: "%", stellen: 1, gut: "niedrig",
@@ -137,8 +146,10 @@ export const KENNZAHLEN: Kennzahl[] = [
         tr(t("wk.5d45027"), e.expectedInflation, "%", t("wk.1710b23")),
         tr(t("wk.72afc80"), PARAMS.gapOnInflation * e.outputGap, "Prozentpunkte", t("wk.e725ae4")),
         tr(t("wk.a6e2d43"), PARAMS.fxPassThrough * excess, "Prozentpunkte", t("wk.cf1d329")),
-        tr(t("wk.d42d0e2"), e.costPush, "Prozentpunkte", t("wk.db3118d")),
-        tr(t("wk.a5a1757"), AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100), "Prozentpunkte", t("wk.d6456f4")),
+        tr(t("wk.d42d0e2"), e.costPush, "Prozentpunkte", kostenText(w)),
+        tr(t("wk.a5a1757"), AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1), "Prozentpunkte", t("wk.d6456f4")),
+        // Welle H5: Der Energiemangel gehört zum Anker (economy.ts); ohne diese Zeile ging die Summe im Kopf nicht auf
+        ...(e.energieMangel ? [tr(t("welle_h5.wk.mangel"), mangelSchub(e), "Prozentpunkte", t("welle_h5.wk.mangelText", { fehlt: e.energieMangel * 100, ref: (e.mangelRef ?? 0) * 100, tempo: PARAMS.preisAnpassung * 100 }))] : []),
       ];
       const anker = zeilen.reduce((a, z) => a + z.wirkung, 0);
       return { kopf: t("wk.t.inflationKopf", { tempo: nf(PARAMS.inflationSpeed * 100, 0), anker: nf(anker) }), zeilen };
@@ -383,7 +394,7 @@ export const KENNZAHLEN: Kennzahl[] = [
         tr(t("wk.aa04b74"), 2.5 * Math.max(0, e.expectedInflation - 10), "Basispunkte", t("wk.6c080c8")),
         tr(t("wk.8d5f211"), 2 * Math.max(0, e.debtRatio - 40), "Basispunkte", t("wk.54f0d6c")),
         tr(t("wk.4da2d4a"), 200 * (1 - e.credibility), "Basispunkte", t("wk.a820cfe")),
-        tr(t("balance.finanzierung"), PARAMS.politiklastAufRisiko * Math.max(0, finanzierungsMehrbedarf(e) - 2), "Basispunkte", t("balance.finanzierungRegel")),
+        tr(t("balance.finanzierung"), PARAMS.politiklastAufRisiko * Math.max(0, ungedeckterMehrbedarf(e) - 2), "Basispunkte", t("balance.finanzierungRegel")),
         tr(t("wk.7d08ba6"), PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0), "Basispunkte", t("wk.438af1b")),
         tr(t("wk.15b8248"), AUSSEN.weltzinsAufRisiko * ((e.weltzins ?? 100) - 100), "Basispunkte", t("wk.f74b9c3")),
       ];

@@ -12,7 +12,7 @@ import { kannZahlen } from "../../sim/kapital";
 import { formatDateDe, formatMonthDe } from "../../sim/dates";
 import { KENNZAHLEN_NACH_ID, einheitName } from "../../sim/wirtschaft-kennzahlen";
 import { alleMarken, startMonat, verlauf, zbZustand } from "../../sim/wirtschaft";
-import { STUFEN, aendereStufe, druckOptionen, ernenneGouverneur, glaubwuerdigkeitWort, machDruck, naechsteSitzung, setzeVorgabe, stufenWechsel, type DruckOption } from "../../sim/zentralbank";
+import { STUFEN, aendereStufe, druckOptionen, ernenneGouverneur, glaubwuerdigkeitsSatz, glaubwuerdigkeitWort, machDruck, naechsteSitzung, setzeVorgabe, stufenWechsel, type DruckOption } from "../../sim/zentralbank";
 import { DEVISEN, devisenZustand, interveniere, interventionsVorschau, iwfAnfrageMoeglich, iwfKuendigen, iwfSicht } from "../../sim/devisen";
 import { oeffne } from "../../sim/ereignisse";
 import { Rng } from "../../sim/rng";
@@ -227,6 +227,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
           </div>
         </div>
         <ZinsBild inflation={e.inflation} erwartet={e.expectedInflation} zins={e.policyRate} regel={modusC ? (z.vorgabe ?? regel.newRate) : regel.newRate} zeile={<>{t("zb.bild.zeile", { glaub: glaubwuerdigkeitWort(e.credibility), risiko: Math.round(e.riskPremium) })} <span className="wi-zb-info" title={STUFEN[z.stufe].text}>ⓘ</span></>} />
+        <p className="wi-hinweis">{glaubwuerdigkeitsSatz(world)}</p>
         {finanzierungsMehrbedarf(e) >= 0.05 && <p className="wi-hinweis">{t("welle_b1.zb.fiskalstand", { wert: nf(finanzierungsMehrbedarf(e)) })}</p>}
       </section>
 

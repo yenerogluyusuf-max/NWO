@@ -36,6 +36,13 @@ export const PARAMS = {
    */
   mangelAufGap: 0.02,
   mangelAufInflation: 0.15,
+  /**
+   * Welle H5 (Spielparameter): Ein dauerhafter Kostenstand hebt das Preisniveau einmal, nicht jeden Monat neu. Kostendruck des Netzes
+   * (sim/world.ts) und Energiemangel wirken darum gegen einen Bezugswert, der ihnen mit diesem Anteil je Monat nachzieht: Halbwertszeit
+   * etwa 6,6 Monate, nach zwei Jahren ist ein Schock zu 92 % in den Preisen. Vorher zählte der Abstand zum Start, und ein dauerhaft
+   * hoher Stand trieb die Inflation ohne Ende (Spielstand des Inhabers, 2039).
+   */
+  preisAnpassung: 0.1,
   riskAnkerTempo: 0.03,
   /** Persistenz der Auslastung pro Monat */
   gapPersistence: 0.92,
@@ -92,6 +99,13 @@ export const PARAMS = {
   stabilisatoren: 0.3,
   /** Entlastung des Haushalts in % des BIP je Indexpunkt, den die Steuereinnahmen im Netz über dem Start liegen */
   steuerbasisAufHaushalt: 0.03,
+  // Welle H5 (Spielparameter): Glaubwürdigkeit wächst bei anhaltend straffer Politik (Z3, `glaubwuerdigkeitsZuwachs`).
+  /** Monate, über die die Bank straff sein muss und über die der Trend der Inflation gemessen wird */
+  glaubFenster: 6,
+  /** Höchster Zuwachs je Monat bei voller Glaubwürdigkeitslücke; er schrumpft mit (1 − Glaubwürdigkeit) */
+  glaubZuwachs: 0.015,
+  /** Prozentpunkte Realzins über dem neutralen, ab denen der Zuwachs voll ist (darunter anteilig, am neutralen null) */
+  glaubStraffSpanne: 5,
 } as const;
 
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
@@ -119,6 +133,74 @@ export function realRate(e: EconomyState): number {
 /** Zusätzlicher laufender Primärbedarf: Reformkosten plus beschlossene Etat-/Steueränderungen.
  * Zinsen und konjunkturelle Stabilisatoren werden nicht nochmals als neue Ausgabenpolitik bestraft. */
 export const finanzierungsMehrbedarf = (e: EconomyState): number => e.policyCost + e.fiscalImpulse;
+
+/**
+ * Welle H5: der Teil des Mehrbedarfs, den nichts gegenfinanziert. Steuererhöhungen sind schon abgezogen (Steuermaßnahmen buchen in
+ * `policyCost` negative Kosten, Einnahmeposten im Haushalt einen negativen `fiscalImpulse`). Mit dem Lira-Etat (Welle H1) kommt die dauerhaft
+ * breitere oder schmalere Steuerbasis dazu (Steuermoral, Schattenwirtschaft, Verwaltung: `konjunkturSaldo`, ohne Sätze und Konjunktur).
+ * Ohne Lira-Etat enthält der Saldo noch den Konjunkturteil; ein Boom deckt keine Dauerausgaben, darum zählt er dort nicht.
+ */
+export const ungedeckterMehrbedarf = (e: EconomyState): number => finanzierungsMehrbedarf(e) - (e.etat ? (e.konjunkturSaldo ?? 0) : 0);
+
+/**
+ * Z3 (Welle H5): Zuwachs der Glaubwürdigkeit in diesem Monat. Sie wächst, wenn die Bank über `glaubFenster` Monate durchgehend über dem
+ * neutralen Realzins liegt und die Inflation im Trend fällt (unter dem Stand vor `glaubFenster` Monaten) oder unter der Erwartung liegt.
+ * Ein einzelner Monat genügt nicht mehr: Vorher reichte ein Monat mit sinkender Inflation, und das Rauschen von ±0,3 Punkten machte den
+ * Zuwachs zum Münzwurf. Der Zuwachs steigt mit der Straffheit bis `glaubStraffSpanne` über neutral und schrumpft, je glaubwürdiger die Bank
+ * schon ist. `history` endet mit dem Vormonat.
+ */
+export function glaubwuerdigkeitsZuwachs(e: EconomyState, history: MonthlySnapshot[]): number {
+  return glaubwuerdigkeitsLage(e, history).zuwachs;
+}
+
+/** Schwelle des ungedeckten Mehrbedarfs in % des BIP, ab der die Glaubwürdigkeit sinkt (ZEI-4, Spielparameter) */
+export const MEHRBEDARF_SCHWELLE = 1.75;
+
+/**
+ * Z3: Abzug von der Glaubwürdigkeit in diesem Monat. Negativer Realzins kostet 0,012. ZEI-4: Ungedeckter laufender Mehrbedarf schwächt
+ * sie auch bei straffer Bank, 0,045 je BIP-Punkt über der Schwelle (höchstens 2,5 Punkte). Gegenfinanzierung zählt, bloße Ausgabenziele
+ * nicht (`ungedeckterMehrbedarf`). Spielparameter.
+ */
+export function glaubwuerdigkeitsAbzug(e: EconomyState): { realzins: number; mehrbedarf: number } {
+  const ungedeckt = ungedeckterMehrbedarf(e);
+  return {
+    realzins: realRate(e) < 0 ? 0.012 : 0,
+    mehrbedarf: ungedeckt > MEHRBEDARF_SCHWELLE ? 0.045 * Math.min(2.5, ungedeckt - MEHRBEDARF_SCHWELLE) : 0,
+  };
+}
+
+/** Die Rechnung hinter `glaubwuerdigkeitsZuwachs`, für die Erklärung in der Oberfläche (dieselben Zahlen, die gebucht werden). */
+export interface GlaubwuerdigkeitsLage {
+  /** Zuwachs dieses Monats (0 bis 1) */
+  zuwachs: number;
+  /** Wie viele der letzten `glaubFenster` Monate (der laufende eingeschlossen) der Realzins über dem neutralen lag */
+  straffMonate: number;
+  /** Mittlerer Realzins über das Fenster in % */
+  mittelReal: number;
+  /** Inflation vor `glaubFenster` Monaten (fehlt ohne Vorgeschichte) */
+  inflationVorher?: number;
+  /** Ob die Inflation im Trend fällt oder unter der Erwartung liegt */
+  inflationGut: boolean;
+}
+
+export function glaubwuerdigkeitsLage(e: EconomyState, history: MonthlySnapshot[]): GlaubwuerdigkeitsLage {
+  const n = PARAMS.glaubFenster;
+  const realzinsen = [...history.slice(-(n - 1)).map((h) => h.realRate), realRate(e)];
+  const straffMonate = realzinsen.filter((x) => x > PARAMS.neutralRealRate).length;
+  const mittelReal = realzinsen.reduce((a, b) => a + b, 0) / realzinsen.length;
+  const inflationVorher = history.length >= n ? history[history.length - n]!.inflation : undefined;
+  const inflationGut = (inflationVorher !== undefined && e.inflation < inflationVorher) || e.inflation < e.expectedInflation;
+  const straff = clamp((mittelReal - PARAMS.neutralRealRate) / PARAMS.glaubStraffSpanne, 0, 1);
+  const zuwachs = history.length >= n && straffMonate === n && inflationGut ? PARAMS.glaubZuwachs * straff * (1 - e.credibility) : 0;
+  return { zuwachs, straffMonate, mittelReal, ...(inflationVorher !== undefined ? { inflationVorher } : {}), inflationGut };
+}
+
+const mangelBezug = (e: EconomyState): number => (Number.isFinite(e.mangelRef) ? e.mangelRef! : 0);
+
+/** Z2 (Welle H5): Preisschub aus fehlender Energie in Prozentpunkten, gemessen am Bezugswert, an den sich die Preise schon angepasst haben. */
+export function mangelSchub(e: EconomyState): number {
+  return e.energieMangel === undefined ? 0 : PARAMS.mangelAufInflation * 100 * (e.energieMangel - mangelBezug(e));
+}
 
 /** Z4: tägliche Veränderung des Wechselkurses (Anteil, z. B. 0,001 = 0,1 %). */
 export function dailyDepreciation(e: EconomyState, rng: Rng): number {
@@ -150,7 +232,7 @@ export function dailyRiskPremium(e: EconomyState, rng: Rng): number {
     200 * (1 - e.credibility) +
     // ZEI-4 (Spielparameter): Wer dauerhaft über die Verhältnisse ausgibt, zahlt einen Nachhaltigkeitsaufschlag,
     // auch wenn die Schuldenquote (Z7) bei hoher Inflation kaum steigt — die Märkte sehen die Politiklast.
-    PARAMS.politiklastAufRisiko * Math.max(0, finanzierungsMehrbedarf(e) - 2) +
+    PARAMS.politiklastAufRisiko * Math.max(0, ungedeckterMehrbedarf(e) - 2) +
     // WIR-2: Die Märkte preisen den Reservenbestand (0, wenn keine Devisen-Lage geführt wird;
     // adressiert KALIBRIERUNG_LOG §6.5 — der CDS hing 2024 strukturell zu hoch, weil Z8 keine Bestände kannte).
     PARAMS.cdsReservenDruckMax * (e.reservenDruck ?? 0) +
@@ -197,11 +279,12 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.gapOnInflation * e.outputGap +
     PARAMS.fxPassThrough * excessDepreciation +
     e.costPush +
-    PARAMS.mangelAufInflation * 100 * (e.energieMangel ?? 0) +
+    mangelSchub(e) +
     AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1);
-  const previousInflation = e.inflation;
   e.inflation += PARAMS.inflationSpeed * (anchor - e.inflation) + rng.normal(0.3);
   e.inflation = Math.max(-2, e.inflation);
+  // Welle H5: Der Bezugswert des Energiemangels zieht nach (ältere Spielstände beginnen bei 0, dem Stand beim Amtsantritt)
+  if (e.energieMangel !== undefined) e.mangelRef = mangelBezug(e) + PARAMS.preisAnpassung * (e.energieMangel - mangelBezug(e));
 
   // Die Zentralbank senkt ihre Zwischenziele schrittweise zum langfristigen Ziel
   e.inflationTarget += PARAMS.targetGlide * (PARAMS.longRunTarget - e.inflationTarget);
@@ -210,14 +293,10 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   const credibleAnchor = e.credibility * e.inflationTarget + (1 - e.credibility) * e.inflation;
   e.expectedInflation += PARAMS.expectationSpeed * (credibleAnchor - e.expectedInflation);
 
-  // Z3: Glaubwürdigkeit wächst langsam und fällt schnell
-  const r = realRate(e);
-  if (r > 1 && e.inflation < previousInflation) e.credibility += 0.01;
-  if (r < 0) e.credibility -= 0.012;
-  // Z3/ZEI-4: Ungedeckter laufender Mehrbedarf schwächt die Glaubwürdigkeit auch bei
-  // straffer Bank. Gegenfinanzierung aus dem Haushalt zählt, bloße Ausgabenziele nicht.
-  const mehrbedarf = finanzierungsMehrbedarf(e);
-  if (mehrbedarf > 1.75) e.credibility -= 0.045 * Math.min(2.5, mehrbedarf - 1.75);
+  // Z3: Glaubwürdigkeit wächst langsam bei anhaltend straffer Politik (Welle H5) und fällt schnell bei negativem Realzins
+  // oder ungedecktem Mehrbedarf (`glaubwuerdigkeitsAbzug`)
+  const abzug = glaubwuerdigkeitsAbzug(e);
+  e.credibility += glaubwuerdigkeitsZuwachs(e, history) - abzug.realzins - abzug.mehrbedarf;
   e.credibility = clamp(e.credibility, 0.05, 0.95);
 
   // Wachstum zum Vorjahr aus der Veränderung der Auslastung

@@ -6,8 +6,8 @@ import { t } from "../i18n";
 import type { EconomyState, MonthlySnapshot, Scenario, World } from "./types";
 import { Rng, seedToState } from "./rng";
 import { addDays, dayOfMonth, formatDateDe, formatMonthDe, monthNumber, monthOf, previousMonth } from "./dates";
-import { clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, realRate } from "./economy";
-import { createNet, nationalAverage, policyCost, startAverage, stepNet } from "./netz";
+import { PARAMS, clamp, dailyDepreciation, dailyRiskPremium, monthlyUpdate, realRate } from "./economy";
+import { createNet, decayVon, nationalAverage, policyCost, startAverage, stepNet } from "./netz";
 import { REGIONAL, WEIGHTS } from "./regional";
 import { ARCHETYP_DELTAS } from "../data/provinz_archetypen";
 import { NET } from "./modell";
@@ -34,12 +34,38 @@ export { replaceGovernor, criticizeCentralBank, setFiscalImpulse } from "./eingr
 export { setPolicy } from "./handeln";
 
 /** Kopplung des Politiknetzes an das Wirtschaftsmodell (Platzhalter für die Kalibrierung). */
-const COUPLING = {
-  /** Prozentpunkte Inflation je Indexpunkt Kostendruck über dem Start */
+export const COUPLING = {
+  /** Prozentpunkte Inflation je Indexpunkt Kostendruck über dem Bezugswert (KOSTEN) */
   costPush: 0.08,
   /** Prozentpunkte Potenzialwachstum je Indexpunkt Produktivität über dem Start */
   productivity: 0.04,
 };
+
+/**
+ * Welle H5: Ein Kostenschock hebt das Preisniveau einmal und die Inflation vorübergehend. Bis zum 06.11.2026 zählte der Abstand des
+ * Kostendrucks zum Startwert: Ein dauerhaft hoher Kostendruck (etwa durch einen hohen Mindestlohn) trieb so jeden Monat neue Inflation,
+ * und weil die Erwartungen bei geringer Glaubwürdigkeit der Inflation folgen, schaukelte sich das ohne Ende auf.
+ * Jetzt zählt der Abstand zu einem Bezugswert, der dem Kostendruck nachzieht: Die Preise passen sich an, danach treibt derselbe Stand nichts
+ * mehr. Dauerhaft wirkt nur der Teil, den die Lohn-Preis-Spirale trägt (Knoten „lohn_preis“): Solange sie läuft, folgen Löhne und Preise
+ * einander weiter. Dieser Teil ist genau der Beitrag der Spirale zum Kostendruck im Gleichgewicht des Netzes (Gewicht der Kante durch den
+ * Rücklauf des Knotens), er wird also nicht ein zweites Mal gezählt. Alle Werte sind Spielparameter.
+ */
+export const KOSTEN = {
+  /** 1: Die Spirale trägt ihren Anteil dauerhaft; 0: auch er klingt aus. Das Tempo des Bezugswerts ist PARAMS.preisAnpassung (economy.ts). */
+  spirale: 1,
+};
+
+/** Beitrag der Lohn-Preis-Spirale zum Kostendruck im Gleichgewicht des Netzes (Indexpunkte), höchstens der heutige Abstand zum Start. */
+export function spiralAnteil(world: World): number {
+  const kd = NET.index.get("kostendruck"), lp = NET.index.get("lohn_preis");
+  if (kd === undefined || lp === undefined) return 0;
+  const gewicht = NET.edges.reduce((s, k) => (k.from === "lohn_preis" && k.to === "kostendruck" ? s + k.weight : s), 0);
+  const ruecklauf = decayVon(NET.nodes[kd]!);
+  if (ruecklauf <= 0) return 0;
+  const spirale = nationalAverage(NET, world.net, "lohn_preis") - startAverage(NET, world.net, "lohn_preis");
+  const abstand = nationalAverage(NET, world.net, "kostendruck") - startAverage(NET, world.net, "kostendruck");
+  return clamp((gewicht * spirale) / ruecklauf, 0, Math.max(0, abstand));
+}
 
 const PPK_INTERVAL_DAYS = 45;
 
@@ -166,8 +192,13 @@ function monthlyNet(world: World): void {
   umsetzungMonat(world.net);
   stepNet(NET, world.net, e, REGIONAL);
   e.policyCost = policyCost(NET, world.net);
-  const cost = nationalAverage(NET, world.net, "kostendruck") - startAverage(NET, world.net, "kostendruck");
-  e.costPush = clamp(COUPLING.costPush * cost, -5, 5);
+  // Welle H5: Kostenschub aus der Veränderung des Kostendrucks (KOSTEN). Ältere Spielstände ohne Bezugswert beginnen beim Startwert:
+  // Im ersten Monat bleibt der Kostenschub so, wie er gespeichert war, danach klingt er glatt aus.
+  const kosten = nationalAverage(NET, world.net, "kostendruck");
+  const ref = Number.isFinite(e.kostenRef) ? e.kostenRef! : startAverage(NET, world.net, "kostendruck");
+  e.costPush = clamp(COUPLING.costPush * (kosten - ref), -5, 5);
+  const traegt = KOSTEN.spirale * spiralAnteil(world);
+  e.kostenRef = ref + PARAMS.preisAnpassung * (kosten - traegt - ref);
   const prod = nationalAverage(NET, world.net, "produktivitaet") - startAverage(NET, world.net, "produktivitaet");
   e.potentialShift = clamp(COUPLING.productivity * prod, -2, 2);
   // Runde „Netz atmet“: Institutionen, Branchen, Importabhängigkeit, Konjunktursaldo, politische Marktschocks und Rating (sim/maerkte.ts)
@@ -255,6 +286,8 @@ export function bereinigeZahlen(world: World): void {
   for (const k of ["fxChange12", "policyCost", "costPush", "potentialShift"]) if (!zahl(eco[k])) eco[k] = 0;
   // Runde „Netz atmet“: optionale Zahlenfelder, die nur gesetzt sein müssen, wenn sie schon da sind (null aus NaN wird zurückgesetzt)
   for (const k of ["politikRisiko", "institutionenRisiko", "sektorIndex", "konjunkturSaldo", "arbeitsmarktShift"]) if (k in eco && !zahl(eco[k])) eco[k] = 0;
+  // Welle H5: Ein unbrauchbarer Bezugswert des Kostendrucks fällt weg; er beginnt dann neu beim Startwert des Netzes
+  for (const k of ["kostenRef", "mangelRef"]) if (k in eco && !zahl(eco[k])) delete eco[k];
   if ("energieFaktor" in eco && !zahl(eco["energieFaktor"])) eco["energieFaktor"] = 1;
   const s = world.spiel;
   if (s) {

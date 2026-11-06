@@ -96,12 +96,36 @@ export function heimWirkung(def: KlauselDef): { sofort: EffektZeile[]; dauer: Ef
 
 // ---------------------------------------------------------------------------
 // Bewertung durch die Gegenseite
+//
+// Welle H6 (06.11.2026), Rückmeldung des Inhabers: „kein Russland der Welt würde so ein Angebot annehmen“. Vorher waren die Punkte die
+// Summe der Klauselwerte PLUS Vertrauen, Streit, Hebel und Treue; bei guter Beziehung trug allein dieser Grundbetrag über die Schwelle,
+// und die Stimmung „bezahlte“ beliebige Forderungen (im Spielstand des Inhabers: Akkuyu, Korridor und Transit ohne Gegenleistung).
+// Jetzt rechnet die Gegenseite wie ein Staat: Ihr Saldo aus den Klauseln — was sie bekommt, minus was sie gibt — muss über einer
+// Mindestmarge liegen. Die Beziehung senkt diese Marge oder macht Gespräche überhaupt erst möglich, ersetzt aber keine Gegenleistung:
+// Die Marge fällt nie unter null. Ein Paket nur aus Forderungen hat einen negativen Saldo und scheitert, es sei denn, jede Forderung
+// liegt im eigenen Interesse der Gegenseite (Klauselwert ≥ 0).
+
+/** Spielparameter der Abwägung (Platzhalter der Kalibrierung, keine Tatsachen). */
+export const ABWAEGUNG = {
+  /** Was ein neutraler Partner mindestens mehr bekommen will, als er gibt, bei zwei Jahren Laufzeit */
+  margeGrund: 2,
+  /** Je Jahr Bindung über zwei Jahre hinaus wächst die Marge */
+  margeJeJahr: 0.35,
+  /** Jeder Punkt Beziehung (Vertrauen, Streit, Hebel, Treue) senkt die Marge um diesen Anteil */
+  beziehungsFaktor: 0.5,
+  /** Untergrenze der Marge: Die Beziehung ersetzt nie eine Gegenleistung */
+  margeMin: 0,
+  /** Unter diesem Stand der Beziehung verhandelt der Partner gar nicht (etwa Vertrauen 0 und Streit 100 ohne eigenen Hebel) */
+  gespraechAb: -15,
+} as const;
 
 export interface Grund {
   text: string;
-  /** Beitrag zur Bewertung, positiv für den Partner */
+  /** Beitrag: bei Klauseln der Wert für den Partner (+ bekommt, − gibt), bei der Beziehung die Senkung (+) oder Erhöhung (−) der Marge */
   wert: number;
   art: "plus" | "minus" | "info";
+  /** Woher der Grund kommt: eine Klausel auf der Waage oder die Beziehung am Tisch */
+  quelle?: "klausel" | "beziehung";
 }
 
 export type Urteil = "leer" | "zustimmung" | "gegenangebot" | "ablehnung" | "veto";
@@ -109,12 +133,26 @@ export type Urteil = "leer" | "zustimmung" | "gegenangebot" | "ablehnung" | "vet
 export interface Gegenangebot {
   text: string;
   angebot: Angebot;
+  /** Was die Änderung ist: eine weitere Leistung der Türkei, zwei, der Verzicht auf eine Forderung oder eine kürzere Bindung */
+  art?: "zusatz" | "zwei" | "verzicht" | "kuerzer";
+  /** Kurzer Grund, warum gerade diese Änderung (größter Wunsch des Partners, geringster Preis für die Türkei) */
+  hinweis?: string;
 }
 
 export interface Bewertung {
   urteil: Urteil;
+  /** Saldo des Partners aus den Klauseln (wie früher „Punkte“, jetzt ohne Beziehung) */
   punkte: number;
+  /** Nötige Marge (wie früher „Grenze“) */
   grenze: number;
+  /** Was die Türkei dem Partner gibt: Summe der positiven Klauselwerte */
+  gibtWert: number;
+  /** Was die Türkei vom Partner verlangt: Summe der Kosten (Beträge der negativen Klauselwerte, ohne Rote Linie) */
+  willKosten: number;
+  /** Beziehung in Punkten: Vertrauen, Streit, Hebel, Treue, Brüche */
+  beziehung: number;
+  /** Ob der Partner überhaupt verhandelt */
+  gespraech: boolean;
   /** 0 ablehnend bis 4 einverstanden */
   stimmung: 0 | 1 | 2 | 3 | 4;
   gruende: Grund[];
@@ -140,47 +178,87 @@ export function pkFuer(a: Angebot): number {
   return n === 0 ? 0 : 2 + Math.ceil(n / 2) + klauseln;
 }
 
-function grenzeFuer(jahre: Laufzeit): number {
-  return 4 + (jahre - 2) * 0.35;
+/** Die Beziehung zur Türkei in Punkten, mit ihren Gründen. Sie wirkt nur auf die Marge, nie auf den Saldo. */
+export function beziehungZu(w: World, landId: string): { punkte: number; gruende: Grund[] } {
+  const p = PROFILE[landId];
+  const z = weltZustand(w)[landId]!;
+  const gruende: Grund[] = [];
+  const f = ABWAEGUNG.beziehungsFaktor;
+  const v = vertrauenZu(w, landId);
+  const basis = (v - 45) / 5;
+  gruende.push({ text: basis >= 0 ? t("abk.grund.vertrauen_ja", { v: Math.round(v) }) : t("abk.grund.vertrauen_nein", { v: Math.round(v) }), wert: basis * f, art: basis >= 0 ? "plus" : "minus", quelle: "beziehung" });
+  const konf = -(z.konflikt - 40) / 8;
+  if (Math.abs(konf) >= 1) gruende.push({ text: konf < 0 ? t("abk.grund.streit") : t("abk.grund.kein_streit"), wert: konf * f, art: konf < 0 ? "minus" : "plus", quelle: "beziehung" });
+  const hebel = p?.hebel ?? 0;
+  if (hebel !== 0 && p) gruende.push({ text: p.hebelText, wert: hebel * f, art: hebel > 0 ? "plus" : "minus", quelle: "beziehung" });
+  const bruch = -(z.bruch ?? 0);
+  if (bruch < -0.3) gruende.push({ text: t("abk.grund.bruch"), wert: bruch * f, art: "minus", quelle: "beziehung" });
+  const gehalten = Math.min(3, (z.gehalten ?? 0) * 1.5);
+  if (gehalten > 0) gruende.push({ text: t("abk.grund.gehalten"), wert: gehalten * f, art: "plus", quelle: "beziehung" });
+  return { punkte: basis + konf + hebel + bruch + gehalten, gruende };
 }
 
-function beitraege(w: World, a: Angebot): { punkte: number; gruende: Grund[]; veto?: string } {
+/** Die Mindestmarge: Grund und Laufzeit, gesenkt durch die Beziehung, nie unter der Untergrenze. */
+export function margeFuer(jahre: Laufzeit, beziehung: number): number {
+  const roh = ABWAEGUNG.margeGrund + (jahre - 2) * ABWAEGUNG.margeJeJahr - beziehung * ABWAEGUNG.beziehungsFaktor;
+  return Math.max(ABWAEGUNG.margeMin, roh);
+}
+
+interface Abwaegung {
+  saldo: number;
+  gibtWert: number;
+  willKosten: number;
+  marge: number;
+  beziehung: number;
+  gespraech: boolean;
+  gruende: Grund[];
+  veto?: string;
+}
+
+function abwaegung(w: World, a: Angebot): Abwaegung {
   const p = PROFILE[a.land];
   const gruende: Grund[] = [];
-  if (!p) return { punkte: -99, gruende };
+  if (!p) return { saldo: -99, gibtWert: 0, willKosten: 99, marge: 99, beziehung: -99, gespraech: false, gruende };
   const l = land(a.land);
-  const z = weltZustand(w)[a.land]!;
-  let punkte = 0;
+  let gibtWert = 0;
+  let willKosten = 0;
   let veto: string | undefined;
   for (const id of [...a.gibt, ...a.will]) {
     const k = klauselSicht(w, a.land, id);
     if (!k) {
-      gruende.push({ text: t("abk.grund.nicht", { land: l.name }), wert: -20, art: "minus" });
-      punkte -= 20;
+      gruende.push({ text: t("abk.grund.nicht", { land: l.name }), wert: -20, art: "minus", quelle: "klausel" });
+      willKosten += 20;
       continue;
     }
-    if (k.rot) veto = k.rotText ?? `${l.name} nimmt „${k.label}“ nicht an.`;
+    if (k.rot) {
+      veto = k.rotText ?? `${l.name} nimmt „${k.label}“ nicht an.`;
+      gruende.push({ text: t("abk.grund.rot", { label: k.label }), wert: 0, art: "minus", quelle: "klausel" });
+      continue;
+    }
     const gibt = k.def.seite === "gibt";
-    if (k.wert >= 0) gruende.push({ text: gibt ? t("abk.grund.will", { label: k.label, land: l.name }) : t("abk.grund.kostetnichts", { label: k.label, land: l.name }), wert: k.wert, art: "plus" });
-    else if (!k.rot) gruende.push({ text: t("abk.grund.kostet", { label: k.label, land: l.name }), wert: k.wert, art: "minus" });
-    else gruende.push({ text: t("abk.grund.rot", { label: k.label }), wert: 0, art: "minus" });
-    if (!k.rot) punkte += k.wert;
+    if (k.wert > 0) {
+      gibtWert += k.wert;
+      gruende.push({ text: gibt ? t("abk.grund.will", { label: k.label, land: l.name }) : t("welle_h6.grund.interesse", { label: k.label, land: l.name }), wert: k.wert, art: "plus", quelle: "klausel" });
+    } else if (k.wert < 0) {
+      willKosten -= k.wert;
+      gruende.push({ text: t("abk.grund.kostet", { label: k.label, land: l.name }), wert: k.wert, art: "minus", quelle: "klausel" });
+    } else {
+      gruende.push({ text: t("abk.grund.kostetnichts", { label: k.label, land: l.name }), wert: 0, art: "info", quelle: "klausel" });
+    }
   }
-  const v = vertrauenZu(w, a.land);
-  const basis = (v - 45) / 5;
-  gruende.push({ text: basis >= 0 ? t("abk.grund.vertrauen_ja", { v: Math.round(v) }) : t("abk.grund.vertrauen_nein", { v: Math.round(v) }), wert: basis, art: basis >= 0 ? "plus" : "minus" });
-  const konf = -(z.konflikt - 40) / 8;
-  if (Math.abs(konf) >= 1) gruende.push({ text: konf < 0 ? t("abk.grund.streit") : t("abk.grund.kein_streit"), wert: konf, art: konf < 0 ? "minus" : "plus" });
-  if (p.hebel !== 0) gruende.push({ text: p.hebelText, wert: p.hebel, art: p.hebel > 0 ? "plus" : "minus" });
-  const bruch = -(z.bruch ?? 0);
-  if (bruch < -0.3) gruende.push({ text: t("abk.grund.bruch"), wert: bruch, art: "minus" });
-  const gehalten = Math.min(3, (z.gehalten ?? 0) * 1.5);
-  if (gehalten > 0) gruende.push({ text: t("abk.grund.gehalten"), wert: gehalten, art: "plus" });
-  const gegenseitig = a.gibt.length > 0 && a.will.length > 0 ? 2 : 0;
-  if (gegenseitig) gruende.push({ text: t("abk.grund.gegenseitig"), wert: gegenseitig, art: "plus" });
-  else if (a.will.length > 0 && a.gibt.length === 0) gruende.push({ text: t("abk.grund.einseitig"), wert: 0, art: "info" });
-  punkte += basis + konf + p.hebel + bruch + gehalten + gegenseitig;
-  return { punkte, gruende, ...(veto ? { veto } : {}) };
+  const bz = beziehungZu(w, a.land);
+  gruende.push(...bz.gruende);
+  const saldo = gibtWert - willKosten;
+  if (a.gibt.length === 0 && a.will.length > 0 && saldo < 0) gruende.push({ text: t("abk.grund.einseitig"), wert: 0, art: "info", quelle: "klausel" });
+  const gespraech = bz.punkte >= ABWAEGUNG.gespraechAb;
+  if (!gespraech) gruende.push({ text: t("welle_h6.grund.kein_gespraech", { land: l.name }), wert: 0, art: "minus", quelle: "beziehung" });
+  return { saldo, gibtWert, willKosten, marge: margeFuer(a.jahre, bz.punkte), beziehung: bz.punkte, gespraech, gruende, ...(veto ? { veto } : {}) };
+}
+
+/** Ob die Gegenseite einem Paket zustimmt: Gespräch möglich, keine Rote Linie, Saldo mindestens die Marge. */
+function stimmtZu(w: World, a: Angebot): boolean {
+  const x = abwaegung(w, a);
+  return x.gespraech && !x.veto && x.saldo >= x.marge - 1e-9;
 }
 
 function stimmungFuer(d: number): 0 | 1 | 2 | 3 | 4 {
@@ -193,53 +271,78 @@ function eigenerPreis(def: KlauselDef): number {
   return (def.pk ?? 0) + schlecht * 0.6;
 }
 
+/**
+ * Was die Gegenseite für ihre Zustimmung verlangt, aus ihren eigenen Wünschen: die Leistung, die ihr am meisten wert ist, die für die
+ * Türkei günstigste, die gerade reicht, notfalls zwei Leistungen; dazu der Verzicht auf die teuerste Forderung und eine kürzere Bindung.
+ * Jeder Vorschlag ist ein Paket, dem sie selbst zustimmt. Höchstens drei, deterministisch geordnet.
+ */
 function gegenangebote(w: World, a: Angebot): Gegenangebot[] {
   const l = land(a.land);
-  const kandidaten: { angebot: Angebot; preis: number; text: string; punkte: number }[] = [];
-  const mitGrenze = (b: Angebot) => beitraege(w, b).punkte - grenzeFuer(b.jahre);
-  // 1. Kürzere Bindung
+  const out: Gegenangebot[] = [];
+  const schon = new Set<string>();
+  const dazu = (g: Gegenangebot) => {
+    const key = `${[...g.angebot.gibt].sort().join(",")}|${[...g.angebot.will].sort().join(",")}|${g.angebot.jahre}`;
+    if (schon.has(key)) return;
+    schon.add(key);
+    out.push(g);
+  };
+  const frei = klauselnFuer(w, a.land).filter((k) => k.def.seite === "gibt" && !k.gesperrt && !k.rot && k.wert > 0 && !a.gibt.includes(k.def.id));
+  const mit = (...ids: string[]): Angebot => ({ ...a, gibt: [...a.gibt, ...ids] });
+  const passend = frei.filter((k) => stimmtZu(w, mit(k.def.id)));
+  // 1. Der größte Wunsch der Gegenseite, der die Lücke schließt
+  const nachWunsch = [...passend].sort((x, y) => y.wert - x.wert || x.def.id.localeCompare(y.def.id));
+  if (nachWunsch[0]) dazu({ text: t("abk.weg.zusaetzlich", { land: l.name, label: nachWunsch[0].label }), angebot: mit(nachWunsch[0].def.id), art: "zusatz", hinweis: t("welle_h6.weg.wunsch", { land: l.name }) });
+  // 2. Verzicht auf die Forderung, die die Gegenseite am meisten kostet
+  const teuerste = a.will
+    .map((id) => klauselSicht(w, a.land, id))
+    .filter((k): k is KlauselSicht => !!k && !k.rot && k.wert < 0)
+    .sort((x, y) => x.wert - y.wert || x.def.id.localeCompare(y.def.id))[0];
+  if (teuerste) {
+    const b = { ...a, will: a.will.filter((x) => x !== teuerste.def.id) };
+    if (b.gibt.length + b.will.length > 0 && stimmtZu(w, b)) dazu({ text: t("welle_h6.weg.verzicht", { land: l.name, label: teuerste.label }), angebot: b, art: "verzicht", hinweis: t("welle_h6.weg.verzicht_hinweis", { land: l.name }) });
+  }
+  // 3. Die für die Türkei günstigste Leistung, die gerade reicht
+  const nachPreis = [...passend].sort((x, y) => eigenerPreis(x.def) - eigenerPreis(y.def) || x.wert - y.wert || x.def.id.localeCompare(y.def.id));
+  if (nachPreis[0]) dazu({ text: t("abk.weg.zusaetzlich", { land: l.name, label: nachPreis[0].label }), angebot: mit(nachPreis[0].def.id), art: "zusatz", hinweis: t("welle_h6.weg.guenstig") });
+  // 4. Reicht keine einzelne Leistung: die zwei größten Wünsche, die zusammen reichen
+  if (!passend.length) {
+    const top = [...frei].sort((x, y) => y.wert - x.wert || x.def.id.localeCompare(y.def.id)).slice(0, 5);
+    paar: for (let i = 0; i < top.length; i++) {
+      for (let j = i + 1; j < top.length; j++) {
+        if (stimmtZu(w, mit(top[i]!.def.id, top[j]!.def.id))) {
+          dazu({ text: t("welle_h6.weg.zwei", { land: l.name, a: top[i]!.label, b: top[j]!.label }), angebot: mit(top[i]!.def.id, top[j]!.def.id), art: "zwei", hinweis: t("welle_h6.weg.wunsch", { land: l.name }) });
+          break paar;
+        }
+      }
+    }
+  }
+  // 5. Eine kürzere Bindung (nur, wenn der Saldo schon stimmt und nur die Laufzeit stört)
   for (const j of VERTRAGSLAUFZEITEN) {
     if (j >= a.jahre) continue;
     const b = { ...a, jahre: j };
-    if (mitGrenze(b) >= 0) kandidaten.push({ angebot: b, preis: 0.5, text: t("abk.weg.kuerzer", { land: l.name, jahre: j }), punkte: mitGrenze(b) });
+    if (stimmtZu(w, b)) {
+      dazu({ text: t("abk.weg.kuerzer", { land: l.name, jahre: j }), angebot: b, art: "kuerzer" });
+      break;
+    }
   }
-  // 2. Ein weiteres Angebot der Türkei
-  for (const k of klauselnFuer(w, a.land)) {
-    if (k.def.seite !== "gibt" || k.gesperrt || k.rot || a.gibt.includes(k.def.id) || k.wert <= 0) continue;
-    const b = { ...a, gibt: [...a.gibt, k.def.id] };
-    if (mitGrenze(b) >= 0) kandidaten.push({ angebot: b, preis: 1 + eigenerPreis(k.def), text: t("abk.weg.zusaetzlich", { land: l.name, label: k.label }), punkte: mitGrenze(b) });
-  }
-  // 3. Verzicht auf eine Forderung
-  for (const id of a.will) {
-    const k = klauselSicht(w, a.land, id);
-    if (!k) continue;
-    const b = { ...a, will: a.will.filter((x) => x !== id) };
-    if ((b.gibt.length || b.will.length) && mitGrenze(b) >= 0) kandidaten.push({ angebot: b, preis: 2 + Math.abs(k.wert) * 0.3, text: `${l.name} stimmt zu, wenn Sie auf „${k.label}“ verzichten.`, punkte: mitGrenze(b) });
-  }
-  kandidaten.sort((x, y) => x.preis - y.preis || x.punkte - y.punkte);
-  const out = kandidaten.slice(0, 3).map((k) => ({ text: k.text, angebot: k.angebot }));
-  if (out.length) return out;
-  // 4. Zwei Änderungen: die schwerste Forderung streichen und das beste Angebot dazulegen
-  const forderungen = a.will.map((id) => ({ id, k: klauselSicht(w, a.land, id) })).filter((x) => x.k && !x.k.rot).sort((x, y) => x.k!.wert - y.k!.wert);
-  const angebote = klauselnFuer(w, a.land).filter((k) => k.def.seite === "gibt" && !k.gesperrt && !k.rot && k.wert > 0 && !a.gibt.includes(k.def.id)).sort((x, y) => y.wert - x.wert);
-  if (forderungen[0] && angebote[0]) {
-    const b = { ...a, will: a.will.filter((x) => x !== forderungen[0]!.id), gibt: [...a.gibt, angebote[0].def.id] };
-    if (mitGrenze(b) >= 0) return [{ text: t("abk.weg.tausch", { land: l.name, verzicht: forderungen[0].k!.label, angebot: angebote[0].label }), angebot: b }];
-  }
-  return [];
+  return out.slice(0, 3);
 }
 
 export function bewerte(w: World, a: Angebot): Bewertung {
-  const grenze = grenzeFuer(a.jahre);
   const pk = pkFuer(a);
-  if (a.gibt.length + a.will.length === 0) return { urteil: "leer", punkte: 0, grenze, stimmung: 0, gruende: [], gegenangebote: [], pk };
-  const { punkte, gruende, veto } = beitraege(w, a);
-  gruende.sort((x, y) => Math.abs(y.wert) - Math.abs(x.wert));
-  if (veto) return { urteil: "veto", punkte, grenze, stimmung: 0, gruende, veto, gegenangebote: [], pk };
-  const d = punkte - grenze;
-  if (d >= 0) return { urteil: "zustimmung", punkte, grenze, stimmung: stimmungFuer(d), gruende, gegenangebote: [], pk };
-  const gegen = d >= -6 ? gegenangebote(w, a) : [];
-  return { urteil: gegen.length ? "gegenangebot" : "ablehnung", punkte, grenze, stimmung: stimmungFuer(d), gruende, gegenangebote: gegen, pk };
+  if (a.gibt.length + a.will.length === 0) {
+    const bz = PROFILE[a.land] ? beziehungZu(w, a.land).punkte : 0;
+    return { urteil: "leer", punkte: 0, grenze: margeFuer(a.jahre, bz), gibtWert: 0, willKosten: 0, beziehung: bz, gespraech: bz >= ABWAEGUNG.gespraechAb, stimmung: 0, gruende: [], gegenangebote: [], pk };
+  }
+  const x = abwaegung(w, a);
+  const gruende = [...x.gruende].sort((p, q) => Math.abs(q.wert) - Math.abs(p.wert));
+  const basis = { punkte: x.saldo, grenze: x.marge, gibtWert: x.gibtWert, willKosten: x.willKosten, beziehung: x.beziehung, gespraech: x.gespraech, gruende, pk };
+  if (x.veto) return { ...basis, urteil: "veto", stimmung: 0, veto: x.veto, gegenangebote: [] };
+  const d = x.saldo - x.marge;
+  if (!x.gespraech) return { ...basis, urteil: "ablehnung", stimmung: 0, gegenangebote: [] };
+  if (d >= -1e-9) return { ...basis, urteil: "zustimmung", stimmung: 4, gegenangebote: [] };
+  const gegen = gegenangebote(w, a);
+  return { ...basis, urteil: gegen.length ? "gegenangebot" : "ablehnung", stimmung: stimmungFuer(d), gegenangebote: gegen };
 }
 
 // ---------------------------------------------------------------------------
@@ -254,11 +357,11 @@ export interface Ergebnis {
   vertrag?: Vertrag;
 }
 
-const nameKlauseln = (w: World, landId: string, ids: string[]) => ids.map((id) => klauselSicht(w, landId, id)?.label ?? id).join(", ");
+const nameKlauseln = (w: World, landId: string, ids: string[]) => ids.map((id) => klauselSicht(w, landId, id)?.label ?? KLAUSEL_NACH_ID[id]?.label ?? id).join(", ");
 
 export function vertragsName(w: World, v: Vertrag): string {
   const alle = [...v.gibt, ...v.will];
-  const erste = klauselSicht(w, v.land, alle[0] ?? "")?.label ?? alle[0] ?? "Vertrag";
+  const erste = klauselSicht(w, v.land, alle[0] ?? "")?.label ?? KLAUSEL_NACH_ID[alle[0] ?? ""]?.label ?? alle[0] ?? "Vertrag";
   return alle.length > 1 ? `${erste} und ${alle.length - 1} weitere Klausel${alle.length > 2 ? "n" : ""}` : erste;
 }
 
@@ -489,16 +592,23 @@ export function verlaengere(w: World, landId: string, vertragId: string, jahre: 
 }
 
 /**
- * Ein Paket, das der Partner von sich aus vorschlagen würde: das Angebot, das ihm am meisten wert ist, gegen die Forderung, die ihn am
- * wenigsten kostet. `null`, wenn er dem Paket selbst nicht zustimmen würde.
+ * Ein Paket, das der Partner von sich aus vorschlagen würde: sein größter Wunsch an die Türkei gegen eine Gegenleistung, die er sich
+ * leisten kann. Er schlägt nur vor, was er selbst annehmen würde (dieselbe Abwägung wie am Tisch), und legt eine Gegenleistung bei,
+ * wo es eine gibt: Ein Vorschlag ist kein verkleidetes Verlangen. Unter den Gegenleistungen, die sein Saldo trägt, nimmt er die,
+ * die der Türkei am meisten bringt (sie kostet ihn am meisten); so wird der Vorschlag annehmbar, ohne dass er draufzahlt.
+ * `null`, wenn er keinen Wunsch hat, keine Gegenleistung tragen kann oder dem Paket selbst nicht zustimmen würde.
  */
 export function vorschlagVomPartner(w: World, landId: string): Angebot | null {
   const ks = klauselnFuer(w, landId).filter((k) => !k.gesperrt && !k.rot);
-  const gibt = ks.filter((k) => k.def.seite === "gibt" && k.wert > 0).sort((a, b) => b.wert - a.wert)[0];
-  const will = ks.filter((k) => k.def.seite === "will").sort((a, b) => b.wert - a.wert)[0];
-  if (!gibt && !will) return null;
-  const a: Angebot = { land: landId, gibt: gibt ? [gibt.def.id] : [], will: will ? [will.def.id] : [], jahre: 5 };
-  return bewerte(w, a).urteil === "zustimmung" ? a : null;
+  const gibt = ks.filter((k) => k.def.seite === "gibt" && k.wert > 0).sort((a, b) => b.wert - a.wert || a.def.id.localeCompare(b.def.id))[0];
+  if (!gibt) return null;
+  const wills = ks.filter((k) => k.def.seite === "will").sort((a, b) => a.wert - b.wert || a.def.id.localeCompare(b.def.id));
+  for (const will of wills) {
+    const a: Angebot = { land: landId, gibt: [gibt.def.id], will: [will.def.id], jahre: 5 };
+    if (bewerte(w, a).urteil === "zustimmung") return a;
+  }
+  // Ohne tragbare Gegenleistung kein Vorschlag: Was der Partner dann will, kommt als Forderung (Vorlage „land_fordert“), nicht als Angebot
+  return null;
 }
 
 /** Wann der früheste ordentliche Ausstieg möglich ist. */

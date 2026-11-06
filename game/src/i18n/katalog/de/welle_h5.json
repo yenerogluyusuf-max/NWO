@@ -1,0 +1,13 @@
+{
+ "welle_h5.glaub.waechst": "Glaubwürdigkeit {glaub, number} von 100, im Monat +{punkte, number, 1}: Realzins seit {fenster, number} Monaten über {neutral, number} %, {grund}.",
+ "welle_h5.glaub.grund.faellt": "Inflation fällt",
+ "welle_h5.glaub.grund.unter": "Inflation unter der Erwartung",
+ "welle_h5.glaub.wartetZins": "Glaubwürdigkeit {glaub, number} von 100. Sie wächst nach {fenster, number} Monaten Realzins über {neutral, number} %, bisher {monate, number} von {fenster, number}.",
+ "welle_h5.glaub.wartetInflation": "Glaubwürdigkeit {glaub, number} von 100. Sie wächst, wenn die Inflation fällt: jetzt {jetzt, number, 1} %, vor {fenster, number} Monaten {vorher, number, 1} %.",
+ "welle_h5.glaub.abzugRealzins": "Negativer Realzins: {punkte, number, 1} im Monat.",
+ "welle_h5.glaub.abzugMehrbedarf": "Ungedeckter Mehrbedarf {wert, number, 1} % des BIP: {punkte, number, 1} im Monat.",
+ "welle_h5.wk.kosten": "{abstand, number, 1} Punkte über dem Stand, den die Preise schon tragen. Jeden Monat werden {tempo, number} % davon eingepreist.",
+ "welle_h5.wk.kostenSpirale": "{abstand, number, 1} Punkte über dem Stand, den die Preise schon tragen. Jeden Monat werden {tempo, number} % davon eingepreist, {spirale, number, 1} Punkte der Lohn-Preis-Spirale bleiben.",
+ "welle_h5.wk.mangel": "Energiemangel",
+ "welle_h5.wk.mangelText": "{fehlt, number, 1} % der Energie fehlen, {ref, number, 1} % tragen die Preise schon. Jeden Monat werden {tempo, number} % des Rests eingepreist."
+}

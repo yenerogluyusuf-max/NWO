@@ -40,6 +40,8 @@ export interface EconomyState {
   sanktionsLast?: { risiko: number; nachfrage: number };
   /** Anteil fehlender Energie (Öl und Gas, 0 bis 1) im letzten Liefermonat (sim/gueter.ts) */
   energieMangel?: number;
+  /** Welle H5: Bezugswert des Energiemangels, an den sich die Preise schon angepasst haben (wie `kostenRef`); fehlt in älteren Spielständen (dann 0) */
+  mangelRef?: number;
   /** Staatsschulden in % des BIP */
   debtRatio: number;
   /** Verfügbarer nominaler Kassenbestand in Mrd. Lira; getrennt von Zentralbank-Devisenreserven. */
@@ -54,6 +56,12 @@ export interface EconomyState {
   policyCost: number;
   /** Aus dem Politiknetz: Kostendruck der Betriebe auf die Inflation, Prozentpunkte */
   costPush: number;
+  /**
+   * Welle H5: Bezugswert des Kostendrucks (Indexpunkte), an den sich die Preise schon angepasst haben. Er folgt dem Kostendruck langsam
+   * (sim/world.ts, KOSTEN); nur der Abstand dazu treibt die Inflation. Fehlt in älteren Spielständen: Er beginnt dann beim Startwert des
+   * Netzes, sodass der bisherige Kostenschub glatt ausklingt statt zu springen.
+   */
+  kostenRef?: number;
   /** Aus dem Politiknetz: Verschiebung des Potenzialwachstums durch Produktivität, Prozentpunkte */
   potentialShift: number;
   /** Mehr- oder Minderzins des Staates gegenüber dem Start in % des BIP je Jahr (Zinsdienst folgt den Marktzinsen); fehlt in älteren Spielständen */
