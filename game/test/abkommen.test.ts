@@ -101,16 +101,23 @@ describe("Bewertung durch die Gegenseite", () => {
     expect(gesehen).toBeGreaterThanOrEqual(3);
   });
 
-  test("Vertrauen und Streit verschieben die Bewertung; die Bewertung ist reine Rechnung", () => {
+  // Welle H6 (06.11.2026): Vertrauen und Streit wirken nicht mehr auf die Punkte (den Saldo der Klauseln), sondern auf die nötige
+  // Marge. Vorher „bezahlte“ gutes Vertrauen beliebige Forderungen (Rückmeldung des Inhabers zu Russland). Die Prüfung bleibt
+  // gleich streng: Vertrauen muss die Hürde senken, Streit sie heben, längere Bindung sie heben.
+  test("Vertrauen und Streit verschieben die nötige Marge; der Saldo bleibt; die Bewertung ist reine Rechnung", () => {
     const w = neu();
     const a = A("USA", ["ruestung_kauf"], ["w_ruestung"]);
-    const vorher = bewerte(w, a).punkte;
-    expect(bewerte(w, a).punkte).toBe(vorher);
     const z = weltZustand(w)["USA"]!;
+    z.versatz += 45 - vertrauenZu(w, "USA"); // neutrales Vertrauen, damit die Marge nicht an der Untergrenze liegt
+    z.konflikt = 40;
+    const vorher = bewerte(w, a);
+    expect(JSON.stringify(bewerte(w, a))).toBe(JSON.stringify(vorher));
     z.versatz += 15;
-    expect(bewerte(w, a).punkte).toBeGreaterThan(vorher + 2.5);
+    const vertrauter = bewerte(w, a);
+    expect(vertrauter.punkte).toBe(vorher.punkte);
+    expect(vertrauter.grenze).toBeLessThan(vorher.grenze - 1.4);
     z.konflikt += 30;
-    expect(bewerte(w, a).punkte).toBeLessThan(bewerte({ ...w }, A("USA", ["ruestung_kauf"], ["w_ruestung"])).punkte + 0.001);
+    expect(bewerte(w, a).grenze).toBeGreaterThan(vertrauter.grenze + 1.8);
     const langer = bewerte(w, A("USA", ["ruestung_kauf"], ["w_ruestung"], 10));
     expect(langer.grenze).toBeGreaterThan(bewerte(w, a).grenze);
   });
@@ -225,7 +232,8 @@ describe("Laufzeit, Prüfung, Bruch", () => {
   test("Zwei Verstöße brechen den Vertrag: Vertrauen und Ansehen sinken, das Land erinnert sich und verhandelt härter", () => {
     const w = mitZoll();
     setPolicy(w, "m_zoelle", 90);
-    const vorher = bewerte(w, A("EGY", ["investitionen_oeffnen"], ["w_libyen"])).punkte;
+    // Welle H6: Die Erinnerung an den Bruch belastet die Beziehung (und damit die Marge), nicht den Saldo der Klauseln
+    const vorher = bewerte(w, A("EGY", ["investitionen_oeffnen"], ["w_libyen"])).beziehung;
     const an0 = nationalAverage(NET, w.net, "ansehen");
     for (let i = 0; i < 26; i++) advance(w, 30);
     const alle = weltZustand(w)["EGY"]!.vertraege!;
@@ -233,7 +241,7 @@ describe("Laufzeit, Prüfung, Bruch", () => {
     expect(alle[0]!.ende).toMatch(/verfehlt/i);
     expect(weltZustand(w)["EGY"]!.bruch ?? 0).toBeGreaterThan(2);
     expect(nationalAverage(NET, w.net, "ansehen")).toBeLessThan(an0 + 1);
-    expect(bewerte(w, A("EGY", ["investitionen_oeffnen"], ["w_libyen"])).punkte).toBeLessThan(vorher);
+    expect(bewerte(w, A("EGY", ["investitionen_oeffnen"], ["w_libyen"])).beziehung).toBeLessThan(vorher);
   });
 
   test("Ein Vertrag läuft aus; ein gehaltener zählt bei der nächsten Verhandlung", () => {

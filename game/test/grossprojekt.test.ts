@@ -9,7 +9,7 @@ import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { befehl } from "../src/sim/befehle";
 import { laufBau, reichMonat, reichZustand, vorhabenDef, vorhabenListe } from "../src/sim/reich";
 import { Rng } from "../src/sim/rng";
-import { weltZustand } from "../src/sim/laender";
+import { vertrauenZu, weltZustand } from "../src/sim/laender";
 import { leseAntwort, vorschau, fuehreAus } from "../src/ki/aktionen";
 import {
   beginneFrei,
@@ -293,19 +293,22 @@ describe("Bagdadbahn-Verhandlungsserie", () => {
 
   test("Gegenangebot eines Transitlandes lässt sich annehmen", () => {
     const w = welt();
-    const e = entwirf(w, "Autobahn bis Syrien");
+    // Welle H6: Seit die Gegenseite nach Saldo und Marge rechnet, trägt das großzügige Transit-Paket mit Damaskus (die zwei besten
+    // Angebote, zusammen 15, gegen eine Durchfahrt, die es 2 kostet) bei jeder Beziehung, bei der Damaskus überhaupt verhandelt.
+    // Die Spielsituation „das erste Paket scheitert knapp“ entsteht jetzt mit Athen: Seine zwei Wünsche (13) gegen die Durchfahrt (5)
+    // reichen bei kühler Beziehung nicht, ein dritter Wunsch schon.
+    const e = entwirf(w, "Autobahn bis Griechenland");
     if (e.art !== "entwurf") throw new Error("kein Entwurf");
-    // Damaskus wird so eingestellt, dass das erste Paket knapp scheitert (Spielsituation)
-    const zs = weltZustand(w)["SYR"]!;
-    zs.versatz = -60;
-    zs.konflikt = 100;
-    const r = transitVerhandeln(w, e.id, "SYR");
+    const zs = weltZustand(w)["GRC"]!;
+    zs.versatz += 20 - vertrauenZu(w, "GRC");
+    zs.konflikt = 70;
+    const r = transitVerhandeln(w, e.id, "GRC");
     expect(r.ok).toBe(false);
-    expect(e.eintrag.transitGegen?.["SYR"], r.text).toBeTruthy();
-    expect(e.eintrag.transit!["SYR"]).toBe("offen");
-    const a = transitGegenAnnehmen(w, e.id, "SYR");
-    expect(a.ok).toBe(true);
-    expect(e.eintrag.transit!["SYR"]).toBe("zusage");
+    expect(e.eintrag.transitGegen?.["GRC"], r.text).toBeTruthy();
+    expect(e.eintrag.transit!["GRC"]).toBe("offen");
+    const a = transitGegenAnnehmen(w, e.id, "GRC");
+    expect(a.ok, a.text).toBe(true);
+    expect(e.eintrag.transit!["GRC"]).toBe("zusage");
     expect(beginneFrei(w, e.id).ok).toBe(true);
   });
 
