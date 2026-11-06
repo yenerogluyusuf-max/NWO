@@ -121,6 +121,12 @@
 .rl-sitze small { margin-left: var(--abstand-1); font: var(--schrift-1) var(--serif); color: var(--tinte-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rl-praegt { font: italic var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
 
+/* Laufende Reformen (ImBau aus Reich.tsx) in der Justiz kleiner: Reformen haben kein Bauwerk, das Bild ist nur Zeichen */
+.rl > .rr-abschnitt { padding: var(--abstand-1) 0 0; }
+.rl > .rr-abschnitt h4 { margin-bottom: var(--abstand-1); }
+.rl .rr-bauliste li.wunder-a-mitbild { grid-template-columns: 80px minmax(0, 1fr) auto; padding: var(--abstand-1) var(--abstand-3); }
+.rl .rr-bauliste li.wunder-a-mitbild .wunder-a-mini { width: 80px; }
+
 .rl-verlauf { padding-top: var(--abstand-2); border-top: 1px solid var(--linie); }
 .rl-verlauf .rr-abschnitt { border-top: 0; }
 
