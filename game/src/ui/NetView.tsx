@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { World } from "../sim/types";
 import { NET } from "../sim/world";
 import { nationalAverage, startAverage } from "../sim/netz";
@@ -13,7 +13,7 @@ import { NetNavigator } from "./NetNavigator";
 import { Erklaerung } from "./Erklaerung";
 import { OrtWahl } from "./OrtWahl";
 import { type NodeSpec, type Theme } from "../data/politiknetz";
-import { themeName } from "./politik/bereiche";
+import { EINHEIT, themeName } from "./politik/bereiche";
 import { wann } from "./lernen";
 import { skala, naechsteStufe, stufenName } from "../data/skalen";
 import { betroffene } from "../sim/wege";
@@ -22,6 +22,7 @@ import { kabinettReaktion } from "../sim/figuren";
 import { Handlungsfeld } from "./Handlungsfeld";
 import { zusammenspielFuer } from "../sim/synergien";
 import { t, zahl } from "../i18n";
+import "./politik/wirkungsnetz.css";
 
 // Getter: Die Wörter folgen der aktuellen Sprache (I-6)
 const KIND_LABEL: Record<NodeSpec["kind"], string> = {
@@ -41,6 +42,14 @@ const DIRECTION: Record<Outlook["direction"], string> = {
 const nf = (x: number) => zahl(Math.round(x));
 /** Kosten brauchen mehr Nachkommastellen: 0,03 % des BIP ist kein Rundungsfehler. */
 const nfc = (x: number) => zahl(x, Math.abs(x) < 0.1 ? 3 : 2);
+
+/** Trennt „28.075,50 Lira netto im Monat“ in Zahl und Einheit, damit die Zahl groß und die Einheit leise stehen kann.
+ *  Ohne führende Zahl (benannte Stufe wie „Milde Begrenzung“) bleibt der Text ganz. */
+function teileWert(s: string): { zahl: string; einheit: string } {
+  const m = /^([−+-]?\d[\d.,\u202f\u00a0]*)\s*(%?)\s*(.*)$/.exec(s.trim());
+  if (!m) return { zahl: s, einheit: "" };
+  return { zahl: m[1]! + (m[2] ? "\u202f%" : ""), einheit: m[3] ?? "" };
+}
 
 export function NetView({
   world,
@@ -73,6 +82,12 @@ export function NetView({
   const [rueckmeldung, setRueckmeldung] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const [bestaetigt, setBestaetigt] = useState<string | null>(null);
   const [fein, setFein] = useState(false);
+  // Alle Verbindungen mit Begründung: Der Schalter steht unter dem Bild, die Kacheln öffnen über beide Spalten darunter
+  const [begruendungen, setBegruendungen] = useState(false);
+  const begruendungenRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (begruendungen) begruendungenRef.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+  }, [begruendungen]);
 
   const node = NET.nodes[NET.index.get(selectedId)!]!;
   const istMassnahme = node.kind === "massnahme";
@@ -94,6 +109,7 @@ export function NetView({
     setLevel(null);
     setVorschau(null);
     setRueckmeldung(null);
+    setBegruendungen(false);
   }
 
   /** Aus dem Handlungsfeld einer Größe: die Maßnahme mit sinnvoller Voreinstellung öffnen (20 Punkte in die gewünschte Richtung, an den akuten Orten). */
@@ -154,104 +170,129 @@ export function NetView({
   const kannBezahlen = !spiel || !pr ? true : effektivWeg === "erlass" ? pr.erlass.bezahlbar : pr.gesetz.bezahlbar;
   const aktuellePk = pr ? (effektivWeg === "erlass" ? pr.erlass.pk : pr.gesetz.pk) : 0;
 
-  // Folgen und Preis (Schritt „Was folgt daraus?“) stehen unter dem Bild links; die Entscheidung bleibt rechts
+  // Folgen und Preis („Was folgt daraus?“) stehen unter dem Bild links; die Entscheidung bleibt rechts.
+  // Ohne Änderung gilt die Richtung „anheben“ (vorher entschied ein Rundungsrest von Math.round(now) über die Richtung).
+  const steigt = aendert ? sliderValue > now : true;
   const zeigeKosten = Math.abs(node.cost ?? 0) >= 0.05;
   const einnahme = (node.cost ?? 0) < 0;
-  const gruppen = istMassnahme && aendert ? betroffene(node.id, sliderValue > now ? 1 : -1) : null;
+  const gruppen = istMassnahme && aendert ? betroffene(node.id, steigt ? 1 : -1) : null;
+  // Diese Hinweise stehen schon in der Preiszeile; rechts nicht noch einmal
+  const inPreiszeile = pu ? new Set([t("n4.hw.ruecknahme", { f: zahl(pu.faktorStreichen / pu.faktorEinfuehren, 1) }), t("n4.hw.dauerlast", { n: zahl(pu.unterhaltMonat, 1) })]) : new Set<string>();
+  const hinweise = aendert && pr ? pr.hinweise.filter((h) => !inPreiszeile.has(h)) : [];
+  // Die Gegenspieler im Kabinett stehen bei der Entscheidung (rechts), nicht bei den Folgen
+  const kabinett = istMassnahme ? kabinettReaktion(world, node.id, steigt ? 1 : -1) : [];
   const folgenPanel =
     istMassnahme && pr
       ? (() => {
-          const steigt = sliderValue >= now;
-          const folgen = NET.edges
-            .filter((e) => e.from === node.id)
-            .sort((x, y) => Math.abs(y.weight) - Math.abs(x.weight))
-            .slice(0, 5)
-            .map((e) => ({ id: e.to, name: nameOf(e.to), hoch: e.weight * (steigt ? 1 : -1) > 0, lag: e.lag }));
-          const kabinett = kabinettReaktion(world, node.id, steigt ? 1 : -1);
+          const kHeute = Math.abs(((node.cost ?? 0) * now) / 100);
+          const kNeu = Math.abs(((node.cost ?? 0) * sliderValue) / 100);
           return (
-            <section className="pd-folgen" aria-label={t("ui.NetView.6019d7e")}>
+            <section className="pd-folgen nv-folgen" aria-label={t("ui.NetView.6019d7e")}>
               <h3>{t("ui2.ui.NetView.6019d7e")}</h3>
-              <div className="pd-folgen-raster">
-                <div className="pd-folgen-spalte">
-                  <h4>{t("ui2.ui.NetView.5190db6")}</h4>
-                  <ul className="pd-wirkungen" aria-label={t("ui2.ui.NetView.4f38063")}>
-                    {folgen.map((f) => (
-                      <li key={f.id} className={f.hoch ? "hoch" : "runter"}>
-                        <span className="pd-richtung" aria-hidden>
-                          {f.hoch ? "▲" : "▼"}
-                        </span>
-                        <span className="pd-w-name">{f.name}</span>
-                        <em>{wann(f.lag)}</em>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="pd-folgen-spalte">
-                  <h4>{t("ui.NetView.bf40592")}</h4>
-                  <dl className="pd-preisliste">
-                    <div>
-                      <dt>{t("ui2.ui.NetView.a92d0da")}</dt>
-                      <dd>
-                        {zeigeKosten ? (
+              <dl className="nv-preise">
+                <div>
+                  <dt>{t("ui2.ui.NetView.a92d0da")}</dt>
+                  <dd>
+                    {zeigeKosten ? (
+                      <>
+                        {einnahme ? t("ui2.ui.NetView.f8b133b") : t("ui2.ui.NetView.9bc1843")}{" "}
+                        {/* Gleiche Zahl heute und bei dieser Wahl nur einmal */}
+                        {nfc(kHeute) === nfc(kNeu) ? t("t2.nv.bipJahr", { p0: nfc(kHeute) }) : t("ui2.ui.NetView.f51b21f", { p0: nfc(kHeute), p1: nfc(kNeu) })}
+                        {Math.abs(pr.kostenBip) >= 0.0005 && aendert && (
                           <>
-                            {einnahme ? t("ui2.ui.NetView.f8b133b") : t("ui2.ui.NetView.9bc1843")} {t("ui2.ui.NetView.f51b21f", { p0: nfc(Math.abs(((node.cost ?? 0) * now) / 100)), p1: nfc(Math.abs(((node.cost ?? 0) * sliderValue) / 100)) })}
-                            {Math.abs(pr.kostenBip) >= 0.0005 && (
-                              <>
-                                {" "}
-                                (<span className={pr.kostenBip > 0 ? "minus" : "plus"}>{pr.kostenBip > 0 ? t("ui2.ui.NetView.a8e5793", { p0: nfc(pr.kostenBip) }) : t("ui2.ui.NetView.cfd7d14", { p0: nfc(-pr.kostenBip) })}</span> {t("ui2.ui.NetView.3011d5d")}
-                              </>
-                            )}
-                            .
+                            {" "}
+                            (<span className={pr.kostenBip > 0 ? "minus" : "plus"}>{pr.kostenBip > 0 ? t("ui2.ui.NetView.a8e5793", { p0: nfc(pr.kostenBip) }) : t("ui2.ui.NetView.cfd7d14", { p0: nfc(-pr.kostenBip) })}</span> {t("ui2.ui.NetView.3011d5d")}
                           </>
-                        ) : (
-                          <>{t("ui2.ui.NetView.2f58382")}</>
                         )}
-                      </dd>
-                    </div>
-                    {spiel && pu && (
-                      <div>
-                        <dt>{t("ui2.ui.NetView.54c5730")}</dt>
-                        <dd>
-                          {t("ui2.ui.NetView.2a6f5fd", { p0: pu.einfuehren10, p1: pu.streichen10 })}
-                          {pu.faktorStreichen > pu.faktorEinfuehren && <> {t("n4.nv.ruecknahme", { f: zahl(pu.faktorStreichen / pu.faktorEinfuehren, 1) })}</>}
-                          {pu.unterhaltMonat > 0 && <> {t("ui2.ui.NetView.03b3096", { p0: zahl(pu.unterhaltMonat, 1) })}</>}.
-                        </dd>
-                      </div>
+                        .
+                      </>
+                    ) : (
+                      <>{t("ui2.ui.NetView.2f58382")}</>
                     )}
-                    <div>
-                      <dt>{t("ui2.ui.NetView.f6e5817")}</dt>
-                      <dd>
-                        {t("n4.nv.monate", { n: pr.monate })} {t("ui2.ui.NetView.2dd5af2")}
-                        {spiel && pr.ueberlast > 1 ? t("ui2.ui.NetView.1efdfb9", { p0: pr.offen, p1: Math.round((pr.ueberlast - 1) * 100) }) : ""}
-                      </dd>
-                    </div>
-                    {kabinett.map((k) => (
-                      <div key={k.wer}>
-                        <dt>{t("n4.nv.imKabinett")}</dt>
-                        <dd>
-                          {k.wer}: {k.text}
-                        </dd>
-                      </div>
-                    ))}
-                    {gruppen && gruppen.gewinner.length > 0 && (
-                      <div className="gut">
-                        <dt>{t("ui2.ui.NetView.3b0e656")}</dt>
-                        <dd>{gruppen.gewinner.join(", ")}</dd>
-                      </div>
-                    )}
-                    {gruppen && gruppen.verlierer.length > 0 && (
-                      <div className="schlecht">
-                        <dt>{t("ui2.ui.NetView.d9e0863")}</dt>
-                        <dd>{gruppen.verlierer.join(", ")}</dd>
-                      </div>
-                    )}
-                  </dl>
+                  </dd>
                 </div>
-              </div>
+                <div>
+                  <dt>{t("ui2.ui.NetView.f6e5817")}</dt>
+                  <dd>
+                    {t("n4.nv.monate", { n: pr.monate })} {t("ui2.ui.NetView.2dd5af2")}
+                  </dd>
+                </div>
+                {spiel && pu && (
+                  <div className="breit">
+                    <dt>{t("ui2.ui.NetView.54c5730")}</dt>
+                    <dd>
+                      {t("ui2.ui.NetView.2a6f5fd", { p0: pu.einfuehren10, p1: pu.streichen10 })}
+                      {pu.faktorStreichen > pu.faktorEinfuehren && <> {t("n4.nv.ruecknahme", { f: zahl(pu.faktorStreichen / pu.faktorEinfuehren, 1) })}</>}
+                      {pu.unterhaltMonat > 0 && <> {t("ui2.ui.NetView.03b3096", { p0: zahl(pu.unterhaltMonat, 1) })}</>}.
+                    </dd>
+                  </div>
+                )}
+                {gruppen && gruppen.gewinner.length > 0 && (
+                  <div className="gut">
+                    <dt>{t("ui2.ui.NetView.3b0e656")}</dt>
+                    <dd>{gruppen.gewinner.join(", ")}</dd>
+                  </div>
+                )}
+                {gruppen && gruppen.verlierer.length > 0 && (
+                  <div className="schlecht">
+                    <dt>{t("ui2.ui.NetView.d9e0863")}</dt>
+                    <dd>{gruppen.verlierer.join(", ")}</dd>
+                  </div>
+                )}
+              </dl>
             </section>
           );
         })()
       : null;
+
+  // Die Vorschau der nächsten zwölf Monate steht an der Stelle des Bildes (ein Bild oben), bis man zurückschaltet oder die Stufe ändert
+  const vorschauBlock =
+    vorschau && vorschau !== "laedt" && vorschau.stufe === sliderValue
+      ? (() => {
+          // INN-2: Solange die Umsetzung läuft, ist die Wirkung erst teilweise hergestellt —
+          // die angezeigte Bandbreite wird deshalb breiter gezeichnet (Anzeigeregel, keine Messung).
+          const weite = 1 + (100 - uStand) / 100;
+          const band = (low: number, high: number) => {
+            const mitte = (low + high) / 2;
+            const halb = ((high - low) / 2) * weite;
+            return t("n9.netz.etwa", { name: `${Math.round(mitte - halb)}–${Math.round(mitte + halb)}` });
+          };
+          return (
+            <section className="netgraph-block nv-vorschau" aria-live="polite">
+              <div className="nv-vorschau-kopf">
+                <span className="nv-wert-ort">{t("ui2.ui.NetView.df96856")}</span>
+                <button type="button" className="link" onClick={() => setVorschau(null)}>
+                  {t("t2.nv.zumBild")}
+                </button>
+              </div>
+              <table className="preview">
+                <caption>
+                  {t("ui2.ui.NetView.94f7c0e")}
+                  {uStand < 100 ? t("ui2.ui.NetView.cb032cf", { p0: Math.round(uStand) }) : ""}
+                </caption>
+                <tbody>
+                  {vorschau.rows.map(({ label, o }) => (
+                    <tr key={label}>
+                      <th>{label}</th>
+                      <td className={`dir dir-${o.direction}`}>
+                        <span aria-hidden>{o.direction === "hoeher" ? "▲" : o.direction === "niedriger" ? "▼" : "◆"}</span> {DIRECTION[o.direction]}
+                      </td>
+                      <td className="range">{band(o.withAction.low, o.withAction.high)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          );
+        })()
+      : null;
+
+  // Größen des Wirtschaftsmodells sind echte Werte (31,5 % Inflation), keine Indizes: eine Nachkommastelle, Prozent wo es Prozent ist
+  const wert = istMassnahme ? stufenName(node.id, now) : node.input ? `${zahl(now, 1)}${EINHEIT[node.id] === "%" ? " %" : ""}` : nf(now);
+  const { zahl: wertZahl, einheit: wertEinheit } = teileWert(wert);
+  const unveraendert = Math.abs(now - start) < 0.5;
+  const zusammenspiel = node.kind === "massnahme" ? zusammenspielFuer(node.id) : [];
+  const anzahlZusammenhaenge = causes.length + effects.length + zusammenspiel.length;
 
   return (
     <div className={`netview${eingebettet ? " po-eingebettet" : ""}`}>
@@ -267,43 +308,51 @@ export function NetView({
 
       <section className="paper net-detail">
         <div className="net-main">
-          <p className="kind-label">
-            {KIND_LABEL[node.kind]} · {themeName(node.theme)}
-          </p>
-          <h2>{node.name}</h2>
-          <p>{node.text}</p>
-          <p className="valueline">
-            {istMassnahme && ort ? t("ui2.ui.NetView.875014d", { p0: provinzenText(ort) }) : t("ui2.ui.NetView.f37ee0e")} <strong>{istMassnahme ? stufenName(node.id, now) : nf(now)}</strong>
-            {!node.input && (
-              <span className="pd-wertleiste" aria-hidden>
-                <i style={{ width: `${Math.max(0, Math.min(100, now))}%` }} />
-                <b style={{ left: `${Math.max(0, Math.min(100, start))}%` }} title={t("ui2.ui.NetView.130b865")} />
-              </span>
-            )}
-            {!node.input && istMassnahme && (
-              <span className="subtitle">
-                {" "}
-                ({ort ? `${t("n9.netz.land", { wert: stufenName(node.id, nationalAverage(NET, world.net, node.id)) })}; ` : ""}{t("n9.netz.start", { start: stufenName(node.id, start) })})
-              </span>
-            )}
-            {!node.input && !istMassnahme && (
-              <span className="subtitle">
-                {" "}
-                {t("n4.nv.startIndex", { start: nf(start) })}
-              </span>
-            )}
-            {node.kind === "problem" && (
-              <span className="subtitle">
-                {" "}
-                {t("akte.netz.akutAb", { n: node.threshold })}
-              </span>
-            )}
-          </p>
+          <header className="nv-kopf">
+            <p className="kind-label">
+              {KIND_LABEL[node.kind]} · {themeName(node.theme)}
+            </p>
+            <h2>{node.name}</h2>
+            <p className="nv-text">{node.text}</p>
+          </header>
+
+          {/* Die eine Zahl: groß, mit Einheit, Leiste und dem Stand beim Amtsantritt nur, wenn er sich unterscheidet */}
+          <div className="nv-wert">
+            <span className="nv-wert-ort">{istMassnahme && ort ? t("ui2.ui.NetView.875014d", { p0: provinzenText(ort) }) : t("ui2.ui.NetView.f37ee0e")}</span>
+            <strong className={`nv-zahl${wertEinheit || /^[−+-]?\d/.test(wertZahl) ? "" : " wort"}`}>
+              {wertZahl}
+              {wertEinheit && <small>{wertEinheit}</small>}
+            </strong>
+            <span className="nv-wert-fuss">
+              {!node.input && (
+                <span className="pd-wertleiste" aria-hidden>
+                  <i style={{ width: `${Math.max(0, Math.min(100, now))}%` }} />
+                  <b style={{ left: `${Math.max(0, Math.min(100, start))}%` }} title={t("ui2.ui.NetView.130b865")} />
+                </span>
+              )}
+              {!node.input && istMassnahme && (
+                <span className="nv-start">
+                  {ort ? `${t("n9.netz.land", { wert: stufenName(node.id, nationalAverage(NET, world.net, node.id)) })} · ` : ""}
+                  {unveraendert ? t("t2.nv.unveraendert") : t("n9.netz.start", { start: stufenName(node.id, start) })}
+                </span>
+              )}
+              {!node.input && !istMassnahme && <span className="nv-start">{unveraendert ? t("t2.nv.indexUnveraendert") : t("n4.nv.startIndex", { start: nf(start) })}</span>}
+              {node.kind === "problem" && <span className="nv-start">{t("akte.netz.akutAb", { n: node.threshold })}</span>}
+            </span>
+          </div>
 
           <Erklaerung node={node} world={world} onSelect={select} kopfText={node.text} />
 
-          <NetGraph nodeId={node.id} onSelect={select} />
+          {vorschauBlock ?? <NetGraph nodeId={node.id} onSelect={select} />}
           {folgenPanel}
+          {anzahlZusammenhaenge > 0 && (
+            <button type="button" className="nv-begruendungen-schalter" aria-expanded={begruendungen} aria-controls="nv-begruendungen" onClick={() => setBegruendungen((b) => !b)}>
+              <span className="nv-pfeil" aria-hidden>
+                {begruendungen ? "▾" : "▸"}
+              </span>
+              {t("t2.nv.begruendungen", { n: anzahlZusammenhaenge })}
+            </button>
+          )}
         </div>
 
         <aside className="net-side">
@@ -315,6 +364,7 @@ export function NetView({
                   <span className="nr">1</span> {t("ui2.ui.NetView.bc756c1")}
                 </h4>
                 <OrtWahl
+                  knapp
                   world={world}
                   massnahmeId={node.id}
                   ort={ort}
@@ -333,6 +383,11 @@ export function NetView({
                 const passt = (w: number, wert: number) => Math.abs(w - wert) <= (regime ? 7 : 0.5);
                 const jetztStufe = naechsteStufe(sk, now);
                 const neuStufe = naechsteStufe(sk, sliderValue);
+                // „jetzt → neu“ nur, wo die Karten es nicht schon zeigen: keine Karte trägt „heute“ oder die Wahl liegt zwischen zwei Karten
+                const heuteAufKarte = sk.stufen.some((st) => passt(st.w, now));
+                const neuAufKarte = sk.stufen.some((st) => passt(st.w, sliderValue));
+                const zeigeJetzt = !heuteAufKarte;
+                const zeigeNeu = aendert && !neuAufKarte;
                 const wahl = (w: number) => {
                   setLevel(w);
                   setVorschau(null);
@@ -344,15 +399,21 @@ export function NetView({
                       <h4>
                         <span className="nr">2</span> {sk.frage}
                       </h4>
-                      <div className="stufe-kopf">
-                        <span>
-                          {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : t("n9.netz.etwa", { name: jetztStufe.stufe.name })) : stufenName(node.id, now)}</b>
-                        </span>
-                        <span aria-hidden>→</span>
-                        <span className={aendert ? "neu" : ""}>
-                          {t("n9.netz.neu")} <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : t("n9.netz.etwa", { name: neuStufe.stufe.name })) : stufenName(node.id, sliderValue)}</b>
-                        </span>
-                      </div>
+                      {!fein && (zeigeJetzt || zeigeNeu) && (
+                        <div className="stufe-kopf">
+                          {zeigeJetzt && (
+                            <span>
+                              {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : t("n9.netz.etwa", { name: jetztStufe.stufe.name })) : stufenName(node.id, now)}</b>
+                            </span>
+                          )}
+                          {zeigeJetzt && zeigeNeu && <span aria-hidden>→</span>}
+                          {zeigeNeu && (
+                            <span className="neu">
+                              {t("n9.netz.neu")} <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : t("n9.netz.etwa", { name: neuStufe.stufe.name })) : stufenName(node.id, sliderValue)}</b>
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <div className={`stufenwahl art-${sk.art}`} role="radiogroup" aria-label={`${sk.frage} ${node.name}`}>
                         {sk.stufen.map((st) => {
                           const auf = passt(st.w, sliderValue);
@@ -390,7 +451,8 @@ export function NetView({
                           </div>
                         </>
                       )}
-                      {(uStand < 100 || beschlossenesZiel !== undefined || aendert) && (
+                      {/* Umsetzung und Beschluss: nur wenn etwas läuft; die eigene Auswahl zeigen schon die Karten */}
+                      {(uStand < 100 || beschlossenesZiel !== undefined) && (
                         <div className="umsetzung">
                           {uStand < 100 && (
                             <p className="um-zeile">
@@ -446,15 +508,29 @@ export function NetView({
                       <em>{pr.erlass.moeglich ? t(pr.erlass.art === "beschluss" ? "n4.nv.wegBeschlussText" : "ui2.ui.NetView.27460fb") : pr.erlass.grund ?? t("ui2.ui.NetView.c817b01")}</em>
                     </button>
                   </div>
-                  <div className="weg-kapital">
-                    {t("ui2.ui.NetView.ad667bf")} <b>{Math.floor(pr.kapital)}</b> {t("ui2.ui.NetView.28d438e")}
-                    {pr.ueberlast > 1 && <span className="warn"> {t("ui2.ui.NetView.3126ba5", { p0: Math.round((pr.ueberlast - 1) * 100) })}</span>}
-                  </div>
-                  {pr.hinweise.map((h) => (
+                  {/* Das Kapital steht in der Kopfleiste, die Überlastung in den Hinweisen; hier nicht ein drittes Mal */}
+                  {hinweise.map((h) => (
                     <p key={h} className="weg-warnung">
                       {h}
                     </p>
                   ))}
+                </div>
+              )}
+
+              {kabinett.length > 0 && (
+                <div className="nv-gegenspieler">
+                  <h5>{t("n4.nv.imKabinett")}</h5>
+                  <ul className="nv-kabinett">
+                    {kabinett.map((k) => (
+                      <li key={k.wer}>
+                        <span className={`nv-k-marke ${k.mehr ? "gut" : "schlecht"}`} aria-hidden>
+                          {k.mehr ? "▲" : "▼"}
+                        </span>
+                        <b>{k.wer}</b>
+                        <span className="nv-k-text">{k.text}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
@@ -468,7 +544,9 @@ export function NetView({
                       ? t(pr?.erlass.art === "beschluss" ? "n4.mt.beschluss" : "ui2.ui.NetView.53365d4", { p0: aktuellePk, n: aktuellePk })
                       : aussichtslos && bestaetigt === vorhabenKey
                         ? t("ui2.ui.NetView.5ffb75c", { p0: aktuellePk })
-                        : t("ui2.ui.NetView.acf9290", { p0: aktuellePk })
+                        : pr?.rechtsweg === "kommission"
+                          ? t("n4.mt.vorgabe", { n: aktuellePk })
+                          : t("ui2.ui.NetView.acf9290", { p0: aktuellePk })
                     : t("ui2.ui.NetView.742f479")}
                 </button>
               </div>
@@ -492,96 +570,75 @@ export function NetView({
                   {rueckmeldung.why && <em> {rueckmeldung.why}</em>}
                 </p>
               )}
-              {vorschau && vorschau !== "laedt" && vorschau.stufe === sliderValue && (() => {
-                // INN-2: Solange die Umsetzung läuft, ist die Wirkung erst teilweise hergestellt —
-                // die angezeigte Bandbreite wird deshalb breiter gezeichnet (Anzeigeregel, keine Messung).
-                const weite = 1 + (100 - uStand) / 100;
-                const band = (low: number, high: number) => {
-                  const mitte = (low + high) / 2;
-                  const halb = ((high - low) / 2) * weite;
-                  return `etwa ${Math.round(mitte - halb)}–${Math.round(mitte + halb)}`;
-                };
-                return (
-                  <table className="preview">
-                    <caption>
-                      {t("ui2.ui.NetView.94f7c0e")}
-                      {uStand < 100 ? t("ui2.ui.NetView.cb032cf", { p0: Math.round(uStand) }) : ""}
-                    </caption>
-                    <tbody>
-                      {vorschau.rows.map(({ label, o }) => (
-                        <tr key={label}>
-                          <th>{label}</th>
-                          <td className={`dir dir-${o.direction}`}>
-                            <span aria-hidden>{o.direction === "hoeher" ? "▲" : o.direction === "niedriger" ? "▼" : "◆"}</span> {DIRECTION[o.direction]}
-                          </td>
-                          <td className="range">{band(o.withAction.low, o.withAction.high)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                );
-              })()}
             </div>
           )}
-
-          <div className="links">
-            <div>
-              <h3>{t("ui2.ui.NetView.7757ec0")}</h3>
-              {node.input && <p className="subtitle">{t("ui.NetView.6b26667")}</p>}
-              {causes.length === 0 && !node.input && <p className="subtitle">{t("ui2.ui.NetView.66525d3")}</p>}
-              <ul>
-                {causes.map((e) => (
-                  <li key={e.from}>
-                    <button className="link" onClick={() => select(e.from)}>
-                      {nameOf(e.from)}
-                    </button>{" "}
-                    <span className={e.weight > 0 ? "plus" : "minus"}>{e.weight > 0 ? t("ui2.ui.NetView.4944e2c") : "↓ senkt"}</span>
-                    <span className="subtitle"> · {wann(e.lag)}</span>
-                    <div className="why">{e.why}</div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3>{t("ui2.ui.NetView.1fac6b5")}</h3>
-              <ul>
-                {effects.map((e) => (
-                  <li key={e.to}>
-                    <button className="link" onClick={() => select(e.to)}>
-                      {nameOf(e.to)}
-                    </button>{" "}
-                    <span className={e.weight > 0 ? "plus" : "minus"}>{e.weight > 0 ? t("ui2.ui.NetView.4944e2c") : "↓ senkt"}</span>
-                    <span className="subtitle"> · {wann(e.lag)}</span>
-                    <div className="why">{e.why}</div>
-                  </li>
-                ))}
-              </ul>
-              {node.kind === "massnahme" && zusammenspielFuer(node.id).length > 0 && (
-                <>
-                  <h3>{t("netz.ui.zusammenspiel")}</h3>
-                  <ul>
-                    {zusammenspielFuer(node.id).map((z) => (
-                      <li key={z.id}>
-                        {t("netz.ui.mit")}{" "}
-                        <button className="link" onClick={() => select(z.partner)}>
-                          {nameOf(z.partner)}
-                        </button>
-                        {": "}
-                        <button className="link" onClick={() => select(z.ziel)}>
-                          {nameOf(z.ziel)}
-                        </button>{" "}
-                        <span className={z.weight > 0 ? "plus" : "minus"}>{z.weight > 0 ? `↑ ${t("netz.ui.erhoeht")}` : `↓ ${t("netz.ui.senkt")}`}</span>
-                        <span className="subtitle"> · {wann(z.lag)}</span>
-                        <div className="why">{z.why}</div>
-                        <div className="subtitle">{z.modus === "gegen" ? t("netz.ui.zusammenspiel_gegen") : t("netz.ui.zusammenspiel_gleich")}</div>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </div>
         </aside>
+
+          {/* Die Begründungen jeder Verbindung: Tiefe zum Aufklappen. Das Bild darüber zeigt dieselben Linien. */}
+          {begruendungen && anzahlZusammenhaenge > 0 && (
+            <section id="nv-begruendungen" ref={begruendungenRef} className="nv-zusammenhang" aria-label={t("t2.nv.begruendungen", { n: anzahlZusammenhaenge })}>
+              <div className="links">
+                {(causes.length > 0 || node.input) && (
+                  <div>
+                    <h3>{t("ui2.ui.NetView.7757ec0")}</h3>
+                    {node.input && <p className="subtitle">{t("ui.NetView.6b26667")}</p>}
+                    <ul>
+                      {causes.map((e) => (
+                        <li key={e.from}>
+                          <button className="link" onClick={() => select(e.from)}>
+                            {nameOf(e.from)}
+                          </button>{" "}
+                          <span className={e.weight > 0 ? "plus" : "minus"}>{e.weight > 0 ? t("ui2.ui.NetView.4944e2c") : "↓ senkt"}</span>
+                          <span className="subtitle"> · {wann(e.lag)}</span>
+                          <div className="why">{e.why}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {effects.length > 0 && (
+                  <div>
+                    <h3>{t("ui2.ui.NetView.1fac6b5")}</h3>
+                    <ul>
+                      {effects.map((e) => (
+                        <li key={e.to}>
+                          <button className="link" onClick={() => select(e.to)}>
+                            {nameOf(e.to)}
+                          </button>{" "}
+                          <span className={e.weight > 0 ? "plus" : "minus"}>{e.weight > 0 ? t("ui2.ui.NetView.4944e2c") : "↓ senkt"}</span>
+                          <span className="subtitle"> · {wann(e.lag)}</span>
+                          <div className="why">{e.why}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {zusammenspiel.length > 0 && (
+                  <div>
+                    <h3>{t("netz.ui.zusammenspiel")}</h3>
+                    <ul>
+                      {zusammenspiel.map((z) => (
+                        <li key={z.id}>
+                          {t("netz.ui.mit")}{" "}
+                          <button className="link" onClick={() => select(z.partner)}>
+                            {nameOf(z.partner)}
+                          </button>
+                          {": "}
+                          <button className="link" onClick={() => select(z.ziel)}>
+                            {nameOf(z.ziel)}
+                          </button>{" "}
+                          <span className={z.weight > 0 ? "plus" : "minus"}>{z.weight > 0 ? `↑ ${t("netz.ui.erhoeht")}` : `↓ ${t("netz.ui.senkt")}`}</span>
+                          <span className="subtitle"> · {wann(z.lag)}</span>
+                          <div className="why">{z.why}</div>
+                          <div className="subtitle">{z.modus === "gegen" ? t("netz.ui.zusammenspiel_gegen") : t("netz.ui.zusammenspiel_gleich")}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
       </section>
     </div>
   );
