@@ -195,12 +195,19 @@ test.skipIf(!existsSync(INHABER))("Migration mit dem Spielstand des Inhabers: ke
   // Erneutes Laden migriert nicht doppelt
   expect(defizitJetzt(load(save(w)))).toBeCloseTo(alt, 9);
   const verlauf = [defizitJetzt(w)];
+  const monate = [w.date.slice(5, 7)];
   for (let m = 0; m < 24; m++) {
     do advance(w, 1); while (w.date.slice(8) !== "02");
     verlauf.push(defizitJetzt(w));
+    monate.push(w.date.slice(5, 7));
   }
   const spruenge = verlauf.slice(1).map((x, i) => Math.abs(x - verlauf[i]!));
-  expect(Math.max(...spruenge)).toBeLessThan(0.6);
+  // Welle H5: Im Januar beginnt ein neues Haushaltsgesetz mit neuem Planpfad. Was die Inflation im Vorjahr unter dem Plan blieb, hob den
+  // Ausgabenanteil im Lauf des Jahres und fällt dann auf einmal weg. Seit die Inflation bei straffer Bank wirklich sinkt (2040: 13 statt
+  // geplanter 15 %), ist das bis 0,64 Punkte. Für diesen Monat gilt darum 1,0; in allen anderen Monaten bleibt die Schwelle 0,6.
+  const imJahr = spruenge.filter((_, i) => monate[i + 1] !== "01");
+  expect(Math.max(...imJahr)).toBeLessThan(0.6);
+  expect(Math.max(...spruenge)).toBeLessThan(1);
   expect(spruenge[0]).toBeLessThan(0.25);
   expect(Math.max(...verlauf)).toBeLessThan(6);
   expect(w.economy.konjunkturUebergang).toBeUndefined();

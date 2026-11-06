@@ -78,6 +78,8 @@ export interface EconomyState {
   institutionenRisiko?: number;
   /** Sektorenindex der Realwirtschaft: mittlere Abweichung von Industrie, Export, Mittelstand, Investitionen, Bau und Tourismus vom Start (Indexpunkte) */
   sektorIndex?: number;
+  /** Welle H5: Anker des Sektorenindex, dem die Auslastung schon gefolgt ist (economy.ts `sektorSchub`); fehlt in älteren Spielständen (dann 0) */
+  sektorAnker?: number;
   /** Faktor auf die Wirkung des Ölpreises nach Importabhängigkeit (1 = Start) */
   energieFaktor?: number;
   /** Mehreinnahmen aus der Steuerbasis jenseits von Sätzen und Konjunktur (Steuermoral, Schattenwirtschaft, Verwaltung) in % des BIP je Jahr.

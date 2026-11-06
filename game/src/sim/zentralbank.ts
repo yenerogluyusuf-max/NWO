@@ -65,7 +65,7 @@ export function glaubwuerdigkeitsSatz(w: World): string {
   const basis = { glaub, fenster: n, neutral: PARAMS.neutralRealRate };
   const teile: string[] = [];
   if (lage.zuwachs > 0) {
-    const grund = lage.inflationVorher !== undefined && e.inflation < lage.inflationVorher ? "faellt" : "unter";
+    const grund = !lage.inflationGut ? "halb" : lage.inflationVorher !== undefined && e.inflation < lage.inflationVorher ? "faellt" : "unter";
     teile.push(t("welle_h5.glaub.waechst", { ...basis, punkte: lage.zuwachs * 100, grund: t(`welle_h5.glaub.grund.${grund}`) }));
   } else if (lage.straffMonate < n) teile.push(t("welle_h5.glaub.wartetZins", { ...basis, monate: lage.straffMonate }));
   else teile.push(t("welle_h5.glaub.wartetInflation", { ...basis, jetzt: e.inflation, vorher: lage.inflationVorher ?? e.inflation }));

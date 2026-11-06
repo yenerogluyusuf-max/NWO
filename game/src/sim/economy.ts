@@ -95,6 +95,13 @@ export const PARAMS = {
   // Runde „Netz atmet“ (Spielparameter; wirken nur mit Politiknetz, sonst sind die Felder leer und die Terme 0):
   /** Auslastung (Prozentpunkte je Monat) je Indexpunkt Abweichung des Sektorenindex (Industrie, Export, Mittelstand, Investitionen, Bau, Tourismus) */
   sektorAufAuslastung: 0.012,
+  /**
+   * Welle H5 (Spielparameter): Die Branchen wirken über ihre Veränderung auf die Auslastung, gemessen an einem Anker, der dem Sektorenindex
+   * mit diesem Anteil je Monat folgt (wie `riskAnker`). Eine dauerhaft starke Industrie ist mehr Angebot und mehr Nachfrage zugleich, keine
+   * Überhitzung ohne Ende. Vorher schob ein Index von +28 (Spielstand 2039) die Auslastung jeden Monat um 0,34 Punkte, so viel wie
+   * 17 Punkte Realzins zurücknehmen; 9 % Realzins konnten die Wirtschaft darum kaum abkühlen.
+   */
+  sektorAnpassung: 0.1,
   /** Halbe Staatsquoten-Elastizität: Entlastung des Haushalts in % des BIP je Prozentpunkt Überauslastung (automatische Stabilisatoren) */
   stabilisatoren: 0.3,
   /** Entlastung des Haushalts in % des BIP je Indexpunkt, den die Steuereinnahmen im Netz über dem Start liegen */
@@ -106,6 +113,12 @@ export const PARAMS = {
   glaubZuwachs: 0.015,
   /** Prozentpunkte Realzins über dem neutralen, ab denen der Zuwachs voll ist (darunter anteilig, am neutralen null) */
   glaubStraffSpanne: 5,
+  /**
+   * Anteil des Zuwachses, wenn die Bank straff bleibt, die Inflation aber noch nicht fällt. Lernfall 2023 (scripts/lernfaelle.ts, 03/2024):
+   * Die gelieferte Straffung stabilisierte die Erwartungen, obwohl die Inflation bis Mai 2024 auf 75 % stieg (TÜİK). Vorher war der Zuwachs
+   * dann null, und ein Abwertungsschub hielt die Glaubwürdigkeit ein ganzes Jahr fest. Spielparameter.
+   */
+  glaubOhneTrend: 0.5,
 } as const;
 
 /** Wirkung der Außenwelt (Indizes, Start = 100). Platzhalter der Kalibrierung. */
@@ -191,8 +204,15 @@ export function glaubwuerdigkeitsLage(e: EconomyState, history: MonthlySnapshot[
   const inflationVorher = history.length >= n ? history[history.length - n]!.inflation : undefined;
   const inflationGut = (inflationVorher !== undefined && e.inflation < inflationVorher) || e.inflation < e.expectedInflation;
   const straff = clamp((mittelReal - PARAMS.neutralRealRate) / PARAMS.glaubStraffSpanne, 0, 1);
-  const zuwachs = history.length >= n && straffMonate === n && inflationGut ? PARAMS.glaubZuwachs * straff * (1 - e.credibility) : 0;
+  const zuwachs = history.length >= n && straffMonate === n ? PARAMS.glaubZuwachs * straff * (1 - e.credibility) * (inflationGut ? 1 : PARAMS.glaubOhneTrend) : 0;
   return { zuwachs, straffMonate, mittelReal, ...(inflationVorher !== undefined ? { inflationVorher } : {}), inflationGut };
+}
+
+const sektorBezug = (e: EconomyState): number => (Number.isFinite(e.sektorAnker) ? e.sektorAnker! : 0);
+
+/** Z1 (Welle H5): Wirkung der Branchen auf die Auslastung in Punkten je Monat, gemessen am Anker (0 ohne Politiknetz). */
+export function sektorSchub(e: EconomyState): number {
+  return e.sektorIndex === undefined ? 0 : PARAMS.sektorAufAuslastung * (e.sektorIndex - sektorBezug(e));
 }
 
 const mangelBezug = (e: EconomyState): number => (Number.isFinite(e.mangelRef) ? e.mangelRef! : 0);
@@ -262,8 +282,11 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100 - (e.sanktionsLast?.nachfrage ?? 0)) -
     AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1) +
     // Runde „Netz atmet“: Die Realwirtschaft der Branchen wirkt auf die Auslastung (0 ohne Netz)
-    PARAMS.sektorAufAuslastung * (e.sektorIndex ?? 0) +
+    sektorSchub(e) +
     rng.normal(0.25);
+
+  // Welle H5: Der Anker der Branchen zieht nach (ältere Spielstände beginnen bei 0, dem Stand beim Amtsantritt)
+  if (e.sektorIndex !== undefined) e.sektorAnker = sektorBezug(e) + PARAMS.sektorAnpassung * (e.sektorIndex - sektorBezug(e));
 
   // Der Anker der Finanzierungsbedingungen passt sich langsam an (ältere Spielstände: Start beim heutigen Aufschlag)
   e.riskAnker = (e.riskAnker ?? e.riskPremium) + PARAMS.riskAnkerTempo * (e.riskPremium - (e.riskAnker ?? e.riskPremium));

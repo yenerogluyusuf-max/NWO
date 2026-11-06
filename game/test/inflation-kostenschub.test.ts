@@ -90,12 +90,15 @@ describe("Glaubwürdigkeit (Welle H5)", () => {
     expect(glaubwuerdigkeitsZuwachs(e, h)).toBe(0);
   });
 
-  test("steigt die Inflation über der Erwartung, wächst nichts", () => {
+  test("steigt die Inflation über der Erwartung, wächst sie nur halb so schnell", () => {
+    // Lernfall 2023: Die gelieferte Straffung stabilisierte die Erwartungen, obwohl die Inflation noch stieg (PARAMS.glaubOhneTrend)
     const e = lage();
-    expect(glaubwuerdigkeitsZuwachs(e, vorgeschichte(9, 14))).toBe(0);
-    // Unter der Erwartung zählt auch ohne fallenden Trend
+    const steigt = glaubwuerdigkeitsZuwachs(e, vorgeschichte(9, 14));
     e.inflation = 15;
-    expect(glaubwuerdigkeitsZuwachs(e, vorgeschichte(9, 14))).toBeGreaterThan(0);
+    const unter = glaubwuerdigkeitsZuwachs(e, vorgeschichte(9, 14));
+    expect(unter).toBeGreaterThan(0);
+    e.inflation = 16.5;
+    expect(steigt).toBeCloseTo(PARAMS.glaubOhneTrend * glaubwuerdigkeitsZuwachs(e, vorgeschichte(9, 18)), 9);
   });
 
   test("der Zuwachs wächst mit der Straffheit und schrumpft mit der erreichten Glaubwürdigkeit", () => {

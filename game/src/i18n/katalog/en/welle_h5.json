@@ -2,6 +2,7 @@
  "welle_h5.glaub.waechst": "Credibility {glaub, number} of 100, +{punkte, number, 1} a month: real rate above {neutral, number}% for {fenster, number} months, {grund}.",
  "welle_h5.glaub.grund.faellt": "inflation falling",
  "welle_h5.glaub.grund.unter": "inflation below expectations",
+ "welle_h5.glaub.grund.halb": "inflation not yet down, so half the pace",
  "welle_h5.glaub.wartetZins": "Credibility {glaub, number} of 100. It grows after {fenster, number} months of a real rate above {neutral, number}%; so far {monate, number} of {fenster, number}.",
  "welle_h5.glaub.wartetInflation": "Credibility {glaub, number} of 100. It grows once inflation falls: now {jetzt, number, 1}%, {fenster, number} months ago {vorher, number, 1}%.",
  "welle_h5.glaub.abzugRealzins": "Negative real rate: {punkte, number, 1} a month.",

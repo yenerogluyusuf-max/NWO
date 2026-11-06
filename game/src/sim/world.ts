@@ -287,7 +287,7 @@ export function bereinigeZahlen(world: World): void {
   // Runde „Netz atmet“: optionale Zahlenfelder, die nur gesetzt sein müssen, wenn sie schon da sind (null aus NaN wird zurückgesetzt)
   for (const k of ["politikRisiko", "institutionenRisiko", "sektorIndex", "konjunkturSaldo", "arbeitsmarktShift"]) if (k in eco && !zahl(eco[k])) eco[k] = 0;
   // Welle H5: Ein unbrauchbarer Bezugswert des Kostendrucks fällt weg; er beginnt dann neu beim Startwert des Netzes
-  for (const k of ["kostenRef", "mangelRef"]) if (k in eco && !zahl(eco[k])) delete eco[k];
+  for (const k of ["kostenRef", "mangelRef", "sektorAnker"]) if (k in eco && !zahl(eco[k])) delete eco[k];
   if ("energieFaktor" in eco && !zahl(eco["energieFaktor"])) eco["energieFaktor"] = 1;
   const s = world.spiel;
   if (s) {

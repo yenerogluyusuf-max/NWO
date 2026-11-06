@@ -2,6 +2,7 @@
  "welle_h5.glaub.waechst": "Güvenilirlik 100 üzerinden {glaub, number}, ayda +{punkte, number, 1}: Reel faiz {fenster, number} aydır %{neutral, number} üzerinde, {grund}.",
  "welle_h5.glaub.grund.faellt": "enflasyon düşüyor",
  "welle_h5.glaub.grund.unter": "enflasyon beklentinin altında",
+ "welle_h5.glaub.grund.halb": "enflasyon henüz düşmedi, bu yüzden yarı hızda",
  "welle_h5.glaub.wartetZins": "Güvenilirlik 100 üzerinden {glaub, number}. Reel faiz {fenster, number} ay boyunca %{neutral, number} üzerinde kalırsa artar; şu ana kadar {fenster, number} ayın {monate, number} ayı.",
  "welle_h5.glaub.wartetInflation": "Güvenilirlik 100 üzerinden {glaub, number}. Enflasyon düşünce artar: şimdi %{jetzt, number, 1}, {fenster, number} ay önce %{vorher, number, 1}.",
  "welle_h5.glaub.abzugRealzins": "Negatif reel faiz: ayda {punkte, number, 1}.",
