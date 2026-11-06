@@ -617,8 +617,9 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
   }
   const tageBis = tag - world.day;
   const monate = pr.monate;
-  const text = `Gesetzentwurf „${name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
-  const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
+  // Ziel in der echten Einheit der Maßnahme statt „Stufe NN“ (N9, Befund B-1); Text dreisprachig
+  const text = t("n9.einbringen.text", { name, ort: provinzenText(pr.provinzen), stufe: stufenName(id, pr.stufe), tage: tageBis, monate });
+  const why = `${t("n9.einbringen.why", { pk: pr.gesetz.pk, ja: pr.gesetz.stimmen.erwartet, lo: pr.gesetz.stimmen.low, hi: pr.gesetz.stimmen.high, n: REGELN.mehrheit })}${verzug > 0 ? ` ${t("n9.einbringen.verzug")}` : ""}`;
   addLog(world, "entscheidung", text, why);
   nachEinbringen?.(world, id, text);
   return { ok: true, text, why };

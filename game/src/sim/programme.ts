@@ -12,6 +12,7 @@ import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { t, zahl } from "../i18n";
 import { datenTexte } from "../i18n/daten";
+import { stufenName } from "../data/skalen";
 
 export type Bedingung =
   | { art: "massnahme"; id: string; min: number }
@@ -195,13 +196,13 @@ export function pruefeBedingung(w: World, b: Bedingung): BedingungsStand {
       const jetzt = nationalAverage(NET, w.net, b.id);
       const start = startAverage(NET, w.net, b.id);
       const f = start >= b.min ? 1 : clamp((jetzt - start) / (b.min - start), 0, 1);
-      return { bedingung: b, erfuellt: jetzt >= b.min - 0.5, fortschritt: f, text: t("bed.massnahme", { name: name(b.id), min: b.min, jetzt: Math.round(jetzt) }) };
+      return { bedingung: b, erfuellt: jetzt >= b.min - 0.5, fortschritt: f, text: t("n9.bed.min", { name: name(b.id), min: stufenName(b.id, b.min), jetzt: stufenName(b.id, jetzt) }) };
     }
     case "massnahme-max": {
       const jetzt = nationalAverage(NET, w.net, b.id);
       const start = startAverage(NET, w.net, b.id);
       const f = start <= b.max ? 1 : clamp((start - jetzt) / (start - b.max), 0, 1);
-      return { bedingung: b, erfuellt: jetzt <= b.max + 0.5, fortschritt: f, text: t("bed.massnahmeMax", { name: name(b.id), max: b.max, jetzt: Math.round(jetzt) }) };
+      return { bedingung: b, erfuellt: jetzt <= b.max + 0.5, fortschritt: f, text: t("n9.bed.max", { name: name(b.id), max: stufenName(b.id, b.max), jetzt: stufenName(b.id, jetzt) }) };
     }
     case "groesse": {
       const jetzt = nationalAverage(NET, w.net, b.id);

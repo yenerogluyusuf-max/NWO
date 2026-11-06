@@ -25,6 +25,7 @@ import "./politik/design.css";
 
 import { t } from "../i18n";
 import { t as tx } from "../i18n";
+import { stufenName } from "../data/skalen";
 const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
 export function Beschlussbuch({
@@ -171,7 +172,7 @@ export function Beschlussbuch({
                   <div className="offen-kopf">
                     <strong>{g.name}</strong>
                     <span className="subtitle">
-                      {tx("ui2.ui.Beschlussbuch.42b4e5e", { p0: provinzenText(g.provinzen), p1: g.stufe, p2: Math.max(0, g.abstimmung - world.day), p3: formatDateDe(addDays(world.date, g.abstimmung - world.day)) })}
+                      {tx("n9.bb.offen", { p0: provinzenText(g.provinzen), p1: stufenName(g.massnahme, g.stufe), p2: Math.max(0, g.abstimmung - world.day), p3: formatDateDe(addDays(world.date, g.abstimmung - world.day)) })}
                     </span>
                   </div>
                   <div className="stimmen-bar" aria-label={tx("ui2.ui.Beschlussbuch.4a67f56", { p0: ja, p1: REGELN.mehrheit })}>

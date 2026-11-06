@@ -5,7 +5,7 @@
 import { NET } from "../sim/modell";
 import { nationalAverage, PROVINCES } from "../sim/netz";
 import { handlungsHebel, MAKRO_EINGRIFFE, type HandlungsHebel } from "../sim/wege";
-import { tunSatz } from "../data/skalen";
+import { stufenName, tunSatz } from "../data/skalen";
 import type { NodeSpec } from "../data/politiknetz";
 import type { World } from "../sim/types";
 
@@ -44,7 +44,7 @@ export function Handlungsfeld({
           {tunSatz(h.massnahme, h.richtung, h.name)}
         </strong>
         <span>
-          {t("ui2.ui.Handlungsfeld.928f8c4", { p0: h.wirkung, p1: Math.round(h.jetzt) })}
+          {t("n9.hf.zeile", { p0: h.wirkung, p1: stufenName(h.massnahme, h.jetzt) })}
           {zusatz ? ` · ${zusatz}` : ""}
         </span>
       </div>
