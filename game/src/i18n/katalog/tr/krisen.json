@@ -12,7 +12,7 @@
  "krise.kriegsgefahr.name": "Savaş tehlikesi",
  "krise.kriegsgefahr.grund": "{land} ile çatışma 100 üzerinden {wert} düzeyinde; ülke gösteriş projeleri değil birlik bekliyor.",
  "krise.kriegsgefahr.wirkung": "Dış ve askeri politika siyasi sermayenin yalnızca % {rabatt}'ine mal olur; prestij projeleri (kültür) kapalıdır.",
- "krise.kriegsgefahr.bedingung": "Hiçbir komşuyla çatışma {schwelle} üzerinde kalmadığında sona erer.",
+ "krise.kriegsgefahr.bedingung": "Hiçbir çatışma dosyası {schwelle} üzerinde kalmadığında ve hiçbiri tehdit ortamı ya da savaş aşamasında olmadığında sona erer. Yeni bir tetikleyici olmazsa gerginlik kendiliğinden yatışır.",
  "krise.kriegsgefahr.ausweg": "Çıkış yolu: çatışmayı yatıştırmak (Dünya görünümünde müzakere masasında görüşmeler) ya da gerilim azalana kadar beklemek.",
  "krise.zahlungsbilanz.name": "Ödemeler dengesi krizi",
  "krise.zahlungsbilanz.grund": "Merkez Bankası'nın net rezervleri {reserven, number, 1} milyar dolar: Ülke ithalatı ve borçlarını güçlükle ödeyebiliyor ve piyasalar bunu biliyor.",

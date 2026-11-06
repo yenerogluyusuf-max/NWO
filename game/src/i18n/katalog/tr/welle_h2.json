@@ -1,0 +1,16 @@
+{
+ "welle_h2.krieg.ende.abgeklungen": "{land} ile gerginlik yatıştı; çatışma dosyası kapanıyor.",
+ "welle_h2.krieg.ende.abgeklungen.warum": "{datum, date, lang} tarihinden bu yana gerginliği besleyen yeni bir gelişme olmadı: ne olay ne baskı ne seferberlik.",
+ "welle_h2.krieg.verlauf.titel": "Gidişat",
+ "welle_h2.krieg.verlauf.genaehrt": "Gerginlik besleniyor. Son tetikleyici {datum, date, lang} tarihindeydi. {ab, date, lang} tarihine kadar {land} ile çatışmayı izliyor (100 üzerinden {konflikt}); sonrasında yeni bir gelişme olmazsa yatışıyor.",
+ "welle_h2.krieg.verlauf.klingt": "Gerginlik yatışıyor. {datum, date, lang} tarihinden bu yana yeni bir gelişme olmadı.",
+ "welle_h2.krieg.verlauf.ende": "{phase, select, drohkulisse {Yeni bir gelişme olmazsa tehdit ortamı yeniden gerginlik düzeyine iner ve dosya muhtemelen {ende, date, monat} civarında kapanır.} other {Yeni bir gelişme olmazsa dosya muhtemelen {ende, date, monat} civarında kapanır.}}",
+ "welle_h2.krieg.verlauf.kein_ende": "Yeni bir gelişme olmazsa dosya ancak birkaç yıl içinde kapanır.",
+ "welle_h2.krieg.verlauf.ruhe": "Yeni olaylar olmadan {land} ile çatışma 100 üzerinden {ruhe} düzeyine döner. Yürürlükteki anlaşmalar bu düzeyi düşürür; yaptırımlar ve daha sert bir yönetim yükseltir.",
+ "welle_h2.krieg.verlauf.naehrt": "Gerginliği olaylar, baskı, birliklerin hazır kıta durumuna geçmesi, ilan edilen bir savaş hedefi, seferberlik ve sonuçsuz kalan bir ültimatom besler.",
+ "welle_h2.krieg.verlauf.entschaerfen": "Burada durumu yatıştırarak, arabulucu çağırarak ya da caydırıcı bir mesajla gerginliği azaltabilirsiniz; ayrıca:",
+ "welle_h2.krieg.verlauf.gesten": "{land} için jestler",
+ "welle_h2.krieg.verlauf.tisch": "Müzakere masasında anlaşma",
+ "welle_h2.kom.verteilung": "Belediyelerin dağılımı: {liste}{rest, plural, =0 {} other {, diğer partilerde #}}.",
+ "welle_h2.kom.partei": "{partei} {n}"
+}

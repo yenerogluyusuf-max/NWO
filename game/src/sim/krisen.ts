@@ -2,7 +2,7 @@
 // Akute Zustände sperren oder verteuern bestimmte Maßnahmen vorübergehend, bis sich die Lage beruhigt hat.
 //   - „Lira-Vertrauen erschüttert": Abwertung oder Risikoaufschlag über der Schwelle → Ausgaben in Wirtschaft und Haushalt teurer
 //   - „Katastrophenlage": nach Erdbeben oder Überschwemmung → Versorgung bleibt normal, der Rest teurer, Prestige gesperrt
-//   - „Kriegsgefahr": Konflikt mit einem Nachbarn über der Schwelle → Außen- und Militärpolitik günstiger, Prestige gesperrt
+//   - „Kriegsgefahr": ein Konfliktvorgang über der Schwelle oder in Drohkulisse und Krieg → Außen- und Militärpolitik günstiger, Prestige gesperrt
 //   - „Justiz im Umbau": solange die Justizreform läuft, sind weitere Justiz-Maßnahmen gesperrt
 // Alle Schwellen und Faktoren sind Spielparameter der Kalibrierung, keine Tatsachenbehauptungen.
 // Hysterese: Einmal aktiv, endet eine Krise erst unter der tieferen Unterschwelle — kein Flackern an der Grenze.
@@ -11,7 +11,6 @@
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { addLog } from "./log";
-import { LAENDER, weltZustand } from "./laender";
 import { akteurName } from "./welt-modell";
 import { t } from "../i18n";
 import { zeitungEreignis } from "./zeitung";
@@ -26,7 +25,11 @@ export const KRISEN_REGELN = {
   lira: { abwertungAn: 45, abwertungAus: 35, cdsAn: 600, cdsAus: 450, faktor: 1.5 },
   /** Katastrophenlage: wird in den ersten Tagen nach dem Ereignis aktiv, endet, wenn es länger zurückliegt */
   katastrophe: { frisch: 60, ende: 90, faktor: 1.5 },
-  /** Kriegsgefahr: Konflikt-Dimension eines Nachbarn (0 bis 100) über der Schwelle; Rabatt für Außen/Militär */
+  /**
+   * Kriegsgefahr: Eskalation eines laufenden Konfliktvorgangs (0 bis 100, sim/krieg.ts) über der Schwelle, oder ein Vorgang ab der
+   * Drohkulisse; Rabatt für Außen/Militär. Vorher galt der Konfliktwert des schärfsten Nachbarn. Der kehrt aber zu seinem Ruhewert zurück
+   * (Israel 70, Zypern 72 plus Anker), und die Krise endete nie: im Spielstand 2039 des Inhabers zehn Jahre lang seit Tag 270.
+   */
   krieg: { an: 75, aus: 65, rabatt: 0.75 },
   /** Zahlungsbilanzkrise (WIR-2): Verteuerungsfaktor für Ausgaben (die Schwellen stehen in DEVISEN, devisen.ts) */
   zahlungsbilanz: { faktor: 1.5 },
@@ -99,14 +102,15 @@ function katastropheOffen(w: World): boolean {
   return w.spiel!.ereignisse.some((e) => KATASTROPHEN_VORLAGEN.has(e.vorlage));
 }
 
-function schaerfsterNachbar(w: World): { id: string; konflikt: number } | null {
-  if (!w.spiel) return null;
-  const welt = weltZustand(w);
-  let out: { id: string; konflikt: number } | null = null;
-  for (const l of LAENDER) {
-    if (l.gruppe !== "Nachbarn") continue;
-    const k = welt[l.id]?.konflikt ?? 0;
-    if (!out || k > out.konflikt) out = { id: l.id, konflikt: k };
+/** Der schärfste laufende Konfliktvorgang (Spannung bis Waffenruhe): Land, Eskalation und ob er schon heiß ist (ab der Drohkulisse). */
+function schaerfsterVorgang(w: World): { id: string; eskalation: number; heiss: boolean } | null {
+  let out: { id: string; eskalation: number; heiss: boolean } | null = null;
+  for (const k of w.spiel?.kriege ?? []) {
+    if (k.phase === "frieden" || k.phase === "beendet") continue;
+    const heiss = k.phase !== "spannung";
+    const rang = (x: { eskalation: number; heiss: boolean }) => (x.heiss ? 100 : 0) + x.eskalation;
+    const v = { id: k.land, eskalation: k.eskalation, heiss };
+    if (!out || rang(v) > rang(out)) out = v;
   }
   return out;
 }
@@ -150,11 +154,17 @@ const KRISEN: KrisenDef[] = [
   },
   {
     id: "kriegsgefahr",
-    ausloeser: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) > R.krieg.an,
-    beruhigt: (w) => (schaerfsterNachbar(w)?.konflikt ?? 0) < R.krieg.aus,
+    ausloeser: (w) => {
+      const v = schaerfsterVorgang(w);
+      return !!v && (v.heiss || v.eskalation > R.krieg.an);
+    },
+    beruhigt: (w) => {
+      const v = schaerfsterVorgang(w);
+      return !v || (!v.heiss && v.eskalation < R.krieg.aus);
+    },
     werte: (w) => {
-      const n = schaerfsterNachbar(w);
-      return { land: n ? akteurName(n.id) : "", wert: Math.round(n?.konflikt ?? 0), rabatt: Math.round(R.krieg.rabatt * 100), schwelle: R.krieg.aus };
+      const n = schaerfsterVorgang(w);
+      return { land: n ? akteurName(n.id) : "", wert: Math.round(n?.eskalation ?? 0), rabatt: Math.round(R.krieg.rabatt * 100), schwelle: R.krieg.aus };
     },
     effekt: (node) => {
       if (node.theme === "aussen" || node.theme === "militaer") return { art: "teuer", faktor: R.krieg.rabatt };

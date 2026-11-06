@@ -230,7 +230,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
             {tab === "ueberblick" && <Ueberblick world={world} landId={gewaehlt} onMassnahme={onMassnahme} onVerhandeln={() => setTab("verhandeln")} onDienst={zumDienst} onRat={gewaehlt === "EU" ? () => { setBlock("eu"); setModus("bloecke"); } : undefined} />}
             {tab === "verhandeln" && <Verhandlungstisch key={gewaehlt} world={world} landId={gewaehlt} refresh={refresh} onVertraege={() => setTab("vertraege")} />}
             {tab === "vertraege" && <Vertraege world={world} landId={gewaehlt} refresh={refresh} />}
-            {tab === "konflikt" && <KriegDossier world={world} landId={gewaehlt} refresh={refresh} />}
+            {tab === "konflikt" && <KriegDossier world={world} landId={gewaehlt} refresh={refresh} onTab={setTab} />}
             {tab === "beitritt" && gewaehlt === "EU" && <EuDossier world={world} refresh={refresh} />}
             {tab === "handeln" && (
               <div className="we-gesten">

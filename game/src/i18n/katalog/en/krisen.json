@@ -12,7 +12,7 @@
  "krise.kriegsgefahr.name": "Danger of war",
  "krise.kriegsgefahr.grund": "The conflict with {land} stands at {wert} of 100; the country expects unity, not showcase projects.",
  "krise.kriegsgefahr.wirkung": "Foreign and military policy costs only {rabatt} % of the capital; prestige projects (culture) are blocked.",
- "krise.kriegsgefahr.bedingung": "Ends when no conflict with a neighbour stands above {schwelle} any more.",
+ "krise.kriegsgefahr.bedingung": "Ends when no conflict file stands above {schwelle} any more and none is in a standoff or at war. Without a new trigger, tension eases on its own.",
  "krise.kriegsgefahr.ausweg": "Way out: defuse the conflict (talks at the negotiating table in the World view) – or wait until the tension eases.",
  "krise.zahlungsbilanz.name": "Balance-of-payments crisis",
  "krise.zahlungsbilanz.grund": "The central bank's net reserves stand at {reserven, number, 1} bn dollars: the country can barely pay for imports and debt, and the markets know it.",

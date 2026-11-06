@@ -370,6 +370,16 @@ export function weltZustand(w: World): Record<string, LandZustand> {
   return spiel.welt;
 }
 
+/**
+ * Der Zustand eines Landes zum Lesen, ohne ihn anzulegen (Anzeigen wie die Kartenfarben buchen nichts in den Spielstand): der gespeicherte
+ * Zustand, sonst die Startwerte. Welle H2: Vorher legte erst das Lesen `spiel.welt` an; das fiel auf, als die Kriegsgefahr nicht mehr beim
+ * Spielstart über `weltZustand` las.
+ */
+export function landSicht(w: World, id: string): LandZustand {
+  const l = land(id);
+  return w.spiel?.welt?.[id] ?? { ...startFelder(w, l), versatz: clamp(l.start.vertrauen - startAverage(NET, w.net, l.knoten), -45, 45) };
+}
+
 /** Das Vertrauen eines Landes: das Vertrauen im Politiknetz plus der Versatz für dieses Land. */
 export function vertrauenZu(w: World, id: string): number {
   weltZustand(w);
@@ -558,13 +568,21 @@ export function setzeWeltHaken(f: (w: World) => void): void {
   weltHaken = f;
 }
 
+/**
+ * Ruhewert des Konflikts mit einem Land: wohin der Konfliktwert ohne Ereignisse zurückkehrt (Startwert plus Anker aus Verträgen,
+ * Kurs der Führung und Sanktionen, sim/diplomatie.ts). Ein Konfliktvorgang entsteht erst, wenn der Konflikt darüber steigt (sim/krieg.ts).
+ */
+export function konfliktRuhewert(w: World, id: string): number {
+  return clamp(land(id).start.konflikt + (w.spiel?.welt?.[id]?.anker ?? 0), 0, 100);
+}
+
 /** Einmal im Monat: Konflikte kühlen ab oder schwelen; zufriedene Länder werden warm. */
 export function weltMonat(w: World): void {
   if (!w.spiel) return;
   const z = weltZustand(w);
   for (const l of LAENDER) {
     const s = z[l.id]!;
-    const ziel = clamp(l.start.konflikt + (s.anker ?? 0), 0, 100);
+    const ziel = konfliktRuhewert(w, l.id);
     s.konflikt = clamp(s.konflikt + Math.sign(ziel - s.konflikt) * Math.min(1, Math.abs(ziel - s.konflikt)), 0, 100);
     const stand = anliegenStand(w, l.id);
     const erfuellt = stand.filter((x) => x.erfuellt).length;

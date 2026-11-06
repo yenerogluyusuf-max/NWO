@@ -1,0 +1,16 @@
+{
+ "welle_h2.krieg.ende.abgeklungen": "Die Spannung mit {land} ist abgeklungen; der Konfliktvorgang endet.",
+ "welle_h2.krieg.ende.abgeklungen.warum": "Seit dem {datum, date, lang} hat sie kein neuer Anlass genährt: kein Zwischenfall, kein Druck, keine Mobilmachung.",
+ "welle_h2.krieg.verlauf.titel": "Verlauf",
+ "welle_h2.krieg.verlauf.genaehrt": "Die Spannung wird genährt. Der letzte Anlass war am {datum, date, lang}. Bis zum {ab, date, lang} folgt sie dem Konflikt mit {land} ({konflikt} von 100), danach klingt sie ohne neuen Anlass ab.",
+ "welle_h2.krieg.verlauf.klingt": "Die Spannung klingt ab. Seit dem {datum, date, lang} gab es keinen neuen Anlass.",
+ "welle_h2.krieg.verlauf.ende": "{phase, select, drohkulisse {Ohne neuen Anlass fällt die Drohkulisse zurück zur Spannung, und der Vorgang endet voraussichtlich im {ende, date, monat}.} other {Ohne neuen Anlass endet der Vorgang voraussichtlich im {ende, date, monat}.}}",
+ "welle_h2.krieg.verlauf.kein_ende": "Ohne neuen Anlass endet der Vorgang erst in einigen Jahren.",
+ "welle_h2.krieg.verlauf.ruhe": "Ohne Ereignisse kehrt der Konflikt mit {land} zu {ruhe} von 100 zurück. Laufende Verträge senken diesen Wert, Sanktionen und eine härtere Führung heben ihn.",
+ "welle_h2.krieg.verlauf.naehrt": "Neue Nahrung geben ihr Zwischenfälle, Druck, die Bereitschaft der Truppen, ein Kriegsziel, die Mobilmachung und ein gescheitertes Ultimatum.",
+ "welle_h2.krieg.verlauf.entschaerfen": "Entschärfen können Sie hier mit Beruhigen, Vermittlung oder einem Signal, außerdem:",
+ "welle_h2.krieg.verlauf.gesten": "Gesten an {land}",
+ "welle_h2.krieg.verlauf.tisch": "Vertrag am Verhandlungstisch",
+ "welle_h2.kom.verteilung": "Die Rathäuser verteilen sich auf {liste}{rest, plural, =0 {} one {, ein weiteres auf eine andere Partei} other {, # weitere auf andere Parteien}}.",
+ "welle_h2.kom.partei": "{partei} {n}"
+}
