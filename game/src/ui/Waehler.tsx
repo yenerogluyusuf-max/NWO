@@ -7,7 +7,7 @@ import { abwanderung, koalition, schritteFuerZustimmung, type GruppeKurz } from 
 import { zustimmungsBilanz } from "../sim/waehler";
 import { entscheidungsMarken, zustimmungsVerlauf } from "../sim/waehler-verlauf";
 import { formatDateDe } from "../sim/dates";
-import { angezeigteZustimmung, institutsReihe } from "../sim/medien";
+import { ROHDATEN, angezeigteZustimmung, institutsReihe, rohdatenKaufen } from "../sim/medien";
 import { wahlPrognose } from "../sim/wahl";
 import { NET } from "../sim/modell";
 import type { Ziel } from "./schreibtisch/briefing";
@@ -30,8 +30,11 @@ const aufSkala = (x: number) => `${Math.max(0, Math.min(100, ((x - SKALA.von) / 
  * Das erwartete Ergebnis, wenn heute gewählt würde (E-1): dieselbe Rechnung wie am Wahltag (sim/wahl.ts, wahlPrognose), ausgehend von der
  * Zustimmung, die der Spieler sieht. Darunter die Treppe von der Zustimmung zum Ergebnis und, was im Wahlkampf noch sicher kommt.
  */
-function Prognose({ world, onGehe }: { world: World; onGehe?: (z: Ziel) => void }) {
+function Prognose({ world, onGehe, onAenderung }: { world: World; onGehe?: (z: Ziel) => void; onAenderung?: () => void }) {
   const p = wahlPrognose(world);
+  const [meldung, setMeldung] = useState<string | null>(null);
+  const roh = world.spiel?.medien?.rohdaten;
+  const bestellt = !!roh && world.day <= roh.bisTag;
   const ton = p.von > 50 ? "gut" : p.bis < 50 ? "schlecht" : "knapp";
   const monate = Math.round(p.tageBisWahl / 30.4);
   const basisText =
@@ -82,6 +85,25 @@ function Prognose({ world, onGehe }: { world: World; onGehe?: (z: Ziel) => void 
           <strong>{nf(p.erwartet, 1)} %</strong>
         </li>
       </ol>
+      {p.quelle !== "rohdaten" && (
+        <p className="wa-rohdaten">
+          {bestellt && roh ? t("medien.rohdaten.bestellt", { tage: Math.max(0, roh.bereitTag - world.day) }) : t("nacht_n2.prognose.rohdaten", { kapital: ROHDATEN.kapital, tage: ROHDATEN.wartetage })}{" "}
+          {!bestellt && (
+            <button
+              type="button"
+              className="pd-btn quiet klein"
+              onClick={() => {
+                const r = rohdatenKaufen(world);
+                setMeldung(r.text);
+                if (r.ok) onAenderung?.();
+              }}
+            >
+              {t("medien.ui.rohdaten_kaufen")}
+            </button>
+          )}
+          {meldung && <em> {meldung}</em>}
+        </p>
+      )}
       </div>
       {a.wochen > 0 && a.summe < 0 && (
         <p className="wa-vorwarnung">
@@ -101,7 +123,7 @@ function Prognose({ world, onGehe }: { world: World; onGehe?: (z: Ziel) => void 
   );
 }
 
-function Barometer({ world, onGehe }: { world: World; onGehe?: (z: Ziel) => void }) {
+function Barometer({ world, onGehe, onAenderung }: { world: World; onGehe?: (z: Ziel) => void; onAenderung?: () => void }) {
   const bilanz = zustimmungsBilanz(world);
   const wahrVerlauf = zustimmungsVerlauf(world);
   const marken = entscheidungsMarken(world);
@@ -113,7 +135,7 @@ function Barometer({ world, onGehe }: { world: World; onGehe?: (z: Ziel) => void
   const verlauf = roh ? wahrVerlauf : { monate: institute.map((x) => x.monat), werte: institute.map((x) => x.wert) };
   return (
     <section className="wa-barometer">
-      <Prognose world={world} {...(onGehe ? { onGehe } : {})} />
+      <Prognose world={world} {...(onGehe ? { onGehe } : {})} {...(onAenderung ? { onAenderung } : {})} />
       <div className="wa-baro-linie">
         {verlauf.werte.length >= 2 ? (
           <Sparkline monate={verlauf.monate} werte={verlauf.werte} marken={marken} {...(roh ? { ziel: bilanz.tendenz } : {})} hoehe={84} beschriftung={roh ? t("medien.barometer.verlauf_rohdaten") : t("medien.barometer.verlauf")} einheit=" %" />
@@ -220,7 +242,7 @@ function KoalitionsBalken({ k, waehle, aktiv, world, onMassnahme }: { k: ReturnT
   );
 }
 
-export function Waehler({ world, onMassnahme, onDossier, onGehe }: { world: World; onMassnahme?: (id: string, richtung: 1 | -1) => void; onDossier?: (d: DossierZiel) => void; onGehe?: (z: Ziel) => void }) {
+export function Waehler({ world, onMassnahme, onDossier, onGehe, onAenderung }: { world: World; onMassnahme?: (id: string, richtung: 1 | -1) => void; onDossier?: (d: DossierZiel) => void; onGehe?: (z: Ziel) => void; onAenderung?: () => void }) {
   const spiel = world.spiel;
   const k = useMemo(() => (spiel ? koalition(world) : null), [spiel ? world.date.slice(0, 7) : "", spiel?.gesetze.length, spiel ? Object.keys(world.net.targets).length : 0]); // eslint-disable-line react-hooks/exhaustive-deps
   const [gewaehlt, setGewaehlt] = useState<string | null>(null);
@@ -239,7 +261,7 @@ export function Waehler({ world, onMassnahme, onDossier, onGehe }: { world: Worl
   if (!spiel || !k) return <p>{t("ui.Waehler.847ba01")}</p>;
   return (
     <div className="wa-root">
-      <Barometer world={world} {...(onGehe ? { onGehe } : {})} />
+      <Barometer world={world} {...(onGehe ? { onGehe } : {})} {...(onAenderung ? { onAenderung } : {})} />
       <div className="wa-haupt wa-feld-haupt">
         <div className="wa-liste">
           <KoalitionsBalken k={k} waehle={setGewaehlt} aktiv={aktuell} world={world} {...(onMassnahme ? { onMassnahme } : {})} />

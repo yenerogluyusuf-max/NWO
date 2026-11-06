@@ -28,7 +28,7 @@ import { clamp } from "./economy";
 import { kannZahlen } from "./kapital";
 import { hashWert, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { marktSchock } from "./maerkte";
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // Spielparameter
@@ -496,6 +496,23 @@ function vorschauVon(w: World, a: AktionDef, c: MedienCluster | undefined): stri
   }
   if (a.markt > 0) out.push(t("medien.vorschau.markt_schreck"));
   if (a.maertyrer >= 15 && z) out.push(t("medien.vorschau.maertyrer"));
+  // Wer gewinnt, wer sich ärgert: dieselben Punkte, die `auswirkungen` bucht (befund-E, E-15)
+  if (rsf > 0) {
+    const k = MEDIEN.wirkung;
+    const name = (id: string) => NET.nodes[NET.index.get(id)!]!.name;
+    const z1 = (x: number) => `${x >= 0 ? "+" : "−"}${Math.abs(Math.round(x * 10) / 10).toLocaleString(aktuelleLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+    out.push(
+      t("nacht_n2.medien.gruppen", {
+        liste: [
+          `${name("vertrauen_regierung")} ${z1(k.ruhe * rsf)}`,
+          `${name("konservative")} ${z1(k.konservative * rsf)}`,
+          `${name("staedtische_saekulare")} ${z1(-k.staedtisch * rsf)}`,
+          `${name("junge")} ${z1(-k.junge * rsf)}`,
+          `${name("ansehen")} ${z1(-k.ansehen * rsf)}`,
+        ].join(", "),
+      }),
+    );
+  }
   return out;
 }
 

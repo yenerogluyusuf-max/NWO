@@ -341,3 +341,4 @@
 .wa-vorwarnung { grid-column: 1 / -1; }
 .wa-baro-linie { padding-top: 4px; border-top: 1px solid var(--pd-line); }
 @media (max-width: 900px) { .wa-prognose { grid-template-columns: minmax(0, 1fr); } }
+.wa-rohdaten { margin: 0; font: 14.5px/1.45 var(--serif); color: #4c3b28; } .wa-rohdaten em { font-style: italic; }

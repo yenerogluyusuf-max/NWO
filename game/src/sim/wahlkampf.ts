@@ -672,21 +672,20 @@ export function duellVorbereiten(w: World): AktionErgebnis {
 
 /** Die Szene des Duells, wenn der Nachfolger antritt (Texte über die Übersetzungsschicht). */
 function duellSzeneNachfolger(w: World, effekt: number, name: string): string {
-  const g = gegnerProfil(w);
-  const gegner = g.name.replace(/^Oppositionsführer /, "");
+  // Der Name ohne Rolle, direkt von der Figur (der reguläre Ausdruck auf „Oppositionsführer “ griff nur im Deutschen, E-10)
+  const gegner = figur(w, "opposition")?.name ?? gegnerProfil(w).name;
   const stufe = effekt >= 2.5 ? "klar" : effekt >= 0.5 ? "vorn" : effekt > -0.5 ? "gleich" : effekt > -2.5 ? "hinten" : "desaster";
   return t(`enden.duell.nachfolger.${stufe}`, { name, gegner });
 }
 
 function duellSzene(w: World, effekt: number, vorbereitet: boolean): string {
-  const g = gegnerProfil(w);
   const sw = schwachstelle(w);
-  const name = g.name.replace(/^Oppositionsführer /, "");
-  if (effekt >= 2.5) return tx("sim2.sim.wahlkampf.0130b22", { p0: name, p1: sw ? ` zu ${sw.name}` : "" });
+  const name = figur(w, "opposition")?.name ?? gegnerProfil(w).name;
+  if (effekt >= 2.5) return tx("sim2.sim.wahlkampf.0130b22", { p0: name, p1: sw ? " " + t("nacht_n2.duell.zu", { thema: sw.name }) : "" });
   if (effekt >= 0.5) return tx("sim2.sim.wahlkampf.bed8297", { p0: name });
   if (effekt > -0.5) return tx("sim2.sim.wahlkampf.8b28357");
-  if (effekt > -2.5) return tx("sim2.sim.wahlkampf.70d547e", { p0: name, p1: sw ? sw.name : "der Bilanz", p2: vorbereitet ? "Ohne die Proben wäre es schlimmer geworden." : "Die fehlende Vorbereitung zeigt sich in jeder zweiten Antwort." });
-  return tx("sim2.sim.wahlkampf.5f498a2", { p0: name, p1: sw ? ` — ${sw.name} zuerst` : "", p2: vorbereitet ? "Auch die Vorbereitung rettet den Abend nicht mehr." : "Unvorbereitet in ein Duell zu gehen, hat seinen Preis." });
+  if (effekt > -2.5) return tx("sim2.sim.wahlkampf.70d547e", { p0: name, p1: sw ? sw.name : t("nacht_n2.duell.bilanz"), p2: t(vorbereitet ? "nacht_n2.duell.proben" : "nacht_n2.duell.ohne_proben") });
+  return tx("sim2.sim.wahlkampf.5f498a2", { p0: name, p1: sw ? " " + t("nacht_n2.duell.zuerst", { thema: sw.name }) : "", p2: t(vorbereitet ? "nacht_n2.duell.rettet_nicht" : "nacht_n2.duell.unvorbereitet") });
 }
 
 function duellAustragen(w: World, rng: Rng): void {

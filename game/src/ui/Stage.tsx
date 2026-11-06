@@ -1066,6 +1066,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               <Waehler
                 world={w}
                 onGehe={gehe}
+                onAenderung={() => { refresh(); sichere(true); }}
                 onDossier={(d) => setDossier(d)}
                 onMassnahme={(id, richtung) => {
                   setNetTheme(null);
