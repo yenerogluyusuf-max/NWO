@@ -71,7 +71,7 @@ function Zustandsbalken({ zustand, bezug }: { zustand: number; bezug?: number | 
   );
 }
 
-function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refresh: () => void }) {
+export function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refresh: () => void }) {
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string } | null>(null);
   const v = s.v;
   const p = s.pflege;

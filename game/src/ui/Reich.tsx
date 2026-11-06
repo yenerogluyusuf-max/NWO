@@ -18,7 +18,6 @@ import {
   type BauPool,
   bauplan,
   beginne,
-  erhaltung,
   groessenWert,
   laufBau,
   pausiere,
@@ -33,7 +32,7 @@ import {
   effektZeile,
   type Platz,
 } from "../sim/reich";
-import { ERBE, type Erbe } from "../data/erbe";
+import { ERBE } from "../data/erbe";
 import { VORTEILE } from "../data/reich";
 import { kapitalEinkommen } from "../sim/spiel";
 import { Groessen, type GroesseDef } from "./reich/Groessen";
@@ -42,7 +41,8 @@ import { VorhabenKarte } from "./reich/VorhabenKarte";
 import { WunderBild } from "./reich/WunderBild";
 import { Neues } from "./reich/Neues";
 import { StaettenAtlas } from "./reich/Staetten";
-import { Lohnt, PflegeListe, Zeilen, lohnendste } from "./reich/Pflege";
+import { Lohnt, PflegeListe, lohnendste } from "./reich/Pflege";
+import { LohntKacheln, MeldungenKurz, PflegeKacheln, StaettenKacheln, VerwaltungsMarke, VorteilKacheln } from "./reich/LandKacheln";
 import { Verlauf } from "./reich/Verlauf";
 import { t, aktuelleLocale, zahl } from "../i18n";
 import { t as tx } from "../i18n";
@@ -196,8 +196,19 @@ function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich
   const liste = alle.filter((e) => e.pool === pool);
   const ohne = alle.filter((e) => e.pool === "ohne" && vorhabenDef(e.id)?.bereich === bereich);
   const ruestung = pool === "land" ? alle.filter((e) => e.pool === "ruestung").length : 0;
-  if (!liste.length && !ohne.length) return null;
   const cap = Math.max(1, poolKapazitaet(world, pool));
+  // Infrastruktur und Bau: Die Baustelle ist die Leitfrage der Lage. Verwaltungskraft steht als Marke im Kopf, die Baukapazität als
+  // Zahl im Kopf und als Leiste darunter (vorher dieselben Zahlen noch einmal als Balkenblock darüber; Tagarbeit 6. November).
+  const marke = pool === "land" ? <VerwaltungsMarke world={world} /> : null;
+  if (!liste.length && !ohne.length) {
+    if (pool !== "land") return null;
+    return (
+      <section className="rr-abschnitt rr-baustelle">
+        <h4>{t("reich.bau.titel")} <em>{t("tag_t3.bau.leer", { cap: Math.round(cap) })}</em>{marke}</h4>
+        <Bauhilfe world={world} />
+      </section>
+    );
+  }
   const frei = Math.max(0, cap - liste.reduce((n, e) => n + (e.pausiert ? 0 : e.rate), 0));
   const bauen = liste.filter((e) => !e.pausiert && e.rate > 0).length;
   const monatsText = (m?: number) => (m === undefined ? "" : m <= 0 ? t("reste.reich.jetzt") : t("reste.reich.inMonaten", { n: m }));
@@ -259,7 +270,7 @@ function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich
     <section className="rr-abschnitt rr-baustelle">
       {liste.length > 0 && (
         <>
-          <h4>{t("reich.bau.titel")} <em>{t(pool === "ruestung" ? "n6.bau.ruestungUnter" : "bs.unter", { cap: Math.round(cap), bauen, warten: liste.length - bauen })}</em></h4>
+          <h4>{t("reich.bau.titel")} <em title={pool === "land" ? t("ui.Reich.d87daa9") : undefined}>{t(pool === "ruestung" ? "n6.bau.ruestungUnter" : "bs.unter", { cap: Math.round(cap), bauen, warten: liste.length - bauen })}</em>{marke}</h4>
           <div className="bs-leiste" role="img" aria-label={t("bs.leisteAria", { cap: Math.round(cap), frei: Math.round(frei) })}>
             {liste.map((e) => {
               const v = vorhabenDef(e.id);
@@ -281,85 +292,13 @@ function Baustelle({ world, bereich, refresh }: { world: World; bereich: Bereich
           <ol className="bs-liste">{ohne.map((e) => zeile(e, false))}</ol>
         </>
       )}
-      {liste.length > 0 && <p className="rr-hinweis">{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("ui.Reich.119c095")}</p>}
+      {/* Wie die Reihenfolge wirkt, steht bei der Baustelle des Landes in der aufklappbaren Bauhilfe; sie nannte Pause und Aufgeben schon */}
+      {pool === "land" ? (
+        <Bauhilfe world={world}>
+          {liste.length > 0 && <p>{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("tag_t3.bau.schaetzung")}</p>}
+        </Bauhilfe>
+      ) : liste.length > 0 && <p className="rr-hinweis">{tx("ui2.ui.Reich.90f1a97", { p0: VORZIEHEN_VERWALTUNG })} {t("ui.Reich.119c095")}</p>}
       {ruestung > 0 && <p className="rr-hinweis">{t("n6.bau.ruestungHinweis", { n: ruestung, cap: Math.round(ruestungsKapazitaet(world)) })}</p>}
-    </section>
-  );
-}
-
-/** Eine Stätte mit Zustand, Folge und Eingriff: Zustand → Restaurieren → Wirkung. */
-function Staetten({ world, refresh, nurSchlechte }: { world: World; refresh: () => void; nurSchlechte?: number }) {
-  const z = reichZustand(world);
-  const [rueckmeldung, setRueckmeldung] = useState<string | null>(null);
-  const zustandVon = (e: Erbe) => z.staetten[e.id]?.zustand ?? 0;
-  // Nur noch auf der Lage (die drei schlechtesten); die volle Pflege steht in reich/Staetten.tsx als Karte mit Raster
-  const liste = [...ERBE].sort((a, b) => zustandVon(a) - zustandVon(b)).slice(0, nurSchlechte ?? 3);
-  const restauriere = (e: Erbe) => {
-    const r = beginne(world, `restaurierung_${e.id}`);
-    setRueckmeldung(r.text);
-    refresh();
-  };
-  return (
-    <section className="rr-abschnitt">
-      <h4>
-        {nurSchlechte !== undefined ? tx("ui2.ui.Reich.fb453c1") : tx("ui2.ui.Reich.51ae0fa")} <em>{tx("ui2.ui.Reich.9219dc0", { p0: Math.round(erhaltung(world)) })}</em>
-      </h4>
-      {rueckmeldung && <p className="rr-hinweis" role="status">{rueckmeldung}</p>}
-      <ul className="rr-stabliste">
-        {liste.map((e) => {
-          const st = z.staetten[e.id]!;
-          const id = `restaurierung_${e.id}`;
-          const def = vorhabenDef(id);
-          const laeuft = z.laufend.some((l) => l.id === id);
-          const hub = def?.abschluss.find((x) => x.t === "staette");
-          const nach = hub && hub.t === "staette" ? Math.min(100, st.zustand + hub.d) : undefined;
-          const vor = def ? wirkungsVorschau(world, id) : null;
-          const folgen = (vor?.sofort ?? []).filter((x) => !x.text.startsWith(e.name));
-          return (
-            <li key={e.id} className={st.zustand < 40 ? "gefaehrdet" : ""}>
-              <div className="rr-staette-kopf">
-                <strong className="rr-staette-name">{e.name}</strong>
-                {e.unesco.status === "welterbe" && <span className="rr-plakette" title={tx("ui2.ui.Reich.2e2e824", { p0: e.unesco.jahr })}>{tx("ui2.ui.Reich.8c5c22e")}</span>}
-                {e.kirche7 && <span className="rr-plakette kirche" title={t("ui.Reich.b39ebe5")}>{tx("ui2.ui.Reich.b2c752c")}</span>}
-              </div>
-              <span className="rr-staette-ort">{e.ort}: {e.satz}</span>
-              <div className="rr-zustand">
-                <span>{tx("ui2.ui.Reich.97574a9")}</span>
-                <span className="rr-balken" aria-hidden>
-                  <i style={{ width: `${st.zustand}%` }} className={st.zustand < 40 ? "schwach" : ""} />
-                </span>
-                <b>{Math.round(st.zustand)}</b>
-              </div>
-              <p className="rp-satz">
-                {st.zustand < 30 ? tx("ui2.ui.Reich.64becd1") : st.zustand < 50 ? tx("ui2.ui.Reich.628669a") : st.zustand < 70 ? tx("ui2.ui.Reich.8db82ca") : tx("ui2.ui.Reich.1ba54c0")}
-              </p>
-              {laeuft ? (
-                <p className="rp-satz">{t("ui.Reich.b1cebac")}</p>
-              ) : st.zustand > 82 ? (
-                <p className="rp-satz rp-nicht">{t("ui.Reich.27320b7")}</p>
-              ) : (
-                def && (
-                  <div className="rp-eingriff">
-                    <p className="rp-satz">
-                      {tx("ui2.ui.Reich.b2936db", { p0: Math.round(st.zustand) })} {nach !== undefined ? Math.round(nach) : "?"}.
-                      {folgen.length > 0 ? tx("ui2.ui.Reich.2d8fdd0") : ""}
-                    </p>
-                    <Zeilen zeilen={folgen} />
-                    <ul className="rr-kosten" aria-label={tx("ui2.ui.Reich.9bc1843")}>
-                      <li><b>{zahl(def.kosten.pk)}</b> {tx("ui2.ui.Reich.28d438e")}</li>
-                      <li><b>{zahl(def.kosten.bau)}</b> {tx("ui2.ui.Reich.f4466ae")}</li>
-                      <li><b>{def.kosten.monate}</b> {tx("ui2.ui.Reich.1c561ae")}</li>
-                    </ul>
-                    <button type="button" className="aktion-knopf" onClick={() => restauriere(e)} title={`${def.kehrseite}`}>
-                      {tx("ui2.ui.Reich.e0e3ae0")}
-                    </button>
-                  </div>
-                )
-              )}
-            </li>
-          );
-        })}
-      </ul>
     </section>
   );
 }
@@ -545,12 +484,6 @@ function Institutionen({ world }: { world: World }) {
   );
 }
 
-/** Auf der Lage-Seite: wo Pflege am meisten bringt, mit Sprung in die Pflegeliste. Bei der Kultur sind es die am schlechtesten erhaltenen Stätten. */
-function Dringend({ world, bereich, refresh, zuPflege }: { world: World; bereich: Bereich; refresh: () => void; zuPflege: () => void }) {
-  if (bereich === "kultur") return <Staetten world={world} refresh={refresh} nurSchlechte={3} />;
-  return <Lohnt world={world} bereich={bereich} refresh={refresh} zuPflege={zuPflege} />;
-}
-
 export function Reich(props: { world: World; bereich: Bereich; refresh: () => void; onKarte?: (o: { lon: number; lat: number }) => void; /** Reiter, mit dem die Akte beginnt (eine Marke der Karte kann „Pflegen“ vorgeben) */ startTab?: Tab; /** Vorgewähltes Vorhaben im Katalog */ startVorhaben?: string }) {
   // Je Bereich eigener Zustand der Reiter: Beim Wechsel beginnt die Akte wieder bei der Lage (oder beim vorgegebenen Reiter)
   return <ReichInnen key={`${props.bereich}:${props.startTab ?? ""}:${props.startVorhaben ?? ""}`} {...props} />;
@@ -573,6 +506,8 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
   // Pflege (Instandsetzung, Restaurierung) gehört in „pflegen“, nicht unter die neuen Vorhaben
   const neu = liste.filter((s) => s.status !== "fertig" && s.status !== "im_bau" && s.status !== "pausiert" && (s.v.klasse !== "restaurierung" || !!s.v.vorlage));
   const technik = bereich === "infrastruktur" || bereich === "militaer";
+  /** Die beiden Bereiche der Akte Land: Lage in Kacheln (Tagarbeit 6. November) */
+  const land = bereich === "infrastruktur" || bereich === "kultur";
   const bereitN = neu.filter((s) => s.status === "verfuegbar" && s.bereit).length;
   const dringendN = bereich === "kultur" ? ERBE.filter((e) => (z.staetten[e.id]?.zustand ?? 100) < 45).length : technik ? lohnendste(world, bereich, 99, 1).length : 0;
   const plakette = (id: Tab): number => (id === "neu" ? bereitN : id === "bestand" ? dringendN : 0);
@@ -593,11 +528,14 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
       {tab === "lage" && (
         <>
           <section className="rr-abschnitt">
-            {/* Verwaltungskraft und Baukapazität nur dort, wo Bau und Verwaltung zu Hause sind; vorher in fünf Bereichen derselbe Block (Rundgang 5. November) */}
-            {(bereich === "infrastruktur" || bereich === "haushalt") && <Statistik world={world} />}
-            {(bereich === "infrastruktur" || bereich === "haushalt") && <Bauhilfe world={world} />}
+            {/* Verwaltungskraft und Baukapazität nur dort, wo Bau und Verwaltung zu Hause sind; vorher in fünf Bereichen derselbe Block (Rundgang 5. November).
+                In Infrastruktur und Bau stehen beide seit der Tagarbeit am 6. November im Kopf der Baustelle (VerwaltungsMarke, Kapazitätsleiste). */}
+            {bereich === "haushalt" && <Statistik world={world} />}
+            {bereich === "haushalt" && <Bauhilfe world={world} />}
             {/* Rüstung (N7, Befund G-4/G-45): oben der Lieferkalender mit einem Datum je System, Kennzahlen und Bauliste aufklappbar */}
-            {bereich === "militaer" ? <Lieferkalender world={world} /> : <Groessen world={world} liste={GROESSEN[bereich]} />}
+            {bereich === "militaer" ? <Lieferkalender world={world} /> : land ? (
+              <div className={`lk-groessen${bereich === "kultur" ? " fuenf" : ""}`}><Groessen world={world} liste={GROESSEN[bereich]} /></div>
+            ) : <Groessen world={world} liste={GROESSEN[bereich]} />}
           </section>
           {bereich === "militaer" ? (
             <details className="rr-aufklapp">
@@ -606,19 +544,22 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
               <Groessen world={world} liste={GROESSEN[bereich]} />
             </details>
           ) : technik && <Baustelle world={world} bereich={bereich} refresh={refresh} />}
-          {(bereich === "kultur" || technik) && <Dringend world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
+          {/* Akte Land: Pflege, Stätten und Vorteile als Kacheln mit Detail auf Klick (reich/LandKacheln.tsx) */}
+          {bereich === "kultur" && <StaettenKacheln world={world} refresh={refresh} />}
+          {bereich === "infrastruktur" && <LohntKacheln world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
+          {bereich === "militaer" && <Lohnt world={world} bereich={bereich} refresh={refresh} zuPflege={() => setTab("bestand")} />}
           {bereich === "haushalt" && <Haushalt world={world} />}
           {bereich === "recht" && <Sitze world={world} />}
           {bereich === "recht" && <Institutionen world={world} />}
           {!technik && <ImBau world={world} bereich={bereich} refresh={refresh} />}
-          <Verlauf world={world} bereich={bereich} />
+          <Verlauf world={world} bereich={bereich} {...(land ? { kacheln: true } : {})} />
           {bereich === "militaer" ? (
             <details className="rr-aufklapp">
               <summary>{t("nacht_n7.ruestung.vorteile")}</summary>
               <VorteileListe world={world} bereich={bereich} />
             </details>
-          ) : <VorteileListe world={world} bereich={bereich} />}
-          {z.meldungen.length > 0 && (
+          ) : land ? <VorteilKacheln world={world} bereich={bereich} /> : <VorteileListe world={world} bereich={bereich} />}
+          {land ? <MeldungenKurz world={world} /> : z.meldungen.length > 0 && (
             <section className="rr-abschnitt">
               <h4>{tx("ui2.ui.Reich.0326b65")}</h4>
               <ul className="rr-meldungen">
@@ -634,7 +575,8 @@ function ReichInnen({ world, bereich, refresh, onKarte, startTab, startVorhaben 
       )}
 
       {tab === "bestand" && bereich === "kultur" && <StaettenAtlas world={world} refresh={refresh} />}
-      {tab === "bestand" && technik && <PflegeListe world={world} bereich={bereich} refresh={refresh} />}
+      {tab === "bestand" && bereich === "infrastruktur" && <PflegeKacheln world={world} bereich={bereich} refresh={refresh} />}
+      {tab === "bestand" && bereich === "militaer" && <PflegeListe world={world} bereich={bereich} refresh={refresh} />}
 
       {tab === "neu" && (
         <>

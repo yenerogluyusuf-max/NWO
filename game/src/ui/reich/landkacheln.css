@@ -1,0 +1,99 @@
+/* Akte Land in Kacheln (ui/reich/LandKacheln.tsx, Tagarbeit 6. November): Vorteile, Pflege, Stätten und Instandhaltung als Raster
+   mit Detail auf Klick. Nur Tokens aus styles.css (Schrift, Farben, Abstände, Rundungen, Schatten). */
+
+.lk-abschnitt h4 { align-items: baseline; }
+.lk-rechts { margin-left: auto; font-size: var(--schrift-2); }
+.lk-marke { display: inline-flex; align-items: baseline; gap: var(--abstand-1) var(--abstand-2); padding: 2px var(--abstand-3); border: 1px solid var(--linie-stark); border-radius: var(--rund-pille); background: var(--papier-1); font: 400 var(--schrift-2) var(--serif); color: var(--tinte-2); }
+.lk-marke b { font: 700 var(--schrift-3) var(--serif); color: var(--tinte-1); font-variant-numeric: tabular-nums; }
+.lk-marke em { font: italic var(--schrift-2) var(--serif); }
+.lk-marke em.hoch { color: var(--gut); }
+.lk-marke em.runter, .lk-marke.knapp b { color: var(--siegel); }
+
+/* Raster: schmale Kacheln (Vorteile, Bestand) und breite (Pflege, Stätten) */
+.lk-raster { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--abstand-2); align-items: stretch; }
+.lk-raster > li { display: flex; min-width: 0; }
+.lk-raster-schmal { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.lk-raster-breit { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+/* Klappt eine Kachel ihre weiteren Gewinne auf, wachsen die Nachbarn nicht mit */
+.lk-raster.lose { align-items: start; }
+
+/* Die Kachel: als Knopf (öffnet das Detail) oder als Fläche mit eigenen Knöpfen */
+.lk-kachel {
+  display: flex; flex-direction: column; gap: var(--abstand-1); width: 100%; min-width: 0; padding: var(--abstand-2) var(--abstand-3);
+  border: 1px solid var(--linie-stark); border-radius: var(--rund-2); background: var(--papier-1); box-shadow: var(--schatten-flach);
+  color: var(--tinte-1); text-align: left; font: var(--schrift-2)/1.35 var(--serif);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.dossier button.lk-kachel { min-height: 0; cursor: pointer; text-transform: none; letter-spacing: 0; background: var(--papier-1); box-shadow: var(--schatten-flach); }
+.dossier button.lk-kachel:hover { border-color: var(--messing-2); }
+.dossier button.lk-kachel.on { border-color: var(--messing-3); box-shadow: var(--schatten-hoch), inset 0 3px 0 var(--messing-2); }
+.lk-kachel > strong, .lk-kopf strong { font: 600 var(--schrift-3)/1.25 var(--display); overflow-wrap: break-word; }
+.lk-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--abstand-1) var(--abstand-2); }
+.lk-fuss { margin-top: auto; padding-top: var(--abstand-1); display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--abstand-1) var(--abstand-2); }
+.lk-pfeil { color: var(--tinte-3); }
+.lk-ort, .lk-wort { font: italic var(--schrift-2)/1.35 var(--serif); color: var(--tinte-3); }
+.lk-satz { margin: 0; font: var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+.lk-zustand { font: 600 var(--schrift-2) var(--serif); color: var(--tinte-1); }
+.lk-preis { margin-top: auto; padding-top: var(--abstand-1); font: italic var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+.lk-preis + .lk-fuss { margin-top: 0; }
+.lk-mehr { font-size: var(--schrift-2); }
+.lk-kachel .rr-wirkung-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--abstand-1); }
+.lk-kachel .rr-wirkung-zeilen li { padding: 1px var(--abstand-2); font-size: var(--schrift-2); border-radius: var(--rund-1); }
+
+/* Zustandsbalken mit Zahl; der Strich zeigt den Bezug (Spielbeginn) oder das Ziel der Restaurierung */
+.lk-zustandsbalken { display: grid; grid-template-columns: minmax(0, 1fr) 2.2em; align-items: center; gap: var(--abstand-2); }
+.lk-zustandsbalken > b { text-align: right; font-variant-numeric: tabular-nums; }
+.lk-zustandsbalken .rr-balken { overflow: visible; }
+.lk-zustandsbalken .rr-balken b.lk-ziel { top: -3px; bottom: -3px; width: 0; background: none; border-left: 2px dashed var(--gut); }
+
+/* Vorteile: erreicht in Messing, offen ruhig */
+.dossier button.lk-vorteil { border-style: dashed; }
+.dossier button.lk-vorteil.aktiv { border-style: solid; border-color: var(--messing-2); background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); }
+
+/* Gefährdete Stätten und dringende Stücke tragen das Siegelrot am Rand */
+.lk-staette.gefaehrdet, .dossier button.lk-stueck.dringend { box-shadow: var(--schatten-flach), inset 3px 0 0 var(--siegel); }
+.lk-staette .rr-plakette { color: var(--leder-hell); }
+
+/* Detailfläche unter dem Raster */
+.lk-detail { margin-top: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); display: grid; gap: var(--abstand-2); border: 1px solid var(--messing-2); border-radius: var(--rund-2); background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); }
+.lk-detail header { display: flex; justify-content: space-between; align-items: baseline; gap: var(--abstand-3); }
+.lk-detail header strong { font: 600 var(--schrift-4) var(--display); }
+.lk-detail p { margin: 0; font: var(--schrift-2)/1.45 var(--serif); }
+.lk-detail .rr-wirkung-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--abstand-1); }
+
+/* Das gewählte Stück der Instandhaltung: dieselbe Pflegekarte, die Blöcke nebeneinander */
+.lk-pflege-detail { margin-top: var(--abstand-3); }
+.lk-pflege-detail .rp-karte { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--abstand-2) var(--abstand-4); padding: var(--abstand-3) var(--abstand-4); border-color: var(--messing-2); }
+.lk-pflege-detail .rp-karte > :is(header, .rr-ort, .rr-zustand) { grid-column: 1 / -1; }
+/* Ort und Zustandsbalken stehen schon auf der gewählten Kachel */
+.lk-pflege-detail .rp-karte > :is(.rr-ort, .rr-zustand) { display: none; }
+.lk-raster-vier { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.lk-pflege-detail .rp-block { align-self: start; }
+.lk-pflege-detail .rp-eingriff { margin: 0; padding: var(--abstand-2); border-radius: var(--rund-1); }
+
+/* Meldungen: die neueste sichtbar */
+.lk-meldung { margin: 0; padding-left: var(--abstand-2); border-left: 3px solid var(--linie-stark); font: var(--schrift-2)/1.4 var(--serif); }
+.lk-meldung.fertig, .lk-meldung.freigeschaltet { border-left-color: var(--gut); }
+.lk-meldung.verzug, .lk-meldung.gesperrt, .lk-meldung.verfall { border-left-color: var(--siegel); }
+.lk-aufklapp { margin-top: var(--abstand-1); }
+.lk-aufklapp summary { cursor: pointer; font: 600 var(--schrift-2) var(--serif); color: var(--tinte-2); }
+.lk-aufklapp[open] summary { margin-bottom: var(--abstand-1); }
+
+/* Kennzahlen des Bereichs als schmale Kacheln (Name oben, Balken und Wert darunter) */
+.lk-groessen .rr-groessen { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--abstand-2) var(--abstand-4); }
+.lk-groessen .rr-groesse { grid-template-columns: minmax(0, 1fr) 3.2em; align-content: end; gap: 2px var(--abstand-2); padding: 0; }
+.lk-groessen .rr-groesse-name { grid-column: 1 / -1; color: var(--tinte-2); }
+.lk-groessen .rr-groesse-zusatz { grid-column: 1 / -1; }
+.lk-groessen.fuenf .rr-groessen { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+@container (max-width: 760px) {
+  .lk-raster-vier { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lk-groessen .rr-groessen, .lk-groessen.fuenf .rr-groessen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lk-pflege-detail .rp-karte { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Die Bauhilfe unter der Baustelle als leise Zeile statt als Kasten */
+.rr-baustelle .bauhilfe { margin: var(--abstand-2) 0 0; padding: 0; border: 0; background: none; }
+.rr-baustelle .bauhilfe summary { font: 600 var(--schrift-2) var(--serif); color: var(--tinte-2); }
+.rr-baustelle .bauhilfe[open] { padding: var(--abstand-2) var(--abstand-3); border: 1px solid var(--linie-stark); border-radius: var(--rund-2); background: var(--papier-1); }
+.rr-baustelle .bauhilfe + .rr-hinweis { margin: var(--abstand-1) 0 0; }

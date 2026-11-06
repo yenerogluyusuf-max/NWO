@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { t, zahl } from "../../i18n";
 import { PAUSE_VERFALL, verwaltungBilanz, VORZIEHEN_VERWALTUNG } from "../../sim/reich";
 import type { World } from "../../sim/types";
@@ -10,8 +11,9 @@ export const bauhilfeWerte = (): Record<string, Record<string, string | number>>
   baupersonal: {},
 });
 
-/** Gemeinsame Erklärung der vorhandenen politischen Hebel in Bauakte und Industrieprojekt. */
-export function Bauhilfe({ world }: { world: World }) {
+/** Gemeinsame Erklärung der vorhandenen politischen Hebel in Bauakte und Industrieprojekt. `children` hängt Sätze an, die nur eine
+ *  Ansicht braucht (die Baustelle legt ihre Erklärung der Reihenfolge hier ab, statt sie als zweiten Absatz darunter zu wiederholen). */
+export function Bauhilfe({ world, children }: { world: World; children?: ReactNode }) {
   const v = verwaltungBilanz(world);
   const werte = bauhilfeWerte();
   return <details className="bauhilfe">
@@ -19,5 +21,6 @@ export function Bauhilfe({ world }: { world: World }) {
     <p>{t("balance.baulage", { vorrat: zahl(v.vorrat, 1), saldo: `${v.netto >= 0 ? "+" : ""}${zahl(v.netto, 1)}` })}</p>
     <p>{t("balance.personal", { wert: zahl(v.personal, 1) })}</p>
     <ul>{(["baupause", "bauprioritaet", "baupersonal"] as const).map(k => <li key={k}>{t(`balance.${k}`, werte[k])}</li>)}</ul>
+    {children}
   </details>;
 }
