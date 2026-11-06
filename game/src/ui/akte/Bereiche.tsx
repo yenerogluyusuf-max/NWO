@@ -36,13 +36,14 @@ import { gesetzName } from "../../sim/gesetz-name";
 import { formatDateDe } from "../../sim/dates";
 import { ZUGANG_ICON } from "./profil";
 import { Bildkarten } from "./Bildkarten";
+import { RegionenLage } from "../reich/RegionenLage";
 import { Konfliktlage, angespannteLaender } from "./Konfliktlage";
 import { PersonChip } from "../bausteine/PersonChip";
 
 /** Bereiche, deren Lage ihre Vorhaben als Bildkarten zeigt: Vorhabenbereich im Reich und der Reiter, in dem man sie beginnt. */
 const BILDKARTEN: Partial<Record<BereichId, { reich: string; tab: string }>> = {
   sicherheit: { reich: "militaer", tab: "reich_militaer" },
-  land: { reich: "infrastruktur", tab: "reich_infra" },
+  // Land: statt der Bildkarten (dieselben wie unter „Neue Vorhaben“) zeigt die Lage jetzt Regionen (ui/reich/RegionenLage.tsx, Nacht N6)
 };
 
 export type BereichId = "gesellschaft" | "recht" | "regierung" | "sicherheit" | "aussen" | "land" | "wissen" | "medien";
@@ -218,11 +219,8 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
       return [{ kopf: t("akte.b.lage.vertraege"), zeilen: alleLaufenden(w).map((v) => ({ titel: akteurName(v.land), meta: t("akte.b.lage.vertragMeta", { jahre: v.jahre, verstoesse: v.verstoesse }) })) }];
     case "land": {
       const faelle = (sp.katastrophen?.faelle ?? []).filter((f) => !f.bewaeltigt).map((f) => ({ titel: t(`akte.b.katastrophe.${f.art}`), meta: f.provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p)).join(", "), ton: "schlecht" as const }));
-      const bauten = (sp.reich?.laufend ?? []).map((l) => ({ titel: vorhabenDef(l.id)?.name ?? l.id, meta: l.pausiert ? t("akte.b.lage.pausiert") : t("akte.b.lage.seit", { d: l.start }) }));
-      return [
-        { kopf: t("akte.b.lage.faelle"), zeilen: faelle },
-        { kopf: t("akte.b.lage.bauten"), zeilen: bauten },
-      ];
+      // Die Bauliste steht in der Baustelle und als Ebene der Regionenkarte, nicht ein drittes Mal hier (Befund F-9)
+      return [{ kopf: t("akte.b.lage.faelle"), zeilen: faelle }];
     }
     case "wissen": {
       const z = programmZustand(w);
@@ -315,7 +313,7 @@ function Zustaendige({ w, b }: { w: World; b: BereichId }) {
   );
 }
 
-function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined; onKonflikt?: ((landId: string) => void) | undefined; refresh?: (() => void) | undefined }) {
+function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh, springe }: { w: World; b: BereichId; ziel:string; onInstrumente: () => void; karten?: { reich: string; ziel: string; oeffnen: () => void } | undefined; onKonflikt?: ((landId: string) => void) | undefined; refresh?: (() => void) | undefined; springe?: ((tab: string) => void) | undefined }) {
   // Mit Konfliktlage (Sicherheit) stehen die laufenden Konflikte dort, nicht zusätzlich als Zeilenliste
   const gruppen = lageZeilen(w, b).filter((g) => !(b === "sicherheit" && onKonflikt && w.spiel && g.kopf === t("akte.b.lage.konflikte")));
   const urteil = lageUrteil(w, b);
@@ -348,6 +346,7 @@ function LageAnsicht({ w, b, ziel, onInstrumente, karten, onKonflikt, refresh }:
       {/* Die Außenlage (Vorwarnungen, Instrumente, Verlauf) steht hier statt eine Ebene tiefer unter „Länder und Diplomatie“ (Vorgabe T: eine Lage, nicht zwei) */}
       {b === "aussen" && refresh && w.spiel && <Aussenlage world={w} refresh={refresh} eingebettet />}
       {karten && <Bildkarten w={w} reichBereich={karten.reich} ziel={karten.ziel} oeffnen={karten.oeffnen} />}
+      {b === "land" && w.spiel && <RegionenLage w={w} springe={springe} />}
       {gruppen.filter((g) => g.zeilen.length > 0).map((g) => (
         <section key={g.kopf}>
           <h3 className="ak-abschnitt">{g.kopf}</h3>
@@ -431,10 +430,13 @@ export function BereichsAkte({ bereich, world, tabs, aktiverTab, onTab, reiter, 
       reiter={[
         { id: "lage", text: t("akte.b.reiter.lage"), inhalt: () => {
           const bk = BILDKARTEN[bereich], kartenTab = bk && tabs.find((tab) => tab.id === bk.tab);
+          // Land: Der Knopf des Urteils folgt dem auffälligen Kernwert (Befund F-12), nicht der zuletzt offenen Ansicht
+          const kern = bereich === "land" ? kernwerteBereich(world, "land") : [];
+          const landZiel = bereich !== "land" ? undefined : kern[0]?.ton === "schlecht" ? "katastrophe" : kern[1]?.ton === "schlecht" ? "netze" : undefined;
           const karten = bk && kartenTab ? { reich: bk.reich, ziel: kartenTab.label, oeffnen: () => { onTab(kartenTab.id); onReiter("instrumente"); } } : undefined;
           return (
             <>
-              <LageAnsicht w={world} b={bereich} ziel={zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln")} onInstrumente={() => onReiter("instrumente")} karten={karten} onKonflikt={onKonflikt} refresh={refresh} />
+              <LageAnsicht w={world} b={bereich} ziel={(landZiel && tabs.find((tab) => tab.id === landZiel)?.label) || (zugaenge.eintraege.find(z=>z.id===zugaenge.aktiv)?.label??t("akneu.handeln"))} onInstrumente={() => { if (landZiel && tabs.some((tab) => tab.id === landZiel)) onTab(landZiel); onReiter("instrumente"); }} karten={karten} onKonflikt={onKonflikt} refresh={refresh} springe={(id) => { if (tabs.some((tab) => tab.id === id)) onTab(id); onReiter("instrumente"); }} />
               {hatBehoerden && <BehoerdenAufklapp w={world} bereich={bereich} />}
             </>
           );
