@@ -7,7 +7,8 @@ import { nationalAverage } from '../src/sim/netz';
 import { antworten, entscheide, standardAntwort } from '../src/sim/ereignisse';
 import { bringeEin, pruefeVorhaben, gesetzPrognose, stimmenKaufen } from '../src/sim/handeln';
 import { fraktionsUebersicht, verhandle } from '../src/sim/verhandeln';
-import { haushaltsfenster, setzeEntwurf, bringeHaushaltsgesetzEin, setzePosten } from '../src/sim/haushalt';
+import { ALTE_STEUERPOSTEN, haushaltsfenster, setzeEntwurf, bringeHaushaltsgesetzEin, setzePosten } from '../src/sim/haushalt';
+import { rasteStufe, STUFEN_JE_PUNKT } from '../src/data/skalen';
 import { ressortAntwortPlan, beantworteRessortAnliegen } from '../src/sim/ressortanliegen';
 import { fuehreAus, infrastrukturBitte, type InfraAktion } from '../src/sim/infrastruktur';
 import { verwaltungBilanz, bauKapazitaet } from '../src/sim/reich';
@@ -114,7 +115,12 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[],plan:Regieru
   const o=bitte?.optionen.find(o=>o.moeglich&&o.id==='ausbau'&&vb.netto>0&&vb.vorrat>30&&sp.kapital>(o.kosten.pk??0)+15)
    ??bitte?.optionen.find(o=>o.moeglich&&o.id==='alternative'&&sp.kapital>(o.kosten.pk??0)+15);
   if(plan.neueInfrastruktur!==false&&o?.aktion.art==='infrastruktur')tue('infrastruktur',o.id,()=>fuehreAus(w,o.aktion as InfraAktion));
-  const liste=plan.agenda??(szenario==='rechtsstaat'?RECHT:szenario==='machtstaat'?MACHT:['industrie','bildungsstau','fabrikoffensive'].includes(szenario)?INDUSTRIE:BASIS);
+  // N3 (06.11.2026, Befund D-1): Steuern stellt nur noch ihre Maßnahme. Alte Steuerposten eines Plans werden zum Gesetz auf denselben Ertrag
+  // (je Stufe 0,3 % des BIP) umgerechnet und laufen wie die übrige Agenda; vorher ließ setzePosten sie stumm fallen.
+  const steuern=Object.entries(plan.budgets??{}).flatMap(([id,n]):[string,number][]=>{const a=ALTE_STEUERPOSTEN[id];if(!a)return [];
+   const node=NET.nodes[NET.index.get(a.massnahme)!]!,jePunkt=-(node.cost??0)*STUFEN_JE_PUNKT/100;
+   return [[a.massnahme,rasteStufe(a.massnahme,node.start+Math.round(n*a.schritt/jePunkt)*STUFEN_JE_PUNKT)]];});
+  const liste=[...(plan.agenda??(szenario==='rechtsstaat'?RECHT:szenario==='machtstaat'?MACHT:['industrie','bildungsstau','fabrikoffensive'].includes(szenario)?INDUSTRIE:BASIS)),...steuern];
   const start=Math.floor(w.day/28)%liste.length;
   for(let j=0;j<liste.length;j++){
    const [id,ziel]=liste[(start+j)%liste.length]!;
@@ -129,7 +135,7 @@ export function regiere(w:World,szenario:Szenario,aktionen:Aktion[],plan:Regieru
    if(luecke>0&&luecke<100&&sp.kapital>luecke*0.15+15)tue('absprache',g.massnahme,()=>stimmenKaufen(w,g.id,luecke));
   }
   const budgets:Record<string,number>=plan.budgets??(szenario==='rechtsstaat'?{justiz:3}:szenario==='machtstaat'?{justiz:-2}:szenario==='bildungsstau'?{bildung:-3,forschung:-2,investitionen:2}:['industrie','fabrikoffensive'].includes(szenario)?{bildung:2,forschung:2,investitionen:2}:szenario==='krieg'?{verteidigung:2}:{});
-  for(const [id,z]of Object.entries(budgets))if((sp.wirtschaft?.haushalt.stufen[id]??0)!==z){
+  for(const [id,z]of Object.entries(budgets))if(!ALTE_STEUERPOSTEN[id]&&(sp.wirtschaft?.haushalt.stufen[id]??0)!==z){
    if(haushaltsfenster(w).offen)tue('etat-entwurf',`${id}/${z}`,()=>setzeEntwurf(w,id,z));
    else if(sp.kapital>18)tue('etat-nachtrag',`${id}/${z}`,()=>setzePosten(w,id,z));
   }
