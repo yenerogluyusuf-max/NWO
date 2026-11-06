@@ -151,7 +151,8 @@ test.each(['de','en','tr'] as const)('%s: Texte, echte Vorschau, Behauptungsgren
   const html=renderToStaticMarkup(<KrisenGesetze world={w} geaendert={()=>{}}/>);
   expect(html).toContain(t('kg.m_ausbildung.titel'));expect(html).toContain(t('kg.keinVerlauf'));
   const karte=renderToStaticMarkup(<KrisenGesetzKarte world={w} plan={p} ausfuehren={()=>{}}/>);
-  expect(karte).toContain(t('kg.finanzierung'));expect(karte).toContain(t('kg.m_ausbildung.preis'));expect(karte).toContain(t('kg.einbringen'));
+  expect(karte).toContain(t('welle_b1.kg.finanzierung')); // Welle B1: kurzer Satz statt Absatz, dieselbe Aussage (keine Gegenfinanzierung)
+  expect(karte).toContain(t('kg.m_ausbildung.preis'));expect(karte).toContain(t('kg.einbringen'));
   for(const [key,text]of Object.entries(katalogVon('de')).filter(([k])=>k.startsWith('kg.'))){
     expect(katalogVon(sprache)[key],key).toBeTruthy();expect(platzhalter(katalogVon(sprache)[key]!)).toEqual(platzhalter(text));
   }

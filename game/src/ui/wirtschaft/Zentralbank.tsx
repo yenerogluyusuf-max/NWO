@@ -227,7 +227,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
           </div>
         </div>
         <ZinsBild inflation={e.inflation} erwartet={e.expectedInflation} zins={e.policyRate} regel={modusC ? (z.vorgabe ?? regel.newRate) : regel.newRate} zeile={<>{t("zb.bild.zeile", { glaub: glaubwuerdigkeitWort(e.credibility), risiko: Math.round(e.riskPremium) })} <span className="wi-zb-info" title={STUFEN[z.stufe].text}>ⓘ</span></>} />
-        {finanzierungsMehrbedarf(e) >= 0.05 && <p className="wi-hinweis">{t("balance.fiskalstand", { wert: nf(finanzierungsMehrbedarf(e)) })}</p>}
+        {finanzierungsMehrbedarf(e) >= 0.05 && <p className="wi-hinweis">{t("welle_b1.zb.fiskalstand", { wert: nf(finanzierungsMehrbedarf(e)) })}</p>}
       </section>
 
       <nav className="wi-zb-teile" aria-label={t("zb.teile")}>
@@ -243,7 +243,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
         <div className="wi-zb-wahl">
           <div className="wi-zb-wege">
             <h4>{modusC ? t("t5.zb.vorgabeTitel") : t("ui.wirtschaft.Zentralbank.b761a72")}</h4>
-            {!modusC && <p className="wi-hinweis">{regel.why} {t("zb.regel.lage")}</p>}
+            {!modusC && <p className="wi-hinweis">{regel.why}</p>}
             {!modusC && ppkSchrittweite(e, world.governor.stance) > 5 && <p className="wi-hinweis wi-druck">{t("balance.zinsschritt", { wert: nf(ppkSchrittweite(e, world.governor.stance)) })}</p>}
             {z.druck && !modusC && (
               <p className="wi-hinweis wi-druck">
@@ -287,7 +287,7 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
               </>
             )}
             <h4>{t("zb.danach")}</h4>
-            <Folgen kurz glieder={kette} leer={delta === 0 ? t("zb.bliebe", { p: e.policyRate }) : undefined} />
+            <Folgen kurz glieder={kette} leer={delta === 0 ? t("welle_b1.zb.bliebe", { p: nf(e.policyRate) }) : undefined} />
             <Wirkung reihen={reihen} metriken={METRIKEN} rechnet={rechnet} />
             <details className="wi-zb-verlauf"><summary>{t("zb.verlaufZeigen")}</summary>
             <div className="wi-metriken" role="tablist" aria-label={t("ui.wirtschaft.Zentralbank.34b3ca6")}>
