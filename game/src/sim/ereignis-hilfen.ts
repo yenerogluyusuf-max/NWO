@@ -84,6 +84,11 @@ export interface Vorlage {
   folgen?: Record<string, { vorlage: string; nach: [number, number]; bedingung?: (w: World) => boolean }>;
   /** Wahrscheinlichkeit pro Monat, 0 = nicht möglich */
   chance: (w: World) => number;
+  /**
+   * Der Monatswürfel zieht für diese Vorlage nur, wenn ihre Chance über null liegt. Ältere Vorlagen ziehen immer (ihr Zufallsstrom bleibt);
+   * neue Vorlagen setzen das, damit Partien, in denen sie nicht auslösen können, genau denselben Verlauf behalten wie vorher (Welle H3).
+   */
+  ziehtNurBeiChance?: true;
   erzeuge: (w: World, rng: Rng) => { provinzen: number[]; staerke: number; daten?: Record<string, number | string> } | null;
 }
 

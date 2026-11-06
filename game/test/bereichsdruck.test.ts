@@ -88,6 +88,8 @@ describe("Zentralbank: Zweifel an der Notenbank", () => {
     const w = vernachlaessigt();
     w.economy.credibility = 0.8;
     w.published.inflation.value = Math.max(3, w.economy.inflationTarget + 1);
+    // Auch kein hoher Realzins bei schwachem Wachstum (dritte Lage „zins“): Leitzins knapp über der Inflation
+    w.economy.policyRate = w.published.inflation.value + 1;
     expect(zbLage(w)).toBeNull();
     expect(vorlage("zentralbank_vertrauen").chance(w)).toBe(0);
   });

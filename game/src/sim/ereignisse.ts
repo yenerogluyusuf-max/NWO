@@ -1301,8 +1301,10 @@ export function ereignisMonat(world: World, rng: Rng): void {
   // 1. Kandidaten sammeln: Chance, Abkühlung, Dichte und Obergrenze wie bisher; gärende Vorgänge kommen eher wieder
   const kandidaten: { v: Vorlage; gen: Erzeugung }[] = [];
   for (const v of VORLAGEN) {
-    const u = rng.next();
+    // Neue Vorlagen (ziehtNurBeiChance) prüfen erst die Bedingung und ziehen dann, damit sie den Strom der übrigen nicht verschieben
     const basis = v.chance(world);
+    if (v.ziehtNurBeiChance && basis <= 0) continue;
+    const u = rng.next();
     if (basis <= 0) continue;
     if (offenNormal() + geplantNormal() >= MAX_OFFEN) continue;
     if (spiel.ereignisse.some((e) => e.vorlage === v.id) || spiel.geplant?.some((g) => g.vorlage === v.id)) continue;

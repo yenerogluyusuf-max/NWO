@@ -164,6 +164,7 @@ function medienAntwort(w0: World, id: string, aktion: AktionId, cluster: string 
 
 const MEDIEN_KAMPAGNE: Vorlage = {
   id: "medien_kampagne",
+  ziehtNurBeiChance: true,
   szene: "istanbul",
   frist: BEREICHSDRUCK.medien.frist,
   abkuehlung: BEREICHSDRUCK.medien.abkuehlung,
@@ -252,6 +253,7 @@ const naechsteStufe = (s: Unabhaengigkeit): Unabhaengigkeit | null => (s === "C"
 
 const ZB_VERTRAUEN: Vorlage = {
   id: "zentralbank_vertrauen",
+  ziehtNurBeiChance: true,
   szene: "bank",
   frist: BEREICHSDRUCK.zentralbank.frist,
   abkuehlung: BEREICHSDRUCK.zentralbank.abkuehlung,
