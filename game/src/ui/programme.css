@@ -1,0 +1,32 @@
+/* Regierungsprogramme (Nacht N6): Medaillen links, gewähltes Programm mit Schritten rechts */
+.pg { display: flex; flex-direction: column; gap: 10px; }
+.pg-kopf { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.pg-kopf .pd-lead { flex: 1 1 380px; margin: 0; }
+.pg-buehne { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 1.05fr); gap: 14px; align-items: start; }
+.pg-raster { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.pg-kachel { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; text-align: left; cursor: pointer; font: inherit; color: var(--ink);
+  border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 6px; background: linear-gradient(180deg, #fbf4df, #efe2c0); transition: transform 120ms ease, box-shadow 120ms ease; }
+.pg-kachel:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(60, 40, 20, 0.15); }
+.pg-kachel.on { border-color: #8a6a2a; box-shadow: 0 0 0 2px rgba(198, 154, 74, 0.6); background: linear-gradient(180deg, #f8e7b5, #ecd291); }
+.pg-kachel.lage-bereit { border-left: 4px solid #3d5a2e; }
+.pg-kachel.lage-laeuft { border-left: 4px solid #b8893a; }
+.pg-kachel-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pg-kachel-text strong { font: 600 14px/1.2 var(--serif); }
+.pg-kachel-text .pd-pill { align-self: flex-start; }
+.pg-pfad { margin: 2px 0 0; }
+.pg-pfad .pd-station { width: 18px; height: 18px; font-size: 10.5px; }
+.pg-detail { position: sticky; top: 8px; display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 6px; border: 1px solid rgba(90, 64, 40, 0.4); background: linear-gradient(180deg, rgba(255, 251, 238, 0.98), rgba(244, 233, 205, 0.98)); box-shadow: 0 4px 14px rgba(60, 40, 20, 0.15); }
+.pg-detail-kopf { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.pg-detail-kopf h4 { margin: 0; font: 600 18px/1.2 var(--display, var(--serif)); }
+.pg-detail-kopf .pd-prog-leitbild { margin: 2px 0 0; font-size: 13.5px; }
+.pg-schritte { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pg-schritt { border: 1px solid rgba(90, 64, 40, 0.25); border-radius: 5px; background: #fffdf6; }
+.pg-schritt.offen { border-color: rgba(138, 106, 42, 0.6); }
+.pg-schritt.status-bereit { border-left: 3px solid #3d5a2e; }
+.pg-schritt.status-laufend { border-left: 3px solid #b8893a; }
+.pg-zeile { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; padding: 5px 8px; border: 0; background: none; text-align: left; cursor: pointer; font: inherit; color: var(--ink); }
+.pg-zeile-titel { font: 600 13.5px/1.25 var(--serif); }
+.pg-blatt { display: flex; flex-direction: column; gap: 6px; padding: 0 10px 9px 36px; }
+.pg-blatt .pd-schritt-text, .pg-blatt .pd-danach { margin: 0; font-size: 13.5px; }
+.pg-preis { font: 600 13.5px var(--serif); }
+@media (max-width: 1100px) { .pg-buehne { grid-template-columns: 1fr; } .pg-detail { position: static; } }

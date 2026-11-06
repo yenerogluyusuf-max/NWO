@@ -771,7 +771,7 @@
  "ui2.ui.politik.ProgrammeAkte.9fcc6e5": "Dafür fehlt Kapital",
  "ui2.ui.politik.ProgrammeAkte.a0ced63": "Platz frei",
  "ui2.ui.politik.ProgrammeAkte.a73447b": "Regierungsprogramme",
- "ui2.ui.politik.ProgrammeAkte.b9bd96c": "Jeder Schritt verlangt echte Politik (eine Maßnahme auf einer Stufe, ein gelöstes Problem), kostet Kapital und Zeit und wirkt danach dauerhaft. Höchstens {p0} Schritte laufen gleichzeitig.",
+ "ui2.ui.politik.ProgrammeAkte.b9bd96c": "Jeder Schritt verlangt zuerst eine Politik, dann Kapital und Zeit. Danach wirkt er dauerhaft. Höchstens {p0} Schritte laufen gleichzeitig.",
  "ui2.ui.politik.ProgrammeAkte.bb0350f": "Umsetzen",
  "ui2.ui.politik.ProgrammeAkte.bc4e9f4": "Voraussetzungen",
  "ui2.ui.politik.ProgrammeAkte.c10fa4e": "Läuft · {p0}",

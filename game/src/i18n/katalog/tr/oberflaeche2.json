@@ -771,7 +771,7 @@
  "ui2.ui.politik.ProgrammeAkte.9fcc6e5": "Bunun için sermaye yetmiyor",
  "ui2.ui.politik.ProgrammeAkte.a0ced63": "Yer boş",
  "ui2.ui.politik.ProgrammeAkte.a73447b": "Hükümet programları",
- "ui2.ui.politik.ProgrammeAkte.b9bd96c": "Her adım gerçek bir politika ister (bir seviyede bir önlem, çözülmüş bir sorun), sermayeye ve zamana mal olur, sonra kalıcı etki eder. Aynı anda en fazla {p0} adım yürür.",
+ "ui2.ui.politik.ProgrammeAkte.b9bd96c": "Her adım önce bir politika, sonra sermaye ve zaman ister. Ardından kalıcı olarak etki eder. Aynı anda en fazla {p0} adım yürüyebilir.",
  "ui2.ui.politik.ProgrammeAkte.bb0350f": "Uygula",
  "ui2.ui.politik.ProgrammeAkte.bc4e9f4": "Ön koşullar",
  "ui2.ui.politik.ProgrammeAkte.c10fa4e": "Sürüyor · {p0}",

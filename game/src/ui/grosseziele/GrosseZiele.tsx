@@ -1,5 +1,6 @@
-// Ansicht „Große Ziele“ (ENTSCHEIDUNGEN Q, GROSSE_ZIELE_2026-11-04): je Ziel eine Bildkarte mit Stufe, Chance als Wort und Band,
-// Gründen dafür und dagegen, Voraussetzungen, Wegen mit Preis, dem Versuch und den Botschaften bei den Partnern.
+// Ansicht „Große Ziele“ (ENTSCHEIDUNGEN Q, GROSSE_ZIELE_2026-11-04): oben alle Ziele als kleine Bildkacheln mit Chance als Wort und Band,
+// rechts die volle Karte des gewählten Ziels mit Stufe, Gründen dafür und dagegen, Voraussetzungen, Wegen mit Preis, dem Versuch und den
+// Botschaften bei den Partnern. Nacht N6 (Befund F-31): vorher 13 große Karten untereinander (3,0 Bildschirme).
 
 import { useState } from "react";
 import { t, zahl } from "../../i18n";
@@ -79,7 +80,7 @@ function ZielKarte({ w, z, geaendert, melde }: { w: World; z: ZielDef; geaendert
                   return (
                     <li key={l}>
                       <span>{akteurName(l)} · {t(`gz2.ui.vertretung.${stufeV}`)}</span>
-                      {stufeV < GROSSE_ZIELE.vertretungMax && <button type="button" className="gz-knopf" disabled={!!grund} title={grund ?? undefined} onClick={() => tue(vertretungAusbauen(w, l))}>{t("gz2.ui.ausbauen")} · {GROSSE_ZIELE.vertretungPk} Kapital</button>}
+                      {stufeV < GROSSE_ZIELE.vertretungMax && <button type="button" className="gz-knopf" disabled={!!grund} title={grund ?? undefined} onClick={() => tue(vertretungAusbauen(w, l))}>{t("gz2.ui.ausbauen")} · {t("vk.pk", { n: zahl(GROSSE_ZIELE.vertretungPk) })}</button>}
                     </li>
                   );
                 })}
@@ -87,7 +88,7 @@ function ZielKarte({ w, z, geaendert, melde }: { w: World; z: ZielDef; geaendert
             </div>
             {z.gegenspieler.length > 0 && <p className="gzz-gegen">{t("gz2.ui.gegenspieler", { laender: z.gegenspieler.map((l) => akteurName(l)).join(", ") })}</p>}
             <button type="button" className="leather-button gzz-versuch" disabled={!!xGrund} title={xGrund ?? undefined} onClick={() => tue(versuche(w, z.id))}>
-              {t("gz2.ui.versuch")} · {stufe!.pk} Kapital
+              {t("gz2.ui.versuch")} · {t("vk.pk", { n: zahl(stufe!.pk) })}
             </button>
             {xGrund && <p className="gz-hinweis">{xGrund}</p>}
           </div>
@@ -103,20 +104,54 @@ function ZielKarte({ w, z, geaendert, melde }: { w: World; z: ZielDef; geaendert
   );
 }
 
+/** Kleine Bildkachel eines Ziels: Motiv, Stufenpunkte, Titel, Chance als Wort und Band. */
+function ZielKachel({ w, z, on, waehle }: { w: World; z: ZielDef; on: boolean; waehle: () => void }) {
+  const g = grosseZiele(w);
+  const st = g.stand[z.id] ?? { stufe: 0, vorbereitung: 0, versuche: 0 };
+  const fertig = st.stufe >= z.stufen.length;
+  const verfolgt = g.verfolgt.includes(z.id);
+  const chance = fertig ? null : chanceVon(w, z.id);
+  return (
+    <button type="button" className={`gzk${on ? " on" : ""}${verfolgt ? " verfolgt" : ""}${fertig ? " fertig" : ""}`} aria-pressed={on} onClick={waehle}>
+      <span className="gzk-bild" aria-hidden>
+        <WunderBild art={z.bild} zustand={fertig ? "fertig" : st.stufe > 0 ? "bau" : "fertig"} fortschritt={st.stufe / z.stufen.length} />
+        <span className="gzk-stufen">{z.stufen.map((s, i) => <i key={s.id} className={i < st.stufe ? "erreicht" : i === st.stufe ? "jetzt" : ""} />)}</span>
+        {verfolgt && <span className="gzk-marke">{t("n6.gz.verfolgt")}</span>}
+      </span>
+      <span className="gzk-titel">{t(`gz2.ziel.${z.id}.titel`)}</span>
+      {fertig ? (
+        <span className="gzk-chance fertig">{t("gz2.ui.erreicht")}</span>
+      ) : chance ? (
+        <span className={`gzk-chance ${chance.wort}`}>
+          <b>{t(`gz2.wort.${chance.wort}`)}</b> <small>{chance.von}–{chance.bis} %</small>
+          <i aria-hidden><s style={{ left: `${chance.von}%`, width: `${chance.bis - chance.von}%` }} /></i>
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
 export function GrosseZiele({ world, geaendert }: { world: World; geaendert: () => void }) {
   const [meldung, setMeldung] = useState<string>();
   const [, neu] = useState(0);
-  if (!world.spiel) return null;
-  const g = grosseZiele(world);
+  const g = world.spiel ? grosseZiele(world) : null;
+  // Verfolgte Ziele zuerst; gewählt ist anfangs das erste
+  const liste = ZIELE.slice().sort((a, b) => Number(g?.verfolgt.includes(b.id)) - Number(g?.verfolgt.includes(a.id)));
+  const [gewaehlt, setGewaehlt] = useState<string>(liste[0]?.id ?? "");
+  if (!world.spiel || !g) return null;
   const fertig = () => { neu((n) => n + 1); geaendert(); };
-  // Verfolgte Ziele zuerst
-  const liste = ZIELE.slice().sort((a, b) => Number(g.verfolgt.includes(b.id)) - Number(g.verfolgt.includes(a.id)));
+  const z = ZIELE.find((x) => x.id === gewaehlt) ?? liste[0]!;
   return (
     <section className="gzz" aria-label={t("gz2.ui.titel")}>
       <p className="gzz-einleitung">{t("gz2.ui.einleitung", { max: GROSSE_ZIELE.maxVerfolgt, n: g.verfolgt.length })}</p>
       {meldung && <p role="status" className="rueckmeldung ok">{meldung}</p>}
-      <div className="gzz-raster">
-        {liste.map((z) => <ZielKarte key={z.id} w={world} z={z} geaendert={fertig} melde={setMeldung} />)}
+      <div className="gzz-buehne">
+        <div className="gzk-raster">
+          {liste.map((x) => <ZielKachel key={x.id} w={world} z={x} on={x.id === z.id} waehle={() => setGewaehlt(x.id)} />)}
+        </div>
+        <div className="gzz-seite">
+          <ZielKarte key={z.id} w={world} z={z} geaendert={fertig} melde={setMeldung} />
+        </div>
       </div>
     </section>
   );

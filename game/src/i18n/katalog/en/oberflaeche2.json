@@ -771,7 +771,7 @@
  "ui2.ui.politik.ProgrammeAkte.9fcc6e5": "Not enough capital for this",
  "ui2.ui.politik.ProgrammeAkte.a0ced63": "Slot free",
  "ui2.ui.politik.ProgrammeAkte.a73447b": "Government programmes",
- "ui2.ui.politik.ProgrammeAkte.b9bd96c": "Each step demands real policy (a measure at a level, a solved problem), costs capital and time and then works permanently. At most {p0} steps run at the same time.",
+ "ui2.ui.politik.ProgrammeAkte.b9bd96c": "Each step first requires a policy, then capital and time. After that it works for good. At most {p0} steps can run at once.",
  "ui2.ui.politik.ProgrammeAkte.bb0350f": "Implement",
  "ui2.ui.politik.ProgrammeAkte.bc4e9f4": "Preconditions",
  "ui2.ui.politik.ProgrammeAkte.c10fa4e": "Running · {p0}",
