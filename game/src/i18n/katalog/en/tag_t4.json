@@ -9,5 +9,13 @@
  "tag_t4.wa.vorwarnung": "During the campaign the opposition attacks every week where it hurts: {thema}, acute in {n, plural, one {# province} other {# provinces}} (including {orte}; {anteil} of the people). As things stand, that costs {summe} points by election day.",
  "tag_t4.wa.vorwarnung_antwort": "Solve the problem beforehand and the attacks lose their force.",
  "tag_t4.wa.prognose.wahl": "election on {datum}, {monate, plural, =0 {in a few days} one {in # month} other {in # months}}",
- "tag_t4.wa.schritte": "What helps most before the election"
+ "tag_t4.wa.schritte": "What helps most before the election",
+ "tag_t4.opp.staerke_sofort": "Strength now",
+ "tag_t4.opp.wahl_heute": "Vote today",
+ "tag_t4.opp.wahl_tag": "on election day, about",
+ "tag_t4.strasse.leer_text": "No movement is under way. Closest to the threshold are:",
+ "tag_t4.strasse.legende": "Pressure from 0 to 100. From {schwelle} (line) the movement can form; the further above, the sooner.",
+ "tag_t4.strasse.groll": "Grievance of the communities",
+ "tag_t4.kom.legende": "Click a city to see what you can do there. Marked brown: town halls held by your camp; red: under a state-appointed trustee.",
+ "tag_t4.kom.region_lager": "{lager} of {n} town halls held by your camp"
 }

@@ -9,5 +9,13 @@
  "tag_t4.wa.vorwarnung": "Im Wahlkampf greift die Opposition jede Woche dort an, wo es brennt: {thema}, akut in {n, plural, one {# Provinz} other {# Provinzen}} (darunter {orte}; {anteil} der Menschen). Bei heutiger Lage kostet das bis zum Wahltag {summe} Punkte.",
  "tag_t4.wa.vorwarnung_antwort": "Wer das Problem vorher löst, nimmt den Angriffen die Kraft.",
  "tag_t4.wa.prognose.wahl": "Wahl am {datum}, {monate, plural, =0 {in wenigen Tagen} one {in # Monat} other {in # Monaten}}",
- "tag_t4.wa.schritte": "Was bis zur Wahl am meisten hilft"
+ "tag_t4.wa.schritte": "Was bis zur Wahl am meisten hilft",
+ "tag_t4.opp.staerke_sofort": "Stärke sofort",
+ "tag_t4.opp.wahl_heute": "Wahl heute",
+ "tag_t4.opp.wahl_tag": "am Wahltag etwa",
+ "tag_t4.strasse.leer_text": "Keine Bewegung läuft. Am nächsten an der Schwelle sind:",
+ "tag_t4.strasse.legende": "Druck von 0 bis 100. Ab {schwelle} (Strich) kann die Bewegung entstehen, je weiter darüber, desto eher.",
+ "tag_t4.strasse.groll": "Groll der Milieus",
+ "tag_t4.kom.legende": "Ein Klick auf eine Stadt zeigt, was Sie dort tun können. Braun markiert: Rathäuser des Lagers; rot: unter Zwangsverwaltung.",
+ "tag_t4.kom.region_lager": "{lager} von {n} Rathäusern beim Lager"
 }

@@ -9,5 +9,13 @@
  "tag_t4.wa.vorwarnung": "Seçim kampanyasında muhalefet her hafta canın yandığı yerden saldırır: {thema}, {n, plural, other {# ilde}} akut ({orte} dahil; nüfusun {anteil}). Bugünkü durumla bu, seçim gününe kadar {summe} puana mal olur.",
  "tag_t4.wa.vorwarnung_antwort": "Sorunu önceden çözen, saldırıların gücünü kırar.",
  "tag_t4.wa.prognose.wahl": "seçim {datum} tarihinde, {monate, plural, =0 {birkaç gün sonra} other {# ay sonra}}",
- "tag_t4.wa.schritte": "Seçime kadar en çok ne işe yarar"
+ "tag_t4.wa.schritte": "Seçime kadar en çok ne işe yarar",
+ "tag_t4.opp.staerke_sofort": "Anında güç",
+ "tag_t4.opp.wahl_heute": "Bugün seçimde",
+ "tag_t4.opp.wahl_tag": "seçim gününde yaklaşık",
+ "tag_t4.strasse.leer_text": "Şu anda hiçbir hareket yok. Eşiğe en yakın olanlar:",
+ "tag_t4.strasse.legende": "Baskı 0 ile 100 arasında. {schwelle} değerinden (çizgi) itibaren hareket doğabilir; ne kadar yukarıdaysa o kadar erken.",
+ "tag_t4.strasse.groll": "Toplulukların öfkesi",
+ "tag_t4.kom.legende": "Orada neler yapabileceğinizi görmek için bir şehre tıklayın. Kahverengi işaretli: ittifakınızın belediyeleri; kırmızı: kayyum yönetiminde.",
+ "tag_t4.kom.region_lager": "{n} belediyeden {lager} tanesi ittifakınızda"
 }
