@@ -1,5 +1,8 @@
 // „Die Mentorin erklärt“: Zu jeder Größe stehen hier in drei Reitern, was sie ist, wie das Land im Weltvergleich steht
 // und was du tun kannst. Man soll im Spiel lernen (Lernkonzept).
+// Tagarbeit 06.11.: Die Leiste ist zugeklappt, bis man einen Reiter wählt. Offen sagt sie nur, was die Ansicht nicht schon zeigt:
+// Der Stand steht über der Erklärung in großer Zahl, die Wirkungen im Bild und in den Begründungen; die allgemeine Belehrung
+// („Eine Maßnahme ist ein Regler …“) steht unter den Begriffen statt als erster Satz.
 
 import { useMemo, useState } from "react";
 import type { World } from "../sim/types";
@@ -8,29 +11,37 @@ import { erklaere } from "./lernen";
 import { VergleichBalken } from "./VergleichBalken";
 import { indikatorenFuer, spielWert } from "./vergleich";
 import { Cameo } from "./art/Cameo";
+import { betroffene } from "../sim/wege";
 
 type Reiter = "erklaert" | "welt" | "tun";
 
 /** kopfText: der Satz, der über der Erklärung schon steht; die Mentorin wiederholt ihn nicht (Spielerdurchlauf 5. November) */
 export function Erklaerung({ node, world, onSelect, kopfText }: { node: NodeSpec; world: World; onSelect: (id: string) => void; kopfText?: string }) {
-  const [reiter, setReiter] = useState<Reiter>("erklaert");
+  const [reiter, setReiter] = useState<Reiter | null>(null);
   const [welt, setWelt] = useState(0);
-  const [mehr, setMehr] = useState(false);
   const tag = world.day - (world.day % 15);
   const e0 = useMemo(() => erklaere(node, world), [node.id, world.net.month, tag]); // eslint-disable-line react-hooks/exhaustive-deps
   const e = kopfText && e0.was[0]?.trim() === kopfText.trim() && e0.was.length > 1 ? { ...e0, was: e0.was.slice(1) } : e0;
   const vergleiche = indikatorenFuer(node.input ?? node.id);
   const aktuell = vergleiche[Math.min(welt, vergleiche.length - 1)];
   const eingang = node.input ? spielWert(world, node.input) : undefined;
+  // Was die Ansicht schon zeigt, sagt die Mentorin nicht noch einmal (siehe Kopf der Datei)
+  const allgemein = node.input ? null : t(`lernen.art.${node.kind}`);
+  // Bei Maßnahmen nennen Kosten und Dauer schon „Was folgt daraus?“ unter dem Bild; die Mentorin sagt stattdessen, wer gewinnt und verliert
+  const eigenes = node.kind === "massnahme" ? [] : e.was.filter((x) => x !== allgemein);
+  const stand = node.input ? e.stand : e.stand.slice(1);
+  const wer = node.kind === "massnahme" ? betroffene(node.id, 1) : null;
+  const begriffe = allgemein ? [{ begriff: t("t2.mentor.wasIst", { art: node.kind }), text: allgemein }, ...e.begriffe] : e.begriffe;
+  const lead = [
+    wer && wer.gewinner.length > 0 ? t("t2.mentor.gewinner", { liste: wer.gewinner.join(", ") }) : null,
+    wer && wer.verlierer.length > 0 ? t("t2.mentor.verlierer", { liste: wer.verlierer.join(", ") }) : null,
+  ].filter(Boolean).join(" ");
 
   return (
     <section className="erklaerung" aria-label={tx("ui2.ui.Erklaerung.8e99219", { p0: node.name })}>
       <header className="erklaerung-kopf">
-        <Cameo seed="Defne Arslan" figure="f" glasses size={36} tint="#265a62" />
-        <div>
-          <strong>{t("ui.Erklaerung.f45e424")}</strong>
-          <span>{node.name}</span>
-        </div>
+        <Cameo seed="Defne Arslan" figure="f" glasses size={32} tint="#265a62" />
+        <strong>{t("t2.mentor.titel")}</strong>
         <div className="reiter" role="tablist">
           {(
             [
@@ -38,8 +49,11 @@ export function Erklaerung({ node, world, onSelect, kopfText }: { node: NodeSpec
               ["welt", t("ui.Erklaerung.reiter.welt")],
               ["tun", t("ui.Erklaerung.reiter.tun")],
             ] as [Reiter, string][]
-          ).map(([id, label]) => (
-            <button key={id} role="tab" aria-selected={reiter === id} className={reiter === id ? "on" : ""} onClick={() => setReiter(id)}>
+          )
+            // Ohne hinterlegten Vergleich hätte der Reiter nur eine allgemeine Belehrung: Er entfällt
+            .filter(([id]) => id !== "welt" || vergleiche.length > 0)
+            .map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={reiter === id} aria-expanded={reiter === id} className={reiter === id ? "on" : ""} onClick={() => setReiter(reiter === id ? null : id)}>
               {label}
             </button>
           ))}
@@ -48,84 +62,61 @@ export function Erklaerung({ node, world, onSelect, kopfText }: { node: NodeSpec
 
       {reiter === "erklaert" && (
         <div className="erklaerung-koerper">
-          <p className="lead">{e.was[0]}</p>
-          {e.stand[0] && (
-            <p className="stand">
-              <b>{t("ui.Erklaerung.0ca5c4c")}</b> {e.stand[0]}
+          {lead && <p className="lead">{lead}</p>}
+          {eigenes.map((x, i) => (
+            <p key={i} className={!lead && i === 0 ? "lead" : undefined}>
+              {x}
             </p>
+          ))}
+          {stand.map((x, i) => (
+            <p key={`s${i}`} className="stand">
+              {i === 0 && <b>{t("ui.Erklaerung.0ca5c4c")}</b>} {x}
+            </p>
+          ))}
+          {/* Aufgeklappt zeigt der Reiter alles; die Begriffe bleiben eine eigene Klappe */}
+          {e.orte && (
+            <div className="orte">
+              <div>
+                <span>{t("ui.Erklaerung.344fbb6")}</span>
+                <ul>
+                  {e.orte.hoch.map((o) => (
+                    <li key={o.name}>
+                      {o.name} <em>{Math.round(o.wert)}</em>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <span>{tx("ui2.ui.Erklaerung.c60c617")}</span>
+                <ul>
+                  {e.orte.tief.map((o) => (
+                    <li key={o.name}>
+                      {o.name} <em>{Math.round(o.wert)}</em>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           )}
-          {mehr && (
-            <>
-              {e.was.slice(1).map((t, i) => (
-                <p key={i}>{t}</p>
-              ))}
-              {e.stand.slice(1).map((t, i) => (
-                <p key={`s${i}`}>{t}</p>
-              ))}
-              {e.orte && (
-                <div className="orte">
-                  <div>
-                    <span>{t("ui.Erklaerung.344fbb6")}</span>
-                    <ul>
-                      {e.orte.hoch.map((o) => (
-                        <li key={o.name}>
-                          {o.name} <em>{Math.round(o.wert)}</em>
-                        </li>
-                      ))}
-                    </ul>
+          {begriffe.length > 0 && (
+            <details className="begriffe">
+              <summary>{tx("ui2.ui.Erklaerung.21f2bd4", { p0: begriffe.length })}</summary>
+              <dl>
+                {begriffe.map((b) => (
+                  <div key={b.begriff}>
+                    <dt>{b.begriff}</dt>
+                    <dd>{b.text}</dd>
                   </div>
-                  <div>
-                    <span>{tx("ui2.ui.Erklaerung.c60c617")}</span>
-                    <ul>
-                      {e.orte.tief.map((o) => (
-                        <li key={o.name}>
-                          {o.name} <em>{Math.round(o.wert)}</em>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-              {e.wirkungen.length > 0 && (
-                <>
-                  <h4>{t("ui.Erklaerung.184fe65")}</h4>
-                  <ul className="wichtig">
-                    {e.wirkungen.map((v) => (
-                      <li key={v.id}>
-                        <button className="link" onClick={() => onSelect(v.id)}>
-                          {v.name}
-                        </button>{" "}
-                        <span className={v.erhoeht ? "plus" : "minus"}>{v.erhoeht ? "steigt" : "sinkt"}</span> · <em>{v.wann}</em>
-                        <span className="warum">{v.warum}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-              {e.begriffe.length > 0 && (
-                <details className="begriffe">
-                  <summary>{tx("ui2.ui.Erklaerung.21f2bd4", { p0: e.begriffe.length })}</summary>
-                  <dl>
-                    {e.begriffe.map((b) => (
-                      <div key={b.begriff}>
-                        <dt>{b.begriff}</dt>
-                        <dd>{b.text}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </details>
-              )}
-            </>
+                ))}
+              </dl>
+            </details>
           )}
-          <button className="link mehr-knopf" onClick={() => setMehr(!mehr)} aria-expanded={mehr}>
-            {mehr ? tx("ui2.ui.Erklaerung.34a01ce") : tx("ui2.ui.Erklaerung.0105a20")}
-          </button>
         </div>
       )}
 
       {reiter === "welt" && (
         <div className="erklaerung-koerper">
-          <p className="lead">{t("ui.Erklaerung.b90015a")}</p>
+          {/* Kein allgemeiner Satz vorweg („Eine Zahl sagt erst im Vergleich etwas“): Kopf und Platz der Türkei sagen es konkret */}
           {vergleiche.length > 1 && (
             <div className="welt-wahl">
               {vergleiche.map((v, i) => (

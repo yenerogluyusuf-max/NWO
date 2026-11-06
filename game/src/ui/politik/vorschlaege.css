@@ -1,0 +1,18 @@
+/* Politik › Vorschläge (ui/Bereiche.tsx): Leitfrage mit der Zahl in einer Zeile, der Weg zu den Bereichen rechts daneben.
+   Die Karten selbst gestaltet minister/ministerfluss.css; hier nur Kopf und Abstände dieser Ansicht. */
+
+.dossier .vorschlaege.mf { gap: var(--abstand-4); margin: 0; padding: 0; }
+.vs-kopf { display: grid; gap: 0; }
+.vs-titelzeile { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--abstand-1) var(--abstand-5); }
+.vs-kopf h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--abstand-1) var(--abstand-4); margin: 0; font: 600 var(--schrift-6)/1.1 var(--display); letter-spacing: 0.002em; }
+.vs-kopf .pd-lead { max-width: none; margin-top: var(--abstand-1); }
+.vs-zahl {
+  display: inline-flex; align-items: baseline; gap: var(--abstand-1); padding: var(--abstand-1) var(--abstand-3);
+  border: 1px solid var(--messing-2); border-radius: var(--rund-pille); background: var(--warnung-flaeche);
+  font: 600 var(--schrift-2)/1.3 var(--serif); letter-spacing: 0; color: var(--tinte-weich);
+}
+.vs-zahl b { font: 700 var(--schrift-4)/1 var(--serif); font-variant-numeric: tabular-nums; color: var(--tinte-1); }
+.vs-selbst { flex: none; margin: 0; font: var(--schrift-3)/1.4 var(--serif); color: var(--tinte-weich); }
+.dossier .vorschlaege .mf-liste.mf-raster { gap: var(--abstand-3) var(--abstand-4); }
+.dossier .vorschlaege .mf-karte.kompakt .mf-titel { margin: 0; }
+.dossier .vorschlaege .mf-karte.kompakt { gap: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); }

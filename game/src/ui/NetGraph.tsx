@@ -8,38 +8,66 @@ import { wann } from "./lernen";
 
 import { t } from "../i18n";
 import { t as tx } from "../i18n";
-// Die Zeichnung ist bewusst schmal (W = 820), damit sie in der Spalte kaum verkleinert wird und die Schrift lesbar bleibt.
-const W = 820;
-const COL_L = 96;
-const COL_R = W - 96;
-const BOX_W = 170;
-const ROW = 68;
+// Die Zeichnung hat etwa die Breite der Spalte (W rund 550 bis 620 bei rund 460 px), damit die Schrift nach dem Verkleinern lesbar
+// bleibt (vorher W = 820 in einer 400-px-Spalte: 8 px Schrift). Die Kästen stehen je Spalte nach ihrer Höhe gestapelt, nicht in
+// festen Zeilen; ohne Ursachen ist die linke Spalte nur so breit wie das Siegel.
+const BOX_W = 168;
 const MAX = 8;
-const ZEICHEN = 15;
+/** Breite der linken Spalte: Kästen der Ursachen oder, ohne Ursachen, nur das Siegel „Beschluss der Regierung“ */
+const LINKS_KAESTEN = BOX_W + 12;
+const LINKS_SIEGEL = 116;
+/** Lücken zwischen den Spalten; rechts steht darin die Verzögerung („3 Mon.“) */
+const LUECKE_L = 48;
+/** Mit Ursachen steht auch links eine Verzögerung in der Lücke */
+const LUECKE_L_MIT = 62;
+const LUECKE_R = 70;
+/** Zeichen je Zeile in den Kästen und im mittleren Kasten */
+const ZEICHEN = 17;
+const ZEICHEN_MITTE = 13;
+/** Zeilenhöhe der Beschriftung, Innenabstand und Abstand zwischen den Kästen */
+const ZEILE = 20;
+const ZEILE_MITTE = 22;
+const RAND = 12;
+const LUECKE = 7;
+const KOPF = 30;
 /** Halbe Breite des mittleren Kastens (Pfeile enden und beginnen an seinem Rand) */
-const MITTE_HALB = 110;
+const MITTE_HALB = 72;
 
 /** Bricht einen Namen in bis zu drei Zeilen; nichts wird abgeschnitten. */
-function lines(name: string): string[] {
-  if (name.length <= ZEICHEN) return [name];
+function lines(name: string, max = ZEICHEN): string[] {
+  if (name.length <= max) return [name];
   const words = name.split(" ");
   const out = [""];
   for (const w of words) {
     const cur = out[out.length - 1]!;
-    if ((cur + " " + w).trim().length > ZEICHEN && cur) out.push(w);
+    if ((cur + " " + w).trim().length > max && cur) out.push(w);
     else out[out.length - 1] = (cur + " " + w).trim();
   }
   // Mehr als drei Zeilen: den Rest an die dritte hängen, damit kein Wort fehlt
   return out.length <= 3 ? out : [out[0]!, out[1]!, out.slice(2).join(" ")];
 }
 
-/** Kurzform für die Zeichnung („nach 3 Mon.“); die Langform steht im Tooltip der Linie. */
-const kurzWann = (lag: number) => t("n4.nv.nachMon", { n: lag });
+const hoehe = (name: string, main?: boolean) => lines(name, main ? ZEICHEN_MITTE : ZEICHEN).length * (main ? ZEILE_MITTE : ZEILE) + RAND * (main ? 1.6 : 1);
+
+/** Mittelpunkte gestapelter Kästen, um cy zentriert */
+function stapel(hs: number[], cy: number): number[] {
+  const gesamt = hs.reduce((s, h) => s + h, 0) + LUECKE * Math.max(0, hs.length - 1);
+  let y = cy - gesamt / 2;
+  return hs.map((h) => {
+    const m = y + h / 2;
+    y += h + LUECKE;
+    return m;
+  });
+}
+
+/** Kurzform für die Zeichnung („3 Mon.“, passt in die Lücke vor dem Kasten); die Langform steht im Tooltip der Linie. */
+const kurzWann = (lag: number) => t("t2.ng.mon", { n: lag });
 
 function NodeBox({ node, x, y, main, onClick }: { node: NodeSpec; x: number; y: number; main?: boolean; onClick?: () => void }) {
-  const ls = lines(node.name);
+  const ls = lines(node.name, main ? ZEICHEN_MITTE : ZEICHEN);
   const w = main ? MITTE_HALB * 2 : BOX_W;
-  const h = main ? (ls.length > 2 ? 100 : 78) : ls.length > 2 ? 66 : 50;
+  const h = hoehe(node.name, main);
+  const zeile = main ? ZEILE_MITTE : ZEILE;
   const stroke = node.kind === "problem" ? "#8e2a22" : "#2a1f18";
   return (
     <g className={`ng-node kind-${node.kind}${main ? " main" : ""}`} transform={`translate(${x - w / 2} ${y - h / 2})`} onClick={onClick} role={onClick ? "button" : undefined}>
@@ -50,9 +78,9 @@ function NodeBox({ node, x, y, main, onClick }: { node: NodeSpec; x: number; y: 
         <rect width={w} height={h} rx="2" fill={main ? "#fbf3dc" : node.kind === "massnahme" ? "#f6ebcf" : "#fbf7ea"} stroke={stroke} strokeWidth={main ? 1.8 : 1.1} />
       )}
       {node.kind === "massnahme" && <rect x="4" y="4" width={w - 8} height={h - 8} rx="1" fill="none" stroke={stroke} strokeOpacity="0.45" />}
-      {node.kind === "problem" && <path d={`M${w - 18} 5 l8 13 h-16 Z`} fill="#8e2a22" />}
+      {node.kind === "problem" && <path d={`M${w - 16} 5 l7 12 h-14 Z`} fill="#8e2a22" />}
       {ls.map((l, i) => (
-        <text key={i} x={w / 2} y={h / 2 + (i - (ls.length - 1) / 2) * (main ? 25 : 19) + (main ? 8 : 6)} textAnchor="middle" className="ng-label">
+        <text key={i} x={w / 2} y={h / 2 + (i - (ls.length - 1) / 2) * zeile + (main ? 7 : 6)} textAnchor="middle" className="ng-label">
           {l}
         </text>
       ))}
@@ -64,29 +92,41 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
   const node = NET.nodes[NET.index.get(nodeId)!]!;
   const causes = NET.edges.filter((e) => e.to === nodeId).sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight)).slice(0, MAX);
   const effects = NET.edges.filter((e) => e.from === nodeId).sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight)).slice(0, MAX);
-  const rows = Math.max(causes.length, effects.length, 3);
-  const H = rows * ROW + 40;
-  const cy = H / 2;
-  const yAt = (i: number, n: number) => cy + (i - (n - 1) / 2) * ROW;
   const get = (id: string) => NET.nodes[NET.index.get(id)!]!;
-
-  const arrow = (x1: number, y1: number, x2: number, y2: number, e: EdgeSpec, key: string, labelAt: number) => {
+  // Ohne Ursachen ist die linke Spalte nur das Siegel: Die Zeichnung wird schmaler und damit größer dargestellt
+  const siegelText = lines(node.input ? tx("ui2.ui.NetGraph.ea70511") : tx("ui2.ui.NetGraph.daad2ce"), 14);
+  // Die Unterschrift des Siegels darf nicht über den linken Rand ragen (ein langes Wort wie „Wirtschaftsmodell“ bricht nicht um)
+  const siegelBreite = Math.max(LINKS_SIEGEL, Math.max(...siegelText.map((l) => l.length)) * 7.6 + 10);
+  const links = causes.length ? LINKS_KAESTEN : siegelBreite;
+  const COL_L = causes.length ? 6 + BOX_W / 2 : siegelBreite / 2;
+  const MITTE = links + (causes.length ? LUECKE_L_MIT : LUECKE_L) + MITTE_HALB;
+  const COL_R = MITTE + MITTE_HALB + LUECKE_R + BOX_W / 2;
+  const W = COL_R + BOX_W / 2 + 6;
+  const hUrsache = causes.map((e) => hoehe(get(e.from).name));
+  const hWirkung = effects.map((e) => hoehe(get(e.to).name));
+  const spalte = (hs: number[]) => hs.reduce((s, h) => s + h, 0) + LUECKE * Math.max(0, hs.length - 1);
+  // Ohne Ursachen braucht das Siegel samt Unterschrift Platz (Kreis 34, Unterschrift ab 56 unter der Mitte, je Zeile 18)
+  const siegelHoehe = causes.length ? 0 : 2 * (56 + siegelText.length * 18);
+  const H = Math.max(spalte(hUrsache), spalte(hWirkung), hoehe(node.name, true), siegelHoehe, 150) + KOPF + 8;
+  const cy = KOPF + (H - KOPF) / 2;
+  const yUrsache = stapel(hUrsache, cy);
+  const yWirkung = stapel(hWirkung, cy);
+  /** Linie mit Verzögerungsangabe. Die Angabe steht am Ende, an dem die Linien auseinanderlaufen (dort überdecken sie sich nicht). */
+  const arrow = (x1: number, y1: number, x2: number, y2: number, e: EdgeSpec, key: string, labelBei: "start" | "ende") => {
     const { weight, lag } = e;
     const mx = (x1 + x2) / 2;
-    // Punkt auf der Kurve, an dem die Verzögerung steht: weg vom gemeinsamen Mittelknoten
-    const t = labelAt;
-    const bx = x1 * (1 - t) ** 3 + 3 * mx * (1 - t) ** 2 * t + 3 * mx * (1 - t) * t ** 2 + x2 * t ** 3;
-    const by = y1 + (y2 - y1) * (3 * t * t - 2 * t * t * t);
     const color = weight > 0 ? "#265a62" : "#8e2a22";
     const width = 0.8 + Math.min(2.2, Math.abs(weight) * 4);
     const d = `M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
+    const lx = labelBei === "ende" ? x2 - 8 : x1 + 6;
+    const ly = (labelBei === "ende" ? y2 : y1) - 6;
     return (
       <g key={key} className="ng-kante">
         <title>{tx(weight > 0 ? "n4.nv.kanteHoch" : "n4.nv.kanteRunter", { von: get(e.from).name, nach: get(e.to).name, wann: wann(lag), warum: e.why })}</title>
         <path d={d} fill="none" stroke="transparent" strokeWidth="14" />
         <path d={d} fill="none" stroke={color} strokeWidth={width} strokeDasharray={lag > 0 ? "6 4" : undefined} markerEnd={`url(#ng-${weight > 0 ? "plus" : "minus"})`} />
         {lag > 0 && (
-          <text x={bx} y={by - 5} textAnchor="middle" className="ng-lag">
+          <text x={lx} y={ly} textAnchor={labelBei === "ende" ? "end" : "start"} className="ng-lag">
             {kurzWann(lag)}
           </text>
         )}
@@ -96,7 +136,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
 
   return (
     <div className="netgraph-block">
-    <svg className="netgraph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={tx("ui2.ui.NetGraph.68b1b53", { p0: node.name })}>
+    <svg className="netgraph" viewBox={`0 0 ${W} ${H}`} style={{ maxWidth: W }} role="img" aria-label={tx("ui2.ui.NetGraph.68b1b53", { p0: node.name })}>
       <defs>
         <marker id="ng-plus" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10 Z" fill="#265a62" />
@@ -108,43 +148,47 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
           <path d="M0 0 L10 5 L0 10 Z" fill="#2a1f18" />
         </marker>
       </defs>
-      <text x={COL_L} y="14" textAnchor="middle" className="ng-head">{tx("ui2.ui.NetGraph.7757ec0")}</text>
-      <text x={COL_R} y="14" textAnchor="middle" className="ng-head">{tx("ui2.ui.NetGraph.1fac6b5")}</text>
-      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yAt(i, causes.length), W / 2 - MITTE_HALB, cy, e, `c${e.from}`, 0.5))}
-      {effects.map((e, i) => arrow(W / 2 + MITTE_HALB, cy, COL_R - BOX_W / 2 - 2, yAt(i, effects.length), e, `e${e.to}`, 0.5))}
+      <text x={COL_L} y="18" textAnchor="middle" className="ng-head">{tx("ui2.ui.NetGraph.7757ec0")}</text>
+      <text x={COL_R} y="18" textAnchor="middle" className="ng-head">{tx("ui2.ui.NetGraph.1fac6b5")}</text>
+      {causes.map((e, i) => arrow(COL_L + BOX_W / 2, yUrsache[i]!, MITTE - MITTE_HALB, cy, e, `c${e.from}`, "start"))}
+      {effects.map((e, i) => arrow(MITTE + MITTE_HALB, cy, COL_R - BOX_W / 2 - 2, yWirkung[i]!, e, `e${e.to}`, "ende"))}
       {causes.map((e, i) => (
-        <NodeBox key={e.from} node={get(e.from)} x={COL_L} y={yAt(i, causes.length)} onClick={() => onSelect(e.from)} />
+        <NodeBox key={e.from} node={get(e.from)} x={COL_L} y={yUrsache[i]!} onClick={() => onSelect(e.from)} />
       ))}
       {effects.map((e, i) => (
-        <NodeBox key={e.to} node={get(e.to)} x={COL_R} y={yAt(i, effects.length)} onClick={() => onSelect(e.to)} />
+        <NodeBox key={e.to} node={get(e.to)} x={COL_R} y={yWirkung[i]!} onClick={() => onSelect(e.to)} />
       ))}
       {causes.length === 0 && (
         <g>
-          <path d={`M${COL_L + 40} ${cy} C${W / 4} ${cy} ${W / 4} ${cy} ${W / 2 - MITTE_HALB} ${cy}`} fill="none" stroke="#2a1f18" strokeWidth="1.5" strokeDasharray={node.input ? "5 3" : undefined} markerEnd="url(#ng-ink)" />
+          <path d={`M${COL_L + 40} ${cy} C${(COL_L + MITTE - MITTE_HALB) / 2} ${cy} ${(COL_L + MITTE - MITTE_HALB) / 2} ${cy} ${MITTE - MITTE_HALB} ${cy}`} fill="none" stroke="#2a1f18" strokeWidth="1.5" strokeDasharray={node.input ? "5 3" : undefined} markerEnd="url(#ng-ink)" />
           <circle cx={COL_L} cy={cy} r="34" fill={node.input ? "#265a62" : "#8e2a22"} stroke="#2a1f18" />
           <circle cx={COL_L} cy={cy} r="27" fill="none" stroke="#f6dcc2" strokeOpacity="0.5" strokeDasharray="1 2" />
           <text x={COL_L} y={cy + 7} textAnchor="middle" className="ng-seal">{node.input ? "₺" : "§"}</text>
-          <text x={COL_L} y={cy + 56} textAnchor="middle" className="ng-empty">{node.input ? tx("ui2.ui.NetGraph.ea70511") : tx("ui2.ui.NetGraph.daad2ce")}</text>
+          {siegelText.map((l, i) => (
+            <text key={i} x={COL_L} y={cy + 56 + i * 18} textAnchor="middle" className="ng-empty">
+              {l}
+            </text>
+          ))}
         </g>
       )}
-      <NodeBox node={node} x={W / 2} y={cy} main />
+      <NodeBox node={node} x={MITTE} y={cy} main />
     </svg>
     <ul className="ng-legende" aria-label={t("ui.NetGraph.315742a")}>
       <li>
-        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#265a62" strokeWidth="2" /><path d="M26 1 L33 5 L26 9 Z" fill="#265a62" /></svg>
+        <svg width="24" height="10" aria-hidden><line x1="0" y1="5" x2="20" y2="5" stroke="#265a62" strokeWidth="2" /><path d="M16 1 L23 5 L16 9 Z" fill="#265a62" /></svg>
         <span>{t("ui.NetGraph.588d242")}</span>
       </li>
       <li>
-        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#8e2a22" strokeWidth="2" /><path d="M26 1 L33 5 L26 9 Z" fill="#8e2a22" /></svg>
+        <svg width="24" height="10" aria-hidden><line x1="0" y1="5" x2="20" y2="5" stroke="#8e2a22" strokeWidth="2" /><path d="M16 1 L23 5 L16 9 Z" fill="#8e2a22" /></svg>
         <span>{t("n4.nv.senkt")}</span>
       </li>
       <li>
-        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" /></svg>
-        <span>{tx("ui2.ui.NetGraph.f1b5273")}</span>
+        <svg width="24" height="10" aria-hidden><line x1="0" y1="5" x2="24" y2="5" stroke="#2a1f18" strokeWidth="2" /></svg>
+        <span>{t("t2.ng.sofort")}</span>
       </li>
       <li>
-        <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" strokeDasharray="6 4" /></svg>
-        <span>{t("ui.NetGraph.61dd3b6")}</span>
+        <svg width="24" height="10" aria-hidden><line x1="0" y1="5" x2="24" y2="5" stroke="#2a1f18" strokeWidth="2" strokeDasharray="5 3" /></svg>
+        <span>{t("t2.ng.verzoegert")}</span>
       </li>
       <li className="hinweis">{t("ui.NetGraph.927ad78")}</li>
     </ul>

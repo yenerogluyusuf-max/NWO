@@ -1,0 +1,14 @@
+{
+ "t2.nv.unveraendert": "unchanged since you took office",
+ "t2.nv.indexUnveraendert": "(value 0 to 100; unchanged since you took office)",
+ "t2.nv.bipJahr": "{p0} % of GDP a year",
+ "t2.nv.begruendungen": "All links with their reasoning ({n})",
+ "t2.ng.mon": "{n} mo.",
+ "t2.ng.verzoegert": "delayed (months)",
+ "t2.mentor.gewinner": "Who gains if you raise it: {liste}.",
+ "t2.mentor.verlierer": "Who loses: {liste}.",
+ "t2.mentor.wasIst": "{art, select, massnahme {What is a policy?} problem {What is a problem?} gruppe {What is a voter group?} other {What is an indicator?}}",
+ "t2.mentor.titel": "The mentor",
+ "t2.ng.sofort": "immediate",
+ "t2.nv.zumBild": "Back to the effect map"
+}

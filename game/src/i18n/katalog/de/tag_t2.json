@@ -1,0 +1,14 @@
+{
+ "t2.nv.unveraendert": "seit dem Amtsantritt unverändert",
+ "t2.nv.indexUnveraendert": "(Wert 0 bis 100; seit dem Amtsantritt unverändert)",
+ "t2.nv.bipJahr": "{p0} % des BIP im Jahr",
+ "t2.nv.begruendungen": "Alle Verbindungen mit Begründung ({n})",
+ "t2.ng.mon": "{n} Mon.",
+ "t2.ng.verzoegert": "verzögert (Monate)",
+ "t2.mentor.gewinner": "Wer beim Anheben gewinnt: {liste}.",
+ "t2.mentor.verlierer": "Wer verliert: {liste}.",
+ "t2.mentor.wasIst": "{art, select, massnahme {Was ist eine Maßnahme?} problem {Was ist ein Problem?} gruppe {Was ist eine Wählergruppe?} other {Was ist eine Größe?}}",
+ "t2.mentor.titel": "Die Mentorin",
+ "t2.ng.sofort": "sofort",
+ "t2.nv.zumBild": "Zurück zum Wirkungsbild"
+}

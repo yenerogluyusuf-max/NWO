@@ -28,7 +28,7 @@ function useSchliessen(offen: boolean, zu: () => void) {
   return ref;
 }
 
-export function OrtWahl({ world, massnahmeId, ort, onChange, akutVorgabe }: { world: World; massnahmeId: string; ort: number[] | null; onChange: (o: number[] | null) => void; /** Eigene Liste für „wo es akut ist“ (Restaurierung: Provinzen mit gefährdeten Stätten) */ akutVorgabe?: number[] | null }) {
+export function OrtWahl({ world, massnahmeId, ort, onChange, akutVorgabe, knapp }: { world: World; massnahmeId: string; ort: number[] | null; onChange: (o: number[] | null) => void; /** Eigene Liste für „wo es akut ist“ (Restaurierung: Provinzen mit gefährdeten Stätten) */ akutVorgabe?: number[] | null; /** Ohne den Satz „gilt im ganzen Land“, wenn die Leiste das schon zeigt (Wirkungsnetz) */ knapp?: boolean }) {
   const [menu, setMenu] = useState<"region" | "provinz" | null>(null);
   const [filter, setFilter] = useState("");
   const zu = () => setMenu(null);
@@ -118,7 +118,7 @@ export function OrtWahl({ world, massnahmeId, ort, onChange, akutVorgabe }: { wo
         </div>
       )}
 
-      <p className="ort-text">{istLand ? t("ui2.ui.OrtWahl.bd7c4cf") : t("ui2.ui.OrtWahl.ba24c71", { p0: provinzenText(ort) })}</p>
+      {!(knapp && istLand) && <p className="ort-text">{istLand ? t("ui2.ui.OrtWahl.bd7c4cf") : t("ui2.ui.OrtWahl.ba24c71", { p0: provinzenText(ort) })}</p>}
       {!istLand && ort!.length <= 8 && (
         <ul className="ort-chips">
           {ort!.map((p) => (

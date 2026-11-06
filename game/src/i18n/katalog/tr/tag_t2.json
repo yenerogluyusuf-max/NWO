@@ -1,0 +1,14 @@
+{
+ "t2.nv.unveraendert": "göreve başladığınızdan beri değişmedi",
+ "t2.nv.indexUnveraendert": "(0–100 arası değer; göreve başladığınızdan beri değişmedi)",
+ "t2.nv.bipJahr": "yılda GSYH'nin %{p0} kadarı",
+ "t2.nv.begruendungen": "Gerekçeleriyle tüm bağlantılar ({n})",
+ "t2.ng.mon": "{n} ay",
+ "t2.ng.verzoegert": "gecikmeli (ay)",
+ "t2.mentor.gewinner": "Artırırsan kazananlar: {liste}.",
+ "t2.mentor.verlierer": "Kaybedenler: {liste}.",
+ "t2.mentor.wasIst": "{art, select, massnahme {Politika nedir?} problem {Sorun nedir?} gruppe {Seçmen grubu nedir?} other {Gösterge nedir?}}",
+ "t2.mentor.titel": "Mentor",
+ "t2.ng.sofort": "hemen",
+ "t2.nv.zumBild": "Etki haritasına dön"
+}
