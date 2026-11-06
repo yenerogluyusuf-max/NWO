@@ -1,4 +1,15 @@
 {
  "tag_t7.sk.frei": "{n, plural, one {one slot free} other {# slots free}}",
- "tag_t7.tisch.hinweis": "Put a package together. You see the other side's verdict at once; only the offer itself costs capital."
+ "tag_t7.tisch.hinweis": "Put a package together. You see the other side's verdict at once; only the offer itself costs capital.",
+ "tag_t7.block.mitglieder": "Members in the game",
+ "tag_t7.block.partner": "Partners",
+ "tag_t7.block.beobachter": "Observers",
+ "tag_t7.rat.hinweis": "In the game the 13 states that appear as actors count (simplified); the rest follow them. Greece and Cyprus exercise their veto via the conflict values, the others only withhold unanimity in extreme positions.",
+ "tag_t7.dienst.lage": "Situation in the target state",
+ "tag_t7.dienst.satz": "Covert operations cost capital and part of the scarce capacity, rarely succeed cleanly and can be exposed.",
+ "tag_t7.dienst.bericht": "The world only learns what is exposed; here you see what you ordered or what was uncovered.",
+ "tag_t7.verm.umfang": "Scope and risk",
+ "tag_t7.verm.satz": "Ankara has a line to both sides. The situation must ripen, spoilers work against it, and an agreement only holds if someone guarantees it.",
+ "tag_t7.verm.zahlen": "Ripeness {reife} · conflict {konflikt}",
+ "tag_t7.verm.preis": "Build-up {bip} % of GDP, then {monat} capital a month · prospect +{aussicht}"
 }

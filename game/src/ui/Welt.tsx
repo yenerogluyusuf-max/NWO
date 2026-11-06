@@ -97,7 +97,8 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
   };
 
   return (
-    <div className={`we${tab === "verhandeln" && modus === "laender" && haupt ? " schmal" : ""}`}>
+    // Dienst und Vermittlung brauchen keine Liste links (dort stand nur ein Satz, der die Überschrift wiederholte): volle Breite (Tag 6. November)
+    <div className={`we${tab === "verhandeln" && modus === "laender" && haupt ? " schmal" : ""}${modus === "dienst" || modus === "vermittlung" ? " breit" : ""}`}>
       <nav className="we-liste" aria-label={t("ui.Welt.5f9089a")}>
         <div className="we-modus" role="tablist" aria-label={tx("ui2.ui.Welt.5c38879")}>
           {MODI.map((m) => (

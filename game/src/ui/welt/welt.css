@@ -2,6 +2,17 @@
 
 .we { container-type: inline-size; display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
 @container (min-width: 700px) { .we { grid-template-columns: minmax(210px, 270px) minmax(0, 1fr); } .we-liste { position: sticky; top: 0; max-height: calc(100vh - 215px); } }
+/* Dienst und Vermittlung: die Akte über die ganze Breite, die Leiste der Modi bleibt oben links */
+/* Der Einleitungssatz steht rechts neben der Leiste der Modi statt in einer eigenen Zeile darunter: Akte und Abschnitt geben ihre Kinder
+   an das Raster weiter (display: contents), der Satz nimmt die zweite Spalte der ersten Zeile, alles andere die ganze Breite. */
+@container (min-width: 700px) {
+  .we.breit { grid-template-columns: minmax(210px, 270px) minmax(0, 1fr); row-gap: var(--abstand-3); }
+  .we.breit .we-liste { position: static; max-height: none; grid-row: 1; grid-column: 1; }
+  .we.breit > .we-akte, .we.breit > .we-akte > .we-vermittlung, .we.breit > .we-akte > .we-dienst { display: contents; container-type: normal; }
+  .we.breit > .we-akte > * > * { grid-column: 1 / -1; }
+  .we.breit .we-vermittlung > .subtitle, .we.breit .we-dienst > .we-dienst-kopf { grid-column: 2; grid-row: 1; align-self: center; margin: 0; }
+}
+.we.breit .we-liste-hinweis { display: none; }
 
 /* Liste */
 .we-liste { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
@@ -211,7 +222,8 @@
 .we-partei-vertrauen { display: block; font-size: var(--schrift-2); color: var(--ink-soft); margin: 1px 0 4px; }
 .we-partei i { display: block; margin-top: 5px; font-size: var(--schrift-1); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
 .we-partei ul { margin: 2px 0 0; padding-left: 1.15em; }
-.we-partei .we-rot li { color: var(--siegel); }
+.we-partei .we-rot li, .we-partei li.we-partei-rot { color: var(--siegel); }
+.we-partei li.we-partei-rot b { font: 600 var(--schrift-2) var(--serif); }
 
 .we-reif { display: grid; gap: 4px; }
 .we-reif-kurve { display: flex; align-items: flex-end; gap: 2px; height: 34px; padding: 3px 5px; background: rgba(90, 64, 40, 0.08); border-radius: 4px; }
@@ -245,6 +257,37 @@
 .we-garantie-preis { font-size: var(--schrift-1); color: var(--ink-soft); }
 .we-garantie-risiko { font-style: italic; font-size: var(--schrift-2); color: var(--siegel); }
 .we-angeboten { font: italic var(--schrift-2) var(--serif); color: var(--warnung); }
+/* Tag 6. November: Vermittlung auf breiter Fläche in zwei Spalten, Lage links, Handeln rechts; Garantien als schmale Karten untereinander */
+.we-verm-raster { display: grid; gap: var(--abstand-4); align-items: start; }
+.we-verm-lage, .we-verm-handeln { display: grid; gap: var(--abstand-3); min-width: 0; }
+@container (min-width: 900px) {
+  .we-verm-raster { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+  .we-garantien-leiste { grid-template-columns: minmax(0, 1fr); }
+}
+.we-konflikt-kopf .we-konflikt-zahlen { margin-left: auto; padding-left: var(--abstand-2); }
+.we-konflikt > b .we-status { font: italic 400 var(--schrift-1) var(--serif); letter-spacing: 0.04em; white-space: nowrap; }
+.we-konflikt-kopf { width: 100%; }
+.we-vermittlung-kopf .flagge { width: 30px; height: auto; }
+.we-partei-kopf { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 var(--abstand-3); }
+.we-partei-kopf .we-partei-vertrauen { margin: 0; }
+.we-vermittlung-karte .we-hinweis { font-size: var(--schrift-2); }
+.we-verm-handeln .we-handlungen-leiste .aktion-knopf { text-align: left; }
+/* „Reife schaffen“ als Beschriftung vor den Knöpfen statt in einer eigenen Zeile */
+.we-verm-lage .we-handlungen { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--abstand-3); }
+.we-verm-lage .we-handlungen > .we-hinweis { grid-column: 1 / -1; }
+.we-vermittlung-karte .we-verm-text { font-size: var(--schrift-3); }
+.we-vermittlung-karte .we-garantie p, .we-vermittlung-karte .we-zopa p { font-size: var(--schrift-2); }
+.we-vermittlung-karte .we-garantie p.we-garantie-preis { font-size: var(--schrift-1); }
+.we-garantie-kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--abstand-2); }
+.we-garantie-mehr > summary { cursor: pointer; font: 600 var(--schrift-1) var(--serif); color: var(--ink-soft); }
+.we-garantie-mehr[open] > summary { margin-bottom: var(--abstand-1); }
+/* Rote Linien der Parteien als roter Text, nicht als Kapitälchen-Stempel (die Klasse we-rot gehört der Plakette „Rote Linie“) */
+.we-partei ul.we-rot { padding: 0 0 0 1.15em; border: 0; font: var(--schrift-2)/1.4 var(--serif); letter-spacing: 0; text-transform: none; }
+.we.breit .we-vermittlung > h3 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.we.breit .we-vermittlung > .subtitle { margin: 0 0 var(--abstand-2); }
+@container (min-width: 900px) {
+  .we-konflikte { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 0 var(--abstand-3); }
+}
 
 /* Popover auf der Karte */
 .we-pop { position: fixed; z-index: 60; padding: 12px 14px 14px; background: var(--paper-light); background-image: radial-gradient(ellipse at 20% 0%, rgba(255, 250, 235, 0.8), transparent 60%); color: var(--ink); border: 1px solid var(--gold-3); border-radius: 4px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(40, 28, 14, 0.75); outline: none; animation: wePop 0.16s ease-out; }
@@ -549,7 +592,24 @@
 .we-op-aussicht b.aus-gering, .we-op-aussicht b.risiko-sehr-hoch, .we-op-aussicht b.risiko-hoch { color: var(--seal); }
 .we-op-aussicht b.aus-gut, .we-op-aussicht b.risiko-gering { color: var(--teal); }
 .we-faktoren { margin: 0; padding-left: 18px; font: var(--schrift-2)/1.4 var(--serif); color: var(--ink-soft); }
-.we-lager { display: grid; gap: 3px; font: var(--schrift-2) var(--serif); }
+.we-lager { display: flex; flex-wrap: wrap; gap: 3px var(--abstand-4); font: var(--schrift-2) var(--serif); }
+/* Tag 6. November: Kapazität und Gegenspionage in einer Zeile, die gemeinsame Lage des Zielstaats einmal als Zeile, drei Karten nebeneinander */
+.we-dienst-oben { display: grid; gap: var(--abstand-3); }
+@container (min-width: 900px) { .we-dienst-oben { grid-template-columns: minmax(0, 1fr) minmax(260px, 30%); align-items: stretch; } .we-dienst-oben .we-dienst-kapazitaet { order: 2; align-content: center; } }
+.we-dienst-ziel .we-ziel-zeile label { margin-right: var(--abstand-1); }
+.we.breit .we-dienst-kopf h3 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.we-op-faktor { color: var(--ink-soft); }
+/* Lager neben dem Knopf statt in einer eigenen Zeile darüber */
+.we-op-fuss .we-lager { order: 2; }
+.we-op-fuss > .we-hinweis { order: 3; }
+.we.breit .we-dienst-kopf .subtitle { margin: 0; }
+.we-bericht-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--abstand-4); margin-bottom: var(--abstand-2); }
+.we-dienst-bericht .we-bericht-kopf > b { margin: 0; }
+.we-dienst-bericht > .we-hinweis { margin: 0; }
+.we-faktoren-ziel { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 2px var(--abstand-5); }
+.we-faktoren-ziel li::before { content: "·"; margin-right: var(--abstand-2); color: var(--messing-3); }
+.we-faktoren-ziel li:first-child::before { content: none; }
+@container (min-width: 1000px) { .we-ops { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .we-op-fuss { margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .we-dienst-bericht li { padding: 8px 12px; border-left: 4px solid rgba(90, 64, 40, 0.35); background: rgba(255, 250, 235, 0.55); }
 .we-dienst-bericht li.ausgang-erfolg { border-left-color: var(--teal); }
@@ -579,6 +639,13 @@
 .we-rat-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .we-rat-liste li { display: grid; grid-template-columns: minmax(150px, 190px) 90px minmax(140px, auto) 1fr; gap: 6px 12px; align-items: center; padding: 4px 0; border-bottom: 1px dotted rgba(90, 64, 40, 0.25); }
 @container (max-width: 760px) { .we-rat-liste li { grid-template-columns: 1fr 80px; } .we-rat-liste li em { grid-column: 1 / -1; } .we-rat-wort { grid-column: 1 / -1; } }
+/* Tag 6. November: auf breiter Fläche zwei Spalten; je Staat Name, Waage und Stimme in einer Zeile, der Grund darunter */
+@container (min-width: 761px) {
+  .we-rat-liste { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--abstand-5); }
+  .we-rat-liste li { grid-template-columns: minmax(0, 1fr) 64px 8.5em; row-gap: 2px; }
+  .we-rat-liste .we-rat-land { min-width: 0; }
+  .we-rat-liste li em { grid-column: 1 / -1; }
+}
 .we-rat-balken { display: block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgba(142, 42, 34, 0.4), rgba(90, 64, 40, 0.15) 50%, rgba(93,66,49, 0.4)); position: relative; }
 .we-rat-balken i { position: absolute; top: -3px; left: var(--p); width: 3px; height: 14px; background: var(--ink); transform: translateX(-1px); border-radius: 4px; }
 .we-rat-wort { font: var(--schrift-2) var(--serif); }

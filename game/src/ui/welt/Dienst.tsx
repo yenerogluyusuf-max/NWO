@@ -22,6 +22,10 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
   const sicht = dienstSicht(world);
   const optionen = opsOptionen(world, ziel);
   const wahl = wahlSicht(world, ziel);
+  // Lage im Zielstaat, die für jede Operation gleich ist (Sicherheitsapparat, Medien, Einflussnetz): einmal beim Zielstaat statt in jeder Karte
+  const gemeinsam = optionen.length > 1 ? optionen[0]!.aussicht.faktoren.filter((f) => optionen.every((o) => o.aussicht.faktoren.includes(f))) : [];
+  // „Wahl in N Monaten“ ohne Zusatz wiederholt nur die Wahlzeile des Zielstaats; mit Zusatz („das Fenster ist offen“) bleibt er stehen
+  const eigene = (faktoren: string[]) => faktoren.filter((f) => !gemeinsam.includes(f) && !(wahl && /^Wahl in \d+ Monaten$/.test(f)));
   const kapitalOk = world.spiel!.kapital;
 
   const anordnen = (art: Operation["art"]) => {
@@ -37,11 +41,14 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
     <div className="we-dienst">
       <header className="we-dienst-kopf">
         <h3>{t("ui2.ui.welt.Dienst.e0f3da3")}</h3>
+        {/* Der zweite Satz der früheren Einleitung steht jetzt beim Bericht, zu dem er gehört (Tag 6. November) */}
         <p className="subtitle">
-          {t("ui.welt.Dienst.3515c0b")}
+          {t("tag_t7.dienst.satz")}
         </p>
       </header>
 
+      {/* Tag 6. November: Zielstaat und Kapazität nebeneinander, darunter die Operationen in drei Spalten */}
+      <div className="we-dienst-oben">
       <div className="we-dienst-kapazitaet">
         <div className="we-lagebalken">
           <span>
@@ -57,16 +64,9 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
         </div>
       </div>
 
-      {antwort && (
-        <p className={`we-rueck ${antwort.ok ? "ok" : "nein"}`} role="status">
-          {antwort.text}
-          {antwort.why && <em> {antwort.why}</em>}
-        </p>
-      )}
-
       <section className="we-dienst-ziel">
-        <label htmlFor="we-ziel">{t("ui2.ui.welt.Dienst.7f3406b")}</label>
         <div className="we-ziel-zeile">
+          <label htmlFor="we-ziel">{t("ui2.ui.welt.Dienst.7f3406b")}</label>
           <Flagge id={ziel} breite={34} />
           <select id="we-ziel" value={ziel} onChange={(e) => { setZiel(e.target.value); setAntwort(null); }}>
             {ANZEIGE_GRUPPEN.map((g) => (
@@ -95,7 +95,22 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
         ) : (
           <p className="we-dienst-wahl we-hinweis">{t("ui2.ui.welt.Dienst.afb73cc", { p0: akteurName(ziel) })}</p>
         )}
+        {gemeinsam.length > 0 && (
+          <ul className="we-faktoren we-faktoren-ziel" aria-label={t("tag_t7.dienst.lage")}>
+            {gemeinsam.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
+        )}
       </section>
+      </div>
+
+      {antwort && (
+        <p className={`we-rueck ${antwort.ok ? "ok" : "nein"}`} role="status">
+          {antwort.text}
+          {antwort.why && <em> {antwort.why}</em>}
+        </p>
+      )}
 
       <ul className="we-ops">
         {optionen.map((o) => (
@@ -115,21 +130,17 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
                 {t("ui2.ui.welt.Dienst.733a033")} <b className={`risiko-${o.aussicht.aufWort.replace(" ", "-")}`}>{o.aussicht.aufWort}</b>
               </span>
             </div>
-            <ul className="we-faktoren">
-              {o.aussicht.faktoren.map((f) => (
-                <li key={f}>{f}</li>
-              ))}
-            </ul>
-            {o.lager && (
-              <div className="we-lager" role="radiogroup" aria-label={t("ui2.ui.welt.Dienst.ec3f7e0")}>
-                {o.lager.map((l) => (
-                  <label key={l.id}>
-                    <input type="radio" name="we-lager" checked={lager === l.id} onChange={() => setLager(l.id)} /> {l.label}
-                  </label>
-                ))}
-              </div>
-            )}
+            {eigene(o.aussicht.faktoren).length > 0 && <p className="we-op-faktor">{eigene(o.aussicht.faktoren).join(" · ")}</p>}
             <div className="we-op-fuss">
+              {o.lager && (
+                <div className="we-lager" role="radiogroup" aria-label={t("ui2.ui.welt.Dienst.ec3f7e0")}>
+                  {o.lager.map((l) => (
+                    <label key={l.id}>
+                      <input type="radio" name="we-lager" checked={lager === l.id} onChange={() => setLager(l.id)} /> {l.label}
+                    </label>
+                  ))}
+                </div>
+              )}
               <button type="button" className="aktion-knopf" disabled={!o.moeglich} onClick={() => anordnen(o.def.art)}>
                 {t("ui2.ui.welt.Dienst.d53a9d4")}
               </button>
@@ -166,7 +177,10 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
       )}
 
       <section className="we-dienst-bericht">
-        <b>{t("ui.welt.Dienst.84dfd2a")}</b>
+        <div className="we-bericht-kopf">
+          <b>{t("ui.welt.Dienst.84dfd2a")}</b>
+          <span className="we-hinweis">{t("tag_t7.dienst.bericht")}</span>
+        </div>
         {sicht.bericht.length === 0 ? (
           <p className="we-hinweis">{t("ui.welt.Dienst.5419971")}</p>
         ) : (
