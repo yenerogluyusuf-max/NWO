@@ -635,6 +635,7 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     setPolicy(world, id, pr.stufe, pr.provinzen);
     politikGeaendert(world, id, vorErlass, pr.stufe);
     const l = world.log[world.log.length - 1]!;
+    l.beschluss = pr.erlass.art;
     if (pr.erlass.art === "beschluss") {
       // Art. 73 Abs. 4: in den Grenzen des Gesetzes, ohne Normenkontrolle; kostet wenig Vertrauen
       vertrauenAendern(world, BESCHLUSS.vertrauen);
@@ -862,10 +863,12 @@ export function verkuende(world: World, g: Gesetz, e: Pick<PlenumErgebnis, "ja" 
   const zielName = stufenName(g.massnahme, g.stufe);
   const why = t("protokoll.gesetz.ja_warum", { text: node.text, monate });
   if (unterschrieben) {
-    addLog(world, "entscheidung", t("n4.unterschrift.text", { name: g.name, ziel: zielName }), why);
+    addLog(world, "entscheidung", t("n4.unterschrift.text", { name: g.name, ziel: zielName }), why).beschluss = "gesetz";
     return;
   }
-  addLog(world, "entscheidung", t("protokoll.gesetz.ja", { name: g.name, ort, ja: e.ja, nein: e.nein, stufe: zielName }), why).abstimmung = { art: "gesetz", name: g.name, ort, ja: e.ja, nein: e.nein, abwesend: e.abwesend, angenommen: true, stufe: g.stufe };
+  const l = addLog(world, "entscheidung", t("protokoll.gesetz.ja", { name: g.name, ort, ja: e.ja, nein: e.nein, stufe: zielName }), why);
+  l.abstimmung = { art: "gesetz", name: g.name, ort, ja: e.ja, nein: e.nein, abwesend: e.abwesend, angenommen: true, stufe: g.stufe };
+  l.beschluss = "gesetz";
 }
 
 /** Am Abstimmungstag wird entschieden: Unterstützer aus Lager, Übertritten, Absprachen und Zufall; gezählt nach Art. 96 unter den
@@ -916,7 +919,7 @@ function kommissionEntscheidet(world: World, g: Gesetz): void {
   wendeAn(world, g.massnahme, g.stufe, g.provinzen);
   politikGeaendert(world, g.massnahme, von, g.stufe);
   const erhoehung = g.stufe > von;
-  addLog(world, "entscheidung", t(erhoehung ? "n4.kommission.erhoeht" : "n4.kommission.gesenkt", { name: g.name, von: stufenName(g.massnahme, von), nach: stufenName(g.massnahme, g.stufe) }), t(erhoehung ? "n4.kommission.erhoehtWarum" : "n4.kommission.gesenktWarum"));
+  addLog(world, "entscheidung", t(erhoehung ? "n4.kommission.erhoeht" : "n4.kommission.gesenkt", { name: g.name, von: stufenName(g.massnahme, von), nach: stufenName(g.massnahme, g.stufe) }), t(erhoehung ? "n4.kommission.erhoehtWarum" : "n4.kommission.gesenktWarum")).beschluss = "kommission";
 }
 
 /** Wie stark sich eine Maßnahme vom Startwert entfernt hat, für Anzeigen. */

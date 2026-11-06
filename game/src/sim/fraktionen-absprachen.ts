@@ -12,7 +12,7 @@
 import type { World } from "./types";
 import type { Gesetz } from "./spiel-typen";
 import { hashWert, AUFMERKSAMKEIT_KOSTEN, verbrauche } from "./aufmerksamkeit";
-import { gesetzSicht, setzeAbsprachenHaken, STIMMEN_PUFFER, type Ergebnis } from "./handeln";
+import { gesetzPrognose, setzeAbsprachenHaken, STIMMEN_PUFFER, type Ergebnis } from "./handeln";
 import { fraktionsUebersicht } from "./verhandeln";
 import { duldung, PARTEI_NAME } from "./fraktionen";
 import { NAMENSVORRAT } from "./figuren";
@@ -84,7 +84,8 @@ export function absprachenAngebote(w: World, g: Gesetz, bedarf?: number, extraKa
   const sp = w.spiel;
   const parl = w.parliament;
   if (!sp || !parl) return [];
-  const noetig = bedarf ?? gesetzSicht(w, g).noetig;
+  // Wie die Tagesordnung: gemessen am Abstimmungstag (auslaufende Duldungen zählen schon nicht mehr)
+  const noetig = bedarf ?? gesetzPrognose(w, g).noetig;
   if (noetig <= 0) return [];
   const dul = new Set(duldung(w).parteien);
   const sicht = new Map(fraktionsUebersicht(w).map((f) => [f.partei, f]));

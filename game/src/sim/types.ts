@@ -168,6 +168,9 @@ export interface LogEntry {
   text: string;
   /** Kurze Begründung, die „Warum?“ beantwortet */
   why?: string;
+  /** Dieser Eintrag setzt etwas in Kraft (Gesetz verkündet, Erlass, Präsidialbeschluss, Kommissionsbeschluss, Ausnahmezustand);
+   *  die Umsetzungsakte zählt nur diese als Beschlüsse (befund-B B-23) */
+  beschluss?: "gesetz" | "erlass" | "beschluss" | "kommission" | "notstand";
 }
 
 export interface World {

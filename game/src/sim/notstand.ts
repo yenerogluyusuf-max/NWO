@@ -129,7 +129,7 @@ export function rufeNotstandAus(w: World, anlass?: NotstandAnlass): Ergebnis {
   const datum = formatDateDe(addDays(w.date, NOTSTAND.hoechstTage));
   const text = t("n4.not.ausgerufen", { anlass: anlassWort, ja: e.ja, nein: e.nein, datum });
   const why = t("n4.not.ausgerufenWarum", { pk: s.pk, tage: NOTSTAND.hoechstTage });
-  addLog(w, "entscheidung", text, why);
+  addLog(w, "entscheidung", text, why).beschluss = "notstand";
   return { ok: true, text, why };
 }
 

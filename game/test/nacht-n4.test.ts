@@ -18,6 +18,7 @@ import de from "../src/i18n/katalog/de/nacht_n4.json";
 import en from "../src/i18n/katalog/en/nacht_n4.json";
 import tr from "../src/i18n/katalog/tr/nacht_n4.json";
 import type { World } from "../src/sim/types";
+import { platzhalter } from "../src/i18n";
 
 function neu(seed = 11): World {
   const w = createWorld(turkey2026, seed);
@@ -262,7 +263,7 @@ describe("Ausnahmezustand (B-5, Art. 119)", () => {
 
 describe("Kataloge", () => {
   test("Alle Schlüssel in drei Sprachen, gleiche Platzhalter", () => {
-    const platz = (s: string) => [...new Set([...s.matchAll(/\{(\w+)(?=[,}|])/g)].map((m) => m[1]))].sort().join(",");
+    const platz = (s: string) => [...new Set(platzhalter(s))].sort().join(",");
     for (const [k, v] of Object.entries(de)) {
       expect((en as Record<string, string>)[k], `en ${k}`).toBeTruthy();
       expect((tr as Record<string, string>)[k], `tr ${k}`).toBeTruthy();
