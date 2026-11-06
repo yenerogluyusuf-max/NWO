@@ -91,7 +91,7 @@
  "karte.region.dogu_anadolu": "Doğu Anadolu",
  "karte.region.guneydogu_anadolu": "Güneydoğu Anadolu",
  "lernen.wann": "{n, plural, =0 {hemen} other {# ay sonra}}",
- "lernen.art.massnahme": "Tedbir, sizin karar verdiğiniz bir ayardır. Her kademe ne anlama geldiğini söyler: adı konmuş bir durum, KDV gibi bir oran ya da göreve başlarken düzeyin payı.",
+ "lernen.art.massnahme": "Tedbir, sizin karar verdiğiniz bir ayardır. Her kademe ne anlama geldiğini söyler: adı konmuş bir durum, KDV gibi bir oran ya da aylık lira veya yıllık kilometre gibi gerçek bir büyüklük.",
  "lernen.art.groesse": "Büyüklük, ülkenin bir durumunu anlatır. Tedbirleriniz, ekonomi ve başka büyüklüklerle değişir.",
  "lernen.art.problem": "Bir sorunun bir ildeki değeri eşiğe ulaştığında sorun akut hâle gelir. O zaman oradaki güveni ve seçmen gruplarını zorlar.",
  "lernen.art.gruppe": "Seçmen grubu, nüfusun bir kesiminin politikanızdan ne kadar memnun olduğunu gösterir. Ruh hâli onayınızı ve böylece bir sonraki seçimi belirler.",

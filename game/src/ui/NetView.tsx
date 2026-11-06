@@ -280,10 +280,16 @@ export function NetView({
                 <b style={{ left: `${Math.max(0, Math.min(100, start))}%` }} title={t("ui2.ui.NetView.130b865")} />
               </span>
             )}
-            {!node.input && (
+            {!node.input && istMassnahme && (
               <span className="subtitle">
                 {" "}
-                {istMassnahme ? t("n4.nv.startMassnahme", { start: stufenName(node.id, start) }) : t("n4.nv.startIndex", { start: nf(start) })}
+                ({ort ? `${t("n9.netz.land", { wert: stufenName(node.id, nationalAverage(NET, world.net, node.id)) })}; ` : ""}{t("n9.netz.start", { start: stufenName(node.id, start) })})
+              </span>
+            )}
+            {!node.input && !istMassnahme && (
+              <span className="subtitle">
+                {" "}
+                {t("n4.nv.startIndex", { start: nf(start) })}
               </span>
             )}
             {node.kind === "problem" && (
@@ -340,11 +346,11 @@ export function NetView({
                       </h4>
                       <div className="stufe-kopf">
                         <span>
-                          {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : `etwa ${jetztStufe.stufe.name}`) : stufenName(node.id, now)}</b>
+                          {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : t("n9.netz.etwa", { name: jetztStufe.stufe.name })) : stufenName(node.id, now)}</b>
                         </span>
                         <span aria-hidden>→</span>
                         <span className={aendert ? "neu" : ""}>
-                          neu <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : `etwa ${neuStufe.stufe.name}`) : stufenName(node.id, sliderValue)}</b>
+                          {t("n9.netz.neu")} <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : t("n9.netz.etwa", { name: neuStufe.stufe.name })) : stufenName(node.id, sliderValue)}</b>
                         </span>
                       </div>
                       <div className={`stufenwahl art-${sk.art}`} role="radiogroup" aria-label={`${sk.frage} ${node.name}`}>
@@ -373,7 +379,7 @@ export function NetView({
                             </span>
                             <span aria-hidden>→</span>
                             <span>
-                              neu <b>{stufenName(node.id, sliderValue)}</b>
+                              {t("n9.netz.neu")} <b>{stufenName(node.id, sliderValue)}</b>
                             </span>
                           </div>
                           <input type="range" min={0} max={100} value={sliderValue} aria-label={t("ui2.ui.NetView.b0debca", { p0: node.name })} onChange={(ev) => wahl(Number(ev.target.value))} />
@@ -404,8 +410,8 @@ export function NetView({
                             </span>
                             <span className="um-legende">
                               {t("ui2.ui.NetView.6b17514")}
-                              {beschlossenesZiel !== undefined ? t("ui2.ui.NetView.b4cf04a", { p0: Math.round(beschlossenesZiel) }) : ""}
-                              {aendert ? t("ui2.ui.NetView.ed0fc21", { p0: sliderValue }) : ""}
+                              {beschlossenesZiel !== undefined ? t("ui2.ui.NetView.b4cf04a", { p0: stufenName(node.id, beschlossenesZiel) }) : ""}
+                              {aendert ? t("ui2.ui.NetView.ed0fc21", { p0: stufenName(node.id, sliderValue) }) : ""}
                             </span>
                           </p>
                         </div>

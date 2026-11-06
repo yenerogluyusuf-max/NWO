@@ -91,7 +91,7 @@
  "karte.region.dogu_anadolu": "Ostanatolien (Doğu Anadolu)",
  "karte.region.guneydogu_anadolu": "Südostanatolien (Güneydoğu Anadolu)",
  "lernen.wann": "{n, plural, =0 {sofort} one {nach # Monat} other {nach # Monaten}}",
- "lernen.art.massnahme": "Eine Maßnahme ist ein Regler, den Sie beschließen. Jede Stufe sagt, was sie bedeutet: einen benannten Zustand, einen Satz wie bei der Mehrwertsteuer oder den Anteil am Stand beim Amtsantritt.",
+ "lernen.art.massnahme": "Eine Maßnahme ist ein Regler, den Sie beschließen. Jede Stufe sagt, was sie bedeutet: einen benannten Zustand, einen Satz wie bei der Mehrwertsteuer oder eine echte Größe, etwa Lira im Monat oder Kilometer im Jahr.",
  "lernen.art.groesse": "Eine Größe beschreibt einen Zustand des Landes. Sie ändert sich durch Ihre Maßnahmen, die Wirtschaft und andere Größen.",
  "lernen.art.problem": "Ein Problem wird akut, wenn sein Wert in einer Provinz eine Schwelle erreicht. Dann belastet es das Vertrauen und die Wählergruppen dort.",
  "lernen.art.gruppe": "Eine Wählergruppe zeigt, wie zufrieden ein Teil der Bevölkerung mit Ihrer Politik ist. Ihre Stimmung bestimmt Ihre Zustimmung und damit die nächste Wahl.",

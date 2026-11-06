@@ -625,7 +625,7 @@
 .pd-um-weg { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 10px; margin: 8px 0 6px; }
 .pd-um-stand { display: flex; flex-direction: column; gap: 1px; }
 .pd-um-stand small { font: 400 var(--schrift-1) var(--kapitaelchen, serif); letter-spacing: 0.1em; color: var(--tinte-3); }
-.pd-um-stand b { font: 600 var(--schrift-3)/1.2 var(--serif); color: var(--tinte-1); }
+.pd-um-stand b { font: 600 var(--schrift-3)/1.2 var(--serif); color: var(--tinte-1); hyphens: auto; overflow-wrap: break-word; min-width: 0; }
 .pd-um-stand.ziel { text-align: right; }
 .pd-um-stand.ziel b { color: var(--tinte-weich); }
 .pd-um-pfeil { font: var(--schrift-5) var(--serif); color: var(--warnung); padding-bottom: 2px; }

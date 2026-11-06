@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { t } from "../../i18n";
+import { stufenName } from "../../data/skalen";
 import { BAUM, WERK_VON, ZWEIGE, type Lizenzgeber, type Traeger } from "../../data/wissensbaum";
 import { knotenTermin, beginnPreis, beginneKnoten, kaufeLizenz, knotenName, standortSichten, type KnotenSicht, type Sprung } from "../../sim/wissensbaum";
 import { partnerGesperrt, type TempoTeile } from "../../sim/wissensbaum-kern";
@@ -65,7 +66,7 @@ function AnhebenKnopf({ w, s, onGetan }: { w: World; s: Extract<Sprung, { art: "
       title={t(`wissen.civ.anhebenWeg.${weg}`)}
       onClick={() => onGetan(bringeEin(w, s.id, s.ziel, null, weg))}
     >
-      {t("wissen.civ.anheben", { stufe: s.ziel, pk, bip: pr.kostenBip, weg: t(`wissen.civ.weg.${weg}`) })}
+      {t("n9.wissen.anheben", { stufe: stufenName(s.id, s.ziel), pk, bip: pr.kostenBip, weg: t(`wissen.civ.weg.${weg}`) })}
     </button>
   );
 }

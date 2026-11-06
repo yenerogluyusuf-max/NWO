@@ -48,7 +48,7 @@ import { SAISON_VORLAGEN } from "./ereignisse-saison";
 import { setzeVerfassungsOeffner } from "./verfassung";
 import { brecheZusage, zusageAbschluss, zusageBezug, zusageVorhaben, zusageText, zusageVon } from "./zusagen";
 import { istMinisterienZusage, ministerienAnPartei, naechsteRessorts, ressortNamen } from "./ressortvergabe";
-import { skala, skalenArt } from "../data/skalen";
+import { skala, skalenArt, stufenName } from "../data/skalen";
 import { PROZ_STADT, akutIn, dk, einwohner, kosten, monatVon, namen, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
 import type { Option, SzenenName, Vorlage } from "./ereignis-hilfen";
 import { Rng } from "./rng";
@@ -1559,7 +1559,7 @@ function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, a
         for (const [id, ziel] of Object.entries(kopie.net.targets)) {
           const jetzt = nationalAverage(NET, world.net, id);
           const alt = world.net.targets[id];
-          if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(t("ereignis.vs.stufe", { name: NET.nodes[NET.index.get(id)!]!.name, von: Math.round(jetzt), auf: Math.round(ziel) }));
+          if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(t(ziel > jetzt ? "n9.vs.auf" : "n9.vs.ab", { name: NET.nodes[NET.index.get(id)!]!.name, von: stufenName(id, jetzt), auf: stufenName(id, ziel) }));
         }
         // 2. Haushalt und Märkte
         const vz = (d: number, stellen: number) => `${d > 0 ? "+" : "−"}${nf(Math.abs(d), stellen)}`;

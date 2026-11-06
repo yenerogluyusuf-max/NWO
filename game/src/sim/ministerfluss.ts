@@ -237,7 +237,7 @@ function zusagenQuelle(w: World): Roh[] {
     opt.push({
       id: "einloesen",
       label: v ? t(v.erreicht ? "zusage.gesetz.verbuchen" : "zusage.gesetz.aktion") : t("mfl.z.einloesen.label"),
-      text: v?.erreicht ? t("zusage.gesetz.bereit.text") : v?.gesetz ? t("zusage.gesetz.laeuft") : v ? t("mfl.z.einloesen.text", { name: v.name, jetzt: Math.round(v.jetzt), ziel: v.ziel }) : t("mfl.z.einloesen.erfuellt"),
+      text: v?.erreicht ? t("zusage.gesetz.bereit.text") : v?.gesetz ? t("zusage.gesetz.laeuft") : v ? t("n9.mfl.einloesen", { name: v.name, jetzt: stufenName(z.massnahme!, v.jetzt), ziel: stufenName(z.massnahme!, v.ziel) }) : t("mfl.z.einloesen.erfuellt"),
       kosten: { pk: einlosPk, aufmerksamkeit: neuesGesetz ? AUFMERKSAMKEIT_KOSTEN.gesetz : 0 },
       folgen: [...(neuesGesetz && v.pr.ok ? [t("mfl.z.einloesen.preis", { pk: v.pr.gesetz.pk, mehrheit: v.pr.gesetz.stimmen.luecke > 0 ? t("mfl.mehrheit.fehlt", { n: v.pr.gesetz.stimmen.luecke }) : t("mfl.mehrheit.steht") })] : []), t(neuesGesetz || v?.gesetz ? "zusage.gesetz.belohnung" : "mfl.z.einloesen.folge")],
       ...(neuesGesetz && v.pr.ok ? { luecke: v.pr.gesetz.stimmen.luecke } : {}),
