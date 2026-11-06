@@ -178,11 +178,14 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
             <header className="we-kopf" style={{ ["--flagge-1" as string]: flaggenFarben(gewaehlt)[0], ["--flagge-2" as string]: flaggenFarben(gewaehlt)[1] }}>
               <Flagge id={gewaehlt} breite={78} titel={l.name} />
               <div className="we-kopf-text">
-                <h3>
-                  {l.name} <em className="we-haltung-gross">{haltungWortAlle(world, gewaehlt)}</em>
-                </h3>
+                {/* Tag 6. November: Mitgliedschaften in der Titelzeile statt in einer eigenen Zeile unter dem Text */}
+                <div className="we-kopf-zeile">
+                  <h3>
+                    {l.name} <em className="we-haltung-gross">{haltungWortAlle(world, gewaehlt)}</em>
+                  </h3>
+                  <Mitgliedschaften id={gewaehlt} onBlock={(b) => { setBlock(b); setModus("bloecke"); }} />
+                </div>
                 <p>{l.text}</p>
-                <Mitgliedschaften id={gewaehlt} onBlock={(b) => { setBlock(b); setModus("bloecke"); }} />
               </div>
             </header>
 
@@ -317,11 +320,13 @@ function WeitereAkte({
       <header className="we-kopf" style={{ ["--flagge-1" as string]: flaggenFarben(id)[0], ["--flagge-2" as string]: flaggenFarben(id)[1] }}>
         <Flagge id={id} breite={78} titel={wd.name} />
         <div className="we-kopf-text">
-          <h3>
-            {wd.name} <em className="we-haltung-gross">{haltungWortAlle(world, id)}</em>
-          </h3>
+          <div className="we-kopf-zeile">
+            <h3>
+              {wd.name} <em className="we-haltung-gross">{haltungWortAlle(world, id)}</em>
+            </h3>
+            <Mitgliedschaften id={id} onBlock={onBlock} />
+          </div>
           <p>{wd.text}</p>
-          <Mitgliedschaften id={id} onBlock={onBlock} />
         </div>
       </header>
       <div className="we-dimensionen">
@@ -419,20 +424,23 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
             <li key={s.anliegen.id} className={s.erfuellt ? "ok" : "offen"}>
               <span aria-hidden>{s.erfuellt ? "✓" : "○"}</span>
               <span>
-                <strong>{s.anliegen.titel}</strong>: {s.anliegen.text} <em>{s.text}</em>
-                {!s.erfuellt && (s.anliegen.bedingung.art === "massnahme" || s.anliegen.bedingung.art === "massnahme-max") && (
-                  <button
-                    type="button"
-                    className="link"
-                    onClick={() => {
-                      const b = s.anliegen.bedingung as { id: string; art: string };
-                      onMassnahme?.(b.id, b.art === "massnahme" ? 1 : -1);
-                    }}
-                  >
-                    {" "}
-                    {tunWort((s.anliegen.bedingung as { id: string }).id, s.anliegen.bedingung.art === "massnahme" ? 1 : -1)}: {NET.nodes[NET.index.get((s.anliegen.bedingung as { id: string }).id)!]!.name}
-                  </button>
-                )}
+                <strong>{s.anliegen.titel}</strong>: {s.anliegen.text}
+                {/* Stand und Weg zur Maßnahme in einer Zeile (Tag 6. November), vorher je eine eigene Zeile */}
+                <span className="we-anliegen-fuss">
+                  <em>{s.text}</em>
+                  {!s.erfuellt && (s.anliegen.bedingung.art === "massnahme" || s.anliegen.bedingung.art === "massnahme-max") && (
+                    <button
+                      type="button"
+                      className="link"
+                      onClick={() => {
+                        const b = s.anliegen.bedingung as { id: string; art: string };
+                        onMassnahme?.(b.id, b.art === "massnahme" ? 1 : -1);
+                      }}
+                    >
+                      {tunWort((s.anliegen.bedingung as { id: string }).id, s.anliegen.bedingung.art === "massnahme" ? 1 : -1)}: {NET.nodes[NET.index.get((s.anliegen.bedingung as { id: string }).id)!]!.name}
+                    </button>
+                  )}
+                </span>
               </span>
             </li>
           ))}

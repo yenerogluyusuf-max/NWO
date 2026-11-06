@@ -26,14 +26,19 @@
 .we-kopf { display: flex; gap: 16px; align-items: center; padding: 12px 16px 12px 18px; border-radius: 4px; background: linear-gradient(180deg, rgba(255, 250, 235, 0.85), rgba(240, 226, 190, 0.7)); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 8px solid var(--flagge-1, #8c7d69); box-shadow: inset -8px 0 0 -4px var(--flagge-2, transparent); position: relative; }
 .we-kopf .flagge { flex: none; box-shadow: 0 2px 6px rgba(40, 24, 8, 0.3); }
 .we-kopf-text { min-width: 0; }
-.we-kopf h3 { margin: 0 0 3px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font: 600 var(--schrift-5) var(--display); }
+.we-kopf-zeile { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; }
+.we-kopf h3 { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font: 600 var(--schrift-5) var(--display); }
+.we-kopf-zeile .we-mitglied { margin: 0; }
 .we-haltung-gross { font: italic var(--schrift-3) var(--serif); color: var(--ink-soft); font-weight: 400; }
 .we-kopf p { margin: 0; font: var(--schrift-3)/1.45 var(--serif); }
 @container (max-width: 520px) { .we-kopf { flex-direction: column; align-items: flex-start; } }
 
-.we-dimensionen { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px 22px; }
-.we-dim { display: grid; grid-template-columns: 78px 1fr 30px; align-items: center; gap: 10px; font: 600 var(--schrift-3) var(--serif); }
-.we-dim strong { text-align: right; font-variant-numeric: tabular-nums lining-nums; }
+/* Vier Beziehungswerte in einer Reihe, Name und Zahl über dem Balken (wie die Lagebalken darunter; vorher zwei Reihen) */
+.we-dimensionen { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--abstand-2) var(--abstand-5); }
+.we-dim { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name zahl" "balken balken"; align-items: baseline; gap: var(--abstand-1) var(--abstand-2); font: 600 var(--schrift-3) var(--serif); }
+.we-dim > span:first-child { grid-area: name; }
+.we-dim > .we-balken { grid-area: balken; }
+.we-dim strong { grid-area: zahl; text-align: right; font: 600 var(--schrift-4) var(--display); font-variant-numeric: tabular-nums lining-nums; }
 .we-balken { height: 9px; border-radius: 6px; background: rgba(90, 64, 40, 0.16); overflow: hidden; display: block; }
 .we-balken i { display: block; height: 100%; background: linear-gradient(90deg, #a8552f, var(--messing-2) 50%, var(--tinte-weich)); background-size: 300px 100%; }
 .dim-konflikt .we-balken i { background: linear-gradient(90deg, var(--tinte-weich), var(--messing-2) 50%, var(--siegel)); background-size: 300px 100%; }
@@ -49,7 +54,9 @@
 .we-anliegen ul, .we-erinnerung ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: var(--schrift-3)/1.4 var(--serif); }
 .we-anliegen li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; }
 .we-anliegen li.ok { color: var(--gut); }
-.we-anliegen em { display: block; font-size: var(--schrift-2); color: var(--ink-soft); }
+.we-anliegen em { font-size: var(--schrift-2); color: var(--ink-soft); }
+.we-anliegen-fuss { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--abstand-4); margin-top: 2px; }
+.we-anliegen-fuss .link { font-size: var(--schrift-2); }
 .we-zum-tisch { margin-top: 10px; }
 .we-zahlen table { border-collapse: collapse; width: 100%; font: var(--schrift-3) var(--serif); }
 .we-zahlen th { text-align: left; font-weight: 600; padding: 3px 12px 3px 0; }
@@ -483,9 +490,13 @@
 .we-regierung { margin: 0; font: var(--schrift-3)/1.45 var(--serif); }
 .we-regierung .we-linie { display: inline-block; width: 90px; height: 16px; vertical-align: middle; }
 .we-wahl { padding: 10px 14px; border: 1px solid rgba(90, 64, 40, 0.32); border-left: 5px solid var(--gold-3, #a57a34); background: rgba(255, 250, 235, 0.7); border-radius: 4px; }
-.we-wahl > b { display: block; font: 600 var(--schrift-3) var(--display); }
-.we-wahl > b em { font: italic var(--schrift-2) var(--serif); font-weight: 400; color: var(--ink-soft); }
-.we-wahl ul { margin: 6px 0; padding-left: 18px; font: var(--schrift-3)/1.5 var(--serif); }
+/* Kopf: Regierungsform, Wahl und Frist links, der Weg zum Dienst rechts; darunter die Lage als Zeile statt als Aufzählung (Tag 6. November) */
+.we-wahl-kopf { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--abstand-1) var(--abstand-4); }
+.we-wahl-kopf > b { font: 600 var(--schrift-3) var(--display); }
+.we-wahl-kopf > b em { font: italic var(--schrift-2) var(--serif); font-weight: 400; color: var(--ink-soft); }
+.we-wahl-kopf .link { font-size: var(--schrift-2); }
+.we-wahl ul { list-style: none; margin: var(--abstand-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--abstand-1) var(--abstand-5); font: var(--schrift-2)/1.5 var(--serif); }
+.we-wahl li.we-hinweis { font-size: var(--schrift-2); }
 .we-haltung-chip { display: inline-block; padding: 0 8px; border-radius: 4px; font: 600 var(--schrift-1)/1.7 var(--serif); background: rgba(90, 64, 40, 0.14); }
 .we-haltung-chip.k1 { background: rgba(93,66,49, 0.18); color: var(--teal); }
 .we-haltung-chip.k-1 { background: rgba(142, 42, 34, 0.16); color: var(--seal); }

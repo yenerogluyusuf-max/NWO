@@ -85,46 +85,46 @@
 .sk-radar .achse { stroke: rgba(90, 64, 40, 0.25); stroke-width: 1; }
 .sk-radar polygon.kraft { fill: rgba(142, 42, 34, 0.28); stroke: var(--seal); stroke-width: 2; }
 .sk-radar polygon.bereit { fill: none; stroke: #5f6f4a; stroke-width: 2; }
-.sk-radar .name { font: 600 12.5px var(--serif); fill: var(--ink); }
-.sk-radar-legende { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12.5px; color: var(--ink-soft); }
+.sk-radar .name { font: 600 var(--schrift-1) var(--serif); fill: var(--ink); }
+.sk-radar-legende { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: var(--schrift-1); color: var(--ink-soft); }
 .sk-radar-legende span::before { content: ""; display: inline-block; width: 10px; height: 3px; margin-right: 4px; vertical-align: middle; }
 .sk-radar-legende .kraft::before { background: var(--seal); }
 .sk-radar-legende .bereit::before { background: #5f6f4a; }
 .sk-radar-legende .bezug::before { border-top: 2px dashed rgba(90, 64, 40, 0.6); height: 0; }
 .sk-oben-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .sk-kampfkraft { margin: 0; display: flex; align-items: baseline; gap: 12px; }
-.sk-kampfkraft span { font: 600 13px var(--display); letter-spacing: 0.04em; color: var(--ink-soft); text-transform: uppercase; }
-.sk-kampfkraft strong { font: 700 26px/1 var(--display); color: var(--ink); }
+.sk-kampfkraft span { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.04em; color: var(--ink-soft); text-transform: uppercase; }
+.sk-kampfkraft strong { font: 700 var(--schrift-6)/1 var(--display); color: var(--ink); }
 .sk-kampfkraft strong.schlecht { color: var(--seal); }
 .sk-oben .sk-lagezeile { margin: 0; }
 .sk-achsen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
 .sk-achsen li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; padding-left: 10px; border-left: 3px solid rgba(90, 64, 40, 0.3); }
 .sk-achsen li.gut { border-left-color: #5f6f4a; }
 .sk-achsen li.schlecht { border-left-color: var(--seal); }
-.sk-achsen b { font: 600 15.5px var(--display); min-width: 9.5em; }
-.sk-achsen span { font: 14.5px/1.35 var(--serif); color: var(--ink-soft); }
+.sk-achsen b { font: 600 var(--schrift-3) var(--display); min-width: 9.5em; }
+.sk-achsen span { font: var(--schrift-2)/1.35 var(--serif); color: var(--ink-soft); }
 
 /* Lieferkalender in „Rüstung und Beschaffung“: ein Fertigdatum je System auf einer Zeitachse */
-.sk-kalender { display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+.sk-kalender { display: flex; flex-direction: column; gap: 6px; font-size: var(--schrift-3); }
 .sk-kal-kopf { display: grid; grid-template-columns: 15em 1fr 8.5em; gap: 12px; }
-.sk-kalender h4 { margin: 0; font: 600 17px var(--display); }
-.sk-kal-achse { position: relative; height: 18px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); font: 12.5px var(--serif); color: var(--ink-soft); }
+.sk-kalender h4 { margin: 0; font: 600 var(--schrift-4) var(--display); }
+.sk-kal-achse { position: relative; height: 18px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); font: var(--schrift-1) var(--serif); color: var(--ink-soft); }
 .sk-kal-achse span { position: absolute; top: 0; padding-left: 3px; border-left: 1px solid rgba(90, 64, 40, 0.35); height: 18px; }
 .sk-kal-achse .heute { position: absolute; top: -2px; bottom: -4px; width: 2px; background: var(--seal); }
 .sk-kal-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
 .sk-kal-zeilen li { display: grid; grid-template-columns: 15em 1fr 8.5em; gap: 12px; align-items: center; }
 .sk-kal-name { display: flex; flex-direction: column; min-width: 0; }
-.sk-kal-name b { font: 600 15px/1.2 var(--serif); }
-.sk-kal-name small, .sk-kal-datum small { font-size: 12.5px; color: var(--ink-soft); }
+.sk-kal-name b { font: 600 var(--schrift-3)/1.2 var(--serif); }
+.sk-kal-name small, .sk-kal-datum small { font-size: var(--schrift-1); color: var(--ink-soft); }
 .sk-kal-bahn { position: relative; height: 12px; background: repeating-linear-gradient(90deg, rgba(90, 64, 40, 0.07) 0 1px, transparent 1px calc(100% / 12)); border-radius: 6px; }
 .sk-kal-bahn .lauf { position: absolute; top: 4px; height: 4px; border-radius: 2px; background: rgba(90, 64, 40, 0.45); }
 .sk-kal-bahn .ziel { position: absolute; top: 1px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--seal); box-shadow: 0 0 0 2px #fffaf0; }
 .sk-kal-zeilen li.wartet .sk-kal-datum, .sk-kal-zeilen li.ruht .sk-kal-datum { color: #7a2f22; }
-.sk-kal-datum { display: flex; flex-direction: column; font: 600 14.5px var(--serif); text-align: right; }
-.sk-kal-hinweis { margin: 2px 0 0; font: italic 13.5px/1.4 var(--serif); color: var(--ink-soft); }
+.sk-kal-datum { display: flex; flex-direction: column; font: 600 var(--schrift-2) var(--serif); text-align: right; }
+.sk-kal-hinweis { margin: 2px 0 0; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--ink-soft); }
 @container (max-width: 620px) { .sk-kal-zeilen li { grid-template-columns: 1fr 6em; } .sk-kal-bahn, .sk-kal-kopf { display: none; } }
 .rr-aufklapp { margin-top: 10px; }
-.rr-aufklapp > summary { cursor: pointer; font: 600 15px var(--serif); color: var(--ink); padding: 6px 0; }
+.rr-aufklapp > summary { cursor: pointer; font: 600 var(--schrift-3) var(--serif); color: var(--ink); padding: 6px 0; }
 
 /* Innere Sicherheit in der Sicherheitslage (Befund G-10): Terror nach Tätergruppen, Friedensprozess als Phasenleiter */
 .si-innen-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
@@ -144,3 +144,14 @@
 /* Konfliktlage in zwei Spalten statt sieben gleicher Zeilen untereinander (Länge der Sicherheitslage, Befund G-45) */
 .ak-inhalt .gz-konflikte > ul { grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
 .ak-inhalt .gz-konflikte .gz-knopf { font-size: 14px; }
+
+/* Tag 6. November: Gruppen als Zeilen, der Name links, drei Kacheln rechts. Vorher stand jede Gruppe unter einer eigenen Überschrift
+   mit höchstens drei Kacheln in einem Raster für vier, rechts blieb eine leere Spalte. Mit offener Detailleiste gilt wieder das Raster. */
+@container (min-width: 900px) {
+  .streitkraefte .ub:not(.mit-detail) .ub-gruppe { grid-template-columns: 8.5em minmax(0, 1fr); align-items: start; column-gap: var(--abstand-4); }
+  .streitkraefte .ub:not(.mit-detail) .ub-gruppe-name { display: block; margin: var(--abstand-4) 0 0; line-height: 1.4; }
+  .streitkraefte .ub:not(.mit-detail) .ub-gruppe-name::after { content: none; }
+  .streitkraefte .ub:not(.mit-detail) .ub-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* Plakette der Vergabe in der Rüstung: Messingtinte auf Messing lag knapp unter 4,5 : 1, Leder trägt (die Varianten behalten ihre Farben) */
+.ak-sicherheit .rr-plakette[class="rr-plakette"] { color: var(--leder-hell); }
