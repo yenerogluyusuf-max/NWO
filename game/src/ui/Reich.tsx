@@ -40,6 +40,7 @@ import { t as tx } from "../i18n";
 import "./reich/reich.css";
 import { Bauhilfe } from "./reich/Bauhilfe";
 import { ohneBeleg } from "../i18n/ohne-beleg";
+import { MESSING_STUFEN } from "./bausteine/palette";
 
 const GROESSEN: Record<Bereich, GroesseDef[]> = {
   kultur: [{ id: "kulturerbe" }, { id: "identitaet" }, { id: "vielfalt" }, { id: "tourismus" }, { id: "ansehen" }],
@@ -136,7 +137,8 @@ function ImBau({ world, bereich, refresh }: { world: World; bereich: Bereich; re
 
 
 // Farben der Baustellen in der Kapazitätsleiste (Reihenfolge = Position)
-const BAU_FARBEN = ["#8a6a2a", "#3f7c86", "#a8402f", "#5e8f6e", "#6b4a8a", "#c9a25a", "#4a5a6a", "#b0704a"];
+// Die Farbe zeigt nur den Rang in der Baureihe: ein Messington, dunkel für das erste Vorhaben (befund-H H-10, bausteine/palette.ts)
+const BAU_FARBEN: readonly string[] = MESSING_STUFEN;
 
 /**
  * Die Baustelle (Rundgang 05.11.2026): Bild oben ist die Baukapazität eines Monats, aufgeteilt auf die Vorhaben in ihrer Reihenfolge;

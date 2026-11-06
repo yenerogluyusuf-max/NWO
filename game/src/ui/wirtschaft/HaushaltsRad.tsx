@@ -1,7 +1,7 @@
 // Das Haushaltsrad: außen, wofür der Staat sein Geld ausgibt (nach Aufgaben), innen, woher es kommt (nach Steuern), und die
 // Lücke als schraffiertes Stück „neue Schulden“. Ein Blick zeigt Größenordnung und Defizit; ein Klick auf ein Stück führt zu den
 // Reglern. Wunsch des Projektinhabers am 5. November („Kreisdiagramm ist doch besser“, Vorbild Democracy 4).
-// Farben: geprüft mit dem Palettenprüfer (Lichtband, Buntheit, Farbsehschwäche, Abstand); die hellen Töne Gold und Terrakotta
+// Farben: Erdpalette des Gestaltungssystems (bausteine/palette.ts, befund-H H-09) statt Tabellenfarben; die hellen Töne Ocker und Sand
 // liegen unter 3:1 Kontrast, darum trägt jede Farbe in der Legende Namen und Betrag.
 
 import type { World } from "../../sim/types";
@@ -11,8 +11,9 @@ import { zinsausgabenJetzt } from "../../sim/wirtschaft";
 import { PLAN_2026, STEUERN_2026 } from "../../data/haushaltsplan";
 import { t, zahl } from "../../i18n";
 import { Rad, type RadStueck as RadStueckBaustein } from "../bausteine/Rad";
+import { DATEN_FARBEN } from "../bausteine/palette";
 
-const FARBEN = ["#b23a26", "#00938f", "#d4a02a", "#6e55a8", "#e07b3c", "#2f6fb5", "#5f9b3a"];
+const FARBEN: readonly string[] = DATEN_FARBEN;
 const UEBRIG = "#a39a8c";
 // Einnahmen als eine Familie in Braun- und Ockertönen (eigene Größen, nicht dieselben Farben wie die Ausgaben)
 const EINNAHME = ["#4a3424", "#7c5823", "#9a7240", "#b8935e", "#cdb48a"];

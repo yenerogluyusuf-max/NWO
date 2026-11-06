@@ -264,3 +264,29 @@ describe("Effekte: Standard Mittel, Bewegung reduzieren", () => {
     expect(zierBewegung("mittel")).toBe(false);
   });
 });
+
+// Warndreiecke nur bei akutem Fall (befund-H H-25): vorher trugen beim Amtsantritt 62 von 81 Provinzen ein Dreieck
+import { AKUT_HOECHSTENS, AKUT_UEBERSCHUSS } from "../src/ui/atlas/staedte";
+import { NET } from "../src/sim/world";
+describe("Warndreiecke auf der Karte", () => {
+  test("höchstens die dringendsten Provinzen, und nur bei einem Überschuss ab der Hälfte des Wegs zur 100", () => {
+    for (const seed of [3, 21, 77]) {
+      const w = welt(seed);
+      const infos = Object.values(stadtInfos(w, []));
+      const mit = infos.filter((i) => i.status.krise);
+      expect(mit.length).toBeLessThanOrEqual(AKUT_HOECHSTENS);
+      expect(mit.length).toBeGreaterThan(0);
+      for (const i of mit) {
+        let max = -Infinity;
+        for (const n of NET.nodes) {
+          if (n.kind !== "problem" || !n.threshold) continue;
+          const v = w.net.values[NET.index.get(n.id)! * 81 + i.plaka - 1]!;
+          if (v >= n.threshold) max = Math.max(max, (v - n.threshold) / Math.max(1, 100 - n.threshold));
+        }
+        expect(max).toBeGreaterThanOrEqual(AKUT_UEBERSCHUSS);
+      }
+      // Die Tafel nennt weiterhin Lagen über der Schwelle, auch ohne Dreieck
+      expect(infos.filter((i) => !i.status.krise && !/keine/i.test(i.lageText)).length).toBeGreaterThan(20);
+    }
+  });
+});
