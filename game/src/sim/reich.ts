@@ -243,12 +243,15 @@ export interface VerwaltungBilanz {
 }
 
 /** Verwaltungskraft: Vorrat und monatliche Bilanz. */
+/** Zuwachs der Grundkapazität der Verwaltung je wirksamer Stufe des Personaletats (Spielparameter; die Bauhilfe zeigt ihn an). */
+export const PERSONAL_JE_STUFE = 0.05;
+
 export function verwaltungBilanz(w: World): VerwaltungBilanz {
   const z = reichZustand(w);
   let einkommen = 18 + 0.05 * level(w, "m_verwaltungsdigital");
   // Bereits im Haushalt bezahlt. Nur gereifte Personalmittel schaffen zusätzliche Bearbeitungskapazität.
   const h = w.spiel?.wirtschaft?.haushalt;
-  const personal = einkommen * 0.05 * clamp((h?.wirksam ?? h?.stufen)?.personal ?? 0, -4, 4);
+  const personal = einkommen * PERSONAL_JE_STUFE * clamp((h?.wirksam ?? h?.stufen)?.personal ?? 0, -4, 4);
   einkommen += personal;
   for (const id of Object.keys(z.bestand)) einkommen += vorhabenDef(id)?.kapazitaet?.verwaltung ?? 0;
   let bau = 0;

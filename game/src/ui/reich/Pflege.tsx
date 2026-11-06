@@ -71,7 +71,9 @@ function Zustandsbalken({ zustand, bezug }: { zustand: number; bezug?: number | 
   );
 }
 
-export function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: World; refresh: () => void }) {
+/** Welle B3 (06.11.): Zahlen als Plaketten statt Sätzen (ENTSCHEIDUNGEN Z). Der Preis der Instandsetzung steht einmal über der Liste,
+ *  wenn er für alle Stücke gleich ist (`ohnePreis`), statt in jeder Karte wiederholt. */
+export function PflegeKarte({ s, world, refresh, ohnePreis }: { s: PflegeStand; world: World; refresh: () => void; ohnePreis?: string | undefined }) {
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string } | null>(null);
   const v = s.v;
   const p = s.pflege;
@@ -97,18 +99,19 @@ export function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: Worl
       <div className="rp-block">
         <b className="rr-wirkung-kopf">{s.bezug !== undefined ? t("ui2.ui.reich.Pflege.07ecb09") : t("ui2.ui.reich.Pflege.355f320")}</b>
         {s.wirkt ? (
-          <Zeilen zeilen={s.jetzt} leer={s.bezug !== undefined ? t("ui2.ui.reich.Pflege.e8572b7") : t("ui2.ui.reich.Pflege.b6b8483")} />
+          <Zeilen zeilen={s.jetzt} leer={s.bezug !== undefined ? t("welle_b3.pf.wieStart") : t("ui2.ui.reich.Pflege.b6b8483")} />
         ) : (
-          <p className="rp-leer">{t("ui.reich.Pflege.7e19d8e")}</p>
+          <p className="rp-leer">{t("welle_b3.pf.nurAussen")}</p>
         )}
       </div>
 
       <div className="rp-block">
         <b className="rr-wirkung-kopf">{t("ui2.ui.reich.Pflege.daa6a84")}</b>
-        <p className="rp-satz">
-          {t("ui2.ui.reich.Pflege.db74de5", { p0: s.verfall.proJahr.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 }), p1: Math.round(s.verfall.zustand) })}
-          {s.verfall.verlust.length === 0 ? t("ui2.ui.reich.Pflege.ecbd4ce") : t("ui2.ui.reich.Pflege.3629295")}
-        </p>
+        <ul className="rr-kosten">
+          <li><b>{t("welle_b3.pf.jeJahr", { n: s.verfall.proJahr.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 }) })}</b></li>
+          <li>{t("welle_b3.pf.inFuenf", { z: Math.round(s.verfall.zustand) })}</li>
+          {s.verfall.verlust.length === 0 && <li>{t("welle_b3.pf.kaum")}</li>}
+        </ul>
         <Zeilen zeilen={s.verfall.verlust} />
       </div>
 
@@ -116,17 +119,17 @@ export function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: Worl
         <div className="rp-block rp-eingriff">
           <b className="rr-wirkung-kopf">{t("reich.pflege.instandsetzen", { defaultValue: "Instandsetzen" })}</b>
           {laeuft ? (
-            <p className="rp-satz">
-              {t("ui2.ui.reich.Pflege.a59d1ee", { p0: Math.round(p!.fortschritt * 100) })}
-              {p!.status === "pausiert" ? t("n6.pf.ruht") : p!.restMonate ? t("ui2.ui.reich.Pflege.829dd4a", { p0: p!.restMonate, p1: t(p!.restMonate === 1 ? "n6.pf.monat" : "n6.pf.monate") }) : ""}.
-            </p>
+            <ul className="rr-kosten">
+              <li><b>{t("welle_b3.pf.laeuft", { p: Math.round(p!.fortschritt * 100) })}</b></li>
+              {p!.status === "pausiert" ? <li>{t("welle_b3.pf.ruht")}</li> : p!.restMonate ? <li>{t("welle_b3.pf.rest", { n: p!.restMonate })}</li> : null}
+            </ul>
           ) : (
             <>
               {s.nach && (
-                <p className="rp-satz">
-                  {t("ui2.ui.reich.Pflege.4fbb298", { p0: Math.round(s.zustand), p1: Math.round(s.nach.zustand) })}{" "}
-                  {gewinnt ? t("ui2.ui.reich.Pflege.bae2f2e") : t("ui2.ui.reich.Pflege.cc93d7c")}
-                </p>
+                <ul className="rr-kosten">
+                  <li><b>{t("ui2.ui.reich.Pflege.4fbb298", { p0: Math.round(s.zustand), p1: Math.round(s.nach.zustand) }).replace(/\.$/, "")}</b></li>
+                  {!gewinnt && <li>{t("welle_b3.pf.bremst")}</li>}
+                </ul>
               )}
               <Zeilen zeilen={s.nach?.gewinn ?? []} />
               <ul className="rr-kosten" aria-label={t("ui2.ui.reich.Pflege.9bc1843")}>
@@ -142,7 +145,7 @@ export function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: Worl
                   {t("reich.pflege.instandsetzen", { defaultValue: "Instandsetzen" })}
                 </button>
               )}
-              <p className="rr-kehrseite"><b>{t("ui2.ui.reich.Pflege.0289c3f")}</b> {pv.kehrseite}</p>
+              {pv.kehrseite && pv.kehrseite !== ohnePreis && <p className="rr-kehrseite"><b>{t("ui2.ui.reich.Pflege.0289c3f")}</b> {pv.kehrseite}</p>}
             </>
           )}
           {antwort && <p className={`rr-ergebnis ${antwort.ok ? "ok" : "nein"}`}>{antwort.text}</p>}
@@ -158,15 +161,19 @@ export function PflegeListe({ world, bereich, refresh }: { world: World; bereich
     .map((id) => pflegeStand(world, id)!)
     .sort((a, b) => b.dringlichkeit - a.dringlichkeit || b.nutzen - a.nutzen);
   if (!stuecke.length) return <p className="subtitle">{t("ui.reich.Pflege.455356e")}</p>;
+  // Derselbe Preis in jeder Karte (etwa „Bindet Werften und Techniker …“ bei allen Rüstungsstücken) steht einmal über der Liste
+  const preise = stuecke.map((s) => (s.pflege && !(s.pflege.status === "im_bau" || s.pflege.status === "pausiert") ? s.pflege.v.kehrseite : undefined)).filter((x): x is string => !!x);
+  const gemeinsam = preise.length > 1 && preise.every((x) => x === preise[0]) ? preise[0] : undefined;
   return (
     <section className="rr-abschnitt">
       <h4>
         {t("ui2.ui.reich.Pflege.6e8cf3e")} <em>{stuecke.length} {stuecke.length === 1 ? t("ui2.ui.reich.Pflege.26e1a92") : t("ui2.ui.reich.Pflege.cd3f30b")}{t("ui2.ui.reich.Pflege.3144bed")}</em>
       </h4>
-      <p className="rr-hinweis">{t("ui.reich.Pflege.50d63b0")}</p>
+      <p className="rr-hinweis">{t("welle_b3.pf.legende")}</p>
+      {gemeinsam && <p className="rr-kehrseite rp-preis-alle"><b>{t("welle_b3.pf.preisAlle")}</b> {gemeinsam}</p>}
       <div className="rp-liste">
         {stuecke.map((s) => (
-          <PflegeKarte key={s.id} s={s} world={world} refresh={refresh} />
+          <PflegeKarte key={s.id} s={s} world={world} refresh={refresh} ohnePreis={gemeinsam} />
         ))}
       </div>
     </section>

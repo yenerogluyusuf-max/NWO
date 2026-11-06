@@ -66,6 +66,9 @@ function NetzKarte({ werte, gewaehlt, onWaehle }: { werte: Map<number, number | 
   );
 }
 
+/** Vorzeichen und Prozent („−10 %“, „+5 %“) für die Plaketten des Etats. */
+const vzProzent = (n: number): string => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n)} %`;
+
 export function Netze({ world: w, onGeaendert }: { world: World; onGeaendert?: () => void }) {
   const [vergabe, setVergabe] = useState<Vergabe>("ausschreibung");
   const [meldung, setMeldung] = useState<{ ok: boolean; text: string } | null>(null);
@@ -110,9 +113,15 @@ export function Netze({ world: w, onGeaendert }: { world: World; onGeaendert?: (
       <p className="nz-lage">
         {/* Benannter Zustand statt „Stufe 0“ (Befund F-18): wie geplant, aufgestockt oder gekürzt */}
         {t(`infra.ui.etat.${fin.quelle}`, { stufe: fin.stufe === 0 ? t("n6.etat.plan") : t(fin.stufe > 0 ? "n6.etat.auf" : "n6.etat.ab", { n: Math.abs(fin.stufe) }) })}{" "}
-        {fin.stufe !== 0 && t("infra.ui.etat.wirkung", { pk: Math.round((1 - fin.pk) * 100), schulden: Math.round((1 - fin.schulden) * 100) })}
-        {leerKosten > 0 && <> {t("infra.ui.leer", { x: Math.round(leerKosten * 1200) / 100 })}</>}
       </p>
+      {/* Welle B3: die Ersparnis des Etats als Plaketten statt als Satz (ENTSCHEIDUNGEN Z) */}
+      {(fin.stufe !== 0 || leerKosten > 0) && (
+        <ul className="rr-kosten nz-etat" aria-label={fin.stufe !== 0 ? t("infra.ui.etat.wirkung", { pk: Math.round((1 - fin.pk) * 100), schulden: Math.round((1 - fin.schulden) * 100) }) : undefined}>
+          {fin.stufe !== 0 && <li>{t("welle_b3.nz.kapital")} <b>{vzProzent(-Math.round((1 - fin.pk) * 100))}</b></li>}
+          {fin.stufe !== 0 && <li>{t("welle_b3.nz.schulden")} <b>{vzProzent(-Math.round((1 - fin.schulden) * 100))}</b></li>}
+          {leerKosten > 0 && <li>{t("welle_b3.nz.leer")} <b>{t("welle_b3.nz.leerWert", { x: Math.round(leerKosten * 1200) / 100 })}</b></li>}
+        </ul>
+      )}
       {/* Bild oben: jedes Netz ein Ring, gefüllt bis zur Auslastung, Marken bei 85 und 100 % */}
       <ul className="nz-ringe" aria-label={t("infra.ui.gruppe_netze")}>
         {sichten.map((n) => {

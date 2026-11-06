@@ -114,3 +114,9 @@
 
 /* Niedrige Bildschirme: Das Bild gibt Höhe an den Text ab */
 .wunder-fenster .wunder-bildrahmen { max-height: 36vh; }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): die Bauliste und die Vorteile der Akten im Reich als Pergamentzeilen statt heller Flächen
+   (die Grundregeln stehen in styles.css; hier nur innerhalb von .reich überschrieben) */
+.reich .rr-bauliste li { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); border-radius: 6px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.reich .rr-vorteile li { background: var(--papier-2); }
+.reich .rr-vorteile li.aktiv { background: var(--papier-3); }

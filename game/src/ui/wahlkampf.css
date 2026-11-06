@@ -217,3 +217,8 @@
 .dossier .kampf-gegner-oben .kampf-angriffe li.kampf-angriff { width: 100%; box-sizing: border-box; }
 .dossier .kampf-gegner-oben .kampf-angriff-kopf { width: 100%; }
 .dossier .kampf-gegner-oben .kampf-angriff.offen { padding: 12px 14px; margin: 4px 0; border: 1px solid rgba(138, 45, 38, 0.35); border-radius: 6px; background: rgba(138, 45, 38, 0.04); }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): Entscheidung, Versprechen und Provinzen in Pergament wie der Haushaltskopf statt --pd-card-hell */
+.kampf-entscheid { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); border-radius: 6px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.kampf-versprechen-auswahl button { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); border-radius: 6px; }
+.kampf-reiseziel select, .dossier .kampf-prov { background: var(--papier-2); }

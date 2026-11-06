@@ -3,7 +3,7 @@
 
 import type { World } from "../../sim/types";
 import { addDays, formatDateDe } from "../../sim/dates";
-import { ART_NAMEN, namenVon, versprechensLage, versprechensschuldMalus } from "../../sim/katastrophe";
+import { ART_NAMEN, KATASTROPHE, namenVon, versprechensLage, versprechensschuldMalus } from "../../sim/katastrophe";
 import type { Ziel } from "../schreibtisch/briefing";
 import { nf } from "./daten";
 
@@ -16,7 +16,7 @@ export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel
       <div className="kr-leer">
         <h3>{t("ui2.ui.katastrophe.Versprechen.13bff4b")}</h3>
         <p>
-          {t("ui.katastrophe.Versprechen.4ad977f")}
+          {t("welle_b3.kr.leer")}
         </p>
       </div>
     );
@@ -47,14 +47,14 @@ export function Versprechen({ world, onGehe }: { world: World; onGehe?: (z: Ziel
 
       <section className={`kr-wahltag ${malus.punkte > 0 ? "malus" : ""}`}>
         <h3>{t("ui.katastrophe.Versprechen.83f7113")}</h3>
-        {malus.punkte > 0 ? (
-          <p>{malus.text}</p>
-        ) : (
-          <p>{t("ui.katastrophe.Versprechen.2161d75")}</p>
-        )}
-        <p className="kr-klein">
-          {t("ui.katastrophe.Versprechen.9bd9c13")}
-        </p>
+        {/* Welle B3: Abzug als Kennzahl; welche Orte fehlen, zeigen die Balken darüber. Die Mahnung von 2023 als zwei Zahlen
+            (dieselben Werte wie im bisherigen Mahnungstext ui.katastrophe.Versprechen.9bd9c13: 319.000 versprochen, 201.431 bis Februar 2025 übergeben). */}
+        <dl className="kr-wahltag-zahlen">
+          <div className={malus.punkte > 0 ? "schlecht" : ""}><dt>{t("welle_b3.kr.abzug")}</dt><dd>{malus.punkte > 0 ? `−${nf(malus.punkte, 1)}` : "0"}<small>{t("welle_b3.kr.punkte", { max: KATASTROPHE.malusDeckel })}</small></dd></div>
+          <div><dt>{t("welle_b3.kr.2023versprochen")}</dt><dd>{nf(319000)}<small>{t("welle_b3.kr.wohnungen")}</small></dd></div>
+          <div><dt>{t("welle_b3.kr.2025uebergeben")}</dt><dd>{nf(201431)}<small>{t("welle_b3.kr.wohnungen")}</small></dd></div>
+        </dl>
+        <p className="kr-klein">{malus.punkte > 0 ? t("welle_b3.kr.gemessen") : t("welle_b3.kr.nochNicht")}</p>
         {onGehe && (
           <div className="kr-aktionen">
             <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "akte", akte: "waehler" })}>

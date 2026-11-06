@@ -180,7 +180,7 @@
  "sim2.sim.katastrophe.d3d1336": "Afet bölgesinde {p0} yeni konut ({p2} tarihli {p1}). Olağan ihale süreciyle yürür: diğer büyük projeler gibi inşaat kapasitesini ve idari gücü bağlar.",
  "sim2.sim.katastrophe.d75ca58": "Konya Havzası'nda kuraklık",
  "sim2.sim.katastrophe.d799247": "Böyle bir olay yok.",
- "sim2.sim.katastrophe.d7e6e19": "Henüz kaydedilmedi: yaklaşık {p0} konut ihtiyacı. Program inşaat kapasitesini bağlar ve sıranın gerisindekileri iter.",
+ "sim2.sim.katastrophe.d7e6e19": "Henüz kaydedilmedi: yaklaşık {p0} konut ihtiyacı; inşaat kapasitesi bağlar.",
  "sim2.sim.katastrophe.d811384": "Yıkılmış konut stoku yok: burada barınma yardımı işe yarar, inşaat programı yok.",
  "sim2.sim.katastrophe.d8191b4": "Üstesinden gelindi",
  "sim2.sim.katastrophe.dee39ef": "Kamuoyu önünde söz: {p1} için {p0} yeni konut.",

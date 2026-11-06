@@ -374,9 +374,11 @@ function Frontseite({ ausgabe, blatt, onGehe }: { ausgabe: ZeitungAusgabe; blatt
           )}
           <Kommentar blatt={blatt} />
           {blatt.verschwiegen.length > 0 && (
-            <p className="zt-verschwiegen">
-              <strong>{tx("ui2.ui.Zeitung.d17ee42")}</strong> {blatt.verschwiegen.join(" · ")}
-            </p>
+            // Welle B3: die verschwiegenen Schlagzeilen als Marken statt als Satz
+            <div className="zt-verschwiegen">
+              <strong>{tx("ui2.ui.Zeitung.d17ee42")}</strong>
+              <ul>{blatt.verschwiegen.map((v) => <li key={v}>{v}</li>)}</ul>
+            </div>
           )}
         </div>
         {kaesten.length > 0 && (

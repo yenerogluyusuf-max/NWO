@@ -647,3 +647,11 @@
 .we-rat-liste li.stimme-dafuer .we-rat-wort b { color: var(--teal); }
 .we-rat-liste li.stimme-dagegen .we-rat-wort b { color: var(--seal); }
 .we-rat-liste li em { font: italic var(--schrift-2)/1.35 var(--serif); color: var(--ink-soft); }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): Felder in Dienst, Vermittlung, Blöcken und Weltlage in Pergament statt heller Flächen; der Verhandlungstisch
+   (we-antwort, we-gegen, we-mitte) bleibt nach ENTSCHEIDUNGEN Y unverändert. Preise der Garantien als Plaketten. */
+.we-partei, .we-garantie, .we-wahl, .we-dienst-ziel, .we-block-aktion, .we-konflikt { background: var(--papier-3); border-color: rgba(90, 64, 40, 0.25); }
+.we-dienst-bericht li, .kd-verlauf, .we-rueck { background: var(--papier-3); }
+.we-op, .we-vermittlung-karte { border-radius: 6px; border-color: rgba(90, 64, 40, 0.3); box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.we-vermittlung-karte .we-garantie ul.we-garantie-preis { margin: 0; font-size: var(--schrift-2); }
+.we-vermittlung-karte .we-garantie ul.we-garantie-preis li { font-size: var(--schrift-1); }

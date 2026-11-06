@@ -64,3 +64,12 @@
 .gzk-chance.fertig { color: #674b3b; font-weight: 600; }
 @media (max-width: 1100px) { .gzz-buehne { grid-template-columns: 1fr; } .gzz-seite { position: static; max-height: none; } }
 .gzk-titel { hyphens: auto; overflow-wrap: anywhere; }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): Zähler statt Einleitung; Karten und Kacheln in Pergament statt Weiß */
+.gzz-einleitung { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; font-style: normal; max-width: none; }
+.gzz-einleitung p { margin: 0; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.gzz-zaehler { display: inline-flex; align-items: baseline; gap: 8px; font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); }
+.gzz-zaehler b { font: 600 var(--schrift-6)/1 var(--display, Fraunces, serif); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.gzz-zaehler b small { font: 600 var(--schrift-4)/1 var(--display, Fraunces, serif); color: var(--tinte-3); }
+.gzz-karte { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.gzk { background: var(--papier-2); }

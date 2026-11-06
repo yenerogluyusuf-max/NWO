@@ -159,3 +159,15 @@
 .aktion-knopf.gefahr:hover { background: #a3352a; }
 .rr-baustelle h4.bs-ohne { margin-top: 14px; }
 .rr-bau-knoepfe { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): keine weißen Blätter. Zeilen und Karten wie der Haushaltskopf: Pergament, Rahmen, leiser Schatten;
+   der Eingriff einer Pflegekarte als etwas dunkleres Feld darin. */
+.bs-eintrag, .bs-eintrag.wartet, .rp-karte, .rr-stabliste > li, .rv-eintrag {
+  background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1);
+}
+.rv-eintrag { border-left: 3px solid var(--messing-3); }
+.rp-karte.dringend, .rr-stabliste > li.gefaehrdet { border-color: var(--siegel); box-shadow: inset 3px 0 0 var(--siegel), 0 1px 2px rgba(60, 40, 20, 0.1); }
+.rp-eingriff, .rg-preisschild { background: var(--papier-3); border-radius: 4px; }
+.rp-karte .rr-kosten { margin: 2px 0; }
+.rp-preis-alle { margin: 0 0 10px; }
+.bs-regeln { margin-top: 10px; }

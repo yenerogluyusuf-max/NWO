@@ -53,3 +53,9 @@
 .kg-folgen-zahl { font: var(--schrift-1) var(--serif); color: var(--tinte-2); }
 .kg-folgen-zahl b { color: var(--tinte-1); font-size: var(--schrift-2); }
 @media (max-width: 1100px) { .kg-buehne { grid-template-columns: 1fr; } .kg-akte { position: static; } }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): die Akte der Gefahr als Pergamentkarte statt eines weißen Verlaufs */
+.kg-akte { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.kg-folgen li { background: var(--papier-3); }
+.dossier button.kg-gefahr.on { background: var(--papier-3); }
+.kg-bereit { background: var(--papier-2); }

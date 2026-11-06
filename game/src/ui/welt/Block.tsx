@@ -1,5 +1,6 @@
 // Blöcke und Institutionen: Mitglieder, Beschlussregel, der Stand der Türkei und — für die EU — der Rat mit den Positionen der Mitgliedstaaten.
 
+import { ersterSatz } from "./kurz";
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { INSTITUTIONEN, STATUS_NAME, type InstitutionDef } from "../../data/welt-institutionen";
@@ -20,9 +21,10 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
   return (
     <section className="we-rat">
       <h4>{t("ui.welt.Block.e451af3")}</h4>
-      <p className="subtitle">
-        {/* ohne den ersten Satz: die Beschlussregel steht schon über dem Rat (Tag 6. November) */}
-        {t("tag_t7.rat.hinweis")}
+      {/* ohne den ersten Satz: die Beschlussregel steht schon über dem Rat (Tag 6. November). Welle B3: sichtbar nur der erste Satz,
+          wie die Vetos zustande kommen, steht im Tooltip und in der Spalte „Grund“ jeder Stimme */}
+      <p className="subtitle" title={ersterSatz(t("tag_t7.rat.hinweis")).rest || undefined}>
+        {ersterSatz(t("tag_t7.rat.hinweis")).satz}
       </p>
       <div className="we-rat-themen" role="tablist" aria-label={tx("ui2.ui.welt.Block.b2f1380")}>
         {(Object.keys(THEMA_NAME) as EuThema[]).map((t) => (
@@ -82,7 +84,7 @@ export function Block({ world, id, refresh, onLand }: { world: World; id: string
         <h3>{def.name}</h3>
         <span className={`we-chip ${tuerkei === "mitglied" ? "gut" : tuerkei === "keiner" ? "schlecht" : ""}`}>{tx("ui2.ui.welt.Block.59a6119", { p0: statusName })}</span>
       </header>
-      <p className="we-block-text">{def.text}</p>
+      <p className="we-block-text" title={ersterSatz(def.text).rest || undefined}>{ersterSatz(def.text).satz}</p>
       <p className="we-block-regel">
         <b>{tx("ui2.ui.welt.Block.c6e3c60")}</b> {REGEL[def.beschluss]} · <b>{t("ui.welt.Block.051e2a4")}</b> {def.tuerkeiText}
       </p>

@@ -180,7 +180,7 @@
  "sim2.sim.katastrophe.d3d1336": "New construction of {p0} homes in the disaster area ({p1} of {p2}). Runs through the regular tendering process: it ties up building capacity and administrative power like any other major project.",
  "sim2.sim.katastrophe.d75ca58": "Drought in the Konya basin",
  "sim2.sim.katastrophe.d799247": "This case does not exist.",
- "sim2.sim.katastrophe.d7e6e19": "Not yet registered: need of about {p0} homes. The programme ties up building capacity and displaces what is further back.",
+ "sim2.sim.katastrophe.d7e6e19": "Not yet registered: need of about {p0} homes; ties up building capacity.",
  "sim2.sim.katastrophe.d811384": "No destroyed housing stock: here provision helps, there is no building programme.",
  "sim2.sim.katastrophe.d8191b4": "Overcome",
  "sim2.sim.katastrophe.dee39ef": "Public promise: {p0} new homes for {p1}.",

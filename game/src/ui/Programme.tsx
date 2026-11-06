@@ -150,7 +150,8 @@ export function Programme({ world, refresh, onMassnahme }: { world: World; refre
   return (
     <div className="pg">
       <header className="pg-kopf">
-        <p className="pd-lead">{t("ui2.ui.politik.ProgrammeAkte.b9bd96c", { p0: MAX_LAUFEND })}</p>
+        {/* Welle B3: „höchstens zwei gleichzeitig“ zeigt der Zähler daneben */}
+        <p className="pd-lead">{t("welle_b3.pg.lead")}</p>
         <ul className="pd-zaehler" aria-label={t("ui.politik.ProgrammeAkte.8b30d8b")}>
           <li><b>{z.laufend.length}<small> / {MAX_LAUFEND}</small></b><span>{t("n6.pg.laufen")}</span></li>
           <li className={bereitGesamt > 0 ? "hell" : ""}><b>{bereitGesamt}</b><span>{t("n6.pg.bereit", { n: bereitGesamt })}</span></li>

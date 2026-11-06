@@ -143,7 +143,11 @@ export function GrosseZiele({ world, geaendert }: { world: World; geaendert: () 
   const z = ZIELE.find((x) => x.id === gewaehlt) ?? liste[0]!;
   return (
     <section className="gzz" aria-label={t("gz2.ui.titel")}>
-      <p className="gzz-einleitung">{t("gz2.ui.einleitung", { max: GROSSE_ZIELE.maxVerfolgt, n: g.verfolgt.length })}</p>
+      {/* Welle B3: die Zahl als Kennzahl, ein kurzer Satz statt vier (ENTSCHEIDUNGEN Z) */}
+      <div className="gzz-einleitung">
+        <span className="gzz-zaehler"><b>{g.verfolgt.length}<small> / {GROSSE_ZIELE.maxVerfolgt}</small></b>{t("welle_b3.gz.verfolgt")}</span>
+        <p>{t("welle_b3.gz.satz")}</p>
+      </div>
       {meldung && <p role="status" className="rueckmeldung ok">{meldung}</p>}
       <div className="gzz-buehne">
         <div className="gzk-raster">

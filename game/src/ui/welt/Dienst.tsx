@@ -2,6 +2,7 @@
 // Im Bericht steht nur, was der Spieler selbst angeordnet hat oder was aufgedeckt wurde. Die Operationen sind Spielmechanik mit Kosten,
 // Dauer, niedriger bis mittlerer Erfolgschance und Aufdeckungsrisiko — nie ein sicherer Sieg.
 
+import { ersterSatz } from "./kurz";
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
 import { OP_DEFS, EINGEHEND_NAME, dienstSicht, opsOptionen, ordneAn, wahlFaktor } from "../../sim/welt-dienst";
@@ -121,7 +122,8 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
               <span className="we-chip">{t("ui2.ui.welt.Dienst.a85d312", { p0: o.def.kap })}</span>
               <span className="we-chip">{t("ui2.ui.welt.Dienst.905dfe8", { p0: o.def.monate })}</span>
             </div>
-            <p>{o.def.text}</p>
+            {/* Welle B3: der erste Satz auf der Karte, der Rest im Tooltip; Preis, Aussicht und Risiko stehen als Plaketten */}
+            <p title={ersterSatz(o.def.text).rest || undefined}>{ersterSatz(o.def.text).satz}</p>
             <div className="we-op-aussicht">
               <span>
                 {t("ui2.ui.welt.Dienst.ee42fd2")} <b className={`aus-${o.aussicht.stufe}`}>{o.aussicht.wort}</b>

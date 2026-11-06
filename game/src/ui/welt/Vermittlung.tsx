@@ -2,6 +2,7 @@
 // Konflikt-Auswahl, Reif-Kurve, ZOPA-Band mit Hebelpunkten, Handlungsleiste mit Preisen und der
 // Garantie-Baukasten (Überwachung, Wirtschafts-Anker, militärische Garantie).
 
+import { ersterSatz } from "./kurz";
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { GARANTIEN, VORBEREITUNGEN, type GarantieArtId, type VorbereitungId } from "../../data/konflikte";
@@ -54,8 +55,9 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
     <section className="we-vermittlung">
       <h3>{t("ui2.ui.welt.Vermittlung.2798547")}</h3>
       {/* kürzer (Tag 6. November); der Vergleich mit anderen Spielen gehört nicht in die Oberfläche */}
-      <p className="subtitle">
-        {t("tag_t7.verm.satz")}
+      {/* Welle B3: nur der erste Satz; was eine Einigung braucht, zeigen Reife, Zone und Aussicht darunter als Balken */}
+      <p className="subtitle" title={ersterSatz(t("tag_t7.verm.satz")).rest || undefined}>
+        {ersterSatz(t("tag_t7.verm.satz")).satz}
       </p>
 
       {/* Konflikt-Auswahl */}
@@ -226,10 +228,12 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
                   </button>
                 )}
                 </div>
-                <p className="we-garantie-preis">
-                  {/* Das Kapital des Angebots steht schon auf dem Knopf */}
-                  {t("tag_t7.verm.preis", { bip: zahl(g.def.bip), monat: zahl(g.def.monatPk), aussicht: g.def.aussicht })}
-                </p>
+                {/* Das Kapital des Angebots steht schon auf dem Knopf; Aufbau, laufende Kosten und Wirkung als Plaketten (Welle B3) */}
+                <ul className="rr-kosten we-garantie-preis" aria-label={t("tag_t7.verm.preis", { bip: zahl(g.def.bip), monat: zahl(g.def.monatPk), aussicht: g.def.aussicht })}>
+                  <li>{t("welle_b3.verm.aufbau")} <b>{zahl(g.def.bip)} % {t("welle_b3.verm.bip")}</b></li>
+                  <li><b>{zahl(g.def.monatPk)}</b> {t("welle_b3.verm.jeMonat")}</li>
+                  <li>{t("welle_b3.verm.aussicht")} <b>+{g.def.aussicht}</b></li>
+                </ul>
                 <details className="we-garantie-mehr">
                   <summary>{t("tag_t7.verm.umfang")}</summary>
                   <p>{g.def.text}</p>

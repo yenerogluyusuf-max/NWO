@@ -172,3 +172,7 @@
   .streitkraefte:has(.ub.mit-detail) :is(.sk-radar, .sk-achsen, .sk-radar-legende) { display: none; }
   .streitkraefte:has(.ub.mit-detail) .sk-oben-text { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: var(--abstand-6); }
 }
+
+/* Welle B3 (ENTSCHEIDUNGEN Z): Karten und Felder der Streitkräfte in Pergament statt heller Flächen */
+.sk-lage, .sk-karte, .sk-oben { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); border-radius: 6px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
+.sk-meldung, .sk-vorschau { background: var(--papier-3); }
