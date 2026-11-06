@@ -10,7 +10,8 @@ export function Staatsfinanzen({ world, details = false }: { world: World; detai
   const f = staatsfinanzen(world);
   const abschluss = world.economy.schuldenAbschluss;
   const [monatlich, setMonatlich] = useState(false);
-  const betrag = (mrd: number) => t("sf.betrag", { n: zahl(mrd / (monatlich ? 12 : 1), 1) });
+  // Welle B1: Beträge wie im Haushaltskopf (ab 1.000 Mrd. in Bio.), damit Kopf und Rechnung dieselbe Zahl zeigen
+  const betrag = (mrd: number) => geld(mrd / (monatlich ? 12 : 1));
   return <section className="sf-finanzbuch" aria-label={t("sf.titel")}>
     <header className="sf-kopf">
       <div><small>{t("sf.kicker")}</small><h3>{t("sf.titel")}</h3></div>
