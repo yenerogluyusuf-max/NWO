@@ -73,17 +73,28 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
         <Balken label={t("ui2.ui.welt.WeltLage.13b4814")} wert={l.bedrohung} schlecht={l.bedrohung > 65} />
         {l.krieg >= 5 && <Balken label={t("ui2.ui.welt.WeltLage.c7f02c9")} wert={l.krieg} schlecht={l.krieg > 50} />}
       </div>
-      <p className="we-regierung">
-        <b>{l.regierungsform}</b> · {l.wahlText}
-        {l.verlauf.length >= 3 && <span className="we-hinweis"> {t("ui2.ui.welt.WeltLage.b3a4ef7")} <Verlauf werte={l.verlauf.map((v) => v[2])} einheit={t("nacht_n7.einheit.punkte")} titel={t("ui2.ui.welt.WeltLage.5f64955")} /></span>}
-      </p>
+      {/* Tag 6. November: Regierungsform und Wahltermin stehen einmal, im Kopf des Wahlkastens; vorher nannte die Zeile darüber denselben Termin noch einmal */}
+      {!wahl && (
+        <p className="we-regierung">
+          <b>{l.regierungsform}</b> · {l.wahlText}
+          {l.verlauf.length >= 3 && <span className="we-hinweis"> {t("ui2.ui.welt.WeltLage.b3a4ef7")} <Verlauf werte={l.verlauf.map((v) => v[2])} einheit={t("nacht_n7.einheit.punkte")} titel={t("ui2.ui.welt.WeltLage.5f64955")} /></span>}
+        </p>
+      )}
 
       {wahl && (
         <div className="we-wahl">
-          <b>
-            {t("ui2.ui.welt.WeltLage.03d2e63", { p0: wahl.art, p1: wahl.datumDe })}
-            <em> {t("ui2.ui.welt.WeltLage.5452636")} {wahl.monate <= 0 ? t("ui2.ui.welt.WeltLage.ffb9e15") : wahl.monate === 1 ? t("ui2.ui.welt.WeltLage.6480eaf") : t("ui2.ui.welt.WeltLage.6086276", { p0: wahl.monate })}</em>
-          </b>
+          <div className="we-wahl-kopf">
+            <b>
+              {l.regierungsform} · {t("ui2.ui.welt.WeltLage.03d2e63", { p0: wahl.art, p1: wahl.datumDe })}
+              <em> {t("ui2.ui.welt.WeltLage.5452636")} {wahl.monate <= 0 ? t("ui2.ui.welt.WeltLage.ffb9e15") : wahl.monate === 1 ? t("ui2.ui.welt.WeltLage.6480eaf") : t("ui2.ui.welt.WeltLage.6086276", { p0: wahl.monate })}</em>
+              {l.verlauf.length >= 3 && <span className="we-hinweis"> {t("ui2.ui.welt.WeltLage.b3a4ef7")} <Verlauf werte={l.verlauf.map((v) => v[2])} einheit={t("nacht_n7.einheit.punkte")} titel={t("ui2.ui.welt.WeltLage.5f64955")} /></span>}
+            </b>
+            {onDienst && wahl.offen && (
+              <button type="button" className="link" onClick={() => onDienst(id)}>
+                {t("ui2.ui.welt.WeltLage.55a2100")}
+              </button>
+            )}
+          </div>
           <ul>
             <li>
               {t("ui2.ui.welt.WeltLage.2417b5d")} <span className={`we-haltung-chip k${wahl.fuehrung.kurs}`}>{wahl.fuehrung.wort}</span>
@@ -105,11 +116,6 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
               {wahl.lagebild && <span className="we-hinweis"> {t("ui2.ui.welt.WeltLage.c7a7688", { p0: wahl.lagebild.tage })}</span>}
             </li>
           </ul>
-          {onDienst && wahl.offen && (
-            <button type="button" className="link" onClick={() => onDienst(id)}>
-              {t("ui2.ui.welt.WeltLage.55a2100")}
-            </button>
-          )}
         </div>
       )}
       {letzte && (

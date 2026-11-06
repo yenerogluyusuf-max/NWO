@@ -1,0 +1,16 @@
+{
+ "tag_t7.sk.frei": "{n} boş yer",
+ "tag_t7.tisch.hinweis": "Bir paket hazırlayın. Karşı tarafın değerlendirmesini hemen görürsünüz; yalnızca teklifin kendisi sermayeye mal olur.",
+ "tag_t7.block.mitglieder": "Oyundaki üyeler",
+ "tag_t7.block.partner": "Ortaklar",
+ "tag_t7.block.beobachter": "Gözlemciler",
+ "tag_t7.rat.hinweis": "Oyunda aktör olarak yer alan 13 devlet sayılır (basitleştirilmiş); diğerleri onları izler. Yunanistan ve Kıbrıs vetolarını çatışma değerleri üzerinden kullanır, diğerleri oybirliğini ancak aşırı tutumda reddeder.",
+ "tag_t7.dienst.lage": "Hedef devletteki durum",
+ "tag_t7.dienst.satz": "Gizli operasyonlar sermayeye ve kıt kapasitenin bir kısmına mal olur, nadiren temiz başarılır ve deşifre olabilir.",
+ "tag_t7.dienst.bericht": "Dünya yalnızca deşifre olanı öğrenir; burada sizin emrettikleriniz ya da ortaya çıkarılanlar yazar.",
+ "tag_t7.verm.umfang": "Kapsam ve risk",
+ "tag_t7.verm.satz": "Ankara'nın her iki tarafla da bağı var. Durumun olgunlaşması gerekir, bozguncular buna karşı çalışır ve bir uzlaşma ancak biri onu garanti ederse tutar.",
+ "tag_t7.verm.zahlen": "Olgunluk {reife} · çatışma {konflikt}",
+ "tag_t7.verm.preis": "Kuruluş GSYH'nin %{bip} kadarı, ardından ayda {monat} sermaye · şans +{aussicht}",
+ "tag_t7.tisch.dauerhaft": "{text} kalıcı"
+}

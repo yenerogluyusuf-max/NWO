@@ -21,7 +21,8 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
     <section className="we-rat">
       <h4>{t("ui.welt.Block.e451af3")}</h4>
       <p className="subtitle">
-        {t("ui.welt.Block.ce1c53b")}
+        {/* ohne den ersten Satz: die Beschlussregel steht schon über dem Rat (Tag 6. November) */}
+        {t("tag_t7.rat.hinweis")}
       </p>
       <div className="we-rat-themen" role="tablist" aria-label={tx("ui2.ui.welt.Block.b2f1380")}>
         {(Object.keys(THEMA_NAME) as EuThema[]).map((t) => (
@@ -85,10 +86,12 @@ export function Block({ world, id, refresh, onLand }: { world: World; id: string
       <p className="we-block-regel">
         <b>{tx("ui2.ui.welt.Block.c6e3c60")}</b> {REGEL[def.beschluss]} · <b>{t("ui.welt.Block.051e2a4")}</b> {def.tuerkeiText}
       </p>
-      {gruppe("Mitglieder im Spiel", def.mitglieder)}
-      {gruppe("Partner", def.partner)}
-      {gruppe("Beobachter", def.beobachter)}
-      {def.weitereMitglieder > 0 && <p className="we-hinweis">{tx("ui2.ui.welt.Block.81545bb", { p0: def.weitereMitglieder })}</p>}
+      {/* Bei der EU nennt der Rat darunter jedes Mitglied mit Haltung und Sprung zur Länderakte; die Mitgliederkacheln stünden doppelt (Tag 6. November) */}
+      {id !== "eu" && gruppe(t("tag_t7.block.mitglieder"), def.mitglieder)}
+      {gruppe(t("tag_t7.block.partner"), def.partner)}
+      {gruppe(t("tag_t7.block.beobachter"), def.beobachter)}
+      {/* Bei der EU sagt der Hinweis des Rats schon, dass die übrigen Mitglieder den 13 Staaten im Spiel folgen */}
+      {def.weitereMitglieder > 0 && id !== "eu" && <p className="we-hinweis">{tx("ui2.ui.welt.Block.81545bb", { p0: def.weitereMitglieder })}</p>}
 
       {aktionen.length > 0 && (
         <div className="we-block-aktionen">

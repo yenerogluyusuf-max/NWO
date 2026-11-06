@@ -25,7 +25,7 @@ function Punkte({ n, ton }: { n: number; ton: "gut" | "schlecht" }) {
 
 function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSicht; gewaehlt: boolean; veto: boolean; onToggle: () => void; partner: string }) {
   const wirkung = useMemo(() => heimWirkung(k.def), [k.def]);
-  const zeilen = [...wirkung.sofort, ...wirkung.dauer.map((z) => ({ ...z, text: `${z.text} dauerhaft` }))].slice(0, 5);
+  const zeilen = [...wirkung.sofort, ...wirkung.dauer.map((z) => ({ ...z, text: t("tag_t7.tisch.dauerhaft", { text: z.text }) }))].slice(0, 5);
   const gibt = k.def.seite === "gibt";
   return (
     <li>
@@ -37,23 +37,30 @@ function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSich
         onClick={onToggle}
         title={k.gesperrt ?? k.text}
       >
+        {/* Wert oder Preis steht als Punkte in der Kopfzeile; was die Punkte bedeuten, sagt einmal die Spaltenüberschrift (Tag 6. November) */}
         <span className="we-klausel-kopf">
           <strong>{k.label}</strong>
-          {k.def.pk ? (
-            <b className="we-pk" title={t("ui.welt.Verhandlungstisch.a663901")}>
-              {k.def.pk}
-            </b>
-          ) : null}
+          <span className="we-klausel-zeichen">
+            {!k.gesperrt && (
+              <span className="we-klausel-wert" title={gibt ? t("ui2.ui.welt.Verhandlungstisch.1fd9805", { p0: partner }) : t("ui2.ui.welt.Verhandlungstisch.223c198", { p0: partner })}>
+                <em className="we-unsichtbar">{gibt ? t("ui2.ui.welt.Verhandlungstisch.1fd9805", { p0: partner }) : t("ui2.ui.welt.Verhandlungstisch.223c198", { p0: partner })}</em>
+                {k.wert < -50 ? <b className="we-rot">{t("ui2.ui.welt.Verhandlungstisch.66d4eee")}</b> : <Punkte n={punkte(k.wert)} ton={gibt ? "gut" : "schlecht"} />}
+              </span>
+            )}
+            {k.def.pk ? (
+              <b className="we-pk" title={t("ui.welt.Verhandlungstisch.a663901")}>
+                {k.def.pk}
+              </b>
+            ) : null}
+          </span>
         </span>
-        <span className="we-klausel-text">{k.text}</span>
+        {/* Tag 6. November: die Beschreibung steht im Tooltip und erscheint, sobald die Klausel im Paket liegt (mit der Kehrseite);
+            die Karte selbst zeigt Name, Preis, Wert und Wirkung. Vorher stand jede Beschreibung offen, der Tisch war 2,6 Bildschirme lang. */}
+        {gewaehlt && <span className="we-klausel-text">{k.text}</span>}
         {k.gesperrt ? (
           <span className="we-klausel-grund">{k.gesperrt}</span>
         ) : (
           <>
-            <span className="we-klausel-wert">
-              <em>{gibt ? t("ui2.ui.welt.Verhandlungstisch.1fd9805", { p0: partner }) : t("ui2.ui.welt.Verhandlungstisch.223c198", { p0: partner })}</em>
-              {k.wert < -50 ? <b className="we-rot">{t("ui2.ui.welt.Verhandlungstisch.66d4eee")}</b> : <Punkte n={punkte(k.wert)} ton={gibt ? "gut" : "schlecht"} />}
-            </span>
             {zeilen.length > 0 && (
               <ul className="we-wirkung" aria-label={t("ui2.ui.welt.Verhandlungstisch.dca5dc7")}>
                 {zeilen.map((z, i) => (
@@ -145,9 +152,13 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
     <>
     <section className="we-tisch" aria-label={t("ui2.ui.welt.Verhandlungstisch.7e59256", { p0: l.name })}>
       <div ref={kopf} className="we-tisch-oben">
-        <p className="we-tisch-kopf">
-          {t("ui2.ui.welt.Verhandlungstisch.7ca12d6", { p0: l.name })}
-        </p>
+        {/* Ohne Angebot steht hier nur die Anleitung; die Leiste unten nennt schon „Noch kein Angebot“ (vorher zusätzlich ein leerer Stimmungskasten) */}
+        {nichts && !antwort && (
+          <p className="we-tisch-kopf">
+            {/* kürzer (Tag 6. November): was eine Klausel bewirkt und kostet, zeigt die Karte selbst */}
+            {t("tag_t7.tisch.hinweis")}
+          </p>
+        )}
 
         {antwort && (
           <div className={`we-antwort u-${antwort.urteil}`} role="status">
@@ -182,7 +193,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
           </div>
         )}
 
-        <div className="we-mitte">
+        {!nichts && <div className="we-mitte">
           <div className="we-stimmung">
             <Flagge id={landId} breite={44} rund titel={l.name} />
             <div className="we-stimmung-text">
@@ -202,13 +213,15 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
               ))}
             </ul>
           )}
-        </div>
+        </div>}
       </div>
 
-      <div className="we-spalten">
+      {/* Breite nach Zahl der Klauseln: die längere Seite bekommt mehr Platz und zwei Spalten */}
+      <div className="we-spalten" style={{ ["--we-spalten" as string]: `minmax(0, ${Math.max(1, bietet.length)}fr) minmax(0, ${Math.max(1, verlangt.length)}fr)` }}>
         <div className="we-spalte">
           <h4>
             <Flagge id="TUR" breite={22} /> {t("ui2.ui.welt.Verhandlungstisch.0f5c0dc")}
+            <small className="we-spalte-legende"><Punkte n={2} ton="gut" /> {t("ui2.ui.welt.Verhandlungstisch.1fd9805", { p0: l.name })}</small>
           </h4>
           <ul className="we-klauseln">
             {bietet.map((k) => (
@@ -219,6 +232,7 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
         <div className="we-spalte">
           <h4>
             <Flagge id={landId} breite={22} titel={l.name} /> {t("ui2.ui.welt.Verhandlungstisch.17fd837")}
+            <small className="we-spalte-legende"><Punkte n={2} ton="schlecht" /> {t("ui2.ui.welt.Verhandlungstisch.223c198", { p0: l.name })}</small>
           </h4>
           <ul className="we-klauseln">
             {verlangt.map((k) => (

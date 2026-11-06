@@ -187,9 +187,11 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
     titel: t("militaer.ui.laufend"),
     wert: String(s.laufend.length),
     zeile: s.laufend.length ? [...s.laufend].sort((a, b) => Number(!!b.name) - Number(!!a.name)).slice(0, 2).map((x) => x.name ?? t(`militaer.gattung.${x.gattung as GattungId}`)).join(", ") : t("militaer.ui.laufend_leer"),
-    wertLabel: t("nacht_n7.kapazitaet_frei", { n: Math.max(0, s.kapazitaet - belegt) }),
     anteil: belegt / Math.max(1, s.kapazitaet),
-    ...(belegt >= s.kapazitaet ? { ton: "mittel" as const, marke: { text: t("militaer.ui.voll"), ton: "mittel" as const } } : {}),
+    // Freie Plätze als Marke im Fuß statt als Beschriftung unter der Zahl (Tag 6. November): die lange Beschriftung schob die Zahl in eine zweite Zeile
+    ...(belegt >= s.kapazitaet
+      ? { ton: "mittel" as const, marke: { text: t("militaer.ui.voll"), ton: "mittel" as const } }
+      : { marke: { text: t("tag_t7.sk.frei", { n: s.kapazitaet - belegt }), ton: "neutral" as const } }),
   });
   kacheln.push({
     id: "_ziel",

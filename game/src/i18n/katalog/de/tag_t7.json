@@ -1,0 +1,16 @@
+{
+ "tag_t7.sk.frei": "{n, plural, one {ein Platz frei} other {# Plätze frei}}",
+ "tag_t7.tisch.hinweis": "Stellen Sie ein Paket zusammen. Das Urteil der Gegenseite sehen Sie sofort; erst das Angebot selbst kostet Kapital.",
+ "tag_t7.block.mitglieder": "Mitglieder im Spiel",
+ "tag_t7.block.partner": "Partner",
+ "tag_t7.block.beobachter": "Beobachter",
+ "tag_t7.rat.hinweis": "Im Spiel zählen die 13 Staaten, die als Akteure vorkommen (vereinfacht); die übrigen folgen ihnen. Griechenland und Zypern üben ihr Veto über die Konfliktwerte aus, die anderen verweigern die Einstimmigkeit erst bei extremer Haltung.",
+ "tag_t7.dienst.lage": "Lage im Zielstaat",
+ "tag_t7.dienst.satz": "Verdeckte Operationen kosten Kapital und einen Teil der knappen Kapazität, gelingen selten sauber und können auffliegen.",
+ "tag_t7.dienst.bericht": "Die Welt erfährt nur, was auffliegt; hier steht, was Sie angeordnet haben oder was aufgedeckt wurde.",
+ "tag_t7.verm.umfang": "Umfang und Risiko",
+ "tag_t7.verm.satz": "Ankara hat einen Draht zu beiden Seiten. Die Lage muss reifen, Spoiler arbeiten dagegen, und eine Einigung hält nur, wenn jemand sie garantiert.",
+ "tag_t7.verm.zahlen": "Reife {reife} · Konflikt {konflikt}",
+ "tag_t7.verm.preis": "Aufbau {bip} % des BIP, danach {monat} Kapital im Monat · Aussicht +{aussicht}",
+ "tag_t7.tisch.dauerhaft": "{text} dauerhaft"
+}
