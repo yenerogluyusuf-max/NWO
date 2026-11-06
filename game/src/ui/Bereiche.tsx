@@ -12,6 +12,7 @@ import { VorlageKarte } from "./minister/VorlageKarte";
 import "./politik/design.css";
 import "./minister/ministerfluss.css";
 import "./politik/politik.css";
+import "./politik/vorschlaege.css";
 
 import { t } from "../i18n";
 export function Bereiche({
@@ -42,20 +43,25 @@ export function Bereiche({
   };
   return (
     <section className="vorschlaege mf">
-      <header className="pd-seitenkopf">
-        <div>
-          <p className="pd-ueber">{t("ui2.ui.Bereiche.1ab3309")}</p>
-          <h3>{t("ui2.ui.Bereiche.eaecb68")}</h3>
-          <p className="pd-lead">{t("ui.Bereiche.99f90d9")}</p>
+      {/* Leitfrage mit der Zahl in einer Zeile; der Weg zu den Bereichen steht rechts daneben statt in einer eigenen Fußzeile (vorher 1,6 Bildschirme) */}
+      <header className="vs-kopf">
+        <p className="pd-ueber">{t("ui2.ui.Bereiche.1ab3309")}</p>
+        <div className="vs-titelzeile">
+          <h3>
+            {t("ui2.ui.Bereiche.eaecb68")}
+            {vs.length > 0 && (
+              <span className="vs-zahl">
+                <b>{vs.length}</b> {vs.length === 1 ? t("ui2.ui.Bereiche.4271557") : t("ui2.ui.Bereiche.ab41f3a")}
+              </span>
+            )}
+          </h3>
+          {onBereiche && (
+            <p className="vs-selbst">
+              {t("ui2.ui.Bereiche.25bbb8b")} <button className="pd-btn quiet" onClick={onBereiche}>{t("ui2.ui.Bereiche.25e38e2")}</button>
+            </p>
+          )}
         </div>
-        {vs.length > 0 && (
-          <ul className="pd-zaehler" aria-label={t("ui.Bereiche.7be6696")}>
-            <li className="hell">
-              <b>{vs.length}</b>
-              <span>{vs.length === 1 ? t("ui2.ui.Bereiche.4271557") : t("ui2.ui.Bereiche.ab41f3a")} {t("ui2.ui.Bereiche.4bd4d76")}</span>
-            </li>
-          </ul>
-        )}
+        <p className="pd-lead">{t("ui.Bereiche.99f90d9")}</p>
       </header>
       {antwort && (
         <p className={`mf-rueckmeldung ${antwort.ok ? "ok" : "nein"}`} role="status">
@@ -72,11 +78,6 @@ export function Bereiche({
           </li>
         ))}
       </ol>
-      {onBereiche && (
-        <p className="pd-legende">
-          {t("ui2.ui.Bereiche.25bbb8b")} <button className="pd-btn quiet" onClick={onBereiche}>{t("ui2.ui.Bereiche.25e38e2")}</button>
-        </p>
-      )}
     </section>
   );
 }
