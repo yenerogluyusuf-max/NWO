@@ -794,7 +794,8 @@ const KOMMUNALWAHL: Vorlage = {
   ],
   warum: () => t("evi.kommunalwahl.warum"),
   optionen: (w) => {
-    // Ergebnis je Provinz aus dem Vertrauen vor Ort, Amtsbonus und Zwangsverwaltung (sim/kommunen.ts); der Wahlkampf gibt einen Zuschlag
+    // Ergebnis je Provinz nach relativer Mehrheit: Hochburgen, Stimmung, Vertrauen vor Ort, Amtsbonus, Bündnisse und Zwangsverwaltung
+    // (sim/kommunen.ts); der Wahlkampf gibt dem Lager einen Zuschlag in Prozentpunkten
     const ergebnis = (ww: typeof w, bonus = 0): string => kommunalwahlDurchfuehren(ww, bonus).text;
     return [
       opt("reisen", t("evi.kommunalwahl.opt.reisen.label"), beschr(4, 0, t("evi.kommunalwahl.opt.reisen.folge")), 4, (ww) => {
