@@ -12,6 +12,7 @@ import type { World } from "../sim/types";
 import { formatDateDe } from "../sim/dates";
 import { kzBewertung } from "../data/zeitung_texte";
 import {
+  methodeName,
   zeitungVon,
   type FramingArt,
   type ZeitungArtikel,
@@ -34,12 +35,6 @@ const TON_NAME = (ton: FramingArt): string => t(`reste.zeitung.ton.${ton}`);
 
 const SPARTEN = new Set(["politik", "wirtschaft", "ereignis", "programm", "welt", "umfrage"]);
 const SPARTE_NAME = (s: string): string | undefined => (SPARTEN.has(s) ? t(`nacht_n2.zeitung.sparte.${s}`) : undefined);
-/** Erhebungsart in Worten statt Kürzel (F2F, CATI, online), befund-E E-39 */
-const methodeName = (m: string): string =>
-  m
-    .split(" + ")
-    .map((x) => (["F2F", "CATI", "online"].includes(x) ? t(`nacht_n2.zeitung.methode.${x}`) : x))
-    .join(" + ");
 
 const nf = (x: number) => x.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 

@@ -1,4 +1,5 @@
 {
  "tag_int.saison.spanne": "{von} to {bis}",
- "tag_int.saison.ganzjaehrig": "all year"
+ "tag_int.saison.ganzjaehrig": "all year",
+ "tag_int.zeitung.vormonat": "({d} on the previous month)"
 }

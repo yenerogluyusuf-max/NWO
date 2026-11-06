@@ -54,7 +54,15 @@ import { fmt } from "./log";
 import { formatMonthDe } from "./dates";
 import type { MonthlySnapshot, World } from "./types";
 import type { Bericht } from "./berichte";
-import { t as tx } from "../i18n";
+import { aktuelleLocale, t as tx } from "../i18n";
+
+
+/** Erhebungsart in Worten statt Kürzel (F2F, CATI, online), befund-E E-39 */
+export const methodeName = (m: string): string =>
+  m
+    .split(" + ")
+    .map((x) => (["F2F", "CATI", "online"].includes(x) ? tx(`nacht_n2.zeitung.methode.${x}`) : x))
+    .join(" + ");
 
 export type { AuslandPunkt, KennzahlDaten, LagePunkt, TextKontext, VorgangDaten } from "../data/zeitung_texte";
 
@@ -1119,13 +1127,17 @@ export function zeitungMonat(world: World): void {
     z.letzteUmfrage = ergebnis.umfrage.wert;
     const u = ergebnis.umfrage;
     const delta = u.vormonat !== undefined ? u.wert - u.vormonat : undefined;
-    const stich = u.stichprobe !== undefined ? `Stichprobe ${u.stichprobe.toLocaleString("de-DE")}, Methode ${u.methode}` : tx("sim2.sim.zeitung.e2cb800", { p0: u.methode });
+    const m = methodeName(u.methode);
+    const stich =
+      u.stichprobe !== undefined
+        ? `${tx("nacht_n2.zeitung.befragte", { n: u.stichprobe.toLocaleString(aktuelleLocale()) })}, ${tx("nacht_n2.zeitung.methode", { m })}`
+        : tx("sim2.sim.zeitung.e2cb800", { p0: m });
     vorgaenge.push({
       id: `umfrage-${world.day}`,
       art: "umfrage",
       sparte: "umfrage",
       titel: tx("sim2.sim.zeitung.345c08a", { p0: u.institut, p1: fmt(u.wert) }),
-      fakt: tx("sim2.sim.zeitung.8477ef0", { p0: u.institut, p1: fmt(u.wert), p2: delta !== undefined ? ` (${delta >= 0 ? "+" : "−"}${fmt(Math.abs(delta))} zum Vormonat)` : "", p3: stich }),
+      fakt: tx("sim2.sim.zeitung.8477ef0", { p0: u.institut, p1: fmt(u.wert), p2: delta !== undefined ? ` ${tx("tag_int.zeitung.vormonat", { d: `${delta >= 0 ? "+" : "−"}${fmt(Math.abs(delta))}` })}` : "", p3: stich }),
       wertung: delta === undefined ? 0.05 : delta > 1 ? 0.4 : delta < -1 ? -0.5 : 0.05,
       tag: world.day,
       datum: world.date,
