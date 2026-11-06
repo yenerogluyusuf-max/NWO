@@ -159,7 +159,10 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
     case "medien": {
       if (sp) {
         const rsf = rsfSicht(w);
-        k.push({ label: t("akte.b.kern.pressefreiheit"), wert: nf(rsf.score, 1), verlauf: rsf.verlauf.slice(-12).map((v) => v.score), ton: ton(rsf.score, 50, 30) });
+        // Als Rang, nicht als Kommaindex (Tagarbeit T1): Der RSF-Index 2025 belegt Rang 159 von 180 ganzzahlig, der Wert 29,4 ist eine Kommazahl.
+        // Die Linie bleibt der Wert (steigt, wenn der Rang besser wird); der Ton folgt denselben Schwellen wie zuvor.
+        const d = rsf.start.rang === rsf.rang ? "±0" : `${rsf.rang < rsf.start.rang ? "+" : "−"}${nf(Math.abs(rsf.start.rang - rsf.rang))}`;
+        k.push({ label: t("akte.b.kern.pressefreiheit"), wert: t("medien.ui.rsf_rang", { rang: nf(rsf.rang) }), hinweis: t("tag_t1.medien.rang_hinweis", { n: nf(180), d }), verlauf: rsf.verlauf.slice(-12).map((v) => v.score), ton: ton(rsf.score, 50, 30) });
         const m = medienVon(w);
         const gesperrt = Object.keys(m.cluster).filter((id) => lizenzVon(w, id) === "gesperrt").length;
         k.push({ label: t("akte.b.kern.gesperrt"), wert: nf(gesperrt), ton: gesperrt > 0 ? "schlecht" : "gut" });

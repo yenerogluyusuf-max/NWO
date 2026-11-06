@@ -79,6 +79,15 @@ describe("Bereichsakten", () => {
     }
   });
 
+  test("Pressefreiheit im Kopf der Medienakte als ganzzahliger Rang von 180, nicht als Kommaindex (Tagarbeit T1)", () => {
+    const w = welt();
+    const pf = kernwerteBereich(w, "medien")[0]!;
+    expect(pf.label).toBe("Pressefreiheit");
+    expect(pf.wert).toMatch(/^Rang \d+$/);
+    expect(pf.wert).not.toMatch(/,/);
+    expect(pf.hinweis).toMatch(/^von 180 · seit Amtsantritt (±0|[+−]\d+)$/);
+  });
+
   test("Lage-Urteil: ein Satz ohne Platzhalter, Stufe passt zu den Tönen", async () => {
     const w = welt();
     for (const sprache of ["de", "tr", "en"] as const) {

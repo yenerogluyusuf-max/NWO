@@ -437,15 +437,17 @@ describe("Inhaltliche Leitplanken", () => {
 });
 
 describe("Oberfläche", () => {
-  test("die Frontseite lässt sich zeichnen: Masthead, Blätter-Reiter, Archiv und Pressefreiheits-Hinweis", () => {
+  test("die Frontseite lässt sich zeichnen: Masthead, Blätter-Reiter, Archiv und der Weg zu „Medien steuern“", () => {
     const w = spiel(5);
     advance(w, tageZumErsten(w.date));
-    // Der Hinweis auf die Pressefreiheit führt zum Reiter „Medien steuern“; die Bühne reicht dafür `onMedien` durch (seit 6. November)
+    // Der Hinweis am Rand führt zum Reiter „Medien steuern“; die Bühne reicht dafür `onMedien` durch (seit 6. November).
+    // Rang und Wert der Pressefreiheit stehen seit der Tagarbeit T1 nur noch im Aktenkopf (ui/akte/Bereiche.tsx), nicht doppelt am Rand der
+    // Zeitung; die Prüfung des Rangs steht deshalb bei den Kernwerten der Akte (test/akte-bereiche.test.tsx).
     const html = renderToStaticMarkup(createElement(Zeitung, { world: w, onMedien: () => {} }));
     expect(html).toContain("Ausgabe Nr.");
     expect(html).toContain("Archiv");
-    expect(html).toContain("Pressefreiheit");
-    expect(html).toContain("Rang 159");
+    expect(html).toContain("Medien steuern");
+    expect(html).not.toContain("Wert 29,4");
     expect(html).toContain("tablist");
     // Keine echte Blattzeile im UI-Text
     expect(html).not.toContain("Hürriyet");

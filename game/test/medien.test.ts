@@ -19,6 +19,7 @@ import {
   angezeigteZustimmung,
   blattAuswahlWelt,
   fuehreMedienAktionAus,
+  hausmedienAnteil,
   institutsReihe,
   lizenzVon,
   medienAktionen,
@@ -26,6 +27,7 @@ import {
   medienMonat,
   medienVon,
   publikationsverbot,
+  publikumsAnteile,
   reglerLizenz,
   reichweiteJetzt,
   rohdatenKaufen,
@@ -379,6 +381,22 @@ describe("Wahrnehmung: Institute statt Wahrheit", () => {
   });
 });
 
+describe("Publikumsanteile (Bild „Wem gehört die Öffentlichkeit“)", () => {
+  test("die Anteile ergeben eins, die regierungsnahen sind der Hausmedienanteil, ein gesperrtes Haus erreicht niemanden", () => {
+    const w = spiel();
+    const a = publikumsAnteile(w);
+    expect(a).toHaveLength(MEDIEN_CLUSTER.length);
+    expect(a.reduce((s, x) => s + x.anteil, 0)).toBeCloseTo(1, 10);
+    expect(a.filter((x) => x.lager === "regierung").reduce((s, x) => s + x.anteil, 0)).toBeCloseTo(hausmedienAnteil(w), 10);
+    expect(a.find((x) => x.id === "staatsrundfunk")!.lager).toBe("regierung");
+    expect(a.find((x) => x.id === "opposition_masse")!.lager).toBe("kritisch");
+    expect(a.find((x) => x.id === "kommerz_konform")!.lager).toBe("angepasst");
+    fuehreMedienAktionAus(w, "blackout", "opposition_masse");
+    expect(lizenzVon(w, "opposition_masse")).toBe("gesperrt");
+    expect(publikumsAnteile(w).find((x) => x.id === "opposition_masse")!.anteil).toBe(0);
+  });
+});
+
 describe("Ansicht", () => {
   test("der Reiter „Medien“ zeigt Tableau, Eingriffe, Wahrnehmung und Verlauf ohne fehlende Texte", () => {
     const w = spiel();
@@ -390,6 +408,10 @@ describe("Ansicht", () => {
     expect(html).toContain("Rohdaten kaufen");
     expect(html).toContain("Letzte Eingriffe");
     expect(html).toContain("Anordnen");
+    // Leitfrage oben, die Häuser als Kacheln; der Rang der Pressefreiheit steht im Aktenkopf, nicht in der Ansicht (Tagarbeit T1)
+    expect(html).toContain("Wem gehört die Öffentlichkeit");
+    expect(html.match(/class="md-kachel /g)?.length).toBe(MEDIEN_CLUSTER.length + 1);
+    expect(html).not.toContain("Rang 159");
   });
 
   test("die Zeitung nennt gesperrte Blätter; die Mediensteuerung ist ein eigener Reiter der Akte", () => {
