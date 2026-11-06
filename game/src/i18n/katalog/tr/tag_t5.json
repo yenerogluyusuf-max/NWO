@@ -9,5 +9,6 @@
  "t5.kr.tiefstandWert": "6 ayın {n} ayı",
  "t5.kr.lesehilfe": "Bu rakamlar nasıl okunur",
  "t5.vs.tage": "{n} gün",
- "t5.vs.legende": "Halka: kendine yeterlilik · Gün: ithalat olmadan dayanma süresi"
+ "t5.vs.legende": "Halka: kendine yeterlilik · Gün: ithalat olmadan dayanma süresi",
+ "t5.zb.skala": "%{p}"
 }

@@ -9,5 +9,6 @@
  "t5.kr.tiefstandWert": "{n} of 6 months",
  "t5.kr.lesehilfe": "How to read these figures",
  "t5.vs.tage": "{n} days",
- "t5.vs.legende": "Ring: self-sufficiency · Days: how long stocks last without imports"
+ "t5.vs.legende": "Ring: self-sufficiency · Days: how long stocks last without imports",
+ "t5.zb.skala": "{p}%"
 }

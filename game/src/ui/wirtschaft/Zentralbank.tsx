@@ -74,7 +74,7 @@ function ZinsBild({ inflation, erwartet, zins, regel, zeile }: { inflation: numb
         <rect x={20} y={44} width={920} height={26} rx={4} className="wi-zb-achse" />
         <rect x={Math.min(x(erwartet), x(zins))} y={44} width={Math.abs(x(zins) - x(erwartet))} height={26} className={real >= 0 ? "wi-zb-real gut" : "wi-zb-real schlecht"} />
         {striche.map((v) => (
-          <g key={v}><line x1={x(v)} x2={x(v)} y1={70} y2={76} className="wi-zb-strich" /><text x={x(v)} y={100} textAnchor="middle" className="wi-zb-skala">{v} %</text></g>
+          <g key={v}><line x1={x(v)} x2={x(v)} y1={70} y2={76} className="wi-zb-strich" /><text x={x(v)} y={100} textAnchor="middle" className="wi-zb-skala">{t("t5.zb.skala", { p: v })}</text></g>
         ))}
         {regel !== zins && <path d={`M${x(zins)},38 L${x(regel)},38`} className="wi-zb-pfeil" markerEnd="url(#wi-zb-spitze)" />}
         <defs><marker id="wi-zb-spitze" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" className="wi-zb-spitze" /></marker></defs>

@@ -171,5 +171,5 @@
 @media (max-width: 1100px) { .hd-bilanz > .hd-kern { grid-column: 1; grid-row: auto; justify-content: flex-start; } .hd .hr { grid-template-columns: minmax(0, 1fr); } }
 .hd-einnahmen .hd-reihe { grid-template-columns: minmax(0, 1fr) 128px 186px; }
 .hd-einnahmen .hd-steuer-fest .hd-reihe { grid-template-columns: minmax(0, 1fr) auto; }
-.hd-einnahmen .hd-betrag { white-space: nowrap; }
+.hd-einnahmen .hd-betrag { white-space: normal; text-wrap: balance; }
 @media (max-width: 560px) { .hd-einnahmen .hd-reihe { grid-template-columns: minmax(0, 1fr) auto; } }

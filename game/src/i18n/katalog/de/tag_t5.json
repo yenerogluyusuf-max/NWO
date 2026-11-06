@@ -9,5 +9,6 @@
  "t5.kr.tiefstandWert": "{n} von 6 Monaten",
  "t5.kr.lesehilfe": "Wie diese Zahlen zu lesen sind",
  "t5.vs.tage": "{n} Tage",
- "t5.vs.legende": "Ring: Eigenversorgung · Tage: Reichweite ohne Einfuhr"
+ "t5.vs.legende": "Ring: Eigenversorgung · Tage: Reichweite ohne Einfuhr",
+ "t5.zb.skala": "{p} %"
 }
