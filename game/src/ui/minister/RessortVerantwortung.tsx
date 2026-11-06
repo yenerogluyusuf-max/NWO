@@ -10,6 +10,7 @@ import { UbVerweis } from '../akte/Uebersicht';
 import { ZusagenDruck } from '../personen/ZusagenDruck';
 import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
 import { EntscheidungsWege } from '../entscheidungen/EntscheidungsWege';
+import { Chip, ton } from './RessortRueckhalt';
 import './ressortverantwortung.css';
 
 const arten:RessortReaktion[]=['stuetzen','zurueckpfeifen','entlassen'];
@@ -17,28 +18,41 @@ const sign=(n:number)=>`${n>0?'+':''}${zahl(n,2)}`;
 const tagDatum=(datum:string,tag:number,ziel:number)=>formatDateDe(addDays(datum,ziel-tag));
 const knoten=(id:string)=>NET.nodes[NET.index.get(id)??-1]?.name??id;
 const ausgang=(v:RessortVorfall)=>v.art==='auftragVerfehlt'?'rp.auftrag':v.art==='stillstand'?'rp.stillstand':v.erfolg?'rp.eigenGut':'rp.eigenSchlecht';
+// ENTSCHEIDUNGEN Z (06.11.2026): Folgen als Chips und Tabelle; die Begründung der Fraktionen steht als kurzer Grund je Zeile.
 export function RessortPolitikFolgen({b}:{b:RessortPolitikBeleg}) {
   return <div className="rp-folgen">
-    <p>{t('rp.sofort',{vertrauen:sign(b.vertrauen),leg:sign(b.legitimitaet)})}</p>
-    {b.risikoaufschlag!==0||b.glaubwuerdigkeit!==0?<p>{t('rp.markt',{risiko:sign(b.risikoaufschlag),glaub:sign(b.glaubwuerdigkeit)})}</p>:null}
-    {b.kontrolleBis!==undefined&&<p>{t('rp.kontrolle',{datum:tagDatum(b.datum,b.tag,b.kontrolleBis)})}</p>}
-    {b.nachfolger&&<p>{t('rp.nachfolger',{name:b.nachfolger.name,partei:b.nachfolger.partei??t('rp.parteilos'),faehigkeit:zahl(b.nachfolger.faehigkeit,0),loyalitaet:zahl(b.nachfolger.loyalitaet,0),datum:tagDatum(b.datum,b.tag,b.nachfolger.einarbeitungBis??b.tag)})}</p>}
-    {b.nachfolger?.kommissarisch&&<p>{t('rp.kommissarisch')}</p>}
-    {b.opposition&&<p className="rp-opposition">{t('rp.opposition',{partei:b.opposition.partei,vor:zahl(b.opposition.vorher,2),nach:zahl(b.opposition.nachher,2)})} {t(`rp.opp.${b.art}`,{partei:b.opposition.partei,name:''})}</p>}
+    <div className="rk-chips">
+      {b.vertrauen!==0&&<Chip label={t('welle_b2.rk.vertrauen')} delta={b.vertrauen}/>}
+      {b.legitimitaet!==0&&<Chip label={t('welle_b2.rk.legitimitaet')} delta={b.legitimitaet}/>}
+      {b.risikoaufschlag!==0&&<Chip label={t('welle_b2.rk.risiko')} delta={b.risikoaufschlag} umgekehrt/>}
+      {b.glaubwuerdigkeit!==0&&<Chip label={t('welle_b2.rk.glaubwuerdigkeit')} delta={b.glaubwuerdigkeit}/>}
+      {b.kontrolleBis!==undefined&&<Chip label={t('welle_b2.rp.kontrolle')} wert={tagDatum(b.datum,b.tag,b.kontrolleBis)} title={t('rp.kontrolle',{datum:tagDatum(b.datum,b.tag,b.kontrolleBis)})}/>}
+      {b.opposition&&<Chip label={t('rr.opposition',{partei:b.opposition.partei})} wert={`${zahl(b.opposition.vorher,2)} → ${zahl(b.opposition.nachher,2)}`} delta={b.opposition.nachher-b.opposition.vorher} umgekehrt title={t(`rp.opp.${b.art}`,{partei:b.opposition.partei,name:''})}/>}
+    </div>
+    {b.nachfolger&&<div className="rk-chips">
+      <Chip label={t('welle_b2.rp.nachfolge')} wert={`${b.nachfolger.name} · ${b.nachfolger.partei??t('rp.parteilos')}`}/>
+      <Chip label={t('welle_b2.rk.faehigkeit')} wert={zahl(b.nachfolger.faehigkeit,0)}/>
+      <Chip label={t('welle_b2.rk.loyalitaet')} wert={zahl(b.nachfolger.loyalitaet,0)}/>
+      <Chip label={t('welle_b2.rp.einarbeitung')} wert={`${tagDatum(b.datum,b.tag,b.nachfolger.einarbeitungBis??b.tag)} · ×0,75`}/>
+      {b.nachfolger.kommissarisch&&<Chip label={t('welle_b2.rp.kommissarisch')} wert="×0,8" title={t('rp.kommissarisch')}/>}
+    </div>}
     <details><summary>{t('rp.fraktionen')}</summary>
-      {b.parteien.map(p=><p key={p.partei}><b>{p.partei} · {t(`zw.rolle.${p.rolle}`)}</b><br/>{t(`rp.grund.${p.grund}`)} {t('rp.bereitschaft',{vor:zahl(p.vorher,2),nach:zahl(p.nachher,2)})}</p>)}
-      {b.personen.map(p=><p key={p.id}>{p.nachfolger?t('rp.personWechsel',{alt:p.name,neu:p.nachfolger}):t('rp.person',{name:p.name,vor:zahl(p.loyalitaetVor,2),nach:zahl(p.loyalitaetNach,2),groll:sign(p.grollNach-p.grollVor)})}</p>)}
+      <table className="rk-tabelle"><thead><tr><th>{t('welle_b2.rk.fraktion')}</th><th>{t('welle_b2.rk.grund')}</th><th>{t('rr.bereit')}</th></tr></thead><tbody>
+        {b.parteien.map(p=><tr key={p.partei}><td><b>{p.partei}</b> <small>{t(`zw.rolle.${p.rolle}`)}</small></td><td>{t(`rp.grund.${p.grund}`)}</td><td><span className="rk-wert">{zahl(p.vorher,2)} → {zahl(p.nachher,2)}</span> {(p.nachher-p.vorher)!==0&&<em className={ton(p.nachher-p.vorher)}>{sign(p.nachher-p.vorher)}</em>}</td></tr>)}
+      </tbody></table>
+      {!!b.personen.length&&<table className="rk-tabelle"><thead><tr><th>{t('welle_b2.rk.person')}</th><th>{t('welle_b2.rk.loyalitaet')}</th><th>{t('welle_b2.rk.groll')}</th></tr></thead><tbody>
+        {b.personen.map(p=>p.nachfolger?<tr key={p.id}><td colSpan={3}>{p.name} → {p.nachfolger}</td></tr>:<tr key={p.id}><td>{p.name}</td><td><span className="rk-wert">{zahl(p.loyalitaetVor,2)} → {zahl(p.loyalitaetNach,2)}</span></td><td className="rk-wert">{sign(p.grollNach-p.grollVor)}</td></tr>)}
+      </tbody></table>}
     </details>
   </div>;
 }
 export function RessortPolitikVerlauf({vorfaelle}:{vorfaelle:RessortVorfall[]}) {
   if(!vorfaelle.length)return null;
-  return <details className="rp-verlauf"><summary>{t('rp.verlauf')}</summary><p>{t('rp.historisch')}</p>
-    {vorfaelle.slice().reverse().map(v=><article key={v.id}>
-      <h5>{v.name} · {formatDateDe(v.datum)}</h5>
-      <p>{t(ausgang(v))}</p>
+  return <details className="rp-verlauf"><summary>{t('rp.verlauf')} ({vorfaelle.length})</summary>
+    {vorfaelle.slice().reverse().map(v=><article className="rk-eintrag" key={v.id}>
+      <h5>{v.name} · {formatDateDe(v.datum)} <span className="rk-status">{t(`welle_b2.${ausgang(v)}`)}</span></h5>
       <RessortPolitikFolgen b={v.reaktion}/>
-      {v.entscheidung?<><h5>{t(v.entscheidung.art==='entlassen'?'rp.abschluss.entlassen':`rp.art.${v.entscheidung.art}`)} · {formatDateDe(v.entscheidung.datum)}</h5><p>{t('vn.preis',{pk:zahl(v.entscheidung.pk,1),aufmerksamkeit:zahl(v.entscheidung.aufmerksamkeit,0)})}</p><RessortPolitikFolgen b={v.entscheidung}/></>:<p>{t(v.geschlossen?`rp.${v.geschlossen}`:'rp.offen')}</p>}
+      {v.entscheidung?<><h5>{t(v.entscheidung.art==='entlassen'?'rp.abschluss.entlassen':`rp.art.${v.entscheidung.art}`)} · {formatDateDe(v.entscheidung.datum)} <span className="rk-status">{t('vn.preis',{pk:zahl(v.entscheidung.pk,1),aufmerksamkeit:zahl(v.entscheidung.aufmerksamkeit,0)})}</span></h5><RessortPolitikFolgen b={v.entscheidung}/></>:<div className="rk-chips"><Chip label={t(`welle_b2.rp.zu.${v.geschlossen??'offen'}`)} title={t(v.geschlossen?`rp.${v.geschlossen}`:'rp.offen')}/></div>}
     </article>)}
   </details>;
 }
@@ -51,7 +65,7 @@ export function RessortReaktionsOption({world,id,art,onEntscheide}:{world:World;
       {label:t('eo.befugnis'),wert:t('eo.regierung'),hinweis:t('eo.keinVotum')},
       {label:t('eo.frist'),wert:formatDateDe(p.pruefung),hinweis:t('eo.koalitionspruefung')},
     ]}
-    aktion={t(`rp.art.${art}`)} gesperrt={p.ok?undefined:p.grund??t('vn.nichtMoeglich')} hinweis={t('rp.grenze')} onAusfuehren={()=>onEntscheide(p)}>
+    aktion={t(`rp.art.${art}`)} gesperrt={p.ok?undefined:p.grund??t('vn.nichtMoeglich')} hinweis={t('welle_b2.rp.grenzeKurz')} onAusfuehren={()=>onEntscheide(p)}>
     {p.ok&&p.beleg?<>
       <RessortPolitikFolgen b={p.beleg}/>
       {p.beleg.kapitalDanach<0&&<p className="rp-warnung">{t('vn.aufPump',{n:zahl(p.beleg.kapitalDanach,1)})}</p>}
@@ -77,7 +91,7 @@ export function RessortVerantwortung({world,refresh,amt,anliegenVorOrt=false,mit
       <RessortReaktionsWege key={v.id} world={world} id={v.id} onEntscheide={p=>{const r=entscheideRessortVorfall(world,p);setAntwort(r.text);refresh();}}/>
       <details><summary>{t('rp.schonGebucht')}</summary><RessortPolitikFolgen b={v.reaktion}/></details>
     </article>)}
-    <details className="rp-grenze"><summary>{t('rp.grenzeTitel')}</summary><p>{t('rp.grenze')}</p></details>
+    <details className="rp-grenze"><summary>{t('rp.grenzeTitel')}</summary><div className="rk-chips" title={t('rp.grenze')}>{(['votum','sitze','zusage','sache'] as const).map(k=><Chip key={k} label={t(`welle_b2.rp.grenze.${k}`)}/>)}</div></details>
     <p><UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('rp.parlament')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'personen'}}>{t('rp.nachfolge')}</UbVerweis></p>
     <RessortPolitikVerlauf vorfaelle={alle}/>
   </section></>;

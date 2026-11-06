@@ -185,6 +185,22 @@ function VorhabenKarte({ v, onMassnahme }: { v: VorhabenSicht; onMassnahme: (id:
   );
 }
 
+function KatalogZeile({ v, onMassnahme }: { v: VorhabenSicht; onMassnahme: (id: string) => void }) {
+  const punkte = streitpunkte(v.def.baustein);
+  const parteien = (l: VorhabenSicht["lager"]["fuer"]) => l.filter((e) => e.art !== "eigene" && e.art !== "partner").slice(0, 3).map((e) => e.name).join(", ");
+  return (
+    <tr>
+      <td>
+        <button type="button" className="to-titel" title={v.satz} onClick={() => onMassnahme(v.def.massnahme)}>{v.titel}</button>
+        {v.anlass && <span className={`to-anlass a-${v.anlass}`}>{t(`gesetz.ui.anlass.${v.anlass}`)}</span>}
+      </td>
+      <td>{parteien(v.lager.fuer) || "—"}</td>
+      <td>{parteien(v.lager.gegen) || "—"}</td>
+      <td>{punkte.length ? t("welle_b2.to.liste", { liste: punkte }) : "—"}</td>
+    </tr>
+  );
+}
+
 export function Tagesordnung({ world, refresh, onMassnahme, onHaushalt, onVerfassung, onPolitik }: {
   world: World;
   refresh: () => void;
@@ -285,8 +301,11 @@ export function Tagesordnung({ world, refresh, onMassnahme, onHaushalt, onVerfas
       {tisch.length > 0 && (
         <details className="to-katalog">
           <summary>{t("n4.to.katalog", { n: tisch.length })}</summary>
-          <p className="to-hinweis">{t("n4.to.katalogText")}</p>
-          <ul className="to-vorhaben-liste">{tisch.map((v) => <VorhabenKarte key={v.def.id} v={v} onMassnahme={onMassnahme} />)}</ul>
+          {/* ENTSCHEIDUNGEN Z: der Katalog als Tabelle; die Beschreibung jedes Vorhabens steht am Namen und in der Maßnahme */}
+          <table className="to-katalog-tabelle">
+            <thead><tr><th>{t("welle_b2.to.vorhaben")}</th><th>{t("gesetz.ui.dafuer")}</th><th>{t("gesetz.ui.dagegen")}</th><th>{t("welle_b2.to.umstritten")}</th></tr></thead>
+            <tbody>{tisch.map((v) => <KatalogZeile key={v.def.id} v={v} onMassnahme={onMassnahme} />)}</tbody>
+          </table>
         </details>
       )}
     </section>

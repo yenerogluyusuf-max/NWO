@@ -388,8 +388,8 @@ export function GesellschaftAkte({ world, start = "lage", onAenderung }: { world
   const g = gesellschaftVon(world);
   return (
     <div className="ges-akte">
-      <p className="ges-zweck">{t("ges.zweck")}</p>
-      <nav className="ges-reiter" role="tablist">
+      {/* ENTSCHEIDUNGEN Z: der Zweck der Akte steht am Reiterband, nicht als Absatz darüber */}
+      <nav className="ges-reiter" role="tablist" title={t("ges.zweck")}>
         {(["lage", "opposition", "strasse", "kommunen"] as Reiter[]).map((r) => (
           <button key={r} type="button" role="tab" aria-selected={reiter === r} className={reiter === r ? "on" : ""} onClick={() => setReiter(r)}>
             {t(`ges.reiter.${r}`)}

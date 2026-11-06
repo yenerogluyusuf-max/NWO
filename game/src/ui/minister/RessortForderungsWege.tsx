@@ -10,17 +10,22 @@ import { ZusagenDruck } from '../personen/ZusagenDruck';
 import { UbVerweis } from '../akte/Uebersicht';
 import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
 import { EntscheidungsWege } from '../entscheidungen/EntscheidungsWege';
+import { Chip } from './RessortRueckhalt';
 import './ressortforderungswege.css';
 const sign=(n:number)=>`${n>0?'+':''}${zahl(n,2)}`;
 const name=(id:string)=>NET.nodes[NET.index.get(id)??-1]?.name??id;
 export function RessortHilfeFolgen({vor,nach}:{vor:HaushaltsStand;nach:HaushaltsStand}){
  const personen=nach.personen.filter(p=>p.loyalitaet!==(vor.personen.find(v=>v.id===p.id)?.loyalitaet??p.loyalitaet));
  const parteien=nach.parteien.filter(p=>{const v=vor.parteien.find(x=>x.partei===p.partei);return v&&(p.bereitschaft!==v.bereitschaft||p.rolle!==v.rolle);});
- return <><p>{t('rh.haushalt',{def:sign(nach.defizit-vor.defizit),leg:sign(nach.legitimitaet-vor.legitimitaet),zust:sign(nach.zustimmung-vor.zustimmung)})}</p>
-  {!parteien.length&&!personen.length&&<p>{t('rh.unveraendert')}</p>}
-  {parteien.map(p=><p key={p.partei}><b>{p.partei}</b> · {t(`rr.rolle.${p.rolle}`)} · {t('rr.bereit')}: {sign(p.bereitschaft-vor.parteien.find(v=>v.partei===p.partei)!.bereitschaft)}</p>)}
-  {personen.map(p=><p key={p.id}>{t('rr.loyal',{name:p.name})}: {zahl(vor.personen.find(v=>v.id===p.id)!.loyalitaet,2)} → {zahl(p.loyalitaet,2)}</p>)}
- </>;
+ // ENTSCHEIDUNGEN Z: dieselben Zahlen als Chips statt als Sätze
+ return <div className="rk-chips rh-folgen">
+  {nach.defizit!==vor.defizit&&<Chip label={t('welle_b2.rk.defizit')} delta={nach.defizit-vor.defizit} umgekehrt/>}
+  {nach.legitimitaet!==vor.legitimitaet&&<Chip label={t('welle_b2.rk.legitimitaet')} delta={nach.legitimitaet-vor.legitimitaet}/>}
+  {nach.zustimmung!==vor.zustimmung&&<Chip label={t('welle_b2.rk.zustimmung')} delta={nach.zustimmung-vor.zustimmung}/>}
+  {!parteien.length&&!personen.length&&<Chip label={t('welle_b2.rh.unveraendert')} title={t('rh.unveraendert')}/>}
+  {parteien.map(p=><Chip key={p.partei} label={`${p.partei} · ${t(`rr.rolle.${p.rolle}`)} · ${t('rr.bereit')}`} delta={p.bereitschaft-vor.parteien.find(v=>v.partei===p.partei)!.bereitschaft}/>)}
+  {personen.map(p=><Chip key={p.id} label={t('rr.loyal',{name:p.name})} wert={`${zahl(vor.personen.find(v=>v.id===p.id)!.loyalitaet,2)} → ${zahl(p.loyalitaet,2)}`}/>)}
+ </div>;
 }
 export function RessortHilfeKarte({world,p,onTun}:{world:World;p:RessortHilfePlan;onTun:(p:RessortHilfePlan)=>void}) {
  const v=p.votum,k=p.kompromiss;

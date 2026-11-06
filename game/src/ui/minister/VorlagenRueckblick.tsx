@@ -7,8 +7,8 @@ import { rendere, t } from "../../i18n";
 export function VorlagenRueckblick({world,eintraege}:{world:World;eintraege:VerfalleneVorlage[]}) {
   if(!eintraege.length)return null;
   return <section className="mf-abschnitt mf-rueckblick">
-    <h4>{t("mzr.titel")}</h4>
-    <p className="mf-leer">{t("mzr.hinweis")}</p>
+    {/* ENTSCHEIDUNGEN Z: der Hinweis steht am Titel */}
+    <h4 title={t("mzr.hinweis")}>{t("mzr.titel")}</h4>
     <ul className="mf-verfallen">{[...eintraege].reverse().slice(0,6).map((x,i)=>{
       const status=x.zusage?.status??(x.quelle==="zusage"?"alt":"verfallen");
       const z=x.zusage?world.spiel?.zusagen.find(z=>z.id===x.zusage!.id):undefined;

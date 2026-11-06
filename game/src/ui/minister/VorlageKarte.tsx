@@ -36,6 +36,12 @@ const istMeta = (o: VorlageOption): boolean => o.id === "spaeter" || o.id === "n
  * Die Lage in einem Satz: der erste Satz des Anlasses, der eine Zahl trägt (höchstens die ersten zwei Sätze).
  * Der Rest klappt unter „Mehr zur Lage“ auf; was die Wirkzeile ohnehin sagt („ohne Eingriff …“), steht so nicht doppelt da.
  */
+/** ENTSCHEIDUNGEN Z: die Warnungen zur Empfehlung (eigenes Ressort, fachlich schwach, distanziert) als einzelne Marken statt als Absatz. */
+function HinweisChips({ text }: { text: string }) {
+  const teile = text.split(/(?<=[.!?])\s+/).filter((x) => x.trim());
+  return <span className="mf-hinweise">{teile.map((x, i) => <em key={i}>{x}</em>)}</span>;
+}
+
 export function lageSatz(text: string): { satz: string; rest: string } {
   const saetze = text.split(/(?<=[.!?])\s+(?=[\p{Lu}\d„"])/u);
   let n = 1;
@@ -287,7 +293,7 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
           <p className="mf-empf-zeile">
             <b>{t("mf.empfehlung")}</b>
             {empf && empf.id !== "spaeter" ? t("mf.zitat", { text: empf.label }) : t("mf.warten")}
-            {v.empfehlung.hinweis && <em>{v.empfehlung.hinweis}</em>}
+            {v.empfehlung.hinweis && <HinweisChips text={v.empfehlung.hinweis} />}
           </p>
         ) : (
           // Die Empfehlung sitzt als Siegel an der Option; hier nur, was das Siegel nicht sagt
@@ -299,7 +305,7 @@ export function VorlageKarte({ v, kompakt, nummer, onEntscheide, onGehe, onKarte
                   {empf && empf.id !== "spaeter" ? t("mf.zitat", { text: empf.label }) : t("mf.warten")}
                 </>
               )}
-              {v.empfehlung.hinweis && <em>{v.empfehlung.hinweis}</em>}
+              {v.empfehlung.hinweis && <HinweisChips text={v.empfehlung.hinweis} />}
             </p>
           )
         )

@@ -103,15 +103,12 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
         <Sparkline monate={d.verlauf.monate} werte={d.verlauf.werte} marken={marken} ziel={d.tendenz.ziel} beschriftung={t("wd.verlaufBeschriftung", { name: k.name })} />
         <p className="wa-verlauf-text">
           {Math.abs(ueberTag) < 2 ? t("wd.tendenz.bleibt") : t(ueberTag < 0 ? (ohneTreiber ? "wd.tendenz.faelltAbklingen" : "wd.tendenz.faellt") : ohneTreiber ? "wd.tendenz.steigtAbklingen" : "wd.tendenz.steigt", { ziel: nf(d.tendenz.ziel, 0) })}{" "}
-          <span>{t("ui.waehler.GruppenDetail.060bd18")}</span>
+          <span className="wa-verlauf-legende">{t("welle_b2.wd.punkte")}</span>
         </p>
       </div>
 
       <section className="wa-abschnitt">
-        <h4>{t("ui.waehler.GruppenDetail.050c8a6")}</h4>
-        <p className="wa-unter">
-          {t("ui.waehler.GruppenDetail.41851d6")}
-        </p>
+        <h4 title={t("ui.waehler.GruppenDetail.41851d6")}>{t("ui.waehler.GruppenDetail.050c8a6")}</h4>
         {ohneTreiber ? (
           <p className="wa-leer">{t("ui.waehler.GruppenDetail.59ee3ac")}</p>
         ) : (
@@ -120,12 +117,11 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
       </section>
 
       <section className="wa-abschnitt">
-        <h4>{t("ui.waehler.GruppenDetail.4cd3541")}</h4>
+        <h4 title={t("ui.waehler.GruppenDetail.4cb8bf4")}>{t("ui.waehler.GruppenDetail.4cd3541")}</h4>
         <div className="wa-pref-paar">
           <PraeferenzListe titel={t("wd.pref.mehr")} liste={d.praeferenzen.will} richtung={1} {...(onMassnahme ? { onMassnahme } : {})} />
           <PraeferenzListe titel={t("wd.pref.weniger")} liste={d.praeferenzen.hasst} richtung={-1} {...(onMassnahme ? { onMassnahme } : {})} />
         </div>
-        <p className="wa-unter">{t("ui.waehler.GruppenDetail.4cb8bf4")}</p>
       </section>
 
       {d.sorgen.length > 0 && (
@@ -154,7 +150,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
 
       <details className="wa-abschnitt wa-zu">
         <summary>
-          <h4>{t("ui.waehler.GruppenDetail.9697ca8")}</h4>
+          <h4 title={t("wd.wechselErklaerung", { s: SCHWELLE_TRAEGER })}>{t("ui.waehler.GruppenDetail.9697ca8")}</h4>
         </summary>
         {w.neigung < 0.04 ? (
           <p className="wa-leer">{t("ui.waehler.GruppenDetail.1f0c475")}</p>
@@ -181,16 +177,10 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
             </ul>
           </>
         )}
-        <p className="wa-unter">
-          {t("wd.wechselErklaerung", { s: SCHWELLE_TRAEGER })}
-        </p>
       </details>
 
       <section className="wa-abschnitt">
-        <h4>{t("ui.waehler.GruppenDetail.6f22828")}</h4>
-        <p className="wa-unter">
-          {t("nacht_n2.hilfe.erklaerung_gruppe")}
-        </p>
+        <h4 title={t("nacht_n2.hilfe.erklaerung_gruppe")}>{t("ui.waehler.GruppenDetail.6f22828")}</h4>
         {d.hilfen.length === 0 ? (
           <p className="wa-leer">{t("ui.waehler.GruppenDetail.3107378")}</p>
         ) : (
@@ -220,8 +210,8 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
             ))}
           </ul>
           {d.regionen.schlechteste && d.regionen.beste && (
-            <p className="wa-unter">
-              {t("wd.regionenSatz", { beste: d.regionen.beste.name, b: nf(d.regionen.beste.laune, 0), schlechteste: d.regionen.schlechteste.name, s: nf(d.regionen.schlechteste.laune, 0) })}
+            <p className="wa-unter wa-region-kurz">
+              {t("welle_b2.wd.regionen", { beste: d.regionen.beste.name, b: nf(d.regionen.beste.laune, 0), schlechteste: d.regionen.schlechteste.name, s: nf(d.regionen.schlechteste.laune, 0) })}
             </p>
           )}
         </details>

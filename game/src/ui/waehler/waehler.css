@@ -344,3 +344,16 @@
 
 /* Lange Maßnahmennamen in der schmalen Fläche umbrechen statt unter den Balken zu laufen */
 .dossier .wa-pref-zeile .pd-btn.quiet { min-width: 0; white-space: normal; hyphens: auto; overflow-wrap: anywhere; }
+
+/* ENTSCHEIDUNGEN Z (06.11.2026): Vorwarnung und Rohdaten als Kennzahlen; Detail rechts und Treppe auf Pergament statt Weiß */
+.wa-vorwarnung { display: flex; flex-wrap: wrap; align-items: center; gap: var(--abstand-2) var(--abstand-3); font-size: var(--schrift-2); }
+.wa-vw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wa-vw-chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 10px; border: 1px solid rgba(90, 64, 40, 0.28); border-radius: var(--rund-pille); background: var(--papier-2); font: var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+.wa-vw-chip b { margin: 0; font: 600 var(--schrift-2)/1.3 var(--serif); letter-spacing: 0; color: var(--tinte-1); font-variant-numeric: tabular-nums; }
+.wa-vw-chip.schlecht b { color: var(--siegel); }
+.wa-vorwarnung > b { margin: 0; }
+.wa-treppe li { background: var(--papier-3); }
+.wa-rechts-rolle { background: var(--papier-2); }
+.wa-rohdaten { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.wa-verlauf-legende { font: italic var(--schrift-1)/1.3 var(--serif); color: var(--tinte-2); }
+.wa-hilfe-fuss { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }

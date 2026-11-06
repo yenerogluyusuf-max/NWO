@@ -85,3 +85,14 @@ button.to-titel:hover { color: var(--seal, var(--siegel)); }
 .to-punkt { position: relative; }
 .to-zahl-marke { position: absolute; top: -8px; right: -12px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; font: 700 11px/18px var(--serif, serif); font-style: normal;
   background: #2e2118; color: #f4ead2; border: 1px solid #f4ead2; }
+
+/* ENTSCHEIDUNGEN Z (06.11.2026): Katalog als Tabelle auf der Karte des Haushaltskopfs */
+.to-katalog-tabelle { width: 100%; border-collapse: collapse; margin: 8px 0; padding: 0; font: var(--schrift-2)/1.35 var(--serif); color: var(--tinte-1); }
+.to-katalog-tabelle th { text-align: left; font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); padding: 6px 10px 6px 0; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
+.to-katalog-tabelle td { padding: 6px 10px 6px 0; border-bottom: 1px solid rgba(90, 64, 40, 0.14); vertical-align: top; color: var(--tinte-2); }
+.to-katalog-tabelle td:first-child .to-anlass { margin-left: 8px; }
+.to-katalog-tabelle .to-titel { font: 600 var(--schrift-3)/1.3 var(--display); }
+.to-katalog { padding: 10px 16px; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: var(--rund-2); background: var(--papier-2); box-shadow: 0 1px 2px rgba(59, 42, 26, 0.08); }
+.to-katalog > summary { cursor: pointer; font: 600 var(--schrift-3)/1.3 var(--display); color: var(--messing-text); }
+.to-vorhaben { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); box-shadow: 0 1px 2px rgba(59, 42, 26, 0.08); }
+.to-vorhaben p { color: var(--tinte-1); }

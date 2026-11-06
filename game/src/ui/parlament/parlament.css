@@ -273,3 +273,14 @@
 .par-kopf .par-fraktionen li { padding-top: 7px; padding-bottom: 7px; }
 .par-kopf .par-fraktionen .par-name em { display: inline; margin-left: 6px; }
 .par-kopf .pd-seitenkopf .pd-lead { max-width: 70ch; }
+
+/* ENTSCHEIDUNGEN Z (06.11.2026): Regel als Kennzahlen, Abkommen als Pergamentkarten mit Chips */
+.par-kern { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 0; }
+.par-kern div { display: grid; gap: 1px; align-content: start; min-width: 88px; }
+.par-kern dt { font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.par-kern dd { margin: 0; font: 600 var(--schrift-5)/1.1 var(--display); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.par-kern small { font: var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.fraktion-abkommen > article { background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: var(--rund-2); box-shadow: 0 1px 2px rgba(59, 42, 26, 0.08); color: var(--tinte-1); }
+.fraktion-abkommen .fa-zusage { margin: 0; font: var(--schrift-2)/1.4 var(--serif); }
+.fraktion-abkommen .fa-vorsitz { display: grid; gap: 6px; }
+.fraktion-abkommen .fa-zusage { border-radius: var(--rund-2); }

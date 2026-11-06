@@ -146,3 +146,7 @@
   .rl-einrichtungen { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .rl-detail { animation: none; } }
+
+/* ENTSCHEIDUNGEN Z (06.11.2026, Parlament › Justiz): Wege als Pergamentkarten statt Weiß */
+.rl-weg { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); box-shadow: 0 1px 2px rgba(59, 42, 26, 0.08); }
+.rl-weg.an { background: linear-gradient(180deg, var(--papier-2), var(--warnung-flaeche)); }

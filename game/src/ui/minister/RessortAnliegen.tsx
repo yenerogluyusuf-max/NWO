@@ -12,21 +12,31 @@ import { t, zahl } from '../../i18n';
 import { UbVerweis } from '../akte/Uebersicht';
 import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
 import { EntscheidungsWege } from '../entscheidungen/EntscheidungsWege';
+import { Chip } from './RessortRueckhalt';
 import './ressortanliegen.css';
 const name=(id:string)=>NET.nodes[NET.index.get(id)??-1]?.name??id;
 const sign=(n:number)=>`${n>0?'+':''}${zahl(n,2)}`;
 const datum=(w:World,tag:number)=>formatDateDe(addDays(w.date,tag-w.day));
 const ARTEN:RessortAntwort[]=['reden','umsetzen','spaeter','ablehnen'];
+// ENTSCHEIDUNGEN Z: Rückblick als Tabelle, eine Zeile je Schritt; dieselben gebuchten Zahlen wie vorher die Sätze.
 export function RessortFolgen({folgen}:{folgen:RessortFolge[]}) {
  if(!folgen.length)return null;
- return <details className="ra-folgen"><summary>{t('ra.folgen')}</summary><p>{t('ra.folgenGrenze')}</p>
-  {folgen.slice().reverse().map((f,i)=><article key={`${f.id}-${f.tag}-${i}`}><b>{f.name} · {formatDateDe(f.datum)} · {t(`ra.art.${f.art}`)}</b>
-   <p>{t('ra.beleg',{groesse:name(f.groesse),vor:zahl(f.vorher,2),nach:zahl(f.nachher,2),loy:sign(f.loyalitaet),groll:sign(f.groll)})}</p>
-   {(f.bip!==0||f.legitimitaet!==0)&&<p>{t('ra.preisFolge',{bip:zahl(f.bip,3),leg:sign(f.legitimitaet)})}</p>}
-   {f.pk!==undefined&&<p>{t('vn.preis',{pk:zahl(f.pk,1),aufmerksamkeit:zahl(f.aufmerksamkeit??0,0)})}</p>}
-   {!!f.defizit&&<p>{t('ra.haushaltFolge',{n:sign(f.defizit),leg:sign(f.legitimitaet)})}</p>}
-   {!!f.vertrauen&&<p>{t('ra.vertrauen',{n:sign(f.vertrauen)})}</p>}
-  </article>)}
+ return <details className="ra-folgen"><summary>{t('ra.folgen')} ({folgen.length})</summary>
+  <table className="rk-tabelle"><thead><tr><th>{t('welle_b2.rk.datum')}</th><th>{t('welle_b2.rk.schritt')}</th><th>{t('welle_b2.rk.wert')}</th><th>{t('welle_b2.rk.loyalitaet')}</th><th>{t('welle_b2.rk.groll')}</th><th>{t('welle_b2.rk.preis')}</th></tr></thead><tbody>
+  {folgen.slice().reverse().map((f,i)=><tr key={`${f.id}-${f.tag}-${i}`}>
+   <td>{formatDateDe(f.datum)}<small>{f.name}</small></td>
+   <td>{t(`ra.art.${f.art}`)}</td>
+   <td>{name(f.groesse)} <span className="rk-wert">{zahl(f.vorher,2)} → {zahl(f.nachher,2)}</span></td>
+   <td className="rk-wert">{sign(f.loyalitaet)}</td><td className="rk-wert">{sign(f.groll)}</td>
+   <td><div className="rk-chips">
+    {f.bip!==0&&<Chip label={t('welle_b2.rk.bip')} wert={`${zahl(f.bip,3)} %`}/>}
+    {!!f.defizit&&<Chip label={t('welle_b2.rk.defizit')} delta={f.defizit} umgekehrt/>}
+    {f.legitimitaet!==0&&<Chip label={t('welle_b2.rk.legitimitaet')} delta={f.legitimitaet}/>}
+    {!!f.vertrauen&&<Chip label={t('welle_b2.rk.vertrauen')} delta={f.vertrauen}/>}
+    {f.pk!==undefined&&<Chip label={t('vn.preis',{pk:zahl(f.pk,1),aufmerksamkeit:zahl(f.aufmerksamkeit??0,0)})}/>}
+   </div></td>
+  </tr>)}
+  </tbody></table>
  </details>;
 }
 export function RessortAnliegenKarten({world,refresh,amt,mitNachsorge=true}:{world:World;refresh:()=>void;amt?:Amt;mitNachsorge?:boolean}) {
@@ -34,7 +44,7 @@ export function RessortAnliegenKarten({world,refresh,amt,mitNachsorge=true}:{wor
  const anliegen=(world.spiel?.ministerfluss?.ressortAnliegen??[]).filter(a=>(!amt||a.amt===amt)&&['offen','besprochen','abgelehnt'].includes(a.status));
  const folgen=(world.spiel?.ministerfluss?.ressortFolgen??[]).filter(f=>!amt||f.amt===amt);
  if(!anliegen.length&&!folgen.length)return <RessortVerantwortung world={world} refresh={refresh} amt={amt} mitNachsorge={mitNachsorge} anliegenVorOrt/>;
- return <><RessortVerantwortung world={world} refresh={refresh} amt={amt} mitNachsorge={mitNachsorge} anliegenVorOrt/><section className="ra" aria-label={t('ra.titel')}><header><small>{t('ra.kicker')}</small><h3>{t('ra.titel')}</h3><p>{t('ra.intro')}</p></header>
+ return <><RessortVerantwortung world={world} refresh={refresh} amt={amt} mitNachsorge={mitNachsorge} anliegenVorOrt/><section className="ra" aria-label={t('ra.titel')}><header><small>{t('ra.kicker')}</small><h3 title={t('ra.intro')}>{t('ra.titel')}</h3></header>
   {antwort&&<><p role="status">{antwort.text}</p>{antwort.dialog&&<div className="ra-dialog">{antwort.dialog.map((z,i)=><p key={i}><b>{t(`ra.sprecher.${z.wer}`)}</b> {z.text}</p>)}</div>}</>}
   {anliegen.map(a=>{
    const f=ressortInhaber(world,a);if(!f)return null;
@@ -42,13 +52,12 @@ export function RessortAnliegenKarten({world,refresh,amt,mitNachsorge=true}:{wor
    const eigen=ressortEigenart(structuredClone(world),a),v=a.vorschlag;
    const vtext=v?.art==='gesetz'?`${name(v.id)} → ${zahl(v.ziel,0)}`:v?.art==='haushalt'?v.aktion.art==='etat'?t('hh.etat',{name:POSTEN_NACH_ID[v.aktion.posten]!.name,ziel:v.aktion.ziel}):v.aktion.art==='programm'?t(`regierung.${v.aktion.programm}.titel`):'':t('ra.keinVorschlag');
    return <article className="ra-anliegen" id={`ressort-anliegen-${a.id}`} key={a.id}>
-    <div className="ra-kopf"><div className="ra-absender"><Portraet seed={f.name} size={54} geschlecht={f.weiblich?"f":"m"} rahmen="keiner" lebendig={false}/><div><small>{f.rolle}</small><h4>{f.name}</h4></div></div><time dateTime={addDays(world.date,a.frist-world.day)}>{t('ra.frist',{datum:datum(world,a.frist)})}</time></div>
+    <div className="ra-kopf"><div className="ra-absender"><Portraet seed={f.name} size={54} geschlecht={f.weiblich?"f":"m"} rahmen="keiner" lebendig={false}/><div><small>{f.rolle}</small><h4>{f.name}</h4></div></div><time dateTime={addDays(world.date,a.frist-world.day)} title={t('ra.fristRegel')}>{t('ra.frist',{datum:datum(world,a.frist)})}</time></div>
     <blockquote>{t(a.status==='besprochen'?'ra.nachGespraech':a.status==='abgelehnt'?'ra.zurueckgewiesen':'ra.bitte',{groesse:name(a.groesse),wert:zahl(a.vorher,1)})}</blockquote>
     {(()=>{const e=(f.eigen?.erinnerung??[]).filter(x=>x.tag<a.seit).at(-1);return e?<p className="ra-gedaechtnis">{t('ra.gedaechtnis',{datum:datum(world,e.tag),text:e.text})}</p>:null;})()}
     <p><b>{t('ra.vorschlag')}</b> {vtext}</p>
     <p className="ra-warnung">{t(eigen?.eigen?eigen.faehig?'ra.ohneEigenGut':'ra.ohneEigenSchlecht':'ra.ohneStill')}</p>
     {(eigen?.kontrolleBis??0)>world.day&&<p>{t('rp.kontrolle',{datum:datum(world,eigen!.kontrolleBis!)})}</p>}
-    <p>{t('ra.fristRegel')}</p>
     <button type="button" className="pd-btn" aria-expanded={auswahl===a.id} onClick={()=>setAuswahl(auswahl===a.id?'':a.id)}>{t(auswahl===a.id?'ra.schliessen':'ra.antworten')}</button>
     {auswahl===a.id&&<RessortAntwortWege key={a.id} world={world} id={a.id} onAntwort={p=>{setAntwort(beantworteRessortAnliegen(world,p));refresh();}}/>}
     <UbVerweis ziel={{art:'akte',akte:'personen'}}>{t('ra.personen')}</UbVerweis>
