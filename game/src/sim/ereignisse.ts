@@ -1333,7 +1333,8 @@ export function ereignisMonat(world: World, rng: Rng): void {
   const feste = kandidaten.filter((k) => TERMINE.has(k.v.id));
   const rest = kandidaten.filter((k) => !TERMINE.has(k.v.id));
   rest.sort((a, b) => dringlichkeit(world, b.v, b.gen.staerke ?? 1) - dringlichkeit(world, a.v, a.gen.staerke ?? 1) || VORLAGEN.indexOf(a.v) - VORLAGEN.indexOf(b.v));
-  const slots = EREIGNIS_WETTBEWERB.slots[grad];
+  // Vorgänge ohne Zusatzplatz (Bereichsvorgänge, Welle H3) schaffen keinen Platz: Offen sind nur so viele, wie andere Vorgänge beanspruchen
+  const slots = Math.min(EREIGNIS_WETTBEWERB.slots[grad], rest.filter((k) => !k.v.ohneZusatzplatz).length);
   const gewinner = [...feste, ...rest.slice(0, slots)];
   const verlierer = rest.slice(slots);
 

@@ -17,7 +17,7 @@ import { t } from "../i18n";
 import { RSF_START, medienCluster } from "../data/medien";
 import { AKTIONEN, fuehreMedienAktionAus, medienAktionen, medienVon, publikumsAnteile, rsfSicht, type AktionId } from "./medien";
 import { STUFEN, druckGrund, druckWirkung, ernenneGouverneur, glaubwuerdigkeitWort, gouverneurGrund, machDruck, naechsteSitzung, stufeGrund, stufenPreis, aendereStufe } from "./zentralbank";
-import { ratingAendere, ratingDruck } from "./maerkte";
+import { ratingAendere, ratingDruck, ratingSicht } from "./maerkte";
 import { blattDef } from "./zeitung";
 import { zbZustand } from "./wirtschaft";
 import { anrede, figur, loyalitaetAendern } from "./figuren";
@@ -69,6 +69,8 @@ export const BEREICHSDRUCK = {
     /** Ab diesem Realzins (Leitzins minus Inflation, Prozentpunkte) und unter diesem Wachstum (Prozent) drängt der Wirtschaftsflügel auf Senkung */
     realzins: 4,
     wachstum: 3.5,
+    /** Erholung (kein Agenturvorgang): Realzins über 1 Punkt (wie in sim/economy.ts) und Inflation 1 Punkt unter dem Stand vor 6 Monaten */
+    erholung: { realzins: 1, punkte: 1, monate: 6 },
     /** Chance je Monat; sie wächst mit der Dauer des Schweigens bis zum Faktor `wachstumMax` */
     chance: 0.2,
     wachstumMax: 2.5,
@@ -78,8 +80,13 @@ export const BEREICHSDRUCK = {
     stuetzenPk: 1,
     /** Punkte des Bonitätsmaßstabs, um die die Agentur milder urteilt, wenn der Präsident die Bank stützt oder die Führung stärkt (sim/maerkte.ts) */
     ratingMilder: 3,
-    /** Schweigen: Glaubwürdigkeit, Risikoaufschlag (Basispunkte), Unternehmer, Rückhalt des Wirtschaftsministers */
-    schweigen: { glaubwuerdigkeit: 0.02, aufschlag: 10, unternehmer: 1, loyalitaet: 4 },
+    /**
+     * Wie echte Agenturen erst den Ausblick senken und danach die Note: Beim ersten Schweigen wird der Maßstab um eine halbe Stufe strenger
+     * (5 Punkte; ab einer halben Stufe Abstand zeigt das Rating den Ausblick „negativ“, sim/maerkte.ts). Erst beim zweiten Schweigen folgt die Herabstufung.
+     */
+    ausblickPunkte: 5,
+    /** Schweigen zum Wirtschaftsflügel: Unternehmer und Rückhalt des Wirtschaftsministers */
+    schweigen: { unternehmer: 1, loyalitaet: 4 },
     /** Wer dem Wirtschaftsflügel nachgibt (Gespräch, neue Führung), gewinnt Unternehmer und Minister; wer die Bank stützt, verärgert den Minister */
     gespraech: { unternehmer: 1, loyalitaet: 3 },
     austausch: { unternehmer: 2, loyalitaet: 5 },
@@ -165,6 +172,7 @@ function medienAntwort(w0: World, id: string, aktion: AktionId, cluster: string 
 const MEDIEN_KAMPAGNE: Vorlage = {
   id: "medien_kampagne",
   eigenerWurf: true,
+  ohneZusatzplatz: true,
   szene: "istanbul",
   frist: BEREICHSDRUCK.medien.frist,
   abkuehlung: BEREICHSDRUCK.medien.abkuehlung,
@@ -228,13 +236,24 @@ export function zbLage(w: World): "glaubwuerdigkeit" | "inflation" | "zins" | nu
   const p = BEREICHSDRUCK.zentralbank;
   const e = w.economy;
   const infl = w.published.inflation.value;
-  if (e.credibility < p.glaubwuerdigkeit) return "glaubwuerdigkeit";
+  // Geringe Glaubwürdigkeit ruft die Agenturen nur, solange sie sich nicht erholt: Bei positivem Realzins und sinkender Inflation (so baut
+  // sim/economy.ts die Glaubwürdigkeit wieder auf) warten echte Agenturen ab, statt zu drohen
+  if (e.credibility < p.glaubwuerdigkeit && !erholtSich(w)) return "glaubwuerdigkeit";
   if (infl >= Math.max(p.inflationMin, e.inflationTarget + p.inflationAbstand)) return "inflation";
   if (e.policyRate - infl >= p.realzins && e.growth < p.wachstum) return "zins";
   return null;
 }
 
 const pz = (x: number): number => Math.round(x * 10) / 10;
+
+/** Ob die Glaubwürdigkeit gerade wächst: Realzins über `erholung.realzins` und die Inflation mindestens `erholung.punkte` unter dem Stand vor `erholung.monate` Monaten. */
+function erholtSich(w: World): boolean {
+  const q = BEREICHSDRUCK.zentralbank.erholung;
+  const h = w.history;
+  const frueher = h[h.length - 1 - q.monate];
+  const infl = w.economy.inflation;
+  return !!frueher && w.economy.policyRate - infl > q.realzins && infl < frueher.inflation - q.punkte;
+}
 
 /** Die nächste Zinssitzung nach heutigem Stand mit diesem Druck: dieselbe Rechnung, die die Sitzung bucht (sim/zentralbank.ts, `druckWirkung`). */
 function sitzungsZeile(w: World, richtung: -1 | 1, weg: "gespraech" | "rede"): string[] {
@@ -254,6 +273,7 @@ const naechsteStufe = (s: Unabhaengigkeit): Unabhaengigkeit | null => (s === "C"
 const ZB_VERTRAUEN: Vorlage = {
   id: "zentralbank_vertrauen",
   eigenerWurf: true,
+  ohneZusatzplatz: true,
   szene: "bank",
   frist: BEREICHSDRUCK.zentralbank.frist,
   abkuehlung: BEREICHSDRUCK.zentralbank.abkuehlung,
@@ -273,7 +293,8 @@ const ZB_VERTRAUEN: Vorlage = {
   text: (w, ev) => {
     const e = w.economy;
     const p = { agentur: String(ev.daten?.agentur ?? ""), wort: glaubwuerdigkeitWort(e.credibility), glaub: Math.round(e.credibility * 100), inflation: pz(w.published.inflation.value), zins: pz(e.policyRate), ziel: pz(e.inflationTarget), real: pz(e.policyRate - w.published.inflation.value), wachstum: pz(e.growth), monate: Number(ev.daten?.monate ?? 1), wer: anrede(figur(w, "wirtschaft")), bank: anrede(figur(w, "zentralbank")) };
-    return [t(`welle_h3.zb.${String(ev.daten?.lage)}.text1`, p), t(`welle_h3.zb.${String(ev.daten?.lage)}.text2`, p)];
+    const ausblick = String(ev.daten?.lage) === "glaubwuerdigkeit" && w.spiel?.wirtschaft?.zb.ausblickNegativ !== undefined;
+    return [t(`welle_h3.zb.${String(ev.daten?.lage)}.text1`, p), t(ausblick ? "welle_h3.zb.glaubwuerdigkeit.text2Ausblick" : `welle_h3.zb.${String(ev.daten?.lage)}.text2`, p)];
   },
   warum: (_, ev) => t("welle_h3.zb.warum", { monate: Number(ev.daten?.monate ?? 1) }),
   stelle: () => ({ art: "zentralbank", abschnitt: "sitzung" }),
@@ -287,7 +308,7 @@ const ZB_VERTRAUEN: Vorlage = {
     // Öffentlich stützen: derselbe Weg wie „Rede: strenge Linie stützen“ in der Zentralbankakte
     out.push(zbOption(opt("stuetzen", t(k("stuetzen.label")), t(k("stuetzen.beschr")), p.stuetzenPk, (ww) => {
       const r = machDruck(ww, 1, "rede");
-      if (lage === "glaubwuerdigkeit") ratingDruck(ww, -p.ratingMilder);
+      if (lage === "glaubwuerdigkeit") ausblickStabil(ww);
       else loyalitaetAendern(ww, "wirtschaft", -p.stuetzen.loyalitaet, t("welle_h3.zb.grund.stuetzen"));
       return t(k("stuetzen.ausgang"), { ergebnis: r.text });
     }), { art: "zentralbank", abschnitt: "sitzung" }, druckGrund(w, "rede"), { bedingungen: sitzungsZeile(w, 1, "rede") }));
@@ -296,7 +317,7 @@ const ZB_VERTRAUEN: Vorlage = {
       if (w.governor.stance !== "vorsichtig") {
         out.push(zbOption(opt("fuehrung", t(k("fuehrung.label")), t(k("fuehrung.beschr")), 0, (ww) => {
           const r = ernenneGouverneur(ww, "vorsichtig");
-          if (r.ok) ratingDruck(ww, -p.ratingMilder);
+          if (r.ok) ausblickStabil(ww);
           return t(k("fuehrung.ausgang"), { ergebnis: r.text });
         }), { art: "zentralbank", abschnitt: "gouverneur" }, gouverneurGrund(w, "vorsichtig")));
       }
@@ -306,7 +327,7 @@ const ZB_VERTRAUEN: Vorlage = {
         const preis = stufenPreis(z.stufe, ziel) ?? 0;
         out.push(zbOption(opt("gesetz", t(k("gesetz.label"), { stufe: STUFEN[ziel].name }), t(k("gesetz.beschr")), 0, (ww) => {
           const r = aendereStufe(ww, ziel);
-          if (r.ok) ratingDruck(ww, -p.ratingMilder);
+          if (r.ok) ausblickStabil(ww);
           return t(k("gesetz.ausgang"), { ergebnis: r.text });
         }), { art: "zentralbank", abschnitt: "stufe" }, stufeGrund(w, ziel), { anzeigePk: preis }));
       }
@@ -332,22 +353,43 @@ const ZB_VERTRAUEN: Vorlage = {
         }), { art: "zentralbank", abschnitt: "gouverneur" }, gouverneurGrund(w, "gefuegig")));
       }
     }
-    out.push(zbOption(opt("abwarten", t(k("abwarten.label")), t(k("abwarten.beschr")), 0, (ww, e) => zbStandard(ww, e)), { art: "zentralbank", abschnitt: "sitzung" }, null));
+    const zweites = lage === "glaubwuerdigkeit" && z.ausblickNegativ !== undefined;
+    out.push(zbOption(opt("abwarten", t(k("abwarten.label")), t(zweites ? k("abwarten.beschrHerab") : k("abwarten.beschr")), 0, (ww, e) => zbStandard(ww, e)), { art: "zentralbank", abschnitt: "sitzung" }, null,
+      lage === "glaubwuerdigkeit" && !zweites ? { bedingungen: [t("welle_h3.zb.ausblick.folge", { monate: ratingSicht(w).monateNoetig })] } : {}));
     return out;
   },
   standard: (w, ev) => zbStandard(w, ev),
 };
 
-/** Ohne Antwort: Bei geringer Glaubwürdigkeit stuft die Agentur ab; beim verfehlten Ziel lesen Märkte und Wirtschaftsflügel das Schweigen. */
+/** Die Agentur sieht Rückhalt: Ein negativer Ausblick aus früherem Schweigen wird zurückgenommen, sonst urteilt sie etwas milder. */
+function ausblickStabil(w: World): void {
+  const p = BEREICHSDRUCK.zentralbank;
+  const z = zbZustand(w);
+  if (z.ausblickNegativ !== undefined) {
+    delete z.ausblickNegativ;
+    ratingDruck(w, -p.ausblickPunkte);
+  }
+  ratingDruck(w, -p.ratingMilder);
+}
+
+/** Ohne Antwort: Bei geringer Glaubwürdigkeit senkt die Agentur erst den Ausblick, beim zweiten Mal die Note; beim verfehlten Ziel lesen Märkte und Wirtschaftsflügel das Schweigen. */
 function zbStandard(w: World, ev: OffenesEreignis): string {
   const p = BEREICHSDRUCK.zentralbank;
-  const e = w.economy;
-  e.credibility = clamp(e.credibility - p.schweigen.glaubwuerdigkeit, 0.05, 0.95);
   if (String(ev.daten?.lage) === "glaubwuerdigkeit") {
-    ratingAendere(w, -1);
-    return t("welle_h3.zb.glaubwuerdigkeit.standard", { agentur: String(ev.daten?.agentur ?? "") });
+    // Erst der Ausblick, dann die Note (Entscheidung des Koordinators): Beim ersten Schweigen ändert sich nur der Maßstab der Agentur
+    const z = zbZustand(w);
+    if (z.ausblickNegativ !== undefined) {
+      // Zweites Schweigen: Die Note sinkt; der Ausblick ist damit eingelöst
+      delete z.ausblickNegativ;
+      ratingAendere(w, -1);
+      return t("welle_h3.zb.glaubwuerdigkeit.standard", { agentur: String(ev.daten?.agentur ?? "") });
+    }
+    z.ausblickNegativ = w.day;
+    ratingDruck(w, p.ausblickPunkte);
+    return t("welle_h3.zb.glaubwuerdigkeit.standardAusblick", { agentur: String(ev.daten?.agentur ?? "") });
   }
-  e.riskPremium += p.schweigen.aufschlag;
+  // Der Wirtschaftsflügel bleibt ohne Antwort; die Bank arbeitet unabhängig weiter, die Märkte haben keinen Grund zur Sorge (vorher kosteten
+  // Glaubwürdigkeit und Aufschlag auch hier, als ob Schweigen die Bank schwäche; es stützt eher ihre Unabhängigkeit)
   wirke(w, "unternehmer", -p.schweigen.unternehmer);
   loyalitaetAendern(w, "wirtschaft", -p.schweigen.loyalitaet, t("welle_h3.zb.grund.uebergangen"));
   return t(String(ev.daten?.lage) === "zins" ? "welle_h3.zb.zins.standard" : "welle_h3.zb.inflation.standard");

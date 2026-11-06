@@ -426,6 +426,7 @@ function verfallStandard(w: World, ev: { daten?: Record<string, number | string>
 const VERFALL: Vorlage = {
   id: "erbe_verfall",
   eigenerWurf: true,
+  ohneZusatzplatz: true,
   szene: "anatolien",
   frist: ERBE_DRUCK.frist,
   abkuehlung: ERBE_DRUCK.abkuehlung,

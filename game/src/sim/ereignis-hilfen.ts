@@ -90,6 +90,12 @@ export interface Vorlage {
    * verglichenen Partien verschieden ausfällt (Vorschau gegen echte Rechnung). Ältere Vorlagen ziehen weiter aus dem Strom.
    */
   eigenerWurf?: true;
+  /**
+   * Kein Zusatzplatz (Entscheidung des Koordinators, Welle H3): Der Vorgang konkurriert im Monatswettbewerb um dieselben Plätze, schafft aber
+   * keinen eigenen. Im Monat stehen höchstens so viele Plätze offen, wie andere Vorgänge ihn beanspruchen; gewinnt er, verdrängt er den
+   * schwächsten von ihnen. Ist er allein, gärt er weiter (Haken in der Chronik) und kommt mit höherer Dringlichkeit zurück.
+   */
+  ohneZusatzplatz?: true;
   erzeuge: (w: World, rng: Rng) => { provinzen: number[]; staerke: number; daten?: Record<string, number | string> } | null;
 }
 

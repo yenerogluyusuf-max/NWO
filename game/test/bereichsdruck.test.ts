@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { advance, createWorld, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
-import { ansicht, antworten, entscheide, oeffne, preisVorschau, vorlage } from "../src/sim/ereignisse";
+import { VORLAGEN, ansicht, antworten, entscheide, ereignisMonatSofort, oeffne, preisVorschau, vorlage } from "../src/sim/ereignisse";
 import { BEREICHSDRUCK, angreifer, letzteMedienarbeit, letzterZbKontakt, zbLage } from "../src/sim/ereignisse-bereiche";
 import { ERBE_DRUCK, erbeLageMonat, verfallKandidaten } from "../src/sim/ereignisse-reich";
 import { fuehreMedienAktionAus, medienVon } from "../src/sim/medien";
@@ -77,6 +77,7 @@ describe("Zentralbank: Zweifel an der Notenbank", () => {
   test("kommt bei geringer Glaubwürdigkeit und langem Schweigen, nicht nach einer Rede für die Bank", () => {
     const w = vernachlaessigt();
     w.economy.credibility = 0.1;
+    w.economy.policyRate = w.economy.inflation; // keine Erholung: Realzins null, die Agentur droht
     expect(zbLage(w)).toBe("glaubwuerdigkeit");
     expect(w.day - letzterZbKontakt(w)).toBeGreaterThanOrEqual(BEREICHSDRUCK.zentralbank.pflegeTage);
     expect(vorlage("zentralbank_vertrauen").chance(w)).toBeGreaterThan(0);
@@ -94,21 +95,56 @@ describe("Zentralbank: Zweifel an der Notenbank", () => {
     expect(vorlage("zentralbank_vertrauen").chance(w)).toBe(0);
   });
 
-  test("Abwarten stuft ab; Stützen setzt die Rede und rückt die nächste Sitzung", () => {
+  test("Abwarten senkt erst den Ausblick, beim zweiten Mal die Note; Stützen setzt die Rede und rückt die nächste Sitzung", () => {
     const w = vernachlaessigt();
     w.economy.credibility = 0.1;
+    w.economy.policyRate = w.economy.inflation; // keine Erholung: Realzins null, die Agentur droht
     const ev = oeffne(w, "zentralbank_vertrauen", new Rng(2))!;
     expect(ev.daten!.lage).toBe("glaubwuerdigkeit");
     const a = load(save(w));
     const stufe0 = ratingSicht(a).index;
+    const abstand0 = ratingSicht(a).abstand;
+    // Entscheidung des Koordinators (6. November): wie echte Agenturen erst der negative Ausblick, dann die Herabstufung
     entscheide(a, ev.id, "abwarten", new Rng(1));
+    expect(ratingSicht(a).index).toBe(stufe0);
+    // Der Maßstab wird um eine halbe Stufe strenger (dazu kommt der kleine Verlust an Glaubwürdigkeit aus dem Schweigen)
+    expect(ratingSicht(a).abstand).toBeLessThanOrEqual(abstand0 - BEREICHSDRUCK.zentralbank.ausblickPunkte / 10 + 1e-9);
+    expect(a.spiel!.wirtschaft!.zb.ausblickNegativ).toBe(a.day);
+    a.spiel!.zuletzt = {};
+    const ev2 = oeffne(a, "zentralbank_vertrauen", new Rng(2))!;
+    expect(antworten(a, ev2).find((o) => o.id === "abwarten")!.beschreibung).toMatch(/stuft die Agentur ab/);
+    entscheide(a, ev2.id, "abwarten", new Rng(1));
     expect(ratingSicht(a).index).toBe(stufe0 - 1);
+    expect(a.spiel!.wirtschaft!.zb.ausblickNegativ).toBeUndefined();
     const b = load(save(w));
     const g0 = b.economy.credibility;
     entscheide(b, ev.id, "stuetzen", new Rng(1));
     expect(b.economy.credibility).toBeGreaterThan(g0);
     expect(b.spiel!.wirtschaft!.zb.druck?.richtung).toBe(1);
     expect(letzterZbKontakt(b)).toBe(b.day);
+  });
+});
+
+describe("Kein Zusatzplatz", () => {
+  test("Ist ein Bereichsvorgang im Monat allein, wird er nicht vorgelegt, sondern gärt weiter", () => {
+    const w = vernachlaessigt();
+    w.spiel!.eskalation = {};
+    w.spiel!.zuletzt = {};
+    w.economy.credibility = 0.1;
+    w.economy.policyRate = w.economy.inflation; // keine Erholung: Realzins null, die Agentur droht
+    const alle = VORLAGEN.map((v) => v.chance);
+    VORLAGEN.forEach((v) => { if (v.id !== "zentralbank_vertrauen") v.chance = () => 0; });
+    const zb = vorlage("zentralbank_vertrauen");
+    const zbChance = zb.chance;
+    try {
+      zb.chance = () => 1;
+      ereignisMonatSofort(w, new Rng(1));
+      expect(w.spiel!.ereignisse.some((e) => e.vorlage === "zentralbank_vertrauen")).toBe(false);
+      expect(w.spiel!.eskalation?.zentralbank_vertrauen).toBe(1);
+    } finally {
+      VORLAGEN.forEach((v, i) => (v.chance = alle[i]!));
+      zb.chance = zbChance;
+    }
   });
 });
 
@@ -174,6 +210,7 @@ describe("Antworten buchen, was die Plakette zeigt, und nennen ihre Stelle", () 
     const a = vernachlaessigt();
     const b = vernachlaessigt();
     b.economy.credibility = 0.1;
+    b.economy.policyRate = b.economy.inflation;
     const c = vernachlaessigt();
     c.economy.credibility = 0.8;
     c.published.inflation.value = 25;

@@ -47,6 +47,11 @@ export interface ZentralbankZustand {
   stufeGeaendert?: number;
   /** Letzter Tag einer Neubesetzung der Führung (Abkühlzeit) */
   gouverneurGeaendert?: number;
+  /**
+   * Tag, an dem eine Ratingagentur den Ausblick auf negativ gesenkt hat, weil die Regierung zu ihrer Warnung schwieg (sim/ereignisse-bereiche.ts).
+   * Schweigt sie erneut, folgt die Herabstufung; wer die Bank stützt, stellt den Ausblick wieder auf stabil. Fehlt in älteren Spielständen.
+   */
+  ausblickNegativ?: number;
   sitzungen: Sitzung[];
 }
 
