@@ -5,6 +5,7 @@
 // und das Verfassungsgericht als Schatten über Erlassen und grundrechtsnahen Gesetzen.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
 
+import { rasteStufe } from "../data/skalen";
 import { politikGeaendert } from "./zynismus";
 import { FASSUNG_WERTE, FASSUNGEN, GESETZESVORHABEN, STANDARD_SCHRITTE, VERBAENDE, VORHABEN_NACH_ID, type FassungId, type GesetzesVorhaben } from "../data/gesetzesvorhaben";
 import { GRUPPEN } from "./gruppen";
@@ -317,7 +318,7 @@ export function fassungsKnoepfe(w: World, massnahme: string): { vorhaben: string
     .map((v) => ({
       vorhaben: v.id,
       titel: t(`gesetz.v.${v.id}.titel`),
-      knoepfe: FASSUNGEN.map((f, i) => ({ fassung: f, ziel: clamp(Math.round(stufe + v.richtung * schritte(v)[i]!), 0, 100) })).filter((k) => Math.abs(k.ziel - stufe) >= 1),
+      knoepfe: FASSUNGEN.map((f, i) => ({ fassung: f, ziel: rasteStufe(massnahme, clamp(Math.round(stufe + v.richtung * schritte(v)[i]!), 0, 100)) })).filter((k) => Math.abs(k.ziel - stufe) >= 1),
     }))
     .filter((x) => x.knoepfe.length > 0);
 }

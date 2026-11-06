@@ -3,7 +3,9 @@ import type { VersorgungsProgramm } from "../sim/versorgungspolitik";
 
 import type { World } from "../sim/types";
 import { WirtschaftAkte } from "./wirtschaft/Akte";
+import type { Ziel } from "./schreibtisch/briefing";
 
-export function EconomyFile({ world, onGeaendert, start = "lage", posten, programm }: { world: World; onGeaendert?: () => void; start?: "lage" | "haushalt" | "inventar"; posten?: string; programm?: VersorgungsProgramm }) {
-  return <WirtschaftAkte programm={programm} world={world} start={start} onGeaendert={onGeaendert} {...(posten ? { posten } : {})} />;
+/** `onGehe` führt aus der Akte zu einer Maßnahme im Politikbereich (die eine Stellgröße einer Steuer, Befund D-1). */
+export function EconomyFile({ world, onGeaendert, start = "lage", posten, programm, onGehe }: { world: World; onGeaendert?: () => void; start?: "lage" | "haushalt" | "inventar"; posten?: string; programm?: VersorgungsProgramm; onGehe?: (z: Ziel) => void }) {
+  return <WirtschaftAkte programm={programm} world={world} start={start} onGeaendert={onGeaendert} {...(posten ? { posten } : {})} {...(onGehe ? { onGehe } : {})} />;
 }

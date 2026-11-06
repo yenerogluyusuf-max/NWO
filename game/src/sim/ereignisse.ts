@@ -22,7 +22,8 @@ import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
 import { anrede, ersetze, figur } from "./figuren";
-import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingriffe";
+import { criticizeCentralBank, replaceGovernor } from "./eingriffe";
+import { haushaltAusEreignis } from "./haushalt";
 import { interveniere } from "./devisen";
 import { bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
 import { FORDERUNG, PARTEI_NAME, bereitschaftAendern, forderungVon } from "./fraktionen";
@@ -328,7 +329,7 @@ const HAUSHALT: Vorlage = {
   warum: () => "Höhere Risikoaufschläge machen Kredite teurer; wer den Haushalt nicht im Griff hat, zahlt dafür mit Zinsen und einer schwachen Währung.",
   optionen: () => [
     opt("sparpaket", "Sparpaket", "Kostet 6 Kapital und Vertrauen; beruhigt die Märkte, der Finanzminister ist zufrieden.", 6, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse - 1.5);
+      haushaltAusEreignis(w, "sparpaket"); // N3 (D-13): Regler statt unsichtbarem Impuls
       wirke(w, "vertrauen_maerkte", 6);
       vertrauenAendern(w, -3);
       const f = figur(w, "finanzen");
@@ -884,7 +885,7 @@ const START_HAUSHALT: Vorlage = {
   warum: () => "Mehr Ausgaben stützen kurz die Nachfrage und treiben Inflation und Schulden; Sparen beruhigt die Märkte und kostet Zustimmung.",
   optionen: () => [
     opt("sparen", "Sparkurs", "Kostet 3 Kapital; beruhigt die Märkte, der Finanzminister ist zufrieden.", 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse - 1);
+      haushaltAusEreignis(w, "sparkurs"); // N3 (D-13)
       wirke(w, "vertrauen_maerkte", 4);
       vertrauenAendern(w, -1);
       const f = figur(w, "finanzen");
@@ -893,7 +894,7 @@ const START_HAUSHALT: Vorlage = {
     }),
     opt("mitte", "Ausgeglichen", "Kostet nichts; kein Signal in irgendeine Richtung.", 0, () => "Der Haushalt bleibt, wie er ist."),
     opt("wachstum", "Wachstumshaushalt", "Kostet 3 Kapital; mehr Investitionen und mehr Schulden.", 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse + 1.5);
+      haushaltAusEreignis(w, "wachstum"); // N3 (D-13)
       vertrauenAendern(w, 1);
       const f = figur(w, "finanzen");
       if (f) f.loyalitaet = Math.max(0, f.loyalitaet - 8);

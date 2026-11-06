@@ -1006,7 +1006,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 }}
               />
             )}
-            {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}-${wirtschaftProgramm ?? ""}`} programm={wirtschaftProgramm} world={w} start={wirtschaftStart} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "wirtschaft" && <EconomyFile key={`${wirtschaftStart}-${wirtschaftPosten ?? ""}-${wirtschaftProgramm ?? ""}`} programm={wirtschaftProgramm} world={w} start={wirtschaftStart} {...(wirtschaftPosten ? { posten: wirtschaftPosten } : {})} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {/* Ein Weg zum Gesetz (ENTSCHEIDUNGEN W 2): Gesetze bringt man in der Politik ein, das Parlament zeigt die Tagesordnung */}
             {dossier === "gesetze" && (
               <Tagesordnung

@@ -9,16 +9,18 @@ import type { Vorschlag } from "../../sim/vorschlaege";
 import { bringeEin, REGELN } from "../../sim/handeln";
 import { fassungsKnoepfe, gesetzesPrognose } from "../../sim/gesetzgebung";
 import type { FassungId } from "../../data/gesetzesvorhaben";
-import { naechsteStufe, skala, skalenArt, stufenName } from "../../data/skalen";
+import { echteHalte, echterSatz, naechsteStufe, skala, skalenArt, stufenName } from "../../data/skalen";
+import { ETAT_DER_MASSNAHME, POSTEN_NACH_ID } from "../../sim/haushalt";
 import { t, zahl } from "../../i18n";
 import type { MassnahmeZeile } from "./bereiche";
 import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
 
 type Ergebnis = { ok: boolean; text: string; why?: string };
 
-/** Die wählbaren Werte einer Maßnahme: benannte Zustände oder 0, 10, … 100 */
+/** Die wählbaren Werte einer Maßnahme: benannte Zustände, echte Sätze in ganzen Punkten (N3, B-2) oder 0, 10, … 100 */
 function stufenVon(id: string, jetzt: number): { w: number; name: string }[] {
   if (skalenArt(id) === "regime") return skala(id, jetzt).stufen.map((s) => ({ w: s.w, name: s.name }));
+  if (echterSatz(id)) return echteHalte(id).map((h) => ({ w: h.w, name: stufenName(id, h.w) }));
   return Array.from({ length: 11 }, (_, i) => ({ w: i * 10, name: stufenName(id, i * 10) }));
 }
 
@@ -59,7 +61,8 @@ function Pruefzeile({ world, m, ziel, ort, wahl, onFassung, onErgebnis, onGenaue
             { label: t("po2.kapital"), wert: t("po2.kapitalWert", { n: p.gesetz.pk }), schlecht: !p.gesetz.bezahlbar },
             { label: t("po2.mehrheit"), wert: prog.luecke > 0 ? t("po2.fehlen", { n: prog.luecke }) : t("po2.steht", { ja: prog.ja, noetig: REGELN.mehrheit }), schlecht: prog.luecke > 0 },
             { label: t("po2.dauer"), wert: t("po2.monate", { n: p.monate }) },
-            { label: t("po2.haushalt"), wert: Math.abs(p.kostenBip) < 0.005 ? t("po2.keineKosten") : t(p.kostenBip > 0 ? "po2.kostet" : "po2.bringt", { n: zahl(Math.abs(p.kostenBip), 2) }) },
+            // F1 (N3): Maßnahmen mit gleichnamigem Etat kosten kein eigenes Geld; das Preisfeld nennt den Etat, der sie bezahlt
+            { label: t("po2.haushalt"), wert: ETAT_DER_MASSNAHME[m.id] ? t("n3.f1.etat", { posten: POSTEN_NACH_ID[ETAT_DER_MASSNAHME[m.id]!]?.name ?? "" }) : Math.abs(p.kostenBip) < 0.005 ? t("po2.keineKosten") : t(p.kostenBip > 0 ? "po2.kostet" : "po2.bringt", { n: zahl(Math.abs(p.kostenBip), 2) }) },
           ]}
         />
       ) : (

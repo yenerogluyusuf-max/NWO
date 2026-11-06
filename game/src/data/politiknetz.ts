@@ -263,9 +263,16 @@ g("haushalt", "steuermoral", "Steuerehrlichkeit", 45, "Wie viele Steuern tatsäc
 g("haushalt", "zinslast", "Zinslast des Staates", 45, "Anteil des Haushalts, der für Zinsen draufgeht.");
 g("haushalt", "vertrauen_maerkte", "Vertrauen der Märkte", 45, "Wie Anleger die Staatsfinanzen einschätzen.");
 
+// Steuern mit echtem Satz (data/skalen.ts: ein Prozentpunkt = 5 Stufen, also 20 Punkte je 100 Stufen). Die Kosten je 100 Stufen sind das
+// Aufkommen von 20 Prozentpunkten in % des BIP:
+//   Mehrwertsteuer: abgeleitet, 3.539 Mrd. Lira bei 20 % im Haushaltsgesetz 2026 (data/haushaltsplan.ts STEUERN_2026) sind 4,52 % des BIP,
+//     also 0,226 % des BIP je Punkt ohne Ausweichen der Käufer; 20 Punkte ≈ 4,5 % des BIP.
+//   Körperschaftsteuer: abgeleitet, 1.741 Mrd. Lira bei 25 % sind 2,22 % des BIP, also 0,089 % je Punkt; 20 Punkte ≈ 1,8 % des BIP.
+//   Einkommensteuer: Spielparameter. Der Spitzensatz trifft nur die oberste Tarifstufe; ihr Aufkommen ist in den Projektdaten nicht belegt.
+// Den Rest (Ausweichen, Schattenwirtschaft, Laffer-Kante) tragen die Kanten unten.
 m("haushalt", "m_einkommensteuer", "Einkommensteuer", 50, -1.5, 3, "Höhe der Einkommensteuer.");
-m("haushalt", "m_mwst", "Mehrwertsteuer", 60, -2.0, 1, "Höhe der Mehrwertsteuer.");
-m("haushalt", "m_koerperschaftsteuer", "Körperschaftsteuer", 50, -0.8, 3, "Steuer auf Unternehmensgewinne.");
+m("haushalt", "m_mwst", "Mehrwertsteuer", 60, -4.5, 1, "Höhe der Mehrwertsteuer.");
+m("haushalt", "m_koerperschaftsteuer", "Körperschaftsteuer", 50, -1.8, 3, "Steuer auf Unternehmensgewinne.");
 m("haushalt", "m_kraftstoffsteuer", "Steuer auf Kraftstoff", 60, -0.8, 1, "Verbrauchsteuer auf Benzin und Diesel.");
 m("haushalt", "m_immobiliensteuer", "Steuer auf Immobilien und Vermögen", 30, -0.5, 6, "Grundsteuer und Abgaben auf teure Immobilien.");
 m("haushalt", "m_steueramnestie", "Steueramnestie", 20, -0.1, 2, "Wer Schulden beim Fiskus nachzahlt, bekommt Strafen erlassen.");
@@ -323,11 +330,13 @@ g("arbeit", "streikneigung", "Streikbereitschaft", 35, "Wie schnell Gewerkschaft
 g("arbeit", "sozialkassen", "Lage der Sozialversicherung", 45, "Beiträge gegen Ausgaben der Renten- und Krankenkasse.");
 
 // Preise (Spielparameter): Renten zu kürzen ist der teuerste Eingriff überhaupt — einmal erhöht, gelten sie als Besitzstand.
-m("arbeit", "m_renten", "Rentenerhöhungen", 50, 1.2, 1, "Anpassung der Renten über die Inflation hinaus.", { streichen: 2.5 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("arbeit", "m_renten", "Rentenerhöhungen", 50, 0, 1, "Anpassung der Renten über die Inflation hinaus.", { streichen: 2.5 });
 m("arbeit", "m_fruehrente", "Frühverrentung", 40, 0.6, 3, "Früherer Renteneintritt für bestimmte Jahrgänge.");
 m("arbeit", "m_kindergeld", "Kindergeld und Familienhilfe", 30, 0.5, 2, "Geld für Familien mit Kindern.");
 // Preise (Spielparameter): Grundsicherung kürzen kostet massiv Rückhalt — die Betroffenen haben nichts mehr zu verlieren.
-m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, 0.6, 2, "Grundsicherung für bedürftige Haushalte.", { streichen: 2.5 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, 0, 2, "Grundsicherung für bedürftige Haushalte.", { streichen: 2.5 });
 m("arbeit", "m_arbeitslosengeld", "Arbeitslosengeld", 30, 0.3, 2, "Höhe und Dauer des Arbeitslosengeldes.");
 m("arbeit", "m_gewerkschaftsrechte", "Gewerkschaftsrechte", 35, 0.0, 6, "Recht auf Organisation, Tarifverhandlung und Streik.");
 m("arbeit", "m_kinderbetreuung", "Kinderbetreuung", 25, 0.3, 12, "Plätze in Krippen und Kindergärten.");
@@ -419,7 +428,8 @@ m("bildung", "m_religioese_schulen", "Religiöse Schulen (İmam-Hatip)", 55, 0.1
 m("bildung", "m_berufsschulen", "Berufsschulen", 45, 0.2, 12, "Berufliche Bildung mit Betrieben zusammen.");
 m("bildung", "m_unigruendungen", "Neue Universitäten", 50, 0.2, 24, "Universitäten in jeder Provinz.");
 m("bildung", "m_stipendien", "Stipendien", 35, 0.15, 6, "Unterstützung für Studierende aus ärmeren Familien.");
-m("bildung", "m_forschung", "Forschungsförderung", 30, 0.3, 12, "Geld für Forschung und Entwicklung.");
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("bildung", "m_forschung", "Forschungsförderung", 30, 0, 12, "Geld für Forschung und Entwicklung.");
 m("bildung", "m_wissenschaftsfreiheit", "Wissenschaftsfreiheit", 40, 0.0, 12, "Unabhängigkeit der Universitäten bei Berufungen und Lehre.");
 
 p("bildung", "p_abwanderung", "Abwanderung von Fachkräften", 55, 60, "Ärzte, Ingenieure und Forscher verlassen das Land.");
@@ -509,7 +519,8 @@ g("energie", "klimaschutz", "Klimaschutz", 35, "Wie stark die Emissionen sinken.
 
 // Preise (Spielparameter): Subventionen abbauen, nachdem sich Haushalte und Betriebe an billige
 // Energie gewöhnt haben, kostet Aufstandsrückhalt (Gelbwesten-Effekt); der Deckel kostet laufend Verwaltung.
-m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1.0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", { streichen: 2.5 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", { streichen: 2.5 });
 m("energie", "m_solar_wind", "Ausbau von Sonne und Wind", 45, 0.2, 24, "Ausschreibungen und Einspeisevergütungen.");
 m("energie", "m_kernkraft", "Kernkraft", 50, 0.2, 48, "Weitere Reaktoren neben dem ersten Kraftwerk.");
 m("energie", "m_gasfoerderung", "Heimische Gasförderung", 50, 0.2, 24, "Förderung aus Feldern im Schwarzen Meer.");
@@ -645,7 +656,8 @@ g("landwirtschaft", "lebensmittelpreise", "Lebensmittelpreise", 65, "Preise für
 g("landwirtschaft", "landwirtschaft_einkommen", "Einkommen der Landwirte", 40, "Was Bauern nach Abzug der Kosten bleibt.");
 g("landwirtschaft", "landflucht", "Landflucht", 55, "Wie viele Menschen Dörfer und Kleinstädte verlassen.");
 
-m("landwirtschaft", "m_agrarsubventionen", "Agrarsubventionen", 45, 0.4, 6, "Zahlungen je Fläche und Produkt, Zuschüsse für Diesel und Dünger.");
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("landwirtschaft", "m_agrarsubventionen", "Agrarsubventionen", 45, 0, 6, "Zahlungen je Fläche und Produkt, Zuschüsse für Diesel und Dünger.");
 m("landwirtschaft", "m_bewaesserung", "Moderne Bewässerung", 35, 0.2, 24, "Tropfbewässerung statt Überflutung der Felder.");
 m("landwirtschaft", "m_staudaemme", "Staudämme und Speicher", 50, 0.3, 48, "Talsperren für Wasser und Strom.");
 m("landwirtschaft", "m_wasserleitungen", "Wasserleitungen und Kläranlagen", 40, 0.3, 24, "Trinkwassernetz, weniger Leitungsverluste, Abwasserreinigung.");
@@ -829,13 +841,15 @@ g("sicherheit", "korruption", "Korruption", 55, "Bestechung, Vetternwirtschaft u
 g("sicherheit", "rechtssicherheit", "Rechtssicherheit", 40, "Ob Regeln für alle gleich gelten und vorhersehbar sind.", 0.08, 2);
 g("sicherheit", "militaer", "Einsatzbereitschaft der Streitkräfte", 60, "Ausrüstung, Ausbildung und Moral der Armee.");
 
-m("sicherheit", "m_polizei", "Polizei und Gendarmerie", 60, 0.3, 6, "Personal und Ausstattung der Sicherheitskräfte.");
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("sicherheit", "m_polizei", "Polizei und Gendarmerie", 60, 0, 6, "Personal und Ausstattung der Sicherheitskräfte.");
 m("recht", "m_justizreform", "Justizreform", 35, 0.1, 18, "Reformpaket der Gerichtsverfassung: Verfahrensrecht, Ausbildung, Gerichtsstruktur. Richterstellen und Richterrat sind eigene Stellschrauben.");
 m("recht", "m_antikorruption", "Korruptionsbekämpfung", 35, 0.05, 12, "Unabhängige Ermittler, offene Vergaben, Vermögenserklärungen.");
 m("sicherheit", "m_friedensprozess", "Friedensprozess", 55, 0.1, 12, "Politische Lösung mit Waffenabgabe und Wiedereingliederung.");
 // Preise (Spielparameter): Rüstung kürzen kostet doppelt — Generalstab, Rüstungsbetriebe und das
 // Lager der Nationalisten lesen jede Kürzung als Schwäche; der Apparat kostet laufend Verwaltung.
-m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1.0, 12, "Budget für Streitkräfte und Rüstungsindustrie.", { streichen: 2 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 0, 12, "Budget für Streitkräfte und Rüstungsindustrie.", { streichen: 2 });
 m("militaer", "m_ruestungsindustrie", "Heimische Rüstungsindustrie", 60, 0.3, 24, "Drohnen, Panzer, Schiffe aus eigener Produktion.");
 
 p("sicherheit", "p_korruption", "Korruptionsskandale", 45, 60, "Vergaben und Ämter werden gekauft; die Presse berichtet.");

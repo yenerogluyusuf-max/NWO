@@ -132,9 +132,12 @@ function ratingZustand(w: World): NonNullable<EconomyState["rating"]> {
   return e.rating;
 }
 
-export function ratingSicht(w: World): { stufe: string; index: number; ausblick: -1 | 0 | 1; seit: number; anlagegrad: boolean } {
-  const r = ratingZustand(w);
-  return { stufe: RATING_STUFEN[r.stufe]!, index: r.stufe, ausblick: r.ausblick, seit: r.seit, anlagegrad: r.stufe >= ANLAGEGRAD };
+export function ratingSicht(w: World): { stufe: string; index: number; ausblick: -1 | 0 | 1; seit: number; anlagegrad: boolean; anlagegradIndex: number; abstand: number; monate: number; monateNoetig: number; aufschlagJeStufe: number } {
+  // Lesen bucht nichts (auch kein Anlegen des Ratings in älteren Spielständen): Abstand der Bonität zum Maßstab der Agenturen in Stufen, und wie lange er schon in dieselbe Richtung zeigt
+  const r = w.economy.rating ?? { stufe: START_STUFE, ausblick: 0 as const, seit: w.day, bezug: bonitaetsScore(w), zaehler: 0, tendenz: 0 };
+  const abstand = (bonitaetsScore(w) - r.bezug) / RATING.punkteJeStufe;
+  return { stufe: RATING_STUFEN[r.stufe]!, index: r.stufe, ausblick: r.ausblick, seit: r.seit, anlagegrad: r.stufe >= ANLAGEGRAD, anlagegradIndex: ANLAGEGRAD,
+    abstand, monate: r.zaehler, monateNoetig: RATING.monate, aufschlagJeStufe: RATING.aufschlagJeStufe };
 }
 
 /** Eine Stufe rauf (+1) oder runter (−1): Aufschlag, Vertrauen, bei Anlagegrad einmaliger Kapitalzufluss. */
@@ -228,8 +231,12 @@ export function koppleNetzAnWirtschaft(w: World): void {
   // 3. Importabhängigkeit bestimmt, wie hart der Ölpreis trifft
   e.energieFaktor = clamp(1 + MARKT.energieAufFaktor * (abw("energieimporte") + 0.5 * abw("gasabhaengigkeit")), 0.6, 1.6);
 
-  // 4. Der Haushalt atmet mit der Konjunktur: Überauslastung und stärkere Steuerbasis entlasten, Rezession und schwache Basis belasten
-  e.konjunkturSaldo = clamp(PARAMS.stabilisatoren * e.outputGap + PARAMS.steuerbasisAufHaushalt * abw("steuereinnahmen"), -3, 3);
+  // 4. Der Haushalt atmet mit der Konjunktur: Überauslastung und stärkere Steuerbasis entlasten, Rezession und schwache Basis belasten.
+  // Gemessen gegen die Auslastung beim Amtsantritt: Das Defizitziel von 3,1 % (Mittelfristprogramm) rechnet die schwache Konjunktur von
+  // −1 % schon ein. Vorher zählte sie im ersten Monat ein zweites Mal und hob das Defizit ohne Zutun um 0,3 Punkte (Messung N3, 06.11.2026).
+  // Der Startwert ist der letzte Monat der Vorgeschichte (sim/world.ts syntheticHistory endet bei der Auslastung des Szenarios).
+  const startLuecke = w.history[11]?.outputGap ?? 0;
+  e.konjunkturSaldo = clamp(PARAMS.stabilisatoren * (e.outputGap - startLuecke) + PARAMS.steuerbasisAufHaushalt * abw("steuereinnahmen"), -3, 3);
 
   // 5. Dauerhafter Aufschlag aus politischen Schocks klingt ab
   if (e.politikRisiko !== undefined) {

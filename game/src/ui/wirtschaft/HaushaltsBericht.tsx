@@ -25,7 +25,7 @@ export function HaushaltsMonatsbericht({bericht:b,aktuell=false,world,geaendert}
   const partner=b.stand.parteien.filter(p=>p.rolle==="koalition"||a.abkommen.some(v=>v.partei===p.partei)||a.nachher.parteien.some(v=>v.partei===p.partei&&v.rolle==="koalition"));
   return <section className="hb" aria-label={t("hb.titel")}>
     <header className="hb-kopf"><small>{t(aktuell?"hb.heute":"hb.monat",{datum:formatDateDe(b.datum),monat:b.monat})}</small>
-      <h4>{t("hb.titel")}</h4><p>{a.krisenpaket?t(a.angenommen?"kp.angenommen":"kp.abgelehnt",{name:haushaltsTitel(a),datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja}):t(a.angenommen?"hb.angenommen":"hb.abgelehnt",{jahr:a.jahr+1,datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja})}</p>
+      <h4>{t("hb.titel")}</h4><p>{a.krisenpaket?t(a.angenommen?"kp.angenommen":"kp.abgelehnt",{name:haushaltsTitel(a),datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja}):t(a.angenommen?"hb.angenommen":"hb.abgelehnt",{jahr:String(a.jahr+1),datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja})}</p>
     </header>
     <div className="hb-inhalt">
       <h5>{t("hb.sofort")}</h5>

@@ -73,3 +73,31 @@
 @media (max-width: 640px) {
   .gi-bilanz { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* N3 (D-17): Versorgung & Handel mit einem Bild oben: alle Warengruppen als Ringe der Eigenversorgung, rot, was knapp ist */
+.gi-raster { display: grid; gap: 10px; padding: 14px 16px; background: #fbf6e6; border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px; margin-bottom: 14px; }
+.gi-raster-lage { margin: 0; font: 15px/1.4 var(--serif, "EB Garamond", serif); color: #4a3a28; }
+.gi-raster-lage b.gi-schlecht { color: #8c2b1f; }
+.gi-raster-lage b.gi-gut { color: #3f6b45; }
+.gi-ringe { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.dossier button.gi-ring { all: unset; box-sizing: border-box; display: grid; justify-items: center; gap: 2px; padding: 8px 6px 9px; border: 1px solid rgba(90, 64, 40, 0.22); border-radius: 6px; background: #fffaf0; cursor: pointer; text-align: center; }
+.dossier button.gi-ring:hover { background: #f6ebc9; }
+.dossier button.gi-ring:focus-visible { outline: 3px solid #b38e48; outline-offset: 2px; }
+.dossier button.gi-ring.on { border-color: #7c5823; box-shadow: inset 0 -3px 0 #7c5823; background: #f3e4bf; }
+.dossier button.gi-ring.gi-schlecht { border-color: #8c2b1f; box-shadow: inset 0 0 0 1px #8c2b1f; }
+.gi-ring-art { font: 400 10.5px/1.1 var(--kapitaelchen, "Marcellus SC", serif); letter-spacing: 0.05em; text-transform: uppercase; color: #7a6a56; }
+.gi-ring-mitte { position: relative; display: grid; place-items: center; width: 52px; height: 52px; }
+.gi-ring-mitte b { position: absolute; font: 600 12.5px/1 var(--sans, Inter, sans-serif); color: #2b1e12; font-variant-numeric: tabular-nums; }
+.gi-ring-bild { width: 52px; height: 52px; }
+.gi-ring-grund { fill: none; stroke: rgba(90, 64, 40, 0.14); stroke-width: 5; }
+.gi-ring-wert { fill: none; stroke-width: 5; stroke-linecap: round; stroke: #6a7f4d; }
+.gi-ring-bild.gi-mittel .gi-ring-wert { stroke: #b8862f; }
+.gi-ring-bild.gi-schlecht .gi-ring-wert { stroke: #8c2b1f; }
+.gi-ring-name { font: 600 13px/1.2 var(--sans, Inter, sans-serif); color: #2b1e12; }
+.gi-ring-tage { font: 11.5px/1.2 var(--sans, Inter, sans-serif); color: #6b5a46; }
+.gi-ring-tage.gi-schlecht { color: #8c2b1f; font-weight: 600; }
+.gi-ring-tage.gi-mittel { color: #856026; }
+.gi-ware { padding: 14px 16px; background: #fffcf6; border: 1px solid #dcd8cf; border-radius: 6px; margin-bottom: 14px; }
+.rg-kurs-zu { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.gi-ring-mitte, .gi-ring-bild { width: 60px; height: 60px; }
+.gi-ring-mitte b { font-size: 11.5px; letter-spacing: -0.02em; }

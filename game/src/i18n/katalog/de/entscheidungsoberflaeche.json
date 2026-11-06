@@ -36,7 +36,7 @@
   "eo.entwurfEntfernen": "Änderung aus dem Entwurf entfernen",
   "eo.entwurfAendern": "Änderung im Entwurf speichern",
   "eo.entwurfNur": "Entwurf bearbeiten · noch keine unmittelbare Wirkung",
-  "eo.nachtragFolge": "Unmittelbare Änderung: Legitimität {leg}; Ministerloyalität {loy}. Dauerwirkungen entfalten sich über etwa {monate} Monate.",
+  "eo.nachtragFolge": "Sofort: Legitimität {leg}, Loyalität des Ministers {loy}. Die volle Wirkung kommt nach {monate, plural, one {# Monat} other {# Monaten}}.",
   "eo.keineAenderung": "Diese Einstellung steht bereits so im Entwurf.",
   "eo.amtsende": "Nach Amtsende kann kein Haushalt mehr geändert werden.",
   "eo.vergleich": "{vor} → {nach}",

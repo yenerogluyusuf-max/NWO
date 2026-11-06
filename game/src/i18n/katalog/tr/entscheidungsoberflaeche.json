@@ -36,7 +36,7 @@
   "eo.entwurfEntfernen": "Değişikliği taslaktan çıkar",
   "eo.entwurfAendern": "Değişikliği taslağa kaydet",
   "eo.entwurfNur": "Taslağı düzenle · henüz anlık etki yok",
-  "eo.nachtragFolge": "Anlık değişim: meşruiyet {leg}; bakan sadakati {loy}. Kalıcı etkiler yaklaşık {monate} ayda gelişir.",
+  "eo.nachtragFolge": "Hemen: meşruiyet {leg}, bakanın sadakati {loy}. Tam etki {monate} ay sonra gelir.",
   "eo.keineAenderung": "Bu ayar zaten taslakta mevcut.",
   "eo.amtsende": "Görev sona erdikten sonra bütçe değiştirilemez.",
   "eo.vergleich": "{vor} → {nach}",

@@ -441,3 +441,33 @@
 .wi-zb-verlauf { margin-top: 10px; }
 .wi-zb-verlauf > summary { cursor: pointer; font: 14px var(--serif); color: #5d4231; }
 .wi-folgen-mehr > summary { cursor: pointer; font: 14px var(--serif); color: #5d4231; margin: 4px 0; }
+/* N3 (D-9): Vorgeschichte vor dem Amtsantritt ist eine Annahme, keine Messung */
+.wi-verlauf.wi-annahme { stroke: #9a8d7a; stroke-dasharray: 4 4; stroke-width: 1.6; }
+.wi-annahme-text { fill: #8a7c68; font-style: italic; }
+/* N3 (D-27): Wirtschaftslage mit Tachoband oben, die Liste aller Kennzahlen auf Klick */
+.wi-lage-seite { display: grid; gap: 14px; }
+.wi-tachos { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.wi-tacho .bs-tacho { width: 100%; height: 100%; }
+.wi-tacho.on .bs-tacho { background: #f3e4bf; border-color: #7c5823; box-shadow: inset 0 -3px 0 #7c5823; }
+.wi-tacho .bs-tacho svg { max-width: 150px; }
+.wi-tacho .bs-tacho-titel { font: 600 12.5px/1.2 var(--sans, Inter, sans-serif); color: #5a4a38; text-align: center; }
+.wi-tacho .bs-tacho-wert { font: 600 18px/1.1 var(--display, Fraunces, serif); }
+.dossier .wi-lage-seite > button.wi-alle { justify-self: start; }
+.wi-lage-seite:not(.mit-liste) .wi-lage, .dossier .wi-lage-seite:not(.mit-liste) .wi-lage { grid-template-columns: minmax(0, 1fr); }
+.wi-abschnitte { display: flex; flex-wrap: wrap; gap: 8px; }
+.dossier .wi-abschnitte button { all: unset; padding: 5px 12px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: #fbf6e6; color: #4a3a28; font: 14px/1.2 var(--sans, Inter, sans-serif); cursor: pointer; }
+.dossier .wi-abschnitte button[aria-pressed="true"] { background: #4a3424; color: #f8eedb; border-color: #4a3424; }
+.dossier .wi-abschnitte button:focus-visible { outline: 3px solid #b38e48; outline-offset: 2px; }
+@media (max-width: 1100px) { .wi-tachos { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .wi-tachos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.wi-tacho .bs-tacho { padding: 6px 8px 8px; }
+.wi-tacho .bs-tacho svg { max-width: 118px; }
+.wi-tun .wi-handlungen { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+.wi-tun .wi-handlungen li { display: flex; gap: 6px; align-items: center; }
+.wi-lage-seite .wi-detail { gap: 10px; }
+.wi-lage-seite .wi-block { padding-top: 10px; }
+.wi-lage-seite .wi-detail header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 18px; }
+.wi-lage-seite .wi-detail header .kicker { display: none; }
+.wi-lage-seite .wi-detail header h3 { margin: 0; }
+.wi-lage-seite .wi-detail header .wi-gross { font-size: 30px; }
+.wi-lage-seite .wi-detail header .wi-gemessen { flex-basis: 100%; margin: 0; }
