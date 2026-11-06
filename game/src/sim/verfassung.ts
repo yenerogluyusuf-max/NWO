@@ -128,7 +128,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
     varianten: [
       {
         id: "unveraendert",
-        name: "Wie bisher",
+        name: t("ev.verfassung.name.wie_bisher"),
         text: t("sim2.sim.verfassung.33b4d1b"),
         statusQuo: true,
         autoritaer: 0,
@@ -138,7 +138,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "wiederwahl_plus",
-        name: "Weitere Wiederwahl",
+        name: t("ev.verfassung.name.wiederwahl_plus"),
         text: t("sim2.sim.verfassung.dd395ec"),
         autoritaer: 2,
         parteien: { AKP: 2, MHP: 1, YRP: 1, CHP: -2, DEM: -2, "İYİ": -1, "YENİ": -1, Zafer: 0 },
@@ -150,7 +150,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "unbegrenzt",
-        name: "Keine Begrenzung",
+        name: t("ev.verfassung.name.unbegrenzt"),
         text: t("sim2.sim.verfassung.596e909"),
         autoritaer: 3,
         parteien: { AKP: 2, MHP: 1, YRP: 1, CHP: -2, DEM: -2, "İYİ": -2, "YENİ": -2, Zafer: 0 },
@@ -163,7 +163,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "neuwahl_jetzt",
-        name: "Vorgezogene Neuwahl",
+        name: t("ev.verfassung.name.neuwahl_jetzt"),
         text: t("sim2.sim.verfassung.e306390"),
         autoritaer: 0,
         parteien: { CHP: 1, DEM: 1, "İYİ": 1, "YENİ": 1, AKP: -2, MHP: -2, YRP: -1, Zafer: 0 },
@@ -189,7 +189,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "jahre_4",
-        name: "Vier Jahre",
+        name: t("ev.verfassung.name.jahre_4"),
         text: t("sim2.sim.verfassung.b619f64"),
         autoritaer: -1,
         parteien: { CHP: 2, DEM: 1, "YENİ": 1, "İYİ": 1, AKP: -1, MHP: -1, YRP: 0, Zafer: 0 },
@@ -198,7 +198,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "jahre_7",
-        name: "Sieben Jahre",
+        name: t("ev.verfassung.name.jahre_7"),
         text: t("sim2.sim.verfassung.52f0d66"),
         autoritaer: 1,
         parteien: { AKP: 1, MHP: 1, YRP: 1, CHP: -2, DEM: -1, "İYİ": -1, "YENİ": -1, Zafer: 0 },
@@ -270,7 +270,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "acht_sieben",
-        name: "Acht plus sieben",
+        name: t("ev.verfassung.name.acht_sieben"),
         text: t("sim2.sim.verfassung.445e6bd"),
         autoritaer: -1,
         parteien: { CHP: 2, "YENİ": 2, DEM: 1, "İYİ": 1, AKP: -2, MHP: -1, YRP: -1, Zafer: -1 },
@@ -299,12 +299,12 @@ export const ARTIKEL: VerfassungsArtikel[] = [
   },
   {
     id: "notstand",
-    name: "Notstandsartikel",
+    name: t("ev.verfassung.name.notstand"),
     frage: t("sim2.sim.verfassung.a84a8e5"),
     varianten: [
       {
         id: "eng",
-        name: "Eng begrenzt",
+        name: t("ev.verfassung.name.eng"),
         text: t("sim2.sim.verfassung.83d1edf"),
         autoritaer: -1,
         parteien: { CHP: 2, DEM: 2, "YENİ": 1, "İYİ": 1, YRP: 0, AKP: -1, MHP: -2, Zafer: -2 },
@@ -317,7 +317,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "unveraendert",
-        name: "Wie bisher",
+        name: t("ev.verfassung.name.wie_bisher"),
         text: t("sim2.sim.verfassung.fef8003"),
         statusQuo: true,
         autoritaer: 0,
@@ -327,7 +327,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
       },
       {
         id: "weit",
-        name: "Weit gefasst",
+        name: t("ev.verfassung.name.weit"),
         text: t("sim2.sim.verfassung.9e00939"),
         autoritaer: 2,
         parteien: { MHP: 2, AKP: 1, Zafer: 1, YRP: 0, "İYİ": -1, CHP: -2, DEM: -2, "YENİ": -2 },
@@ -348,7 +348,7 @@ export const ARTIKEL: VerfassungsArtikel[] = [
     varianten: [
       {
         id: "unveraendert",
-        name: "Wie bisher",
+        name: t("ev.verfassung.name.wie_bisher"),
         text: t("sim2.sim.verfassung.5a9395c"),
         statusQuo: true,
         autoritaer: 0,
@@ -687,7 +687,7 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
     weiterNachAym(w, rng);
   }
   spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.verfassung.8977bcd"), ausgang: `${ja} zu ${nein}${angefochten ? "; die Opposition fechtet an" : ""}`, presse: { sparte: "politik", wertung: 0.3 } });
-  return { ja, weg, angefochten, text: `${wegText}${angefochten ? " Die Opposition zieht vor das Verfassungsgericht." : ""}` };
+  return { ja, weg, angefochten, text: angefochten ? `${wegText} ${t("ev.verfassung.angefochten")}` : wegText };
 }
 
 /** Nach der Parlamentsphase (mit oder ohne Gericht): weiter zum Beschluss oder in die Kampagne. */

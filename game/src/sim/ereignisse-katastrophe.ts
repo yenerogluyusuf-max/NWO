@@ -5,23 +5,48 @@
 // Höhen (mehr Applaus jetzt = mehr Versprechensschuld später) und die Untersuchung.
 // Danach läuft die Hilfskette im Katastrophen-Dossier weiter (Übergang, Wiederaufbau).
 // Alle Zahlen sind Spielparameter der Kalibrierung, keine Tatsachenbehauptungen.
+// Texte (Befund A-1, 6. November 2026): alle aus dem Katalog (i18n/katalog/*/nacht_n5_kv.json, Schlüssel ev.<vorlage>.*).
 
 import { wirke, vertrauenAendern } from "./wirkung";
 import { setPolicy } from "./handeln";
 import { anrede, figur } from "./figuren";
 import { AUFMERKSAMKEIT_KOSTEN, verbrauche } from "./aufmerksamkeit";
-import { beschr, kosten, namen, netz, nf, opt } from "./ereignis-hilfen";
+import { beschr, kosten, netz, opt } from "./ereignis-hilfen";
 import type { Vorlage } from "./ereignis-hilfen";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
 import type { KatastropheFall } from "./spiel-typen";
-import { eroeffnungEffekte, fallMit, programmMoeglich, schaetzung, soforthilfe, staerkeWort, zusageFestlegen, KATASTROPHE } from "./katastrophe";
+import { eroeffnungEffekte, fallMit, nebelStufe, programmMoeglich, soforthilfe, zusageFestlegen, KATASTROPHE } from "./katastrophe";
+import { PROVINZEN } from "./regional";
+import { t } from "../i18n";
 
 function fallAus(w: World, ev: OffenesEreignis): KatastropheFall {
   const f = fallMit(w, String(ev.daten?.fall ?? ""));
   if (!f) throw new Error(`Katastrophen-Ereignis ohne Fall: ${ev.id}`);
   return f;
 }
+
+/** Provinznamen als Aufzählung für den Katalog (`{orte, list}`). */
+const orte = (provinzen: number[]): string[] => provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
+
+/** Stärkestufe für den Titel, mit denselben Schwellen wie `staerkeWort` in sim/katastrophe.ts. */
+const stufeVon = (s: number): "verheerend" | "schwer" | "spuerbar" => (s >= 0.85 ? "verheerend" : s >= 0.65 ? "schwer" : "spuerbar");
+
+/**
+ * Eine Zahl der Schadenslage nach dem Stand der Aufklärung, als Werte für den Katalog: unsicher (keine Zahl), vermutet
+ * (Bandbreite wie `schaetzung` in sim/katastrophe.ts: 70 bis 135 Prozent) oder bekannt (genaue Zahl).
+ */
+function lage(w: World, fall: KatastropheFall, wert: number, name: string): Record<string, number | string> {
+  // Ohne Opfer gibt es keine Bandbreite zu schätzen („0 bis 0“): dann gilt die Meldung als bekannt
+  const stufe = nebelStufe(w, fall) === "vermutet" && wert <= 0 ? "bekannt" : nebelStufe(w, fall);
+  return { stufe, [name]: wert, [`${name}Von`]: Math.round(wert * 0.7), [`${name}Bis`]: Math.round(wert * 1.35) };
+}
+
+/** Satz zu den Todesopfern nach dem Stand der Aufklärung. */
+const toteSatz = (w: World, fall: KatastropheFall): string => t("ev.katastrophe.tote", lage(w, fall, fall.tote, "n"));
+
+/** Folge einer Antwort mit Soforthilfe: die Folge und der Hinweis, dass die Soforthilfe Aufmerksamkeit bindet. */
+const mitAufmerksamkeit = (folge: string): string => `${beschr(0, 0, folge)} ${t("ev.katastrophe.aufmerksamkeit")}`;
 
 const GROSSBEBEN: Vorlage = {
   id: "grossbeben",
@@ -30,81 +55,47 @@ const GROSSBEBEN: Vorlage = {
   abkuehlung: 240,
   chance: () => 0, // nur der Risiko-Layer (sim/katastrophe.ts) löst aus — garantiert Auto-Stopp A
   erzeuge: () => null,
-  titel: (_, ev) => `${staerkeWort(ev.staerke)[0]!.toUpperCase()}${staerkeWort(ev.staerke).slice(1)}es Erdbeben in ${namen(ev.provinzen)}`,
+  titel: (_, ev) => t("ev.grossbeben.titel", { stufe: stufeVon(ev.staerke), orte: orte(ev.provinzen) }),
   text: (w, ev) => {
     const fall = fallAus(w, ev);
     const mag = 5.6 + 2.0 * ev.staerke;
     return [
-      `Ein Erdbeben der Stärke ${nf(mag)} erschüttert ${namen(ev.provinzen)}. Erste Meldungen sprechen von ${schaetzung(w, fall, fall.tote)} Todesopfern und ${schaetzung(w, fall, fall.obdachlos)} Menschen ohne Dach über dem Kopf — die Lage ist in diesen Stunden noch unklar.`,
-      `${anrede(figur(w, "inneres"))} bittet um Anweisungen. Die Rettungskräfte der Katastrophenbehörde sind unterwegs (Bereitschaft ${fall.bereitschaft} von 100); jetzt entscheidet sich, wie der Staat in den nächsten Wochen auftritt — und was er verspricht.`,
+      `${t("ev.grossbeben.text1", { mag, orte: orte(ev.provinzen) })} ${t("ev.grossbeben.lage", { ...lage(w, fall, fall.tote, "tote"), ...lage(w, fall, fall.obdachlos, "obd") })}`,
+      t("ev.grossbeben.text2", { wer: anrede(figur(w, "inneres")) || t("ev.grossbeben.wer_ersatz"), bereit: fall.bereitschaft }),
     ];
   },
   warum: (w, ev) => {
     const fall = fallAus(w, ev);
-    const v = fall.verhindert;
-    return `Opferzahlen hängen an Bauqualität, Erdbebenvorsorge und der Bereitschaft des Katastrophenschutzes (Stand ${fall.bereitschaft}). ${
-      v.tote > 0 ? `Nach Modellrechnung hat die vorhandene Bereitschaft etwa ${nf(v.tote)} Todesopfer verhindert (Bandbreite ±25 %).` : "Eine bessere Vorsorge hätte die Opferzahlen spürbar gedrückt."
-    } Was der Präsident heute verspricht, wird am Ende der Amtszeit gegen die Lieferung gehalten.`;
+    return t("ev.grossbeben.warum", { bereit: fall.bereitschaft, verhindert: Math.max(0, Math.round(fall.verhindert.tote)) });
   },
   eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
   optionen: (w, ev) => {
     const fall = fallAus(w, ev);
     const out = [
-      opt("soforthilfe", "Soforthilfe anordnen", beschr(3, 0.1 * ev.staerke + 0.04, "Rettung, Zelte, Feldlazarette; klärt die Schadenslage schneller auf. Kostet Aufmerksamkeit."), 3, (ww) => {
+      opt("soforthilfe", t("ev.grossbeben.opt.soforthilfe.label"), mitAufmerksamkeit(t("ev.grossbeben.opt.soforthilfe.beschr")), 3, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         return soforthilfe(ww, fall.id);
       }),
     ];
     // Ein Versprechen gibt es nur, wenn ein Wohnungsbau-Programm es einlösen könnte (Bedarf ab 1.000 Wohnungen); sonst wäre es eine Falle
     if (programmMoeglich(fall)) {
-      const zusage = (stufe: "klein" | "voll" | "gross") => {
-        const wohnungen = Math.max(500, Math.round((fall.wohnungen * KATASTROPHE.zusageStufen[stufe]) / 500) * 500);
-        return wohnungen;
-      };
-      out.push(
-        opt(
-          "versprechen_klein",
-          `Soforthilfe und bescheidenes Versprechen (${nf(zusage("klein"))} Wohnungen)`,
-          beschr(4, 0.14, "etwas Zustimmung jetzt, wenig Versprechensschuld später; dazu Soforthilfe und Aufmerksamkeit."),
-          4,
-          (ww) => {
-            verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
-            const a = soforthilfe(ww, fall.id);
-            return `${a} ${zusageFestlegen(ww, fall.id, "klein")}`;
-          },
-        ),
-        opt(
-          "versprechen_voll",
-          `Soforthilfe und volles Versprechen (${nf(zusage("voll"))} Wohnungen)`,
-          beschr(5, 0.14, "spürbare Zustimmung jetzt, volle Versprechensschuld; dazu Soforthilfe und Aufmerksamkeit."),
-          5,
-          (ww) => {
-            verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
-            const a = soforthilfe(ww, fall.id);
-            return `${a} ${zusageFestlegen(ww, fall.id, "voll")}`;
-          },
-        ),
-        opt(
-          "versprechen_gross",
-          `Soforthilfe und großes Versprechen (${nf(zusage("gross"))} Wohnungen)`,
-          beschr(6, 0.14, "viel Zustimmung jetzt — und eine Schuld, die am Ende der Amtszeit gemessen wird; dazu Soforthilfe und Aufmerksamkeit."),
-          6,
-          (ww) => {
-            verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
-            const a = soforthilfe(ww, fall.id);
-            return `${a} ${zusageFestlegen(ww, fall.id, "gross")}`;
-          },
-        ),
-      );
+      const zusage = (stufe: "klein" | "voll" | "gross") => Math.max(500, Math.round((fall.wohnungen * KATASTROPHE.zusageStufen[stufe]) / 500) * 500);
+      const versprechen = (stufe: "klein" | "voll" | "gross", pk: number) =>
+        opt(`versprechen_${stufe}`, t(`ev.grossbeben.opt.versprechen_${stufe}.label`, { n: zusage(stufe) }), mitAufmerksamkeit(t(`ev.grossbeben.opt.versprechen_${stufe}.beschr`)), pk, (ww) => {
+          verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
+          const a = soforthilfe(ww, fall.id);
+          return `${a} ${zusageFestlegen(ww, fall.id, stufe)}`;
+        });
+      out.push(versprechen("klein", 4), versprechen("voll", 5), versprechen("gross", 6));
     }
     out.push(
-      opt("untersuchung", "Soforthilfe und Untersuchung der Bauaufsicht", beschr(4, 0.14, "ehrlich statt laut: Wer gepfuscht hat, wird zur Rechenschaft gezogen; dazu Soforthilfe und Aufmerksamkeit."), 4, (ww) => {
+      opt("untersuchung", t("ev.grossbeben.opt.untersuchung.label"), mitAufmerksamkeit(t("ev.grossbeben.opt.untersuchung.beschr")), 4, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         const a = soforthilfe(ww, fall.id);
         wirke(ww, "korruption", -2);
         wirke(ww, "bauqualitaet", 2);
         wirke(ww, "justizvertrauen", 2);
-        return `${a} Eine unabhängige Untersuchung der Bauaufsicht beginnt.`;
+        return t("ev.grossbeben.opt.untersuchung.ausgang", { hilfe: a });
       }),
     );
     return out;
@@ -114,7 +105,7 @@ const GROSSBEBEN: Vorlage = {
     kosten(w, 0.05);
     vertrauenAendern(w, -3 * ev.staerke);
     wirke(w, "p_wohnungsnot", 4 * ev.staerke, fall.provinzen);
-    return "Der Staat reagiert zu spät; die Menschen in den Trümmern fühlen sich allein gelassen, und niemand hat etwas versprochen — auch das wird sich gemerkt.";
+    return t("ev.grossbeben.standard");
   },
 };
 
@@ -125,31 +116,28 @@ const FLUT: Vorlage = {
   abkuehlung: 240,
   chance: () => 0,
   erzeuge: () => null,
-  titel: () => "Sturzflut am Schwarzen Meer",
+  titel: () => t("ev.katastrophe_flut.titel"),
   text: (w, ev) => {
     const fall = fallAus(w, ev);
-    return [
-      `Nach Tagen des Regens sind in ${namen(ev.provinzen)} die Flüsse über die Ufer getreten; das Wasser hat Häuser, Brücken und Straßen mitgerissen. Gemeldet werden ${schaetzung(w, fall, fall.tote)} Todesopfer.`,
-      "Die Katastrophenbehörde bittet um Anweisungen; in den Tälern harren Menschen auf Dächern und Brücken aus.",
-    ];
+    return [`${t("ev.katastrophe_flut.text1", { orte: orte(ev.provinzen) })} ${toteSatz(w, fall)}`, t("ev.katastrophe_flut.text2")];
   },
-  warum: () => "Steile Täler, Bebauung an Bachläufen und fehlender Hochwasserschutz machen aus Starkregen eine Katastrophe; die Bereitschaft der Behörde entscheidet über die Opferzahlen.",
+  warum: () => t("ev.katastrophe_flut.warum"),
   eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
   optionen: (w, ev) => {
     const fall = fallAus(w, ev);
     return [
-      opt("soforthilfe", "Soforthilfe und Räumung der Gefahrenlagen", beschr(3, 0.08, "Rettung und Notunterkünfte; klärt die Schadenslage schneller auf. Kostet Aufmerksamkeit."), 3, (ww) => {
+      opt("soforthilfe", t("ev.katastrophe_flut.opt.soforthilfe.label"), mitAufmerksamkeit(t("ev.katastrophe_flut.opt.soforthilfe.beschr")), 3, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         return soforthilfe(ww, fall.id);
       }),
-      opt("umsiedlung", "Siedlungen aus den Bachläufen verlegen", beschr(4, 0.2, "langfristig sicherer, kurzfristig unbeliebt bei den Umzuziehenden."), 4, (ww) => {
+      opt("umsiedlung", t("ev.katastrophe_flut.opt.umsiedlung.label"), mitAufmerksamkeit(t("ev.katastrophe_flut.opt.umsiedlung.beschr")), 4, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         const a = soforthilfe(ww, fall.id);
         kosten(ww, 0.12);
         wirke(ww, "landflucht", 2, fall.provinzen);
         wirke(ww, "verkehrsnetz", 2 * ev.staerke, fall.provinzen);
         vertrauenAendern(ww, -0.5);
-        return `${a} Gefährdete Siedlungen werden verlegt — die Betroffenen protestieren, die Nachkommen werden es danken.`;
+        return t("ev.katastrophe_flut.opt.umsiedlung.ausgang", { hilfe: a });
       }),
     ];
   },
@@ -157,7 +145,7 @@ const FLUT: Vorlage = {
     const fall = fallAus(w, ev);
     vertrauenAendern(w, -2 * ev.staerke);
     wirke(w, "verkehrsnetz", -2 * ev.staerke, fall.provinzen);
-    return "Die Hilfe kommt spät; die Menschen in den Tälern fühlen sich im Stich gelassen.";
+    return t("ev.katastrophe_flut.standard");
   },
 };
 
@@ -168,32 +156,29 @@ const WALDBRAND: Vorlage = {
   abkuehlung: 240,
   chance: () => 0,
   erzeuge: () => null,
-  titel: () => "Großbrände an der Küste",
+  titel: () => t("ev.katastrophe_waldbrand.titel"),
   text: (w, ev) => {
     const fall = fallAus(w, ev);
-    return [
-      `Großbrände wüten in ${namen(ev.provinzen)}: Wälder, Olivenhaine und Ortsteile brennen, Hotels werden geräumt. Gemeldet werden ${schaetzung(w, fall, fall.tote)} Todesopfer; der Rauch liegt über der Küste.`,
-      "Die Löschflugzeuge sind im Dauereinsatz; die Frage ist, was der Staat darüber hinaus tut.",
-    ];
+    return [`${t("ev.katastrophe_waldbrand.text1", { orte: orte(ev.provinzen) })} ${toteSatz(w, fall)}`, t("ev.katastrophe_waldbrand.text2")];
   },
-  warum: () => "Heiße Sommer, trockene Winde und Monokulturen machen aus Funken Flächenbrände; Löschkapazität und Bereitschaft entscheiden, was übrig bleibt.",
+  warum: () => t("ev.katastrophe_waldbrand.warum"),
   eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
   optionen: (w, ev) => {
     const fall = fallAus(w, ev);
     return [
-      opt("loeschen", "Alle Löschkapazitäten und Soforthilfe mobilisieren", beschr(3, 0.08, "begrenzt den Schaden an Wald, Ernte und Saison. Kostet Aufmerksamkeit."), 3, (ww) => {
+      opt("loeschen", t("ev.katastrophe_waldbrand.opt.loeschen.label"), mitAufmerksamkeit(t("ev.katastrophe_waldbrand.opt.loeschen.beschr")), 3, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         const a = soforthilfe(ww, fall.id);
         wirke(ww, "tourismus", 2 * ev.staerke, fall.provinzen);
-        return `${a} Die Brände sind nach Tagen unter Kontrolle.`;
+        return t("ev.katastrophe_waldbrand.opt.loeschen.ausgang", { hilfe: a });
       }),
-      opt("aufforsten", "Aufforsten und Wiederaufbau der Gehöfte", beschr(4, 0.12, "teurer und langsamer, dafür bleibt die Region bewohnbar."), 4, (ww) => {
+      opt("aufforsten", t("ev.katastrophe_waldbrand.opt.aufforsten.label"), mitAufmerksamkeit(t("ev.katastrophe_waldbrand.opt.aufforsten.beschr")), 4, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         const a = soforthilfe(ww, fall.id);
         kosten(ww, 0.06);
         wirke(ww, "landwirtschaft_einkommen", 3 * ev.staerke, fall.provinzen);
         wirke(ww, "klimaschutz", 1);
-        return `${a} Ein Aufforstungsprogramm beginnt; verbrannte Gehöfte werden wieder aufgebaut.`;
+        return t("ev.katastrophe_waldbrand.opt.aufforsten.ausgang", { hilfe: a });
       }),
     ];
   },
@@ -201,7 +186,7 @@ const WALDBRAND: Vorlage = {
     const fall = fallAus(w, ev);
     wirke(w, "tourismus", -3 * ev.staerke, fall.provinzen);
     vertrauenAendern(w, -1.5 * ev.staerke);
-    return "Die Brände greifen weiter um sich; die Bilder von brennenden Hotels gehen um die Welt.";
+    return t("ev.katastrophe_waldbrand.standard");
   },
 };
 
@@ -212,28 +197,23 @@ const DUERRE: Vorlage = {
   abkuehlung: 240,
   chance: () => 0,
   erzeuge: () => null,
-  titel: () => "Wassernot im Konya-Becken",
-  text: (w, ev) => {
-    return [
-      `Im Konya-Becken versiegen Brunnen und Talsperren: Das zweite Jahr in Folge bleibt der Regen aus, die Grundwasserstände fallen. Die Bauern des Beckens fahren ihre Traktoren vor die Provinzhauptstadt.`,
-      `${anrede(figur(w, "finanzen"))} erinnert an die Haushaltslage; der Bauernverband fordert Soforthilfe und ein Bewässerungsprogramm.`,
-    ];
-  },
-  warum: () => "Das geschlossene Becken lebt vom Grundwasser; wer es tiefer pumpt, als es sich füllt, erntet Ernteausfälle und Wanderdünen. Die Wassermangel-Lage der Provinzen treibt die Wahrscheinlichkeit dieser Krise.",
+  titel: () => t("ev.katastrophe_duerre.titel"),
+  text: (w) => [t("ev.katastrophe_duerre.text1"), t("ev.katastrophe_duerre.text2", { wer: anrede(figur(w, "finanzen")) || t("ev.katastrophe_duerre.wer_ersatz") })],
+  warum: () => t("ev.katastrophe_duerre.warum"),
   eroeffne: (w, ev) => eroeffnungEffekte(w, fallAus(w, ev)),
   optionen: (w, ev) => {
     const fall = fallAus(w, ev);
     return [
-      opt("hilfe", "Soforthilfe für die Landwirte des Beckens", beschr(3, 0.1, "Wassertransporte und Ausgleichszahlungen; hält die Höfe über die Saison. Kostet Aufmerksamkeit."), 3, (ww) => {
+      opt("hilfe", t("ev.katastrophe_duerre.opt.hilfe.label"), mitAufmerksamkeit(t("ev.katastrophe_duerre.opt.hilfe.beschr")), 3, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         return soforthilfe(ww, fall.id);
       }),
-      opt("bewaesserung", "Soforthilfe und Bewässerungsprogramm vorziehen", beschr(4, 0.1, "die Ursache angehen statt nur die Not lindern; dazu Aufmerksamkeit."), 4, (ww) => {
+      opt("bewaesserung", t("ev.katastrophe_duerre.opt.bewaesserung.label"), mitAufmerksamkeit(t("ev.katastrophe_duerre.opt.bewaesserung.beschr")), 4, (ww) => {
         verbrauche(ww, AUFMERKSAMKEIT_KOSTEN.reichVorhaben, "Soforthilfe");
         const a = soforthilfe(ww, fall.id);
         setPolicy(ww, "m_bewaesserung", Math.min(100, netz(ww, "m_bewaesserung") + 10));
         wirke(ww, "landwirte", 2 * ev.staerke);
-        return `${a} Das Bewässerungsprogramm wird vorgezogen.`;
+        return t("ev.katastrophe_duerre.opt.bewaesserung.ausgang", { hilfe: a });
       }),
     ];
   },
@@ -242,7 +222,7 @@ const DUERRE: Vorlage = {
     wirke(w, "landwirte", -3 * ev.staerke);
     wirke(w, "landflucht", 2 * ev.staerke, fall.provinzen);
     vertrauenAendern(w, -1.5 * ev.staerke);
-    return "Ohne Antwort geben die ersten Höfe auf; die Wanderdünen rücken vor.";
+    return t("ev.katastrophe_duerre.standard");
   },
 };
 

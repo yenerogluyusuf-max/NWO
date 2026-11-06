@@ -23,7 +23,7 @@ import { nationalAverage, PROVINCES } from "./netz";
 import { PROVINZEN } from "./regional";
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
-import { t } from "../i18n";
+import { liste, t, zahl } from "../i18n";
 import { clamp } from "./economy";
 import { hashWert } from "./aufmerksamkeit";
 import { addDays, formatDateDe } from "./dates";
@@ -155,7 +155,8 @@ const BRAND_GEBIET = PROVINZEN.filter((p) => (p.region === "Ege" || p.region ===
 /** Konya-Becken: geschlossenes Trockenbecken, Kopplung an p_wassermangel. */
 const DUERRE_BECKEN = PROVINZEN.filter((p) => p.region === "İç Anadolu" && (RISIKO[String(p.plaka)]?.wasserstress ?? 0) >= 4).map((p) => p.plaka);
 
-export const ART_NAMEN: Record<KatastrophenArt, string> = { erdbeben: "Erdbeben", flut: "Sturzflut", waldbrand: t("sim2.sim.katastrophe.7aab0fe"), duerre: t("sim2.sim.katastrophe.1772b13") };
+// Befund A-1 (6. November 2026): auch Erdbeben und Sturzflut aus dem Katalog, sie erscheinen im Protokoll der Soforthilfe
+export const ART_NAMEN: Record<KatastrophenArt, string> = { erdbeben: t("ev.katastrophe.art.erdbeben"), flut: t("ev.katastrophe.art.flut"), waldbrand: t("sim2.sim.katastrophe.7aab0fe"), duerre: t("sim2.sim.katastrophe.1772b13") };
 
 // ---------------------------------------------------------------------------
 // Zustand
@@ -441,7 +442,8 @@ export function loeseAus(w: World, rng: Rng, a: Ausloeser): KatastropheFall | nu
 // ---------------------------------------------------------------------------
 // Sofortige Wirkung beim Eintreten (wird von der Ereignisvorlage als `eroeffne` gerufen)
 
-const nf = (x: number, d = 0) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+// Zahlen in der Sprache des Spiels (Befund I-9: nie fest deutsch)
+const nf = (x: number, d = 0) => zahl(x, d);
 
 /** Kurzbezeichnung der Stärke im Wortlaut. */
 export function staerkeWort(s: number): string {
@@ -800,9 +802,8 @@ function schliesse(w: World, fall: KatastropheFall, ausgang: Abschluss): void {
 // Ansicht fürs Dossier (Oberfläche liest nur diese Sicht)
 
 export function namenVon(provinzen: number[]): string {
-  const n = provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
-  if (n.length === 1) return n[0]!;
-  return `${n.slice(0, -1).join(", ")} und ${n[n.length - 1]}`;
+  // Aufzählung nach Sprache („A, B und C“, „A, B and C“, „A, B ve C“)
+  return liste(provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p)));
 }
 
 export interface FallSicht {

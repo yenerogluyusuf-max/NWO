@@ -13,7 +13,7 @@ import { erfuelleZusage, schliesseZusageErinnerung, zusageStufen, zusageZielErre
 import { addDays, formatDateDe } from "./dates";
 import { nationalAverage, PROVINCES, startAverage } from "./netz";
 import type { NodeSpec } from "../data/politiknetz";
-import { addLog, fmt } from "./log";
+import { addLog } from "./log";
 import { PROVINZEN } from "./regional";
 import { clamp } from "./economy";
 import { vertrauenAendern } from "./wirkung";
@@ -527,9 +527,14 @@ export function setPolicy(world: World, id: string, level: number, provinzen?: n
   addLog(
     world,
     "entscheidung",
-    `${node.name} ${provinzenText(ort)}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`,
-    `${node.text} Umsetzung läuft über etwa ${months} ${months === 1 ? "Monat" : "Monate"}` +
-      (Math.abs(costChange) >= 0.0005 ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.` : "."),
+    // Befund A-1 (6. November 2026): Protokoll der direkten Anwendung aus dem Katalog (nacht_n5_kv.json), es erscheint nach Ereignisantworten
+    t("handeln.setzen.text", { name: node.name, ort: provinzenText(ort), von: Math.round(current), auf: target, richtung: target > current ? "hoch" : "runter" }),
+    t("handeln.setzen.warum", {
+      text: node.text,
+      monate: months,
+      kosten: Math.abs(costChange) >= 0.0005 ? (costChange > 0 ? "kostet" : "bringt") : "keine",
+      x: Math.abs(costChange),
+    }),
   );
 }
 
