@@ -4,7 +4,7 @@
 
 import type { GovernorStance, World } from "./types";
 import type { Sitzung, Unabhaengigkeit, ZbDruck } from "./wirtschaft-typen";
-import { PPK_GEWICHTE, clamp, ppkDecision } from "./economy";
+import { PARAMS, PPK_GEWICHTE, clamp, glaubwuerdigkeitsAbzug, glaubwuerdigkeitsLage, ppkDecision, ungedeckterMehrbedarf } from "./economy";
 import { addLog, fmt } from "./log";
 import { addDays } from "./dates";
 import { kannZahlen } from "./kapital";
@@ -51,6 +51,28 @@ export function glaubwuerdigkeitWort(c: number): string {
   if (c < 0.5) return t("n3.zb.glaub.maessig");
   if (c < 0.65) return t("n3.zb.glaub.solide");
   return t("n3.zb.glaub.hoch");
+}
+
+/**
+ * Welle H5: Wie sich die Glaubwürdigkeit nach heutigem Stand im nächsten Monat bewegt, aus derselben Rechnung, die gebucht wird
+ * (economy.ts `glaubwuerdigkeitsLage`, `glaubwuerdigkeitsAbzug`). Punkte sind Hundertstel der internen Größe.
+ */
+export function glaubwuerdigkeitsSatz(w: World): string {
+  const e = w.economy;
+  const n = PARAMS.glaubFenster;
+  const lage = glaubwuerdigkeitsLage(e, w.history);
+  const glaub = Math.round(e.credibility * 100);
+  const basis = { glaub, fenster: n, neutral: PARAMS.neutralRealRate };
+  const teile: string[] = [];
+  if (lage.zuwachs > 0) {
+    const grund = lage.inflationVorher !== undefined && e.inflation < lage.inflationVorher ? "faellt" : "unter";
+    teile.push(t("welle_h5.glaub.waechst", { ...basis, punkte: lage.zuwachs * 100, grund: t(`welle_h5.glaub.grund.${grund}`) }));
+  } else if (lage.straffMonate < n) teile.push(t("welle_h5.glaub.wartetZins", { ...basis, monate: lage.straffMonate }));
+  else teile.push(t("welle_h5.glaub.wartetInflation", { ...basis, jetzt: e.inflation, vorher: lage.inflationVorher ?? e.inflation }));
+  const abzug = glaubwuerdigkeitsAbzug(e);
+  if (abzug.realzins > 0) teile.push(t("welle_h5.glaub.abzugRealzins", { punkte: -abzug.realzins * 100 }));
+  if (abzug.mehrbedarf > 0) teile.push(t("welle_h5.glaub.abzugMehrbedarf", { wert: ungedeckterMehrbedarf(e), punkte: -abzug.mehrbedarf * 100 }));
+  return teile.join(" ");
 }
 
 /** Die nächste Zinssitzung: Tag, Abstand in Tagen und Datum; `null`, wenn keine mehr geplant ist. */

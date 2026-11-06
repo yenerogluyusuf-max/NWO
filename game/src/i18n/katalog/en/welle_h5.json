@@ -1,0 +1,13 @@
+{
+ "welle_h5.glaub.waechst": "Credibility {glaub, number} of 100, +{punkte, number, 1} a month: real rate above {neutral, number}% for {fenster, number} months, {grund}.",
+ "welle_h5.glaub.grund.faellt": "inflation falling",
+ "welle_h5.glaub.grund.unter": "inflation below expectations",
+ "welle_h5.glaub.wartetZins": "Credibility {glaub, number} of 100. It grows after {fenster, number} months of a real rate above {neutral, number}%; so far {monate, number} of {fenster, number}.",
+ "welle_h5.glaub.wartetInflation": "Credibility {glaub, number} of 100. It grows once inflation falls: now {jetzt, number, 1}%, {fenster, number} months ago {vorher, number, 1}%.",
+ "welle_h5.glaub.abzugRealzins": "Negative real rate: {punkte, number, 1} a month.",
+ "welle_h5.glaub.abzugMehrbedarf": "Unfunded extra spending {wert, number, 1}% of GDP: {punkte, number, 1} a month.",
+ "welle_h5.wk.kosten": "{abstand, number, 1} points above the level prices already reflect. Each month {tempo, number}% of the gap is priced in.",
+ "welle_h5.wk.kostenSpirale": "{abstand, number, 1} points above the level prices already reflect. Each month {tempo, number}% of the gap is priced in; {spirale, number, 1} points from the wage-price spiral remain.",
+ "welle_h5.wk.mangel": "Energy shortage",
+ "welle_h5.wk.mangelText": "{fehlt, number, 1}% of energy is missing, prices already reflect {ref, number, 1}%. Each month {tempo, number}% of the rest is priced in."
+}
