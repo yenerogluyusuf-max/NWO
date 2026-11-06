@@ -185,3 +185,14 @@
 .hd-vollzug .schlecht dd { color: var(--siegel); }
 .hd-vollzug p { margin: 0; font: italic var(--schrift-2)/1.35 var(--serif, "EB Garamond", serif); color: var(--tinte-2); }
 .hd-vollzug p.hd-vollzug-oktober { font-style: normal; color: var(--tinte-1, var(--tinte-2)); }
+
+/* Welle B1 (06.11.2026): Bonität und Haushaltsfenster als Kennzahlen und Marken statt Absätzen */
+.hd-kz { display: flex; flex-wrap: wrap; gap: 12px 26px; margin: 6px 0 0; }
+.hd-kz > div { display: grid; gap: 2px; min-width: 110px; align-content: start; }
+.hd-kz dt { font: 600 var(--schrift-1)/1.25 var(--serif); color: var(--tinte-3); }
+.hd-kz dd { margin: 0; font: 600 var(--schrift-4)/1.15 var(--display, Fraunces, serif); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.hd-kz small { font: var(--schrift-1)/1.3 var(--serif); color: var(--tinte-3); }
+.hd-kz .gut dd { color: var(--gut); } .hd-kz .schlecht dd { color: var(--siegel); }
+.hd-marken { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 4px 0 0; }
+.hd-marken small { font: var(--schrift-1)/1.3 var(--serif); color: var(--tinte-3); margin-right: 2px; }
+.hd-marken em { font: normal 600 var(--schrift-1)/1.6 var(--serif); padding: 0 9px; border-radius: var(--rund-pille); border: 1px solid rgba(90, 64, 40, 0.25); background: var(--papier-3); color: var(--tinte-2); }

@@ -26,15 +26,15 @@ export function HaushaltsGegenmassnahmen({world,beschluss,geaendert}:{world:Worl
   const pl=haushaltsHilfen(world,beschluss),cards=alle?pl:pl.slice(0,4);
   const tun=(p:HaushaltsHilfePlan)=>{setAntwort(fuehreHaushaltsHilfeAus(world,p));geaendert();};
   return <section className="hh" aria-label={t('hh.titel')}>
-    <header><small>{t('hh.heute',{datum:formatDateDe(world.date)})}</small><h4>{t('hh.titel')}</h4><p>{t('hh.intro')}</p></header>
+    <header><small>{t('hh.heute',{datum:formatDateDe(world.date)})}</small><h4>{t('hh.titel')}</h4><p>{t('welle_b1.hh.intro')}</p></header>
     {antwort&&<p role="status">{antwort.text}</p>}
-    {!pl.length&&<p>{t('hh.keine')}</p>}
+    {!pl.length&&<p>{t('welle_b1.hh.keine')}</p>}
     <EntscheidungsWege wege={cards.map(p=>({id:JSON.stringify(p.aktion),titel:haushaltsHilfeTitel(p),
       kurz:t(p.programm?'eo.beraten':p.aktion.art==='gespraech'?'hh.gespraechGrenze':'eo.wirkungOffen'),
       preis:p.moeglich?t('vn.preis',{pk:zahl(p.pk,1),aufmerksamkeit:zahl(p.aufmerksamkeit,0)}):t('eo.pruefen'),hinweis:p.moeglich?undefined:p.grund}))}
       inhalt={id=>{const p=cards.find(p=>JSON.stringify(p.aktion)===id);return p?<HaushaltsHilfeKarte world={world} p={p} onTun={tun}/>:null;}}/>
     {pl.length>4&&<button type="button" className="pd-btn quiet" aria-expanded={alle} onClick={()=>setAlle(!alle)}>{t(alle?'hh.weniger':'hh.mehr',{n:pl.length-4})}</button>}
-    <p><UbVerweis ziel={{art:'versorgung'}}>{t('transport.zurKarte')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('hh.verhandeln')}</UbVerweis></p>
+    <div className="hh-links"><UbVerweis ziel={{art:'versorgung'}}>{t('transport.zurKarte')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('hh.verhandeln')}</UbVerweis></div>
   </section>;
 }
 

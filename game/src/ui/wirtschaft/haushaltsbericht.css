@@ -1,9 +1,65 @@
-.hb{container-type:inline-size;min-width:0;margin:18px 0;border:1px solid #d3c9b6;border-radius:10px;background:var(--papier-1);color:var(--leder-dunkel);overflow:hidden;font:var(--schrift-2)/1.55 var(--serif)}
-.hb *{box-sizing:border-box;min-width:0}.hb p{margin:8px 0}.hb h4{font:600 var(--schrift-6)/1.2 var(--display,serif);margin:6px 0}.hb h5{font:600 var(--schrift-5)/1.3 var(--display,serif);margin:22px 0 10px}.hb small,.hb-hinweis{font-size:var(--schrift-2);color:var(--tinte-3)}
-.hb-kopf{padding:20px;background:var(--papier-2);border-bottom:1px solid #d3c9b6}.hb-kopf small{letter-spacing:.04em}.hb-inhalt{padding:0 20px 20px;overflow-wrap:anywhere}
-.hb-zahlen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}.hb-zahlen dt{font-size:var(--schrift-1);color:var(--tinte-3)}.hb-zahlen dd{margin:4px 0;font:600 var(--schrift-5)/1.3 var(--display,serif);font-variant-numeric:tabular-nums}
-.hb-liste,.hb-zusagen{list-style:none;padding:0;margin:10px 0;display:grid;gap:10px}.hb-liste li{display:grid;gap:4px;border-bottom:1px solid var(--papier-3);padding-bottom:10px}.hb-zusagen li{border:1px solid var(--papier-4);border-radius:6px;padding:12px}.hb-zusagen li>div{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.hb-status{font-size:var(--schrift-2);padding:2px 8px;border-radius:20px;background:var(--papier-2)}.hb-status.erfuellt{background:var(--papier-2);color:var(--gut)}.hb-status.gebrochen{background:var(--schlecht-flaeche);color:var(--siegel)}
-.hb .hb-warnung{border-left:3px solid #a34b31;padding-left:10px;color:#7b3325}.hb details{margin:12px 0}.hb summary{cursor:pointer;padding:4px 0;font-weight:600}.hb summary:focus-visible{outline:3px solid var(--messing-2);outline-offset:3px}.hb .link{white-space:normal;max-width:100%}
-@container(max-width:480px){.hb-zahlen{grid-template-columns:minmax(0,1fr)}.hb-kopf{padding:16px}.hb-inhalt{padding:0 16px 16px}.hb h4{font-size:var(--schrift-5)}}
-
-.hb-finanzstand{border:1px solid #d8d4cb;border-radius:6px;background:var(--papier-1);padding:14px 16px;margin:18px 0;color:#48372e}.hb-finanzstand h5{margin-top:0}.hb-finanzstand p{font-size:var(--schrift-2);line-height:1.6;overflow-wrap:anywhere}
+/* Welle B1 (06.11.2026): Haushaltsbericht als Karte des Haushaltskopfs (.hd-bilanz): Pergament, Messinglinie, große Kennzahlen.
+   Kein weißes Blatt, keine Absätze; Tabellen hinter Aufklappern. */
+.hb{container-type:inline-size;min-width:0;margin:18px 0;display:grid;gap:14px;padding:16px 20px 18px;background:var(--papier-2);border:1px solid rgba(90,64,40,.3);border-radius:var(--rund-2);box-shadow:var(--schatten-flach);color:var(--tinte-1);font:var(--schrift-2)/1.45 var(--serif)}
+.hb *{box-sizing:border-box;min-width:0}
+.hb p{margin:0}
+.hb-kopf{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 28px;align-items:start}
+.hb-titel small{font:var(--schrift-1)/1.3 var(--serif);letter-spacing:.04em;color:var(--tinte-3)}
+.hb-titel h4{margin:2px 0 6px;font:600 var(--schrift-5)/1.2 var(--display,serif);color:var(--messing-text)}
+.hb-votum{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;color:var(--tinte-2);font-variant-numeric:tabular-nums}
+.hb-marke{display:inline-block;padding:1px 9px;border-radius:var(--rund-pille);border:1px solid rgba(90,64,40,.3);background:var(--papier-3);font:600 var(--schrift-1)/1.6 var(--serif);color:var(--tinte-2)}
+.hb-marke.gut{background:var(--gut-flaeche);border-color:var(--gut-linie);color:var(--gut)}
+.hb-marke.schlecht{background:var(--schlecht-flaeche);border-color:var(--schlecht-linie);color:var(--siegel)}
+.hb-stimmen{position:relative;display:flex;height:10px;margin-top:9px;max-width:420px;border-radius:5px;overflow:hidden;background:rgba(90,64,40,.1)}
+.hb-stimmen .hb-ja{background:var(--tinte-weich)}.hb-stimmen .hb-nein{background:var(--schlecht-linie)}
+.hb-stimmen i{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--messing-2)}
+.hb-kz,.hb-zahlen{margin:0;display:flex;flex-wrap:wrap;gap:12px 22px}
+.hb-kz>div,.hb-zahlen>div{display:grid;gap:2px;min-width:92px;align-content:start}
+.hb-kz dt,.hb-zahlen dt{font:600 var(--schrift-1)/1.25 var(--serif);color:var(--tinte-3)}
+.hb-kz dd{margin:0;font:600 var(--schrift-5)/1.1 var(--display,serif);color:var(--messing-text);font-variant-numeric:tabular-nums}
+.hb-zahlen dd{margin:0;font:600 var(--schrift-4)/1.15 var(--display,serif);color:var(--messing-text);font-variant-numeric:tabular-nums}
+.hb-kz small,.hb-zahlen small{font:var(--schrift-1)/1.3 var(--serif);color:var(--tinte-3)}
+.hb .gut dd,.hb td.gut,.hb em.gut{color:var(--gut)}
+.hb .schlecht dd,.hb td.schlecht,.hb em.schlecht,.hb .hb-wert.schlecht{color:var(--siegel)}
+.hb-zeile{font:italic var(--schrift-2)/1.4 var(--serif);color:var(--tinte-2)}
+.hb-raster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.hb-block{display:grid;gap:10px;align-content:start;padding:12px 14px;border-top:2px solid rgba(198,154,74,.45);background:rgba(255,253,247,.35);border-radius:0 0 var(--rund-1) var(--rund-1)}
+.hb-block h5{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;font:600 var(--schrift-3)/1.25 var(--display,serif);color:var(--messing-text)}
+.hb-block h5 small{font:italic var(--schrift-1)/1.3 var(--serif);color:var(--tinte-3)}
+.hb-breit{grid-column:1/-1}
+.hb-parteien,.hb-zusagen{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hb-parteien li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:6px 0;border-top:1px solid rgba(90,64,40,.12)}
+.hb-parteien b{font:600 var(--schrift-2)/1.3 var(--serif)}
+.hb-wert{font-variant-numeric:tabular-nums;color:var(--tinte-2)}
+.hb-warnung{flex-basis:100%;padding-left:9px;border-left:3px solid var(--siegel);color:var(--siegel);font:var(--schrift-2)/1.4 var(--serif)}
+.hb-chips{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.hb-chips em{font:normal 600 var(--schrift-1)/1.6 var(--serif);padding:0 8px;border-radius:var(--rund-pille);background:var(--papier-3);color:var(--tinte-2);font-variant-numeric:tabular-nums}
+.hb-minister small{color:var(--tinte-3);font:var(--schrift-1)/1.3 var(--serif);margin-right:2px}
+.hb-zusagen li{display:grid;grid-template-columns:minmax(90px,.7fr) minmax(0,2.4fr) minmax(96px,.8fr) auto;gap:4px 14px;align-items:baseline;padding:7px 0;border-top:1px solid rgba(90,64,40,.12)}
+.hb-zusage{display:grid;gap:1px;color:var(--tinte-1)}.hb-zusage small,.hb-frist small{font:var(--schrift-1)/1.3 var(--serif);color:var(--tinte-3)}
+.hb-frist{display:grid;font-variant-numeric:tabular-nums;color:var(--tinte-2)}
+.hb-status{justify-self:end;font:600 var(--schrift-1)/1.6 var(--serif);padding:0 9px;border-radius:var(--rund-pille);background:var(--papier-3);color:var(--tinte-2)}
+.hb-status.erfuellt{background:var(--gut-flaeche);color:var(--gut)}.hb-status.gebrochen{background:var(--schlecht-flaeche);color:var(--siegel)}
+.hb-aufklapper{display:grid;gap:6px}
+.hb-auf>summary,.hb-verlauf>summary{cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:6px 0;font:600 var(--schrift-2)/1.3 var(--serif);color:var(--tinte-2)}
+.hb-auf>summary::before,.hb-verlauf>summary::before{content:"▸";color:var(--messing-3)}.hb-auf[open]>summary::before,.hb-verlauf[open]>summary::before{content:"▾"}
+.hb-auf>summary::-webkit-details-marker,.hb-verlauf>summary::-webkit-details-marker{display:none}.hb-auf>summary,.hb-verlauf>summary{list-style:none}
+.hb summary:focus-visible,.hb-verlauf summary:focus-visible{outline:3px solid var(--messing-2);outline-offset:3px}
+.hb-tabellenrahmen{overflow-x:auto}
+.hb-tabelle{width:100%;border-collapse:collapse;margin:4px 0 10px;font:var(--schrift-2)/1.35 var(--serif);font-variant-numeric:tabular-nums}
+.hb-tabelle caption{text-align:left;padding:4px 0;font:600 var(--schrift-2)/1.3 var(--display,serif);color:var(--messing-text)}
+.hb-tabelle th,.hb-tabelle td{padding:5px 8px;text-align:right;vertical-align:baseline;border-bottom:1px solid rgba(90,64,40,.12)}
+.hb-tabelle th:first-child,.hb-tabelle td:first-child{text-align:left;padding-left:0}
+.hb-tabelle thead th{font:600 var(--schrift-1)/1.25 var(--serif);color:var(--tinte-3);border-bottom-color:rgba(90,64,40,.3)}
+.hb-tabelle tbody th{font-weight:600;color:var(--tinte-1)}
+.hb-tabelle small{display:block;font:var(--schrift-1)/1.3 var(--serif);color:var(--tinte-3);font-weight:400}
+.hb-tabelle tr.an td,.hb-tabelle tr.an th{background:rgba(198,154,74,.16)}
+.hb-monat{all:unset;cursor:pointer;font:600 var(--schrift-2)/1.3 var(--serif);color:var(--messing-3);border-bottom:1px dotted var(--messing-3)}
+.hb-monat[aria-pressed="true"]{border-bottom-style:solid;color:var(--messing-text)}
+.hb-monat:focus-visible{outline:3px solid var(--messing-2);outline-offset:2px}
+.hb-verlauf{margin:6px 0 18px}
+.hb-links{display:flex;flex-wrap:wrap;gap:6px 18px}.hb .link,.hb .ub-verweis{white-space:normal;max-width:100%}
+.hb-kurz{gap:12px}.hb-kurz .hb-raster{grid-template-columns:minmax(0,1fr)}
+@container(max-width:640px){.hb-kopf,.hb-raster{grid-template-columns:minmax(0,1fr)}.hb-zusagen li{grid-template-columns:minmax(0,1fr) auto}.hb-zusage{grid-column:1/-1}}
+.hb-tabelle .txt{text-align:left}.hb-monat{white-space:nowrap}
+.hb-kopf{display:flex;flex-wrap:wrap;justify-content:space-between}.hb-kopf>.hb-titel{flex:1 1 300px}.hb-kopf>.hb-kz{flex:0 1 auto}

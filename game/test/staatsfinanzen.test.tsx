@@ -207,7 +207,8 @@ test.each(["de", "en", "tr"] as const)("%s: Beträge, Einheiten, neue Ressorts u
     expect(platzhalter(actual!).sort(), key).toEqual(platzhalter(value).sort());
   }
   const s = save(w), html = renderToStaticMarkup(<Staatsfinanzen world={w} details />);
-  for (const key of ["sf.titel", "sf.geldText", "sf.politikText", "sf.zeitText", "sf.rechnungHinweis"]) expect(html).toContain(t(key));
+  // Welle B1 (06.11.2026): Der Rechenweg-Absatz „sf.rechnungHinweis“ ist entfallen, die Rechnung selbst steht als Tabelle mit Summe da.
+  for (const key of ["sf.titel", "sf.geldText", "sf.politikText", "sf.zeitText", "sf.summe"]) expect(html).toContain(t(key));
   expect(html).not.toMatch(/⟦|NaN|Infinity/); expect(save(w)).toBe(s);
   const page = renderToStaticMarkup(<Haushalt world={w} geaendert={() => {}} posten="justiz" />);
   expect(page).toContain(t("haushalt.posten.justiz.name")); expect(page).toContain(t("haushalt.posten.diplomatie.name"));

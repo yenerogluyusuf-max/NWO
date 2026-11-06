@@ -210,7 +210,7 @@ export function Haushalt({ world, geaendert, posten, onGehe }: { world: World; g
             <h3>
               {t("haushalt.ui.zyklus.offen", { tage: fenster.tageRest })}
             </h3>
-            <p className="wi-hinweis">{t("haushalt.ui.zyklus.offen_text")}</p>
+            <p className="hd-marken"><em>{t("welle_b1.zyklus.kostenlos", { tag: HAUSHALT_ZYKLUS.fensterTage })}</em><em>{t("welle_b1.zyklus.einGesetz")}</em><em>{t("welle_b1.zyklus.nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor, leg: zahl(HAUSHALT_ZYKLUS.nachtragLegitimitaet, 1) })}</em></p>
             <h4>{t("haushalt.ui.zyklus.entwurf_fuer", { jahr: String(fenster.jahr + 1) })}</h4>
             {entwurfEintraege.length === 0 ? (
               <p className="wi-hinweis">{t("haushalt.ui.zyklus.entwurf_leer")}</p>
@@ -251,8 +251,9 @@ export function Haushalt({ world, geaendert, posten, onGehe }: { world: World; g
           <>
             <h3>{t("haushalt.ui.zyklus.naechstes", { jahr: fenster.naechsterStart.slice(0, 4), monate: fenster.monateBis })}</h3>
             <p className="wi-hinweis">
-              {t("haushalt.ui.zyklus.geschlossen_text", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
-              {fenster.letztesErgebnis && <> {t(`haushalt.ui.zyklus.ergebnis.${fenster.letztesErgebnis}`)}</>}
+              {fenster.letztesErgebnis && t(`haushalt.ui.zyklus.ergebnis.${fenster.letztesErgebnis}`)}
+            </p>
+            <p className="hd-marken"><em>{t("welle_b1.zyklus.fenster", { tag: HAUSHALT_ZYKLUS.fensterTage })}</em><em>{t("welle_b1.zyklus.nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor, leg: zahl(HAUSHALT_ZYKLUS.nachtragLegitimitaet, 1) })}</em>
             </p>
             <HaushaltsNachbericht world={world} geaendert={geaendert}/>
           </>
@@ -653,8 +654,13 @@ function Bonitaet({ world }: { world: World }) {
           </li>
         ))}
       </ol>
-      <p className="wi-hinweis">{t(`n3.rating.tendenz.${richtung}`, { n: zahl(Math.abs(r.abstand), 1), monate: r.monate, noetig: r.monateNoetig })}</p>
-      <p className="wi-hinweis">{t("n3.rating.wirkung", { bp: r.aufschlagJeStufe, monate: r.monateNoetig })}</p>
+      {/* Welle B1: Tendenz und Wirkung als Kennzahlen, die Einflussgrößen als Marken statt zweier Absätze */}
+      <dl className="hd-kz">
+        <div className={richtung === "besser" ? "gut" : richtung === "schlechter" ? "schlecht" : ""}><dt>{t("welle_b1.rating.tendenz")}</dt><dd>{richtung === "gleich" ? t("welle_b1.rating.gleich") : t(`welle_b1.rating.${richtung}`, { n: zahl(Math.abs(r.abstand), 1) })}</dd>{richtung !== "gleich" && <small>{t("welle_b1.rating.seit", { monate: r.monate, noetig: r.monateNoetig })}</small>}</div>
+        <div><dt>{t("welle_b1.rating.stufe")}</dt><dd>{t("welle_b1.rating.bp", { bp: r.aufschlagJeStufe })}</dd><small>{t("welle_b1.rating.stufeText")}</small></div>
+        <div><dt>{t("n3.rating.anlagegrad")}</dt><dd>{RATING_STUFEN[r.anlagegradIndex]}</dd><small>{t("welle_b1.rating.anlage")}</small></div>
+      </dl>
+      <p className="hd-marken"><small>{t("welle_b1.rating.folgt")}</small>{(["schulden", "inflation", "aufschlag", "zentralbank", "rechtsstaat", "reserven"] as const).map((k) => <em key={k}>{t(`welle_b1.rating.f.${k}`)}</em>)}</p>
     </div>
   );
 }

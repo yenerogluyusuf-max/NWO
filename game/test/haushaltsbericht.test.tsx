@@ -143,8 +143,10 @@ describe("Haushaltsbeschluss und Monatsfolgen",()=>{
   test.each(["de","en","tr"] as const)("Berichte und Nachsorge auf %s erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",async lang=>{
     await setzeSprache(lang);const w=welt();abkommen(w);votum(w);const b=monat(w),stand=save(w);
     const html=renderToStaticMarkup(<HaushaltsMonatsbericht bericht={b}/>);
-    expect(html).toContain(t("hb.bindung"));expect(html).toContain(t("hb.vergleichGrenze"));expect(html).toContain(t("hb.politikGrenze"));
-    expect(html).toContain(formatDateDe(b.zusagen[0]!.datum));expect(html).toContain(t("hb.quelle.haushalt"));
+    // Welle B1 (06.11.2026): Die Grenzsätze („Vergleich isoliert …“, „Der Etatbeschluss verändert …“) sind als Prosa entfallen; die Blöcke
+    // tragen kurze Etiketten. Geprüft werden weiter Bindung, Wirkungsblock, Koalitionsblock, Frist und Herkunft der Zusage.
+    expect(html).toContain(t("welle_b1.hb.bindung"));expect(html).toContain(t("hb.wirkung"));expect(html).toContain(t("hb.koalition"));expect(html).toContain(t("welle_b1.hb.sitzeVotum"));
+    expect(html).toContain(formatDateDe(b.zusagen[0]!.datum));expect(html).toContain(t("welle_b1.hb.quelle.haushalt"));
     const integriert=renderToStaticMarkup(<VersorgungsMonatsbericht bericht={w.spiel!.gueter!.regierung!.bericht}/>);
     expect(save(w)).toBe(stand);
     renderToStaticMarkup(<HaushaltsNachbericht world={w}/>);expect(save(w)).toBe(stand);

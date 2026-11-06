@@ -31,3 +31,5 @@
 @container versorgungsmandat (max-width:550px){.vn-pflichten{grid-template-columns:minmax(0,1fr)}.vn-partner{padding:12px}.vn-koalitionskopf h6{margin-bottom:0}.vn-koalitionskopf>span{width:100%}.vn-hilfe{padding:12px}}
 .vn-austritte{margin:12px 0;padding:13px 15px;border:1px solid #c28c6d;border-left:4px solid #a2593c;border-radius:6px;background:var(--papier-2);color:#7c472f}
 .vn-austritte .ub-verweis{white-space:normal;text-align:left}.vn-austritte .ub-verweis:focus-visible{outline:3px solid var(--messing-2);outline-offset:3px}
+/* Welle B1: Pergament statt weißem Blatt */
+.vn-partner,.vn-pflichten>details{background:var(--papier-2);border-color:rgba(90,64,40,.3);border-radius:var(--rund-2)}

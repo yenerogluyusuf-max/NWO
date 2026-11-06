@@ -32,3 +32,17 @@
 .sf-schulden dt{overflow-wrap:anywhere}.sf-schulden dd{margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 @container staatsgeld (max-width:580px){.sf-summen,.sf-rechnung,.sf-ressourcen{grid-template-columns:1fr}.sf-summen>div,.sf-summen>div:first-child{padding:12px;border-left:0;border-bottom:1px solid var(--schlecht-flaeche)}.sf-summen dd{font-size:var(--schrift-5)}.sf-rechnung{gap:16px}.sf-ressourcen{gap:12px}}
 @container staatsgeld (max-width:330px){.sf-rechnung dl>div{flex-wrap:wrap;gap:3px}.sf-rechnung dd{width:100%;text-align:left}.sf-zeit{width:100%}.sf-zeit button{flex:1}}
+/* Welle B1 (06.11.2026): Karte des Haushaltskopfs statt weißem Blatt; Wachstum, Preise, Bestand und Kasse als Kennzahlen */
+.sf-finanzbuch{background:var(--papier-2);border-color:rgba(90,64,40,.3);border-radius:var(--rund-2);box-shadow:var(--schatten-flach);color:var(--tinte-1)}
+.sf-kopf small{color:var(--messing-3)}.sf-kopf h3{color:var(--messing-text);font-weight:600}
+.sf-summen small{color:var(--tinte-3)}.sf-laufend{color:var(--tinte-3)}
+.sf-wachstum{display:flex;flex-wrap:wrap;gap:10px 28px;margin:14px 0 0;padding-top:12px;border-top:1px solid rgba(90,64,40,.18)}
+.sf-wachstum>div,.sf-kz>div{display:grid;gap:2px}
+.sf-wachstum dt,.sf-kz dt{font:600 var(--schrift-1)/1.25 var(--serif);color:var(--tinte-3)}
+.sf-wachstum dd,.sf-kz dd{margin:0;font:600 var(--schrift-4)/1.15 var(--display,serif);color:var(--messing-text);font-variant-numeric:tabular-nums}
+.sf-kz{display:flex;flex-wrap:wrap;gap:10px 28px;margin:10px 0}.sf-kz small{font:var(--schrift-1)/1.3 var(--serif);color:var(--tinte-3)}
+.sf-schulden{border-color:rgba(90,64,40,.2);background:rgba(255,253,247,.35);border-radius:var(--rund-2)}
+.sf-rechnung dl>div,.sf-schulden dl>div{border-bottom-color:rgba(90,64,40,.12)}
+.sf-rechnung .sf-total{border-top-color:var(--messing-3)}
+.sf-ressourcen{border-top-color:rgba(90,64,40,.18)}.sf-ressourcen dd{color:var(--tinte-2)}
+.sf-zeile{font:italic var(--schrift-2)/1.4 var(--serif);color:var(--tinte-2)}
