@@ -34,7 +34,7 @@ export function HaushaltsGegenmassnahmen({world,beschluss,geaendert}:{world:Worl
       preis:p.moeglich?t('vn.preis',{pk:zahl(p.pk,1),aufmerksamkeit:zahl(p.aufmerksamkeit,0)}):t('eo.pruefen'),hinweis:p.moeglich?undefined:p.grund}))}
       inhalt={id=>{const p=cards.find(p=>JSON.stringify(p.aktion)===id);return p?<HaushaltsHilfeKarte world={world} p={p} onTun={tun}/>:null;}}/>
     {pl.length>4&&<button type="button" className="pd-btn quiet" aria-expanded={alle} onClick={()=>setAlle(!alle)}>{t(alle?'hh.weniger':'hh.mehr',{n:pl.length-4})}</button>}
-    <p><UbVerweis ziel={{art:'versorgung'}}>{t('transport.zurKarte')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('hh.verhandeln')}</UbVerweis></p>
+    <div className="hh-links"><UbVerweis ziel={{art:'versorgung'}}>{t('transport.zurKarte')}</UbVerweis> · <UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('hh.verhandeln')}</UbVerweis></div>
   </section>;
 }
 

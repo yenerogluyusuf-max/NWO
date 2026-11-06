@@ -24,7 +24,7 @@ export function VersorgungsVorschlag({world,programm,partner,onErgebnis}:{world:
     aktion={t("ve.einbringen",{pk:p.vorlage.pk})} gesperrt={p.grund} hinweis={t("welle_b1.ve.naechsterSchritt")}
     onAusfuehren={()=>onErgebnis(beschliesseVersorgungsProgramm(world,programm,partner))}>
     <div className="ve-wirkung"><h5>{t("ve.wirkung")}</h5><p>{t(`regierung.${programm}.wirtschaft`)}</p>
-      <p className="ve-zeitplan">{t("welle_b1.ve.zeitplan",{ab:datum(p.ab),bis:datum(p.bis),tage:p.konditionen.dauer})}</p>
+      <dl className="ve-zeitplan"><div><dt>{t("welle_b1.ve.beiAnnahme")}</dt><dd>{t("welle_b1.ve.zeitplan",{ab:datum(p.ab),bis:datum(p.bis),tage:p.konditionen.dauer})}</dd></div></dl>
     </div>
     <div className="ve-politik"><h5>{t("ve.politischerPreis")}</h5>
       <p>{t(`regierung.${programm}.innen`)}</p><p>{t(`regierung.${programm}.aussen`)}</p>
@@ -38,7 +38,7 @@ export function VersorgungsVorschlag({world,programm,partner,onErgebnis}:{world:
         <span>{t(f.erfuellt?"mandat.erfuellt":"mandat.fordert",{forderung:t(`mandat.${f.forderung}.titel`)})}</span><strong>{f.ja} / {f.sitze}</strong></li>)}</ul>
       <RegierungsReaktionen reaktionen={p.annahme} titel={t("ve.beiAnnahme")}/>
       <RegierungsReaktionen reaktionen={p.ablehnung} titel={t("ve.beiAblehnung")}/>
-      <p className="ve-ablehnung"><small>{t("welle_b1.ve.beiAblehnung")}</small><em>{t("welle_b1.ve.keinBudget")}</em><em>{t("welle_b1.ve.kapitalWeg")}</em><em>{t("welle_b1.ve.vertrauen",{n:zahl(VERSORGUNG_ABLEHNUNG.vertrauen,1)})}</em><em>{t("welle_b1.ve.zustimmung",{n:zahl(VERSORGUNG_ABLEHNUNG.zustimmung,1)})}</em></p>
+      <div className="ve-ablehnung"><small>{t("welle_b1.ve.beiAblehnung")}</small><em>{t("welle_b1.ve.keinBudget")}</em><em>{t("welle_b1.ve.kapitalWeg")}</em><em>{t("welle_b1.ve.vertrauen",{n:zahl(VERSORGUNG_ABLEHNUNG.vertrauen,1)})}</em><em>{t("welle_b1.ve.zustimmung",{n:zahl(VERSORGUNG_ABLEHNUNG.zustimmung,1)})}</em></div>
     </details>
   </EntscheidungsKarte>;
 }

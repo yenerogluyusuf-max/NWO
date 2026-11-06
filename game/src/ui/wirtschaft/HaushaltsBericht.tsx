@@ -50,7 +50,7 @@ function Ressorts({b}:{b:Bericht}) {
     {vorfaelle.length>0&&<table className="hb-tabelle"><caption>{t("rp.verlauf")}</caption><thead><tr><th>{b1("hb.datum")}</th><th className="txt">{b1("hb.minister")}</th><th className="txt">{b1("hb.vorgang")}</th><th className="txt">{b1("hb.antwort")}</th></tr></thead>
       <tbody>{vorfaelle.slice().reverse().map(v=><tr key={v.id}><td>{formatDateDe(v.datum)}</td><th scope="row" className="txt">{v.name}<small>{AEMTER[v.amt].ressort}</small></th><td className="txt">{t(`ra.art.${v.art}`)}</td>
         <td className="txt">{v.entscheidung?t(v.entscheidung.art==="entlassen"?"rp.abschluss.entlassen":`rp.art.${v.entscheidung.art}`):b1(v.geschlossen?`hb.geschlossen.${v.geschlossen}`:"hb.offen")}</td></tr>)}</tbody></table>}
-    <p className="hb-links"><UbVerweis ziel={{art:"akte",akte:"personen"}}>{b1("hb.zumKabinett")}</UbVerweis></p>
+    <div className="hb-links"><UbVerweis ziel={{art:"akte",akte:"personen"}}>{b1("hb.zumKabinett")}</UbVerweis></div>
   </details>;
 }
 
@@ -69,7 +69,7 @@ export function HaushaltsMonatsbericht({bericht:b,aktuell=false,world,geaendert,
     <header className="hb-kopf">
       <div className="hb-titel"><small>{t(aktuell?"hb.heute":"hb.monat",{datum:formatDateDe(b.datum),monat:b.monat})}</small>
         <h4>{haushaltsTitel(a)}</h4>
-        <p className="hb-votum"><span className={`hb-marke ${a.angenommen?"gut":"schlecht"}`}>{b1(a.angenommen?"hb.angenommen":"hb.abgelehnt")}</span>{b1("hb.votum",{datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja})}</p>
+        <div className="hb-votum"><span className={`hb-marke ${a.angenommen?"gut":"schlecht"}`}>{b1(a.angenommen?"hb.angenommen":"hb.abgelehnt")}</span>{b1("hb.votum",{datum:formatDateDe(a.datum),ja:a.ja,nein:600-a.ja})}</div>
         <Stimmbalken ja={a.ja}/>
       </div>
       <dl className="hb-kz">
@@ -116,10 +116,10 @@ export function HaushaltsMonatsbericht({bericht:b,aktuell=false,world,geaendert,
           {p.rolle==="koalition"&&p.personen.some(f=>f.loyalitaet<20)&&<span className="hb-warnung">{b1("hb.gefahr",{datum:formatDateDe(naechsteKoalitionspruefung(b.datum)),sitze:p.sitze})}</span>}
         </li>)}</ul>}
         {b.koalition&&<p className="hb-warnung">{b1("hb.austritte",{parteien:b.koalition.austritte.map(p=>zusageVon(p.partei)).join(", "),datum:formatDateDe(b.koalition.datum),vor:b.koalition.vorher,nach:b.koalition.nachher})}</p>}
-        {minister.length>0&&<p className="hb-chips hb-minister"><small>{b1("hb.ministerEtat")}</small>{minister.map(p=><em key={p.id} className={ton(p.delta,1)}>{p.name} {sign(p.delta,1)}</em>)}</p>}
+        {minister.length>0&&<div className="hb-chips hb-minister"><small>{b1("hb.ministerEtat")}</small>{minister.map(p=><em key={p.id} className={ton(p.delta,1)}>{p.name} {sign(p.delta,1)}</em>)}</div>}
       </section>}
     </div>
-    {kurz?<p className="hb-links"><UbVerweis ziel={{art:"akte",akte:"wirtschaft",start:"haushalt"}}>{b1("hb.vollerBericht")}</UbVerweis></p>:<>
+    {kurz?<div className="hb-links"><UbVerweis ziel={{art:"akte",akte:"wirtschaft",start:"haushalt"}}>{b1("hb.vollerBericht")}</UbVerweis></div>:<>
     <section className="hb-block hb-breit"><h5>{t("hb.zusagen")}<small>{b1("hb.bindung")}</small></h5>
       {b.zusagen.length===0?<p className="hb-zeile">{b1("hb.keineZusagen")}</p>:<ul className="hb-zusagen">{b.zusagen.map(s=><li key={s.z.id}>
         <b>{zusageVon(s.z.von)}</b><span className="hb-zusage">{zusageText(s.z)}{s.z.stufeZiel!==undefined&&s.z.massnahme&&<small>{t("hb.ziel",{name:knoten(s.z.massnahme),n:zahl(s.z.stufeZiel,1)})}</small>}</span>
@@ -138,7 +138,7 @@ export function HaushaltsMonatsbericht({bericht:b,aktuell=false,world,geaendert,
       <Ressorts b={b}/>
     </div>
     {world&&geaendert&&<HaushaltsGegenmassnahmen world={world} beschluss={a.id} geaendert={geaendert}/>}
-    <p className="hb-links"><UbVerweis ziel={{art:"zusagen"}}>{t("hb.zusagenAktion")}</UbVerweis><UbVerweis ziel={{art:"akte",akte:"parlament"}}>{t("hb.koalitionAktion")}</UbVerweis></p>
+    <div className="hb-links"><UbVerweis ziel={{art:"zusagen"}}>{t("hb.zusagenAktion")}</UbVerweis><UbVerweis ziel={{art:"akte",akte:"parlament"}}>{t("hb.koalitionAktion")}</UbVerweis></div>
     </>}
   </section>;
 }
