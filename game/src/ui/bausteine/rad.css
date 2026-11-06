@@ -23,3 +23,5 @@
 .hr.hr-einzeln { grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); }
 .hr.hr-einzeln > .hr-legende { order: 2; }
 @media (max-width: 1100px) { .hr.hr-einzeln { grid-template-columns: minmax(0, 1fr); } }
+.hr-legende ul.hr-abgesetzt { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--linie, rgba(110, 84, 50, 0.25)); }
+.hr-legende ul.hr-abgesetzt .hr-wert { color: var(--siegel); }

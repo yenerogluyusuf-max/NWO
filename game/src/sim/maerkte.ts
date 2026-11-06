@@ -15,7 +15,8 @@
 
 import type { EconomyState, World } from "./types";
 import { NET } from "./modell";
-import { nationalAverage, startAverage } from "./netz";
+import { GEGENKRAEFTE, decayVon, formWert, nationalAverage, PROVINCES, startAverage } from "./netz";
+import { EINNAHME_MASSNAHMEN, ertragJeArt } from "./haushalt-steuern";
 import { PARAMS, clamp } from "./economy";
 import { aktualisiereReservenDruck } from "./devisen";
 import { wirke } from "./wirkung";
@@ -231,12 +232,30 @@ export function koppleNetzAnWirtschaft(w: World): void {
   // 3. Importabhängigkeit bestimmt, wie hart der Ölpreis trifft
   e.energieFaktor = clamp(1 + MARKT.energieAufFaktor * (abw("energieimporte") + 0.5 * abw("gasabhaengigkeit")), 0.6, 1.6);
 
-  // 4. Der Haushalt atmet mit der Konjunktur: Überauslastung und stärkere Steuerbasis entlasten, Rezession und schwache Basis belasten.
-  // Gemessen gegen die Auslastung beim Amtsantritt: Das Defizitziel von 3,1 % (Mittelfristprogramm) rechnet die schwache Konjunktur von
-  // −1 % schon ein. Vorher zählte sie im ersten Monat ein zweites Mal und hob das Defizit ohne Zutun um 0,3 Punkte (Messung N3, 06.11.2026).
-  // Der Startwert ist der letzte Monat der Vorgeschichte (sim/world.ts syntheticHistory endet bei der Auslastung des Szenarios).
-  const startLuecke = w.history[11]?.outputGap ?? 0;
-  e.konjunkturSaldo = clamp(PARAMS.stabilisatoren * (e.outputGap - startLuecke) + PARAMS.steuerbasisAufHaushalt * abw("steuereinnahmen"), -3, 3);
+  // 4. Steuerbasis und Konjunktur im Haushalt.
+  // Mit Lira-Etat (Spielschleife, Welle H1): Die Konjunktur trifft den Haushalt über die echte Rechnung, feste Lira-Ausgaben und Einnahmen,
+  // die dem nominalen BIP mit ihrer Elastizität folgen (sim/staatsgeld.ts). Der frühere Ausgleich 0,3 × Auslastung würde denselben Boom ein
+  // zweites Mal buchen und entfällt; einen belegten Wert für konjunkturabhängige Ausgaben (Arbeitslosengeld) gibt es nicht, die
+  // Arbeitslosenversicherung steht außerhalb des Haushalts der Zentralregierung. Gewählt ist darum die Verkleinerung auf den Teil, der nicht
+  // über die Einnahmen läuft: Was der Knoten „Steuereinnahmen“ aus Steuermoral, Schattenwirtschaft, Verwaltung, Behörden und Ereignissen
+  // gewinnt. Was er aus Steuersätzen (schon in policyCost) und aus Wachstum und Arbeitslosigkeit (jetzt in den Elastizitäten) zieht, rechnet
+  // `steuerbasisSchatten` heraus.
+  // Ohne Lira-Etat (Lernfälle ohne Spielschleife) bleibt der bisherige Ausgleich, gemessen gegen die Auslastung beim Amtsantritt: Das
+  // Defizitziel von 3,1 % (Mittelfristprogramm) rechnet die schwache Konjunktur von −1 % schon ein (Messung N3, 06.11.2026).
+  e.steuerErtrag = ertragJeArt(w);
+  const schatten = steuerbasisSchattenMonat(w);
+  if (e.etat) e.konjunkturSaldo = clamp(PARAMS.steuerbasisAufHaushalt * (abw("steuereinnahmen") - schatten), -3, 3);
+  else {
+    const startLuecke = w.history[11]?.outputGap ?? 0;
+    e.konjunkturSaldo = clamp(PARAMS.stabilisatoren * (e.outputGap - startLuecke) + PARAMS.steuerbasisAufHaushalt * abw("steuereinnahmen"), -3, 3);
+  }
+  // Übergang älterer Spielstände: der Rest des früheren Konjunktursaldos läuft in gleichen Monatsschritten aus
+  const u = e.konjunkturUebergang;
+  if (u) {
+    const rest = u.rest - u.schritt;
+    if (Math.abs(rest) < 1e-9 || Math.sign(rest) !== Math.sign(u.rest)) delete e.konjunkturUebergang;
+    else e.konjunkturUebergang = { ...u, rest };
+  }
 
   // 5. Dauerhafter Aufschlag aus politischen Schocks klingt ab
   if (e.politikRisiko !== undefined) {
@@ -264,4 +283,77 @@ export function koppleNetzAnWirtschaft(w: World): void {
 
   // 7. Rating als Bestand mit Ausblick
   ratingMonat(w);
+}
+
+// ---------------------------------------------------------------------------
+// Welle H1: Steuerbasis ohne Sätze und Konjunktur
+
+/** Quellen des Knotens „Steuereinnahmen“, deren Wirkung schon anderswo gebucht ist: Steuersätze (policyCost) und die Konjunktur (Elastizitäten). */
+const SCHATTEN_QUELLEN = new Set([...EINNAHME_MASSNAHMEN, "wachstum", "arbeitslosigkeit"]);
+/** Monate, über die der Konjunktursaldo älterer Spielstände ausläuft (Spielparameter) */
+export const UEBERGANG_MONATE = 12;
+
+/**
+ * Der Schub dieser Quellen auf „Steuereinnahmen“ im letzten Netzschritt, Landesdurchschnitt in Indexpunkten. Dieselbe Rechnung wie
+ * sim/netz.ts stepNet (Verzögerung, Kantenformel, Umsetzungsstand); `versatz` = 1 nach dem Schritt, 0 für den Schub des nächsten.
+ */
+function schattenSchub(w: World, versatz: number): number {
+  const s = w.net, ziel = NET.index.get("steuereinnahmen"), n = s.history.length;
+  if (ziel === undefined || !n) return 0;
+  let summe = 0;
+  for (let j = 0; j < NET.edgeFrom.length; j++) {
+    if (NET.edgeTo[j] !== ziel) continue;
+    const from = NET.edgeFrom[j]!, fid = NET.nodes[from]!.id;
+    if (!SCHATTEN_QUELLEN.has(fid)) continue;
+    const f = s.umsetzung ? (s.umsetzung[fid] ?? 100) / 100 : 1;
+    const b = f < 1 ? s.umsetzungBasis?.[fid] : undefined;
+    const gewicht = NET.edgeWeight[j]! * (b ? 1 : f), korr = b ? NET.edgeWeight[j]! * (1 - f) : 0;
+    const past = s.history[(((s.month - versatz - NET.edgeLag[j]!) % n) + n) % n]!;
+    const form = NET.edgeForm[j] ?? undefined;
+    const F = (x: number) => (form ? formWert(form, x) : x);
+    for (let p = 0; p < PROVINCES; p++) {
+      const x = past[from * PROVINCES + p]!;
+      let c = gewicht * (F(x) - F(s.start[from * PROVINCES + p]!));
+      if (b) c -= korr * (F(x) - F(b[p]!));
+      summe += c * s.weights[p]!;
+    }
+  }
+  return summe;
+}
+
+/** Den Schattenteil einen Monat fortschreiben: gleicher Rücklauf wie der Knoten, gleiche Sättigung nach außen (Näherung im Landesmittel). */
+function steuerbasisSchattenMonat(w: World): number {
+  const e = w.economy, i = NET.index.get("steuereinnahmen");
+  if (i === undefined) return 0;
+  const node = NET.nodes[i]!, start = startAverage(NET, w.net, "steuereinnahmen");
+  const alt = e.steuerbasisSchatten ?? 0;
+  let schub = schattenSchub(w, 1);
+  const d = nationalAverage(NET, { ...w.net, values: w.net.history[(((w.net.month - 1) % w.net.history.length) + w.net.history.length) % w.net.history.length]! }, "steuereinnahmen") - start;
+  const strecke = d > 0 ? 100 - start : start, x = strecke > 1 ? d / strecke : 0;
+  if (NET.stimmung[i] === 2 && schub * x > 0) schub *= 1 - GEGENKRAEFTE.saettigungGroessen * x * x;
+  const neu = alt + schub - decayVon(node) * alt;
+  e.steuerbasisSchatten = Number.isFinite(neu) ? neu : 0;
+  return e.steuerbasisSchatten;
+}
+
+/**
+ * Laden älterer Spielstände (ohne Schattenteil): Der Schattenteil startet im Gleichgewicht seiner heutigen Quellen, der neue Saldo der
+ * Steuerbasis wird berechnet, und der Unterschied zum gespeicherten Konjunktursaldo läuft über `UEBERGANG_MONATE` aus. So bleibt das
+ * Defizit beim Laden gleich.
+ */
+export function migriereKonjunktur(w: World): void {
+  const e = w.economy;
+  if (!w.spiel || !e.etat || e.steuerbasisSchatten !== undefined) return;
+  const i = NET.index.get("steuereinnahmen");
+  if (i === undefined) return;
+  const rueck = decayVon(NET.nodes[i]!);
+  const schatten = rueck > 0 ? schattenSchub(w, 0) / rueck : 0;
+  e.steuerbasisSchatten = Number.isFinite(schatten) ? schatten : 0;
+  e.steuerErtrag = ertragJeArt(w);
+  const alt = e.konjunkturSaldo ?? 0;
+  const abw = nationalAverage(NET, w.net, "steuereinnahmen") - startAverage(NET, w.net, "steuereinnahmen");
+  const neu = clamp(PARAMS.steuerbasisAufHaushalt * (abw - e.steuerbasisSchatten), -3, 3);
+  e.konjunkturSaldo = neu;
+  const rest = alt - neu;
+  if (Math.abs(rest) > 1e-9) e.konjunkturUebergang = { rest, schritt: rest / UEBERGANG_MONATE };
 }

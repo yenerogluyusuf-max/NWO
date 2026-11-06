@@ -1,4 +1,5 @@
 import { defizitQuote, zinsQuote } from "./staatsgeld";
+import { ertragJeArt } from "./haushalt-steuern";
 // Die Wirtschaftsakte: Zustand, Verlauf der Kennzahlen und Marken auf der Zeitachse. Die Größen des Wirtschaftsmodells stehen schon in
 // `world.history` (Monatswerte); hier kommen weitere Größen dazu (Netzknoten, Defizit, Zinsausgaben), damit jede Zahl einen Verlauf hat.
 
@@ -19,8 +20,8 @@ const netz = (w: World, id: string) => nationalAverage(NET, w.net, id);
 
 /** Das geplante Defizit in % des BIP: Grundlinie, eigener Impuls, Kosten der Maßnahmen, Mehrzinsen und der Konjunktursaldo (Stabilisatoren, Steuerbasis). */
 export function defizitJetzt(w: World): number {
-  const e = w.economy;
-  return defizitQuote(e);
+  // Welle H1: mit dem heutigen Ertrag der Steuermaßnahmen je Art (der Monatsabschluss bucht den gespeicherten)
+  return defizitQuote(w.economy, false, ertragJeArt(w));
 }
 
 /** Das Defizit ohne Konjunktursaldo (konjunkturbereinigt): daran messen IWF-Auflagen, damit automatische Stabilisatoren in der Rezession kein Programm brechen. */

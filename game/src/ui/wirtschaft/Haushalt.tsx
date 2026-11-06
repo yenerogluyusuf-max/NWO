@@ -562,6 +562,7 @@ export function Haushalt({ world, geaendert, posten, onGehe }: { world: World; g
             requestAnimationFrame(() => document.getElementById(ziel === "steuern" ? `${tafelId}-einnahmen` : `${tafelId}-${ziel}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
           }}
         />
+        <Vollzug world={world} fin={fin} oktober={fenster.offen} />
         <dl className="hd-kern">
           <div><dt>{t("hd.schulden")}</dt><dd>{nf(world.economy.debtRatio, 1)} %<small>{t("hd.desBip")}</small></dd></div>
           <div><dt>{t("hd.zinsen")}</dt><dd>{nf(zinsausgabenJetzt(world), 1)} %<small>{t("hd.desBip")}</small></dd></div>
@@ -599,6 +600,35 @@ export function Haushalt({ world, geaendert, posten, onGehe }: { world: World; g
         {mehr && <div className="hd-mehr-inhalt">{detail(mehr)}</div>}
       </section>
     </div>
+  );
+}
+
+/**
+ * Welle H1: das Haushaltsjahr im Vollzug. Einnahmen geplant · eingenommen · Abweichung durch die Wirtschaft (Jahresraten), die Kaufkraft der
+ * festen Lira-Ausgaben und im Oktober, was der Entwurf mit Mehreinnahmen oder einem Loch tun kann. Alle Zahlen aus sim/staatsfinanzen.ts.
+ */
+function Vollzug({ world, fin, oktober }: { world: World; fin: ReturnType<typeof staatsfinanzen>; oktober: boolean }) {
+  const v = fin.vollzug;
+  const abw = Math.round(v.abweichungMrd);
+  const verlust = 1 - v.kaufkraft;
+  const jahr = String(v.jahr ?? Number(world.date.slice(0, 4)));
+  return (
+    <section className="hd-vollzug" aria-label={t("welle_h1.vollzug.titel", { jahr })}>
+      <dl>
+        <div className="hd-vollzug-kopf"><dt>{t("welle_h1.vollzug.titel", { jahr })}</dt></div>
+        <div><dt>{t("welle_h1.vollzug.geplant")}</dt><dd>{t("hd.bio", { n: bio(v.einnahmenPlanMrd) })}</dd></div>
+        <div><dt>{t("welle_h1.vollzug.eingenommen")}</dt><dd>{t("hd.bio", { n: bio(v.einnahmenMrd) })}</dd></div>
+        <div className={abw > 0 ? "gut" : abw < 0 ? "schlecht" : ""}>
+          <dt>{t("welle_h1.vollzug.abweichung")}</dt>
+          <dd>{t("n3.hh.mrd", { mrd: `${abw > 0 ? "+" : abw < 0 ? "−" : "±"}${mrdText(Math.abs(abw))}` })}</dd>
+        </div>
+      </dl>
+      <p>
+        {t("welle_h1.vollzug.ausgaben", { bio: bio(v.primaerMrd) })}{" "}
+        {Math.abs(verlust) >= 0.001 && t(verlust > 0 ? "welle_h1.vollzug.kaufkraftMinus" : "welle_h1.vollzug.kaufkraftPlus", { prozent: nf(Math.abs(verlust) * 100, 1), mrd: mrdText(Math.abs(v.kaufkraftVerlustMrd)) })}
+      </p>
+      {oktober && Math.abs(abw) >= 1 && <p className="hd-vollzug-oktober">{t(abw > 0 ? "welle_h1.oktober.mehr" : "welle_h1.oktober.loch", { mrd: mrdText(Math.abs(abw)) })}</p>}
+    </section>
   );
 }
 

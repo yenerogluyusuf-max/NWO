@@ -13,7 +13,9 @@ import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { marktSchock } from "./maerkte";
 import { medienEntspannung, medienHaerte, medienVerfahren } from "./medien";
 import { kommunalwahlDurchfuehren, kommunalwahlFaellig, kommunenVon, istLagerPartei, setzeZwangsverwalter } from "./kommunen";
-import { schreibeHaushaltFort } from "./haushalt";
+import { INFLATIONSAUSGLEICH, gleicheInflationAus, haushaltsAbweichung, inflationsausgleichPlan, nimmKuerzungHin, schreibeHaushaltFort } from "./haushalt";
+import { defizitJetzt, haushaltZustand } from "./wirtschaft";
+import { kaufkraft } from "./staatsgeld";
 import { setPolicy } from "./handeln";
 import { stufeIn } from "./handeln";
 import { beginne, beginneRegional, regionalPlan, vergabeAngebot, vorhabenSicht } from "./reich";
@@ -21,7 +23,7 @@ import { anrede, figur, loyalitaetAendern, zufallsName } from "./figuren";
 import { BANKEN, KOHLEFIRMEN, TEXTILFIRMEN, ZEITUNGEN, waehle } from "./akteure";
 import { PROZ_STADT, akutIn, beschr, jahrVon, kosten, monatVon, netz, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
 import type { Option, Vorlage } from "./ereignis-hilfen";
-import { t } from "../i18n";
+import { t, zahl } from "../i18n";
 import { PROVINZEN } from "./regional";
 import type { World } from "./types";
 
@@ -147,7 +149,8 @@ const MINDESTLOHN: Vorlage = {
 
 /** Lage im Oktober: Sparzwang (Defizit ab 4,5 % des BIP), Wahljahr (Wahl binnen etwa 13 Monaten) oder ruhiges Jahr. */
 function haushaltLage(w: World): string {
-  if (w.economy.deficit >= 4.5) return "defizit";
+  // Welle H1: das tatsächliche Defizit des Jahres (vorher das feste Grunddefizit von 3,1 %, das nie 4,5 erreichte)
+  if (defizitJetzt(w) >= 4.5) return "defizit";
   const bisWahl = (w.spiel?.wahltag ?? 1e9) - w.day;
   if (bisWahl >= 0 && bisWahl <= 400) return "wahljahr";
   return "ruhe";
@@ -165,7 +168,9 @@ const HAUSHALTSJAHR: Vorlage = {
   titel: () => t("evi.haushaltsjahr.titel"),
   text: (w, ev) => [
     t("evi.haushaltsjahr.text1", { wer: anrede(figur(w, "finanzen")), schulden: nf(w.economy.debtRatio), inflation: nf(w.published.inflation.value) }),
-    ...(ev.daten?.variante === "defizit" ? [t("takt.var.haushaltsjahr.defizit.text", { defizit: nf(w.economy.deficit) })] : ev.daten?.variante === "wahljahr" ? [t("takt.var.haushaltsjahr.wahljahr.text")] : []),
+    ...(ev.daten?.variante === "defizit" ? [t("takt.var.haushaltsjahr.defizit.text", { defizit: nf(defizitJetzt(w)) })] : ev.daten?.variante === "wahljahr" ? [t("takt.var.haushaltsjahr.wahljahr.text")] : []),
+    // Welle H1: Was die Wirtschaft dem Haushalt dieses Jahr gebracht oder genommen hat, und was der Entwurf damit tun kann
+    oktoberSatz(w),
     t("evi.haushaltsjahr.text2"),
   ],
   warum: () => t("evi.haushaltsjahr.warum"),
@@ -814,6 +819,58 @@ const KOMMUNALWAHL: Vorlage = {
   standard: (w) => kommunalwahlDurchfuehren(w, 0).text,
 };
 
+/** Welle H1: Der Satz im Oktober: Mehreinnahmen oder Loch durch die Wirtschaft, mit den Wegen des Entwurfs. Unter einer Milliarde: ruhig. */
+function oktoberSatz(w: World): string {
+  const a = haushaltsAbweichung(w), mrd = zahl(Math.abs(Math.round(a.mrd)), 0);
+  if (Math.abs(a.mrd) < 1) return t("welle_h1.oktober.planmaessig");
+  return t(a.mrd > 0 ? "welle_h1.oktober.mehr" : "welle_h1.oktober.loch", { mrd });
+}
+
+/**
+ * Welle H1: Die Ressorts fordern einen Inflationsausgleich. Steigen die Preise schneller als im Haushaltsgesetz geplant, kaufen dieselben Lira
+ * weniger; ab drei Prozent realem Verlust melden sich die Ressorts (Spielparameter, sim/haushalt.ts INFLATIONSAUSGLEICH). Nicht im Oktober
+ * (dann gilt der Entwurf) und nicht im Dezember (der neue Haushalt rechnet ab Januar mit den heutigen Preisen).
+ */
+const INFLATIONSAUSGLEICH_VORGANG: Vorlage = {
+  id: "inflationsausgleich",
+  szene: "bank",
+  frist: 21,
+  abkuehlung: 150,
+  chance: (w) => {
+    const m = monatVon(w);
+    return w.spiel && m !== 10 && m !== 12 && !haushaltZustand(w).gesetz && kaufkraft(w.economy) <= INFLATIONSAUSGLEICH.schwelle ? 1 : 0;
+  },
+  erzeuge: () => ({ provinzen: [], staerke: 1 }),
+  titel: () => t("welle_h1.ausgleich.titel"),
+  text: (w) => {
+    const p = inflationsausgleichPlan(w);
+    return [
+      t("welle_h1.ausgleich.text1", { wer: anrede(figur(w, "finanzen")), prozent: zahl((1 - (p?.kaufkraft ?? 1)) * 100, 1), verlust: zahl(Math.round(p?.verlustMrd ?? 0), 0) }),
+      t("welle_h1.ausgleich.text2"),
+    ];
+  },
+  warum: () => t("welle_h1.ausgleich.warum"),
+  optionen: (w) => {
+    const p = inflationsausgleichPlan(w);
+    const hinnehmen = opt("hinnehmen", t("welle_h1.ausgleich.opt.hinnehmen.label"), t("welle_h1.ausgleich.opt.hinnehmen.beschr"), 0, (ww) => nimmKuerzungHin(ww));
+    // Ohne Kaufkraftverlust (etwa wenn die Preise inzwischen dem Plan folgen) bleibt der Nachtrag sichtbar, aber gesperrt
+    if (!p) return [{ ...opt("nachtrag", t("welle_h1.ausgleich.opt.nachtrag.label"), t("welle_h1.ausgleich.opt.nachtrag.beschr"), 0, (ww) => gleicheInflationAus(ww).text), sperre: t("welle_h1.ausgleich.unnoetig") }, hinnehmen];
+    const defizit = t("welle_h1.ausgleich.bedingung.defizit", { mrd: zahl(Math.round(p.mehrMrd), 0), vorher: nf(p.defizitVorher), nachher: nf(p.defizitNachher) });
+    return [
+      { ...opt("nachtrag", t("welle_h1.ausgleich.opt.nachtrag.label"), t("welle_h1.ausgleich.opt.nachtrag.beschr"), 0, (ww) => gleicheInflationAus(ww).text), anzeigePk: p.pk, bedingungen: [defizit] },
+      {
+        ...opt("steuer", t("welle_h1.ausgleich.opt.steuer.label", { punkte: p.steuer.punkte }), t("welle_h1.ausgleich.opt.steuer.beschr"), 0, (ww) => gleicheInflationAus(ww, true).text),
+        anzeigePk: p.pk + p.steuer.pk,
+        bedingungen: [defizit, t("welle_h1.ausgleich.bedingung.steuer", { vorher: nf(p.steuer.satzVorher, 0), nachher: nf(p.steuer.satzNachher, 0), mehr: zahl(Math.round((p.steuer.mehrBip / Math.max(1e-9, p.mehrBip)) * 100), 0) })],
+        ...(p.steuer.grund ? { sperre: p.steuer.grund } : {}),
+      },
+      hinnehmen,
+    ];
+  },
+  standard: (w) => nimmKuerzungHin(w),
+};
+
 export const INNEN_VORLAGEN: Vorlage[] = [
   MINDESTLOHN, HAUSHALTSJAHR, BERGWERK, UEBERSCHWEMMUNG, BANKENSTRESS, STUDENTEN, PRESSE, BAUAMNESTIE, RENTNER, EPIDEMIE, BAUERN, FABRIK, KAYYUM, TOURISMUS, KANAL, KOMMUNALWAHL,
+  INFLATIONSAUSGLEICH_VORGANG,
 ];

@@ -1,4 +1,5 @@
-import { geldAusBip } from "./staatsgeld";
+import { geldAusBip, haushaltsRechnung, kaufkraft } from "./staatsgeld";
+import { ertragJeArt } from "./haushalt-steuern";
 // Der Haushalt als Entscheidung, wie in Democracy: ein Regler je Ressort (Renten, Bildung, Forschung, Verteidigung …). Steuern haben
 // genau eine Stellgröße, die Maßnahme mit echtem Satz im Politikbereich Haushalt; der Haushalt zeigt Satz und Ertrag (sim/haushalt-steuern.ts,
 // Befunde D-1, D-3). Jede Stufe kostet sofort Geld (Ausgabenimpuls → Nachfrage, Defizit, Schulden, Inflation) und wirkt mit Verzug über die Politikfelder
@@ -25,7 +26,8 @@ import { wirke } from "./wirkung";
 import { NET } from "./modell";
 import { impulsKette, istGut, kettenZeile } from "./folgen";
 import { ALTE_POSTEN, addMarke, defizitJetzt, haushaltZustand } from "./wirtschaft";
-import { REGELN, stimmenPrognose, stimmenSicht } from "./handeln";
+import { REGELN, bringeEin, pruefeVorhaben, stimmenPrognose, stimmenSicht, stufeIn } from "./handeln";
+import { STUFEN_JE_PUNKT, echterSatz, satzBei } from "../data/skalen";
 import { bildungsUeberhang, innovationsGrenze, wirksameForschung, WISSEN } from "./wissensbasis";
 import { ministerFuer, stabilerWert } from "./ministerfluss-kern";
 import type { Amt } from "./ministerfluss-typen";
@@ -214,14 +216,24 @@ export function rentenSicht(w: World, niveauStufe = stufeVon(w, "rentenniveau"),
   };
 }
 
-/** Forschungsetat in % des BIP (beschlossen): für Wissensbaum und Güter. */
+/** Forschungsetat in % des BIP (beschlossen, zur realen Kaufkraft der Lira-Ansätze): für Wissensbaum und Güter. */
 export function forschungsBudget(w: World): number {
-  return etatBip(POSTEN_NACH_ID.forschung!, stufeVon(w, "forschung")) ?? 0;
+  return (etatBip(POSTEN_NACH_ID.forschung!, stufeVon(w, "forschung")) ?? 0) * kaufkraft(w.economy);
 }
 
-/** Verteidigungsetat in % des BIP (beschlossen): für die Streitkräfte (Beschaffung, Unterhalt, neue Generationen). */
+/** Verteidigungsetat in % des BIP (beschlossen, zur realen Kaufkraft): für die Streitkräfte (Beschaffung, Unterhalt, neue Generationen). */
 export function verteidigungsEtat(w: World): number {
-  return etatBip(POSTEN_NACH_ID.verteidigung!, stufeVon(w, "verteidigung")) ?? 0;
+  return (etatBip(POSTEN_NACH_ID.verteidigung!, stufeVon(w, "verteidigung")) ?? 0) * kaufkraft(w.economy);
+}
+
+/**
+ * Welle H1: die Stufe, die ein Etat real wirkt. Das Haushaltsgesetz legt Lira fest; steigen die Preise schneller als geplant, kauft derselbe
+ * Etat weniger (Kaufkraft unter 1), und das Ressort wirkt wie mit einer kleineren Stufe. Posten ohne Startetat (Renteneintrittsalter) wirken
+ * über die Jahre, nicht über Geld, und bleiben bei ihrer Stufe.
+ */
+export function realeStufe(p: PostenDef, stufe: number, k: number): number {
+  if (p.startBip === undefined || !p.schritt || k === 1) return stufe;
+  return (Math.max(0, p.startBip + stufe * p.schritt) * k - p.startBip) / p.schritt;
 }
 
 /**
@@ -472,6 +484,8 @@ export function haushaltMonat(w: World): void {
   if (!w.spiel) return;
   const z = haushaltZustand(w);
   const wirksam = (z.wirksam ??= {});
+  // Welle H1: Wirkungen zählen nach realer Kaufkraft der Lira-Ansätze, nicht nach dem Nominalwert
+  const k = kaufkraft(w.economy);
   for (const p of POSTEN) {
     const stufe = z.stufen[p.id] ?? 0;
     // Reifung: Die wirksame Stufe nähert sich der beschlossenen über die Reifezeit (Ausbildung, Bau, Beschaffung)
@@ -479,12 +493,13 @@ export function haushaltMonat(w: World): void {
     const neu = Math.abs(stufe - alt) < 0.02 ? stufe : alt + (stufe - alt) / Math.max(1, p.reifeMonate);
     if (neu === 0) delete wirksam[p.id];
     else wirksam[p.id] = neu;
-    if (!neu) continue;
-    let wirkt = ertrag(neu);
+    const real = realeStufe(p, neu, k);
+    if (!real) continue;
+    let wirkt = ertrag(real);
     if (p.id === "forschung") {
       // Forschung wirkt nur bis zur Innovationsgrenze voll; was darüber liegt, verpufft größtenteils
       const grenze = innovationsGrenze(w);
-      wirkt = (wirksameForschung(etatBip(p, neu)!, grenze) - wirksameForschung(p.startBip ?? 0, grenze)) / p.schritt;
+      wirkt = (wirksameForschung((etatBip(p, neu) ?? 0) * k, grenze) - wirksameForschung(p.startBip ?? 0, grenze)) / p.schritt;
     }
     for (const x of p.dauer) wirke(w, x.id, x.d * wirkt);
   }
@@ -778,4 +793,106 @@ export function schreibeHaushaltFort(w: World): void {
 /** Gemeinsamer Name in Kalender, laufender Arbeit und gespeichertem Bericht. */
 export function haushaltsTitel(g: {jahr:number;krisenpaket?:string}):string {
   return g.krisenpaket?t("kp.gesetz",{name:t(`kp.${g.krisenpaket}.titel`)}):t("sd.haushaltsgesetz",{jahr:String(g.jahr+1)});
+}
+
+// ---------------------------------------------------------------------------
+// Welle H1: Inflationsausgleich. Steigen die Preise schneller als im Haushaltsgesetz geplant, verlieren die Lira-Ausgaben Kaufkraft, und die
+// Ressorts fordern einen Nachtrag. Drei Wege über die vorhandenen Regeln: ein Nachtragshaushalt zum Preis eines Nachtrags (doppeltes
+// Kapital, etwas Legitimität), die Kürzung hinnehmen (die Ressortchefs verlieren Loyalität), oder den Nachtrag über eine höhere
+// Mehrwertsteuer decken (Präsidialbeschluss nach KDV-Gesetz Art. 28, sim/handeln.ts).
+
+/** Spielparameter des Inflationsausgleichs. */
+export const INFLATIONSAUSGLEICH = {
+  /** Ab dieser Kaufkraft (0,97 = drei Prozent real weniger als beschlossen) melden sich die Ressorts */
+  schwelle: 0.97,
+  /** Ein Nachtrag kostet Kapital wie Reglerstufen: je 0,3 % des BIP eine Stufe (die übliche Stufengröße der Ressorts) */
+  prozentJeStufe: 0.3,
+  /** Loyalität jeder Ressortchefin und jedes Ressortchefs mit eigenem Etat, wenn die Kürzung bleibt */
+  loyalitaet: -2,
+  /** Höchstens so viele Punkte Mehrwertsteuer für die Deckung */
+  mwstPunkteMax: 3,
+} as const;
+
+/** Die Ämter mit eigenem Lira-Etat (ohne Renteneintrittsalter). */
+const ETAT_AEMTER = [...new Set(POSTEN.filter((p) => p.seite === "ausgabe" && p.startBip !== undefined).map((p) => p.amt))];
+
+export interface AusgleichPlan {
+  /** Kaufkraft der Lira-Ausgaben heute (unter 1) */
+  kaufkraft: number;
+  /** Was der Ausgleich im Jahr kostet, in % des BIP und in Mrd. Lira */
+  mehrBip: number;
+  mehrMrd: number;
+  /** Realer Verlust der Ressorts in Mrd. Lira im Jahr (heutige Preise) */
+  verlustMrd: number;
+  pk: number;
+  defizitVorher: number;
+  defizitNachher: number;
+  /** Deckung über die Mehrwertsteuer: Zielstufe, Punkte, Preis des Beschlusses und Mehreinnahmen (% des BIP) */
+  steuer: { ziel: number; punkte: number; pk: number; mehrBip: number; satzVorher: number; satzNachher: number; grund?: string };
+}
+
+/** Was ein Inflationsausgleich heute kostet (Lesen bucht nichts). Ohne Kaufkraftverlust: nichts. */
+export function inflationsausgleichPlan(w: World): AusgleichPlan | undefined {
+  const e = w.economy;
+  if (!w.spiel || !e.etat) return;
+  const r = haushaltsRechnung(e);
+  if (!(r.kaufkraft < 1)) return;
+  const mehrBip = r.primaer * (1 / r.kaufkraft - 1);
+  const stufen = Math.max(1, Math.round(mehrBip / INFLATIONSAUSGLEICH.prozentJeStufe));
+  const pk = stufen * HAUSHALT_ZYKLUS.nachtragFaktor;
+  const defizitVorher = defizitJetzt(w);
+  // Deckung: so viele Punkte Mehrwertsteuer, wie der Ausgleich kostet (gerundet, höchstens drei), über den Präsidialbeschluss
+  const satz = echterSatz("m_mwst"), node = NET.nodes[NET.index.get("m_mwst") ?? -1];
+  const jePunkt = node?.cost ? -(node.cost * STUFEN_JE_PUNKT) / 100 : 0;
+  const punkte = jePunkt > 0 ? clamp(Math.round(mehrBip / jePunkt), 1, INFLATIONSAUSGLEICH.mwstPunkteMax) : 0;
+  const jetzt = stufeIn(w, "m_mwst", null);
+  const ziel = Math.min(100, jetzt + punkte * STUFEN_JE_PUNKT);
+  const pr = punkte ? pruefeVorhaben(w, "m_mwst", ziel) : undefined;
+  const grund = !satz || !pr ? t("welle_h1.ausgleich.keineSteuer") : !pr.ok ? pr.grund ?? t("welle_h1.ausgleich.keineSteuer") : !pr.erlass.moeglich ? pr.erlass.grund ?? t("welle_h1.ausgleich.keineSteuer") : undefined;
+  return {
+    kaufkraft: r.kaufkraft, mehrBip, mehrMrd: geldAusBip(w, mehrBip), verlustMrd: geldAusBip(w, r.primaer * (1 - r.kaufkraft)),
+    pk, defizitVorher, defizitNachher: defizitVorher + mehrBip,
+    steuer: { ziel, punkte, pk: pr?.erlass.pk ?? 0, mehrBip: punkte * jePunkt, satzVorher: satzBei("m_mwst", jetzt) ?? 0, satzNachher: satzBei("m_mwst", ziel) ?? 0, ...(grund ? { grund } : {}) },
+  };
+}
+
+/** Der Nachtragshaushalt zum Inflationsausgleich: bucht Kapital und Legitimität wie jeder Nachtrag; mit Deckung auch den Steuerbeschluss. */
+export function gleicheInflationAus(w: World, mitSteuer = false): Ergebnis {
+  const spiel = w.spiel, e = w.economy, plan = inflationsausgleichPlan(w);
+  if (!spiel || !plan || !e.etat) return { ok: false, text: t("welle_h1.ausgleich.unnoetig") };
+  if (mitSteuer && plan.steuer.grund) return { ok: false, text: plan.steuer.grund };
+  if (!kannZahlen(spiel.kapital, plan.pk + (mitSteuer ? plan.steuer.pk : 0))) return { ok: false, text: t("haushalt.grund.kapital", { kosten: plan.pk + (mitSteuer ? plan.steuer.pk : 0), da: Math.floor(spiel.kapital) }) };
+  if (mitSteuer) {
+    const r = bringeEin(w, "m_mwst", plan.steuer.ziel, null, "erlass");
+    if (!r.ok) return r;
+  }
+  spiel.kapital -= plan.pk;
+  wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.nachtragLegitimitaet);
+  e.etat = { ...e.etat, ausgleich: (e.etat.ausgleich ?? 1) / plan.kaufkraft };
+  const z = haushaltZustand(w);
+  const text = t("welle_h1.ausgleich.beschluss", { mrd: zahl(Math.round(plan.mehrMrd), 0) });
+  z.aenderungen.push({ tag: w.day, datum: w.date, posten: t("welle_h1.ausgleich.posten"), text, folgen: impulsKette(plan.mehrBip).slice(0, 3).map(kettenZeile) });
+  if (z.aenderungen.length > 12) z.aenderungen.shift();
+  z.letzteAenderung = w.day;
+  addLog(w, "entscheidung", text, t("haushalt.beschluss.defizit", { vorher: fmt(plan.defizitVorher), nachher: fmt(defizitJetzt(w)) }));
+  addMarke(w, "haushalt", text);
+  return { ok: true, text };
+}
+
+/** Die Kürzung bleibt: Die Ressortchefs mit eigenem Etat verlieren Loyalität; die Wirkung der Ressorts sinkt schon über die Kaufkraft. */
+export function nimmKuerzungHin(w: World): string {
+  for (const amt of ETAT_AEMTER) {
+    const f = ministerFuer(w, amt);
+    if (f && f.amt === amt) f.loyalitaet = clamp(f.loyalitaet + INFLATIONSAUSGLEICH.loyalitaet, 0, 100);
+  }
+  const plan = inflationsausgleichPlan(w);
+  const text = t("welle_h1.ausgleich.hingenommen", { mrd: zahl(Math.round(plan?.verlustMrd ?? 0), 0) });
+  addLog(w, "entscheidung", text, t("welle_h1.ausgleich.hingenommenWarum"));
+  return text;
+}
+
+/** Das laufende Haushaltsjahr im Vollzug: Abweichung der Einnahmen vom Plan durch die Wirtschaft (Mrd. Lira im Jahr, + = Mehreinnahmen) und die Kaufkraft der Ausgaben. */
+export function haushaltsAbweichung(w: World): { mrd: number; kaufkraft: number } {
+  const r = haushaltsRechnung(w.economy, ertragJeArt(w));
+  return { mrd: geldAusBip(w, r.einnahmen - r.einnahmenPlan), kaufkraft: r.kaufkraft };
 }

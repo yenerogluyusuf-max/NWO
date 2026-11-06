@@ -1,6 +1,8 @@
 // Das Haushaltsrad: außen, wofür der Staat sein Geld ausgibt (nach Aufgaben), innen, woher es kommt (nach Steuern), und die
-// Lücke als schraffiertes Stück „neue Schulden“. Ein Blick zeigt Größenordnung und Defizit; ein Klick auf ein Stück führt zu den
+// Lücke als schraffiertes Stück „auf Kredit“. Ein Blick zeigt Größenordnung und Defizit; ein Klick auf ein Stück führt zu den
 // Reglern. Wunsch des Projektinhabers am 5. November („Kreisdiagramm ist doch besser“, Vorbild Democracy 4).
+// Welle H1 (06.11.2026): Die Lücke ist keine Einnahme. Die Legende „Woher es kommt“ summiert nur die Einnahmen, ihre Anteile beziehen sich
+// auf die Einnahmen, und die Lücke steht abgesetzt als eigene Zahl. Vorher zählte sie mit, und beide Summen standen immer gleich.
 // Farben: Erdpalette des Gestaltungssystems (bausteine/palette.ts, befund-H H-09) statt Tabellenfarben; die hellen Töne Ocker und Sand
 // liegen unter 3:1 Kontrast, darum trägt jede Farbe in der Legende Namen und Betrag.
 
@@ -25,6 +27,8 @@ export interface RadStueck {
   /** Wohin ein Klick führt: Gruppe der Ausgaben oder die Einnahmen */
   ziel?: RadZiel;
   schraffiert?: boolean;
+  /** In der Legende abgesetzt (die Lücke auf Kredit) */
+  abgesetzt?: boolean;
 }
 
 export type RadZiel = PostenGruppe | "steuern";
@@ -52,7 +56,7 @@ export function radStuecke(world: World): { aussen: RadStueck[]; innen: RadStuec
 
   // Einnahmen: dieselben Zeilen wie die Einnahmenseite der Tafel (sim/haushalt-steuern.ts), Steueränderungen stecken in ihrer Steuer
   const innen: RadStueck[] = fin.steuern.map((z, i) => ({ id: z.id, name: z.name, mrd: z.ertragMrd, farbe: EINNAHME[Math.min(i, EINNAHME.length - 1)]!, ziel: "steuern" as const }));
-  if (fin.kreditMrd > 0) innen.push({ id: "kredit", name: t("hd.rad.kredit"), mrd: fin.kreditMrd, farbe: "#8c2b1f", schraffiert: true });
+  if (fin.kreditMrd > 0) innen.push({ id: "kredit", name: t("welle_h1.rad.kredit"), mrd: fin.kreditMrd, farbe: "#8c2b1f", schraffiert: true, abgesetzt: true });
   return { aussen: aussen.filter((x) => x.mrd > 0), innen: innen.filter((x) => x.mrd > 0), ausgabenMrd: fin.ausgabenMrd, einnahmenMrd: fin.einnahmenMrd, kreditMrd: Math.max(0, fin.kreditMrd), ueberhangMrd: Math.max(0, -rest) };
 }
 
@@ -60,11 +64,11 @@ export function HaushaltsRad({ world, defizit, onZiel }: { world: World; defizit
   const r = radStuecke(world);
   const bio = (x: number) => t("hd.bio", { n: zahl(x / 1000, 1) });
   const ziele = new Map([...r.aussen, ...r.innen].map((x) => [x.id, x.ziel]));
-  const alsRad = (x: RadStueck): RadStueckBaustein => ({ id: x.id, name: x.name, wert: x.mrd, farbe: x.farbe, ...(x.schraffiert ? { schraffiert: true } : {}), ...(x.ziel ? { klickbar: true } : {}) });
+  const alsRad = (x: RadStueck): RadStueckBaustein => ({ id: x.id, name: x.name, wert: x.mrd, farbe: x.farbe, ...(x.schraffiert ? { schraffiert: true } : {}), ...(x.abgesetzt ? { abgesetzt: true } : {}), ...(x.ziel ? { klickbar: true } : {}) });
   return (
     <Rad
       aussen={{ stuecke: r.aussen.map(alsRad), summe: Math.max(r.ausgabenMrd, r.aussen.reduce((s, x) => s + x.mrd, 0)), titel: t("hd.rad.wofuer"), gesamt: r.ausgabenMrd }}
-      innen={{ stuecke: r.innen.map(alsRad), summe: Math.max(r.einnahmenMrd + r.kreditMrd, r.innen.reduce((s, x) => s + x.mrd, 0)), titel: t("hd.rad.woher"), gesamt: r.einnahmenMrd + r.kreditMrd }}
+      innen={{ stuecke: r.innen.map(alsRad), summe: Math.max(r.einnahmenMrd + r.kreditMrd, r.innen.reduce((s, x) => s + x.mrd, 0)), titel: t("hd.rad.woher"), gesamt: r.einnahmenMrd, anteilVon: r.einnahmenMrd }}
       wertText={bio}
       mitte={{ titel: defizit > 0 ? t("hd.defizit") : t("hd.ueberschuss"), wert: `${zahl(Math.abs(defizit), 1)} %`, klein: t("hd.desBip") }}
       aria={t("hd.rad.aria", { ausgaben: bio(r.ausgabenMrd), einnahmen: bio(r.einnahmenMrd), kredit: bio(r.kreditMrd) })}

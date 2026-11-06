@@ -10,6 +10,7 @@ import { schlechtBeiHoch } from "../../sim/berichte";
 import { LAENDER, vertrauenZu } from "../../sim/laender";
 import { aktuelleSprache, formatiere, t, zahl as zahlFmt } from "../../i18n";
 import { stimmenSicht } from "../../sim/handeln";
+import { defizitJetzt } from "../../sim/wirtschaft";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import type { EreignisAnsicht } from "../../sim/ereignisse";
@@ -167,7 +168,7 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
   return {
     schulden: () => zahl("schulden", t("ereignis.kz.schulden"), pz(w.economy.debtRatio), reihe(w, (h) => h.debtRatio)),
     inflation: () => zahl("inflation", t("ereignis.kz.inflation"), pz(w.published.inflation.value), reihe(w, (h) => h.inflation)),
-    defizit: () => zahl("defizit", t("ereignis.kz.defizit"), pz(w.economy.deficit)),
+    defizit: () => zahl("defizit", t("ereignis.kz.defizit"), pz(defizitJetzt(w))),
     lira: () => zahl("lira", t("ereignis.kz.lira"), nf(w.economy.usdTry), reihe(w, (h) => h.usdTry)),
     wachstum: () => zahl("wachstum", t("ereignis.kz.wachstum"), pz(w.economy.growth), reihe(w, (h) => h.growth)),
     arbeitslosigkeit: () => zahl("arbeitslosigkeit", t("ereignis.kz.arbeitslosigkeit"), pz(w.economy.unemployment), reihe(w, (h) => h.unemployment)),

@@ -9,6 +9,7 @@
 // `setzeInnovationsQuelle` (Innovationsgrenze aus der Wissensbasis), `setzeGueterQuelle` (Engpässe bei Stahl, Chips, Triebwerken).
 // Fehlt eine Quelle, gilt ein Rückfall aus vorhandenen Größen.
 
+import { kaufkraft } from "./staatsgeld";
 import { militaerVersorgung } from "./versorgung";
 import { GATTUNGEN, GATTUNG_NACH_ID, START_BESCHAFFUNGEN, type GattungId, type Teilstreitkraft } from "../data/streitkraefte";
 import { NET } from "./modell";
@@ -114,7 +115,8 @@ export function etatFaktor(w: World): number {
   if (!r || !w.spiel) return 1;
   const z = haushaltZustand(w);
   const stufe = z.wirksam?.verteidigung ?? z.stufen.verteidigung ?? 0;
-  return clamp(Math.max(0, r.startBip + stufe * r.schritt) / r.startBip, 0.3, 2);
+  // Welle H1: zur realen Kaufkraft der Lira-Ansätze (Inflation über Plan entwertet den Etat)
+  return clamp((Math.max(0, r.startBip + stufe * r.schritt) * kaufkraft(w.economy)) / r.startBip, 0.3, 2);
 }
 
 /** Innovation 0 bis 1 (0,5 = Stand 2026): Quelle von außen, sonst die Innovationsgrenze der Wissensbasis (sim/wissensbasis.ts). */

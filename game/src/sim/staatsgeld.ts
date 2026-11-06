@@ -1,9 +1,137 @@
 import type { EconomyState, World } from "./types";
-import { PLAN_2026 } from "../data/haushaltsplan";
+import { EINNAHMEN_ANTEIL, EINNAHMEN_ARTEN, PLAN_2026, type SteuerArt } from "../data/haushaltsplan";
+// Nur innerhalb von Funktionen benutzt (economy.ts importiert dieses Modul; der Zyklus ist zur Ladezeit unschädlich)
+import { PARAMS } from "./economy";
 
-/** Gemeinsame Jahresrechnung für Schulden, Politiknetz und Haushaltsanzeige, in % des BIP. */
-export function defizitQuote(e: EconomyState, strukturell = false): number {
-  return e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0) - (strukturell ? 0 : (e.konjunkturSaldo ?? 0));
+// ---------------------------------------------------------------------------
+// Welle H1 (06.11.2026): Der Haushalt rechnet wie ein echter Staat. Rückmeldung des Inhabers: „Die Ausgaben und Einnahmen sind immer gleich,
+// egal wie stark sich die Wirtschaft entwickelt.“ Vorher standen beide Seiten als Anteil am BIP, und nur ein gedeckelter Konjunktursaldo
+// bewegte das Defizit.
+//
+// Ausgaben: Das Haushaltsgesetz legt die Primärausgaben einmal im Jahr in Lira fest. Grundlage ist das BIP, das der Haushalt für das Jahr
+//   plant (Planpfad `Haushaltsetat`), mit den beschlossenen Stufen und Posten. Alle Ausgabenbeschlüsse (Grundhaushalt, Regler, Ereignisse,
+//   Kosten der Maßnahmen) zählen als Anteil am Plan-BIP; was unter dem Jahr dazukommt (Nachtrag, Ereignis, Gesetz), wird zum Plan-BIP in
+//   Lira umgerechnet. So bleiben die Lira-Ausgaben fest, solange niemand beschließt. Die Zinsen folgen weiter dem Zinsmodell (sim/haushalt.ts).
+// Einnahmen: Satz mal Bemessungsgrundlage; die Grundlage jeder Steuerart folgt dem tatsächlichen nominalen BIP mit ihrer Elastizität
+//   (data/haushaltsplan.ts, EINNAHMEN_ARTEN). Liegt die Wirtschaft über dem Plan, kommen Mehreinnahmen herein, und dieselben Lira-Ausgaben
+//   sind ein kleinerer Anteil am BIP: Das Defizit sinkt. Eine Rezession reißt ein Loch. Inflation über Plan entwertet die Lira-Ausgaben real
+//   (`kaufkraft`); daran messen die Wirkungen der Ressorts (sim/haushalt.ts).
+// Jahreswechsel: Im Januar beginnt ein neues Haushaltsjahr mit dem BIP von heute als Grundlage. Liegt die Wirtschaft genau auf dem Plan,
+//   rechnet alles wie vorher (Prüfung: test/haushalt-etat.test.ts).
+
+/** Das Haushaltsgesetz des laufenden Jahres: der Planpfad des BIP, auf dem die Lira-Ansätze beruhen. */
+export interface Haushaltsetat {
+  /** Haushaltsjahr */
+  jahr: number;
+  /** Planpfad auf der Skala der Geldbasis: reale Leistung und Preise, mit den Planraten fortgeschrieben */
+  real: number;
+  preise: number;
+  /** Planraten in % p. a.: reales Wachstum und Inflation, die das Haushaltsgesetz annimmt */
+  wachstum: number;
+  inflation: number;
+  /** Letzter fortgeschriebener Monat (JJJJ-MM), im Takt der Geldbasis */
+  letzterMonat: string;
+  /** Inflationsausgleich durch einen Nachtragshaushalt: Faktor auf die Lira-Ausgaben (fehlt = 1), gilt bis zum Jahresende */
+  ausgleich?: number;
+}
+
+/** Einnahmen des Haushaltsgesetzes 2026 in % des BIP (Grundhaushalt ohne Beschlüsse). */
+export const START_EINNAHMEN_BIP = PLAN_2026.einnahmenGesamt / PLAN_2026.mrdProProzentBip;
+
+const gueltigerEtat = (p: Haushaltsetat | undefined): p is Haushaltsetat => !!p
+  && Number.isFinite(p.jahr) && positiv(p.real) && positiv(p.preise) && Number.isFinite(p.wachstum) && Number.isFinite(p.inflation)
+  && /^\d{4}-\d{2}$/.test(p.letzterMonat);
+
+/**
+ * Die Planraten eines neuen Haushaltsgesetzes. Reales Wachstum: das Potenzial, dazu die Erholung oder Abkühlung, die das Modell selbst
+ * erwartet (die Auslastung bildet sich je Monat um den Faktor `gapPersistence` zurück, sim/economy.ts). Inflation: die Erwartung von
+ * Haushalten und Firmen. Beides ist eine Spielannahme, keine Prognose der türkischen Regierung (Zur Bestätigung durch den Inhaber).
+ */
+export function planRaten(e: EconomyState): { wachstum: number; inflation: number } {
+  const erholung = e.outputGap * (Math.pow(PARAMS.gapPersistence, 12) - 1);
+  return { wachstum: e.potentialGrowth + e.potentialShift + erholung, inflation: e.expectedInflation };
+}
+
+function neuesEtat(e: EconomyState, b: Geldbasis, jahr: number): Haushaltsetat {
+  return { jahr, real: b.real, preise: b.preise, ...planRaten(e), letzterMonat: b.letzterMonat };
+}
+
+/**
+ * Plan-BIP / tatsächliches BIP (kleiner 1: die Wirtschaft liegt nominal über dem Plan), der Inflationsausgleich eines Nachtrags und die
+ * Kaufkraft der Lira-Ausgaben (Planpreise / Preise, mal Ausgleich).
+ */
+export function planVerhaeltnis(e: EconomyState): { plan: number; ausgleich: number; kaufkraft: number } {
+  const b = e.geldbasis, p = e.etat;
+  if (!gueltigeBasis(b) || !gueltigerEtat(p)) return { plan: 1, ausgleich: 1, kaufkraft: 1 };
+  const ausgleich = positiv(p.ausgleich) ? p.ausgleich : 1;
+  return { plan: (p.real * p.preise) / (b.real * b.preise), ausgleich, kaufkraft: (p.preise / b.preise) * ausgleich };
+}
+
+/** Reale Kaufkraft der beschlossenen Lira-Ausgaben (1 = wie geplant; 0,97 = drei Prozent weniger, weil die Preise schneller stiegen). */
+export const kaufkraft = (e: EconomyState): number => planVerhaeltnis(e).kaufkraft;
+
+const nullJeArt = (): Record<SteuerArt, number> => Object.fromEntries(EINNAHMEN_ARTEN.map((a) => [a.id, 0])) as Record<SteuerArt, number>;
+
+export interface HaushaltsRechnung {
+  /** Plan-BIP / BIP, Inflationsausgleich und Kaufkraft (planVerhaeltnis) */
+  plan: number;
+  ausgleich: number;
+  kaufkraft: number;
+  /** Primärausgaben der Beschlüsse in % des Plan-BIP */
+  primaerPlan: number;
+  /** Alle folgenden Größen in % des tatsächlichen BIP */
+  primaer: number;
+  zinsen: number;
+  ausgaben: number;
+  /** Ertrag der Steuermaßnahmen je Art in % des Plan-BIP (Beschlüsse seit dem Amtsantritt) */
+  ertrag: Record<SteuerArt, number>;
+  /** Aufkommen je Art: tatsächlich und so, wie es beim Plan-BIP wäre */
+  steuern: Record<SteuerArt, number>;
+  steuernPlan: Record<SteuerArt, number>;
+  /** Steuerbasis jenseits von Sätzen und Konjunktur (konjunkturSaldo) und Übergang älterer Spielstände */
+  basis: number;
+  uebergang: number;
+  einnahmen: number;
+  einnahmenPlan: number;
+  defizit: number;
+}
+
+/**
+ * Die Jahresrechnung des Haushalts in % des BIP. `ertrag` ist der Ertrag der Steuermaßnahmen je Art; ohne Angabe gilt der im Monatsabschluss
+ * gebuchte Stand (EconomyState.steuerErtrag). Lesen bucht nichts.
+ */
+export function haushaltsRechnung(e: EconomyState, ertragJeArt: Partial<Record<SteuerArt, number>> = (e.steuerErtrag ?? {}) as Partial<Record<SteuerArt, number>>): HaushaltsRechnung {
+  const { plan, ausgleich, kaufkraft } = planVerhaeltnis(e);
+  const ertrag = nullJeArt(), steuern = nullJeArt(), steuernPlan = nullJeArt();
+  let ertragSumme = 0, einnahmenPlan = 0, steuerSumme = 0;
+  for (const a of EINNAHMEN_ARTEN) {
+    const x = ertragJeArt[a.id] ?? 0;
+    ertrag[a.id] = x;
+    ertragSumme += x;
+    const q = START_EINNAHMEN_BIP * EINNAHMEN_ANTEIL[a.id] + x;
+    // Lira = q × Plan-BIP × (BIP / Plan-BIP)^ε; als Anteil am BIP: q × plan^(1 − ε)
+    steuern[a.id] = q * Math.pow(plan, 1 - a.elastizitaet);
+    steuernPlan[a.id] = q * plan;
+    steuerSumme += steuern[a.id];
+    einnahmenPlan += steuernPlan[a.id];
+  }
+  const primaerPlan = e.deficit + START_EINNAHMEN_BIP - PLAN_2026.zinsenProzentBip + e.fiscalImpulse + e.policyCost + ertragSumme;
+  // Die Lira-Ausgaben: Plan-BIP mal Beschlüsse, ein Nachtrag zum Inflationsausgleich erhöht sie; die Einnahmen berührt er nicht
+  const primaer = primaerPlan * plan * ausgleich, zinsen = zinsQuote(e), ausgaben = primaer + zinsen;
+  const basis = e.konjunkturSaldo ?? 0, uebergang = e.konjunkturUebergang?.rest ?? 0;
+  const einnahmen = steuerSumme + basis + uebergang;
+  return { plan, ausgleich, kaufkraft, primaerPlan, primaer, zinsen, ausgaben, ertrag, steuern, steuernPlan, basis, uebergang,
+    einnahmen, einnahmenPlan: einnahmenPlan + (basis + uebergang) * plan, defizit: ausgaben - einnahmen };
+}
+
+/**
+ * Gemeinsame Jahresrechnung für Schulden, Politiknetz und Haushaltsanzeige, in % des BIP. Liegt die Wirtschaft auf dem Plan, ist sie
+ * Grunddefizit + Impuls + Maßnahmen + Mehrzinsen − Steuerbasis, wie vor Welle H1. Strukturell (IWF-Auflagen): ohne jede Abweichung durch
+ * die Wirtschaft und ohne Steuerbasis, unverändert.
+ */
+export function defizitQuote(e: EconomyState, strukturell = false, ertrag?: Partial<Record<SteuerArt, number>>): number {
+  if (strukturell) return e.deficit + e.fiscalImpulse + e.policyCost + (e.zinsMehrlast ?? 0);
+  return haushaltsRechnung(e, ertrag).defizit;
 }
 
 export interface Geldbasis {
@@ -83,7 +211,21 @@ export function geldbasis(w: World): Geldbasis {
 }
 
 export function initialisiereStaatsgeld(w: World): void {
-  if (w.spiel) w.economy.geldbasis = { ...geldbasis(w) };
+  if (!w.spiel) return;
+  const e = w.economy, neu = !gueltigeBasis(e.geldbasis);
+  e.geldbasis = { ...geldbasis(w) };
+  // Ältere Spielstände ohne Lira-Etat (und eine neu angelegte Geldbasis) bekommen ein Haushaltsgesetz aus den heutigen Quoten: Plan = heute,
+  // das Defizit springt beim Laden nicht.
+  if (neu || !gueltigerEtat(e.etat)) e.etat = neuesEtat(e, e.geldbasis, Number(e.geldbasis.letzterMonat.slice(0, 4)));
+}
+
+/** Den Planpfad einen Monat fortschreiben; im Januar beginnt ein neues Haushaltsjahr mit dem heutigen BIP als Grundlage. */
+function etatMonat(e: EconomyState, monat: string): void {
+  const p = e.etat, b = e.geldbasis;
+  if (!gueltigerEtat(p) || !gueltigeBasis(b) || monat <= p.letzterMonat) return;
+  const jahr = Number(monat.slice(0, 4));
+  if (jahr > p.jahr) { e.etat = neuesEtat(e, b, jahr); return; }
+  e.etat = { ...p, real: p.real * monatsfaktor(p.wachstum), preise: p.preise * monatsfaktor(p.inflation), letzterMonat: monat };
 }
 
 /** Ein Abrechnungsmonat: reale Wirtschaftsleistung und Preise getrennt fortschreiben.
@@ -96,6 +238,7 @@ export function staatsgeldMonat(w: World): void {
   const real = b.real * monatsfaktor(w.economy.growth), preise = b.preise * monatsfaktor(w.economy.inflation);
   if (!positiv(b.basisBipMrd * real * preise)) return;
   w.economy.geldbasis = { ...b, real, preise, letzterMonat: monat };
+  etatMonat(w.economy, monat);
 }
 
 export function bipMrd(w: World, real = false): number {

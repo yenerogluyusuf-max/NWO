@@ -173,3 +173,15 @@
 .hd-einnahmen .hd-steuer-fest .hd-reihe { grid-template-columns: minmax(0, 1fr) auto; }
 .hd-einnahmen .hd-betrag { white-space: normal; text-wrap: balance; }
 @media (max-width: 560px) { .hd-einnahmen .hd-reihe { grid-template-columns: minmax(0, 1fr) auto; } }
+
+/* Welle H1: das Haushaltsjahr im Vollzug (Einnahmen geplant · eingenommen · Abweichung, Kaufkraft der festen Ausgaben) */
+.hd-vollzug { grid-column: 1 / -1; display: grid; gap: 4px; padding: 8px 0 2px; border-top: 1px solid var(--linie); }
+.hd-vollzug dl { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 26px; margin: 0; }
+.hd-vollzug dl > div { display: flex; align-items: baseline; gap: 8px; }
+.hd-vollzug dt { font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-3); }
+.hd-vollzug .hd-vollzug-kopf dt { font: 600 var(--schrift-3)/1.25 var(--display, Fraunces, serif); color: var(--messing-text); }
+.hd-vollzug dd { margin: 0; font: 600 var(--schrift-3)/1.25 var(--serif); color: var(--tinte-1, var(--tinte-2)); font-variant-numeric: tabular-nums; }
+.hd-vollzug .gut dd { color: #3f6b45; }
+.hd-vollzug .schlecht dd { color: var(--siegel); }
+.hd-vollzug p { margin: 0; font: italic var(--schrift-2)/1.35 var(--serif, "EB Garamond", serif); color: var(--tinte-2); }
+.hd-vollzug p.hd-vollzug-oktober { font-style: normal; color: var(--tinte-1, var(--tinte-2)); }

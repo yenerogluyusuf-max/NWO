@@ -227,7 +227,8 @@ test("gespeicherter Monatsbericht behält damalige Geldbeträge bei späterem Wa
   const original=JSON.stringify(b), html=renderToStaticMarkup(<HaushaltsMonatsbericht bericht={b}/>);
   expect(b.stand.finanzen).toBeDefined();
   const f=b.abschluss; expect(f.nachher.finanzen!.kreditMrd-f.vorher.finanzen!.kreditMrd).toBeCloseTo(geldAusBip(w,0.2),7);
-  w.economy.geldbasis!.real*=1.2; w.economy.geldbasis!.preise*=1.5;
+  // Welle H1: Plan und Wirtschaft wachsen gleich (das Haushaltsjahr verläuft nach Plan); sonst greifen die Steuerelastizitäten
+  w.economy.geldbasis!.real*=1.2; w.economy.geldbasis!.preise*=1.5; w.economy.etat!.real*=1.2; w.economy.etat!.preise*=1.5;
   expect(haushaltsNachsorge(w)!.stand.finanzen!.einnahmenMrd).toBeCloseTo(b.stand.finanzen!.einnahmenMrd*1.8,7);
   expect(JSON.stringify(b)).toBe(original);expect(renderToStaticMarkup(<HaushaltsMonatsbericht bericht={b}/>)).toBe(html);
   expect(haushaltZustand(load(save(w))).monatsberichte!.at(-1)!.stand.finanzen).toEqual(b.stand.finanzen);

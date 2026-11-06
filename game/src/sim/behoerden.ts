@@ -9,6 +9,7 @@
 // Mehretats über dem Haushaltsgesetz trägt Ausbau und Unterhalt ohne neue Schulden; der Rest geht aufs Defizit (`kosten`). Ist das
 // Ressort gekürzt, kostet jeder Ausbau einen Punkt Kapital mehr und dauert länger. Alle Zahlen sind Spielparameter (data/behoerden.ts).
 
+import { kaufkraft } from "./staatsgeld";
 import { ACHSEN, AUSBAU, BEHOERDEN, BEHOERDE_NACH_ID, RESSORT_POSTEN, type Achse, type BehoerdeDef, type BehoerdeId, type BehoerdeBereich } from "../data/behoerden";
 import { stuetze } from "../data/reich/bau";
 import { NET } from "./modell";
@@ -154,7 +155,7 @@ export const HAUSHALT_ETAT: EtatAnbindung = {
   },
   faktor: (w, ressort) => {
     const id = etatPosten(ressort);
-    return id ? 1 + 0.15 * stufeVon(w, id) : 1;
+    return (id ? 1 + 0.15 * stufeVon(w, id) : 1) * kaufkraft(w.economy);
   },
 };
 
@@ -177,7 +178,8 @@ function bezahle(w: World, def: BehoerdeDef, bip: number, zweck: string): boolea
 export function etatFaktor(w: World, def: BehoerdeDef): number {
   const a = aktiv();
   if (a.faktor) return clamp(a.faktor(w, def.ressort), 0.5, 1.6);
-  return clamp(1 + 0.15 * stufeVon(w, def.posten), 0.6, 1.4);
+  // Welle H1: zur realen Kaufkraft der Lira-Ansätze
+  return clamp((1 + 0.15 * stufeVon(w, def.posten)) * kaufkraft(w.economy), 0.6, 1.4);
 }
 
 // ---------------------------------------------------------------------------

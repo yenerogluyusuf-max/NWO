@@ -417,15 +417,20 @@ describe("Rating als Bestand", () => {
 });
 
 describe("Konjunktur, Branchen und Importabhängigkeit", () => {
-  test("Rezession belastet den Haushalt (Stabilisatoren), Aufschwung entlastet ihn", () => {
+  // Welle H1 (06.11.2026), gewollte Regeländerung: Mit Lira-Etat trifft die Konjunktur den Haushalt über das BIP gegenüber dem Plan
+  // (feste Lira-Ausgaben, Einnahmen mit Elastizität, sim/staatsgeld.ts). Der frühere Ausgleich 0,3 × Auslastung im Konjunktursaldo entfällt,
+  // sonst zählte derselbe Boom doppelt. Geprüft wird darum dieselbe Aussage über die Wirtschaftsleistung statt über den Saldo.
+  test("Rezession belastet den Haushalt, Aufschwung entlastet ihn; die Auslastung allein bucht nichts doppelt", () => {
     const w = welt();
-    const plan = defizitStrukturell(w);
+    const plan = defizitStrukturell(w), b = w.economy.geldbasis!, real = b.real;
     w.economy.outputGap = -3;
     koppleNetzAnWirtschaft(w);
-    expect(w.economy.konjunkturSaldo!).toBeLessThan(-0.5);
+    expect(Math.abs(w.economy.konjunkturSaldo!)).toBeLessThan(0.05);
+    b.real = real * 0.97;
     expect(defizitJetzt(w)).toBeGreaterThan(plan + 0.5);
     w.economy.outputGap = 3;
     koppleNetzAnWirtschaft(w);
+    b.real = real * 1.03;
     expect(defizitJetzt(w)).toBeLessThan(plan - 0.5);
   });
 

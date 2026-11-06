@@ -21,7 +21,7 @@ import { zinssitzung } from "./zentralbank";
 import { wirtschaftMonat } from "./wirtschaft-tick";
 import { migriereUmsetzung, umsetzungMonat } from "./umsetzung";
 import { devisenMonat, migriereDevisen } from "./devisen";
-import { koppleNetzAnWirtschaft } from "./maerkte";
+import { koppleNetzAnWirtschaft, migriereKonjunktur } from "./maerkte";
 import { migriereKatastrophen } from "./katastrophe";
 import { migriereWahlkampf } from "./wahlkampf";
 import { migriereChronik } from "./chronik";
@@ -275,6 +275,8 @@ export function load(json: string): World {
   migriereNetz(w);
   bereinigeZahlen(w);
   initialisiereStaatsgeld(w);
+  // Welle H1: Ältere Spielstände ohne Lira-Etat; der frühere Konjunktursaldo läuft aus, das Defizit springt beim Laden nicht
+  migriereKonjunktur(w);
   // Ältere Spielstände: die neuen Ämter des Umfelds (Justiz, Streitkräfte, Wirtschaft) werden einmal ergänzt
   ergaenzeFiguren(w);
   if (w.spiel) behoerden(w);

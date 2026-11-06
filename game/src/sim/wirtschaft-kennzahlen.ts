@@ -10,7 +10,7 @@ import { formatDateDe, formatMonthDe } from "./dates";
 import { defizitJetzt, haushaltZustand, startMonat, verlauf, wirtschaftZustand, zinsausgabenJetzt } from "./wirtschaft";
 import { istGut } from "./folgen";
 import { ZINSSATZ_START, PLAN_2026 } from "../data/haushaltsplan";
-import { bipUsdMrd, schuldenMonatsrechnung } from "./staatsgeld";
+import { bipUsdMrd, defizitQuote, schuldenMonatsrechnung } from "./staatsgeld";
 import { aktuelleLocale, t } from "../i18n";
 
 export type Gruppe = "Preise und Geld" | "Wirtschaft und Arbeit" | "Staat und Märkte" | "Alltag der Menschen";
@@ -312,6 +312,10 @@ export const KENNZAHLEN: Kennzahl[] = [
           tr(t("wk.d92a6aa"), e.policyCost, "% des BIP", t("wk.1ec3e24")),
           tr(t("sf.zinsAenderung"), e.zinsMehrlast ?? 0, "% des BIP", t("sf.zinsText")),
           tr(t("sf.zeile.konjunktur"), -(e.konjunkturSaldo ?? 0), "% des BIP", t("sf.konjunkturDefizit")),
+          // Welle H1: was die Wirtschaft gegenüber dem Haushaltsplan ausmacht (Lira-Ausgaben fest, Einnahmen mit Elastizität), dazu der
+          // auslaufende Konjunktursaldo älterer Spielstände
+          ...(e.konjunkturUebergang ? [tr(t("welle_h1.zeile.uebergang"), -e.konjunkturUebergang.rest, "% des BIP", t("welle_h1.treiber.uebergang"))] : []),
+          tr(t("sf.zeile.wirtschaft"), defizitJetzt(w) - defizitQuote(e, true) + (e.konjunkturSaldo ?? 0) + (e.konjunkturUebergang?.rest ?? 0), "% des BIP", t("welle_h1.treiber.wirtschaft")),
         ],
       };
     },

@@ -226,12 +226,17 @@ describe("Spielbarkeit: einfache Spieler gegeneinander", () => {
     // (gemessen mit denselben Bots über 24 Seeds: 92 %, Zwölferstichprobe mit den Takt-Enden 71 %).
     const erreicht1 = klugL.filter((l) => l.wahl1 !== "-");
     expect(erreicht1.filter((l) => l.wahl1 !== "verloren").length).toBeGreaterThanOrEqual(Math.ceil(erreicht1.length * 0.7));
-    const zweite = klugL.filter((l) => l.wahl2 !== "-");
-    expect(zweite.length).toBeGreaterThanOrEqual(Math.ceil(SEEDS.length * 0.6));
+    // Ob eine Partie die zweite Wahl erreicht, entscheiden auch Tod, Rücktritt und Amtsenthebung, und die hängen am Zufallsstrom der Ereignisse.
+    // Welle H1 (06.11.2026): Ein neuer Vorgang (Inflationsausgleich) zieht jeden Monat eine Zufallszahl mehr. Dadurch erreichten nur 4 von 8
+    // Partien die zweite Wahl (Seed 7 stirbt, Seed 8 wird des Amtes enthoben), die Wahlergebnisse selbst blieben gleich. Über 24 Seeds sind
+    // es 17 (ohne den Vorgang 19, vorher 21). Wie beim Test der Siege unten zählen darum acht weitere Partien; die Schwelle bleibt 60 Prozent.
+    const mehrKlug = Array.from({ length: 8 }, (_, i) => i + 9).map((s) => lauf("klug", klug, s));
+    const zweite = [...klugL, ...mehrKlug].filter((l) => l.wahl2 !== "-");
+    expect(zweite.length).toBeGreaterThanOrEqual(Math.ceil((SEEDS.length + mehrKlug.length) * 0.6));
     expect(zweite.filter((l) => l.wahl2 !== "verloren").length).toBeGreaterThanOrEqual(Math.ceil(zweite.length * 0.7));
     // Die Stichwahl kommt vor: Wer knapp unter 50 Prozent liegt, hat eine zweite Chance, aber keine sichere
     expect(passivL.some((l) => l.wahl1 === "stichwahl" || l.wahl1 === "verloren")).toBe(true);
-  });
+  }, 400_000);
 
   test("Kluges Spielen schlägt Nichtstun deutlich", () => {
     expect(mittel(klugL.map((l) => l.zustimmung5))).toBeGreaterThan(mittel(passivL.map((l) => l.zustimmung5)) + 3);

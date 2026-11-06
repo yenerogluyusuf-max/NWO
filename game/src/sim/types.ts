@@ -72,8 +72,17 @@ export interface EconomyState {
   sektorIndex?: number;
   /** Faktor auf die Wirkung des Ölpreises nach Importabhängigkeit (1 = Start) */
   energieFaktor?: number;
-  /** Konjunkturabhängiger Haushaltssaldo gegenüber dem Plan in % des BIP je Jahr (+ = Entlastung, − = Mehrbelastung) */
+  /** Mehreinnahmen aus der Steuerbasis jenseits von Sätzen und Konjunktur (Steuermoral, Schattenwirtschaft, Verwaltung) in % des BIP je Jahr.
+   * Seit Welle H1 (06.11.2026) ohne den Konjunkturteil: den tragen die Steuerelastizitäten und der Lira-Etat (sim/staatsgeld.ts). */
   konjunkturSaldo?: number;
+  /** Welle H1: das Haushaltsgesetz des laufenden Jahres in Lira (Planpfad des BIP); fehlt in älteren Spielständen und ohne Spielschleife */
+  etat?: import("./staatsgeld").Haushaltsetat;
+  /** Welle H1: Ertrag der Steuermaßnahmen je Steuerart in % des Plan-BIP, mit `policyCost` im Monatsabschluss gebucht */
+  steuerErtrag?: Record<string, number>;
+  /** Welle H1: Teil des Netzknotens „Steuereinnahmen“ (Indexpunkte), der aus Steuersätzen und Konjunktur stammt und darum nicht in `konjunkturSaldo` zählt */
+  steuerbasisSchatten?: number;
+  /** Welle H1: Übergang älterer Spielstände; der frühere Konjunktursaldo läuft in Monatsschritten aus, damit nichts springt (% des BIP) */
+  konjunkturUebergang?: { rest: number; schritt: number };
   /** Verschiebung der natürlichen Arbeitslosigkeit durch die Lage am Arbeitsmarkt des Netzes (Prozentpunkte) */
   arbeitsmarktShift?: number;
   /** Rating als Bestand mit Ausblick (sim/maerkte.ts) */
