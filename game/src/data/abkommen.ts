@@ -483,6 +483,28 @@ export const KLAUSELN: KlauselDef[] = [
 export const KLAUSEL_NACH_ID: Record<string, KlauselDef> = Object.fromEntries(KLAUSELN.map((k) => [k.id, k]));
 
 /**
+ * Themen des Verhandlungstisches: Die Karten stehen je Seite in vier Gruppen, damit der Tisch auch mit vielen Klauseln
+ * überschaubar bleibt (Welle H6, 06.11.2026). Eine Klausel gehört zu genau einem Thema; ein Land kann sie umordnen,
+ * wo seine Fassung etwas anderes meint (Russlands „Transit“ ist das Gas-Drehkreuz, also Energie).
+ */
+export type Thema = "energie" | "handel" | "sicherheit" | "diplomatie";
+export const THEMEN: readonly Thema[] = ["energie", "handel", "sicherheit", "diplomatie"];
+const KLAUSEL_THEMA: Record<string, Thema> = {
+  zoll: "handel", transit: "handel", meerengen: "sicherheit", militaerzugang: "sicherheit", ruestung_koop: "sicherheit", ruestung_kauf: "sicherheit",
+  bauauftraege: "handel", visa: "diplomatie", grenzoeffnung: "diplomatie", vermittlung_zusage: "diplomatie", gas_kauf: "energie",
+  investitionen_oeffnen: "handel", kredit_hilfe: "handel", reform_zusage: "diplomatie", sanktionen_umgehung: "handel", migration_zusage: "diplomatie",
+  s400: "sicherheit", zahlungsweg: "handel", ende_sperre: "handel", v_casus: "sicherheit", verzicht_bohrung: "energie", hafen_oeffnung: "handel",
+  wasser: "energie", energie_lieferung: "energie", beistand: "sicherheit", seesicherheit: "sicherheit", bohrung: "energie",
+  w_zoll: "handel", w_zollunion: "handel", w_visa: "diplomatie", w_ruestung: "sicherheit", w_sanktion: "diplomatie", w_preis: "energie",
+  w_aufschub: "energie", w_swap: "handel", w_pkk: "sicherheit", w_rueckkehr: "diplomatie", w_stuetzpunkt: "sicherheit", w_pipeline: "energie",
+  w_transit: "handel", w_hafen: "handel", w_werk: "handel", w_1915: "diplomatie", w_inseln: "sicherheit", w_seegrenze: "diplomatie",
+  w_trnc: "diplomatie", w_direkthandel: "handel", w_libyen: "diplomatie", w_getreide: "handel", w_luftraum: "sicherheit",
+  w_investition_zusage: "handel", w_akkuyu: "energie", w_handelsziel: "handel", w_defizit: "handel",
+};
+const THEMA_LAND: Record<string, Thema> = { "transit@RUS": "energie" };
+export const themaVon = (id: string, land: string): Thema => THEMA_LAND[`${id}@${land}`] ?? KLAUSEL_THEMA[id] ?? "diplomatie";
+
+/**
  * Klauseln, die während einer Handelssperre (LandZustand.handelssperre) nicht verhandelbar sind — der Weg dorthin führt
  * immer über „ende_sperre“. Stand 30.09.2026: Die Türkei hält die Total-Handels-/Hafen-/Luftraumsperre gegen Israel seit
  * 02.05.2024 vollständig aufrecht (verschärft 02/2026 um einen Zertifikats-Stopp); der Handel ist faktisch null
@@ -528,7 +550,15 @@ export const PROFILE: Record<string, LandProfil> = {
   USA: {
     hebel: -2, rot: [],
     hebelText: "Washington sitzt am längeren Hebel: Es liefert die Technik, die Ankara braucht.",
-    werte: { s400: 9, ruestung_kauf: 6, militaerzugang: 4, sanktionen_umgehung: 6, vermittlung_zusage: 2, gas_kauf: 5, investitionen_oeffnen: 2, w_ruestung: -5, w_sanktion: -6, w_transit: -6 },
+    // Prüfung Welle H6 (06.11.2026) gegen RECHERCHE_REALWELT_LAENDERDOSSIERS.md §1 („Was die USA von der Türkei wollen“):
+    // S-400 aus dem Bestand (s400 9, NDAA §1245 knüpft F-35 daran), Ende der Iran-/Russland-Schattenfinanzierung (sanktionen_umgehung 6;
+    // türkische Banken als Umgehungskanal sind eine Rote Linie Washingtons), US-LNG statt Russland (gas_kauf 5; Mercuria 4 bcm/a ab 2026).
+    // Forderungen: F-35/F110 (w_ruestung, früher −5, jetzt −3) bringt Washington Aufträge — der F110-Verkauf für den KAAN ist dem Kongress
+    // seit 06/2026 notifiziert —, kostet aber politisch (Kongress, NDAA §1245); CAATSA (w_sanktion −6) sagte der Präsident am 07.07.2026
+    // zu, der Kongress blockiert (CRS IN12710). So trägt die erwartete Formel „S-400 gegen CAATSA und F-35“ (Dossier §1, 2028-Projektion)
+    // genau bei guter Beziehung und braucht bei kühler eine Zugabe. „Transit für türkische Güter“ durch die USA gibt es nicht: Die
+    // Klausel stand ohne Sinn im Profil und ist entfernt. Die Zahlen bleiben Spielparameter.
+    werte: { s400: 9, ruestung_kauf: 6, militaerzugang: 4, sanktionen_umgehung: 6, vermittlung_zusage: 2, gas_kauf: 5, investitionen_oeffnen: 2, w_ruestung: -3, w_sanktion: -6 },
     texte: {
       w_ruestung: { label: "F-35, F110-Triebwerke und Ersatzteile freigeben", text: "Washington gibt die gesperrte Technik frei: F-35-Kampfjets (die Türkei will 40), F110-Triebwerke für das Kampfflugzeug KAAN, Ersatzteile für die F-16." },
       w_sanktion: { label: "CAATSA-Sanktionen aufheben", text: "Die Sanktionen gegen die türkische Rüstungsbehörde wegen des Kaufs der S-400 entfallen." },
@@ -539,6 +569,11 @@ export const PROFILE: Record<string, LandProfil> = {
   EU: {
     hebel: 0, rot: [],
     hebelText: "Brüssel ist der größte Handelspartner, aber ein Bündnis von 27: Jede Bewegung braucht Einstimmigkeit.",
+    // Prüfung Welle H6 gegen RECHERCHE_REALWELT_LAENDERDOSSIERS.md §2: Brüssel will Migrationssteuerung (migration_zusage 7; Abkommen 2016
+    // trägt weiter), Durchsetzung der Russland-Sanktionen (sanktionen_umgehung 6) und Rechtsstaat (reform_zusage 9: der Ratsbeschluss
+    // von 2018 macht ihn zur Vorbedingung). Forderungen: Zollunion und Visafreiheit sind laut Rat ohne Rechtsstaats-Bewegung ausgeschlossen
+    // (w_zollunion −5, w_visa −7), SAFE scheitert an Zyperns Einstimmigkeit (w_ruestung −4). Transit für türkische Lastwagen durch
+    // Bulgarien und Griechenland (Genehmigungen, Fahrervisa) kostet die EU wenig, aber Mitgliedstaaten blockieren (w_transit −4).
     werte: { reform_zusage: 9, zoll: 5, sanktionen_umgehung: 6, migration_zusage: 7, investitionen_oeffnen: 2, vermittlung_zusage: 1, w_zollunion: -5, w_visa: -7, w_ruestung: -4, w_transit: -4 },
     texte: {
       w_zollunion: { text: "Die Zollunion von 1995 wird modernisiert; Griechenland und Zypern blockieren bisher." },
@@ -549,7 +584,30 @@ export const PROFILE: Record<string, LandProfil> = {
   RUS: {
     hebel: 0, rot: [],
     hebelText: "Moskau braucht die Türkei als Tor nach Westen; Ankara braucht Moskaus Gas und Akkuyu.",
-    werte: { gas_kauf: 8, zoll: 3, meerengen: 4, vermittlung_zusage: 3, investitionen_oeffnen: 2, zahlungsweg: 7, transit: 5, w_preis: -6, w_aufschub: -4, w_akkuyu: -3, w_getreide: -2, w_transit: -4 },
+    // Prüfung Welle H6 (06.11.2026): Rückmeldung des Inhabers „kein Russland der Welt würde so ein Angebot annehmen“. Jeder Wert ist
+    // jetzt eine Abwägung aus der Sicht Moskaus, belegt mit RECHERCHE_REALWELT_LAENDERDOSSIERS.md §3 („Was Russland von der Türkei will“,
+    // „Rote Linien“). Die Zahlen bleiben Spielparameter; die Begründung ist es nicht.
+    //   gas_kauf +8     Verlängerung der Verträge (~22 bcm/a, Ablauf Ende 2026) zu möglichst hohen Mengen ist Wunsch Nr. 1; die Türkei ist
+    //                   nach dem Wegfall Europas einer der größten Abnehmer von Pipelinegas aus Russland.
+    //   zahlungsweg +7  „Zahlungswege offen halten (Banken)“ — unter Sanktionen für Moskau knapp.
+    //   transit +5      Gas-Drehkreuz in der Türkei: Weiterleitung nach Südeuropa (Vorschlag Moskaus seit Oktober 2022).
+    //   meerengen +4    Strenges Montreux (1936) hält NATO-Kriegsschiffe aus dem Schwarzen Meer; Rote Linie Moskaus ist jede Aufweichung.
+    //   vermittlung +3  „Vermittlerrolle, die Moskau schont“ (Istanbuler Gespräche 2022 und 2025).
+    //   zoll +3, investitionen_oeffnen +2: Handel ist massiv einseitig zugunsten Russlands (Einfuhren der Türkei 42,4 Mrd. $ 2025, TÜİK),
+    //                   niedrigere Zölle helfen wenig, Investitionen etwas.
+    //   w_preis −6      Ein Nachlass kostet direkt Einnahmen, in einer Kriegswirtschaft mit wachsendem Defizit (3,5–4,4 % des BIP).
+    //   w_aufschub −4   Gestundete Rechnungen fehlen in der Kasse, aber Moskau gewährt sie, wenn es die Türkei bindet.
+    //   w_akkuyu −1     Rosatom baut, besitzt und betreibt Akkuyu (Regierungsabkommen vom 12. Mai 2010, Bauen-Besitzen-Betreiben;
+    //                   Abnahmegarantie 12,35 US-Cent je kWh, RECHERCHE_ENERGIE.md §4.2); „Akkuyu vollenden + Folgeprojekte (Sinop)“
+    //                   steht auf Moskaus eigener Liste. Was die Türkei verlangt — Blöcke 2 bis 4 im Zeitplan, Brennstoff auf Jahre,
+    //                   gesicherter Zahlungsweg — kostet Moskau aber Kapital unter Sanktionen (9 Mrd. $ Zusatzfinanzierung 12/2025)
+    //                   und bindet es. Fast im eigenen Interesse, aber nicht umsonst: früher −3, jetzt −1.
+    //   w_getreide −2   Moskau will seine eigenen Getreide- und Düngerexporte störungsfrei, der Korridor nützt aber auch der Ukraine;
+    //                   aus der Schwarzmeer-Getreideinitiative (Juli 2022) stieg Russland am 17. Juli 2023 aus.
+    //   w_transit −2    Transit türkischer Waren durch Russland nach Zentralasien bringt Gebühren und hält Verkehr auf russischen Wegen
+    //                   statt im Mittleren Korridor; Moskau gibt aber ein Druckmittel ab (Fahrgenehmigungen, 2015/16 als Strafe genutzt).
+    //                   Früher −4, das überzeichnete den Preis.
+    werte: { gas_kauf: 8, zoll: 3, meerengen: 4, vermittlung_zusage: 3, investitionen_oeffnen: 2, zahlungsweg: 7, transit: 5, w_preis: -6, w_aufschub: -4, w_akkuyu: -1, w_getreide: -2, w_transit: -2 },
     texte: {
       gas_kauf: { label: "Gasverträge verlängern", text: "Die großen Gasverträge mit Russland liefen Ende 2026 aus; jetzt geht es um rund 22 Milliarden Kubikmeter im Jahr." },
       w_akkuyu: { text: "Block 1 von Akkuyu läuft seit Juni 2026 an; für die Blöcke 2 bis 4, die Brennstoff-Sicherung und den Zahlungsweg braucht es eine Einigung." }, // Teil V §5.2: „2 Mrd. $ stecken fest“ ist überholt
