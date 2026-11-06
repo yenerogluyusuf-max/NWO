@@ -54,7 +54,7 @@
   padding: 4px 6px; border: 1px solid transparent; border-radius: 4px; background: none; box-shadow: none; font: var(--schrift-3) var(--serif);
 }
 .dossier button.po-lage:hover { background: rgba(255, 250, 235, 0.75); border-color: rgba(120, 90, 50, 0.35); }
-.po-lage-name { min-width: 0; overflow-wrap: anywhere; }
+.po-lage-name { min-width: 0; overflow-wrap: break-word; hyphens: auto; }
 .po-balken { position: relative; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); }
 .po-balken i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--teal); }
 .po-lage.b-gut .po-balken i { background: var(--gut); }

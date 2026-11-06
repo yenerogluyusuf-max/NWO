@@ -83,11 +83,11 @@
   /* Sieben Größen. 13 px nur für Kapitälchen, Zahlen, Einheiten und Achsen; jeder Satz in Garamond mindestens 14 px. */
   --schrift-1: 13px;
   --schrift-2: 14px;
-  --schrift-3: 16px;
-  --schrift-4: 18px;
-  --schrift-5: 21px;
-  --schrift-6: 28px;
-  --schrift-7: 48px;
+  --schrift-3: 15px;
+  --schrift-4: 17px;
+  --schrift-5: 19px;
+  --schrift-6: 24px;
+  --schrift-7: 38px;
   /* Laufweiten: normal, Beschriftung, Kicker */
   --laufweite-1: 0.04em;
   --laufweite-2: 0.1em;
@@ -1590,14 +1590,17 @@ button.link { border: none; background: none; box-shadow: none; padding: 0; colo
 @media (max-width: 1400px) { .stage:has(.dossier) .cartouche { display: none; } }
 
 /* Handlungsfeld einer Größe, eines Problems, einer Gruppe */
-.handlungsfeld { display: grid; gap: 8px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(90, 64, 40, 0.3); }
-.hh-titel { margin: 0; font: 600 var(--schrift-5) var(--display); }
-.hh-kopf { margin-top: 6px; font: 600 var(--schrift-1) var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
-.hh-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
-.hh-zeile { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 8px 10px 9px; border: 1px solid rgba(120, 90, 50, 0.3); border-left: 4px solid var(--gold-3); background: rgba(255, 250, 235, 0.6); }
-.hh-text { display: grid; gap: 1px; min-width: 0; }
-.hh-text strong { font: 600 var(--schrift-3)/1.25 var(--display); }
-.hh-text span { font: italic var(--schrift-2)/1.35 var(--serif); color: var(--ink-soft); }
+.handlungsfeld { display: grid; gap: 6px; }
+.dossier .net-side .policy.handlungsfeld { padding: 14px 18px 16px !important; }
+.hf-titel { margin: 0; font: 600 var(--schrift-5)/1.2 var(--display); }
+.handlungsfeld > .subtitle { margin: 0; font: italic var(--schrift-2)/1.4 var(--serif); }
+.hf-kopf { display: block; margin: 8px 0 0; font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--tinte-2); }
+.hf-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.hf-zeile { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 8px 6px 10px; border: 1px solid rgba(120, 90, 50, 0.25); border-left: 3px solid var(--gold-3); border-radius: 3px; background: rgba(255, 250, 235, 0.6); }
+.hf-text { display: grid; gap: 0; min-width: 0; }
+.hf-text strong { font: 600 var(--schrift-3)/1.25 var(--display); }
+.hf-text span { font: italic var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+.dossier .hf-zeile button.aktion-knopf { padding: 4px 11px; font: 600 var(--schrift-2) var(--serif); }
 
 /* Folgen statt nur Kosten: erst das, was im Land geschieht, das Geld zuletzt */
 .folgen { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font: var(--schrift-3)/1.35 var(--serif); }

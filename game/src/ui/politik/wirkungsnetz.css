@@ -48,10 +48,10 @@
 /* ---------- Das Bild ---------- */
 .dossier .netview .netgraph-block { padding: var(--abstand-2) var(--abstand-3) var(--abstand-2); border-radius: var(--rund-2); }
 .dossier .netview .netgraph { margin: 0 auto; }
-.dossier .netview .ng-label { font-size: var(--schrift-4); }
-.dossier .netview .ng-node.main .ng-label { font-size: var(--schrift-4); font-weight: 600; }
-.dossier .netview .ng-head { font-size: var(--schrift-4); }
-.dossier .netview .ng-lag { font-size: var(--schrift-4) !important; }
+.dossier .netview .ng-label { font-size: var(--schrift-3); }
+.dossier .netview .ng-node.main .ng-label { font-size: var(--schrift-3); font-weight: 600; }
+.dossier .netview .ng-head { font-size: var(--schrift-3); }
+.dossier .netview .ng-lag { font-size: var(--schrift-2) !important; }
 .dossier .netview .ng-empty { font-size: var(--schrift-3); }
 .dossier .netview .ng-legende li { gap: var(--abstand-1); }
 .dossier .netview .ng-legende { gap: var(--abstand-1) var(--abstand-4); padding: var(--abstand-1) var(--abstand-1) 0; font-size: var(--schrift-2); }
@@ -147,3 +147,11 @@
 @media (max-width: 1180px) {
   .dossier .netview .net-detail { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Kopf einer Größe: Titel links, die eine Zahl rechts daneben statt in einer eigenen Zeile darunter */
+.dossier .netview .net-main.nv-seitlich { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--abstand-5); align-items: start; }
+.dossier .netview .net-main.nv-seitlich > * { grid-column: 1 / -1; }
+.dossier .netview .net-main.nv-seitlich > .nv-kopf { grid-column: 1; grid-row: 1; }
+.dossier .netview .net-main.nv-seitlich > .nv-wert { grid-column: 2; grid-row: 1; justify-items: end; margin: var(--abstand-2) 0 var(--abstand-3); text-align: right; }
+.dossier .netview .net-main.nv-seitlich .nv-wert-fuss { flex-direction: column; align-items: flex-end; max-width: 11rem; text-wrap: balance; }
+.dossier .netview .net-main.nv-seitlich .nv-start { font-size: var(--schrift-2); line-height: 1.35; }

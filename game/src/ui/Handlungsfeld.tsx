@@ -38,8 +38,8 @@ export function Handlungsfeld({
 }) {
   const mittel = (id: string) => nationalAverage(NET, world.net, id);
   const zeile = (h: HandlungsHebel, ort: number[] | null, zusatz?: string) => (
-    <li key={`${h.massnahme}-${h.folge}`} className="hh-zeile">
-      <div className="hh-text">
+    <li key={`${h.massnahme}-${h.folge}`} className="hf-zeile">
+      <div className="hf-text">
         <strong>
           {tunSatz(h.massnahme, h.richtung, h.name)}
         </strong>
@@ -65,8 +65,8 @@ export function Handlungsfeld({
             ? t("ui2.ui.Handlungsfeld.6550592", { p0: node.name, p1: orte.length, p2: orte.length === 1 ? "Provinz" : "Provinzen" })
             : t("ui2.ui.Handlungsfeld.8ed19cd", { p0: node.name })}
         </p>
-        <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.be55758")}</b>
-        <ul className="hh-liste">{hebel.map((h) => zeile(h, orte.length > 0 && orte.length <= 50 ? orte : null, orte.length ? `${orte.length} ${orte.length === 1 ? "Provinz" : "Provinzen"}` : undefined))}</ul>
+        <b className="hf-kopf">{t("ui2.ui.Handlungsfeld.be55758")}</b>
+        <ul className="hf-liste">{hebel.map((h) => zeile(h, orte.length > 0 && orte.length <= 50 ? orte : null, orte.length ? `${orte.length} ${orte.length === 1 ? "Provinz" : "Provinzen"}` : undefined))}</ul>
         {hebel.length === 0 && <p className="subtitle">{t("ui.Handlungsfeld.14f0951")}</p>}
       </>
     );
@@ -75,8 +75,8 @@ export function Handlungsfeld({
     inhalt = (
       <>
         <p className="subtitle">{t("ui.Handlungsfeld.7de9cd7")}</p>
-        <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.3f10267")}</b>
-        <ul className="hh-liste">{hebel.map((h) => zeile(h, null))}</ul>
+        <b className="hf-kopf">{t("ui2.ui.Handlungsfeld.3f10267")}</b>
+        <ul className="hf-liste">{hebel.map((h) => zeile(h, null))}</ul>
       </>
     );
   } else {
@@ -88,11 +88,11 @@ export function Handlungsfeld({
         <p className="subtitle">{node.input ? t("ui2.ui.Handlungsfeld.104f44b") : t("ui2.ui.Handlungsfeld.ab52d02")}</p>
         {eingriffe.length > 0 && (
           <>
-            <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.8b03b58")}</b>
-            <ul className="hh-liste">
+            <b className="hf-kopf">{t("ui2.ui.Handlungsfeld.8b03b58")}</b>
+            <ul className="hf-liste">
               {eingriffe.map((e) => (
-                <li key={e.option} className="hh-zeile">
-                  <div className="hh-text">
+                <li key={e.option} className="hf-zeile">
+                  <div className="hf-text">
                     <strong>{EINGRIFF_NAME[e.option]}</strong>
                     <span>{e.wirkt}</span>
                   </div>
@@ -106,14 +106,14 @@ export function Handlungsfeld({
         )}
         {senken.length > 0 && (
           <>
-            <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.4f20a36", { p0: node.name })}</b>
-            <ul className="hh-liste">{senken.map((h) => zeile(h, null))}</ul>
+            <b className="hf-kopf">{t("ui2.ui.Handlungsfeld.4f20a36", { p0: node.name })}</b>
+            <ul className="hf-liste">{senken.map((h) => zeile(h, null))}</ul>
           </>
         )}
         {heben.length > 0 && (
           <>
-            <b className="hh-kopf">{t("ui2.ui.Handlungsfeld.d25c677", { p0: node.name })}</b>
-            <ul className="hh-liste">{heben.map((h) => zeile(h, null))}</ul>
+            <b className="hf-kopf">{t("ui2.ui.Handlungsfeld.d25c677", { p0: node.name })}</b>
+            <ul className="hf-liste">{heben.map((h) => zeile(h, null))}</ul>
           </>
         )}
         {senken.length === 0 && heben.length === 0 && eingriffe.length === 0 && <p className="subtitle">{t("ui.Handlungsfeld.9f94acf")}</p>}
@@ -123,7 +123,7 @@ export function Handlungsfeld({
 
   return (
     <div className="policy handlungsfeld">
-      <h4 className="hh-titel">{t("ui.Handlungsfeld.51a8bcf")}</h4>
+      <h4 className="hf-titel">{t("ui.Handlungsfeld.51a8bcf")}</h4>
       {inhalt}
     </div>
   );

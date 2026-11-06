@@ -307,7 +307,8 @@ export function NetView({
       )}
 
       <section className="paper net-detail">
-        <div className="net-main">
+        {/* Bei Größen steht die eine Zahl neben dem Titel; bei Maßnahmen ist der Wert mit Einheit zu lang dafür */}
+        <div className={`net-main${istMassnahme ? "" : " nv-seitlich"}`}>
           <header className="nv-kopf">
             <p className="kind-label">
               {KIND_LABEL[node.kind]} · {themeName(node.theme)}

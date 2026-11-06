@@ -11,7 +11,7 @@ import { t as tx } from "../i18n";
 // Die Zeichnung hat etwa die Breite der Spalte (W rund 550 bis 620 bei rund 460 px), damit die Schrift nach dem Verkleinern lesbar
 // bleibt (vorher W = 820 in einer 400-px-Spalte: 8 px Schrift). Die Kästen stehen je Spalte nach ihrer Höhe gestapelt, nicht in
 // festen Zeilen; ohne Ursachen ist die linke Spalte nur so breit wie das Siegel.
-const BOX_W = 168;
+const BOX_W = 156;
 const MAX = 8;
 /** Breite der linken Spalte: Kästen der Ursachen oder, ohne Ursachen, nur das Siegel „Beschluss der Regierung“ */
 const LINKS_KAESTEN = BOX_W + 12;
@@ -25,13 +25,13 @@ const LUECKE_R = 70;
 const ZEICHEN = 17;
 const ZEICHEN_MITTE = 13;
 /** Zeilenhöhe der Beschriftung, Innenabstand und Abstand zwischen den Kästen */
-const ZEILE = 20;
-const ZEILE_MITTE = 22;
-const RAND = 12;
-const LUECKE = 7;
-const KOPF = 30;
+const ZEILE = 18;
+const ZEILE_MITTE = 19;
+const RAND = 10;
+const LUECKE = 6;
+const KOPF = 26;
 /** Halbe Breite des mittleren Kastens (Pfeile enden und beginnen an seinem Rand) */
-const MITTE_HALB = 72;
+const MITTE_HALB = 66;
 
 /** Bricht einen Namen in bis zu drei Zeilen; nichts wird abgeschnitten. */
 function lines(name: string, max = ZEICHEN): string[] {
