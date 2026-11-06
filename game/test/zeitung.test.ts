@@ -440,7 +440,8 @@ describe("Oberfläche", () => {
   test("die Frontseite lässt sich zeichnen: Masthead, Blätter-Reiter, Archiv und Pressefreiheits-Hinweis", () => {
     const w = spiel(5);
     advance(w, tageZumErsten(w.date));
-    const html = renderToStaticMarkup(createElement(Zeitung, { world: w }));
+    // Der Hinweis auf die Pressefreiheit führt zum Reiter „Medien steuern“; die Bühne reicht dafür `onMedien` durch (seit 6. November)
+    const html = renderToStaticMarkup(createElement(Zeitung, { world: w, onMedien: () => {} }));
     expect(html).toContain("Ausgabe Nr.");
     expect(html).toContain("Archiv");
     expect(html).toContain("Pressefreiheit");

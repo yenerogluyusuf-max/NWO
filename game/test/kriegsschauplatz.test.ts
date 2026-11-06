@@ -49,8 +49,10 @@ function krieg(w: World, landId: string, zielraum?: string): KriegVorgang {
   const k = kriegMit(w, landId)!;
   expect(k).toBeTruthy();
   k.eskalation = 80;
+  k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   advance(w, 1);
   expect(k.phase).toBe("drohkulisse");
+  k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
   if (zielraum) expect(waehleZielraum(w, k.id, zielraum).ok).toBe(true);
   fuehreKriegHandlungAus(w, k.id, "ziel_verteidigung");
   fuehreKriegHandlungAus(w, k.id, "beschluss");
@@ -262,6 +264,23 @@ describe("Migration und Nichtkrieg", () => {
     expect(k.gegnerBestand).toBeTruthy();
     advance(w, 14);
     expect(k.regionen).toBeTruthy();
+  });
+
+  test("Front und Verbände stehen auf der Karte und rücken mit der Frontlage vor (Befund G-1)", () => {
+    const w = welt();
+    const k = krieg(w, "CYP", "cyp_maximal");
+    const grenze = (): [number, number] => [34.6, 36.8];
+    k.front = 50;
+    const a = kriegsKarte(w, kriege(w), grenze)!;
+    k.front = 80;
+    const b = kriegsKarte(w, kriege(w), grenze)!;
+    expect(a.fronten).toHaveLength(1);
+    const abstand = (f: NonNullable<typeof a.fronten>[number]) => Math.hypot(f.punkt[0] - 34.6, f.punkt[1] - 36.8);
+    expect(abstand(b.fronten![0]!), "bessere Front liegt tiefer im Zielgebiet").toBeGreaterThan(abstand(a.fronten![0]!));
+    expect(a.verbaende!.some((v) => v.seite === "eigen")).toBe(true);
+    expect(a.verbaende!.some((v) => v.seite === "gegner")).toBe(true);
+    // Deterministisch: gleiche Lage, gleiche Karte
+    expect(kriegsKarte(w, kriege(w), grenze)).toEqual(b);
   });
 
   test("ohne Krieg und Besatzung zeigt die Karte nichts", () => {

@@ -76,7 +76,7 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
     return () => ro.disconnect();
   }, []);
 
-  const nf = (x: number, d = stellen) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const nf = (x: number, d = stellen) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
   const g = useMemo(() => {
     const hoehe = breite < 480 ? 230 : 290;
@@ -108,14 +108,19 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
     const y = (v: number) => rand.t + ih - ((v - lo) / (hi - lo)) * ih;
     const ticksY = niceTicks(lo, hi, breite < 480 ? 4 : 5);
     const gesamt = endI - startI;
-    const proTick = Math.max(1, Math.floor(gesamt / Math.max(2, Math.floor(iw / 70))));
+    const proTick = Math.max(1, Math.floor(gesamt / Math.max(2, Math.floor(iw / 96)))); // N3: Monatsnamen brauchen rund 90 px, vorher überlappten sie
     const schritt = [1, 2, 3, 6, 12, 24].find((s) => s >= proTick) ?? 24;
     const ticksX: number[] = [];
     for (let i = Math.ceil(startI / schritt) * schritt; i <= endI; i += schritt) ticksX.push(i);
     return { hoehe, rand, jetztI, startI, endI, lo, hi, iw, ih, x, y, ticksY, ticksX, sichtbareLinien, bandLaenge };
   }, [breite, punkte, band, linien, marken.length, jetztMonat]);
 
-  const linie = punkte.map((p) => `${g.x(mi(p.monat)).toFixed(1)},${g.y(p.wert).toFixed(1)}`).join(" ");
+  // Vor dem Amtsantritt gibt es keine gemessene Reihe: Die Vorgeschichte ist aus den Startwerten fortgeschrieben (sim/world.ts
+  // syntheticHistory) und wird grau gestrichelt als Annahme gezeichnet, der Verlauf ab dem Amtsantritt durchgezogen (Befund D-9).
+  const pt = (p: Punkt) => `${g.x(mi(p.monat)).toFixed(1)},${g.y(p.wert).toFixed(1)}`;
+  const vorher = punkte.filter((p) => p.monat <= startMonat);
+  const linie = punkte.filter((p) => p.monat >= startMonat).map(pt).join(" ");
+  const annahme = vorher.length > 1 ? vorher.map(pt).join(" ") : "";
   const letzter = punkte[punkte.length - 1];
 
   const bandPfad = (b: Band[]) => {
@@ -211,7 +216,9 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
         )}
 
         {/* Verlauf */}
-        {punkte.length > 1 && <polyline points={linie} className="wi-verlauf" />}
+        {annahme && <polyline points={annahme} className="wi-verlauf wi-annahme"><title>{t("n3.diagramm.annahme")}</title></polyline>}
+        {annahme && vorher[0] && <text x={g.x(mi(vorher[0].monat)) + 2} y={g.hoehe - g.rand.b - 5} className="wi-start-text wi-annahme-text">{t("n3.diagramm.annahme")}</text>}
+        {linie.includes(" ") && <polyline points={linie} className="wi-verlauf" />}
         {band && band.ohne.length > 0 && <polyline points={medianPfad(band.ohne)} className="wi-median" />}
         {band?.mit && band.mit.length > 0 && <polyline points={medianPfad(band.mit)} className="wi-median wi-median-mit" />}
         {letzter && (

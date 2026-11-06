@@ -3,6 +3,7 @@
 // sie sollen Unterschiede in die richtige Richtung zeigen, nicht messen.
 
 import raw from "../data/provinzdaten.json";
+import infraRaw from "../data/provinz_infra.json";
 import type { RegionalStart } from "./netz";
 import { datenTabelle } from "../i18n/daten";
 
@@ -67,7 +68,26 @@ function perProvince(f: (p: ProvinceData, gdpRatio: number) => number): number[]
 const cityFactor = (p: ProvinceData, big: number, mid: number, small: number) =>
   p.bevoelkerung > 4_000_000 ? big : p.bevoelkerung > 2_000_000 ? mid : small;
 
+/**
+ * Belegte Unterschiede der Netze je Provinz (Befund F-3, Nacht N6): Straßendichte (km je km²) und Schienenlänge je Fläche aus
+ * data/provinz_infra.json (© OpenStreetMap-Mitwirkende, ODbL, Geofabrik-Auszug Türkei). Vorher starteten „Straßen und Autobahnen“
+ * und „Bahnnetz“ in allen 81 Provinzen gleich (Adıyaman mit 52 km Bahn wie İstanbul). Gedämpft mit Exponent 0,35 und so genormt,
+ * dass das Landesmittel (nach Bevölkerung) gleich bleibt; Provinzen ohne Schiene zählen mit 15 % des Mittels. Exponent und
+ * Untergrenze sind Spielparameter, die Rangfolge kommt aus den Daten.
+ */
+const INFRA_PROV = (infraRaw as { provinzen: Record<string, { flaeche_km2: number; strasse_dichte: number; schiene_km: number }> }).provinzen;
+function netzFaktor(wert: (p: ProvinceData) => number): number[] {
+  const roh = PROVINZEN.map(wert);
+  const mittel = roh.reduce((s, x, i) => s + x * WEIGHTS[i]!, 0);
+  const f = roh.map((x) => (Math.max(x, 0.15 * mittel) / Math.max(1e-9, mittel)) ** 0.35);
+  const norm = f.reduce((s, x, i) => s + x * WEIGHTS[i]!, 0);
+  return f.map((x) => x / norm);
+}
+
 export const REGIONAL: RegionalStart = {
+  verkehrsnetz: netzFaktor((p) => INFRA_PROV[String(p.plaka)]?.strasse_dichte ?? 0),
+  bahnnetz: netzFaktor((p) => { const x = INFRA_PROV[String(p.plaka)]; return x ? x.schiene_km / Math.max(1, x.flaeche_km2) : 0; }),
+
   // Eingang: Arbeitslosigkeit je Provinz relativ zum Landeswert
   arbeitslosigkeit: perProvince((p) => p.arbeitslosigkeit / avgUnemployment),
 

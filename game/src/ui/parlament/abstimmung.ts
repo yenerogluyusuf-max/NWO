@@ -21,6 +21,8 @@ export interface Abstimmung {
   /** „im ganzen Land“ oder die betroffenen Provinzen, wie im Protokoll */
   ort: string;
   stufe?: number;
+  /** Abwesende Mitglieder (Art. 96: gezählt wird unter den Anwesenden); ältere Einträge haben 600 Stimmen ohne Abwesende */
+  abwesend?: number;
   fraktionen?: VersorgungsStimme[];
 }
 
@@ -42,7 +44,7 @@ export function leseAbstimmung(l: Pick<LogEntry, "text" | "day" | "date" | "vers
   if (l.abstimmung) {
     const s = l.abstimmung;
     if (s.art !== "gesetz") return null;
-    return { name: s.name, ort: s.ort, ja: s.ja, nein: s.nein, angenommen: s.angenommen, tag: l.day, datum: l.date, ...(s.stufe !== undefined ? { stufe: s.stufe } : {}) };
+    return { name: s.name, ort: s.ort, ja: s.ja, nein: s.nein, angenommen: s.angenommen, tag: l.day, datum: l.date, ...(s.stufe !== undefined ? { stufe: s.stufe } : {}), ...(s.abwesend ? { abwesend: s.abwesend } : {}) };
   }
   const a = ANGENOMMEN.exec(l.text);
   if (a) return { name: a[1]!, ort: a[2]!, ja: Number(a[3]), nein: Number(a[4]), angenommen: true, tag: l.day, datum: l.date, ...(a[5] ? { stufe: Number(a[5]) } : {}) };
@@ -70,10 +72,12 @@ export function merkeGesetze(world: World, speicher: Map<string, string[]>): voi
 
 export interface Verlauf {
   lage: Parlamentslage;
-  /** Ja oder Nein je Sitz von links */
-  votum: boolean[];
+  /** Ja, Nein oder abwesend (null) je Sitz von links */
+  votum: (boolean | null)[];
   /** Ja-Stimmen bis einschließlich Sitz i */
   jaKum: number[];
+  /** Nein-Stimmen bis einschließlich Sitz i (Abwesende zählen nicht) */
+  neinKum: number[];
   jaJe: Record<string, number>;
 }
 
@@ -92,14 +96,25 @@ export function baueVerlauf(world: World, ab: Abstimmung, sachParteien: string[]
   const dul = duldung(world);
   const sachJa = lage.fraktionen.filter((f) => sachParteien.includes(f.partei)).reduce((s, f) => s + Math.round(f.sitze * SACHSTIMMEN_QUOTE), 0);
   const jaJe = ab.fraktionen ? Object.fromEntries(ab.fraktionen.map(f=>[f.partei,f.ja])) : verteileErgebnis(lage, ab.ja, dul.ja, sachJa, sachParteien);
-  const votum = stimmzettel(lage, jaJe, streuwert(`${ab.name}|${ab.tag}|${ab.ja}`));
+  const votum: (boolean | null)[] = stimmzettel(lage, jaJe, streuwert(`${ab.name}|${ab.tag}|${ab.ja}`));
+  // Abwesende sitzen unter denen, die nicht mit Ja stimmen; welche, entscheidet ein fester Zufall
+  let rest = Math.max(0, Math.min(ab.abwesend ?? 0, votum.filter((v) => !v).length));
+  const nein = votum.map((v, i) => ({ v, i, r: streuwert(`${ab.name}|${ab.tag}|abwesend|${i}`) })).filter((x) => !x.v).sort((a, b) => a.r - b.r);
+  for (const x of nein) {
+    if (rest-- <= 0) break;
+    votum[x.i] = null;
+  }
   const jaKum: number[] = [];
+  const neinKum: number[] = [];
   let z = 0;
+  let n = 0;
   for (const v of votum) {
     if (v) z++;
+    else if (v === false) n++;
     jaKum.push(z);
+    neinKum.push(n);
   }
-  return { lage, votum, jaKum, jaJe };
+  return { lage, votum, jaKum, neinKum, jaJe };
 }
 
 // ---------------------------------------------------------------------------

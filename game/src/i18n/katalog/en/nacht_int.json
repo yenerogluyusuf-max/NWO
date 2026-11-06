@@ -1,0 +1,6 @@
+{
+ "int.kg.kommission": "The minimum wage is set by the Minimum Wage Commission, not by parliament (Labour Act Art. 39). Your five government representatives vote as you instruct them; together with one of the other two sides, the commission decides on {datum}.",
+ "int.kg.kommissionLaufend": "The Minimum Wage Commission is already deliberating on your instruction. No majority in parliament is needed.",
+ "int.kg.kommissionAktion": "Instruct the commission",
+ "int.kg.kommissionHinweis": "The instruction pays for the political work. Implementation starts only once the commission decides; approval and social outcomes are not granted in advance."
+}

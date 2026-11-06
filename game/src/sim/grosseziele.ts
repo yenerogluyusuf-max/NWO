@@ -4,6 +4,7 @@
 // Alle Zahlen hier sind Spielparameter (Gewichte, Schwellen, Preise); die Ziele knüpfen an reale Anker an (Organisation der Turkstaaten,
 // KSZE als Vorbild, Mittlerer Korridor und Development Road, EU-Beitrittsprozess seit 1999/2005, GAP-Projekt, Doktrin „Blaues Vaterland“).
 
+import type { WunderBild } from "./reich-typen";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import { wirke } from "./wirkung";
@@ -51,7 +52,8 @@ export interface StufeDef {
 export interface ZielDef {
   id: string;
   bereich: ZielBereich;
-  bild: "tor" | "bruecke" | "schiff" | "damm" | "gericht" | "kuppel" | "jet" | "reaktor" | "tempel";
+  /** Motiv aus ui/reich/WunderBild.tsx (Nacht N6: die Ordnung im Nahen Osten zeigt einen Konferenzsaal statt einer Moschee) */
+  bild: WunderBild;
   /** Länder, um deren Zustimmung es geht (für Wege und Vertretungen) */
   partner: string[];
   /** Wer sich bei Erfolg querstellt (Vertrauen −, Konflikt +) */
@@ -111,7 +113,7 @@ export const ZIELE: ZielDef[] = [
     ],
   },
   {
-    id: "nahostordnung", bereich: "sicherheit", bild: "kuppel", partner: NAHOST, gegenspieler: ["ISR"],
+    id: "nahostordnung", bereich: "sicherheit", bild: "konferenz", partner: NAHOST, gegenspieler: ["ISR"],
     stufen: [
       { id: "konferenz", schwelle: [{ art: "knoten", id: "ansehen", min: 45 }], basis: 0.2, pk: 8, aufmerksamkeit: 12,
         faktoren: [k("ansehen", 0.25, 45, 75, "ansehen"), v(NAHOST, 0.2, 40, 70, "vertrauen"), vt(NAHOST, 0.1, "vertretung")],
@@ -125,7 +127,7 @@ export const ZIELE: ZielDef[] = [
     ],
   },
   {
-    id: "drehscheibe", bereich: "logistik", bild: "bruecke", partner: ["AZE", "IRQ", "CHN", "GEO", "KAZ"], gegenspieler: ["RUS", "IRN"],
+    id: "drehscheibe", bereich: "logistik", bild: "hafen", partner: ["AZE", "IRQ", "CHN", "GEO", "KAZ"], gegenspieler: ["RUS", "IRN"],
     stufen: [
       { id: "korridor", schwelle: [{ art: "knoten", id: "logistik", min: 45 }], basis: 0.2, pk: 8, aufmerksamkeit: 10,
         faktoren: [k("logistik", 0.25, 45, 75, "logistik"), k("bahnnetz", 0.15, 45, 75, "infrastruktur"), v(["AZE", "GEO", "KAZ"], 0.15, 50, 80, "vertrauen")],
@@ -153,7 +155,7 @@ export const ZIELE: ZielDef[] = [
     ],
   },
   {
-    id: "kornkammer", bereich: "agrar", bild: "damm", partner: ["IRQ", "SAU", "EGY"], gegenspieler: [],
+    id: "kornkammer", bereich: "agrar", bild: "feld", partner: ["IRQ", "SAU", "EGY"], gegenspieler: [],
     stufen: [
       { id: "selbstversorgung", schwelle: [{ art: "knoten", id: "wasserversorgung", min: 40 }], basis: 0.2, pk: 6, aufmerksamkeit: 10,
         faktoren: [k("ernte", 0.25, 40, 75, "ernte"), k("wasserversorgung", 0.2, 40, 75, "wasser"), { art: "massnahme", id: "m_bewaesserung", gewicht: 0.1, von: 50, bis: 80, schluessel: "bewaesserung" }],
@@ -182,7 +184,7 @@ export const ZIELE: ZielDef[] = [
   },
   // Vier weitere Bereiche (Vorgabe Q.4, GROSSE_ZIELE §3): Technologie, Energie, Innen, Weltbühne. Werte sind Spielparameter.
   {
-    id: "technologie", bereich: "technik", bild: "jet", partner: ["EU", "AZE"], gegenspieler: ["GRC"],
+    id: "technologie", bereich: "technik", bild: "chip", partner: ["EU", "AZE"], gegenspieler: ["GRC"],
     stufen: [
       { id: "autarkie", schwelle: [{ art: "knoten", id: "ruestungsautarkie", min: 45 }], basis: 0.18, pk: 8, aufmerksamkeit: 12,
         faktoren: [k("ruestungsautarkie", 0.25, 45, 80, "autarkie"), k("hochschule", 0.15, 45, 75, "forschung"), k("modernisierung", 0.1, 40, 70, "modernisierung")],
@@ -224,7 +226,7 @@ export const ZIELE: ZielDef[] = [
     ],
   },
   {
-    id: "weltbuehne", bereich: "aussen", bild: "tempel", partner: ["EU", "SAU", "AZE", "KAZ"], gegenspieler: ["USA", "RUS", "CHN"],
+    id: "weltbuehne", bereich: "aussen", bild: "konferenz", partner: ["EU", "SAU", "AZE", "KAZ"], gegenspieler: ["USA", "RUS", "CHN"],
     stufen: [
       { id: "olympia", schwelle: [{ art: "knoten", id: "ansehen", min: 50 }, { art: "knoten", id: "tourismus", min: 55 }], basis: 0.15, pk: 10, aufmerksamkeit: 12,
         faktoren: [k("ansehen", 0.2, 50, 75, "ansehen"), k("tourismus", 0.15, 55, 80, "tourismus"), k("bahnnetz", 0.1, 40, 70, "infrastruktur")],

@@ -5,6 +5,7 @@
 // und das Verfassungsgericht als Schatten über Erlassen und grundrechtsnahen Gesetzen.
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung).
 
+import { rasteStufe } from "../data/skalen";
 import { politikGeaendert } from "./zynismus";
 import { FASSUNG_WERTE, FASSUNGEN, GESETZESVORHABEN, STANDARD_SCHRITTE, VERBAENDE, VORHABEN_NACH_ID, type FassungId, type GesetzesVorhaben } from "../data/gesetzesvorhaben";
 import { GRUPPEN } from "./gruppen";
@@ -18,7 +19,10 @@ import { PARTEI_NAME } from "./fraktionen";
 import { parteiAchsen, spielerAchsen, uebereinstimmung } from "./linie";
 import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, hashWert, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
-import { REGELN, STIMMEN_PUFFER, bringeEin, gesetzPrognose, pruefeVorhaben, setPolicy, setzeAbstimmungsHaken, setzeFassungsFolgen, setzeFassungsRechner, type Ergebnis, type FassungsInfo, type Pruefung } from "./handeln";
+import { GESETZ_SCHWELLE, REGELN, STIMMEN_PUFFER, bringeEin, gesetzPrognose, pruefeVorhaben, setPolicy, setzeAbstimmungsHaken, setzeFassungsFolgen, setzeFassungsRechner, setzeUnterschriftHaken, stimmenSicht, verkuende, type Ergebnis, type FassungsInfo, type PlenumErgebnis, type Pruefung } from "./handeln";
+import { deckeAbsprachenAuf } from "./fraktionen-absprachen";
+import { notstandTag } from "./notstand";
+import { stufenName } from "../data/skalen";
 import { istLagerPartei } from "./kommunen";
 import { vorschlaege } from "./vorschlaege";
 import type { Gesetz } from "./spiel-typen";
@@ -67,6 +71,24 @@ export interface GesetzgebungZustand {
   pruefungen: GerichtsPruefung[];
   /** Stufe vor dem Einbringen je laufendem Gesetz (für die Normenkontrolle nach der Annahme) */
   vorher: Record<string, number>;
+  /** Tage, an denen der Präsident Stimmen bei Abgeordneten gewonnen hat (Preisanstieg, sim/fraktionen-absprachen.ts) */
+  kaeufe?: number[];
+  /** Angenommene Gesetze, die auf Unterschrift oder Rücksendung warten (Art. 89) */
+  unterschrift?: Unterschrift[];
+  /** Laufender Ausnahmezustand (sim/notstand.ts) */
+  notstand?: import("./notstand").NotstandZustand;
+}
+
+/** Ein angenommenes Gesetz beim Präsidenten: 15 Tage zum Verkünden oder Zurücksenden (Art. 89). */
+export interface Unterschrift {
+  gesetz: Gesetz;
+  ja: number;
+  nein: number;
+  abwesend: number;
+  /** Tag der Annahme */
+  tag: number;
+  /** Bis zu diesem Tag muss der Präsident entscheiden; danach gilt das Gesetz als verkündet */
+  frist: number;
 }
 
 /** Zustand anlegen oder ergänzen (ältere Spielstände haben ihn nicht). */
@@ -317,13 +339,13 @@ export function fassungsKnoepfe(w: World, massnahme: string): { vorhaben: string
     .map((v) => ({
       vorhaben: v.id,
       titel: t(`gesetz.v.${v.id}.titel`),
-      knoepfe: FASSUNGEN.map((f, i) => ({ fassung: f, ziel: clamp(Math.round(stufe + v.richtung * schritte(v)[i]!), 0, 100) })).filter((k) => Math.abs(k.ziel - stufe) >= 1),
+      knoepfe: FASSUNGEN.map((f, i) => ({ fassung: f, ziel: rasteStufe(massnahme, clamp(Math.round(stufe + v.richtung * schritte(v)[i]!), 0, 100)) })).filter((k) => Math.abs(k.ziel - stufe) >= 1),
     }))
     .filter((x) => x.knoepfe.length > 0);
 }
 
 function urteilAus(ja: number): Urteil {
-  return ja >= REGELN.mehrheit + STIMMEN_PUFFER ? "sicher" : ja >= REGELN.mehrheit - 10 ? "knapp" : "verloren";
+  return ja >= GESETZ_SCHWELLE + STIMMEN_PUFFER ? "sicher" : ja >= GESETZ_SCHWELLE - 10 ? "knapp" : "verloren";
 }
 
 export function vorhabenSicht(w: World, v: GesetzesVorhaben, akutListe?: Set<string>): VorhabenSicht {
@@ -481,6 +503,7 @@ function folgenNachBeschluss(w: World, v: GesetzesVorhaben, fassung: FassungId):
 
 /** Haken nach jeder Abstimmung: nur Gesetze aus einem Vorhaben. */
 function nachAbstimmung(w: World, g: Gesetz, angenommen: boolean): void {
+  deckeAbsprachenAuf(w, g);
   if (!g.vorhaben || !w.spiel) return;
   const v = VORHABEN_NACH_ID.get(g.vorhaben);
   if (!v) return;
@@ -505,8 +528,150 @@ function nachAbstimmung(w: World, g: Gesetz, angenommen: boolean): void {
 
 setzeAbstimmungsHaken(nachAbstimmung);
 
-/** Täglich: Das Verfassungsgericht spricht über fällige Prüfungen. Entscheidung ist deterministisch aus Seed und Vorgang. */
+// ---------------------------------------------------------------------------
+// Ausschuss und Präsident (Art. 88, 89; RECHERCHE_GLM_8_GESETZGEBUNG §5.1 und §5.2)
+
+/** Anteil, den ein Ausschuss eine freie Änderung ohne Fassung zurückschneidet, wenn das Lager dort keine Mehrheit hat (Spielparameter). */
+export const AUSSCHUSS = { kuerzung: 0.4 } as const;
+
+/** Die nächstweichere Fassung (scharf → Kompromiss → verwässert). */
+function weicher(f: FassungId): FassungId | undefined {
+  return f === "scharf" ? "kompromiss" : f === "kompromiss" ? "verwaessert" : undefined;
+}
+
+/** Wie der Entwurf nach einer Abschwächung aussähe: Zielstufe, Fassung, Stimmenbonus. */
+export function abgeschwaecht(w: World, g: Gesetz): { stufe: number; fassung?: FassungId; bonus?: number } | undefined {
+  const jetzt = nationalAverage(NET, w.net, g.massnahme);
+  if (g.vorhaben && g.fassung) {
+    const v = VORHABEN_NACH_ID.get(g.vorhaben);
+    const f = weicher(g.fassung);
+    if (!v || !f) return undefined;
+    const stufe = clamp(Math.round(jetzt + v.richtung * schritte(v)[FASSUNGEN.indexOf(f)]!), 0, 100);
+    return { stufe, fassung: f, bonus: stimmenBonusFuer(w, v, f) };
+  }
+  if (g.provinzen?.length) return undefined;
+  const delta = g.stufe - jetzt;
+  if (Math.abs(delta) < 3) return undefined;
+  return { stufe: Math.round(jetzt + delta * (1 - AUSSCHUSS.kuerzung)) };
+}
+
+/** Hat das Lager im Ausschuss eine Mehrheit? Die Sitze im Ausschuss folgen der Stärke der Fraktionen; Duldende zählen mit. */
+export function ausschussMehrheit(w: World): boolean {
+  const s = stimmenSicht(w);
+  return s.lager + s.duldungSitze >= REGELN.mehrheit;
+}
+
+function wendeAbschwaechungAn(w: World, g: Gesetz, a: NonNullable<ReturnType<typeof abgeschwaecht>>): void {
+  g.urStufe ??= g.stufe;
+  if (g.fassung) g.urFassung ??= g.fassung;
+  g.stufe = a.stufe;
+  if (a.fassung) {
+    g.fassung = a.fassung;
+    g.stimmenBonus = a.bonus ?? 0;
+    g.name = `${t(`gesetz.v.${g.vorhaben}.titel`)} · ${t(`gesetz.fassung.${a.fassung}`)}`;
+  }
+}
+
+/** Solange der Ausschuss berät, kann der Präsident seiner Fraktion einen Kompromiss auftragen: kleinerer Schritt, mehr Stimmen. */
+export function ausschussKompromiss(w: World, gesetzId: string): Ergebnis {
+  const g = w.spiel?.gesetze.find((x) => x.id === gesetzId);
+  if (!g) return { ok: false, text: t("n4.grund.nichtMehrDa") };
+  if (g.ausschussBis === undefined || w.day >= g.ausschussBis || g.ausschuss !== "offen") return { ok: false, text: t("n4.ausschuss.vorbei") };
+  const a = abgeschwaecht(w, g);
+  if (!a) return { ok: false, text: t("n4.ausschuss.keinSchritt") };
+  const vorherJa = gesetzPrognose(w, g).ja;
+  wendeAbschwaechungAn(w, g, a);
+  g.ausschuss = "kompromiss";
+  const ja = gesetzPrognose(w, g).ja;
+  const text = t("n4.ausschuss.kompromissText", { name: g.name, ziel: stufenName(g.massnahme, g.stufe) });
+  const why = t("n4.ausschuss.kompromissWarum", { vorher: vorherJa, ja });
+  addLog(w, "entscheidung", text, why);
+  return { ok: true, text, why };
+}
+
+/** Vorschau für die Karte: Was ein Kompromiss im Ausschuss brächte. */
+export function ausschussVorschau(w: World, g: Gesetz): { ziel: string; ja: number; fassung?: FassungId } | undefined {
+  if (g.ausschuss !== "offen") return undefined;
+  const a = abgeschwaecht(w, g);
+  if (!a) return undefined;
+  const kopie: Gesetz = { ...g, stufe: a.stufe, ...(a.fassung ? { fassung: a.fassung, stimmenBonus: a.bonus ?? 0 } : {}) };
+  return { ziel: stufenName(g.massnahme, a.stufe), ja: gesetzPrognose(w, kopie).ja, ...(a.fassung ? { fassung: a.fassung } : {}) };
+}
+
+/** Ende der Ausschussberatung: Ohne Mehrheit des Lagers im Ausschuss setzt die Opposition die schwächere Fassung durch. */
+function ausschussTag(w: World): void {
+  for (const g of w.spiel?.gesetze ?? []) {
+    if (g.ausschuss !== "offen" || g.ausschussBis === undefined || w.day < g.ausschussBis) continue;
+    const a = ausschussMehrheit(w) ? undefined : abgeschwaecht(w, g);
+    if (!a) {
+      g.ausschuss = "unveraendert";
+      continue;
+    }
+    const vorher = stufenName(g.massnahme, g.stufe);
+    wendeAbschwaechungAn(w, g, a);
+    g.ausschuss = "geaendert";
+    addLog(w, "ereignis", t("n4.ausschuss.geaendert", { name: g.name, vorher, ziel: stufenName(g.massnahme, g.stufe) }), t("n4.ausschuss.geaendertWarum"));
+  }
+}
+
+/** Haken aus handeln.ts: Ein vom Ausschuss gegen den Willen des Präsidenten verändertes Gesetz liegt ihm 15 Tage vor. */
+setzeUnterschriftHaken((w: World, g: Gesetz, e: PlenumErgebnis) => {
+  if (g.ausschuss !== "geaendert") return false;
+  const z = gesetzgebungVon(w);
+  (z.unterschrift ??= []).push({ gesetz: g, ja: e.ja, nein: e.nein, abwesend: e.abwesend, tag: w.day, frist: w.day + REGELN.unterschriftTage });
+  addLog(w, "entscheidung", t("n4.unterschrift.vorlage", { name: g.name, ja: e.ja, nein: e.nein, tage: REGELN.unterschriftTage }), t("n4.unterschrift.vorlageWarum")).abstimmung = { art: "gesetz", name: g.name, ort: "", ja: e.ja, nein: e.nein, abwesend: e.abwesend, angenommen: true, stufe: g.stufe };
+  return true;
+});
+
+/** Was dem Präsidenten zur Unterschrift vorliegt (Anzeige). */
+export function zurUnterschrift(w: World): Unterschrift[] {
+  return w.spiel?.gesetzgebung?.unterschrift ?? [];
+}
+
+/** Unterschreiben: Das Gesetz gilt in der Fassung, die das Parlament beschlossen hat. */
+export function unterschreibe(w: World, gesetzId: string): Ergebnis {
+  const z = gesetzgebungVon(w);
+  const u = (z.unterschrift ?? []).find((x) => x.gesetz.id === gesetzId);
+  if (!u) return { ok: false, text: t("n4.grund.nichtMehrDa") };
+  z.unterschrift = (z.unterschrift ?? []).filter((x) => x !== u);
+  verkuende(w, u.gesetz, u, true);
+  const l = w.log[w.log.length - 1]!;
+  return { ok: true, text: l.text, ...(l.why ? { why: l.why } : {}) };
+}
+
+/** Zurücksenden (Art. 89): Das Parlament berät neu; unverändert gilt das Gesetz nur mit der absoluten Mehrheit der Mitglieder. */
+export function sendeZurueck(w: World, gesetzId: string): Ergebnis {
+  const sp = w.spiel;
+  const z = gesetzgebungVon(w);
+  const u = (z.unterschrift ?? []).find((x) => x.gesetz.id === gesetzId);
+  if (!sp || !u) return { ok: false, text: t("n4.grund.nichtMehrDa") };
+  z.unterschrift = (z.unterschrift ?? []).filter((x) => x !== u);
+  const g: Gesetz = { ...u.gesetz, rueckgabe: true, abstimmung: w.day + REGELN.rueckgabeTage, absprachen: 0, zusagenListe: [] };
+  delete g.ausschussBis;
+  sp.gesetze.push(g);
+  vertrauenAendern(w, -0.5);
+  const text = t("n4.rueckgabe.text", { name: g.name, tage: REGELN.rueckgabeTage, noetig: REGELN.mehrheit });
+  const why = t("n4.rueckgabe.warum");
+  addLog(w, "entscheidung", text, why);
+  return { ok: true, text, why };
+}
+
+/** Fristablauf: Gibt der Präsident ein Gesetz nicht binnen 15 Tagen zurück, wird es verkündet. */
+function unterschriftTag(w: World): void {
+  const z = w.spiel?.gesetzgebung;
+  if (!z?.unterschrift?.length) return;
+  for (const u of z.unterschrift.filter((x) => x.frist <= w.day)) {
+    z.unterschrift = z.unterschrift.filter((x) => x !== u);
+    verkuende(w, u.gesetz, u, true);
+  }
+}
+
+/** Täglich: Ausschüsse schließen, Fristen des Präsidenten laufen ab, das Verfassungsgericht spricht über fällige Prüfungen.
+ *  Entscheidungen sind deterministisch aus Seed und Vorgang. */
 export function gesetzgebungTag(w: World): void {
+  ausschussTag(w);
+  unterschriftTag(w);
+  notstandTag(w);
   const sp = w.spiel;
   if (!sp?.gesetzgebung) return;
   const z = gesetzgebungVon(w);

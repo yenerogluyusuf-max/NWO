@@ -28,7 +28,7 @@
   "rn.schritt.anliegen": "A concrete ministry request awaits your decision. Check costs, majority and consequences in the response preview.",
   "rn.schritt.bearbeitung": "A proceeding or assignment is already underway in the ministry. This counts as work in progress, not proven recovery; measurements continue.",
   "rn.schritt.verantwortung": "A new ministry incident still needs your political response. The measurement imposes no second penalty.",
-  "rn.schritt.warteschlange": "Three ministry requests are already open. Address them first; this minister will review the need for action at the next report.",
+  "rn.schritt.warteschlange": "Three requests are already open. Please answer them first; the minister will come back at the next report.",
   "rn.wechsel": "Since the previous measurement, {neu} has taken over from {alt}. The values describe the same ministry, not one individual’s performance.",
   "rn.nachEntscheidung": "Trigger: {art} · {datum}.",
   "rn.altstand": "For this earlier decision, measurements begin on {datum}. No recovery is claimed for the earlier period.",

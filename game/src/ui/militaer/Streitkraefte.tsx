@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import type { World } from "../../sim/types";
-import { t } from "../../i18n";
+import { t, zahl as zahlI18n } from "../../i18n";
 import { useSprache } from "../../i18n/react";
 import {
   beginneAusbau,
@@ -14,7 +14,10 @@ import {
   vorschauAusbau,
   type GattungSicht,
 } from "../../sim/streitkraefte";
-import { PHASEN_NAME, aktiveKriege, eigenStaerke, gegnerStaerke, waehleZielraum, zielraeumeFuer } from "../../sim/krieg";
+import { PHASEN_NAME, aktiveKriege, eigenStaerke, gegnerStaerke, lagebild, waehleZielraum, zielraeumeFuer } from "../../sim/krieg";
+import { NET } from "../../sim/modell";
+import { nationalAverage, startAverage } from "../../sim/netz";
+import { RadarLegende, StreitkraefteRadar, abweichungsTon, gegenueber2026 } from "./zustand";
 import type { KriegPhase } from "../../sim/krieg-typen";
 import { land } from "../../sim/laender";
 import type { GattungId } from "../../data/streitkraefte";
@@ -26,14 +29,17 @@ import "./militaer.css";
 
 const WEHRDIENST = [0, 6, 12, 18] as const;
 
-const zahl = (n: number, stellen = 0): string => n.toLocaleString("de-DE", { maximumFractionDigits: stellen });
+const zahl = (n: number, stellen = 0): string => zahlI18n(Math.round(n * 10 ** stellen) / 10 ** stellen);
 const landName = (id: string | null): string => (id ? land(id).name : "");
 
 // Für Panzer, Drohnen, Luftabwehr, Marine und Raketen gibt es keine offene Bestandsquelle (IISS hinter Bezahlschranke,
 // RECHERCHE_GITHUB_DATEN.md): der Wert ist ein Spielparameter, gezeigt als Anteil am Bestand vom Juni 2026 statt als „Index 100“.
-function mengeText(g: { einheit: GattungSicht["einheit"]; start?: number }, n: number): string {
-  if (g.einheit === "index") return t("militaer.ui.einheit.index", { n: zahl(g.start ? (n / g.start) * 100 : n) });
+// Seit dem 6. November als benannter Zustand („wie 2026“, „+12 % gegenüber 2026“, Befund G-12): „100 %“ las sich wie Einsatzbereitschaft.
+// Das Personal steht auf Tausend gerundet („rund 355.000“), weil die Quelle keine Genauigkeit auf den Soldaten hergibt (Befund G-13).
+function mengeText(g: { einheit: GattungSicht["einheit"]; start?: number; id?: GattungId }, n: number): string {
+  if (g.einheit === "index") return gegenueber2026(g.start ? n / g.start : 1);
   if (g.einheit === "tage") return t("militaer.ui.einheit.tage", { n: zahl(n) });
+  if (g.id === "personal") return t("nacht_n7.zustand.rund", { n: zahl(Math.round(n / 1000) * 1000) });
   return zahl(n);
 }
 
@@ -91,7 +97,8 @@ function Zielraeume({ world, onTat }: { world: World; onTat: (text: string) => v
           <div key={k.id} className="sk-krieg">
             <div className="sk-kopf">
               <strong>{t("militaer.ui.ziel_krieg", { land: landName(k.land) })}</strong>
-              <span className="sk-klein">{t("militaer.ui.ziel_staerke", { e: zahl(eigenStaerke(world, k)), g: zahl(gegnerStaerke(world, k.land)) })}</span>
+              {/* Dieselbe Unsicherheit wie im Konfliktdossier (Befund G-19): Die Gegenwehr ist nur so genau, wie das Lagebild reicht */}
+              <span className="sk-klein">{t("nacht_n7.ziel_staerke", { e: zahl(eigenStaerke(world, k)), g: gegnerSicht(world, gegnerStaerke(world, k.land)) })}</span>
             </div>
             {raeume.length === 0 && <p className="sk-leer">{t("militaer.ui.ziel_allgemein")}</p>}
             <ul className="sk-ziele">
@@ -117,6 +124,13 @@ function Zielraeume({ world, onTat }: { world: World; onTat: (text: string) => v
       })}
     </section>
   );
+}
+
+function gegnerSicht(world: World, g: number): string {
+  const stufe = lagebild(world).stufe;
+  if (stufe === "bekannt") return zahl(g);
+  if (stufe === "vermutet") return `${zahl(g - 10)}–${zahl(g + 10)}`;
+  return t("krieg.d.unbekannt");
 }
 
 const PHASEN_RANG: KriegPhase[] = ["spannung", "drohkulisse", "waffenruhe", "beschluss", "krieg"];
@@ -145,7 +159,8 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
       gruppe: t(`militaer.ui.teil.${g.teil}`),
       titel: t(`militaer.gattung.${g.id}`),
       wert: mengeText(g, g.menge),
-      leisten: [{ name: t("militaer.ui.gen_kurz"), stufe: Math.round(g.generation), max: 5 }],
+      // Generation nur bei Gerät; beim Personal und beim Munitionsvorrat sagt eine Punkteleiste nichts (Befund A9)
+      ...(g.id === "personal" || g.id === "munition" ? {} : { leisten: [{ name: t("militaer.ui.gen_kurz"), stufe: Math.round(g.generation), max: 5 }] }),
       zeile: s.laufend.filter((b) => b.gattung === g.id && b.name).map((b) => b.name).join(", ") || t("militaer.ui.herkunft", { p: zahl(g.heimisch * 100) }),
       ...(lauf
         ? { marke: { text: lauf.gestoppt ? t("militaer.ui.gestoppt") : t("militaer.ui.in_monaten", { n: rest }), ton: "aktiv" as const } }
@@ -172,7 +187,7 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
     titel: t("militaer.ui.laufend"),
     wert: String(s.laufend.length),
     zeile: s.laufend.length ? [...s.laufend].sort((a, b) => Number(!!b.name) - Number(!!a.name)).slice(0, 2).map((x) => x.name ?? t(`militaer.gattung.${x.gattung as GattungId}`)).join(", ") : t("militaer.ui.laufend_leer"),
-    wertLabel: t("militaer.ui.kapazitaet_wert", { belegt, kap: s.kapazitaet }),
+    wertLabel: t("nacht_n7.kapazitaet_frei", { n: Math.max(0, s.kapazitaet - belegt) }),
     anteil: belegt / Math.max(1, s.kapazitaet),
     ...(belegt >= s.kapazitaet ? { ton: "mittel" as const, marke: { text: t("militaer.ui.voll"), ton: "mittel" as const } } : {}),
   });
@@ -211,7 +226,7 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
     if (id === "_laufend")
       return (
         <>
-          <UbDetailKopf titel={t("militaer.ui.laufend")} unter={t("militaer.ui.kapazitaet_wert", { belegt, kap: s.kapazitaet })} />
+          <UbDetailKopf titel={t("militaer.ui.laufend")} unter={t("nacht_n7.kapazitaet_frei", { n: Math.max(0, s.kapazitaet - belegt) })} />
           {s.laufend.length === 0 && <p className="sk-leer">{t("militaer.ui.laufend_leer")}</p>}
           <ol className="sk-zeitstrahl">
             {s.laufend.map((b) => {
@@ -253,27 +268,40 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
       );
     return null;
   };
+  // Bereitschaft je Teilstreitkraft relativ zum Start (dieselben Knoten, die der Krieg in eigenStaerke liest)
+  const bereit = (id: string) => (NET.index.has(id) ? nationalAverage(NET, world.net, id) / Math.max(1, startAverage(NET, world.net, id)) : 1);
+  const achsen = (["heer", "luft", "see"] as const).map((teil) => ({ teil, name: t(`militaer.ui.teil.${teil}`), kampfkraft: s.teile[teil], bereitschaft: bereit(`bereitschaft_${teil}`) }));
   return (
     <div className="streitkraefte">
-      <Uebersicht
-        aria={t("militaer.tab")}
-        sortiert={false}
-        lage={
-          <span className="sk-lagezeile">
-            {(["heer", "luft", "see"] as const).map((teil) => (
-              <span key={teil}>
-                {t(`militaer.ui.teil.${teil}`)} <b>{zahl(s.teile[teil] * 100)}</b>
-              </span>
+      <div className="sk-oben">
+        <StreitkraefteRadar achsen={achsen} />
+        <div className="sk-oben-text">
+          <p className="sk-kampfkraft">
+            <span>{t("militaer.ui.kampfkraft")}</span>
+            <strong className={abweichungsTon(s.index)}>{gegenueber2026(s.index)}</strong>
+          </p>
+          <ul className="sk-achsen">
+            {achsen.map((a) => (
+              <li key={a.teil} className={abweichungsTon(Math.min(a.kampfkraft, a.bereitschaft))}>
+                <b>{a.name}</b>
+                <span>{t("nacht_n7.radar.zeile", { kraft: gegenueber2026(a.kampfkraft), bereit: gegenueber2026(a.bereitschaft) })}</span>
+              </li>
             ))}
+          </ul>
+          <p className="sk-lagezeile">
             <span>
               {t("militaer.ui.etat")} <b>{t("militaer.ui.etat_wert", { p: zahl(s.etat * 100) })}</b>
             </span>
             <span>
               {t("militaer.ui.innovation")} <b>{t("militaer.ui.innovation_wert", { p: zahl(s.innovation * 100) })}</b>
             </span>
-          </span>
-        }
-        zahlen={[{ label: t("militaer.ui.kampfkraft"), wert: zahl(s.index * 100), ton: s.index >= 1 ? "gut" : "schlecht" }]}
+          </p>
+          <RadarLegende />
+        </div>
+      </div>
+      <Uebersicht
+        aria={t("militaer.tab")}
+        sortiert={false}
         kacheln={kacheln}
         start={kriege.length ? "_ziel" : undefined}
         detail={detail}

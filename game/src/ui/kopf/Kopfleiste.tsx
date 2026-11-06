@@ -6,7 +6,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { t, zahl } from "../../i18n";
 import { Icon, type IconName } from "../icons";
-import { Cameo } from "../art/Cameo";
+import { Portraet } from "../art/Portraet";
+import { portraetFuer } from "../prolog/figur";
+import type { Aussehen } from "../../sim/prolog";
 import { SprachWahl } from "../SprachWahl";
 import { Effekte } from "../Effekte";
 import { tonStatus, tonLabel, tonUm } from "../ton/ton";
@@ -42,6 +44,8 @@ export function Kopfleiste(p: {
   name: string;
   partei: string;
   parteiFarbe?: string;
+  /** Das im Prolog gebaute Gesicht (befund-H H-17); fehlt es (ältere Spielstände), wählt der Name ein Gesicht */
+  aussehen?: Aussehen;
   amt: string;
   datum: string;
   tempo: number;
@@ -65,7 +69,7 @@ export function Kopfleiste(p: {
       <div className="hud-bar" />
       <div className="kf-wer" title={`${p.name} · ${p.partei} · ${p.amt}`}>
         <div className="leader">
-          <Cameo seed={p.name} size={46} {...(p.parteiFarbe ? { tint: p.parteiFarbe } : {})} ring="keiner" />
+          <Portraet {...portraetFuer(p.name, p.aussehen)} size={48} {...(p.parteiFarbe ? { tint: p.parteiFarbe } : {})} rahmen="keiner" hintergrund lebendig={false} titel={p.name} />
         </div>
         <div className="kf-wer-text">
           <div className="kf-name">{p.name}</div>

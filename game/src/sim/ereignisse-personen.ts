@@ -1,9 +1,10 @@
 // Ereignisse um Personen: Rücktrittsdrohung, Skandal, Intrige und Durchstecherei. Sie entstehen aus dem Zustand des Umfelds (Loyalität, Groll,
 // Ehrgeiz), nicht aus dem Würfel allein: Wer seine Leute pflegt, sieht sie selten. Alle Wahrscheinlichkeiten und Wirkungen sind Platzhalter
-// der Kalibrierung; Zahlen im Text kommen aus dem Weltzustand.
+// der Kalibrierung; Zahlen im Text kommen aus dem Weltzustand. Texte: katalog/<sprache>/nacht_n5.json (Schlüssel ev.person_*).
+// Wer geht, wird VOR `ausscheiden()` festgehalten: Danach steht im selben Figurenobjekt schon die Nachfolge (Befund A-2, 5. November 2026).
 
 import { vertrauenAendern, wirke } from "./wirkung";
-import { beschr, opt } from "./ereignis-hilfen";
+import { opt, satzAnfang } from "./ereignis-hilfen";
 import type { Vorlage } from "./ereignis-hilfen";
 import { AEMTER, eigenVon, figurNachId, grollVerschieben, grollWort, hashZahl, loyalitaetVerschieben, merke, sorgeText } from "./personen";
 import { ausscheiden } from "./nachfolge";
@@ -18,9 +19,16 @@ function regierung(w: World): Figur[] {
 }
 
 const figurVon = (w: World, ev: { daten?: Record<string, number | string> }): Figur | undefined => figurNachId(w, String(ev.daten?.figur ?? ""));
-const er = (f: Figur | undefined) => (f?.weiblich ? "sie" : "er");
-const Er = (f: Figur | undefined) => (f?.weiblich ? "Sie" : "Er");
-const wer = (f: Figur | undefined) => (f ? `${f.rolle} ${f.name}` : "Ein Mitglied der Regierung");
+
+/** Ämter mit einer Rollenbezeichnung nach Geschlecht im Katalog (ev.person.rolle.*); sonst gilt die gespeicherte Rolle. */
+const ROLLE_NACH_GESCHLECHT = new Set(["finanzen", "inneres", "aussen", "zentralbank", "stab", "opposition", "justiz", "generalstab", "wirtschaft", "familie", "arbeit", "umwelt", "energie", "jugend", "kultur", "bildung", "verteidigung", "gesundheit", "landwirtschaft", "handel", "verkehr"]);
+const geschlecht = (f: Figur | undefined): "f" | "m" => (f?.weiblich ? "f" : "m");
+const rolle = (f: Figur): string => (ROLLE_NACH_GESCHLECHT.has(f.amt) ? t(`ev.person.rolle.${f.amt}`, { g: geschlecht(f) }) : f.rolle);
+const wer = (f: Figur | undefined): string => (f ? `${rolle(f)} ${f.name}` : t("ev.person.niemand"));
+/** Name, Rolle und Geschlecht einer Person, festgehalten zum Zeitpunkt des Aufrufs. */
+const person = (f: Figur | undefined) => ({ wer: wer(f), g: geschlecht(f) });
+/** Text aus dem Katalog mit großem Anfangsbuchstaben (falls {wer} am Anfang steht und niemand bekannt ist). */
+const T = (k: string, p?: Record<string, string | number>) => satzAnfang(t(k, p));
 
 // ---------------------------------------------------------------------------
 // Rücktrittsdrohung
@@ -39,65 +47,58 @@ const RUECKTRITT: Vorlage = {
     const f = figurVon(w, ev);
     if (f) eigenVon(w, f).drohung = w.day;
   },
-  titel: (w, ev) => `${wer(figurVon(w, ev))} droht mit Rücktritt`,
+  titel: (w, ev) => T("ev.person_ruecktritt.titel", person(figurVon(w, ev))),
   text: (w, ev) => {
     const f = figurVon(w, ev);
-    if (!f) return ["Ein Mitglied der Regierung droht mit Rücktritt."];
+    if (!f) return [t("ev.person_ruecktritt.text.leer")];
     const e = eigenVon(w, f);
-    return [
-      `${wer(f)} hat Ihnen ausrichten lassen, dass ${er(f)} unter diesen Bedingungen nicht weiterarbeiten will. Die Loyalität liegt bei ${Math.round(f.loyalitaet)} von 100, ${er(f)} wirkt ${grollWort(e.groll)}.`,
-      sorgeText(w, f),
-    ];
+    return [t("ev.person_ruecktritt.text1", { ...person(f), loy: Math.round(f.loyalitaet), groll: grollWort(e.groll) }), sorgeText(w, f)];
   },
-  warum: () => "Wer Menschen im Amt hält, die nicht mehr folgen, zahlt mit Leistung; wer sie ziehen lässt, zahlt mit Groll, Märkten und einer Einarbeitung. Wer sie bindet, zahlt mit Kapital.",
+  warum: () => t("ev.person_ruecktritt.warum"),
   optionen: (w, ev) => {
-    const f = figurVon(w, ev);
+    const p = person(figurVon(w, ev));
+    const k = (x: string) => `ev.person_ruecktritt.opt.${x}`;
     return [
-      opt("zugestaendnisse", "Zugeständnisse machen", beschr(3, 0, `${Er(f)} bleibt: Loyalität +15, Groll −25; Sie geben Mittel und Freiheit im Ressort.`), 3, (ww) => {
+      opt("zugestaendnisse", t(k("zugestaendnisse.label")), t(k("zugestaendnisse.beschr"), p), 3, (ww) => {
         const g = figurVon(ww, ev);
         if (g) {
           loyalitaetVerschieben(g, 15);
           grollVerschieben(ww, g, -25);
           eigenVon(ww, g).mittelBis = ww.day + 120;
-          merke(ww, g, "Nach einer Rücktrittsdrohung mit Zugeständnissen gehalten");
+          merke(ww, g, t(k("zugestaendnisse.merke")));
         }
-        return `${wer(g)} bleibt; das Ressort bekommt vier Monate lang Zusatzmittel.`;
+        return T(k("zugestaendnisse.ausgang"), person(g));
       }),
-      opt("aussprache", "Aussprache unter vier Augen", beschr(1, 0, `${Er(f)} lässt sich halten, aber nur halb: Loyalität +8, Groll −10.`), 1, (ww) => {
+      opt("aussprache", t(k("aussprache.label")), t(k("aussprache.beschr"), p), 1, (ww) => {
         const g = figurVon(ww, ev);
         if (g) {
           loyalitaetVerschieben(g, 8);
           grollVerschieben(ww, g, -10);
-          merke(ww, g, "Nach einer Rücktrittsdrohung ausgesprochen");
+          merke(ww, g, t(k("aussprache.merke")));
         }
-        return `${wer(g)} bleibt vorerst, aber die Stimmung ist nicht gut.`;
+        return T(k("aussprache.ausgang"), person(g));
       }),
-      opt("annehmen", "Rücktritt annehmen", beschr(0, 0, "Eine kommissarische Leitung übernimmt; der Vorgänger nimmt Groll mit."), 0, (ww) => {
+      opt("annehmen", t(k("annehmen.label")), t(k("annehmen.beschr"), p), 0, (ww) => {
         const g = figurVon(ww, ev);
-        if (g) ausscheiden(ww, g, "Rücktritt nach eigener Drohung");
-        return `${wer(g)} tritt zurück; eine kommissarische Leitung übernimmt.`;
+        const vorher = person(g);
+        if (g) ausscheiden(ww, g, t(k("annehmen.grund")));
+        return T(k("annehmen.ausgang"), vorher);
       }),
     ];
   },
   standard: (w, ev) => {
     const f = figurVon(w, ev);
-    if (f) ausscheiden(w, f, "Rücktritt, nachdem der Präsident nicht geantwortet hat");
-    return `${wer(f)} zieht die Konsequenz und tritt zurück; die Regierung wirkt führungslos.`;
+    const vorher = person(f);
+    if (f) ausscheiden(w, f, t("ev.person_ruecktritt.standard.grund"));
+    return T("ev.person_ruecktritt.standard", vorher);
   },
 };
 
 // ---------------------------------------------------------------------------
 // Skandal
 
-const VORWURF: Record<string, string> = {
-  finanzen: "bei einer Ausschreibung des Ministeriums einen Bekannten begünstigt zu haben",
-  inneres: "Ermittlungen gegen Vertraute des Ressorts behindert zu haben",
-  aussen: "vertrauliche Unterlagen aus den Verhandlungen nicht gesichert zu haben",
-  stab: "Termine des Präsidenten an Lobbyisten vermittelt zu haben",
-  justiz: "auf ein laufendes Verfahren Einfluss genommen zu haben",
-  generalstab: "bei einer Beschaffung einen Lieferanten bevorzugt zu haben",
-  wirtschaft: "bei der Vergabe von Aufträgen Verwandte bedacht zu haben",
-};
+/** Ämter, deren Inhaber ein Vorwurf treffen kann (Text: ev.person_skandal.vorwurf.<amt>). */
+const VORWURF = new Set(["finanzen", "inneres", "aussen", "stab", "justiz", "generalstab", "wirtschaft"]);
 
 const SKANDAL: Vorlage = {
   id: "person_skandal",
@@ -108,11 +109,11 @@ const SKANDAL: Vorlage = {
   // Es zählt die Stimmung derer, die beschuldigt werden können (VORWURF): Mit 17 Ministerien war sonst fast immer jemand unzufrieden,
   // und Skandale kamen um die Hälfte häufiger, ohne dass ein neues Ressort Gegenstand sein konnte (Nachtrag W, AP 3)
   chance: (w) => {
-    const l = regierung(w).filter((f) => VORWURF[f.amt]);
+    const l = regierung(w).filter((f) => VORWURF.has(f.amt));
     return l.length ? (l.some((f) => f.loyalitaet < 40 || eigenVon(w, f).groll >= 45) ? 0.012 : 0.007) : 0;
   },
   erzeuge: (w, rng: Rng) => {
-    const liste = regierung(w).filter((f) => VORWURF[f.amt]);
+    const liste = regierung(w).filter((f) => VORWURF.has(f.amt));
     if (!liste.length) return null;
     // Wer schwach im Rückhalt steht, gerät eher ins Visier
     const gewichte = liste.map((f) => 1 + (100 - f.loyalitaet) / 50 + eigenVon(w, f).groll / 60);
@@ -127,34 +128,38 @@ const SKANDAL: Vorlage = {
     }
     return { provinzen: [], staerke: 1, daten: { figur: f.id } };
   },
-  titel: (w, ev) => `Vorwürfe gegen ${wer(figurVon(w, ev))}`,
+  titel: (w, ev) => T("ev.person_skandal.titel", person(figurVon(w, ev))),
   text: (w, ev) => {
     const f = figurVon(w, ev);
-    if (!f) return ["Gegen ein Mitglied der Regierung werden Vorwürfe laut."];
+    if (!f) return [t("ev.person_skandal.text.leer")];
+    const vorwurf = t(`ev.person_skandal.vorwurf.${VORWURF.has(f.amt) ? f.amt : "allg"}`);
     return [
-      `Mehrere Zeitungen berichten, ${wer(f)} habe ${VORWURF[f.amt] ?? "Pflichten verletzt"}. ${Er(f)} weist alles zurück, die Opposition fordert Konsequenzen.`,
-      `Ob etwas dran ist, weiß niemand sicher; ${er(f)} hat Ihnen versichert, es sei nichts. Die Loyalität liegt bei ${Math.round(f.loyalitaet)} von 100.`,
+      t("ev.person_skandal.text1", { ...person(f), vorwurf }),
+      t("ev.person_skandal.text2", { ...person(f), loy: Math.round(f.loyalitaet) }),
     ];
   },
-  warum: () => "Ein Skandal wird an dem gemessen, was der Präsident tut: Wer stützt, haftet mit; wer fallen lässt, zahlt mit einem Feind und dem Verdacht der Willkür; wer prüfen lässt, braucht Zeit und Mut.",
+  warum: () => t("ev.person_skandal.warum"),
   optionen: (w, ev) => {
     const f = figurVon(w, ev);
+    const p = person(f);
+    const k = (x: string) => `ev.person_skandal.opt.${x}`;
     const wahr = (ww: World) => hashZahl(`${ww.seed}|skandal|${ev.id}|${f?.id}`) < 0.45;
     return [
-      opt("pruefen", "Untersuchung zulassen", beschr(1, 0, "Klärung in zwei Wochen; ist etwas dran, geht sie; wenn nicht, ist sie rehabilitiert."), 1, (ww) => {
+      opt("pruefen", t(k("pruefen.label")), t(k("pruefen.beschr"), p), 1, (ww) => {
         const g = figurVon(ww, ev);
-        if (!g) return "Die Untersuchung läuft ins Leere.";
+        if (!g) return t(k("pruefen.ausgang.leer"));
         vertrauenAendern(ww, 0.3);
         if (wahr(ww)) {
-          ausscheiden(ww, g, "Rücktritt nach bestätigten Vorwürfen");
-          return `Die Untersuchung bestätigt die Vorwürfe: ${wer(g)} tritt zurück, Sie haben sauber gehandelt.`;
+          const vorher = person(g);
+          ausscheiden(ww, g, t(k("pruefen.grund")));
+          return t(k("pruefen.ausgang.wahr"), vorher);
         }
         loyalitaetVerschieben(g, 12);
         grollVerschieben(ww, g, -10);
-        merke(ww, g, "Vorwürfe geprüft und ausgeräumt");
-        return `Die Untersuchung entlastet ${wer(g)}: ${er(g)} ist Ihnen dankbar, dass Sie geprüft statt verurteilt haben.`;
+        merke(ww, g, t(k("pruefen.merke")));
+        return t(k("pruefen.ausgang.falsch"), person(g));
       }),
-      opt("stuetzen", "Öffentlich stützen", beschr(2, 0, "Loyalität +10; stellt sich später heraus, dass etwas dran war, haften Sie mit."), 2, (ww) => {
+      opt("stuetzen", t(k("stuetzen.label")), t(k("stuetzen.beschr"), p), 2, (ww) => {
         const g = figurVon(ww, ev);
         if (g) {
           loyalitaetVerschieben(g, 10);
@@ -163,16 +168,17 @@ const SKANDAL: Vorlage = {
         if (wahr(ww)) {
           vertrauenAendern(ww, -1.4);
           wirke(ww, "legitimitaet", -0.6);
-          return `Wenig später kommt heraus, dass an den Vorwürfen etwas dran war; Sie haben sich blamiert (Vertrauen −1,4).`;
+          return t(k("stuetzen.ausgang.wahr"));
         }
         vertrauenAendern(ww, 0.2);
-        return "Die Vorwürfe verlaufen im Sand; Ihre Rückendeckung hat sich bewährt.";
+        return t(k("stuetzen.ausgang.falsch"));
       }),
-      opt("fallenlassen", "Fallen lassen", beschr(0, 0, `${Er(f)} geht sofort; der Verdacht der Willkür bleibt, wenn nichts dran war.`), 0, (ww) => {
+      opt("fallenlassen", t(k("fallenlassen.label")), t(k("fallenlassen.beschr"), p), 0, (ww) => {
         const g = figurVon(ww, ev);
-        if (g) ausscheiden(ww, g, "Von Präsidenten fallen gelassen");
+        const vorher = person(g);
+        if (g) ausscheiden(ww, g, t(k("fallenlassen.grund")));
         vertrauenAendern(ww, wahr(ww) ? -0.2 : -0.8);
-        return `${wer(g)} muss gehen, ohne dass etwas geklärt wurde.`;
+        return T(k("fallenlassen.ausgang"), vorher);
       }),
     ];
   },
@@ -180,7 +186,7 @@ const SKANDAL: Vorlage = {
     vertrauenAendern(w, -1.5);
     const f = figurVon(w, ev);
     if (f) grollVerschieben(w, f, 15);
-    return "Der Präsident schweigt; die Presse deutet das als Schwäche, und die betroffene Person fühlt sich im Stich gelassen.";
+    return t("ev.person_skandal.standard", person(f));
   },
 };
 
@@ -197,21 +203,19 @@ const INTRIGE: Vorlage = {
     const f = regierung(w).sort((a, b) => eigenVon(w, b).ehrgeiz - eigenVon(w, a).ehrgeiz)[0];
     return f ? { provinzen: [], staerke: 1, daten: { figur: f.id } } : null;
   },
-  titel: (w, ev) => `${wer(figurVon(w, ev))} sammelt Rückhalt gegen Sie`,
+  titel: (w, ev) => T("ev.person_intrige.titel", person(figurVon(w, ev))),
   text: (w, ev) => {
     const f = figurVon(w, ev);
-    if (!f) return ["Ein Ehrgeiziger sammelt Rückhalt."];
+    if (!f) return [t("ev.person_intrige.text.leer")];
     const e = eigenVon(w, f);
-    return [
-      `Aus der Fraktion hört man, dass ${wer(f)} ${er(f)} in Hintergrundgesprächen als die bessere Wahl für die Führung ins Spiel bringt. Der Ehrgeiz liegt bei ${Math.round(e.ehrgeiz)} von 100, die Loyalität bei ${Math.round(f.loyalitaet)}.`,
-      `Noch ist es nur Gerede; wer jetzt nichts tut, riskiert, dass daraus eine Hausmacht wird.`,
-    ];
+    return [t("ev.person_intrige.text1", { ...person(f), ehrgeiz: Math.round(e.ehrgeiz), loy: Math.round(f.loyalitaet) }), t("ev.person_intrige.text2")];
   },
-  warum: () => "Ehrgeizige, die nicht eingebunden werden, suchen sich andere Aufgaben. Einbinden kostet Mittel, Ausbooten kostet einen Feind, Abwarten kostet Ruhe.",
+  warum: () => t("ev.person_intrige.warum"),
   optionen: (w, ev) => {
-    const f = figurVon(w, ev);
+    const p = person(figurVon(w, ev));
+    const k = (x: string) => `ev.person_intrige.opt.${x}`;
     return [
-      opt("einbinden", "Einbinden: mehr Mittel und Verantwortung", beschr(3, 0, `${Er(f)} lässt vom Ehrgeiz ab, solange die Anerkennung reicht: Loyalität +12, Ehrgeiz −8, Zusatzmittel.`), 3, (ww) => {
+      opt("einbinden", t(k("einbinden.label")), t(k("einbinden.beschr"), p), 3, (ww) => {
         const g = figurVon(ww, ev);
         if (g) {
           const e = eigenVon(ww, g);
@@ -219,22 +223,23 @@ const INTRIGE: Vorlage = {
           e.ehrgeiz = Math.max(0, e.ehrgeiz - 8);
           e.mittelBis = ww.day + 150;
           grollVerschieben(ww, g, -15);
-          merke(ww, g, "Nach Machtspielen eingebunden");
+          merke(ww, g, t(k("einbinden.merke")));
         }
-        return `${wer(g)} bekommt mehr Mittel und Verantwortung; das Gerede verstummt vorerst.`;
+        return T(k("einbinden.ausgang"), person(g));
       }),
-      opt("entlassen", "Entfernen", beschr(2, 0, `${Er(f)} verlässt das Amt; der Groll ist groß, und ein Nachfolger muss her.`), 2, (ww) => {
+      opt("entlassen", t(k("entlassen.label")), t(k("entlassen.beschr"), p), 2, (ww) => {
         const g = figurVon(ww, ev);
-        if (g) ausscheiden(ww, g, "Von Präsidenten wegen Machtspielen entfernt");
-        return `${wer(g)} wird aus dem Amt gedrängt; eine kommissarische Leitung übernimmt.`;
+        const vorher = person(g);
+        if (g) ausscheiden(ww, g, t(k("entlassen.grund")));
+        return T(k("entlassen.ausgang"), vorher);
       }),
-      opt("beobachten", "Beobachten", beschr(0, 0, "Kein Streit, aber der Ehrgeiz merkt, dass Sie nicht handeln."), 0, (ww) => {
+      opt("beobachten", t(k("beobachten.label")), t(k("beobachten.beschr"), p), 0, (ww) => {
         const g = figurVon(ww, ev);
         if (g) {
           loyalitaetVerschieben(g, -4);
           grollVerschieben(ww, g, 10);
         }
-        return `Sie lassen ${wer(g)} gewähren; ${er(g)} sammelt weiter.`;
+        return t(k("beobachten.ausgang"), person(g));
       }),
     ];
   },
@@ -245,7 +250,7 @@ const INTRIGE: Vorlage = {
       grollVerschieben(w, f, 12);
     }
     vertrauenAendern(w, -0.4);
-    return "Ohne Reaktion des Präsidenten wächst die Hausmacht; die Zeitungen sprechen von einem Machtkampf.";
+    return t("ev.person_intrige.standard", person(f));
   },
 };
 
@@ -262,43 +267,44 @@ const LECK: Vorlage = {
     const f = regierung(w).sort((a, b) => eigenVon(w, b).groll - eigenVon(w, a).groll)[0];
     return f ? { provinzen: [], staerke: 1, daten: { figur: f.id } } : null;
   },
-  titel: () => "Aus dem Kabinett dringt etwas durch",
+  titel: () => t("ev.person_leck.titel"),
   text: (w, ev) => {
     const f = figurVon(w, ev);
     return [
-      "Ein vertrauliches Gespräch aus der Regierung steht in der Zeitung: Zitate, Zahlen, ein Streit um den Kurs. Wer geredet hat, weiß niemand.",
-      f ? `Verdächtig ist, wer verärgert ist: Bei ${wer(f)} liegt der Groll bei ${Math.round(eigenVon(w, f).groll)} von 100.` : "Verdächtig ist, wer verärgert ist.",
+      t("ev.person_leck.text1"),
+      f ? t("ev.person_leck.text2", { ...person(f), groll: Math.round(eigenVon(w, f).groll) }) : t("ev.person_leck.text2.leer"),
     ];
   },
-  warum: () => "Wer verärgert wird und nichts zu verlieren hat, redet. Eine Suche nach der Quelle kostet Vertrauen im Kabinett, Schweigen kostet Vertrauen im Land.",
+  warum: () => t("ev.person_leck.warum"),
   optionen: (w, ev) => {
-    const f = figurVon(w, ev);
+    const p = person(figurVon(w, ev));
+    const k = (x: string) => `ev.person_leck.opt.${x}`;
     return [
-      opt("dementieren", "Dementieren und Geschlossenheit beschwören", beschr(1, 0, "Die Presse bohrt weiter, aber das Kabinett fühlt sich nicht verdächtigt."), 1, (ww) => {
+      opt("dementieren", t(k("dementieren.label")), t(k("dementieren.beschr")), 1, (ww) => {
         vertrauenAendern(ww, -0.5);
-        return "Die Regierung dementiert; die Zeitung bleibt bei ihrer Darstellung.";
+        return t(k("dementieren.ausgang"));
       }),
-      opt("quelle", "Die Quelle suchen", beschr(2, 0, `Sie stellen ${wer(f)} zur Rede: Loyalität −8, Groll +8, aber das Leck versiegt.`), 2, (ww) => {
+      opt("quelle", t(k("quelle.label")), T(k("quelle.beschr"), p), 2, (ww) => {
         const g = figurVon(ww, ev);
         if (g) {
           loyalitaetVerschieben(g, -8);
           grollVerschieben(ww, g, 8);
-          merke(ww, g, "Nach einem Leck zur Rede gestellt");
+          merke(ww, g, t(k("quelle.merke")));
         }
         vertrauenAendern(ww, -0.2);
-        return `${wer(g)} bestreitet alles; das Leck bleibt danach aus, das Misstrauen im Kabinett nicht.`;
+        return T(k("quelle.ausgang"), person(g));
       }),
-      opt("aussitzen", "Aussitzen", beschr(0, 0, "Kostet nichts, aber die Geschichte wächst."), 0, (ww) => {
+      opt("aussitzen", t(k("aussitzen.label")), t(k("aussitzen.beschr")), 0, (ww) => {
         vertrauenAendern(ww, -1.2);
         const g = figurVon(ww, ev);
         if (g) grollVerschieben(ww, g, 4);
-        return "Die Regierung schweigt; die Zeitung legt nach.";
+        return t(k("aussitzen.ausgang"));
       }),
     ];
   },
   standard: (w) => {
     vertrauenAendern(w, -1.5);
-    return "Ohne Reaktion wird das Leck zum Dauerthema: Der Eindruck eines zerstrittenen Kabinetts bleibt.";
+    return t("ev.person_leck.standard");
   },
 };
 
@@ -318,14 +324,15 @@ const ALTER: Vorlage = {
     const f = rs[Math.floor(hashZahl(`alter-${w.day}`) * rs.length)]!;
     return { provinzen: [], staerke: 1, daten: { figur: f.id } };
   },
-  titel: (w, ev) => t("takt.person.alter.titel", { wer: wer(figurVon(w, ev)) }),
-  text: (w, ev) => [t("takt.person.alter.text", { wer: wer(figurVon(w, ev)) })],
+  titel: (w, ev) => T("takt.person.alter.titel", { wer: wer(figurVon(w, ev)) }),
+  text: (w, ev) => [T("takt.person.alter.text", { wer: wer(figurVon(w, ev)) })],
   warum: () => t("takt.person.alter.warum"),
   optionen: (w, ev) => [
     opt("verabschieden", t("takt.person.alter.opt.verabschieden.label"), t("takt.person.alter.opt.verabschieden.beschr"), 0, (ww) => {
       const g = figurVon(ww, ev);
+      const vorher = wer(g);
       if (g) ausscheiden(ww, g, t("takt.person.alter.grund"));
-      return t("takt.person.alter.opt.verabschieden.ausgang", { wer: wer(g) });
+      return T("takt.person.alter.opt.verabschieden.ausgang", { wer: vorher });
     }),
     opt("bitten", t("takt.person.alter.opt.bitten.label"), t("takt.person.alter.opt.bitten.beschr"), 2, (ww) => {
       const g = figurVon(ww, ev);
@@ -334,13 +341,14 @@ const ALTER: Vorlage = {
         grollVerschieben(ww, g, -5);
         merke(ww, g, t("takt.person.alter.merke"));
       }
-      return t("takt.person.alter.opt.bitten.ausgang", { wer: wer(g) });
+      return T("takt.person.alter.opt.bitten.ausgang", { wer: wer(g) });
     }),
   ],
   standard: (w, ev) => {
     const f = figurVon(w, ev);
+    const vorher = wer(f);
     if (f) ausscheiden(w, f, t("takt.person.alter.grund"));
-    return t("takt.person.alter.standard", { wer: wer(f) });
+    return T("takt.person.alter.standard", { wer: vorher });
   },
 };
 

@@ -243,6 +243,9 @@ const NACHFOLGE: Vorlage = {
 // ---------------------------------------------------------------------------
 // Kampfkandidatur auf dem Parteitag (nicht im autoritären Stil: dort wird nicht offen gewählt)
 
+/** Kapital, das eine verlorene Kampfkandidatur zusätzlich kostet (Spielparameter). */
+const PARTEITAG_NIEDERLAGE_PK = 8;
+
 const PARTEITAG: Vorlage = {
   id: "kreis_parteitag",
   szene: "parlament",
@@ -261,7 +264,8 @@ const PARTEITAG: Vorlage = {
   text: (w, ev) => [t("mk.ev.parteitag.text1", { name: nm(p(w, ev)), einfluss: Math.round(p(w, ev)?.neben?.einfluss ?? 0) }), t("mk.ev.parteitag.text2", { chance: Math.round(parteitagChance(w, ev) * 100) })],
   warum: () => t("mk.ev.parteitag.warum"),
   optionen: () => [
-    opt("kaempfen", t("mk.ev.parteitag.kaempfen"), t("mk.ev.parteitag.kaempfen_beschr"), 4, (ww, ev, rng) => {
+    // Eine Niederlage bucht 8 Kapital nach: geprüft und auf der Plakette genannt wird der höchste mögliche Preis (4 + 8)
+    { ...opt("kaempfen", t("mk.ev.parteitag.kaempfen"), t("mk.ev.parteitag.kaempfen_beschr"), 4, (ww, ev, rng) => {
       const x = p(ww, ev);
       const mk = machtkreis(ww);
       const sieg = rng.next() < parteitagChance(ww, ev);
@@ -282,10 +286,10 @@ const PARTEITAG: Vorlage = {
       fraktionWendetSich(ww);
       wirke(ww, "legitimitaet", -5);
       vertrauenAendern(ww, -2);
-      if (ww.spiel) ww.spiel.kapital -= 8;
+      if (ww.spiel) ww.spiel.kapital -= PARTEITAG_NIEDERLAGE_PK;
       zeigeSzene(ww, "parteitagNiederlage", msg("mk.szene.parteitagNiederlage", { name: nm(x) }), [x?.schluessel ?? ""], t("mk.stempel.parteitagNiederlage"));
       return t("mk.ev.parteitag.niederlage", { name: nm(x) });
-    }),
+    }), anzeigePk: 4 + PARTEITAG_NIEDERLAGE_PK },
     opt("teilen", t("mk.ev.parteitag.teilen"), t("mk.ev.parteitag.teilen_beschr"), 2, (ww, ev) => {
       const x = p(ww, ev);
       const mk = machtkreis(ww);

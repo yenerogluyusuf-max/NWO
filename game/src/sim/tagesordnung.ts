@@ -4,7 +4,7 @@
 // das Verfassungspaket paketStimmen; die Normenkontrolle kommt aus laufendeVerfahren. Keine eigene Regel.
 
 import { addDays } from "./dates";
-import { REGELN, gesetzPrognose } from "./handeln";
+import { REGELN, gesetzPrognose, gesetzPhase, type GesetzPhase } from "./handeln";
 import { haushaltsGesetzSicht, haushaltsTitel } from "./haushalt";
 import { versorgungsStimmen } from "./versorgungsmehrheit";
 import { paketStimmen, VERFASSUNG_REGELN } from "./verfassung";
@@ -27,7 +27,8 @@ export interface TagesordnungPunkt {
   /** Spanne der Schätzung, wo die Quelle sie kennt (Verfassung) */
   tief?: number;
   hoch?: number;
-  /** Nötige Stimmen: 301 bei Gesetzen und Haushalt, 360 beim Verfassungspaket */
+  /** Nötige Unterstützer: Mehrheit der Anwesenden bei Gesetzen (GESETZ_SCHWELLE), 301 nach einer Rücksendung, beim Haushalt und bei
+   *  Versorgungsvorlagen (sim/haushalt.ts und sim/versorgungsmehrheit.ts zählen noch 301), 360 beim Verfassungspaket */
   schwelle?: number;
   /** Beim Verfassungspaket: ab hier ohne Volksabstimmung (400) */
   direkt?: number;
@@ -37,6 +38,8 @@ export interface TagesordnungPunkt {
   massnahme?: string;
   /** Beim Gericht: Wahrscheinlichkeit, dass es aufhebt */
   p?: number;
+  /** Bei Gesetzen: Ausschuss, Plenum, Kommission oder neue Beratung nach Rücksendung */
+  phase?: GesetzPhase;
 }
 
 const urteilVon = (ja: number, schwelle: number): TagesordnungPunkt["urteil"] => (ja >= schwelle + 8 ? "sicher" : ja >= schwelle - 10 ? "knapp" : "verloren");
@@ -48,7 +51,7 @@ export function tagesordnung(w: World): TagesordnungPunkt[] {
   const datum = (tag: number) => addDays(w.date, tag - w.day);
   for (const g of sp.gesetze) {
     const p = gesetzPrognose(w, g);
-    out.push({ id: g.id, art: "gesetz", titel: g.name, tag: g.abstimmung, tageBis: Math.max(0, g.abstimmung - w.day), datum: p.datum, ja: p.ja, schwelle: REGELN.mehrheit, urteil: p.urteil, gesetzId: g.id, massnahme: g.massnahme });
+    out.push({ id: g.id, art: "gesetz", titel: g.name, tag: g.abstimmung, tageBis: Math.max(0, g.abstimmung - w.day), datum: p.datum, ja: p.ja, schwelle: p.schwelle, urteil: p.urteil, gesetzId: g.id, massnahme: g.massnahme, phase: gesetzPhase(w, g) });
   }
   const hg = sp.wirtschaft?.haushalt.gesetz;
   const hs = haushaltsGesetzSicht(w);

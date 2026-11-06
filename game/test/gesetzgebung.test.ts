@@ -78,22 +78,23 @@ describe("Karten", () => {
 });
 
 describe("Ablauf", () => {
+  // Seit N4 setzt den Mindestlohn die Kommission fest (test/nacht-n4.test.ts); der Ablauf über das Parlament am Rentengesetz
   test("Gesetz einbringen, Abstimmung, Folgen, Ruhezeit", () => {
     const w = neu();
-    const r = bringeVorhabenEin(w, "gv_mindestlohn", "kompromiss", "gesetz");
+    const r = bringeVorhabenEin(w, "gv_renten", "kompromiss", "gesetz");
     expect(r.ok).toBe(true);
-    const g = w.spiel!.gesetze.find((x) => x.vorhaben === "gv_mindestlohn")!;
+    const g = w.spiel!.gesetze.find((x) => x.vorhaben === "gv_renten")!;
     expect(g.fassung).toBe("kompromiss");
     expect(laufendeVerfahren(w).parlament).toHaveLength(1);
     // zweimal geht nicht
-    expect(bringeVorhabenEin(w, "gv_mindestlohn", "scharf", "gesetz").ok).toBe(false);
+    expect(bringeVorhabenEin(w, "gv_renten", "scharf", "gesetz").ok).toBe(false);
     advance(w, 25);
-    expect(w.spiel!.gesetze.some((x) => x.vorhaben === "gv_mindestlohn")).toBe(false);
+    expect(w.spiel!.gesetze.some((x) => x.vorhaben === "gv_renten")).toBe(false);
     const z = gesetzgebungVon(w);
-    expect(z.beschlossen.map((b) => b.vorhaben)).toContain("gv_mindestlohn");
-    expect(z.ruhe.gv_mindestlohn).toBeGreaterThan(w.day);
-    expect(w.log.some((l) => l.text.startsWith("Das Parlament nimmt „Mindestlohngesetz"))).toBe(true);
-    expect(vorhabenSicht(w, def("gv_mindestlohn")).fassungen.kompromiss.moeglich).toBe(false);
+    expect(z.beschlossen.map((b) => b.vorhaben)).toContain("gv_renten");
+    expect(z.ruhe.gv_renten).toBeGreaterThan(w.day);
+    expect(w.log.some((l) => l.text.startsWith("Das Parlament nimmt „Rentenanpassungsgesetz"))).toBe(true);
+    expect(vorhabenSicht(w, def("gv_renten")).fassungen.kompromiss.moeglich).toBe(false);
   });
 
   test("verlorene Abstimmung: Kapital weg, kurze Ruhezeit", () => {

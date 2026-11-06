@@ -3,7 +3,8 @@ import type { World } from "../sim/types";
 import { NET } from "../sim/world";
 import { nationalAverage, startAverage } from "../sim/netz";
 import type { Metric, Outlook } from "../sim/forecast";
-import { REGELN, STIMMEN_PUFFER, bringeEin, preisUebersicht, provinzenText, pruefeVorhaben, stufeIn } from "../sim/handeln";
+import { GESETZ_SCHWELLE, STIMMEN_PUFFER, bringeEin, preisUebersicht, provinzenText, pruefeVorhaben, stufeIn } from "../sim/handeln";
+import { ABSPRACHE } from "../sim/fraktionen-absprachen";
 import type { Weg } from "../sim/spiel-typen";
 import { berechneVorschau } from "./vorschau";
 import { restMonate, umsetzungsStand } from "../sim/umsetzung";
@@ -20,24 +21,26 @@ import { PARTEI_NAME } from "../sim/fraktionen";
 import { kabinettReaktion } from "../sim/figuren";
 import { Handlungsfeld } from "./Handlungsfeld";
 import { zusammenspielFuer } from "../sim/synergien";
-import { t } from "../i18n";
+import { t, zahl } from "../i18n";
 
+// Getter: Die Wörter folgen der aktuellen Sprache (I-6)
 const KIND_LABEL: Record<NodeSpec["kind"], string> = {
-  massnahme: "Maßnahme",
-  groesse: "Größe",
-  problem: "Problem",
-  gruppe: "Wählergruppe",
+  get massnahme() { return t("n4.nv.kind.massnahme"); },
+  get groesse() { return t("n4.nv.kind.groesse"); },
+  get problem() { return t("n4.nv.kind.problem"); },
+  get gruppe() { return t("n4.nv.kind.gruppe"); },
 };
 
 const DIRECTION: Record<Outlook["direction"], string> = {
-  hoeher: "eher höher",
-  niedriger: "eher niedriger",
-  unklar: "kaum Unterschied",
+  get hoeher() { return t("n4.nv.dir.hoeher"); },
+  get niedriger() { return t("n4.nv.dir.niedriger"); },
+  get unklar() { return t("n4.nv.dir.unklar"); },
 };
 
-const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+/** Indizes ohne Kommastelle (I-12) */
+const nf = (x: number) => zahl(Math.round(x));
 /** Kosten brauchen mehr Nachkommastellen: 0,03 % des BIP ist kein Rundungsfehler. */
-const nfc = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 3, minimumFractionDigits: 2 });
+const nfc = (x: number) => zahl(x, Math.abs(x) < 0.1 ? 3 : 2);
 
 export function NetView({
   world,
@@ -104,8 +107,8 @@ export function NetView({
   async function starteVorschau() {
     const stufe = sliderValue;
     const metrics: { label: string; m: Metric }[] = [
-      { label: "Inflation", m: "inflation" },
-      { label: "Wachstum", m: "growth" },
+      { label: t("n4.nv.inflation"), m: "inflation" },
+      { label: t("n4.nv.wachstum"), m: "growth" },
       ...effects.slice(0, 4).map((e) => ({
         label: ort ? `${nameOf(e.to)} (${provinzenText(ort).replace(/^in /, "")})` : nameOf(e.to),
         m: (ort ? `netin:${e.to}:${ort.join(",")}` : `net:${e.to}`) as Metric,
@@ -144,7 +147,8 @@ export function NetView({
   const gesperrt = pr?.krisen.find((k) => k.art === "gesperrt") ?? null;
   // Aussichtslos: Die Stimmen fehlen, und Absprachen wären nach der Einbringung nicht mehr bezahlbar
   const luecke = pr?.gesetz.stimmen.luecke ?? 0;
-  const kaufkosten = Math.ceil((luecke + STIMMEN_PUFFER) * REGELN.kaufKostenProStimme);
+  // Absprachen kosten je Stimme verschieden (benannte Abgeordnete, B-10); als Richtwert dient der günstigste Preis je Stimme
+  const kaufkosten = Math.ceil((luecke + STIMMEN_PUFFER) * ABSPRACHE.preisJeStimme.zusage);
   const aussichtslos = !!spiel && !!pr && pr.ok && effektivWeg === "gesetz" && luecke > 0 && pr.kapital - pr.gesetz.pk < kaufkosten;
   const vorhabenKey = `${node.id}|${sliderValue}|${ort?.join(",") ?? "land"}|${effektivWeg}`;
   const kannBezahlen = !spiel || !pr ? true : effektivWeg === "erlass" ? pr.erlass.bezahlbar : pr.gesetz.bezahlbar;
@@ -209,21 +213,21 @@ export function NetView({
                         <dt>{t("ui2.ui.NetView.54c5730")}</dt>
                         <dd>
                           {t("ui2.ui.NetView.2a6f5fd", { p0: pu.einfuehren10, p1: pu.streichen10 })}
-                          {pu.faktorStreichen > pu.faktorEinfuehren && <> {t("ui2.ui.NetView.c707cb1", { p0: (pu.faktorStreichen / pu.faktorEinfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 }) })}</>}
-                          {pu.unterhaltMonat > 0 && <> {t("ui2.ui.NetView.03b3096", { p0: pu.unterhaltMonat.toLocaleString("de-DE") })}</>}.
+                          {pu.faktorStreichen > pu.faktorEinfuehren && <> {t("n4.nv.ruecknahme", { f: zahl(pu.faktorStreichen / pu.faktorEinfuehren, 1) })}</>}
+                          {pu.unterhaltMonat > 0 && <> {t("ui2.ui.NetView.03b3096", { p0: zahl(pu.unterhaltMonat, 1) })}</>}.
                         </dd>
                       </div>
                     )}
                     <div>
                       <dt>{t("ui2.ui.NetView.f6e5817")}</dt>
                       <dd>
-                        {t("ui2.ui.NetView.83d0db3", { p0: pr.monate })}{pr.monate === 1 ? "" : "e"} {t("ui2.ui.NetView.2dd5af2")}
+                        {t("n4.nv.monate", { n: pr.monate })} {t("ui2.ui.NetView.2dd5af2")}
                         {spiel && pr.ueberlast > 1 ? t("ui2.ui.NetView.1efdfb9", { p0: pr.offen, p1: Math.round((pr.ueberlast - 1) * 100) }) : ""}
                       </dd>
                     </div>
                     {kabinett.map((k) => (
                       <div key={k.wer}>
-                        <dt>Im Kabinett</dt>
+                        <dt>{t("n4.nv.imKabinett")}</dt>
                         <dd>
                           {k.wer}: {k.text}
                         </dd>
@@ -276,10 +280,16 @@ export function NetView({
                 <b style={{ left: `${Math.max(0, Math.min(100, start))}%` }} title={t("ui2.ui.NetView.130b865")} />
               </span>
             )}
-            {!node.input && (
+            {!node.input && istMassnahme && (
               <span className="subtitle">
                 {" "}
-                (Index 0–100; {istMassnahme && ort ? t("ui2.ui.NetView.ca61657", { p0: nf(nationalAverage(NET, world.net, node.id)) }) : ""}{t("ui2.ui.NetView.6355a74", { p0: nf(start) })}
+                ({ort ? `${t("n9.netz.land", { wert: stufenName(node.id, nationalAverage(NET, world.net, node.id)) })}; ` : ""}{t("n9.netz.start", { start: stufenName(node.id, start) })})
+              </span>
+            )}
+            {!node.input && !istMassnahme && (
+              <span className="subtitle">
+                {" "}
+                {t("n4.nv.startIndex", { start: nf(start) })}
               </span>
             )}
             {node.kind === "problem" && (
@@ -336,11 +346,11 @@ export function NetView({
                       </h4>
                       <div className="stufe-kopf">
                         <span>
-                          {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : `etwa ${jetztStufe.stufe.name}`) : stufenName(node.id, now)}</b>
+                          {t("ui2.ui.NetView.20a10d5")} <b>{regime ? (jetztStufe.genau ? jetztStufe.stufe.name : t("n9.netz.etwa", { name: jetztStufe.stufe.name })) : stufenName(node.id, now)}</b>
                         </span>
                         <span aria-hidden>→</span>
                         <span className={aendert ? "neu" : ""}>
-                          neu <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : `etwa ${neuStufe.stufe.name}`) : stufenName(node.id, sliderValue)}</b>
+                          {t("n9.netz.neu")} <b>{regime ? (neuStufe.genau ? neuStufe.stufe.name : t("n9.netz.etwa", { name: neuStufe.stufe.name })) : stufenName(node.id, sliderValue)}</b>
                         </span>
                       </div>
                       <div className={`stufenwahl art-${sk.art}`} role="radiogroup" aria-label={`${sk.frage} ${node.name}`}>
@@ -369,7 +379,7 @@ export function NetView({
                             </span>
                             <span aria-hidden>→</span>
                             <span>
-                              neu <b>{stufenName(node.id, sliderValue)}</b>
+                              {t("n9.netz.neu")} <b>{stufenName(node.id, sliderValue)}</b>
                             </span>
                           </div>
                           <input type="range" min={0} max={100} value={sliderValue} aria-label={t("ui2.ui.NetView.b0debca", { p0: node.name })} onChange={(ev) => wahl(Number(ev.target.value))} />
@@ -400,8 +410,8 @@ export function NetView({
                             </span>
                             <span className="um-legende">
                               {t("ui2.ui.NetView.6b17514")}
-                              {beschlossenesZiel !== undefined ? t("ui2.ui.NetView.b4cf04a", { p0: Math.round(beschlossenesZiel) }) : ""}
-                              {aendert ? t("ui2.ui.NetView.ed0fc21", { p0: sliderValue }) : ""}
+                              {beschlossenesZiel !== undefined ? t("ui2.ui.NetView.b4cf04a", { p0: stufenName(node.id, beschlossenesZiel) }) : ""}
+                              {aendert ? t("ui2.ui.NetView.ed0fc21", { p0: stufenName(node.id, sliderValue) }) : ""}
                             </span>
                           </p>
                         </div>
@@ -418,22 +428,22 @@ export function NetView({
                   </h4>
                   <div className="weg-wahl" role="radiogroup" aria-label={t("ui2.ui.NetView.d5c00e9")}>
                     <button role="radio" aria-checked={effektivWeg === "gesetz"} className={`weg-karte${effektivWeg === "gesetz" ? " on" : ""}`} onClick={() => setWeg("gesetz")}>
-                      <strong>{t("ui.NetView.17ae27b")}</strong>
+                      <strong>{pr.rechtsweg === "kommission" ? t("n4.nv.wegKommission") : t("ui.NetView.17ae27b")}</strong>
                       <span className="wk-preis">{t("ui2.ui.NetView.87b52bd", { p0: pr.gesetz.pk })}</span>
-                      <em>{t("ui2.ui.NetView.7ce9899", { p0: pr.gesetz.tage, p1: pr.gesetz.stimmen.erwartet })}</em>
+                      <em>{pr.rechtsweg === "kommission" ? t("n4.mt.kommission", { tage: pr.gesetz.tage }) : t("n4.nv.wegGesetz", { tage: pr.gesetz.tage, ja: pr.gesetz.stimmen.erwartet, noetig: GESETZ_SCHWELLE })}</em>
                       {pr.gesetz.stimmen.sachParteien.length > 0 && <span className="wk-urteil gut">{t("ui2.ui.NetView.24b472a", { p0: pr.gesetz.stimmen.sachParteien.map((k) => PARTEI_NAME[k] ?? k).join(", ") })}</span>}
                       <span className={`wk-urteil ${luecke === 0 ? "gut" : aussichtslos ? "schlecht" : "mittel"}`}>
                         {luecke === 0 ? t("ui2.ui.NetView.8e0383d") : aussichtslos ? t("ui2.ui.NetView.54cc7ec", { p0: luecke }) : t("ui2.ui.NetView.fbe3cf5", { p0: luecke, p1: kaufkosten })}
                       </span>
                       <span className="wk-bar" aria-hidden>
                         <i style={{ width: `${Math.min(100, (pr.gesetz.stimmen.erwartet / 600) * 100)}%` }} />
-                        <b style={{ left: `${(301 / 600) * 100}%` }} />
+                        <b style={{ left: `${(GESETZ_SCHWELLE / 600) * 100}%` }} />
                       </span>
                     </button>
                     <button role="radio" aria-checked={effektivWeg === "erlass"} disabled={!pr.erlass.moeglich} className={`weg-karte${effektivWeg === "erlass" ? " on" : ""}`} onClick={() => setWeg("erlass")} title={pr.erlass.moeglich ? undefined : pr.erlass.grund}>
-                      <strong>{t("ui2.ui.NetView.b4e3a33")}</strong>
+                      <strong>{pr.erlass.art === "beschluss" ? t("n4.nv.wegBeschluss") : t("ui2.ui.NetView.b4e3a33")}</strong>
                       <span className="wk-preis">{t("ui2.ui.NetView.87b52bd", { p0: pr.erlass.pk })}</span>
-                      <em>{pr.erlass.moeglich ? t("ui2.ui.NetView.27460fb") : t("ui2.ui.NetView.c817b01")}</em>
+                      <em>{pr.erlass.moeglich ? t(pr.erlass.art === "beschluss" ? "n4.nv.wegBeschlussText" : "ui2.ui.NetView.27460fb") : pr.erlass.grund ?? t("ui2.ui.NetView.c817b01")}</em>
                     </button>
                   </div>
                   <div className="weg-kapital">
@@ -455,7 +465,7 @@ export function NetView({
                 <button className="primary" disabled={!aendert || !kannBezahlen} onClick={einbringen}>
                   {spiel
                     ? effektivWeg === "erlass"
-                      ? t("ui2.ui.NetView.53365d4", { p0: aktuellePk })
+                      ? t(pr?.erlass.art === "beschluss" ? "n4.mt.beschluss" : "ui2.ui.NetView.53365d4", { p0: aktuellePk, n: aktuellePk })
                       : aussichtslos && bestaetigt === vorhabenKey
                         ? t("ui2.ui.NetView.5ffb75c", { p0: aktuellePk })
                         : t("ui2.ui.NetView.acf9290", { p0: aktuellePk })

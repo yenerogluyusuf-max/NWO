@@ -10,7 +10,7 @@ import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { OffenesEreignis } from "./spiel-typen";
 import type { Msg } from "../i18n";
-import { t } from "../i18n";
+import { aktuelleLocale, zahl } from "../i18n";
 
 export type SzenenName = "istanbul" | "parlament" | "bank" | "anatolien" | "wahlnacht";
 
@@ -78,7 +78,8 @@ export interface Vorlage {
 // ---------------------------------------------------------------------------
 // Hilfen
 
-export const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+/** Zahl mit festen Nachkommastellen in der Sprache des Spiels (Befund I-9: nie fest deutsch). Minus null erscheint als Null. */
+export const nf = (x: number, d = 1) => zahl(Math.abs(x) < 0.5 * 10 ** -d ? 0 : x, d);
 export const monatVon = (w: World) => Number(w.date.slice(5, 7));
 export const sommer = (w: World) => monatVon(w) >= 6 && monatVon(w) <= 9;
 
@@ -140,13 +141,20 @@ export const jahrVon = (w: World): number => Number(w.date.slice(0, 4));
 /** Landesdurchschnitt eines Knotens. */
 export const netz = (w: World, id: string): number => nationalAverage(NET, w.net, id);
 
-/** Preisangabe einer Antwort in Worten: „Kostet 3 Kapital und 0,2 % des BIP; …“ */
-export function beschr(pk: number, bipProzent: number, folge: string): string {
-  const teile: string[] = [];
-  if (pk > 0) teile.push(t("hilfe.preis.kapital", { pk }));
-  if (bipProzent > 0) teile.push(t("hilfe.preis.bip", { x: nf(bipProzent, bipProzent < 0.1 ? 2 : 1) }));
-  const preis = teile.length ? t("hilfe.preis.kostet", { teile }) : bipProzent < 0 ? t("hilfe.preis.bringt", { x: nf(-bipProzent, 2) }) : t("hilfe.preis.nichts");
-  return t("hilfe.preis.satz", { preis, folge });
+/**
+ * Beschreibung einer Antwort: nur die Folge in Worten. Den Preis (Kapital und Anteil am BIP) zeigt das Ereignisfenster auf der
+ * Plakette, gemessen auf einer Kopie der Welt mit derselben Buchung wie bei der echten Antwort (sim/ereignisse.ts, `preisVorschau`).
+ * Befund A-4/A-7/A-43 (5. November 2026): Von Hand geschriebene Preise wichen von der Buchung ab und standen dreifach in der Karte.
+ * `pk` und `bipProzent` bleiben in der Unterschrift, damit die Vorlagen ihre Zahlen weiter an einer Stelle nennen.
+ */
+export function beschr(_pk: number, _bipProzent: number, folge: string): string {
+  return satzAnfang(folge);
+}
+
+/** Erster Buchstabe groß, nach den Regeln der Sprache (im Türkischen i → İ). */
+export function satzAnfang(s: string): string {
+  const x = s.trimStart();
+  return x ? x[0]!.toLocaleUpperCase(aktuelleLocale()) + x.slice(1) : x;
 }
 
 /** Eine Zusage, die später fällig wird und dann als Ereignis eingefordert wird. */

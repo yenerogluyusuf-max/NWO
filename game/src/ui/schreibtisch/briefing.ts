@@ -25,6 +25,7 @@ import type { Theme } from "../../data/politiknetz";
 import { naechsteSitzung } from "../../sim/zentralbank";
 import { akteurName, weltModell } from "../../sim/welt-modell";
 import { t } from "../../i18n";
+import { stufenName } from "../../data/skalen";
 import type { World } from "../../sim/types";
 import { zusageText, zusageVon } from "../../sim/zusagen";
 import { zusageZiel } from "../../sim/zusagenfolgen";
@@ -299,7 +300,7 @@ export function faellig(world: World): Faellig[] {
       titel: t("sk.f.gesetz.titel", { name: g.name }),
       tage,
       dringend: tage <= 14 && s.luecke > 0,
-      unter: `${t("sk.f.gesetz.unter", { wann: tageWort(tage), ja: s.ja, noetig: REGELN.mehrheit })}${s.luecke > 0 ? t("sk.f.gesetz.fehlt", { n: s.luecke }) : ""}`,
+      unter: `${t("sk.f.gesetz.unter", { wann: tageWort(tage), ja: s.ja, noetig: s.schwelle })}${s.luecke > 0 ? t("sk.f.gesetz.fehlt", { n: s.luecke }) : ""}`,
       knopf: { art: "gehe", label: s.luecke > 0 ? t("sk.f.gesetz.suchen") : t("sk.f.ansehen"), ziel: { art: "akte", akte: "parlament" } },
     });
   }
@@ -509,7 +510,7 @@ export function empfehlungen(world: World, vorschlaege?: Vorschlag[]): Empfehlun
       id: `v-${v.massnahme}`,
       rat: t("sk.e.rat.fachstab"),
       ...(stab ? { wer: anrede(stab) } : {}),
-      titel: v.zielName ? t("sk.e.v.titelName", { name: v.name, jetzt: v.jetztName ?? "", ziel: v.zielName }) : t("sk.e.v.titelStufe", { name: v.name, jetzt: v.stufeJetzt, ziel: v.ziel }),
+      titel: v.zielName ? t("sk.e.v.titelName", { name: v.name, jetzt: v.jetztName ?? "", ziel: v.zielName }) : t("n9.briefing.titel", { name: v.name, jetzt: stufenName(v.massnahme, v.stufeJetzt), ziel: stufenName(v.massnahme, v.ziel) }),
       text: v.grund,
       kosten: t("sk.e.v.kosten", { pk: v.pk, bip: v.kostenBip, m: v.monate, urteil: t(v.urteil === "sicher" ? "sk.e.urteil.sicher" : v.urteil === "knapp" ? "sk.e.urteil.knapp" : "sk.e.urteil.verloren") }),
       knoepfe: [

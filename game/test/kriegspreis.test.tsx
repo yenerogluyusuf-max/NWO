@@ -33,8 +33,10 @@ function krieg(w: World, landId: string): KriegVorgang {
   kriegMonat(w, new Rng(1));
   const k = kriegMit(w, landId)!;
   k.eskalation = 80;
+  k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   advance(w, 1);
   fuehreKriegHandlungAus(w, k.id, "ziel_verteidigung");
+  k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
   fuehreKriegHandlungAus(w, k.id, "beschluss");
   advance(w, KRIEG.beschlussTage);
   expect(k.phase).toBe("krieg");
@@ -100,6 +102,7 @@ describe("Kriegstexte in drei Sprachen", () => {
     kriegMonat(w, new Rng(1));
     const k = kriegMit(w, "GRC")!;
     k.eskalation = 80;
+    k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
     advance(w, 1);
     const deutsch = /\b(der|die|das|und|mit|gegen|Krieg|Waffenruhe|Kapital)\b/;
     for (const s of ["tr", "en"] as const) {

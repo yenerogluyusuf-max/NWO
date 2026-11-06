@@ -9,7 +9,8 @@ import type { Code } from "../../data/welt-daten";
 
 import { t } from "../../i18n";
 function Verlauf({ werte, einheit, titel }: { werte: number[]; einheit: string; titel: string }) {
-  if (werte.length < 3) return <span className="we-linie leer" title={t("ui.welt.WeltLage.a26a17b")}>{t("ui.welt.WeltLage.621f42c")}</span>;
+  // Ohne Verlauf nichts zeigen (Befund G-41: „noch kein Verlauf“ unter jeder Kachel wirkte wie ein Fehler)
+  if (werte.length < 3) return null;
   const min = Math.min(...werte);
   const max = Math.max(...werte);
   const spanne = max - min || 1;
@@ -62,9 +63,9 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
       <div className="we-zahlen-raster">
         <Zahl label={t("ui2.ui.welt.WeltLage.f133e3f")} wert={nf(l.wachstum)} einheit="%" herkunft={h.wachstum} verlauf={l.verlauf.map((v) => v[0])} gut="hoch" />
         <Zahl label={t("ui2.ui.welt.WeltLage.5b4e842")} wert={nf(l.inflation)} einheit="%" herkunft={h.inflation} verlauf={l.verlauf.map((v) => v[1])} gut={"niedrig"} />
-        <Zahl label={t("ui2.ui.welt.WeltLage.b845c55")} wert={nf(l.schulden, 0)} einheit="% BIP" herkunft={h.schulden} gut={"niedrig"} />
-        <Zahl label={t("ui2.ui.welt.WeltLage.a81d742")} wert={nf(l.defizit)} einheit="% BIP" herkunft={h.defizit} gut="hoch" />
-        <Zahl label={t("ui.welt.WeltLage.219669d")} wert={nf(l.ruestung)} einheit="% BIP" herkunft={h.ruestung} />
+        <Zahl label={t("ui2.ui.welt.WeltLage.b845c55")} wert={nf(l.schulden, 0)} einheit={t("nacht_n7.einheit.bip_kurz")} herkunft={h.schulden} gut={"niedrig"} />
+        <Zahl label={t("ui2.ui.welt.WeltLage.a81d742")} wert={nf(l.defizit)} einheit={t("nacht_n7.einheit.bip_kurz")} herkunft={h.defizit} gut="hoch" />
+        <Zahl label={t("ui.welt.WeltLage.219669d")} wert={nf(l.ruestung)} einheit={t("nacht_n7.einheit.bip_kurz")} herkunft={h.ruestung} />
       </div>
       <div className="we-balken-raster">
         <Balken label={t("ui.welt.WeltLage.5f64955")} wert={l.stabilitaet} wort={l.stabilitaetWort} schlecht={l.stabilitaet < 35} />
@@ -74,7 +75,7 @@ export function WeltLage({ world, id, onDienst }: { world: World; id: string; on
       </div>
       <p className="we-regierung">
         <b>{l.regierungsform}</b> · {l.wahlText}
-        {l.verlauf.length >= 3 && <span className="we-hinweis"> {t("ui2.ui.welt.WeltLage.b3a4ef7")} <Verlauf werte={l.verlauf.map((v) => v[2])} einheit="Punkte" titel={t("ui2.ui.welt.WeltLage.5f64955")} /></span>}
+        {l.verlauf.length >= 3 && <span className="we-hinweis"> {t("ui2.ui.welt.WeltLage.b3a4ef7")} <Verlauf werte={l.verlauf.map((v) => v[2])} einheit={t("nacht_n7.einheit.punkte")} titel={t("ui2.ui.welt.WeltLage.5f64955")} /></span>}
       </p>
 
       {wahl && (

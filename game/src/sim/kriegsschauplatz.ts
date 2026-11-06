@@ -562,6 +562,48 @@ export interface KriegsKarte {
   bedroht: number[];
   /** Ein Krieg läuft gerade (Animation an) */
   aktiv: boolean;
+  /**
+   * Die Frontlinie je Krieg (Befund G-1): ein Punkt auf dem Weg von der türkischen Grenze durch die Zielregionen (nach Tiefe), so weit,
+   * wie die Frontlage reicht, und die Richtung des Vorstoßes (Längen-, Breitengrad je Einheit). Deterministisch aus `front`.
+   */
+  fronten?: { land: string; punkt: [number, number]; richtung: [number, number]; front: number }[];
+  /**
+   * Verbände als Marken: hinter der Front die eigenen Teilstreitkräfte, die die Einsatzart trägt, davor der Gegner. `staerke` ist der Bestand
+   * in Prozent des Stands 2026 (eigen) bzw. des Vorkriegsstands (Gegner), aus denselben Zahlen wie das Dossier.
+   */
+  verbaende?: { land: string; lon: number; lat: number; seite: "eigen" | "gegner"; art: "heer" | "luft" | "see"; staerke: number }[];
+}
+
+/** Tragende Teilstreitkräfte je Einsatzart (für die Marken auf der Karte). */
+const MARKEN_TEILE: Record<EinsatzArt | "gemischt", ("heer" | "luft" | "see")[]> = {
+  luft: ["luft"], boden: ["heer", "luft"], see: ["see"], stellvertreter: ["heer"], gemischt: ["heer", "luft"],
+};
+const TEIL_GATTUNGEN: Record<"heer" | "luft" | "see", Partial<Record<GattungId, number>>> = {
+  heer: { personal: 0.35, panzer: 0.4, munition: 0.25 },
+  luft: { kampfflugzeuge: 0.45, drohnen: 0.35, luftabwehr: 0.2 },
+  see: { marine: 0.7, raketen: 0.3 },
+};
+
+/**
+ * Wo die Front steht: Die Frontlage 40 liegt an der Grenze (darunter drängt der Gegner, die Karte zeigt dann die bedrohten Provinzen),
+ * 96 (Sieg) an der tiefsten Zielregion; dazwischen läuft sie gleichmäßig den Weg entlang. Spielparameter der Darstellung.
+ */
+function frontPunkt(weg: [number, number][], front: number): { punkt: [number, number]; richtung: [number, number] } {
+  const u = clamp((front - 40) / 56, 0, 1);
+  const laengen = weg.slice(1).map((p, i) => Math.hypot(p[0] - weg[i]![0], p[1] - weg[i]![1]));
+  const gesamt = laengen.reduce((a, b) => a + b, 0) || 1;
+  let rest = u * gesamt;
+  for (let i = 0; i < laengen.length; i++) {
+    const a = weg[i]!;
+    const b = weg[i + 1]!;
+    const l = laengen[i]! || 1e-9;
+    if (rest <= l || i === laengen.length - 1) {
+      const f = Math.min(1, rest / l);
+      return { punkt: [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f], richtung: [(b[0] - a[0]) / l, (b[1] - a[1]) / l] };
+    }
+    rest -= l;
+  }
+  return { punkt: weg[weg.length - 1]!, richtung: [0, -1] };
 }
 
 /** Was die Karte zeigt: Regionen aller laufenden Kriege (mit Lage), besetzte Regionen, Vorstoßpfeile und bedrohte Grenzprovinzen. */
@@ -598,11 +640,35 @@ export function kriegsKarte(w: World, kriege: KriegVorgang[], grenzpunkt: (plaka
       if (nach && quelle) pfeile.push({ von: [quelle.lon, quelle.lat], nach, seite: "gegner" });
     }
   }
+  // Front und Verbände je laufendem Krieg (Befund G-1): bewegen sich jede Woche mit der Frontlage und den Beständen
+  const fronten: NonNullable<KriegsKarte["fronten"]> = [];
+  const verbaende: NonNullable<KriegsKarte["verbaende"]> = [];
+  for (const k of kriege) {
+    if (k.phase !== "krieg" && k.phase !== "waffenruhe") continue;
+    const s = schauplatzFuer(k.land);
+    const start = s ? grenzpunkt(s.grenzprovinzen[0]!) : undefined;
+    const ziel = zielRegionen(k);
+    if (!s || !start || !ziel.length) continue;
+    const weg: [number, number][] = [start, ...ziel.map((r) => [r.lon, r.lat] as [number, number])];
+    const { punkt, richtung } = frontPunkt(weg, k.front);
+    fronten.push({ land: k.land, punkt, richtung, front: Math.round(k.front) });
+    // Eigene Marken hinter der Front, quer zur Stoßrichtung gestaffelt; der Gegner davor
+    const quer: [number, number] = [-richtung[1], richtung[0]];
+    const teile = MARKEN_TEILE[einsatzVon(k)];
+    teile.forEach((teil, i) => {
+      const versatz = (i - (teile.length - 1) / 2) * 0.8;
+      verbaende.push({
+        land: k.land, seite: "eigen", art: teil, staerke: Math.round(einsatzIndex(w, TEIL_GATTUNGEN[teil]) * 100),
+        lon: punkt[0] - richtung[0] * 0.5 + quer[0] * versatz, lat: punkt[1] - richtung[1] * 0.5 + quer[1] * versatz,
+      });
+    });
+    verbaende.push({ land: k.land, seite: "gegner", art: "heer", staerke: Math.round(gegnerBestandsFaktor(w, k) * 100), lon: punkt[0] + richtung[0] * 0.5, lat: punkt[1] + richtung[1] * 0.5 });
+  }
   for (const b of besatzung(w)) {
     if (gesehen.has(b.region)) continue;
     const r = REGION_NACH_ID[b.region];
     if (r) regionen.push({ id: r.id, lon: r.lon, lat: r.lat, lage: "besetzt", form: b.form, gelaende: r.gelaende, wert: r.wert });
   }
   if (!regionen.length) return null;
-  return { regionen, pfeile, bedroht, aktiv };
+  return { regionen, pfeile, bedroht, aktiv, ...(fronten.length ? { fronten, verbaende } : {}) };
 }

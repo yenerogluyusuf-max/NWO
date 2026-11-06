@@ -12,6 +12,7 @@ import { kannZahlen } from "./kapital";
 import { AUFMERKSAMKEIT_KOSTEN, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { t, zahl } from "../i18n";
 import { datenTexte } from "../i18n/daten";
+import { stufenName } from "../data/skalen";
 
 export type Bedingung =
   | { art: "massnahme"; id: string; min: number }
@@ -72,9 +73,9 @@ export const PROGRAMME: Programm[] = [
     titel: "Preisstabilität",
     leitbild: "Die Lira wieder wertvoll machen: Haushaltsdisziplin, Steuern einziehen statt erhöhen und eine Zentralbank, die in Ruhe arbeitet.",
     schritte: [
-      { id: "preise1", titel: "Haushaltsdisziplin verkünden", text: "Der Präsident legt sich öffentlich auf einen soliden Haushalt fest.", voraus: [], bedingung: kein, kapital: 3, tage: 30, ergebnis: "Vertrauen der Märkte +3, Risikoaufschlag −15", wirkung: (w) => { wirke(w, "vertrauen_maerkte", 3); w.economy.riskPremium = Math.max(100, w.economy.riskPremium - 15); w.economy.credibility = clamp(w.economy.credibility + 0.02, 0.05, 0.95); } },
+      { id: "preise1", titel: "Haushaltsdisziplin verkünden", text: "Der Präsident legt sich öffentlich auf einen soliden Haushalt fest.", voraus: [], bedingung: kein, kapital: 3, tage: 30, ergebnis: "Vertrauen der Märkte +3, Risikoaufschlag −15 Basispunkte", wirkung: (w) => { wirke(w, "vertrauen_maerkte", 3); w.economy.riskPremium = Math.max(100, w.economy.riskPremium - 15); w.economy.credibility = clamp(w.economy.credibility + 0.02, 0.05, 0.95); } },
       { id: "preise2", titel: "Steuern einziehen statt erhöhen", text: "Mehr Prüfer, digitale Steuerverwaltung: Wer zahlen muss, zahlt.", voraus: ["preise1"], bedingung: [{ art: "massnahme", id: "m_steuerfahndung", min: 55 }], kapital: 4, tage: 45, ergebnis: "Steuereinnahmen +3, Steuermoral +2; Haushalt kostet 15 % weniger Kapital", wirkung: (w) => { wirke(w, "steuereinnahmen", 3); wirke(w, "steuermoral", 2); }, rabatt: { thema: "haushalt", anteil: 0.15 } },
-      { id: "preise3", titel: "Die Zentralbank in Ruhe lassen", text: "Ein halbes Jahr ohne öffentliche Angriffe auf die Zentralbank: Die Märkte merken es.", voraus: ["preise1"], bedingung: [{ art: "ruhe-zentralbank", tage: 180 }], kapital: 3, tage: 60, ergebnis: "Glaubwürdigkeit +5 %, Risikoaufschlag −25", wirkung: (w) => { w.economy.credibility = clamp(w.economy.credibility + 0.05, 0.05, 0.95); w.economy.riskPremium = Math.max(100, w.economy.riskPremium - 25); } },
+      { id: "preise3", titel: "Die Zentralbank in Ruhe lassen", text: "Ein halbes Jahr ohne öffentliche Angriffe auf die Zentralbank: Die Märkte merken es.", voraus: ["preise1"], bedingung: [{ art: "ruhe-zentralbank", tage: 180 }], kapital: 3, tage: 60, ergebnis: "Glaubwürdigkeit +5 %, Risikoaufschlag −25 Basispunkte", wirkung: (w) => { w.economy.credibility = clamp(w.economy.credibility + 0.05, 0.05, 0.95); w.economy.riskPremium = Math.max(100, w.economy.riskPremium - 25); } },
       { id: "preise4", titel: "Die Teuerung bricht", text: "Die Inflation fällt unter 22 Prozent: Erstmals seit Langem sinken die Preise nicht nur im Bericht.", voraus: ["preise2"], bedingung: [{ art: "inflation", max: 22 }], kapital: 4, tage: 45, ergebnis: "Lebenshaltung −2, Vertrauen der Märkte +2", wirkung: (w) => { wirke(w, "lebenshaltung", -2); wirke(w, "vertrauen_maerkte", 2); } },
       { id: "preise5", titel: "Zweistellige Inflation ist Vergangenheit", text: "Die Inflation liegt unter 15 Prozent und bleibt dort.", voraus: ["preise3", "preise4"], bedingung: [{ art: "inflation", max: 15 }], kapital: 6, tage: 90, ergebnis: "Kapital +10, Vertrauen +3", wirkung: (w) => vertrauenAendern(w, 3), bonusKapital: 10, vermaechtnis: true },
     ],
@@ -195,13 +196,13 @@ export function pruefeBedingung(w: World, b: Bedingung): BedingungsStand {
       const jetzt = nationalAverage(NET, w.net, b.id);
       const start = startAverage(NET, w.net, b.id);
       const f = start >= b.min ? 1 : clamp((jetzt - start) / (b.min - start), 0, 1);
-      return { bedingung: b, erfuellt: jetzt >= b.min - 0.5, fortschritt: f, text: t("bed.massnahme", { name: name(b.id), min: b.min, jetzt: Math.round(jetzt) }) };
+      return { bedingung: b, erfuellt: jetzt >= b.min - 0.5, fortschritt: f, text: t("n9.bed.min", { name: name(b.id), min: stufenName(b.id, b.min), jetzt: stufenName(b.id, jetzt) }) };
     }
     case "massnahme-max": {
       const jetzt = nationalAverage(NET, w.net, b.id);
       const start = startAverage(NET, w.net, b.id);
       const f = start <= b.max ? 1 : clamp((start - jetzt) / (start - b.max), 0, 1);
-      return { bedingung: b, erfuellt: jetzt <= b.max + 0.5, fortschritt: f, text: t("bed.massnahmeMax", { name: name(b.id), max: b.max, jetzt: Math.round(jetzt) }) };
+      return { bedingung: b, erfuellt: jetzt <= b.max + 0.5, fortschritt: f, text: t("n9.bed.max", { name: name(b.id), max: stufenName(b.id, b.max), jetzt: stufenName(b.id, jetzt) }) };
     }
     case "groesse": {
       const jetzt = nationalAverage(NET, w.net, b.id);

@@ -53,15 +53,20 @@ test("Einnahmen, Ausgaben und Finanzierung stammen aus derselben Rechnung", () =
   expect(f.einnahmenMrd).toBeGreaterThan(0); expect(f.ausgabenMrd).toBeGreaterThan(f.einnahmenMrd);
   expect(save(w)).toBe(s);
 });
+// N3 (06.11.2026, Befund D-1): Steuern stellt nur noch die Maßnahme. Ihr Ertrag steht als Einnahme; damit die Rechnung aufgeht,
+// trägt die Zeile „reformen“ den gebuchten Maßnahmensaldo plus diesen Ertrag (er steckt mit umgekehrtem Vorzeichen in policyCost).
 test.each([0.8, -0.8])("Steuern, Ressorts, Programme, Reformsaldo %s und Zinsen gehen genau einmal ein", reforms => {
-  const w = welt(); setzePosten(w, "gesundheit", 2, true); setzePosten(w, "verbrauchsteuern", 1, true);
+  const w = welt(); setzePosten(w, "gesundheit", 2, true);
+  const i = NET.index.get("m_mwst")!;
+  for (let p = 0; p < 81; p++) w.net.values[i * 81 + p] = w.net.values[i * 81 + p]! + 5; // Mehrwertsteuer ein Punkt höher
   w.economy.policyCost = reforms; w.economy.fiscalImpulse += 0.7;
   w.economy.zinsMehrlast = 0.4; w.economy.konjunkturSaldo = 0.2;
   const f = stimmt(w), row = (s: "einnahmen" | "ausgaben", id: string) => f[s].find(z => z.id === id)!.quote;
-  expect(row("einnahmen", "steuern")).toBeCloseTo(0.3);
+  expect(row("einnahmen", "steuern")).toBeCloseTo(0.225);
+  expect(f.steuern.find(z => z.id === "mwst")!.satz).toBeCloseTo(21);
   expect(row("ausgaben", "ressorts")).toBeCloseTo(0.4);
   expect(row("ausgaben", "weitere")).toBeCloseTo(0.7);
-  expect(row("ausgaben", "reformen")).toBe(reforms);
+  expect(row("ausgaben", "reformen")).toBeCloseTo(reforms + 0.225);
   expect(row("einnahmen", "konjunktur")).toBe(0.2);
 });
 test("Überschuss ist negative Finanzierung und kein zusätzlicher Punktestand", () => {
@@ -141,11 +146,19 @@ test("viele Vorhaben verlängern die Umsetzung, aber verteuern dieselbe Reform n
   const pk = w.spiel!.kapital; expect(bringeEin(w, id, ziel, null, "gesetz").ok).toBe(true);
   expect(w.spiel!.kapital).toBe(pk - b.gesetz.pk);
 });
-test.each(["m_oepp_garantien", "m_energiesubventionen", "m_verteidigung"])("%s kostet Haushaltsgeld, aber keine monatliche politische Gebühr", id => {
+test.each(["m_oepp_garantien"])("%s kostet Haushaltsgeld, aber keine monatliche politische Gebühr", id => {
   const w = welt(), i = NET.index.get(id)!;
   const kosten = policyCost(NET, w.net);
   for (let p = 0; p < 81; p++) w.net.values[i * 81 + p] = w.net.values[i * 81 + p]! + 10;
   expect(policyCost(NET, w.net)).toBeGreaterThan(kosten);
+  expect(unterhaltKosten(w).posten.some(p => p.id === id)).toBe(false);
+});
+// N3 (ENTSCHEIDUNGEN W, Nachtrag F1): Maßnahmen mit gleichnamigem Etat sind das Gesetz und kosten kein eigenes Geld; das Geld steht im Posten.
+test.each(["m_energiesubventionen", "m_verteidigung", "m_renten", "m_sozialhilfe", "m_forschung", "m_polizei", "m_agrarsubventionen"])("%s kostet kein eigenes Geld (F1) und keine monatliche politische Gebühr", id => {
+  const w = welt(), i = NET.index.get(id)!;
+  const kosten = policyCost(NET, w.net);
+  for (let p = 0; p < 81; p++) w.net.values[i * 81 + p] = w.net.values[i * 81 + p]! + 10;
+  expect(policyCost(NET, w.net)).toBeCloseTo(kosten, 12);
   expect(unterhaltKosten(w).posten.some(p => p.id === id)).toBe(false);
 });
 test("Ausnahmebefugnisse bleiben eine ausdrücklich politische Dauerbelastung", () => {

@@ -5,14 +5,14 @@
 /* Reiter innerhalb einer Akte */
 .rr-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 12px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); }
 .rr-tabs button {
-  position: relative; padding: 7px 16px; cursor: pointer; font: 600 15px var(--serif); color: var(--ink-soft);
+  position: relative; padding: 7px 16px; cursor: pointer; font: 600 var(--schrift-3) var(--serif); color: var(--ink-soft);
   background: transparent; border: 1px solid transparent; border-bottom: none; border-radius: 4px 4px 0 0; margin-bottom: -1px;
 }
 .rr-tabs button:hover { color: var(--ink); background: rgba(255, 250, 235, 0.55); }
-.rr-tabs button.on { color: var(--ink); background: #fbf4df; border-color: rgba(90, 64, 40, 0.45); box-shadow: inset 0 2px 0 var(--seal); }
+.rr-tabs button.on { color: var(--ink); background: var(--papier-2); border-color: rgba(90, 64, 40, 0.45); box-shadow: inset 0 2px 0 var(--seal); }
 .rr-tab-zahl {
-  display: inline-block; margin-left: 7px; min-width: 18px; padding: 0 5px; border-radius: 10px; font: 700 11.5px/18px var(--sans); font-style: normal;
-  text-align: center; background: var(--seal); color: #fbeee0;
+  display: inline-block; margin-left: 7px; min-width: 18px; padding: 0 5px; border-radius: 10px; font: 700 var(--schrift-1)/18px var(--serif); font-style: normal;
+  text-align: center; background: var(--seal); color: var(--papier-2);
 }
 
 /* Arten der Vorhaben */
@@ -26,20 +26,20 @@
 }
 .rp-karte.dringend { border-color: var(--seal); box-shadow: inset 3px 0 0 var(--seal); }
 .rp-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 10px; }
-.rp-kopf h4 { margin: 0; font: 600 18px/1.25 var(--display); overflow-wrap: anywhere; }
-.rp-wort { font: italic 14px var(--serif); color: var(--ink-soft); }
+.rp-kopf h4 { margin: 0; font: 600 var(--schrift-4)/1.25 var(--display); overflow-wrap: anywhere; }
+.rp-wort { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
 .rp-block { display: flex; flex-direction: column; gap: 3px; padding-top: 5px; border-top: 1px dotted rgba(90, 64, 40, 0.35); }
 .rp-eingriff { background: rgba(255, 250, 232, 0.7); margin: 2px -6px 0; padding: 7px 6px 4px; border-top-style: solid; }
-.rp-satz { margin: 0; font-size: 14px; line-height: 1.4; }
-.rp-satz.rp-nicht { color: #6a3a2a; font-style: italic; }
-.rp-leer { margin: 0; font: italic 14px var(--serif); color: var(--ink-soft); }
+.rp-satz { margin: 0; font-size: var(--schrift-2); line-height: 1.4; }
+.rp-satz.rp-nicht { color: var(--leder-hell); font-style: italic; }
+.rp-leer { margin: 0; font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); }
 .rp-reihe { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 3px; }
-.rp-mehr summary { cursor: pointer; font: 600 14px var(--serif); color: var(--ink-soft); }
+.rp-mehr summary { cursor: pointer; font: 600 var(--schrift-2) var(--serif); color: var(--ink-soft); }
 .rp-mehr[open] summary { margin-bottom: 4px; }
-.rr-wirkung-zeilen small, .rr-wirkung li small { font-size: 11.5px; opacity: 0.8; }
+.rr-wirkung-zeilen small, .rr-wirkung li small { font-size: var(--schrift-2); opacity: 0.8; }
 .rp-karte .rr-wirkung-zeilen, .rv-eintrag .rr-wirkung-zeilen, .rr-stabliste .rr-wirkung-zeilen { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
-.rp-karte .rr-wirkung-zeilen li, .rv-eintrag .rr-wirkung-zeilen li, .rr-stabliste .rr-wirkung-zeilen li { padding: 1px 8px; font-size: 12.5px; border-radius: 4px; border: 1px solid transparent; }
-.rp-karte .rr-wirkung-zeilen li.rr-gut, .rv-eintrag .rr-wirkung-zeilen li.rr-gut, .rr-stabliste .rr-wirkung-zeilen li.rr-gut { background: rgba(130,97,60, 0.14); border-color: rgba(130,97,60, 0.4); color: #483124; }
+.rp-karte .rr-wirkung-zeilen li, .rv-eintrag .rr-wirkung-zeilen li, .rr-stabliste .rr-wirkung-zeilen li { padding: 1px 8px; font-size: var(--schrift-2); border-radius: 4px; border: 1px solid transparent; }
+.rp-karte .rr-wirkung-zeilen li.rr-gut, .rv-eintrag .rr-wirkung-zeilen li.rr-gut, .rr-stabliste .rr-wirkung-zeilen li.rr-gut { background: color-mix(in srgb, var(--gut) 14%, transparent); border-color: color-mix(in srgb, var(--gut) 40%, transparent); color: var(--gut); }
 .rp-karte .rr-wirkung-zeilen li.rr-schlecht, .rv-eintrag .rr-wirkung-zeilen li.rr-schlecht, .rr-stabliste .rr-wirkung-zeilen li.rr-schlecht { background: rgba(142, 42, 34, 0.1); border-color: rgba(142, 42, 34, 0.35); color: #7a2a20; }
 
 /* Stätten: eine eigene Listenklasse, weil die ältere Regel `.rr-staetten li` in styles.css auch alle verschachtelten Listen träfe */
@@ -50,65 +50,66 @@
 }
 .rr-stabliste > li.gefaehrdet { border-color: var(--seal); box-shadow: inset 3px 0 0 var(--seal); }
 .rr-stabliste .rr-kosten { list-style: none; margin: 2px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
-.rr-stabliste .rr-kosten li { padding: 1px 9px; font-size: 12.5px; border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: #f6ecd0; }
+.rr-stabliste .rr-kosten li { padding: 1px 9px; font-size: var(--schrift-2); border: 1px solid rgba(90, 64, 40, 0.35); border-radius: 999px; background: var(--leder-text); }
 .rr-stabliste .aktion-knopf { align-self: flex-start; }
 .rr-staette-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
-.rr-staette-name { font: 600 16.5px/1.25 var(--display); overflow-wrap: anywhere; }
-.rr-staette-ort { font: italic 14px/1.35 var(--serif); color: var(--ink-soft); }
+.rr-staette-name { font: 600 var(--schrift-3)/1.25 var(--display); overflow-wrap: anywhere; }
+.rr-staette-ort { font: italic var(--schrift-2)/1.35 var(--serif); color: var(--ink-soft); }
 
 /* Zuletzt fertig, Einrichtungen, Lohnt sich */
 .rv-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .rv-eintrag { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; background: rgba(255, 250, 235, 0.6); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 3px solid #84693a; border-radius: 4px; min-width: 0; }
 .rv-kopf { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; }
 .rv-kopf strong { overflow-wrap: anywhere; }
-.rv-zustand { margin: 2px 0; font: 600 14px var(--serif); }
-.rv-tabelle { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 14px; }
+.rv-zustand { margin: 2px 0; font: 600 var(--schrift-2) var(--serif); }
+.rv-tabelle { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: var(--schrift-2); }
 .rv-tabelle th, .rv-tabelle td { padding: 2px 8px; text-align: right; border-bottom: 1px solid rgba(90, 64, 40, 0.15); font-variant-numeric: tabular-nums; }
 .rv-tabelle th:first-child, .rv-tabelle thead th { text-align: left; font-weight: 600; }
-.rv-tabelle thead th { font: 600 11.5px var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.rv-tabelle thead th { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .rv-tabelle thead th:not(:first-child) { text-align: right; }
 
 @container (max-width: 640px) {
-  .rr-tabs button { padding: 6px 11px; font-size: 14px; }
+  .rr-tabs button { padding: 6px 11px; font-size: var(--schrift-2); }
   .rp-liste, .rr-stabliste { grid-template-columns: 1fr; }
 }
 
 /* Neue Vorhaben: Themenleiste, Weg der Stufen, Technologiefelder, das Unrealistische */
-.rr-themen { position: sticky; top: -1px; z-index: 3; margin: 0 -2px 8px; padding: 6px 2px 8px; background: linear-gradient(180deg, #f7efd8 85%, rgba(247, 239, 216, 0)); }
-.rr-themen button b { margin-left: 4px; font: 700 11.5px var(--sans); color: var(--seal); }
-.rr-teiler { margin: 18px 0 2px; padding-top: 10px; border-top: 2px solid rgba(90, 64, 40, 0.4); font: 600 21px var(--display); }
+/* Deckender Papiergrund mit Schatten (Befund F-32: Ortschips und Karten schienen durch) */
+.rr-themen { position: sticky; top: -1px; z-index: 3; margin: 0 -2px 6px; padding: 6px 4px 6px; background: #f7efd8; box-shadow: 0 4px 6px -4px rgba(60, 40, 20, 0.35); border-radius: 0 0 4px 4px; }
+.rr-themen button b { margin-left: 4px; font: 700 var(--schrift-2) var(--serif); color: var(--seal); }
+.rr-teiler { margin: 18px 0 2px; padding-top: 10px; border-top: 2px solid rgba(90, 64, 40, 0.4); font: 600 var(--schrift-5) var(--display); }
 .rr-feld { margin: 10px 0 4px; }
-.rr-feld h5 { margin: 6px 0 6px; font: 600 15px var(--display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--seal); border-bottom: 1px dotted rgba(90, 64, 40, 0.4); padding-bottom: 3px; }
+.rr-feld h5 { margin: 6px 0 6px; font: 600 var(--schrift-3) var(--display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--seal); border-bottom: 1px dotted rgba(90, 64, 40, 0.4); padding-bottom: 3px; }
 .rr-thema > h4 { border-bottom: 1px solid rgba(90, 64, 40, 0.2); padding-bottom: 4px; }
 
 .rr-weg { list-style: none; margin: 4px 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 4px; align-items: stretch; counter-reset: weg; }
-.rr-weg li { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; font-size: 14px; line-height: 1.25; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 999px; background: #f6ecd0; min-width: 0; }
+.rr-weg li { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; font-size: var(--schrift-2); line-height: 1.25; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 999px; background: var(--leder-text); min-width: 0; }
 .rr-weg li + li::before { content: "→"; margin-left: -10px; margin-right: 4px; color: var(--ink-soft); }
-.rr-weg .weg-stufe { display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; font: 700 11.5px var(--sans); background: rgba(90, 64, 40, 0.18); color: var(--ink); }
+.rr-weg .weg-stufe { display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; font: 700 var(--schrift-1) var(--serif); background: rgba(90, 64, 40, 0.18); color: var(--ink); }
 .rr-weg .weg-name { overflow-wrap: anywhere; }
-.rr-weg em { font: italic 11.5px var(--serif); color: var(--ink-soft); white-space: nowrap; }
+.rr-weg em { font: italic var(--schrift-2) var(--serif); color: var(--ink-soft); white-space: nowrap; }
 .rr-weg li.weg-fertig { background: rgba(130,97,60, 0.18); border-color: rgba(130,97,60, 0.55); }
-.rr-weg li.weg-fertig .weg-stufe { background: #74513d; color: #fff; }
-.rr-weg li.weg-bau { background: rgba(201, 154, 60, 0.28); border-color: #b8893a; }
-.rr-weg li.weg-bereit { border-color: var(--seal); background: #fbf1d3; }
+.rr-weg li.weg-fertig .weg-stufe { background: #74513d; color: var(--papier-1); }
+.rr-weg li.weg-bau { background: rgba(201, 154, 60, 0.28); border-color: var(--messing-2); }
+.rr-weg li.weg-bereit { border-color: var(--seal); background: var(--leder-text); }
 .rr-weg li.weg-zu { opacity: 0.8; }
 
-.rr-plakette.stufe { background: rgba(90, 64, 40, 0.14); color: var(--ink); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 11.5px; }
-.rr-plakette.unrealistisch { background: rgba(142, 42, 34, 0.14); color: var(--seal); border-color: rgba(142, 42, 34, 0.5); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 11.5px; }
+.rr-plakette.stufe { background: rgba(90, 64, 40, 0.14); color: var(--ink); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: var(--schrift-1); }
+.rr-plakette.unrealistisch { background: rgba(142, 42, 34, 0.14); color: var(--seal); border-color: rgba(142, 42, 34, 0.5); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: var(--schrift-1); }
 .rr-karte.unrealistisch { border-color: rgba(142, 42, 34, 0.55); }
 .rr-utopie > h4 { color: var(--seal); }
-.rr-risiko, .rr-konkurrenz, .rr-anker { margin: 3px 0 0; font-size: 14px; line-height: 1.35; }
+.rr-risiko, .rr-konkurrenz, .rr-anker { margin: 3px 0 0; font-size: var(--schrift-2); line-height: 1.35; }
 .rr-risiko { padding: 4px 8px; background: rgba(142, 42, 34, 0.08); border-left: 3px solid var(--seal); color: #6a2a20; }
 .rr-risiko b, .rr-konkurrenz b, .rr-anker b { color: var(--seal); }
-.rr-konkurrenz { color: #4a3a2a; }
+.rr-konkurrenz { color: var(--tinte-2); }
 .rr-anker { font-style: italic; color: var(--ink-soft); }
 
 /* Programme für Regionen */
 .rg-karte { gap: 6px; }
 .rg-wo { display: flex; flex-direction: column; gap: 3px; }
-.rg-preisschild { margin: 2px 0; padding: 4px 8px; font: 600 14px/1.4 var(--serif); background: rgba(255, 250, 232, 0.8); border-left: 3px solid #84693a; }
-.rg-angelegt ul { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 2px; font-size: 14px; }
-.rg-angelegt li.fertig { color: #553a2a; }
+.rg-preisschild { margin: 2px 0; padding: 4px 8px; font: 600 var(--schrift-2)/1.4 var(--serif); background: rgba(255, 250, 232, 0.8); border-left: 3px solid #84693a; }
+.rg-angelegt ul { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 2px; font-size: var(--schrift-2); }
+.rg-angelegt li.fertig { color: var(--tinte-weich); }
 .rg-karte .ortwahl { position: relative; }
 .rg-karte .ortwahl .pop { position: absolute; z-index: 20; }
 
@@ -118,23 +119,37 @@
 
 /* Baustelle (Rundgang 05.11.2026): Kapazität eines Monats als Leiste nach Vorhaben, darunter eine einzige Liste */
 .rr-baustelle h4 em { font-style: normal; }
-.bs-leiste { display: flex; height: 34px; margin: 8px 0 12px; border-radius: 5px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(90, 64, 40, 0.3); background: #efe6d0; }
-.bs-leiste > span { display: grid; place-items: center; min-width: 22px; color: #fff; font: 700 13px var(--sans); border-right: 2px solid #fbf5e4; transition: flex-grow 500ms cubic-bezier(.2,.8,.2,1); }
-.bs-leiste > span.frei { color: #6b5338; font: 12px var(--sans); background: repeating-linear-gradient(45deg, #efe6d0 0 6px, #e6dbc0 6px 12px); border-right: 0; }
+.bs-leiste { display: flex; height: 34px; margin: 8px 0 12px; border-radius: 5px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(90, 64, 40, 0.3); background: var(--papier-3); }
+.bs-leiste > span { display: grid; place-items: center; min-width: 22px; color: var(--papier-1); font: 700 var(--schrift-2) var(--serif); border-right: 2px solid var(--papier-2); transition: flex-grow 500ms cubic-bezier(.2,.8,.2,1); }
+.bs-leiste > span.frei { color: #6b5338; font: var(--schrift-2) var(--serif); background: repeating-linear-gradient(45deg, var(--papier-3) 0 6px, var(--papier-4) 6px 12px); border-right: 0; }
 .bs-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.bs-eintrag { display: grid; grid-template-columns: 30px 96px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 6px; background: #fffdf6; border: 1px solid rgba(160, 130, 80, 0.35); }
-.bs-eintrag.wartet { background: #fbf7ec; }
+.bs-eintrag { display: grid; grid-template-columns: 30px 96px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 6px; background: var(--papier-1); border: 1px solid rgba(160, 130, 80, 0.35); }
+.bs-eintrag.wartet { background: var(--papier-1); }
 .bs-eintrag.ruht { opacity: 0.65; }
-.bs-pos { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #b09a74; color: #fff; font: 700 13px var(--sans); }
+.bs-pos { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--linie-stark); color: var(--papier-1); font: 700 var(--schrift-2) var(--serif); }
 .bs-bild { width: 96px; height: 56px; border-radius: 4px; overflow: hidden; }
-.bs-bild.leer { background: repeating-linear-gradient(135deg, #efe6d0 0 8px, #e8dcc0 8px 16px); }
+.bs-bild.leer { background: repeating-linear-gradient(135deg, var(--papier-3) 0 8px, var(--papier-4) 8px 16px); }
 .bs-bild > * { width: 100%; height: 100%; }
 .bs-mitte { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .bs-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
-.bs-kopf strong { font: 600 15.5px var(--serif); color: #2e2118; }
-.bs-bereich { font: 400 11px var(--kapitaelchen, serif); letter-spacing: 0.1em; text-transform: uppercase; color: #6b5338; }
-.bs-fortschritt { height: 7px; border-radius: 4px; background: #e8dcc0; overflow: hidden; }
-.bs-fortschritt i { display: block; height: 100%; background: #b09a74; transition: width 400ms ease; }
-.bs-zeit { font: 12.5px var(--sans); color: #5a4632; }
-.bs-zeit b { color: #2e2118; }
+.bs-kopf strong { font: 600 var(--schrift-3) var(--serif); color: var(--tinte-1); }
+.bs-bereich { font: 400 var(--schrift-1) var(--kapitaelchen, serif); letter-spacing: 0.1em; color: #6b5338; }
+.bs-fortschritt { height: 7px; border-radius: 4px; background: var(--papier-4); overflow: hidden; }
+.bs-fortschritt i { display: block; height: 100%; background: var(--linie-stark); transition: width 400ms ease; }
+.bs-zeit { font: var(--schrift-2) var(--serif); color: var(--tinte-2); }
+.bs-zeit b { color: var(--tinte-1); }
 .bs-knoepfe { display: flex; gap: 4px; }
+
+/* Kapazitätsleiste mit Namen (Befund F-35): Nummer und Kurzname im Block, Farbe nach Bereich */
+.bs-leiste > span { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px; overflow: hidden; }
+.bs-leiste > span b { flex: none; }
+.bs-leiste > span em { font: 500 12px var(--sans); font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.92; min-width: 0; }
+.bs-leiste > span.frei { padding: 0 6px; }
+.bs-knoepfe { flex-wrap: wrap; justify-content: flex-end; max-width: 260px; }
+.bs-frage { display: flex; flex-direction: column; gap: 6px; max-width: 320px; padding: 6px 8px; border: 1px solid rgba(142, 42, 34, 0.45); border-radius: 4px; background: #fbf1e6; }
+.bs-frage p { margin: 0; font-size: 13px; line-height: 1.35; color: #5a2a20; }
+.bs-frage span { display: flex; gap: 6px; flex-wrap: wrap; }
+.aktion-knopf.gefahr { background: #8f2a1e; color: #fbeee0; border-color: #6e1f16; }
+.aktion-knopf.gefahr:hover { background: #a3352a; }
+.rr-baustelle h4.bs-ohne { margin-top: 14px; }
+.rr-bau-knoepfe { display: flex; gap: 4px; flex-wrap: wrap; }

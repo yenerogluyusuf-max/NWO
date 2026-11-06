@@ -42,7 +42,11 @@ export interface TreiberBlock {
 
 export interface Handlung {
   label: string;
-  ziel: "zentralbank" | "haushalt";
+  /** „massnahme“: die eine Stellgröße einer Steuer im Politikbereich (Befund D-1) */
+  ziel: "zentralbank" | "haushalt" | "massnahme";
+  /** Maßnahme und Richtung in ganzen Prozentpunkten (nur bei ziel „massnahme“) */
+  massnahme?: string;
+  punkte?: number;
   /** Haushaltsposten, der vorgewählt wird */
   posten?: string;
   /** Um wie viele Stufen der Posten für die Vorschau „Was wäre, wenn?“ bewegt wird */
@@ -283,12 +287,12 @@ export const KENNZAHLEN: Kennzahl[] = [
     ],
   },
   netzKennzahl("realeinkommen", "Wirtschaft und Arbeit", "hoch", [
-    { label: t("wk.07f972a"), ziel: "haushalt", posten: "einkommensteuer", stufe: -1 },
+    { label: t("wk.07f972a"), ziel: "massnahme", massnahme: "m_einkommensteuer", punkte: -1 },
     { label: t("wk.269dfd4"), ziel: "zentralbank", abschnitt: "sitzung" },
   ], t("wk.dde32f3")),
   netzKennzahl("investitionen", "Wirtschaft und Arbeit", "hoch", [
     { label: t("wk.01de968"), ziel: "haushalt", posten: "investitionen", stufe: 1 },
-    { label: t("wk.683fb16"), ziel: "haushalt", posten: "unternehmensteuer", stufe: -1 },
+    { label: t("wk.683fb16"), ziel: "massnahme", massnahme: "m_koerperschaftsteuer", punkte: -1 },
   ]),
   netzKennzahl("kredite", "Wirtschaft und Arbeit", "hoch", [{ label: t("wk.eee6546"), ziel: "zentralbank", abschnitt: "sitzung" }]),
   netzKennzahl("export", "Wirtschaft und Arbeit", "hoch", [{ label: t("wk.92ab07f"), ziel: "zentralbank", abschnitt: "sitzung" }]),
@@ -314,7 +318,7 @@ export const KENNZAHLEN: Kennzahl[] = [
     handlungen: [
       { label: t("wk.ff09b4a"), ziel: "haushalt" },
       { label: t("wk.0ed2181"), ziel: "haushalt", posten: "personal", stufe: -1 },
-      { label: t("wk.6509078"), ziel: "haushalt", posten: "verbrauchsteuern", stufe: 1 },
+      { label: t("wk.6509078"), ziel: "massnahme", massnahme: "m_mwst", punkte: 1 },
     ],
   },
   {
@@ -450,7 +454,7 @@ export const KENNZAHLEN: Kennzahl[] = [
   ]),
   netzKennzahl("lebenshaltung", "Alltag der Menschen", "niedrig", [
     { label: t("wk.75714cf"), ziel: "haushalt", posten: "subventionen", stufe: 1 },
-    { label: t("wk.4028786"), ziel: "haushalt", posten: "verbrauchsteuern", stufe: -1 },
+    { label: t("wk.4028786"), ziel: "massnahme", massnahme: "m_mwst", punkte: -1 },
     { label: t("wk.269dfd4"), ziel: "zentralbank", abschnitt: "sitzung" },
   ], t("wk.8804d22")),
   netzKennzahl("armut", "Alltag der Menschen", "niedrig", [

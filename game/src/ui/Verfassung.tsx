@@ -186,7 +186,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
       <div className="beschlussbuch vf-akte">
         <section className="paper">
           <h3>{t("ui.Verfassung.cdb7a4e")}</h3>
-          <p className="subtitle">{geaendert.map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ")}</p>
+          <p className="subtitle">{t("n4.vf.liste", { l: geaendert.map((x) => t("n4.vf.eintrag", { artikel: x.artikel.name, variante: x.variante.name })) })}</p>
           <ol className="vf-stufen">
             {stufen.map((s, i) => (
               <li key={s.id} className={i < aktivStufe ? "vf-stufe erledigt" : i === aktivStufe ? "vf-stufe aktiv" : "vf-stufe"}>
@@ -340,7 +340,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
                             <i className="vf-punkt" aria-hidden />
                             <span className="vf-wort">{x.name}</span>
                             {x.statusQuo && <small className="vf-geltend">{t("vf.geltend")}</small>}
-                            {!gewaehlt && delta !== 0 && <small className={`vf-delta ${delta > 0 ? "plus" : "minus"}`}>{t("vf.deltaJa", { n: `${delta > 0 ? "+" : "−"}${Math.abs(delta)}` })}</small>}
+                            {!gewaehlt && delta !== 0 && <small className={`vf-delta ${delta > 0 ? "plus" : "minus"}`} title={t("n4.vf.deltaHilfe")}>{t("n4.vf.delta", { n: `${delta > 0 ? "+" : "−"}${Math.abs(delta)}` })}</small>}
                           </button>
                         );
                       })}
@@ -392,7 +392,7 @@ export function VerfassungWerkstatt({ world, refresh }: { world: World; refresh:
         <section className="paper">
           <h3>{t("ui.Verfassung.e526422")}</h3>
           {aktivEintraege.length > 0 && (
-            <p className="subtitle">{t("vf.beschlossenListe", { l: aktivEintraege.map(([id, vId]) => `„${artikelDef(id)?.name ?? id}: ${varianteDef(vId)?.name ?? vId}“`) })}</p>
+            <p className="subtitle">{t("vf.beschlossenListe", { l: aktivEintraege.map(([id, vId]) => t("n4.vf.eintrag", { artikel: artikelDef(id)?.name ?? id, variante: varianteDef(vId)?.name ?? vId })) })}</p>
           )}
           <ul className="beschluss-liste">
             {[...z.historie].reverse().map((h, i) => (

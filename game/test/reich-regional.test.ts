@@ -58,7 +58,8 @@ describe("Umfang bestimmt den Preis", () => {
     const w = welt();
     const v = regionalVorschau(w, "reg_wohnungsbau", [31]);
     if (!v.ok) throw new Error("Vorschau fehlt");
-    expect(v.preisschild).toMatch(/betrifft (unter 1|\d+) Prozent der Bevölkerung · Kapital ×[\d,]+ · Baupunkte ×[\d,]+ · Dauer ×[\d,]+/);
+    // Nacht N6 (Befund F-33): Anteile am landesweiten Programm in Prozent statt Multiplikatoren
+    expect(v.preisschild).toMatch(/Gilt für (unter 1|\d+) % der Bevölkerung; kostet etwa \d+ % des Kapitals und \d+ % der Baupunkte eines landesweiten Programms, bei \d+ % der Dauer/);
     expect(v.vorschau.sofort.length).toBeGreaterThan(0);
     // die Ausgangslage steht an der Wirkung, und zwar die der gewählten Provinz
     const z = v.vorschau.sofort.find((x) => x.text.startsWith("Wohnungsbau"))!;
@@ -234,7 +235,7 @@ describe("Oberfläche", () => {
     expect(h).toContain("Wo?");
     expect(h).toContain("Anlegen");
     expect(h).toContain("Wirkung nur dort");
-    expect(h).toMatch(/betrifft .* Prozent der Bevölkerung/);
+    expect(h).toMatch(/Gilt für .* % der Bevölkerung/);
     expect(h).toContain("Provinzen");
     expect(h).not.toContain("NaN");
   });
@@ -256,6 +257,9 @@ describe("Oberfläche", () => {
     const h = renderToStaticMarkup(createElement(Neues, { world: w, liste: offen, alle: liste, onBeginne: () => {}, ergebnisse: {}, refresh: () => {} }));
     expect(h.indexOf("Programme für Regionen")).toBeGreaterThan(-1);
     expect(h.indexOf("Programme für Regionen")).toBeLessThan(h.indexOf("Verkehr und Welt"));
+    // Nacht N6: Die Programme sind Kacheln wie alle Vorhaben; ihre Karte mit Ortswahl steht im Detail
     expect(h).toContain("Wohnungsbauprogramm");
+    const detail = renderToStaticMarkup(createElement(Neues, { world: w, liste: offen, alle: liste, onBeginne: () => {}, ergebnisse: {}, refresh: () => {}, start: "reg_wohnungsbau" }));
+    expect(detail).toContain("Anlegen");
   });
 });

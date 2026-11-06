@@ -7,9 +7,9 @@
  "mentor.kapital.short2": "Ihr Kapital ist knapp. Erst zurücklegen, dann gezielt ausgeben.",
  "mentor.lira-schwach.more": "Eine schwache Währung verteuert importierte Energie und Vorprodukte. Das erhöht die Inflation mit einigen Wochen bis Monaten Verzögerung. Exporteure profitieren dagegen.",
  "mentor.lira-schwach.short": "Die Lira hat stärker verloren, als die Inflation erklärt. Importe werden teurer, das kommt in den Preisen an.",
- "mentor.mehrheit.more": "Sie können Stimmen kaufen (das kostet Kapital und schafft eine Zusage, die später eingefordert wird) oder Partner gewinnen, deren Angebote als Ereignis kommen. Wer Zusagen bricht, verliert Partner.",
+ "mentor.mehrheit.more": "Gespräche mit Fraktionen, Duldungen und Bündnisse schaffen Stimmen; Partner melden sich mit Angeboten. Wer Zusagen bricht, verliert Partner.",
  "mentor.mehrheit.short": "Ihrem Lager fehlen etwa {n} Stimmen für eine Mehrheit. Gesetze werden dadurch teuer und unsicher.",
- "mentor.partner-wackelt.more": "Ein Partner, der geht, nimmt seine Sitze mit. Loyalität wächst mit gehaltenen Zusagen und einem Gespräch (1 Kapital) und sinkt mit Vertrösten und Bruch. Unter „Personen und Zusagen“ sehen Sie, was er will.",
+ "mentor.partner-wackelt.more": "Ein Partner, der geht, nimmt seine Sitze mit. Loyalität wächst mit gehaltenen Zusagen und einem Gespräch (1 Kapital) und sinkt mit Vertrösten und Bruch. Unter Kabinett & Verwaltung › Zusagen sehen Sie, was er will.",
  "mentor.partner-wackelt.short": "{rolle} {name} steht kurz vor dem Bruch.",
  "mentor.realzins-hoch.more": "Der Realzins ist der Leitzins abzüglich der erwarteten Inflation. Ist er hoch, lohnt Sparen mehr als Leihen. Das dämpft Konsum und Investitionen und damit auf Dauer die Inflation. Auf die Nachfrage wirkt das meist erst nach einem halben bis anderthalb Jahren, auf die Währung dagegen schnell. Das Spiel vereinfacht Banken und Kreditvergabe zu einem einzigen Zusammenhang.",
  "mentor.realzins-hoch.short": "Der Realzins ist hoch. Das bremst Kredite und Nachfrage, allerdings erst nach Monaten.",
@@ -19,6 +19,6 @@
  "mentor.ruhig.short": "Keine auffälligen Zusammenhänge im Moment. Klicken Sie eine Zahl in der Wirtschaftsakte an, wenn Sie etwas wissen wollen.",
  "mentor.tipp-start.more": "Die Ebene „Infrastruktur“ färbt die Karte nach der Straßendichte und zeigt beim Hineinzoomen einzelne Bezirke. So sehen Sie, wo etwas fehlt, bevor Sie Geld ausgeben. Jede Maßnahme lässt sich auf einzelne Provinzen beschränken, dann kostet sie weniger Kapital und wirkt vor Ort.",
  "mentor.tipp-start.short": "Tipp für die ersten Wochen: Klicken Sie auf eine Provinz. Das Blatt zeigt Probleme, Straßen und Krankenhäuser; „Hier bauen“ führt direkt zu den Maßnahmen.",
- "mentor.waehler-verstimmt.more": "Warum: {gruende}. Wer verärgert ist, sucht bei der Wahl eine andere Antwort. Was sie wollen, steht im Fenster „Wähler“.",
+ "mentor.waehler-verstimmt.more": "Warum: {gruende}. Wer verärgert ist, sucht bei der Wahl eine andere Antwort. Was sie wollen, steht unter Gesellschaft › Wählerkoalition.",
  "mentor.waehler-verstimmt.short": "{name} sind verärgert (Stimmung {s})."
 }

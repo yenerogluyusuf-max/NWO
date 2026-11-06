@@ -7,9 +7,14 @@ import { dunkler, f, hash, heller, mische, type Auswahl } from "./portraet-kern"
 
 export type Kleidungsart = "anzug" | "uniform" | "robe";
 
+/** Befund C-14 (N1): Die Robe trägt nur, wer Richter ist; die Justizministerin trägt Anzug wie das übrige Kabinett. */
 export function kleidungsart(rolle: string | undefined): Kleidungsart {
-  return rolle === "generalstab" ? "uniform" : rolle === "justiz" ? "robe" : "anzug";
+  return rolle === "generalstab" ? "uniform" : rolle === "richter" ? "robe" : "anzug";
 }
+
+/** Anzugstoffe: Die Farbe kommt aus dem Gesicht (Samen), nicht aus dem Lager. Vorher trugen zehn von neunzehn denselben olivgrünen Anzug,
+ *  weil zehn Ressorts das Lager „Partei“ haben. Das Lager klingt nur noch leicht an (Hintergrund und ein Hauch im Stoff). */
+const ANZUG_STOFFE = ["#2e3236", "#25304a", "#46362a", "#4a4c51", "#33302d", "#2b3a3a", "#3d2f36"];
 
 export interface KleidungsTeile {
   /** Körper (Jackett, Robe, Uniform): vor dem Hals gezeichnet */
@@ -26,8 +31,9 @@ export function kleidung(a: Auswahl, rolle: string | undefined, tint: string, ui
   const nh = rs.halsBreite / 2;
   const sh = rs.schulterBreite / 2;
   const y0 = rs.kinnY + 7;
+  const stoff = ANZUG_STOFFE[hash(`${a.haut}|${a.stoff}|${a.tonIdx}|${rs.kinnY}|${a.alter}`) % ANZUG_STOFFE.length]!;
   const farbe =
-    art === "uniform" ? mische("#4a5230", tint, 0.18) : art === "robe" ? "#241f26" : a.geschlecht === "f" ? dunkler(mische(tint, "#4a3d36", 0.45), 0.08) : dunkler(mische(tint, "#3a342f", 0.55), 0.12);
+    art === "uniform" ? mische("#4a5230", tint, 0.18) : art === "robe" ? "#241f26" : a.geschlecht === "f" ? heller(mische(stoff, tint, 0.12), 0.06) : mische(stoff, tint, 0.1);
   const lichtF = heller(farbe, 0.18);
   const dunkelF = dunkler(farbe, 0.4);
   const koerper = `M${f(50 - sh * 1.15)} 150 L${f(50 - sh * 1.0)} ${f(y0 + 25)} C${f(50 - sh * 0.82)} ${f(y0 + 10)} ${f(50 - sh * 0.5)} ${f(y0 + 3)} ${f(50 - nh - 3)} ${f(y0 - 1)} L${f(50 + nh + 3)} ${f(y0 - 1)} C${f(50 + sh * 0.5)} ${f(y0 + 3)} ${f(50 + sh * 0.82)} ${f(y0 + 10)} ${f(50 + sh * 1.0)} ${f(y0 + 25)} L${f(50 + sh * 1.15)} 150 Z`;
@@ -157,7 +163,7 @@ export function Hintergrund({ rolle, tint, uid }: { rolle: string | undefined; t
   );
   let motiv: ReactNode;
   let g: ReactNode;
-  switch (rolle) {
+  switch (rolle === "richter" ? "justiz" : rolle) {
     case "finanzen": {
       g = grund("#e3ecd2", "#7f9a6e");
       motiv = (

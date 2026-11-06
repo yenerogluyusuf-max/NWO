@@ -9,7 +9,7 @@ import { turkey2026 } from '../src/sim/scenario';
 import { startAfterElection, schnellProfil } from '../src/sim/prolog';
 import { setzeSprache, t } from '../src/i18n';
 import { Zentralbank } from '../src/ui/wirtschaft/Zentralbank';
-import { Bauhilfe } from '../src/ui/reich/Bauhilfe';
+import { Bauhilfe, bauhilfeWerte } from '../src/ui/reich/Bauhilfe';
 import { Reich } from '../src/ui/Reich';
 import { haushaltZustand } from '../src/sim/wirtschaft';
 function welt(){const w=createWorld(turkey2026,17);startAfterElection(w,schnellProfil());return w;}
@@ -20,7 +20,8 @@ for(const lang of ['de','en','tr'] as const)test(`${lang}: Krisenregel, Gegenfin
  expect(bank).toContain(t('balance.zinsschritt',{wert:lang==='en'?'12.5':'12,5'}));
  const h=haushaltZustand(w);h.wirksam={personal:2};
  const bau=renderToStaticMarkup(createElement(Bauhilfe,{world:w}));
- for(const k of ['bautitel','baupause','bauprioritaet','baupersonal'])expect(bau).toContain(t(`balance.${k}`));
+ // Nacht N6: Pausenverfall und Preis des Vorziehens stehen als Zahl aus den Spielparametern im Text (bauhilfeWerte)
+ for(const k of ['bautitel','baupause','bauprioritaet','baupersonal'])expect(bau).toContain(t(`balance.${k}`,(bauhilfeWerte() as Record<string,Record<string,string|number>>)[k]??{}));
  expect(bau).toContain('<summary>');
  const reich=renderToStaticMarkup(createElement(Reich,{world:w,bereich:'infrastruktur',refresh:()=>{}}));
  expect(reich).toContain(t('balance.bautitel'));

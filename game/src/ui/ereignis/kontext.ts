@@ -8,12 +8,19 @@ import { ratZuEreignis, type RessortRat } from "../../sim/personen-api";
 import { angezeigteZustimmung } from "../../sim/medien";
 import { schlechtBeiHoch } from "../../sim/berichte";
 import { LAENDER, vertrauenZu } from "../../sim/laender";
-import { aktuelleSprache, t } from "../../i18n";
+import { aktuelleSprache, formatiere, t, zahl as zahlFmt } from "../../i18n";
+import { stimmenSicht } from "../../sim/handeln";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
 import type { EreignisAnsicht } from "../../sim/ereignisse";
 
-export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht" | "wohnen";
+export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht" | "wohnen" | "partner";
+
+/**
+ * Ereignisse, in denen sich eine Partei meldet (Partner, Koalition, Duldung): Es geht um Sitze, den Rückhalt des Partners und offene
+ * Zusagen, nicht um Justiz und Presse (Befund A-6: „AKP meldet sich“ zeigte Unabhängigkeit der Justiz und „Justiz öffnen“).
+ */
+const PARTNER_MUSTER = /^start_partner$|koalition|partner|duldung/;
 
 const MUSTER: [RegExp, Thema][] = [
   // Wiederaufbau, Wohnungen, Mieten: Es geht um Wohnungsnot und Erdbebengefahr, nicht um Inflation (Spielerdurchlauf 5. November)
@@ -52,6 +59,7 @@ const THEMA_AMT: Record<Thema, Figur["amt"]> = {
   katastrophe: "inneres",
   recht: "justiz",
   wohnen: "umwelt",
+  partner: "partner",
 };
 
 const SZENE_THEMA: Record<string, Thema> = { bank: "haushalt", parlament: "recht", istanbul: "gesellschaft", anatolien: "gesellschaft", wahlnacht: "gesellschaft" };
@@ -71,8 +79,11 @@ export function themaFuer(a: Pick<EreignisAnsicht, "id" | "vorlage" | "szene">, 
     const ev = w.spiel.ereignisse.find((e) => e.id === a.id);
     const m = w.spiel.zusagen.find((z) => z.id === String(ev?.daten?.zusage))?.massnahme ?? "";
     for (const [re, th] of ZUSAGE_MUSTER) if (re.test(m)) return th;
+    const von = w.spiel.zusagen.find((z) => z.id === String(ev?.daten?.zusage))?.von;
+    if (von && w.parliament?.seats[von] !== undefined) return "partner";
     return "gesellschaft";
   }
+  if (PARTNER_MUSTER.test(a.vorlage)) return "partner";
   for (const [re, th] of MUSTER) if (re.test(a.vorlage)) return th;
   const bezug = EREIGNIS_BEZUG[a.vorlage];
   const amt = bezug?.amt[0];
@@ -131,7 +142,9 @@ export interface Kennzahl {
   notiz?: string;
 }
 
-const nf = (x: number, d = 1): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const nf = (x: number, d = 1): string => zahlFmt(x, d);
+/** Prozent nach Sprache (de „23,8 %“, tr „%23,8“, en „23.8%“). */
+const pz = (x: number, d = 1): string => formatiere(`{x, prozent, ${d}}`, { x }, aktuelleSprache());
 
 function knoten(w: World, id: string): number | undefined {
   return NET.index.has(id) ? nationalAverage(NET, w.net, id) : undefined;
@@ -152,18 +165,18 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     return v === undefined ? undefined : zahl(id, label, `${Math.round(v)} / 100`);
   };
   return {
-    schulden: () => zahl("schulden", t("ereignis.kz.schulden"), `${nf(w.economy.debtRatio)} %`, reihe(w, (h) => h.debtRatio)),
-    inflation: () => zahl("inflation", t("ereignis.kz.inflation"), `${nf(w.published.inflation.value)} %`, reihe(w, (h) => h.inflation)),
-    defizit: () => zahl("defizit", t("ereignis.kz.defizit"), `${nf(w.economy.deficit)} %`),
+    schulden: () => zahl("schulden", t("ereignis.kz.schulden"), pz(w.economy.debtRatio), reihe(w, (h) => h.debtRatio)),
+    inflation: () => zahl("inflation", t("ereignis.kz.inflation"), pz(w.published.inflation.value), reihe(w, (h) => h.inflation)),
+    defizit: () => zahl("defizit", t("ereignis.kz.defizit"), pz(w.economy.deficit)),
     lira: () => zahl("lira", t("ereignis.kz.lira"), nf(w.economy.usdTry), reihe(w, (h) => h.usdTry)),
-    wachstum: () => zahl("wachstum", t("ereignis.kz.wachstum"), `${nf(w.economy.growth)} %`, reihe(w, (h) => h.growth)),
-    arbeitslosigkeit: () => zahl("arbeitslosigkeit", t("ereignis.kz.arbeitslosigkeit"), `${nf(w.economy.unemployment)} %`, reihe(w, (h) => h.unemployment)),
+    wachstum: () => zahl("wachstum", t("ereignis.kz.wachstum"), pz(w.economy.growth), reihe(w, (h) => h.growth)),
+    arbeitslosigkeit: () => zahl("arbeitslosigkeit", t("ereignis.kz.arbeitslosigkeit"), pz(w.economy.unemployment), reihe(w, (h) => h.unemployment)),
     zustimmung: () => {
       if (!w.spiel) return undefined;
       // Die Kopfleiste zeigt die Messung des Stabs, hier steht die zuletzt veröffentlichte Umfrage; die Quelle erklärt den
       // Unterschied (Spielerdurchlauf 5. November: 47 % im Fenster, 50 % in der Leiste)
       const z = angezeigteZustimmung(w);
-      const k = zahl("zustimmung", t("ereignis.kz.zustimmung"), `${Math.round(z.wert)} %`);
+      const k = zahl("zustimmung", t("ereignis.kz.zustimmung"), pz(Math.round(z.wert), 0));
       return z.quelle === "institut" && z.institut ? { ...k, notiz: t("ereignis.kz.umfrageQuelle", { institut: z.institut, tage: z.alterTage }) } : k;
     },
     ansehen: knot("ansehen", t("ereignis.kz.ansehen")),
@@ -176,6 +189,17 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     presse: knot("pressefreiheit", t("ereignis.kz.presse")),
     wohnungsnot: knot("p_wohnungsnot", t("ereignis.kz.wohnungsnot")),
     erdbeben: knot("p_erdbebengefahr", t("ereignis.kz.erdbeben")),
+    // Dieselbe Zahl wie in der Kopfleiste: Lager und Fraktionen, die es gerade dulden (ui/Stage.tsx)
+    sitze: () => {
+      if (!w.parliament || !w.spiel) return undefined;
+      const s = stimmenSicht(w);
+      return zahl("sitze", t("ev.kz.sitze"), t("ev.kz.sitzeWert", { n: s.lager + s.duldungSitze, von: Object.values(w.parliament.seats).reduce((a, b) => a + b, 0) }));
+    },
+    partner: () => {
+      const p = partnerFigur(w);
+      return p ? zahl("partner", t("ev.kz.partner", { partei: p.partei ?? "" }), `${Math.round(p.loyalitaet)} / 100`) : undefined;
+    },
+    zusagen: () => (w.spiel ? zahl("zusagen", t("ev.kz.zusagen"), String(w.spiel.zusagen.filter((z) => !z.erfuellt && !z.gebrochen).length)) : undefined),
   };
 }
 
@@ -188,9 +212,20 @@ const THEMA_ZAHLEN: Record<Thema, string[]> = {
   katastrophe: ["zustimmung", "vertrauen", "schulden"],
   recht: ["justiz", "presse", "zustimmung"],
   wohnen: ["wohnungsnot", "erdbeben", "vertrauen", "schulden"],
+  partner: ["sitze", "partner", "zusagen"],
 };
 
+/** Der Vorsitz der Partei, die sich im offenen Ereignis meldet (sonst der schwächste Partnervorsitz im Lager). */
+let partnerImEreignis: string | undefined;
+function partnerFigur(w: World): Figur | undefined {
+  const im = (w.spiel?.figuren ?? []).filter((f) => f.amt === "partner" && f.imAmt);
+  return (partnerImEreignis ? im.find((f) => f.partei === partnerImEreignis) : undefined) ?? im.filter((f) => w.spiel?.lager.includes(f.partei ?? "")).sort((a, b) => a.loyalitaet - b.loyalitaet)[0] ?? im[0];
+}
+
 export function kennzahlenFuer(w: World, thema: Thema, ereignisId?: string): Kennzahl[] {
+  const evOffen = w.spiel?.ereignisse.find((e) => e.id === ereignisId);
+  const vonZusage = evOffen?.vorlage === "zusage" ? w.spiel?.zusagen.find((z) => z.id === String(evOffen.daten?.zusage))?.von : undefined;
+  partnerImEreignis = String(evOffen?.daten?.partei ?? vonZusage ?? "") || undefined;
   const b = bausteine(w);
   // Geht es um ein bestimmtes Land, steht dessen Vertrauen statt dem der EU (Spielerdurchlauf 5. November: Währungskrise im Iran
   // zeigte „Vertrauen der EU“)
@@ -200,7 +235,7 @@ export function kennzahlenFuer(w: World, thema: Thema, ereignisId?: string): Ken
   return THEMA_ZAHLEN[thema].map((id) => b[id]?.()).filter((k): k is Kennzahl => !!k);
 }
 
-export type AktenZiel = { dossier: "wirtschaft"; start: "lage" | "haushalt" } | { dossier: "welt" | "reich_militaer" | "katastrophe" | "waehler" | "reich_recht" };
+export type AktenZiel = { dossier: "wirtschaft"; start: "lage" | "haushalt" } | { dossier: "welt" | "reich_militaer" | "katastrophe" | "waehler" | "reich_recht" | "personen" };
 
 export function akteFuer(thema: Thema): { ziel: AktenZiel; label: string } {
   switch (thema) {
@@ -217,6 +252,8 @@ export function akteFuer(thema: Thema): { ziel: AktenZiel; label: string } {
       return { ziel: { dossier: "katastrophe" }, label: t("ereignis.akte.katastrophe") };
     case "recht":
       return { ziel: { dossier: "reich_recht" }, label: t("ereignis.akte.recht") };
+    case "partner":
+      return { ziel: { dossier: "personen" }, label: t("ev.akte.partner") };
     default:
       return { ziel: { dossier: "waehler" }, label: t("ereignis.akte.waehler") };
   }
@@ -235,6 +272,9 @@ export type Richtung = "auf" | "ab" | "neutral";
 
 /** Richtung einer Vorschauzeile aus ihrem Wortlaut (+, −, mehr, weniger, stärker, schwächer, Stufe a auf b), in allen drei Sprachen. */
 export function richtungVon(zeile: string): Richtung {
+  // Maßnahmenzeilen tragen ihre Richtung als Marke vorn (n9.vs.auf/ab), weil die echte Einheit auch sinken kann, wenn die Maßnahme steigt
+  if (zeile.startsWith("▲ ")) return "auf";
+  if (zeile.startsWith("▼ ")) return "ab";
   const stufe = /(?:Stufe|level|seviye) (\d+) (?:auf|to|→) (\d+)/i.exec(zeile);
   if (stufe) return Number(stufe[2]) > Number(stufe[1]) ? "auf" : "ab";
   if (/\+\d|\bmehr\b|stärker|steigt|höher|\bmore\b|stronger|daha fazla|güçlü/.test(zeile)) return "auf";
@@ -260,7 +300,7 @@ function hochSchlechtNamen(): string[] {
  */
 export function wertungVon(zeile: string): Wertung {
   const r = richtungVon(zeile);
-  if (r === "neutral" || /(?:Stufe|level|seviye) \d+ (?:auf|to|→) \d+/i.test(zeile)) return "neutral";
+  if (r === "neutral" || /^[▲▼] /.test(zeile) || /(?:Stufe|level|seviye) \d+ (?:auf|to|→) \d+/i.test(zeile)) return "neutral";
   const mehrSchlecht = /^(Schulden|Debt|Borç|Risikoaufschlag|Risk premium|Risk primi)\b/.test(zeile) || hochSchlechtNamen().some((n) => zeile.startsWith(`${n} `));
   return (r === "auf") !== mehrSchlecht ? "gut" : "schlecht";
 }

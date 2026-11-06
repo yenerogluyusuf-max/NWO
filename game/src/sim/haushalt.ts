@@ -1,6 +1,7 @@
 import { geldAusBip } from "./staatsgeld";
-// Der Haushalt als Entscheidung, wie in Democracy: ein Regler je Ressort (Renten, Bildung, Forschung, Verteidigung …) plus die drei großen
-// Steuern. Jede Stufe kostet sofort Geld (Ausgabenimpuls → Nachfrage, Defizit, Schulden, Inflation) und wirkt mit Verzug über die Politikfelder
+// Der Haushalt als Entscheidung, wie in Democracy: ein Regler je Ressort (Renten, Bildung, Forschung, Verteidigung …). Steuern haben
+// genau eine Stellgröße, die Maßnahme mit echtem Satz im Politikbereich Haushalt; der Haushalt zeigt Satz und Ertrag (sim/haushalt-steuern.ts,
+// Befunde D-1, D-3). Jede Stufe kostet sofort Geld (Ausgabenimpuls → Nachfrage, Defizit, Schulden, Inflation) und wirkt mit Verzug über die Politikfelder
 // des Netzes: Bildung braucht Jahre, bis Fachkräfte da sind, Infrastruktur und Rüstung brauchen Bau und Beschaffung. Mehr bringt immer weniger
 // (abnehmender Ertrag), Kürzungen wirken voll. Forschung wirkt nur bis zur Innovationsgrenze voll, die die Bildung hebt (sim/wissensbasis.ts).
 // Startanteile und Spannen: data/haushaltsplan.ts (RESSORTS_2026, abgeleitet oder als Spielparameter gekennzeichnet).
@@ -30,7 +31,7 @@ import { ministerFuer, stabilerWert } from "./ministerfluss-kern";
 import type { Amt } from "./ministerfluss-typen";
 import { PLAN_2026, RENTE_START, RESSORT_NACH_ID, ZINSSATZ_START } from "../data/haushaltsplan";
 import { stuetze } from "../data/reich/bau";
-import { t } from "../i18n";
+import { t, zahl } from "../i18n";
 
 export interface Ergebnis {
   ok: boolean;
@@ -44,7 +45,7 @@ export interface NetzWirkung {
   d: number;
 }
 
-export type PostenGruppe = "renten" | "soziales" | "dienste" | "sicherheit" | "wirtschaft" | "staat" | "steuern";
+export type PostenGruppe = "renten" | "soziales" | "dienste" | "sicherheit" | "wirtschaft" | "staat";
 
 export interface PostenDef {
   id: string;
@@ -142,13 +143,21 @@ export const POSTEN: PostenDef[] = [
     sofort: [st("beamte", 3)], dauer: [s("aerzte", 1), s("kostendruck", 0.4), s("korruption", -0.3)] }),
   posten({ id: "subventionen", seite: "ausgabe", gruppe: "staat", amt: "wirtschaft", unbeliebt: -1,
     sofort: [st("landwirte", 2), st("arbeitnehmer", 1)], dauer: [s("energiepreise", -2), s("lebensmittelpreise", -1.5), s("lebenshaltung", -1), s("landwirtschaft_einkommen", 1.5), s("klimaschutz", -0.4)] }),
-  posten({ id: "einkommensteuer", seite: "einnahme", gruppe: "steuern", amt: "finanzen", schritt: 0.3, unbeliebt: 1, plan: "est",
-    sofort: [st("arbeitnehmer", -3), st("unternehmer", -1)], dauer: [s("realeinkommen", -1.2), s("steuermoral", -0.6), s("schattenwirtschaft", 0.5), s("ungleichheit", -0.4)] }),
-  posten({ id: "verbrauchsteuern", seite: "einnahme", gruppe: "steuern", amt: "finanzen", schritt: 0.3, unbeliebt: 1, plan: "mwst",
-    sofort: [st("arbeitnehmer", -2), st("rentner", -2)], dauer: [s("lebenshaltung", 1.5), s("ungleichheit", 0.6), s("armut", 0.4), s("kostendruck", 0.3)] }),
-  posten({ id: "unternehmensteuer", seite: "einnahme", gruppe: "steuern", amt: "finanzen", schritt: 0.3, unbeliebt: 1, plan: "kst",
-    sofort: [st("unternehmer", -3)], dauer: [s("investitionen", -1), s("auslandskapital", -1.2), s("gruendungen", -0.5), s("ungleichheit", -0.3)] }),
 ];
+
+/**
+ * Die früheren Steuerregler des Haushalts (bis 06.11.2026). Sie steuerten dieselben Steuern wie die Maßnahmen und wirkten getrennt davon
+ * (Befund D-1). Ältere Spielstände werden beim Laden auf die Maßnahme umgerechnet (sim/wirtschaft.ts `migriereSteuern`): je Stufe 0,3 % des
+ * BIP Mehreinnahmen.
+ */
+export const ALTE_STEUERPOSTEN: Record<string, { massnahme: string; schritt: number }> = {
+  einkommensteuer: { massnahme: "m_einkommensteuer", schritt: 0.3 },
+  verbrauchsteuern: { massnahme: "m_mwst", schritt: 0.3 },
+  unternehmensteuer: { massnahme: "m_koerperschaftsteuer", schritt: 0.3 },
+};
+
+export { ETAT_DER_MASSNAHME } from "../data/etats";
+import { ETAT_DER_MASSNAHME } from "../data/etats";
 
 /** Alte Kennungen (Bündel vor den Ressortetats) zeigen auf das Ressort, das ihren Kern trägt. */
 export const POSTEN_ALIAS: Record<string, string> = { soziales: "sozialhilfe", gesundheit_bildung: "bildung", sicherheit: "verteidigung" };
@@ -215,10 +224,16 @@ export function verteidigungsEtat(w: World): number {
   return etatBip(POSTEN_NACH_ID.verteidigung!, stufeVon(w, "verteidigung")) ?? 0;
 }
 
-/** Spielparameter: Alterung verteuert dasselbe Rentenniveau jedes Jahr ein wenig (zu prüfen: TÜİK-Bevölkerungsprojektion). */
+/**
+ * Spielparameter: Alterung verteuert dasselbe Rentenniveau jedes Jahr ein wenig (zu prüfen: TÜİK-Bevölkerungsprojektion). Gezählt wird ab
+ * dem Amtsantritt: Das Defizit beim Start (3,1 %) enthält die Renten von heute schon. Vorher zählte die Alterung ab 2026 und buchte im
+ * ersten Monat eines Spiels von 2028 auf einmal 0,09 % des BIP (Messung N3, 06.11.2026). Ohne Spielschleife gilt 2026.
+ */
 export const DEMOGRAFIE = { jeJahr: 0.012, startJahr: 2026 };
 export function demografieFaktor(w: World): number {
-  const jahre = Math.max(0, Number(w.date.slice(0, 4)) + (monthNumber(w.date) - 1) / 12 - DEMOGRAFIE.startJahr);
+  const jahr = (d: string) => Number(d.slice(0, 4)) + (monthNumber(d) - 1) / 12;
+  const start = w.spiel?.start.datum ? jahr(w.spiel.start.datum) : DEMOGRAFIE.startJahr;
+  const jahre = Math.max(0, jahr(w.date) - start);
   return 1 + DEMOGRAFIE.jeJahr * jahre;
 }
 
@@ -302,13 +317,35 @@ function gutFuer(id: string, richtung: 1 | -1): boolean | null {
 
 function wende(w: World, p: PostenDef, delta: number): void {
   const e = w.economy;
+  const vorher = stufeVon(w, p.id) - delta;
   e.fiscalImpulse += delta * p.schritt * vorzeichen(p);
   for (const x of p.sofort) wirke(w, x.id, x.d * delta);
-  // Der Minister des Ressorts merkt sich, ob sein Etat wächst oder schrumpft (Ausgaben; Spielparameter ±1 Loyalität je Beschluss)
+  // Der Minister des Ressorts merkt sich, ob sein Etat wächst oder schrumpft, und ob sein Wunsch erfüllt ist (D-4, ministerFolge)
   if (p.seite === "ausgabe" && w.spiel) {
     const f = ministerFuer(w, p.amt);
-    if (f && f.amt === p.amt) f.loyalitaet = clamp(f.loyalitaet + Math.sign(delta * (p.schritt > 0 ? 1 : -1)), 0, 100);
+    if (f && f.amt === p.amt) f.loyalitaet = clamp(f.loyalitaet + ministerFolge(w, p.id, vorher, vorher + delta), 0, 100);
   }
+}
+
+/** Spielparameter des Ministerwunschs (D-4): Erfüllen bringt einmalig Loyalität, Kürzen gegen den Wunsch kostet sie. */
+export const MINISTER_WUNSCH = { erfuellt: 5, gekuerzt: -5, sonst: 1 } as const;
+
+/**
+ * Wie die zuständige Ministerin oder der Minister auf einen Beschluss von Stufe `von` auf `bis` reagiert (Loyalitätspunkte). Dieselbe Zahl
+ * zeigt das Preisfeld. Erreicht der Beschluss den Wunsch, gibt es +5; wird gekürzt, solange der Wunsch über dem Stand liegt, −5; sonst ±1 je
+ * Richtung wie bisher (mehr Geld für das Ressort freut, weniger ärgert).
+ */
+export function ministerFolge(w: World, id: string, von: number, bis: number): number {
+  const p = POSTEN_NACH_ID[id];
+  if (!p || p.seite !== "ausgabe" || bis === von) return 0;
+  const mehrGeld = (bis - von) * (p.schritt > 0 ? 1 : -1) > 0;
+  const wunsch = ministerWunsch(w, id);
+  if (p.id !== "rentenalter" && wunsch > von) {
+    if (bis >= wunsch) return MINISTER_WUNSCH.erfuellt;
+    if (!mehrGeld) return MINISTER_WUNSCH.gekuerzt;
+  }
+  if (p.id === "personal" && wunsch < von && bis <= wunsch) return MINISTER_WUNSCH.erfuellt;
+  return mehrGeld ? MINISTER_WUNSCH.sonst : -MINISTER_WUNSCH.sonst;
 }
 
 /** Was der zuständige Minister sich für sein Ressort wünscht (Stufe, deterministisch je Spiel; Spielparameter). */
@@ -349,7 +386,7 @@ export function setzePosten(w: World, idRoh: string, stufe: number, ohneKosten =
   if (ziel === 0) delete z.stufen[id];
   wende(w, p, v.delta);
   z.letzteAenderung = w.day;
-  const text = t("haushalt.beschluss.nachtrag", { posten: p.name, richtung: richtungsWort(p, v.delta), mrd: Math.round(Math.abs(v.delta * mrdJeStufe(p, w))).toLocaleString("de-DE") });
+  const text = t("haushalt.beschluss.nachtrag", { posten: p.name, richtung: richtungsWort(p, v.delta), mrd: zahl(Math.round(Math.abs(v.delta * mrdJeStufe(p, w))), 0) });
   const folgen = [
     ...impulsKette(v.impuls).slice(0, 4).map(kettenZeile),
     ...v.zeilen.slice(0, 4).map((x) => `${x.text} ${x.richtung > 0 ? "▲" : "▼"} (${t("haushalt.dauerhaft")})`),
@@ -380,10 +417,11 @@ export function einfacherSchritt(w: World, art: "mehr" | "sparen"): { id: string
 
 /** Pakete für das Haushaltsjahr: mehrere Regler auf einmal. */
 export const PAKETE: Record<string, { readonly name: string; schritte: Record<string, number> }> = {
-  konsolidieren: { get name() { return t("haushalt.paket.konsolidieren"); }, schritte: { personal: -1, subventionen: -1, einkommensteuer: 1 } },
+  // Pakete enthalten nur Etats; Steuern ändert allein ihr Gesetz (Befund D-1). Konsolidieren streckt dafür die Investitionen.
+  konsolidieren: { get name() { return t("haushalt.paket.konsolidieren"); }, schritte: { personal: -1, subventionen: -1, investitionen: -1 } },
   investieren: { get name() { return t("haushalt.paket.investieren"); }, schritte: { investitionen: 2 } },
   zukunft: { get name() { return t("haushalt.paket.zukunft"); }, schritte: { bildung: 3, forschung: 3, subventionen: -1 } },
-  aufruestung: { get name() { return t("haushalt.paket.aufruestung"); }, schritte: { verteidigung: 4, verbrauchsteuern: 1 } },
+  aufruestung: { get name() { return t("haushalt.paket.aufruestung"); }, schritte: { verteidigung: 4, subventionen: -1 } },
 };
 
 /** Ein Paket des Haushaltsjahres anwenden (die Kosten trägt das Ereignis). */
@@ -395,6 +433,38 @@ export function wendePaketAn(w: World, id: string): void {
     const ziel = inSpanne(p, stufeVon(w, posten) + delta);
     if (ziel !== stufeVon(w, posten)) setzePosten(w, posten, ziel, true);
   }
+}
+
+/**
+ * Haushaltsbeschlüsse aus Ereignissen (Befund D-13): Ein Sparpaket oder ein Wachstumshaushalt stellt konkrete Regler statt eines unsichtbaren
+ * Ausgabenimpulses. So zeigt das Rad, wer verliert, und die Regler lügen nach dem Ereignis nicht. Die Kosten trägt die Antwort des Ereignisses.
+ * Schritte in Reglerstufen (Spielparameter), gewählt nach dem früheren Impuls: Sparpaket −1,5 %, Sparkurs −1,0 %, Wachstum +1,5 % des BIP.
+ */
+export const EREIGNIS_HAUSHALT: Record<"sparpaket" | "sparkurs" | "wachstum", Record<string, number>> = {
+  sparpaket: { personal: -2, subventionen: -1, umwelt_energie: -1, wohnen: -1, kultur: -2 },
+  sparkurs: { personal: -1, subventionen: -1, umwelt_energie: -1, wohnen: -1 },
+  wachstum: { investitionen: 3, bildung: 1, forschung: 1 },
+};
+
+/** Ein Ereignis stellt Haushaltsregler (ohne Kapital); gibt die Änderung des Ausgabenimpulses in % des BIP zurück. */
+export function haushaltAusEreignis(w: World, art: keyof typeof EREIGNIS_HAUSHALT): number {
+  const vorher = impulsAusPosten(w);
+  for (const [id, delta] of Object.entries(EREIGNIS_HAUSHALT[art])) {
+    const p = POSTEN_NACH_ID[id]!;
+    const ziel = inSpanne(p, stufeVon(w, id) + delta);
+    if (ziel !== stufeVon(w, id)) setzePosten(w, id, ziel, true);
+  }
+  return impulsAusPosten(w) - vorher;
+}
+
+/** Fahrplan zur Konsolidierung (Antwort an die Ratingagentur): Alle Mehrausgaben seit dem Amtsantritt werden auf das Haushaltsgesetz zurückgestellt, sichtbar an den Reglern. */
+export function haushaltFahrplan(w: World): number {
+  const vorher = impulsAusPosten(w);
+  for (const p of POSTEN) {
+    const stufe = stufeVon(w, p.id);
+    if (stufe * p.schritt * vorzeichen(p) > 0) setzePosten(w, p.id, 0, true);
+  }
+  return impulsAusPosten(w) - vorher;
 }
 
 /** Einmal im Monat: Reifung der Etats, Dauerwirkungen (abnehmender Ertrag, Innovationsgrenze), Abwanderung, Demografie und der Zinsdienst. */
@@ -625,7 +695,7 @@ function wendeEntwurfAn(w: World, schritte: Record<string, number>, jahr: number
         return node ? `${node.name} ${Math.sign(x.d * delta) > 0 ? "▲" : "▼"} (dauerhaft)` : "";
       }).filter(Boolean),
     ];
-    z.aenderungen.push({ tag: w.day, datum: w.date, posten: p.name, text: t(paketTitel?"kp.beschlussPosten":"haushalt.beschluss.gesetz", { name:paketTitel??"", jahr: String(jahr + 1), posten: p.name, richtung, mrd: mrd.toLocaleString("de-DE") }), folgen });
+    z.aenderungen.push({ tag: w.day, datum: w.date, posten: p.name, text: t(paketTitel?"kp.beschlussPosten":"haushalt.beschluss.gesetz", { name:paketTitel??"", jahr: String(jahr + 1), posten: p.name, richtung, mrd: zahl(mrd, 0) }), folgen });
     z.letzteAenderung = w.day;
   }
   while (z.aenderungen.length > 12) z.aenderungen.shift();
@@ -707,5 +777,5 @@ export function schreibeHaushaltFort(w: World): void {
 
 /** Gemeinsamer Name in Kalender, laufender Arbeit und gespeichertem Bericht. */
 export function haushaltsTitel(g: {jahr:number;krisenpaket?:string}):string {
-  return g.krisenpaket?t("kp.gesetz",{name:t(`kp.${g.krisenpaket}.titel`)}):t("sd.haushaltsgesetz",{jahr:g.jahr+1});
+  return g.krisenpaket?t("kp.gesetz",{name:t(`kp.${g.krisenpaket}.titel`)}):t("sd.haushaltsgesetz",{jahr:String(g.jahr+1)});
 }

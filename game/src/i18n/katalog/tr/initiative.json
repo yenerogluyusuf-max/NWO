@@ -18,7 +18,7 @@
   "ini.anrede.KAZ": "Astana",
   "ini.anrede.CYP": "Lefkoşa",
   "ini.droh.log": "{name} ile tehdit ortamı: Durum savaş eşiğinde kalıyor (çatışma 100 üzerinden {konflikt}).",
-  "ini.droh.uebergeben": "Çatışma sürecine devredildi: Bu ülkeyle gerilim tehdit ortamı düzeyine çıkıyor — dosya Dünya görünümünde.",
+  "ini.droh.uebergeben": "Çatışma sürecine devredildi: Bu ülkeyle gerilim tehdit ortamı düzeyine çıkıyor; ülkenin dosyası Dış İlişkiler bölümünde.",
   "ini.droh.naechstePruefung": "Çatışma süreci, çatışma kendi eşiğinin üzerinde kaldığı sürece durumu bir sonraki aylık incelemede ele alır; otomatik bir savaş yoktur.",
   "ini.titel.fallback": "Kendi girişimi",
   "ini.paket.klausel": "„{label}“",

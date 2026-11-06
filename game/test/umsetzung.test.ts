@@ -182,7 +182,11 @@ describe("Antworten nennen die Umsetzungsdauer", () => {
     const node = NET.nodes.find((n) => n.id === "m_exportfoerderung")!;
     const r = befehl(`Erhoehe ${node.name}`, w);
     expect(r.ok, r.text).toBe(true);
-    expect(r.text).toMatch(/Umsetzung über etwa \d+ Monate/);
+    // N4 hat die Meldung neu gefasst („… danach dauert die Umsetzung etwa N Monate“). Die Dauer muss weiter genannt sein, und zwar
+    // mindestens die Umsetzungszeit des Knotens (bei Überlast der Verwaltung länger, sim/handeln.ts ueberlast).
+    const m = r.text.match(/dauert die Umsetzung etwa (\d+) Monate/);
+    expect(m, r.text).not.toBeNull();
+    expect(Number(m![1])).toBeGreaterThanOrEqual(node.months!);
   });
 
   test("Direktbeschluss protokolliert die Dauer", () => {
@@ -190,7 +194,8 @@ describe("Antworten nennen die Umsetzungsdauer", () => {
     const w = createWorld(turkey2026, 7);
     setPolicy(w, "m_schulbau", 90);
     const l = w.log[w.log.length - 1]!;
-    expect(l.why).toContain(`Umsetzung läuft über etwa ${dauer} Monate`);
+    // N4 hat das Protokoll neu gefasst („Die Umsetzung dauert etwa N Monate“, nacht_n4.json n4.log.gesetzt*); die Dauer des Knotens steht weiter darin.
+    expect(l.why).toContain(`Die Umsetzung dauert etwa ${dauer} Monate`);
   });
 });
 

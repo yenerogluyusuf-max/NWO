@@ -13,6 +13,7 @@ import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import type { World } from "../src/sim/types";
 import {
+  streitkraefteSicht,
   STREITKRAEFTE,
   beginneAusbau,
   bestandsFaktor,
@@ -29,6 +30,7 @@ import {
 } from "../src/sim/streitkraefte";
 import { GATTUNGEN, START_BESCHAFFUNGEN, ZIELRAEUME } from "../src/data/streitkraefte";
 import { aussenZustand } from "../src/sim/diplomatie";
+import { reichZustand, warteschlange } from "../src/sim/reich";
 import { gegnerStaerke, kriegMit, kriegMonat, waehleZielraum, zielraeumeFuer, eigenStaerke } from "../src/sim/krieg";
 import { weltZustand } from "../src/sim/laender";
 import { Rng } from "../src/sim/rng";
@@ -51,7 +53,19 @@ describe("Startbestand", () => {
     expect(kampfkraftIndex(w, z)).toBeCloseTo(1, 2);
     expect(bestandsFaktor(w)).toBeCloseTo(1, 2);
     expect(z.gattungen.kampfflugzeuge.menge).toBe(235);
-    expect(z.gattungen.personal.menge).toBeGreaterThan(400_000);
+    // Eine Zahl für das aktive Personal (Befund G-13, 6. November): 355.000 ohne Gendarmerie, dieselbe wie data/kraefte.ts (vorher 481.000)
+    expect(z.gattungen.personal.menge).toBe(355_000);
+    // Jede Startbeschaffung ist an ihr Rüstungsvorhaben gebunden und hat dessen Fertigdatum (ein Modell, ein Datum, Befund G-4)
+    const schlange = warteschlange(w);
+    for (const b of z.laufend) {
+      expect(b.vorhaben, b.name).toBeTruthy();
+      const e = schlange.find((x) => x.id === b.vorhaben);
+      expect(e, b.vorhaben).toBeDefined();
+      expect(streitkraefteSicht(w).laufend.find((x) => x.id === b.id)!.fertig).toBe(w.day + e!.fertigIn! * 30);
+    }
+    // Was schon läuft, wird nicht noch einmal angeboten
+    expect(reichZustand(w).laufend.some((l) => l.id === "mil_kaan")).toBe(true);
+    expect(reichZustand(w).laufend.some((l) => l.id === "mil_eurofighter")).toBe(true);
     expect(z.laufend.length).toBe(START_BESCHAFFUNGEN.length);
     expect(z.wehrdienst).toBe(6);
     for (const g of GATTUNGEN) {
@@ -95,9 +109,12 @@ describe("Ausbau", () => {
     expect(v.ok).toBe(false);
     const z = streitkraefte(w);
     const f16 = z.laufend.find((b) => b.name?.startsWith("F-16"))!;
-    const fertig = f16.fertig;
+    // Seit dem 6. November folgt das Datum der Bauliste (Befund G-4); die Sperre hält die Lieferung auch dann zurück, wenn das Vorhaben fertig ist
+    reichZustand(w).bestand["mil_f16"] = { seit: w.date, zustand: 90 };
+    reichZustand(w).laufend = reichZustand(w).laufend.filter((l) => l.id !== "mil_f16");
     streitkraefteMonat(w, false);
-    expect(f16.fertig).toBe(fertig + 30);
+    expect(z.laufend.includes(f16), "keine Lieferung trotz fertigem Vorhaben").toBe(true);
+    expect(f16.gestoppt).toBe(true);
     expect(w.spiel!.hinweise.some((h) => h.id.startsWith("militaer-lieferstopp"))).toBe(true);
   });
 

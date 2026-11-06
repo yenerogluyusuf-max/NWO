@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { World } from '../../sim/types';
 import { krisenAlltag, KRISENGESETZE, krisenGesetzPlan, bringeKrisenGesetzEin, type KrisenGesetz, type KrisenGesetzPlan } from '../../sim/krisengesetze';
 import { t, zahl } from '../../i18n';
+import { stufenName } from '../../data/skalen';
 import { formatDateDe, addDays } from '../../sim/dates';
 import { EntscheidungsKarte } from '../entscheidungen/EntscheidungsKarte';
 import { GesetzesPrognoseHinweis } from '../parlament/GesetzesPrognoseHinweis';
@@ -30,21 +31,25 @@ export function KrisenGesetze({world,geaendert}:{world:World;geaendert:()=>void}
 export function KrisenGesetzKarte({world,plan:p,ausfuehren}:{world:World;plan:KrisenGesetzPlan;ausfuehren:()=>void}) {
   const datum=(tag:number)=>formatDateDe(addDays(world.date,tag-world.day));
   const vorRisiken=p.vorVotumRisiken.map(r=><p className="kr-warnung" key={`vor-${r.partei}-${r.name}`}>{t('kg.vorVotum',{partei:r.partei,name:r.name,n:zahl(r.loyalitaet,2),sitze:r.sitze,datum:formatDateDe(p.pruefung)})}</p>);
-  if(p.laufend||p.umsetzung)return <section className="kr-gesetz-stand"><h4>{t(`kg.${p.id}.titel`)}</h4><p>{p.grund}</p>
-    {p.laufend&&<p>{t(p.regional?'kg.regionalBeratung':'kg.landesBeratung',{ziel:p.laufendeStufe!})}</p>}
+  // Mindestlohn: Die Kommission beschließt (data/rechtswege.ts); kein Plenum, keine Stimmenprognose, kein „Gesetzentwurf“.
+  const kommission=p.kommission&&p.beschlussTag!==undefined?<p>{t('int.kg.kommission',{datum:datum(p.beschlussTag)})}</p>:null;
+  if(p.laufend||p.umsetzung)return <section className="kr-gesetz-stand"><h4>{t(`kg.${p.id}.titel`)}</h4><p>{p.laufend&&p.kommission?t('int.kg.kommissionLaufend'):p.grund}</p>
+    {p.laufend&&<p>{t(p.regional?'n9.kg.regional':'n9.kg.landes',{ziel:stufenName(p.id,p.laufendeStufe!)})}</p>}
+    {kommission}
     {p.prognose&&<GesetzesPrognoseHinweis prognose={p.prognose}/>}
     {vorRisiken}
-    <div className="kr-links"><UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('kg.mehrheit')}</UbVerweis><UbVerweis ziel={{art:'politik',massnahme:{id:p.id,level:p.laufendeStufe??p.beschlossen,ort:null}}}>{t('kg.fortschritt')}</UbVerweis></div>
+    <div className="kr-links">{!p.kommission&&<UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('kg.mehrheit')}</UbVerweis>}<UbVerweis ziel={{art:'politik',massnahme:{id:p.id,level:p.laufendeStufe??p.beschlossen,ort:null}}}>{t('kg.fortschritt')}</UbVerweis></div>
   </section>;
   return <EntscheidungsKarte kicker={t('kg.gesetz')} titel={t(`kg.${p.id}.titel`)} einleitung={t(`kg.${p.id}.text`)}
-    fakten={[{label:t('kg.ziel'),wert:t('kp.stufe',{vor:zahl(p.aktuell,1),nach:p.ziel})},
+    fakten={[{label:t('n9.kg.ziel'),wert:t('n9.kg.wert',{vor:stufenName(p.id,p.aktuell),nach:stufenName(p.id,p.ziel)})},
       {label:t('eo.kapital'),wert:t('ve.pk',{n:p.pk}),hinweis:t('kg.aufmerksamkeit',{n:p.aufmerksamkeit})},
       {label:t('kg.jahreskosten'),wert:t('hb.ppBip',{n:sign(p.kostenBip)}),hinweis:t('kp.mrd',{n:sign(p.geldJahr)})},
       {label:t('kg.vollzug'),wert:t('kg.monate',{n:p.monate})}]}
-    aktion={t('kg.einbringen')} gesperrt={p.moeglich?undefined:p.grund} hinweis={t('kg.keinSoforteffekt')} onAusfuehren={ausfuehren}>
+    aktion={t(p.kommission?'int.kg.kommissionAktion':'kg.einbringen')} gesperrt={p.moeglich?undefined:p.grund} hinweis={t(p.kommission?'int.kg.kommissionHinweis':'kg.keinSoforteffekt')} onAusfuehren={ausfuehren}>
     <p className="kr-warnung">{t(`kg.${p.id}.preis`)}</p><p>{t('kg.finanzierung')}</p>
+    {kommission}
     {p.prognose&&<GesetzesPrognoseHinweis prognose={p.prognose}/>}
-    <div className="kr-links"><UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('kg.mehrheit')}</UbVerweis><UbVerweis ziel={{art:'politik',massnahme:{id:p.id,level:p.ziel,ort:null}}}>{t('kg.anpassen')}</UbVerweis><UbVerweis ziel={{art:'akte',akte:'wirtschaft',start:'haushalt'}}>{t('sd.haushalt')}</UbVerweis></div>
+    <div className="kr-links">{!p.kommission&&<UbVerweis ziel={{art:'akte',akte:'parlament'}}>{t('kg.mehrheit')}</UbVerweis>}<UbVerweis ziel={{art:'politik',massnahme:{id:p.id,level:p.ziel,ort:null}}}>{t('kg.anpassen')}</UbVerweis><UbVerweis ziel={{art:'akte',akte:'wirtschaft',start:'haushalt'}}>{t('sd.haushalt')}</UbVerweis></div>
     {p.moeglich&&<>
       <h5>{t('kg.politik')}</h5><p>{t('kg.bedingt')}</p>
       {p.reaktionen.length?<ul>{p.reaktionen.map(f=><li key={f.id}>{f.name}{f.partei?` · ${f.partei}`:''}: {t('kg.loyalitaet',{vor:zahl(f.vorher,2),nach:zahl(f.nachher,2)})}</li>)}</ul>:<p>{t('kg.keineReaktion')}</p>}

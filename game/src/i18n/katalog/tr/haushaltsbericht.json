@@ -39,7 +39,7 @@
   "hb.punkte": "{n} puan",
   "hb.vergleichGrenze": "Bu karşılaştırma yalnızca bu hesaplamadaki olgunlaşma adımını ayırır. Önceki etkiler başlangıç durumunda kalır; sonradan değiştirilen ödenekler hariç tutulur. Karardan bu yana toplam etkiyi veya sonrasında gerçekleşen mal bilançosunu göstermez. Savaş, ticaret, stoklar ve diğer kararlar sonraki teslimatı değiştirebilir.",
   "hb.wartet": "Bu değerlendirme için henüz ilgili olgunlaşma karşılaştırması yok. Bir sonraki bütçe hesabı ek etkiyi gösterecek. Oylama ayın ilk gününde bütçe hesabından sonra yapılırsa bu kayıt sonraki ay başlar.",
-  "hb.keineReifung": "Reddedilen tasarı yeni bir olgunlaşma adımı oluşturmaz. Mevcut ödeneklerin etkisi devam eder.",
+  "hb.keineReifung": "Reddedilen teklif yeni bir olgunlaşma adımı oluşturmaz. Mevcut ödeneklerin etkisi devam eder.",
   "hb.beobachtet": "Değerlendirme sırasındaki durum",
   "hb.beobachtungGrenze": "Bu değerler genel durumu gösterir. Önceki kararlar, dünya ekonomisi, çatışmalar ve diğer etkenleri de içerir; yalnızca bütçe kararının etkisi değildir.",
   "hb.defizit": "Planlanan açık · GSYH %",

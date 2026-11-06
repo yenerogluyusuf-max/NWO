@@ -6,19 +6,25 @@
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
 import type { Vorschlag } from "../../sim/vorschlaege";
-import { bringeEin, REGELN } from "../../sim/handeln";
+import { bringeEin, GESETZ_SCHWELLE, KOMMISSION, REGELN } from "../../sim/handeln";
+import { jaAnteilLager } from "../../sim/linie";
+import { NOTSTAND_AB } from "../../data/rechtswege";
+import { NotstandKarte } from "../parlament/NotstandKarte";
+import { notstandSicht } from "../../sim/notstand";
 import { fassungsKnoepfe, gesetzesPrognose } from "../../sim/gesetzgebung";
 import type { FassungId } from "../../data/gesetzesvorhaben";
-import { naechsteStufe, skala, skalenArt, stufenName } from "../../data/skalen";
+import { echteHalte, echterSatz, hatZustaende, naechsteStufe, skala, skalenArt, stufenName } from "../../data/skalen";
+import { ETAT_DER_MASSNAHME, POSTEN_NACH_ID } from "../../sim/haushalt";
 import { t, zahl } from "../../i18n";
 import type { MassnahmeZeile } from "./bereiche";
 import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
 
 type Ergebnis = { ok: boolean; text: string; why?: string };
 
-/** Die wählbaren Werte einer Maßnahme: benannte Zustände oder 0, 10, … 100 */
+/** Die wählbaren Werte einer Maßnahme: benannte Zustände, echte Sätze in ganzen Punkten (N3, B-2) oder 0, 10, … 100 */
 function stufenVon(id: string, jetzt: number): { w: number; name: string }[] {
-  if (skalenArt(id) === "regime") return skala(id, jetzt).stufen.map((s) => ({ w: s.w, name: s.name }));
+  if (skalenArt(id) === "regime" || hatZustaende(id)) return skala(id, jetzt).stufen.map((s) => ({ w: s.w, name: s.name }));
+  if (echterSatz(id)) return echteHalte(id).map((h) => ({ w: h.w, name: stufenName(id, h.w) }));
   return Array.from({ length: 11 }, (_, i) => ({ w: i * 10, name: stufenName(id, i * 10) }));
 }
 
@@ -37,7 +43,24 @@ function Pruefzeile({ world, m, ziel, ort, wahl, onFassung, onErgebnis, onGenaue
   const knoepfe = useMemo(() => (ort ? [] : fassungsKnoepfe(world, m.id)), [world, m.id, ort, world.day]);
   const p = prog.pruefung;
   const fas = prog.fassung;
-  const namen = (l: { name: string }[]) => l.slice(0, 4).map((x) => x.name).join(", ");
+  // B-19: Eigene Partei und Partner stehen nicht unter „Dafür/Dagegen“, sondern mit ihrem Ja-Anteil
+  const namen = (l: { name: string; art: string }[]) => l.filter((x) => x.art !== "eigene" && x.art !== "partner").slice(0, 4).map((x) => x.name).join(", ");
+  const eigene = world.player?.partei.kurz;
+  const richtung = Math.sign(ziel - m.jetzt);
+  const eigeneJa = eigene && world.spiel ? Math.round(jaAnteilLager(world, eigene, m.id, richtung) * 100) : undefined;
+  const kommission = p.rechtsweg === "kommission";
+  // Art. 119: Ab den Notstandsdekreten ist der Weg das Ausrufen des Ausnahmezustands
+  if (m.id === "m_notstand" && ziel >= NOTSTAND_AB && world.spiel) {
+    return (
+      <div className="mt-panel" role="region" aria-label={m.name}>
+        <p className="mt-text">{m.text}</p>
+        <NotstandKarte world={world} tun={onErgebnis} />
+        <div className="mt-knoepfe">
+          <button type="button" className="pd-btn quiet" onClick={onVerwerfen}>{t("po2.verwerfen")}</button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="mt-panel" role="region" aria-label={m.name}>
       <p className="mt-text">{m.text}</p>
@@ -57,9 +80,12 @@ function Pruefzeile({ world, m, ziel, ort, wahl, onFassung, onErgebnis, onGenaue
           kl="mt"
           fakten={[
             { label: t("po2.kapital"), wert: t("po2.kapitalWert", { n: p.gesetz.pk }), schlecht: !p.gesetz.bezahlbar },
-            { label: t("po2.mehrheit"), wert: prog.luecke > 0 ? t("po2.fehlen", { n: prog.luecke }) : t("po2.steht", { ja: prog.ja, noetig: REGELN.mehrheit }), schlecht: prog.luecke > 0 },
-            { label: t("po2.dauer"), wert: t("po2.monate", { n: p.monate }) },
-            { label: t("po2.haushalt"), wert: Math.abs(p.kostenBip) < 0.005 ? t("po2.keineKosten") : t(p.kostenBip > 0 ? "po2.kostet" : "po2.bringt", { n: zahl(Math.abs(p.kostenBip), 2) }) },
+            kommission
+              ? { label: t("n4.mt.weg"), wert: t("n4.mt.kommission", { tage: KOMMISSION.tage }) }
+              : { label: t("po2.mehrheit"), wert: prog.luecke > 0 ? t("po2.fehlen", { n: prog.luecke }) : t("n4.mt.steht", { ja: prog.ja, noetig: GESETZ_SCHWELLE }), schlecht: prog.luecke > 0 },
+            { label: t("po2.dauer"), wert: kommission ? t("po2.monate", { n: p.monate }) : t("n4.mt.dauer", { tage: REGELN.tageBisAbstimmung, monate: p.monate }) },
+            // F1 (N3): Maßnahmen mit gleichnamigem Etat kosten kein eigenes Geld; das Preisfeld nennt den Etat, der sie bezahlt
+            { label: t("po2.haushalt"), wert: ETAT_DER_MASSNAHME[m.id] ? t("n3.f1.etat", { posten: POSTEN_NACH_ID[ETAT_DER_MASSNAHME[m.id]!]?.name ?? "" }) : Math.abs(p.kostenBip) < 0.005 ? t("po2.keineKosten") : t(p.kostenBip > 0 ? "po2.kostet" : "po2.bringt", { n: zahl(Math.abs(p.kostenBip), 2) }) },
           ]}
         />
       ) : (
@@ -67,18 +93,19 @@ function Pruefzeile({ world, m, ziel, ort, wahl, onFassung, onErgebnis, onGenaue
       )}
       {prog.lager && (prog.lager.fuer.length > 0 || prog.lager.gegen.length > 0) && (
         <p className="mt-lager">
-          {prog.lager.fuer.length > 0 && <span><b>{t("po2.dafuer")}</b> {namen(prog.lager.fuer)}</span>}
-          {prog.lager.gegen.length > 0 && <span><b>{t("po2.dagegen")}</b> {namen(prog.lager.gegen)}</span>}
+          {namen(prog.lager.fuer) && <span><b>{t("po2.dafuer")}</b> {namen(prog.lager.fuer)}</span>}
+          {namen(prog.lager.gegen) && <span><b>{t("po2.dagegen")}</b> {namen(prog.lager.gegen)}</span>}
+          {eigeneJa !== undefined && !kommission && <span><b>{t("n4.mt.eigene")}</b> {eigeneJa >= 99 ? t("n4.mt.geschlossen") : t("n4.mt.anteil", { p: eigeneJa })}</span>}
         </p>
       )}
       {p.hinweise.length > 0 && <p className="mt-hinweis">{p.hinweise.join(" ")}</p>}
       <div className="mt-knoepfe">
         <button type="button" className="brass-button" disabled={!p.ok || !p.gesetz.bezahlbar} onClick={() => onErgebnis(bringeEin(world, m.id, ziel, ort, "gesetz", wahl))}>
-          {t("po2.einbringen", { n: p.gesetz.pk })}
+          {t(kommission ? "n4.mt.vorgabe" : "n4.mt.einbringen", { n: p.gesetz.pk })}
         </button>
         {p.ok && p.erlass.moeglich && (
           <button type="button" className="pd-btn" disabled={!p.erlass.bezahlbar} onClick={() => onErgebnis(bringeEin(world, m.id, ziel, ort, "erlass", wahl))}>
-            {fas && fas.gerichtP > 0 ? t("po2.erlassGericht", { n: p.erlass.pk, p: Math.round(fas.gerichtP * 100) }) : t("po2.erlass", { n: p.erlass.pk })}
+            {p.erlass.art === "beschluss" ? t("n4.mt.beschluss", { n: p.erlass.pk }) : fas && fas.gerichtP > 0 ? t("po2.erlassGericht", { n: p.erlass.pk, p: Math.round(fas.gerichtP * 100) }) : t("po2.erlass", { n: p.erlass.pk })}
           </button>
         )}
         <button type="button" className="pd-btn quiet" onClick={onGenauer}>{t("po2.genauer")}</button>
@@ -140,7 +167,7 @@ export function MassnahmenTafel({ world, massnahmen, vorschlaege, refresh, onGen
                 <div className="mt-name">
                   <span title={m.text}>{m.name}</span>
                   <small>
-                    {m.imParlament ? t("po2.imParlament", { tage: m.imParlament.tage }) : m.umsetzung ? t("po2.umsetzung", { stand: Math.round(m.umsetzung.stand), rest: m.umsetzung.rest }) : m.blocker ? m.blocker.titel.slice(0, 80) : ""}
+                    {m.id === "m_notstand" && notstandSicht(world).aktiv ? t("n4.mt.notstandAktiv", { datum: notstandSicht(world).aktiv!.datum }) : m.imParlament ? t("po2.imParlament", { tage: m.imParlament.tage }) : m.umsetzung ? t("po2.umsetzung", { stand: Math.round(m.umsetzung.stand), rest: m.umsetzung.rest }) : m.blocker ? m.blocker.titel.slice(0, 80) : ""}
                     {v && !aktiv && (
                       <button type="button" className="mt-vorschlag" onClick={() => setWahl({ id: m.id, ziel: v.ziel, ort: v.ort })}>
                         {t("po2.vorschlag", { stufe: v.zielName ?? stufenName(m.id, v.ziel), problem: v.problemName })}

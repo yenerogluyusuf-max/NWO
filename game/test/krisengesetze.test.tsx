@@ -6,10 +6,11 @@ import { startAfterElection, schnellProfil } from '../src/sim/prolog';
 import { KRISENGESETZE, krisenGesetzPlan, bringeKrisenGesetzEin, krisenAlltag } from '../src/sim/krisengesetze';
 import { bringeEin, gesetzPrognose, gesetzeAbstimmen, setPolicy } from '../src/sim/handeln';
 import { NET } from '../src/sim/modell';
+import { stufenName } from '../src/data/skalen';
 import { nationalAverage, PROVINCES } from '../src/sim/netz';
 import { fraktion } from '../src/sim/fraktionen';
 import { aktiveParteivorsitzende } from '../src/sim/koalitionslage';
-import { addDays } from '../src/sim/dates';
+import { addDays, formatDateDe } from '../src/sim/dates';
 import { Rng } from '../src/sim/rng';
 import { KrisenGesetze, KrisenGesetzKarte } from '../src/ui/wirtschaft/KrisenGesetze';
 import { setzeSprache, t, katalogVon, platzhalter } from '../src/i18n';
@@ -35,7 +36,9 @@ test.each(KRISENGESETZE)('%s: reale Kosten, keine vorzeitigen Effekte, tatsächl
   expect(bringeKrisenGesetzEin(w,p).ok).toBe(true);
   expect(w.spiel!.kapital).toBe(kap-p.pk);expect(w.spiel!.verfassung!.aufmerksamkeit).toBe(Math.max(0,auf-p.aufmerksamkeit));
   expect(w.net).toEqual(netz);expect(w.spiel!.figuren).toEqual(figuren);expect(w.spiel!.umfrage.zustimmung).toBe(umfrage);expect(w.economy.debtRatio).toBe(quote);
-  expect(gesetzPrognose(w,w.spiel!.gesetze[0]!)).toEqual(p.prognose);
+  // Seit N4 beschließt beim Mindestlohn die Kommission (data/rechtswege.ts): Der Plan zeigt dann keine Plenumsprognose, sondern den Beschlusstag.
+  if(p.kommission){expect(w.spiel!.gesetze[0]!.weg).toBe('kommission');expect(p.prognose).toBeUndefined();expect(p.beschlussTag).toBe(w.spiel!.gesetze[0]!.abstimmung);}
+  else expect(gesetzPrognose(w,w.spiel!.gesetze[0]!)).toEqual(p.prognose);
   const nach=save(w);expect(bringeKrisenGesetzEin(w,p).ok).toBe(false);expect(save(w)).toBe(nach);
   expect(votum(w).angenommen).toBe(true);expect(w.net.targets[id]).toBe(p.ziel);
   for(const f of p.reaktionen)expect(w.spiel!.figuren.find(x=>x.id===f.id)!.loyalitaet).toBeCloseTo(f.nachher,9);
@@ -44,11 +47,33 @@ test.each(KRISENGESETZE)('%s: reale Kosten, keine vorzeitigen Effekte, tatsächl
   expect(nationalAverage(NET,w.net,id)).toBeGreaterThan(p.aktuell);
 });
 
+// Zusammenführung der Nachtzweige: Den Mindestlohn beschließt seit N4 die Mindestlohnkommission (Arbeitsgesetz Art. 39), nicht das
+// Parlament; eine Ablehnung im Plenum gibt es dort nicht mehr. Die Prüfung der Ablehnung läuft deshalb am Arbeitslosengeld, das
+// weiter durchs Parlament muss. Zusätzlich prüft der zweite Test, dass der Krisenrat beim Mindestlohn keine Plenumsprognose zeigt.
 test('Ablehnung startet keine Umsetzung und löst keine Zusage ein',()=>{
   const w=welt(),opposition=['MHP','AKP'].find(p=>p!==w.player!.partei.kurz)!;
   w.parliament!.seats={[w.player!.partei.kurz]:0,[opposition]:600};w.spiel!.lager=[];fraktion(w,opposition).bereitschaft=0;
-  const p=krisenGesetzPlan(w,'m_mindestlohn',20)!;expect(p.prognose!.luecke).toBeGreaterThan(0);
-  bringeKrisenGesetzEin(w,p);const ziel=w.net.targets.m_mindestlohn;expect(votum(w).angenommen).toBe(false);expect(w.net.targets.m_mindestlohn).toBe(ziel);
+  const ziel0=Math.round(nationalAverage(NET,w.net,'m_arbeitslosengeld'))+20;
+  w.spiel!.zusagen.push({id:'abgelehnt',von:'YENİ',text:'Arbeitslosengeld erhöhen',massnahme:'m_arbeitslosengeld',richtung:1,stufeZiel:ziel0,stufeStart:ziel0-20,faellig:w.day+90,erfuellt:false,gebrochen:false});
+  const p=krisenGesetzPlan(w,'m_arbeitslosengeld',20)!;expect(p.kommission).toBe(false);expect(p.prognose!.luecke).toBeGreaterThan(0);
+  expect(bringeKrisenGesetzEin(w,p).ok).toBe(true);const ziel=w.net.targets.m_arbeitslosengeld;
+  expect(votum(w).angenommen).toBe(false);expect(w.net.targets.m_arbeitslosengeld).toBe(ziel);expect(w.spiel!.zusagen.find(z=>z.id==='abgelehnt')!.erfuellt).toBe(false);
+});
+
+test('Mindestlohn im Krisenrat: Die Kommission beschließt, ohne Plenumsprognose und ohne „Gesetzentwurf“',()=>{
+  const w=welt(),opposition=['MHP','AKP'].find(p=>p!==w.player!.partei.kurz)!;
+  w.parliament!.seats={[w.player!.partei.kurz]:0,[opposition]:600};w.spiel!.lager=[];fraktion(w,opposition).bereitschaft=0;
+  const p=krisenGesetzPlan(w,'m_mindestlohn',20)!;expect(p.kommission).toBe(true);expect(p.prognose).toBeUndefined();
+  const karte=renderToStaticMarkup(<KrisenGesetzKarte world={w} plan={p} ausfuehren={()=>{}}/>);
+  expect(karte).not.toContain(t('kg.einbringen'));expect(karte).not.toContain(t('kg.mehrheit'));expect(karte).toContain(t('int.kg.kommissionAktion'));
+  expect(bringeKrisenGesetzEin(w,p).ok).toBe(true);
+  const datum=w.spiel!.gesetze[0]!.abstimmung;expect(karte).toContain(t('int.kg.kommission',{datum:formatDateDe(addDays(w.date,datum-w.day))}));
+  const laufend=krisenGesetzPlan(w,'m_mindestlohn',10)!;expect(laufend.laufend).toBe(true);
+  const stand=renderToStaticMarkup(<KrisenGesetzKarte world={w} plan={laufend} ausfuehren={()=>{}}/>);
+  expect(stand).toContain(t('int.kg.kommissionLaufend'));expect(stand).not.toContain(t('kg.laufend'));
+  // Ohne jede Stimme im Parlament setzt die Kommission die Vorgabe durch, und erst dann beginnt die Umsetzung.
+  const vorher=w.net.targets.m_mindestlohn;expect(vorher).not.toBe(p.ziel);
+  votum(w);expect(w.net.targets.m_mindestlohn).toBe(p.ziel);
 });
 
 test('Duldung läuft zum tatsächlichen Votum aus; kleine und große Schritte haben eigene Preise',()=>{
@@ -94,7 +119,8 @@ test.each([false,true])('Beratung zeigt den echten %s-Entwurf statt eines neuen 
   const w=welt();bringeEin(w,'m_ausbildung',83,regional?[6]:null,'gesetz');
   const p=krisenGesetzPlan(w,'m_ausbildung',10)!;
   const html=renderToStaticMarkup(<KrisenGesetzKarte world={w} plan={p} ausfuehren={()=>{}}/>);
-  expect(html).toContain(t(regional?'kg.regionalBeratung':'kg.landesBeratung',{ziel:83}));
+  // Das Ziel des Entwurfs erscheint in der echten Einheit der Maßnahme (N9, Befund B-1), nicht als Indexstufe
+  expect(html).toContain(t(regional?'n9.kg.regional':'n9.kg.landes',{ziel:stufenName('m_ausbildung',83)}));
   expect(html).not.toContain(t('kg.einbringen'));expect(html).not.toContain(t('kg.jahreskosten'));
 });
 

@@ -87,7 +87,9 @@ describe("Wirkungsberichte: ehrliche Bilanz mit Preis", () => {
     const preis = b.groessen!.filter((g) => g.bewertung === "nebenwirkung").map((g) => g.id);
     expect(preis).toContain("sozialkassen");
     expect(b.begruendung!.join(" ")).toMatch(/Der Preis ist eingetreten: .*Sozialversicherung/);
-    expect(b.kosten!.bipProJahr).toBeGreaterThan(0);
+    // ENTSCHEIDUNGEN W F1 (umgesetzt in der Nacht 5./6.11.): Die Maßnahme ist das Gesetz, das Geld trägt der Etat „Rentenniveau“.
+    // Der Preis steht deshalb als Nebenwirkung auf die Sozialkassen (oben geprüft), nicht als eigene Haushaltskosten der Maßnahme.
+    expect(b.kosten?.bipProJahr ?? 0).toBe(0);
   });
 
   test("Eine ausgebliebene Nebenwirkung ist kein Verstoß gegen die Erwartung", () => {

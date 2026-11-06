@@ -4,7 +4,7 @@
 import { GRUPPEN_FILTER } from "../data/welt-institutionen";
 import { WEITERE } from "../data/welt-weitere";
 import { formatDateDe } from "./dates";
-import { haltungWort, LAENDER } from "./laender";
+import { haltungStufe, haltungWort, LAENDER } from "./laender";
 import { AKTEUR_IDS, akteurName, beziehungZurTuerkei, eigenVon, haltungFuehrung, haltungWortVon, istHauptakteur, weltModell } from "./welt-modell";
 import { lagebildZu } from "./welt-dienst";
 import type { World } from "./types";
@@ -15,18 +15,24 @@ export interface AkteurKurz {
   name: string;
   kurz: string;
   haupt: boolean;
-  gruppe: string;
+  gruppe: AnzeigeGruppe;
 }
 
-export const ANZEIGE_GRUPPEN = [tx("sim2.sim.welt-sicht.36d8358"), "Nachbarn", "EU-Staaten", tx("sim2.sim.welt-sicht.b34f67d"), tx("sim2.sim.welt-sicht.64ed00f"), tx("sim2.sim.welt-sicht.2b8b714")] as const;
+// Gruppen als feste Kennungen; der Name entsteht erst bei der Anzeige (vorher beim Laden des Moduls fest deutsch, Befund G-7)
+export const ANZEIGE_GRUPPEN = ["gross", "nachbarn", "eu", "golf", "turk", "sueden"] as const;
+export type AnzeigeGruppe = (typeof ANZEIGE_GRUPPEN)[number];
+const GRUPPEN_SCHLUESSEL: Record<AnzeigeGruppe, string> = {
+  gross: "sim2.sim.welt-sicht.36d8358", nachbarn: "nacht_n7.gruppe.nachbarn", eu: "nacht_n7.gruppe.eu", golf: "sim2.sim.welt-sicht.b34f67d", turk: "sim2.sim.welt-sicht.64ed00f", sueden: "sim2.sim.welt-sicht.2b8b714",
+};
+export const gruppenName = (g: AnzeigeGruppe): string => tx(GRUPPEN_SCHLUESSEL[g]);
 
-const GRUPPE_VON: Record<string, (typeof ANZEIGE_GRUPPEN)[number]> = {
-  USA: tx("sim2.sim.welt-sicht.36d8358"), EU: tx("sim2.sim.welt-sicht.36d8358"), RUS: tx("sim2.sim.welt-sicht.36d8358"), CHN: tx("sim2.sim.welt-sicht.36d8358"), IND: tx("sim2.sim.welt-sicht.36d8358"), BRA: tx("sim2.sim.welt-sicht.36d8358"), GBR: tx("sim2.sim.welt-sicht.36d8358"),
-  GRC: "Nachbarn", IRN: "Nachbarn", SYR: "Nachbarn", IRQ: "Nachbarn", ARM: "Nachbarn", ISR: "Nachbarn", UKR: "Nachbarn", GEO: "Nachbarn", CYP: "Nachbarn", BGR: "Nachbarn", AZE: "Nachbarn",
-  DEU: "EU-Staaten", FRA: "EU-Staaten", ITA: "EU-Staaten", ESP: "EU-Staaten", POL: "EU-Staaten", NLD: "EU-Staaten", ROU: "EU-Staaten", HUN: "EU-Staaten", AUT: "EU-Staaten", SWE: "EU-Staaten",
-  SAU: tx("sim2.sim.welt-sicht.b34f67d"), ARE: tx("sim2.sim.welt-sicht.b34f67d"), QAT: tx("sim2.sim.welt-sicht.b34f67d"), EGY: tx("sim2.sim.welt-sicht.b34f67d"), PAK: tx("sim2.sim.welt-sicht.b34f67d"), LBY: tx("sim2.sim.welt-sicht.b34f67d"),
-  KAZ: tx("sim2.sim.welt-sicht.64ed00f"), UZB: tx("sim2.sim.welt-sicht.64ed00f"), KGZ: tx("sim2.sim.welt-sicht.64ed00f"), TKM: tx("sim2.sim.welt-sicht.64ed00f"),
-  ZAF: tx("sim2.sim.welt-sicht.2b8b714"), ETH: tx("sim2.sim.welt-sicht.2b8b714"), IDN: tx("sim2.sim.welt-sicht.2b8b714"),
+const GRUPPE_VON: Record<string, AnzeigeGruppe> = {
+  USA: "gross", EU: "gross", RUS: "gross", CHN: "gross", IND: "gross", BRA: "gross", GBR: "gross",
+  GRC: "nachbarn", IRN: "nachbarn", SYR: "nachbarn", IRQ: "nachbarn", ARM: "nachbarn", ISR: "nachbarn", UKR: "nachbarn", GEO: "nachbarn", CYP: "nachbarn", BGR: "nachbarn", AZE: "nachbarn",
+  DEU: "eu", FRA: "eu", ITA: "eu", ESP: "eu", POL: "eu", NLD: "eu", ROU: "eu", HUN: "eu", AUT: "eu", SWE: "eu",
+  SAU: "golf", ARE: "golf", QAT: "golf", EGY: "golf", PAK: "golf", LBY: "golf",
+  KAZ: "turk", UZB: "turk", KGZ: "turk", TKM: "turk",
+  ZAF: "sueden", ETH: "sueden", IDN: "sueden",
 };
 
 /** Alle Akteure in der Reihenfolge der Anzeigegruppen. */
@@ -36,9 +42,9 @@ export function akteurListe(): AkteurKurz[] {
   const alle: AkteurKurz[] = AKTEUR_IDS.map((id) => {
     const h = haupt.get(id);
     const w = weitere.get(id);
-    return { id, name: h?.name ?? w?.name ?? id, kurz: h?.kurz ?? w?.kurz ?? id, haupt: !!h, gruppe: GRUPPE_VON[id] ?? "Süden und Afrika" };
+    return { id, name: h ? h.name : akteurName(id), kurz: h?.kurz ?? w?.kurz ?? id, haupt: !!h, gruppe: GRUPPE_VON[id] ?? "sueden" };
   });
-  const rang = (g: string) => ANZEIGE_GRUPPEN.indexOf(g as (typeof ANZEIGE_GRUPPEN)[number]);
+  const rang = (g: AnzeigeGruppe) => ANZEIGE_GRUPPEN.indexOf(g);
   return alle.sort((a, b) => rang(a.gruppe) - rang(b.gruppe));
 }
 
@@ -67,11 +73,7 @@ export function trifft(a: AkteurKurz, text: string): boolean {
 export function haltungWortAlle(w: World, id: string): string {
   if (istHauptakteur(id)) return haltungWort(w, id);
   const b = beziehungZurTuerkei(w, id);
-  if (b.vertrauen >= 75) return "enger Partner";
-  if (b.vertrauen >= 55 && b.konflikt < 50) return "Partner";
-  if (b.vertrauen >= 40) return b.konflikt >= 60 ? "angespannt" : "nüchtern";
-  if (b.vertrauen >= 25) return "kühl";
-  return "feindselig";
+  return tx(`nacht_n7.haltung.${haltungStufe(b.vertrauen, b.konflikt)}`);
 }
 
 export interface WahlSicht {

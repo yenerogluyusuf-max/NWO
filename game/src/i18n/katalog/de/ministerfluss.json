@@ -106,7 +106,7 @@
  "mfl.e.nutzen": "{groesse}: {ohne} ohne, {mit} mit Eingriff nach {monate} Monaten.",
  "mfl.x.zusage_weg": "Diese Zusage gibt es nicht mehr.",
  "mfl.x.kenntnis": "Zur Kenntnis genommen.",
- "mfl.x.kein_spiel": "Ohne Spielschleife gibt es keine Vorlagen.",
+ "mfl.x.kein_spiel": "Diese Ansicht steht bereit, sobald Ihre Amtszeit begonnen hat.",
  "mfl.x.vorlage_weg": "Diese Vorlage liegt nicht mehr vor.",
  "mfl.x.option_weg": "Diese Option gibt es nicht.",
  "mfl.x.wiedervorlage": "Wiedervorlage in {n} Tagen.",
@@ -129,6 +129,6 @@
  "mfl.ressort.wirtschaft": "Wirtschaft",
  "mfl.ressort.partner": "Bündnispartei",
  "mfl.ressort.opposition": "Opposition",
- "mfl.p.groll.titel": "Groll im Ressort {ressort, select, finanzen {Finanzen} inneres {Inneres} aussen {Äußeres} zentralbank {Zentralbank} stab {Präsidialamt} justiz {Justiz} generalstab {Streitkräfte} wirtschaft {Wirtschaft} partner {Bündnispartei} opposition {Opposition} other {Präsidialamt}}",
- "mfl.lage.titel": "{ressort, select, finanzen {Finanzen} inneres {Inneres} aussen {Äußeres} zentralbank {Zentralbank} stab {Präsidialamt} justiz {Justiz} generalstab {Streitkräfte} wirtschaft {Wirtschaft} partner {Bündnispartei} opposition {Opposition} other {Präsidialamt}}: {groesse} im schlechten Bereich"
+ "mfl.p.groll.titel": "Groll im Ressort {ressort, select, finanzen {Finanzen} inneres {Inneres} aussen {Äußeres} zentralbank {Zentralbank} stab {Präsidialamt} justiz {Justiz} generalstab {Streitkräfte} wirtschaft {Industrie und Technologie} partner {Bündnispartei} opposition {Opposition} familie {Familie und Soziales} arbeit {Arbeit und Sozialversicherung} umwelt {Umwelt, Städtebau und Klima} energie {Energie und Rohstoffe} jugend {Jugend und Sport} kultur {Kultur und Tourismus} bildung {Bildung} verteidigung {Verteidigung} gesundheit {Gesundheit} landwirtschaft {Landwirtschaft und Forst} handel {Handel} verkehr {Verkehr und Infrastruktur} other {Ressort}}",
+ "mfl.lage.titel": "{ressort, select, finanzen {Finanzen} inneres {Inneres} aussen {Äußeres} zentralbank {Zentralbank} stab {Präsidialamt} justiz {Justiz} generalstab {Streitkräfte} wirtschaft {Industrie und Technologie} partner {Bündnispartei} opposition {Opposition} familie {Familie und Soziales} arbeit {Arbeit und Sozialversicherung} umwelt {Umwelt, Städtebau und Klima} energie {Energie und Rohstoffe} jugend {Jugend und Sport} kultur {Kultur und Tourismus} bildung {Bildung} verteidigung {Verteidigung} gesundheit {Gesundheit} landwirtschaft {Landwirtschaft und Forst} handel {Handel} verkehr {Verkehr und Infrastruktur} other {Ressort}}: {groesse} im schlechten Bereich"
 }

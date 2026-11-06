@@ -11,6 +11,7 @@ import { veraenderung, type Bericht, type BerichtGroesse, type Bewertung } from 
 import "../bericht.css";
 import { t } from "../../i18n";
 import { t as tx } from "../../i18n";
+import { stufenName } from "../../data/skalen";
 
 type Phase = NonNullable<Bericht["phase"]>;
 
@@ -174,7 +175,7 @@ function Detail({ b, onGehe }: { b: Bericht; onGehe?: (massnahmeId: string) => v
         <p className="ba-kicker">{tx("ui2.ui.politik.BerichtAkte.6ed7504", { p0: monate(b.monate) })}</p>
         <h3>{nameVon(b)}</h3>
         <p className="ba-unter">
-          {b.von !== undefined && b.auf !== undefined ? tx("ui2.ui.politik.BerichtAkte.6071450", { p0: Math.round(b.von), p1: Math.round(b.auf), p2: ortText(b.ort) }) : b.titel}
+          {b.von !== undefined && b.auf !== undefined ? tx("n9.ba.unter", { p0: stufenName(b.massnahme, b.von), p1: stufenName(b.massnahme, b.auf), p2: ortText(b.ort) }) : b.titel}
           {b.beschlussDatum ? tx("ui2.ui.politik.BerichtAkte.dc108a5", { p0: formatDateDe(b.beschlussDatum) }) : ""} {tx("ui2.ui.politik.BerichtAkte.7cefde3", { p0: formatDateDe(b.datum) })}
         </p>
         {onGehe && b.massnahme && (

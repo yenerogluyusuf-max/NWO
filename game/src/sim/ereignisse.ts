@@ -22,7 +22,8 @@ import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
 import { anrede, ersetze, figur } from "./figuren";
-import { criticizeCentralBank, replaceGovernor, setFiscalImpulse } from "./eingriffe";
+import { criticizeCentralBank, replaceGovernor } from "./eingriffe";
+import { haushaltAusEreignis } from "./haushalt";
 import { interveniere } from "./devisen";
 import { bringeEin, provinzenText, pruefeVorhaben, setPolicy, setzeEinbringHaken, stufeIn } from "./handeln";
 import { FORDERUNG, PARTEI_NAME, bereitschaftAendern, forderungVon } from "./fraktionen";
@@ -48,7 +49,7 @@ import { SAISON_VORLAGEN } from "./ereignisse-saison";
 import { setzeVerfassungsOeffner } from "./verfassung";
 import { brecheZusage, zusageAbschluss, zusageBezug, zusageVorhaben, zusageText, zusageVon } from "./zusagen";
 import { istMinisterienZusage, ministerienAnPartei, naechsteRessorts, ressortNamen } from "./ressortvergabe";
-import { skala, skalenArt } from "../data/skalen";
+import { skala, skalenArt, stufenName } from "../data/skalen";
 import { PROZ_STADT, akutIn, dk, einwohner, kosten, monatVon, namen, nf, opt, sommer, ziehe } from "./ereignis-hilfen";
 import type { Option, SzenenName, Vorlage } from "./ereignis-hilfen";
 import { Rng } from "./rng";
@@ -97,6 +98,9 @@ function dichteFaktor(world: World, id: string): number {
 // ---------------------------------------------------------------------------
 // Vorlagen
 
+/** Provinznamen als Aufzählung für den Katalog (`{orte, list}`): im Deutschen „A, B und C“, sonst nach Sprache (wie in ereignisse-innen.ts). */
+const orte = (provinzen: number[]): string[] => [...new Set(provinzen)].map((p) => PROVINZEN[p - 1]?.name ?? String(p));
+
 const ERDBEBEN: Vorlage = {
   id: "erdbeben",
   szene: "anatolien",
@@ -113,16 +117,20 @@ const ERDBEBEN: Vorlage = {
     const schaden = clamp(staerke * (1.25 - 0.8 * vorsorge), 0.05, 1);
     return { provinzen: p, staerke, daten: { mag: 5.6 + 1.9 * staerke, schaden, vorsorge } };
   },
-  titel: (_, ev) => `Erdbeben in ${namen(ev.provinzen)}`,
+  titel: (_, ev) => t("ev.erdbeben.titel", { orte: orte(ev.provinzen) }),
   text: (w, ev) => {
     const s = dk(ev, "schaden");
-    const wort = s < 0.3 ? "Schäden an einzelnen Gebäuden" : s < 0.6 ? "schwere Schäden in mehreren Stadtvierteln" : "eingestürzte Häuser und viele Menschen ohne Obdach";
     return [
-      `Ein Erdbeben der Stärke ${nf(dk(ev, "mag"))} erschüttert ${namen(ev.provinzen)} (${einwohner(ev.provinzen).toLocaleString("de-DE")} Einwohner). Gemeldet werden ${wort}.`,
-      `${anrede(figur(w, "inneres"))} bittet um Ihre Anweisungen. Die Rettungskräfte sind unterwegs; die Frage ist, wie der Staat in den nächsten Wochen und Monaten auftritt.`,
+      t("ev.erdbeben.text1", {
+        mag: dk(ev, "mag"),
+        orte: orte(ev.provinzen),
+        n: einwohner(ev.provinzen),
+        schaden: s < 0.3 ? "leicht" : s < 0.6 ? "mittel" : "schwer",
+      }),
+      t("ev.erdbeben.text2", { wer: anrede(figur(w, "inneres")) }),
     ];
   },
-  warum: (_, ev) => `Wie schwer es trifft, hängt an Bauqualität und Erdbebenvorsorge der Provinz (hier ${nf(dk(ev, "vorsorge") * 100, 0)} von 100). Alte Häuser und schwache Bauaufsicht machen den Unterschied.`,
+  warum: (_, ev) => t("ev.erdbeben.warum", { v: Math.round(dk(ev, "vorsorge") * 100) }),
   eroeffne: (w, ev) => {
     const s = dk(ev, "schaden");
     wirke(w, "wohnungsbau", -10 * s, ev.provinzen);
@@ -134,26 +142,26 @@ const ERDBEBEN: Vorlage = {
   optionen: (_, ev) => {
     const s = dk(ev, "schaden");
     return [
-      opt("fonds", "Notstand und Wiederaufbaufonds", `Kostet ${nf(0.5 * s + 0.1)} % des BIP und 8 Kapital; schnelle Aufträge machen Korruption wahrscheinlicher.`, 8, (w) => {
+      opt("fonds", t("ev.erdbeben.opt.fonds.label"), t("ev.erdbeben.opt.fonds.beschr"), 8, (w) => {
         kosten(w, 0.5 * s + 0.1);
         wirke(w, "wohnungsbau", 8 * s, ev.provinzen);
         wirke(w, "p_wohnungsnot", -8 * s, ev.provinzen);
         wirke(w, "korruption", 2 * s + 1);
         vertrauenAendern(w, 3.5 * s);
-        return "Ein Wiederaufbaufonds wird aufgelegt; die Aufträge laufen schnell, aber nicht überall sauber.";
+        return t("ev.erdbeben.opt.fonds.ausgang");
       }),
-      opt("nothilfe", "Nur Nothilfe und Zelte", `Kostet ${nf(0.1 * s + 0.03)} % des BIP und 2 Kapital; der Wiederaufbau bleibt Sache der Provinz.`, 2, (w) => {
+      opt("nothilfe", t("ev.erdbeben.opt.nothilfe.label"), t("ev.erdbeben.opt.nothilfe.beschr"), 2, (w) => {
         kosten(w, 0.1 * s + 0.03);
         vertrauenAendern(w, -1 * s);
-        return "Der Staat leistet Nothilfe und überlässt den Wiederaufbau den Betroffenen und der Provinz.";
+        return t("ev.erdbeben.opt.nothilfe.ausgang");
       }),
-      opt("untersuchung", "Bauaufsicht und Bauunternehmer untersuchen", `Kostet 5 Kapital und ${nf(0.15 * s + 0.05)} % des BIP; ehrlich, aber nicht schnell.`, 5, (w) => {
+      opt("untersuchung", t("ev.erdbeben.opt.untersuchung.label"), t("ev.erdbeben.opt.untersuchung.beschr"), 5, (w) => {
         kosten(w, 0.15 * s + 0.05);
         wirke(w, "erdbebenvorsorge", 3);
         wirke(w, "bauqualitaet", 2);
         wirke(w, "korruption", -2);
         vertrauenAendern(w, 1.5 * (1 - dk(ev, "vorsorge")));
-        return "Eine Untersuchung der Bauaufsicht beginnt; Bauunternehmer und Kommunen geraten unter Druck.";
+        return t("ev.erdbeben.opt.untersuchung.ausgang");
       }),
     ];
   },
@@ -161,7 +169,7 @@ const ERDBEBEN: Vorlage = {
     kosten(w, 0.05);
     vertrauenAendern(w, -2.5 * dk(ev, "schaden"));
     wirke(w, "p_wohnungsnot", 3 * dk(ev, "schaden"), ev.provinzen);
-    return "Der Staat reagiert zu spät; die Betroffenen fühlen sich allein gelassen.";
+    return t("ev.erdbeben.standard");
   },
 };
 
@@ -177,41 +185,41 @@ const DUERRE: Vorlage = {
     if (!p.length) return null;
     return { provinzen: p, staerke: 0.4 + 0.6 * rng.next() };
   },
-  titel: () => "Dürre",
+  titel: () => t("ev.duerre.titel"),
   text: (w, ev) => [
-    `Seit Wochen fällt in ${namen(ev.provinzen)} kaum Regen. Die Getreideernte ist gefährdet, die Talsperren sind halb leer.`,
-    `Der Bauernverband fordert Hilfe; in den Städten wird über Wasserrationierung geredet. ${anrede(figur(w, "finanzen"))} erinnert an die Haushaltslage.`,
+    t("ev.duerre.text1", { orte: orte(ev.provinzen) }),
+    t("ev.duerre.text2", { wer: anrede(figur(w, "finanzen")) }),
   ],
-  warum: () => "Wasserversorgung, Bewässerung und Talsperren entscheiden, ob aus einer trockenen Saison eine Krise wird.",
+  warum: () => t("ev.duerre.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "ernte", -8 * ev.staerke, ev.provinzen);
     wirke(w, "lebensmittelpreise", 6 * ev.staerke, ev.provinzen);
     wirke(w, "landwirtschaft_einkommen", -6 * ev.staerke, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("hilfe", "Soforthilfe für Landwirte", `Kostet ${nf(0.12)} % des BIP und 3 Kapital.`, 3, (w) => {
+    opt("hilfe", t("ev.duerre.opt.hilfe.label"), t("ev.duerre.opt.hilfe.beschr"), 3, (w) => {
       kosten(w, 0.12);
       wirke(w, "landwirtschaft_einkommen", 5 * ev.staerke, ev.provinzen);
       wirke(w, "ernte", 3 * ev.staerke, ev.provinzen);
-      return "Landwirte erhalten Soforthilfe und Wassertransporte.";
+      return t("ev.duerre.opt.hilfe.ausgang");
     }),
-    opt("import", "Getreide importieren", `Kostet ${nf(0.08)} % des BIP und 2 Kapital; dämpft Preise, drückt aber die Erzeuger.`, 2, (w) => {
+    opt("import", t("ev.duerre.opt.import.label"), t("ev.duerre.opt.import.beschr"), 2, (w) => {
       kosten(w, 0.08);
       wirke(w, "lebensmittelpreise", -5 * ev.staerke, ev.provinzen);
       wirke(w, "landwirtschaft_einkommen", -2 * ev.staerke, ev.provinzen);
-      return "Getreide wird importiert; die Preise beruhigen sich, die Bauern murren.";
+      return t("ev.duerre.opt.import.ausgang");
     }),
-    opt("rationieren", "Trinkwasser in den Städten rationieren", "Kostet 3 Kapital und Vertrauen; verhindert Schlimmeres.", 3, (w) => {
+    opt("rationieren", t("ev.duerre.opt.rationieren.label"), t("ev.duerre.opt.rationieren.beschr"), 3, (w) => {
       vertrauenAendern(w, -1.5 * ev.staerke);
       wirke(w, "wasserversorgung", 3, ev.provinzen);
-      return "Das Wasser wird rationiert; das ist unbeliebt, aber die Versorgung hält.";
+      return t("ev.duerre.opt.rationieren.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "ernte", -4 * ev.staerke, ev.provinzen);
     wirke(w, "wasserversorgung", -4 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -2 * ev.staerke);
-    return "Ohne Entscheidung verschärft sich die Lage: Ernten fallen aus, Wasser wird knapp.";
+    return t("ev.duerre.standard");
   },
 };
 
@@ -228,37 +236,37 @@ const WAEHRUNG: Vorlage = {
     return monat > 6 || w.economy.riskPremium > 420 ? 0.5 : 0.006;
   },
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Die Lira rutscht",
+  titel: () => t("ev.waehrungsrutsch.titel"),
   text: (w) => [
-    `Die Lira verliert an den Märkten schnell an Wert (${nf(w.economy.usdTry)} je Dollar); der Risikoaufschlag liegt bei ${nf(w.economy.riskPremium, 0)} Basispunkten.`,
-    `${anrede(figur(w, "finanzen"))} und ${anrede(figur(w, "zentralbank"))} warten auf ein Signal. Die Zinsen legt die Zentralbank fest, nicht der Präsident.`,
+    t("ev.waehrungsrutsch.text1", { kurs: w.economy.usdTry, rp: Math.round(w.economy.riskPremium) }),
+    t("ev.waehrungsrutsch.text2", { wer1: anrede(figur(w, "finanzen")), wer2: anrede(figur(w, "zentralbank")) }),
   ],
-  warum: () => "Die Währung reagiert auf Inflationsabstand, Zinsen, Risikoaufschlag und Vertrauen. Kurzfristige Eingriffe kaufen Zeit, lösen die Ursache aber nicht.",
+  warum: () => t("ev.waehrungsrutsch.warum"),
   optionen: () => [
-    opt("reserven", "Devisenreserven einsetzen", "Kostet 3 Kapital und bis zu 10 Mrd. Dollar Reserven; stützt die Lira um rund 4 Prozent über einige Wochen. Werden die Reserven knapp, kostet es Glaubwürdigkeit.", 3, (w) => {
+    opt("reserven", t("ev.waehrungsrutsch.opt.reserven.label"), t("ev.waehrungsrutsch.opt.reserven.beschr"), 3, (w) => {
       // Über die Interventionsrechnung der Devisenlage (sim/devisen.ts): Reserven sinken wirklich, die Stütze verteilt sich über Wochen
       const r = interveniere(w, 10);
       if (!r.ok) {
         w.economy.credibility = clamp(w.economy.credibility - 0.02, 0.05, 0.95);
-        return `${r.text} Der Versuch, die Lira zu stützen, scheitert an den leeren Kassen; die Märkte lesen das als Schwäche.`;
+        return t("ev.waehrungsrutsch.opt.reserven.scheitern", { info: r.text });
       }
-      return `Die Zentralbank verkauft Reserven; die Lira erholt sich, solange sie reichen. ${r.text}`;
+      return t("ev.waehrungsrutsch.opt.reserven.ausgang", { info: r.text });
     }),
-    opt("kapital", "Kapitalverkehr beschränken", "Kostet 6 Kapital; stützt die Lira stark, schreckt aber Investoren ab und fördert den Schwarzmarkt.", 6, (w) => {
+    opt("kapital", t("ev.waehrungsrutsch.opt.kapital.label"), t("ev.waehrungsrutsch.opt.kapital.beschr"), 6, (w) => {
       w.economy.usdTry *= 0.93;
       w.economy.eurTry *= 0.93;
       w.economy.credibility = clamp(w.economy.credibility - 0.06, 0.05, 0.95);
       wirke(w, "auslandskapital", -8);
       wirke(w, "schattenwirtschaft", 5);
       wirke(w, "vertrauen_maerkte", -8);
-      return "Der Kapitalverkehr wird beschränkt; die Lira stabilisiert sich, das Ausland zieht sich zurück.";
+      return t("ev.waehrungsrutsch.opt.kapital.ausgang");
     }),
-    opt("ruhe", "Ruhe bewahren und die Zentralbank stützen", "Kostet 2 Kapital; hilft langfristig, kurzfristig bleibt der Druck.", 2, (w) => {
+    opt("ruhe", t("ev.waehrungsrutsch.opt.ruhe.label"), t("ev.waehrungsrutsch.opt.ruhe.beschr"), 2, (w) => {
       w.economy.credibility = clamp(w.economy.credibility + 0.02, 0.05, 0.95);
       w.economy.riskPremium -= 10;
       const g = figur(w, "zentralbank");
       if (g) g.loyalitaet = Math.min(100, g.loyalitaet + 6);
-      return "Der Präsident bekennt sich öffentlich zur Unabhängigkeit der Zentralbank.";
+      return t("ev.waehrungsrutsch.opt.ruhe.ausgang");
     }),
   ],
   standard: (w) => {
@@ -266,7 +274,7 @@ const WAEHRUNG: Vorlage = {
     w.economy.usdTry *= 1.03;
     w.economy.eurTry *= 1.03;
     w.economy.credibility = clamp(w.economy.credibility - 0.03, 0.05, 0.95);
-    return "Ohne Signal setzt sich der Abverkauf fort.";
+    return t("ev.waehrungsrutsch.standard");
   },
 };
 
@@ -277,39 +285,39 @@ const ENERGIE: Vorlage = {
   abkuehlung: 240,
   chance: (w) => ((w.economy.oel ?? 100) > 128 ? 0.6 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Energiepreise steigen",
+  titel: () => t("ev.energiepreisschock.titel"),
   text: (w) => [
-    `Der Energiepreis am Weltmarkt liegt ${nf(((w.economy.oel ?? 100) - 100), 0)} Prozent über dem Normalstand. Die Türkei importiert den größten Teil ihrer Energie.`,
-    "Strom-, Gas- und Benzinrechnungen steigen. Die Opposition spricht vom Winter der leeren Portemonnaies.",
+    t("ev.energiepreisschock.text1", { p: Math.round((w.economy.oel ?? 100) - 100) }),
+    t("ev.energiepreisschock.text2"),
   ],
-  warum: () => "Energieimporte belasten Handelsbilanz, Lira und Inflation gleichzeitig; Subventionen dämpfen die Rechnung und kosten den Haushalt.",
+  warum: () => t("ev.energiepreisschock.warum"),
   eroeffne: (w) => {
     wirke(w, "energiepreise", 6);
     wirke(w, "lebenshaltung", 3);
   },
   optionen: () => [
-    opt("deckel", "Preise deckeln (Subventionen)", "Kostet 0,4 % des BIP und 3 Kapital; entlastet Haushalte, belastet den Staat.", 3, (w) => {
+    opt("deckel", t("ev.energiepreisschock.opt.deckel.label"), t("ev.energiepreisschock.opt.deckel.beschr"), 3, (w) => {
       kosten(w, 0.4);
       wirke(w, "energiepreise", -6);
       wirke(w, "lebenshaltung", -3);
-      return "Energiepreise werden gedeckelt; der Staat trägt die Differenz.";
+      return t("ev.energiepreisschock.opt.deckel.ausgang");
     }),
-    opt("haerte", "Preise durchlassen, Härtefälle stützen", "Kostet 0,15 % des BIP und 2 Kapital; ehrlich, aber schmerzhaft.", 2, (w) => {
+    opt("haerte", t("ev.energiepreisschock.opt.haerte.label"), t("ev.energiepreisschock.opt.haerte.beschr"), 2, (w) => {
       kosten(w, 0.15);
       wirke(w, "lebenshaltung", 1);
       vertrauenAendern(w, -1.5);
-      return "Die Preise werden durchgereicht; Härtefälle erhalten Zuschüsse.";
+      return t("ev.energiepreisschock.opt.haerte.ausgang");
     }),
-    opt("sparen", "Sparappell und Tempolimit", "Kostet 2 Kapital; wirkt wenig, kostet wenig.", 2, (w) => {
+    opt("sparen", t("ev.energiepreisschock.opt.sparen.label"), t("ev.energiepreisschock.opt.sparen.beschr"), 2, (w) => {
       wirke(w, "energieimporte", -2);
       vertrauenAendern(w, -0.5);
-      return "Ein Sparappell geht an Haushalte und Betriebe.";
+      return t("ev.energiepreisschock.opt.sparen.ausgang");
     }),
   ],
   standard: (w) => {
     vertrauenAendern(w, -2);
     wirke(w, "lebenshaltung", 2);
-    return "Die Preise steigen ungebremst; der Unmut wächst.";
+    return t("ev.energiepreisschock.standard");
   },
 };
 
@@ -320,47 +328,46 @@ const HAUSHALT: Vorlage = {
   abkuehlung: 400,
   chance: (w) => (w.economy.riskPremium > 450 || w.economy.debtRatio > 45 ? 0.4 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Die Ratingagenturen drohen",
+  titel: () => t("ev.haushaltsdruck.titel"),
   text: (w) => [
-    `Mehrere Ratingagenturen kündigen eine Herabstufung an: Die Schuldenquote liegt bei ${nf(w.economy.debtRatio)} % des BIP, der Risikoaufschlag bei ${nf(w.economy.riskPremium, 0)} Basispunkten.`,
-    `${anrede(figur(w, "finanzen"))} verlangt ein Signal, dass der Haushalt gesteuert wird.`,
+    t("ev.haushaltsdruck.text1", { schulden: w.economy.debtRatio, rp: Math.round(w.economy.riskPremium) }),
+    t("ev.haushaltsdruck.text2", { wer: anrede(figur(w, "finanzen")) }),
   ],
-  warum: () => "Höhere Risikoaufschläge machen Kredite teurer; wer den Haushalt nicht im Griff hat, zahlt dafür mit Zinsen und einer schwachen Währung.",
+  warum: () => t("ev.haushaltsdruck.warum"),
   optionen: () => [
-    opt("sparpaket", "Sparpaket", "Kostet 6 Kapital und Vertrauen; beruhigt die Märkte, der Finanzminister ist zufrieden.", 6, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse - 1.5);
+    opt("sparpaket", t("ev.haushaltsdruck.opt.sparpaket.label"), t("ev.haushaltsdruck.opt.sparpaket.beschr"), 6, (w) => {
+      haushaltAusEreignis(w, "sparpaket"); // N3 (D-13): Regler statt unsichtbarem Impuls
       wirke(w, "vertrauen_maerkte", 6);
       vertrauenAendern(w, -3);
       const f = figur(w, "finanzen");
       if (f) f.loyalitaet = Math.min(100, f.loyalitaet + 8);
-      return "Ein Sparpaket wird angekündigt; die Märkte atmen auf, das Land murrt.";
+      return t("ev.haushaltsdruck.opt.sparpaket.ausgang");
     }),
-    opt("steuer", "Steuern anheben", "Kostet 6 Kapital; bringt Einnahmen, trifft die Haushalte.", 6, (w) => {
+    opt("steuer", t("ev.haushaltsdruck.opt.steuer.label"), t("ev.haushaltsdruck.opt.steuer.beschr"), 6, (w) => {
       bucheFinanzsaldo(w.economy, -0.6);
       wirke(w, "steuereinnahmen", 4);
       wirke(w, "lebenshaltung", 3);
       vertrauenAendern(w, -2);
-      return "Steuern werden angehoben; das Loch im Haushalt wird kleiner.";
+      return t("ev.haushaltsdruck.opt.steuer.ausgang");
     }),
-    opt("wachstum", "Auf Wachstum setzen", "Kostet nichts, aber die Märkte glauben es nicht.", 0, (w) => {
+    opt("wachstum", t("ev.haushaltsdruck.opt.wachstum.label"), t("ev.haushaltsdruck.opt.wachstum.beschr"), 0, (w) => {
       w.economy.riskPremium += 40;
-      return "Der Präsident verspricht, aus den Problemen herauszuwachsen; die Märkte sind skeptisch.";
+      return t("ev.haushaltsdruck.opt.wachstum.ausgang");
     }),
   ],
   standard: (w) => {
     w.economy.riskPremium += 50;
     w.economy.credibility = clamp(w.economy.credibility - 0.03, 0.05, 0.95);
-    return "Die Agenturen stufen das Land herab; Kredite werden teurer.";
+    return t("ev.haushaltsdruck.standard");
   },
 };
 
-/** Vier Geschichten mit demselben Kern: öffentliches Geld, kein Wettbewerb, Nähe zur Regierung. Die Variante wird beim Eintreten gezogen, damit sich Affären nicht wie Kopien lesen. */
-const AFFAEREN = [
-  { titel: "Eine Vergabeaffäre", text: "Ein Bericht deckt auf, dass ein großer Bauauftrag ohne echte Ausschreibung an eine Firma mit Nähe zur Regierung ging." },
-  { titel: "Ein Beschaffungsskandal", text: "Eine Zeitung veröffentlicht Unterlagen, nach denen das Verteidigungsministerium Ausrüstung zu weit überhöhten Preisen bei einem einzigen Lieferanten bestellt hat." },
-  { titel: "Klinikeinkauf unter Verdacht", text: "Der Rechnungshof beanstandet, dass ein Krankenhausverbund Geräte und Medikamente über einen Zwischenhändler bezogen hat, der einem Parteifreund gehört." },
-  { titel: "Fragwürdige Energieverträge", text: "Ein Untersuchungsausschuss der Opposition legt Verträge vor, nach denen ein staatlicher Versorger Strom aus Anlagen eines Regierungsnahen zu festen Preisen abnehmen muss." },
-] as const;
+/**
+ * Vier Geschichten mit demselben Kern: öffentliches Geld, kein Wettbewerb, Nähe zur Regierung. Die Variante wird beim Eintreten gezogen,
+ * damit sich Affären nicht wie Kopien lesen. Titel und Text stehen im Katalog unter `ev.korruptionsaffaere.v.<variante>.*`.
+ */
+const AFFAEREN = ["vergabe", "beschaffung", "klinik", "energie"] as const;
+const affaere = (ev: OffenesEreignis): (typeof AFFAEREN)[number] => AFFAEREN[Number(ev.daten?.variante ?? 0)] ?? AFFAEREN[0];
 
 const KORRUPTION: Vorlage = {
   id: "korruptionsaffaere",
@@ -378,43 +385,41 @@ const KORRUPTION: Vorlage = {
   eroeffne: (w, ev) => {
     if (w.spiel) w.spiel.zuletzt[`korruptionsaffaere#${Number(ev.daten?.variante ?? 0)}`] = w.day;
   },
-  titel: (_w, ev) => AFFAEREN[Number(ev.daten?.variante ?? 0)]?.titel ?? AFFAEREN[0].titel,
+  titel: (_w, ev) => t(`ev.korruptionsaffaere.v.${affaere(ev)}.titel`),
   text: (w, ev) => {
-    const v = Number(ev.daten?.variante ?? 0);
+    const v = affaere(ev);
     return [
-      v === 0 && w.player?.partner.includes("Bauunternehmer")
-        ? "Ein Bericht deckt auf, dass eine Baufirma aus dem Umfeld Ihrer Familie einen staatlichen Auftrag ohne echte Ausschreibung erhalten hat."
-        : (AFFAEREN[v]?.text ?? AFFAEREN[0].text),
-      `${anrede(figur(w, "stab"))} rät zu einer schnellen Entscheidung, bevor die Opposition die Geschichte bestimmt.`,
+      v === "vergabe" && w.player?.partner.includes("Bauunternehmer") ? t("ev.korruptionsaffaere.v.vergabe.familie") : t(`ev.korruptionsaffaere.v.${v}.text`),
+      t("ev.korruptionsaffaere.text2", { wer: anrede(figur(w, "stab")) }),
     ];
   },
-  warum: () => "Korruption entsteht aus schwacher Kontrolle, Zeitdruck und Nähe. Sie schadet dem Vertrauen und lässt sich nicht einfach wegwischen.",
+  warum: () => t("ev.korruptionsaffaere.warum"),
   optionen: () => [
-    opt("aufklaeren", "Untersuchung zulassen", "Kostet 3 Kapital und kurzfristig Vertrauen; zahlt sich später aus.", 3, (w) => {
+    opt("aufklaeren", t("ev.korruptionsaffaere.opt.aufklaeren.label"), t("ev.korruptionsaffaere.opt.aufklaeren.beschr"), 3, (w) => {
       vertrauenAendern(w, -2);
       wirke(w, "korruption", -4);
       wirke(w, "justizvertrauen", 2);
-      return "Eine unabhängige Untersuchung wird zugelassen.";
+      return t("ev.korruptionsaffaere.opt.aufklaeren.ausgang");
     }),
-    opt("abwiegeln", "Abwiegeln", "Kostet 1 Kapital; die Geschichte bleibt und wächst.", 1, (w) => {
+    opt("abwiegeln", t("ev.korruptionsaffaere.opt.abwiegeln.label"), t("ev.korruptionsaffaere.opt.abwiegeln.beschr"), 1, (w) => {
       vertrauenAendern(w, -3);
       wirke(w, "korruption", 2);
       wirke(w, "pressefreiheit", -1);
-      return "Die Regierung weist die Vorwürfe zurück; die Presse bohrt weiter.";
+      return t("ev.korruptionsaffaere.opt.abwiegeln.ausgang");
     }),
-    opt("opfern", "Einen Verantwortlichen fallen lassen", "Kostet 4 Kapital; ein Kabinettsmitglied verliert das Amt.", 4, (w, _e, rng) => {
+    opt("opfern", t("ev.korruptionsaffaere.opt.opfern.label"), t("ev.korruptionsaffaere.opt.opfern.beschr"), 4, (w, _e, rng) => {
       vertrauenAendern(w, -0.5);
       const opfer = rng.next() < 0.5 ? "inneres" : "aussen";
       const alt = figur(w, opfer);
-      const name = alt ? anrede(alt) : "Ein Verantwortlicher";
+      const name = alt ? anrede(alt) : t("ev.korruptionsaffaere.opt.opfern.jemand");
       ersetze(w, opfer, rng);
-      return `${name} tritt zurück; die Affäre verliert an Schärfe.`;
+      return t("ev.korruptionsaffaere.opt.opfern.ausgang", { wer: name });
     }),
   ],
   standard: (w) => {
     vertrauenAendern(w, -3);
     wirke(w, "korruption", 3);
-    return "Die Affäre wächst; der Eindruck von Vertuschung bleibt hängen.";
+    return t("ev.korruptionsaffaere.standard");
   },
 };
 
@@ -428,25 +433,25 @@ const STREIK: Vorlage = {
     const p = ziehe(rng, (pl) => wertIn(w, "streikneigung", [pl]) ** 2 * (PROVINZEN[pl - 1]?.grossstadt ? 2 : 1), 3);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next() } : null;
   },
-  titel: () => "Streikwelle",
+  titel: () => t("ev.streikwelle.titel"),
   text: (w, ev) => [
-    `In ${namen(ev.provinzen)} legen Beschäftigte die Arbeit nieder. Die Löhne halten mit den Preisen nicht Schritt (Inflation ${nf(w.published.inflation.value)} %).`,
-    "Die Gewerkschaften fordern einen Inflationsausgleich; die Unternehmen warnen vor Kosten und Entlassungen.",
+    t("ev.streikwelle.text1", { orte: orte(ev.provinzen), inflation: w.published.inflation.value }),
+    t("ev.streikwelle.text2"),
   ],
-  warum: () => "Wenn Preise schneller steigen als Löhne, wächst die Streikbereitschaft. Lohnzugeständnisse dämpfen sie, treiben aber die Kosten der Betriebe und damit die Inflation.",
+  warum: () => t("ev.streikwelle.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "produktivitaet", -3 * ev.staerke, ev.provinzen);
     wirke(w, "streikneigung", 4 * ev.staerke, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("lohn", "Lohnzugeständnis", "Kostet 3 Kapital und 0,2 % des BIP; beruhigt die Beschäftigten, treibt den Kostendruck.", 3, (w) => {
+    opt("lohn", t("ev.streikwelle.opt.lohn.label"), t("ev.streikwelle.opt.lohn.beschr"), 3, (w) => {
       kosten(w, 0.2);
       wirke(w, "streikneigung", -8 * ev.staerke, ev.provinzen);
       wirke(w, "arbeitnehmer", 4, ev.provinzen);
       wirke(w, "kostendruck", 3);
-      return "Der Staat gibt beim Lohn nach; die Streiks enden, die Betriebe ächzen.";
+      return t("ev.streikwelle.opt.lohn.ausgang");
     }),
-    opt("verbot", "Streiks verbieten", "Kostet 5 Kapital; unterdrückt kurz, vertieft die Spaltung.", 5, (w) => {
+    opt("verbot", t("ev.streikwelle.opt.verbot.label"), t("ev.streikwelle.opt.verbot.beschr"), 5, (w) => {
       wirke(w, "streikneigung", -5 * ev.staerke, ev.provinzen);
       wirke(w, "polarisierung", 6);
       wirke(w, "rechtssicherheit", -4);
@@ -455,17 +460,17 @@ const STREIK: Vorlage = {
       setPolicy(w, "m_gewerkschaftsrechte", Math.max(0, stufeIn(w, "m_gewerkschaftsrechte", null) - 25));
       return t("wort.streikverbot.ausgang");
     }),
-    opt("vermitteln", "Vermitteln", "Kostet 3 Kapital; ein Kompromiss, den keiner feiert.", 3, (w) => {
+    opt("vermitteln", t("ev.streikwelle.opt.vermitteln.label"), t("ev.streikwelle.opt.vermitteln.beschr"), 3, (w) => {
       wirke(w, "streikneigung", -4 * ev.staerke, ev.provinzen);
       wirke(w, "arbeitnehmer", 1);
       wirke(w, "unternehmer", -1);
-      return "Eine Schlichtung bringt einen Kompromiss.";
+      return t("ev.streikwelle.opt.vermitteln.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "produktivitaet", -3 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -1.5);
-    return "Die Streiks dauern an; Produktion und Vertrauen leiden.";
+    return t("ev.streikwelle.standard");
   },
 };
 
@@ -480,41 +485,39 @@ const MIETE: Vorlage = {
     const p = ziehe(rng, (pl) => (akut.includes(pl) ? (PROVINZEN[pl - 1]?.bevoelkerung ?? 0) : 0), 2);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next() } : null;
   },
-  titel: () => "Mietproteste",
-  text: (_, ev) => [
-    `In ${namen(ev.provinzen)} gehen Tausende Mieterinnen und Mieter auf die Straße: Die Mieten fressen die Einkommen auf.`,
-    "Vermieter und Bauunternehmer warnen, dass Eingriffe den Neubau abwürgen.",
-  ],
-  warum: () => "Hohe Mieten sind Angebot und Nachfrage in der Stadt; ein Deckel entlastet sofort, schmälert aber auf Dauer den Neubau.",
+  titel: () => t("ev.mietproteste.titel"),
+  text: (_, ev) => [t("ev.mietproteste.text1", { orte: orte(ev.provinzen) }), t("ev.mietproteste.text2")],
+  warum: () => t("ev.mietproteste.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "junge", -3 * ev.staerke, ev.provinzen);
     wirke(w, "staedtische_saekulare", -2 * ev.staerke, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("deckel", "Mieten deckeln", "Kostet 4 Kapital; wirkt sofort, bremst den Neubau.", 4, (w) => {
+    opt("deckel", t("ev.mietproteste.opt.deckel.label"), t("ev.mietproteste.opt.deckel.beschr"), 4, (w) => {
       wirke(w, "mieten", -6 * ev.staerke, ev.provinzen);
       wirke(w, "wohnungsbau", -3, ev.provinzen);
       wirke(w, "unternehmer", -2);
-      return "Die Mieten werden gedeckelt; Bauinvestoren ziehen sich zurück.";
+      return t("ev.mietproteste.opt.deckel.ausgang");
     }),
-    opt("sozial", "Sozialwohnungen versprechen", "Kostet 3 Kapital und 0,2 % des BIP; die Wirkung kommt spät.", 3, (w) => {
+    // Befund A-4: Die Wirkung kommt sofort (Wohnungsnot und Rückhalt der Jungen in derselben Antwort); der Text sagt das jetzt
+    opt("sozial", t("ev.mietproteste.opt.sozial.label"), t("ev.mietproteste.opt.sozial.beschr"), 3, (w) => {
       kosten(w, 0.2);
       wirke(w, "p_wohnungsnot", -3 * ev.staerke, ev.provinzen);
       wirke(w, "junge", 3, ev.provinzen);
-      return "Ein Sozialwohnungsprogramm wird angekündigt.";
+      return t("ev.mietproteste.opt.sozial.ausgang");
     }),
-    opt("raeumen", "Proteste auflösen", "Kostet 2 Kapital; verschärft die Fronten.", 2, (w) => {
+    opt("raeumen", t("ev.mietproteste.opt.raeumen.label"), t("ev.mietproteste.opt.raeumen.beschr"), 2, (w) => {
       wirke(w, "polarisierung", 5);
       wirke(w, "pressefreiheit", -2);
       wirke(w, "junge", -5, ev.provinzen);
       wirke(w, "staedtische_saekulare", -5, ev.provinzen);
-      return "Die Polizei löst die Proteste auf; die Wut bleibt.";
+      return t("ev.mietproteste.opt.raeumen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "junge", -3 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -1);
-    return "Die Proteste wachsen; niemand fühlt sich zuständig.";
+    return t("ev.mietproteste.standard");
   },
 };
 
@@ -525,41 +528,43 @@ const FLUECHTLINGE: Vorlage = {
   abkuehlung: 400,
   chance: () => 0.018,
   erzeuge: (_, rng) => ({ provinzen: [...new Set([31, ...[...BORDER].filter(() => rng.next() < 0.6).slice(0, 3)])], staerke: 0.4 + 0.6 * rng.next() }),
-  titel: () => "Neue Fluchtbewegung an der Grenze",
+  titel: () => t("ev.fluechtlingswelle.titel"),
   text: (w, ev) => [
-    `An der Südgrenze kommen wieder mehr Menschen an, vor allem aus Syrien, und sie bleiben zuerst in ${namen([...new Set(ev.provinzen)])}. Die Provinzen sind ohnehin belastet.`,
-    `${anrede(figur(w, "inneres"))} und ${anrede(figur(w, "aussen"))} sind sich nicht einig, was zu tun ist.`,
+    t("ev.fluechtlingswelle.text1", { orte: orte(ev.provinzen) }),
+    t("ev.fluechtlingswelle.text2", { wer1: anrede(figur(w, "inneres")), wer2: anrede(figur(w, "aussen")) }),
   ],
-  warum: () => "Migration verbindet Innen-, Außen- und Wirtschaftspolitik: Grenzschutz, Aufnahme, Integration und Verhandlungen mit der EU kosten jeweils etwas anderes.",
+  warum: () => t("ev.fluechtlingswelle.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "gefluechtete", 6 * ev.staerke, ev.provinzen);
     wirke(w, "p_migrationsdruck", 5 * ev.staerke, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("grenze", "Grenze sichern (Erlass)", "Kostet 4 Kapital; weniger Ankünfte, Kritik von Menschenrechtlern.", 4, (w) => {
+    // Befund A-4: Die Antwort bucht keine Kritik von Menschenrechtlern, die EU-Beziehung steigt; der Text nennt jetzt, was geschieht
+    opt("grenze", t("ev.fluechtlingswelle.opt.grenze.label"), t("ev.fluechtlingswelle.opt.grenze.beschr"), 4, (w) => {
       wirke(w, "gefluechtete", -5 * ev.staerke, ev.provinzen);
       wirke(w, "beziehungen_eu", 2);
       wirke(w, "konservative", 2);
-      return "Die Grenze wird stärker gesichert; die Ankünfte gehen zurück.";
+      return t("ev.fluechtlingswelle.opt.grenze.ausgang");
     }),
-    opt("aufnehmen", "Aufnehmen und integrieren", "Kostet 3 Kapital und 0,25 % des BIP; menschlich, aber politisch riskant.", 3, (w) => {
+    opt("aufnehmen", t("ev.fluechtlingswelle.opt.aufnehmen.label"), t("ev.fluechtlingswelle.opt.aufnehmen.beschr"), 3, (w) => {
       kosten(w, 0.25);
       wirke(w, "beziehungen_eu", 3);
       wirke(w, "p_migrationsdruck", 4 * ev.staerke, ev.provinzen);
       wirke(w, "konservative", -2);
-      return "Die Menschen werden aufgenommen; die Provinzen bekommen Unterstützung, die Stimmung bleibt gespalten.";
+      return t("ev.fluechtlingswelle.opt.aufnehmen.ausgang");
     }),
-    opt("eu", "Mit der EU verhandeln", "Kostet 5 Kapital; wenn es klappt, zahlt die EU.", 5, (w) => {
+    // Befund A-4: Die Vereinbarung kommt immer zustande (EU-Geld, mehr Geflüchtete bleiben); kein „wenn es klappt“ mehr
+    opt("eu", t("ev.fluechtlingswelle.opt.eu.label"), t("ev.fluechtlingswelle.opt.eu.beschr"), 5, (w) => {
       bucheFinanzsaldo(w.economy, -0.1);
       wirke(w, "beziehungen_eu", 2);
       wirke(w, "gefluechtete", 3 * ev.staerke, ev.provinzen);
-      return "Eine Vereinbarung mit der EU bringt Geld für die Grenzprovinzen.";
+      return t("ev.fluechtlingswelle.opt.eu.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "p_migrationsdruck", 6 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -1);
-    return "Ohne Entscheidung wächst der Druck in den Grenzprovinzen.";
+    return t("ev.fluechtlingswelle.standard");
   },
 };
 
@@ -573,18 +578,18 @@ const ANSCHLAG: Vorlage = {
     const p = ziehe(rng, (pl) => (PROZ_STADT.has(pl) ? 3 : 0.5), 1);
     return p.length ? { provinzen: p, staerke: 1 } : null;
   },
-  titel: (_, ev) => `Anschlag in ${namen(ev.provinzen)}`,
+  titel: (_, ev) => t("ev.anschlag.titel", { orte: orte(ev.provinzen) }),
   text: (w, ev) => [
-    `Ein Anschlag erschüttert ${namen(ev.provinzen)}. Die Behörden sprechen von einer organisierten Tat; die Lage ist noch unklar.`,
-    `${anrede(figur(w, "inneres"))} verlangt weitreichende Befugnisse. Das Land wartet auf Ihre Worte.`,
+    t("ev.anschlag.text1", { orte: orte(ev.provinzen) }),
+    t("ev.anschlag.text2", { wer: anrede(figur(w, "inneres")) }),
   ],
-  warum: () => "Nach Anschlägen wächst der Ruf nach Härte. Mehr Befugnisse geben Sicherheit, kosten aber Freiheit und Vertrauen der Liberalen.",
+  warum: () => t("ev.anschlag.warum"),
   eroeffne: (w) => {
     wirke(w, "terrorgefahr", 4);
     vertrauenAendern(w, -1);
   },
   optionen: () => [
-    opt("paket", "Sicherheitspaket mit mehr Befugnissen", "Kostet 4 Kapital; Rückhalt bei Konservativen, Kritik von Liberalen.", 4, (w) => {
+    opt("paket", t("ev.anschlag.opt.paket.label"), t("ev.anschlag.opt.paket.beschr"), 4, (w) => {
       wirke(w, "terrorgefahr", -5);
       wirke(w, "pressefreiheit", -3);
       wirke(w, "rechtssicherheit", -2);
@@ -594,15 +599,15 @@ const ANSCHLAG: Vorlage = {
       setPolicy(w, "m_polizei", Math.min(100, stufeIn(w, "m_polizei", null) + 15));
       return t("wort.sicherheitspaket.ausgang");
     }),
-    opt("besonnen", "Besonnenheit und Ermittlung", "Kostet 2 Kapital; würdevoll, aber angreifbar.", 2, (w) => {
+    opt("besonnen", t("ev.anschlag.opt.besonnen.label"), t("ev.anschlag.opt.besonnen.beschr"), 2, (w) => {
       vertrauenAendern(w, 1.5);
       wirke(w, "terrorgefahr", -1);
-      return "Der Präsident mahnt zur Besonnenheit; die Ermittlungen laufen.";
+      return t("ev.anschlag.opt.besonnen.ausgang");
     }),
   ],
   standard: (w) => {
     vertrauenAendern(w, -2);
-    return "Ohne klare Antwort wirkt die Regierung ratlos.";
+    return t("ev.anschlag.standard");
   },
 };
 
@@ -618,32 +623,30 @@ const WALDBRAND: Vorlage = {
     const p = ziehe(rng, (pl) => (["Ege", "Akdeniz"].includes(PROVINZEN[pl - 1]?.region ?? "") ? 1 : 0.05), 2);
     return p.length ? { provinzen: p, staerke: 0.4 + 0.6 * rng.next() } : null;
   },
-  titel: () => "Waldbrände",
-  text: (_, ev) => [
-    `In ${namen(ev.provinzen)} brennen Wälder; Dörfer werden geräumt, der Rauch hängt über den Küstenorten mitten in der Urlaubssaison.`,
-  ],
-  warum: () => "Hitze, Trockenheit und fehlende Löschkapazität treffen die Küste besonders hart: Tourismus und Luftqualität leiden mit.",
+  titel: () => t("ev.waldbrand.titel"),
+  text: (_, ev) => [t("ev.waldbrand.text1", { orte: orte(ev.provinzen) })],
+  warum: () => t("ev.waldbrand.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "tourismus", -5 * ev.staerke, ev.provinzen);
     wirke(w, "luftqualitaet", -4 * ev.staerke, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("loeschen", "Löschflugzeuge und Nothilfe", "Kostet 3 Kapital und 0,1 % des BIP.", 3, (w) => {
+    opt("loeschen", t("ev.waldbrand.opt.loeschen.label"), t("ev.waldbrand.opt.loeschen.beschr"), 3, (w) => {
       kosten(w, 0.1);
       wirke(w, "tourismus", 3 * ev.staerke, ev.provinzen);
       vertrauenAendern(w, 1);
-      return "Löschflugzeuge und Hilfskräfte sind im Einsatz; die Brände werden eingedämmt.";
+      return t("ev.waldbrand.opt.loeschen.ausgang");
     }),
-    opt("entschaedigen", "Evakuieren und Betroffene entschädigen", "Kostet 3 Kapital und 0,2 % des BIP.", 3, (w) => {
+    opt("entschaedigen", t("ev.waldbrand.opt.entschaedigen.label"), t("ev.waldbrand.opt.entschaedigen.beschr"), 3, (w) => {
       kosten(w, 0.2);
       vertrauenAendern(w, 2 * ev.staerke);
-      return "Betroffene werden untergebracht und entschädigt.";
+      return t("ev.waldbrand.opt.entschaedigen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "tourismus", -3 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -2 * ev.staerke);
-    return "Die Brände breiten sich aus; die Hilfe kommt spät.";
+    return t("ev.waldbrand.standard");
   },
 };
 
@@ -657,30 +660,30 @@ const STROM: Vorlage = {
     const p = ziehe(rng, (pl) => (PROZ_STADT.has(pl) ? 2 : 0.6) * (100 - wertIn(w, "stromversorgung", [pl])), 3);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next() } : null;
   },
-  titel: () => "Stromausfälle",
-  text: (_, ev) => [`In ${namen(ev.provinzen)} fällt tagelang wiederholt der Strom aus. Betriebe stehen still, Krankenhäuser laufen mit Notaggregaten.`],
-  warum: () => "Netze, Speicher und Importe entscheiden, ob Spitzenlasten abgefangen werden.",
+  titel: () => t("ev.stromausfaelle.titel"),
+  text: (_, ev) => [t("ev.stromausfaelle.text1", { orte: orte(ev.provinzen) })],
+  warum: () => t("ev.stromausfaelle.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "stromversorgung", -6 * ev.staerke, ev.provinzen);
     wirke(w, "produktivitaet", -2 * ev.staerke, ev.provinzen);
   },
   optionen: (_, ev) => [
-    opt("ration", "Industrie rationieren", "Kostet 2 Kapital; hält die Haushalte am Netz, die Betriebe verlieren.", 2, (w) => {
+    opt("ration", t("ev.stromausfaelle.opt.ration.label"), t("ev.stromausfaelle.opt.ration.beschr"), 2, (w) => {
       wirke(w, "produktivitaet", -2, ev.provinzen);
       wirke(w, "stromversorgung", 3, ev.provinzen);
-      return "Die Industrie wird zeitweise vom Netz genommen.";
+      return t("ev.stromausfaelle.opt.ration.ausgang");
     }),
-    opt("import", "Notimporte", "Kostet 3 Kapital und 0,2 % des BIP.", 3, (w) => {
+    opt("import", t("ev.stromausfaelle.opt.import.label"), t("ev.stromausfaelle.opt.import.beschr"), 3, (w) => {
       kosten(w, 0.2);
       wirke(w, "stromversorgung", 5, ev.provinzen);
       wirke(w, "energieimporte", 2);
-      return "Strom wird zugekauft.";
+      return t("ev.stromausfaelle.opt.import.ausgang");
     }),
   ],
   standard: (w, ev) => {
     vertrauenAendern(w, -2 * ev.staerke);
     wirke(w, "produktivitaet", -2 * ev.staerke, ev.provinzen);
-    return "Die Ausfälle halten an; die Wut auf die Regierung wächst.";
+    return t("ev.stromausfaelle.standard");
   },
 };
 
@@ -695,29 +698,29 @@ const AERZTE: Vorlage = {
     const p = ziehe(rng, (pl) => (akut.includes(pl) ? 1 : 0.05), 3);
     return p.length ? { provinzen: p, staerke: 0.5 + 0.5 * rng.next() } : null;
   },
-  titel: () => "Ärztinnen und Ärzte protestieren",
-  text: (_, ev) => [`In ${namen(ev.provinzen)} legen Ärztinnen und Ärzte aus Protest gegen Bezahlung und Arbeitsbedingungen die Arbeit nieder. Viele denken laut über das Ausland nach.`],
-  warum: () => "Ärztemangel entsteht, wenn Bezahlung und Bedingungen nicht mithalten. Er trifft zuerst die Provinzen abseits der Metropolen.",
+  titel: () => t("ev.aerztestreik.titel"),
+  text: (_, ev) => [t("ev.aerztestreik.text1", { orte: orte(ev.provinzen) })],
+  warum: () => t("ev.aerztestreik.warum"),
   eroeffne: (w, ev) => {
     wirke(w, "wartezeiten", 5 * ev.staerke, ev.provinzen);
     wirke(w, "abwanderung", 3 * ev.staerke);
   },
   optionen: (_, ev) => [
-    opt("gehalt", "Gehälter anheben", "Kostet 3 Kapital und 0,2 % des BIP.", 3, (w) => {
+    opt("gehalt", t("ev.aerztestreik.opt.gehalt.label"), t("ev.aerztestreik.opt.gehalt.beschr"), 3, (w) => {
       kosten(w, 0.2);
       wirke(w, "aerzte", 4 * ev.staerke, ev.provinzen);
       wirke(w, "abwanderung", -2);
-      return "Die Gehälter im Gesundheitswesen steigen.";
+      return t("ev.aerztestreik.opt.gehalt.ausgang");
     }),
-    opt("ausland", "Ärzte aus dem Ausland werben", "Kostet 3 Kapital; dauert, entlastet aber.", 3, (w) => {
+    opt("ausland", t("ev.aerztestreik.opt.ausland.label"), t("ev.aerztestreik.opt.ausland.beschr"), 3, (w) => {
       wirke(w, "aerzte", 2 * ev.staerke, ev.provinzen);
-      return "Ein Programm wirbt Ärztinnen und Ärzte aus dem Ausland an.";
+      return t("ev.aerztestreik.opt.ausland.ausgang");
     }),
   ],
   standard: (w, ev) => {
     wirke(w, "aerzte", -2 * ev.staerke, ev.provinzen);
     vertrauenAendern(w, -1);
-    return "Die Proteste halten an; Ärzte verlassen das Land.";
+    return t("ev.aerztestreik.standard");
   },
 };
 
@@ -728,33 +731,33 @@ const PREISDECKEL: Vorlage = {
   abkuehlung: 300,
   chance: (w) => (nationalAverage(NET, w.net, "m_preiskontrollen") >= 60 ? 0.25 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Leere Regale",
-  text: () => ["Unter dem Preisdeckel bieten Händler manche Grundnahrungsmittel kaum noch an. Auf grauen Märkten kosten sie das Doppelte."],
-  warum: () => "Ein Preisdeckel unter dem Marktpreis lässt Ware verschwinden oder auf graue Märkte wandern: Der sichtbare Preis sinkt, die Wirklichkeit nicht.",
+  titel: () => t("ev.preisdeckel_knappheit.titel"),
+  text: () => [t("ev.preisdeckel_knappheit.text1")],
+  warum: () => t("ev.preisdeckel_knappheit.warum"),
   eroeffne: (w) => {
     wirke(w, "schattenwirtschaft", 4);
     wirke(w, "lebenshaltung", 3);
   },
   optionen: () => [
-    opt("lockern", "Preisdeckel lockern", "Kostet 2 Kapital; die Ware kehrt zurück, die Preise steigen.", 2, (w) => {
+    opt("lockern", t("ev.preisdeckel_knappheit.opt.lockern.label"), t("ev.preisdeckel_knappheit.opt.lockern.beschr"), 2, (w) => {
       setPolicy(w, "m_preiskontrollen", Math.max(0, nationalAverage(NET, w.net, "m_preiskontrollen") - 25));
-      return "Der Preisdeckel wird gelockert.";
+      return t("ev.preisdeckel_knappheit.opt.lockern.ausgang");
     }),
-    opt("importieren", "Staatlich importieren", "Kostet 3 Kapital und 0,2 % des BIP.", 3, (w) => {
+    opt("importieren", t("ev.preisdeckel_knappheit.opt.importieren.label"), t("ev.preisdeckel_knappheit.opt.importieren.beschr"), 3, (w) => {
       kosten(w, 0.2);
       wirke(w, "lebensmittelpreise", -3);
-      return "Der Staat importiert Grundnahrungsmittel.";
+      return t("ev.preisdeckel_knappheit.opt.importieren.ausgang");
     }),
-    opt("durchhalten", "Durchhalten und Händler bestrafen", "Kostet 2 Kapital; der Schwarzmarkt wächst.", 2, (w) => {
+    opt("durchhalten", t("ev.preisdeckel_knappheit.opt.durchhalten.label"), t("ev.preisdeckel_knappheit.opt.durchhalten.beschr"), 2, (w) => {
       wirke(w, "schattenwirtschaft", 6);
       wirke(w, "mittelstand", -3);
-      return "Händler werden bestraft; die Ware bleibt knapp.";
+      return t("ev.preisdeckel_knappheit.opt.durchhalten.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "schattenwirtschaft", 3);
     vertrauenAendern(w, -1.5);
-    return "Die Regale bleiben leer; der Unmut wächst.";
+    return t("ev.preisdeckel_knappheit.standard");
   },
 };
 
@@ -765,33 +768,33 @@ const MIETDECKEL: Vorlage = {
   abkuehlung: 300,
   chance: (w) => (nationalAverage(NET, w.net, "m_mietdeckel") >= 60 ? 0.2 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Der Neubau bricht ein",
-  text: () => ["Seit der Mietpreisbremse werden kaum noch Mietwohnungen gebaut; Investoren wandern in andere Anlagen ab. Die Bauwirtschaft klagt."],
-  warum: () => "Gedeckelte Mieten entlasten die, die schon eine Wohnung haben, und bremsen das Angebot für alle, die noch suchen.",
+  titel: () => t("ev.mietdeckel_folgen.titel"),
+  text: () => [t("ev.mietdeckel_folgen.text1")],
+  warum: () => t("ev.mietdeckel_folgen.warum"),
   eroeffne: (w) => {
     wirke(w, "wohnungsbau", -4);
     wirke(w, "bauwirtschaft", -3);
   },
   optionen: () => [
-    opt("ausnahme", "Ausnahmen für den Neubau", "Kostet 3 Kapital; der Bau erholt sich, Mieter murren.", 3, (w) => {
+    opt("ausnahme", t("ev.mietdeckel_folgen.opt.ausnahme.label"), t("ev.mietdeckel_folgen.opt.ausnahme.beschr"), 3, (w) => {
       wirke(w, "wohnungsbau", 4);
       wirke(w, "junge", -1);
-      return "Neubauten werden vom Deckel ausgenommen.";
+      return t("ev.mietdeckel_folgen.opt.ausnahme.ausgang");
     }),
-    opt("foerdern", "Bauförderung verdoppeln", "Kostet 4 Kapital und 0,3 % des BIP.", 4, (w) => {
+    opt("foerdern", t("ev.mietdeckel_folgen.opt.foerdern.label"), t("ev.mietdeckel_folgen.opt.foerdern.beschr"), 4, (w) => {
       kosten(w, 0.3);
       wirke(w, "wohnungsbau", 6);
       wirke(w, "bauwirtschaft", 3);
-      return "Die Bauförderung wird verdoppelt.";
+      return t("ev.mietdeckel_folgen.opt.foerdern.ausgang");
     }),
-    opt("beibehalten", "Deckel beibehalten", "Kostet nichts; die Mieter bleiben geschützt, der Bau leidet.", 0, (w) => {
+    opt("beibehalten", t("ev.mietdeckel_folgen.opt.beibehalten.label"), t("ev.mietdeckel_folgen.opt.beibehalten.beschr"), 0, (w) => {
       wirke(w, "wohnungsbau", -3);
-      return "Der Deckel bleibt.";
+      return t("ev.mietdeckel_folgen.opt.beibehalten.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "wohnungsbau", -3);
-    return "Der Neubau bleibt schwach.";
+    return t("ev.mietdeckel_folgen.standard");
   },
 };
 
@@ -836,26 +839,27 @@ const KOALITION: Vorlage = {
     const partei = kandidaten[Math.floor(rng.next() * kandidaten.length)]!;
     return { provinzen: [], staerke: 1, daten: { partei, sitze: parl.seats[partei] ?? 0 } };
   },
-  titel: (_, ev) => `${ev.daten?.partei} bietet Unterstützung an`,
+  titel: (_, ev) => t("ev.koalitionsangebot.titel", { partei: String(ev.daten?.partei) }),
   text: (w, ev) => {
-    const f = forderungVon(w, String(ev.daten?.partei));
+    const partei = String(ev.daten?.partei);
+    const f = forderungVon(w, partei);
     return [
-      `Die ${ev.daten?.partei} (${w.parliament?.seats[String(ev.daten?.partei)] ?? 0} Sitze) signalisiert, Ihr Lager im Parlament zu stützen, wenn Sie ihr entgegenkommen.`,
-      `Ihr Preis: ${f?.text ?? "ein Entgegenkommen"}. Ohne Mehrheit bleiben Gesetze mühsam und teuer.`,
+      t("ev.koalitionsangebot.text1", { partei, sitze: w.parliament?.seats[partei] ?? 0 }),
+      t("ev.koalitionsangebot.text2", { preis: f?.text ?? t("ev.koalitionsangebot.preis.allgemein") }),
     ];
   },
-  warum: () => "Ohne eigene Mehrheit braucht ein Präsident Partner. Jeder Partner hat eigene Wähler und einen Preis.",
+  warum: () => t("ev.koalitionsangebot.warum"),
   optionen: (w, ev) => [
     koalitionsAntwort(w, String(ev.daten?.partei), "zustimmen", t("ka.annehmen"), "z-koalition"),
     // Eine klare Absage kostet weniger Gesprächsbereitschaft als ein Angebot, das unbeantwortet verfällt (Spielparameter −5 / −10)
-    opt("ablehnen", "Ablehnen", "Kostet nichts; die Mehrheit bleibt schwer, die Gesprächsbereitschaft der Partei sinkt (−5).", 0, (w) => {
+    opt("ablehnen", t("ev.koalitionsangebot.opt.ablehnen.label"), t("ev.koalitionsangebot.opt.ablehnen.beschr"), 0, (w) => {
       bereitschaftAendern(w, String(ev.daten?.partei), -5);
-      return "Das Angebot wird abgelehnt; die Partei merkt sich die Absage.";
+      return t("ev.koalitionsangebot.opt.ablehnen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     bereitschaftAendern(w, String(ev.daten?.partei), -10);
-    return "Das Angebot verfällt unbeantwortet; die Partei fühlt sich übergangen.";
+    return t("ev.koalitionsangebot.standard");
   },
 };
 
@@ -876,32 +880,38 @@ const START_HAUSHALT: Vorlage = {
   abkuehlung: 0,
   chance: () => 0,
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Der erste Haushaltsentwurf",
+  titel: () => t("ev.start_haushalt.titel"),
   text: (w) => [
-    `${anrede(figur(w, "finanzen"))} legt den Entwurf vor: Die Inflation liegt bei ${nf(w.published.inflation.value)} %, die Schulden bei ${nf(w.economy.debtRatio)} % des BIP. Die Märkte beobachten, ob der neue Präsident Disziplin hält.`,
-    "Der Entwurf lässt Spielraum in beide Richtungen.",
+    t("ev.start_haushalt.text1", { wer: anrede(figur(w, "finanzen")), inflation: w.published.inflation.value, schulden: w.economy.debtRatio }),
+    t("ev.start_haushalt.text2"),
   ],
-  warum: () => "Mehr Ausgaben stützen kurz die Nachfrage und treiben Inflation und Schulden; Sparen beruhigt die Märkte und kostet Zustimmung.",
+  warum: () => t("ev.start_haushalt.warum"),
   optionen: () => [
-    opt("sparen", "Sparkurs", "Kostet 3 Kapital; beruhigt die Märkte, der Finanzminister ist zufrieden.", 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse - 1);
+    opt("sparen", t("ev.start_haushalt.opt.sparen.label"), t("ev.start_haushalt.opt.sparen.beschr"), 3, (w) => {
+      haushaltAusEreignis(w, "sparkurs"); // N3 (D-13)
       wirke(w, "vertrauen_maerkte", 4);
       vertrauenAendern(w, -1);
       const f = figur(w, "finanzen");
       if (f) f.loyalitaet = Math.min(100, f.loyalitaet + 8);
-      return "Der Haushalt setzt auf Disziplin.";
+      return t("ev.start_haushalt.opt.sparen.ausgang");
     }),
-    opt("mitte", "Ausgeglichen", "Kostet nichts; kein Signal in irgendeine Richtung.", 0, () => "Der Haushalt bleibt, wie er ist."),
-    opt("wachstum", "Wachstumshaushalt", "Kostet 3 Kapital; mehr Investitionen und mehr Schulden.", 3, (w) => {
-      setFiscalImpulse(w, w.economy.fiscalImpulse + 1.5);
+    opt("mitte", t("ev.start_haushalt.opt.mitte.label"), t("ev.start_haushalt.opt.mitte.beschr"), 0, () => t("ev.start_haushalt.opt.mitte.ausgang")),
+    opt("wachstum", t("ev.start_haushalt.opt.wachstum.label"), t("ev.start_haushalt.opt.wachstum.beschr"), 3, (w) => {
+      haushaltAusEreignis(w, "wachstum"); // N3 (D-13)
       vertrauenAendern(w, 1);
       const f = figur(w, "finanzen");
       if (f) f.loyalitaet = Math.max(0, f.loyalitaet - 8);
-      return "Der Haushalt setzt auf Wachstum und Investitionen.";
+      return t("ev.start_haushalt.opt.wachstum.ausgang");
     }),
   ],
-  standard: () => "Der Haushalt bleibt, wie er ist.",
+  standard: () => t("ev.start_haushalt.standard"),
 };
+
+/** Was der Partner einfordert: die offene Zusage an ihn (in der aktuellen Sprache), sonst die allgemeine Erinnerung. */
+function partnerZusage(w: World, partei: string): string {
+  const z = w.spiel?.zusagen.find((x) => x.von === partei && !x.erfuellt && !x.gebrochen);
+  return (z ? zusageText(z) : t("ev.start_partner.zusage.allgemein")).trim().replace(/\.$/, "");
+}
 
 const START_PARTNER: Vorlage = {
   id: "start_partner",
@@ -910,12 +920,15 @@ const START_PARTNER: Vorlage = {
   abkuehlung: 0,
   chance: () => 0,
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: (w) => (w.player?.buendnis ? `${w.player.buendnis} meldet sich` : "Die Opposition fordert Klarheit"),
-  text: (w) =>
-    w.player?.buendnis
-      ? [`Der Vorsitz der ${w.player.buendnis} erinnert an den Wahlkampf: ${(w.player.versprechen[0] ?? "Es gibt Zusagen").replace(/\.$/, "")}. Sie erwartet Ihre Antwort noch in der ersten Woche.`]
-      : ["Die Opposition fordert vom neuen Präsidenten, seine Wahlversprechen in den ersten hundert Tagen einzulösen, und kündigt eine genaue Zählung an."],
-  warum: () => "Zusagen sind Kapital: Wer sie hält, wird ernst genommen; wer sie bricht, bezahlt später.",
+  titel: (w) => (w.player?.buendnis ? t("ev.start_partner.titel", { partei: w.player.buendnis }) : t("ev.start_partner.opposition.titel")),
+  text: (w) => {
+    const partei = w.player?.buendnis;
+    if (!partei) return [t("ev.start_partner.opposition.text1")];
+    // Befund A (Wortprüfung): „Der Vorsitz der YENİ“ → die Vorsitzende bzw. der Vorsitzende mit Namen, sonst die Parteiführung
+    const f = aktiveParteivorsitzende(w, partei)[0];
+    return [t("ev.start_partner.text1", { partei, g: f ? (f.weiblich ? "f" : "m") : "x", name: f?.name ?? "", zusage: partnerZusage(w, partei) })];
+  },
+  warum: () => t("ev.start_partner.warum"),
   optionen: (w) => {
     const partei = w.player?.buendnis;
     if (!partei) return START_OPPOSITION_OPTIONEN();
@@ -955,26 +968,26 @@ const START_PARTNER: Vorlage = {
         partner(ww, 12);
         return t("wort.partner.zuwendung.ausgang", { partei: PARTEI_NAME[partei] ?? partei });
       }),
-      opt("knapp", "Knapp anbieten", "Kostet 1 Kapital; die Partei murrt.", 1, (ww) => {
+      opt("knapp", t("ev.start_partner.opt.knapp.label"), t("ev.start_partner.opt.knapp.beschr"), 1, (ww) => {
         partner(ww, 3);
-        return "Das Angebot fällt knapp aus.";
+        return t("ev.start_partner.opt.knapp.ausgang");
       }),
-      opt("vertagen", "Vertagen", "Kostet nichts; die Geduld sinkt.", 0, (ww) => {
+      opt("vertagen", t("ev.start_partner.opt.vertagen.label"), t("ev.start_partner.opt.vertagen.beschr"), 0, (ww) => {
         partner(ww, -10);
-        return "Die Antwort wird vertagt.";
+        return t("ev.start_partner.opt.vertagen.ausgang");
       }),
     ];
   },
-  standard: () => "Die Forderung bleibt unbeantwortet.",
+  standard: () => t("ev.start_partner.standard"),
 };
 
 const START_OPPOSITION_OPTIONEN = (): Option[] => [
-          opt("liste", "Eine Liste der Versprechen veröffentlichen", "Kostet 2 Kapital; schafft Transparenz und Druck.", 2, (ww) => {
-            vertrauenAendern(ww, 1);
-            return "Der Präsident veröffentlicht seine Zusagen und stellt sich der Zählung.";
-          }),
-          opt("abwarten", "Abwarten", "Kostet nichts.", 0, () => "Der Präsident lässt die Forderung unbeantwortet."),
-        ];
+  opt("liste", t("ev.start_partner.opposition.opt.liste.label"), t("ev.start_partner.opposition.opt.liste.beschr"), 2, (ww) => {
+    vertrauenAendern(ww, 1);
+    return t("ev.start_partner.opposition.opt.liste.ausgang");
+  }),
+  opt("abwarten", t("ev.start_partner.opposition.opt.abwarten.label"), t("ev.start_partner.opposition.opt.abwarten.beschr"), 0, () => t("ev.start_partner.opposition.opt.abwarten.ausgang")),
+];
 
 const ERDBEBEN_REGION = [31, 46, 2, 44, 27, 80, 1, 21, 63, 79, 23];
 
@@ -985,34 +998,31 @@ const START_WIEDERAUFBAU: Vorlage = {
   abkuehlung: 0,
   chance: () => 0,
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Der Wiederaufbau im Erdbebengebiet",
-  text: (w) => [
-    "In den Provinzen, die 2023 vom Erdbeben getroffen wurden, ist der Wiederaufbau nicht abgeschlossen. Viele Familien leben noch in Containern.",
-    `${anrede(figur(w, "stab"))} legt den Bericht vor: Ein schneller Bau spart Zeit, ein sauberer Bau spart Leben, wenn es wieder bebt.`,
-  ],
-  warum: () => "Wiederaufbau konkurriert mit allem anderen um Haushalt, Personal und Material; Eile und Korruption erhöhen die Verwundbarkeit.",
+  titel: () => t("ev.start_wiederaufbau.titel"),
+  text: (w) => [t("ev.start_wiederaufbau.text1"), t("ev.start_wiederaufbau.text2", { wer: anrede(figur(w, "stab")) })],
+  warum: () => t("ev.start_wiederaufbau.warum"),
   optionen: () => [
-    opt("chefsache", "Zur Chefsache machen", "Kostet 6 Kapital und 0,4 % des BIP; schneller Wiederaufbau.", 6, (w) => {
+    opt("chefsache", t("ev.start_wiederaufbau.opt.chefsache.label"), t("ev.start_wiederaufbau.opt.chefsache.beschr"), 6, (w) => {
       kosten(w, 0.4);
       wirke(w, "wohnungsbau", 6, ERDBEBEN_REGION);
       wirke(w, "p_wohnungsnot", -5, ERDBEBEN_REGION);
       wirke(w, "korruption", 1.5);
       vertrauenAendern(w, 1.5);
-      return "Der Wiederaufbau wird Chefsache; die Aufträge laufen schnell.";
+      return t("ev.start_wiederaufbau.opt.chefsache.ausgang");
     }),
-    opt("sauber", "Sauber und kontrolliert bauen", "Kostet 4 Kapital und 0,2 % des BIP; langsamer, sicherer.", 4, (w) => {
+    opt("sauber", t("ev.start_wiederaufbau.opt.sauber.label"), t("ev.start_wiederaufbau.opt.sauber.beschr"), 4, (w) => {
       kosten(w, 0.2);
       wirke(w, "wohnungsbau", 3, ERDBEBEN_REGION);
       wirke(w, "erdbebenvorsorge", 3, ERDBEBEN_REGION);
       wirke(w, "bauqualitaet", 3, ERDBEBEN_REGION);
-      return "Der Wiederaufbau folgt strengen Prüfungen: langsamer, aber sicherer.";
+      return t("ev.start_wiederaufbau.opt.sauber.ausgang");
     }),
-    opt("weiter", "Beim Bestehenden bleiben", "Kostet nichts; die Region wartet weiter.", 0, (w) => {
+    opt("weiter", t("ev.start_wiederaufbau.opt.weiter.label"), t("ev.start_wiederaufbau.opt.weiter.beschr"), 0, (w) => {
       vertrauenAendern(w, -0.5);
-      return "Der Wiederaufbau läuft im bisherigen Tempo weiter.";
+      return t("ev.start_wiederaufbau.opt.weiter.ausgang");
     }),
   ],
-  standard: () => "Der Wiederaufbau läuft im bisherigen Tempo weiter.",
+  standard: () => t("ev.start_wiederaufbau.standard"),
 };
 
 export const VORLAGEN: Vorlage[] = [
@@ -1185,8 +1195,8 @@ export function antworten(w: World, ev: OffenesEreignis): Option[] {
     ...optionen,
     {
       id: "aussitzen",
-      label: "Abwarten und nichts tun",
-      beschreibung: "Kostet nichts; es geschieht die Standardfolge, die das Ereignis für den Fall vorsieht, dass niemand handelt.",
+      label: t("ev.abwarten.label"),
+      beschreibung: t("ev.abwarten.beschr"),
       pk: 0,
       wirkung: (ww, e, rng) => v.standard(ww, e, rng),
     },
@@ -1203,6 +1213,8 @@ export function vorlage(id: string): Vorlage {
 // Motor
 
 export const MAX_OFFEN = 3;
+/** Was Schweigen bis zur Frist zusätzlich an Zustimmung kostet (Spielparameter); das Fenster nennt dieselbe Zahl. */
+export const SCHWEIGEN_ZUSTIMMUNG = 0.8;
 
 /**
  * Takt der Ereignisse (alle Werte Spielparameter): Der Monatswettbewerb legt nur die Sieger fest; sie öffnen verteilt über den Monat
@@ -1261,7 +1273,7 @@ export function oeffne(world: World, vorlageId: string, rng: Rng, params?: { pro
   spiel.zuletzt[vorlageId] = world.day;
   v.eroeffne?.(world, ev, rng);
   addLog(world, "ereignis", v.titel(world, ev), v.text(world, ev)[0]);
-  if (ESKALATION_VORLAGEN.has(vorlageId)) belastungEreignis(world, VERFASSUNG.eskalation, `Eskalation: ${v.titel(world, ev)}`);
+  if (ESKALATION_VORLAGEN.has(vorlageId)) belastungEreignis(world, VERFASSUNG.eskalation, t("n5.eskalation", { titel: v.titel(world, ev) }));
   return ev;
 }
 
@@ -1466,7 +1478,7 @@ export function ereignisTag(world: World, rng: Rng): void {
     const v = vorlage(ev.vorlage);
     const ausgang = v.standard(world, ev, rng);
     // Schweigen wird bemerkt: Ein Präsident, der nicht antwortet, wirkt schwach
-    if (!ev.vorlage.startsWith("start_")) spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
+    if (!ev.vorlage.startsWith("start_")) spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - SCHWEIGEN_ZUSTIMMUNG);
     abschliessen(world, ev, v.titel(world, ev), t("ereignis.chronik.keine", { ausgang }), true);
   }
 }
@@ -1503,7 +1515,46 @@ setzeKatastrophenOeffner((w, vorlageId, rng, params) => {
   oeffne(w, vorlageId, rng, params);
 });
 
-const VORSCHAU_CACHE = new Map<string, { text: string; zeilen: string[] }>();
+/** Ergebnis einer Rechnung auf der Kopie: Ausgangstext, sichtbare Folgen und der dabei zusätzlich gebuchte Preis. */
+interface KopieFolgen {
+  text: string;
+  zeilen: string[];
+  /** Kapital, das die Wirkung selbst bucht (über den Preis der Antwort hinaus; negativ = Gewinn) */
+  kapital: number;
+  /** Veränderung der Nettoschuld (Schulden minus Kasse) in Prozent des BIP; negativ = Einnahme */
+  bip: number;
+}
+
+const VORSCHAU_CACHE = new Map<string, KopieFolgen>();
+
+/** Nettoschuld in Mrd. Lira: Schuldenstand minus Kasse (so rechnet auch der Haushalt). */
+const nettoschuld = (w: World): number => (w.economy.debtRatio * bipWertMrd(w.economy)) / 100 - kassenbestand(w.economy);
+
+/** Antwort auf der Kopie ausführen (Preis in Kapital und BIP gemessen, nichts davon geschieht wirklich). */
+function antwortAufKopie(world: World, ev: OffenesEreignis, optionId: string): KopieFolgen {
+  return folgenAufKopie(world, ev, optionId, (kopie, evK) => {
+    const o = antworten(kopie, evK).find((x) => x.id === optionId);
+    if (!o || o.sperre) return null;
+    o.wirkung(kopie, evK, new Rng(12345));
+    return "";
+  }, true);
+}
+
+/**
+ * Der Preis einer Antwort, wie er wirklich gebucht wird: der Kapitalpreis der Antwort plus alles, was ihre Wirkung selbst bucht
+ * (etwa ein gestartetes Bauvorhaben oder eine Entlassung), und die Kosten in Prozent des BIP. Daraus entsteht die Plakette
+ * im Ereignisfenster; test/schau-antworten.test.ts vergleicht sie mit der echten Buchung (Befund A-4, 5. November 2026).
+ */
+export function preisVorschau(world: World, ev: OffenesEreignis, optionId: string): { kapital: number; bip: number } {
+  const o = antworten(world, ev).find((x) => x.id === optionId);
+  if (!o || o.sperre) return { kapital: o ? (o.anzeigePk ?? o.pk) : 0, bip: 0 };
+  const r = antwortAufKopie(world, ev, optionId);
+  // Gebucht wird der Preis der Antwort und, was die Wirkung selbst bucht. `anzeigePk` nennt einen Preis, der erst später fällig wird
+  // (etwa beim Einbringen eines Gesetzes) oder den die Wirkung selbst bucht; er zählt nur, wenn er höher ist als das sofort Gebuchte.
+  const sofort = o.pk + r.kapital;
+  const kapital = o.anzeigePk !== undefined ? Math.max(o.anzeigePk, sofort) : sofort;
+  return { kapital: Math.round(kapital * 10) / 10, bip: r.bip };
+}
 
 /**
  * Was eine Antwort sofort bewirkt: auf einer Kopie der Welt durchgerechnet, nichts davon geschieht wirklich.
@@ -1511,12 +1562,7 @@ const VORSCHAU_CACHE = new Map<string, { text: string; zeilen: string[] }>();
  */
 export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: string): string[] {
   if (ev.vorlage === "zusage") return zusagenErinnerungsAntwort(world, ev, optionId)?.sofortfolgen ?? [];
-  return folgenAufKopie(world, ev, optionId, (kopie, evK) => {
-    const o = antworten(kopie, evK).find((x) => x.id === optionId);
-    if (!o || o.sperre) return null;
-    o.wirkung(kopie, evK, new Rng(12345));
-    return "";
-  }).zeilen;
+  return antwortAufKopie(world, ev, optionId).zeilen;
 }
 
 /**
@@ -1524,21 +1570,26 @@ export function wirkungsVorschau(world: World, ev: OffenesEreignis, optionId: st
  * Schweigens in der Umfrage (wie in ereignisseTag). Spielerdurchlauf 5. November: „Man erfährt nicht, was die Standardfolge ist.“
  */
 export function standardVorschau(world: World, ev: OffenesEreignis): { text: string; zeilen: string[] } | null {
-  const r = folgenAufKopie(world, ev, "§standard", (kopie, evK) => {
+  const { kapital: _k, bip: _b, ...r } = folgenAufKopie(world, ev, "§standard", (kopie, evK) => {
     const text = vorlage(evK.vorlage).standard(kopie, evK, new Rng(12345));
-    if (!evK.vorlage.startsWith("start_")) kopie.spiel!.umfrage.zustimmung = Math.max(0, kopie.spiel!.umfrage.zustimmung - 0.8);
+    if (!evK.vorlage.startsWith("start_")) kopie.spiel!.umfrage.zustimmung = Math.max(0, kopie.spiel!.umfrage.zustimmung - SCHWEIGEN_ZUSTIMMUNG);
     return text;
   });
   return r.text ? r : null;
 }
 
-/** Rechnet eine Wirkung auf einer Kopie der Welt durch und beschreibt, was sich sofort ändert. */
-function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, anwenden: (kopie: World, evK: OffenesEreignis) => string | null): { text: string; zeilen: string[] } {
-  const key = `${ev.id}|${schluessel}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
+/**
+ * Rechnet eine Wirkung auf einer Kopie der Welt durch und beschreibt, was sich sofort ändert. Mit `preisAufPlakette` stehen Schulden
+ * und Kasse nicht als Folge da, weil die Plakette der Antwort den Preis in Prozent des BIP schon nennt (Befund A-7: Preis dreifach).
+ */
+function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, anwenden: (kopie: World, evK: OffenesEreignis) => string | null, preisAufPlakette = false): KopieFolgen {
+  const key = `${ev.id}|${schluessel}|${preisAufPlakette ? 1 : 0}|${world.day}|${Math.floor(world.spiel?.kapital ?? 0)}|${world.economy.debtRatio}|${kassenbestand(world.economy)}|${bipWertMrd(world.economy)}`;
   const gemerkt = VORSCHAU_CACHE.get(key);
   if (gemerkt) return gemerkt;
   const zeilen: string[] = [];
   let text = "";
+  let kapital = 0;
+  let bip = 0;
   try {
     const kopie = structuredClone(world);
     const evK = kopie.spiel!.ereignisse.find((e) => e.id === ev.id);
@@ -1552,20 +1603,28 @@ function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, a
       const zust0 = kopie.spiel!.umfrage.zustimmung;
       const loyal0 = new Map(kopie.spiel!.figuren.map((f) => [f.id, f.loyalitaet]));
       const imAmt0 = new Set(kopie.spiel!.figuren.filter((f) => f.imAmt).map((f) => f.id));
+      // Personen über Kennung und Name: Bei einem Austausch behält der Posten seine Kennung, die Person wechselt (Befund A-11)
+      const person0 = new Map(kopie.spiel!.figuren.map((f) => [f.id, f.name]));
+      const kapital0 = kopie.spiel!.kapital;
+      const netto0 = nettoschuld(kopie);
+      const bip0 = bipWertMrd(kopie.economy);
       const ergebnis = anwenden(kopie, evK);
       if (ergebnis !== null) {
         text = ergebnis;
+        kapital = kapital0 - kopie.spiel!.kapital;
+        bip = bip0 > 0 ? ((nettoschuld(kopie) - netto0) / bip0) * 100 : 0;
         // 1. Maßnahmen, die der Spieler damit verändert
         for (const [id, ziel] of Object.entries(kopie.net.targets)) {
           const jetzt = nationalAverage(NET, world.net, id);
           const alt = world.net.targets[id];
-          if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(t("ereignis.vs.stufe", { name: NET.nodes[NET.index.get(id)!]!.name, von: Math.round(jetzt), auf: Math.round(ziel) }));
+          if (Math.abs(ziel - (alt ?? jetzt)) >= 1 && Math.abs(ziel - jetzt) >= 1) zeilen.push(t(ziel > jetzt ? "n9.vs.auf" : "n9.vs.ab", { name: NET.nodes[NET.index.get(id)!]!.name, von: stufenName(id, jetzt), auf: stufenName(id, ziel) }));
         }
         // 2. Haushalt und Märkte
         const vz = (d: number, stellen: number) => `${d > 0 ? "+" : "−"}${nf(Math.abs(d), stellen)}`;
         const ds = kopie.economy.debtRatio - schulden0;
-        if (Math.abs(ds) >= 0.04) zeilen.push(t("ereignis.vs.schulden", { d: vz(ds, 2) }));
         const dk = kassenbestand(kopie.economy) - kasse0;
+        // Mit Preisplakette (Befund A-7) bleibt genau eine Zeile zur Finanzierung: aus der Staatskasse, sonst auf Schulden
+        if (Math.abs(ds) >= 0.04 && (!preisAufPlakette || Math.abs(dk) <= 0.001)) zeilen.push(t("ereignis.vs.schulden", { d: vz(ds, 2) }));
         if (Math.abs(dk) > 0.001) zeilen.push(t("sf.kasseAenderung", { betrag: vz(dk, 2) }));
         const dr = kopie.economy.riskPremium - risiko0;
         if (Math.abs(dr) >= 4) zeilen.push(t("ereignis.vs.risiko", { d: vz(dr, 0) }));
@@ -1573,14 +1632,18 @@ function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, a
         if (Math.abs(df) >= 0.4) zeilen.push(t("ereignis.vs.lira", { richtung: df > 0 ? "schwaecher" : "staerker", d: nf(Math.abs(df)) }));
         const dz = kopie.spiel!.umfrage.zustimmung - zust0;
         if (Math.abs(dz) >= 0.5) zeilen.push(t("ereignis.vs.zustimmung", { d: vz(dz, 1) }));
-        // 3. Personen
+        // 3. Personen. Nur wer vorher und nachher dieselbe Person im Amt ist: Wer durch die Antwort erst ins Amt rückt, gewinnt oder
+        // verliert keinen Rückhalt (Spielerdurchlauf: „Die Person opfern“ nannte die Nachfolgerin; Befund A-11: die Kennung bleibt beim Austausch).
+        // Bewegt sich der Rückhalt bei vielen zugleich, steht das als eine Zeile da, nicht als Liste unbeteiligter Minister.
+        const bewegt: { f: { rolle: string; name: string }; d: number }[] = [];
         for (const f of kopie.spiel!.figuren) {
-          // Nur wer vorher und nachher im Amt ist: Wer durch die Antwort erst ins Amt rückt, gewinnt oder verliert keinen Rückhalt
-          // (Spielerdurchlauf: „Die Person opfern“ nannte die Nachfolgerin)
-          if (!f.imAmt || !imAmt0.has(f.id)) continue;
+          if (!f.imAmt || !imAmt0.has(f.id) || person0.get(f.id) !== f.name) continue;
           const d = f.loyalitaet - (loyal0.get(f.id) ?? f.loyalitaet);
-          if (Math.abs(d) >= 3) zeilen.push(t("ereignis.vs.rueckhalt", { rolle: f.rolle, name: f.name, richtung: d > 0 ? "mehr" : "weniger" }));
+          if (Math.abs(d) >= 3) bewegt.push({ f, d });
         }
+        const gleich = bewegt.length >= 3 && bewegt.every((b) => Math.sign(b.d) === Math.sign(bewegt[0]!.d));
+        if (gleich) zeilen.push(t("ev.vs.kabinett", { n: bewegt.length, richtung: bewegt[0]!.d > 0 ? "mehr" : "weniger" }));
+        else for (const { f, d } of bewegt) zeilen.push(t("ereignis.vs.rueckhalt", { rolle: f.rolle, name: f.name, richtung: d > 0 ? "mehr" : "weniger" }));
         // 4. Die Größen, die sich am stärksten bewegen
         const aenderungen: { name: string; d: number }[] = [];
         for (const n of NET.nodes) {
@@ -1595,7 +1658,7 @@ function folgenAufKopie(world: World, ev: OffenesEreignis, schluessel: string, a
   } catch {
     // Keine Vorschau ist besser als eine falsche
   }
-  const ergebnis = { text, zeilen: zeilen.slice(0, 6) };
+  const ergebnis = { text, zeilen: zeilen.slice(0, 6), kapital, bip };
   if (VORSCHAU_CACHE.size > 300) VORSCHAU_CACHE.clear();
   VORSCHAU_CACHE.set(key, ergebnis);
   return ergebnis;
@@ -1610,7 +1673,8 @@ export interface EreignisAnsicht {
   warum: string;
   frist: number;
   tageBisFrist: number;
-  optionen: (Omit<Option, "wirkung"> & { bezahlbar: boolean; vorschau: string[] })[];
+  /** `preis`: wie gebucht, gemessen auf einer Kopie (Kapital einschließlich dessen, was die Wirkung selbst bucht; BIP in Prozent) */
+  optionen: (Omit<Option, "wirkung"> & { bezahlbar: boolean; vorschau: string[]; preis: { kapital: number; bip: number } })[];
   /** Maßnahmen, mit denen man die Ursache selbst regeln kann */
   massnahmen: { id: string; name: string; ziel?: number }[];
   /** Beschriftung der Zeile mit den Maßnahmen */
@@ -1639,7 +1703,7 @@ export function ansicht(world: World, ev: OffenesEreignis): EreignisAnsicht {
     warum: v.warum(world, ev),
     frist: ev.frist,
     tageBisFrist: Math.max(0, ev.frist - world.day),
-    optionen: antworten(world, ev).map(({ wirkung: _w, ...rest }) => ({ ...rest, bezahlbar: kannZahlen(world.spiel?.kapital ?? 0, rest.anzeigePk ?? rest.pk), vorschau: rest.sperre ? [] : rest.sofortfolgen ?? wirkungsVorschau(world, ev, rest.id) })),
+    optionen: antworten(world, ev).map(({ wirkung: _w, ...rest }) => ({ ...rest, bezahlbar: kannZahlen(world.spiel?.kapital ?? 0, rest.anzeigePk ?? rest.pk), vorschau: rest.sperre ? [] : rest.sofortfolgen ?? wirkungsVorschau(world, ev, rest.id), preis: preisVorschau(world, ev, rest.id) })),
     ...zusageAnsicht(world, ev, v),
     ...(() => {
       const sf = standardVorschau(world, ev);

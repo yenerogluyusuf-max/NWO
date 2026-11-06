@@ -14,7 +14,7 @@ import { formatDateDe } from "./dates";
 import { PROVINZEN } from "./regional";
 import { PARTEI_NAME } from "./fraktionen";
 import { akuteOrte, bringeEin, provinzenText, pruefeVorhaben, stimmenSicht, stufeIn } from "./handeln";
-import { entlasseFigur, sprichMitFigur } from "./eingriffe";
+import { sprichMitFigur } from "./eingriffe";
 import { AktionId, aktionenFuer, anliegenStand, dimensionZu, fuehreAktionAus, haltungWort, land, weltZustand } from "./laender";
 import { waehlerLage } from "./waehler";
 import { naechsterSchritt, starteSchritt } from "./programme";
@@ -45,8 +45,12 @@ import { entwirf, friedensAntwort, schaetzKurz, siehtNachGrossprojekt } from "./
 import { INITIATIVE_VORLAGE_IDS } from "./initiative";
 import { Rng } from "./rng";
 import type { World } from "./types";
+import type { Figur } from "./spiel-typen";
+import { AEMTER } from "./personen";
+import { kabinettStatus } from "./kabinett";
+import { kannEntlassen } from "./nachfolge";
 import type { NodeSpec } from "../data/politiknetz";
-import { t as tx } from "../i18n";
+import { t as tx, zahl } from "../i18n";
 
 export interface ChatZeile {
   rolle: "spieler" | "spiel";
@@ -58,7 +62,17 @@ export interface ChatAntwort {
   ok: boolean;
   text: string;
   why?: string;
+  /** Befund C-2: Personal- und kostenpflichtige Befehle werden nie sofort ausgeführt, sondern als Vorschlagskarte vorgelegt. */
+  vorschlag?: ChatVorschlag;
 }
+
+/**
+ * Ein vorbereiteter Befehl, der erst auf das Zeichen des Präsidenten wirkt.
+ * „entlassung“ öffnet die Nachfolgeauswahl (Folgen und drei Kandidaten); „befehl“ führt die Eingabe nach Bestätigung aus.
+ */
+export type ChatVorschlag =
+  | { art: "entlassung"; amt: Figur["amt"]; figurId: string }
+  | { art: "befehl"; eingabe: string; titel: string; kosten: number; folgen: string[] };
 
 const BEISPIELE = [
   tx("sim2.sim.befehle.a663a5a"),
@@ -421,6 +435,19 @@ function statusFrage(t: string, tk: string[], w: World, rng: Rng): ChatAntwort |
   const spiel = w.spiel;
   if (!spiel) return null;
   const frage = t.endsWith(" ") || /^(wie|was|wer|wo|welche|welcher|habe|hab|gibt|zeig|nenne|sag)/.test(t) || hat(tk, "umfragen", "umfrage", "mehrheit", "kapital", "ziele", "agenda");
+
+  // Fragen nach einer Person des Kabinetts (Befund C-31): „Wie loyal ist mein Innenminister?“
+  const person = frage ? figurAusText(tk, w) : undefined;
+  if (person && AEMTER[person.amt].regierungsamt && hatPrefix(tk, "loyal", "treu", "stimmung", "haltung", "zufrieden", "wie", "was")) {
+    const m = kabinettStatus(w).minister.find((x) => x.id === person.id);
+    if (m) {
+      return {
+        ok: true,
+        text: tx("n1.chat.person.text", { rolle: m.rolle, name: m.name, loy: Math.round(m.loyalitaet), haltung: haltung(person), groll: Math.round(m.groll), kapital: vz(m.kapitalBeitrag) }),
+        why: tx("n1.chat.person.why", { sorge: m.sorge }),
+      };
+    }
+  }
 
   if (frage && (hatPrefix(tk, "umfrage", "zustimm", "beliebt", "stimmung") || (hat(tk, "stehe", "stehen") && hat(tk, "ich", "wir")))) {
     const v = spiel.umfrage.verlauf;
@@ -920,19 +947,57 @@ function massnahmeBefehl(t: string, tk: string[], w: World): ChatAntwort | null 
   return result;
 }
 
+/** Wörter, mit denen man ein Amt im Chat nennt (gefaltet, als Wortanfang; die weibliche Form „…ministerin“ trifft mit). */
+const AMT_WORTE: Partial<Record<Figur["amt"], string[]>> = {
+  finanzen: ["finanzminister", "finanzen"],
+  inneres: ["innenminister"],
+  aussen: ["aussenminister"],
+  justiz: ["justizminister"],
+  wirtschaft: ["industrieminister", "wirtschaftsminister"],
+  familie: ["familienminister", "sozialminister"],
+  arbeit: ["arbeitsminister"],
+  umwelt: ["umweltminister", "bauminister"],
+  energie: ["energieminister"],
+  jugend: ["jugendminister", "sportminister"],
+  kultur: ["kulturminister", "tourismusminister"],
+  bildung: ["bildungsminister"],
+  verteidigung: ["verteidigungsminister"],
+  gesundheit: ["gesundheitsminister"],
+  landwirtschaft: ["landwirtschaftsminister", "agrarminister"],
+  handel: ["handelsminister"],
+  verkehr: ["verkehrsminister"],
+  stab: ["praesidialamt", "stabschef"],
+  generalstab: ["generalstab", "generalstabschef"],
+};
+
+/** Die Figur, die eine Eingabe meint: nach Amtswort oder Nachnamen (nur Personen im Amt). */
+export function figurAusText(tk: string[], w: World): Figur | undefined {
+  const fs = (w.spiel?.figuren ?? []).filter((f) => f.imAmt);
+  for (const f of fs) {
+    const worte = AMT_WORTE[f.amt];
+    if (worte && hatPrefix(tk, ...worte)) return f;
+  }
+  return fs.find((f) => {
+    const nach = fold(f.name.split(" ").at(-1) ?? "");
+    return nach.length >= 3 && tk.includes(nach);
+  });
+}
+
+/** Entlassung im Chat: nie sofort und nie mit einem zufälligen Nachfolger (Befund C-2). Die Antwort ist eine Vorschlagskarte, ein Klick öffnet die Nachfolgeauswahl. */
 function figurEntlassen(t: string, tk: string[], w: World): ChatAntwort | null {
   if (!hatPrefix(tk, "entlass", "feuer", "absetz", "ersetz")) return null;
-  const rng = new Rng(w.rngState);
-  const ergebnis = (a: "finanzen" | "inneres" | "aussen") => {
-    const r = entlasseFigur(w, a, rng);
-    w.rngState = rng.state;
-    return r;
-  };
-  if (hatPrefix(tk, "finanzminister", "finanzen")) return ergebnis("finanzen");
-  if (hatPrefix(tk, "innenminister")) return ergebnis("inneres");
-  if (hatPrefix(tk, "aussenminister")) return ergebnis("aussen");
+  const f = figurAusText(tk, w);
+  if (f && AEMTER[f.amt].regierungsamt) {
+    if (!kannEntlassen(f)) return { ok: false, text: tx("n1.chat.entlassung.nicht", { rolle: f.rolle, name: f.name }) };
+    return {
+      ok: true,
+      text: tx("n1.chat.entlassung.text", { rolle: f.rolle, name: f.name }),
+      why: tx("n1.chat.entlassung.why"),
+      vorschlag: { art: "entlassung", amt: f.amt, figurId: f.id },
+    };
+  }
   if (hatPrefix(tk, "minister", "kabinett", "berater")) {
-    return { ok: false, text: tx("sim2.sim.befehle.e4ad0a7"), why: tx("sim2.sim.befehle.394f1b9") };
+    return { ok: false, text: tx("n1.chat.entlassung.wen"), why: tx("sim2.sim.befehle.394f1b9") };
   }
   return null;
 }
@@ -1170,4 +1235,65 @@ export function befehl(text: string, w: World): ChatAntwort {
       " „Hilfe“ zeigt alles.",
     why: tx("sim2.sim.befehle.9c310e0"),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Vorschlagskarten (Befund C-2): Was Kapital kostet oder Personal wechselt, wirkt erst auf Ihr Zeichen
+
+/** Ob ein Probelauf Kapital ausgegeben oder Personal gewechselt hätte. */
+function probeKosten(vorher: World, nachher: World): { kosten: number; personal: boolean } {
+  const kosten = Math.max(0, Math.round(((vorher.spiel?.kapital ?? 0) - (nachher.spiel?.kapital ?? 0)) * 10) / 10);
+  const wer = (w: World) => (w.spiel?.figuren ?? []).filter((f) => f.imAmt).map((f) => `${f.amt}:${f.name}`).sort().join("|");
+  const personal = wer(vorher) !== wer(nachher) || vorher.governor?.name !== nachher.governor?.name;
+  return { kosten, personal };
+}
+
+/** Eine Veränderung mit Vorzeichen, Zahl nach Sprache („+0,4“, „−12“). */
+const vz = (n: number, stellen = 1): string => (n > 0 ? "+" : n < 0 ? "−" : "±") + zahl(Math.abs(n), Number.isInteger(n) ? 0 : stellen);
+
+/** Folgen eines Probelaufs in Zahlen, aus dem Unterschied der Welt (nicht von Hand geschrieben). */
+function probeFolgen(vorher: World, nachher: World, kosten: number): string[] {
+  const out: string[] = [];
+  if (kosten > 0) out.push(tx("n1.chat.folge.kapital", { n: kosten }));
+  for (const [id, key] of [["vertrauen_regierung", "n1.chat.folge.vertrauen"], ["legitimitaet", "n1.chat.folge.legitimitaet"]] as const) {
+    const d = Math.round((nationalAverage(NET, nachher.net, id) - nationalAverage(NET, vorher.net, id)) * 10) / 10;
+    if (d) out.push(tx(key, { n: vz(d) }));
+  }
+  const dc = Math.round(((nachher.economy.credibility ?? 0) - (vorher.economy.credibility ?? 0)) * 100);
+  if (dc) out.push(tx("n1.chat.folge.glaubwuerdigkeit", { n: vz(dc, 0) }));
+  const dr = Math.round((nachher.economy.riskPremium ?? 0) - (vorher.economy.riskPremium ?? 0));
+  if (dr) out.push(tx("n1.chat.folge.risiko", { n: vz(dr, 0) }));
+  const ng = (nachher.spiel?.gesetze.length ?? 0) - (vorher.spiel?.gesetze.length ?? 0);
+  if (ng > 0) out.push(tx("n1.chat.folge.gesetz", { n: ng }));
+  return out;
+}
+
+/** Zeitbefehle laufen sofort (sie kosten nichts und sind der Takt des Spiels); alles andere prüft ein Probelauf auf einer Kopie. */
+export function chatBefehl(text: string, w: World): ChatAntwort {
+  const t = fold(text);
+  const tk = tokens(t);
+  if (!t || !w.spiel || w.spiel.ende || zeitBefehl(t, tk)) return befehl(text, w);
+  const entlassung = figurEntlassen(t, tk, w);
+  if (entlassung) return entlassung;
+  const probe = structuredClone(w);
+  const r = befehl(text, probe);
+  const { kosten, personal } = probeKosten(w, probe);
+  if (!r.ok || (kosten <= 0 && !personal)) return befehl(text, w);
+  return {
+    ok: true,
+    text: tx("n1.chat.vorschlag.text"),
+    why: r.text,
+    vorschlag: { art: "befehl", eingabe: text, titel: text.trim(), kosten, folgen: probeFolgen(w, probe, kosten) },
+  };
+}
+
+/** Führt einen vorgeschlagenen Befehl aus. Hat sich der Preis seit dem Vorschlag geändert, kommt ein neuer Vorschlag statt der Ausführung. */
+export function bestaetigeBefehl(v: Extract<ChatVorschlag, { art: "befehl" }>, w: World): ChatAntwort {
+  const probe = structuredClone(w);
+  const r = befehl(v.eingabe, probe);
+  const { kosten } = probeKosten(w, probe);
+  if (r.ok && Math.abs(kosten - v.kosten) > 0.05) {
+    return { ok: false, text: tx("n1.chat.vorschlag.geaendert", { alt: v.kosten, neu: kosten }), vorschlag: { ...v, kosten, folgen: probeFolgen(w, probe, kosten) } };
+  }
+  return befehl(v.eingabe, w);
 }

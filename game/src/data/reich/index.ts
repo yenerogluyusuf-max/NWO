@@ -13,6 +13,7 @@ import type { VorteilDef } from "./typen";
 import { datenFelder, datenTexte } from "../../i18n/daten";
 import { aktuelleSprache, t } from "../../i18n";
 import { ERBE_NACH_ID } from "../erbe";
+import { setzeBild } from "./bilder";
 
 export { STAETTEN_START };
 export { katalogFuerEingabe } from "./katalog";
@@ -26,6 +27,8 @@ const NEU_PFLEGE: Vorhaben[] = [
 ];
 
 export const VORHABEN: Vorhaben[] = [...KULTUR_VORHABEN, ...INFRA_VORHABEN, ...RECHT_VORHABEN, ...MILITAER_VORHABEN, ...HAUSHALT_VORHABEN, ...NEU, ...REGIONAL_VORLAGEN, ...NEU_PFLEGE];
+// Jedes Vorhaben bekommt sein Motiv (Befund F-26, data/reich/bilder.ts)
+for (const v of VORHABEN) setzeBild(v);
 export const VORTEILE: VorteilDef[] = [...KULTUR_VORTEILE, ...INFRA_VORTEILE, ...RECHT_VORTEILE, ...MILITAER_VORTEILE, ...HAUSHALT_VORTEILE, ...ZUKUNFT_VORTEILE];
 
 // Namen und Texte dreisprachig (Kataloge daten_vorhaben.json, daten_vorteil.json; Deutsch bleibt hier die Quelle).

@@ -4,7 +4,6 @@
 // festgesetzten Tag geöffnet — jede Stufe ist ein Auto-Stopp der Klasse A, weil sie als
 // Entscheidungs-Ereignis auf den Tisch kommt.
 
-import { fmt } from "./log";
 import { vertrauenAendern, wirke } from "./wirkung";
 import { addDays, formatDateDe } from "./dates";
 import type { Vorlage } from "./ereignis-hilfen";
@@ -21,43 +20,63 @@ import {
   zieheVerfassungZurueck,
 } from "./verfassung";
 import type { World } from "./types";
+import { liste, t } from "../i18n";
 
+// Texte (Befund A-1, 6. November 2026): alle aus dem Katalog (i18n/katalog/*/nacht_n5.json, Schlüssel ev.<vorlage>.*).
+
+/**
+ * Die geänderten Artikel als Aufzählung „Artikel: Variante“. Ohne laufenden Vorgang (die Proteste öffnen, wenn das Paket schon
+ * in Kraft ist) die geltende Fassung der Verfassung; ist nichts geändert, ein allgemeiner Name.
+ */
 const paketNamen = (w: World): string => {
-  const v = w.spiel?.verfassungsvorgang?.laufend;
-  if (!v) return "das Paket";
-  const namen = geaenderteArtikel(v.paket).map((x) => `${x.artikel.name}: ${x.variante.name}`);
-  return namen.length ? namen.join(", ") : "das Paket";
+  const z = w.spiel?.verfassungsvorgang;
+  const paket = z?.laufend?.paket ?? z?.aktiv ?? {};
+  const namen = geaenderteArtikel(paket).map((x) => t("ev.verfassung.paket_eintrag", { artikel: x.artikel.name, variante: x.variante.name }));
+  return namen.length ? liste(namen) : t("ev.verfassung.paket_ersatz");
 };
+
+/** Aussicht einer Aufhebung durch das Gericht in Worten (Schwellen wie in sim/verfassung.ts, `pruefeVerfassung`). */
+const aussicht = (p: number): string => (p < 0.12 ? "gering" : p < 0.25 ? "moeglich" : "hoch");
 
 const ABSTIMMUNG: Vorlage = {
   id: "verfassung_abstimmung",
   szene: "parlament",
-  titel: () => "Verfassungspaket: Die Abstimmung steht an",
+  titel: () => t("ev.verfassung_abstimmung.titel"),
   text: (w) => {
     const v = w.spiel?.verfassungsvorgang?.laufend;
-    if (!v) return ["Die Große Nationalversammlung tritt zur Abstimmung über ein Verfassungspaket zusammen; der Vorgang selbst ist bereits abgeschlossen, die Stimmabgabe entfällt."];
+    if (!v) return [t("ev.verfassung_abstimmung.text_erledigt")];
     const s = paketStimmen(w, v.paket, v.absprachen);
     return [
-      `Heute stimmt die Große Nationalversammlung über das Verfassungspaket ab: ${paketNamen(w)}.`,
-      `Erwartet werden ${s.erwartet} Ja-Stimmen (Spanne ${s.tief} bis ${s.hoch}${v.absprachen ? `, darin ${v.absprachen} Absprachen` : ""}). Ab ${VERFASSUNG_REGELN.direkt} wird es direkt Gesetz; zwischen ${VERFASSUNG_REGELN.mehrheit} und ${VERFASSUNG_REGELN.direkt - 1} entscheidet das Volk; darunter ist es gescheitert, und ein Teil des Kapitals ist verbrannt.`,
+      t("ev.verfassung_abstimmung.text1", { paket: paketNamen(w) }),
+      t("ev.verfassung_abstimmung.text2", {
+        erwartet: s.erwartet,
+        tief: s.tief,
+        hoch: s.hoch,
+        absprachen: v.absprachen,
+        direkt: VERFASSUNG_REGELN.direkt,
+        mehrheit: VERFASSUNG_REGELN.mehrheit,
+        bis: VERFASSUNG_REGELN.direkt - 1,
+      }),
     ];
   },
-  warum: () => "Eine Verfassungsänderung braucht eine qualifizierte Mehrheit: Die Hürden entscheiden, ob das Volk mitreden muss.",
+  warum: () => t("ev.verfassung_abstimmung.warum"),
   optionen: (w) => {
     const v = w.spiel?.verfassungsvorgang?.laufend;
     const s = v ? paketStimmen(w, v.paket, v.absprachen) : null;
     return [
       {
         id: "abstimmen",
-        label: "Zur Abstimmung bringen",
-        beschreibung: s ? `Auszählen lassen: erwartet ${s.erwartet} Ja (Spanne ${s.tief} bis ${s.hoch}).` : "Auszählen lassen; der abgeschlossene Vorgang wird aus der Tagesordnung genommen.",
+        label: t("ev.verfassung_abstimmung.opt.abstimmen.label"),
+        beschreibung: s
+          ? t("ev.verfassung_abstimmung.opt.abstimmen.beschr", { erwartet: s.erwartet, tief: s.tief, hoch: s.hoch })
+          : t("ev.verfassung_abstimmung.opt.abstimmen.beschr_erledigt"),
         pk: 0,
         wirkung: (w, _ev, rng) => verfassungAbstimmen(w, rng).text,
       },
       {
         id: "zurueckziehen",
-        label: "Paket zurückziehen",
-        beschreibung: `Ein Teil des Kapitals kommt zurück; die Amtszeit hat ihre Verfassungsdebatte hinter sich.`,
+        label: t("ev.verfassung_abstimmung.opt.zurueckziehen.label"),
+        beschreibung: t("ev.verfassung_abstimmung.opt.zurueckziehen.beschr"),
         pk: 0,
         wirkung: (w) => zieheVerfassungZurueck(w).text,
       },
@@ -75,33 +94,33 @@ const ABSTIMMUNG: Vorlage = {
 const AYM: Vorlage = {
   id: "verfassung_aym",
   szene: "parlament",
-  titel: () => "Verfassungsgericht: Die Entscheidung fällt",
+  titel: () => t("ev.verfassung_aym.titel"),
   text: (w) => {
     const v = w.spiel?.verfassungsvorgang?.laufend;
-    if (!v) return ["Das Verfassungsgericht hätte über eine Anfechtung zu befinden; der Vorgang ist bereits abgeschlossen, das Verfahren wird eingestellt."];
+    if (!v) return [t("ev.verfassung_aym.text_erledigt")];
     const s = aymSicht(w, v.paket);
     return [
-      `Das Verfassungsgericht verkündet seine Entscheidung über die Anfechtung des Pakets: ${paketNamen(w)}.`,
-      `Der Besetzungsstand — ${s.sitze.loyal} loyal, ${s.sitze.unabhaengig} unabhängig, ${s.sitze.reform} reformorientiert — lässt eine Kassation eher ${s.pKassation < 0.12 ? "unwahrscheinlich" : s.pKassation < 0.25 ? "möglich" : "wahrscheinlich"} erscheinen. Wird das Paket kassiert, ist es tot, und der Groll im Lager ist gewiss.`,
+      t("ev.verfassung_aym.text1", { paket: paketNamen(w) }),
+      t("ev.verfassung_aym.text2", { loyal: s.sitze.loyal, unabhaengig: s.sitze.unabhaengig, reform: s.sitze.reform, aussicht: aussicht(s.pKassation) }),
     ];
   },
-  warum: () => "Die Kontrollinstanz entscheidet nach ihrem Besetzungsstand: Wer die Sitze prägt, prägt die Grenze der eigenen Macht.",
+  warum: () => t("ev.verfassung_aym.warum"),
   optionen: () => [
     {
       id: "abwarten",
-      label: "Die Verkündung abwarten",
-      beschreibung: "Das Gericht entscheidet nach seinem Besetzungsstand; Einfluss hat jetzt niemand mehr.",
+      label: t("ev.verfassung_aym.opt.abwarten.label"),
+      beschreibung: t("ev.verfassung_aym.opt.abwarten.beschr"),
       pk: 0,
       wirkung: (w, _ev, rng) => aymEntscheiden(w, rng).text,
     },
     {
       id: "respektieren",
-      label: "Die Unabhängigkeit des Gerichts öffentlich betonen",
-      beschreibung: "Was auch kommt, die Regierung wird das Urteil achten: stärkt die Urteilsbefolgung im Land, bevor das Gericht entscheidet.",
+      label: t("ev.verfassung_aym.opt.respektieren.label"),
+      beschreibung: t("ev.verfassung_aym.opt.respektieren.beschr"),
       pk: 0,
       wirkung: (w, _ev, rng) => {
         wirke(w, "urteilsbefolgung", 1);
-        return `Die Regierung kündigt an, jede Entscheidung zu achten. ${aymEntscheiden(w, rng).text}`;
+        return t("ev.verfassung_aym.opt.respektieren.ausgang", { urteil: aymEntscheiden(w, rng).text });
       },
     },
   ],
@@ -117,34 +136,42 @@ const AYM: Vorlage = {
 const REFERENDUM: Vorlage = {
   id: "verfassung_referendum",
   szene: "wahlnacht",
-  titel: () => "Referendum-Nacht: Das Volk entscheidet",
+  titel: () => t("ev.verfassung_referendum.titel"),
   text: (w) => {
     const v = w.spiel?.verfassungsvorgang?.laufend;
-    if (!v) return ["Die Wahllokale hätten sich für eine Volksabstimmung öffnen sollen; der Vorgang ist bereits abgeschlossen, die Auszählung entfällt."];
+    if (!v) return [t("ev.verfassung_referendum.text_erledigt")];
     const p = referendumPrognose(w);
-    if (!p) return ["Die Wahllokale schließen; der Vorgang ist bereits abgeschlossen."];
+    if (!p) return [t("ev.verfassung_referendum.text_ohne_prognose")];
     return [
-      `Die Wahllokale schließen, die Auszählung beginnt: ${paketNamen(w)}.`,
-      `Die letzte Erwartung lag bei etwa ${fmt(p.mitte)} Prozent Ja (Spanne ${fmt(p.tief)} bis ${fmt(p.hoch)}): Zustimmung ${fmt(p.zustimmung)}, Themen der Artikel ${p.salienz >= 0 ? "+" : ""}${fmt(p.salienz)}, Kampagne +${fmt(p.kampagne)}. Ab 50 Prozent tritt das Paket in Kraft; ein Nein kostet schweres Vertrauen und stärkt die Opposition.`,
+      t("ev.verfassung_referendum.text1", { paket: paketNamen(w) }),
+      t("ev.verfassung_referendum.text2", {
+        mitte: p.mitte,
+        tief: p.tief,
+        hoch: p.hoch,
+        zustimmung: p.zustimmung,
+        vz: p.salienz >= 0 ? "+" : "",
+        salienz: p.salienz,
+        kampagne: p.kampagne,
+      }),
     ];
   },
-  warum: () => "Eine Volksabstimmung ist eine Wahl über die Regierung selbst: Ihre Zustimmung trägt das Ja-Lager, die Artikel und die Kampagne verschieben es.",
+  warum: () => t("ev.verfassung_referendum.warum"),
   optionen: () => [
     {
       id: "auszaehlen",
-      label: "Die Auszählung verfolgen",
-      beschreibung: "Das Ergebnis bindet: Ja setzt das Paket in Kraft, Nein beendet es mit einem schweren Vertrauensverlust.",
+      label: t("ev.verfassung_referendum.opt.auszaehlen.label"),
+      beschreibung: t("ev.verfassung_referendum.opt.auszaehlen.beschr"),
       pk: 0,
       wirkung: (w, _ev, rng) => referendumAuszaehlen(w, rng).text,
     },
     {
       id: "ansprache",
-      label: "Mit einer Ansprache in die Nacht gehen",
-      beschreibung: "Der Präsident ruft zur Einheit auf, bevor das Ergebnis feststeht: dämpft die Polarisierung, kostet nichts.",
+      label: t("ev.verfassung_referendum.opt.ansprache.label"),
+      beschreibung: t("ev.verfassung_referendum.opt.ansprache.beschr"),
       pk: 0,
       wirkung: (w, _ev, rng) => {
         wirke(w, "polarisierung", -1);
-        return `Die Ansprache beschwört die Einheit des Landes. ${referendumAuszaehlen(w, rng).text}`;
+        return t("ev.verfassung_referendum.opt.ansprache.ausgang", { ergebnis: referendumAuszaehlen(w, rng).text });
       },
     },
   ],
@@ -160,41 +187,38 @@ const REFERENDUM: Vorlage = {
 const PROTESTE: Vorlage = {
   id: "verfassung_proteste",
   szene: "istanbul",
-  titel: () => "Proteste gegen das Verfassungspaket",
-  text: (w) => [
-    `Auf den Plätzen der großen Städte versammeln sich Menschen gegen die neue Verfassung: ${paketNamen(w)}.`,
-    "Die Bilder gehen um die Welt; Straßburg und die EU lesen das Paket als Richtungsentscheidung zugunsten des Palasts, und die Märkte werden nervös. Wer die Spielregeln zu seinen Gunsten schreibt, zahlt mit Legitimität.",
-  ],
-  warum: () => "Autoritäre Verfassungspakete erzeugen ihre Gegenreaktion: Straße, Ausland und Märkte antworten auf die Machtkonzentration.",
+  titel: () => t("ev.verfassung_proteste.titel"),
+  text: (w) => [t("ev.verfassung_proteste.text1", { paket: paketNamen(w) }), t("ev.verfassung_proteste.text2")],
+  warum: () => t("ev.verfassung_proteste.warum"),
   optionen: () => [
     {
       id: "dialog",
-      label: "Dialog anbieten",
-      beschreibung: "Vertreter der Proteste empfangen: kostet Kapital, entspannt das Klima, gilt als Zeichen von Selbstsicherheit.",
+      label: t("ev.verfassung_proteste.opt.dialog.label"),
+      beschreibung: t("ev.verfassung_proteste.opt.dialog.beschr"),
       pk: 3,
       wirkung: (w) => {
         vertrauenAendern(w, 0.5);
         wirke(w, "polarisierung", -1);
-        return "Das Gespräch mit Vertretern der Proteste nimmt den Bildern die Schärfe; das Klima entspannt sich etwas.";
+        return t("ev.verfassung_proteste.opt.dialog.ausgang");
       },
     },
     {
       id: "polizei",
-      label: "Plätze polizeilich räumen lassen",
-      beschreibung: "Schnell ruhig — und schnell neue Bilder: Ausnahmerecht und Polarisierung wachsen.",
+      label: t("ev.verfassung_proteste.opt.polizei.label"),
+      beschreibung: t("ev.verfassung_proteste.opt.polizei.beschr"),
       pk: 1,
       wirkung: (w) => {
         wirke(w, "ausnahmerecht", 1);
         wirke(w, "polarisierung", 1);
         wirke(w, "ansehen", -1);
-        return "Die Polizei räumt die Plätze; die Nacht ist ruhig, die Bilder sind es nicht.";
+        return t("ev.verfassung_proteste.opt.polizei.ausgang");
       },
     },
   ],
   standard: (w) => {
     vertrauenAendern(w, -1);
     wirke(w, "polarisierung", 1);
-    return "Die Proteste ziehen sich über Tage und verlieren sich erst allmählich; das Vertrauen hat gelitten.";
+    return t("ev.verfassung_proteste.standard");
   },
   frist: 6,
   abkuehlung: 300,

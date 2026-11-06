@@ -7,7 +7,8 @@ import { wirke, vertrauenAendern } from "./wirkung";
 import { landAendern } from "./laender";
 import { clamp } from "./economy";
 import { beschr, kosten, monatVon, netz, opt, zusageAnlegen } from "./ereignis-hilfen";
-import { msg } from "../i18n";
+import { aktuelleSprache, katalogVon, msg, t } from "../i18n";
+import type { Formen } from "../i18n";
 import type { Vorlage } from "./ereignis-hilfen";
 import { reichZustand, vorhabenDef } from "./reich";
 import { ERBE, ERBE_NACH_ID } from "../data/erbe";
@@ -15,6 +16,35 @@ import type { World } from "./types";
 import type { Rng } from "./rng";
 
 const staette = (ev: { daten?: Record<string, number | string> }) => ERBE_NACH_ID[String(ev.daten?.staette ?? "")] ?? ERBE[0]!;
+
+/**
+ * Name der Stätte im Satz mit seinen Formen (`{ad}`, `{ad|dat}`, `{ad|akk}`). Stätten mit Artikel oder Zusatz in Klammern
+ * („Smyrna (Agora)“) haben einen eigenen Satznamen `ev.erbe.ad.<id>`; im Deutschen steht er als „Nominativ|Dativ|Akkusativ“
+ * (fehlt der Akkusativ, gilt der Nominativ). Sonst gilt der übersetzte Name der Stätte.
+ */
+function ad(e: (typeof ERBE)[number]): Formen {
+  const roh = katalogVon(aktuelleSprache())[`ev.erbe.ad.${e.id}`];
+  if (roh === undefined) return { nom: e.name };
+  const [nom = e.name, dat, akk] = roh.split("|");
+  return dat ? { nom, dat, akk: akk ?? nom } : { nom };
+}
+
+/**
+ * Text mit Stättennamen: Im Deutschen verschmilzt die Präposition mit dem Artikel des Dativs („bei dem Topkapı-Palast“ → „beim
+ * Topkapı-Palast“, „an dem“ → „am“, „von dem“ → „vom“). Die Kataloge dieser Vorlagen haben sonst kein „bei/an/von dem“.
+ */
+function tSt(key: string, params: Parameters<typeof t>[1]): string {
+  const s = t(key, params);
+  return aktuelleSprache() === "de" ? s.replace(/(^|\s)(bei|an|von) dem /g, (_, v: string, p: string) => `${v}${p === "bei" ? "beim" : p === "an" ? "am" : "vom"} `) : s;
+}
+
+/** Name und Ort für die Kataloge; der Ort entfällt, wenn der Name ihn schon nennt („die Altstadt von Antakya … in Antakya“). */
+function stelle(ev: { daten?: Record<string, number | string> }): { ad: Formen; ort: string; mitort: string } {
+  const e = staette(ev);
+  const name = ad(e);
+  const enthalten = name.nom.toLocaleLowerCase("tr").includes(e.ort.toLocaleLowerCase("tr"));
+  return { ad: name, ort: e.ort, mitort: enthalten ? "nein" : "ja" };
+}
 
 /** Zieht eine Stätte, deren Gewicht mit schlechtem Zustand wächst. */
 function schwaecheZiehen(w: World, rng: Rng, nur?: (e: (typeof ERBE)[number]) => boolean): (typeof ERBE)[number] | null {
@@ -61,32 +91,29 @@ const RAUBGRABUNG: Vorlage = {
     const e = schwaecheZiehen(w, rng, (x) => x.bezug.includes("antik") || x.bezug.includes("fruehmenschlich"));
     return e ? { provinzen: [e.plaka], staerke: 0.5 + 0.5 * rng.next(), daten: { staette: e.id } } : null;
   },
-  titel: (_, ev) => `Raubgrabung bei ${staette(ev).name}`,
-  text: (_, ev) => [
-    `Wächter melden nächtliche Grabungen bei ${staette(ev).name} (${staette(ev).ort}): Löcher im Boden, Spuren von Metalldetektoren, ein Händler bietet im Ausland Stücke an, die aus der Gegend stammen könnten.`,
-    "Das Gesetz zum Schutz von Kulturgütern sieht zwei bis fünf Jahre Haft vor; die Wächter sind zu wenige.",
-  ],
-  warum: () => "Ein Erbe, das niemand bewacht, geht Stück für Stück verloren: durch Raub, durch Verfall und durch Gleichgültigkeit.",
+  titel: (_, ev) => tSt("ev.erbe_raubgrabung.titel", stelle(ev)),
+  text: (_, ev) => [tSt("ev.erbe_raubgrabung.text1", stelle(ev)), t("ev.erbe_raubgrabung.text2")],
+  warum: () => t("ev.erbe_raubgrabung.warum"),
   massnahmen: ["m_denkmalschutz", "m_archaeologie"],
   optionen: (_, ev) => [
-    opt("schutz", "Wächter aufstocken und Ermittler schicken", beschr(3, 0, "sichert die Stätte und stellt Täter."), 3, (w) => {
+    opt("schutz", t("ev.erbe_raubgrabung.opt.schutz.label"), beschr(3, 0, t("ev.erbe_raubgrabung.opt.schutz.beschr")), 3, (w) => {
       hebeStaette(w, staette(ev).id, 8);
       wirke(w, "kriminalitaet", -1, ev.provinzen);
       wirke(w, "ansehen", 0.5);
-      return `Die Stätte bei ${staette(ev).name} wird bewacht; die Ermittler verfolgen die Händler.`;
+      return tSt("ev.erbe_raubgrabung.opt.schutz.ausgang", stelle(ev));
     }),
-    opt("grabung", "Die Grabung selbst übernehmen: Funde sichern", beschr(2, 0.02, "die Wissenschaft rettet, was noch da ist."), 2, (w) => {
+    opt("grabung", t("ev.erbe_raubgrabung.opt.grabung.label"), beschr(2, 0.02, t("ev.erbe_raubgrabung.opt.grabung.beschr")), 2, (w) => {
       kosten(w, 0.02);
       hebeStaette(w, staette(ev).id, 5);
       wirke(w, "hochschule", 0.5);
       wirke(w, "identitaet", 0.5);
-      return `Archäologen übernehmen die Grabung bei ${staette(ev).name} und sichern die Funde.`;
+      return tSt("ev.erbe_raubgrabung.opt.grabung.ausgang", stelle(ev));
     }),
   ],
   standard: (w, ev) => {
     hebeStaette(w, staette(ev).id, -10 * ev.staerke);
     wirke(w, "ansehen", -0.5);
-    return `Die Raubgräber machen weiter; bei ${staette(ev).name} gehen Funde verloren.`;
+    return tSt("ev.erbe_raubgrabung.standard", stelle(ev));
   },
 };
 
@@ -100,29 +127,28 @@ const ERDBEBENSCHADEN: Vorlage = {
     const e = schwaecheZiehen(w, rng);
     return e ? { provinzen: [e.plaka], staerke: 0.4 + 0.6 * rng.next(), daten: { staette: e.id } } : null;
   },
-  titel: (_, ev) => `Nachbeben: Schäden an ${staette(ev).name}`,
-  text: (_, ev) => [
-    `Ein Erdbeben der Stärke fünf bringt bei ${staette(ev).name} (${staette(ev).ort}) Mauern zum Einsturz und reißt Risse in tragende Bauteile. Gutachter warnen: Bleibt die Stätte ungesichert, droht der nächste Regen den Rest zu zerstören.`,
-    "Antakya hat 2023 mehr als die Hälfte seiner historischen Bausubstanz verloren; niemand will sich das wiederholen.",
-  ],
-  warum: () => "Das Erdbebenland verliert sein Erbe nicht nur durch Alter, sondern durch einzelne Nächte; Vorsorge ist billiger als Wiederaufbau.",
+  titel: (_, ev) => tSt("ev.erbe_erdbebenschaden.titel", stelle(ev)),
+  text: (_, ev) => [tSt("ev.erbe_erdbebenschaden.text1", stelle(ev)), t("ev.erbe_erdbebenschaden.text2")],
+  warum: () => t("ev.erbe_erdbebenschaden.warum"),
   massnahmen: ["m_denkmalschutz", "m_bauaufsicht"],
   optionen: (_, ev) => [
-    opt("sichern", "Sofort sichern: Stützen, Dächer, Gutachter", beschr(3, 0.03, "rettet, was zu retten ist."), 3, (w) => {
+    opt("sichern", t("ev.erbe_erdbebenschaden.opt.sichern.label"), beschr(3, 0.03, t("ev.erbe_erdbebenschaden.opt.sichern.beschr")), 3, (w) => {
       kosten(w, 0.03);
       hebeStaette(w, staette(ev).id, 12);
-      return `Notdächer und Stützen sichern ${staette(ev).name}.`;
+      return tSt("ev.erbe_erdbebenschaden.opt.sichern.ausgang", stelle(ev));
     }),
-    opt("zusagen", "Den Wiederaufbau zusagen", beschr(1, 0, "ein Versprechen, das später eingefordert wird."), 1, (w) => {
-      zusageAnlegen(w, { von: `Denkmalbehörde von ${staette(ev).ort}`, text: `Der Wiederaufbau von ${staette(ev).name} wurde zugesagt`, msg: msg("zusage.erbe.wiederaufbau", { name: staette(ev).name }), tage: 300, massnahme: "m_denkmalschutz" });
+    opt("zusagen", t("ev.erbe_erdbebenschaden.opt.zusagen.label"), beschr(1, 0, t("ev.erbe_erdbebenschaden.opt.zusagen.beschr")), 1, (w) => {
+      // `von` bleibt die feste Kennung (zusageVon übersetzt sie), der Text kommt über `msg` in der Sprache der Anzeige.
+      const m = msg("zusage.erbe.wiederaufbau", { name: staette(ev).name });
+      zusageAnlegen(w, { von: `Denkmalbehörde von ${staette(ev).ort}`, text: t(m.k, m.p), msg: m, tage: 300, massnahme: "m_denkmalschutz" });
       hebeStaette(w, staette(ev).id, 4);
-      return `Der Wiederaufbau von ${staette(ev).name} ist zugesagt.`;
+      return tSt("ev.erbe_erdbebenschaden.opt.zusagen.ausgang", stelle(ev));
     }),
   ],
   standard: (w, ev) => {
     hebeStaette(w, staette(ev).id, -18 * ev.staerke);
     wirke(w, "kulturerbe", -1, ev.provinzen);
-    return `Ungesichert verfällt ${staette(ev).name} weiter; der nächste Regen richtet den Rest an.`;
+    return tSt("ev.erbe_erdbebenschaden.standard", stelle(ev));
   },
 };
 
@@ -139,15 +165,15 @@ const UNESCO: Vorlage = {
     const e = kand[Math.floor(rng.next() * kand.length)]!;
     return { provinzen: [e.plaka], staerke: 1, daten: { staette: e.id } };
   },
-  titel: (_, ev) => `Das Welterbekomitee berät über ${staette(ev).name}`,
+  titel: (_, ev) => tSt("ev.erbe_unesco.titel", stelle(ev)),
   text: (w, ev) => [
-    `Im Juli tagt das Welterbekomitee der UNESCO. Die Türkei hat ${staette(ev).name} (${staette(ev).ort}) für die Liste vorgeschlagen; der Zustand der Stätte ist ${Math.round(reichZustand(w).staetten[staette(ev).id]?.zustand ?? 0)} von 100. Die Gutachter verlangen einen Plan zur Erhaltung, ein Besuchermanagement und Ansprechpartner vor Ort.`,
-    "Zuletzt wurde Sardes 2025 aufgenommen, nach jahrelanger Vorbereitung.",
+    tSt("ev.erbe_unesco.text1", { ...stelle(ev), zustand: Math.round(reichZustand(w).staetten[staette(ev).id]?.zustand ?? 0) }),
+    t("ev.erbe_unesco.text2"),
   ],
-  warum: () => "Ein Welterbetitel hängt an Zustand, Verwaltung und Diplomatie; er bringt Gäste und Ansehen und verpflichtet zu Pflege und Berichten.",
+  warum: () => t("ev.erbe_unesco.warum"),
   massnahmen: ["m_archaeologie", "m_denkmalschutz"],
   optionen: (_, ev) => [
-    opt("betreiben", "Den Antrag mit vollem Einsatz betreiben", beschr(4, 0, "Diplomatie, Gutachter und ein Erhaltungsplan; der Ausgang ist offen."), 4, (w, _e, rng) => {
+    opt("betreiben", t("ev.erbe_unesco.opt.betreiben.label"), beschr(4, 0, t("ev.erbe_unesco.opt.betreiben.beschr")), 4, (w, _e, rng) => {
       const st = reichZustand(w).staetten[staette(ev).id]?.zustand ?? 50;
       const p = clamp(0.4 + 0.006 * (st - 55) + 0.004 * (netz(w, "ansehen") - 50), 0.15, 0.85);
       if (rng.next() < p) {
@@ -155,19 +181,19 @@ const UNESCO: Vorlage = {
         wirke(w, "tourismus", 3, ev.provinzen);
         wirke(w, "identitaet", 1);
         hebeStaette(w, staette(ev).id, 6);
-        return `${staette(ev).name} wird in die Welterbeliste aufgenommen.`;
+        return tSt("ev.erbe_unesco.opt.betreiben.ausgang.ja", stelle(ev));
       }
       wirke(w, "ansehen", -0.5);
-      return `Das Komitee vertagt die Entscheidung über ${staette(ev).name}: Der Erhaltungsplan überzeugt noch nicht.`;
+      return tSt("ev.erbe_unesco.opt.betreiben.ausgang.nein", stelle(ev));
     }),
-    opt("zurueck", "Den Antrag zurückstellen und erst die Stätte sichern", beschr(1, 0, "spart Kraft und kostet ein Jahr."), 1, (w) => {
+    opt("zurueck", t("ev.erbe_unesco.opt.zurueck.label"), beschr(1, 0, t("ev.erbe_unesco.opt.zurueck.beschr")), 1, (w) => {
       hebeStaette(w, staette(ev).id, 5);
-      return `Ankara stellt den Antrag für ${staette(ev).name} zurück und sichert zuerst die Stätte.`;
+      return tSt("ev.erbe_unesco.opt.zurueck.ausgang", stelle(ev));
     }),
   ],
   standard: (w) => {
     wirke(w, "ansehen", -0.3);
-    return "Ohne Beitrag Ankaras schiebt das Komitee den Antrag auf.";
+    return t("ev.erbe_unesco.standard");
   },
 };
 
@@ -182,32 +208,30 @@ const FUND: Vorlage = {
     const e = kand[Math.floor(rng.next() * kand.length)]!;
     return { provinzen: [e.plaka], staerke: 0.5 + 0.5 * rng.next(), daten: { staette: e.id } };
   },
-  titel: (_, ev) => `Ein Fund bei ${staette(ev).name}`,
-  text: (_, ev) => [
-    `Die Grabungsleiter bei ${staette(ev).name} (${staette(ev).ort}) melden einen Fund, der die Forschung verändern könnte: eine Anlage, die älter ist als angenommen, mit Reliefs und Inschriften. Die Presse hat schon davon erfahren.`,
-    "Göbekli Tepe zählte 2024 750.000 Besucher; ein neuer Fund wird sofort zum Ziel.",
-  ],
-  warum: () => "Funde machen ein Land sichtbar, aber Schutz und Forschung brauchen Zeit; wer zu früh feiert, riskiert Schäden und Raub.",
+  titel: (_, ev) => tSt("ev.erbe_fund.titel", stelle(ev)),
+  // Zeitlos statt Statistik eines Jahres (Befund A-20): Der Satz kehrt bei jedem Fund wieder.
+  text: (_, ev) => [tSt("ev.erbe_fund.text1", stelle(ev)), t("ev.erbe_fund.text2")],
+  warum: () => t("ev.erbe_fund.warum"),
   massnahmen: ["m_archaeologie"],
   optionen: (_, ev) => [
-    opt("offen", "Sofort bekannt machen und ein Museum ankündigen", beschr(2, 0.02, "Aufmerksamkeit, Gäste und Erwartungen."), 2, (w) => {
+    opt("offen", t("ev.erbe_fund.opt.offen.label"), beschr(2, 0.02, t("ev.erbe_fund.opt.offen.beschr")), 2, (w) => {
       kosten(w, 0.02);
       wirke(w, "tourismus", 2, ev.provinzen);
       wirke(w, "identitaet", 1.5);
       wirke(w, "ansehen", 1.5);
       hebeStaette(w, staette(ev).id, -3);
-      return `Die Regierung macht den Fund bei ${staette(ev).name} bekannt und kündigt ein Museum an.`;
+      return tSt("ev.erbe_fund.opt.offen.ausgang", stelle(ev));
     }),
-    opt("sichern", "Erst wissenschaftlich sichern, dann berichten", beschr(1, 0, "langsamer Ruhm, sichere Stätte."), 1, (w) => {
+    opt("sichern", t("ev.erbe_fund.opt.sichern.label"), beschr(1, 0, t("ev.erbe_fund.opt.sichern.beschr")), 1, (w) => {
       wirke(w, "hochschule", 1);
       wirke(w, "identitaet", 0.5);
       hebeStaette(w, staette(ev).id, 4);
-      return `Wissenschaftler dokumentieren den Fund bei ${staette(ev).name}, bevor er veröffentlicht wird.`;
+      return tSt("ev.erbe_fund.opt.sichern.ausgang", stelle(ev));
     }),
   ],
   standard: (w, ev) => {
     hebeStaette(w, staette(ev).id, -4);
-    return `Ohne Entscheidung sickern Bilder durch; bei ${staette(ev).name} stehen bald Schaulustige.`;
+    return tSt("ev.erbe_fund.standard", stelle(ev));
   },
 };
 
@@ -218,30 +242,28 @@ const HAGIA_SOPHIA: Vorlage = {
   abkuehlung: 720,
   chance: (w) => (netz(w, "vielfalt") < 48 && Number(w.date.slice(0, 4)) >= 2029 ? 0.012 : 0),
   erzeuge: () => ({ provinzen: [34], staerke: 1 }),
-  titel: () => "Streit um die Hagia Sophia",
-  text: () => [
-    "Zum Jahrestag der Umwidmung streiten Verbände, Kirchen und Museumsleute wieder um die Nutzung der Hagia Sophia: Gebet für die einen, Weltkulturerbe für die anderen, Ziel für Millionen Besucher.",
-    "Das Dekret vom 2. Juli 2020 machte sie wieder zur Moschee; die UNESCO bedauerte es. Seit 15. Januar 2024 zahlen ausländische Gäste 25 Euro.",
-  ],
-  warum: () => "Ein Bauwerk kann für mehrere Gemeinschaften heilig sein; jede Änderung der Besuchsregeln wird politisch gelesen.",
+  titel: () => t("ev.erbe_hagia_sophia.titel"),
+  // Ohne Tagesdatum und Eintrittspreis eines Jahres (Befund A-20): Umwidmung im Juli 2020 (Danıştay-Urteil und Dekret vom 10. Juli 2020).
+  text: () => [t("ev.erbe_hagia_sophia.text1"), t("ev.erbe_hagia_sophia.text2")],
+  warum: () => t("ev.erbe_hagia_sophia.warum"),
   massnahmen: ["m_minderheitenrechte"],
   optionen: () => [
-    opt("offen", "Besuchszeiten für alle Glaubensrichtungen öffnen", beschr(3, 0, "Vielfalt und Ansehen, aber Protest der Konservativen."), 3, (w) => {
+    opt("offen", t("ev.erbe_hagia_sophia.opt.offen.label"), beschr(3, 0, t("ev.erbe_hagia_sophia.opt.offen.beschr")), 3, (w) => {
       wirke(w, "vielfalt", 3);
       wirke(w, "ansehen", 2);
       wirke(w, "konservative", -2);
       hebeStaette(w, "hagia_sophia", 2);
-      return "Die Regierung öffnet feste Zeiten für Besucher aller Glaubensrichtungen.";
+      return t("ev.erbe_hagia_sophia.opt.offen.ausgang");
     }),
-    opt("gebuehr", "Den Eintritt für Ausländer anheben", beschr(1, 0, "Einnahmen, weniger Gäste."), 1, (w) => {
+    opt("gebuehr", t("ev.erbe_hagia_sophia.opt.gebuehr.label"), beschr(1, 0, t("ev.erbe_hagia_sophia.opt.gebuehr.beschr")), 1, (w) => {
       bucheFinanzsaldo(w.economy, -0.02);
       wirke(w, "tourismus", -1, [34]);
-      return "Der Eintritt für ausländische Gäste steigt; das bringt Einnahmen und dämpft den Andrang.";
+      return t("ev.erbe_hagia_sophia.opt.gebuehr.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "polarisierung", 1);
-    return "Ohne Entscheidung bleibt es beim Streit.";
+    return t("ev.erbe_hagia_sophia.standard");
   },
 };
 
@@ -252,29 +274,26 @@ const PILGERWELLE: Vorlage = {
   abkuehlung: 360,
   chance: (w) => (w.spiel?.reich?.bestand.serie_kirchen7 ? 0.05 : 0.004),
   erzeuge: () => ({ provinzen: [35, 45, 20], staerke: 1 }),
-  titel: () => "Eine Pilgerwelle an der Kirchenroute",
-  text: () => [
-    "Zum kirchlichen Feiertag kommen weit mehr Pilger und Reisegruppen, als die Kirchenroute der Sieben verkraftet: Busse stauen sich in Selçuk, in Bergama fehlen Unterkünfte, und in Sardes drängen sich die Gäste in der Synagoge.",
-    "Das ist der Erfolg, den man wollte, und die Belastung, vor der die Denkmalbehörden warnten.",
-  ],
-  warum: () => "Erfolg belastet: Wer Besucher anzieht, muss sie lenken, sonst zahlt die Stätte.",
+  titel: () => t("ev.kultur_pilgerwelle.titel"),
+  text: () => [t("ev.kultur_pilgerwelle.text1", { route: vorhabenDef("serie_kirchen7")?.name ?? "" }), t("ev.kultur_pilgerwelle.text2")],
+  warum: () => t("ev.kultur_pilgerwelle.warum"),
   massnahmen: ["m_denkmalschutz", "m_kulturfoerderung"],
   optionen: () => [
-    opt("lenken", "Unterkünfte und Besucherlenkung ausbauen", beschr(2, 0.02, "schützt die Stätten, kostet Baukapazität."), 2, (w) => {
+    opt("lenken", t("ev.kultur_pilgerwelle.opt.lenken.label"), beschr(2, 0.02, t("ev.kultur_pilgerwelle.opt.lenken.beschr")), 2, (w) => {
       kosten(w, 0.02);
       wirke(w, "tourismus", 1, [35, 45, 20]);
       for (const id of ["ephesos", "smyrna", "pergamon", "thyatira", "sardes", "philadelphia", "laodikeia"]) hebeStaette(w, id, 2);
-      return "Ordner, Parkflächen und Führungen lenken die Pilger.";
+      return t("ev.kultur_pilgerwelle.opt.lenken.ausgang");
     }),
-    opt("laufen", "Laufen lassen", beschr(0, 0, "mehr Gäste heute, mehr Verschleiß morgen."), 0, (w) => {
+    opt("laufen", t("ev.kultur_pilgerwelle.opt.laufen.label"), beschr(0, 0, t("ev.kultur_pilgerwelle.opt.laufen.beschr")), 0, (w) => {
       wirke(w, "tourismus", 2, [35, 45, 20]);
       for (const id of ["ephesos", "smyrna", "pergamon", "thyatira", "sardes", "philadelphia", "laodikeia"]) hebeStaette(w, id, -3);
-      return "Die Pilger kommen in Scharen; die Stätten tragen die Last.";
+      return t("ev.kultur_pilgerwelle.opt.laufen.ausgang");
     }),
   ],
   standard: (w) => {
     for (const id of ["ephesos", "pergamon", "sardes"]) hebeStaette(w, id, -2);
-    return "Der Andrang bleibt unbewältigt; die Stätten leiden.";
+    return t("ev.kultur_pilgerwelle.standard");
   },
 };
 
@@ -292,35 +311,32 @@ const ERNENNUNG: Vorlage = {
   abkuehlung: 330,
   chance: () => 0.05,
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Ein Sitz am Verfassungsgericht wird frei",
+  titel: () => t("ev.recht_ernennung.titel"),
   text: (w) => {
     const s = reichZustand(w).sitze.aym!;
-    return [
-      "Ein Mitglied des Verfassungsgerichts tritt in den Ruhestand. Der Präsident ernennt zwölf der fünfzehn Mitglieder; für den frei gewordenen Platz muss er einen Namen nennen.",
-      `Im Gericht sitzen jetzt ${s.loyal} Juristen, die der Regierung nahestehen, ${s.reform} Reformorientierte und ${s.unabhaengig} Unabhängige. Jede Ernennung verschiebt das Gleichgewicht für zwölf Jahre.`,
-    ];
+    return [t("ev.recht_ernennung.text1"), t("ev.recht_ernennung.text2", { loyal: s.loyal, reform: s.reform, unabhaengig: s.unabhaengig })];
   },
-  warum: () => "Wer die Sitze besetzt, prägt, ob Gerichte Vorhaben der Regierung stoppen: Loyalität kauft Ruhe, Unabhängigkeit kauft Glaubwürdigkeit.",
+  warum: () => t("ev.recht_ernennung.warum"),
   massnahmen: ["m_richterrat"],
   optionen: () => [
-    opt("loyal", "Einen Juristen aus dem eigenen Umfeld ernennen", beschr(0, 0, "sicher für die Regierung, teuer für die Unabhängigkeit."), 0, (w, _e, rng) => {
+    opt("loyal", t("ev.recht_ernennung.opt.loyal.label"), beschr(0, 0, t("ev.recht_ernennung.opt.loyal.beschr")), 0, (w, _e, rng) => {
       besetze(w, "aym", "loyal", rng);
       wirke(w, "justiz_unabhaengigkeit", -1);
       wirke(w, "konservative", 0.5);
-      return "Der Präsident ernennt einen Juristen aus dem eigenen Umfeld.";
+      return t("ev.recht_ernennung.opt.loyal.ausgang");
     }),
-    opt("unabhaengig", "Eine anerkannte, unabhängige Juristin ernennen", beschr(2, 0, "Glaubwürdigkeit im In- und Ausland, weniger Zugriff."), 2, (w, _e, rng) => {
+    opt("unabhaengig", t("ev.recht_ernennung.opt.unabhaengig.label"), beschr(2, 0, t("ev.recht_ernennung.opt.unabhaengig.beschr")), 2, (w, _e, rng) => {
       besetze(w, "aym", "unabhaengig", rng);
       wirke(w, "justiz_unabhaengigkeit", 1.5);
       wirke(w, "ansehen", 1);
       wirke(w, "staedtische_saekulare", 1);
-      return "Der Präsident ernennt eine unabhängige Juristin; die Fachwelt lobt die Wahl.";
+      return t("ev.recht_ernennung.opt.unabhaengig.ausgang");
     }),
-    opt("kompromiss", "Eine Kandidatin suchen, die auch die Opposition mitträgt", beschr(3, 0, "ein Kompromiss, der Fraktionen einbindet."), 3, (w, _e, rng) => {
+    opt("kompromiss", t("ev.recht_ernennung.opt.kompromiss.label"), beschr(3, 0, t("ev.recht_ernennung.opt.kompromiss.beschr")), 3, (w, _e, rng) => {
       besetze(w, "aym", "reform", rng);
       wirke(w, "justiz_unabhaengigkeit", 0.8);
       wirke(w, "polarisierung", -0.5);
-      return "Nach Gesprächen mit der Opposition steht eine Kandidatin fest, die beide Lager mittragen.";
+      return t("ev.recht_ernennung.opt.kompromiss.ausgang");
     }),
   ],
   standard: (w) => {
@@ -333,7 +349,7 @@ const ERNENNUNG: Vorlage = {
       s[geht] -= 1;
       s.loyal += 1;
     }
-    return "Der Präsident lässt die Frist verstreichen; der Sitz geht an den Kandidaten seines Umfelds.";
+    return t("ev.recht_ernennung.standard");
   },
 };
 
@@ -344,33 +360,30 @@ const AYM_GEGEN_KASSATION: Vorlage = {
   abkuehlung: 400,
   chance: (w) => (netz(w, "urteilsbefolgung") < 45 ? 0.025 : 0.006),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Verfassungsgericht gegen Kassationshof",
-  text: () => [
-    "Der Kassationshof weigert sich, ein Urteil des Verfassungsgerichts umzusetzen, das die Freilassung eines gewählten Abgeordneten anordnet: Das Urteil habe „keinen Rechtswert“. Zum zweiten Mal steht Gericht gegen Gericht.",
-    "Anwälte und Opposition fordern, dass die Regierung das Urteil durchsetzt; regierungsnahe Kreise stellen sich hinter den Kassationshof.",
-  ],
-  warum: () => "Wenn oberste Gerichte einander nicht anerkennen, entscheidet sich, ob Urteile etwas gelten; die Regierung hat kein neutrales Amt in diesem Streit.",
+  titel: () => t("ev.recht_aym_kassation.titel"),
+  text: () => [t("ev.recht_aym_kassation.text1"), t("ev.recht_aym_kassation.text2")],
+  warum: () => t("ev.recht_aym_kassation.warum"),
   massnahmen: ["m_urteilsumsetzung"],
   optionen: () => [
-    opt("durchsetzen", "Das Urteil des Verfassungsgerichts durchsetzen", beschr(4, 0, "stärkt die Gerichtsbarkeit, verärgert das Lager."), 4, (w) => {
+    opt("durchsetzen", t("ev.recht_aym_kassation.opt.durchsetzen.label"), beschr(4, 0, t("ev.recht_aym_kassation.opt.durchsetzen.beschr")), 4, (w) => {
       wirke(w, "urteilsbefolgung", 5);
       wirke(w, "justiz_unabhaengigkeit", 2);
       wirke(w, "strassburg_druck", -2);
       wirke(w, "konservative", -1);
-      return "Die Regierung sorgt dafür, dass das Urteil des Verfassungsgerichts umgesetzt wird.";
+      return t("ev.recht_aym_kassation.opt.durchsetzen.ausgang");
     }),
-    opt("kassation", "Den Kassationshof stützen", beschr(0, 0, "Ruhe im Lager, Streit mit Straßburg."), 0, (w) => {
+    opt("kassation", t("ev.recht_aym_kassation.opt.kassation.label"), beschr(0, 0, t("ev.recht_aym_kassation.opt.kassation.beschr")), 0, (w) => {
       wirke(w, "urteilsbefolgung", -4);
       wirke(w, "justiz_unabhaengigkeit", -2);
       wirke(w, "ansehen", -1.5);
       wirke(w, "konservative", 1);
-      return "Die Regierung stellt sich hinter den Kassationshof; das Urteil bleibt unerfüllt.";
+      return t("ev.recht_aym_kassation.opt.kassation.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "urteilsbefolgung", -2);
     wirke(w, "polarisierung", 1);
-    return "Der Streit der Gerichte bleibt ungelöst; das Vertrauen in beide sinkt.";
+    return t("ev.recht_aym_kassation.standard");
   },
 };
 
@@ -381,32 +394,30 @@ const EGMR_URTEIL: Vorlage = {
   abkuehlung: 300,
   chance: (w) => (netz(w, "strassburg_druck") >= 50 ? 0.035 : 0.01),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Ein Urteil aus Straßburg",
-  text: () => [
-    "Der Europäische Gerichtshof für Menschenrechte stellt fest, dass die Türkei in einem weiteren Fall die Konvention verletzt hat. 2025 ergingen 74 Urteile gegen die Türkei, 66 mit Verletzung; 22.566 Beschwerden waren am 1. Juli 2026 anhängig.",
-    "Das Ministerkomitee des Europarats fragt, ob und wann die Regierung das Urteil umsetzt.",
-  ],
-  warum: () => "Urteile aus Straßburg sind bindend; wer sie nicht umsetzt, sammelt Verfahren und Vorwürfe.",
+  titel: () => t("ev.recht_egmr.titel"),
+  // Zeitlos statt der Jahreszahlen 2025/2026 (Befund A-20): Die Türkei gehört seit Jahren zu den am häufigsten verurteilten Staaten.
+  text: () => [t("ev.recht_egmr.text1"), t("ev.recht_egmr.text2")],
+  warum: () => t("ev.recht_egmr.warum"),
   massnahmen: ["m_urteilsumsetzung"],
   optionen: () => [
-    opt("umsetzen", "Das Urteil umsetzen", beschr(3, 0, "Freiheit und Ansehen, Ärger im Lager."), 3, (w) => {
+    opt("umsetzen", t("ev.recht_egmr.opt.umsetzen.label"), beschr(3, 0, t("ev.recht_egmr.opt.umsetzen.beschr")), 3, (w) => {
       wirke(w, "urteilsbefolgung", 4);
       wirke(w, "strassburg_druck", -3);
       wirke(w, "konservative", -1.5);
-      landAendern(w, "EU", { vertrauen: 2 }, "Ein Straßburger Urteil wurde umgesetzt");
-      return "Die Regierung setzt das Straßburger Urteil um.";
+      landAendern(w, "EU", { vertrauen: 2 }, t("ev.recht_egmr.opt.umsetzen.notiz"));
+      return t("ev.recht_egmr.opt.umsetzen.ausgang");
     }),
-    opt("zurueck", "Das Urteil zurückweisen", beschr(0, 0, "Beifall zu Hause, Druck von außen."), 0, (w) => {
+    opt("zurueck", t("ev.recht_egmr.opt.zurueck.label"), beschr(0, 0, t("ev.recht_egmr.opt.zurueck.beschr")), 0, (w) => {
       wirke(w, "strassburg_druck", 3);
       wirke(w, "ansehen", -2);
       wirke(w, "konservative", 1.5);
-      landAendern(w, "EU", { vertrauen: -2 }, "Ein Straßburger Urteil wurde zurückgewiesen");
-      return "Die Regierung weist das Straßburger Urteil zurück.";
+      landAendern(w, "EU", { vertrauen: -2 }, t("ev.recht_egmr.opt.zurueck.notiz"));
+      return t("ev.recht_egmr.opt.zurueck.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "strassburg_druck", 1);
-    return "Das Urteil bleibt liegen; die Liste des Ministerkomitees wächst.";
+    return t("ev.recht_egmr.standard");
   },
 };
 
@@ -417,42 +428,43 @@ const HAFTREVOLTE: Vorlage = {
   abkuehlung: 360,
   chance: (w) => 0.02 * Math.max(0, netz(w, "haftueberfuellung") / 70) ** 3,
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Unruhen in einer überfüllten Haftanstalt",
-  text: () => [
-    "In einer Haftanstalt, die für halb so viele Menschen gebaut wurde, brechen Unruhen aus: Insassen verweigern das Essen, ein Flügel brennt. Angehörige stehen vor dem Tor.",
-    "Im August 2026 saßen 433.520 Menschen auf 304.956 Plätzen, 65.227 davon in Untersuchungshaft.",
-  ],
-  warum: () => "Überfüllung ist eine Politikfrage: Sie entsteht aus Haftpraxis und Kapazität, und sie entlädt sich in solchen Nächten.",
+  titel: () => t("ev.recht_haftrevolte.titel"),
+  // Aus dem Spielstand statt der Belegung vom August 2026 (Befund A-20): Wert des Knotens „Überfüllung der Haftanstalten“.
+  text: (w) => [t("ev.recht_haftrevolte.text1"), t("ev.recht_haftrevolte.text2", { wert: Math.round(netz(w, "haftueberfuellung")) })],
+  warum: () => t("ev.recht_haftrevolte.warum"),
   massnahmen: ["m_haftvermeidung"],
   optionen: () => [
-    opt("verlegen", "Sofort verlegen und Plätze schaffen", beschr(3, 0.03, "beruhigt die Lage kurz, kostet Bauarbeit."), 3, (w) => {
+    opt("verlegen", t("ev.recht_haftrevolte.opt.verlegen.label"), beschr(3, 0.03, t("ev.recht_haftrevolte.opt.verlegen.beschr")), 3, (w) => {
       kosten(w, 0.03);
       wirke(w, "haftueberfuellung", -2);
       wirke(w, "justizvertrauen", 0.5);
-      return "Häftlinge werden verlegt, zusätzliche Plätze eingerichtet.";
+      return t("ev.recht_haftrevolte.opt.verlegen.ausgang");
     }),
-    opt("haerte", "Härte zeigen", beschr(0, 0, "Beifall der Konservativen, Kritik im Ausland."), 0, (w) => {
+    opt("haerte", t("ev.recht_haftrevolte.opt.haerte.label"), beschr(0, 0, t("ev.recht_haftrevolte.opt.haerte.beschr")), 0, (w) => {
       wirke(w, "konservative", 1);
       wirke(w, "ansehen", -2);
       wirke(w, "justizvertrauen", -1);
-      return "Sondereinsatzkräfte beenden die Unruhen mit Härte.";
+      return t("ev.recht_haftrevolte.opt.haerte.ausgang");
     }),
-    opt("vermeidung", "Haftvermeidung und Bewährung ankündigen", beschr(2, 0, "eine Richtung, keine Sofortlösung."), 2, (w) => {
+    opt("vermeidung", t("ev.recht_haftrevolte.opt.vermeidung.label"), beschr(2, 0, t("ev.recht_haftrevolte.opt.vermeidung.beschr")), 2, (w) => {
       wirke(w, "haftueberfuellung", -1);
       wirke(w, "justizvertrauen", 1);
       wirke(w, "konservative", -1);
-      return "Die Regierung kündigt an, Untersuchungshaft zurückzudrängen.";
+      return t("ev.recht_haftrevolte.opt.vermeidung.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "justizvertrauen", -1);
     wirke(w, "ansehen", -1);
-    return "Die Lage in der Anstalt entgleitet; Berichte gehen um die Welt.";
+    return t("ev.recht_haftrevolte.standard");
   },
 };
 
 // ---------------------------------------------------------------------------
 // Streitkräfte
+
+/** Name des betroffenen Vorhabens (übersetzt), sonst ein allgemeiner Name aus dem Katalog. */
+const vorhabenName = (ev: { daten?: Record<string, number | string> }, ersatz: string): string => vorhabenDef(String(ev.daten?.vorhaben))?.name ?? t(ersatz);
 
 const LIEFERVERZUG: Vorlage = {
   id: "mil_lieferverzug",
@@ -465,38 +477,35 @@ const LIEFERVERZUG: Vorlage = {
     const v = laeuft[0];
     return v ? { provinzen: [], staerke: 1, daten: { vorhaben: v.id } } : null;
   },
-  titel: (_, ev) => `Verzug bei „${vorhabenDef(String(ev.daten?.vorhaben))?.name ?? "einem Rüstungsprogramm"}“`,
-  text: (_, ev) => [
-    `Beim Programm „${vorhabenDef(String(ev.daten?.vorhaben))?.name ?? "Rüstung"}“ melden die Hersteller Verzug: Ein Zulieferteil kommt nicht, die Abnahme wird verschoben, die Ausbildung hinkt hinterher.`,
-    "Verzug ist der Normalfall bei Rüstung; die Frage ist, wer den Preis zahlt: der Lieferant, die Truppe oder der Präsident.",
-  ],
-  warum: () => "Bestellt ist nicht einsatzbereit: Vom Vertrag bis zur Bereitschaft vergehen Jahre, und jede Störung kostet Zeit oder Bündnisgeduld.",
+  titel: (_, ev) => t("ev.mil_lieferverzug.titel", { name: vorhabenName(ev, "ev.mil_lieferverzug.unbekannt") }),
+  text: (_, ev) => [t("ev.mil_lieferverzug.text1", { name: vorhabenName(ev, "ev.mil_lieferverzug.unbekannt") }), t("ev.mil_lieferverzug.text2")],
+  warum: () => t("ev.mil_lieferverzug.warum"),
   massnahmen: ["m_ruestungsindustrie"],
   optionen: (_, ev) => [
-    opt("druck", "Auf den Lieferanten Druck machen", beschr(2, 0, "Termine halten, Beziehungen belasten."), 2, (w) => {
+    opt("druck", t("ev.mil_lieferverzug.opt.druck.label"), beschr(2, 0, t("ev.mil_lieferverzug.opt.druck.beschr")), 2, (w) => {
       const l = reichZustand(w).laufend.find((x) => x.id === String(ev.daten?.vorhaben));
       if (l) l.fortschritt += (vorhabenDef(l.id)?.kosten.bau ?? 0) * 0.03;
       wirke(w, "beziehungen_usa", -0.5);
-      return "Ankara macht Druck: Der Lieferant sagt Aufholung zu.";
+      return t("ev.mil_lieferverzug.opt.druck.ausgang");
     }),
-    opt("hinnehmen", "Die Frist hinnehmen", beschr(0, 0, "Ruhe, aber ein Loch in der Bereitschaft."), 0, (w) => {
+    opt("hinnehmen", t("ev.mil_lieferverzug.opt.hinnehmen.label"), beschr(0, 0, t("ev.mil_lieferverzug.opt.hinnehmen.beschr")), 0, (w) => {
       const l = reichZustand(w).laufend.find((x) => x.id === String(ev.daten?.vorhaben));
       if (l) l.fortschritt = Math.max(0, l.fortschritt - (vorhabenDef(l.id)?.kosten.bau ?? 0) * 0.05);
       wirke(w, "bereitschaft_luft", -0.5);
-      return "Die Regierung nimmt den Verzug hin; das Programm rutscht nach hinten.";
+      return t("ev.mil_lieferverzug.opt.hinnehmen.ausgang");
     }),
-    opt("eigen", "Die eigene Fertigung vorziehen", beschr(3, 0.05, "mehr Autarkie, später Ergebnisse."), 3, (w) => {
+    opt("eigen", t("ev.mil_lieferverzug.opt.eigen.label"), beschr(3, 0.05, t("ev.mil_lieferverzug.opt.eigen.beschr")), 3, (w) => {
       kosten(w, 0.05);
       wirke(w, "ruestungsautarkie", 2);
       const l = reichZustand(w).laufend.find((x) => x.id === String(ev.daten?.vorhaben));
       if (l) l.fortschritt = Math.max(0, l.fortschritt - (vorhabenDef(l.id)?.kosten.bau ?? 0) * 0.03);
-      return "Die Rüstungsagentur zieht die eigene Fertigung vor.";
+      return t("ev.mil_lieferverzug.opt.eigen.ausgang");
     }),
   ],
   standard: (w, ev) => {
     const l = reichZustand(w).laufend.find((x) => x.id === String(ev.daten?.vorhaben));
     if (l) l.fortschritt = Math.max(0, l.fortschritt - (vorhabenDef(l.id)?.kosten.bau ?? 0) * 0.04);
-    return "Der Verzug läuft weiter; das Programm verliert Zeit.";
+    return t("ev.mil_lieferverzug.standard");
   },
 };
 
@@ -507,36 +516,35 @@ const MILITAERRAT: Vorlage = {
   abkuehlung: 330,
   chance: (w) => (monatVon(w) === 8 ? 0.7 : 0),
   erzeuge: () => ({ provinzen: [], staerke: 1 }),
-  titel: () => "Der Oberste Militärrat tagt",
-  text: () => [
-    "Im August tagt der Oberste Militärrat unter Vorsitz des Präsidenten: Er entscheidet über Beförderungen und Pensionierungen der Generäle und Admirale.",
-    "Nach 2016 wurden Schätzungen zufolge 40 Prozent bis zwei Drittel der Generäle entlassen; wer nun befördert wird, sagt der Truppe, wonach im Land befördert wird.",
-  ],
-  warum: () => "Die Auswahl der Führung entscheidet, ob Offiziere sich an Leistung oder an Nähe orientieren. Loyalität kauft Ruhe, Leistung kauft Bereitschaft.",
+  titel: () => t("ev.mil_militaerrat.titel"),
+  // Ohne Schätzwerte zu den Entlassungen nach 2016 (Befund A-20): nur der geschichtliche Hintergrund.
+  text: () => [t("ev.mil_militaerrat.text1"), t("ev.mil_militaerrat.text2")],
+  warum: () => t("ev.mil_militaerrat.warum"),
   massnahmen: ["m_offiziersauswahl"],
   optionen: () => [
-    opt("leistung", "Nach Leistung befördern", beschr(3, 0, "Vertrauen und Bereitschaft, aber weniger Zugriff."), 3, (w) => {
+    opt("leistung", t("ev.mil_militaerrat.opt.leistung.label"), beschr(3, 0, t("ev.mil_militaerrat.opt.leistung.beschr")), 3, (w) => {
       wirke(w, "offiziersvertrauen", 4);
       wirke(w, "truppenmoral", 2);
       wirke(w, "bereitschaft_heer", 1);
-      return "Der Militärrat befördert nach Leistung und Qualifikation.";
+      return t("ev.mil_militaerrat.opt.leistung.ausgang");
     }),
-    opt("loyalitaet", "Nach Loyalität befördern", beschr(0, 0, "Rückhalt in der Führung, Misstrauen in der Truppe."), 0, (w) => {
+    // Befund A (5. November): Die Antwort bucht 3 Kapital Gewinn; die Plakette zeigt das aus der Messung, der Text behauptet keinen Preis.
+    opt("loyalitaet", t("ev.mil_militaerrat.opt.loyalitaet.label"), beschr(0, 0, t("ev.mil_militaerrat.opt.loyalitaet.beschr")), 0, (w) => {
       wirke(w, "offiziersvertrauen", -3);
       wirke(w, "bereitschaft_heer", -1);
       vertrauenAendern(w, 0.5);
       if (w.spiel) w.spiel.kapital = clamp(w.spiel.kapital + 3, 0, 150);
-      return "Der Militärrat befördert Offiziere, die dem Präsidenten nahestehen.";
+      return t("ev.mil_militaerrat.opt.loyalitaet.ausgang");
     }),
-    opt("generalstab", "Den Vorschlag des Generalstabs bestätigen", beschr(1, 0, "ruhig, wenig Streit."), 1, (w) => {
+    opt("generalstab", t("ev.mil_militaerrat.opt.generalstab.label"), beschr(1, 0, t("ev.mil_militaerrat.opt.generalstab.beschr")), 1, (w) => {
       wirke(w, "offiziersvertrauen", 1);
       wirke(w, "truppenmoral", 1);
-      return "Der Militärrat bestätigt die Vorschläge des Generalstabs.";
+      return t("ev.mil_militaerrat.opt.generalstab.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "offiziersvertrauen", -1);
-    return "Der Rat tagt ohne Ihre Vorgaben; der Generalstab setzt sich durch.";
+    return t("ev.mil_militaerrat.standard");
   },
 };
 
@@ -557,32 +565,29 @@ const BAUUNFALL: Vorlage = {
     const l = (w.spiel?.reich?.laufend ?? []).map((x) => vorhabenDef(x.id)).find((v) => v?.bereich === "infrastruktur");
     return l ? { provinzen: l.provinzen?.slice(0, 1) ?? [], staerke: 1, daten: { vorhaben: l.id } } : null;
   },
-  titel: (_, ev) => `Unfall auf der Baustelle „${vorhabenDef(String(ev.daten?.vorhaben))?.name ?? "einer Großbaustelle"}“`,
-  text: (_, ev) => [
-    `Auf der Baustelle von „${vorhabenDef(String(ev.daten?.vorhaben))?.name ?? "einem Großprojekt"}“ stürzt ein Gerüst ein; Arbeiter werden verletzt, mehrere sterben. Gewerkschaften und Angehörige fordern Aufklärung.`,
-    "Beim Bau des Istanbuler Flughafens starben offiziell 27 Arbeiter; die Zahl blieb umstritten.",
-  ],
-  warum: () => "Großprojekte werden unter Zeitdruck gebaut; wenn Verwaltung und Aufsicht überlastet sind, zahlen es die Arbeiter.",
+  titel: (_, ev) => t("ev.infra_bauunfall.titel", { name: vorhabenName(ev, "ev.infra_bauunfall.unbekannt") }),
+  text: (_, ev) => [t("ev.infra_bauunfall.text1", { name: vorhabenName(ev, "ev.infra_bauunfall.unbekannt") }), t("ev.infra_bauunfall.text2")],
+  warum: () => t("ev.infra_bauunfall.warum"),
   massnahmen: ["m_gewerkschaftsrechte", "m_bauaufsicht"],
   optionen: (_, ev) => [
-    opt("aufklaeren", "Untersuchung und Sicherheitsprogramm", beschr(3, 0, "hilft den Arbeitern, kostet Baufortschritt."), 3, (w) => {
+    opt("aufklaeren", t("ev.infra_bauunfall.opt.aufklaeren.label"), beschr(3, 0, t("ev.infra_bauunfall.opt.aufklaeren.beschr")), 3, (w) => {
       wirke(w, "arbeitnehmer", 1.5);
       wirke(w, "zivilgesellschaft", 0.5);
       const l = reichZustand(w).laufend.find((x) => x.id === String(ev.daten?.vorhaben));
       if (l) l.fortschritt = Math.max(0, l.fortschritt - (vorhabenDef(l.id)?.kosten.bau ?? 0) * 0.03);
-      return "Die Baustelle ruht, eine unabhängige Untersuchung beginnt, ein Sicherheitsprogramm folgt.";
+      return t("ev.infra_bauunfall.opt.aufklaeren.ausgang");
     }),
-    opt("decken", "Das Bauunternehmen decken", beschr(0, 0, "Der Bau läuft weiter; die Wut wächst."), 0, (w) => {
+    opt("decken", t("ev.infra_bauunfall.opt.decken.label"), beschr(0, 0, t("ev.infra_bauunfall.opt.decken.beschr")), 0, (w) => {
       wirke(w, "korruption", 1.5);
       wirke(w, "arbeitnehmer", -3);
       wirke(w, "legitimitaet", -1);
-      return "Die Regierung deckt das Bauunternehmen; die Arbeiten laufen weiter.";
+      return t("ev.infra_bauunfall.opt.decken.ausgang");
     }),
   ],
   standard: (w) => {
     wirke(w, "arbeitnehmer", -1.5);
     wirke(w, "legitimitaet", -0.5);
-    return "Ohne klare Antwort wächst die Wut der Angehörigen und der Gewerkschaften.";
+    return t("ev.infra_bauunfall.standard");
   },
 };
 

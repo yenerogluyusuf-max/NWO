@@ -112,12 +112,15 @@ const MILITAER_BASIS: Vorhaben[] = [
   {
     id: "mil_kaan",
     bereich: "militaer",
-    klasse: "wunder",
+    // Ein Großvorhaben der Rüstung, kein „Wunder“ (Befund G-28)
+    klasse: "grossprojekt",
     name: "Kampfjet KAAN Block 10",
     text: "Erstflug im Februar 2024; ein Vertrag über 20 Stück wurde am 08.05.2026 unterzeichnet, Indonesien bestellte 48. Der Motor kommt bisher von General Electric (F110), ein eigener TF35000 ist für 2032 angekündigt.",
     ort: { lat: 39.95, lon: 32.75, plaka: 6, name: "Ankara (TUSAŞ)" },
     voraus: [{ art: "land", land: "USA", dim: "vertrauen", min: 35 }],
-    kosten: { pk: 8, bau: 2000, monate: 48, verwaltung: 2.5, schulden: 0.7 },
+    // Verwaltung 0 (vorher 2,5): Der Vertrag läuft seit 2026, die Rüstungsbehörde führt ihn schon; sonst kippte die Verwaltungsbilanz
+    // beim Spielbeginn ins Minus (Spielparameter, Befund G-4)
+    kosten: { pk: 8, bau: 2000, monate: 48, verwaltung: 0, schulden: 0.7 },
     abschluss: [stoss("modernisierung", 6), stoss("bereitschaft_luft", 4), stoss("abschreckung", 3), stoss("export", 2)],
     dauer: [stuetze("modernisierung", 3), stuetze("export", 1.5)],
     unterhalt: 1.3,
@@ -125,6 +128,9 @@ const MILITAER_BASIS: Vorhaben[] = [
     einmalig: true,
     bild: "jet",
     quelle: "breakingdefense.com/2026/05 (Vertrag über 20 Stück); flightglobal.com (Indonesien 48)",
+    // Der Vertrag über 20 Stück läuft seit Mai 2026: Das Vorhaben ist bei Spielbeginn im Bau und wird nicht erneut angeboten (Befund G-4).
+    // Der Baufortschritt ist ein Spielparameter.
+    start: { status: "im_bau", fortschritt: 0.3 },
   },
   {
     id: "mil_kaan_motor",
@@ -149,7 +155,8 @@ const MILITAER_BASIS: Vorhaben[] = [
     name: "Eurofighter Typhoon",
     text: "20 neue Jets, bis zu 8 Mrd. Pfund (27.10.2025); ein Support-Vertrag vom 25.03.2026 sieht die Ausbildung von 10 Fluglehrern und etwa 100 Technikern in Großbritannien vor. Erste Lieferungen nach Presseberichten 2030.",
     voraus: [{ art: "land", land: "EU", dim: "vertrauen", min: 38 }],
-    kosten: { pk: 6, bau: 1000, monate: 36, verwaltung: 1.5, schulden: 0.5 },
+    // Verwaltung 0 (vorher 1,5): Gefertigt bei BAE Systems, der Vertrag läuft seit Oktober 2025 (Spielparameter, Befund G-4)
+    kosten: { pk: 6, bau: 1000, monate: 36, verwaltung: 0, schulden: 0.5 },
     abschluss: [stoss("bereitschaft_luft", 3), stoss("modernisierung", 4), { t: "land", land: "EU", dim: "sicherheit", d: 4 }, { t: "land", land: "RUS", dim: "vertrauen", d: -2 }],
     dauer: [stuetze("modernisierung", 2)],
     unterhalt: 0.9,
@@ -157,6 +164,8 @@ const MILITAER_BASIS: Vorhaben[] = [
     einmalig: true,
     bild: "jet",
     quelle: "defensenews.com/global/europe/2026/03/25",
+    // Bestellt im Oktober 2025: bei Spielbeginn im Bau (Befund G-4); Baufortschritt als Spielparameter
+    start: { status: "im_bau", fortschritt: 0.4 },
   },
   {
     id: "mil_f35",

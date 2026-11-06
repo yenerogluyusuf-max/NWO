@@ -1,38 +1,65 @@
 /* Große Ziele: Bildkarten mit Stufen, Chance als Wort und Band, Wegen und Versuch (GESTALTUNG G3, ENTSCHEIDUNGEN Q) */
 .gzz { display: grid; gap: 14px; }
-.gzz-einleitung { margin: 0; font: italic 15px/1.5 var(--serif); color: var(--ink-soft, #6a5a4a); max-width: 80ch; }
+.gzz-einleitung { margin: 0; font: italic var(--schrift-3)/1.5 var(--serif); color: var(--ink-soft, var(--tinte-3)); max-width: 80ch; }
 .gzz-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
-.gzz-karte { display: grid; grid-template-rows: auto 1fr; min-width: 0; border-radius: 6px; overflow: hidden; background: #fffaf0; border: 1px solid #5a40283d; box-shadow: 0 5px 14px #3b2a1a1f; }
-.gzz-karte.verfolgt { border-color: var(--gold-2, #c69a4a); box-shadow: 0 0 0 2px #c69a4a66, 0 8px 20px #3b2a1a2e; }
-.gzz-bild { position: relative; height: 140px; display: grid; place-items: center; overflow: hidden; background: linear-gradient(180deg, #f3e7c9, #e5d3a8); border-bottom: 1px solid #5a402833; }
+.gzz-karte { display: grid; grid-template-rows: auto 1fr; min-width: 0; border-radius: 6px; overflow: hidden; background: var(--papier-1); border: 1px solid #5a40283d; box-shadow: 0 5px 14px #3b2a1a1f; }
+.gzz-karte.verfolgt { border-color: var(--gold-2, var(--messing-2)); box-shadow: 0 0 0 2px #c69a4a66, 0 8px 20px #3b2a1a2e; }
+.gzz-bild { position: relative; height: 140px; display: grid; place-items: center; overflow: hidden; background: linear-gradient(180deg, var(--papier-3), var(--linie)); border-bottom: 1px solid #5a402833; }
 .gzz-bild > svg, .gzz-bild > div { max-width: 100%; max-height: 100%; }
 .gzz-stufen { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 5px; margin: 0; padding: 4px 6px; list-style: none; border-radius: 999px; background: #fffaf0d9; }
-.gzz-stufen li { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #7c5823; background: transparent; }
-.gzz-stufen li.erreicht { background: #7c5823; } .gzz-stufen li.jetzt { background: #f1d58f; }
+.gzz-stufen li { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--messing-3); background: transparent; }
+.gzz-stufen li.erreicht { background: var(--gut); } .gzz-stufen li.jetzt { background: var(--messing-1); }
 .gzz-inhalt { display: flex; flex-direction: column; gap: 9px; min-width: 0; padding: 13px 14px 14px; }
-.gzz-inhalt h3 { margin: 0; font: 600 21px/1.2 var(--display, Georgia, serif); color: var(--ink, #2a1f18); hyphens: auto; }
-.gzz-text { margin: 0; font: 14px/1.45 var(--serif); color: var(--ink-soft, #6a5a4a); }
-.gzz-naechste { margin: 0; font: 600 14px var(--sans); color: #5b4a7a; }
-.gzz-fertig { margin: 0; font: 600 14px var(--sans); color: #674b3b; }
-.gzz-chance { display: grid; gap: 5px; padding: 9px 10px; border-radius: 6px; background: #f7f0de; border: 1px solid #5a402826; }
-.gzz-chance strong { font: 600 14px var(--sans); }
-.gzz-chance.gering strong { color: #a23d3e; } .gzz-chance.moeglich strong { color: #8a6418; } .gzz-chance.aussichtsreich strong, .gzz-chance.gut strong { color: #674b3b; }
+.gzz-inhalt h3 { margin: 0; font: 600 var(--schrift-5)/1.2 var(--display, Georgia, serif); color: var(--ink, var(--tinte-1)); hyphens: auto; }
+.gzz-text { margin: 0; font: var(--schrift-2)/1.45 var(--serif); color: var(--ink-soft, var(--tinte-3)); }
+.gzz-naechste { margin: 0; font: 600 var(--schrift-2) var(--serif); color: #5b4a7a; }
+.gzz-fertig { margin: 0; font: 600 var(--schrift-2) var(--serif); color: var(--tinte-weich); }
+.gzz-chance { display: grid; gap: 5px; padding: 9px 10px; border-radius: 6px; background: var(--papier-2); border: 1px solid #5a402826; }
+.gzz-chance strong { font: 600 var(--schrift-2) var(--serif); }
+.gzz-chance.gering strong { color: #a23d3e; } .gzz-chance.moeglich strong { color: var(--warnung); } .gzz-chance.aussichtsreich strong, .gzz-chance.gut strong { color: var(--tinte-weich); }
 .gzz-chance > i { position: relative; display: block; height: 8px; border-radius: 999px; background: #5a40281f; }
-.gzz-chance > i s { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #c9a45a, #674b3b); }
-.gzz-gruende p { margin: 0; font: 12.5px/1.4 var(--sans); color: #5e6a61; }
-.gzz-schwelle summary { cursor: pointer; font: 600 14px var(--sans); color: var(--seal, #8e2a22); }
-.gzz-schwelle ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font: 14px/1.35 var(--sans); }
-.gzz-schwelle li.ok { color: #674b3b; } .gzz-schwelle li.offen { color: #7a5b26; }
+.gzz-chance > i s { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, var(--messing-2), var(--tinte-weich)); }
+.gzz-gruende p { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: #5e6a61; }
+.gzz-schwelle summary { cursor: pointer; font: 600 var(--schrift-2) var(--serif); color: var(--seal, var(--siegel)); }
+.gzz-schwelle ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font: var(--schrift-2)/1.35 var(--serif); }
+.gzz-schwelle li.ok { color: var(--gut); } .gzz-schwelle li.offen { color: var(--messing-3); }
 .gzz-wege { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid #5a402826; }
-.gzz-kicker { font: 400 11.5px var(--kapitaelchen); letter-spacing: .1em; text-transform: uppercase; color: #6a5a4a; }
+.gzz-kicker { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: .1em; color: var(--tinte-3); }
 .gzz-wegknoepfe { display: grid; gap: 6px; }
-.gzz-weg { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 6px 8px; border-radius: 6px; border: 1px solid #5a402833; background: #fffdf7; cursor: pointer; font: 600 14px var(--sans); color: var(--ink, #2a1f18); text-align: left; }
+.gzz-weg { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 6px 8px; border-radius: 6px; border: 1px solid #5a402833; background: var(--papier-1); cursor: pointer; font: 600 var(--schrift-2) var(--serif); color: var(--ink, var(--tinte-1)); text-align: left; }
 .gzz-weg:disabled { opacity: .55; cursor: not-allowed; }
 .gzz-vertretungen ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
-.gzz-vertretungen li { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font: 14px var(--sans); }
+.gzz-vertretungen li { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font: var(--schrift-2) var(--serif); }
 .gzz-vertretungen .gz-knopf { margin: 0; }
-.gzz-gegen { margin: 0; font: italic 14px var(--serif); color: #8e2a22; }
-.gzz-versuch { justify-self: start; padding: 8px 16px; font: 600 15px var(--display, Georgia, serif); cursor: pointer; }
+.gzz-gegen { margin: 0; font: italic var(--schrift-2) var(--serif); color: var(--siegel); }
+.gzz-versuch { justify-self: start; padding: 8px 16px; font: 600 var(--schrift-3) var(--display, Georgia, serif); cursor: pointer; }
 .gzz-versuch:disabled { opacity: .55; cursor: not-allowed; }
 .gzz-aktion { margin-top: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 560px) { .gzz-raster { grid-template-columns: minmax(0, 1fr); } }
+
+/* Nacht N6 (Befund F-31): Kacheln links, volle Karte rechts */
+.gzz-buehne { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, 400px); gap: 14px; align-items: start; }
+.gzz-seite { position: sticky; top: 8px; max-height: calc(100vh - 230px); overflow-y: auto; border-radius: 6px; }
+.gzz-seite .gzz-bild { height: 120px; }
+.gzk-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.gzk { display: flex; flex-direction: column; gap: 4px; padding: 0 0 7px; overflow: hidden; text-align: left; cursor: pointer; font: inherit; color: var(--ink, #2a1f18);
+  border-radius: 6px; border: 1px solid #5a40283d; background: #fffaf0; box-shadow: 0 2px 6px #3b2a1a1a; transition: transform 120ms ease, box-shadow 120ms ease; }
+.gzk:hover { transform: translateY(-1px); box-shadow: 0 5px 12px #3b2a1a2a; }
+.gzk.on { border-color: #8a6a2a; box-shadow: 0 0 0 2px #c69a4a99, 0 5px 12px #3b2a1a2a; }
+.gzk.verfolgt { border-color: var(--gold-2, #c69a4a); }
+.gzk-bild { position: relative; display: block; height: 78px; }
+.gzk-bild > svg { display: block; width: 100%; height: 100%; }
+.gzk-stufen { position: absolute; right: 6px; bottom: 6px; display: flex; gap: 3px; padding: 2px 4px; border-radius: 999px; background: #fffaf0d9; }
+.gzk-stufen i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #7c5823; }
+.gzk-stufen i.erreicht { background: #7c5823; } .gzk-stufen i.jetzt { background: #f1d58f; }
+.gzk-marke { position: absolute; left: 6px; top: 6px; padding: 1px 6px; border-radius: 3px; font: 600 10.5px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: #2a1d14; background: #f1d58f; }
+.gzk-titel { padding: 0 8px; font: 600 13.5px/1.2 var(--display, Georgia, serif); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em; }
+.gzk-chance { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 6px; padding: 0 8px; font: 12px var(--sans); }
+.gzk-chance b { font-weight: 600; }
+.gzk-chance small { color: var(--ink-soft, #6a5a4a); }
+.gzk-chance > i { grid-column: 1 / -1; position: relative; display: block; height: 5px; border-radius: 999px; background: #5a40281f; }
+.gzk-chance > i s { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #c9a45a, #674b3b); }
+.gzk-chance.gering b { color: #a23d3e; } .gzk-chance.moeglich b { color: #8a6418; } .gzk-chance.aussichtsreich b { color: #3d5a2e; }
+.gzk-chance.fertig { color: #674b3b; font-weight: 600; }
+@media (max-width: 1100px) { .gzz-buehne { grid-template-columns: 1fr; } .gzz-seite { position: static; max-height: none; } }
+.gzk-titel { hyphens: auto; overflow-wrap: anywhere; }

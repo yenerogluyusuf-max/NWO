@@ -238,6 +238,45 @@ function Recht({ id }: { id: string }) {
   );
 }
 
+function Partner({ id }: { id: string }) {
+  // Verhandlungstisch vor dem Halbrund: links die Sitzreihen in zwei Farben (eigene Partei, Partner), in der Mitte der Tisch mit
+  // zwei Mappen und dem Füller, rechts die Kuppel des Parlaments. Alles im mittleren Band, das der Fensterkopf zeigt (y 40 bis 150).
+  const reihen = [34, 50, 66];
+  return (
+    <>
+      <Grund id={id} oben="#f4e9cf" unten="#e4d2a6" />
+      <g transform="translate(150 140)">
+        {reihen.map((r, ri) => {
+          const n = 8 + ri * 3;
+          return Array.from({ length: n + 1 }, (_, i) => {
+            const w = Math.PI * (i / n);
+            return <circle key={`${ri}-${i}`} cx={-Math.cos(w) * r} cy={-Math.sin(w) * r} r="4" fill={i / n < 0.62 ? ROT : OCKER} stroke={TINTE} strokeWidth="0.8" />;
+          });
+        })}
+        <path d="M-82 8 H82" stroke={TINTE} strokeWidth="1.6" />
+      </g>
+      <g transform="translate(250 64)" stroke={TINTE} strokeWidth="1.6">
+        <path d="M0 52 L300 52 L282 72 L18 72 Z" fill="#7d4a2c" />
+        <path d="M24 72 v14 M276 72 v14" />
+        <rect x="52" y="30" width="88" height="22" fill={TEAL} transform="rotate(-4 96 41)" />
+        <rect x="160" y="28" width="88" height="22" fill="#8a2d22" transform="rotate(5 204 39)" />
+        <line x1="64" y1="40" x2="126" y2="36" stroke={PAPIER} strokeWidth="1" />
+        <line x1="172" y1="36" x2="234" y2="42" stroke={PAPIER} strokeWidth="1" />
+        <path d="M120 60 L182 44" strokeWidth="3" />
+        <circle cx="182" cy="44" r="2.5" fill={OCKER} />
+      </g>
+      <g transform="translate(650 46)" stroke={TINTE} strokeWidth="1.4" fill={PAPIER}>
+        <path d="M-38 54 Q0 0 38 54 Z" />
+        <rect x="-48" y="54" width="96" height="44" />
+        {[-34, -17, 0, 17, 34].map((x) => <line key={x} x1={x} y1="60" x2={x} y2="96" />)}
+        <line x1="0" y1="12" x2="0" y2="-4" />
+        <path d="M0 -4 h14 v7 h-14" fill={ROT} />
+      </g>
+      <rect width="760" height="190" fill={`url(#${id}-schraffur)`} opacity="0.4" />
+    </>
+  );
+}
+
 const SZENEN: Record<Thema, (p: { id: string }) => ReactElement> = {
   haushalt: Haushalt,
   wirtschaft: Wirtschaft,
@@ -248,6 +287,8 @@ const SZENEN: Record<Thema, (p: { id: string }) => ReactElement> = {
   recht: Recht,
   // Wohnen und Wiederaufbau: dieselbe Kulisse wie die Katastrophe (Trümmer, Kräne)
   wohnen: Katastrophe,
+  // Parteien melden sich: Verhandlungstisch vor dem Halbrund (Befund A-6/A-32: der Partner zeigte die Justizwaage)
+  partner: Partner,
 };
 
 export function EreignisSzene({ thema }: { thema: Thema }) {

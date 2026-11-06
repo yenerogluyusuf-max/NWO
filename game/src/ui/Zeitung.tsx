@@ -22,10 +22,9 @@ import {
 } from "../sim/zeitung";
 import type { Ziel } from "./schreibtisch/briefing";
 import { Flourish } from "./art/Ornament";
-import { MedienAkte } from "./MedienAkte";
 import { rsfSicht, startSelbstzensur } from "../sim/medien";
 import { medienCluster } from "../data/medien";
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 import { t as tx } from "../i18n";
 import "./zeitung.css";
 
@@ -33,9 +32,16 @@ type Gehe = ((ziel: Ziel) => void) | undefined;
 
 const TON_NAME = (ton: FramingArt): string => t(`reste.zeitung.ton.${ton}`);
 
-const SPARTE_NAME: Record<string, string> = { politik: "Politik", wirtschaft: "Wirtschaft", ereignis: "Im Land", programm: "Umsetzung", welt: "Ausland", umfrage: "Meinungslage" };
+const SPARTEN = new Set(["politik", "wirtschaft", "ereignis", "programm", "welt", "umfrage"]);
+const SPARTE_NAME = (s: string): string | undefined => (SPARTEN.has(s) ? t(`nacht_n2.zeitung.sparte.${s}`) : undefined);
+/** Erhebungsart in Worten statt Kürzel (F2F, CATI, online), befund-E E-39 */
+const methodeName = (m: string): string =>
+  m
+    .split(" + ")
+    .map((x) => (["F2F", "CATI", "online"].includes(x) ? t(`nacht_n2.zeitung.methode.${x}`) : x))
+    .join(" + ");
 
-const nf = (x: number) => x.toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const nf = (x: number) => x.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 
 // ---------------------------------------------------------------------------
 // Bausteine
@@ -116,7 +122,7 @@ function Einordnung({ a }: { a: ZeitungArtikel }) {
 function Artikel({ a, lead, onGehe }: { a: ZeitungArtikel; lead?: boolean; onGehe: Gehe }) {
   return (
     <article className={`${lead ? "zt-lead" : ""}${a.kurz ? " zt-kurz" : ""}`.trim()} aria-label={lead ? tx("ui2.ui.Zeitung.9956d08") : undefined}>
-      <p className="zt-sparte">{SPARTE_NAME[a.sparte] ?? tx("ui2.ui.Zeitung.df56d5e")}</p>
+      <p className="zt-sparte">{SPARTE_NAME(a.sparte) ?? tx("ui2.ui.Zeitung.df56d5e")}</p>
       {lead ? <h4 className="zt-schlagzeile">{a.schlagzeile}</h4> : <h5 className="zt-schlagzeile">{a.schlagzeile}</h5>}
       {a.text.map((t, i) => (
         <p key={i} className="zt-artikel-text">
@@ -233,7 +239,7 @@ function Parlamentkasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe:
       <h5>{tx("ui2.ui.Zeitung.e9f977f")}</h5>
       <p className="zt-parl-zeile">
         {tx("ui2.ui.Zeitung.565f12f")} <strong>{p.lager}</strong> {tx("ui2.ui.Zeitung.291f7b8")}
-        {p.duldung > 0 && <> · geduldet {p.duldung}</>}
+        {p.duldung > 0 && <> · {t("nacht_n2.zeitung.geduldet", { n: p.duldung })}</>}
       </p>
       <div className="zt-sitze" role="img" aria-label={tx("ui2.ui.Zeitung.1005de4", { p0: p.lager, p1: p.noetig })}>
         <i className="lager" style={{ width: anteil(p.lager) }} />
@@ -243,7 +249,7 @@ function Parlamentkasten({ ausgabe, onGehe }: { ausgabe: ZeitungAusgabe; onGehe:
       <p className="zt-parl-meta">
         {tx("ui2.ui.Zeitung.943d5a1", { p0: p.noetig })} {p.lager + p.duldung >= p.noetig ? tx("ui2.ui.Zeitung.c560ab3", { p0: p.lager + p.duldung - p.noetig + 1 }) : tx("ui2.ui.Zeitung.69238be", { p0: p.noetig - p.lager - p.duldung })}.
       </p>
-      {p.gesetze.length > 0 && <p className="zt-parl-meta">Im Parlament: {p.gesetze.join(", ")}.</p>}
+      {p.gesetze.length > 0 && <p className="zt-parl-meta">{t("nacht_n2.zeitung.im_parlament", { liste: p.gesetze.join(", ") })}</p>}
       {onGehe && (
         <button type="button" className="zt-gehe" onClick={() => onGehe({ art: "akte", akte: "parlament" })}>
           {tx("ui2.ui.Zeitung.d89d29d")}
@@ -310,7 +316,7 @@ function UmfrageKasten({ ausgabe }: { ausgabe: ZeitungAusgabe }) {
         )}
       </p>
       <p className="zt-umfrage-meta">
-        {tx("ui2.ui.Zeitung.17826b8")}{u.stichprobe !== undefined ? ` · ${u.stichprobe.toLocaleString("de-DE")} Befragte` : tx("ui2.ui.Zeitung.8d2ffa3")} · Methode {u.methode}
+        {tx("ui2.ui.Zeitung.17826b8")}{u.stichprobe !== undefined ? ` · ${t("nacht_n2.zeitung.befragte", { n: u.stichprobe.toLocaleString(aktuelleLocale()) })}` : tx("ui2.ui.Zeitung.8d2ffa3")} · {t("nacht_n2.zeitung.methode", { m: methodeName(u.methode) })}
       </p>
     </aside>
   );
@@ -396,12 +402,44 @@ function archivKopf(a: ZeitungAusgabe): { titel: string; stimmung: "auf" | "ab" 
   return { titel: lead.schlagzeile, stimmung: lead.wirkung > 0.05 ? "auf" : lead.wirkung < -0.05 ? "ab" : "" };
 }
 
-export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?: (ziel: Ziel) => void; onAenderung?: () => void }) {
+/** Der erste Tag des nächsten Monats (Erscheinungstag der Monatsausgabe), als ISO-Datum. */
+function naechsterErster(datum: string): string {
+  const [j, m] = datum.split("-").map(Number) as [number, number];
+  return m === 12 ? `${j + 1}-01-01` : `${j}-${String(m + 1).padStart(2, "0")}-01`;
+}
+
+/** Vor der ersten Ausgabe: ein leeres Titelblatt mit Erscheinungstag statt einer weißen Fläche (Gestaltung leerer Zustände, befund-E). */
+function ErsteAusgabe({ world, onMedien }: { world: World; onMedien?: () => void }) {
+  return (
+    <div className="zt-leer" role="note">
+      <div className="zt-leer-blatt" aria-hidden>
+        <span className="zt-leer-kopf" />
+        <span className="zt-leer-zeile lang" />
+        <span className="zt-leer-zeile" />
+        <span className="zt-leer-spalten">
+          <i />
+          <i />
+          <i />
+        </span>
+      </div>
+      <div className="zt-leer-text">
+        <h3>{t("nacht_n2.zeitung.leer_titel")}</h3>
+        <p>{t("nacht_n2.zeitung.leer_text", { datum: formatDateDe(naechsterErster(world.date)) })}</p>
+        {onMedien && (
+          <button type="button" className="pd-btn" onClick={onMedien}>
+            {t("nacht_n2.zeitung.zu_medien")} →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function Zeitung({ world, onGehe, onMedien }: { world: World; onGehe?: (ziel: Ziel) => void; onAenderung?: () => void; onMedien?: () => void }) {
   const spiel = world.spiel;
   const z = spiel ? zeitungVon(world) : null;
   const [ausgabeIdx, setAusgabeIdx] = useState<number | null>(null);
   const [blattIdx, setBlattIdx] = useState(0);
-  const [ansicht, setAnsicht] = useState<"ausgaben" | "medien">("ausgaben");
 
   const archiv = z?.archiv ?? [];
   const ausgabe = archiv[ausgabeIdx ?? archiv.length - 1];
@@ -412,36 +450,16 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
   }, [ausgabe, blattIdx]);
 
   if (!spiel) return <p>{t("ui.Zeitung.b1ebc59")}</p>;
-  const reiter = (
-    <nav className="zt-reiter" role="tablist" aria-label={t("medien.zeitung.reiter")}>
-      <button type="button" role="tab" aria-selected={ansicht === "ausgaben"} className={ansicht === "ausgaben" ? "on" : ""} onClick={() => setAnsicht("ausgaben")}>
-        {t("medien.zeitung.reiter_ausgaben")}
-      </button>
-      <button type="button" role="tab" aria-selected={ansicht === "medien"} className={ansicht === "medien" ? "on" : ""} onClick={() => setAnsicht("medien")}>
-        {t("medien.zeitung.reiter_medien")}
-      </button>
-    </nav>
-  );
-  if (ansicht === "medien")
-    return (
-      <div className="zt-huelle">
-        {reiter}
-        <MedienAkte world={world} {...(onAenderung ? { onAenderung } : {})} />
-      </div>
-    );
+  // Die Mediensteuerung ist ein eigener Reiter der Akte (Stage: „Medien steuern“); die Zeitung zeigt nur noch die Ausgaben
   if (!z || !ausgabe || !blatt)
     return (
       <div className="zt-huelle">
-        {reiter}
-        <div className="zt">
-          <p className="subtitle">{t("ui.Zeitung.48a6e01")}</p>
-        </div>
+        <ErsteAusgabe world={world} {...(onMedien ? { onMedien } : {})} />
       </div>
     );
 
   return (
     <div className="zt-huelle">
-      {reiter}
       <div className="zt">
         <div className="zt-haupt">
           <nav className="zt-blaetter" role="tablist" aria-label={t("ui.Zeitung.6a8c814")}>
@@ -479,8 +497,8 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
                       }}
                     >
                       <span className="zt-archiv-nr">
-                        Nr. {a.nummer}
-                        {a.anlass === "eilmeldung" && <em>EIL</em>}
+                        {t("nacht_n2.zeitung.nr", { n: a.nummer })}
+                        {a.anlass === "eilmeldung" && <em>{t("nacht_n2.zeitung.eil")}</em>}
                       </span>
                       <span className="zt-archiv-datum">{formatDateDe(a.datum)}</span>
                       <span className="zt-archiv-lead">
@@ -493,7 +511,7 @@ export function Zeitung({ world, onGehe, onAenderung }: { world: World; onGehe?:
               })}
             </ul>
           </section>
-          <MedienHinweis world={world} onMedien={() => setAnsicht("medien")} />
+          {onMedien && <MedienHinweis world={world} onMedien={onMedien} />}
         </aside>
       </div>
     </div>

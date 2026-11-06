@@ -178,19 +178,21 @@ describe("Belastung: Stufen und Chronik", () => {
     const v = verfassungVon(w);
     v.belastung = 50;
     v.stufe = 1;
-    let mit: { ok: boolean; text: string } | undefined;
-    let ohne: { ok: boolean; text: string } | undefined;
+    // Der Meldungstext nennt seit N4 das Datum statt „in 21 Tagen“; geprüft wird deshalb der Abstimmungstag selbst.
+    // Der Mindestlohn geht über die Kommission (eigene Frist) und zählt hier nicht.
+    let mit: number | undefined;
+    let ohne: number | undefined;
     for (const f of vorhabenUndVerzug(w)) {
-      if (mit && ohne) break;
+      if (mit !== undefined && ohne !== undefined) break;
+      if (f.id === "m_mindestlohn") continue;
       const r = bringeEin(w, f.id, 80, null, "gesetz");
       if (!r.ok) continue;
-      if (f.verzug && !mit) mit = r;
-      if (!f.verzug && !ohne) ohne = r;
+      const tage = w.spiel!.gesetze.find((g) => g.massnahme === f.id)!.abstimmung - w.day;
+      if (f.verzug && mit === undefined) mit = tage;
+      if (!f.verzug && ohne === undefined) ohne = tage;
     }
-    expect(mit?.ok).toBe(true);
-    expect(mit!.text).toContain(`in ${21 + VERFASSUNG.verzugTage} Tagen`);
-    expect(ohne?.ok).toBe(true);
-    expect(ohne!.text).toContain("in 21 Tagen");
+    expect(mit).toBe(21 + VERFASSUNG.verzugTage);
+    expect(ohne).toBe(21);
   });
 
   test("Sturz-Warnung und Eskalation treiben die Belastung als Treiber", () => {
@@ -229,7 +231,8 @@ describe("Zwangspause", () => {
     const w = spiel();
     mehrheit(w);
     // Ein laufendes Gesetz, das während der Pause abstimmen muss
-    const r0 = bringeEin(w, "m_mindestlohn", 75, null, "gesetz");
+    // Seit N4 setzt den Mindestlohn die Kommission fest (data/rechtswege.ts); ein Gesetz über das Parlament ist das Kindergeld
+    const r0 = bringeEin(w, "m_kindergeld", 75, null, "gesetz");
     expect(r0.ok).toBe(true);
     ueberlastet(w);
     // Neu: gesperrt
@@ -244,7 +247,7 @@ describe("Zwangspause", () => {
     expect(b.text).toContain("ruhigen Tag");
     // Laufend: die Abstimmung geschieht trotzdem
     advance(w, 25);
-    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
+    expect(w.log.some((l) => /^Das Parlament nimmt „Kindergeld/.test(l.text))).toBe(true);
     // Nach der Pause geht es wieder
     expect(neuanfangGrund(w)).toBeUndefined();
     expect(bringeEin(w, "m_krankenhausbau", 80, null, "gesetz").ok).toBe(true);

@@ -7,7 +7,7 @@ import type { World } from "./types";
 import type { HaushaltZustand, Marke, WirtschaftZustand, ZentralbankZustand } from "./wirtschaft-typen";
 import { realRate } from "./economy";
 import { NET } from "./modell";
-import { nationalAverage } from "./netz";
+import { nationalAverage, policyCost, PROVINCES } from "./netz";
 import { monthOf, previousMonth } from "./dates";
 import { ZINSSATZ_START } from "../data/haushaltsplan";
 import { turkey2026 } from "./scenario";
@@ -86,7 +86,43 @@ export function wirtschaftZustand(w: World): WirtschaftZustand {
 }
 
 export const zbZustand = (w: World): ZentralbankZustand => wirtschaftZustand(w).zb;
-export const haushaltZustand = (w: World): HaushaltZustand => migriereHaushalt(wirtschaftZustand(w).haushalt);
+export const haushaltZustand = (w: World): HaushaltZustand => migriereSteuern(w, migriereHaushalt(wirtschaftZustand(w).haushalt));
+
+/** Frühere Steuerregler des Haushalts (bis 06.11.2026) und die Maßnahme, die dieselbe Steuer stellt (sim/haushalt.ts ALTE_STEUERPOSTEN). */
+const ALTE_STEUERN: Record<string, string> = { einkommensteuer: "m_einkommensteuer", verbrauchsteuern: "m_mwst", unternehmensteuer: "m_koerperschaftsteuer" };
+const ALTER_STEUERSCHRITT = 0.3;
+
+/**
+ * Steuern haben nur noch eine Stellgröße, die Maßnahme (Befund D-1). Ältere Spielstände mit verstellten Steuerreglern bekommen dieselben
+ * Mehreinnahmen als Satz der Maßnahme: Der Ausgabenimpuls verliert den Steuerteil, die Maßnahme rückt um den gleichen Ertrag, gebucht
+ * sofort. Entwürfe und Gesetze verlieren ihre Steuerzeilen. Das Defizit bleibt dabei gleich.
+ */
+function migriereSteuern(w: World, z: HaushaltZustand): HaushaltZustand {
+  if ((z.steuerFassung ?? 0) >= 1) return z;
+  z.steuerFassung = 1;
+  let umgerechnet = false;
+  for (const [alt, id] of Object.entries(ALTE_STEUERN)) {
+    const stufe = z.stufen[alt] ?? 0;
+    delete z.stufen[alt];
+    if (z.entwurf) delete z.entwurf[alt];
+    if (z.gesetz) delete z.gesetz.schritte[alt];
+    if (z.wirksam) delete z.wirksam[alt];
+    const i = NET.index.get(id);
+    const node = i === undefined ? undefined : NET.nodes[i];
+    if (!stufe || i === undefined || !node?.cost) continue;
+    const ertrag = stufe * ALTER_STEUERSCHRITT;
+    umgerechnet = true;
+    w.economy.fiscalImpulse += ertrag;
+    const verschiebung = (ertrag / -node.cost) * 100;
+    for (let p = 0; p < PROVINCES; p++) {
+      const k = i * PROVINCES + p;
+      w.net.values[k] = Math.min(100, Math.max(0, w.net.values[k]! + verschiebung));
+    }
+    if (w.net.targets[id] !== undefined) w.net.targets[id] = Math.min(100, Math.max(0, w.net.targets[id]! + verschiebung));
+  }
+  if (umgerechnet) w.economy.policyCost = policyCost(NET, w.net);
+  return z;
+}
 
 /** Wie die alten Bündel-Posten auf die Ressorts verteilt werden: je Stufe alt so viele Stufen neu (der Ausgabenimpuls bleibt gleich). */
 export const ALTE_POSTEN: Record<string, Record<string, number>> = {

@@ -1,5 +1,6 @@
 // Das Parlament aus Sicht der Oberfläche: Fraktionen in der Reihenfolge des Halbrunds (eigene Partei, Lager, Duldung, Opposition).
 
+import { t } from "../../i18n";
 import type { World } from "../../sim/types";
 import { duldung, PARTEI_NAME } from "../../sim/fraktionen";
 
@@ -76,4 +77,10 @@ export function parlamentsLage(world: World): Parlamentslage | null {
   };
 }
 
-export const ROLLEN_WORT: Record<Rolle, string> = { eigene: "eigene Partei", lager: "im Lager", duldung: "duldet", opposition: "Opposition" };
+/** Rollenwort in der aktuellen Sprache (Getter, damit ein Sprachwechsel greift). */
+export const ROLLEN_WORT: Record<Rolle, string> = {
+  get eigene() { return t("n4.rolle.eigene"); },
+  get lager() { return t("n4.rolle.lager"); },
+  get duldung() { return t("n4.rolle.duldung"); },
+  get opposition() { return t("n4.rolle.opposition"); },
+};

@@ -199,7 +199,9 @@ describe("Gefährdete Zusagen auf dem Regierungsschreibtisch",()=>{
     expect(z.erfuellt).toBe(false);
   });
   test("Regierungsschreibtisch bindet die Karten ein; Zusagensprung öffnet direkt den richtigen Personenreiter",()=>{
-    const w=welt();zusage(w);
+    // Befund A-27 (Nacht 5./6.11.): Der Tisch klappt nur noch einen akuten Eintrag von selbst auf. Die Zusage ist hier deshalb akut
+    // (Partnervorsitz unter 20 Loyalität), damit ihre Karte an der Zeile offen steht; geprüft wird dasselbe wie vorher.
+    const w=welt(19.9999);zusage(w);
     // Seit 05.11.2026 dieselbe Vorlagenkarte wie jede andere Entscheidung am Tisch: erfüllen und vertrösten mit Preis
     const tisch=renderToStaticMarkup(<Schreibtisch world={w} refresh={()=>{}} onGehe={()=>{}}/>);
     expect(tisch).toContain('quelle-zusage');

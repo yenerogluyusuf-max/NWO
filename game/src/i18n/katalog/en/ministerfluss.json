@@ -54,7 +54,7 @@
  "mfl.ansatz.machtfrage.label": "Force the question of power",
  "mfl.ansatz.machtfrage.kurz": "An ultimatum: with me or against me.",
  "mfl.kabinett.warte": "The next cabinet meeting is in {n} days.",
- "mfl.z.einloesen.label": "Keep it",
+ "mfl.z.einloesen.label": "Fulfil",
  "mfl.z.einloesen.text": "Introduces “{name}” from level {jetzt} to {ziel}; the law carries the cost.",
  "mfl.z.einloesen.erfuellt": "The pledge is fulfilled.",
  "mfl.z.einloesen.preis": "{pk} capital in the bill, {mehrheit}.",
@@ -106,7 +106,7 @@
  "mfl.e.nutzen": "{groesse}: {ohne} without, {mit} with action after {monate} months.",
  "mfl.x.zusage_weg": "This pledge no longer exists.",
  "mfl.x.kenntnis": "Noted.",
- "mfl.x.kein_spiel": "Without a game loop there are no submissions.",
+ "mfl.x.kein_spiel": "This view becomes available once your term has begun.",
  "mfl.x.vorlage_weg": "This submission is no longer on the desk.",
  "mfl.x.option_weg": "This option does not exist.",
  "mfl.x.wiedervorlage": "Back on the desk in {n} days.",
@@ -129,6 +129,6 @@
  "mfl.ressort.wirtschaft": "Economy",
  "mfl.ressort.partner": "Coalition partner",
  "mfl.ressort.opposition": "Opposition",
- "mfl.p.groll.titel": "Grudge in {ressort, select, finanzen {Finance} inneres {Interior} aussen {Foreign Affairs} zentralbank {Central Bank} stab {Presidential Office} justiz {Justice} generalstab {Armed Forces} wirtschaft {Economy} partner {Coalition partner} opposition {Opposition} other {Presidential Office}}",
- "mfl.lage.titel": "{ressort, select, finanzen {Finance} inneres {Interior} aussen {Foreign Affairs} zentralbank {Central Bank} stab {Presidential Office} justiz {Justice} generalstab {Armed Forces} wirtschaft {Economy} partner {Coalition partner} opposition {Opposition} other {Presidential Office}}: {groesse} is in poor shape"
+ "mfl.p.groll.titel": "Resentment in {ressort, select, finanzen {Finance} inneres {Interior} aussen {Foreign Affairs} zentralbank {Central Bank} stab {Presidency} justiz {Justice} generalstab {Armed Forces} wirtschaft {Industry and Technology} partner {Coalition party} opposition {Opposition} familie {Family and Social Services} arbeit {Labour and Social Security} umwelt {Environment, Urbanisation and Climate} energie {Energy and Natural Resources} jugend {Youth and Sports} kultur {Culture and Tourism} bildung {Education} verteidigung {Defence} gesundheit {Health} landwirtschaft {Agriculture and Forestry} handel {Trade} verkehr {Transport and Infrastructure} other {the ministry}}",
+ "mfl.lage.titel": "{ressort, select, finanzen {Finance} inneres {Interior} aussen {Foreign Affairs} zentralbank {Central Bank} stab {Presidency} justiz {Justice} generalstab {Armed Forces} wirtschaft {Industry and Technology} partner {Coalition party} opposition {Opposition} familie {Family and Social Services} arbeit {Labour and Social Security} umwelt {Environment, Urbanisation and Climate} energie {Energy and Natural Resources} jugend {Youth and Sports} kultur {Culture and Tourism} bildung {Education} verteidigung {Defence} gesundheit {Health} landwirtschaft {Agriculture and Forestry} handel {Trade} verkehr {Transport and Infrastructure} other {the ministry}}: {groesse} is in poor shape"
 }

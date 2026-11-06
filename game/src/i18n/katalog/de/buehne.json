@@ -24,12 +24,12 @@
   "buehne.stat.lira": "Lira je $",
   "buehne.stat.leitzins": "Leitzins",
   "buehne.stat.sitze": "Sitze",
-  "buehne.staatsoberhaupt": "Staatsoberhaupt",
+  "buehne.staatsoberhaupt": "Präsident",
   "buehne.sichern": "Sichern",
   "buehne.gesichert": "Gesichert ✓",
   "buehne.nichtGesichert": "Nicht gesichert",
 
-  "buehne.menu.kanzlei": "Kanzlei",
+  "buehne.menu.kanzlei": "Präsidialamt",
   "buehne.menu.kanzleiTitel": "Präsidialamt",
   "buehne.menu.politik": "Politik",
   "buehne.menu.politikTitel": "Politik",
@@ -112,7 +112,7 @@
 
   "reich.tab.lage": "Lage",
   "reich.tab.staetten": "Stätten pflegen",
-  "reich.tab.bauwerke": "Bauwerke pflegen",
+  "reich.tab.bauwerke": "Instandhaltung",
   "reich.tab.ruestung": "Rüstung pflegen",
   "reich.tab.neu": "Neue Vorhaben",
   "reich.tab.beschaffung": "Beschaffung und Doktrinen",

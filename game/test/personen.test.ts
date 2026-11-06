@@ -126,15 +126,19 @@ describe("Gespräche", () => {
     }
   });
 
-  test("Anerkennung gibt Mittel, kostet Kapital und macht Neid bei den anderen", () => {
+  // Befund C-20 (Nacht N1): Mit 19 statt 7 Plätzen traf der Neid 18 Personen; jetzt nur die aus demselben Lager.
+  test("Anerkennung gibt Mittel, kostet Kapital und macht Neid im selben Lager, nicht im ganzen Kabinett", () => {
     const w = welt();
-    const f = w.spiel!.figuren.find((x) => x.amt === "justiz")!;
-    const anderer = w.spiel!.figuren.find((x) => x.amt === "inneres")!;
-    const g0 = eigenVon(w, anderer).groll;
+    const f = w.spiel!.figuren.find((x) => x.amt === "familie")!;
+    const gleich = w.spiel!.figuren.find((x) => x.amt === "bildung")!; // wie Familie im Lager „partei“
+    const fremd = w.spiel!.figuren.find((x) => x.amt === "inneres")!;
+    const g0 = eigenVon(w, gleich).groll;
+    const h0 = eigenVon(w, fremd).groll;
     const r = fuehreGespraech(w, f.id, "sorge", "belohnung");
     expect(r.ok).toBe(true);
     expect(eigenVon(w, f).mittelBis).toBeGreaterThan(w.day);
-    expect(eigenVon(w, anderer).groll).toBeGreaterThan(g0);
+    expect(eigenVon(w, gleich).groll).toBeGreaterThan(g0);
+    expect(eigenVon(w, fremd).groll).toBe(h0);
     expect(r.kosten).toBe(2);
   });
 

@@ -4,43 +4,43 @@
 
 /* Kopf */
 .gs-kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 0 0 12px; border-bottom: 1px solid rgba(90, 64, 40, 0.28); }
-.gs-avatar { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--gold-1); background: radial-gradient(circle at 35% 28%, #4a3a2c, var(--leather-1) 70%); box-shadow: 0 0 0 2px var(--gold-2), 0 2px 5px rgba(0, 0, 0, 0.35); }
+.gs-avatar { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--gold-1); background: radial-gradient(circle at 35% 28%, var(--tinte-2), var(--leather-1) 70%); box-shadow: 0 0 0 2px var(--gold-2), 0 2px 5px rgba(0, 0, 0, 0.35); }
 .gs-titel { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; flex: 1 1 12em; }
-.gs-titel strong { font: 600 18px var(--display); letter-spacing: 0.005em; }
-.gs-titel span { font-size: 14px; color: var(--ink-soft); }
-.gs-status { font: 600 11.5px var(--display); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 11px 3px 22px; border-radius: 999px; position: relative; color: var(--ink-soft); background: rgba(90, 64, 40, 0.1); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gs-titel strong { font: 600 var(--schrift-4) var(--display); letter-spacing: 0.005em; }
+.gs-titel span { font-size: var(--schrift-2); color: var(--ink-soft); }
+.gs-status { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 11px 3px 22px; border-radius: 999px; position: relative; color: var(--ink-soft); background: rgba(90, 64, 40, 0.1); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gs-status::before { content: ""; position: absolute; left: 9px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #9a8a72; }
-.gs-status.an { color: #473327; background: rgba(130,97,60, 0.16); }
-.gs-status.an::before { background: #4f6b3a; box-shadow: 0 0 0 3px rgba(134,95,51, 0.22); }
-.gs .gs-einrichten { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font: 600 12.5px var(--sans); border-radius: 999px; }
+.gs-status.an { color: var(--leder); background: rgba(130,97,60, 0.16); }
+.gs-status.an::before { background: var(--lorbeer); box-shadow: 0 0 0 3px rgba(134,95,51, 0.22); }
+.gs .gs-einrichten { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font: 600 var(--schrift-2) var(--serif); border-radius: 999px; }
 
 /* Verlauf */
 .gs-verlauf { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 16px 4px 12px 0; scroll-behavior: smooth; }
 .gs-zeile { display: flex; flex-direction: column; gap: 4px; max-width: 88%; }
 .gs-zeile.spiel { align-self: flex-start; align-items: flex-start; }
 .gs-zeile.spieler { align-self: flex-end; align-items: flex-end; }
-.gs-absender { font: 600 11.5px var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 0 4px; }
+.gs-absender { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 0 4px; }
 .gs-absender em { font-style: normal; font-weight: 400; letter-spacing: 0; text-transform: none; opacity: 0.65; }
-.gs-blase { padding: 10px 14px 11px; border-radius: 4px 10px 10px 10px; background: linear-gradient(180deg, #fdf9ee, #f6ecd2); border: 1px solid rgba(120, 84, 40, 0.28); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 6px rgba(60, 40, 16, 0.1); font-size: 16.5px; line-height: 1.5; }
-.gs-zeile.spieler .gs-blase { border-radius: 10px 4px 10px 10px; background: linear-gradient(180deg, #f6dfa1, #e4bb63); border-color: rgba(124, 88, 35, 0.6); color: #2d2010; }
+.gs-blase { padding: 10px 14px 11px; border-radius: 4px 10px 10px 10px; background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); border: 1px solid rgba(120, 84, 40, 0.28); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 6px rgba(60, 40, 16, 0.1); font-size: var(--schrift-3); line-height: 1.5; }
+.gs-zeile.spieler .gs-blase { border-radius: 10px 4px 10px 10px; background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)); border-color: rgba(124, 88, 35, 0.6); color: var(--messing-text); }
 .gs-blase p { margin: 0; overflow-wrap: anywhere; }
 .gs-blase p + p { margin-top: 0.4em; }
 .gs-why { font-size: 0.86em; font-style: italic; opacity: 0.75; }
 
 /* Vorschläge des Modells: Karten mit Kosten und Knopf */
 .gs-vorschlaege { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; width: min(34em, 100%); }
-.gs-vorschlaege li { padding: 10px 12px 11px; background: #fffaf0; border: 1px solid rgba(120, 84, 40, 0.35); border-left: 4px solid #c99a3c; border-radius: 4px; box-shadow: 0 2px 6px rgba(60, 40, 16, 0.1); }
+.gs-vorschlaege li { padding: 10px 12px 11px; background: var(--papier-1); border: 1px solid rgba(120, 84, 40, 0.35); border-left: 4px solid var(--messing-2); border-radius: 4px; box-shadow: 0 2px 6px rgba(60, 40, 16, 0.1); }
 .gs-vorschlaege li.gesperrt { border-left-color: #9a8a72; opacity: 0.85; }
-.gs-vorschlaege li.erledigt { border-left-color: #4f6b3a; background: #f8f5ee; }
-.gs-vorschlaege li.fehler { border-left-color: #a8382c; }
+.gs-vorschlaege li.erledigt { border-left-color: var(--lorbeer); background: var(--papier-1); }
+.gs-vorschlaege li.fehler { border-left-color: var(--siegel-hell); }
 .gs-v-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.gs-v-kopf strong { font: 600 15px var(--display); }
-.gs-kosten { padding: 1px 9px; border-radius: 999px; font: 700 12.5px var(--sans); color: #3a2812; background: #e6c56c; }
-.gs-v-text, .gs-v-problem, .gs-v-ergebnis { margin: 3px 0 0; font-size: 14px; line-height: 1.4; }
-.gs-v-problem { color: #8a2a20; }
-.gs-v-ergebnis.ok { color: #553a2a; }
-.gs-v-ergebnis.nein { color: #8a2a20; }
-.gs .gs-ausfuehren { margin-top: 8px; padding: 5px 16px; font: 600 14px var(--sans); }
+.gs-v-kopf strong { font: 600 var(--schrift-3) var(--display); }
+.gs-kosten { padding: 1px 9px; border-radius: 999px; font: 700 var(--schrift-2) var(--serif); color: var(--leder); background: #e6c56c; }
+.gs-v-text, .gs-v-problem, .gs-v-ergebnis { margin: 3px 0 0; font-size: var(--schrift-2); line-height: 1.4; }
+.gs-v-problem { color: var(--siegel); }
+.gs-v-ergebnis.ok { color: var(--gut); }
+.gs-v-ergebnis.nein { color: var(--siegel); }
+.gs .gs-ausfuehren { margin-top: 8px; padding: 5px 16px; font: 600 var(--schrift-2) var(--serif); }
 .gs .gs-ausfuehren:disabled { opacity: 0.5; cursor: default; }
 
 /* Denken */
@@ -53,40 +53,40 @@
 /* Fuß: Beispiele und Eingabe */
 .gs-fuss { flex: none; display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(90, 64, 40, 0.22); }
 .gs-beispiele { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
-.gs .gs-chip { flex: none; padding: 5px 12px; font: 14px var(--serif); border-radius: 999px; white-space: nowrap; }
-.gs-eingabe { display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 22px; background: #fffaf0; border: 1.5px solid rgba(124, 88, 35, 0.55); box-shadow: 0 2px 8px rgba(60, 40, 16, 0.12) inset; transition: border-color 0.15s, box-shadow 0.15s; }
+.gs .gs-chip { flex: none; padding: 5px 12px; font: var(--schrift-2) var(--serif); border-radius: 999px; white-space: nowrap; }
+.gs-eingabe { display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 22px; background: var(--papier-1); border: 1.5px solid rgba(124, 88, 35, 0.55); box-shadow: 0 2px 8px rgba(60, 40, 16, 0.12) inset; transition: border-color 0.15s, box-shadow 0.15s; }
 .gs-eingabe:focus-within { border-color: var(--gold-3); box-shadow: 0 0 0 3px rgba(198, 154, 74, 0.28); }
-.gs-eingabe textarea { flex: 1; min-width: 0; resize: none; border: none; outline: none; background: transparent; font: 16.5px/1.45 var(--serif); color: var(--ink); padding: 7px 0; max-height: 132px; }
+.gs-eingabe textarea { flex: 1; min-width: 0; resize: none; border: none; outline: none; background: transparent; font: var(--schrift-3)/1.45 var(--serif); color: var(--ink); padding: 7px 0; max-height: 132px; }
 .gs-eingabe textarea::placeholder { color: rgba(106, 90, 74, 0.75); }
-.gs .gs-senden { flex: none; width: 38px; height: 38px; padding: 0; border-radius: 50%; display: grid; place-items: center; color: #2a1c08; border: 1px solid var(--gold-3); background: linear-gradient(180deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 2px 4px rgba(0, 0, 0, 0.3); cursor: pointer; }
+.gs .gs-senden { flex: none; width: 38px; height: 38px; padding: 0; border-radius: 50%; display: grid; place-items: center; color: var(--messing-text); border: 1px solid var(--gold-3); background: linear-gradient(180deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 2px 4px rgba(0, 0, 0, 0.3); cursor: pointer; }
 .gs .gs-senden:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
-.gs-tipp { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+.gs-tipp { margin: 0; font-size: var(--schrift-2); color: var(--ink-soft); }
 
 /* Einrichtung */
 .gs-einst-rahmen { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 14px 2px 8px 0; }
 .gs-einst { display: flex; flex-direction: column; gap: 14px; }
-.gs-einst-kopf h4 { margin: 0 0 3px; font: 600 18px var(--display); }
-.gs-einst-kopf p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+.gs-einst-kopf h4 { margin: 0 0 3px; font: 600 var(--schrift-4) var(--display); }
+.gs-einst-kopf p { margin: 0; color: var(--ink-soft); font-size: var(--schrift-2); }
 .gs-anbieter { display: grid; grid-template-columns: repeat(auto-fill, minmax(11.5em, 1fr)); gap: 8px; }
 .gs .gs-karte { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 9px 12px; border-radius: 4px; cursor: pointer; }
-.gs .gs-karte strong { font: 600 15px var(--display); line-height: 1.2; }
-.gs .gs-karte span { font-size: 12.5px; color: var(--ink-soft); }
-.gs .gs-karte.on { border-color: var(--seal); box-shadow: 0 0 0 1.5px var(--seal), 0 3px 8px rgba(60, 40, 16, 0.18); background: linear-gradient(180deg, #fffaf0, #f3e2b8); }
-.gs-haken { position: absolute; right: 9px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: #4f6b3a; box-shadow: 0 0 0 3px rgba(134,95,51, 0.2); }
+.gs .gs-karte strong { font: 600 var(--schrift-3) var(--display); line-height: 1.2; }
+.gs .gs-karte span { font-size: var(--schrift-2); color: var(--ink-soft); }
+.gs .gs-karte.on { border-color: var(--seal); box-shadow: 0 0 0 1.5px var(--seal), 0 3px 8px rgba(60, 40, 16, 0.18); background: linear-gradient(180deg, var(--papier-1), var(--warnung-flaeche)); }
+.gs-haken { position: absolute; right: 9px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--lorbeer); box-shadow: 0 0 0 3px rgba(134,95,51, 0.2); }
 .gs-detail { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 4px; background: rgba(255, 250, 235, 0.6); border: 1px solid rgba(90, 64, 40, 0.28); }
-.gs-erkl { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
-.gs-erkl.klein { font-size: 12.5px; color: var(--ink-soft); }
-.gs-erkl code { font: 12.5px ui-monospace, Menlo, monospace; padding: 0 4px; background: rgba(90, 64, 40, 0.1); border-radius: 4px; }
+.gs-erkl { margin: 0; font-size: var(--schrift-2); line-height: 1.45; color: var(--ink); }
+.gs-erkl.klein { font-size: var(--schrift-2); color: var(--ink-soft); }
+.gs-erkl code { font: var(--schrift-2) ui-monospace, Menlo, monospace; padding: 0 4px; background: rgba(90, 64, 40, 0.1); border-radius: 4px; }
 .gs-feld { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 4px 12px; align-items: center; }
-.gs-feld > span { font: 600 12.5px var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
-.gs-feld input, .gs-feld select { padding: 7px 10px; min-width: 0; font: 15px var(--serif); border-radius: 4px; border: 1px solid rgba(90, 64, 40, 0.45); background: #fffaf0; color: var(--ink); }
+.gs-feld > span { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.gs-feld input, .gs-feld select { padding: 7px 10px; min-width: 0; font: var(--schrift-3) var(--serif); border-radius: 4px; border: 1px solid rgba(90, 64, 40, 0.45); background: var(--papier-1); color: var(--ink); }
 .gs-feld.schmal { grid-template-columns: 14em 7em; }
-.gs-warn { margin: 0; padding: 8px 12px; font-size: 14px; line-height: 1.4; color: #6f2016; background: rgba(168, 56, 44, 0.1); border-left: 3px solid #a8382c; border-radius: 4px; }
+.gs-warn { margin: 0; padding: 8px 12px; font-size: var(--schrift-2); line-height: 1.4; color: #6f2016; background: rgba(168, 56, 44, 0.1); border-left: 3px solid var(--siegel-hell); border-radius: 4px; }
 .gs-budget { display: flex; flex-direction: column; gap: 6px; }
 .gs-test { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.gs-testtext { font-size: 14px; color: var(--ink-soft); flex: 1 1 14em; }
-.gs-testtext.ok { color: #553a2a; }
-.gs-testtext.nein { color: #8a2a20; }
+.gs-testtext { font-size: var(--schrift-2); color: var(--ink-soft); flex: 1 1 14em; }
+.gs-testtext.ok { color: var(--gut); }
+.gs-testtext.nein { color: var(--siegel); }
 
 @media (max-width: 720px) {
   .gs-zeile { max-width: 96%; }
@@ -101,8 +101,19 @@
 @media (max-width: 480px) {
   .gs-avatar { display: none; }
   .gs-kopf { gap: 8px; padding-bottom: 8px; }
-  .gs-blase { font-size: 15px; padding: 8px 11px 9px; }
+  .gs-blase { font-size: var(--schrift-3); padding: 8px 11px 9px; }
   .gs-zeile { max-width: 100%; }
-  .gs-eingabe textarea { font-size: 15px; }
+  .gs-eingabe textarea { font-size: var(--schrift-3); }
   .gs-titel { flex-basis: 100%; }
 }
+
+/* Vorschlagskarten des Regelwerks (Befund C-2): Folgen in Zahlen, Ausführen erst auf Klick; die Nachfolgeauswahl klappt in der Karte auf */
+.gs-regelkarte { width: min(40em, 100%); }
+.gs-entlassung { width: 100%; max-width: none; }
+.gs-zeile:has(.gs-entlassung) { max-width: 100%; align-self: stretch; }
+.gs-v-folgen { margin: 6px 0 0; padding: 0 0 0 1.1em; font-size: 14px; line-height: 1.45; }
+.gs-v-folgen li { padding: 0; border: 0; background: none; box-shadow: none; }
+.gs-v-meldung { font-style: italic; color: var(--ink-soft); }
+.gs-v-knoepfe { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.gs .gs-verwerfen { margin-top: 8px; padding: 5px 12px; font: 14px var(--sans); background: transparent; border: 1px solid rgba(90, 64, 40, 0.35); }
+.gs-nachfolge { margin-top: 8px; padding: 12px; border: 1px solid rgba(120, 84, 40, 0.3); border-radius: 6px; background: #fbf5e6; }

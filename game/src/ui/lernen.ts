@@ -9,6 +9,7 @@ import type { World } from "../sim/types";
 import type { NodeSpec } from "../data/politiknetz";
 
 import { t } from "../i18n";
+import { stufenName } from "../data/skalen";
 
 export interface Verbindung {
   id: string;
@@ -156,9 +157,9 @@ export function erklaere(node: NodeSpec, w: World): Erklaerung {
         ? t("lernen.m.kostenlos")
         : t(kosten < 0 ? "lernen.m.bringt" : "lernen.m.kostet", { p: Math.round(Math.abs(kosten) * 100) / 100, monate: node.months ?? 1 }),
     );
-    stand.push(t("lernen.m.stand", { jetzt: Math.round(jetzt), start: Math.round(start) }));
+    stand.push(t("n9.lernen.stand", { jetzt: stufenName(node.id, jetzt), start: stufenName(node.id, start) }));
     const ziel = w.net.targets[node.id];
-    if (ziel !== undefined && Math.abs(jetzt - ziel) > 1) stand.push(t("lernen.m.beschlossen", { ziel: Math.round(ziel) }));
+    if (ziel !== undefined && Math.abs(jetzt - ziel) > 1) stand.push(t("n9.lernen.beschlossen", { ziel: stufenName(node.id, ziel) }));
   } else {
     nimm("index", "durchschnitt", "traegheit");
     const d = jetzt - start;

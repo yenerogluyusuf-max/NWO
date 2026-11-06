@@ -109,4 +109,6 @@ export interface GesellschaftZustand {
   zuletzt: Record<string, number>;
   /** Letzter verarbeiteter Monat (JJJJ-MM) */
   monat: string;
+  /** Druck der Opposition auf die Wahl beim Amtsantritt (eingepreist; die Wahl bucht nur die Abweichung davon) */
+  wahlDruckStart?: number;
 }

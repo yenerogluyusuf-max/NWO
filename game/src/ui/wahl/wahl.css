@@ -2,97 +2,97 @@
 
 .wn-layer, .umb-layer { position: absolute; inset: 0; z-index: 105; display: grid; place-items: center; padding: 18px; background: radial-gradient(ellipse at 50% 40%, rgba(14, 10, 20, 0.55), rgba(8, 6, 12, 0.86)); backdrop-filter: saturate(0.7) blur(1.5px); animation: fade 320ms ease both; }
 
-.wn, .umb { position: relative; display: flex; flex-direction: column; width: min(1240px, calc(100vw - 36px)); max-height: calc(100vh - 36px); background: var(--paper, #f4ead2); color: var(--ink, #2b1e12); animation: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.wn, .umb { position: relative; display: flex; flex-direction: column; width: min(1240px, calc(100vw - 36px)); max-height: calc(100vh - 36px); background: var(--paper, var(--leder-text)); color: var(--ink, var(--messing-text)); animation: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
 /* Kopfband: Bühnenbild der Wahlnacht und Titel */
 .wn-kopf { position: relative; flex: none; height: 148px; overflow: hidden; border-bottom: 3px double rgba(90, 64, 40, 0.5); }
 .wn-kopf .vignette { position: absolute; inset: 0; width: 100%; height: 100%; }
-.wn-titel { position: absolute; left: 28px; bottom: 14px; right: 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; color: #f6ead0; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); }
-.wn-titel h2 { margin: 0; font: 600 40px/1.1 var(--display, Fraunces, serif); letter-spacing: 0.01em; }
-.wn-titel .wn-datum { font: 14px var(--kapitaelchen); letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.92; }
+.wn-titel { position: absolute; left: 28px; bottom: 14px; right: 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; color: var(--leder-text); text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); }
+.wn-titel h2 { margin: 0; font: 600 var(--schrift-7)/1.1 var(--display, Fraunces, serif); letter-spacing: 0.01em; }
+.wn-titel .wn-datum { font: var(--schrift-2) var(--kapitaelchen); letter-spacing: 0.06em; opacity: 0.92; }
 
 .wn-koerper { overflow: auto; padding: 18px 26px 4px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
 @media (max-width: 960px) { .wn-koerper { grid-template-columns: minmax(0, 1fr); } }
 .wn-block { min-width: 0; }
-.wn-block h3 { margin: 0 0 8px; font: 400 14px/1.2 var(--kapitaelchen); letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.wn-block h3 { margin: 0 0 8px; font: 400 var(--schrift-2)/1.2 var(--kapitaelchen); letter-spacing: 0.1em; color: var(--seal, var(--siegel)); }
 .wn-block.breit { grid-column: 1 / -1; }
 
 /* Auszählung */
-.wn-fortschritt { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; font: 600 15px var(--sans, Inter, sans-serif); }
+.wn-fortschritt { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; font: 600 var(--schrift-3) var(--serif); }
 .wn-fortschritt .balken { flex: 1; height: 8px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
-.wn-fortschritt .balken i { display: block; height: 100%; background: linear-gradient(90deg, #c69a4a, #8c6a2a); transition: width 700ms ease; }
+.wn-fortschritt .balken i { display: block; height: 100%; background: linear-gradient(90deg, var(--messing-2), var(--warnung)); transition: width 700ms ease; }
 
 .wn-kandidaten { display: grid; gap: 10px; }
 .wn-kandidat { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; }
-.wn-kandidat .name { font: 600 18px/1.2 var(--serif, "EB Garamond", serif); }
-.wn-kandidat .name small { display: block; font: 14px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
-.wn-kandidat .zahl { font: 600 24px/1 var(--display, Fraunces, serif); font-variant-numeric: tabular-nums; }
+.wn-kandidat .name { font: 600 var(--schrift-4)/1.2 var(--serif, "EB Garamond", serif); }
+.wn-kandidat .name small { display: block; font: var(--schrift-2) var(--serif); color: var(--ink-soft, var(--tinte-2)); }
+.wn-kandidat .zahl { font: 600 var(--schrift-5)/1 var(--display, Fraunces, serif); font-variant-numeric: tabular-nums; }
 .wn-kandidat .spur { grid-column: 1 / -1; position: relative; height: 12px; border-radius: 6px; background: rgba(90, 64, 40, 0.14); overflow: hidden; }
 .wn-kandidat .spur i { position: absolute; left: 0; top: 0; bottom: 0; transition: width 700ms ease; }
 .wn-kandidat .spur::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: rgba(43, 30, 18, 0.65); }
 .wn-kandidat.sieger .name::after { content: " ★"; color: #b2872f; }
-.wn-schwelle { margin: 6px 0 0; font: 14px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+.wn-schwelle { margin: 6px 0 0; font: var(--schrift-2) var(--serif); color: var(--ink-soft, var(--tinte-2)); }
 
 .wn-runden { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-.wn-runde { padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.3); background: rgba(255, 250, 235, 0.6); font: 14px/1.4 var(--sans, Inter, sans-serif); }
-.wn-runde b { display: block; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.wn-runde { padding: 8px 10px; border: 1px solid rgba(90, 64, 40, 0.3); background: rgba(255, 250, 235, 0.6); font: var(--schrift-2)/1.4 var(--serif); }
+.wn-runde b { display: block; font-size: var(--schrift-2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--seal, var(--siegel)); }
 
 /* Karte der Provinzen */
-.wn-karte svg { width: 100%; height: auto; display: block; background: radial-gradient(ellipse at 50% 50%, #e7dcc0, #d9cba6); border: 1px solid rgba(90, 64, 40, 0.35); }
+.wn-karte svg { width: 100%; height: auto; display: block; background: radial-gradient(ellipse at 50% 50%, var(--papier-4), var(--linie)); border: 1px solid rgba(90, 64, 40, 0.35); }
 .wn-karte path { stroke: rgba(43, 30, 18, 0.55); stroke-width: 0.5; transition: fill 500ms ease, opacity 500ms ease; }
-.wn-legende { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; padding: 0; list-style: none; font: 14px var(--sans, Inter, sans-serif); }
+.wn-legende { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; padding: 0; list-style: none; font: var(--schrift-2) var(--serif); }
 .wn-legende i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(43, 30, 18, 0.5); }
 
 /* Sitze */
 .wn-sitze { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .wn-sitze figure { margin: 0; text-align: center; }
 .wn-sitze svg { width: 100%; height: auto; }
-.wn-sitze figcaption { font: 14px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
-.wn-sitze figcaption strong { display: block; font: 600 24px var(--display, Fraunces, serif); color: var(--ink, #2b1e12); }
-.wn-parteien { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 14px var(--sans, Inter, sans-serif); }
+.wn-sitze figcaption { font: var(--schrift-2) var(--serif); color: var(--ink-soft, var(--tinte-2)); }
+.wn-sitze figcaption strong { display: block; font: 600 var(--schrift-5) var(--display, Fraunces, serif); color: var(--ink, var(--messing-text)); }
+.wn-parteien { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; font: var(--schrift-2) var(--serif); }
 .wn-parteien li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto auto; gap: 8px; align-items: baseline; }
 .wn-parteien .punkt { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(43, 30, 18, 0.45); }
-.wn-parteien .plus { color: #674a3a; font-weight: 600; }
-.wn-parteien .minus { color: #8c2b1f; font-weight: 600; }
-.wn-hinweis { margin: 8px 0 0; font: 14px/1.45 var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+.wn-parteien .plus { color: var(--gut); font-weight: 600; }
+.wn-parteien .minus { color: var(--siegel); font-weight: 600; }
+.wn-hinweis { margin: 8px 0 0; font: var(--schrift-2)/1.45 var(--serif); color: var(--ink-soft, var(--tinte-2)); }
 
 /* Reaktionen und Einflüsse */
 .wn-reaktionen { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-.wn-reaktionen li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; font: 15px/1.45 var(--serif, "EB Garamond", serif); }
-.wn-reaktionen .wer { font: 400 12.5px/1.6 var(--kapitaelchen); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft, #5a4a38); }
-.wn-reaktionen li.gut .wer { color: #674a3a; }
-.wn-reaktionen li.schlecht .wer { color: #8c2b1f; }
-.wn-einfluesse { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font: 14px var(--sans, Inter, sans-serif); }
+.wn-reaktionen li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; font: var(--schrift-3)/1.45 var(--serif, "EB Garamond", serif); }
+.wn-reaktionen .wer { font: 400 var(--schrift-1)/1.6 var(--kapitaelchen); letter-spacing: 0.08em; color: var(--ink-soft, var(--tinte-2)); }
+.wn-reaktionen li.gut .wer { color: var(--gut); }
+.wn-reaktionen li.schlecht .wer { color: var(--siegel); }
+.wn-einfluesse { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font: var(--schrift-2) var(--serif); }
 .wn-einfluesse li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted rgba(90, 64, 40, 0.35); }
-.wn-einfluesse .plus { color: #674a3a; font-weight: 600; }
-.wn-einfluesse .minus { color: #8c2b1f; font-weight: 600; }
+.wn-einfluesse .plus { color: var(--gut); font-weight: 600; }
+.wn-einfluesse .minus { color: var(--siegel); font-weight: 600; }
 
 /* Rede */
 .wn-rede { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 760px) { .wn-rede { grid-template-columns: minmax(0, 1fr); } }
-.wn-rede button { text-align: left; padding: 10px 12px; display: grid; gap: 4px; cursor: pointer; border: 1px solid rgba(90, 64, 40, 0.5); background: rgba(255, 250, 235, 0.75); color: inherit; font: 14px/1.4 var(--sans, Inter, sans-serif); }
+.wn-rede button { text-align: left; padding: 10px 12px; display: grid; gap: 4px; cursor: pointer; border: 1px solid rgba(90, 64, 40, 0.5); background: rgba(255, 250, 235, 0.75); color: inherit; font: var(--schrift-2)/1.4 var(--serif); }
 .wn-rede button:hover { background: rgba(236, 214, 150, 0.6); }
-.wn-rede button strong { font: 600 16.5px var(--serif, "EB Garamond", serif); }
-.wn-rede-ausgang { margin: 0; font: 16.5px/1.5 var(--serif, "EB Garamond", serif); font-style: italic; }
+.wn-rede button strong { font: 600 var(--schrift-3) var(--serif, "EB Garamond", serif); }
+.wn-rede-ausgang { margin: 0; font: var(--schrift-3)/1.5 var(--serif, "EB Garamond", serif); font-style: italic; }
 
 .wn-fuss, .umb-fuss { flex: none; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 26px 16px; border-top: 1px solid rgba(90, 64, 40, 0.3); }
-.wn-fuss p, .umb-fuss p { margin: 0; font: 14px/1.4 var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); max-width: 70ch; }
+.wn-fuss p, .umb-fuss p { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--ink-soft, var(--tinte-2)); max-width: 70ch; }
 
 /* Umbildung: Kabinettstisch. Klassen umb-. Schriften mindestens 12 px, Inhalt scrollt, Fußleiste bleibt sichtbar. */
 .umb { width: min(1280px, calc(100vw - 270px)); }
 .umb-kopf { flex: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding: 16px 28px 6px; }
 .umb-kopf-text { min-width: 0; }
-.umb-kopf .kicker { margin: 0 0 3px; font: 400 14px var(--kapitaelchen); letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
-.umb-kopf h2 { margin: 0 0 4px; font: 600 28px/1.15 var(--display, Fraunces, serif); overflow-wrap: anywhere; }
-.umb-einleitung { margin: 6px 0 0; font: 16.5px/1.45 var(--serif, "EB Garamond", serif); max-width: 78ch; }
+.umb-kopf .kicker { margin: 0 0 3px; font: 400 var(--schrift-2) var(--kapitaelchen); letter-spacing: 0.1em; color: var(--seal, var(--siegel)); }
+.umb-kopf h2 { margin: 0 0 4px; font: 600 var(--schrift-6)/1.15 var(--display, Fraunces, serif); overflow-wrap: anywhere; }
+.umb-einleitung { margin: 6px 0 0; font: var(--schrift-3)/1.45 var(--serif, "EB Garamond", serif); max-width: 78ch; }
 .umb-kopf-zaehler { flex: none; min-width: 150px; padding: 8px 14px; text-align: center; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 250, 235, 0.7); }
-.umb-zaehler-zahl { display: block; font: 600 40px/1 var(--display, Fraunces, serif); font-variant-numeric: tabular-nums; }
-.umb-zaehler-zahl small { font-size: 18px; color: var(--ink-soft, #5a4a38); }
-.umb-zaehler-text { display: block; margin-top: 2px; font: 12.5px var(--sans, Inter, sans-serif); color: var(--ink-soft, #5a4a38); }
+.umb-zaehler-zahl { display: block; font: 600 var(--schrift-7)/1 var(--display, Fraunces, serif); font-variant-numeric: tabular-nums; }
+.umb-zaehler-zahl small { font-size: var(--schrift-4); color: var(--ink-soft, var(--tinte-2)); }
+.umb-zaehler-text { display: block; margin-top: 2px; font: var(--schrift-2) var(--serif); color: var(--ink-soft, var(--tinte-2)); }
 .umb-zaehler-balken { display: block; height: 6px; margin-top: 6px; border-radius: 4px; background: rgba(90, 64, 40, 0.18); overflow: hidden; }
-.umb-zaehler-balken u { display: block; height: 100%; background: linear-gradient(90deg, #c69a4a, #8c6a2a); transition: width 400ms ease; }
-.umb-meldung { flex: none; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(236, 214, 150, 0.5); border-left: 4px solid #b2872f; font: 14px/1.45 var(--sans, Inter, sans-serif); }
-.umb-tauschhinweis { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(238,228,205, 0.7); border-left: 4px solid #74503a; font: 15px/1.4 var(--sans, Inter, sans-serif); }
+.umb-zaehler-balken u { display: block; height: 100%; background: linear-gradient(90deg, var(--messing-2), var(--warnung)); transition: width 400ms ease; }
+.umb-meldung { flex: none; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(236, 214, 150, 0.5); border-left: 4px solid #b2872f; font: var(--schrift-2)/1.45 var(--serif); }
+.umb-tauschhinweis { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 26px 4px; padding: 7px 12px; background: rgba(238,228,205, 0.7); border-left: 4px solid #74503a; font: var(--schrift-3)/1.4 var(--serif); }
 .umb-tauschhinweis button { padding: 4px 12px; }
 
 .umb-koerper { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 26px 12px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
@@ -106,78 +106,78 @@
 .umb-person { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 8px; }
 .umb-person .portraet { filter: drop-shadow(0 3px 5px rgba(40, 24, 10, 0.35)); }
 .umb-name { display: grid; justify-items: center; gap: 4px; min-width: 0; }
-.umb-band { justify-self: start; max-width: 100%; padding: 2px 8px; font: 400 12.5px/1.3 var(--kapitaelchen); letter-spacing: 0.05em; text-transform: uppercase; color: #fff8e6; overflow-wrap: anywhere; }
-.umb-name h3 { margin: 0; font: 600 18px/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
+.umb-band { justify-self: start; max-width: 100%; padding: 2px 8px; font: 400 var(--schrift-1)/1.3 var(--kapitaelchen); letter-spacing: 0.05em; color: var(--papier-2); overflow-wrap: anywhere; }
+.umb-name h3 { margin: 0; font: 600 var(--schrift-4)/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
 .umb-abz { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
-.umb-chip { display: inline-flex; align-items: center; gap: 3px; font: 400 12.5px/1.3 var(--kapitaelchen); letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 7px; border: 1px solid currentColor; color: #674a3a; white-space: nowrap; }
-.umb-chip.warn { color: #8c2b1f; }
-.umb-chip.krone { color: #8a6a1c; }
+.umb-chip { display: inline-flex; align-items: center; gap: 3px; font: 400 var(--schrift-1)/1.3 var(--kapitaelchen); letter-spacing: 0.04em; padding: 1px 7px; border: 1px solid currentColor; color: var(--tinte-weich); white-space: nowrap; }
+.umb-chip.warn { color: var(--siegel); }
+.umb-chip.krone { color: var(--warnung); }
 .umb-krone { color: #b2872f; flex: none; }
-.umb-will { margin: 0; text-align: center; min-height: 2.7em; font: italic 15px/1.4 var(--serif, "EB Garamond", serif); color: var(--ink-soft, #5a4a38); }
+.umb-will { margin: 0; text-align: center; min-height: 2.7em; font: italic var(--schrift-3)/1.4 var(--serif, "EB Garamond", serif); color: var(--ink-soft, var(--tinte-2)); }
 .umb-werte { display: grid; gap: 5px; }
-.umb-wert { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 3px 6px; align-items: center; font: 12.5px var(--sans, Inter, sans-serif); }
-.umb-wert .umb-ikon { color: var(--ink-soft, #5a4a38); }
-.umb-wert-name { color: var(--ink-soft, #5a4a38); overflow-wrap: anywhere; }
+.umb-wert { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 3px 6px; align-items: center; font: var(--schrift-1) var(--serif); }
+.umb-wert .umb-ikon { color: var(--ink-soft, var(--tinte-2)); }
+.umb-wert-name { color: var(--ink-soft, var(--tinte-2)); overflow-wrap: anywhere; }
 .umb-wert b { font-variant-numeric: tabular-nums; }
 .umb-wert i { grid-column: 1 / -1; display: block; height: 5px; border-radius: 4px; background: rgba(90, 64, 40, 0.16); overflow: hidden; }
-.umb-wert u { display: block; height: 100%; background: #8c6a2a; transition: width 400ms ease; }
-.umb-wert.loyal u { background: #6d5446; }
+.umb-wert u { display: block; height: 100%; background: var(--warnung); transition: width 400ms ease; }
+.umb-wert.loyal u { background: var(--tinte-3); }
 .umb-wert.kompetenz u { background: #74503a; }
 .umb-wert.ehrgeiz u { background: #b2552a; }
 .umb-aktionen { display: flex; flex-wrap: wrap; gap: 6px; }
-.umb-akt { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 8px; font: 600 12.5px var(--sans, Inter, sans-serif); color: #f3e6c6; border: 1px solid rgba(43, 30, 18, 0.75); background: linear-gradient(#3d3024, #2a2018); cursor: pointer; }
-.umb-akt:hover:not(:disabled) { background: linear-gradient(#54402e, #3a2c20); }
-.umb-akt[aria-pressed="true"], .umb-akt[aria-expanded="true"] { background: linear-gradient(#c69a4a, #8c6a2a); color: #2b1e12; }
+.umb-akt { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 8px; font: 600 var(--schrift-2) var(--serif); color: var(--papier-3); border: 1px solid rgba(43, 30, 18, 0.75); background: linear-gradient(var(--leder), var(--tinte-1)); cursor: pointer; }
+.umb-akt:hover:not(:disabled) { background: linear-gradient(var(--tinte-weich), var(--leder)); }
+.umb-akt[aria-pressed="true"], .umb-akt[aria-expanded="true"] { background: linear-gradient(var(--messing-2), var(--warnung)); color: var(--messing-text); }
 .umb-akt:disabled { opacity: 0.45; cursor: default; }
 .umb-akt:focus-visible, .umb-parteichip:focus-visible, .umb-tauschknopf:focus-visible { outline: 2px solid #74503a; outline-offset: 1px; }
 .umb-parteien { display: flex; flex-wrap: wrap; gap: 5px; }
-.umb-parteichip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; font: 600 12.5px/1.3 var(--sans, Inter, sans-serif); text-align: left; color: var(--ink, #2b1e12); border: 1px solid var(--pf, #8a7a64); background: rgba(255, 252, 240, 0.92); cursor: pointer; }
+.umb-parteichip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; font: 600 var(--schrift-1)/1.3 var(--serif); text-align: left; color: var(--ink, var(--messing-text)); border: 1px solid var(--pf, #8a7a64); background: rgba(255, 252, 240, 0.92); cursor: pointer; }
 .umb-parteichip i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--pf, #8a7a64); }
 .umb-parteichip:hover:not(:disabled) { background: rgba(236, 214, 150, 0.7); }
 .umb-parteichip:disabled { opacity: 0.45; cursor: default; }
-.umb-tauschknopf { position: absolute; inset: 0; display: grid; place-items: center; padding: 10px; text-align: center; font: 600 16.5px/1.3 var(--serif, "EB Garamond", serif); color: #fff8e6; background: rgba(84,59,44, 0.94); border: 2px dashed #f1d58f; cursor: pointer; z-index: 2; }
+.umb-tauschknopf { position: absolute; inset: 0; display: grid; place-items: center; padding: 10px; text-align: center; font: 600 var(--schrift-3)/1.3 var(--serif, "EB Garamond", serif); color: var(--papier-2); background: rgba(84,59,44, 0.94); border: 2px dashed var(--messing-1); cursor: pointer; z-index: 2; }
 .umb-tauschknopf:disabled { background: rgba(70, 70, 70, 0.7); cursor: default; }
-.umb-stempel { position: absolute; top: 8px; right: 8px; z-index: 1; transform: rotate(-10deg); padding: 3px 10px; font: 400 14px/1.2 var(--kapitaelchen); letter-spacing: 0.1em; text-transform: uppercase; color: #674a3a; border: 2.5px solid currentColor; background: rgba(255, 255, 255, 0.4); opacity: 0.92; pointer-events: none; animation: umb-stempel 360ms cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+.umb-stempel { position: absolute; top: 8px; right: 8px; z-index: 1; transform: rotate(-10deg); padding: 3px 10px; font: 400 var(--schrift-2)/1.2 var(--kapitaelchen); letter-spacing: 0.1em; color: var(--tinte-weich); border: 2.5px solid currentColor; background: rgba(255, 255, 255, 0.4); opacity: 0.92; pointer-events: none; animation: umb-stempel 360ms cubic-bezier(0.2, 1.3, 0.4, 1) both; }
 .umb-stempel.ersetzt, .umb-stempel.versetzt { color: #74503a; }
-.umb-stempel.entlassen { color: #8c2b1f; }
+.umb-stempel.entlassen { color: var(--siegel); }
 
 /* Seitenleiste: Folgen, Partner, Kronprinzen, Zwischenbilanz */
 .umb-seite { display: grid; gap: 14px; min-width: 0; align-content: start; }
-.umb-seite h3 { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; font: 400 14px/1.2 var(--kapitaelchen); letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal, #8c2b1f); }
+.umb-seite h3 { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; font: 400 var(--schrift-2)/1.2 var(--kapitaelchen); letter-spacing: 0.1em; color: var(--seal, var(--siegel)); }
 .umb-folgen, .umb-partner, .umb-kronprinzen, .umb-bilanz { padding: 10px 12px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 250, 235, 0.72); }
 .umb-folgen ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-.umb-folgen li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font: 14px/1.35 var(--sans, Inter, sans-serif); }
+.umb-folgen li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font: var(--schrift-2)/1.35 var(--serif); }
 .umb-folgen li span:last-child { display: grid; gap: 1px; }
-.umb-folgen small { color: var(--ink-soft, #5a4a38); font-size: 12.5px; overflow-wrap: anywhere; }
+.umb-folgen small { color: var(--ink-soft, var(--tinte-2)); font-size: var(--schrift-2); overflow-wrap: anywhere; }
 .umb-pfeil { width: 18px; height: 18px; margin-top: 1px; background: #8a7a64; clip-path: polygon(10% 40%, 90% 40%, 90% 60%, 10% 60%); }
-.umb-pfeil.auf { background: #674a3a; clip-path: polygon(50% 8%, 94% 90%, 6% 90%); }
-.umb-pfeil.ab { background: #8c2b1f; clip-path: polygon(50% 92%, 94% 10%, 6% 10%); }
-.umb-partnerzeile { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 8px; align-items: baseline; font: 14px/1.4 var(--sans, Inter, sans-serif); }
+.umb-pfeil.auf { background: var(--tinte-weich); clip-path: polygon(50% 8%, 94% 90%, 6% 90%); }
+.umb-pfeil.ab { background: var(--siegel); clip-path: polygon(50% 92%, 94% 10%, 6% 10%); }
+.umb-partnerzeile { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 8px; align-items: baseline; font: var(--schrift-2)/1.4 var(--serif); }
 .umb-partnerzeile + .umb-partnerzeile { margin-top: 6px; }
 .umb-partnerzeile i { width: 10px; height: 10px; border-radius: 50%; }
 .umb-kronprinzen ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
 .umb-kronprinzen li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
-.umb-kronprinzen li span { display: grid; gap: 1px; font: 14px/1.3 var(--sans, Inter, sans-serif); }
-.umb-kronprinzen small { color: var(--ink-soft, #5a4a38); font-size: 12.5px; }
-.umb-bilanz summary { cursor: pointer; font: 600 14px var(--sans, Inter, sans-serif); }
-.umb-bilanz table { width: 100%; border-collapse: collapse; margin-top: 8px; font: 14px var(--sans, Inter, sans-serif); }
+.umb-kronprinzen li span { display: grid; gap: 1px; font: var(--schrift-2)/1.3 var(--serif); }
+.umb-kronprinzen small { color: var(--ink-soft, var(--tinte-2)); font-size: var(--schrift-2); }
+.umb-bilanz summary { cursor: pointer; font: 600 var(--schrift-2) var(--serif); }
+.umb-bilanz table { width: 100%; border-collapse: collapse; margin-top: 8px; font: var(--schrift-2) var(--serif); }
 .umb-bilanz td, .umb-bilanz th { padding: 3px 6px; border-bottom: 1px dotted rgba(90, 64, 40, 0.35); text-align: left; }
-.umb-bilanz ul { margin: 8px 0 0; padding-left: 18px; font: 14px/1.5 var(--sans, Inter, sans-serif); }
+.umb-bilanz ul { margin: 8px 0 0; padding-left: 18px; font: var(--schrift-2)/1.5 var(--serif); }
 
 /* Schublade mit den Kandidaten */
-.umb-schublade { position: absolute; top: 0; right: 0; bottom: 0; z-index: 4; width: min(460px, 94%); display: flex; flex-direction: column; background: var(--paper, #f4ead2); border-left: 3px double rgba(90, 64, 40, 0.6); box-shadow: -10px 0 24px rgba(30, 20, 10, 0.3); animation: umb-schublade 280ms ease-out both; }
+.umb-schublade { position: absolute; top: 0; right: 0; bottom: 0; z-index: 4; width: min(460px, 94%); display: flex; flex-direction: column; background: var(--paper, var(--leder-text)); border-left: 3px double rgba(90, 64, 40, 0.6); box-shadow: -10px 0 24px rgba(30, 20, 10, 0.3); animation: umb-schublade 280ms ease-out both; }
 .umb-schublade header { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); }
-.umb-schublade h3 { margin: 0; font: 600 21px/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
+.umb-schublade h3 { margin: 0; font: 600 var(--schrift-5)/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
 .umb-schublade-liste { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 12px 16px; display: grid; gap: 10px; align-content: start; }
 .umb-kandidat { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; padding: 10px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.85); }
 .umb-kandidat > button { grid-column: 1 / -1; justify-self: end; padding: 6px 14px; }
-.umb-kandidat-text { min-width: 0; display: grid; gap: 3px; font: 14px/1.4 var(--sans, Inter, sans-serif); }
-.umb-kandidat-text strong { font: 600 18px/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
+.umb-kandidat-text { min-width: 0; display: grid; gap: 3px; font: var(--schrift-2)/1.4 var(--serif); }
+.umb-kandidat-text strong { font: 600 var(--schrift-4)/1.2 var(--serif, "EB Garamond", serif); overflow-wrap: anywhere; }
 .umb-kandidat-text p { margin: 0; overflow-wrap: anywhere; }
-.umb-kandidat-text .herkunft { color: var(--ink-soft, #5a4a38); font-style: italic; }
+.umb-kandidat-text .herkunft { color: var(--ink-soft, var(--tinte-2)); font-style: italic; }
 .umb-mini { display: flex; flex-wrap: wrap; gap: 6px; }
-.umb-mini span { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; font: 600 12.5px var(--sans, Inter, sans-serif); border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 255, 255, 0.6); }
-.umb-mini .umb-ikon { color: var(--ink-soft, #5a4a38); }
+.umb-mini span { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; font: 600 var(--schrift-2) var(--serif); border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 255, 255, 0.6); }
+.umb-mini .umb-ikon { color: var(--ink-soft, var(--tinte-2)); }
 .umb-schublade footer { flex: none; padding: 10px 16px; border-top: 1px solid rgba(90, 64, 40, 0.35); display: flex; justify-content: flex-end; }
 
 .umb-fuss-knoepfe { display: inline-flex; gap: 10px; flex-wrap: wrap; }
@@ -193,19 +193,20 @@ html[data-effekte="aus"] .umb-karte, html[data-effekte="aus"] .umb-stempel, html
 
 /* Nachtrag der Parlamentswahl (ältere Spielstände): Frage und Wahlabend ohne Präsidentenwahl */
 .pn { max-width: 640px; }
-.pn-heute { margin: 4px 0 14px; font: 600 15px var(--serif, "EB Garamond", serif); color: #5a4a38; }
+.pn-heute { margin: 4px 0 14px; font: 600 var(--schrift-3) var(--serif, "EB Garamond", serif); color: var(--tinte-2); }
 .pn-antworten { display: flex; flex-direction: column; gap: 10px; }
 .pn-antworten button { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 10px 16px; }
-.pn-antworten button strong { font: 700 16.5px var(--serif, "EB Garamond", serif); }
-.pn-antworten button span { font: 14px/1.4 var(--serif, "EB Garamond", serif); opacity: 0.9; white-space: normal; }
-.pn-sicherung { margin: 14px 0 0; font: italic 14px var(--serif, "EB Garamond", serif); color: #6b5636; }
+.pn-antworten button strong { font: 700 var(--schrift-3) var(--serif, "EB Garamond", serif); }
+.pn-antworten button span { font: var(--schrift-2)/1.4 var(--serif, "EB Garamond", serif); opacity: 0.9; white-space: normal; }
+.pn-sicherung { margin: 14px 0 0; font: italic var(--schrift-2) var(--serif, "EB Garamond", serif); color: #6b5636; }
 .wn-parteienanteile { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
-.wn-parteienanteile .zeile { display: grid; grid-template-columns: 90px 1fr 56px; align-items: center; gap: 8px; font: 15px var(--serif, "EB Garamond", serif); }
+.wn-parteienanteile .zeile { display: grid; grid-template-columns: 90px 1fr 56px; align-items: center; gap: 8px; font: var(--schrift-3) var(--serif, "EB Garamond", serif); }
 .wn-parteienanteile .zeile i { display: block; height: 10px; border-radius: 4px; }
 .wn-parteienanteile .zeile b { text-align: right; font-weight: 700; }
 
 /* Das Urteil der Geschichte (Epoche) am Wahlabend: ein Siegel in Messing, golden und heroisch in Gold, dunkel in Siegelrot */
 .wn-urteil { border-top: 1px solid #c69a4a66; padding-top: 12px; }
-.wn-urteil-stufe { margin: 0; font: 500 28px/1.15 var(--display); color: var(--ink, #2a1f18); }
+.wn-urteil-stufe { margin: 0; font: 500 var(--schrift-6)/1.15 var(--display); color: var(--ink, #2a1f18); }
 .wn-urteil.golden .wn-urteil-stufe, .wn-urteil.heroisch .wn-urteil-stufe { color: #7c5823; }
 .wn-urteil.dunkel .wn-urteil-stufe { color: var(--seal, #8e2a22); }
+.wn-einfluesse li.basis { font-weight: 700; border-bottom-style: solid; }

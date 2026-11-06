@@ -1,7 +1,7 @@
 // Ein Vorschlag des Problemlösers als Karte: was, wo, warum, was es kostet, ob die Mehrheit steht, und zwei Wege zur Entscheidung.
 // Wird in „Heute“, in den Bereichen und am Schreibtisch benutzt, damit es überall dasselbe ist.
 
-import { tunWort } from "../../data/skalen";
+import { stufenName, tunWort } from "../../data/skalen";
 import { provinzenText } from "../../sim/handeln";
 import type { Vorschlag } from "../../sim/vorschlaege";
 
@@ -25,7 +25,7 @@ export function VorschlagKarte({
       <div className="vorschlag-kopf">
         <strong>{v.name}</strong>
         <span>
-          {v.zielName ? t("ui2.ui.politik.VorschlagKarte.48d7c7b", { p0: v.jetztName, p1: v.zielName }) : t("ui2.ui.politik.VorschlagKarte.ae11a28", { p0: tunWort(v.massnahme, v.richtung), p1: v.stufeJetzt, p2: v.ziel })} · {provinzenText(v.ort)}
+          {v.zielName ? t("ui2.ui.politik.VorschlagKarte.48d7c7b", { p0: v.jetztName, p1: v.zielName }) : t("n9.vk.kopf", { p0: tunWort(v.massnahme, v.richtung), p1: stufenName(v.massnahme, v.stufeJetzt), p2: stufenName(v.massnahme, v.ziel) })} · {provinzenText(v.ort)}
         </span>
       </div>
       {!kompakt && <p className="vorschlag-grund">{v.grund}</p>}

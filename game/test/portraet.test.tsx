@@ -179,7 +179,9 @@ describe("Brille, Bart, Kopftuch, Größen", () => {
     const bilder = new Set(rollen.map((r) => rein({ seed: "Rolle", geschlecht: "m", alter: 50, rolle: r, size: 160 })));
     expect(bilder.size).toBe(rollen.length);
     expect(rein({ seed: "Rolle", geschlecht: "m", alter: 50, rolle: "generalstab", size: 160 })).toContain("#a02a22"); // Kragenspiegel
-    expect(rein({ seed: "Rolle", geschlecht: "m", alter: 50, rolle: "justiz", size: 160 })).toContain("#f3eee2"); // Beffchen
+    // Befund C-14 (Nacht N1): Die Robe mit Beffchen trägt nur ein Richter; das Justizministerium trägt Anzug
+    expect(rein({ seed: "Rolle", geschlecht: "m", alter: 50, rolle: "richter", size: 160 })).toContain("#f3eee2"); // Beffchen
+    expect(rein({ seed: "Rolle", geschlecht: "m", alter: 50, rolle: "justiz", size: 160 })).not.toContain("#f3eee2");
     expect(rein({ seed: "Rolle", geschlecht: "m", alter: 50, rolle: "stab", size: 160 })).not.toContain("#a02a22");
   });
 

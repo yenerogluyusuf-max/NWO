@@ -8,6 +8,7 @@
 import { t } from "../i18n";
 import { datenTexte } from "../i18n/daten";
 import { NODES } from "./politiknetz";
+import { einheitText, zustandsStufen } from "./einheiten";
 
 export type SkalenArt = "regime" | "satz" | "menge";
 
@@ -127,7 +128,7 @@ const REGIME: Record<string, SkalenStufe[]> = {
   m_religioese_schulen: [
     S(10, "Randfach", "Religion nur als Wahlfach."),
     S(30, "Weniger religiöse Schulen", "Der Anteil wird verringert."),
-    S(55, "Wie heute", "Ein deutlicher Anteil der Schulen mit religiösem Schwerpunkt."),
+    S(55, "İmam-Hatip als fester Schulzweig", "Ein deutlicher Anteil der Schulen mit religiösem Schwerpunkt."),
     S(75, "Ausbau", "Mehr Schulen und mehr Plätze."),
     S(95, "Dominierendes Modell", "Der religiöse Schwerpunkt prägt das Schulwesen."),
   ],
@@ -157,7 +158,7 @@ const REGIME: Record<string, SkalenStufe[]> = {
   ],
   m_hausarzt: [
     S(10, "Freie Arztwahl", "Patienten gehen zu jedem Arzt."),
-    S(45, "Hausarzt-Pilotprojekte", "Erste Provinzen testen das System."),
+    S(45, "Hausärzte landesweit, ohne Überweisungspflicht", "Jede Provinz hat Familienärzte, doch Patienten gehen direkt ins Krankenhaus."),
     S(70, "Verbindlicher Hausarzt", "Der Hausarzt ist erste Anlaufstelle."),
     S(90, "Vollständig gesteuert", "Überweisungen nur über den Hausarzt."),
   ],
@@ -200,7 +201,7 @@ const REGIME: Record<string, SkalenStufe[]> = {
   ],
   m_richterrat: [
     S(5, "Weisungsnah", "Justizminister und Präsident bestimmen Zusammensetzung und Beförderungen."),
-    S(25, "Wie heute", "Der Justizminister führt den Vorsitz; der Präsident ernennt 4, das Parlament wählt 7 der 13 Mitglieder."),
+    S(25, "Präsident und Parlament besetzen", "Der Justizminister führt den Vorsitz; der Präsident ernennt 4, das Parlament wählt 7 der 13 Mitglieder."),
     S(50, "Teilweise Kollegenwahl", "Ein Teil der Mitglieder wird von Richtern und Staatsanwälten gewählt."),
     S(75, "Mindestens die Hälfte von Kollegen gewählt", "Die Empfehlung der Venedig-Kommission."),
     S(95, "Selbstverwaltung der Justiz", "Kollegenwahl, der Minister ohne Vorsitz und ohne Erlaubnisrecht bei Untersuchungen."),
@@ -214,26 +215,26 @@ const REGIME: Record<string, SkalenStufe[]> = {
   ],
   m_urteilsumsetzung: [
     S(5, "Urteile ignorieren", "Gerichte und Behörden folgen weder Straßburg noch dem Verfassungsgericht."),
-    S(30, "Wie heute", "Nur einzelne Urteile werden umgesetzt, andere bleiben liegen."),
+    S(30, "Viele Urteile bleiben liegen", "Nur einzelne Urteile werden umgesetzt, andere bleiben liegen."),
     S(55, "Ausgewählte Fälle umsetzen", "Klare Fälle werden umgesetzt, politisch heikle noch nicht."),
     S(80, "Alle Urteile umsetzen", "Auch in Fällen mit politischem Gewicht, etwa Kavala."),
   ],
   m_minderheitenrechte: [
     S(10, "Nur die im Vertrag von Lausanne genannten Gemeinden", "Rechte für Griechen, Armenier und Juden; andere Gemeinschaften ohne Anerkennung."),
-    S(35, "Wie heute", "Rechte einzelner Gemeinden; viele Streitfragen um Schulen, Sprache und Eigentum bleiben offen."),
+    S(35, "Rechte für einzelne Gemeinden", "Rechte einzelner Gemeinden; viele Streitfragen um Schulen, Sprache und Eigentum bleiben offen."),
     S(60, "Rechte ausbauen", "Sprachunterricht, Rückgabe von Kirchen- und Klostereigentum, Gebetsstätten der Aleviten."),
     S(85, "Volle Gleichstellung und Sprachrechte", "Gleiche Rechte für alle Gemeinschaften, Unterricht in der Muttersprache."),
   ],
   m_wehrdienst: [
     S(0, "Freiwilligenarmee", "Nur Berufs- und Zeitsoldaten."),
     S(15, "Kurzer Wehrdienst (3 Monate)", "Grundausbildung für alle, danach Reserve."),
-    S(30, "Wie heute: 6 Monate mit Freikauf", "Freikauf gegen Gebühr mit einem Monat Grundausbildung."),
+    S(30, "6 Monate mit Freikauf", "Freikauf gegen Gebühr mit einem Monat Grundausbildung."),
     S(60, "12 Monate ohne Freikauf", "Mehr Masse, weniger Ausnahmen."),
     S(90, "18 Monate Dienstpflicht", "Lange Dienstzeit für alle Wehrpflichtigen."),
   ],
   m_offiziersauswahl: [
     S(10, "Loyalität entscheidet", "Beförderung folgt der Nähe zur Führung."),
-    S(35, "Wie heute", "Der Oberste Militärrat unter Vorsitz des Präsidenten entscheidet im August."),
+    S(35, "Militärrat unter dem Präsidenten", "Der Oberste Militärrat unter Vorsitz des Präsidenten entscheidet im August."),
     S(65, "Leistung und Qualifikation", "Bewertungen und Prüfungen zählen, das Gremium entscheidet weiter."),
     S(90, "Unabhängiges Auswahlverfahren", "Ein Auswahlverfahren aus Leistungsdaten, ohne politischen Einfluss."),
   ],
@@ -250,27 +251,87 @@ const MENGE_NAMEN = ["skala.menge.m2", "skala.menge.m1", "skala.menge.0", "skala
 
 /**
  * Belegte heutige Sätze (Rückmeldung 05.11.2026: „bei Steuererhöhungen müssen Zahlen und Prozente angegeben werden“). Der Startwert der
- * Maßnahme entspricht diesem Satz; andere Stufen werden verhältnisgleich umgerechnet (Spielparameter, ENTSCHEIDUNGEN „Reglerstufen in Worten“).
+ * Maßnahme entspricht diesem Satz. Ein Prozentpunkt sind `STUFEN_JE_PUNKT` Stufen des Netzes (Spielparameter), gewählt wird in ganzen
+ * Punkten zwischen echten Grenzen (Befund B-2: vorher sprang die Mehrwertsteuer 20 → 17 → 23 %, der Spitzensatz lief von 0 bis 80 %).
  */
-const ECHT: Record<string, { satz: number; muster: "satz" | "spitze"; quelle: string }> = {
-  m_mwst: { satz: 20, muster: "satz", quelle: "KDV-Regelsatz 20 % seit 10.07.2023 (Präsidialbeschluss Nr. 7346, Resmî Gazete 07.07.2023)" },
-  m_einkommensteuer: { satz: 40, muster: "spitze", quelle: "Spitzensatz 40 % (Gelir Vergisi Kanunu Art. 103)" },
-  m_koerperschaftsteuer: { satz: 25, muster: "satz", quelle: "25 % ab Veranlagung 2023 (Gesetz Nr. 7456, Resmî Gazete 15.07.2023)" },
+export interface EchterSatz {
+  satz: number;
+  muster: "satz" | "spitze";
+  quelle: string;
+  /** Spanne in Prozentpunkten, in ganzen Punkten wählbar */
+  min: number;
+  max: number;
+  grenze: string;
+}
+/** Stufen des Netzes je Prozentpunkt Steuersatz (Spielparameter; die Kanten des Netzes wirken je Stufe). */
+export const STUFEN_JE_PUNKT = 5;
+const ECHT: Record<string, EchterSatz> = {
+  m_mwst: { satz: 20, muster: "satz", quelle: "KDV-Regelsatz 20 % seit 10.07.2023 (Präsidialbeschluss Nr. 7346, Resmî Gazete 07.07.2023)", min: 15, max: 27,
+    grenze: "15 % ist der Mindestregelsatz der EU (Richtlinie 2006/112/EG Art. 97), 27 % der höchste Regelsatz in der EU (Ungarn)" },
+  m_einkommensteuer: { satz: 40, muster: "spitze", quelle: "Spitzensatz 40 % (Gelir Vergisi Kanunu Art. 103)", min: 30, max: 50,
+    grenze: "Spielgrenze: bis 2019 lag die Spitze bei 35 %, seit 2020 bei 40 % (Gesetz Nr. 7194); 50 % liegt am oberen Rand der OECD-Länder" },
+  m_koerperschaftsteuer: { satz: 25, muster: "satz", quelle: "25 % ab Veranlagung 2023 (Gesetz Nr. 7456, Resmî Gazete 15.07.2023)", min: 15, max: 35,
+    grenze: "15 % ist die globale Mindeststeuer (OECD, Säule 2); 35 % ist Spielgrenze" },
 };
 const START = new Map(NODES.filter((n) => n.kind === "massnahme").map((n) => [n.id, n.start]));
 
+/** Der belegte Satz einer Maßnahme mit echtem Satz (Mehrwertsteuer, Spitzensatz, Körperschaftsteuer), sonst undefined. */
+export const echterSatz = (id: string): EchterSatz | undefined => ECHT[id];
+export const MASSNAHMEN_MIT_SATZ = Object.keys(ECHT);
+
+/** Der Satz in Prozent bei einer Stufe des Netzes (ungerundet; Stufe = Start + 5 je Punkt). */
+export function satzBei(id: string, w: number): number | undefined {
+  const e = ECHT[id];
+  if (!e) return undefined;
+  return e.satz + (w - (START.get(id) ?? 50)) / STUFEN_JE_PUNKT;
+}
+
+/** Die Stufe des Netzes für einen Satz in Prozent. */
+export function stufeBeiSatz(id: string, satz: number): number {
+  const e = ECHT[id];
+  if (!e) return satz;
+  return (START.get(id) ?? 50) + (satz - e.satz) * STUFEN_JE_PUNKT;
+}
+
+/** Alle wählbaren Sätze in ganzen Punkten zwischen den Grenzen (beide Ansichten lesen dieselbe Liste). */
+export function echteHalte(id: string): { w: number; satz: number }[] {
+  const e = ECHT[id];
+  if (!e) return [];
+  const out: { w: number; satz: number }[] = [];
+  for (let s = e.min; s <= e.max; s++) {
+    const w = stufeBeiSatz(id, s);
+    if (w >= 0 && w <= 100) out.push({ w, satz: s });
+  }
+  return out;
+}
+
+/** Einen gewünschten Wert auf den nächsten ganzen Satz innerhalb der Grenzen legen; andere Maßnahmen bleiben unverändert. */
+export function rasteStufe(id: string, w: number): number {
+  const halte = echteHalte(id);
+  if (!halte.length) return w;
+  let beste = halte[0]!;
+  for (const h of halte) if (Math.abs(h.w - w) < Math.abs(beste.w - w)) beste = h;
+  return beste.w;
+}
+
 /**
- * Eine Stufe in Worten statt „Stufe 50“: benannter Zustand, belegter Satz („22 %“) oder Anteil am Ausgangsstand („120 % des Ausgangs“).
- * Nur wo eine Maßnahme zu Beginn nicht besteht (Start 0), bleibt die Stufe als Zahl.
+ * Eine Stufe in Worten statt „Stufe 50“: benannter Zustand, belegter Satz („22 %“) oder die echte Größe aus data/einheiten.ts
+ * („33.700 Lira netto im Monat“, „Staffeltarif: Vielverbraucher zahlen mehr“, „Kursteilnehmer: +50 % gegenüber 2026“).
+ * Die echte Einheit hat Vorrang; nur Maßnahmen ohne Eintrag dort fallen auf den Anteil am Ausgangsstand zurück.
  */
 export function stufenName(id: string, w: number): string {
   if (REGIME[id]) return naechsteStufe({ art: "regime", frage: "", stufen: REGIME[id]! }, w).stufe.name;
   const start = START.get(id) ?? 0;
   const echt = ECHT[id];
-  if (echt && start > 0) return t(`skala.echt.${echt.muster}`, { p: Math.round((echt.satz * w) / start) });
+  if (echt) return t(`skala.echt.${echt.muster}`, { p: Math.round(satzBei(id, w)!) });
+  const einheit = einheitText(id, w, start);
+  if (einheit !== undefined) return einheit;
   if (start > 0) return t("skala.anteil", { p: Math.round((w / start) * 100) });
   return t("skala.stufe", { w: Math.round(w) });
 }
+
+/** Maßnahmen, die im Netz eine Menge sind, aber als benannte Zustände angezeigt werden (Vorhaben, Verträge, Stufen eines Systems) */
+export const hatZustaende = (id: string): boolean => zustandsStufen(id) !== undefined;
 
 /** Woher der heutige Satz stammt, falls belegt */
 export const stufenQuelle = (id: string): string | undefined => ECHT[id]?.quelle;
@@ -280,13 +341,30 @@ export function skalenArt(id: string): SkalenArt {
 }
 
 /**
- * Die wählbaren Stufen einer Maßnahme. Bei Regimen sind es die benannten Zustände; bei Sätzen und Mengen fünf Schritte um den
- * heutigen Stand (±20 und ±40 Punkte), soweit sie zwischen 0 und 100 liegen.
+ * Die wählbaren Stufen einer Maßnahme. Bei Regimen sind es die benannten Zustände; bei echten Sätzen ganze Prozentpunkte um den
+ * heutigen Satz; bei übrigen Sätzen und Mengen fünf Schritte um den heutigen Stand (±20 und ±40 Punkte), soweit sie zwischen 0 und 100 liegen.
  */
 export function skala(id: string, jetzt: number): Skala {
   const art = skalenArt(id);
   if (art === "regime") return { art, frage: t("skala.frage.regime"), stufen: REGIME[id]! };
+  // Nur Anzeige: Die Simulation behandelt diese Maßnahmen weiter als Menge (skalenArt), wählbar sind aber die benannten Zustände
+  const zustaende = zustandsStufen(id);
+  if (zustaende) return { art, frage: t("skala.frage.regime"), stufen: zustaende };
   const namen = art === "satz" ? SATZ_NAMEN : MENGE_NAMEN;
+  if (ECHT[id]) {
+    // Fünf Karten aus derselben Liste wie die Tafel: heute und je zwei ganze Punkte darunter und darüber
+    const halte = echteHalte(id);
+    const heute = halte.findIndex((h) => h.w === rasteStufe(id, jetzt));
+    const auswahl = halte.slice(Math.max(0, Math.min(heute - 2, halte.length - 5)), Math.max(0, Math.min(heute - 2, halte.length - 5)) + 5);
+    return {
+      art,
+      frage: t("skala.frage.satz"),
+      stufen: auswahl.map((h) => {
+        const d = h.satz - halte[heute]!.satz;
+        return { w: h.w, name: stufenName(id, h.w), text: d === 0 ? t(namen[2]!) : t("n3.skala.punkte", { n: Math.abs(d), richtung: d > 0 ? "auf" : "ab" }) };
+      }),
+    };
+  }
   const mitte = Math.round(jetzt);
   const stufen: SkalenStufe[] = [];
   for (let k = -2; k <= 2; k++) {

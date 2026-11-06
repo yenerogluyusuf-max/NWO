@@ -45,6 +45,8 @@ export function Personen({ world, initialTab, refresh, onMassnahme, onGeheVorlag
 
   return (
     <div className="pe" ref={wurzel}>
+      {/* Befund C-10: Die Kennzahlen stehen am Tisch (Termine, Rücktritt) und im Reiter Zusagen (Glaubwürdigkeit); hier nur im Umfeld, wo Termine zählen */}
+      {tab === "umfeld" && (
       <div className="pe-kopf">
         <div className={`pe-chip${termine.max - termine.belegt <= 1 ? " warn" : ""}`}>
           <b>{t("ui2.ui.Personen.b98ade3")}</b>
@@ -66,9 +68,10 @@ export function Personen({ world, initialTab, refresh, onMassnahme, onGeheVorlag
         <div className={`pe-chip${gefahr ? " warn" : ""}`}>
           <b>{t("ui.Personen.434c793")}</b>
           <span>{gefahr}</span>
-          <em>{gefahr ? t("ui2.ui.Personen.e287f48") : "niemand"}</em>
+          <em>{gefahr ? t("ui2.ui.Personen.e287f48") : t("n1.niemand")}</em>
         </div>
       </div>
+      )}
 
       <div className="pe-tabs" role="tablist" aria-label={t("ui.Personen.c98699e")}>
         <button role="tab" aria-selected={tab === "kabinett"} className={tab === "kabinett" ? "on" : ""} onClick={() => setTab("kabinett")}>

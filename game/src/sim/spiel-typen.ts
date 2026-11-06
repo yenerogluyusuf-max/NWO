@@ -27,6 +27,19 @@ export interface Gesetz {
   fassung?: import("../data/gesetzesvorhaben").FassungId;
   /** Ja-Stimmen, die die Fassung zusätzlich holt (Kompromiss) oder kostet (scharf) */
   stimmenBonus?: number;
+  /** Nicht das Parlament, sondern die Mindestlohnkommission entscheidet (data/rechtswege.ts); ohne Feld: Gesetz */
+  weg?: "kommission";
+  /** Bis zu diesem Tag berät der Fachausschuss (sim/handeln.ts REGELN.ausschussTage); ältere Spielstände haben es nicht */
+  ausschussBis?: number;
+  /** Ergebnis im Ausschuss: offen, unverändert, vom Ausschuss abgeschwächt, oder vom Präsidenten selbst als Kompromiss angeboten */
+  ausschuss?: "offen" | "unveraendert" | "geaendert" | "kompromiss";
+  /** Stufe und Fassung, wie die Fraktion den Entwurf eingebracht hat (vor einer Änderung im Ausschuss) */
+  urStufe?: number;
+  urFassung?: import("../data/gesetzesvorhaben").FassungId;
+  /** Vom Präsidenten zurückgesandt (Art. 89): Die Wiederannahme braucht die absolute Mehrheit der Mitglieder */
+  rueckgabe?: boolean;
+  /** Benannte Absprachen mit Abgeordneten (sim/fraktionen-absprachen.ts) */
+  zusagenListe?: import("./fraktionen-absprachen").Absprache[];
 }
 
 export interface Figur {
@@ -161,6 +174,8 @@ export interface WahlkampfReise {
   effekt: number;
   /** Ob der Besuch missglückte (brennende Probleme vor Ort = Risiko) */
   missglueckt: boolean;
+  /** Wirkung auf die landesweite Zustimmung in Prozentpunkten, sofort gebucht (fehlt in älteren Ständen) */
+  zustimmung?: number;
 }
 
 /** Eine Auslandstour zur Diaspora (nur bei nationalen Wahlen wirksam). */
@@ -172,6 +187,8 @@ export interface AuslandsTour {
   lagerPlus: number;
   /** Einreise-/Auftrittsverbot des Gastlands (2017-Muster: Belagerungs-Narrativ) */
   verbot: boolean;
+  /** Wirkung der Bilder im Inland auf die Zustimmung in Prozentpunkten (fehlt in älteren Ständen) */
+  zustimmung?: number;
 }
 
 /** Das TV-Duell mit dem Oppositions-Kandidaten. */
@@ -203,6 +220,11 @@ export interface GegnerAngriff {
   thema: string;
   /** Stärke des Treffers in Prozentpunkten (positiv gebucht, wirkt negativ) */
   staerke: number;
+  /** Kennung des angegriffenen Problems (Netzknoten), für den Sprung zur Politik */
+  themaId?: string;
+  /** Die Antwort des Präsidenten und was sie in Prozentpunkten zurückholte (negativ: ging nach hinten los) */
+  antwort?: "gegendarstellung" | "ortstermin" | "gegenangriff";
+  zurueck?: number;
 }
 
 export interface WahlkampfZustand {
@@ -390,6 +412,8 @@ export interface WahlErgebnis {
   rede?: WahlRede;
   /** Einflüsse des Wahlkampfs und der Lage auf das Ergebnis des Amtsinhabers, in Prozentpunkten */
   einfluesse?: { name: string; punkte: number }[];
+  /** Ausgangswert (wahre Zustimmung am Wahltag) und Zufall des Wahltags im ersten Wahlgang: mit den Einflüssen die Treppe zum Ergebnis */
+  treppe?: { basis: number; zufall: number };
   /** Ob die Opposition ein knappes Ergebnis anficht; der Hohe Wahlrat entscheidet endgültig (kein Rechtsmittel, AY 79) */
   anfechtung?: "keine" | "laufend" | "abgewiesen";
   /** Die Wahl der letzten Amtszeit: Der Präsident tritt nicht mehr an */
@@ -418,6 +442,7 @@ export interface StichwahlVorgang {
   /** Die Parlamentswahl ist am ersten Wahltag schon entschieden */
   parlament: WahlParlament;
   einfluesse: { name: string; punkte: number }[];
+  treppe?: { basis: number; zufall: number };
   provinzen1: Record<string, { amt: number; gegner: number }>;
   /** Hochburgen-Muster des Lagers je Provinz (Abweichung vom Landesschnitt in Prozentpunkten), aus der Parlamentswahl; für die Stichwahl-Provinzen */
   muster?: number[];

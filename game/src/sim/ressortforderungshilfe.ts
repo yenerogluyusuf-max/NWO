@@ -5,7 +5,7 @@ import type { RessortForderung } from './ressortrueckhalt';
 import { HOCH_SCHLECHT, wertVon } from './personen';
 import { ressortEntspannt } from './ressortanliegen';
 import { schritteFuer } from './gespraeche';
-import { bringeEin, pruefeVorhaben, stufeIn, gesetzPrognose, stimmenKaufen, gesetzeAbstimmen, REGELN, STIMMEN_PUFFER } from './handeln';
+import { bringeEin, pruefeVorhaben, stufeIn, gesetzPrognose, stimmenKaufen, stimmenPreis, gesetzeAbstimmen, REGELN, STIMMEN_PUFFER } from './handeln';
 import { POSTEN, POSTEN_NACH_ID, stufeVon, inSpanne, postenVorschau, setzePosten } from './haushalt';
 import { haushaltsStand, type HaushaltsStand } from './haushaltsbericht';
 import { fraktionsUebersicht, verhandle } from './verhandeln';
@@ -79,7 +79,7 @@ function ausfuehren(w:World,a:RessortHilfeAktion,k?:RessortKompromiss){
  if(a.art==='etat'){if(k)return {ok:false,text:t('rh.veraltet')};return setzePosten(w,a.id,a.ziel);}
  const g=w.spiel!.gesetze.find(g=>a.art==='laufend'?g.id===a.id:g.massnahme===a.id);if(!g)return {ok:false,text:t('rh.veraltet')};
  if(k?.art==='absprache'){
-  const n=Math.max(0,REGELN.mehrheit+STIMMEN_PUFFER-gesetzPrognose(w,g).ja);
+  const vor=gesetzPrognose(w,g),n=Math.max(0,vor.schwelle+STIMMEN_PUFFER-vor.ja);
   if(!n)return {ok:false,text:t('rh.keinPufferNoetig')};return stimmenKaufen(w,g.id,n);
  }
  return {ok:true,text:t(a.art==='laufend'?'rh.verhandelt':'rh.eingebracht')};
@@ -118,7 +118,7 @@ function planeRessortHilfe(w:World,ref:RessortHilfeRef,aktion:RessortHilfeAktion
  }
  const fv=kompromiss&&kompromiss.art!=='absprache'?fraktionsUebersicht(structuredClone(w)).find(p=>p.partei===kompromiss.partei)?.aktionen.find(a=>a.id===kompromiss.art):undefined;
  const nominal=(aktion.art==='gesetz'?pr!.gesetz.pk:etat?postenVorschau(structuredClone(w),id,ziel).kapital:0)+(fv?.pk??0)+
-  (kompromiss?.art==='absprache'&&votum?Math.ceil(Math.max(0,REGELN.mehrheit+STIMMEN_PUFFER-votum.ja)*REGELN.kaufKostenProStimme):0);
+  (kompromiss?.art==='absprache'&&votum&&g?stimmenPreis(nach,g,Math.max(0,votum.schwelle+STIMMEN_PUFFER-votum.ja)).kapital:0);
  const nominalAufmerksamkeit=(aktion.art==='gesetz'?AUFMERKSAMKEIT_KOSTEN.gesetz:0)+(kompromiss?AUFMERKSAMKEIT_KOSTEN[kompromiss.art==='absprache'?'stimmenkauf':kompromiss.art==='gespraech'?'verhandlungGespraech':kompromiss.art]:0);
  const kanten=NET.edges.filter(e=>e.from===id&&e.to===f.groesse);
  const base=kompromiss?(basis??planeRessortHilfe(w,ref,aktion,katalog)):undefined;

@@ -8,16 +8,11 @@ import type { EuThema } from "../../data/welt-weitere";
 import { akteurName } from "../../sim/welt-modell";
 import { Flagge } from "../art/Flaggen";
 
-import { t } from "../../i18n";
+import { liste, t } from "../../i18n";
 import { t as tx } from "../../i18n";
-const REGEL: Record<InstitutionDef["beschluss"], string> = {
-  einstimmig: "Einstimmigkeit",
-  mehrheit: "Mehrheit",
-  konsens: "Konsens",
-  keine: "keine bindenden Beschlüsse",
-};
-
-const STIMME: Record<string, string> = { dafuer: "dafür", enthaltung: "Enthaltung", dagegen: "dagegen" };
+// Aus dem Katalog (Befund G-7)
+const REGEL = new Proxy({} as Record<InstitutionDef["beschluss"], string>, { get: (_, k) => t(`nacht_n7.regel.${String(k)}`) });
+const STIMME = new Proxy({} as Record<string, string>, { get: (_, k) => t(`nacht_n7.stimme.${String(k)}`) });
 
 function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }) {
   const [thema, setThema] = useState<EuThema>("erweiterung");
@@ -37,7 +32,7 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
       </div>
       <p className="we-rat-ergebnis">
         <span className="we-chip gut">{tx("ui2.ui.welt.Block.c792cc1", { p0: e.dafuer })}</span> <span className="we-chip">{tx("ui2.ui.welt.Block.8fa9309", { p0: e.enthaltung })}</span> <span className="we-chip schlecht">{tx("ui2.ui.welt.Block.bc174d1", { p0: e.dagegen })}</span>{" "}
-        <b>{tx("ui2.ui.welt.Block.0133fce")} {e.einstimmig ? tx("ui2.ui.welt.Block.578b67d") : `blockiert (${e.blocker.map((b) => b.name).join(", ")})`}</b> · <b>{tx("ui2.ui.welt.Block.795ec1c")} {e.mehrheit ? "erreicht" : "verfehlt"}</b>
+        <b>{tx("ui2.ui.welt.Block.0133fce")} {e.einstimmig ? tx("ui2.ui.welt.Block.578b67d") : tx("nacht_n7.rat.blockiert", { namen: liste(e.blocker.map((b) => b.name)) })}</b> · <b>{tx("ui2.ui.welt.Block.795ec1c")} {tx(e.mehrheit ? "nacht_n7.rat.erreicht" : "nacht_n7.rat.verfehlt")}</b>
       </p>
       <ul className="we-rat-liste">
         {e.stimmen.map((s) => (
@@ -50,7 +45,7 @@ function EuRat({ world, onLand }: { world: World; onLand: (id: string) => void }
             </span>
             <span className="we-rat-wort">
               <b>{STIMME[s.stimme]}</b>
-              {s.veto ? " · verweigert" : ""}
+              {s.veto ? ` · ${tx("nacht_n7.rat.veto")}` : ""}
               {s.konflikt ? tx("ui2.ui.welt.Block.3212420") : ""}
             </span>
             <em>{s.grund}</em>

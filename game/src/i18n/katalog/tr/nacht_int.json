@@ -1,0 +1,6 @@
+{
+ "int.kg.kommission": "Asgari ücreti Meclis değil, Asgari Ücret Tespit Komisyonu belirler (İş Kanunu md. 39). Beş hükümet temsilciniz talimatınıza göre oy verir; komisyon diğer iki taraftan biriyle birlikte {datum} tarihinde karar verir.",
+ "int.kg.kommissionLaufend": "Asgari Ücret Tespit Komisyonu talimatınızı zaten görüşüyor. Bunun için Mecliste çoğunluk gerekmez.",
+ "int.kg.kommissionAktion": "Komisyona talimat verin",
+ "int.kg.kommissionHinweis": "Talimat siyasi çalışmanın bedelini öder. Uygulama ancak komisyon karar verdiğinde başlar; destek ve sosyal sonuçlar peşinen verilmez."
+}

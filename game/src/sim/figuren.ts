@@ -20,9 +20,11 @@ const VORNAMEN_F = ["Selin", "Derya", "Zeynep", "Nilay", "Melis", "Pınar", "Giz
   "Elif", "Merve", "Esra", "Burcu", "Tuğba", "Özlem", "Seda", "Gülay", "Canan", "Ece"];
 const VORNAMEN_M = ["Kaan", "Barış", "Emre", "Tolga", "Volkan", "Onur", "Serkan", "Levent", "Murat", "Cengiz", "Orhan", "Taner", "Cem", "Burak", "Mert",
   "Hakan", "Kerem", "Selim", "Okan", "Ercan", "Sinan", "Erkan", "Uğur", "İlker", "Bülent", "Doruk", "Alper", "Tarık", "Koray", "Engin"];
-const NACHNAMEN = ["Yücel", "Karaca", "Erdem", "Aksoy", "Kılıç", "Tunç", "Arıkan", "Özgür", "Bozkurt", "Çelik", "Sarı", "Koçak", "Ateş", "Işık", "Uysal", "Yalçın", "Duran", "Güler", "Polat", "Demirci", "Kaplan", "Sezer", "Turan", "Akın",
+const NACHNAMEN = ["Yücel", "Karaca", "Erdem", "Aksoy", "Kılıç", "Tuna", "Arıkan", "Özgür", "Bozkurt", "Çelik", "Sarı", "Koçak", "Ateş", "Işık", "Uysal", "Yalçın", "Duran", "Gündüz", "Polat", "Demirci", "Kaplan", "Sezer", "Turan", "Akın",
   "Kaya", "Demir", "Şahin", "Yıldız", "Yıldırım", "Öztürk", "Aydın", "Özdemir", "Arslan", "Doğan", "Aslan", "Çetin", "Kara", "Koç", "Kurt", "Özkan", "Çakır", "Güneş", "Aktaş", "Bulut",
   "Keskin", "Ünal", "Avcı", "Taş", "Özer", "Korkmaz", "Çiftçi", "Acar", "Altun", "Kalkan", "Gök", "Yavuz", "Ekinci", "Sönmez", "Toprak", "Güven", "Coşkun", "Bilgin", "Akbulut", "Başaran"];
+/** Namensvorrat für einzelne Abgeordnete (sim/fraktionen-absprachen.ts). */
+export const NAMENSVORRAT = { vornamen: [...VORNAMEN_M, ...VORNAMEN_F] as readonly string[], nachnamen: NACHNAMEN as readonly string[] };
 /** Die alten Listenlängen (Vornamen je 15, Nachnamen 24) für die Figuren des Amtsantritts von vor dem Umbau. */
 const ALT = { f: 15, m: 15, nach: 24 };
 

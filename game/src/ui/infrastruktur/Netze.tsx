@@ -2,7 +2,7 @@
 // Gebaut wird über die Vorhaben des Reiches (sim/infrastruktur.ts legt sie an); diese Ansicht zeigt nur Lage und Angebot.
 
 import { useMemo, useState } from "react";
-import { t } from "../../i18n";
+import { t, zahl } from "../../i18n";
 import {
   auslastung,
   AUSBAUTEN,
@@ -108,7 +108,8 @@ export function Netze({ world: w, onGeaendert }: { world: World; onGeaendert?: (
   return (
     <div className="nz nz2">
       <p className="nz-lage">
-        {t(`infra.ui.etat.${fin.quelle}`, { stufe: fin.stufe > 0 ? `+${fin.stufe}` : String(fin.stufe) })}{" "}
+        {/* Benannter Zustand statt „Stufe 0“ (Befund F-18): wie geplant, aufgestockt oder gekürzt */}
+        {t(`infra.ui.etat.${fin.quelle}`, { stufe: fin.stufe === 0 ? t("n6.etat.plan") : t(fin.stufe > 0 ? "n6.etat.auf" : "n6.etat.ab", { n: Math.abs(fin.stufe) }) })}{" "}
         {fin.stufe !== 0 && t("infra.ui.etat.wirkung", { pk: Math.round((1 - fin.pk) * 100), schulden: Math.round((1 - fin.schulden) * 100) })}
         {leerKosten > 0 && <> {t("infra.ui.leer", { x: Math.round(leerKosten * 1200) / 100 })}</>}
       </p>
@@ -208,7 +209,7 @@ export function Netze({ world: w, onGeaendert }: { world: World; onGeaendert?: (
                   <small>{an.ok ? t("infra.ui.paket.preis", { n: an.provinzen.length, pk: an.pk ?? 0, einzeln: an.einzelnPk ?? 0, monate: an.monate ?? 0, risiko: Math.round(p.ueberzug.p * 100) }) : an.grund}</small>
                 </div>
                 <button type="button" className="pd-btn" disabled={!an.ok} title={t(`infra.paket.${p.id}.text`)} onClick={() => fertig(starteProgramm(w, p.id, vergabe))}>
-                  {t("infra.ui.paket.start")} {an.ok && <b>{an.pk ?? 0}</b>}
+                  {t("infra.ui.paket.start")} {an.ok && <b>{t("vk.pk", { n: zahl(an.pk ?? 0) })}</b>}
                 </button>
               </li>
             );

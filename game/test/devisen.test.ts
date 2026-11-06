@@ -4,6 +4,8 @@
 // Review-Raten, Migration älterer Spielstände und Determinismus.
 // Modell-Entscheidungen und Modellgrenzen: kalibrierung/KALIBRIERUNG_LOG.md (WIR-2-Eintrag).
 
+// Zeile über den Katalogschlüssel finden: Die Beschriftung heißt seit der Nacht 5./6.11. ohne Fachwort „J-Kurve“ (ENTSCHEIDUNGEN U)
+import { t } from "../src/i18n";
 import { describe, expect, test } from "vitest";
 import { advance, createWorld, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
@@ -85,7 +87,7 @@ describe("Leistungsbilanz: Treiber und J-Kurve", () => {
     const w = welt();
     const e = w.economy;
     const h = w.history;
-    const zeileJK = () => leistungsbilanzZerlegung(w).zeilen.find((x) => x.name === "Abwertung (J-Kurve)")!.wert;
+    const zeileJK = () => leistungsbilanzZerlegung(w).zeilen.find((x) => x.name === t("wk.dv.jkurve"))!.wert;
 
     // 30 % Abwertung in den letzten 6 Monaten, ruhige Monate 7–12: Importe verteuern sich sofort
     const vor12 = h[h.length - 12]!.usdTry;

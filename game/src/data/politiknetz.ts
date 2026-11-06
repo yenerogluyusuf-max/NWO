@@ -263,9 +263,16 @@ g("haushalt", "steuermoral", "Steuerehrlichkeit", 45, "Wie viele Steuern tatsäc
 g("haushalt", "zinslast", "Zinslast des Staates", 45, "Anteil des Haushalts, der für Zinsen draufgeht.");
 g("haushalt", "vertrauen_maerkte", "Vertrauen der Märkte", 45, "Wie Anleger die Staatsfinanzen einschätzen.");
 
+// Steuern mit echtem Satz (data/skalen.ts: ein Prozentpunkt = 5 Stufen, also 20 Punkte je 100 Stufen). Die Kosten je 100 Stufen sind das
+// Aufkommen von 20 Prozentpunkten in % des BIP:
+//   Mehrwertsteuer: abgeleitet, 3.539 Mrd. Lira bei 20 % im Haushaltsgesetz 2026 (data/haushaltsplan.ts STEUERN_2026) sind 4,52 % des BIP,
+//     also 0,226 % des BIP je Punkt ohne Ausweichen der Käufer; 20 Punkte ≈ 4,5 % des BIP.
+//   Körperschaftsteuer: abgeleitet, 1.741 Mrd. Lira bei 25 % sind 2,22 % des BIP, also 0,089 % je Punkt; 20 Punkte ≈ 1,8 % des BIP.
+//   Einkommensteuer: Spielparameter. Der Spitzensatz trifft nur die oberste Tarifstufe; ihr Aufkommen ist in den Projektdaten nicht belegt.
+// Den Rest (Ausweichen, Schattenwirtschaft, Laffer-Kante) tragen die Kanten unten.
 m("haushalt", "m_einkommensteuer", "Einkommensteuer", 50, -1.5, 3, "Höhe der Einkommensteuer.");
-m("haushalt", "m_mwst", "Mehrwertsteuer", 60, -2.0, 1, "Höhe der Mehrwertsteuer.");
-m("haushalt", "m_koerperschaftsteuer", "Körperschaftsteuer", 50, -0.8, 3, "Steuer auf Unternehmensgewinne.");
+m("haushalt", "m_mwst", "Mehrwertsteuer", 60, -4.5, 1, "Höhe der Mehrwertsteuer.");
+m("haushalt", "m_koerperschaftsteuer", "Körperschaftsteuer", 50, -1.8, 3, "Steuer auf Unternehmensgewinne.");
 m("haushalt", "m_kraftstoffsteuer", "Steuer auf Kraftstoff", 60, -0.8, 1, "Verbrauchsteuer auf Benzin und Diesel.");
 m("haushalt", "m_immobiliensteuer", "Steuer auf Immobilien und Vermögen", 30, -0.5, 6, "Grundsteuer und Abgaben auf teure Immobilien.");
 m("haushalt", "m_steueramnestie", "Steueramnestie", 20, -0.1, 2, "Wer Schulden beim Fiskus nachzahlt, bekommt Strafen erlassen.");
@@ -323,11 +330,13 @@ g("arbeit", "streikneigung", "Streikbereitschaft", 35, "Wie schnell Gewerkschaft
 g("arbeit", "sozialkassen", "Lage der Sozialversicherung", 45, "Beiträge gegen Ausgaben der Renten- und Krankenkasse.");
 
 // Preise (Spielparameter): Renten zu kürzen ist der teuerste Eingriff überhaupt — einmal erhöht, gelten sie als Besitzstand.
-m("arbeit", "m_renten", "Rentenerhöhungen", 50, 1.2, 1, "Anpassung der Renten über die Inflation hinaus.", { streichen: 2.5 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("arbeit", "m_renten", "Rentenerhöhungen", 50, 0, 1, "Anpassung der Renten über die Inflation hinaus.", { streichen: 2.5 });
 m("arbeit", "m_fruehrente", "Frühverrentung", 40, 0.6, 3, "Früherer Renteneintritt für bestimmte Jahrgänge.");
 m("arbeit", "m_kindergeld", "Kindergeld und Familienhilfe", 30, 0.5, 2, "Geld für Familien mit Kindern.");
 // Preise (Spielparameter): Grundsicherung kürzen kostet massiv Rückhalt — die Betroffenen haben nichts mehr zu verlieren.
-m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, 0.6, 2, "Grundsicherung für bedürftige Haushalte.", { streichen: 2.5 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("arbeit", "m_sozialhilfe", "Sozialhilfe", 35, 0, 2, "Grundsicherung für bedürftige Haushalte.", { streichen: 2.5 });
 m("arbeit", "m_arbeitslosengeld", "Arbeitslosengeld", 30, 0.3, 2, "Höhe und Dauer des Arbeitslosengeldes.");
 m("arbeit", "m_gewerkschaftsrechte", "Gewerkschaftsrechte", 35, 0.0, 6, "Recht auf Organisation, Tarifverhandlung und Streik.");
 m("arbeit", "m_kinderbetreuung", "Kinderbetreuung", 25, 0.3, 12, "Plätze in Krippen und Kindergärten.");
@@ -417,9 +426,10 @@ m("bildung", "m_lehrergehaelter", "Lehrergehälter", 45, 0.4, 3, "Bezahlung der 
 m("bildung", "m_schulbau", "Schulbau", 45, 0.3, 24, "Neue Schulen und kleinere Klassen.");
 m("bildung", "m_religioese_schulen", "Religiöse Schulen (İmam-Hatip)", 55, 0.1, 12, "Anteil staatlicher Schulen mit religiösem Schwerpunkt.");
 m("bildung", "m_berufsschulen", "Berufsschulen", 45, 0.2, 12, "Berufliche Bildung mit Betrieben zusammen.");
-m("bildung", "m_unigruendungen", "Neue Universitäten", 50, 0.2, 24, "Universitäten in jeder Provinz.");
+m("bildung", "m_unigruendungen", "Studienplätze an Hochschulen", 50, 0.2, 24, "Mehr Studienplätze an staatlichen Hochschulen. Jede Provinz hat schon eine Universität, es geht um Plätze und Lehrende.");
 m("bildung", "m_stipendien", "Stipendien", 35, 0.15, 6, "Unterstützung für Studierende aus ärmeren Familien.");
-m("bildung", "m_forschung", "Forschungsförderung", 30, 0.3, 12, "Geld für Forschung und Entwicklung.");
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("bildung", "m_forschung", "Forschungsförderung", 30, 0, 12, "Geld für Forschung und Entwicklung.");
 m("bildung", "m_wissenschaftsfreiheit", "Wissenschaftsfreiheit", 40, 0.0, 12, "Unabhängigkeit der Universitäten bei Berufungen und Lehre.");
 
 p("bildung", "p_abwanderung", "Abwanderung von Fachkräften", 55, 60, "Ärzte, Ingenieure und Forscher verlassen das Land.");
@@ -509,7 +519,8 @@ g("energie", "klimaschutz", "Klimaschutz", 35, "Wie stark die Emissionen sinken.
 
 // Preise (Spielparameter): Subventionen abbauen, nachdem sich Haushalte und Betriebe an billige
 // Energie gewöhnt haben, kostet Aufstandsrückhalt (Gelbwesten-Effekt); der Deckel kostet laufend Verwaltung.
-m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 1.0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", { streichen: 2.5 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("energie", "m_energiesubventionen", "Energiesubventionen", 55, 0, 1, "Der Staat deckelt Strom- und Gaspreise und trägt die Differenz.", { streichen: 2.5 });
 m("energie", "m_solar_wind", "Ausbau von Sonne und Wind", 45, 0.2, 24, "Ausschreibungen und Einspeisevergütungen.");
 m("energie", "m_kernkraft", "Kernkraft", 50, 0.2, 48, "Weitere Reaktoren neben dem ersten Kraftwerk.");
 m("energie", "m_gasfoerderung", "Heimische Gasförderung", 50, 0.2, 24, "Förderung aus Feldern im Schwarzen Meer.");
@@ -573,7 +584,7 @@ m("energie", "m_sakarya_phase3", "Sakarya Phase 3 (zweite FPU)", 20, 0.2, 24, "E
 m("energie", "m_akkuyu_ppa", "Akkuyu-Vertrag nachverhandeln", 40, 0.1, 6, "Den Abnahmevertrag mit Rosatom (12,35 US-Cent je kWh) neu verhandeln — die Differenz zum Marktpreis kostet grob eine Mrd. Dollar im Jahr, der Konflikt Moskau belastet.");
 m("energie", "m_heimische_kohle", "Heimische Kohle (Afşin-Elbistan)", 35, 0.1, 48, "Neue Blöcke am eigenen Kohlebecken (+688 MW) ersetzen Importkohle — gegen Klima, Luft und die Nachbarn vor Ort.");
 m("energie", "m_energieeffizienz", "Effizienz, Wärmepumpen, E-Mobilität", 25, 0.08, 36, "Programme gegen Verschwendung: eine Million E-Autos sparen ~0,9 Mrd. Dollar Importe im Jahr, zehn Prozent Wärmepumpen-Haushalte noch einmal ~1 Mrd.");
-m("energie", "m_preiswahrheit", "Preiswahrheit bei Energie", 25, -0.8, 3, "Subventionen abbauen und Staffeltarife einführen: spart bis zu ~600 Mrd. Lira im Jahr, treibt aber kurzfristig die Preise — der Politikpreis der Wahrheit.");
+m("energie", "m_preiswahrheit", "Preiswahrheit bei Energie", 25, -0.8, 3, "Subventionen weiter abbauen. Seit dem 4. April 2026 gilt für Gas ein Staffeltarif, Vielverbraucher zahlen mehr. Weitere Schritte sparen bis zu ~600 Mrd. Lira im Jahr, treiben aber kurzfristig die Preise — der Politikpreis der Wahrheit.");
 m("energie", "m_gashub", "Gas-Hub und Transit-Ausbau", 30, 0.08, 24, "TurkStream-Strang 2 und TANAP-Erweiterung: Transitgebühren und geopolitisches Gewicht, aber mehr Bindung an russisches Gas.");
 
 // Versorgungssicherheit und Abhängigkeit
@@ -645,7 +656,8 @@ g("landwirtschaft", "lebensmittelpreise", "Lebensmittelpreise", 65, "Preise für
 g("landwirtschaft", "landwirtschaft_einkommen", "Einkommen der Landwirte", 40, "Was Bauern nach Abzug der Kosten bleibt.");
 g("landwirtschaft", "landflucht", "Landflucht", 55, "Wie viele Menschen Dörfer und Kleinstädte verlassen.");
 
-m("landwirtschaft", "m_agrarsubventionen", "Agrarsubventionen", 45, 0.4, 6, "Zahlungen je Fläche und Produkt, Zuschüsse für Diesel und Dünger.");
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("landwirtschaft", "m_agrarsubventionen", "Agrarsubventionen", 45, 0, 6, "Zahlungen je Fläche und Produkt, Zuschüsse für Diesel und Dünger.");
 m("landwirtschaft", "m_bewaesserung", "Moderne Bewässerung", 35, 0.2, 24, "Tropfbewässerung statt Überflutung der Felder.");
 m("landwirtschaft", "m_staudaemme", "Staudämme und Speicher", 50, 0.3, 48, "Talsperren für Wasser und Strom.");
 m("landwirtschaft", "m_wasserleitungen", "Wasserleitungen und Kläranlagen", 40, 0.3, 24, "Trinkwassernetz, weniger Leitungsverluste, Abwasserreinigung.");
@@ -773,7 +785,7 @@ m("wohnen", "m_bauaufsicht", "Bauaufsicht", 40, 0.05, 12, "Unabhängige Prüfung
 m("wohnen", "m_baukredite", "Günstige Baukredite", 35, 0.3, 3, "Zinsverbilligte Kredite für Wohnungskäufer.");
 m("wohnen", "m_bauamnestie", "Bauamnestie", 15, -0.1, 2, "Nachträgliche Legalisierung illegaler Bauten gegen Gebühr.");
 // INF-5: lang und teuer, dafür die wirksamste Vorsorge am Bestand; wie jede Maßnahme regional wählbar
-m("wohnen", "m_gebaeudeverstaerkung", "Gebäude-Verstärkungsprogramm", 20, 0.6, 48, "Ertüchtigung tausender gefährdeter Altbauten — die teuerste und wirksamste Vorsorge am Bestand.");
+m("wohnen", "m_gebaeudeverstaerkung", "Gebäude-Verstärkungsprogramm", 20, 0.6, 48, "Zuschuss für gefährdete Altbauten: Ertüchtigung oder, wie im Programm „Yarısı Bizden“, Abriss und Neubau, die Hälfte trägt der Staat. Die teuerste und wirksamste Vorsorge am Bestand.");
 m("wohnen", "m_versicherungspflicht", "Katastrophen-Pflichtversicherung", 35, 0.05, 12, "Alle Gebäude gegen Beben und Flut versichert (DASK-Vorbild); der Staat haftet weniger mit.");
 m("sicherheit", "m_fruehwarnsystem", "Frühwarnsystem", 25, 0.15, 18, "Sensoren und Sekundenwarnungen für Beben und Sturzfluten, direkt auf die Geräte der Menschen.");
 m("sicherheit", "m_afad_ausbau", "Ausbau der Katastrophenbehörde (AFAD)", 40, 0.25, 24, "Personal, Materiallager und regionale Stützpunkte der Katastrophenbehörde.");
@@ -829,13 +841,15 @@ g("sicherheit", "korruption", "Korruption", 55, "Bestechung, Vetternwirtschaft u
 g("sicherheit", "rechtssicherheit", "Rechtssicherheit", 40, "Ob Regeln für alle gleich gelten und vorhersehbar sind.", 0.08, 2);
 g("sicherheit", "militaer", "Einsatzbereitschaft der Streitkräfte", 60, "Ausrüstung, Ausbildung und Moral der Armee.");
 
-m("sicherheit", "m_polizei", "Polizei und Gendarmerie", 60, 0.3, 6, "Personal und Ausstattung der Sicherheitskräfte.");
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("sicherheit", "m_polizei", "Polizei und Gendarmerie", 60, 0, 6, "Personal und Ausstattung der Sicherheitskräfte.");
 m("recht", "m_justizreform", "Justizreform", 35, 0.1, 18, "Reformpaket der Gerichtsverfassung: Verfahrensrecht, Ausbildung, Gerichtsstruktur. Richterstellen und Richterrat sind eigene Stellschrauben.");
 m("recht", "m_antikorruption", "Korruptionsbekämpfung", 35, 0.05, 12, "Unabhängige Ermittler, offene Vergaben, Vermögenserklärungen.");
 m("sicherheit", "m_friedensprozess", "Friedensprozess", 55, 0.1, 12, "Politische Lösung mit Waffenabgabe und Wiedereingliederung.");
 // Preise (Spielparameter): Rüstung kürzen kostet doppelt — Generalstab, Rüstungsbetriebe und das
 // Lager der Nationalisten lesen jede Kürzung als Schwäche; der Apparat kostet laufend Verwaltung.
-m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 1.0, 12, "Budget für Streitkräfte und Rüstungsindustrie.", { streichen: 2 });
+// ENTSCHEIDUNGEN W, Nachtrag F1: Das Geld steht im gleichnamigen Haushaltsposten (sim/haushalt.ts ETAT_DER_MASSNAHME); die Maßnahme ist das Gesetz und kostet kein eigenes Geld.
+m("militaer", "m_verteidigung", "Verteidigungsausgaben", 55, 0, 12, "Budget für Streitkräfte und Rüstungsindustrie.", { streichen: 2 });
 m("militaer", "m_ruestungsindustrie", "Heimische Rüstungsindustrie", 60, 0.3, 24, "Drohnen, Panzer, Schiffe aus eigener Produktion.");
 
 p("sicherheit", "p_korruption", "Korruptionsskandale", 45, 60, "Vergaben und Ämter werden gekauft; die Presse berichtet.");
@@ -1335,7 +1349,7 @@ ee("m_bauamnestie", "rechtssicherheit", -0.03, 6, "Wer Regeln bricht, wird beloh
 // Trägheit (Spielparameter): Unabhängigkeit wächst und bröckelt über Jahre — Ernennungspraxis und
 // Berufungswege ändern sich nicht mit einem Gesetz allein.
 g("recht", "justiz_unabhaengigkeit", "Unabhängigkeit der Justiz", 32, "Ob Richter und Staatsanwälte ohne Weisung und Druck entscheiden. Der Richterrat, den Präsident und Parlament besetzen, prägt sie.", 0.03, 2.5);
-g("recht", "justiz_kapazitaet", "Kapazität der Gerichte", 45, "Richter, Staatsanwälte und Gerichtssäle im Verhältnis zu den Verfahren. Die Türkei hat 17 Richter je 100.000 Einwohner, der europäische Schnitt liegt bei 22.", 0.03);
+g("recht", "justiz_kapazitaet", "Kapazität der Gerichte", 45, "Richter, Staatsanwälte und Gerichtssäle im Verhältnis zu den Verfahren. Die Türkei hat rund 21 Richter je 100.000 Einwohner (18.167 Richter im September 2026), der europäische Schnitt liegt bei 22.", 0.03);
 g("recht", "justiz_effizienz", "Effizienz der Verfahren", 50, "Wie schnell Verfahren enden. Strafgerichte brauchten 2024 im Schnitt 228, Zivilgerichte 231 Tage, die Vollstreckung 919.", 0.05);
 g("recht", "urteilsbefolgung", "Befolgung von Urteilen", 35, "Ob Behörden und Gerichte Urteile des Verfassungsgerichts und des Straßburger Gerichtshofs umsetzen. Das Verfahren im Fall Kavala läuft seit 2022 nach Artikel 46.", 0.03);
 g("recht", "haftueberfuellung", "Überfüllung der Haftanstalten", 71, "Im August 2026 saßen 433.520 Menschen auf 304.956 Plätzen, etwa 142 Prozent. Ein hoher Wert heißt mehr Überfüllung.", 0.02);

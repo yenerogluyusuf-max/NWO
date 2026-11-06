@@ -21,6 +21,7 @@ import { kosten } from "./ereignis-hilfen";
 import { haushaltZustand } from "./wirtschaft";
 import { RESSORT_NACH_ID } from "../data/haushaltsplan";
 import { innovationsGrenze as wissensGrenze, WISSEN } from "./wissensbasis";
+import { reichZustand, warteschlange } from "./reich";
 import { t } from "../i18n";
 import type { World } from "./types";
 
@@ -47,6 +48,8 @@ export interface Beschaffung {
   /** Kosten in % des BIP je Monat bis zur Lieferung */
   bipMonat: number;
   name?: string;
+  /** Rüstungsvorhaben der Bauliste, an das die Lieferung gebunden ist (data/reich/militaer.ts): Es führt das Fertigdatum (Befund G-4) */
+  vorhaben?: string;
   /** Nur Entwicklung: scheitert sie am Ende? (deterministisch beim Beginn bestimmt) */
   scheitert?: boolean;
   gestoppt?: boolean;
@@ -127,7 +130,36 @@ export function innovationsGrenze(w: World): number {
 export function streitkraefte(w: World): StreitkraefteZustand {
   const sp = w.spiel!;
   if (!sp.streitkraefte) sp.streitkraefte = neuerZustand(w);
+  // Ältere Spielstände: die benannten Startbeschaffungen ihrem Rüstungsvorhaben zuordnen (das Datum folgt ihm, sobald es läuft)
+  for (const b of sp.streitkraefte.laufend) {
+    if (b.name && !b.vorhaben) {
+      const s = START_BESCHAFFUNGEN.find((x) => x.name === b.name);
+      if (s) b.vorhaben = s.vorhaben;
+    }
+  }
   return sp.streitkraefte;
+}
+
+/**
+ * Wie das Rüstungsvorhaben einer Beschaffung in der Bauliste steht: fertig, im Bau (mit dem Tag, den die Bauliste schätzt; fehlt er, ist
+ * es pausiert oder ohne Kapazität) oder gar nicht dort (ältere Spielstände). Eine Rechnung für Streitkräfte, Bauliste und Sicherheitslage.
+ */
+export function vorhabenStand(w: World, id: string, schlange?: ReturnType<typeof warteschlange>): { stand: "fertig" | "im_bau" | "fehlt"; tag?: number } {
+  if (!w.spiel) return { stand: "fehlt" };
+  const z = reichZustand(w);
+  if (z.bestand[id]) return { stand: "fertig" };
+  if (!z.laufend.some((l) => l.id === id)) return { stand: "fehlt" };
+  const e = (schlange ?? warteschlange(w)).find((x) => x.id === id);
+  return { stand: "im_bau", ...(e?.fertigIn !== undefined ? { tag: w.day + e.fertigIn * 30 } : {}) };
+}
+
+/** Das gültige Lieferdatum einer Beschaffung: das ihres Vorhabens, wenn es in der Bauliste läuft, sonst ihr eigenes. */
+export function lieferTag(w: World, b: Beschaffung, schlange?: ReturnType<typeof warteschlange>): number | undefined {
+  if (!b.vorhaben) return b.fertig;
+  const s = vorhabenStand(w, b.vorhaben, schlange);
+  if (s.stand === "fehlt") return b.fertig;
+  if (s.stand === "fertig") return w.day;
+  return s.tag;
 }
 
 /** Neuer Bestand. Bei älteren Spielständen passt er zu ihren Balken: Bereitschaft über oder unter dem Start skaliert die Mengen. */
@@ -153,6 +185,7 @@ function neuerZustand(w: World): StreitkraefteZustand {
     fertig: w.day + b.monate * 30,
     bipMonat: 0,
     name: b.name,
+    vorhaben: b.vorhaben,
   }));
   const z: StreitkraefteZustand = { v: 1, gattungen, laufend, wehrdienst: 6, gemeldet: { modern: 0, autarkie: 0, index: 1 }, zaehler: 0 };
   z.gemeldet = { modern: generationMittel(z), autarkie: autarkie(z), index: kampfkraftIndex(w, z) };
@@ -382,11 +415,15 @@ export function setzeWehrdienst(w: World, monate: 0 | 6 | 12 | 18): { ok: boolea
   const z = streitkraefte(w);
   if (z.wehrdienst === monate) return { ok: false, text: t("militaer.wehrdienst.gleich") };
   const d = monate - z.wehrdienst;
+  const alt = z.wehrdienst;
   z.wehrdienst = monate;
   const p = z.gattungen.personal;
-  p.menge = Math.max(200_000, Math.round(p.menge * (1 + 0.012 * d)));
+  // Untergrenze als Anteil des Startbestands (früher fest 200.000 bei 481.000 Aktiven)
+  p.menge = Math.max(Math.round(GATTUNG_NACH_ID.personal.start * 0.42), Math.round(p.menge * (1 + 0.012 * d)));
   wirke(w, "junge", -0.25 * d);
-  wirke(w, "truppenmoral", monate === 0 ? 2 : d > 0 ? -1 : 1);
+  // Symmetrisch (Befund G-14): Hin- und Zurückschalten hebt die Moral nicht mehr beliebig
+  const moral = alt === 0 || monate === 0 ? (monate === 0 ? 2 : -2) : d > 0 ? -1 : 1;
+  wirke(w, "truppenmoral", moral);
   const text = t("militaer.wehrdienst.neu", { n: monate });
   addLog(w, "entscheidung", text);
   return { ok: true, text };
@@ -409,7 +446,27 @@ export function streitkraefteMonat(w: World, imKrieg: boolean): void {
   const kap = Math.max(1, Math.round(STREITKRAEFTE.kapazitaet * etatFaktor(w)));
   const eigene = z.laufend.filter((b) => !b.name).sort((a, b) => a.beginn - b.beginn);
   const verzug = new Set(eigene.slice(kap).map((b) => b.id));
+  const schlange = z.laufend.some((b) => b.vorhaben) ? warteschlange(w) : undefined;
   for (const b of [...z.laufend]) {
+    // An ein Rüstungsvorhaben gebunden: Geliefert wird, wenn die Bauliste es fertig meldet; das Datum folgt ihr (ein Modell, ein Datum)
+    const stand = b.vorhaben ? vorhabenStand(w, b.vorhaben, schlange) : undefined;
+    if (stand && stand.stand !== "fehlt") {
+      // Sperrt das Lieferland (etwa CAATSA), hält es die Lieferung zurück, auch wenn das Vorhaben fertig ist
+      if (b.lieferland && sanktioniert(w, b.lieferland)) {
+        if (!b.gestoppt) {
+          b.gestoppt = true;
+          w.spiel.hinweise.push({ id: `militaer-lieferstopp-${b.id}`, titel: t("militaer.lieferstopp.titel"), text: [t("militaer.lieferstopp.text", { gattung: b.name ? `${b.name} (${t(`militaer.gattung.${b.gattung}`)})` : t(`militaer.gattung.${b.gattung}`) })], szene: "parlament" });
+        }
+        if (stand.tag !== undefined) b.fertig = stand.tag;
+        continue;
+      }
+      b.gestoppt = false;
+      if (stand.stand === "fertig") {
+        liefere(w, z, b);
+        z.laufend = z.laufend.filter((x) => x.id !== b.id);
+      } else if (stand.tag !== undefined) b.fertig = stand.tag;
+      continue;
+    }
     if (verzug.has(b.id)) {
       b.fertig += 30;
       continue;
@@ -517,7 +574,10 @@ export function streitkraefteSicht(w: World): { gattungen: GattungSicht[]; index
     gattungen: GATTUNGEN.map((g) => ({ id: g.id, teil: g.teil, einheit: g.einheit, start: g.start, quelle: g.quelle, lieferland: g.lieferland, ...z.gattungen[g.id] })),
     index: kampfkraftIndex(w, z),
     teile: { heer: teilIndex(z, "heer"), luft: teilIndex(z, "luft"), see: teilIndex(z, "see") },
-    laufend: [...z.laufend].sort((a, b) => a.fertig - b.fertig),
+    laufend: (() => {
+      const schlange = z.laufend.some((b) => b.vorhaben) ? warteschlange(w) : undefined;
+      return z.laufend.map((b) => ({ ...b, fertig: lieferTag(w, b, schlange) ?? b.fertig })).sort((a, b) => a.fertig - b.fertig);
+    })(),
     etat: etatFaktor(w),
     innovation: innovationsGrenze(w),
     wehrdienst: z.wehrdienst,

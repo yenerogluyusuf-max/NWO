@@ -7,9 +7,10 @@ import { anzeigeName, nf, vz } from "./format";
 import { t } from "../../i18n";
 function zustand(g: KettenGlied): string {
   const a = Math.abs(g.abweichung);
-  if (a < 0.2) return "kaum verändert";
-  if (g.art === "massnahme") return `${nf(a, 0)} Stufen ${g.abweichung > 0 ? "höher" : "niedriger"} als zu Beginn`;
-  return `${nf(a)} Punkte ${g.abweichung > 0 ? "über" : "unter"} dem Ausgangswert`;
+  if (a < 0.2) return t("nacht_n2.kette.kaum");
+  // Maßnahmen als Wort statt „Stufen“ (befund-E, E-10 und E-24); Größen in Punkten gegenüber dem Ausgangswert
+  if (g.art === "massnahme") return t(g.abweichung > 0 ? (a >= 15 ? "nacht_n2.kette.deutlich_hoeher" : "nacht_n2.kette.hoeher") : a >= 15 ? "nacht_n2.kette.deutlich_niedriger" : "nacht_n2.kette.niedriger");
+  return t(g.abweichung > 0 ? "nacht_n2.kette.ueber" : "nacht_n2.kette.unter", { n: nf(a) });
 }
 
 export function Kette({

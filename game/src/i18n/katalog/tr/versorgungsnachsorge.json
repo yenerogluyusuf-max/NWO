@@ -48,8 +48,8 @@
   "vn.loyalitaet": "Sadakat / 100",
   "vn.loyalitaetswert": "Sadakat {n}/100 · {grenze} altında kopuş",
   "vn.sitzverlust": "Ayrılma {n} hükümet sandalyesine mal olur; {rest} kalır.",
-  "vn.sitzeReichen": "Sayısal sandalye çoğunluğu sürer. Bu, tek tek tasarılara desteği garanti etmez.",
-  "vn.sitzeFehlen": "Çoğunluk için {n} sandalye eksik kalır. Tek tek tasarıların oyları farklı olabilir.",
+  "vn.sitzeReichen": "Sayısal sandalye çoğunluğu sürer. Bu, tek tek tekliflere desteği garanti etmez.",
+  "vn.sitzeFehlen": "Çoğunluk için {n} sandalye eksik kalır. Tek tek tekliflerin oyları farklı olabilir.",
   "vn.weitereZusagen": "Bu ortağa verilmiş {n} başka açık söz",
   "vn.faellig": "Son tarih: {datum}",
   "vn.zusagenOeffnen": "Açık sözleri ele alın",
@@ -86,7 +86,7 @@
   "vn.erschoepfung": "Sonrasında {n} dikkat. 20’nin altında günlük yük artar.",
   "vn.lagerGeaendert": "Koalisyonunuz oylamadan bu yana değişti",
   "vn.ehemaligePartner": "Bu partiler oylamada koalisyondaydı, bugün artık değiller: {parteien}. Bu bilgi tek başına ayrılma nedenini açıklamaz.",
-  "vn.mehrheitHeute": "Bugün sayısal sandalye çoğunluğu hâlâ var. Bu, her yasa tasarısına desteği garanti etmez.",
+  "vn.mehrheitHeute": "Bugün sayısal sandalye çoğunluğu hâlâ var. Bu, her kanun teklifine desteği garanti etmez.",
   "vn.lueckeHeute": "Bugün 301 sandalyelik çoğunluk için hükümetin {n} sandalyesi eksik; süreli dış destek ve konuya özgü oylar ayrıca değerlendirilir.",
   "vn.neuesBuendnis": "Yeni ittifak veya süreli dış destek için gruplarla müzakere edin. Kabul edilmiş tedarik taahhütleri koalisyon değişse de bağlayıcı kalır."
 }

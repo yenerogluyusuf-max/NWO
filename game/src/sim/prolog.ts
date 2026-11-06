@@ -10,7 +10,16 @@ import { PARTEI_NAME, forderungVon, fraktion, waehlePartner } from "./fraktionen
 import { partnerFigur } from "./figuren";
 import { PROVINCES } from "./netz";
 import { PROVINZEN, WEIGHTS, type ProvinceData } from "./regional";
-import { t } from "../i18n";
+import { msg, t } from "../i18n";
+
+/**
+ * Wahlversprechen des Profils in der Sprache des Spiels. Die vier klassischen Versprechen stehen im Profil deutsch, weil sim/spiel.ts
+ * an ihrem Wortlaut die Startzusagen erkennt; angezeigt wird der Katalogtext der Zusage (zusage.start.*).
+ */
+export function versprechenText(v: string): string {
+  const id = v.includes("zwei Ministerien") ? "z-ministerien" : v.includes("Mitspracherecht") ? "z-friedensprozess" : v.includes("Rentenerhöhung") ? "z-renten" : v.includes("Vergaben") ? "z-vergaben" : null;
+  return id ? t(`zusage.start.${id}`) : v;
+}
 import { KLASSISCHE_VOREINSTELLUNGEN, NULL_ACHSEN, PARTEI_ACHSEN, type Achsen } from "../data/linien";
 import { STARTSZENARIO_NACH_ID, type StartszenarioId } from "../data/startszenarien";
 import { naeheZuPartei, parteiAchsen, quellenAusAchsen, setzeLinie, voreinstellungAlsAngabe, type ParteiAngabe } from "./linie";
@@ -521,19 +530,12 @@ export function startAfterElection(world: World, eingabe: PlayerProfile): void {
     text:
       szenario.id !== "neugruendung"
         ? t(`start.log.${szenario.id}`, { name: profile.name, partei: profile.partei.name, eigene: ownSeats, bloc })
-        : `${profile.name} gewinnt die Präsidentschaftswahl ${profile.wahl.runde === 1 ? "im ersten Wahlgang" : "in der Stichwahl"} ` +
-      `mit ${profile.wahl.anteil.toLocaleString("de-DE")} %. Die ${profile.partei.name} erhält ${ownSeats} von 600 Sitzen` +
-      (partnerNamen.length
-        ? `; zusammen mit ${partnerNamen.length === 1 ? "dem Bündnispartner" : "den Bündnispartnern"} ${partnerNamen.join(" und ")} hat das Regierungslager ${bloc} Sitze.`
-        : ".") +
-      (duldender ? ` Die ${PARTEI_NAME[duldender] ?? duldender} (${world.parliament.seats[duldender] ?? 0} Sitze) bleibt formal Opposition und duldet die Regierung zunächst für acht Monate.` : ""),
-    why:
-      bloc >= 301
-        ? `Eine Regierungsmehrheit: Gesetze und Haushalt sind möglich, solange die Partner im Lager bleiben. Sie erwarten ihre Forderungen erfüllt; wer Zusagen bricht, verliert sie. Verfassungsänderungen brauchen trotzdem 360 Stimmen.`
-        : `Keine eigene Mehrheit: Für Gesetze fehlen ${301 - bloc} Stimmen. Es braucht Partner, Absprachen oder Überläufer.`,
+        : t(partnerNamen.length ? "n5.start.log.neu" : "n5.start.log.neuAllein", { name: profile.name, runde: profile.wahl.runde === 1 ? "erste" : "stich", anteil: profile.wahl.anteil, partei: profile.partei.name, eigene: ownSeats, n: partnerNamen.length, partner: partnerNamen, bloc }) +
+          (duldender ? ` ${t("n5.start.log.duldung", { partei: PARTEI_NAME[duldender] ?? duldender, sitze: world.parliament.seats[duldender] ?? 0 })}` : ""),
+    why: bloc >= 301 ? t("n5.start.log.mehrheit", { schwelle: 360 }) : t("n5.start.log.minderheit", { fehlt: 301 - bloc }),
   });
   for (const v of profile.versprechen) {
-    world.log.push({ day: world.day, date: world.date, kind: "ereignis", text: `Offene Zusage aus dem Wahlkampf: ${v}` });
+    world.log.push({ day: world.day, date: world.date, kind: "ereignis", text: t("n5.start.log.zusage", { zusage: versprechenText(v) }) });
   }
   // Die Spielschleife beginnt: Kapital, Figuren, Zusagen, drei Vorgänge des ersten Tages
   initSpiel(world, profile, rng);
@@ -543,7 +545,7 @@ export function startAfterElection(world: World, eingabe: PlayerProfile): void {
     const name = PARTEI_NAME[partei] ?? partei;
     spiel.lager.push(partei);
     if (forderung) {
-      spiel.zusagen.push(festeZusage(world, { id: `z-start-${partei}`, von: partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 120 + 60 * i, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
+      spiel.zusagen.push(festeZusage(world, { id: `z-start-${partei}`, von: partei, text: `Die ${name} erwartet ${forderung.text}`, msg: msg("n5.zusage.erwartet", { partei: name, forderung: forderung.text }), faellig: 120 + 60 * i, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
     }
     const figur = partnerFigur(world, partei, `Vorsitz der ${name}`, forderung?.text ?? "Einfluss und Ämter", rng);
     // Eine Fraktion, die allein fast so groß ist wie das übrige Lager, hat Gewicht und Ansprüche: Ihre Treue ist brüchig
@@ -555,14 +557,14 @@ export function startAfterElection(world: World, eingabe: PlayerProfile): void {
     f.duldungBis = world.day + 240;
     f.bereitschaft = Math.max(f.bereitschaft, 55);
     const forderung = forderungVon(world, duldender);
-    world.spiel.zusagen.push(festeZusage(world, { id: `z-duldung-${duldender}`, von: duldender, text: `Die ${PARTEI_NAME[duldender] ?? duldender} erwartet für ihre Duldung ${forderung.text}`, faellig: 200, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
+    world.spiel.zusagen.push(festeZusage(world, { id: `z-duldung-${duldender}`, von: duldender, text: `Die ${PARTEI_NAME[duldender] ?? duldender} erwartet für ihre Duldung ${forderung.text}`, msg: msg("n5.zusage.duldung", { partei: PARTEI_NAME[duldender] ?? duldender, forderung: forderung.text }), faellig: 200, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
   }
   // Bündnis mit einer Partei außerhalb der klassischen Muster: Sie erwartet ihre Kernforderung (Muster z-start-*)
   const bz = profile.buendnisZusage;
   if (bz && world.spiel && !world.spiel.zusagen.some((z) => z.id === `z-start-${bz.partei}`)) {
     const forderung = forderungVon(world, bz.partei);
     const name = PARTEI_NAME[bz.partei] ?? bz.partei;
-    world.spiel.zusagen.push(festeZusage(world, { id: `z-start-${bz.partei}`, von: bz.partei, text: `Die ${name} erwartet ${forderung.text}`, faellig: 90, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
+    world.spiel.zusagen.push(festeZusage(world, { id: `z-start-${bz.partei}`, von: bz.partei, text: `Die ${name} erwartet ${forderung.text}`, msg: msg("n5.zusage.erwartet", { partei: name, forderung: forderung.text }), faellig: 90, massnahme: forderung.massnahme, richtung: 1, erfuellt: false, gebrochen: false }));
   }
   // Szenario (Wahltag, Krise) und Biografie (Beruf, Jugend, Motiv, Partner, Wahlnacht) wirken auf Figuren, Kapital und Lage
   wendeStartszenarioAn(world, profile);

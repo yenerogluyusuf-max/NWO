@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { World } from "../../sim/types";
-import { REGELN, gesetzPrognose, gesetzWeltAmVotum, stimmenSicht } from "../../sim/handeln";
+import { GESETZ_SCHWELLE, REGELN, gesetzPrognose, gesetzWeltAmVotum, stimmenSicht } from "../../sim/handeln";
 import { GesetzesPrognoseHinweis } from "./GesetzesPrognoseHinweis";
 import { VERFASSUNG_REGELN } from "../../sim/verfassung";
 import { formatDateDe } from "../../sim/dates";
@@ -10,20 +10,15 @@ import { parlamentsLage, ROLLEN_WORT } from "./lage";
 import { amAnsichtBeobachten, letzteAbstimmungen, spieleAbstimmungAb } from "./abstimmung";
 import { FARBEN_PAPIER, Sitzplan, zustandFarbe } from "./Halbrund";
 import { verteileErwartung, vorgabeFuer, zaehleZustaende, zustandJeSitz, ZUSTAENDE, type Zustand } from "./stimmen";
-import { t } from "../../i18n";
+import { t, zahl as zahlFmt } from "../../i18n";
 import "../politik/design.css";
 import "./parlament.css";
 import { gesetzName, massnahmenName } from "../../sim/gesetz-name";
 
-const ZUSTAND_KURZ: Record<Zustand, string> = { fest: "Lager", zusage: "Zusage", wackelig: "wackelig", offen: "offen", nein: "Nein" };
-const ZUSTAND_HILFE: Record<Zustand, string> = {
-  fest: "Sitze des eigenen Lagers: stimmen mit Ja",
-  zusage: "Duldung, Sachbündnis oder gekaufte Absprache",
-  wackelig: "Übertritte aus der Opposition, die vom Ansehen des Präsidenten abhängen",
-  offen: "Liegt in der Spanne der Schätzung: kann kippen",
-  nein: "Stimmen mit Nein",
-};
-const zahl = (x: number) => x.toLocaleString("de-DE");
+// Wörter in der aktuellen Sprache (I-8)
+const ZUSTAND_KURZ = (z: Zustand): string => t(`n4.pk.kurz.${z}`);
+const ZUSTAND_HILFE = (z: Zustand): string => t(`n4.pk.hilfe.${z}`);
+const zahl = (x: number) => zahlFmt(x);
 
 export function ParlamentKopf({ world }: { world: World }) {
   // Das Parlament ändert sich durch Verhandlungen mitten am Tag; die Rechnung ist klein, deshalb ohne Zwischenspeicher
@@ -60,33 +55,15 @@ export function ParlamentKopf({ world }: { world: World }) {
   const spanneVon = Math.max(0,Math.min(lage.gesamt,(berechnet?.vorgabe.niedrig ?? sicht.low) + zusatz));
   const spanneBis = Math.max(0,Math.min(lage.gesamt,(berechnet?.vorgabe.hoch ?? sicht.high) + zusatz));
   const jaSumme = berechnet ? berechnet.zahlen.fest + berechnet.zahlen.zusage + berechnet.zahlen.wackelig : 0;
+  const schwelle = prognose?.schwelle ?? GESETZ_SCHWELLE;
 
   return (
     <section ref={kopf} className="par-kopf">
       <header className="pd-seitenkopf">
         <div>
-          <p className="pd-ueber">{t("ui2.ui.parlament.ParlamentKopf.e9f977f")}</p>
-          <h3>{t("ui2.ui.parlament.ParlamentKopf.5473a56")}</h3>
-          <p className="pd-lead">
-            {t("ui2.ui.parlament.ParlamentKopf.418c8d2", { p0: zahl(lage.gesamt), p1: REGELN.mehrheit, p2: VERFASSUNG_REGELN.mehrheit, p3: VERFASSUNG_REGELN.direkt })}
-          </p>
+          {/* Der Reiter heißt schon „Fraktionen und Abstimmung“; ohne zweite Überschrift beginnt die Seite mit der Regel und dem Halbrund */}
+          <p className="pd-lead">{t("n4.pk.lead", { sitze: zahl(lage.gesamt), gesetz: GESETZ_SCHWELLE, mitglieder: REGELN.mehrheit, vf: VERFASSUNG_REGELN.mehrheit, direkt: VERFASSUNG_REGELN.direkt })}</p>
         </div>
-        <ul className="pd-zaehler" aria-label={t("ui2.ui.parlament.ParlamentKopf.5b4e832")}>
-          <li className={lage.lager >= REGELN.mehrheit ? "" : "rot"}>
-            <b>{zahl(lage.lager)}</b>
-            <span>{fehlt > 0 ? t("ui2.ui.parlament.ParlamentKopf.9c648d0", { p0: fehlt }) : t("ui2.ui.parlament.ParlamentKopf.316c13d")}</span>
-          </li>
-          {lage.duldung > 0 && (
-            <li>
-              <b>{zahl(lage.duldung)}</b>
-              <span>{t("ui2.ui.parlament.ParlamentKopf.56aedb8")}</span>
-            </li>
-          )}
-          <li>
-            <b>{zahl(lage.opposition)}</b>
-            <span>{t("ui2.ui.parlament.ParlamentKopf.bcf3982")}</span>
-          </li>
-        </ul>
       </header>
 
       {gesetze.length > 0 && (
@@ -120,16 +97,16 @@ export function ParlamentKopf({ world }: { world: World }) {
         mitte={
           erwartung ? (
             <div className="par-mitte-inhalt">
-              <strong className={ja >= REGELN.mehrheit ? "gut" : "schlecht"}>{zahl(ja)}</strong>
+              <strong className={ja >= schwelle ? "gut" : "schlecht"}>{zahl(ja)}</strong>
               <span>
-                Ja erwartet
-                <em>Spanne {spanneVon}–{spanneBis}</em>
+                {t("n4.pk.jaErwartet", { schwelle })}
+                <em>{t("n4.pk.spanne", { von: spanneVon, bis: spanneBis })}</em>
               </span>
             </div>
           ) : (
             <div className="par-mitte-inhalt">
               <strong>{zahl(lage.lager)}</strong>
-              <span>{fehlt > 0 ? `es fehlen ${fehlt}` : lage.lager < REGELN.mehrheit ? `mit Duldung ${lage.lager + lage.duldung}` : lage.hatLager ? "Regierungsmehrheit" : "eigene Mehrheit"}</span>
+              <span>{fehlt > 0 ? t("n4.pk.fehlen", { n: fehlt, mitglieder: REGELN.mehrheit }) : lage.lager < REGELN.mehrheit ? t("n4.pk.mitDuldung", { n: lage.lager + lage.duldung }) : lage.hatLager ? t("n4.pk.regierungsmehrheit") : t("n4.pk.eigeneMehrheit")}</span>
             </div>
           )
         }
@@ -138,9 +115,9 @@ export function ParlamentKopf({ world }: { world: World }) {
       {erwartung && berechnet ? (
         <ul className="par-zustaende" aria-label={t("ui2.ui.parlament.ParlamentKopf.ea62b10")}>
           {ZUSTAENDE.map((k) => (
-            <li key={k} title={k === "wackelig" ? t("gp.wackelig") : ZUSTAND_HILFE[k]}>
+            <li key={k} title={k === "wackelig" ? t("gp.wackelig") : ZUSTAND_HILFE(k)}>
               <i style={{ background: zustandFarbe(FARBEN_PAPIER, k) }} />
-              <span>{ZUSTAND_KURZ[k]}</span>
+              <span>{ZUSTAND_KURZ(k)}</span>
               <b>{zahl(berechnet.zahlen[k])}</b>
             </li>
           ))}
@@ -148,38 +125,12 @@ export function ParlamentKopf({ world }: { world: World }) {
       ) : null}
       {erwartung && berechnet && (
         <p className="par-lesart">
-          {g ? `„${gesetzName(g)}“: ` : ""}
-          {ja >= REGELN.mehrheit ? t("ui2.ui.parlament.ParlamentKopf.bca73c3", { p0: zahl(jaSumme), p1: REGELN.mehrheit }) : t("ui2.ui.parlament.ParlamentKopf.d61f1c9", { p0: REGELN.mehrheit - ja })}
+          {g ? t("n4.pk.gesetzVor", { name: gesetzName(g) }) : ""}
+          {ja >= schwelle ? t("ui2.ui.parlament.ParlamentKopf.bca73c3", { p0: zahl(jaSumme), p1: schwelle }) : t("ui2.ui.parlament.ParlamentKopf.d61f1c9", { p0: schwelle - ja })}
           {berechnet.vorgabe.sachParteien.length > 0 ? t("ui2.ui.parlament.ParlamentKopf.4f5a383", { p0: berechnet.vorgabe.sachParteien.join(" und ") }) : ""}
         </p>
       )}
       {erwartung && <p className="par-lesart">{t("gp.verteilung")}</p>}
-
-      <div className="par-bilanz" aria-label={t("ui2.ui.parlament.ParlamentKopf.db43ef7")}>
-        <div className="par-lager-balken" aria-hidden="true">
-          <i className="lager" style={{ width: `${(lage.lager / lage.gesamt) * 100}%` }} />
-          <i className="duldung" style={{ width: `${(lage.duldung / lage.gesamt) * 100}%` }} />
-          <i className="opposition" style={{ width: `${(lage.opposition / lage.gesamt) * 100}%` }} />
-          <s style={{ left: `${(REGELN.mehrheit / lage.gesamt) * 100}%` }} />
-        </div>
-        <div className="par-lager-zeile">
-          <span>
-            <i className="lager" />
-            {t("ui2.ui.parlament.ParlamentKopf.f6e8cb0")} <b>{zahl(lage.lager)}</b>
-          </span>
-          {lage.duldung > 0 && (
-            <span>
-              <i className="duldung" />
-              duldet <b>{zahl(lage.duldung)}</b>
-            </span>
-          )}
-          <span>
-            <i className="opposition" />
-            {t("ui2.ui.parlament.ParlamentKopf.bcf3982")} <b>{zahl(lage.opposition)}</b>
-          </span>
-          <span className="par-marke">{t("ui2.ui.parlament.ParlamentKopf.8f8dc9b", { p0: REGELN.mehrheit })}</span>
-        </div>
-      </div>
 
         </div>
         <div className="par-rechts">
@@ -200,7 +151,7 @@ export function ParlamentKopf({ world }: { world: World }) {
               <i style={{ width: `${(f.sitze / lage.gesamt) * 100 * 2.2}%`, background: f.farbe }} />
             </span>
             <b>{f.sitze}</b>
-            <span className="par-anteil">{f.anteil.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %</span>
+            <span className="par-anteil" title={t("n4.pk.anteilHilfe")}>{t("n4.pk.anteil", { p: zahlFmt(f.anteil, 1) })}</span>
           </li>
         ))}
       </ul>

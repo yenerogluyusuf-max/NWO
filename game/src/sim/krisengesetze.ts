@@ -9,6 +9,7 @@ import { AUFMERKSAMKEIT_KOSTEN } from './aufmerksamkeit';
 import { aktiveParteivorsitzende, naechsteKoalitionspruefung } from './koalitionslage';
 import { geldAusBip } from './staatsgeld';
 import { t } from '../i18n';
+import { stufenName } from '../data/skalen';
 
 export const KRISENGESETZE = ['m_mindestlohn','m_arbeitslosengeld','m_ausbildung'] as const;
 export type KrisenGesetz = typeof KRISENGESETZE[number];
@@ -28,10 +29,14 @@ export function krisenGesetzPlan(w:World,id:KrisenGesetz,umfang:10|20=10) {
   const k=structuredClone(w),pr=pruefeVorhaben(k,id,ziel,null);
   const laufend=k.spiel!.gesetze.find(g=>g.massnahme===id);
   const umsetzung=!laufend&&beschlossen!==undefined&&Math.abs(beschlossen-aktuell)>=1;
-  const grund=laufend?t('kg.laufend'):umsetzung?t('kg.umsetzung',{ziel:beschlossen}):undefined;
+  const grund=laufend?t('kg.laufend'):umsetzung?t('n9.kg.umsetzung',{ziel:stufenName(id,beschlossen)}):undefined;
   const r=grund?{ok:false,text:grund}:bringeEin(k,id,ziel,null,'gesetz');
   const g=laufend??(r.ok?k.spiel!.gesetze.find(g=>g.massnahme===id):undefined);
-  const prognose=g?gesetzPrognose(k,g):undefined;
+  // Den Mindestlohn beschließt die Kommission (data/rechtswege.ts, Arbeitsgesetz Art. 39), kein Plenum: Eine Stimmenprognose
+  // wäre hier eine Schau. Stattdessen steht der Tag des Kommissionsbeschlusses im Plan.
+  const kommission=pr.rechtsweg==='kommission'||g?.weg==='kommission';
+  const prognose=g&&!kommission?gesetzPrognose(k,g):undefined;
+  const beschlussTag=kommission?g?.abstimmung:undefined;
   const zusagen=r.ok?k.spiel!.zusagen.flatMap(z=>{
     const alt=w.spiel!.zusagen.find(a=>a.id===z.id);
     return alt&&z.faellig!==alt.faellig?[{id:z.id,text:z.text,von:z.von,vorher:alt.faellig,nachher:z.faellig}]:[];
@@ -47,7 +52,7 @@ export function krisenGesetzPlan(w:World,id:KrisenGesetz,umfang:10|20=10) {
   const risiken=[...new Set(w.spiel.lager)].flatMap(partei=>aktiveParteivorsitzende(angenommen,partei).filter(f=>f.loyalitaet<35).map(f=>({partei,name:f.name,loyalitaet:f.loyalitaet,sitze:w.parliament?.seats[partei]??0})));
   const pruefung=naechsteKoalitionspruefung(w.date);
   const vorVotumRisiken=prognose&&pruefung<prognose.datum?[...new Set(w.spiel.lager)].flatMap(partei=>aktiveParteivorsitzende(w,partei).filter(f=>f.loyalitaet<20).map(f=>({partei,name:f.name,loyalitaet:f.loyalitaet,sitze:w.parliament?.seats[partei]??0}))):[];
-  const plan={id,umfang,ziel,aktuell,beschlossen,moeglich:r.ok,grund:r.ok?undefined:r.text,laufend:!!laufend,laufendeStufe:laufend?.stufe,regional:!!laufend?.provinzen?.length,umsetzung,
+  const plan={id,umfang,ziel,aktuell,beschlossen,moeglich:r.ok,grund:r.ok?undefined:r.text,laufend:!!laufend,laufendeStufe:laufend?.stufe,regional:!!laufend?.provinzen?.length,umsetzung,kommission,beschlussTag,
     pk:pr.gesetz.pk,aufmerksamkeit:AUFMERKSAMKEIT_KOSTEN.gesetz,
     kapitalDanach:w.spiel.kapital-pr.gesetz.pk,aufmerksamkeitDanach:Math.max(0,(w.spiel.verfassung?.aufmerksamkeit??80)-AUFMERKSAMKEIT_KOSTEN.gesetz),
     monate:pr.monate,kostenBip:pr.kostenBip,geldJahr:geldAusBip(w,pr.kostenBip),prognose,reaktionen,zusagen,erfuellt,risiken,

@@ -1,219 +1,176 @@
-// Neue Vorhaben: nach Thema getrennt (Programme für Regionen, Verkehr und Welt, Energie und Wasser, Städte, Raumfahrt, Künstliche Intelligenz, Technologie
-// mit ihren Feldern), danach das Übrige nach Art, zuletzt das Unrealistische. Eine Leiste oben wählt das Thema. Ketten zeigen ihren Weg: Jede Stufe
-// verlangt die vorige. Vorlagen („Programme für Regionen“) fragen nach dem Ort; alles andere beginnt wie bisher mit der Vergabe.
+// Neue Vorhaben: ein Katalog wie ein Bauamt (Befund F-1, Nacht N6). Oben das Bild der Frage „Kann ich jetzt bauen, und wann käme ein neuer
+// Auftrag dran?“ (Kapazität des Engpasses), darunter Filter und ein Raster aus Kacheln mit Bild; ein Klick öffnet daneben die volle Karte.
+// Vorher standen 77 Einträge und zwölf voll aufgeklappte Programme untereinander (15,9 Bildschirme). Vorlagen („Programme für Regionen“)
+// sind jetzt Kacheln wie alle anderen; ihre Karte mit Ortswahl steht im Detail. Ketten zeigen ihren Weg im Detail.
 
 import { useState } from "react";
 import type { World } from "../../sim/types";
-import { FELDER, KLASSEN_NAMEN, THEMEN, type Klasse, type Vergabe } from "../../sim/reich-typen";
-import type { VorhabenSicht } from "../../sim/reich";
+import { FELDER, THEMEN, type Bereich, type Klasse, type Vergabe } from "../../sim/reich-typen";
+import { bauKapazitaet, poolKapazitaet, warteschlange, vorhabenDef, type Platz, type VorhabenSicht } from "../../sim/reich";
 import { VorhabenKarte } from "./VorhabenKarte";
 import { VorhabenKachel } from "./VorhabenKachel";
 import "./vorhabenkachel.css";
 import { VorlageKarte } from "./Regional";
-
 import { t } from "../../i18n";
-import { t as tx } from "../../i18n";
-/** Reihenfolge und Erklärung der Arten für Vorhaben ohne Thema. */
-const ARTEN: { klasse: Klasse; titel: string; satz: string }[] = [
-  { klasse: "wunder", titel: "Wunder", satz: "Einmalig, mit Siegesfeier und Gegnern; sie verändern das Land dauerhaft." },
-  { klasse: "grossprojekt", titel: "Großprojekte", satz: "Brücken, Bahnen, Kraftwerke, Programme: lange Bauzeit, dauerhafte Leistung, Schulden und Widerstand." },
-  { klasse: "serie", titel: "Themenrouten", satz: "Eine Route verbindet mehrere Stätten und verlangt, dass alle gut erhalten sind." },
-  { klasse: "ausbau", titel: "Ausbauten", satz: "Ergänzen, was schon steht: Besucherzentren, Personenverkehr, Erweiterungen." },
-  { klasse: "forschung", titel: "Forschung", satz: "Ungewisser Ausgang: Durchbrüche lassen sich nicht erzwingen." },
-  { klasse: "institution", titel: "Neue Einrichtungen", satz: "Brauchen Jahre, bis sie arbeiten, und binden Verwaltungskraft." },
-  { klasse: "beschaffung", titel: "Beschaffung", satz: "Waffensysteme vom Vertrag bis zur Einsatzbereitschaft; Lieferanten erwarten etwas dafür." },
-  { klasse: "doktrin", titel: "Doktrinen", satz: "Eine Doktrin schließt die anderen aus und prägt, worauf sich die Streitkräfte vorbereiten." },
-  { klasse: "reform", titel: "Reformen", satz: "Kosten Kapital und Stimmen, nicht Geld; jede hat Gewinner und Verlierer." },
-  { klasse: "sonderrecht", titel: "Sonderrechte", satz: "Schnelle Instrumente mit einer Kehrseite, die sich später zeigt." },
-];
 
-const UTOPIE_SATZ =
-  "Möglich, aber extrem schwierig und sehr teuer: Jahrzehnte Bauzeit, riesige Schulden, Voraussetzungen, die erst Vorstufen schaffen, Mehrkosten, die eher die Regel sind, und Widerstand, der nicht nachlässt. Der Gegenwert ist Ansehen, keine Abkürzung zum Sieg.";
+/** Reihenfolge der Arten für Vorhaben ohne Thema. */
+const ARTEN: Klasse[] = ["wunder", "grossprojekt", "serie", "ausbau", "forschung", "institution", "beschaffung", "doktrin", "reform", "sonderrecht"];
 
-const STATUS_KURZ = (s: VorhabenSicht): string =>
-  s.status === "fertig" ? "fertig" : s.status === "im_bau" || s.status === "pausiert" ? "im Bau" : s.status === "gesperrt" || s.status === "ausgeschlossen" ? "gesperrt" : s.bereit ? "bereit" : "Voraussetzung fehlt";
+const stufeVon = (s: VorhabenSicht): string =>
+  s.status === "fertig" ? "fertig" : s.status === "im_bau" || s.status === "pausiert" ? "bau" : s.bereit && s.status === "verfuegbar" ? "bereit" : "zu";
 
-/** Ketten innerhalb eines Themas: zusammenhängende Vorhaben, die einander als „fertig“ verlangen. Nur Ketten mit mindestens zwei Gliedern. */
-function ketten(alle: VorhabenSicht[], thema: string): VorhabenSicht[][] {
-  const mitglieder = alle.filter((s) => s.v.thema === thema);
-  const index = new Map(mitglieder.map((s) => [s.v.id, s]));
-  const elter = new Map<string, string>(mitglieder.map((s) => [s.v.id, s.v.id]));
+/** Ketten innerhalb eines Themas: zusammenhängende Vorhaben, die einander als „fertig“ verlangen. */
+function ketteVon(alle: VorhabenSicht[], s: VorhabenSicht): VorhabenSicht[] {
+  if (!s.v.thema) return [];
+  const mitglieder = alle.filter((x) => x.v.thema === s.v.thema);
+  const index = new Map(mitglieder.map((x) => [x.v.id, x]));
+  const elter = new Map<string, string>(mitglieder.map((x) => [x.v.id, x.v.id]));
   const wurzel = (id: string): string => (elter.get(id) === id ? id : wurzel(elter.get(id)!));
-  for (const s of mitglieder) {
-    for (const x of s.v.voraus) {
-      if (x.art === "bestand" && index.has(x.id)) elter.set(wurzel(s.v.id), wurzel(x.id));
-    }
-  }
-  const gruppen = new Map<string, VorhabenSicht[]>();
-  for (const s of mitglieder) gruppen.set(wurzel(s.v.id), [...(gruppen.get(wurzel(s.v.id)) ?? []), s]);
-  return [...gruppen.values()].filter((g) => g.length >= 2).map((g) => g.sort((a, b) => (a.v.stufe ?? 0) - (b.v.stufe ?? 0) || a.v.name.localeCompare(b.v.name, "de")));
+  for (const x of mitglieder) for (const vo of x.v.voraus) if (vo.art === "bestand" && index.has(vo.id)) elter.set(wurzel(x.v.id), wurzel(vo.id));
+  const meine = wurzel(s.v.id);
+  const kette = mitglieder.filter((x) => wurzel(x.v.id) === meine);
+  return kette.length >= 2 ? kette.sort((a, b) => (a.v.stufe ?? 0) - (b.v.stufe ?? 0) || a.v.name.localeCompare(b.v.name)) : [];
 }
 
-function Weg({ kette }: { kette: VorhabenSicht[] }) {
+function Weg({ kette, aktiv }: { kette: VorhabenSicht[]; aktiv: string }) {
   return (
     <ol className="rr-weg" aria-label={t("ui.reich.Neues.9e231f6")}>
       {kette.map((s) => (
-        <li key={s.v.id} className={`weg-${s.status === "fertig" ? "fertig" : s.status === "im_bau" || s.status === "pausiert" ? "bau" : s.bereit && s.status === "verfuegbar" ? "bereit" : "zu"}`}>
+        <li key={s.v.id} className={`weg-${stufeVon(s)}${s.v.id === aktiv ? " aktiv" : ""}`}>
           <span className="weg-stufe">{s.v.stufe ?? "·"}</span>
           <span className="weg-name">{s.v.name}</span>
-          <em>{STATUS_KURZ(s)}</em>
+          <em>{t(`n6.neu.stand.${stufeVon(s)}`)}</em>
         </li>
       ))}
     </ol>
   );
 }
 
+/** Das Bild oben: Wie voll ist die Kapazität, und wann käme ein neuer Auftrag dran? */
+function Kapazitaetsbild({ world, bereich }: { world: World; bereich: Bereich }) {
+  const pool = bereich === "militaer" ? "ruestung" : "land";
+  const liste = warteschlange(world).filter((e) => e.pool === pool);
+  const cap = Math.max(1, pool === "land" ? bauKapazitaet(world) : poolKapazitaet(world, pool));
+  const belegt = liste.reduce((n, e) => n + (e.pausiert ? 0 : e.rate), 0);
+  const frei = Math.max(0, cap - belegt);
+  const fertig = liste.filter((e) => e.fertigIn !== undefined && !e.pausiert).sort((a, b) => a.fertigIn! - b.fertigIn!)[0];
+  const naechster = fertig ? vorhabenDef(fertig.id)?.name ?? fertig.id : null;
+  const satz =
+    frei >= 5
+      ? t("n6.neu.kapFrei", { frei: Math.round(frei), cap: Math.round(cap) })
+      : naechster && fertig
+        ? t("n6.neu.kapVoll", { cap: Math.round(cap), n: fertig.fertigIn!, name: naechster })
+        : t("n6.neu.kapVollOhne", { cap: Math.round(cap) });
+  return (
+    <div className="vk-kap" role="img" aria-label={satz}>
+      <span className="vk-kap-leiste" aria-hidden>
+        {liste.filter((e) => !e.pausiert && e.rate > 0).map((e) => (
+          <i key={e.id} style={{ flexGrow: e.rate }} title={`${e.position}. ${vorhabenDef(e.id)?.name ?? e.id}`} />
+        ))}
+        {frei > 0.5 && <i className="frei" style={{ flexGrow: frei }} />}
+      </span>
+      <span className="vk-kap-satz">{satz}</span>
+    </div>
+  );
+}
+
 export function Neues({
   world,
+  bereich: bereichVorgabe,
   liste,
   alle,
   onBeginne,
   ergebnisse,
   onKarte,
   refresh,
+  start,
 }: {
   world: World;
+  /** Fachbereich; ohne Angabe der Bereich der ersten Einträge */
+  bereich?: Bereich;
   /** Was sich beginnen lässt oder gesperrt ist */
   liste: VorhabenSicht[];
-  /** Alle Vorhaben des Bereichs, auch fertige und laufende (für die Ketten); ohne Angabe gilt `liste` */
+  /** Alle Vorhaben des Bereichs, auch fertige und laufende (für Ketten und „Fertig“) */
   alle?: VorhabenSicht[];
-  onBeginne: (id: string, vergabe: Vergabe) => void;
+  onBeginne: (id: string, vergabe: Vergabe, platz?: Platz) => void;
   ergebnisse: Record<string, { ok: boolean; text: string }>;
   onKarte?: (o: { lon: number; lat: number }) => void;
   refresh?: () => void;
+  /** Vorgewähltes Vorhaben (Sprung aus der Lage, von der Karte oder dem Provinzblatt) */
+  start?: string | undefined;
 }) {
-  const [auswahl, setAuswahl] = useState<string>("alle");
-  const [gewaehlt, setGewaehlt] = useState<string | null>(null);
-  const kapital = world.spiel?.kapital ?? 0;
   const alleListe = alle ?? liste;
-  const gross = (s: VorhabenSicht) => s.v.klasse === "wunder" || s.v.klasse === "grossprojekt" || s.v.klasse === "serie";
-  const sortiere = (items: VorhabenSicht[]) =>
-    [...items].sort((x, y) => (x.v.stufe ?? 0) - (y.v.stufe ?? 0) || Number(y.bereit) - Number(x.bereit) || Number(x.status === "gesperrt") - Number(y.status === "gesperrt"));
-
-  const nutzlos = () => undefined;
-  // Kachel im Raster; die volle Karte steht im Detailfenster daneben (ein Vorhaben zur Zeit)
-  const karte = (s: VorhabenSicht) =>
-    s.v.vorlage ? (
-      <VorlageKarte key={s.v.id} world={world} v={s.v} refresh={refresh ?? nutzlos} />
-    ) : (
-      <VorhabenKachel key={s.v.id} s={s} gewaehlt={gewaehlt === s.v.id} onWaehle={() => setGewaehlt(gewaehlt === s.v.id ? null : s.v.id)} />
-    );
-
+  const bereich: Bereich = bereichVorgabe ?? alleListe[0]?.v.bereich ?? "infrastruktur";
+  const fertig = alleListe.filter((s) => s.status === "fertig" && s.v.klasse !== "restaurierung" && s.v.klasse !== "institution" && bereich !== "infrastruktur" && bereich !== "militaer");
+  const laufend = alleListe.filter((s) => s.status === "im_bau" || s.status === "pausiert");
+  const bereit = liste.filter((s) => s.status === "verfuegbar" && s.bereit && !s.v.unrealistisch);
   const utopien = liste.filter((s) => s.v.unrealistisch);
   const ohneThema = liste.filter((s) => !s.v.thema && !s.v.unrealistisch);
-  const themen = THEMEN.map((t) => ({ ...t, items: liste.filter((s) => s.v.thema === t.id) })).filter((t) => t.items.length > 0);
-  if (!liste.length) return <p className="subtitle">{t("ui.reich.Neues.e94e6ab")}</p>;
+  const themen = THEMEN.map((th) => ({ id: th.id, titel: th.titel, satz: th.satz, items: liste.filter((s) => s.v.thema === th.id && !s.v.unrealistisch) })).filter((th) => th.items.length > 0);
+  const arten = ARTEN.map((k) => ({ id: `art_${k}`, klasse: k, items: ohneThema.filter((s) => s.v.klasse === k) })).filter((a) => a.items.length > 0);
 
-  const themaAbschnitt = (t: (typeof themen)[number], mitUtopie: boolean) => {
-    const items = sortiere(t.items.filter((s) => mitUtopie || !s.v.unrealistisch));
-    if (!items.length) return null;
-    const verkettet = ketten(alleListe, t.id);
-    const felder = t.id === "technologie" ? FELDER.map((f) => ({ ...f, items: items.filter((s) => s.v.feld === f.id) })).filter((f) => f.items.length) : null;
-    return (
-      <section key={t.id} className="rr-abschnitt rr-art rr-thema" aria-label={t.titel}>
-        <h4>
-          {t.titel} <em>{items.length} {items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
-        </h4>
-        <p className="rr-hinweis">{t.satz}</p>
-        {t.id !== "technologie" && verkettet.map((k) => <Weg key={k[0]!.v.id} kette={k} />)}
-        {felder ? (
-          felder.map((f) => (
-            <div key={f.id} className="rr-feld">
-              <h5>{f.titel}</h5>
-              {ketten(alleListe, t.id)
-                .filter((k) => k.some((s) => s.v.feld === f.id))
-                .map((k) => (
-                  <Weg key={k[0]!.v.id} kette={k} />
-                ))}
-              <div className="rr-raster vk-raster">{f.items.map(karte)}</div>
-            </div>
-          ))
-        ) : (
-          <div className="rr-raster vk-raster">{items.map(karte)}</div>
-        )}
-      </section>
-    );
-  };
-
-  const klassenAbschnitte = ARTEN.map((a) => ({ ...a, items: sortiere(ohneThema.filter((s) => s.v.klasse === a.klasse)) })).filter((a) => a.items.length > 0);
-
-  const chips: { id: string; name: string; n: number }[] = [
-    { id: "alle", name: "Alles", n: liste.length },
-    ...themen.map((t) => ({ id: t.id, name: t.titel, n: t.items.length })),
-    ...(ohneThema.length ? [{ id: "weitere", name: "Weitere Vorhaben", n: ohneThema.length }] : []),
-    ...(utopien.length ? [{ id: "utopie", name: "Unrealistisch", n: utopien.length }] : []),
+  const chips: { id: string; name: string; n: number; satz?: string; items: VorhabenSicht[] }[] = [
+    ...(bereit.length ? [{ id: "bereit", name: t("n6.neu.bereit"), n: bereit.length, items: bereit }] : []),
+    ...themen.map((th) => ({ id: th.id, name: th.titel, n: th.items.length, satz: th.satz, items: th.items })),
+    // Ohne Thema: nach Art; wenige Arten bekommen je einen eigenen Filter (Kultur), viele einen gemeinsamen (Infrastruktur)
+    ...(themen.length > 1 ? (ohneThema.length ? [{ id: "weitere", name: t("n6.neu.weitere"), n: ohneThema.length, items: ohneThema }] : []) : arten.map((a) => ({ id: a.id, name: t(`n6.neu.art.${a.klasse}`), n: a.items.length, satz: t(`n6.neu.artSatz.${a.klasse}`), items: a.items }))),
+    ...(laufend.length ? [{ id: "laufend", name: t("n6.neu.laufend"), n: laufend.length, items: laufend }] : []),
+    ...(fertig.length ? [{ id: "fertig", name: t("n6.neu.fertig"), n: fertig.length, items: fertig }] : []),
+    ...(utopien.length ? [{ id: "visionen", name: t("n6.neu.visionen"), n: utopien.length, satz: t("n6.neu.visionenSatz"), items: utopien }] : []),
   ];
-  const aktiv = chips.some((c) => c.id === auswahl) ? auswahl : "alle";
+  const startChip = start ? chips.find((c) => c.items.some((s) => s.v.id === start))?.id : undefined;
+  const [auswahl, setAuswahl] = useState<string>(startChip ?? chips[0]?.id ?? "bereit");
+  // Ohne Vorgabe ist die erste bereite Kachel gewählt: Das Detail rechts zeigt sofort eine volle Karte statt eines leeren Rahmens
+  const [gewaehlt, setGewaehlt] = useState<string | null>(start ?? (chips[0]?.items.find((s) => s.bereit && s.status === "verfuegbar") ?? chips[0]?.items[0])?.v.id ?? null);
+  const kapital = world.spiel?.kapital ?? 0;
+  if (!chips.length) return <p className="subtitle">{t("ui.reich.Neues.e94e6ab")}</p>;
+  const aktiv = chips.find((c) => c.id === auswahl) ?? chips[0]!;
+  const sortiert = [...aktiv.items].sort(
+    (x, y) => Number(y.bereit && y.status === "verfuegbar") - Number(x.bereit && x.status === "verfuegbar") || (x.v.stufe ?? 0) - (y.v.stufe ?? 0) || Number(y.bezahlbar) - Number(x.bezahlbar),
+  );
+  const felder = aktiv.id === "technologie" ? FELDER.map((f) => ({ ...f, items: sortiert.filter((s) => s.v.feld === f.id) })).filter((f) => f.items.length) : null;
+  const detail = alleListe.find((x) => x.v.id === gewaehlt) ?? liste.find((x) => x.v.id === gewaehlt);
+  const kachel = (s: VorhabenSicht) => <VorhabenKachel key={s.v.id} s={s} gewaehlt={gewaehlt === s.v.id} onWaehle={() => setGewaehlt(gewaehlt === s.v.id ? null : s.v.id)} />;
+  const kette = detail ? ketteVon(alleListe, detail) : [];
+  const nutzlos = () => undefined;
 
-  const detail = liste.find((x) => x.v.id === gewaehlt) ?? alleListe.find((x) => x.v.id === gewaehlt);
   return (
     <div className="vk-katalog">
-    <div className="vk-liste">
-      {chips.length > 2 && (
+      <div className="vk-liste">
+        {(bereich === "infrastruktur" || bereich === "kultur" || bereich === "militaer") && <Kapazitaetsbild world={world} bereich={bereich} />}
         <div className="rr-filter rr-themen" role="group" aria-label={t("ui.reich.Neues.e47e4da")}>
           {chips.map((c) => (
-            <button key={c.id} type="button" className={aktiv === c.id ? "on" : ""} aria-pressed={aktiv === c.id} onClick={() => setAuswahl(c.id)}>
+            <button key={c.id} type="button" className={`${aktiv.id === c.id ? "on" : ""}${c.id === "visionen" ? " vision" : ""}`} aria-pressed={aktiv.id === c.id} onClick={() => setAuswahl(c.id)}>
               {c.name} <b>{c.n}</b>
             </button>
           ))}
         </div>
-      )}
-
-      {aktiv === "alle" && (
-        <>
-          {themen.map((t) => themaAbschnitt(t, false))}
-          {klassenAbschnitte.length > 0 && <h3 className="rr-teiler">{tx("ui2.ui.reich.Neues.00d41fa")}</h3>}
-          {klassenAbschnitte.map((a) => (
-            <section key={a.klasse} className="rr-abschnitt rr-art" aria-label={KLASSEN_NAMEN[a.klasse]}>
-              <h4>
-                {a.titel} <em>{a.items.length} {a.items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
-              </h4>
-              <p className="rr-hinweis">{a.satz}</p>
-              <div className="rr-raster vk-raster">{a.items.map(karte)}</div>
-            </section>
-          ))}
-          {utopien.length > 0 && (
-            <section className="rr-abschnitt rr-art rr-utopie" aria-label={t("ui.reich.Neues.227530c")}>
-              <h4>
-                {tx("ui2.ui.reich.Neues.227530c")} <em>{tx("ui2.ui.reich.Neues.3e892ea", { p0: utopien.length })}</em>
-              </h4>
-              <p className="rr-hinweis">{UTOPIE_SATZ}</p>
-              <div className="rr-raster vk-raster">{sortiere(utopien).map(karte)}</div>
-            </section>
-          )}
-        </>
-      )}
-
-      {aktiv !== "alle" && aktiv !== "weitere" && aktiv !== "utopie" && themen.filter((t) => t.id === aktiv).map((t) => themaAbschnitt(t, true))}
-
-      {aktiv === "weitere" &&
-        klassenAbschnitte.map((a) => (
-          <section key={a.klasse} className="rr-abschnitt rr-art" aria-label={KLASSEN_NAMEN[a.klasse]}>
-            <h4>
-              {a.titel} <em>{a.items.length} {a.items.length === 1 ? tx("ui2.ui.reich.Neues.d335b73") : tx("ui2.ui.reich.Neues.d335b73")}</em>
-            </h4>
-            <p className="rr-hinweis">{a.satz}</p>
-            <div className="rr-raster vk-raster">{a.items.map(karte)}</div>
-          </section>
-        ))}
-
-      {aktiv === "utopie" && (
-        <section className="rr-abschnitt rr-art rr-utopie" aria-label={t("ui.reich.Neues.227530c")}>
-          <h4>
-            {tx("ui2.ui.reich.Neues.227530c")} <em>{tx("ui2.ui.reich.Neues.3e892ea", { p0: utopien.length })}</em>
-          </h4>
-          <p className="rr-hinweis">{UTOPIE_SATZ}</p>
-          <div className="rr-raster vk-raster">{sortiere(utopien).map(karte)}</div>
-        </section>
-      )}
-    </div>
-    <aside className="vk-detail" aria-live="polite">
-      {detail ? (
-        <VorhabenKarte s={detail} world={world} gross={gross(detail)} onBeginne={onBeginne} ergebnis={ergebnisse[detail.v.id]} kapital={kapital} {...(onKarte ? { onKarte } : {})} />
-      ) : (
-        <p className="vk-leer">{tx("vk.waehlen")}</p>
-      )}
-    </aside>
+        {aktiv.satz && <p className="rr-hinweis vk-satz">{aktiv.satz}</p>}
+        {felder ? (
+          felder.map((f) => (
+            <div key={f.id} className="rr-feld">
+              <h5>{f.titel}</h5>
+              <div className="rr-raster vk-raster">{f.items.map(kachel)}</div>
+            </div>
+          ))
+        ) : (
+          <div className={`rr-raster vk-raster${aktiv.id === "visionen" ? " visionen" : ""}`}>{sortiert.map(kachel)}</div>
+        )}
+      </div>
+      <aside className="vk-detail" aria-live="polite">
+        {detail ? (
+          <>
+            {kette.length > 0 && <Weg kette={kette} aktiv={detail.v.id} />}
+            {detail.v.vorlage && detail.status === "verfuegbar" ? (
+              <VorlageKarte key={detail.v.id} world={world} v={detail.v} refresh={refresh ?? nutzlos} />
+            ) : (
+              <VorhabenKarte key={detail.v.id} s={detail} world={world} gross onBeginne={onBeginne} ergebnis={ergebnisse[detail.v.id]} kapital={kapital} {...(onKarte ? { onKarte } : {})} />
+            )}
+          </>
+        ) : (
+          <p className="vk-leer">{t("vk.waehlen")}</p>
+        )}
+      </aside>
     </div>
   );
 }

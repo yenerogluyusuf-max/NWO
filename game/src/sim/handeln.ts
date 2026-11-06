@@ -2,11 +2,13 @@
 //
 // Der Spieler verändert nicht einfach einen Regler. Jede Änderung
 //   - kostet Politisches Kapital (knapp, wächst mit Vertrauen und Mehrheit),
-//   - braucht ein Gesetz mit Mehrheit im Parlament (301 von 600) oder, wo das Recht es erlaubt, einen Erlass,
+//   - braucht ein Gesetz mit der Mehrheit der Anwesenden im Parlament (Art. 96, siehe PLENUM) oder, wo das Recht es erlaubt, einen
+//     Erlass, einen Präsidialbeschluss oder die Mindestlohnkommission (data/rechtswege.ts),
 //   - kann auf einzelne Provinzen beschränkt werden (Bau vor Ort),
 //   - konkurriert mit allen anderen laufenden Vorhaben um die Verwaltungskapazität.
 // Alle Werte sind Platzhalter der Kalibrierung.
 
+import { rasteStufe } from "../data/skalen";
 import { politikGeaendert } from "./zynismus";
 import { NET } from "./modell";
 import { erfuelleZusage, schliesseZusageErinnerung, zusageStufen, zusageZielErreicht } from "./zusagenfolgen";
@@ -22,7 +24,7 @@ import { rabattFuer } from "./programme";
 import { beobachte } from "./berichte";
 import { duldung, sachstimmen } from "./fraktionen";
 import { jaAnteilLager, jaAnteilOpposition, linienFaktor, reagierePartner, reagiereStamm } from "./linie";
-import { t } from "../i18n";
+import { t, zahl } from "../i18n";
 import type { Rng } from "./rng";
 import type { World } from "./types";
 import type { Gesetz, Weg } from "./spiel-typen";
@@ -30,6 +32,8 @@ import type { FassungId } from "../data/gesetzesvorhaben";
 import { kannZahlen } from "./kapital";
 import { krisenFuerMassnahme, type KrisenTreffer } from "./krisen";
 import { starteUmsetzung } from "./umsetzung";
+import { rechtswegVon, type Rechtsweg } from "../data/rechtswege";
+import { stufenName } from "../data/skalen";
 import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, hashWert, neuanfangGrund, stufeVon, unsicherheitFaktor, verbrauche, verfassungVon } from "./aufmerksamkeit";
 
 export const REGELN = {
@@ -39,7 +43,16 @@ export const REGELN = {
   ueberlastStufe: 0.2,
   /** Tage vom Einbringen bis zur Abstimmung */
   tageBisAbstimmung: 21,
+  /** Tage im Fachausschuss (vom Einbringen an); danach geht die Vorlage ins Plenum. Spielparameter (die Geschäftsordnung kennt Fristen,
+   *  aber keine feste Dauer; RECHERCHE_GESETZGEBUNG_TUERKEI §3) */
+  ausschussTage: 10,
+  /** Absolute Mehrheit der Mitglieder (301 von 600): Wiederannahme nach einer Rücksendung (Art. 89) und Sitzmehrheit des Lagers.
+   *  Für ein gewöhnliches Gesetz genügt die Mehrheit der Anwesenden (GESETZ_SCHWELLE). */
   mehrheit: 301,
+  /** Frist des Präsidenten zum Verkünden oder Zurücksenden (Art. 89: „onbeş gün içinde“) */
+  unterschriftTage: 15,
+  /** Tage bis zur neuen Beratung nach einer Rücksendung (Spielparameter) */
+  rueckgabeTage: 10,
   /** Kapital je gekaufter Stimme */
   kaufKostenProStimme: 0.5,
   /** Anteil des Kapitals, der beim Zurückziehen eines Gesetzes zurückkommt */
@@ -56,6 +69,44 @@ export const REGELN = {
    */
   streichFaktor: 1.6,
 } as const;
+
+/**
+ * Abstimmung im Plenum nach Art. 96 der Verfassung (Wortlaut mevzuat.gov.tr, TR-kanun-2709#art=96, abgerufen 06.11.2026): „Türkiye Büyük
+ * Millet Meclisi … üye tamsayısının en az üçte biri ile toplanır. … toplantıya katılanların salt çoğunluğu ile karar verir; ancak karar
+ * yeter sayısı hiçbir şekilde üye tamsayısının dörtte birinin bir fazlasından az olamaz.“ Also: Quorum 200, mehr Ja als die Hälfte der
+ * Anwesenden, mindestens 151 Ja.
+ * Die Anwesenheit ist ein Spielparameter: Wer eine Vorlage trägt, erscheint fast vollzählig (96 %), die Gegenseite zu 90 %, mit einer
+ * kleinen Streuung je Abstimmung (±3 Punkte, aus Samen und Vorlage, ohne den Zufallsstrom zu berühren).
+ */
+export const PLENUM = { mitglieder: 600, quorum: 200, mindestJa: 151, anwesendJa: 0.96, anwesendNein: 0.9, streuung: 0.03 } as const;
+
+export interface PlenumErgebnis {
+  ja: number;
+  nein: number;
+  abwesend: number;
+  angenommen: boolean;
+}
+
+/** Wie eine Abstimmung ausgeht, wenn `unterstuetzer` von 600 Mitgliedern die Vorlage tragen. */
+export function plenumAus(unterstuetzer: number, anwesendNein: number = PLENUM.anwesendNein): PlenumErgebnis {
+  const u = Math.min(PLENUM.mitglieder, Math.max(0, Math.round(unterstuetzer)));
+  const ja = Math.round(u * PLENUM.anwesendJa);
+  const nein = Math.round((PLENUM.mitglieder - u) * anwesendNein);
+  const anwesend = ja + nein;
+  return { ja, nein, abwesend: PLENUM.mitglieder - anwesend, angenommen: anwesend >= PLENUM.quorum && ja * 2 > anwesend && ja >= PLENUM.mindestJa };
+}
+
+/** So viele Unterstützer (von 600) braucht ein Gesetz bei üblicher Anwesenheit; daran messen Vorschau, Balken und Urteil. */
+export const GESETZ_SCHWELLE: number = (() => {
+  for (let x = 0; x <= PLENUM.mitglieder; x++) if (plenumAus(x).angenommen) return x;
+  return PLENUM.mitglieder;
+})();
+
+/** Die Abstimmung am Tag: Anwesenheit der Gegenseite streut je Vorlage deterministisch. */
+export function plenumAbstimmung(world: World, schluessel: string, unterstuetzer: number): PlenumErgebnis {
+  const streu = (hashWert(`${world.seed}|${world.day}|${schluessel}|anwesenheit`) - 0.5) * 2 * PLENUM.streuung;
+  return plenumAus(unterstuetzer, PLENUM.anwesendNein + streu);
+}
 
 /** Kapital je Stufenpunkt Änderung; heikle Themen kosten mehr. */
 const GEWICHT_THEMA: Record<string, number> = {
@@ -87,9 +138,12 @@ const GEWICHT_MASSNAHME: Record<string, number> = {
   m_verteidigung: 0.3,
 };
 
-/** Wo das Recht einen Erlass des Präsidenten zulässt (Verwaltung, Sicherheit, Außenbeziehungen). */
-const ERLASS_THEMEN = new Set(["sicherheit", "aussen", "militaer"]);
-const ERLASS_MASSNAHMEN = new Set(["m_steuerfahndung", "m_verwaltungsdigital"]);
+/** Präsidialbeschluss (Art. 73 Abs. 4): sofort und ohne Abstimmung, aber nur in den Grenzen des Gesetzes. Kostet etwas mehr Kapital als
+ *  das Gesetz und ein wenig Vertrauen; vor das Verfassungsgericht kommt er nicht (Spielparameter). */
+export const BESCHLUSS = { kapitalFaktor: 1.3, vertrauen: -0.5 } as const;
+
+/** Mindestlohnkommission (Arbeitsgesetz Art. 39): Tage vom Ruf des Ministeriums bis zum Beschluss (Spielparameter). */
+export const KOMMISSION = { tage: 14 } as const;
 
 export function provinzName(plaka: number): string {
   return PROVINZEN[plaka - 1]?.name ?? `Provinz ${plaka}`;
@@ -172,7 +226,7 @@ export interface StimmenSicht {
   erwartet: number;
   low: number;
   high: number;
-  /** Wie viele Stimmen bis zur Mehrheit fehlen (erwartet) */
+  /** Wie viele Stimmen bis zur Mehrheit der Anwesenden fehlen (erwartet; gemessen an GESETZ_SCHWELLE) */
   luecke: number;
   /** Ja-Stimmen von Fraktionen, die das Lager dulden (schon in „erwartet“ enthalten) */
   duldung: number;
@@ -211,7 +265,7 @@ export function stimmenSicht(world: World, gesetz?: { massnahme: string; richtun
   const erwartet = Math.min(600, lagerJa + dul.ja + sach.ja + Math.round(gegner * uebertritt) + oppositionJa);
   // Ist der Präsident angespannt, streut die Schätzung breiter: Das Konto der Aufmerksamkeit wirkt auf die Vorschau
   const band = Math.round((8 + Math.round(gegner * 0.02)) * unsicherheitFaktor(world));
-  return { lager, erwartet, low: erwartet - band, high: Math.min(600, erwartet + band), luecke: Math.max(0, REGELN.mehrheit - erwartet), duldung: dul.ja, duldungSitze: dul.sitze, sach: sach.ja, sachParteien: sach.parteien };
+  return { lager, erwartet, low: erwartet - band, high: Math.min(600, erwartet + band), luecke: Math.max(0, GESETZ_SCHWELLE - erwartet), duldung: dul.ja, duldungSitze: dul.sitze, sach: sach.ja, sachParteien: sach.parteien };
 }
 
 // ---------------------------------------------------------------------------
@@ -266,7 +320,11 @@ export interface Pruefung {
   offen: number;
   kapital: number;
   gesetz: { pk: number; stimmen: StimmenSicht; tage: number; bezahlbar: boolean };
-  erlass: { moeglich: boolean; pk: number; grund?: string; bezahlbar: boolean };
+  /** Der schnelle Weg: Präsidialerlass (Art. 104 Abs. 17) oder, bei Sätzen, Präsidialbeschluss (Art. 73 Abs. 4) */
+  erlass: { moeglich: boolean; pk: number; grund?: string; bezahlbar: boolean; art: "erlass" | "beschluss" };
+  /** Welcher Rechtsweg die Änderung trägt (data/rechtswege.ts). „kommission“: Der Gesetzesknopf gibt der Mindestlohnkommission eine
+   *  Vorgabe; „notstand“: nur über das Ausrufen des Ausnahmezustands (sim/notstand.ts). */
+  rechtsweg: Rechtsweg;
   hinweise: string[];
   /** Aktive Krisen, die dieses Vorhaben treffen (MIL-3); bei „gesperrt" steht die Begründung mit Ausweg in „grund" */
   krisen: KrisenTreffer[];
@@ -349,19 +407,22 @@ function mitBonus(st: StimmenSicht, bonus: number): StimmenSicht {
   if (!bonus) return st;
   const z = (x: number) => Math.min(600, Math.max(0, x + bonus));
   const erwartet = z(st.erwartet);
-  return { ...st, erwartet, low: z(st.low), high: z(st.high), luecke: Math.max(0, REGELN.mehrheit - erwartet) };
+  return { ...st, erwartet, low: z(st.low), high: z(st.high), luecke: Math.max(0, GESETZ_SCHWELLE - erwartet) };
 }
 
-export function erlassMoeglich(id: string): boolean {
+/** Ob ein schneller Weg (Erlass oder Beschluss) die Änderung in diese Richtung tragen darf. */
+export function erlassMoeglich(id: string, richtung = 1, ziel = 50): boolean {
   const node = NET.nodes[knotenIndex(id)]!;
-  return ERLASS_THEMEN.has(node.theme) || ERLASS_MASSNAHMEN.has(id);
+  const w = rechtswegVon(node, richtung, ziel);
+  return w === "erlass" || w === "beschluss";
 }
 
 export function pruefeVorhaben(world: World, id: string, stufe: number, provinzen?: number[] | null, wahl?: FassungId): Pruefung {
   const i = knotenIndex(id);
   const node = NET.nodes[i]!;
   const ort = ortsListe(provinzen);
-  const ziel = clamp(Math.round(stufe), 0, 100);
+  // Steuern mit echtem Satz nur in ganzen Prozentpunkten zwischen echten Grenzen (Befund B-2, data/skalen.ts)
+  const ziel = rasteStufe(id, clamp(Math.round(stufe), 0, 100));
   const aktuell = stufeIn(world, id, ort);
   const aenderung = ziel - aktuell;
   const share = anteil(world, ort);
@@ -384,21 +445,20 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   const krisen = world.spiel ? krisenFuerMassnahme(world, id) : [];
   const krisenFaktor = krisen.reduce((f, k) => (k.art === "teuer" ? f * k.faktor : f), 1);
   const pkGesetz = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "gesetz") * krisenFaktor));
-  const erlassOk = erlassMoeglich(id);
   const pkErlass = Math.max(2, Math.round(pkKosten(world, id, aenderung, ort, "erlass") * krisenFaktor));
+  const pkBeschluss = Math.max(2, Math.round(pkGesetz * BESCHLUSS.kapitalFaktor));
   const hinweise: string[] = [];
   // Die Linie der Partei sichtbar machen: Der Preis steht im Kapital, die Reaktion der Partner folgt nach dem Beschluss (sim/linie.ts)
   const linie = linienFaktor(world, id, aenderung);
   if (linie <= 0.93) hinweise.push(t("linie.hinweis.mit", { prozent: Math.round((1 - linie) * 100) }));
   else if (linie >= 1.12) hinweise.push(t("linie.hinweis.gegen", { prozent: Math.round((linie - 1) * 100) }));
-  if (ueberl > 1) hinweise.push(`Die Verwaltung ist mit ${offen} laufenden Vorhaben überlastet: Die Umsetzungsdauer steigt um ${Math.round((ueberl - 1) * 100)} %.`);
-  if (stimmen.luecke > 0) hinweise.push(`Dem Lager fehlen für eine Mehrheit voraussichtlich ${stimmen.luecke} Stimmen; sie lassen sich mit Kapital kaufen (${REGELN.kaufKostenProStimme} Kapital je Stimme, sofort bezahlt; danach schuldet niemand jemandem etwas).`);
-  if (ort && share < 0.05) hinweise.push("Ein kleiner Ort: Die Wirkung auf die Landeswerte ist gering, die vor Ort deutlich.");
+  const rechtsweg = rechtswegVon(node, Math.sign(aenderung), ziel);
+  if (ueberl > 1) hinweise.push(t("n4.hw.ueberlast", { n: offen, prozent: Math.round((ueberl - 1) * 100) }));
+  if (stimmen.luecke > 0 && rechtsweg !== "kommission") hinweise.push(t("n4.hw.luecke", { n: stimmen.luecke }));
+  if (ort && share < 0.05) hinweise.push(t("n4.hw.kleinerOrt"));
   if (ort) {
     const prozent = share * 100;
-    hinweise.push(
-      `Umfang: ${prozent < 1 ? "unter 1" : Math.round(prozent).toLocaleString("de-DE")} Prozent der Bevölkerung betroffen. Der politische Preis liegt bei ${Math.round(umfangFaktor(share) * 100)} Prozent des landesweiten Preises, die Haushaltskosten folgen der Bevölkerung (${kostenBip.toLocaleString("de-DE", { maximumFractionDigits: 3 })} Prozent des BIP im Jahr).`,
-    );
+    hinweise.push(t(prozent < 1 ? "n4.hw.umfangKlein" : "n4.hw.umfang", { prozent: zahl(Math.round(prozent)), preis: Math.round(umfangFaktor(share) * 100), bip: zahl(kostenBip, 3) }));
   }
   for (const k of krisen) {
     if (k.art === "teuer") hinweise.push(`${k.krise.name}: ${k.krise.wirkung}`);
@@ -407,11 +467,10 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
   const preise = preisFaktoren(node);
   const richtung: "einfuehren" | "streichen" = aenderung >= 0 ? "einfuehren" : "streichen";
   if (aenderung < 0 && preise.streichen > preise.einfuehren) {
-    const f = (preise.streichen / preise.einfuehren).toLocaleString("de-DE", { maximumFractionDigits: 1 });
-    hinweise.push(`Exit-Preis: Das Zurücknehmen kostet das ${f}-Fache des Einführens — Besitzstände, Apparate und Lager wehren sich.`);
+    hinweise.push(t("n4.hw.ruecknahme", { f: zahl(preise.streichen / preise.einfuehren, 1) }));
   }
   if (preise.unterhaltMonat > 0) {
-    hinweise.push(`Politische Dauerbelastung: etwa ${preise.unterhaltMonat.toLocaleString("de-DE")} Kapital im Monat bei voller Stufe, anteilig zur aktuellen Stufe.`);
+    hinweise.push(t("n4.hw.dauerlast", { n: zahl(preise.unterhaltMonat, 1) }));
   }
 
   const base: Pruefung = {
@@ -426,20 +485,30 @@ export function pruefeVorhaben(world: World, id: string, stufe: number, provinze
     ueberlast: ueberl,
     offen,
     kapital,
-    gesetz: { pk: pkGesetz, stimmen, tage: REGELN.tageBisAbstimmung, bezahlbar: kannZahlen(kapital, pkGesetz) },
-    // Hat die Maßnahme einen Katalogeintrag, entscheidet der Katalog (er kennt Art. 104 Abs. 17 je Vorhaben), sonst die Themenregel
-    erlass: fassung && !fassung.erlassErlaubt
-      ? { moeglich: false, pk: pkErlass, bezahlbar: false, grund: t("gesetz.grund.keinErlass") }
-      : fassung || erlassOk
-      ? { moeglich: true, pk: pkErlass, bezahlbar: kannZahlen(kapital, pkErlass) }
-      : { moeglich: false, pk: pkErlass, bezahlbar: false, grund: "Dafür braucht der Präsident ein Gesetz; ein Erlass ist nur in Sicherheit und Außenbeziehungen zulässig." },
+    gesetz: { pk: pkGesetz, stimmen, tage: rechtsweg === "kommission" ? KOMMISSION.tage : REGELN.tageBisAbstimmung, bezahlbar: kannZahlen(kapital, pkGesetz) },
+    // Der Rechtsweg (data/rechtswege.ts) geht vor: Haushaltsgeld nie per Erlass, Sätze per Beschluss. Sonst entscheidet ein Katalogeintrag
+    // (er kennt Art. 104 Abs. 17 je Vorhaben), dann die Themenregel.
+    erlass: rechtsweg === "beschluss"
+      ? { moeglich: true, pk: pkBeschluss, bezahlbar: kannZahlen(kapital, pkBeschluss), art: "beschluss" }
+      : rechtsweg === "haushalt"
+      ? { moeglich: false, pk: pkErlass, bezahlbar: false, grund: t("n4.weg.grund.haushalt"), art: "erlass" }
+      : rechtsweg === "kommission" || rechtsweg === "notstand"
+      ? { moeglich: false, pk: pkErlass, bezahlbar: false, grund: t(`n4.weg.grund.${rechtsweg}`), art: "erlass" }
+      : fassung && !fassung.erlassErlaubt
+      ? { moeglich: false, pk: pkErlass, bezahlbar: false, grund: t("gesetz.grund.keinErlass"), art: "erlass" }
+      : fassung || rechtsweg === "erlass"
+      ? { moeglich: true, pk: pkErlass, bezahlbar: kannZahlen(kapital, pkErlass), art: "erlass" }
+      : { moeglich: false, pk: pkErlass, bezahlbar: false, grund: t("n4.weg.grund.gesetz"), art: "erlass" },
+    rechtsweg,
     hinweise,
     krisen,
     krisenFaktor,
     preise: { ...preise, richtung },
     ...(fassung ? { fassung } : {}),
   };
-  if (Math.abs(aenderung) < 1) return { ...base, ok: false, grund: "Das ist schon die aktuelle Stufe." };
+  if (Math.abs(aenderung) < 1) return { ...base, ok: false, grund: t("n4.grund.schonDa") };
+  // Art. 119: Ab den Notstandsdekreten führt der Weg nur über das Ausrufen des Ausnahmezustands (sim/notstand.ts)
+  if (rechtsweg === "notstand") return { ...base, ok: false, grund: t("n4.weg.grund.notstand") };
   if (fassung?.grund) return { ...base, ok: false, grund: fassung.grund };
   // Eine Sperre durch eine aktive Krise ist eine ehrliche Ablehnung: Grund und Alternativweg stehen immer dabei.
   const gesperrt = krisen.find((k) => k.art === "gesperrt");
@@ -527,9 +596,8 @@ export function setPolicy(world: World, id: string, level: number, provinzen?: n
   addLog(
     world,
     "entscheidung",
-    `${node.name} ${provinzenText(ort)}: von Stufe ${Math.round(current)} auf ${target} ${target > current ? "erhöht" : "gesenkt"}.`,
-    `${node.text} Umsetzung läuft über etwa ${months} ${months === 1 ? "Monat" : "Monate"}` +
-      (Math.abs(costChange) >= 0.0005 ? `; ${costChange > 0 ? "kostet" : "bringt"} jährlich etwa ${fmt(Math.abs(costChange))} % der Wirtschaftsleistung.` : "."),
+    t("n4.log.gesetzt", { name: node.name, ort: provinzenText(ort), von: stufenName(id, current), nach: stufenName(id, target) }),
+    t(Math.abs(costChange) >= 0.0005 ? (costChange > 0 ? "n4.log.gesetztKostet" : "n4.log.gesetztBringt") : "n4.log.gesetztWarum", { text: node.text, monate: months, bip: fmt(Math.abs(costChange)) }),
   );
 }
 
@@ -545,43 +613,56 @@ export interface Ergebnis {
   why?: string;
 }
 
-/** Ein Vorhaben einbringen: als Gesetz (mit Abstimmung) oder als Erlass. */
+/** Ein Vorhaben einbringen: als Gesetz (die eigene Fraktion bringt es auf Bitte des Präsidenten ein, Art. 88), als Erlass oder
+ *  Präsidialbeschluss, beim Mindestlohn als Vorgabe an die Kommission (data/rechtswege.ts). */
 export function bringeEin(world: World, id: string, stufe: number, provinzen: number[] | null | undefined, weg: Weg, wahl?: FassungId): Ergebnis {
   const pr = pruefeVorhaben(world, id, stufe, provinzen, wahl);
-  if (!pr.ok) return { ok: false, text: pr.grund ?? "Nicht möglich." };
+  if (!pr.ok) return { ok: false, text: pr.grund ?? t("n4.grund.nichtMoeglich") };
   const spiel = world.spiel;
   if (!spiel) {
     setPolicy(world, id, stufe, provinzen);
     const l = world.log[world.log.length - 1]!;
     return { ok: true, text: l.text, why: l.why };
   }
-  if (spiel.ende) return { ok: false, text: "Die Amtszeit ist beendet." };
+  if (spiel.ende) return { ok: false, text: t("n4.grund.ende") };
   const pause = neuanfangGrund(world);
   if (pause) return { ok: false, text: pause };
 
   if (weg === "erlass") {
-    if (!pr.erlass.moeglich) return { ok: false, text: pr.erlass.grund!, why: "Wege statt Verbote: Der Weg über ein Gesetz steht offen." };
-    if (!pr.erlass.bezahlbar) return { ok: false, text: `Für den Erlass fehlt Politisches Kapital (nötig ${pr.erlass.pk}, vorhanden ${Math.floor(spiel.kapital)}).` };
+    if (!pr.erlass.moeglich) return { ok: false, text: pr.erlass.grund!, why: t("n4.grund.wegeStattVerbote") };
+    if (!pr.erlass.bezahlbar) return { ok: false, text: t(pr.erlass.art === "beschluss" ? "n4.grund.kapitalBeschluss" : "n4.grund.kapitalErlass", { n: pr.erlass.pk, da: Math.floor(spiel.kapital) }) };
     spiel.kapital -= pr.erlass.pk;
     verbrauche(world, AUFMERKSAMKEIT_KOSTEN.erlass, pr.name);
     const vorErlass = stufeIn(world, id, ortsListe(pr.provinzen));
     setPolicy(world, id, pr.stufe, pr.provinzen);
     politikGeaendert(world, id, vorErlass, pr.stufe);
-    vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
     const l = world.log[world.log.length - 1]!;
-    nachEinbringen?.(world, id, `Per Erlass angeordnet: ${l.text}`);
+    l.beschluss = pr.erlass.art;
+    if (pr.erlass.art === "beschluss") {
+      // Art. 73 Abs. 4: in den Grenzen des Gesetzes, ohne Normenkontrolle; kostet wenig Vertrauen
+      vertrauenAendern(world, BESCHLUSS.vertrauen);
+      const text = t("n4.beschluss.text", { name: pr.name, von: stufenName(id, vorErlass), nach: stufenName(id, pr.stufe) });
+      const why = t("n4.beschluss.warum", { pk: pr.erlass.pk });
+      l.text = text;
+      l.why = why;
+      nachEinbringen?.(world, id, text);
+      return { ok: true, text, why };
+    }
+    vertrauenAendern(world, -(1 + Math.abs(pr.aenderung) / 40));
+    nachEinbringen?.(world, id, t("n4.erlass.angeordnet", { text: l.text }));
     // Eine Fassung des Katalogs: Verbände, Straße und Verfassungsgericht folgen (sim/gesetzgebung.ts)
     if (pr.fassung && fassungsFolgen) return fassungsFolgen.erlassen(world, pr, vorErlass);
-    return { ok: true, text: `Erlass: ${l.text}`, why: `${l.why} Ein Erlass umgeht das Parlament und kostet ${pr.erlass.pk} Kapital sowie etwas Vertrauen.` };
+    return { ok: true, text: t("n4.erlass.text", { text: l.text }), why: t("n4.erlass.warum", { why: l.why ?? "", pk: pr.erlass.pk }) };
   }
 
-  if (!pr.gesetz.bezahlbar) return { ok: false, text: `Für dieses Gesetz fehlt Politisches Kapital (nötig ${pr.gesetz.pk}, vorhanden ${Math.floor(spiel.kapital)}).`, why: "Kapital wächst mit Vertrauen und Mehrheit; nicht alles auf einmal." };
-  if (spiel.gesetze.some((g) => g.massnahme === id)) return { ok: false, text: `Zu „${pr.name}“ liegt schon ein Gesetzentwurf im Parlament.` };
+  if (!pr.gesetz.bezahlbar) return { ok: false, text: t("n4.grund.kapitalGesetz", { n: pr.gesetz.pk, da: Math.floor(spiel.kapital) }), why: t("n4.grund.kapitalWarum") };
+  if (spiel.gesetze.some((g) => g.massnahme === id)) return { ok: false, text: t("n4.grund.schonImParlament", { name: pr.name }) };
   spiel.kapital -= pr.gesetz.pk;
   verbrauche(world, AUFMERKSAMKEIT_KOSTEN.gesetz, pr.name);
+  const kommission = pr.rechtsweg === "kommission";
   // Ist der Präsident angespannt, verzögert sich die Einbringung mitunter um ein paar Tage
   const verzug = stufeVon(verfassungVon(world).belastung) >= 1 && hashWert(`${world.seed}|${world.day}|${id}|verzug`) < VERFASSUNG.verzugChance ? VERFASSUNG.verzugTage : 0;
-  const tag = world.day + REGELN.tageBisAbstimmung + verzug;
+  const tag = world.day + (kommission ? KOMMISSION.tage : REGELN.tageBisAbstimmung) + verzug;
   const alteStufe = stufeIn(world, id, ortsListe(pr.provinzen));
   const fas = pr.fassung;
   const name = fas ? `${fas.titel} · ${t(`gesetz.fassung.${fas.fassung}`)}` : pr.name;
@@ -596,6 +677,7 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
     pk: pr.gesetz.pk,
     absprachen: 0,
     richtung: Math.sign(pr.aenderung),
+    ...(kommission ? { weg: "kommission" as const } : { ausschussBis: world.day + REGELN.ausschussTage + verzug, ausschuss: "offen" as const }),
     ...(fas ? { vorhaben: fas.vorhaben, fassung: fas.fassung, stimmenBonus: fas.bonus } : {}),
   };
   spiel.gesetze.push(gesetz);
@@ -614,13 +696,26 @@ export function bringeEin(world: World, id: string, stufe: number, provinzen: nu
       votum: formatDateDe(addDays(world.date, tag - world.day)),
     }));
   }
-  const tageBis = tag - world.day;
-  const monate = pr.monate;
-  const text = `Gesetzentwurf „${name}“ ${provinzenText(pr.provinzen)} auf Stufe ${pr.stufe} eingebracht. Die Abstimmung ist in ${tageBis} Tagen; nach der Annahme läuft die Umsetzung über etwa ${monate} ${monate === 1 ? "Monat" : "Monate"}.`;
-  const why = `${pr.gesetz.pk} Kapital gezahlt. Erwartet werden ${pr.gesetz.stimmen.erwartet} Ja-Stimmen (Spanne ${pr.gesetz.stimmen.low} bis ${pr.gesetz.stimmen.high}), nötig sind ${REGELN.mehrheit}.${verzug > 0 ? " Die Einbringung verzögert sich um zwei Tage: Dem Präsidenten fehlt unter Anspannung die Konzentration." : ""}`;
+  const datum = formatDateDe(addDays(world.date, tag - world.day));
+  const ziel = stufenName(id, pr.stufe);
+  const text = kommission
+    ? t("n4.kommission.einberufen", { name: pr.name, ziel, datum })
+    : t("n4.gesetz.eingebracht", { name, ort: provinzenText(pr.provinzen), ziel, datum, ausschuss: REGELN.ausschussTage, monate: pr.monate });
+  const why = (kommission
+    ? t("n4.kommission.warum", { pk: pr.gesetz.pk })
+    : t("n4.gesetz.eingebrachtWarum", { pk: pr.gesetz.pk, ja: pr.gesetz.stimmen.erwartet, tief: pr.gesetz.stimmen.low, hoch: pr.gesetz.stimmen.high, noetig: GESETZ_SCHWELLE }))
+    + (verzug > 0 ? ` ${t("n4.gesetz.verzug")}` : "");
   addLog(world, "entscheidung", text, why);
   nachEinbringen?.(world, id, text);
   return { ok: true, text, why };
+}
+
+/** In welchem Schritt ein Gesetz steht: Ausschuss, Plenum, Kommission, bei Rücksendung die neue Beratung. */
+export type GesetzPhase = "ausschuss" | "plenum" | "kommission" | "rueckgabe";
+export function gesetzPhase(world: World, g: Gesetz): GesetzPhase {
+  if (g.weg === "kommission") return "kommission";
+  if (g.rueckgabe) return "rueckgabe";
+  return g.ausschussBis !== undefined && world.day < g.ausschussBis ? "ausschuss" : "plenum";
 }
 
 /** Wie es um ein laufendes Gesetz steht und was Absprachen bis zur Mehrheit kosten würden. */
@@ -629,6 +724,8 @@ export interface GesetzSicht {
   ja: number;
   /** Fehlende Stimmen bis zur Mehrheit (0 = Mehrheit steht) */
   luecke: number;
+  /** Nötige Unterstützer: Mehrheit der Anwesenden (GESETZ_SCHWELLE), nach einer Rücksendung die Mitgliedermehrheit (Art. 89) */
+  schwelle: number;
   /** Stimmen, die bis zu einer sicheren Mehrheit (mit Puffer) zu kaufen wären */
   noetig: number;
   kosten: number;
@@ -649,18 +746,24 @@ export function gesetzRichtung(world: World, g: Gesetz): number {
 
 export function gesetzSicht(world: World, g: Gesetz): GesetzSicht {
   const sicht = stimmenSicht(world, { massnahme: g.massnahme, richtung: gesetzRichtung(world, g) });
-  return mehrheitsSicht(world, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0), sicht.sachParteien);
+  return mehrheitsSicht(world, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0), sicht.sachParteien, schwelleFuer(g));
 }
 
-function mehrheitsSicht(world: World, erwartet: number, sachParteien: string[]): GesetzSicht {
+/** Nach einer Rücksendung braucht die unveränderte Wiederannahme die absolute Mehrheit der Mitglieder (Art. 89), sonst Art. 96.
+ *  Die Mitgliedermehrheit zählt anwesende Ja-Stimmen; umgerechnet auf Unterstützer liegt sie über 301. */
+export function schwelleFuer(g?: Pick<Gesetz, "rueckgabe">): number {
+  return g?.rueckgabe ? Math.ceil(REGELN.mehrheit / PLENUM.anwesendJa) : GESETZ_SCHWELLE;
+}
+
+function mehrheitsSicht(world: World, erwartet: number, sachParteien: string[], schwelle = GESETZ_SCHWELLE): GesetzSicht {
   const ja = Math.min(600, Math.max(0, erwartet));
-  const luecke = Math.max(0, REGELN.mehrheit - ja);
-  const noetig = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? 0 : REGELN.mehrheit + STIMMEN_PUFFER - ja;
+  const luecke = Math.max(0, schwelle - ja);
+  const noetig = ja >= schwelle + STIMMEN_PUFFER ? 0 : schwelle + STIMMEN_PUFFER - ja;
   const kosten = Math.ceil(noetig * REGELN.kaufKostenProStimme);
   const kapital = world.spiel?.kapital ?? 0;
   const bezahlbar = kannZahlen(kapital, kosten);
-  const urteil = ja >= REGELN.mehrheit + STIMMEN_PUFFER ? "sicher" : luecke > 0 && !bezahlbar ? "verloren" : "knapp";
-  return { ja, luecke, noetig, kosten, bezahlbar, aussichtslos: luecke > 0 && !bezahlbar, urteil, sachParteien };
+  const urteil = ja >= schwelle + STIMMEN_PUFFER ? "sicher" : luecke > 0 && !bezahlbar ? "verloren" : "knapp";
+  return { ja, luecke, schwelle, noetig, kosten, bezahlbar, aussichtslos: luecke > 0 && !bezahlbar, urteil, sachParteien };
 }
 
 /** Nur bekannte Fristen fortschreiben, keine künftigen Entscheidungen oder Monatsfolgen simulieren. */
@@ -671,15 +774,17 @@ export function gesetzWeltAmVotum(world: World, g: Pick<Gesetz,"abstimmung">): W
 
 /** Gemeinsame Vorschau laufender Gesetze; tatsächliche Abstimmungen rechnen weiterhin am jeweiligen Spieltag. */
 export function gesetzPrognose(world: World, g: Gesetz) {
-  return stimmenPrognose(world,g.abstimmung,g.absprachen+(g.stimmenBonus??0),{massnahme:g.massnahme,richtung:gesetzRichtung(world,g)});
+  return stimmenPrognose(world,g.abstimmung,g.absprachen+(g.stimmenBonus??0),{massnahme:g.massnahme,richtung:gesetzRichtung(world,g)},schwelleFuer(g));
 }
 
 /** Auch Haushaltsgesetze verwenden dieselben Fristen, Grenzen und Preise; ohne inhaltliche Sachstimmen. */
-export function stimmenPrognose(world:World, abstimmung:number, zusatz=0, vorhaben?:{massnahme:string;richtung:number}) {
+/** Der Haushalt zählt (noch) gegen die Mitgliedermehrheit von 301 (sim/haushalt.ts, Bereich N3); gewöhnliche Gesetze geben
+ *  GESETZ_SCHWELLE mit (gesetzPrognose). */
+export function stimmenPrognose(world:World, abstimmung:number, zusatz=0, vorhaben?:{massnahme:string;richtung:number}, schwelle:number=REGELN.mehrheit) {
   const stand = gesetzWeltAmVotum(world, {abstimmung});
   const heute = stimmenSicht(world,vorhaben);
   const basis = stimmenSicht(stand,vorhaben);
-  const votum = mehrheitsSicht(world,basis.erwartet+zusatz,basis.sachParteien);
+  const votum = mehrheitsSicht(world,basis.erwartet+zusatz,basis.sachParteien,schwelle);
   const heuteJa = Math.min(600,Math.max(0,heute.erwartet+zusatz));
   const auslaufend = duldung(world).parteien.flatMap(partei => {
     const bis = world.spiel?.fraktionen?.[partei]?.duldungBis;
@@ -694,37 +799,52 @@ export function stimmenPrognose(world:World, abstimmung:number, zusatz=0, vorhab
 export function zieheGesetzZurueck(world: World, gesetzId: string): Ergebnis {
   const spiel = world.spiel;
   const g = spiel?.gesetze.find((x) => x.id === gesetzId);
-  if (!spiel || !g) return { ok: false, text: "Dieses Gesetz liegt nicht mehr zur Abstimmung vor." };
+  if (!spiel || !g) return { ok: false, text: t("n4.grund.nichtMehrDa") };
   const zurueck = Math.floor(g.pk * REGELN.rueckzugAnteil);
   spiel.gesetze = spiel.gesetze.filter((x) => x.id !== gesetzId);
   spiel.kapital = Math.min(REGELN.kapitalMax, spiel.kapital + zurueck);
-  const text = `„${g.name}“ wird zurückgezogen.`;
-  const why = `${zurueck} von ${g.pk} Kapital kommen zurück. Ein Rückzug vor der Abstimmung ist billiger als eine verlorene Abstimmung.`;
+  const text = t("n4.rueckzug.text", { name: g.name });
+  const why = t("n4.rueckzug.warum", { zurueck, pk: g.pk });
   addLog(world, "entscheidung", text, why);
   return { ok: true, text, why };
 }
 
-/** Stimmen für ein laufendes Gesetz kaufen (Absprachen mit Fraktionen). */
+/** Stimmen für ein laufendes Gesetz gewinnen: nicht mehr anonym, sondern über benannte Abgeordnete mit Preis und Risiko
+ *  (befund-B B-10, sim/fraktionen-absprachen.ts). Wer eine Zahl verlangt (Chat, Ressortvorlagen), bekommt die günstigsten
+ *  Angebote, bis die Zahl erreicht ist. */
 export function stimmenKaufen(world: World, gesetzId: string, anzahl: number): Ergebnis {
   const spiel = world.spiel;
   const g = spiel?.gesetze.find((x) => x.id === gesetzId);
-  if (!spiel || !g) return { ok: false, text: "Dieses Gesetz liegt nicht mehr zur Abstimmung vor." };
-  const n = Math.max(1, Math.round(anzahl));
-  const kosten = Math.ceil(n * REGELN.kaufKostenProStimme);
-  if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: `Für ${n} Stimmen fehlt Politisches Kapital (nötig ${kosten}, vorhanden ${Math.floor(spiel.kapital)}).` };
-  spiel.kapital -= kosten;
-  verbrauche(world, AUFMERKSAMKEIT_KOSTEN.stimmenkauf, `Absprachen zu „${g.name}“`);
-  g.absprachen += n;
-  const text = `${n} Stimmen für „${g.name}“ gesichert.`;
-  const why = `Kostet ${kosten} Kapital, sofort bezahlt; danach schuldet niemand jemandem etwas. Dauerhafte Unterstützung gibt es nur über Verhandlungen mit einer Fraktion.`;
-  addLog(world, "entscheidung", text, why);
-  return { ok: true, text, why };
+  if (!spiel || !g) return { ok: false, text: t("n4.grund.nichtMehrDa") };
+  if (!absprachenHaken) return { ok: false, text: t("n4.grund.nichtMoeglich") };
+  return absprachenHaken.kaufe(world, g, Math.max(1, Math.round(anzahl)));
+}
+
+/** Was es kostet, `anzahl` Stimmen über die günstigsten Absprachen zu gewinnen (Anzeige; dieselbe Rechnung wie stimmenKaufen). */
+export function stimmenPreis(world: World, g: Gesetz, anzahl: number): { kapital: number; stimmen: number } {
+  return absprachenHaken?.preis(world, g, anzahl) ?? { kapital: Math.ceil(anzahl * REGELN.kaufKostenProStimme), stimmen: anzahl };
+}
+
+interface AbsprachenHaken {
+  kaufe: (world: World, g: Gesetz, anzahl: number) => Ergebnis;
+  preis: (world: World, g: Gesetz, anzahl: number) => { kapital: number; stimmen: number };
+}
+let absprachenHaken: AbsprachenHaken | undefined;
+export function setzeAbsprachenHaken(h: AbsprachenHaken): void {
+  absprachenHaken = h;
 }
 
 /** Wird nach jeder Abstimmung aufgerufen (Folgen der Gesetzesvorhaben, sim/gesetzgebung.ts). */
 let nachAbstimmung: ((world: World, g: Gesetz, angenommen: boolean) => void) | null = null;
 export function setzeAbstimmungsHaken(fn: (world: World, g: Gesetz, angenommen: boolean) => void): void {
   nachAbstimmung = fn;
+}
+
+/** Angenommene Gesetze, die der Ausschuss verändert hat, legt das Plenum dem Präsidenten vor (Art. 89, sim/gesetzgebung.ts).
+ *  Gibt der Haken `true` zurück, wartet das Gesetz auf Unterschrift oder Rücksendung statt sofort zu gelten. */
+let zurUnterschrift: ((world: World, g: Gesetz, e: PlenumErgebnis) => boolean) | null = null;
+export function setzeUnterschriftHaken(fn: (world: World, g: Gesetz, e: PlenumErgebnis) => boolean): void {
+  zurUnterschrift = fn;
 }
 
 export interface Abstimmung {
@@ -734,7 +854,27 @@ export interface Abstimmung {
   nein: number;
 }
 
-/** Am Abstimmungstag wird entschieden: Ja-Stimmen aus Lager, Übertritten, Absprachen und Zufall. */
+/** Ein angenommenes Gesetz verkünden: Es gilt ab heute, die Umsetzung beginnt. */
+export function verkuende(world: World, g: Gesetz, e: Pick<PlenumErgebnis, "ja" | "nein" | "abwesend">, unterschrieben = false): void {
+  const vorGesetz = stufeIn(world, g.massnahme, ortsListe(g.provinzen));
+  wendeAn(world, g.massnahme, g.stufe, g.provinzen);
+  politikGeaendert(world, g.massnahme, vorGesetz, g.stufe);
+  const node = NET.nodes[knotenIndex(g.massnahme)]!;
+  const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
+  const ort = provinzenText(g.provinzen);
+  const zielName = stufenName(g.massnahme, g.stufe);
+  const why = t("protokoll.gesetz.ja_warum", { text: node.text, monate });
+  if (unterschrieben) {
+    addLog(world, "entscheidung", t("n4.unterschrift.text", { name: g.name, ziel: zielName }), why).beschluss = "gesetz";
+    return;
+  }
+  const l = addLog(world, "entscheidung", t("protokoll.gesetz.ja", { name: g.name, ort, ja: e.ja, nein: e.nein, stufe: zielName }), why);
+  l.abstimmung = { art: "gesetz", name: g.name, ort, ja: e.ja, nein: e.nein, abwesend: e.abwesend, angenommen: true, stufe: g.stufe };
+  l.beschluss = "gesetz";
+}
+
+/** Am Abstimmungstag wird entschieden: Unterstützer aus Lager, Übertritten, Absprachen und Zufall; gezählt nach Art. 96 unter den
+ *  Anwesenden. Bei der Mindestlohnkommission entscheidet die Kommission, nicht das Parlament. */
 export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
   const spiel = world.spiel;
   if (!spiel) return [];
@@ -743,27 +883,45 @@ export function gesetzeAbstimmen(world: World, rng: Rng): Abstimmung[] {
   if (faellig.length === 0) return out;
   spiel.gesetze = spiel.gesetze.filter((g) => g.abstimmung > world.day);
   for (const g of faellig) {
+    if (g.weg === "kommission") {
+      kommissionEntscheidet(world, g);
+      out.push({ gesetz: g.name, angenommen: true, ja: 10, nein: 5 });
+      nachAbstimmung?.(world, g, true);
+      continue;
+    }
     const sicht = stimmenSicht(world, { massnahme: g.massnahme, richtung: gesetzRichtung(world, g) });
-    const ja = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0) + Math.round(rng.normal(6))));
-    const nein = 600 - ja;
-    const angenommen = ja >= REGELN.mehrheit;
+    const unterstuetzer = Math.min(600, Math.max(0, sicht.erwartet + g.absprachen + (g.stimmenBonus ?? 0) + Math.round(rng.normal(6))));
+    const e = plenumAbstimmung(world, g.id, unterstuetzer);
+    // Nach einer Rücksendung gilt das Gesetz nur, wenn es die absolute Mehrheit der Mitglieder erneut annimmt (Art. 89)
+    const angenommen = g.rueckgabe ? e.ja >= REGELN.mehrheit : e.angenommen;
+    const { ja, nein } = e;
     out.push({ gesetz: g.name, angenommen, ja, nein });
     if (angenommen) {
-      const vorGesetz = stufeIn(world, g.massnahme, ortsListe(g.provinzen));
-      wendeAn(world, g.massnahme, g.stufe, g.provinzen);
-      politikGeaendert(world, g.massnahme, vorGesetz, g.stufe);
-      const node = NET.nodes[knotenIndex(g.massnahme)]!;
-      const monate = Math.max(1, Math.ceil((node.months ?? 1) * ueberlast(world)));
-      const ort = provinzenText(g.provinzen);
-      addLog(world, "entscheidung", t("protokoll.gesetz.ja", { name: g.name, ort, ja, nein, stufe: g.stufe }), t("protokoll.gesetz.ja_warum", { text: node.text, monate })).abstimmung = { art: "gesetz", name: g.name, ort, ja, nein, angenommen: true, stufe: g.stufe };
+      if (g.rueckgabe) {
+        verkuende(world, g, e);
+        addLog(world, "ereignis", t("n4.rueckgabe.ueberstimmt", { name: g.name, ja, noetig: REGELN.mehrheit }), t("n4.rueckgabe.ueberstimmtWarum"));
+        vertrauenAendern(world, -0.8);
+      } else if (!zurUnterschrift?.(world, g, e)) verkuende(world, g, e);
+    } else if (g.rueckgabe) {
+      addLog(world, "entscheidung", t("n4.rueckgabe.gescheitert", { name: g.name, ja, noetig: REGELN.mehrheit }), t("n4.rueckgabe.gescheitertWarum")).abstimmung = { art: "gesetz", name: g.name, ort: "", ja, nein, abwesend: e.abwesend, angenommen: false };
     } else {
       vertrauenAendern(world, -1.2);
       spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
-      addLog(world, "entscheidung", t("protokoll.gesetz.nein", { name: g.name, ja, nein }), t("protokoll.gesetz.nein_warum", { pk: g.pk, fehlen: REGELN.mehrheit - ja, gerettet: Math.floor(g.pk * REGELN.rueckzugAnteil) })).abstimmung = { art: "gesetz", name: g.name, ort: "", ja, nein, angenommen: false };
+      addLog(world, "entscheidung", t("protokoll.gesetz.nein", { name: g.name, ja, nein }), t("n4.gesetz.neinWarum", { pk: g.pk, gerettet: Math.floor(g.pk * REGELN.rueckzugAnteil), anwesend: ja + nein })).abstimmung = { art: "gesetz", name: g.name, ort: "", ja, nein, abwesend: e.abwesend, angenommen: false };
     }
     nachAbstimmung?.(world, g, angenommen);
   }
   return out;
+}
+
+/** Die Mindestlohnkommission (Asgari Ücret Yönetmeliği Art. 8): Die fünf Vertreter des Staates stimmen nach der Vorgabe; bei einer
+ *  Erhöhung schließen sich die Arbeitnehmer an, bei einer Senkung die Arbeitgeber. Zehn von fünfzehn Stimmen entscheiden. */
+function kommissionEntscheidet(world: World, g: Gesetz): void {
+  const von = stufeIn(world, g.massnahme, ortsListe(g.provinzen));
+  wendeAn(world, g.massnahme, g.stufe, g.provinzen);
+  politikGeaendert(world, g.massnahme, von, g.stufe);
+  const erhoehung = g.stufe > von;
+  addLog(world, "entscheidung", t(erhoehung ? "n4.kommission.erhoeht" : "n4.kommission.gesenkt", { name: g.name, von: stufenName(g.massnahme, von), nach: stufenName(g.massnahme, g.stufe) }), t(erhoehung ? "n4.kommission.erhoehtWarum" : "n4.kommission.gesenktWarum")).beschluss = "kommission";
 }
 
 /** Wie stark sich eine Maßnahme vom Startwert entfernt hat, für Anzeigen. */

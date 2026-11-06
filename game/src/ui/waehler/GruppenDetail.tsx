@@ -189,7 +189,7 @@ export function GruppenDetail({ world, id, onMassnahme, onDossier }: Props) {
       <section className="wa-abschnitt">
         <h4>{t("ui.waehler.GruppenDetail.6f22828")}</h4>
         <p className="wa-unter">
-          {d.hilfen[0] ? t("wd.hilfenErklaerungIn", { m: d.hilfen[0].horizont }) : t("wd.hilfenErklaerung")}
+          {t("nacht_n2.hilfe.erklaerung_gruppe")}
         </p>
         {d.hilfen.length === 0 ? (
           <p className="wa-leer">{t("ui.waehler.GruppenDetail.3107378")}</p>

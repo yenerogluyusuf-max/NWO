@@ -45,6 +45,7 @@ import type { World } from "./types";
 import { behoerdenMonat, mitStufen } from "./behoerden";
 import { nationalAverage } from "./netz";
 import { t } from "../i18n";
+import { landFormen, landZahl } from "./ereignisse-krieg";
 
 // ---------------------------------------------------------------------------
 // Die Arten von Operationen
@@ -451,7 +452,7 @@ function eingehendeMonat(w: World, m: WeltModell, dz: DienstZustand, rng: Rng): 
     if (x.aufgedeckt || w.day >= x.ende) continue;
     if (rng.next() < (dz.abwehr > 0 ? DIENST.fundChanceAbwehr : DIENST.fundChance) * stufenWert(MIT_STUFEN.fund, mitStufen(w).technik)) {
       x.aufgedeckt = true;
-      berichte(w, dz, `${EINGEHEND_NAME[x.art]} aufgedeckt`, `Der Dienst entdeckt: ${akteurName(x.von)} betreibt eine ${EINGEHEND_NAME[x.art].toLowerCase()} gegen die Türkei.`, "info");
+      berichte(w, dz, t("ev.welt_einfluss.titel", { land: landFormen(x.von), art: t(`ev.welt_einfluss.art.${x.art}`) }), t(`ev.welt_einfluss.text1.${x.art}`, { land: landFormen(x.von), nz: landZahl(x.von) }), "info");
       m.ereignisKandidaten = [...(m.ereignisKandidaten ?? []), { art: "einfluss", id: x.von, einfluss: x.art, opId: x.id }];
     }
   }
@@ -470,39 +471,43 @@ function eingehendeMonat(w: World, m: WeltModell, dz: DienstZustand, rng: Rng): 
 /** Die Antworten des Spielers auf eine aufgedeckte fremde Operation (Ereignis „welt_einfluss“). */
 export type EinflussAntwort = "gegenspionage" | "oeffentlich" | "mediengesetz" | "nichts";
 
+/** Was die Gegenspionage dem Dienst an Kapazität abzieht (die Beschreibung im Ereignis rechnet mit derselben Zahl). */
+export const GEGENSPIONAGE_KAPAZITAET = 15;
+
 export function beantworteEinfluss(w: World, opId: number, von: string, art: EingehendeOp["art"], antwort: EinflussAntwort): string {
   const dz = dienst(w);
   const m = weltModell(w);
   const x = dz.eingehend.find((y) => y.id === opId);
   if (x) dz.eingehend = dz.eingehend.filter((y) => y.id !== opId);
-  const name = akteurName(von);
+  // Texte aus dem Katalog (nacht_n5.json): Land mit Fällen und Zahl des Verbs, die Art der Operation je Schlüssel
+  const p = { land: landFormen(von), nz: landZahl(von) };
   let text = "";
   switch (antwort) {
     case "gegenspionage":
-      dz.kapazitaet = Math.max(0, dz.kapazitaet - 15);
+      dz.kapazitaet = Math.max(0, dz.kapazitaet - GEGENSPIONAGE_KAPAZITAET);
       dz.abwehr = Math.max(dz.abwehr, 6);
       wirkeEingehend(w, art, 0.3);
-      text = `Der Dienst verstärkt die Gegenspionage und fängt den Großteil der ${EINGEHEND_NAME[art].toLowerCase()} ${akteurDat(von)} ab; der Rest verpufft.`;
+      text = t(`ev.welt_einfluss.opt.gegenspionage.ausgang.${art}`, p);
       break;
     case "oeffentlich":
       beziehungAendern(w, von, { vertrauen: -5, konflikt: 3 });
       wirke(w, "ansehen", 0.3);
       wirke(w, "vertrauen_regierung", 0.4);
       wirkeEingehend(w, art, 0.3);
-      weltNotiz(w, m, { art: "aufdeckung", id: von, titel: `Die Türkei beschuldigt ${akteurAkk(von)} der Einmischung`, fakt: `Ankara macht eine ${EINGEHEND_NAME[art].toLowerCase()} ${akteurDat(von)} öffentlich und bestellt den Botschafter ein.`, wertung: 0.05, gewicht: 0.8 });
-      text = `Ankara macht die ${EINGEHEND_NAME[art].toLowerCase()} öffentlich und bestellt den Botschafter von ${name} ein: Die Regierung gewinnt Rückhalt, das Verhältnis kühlt ab.`;
+      weltNotiz(w, m, { art: "aufdeckung", id: von, titel: t("ev.welt_einfluss.notiz.titel", p), fakt: t("ev.welt_einfluss.notiz.fakt", { ...p, art: t(`ev.welt_einfluss.art.${art}`) }), wertung: 0.05, gewicht: 0.8 });
+      text = t(`ev.welt_einfluss.opt.oeffentlich.ausgang.${art}`, p);
       break;
     case "mediengesetz":
       if (NET.index.has("pressefreiheit")) wirke(w, "pressefreiheit", -3);
       beziehungAendern(w, "EU", { vertrauen: -2 });
-      text = `Ein verschärftes Mediengesetz macht ausländische Kampagnen schwerer; Kritiker und Brüssel sehen darin einen Schritt gegen die Pressefreiheit.`;
+      text = t("ev.welt_einfluss.opt.mediengesetz.ausgang");
       break;
     case "nichts":
       wirkeEingehend(w, art, 1);
-      text = `Ankara reagiert nicht: Die ${EINGEHEND_NAME[art].toLowerCase()} läuft weiter und kostet Rückhalt.`;
+      text = t(`ev.welt_einfluss.standard.${art}`, p);
       break;
   }
-  berichte(w, dz, `${EINGEHEND_NAME[art]} ${akteurDat(von)}: Antwort`, text, "info");
+  berichte(w, dz, t("ev.welt_einfluss.bericht.antwort", { ...p, art: t(`ev.welt_einfluss.art.${art}`) }), text, "info");
   return text;
 }
 

@@ -30,6 +30,7 @@ import { kannZahlen } from "./kapital";
 import { wirke } from "./wirkung";
 import { addLog } from "./log";
 import { t } from "../i18n";
+import { stufenName } from "../data/skalen";
 import type { World } from "./types";
 
 export type KnotenZustand = "fertig" | "laeuft" | "moeglich" | "gesperrt";
@@ -135,6 +136,13 @@ export const groesseName = (id: string): string => t(`wissen.g.${id}`);
 export const knotenName = (id: string): string => t(`wissen.n.${id}.name`);
 
 /** Eine gerundete Gleichheit darf eine noch nicht erreichte Grenze nicht als erfüllt erscheinen lassen. */
+/** Stand einer Maßnahme in ihrer echten Einheit (N9, Befund B-1); „knapp unter …“ bleibt, nur mit der Einheit */
+function massnahmeStand(v: Extract<Voraussetzung, { art: "massnahme" }>, j: number | string): string {
+  if (typeof j === "number") return stufenName(v.id, j);
+  const grenze = "min" in v && v.min !== undefined ? v.min : "max" in v && v.max !== undefined ? v.max : 0;
+  return t(j === t("balance.knappUnter", { wert: grenze }) ? "balance.knappUnter" : "balance.knappUeber", { wert: stufenName(v.id, grenze) });
+}
+
 function vorausAnzeige(v: Voraussetzung, jetzt: number | undefined): number | string {
   if (jetzt === undefined) return 0;
   const rund = Math.round(jetzt);
@@ -152,8 +160,8 @@ function grundZeile(v: Voraussetzung, jetzt: number | undefined): { text: string
       if (BILDUNG.has(v.id)) return { text: t("wissen.grund.bildung", { was: groesseName(v.id), jetzt: j, ziel: v.min ?? 0 }), art: "bildung" };
       return { text: t("wissen.grund.knoten", { was: groesseName(v.id), jetzt: j, ziel: v.min ?? v.max ?? 0 }), art: "knoten" };
     case "massnahme":
-      if (v.id === "m_forschung") return { text: t("wissen.grund.foerderung", { jetzt: j, ziel: v.min ?? 0 }), art: "foerderung" };
-      return { text: t("wissen.grund.massnahme", { was: groesseName(v.id), jetzt: j, ziel: v.min ?? v.max ?? 0 }), art: "knoten" };
+      if (v.id === "m_forschung") return { text: t("n9.wissen.foerderung", { jetzt: massnahmeStand(v, j), ziel: stufenName(v.id, v.min ?? 0) }), art: "foerderung" };
+      return { text: t("n9.wissen.grund", { was: groesseName(v.id), jetzt: massnahmeStand(v, j), ziel: stufenName(v.id, v.min ?? v.max ?? 0) }), art: "knoten" };
     case "land":
       return { text: t("wissen.grund.partner", { land: t(`wissen.partner.${v.land}`), jetzt: j, ziel: v.min ?? 0 }), art: "partner" };
     case "jahr":
@@ -172,7 +180,7 @@ function vorausZeile(v: Voraussetzung, jetzt: number | undefined): string {
     case "knoten":
       return t("wissen.v.knoten", { was: groesseName(v.id), jetzt: j, ziel: v.min ?? v.max ?? 0 });
     case "massnahme":
-      return t("wissen.v.massnahme", { was: groesseName(v.id), jetzt: j, ziel: v.min ?? v.max ?? 0 });
+      return t("n9.wissen.v", { was: groesseName(v.id), jetzt: massnahmeStand(v, j), ziel: stufenName(v.id, v.min ?? v.max ?? 0) });
     case "land":
       return t("wissen.v.partner", { land: t(`wissen.partner.${v.land}`), jetzt: j, ziel: v.min ?? 0 });
     default:

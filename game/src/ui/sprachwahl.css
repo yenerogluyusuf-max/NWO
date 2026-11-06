@@ -2,11 +2,11 @@
 .sprachwahl { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(24, 16, 10, 0.72); border: 1px solid rgba(214, 168, 72, 0.45); }
 .sprachwahl button {
   min-width: 78px; padding: 6px 14px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
-  font: 600 14px/1.2 var(--sans, Inter, sans-serif); color: #cdb88c; letter-spacing: 0.02em;
+  font: 600 var(--schrift-2)/1.2 var(--serif); color: var(--leder-beschriftung); letter-spacing: 0.02em;
 }
-.sprachwahl button:hover { color: #f3e6c6; }
-.sprachwahl button.on { background: linear-gradient(#e2bd6a, #b98a34); color: #2b1e12; }
-.sprachwahl button:focus-visible { outline: 2px solid #f3e6c6; outline-offset: 1px; }
+.sprachwahl button:hover { color: var(--papier-3); }
+.sprachwahl button.on { background: linear-gradient(var(--messing-mittel), var(--messing-2)); color: var(--messing-text); }
+.sprachwahl button:focus-visible { outline: 2px solid var(--papier-3); outline-offset: 1px; }
 .title-sprache { position: fixed; top: 18px; right: 22px; z-index: 5; }
 .hud-sprache {
   display: inline-flex;
@@ -24,17 +24,17 @@
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
-  font: 700 11.5px/1 var(--sans, Inter, sans-serif);
-  color: #cdb88c;
+  font: 700 var(--schrift-2)/1 var(--serif);
+  color: var(--leder-beschriftung);
   letter-spacing: 0.04em;
   transition: all 0.15s ease;
 }
 .hud-sprache button:hover {
-  color: #f3e6c6;
+  color: var(--papier-3);
   background: rgba(255, 255, 255, 0.06);
 }
 .hud-sprache button.on {
-  background: linear-gradient(#e2bd6a, #b98a34);
-  color: #2b1e12;
+  background: linear-gradient(var(--messing-mittel), var(--messing-2));
+  color: var(--messing-text);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }

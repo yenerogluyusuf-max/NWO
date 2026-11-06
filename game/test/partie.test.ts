@@ -98,7 +98,11 @@ describe("Partie: Aylin Demir übernimmt die Türkei", () => {
     expect(w.day).toBe(60);
     expect(beschluesse.length).toBeGreaterThanOrEqual(3);
     expect(mindestlohn).toBeGreaterThan(60);
-    // Das Gesetz musste durch das Parlament: eingebracht am Anfang, angenommen nach 21 Tagen
-    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(true);
+    // Die Erhöhung musste ihren Rechtsweg gehen: Seit N4 (data/rechtswege.ts, Arbeitsgesetz Art. 39) beschließt den Mindestlohn
+    // die Mindestlohnkommission, nicht das Parlament. Vorher prüfte diese Zeile „Das Parlament nimmt „Mindestlohn…“ an“; jetzt
+    // muss der Beschluss der Kommission im Protokoll stehen und als Beschluss gezählt sein.
+    const kommission = w.log.find((l) => /^Die Mindestlohnkommission beschließt/.test(l.text));
+    expect(kommission?.beschluss).toBe("kommission");
+    expect(w.log.some((l) => /^Das Parlament nimmt „Mindestlohn/.test(l.text))).toBe(false);
   });
 });

@@ -21,6 +21,30 @@ export const PROV = PROVINCE_FC.features.map((f) => ({ plaka: f.properties.plaka
 const [RX0, RY0] = px(17.5, 48), [RX1, RY1] = px(52.5, 29);
 const LAENDER = (nachbarn as unknown as { countries: { iso: string; name: string; rings: number[][][] }[] }).countries.map((c) => ({ iso: c.iso, name: c.name, d: pfad(c.rings) }));
 
+/** Frontlinie als Zackenlinie quer zur Stoßrichtung, die Zacken zeigen zum Gegner (HOI-Bild; N7, Befund G-1). */
+function frontPfad(punkt: [number, number], richtung: [number, number]): string {
+  const [x, y] = px(punkt[0], punkt[1]);
+  const [x2, y2] = px(punkt[0] + richtung[0] * 0.1, punkt[1] + richtung[1] * 0.1);
+  const l = Math.hypot(x2 - x, y2 - y) || 1;
+  const ux = (x2 - x) / l, uy = (y2 - y) / l;
+  const qx = -uy, qy = ux;
+  const halb = 36, zacken = 8;
+  let d = "";
+  for (let i = 0; i <= zacken; i++) {
+    const q = -halb + (2 * halb * i) / zacken;
+    d += `${i ? "L" : "M"}${(x + qx * q).toFixed(1)},${(y + qy * q).toFixed(1)}`;
+    if (i < zacken) { const m = q + halb / zacken; d += `L${(x + qx * m + ux * 5).toFixed(1)},${(y + qy * m + uy * 5).toFixed(1)}`; }
+  }
+  return d;
+}
+
+/** Zeichen der Teilstreitkraft in der Marke (vereinfacht nach den taktischen Zeichen der NATO) */
+function Zeichen({ art }: { art: "heer" | "luft" | "see" }) {
+  if (art === "heer") return <path d="M-9,-5 L9,5 M-9,5 L9,-5" />;
+  if (art === "luft") return <path d="M-8,1 Q-4,-6 0,1 Q4,8 8,1" />;
+  return <path d="M-8,2 Q-4,-4 0,2 T8,2" />;
+}
+
 /** Vorstoß als leicht gebogene Linie (wie in der 3D-Karte, kriegsfx.ts) */
 function bogen(von: [number, number], nach: [number, number]): string {
   const [x1, y1] = px(von[0], von[1]), [x2, y2] = px(nach[0], nach[1]);
@@ -74,6 +98,23 @@ export function Karte2D({ fill, fillAlpha = 0.85, selected, onSelect, laenderFar
           <g className={`karte2d-krieg${krieg.aktiv ? " aktiv" : ""}`} aria-label={t("karte2d.krieg")}>
             {krieg.regionen.map((r) => { const [x, y] = px(r.lon, r.lat); return <circle key={r.id} cx={x} cy={y} r={11} className={r.lage}><title>{t(`karte2d.lage.${r.lage}`)}</title></circle>; })}
             {krieg.pfeile.map((f, i) => <path key={i} d={bogen(f.von, f.nach)} className={`pfeil ${f.seite}`} markerEnd={`url(#k2d-spitze-${f.seite})`} />)}
+            {(krieg.fronten ?? []).map((f) => (
+              <g key={`front-${f.land}`} className="front">
+                <path d={frontPfad(f.punkt, f.richtung)} className="front-halo" />
+                <path d={frontPfad(f.punkt, f.richtung)} className="front-linie"><title>{t("nacht_n7.karte.front", { front: f.front })}</title></path>
+              </g>
+            ))}
+            {(krieg.verbaende ?? []).map((v, i) => {
+              const [x, y] = px(v.lon, v.lat);
+              return (
+                <g key={`vb-${i}`} className={`verband ${v.seite}`} transform={`translate(${x.toFixed(1)},${y.toFixed(1)})`}>
+                  <title>{t(v.seite === "eigen" ? "nacht_n7.karte.verband" : "nacht_n7.karte.gegner", { teil: t(`militaer.ui.teil.${v.art}`), p: v.staerke })}</title>
+                  <rect x={-13} y={-9} width={26} height={18} rx={2} />
+                  <Zeichen art={v.seite === "eigen" ? v.art : "heer"} />
+                  <text y={21}>{t("nacht_n7.karte.prozent", { p: v.staerke })}</text>
+                </g>
+              );
+            })}
           </g>
         )}
       </svg>

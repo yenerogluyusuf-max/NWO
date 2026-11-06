@@ -3,7 +3,7 @@
 // die Karte dahinter schwenkt je Station. Jede Antwort zeigt ihre wichtigste Folge, die Vorschau darunter alle (prolog/folge.ts).
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { antwortenFuer, emptyProfile, STATIONS, type Answer, type Aussehen, type PlayerProfile, type Station } from "../sim/prolog";
+import { antwortenFuer, emptyProfile, STATIONS, versprechenText, type Answer, type Aussehen, type PlayerProfile, type Station } from "../sim/prolog";
 import { STARTSZENARIEN, type StartszenarioId } from "../data/startszenarien";
 import { profilFuerSzenario } from "../sim/start-szenario";
 import { biografieFolgen } from "../sim/biografie";
@@ -371,7 +371,7 @@ export function Prologue({ onDone, onFocus, anfang = -2 }: PrologueProps) {
     <>
       <h2>{profile.name}</h2>
       <p className="subtitle">{untertitel}</p>
-      <p className="story">{t("prolog.lebenslauf", { heimat: profile.heimat, beruf: chosen[2] ?? profile.beruf, versprechen: anzeige!.versprechen[0] ?? "" })}</p>
+      <p className="story">{t("prolog.lebenslauf", { heimat: profile.heimat, beruf: chosen[2] ?? profile.beruf, versprechen: anzeige!.versprechen[0] ? versprechenText(anzeige!.versprechen[0]) : "" })}</p>
       <h3 className="lauf-titel">{t("prolog.lebenslauf_titel")}</h3>
       <ol className="lauf">
         {STATIONS.map((s, i) => (

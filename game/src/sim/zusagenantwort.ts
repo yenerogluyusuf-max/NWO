@@ -5,6 +5,7 @@ import type { Option } from "./ereignis-hilfen";
 import { loeseEin, vertroesteFrei, brecheFrei, zusageVorhaben } from "./zusagen";
 import { aktiveParteivorsitzende, KOALITIONSBRUCH_LOYALITAET, naechsteKoalitionspruefung, regierungsSitze } from "./koalitionslage";
 import { zusagenDruck } from "./zusagendruck";
+import { istMinisterienZusage, naechsteRessorts } from "./ressortvergabe";
 import { startBereitschaft } from "./fraktionen";
 import { eigenVon } from "./personen";
 import { gesetzSicht } from "./handeln";
@@ -28,7 +29,9 @@ export function aktuelleErinnerungsZusage(w:World,ev:OffenesEreignis) {
 function ausfuehren(w:World,ev:OffenesEreignis,art:Art) {
   const z=aktuelleErinnerungsZusage(w,ev);
   if(!z)return {ok:false,text:t("ze.veraltet")};
-  return art==="erfuellen"?loeseEin(w,z):art==="vertroesten"?vertroesteFrei(w,z):brecheFrei(w,z);
+  // Zusage „zwei Ministerien“ (N1, Befund C-6): Die Vorschau dieser Antwort nennt beide Wechsel mit Namen („A → B“); eine eigene Wahl gibt es im Reiter Zusagen.
+  const wahl=istMinisterienZusage(z)?naechsteRessorts(w,z.von,2):undefined;
+  return art==="erfuellen"?loeseEin(w,z,wahl):art==="vertroesten"?vertroesteFrei(w,z):brecheFrei(w,z);
 }
 
 export function zusagenErinnerungsAntwort(w:World,ev:OffenesEreignis,id:string):Option|undefined {

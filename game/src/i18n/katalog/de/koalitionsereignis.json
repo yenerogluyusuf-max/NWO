@@ -3,7 +3,7 @@
   "ka.eigene": "Mit der eigenen Partei ist kein zusätzliches Bündnis möglich.",
   "ka.bereitsPartner": "Diese Partei gehört inzwischen bereits zur Koalition. Es entsteht kein zweiter Vertrag.",
   "ka.keineFraktion": "Die Partei verfügt nicht mehr über die für dieses Angebot nötigen 15 Sitze.",
-  "ka.preis": "Einmalig 4 Kapital. Das Bündnis gilt ohne Befristung; persönliche Konflikte bleiben bestehen.",
+  "ka.preis": "Ein einmaliger Preis. Das Bündnis gilt ohne Befristung; persönliche Konflikte bleiben bestehen.",
   "ka.annehmen": "Auf das Angebot eingehen",
   "ka.mehrheit": "Heute kommen {sitze} Regierungssitze hinzu: {danach} insgesamt. Damit besteht eine Sitzmehrheit; einzelne Abstimmungen brauchen weiterhin Unterstützung.",
   "ka.luecke": "Heute kommen {sitze} Regierungssitze hinzu: {danach} insgesamt. Zur Sitzmehrheit fehlen weiterhin {fehlen} Sitze.",

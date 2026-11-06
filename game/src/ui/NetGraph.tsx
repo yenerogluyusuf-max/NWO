@@ -34,7 +34,7 @@ function lines(name: string): string[] {
 }
 
 /** Kurzform für die Zeichnung („nach 3 Mon.“); die Langform steht im Tooltip der Linie. */
-const kurzWann = (lag: number) => `nach ${lag} Mon.`;
+const kurzWann = (lag: number) => t("n4.nv.nachMon", { n: lag });
 
 function NodeBox({ node, x, y, main, onClick }: { node: NodeSpec; x: number; y: number; main?: boolean; onClick?: () => void }) {
   const ls = lines(node.name);
@@ -82,7 +82,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
     const d = `M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
     return (
       <g key={key} className="ng-kante">
-        <title>{`${get(e.from).name} ${weight > 0 ? "erhöht" : "senkt"} ${get(e.to).name}, ${wann(lag)}. ${e.why}`}</title>
+        <title>{tx(weight > 0 ? "n4.nv.kanteHoch" : "n4.nv.kanteRunter", { von: get(e.from).name, nach: get(e.to).name, wann: wann(lag), warum: e.why })}</title>
         <path d={d} fill="none" stroke="transparent" strokeWidth="14" />
         <path d={d} fill="none" stroke={color} strokeWidth={width} strokeDasharray={lag > 0 ? "6 4" : undefined} markerEnd={`url(#ng-${weight > 0 ? "plus" : "minus"})`} />
         {lag > 0 && (
@@ -136,7 +136,7 @@ export function NetGraph({ nodeId, onSelect }: { nodeId: string; onSelect: (id: 
       </li>
       <li>
         <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#8e2a22" strokeWidth="2" /><path d="M26 1 L33 5 L26 9 Z" fill="#8e2a22" /></svg>
-        <span>senkt</span>
+        <span>{t("n4.nv.senkt")}</span>
       </li>
       <li>
         <svg width="34" height="10" aria-hidden><line x1="0" y1="5" x2="30" y2="5" stroke="#2a1f18" strokeWidth="2" /></svg>

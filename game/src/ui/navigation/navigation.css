@@ -1,13 +1,13 @@
 /* Ein ruhiger, gegliederter Arbeitsplatz statt zehn gleich aussehender Plaketten. */
 .stage{--rn-abstand:224px}
-.stage .dossier-menu.regierungs-navigation{top:112px;left:12px;width:200px;max-height:calc(100dvh - 132px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:block;padding:13px 9px;background:#382b24;border:1px solid #6b5344;border-radius:10px;box-shadow:0 10px 25px #261b1533;color:#f1eee6;z-index:100;box-sizing:border-box}
-.stage .regierungs-navigation .rn-marke{padding:4px 8px 15px;font:600 21px var(--serif);border-bottom:1px solid #ffffff24}.stage .regierungs-navigation .rn-marke small{display:block;font:11.5px/1.5 var(--sans);margin-top:5px;color:#cdb88f}.stage .regierungs-navigation h3{font:400 11.5px/1.4 var(--kapitaelchen);text-transform:uppercase;letter-spacing:.12em;margin:18px 8px 7px;color:#c9a868}
-.stage .dossier-menu.regierungs-navigation button{position:relative;width:100%;height:auto;min-height:46px;display:flex;align-items:center;gap:10px;justify-content:flex-start;padding:10px 8px;text-align:left;background:transparent;color:#f1eee6;border:1px solid transparent;border-radius:6px;box-shadow:none;transform:none;text-shadow:none;box-sizing:border-box;margin:2px 0}
-.stage .dossier-menu.regierungs-navigation button svg{flex-shrink:0}.stage .dossier-menu.regierungs-navigation .menu-kurz{font:500 14px/1.35 var(--sans);white-space:normal;letter-spacing:0;color:inherit;min-width:0;overflow-wrap:anywhere}.stage .dossier-menu.regierungs-navigation button:hover{background:#ffffff12}.stage .dossier-menu.regierungs-navigation button.on{background:#f1f0e4;color:#382b24;border-color:#e5dfc8}.stage .dossier-menu.regierungs-navigation button:focus-visible{outline:3px solid #dfbd72;outline-offset:-2px}
-.rn-zahlen{display:flex;gap:3px;margin-left:auto;flex-shrink:0}.rn-zahlen b{font:600 11.5px/1 var(--sans);padding:4px 5px;border-radius:6px;background:#d6b87b;color:#3b2d26}.rn-zahlen b.ruhig{background:#e2d3b0}.rn-schalter{display:none}
+.stage .dossier-menu.regierungs-navigation{top:112px;left:12px;width:200px;max-height:calc(100dvh - 132px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:block;padding:13px 9px;background:var(--leder-dunkel);border:1px solid var(--tinte-3);border-radius:10px;box-shadow:0 10px 25px #261b1533;color:var(--papier-1);z-index:100;box-sizing:border-box}
+.stage .regierungs-navigation .rn-marke{padding:4px 8px 15px;font:600 var(--schrift-5) var(--serif);border-bottom:1px solid #ffffff24}.stage .regierungs-navigation .rn-marke small{display:block;font:var(--schrift-1)/1.5 var(--serif);margin-top:5px;color:var(--leder-beschriftung)}.stage .regierungs-navigation h3{font:400 var(--schrift-1)/1.4 var(--kapitaelchen);letter-spacing:.12em;margin:18px 8px 7px;color:#c9a868}
+.stage .dossier-menu.regierungs-navigation button{position:relative;width:100%;height:auto;min-height:46px;display:flex;align-items:center;gap:10px;justify-content:flex-start;padding:10px 8px;text-align:left;background:transparent;color:var(--papier-1);border:1px solid transparent;border-radius:6px;box-shadow:none;transform:none;text-shadow:none;box-sizing:border-box;margin:2px 0}
+.stage .dossier-menu.regierungs-navigation button svg{flex-shrink:0}.stage .dossier-menu.regierungs-navigation .menu-kurz{font:500 var(--schrift-2)/1.35 var(--serif);white-space:normal;letter-spacing:0;color:inherit;min-width:0;overflow-wrap:anywhere}.stage .dossier-menu.regierungs-navigation button:hover{background:#ffffff12}.stage .dossier-menu.regierungs-navigation button.on{background:var(--papier-2);color:var(--leder-dunkel);border-color:var(--papier-3)}.stage .dossier-menu.regierungs-navigation button:focus-visible{outline:3px solid var(--messing-mittel);outline-offset:-2px}
+.rn-zahlen{display:flex;gap:3px;margin-left:auto;flex-shrink:0}.rn-zahlen b{font:600 var(--schrift-1)/1 var(--serif);padding:4px 5px;border-radius:6px;background:#d6b87b;color:var(--leder-dunkel)}.rn-zahlen b.ruhig{background:var(--linie)}.rn-schalter{display:none}
 @media(min-width:721px){.stage .dossier.frame,.stage .dossier.frame.wide,.stage .dossier.frame.po-breit{left:var(--rn-abstand);width:min(1760px,calc(100vw - var(--rn-abstand) - 18px))!important}.stage .dossier.frame.full{left:var(--rn-abstand);width:auto!important}}
-@media(min-width:721px) and (max-width:1100px){.stage{--rn-abstand:126px}.stage .dossier-menu.regierungs-navigation{width:104px;padding:8px 5px}.stage .regierungs-navigation .rn-marke{display:none}.stage .regierungs-navigation h3{font-size:11.5px;letter-spacing:.03em;margin:10px 2px 5px;text-align:center}.stage .dossier-menu.regierungs-navigation button{flex-wrap:wrap;justify-content:center;gap:5px;min-height:64px;padding:7px 3px}.stage .dossier-menu.regierungs-navigation .menu-kurz{width:100%;font-size:11.5px;text-align:center}.rn-zahlen{position:absolute;top:3px;right:3px}}
-@media(max-width:720px){.stage .rn-schalter{position:absolute;z-index:150;bottom:12px;left:12px;display:flex;align-items:center;gap:10px;border:1px solid #7c5823;border-radius:10px;padding:12px 15px;background:#382b24;color:#f3f1e5;font:600 14px var(--sans);box-shadow:0 4px 18px #0003}.stage .rn-schalter:focus-visible{outline:3px solid #dfbd72}.stage .dossier-menu.regierungs-navigation{display:none;top:auto;bottom:66px;left:12px;width:min(280px,calc(100vw - 24px));max-height:calc(100dvh - 180px);z-index:150}.stage .dossier-menu.regierungs-navigation.rn-offen{display:block}.stage .dossier{padding-bottom:64px}.stage .regierungs-navigation .rn-marke{display:none}}
+@media(min-width:721px) and (max-width:1100px){.stage{--rn-abstand:126px}.stage .dossier-menu.regierungs-navigation{width:104px;padding:8px 5px}.stage .regierungs-navigation .rn-marke{display:none}.stage .regierungs-navigation h3{font-size:var(--schrift-2);letter-spacing:.03em;margin:10px 2px 5px;text-align:center}.stage .dossier-menu.regierungs-navigation button{flex-wrap:wrap;justify-content:center;gap:5px;min-height:64px;padding:7px 3px}.stage .dossier-menu.regierungs-navigation .menu-kurz{width:100%;font-size:var(--schrift-1);text-align:center}.rn-zahlen{position:absolute;top:3px;right:3px}}
+@media(max-width:720px){.stage .rn-schalter{position:absolute;z-index:150;bottom:12px;left:12px;display:flex;align-items:center;gap:10px;border:1px solid var(--messing-3);border-radius:10px;padding:12px 15px;background:var(--leder-dunkel);color:var(--papier-2);font:600 var(--schrift-2) var(--serif);box-shadow:0 4px 18px #0003}.stage .rn-schalter:focus-visible{outline:3px solid var(--messing-mittel)}.stage .dossier-menu.regierungs-navigation{display:none;top:auto;bottom:66px;left:12px;width:min(280px,calc(100vw - 24px));max-height:calc(100dvh - 180px);z-index:150}.stage .dossier-menu.regierungs-navigation.rn-offen{display:block}.stage .dossier{padding-bottom:64px}.stage .regierungs-navigation .rn-marke{display:none}}
 /* Auf dem Handy lag der schwebende Knopf „Bereiche“ (z-index 150) über modalen Blättern (z-index 10) und verdeckte deren Fristzeile und Knöpfe. */
 @media(max-width:720px){.stage:has(> .event-layer) .rn-schalter,.stage:has(> .event-layer) .dossier-menu.regierungs-navigation{visibility:hidden}}
 /* Eine offene Akte füllt auf dem Handy den Bildschirm: Meldungschips (z-index 120) verdeckten ihre Titelzeile, die Kartenschalter (gleicher z-index 8, später im DOM) ihren Inhalt. Die Warnungen stehen weiter am Schreibtisch. */
@@ -18,29 +18,29 @@
 
 /* Kabinettstisch (ENTSCHEIDUNGEN T): Lederleiste mit Holzmaserung und Messingkante, Schrift in Kapitälchen; der offene Bereich ist ein
    Pergament-Reiter, der zur Akte hinüberragt. */
-.stage .dossier-menu.regierungs-navigation{background:repeating-linear-gradient(91deg,#ffffff05 0 2px,transparent 2px 8px),linear-gradient(180deg,#4a2d1d,#2c1a10);border:1px solid #7c5823;box-shadow:inset 0 0 0 1px #c69a4a55,0 12px 28px #0008;overflow-x:visible}
-.stage .regierungs-navigation .rn-marke{font:400 21px/1.1 var(--kapitaelchen);color:#f1d58f;letter-spacing:.03em;text-shadow:0 2px 0 #0008;border-bottom:1px solid #c69a4a55}
-.stage .regierungs-navigation .rn-marke small{font:italic 12.5px/1.5 var(--serif);color:#cdb88f}
-.stage .regierungs-navigation h3{font:400 11.5px/1.4 var(--kapitaelchen);letter-spacing:.16em;color:#c9a868}
-.stage .regierungs-navigation h3::before{content:"◆ ";color:#8e2a22;font-size:11.5px;vertical-align:2px}
-.stage .dossier-menu.regierungs-navigation .menu-kurz{font:400 14px/1.25 var(--kapitaelchen);letter-spacing:.02em}
+.stage .dossier-menu.regierungs-navigation{background:repeating-linear-gradient(91deg,#ffffff05 0 2px,transparent 2px 8px),linear-gradient(180deg,var(--leder-hell),var(--messing-text));border:1px solid var(--messing-3);box-shadow:inset 0 0 0 1px #c69a4a55,0 12px 28px #0008;overflow-x:visible}
+.stage .regierungs-navigation .rn-marke{font:400 var(--schrift-5)/1.1 var(--kapitaelchen);color:var(--messing-1);letter-spacing:.03em;text-shadow:0 2px 0 #0008;border-bottom:1px solid #c69a4a55}
+.stage .regierungs-navigation .rn-marke small{font:italic var(--schrift-1)/1.5 var(--serif);color:var(--leder-beschriftung)}
+.stage .regierungs-navigation h3{font:400 var(--schrift-1)/1.4 var(--kapitaelchen);letter-spacing:.16em;color:#c9a868}
+.stage .regierungs-navigation h3::before{content:"◆ ";color:var(--siegel);font-size:var(--schrift-2);vertical-align:2px}
+.stage .dossier-menu.regierungs-navigation .menu-kurz{font:400 var(--schrift-2)/1.25 var(--kapitaelchen);letter-spacing:.02em}
 .stage .dossier-menu.regierungs-navigation button{min-height:38px;padding:7px 8px;margin:1px 0}
 .stage .regierungs-navigation h3{margin:13px 8px 5px}
 .stage .regierungs-navigation .rn-marke{padding-bottom:11px}
-.stage .dossier-menu.regierungs-navigation button{color:#efe2c4;transition:background .2s,transform .2s,color .2s}
-.stage .dossier-menu.regierungs-navigation button svg{color:#c69a4a}
+.stage .dossier-menu.regierungs-navigation button{color:var(--papier-3);transition:background .2s,transform .2s,color .2s}
+.stage .dossier-menu.regierungs-navigation button svg{color:var(--messing-2)}
 .stage .dossier-menu.regierungs-navigation button:hover{background:#ffffff10;transform:translateX(2px)}
-.stage .dossier-menu.regierungs-navigation button.on{background:linear-gradient(90deg,#efe4cb,#f7f0de);color:#2a1f18;border-color:#c69a4a;box-shadow:0 2px 0 #7c5823,0 4px 10px #0006;margin-right:-10px;width:calc(100% + 10px);border-radius:6px 4px 4px 6px}
-.stage .dossier-menu.regierungs-navigation button.on svg{color:#8e2a22}
-.rn-zahlen b{background:linear-gradient(180deg,#f1d58f,#c69a4a);color:#2a1f18;box-shadow:0 1px 0 #7c5823}
+.stage .dossier-menu.regierungs-navigation button.on{background:linear-gradient(90deg,var(--papier-3),var(--papier-2));color:var(--tinte-1);border-color:var(--messing-2);box-shadow:0 2px 0 var(--messing-3),0 4px 10px #0006;margin-right:-10px;width:calc(100% + 10px);border-radius:6px 4px 4px 6px}
+.stage .dossier-menu.regierungs-navigation button.on svg{color:var(--siegel)}
+.rn-zahlen b{background:linear-gradient(180deg,var(--messing-1),var(--messing-2));color:var(--tinte-1);box-shadow:0 1px 0 var(--messing-3)}
 .stage .rn-schalter{font-family:var(--kapitaelchen)}
-@media(min-width:721px) and (max-width:1100px){.stage .dossier-menu.regierungs-navigation button.on{margin-right:0;width:100%}.stage .dossier-menu.regierungs-navigation .menu-kurz{font-size:11.5px}}
+@media(min-width:721px) and (max-width:1100px){.stage .dossier-menu.regierungs-navigation button.on{margin-right:0;width:100%}.stage .dossier-menu.regierungs-navigation .menu-kurz{font-size:var(--schrift-1)}}
 
 /* Platz für die Kartenebene unter der Leiste (Gesamtbild vom 4. November: bei 800 px Höhe lag der Knopf hinter der Leiste) */
 @media(min-width:721px){.stage .dossier-menu.regierungs-navigation{max-height:calc(100dvh - 196px)}.stage .linsen{left:12px;bottom:14px}}
 /* Niedrige Bildschirme: Die Leiste wird dichter, damit alle elf Bereiche ohne Scrollen sichtbar bleiben */
 @media(min-width:721px) and (max-height:900px){
-  .stage .regierungs-navigation .rn-marke{padding:2px 8px 8px;font-size:18px}.stage .regierungs-navigation .rn-marke small{display:none}
+  .stage .regierungs-navigation .rn-marke{padding:2px 8px 8px;font-size:var(--schrift-4)}.stage .regierungs-navigation .rn-marke small{display:none}
   .stage .regierungs-navigation h3{margin:9px 8px 3px}
   .stage .dossier-menu.regierungs-navigation button{min-height:31px;padding:4px 8px}
   .stage .dossier-menu.regierungs-navigation{padding-top:9px;padding-bottom:7px}
@@ -53,7 +53,7 @@
 }
 /* Einklappbare Leiste (Vorgabe S): schmal zeigt sie nur Zeichen und Zahlen; Name im Tooltip. Akten rücken nach links. */
 @media(min-width:1101px){.stage .regierungs-navigation .rn-marke{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}}
-.stage .dossier-menu.regierungs-navigation button.rn-klappe{flex:none;width:28px;min-height:28px;height:28px;padding:0;margin:0;justify-content:center;border:1px solid #c69a4a66;border-radius:6px;color:#f1d58f;font:400 15px/1 var(--kapitaelchen);background:#ffffff0a}
+.stage .dossier-menu.regierungs-navigation button.rn-klappe{flex:none;width:28px;min-height:28px;height:28px;padding:0;margin:0;justify-content:center;border:1px solid #c69a4a66;border-radius:6px;color:var(--messing-1);font:400 var(--schrift-3)/1 var(--kapitaelchen);background:#ffffff0a}
 .stage .dossier-menu.regierungs-navigation button.rn-klappe:hover{background:#ffffff1a;transform:none}
 @media(min-width:1101px){
   .stage:has(.regierungs-navigation.rn-schmal){--rn-abstand:80px}

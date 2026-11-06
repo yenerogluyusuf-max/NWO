@@ -100,6 +100,12 @@ export interface KriegVorgang {
   /** Treiber der Eskalation (0–100), folgt träge der Konflikt-Dimension des Landes */
   eskalation: number;
   mobilmachung: Mobilmachung;
+  /** Stärkefaktor der Mobilmachung im Augenblick der letzten Anordnung und Tag der Anordnung: Die neue Stufe wächst über
+   * KRIEG.mobilTage zur vollen Stärke an. Ältere Spielstände haben die Felder nicht; dann gilt die Stufe sofort voll. */
+  mobilVon?: number;
+  mobilSeit?: number;
+  /** Der Gegner selbst hat offen gedroht (Länder-Eigeninitiative „Drohkulisse“): Die Mindestdauer der Spannung entfällt */
+  gegnerDroht?: boolean;
   /** „Truppen in Bereitschaft“ wurde angeordnet (kleiner, einmaliger Schub) */
   bereit?: boolean;
   rahmung?: KriegsRahmung;
