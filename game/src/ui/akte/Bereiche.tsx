@@ -8,6 +8,7 @@ import { INSTITUTION_NACH_ID } from "../../data/welt-institutionen";
 import { Aussenlage } from "../welt/Aussenlage";
 import { useEffect, useState, type ReactNode } from "react";
 import { aktuelleLocale, t } from "../../i18n";
+import { zusageText } from "../../sim/zusagen";
 import { NET } from "../../sim/modell";
 import { nationalAverage } from "../../sim/netz";
 import { gesellschaftLage, milieuLage } from "../../sim/gesellschaft";
@@ -226,7 +227,7 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
             .filter((z) => !z.erfuellt && !z.gebrochen)
             .sort((a, c) => a.faellig - c.faellig)
             .slice(0, 6)
-            .map((z) => ({ titel: z.text, meta: z.faellig < w.day ? t("akte.b.lage.ueberfaelligSeit", { tage: w.day - z.faellig, von: z.von }) : t("akte.b.lage.faelligIn", { tage: z.faellig - w.day, von: z.von }), ton: z.faellig < w.day ? "schlecht" : "mittel" })),
+            .map((z) => ({ titel: zusageText(z), meta: z.faellig < w.day ? t("akte.b.lage.ueberfaelligSeit", { tage: w.day - z.faellig, von: z.von }) : t("akte.b.lage.faelligIn", { tage: z.faellig - w.day, von: z.von }), ton: z.faellig < w.day ? "schlecht" : "mittel" })),
         },
       ];
     case "sicherheit": {

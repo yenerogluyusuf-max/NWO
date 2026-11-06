@@ -8,11 +8,11 @@ import { t } from "../i18n";
 export type TuerkeiStatus = "mitglied" | "kandidat" | "partner" | "dialog" | "beobachter" | "keiner";
 
 export const STATUS_NAME: Record<TuerkeiStatus, string> = {
-  mitglied: "Mitglied",
+  get mitglied() { return t("tag_t8.block.status.mitglied"); },
   kandidat: t("sim2.data.welt-institutionen.ddbfc16"),
-  partner: "Partnerland",
-  dialog: "Dialogpartner",
-  beobachter: "Beobachter",
+  get partner() { return t("tag_t8.block.status.partner"); },
+  get dialog() { return t("tag_t8.block.status.dialog"); },
+  get beobachter() { return t("tag_t8.block.status.beobachter"); },
   keiner: t("sim2.data.welt-institutionen.44fd9cc"),
 };
 
@@ -44,7 +44,7 @@ export const INSTITUTIONEN: InstitutionDef[] = [
     quelle: "Dossier 2; Verträge der EU",
   },
   {
-    id: "nato", name: "Nordatlantikpakt", kurz: "NATO", weitereMitglieder: 18, tuerkei: "mitglied", beschluss: "konsens",
+    id: "nato", get name() { return t("tag_t8.block.nato"); }, kurz: "NATO", weitereMitglieder: 18, tuerkei: "mitglied", beschluss: "konsens",
     mitglieder: ["USA", "DEU", "FRA", "ITA", "ESP", "POL", "NLD", "GRC", "BGR", "HUN", "ROU", "SWE", "GBR"],
     text: t("sim2.data.welt-institutionen.eaad30f"),
     tuerkeiText: t("sim2.data.welt-institutionen.f461d57"),
