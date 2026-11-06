@@ -1,12 +1,10 @@
 // Ein Arbeitsplatz: Lage verstehen, einen Vorgang entscheiden, später seine Wirkung prüfen.
-import { WAHLKAMPF } from "../../sim/wahlkampf";
 import { useId, useState } from 'react';
 import type { World } from '../../sim/types';
 import type { Amt, VorlagenZiel } from '../../sim/ministerfluss-typen';
 import { schreibtischMappe } from '../../sim/ministerfluss';
 import { gefaehrdeteZusagen } from '../../sim/zusagenwarnung';
 import { AEMTER } from '../../sim/personen';
-import { VersorgungsMonatsbericht } from '../gueter/VersorgungsMonatsbericht';
 import { zusageText } from '../../sim/zusagen';
 import { formatDateDe } from '../../sim/dates';
 import { zielStand } from '../../sim/ziele';
@@ -22,12 +20,14 @@ import { RessortErholung } from '../minister/RessortErholung';
 import { Krisenrat } from '../wirtschaft/Krisenrat';
 import { ZusagenWache } from './ZusagenWache';
 import { DreiFragen } from './DreiFragen';
-import { RessortTischkarten, ZusageTischkarte } from './Tischkarte';
+import { Tischkachel, type Antwort } from './Tischkachel';
+import { lageSatz } from '../minister/VorlageKarte';
 import { tageslage, type Ziel } from './briefing';
-import { aktuelleAuswahl, fristText, schreibtischArbeit, regierungsVorgaenge, type ArbeitsGruppe, type Prioritaet } from './arbeitsplatz';
+import { aktuelleAuswahl, fristText, schreibtischArbeit, regierungsVorgaenge, tischFristen, TISCH_GRUPPEN, type ArbeitsGruppe, type Prioritaet } from './arbeitsplatz';
 import type { UmlaufEintrag } from '../autostopp';
-import { rendere, t } from '../../i18n';
+import { rendere, t, zahl } from '../../i18n';
 import '../politik/design.css';
+import '../wirtschaft/haushalt.css';
 import './schreibtisch.css';
 
 type Arbeit=ReturnType<typeof schreibtischArbeit>;
@@ -88,8 +88,18 @@ export function SchreibtischInArbeit({world,refresh,onGehe,arbeit,auswahl,onAusw
 export function SchreibtischRueckblick({world,onGehe,onPosteingang,umlauf}:{world:World;onGehe:(z:Ziel)=>void;onPosteingang:()=>void;umlauf?:UmlaufEintrag[]}) {
   const ziele=zielStand(world),geschah=[...world.log].reverse().filter(l=>l.kind!=='statistik').slice(0,6);
   const ausgabe=world.spiel?.zeitung?.archiv.at(-1),blatt=ausgabe?.blaetter.find(b=>b.artikel.length);
+  const bericht=world.spiel?.gueter?.regierung?.bericht;
   return <div className="sd-rueckblick">
-    <section className="sd-bericht"><Icon name="buch" size={30}/><div><span className="sd-etikett">{t('sd.ergebnisse')}</span><h4>{t('sd.monatsbericht')}</h4><p>{t('sd.berichtText')}</p><details className="sd-berichtdetail"><summary>{t('sd.berichtOeffnen')}</summary><VersorgungsMonatsbericht bericht={world.spiel?.gueter?.regierung?.bericht}/></details></div></section>
+    {/* Kein weißes Blatt mit dem ganzen Monatsbericht (ENTSCHEIDUNGEN Z, Rückmeldung 06.11.2026): Kennzahlen und ein Sprung zum Bericht */}
+    <section className="sd-bericht hd-bilanz" aria-label={t('sd.monatsbericht')}>
+      <h4 className="hd-titel">{bericht?t('h4.bericht.titel',{monat:bericht.monat}):t('sd.monatsbericht')}</h4>
+      {bericht?<dl className="hd-kern">
+        <div><dt>{t('h4.bericht.deckung')}</dt><dd>{t('h4.prozent',{n:zahl(bericht.deckung*100,1)})}</dd></div>
+        <div className={bericht.vertrauen<0?'schlecht':undefined}><dt>{t('h4.bericht.vertrauen')}</dt><dd>{bericht.vertrauen>0?'+':''}{zahl(bericht.vertrauen,1)}</dd></div>
+        <div className={bericht.parlamentarisch==='kritik'?'schlecht':undefined}><dt>{t('h4.bericht.parlament')}</dt><dd>{t(`vm.urteil.${bericht.parlamentarisch}`)}</dd></div>
+      </dl>:<p className="hd-fenster">{t('vm.nochNicht')}</p>}
+      <button type="button" className="knopf" onClick={()=>onGehe({art:'akte',akte:'wirtschaft',start:'inventar'})}>{t('h4.bericht.oeffnen')}</button>
+    </section>
     <section className="sd-block"><h4>{t('sk.ui.zuletzt')}</h4>{geschah.length?<ol className="sd-verlauf">{geschah.map((l,i)=><li key={`${l.day}-${i}`}><time>{formatDateDe(l.date)}</time><p>{rendere(l.text)}</p></li>)}</ol>:<p className="sd-hinweis">{t('sd.keinVerlauf')}</p>}
       <div className="sd-links"><button type="button" className="pd-btn quiet" onClick={()=>onGehe({art:'akte',akte:'chronik'})}>{t('sk.ui.chronik')}</button><button type="button" className="pd-btn quiet" onClick={onPosteingang}>{t('sd.mappenverlauf')}</button></div>
     </section>
@@ -110,77 +120,86 @@ function EpochenBand({world}:{world:World}){
   </section>;
 }
 
-/** Die Entscheidung zu einem Eintrag des Tisches, direkt unter seiner Zeile. */
-function TischDetail({world,refresh,onGehe,p,onKarte,onPosteingang}:GemeinsameProps&{p:Prioritaet;onKarte?:(problemId?:string)=>void;onPosteingang:()=>void}){
-  const s=p.sprung;if(s.art!=='intern')return null;
-  const gehe=(z:VorlagenZiel)=>z.art==='karte'?onKarte?.(z.problemId):onGehe(z as Ziel);
-  const {gruppe,bereich,id}=s.auswahl;
-  if(gruppe==='vorlagen'&&id)return <Mappe world={world} refresh={refresh} ohneRessorts fokus nurKarte vorlageId={id} onGehe={gehe} onPosteingang={onPosteingang} onKarte={onKarte}/>;
-  if(gruppe==='minister'&&id&&Object.hasOwn(AEMTER,id))return bereich==='arbeit'?<RessortErholung world={world} refresh={refresh} amt={id as Amt}/>:<RessortTischkarten world={world} refresh={refresh} amt={id as Amt} onGehe={gehe}/>;
-  if(gruppe==='zusagen'&&id)return <ZusageTischkarte world={world} refresh={refresh} onGehe={onGehe} zusageId={id}/>;
-  return null;
-}
+type Reiter='heute'|'arbeit'|'rueckblick'|'krisenrat';
+const REITER:Reiter[]=['heute','arbeit','rueckblick','krisenrat'];
 
 export function Schreibtisch({world,refresh,onGehe,umlauf,onKarte,onPosteingang,onVorgang}:GemeinsameProps&{
   umlauf?:UmlaufEintrag[];onKarte?:(problemId?:string)=>void;onPosteingang?:()=>void;onVorgang?:(id:string)=>void;
 }) {
-  // Vorgabe V (ENTSCHEIDUNGEN): Der Schreibtisch beantwortet eine Frage, „Was muss ich heute entscheiden?“. Eine Liste nach
-  // Dringlichkeit; die Entscheidung öffnet sich an der Zeile. Früher standen dieselben Vorgänge in „Jetzt wichtig“ und noch einmal
-  // im Arbeitsbereich, und die Entscheidung erschien am Ende der Liste.
-  const [krisenOffen,setKrisenOffen]=useState(false);
-  // undefined: Offen steht nur ein akuter Eintrag (rot) mit eigener Entscheidung; null: bewusst alles zugeklappt.
-  // Befund A-27 (5. November 2026): Der stets aufgeklappte erste Eintrag machte den Tisch 2,55 Bildschirme lang, auch wenn nichts drängte.
-  const [wahl,setWahl]=useState<string|null|undefined>(undefined);
-  const liste=useId();
+  // Rückmeldung des Inhabers 06.11.2026 („Schreibtisch ist eine Katastrophe … ich kann hier auch nichts machen“): Eine Frage oben, die
+  // höchstens drei wichtigsten Entscheidungen als Karten mit Bild und Wegen, darunter alles Weitere gruppiert und die Lage in einem ruhigen
+  // Block. Keine Datumskarte mehr (das Datum steht in der Kopfleiste), „In Arbeit“, „Rückblick“ und Krisenrat sind Reiter.
+  const [reiter,setReiter]=useState<Reiter>('heute');
+  const [offen,setOffen]=useState<string|null>(null);
+  const [antwort,setAntwort]=useState<Antwort|null>(null);
+  const id=useId();
   const b=world.spiel?tageslage(world):null;
   if(!world.spiel||!b)return <p>{t('sk.ui.keinBriefing')}</p>;
   const mappe=schreibtischMappe(world,5),zusagen=gefaehrdeteZusagen(world),arbeit=schreibtischArbeit(world,b,mappe.mappe,zusagen);
   const posteingang=onPosteingang??(()=>onGehe({art:'akte',akte:'personen'}));
-  const offen=wahl===undefined?arbeit.alle.find(p=>p.sprung.art==='intern'&&p.ton==='rot')?.id??null:wahl;
-  const oeffne=(p:Prioritaet)=>{
-    const s=p.sprung;
-    if(s.art==='extern'){onGehe(s.ziel);return;}
-    if(s.art==='vorgang'){if(onVorgang)onVorgang(s.id);else onGehe({art:'akte',akte:'programme'});return;}
-    setWahl(offen===p.id?null:p.id);
-  };
-  const fristen=[...regierungsVorgaenge(world).map(g=>({id:g.id,text:g.titel,wann:`${g.status} · ${formatDateDe(g.datum)}`,tage:g.tage,ziel:g.ziel})),...b.faellig.filter(f=>f.art==='gesetz'||f.art==='duldung'||f.art==='schritt').map(f=>({id:f.id,text:f.titel,wann:f.tage===undefined?t('sk.bereit'):fristText(f.tage),tage:f.tage??0,ziel:f.knopf.art==='gehe'?f.knopf.ziel:undefined})),
-    ...b.termine.filter(x=>!x.id.startsWith('g-')&&!x.id.startsWith('z-')).map(x=>({id:`t-${x.id}`,text:x.text,wann:x.datum,tage:x.tage,ziel:x.ziel})),
-    // Der Wahlkampf kündigt sich an: Wer ihn nicht vorbereitet, verliert am Wahltag rund acht Punkte an Angriffe, Duell und Lager (Messung 5. November)
-    ...(()=>{const sp=world.spiel;if(!sp||sp.ende)return [];const tage=sp.wahltag-WAHLKAMPF.beginnTage-world.day;return tage>0&&tage<=180?[{id:'wahlkampf-beginn',text:t('sd.wahlkampfFrist'),wann:fristText(tage),tage,ziel:{art:'akte' as const,akte:'wahlkampf' as const}}]:[];})()].sort((a,c)=>a.tage-c.tage).slice(0,4);
+  const oben=arbeit.highlights,rest=arbeit.alle.slice(oben.length),fristen=tischFristen(world,b);
+  const rot=arbeit.alle.filter(p=>p.ton==='rot').length;
   const notizen=mentorNotes(world),v=b.verfassung;
-  return <div className="sk sk2">
-    <header className="sk2-kopf">
-      {/* Zustimmung, Kapital, Mehrheit und Inflation stehen in der Kopfleiste; hier nur Tag und Amtszeit (Befund A-27: doppelte Kopfzeile) */}
-      <div><p className="sk2-datum">{b.datum}</p><p>{t('sk.ui.amtszeit',{n:b.amtszeit.nummer,monate:b.amtszeit.monateBisWahl,wahltag:b.amtszeit.wahltag})}</p></div>
-    </header>
-    <div className="sk2-layout">
-      <div className="sk2-haupt">
-        <section className="sk2-tisch" aria-labelledby={`${liste}-titel`}>
-          <h4 id={`${liste}-titel`}>{t('sd.aufDemTisch')} <span>{arbeit.alle.length}</span></h4>
-          {arbeit.alle.length===0?<p className="sd-leer">{t('sd.nichtsAufDemTisch')}</p>:<ol>{arbeit.alle.map(p=>{
-            const intern=p.sprung.art==='intern',auf=offen===p.id;
-            return <li key={p.id} className={`sk2-zeile ton-${p.ton}${auf?' on':''}`}>
-              <button type="button" className="sk2-knopf" aria-expanded={intern?auf:undefined} aria-controls={intern?`${liste}-${p.id}`:undefined} onClick={()=>oeffne(p)}>
-                <i aria-hidden className="sk2-punkt"/>
-                <span className="sk2-text"><strong>{p.titel}</strong><small>{p.grund}</small></span>
-                <span className="sk2-frist">{p.tage===undefined?t(p.ton==='rot'?'sd.akut':p.ton==='gelb'?'sd.achtung':'sd.vorlage'):fristText(p.tage)}</span>
-                <span className="sk2-pfeil" aria-hidden>{intern?(auf?'▾':'▸'):'↗'}</span>
-              </button>
-              {auf&&<div id={`${liste}-${p.id}`} className="sk2-detail" data-sd-detail tabIndex={-1}><TischDetail world={world} refresh={refresh} onGehe={onGehe} p={p} onKarte={onKarte} onPosteingang={posteingang}/></div>}
-            </li>;})}</ol>}
-          {mappe.weitere>0&&<p className="sk2-weitere">{t('mf.weitere',{n:mappe.weitere})}. <button type="button" className="pd-btn quiet" onClick={posteingang}>{t('mf.zumPosteingang')}</button></p>}
-        </section>
-        <details className="sd-details sk2-mehr"><summary>{t('sd.arbeit')}</summary><SchreibtischInArbeit world={world} refresh={refresh} onGehe={onGehe} arbeit={arbeit} onAuswahl={()=>{}} onVorgang={onVorgang}/></details>
-        <details className="sd-details sk2-mehr"><summary>{t('sd.rueckblick')}</summary><SchreibtischRueckblick world={world} onGehe={onGehe} onPosteingang={posteingang} umlauf={umlauf}/></details>
-        <details className="sd-krisenrat" onToggle={e=>setKrisenOffen(e.currentTarget.open)}><summary><Icon name="kuppel" size={22}/>{t("kp.titel")}<small>{t("kp.einstieg")}</small></summary>{krisenOffen&&<Krisenrat world={world} geaendert={refresh}/>}</details>
+  const kachel={world,refresh,onGehe,onKarte,onVorgang,onAntwort:setAntwort};
+  const oeffne=(p:Prioritaet)=>{
+    if(p.inhalt.art==='vorgang'){if(onVorgang)onVorgang(p.inhalt.id);else onGehe({art:'akte',akte:'programme'});return;}
+    if(p.inhalt.art==='sprung'){onGehe(p.inhalt.ziel);return;}
+    setOffen(offen===p.id?null:p.id);
+  };
+  const zeile=(p:Prioritaet)=>{const auf=offen===p.id,innen=p.inhalt.art!=='vorgang'&&p.inhalt.art!=='sprung';
+    return <li key={p.id} className={`sk3-zeile ton-${p.ton}${auf?' on':''}`}>
+      <button type="button" className="sk3-knopf" aria-expanded={innen?auf:undefined} aria-controls={innen?`${id}-${p.id}`:undefined} onClick={()=>oeffne(p)}>
+        <i aria-hidden className="sk3-punkt"/><span className="sk3-text">{p.titel}</span>
+        <span className="sk3-frist">{p.tage===undefined?(p.ton==='rot'?t('h4.dringend'):''):fristText(p.tage)}</span>
+        <span className="sk3-pfeil" aria-hidden>{innen?(auf?'▾':'▸'):'↗'}</span>
+      </button>
+      {auf&&<div id={`${id}-${p.id}`} className="sk3-detail" data-sd-detail tabIndex={-1}><Tischkachel {...kachel} e={p}/></div>}
+    </li>;};
+  return <div className="sk sk3">
+    <header className="sk3-kopf">
+      <p className="sk3-amtszeit">{t('sk.ui.amtszeit',{n:b.amtszeit.nummer,monate:b.amtszeit.monateBisWahl,wahltag:b.amtszeit.wahltag})}</p>
+      <div className="sk3-reiter" role="tablist" aria-label={t('sd.arbeitsbereiche')}>
+        {REITER.map(r=><button key={r} type="button" role="tab" aria-selected={reiter===r} className={reiter===r?'on':undefined} onClick={()=>setReiter(r)}>
+          {t(r==='heute'?'h4.reiter.heute':r==='arbeit'?'sd.arbeit':r==='rueckblick'?'sd.rueckblick':'h4.reiter.krisenrat')}{r==='heute'&&arbeit.alle.length>0&&<span>{arbeit.alle.length}</span>}
+        </button>)}
       </div>
-      <aside className="sd-seite">
-        <section className="sd-kalender"><h4><Icon name="akte" size={18}/>{t('sk.ui.fristen')}</h4>{fristen.length?<ol>{fristen.map(f=><li key={f.id}>{f.ziel?<button type="button" onClick={()=>f.ziel&&onGehe(f.ziel)}><time>{f.wann}</time><span>{f.text}</span><span aria-hidden>↗</span></button>:<div><time>{f.wann}</time><span>{f.text}</span></div>}</li>)}</ol>:<p>{t('sk.ui.keineFrist')}</p>}</section>
-        {v&&<section className={`sd-kraft stufe-${v.stufe}`}><header><span>{t('sd.handlungsspielraum')}</span><b>{v.stufeName}</b></header><div className="sd-kraftwerte"><label>{t('sk.ui.aufmerksamkeit')} <b>{v.aufmerksamkeit}</b><meter min={0} max={100} value={v.aufmerksamkeit}/></label><label>{t('sk.ui.belastung')} <b>{v.belastung}</b><meter min={0} max={100} value={v.belastung}/></label></div>{v.pauseBis&&<p>{t('sk.ui.ruhigBis',{datum:v.pauseBis})}</p>}<details><summary>{t('sk.ui.mehrErklaeren')}</summary><p>{t('sk.ui.vfText',{fluss:v.fluss})}</p>{v.treiber.length>0&&<p>{t('sk.ui.vfTreiber',{liste:v.treiber.join('; ')})}</p>}</details></section>}
-        <EpochenBand world={world}/>
-        <details className="sd-details sd-mentorin"><summary><Cameo seed="Defne Arslan" figure="f" glasses size={28} tint="#265a62"/>{t('sk.ui.mentorin')}</summary><DreiFragen world={world}/>{notizen.map((n,i)=><details key={i}><summary>{n.short}</summary><p>{n.more}</p></details>)}</details>
-        <nav className="sd-tueren" aria-label={t('sk.ui.weiterAria')}><button type="button" onClick={posteingang}><Icon name="person" size={18}/>{t('sk.ui.alleVorlagen')} <span aria-hidden>↗</span></button><button type="button" onClick={()=>onGehe({art:'akte',akte:'bereiche'})}><Icon name="netz" size={18}/>{t('sk.ui.heute')} <span aria-hidden>↗</span></button></nav>
-      </aside>
-    </div>
+    </header>
+    {reiter==='heute'&&<>
+      <section className="sk3-frage" aria-labelledby={`${id}-frage`}>
+        <h3 id={`${id}-frage`}>{t('h4.frage')}</h3>
+        <p>{t('h4.frageUnter',{n:arbeit.alle.length,rot})}</p>
+      </section>
+      {antwort&&<p className={`sk3-antwort ${antwort.ok?'ok':'nein'}`} role="status">{antwort.text}{antwort.why&&<em> {antwort.why}</em>}<button type="button" className="knopf-leise" onClick={()=>setAntwort(null)} aria-label={t('h4.schliessen')}>×</button></p>}
+      {oben.length?<ol className="sk3-kacheln">{oben.map(p=><li key={p.id}><Tischkachel {...kachel} e={p} gross/></li>)}</ol>:<p className="sk3-leer">{t('sd.nichtsAufDemTisch')}</p>}
+      <div className="sk3-unten">
+        <section className="sk3-liste" aria-label={t('h4.weiter')}>
+          <h4>{t('h4.weiter')}</h4>
+          {TISCH_GRUPPEN.map(g=>{const zeilen=rest.filter(p=>p.gruppe===g),termine=g==='fristen'?fristen:[];
+            if(!zeilen.length&&!termine.length)return null;
+            return <div key={g} className="sk3-gruppe"><h5>{t(`h4.gruppe.${g}`)}</h5><ol>{zeilen.map(zeile)}
+              {termine.map(f=><li key={f.id} className="sk3-zeile termin"><button type="button" className="sk3-knopf" onClick={()=>onGehe(f.ziel)}>
+                <i aria-hidden className="sk3-punkt"/><span className="sk3-text">{f.text}</span><span className="sk3-frist">{f.wann}</span><span className="sk3-pfeil" aria-hidden>↗</span></button></li>)}
+            </ol></div>;})}
+          {mappe.weitere>0&&<p className="sk3-weitere">{t('mf.weitere',{n:mappe.weitere})}. <button type="button" className="knopf-leise" onClick={posteingang}>{t('mf.zumPosteingang')}</button></p>}
+        </section>
+        <aside className="sk3-seite">
+          <section className="sk3-lage" aria-labelledby={`${id}-lage`}>
+            <h4 id={`${id}-lage`}>{t('h4.lage')}</h4>
+            {arbeit.lage.length?<ul>{arbeit.lage.map(l=><li key={l.id} className={`ton-${l.ton}`}><button type="button" onClick={()=>onGehe(l.ziel)} title={l.warum}>
+              <i aria-hidden className="sk3-punkt"/><span><strong>{l.text}</strong><small>{lageSatz(l.warum).satz}</small></span><span aria-hidden>↗</span></button></li>)}</ul>:<p>{t('h4.lageLeer')}</p>}
+          </section>
+          {v&&<section className={`sk3-kraft stufe-${v.stufe}`} aria-label={t('sd.handlungsspielraum')}>
+            <h4>{t('sd.handlungsspielraum')}</h4><b className="sk3-kraft-stufe">{v.stufeName}</b>
+            <dl><div><dt>{t('sk.ui.aufmerksamkeit')}</dt><dd>{v.aufmerksamkeit}</dd></div><div className={v.stufe>=1?'schlecht':undefined}><dt>{t('sk.ui.belastung')}</dt><dd>{v.belastung}</dd></div></dl>
+            {v.pauseBis&&<p>{t('sk.ui.ruhigBis',{datum:v.pauseBis})}</p>}
+          </section>}
+          <details className="sd-details sd-mentorin"><summary><Cameo seed="Defne Arslan" figure="f" glasses size={28} tint="#265a62"/>{t('sk.ui.mentorin')}</summary><DreiFragen world={world}/>{notizen.map((n,i)=><details key={i}><summary>{n.short}</summary><p>{n.more}</p></details>)}</details>
+          <nav className="sd-tueren" aria-label={t('sk.ui.weiterAria')}><button type="button" onClick={posteingang}><Icon name="person" size={18}/>{t('sk.ui.alleVorlagen')} <span aria-hidden>↗</span></button><button type="button" onClick={()=>onGehe({art:'akte',akte:'bereiche'})}><Icon name="netz" size={18}/>{t('sk.ui.heute')} <span aria-hidden>↗</span></button></nav>
+        </aside>
+      </div>
+    </>}
+    {reiter==='arbeit'&&<SchreibtischInArbeit world={world} refresh={refresh} onGehe={onGehe} arbeit={arbeit} onAuswahl={()=>{}} onVorgang={onVorgang}/>}
+    {reiter==='rueckblick'&&<><EpochenBand world={world}/><SchreibtischRueckblick world={world} onGehe={onGehe} onPosteingang={posteingang} umlauf={umlauf}/></>}
+    {reiter==='krisenrat'&&<Krisenrat world={world} geaendert={refresh}/>}
   </div>;
 }

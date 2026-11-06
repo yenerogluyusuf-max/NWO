@@ -55,10 +55,12 @@ export function vorfallAlsVorlage(w: World, v: RessortVorfall, plaene: VorfallPl
   };
 }
 
-function anliegenFolgen(w: World, p: AnliegenPlan): string[] {
+function anliegenFolgen(w: World, p: AnliegenPlan, vorschlag = ''): string[] {
   const z: string[] = [];
   if (!p.ok) return z;
-  if (p.folge) z.push(t('ra.sofort', { loy: sign(p.folge.loyalitaet), groll: sign(p.folge.groll) }));
+  // Der Vorschlag selbst ist die Wirkung des Umsetzens; eine Beziehungszeile ohne Änderung (0,0 und 0,0) sagt nichts (Rückmeldung 06.11.2026)
+  if (p.art === 'umsetzen' && vorschlag) z.push(vorschlag);
+  if (p.folge && (Math.abs(p.folge.loyalitaet) >= 0.05 || Math.abs(p.folge.groll) >= 0.05)) z.push(t('ra.sofort', { loy: sign(p.folge.loyalitaet), groll: sign(p.folge.groll) }));
   if (p.gesetz) z.push(`${t('hh.mehrheit', { ja: p.gesetz.ja, fehlt: Math.max(0, 301 - p.gesetz.ja), datum: datum(w, p.gesetz.tag) })} ${t('hh.nurEingebracht')}`);
   if (p.hilfe) z.push(t('ra.haushaltFolge', { n: sign(p.hilfe.defizit), leg: sign(p.hilfe.legitimitaet) }));
   z.push(t('ra.antwortFrist', { datum: datum(w, p.frist) }));
@@ -74,7 +76,7 @@ export function anliegenAlsVorlage(w: World, a: RessortAnliegen, plaene: Anliege
   return {
     id: `tisch-anliegen-${a.id}`, thema: a.id, art: 'frage', quelle: 'person', amt: a.amt, minister: ministerInfo(w, f),
     titel: t('tk.anliegenTitel', { groesse: knoten(a.groesse) }), anlass: [bitte, ...(vtext ? [`${t('ra.vorschlag')} ${vtext}`] : [])], tag: a.seit, frist: a.frist - w.day, prioritaet: 0, prioritaetGrund: '', ziel: ZUR_AKTE,
-    optionen: plaene.map((p) => option(p.art, t(`ra.art.${p.art}`), t(`ra.antwort.${p.art}`), p, anliegenFolgen(w, p))),
+    optionen: plaene.map((p) => option(p.art, t(`ra.art.${p.art}`), t(`ra.antwort.${p.art}`), p, anliegenFolgen(w, p, vtext ? `${t('ra.vorschlag')} ${vtext}` : ''))),
   };
 }
 
@@ -169,4 +171,44 @@ export function ZusageTischkarte({ world, refresh, zusageId, onGehe }: { world: 
       : !antwort && <p className="mf-leer">{t('zw.keineGefahr')}</p>}
     <p className="mf-leer"><button type="button" className="pd-btn quiet" onClick={() => onGehe({ art: 'zusagen' })}>{t('zw.alleZusagen')}</button></p>
   </div>;
+}
+
+// ---------------------------------------------------------------------------
+// Bausteine für die Kacheln des Schreibtischs (Rückmeldung 06.11.2026): dieselben Karten und Wege wie oben, ohne eigene Logik.
+
+/** Ein offener Vorfall als Vorlage mit den durchgerechneten Reaktionen */
+export function vorfallKarte(w: World, id: string): Vorlage | undefined {
+  const v = offeneRessortVorfaelle(w).find((x) => x.id === id);
+  return v ? vorfallAlsVorlage(w, v, REAKTIONEN.flatMap((art) => { const p = ressortPolitikPlan(w, v.id, art); return p ? [p] : []; })) : undefined;
+}
+/** Eine offene Ressortanfrage als Vorlage mit den durchgerechneten Antworten */
+export function anliegenKarte(w: World, id: string): Vorlage | undefined {
+  const a = (w.spiel?.ministerfluss?.ressortAnliegen ?? []).find((x) => x.id === id && ['offen', 'besprochen', 'abgelehnt'].includes(x.status));
+  return a ? anliegenAlsVorlage(w, a, ANTWORTEN.flatMap((art) => { const p = ressortAntwortPlan(w, a.id, art); return p ? [p] : []; })) : undefined;
+}
+export function entscheideVorfall(w: World, id: string, optionId: string): { ok: boolean; text: string } {
+  const p = ressortPolitikPlan(w, id, optionId as RessortReaktion);
+  return p ? entscheideRessortVorfall(w, p) : { ok: false, text: t('rp.veraltet') };
+}
+export function entscheideAnliegen(w: World, id: string, optionId: string): { ok: boolean; text: string } {
+  const p = ressortAntwortPlan(w, id, optionId as RessortAntwort);
+  return p ? beantworteRessortAnliegen(w, p) : { ok: false, text: t('ra.veraltet') };
+}
+/** Eine gefährdete Zusage als Vorlage: erfüllen, vertrösten oder (bei Partnern) mit dem Vorsitz reden */
+export function zusageKarte(w: World, zusageId: string): Vorlage | undefined {
+  const s = gefaehrdeteZusagen(w).find((x) => x.z.id === zusageId);
+  if (!s) return undefined;
+  const schritte = SCHRITTE.flatMap((art) => { const a = zusagenSchrittPlan(w, s.z.id, art); return a ? [a] : []; });
+  const gespraeche = s.koalition && s.vorsitz.length ? GESPRAECHE.flatMap((art) => { const a = koalitionsHilfePlan(w, s.partei, art); return a ? [a] : []; }) : [];
+  return zusageAlsVorlage(w, s, schritte, gespraeche);
+}
+export function entscheideZusage(w: World, zusageId: string, optionId: string): { ok: boolean; text: string } {
+  const s = gefaehrdeteZusagen(w).find((x) => x.z.id === zusageId);
+  if (!s) return { ok: false, text: t('vn.veraltet') };
+  if (optionId === 'einloesen' || optionId === 'vertroesten') {
+    const a = zusagenSchrittPlan(w, s.z.id, optionId);
+    return a ? fuehreZusagenSchrittAus(w, a) : { ok: false, text: t('vn.veraltet') };
+  }
+  const a = koalitionsHilfePlan(w, s.partei, optionId as Stabilisierung);
+  return a ? stabilisiereKoalition(w, a) : { ok: false, text: t('vn.veraltet') };
 }
