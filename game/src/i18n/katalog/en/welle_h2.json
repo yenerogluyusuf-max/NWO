@@ -1,0 +1,16 @@
+{
+ "welle_h2.krieg.ende.abgeklungen": "The tension with {land} has died down; the conflict file is closed.",
+ "welle_h2.krieg.ende.abgeklungen.warum": "Nothing has fed it since {datum, date, lang}: no incident, no pressure, no mobilisation.",
+ "welle_h2.krieg.verlauf.titel": "Outlook",
+ "welle_h2.krieg.verlauf.genaehrt": "The tension is being fed. The last trigger came on {datum, date, lang}. Until {ab, date, lang} it follows the conflict with {land} ({konflikt} of 100); after that it eases unless something new happens.",
+ "welle_h2.krieg.verlauf.klingt": "The tension is easing. Nothing new has happened since {datum, date, lang}.",
+ "welle_h2.krieg.verlauf.ende": "{phase, select, drohkulisse {Unless something new happens, the standoff falls back to tension, and the file is likely to close around {ende, date, monat}.} other {Unless something new happens, the file is likely to close around {ende, date, monat}.}}",
+ "welle_h2.krieg.verlauf.kein_ende": "Unless something new happens, the file will only close in a few years.",
+ "welle_h2.krieg.verlauf.ruhe": "Without new events the conflict with {land} returns to {ruhe} of 100. Treaties in force lower this level; sanctions and a harder-line leadership raise it.",
+ "welle_h2.krieg.verlauf.naehrt": "It is fed by incidents, pressure, putting the troops on alert, a declared war aim, mobilisation and a failed ultimatum.",
+ "welle_h2.krieg.verlauf.entschaerfen": "You can defuse it here by calming the situation, mediation or a signal, and also:",
+ "welle_h2.krieg.verlauf.gesten": "Gestures towards {land}",
+ "welle_h2.krieg.verlauf.tisch": "Treaty at the negotiating table",
+ "welle_h2.kom.verteilung": "The town halls are now split: {liste}{rest, plural, =0 {} one {, and one more for another party} other {, and # more for other parties}}.",
+ "welle_h2.kom.partei": "{partei} {n}"
+}

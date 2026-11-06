@@ -25,7 +25,7 @@ import { wirke, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
 import { addDays, formatDateDe } from "./dates";
-import { LAENDER, land, landAendern, vertrauenZu, weltZustand } from "./laender";
+import { LAENDER, konfliktRuhewert, land, landAendern, vertrauenZu, weltZustand } from "./laender";
 import { alleLaufenden } from "./abkommen";
 import {
   GEGNER_GRUPPE,
@@ -77,6 +77,22 @@ export const KRIEG = {
   drohkulisseAus: 45,
   /** Darunter verfliegt eine Spannung ganz (Vorgang endet still) */
   spannungAus: 22,
+  /**
+   * Abklingen ohne neuen Anlass (Spielstand 2039 des Inhabers: Spannung mit Israel zehn Jahre bei 70, Drohkulisse mit Zypern sieben Jahre
+   * bei 80). Vorher folgte die Eskalation allein dem Konfliktwert des Landes, und der kehrt zu seinem Ruhewert zurück (Israel 70, Zypern 72
+   * plus Anker); die Ausstiegsschwellen 22 und 45 lagen weit darunter, also endete der Vorgang nie. Jetzt (Spielparameter, keine belegten
+   * Fristen): Nach dem letzten Anlass folgt die Eskalation dem Konflikt noch `naehrFrist` Tage, danach sinkt sie um mindestens
+   * `abklingenJeTag` je Tag. Ein Anlass ist ein Sprung des Konfliktwerts um mindestens `naehrSprung` an einem Tag (Zwischenfall, Druck,
+   * Machtwechsel zum härteren Kurs, Ereignis) oder ein eigener Schritt der Eskalation (Bereitschaft, Kriegsziel, Mobilmachung, gescheitertes
+   * Ultimatum). Fällt der Konfliktwert ebenso deutlich (Beruhigen, Vermittlung, Gesten, Machtwechsel zum freundlicheren Kurs), ist die
+   * Nährfrist sofort vorbei. Von 70 aus endet eine Spannung so rund fünfeinhalb Monate nach dem letzten Anlass, nach einer Beruhigung
+   * in rund drei Monaten.
+   */
+  naehrFrist: 45,
+  abklingenJeTag: 0.4,
+  naehrSprung: 2,
+  /** Ein neuer Vorgang entsteht erst, wenn der Konflikt mindestens so weit über seinem Ruhewert steht (akuter Anstieg statt Dauerzustand) */
+  anlageUeberRuhe: 3,
   /** Ab dieser Eskalation schlägt der Gegner zu (defensiver Krieg ohne eigenen Beschluss) */
   angriffAb: 95,
   /** Tage bis zur Parlamentsabstimmung über den Einsatzbeschluss */
@@ -713,6 +729,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
   switch (handlungId) {
     case "bereitschaft": {
       k.bereit = true;
+      naehren(w, k);
       k.eskalation = clamp(k.eskalation + 4, 0, 100);
       wirke(w, "abschreckung", 3);
       landAendern(w, k.land, { konflikt: 2 }, t("krieg.k.h.bereitschaft"));
@@ -732,6 +749,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       const aussicht = clamp(30 + (knotenWert(w, "ansehen") - 45) * 0.8 + (vertrauenZu(w, k.land) - 35) * 0.6 - (k.eskalation - 50) * 0.4, 5, 85);
       const zufall = rng ? rng.next() * 100 : 50;
       if (zufall < aussicht) {
+        entziehen(w, k);
         k.eskalation = clamp(k.eskalation - 18, 0, 100);
         landAendern(w, k.land, { konflikt: -8, vertrauen: 3 }, t("krieg.k.x.vermittlung.notiz"));
         wirke(w, "ansehen", 2);
@@ -759,6 +777,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
         beendeVorgang(w, k, "nachgegeben");
         return { ok: true, text, why };
       }
+      naehren(w, k);
       k.eskalation = clamp(k.eskalation + 15, 0, 100);
       landAendern(w, k.land, { konflikt: 8 }, t("krieg.k.x.ultimatum.notiz"));
       wirke(w, "ansehen", -1);
@@ -774,6 +793,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       const vorher = k.eskalation;
       k.rahmung = r;
       k.kriegszielDeklariert = true;
+      naehren(w, k);
       k.eskalation = clamp(k.eskalation + 10, 0, 100);
       let extra = 0;
       if (r === "beistand" && alleLaufenden(w).every((v) => v.land !== k.land)) extra = -3;
@@ -791,6 +811,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
     }
     case "deeskalation": {
       landAendern(w, k.land, { konflikt: -10 }, t("krieg.k.x.deesk.notiz"));
+      entziehen(w, k);
       k.eskalation = clamp(k.eskalation - 12, 0, 100);
       wirke(w, "nationalisten", -1);
       wirke(w, "staedtische_saekulare", 1);
@@ -814,6 +835,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       k.mobilVon = mobilStand(w, k).faktor;
       k.mobilSeit = w.day;
       k.mobilmachung = (voll ? 2 : 1) as Mobilmachung;
+      naehren(w, k);
       k.eskalation = clamp(k.eskalation + (voll ? 14 : 8), 0, 100);
       kosten(w, voll ? 0.7 : 0.3);
       wirke(w, "junge", voll ? -3 : -1);
@@ -954,6 +976,7 @@ export function eroeffneBeistandsVorgang(w: World, gegnerId: string, partner: st
     woche: 0,
     verluste: 0,
     beistandFuer: { partner, pakt: paktId },
+    genaehrt: w.day,
     koalition: {
       aggressor: "tuerkei",
       partner: [{ id: partner, seite: "eigen", seit: w.day, grund: t("krieg.k.bs.grund"), pakt: paktId, pflicht: true, rest: 1, einsatz: 1 }],
@@ -1229,6 +1252,12 @@ function beendeVorgang(w: World, k: KriegVorgang, ausgang: KriegVorgang["ausgang
   koalitionAufloesen(w, k, "rueckzug");
   phaseSetzen(w, k, "beendet");
   k.ausgang = ausgang;
+  if (ausgang === "abgeklungen") {
+    // Ohne neuen Anlass verflogen: eigener Satz mit dem Tag des letzten Anlasses (Spielstand 2039: zehn Jahre ohne Ende)
+    const seit = addDays(w.date, (k.genaehrt ?? k.seit) - w.day);
+    addLog(w, "ereignis", t("welle_h2.krieg.ende.abgeklungen", { land: land(k.land).name }), t("welle_h2.krieg.ende.abgeklungen.warum", { datum: seit }));
+    return;
+  }
   addLog(w, "ereignis", t("krieg.k.ende", { land: land(k.land).name, ausgang: ausgang === "rueckzug" ? t("krieg.k.ende.rueckzug") : ausgang === "nachgegeben" ? t("krieg.k.ende.nachgegeben") : String(ausgang) }), "");
 }
 
@@ -1321,15 +1350,79 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   }
 }
 
+/** Ein Tag Eskalation: träge zum Ziel, höchstens 0,8 Punkte am Tag. */
+export function eskalationSchritt(eskalation: number, ziel: number): number {
+  return clamp(eskalation + clamp((ziel - eskalation) * 0.06, -0.8, 0.8), 0, 100);
+}
+
+/** Ein Tag Eskalation vor dem Krieg: in der Nährfrist folgt sie dem Konflikt, danach sinkt sie um mindestens `abklingenJeTag`. */
+export function eskalationTag(eskalation: number, konflikt: number, tageOhneAnlass: number): number {
+  const folgt = eskalationSchritt(eskalation, konflikt);
+  return tageOhneAnlass > KRIEG.naehrFrist ? clamp(Math.min(folgt, eskalation - KRIEG.abklingenJeTag), 0, 100) : folgt;
+}
+
+/** Ein neuer Anlass nährt die Spannung: Die Nährfrist beginnt von vorn. */
+function naehren(w: World, k: KriegVorgang): void {
+  k.genaehrt = w.day;
+}
+
+/** Eine Entspannung nimmt der Spannung die Nahrung: Die Nährfrist ist sofort vorbei, sie klingt von heute an ab. */
+function entziehen(w: World, k: KriegVorgang): void {
+  k.genaehrt = Math.min(k.genaehrt ?? k.seit, w.day - KRIEG.naehrFrist - 1);
+}
+
+export interface SpannungsVerlauf {
+  /** Tag des letzten Anlasses */
+  genaehrt: number;
+  /** Ab diesem Tag klingt die Spannung ohne neuen Anlass ab */
+  abklingenAb: number;
+  /** Ob sie schon abklingt */
+  klingtAb: boolean;
+  /** Voraussichtliches Ende ohne neuen Anlass (Tag); fehlt, wenn es mehr als vier Jahre dauerte */
+  endeEtwa?: number;
+  /** Konfliktwert heute und Ruhewert, zu dem er ohne Ereignisse zurückkehrt */
+  konflikt: number;
+  ruhewert: number;
+}
+
+/**
+ * Wie sich eine Spannung oder Drohkulisse ohne neuen Anlass entwickelt, aus denselben Regeln wie `kriegTag`: Der Konfliktwert kehrt um
+ * einen Punkt im Monat zu seinem Ruhewert zurück (laender.ts, weltMonat), die Eskalation folgt `eskalationTag`. Nur für die Anzeige.
+ */
+export function spannungsVerlauf(w: World, k: KriegVorgang): SpannungsVerlauf | undefined {
+  if (k.phase !== "spannung" && k.phase !== "drohkulisse") return undefined;
+  const genaehrt = k.genaehrt ?? k.seit;
+  let konflikt = weltZustand(w)[k.land]?.konflikt ?? k.eskalation;
+  const ruhewert = konfliktRuhewert(w, k.land);
+  const heute = konflikt;
+  let esk = k.eskalation;
+  let endeEtwa: number | undefined;
+  for (let d = 1; d <= 1461; d++) {
+    if (d % 30 === 0) konflikt += Math.sign(ruhewert - konflikt) * Math.min(1, Math.abs(ruhewert - konflikt));
+    esk = eskalationTag(esk, konflikt, w.day + d - genaehrt);
+    if (esk <= KRIEG.spannungAus) {
+      endeEtwa = w.day + d;
+      break;
+    }
+  }
+  return { genaehrt, abklingenAb: genaehrt + KRIEG.naehrFrist, klingtAb: w.day > genaehrt + KRIEG.naehrFrist, ...(endeEtwa !== undefined ? { endeEtwa } : {}), konflikt: heute, ruhewert };
+}
+
 /** Der tägliche Schritt des Konfliktvorgangs (aus dem Spieltick). */
 export function kriegTag(w: World, rng: Rng): void {
   const spiel = w.spiel;
   if (!spiel || spiel.ende) return;
   for (const k of kriege(w)) {
-    // Eskalation folgt träge der Konflikt-Dimension des Landes
+    // Eskalation folgt träge der Konflikt-Dimension des Landes, solange ein Anlass sie nährt; danach klingt sie ab (KRIEG.naehrFrist)
     if (k.phase === "spannung" || k.phase === "drohkulisse") {
-      const ziel = weltZustand(w)[k.land]?.konflikt ?? k.eskalation;
-      k.eskalation = clamp(k.eskalation + clamp((ziel - k.eskalation) * 0.06, -0.8, 0.8), 0, 100);
+      const konflikt = weltZustand(w)[k.land]?.konflikt ?? k.eskalation;
+      // Ältere Spielstände: Ohne Eintrag gilt der Beginn der Phase als letzter Anlass
+      k.genaehrt ??= k.seit;
+      const sprung = k.konfliktStand === undefined ? 0 : konflikt - k.konfliktStand;
+      if (sprung >= KRIEG.naehrSprung) naehren(w, k);
+      else if (sprung <= -KRIEG.naehrSprung) entziehen(w, k);
+      k.konfliktStand = konflikt;
+      k.eskalation = eskalationTag(k.eskalation, konflikt, w.day - k.genaehrt!);
     }
     switch (k.phase) {
       case "spannung": {
@@ -1339,8 +1432,9 @@ export function kriegTag(w: World, rng: Rng): void {
           addLog(w, "ereignis", t("krieg.k.droh.log", { land: land(k.land).name }), t("krieg.k.droh.warum"));
           // Auto-Stopp Klasse A: Die Eskalation verlangt eine Entscheidung
           oeffne(w, "krieg_drohkulisse", rng, { daten: { land: k.land, vorgang: k.id } });
-        } else if (k.eskalation <= KRIEG.spannungAus && (weltZustand(w)[k.land]?.konflikt ?? 100) < 45) {
-          beendeVorgang(w, k, "rueckzug");
+        } else if (k.eskalation <= KRIEG.spannungAus) {
+          // Die Spannung ist verflogen, durch Entspannung oder weil sie kein Anlass mehr nährt: kein Rückzug, kein Gesichtsverlust
+          beendeVorgang(w, k, "abgeklungen");
         }
         break;
       }
@@ -1409,6 +1503,8 @@ export function kriegMonat(w: World, rng: Rng): void {
   for (const l of [...LAENDER].sort((a, b) => (z[b.id]?.konflikt ?? 0) - (z[a.id]?.konflikt ?? 0))) {
     if (voll(z[l.id]?.konflikt ?? 0)) continue;
     if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
+    // Nur ein akuter Anstieg über den Ruhewert legt einen Vorgang an; ein dauerhaft hoher Konflikt (Zypern mit härterer Führung) nicht
+    if ((z[l.id]?.konflikt ?? 0) < konfliktRuhewert(w, l.id) + KRIEG.anlageUeberRuhe) continue;
     if (ohneKriegsvorgang(l.id)) continue;
     if (kriegMit(w, l.id)) continue;
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
@@ -1426,6 +1522,7 @@ export function drohkulisseDurchGegner(w: World, landId: string): boolean {
   if (!k || k.phase !== "spannung") return false;
   k.eskalation = Math.max(k.eskalation, KRIEG.drohkulisseAb + 2);
   k.gegnerDroht = true;
+  naehren(w, k);
   return true;
 }
 
@@ -1436,6 +1533,7 @@ function vorgangAnlegen(w: World, landId: string, eskalation: number): KriegVorg
   const k: KriegVorgang = {
     id: `kv-${l.id}-${w.day}`, land: l.id, phase: "spannung", seit: w.day, eskalation, mobilmachung: 0,
     front: 50, frontVorher: 50, uhr: 100, uhrGegner: 100, woche: 0, verluste: 0,
+    genaehrt: w.day, konfliktStand: weltZustand(w)[l.id]?.konflikt ?? eskalation,
   };
   kriege(w).push(k);
   const konflikt = Math.round(weltZustand(w)[l.id]?.konflikt ?? eskalation);
@@ -1515,7 +1613,9 @@ function zwischenfaelle(w: World, rng: Rng): void {
   const z = weltZustand(w);
   for (const l of LAENDER) {
     const konflikt = z[l.id]?.konflikt ?? 0;
-    if (konflikt < 50 || kriegMit(w, l.id)) continue;
+    // Auch während einer Spannung oder Drohkulisse: Ein Zwischenfall nährt sie (kriegTag erkennt den Sprung); im Krieg zählt die Front
+    const kv = kriegMit(w, l.id);
+    if (konflikt < 50 || (kv && kv.phase !== "spannung" && kv.phase !== "drohkulisse")) continue;
     if (rng.next() >= (konflikt - 50) / 300) continue;
     if (ohneKriegsvorgang(l.id) && konflikt >= KRIEG.anlageAb - 8) continue;
     const plus = 4 + Math.round(rng.next() * 4);

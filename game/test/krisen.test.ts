@@ -8,7 +8,7 @@ import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { bringeEin, pruefeVorhaben, setPolicy } from "../src/sim/handeln";
 import { aktiveKrisen, krisenAktualisieren, krisenFuerMassnahme } from "../src/sim/krisen";
-import { LAENDER, weltZustand } from "../src/sim/laender";
+import { weltZustand } from "../src/sim/laender";
 import { befehl } from "../src/sim/befehle";
 import { fuehreAus } from "../src/ki/aktionen";
 import type { World } from "../src/sim/types";
@@ -33,12 +33,13 @@ function katastropheAn(w: World): void {
   krisenAktualisieren(w);
 }
 
-/** Setzt die Konflikt-Dimension aller Nachbarn (und hebt einen davon auf `scharf`, wenn angegeben). */
-function kriegAn(w: World, scharf: number, rest = 50): void {
-  const welt = weltZustand(w);
-  const nachbarn = LAENDER.filter((l) => l.gruppe === "Nachbarn");
-  for (const n of nachbarn) welt[n.id]!.konflikt = rest;
-  welt[nachbarn[0]!.id]!.konflikt = scharf;
+/**
+ * Ein laufender Konfliktvorgang mit dieser Eskalation. Welle H2 (6. November): Die Kriegsgefahr folgt dem Vorgang, nicht mehr dem
+ * Konfliktwert des schärfsten Nachbarn; der kehrt zu seinem Ruhewert zurück (Israel 70), und die Krise endete im Spielstand 2039
+ * des Inhabers nie. Vorher setzte dieser Helfer die Konfliktwerte der Nachbarn.
+ */
+function kriegAn(w: World, eskalation: number): void {
+  w.spiel!.kriege = [{ id: `kv-GRC-${w.day}`, land: "GRC", phase: "spannung", seit: w.day, eskalation, mobilmachung: 0, front: 50, frontVorher: 50, uhr: 100, uhrGegner: 100, woche: 0, verluste: 0, genaehrt: w.day }];
   krisenAktualisieren(w);
 }
 
@@ -142,6 +143,21 @@ describe("Krisen-Blocker: Kriegsgefahr", () => {
     kriegAn(w, 70);
     expect(ids(w)).toContain("kriegsgefahr");
     kriegAn(w, 50);
+    expect(ids(w)).toEqual([]);
+  });
+
+  test("ein dauerhaft hoher Konflikt ohne Vorgang ist keine Kriegsgefahr; ein Vorgang in der Drohkulisse schon", () => {
+    const w = welt();
+    // Zypern mit härterer Führung: Ruhewert 80, aber keine Spannung (Spielstand 2039: die Krise galt deshalb zehn Jahre)
+    weltZustand(w)["CYP"]!.konflikt = 80;
+    krisenAktualisieren(w);
+    expect(ids(w)).toEqual([]);
+    kriegAn(w, 50);
+    w.spiel!.kriege![0]!.phase = "drohkulisse";
+    krisenAktualisieren(w);
+    expect(ids(w)).toContain("kriegsgefahr");
+    w.spiel!.kriege![0]!.phase = "beendet";
+    krisenAktualisieren(w);
     expect(ids(w)).toEqual([]);
   });
 });

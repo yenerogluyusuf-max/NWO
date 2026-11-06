@@ -558,13 +558,21 @@ export function setzeWeltHaken(f: (w: World) => void): void {
   weltHaken = f;
 }
 
+/**
+ * Ruhewert des Konflikts mit einem Land: wohin der Konfliktwert ohne Ereignisse zurückkehrt (Startwert plus Anker aus Verträgen,
+ * Kurs der Führung und Sanktionen, sim/diplomatie.ts). Ein Konfliktvorgang entsteht erst, wenn der Konflikt darüber steigt (sim/krieg.ts).
+ */
+export function konfliktRuhewert(w: World, id: string): number {
+  return clamp(land(id).start.konflikt + (weltZustand(w)[id]?.anker ?? 0), 0, 100);
+}
+
 /** Einmal im Monat: Konflikte kühlen ab oder schwelen; zufriedene Länder werden warm. */
 export function weltMonat(w: World): void {
   if (!w.spiel) return;
   const z = weltZustand(w);
   for (const l of LAENDER) {
     const s = z[l.id]!;
-    const ziel = clamp(l.start.konflikt + (s.anker ?? 0), 0, 100);
+    const ziel = konfliktRuhewert(w, l.id);
     s.konflikt = clamp(s.konflikt + Math.sign(ziel - s.konflikt) * Math.min(1, Math.abs(ziel - s.konflikt)), 0, 100);
     const stand = anliegenStand(w, l.id);
     const erfuellt = stand.filter((x) => x.erfuellt).length;

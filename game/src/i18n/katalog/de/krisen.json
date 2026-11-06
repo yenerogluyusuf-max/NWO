@@ -12,7 +12,7 @@
  "krise.kriegsgefahr.name": "Kriegsgefahr",
  "krise.kriegsgefahr.grund": "Der Konflikt mit {land} steht bei {wert} von 100; das Land erwartet Geschlossenheit statt Schauprojekten.",
  "krise.kriegsgefahr.wirkung": "Außen- und Militärpolitik kostet nur {rabatt} % des Kapitals; Prestige-Vorhaben (Kultur) sind gesperrt.",
- "krise.kriegsgefahr.bedingung": "Endet, wenn kein Konflikt mit einem Nachbarn mehr über {schwelle} steht.",
+ "krise.kriegsgefahr.bedingung": "Endet, wenn kein Konfliktvorgang mehr über {schwelle} steht und keiner in der Drohkulisse oder im Krieg ist. Ohne neuen Anlass klingt eine Spannung von selbst ab.",
  "krise.kriegsgefahr.ausweg": "Ausweg: den Konflikt entschärfen (Gespräche am Verhandlungstisch in der Welt) – oder warten, bis die Spannung nachlässt.",
  "krise.zahlungsbilanz.name": "Zahlungsbilanzkrise",
  "krise.zahlungsbilanz.grund": "Die Netto-Reserven der Zentralbank liegen bei {reserven, number, 1} Mrd. Dollar: Das Land kann Importe und Schulden kaum noch bezahlen, und die Märkte wissen es.",

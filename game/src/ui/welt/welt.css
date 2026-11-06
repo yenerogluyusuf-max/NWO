@@ -458,6 +458,12 @@
 .kd-preis-spalten b { font: 600 13px var(--display); letter-spacing: 0.03em; }
 .kd-preis-spalten ul { margin: 2px 0 0; padding-left: 16px; }
 @container (max-width: 560px) { .kd-preis-spalten { grid-template-columns: 1fr; } }
+/* Verlauf einer Spannung (Welle H2): wohin sie ohne Anlass läuft, was sie nährt, wo man sie entschärft */
+.kd-verlauf { margin: 8px 0 6px; padding: 8px 12px; border-left: 3px solid rgba(90, 64, 40, 0.55); background: rgba(255, 250, 235, 0.7); font: 14px/1.45 var(--serif); }
+.kd-verlauf h5 { margin: 0 0 4px; font: 600 14px var(--display); }
+.kd-verlauf p { margin: 0 0 4px; }
+.kd-verlauf .subtitle { margin: 4px 0; }
+.kd-verlauf-wege { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
 .kd-versorgung { margin: 8px 0; }
 .kd-versorgung-sprung { margin: 6px 0; }
 

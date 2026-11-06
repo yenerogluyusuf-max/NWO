@@ -29,6 +29,7 @@ import {
   lagebild,
   mobilStand,
   phasenLeiter,
+  spannungsVerlauf,
   type KriegHandlungId,
   type KriegHandlungSicht,
 } from "../../sim/krieg";
@@ -60,7 +61,8 @@ function einordnung(eigen: number, gegner: number): string {
 /** Welche Schritte je Phase oben stehen (die übrigen liegen unter „Weitere Schritte“); höchstens vier (Befund G-30). */
 const VORRANG: Partial<Record<KriegVorgang["phase"], KriegHandlungId[]>> = {
   spannung: ["vermittlung", "deeskalation", "ultimatum", "bereitschaft"],
-  drohkulisse: ["beschluss", "mobil_teil", "mobil_voll", "beschluss_erlass"],
+  // Ohne Kriegsziel gibt es keinen Beschluss: Dann rücken Beruhigen und Vermittlung nach oben (Welle H2, der Verlauf verweist auf sie)
+  drohkulisse: ["beschluss", "mobil_teil", "mobil_voll", "beschluss_erlass", "deeskalation", "vermittlung"],
   krieg: ["verstaerkung", "waffenruhe", "koalition_rufen", "mobil_voll"],
   waffenruhe: ["paket_sieg", "paket_ausgewogen", "paket_weiss", "paket_zugestaendnis"],
 };
@@ -76,7 +78,46 @@ function Handlung({ h, tun }: { h: KriegHandlungSicht; tun: (id: KriegHandlungId
   );
 }
 
-export function KriegDossier({ world, landId, refresh }: { world: World; landId: string; refresh: () => void }) {
+/**
+ * Wohin eine Spannung oder Drohkulisse ohne neuen Anlass läuft, was sie nährt und wo man sie entschärft (Welle H2, 6. November:
+ * Im Spielstand 2039 stand die Spannung mit Israel zehn Jahre still, und nichts zeigte, was sie bewegt). Alle Tage aus `spannungsVerlauf`.
+ */
+function Verlauf({ world, k, onTab }: { world: World; k: KriegVorgang; onTab?: ((tab: "handeln" | "verhandeln") => void) | undefined }) {
+  const v = spannungsVerlauf(world, k);
+  if (!v) return null;
+  const tag = (d: number) => addDays(world.date, d - world.day);
+  const name = land(k.land).name;
+  return (
+    <div className="kd-verlauf">
+      <h5>{t("welle_h2.krieg.verlauf.titel")}</h5>
+      <p>
+        {v.klingtAb
+          ? t("welle_h2.krieg.verlauf.klingt", { datum: tag(v.genaehrt) })
+          : t("welle_h2.krieg.verlauf.genaehrt", { datum: tag(v.genaehrt), ab: tag(v.abklingenAb), land: name, konflikt: nf(v.konflikt) })}{" "}
+        {v.endeEtwa !== undefined ? t("welle_h2.krieg.verlauf.ende", { phase: k.phase, ende: tag(v.endeEtwa) }) : t("welle_h2.krieg.verlauf.kein_ende")}
+      </p>
+      <p className="subtitle">
+        {t("welle_h2.krieg.verlauf.naehrt")} {t("welle_h2.krieg.verlauf.ruhe", { land: name, ruhe: nf(v.ruhewert) })}
+      </p>
+      <p className="kd-verlauf-wege">
+        {t("welle_h2.krieg.verlauf.entschaerfen")}
+        {onTab ? (
+          <>
+            <button type="button" className="link ub-verweis" onClick={() => onTab("handeln")}>{t("welle_h2.krieg.verlauf.gesten", { land: name })} →</button>
+            <button type="button" className="link ub-verweis" onClick={() => onTab("verhandeln")}>{t("welle_h2.krieg.verlauf.tisch")} →</button>
+          </>
+        ) : (
+          <span>
+            {" "}
+            {t("welle_h2.krieg.verlauf.gesten", { land: name })}, {t("welle_h2.krieg.verlauf.tisch")}
+          </span>
+        )}
+      </p>
+    </div>
+  );
+}
+
+export function KriegDossier({ world, landId, refresh, onTab }: { world: World; landId: string; refresh: () => void; onTab?: (tab: "handeln" | "verhandeln") => void }) {
   useSprache();
   const [antwort, setAntwort] = useState<Antwort | null>(null);
   const k = kriegMit(world, landId);
@@ -166,6 +207,7 @@ export function KriegDossier({ world, landId, refresh }: { world: World; landId:
           <b>{nf(k.eskalation)}</b>
         </div>
       )}
+      <Verlauf world={world} k={k} onTab={onTab} />
       {mob.anteil < 1 && (
         <div className="kd-zeile">
           <span>{t(k.mobilmachung === 2 ? "krieg.k.x.voll" : "krieg.k.x.teil")}</span>

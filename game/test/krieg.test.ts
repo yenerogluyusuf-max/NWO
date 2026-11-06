@@ -128,7 +128,9 @@ describe("Phasengerüst: der volle Weg durch den Vorgang", () => {
     k.eskalation = KRIEG.spannungAus - 1;
     advance(w, 2);
     expect(k.phase).toBe("beendet");
-    expect(k.ausgang).toBe("rueckzug");
+    // Welle H2: Ein stilles Verfliegen heißt „abgeklungen“. Vorher stand hier „rueckzug“, und die Epochenbilanz (sim/epoche.ts) buchte
+    // jede abgeklungene Spannung als Niederlage; den Rückzug als eigene Handlung mit Gesichtsverlust gibt es weiter.
+    expect(k.ausgang).toBe("abgeklungen");
     expect(aktiveKriege(w)).toHaveLength(0);
   });
 

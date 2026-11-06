@@ -20,7 +20,7 @@ export type KriegsRahmung = "verteidigung" | "schutz" | "beistand" | "revision";
 /** Mobilisierungsstufen: keine, teilweise, voll (Vic3: Hochfahren kostet, Runterfahren kostet noch einmal). */
 export type Mobilmachung = 0 | 1 | 2;
 
-export type KriegsAusgang = "sieg" | "niederlage" | "rueckzug" | "weisser_frieden" | "frieden" | "eingefroren" | "nachgegeben";
+export type KriegsAusgang = "sieg" | "niederlage" | "rueckzug" | "weisser_frieden" | "frieden" | "eingefroren" | "nachgegeben" | "abgeklungen";
 
 /** Ein eingebrachter Einsatzbeschluss, der auf die Abstimmung wartet (Weg „parlament“) oder sofort galt („erlass“). */
 export interface KriegBeschluss {
@@ -104,6 +104,15 @@ export interface KriegVorgang {
    * KRIEG.mobilTage zur vollen Stärke an. Ältere Spielstände haben die Felder nicht; dann gilt die Stufe sofort voll. */
   mobilVon?: number;
   mobilSeit?: number;
+  /**
+   * Tag des letzten Anlasses, der die Spannung nährt: Entstehung, Zwischenfall, Sprung im Konfliktwert (Druck, Machtwechsel zum
+   * härteren Kurs, Ereignisse), Bereitschaft, Kriegsziel, Mobilmachung, gescheitertes Ultimatum, offene Drohung des Gegners.
+   * Ohne neuen Anlass klingt die Eskalation nach KRIEG.naehrFrist ab (sim/krieg.ts, eskalationsZiel). Ältere Spielstände haben das
+   * Feld nicht; dann gilt beim ersten Tagesschritt der Beginn der Phase.
+   */
+  genaehrt?: number;
+  /** Konfliktwert des Landes am Vortag, um Sprünge (neue Anlässe) zu erkennen */
+  konfliktStand?: number;
   /** Der Gegner selbst hat offen gedroht (Länder-Eigeninitiative „Drohkulisse“): Die Mindestdauer der Spannung entfällt */
   gegnerDroht?: boolean;
   /** „Truppen in Bereitschaft“ wurde angeordnet (kleiner, einmaliger Schub) */
