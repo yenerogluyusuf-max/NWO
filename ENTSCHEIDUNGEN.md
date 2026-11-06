@@ -378,3 +378,95 @@ Reihenfolge laut Plan: Fehler, Gerüst, Bilder je Bereich, Drill-downs (nach Rec
 - **Streitkräfte ohne Stückzahl:** Panzer, Drohnen, Luftabwehr, Marine und Raketen haben keine offene Bestandsquelle (die IISS Military Balance steht hinter einer Bezahlschranke, RECHERCHE_GITHUB_DATEN.md). Sie zeigen „100 %“ für den Bestand vom Juni 2026 statt „Index 100“. Echte Stückzahlen bräuchten eine Quelle und eine Neuberechnung der Lose (Regelfrage an den Projektinhaber).
 - **Eine Karte für alle Entscheidungen am Schreibtisch:** Ressortvorfälle, Ministeranliegen und gefährdete Zusagen erscheinen als dieselbe Vorlagenkarte wie Ereignisse. Wege, Preise und Folgen kommen unverändert aus den Plänen der Simulation (`ui/schreibtisch/Tischkarte.tsx`).
 - **Stimmen für Verfassungspakete (Entscheidung des Projektinhabers 05.11.2026, „Mache“):** Wer ein Paket ablehnt, stimmt auch dagegen. Die eigene Partei stimmt geschlossen. Ein Partner folgt, solange er nicht dagegen ist; lehnt er das Paket ab, gehen bis zu 80 % seiner Sitze verloren. Eine neutrale Oppositionsfraktion stimmt zu 10 % mit, eine ablehnende fast gar nicht, eine befürwortende zu bis zu 82 %; die Beliebtheit verschiebt um bis zu ±5 Punkte. Fassungen, die Macht zum Palast ziehen, trägt die Opposition höchstens neutral mit. Vorher stimmten 28 % jeder Oppositionsfraktion für jedes Paket (eine weitere Wiederwahl kam auf über 500 Stimmen); jetzt liegen Pakete beim Amtsantritt zwischen 310 und 370 und brauchen Absprachen.
+
+## X. Nachtarbeit 05./06.11.2026: Gesamtanalyse und Umsetzung
+
+Auftrag des Projektinhabers: „eine Analyse zu allem, was es in diesem Spiel gibt … alles durchdacht, kritisiert, logisch und vor allem schön“, danach „arbeite die ganze Nacht weiter“.
+
+- **Analyse:** Neun Prüfbereiche fanden 327 Befunde, dazu kommt die Sprachprüfung ([dokumentation/analyse_2026-11-05/GESAMTANALYSE.md](dokumentation/analyse_2026-11-05/GESAMTANALYSE.md)).
+- **Umsetzung:** Neun Nachtzweige N1 bis N9 setzten die Befunde um. Ihre Berichte stehen in `dokumentation/analyse_2026-11-05/nacht/n1.md` bis `n9.md`.
+- **Leitlinie:** Wo Verfassung, Gesetz oder eine Entscheidung des Inhabers den Weg vorgeben, ist er umgesetzt. Ermessensfragen sind zurückhaltend gelöst und unten zur Bestätigung gesammelt.
+
+**Festgelegt, weil Verfassung, Gesetz oder bestehende Entscheidungen es vorgeben:**
+
+1. **Gesetzgebung nach der Verfassung (N4):**
+   - Ein Gesetz bringen Abgeordnete ein, die eigene Fraktion „auf Bitte des Präsidenten“ (Art. 88).
+   - Ein Ausschuss berät 10 Tage, danach stimmt die TBMM ab. Nötig ist die Mehrheit der Anwesenden, mindestens 151 (Art. 96), nicht mehr pauschal 301.
+   - Der Präsident kann innerhalb von 15 Tagen unterschreiben oder zurücksenden (Art. 89). Nach einer Rücksendung gilt die Mehrheit der Mitglieder.
+   - Haushaltsgeld lässt sich nie per Erlass ändern (Art. 161).
+   - Die Mehrwertsteuer setzt ein Präsidialbeschluss (KDV-Gesetz Art. 28).
+   - Den Mindestlohn bestimmt die Mindestlohnkommission. Der Präsident gibt nur den fünf Staatsvertretern eine Vorgabe (Arbeitsgesetz Art. 39).
+   - Der Ausnahmezustand braucht einen Anlass nach Art. 119 und gilt höchstens 180 Tage. Eine Verlängerung um 120 Tage ist eine neue Abstimmung.
+   - Stimmen sichert man bei benannten Abgeordneten, nicht mehr anonym für 0,5 Kapital je Stimme.
+2. **Krieg (N7):**
+   - Einen Truppeneinsatz im Ausland beschließt die TBMM. Sofort per Präsident geht er nur bei einem Angriff auf die Türkei (Art. 92).
+   - Vom Beginn der Krise bis zum eigenen Krieg vergehen mindestens 42 Tage: 21 Tage Spannung und 14 Tage Drohkulisse; die Mobilmachung dauert 14 oder 30 Tage.
+   - Der Kriegspreis daheim und im Ausland steht vorab da.
+   - Jedes Rüstungssystem hat ein Fertigdatum, und das Personal ist einheitlich 355.000 (IISS).
+3. **Steuern und Haushalt (N3, Entscheidung F1 umgesetzt):**
+   - Jede Steuer hat genau eine Steuerung, die Maßnahme in der Politik. Der Haushalt zeigt sie an und springt dorthin.
+   - Maßnahmen mit gleichnamigem Etat kosten kein eigenes Geld.
+   - Ereignisse verschieben den Haushalt über die Regler.
+   - Die Kreditwürdigkeit ist sichtbar.
+4. **Keine Schau (Regel V/W):**
+   - Preise und Wirkungen entstehen aus der Zahl, die gebucht wird. Dazu gehören Kabinettsbeschlüsse, Ereignisantworten, das Vorziehen beim Bau und die Friedenspakete.
+   - Der Wächtertest `schau-antworten` prüft jetzt die Preisplakette gegen die Buchung.
+   - Der Chat führt nichts aus, was Kapital kostet oder Personal ändert. Er legt dafür eine Vorschlagskarte vor.
+   - Ministerien für den Partner gibt es nur mit sichtbarer Wahl, wer geht.
+5. **Wahl (N2):**
+   - Das Barometer zeigt den erwarteten Stimmenanteil als Spanne.
+   - Die Stärke der Opposition geht in die Wahl ein, gerechnet ab dem Stand beim Amtsantritt.
+   - Angriffe der Opposition haben drei Gegenzüge.
+6. **Bauen (N6):**
+   - Ein neuer Auftrag reiht sich hinten ein; vorziehen kostet wie sonst.
+   - Aufgeben ist möglich.
+   - Die Rüstung hat ihre eigene Baukapazität. Die bisherige Kapazität ist aufgeteilt, 73 für das Land und 60 für die Rüstung, sodass beim Start nichts schneller oder langsamer wird.
+7. **Regler (N9):**
+   - Keine Maßnahme zeigt mehr „% des Ausgangs“.
+   - 60 Maßnahmen zeigen ihre echte Größe mit Quelle (`data/einheiten.ts`), 42 benannte Zustände.
+   - 12 Maßnahmen ohne belegten Startwert zeigen das Verhältnis zu 2026.
+8. **Anrede:** Die Erzählstimme des Prologs und die Mentorin bleiben beim Du (Nachtrag zu U). Die nächtliche Umstellung auf „Sie“ ist zurückgenommen.
+
+**Zur Bestätigung durch den Inhaber (Spielparameter und Ermessen):**
+
+- **Parlament:**
+  - Die Anwesenheit ist mit 96 bzw. 90 % angesetzt. Gesetze werden dadurch rund 10 Stimmen leichter, die nötige Zahl liegt bei 291.
+  - Das Erlassverbot gilt für jede Maßnahme mit Kosten.
+  - Preise der Absprachen.
+  - Der Ausnahmezustand kostet beim Amtsantritt 47 Kapital.
+  - Die Mindestlohnkommission entscheidet auch außerhalb des Dezembers nach 14 Tagen.
+- **Krieg:**
+  - Die Mindestdauern 21 und 14 Tage sowie 14 oder 30 Tage für die Mobilmachung.
+  - Der Erlass ist erst ab Eskalation 90 möglich.
+  - KAAN und Eurofighter werden 2032 fertig, die Presse nennt 2030.
+  - Arbeitstreffen und Staatsbesuch bleiben getrennt.
+- **Steuern:**
+  - Grenzen der Sätze: Mehrwertsteuer 15 bis 27 %, Spitzensteuersatz 30 bis 50 %, Körperschaftsteuer 15 bis 35 %.
+  - Ein Punkt Mehrwertsteuer bringt 0,226 % des BIP.
+  - F1 wörtlich: Die sieben Etat-Maßnahmen kosten kein Geld, nur Kapital und eine Mehrheit.
+  - **Balance:** Im Teillauf sinkt die Zustimmung in allen 8 Läufen um 1 bis 6 Punkte, es stürzen 5 statt 3 Regierungen, die Inflation steigt in 6 von 8 Läufen. Hauptursache: Steuererhöhungen laufen jetzt über ein echtes Gesetz.
+- **Wahl:**
+  - Eine liegengelassene Opposition kostet am Wahltag rund 1,5 Punkte.
+  - Reisen wirken sofort.
+  - Die Gegenzüge kosten 1, 2 und 1 Aktionspunkte.
+  - Siegquoten: Der kluge Testspieler gewinnt die erste Wahl 6 statt 7 von 12 Mal, auf „hart“ 8 statt 9 von 16 Mal.
+- **Bauen:**
+  - Eine Pause kostet 0,5 % der Baupunkte im Monat.
+  - Eine Vertragsstrafe kostet 15 % des Restbetrags, vor dem ersten Spatenstich gibt es 50 % zurück.
+  - Die Kapazität ist im Verhältnis 73 zu 60 aufgeteilt.
+- **Gestaltung:**
+  - Größenskala 13, 14, 16, 18, 21, 28 und 48 px.
+  - Ein Warndreieck erscheint ab halbem Weg über der Schwelle, auf höchstens 5 Provinzen.
+  - „Als Gesetz einbringen“ ist in Leder gesetzt.
+  - Die ungenutzten Schriftpakete Inter und Courier werden deinstalliert.
+- **Kabinett:**
+  - Soll das Ereignis „Zusage erinnert“ die Wahl der Ministerien erzwingen?
+  - Neid nach Lob trifft nur dasselbe Lager.
+  - Am Tisch stehen nur Nachnamen.
+  - Die Ersatznamen „Tuna“ und „Gündüz“ sind vor einer Veröffentlichung gegen das amtierende Kabinett zu prüfen.
+- **Regler:**
+  - Am Reglerende 0 steht etwa „0 Lira“, weil die Abbildung verhältnisgleich ist.
+  - Die Gas-Pipeline wächst um höchstens zwei Stränge.
+  - Der Hausarzt-Zustand heißt „landesweit“.
+  - Die Neuen Universitäten heißen jetzt „Studienplätze an Hochschulen“.
+  - 43 Startwerte sind noch an der Primärquelle zu prüfen.

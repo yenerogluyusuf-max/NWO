@@ -148,7 +148,45 @@ Im Ordner [`game/`](game/) läuft ein spielbarer Kern (Details im Arbeitsprompt,
 5. Karte: Tag-und-Nacht-Grenze, Wetter, Markierungen für Probleme und Projekte.
 
 
-## 10. Nächste Schritte (Stand 05.11.2026, Nachtarbeit)
+## 10. Nächste Schritte (Stand 06.11.2026 morgens, nach der Nachtarbeit)
+
+**Gesamtanalyse und Nachtarbeit 05./06.11.**
+- **Grundlage:** [Gesamtanalyse](dokumentation/analyse_2026-11-05/GESAMTANALYSE.md) mit 327 Befunden in neun Bereichen und einer Sprachprüfung; Entscheidungen in ENTSCHEIDUNGEN X.
+- **Umsetzung:** Neun Nachtzweige sind auf `nacht/int` zusammengeführt:
+  - N1 Kabinett
+  - N2 Wahl
+  - N3 Haushalt und Steuern
+  - N4 Gesetzgebung
+  - N5 Ereignisse und Sprache
+  - N6 Bau und Land
+  - N7 Krieg und Rüstung
+  - N8 Gestaltungssystem
+  - N9 echte Reglereinheiten
+- **Erledigt:** Alle Befunde der Schwere 1 bis auf die unten genannten, dazu ein großer Teil der Schwere 2. Einzelheiten stehen in den Berichten `dokumentation/analyse_2026-11-05/nacht/n1.md` bis `n9.md`.
+
+**Offen aus der Nacht**
+- **Kartenbühne im Krieg:** Bisher gibt es Frontlinie und Verbände als Marken. Es fehlen Flächen, der Klick auf einen Zielraum und eine 3D-Schicht.
+- **Porträts:** Gemalte Porträts brauchen eine Entscheidung über eine bezahlte Bilderzeugung.
+- **Fokus, Programme, Große Ziele:** Sie behandeln dieselben Themen. Ein Zusammenlegen braucht eine Entscheidung.
+- **Regler:** 43 Startwerte sind noch an der Primärquelle zu prüfen, die Recherche liegt in `nacht/regler_einheiten.md`.
+- **Kosten:**
+  - Ministeriumshaushalte aus der angelegten Datei (D-23, D-24)
+  - Nachtragshaushalt ohne Abstimmung (D-11)
+  - Kraftstoffsteuer und Zölle per Beschluss: Die Ermächtigung ist nicht im Wortlaut gefunden.
+- **Kabinett:**
+  - Umbilden ohne Kostenregeln (C-8)
+  - gestreute Startloyalität (C-16)
+  - Navigation der Kabinettsakte (C-17, C-18, C-38)
+  - etwa 60 Antworttexte des Chats sind deutsch
+- **Lange Ansichten:** Infrastruktur › Lage (2,7) und Instandhaltung (3,2), Zentralbank (2,2).
+- **Gestaltung:** Bausteine für Kennzahl, Preis und Karte; leere Zustände in fremden Ansichten; Bildstile vereinheitlichen; die restlichen `!important`.
+- **Kleinere Punkte:**
+  - Hasankeyf ist überflutet, lässt sich aber noch restaurieren.
+  - Ein abgeschlossener Fokus bekommt keine Schlussszene.
+  - Die Unterdrückung kehrt sich später nicht in Vertrauensverlust um (E-15).
+- **Balance:** Die Steuern laufen jetzt über ein echtes Gesetz, und die Opposition zählt bei der Wahl. Dadurch ist das Spiel spürbar härter geworden (ENTSCHEIDUNGEN X). Die Balance ist nachzumessen und auszugleichen.
+
+## 10b. Stand 05.11.2026, Nachtarbeit (vorher)
 
 **Rundgang „jede Seite und Funktion“, Stand 05.11. spät** (Rückmeldungen des Projektinhabers beim Spielen; ENTSCHEIDUNGEN W, Nachtrag „Rundgang“). Jede Ansicht wurde vermessen (Bildschirmhöhen bei 1440×900).
 - **Fertig, mit Bild oben:** Startbild mit Wahlsieg und Zielkacheln; Kabinettstisch (19 Plätze, 1,6 Bildschirme); Verfassung als Abstimmungstafel (1,4); Schreibtisch mit einer einheitlichen Entscheidungskarte; Zentralbank mit Zinsskala und vier Teilen (5,3 → 2,0); Wählerkoalition als Kreisfeld (4,5 → 2,0); Politik-Überblick als Bereichskreise (3,3 → 1,0); Vorschläge kompakt in zwei Spalten (4,1 → 1,6); Vorhabenkatalog als Kacheln; Tagesordnung des Parlaments; Opposition und Straße als eigener Reiter.
