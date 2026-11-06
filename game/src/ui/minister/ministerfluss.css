@@ -247,3 +247,7 @@
 }
 /* Vorlagen in zwei Spalten (Politik, Vorschläge) */
 .mf-liste.mf-raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; align-items: start; }
+
+/* ENTSCHEIDUNGEN Z (06.11.2026): Warnungen zur Empfehlung als Marken */
+.mf-empf-zeile .mf-hinweise { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 4px; }
+.mf-karte .mf-empf-zeile .mf-hinweise em { display: inline-block; margin: 0; padding: 2px 9px; border: 1px solid var(--schlecht-linie); border-radius: var(--rund-2); background: var(--schlecht-flaeche); font: var(--schrift-1)/1.35 var(--serif); color: var(--siegel); }
