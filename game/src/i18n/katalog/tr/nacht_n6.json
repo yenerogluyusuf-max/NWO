@@ -179,5 +179,8 @@
  "n6.dim.handel": "ticaret",
  "n6.dim.sicherheit": "güvenlik",
  "n6.dim.vertrauen": "güven",
- "n6.dim.konflikt": "gerilim"
+ "n6.dim.konflikt": "gerilim",
+ "n6.eff.jeMonat": " ayda",
+ "n6.eff.inProvinzen": ", {n} ilde",
+ "n6.eff.provinzen": "{n} il"
 }

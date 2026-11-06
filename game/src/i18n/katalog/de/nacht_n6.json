@@ -179,5 +179,8 @@
  "n6.dim.handel": "Handel",
  "n6.dim.sicherheit": "Sicherheit",
  "n6.dim.vertrauen": "Vertrauen",
- "n6.dim.konflikt": "Spannung"
+ "n6.dim.konflikt": "Spannung",
+ "n6.eff.jeMonat": " je Monat",
+ "n6.eff.inProvinzen": " in {n, plural, one {# Provinz} other {# Provinzen}}",
+ "n6.eff.provinzen": "{n} Provinzen"
 }

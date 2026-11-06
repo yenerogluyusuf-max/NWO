@@ -25,7 +25,7 @@ import type { VorteilDef } from "../data/reich/typen";
 import { kannZahlen } from "./kapital";
 import { zeitungEreignis } from "./zeitung";
 import { AUFMERKSAMKEIT_KOSTEN, VERFASSUNG, belastungSinken, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
-import { t as tx, zahl } from "../i18n";
+import { t as tx, zahl, aktuelleLocale } from "../i18n";
 import { ohneBeleg } from "../i18n/ohne-beleg";
 
 const VORHABEN_NACH_ID = new Map(VORHABEN.map((v) => [v.id, v]));
@@ -553,14 +553,14 @@ const landNameSicher = (id: string): string => {
 };
 
 export function effektZeile(e: Effekt, modus: "sofort" | "dauer" = "sofort", w?: World): EffektZeile | null {
-  const zahl = (x: number) => Math.abs(x).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+  const zahl = (x: number) => Math.abs(x).toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 });
   // Dauerwirkungen sind je Monat angegeben; bei Größen des Netzes zeigt die Oberfläche, um wie viel sich das Gleichgewicht dauerhaft verschiebt
   if (modus === "dauer" && e.t === "knoten") {
     const node = NET.nodes[NET.index.get(e.id) ?? -1];
     const verschiebung = node && decayVon(node) > 0 ? e.d / decayVon(node) : e.d;
     return effektZeile({ ...e, d: Math.round(verschiebung * 10) / 10 }, "sofort", w);
   }
-  const je = modus === "dauer" && e.t !== "knoten" ? " je Monat" : "";
+  const je = modus === "dauer" && e.t !== "knoten" ? tx("n6.eff.jeMonat") : "";
   const z = effektZeileBasis(e, zahl);
   if (!z) return null;
   const heute = w && e.t === "knoten" ? groessenWert(w, e.id, e.provinzen) : NaN;
@@ -575,7 +575,7 @@ function effektZeileBasis(e: Effekt, zahl: (x: number) => string): EffektZeile |
       const name = node?.name ?? e.id;
       const gruppe = node?.kind === "gruppe";
       const schlecht = SCHLECHT_WENN_HOCH.has(e.id);
-      const wo = e.provinzen && e.provinzen.length && e.provinzen.length < PROVINCES ? ` in ${e.provinzen.length} ${e.provinzen.length === 1 ? "Provinz" : "Provinzen"}` : "";
+      const wo = e.provinzen && e.provinzen.length && e.provinzen.length < PROVINCES ? tx("n6.eff.inProvinzen", { n: e.provinzen.length }) : "";
       return { text: `${name} ${e.d > 0 ? "+" : "−"}${zahl(e.d)}${wo}`, richtung: e.d > 0 ? 1 : -1, gut: gruppe ? e.d > 0 : schlecht ? e.d < 0 : e.d > 0 };
     }
     case "land":
@@ -741,7 +741,7 @@ export function vorschauFuer(w: World, v: Vorhaben): WirkungsVorschau {
   }
   const waehrendBau = zeilen(v.bauwirkung, "dauer");
   const kapazitaet: string[] = [];
-  const vz = (x: number) => `${x > 0 ? "+" : "−"}${Math.abs(x).toLocaleString("de-DE", { maximumFractionDigits: 1 })}`;
+  const vz = (x: number) => `${x > 0 ? "+" : "−"}${Math.abs(x).toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 })}`;
   if (v.kapazitaet?.bau) kapazitaet.push(tx("sim2.sim.reich.722ef6f", { p0: vz(v.kapazitaet.bau) }));
   if (v.kapazitaet?.verwaltung) kapazitaet.push(tx("sim2.sim.reich.cf4af98", { p0: vz(v.kapazitaet.verwaltung) }));
   const zeigt = (v.zeigt ?? [])
@@ -1365,7 +1365,7 @@ export function ortKurz(provinzen: number[]): string {
   const r = regionVon(provinzen);
   if (r) return (REGION_DE[r] ?? r).split(" (")[0]!;
   const namen = provinzen.map((p) => PROVINZEN[p - 1]?.name ?? String(p));
-  return namen.length <= 3 ? namen.join(", ") : `${namen.length} Provinzen`;
+  return namen.length <= 3 ? namen.join(", ") : tx("n6.eff.provinzen", { n: namen.length });
 }
 
 function ortSchluessel(provinzen: number[]): string {
