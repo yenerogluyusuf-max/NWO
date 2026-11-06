@@ -4,7 +4,7 @@ import { createWorld, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
 import { aktiveParteivorsitzende } from "../src/sim/koalitionslage";
-import { bringeEin, gesetzSicht, stufeIn } from "../src/sim/handeln";
+import { bringeEin, gesetzPrognose, gesetzSicht, stufeIn } from "../src/sim/handeln";
 import { fraktion } from "../src/sim/fraktionen";
 import { verfassungVon } from "../src/sim/aufmerksamkeit";
 import { faellig, warnungen, tageslage } from "../src/ui/schreibtisch/briefing";
@@ -48,7 +48,10 @@ describe("Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung über
   const g=w.spiel!.gesetze[0]!;g.absprachen=83;g.stimmenBonus=7;
   const s=gesetzSicht({...w,day:g.abstimmung,date:addDays(w.date,g.abstimmung-w.day)},g);
   const f=faellig(w).find(x=>x.id===`g-${g.id}`)!;
-  expect(f.unter).toContain(t("sk.f.gesetz.unter",{wann:t("sk.tage",{n:g.abstimmung-w.day}),ja:s.ja,noetig:301}));
+  // N4 (Art. 96): Ein Gesetz braucht die Mehrheit der Anwesenden, nicht mehr pauschal 301. Die nötige Zahl kommt aus derselben
+  // Prognose, die am Abstimmungstag zählt (gesetzPrognose().schwelle); sie liegt zwischen 151 Ja und der Mitgliedermehrheit 301.
+  const noetig=gesetzPrognose(w,g).schwelle;expect(noetig).toBeGreaterThanOrEqual(151);expect(noetig).toBeLessThanOrEqual(301);
+  expect(f.unter).toContain(t("sk.f.gesetz.unter",{wann:t("sk.tage",{n:g.abstimmung-w.day}),ja:s.ja,noetig}));
  });
  test.each([[19.9999,"rot"],[20,"gelb"],[34.9999,"gelb"],[35,undefined]] as const)("Loyalität %s verwendet die gemeinsame Warn- und Bruchschwelle",(n,farbe)=>{
   const w=welt();chef(w).loyalitaet=n;const h=warnungen(w).find(x=>x.id==="partner");expect(h?.stufe).toBe(farbe);
@@ -90,7 +93,9 @@ describe("Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung über
   const w=welt();bringeEin(w,"m_renten",70,null,"gesetz");const g=w.spiel!.gesetze[0]!;g.abstimmung=w.day+2;g.absprachen=600;
   expect(faellig(w).find(x=>x.id===`g-${g.id}`)!.dringend).toBe(false);g.absprachen=-600;
   const f=faellig(w).find(x=>x.id===`g-${g.id}`)!;expect(f.dringend).toBe(true);
-  expect(f.unter).toContain(t("sk.f.gesetz.fehlt",{n:301}));
+  // N4 (Art. 96): Die Lücke misst sich an der Schwelle der Anwesenden aus der Prognose, nicht an pauschal 301 (bei 0 Ja: die ganze Schwelle).
+  const pr=gesetzPrognose(w,g);expect(pr.ja).toBe(0);expect(pr.luecke).toBe(pr.schwelle);
+  expect(f.unter).toContain(t("sk.f.gesetz.fehlt",{n:pr.luecke}));
  });
  test.each(["de","en","tr"] as const)("Lage und Mentorin folgen dem Sprachwechsel am selben Tag auf %s",async lang=>{
   const w=welt();chef(w).loyalitaet=19;tageslage(w);mentorNotes(w);await setzeSprache(lang);

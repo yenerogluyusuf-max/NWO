@@ -23,7 +23,13 @@ describe("Reich-Ansicht mit Bauvergabe und Baureihenfolge", () => {
     const w = neu();
     beginne(w, "restaurierung_ephesos", "stammfirma");
     const html = renderToStaticMarkup(createElement(Reich, { world: w, bereich: "infrastruktur", refresh: () => {} }));
-    expect(html).toContain("Baureihenfolge");
+    // Die Überschrift „Baureihenfolge“ entfiel mit der Baustelle (Commit 40ff22b, vorher standen dieselben Vorhaben unter „Im Bau“
+    // und „Baureihenfolge“ doppelt). Die Reihenfolge ist weiter öffentlich: nummerierte Plätze, der Satz zur Reihenfolge, Schätzungen.
+    expect(html).toContain("Im Bau");
+    expect(html).toContain("Position 1 baut zuerst");
+    expect(html).toMatch(/class="bs-pos"[^>]*>1</);
+    expect(html).toMatch(/class="bs-pos"[^>]*>3</);
+    expect(html).toMatch(/fertig in etwa \d+ Monaten/);
     expect(html).toContain("Verwaltungskraft");
     expect(html).toContain("Stammfirma");
     // die Anfangsbauten stammen aus einem Spielstand ohne Vergabe und gelten als transparent ausgeschrieben
