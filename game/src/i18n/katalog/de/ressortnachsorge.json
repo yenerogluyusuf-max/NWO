@@ -28,7 +28,7 @@
   "rn.schritt.anliegen": "Ein konkretes Ressortanliegen liegt zur Entscheidung vor. Prüfen Sie Kosten, Mehrheit und Folgen in der Antwortvorschau.",
   "rn.schritt.bearbeitung": "Ein Verfahren oder Auftrag im Ressort läuft bereits. Es gilt als Bearbeitung, noch nicht als bewiesene Erholung; die Messungen laufen weiter.",
   "rn.schritt.verantwortung": "Ein neuer Ressortvorfall verlangt noch Ihre politische Antwort. Die Messung erhebt dafür keine zweite Strafe.",
-  "rn.schritt.warteschlange": "Drei Ressortanliegen sind bereits offen. Bearbeite sie zuerst; dieser Minister prüft den Handlungsbedarf beim nächsten Bericht erneut.",
+  "rn.schritt.warteschlange": "Drei Anliegen sind schon offen. Beantworten Sie diese zuerst; der Minister meldet sich beim nächsten Bericht wieder.",
   "rn.wechsel": "Seit der vorigen Messung hat {neu} das Amt von {alt} übernommen. Die Werte beschreiben dasselbe Ressort, nicht die persönliche Leistung einer einzigen Person.",
   "rn.nachEntscheidung": "Auslöser: {art} · {datum}.",
   "rn.altstand": "Für diese frühere Entscheidung beginnt die Messreihe erst am {datum}. Davor wird keine Erholung behauptet.",

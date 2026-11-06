@@ -28,7 +28,7 @@
   "rn.schritt.anliegen": "Kararını bekleyen somut bir bakanlık talebi var. Yanıt önizlemesinde maliyeti, çoğunluğu ve sonuçları incele.",
   "rn.schritt.bearbeitung": "Bakanlıkta bir süreç veya görev zaten yürütülüyor. Bu, çalışma yapıldığını gösterir; toparlanmayı kanıtlamaz. Ölçümler sürer.",
   "rn.schritt.verantwortung": "Yeni bir bakanlık olayı siyasi yanıtını bekliyor. Ölçüm bunun için ikinci bir ceza uygulamıyor.",
-  "rn.schritt.warteschlange": "Üç bakanlık talebi zaten açık. Önce onları ele al; bu bakan sonraki raporda müdahale ihtiyacını yeniden değerlendirecek.",
+  "rn.schritt.warteschlange": "Üç talep zaten açık. Önce bunları yanıtlayın; bakan bir sonraki raporda yeniden başvuracak.",
   "rn.wechsel": "Önceki ölçümden beri {neu}, görevi {alt} kişisinden devraldı. Değerler aynı bakanlığı anlatır; tek bir kişinin performansını değil.",
   "rn.nachEntscheidung": "Başlangıç kararı: {art} · {datum}.",
   "rn.altstand": "Bu önceki karar için ölçümler {datum} tarihinde başlar. Önceki dönem için toparlanma iddiasında bulunulmaz.",
