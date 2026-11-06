@@ -116,7 +116,7 @@
  "wahl.chronik.wiederwahl": "Yeniden seçilme",
  "wahl.chronik.wiederwahl_text": "{name}, {gang} yüzde {anteil, number, 1} oyla yeniden seçildi ({marge, number, 1} puan farkla).",
  "wahl.einfluss.abtruenniger": "Ayrılıkçı rakip {name}",
- "wahl.einfluss.lager": "Mecliste blok",
+ "wahl.einfluss.lager": "Mecliste blokunuzun desteği",
  "wahl.einfluss.nachfolger": "Halef {name} adayının etkisi",
  "wahl.einfluss.opposition": "Muhalefet liderliği",
  "wahl.einfluss.schuld": "Afet sonrası verilen sözlerin borcu",

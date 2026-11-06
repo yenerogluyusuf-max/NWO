@@ -21,7 +21,10 @@ import { Rng } from "./rng";
 import { PROVINZEN } from "./regional";
 import { verfassungAktiv } from "./verfassung";
 import { versprechensschuldMalus } from "./katastrophe";
-import { gegnerPartei, wahlEffekte } from "./wahlkampf";
+import { angriffsAussicht, gegnerPartei, wahlEffekte, type AngriffsAussicht } from "./wahlkampf";
+import { gesellschaftVon, gesellschaftWahlDruck } from "./gesellschaft";
+import { angezeigteZustimmung } from "./medien";
+import { addDays } from "./dates";
 import { FORDERUNG, PARTEI_NAME, forderungVon, parteiNaehe } from "./fraktionen";
 import { eigenVon, hashZahl } from "./personen";
 import { figur, neuerName } from "./figuren";
@@ -170,6 +173,9 @@ interface Wahlgang {
   beteiligung: number;
   /** Aufschlüsselung der Einflüsse in Prozentpunkten, für die Anzeige */
   einfluesse: { name: string; punkte: number }[];
+  /** Die Zustimmung am Wahltag und der Zufall des Wahltags in Prozentpunkten (Treppe des Wahlabends, E-26) */
+  basis: number;
+  zufall: number;
 }
 
 /**
@@ -189,6 +195,64 @@ export function gegnerEinfluss(w: World): { name: string; punkte: number }[] {
   return out;
 }
 
+/**
+ * Die Stärke der Opposition am Wahltag (E-3, befund-E): Oppositionsstärke, mittlerer Groll der Milieus und Märtyrer (gesellschaftWahlDruck,
+ * sim/gesellschaft.ts) verschieben das Ergebnis des Amtsinhabers. Gebucht wird nur die Abweichung vom Amtsantritt: Was zu Beginn schon galt,
+ * steckt in der Kalibrierung der Zustimmung (Festlegung R.2 „eingepreist“). Positiver Druck kostet den Amtsinhaber Stimmen.
+ */
+export function oppositionsEinfluss(w: World): number {
+  if (!w.spiel) return 0;
+  const start = gesellschaftVon(w).wahlDruckStart ?? 0;
+  return Math.round(-(gesellschaftWahlDruck(w) - start) * 10) / 10 || 0;
+}
+
+/**
+ * Die Rechnung des ersten Wahlgangs ohne den Würfel: aus einer Zustimmung (am Wahltag die wahre, in der Vorschau die angezeigte) werden mit
+ * Kampagne, Versprechensschuld, Gegner, Lager, Stärke der Opposition und, in der letzten Amtszeit, dem Nachfolger die Prozente des Amtsinhabers.
+ * `zufall` ist das Rauschen des Wahltags in Prozentpunkten (am Wahltag gewürfelt, in der Vorschau 0); es wirkt vor dem Abschlag des Nachfolgers.
+ */
+export function wahlRechnung(w: World, basis: number, letzte: boolean, zufall = 0): { amt: number; einfluesse: WahlEinfluss[] } {
+  const sp = w.spiel!;
+  const schuld = versprechensschuldMalus(w);
+  const effekte = wahlEffekte(w);
+  const einfluesse: WahlEinfluss[] = [...effekte.teile.map((x) => ({ name: x.name, punkte: x.punkte }))];
+  if (schuld.punkte > 0) einfluesse.push({ name: t("wahl.einfluss.schuld"), punkte: -Math.round(schuld.punkte * 10) / 10 });
+  let roh = basis + effekte.gesamt - schuld.punkte + zufall;
+  // Der Gegner ist kein Spiegel der Zustimmung: Ein fähiger Oppositionsführer und ein schwaches Lager im Parlament verschieben das Ergebnis
+  for (const x of gegnerEinfluss(w)) {
+    roh += x.punkte;
+    einfluesse.push(x);
+  }
+  const opp = oppositionsEinfluss(w);
+  if (opp !== 0) {
+    roh += opp;
+    einfluesse.push({ name: t("nacht_n2.einfluss.staerke"), punkte: opp });
+  }
+  if (letzte) {
+    // Der Nachfolger trägt die Beliebtheit nicht ganz; seine eigene Strahlkraft und ein abtrünniger Rivale verschieben das Ergebnis
+    const n = sp.nachfolge?.nachfolger;
+    const bonus = n ? (n.staerke - 55) / 10 : -1;
+    const vorher = roh;
+    roh = 50 + WAHL.letzteFaktor * (roh - 50) + bonus;
+    // Der Abschlag, weil der Nachfolger die Beliebtheit nicht ganz trägt, steht in der Treppe des Wahlabends (E-26)
+    const abschlag = Math.round((roh - bonus - vorher) * 10) / 10;
+    if (abschlag !== 0) einfluesse.push({ name: t("nacht_n2.einfluss.uebertrag"), punkte: abschlag });
+    if (n) einfluesse.push({ name: t("wahl.einfluss.nachfolger", { name: n.name }), punkte: Math.round(bonus * 10) / 10 });
+    const abtr = sp.nachfolge?.abtruenniger;
+    if (abtr) {
+      const verlust = 2 + abtr.staerke / 20;
+      roh -= verlust;
+      einfluesse.push({ name: t("wahl.einfluss.abtruenniger", { name: abtr.name }), punkte: -Math.round(verlust * 10) / 10 });
+    }
+  }
+  return { amt: clamp(roh, 3, 96), einfluesse };
+}
+
+export interface WahlEinfluss {
+  name: string;
+  punkte: number;
+}
+
 /** Die Rechnung des ersten Wahlgangs: Zustimmung, Kampagne, Versprechensschuld, Rauschen; der Rest verteilt sich auf Gegner und Dritten. */
 function ersterWahlgang(w: World, rng: Rng, letzte: boolean): Wahlgang {
   const sp = w.spiel!;
@@ -198,29 +262,9 @@ function ersterWahlgang(w: World, rng: Rng, letzte: boolean): Wahlgang {
     sp.chronik.push({ tag: w.day, datum: w.date, titel: t("wahl.schuld.titel"), ausgang: schuld.text });
     addLog(w, "ereignis", t("wahl.schuld.log"), schuld.text);
   }
-  const effekte = wahlEffekte(w);
-  const einfluesse: Wahlgang["einfluesse"] = [...effekte.teile.map((x) => ({ name: x.name, punkte: x.punkte }))];
-  if (schuld.punkte > 0) einfluesse.push({ name: t("wahl.einfluss.schuld"), punkte: -Math.round(schuld.punkte * 10) / 10 });
-  let roh = sp.umfrage.zustimmung + effekte.gesamt - schuld.punkte + rng.normal(WAHL.rauschen);
-  // Der Gegner ist kein Spiegel der Zustimmung: Ein fähiger Oppositionsführer und ein schwaches Lager im Parlament verschieben das Ergebnis
-  for (const x of gegnerEinfluss(w)) {
-    roh += x.punkte;
-    einfluesse.push(x);
-  }
-  if (letzte) {
-    // Der Nachfolger trägt die Beliebtheit nicht ganz; seine eigene Strahlkraft und ein abtrünniger Rivale verschieben das Ergebnis
-    const n = sp.nachfolge?.nachfolger;
-    const bonus = n ? (n.staerke - 55) / 10 : -1;
-    roh = 50 + WAHL.letzteFaktor * (roh - 50) + bonus;
-    if (n) einfluesse.push({ name: t("wahl.einfluss.nachfolger", { name: n.name }), punkte: Math.round(bonus * 10) / 10 });
-    const abtr = sp.nachfolge?.abtruenniger;
-    if (abtr) {
-      const verlust = 2 + abtr.staerke / 20;
-      roh -= verlust;
-      einfluesse.push({ name: t("wahl.einfluss.abtruenniger", { name: abtr.name }), punkte: -Math.round(verlust * 10) / 10 });
-    }
-  }
-  const amt = clamp(roh, 3, 96);
+  const zufall = rng.normal(WAHL.rauschen);
+  const basis = sp.umfrage.zustimmung;
+  const { amt, einfluesse } = wahlRechnung(w, basis, letzte, zufall);
   const rest = Math.max(0, 100 - amt - WAHL.andere);
   const pol = nationalAverage(NET, w.net, "polarisierung");
   const opp = figur(w, "opposition");
@@ -229,7 +273,64 @@ function ersterWahlgang(w: World, rng: Rng, letzte: boolean): Wahlgang {
   const gegner = rest * q;
   const dritte = rest - gegner;
   const beteiligung = clamp(WAHL.beteiligungBasis + WAHL.beteiligungPol * pol + rng.normal(1), 60, 92);
-  return { amt, gegner, dritte, beteiligung, einfluesse };
+  return { amt, gegner, dritte, beteiligung, einfluesse, basis: rund1(basis), zufall: rund1(zufall) };
+}
+
+// ---------------------------------------------------------------------------
+// Vorschau: das erwartete Ergebnis, wenn heute gewählt würde (E-1)
+
+export interface WahlPrognose {
+  /** Die Zustimmung, von der die Rechnung ausgeht, und woher sie stammt (veröffentlichte Umfrage, Rohdaten oder Amtsantritt, Festlegung W F2) */
+  zustimmung: number;
+  quelle: "institut" | "rohdaten" | "start";
+  institut?: string;
+  /** Erwarteter Anteil des Amtsinhabers im ersten Wahlgang (ohne Würfel) und das Band, in dem er mit vier zu fünf liegt */
+  erwartet: number;
+  von: number;
+  bis: number;
+  /** Die Stufen von der Zustimmung zum Ergebnis, wie am Wahltag */
+  einfluesse: WahlEinfluss[];
+  /** Ob die Präsidentin oder der Präsident selbst antritt (sonst wirbt er für den Nachfolger) */
+  letzte: boolean;
+  /** Was bis zum Wahltag noch sicher kommt: die erwarteten Angriffe der Gegenseite im Wahlkampf (sim/wahlkampf.ts) */
+  angriffe: AngriffsAussicht;
+  wahlDatum: string;
+  tageBisWahl: number;
+}
+
+/** z-Wert für ein Band, das vier von fünf Ausgängen enthält (zweiseitig 80 %) */
+const Z80 = 1.2816;
+
+/**
+ * Das erwartete Ergebnis „wenn heute gewählt würde“ aus derselben Rechnung wie die Wahl (`wahlRechnung`), mit der Zustimmung, die der Spieler
+ * sieht. Das Band vereint das Rauschen des Wahltags und, solange die Zahl aus einer Umfrage stammt, deren Messfehler.
+ */
+export function wahlPrognose(w: World): WahlPrognose {
+  const sp = w.spiel!;
+  const letzte = istLetzteWahl(w);
+  const zeig = angezeigteZustimmung(w);
+  // Reisen und Touren wirken sofort auf die Zustimmung (sim/wahlkampf.ts); was nach der letzten Umfrage geschah, kennt die Umfrage noch nicht
+  const seit = zeig.quelle === "institut" ? w.day - zeig.alterTage : Infinity;
+  const k = sp.wahlkampf;
+  const reisen = Math.round([...(k?.reisen ?? []), ...(k?.touren ?? [])].filter((r) => r.tag > seit).reduce((x, r) => x + (r.zustimmung ?? 0), 0) * 10) / 10;
+  const { amt, einfluesse } = wahlRechnung(w, zeig.wert + reisen, letzte);
+  if (reisen !== 0) einfluesse.unshift({ name: t("nacht_n2.einfluss.reisen_seit"), punkte: reisen });
+  const messfehler = zeig.quelle === "institut" ? zeig.streuung : 0;
+  const sigma = Math.sqrt((WAHL.rauschen * (letzte ? WAHL.letzteFaktor : 1)) ** 2 + messfehler ** 2);
+  const tage = Math.max(0, sp.wahltag - w.day);
+  return {
+    zustimmung: zeig.wert,
+    quelle: zeig.quelle,
+    ...(zeig.institut ? { institut: zeig.institut } : {}),
+    erwartet: rund1(amt),
+    von: rund1(clamp(amt - Z80 * sigma, 0, 100)),
+    bis: rund1(clamp(amt + Z80 * sigma, 0, 100)),
+    einfluesse,
+    letzte,
+    angriffe: angriffsAussicht(w),
+    wahlDatum: addDays(w.date, tage),
+    tageBisWahl: tage,
+  };
 }
 
 const rund1 = (x: number): number => Math.round(x * 10) / 10;
@@ -567,7 +668,7 @@ export function wahl(w: World, rng: Rng): void {
   const provinzen = provinzErgebnisse(w, g.amt, g.gegner, muster);
   const entschieden = absolut(g.amt) || absolut(g.gegner) || absolut(g.dritte);
   if (entschieden) {
-    abschliessen(w, rng, { kandidaten, runden: [runde1], provinzen, parlament, einfluesse: g.einfluesse }, false);
+    abschliessen(w, rng, { kandidaten, runden: [runde1], provinzen, parlament, einfluesse: g.einfluesse, treppe: { basis: g.basis, zufall: g.zufall } }, false);
     return;
   }
   // Stichwahl: Amtsinhaber gegen Hauptgegner
@@ -584,6 +685,7 @@ export function wahl(w: World, rng: Rng): void {
     muster,
     reaktionen: [],
     einfluesse: g.einfluesse,
+    treppe: { basis: g.basis, zufall: g.zufall },
   };
   z.stichwahl = vorgang;
   const amtName = kandidaten[0]!.name;
@@ -609,7 +711,7 @@ function stichwahlAuszaehlen(w: World, rng: Rng): void {
   const beteiligung = clamp(v.runde1.beteiligung + WAHL.beteiligungStich, 55, 92);
   const runde2 = rundeVon(w, 2, { amt, gegner }, beteiligung);
   const provinzen = provinzErgebnisse(w, amt, gegner, v.muster);
-  abschliessen(w, rng, { kandidaten: v.kandidaten, runden: [v.runde1, runde2], provinzen, parlament: v.parlament, einfluesse: v.einfluesse }, true);
+  abschliessen(w, rng, { kandidaten: v.kandidaten, runden: [v.runde1, runde2], provinzen, parlament: v.parlament, einfluesse: v.einfluesse, ...(v.treppe ? { treppe: v.treppe } : {}) }, true);
 }
 
 // ---------------------------------------------------------------------------

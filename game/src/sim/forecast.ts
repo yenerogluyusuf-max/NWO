@@ -92,6 +92,8 @@ export type Metric =
   | "debtRatio"
   | "defizit"
   | "zinsausgaben"
+  /** Die (wahre) Zustimmung, mit der am Wahltag gerechnet wird (Wählerkoalition, Hilfekarten) */
+  | "zustimmung"
   | `net:${string}`
   | `netin:${string}`;
 
@@ -101,6 +103,7 @@ export function metricValue(world: World, metric: Metric): number {
     return wertIn(world, id!, liste!.split(",").map(Number));
   }
   if (metric.startsWith("net:")) return nationalAverage(NET, world.net, metric.slice(4));
+  if (metric === "zustimmung") return world.spiel?.umfrage.zustimmung ?? NaN;
   if (metric === "defizit") return defizitJetzt(world);
   if (metric === "zinsausgaben") return zinsausgabenJetzt(world);
   return world.economy[metric as "inflation"];
@@ -119,6 +122,8 @@ export interface Outlook {
   withAction: Range;
   /** Differenz der Mediane: Richtung der Wirkung */
   effect: number;
+  /** Spanne der Wirkung aus den gepaarten Läufen (gleicher Zufall mit und ohne Handlung); fehlt bei `outlook` */
+  effectRange?: Range;
   direction: "hoeher" | "niedriger" | "unklar";
 }
 
@@ -201,7 +206,8 @@ function outlookManyFn(
     const effect = withAction.mid - withoutAction.mid;
     const spread = Math.max((withAction.high - withAction.low) / 2, 0.5);
     const direction = Math.abs(effect) < spread * 0.25 ? "unklar" : effect > 0 ? "hoeher" : "niedriger";
-    return { metric, months, withoutAction, withAction, effect, direction };
+    const effectRange = range(acted[k]!.map((x, i) => x - base[k]![i]!));
+    return { metric, months, withoutAction, withAction, effect, direction, effectRange };
   });
 }
 

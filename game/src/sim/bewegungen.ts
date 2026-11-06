@@ -232,6 +232,10 @@ export const antwortKapital = (a: AntwortDef, b: Bewegung): number => Math.round
 
 /** Wie die Antwort in den Umfragen ankommt (Punkte Zustimmung, Spielparameter); Opfer bei Polizei oder Verbot kosten zusätzlich. */
 const ANTWORT_ZUSTIMMUNG: Record<BewegungsAntwort, number> = { dialog: 0.3, zugestaendnis: 0.6, polizei: -0.8, verbot: -1.5 };
+/** Opfer bei harten Einsätzen: Wahrscheinlichkeit, Märtyrer-Sprung und Preis in der Zustimmung (Spielparameter) */
+const OPFER = { chance: 0.3, maertyrer: 12, zustimmung: -1.5 };
+/** Um so viele Stufen hebt ein Zugeständnis die geforderte Maßnahme (Spielparameter) */
+const ZUGESTAENDNIS_STUFEN = 5;
 
 /** Ein Zugeständnis bewegt eine echte Maßnahme (Zielstufe +5): Was die Bewegung fordert, steht danach im Haushalt und im Netz. */
 const ZUGESTAENDNIS_MASSNAHME: Partial<Record<BewegungsArt, string>> = {
@@ -242,7 +246,19 @@ const ZUGESTAENDNIS_MASSNAHME: Partial<Record<BewegungsArt, string>> = {
 export interface BewegungsSicht {
   b: Bewegung;
   druck: number;
-  antworten: { id: BewegungsAntwort; kapital: number; aufmerksamkeit: number; moeglich: boolean; grund?: string; folgen: string[]; vorschau: { groesse: number; radikal: number; maertyrer: number } }[];
+  antworten: {
+    id: BewegungsAntwort;
+    kapital: number;
+    aufmerksamkeit: number;
+    moeglich: boolean;
+    grund?: string;
+    folgen: string[];
+    vorschau: { groesse: number; radikal: number; maertyrer: number };
+    /** Was die Antwort sonst bucht (E-16): Zustimmung sofort, das Risiko von Opfern und ihr Preis, die Maßnahme eines Zugeständnisses */
+    zustimmung: number;
+    opfer?: { chance: number; zustimmung: number };
+    massnahme?: { id: string; stufen: number };
+  }[];
 }
 
 export function bewegungenSicht(w: World): BewegungsSicht[] {
@@ -268,6 +284,9 @@ export function bewegungenSicht(w: World): BewegungsSicht[] {
           radikal: Math.round(clamp(b.radikalitaet + a.radikal, 0, 100)),
           maertyrer: Math.round(clamp(b.maertyrer + a.maertyrer, 0, 100)),
         },
+        zustimmung: ANTWORT_ZUSTIMMUNG[id],
+        ...(id === "polizei" || id === "verbot" ? { opfer: { chance: OPFER.chance, zustimmung: OPFER.zustimmung } } : {}),
+        ...(id === "zugestaendnis" && ZUGESTAENDNIS_MASSNAHME[b.art] && NET.index.has(ZUGESTAENDNIS_MASSNAHME[b.art]!) ? { massnahme: { id: ZUGESTAENDNIS_MASSNAHME[b.art]!, stufen: ZUGESTAENDNIS_STUFEN } } : {}),
       };
     }),
   }));
@@ -289,17 +308,14 @@ export function bewegungAntworten(w: World, id: string, antwort: BewegungsAntwor
   b.radikalitaet = clamp(b.radikalitaet + a.radikal, 0, 100);
   let maertyrer = a.maertyrer;
   // Bei harten Einsätzen kann es Verletzte und Tote geben: der Märtyrer-Wert springt (Spielparameter)
-  const opfer = (antwort === "polizei" || antwort === "verbot") && hashWert(`${w.seed}|opfer|${b.id}|${w.day}`) < 0.3;
-  if (opfer) maertyrer += 12;
+  const opfer = !!s.opfer && hashWert(`${w.seed}|opfer|${b.id}|${w.day}`) < s.opfer.chance;
+  if (opfer) maertyrer += OPFER.maertyrer;
   b.maertyrer = clamp(b.maertyrer + maertyrer, 0, 100);
   if (d.milieu) grollAendern(w, d.milieu, a.groll);
   repressionBuchen(w, a.repression);
   b.letzte = { antwort, tag: w.day };
-  sp.umfrage.zustimmung = clamp(sp.umfrage.zustimmung + ANTWORT_ZUSTIMMUNG[antwort] - (opfer ? 1.5 : 0), 0, 100);
-  if (antwort === "zugestaendnis") {
-    const m = ZUGESTAENDNIS_MASSNAHME[b.art];
-    if (m && NET.index.has(m)) w.net.targets[m] = clamp((w.net.targets[m] ?? 50) + 5, 0, 100);
-  }
+  sp.umfrage.zustimmung = clamp(sp.umfrage.zustimmung + s.zustimmung + (opfer ? s.opfer!.zustimmung : 0), 0, 100);
+  if (s.massnahme) w.net.targets[s.massnahme.id] = clamp((w.net.targets[s.massnahme.id] ?? 50) + s.massnahme.stufen, 0, 100);
   switch (antwort) {
     case "dialog":
       wirke(w, "polarisierung", -0.5);

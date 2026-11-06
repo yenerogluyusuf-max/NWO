@@ -93,9 +93,11 @@ describe("Wahlabend", () => {
       const w = createWorld(turkey2026, seed);
       startAfterElection(w, schnellProfil());
       w.spiel!.ereignisse = [];
-      w.spiel!.umfrage.zustimmung = 48;
-      w.spiel!.kalibrierung += 1;
-      bisWahltagMit(w, 48);
+      // 50 statt 48 seit 6. November: Die Wahl bucht die Stärke der Opposition (E-3); in dieser Partie ohne Antworten kostet sie rund
+      // 1,5 Punkte, mit 48 fiel das Ergebnis meist unter die Schwelle, ab der es eine Stichwahl gibt.
+      w.spiel!.umfrage.zustimmung = 50;
+      w.spiel!.kalibrierung += 3;
+      bisWahltagMit(w, 50);
       if (!w.spiel!.wahl?.stichwahl) continue;
       advance(w, 16);
       const e = w.spiel!.wahl!.historie[0]!;

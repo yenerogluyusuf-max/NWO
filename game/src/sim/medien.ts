@@ -916,3 +916,20 @@ export function rohdatenKaufen(w: World): MedienErgebnis {
   addLog(w, "entscheidung", t("medien.rohdaten.log", { tage: ROHDATEN.wartetage }));
   return { ok: true, text: t("medien.rohdaten.log", { tage: ROHDATEN.wartetage }) };
 }
+
+/**
+ * Anteil der Leserschaft und Zuschauer, den die regierungsnahen Häuser (staatlich oder loyal, nach Eigentümer und Kippen) heute erreichen:
+ * Mittel der Segmentreichweiten mal der heutigen Reichweite, geteilt durch alle Häuser. Die Gegendarstellung im Wahlkampf wirkt nur dort
+ * (sim/wahlkampf.ts, angriffBeantworten). Spielparameter aus den Modellwerten der Recherche A.5.2.
+ */
+export function hausmedienAnteil(w: World): number {
+  let haus = 0;
+  let alle = 0;
+  for (const c of MEDIEN_CLUSTER) {
+    const seg = Object.values(c.reichweiteSegmente);
+    const r = (seg.reduce((a, b) => a + b, 0) / Math.max(1, seg.length)) * reichweiteJetzt(w, c.id);
+    alle += r;
+    if (loyalAusrichtung(wirksamerCluster(w, c).ausrichtung)) haus += r;
+  }
+  return alle > 0 ? haus / alle : 0;
+}

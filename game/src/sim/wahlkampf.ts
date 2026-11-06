@@ -28,12 +28,14 @@ import { figur } from "./figuren";
 import { zusagenBilanz } from "./zusagen";
 import { zeitungEreignis } from "./zeitung";
 import { maxAmtszeiten } from "./amtszeit";
-import { t, msg, tIn } from "../i18n";
+import { t, msg, tIn, aktuelleLocale } from "../i18n";
 import { freieWahlzusageId, wahlversprechenThema } from "./wahlversprechen-bezug";
 import { Rng } from "./rng";
 import type { World } from "./types";
 import type { AuslandsTour, WahlkampfZustand } from "./spiel-typen";
 import { t as tx } from "../i18n";
+import { zielZustimmung } from "./spiel";
+import { hausmedienAnteil } from "./medien";
 
 export const WAHLKAMPF = {
   /** Tage vor dem Wahltag, ab denen die Phase beginnt (acht Wochen) */
@@ -93,6 +95,22 @@ export const WAHLKAMPF = {
   angriffBasisOhneLast: 0.5,
   angriffDeckelWoche: 1.5,
   angriffDeckelGesamt: 6,
+  /**
+   * Antworten auf Angriffe (E-2, befund-E): Kosten in Aktionspunkten und Anteil des Treffers, der zurückkommt. Die Gegendarstellung wirkt nur
+   * bei Lesern und Zuschauern regierungsnaher Häuser (Anteil `hausmedienAnteil`, sim/medien.ts); der Ortstermin im Brennpunkt holt viel zurück,
+   * kann aber missglücken; der Gegenangriff wirkt sicher, heizt aber die Polarisierung an. Antworten gelten, solange der Angriff Thema ist.
+   * Alles Spielparameter.
+   */
+  antwortFristTage: 14,
+  gegendarstellungAp: 1,
+  gegendarstellungAnteil: 0.7,
+  ortsterminAp: 2,
+  ortsterminAnteil: 0.6,
+  ortsterminRisiko: 0.25,
+  ortsterminRueckschlag: 0.3,
+  gegenangriffAp: 1,
+  gegenangriffAnteil: 0.35,
+  gegenangriffPolarisierung: 1.5,
   /** Ab dieser Stärke berichtet die Zeitung über einen Angriff (Eilmeldung im Framing der Cluster) */
   angriffZeitungAb: 1.0,
   /** Länge des Umfrage-Tickers */
@@ -190,6 +208,55 @@ export function archetypRelevant(w: World, plaka: number): boolean {
   return akuteProblemeIn(w, plaka).some((pr) => Math.abs(DELTAS[pr.id]?.[arch.id - 1] ?? 0) >= 5);
 }
 
+/** Zahl mit zwei Nachkommastellen in der Sprache des Spiels (kleine Wirkungen auf die Zustimmung) */
+const fmt2 = (x: number): string => x.toLocaleString(aktuelleLocale(), { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+
+/** Ein Stoß auf einen Netzknoten: Kennung, Punkte, optional die Provinz (sonst landesweit). */
+type Stoss = [id: string, delta: number, plaka?: number];
+
+function stoesseAnwenden(w: World, stoesse: Stoss[]): void {
+  for (const [id, d, plaka] of stoesse) wirke(w, id, d, plaka !== undefined ? [plaka] : null);
+}
+
+/**
+ * Wahlkampf wirkt auf die Stimmung selbst, nicht auf Tatsachen: Der Stoß hebt den Sollwert der Zustimmung (sim/spiel.ts, zielZustimmung)
+ * und die Zustimmung sofort um denselben Betrag. So zählt auch die Reise drei Tage vor der Wahl, und die träge Monatsanpassung rechnet ihn
+ * nicht doppelt (der Abstand zwischen Soll und Zustimmung bleibt gleich). Gibt die Wirkung in Prozentpunkten zurück (E-5).
+ */
+function stimmungJetzt(w: World, stoesse: Stoss[]): number {
+  const sp = w.spiel!;
+  const vor = zielZustimmung(w);
+  stoesseAnwenden(w, stoesse);
+  const dz = zielZustimmung(w) - vor;
+  sp.umfrage.zustimmung = clamp(sp.umfrage.zustimmung + dz, 0, 100);
+  return dz;
+}
+
+/** Dieselbe Rechnung als Vorschau: Stoß anwenden, Wirkung auf den Sollwert messen, alles zurücksetzen. Würfelt nicht und ändert nichts. */
+function stimmungProbe(w: World, stoesse: Stoss[]): number {
+  if (!w.spiel) return 0;
+  const netz = w.net;
+  const slot = netz.history[netz.month % netz.history.length]!;
+  const gesichert = new Map<number, { v: number[]; h: number[] }>();
+  for (const [id] of stoesse) {
+    const i = NET.index.get(id);
+    if (i === undefined || gesichert.has(i)) continue;
+    const a = i * PROVINCES;
+    gesichert.set(i, { v: netz.values.slice(a, a + PROVINCES), h: slot.slice(a, a + PROVINCES) });
+  }
+  const vor = zielZustimmung(w);
+  stoesseAnwenden(w, stoesse);
+  const dz = zielZustimmung(w) - vor;
+  for (const [i, g] of gesichert) {
+    const a = i * PROVINCES;
+    for (let p = 0; p < PROVINCES; p++) {
+      netz.values[a + p] = g.v[p]!;
+      slot[a + p] = g.h[p]!;
+    }
+  }
+  return dz;
+}
+
 /** Erwartete Stärke eines Besuchs vor Abnutzung und Risiko, für die Anzeige. */
 export function reiseVorschau(w: World, plaka: number): { staerke: number; risiko: number; probleme: string[]; relevant: boolean; abnutzung: number } {
   const k = wahlkampfVon(w);
@@ -238,7 +305,11 @@ export function reiseWirkungVorschau(w: World, plaka: number) {
   const v = reiseVorschau(w, plaka);
   const effekt = v.staerke * v.abnutzung * (wahlkampfRolle(w) === "nachfolger" ? WAHLKAMPF.nachfolgerUebertrag : 1);
   const gruppe = ARCHETYP_GRUPPE[archetypVon(plaka)?.id ?? 0];
+  const stoesse = (f: number): Stoss[] => [["vertrauen_regierung", effekt * f, plaka], ...(gruppe ? [[gruppe, effekt * f * WAHLKAMPF.reiseGruppenAnteil, plaka] as Stoss] : [])];
   return { ...v, kosten: reiseKosten(plaka), gruppe,
+    /** Wirkung auf die Zustimmung in Prozentpunkten, die am Wahltag zählt (dieselbe Rechnung wie beim Buchen) */
+    wahlErfolg: stimmungProbe(w, stoesse(1)),
+    wahlRueckschlag: v.probleme.length > 0 ? stimmungProbe(w, stoesse(-WAHLKAMPF.reiseRueckschlag)) : 0,
     erfolg: indexAenderung(w, "vertrauen_regierung", effekt, plaka),
     rueckschlag: indexAenderung(w, "vertrauen_regierung", -effekt * WAHLKAMPF.reiseRueckschlag, plaka),
     gruppenErfolg: gruppe ? indexAenderung(w, gruppe, effekt * WAHLKAMPF.reiseGruppenAnteil, plaka) : 0,
@@ -252,7 +323,7 @@ export function reise(w: World, plaka: number, rng: Rng): AktionErgebnis {
   const k = sp?.wahlkampf;
   if (!sp || sp.ende || !k) return { ok: false, text: tx("sim2.sim.wahlkampf.f25e0a2") };
   const provinz = PROVINZEN[plaka - 1];
-  if (!provinz) return { ok: false, text: "Unbekannte Provinz." };
+  if (!provinz) return { ok: false, text: t("nacht_n2.reise.unbekannt") };
   const kosten = reiseKosten(plaka);
   if (k.ap < kosten) return { ok: false, text: tx("sim2.sim.wahlkampf.09a4a0d", { p0: kosten, p1: fmt(k.ap) }) };
 
@@ -263,19 +334,18 @@ export function reise(w: World, plaka: number, rng: Rng): AktionErgebnis {
 
   k.ap -= kosten;
   k.besuche[String(plaka)] = (k.besuche[String(plaka)] ?? 0) + 1;
-  k.reisen.push({ plaka, tag: w.day, effekt: Math.round(effekt * 10) / 10, missglueckt });
 
-  wirke(w, "vertrauen_regierung", effekt, [plaka]);
   const arch = archetypVon(plaka);
   const gruppe = arch ? ARCHETYP_GRUPPE[arch.id] : undefined;
-  if (gruppe) wirke(w, gruppe, effekt * WAHLKAMPF.reiseGruppenAnteil, [plaka]);
+  const dz = stimmungJetzt(w, [["vertrauen_regierung", effekt, plaka], ...(gruppe ? [[gruppe, effekt * WAHLKAMPF.reiseGruppenAnteil, plaka] as Stoss] : [])]);
+  k.reisen.push({ plaka, tag: w.day, effekt: Math.round(effekt * 10) / 10, missglueckt, zustimmung: Math.round(dz * 100) / 100 });
 
   const wiederholt = (k.besuche[String(plaka)] ?? 0) > 1;
   let text: string;
   if (missglueckt) {
     text = tx("sim2.sim.wahlkampf.aec3c03", { p0: provinz.name, p1: vorschau.probleme[0]! });
   } else if (vorschau.probleme.length > 0) {
-    text = tx("sim2.sim.wahlkampf.f4336f4", { p0: provinz.name, p1: vorschau.probleme[0]!, p2: vorschau.relevant ? ", und weil die Lage die Provinz prägt, trägt es umso mehr" : "" });
+    text = tx("sim2.sim.wahlkampf.f4336f4", { p0: provinz.name, p1: vorschau.probleme[0]!, p2: vorschau.relevant ? t("nacht_n2.reise.praegt") : "" });
   } else {
     text = tx("sim2.sim.wahlkampf.d077e0d", { p0: provinz.name });
   }
@@ -284,8 +354,9 @@ export function reise(w: World, plaka: number, rng: Rng): AktionErgebnis {
     w,
     "entscheidung",
     tx("sim2.sim.wahlkampf.63941c7", { p0: provinz.name, p1: kosten }),
-    `${text} Lokales Vertrauen ${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))}.`,
+    `${text} ${t("nacht_n2.reise.log", { lokal: `${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))}`, wahl: `${dz >= 0 ? "+" : "−"}${fmt2(Math.abs(dz))}` })}`,
   );
+  text += " " + t("nacht_n2.reise.ergebnis", { d: `${dz >= 0 ? "+" : "−"}${fmt2(Math.abs(dz))}` });
   return { ok: true, text };
 }
 
@@ -318,17 +389,21 @@ export function tourVorschau(w: World, land: TourLand) {
   const { bisher, abnutzung, reichweite } = tourWirkung(w, land);
   const zustimmung = w.spiel?.umfrage.zustimmung ?? 0;
   const aktuell = diasporaBlock(w, zustimmung);
+  // Die Bilder im Inland heben die Zustimmung sofort (wie beim Buchen); der Block im Ausland rechnet von der neuen Zustimmung aus
+  const wahlInland = w.spiel?.wahlkampf ? stimmungProbe(w, [["vertrauen_regierung", WAHLKAMPF.tourVertrauen * abnutzung], ["nationalisten", WAHLKAMPF.tourNationalisten * abnutzung]]) : 0;
   const runde = (x: number) => Math.round(x * 10) / 10;
   const rand = (hoch: boolean, verbot: boolean) => {
     const key = hoch ? "max" : "min";
     const beteiligung = runde((DIASPORA_KAMPAGNE.beteiligungPlusPp[key] * reichweite + (verbot ? DIASPORA_KAMPAGNE.belagerungBeteiligungPp : 0)) * abnutzung);
     const lager = runde(DIASPORA_KAMPAGNE.lagerPlusPp[key] * abnutzung);
-    const nach = diasporaBlock(w, zustimmung, beteiligung, lager);
+    const nach = diasporaBlock(w, clamp(zustimmung + wahlInland, 0, 100), beteiligung, lager);
     return { beitrag: nach.beitrag - aktuell.beitrag, beteiligung: (nach.beteiligung - aktuell.beteiligung) * 100, lager: nach.lagerAnteil - aktuell.lagerAnteil };
   };
   return { bisher, abnutzung, kosten: WAHLKAMPF.tourAp, risiko: DIASPORA_KAMPAGNE.auftrittsverbotChance,
     vertrauen: indexAenderung(w, "vertrauen_regierung", WAHLKAMPF.tourVertrauen * abnutzung),
     nationalisten: indexAenderung(w, "nationalisten", WAHLKAMPF.tourNationalisten * abnutzung),
+    /** Wirkung der Bilder im Inland auf die Zustimmung in Prozentpunkten (wie beim Buchen) */
+    wahlInland,
     min: rand(false, false), max: rand(true, false), verbotMin: rand(false, true), verbotMax: rand(true, true),
     euMin: DIASPORA_KAMPAGNE.beziehungGastland.min, euMax: DIASPORA_KAMPAGNE.beziehungGastland.max, konflikt: 4,
   };
@@ -359,10 +434,9 @@ export function auslandstour(w: World, land: TourLand, rng: Rng): AktionErgebnis
   lagerPlus = Math.round(lagerPlus * 10) / 10;
 
   k.ap -= WAHLKAMPF.tourAp;
-  k.touren.push({ land, tag: w.day, beteiligungPlus, lagerPlus, verbot });
-  // Heimischer Fernseheffekt: volle Hallen im Ausland sind auch im Inland Bilder
-  wirke(w, "vertrauen_regierung", WAHLKAMPF.tourVertrauen * abnutzung);
-  wirke(w, "nationalisten", WAHLKAMPF.tourNationalisten * abnutzung);
+  // Heimischer Fernseheffekt: volle Hallen im Ausland sind auch im Inland Bilder; er zählt sofort in der Zustimmung (wie die Reisen)
+  const dz = stimmungJetzt(w, [["vertrauen_regierung", WAHLKAMPF.tourVertrauen * abnutzung], ["nationalisten", WAHLKAMPF.tourNationalisten * abnutzung]]);
+  k.touren.push({ land, tag: w.day, beteiligungPlus, lagerPlus, verbot, zustimmung: Math.round(dz * 100) / 100 });
 
   const text = tx("sim2.sim.wahlkampf.8f7e132", { p0: ziel.name, p1: beteiligungPlus >= 0 ? "+" : "−", p2: fmt(Math.abs(beteiligungPlus)), p3: fmt(lagerPlus), p4: verbotText });
   addLog(w, "entscheidung", t("protokoll.wk.tour", { ziel: ziel.name, ap: WAHLKAMPF.tourAp }), text);
@@ -635,7 +709,7 @@ function duellAustragen(w: World, rng: Rng): void {
   }
   sp.hinweise.push({
     id: `wahlkampf-duell-${w.day}`,
-    titel: `TV-Duell: ${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))} Prozentpunkte`,
+    titel: t("nacht_n2.duell.titel", { d: `${effekt >= 0 ? "+" : "−"}${fmt(Math.abs(effekt))}` }),
     // Das Fernsehstudio, nicht die Wahlnacht: Das Bild „wahlnacht“ trägt ein Banner WAHLNACHT (Spielerdurchlauf 5. November)
     szene: "presse",
     text: [
@@ -698,13 +772,13 @@ function angriffWoche(w: World): void {
   if (staerke <= 0) return;
   k.angriffe = Math.round((k.angriffe - staerke) * 100) / 100;
   const thema = sw ? sw.name : tx("sim2.sim.wahlkampf.b07cd18");
-  k.angriffeLog.push({ tag: w.day, thema, staerke: Math.round(staerke * 100) / 100 });
+  k.angriffeLog.push({ tag: w.day, thema, staerke: Math.round(staerke * 100) / 100, ...(sw ? { themaId: sw.id } : {}) });
   if (k.angriffeLog.length > 12) k.angriffeLog.shift();
   addLog(
     w,
     "ereignis",
-    `${g.name} greift an: ${thema}.`,
-    sw ? tx("sim2.sim.wahlkampf.929fae7", { p0: sw.provinzen, p1: sw.provinzen === 1 ? "Provinz" : "Provinzen", p2: fmt(staerke) }) : tx("sim2.sim.wahlkampf.45109a2", { p0: fmt(staerke) }),
+    t("nacht_n2.angriff.log", { name: g.name, thema }),
+    sw ? t("nacht_n2.angriff.log_warum", { n: sw.provinzen, d: fmt(staerke) }) : tx("sim2.sim.wahlkampf.45109a2", { p0: fmt(staerke) }),
   );
   // Die Zeitung berichtet im Framing ihrer Cluster, wenn der Angriff trifft
   if (staerke >= WAHLKAMPF.angriffZeitungAb && sw) {
@@ -716,6 +790,139 @@ function angriffWoche(w: World): void {
       schluessel: ["greift an", sw.name],
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// Antworten auf Angriffe (E-2) und die Aussicht auf die Angriffe bis zum Wahltag
+
+export type AngriffAntwort = "gegendarstellung" | "ortstermin" | "gegenangriff";
+export const ANGRIFF_ANTWORTEN: AngriffAntwort[] = ["gegendarstellung", "ortstermin", "gegenangriff"];
+
+export interface AngriffAntwortSicht {
+  id: AngriffAntwort;
+  ap: number;
+  moeglich: boolean;
+  grund?: string;
+  /** Prozentpunkte, die bei Erfolg zurückkommen (positiv) */
+  zurueck: number;
+  /** Wahrscheinlichkeit des Fehlschlags und was er kostet (Prozentpunkte, negativ) */
+  risiko: number;
+  rueckschlag: number;
+  /** Zusätzliche Polarisierung landesweit (Gegenangriff) */
+  polarisierung: number;
+  /** Anteil der Leser und Zuschauer regierungsnaher Häuser (Gegendarstellung) */
+  hausmedien?: number;
+}
+
+/** Ob ein Angriff noch Thema ist (nicht beantwortet, jünger als die Frist). */
+export function angriffOffen(w: World, a: { tag: number; antwort?: string }): boolean {
+  return !a.antwort && w.day - a.tag <= WAHLKAMPF.antwortFristTage;
+}
+
+/** Die drei Antworten auf einen Angriff mit Preis und Wirkung; dieselben Zahlen bucht `angriffBeantworten`. */
+export function angriffAntworten(w: World, index: number): AngriffAntwortSicht[] {
+  const k = wahlkampfVon(w);
+  const a = k?.angriffeLog[index];
+  const r = (x: number) => Math.round(x * 100) / 100;
+  return ANGRIFF_ANTWORTEN.map((id) => {
+    const staerke = a?.staerke ?? 0;
+    const haus = id === "gegendarstellung" ? hausmedienAnteil(w) : undefined;
+    const ap = id === "gegendarstellung" ? WAHLKAMPF.gegendarstellungAp : id === "ortstermin" ? WAHLKAMPF.ortsterminAp : WAHLKAMPF.gegenangriffAp;
+    const anteil = id === "gegendarstellung" ? WAHLKAMPF.gegendarstellungAnteil * (haus ?? 0) : id === "ortstermin" ? WAHLKAMPF.ortsterminAnteil : WAHLKAMPF.gegenangriffAnteil;
+    // Nie mehr zurück, als der Angriff gekostet hat, und nie über null hinaus
+    const zurueck = r(Math.min(staerke * anteil, -(k?.angriffe ?? 0)));
+    const rueckschlag = id === "ortstermin" ? -r(Math.min(staerke * WAHLKAMPF.ortsterminRueckschlag, WAHLKAMPF.angriffDeckelGesamt + (k?.angriffe ?? 0))) : 0;
+    let grund: string | undefined;
+    if (!k || !a) grund = t("nacht_n2.antwort.grund.kein_angriff");
+    else if (a.antwort) grund = t("nacht_n2.antwort.grund.beantwortet");
+    else if (!angriffOffen(w, a)) grund = t("nacht_n2.antwort.grund.alt", { tage: WAHLKAMPF.antwortFristTage });
+    else if (k.ap < ap) grund = t("nacht_n2.antwort.grund.ap", { ap, hat: fmt(k.ap) });
+    return {
+      id,
+      ap,
+      moeglich: !grund,
+      ...(grund ? { grund } : {}),
+      zurueck,
+      risiko: id === "ortstermin" ? WAHLKAMPF.ortsterminRisiko : 0,
+      rueckschlag,
+      polarisierung: id === "gegenangriff" ? WAHLKAMPF.gegenangriffPolarisierung : 0,
+      ...(haus !== undefined ? { hausmedien: haus } : {}),
+    };
+  });
+}
+
+/** Auf einen Angriff antworten: Aktionspunkte zahlen, einen Teil des Treffers zurückholen (oder beim Ortstermin Pech haben). */
+export function angriffBeantworten(w: World, index: number, id: AngriffAntwort, rng: Rng): AktionErgebnis {
+  const sp = w.spiel;
+  const k = sp?.wahlkampf;
+  if (!sp || sp.ende || !k) return { ok: false, text: tx("sim2.sim.wahlkampf.f25e0a2") };
+  const sicht = angriffAntworten(w, index).find((x) => x.id === id)!;
+  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? "" };
+  const a = k.angriffeLog[index]!;
+  k.ap -= sicht.ap;
+  const missglueckt = sicht.risiko > 0 && rng.next() < sicht.risiko;
+  const delta = missglueckt ? sicht.rueckschlag : sicht.zurueck;
+  k.angriffe = clamp(Math.round((k.angriffe + delta) * 100) / 100, -WAHLKAMPF.angriffDeckelGesamt, 0);
+  a.antwort = id;
+  a.zurueck = delta;
+  if (sicht.polarisierung) wirke(w, "polarisierung", sicht.polarisierung);
+  const d = `${delta >= 0 ? "+" : "−"}${fmt2(Math.abs(delta))}`;
+  const text = t(missglueckt ? `nacht_n2.antwort.${id}.fehl` : `nacht_n2.antwort.${id}.ok`, { thema: a.thema, d });
+  addLog(w, "entscheidung", t("nacht_n2.antwort.log", { antwort: t(`nacht_n2.antwort.${id}.name`), thema: a.thema, ap: sicht.ap }), text);
+  return { ok: true, text };
+}
+
+export interface AngriffsAussicht {
+  /** Das Thema der Gegenseite (die größte Schwachstelle heute), Kennung, Zahl der Provinzen und Anteil der Bevölkerung dort */
+  thema: string | null;
+  themaId?: string;
+  provinzen: number;
+  anteil: number;
+  /** Die drei größten betroffenen Provinzen */
+  orte: string[];
+  /** Stärke je Woche bei heutiger Lage, Zahl der Angriffe bis zum Wahltag und die erwartete Summe (negativ, mit Deckel) */
+  proWoche: number;
+  wochen: number;
+  summe: number;
+  /** Was schon gebucht ist (negativ) */
+  bisher: number;
+}
+
+/**
+ * Was die Gegenseite bis zum Wahltag noch angreifen wird, aus derselben Rechnung wie `angriffWoche`: ein Angriff je Kampagnenwoche
+ * (acht Wochen, der letzte am Wahltag), Stärke nach der größten Schwachstelle von heute, Deckel je Woche und insgesamt.
+ */
+export function angriffsAussicht(w: World): AngriffsAussicht {
+  const sp = w.spiel;
+  const k = sp?.wahlkampf;
+  const sw = schwachstelle(w);
+  let proWoche = (sw ? WAHLKAMPF.angriffBasis + WAHLKAMPF.angriffJeLast * sw.last : WAHLKAMPF.angriffBasis * WAHLKAMPF.angriffBasisOhneLast) * gegnerHaerte(w);
+  proWoche = Math.min(proWoche, WAHLKAMPF.angriffDeckelWoche);
+  const wahltag = sp?.wahltag ?? w.day;
+  const wochen = !sp ? 0 : k ? Math.max(0, Math.floor((wahltag - k.woche) / WAHLKAMPF.wocheTage)) : Math.floor(WAHLKAMPF.beginnTage / WAHLKAMPF.wocheTage);
+  const bisher = k?.angriffe ?? 0;
+  const summe = -Math.max(0, Math.min(proWoche * wochen, WAHLKAMPF.angriffDeckelGesamt + bisher));
+  let orte: string[] = [];
+  if (sw) {
+    const i = NET.index.get(sw.id)!;
+    const node = NET.nodes[i]!;
+    orte = PROVINZEN.filter((p) => w.net.values[i * PROVINCES + p.plaka - 1]! >= (node.threshold ?? 101))
+      .sort((a, b) => w.net.weights[b.plaka - 1]! - w.net.weights[a.plaka - 1]!)
+      .slice(0, 3)
+      .map((p) => p.name);
+  }
+  const r = (x: number) => Math.round(x * 100) / 100;
+  return {
+    thema: sw?.name ?? null,
+    ...(sw ? { themaId: sw.id } : {}),
+    provinzen: sw?.provinzen ?? 0,
+    anteil: sw?.last ?? 0,
+    orte,
+    proWoche: r(proWoche),
+    wochen,
+    summe: r(summe),
+    bisher: r(bisher),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -739,7 +946,7 @@ export function wahlkampfTag(w: World): void {
     const wahlDatum = formatDateDe(addDays(w.date, sp.wahltag - w.day));
     sp.hinweise.push({
       id: `wahlkampf-beginn-${w.day}`,
-      titel: nachfolgerKampf ? t("enden.wk.beginn.titel") : "Der Wahlkampf beginnt",
+      titel: nachfolgerKampf ? t("enden.wk.beginn.titel") : t("nacht_n2.wk.beginn"),
       szene: "anatolien",
       text: nachfolgerKampf
         ? [
@@ -813,6 +1020,10 @@ export interface WahlkampfSicht {
   ticker: WahlkampfZustand["ticker"];
   diaspora: { beitrag: number; beteiligung: number; lagerAnteil: number; touren: number };
   effekte: { gesamt: number; teile: WahlEffekt[] };
+  /** Was Reisen und Auslandstouren der Zustimmung schon gebracht haben (Prozentpunkte; steckt in der Zustimmung, zählt also am Wahltag mit) */
+  reisenZustimmung: number;
+  /** Was die Gegenseite bis zum Wahltag noch angreifen wird */
+  aussicht: AngriffsAussicht;
   /** Wer kämpft, und für wen (im Nachfolger-Wahlkampf: Name, Rolle und Strahlkraft des Nachfolgers) */
   rolle: "amt" | "nachfolger";
   nachfolger?: { name: string; rolle: string; staerke: number };
@@ -853,6 +1064,8 @@ export function wahlkampfSicht(w: World): WahlkampfSicht {
     ticker: k?.ticker ?? [],
     diaspora: { beitrag: Math.round(dias.beitrag * 100) / 100, beteiligung: dias.beteiligung, lagerAnteil: Math.round(dias.lagerAnteil * 10) / 10, touren: k?.touren.length ?? 0 },
     effekte: wahlEffekte(w),
+    reisenZustimmung: Math.round(((k?.reisen ?? []).reduce((x, r) => x + (r.zustimmung ?? 0), 0) + (k?.touren ?? []).reduce((x, r) => x + (r.zustimmung ?? 0), 0)) * 100) / 100,
+    aussicht: angriffsAussicht(w),
     rolle: k?.rolle ?? "amt",
   };
   const nachf = nachfolgerImWahlkampf(w);
