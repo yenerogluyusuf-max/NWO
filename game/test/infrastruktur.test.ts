@@ -162,6 +162,26 @@ describe("Bitte bei Überlast", () => {
   });
 });
 
+describe("Frist der Bitte", () => {
+  test("Die Frist ist die Restzeit bis zum Ende der 60 Tage, nicht der Spieltag (Rückmeldung 06.11.2026: „Frist in 130 Monaten“)", () => {
+    const w = spiel();
+    w.spiel!.kapital = 60;
+    let gesehen = 0;
+    for (let m = 0; m < 24; m++) {
+      advance(w, 30);
+      const b = infrastrukturBitte(w);
+      if (!b) continue;
+      gesehen++;
+      const offen = w.spiel!.infrastruktur!.bitte!;
+      expect(b.frist).toBe(Math.max(0, offen.tag + 60 - w.day));
+      expect(b.frist).toBeLessThanOrEqual(60);
+      const v = ministerVorlagen(w, { tiefe: 0, ungefiltert: true }).find((x) => x.thema.startsWith("infra:"));
+      if (v) expect(v.frist).toBe(b.frist);
+    }
+    expect(gesehen).toBeGreaterThan(0);
+  });
+});
+
 describe("Liegengelassene Bitte", () => {
   test("kostet Vertrauen vor Ort und Loyalität im Ressort, verstärkt ein Jahr den Druck; eine spätere Antwort hebt das auf", () => {
     const w = spiel();

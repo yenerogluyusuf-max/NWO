@@ -31,14 +31,32 @@ export interface RessortPolitikBeleg {
 export interface RessortVorfall {
   id:string;figur:string;name:string;amt:Figur['amt'];amtsantritt:number;partei?:string;
   tag:number;datum:string;art:'eigeninitiative'|'stillstand'|'auftragVerfehlt';erfolg:boolean;folge:RessortFolge;
-  reaktion:RessortPolitikBeleg;entscheidung?:RessortPolitikBeleg;nachsorgeBegonnen?:boolean;geschlossen?:'wechsel'|'ueberholt';
+  reaktion:RessortPolitikBeleg;entscheidung?:RessortPolitikBeleg;nachsorgeBegonnen?:boolean;geschlossen?:'wechsel'|'ueberholt'|'verjaehrt';
+  /** Tag der unbeantworteten Ressortanfrage, aus der der Vorfall wurde (fehlt in älteren Spielständen; dann aus der Kennung) */
+  anfrage?:number;
 }
 export const RESSORT_REAKTION={stuetzen:{pk:1,aufmerksamkeit:4},zurueckpfeifen:{pk:1,aufmerksamkeit:4},entlassen:{pk:2,aufmerksamkeit:4}};
+/**
+ * Wie lange ein Vorfall auf eine politische Antwort wartet (Spielparameter). Vorher blieb jeder Vorfall offen, bis der Präsident reagierte
+ * oder der Minister ging: Im Spielstand des Inhabers (Februar 2039) lagen sechs Vorfälle seit bis zu sieben Monaten als „Dringend“ auf dem
+ * Tisch, ohne Frist und ohne Folge des Wartens. Nach 30 Tagen fragt niemand mehr nach der Verantwortung; der Sachschaden ist beim Vorfall
+ * bereits gebucht, das Warten kostet nichts weiter.
+ */
+export const RESSORT_VORFALL_FRIST=30;
+/** Spieltag, bis zu dem eine Reaktion möglich ist */
+export const vorfallFrist=(v:Pick<RessortVorfall,'tag'>)=>v.tag+RESSORT_VORFALL_FRIST;
+/** Tag der Anfrage, aus der der Vorfall wurde: gespeichert oder aus der Kennung `ressort-<amt>-<tag>` */
+export function vorfallAnfrage(v:Pick<RessortVorfall,'id'|'tag'|'anfrage'>):number {
+  if(v.anfrage!==undefined)return v.anfrage;
+  const n=Number(/-(\d+)$/.exec(v.id)?.[1]);
+  return Number.isFinite(n)&&n<=v.tag?n:v.tag;
+}
 const bereit=(w:World,p:string)=>w.spiel?.fraktionen?.[p]?.bereitschaft??startBereitschaft(w,p);
 const rolle=(w:World,p:string):Rolle=>w.spiel!.lager.includes(p)?'koalition':(w.spiel!.fraktionen?.[p]?.duldungBis??0)>w.day?'duldung':'opposition';
 const inhaber=(w:World,v:RessortVorfall)=>w.spiel?.figuren.find(f=>f.id===v.figur&&f.imAmt&&f.amt===v.amt&&f.name===v.name&&f.eigen?.seit===v.amtsantritt);
+const offen=(w:World,v:RessortVorfall)=>!v.entscheidung&&!v.geschlossen&&w.day<vorfallFrist(v)&&!!inhaber(w,v);
 export function offeneRessortVorfaelle(w:World):RessortVorfall[] {
-  return (w.spiel?.ministerfluss?.ressortVorfaelle??[]).filter(v=>!v.entscheidung&&!v.geschlossen&&inhaber(w,v));
+  return (w.spiel?.ministerfluss?.ressortVorfaelle??[]).filter(v=>offen(w,v));
 }
 function vorher(w:World) {
   return {pk:w.spiel!.kapital,auf:w.spiel!.verfassung?.aufmerksamkeit??80,
@@ -94,13 +112,17 @@ export function erfasseRessortVorfall(w:World,a:RessortAnliegen,folge:RessortFol
   const f=w.spiel.figuren.find(f=>f.id===a.figur&&f.imAmt&&f.name===a.name);if(!f)return;
   for(const v of alle)if(v.figur===f.id&&!v.entscheidung&&!v.geschlossen)v.geschlossen='ueberholt';
   const b=vorher(w),basis={id:a.id,figur:f.id,name:f.name,amt:f.amt,amtsantritt:eigenVon(w,f).seit,partei:f.partei,
-    tag:w.day,datum:w.date,art:folge.art as RessortVorfall['art'],erfolg,folge:structuredClone(folge)};
+    tag:w.day,datum:w.date,art:folge.art as RessortVorfall['art'],erfolg,folge:structuredClone(folge),anfrage:a.seit};
   const p=politik(w,basis,'vorfall',f.partei);
   alle.push({...basis,reaktion:beleg(w,b,'vorfall',p)});
   if(alle.length>30)alle.splice(0,alle.length-30);
 }
 export function ressortPolitikTag(w:World):void {
-  for(const v of w.spiel?.ministerfluss?.ressortVorfaelle??[])if(!v.entscheidung&&!v.geschlossen&&!inhaber(w,v))v.geschlossen='wechsel';
+  for(const v of w.spiel?.ministerfluss?.ressortVorfaelle??[]){
+    if(v.entscheidung||v.geschlossen)continue;
+    if(!inhaber(w,v))v.geschlossen='wechsel';
+    else if(w.day>=vorfallFrist(v))v.geschlossen='verjaehrt';
+  }
 }
 
 // Auch eine Entlassung aus der vorhandenen Personenakte muss denselben Vorfall politisch beantworten.
@@ -133,7 +155,7 @@ export function ressortEntlassungsHinweise(w:World,f:Figur):string[] {
 
 function reagiere(w:World,id:string,art:RessortReaktion):{ok:boolean;text:string} {
   const v=w.spiel?.ministerfluss?.ressortVorfaelle?.find(v=>v.id===id),f=v&&inhaber(w,v);
-  if(!v||!f||v.entscheidung||v.geschlossen||w.spiel?.ende||!Object.hasOwn(RESSORT_REAKTION,art))return {ok:false,text:t('rp.veraltet')};
+  if(!v||!f||!offen(w,v)||w.spiel?.ende||!Object.hasOwn(RESSORT_REAKTION,art))return {ok:false,text:t('rp.veraltet')};
   const d=RESSORT_REAKTION[art],pause=neuanfangGrund(w);
   if(pause)return {ok:false,text:pause};
   if(!kannZahlen(w.spiel!.kapital,d.pk))return {ok:false,text:t('rp.kapital',{n:d.pk})};

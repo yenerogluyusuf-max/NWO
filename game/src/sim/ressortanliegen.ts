@@ -25,6 +25,8 @@ export const ressortEntspannt=(id:string,wert:number)=>(HOCH_SCHLECHT.has(id)?we
 // (5,0 statt 1,6 Anliegen im Monat ohne Antwort des Präsidenten); nach F3 (ENTSCHEIDUNGEN W, Nachtrag) bleibt der Druck des Kabinetts in der
 // Summe der von vorher. Spielparameter, am Zählwerkzeug gemessen; es spricht zuerst das Ressort mit der schlimmsten Lage.
 export const RESSORT_ANLIEGEN={ruhe:30,frist:14,beratung:21,aufschub:7,maxOffen:3,abstand:18};
+/** Folge einer unbeantworteten Anfrage (Spielparameter): die Ressortgröße und das Vertrauen in die Regierung; der Schreibtisch nennt dieselben Zahlen */
+export const RESSORT_STILLSTAND={groesse:1.5,vertrauen:0.3};
 export type RessortAntwort='reden'|'umsetzen'|'spaeter'|'ablehnen';
 export interface RessortAnliegen {
  id:string;figur:string;amt:Figur['amt'];name:string;groesse:string;vorher:number;seit:number;frist:number;
@@ -83,7 +85,7 @@ export function ressortAnliegenTag(w:World):void {
   if(typ.eigen){
    // Begrenzte Verwaltungsinitiative: kein Gesetz, kein Kriegsbeginn und kein Umgehen parlamentarischer Sachziele.
    wirke(w,a.groesse,richtung*(typ.faehig?1.2:-0.8));bip=0.01;kosten(w,bip);wirke(w,'legitimitaet',-0.3);leg=wertVon(w,'legitimitaet')-legVor;grollVerschieben(w,f,1);
-  }else{wirke(w,a.groesse,-richtung*1.5);wirke(w,'vertrauen_regierung',-0.3);}
+  }else{wirke(w,a.groesse,-richtung*RESSORT_STILLSTAND.groesse);wirke(w,'vertrauen_regierung',-RESSORT_STILLSTAND.vertrauen);}
   a.status='eskaliert';a.ende=w.day;if(b)b.seit=w.day;
   const folge=beleg(w,a,typ.eigen?'eigeninitiative':'stillstand',vorher,loy,groll,bip,leg,wertVon(w,'vertrauen_regierung')-vertrauenVor);
   erfasseRessortVorfall(w,a,folge,richtung*(folge.nachher-vorher)>1e-8);

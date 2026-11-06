@@ -117,7 +117,9 @@ test('ohne parlamentarische Opposition wird keine fiktive Fraktion bestraft',()=
 });
 test('späterer Vorfall ersetzt alte offene Antwort ohne damaligen Beleg umzuschreiben',()=>{
  const w=fall(),alt=vorfall(w),historisch=JSON.stringify(alt.reaktion),p=plan(w,'stuetzen');tag(w,30);tag(w,14);
- expect(alt.geschlossen).toBe('ueberholt');expect(JSON.stringify(alt.reaktion)).toBe(historisch);expect(offeneRessortVorfaelle(w)).toHaveLength(1);expect(entscheideRessortVorfall(w,p).ok).toBe(false);
+ // Seit 06.11.2026 wartet ein Vorfall 30 Tage auf eine Reaktion (RESSORT_VORFALL_FRIST); der nächste Vorfall kommt erst nach 44 Tagen,
+ // der alte ist dann verjährt statt ersetzt. Geprüft bleibt: der alte Beleg bleibt unverändert, der alte Plan ist veraltet.
+ expect(alt.geschlossen).toBe('verjaehrt');expect(JSON.stringify(alt.reaktion)).toBe(historisch);expect(offeneRessortVorfaelle(w)).toHaveLength(1);expect(entscheideRessortVorfall(w,p).ok).toBe(false);
 });
 test('Speichern/Laden erhält Entscheidung und sperrt Wiederholung; alte Stände erhalten keine rückwirkenden Strafen',()=>{
  const w=fall();entscheideRessortVorfall(w,plan(w,'stuetzen'));const neu=load(save(w));expect(vorfall(neu).entscheidung).toEqual(vorfall(w).entscheidung);expect(plan(neu,'entlassen').ok).toBe(false);
