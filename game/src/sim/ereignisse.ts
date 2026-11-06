@@ -62,7 +62,7 @@ import { kannZahlen } from "./kapital";
 import { momentaufnahme, rueckblickAnlegen } from "./berichte";
 import { t } from "../i18n";
 import { aktiveParteivorsitzende } from "./koalitionslage";
-import { VERFASSUNG, belastungEreignis } from "./aufmerksamkeit";
+import { VERFASSUNG, belastungEreignis, hashWert } from "./aufmerksamkeit";
 
 export type { Option, Vorlage, SzenenName } from "./ereignis-hilfen";
 /** Stellschraube für die Häufigkeit aller Ereignisse. */
@@ -1302,10 +1302,9 @@ export function ereignisMonat(world: World, rng: Rng): void {
   // 1. Kandidaten sammeln: Chance, Abkühlung, Dichte und Obergrenze wie bisher; gärende Vorgänge kommen eher wieder
   const kandidaten: { v: Vorlage; gen: Erzeugung }[] = [];
   for (const v of VORLAGEN) {
-    // Neue Vorlagen (ziehtNurBeiChance) prüfen erst die Bedingung und ziehen dann, damit sie den Strom der übrigen nicht verschieben
+    // Neue Vorlagen (eigenerWurf) nehmen ihren Wurf aus Samen, Vorlage und Tag statt aus dem Strom: Sie verschieben die übrigen nie
     const basis = v.chance(world);
-    if (v.ziehtNurBeiChance && basis <= 0) continue;
-    const u = rng.next();
+    const u = v.eigenerWurf ? hashWert(`${world.seed}|wurf|${v.id}|${world.day}`) : rng.next();
     if (basis <= 0) continue;
     if (offenNormal() + geplantNormal() >= MAX_OFFEN) continue;
     if (spiel.ereignisse.some((e) => e.vorlage === v.id) || spiel.geplant?.some((g) => g.vorlage === v.id)) continue;

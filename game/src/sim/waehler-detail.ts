@@ -231,7 +231,10 @@ export function gleichgewicht(start: string, delta: number): Map<string, number>
 
 /**
  * Wie sich die Größen nach `monate` Monaten verschoben haben, wenn `start` um `delta` Punkte bewegt wird: das Netz auf Abweichungen gerechnet,
- * mit Umsetzungsdauer der Maßnahme, Verzögerung der Verbindungen und Trägheit der Größen, aber ohne Wirtschaftsrückwirkungen und ohne Deckelung.
+ * mit Umsetzungsdauer der Maßnahme, Verzögerung der Verbindungen, Trägheit der Größen und der Sättigung des Netzes (sim/netz.ts,
+ * GEGENKRAEFTE), aber ohne Wirtschaftsrückwirkungen und ohne Deckelung. Die Sättigung bremst einen Schub nach außen wie im Netz; als Lage dient
+ * der Ruhewert der Größe (`start`). Ohne sie lag die Vorschau bei Gruppen, die sich weit von der Mitte bewegen, um 10 bis 15 % zu hoch
+ * (Mittelstandsförderung → Unternehmer nach 36 Monaten: Vorschau 10,0, Netz 8,4 bis 8,8).
  * Für einen Blick auf die Größenordnung; die genaue Vorschau rechnet das ganze Modell mit Zufall.
  */
 export function wirkungNach(start: string, delta: number, monate: number[], dauer = knoten(start).months ?? 1): Map<number, Map<string, number>> {
@@ -254,6 +257,17 @@ export function wirkungNach(start: string, delta: number, monate: number[], daue
         zufluss += (GEWOEHNUNG_QUELLEN.has(e.from) ? faktor : 1) * e.weight * quelle;
       }
       const v = prev.get(k) ?? 0;
+      // Sättigung wie im Netz: Stimmungsknoten gemessen an der Mitte 50, alle übrigen am Abstand zum Ruhewert im Verhältnis zur Strecke bis zum Rand
+      const art = NET.stimmung[NET.index.get(k)!] ?? 0;
+      const ruhe = knoten(k).start;
+      if (art === 1) {
+        const x = (ruhe + v - 50) / 50;
+        if (zufluss * x > 0) zufluss *= 1 - GEGENKRAEFTE.saettigung * x * x;
+      } else if (art === 2) {
+        const strecke = v > 0 ? 100 - ruhe : ruhe;
+        const x = strecke > 1 ? v / strecke : 0;
+        if (zufluss * x > 0) zufluss *= 1 - GEGENKRAEFTE.saettigungGroessen * x * x;
+      }
       jetzt.set(k, v + zufluss - decay * v);
     }
     hist.push(jetzt);

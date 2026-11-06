@@ -21,7 +21,7 @@ import { ratingAendere, ratingDruck } from "./maerkte";
 import { blattDef } from "./zeitung";
 import { zbZustand } from "./wirtschaft";
 import { anrede, figur, loyalitaetAendern } from "./figuren";
-import { waehle } from "./akteure";
+import { hashWert } from "./aufmerksamkeit";
 import { vertrauenAendern, wirke } from "./wirkung";
 import { clamp } from "./economy";
 import { netz, nf, opt } from "./ereignis-hilfen";
@@ -164,7 +164,7 @@ function medienAntwort(w0: World, id: string, aktion: AktionId, cluster: string 
 
 const MEDIEN_KAMPAGNE: Vorlage = {
   id: "medien_kampagne",
-  ziehtNurBeiChance: true,
+  eigenerWurf: true,
   szene: "istanbul",
   frist: BEREICHSDRUCK.medien.frist,
   abkuehlung: BEREICHSDRUCK.medien.abkuehlung,
@@ -253,7 +253,7 @@ const naechsteStufe = (s: Unabhaengigkeit): Unabhaengigkeit | null => (s === "C"
 
 const ZB_VERTRAUEN: Vorlage = {
   id: "zentralbank_vertrauen",
-  ziehtNurBeiChance: true,
+  eigenerWurf: true,
   szene: "bank",
   frist: BEREICHSDRUCK.zentralbank.frist,
   abkuehlung: BEREICHSDRUCK.zentralbank.abkuehlung,
@@ -262,10 +262,12 @@ const ZB_VERTRAUEN: Vorlage = {
     if (!w.spiel || tageSeit(w, letzterZbKontakt(w)) < p.pflegeTage || !zbLage(w)) return 0;
     return p.chance * clamp(tageSeit(w, letzterZbKontakt(w)) / p.pflegeTage, 1, p.wachstumMax);
   },
-  erzeuge: (w, rng) => {
+  erzeuge: (w) => {
     const lage = zbLage(w) ?? "inflation";
+    // Die Agentur ebenfalls ohne den Zufallsstrom der Partie (eigener Wurf, siehe Vorlage.eigenerWurf)
+    const agenturen = ["Fitch", "Moody's", "S&P Global Ratings"];
     const staerke = lage === "glaubwuerdigkeit" ? 1 + clamp((BEREICHSDRUCK.zentralbank.glaubwuerdigkeit - w.economy.credibility) * 2, 0, 0.5) : 1;
-    return { provinzen: [], staerke, daten: { lage, agentur: waehle(rng, ["Fitch", "Moody's", "S&P Global Ratings"]), monate: Math.max(1, Math.round(tageSeit(w, letzterZbKontakt(w)) / 30)) } };
+    return { provinzen: [], staerke, daten: { lage, agentur: agenturen[Math.floor(hashWert(`${w.seed}|agentur|${w.day}`) * agenturen.length)]!, monate: Math.max(1, Math.round(tageSeit(w, letzterZbKontakt(w)) / 30)) } };
   },
   titel: (_, ev) => t(`welle_h3.zb.${String(ev.daten?.lage)}.titel`, { agentur: String(ev.daten?.agentur ?? "") }),
   text: (w, ev) => {

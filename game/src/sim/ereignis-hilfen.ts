@@ -85,10 +85,11 @@ export interface Vorlage {
   /** Wahrscheinlichkeit pro Monat, 0 = nicht möglich */
   chance: (w: World) => number;
   /**
-   * Der Monatswürfel zieht für diese Vorlage nur, wenn ihre Chance über null liegt. Ältere Vorlagen ziehen immer (ihr Zufallsstrom bleibt);
-   * neue Vorlagen setzen das, damit Partien, in denen sie nicht auslösen können, genau denselben Verlauf behalten wie vorher (Welle H3).
+   * Eigener Wurf (Welle H3): Der Monatswürfel nimmt für diese Vorlage keine Zahl aus dem Zufallsstrom der Partie, sondern einen festen Wert
+   * aus Samen, Vorlage und Tag. So verschiebt eine neue Vorlage den Strom der übrigen nie, auch nicht, wenn ihre Bedingung in zwei
+   * verglichenen Partien verschieden ausfällt (Vorschau gegen echte Rechnung). Ältere Vorlagen ziehen weiter aus dem Strom.
    */
-  ziehtNurBeiChance?: true;
+  eigenerWurf?: true;
   erzeuge: (w: World, rng: Rng) => { provinzen: number[]; staerke: number; daten?: Record<string, number | string> } | null;
 }
 
