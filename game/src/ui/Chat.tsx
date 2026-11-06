@@ -4,7 +4,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { World } from "../sim/types";
-import { befehl, willkommensText, type ChatZeile } from "../sim/befehle";
+import { bestaetigeBefehl, chatBefehl, willkommensText, type ChatVorschlag, type ChatZeile } from "../sim/befehle";
+import { NachfolgeAuswahl } from "./personen/NachfolgeAuswahl";
+import "./personen/personen.css";
 import { KiFehler, MODUS_NAME, waehleWeg, type Weg } from "../ki/anbieter";
 import { fuehreAus, vorschau } from "../ki/aktionen";
 import { fragKi } from "../ki/gespraech";
@@ -20,17 +22,24 @@ interface Vorschlag {
   erledigt?: { ok: boolean; text: string; why?: string };
 }
 
+/** Eine Vorschlagskarte des Regelwerks (Befund C-2): erst das Zeichen des Präsidenten führt aus. */
+interface RegelKarte {
+  v: ChatVorschlag;
+  /** Bei einer Entlassung: die Nachfolgeauswahl ist aufgeklappt */
+  offen?: boolean;
+  erledigt?: { ok: boolean; text: string; why?: string };
+}
+
 interface Zeile extends ChatZeile {
   vorschlaege?: Vorschlag[];
+  karte?: RegelKarte;
   /** Hinweis zur Herkunft der Antwort, etwa „Regelwerk, weil die KI nicht erreichbar war“ */
   quelle?: string;
 }
 
-const BEISPIELE_REGEL = ["Was soll ich als Nächstes tun?", "Wie stehen die Rentner zu mir?", "Wie ist das Verhältnis zu Russland?", "Gipfeltreffen mit der EU", "Wie verhandle ich mit der Opposition?", "Hilfe"];
-const BEISPIELE_KI = ["Was ist gerade am dringendsten, und warum?", "Wie komme ich an eine Mehrheit für mein nächstes Gesetz?", "Ich will die Inflation senken, ohne die Rentner zu verlieren.", "Erkläre mir, wie ich das Verhältnis zur EU verbessere.", "Wo stehe ich vor der Wahl, und was fehlt?"];
-
-const KI_WILLKOMMEN =
-  "Sie haben das Wort, in freien Worten. Ich kenne den Stand Ihrer Partie, erkläre Zusammenhänge und schlage Schritte vor, die Sie bestätigen. Was Kapital kostet, führe ich nie ohne Ihr Zeichen aus.";
+// Der Chat steht in der Kabinettsakte: Die Beispiele fragen nach dem Kabinett (Befund C-31). Befehle des Regelwerks sind deutsch, auch in en und tr.
+const BEISPIELE_REGEL = [1, 2, 3, 4, 5, 6].map((i) => t(`n1.chat.bsp${i}`));
+const BEISPIELE_KI = [1, 2, 3, 4, 5].map((i) => t(`n1.chat.ki.bsp${i}`));
 
 export function Chat({ world, refresh }: { world: World; refresh: () => void }) {
   const [zeilen, setZeilen] = useState<Zeile[]>([{ rolle: "spiel", text: willkommensText() }]);
@@ -54,7 +63,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
       setWeg(w);
       if (!begruesst.current) {
         begruesst.current = true;
-        if (w) setZeilen([{ rolle: "spiel", text: KI_WILLKOMMEN }]);
+        if (w) setZeilen([{ rolle: "spiel", text: t("n1.chat.ki.willkommen") }]);
       }
     });
     return () => {
@@ -73,9 +82,25 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
   }
 
   function regelAntwort(roh: string, quelle?: string) {
-    const antwort = befehl(roh, world);
-    setZeilen((z) => [...z, { rolle: "spiel", text: antwort.text, ...(antwort.why ? { why: antwort.why } : {}), ...(quelle ? { quelle } : {}) }]);
+    const antwort = chatBefehl(roh, world);
+    setZeilen((z) => [...z, { rolle: "spiel", text: antwort.text, ...(antwort.why ? { why: antwort.why } : {}), ...(quelle ? { quelle } : {}), ...(antwort.vorschlag ? { karte: { v: antwort.vorschlag } } : {}) }]);
     refresh();
+  }
+
+  function aendereKarte(zeile: number, f: (k: RegelKarte) => RegelKarte) {
+    setZeilen((z) => z.map((x, i) => (i === zeile && x.karte ? { ...x, karte: f(x.karte) } : x)));
+  }
+
+  function bestaetige(zeile: number) {
+    const k = zeilen[zeile]?.karte;
+    if (!k || k.erledigt || k.v.art !== "befehl") return;
+    const r = bestaetigeBefehl(k.v, world);
+    // Neuer Preis: die Karte zeigt den neuen Vorschlag statt eines Ergebnisses
+    if (r.vorschlag) aendereKarte(zeile, () => ({ v: r.vorschlag!, erledigt: undefined }));
+    else aendereKarte(zeile, (x) => ({ ...x, erledigt: { ok: r.ok, text: r.text, ...(r.why ? { why: r.why } : {}) } }));
+    if (r.vorschlag) setZeilen((z) => [...z, { rolle: "spiel", text: r.text }]);
+    refresh();
+    zuletzt();
   }
 
   async function senden(e: React.FormEvent, vorgabe?: string) {
@@ -92,8 +117,8 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
       return;
     }
     if (zaehler.aufrufe >= konfig.maxAufrufe) {
-      setZeilen((z) => [...z, { rolle: "spiel", text: `Das Aufruflimit dieser Sitzung (${konfig.maxAufrufe}) ist erreicht. Sie können es in den KI-Einstellungen anheben; bis dahin antworte ich regelbasiert.` }]);
-      regelAntwort(roh, "Regelwerk");
+      setZeilen((z) => [...z, { rolle: "spiel", text: t("n1.chat.ki.limit", { n: konfig.maxAufrufe }) }]);
+      regelAntwort(roh, t("n1.chat.quelle.regel"));
       zuletzt();
       return;
     }
@@ -103,22 +128,22 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
     try {
       const runde = await fragKi(world, verlauf.current, roh, konfig, undefined, ac.signal);
       setZaehler((z) => zaehle(z, runde.verbrauch.ein, runde.verbrauch.aus));
-      const neu: KiNachricht[] = [{ rolle: "user", text: roh }, { rolle: "assistant", text: runde.ergebnis.antwort || "(ohne Text)" }];
+      const neu: KiNachricht[] = [{ rolle: "user", text: roh }, { rolle: "assistant", text: runde.ergebnis.antwort || t("n1.chat.ki.ohneText") }];
       verlauf.current = [...verlauf.current, ...neu].slice(-8);
       setZeilen((z) => [
         ...z,
         {
           rolle: "spiel",
-          text: runde.ergebnis.antwort || (runde.ergebnis.aktionen.length ? "Hier sind meine Vorschläge:" : "Dazu habe ich nichts zu sagen."),
+          text: runde.ergebnis.antwort || (runde.ergebnis.aktionen.length ? t("n1.chat.ki.vorschlaege") : t("n1.chat.ki.nichts")),
           quelle: runde.verbrauch.modell,
           ...(runde.ergebnis.aktionen.length ? { vorschlaege: runde.ergebnis.aktionen.map((aktion) => ({ aktion })) } : {}),
         },
       ]);
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
-      const meldung = err instanceof KiFehler ? err.message : "Die KI hat nicht geantwortet.";
-      setZeilen((z) => [...z, { rolle: "spiel", text: `${meldung} Ich antworte stattdessen mit dem Regelwerk.` }]);
-      regelAntwort(roh, "Regelwerk");
+      const meldung = err instanceof KiFehler ? err.message : t("n1.chat.ki.fehler");
+      setZeilen((z) => [...z, { rolle: "spiel", text: t("n1.chat.ki.ersatz", { meldung }) }]);
+      regelAntwort(roh, t("n1.chat.quelle.regel"));
     } finally {
       setDenkt(false);
       zuletzt();
@@ -128,6 +153,18 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
   function fuehre(zeile: number, index: number) {
     const v = zeilen[zeile]?.vorschlaege?.[index];
     if (!v || v.erledigt) return;
+    // Eine Entlassung aus dem Vorschlag der KI geht über dieselbe Nachfolgeauswahl wie im Kabinett, nie über einen zufälligen Nachfolger (C-2)
+    const a = v.aktion;
+    const fe = a.art === "figur" && a.handlung === "entlassen" ? world.spiel?.figuren.find((x) => x.amt === a.amt && x.imAmt) : undefined;
+    if (fe) {
+      const text = t("n1.chat.entlassung.text", { rolle: fe.rolle, name: fe.name });
+      setZeilen((z) => [
+        ...z.map((x, i) => (i === zeile && x.vorschlaege ? { ...x, vorschlaege: x.vorschlaege.map((y, j) => (j === index ? { ...y, erledigt: { ok: true, text } } : y)) } : x)),
+        { rolle: "spiel", text, karte: { v: { art: "entlassung", amt: fe.amt, figurId: fe.id }, offen: true } },
+      ]);
+      zuletzt();
+      return;
+    }
     const r = fuehreAus(world, v.aktion);
     setZeilen((z) =>
       z.map((x, i) =>
@@ -139,7 +176,7 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
   }
 
   const beispiele = kiAktiv ? BEISPIELE_KI : BEISPIELE_REGEL;
-  const statusText = weg === undefined ? "KI wird geprüft …" : kiAktiv ? `${weg!.anbieter.name} · ${weg!.modell}` : "Regelwerk · KI nicht eingerichtet";
+  const statusText = weg === undefined ? t("n1.chat.status.pruefe") : kiAktiv ? `${weg!.anbieter.name} · ${weg!.modell}` : t("n1.chat.status.regel");
 
   // Das Eingabefeld wächst mit dem Text, bis fünf Zeilen
   function wachse(el: HTMLTextAreaElement) {
@@ -191,8 +228,9 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
                 </span>
                 <div className="gs-blase">
                   <p>{z.text}</p>
-                  {z.why && <p className="gs-why">{z.why}</p>}
+                  {z.why && !z.karte && <p className="gs-why">{z.why}</p>}
                 </div>
+                {z.karte && <RegelKarteAnsicht world={world} zeile={z} refresh={refresh} onAendere={(f) => aendereKarte(i, f)} onBestaetige={() => bestaetige(i)} />}
                 {z.vorschlaege && (
                   <ul className="gs-vorschlaege">
                     {z.vorschlaege.map((v, j) => {
@@ -277,6 +315,88 @@ export function Chat({ world, refresh }: { world: World; refresh: () => void }) 
             <p className="gs-tipp">{t("ui.Chat.1332e4b")}</p>
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+/** Die Vorschlagskarte des Regelwerks: Titel, Preis, Folgen in Zahlen; bei einer Entlassung die Nachfolgeauswahl auf Klick. */
+function RegelKarteAnsicht({ world, zeile, refresh, onAendere, onBestaetige }: { world: World; zeile: Zeile; refresh: () => void; onAendere: (f: (k: RegelKarte) => RegelKarte) => void; onBestaetige: () => void }) {
+  const k = zeile.karte!;
+  const v = k.v;
+  const ergebnis = k.erledigt && (
+    <p className={`gs-v-ergebnis ${k.erledigt.ok ? "ok" : "nein"}`}>
+      {k.erledigt.text}
+      {k.erledigt.why && <em> {k.erledigt.why}</em>}
+    </p>
+  );
+  const verwerfen = !k.erledigt && (
+    <button type="button" className="gs-verwerfen" onClick={() => onAendere((x) => ({ ...x, offen: false, erledigt: { ok: false, text: t(v.art === "entlassung" ? "n1.chat.karte.abbruch" : "n1.chat.karte.verworfen") } }))}>
+      {t("n1.chat.karte.verwerfen")}
+    </button>
+  );
+  if (v.art === "befehl") {
+    return (
+      <ul className="gs-vorschlaege gs-regelkarte">
+        <li className={k.erledigt ? (k.erledigt.ok ? "erledigt" : "fehler") : ""}>
+          <div className="gs-v-kopf">
+            <strong>„{v.titel}“</strong>
+            <b className="gs-kosten">{v.kosten > 0 ? t("n1.chat.karte.kosten", { n: v.kosten }) : t("n1.chat.karte.ohneKosten")}</b>
+          </div>
+          {v.folgen.length > 0 && (
+            <ul className="gs-v-folgen">
+              {v.folgen.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          )}
+          {zeile.why && !k.erledigt && (
+            <p className="gs-v-text">
+              <span className="gs-v-meldung">{t("n1.chat.karte.meldung")}</span> {zeile.why}
+            </p>
+          )}
+          {ergebnis}
+          {!k.erledigt && (
+            <div className="gs-v-knoepfe">
+              <button type="button" className="gs-ausfuehren" onClick={onBestaetige}>
+                {t("n1.chat.karte.ausfuehren")}
+              </button>
+              {verwerfen}
+            </div>
+          )}
+        </li>
+      </ul>
+    );
+  }
+  const f = world.spiel?.figuren.find((x) => x.id === v.figurId && x.imAmt && x.amt === v.amt);
+  return (
+    <div className="gs-regelkarte gs-entlassung">
+      <ul className="gs-vorschlaege">
+        <li className={k.erledigt ? (k.erledigt.ok ? "erledigt" : "fehler") : ""}>
+          <div className="gs-v-kopf">
+            <strong>{f ? t("n1.chat.karte.entlassung.titel", { rolle: f.rolle, name: f.name }) : t("n1.chat.karte.entlassung.weg")}</strong>
+          </div>
+          {ergebnis}
+          {!k.erledigt && f && !k.offen && (
+            <div className="gs-v-knoepfe">
+              <button type="button" className="gs-ausfuehren" onClick={() => onAendere((x) => ({ ...x, offen: true }))}>
+                {t("n1.chat.karte.entlassung.knopf")}
+              </button>
+              {verwerfen}
+            </div>
+          )}
+        </li>
+      </ul>
+      {!k.erledigt && f && k.offen && (
+        <div className="gs-nachfolge">
+          <NachfolgeAuswahl
+            world={world}
+            figur={f}
+            modus="entlassen"
+            refresh={refresh}
+            onFertig={(m) => onAendere((x) => ({ ...x, offen: false, erledigt: m ? { ok: m.ok, text: m.text, ...(m.why ? { why: m.why } : {}) } : { ok: false, text: t("n1.chat.karte.abbruch") } }))}
+          />
+        </div>
       )}
     </div>
   );

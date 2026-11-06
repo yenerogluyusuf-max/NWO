@@ -5,7 +5,7 @@ import type { World } from "../../sim/types";
 import type { Figur } from "../../sim/spiel-typen";
 import { haltung } from "../../sim/figuren";
 import { NET } from "../../sim/modell";
-import { AEMTER, ehrgeizWort, eigenVon, empfehlung, erinnerungen, grollWort, lageIm, leistung, leistungWort, nf, ressortWirkungSicht, sorgeText, sprechbar, wertVon } from "../../sim/personen";
+import { AEMTER, HOCH_SCHLECHT, ehrgeizWort, eigenVon, empfehlung, erinnerungen, grollWort, lageIm, leistung, leistungWort, nf, ressortWirkungSicht, sorgeText, sprechbar, wertVon } from "../../sim/personen";
 import { LAGER_NAMEN, STIL_NAMEN } from "../../sim/personen-typen";
 import { AUFTRAG_TAGE, gespraechGrund } from "../../sim/gespraeche";
 import { zusagenSicht } from "../../sim/zusagen";
@@ -24,9 +24,9 @@ function gruppen(w: World): { titel: string; liste: Figur[] }[] {
   const buendnis = fs.filter((f) => f.amt === "partner" || f.amt === "zentralbank");
   const gegner = fs.filter((f) => f.amt === "opposition");
   return [
-    { titel: "Regierung", liste: regierung },
-    { titel: "Bündnis und Institutionen", liste: buendnis },
-    { titel: "Gegenspieler", liste: gegner },
+    { titel: t("n1.ui.gruppe.regierung"), liste: regierung },
+    { titel: t("n1.ui.gruppe.buendnis"), liste: buendnis },
+    { titel: t("n1.ui.gruppe.gegner"), liste: gegner },
   ].filter((g) => g.liste.length);
 }
 
@@ -194,11 +194,11 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
       </div>
 
       <div className="pe-block">
-        <h4>{t("ui2.ui.personen.Umfeld.9f39c02")} {f.weiblich ? "sie" : "er"} will</h4>
+        <h4>{t("n1.ui.will", { g: f.weiblich ? "f" : "m" })}</h4>
         <p>{f.ziel}</p>
       </div>
       <div className="pe-block">
-        <h4>{t("ui2.ui.personen.Umfeld.9f39c02")} {f.weiblich ? "sie" : "er"} {t("ui2.ui.personen.Umfeld.3bd0592")}</h4>
+        <h4>{t("n1.gs.thema.sorge.titel", { g: f.weiblich ? "f" : "m" })}</h4>
         <p>{sorgeText(world, f)}</p>
       </div>
 
@@ -209,7 +209,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
           <h4>{t("ui2.ui.personen.Umfeld.696da9e", { p0: d.ressort })}</h4>
           <div className="pe-lage">
             {lage.map((l) => (
-              <Balken key={l.id} label={l.name} wert={l.wert} ton={l.ton} wort={`${Math.round(l.wert)}${l.schlechtWennHoch ? " (hoch = schlecht)" : ""}`} klein />
+              <Balken key={l.id} label={l.name} wert={l.wert} ton={l.ton} wort={`${Math.round(l.wert)}${l.schlechtWennHoch ? t("n1.ui.hochSchlecht") : ""}`} klein />
             ))}
           </div>
         </div>
@@ -217,10 +217,14 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
 
       {d.wirkung.length > 0 && (
         <div className="pe-block">
-          <h4>{t("ui2.ui.personen.Umfeld.9f39c02")} {f.weiblich ? "sie" : "er"} {t("ui2.ui.personen.Umfeld.74d9e99")}</h4>
+          <h4>{t("n1.ui.bewirkt", { g: f.weiblich ? "f" : "m" })}</h4>
           <p>
             {ressortWirkungSicht(world, f)
-              .map((x) => `${x.name} ${x.punkte >= 0 ? "+" : "−"}${nf(Math.abs(x.punkte), 1)}`)
+              // Richtung der Größe selbst (Kriminalität −0,2 ist gut); ressortWirkungSicht zählt „besser“ positiv
+              .map((x) => {
+                const dd = HOCH_SCHLECHT.has(x.id) ? -x.punkte : x.punkte;
+                return `${x.name} ${dd >= 0 ? "+" : "−"}${nf(Math.abs(dd), 1)}`;
+              })
               .join(", ")}{" "}
             {t("ui2.ui.personen.Umfeld.4997875", { p0: leistungWort(q) })}
           </p>

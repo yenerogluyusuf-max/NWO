@@ -44,12 +44,12 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
           </div>
         </div>
         <div className="pe-termine">
-          {tx("ui2.ui.personen.GespraechSzene.f1372d0", { p0: termine.belegt, p1: termine.max })}
+          {tx("n1.tisch.termine", { frei: Math.max(0, termine.max - termine.belegt), max: termine.max })}
         </div>
       </div>
       <div className="pe-schritte" aria-label={tx("ui2.ui.personen.GespraechSzene.7afff4b")}>
-        <span className={schritt === 1 ? "on" : ""}>1 Thema</span>
-        <span className={schritt === 2 ? "on" : ""}>2 Ansatz</span>
+        <span className={schritt === 1 ? "on" : ""}>{tx("n1.ui.schritt.thema")}</span>
+        <span className={schritt === 2 ? "on" : ""}>{tx("n1.ui.schritt.ansatz")}</span>
         <span className={schritt === 3 ? "on" : ""}>{tx("ui2.ui.personen.GespraechSzene.4a994ef")}</span>
       </div>
 
@@ -126,7 +126,7 @@ export function GespraechSzene({ world, figur, refresh, onFertig }: { world: Wor
           </div>
           {ergebnis.hinweise.length > 0 && (
             <div className="pe-hinweise">
-              <h4>{tx("ui2.ui.personen.GespraechSzene.9f39c02")} {figur.weiblich ? "sie" : "er"} {tx("ui2.ui.personen.GespraechSzene.587e4d3")}</h4>
+              <h4>{tx("n1.ui.sagtIhnen", { g: figur.weiblich ? "f" : "m" })}</h4>
               {ergebnis.hinweise.map((h, i) => (
                 <p key={i}>{h}</p>
               ))}

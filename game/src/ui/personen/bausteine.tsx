@@ -22,16 +22,17 @@ export const LAGER_FARBE: Record<LagerArt, string> = {
 };
 
 /** Das Gesicht einer Person: Samen ist der Name, Grund und Rahmen folgen dem Lager; mit `vielfalt` sehen verschiedene Menschen verschieden aus. */
-export function Gesicht({ name, weiblich, lager, size = 44, stimmung, rolle, alter }: { name: string; weiblich?: boolean; lager: LagerArt; size?: number; stimmung?: Stimmung; rolle?: string; alter?: number }) {
-  return <Zeichnung seed={name} size={size} geschlecht={weiblich ? "f" : "m"} tint={LAGER_FARBE[lager]} {...(stimmung ? { stimmung } : {})} {...(rolle ? { rolle } : {})} {...(alter ? { alter } : {})} rahmen={size < 40 ? "keiner" : "messing"} />;
+export function Gesicht({ name, weiblich, lager, size = 44, stimmung, rolle, alter, rahmen }: { name: string; weiblich?: boolean; lager: LagerArt; size?: number; stimmung?: Stimmung; rolle?: string; alter?: number; rahmen?: "keiner" | "messing" }) {
+  return <Zeichnung seed={name} size={size} geschlecht={weiblich ? "f" : "m"} tint={LAGER_FARBE[lager]} {...(stimmung ? { stimmung } : {})} {...(rolle ? { rolle } : {})} {...(alter ? { alter } : {})} rahmen={rahmen ?? (size < 40 ? "keiner" : "messing")} />;
 }
 
-export function Portraet({ w, f, size = 44 }: { w: World; f: Figur; size?: number }) {
+/** Das Gesicht einer Figur, überall gleich (Befund C-15: am Tisch fehlten vorher Lagerfarbe und Miene). `rahmen` „keiner“, wo ein Ring den Rahmen bildet. */
+export function Portraet({ w, f, size = 44, rahmen }: { w: World; f: Figur; size?: number; rahmen?: "keiner" | "messing" }) {
   // Das Amt (Ressort) bestimmt Kleidung und Hintergrund; die Ämter des Spiels heißen wie die Rollen des Porträtsystems
   const rolle = f.amt;
   const e = eigenVon(w, f);
   const stimmung = stimmungAus({ groll: e.groll ?? 0, ehrgeiz: e.ehrgeiz ?? 0, loyalitaet: f.loyalitaet, kommissarisch: !!e.kommissarisch });
-  return <Gesicht name={f.name} {...(f.weiblich !== undefined ? { weiblich: f.weiblich } : {})} lager={e.lager} size={size} stimmung={stimmung} rolle={rolle} />;
+  return <Gesicht name={f.name} {...(f.weiblich !== undefined ? { weiblich: f.weiblich } : {})} lager={e.lager} size={size} stimmung={stimmung} rolle={rolle} {...(rahmen ? { rahmen } : {})} />;
 }
 
 export type Ton = "gut" | "mittel" | "schlecht";
@@ -47,7 +48,7 @@ export function tonVon(x: number, hochIstSchlecht = false): Ton {
  * (so beginnen und enden alle Balken einer Karte an derselben Stelle). Ohne `label` steht das Wort rechts neben dem Balken.
  * `zeile` ist ein kurzer Hinweis unter dem Balken, sichtbar statt als Tooltip.
  */
-export function Balken({ label, wert, wort, ton, klein, hinweis, zeile }: { label?: string; wert: number; wort?: string; ton?: Ton; klein?: boolean; hinweis?: string; zeile?: string }) {
+export function Balken({ label, wert, wort, ton, klein, hinweis, zeile, zeileLeise }: { label?: string; wert: number; wort?: string; ton?: Ton; klein?: boolean; hinweis?: string; zeile?: string; zeileLeise?: boolean }) {
   const t = ton ?? tonVon(wert);
   const breite = Math.max(0, Math.min(100, wert));
   const text = wort ?? String(Math.round(wert));
@@ -72,7 +73,7 @@ export function Balken({ label, wert, wort, ton, klein, hinweis, zeile }: { labe
           <em>{text}</em>
         </>
       )}
-      {zeile && <small className="pe-balken-zeile">{zeile}</small>}
+      {zeile && <small className={`pe-balken-zeile${zeileLeise ? " leise" : ""}`}>{zeile}</small>}
     </div>
   );
 }

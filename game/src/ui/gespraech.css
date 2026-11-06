@@ -106,3 +106,14 @@
   .gs-eingabe textarea { font-size: var(--schrift-3); }
   .gs-titel { flex-basis: 100%; }
 }
+
+/* Vorschlagskarten des Regelwerks (Befund C-2): Folgen in Zahlen, Ausführen erst auf Klick; die Nachfolgeauswahl klappt in der Karte auf */
+.gs-regelkarte { width: min(40em, 100%); }
+.gs-entlassung { width: 100%; max-width: none; }
+.gs-zeile:has(.gs-entlassung) { max-width: 100%; align-self: stretch; }
+.gs-v-folgen { margin: 6px 0 0; padding: 0 0 0 1.1em; font-size: 14px; line-height: 1.45; }
+.gs-v-folgen li { padding: 0; border: 0; background: none; box-shadow: none; }
+.gs-v-meldung { font-style: italic; color: var(--ink-soft); }
+.gs-v-knoepfe { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.gs .gs-verwerfen { margin-top: 8px; padding: 5px 12px; font: 14px var(--sans); background: transparent; border: 1px solid rgba(90, 64, 40, 0.35); }
+.gs-nachfolge { margin-top: 8px; padding: 12px; border: 1px solid rgba(120, 84, 40, 0.3); border-radius: 6px; background: #fbf5e6; }

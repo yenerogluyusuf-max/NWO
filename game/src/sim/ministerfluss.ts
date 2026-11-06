@@ -51,7 +51,7 @@ export type { Vorlage, VorlageOption } from "./ministerfluss-typen";
 const tageWort = (n: number): string => (n > 60 ? t("mfl.monate", { n: Math.round(n / 30.4) }) : t("mfl.tage", { n: Math.max(0, n) }));
 const bip = (x: number): string => t("mfl.bip", { x });
 const kurzName = (f: Figur | undefined): string => (f ? `${f.rolle} ${f.name}` : "");
-const ressort = (amt: Amt): string => t(`mfl.ressort.${amt}`);
+const ressort = (amt: Amt): string => t(`daten.amt.${amt}.ressort`);
 const tunWort = (id: string, richtung: 1 | -1): string => t(`mfl.tun.${skalenArt(id) === "satz" ? "satz" : skalenArt(id) === "menge" ? "menge" : "regel"}.${richtung > 0 ? "plus" : "minus"}`);
 
 const SPAETER = (): VorlageOption => ({ id: "spaeter", label: t("mfl.spaeter.label"), text: t("mfl.spaeter.text"), kosten: { pk: 0, aufmerksamkeit: 0 }, folgen: [], dafuer: [], dagegen: [], verlierer: [], aktion: { art: "spaeter", tage: 30 }, moeglich: true });
@@ -189,12 +189,6 @@ function ereignisQuelle(w: World): Roh[] {
   return out;
 }
 
-const AMT_VON_RESSORT = (ressort: string): Amt => {
-  const erst = (ressort.split(/\s*(?:&|\bund\b)\s*/i)[0] ?? "").trim().toLowerCase();
-  for (const amt of KABINETT_AMT) if (AEMTER[amt].ressort.toLowerCase() === erst) return amt;
-  return "stab";
-};
-
 function kabinettQuelle(w: World): Roh[] {
   const sp = w.spiel!;
   if (!sp.figuren.some((f) => f.imAmt && AEMTER[f.amt].regierungsamt)) return [];
@@ -202,7 +196,7 @@ function kabinettQuelle(w: World): Roh[] {
   const themen = bereiteKabinettssitzungVor(w);
   const bucket = Math.floor(w.day / 45);
   return themen.map((th) => {
-    const amt = AMT_VON_RESSORT(th.ressort);
+    const amt = th.amt;
     const warte = status.sitzungMoeglich ? undefined : t("mfl.kabinett.warte", { n: status.tageBisSitzung });
     const optionen: VorlageOption[] = th.optionen.map((o) => {
       const pk = o.kostenPk ?? 0;

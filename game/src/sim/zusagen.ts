@@ -12,13 +12,13 @@ import { PARTEI_NAME, bereitschaftAendern } from "./fraktionen";
 import { bringeEin, pruefeVorhaben, stufeIn } from "./handeln";
 import { skala, skalenArt } from "../data/skalen";
 import { grollVerschieben, loyalitaetVerschieben, merke } from "./personen";
-import { istMinisterienZusage, ministerienAnPartei, ressortNamen } from "./ressortvergabe";
+import { istMinisterienZusage, ministerienAnPartei, ressortNamen, waehlbareRessorts } from "./ressortvergabe";
 import { rendere, t } from "../i18n";
 import { vorgaengeMonat, vorgaengeSchritt } from "./vorgaenge";
 import { aktiveParteivorsitzende } from "./koalitionslage";
 import { ZUSAGEN_VERFALL_LOYALITAET } from "./zusagendruck";
 import type { World } from "./types";
-import type { Zusage } from "./spiel-typen";
+import type { Figur, Zusage } from "./spiel-typen";
 import { zusageBezug, zusageAbschluss, erfuelleZusage, schliesseZusageErinnerung, zusageZiel, zusageZielErreicht, zusageStufen, type ZusageBezug } from "./zusagenfolgen";
 export { zusageBezug, zusageAbschluss } from "./zusagenfolgen";
 export type { ZusageBezug } from "./zusagenfolgen";
@@ -104,6 +104,7 @@ function folgen(w: World, z: Zusage, bezug: ZusageBezug): { gehalten: string[]; 
     b.push(t("sim2.sim.zusagen.894fe81", { p0: bezug.name }));
   }
   if (z.massnahme && z.richtung) g.push(t("zusage.gesetz.belohnung"));
+  if (istMinisterienZusage(z)) g.push(t("n1.zusage.ministerien.folge", { n: Math.min(2, waehlbareRessorts(w, z.von).length), partei: PARTEI_NAME[z.von] ?? z.von }));
   return { gehalten: g, gebrochen: b };
 }
 
@@ -213,7 +214,7 @@ export function zusagenMonat(w: World): void {
 // Handlungen: einlösen, vertrösten, brechen (auch außerhalb des Fälligkeits-Ereignisses)
 
 /** Löst eine Zusage ein: bringt das verlangte Gesetz ein oder gilt sie als erfüllt, wenn die Maßnahme schon dort steht. Kosten trägt das Gesetz. */
-export function loeseZusageEin(w: World, z: Zusage): { ok: boolean; text: string } {
+export function loeseZusageEin(w: World, z: Zusage, wahl?: readonly Figur["amt"][]): { ok: boolean; text: string } {
   if (z.erfuellt || z.gebrochen || z.abgeschlossen !== undefined) return { ok: false, text: t("sim2.sim.zusagen.fd45097") };
   const v = zusageVorhaben(w, z);
   if (v) {
@@ -233,7 +234,7 @@ export function loeseZusageEin(w: World, z: Zusage): { ok: boolean; text: string
     return { ok: true, text: `${t("zusage.gesetz.eingebracht")} ${t("zusage.gesetz.fristDanach", { datum: formatDateDe(addDays(w.date, z.faellig - w.day)) })}` };
   }
   if (istMinisterienZusage(z)) {
-    const vergeben = ministerienAnPartei(w, z.von, 2);
+    const vergeben = ministerienAnPartei(w, z.von, 2, wahl);
     if (vergeben.length === 0) return { ok: false, text: t("ressort.zusage.keins") };
     erfuelleZusage(w, z);
     return { ok: true, text: t("ressort.zusage.ok", { partei: PARTEI_NAME[z.von] ?? z.von, ressorts: ressortNamen(vergeben) }) };
@@ -282,14 +283,27 @@ export interface ZusageAntwort {
   why?: string;
 }
 
-/** Löst eine Zusage ein. Hängt sie an einem Gesetz, trägt das Gesetz die Kosten; sonst kostet es 4 Kapital. */
-export function loeseEin(w: World, z: Zusage): ZusageAntwort {
+/** Was das Einlösen einer Zusage ohne Gesetz kostet (Spielparameter; Knopf und Buchung lesen dieselbe Zahl). */
+export const ZUSAGE_EINLOESEN_PK = 4;
+
+/**
+ * Löst eine Zusage ein. Hängt sie an einem Gesetz, trägt das Gesetz die Kosten; sonst kostet es 4 Kapital.
+ * Eine Zusage „zwei Ministerien“ braucht die Wahl, welche Ressorts gehen (Befund C-6: vorher gingen still Industrie und Justiz).
+ */
+export function loeseEin(w: World, z: Zusage, wahl?: readonly Figur["amt"][]): ZusageAntwort {
   const sp = w.spiel;
   if (!sp || z.erfuellt || z.gebrochen) return { ok: false, text: t("sim2.sim.zusagen.fd45097") };
+  if (istMinisterienZusage(z)) {
+    const frei = waehlbareRessorts(w, z.von).length;
+    const noetig = Math.min(2, frei);
+    if (!wahl || new Set(wahl.filter((a) => waehlbareRessorts(w, z.von).includes(a))).size < noetig) {
+      return { ok: false, text: t("n1.zusage.ministerien.waehlen", { partei: PARTEI_NAME[z.von] ?? z.von, n: noetig }) };
+    }
+  }
   const v = zusageVorhaben(w, z);
-  const pk = v ? 0 : 4;
+  const pk = v ? 0 : ZUSAGE_EINLOESEN_PK;
   if (pk && !kannZahlen(sp.kapital, pk)) return { ok: false, text: t("sim2.sim.zusagen.183af97", { p0: pk, p1: Math.floor(sp.kapital) }) };
-  const r = loeseZusageEin(w, z);
+  const r = loeseZusageEin(w, z, wahl);
   if (r.ok && pk) sp.kapital -= pk;
   if (r.ok) addLog(w, "entscheidung", t(z.erfuellt ? "sim2.sim.zusagen.1e43ef2" : "zusage.gesetz.log", { p0: z.text }), !z.erfuellt ? t("zusage.gesetz.belohnung") : undefined);
   return { ok: r.ok, text: r.text, ...(pk && r.ok ? { why: t("sim2.sim.zusagen.6ae7385", { p0: pk }) } : {}) };

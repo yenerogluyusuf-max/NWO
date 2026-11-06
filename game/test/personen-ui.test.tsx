@@ -74,7 +74,8 @@ describe("Ministerkarten", () => {
   test("Kapital-Ertrag: Zahl, Vorzeichen und Einheit in einem Element", () => {
     const werte = klassen(html, /class="mr-kapital-wert[^"]*">([^<]+)</g);
     expect(werte).toHaveLength(19);
-    for (const x of werte) expect(x).toMatch(/^[+−-]?\d+,\d Kapital\/Monat$/);
+    // Befund C-11 (Nacht N1): Einheit aus dem Katalog („Kapital im Monat“ statt fest „Kapital/Monat“), echtes Minuszeichen
+    for (const x of werte) expect(x).toMatch(/^[+−]?\d+,\d Kapital im Monat$/);
   });
 });
 
@@ -139,7 +140,8 @@ describe("Nachfolge-Auswahl", () => {
     expect(html).not.toContain("gefährlich, wenn er übergangen wird\"");
     // Bei mindestens einem Kandidaten mit hohem Ehrgeiz erscheint die Zeile sichtbar; sonst fehlt sie ganz
     const hoch = html.includes("pe-balken-zeile");
-    if (hoch) expect(html).toContain("Gefährlich, wenn er übergangen wird.");
+    // Befund C-25 (Nacht N1): das Pronomen folgt dem Geschlecht der Person
+    if (hoch) expect(html).toMatch(/Gefährlich, wenn (er|sie) übergangen wird\./);
   });
 });
 

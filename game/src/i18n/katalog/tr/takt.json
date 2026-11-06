@@ -20,7 +20,7 @@
  "takt.briefing.verfall": "100'ün üzerindeki sermaye ayda yaklaşık {x} erir",
  "takt.gegenkraft.hort.text": "Kullanılmak yerine biriken siyasi sermaye kısmen erir ve meşruiyete mal olur: Uzun süre hiçbir şeyi hareket ettirmeyen, yakında hareket ettirecek daha az şeye sahip olur.",
  "takt.gegenkraft.hort.titel": "Desteğiniz kullanılmadan duruyor.",
- "takt.kabinett.konflikt.anlass": "{rolle} {name} uyarıyor: “{groesse}” {wert} düzeyinde. Bakanlar Kurulu'nda bu artık göz ardı edilemez; bakanlık söz ve kaynak istiyor.",
+ "takt.kabinett.konflikt.anlass": "{rolle} {name} uyarıyor: “{groesse}” {wert} düzeyinde. Kabinede bu artık göz ardı edilemez; bakanlık söz ve kaynak istiyor.",
  "takt.kabinett.konflikt.mittel.effekt1": "{name}: +10 sadakat, kırgınlık azalır",
  "takt.kabinett.konflikt.mittel.effekt2": "“{groesse}” yaklaşık 2,5 puan iyileşir",
  "takt.kabinett.konflikt.mittel.effekt3": "3 siyasi sermayeye mal olur, borç GSYH'nin %0,1'i kadar artar",

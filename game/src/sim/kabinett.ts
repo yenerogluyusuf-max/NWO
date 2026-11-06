@@ -9,9 +9,10 @@ import { nationalAverage } from "./netz";
 import { wirke, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
 import { clamp } from "./economy";
-import { AEMTER, eigenVon, grollVerschieben, leistung, loyalitaetVerschieben, merke, schlechtesteGroesse, wertVon, nf } from "./personen";
+import { AEMTER, HOCH_SCHLECHT, eigenVon, grollVerschieben, leistung, loyalitaetVerschieben, merke, schlechtesteGroesse, wertVon, nf } from "./personen";
 import { LAGER_NAMEN, type LagerArt } from "./personen-typen";
 import { Rng } from "./rng";
+import { kannZahlen } from "./kapital";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
 import { t } from "../i18n";
@@ -65,6 +66,8 @@ export interface KabinettOption {
 export interface KabinettThema {
   id: string;
   titel: string;
+  /** Das vorlegende Amt (Befund C-21: nie aus dem übersetzten Ressorttext lesen) */
+  amt: Figur["amt"];
   ressort: string;
   anlass: string;
   dringlichkeit: "hoch" | "normal";
@@ -120,27 +123,26 @@ export function berechneMinisterKapital(w: World, f: Figur): { beitrag: number; 
   return { beitrag, grund };
 }
 
-/** Ermittelt die dringendste Sorge eines Ministers aus den Kennzahlen seines Fachbereichs */
+/** Die dringendste Sorge eines Ministers: dieselbe Größe wie im Gespräch (schlechtesteGroesse mit HOCH_SCHLECHT für alle Ressorts).
+ *  Befund C-7: Vorher galt eine eigene Liste mit sieben Größen; „Streikbereitschaft 35“ oder „Wartezeiten 45“ erschienen als Sorge, obwohl niedrig gut ist. */
 export function sorgeAusFach(w: World, f: Figur): string {
-  const d = AEMTER[f.amt];
-  if (!d.fach.length) return t("kab.keineKrise");
-  let schlimmsterWert = -1e9;
-  let sorgeKnoten = d.fach[0]!;
-
-  for (const id of d.fach) {
-    const val = wertVon(w, id);
-    // Bei hoch_schlecht ist ein hoher Wert eine Sorge, sonst ein niedriger
-    const isBadHigh = ["kriminalitaet", "terrorgefahr", "korruption", "haftueberfuellung", "zinslast", "lebenshaltung", "polarisierung"].includes(id);
-    const score = isBadHigh ? val : 100 - val;
-    if (score > schlimmsterWert) {
-      schlimmsterWert = score;
-      sorgeKnoten = id;
+  // Gleiche Wahl wie schlechtesteGroesse (erste schlechteste Größe), aber ohne Namen für jede Größe: kabinettStatus läuft oft
+  let id: string | undefined;
+  let wert = 0;
+  let schlimm = -Infinity;
+  for (const x of AEMTER[f.amt].fach) {
+    if (!NET.index.has(x)) continue;
+    const v = wertVon(w, x);
+    const s = HOCH_SCHLECHT.has(x) ? v : 100 - v;
+    if (s > schlimm) {
+      schlimm = s;
+      id = x;
+      wert = v;
     }
   }
-
-  const name = NET.nodes[NET.index.get(sorgeKnoten) ?? -1]?.name ?? sorgeKnoten;
-  const wert = Math.round(wertVon(w, sorgeKnoten));
-  return t("kab.sorge", { name, wert });
+  if (!id) return t("kab.keineKrise");
+  const name = NET.nodes[NET.index.get(id)!]?.name ?? id;
+  return t("kab.sorge", { name, wert: Math.round(wert) });
 }
 
 /** Gibt den vollständigen Zustand des Ministerrats zurück */
@@ -240,6 +242,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
   themen.push({
     id: "haushalt_prioritaet",
     titel: t("kab.hh.titel"),
+    amt: "finanzen",
     ressort: t("kab.hh.ressort"),
     anlass: t("kab.hh.anlass", { wer: fin?.name ?? t("kab.fb.finanzministerium") }),
     dringlichkeit: w.economy.inflation > 20 || w.economy.deficit > 5 ? "hoch" : "normal",
@@ -337,6 +340,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
   themen.push({
     id: "sicherheit_justiz",
     titel: t("kab.si.titel"),
+    amt: "inneres",
     ressort: t("kab.si.ressort"),
     anlass: t("kab.si.anlass", { inn: inn?.name ?? t("kab.fb.innenministerium"), jus: jus?.name ?? t("kab.fb.justiz") }),
     dringlichkeit: nationalAverage(NET, w.net, "kriminalitaet") > 50 || nationalAverage(NET, w.net, "polarisierung") > 60 ? "hoch" : "normal",
@@ -414,7 +418,8 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
     themen.push({
       id: `ressortkonflikt_${f.amt}`,
       titel: t("takt.kabinett.konflikt.titel", { rolle: f.rolle, groesse: g.name }),
-      ressort: f.rolle,
+      amt: f.amt,
+      ressort: AEMTER[f.amt].ressort,
       anlass: t("takt.kabinett.konflikt.anlass", { rolle: f.rolle, name: f.name, groesse: g.name, wert: nf(g.wert, 0) }),
       dringlichkeit: brenn.schlecht >= 75 ? "hoch" : "normal",
       optionen: [
@@ -479,6 +484,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
     themen.unshift({
       id: "vertrauenskrise",
       titel: t("kab.kr.titel"),
+      amt: "stab",
       ressort: t("kab.kr.ressort"),
       anlass: t("kab.kr.anlass"),
       dringlichkeit: "hoch",
@@ -507,7 +513,7 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
           befuerworter: status.minister.map((m) => m.name),
           gegner: [],
           kostenPk: 5,
-          effekteText: [t("kab.kr.paket.e1"), t("kab.kr.paket.e2"), t("kab.kr.paket.e3")],
+          effekteText: [t("kab.kr.paket.e1"), t("kab.kr.paket.e2")],
           ausfuehren: (world) => {
             const fs = world.spiel?.figuren ?? [];
             for (const f of fs) {
@@ -516,7 +522,6 @@ export function bereiteKabinettssitzungVor(w: World): KabinettThema[] {
               grollVerschieben(world, f, -15);
               merke(world, f, t("kab.kr.paket.m1"));
             }
-            if (world.spiel) world.spiel.kapital = Math.max(-20, world.spiel.kapital - 5);
           },
         },
       ],
@@ -539,11 +544,15 @@ export function halteKabinettssitzungAb(
   const opt = thema.optionen.find((o) => o.id === optionId);
   if (!opt) return { erfolg: false, text: t("kab.e.option"), effekteText: [] };
 
-  if (opt.kostenPk && (w.spiel?.kapital ?? 0) + 20 < opt.kostenPk) {
+  const preis = opt.kostenPk ?? 0;
+  if (preis > 0 && !kannZahlen(w.spiel?.kapital ?? 0, preis)) {
     return { erfolg: false, text: t("kab.e.kapital"), effekteText: [] };
   }
 
   opt.ausfuehren(w);
+
+  // Befund C-1: Der Preis am Chip (kostenPk) wird hier und nur hier gebucht, für jede Option gleich.
+  if (w.spiel && preis > 0) w.spiel.kapital -= preis;
 
   if (w.spiel) {
     w.spiel.zuletzt = w.spiel.zuletzt ?? {};

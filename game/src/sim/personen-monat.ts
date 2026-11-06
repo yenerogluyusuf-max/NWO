@@ -2,6 +2,7 @@
 // Loyalität), Aufträge laufen und werden am Stichtag gemessen, Groll steigt bei Ehrgeizigen, die sich übergangen fühlen, und klingt sonst ab.
 // Zusagen, Ehemalige und die Ergänzung der Ämter älterer Spielstände laufen hier mit.
 
+import { t } from "../i18n";
 import { wirke } from "./wirkung";
 import { addLog } from "./log";
 import { ergaenzeFiguren } from "./figuren";
@@ -39,16 +40,17 @@ function auftragMonat(w: World, f: Figur): void {
     loyalitaetVerschieben(f, 8);
     e.ehrgeiz = Math.min(100, e.ehrgeiz + 3);
     wirke(w, "legitimitaet", 0.3);
-    merke(w, f, `Auftrag erfüllt: ${a.text}`);
-    addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag erfüllt: ${a.text} (${nf(a.vorher, 0)} auf ${nf(jetzt, 0)}).`, "Wer liefert, wird loyaler; Erfolge im Ressort zahlen auf die Legitimität ein.");
+    merke(w, f, t("n1.pm.merke.erfuellt", { text: a.text }));
+    addLog(w, "ereignis", t("n1.pm.log.erfuellt", { rolle: f.rolle, name: f.name, text: a.text, vorher: nf(a.vorher, 0), jetzt: nf(jetzt, 0) }), t("n1.pm.log.erfuellt.why"));
   } else {
     a.status = "verfehlt";
     e.bilanz.verfehlt++;
     const loyVor=f.loyalitaet,grollVor=e.groll;
     loyalitaetVerschieben(f, -5);
     grollVerschieben(w, f, 8);
-    merke(w, f, `Auftrag verfehlt: ${a.text}`);
-    addLog(w, "ereignis", `${f.rolle} ${f.name} hat den Auftrag verfehlt: ${a.text} (${nf(a.vorher, 0)} auf ${nf(jetzt, 0)}).`, "Ein verfehltes Ziel kostet Loyalität und macht Groll: Sie kann darauf hinweisen, dass Sie sie nicht unterstützt haben.");
+    merke(w, f, t("n1.pm.merke.verfehlt", { text: a.text }));
+    // Früher „Sie kann darauf hinweisen, dass Sie sie nicht unterstützt haben“: falsch bei Männern, daher geschlechtsneutral
+    addLog(w, "ereignis", t("n1.pm.log.verfehlt", { rolle: f.rolle, name: f.name, text: a.text, vorher: nf(a.vorher, 0), jetzt: nf(jetzt, 0) }), t("n1.pm.log.verfehlt.why"));
     const id=`ressortauftrag-${a.id}`;
     erfasseRessortVorfall(w,{id,figur:f.id,name:f.name,amt:f.amt,amtsantritt:e.seit,groesse:a.groesse,vorher:a.vorher,seit:a.seit,frist:a.frist,status:'eskaliert',ende:w.day},
       {id,tag:w.day,datum:w.date,name:f.name,amt:f.amt,groesse:a.groesse,art:'auftragVerfehlt',vorher:a.vorher,nachher:jetzt,loyalitaet:f.loyalitaet-loyVor,groll:e.groll-grollVor,bip:0,legitimitaet:0},false);

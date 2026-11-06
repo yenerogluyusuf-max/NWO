@@ -24,6 +24,7 @@ import { paktSicht } from "../../sim/pakte";
 import { vorhabenDef } from "../../sim/reich";
 import { akteurName } from "../../sim/welt-modell";
 import { kapitalEinkommen } from "../../sim/spiel";
+import { kabinettStatus } from "../../sim/kabinett";
 import { PROVINZEN } from "../../sim/regional";
 import type { Figur } from "../../sim/spiel-typen";
 import type { World } from "../../sim/types";
@@ -102,13 +103,16 @@ export function kernwerteBereich(w: World, b: BereichId): Kernwert[] {
       break;
     }
     case "regierung": {
-      const figs = (sp?.figuren ?? []).filter((f) => f.imAmt && f.amt !== "opposition" && f.amt !== "partner");
-      const schnitt = figs.length ? figs.reduce((s, f) => s + f.loyalitaet, 0) / figs.length : 0;
-      k.push(figs.length ? { label: t("akte.b.kern.loyalitaet"), wert: nf(schnitt), ton: ton(schnitt, 60, 40) } : leer(t("akte.b.kern.loyalitaet")));
+      // Befund C-29 (N1): derselbe Schnitt wie am Kabinettstisch (ohne Zentralbank), nicht ein zweiter
+      const st = sp ? kabinettStatus(w) : undefined;
+      const schnitt = st?.schnittLoyalitaet ?? 0;
+      k.push(st && st.minister.length ? { label: t("akte.b.kern.loyalitaet"), wert: nf(schnitt), ton: ton(schnitt, 60, 40) } : leer(t("akte.b.kern.loyalitaet")));
       const offen = (sp?.zusagen ?? []).filter((z) => !z.erfuellt && !z.gebrochen);
       const ueberfaellig = offen.filter((z) => z.faellig < w.day).length;
       k.push({ label: t("akte.b.kern.zusagen"), wert: nf(offen.length), hinweis: t("akte.b.kern.ueberfaellig", { n: ueberfaellig }), ton: ueberfaellig > 0 ? "schlecht" : "mittel" });
-      k.push(sp ? { label: t("akte.b.kern.kabinettErtrag"), wert: `+${nf(kapitalEinkommen(w).kabinett, 1)}` } : leer(t("akte.b.kern.kabinettErtrag")));
+      // Befund C-29 (N1): Vorzeichen aus der Zahl (vorher „+-1,2“ in der Krise)
+      const ertrag = sp ? kapitalEinkommen(w).kabinett : 0;
+      k.push(sp ? { label: t("akte.b.kern.kabinettErtrag"), wert: `${ertrag > 0 ? "+" : ertrag < 0 ? "−" : ""}${nf(Math.abs(ertrag), 1)}` } : leer(t("akte.b.kern.kabinettErtrag")));
       break;
     }
     case "sicherheit": {
