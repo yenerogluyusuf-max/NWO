@@ -1,0 +1,209 @@
+/* Verhandlungstisch (Welle H6, 06.11.2026): Szene, Waage, Karten nach Themen, Leiste. Pergament und Creme statt Weiß (ENTSCHEIDUNGEN Z),
+   ruhig wie der Kopf von Wirtschaft › Haushalt (.hd). Schriftstufen nur aus --schrift-* (ENTSCHEIDUNGEN Y), keine unter 13 px. */
+
+.vt { display: grid; gap: 16px; }
+.vt-anker { scroll-margin-top: 4px; height: 0; }
+
+/* ---------------------------------------------------------------- Szene */
+.vt-szene {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px 18px; align-items: center;
+  padding: 16px 20px; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px;
+}
+.vt-szene-flagge { border-radius: 50%; box-shadow: 0 0 0 2px var(--papier-1), 0 0 0 3.5px var(--messing-2), 0 3px 8px rgba(60, 40, 16, 0.25); }
+.vt-szene-kopf { display: grid; gap: 2px; min-width: 0; }
+.vt-kicker { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.08em; color: var(--tinte-3); }
+.vt-szene h3 { margin: 0; font: 600 var(--schrift-6)/1.1 var(--display); color: var(--messing-text); }
+.vt-szene h3 em { font: italic 400 var(--schrift-4)/1.2 var(--serif); color: var(--tinte-2); margin-left: 6px; }
+.vt-kern { display: flex; gap: 22px; margin: 0; }
+.vt-kern div { display: grid; gap: 2px; min-width: 64px; }
+.vt-kern dt { font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.vt-kern dd { margin: 0; font: 600 var(--schrift-5)/1.1 var(--display); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.vt-kern .gut dd { color: var(--gut); }
+.vt-kern .schlecht dd { color: var(--siegel); }
+.vt-marken { grid-column: 1 / -1; display: grid; gap: 7px; padding-top: 10px; border-top: 1px solid rgba(124, 88, 35, 0.25); }
+.vt-marken-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.vt-marken-titel { min-width: 11.5em; font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.06em; color: var(--tinte-3); }
+.vt-marken-leer { font: italic var(--schrift-2)/1.3 var(--serif); color: var(--tinte-3); }
+.vt-marke {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 11px; border-radius: 999px; border: 1px solid;
+  font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-1); background: var(--papier-1);
+}
+.vt-marke b { font: 600 var(--schrift-2)/1 var(--display); font-variant-numeric: tabular-nums; }
+.vt-marke.plus { border-color: var(--gut-linie); background: var(--gut-flaeche); }
+.vt-marke.plus b { color: var(--gut); }
+.vt-marke.minus { border-color: var(--schlecht-linie); background: var(--schlecht-flaeche); }
+.vt-marke.minus b { color: var(--siegel); }
+.vt-marke.rot { border: 1.5px solid var(--siegel); color: var(--siegel); font-weight: 600; }
+.dossier button.vt-marke { cursor: pointer; box-shadow: none; text-shadow: none; transition: transform 120ms ease, background 120ms ease; }
+.dossier button.vt-marke:hover { transform: translateY(-1px); }
+.dossier button.vt-marke.an { background: var(--messing-1); border-color: var(--messing-3); }
+
+/* ---------------------------------------------------------------- Waage */
+.vt-waage {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px) minmax(0, 1fr); gap: 12px 20px; align-items: start;
+  padding: 16px 20px 14px; background: linear-gradient(180deg, var(--papier-1), var(--papier-2)); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: 6px;
+}
+.vt-schale { display: grid; align-content: start; gap: 4px; min-width: 0; }
+.vt-schale.verlangen { text-align: right; justify-items: end; }
+.vt-schale-titel { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.08em; color: var(--tinte-3); }
+.vt-schale > strong { font: 600 var(--schrift-6)/1 var(--display); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.vt-schale ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; justify-items: inherit; }
+.vt-schale li { font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+.vt-schale li b { font: 600 var(--schrift-2)/1 var(--display); font-variant-numeric: tabular-nums; margin-left: 4px; }
+.vt-schale.geben li b { color: var(--gut); }
+.vt-schale.verlangen li b { color: var(--siegel); }
+.vt-schale li.interesse span { font-style: italic; }
+.vt-schale li.leer { font-style: italic; color: var(--siegel); }
+.vt-schale li.vorsprung { margin-top: 2px; padding-top: 5px; border-top: 1px solid rgba(124, 88, 35, 0.45); color: var(--tinte-3); }
+.vt-schale li.vorsprung span { color: var(--tinte-3); }
+.vt-schale li.vorsprung b { color: var(--messing-3); }
+.vt-schale ul { width: 100%; max-width: 330px; justify-items: stretch; }
+.vt-schale.verlangen ul { justify-self: end; }
+.vt-schale li { padding: 3px 0; border-bottom: 1px dotted rgba(124, 88, 35, 0.35); }
+.dossier .vt-schale li button, .vt-schale li > span {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px; width: 100%; padding: 0; border: 0; background: none; box-shadow: none; text-shadow: none;
+  font: var(--schrift-2)/1.35 var(--serif); color: var(--tinte-1); cursor: pointer; text-align: left;
+}
+.vt-schale li > span { cursor: default; }
+.dossier .vt-schale li button:hover { color: var(--siegel); text-decoration: line-through; text-decoration-color: rgba(142, 42, 34, 0.5); }
+.vt-schale li.leer, .vt-schale li.vorsprung { border-bottom: 0; }
+.vt-waage-mitte { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.vt-waage-bild { width: 100%; max-width: 270px; height: auto; overflow: visible; }
+.vt-sockel { fill: var(--leder-hell); }
+.vt-saeule { fill: var(--messing-3); }
+.vt-achse { fill: var(--messing-2); stroke: var(--messing-3); stroke-width: 1.5; }
+.vt-balken { transform-box: view-box; transform-origin: 160px 26px; transition: transform 520ms cubic-bezier(0.3, 1.35, 0.5, 1); }
+.vt-balken rect { fill: var(--messing-2); stroke: var(--messing-3); stroke-width: 1; }
+.vt-balken circle { fill: var(--messing-3); }
+.vt-schale-bild { transition: transform 520ms cubic-bezier(0.3, 1.35, 0.5, 1); }
+.vt-schale-bild line { stroke: var(--messing-3); stroke-width: 1.2; }
+.vt-schale-bild path { fill: var(--messing-1); stroke: var(--messing-3); stroke-width: 1.2; }
+.vt-waage.u-zustimmung .vt-schale-bild.geben path { fill: var(--gut-flaeche); stroke: var(--gut); }
+.vt-waage.u-gegenangebot .vt-schale-bild.verlangen path,
+.vt-waage.u-ablehnung .vt-schale-bild.verlangen path { fill: var(--schlecht-flaeche); stroke: var(--siegel); }
+.vt-waage.u-veto .vt-balken rect { fill: var(--siegel-hell); stroke: var(--siegel); }
+
+.vt-urteil { margin: 0; font: 600 var(--schrift-4)/1.25 var(--display); color: var(--tinte-1); }
+.vt-urteil.u-zustimmung { color: var(--gut); }
+.vt-urteil.u-gegenangebot { color: var(--warnung); }
+.vt-urteil.u-ablehnung, .vt-urteil.u-veto { color: var(--siegel); }
+.vt-urteil.u-leer { font: italic 400 var(--schrift-3)/1.35 var(--serif); color: var(--tinte-3); }
+.vt-bilanz { margin: 0; font: var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+
+.vt-wunsch { grid-column: 1 / -1; display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid rgba(124, 88, 35, 0.25); }
+.vt-wunsch h5 { margin: 0; font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.08em; color: var(--tinte-3); }
+.vt-gegen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.vt-gegen li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; align-items: center; padding: 8px 12px; background: var(--papier-1); border: 1px dashed rgba(124, 88, 35, 0.55); border-radius: 5px; }
+.vt-gegen-text { display: grid; gap: 1px; }
+.vt-gegen-text strong { font: 500 var(--schrift-3)/1.35 var(--serif); color: var(--tinte-1); }
+.vt-gegen-text small { font: italic var(--schrift-1)/1.3 var(--serif); color: var(--tinte-3); }
+.vt-gegen-knoepfe { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+.vt-rechnung { grid-column: 1 / -1; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.vt-rechnung summary { cursor: pointer; width: max-content; color: var(--tinte-3); }
+.vt-rechnung summary:hover { color: var(--tinte-1); }
+.vt-rechnung table { margin: 8px 0 4px; border-collapse: collapse; min-width: min(100%, 460px); }
+.vt-rechnung th { padding: 3px 18px 3px 0; text-align: left; font-weight: 400; }
+.vt-rechnung td { padding: 3px 0; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vt-rechnung tr.summe th, .vt-rechnung tr.summe td { border-top: 1px solid rgba(124, 88, 35, 0.4); font-weight: 600; color: var(--tinte-1); }
+.vt-rechnung p { margin: 4px 0 0; color: var(--tinte-3); font-style: italic; }
+
+/* ---------------------------------------------------------------- Antwort der Gegenseite */
+.vt-antwort { position: relative; display: grid; gap: 8px; padding: 14px 16px 14px 18px; border: 1px solid rgba(90, 64, 40, 0.4); border-left: 6px solid var(--messing-2); background: var(--papier-1); border-radius: 5px; animation: weEin 0.35s ease-out; }
+.vt-antwort.u-zustimmung { border-left-color: var(--gut); }
+.vt-antwort.u-veto, .vt-antwort.u-ablehnung { border-left-color: var(--siegel); background: var(--schlecht-flaeche); }
+.vt-antwort p { margin: 0; font: var(--schrift-3)/1.45 var(--serif); padding-right: 11em; color: var(--tinte-1); }
+.vt-antwort p em { color: var(--tinte-2); }
+.vt-stempel { position: absolute; right: 14px; top: 12px; padding: 2px 10px; font: 700 var(--schrift-1) var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--siegel); border: 2px solid var(--siegel); border-radius: 4px; transform: rotate(-5deg); opacity: 0.85; animation: weStempel 0.4s cubic-bezier(0.2, 1.6, 0.4, 1); }
+.vt-antwort.u-zustimmung .vt-stempel { color: var(--gut); border-color: var(--gut); }
+
+/* ---------------------------------------------------------------- Klauseln */
+.vt-spalten { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+@container (min-width: 620px) { .vt-spalten { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.vt-spalte { display: grid; gap: 4px; min-width: 0; }
+.vt-spalte h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 9px; margin: 0 0 2px; font: 600 var(--schrift-4)/1.2 var(--display); color: var(--messing-text); }
+.vt-spalte h4 small { flex-basis: 100%; font: 400 var(--schrift-1)/1.3 var(--serif); color: var(--tinte-3); }
+.vt-thema h5 {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 12px 0 7px; padding-bottom: 3px;
+  border-bottom: 1px solid rgba(124, 88, 35, 0.35); font: 400 var(--schrift-2)/1.2 var(--kapitaelchen); letter-spacing: 0.08em; color: var(--tinte-2);
+}
+.vt-thema h5 span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 7px; border-radius: 2px; background: var(--th, var(--messing-2)); transform: rotate(45deg) translateY(-1px); }
+.vt-thema h5 small { font: italic var(--schrift-1)/1.2 var(--serif); letter-spacing: 0; color: var(--messing-3); }
+.th-energie { --th: #a25e3c; }
+.th-handel { --th: var(--messing-2); }
+.th-sicherheit { --th: var(--siegel-hell); }
+.th-diplomatie { --th: var(--lorbeer); }
+.vt-karten { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+
+.dossier .vt-karte {
+  position: relative; display: flex; flex-direction: column; gap: 5px; width: 100%; padding: 10px 12px 11px 14px; text-align: left; cursor: pointer;
+  color: var(--tinte-1); text-shadow: none; background: var(--papier-1); border: 1px solid rgba(90, 64, 40, 0.28); border-radius: 5px;
+  box-shadow: 0 1px 0 rgba(90, 64, 40, 0.12); transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.dossier .vt-karte:hover:not(:disabled) { border-color: var(--messing-2); transform: translateY(-1px); box-shadow: 0 3px 8px rgba(80, 56, 20, 0.14); }
+.dossier .vt-karte.an { background: linear-gradient(180deg, #fbf1d4, var(--warnung-flaeche)); border-color: var(--messing-3); box-shadow: inset 5px 0 0 var(--messing-2), 0 2px 8px rgba(80, 56, 20, 0.2); }
+.dossier .vt-karte.veto { background: var(--schlecht-flaeche); border-color: var(--siegel); box-shadow: inset 5px 0 0 var(--siegel); }
+.dossier .vt-karte.gesperrt { cursor: default; background: var(--papier-2); border-style: dashed; }
+.dossier .vt-karte.gesperrt strong, .dossier .vt-karte.gesperrt .vt-karte-text { color: var(--tinte-3); }
+.vt-karte-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.vt-karte-kopf strong { font: 600 var(--schrift-3)/1.3 var(--display); color: var(--messing-text); }
+.vt-wert { display: inline-grid; justify-items: end; gap: 0; flex: none; text-align: right; }
+.vt-wert b { font: 600 var(--schrift-4)/1.05 var(--display); font-variant-numeric: tabular-nums; }
+.vt-wert small { font: var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); white-space: nowrap; }
+.vt-wert.plus b, .vt-wert.interesse b { color: var(--gut); }
+.vt-wert.minus b { color: var(--siegel); }
+.vt-wert.null b { color: var(--tinte-3); }
+.vt-rot { font: 700 var(--schrift-1) var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--siegel); padding: 1px 7px; border: 1.5px solid var(--siegel); border-radius: 4px; flex: none; }
+.vt-karte-text { font: var(--schrift-2)/1.45 var(--serif); color: var(--tinte-2); }
+.vt-karte-grund { font: italic var(--schrift-2)/1.4 var(--serif); color: var(--siegel); }
+.vt-wirkung { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 1px; font: var(--schrift-2)/1.35 var(--serif); }
+.vt-wirkung li.gut { color: var(--gut); }
+.vt-wirkung li.schlecht { color: var(--siegel); }
+.vt-karte-fuss { display: flex; flex-wrap: wrap; gap: 6px; }
+.vt-karte-fuss:empty { display: none; }
+.vt-im-paket { padding: 1px 9px; border-radius: 999px; background: var(--messing-1); border: 1px solid var(--messing-3); font: 400 var(--schrift-1)/1.4 var(--kapitaelchen); letter-spacing: 0.06em; color: var(--messing-text); }
+.vt-pk { padding: 1px 9px; border-radius: 999px; border: 1px solid rgba(124, 88, 35, 0.5); font: var(--schrift-1)/1.4 var(--serif); color: var(--tinte-2); }
+.vt-kehrseite { font: italic var(--schrift-2)/1.4 var(--serif); color: #6f4a20; padding-top: 4px; border-top: 1px dotted rgba(90, 64, 40, 0.4); }
+.vt-laeuft { margin: 10px 0 0; padding: 7px 10px; border: 1px dashed rgba(124, 88, 35, 0.45); border-radius: 5px; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); background: var(--papier-2); }
+.vt-laeuft b { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.06em; color: var(--tinte-3); margin-right: 4px; }
+
+/* ---------------------------------------------------------------- Leiste */
+.vt-leiste {
+  position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; justify-content: space-between;
+  padding: 10px 14px; margin: 0 -2px; border-top: 1.5px solid rgba(124, 88, 35, 0.55);
+  background: linear-gradient(180deg, var(--papier-2), var(--papier-4)); box-shadow: 0 -8px 14px -8px rgba(60, 40, 16, 0.3);
+}
+.vt-leiste-urteil { display: flex; align-items: center; gap: 10px; min-width: 12em; flex: 1 1 14em; font: 600 var(--schrift-3)/1.25 var(--display); color: var(--tinte-1); }
+.vt-leiste-urteil i { width: 12px; height: 12px; border-radius: 50%; flex: none; background: var(--tinte-3); box-shadow: 0 0 0 3px rgba(255, 253, 247, 0.8); }
+.vt-leiste.u-zustimmung .vt-leiste-urteil i { background: var(--gut); }
+.vt-leiste.u-gegenangebot .vt-leiste-urteil i { background: var(--messing-2); }
+.vt-leiste.u-ablehnung .vt-leiste-urteil i, .vt-leiste.u-veto .vt-leiste-urteil i { background: var(--siegel); }
+.vt-leiste.u-leer .vt-leiste-urteil { font: italic 400 var(--schrift-3)/1.25 var(--serif); color: var(--tinte-2); }
+.vt-laufzeit { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.vt-laufzeit > span { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.08em; color: var(--tinte-3); margin-right: 4px; }
+.dossier .vt-laufzeit button { padding: 4px 12px; border: 1px solid #a37c3c; border-radius: var(--rund-2); background: linear-gradient(180deg, var(--papier-1), var(--papier-3)); color: var(--tinte-1); font: 600 var(--schrift-2) var(--serif); cursor: pointer; box-shadow: none; text-shadow: none; }
+.dossier .vt-laufzeit button.an { background: linear-gradient(180deg, var(--messing-1), var(--messing-mittel)); border-color: var(--messing-3); }
+.vt-abgabe { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.vt-preis { display: inline-grid; grid-template-columns: auto auto; column-gap: 6px; align-items: baseline; font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-2); }
+.vt-preis b { font: 600 var(--schrift-5)/1 var(--display); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.vt-preis small { grid-column: 1 / -1; font: var(--schrift-1)/1.2 var(--serif); }
+.vt-preis.pump, .vt-preis.pump b { color: var(--siegel); }
+.vt-sperre { font: italic var(--schrift-3) var(--serif); color: var(--siegel); }
+
+/* ---------------------------------------------------------------- Schmal */
+@container (max-width: 619px) {
+  .vt-szene { grid-template-columns: auto minmax(0, 1fr); }
+  .vt-kern { grid-column: 1 / -1; }
+  .vt-marken-titel { min-width: 0; flex-basis: 100%; }
+  .vt-antwort p { padding-right: 0; padding-top: 1.8em; }
+}
+
+/* Die Waage braucht Breite: unter 820 px steht das Bild oben, die beiden Schalen nebeneinander darunter */
+@container (max-width: 819px) {
+  .vt-waage { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .vt-waage-mitte { grid-column: 1 / -1; order: -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-balken, .vt-schale-bild, .dossier .vt-karte, .vt-antwort, .vt-stempel { transition: none; animation: none; }
+}
