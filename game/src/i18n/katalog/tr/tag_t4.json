@@ -17,5 +17,9 @@
  "tag_t4.strasse.legende": "Baskı 0 ile 100 arasında. {schwelle} değerinden (çizgi) itibaren hareket doğabilir; ne kadar yukarıdaysa o kadar erken.",
  "tag_t4.strasse.groll": "Toplulukların öfkesi",
  "tag_t4.kom.legende": "Orada neler yapabileceğinizi görmek için bir şehre tıklayın. Kahverengi işaretli: ittifakınızın belediyeleri; kırmızı: kayyum yönetiminde.",
- "tag_t4.kom.region_lager": "{n} belediyeden {lager} tanesi ittifakınızda"
+ "tag_t4.kom.region_lager": "{n} belediyeden {lager} tanesi ittifakınızda",
+ "tag_t4.lage.gefaehrdet": "Risk altında: {name}",
+ "tag_t4.lage.gefaehrdet_meta": "ruh hâli {jetzt}, {ziel} değerine gidiyor",
+ "tag_t4.lage.gewinnbar": "Kazanılabilir: {name}",
+ "tag_t4.lage.gewinnbar_meta": "onay oranına {p} puan katar"
 }

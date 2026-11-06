@@ -11,6 +11,8 @@ import { aktuelleLocale, t } from "../../i18n";
 import { NET } from "../../sim/modell";
 import { nationalAverage } from "../../sim/netz";
 import { gesellschaftLage, milieuLage } from "../../sim/gesellschaft";
+import { wahlPrognose } from "../../sim/wahl";
+import { koalition } from "../../sim/waehler-detail";
 import { medienVon, rsfSicht, lizenzVon } from "../../sim/medien";
 import { MEDIEN_CLUSTER } from "../../data/medien";
 import { programmZustand, schrittMitProgramm } from "../../sim/programme";
@@ -184,13 +186,24 @@ function lageZeilen(w: World, b: BereichId): { kopf: string; zeilen: LageZeile[]
   const sp = w.spiel;
   if (!sp) return [];
   switch (b) {
-    case "gesellschaft":
+    case "gesellschaft": {
+      // Tagarbeit T4: Die Lage nennt auch die Antwort der Wählerkoalition (erwartetes Ergebnis, wer bröckelt, wer zu gewinnen ist);
+      // vorher standen hier nur die Milieus, und das Wichtigste des Bereichs fehlte
+      const p = wahlPrognose(w);
+      const k = koalition(w);
+      const waehler: LageZeile[] = [
+        { titel: t("medien.barometer.kopf"), meta: t("nacht_n2.prognose.spanne", { von: nf(p.von), bis: nf(p.bis) }), ton: p.von > 50 ? "gut" : p.bis < 50 ? "schlecht" : "mittel" },
+        ...(k.gefaehrdet ? [{ titel: t("tag_t4.lage.gefaehrdet", { name: k.gefaehrdet.name }), meta: t("tag_t4.lage.gefaehrdet_meta", { jetzt: nf(k.gefaehrdet.laune), ziel: nf(k.gefaehrdet.ziel) }), ton: "schlecht" as const }] : []),
+        ...(k.gewinnbar ? [{ titel: t("tag_t4.lage.gewinnbar", { name: k.gewinnbar.name }), meta: t("tag_t4.lage.gewinnbar_meta", { p: nf(k.gewinnbar.potenzial, 1) }), ton: "mittel" as const }] : []),
+      ];
       return [
+        { kopf: t("buehne.tab.waehler"), zeilen: waehler },
         {
           kopf: t("akte.b.lage.milieus"),
           zeilen: milieuLage(w).map((m) => ({ titel: t(`ges.milieu.${m.id}`), meta: t("akte.b.lage.milieuMeta", { s: m.stimmung, g: m.groll }), ton: ton(m.stimmung, 50, 35) })),
         },
       ];
+    }
     case "recht":
       return [
         {

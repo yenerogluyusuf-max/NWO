@@ -17,5 +17,9 @@
  "tag_t4.strasse.legende": "Pressure from 0 to 100. From {schwelle} (line) the movement can form; the further above, the sooner.",
  "tag_t4.strasse.groll": "Grievance of the communities",
  "tag_t4.kom.legende": "Click a city to see what you can do there. Marked brown: town halls held by your camp; red: under a state-appointed trustee.",
- "tag_t4.kom.region_lager": "{lager} of {n} town halls held by your camp"
+ "tag_t4.kom.region_lager": "{lager} of {n} town halls held by your camp",
+ "tag_t4.lage.gefaehrdet": "At risk: {name}",
+ "tag_t4.lage.gefaehrdet_meta": "mood {jetzt}, heading for {ziel}",
+ "tag_t4.lage.gewinnbar": "Within reach: {name}",
+ "tag_t4.lage.gewinnbar_meta": "would add {p} points of approval"
 }
