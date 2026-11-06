@@ -417,7 +417,7 @@ m("bildung", "m_lehrergehaelter", "Lehrergehälter", 45, 0.4, 3, "Bezahlung der 
 m("bildung", "m_schulbau", "Schulbau", 45, 0.3, 24, "Neue Schulen und kleinere Klassen.");
 m("bildung", "m_religioese_schulen", "Religiöse Schulen (İmam-Hatip)", 55, 0.1, 12, "Anteil staatlicher Schulen mit religiösem Schwerpunkt.");
 m("bildung", "m_berufsschulen", "Berufsschulen", 45, 0.2, 12, "Berufliche Bildung mit Betrieben zusammen.");
-m("bildung", "m_unigruendungen", "Neue Universitäten", 50, 0.2, 24, "Universitäten in jeder Provinz.");
+m("bildung", "m_unigruendungen", "Studienplätze an Hochschulen", 50, 0.2, 24, "Mehr Studienplätze an staatlichen Hochschulen. Jede Provinz hat schon eine Universität, es geht um Plätze und Lehrende.");
 m("bildung", "m_stipendien", "Stipendien", 35, 0.15, 6, "Unterstützung für Studierende aus ärmeren Familien.");
 m("bildung", "m_forschung", "Forschungsförderung", 30, 0.3, 12, "Geld für Forschung und Entwicklung.");
 m("bildung", "m_wissenschaftsfreiheit", "Wissenschaftsfreiheit", 40, 0.0, 12, "Unabhängigkeit der Universitäten bei Berufungen und Lehre.");
@@ -573,7 +573,7 @@ m("energie", "m_sakarya_phase3", "Sakarya Phase 3 (zweite FPU)", 20, 0.2, 24, "E
 m("energie", "m_akkuyu_ppa", "Akkuyu-Vertrag nachverhandeln", 40, 0.1, 6, "Den Abnahmevertrag mit Rosatom (12,35 US-Cent je kWh) neu verhandeln — die Differenz zum Marktpreis kostet grob eine Mrd. Dollar im Jahr, der Konflikt Moskau belastet.");
 m("energie", "m_heimische_kohle", "Heimische Kohle (Afşin-Elbistan)", 35, 0.1, 48, "Neue Blöcke am eigenen Kohlebecken (+688 MW) ersetzen Importkohle — gegen Klima, Luft und die Nachbarn vor Ort.");
 m("energie", "m_energieeffizienz", "Effizienz, Wärmepumpen, E-Mobilität", 25, 0.08, 36, "Programme gegen Verschwendung: eine Million E-Autos sparen ~0,9 Mrd. Dollar Importe im Jahr, zehn Prozent Wärmepumpen-Haushalte noch einmal ~1 Mrd.");
-m("energie", "m_preiswahrheit", "Preiswahrheit bei Energie", 25, -0.8, 3, "Subventionen abbauen und Staffeltarife einführen: spart bis zu ~600 Mrd. Lira im Jahr, treibt aber kurzfristig die Preise — der Politikpreis der Wahrheit.");
+m("energie", "m_preiswahrheit", "Preiswahrheit bei Energie", 25, -0.8, 3, "Subventionen weiter abbauen. Seit dem 4. April 2026 gilt für Gas ein Staffeltarif, Vielverbraucher zahlen mehr. Weitere Schritte sparen bis zu ~600 Mrd. Lira im Jahr, treiben aber kurzfristig die Preise — der Politikpreis der Wahrheit.");
 m("energie", "m_gashub", "Gas-Hub und Transit-Ausbau", 30, 0.08, 24, "TurkStream-Strang 2 und TANAP-Erweiterung: Transitgebühren und geopolitisches Gewicht, aber mehr Bindung an russisches Gas.");
 
 // Versorgungssicherheit und Abhängigkeit
@@ -773,7 +773,7 @@ m("wohnen", "m_bauaufsicht", "Bauaufsicht", 40, 0.05, 12, "Unabhängige Prüfung
 m("wohnen", "m_baukredite", "Günstige Baukredite", 35, 0.3, 3, "Zinsverbilligte Kredite für Wohnungskäufer.");
 m("wohnen", "m_bauamnestie", "Bauamnestie", 15, -0.1, 2, "Nachträgliche Legalisierung illegaler Bauten gegen Gebühr.");
 // INF-5: lang und teuer, dafür die wirksamste Vorsorge am Bestand; wie jede Maßnahme regional wählbar
-m("wohnen", "m_gebaeudeverstaerkung", "Gebäude-Verstärkungsprogramm", 20, 0.6, 48, "Ertüchtigung tausender gefährdeter Altbauten — die teuerste und wirksamste Vorsorge am Bestand.");
+m("wohnen", "m_gebaeudeverstaerkung", "Gebäude-Verstärkungsprogramm", 20, 0.6, 48, "Zuschuss für gefährdete Altbauten: Ertüchtigung oder, wie im Programm „Yarısı Bizden“, Abriss und Neubau, die Hälfte trägt der Staat. Die teuerste und wirksamste Vorsorge am Bestand.");
 m("wohnen", "m_versicherungspflicht", "Katastrophen-Pflichtversicherung", 35, 0.05, 12, "Alle Gebäude gegen Beben und Flut versichert (DASK-Vorbild); der Staat haftet weniger mit.");
 m("sicherheit", "m_fruehwarnsystem", "Frühwarnsystem", 25, 0.15, 18, "Sensoren und Sekundenwarnungen für Beben und Sturzfluten, direkt auf die Geräte der Menschen.");
 m("sicherheit", "m_afad_ausbau", "Ausbau der Katastrophenbehörde (AFAD)", 40, 0.25, 24, "Personal, Materiallager und regionale Stützpunkte der Katastrophenbehörde.");
@@ -1335,7 +1335,7 @@ ee("m_bauamnestie", "rechtssicherheit", -0.03, 6, "Wer Regeln bricht, wird beloh
 // Trägheit (Spielparameter): Unabhängigkeit wächst und bröckelt über Jahre — Ernennungspraxis und
 // Berufungswege ändern sich nicht mit einem Gesetz allein.
 g("recht", "justiz_unabhaengigkeit", "Unabhängigkeit der Justiz", 32, "Ob Richter und Staatsanwälte ohne Weisung und Druck entscheiden. Der Richterrat, den Präsident und Parlament besetzen, prägt sie.", 0.03, 2.5);
-g("recht", "justiz_kapazitaet", "Kapazität der Gerichte", 45, "Richter, Staatsanwälte und Gerichtssäle im Verhältnis zu den Verfahren. Die Türkei hat 17 Richter je 100.000 Einwohner, der europäische Schnitt liegt bei 22.", 0.03);
+g("recht", "justiz_kapazitaet", "Kapazität der Gerichte", 45, "Richter, Staatsanwälte und Gerichtssäle im Verhältnis zu den Verfahren. Die Türkei hat rund 21 Richter je 100.000 Einwohner (18.167 Richter im September 2026), der europäische Schnitt liegt bei 22.", 0.03);
 g("recht", "justiz_effizienz", "Effizienz der Verfahren", 50, "Wie schnell Verfahren enden. Strafgerichte brauchten 2024 im Schnitt 228, Zivilgerichte 231 Tage, die Vollstreckung 919.", 0.05);
 g("recht", "urteilsbefolgung", "Befolgung von Urteilen", 35, "Ob Behörden und Gerichte Urteile des Verfassungsgerichts und des Straßburger Gerichtshofs umsetzen. Das Verfahren im Fall Kavala läuft seit 2022 nach Artikel 46.", 0.03);
 g("recht", "haftueberfuellung", "Überfüllung der Haftanstalten", 71, "Im August 2026 saßen 433.520 Menschen auf 304.956 Plätzen, etwa 142 Prozent. Ein hoher Wert heißt mehr Überfüllung.", 0.02);

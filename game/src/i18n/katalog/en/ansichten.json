@@ -91,7 +91,7 @@
  "karte.region.dogu_anadolu": "Eastern Anatolia (Doğu Anadolu)",
  "karte.region.guneydogu_anadolu": "Southeastern Anatolia (Güneydoğu Anadolu)",
  "lernen.wann": "{n, plural, =0 {immediately} one {after # month} other {after # months}}",
- "lernen.art.massnahme": "A measure is a slider you decide on. Each step says what it means: a named state, a rate as for VAT, or the share of the level at the start of your term.",
+ "lernen.art.massnahme": "A measure is a slider you decide on. Each step says what it means: a named state, a rate as for VAT, or a real quantity such as lira a month or kilometres a year.",
  "lernen.art.groesse": "A quantity describes a state of the country. It changes through your measures, the economy and other quantities.",
  "lernen.art.problem": "A problem becomes acute when its value in a province reaches a threshold. It then weighs on trust and the voter groups there.",
  "lernen.art.gruppe": "A voter group shows how satisfied part of the population is with your policy. Its mood determines your approval and so the next election.",
